@@ -153,10 +153,18 @@ static void InitializeDeterministicWiiSaves(FS::FileSystem* session_fs,
     {
       INFO_LOG_FMT(CORE, "Wii Save Init: Copying from sync_fs to session_fs.");
 
-      for (const u64 title : sync_titles)
+      if (Movie::IsMovieActive() && !NetPlay::IsNetPlayRunning())
       {
-        INFO_LOG_FMT(CORE, "Wii Save Init: Copying {0:016x}.", title);
-        CopySave(sync_fs, session_fs, title);
+        INFO_LOG_FMT(CORE, "Wii Save Init: Copying {0:016x}.", title_id);
+        CopySave(sync_fs, session_fs, title_id);
+      }
+      else
+      {
+        for (const u64 title : sync_titles)
+        {
+          INFO_LOG_FMT(CORE, "Wii Save Init: Copying {0:016x}.", title);
+          CopySave(sync_fs, session_fs, title);
+        }
       }
 
       // Copy Mii data
@@ -170,10 +178,18 @@ static void InitializeDeterministicWiiSaves(FS::FileSystem* session_fs,
     {
       INFO_LOG_FMT(CORE, "Wii Save Init: Copying from configured_fs to session_fs.");
 
-      for (const u64 title : sync_titles)
+      if (Movie::IsMovieActive() && !NetPlay::IsNetPlayRunning())
       {
-        INFO_LOG_FMT(CORE, "Wii Save Init: Copying {0:016x}.", title);
-        CopySave(configured_fs.get(), session_fs, title);
+        INFO_LOG_FMT(CORE, "Wii Save Init: Copying {0:016x}.", title_id);
+        CopySave(configured_fs.get(), session_fs, title_id);
+      }
+      else
+      {
+        for (const u64 title : sync_titles)
+        {
+          INFO_LOG_FMT(CORE, "Wii Save Init: Copying {0:016x}.", title);
+          CopySave(configured_fs.get(), session_fs, title);
+        }
       }
 
       // Copy Mii data
