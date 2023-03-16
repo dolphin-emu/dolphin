@@ -146,58 +146,33 @@ static void InitializeDeterministicWiiSaves(FS::FileSystem* session_fs,
   if ((NetPlay::IsNetPlayRunning() && SConfig::GetInstance().bCopyWiiSaveNetplay) ||
       (Movie::IsMovieActive() && !Movie::IsStartingFromClearSave()))
   {
-    // Copy the current user's save to the Blank NAND
     auto* sync_fs = boot_session_data.GetWiiSyncFS();
     auto& sync_titles = boot_session_data.GetWiiSyncTitles();
-    if (sync_fs)
+
+    auto* source_fs = sync_fs ? sync_fs : configured_fs.get();
+    INFO_LOG_FMT(CORE, "Wii Save Init: Copying from {} to session_fs.",
+                 sync_fs ? "sync_fs" : "configured_fs");
+
+    // Copy the current user's save to the Blank NAND
+    if (Movie::IsMovieActive() && !NetPlay::IsNetPlayRunning())
     {
-      INFO_LOG_FMT(CORE, "Wii Save Init: Copying from sync_fs to session_fs.");
-
-      if (Movie::IsMovieActive() && !NetPlay::IsNetPlayRunning())
-      {
-        INFO_LOG_FMT(CORE, "Wii Save Init: Copying {0:016x}.", title_id);
-        CopySave(sync_fs, session_fs, title_id);
-      }
-      else
-      {
-        for (const u64 title : sync_titles)
-        {
-          INFO_LOG_FMT(CORE, "Wii Save Init: Copying {0:016x}.", title);
-          CopySave(sync_fs, session_fs, title);
-        }
-      }
-
-      // Copy Mii data
-      if (!CopyNandFile(sync_fs, Common::GetMiiDatabasePath(), session_fs,
-                        Common::GetMiiDatabasePath()))
-      {
-        WARN_LOG_FMT(CORE, "Failed to copy Mii database to the NAND");
-      }
+      INFO_LOG_FMT(CORE, "Wii Save Init: Copying {0:016x}.", title_id);
+      CopySave(source_fs, session_fs, title_id);
     }
     else
     {
-      INFO_LOG_FMT(CORE, "Wii Save Init: Copying from configured_fs to session_fs.");
+      for (const u64 title : sync_titles)
+      {
+        INFO_LOG_FMT(CORE, "Wii Save Init: Copying {0:016x}.", title);
+        CopySave(source_fs, session_fs, title);
+      }
+    }
 
-      if (Movie::IsMovieActive() && !NetPlay::IsNetPlayRunning())
-      {
-        INFO_LOG_FMT(CORE, "Wii Save Init: Copying {0:016x}.", title_id);
-        CopySave(configured_fs.get(), session_fs, title_id);
-      }
-      else
-      {
-        for (const u64 title : sync_titles)
-        {
-          INFO_LOG_FMT(CORE, "Wii Save Init: Copying {0:016x}.", title);
-          CopySave(configured_fs.get(), session_fs, title);
-        }
-      }
-
-      // Copy Mii data
-      if (!CopyNandFile(configured_fs.get(), Common::GetMiiDatabasePath(), session_fs,
-                        Common::GetMiiDatabasePath()))
-      {
-        WARN_LOG_FMT(CORE, "Failed to copy Mii database to the NAND");
-      }
+    // Copy Mii data
+    if (!CopyNandFile(source_fs, Common::GetMiiDatabasePath(), session_fs,
+                      Common::GetMiiDatabasePath()))
+    {
+      WARN_LOG_FMT(CORE, "Failed to copy Mii database to the NAND");
     }
 
     const auto& netplay_redirect_folder = boot_session_data.GetWiiSyncRedirectFolder();
