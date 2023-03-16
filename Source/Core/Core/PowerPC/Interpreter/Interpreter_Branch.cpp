@@ -24,7 +24,7 @@ void Interpreter::bx(Interpreter& interpreter, UGeckoInstruction inst)
   else
     PowerPC::ppcState.npc = PowerPC::ppcState.pc + address;
 
-  m_end_block = true;
+  interpreter.m_end_block = true;
 }
 
 // bcx - ugly, straight from PPC manual equations :)
@@ -54,7 +54,7 @@ void Interpreter::bcx(Interpreter& interpreter, UGeckoInstruction inst)
       PowerPC::ppcState.npc = PowerPC::ppcState.pc + address;
   }
 
-  m_end_block = true;
+  interpreter.m_end_block = true;
 }
 
 void Interpreter::bcctrx(Interpreter& interpreter, UGeckoInstruction inst)
@@ -72,7 +72,7 @@ void Interpreter::bcctrx(Interpreter& interpreter, UGeckoInstruction inst)
       LR(PowerPC::ppcState) = PowerPC::ppcState.pc + 4;
   }
 
-  m_end_block = true;
+  interpreter.m_end_block = true;
 }
 
 void Interpreter::bclrx(Interpreter& interpreter, UGeckoInstruction inst)
@@ -91,12 +91,12 @@ void Interpreter::bclrx(Interpreter& interpreter, UGeckoInstruction inst)
       LR(PowerPC::ppcState) = PowerPC::ppcState.pc + 4;
   }
 
-  m_end_block = true;
+  interpreter.m_end_block = true;
 }
 
 void Interpreter::HLEFunction(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  m_end_block = true;
+  interpreter.m_end_block = true;
 
   ASSERT(Core::IsCPUThread());
   Core::CPUThreadGuard guard(Core::System::GetInstance());
@@ -126,7 +126,7 @@ void Interpreter::rfi(Interpreter& interpreter, UGeckoInstruction inst)
   // else
   // set NPC to saved offset and resume
   PowerPC::ppcState.npc = SRR0(PowerPC::ppcState);
-  m_end_block = true;
+  interpreter.m_end_block = true;
 }
 
 // sc isn't really used for anything important in GameCube games (just for a write barrier) so we
@@ -136,5 +136,5 @@ void Interpreter::sc(Interpreter& interpreter, UGeckoInstruction inst)
 {
   PowerPC::ppcState.Exceptions |= EXCEPTION_SYSCALL;
   PowerPC::CheckExceptions();
-  m_end_block = true;
+  interpreter.m_end_block = true;
 }

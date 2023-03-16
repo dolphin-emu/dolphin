@@ -175,7 +175,7 @@ void Interpreter::mtmsr(Interpreter& interpreter, UGeckoInstruction inst)
   CheckFPExceptions(PowerPC::ppcState.fpscr);
 
   PowerPC::CheckExceptions();
-  m_end_block = true;
+  interpreter.m_end_block = true;
 }
 
 // Segment registers. MMU control.

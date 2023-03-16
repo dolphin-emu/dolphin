@@ -29,13 +29,6 @@
 
 namespace
 {
-u32 last_pc;
-}
-
-bool Interpreter::m_end_block;
-
-namespace
-{
 // Determines whether or not the given instruction is one where its execution
 // validity is determined by whether or not HID2's LSQE bit is set.
 // In other words, if the instruction is psq_l, psq_lu, psq_st, or psq_stu
@@ -63,13 +56,20 @@ bool IsInvalidPairedSingleExecution(UGeckoInstruction inst)
   return HID2(PowerPC::ppcState).PSE && !HID2(PowerPC::ppcState).LSQE &&
          IsPairedSingleQuantizedNonIndexedInstruction(inst);
 }
+}  // namespace
 
-void UpdatePC()
+void Interpreter::UpdatePC()
 {
-  last_pc = PowerPC::ppcState.pc;
+  m_last_pc = PowerPC::ppcState.pc;
   PowerPC::ppcState.pc = PowerPC::ppcState.npc;
 }
-}  // Anonymous namespace
+
+Interpreter::Interpreter(Core::System& system, PowerPC::PowerPCState& ppc_state)
+    : m_system(system), m_ppc_state(ppc_state)
+{
+}
+
+Interpreter::~Interpreter() = default;
 
 void Interpreter::Init()
 {
@@ -80,9 +80,7 @@ void Interpreter::Shutdown()
 {
 }
 
-static bool s_start_trace = false;
-
-static void Trace(const UGeckoInstruction& inst)
+void Interpreter::Trace(const UGeckoInstruction& inst)
 {
   std::string regs;
   for (size_t i = 0; i < std::size(PowerPC::ppcState.gpr); i++)
@@ -109,8 +107,8 @@ static void Trace(const UGeckoInstruction& inst)
 
 bool Interpreter::HandleFunctionHooking(u32 address)
 {
-  return HLE::ReplaceFunctionIfPossible(address, [](u32 hook_index, HLE::HookType type) {
-    HLEFunction(*Interpreter::getInstance(), hook_index);
+  return HLE::ReplaceFunctionIfPossible(address, [this](u32 hook_index, HLE::HookType type) {
+    HLEFunction(*this, hook_index);
     return type != HLE::HookType::Start;
   });
 }
@@ -135,14 +133,14 @@ int Interpreter::SingleStepInner()
   // if ((PowerPC::ppcState.pc & 0x00FFFFFF) >= 0x000AB54C &&
   //     (PowerPC::ppcState.pc & 0x00FFFFFF) <= 0x000AB624)
   // {
-  //   s_start_trace = true;
+  //   m_start_trace = true;
   // }
   // else
   // {
-  //   s_start_trace = false;
+  //   m_start_trace = false;
   // }
 
-  if (s_start_trace)
+  if (m_start_trace)
   {
     Trace(m_prev_inst);
   }
@@ -156,7 +154,7 @@ int Interpreter::SingleStepInner()
     }
     else if (PowerPC::ppcState.msr.FP)
     {
-      RunInterpreterOp(*Interpreter::getInstance(), m_prev_inst);
+      RunInterpreterOp(*this, m_prev_inst);
       if ((PowerPC::ppcState.Exceptions & EXCEPTION_DSI) != 0)
       {
         CheckExceptions();
@@ -172,7 +170,7 @@ int Interpreter::SingleStepInner()
       }
       else
       {
-        RunInterpreterOp(*Interpreter::getInstance(), m_prev_inst);
+        RunInterpreterOp(*this, m_prev_inst);
         if ((PowerPC::ppcState.Exceptions & EXCEPTION_DSI) != 0)
         {
           CheckExceptions();
@@ -319,6 +317,7 @@ void Interpreter::unknown_instruction(Interpreter& interpreter, UGeckoInstructio
   auto& system = Core::System::GetInstance();
   Core::CPUThreadGuard guard(system);
 
+  const u32 last_pc = interpreter.m_last_pc;
   const u32 opcode = PowerPC::HostRead_U32(guard, last_pc);
   const std::string disasm = Common::GekkoDisassembler::Disassemble(opcode, last_pc);
   NOTICE_LOG_FMT(POWERPC, "Last PC = {:08x} : {}", last_pc, disasm);
@@ -359,10 +358,4 @@ const char* Interpreter::GetName() const
 #else
   return "Interpreter32";
 #endif
-}
-
-Interpreter* Interpreter::getInstance()
-{
-  static Interpreter instance;
-  return &instance;
 }

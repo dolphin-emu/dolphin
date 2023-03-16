@@ -9,9 +9,25 @@
 #include "Core/PowerPC/CPUCoreBase.h"
 #include "Core/PowerPC/Gekko.h"
 
+namespace Core
+{
+class System;
+}
+namespace PowerPC
+{
+struct PowerPCState;
+}
+
 class Interpreter : public CPUCoreBase
 {
 public:
+  Interpreter(Core::System& system, PowerPC::PowerPCState& ppc_state);
+  Interpreter(const Interpreter&) = delete;
+  Interpreter(Interpreter&&) = delete;
+  Interpreter& operator=(const Interpreter&) = delete;
+  Interpreter& operator=(Interpreter&&) = delete;
+  ~Interpreter();
+
   void Init() override;
   void Shutdown() override;
   void SingleStep() override;
@@ -266,9 +282,6 @@ public:
   static Instruction GetInterpreterOp(UGeckoInstruction inst);
   static void RunInterpreterOp(Interpreter& interpreter, UGeckoInstruction inst);
 
-  // singleton
-  static Interpreter* getInstance();
-
   static void RunTable4(Interpreter& interpreter, UGeckoInstruction inst);
   static void RunTable19(Interpreter& interpreter, UGeckoInstruction inst);
   static void RunTable31(Interpreter& interpreter, UGeckoInstruction inst);
@@ -280,7 +293,7 @@ public:
 private:
   void CheckExceptions();
 
-  static bool HandleFunctionHooking(u32 address);
+  bool HandleFunctionHooking(u32 address);
 
   // flag helper
   static void Helper_UpdateCR0(u32 value);
@@ -290,7 +303,15 @@ private:
   static void Helper_FloatCompareOrdered(UGeckoInstruction inst, double a, double b);
   static void Helper_FloatCompareUnordered(UGeckoInstruction inst, double a, double b);
 
-  UGeckoInstruction m_prev_inst{};
+  void UpdatePC();
 
-  static bool m_end_block;
+  void Trace(const UGeckoInstruction& inst);
+
+  Core::System& m_system;
+  PowerPC::PowerPCState& m_ppc_state;
+
+  UGeckoInstruction m_prev_inst{};
+  u32 m_last_pc = 0;
+  bool m_end_block = false;
+  bool m_start_trace = false;
 };

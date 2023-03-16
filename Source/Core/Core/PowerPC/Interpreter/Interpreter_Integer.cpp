@@ -137,7 +137,7 @@ void Interpreter::twi(Interpreter& interpreter, UGeckoInstruction inst)
   {
     GenerateProgramException(ProgramExceptionCause::Trap);
     PowerPC::CheckExceptions();
-    m_end_block = true;  // Dunno about this
+    interpreter.m_end_block = true;  // Dunno about this
   }
 }
 
@@ -353,7 +353,7 @@ void Interpreter::tw(Interpreter& interpreter, UGeckoInstruction inst)
   {
     GenerateProgramException(ProgramExceptionCause::Trap);
     PowerPC::CheckExceptions();
-    m_end_block = true;  // Dunno about this
+    interpreter.m_end_block = true;  // Dunno about this
   }
 }
 

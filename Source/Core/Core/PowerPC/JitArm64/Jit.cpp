@@ -199,7 +199,7 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
 
   Interpreter::Instruction instr = Interpreter::GetInterpreterOp(inst);
   MOVP2R(ARM64Reg::X8, instr);
-  MOVP2R(ARM64Reg::W0, Interpreter::getInstance());
+  MOVP2R(ARM64Reg::W0, &Core::System::GetInstance().GetInterpreter());
   MOVI2R(ARM64Reg::W1, inst.hex);
   BLR(ARM64Reg::X8);
 

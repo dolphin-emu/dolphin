@@ -109,7 +109,8 @@ void CachedInterpreter::ExecuteOneBlock()
       break;
 
     case Instruction::Type::Interpreter:
-      code->interpreter_callback(*Interpreter::getInstance(), UGeckoInstruction(code->data));
+      code->interpreter_callback(Core::System::GetInstance().GetInterpreter(),
+                                 UGeckoInstruction(code->data));
       break;
 
     default:

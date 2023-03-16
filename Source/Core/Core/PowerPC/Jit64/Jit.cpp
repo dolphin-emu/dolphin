@@ -344,7 +344,7 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
 
   Interpreter::Instruction instr = Interpreter::GetInterpreterOp(inst);
   ABI_PushRegistersAndAdjustStack({}, 0);
-  ABI_CallFunctionPC(instr, Interpreter::getInstance(), inst.hex);
+  ABI_CallFunctionPC(instr, &Core::System::GetInstance().GetInterpreter(), inst.hex);
   ABI_PopRegistersAndAdjustStack({}, 0);
 
   // If the instruction wrote to any registers which were marked as discarded,
