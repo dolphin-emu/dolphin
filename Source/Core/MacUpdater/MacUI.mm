@@ -139,6 +139,12 @@ void UI::Init()
 {
 }
 
+// test-updater.py only works on Windows.
+bool UI::IsTestMode()
+{
+  return false;
+}
+
 bool Platform::VersionCheck(const std::vector<TodoList::UpdateOp>& to_update,
                             const std::string& install_base_path, const std::string& temp_dir)
 {
