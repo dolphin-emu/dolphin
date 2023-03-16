@@ -34,6 +34,7 @@ enum class System
   FreeLook,
   Session,
   GameSettingsOnly,
+  Achievements,
 };
 
 constexpr std::array<LayerType, 7> SEARCH_ORDER{{

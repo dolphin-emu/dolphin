@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "Common/Config/Config.h"
+#include "Core/Config/AchievementSettings.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/UISettings.h"
@@ -37,6 +38,12 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::WIIMOTE_3_SOURCE.GetLocation(),
       &Config::WIIMOTE_4_SOURCE.GetLocation(),
       &Config::WIIMOTE_BB_SOURCE.GetLocation(),
+
+      // Achievements
+
+      &Config::RA_ENABLED.GetLocation(),
+      &Config::RA_USERNAME.GetLocation(),
+      &Config::RA_API_TOKEN.GetLocation(),
   };
 
   return std::any_of(begin(s_setting_saveable), end(s_setting_saveable),

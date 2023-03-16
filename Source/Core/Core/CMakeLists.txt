@@ -21,6 +21,8 @@ add_library(core
   CheatSearch.cpp
   CheatSearch.h
   CommonTitles.h
+  Config/AchievementSettings.cpp
+  Config/AchievementSettings.h
   Config/DefaultLocale.cpp
   Config/DefaultLocale.h
   Config/FreeLookSettings.cpp

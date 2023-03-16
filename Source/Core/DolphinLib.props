@@ -172,6 +172,7 @@
     <ClInclude Include="Core\CheatGeneration.h" />
     <ClInclude Include="Core\CheatSearch.h" />
     <ClInclude Include="Core\CommonTitles.h" />
+    <ClInclude Include="Core\Config\AchievementSettings.h" />
     <ClInclude Include="Core\Config\DefaultLocale.h" />
     <ClInclude Include="Core\Config\FreeLookSettings.h" />
     <ClInclude Include="Core\Config\GraphicsSettings.h" />
@@ -805,6 +806,7 @@
     <ClCompile Include="Core\BootManager.cpp" />
     <ClCompile Include="Core\CheatGeneration.cpp" />
     <ClCompile Include="Core\CheatSearch.cpp" />
+    <ClCompile Include="Core\Config\AchievementSettings.cpp" />
     <ClCompile Include="Core\Config\DefaultLocale.cpp" />
     <ClCompile Include="Core\Config\FreeLookSettings.cpp" />
     <ClCompile Include="Core\Config\GraphicsSettings.cpp" />
