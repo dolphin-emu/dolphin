@@ -310,102 +310,110 @@ static void Helper_Dequantize(PowerPC::PowerPCState* ppcs, u32 addr, u32 instI, 
 
 void Interpreter::psq_l(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  if (HID2(PowerPC::ppcState).LSQE == 0)
+  auto& ppc_state = interpreter.m_ppc_state;
+  if (HID2(ppc_state).LSQE == 0)
   {
     GenerateProgramException(ProgramExceptionCause::IllegalInstruction);
     return;
   }
 
-  const u32 EA = inst.RA ? (PowerPC::ppcState.gpr[inst.RA] + u32(inst.SIMM_12)) : u32(inst.SIMM_12);
-  Helper_Dequantize(&PowerPC::ppcState, EA, inst.I, inst.RD, inst.W);
+  const u32 EA = inst.RA ? (ppc_state.gpr[inst.RA] + u32(inst.SIMM_12)) : u32(inst.SIMM_12);
+  Helper_Dequantize(&ppc_state, EA, inst.I, inst.RD, inst.W);
 }
 
 void Interpreter::psq_lu(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  if (HID2(PowerPC::ppcState).LSQE == 0)
+  auto& ppc_state = interpreter.m_ppc_state;
+  if (HID2(ppc_state).LSQE == 0)
   {
     GenerateProgramException(ProgramExceptionCause::IllegalInstruction);
     return;
   }
 
-  const u32 EA = PowerPC::ppcState.gpr[inst.RA] + u32(inst.SIMM_12);
-  Helper_Dequantize(&PowerPC::ppcState, EA, inst.I, inst.RD, inst.W);
+  const u32 EA = ppc_state.gpr[inst.RA] + u32(inst.SIMM_12);
+  Helper_Dequantize(&ppc_state, EA, inst.I, inst.RD, inst.W);
 
-  if ((PowerPC::ppcState.Exceptions & EXCEPTION_DSI) != 0)
+  if ((ppc_state.Exceptions & EXCEPTION_DSI) != 0)
   {
     return;
   }
 
-  PowerPC::ppcState.gpr[inst.RA] = EA;
+  ppc_state.gpr[inst.RA] = EA;
 }
 
 void Interpreter::psq_st(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  if (HID2(PowerPC::ppcState).LSQE == 0)
+  auto& ppc_state = interpreter.m_ppc_state;
+  if (HID2(ppc_state).LSQE == 0)
   {
     GenerateProgramException(ProgramExceptionCause::IllegalInstruction);
     return;
   }
 
-  const u32 EA = inst.RA ? (PowerPC::ppcState.gpr[inst.RA] + u32(inst.SIMM_12)) : u32(inst.SIMM_12);
-  Helper_Quantize(&PowerPC::ppcState, EA, inst.I, inst.RS, inst.W);
+  const u32 EA = inst.RA ? (ppc_state.gpr[inst.RA] + u32(inst.SIMM_12)) : u32(inst.SIMM_12);
+  Helper_Quantize(&ppc_state, EA, inst.I, inst.RS, inst.W);
 }
 
 void Interpreter::psq_stu(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  if (HID2(PowerPC::ppcState).LSQE == 0)
+  auto& ppc_state = interpreter.m_ppc_state;
+  if (HID2(ppc_state).LSQE == 0)
   {
     GenerateProgramException(ProgramExceptionCause::IllegalInstruction);
     return;
   }
 
-  const u32 EA = PowerPC::ppcState.gpr[inst.RA] + u32(inst.SIMM_12);
-  Helper_Quantize(&PowerPC::ppcState, EA, inst.I, inst.RS, inst.W);
+  const u32 EA = ppc_state.gpr[inst.RA] + u32(inst.SIMM_12);
+  Helper_Quantize(&ppc_state, EA, inst.I, inst.RS, inst.W);
 
-  if ((PowerPC::ppcState.Exceptions & EXCEPTION_DSI) != 0)
+  if ((ppc_state.Exceptions & EXCEPTION_DSI) != 0)
   {
     return;
   }
 
-  PowerPC::ppcState.gpr[inst.RA] = EA;
+  ppc_state.gpr[inst.RA] = EA;
 }
 
 void Interpreter::psq_lx(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  const u32 EA = inst.RA ? (PowerPC::ppcState.gpr[inst.RA] + PowerPC::ppcState.gpr[inst.RB]) :
-                           PowerPC::ppcState.gpr[inst.RB];
-  Helper_Dequantize(&PowerPC::ppcState, EA, inst.Ix, inst.RD, inst.Wx);
+  auto& ppc_state = interpreter.m_ppc_state;
+  const u32 EA =
+      inst.RA ? (ppc_state.gpr[inst.RA] + ppc_state.gpr[inst.RB]) : ppc_state.gpr[inst.RB];
+  Helper_Dequantize(&ppc_state, EA, inst.Ix, inst.RD, inst.Wx);
 }
 
 void Interpreter::psq_stx(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  const u32 EA = inst.RA ? (PowerPC::ppcState.gpr[inst.RA] + PowerPC::ppcState.gpr[inst.RB]) :
-                           PowerPC::ppcState.gpr[inst.RB];
-  Helper_Quantize(&PowerPC::ppcState, EA, inst.Ix, inst.RS, inst.Wx);
+  auto& ppc_state = interpreter.m_ppc_state;
+  const u32 EA =
+      inst.RA ? (ppc_state.gpr[inst.RA] + ppc_state.gpr[inst.RB]) : ppc_state.gpr[inst.RB];
+  Helper_Quantize(&ppc_state, EA, inst.Ix, inst.RS, inst.Wx);
 }
 
 void Interpreter::psq_lux(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  const u32 EA = PowerPC::ppcState.gpr[inst.RA] + PowerPC::ppcState.gpr[inst.RB];
-  Helper_Dequantize(&PowerPC::ppcState, EA, inst.Ix, inst.RD, inst.Wx);
+  auto& ppc_state = interpreter.m_ppc_state;
+  const u32 EA = ppc_state.gpr[inst.RA] + ppc_state.gpr[inst.RB];
+  Helper_Dequantize(&ppc_state, EA, inst.Ix, inst.RD, inst.Wx);
 
-  if ((PowerPC::ppcState.Exceptions & EXCEPTION_DSI) != 0)
+  if ((ppc_state.Exceptions & EXCEPTION_DSI) != 0)
   {
     return;
   }
 
-  PowerPC::ppcState.gpr[inst.RA] = EA;
+  ppc_state.gpr[inst.RA] = EA;
 }
 
 void Interpreter::psq_stux(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  const u32 EA = PowerPC::ppcState.gpr[inst.RA] + PowerPC::ppcState.gpr[inst.RB];
-  Helper_Quantize(&PowerPC::ppcState, EA, inst.Ix, inst.RS, inst.Wx);
+  auto& ppc_state = interpreter.m_ppc_state;
+  const u32 EA = ppc_state.gpr[inst.RA] + ppc_state.gpr[inst.RB];
+  Helper_Quantize(&ppc_state, EA, inst.Ix, inst.RS, inst.Wx);
 
-  if ((PowerPC::ppcState.Exceptions & EXCEPTION_DSI) != 0)
+  if ((ppc_state.Exceptions & EXCEPTION_DSI) != 0)
   {
     return;
   }
 
-  PowerPC::ppcState.gpr[inst.RA] = EA;
+  ppc_state.gpr[inst.RA] = EA;
 }
