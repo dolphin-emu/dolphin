@@ -469,7 +469,7 @@ void Interpreter::ps_cmpu0(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& a = PowerPC::ppcState.ps[inst.FA];
   const auto& b = PowerPC::ppcState.ps[inst.FB];
 
-  Helper_FloatCompareUnordered(inst, a.PS0AsDouble(), b.PS0AsDouble());
+  Helper_FloatCompareUnordered(PowerPC::ppcState, inst, a.PS0AsDouble(), b.PS0AsDouble());
 }
 
 void Interpreter::ps_cmpo0(Interpreter& interpreter, UGeckoInstruction inst)
@@ -477,7 +477,7 @@ void Interpreter::ps_cmpo0(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& a = PowerPC::ppcState.ps[inst.FA];
   const auto& b = PowerPC::ppcState.ps[inst.FB];
 
-  Helper_FloatCompareOrdered(inst, a.PS0AsDouble(), b.PS0AsDouble());
+  Helper_FloatCompareOrdered(PowerPC::ppcState, inst, a.PS0AsDouble(), b.PS0AsDouble());
 }
 
 void Interpreter::ps_cmpu1(Interpreter& interpreter, UGeckoInstruction inst)
@@ -485,7 +485,7 @@ void Interpreter::ps_cmpu1(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& a = PowerPC::ppcState.ps[inst.FA];
   const auto& b = PowerPC::ppcState.ps[inst.FB];
 
-  Helper_FloatCompareUnordered(inst, a.PS1AsDouble(), b.PS1AsDouble());
+  Helper_FloatCompareUnordered(PowerPC::ppcState, inst, a.PS1AsDouble(), b.PS1AsDouble());
 }
 
 void Interpreter::ps_cmpo1(Interpreter& interpreter, UGeckoInstruction inst)
@@ -493,5 +493,5 @@ void Interpreter::ps_cmpo1(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& a = PowerPC::ppcState.ps[inst.FA];
   const auto& b = PowerPC::ppcState.ps[inst.FB];
 
-  Helper_FloatCompareOrdered(inst, a.PS1AsDouble(), b.PS1AsDouble());
+  Helper_FloatCompareOrdered(PowerPC::ppcState, inst, a.PS1AsDouble(), b.PS1AsDouble());
 }
