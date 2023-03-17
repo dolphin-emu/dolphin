@@ -65,14 +65,6 @@ if(MACOS_CODE_SIGNING)
     set(MACOS_CODE_SIGNING_IDENTITY_UPDATER "${MACOS_CODE_SIGNING_IDENTITY}")
   endif()
 
-  # Make file build code sign
   add_custom_command(TARGET MacUpdater POST_BUILD
-    COMMAND test ${MacUpdater_BUNDLE_PATH} || /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY_UPDATER}" --deep --options runtime ${MacUpdater_BUNDLE_PATH})
-  
-  # Xcode build code sign
-  add_custom_command(TARGET MacUpdater POST_BUILD
-    COMMAND test "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}/${MacUpdater_NAME}.app" || /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY_UPDATER}" --deep --options runtime "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}/${MacUpdater_NAME}.app")
-    
-  add_custom_command(TARGET MacUpdater POST_BUILD
-    COMMAND test "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}/${MacUpdater_NAME}.app" || /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY_UPDATER}" --deep --options runtime "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}/${MacUpdater_NAME}.app")
+    COMMAND /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY_UPDATER}" --deep --options runtime $<TARGET_BUNDLE_DIR:MacUpdater>)
 endif()
