@@ -1,57 +1,256 @@
-dolphin:importModule("GraphicsAPI", "1.0")
+require ("graphics")
 require ("emu")
 
-function callback()
-	print("In the callback from clicking the button...")
+totalTests = 0
+testsFailed = 0
+testsPassed = 0
+questionNum = 1
+YES = 0
+NO = 1
+CORRECT_CHECKBOX = 5
+submittedName = false
+name = ""
+CHECKBOX_LOCKED_TEST_ID = 77
+TEXTBOX_LOCKED_TEST_ID = 78
+RADIO_GROUP_LOCKED_TEST_ID = 79
+pressedButtonCheckbox = false
+
+function submitButtonClickedFunction()
+	answer = graphics:getRadioButtonGroupValue(42)
+	if answer == YES then
+		testsPassed = testsPassed + 1
+	else
+		testsFailed = testsFailed + 1
+	end	
+	totalTests = totalTests + 1
+	questionNum = questionNum + 1
 end
 
-startPos = 0;
-while true do
-	emu:frameAdvance()
-	--GraphicsAPI:drawLine(45.7, 300.0, 1000.1, 300.0, 8.0, "0x50903fff")
-	--GraphicsAPI:drawFilledRectangle(400.0, 400.0, 800.0, 800.0, "red")
-	--GraphicsAPI:drawEmptyRectangle(400.0, 400.0, 800.0, 800.0, 10.0, "green")
-	--GraphicsAPI:drawEmptyTriangle(50.0, 700.0, 700.0, 700.0, 375.0, 200.0, 6.0, "green")
-	--GraphicsAPI:drawFilledTriangle(50.7, 700.0, 700.0, 700.0, 375.0, 200.0, "green")
-	--GraphicsAPI:drawEmptyCircle(200.0, 200.0, 150.0, "red", 5.0)
-	--GraphicsAPI:drawFilledCircle(200.0, 200.0, 150.0, "yellow")
-	--GraphicsAPI:drawEmptyPolygon({ {400.0, 400.0}, {500.0, 500.0}, {700.0, 500.0}, {800.0, 400.0}, {700.0, 300.0}, {500.0, 300.0}}, 12.3, "red")
-	--GraphicsAPI:drawFilledPolygon({ {400.0, 400.0}, {500.0, 500.0}, {700.0, 500.0}, {800.0, 400.0}, {700.0, 300.0}, {500.0, 300.0}}, "green")
-	--GraphicsAPI:drawText(100.0, 150.0, "green", "Hello World!")
-	--GraphicsAPI:drawEmptyArc(700.0, 600.0, 800.0, 200.0, 1200.0, 200.0, 1100.0, 600.0, 0)
-	--GraphicsAPI:drawEmptyArc(700.0, 600.0, 600.0, 1000.0, 1000.0, 1000.0, 1100.0, 600.0, 0)
-
-	
-	--GraphicsAPI:drawEmptyPolygon({ {400.0, 400.0}, {500.0, 500.0}, {700.0, 500.0}, {800.0, 400.0}, {700.0, 300.0}, {500.0, 300.0}}, 12.3, "red")
-	--GraphicsAPI:drawEmptyTriangle(300.0, 0.0, 200.0, 200.0, 100.0, 100.0, 4.0, "blue")
-	--GraphicsAPI:drawEmptyCircle(300.0, 300.0, 240.0, "green", 3.0)
-	--GraphicsAPI:beginWindow("OuterWindow")
-
-	--GraphicsAPI:addRadioButtonGroup(30)
-	--GraphicsAPI:addRadioButton("Apples", 30, 0)
-	--GraphicsAPI:addRadioButton("Bananas", 30, 1)
-	--GraphicsAPI:addRadioButton("Carrots", 30, 2)
-	
-	--GraphicsAPI:addRadioButtonGroup(20)
-	--GraphicsAPI:addRadioButton("Ice Cream", 20, 0)
-	--GraphicsAPI:addRadioButton("Sherbert", 20, 1)
-	
-	--GraphicsAPI:setRadioButtonGroupValue(20, 1)
-	--temp = GraphicsAPI:getRadioButtonGroupValue(20)
-	--GraphicsAPI:setRadioButtonGroupValue(30, temp)
-	--GraphicsAPI:endWindow()
-	--GraphicsAPI:drawEmptyCircle(100.0, 100.0, 100.0, "red", 4.0)
-	
-	--GraphicsAPI:drawFilledRectangle(400.0, 400.0, 800.0, 800.0, "red")
-	
-	GraphicsAPI:beginWindow("TestWindow")
-	GraphicsAPI:addButton("TestButton", 42, callback, 300.0, 100.0)
-	GraphicsAPI:addTextBox(42, "Test TextBox")
-	temp = GraphicsAPI:getTextBoxValue(42)
-	if temp == "Run the callback!" then
-		GraphicsAPI:setTextBoxValue(42, "")
-		GraphicsAPI:pressButton(42)
+function checkboxSubmittedFunction()
+	answer = graphics:getCheckboxValue(CORRECT_CHECKBOX)
+	if answer then
+		testsPassed = testsPassed + 1
+	else
+		testsFailed = testsFailed + 1
 	end
-	GraphicsAPI:endWindow()
+	totalTests = totalTests + 1
+	questionNum = questionNum + 1
+end
+
+function submittedNameFunction()
+	submittedName = true
+	name = graphics:getTextBoxValue(42)
+end
+
+function submitLockedInputAnswersFunction()
+	answer = graphics:getCheckboxValue(CHECKBOX_LOCKED_TEST_ID)
+	if answer then
+		testsPassed = testsPassed + 1
+	else
+		testsFailed = testsFailed + 1
+	end
+	
+	answer = graphics:getCheckboxValue(TEXTBOX_LOCKED_TEST_ID)
+	if answer then
+		testsPassed = testsPassed + 1
+	else
+		testsFailed = testsFailed + 1
+	end
+	
+	answer = graphics:getCheckboxValue(RADIO_GROUP_LOCKED_TEST_ID)
+	if answer then
+		testsPassed = testsPassed + 1
+	else
+		testsFailed = testsFailed + 1
+	end
+	totalTests = totalTests + 3
+	questionNum  = questionNum + 1
+end
+
+function PressTestButton()
+	pressedButtonCheckbox = true
+end
+function DrawHouse()
+	graphics:drawTriangle( 460, 230, 660, 230, 560, 100, 15, "black", "0Xe6000dff")
+
+	graphics:drawRectangle(800, 800, 300, 360, 3, "black", "TURQUOISE") -- house
+	
+	graphics:drawRectangle(350, 730, 450, 630, 3, "black", "yellow") -- lower left window
+	graphics:drawLine(400, 730, 400, 630, 3, "black")
+	graphics:drawLine(350, 680, 450, 680, 3, "black")
+	
+	graphics:drawRectangle(650, 730, 750, 630, 3, "black", "yellow") -- lower right window
+	graphics:drawLine(700, 730, 700, 630, 3, "black")
+	graphics:drawLine(650, 680, 750, 680, 3, "black")
+	
+	graphics:drawRectangle(350, 525, 450, 425, 3, "black", "yellow") -- upper left window
+	graphics:drawLine(400, 525, 400, 425, 3, "black")
+	graphics:drawLine(350, 475, 450, 475, 3,  "black")
+	
+	graphics:drawRectangle(650, 525, 750, 425, 3, "black", "yellow") -- upper right window
+	graphics:drawLine(700, 525, 700, 425, 3, "black")
+	graphics:drawLine(650, 475, 750, 475, 3, "black")
+	
+	graphics:drawRectangle(505, 800, 605, 600, 3, "black", "brown") -- door
+	graphics:drawCircle(580, 700, 15, 3, "black", "golden")
+	graphics:drawCircle(580, 700, 5, 3, "black", "golden")
+	
+	graphics:drawRectangle(450, 800, 650, 900, 3, "white", "black") -- welcome matt
+	graphics:drawText(500, 835, "white", "Welcome!")
+	
+	graphics:drawPolygon( {  {250, 399}, {450, 150}, {650, 150}, {850, 399}}, 2, "black", "red")    --roof
+	graphics:drawTriangle( 460, 230, 660, 230, 560, 100, 15, "black", "0Xe6002dff")
+	graphics:drawRectangle(535, 200, 590, 175, 3, "black", "golden")
 	
 end
+
+
+function CreateHouseQuizWindow()
+	graphics:beginWindow("Questions Window")
+	questionText = tostring(questionNum) .. ". "
+	if questionNum == 1 then
+		questionText = questionText .. "Do you see a house drawn on the screen?"
+	elseif questionNum == 2 then
+		questionText = questionText .. "Do you see a house drawn in this window?"
+	elseif questionNum == 3 then
+		questionText = questionText .. "Do you see a house drawn inside the nested subwindow?"
+	end
+	graphics:drawText(250, 2, "white", questionText)
+	graphics:addRadioButtonGroup(42)
+	graphics:addRadioButton("Yes", 42, YES)
+	graphics:addRadioButton("No", 42, NO)
+	graphics:addButton("Submit", 42, submitButtonClickedFunction, 200, 100)
+	if questionNum == 2 then
+		DrawHouse()
+	elseif questionNum == 3 then
+		graphics:beginWindow("Nested Window")
+		DrawHouse()
+		graphics:endWindow()
+	end
+	graphics:endWindow()
+	
+	if questionNum == 1 then
+		DrawHouse()
+	end
+end
+
+function CreateCheckboxQuizWindow()
+	graphics:beginWindow("Questions Window")
+	questionText = tostring(questionNum) .. ". "
+	questionText = questionText .. "Click on the checkbox labeled: \"Correct Answer\""
+	graphics:drawText(450, 2, "white", questionText)
+	graphics:addCheckbox("First Wrong Answer", 3)
+	graphics:addCheckbox("Second Wrong Answer", 4)
+	graphics:addCheckbox("Correct Answer", CORRECT_CHECKBOX)
+	graphics:addCheckbox("Third Wrong Answer", 6)
+	graphics:addButton("Submit", 42, checkboxSubmittedFunction, 200, 100)
+	graphics:endWindow()
+end
+
+function CreateTextboxQuizWindow()
+	graphics:beginWindow("Questions Window")
+	questionText = tostring(questionNum) .. ". "
+	if not submittedName then
+		questionText = questionText .. "Type your name in the box:"
+		graphics:drawText(450, 100, "white", questionText)
+		graphics:addTextBox(42, "Name")
+		graphics:addButton("Submit", 24, submittedNameFunction, 200, 100)
+	else
+		questionText = questionText .. "Is your name correctly displayed on the screen?"
+		graphics:drawText(450, 2, "white", questionText)
+		graphics:drawText(450, 200, "yellow", name)
+		graphics:addRadioButtonGroup(42)
+		graphics:addRadioButton("Yes", 42, YES)
+		graphics:addRadioButton("No", 42, NO)
+		graphics:addButton("Submit", 42, submitButtonClickedFunction, 200, 100)
+	end
+	graphics:endWindow()
+end
+
+function CreateLockedInputTest()
+	graphics:beginWindow("Questions Window")
+	questionText = tostring(questionNum) .. ". "
+	questionText = questionText .. "Check off each of the checkboxes which is true:"
+	graphics:drawText(550, 10, "white", questionText)
+	
+	graphics:addCheckbox("Overwriting Checkbox (A)", 20)
+	graphics:addCheckbox("Overwritten Checkbox (B)", 10)
+	graphics:setCheckboxValue(10, graphics:getCheckboxValue(20))
+	
+	graphics:addTextBox(15, "Overwriting Textbox (A)")
+	graphics:addTextBox(17, "Overwritten Textbox (B)")
+	graphics:setTextBoxValue(17, graphics:getTextBoxValue(15))
+	
+	graphics:addRadioButtonGroup(13)
+	graphics:addRadioButton("Ice Cream", 13, 0)
+	graphics:addRadioButton("Sugar", 13, 1)
+	graphics:addRadioButton("Peas", 13, 2)
+	
+	graphics:addRadioButtonGroup(14)
+	graphics:addRadioButton("Bike", 14, 0)
+	graphics:addRadioButton("Chair", 14, 1)
+	graphics:addRadioButton("Car", 14, 2)
+	
+	graphics:setRadioButtonGroupValue(14, graphics:getRadioButtonGroupValue(13))
+	
+	graphics:addCheckbox("Does Clicking/unclicking checkbox A cause checkbox B to be clicked/unclicked in the same way?", 77)
+	graphics:addCheckbox("Does writing text in textbox A cause textbox B to be overwritten with the same text (but not vice-versa)?", 78)
+	graphics:addCheckbox("Does clicking on a radio button from the group of foods cause the same radio button to be clicked from the group of objects?", 79)
+	graphics:addButton("Submit Answers", 55, submitLockedInputAnswersFunction, 300, 100)
+	graphics:endWindow()
+end
+
+function CreateButtonPressTest()
+	graphics:beginWindow("Questions Window")
+	if not pressedButtonCheckbox then
+		graphics:addCheckbox("Click on this checkbox...", 66)
+		if graphics:getCheckboxValue(66) then
+			graphics:addButton("Test Button", 100, PressTestButton, 200, 100)
+			graphics:pressButton(100)
+		end
+	else
+		questionText = tostring(questionNum) .. ". "
+		questionText = questionText .. "Do you see the string \"Hello World!\" on screen now?"
+		graphics:drawText(400, 10, "white", questionText)
+		graphics:drawText(400, 200, "yellow", "Hello World!")
+		graphics:addRadioButtonGroup(42)
+		graphics:addRadioButton("Yes", 42, YES)
+		graphics:addRadioButton("No", 42, NO)
+		graphics:addButton("Submit", 42, submitButtonClickedFunction, 200, 100)
+	end
+	graphics:endWindow()
+end
+
+
+function CreateQuizWindow()
+	if (questionNum >= 1 and questionNum <= 3) then
+		CreateHouseQuizWindow()
+	elseif questionNum == 4 then
+		CreateCheckboxQuizWindow()
+	elseif questionNum == 5 then
+		CreateTextboxQuizWindow()
+	elseif questionNum == 6 then
+		CreateLockedInputTest()
+	elseif questionNum == 7 then
+		CreateButtonPressTest()
+	end
+end
+
+function mainLoop()
+	while true do
+		CreateQuizWindow()
+		if questionNum >= 8 then
+			return
+		end
+		emu:frameAdvance()
+	end
+end
+
+file = io.open("LuaExamplesAndTests/TestResults/GraphicsTestResults.txt", "w")
+io.output(file)
+mainLoop()
+io.write("Total Tests Run: " .. tostring(totalTests) .. "\n")
+io.write("\tTests Passed: " .. tostring(testsPassed) .. "\n")
+io.write("\tTests Failed: " .. tostring(testsFailed))
+io.flush()
+io.close()

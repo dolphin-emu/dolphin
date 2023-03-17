@@ -62,10 +62,10 @@ static std::array all_graphics_functions_metadata_list = {
          ArgTypeEnum::Float, ArgTypeEnum::Float, ArgTypeEnum::String}),
 
     FunctionMetadata("drawEmptyCircle", "1.0",
-                     "drawEmptyCircle(centerX, centerY, radius, colorString, thickness)",
+                     "drawEmptyCircle(centerX, centerY, radius, thickness, colorString)",
                      DrawEmptyCircle, ArgTypeEnum::VoidType,
                      {ArgTypeEnum::Float, ArgTypeEnum::Float, ArgTypeEnum::Float,
-                      ArgTypeEnum::String, ArgTypeEnum::Float}),
+                      ArgTypeEnum::Float, ArgTypeEnum::String}),
 
     FunctionMetadata(
         "drawFilledCircle", "1.0", "drawFillecCircle(centerX, centerY, radius, fillColorString)",
@@ -109,28 +109,6 @@ static std::array all_graphics_functions_metadata_list = {
   FunctionMetadata("beginWindow", "1.0", "beginWindow(windowName)", BeginWindow, ArgTypeEnum::VoidType,
                      {ArgTypeEnum::String}),
   FunctionMetadata("endWindow", "1.0", "endWindow()", EndWindow, ArgTypeEnum::VoidType, {})};
-
-static bool IsEqualIgnoreCase(const char* string_1, const char* string_2)
-{
-  int index = 0;
-  while (string_1[index] != '\0')
-  {
-    if (string_1[index] != string_2[index])
-    {
-      char first_char = string_1[index];
-      if (first_char >= 65 && first_char <= 90)
-        first_char += 32;
-      char second_char = string_2[index];
-      if (second_char >= 65 && second_char <= 90)
-        second_char += 32;
-      if (first_char != second_char)
-        return false;
-    }
-    ++index;
-  }
-
-  return string_2[index] == '\0';
-}
 
 u32 ParseColor(const char* color_string)
 {
@@ -211,20 +189,7 @@ u32 ParseColor(const char* color_string)
 
     return ImGui::GetColorU32(ImVec4(red_float, green_float, blue_float, brightness_float));
   }
-  else if (IsEqualIgnoreCase(color_string, "red"))
-    return ImGui::GetColorU32(ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
-  else if (IsEqualIgnoreCase(color_string, "green"))
-    return ImGui::GetColorU32(ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
-  else if (IsEqualIgnoreCase(color_string, "blue"))
-    return ImGui::GetColorU32(ImVec4(0.0f, 0.0f, 1.0f, 1.0f));
-  else if (IsEqualIgnoreCase(color_string, "purple"))
-    return ImGui::GetColorU32(ImVec4(1.0f, 0.0f, 1.0f, 1.0f));
-  else if (IsEqualIgnoreCase(color_string, "yellow"))
-    return ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 0.0f, 1.f));
-  else if (IsEqualIgnoreCase(color_string, "turquoise"))
-    return ImGui::GetColorU32(ImVec4(0.0f, 1.0f, 1.0f, 1.0f));
-  else
-    return 0x00000000;
+    return 0x000000ff;
 }
 
 ClassMetadata GetGraphicsApiClassData(const std::string& api_version)
@@ -366,8 +331,8 @@ ArgHolder DrawEmptyCircle(ScriptContext* current_script, std::vector<ArgHolder>&
   float centerX = args_list[0].float_val;
   float centerY = args_list[1].float_val;
   float radius = args_list[2].float_val;
-  std::string outline_color = args_list[3].string_val;
-  float thickness = args_list[4].float_val;
+  float thickness = args_list[3].float_val;
+  std::string outline_color = args_list[4].string_val;
   ImDrawList* draw_list = nullptr;
 
   if (!window_is_open)
@@ -685,13 +650,15 @@ ArgHolder AddButton(ScriptContext* current_script, std::vector<ArgHolder>& args_
     return CreateErrorStringArgHolder("Cannot add button directly to screen - must open a window "
                                       "first by calling GraphicsAPI:beginWindow()");
   }
-  bool button_pressed = ImGui::Button(button_label.c_str(), {button_width, button_height});  // true when button was pressed, and false otherwise
-  if (!display_stack.empty() && display_stack.top() && button_pressed)
-  {
-    std::lock_guard<std::mutex> lock(ScriptUtilities::graphics_callback_running_lock);
-    current_script->RunButtonCallback(button_id);
-  }
 
+  else if (!display_stack.empty() && display_stack.top())
+  {
+    if (ImGui::Button(button_label.c_str(), {button_width, button_height}))
+    {  // true when button was pressed, and false otherwise
+        std::lock_guard<std::mutex> lock(ScriptUtilities::graphics_callback_running_lock);
+        current_script->RunButtonCallback(button_id);
+    }
+  }
   return CreateVoidTypeArgHolder();
 }
 
