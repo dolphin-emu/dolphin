@@ -47,17 +47,14 @@ if (${IBTOOL} STREQUAL "IBTOOL-NOTFOUND")
 endif()
 
 foreach(sb ${STORYBOARDS})
-  set(MacUpdater_BIN_DIR ${CMAKE_BINARY_DIR}/Binaries)
-
-  if (CMAKE_GENERATOR STREQUAL Xcode)
-    string(APPEND MacUpdater_BIN_DIR "/\${CONFIGURATION}")
-  endif()
-
-  add_custom_command(TARGET MacUpdater POST_BUILD
-                     COMMAND ${IBTOOL} --errors --warnings --notices --output-format human-readable-text
-                                       --compile ${MacUpdater_BUNDLE_PATH}/Contents/Resources/${sb}c
-                     ${CMAKE_CURRENT_SOURCE_DIR}/${sb}
-                     COMMENT "Compiling Storyboard ${sb}...")
+  set(output ${CMAKE_CURRENT_BINARY_DIR}/${sb}c)
+  set(input  ${CMAKE_CURRENT_SOURCE_DIR}/${sb})
+  add_custom_command(OUTPUT ${output}
+    COMMAND ${IBTOOL} --errors --warnings --notices --output-format human-readable-text --compile ${output} ${input}
+    DEPENDS ${input}
+    COMMENT "Compiling Storyboard ${sb}...")
+  target_sources(MacUpdater PRIVATE ${output})
+  set_source_files_properties(${output} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 endforeach()
 
 if(MACOS_CODE_SIGNING)
