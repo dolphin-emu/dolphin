@@ -296,10 +296,10 @@ private:
   bool HandleFunctionHooking(u32 address);
 
   // flag helper
-  static void Helper_UpdateCR0(u32 value);
+  static void Helper_UpdateCR0(PowerPC::PowerPCState& ppc_state, u32 value);
 
   template <typename T>
-  static void Helper_IntCompare(UGeckoInstruction inst, T a, T b);
+  static void Helper_IntCompare(PowerPC::PowerPCState& ppc_state, UGeckoInstruction inst, T a, T b);
   static void Helper_FloatCompareOrdered(PowerPC::PowerPCState& ppc_state, UGeckoInstruction inst,
                                          double a, double b);
   static void Helper_FloatCompareUnordered(PowerPC::PowerPCState& ppc_state, UGeckoInstruction inst,
