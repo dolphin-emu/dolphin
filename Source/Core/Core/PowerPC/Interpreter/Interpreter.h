@@ -262,12 +262,9 @@ public:
   static void isync(UGeckoInstruction inst);
 
   using Instruction = void (*)(UGeckoInstruction inst);
-  static std::array<Instruction, 64> m_op_table;
-  static std::array<Instruction, 1024> m_op_table4;
-  static std::array<Instruction, 1024> m_op_table19;
-  static std::array<Instruction, 1024> m_op_table31;
-  static std::array<Instruction, 32> m_op_table59;
-  static std::array<Instruction, 1024> m_op_table63;
+
+  static Instruction GetInterpreterOp(UGeckoInstruction inst);
+  static void RunInterpreterOp(UGeckoInstruction inst);
 
   // singleton
   static Interpreter* getInstance();
@@ -282,8 +279,6 @@ public:
 
 private:
   void CheckExceptions();
-
-  static void InitializeInstructionTables();
 
   static bool HandleFunctionHooking(u32 address);
 
