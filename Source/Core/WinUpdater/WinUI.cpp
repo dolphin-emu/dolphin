@@ -271,7 +271,7 @@ void LaunchApplication(std::string path)
   }
   else
   {
-    std::wstring cmdline = wpath;
+    std::wstring cmdline = L"\"" + wpath + L"\"";
     STARTUPINFOW startup_info{.cb = sizeof(startup_info)};
     PROCESS_INFORMATION process_info;
     if (IsTestMode())
