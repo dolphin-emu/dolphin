@@ -161,6 +161,7 @@
     <ClInclude Include="Common\WindowsRegistry.h" />
     <ClInclude Include="Common\WindowSystemInfo.h" />
     <ClInclude Include="Common\WorkQueueThread.h" />
+    <ClInclude Include="Core\AchievementManager.h" />
     <ClInclude Include="Core\ActionReplay.h" />
     <ClInclude Include="Core\ARDecrypt.h" />
     <ClInclude Include="Core\Boot\Boot.h" />
@@ -796,6 +797,7 @@
     <ClCompile Include="Common\UPnP.cpp" />
     <ClCompile Include="Common\WindowsRegistry.cpp" />
     <ClCompile Include="Common\Version.cpp" />
+    <ClCompile Include="Core\AchievementManager.cpp" />
     <ClCompile Include="Core\ActionReplay.cpp" />
     <ClCompile Include="Core\ARDecrypt.cpp" />
     <ClCompile Include="Core\Boot\Boot_BS2Emu.cpp" />
