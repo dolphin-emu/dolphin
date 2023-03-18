@@ -385,11 +385,10 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
     {
       WII_SSL* ssl = &_SSL[sslID];
       const std::string cert_base_path = File::GetUserPath(D_SESSION_WIIROOT_IDX);
-      cert_base_path.pop_back();
       const std::vector<u8> client_cert =
-          ReadCertFile(cert_base_path + "/clientca.pem", s_client_cert_hash, m_cert_error_shown);
+          ReadCertFile(cert_base_path + "clientca.pem", s_client_cert_hash, m_cert_error_shown);
       const std::vector<u8> client_key =
-          ReadCertFile(cert_base_path + "/clientcakey.pem", s_client_key_hash, m_cert_error_shown);
+          ReadCertFile(cert_base_path + "clientcakey.pem", s_client_key_hash, m_cert_error_shown);
       // If any of the required files fail to load, show a panic alert, but only once
       // per IOS instance (usually once per emulation session).
       if (client_cert.empty() || client_key.empty())
@@ -452,9 +451,8 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
     {
       WII_SSL* ssl = &_SSL[sslID];
       const std::string cert_base_path = File::GetUserPath(D_SESSION_WIIROOT_IDX);
-      cert_base_path.pop_back();
       const std::vector<u8> root_ca =
-          ReadCertFile(cert_base_path + "/rootca.pem", s_root_ca_hash, m_cert_error_shown);
+          ReadCertFile(cert_base_path + "rootca.pem", s_root_ca_hash, m_cert_error_shown);
       if (root_ca.empty())
         m_cert_error_shown = true;
 
