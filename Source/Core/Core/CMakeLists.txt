@@ -602,7 +602,6 @@ PUBLIC
   ${MBEDTLS_LIBRARIES}
   pugixml
   RangeSet::RangeSet
-	rcheevos
   sfml-network
   sfml-system
   videonull
@@ -747,4 +746,9 @@ endif()
 if(MSVC)
   # Add precompiled header
   target_link_libraries(core PRIVATE use_pch)
+endif()
+
+if(USE_RETRO_ACHIEVEMENTS)
+  target_link_libraries(core PRIVATE rcheevos)
+  target_compile_definitions(core PRIVATE -DUSE_RETRO_ACHIEVEMENTS)
 endif()

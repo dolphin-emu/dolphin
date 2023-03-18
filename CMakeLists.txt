@@ -72,6 +72,7 @@ option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence, show the current gam
 option(USE_MGBA "Enables GBA controllers emulation using libmgba" ON)
 option(ENABLE_AUTOUPDATE "Enables support for automatic updates" ON)
 option(STEAM "Creates a build for Steam" OFF)
+option(USE_RETRO_ACHIEVEMENTS "Enables integration with retroachievements.org" ON)
 
 # Maintainers: if you consider blanket disabling this for your users, please
 # consider the following points:
@@ -975,7 +976,9 @@ add_subdirectory(Externals/rangeset)
 
 add_subdirectory(Externals/FatFs)
 
-add_subdirectory(Externals/rcheevos)
+if (USE_RETRO_ACHIEVEMENTS)
+	add_subdirectory(Externals/rcheevos)
+endif()
 
 ########################################
 # Pre-build events: Define configuration variables and write SCM info header
