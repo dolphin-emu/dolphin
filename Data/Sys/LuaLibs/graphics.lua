@@ -146,6 +146,10 @@ function GraphicsClass:pressButton(buttonID)
 	GraphicsAPI:pressButton(buttonID)
 end
 
+function GraphicsClass:newLine(verticalOffset)
+	GraphicsAPI:newLine(verticalOffset * 1.0)
+end
+
 function GraphicsClass:beginWindow(windowName)
 	GraphicsAPI:beginWindow(windowName)
 end

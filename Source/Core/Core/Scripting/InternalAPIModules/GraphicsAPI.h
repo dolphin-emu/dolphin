@@ -34,6 +34,7 @@ ArgHolder GetTextBoxValue(ScriptContext* current_script, std::vector<ArgHolder>&
 ArgHolder SetTextBoxValue(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder AddButton(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder PressButton(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder NewLine(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder BeginWindow(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder EndWindow(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 }

@@ -106,6 +106,8 @@ static std::array all_graphics_functions_metadata_list = {
   FunctionMetadata("addButton", "1.0", "addButton(\"Button Label\", 42, callbackFunc, 100.0, 45.0)", AddButton, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::LongLong, ArgTypeEnum::RegistrationForButtonCallbackInputType, ArgTypeEnum::Float, ArgTypeEnum::Float}),
   FunctionMetadata("pressButton", "1.0", "pressButton(42)", PressButton, ArgTypeEnum::VoidType, {ArgTypeEnum::LongLong}),
 
+  FunctionMetadata("newLine", "1.0", "newLine(10.0)", NewLine, ArgTypeEnum::VoidType, {ArgTypeEnum::Float}),
+
   FunctionMetadata("beginWindow", "1.0", "beginWindow(windowName)", BeginWindow, ArgTypeEnum::VoidType,
                      {ArgTypeEnum::String}),
   FunctionMetadata("endWindow", "1.0", "endWindow()", EndWindow, ArgTypeEnum::VoidType, {})};
@@ -682,6 +684,15 @@ ArgHolder PressButton(ScriptContext* current_script, std::vector<ArgHolder>& arg
 
   return CreateVoidTypeArgHolder();
 
+}
+
+ArgHolder NewLine(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  if (!window_is_open)
+    return CreateErrorStringArgHolder("Cannot add new line when no window is open on screen!");
+  float vertical_offset = args_list[0].float_val;
+  ImGui::Dummy(ImVec2(0.0f, vertical_offset));
+  return CreateVoidTypeArgHolder();
 }
 
 ArgHolder BeginWindow(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
