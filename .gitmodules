@@ -56,3 +56,6 @@
 [submodule "Externals/gtest"]
 	path = Externals/gtest
 	url = https://github.com/google/googletest.git
+[submodule "Externals/cpython/cpython"]
+	path = Externals/cpython/cpython
+	url = https://github.com/python/cpython
