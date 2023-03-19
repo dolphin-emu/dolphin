@@ -318,6 +318,11 @@ void RenderWidget::SetCursorLockedOnNextActivation(bool locked)
   m_lock_cursor_on_next_activation = false;
 }
 
+void RenderWidget::SetReportMouseMovement(bool report)
+{
+  m_report_mouse_movement = report;
+}
+
 void RenderWidget::SetWaitingForMessageBox(bool waiting_for_message_box)
 {
   if (m_waiting_for_message_box == waiting_for_message_box)
@@ -375,6 +380,10 @@ bool RenderWidget::event(QEvent* event)
     {
       setCursor(Qt::ArrowCursor);
       m_mouse_timer->start(MOUSE_HIDE_DELAY);
+    }
+    if (m_report_mouse_movement)
+    {
+      emit MouseMoved();
     }
     break;
   case QEvent::WinIdChange:

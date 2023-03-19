@@ -270,7 +270,7 @@ const std::map<const std::pair<const u16, const u16>, const char*> list_skylande
     {{467, 0x0000}, "Enigma"},
     {{468, 0x0000}, "Deja Vu"},
     {{468, 0x3403}, "Legendary Deja Vu"},
-    {{469, 0x0000}, "Cobra Candabra"},
+    {{469, 0x0000}, "Cobra Cadabra"},
     {{469, 0x3402}, "King Cobra Cadabra"},
     {{470, 0x0000}, "Jawbreaker"},
     {{470, 0x3403}, "Legendary Jawbreaker"},

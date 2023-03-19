@@ -23,6 +23,7 @@ public:
   void SetCursorLockedOnNextActivation(bool locked = true);
   void SetWaitingForMessageBox(bool waiting_for_message_box);
   void SetCursorLocked(bool locked, bool follow_aspect_ratio = true);
+  void SetReportMouseMovement(bool report);
 
 signals:
   void EscapePressed();
@@ -31,6 +32,7 @@ signals:
   void StateChanged(bool fullscreen);
   void SizeChanged(int new_width, int new_height);
   void FocusChanged(bool focus);
+  void MouseMoved();
 
 private:
   void HandleCursorTimer();
@@ -52,4 +54,5 @@ private:
   bool m_dont_lock_cursor_on_show = false;
   bool m_waiting_for_message_box = false;
   bool m_should_unpause_on_focus = false;
+  bool m_report_mouse_movement = false;
 };
