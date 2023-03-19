@@ -73,6 +73,7 @@ option(USE_MGBA "Enables GBA controllers emulation using libmgba" ON)
 option(ENABLE_AUTOUPDATE "Enables support for automatic updates" ON)
 option(STEAM "Creates a build for Steam" OFF)
 option(USE_RETRO_ACHIEVEMENTS "Enables integration with retroachievements.org" ON)
+option(ENABLE_RAINTEGRATION "Enables RAIntegration.dll for RetroAchievements developers" ON)
 
 # Maintainers: if you consider blanket disabling this for your users, please
 # consider the following points:
@@ -977,7 +978,10 @@ add_subdirectory(Externals/rangeset)
 add_subdirectory(Externals/FatFs)
 
 if (USE_RETRO_ACHIEVEMENTS)
-	add_subdirectory(Externals/rcheevos)
+  add_subdirectory(Externals/rcheevos)
+  if (ENABLE_RAINTEGRATION AND CMAKE_SYSTEM_NAME MATCHES "Windows")
+    add_subdirectory(Externals/RAInterface)
+  endif()
 endif()
 
 ########################################

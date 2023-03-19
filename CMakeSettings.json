@@ -9,6 +9,11 @@
       "buildRoot": "${workspaceRoot}\\Build\\${name}",
       "cmakeCommandArgs": "",
       "variables": [
+        {
+          "name": "ENABLE_RAINTEGRATION",
+          "value": "True",
+          "type": "BOOL"
+        }
       ]
     },
     {
@@ -18,9 +23,7 @@
       "inheritEnvironments": [ "msvc_x64_x64" ],
       "buildCommandArgs": "",
       "buildRoot": "${workspaceRoot}\\Build\\${name}",
-      "cmakeCommandArgs": "",
-      "variables": [
-      ]
+      "cmakeCommandArgs": ""
     },
     {
       "name": "Release (arm64)",
@@ -33,11 +36,13 @@
       "variables": [
         {
           "name": "CMAKE_SYSTEM_NAME",
-          "value": "Windows"
+          "value": "Windows",
+          "type": "STRING"
         },
         {
           "name": "CMAKE_SYSTEM_PROCESSOR",
-          "value": "aarch64"
+          "value": "aarch64",
+          "type": "STRING"
         }
       ]
     },
@@ -52,13 +57,25 @@
       "variables": [
         {
           "name": "CMAKE_SYSTEM_NAME",
-          "value": "Windows"
+          "value": "Windows",
+          "type": "STRING"
         },
         {
           "name": "CMAKE_SYSTEM_PROCESSOR",
-          "value": "aarch64"
+          "value": "aarch64",
+          "type": "STRING"
         }
       ]
+    },
+    {
+      "name": "Release-disabled",
+      "generator": "Ninja",
+      "configurationType": "Release",
+      "buildRoot": "${workspaceRoot}\\Build\\${name}",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "variables": []
     }
   ]
 }

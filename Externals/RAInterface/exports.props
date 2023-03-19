@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ExternalsDir)RAInterface;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)RAInterface\rainterface.vcxproj">
+      <Project>{CC5C1380-E863-4674-BCAD-1134B7ACD0B8}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>
