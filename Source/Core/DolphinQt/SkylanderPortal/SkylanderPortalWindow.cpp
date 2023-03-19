@@ -22,11 +22,13 @@
 #include <QString>
 #include <QStringList>
 #include <QVBoxLayout>
+#include <QThread>
 
 #include "Common/IOFile.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/System.h"
+#include "DolphinQT/RenderWidget.h"
 
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/Resources.h"
@@ -35,9 +37,9 @@
 SkylanderPortalWindow::SkylanderPortalWindow(QWidget* parent) : QWidget(parent)
 {
   setWindowTitle(tr("Portal of Power"));
-  setMinimumSize(QSize(200, 200));
+  setMinimumSize(QSize(500, 500));
 
-  setWindowFlags(Qt::Widget | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+  setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
   setParent(0);  // Create TopLevel-Widget
   setAttribute(Qt::WA_NoSystemBackground, true);
   setAttribute(Qt::WA_TranslucentBackground, true);
@@ -46,30 +48,14 @@ SkylanderPortalWindow::SkylanderPortalWindow(QWidget* parent) : QWidget(parent)
   QIcon ButtonIcon(pixmap);
   button = new QPushButton(this);
   button->setStyleSheet(tr("background-color: rgba(255, 255, 255, 0); "));
-  button->resize(75, 75);
+  button->resize(300, 300);
   button->setIcon(ButtonIcon);
   button->setIconSize(QSize(75,75));
 
   connect(button, &QAbstractButton::clicked, this, [this]() { OpenMenu(); });
+  fadeout.callOnTimeout(this, &SkylanderPortalWindow::TimeUp, Qt::AutoConnection);
 
   move(50, 50);
-
-  /* QImage myImage;
-  myImage.load(tr("/Users/jnaid/Projects/Sky/dolphin/portal.png"));
-
-  portal = new QLabel(this);
-  portal->setPixmap(QPixmap::fromImage(myImage));
-
-  portal->resize(100,100);
-
-  portal->setScaledContents(true);
-
-  // portal->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-
-  portal->show();*/
-
-  //m_checkbox = new QCheckBox(tr("Emulate Skylander Portal"), this);
-  //connect(m_checkbox, &QCheckBox::toggled, [&](bool checked) { OpenMenu(checked); });
 }
 
 SkylanderPortalWindow::~SkylanderPortalWindow() = default;
@@ -78,6 +64,24 @@ void SkylanderPortalWindow::OpenMenu()
 {
   menu = new SkylanderPortalMenu;
   menu->show();
+}
+
+void SkylanderPortalWindow::setRender(RenderWidget* r)
+{
+  render = r;
+  connect(render, &RenderWidget::MouseMoved, this, &SkylanderPortalWindow::Hovered,
+          Qt::DirectConnection);
+}
+
+void SkylanderPortalWindow::Hovered()
+{
+  show();
+  fadeout.start(1000);
+}
+
+void SkylanderPortalWindow::TimeUp()
+{
+  hide();
 }
 
 // Qt is not guaranteed to keep track of file paths using native file pickers, so we use this

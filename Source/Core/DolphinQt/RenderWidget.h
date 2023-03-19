@@ -31,6 +31,7 @@ signals:
   void StateChanged(bool fullscreen);
   void SizeChanged(int new_width, int new_height);
   void FocusChanged(bool focus);
+  void MouseMoved();
 
 private:
   void HandleCursorTimer();

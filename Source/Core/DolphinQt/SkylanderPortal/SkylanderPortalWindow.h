@@ -9,9 +9,11 @@
 #include <QDialog>
 #include <QString>
 #include <QWidget>
+#include <QTimer>
 
 #include "Core/Core.h"
 #include "Core/IOS/USB/Emulated/Skylander.h"
+#include "DolphinQt/RenderWidget.h"
 
 class QCheckBox;
 class QGroupBox;
@@ -59,11 +61,16 @@ public:
   ~SkylanderPortalWindow() override;
 
   void OpenMenu();
+  void setRender(RenderWidget* r);
+  void Hovered();
+  void TimeUp();
 
   QCheckBox* m_checkbox;
   QLabel* portal;
   QPushButton* button;
   SkylanderPortalMenu* menu = nullptr;
+  QTimer fadeout;
+  RenderWidget* render;
 };
 
 class CreateSkylanderDialog : public QDialog

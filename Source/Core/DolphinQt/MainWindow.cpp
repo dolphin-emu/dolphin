@@ -1310,6 +1310,7 @@ void MainWindow::ShowSkylanderPortal()
   if (!m_skylander_window)
   {
     m_skylander_window = new SkylanderPortalWindow;
+    m_skylander_window->setRender(m_render_widget);
   }
 
   m_skylander_window->show();

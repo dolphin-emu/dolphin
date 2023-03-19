@@ -376,6 +376,7 @@ bool RenderWidget::event(QEvent* event)
       setCursor(Qt::ArrowCursor);
       m_mouse_timer->start(MOUSE_HIDE_DELAY);
     }
+    emit MouseMoved();
     break;
   case QEvent::WinIdChange:
     emit HandleChanged(reinterpret_cast<void*>(winId()));
