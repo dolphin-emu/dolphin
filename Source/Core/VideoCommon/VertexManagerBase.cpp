@@ -140,7 +140,7 @@ DataReader VertexManagerBase::PrepareForAdditionalData(OpcodeDecoder::Primitive 
   PrimitiveType new_primitive_type = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ?
                                          primitive_from_gx_pr[primitive] :
                                          primitive_from_gx[primitive];
-  if (m_current_primitive_type != new_primitive_type)
+  if (m_current_primitive_type != new_primitive_type) [[unlikely]]
   {
     Flush();
 
@@ -149,9 +149,11 @@ DataReader VertexManagerBase::PrepareForAdditionalData(OpcodeDecoder::Primitive 
     SetRasterizationStateChanged();
   }
 
+  u32 remaining_indices = GetRemainingIndices(primitive);
+  u32 remaining_index_generator_indices = m_index_generator.GetRemainingIndices(primitive);
+
   // Check for size in buffer, if the buffer gets full, call Flush()
-  if (!m_is_flushed && (count > m_index_generator.GetRemainingIndices(primitive) ||
-                        count > GetRemainingIndices(primitive) ||
+  if (!m_is_flushed && (count > remaining_index_generator_indices || count > remaining_indices ||
                         needed_vertex_bytes > GetRemainingSize())) [[unlikely]]
   {
     Flush();
@@ -160,7 +162,7 @@ DataReader VertexManagerBase::PrepareForAdditionalData(OpcodeDecoder::Primitive 
   m_cull_all = cullall;
 
   // need to alloc new buffer
-  if (m_is_flushed)
+  if (m_is_flushed) [[unlikely]]
   {
     if (cullall)
     {
@@ -174,6 +176,8 @@ DataReader VertexManagerBase::PrepareForAdditionalData(OpcodeDecoder::Primitive 
       ResetBuffer(stride);
     }
 
+    remaining_index_generator_indices = m_index_generator.GetRemainingIndices(primitive);
+    remaining_indices = GetRemainingIndices(primitive);
     m_is_flushed = false;
   }
 
@@ -181,14 +185,14 @@ DataReader VertexManagerBase::PrepareForAdditionalData(OpcodeDecoder::Primitive 
   // won't have enough space in a few rare cases, such as vertex shader line/point expansion with a
   // ton of lines in one draw command, in which case we will either need to add support for
   // splitting a single draw command into multiple draws or using bigger indices.
-  ASSERT_MSG(VIDEO, count <= m_index_generator.GetRemainingIndices(primitive),
+  ASSERT_MSG(VIDEO, count <= remaining_index_generator_indices,
              "VertexManager: Too few remaining index values ({} > {}). "
              "32-bit indices or primitive breaking needed.",
-             count, m_index_generator.GetRemainingIndices(primitive));
-  ASSERT_MSG(VIDEO, count <= GetRemainingIndices(primitive),
+             count, remaining_index_generator_indices);
+  ASSERT_MSG(VIDEO, count <= remaining_indices,
              "VertexManager: Buffer not large enough for all indices! ({} > {}) "
              "Increase MAXIBUFFERSIZE or we need primitive breaking after all.",
-             count, GetRemainingIndices(primitive));
+             count, remaining_indices);
   ASSERT_MSG(VIDEO, needed_vertex_bytes <= GetRemainingSize(),
              "VertexManager: Buffer not large enough for all vertices! ({} > {}) "
              "Increase MAXVBUFFERSIZE or we need primitive breaking after all.",
