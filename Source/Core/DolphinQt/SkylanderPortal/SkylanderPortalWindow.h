@@ -70,7 +70,7 @@ public:
   QPushButton* button;
   SkylanderPortalMenu* menu = nullptr;
   QTimer fadeout;
-  RenderWidget* render;
+  RenderWidget* render=nullptr;
 };
 
 class CreateSkylanderDialog : public QDialog

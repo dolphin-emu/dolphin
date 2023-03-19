@@ -68,6 +68,10 @@ void SkylanderPortalWindow::OpenMenu()
 
 void SkylanderPortalWindow::setRender(RenderWidget* r)
 {
+  if (render != nullptr)
+  {
+    disconnect(render, &RenderWidget::MouseMoved, this, &SkylanderPortalWindow::Hovered);
+  }
   render = r;
   connect(render, &RenderWidget::MouseMoved, this, &SkylanderPortalWindow::Hovered,
           Qt::DirectConnection);
