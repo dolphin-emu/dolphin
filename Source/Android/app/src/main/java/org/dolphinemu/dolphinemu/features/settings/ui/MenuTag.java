@@ -4,6 +4,8 @@ package org.dolphinemu.dolphinemu.features.settings.ui;
 
 import androidx.annotation.NonNull;
 
+import org.dolphinemu.dolphinemu.features.input.model.controlleremu.EmulatedController;
+
 public enum MenuTag
 {
   SETTINGS("settings"),
@@ -31,14 +33,26 @@ public enum MenuTag
   GCPAD_2("gcpad", 1),
   GCPAD_3("gcpad", 2),
   GCPAD_4("gcpad", 3),
-  WIIMOTE_1("wiimote", 4),
-  WIIMOTE_2("wiimote", 5),
-  WIIMOTE_3("wiimote", 6),
-  WIIMOTE_4("wiimote", 7),
-  WIIMOTE_EXTENSION_1("wiimote_extension", 4),
-  WIIMOTE_EXTENSION_2("wiimote_extension", 5),
-  WIIMOTE_EXTENSION_3("wiimote_extension", 6),
-  WIIMOTE_EXTENSION_4("wiimote_extension", 7);
+  WIIMOTE_1("wiimote", 0),
+  WIIMOTE_2("wiimote", 1),
+  WIIMOTE_3("wiimote", 2),
+  WIIMOTE_4("wiimote", 3),
+  WIIMOTE_EXTENSION_1("wiimote_extension", 0),
+  WIIMOTE_EXTENSION_2("wiimote_extension", 1),
+  WIIMOTE_EXTENSION_3("wiimote_extension", 2),
+  WIIMOTE_EXTENSION_4("wiimote_extension", 3),
+  WIIMOTE_GENERAL_1("wiimote_general", 0),
+  WIIMOTE_GENERAL_2("wiimote_general", 1),
+  WIIMOTE_GENERAL_3("wiimote_general", 2),
+  WIIMOTE_GENERAL_4("wiimote_general", 3),
+  WIIMOTE_MOTION_SIMULATION_1("wiimote_motion_simulation", 0),
+  WIIMOTE_MOTION_SIMULATION_2("wiimote_motion_simulation", 1),
+  WIIMOTE_MOTION_SIMULATION_3("wiimote_motion_simulation", 2),
+  WIIMOTE_MOTION_SIMULATION_4("wiimote_motion_simulation", 3),
+  WIIMOTE_MOTION_INPUT_1("wiimote_motion_input", 0),
+  WIIMOTE_MOTION_INPUT_2("wiimote_motion_input", 1),
+  WIIMOTE_MOTION_INPUT_3("wiimote_motion_input", 2),
+  WIIMOTE_MOTION_INPUT_4("wiimote_motion_input", 3);
 
   private String tag;
   private int subType = -1;
@@ -74,6 +88,16 @@ public enum MenuTag
   public int getSubType()
   {
     return subType;
+  }
+
+  public EmulatedController getCorrespondingEmulatedController()
+  {
+    if (isGCPadMenu())
+      return EmulatedController.getGcPad(getSubType());
+    else if (isWiimoteMenu())
+      return EmulatedController.getWiimote(getSubType());
+    else
+      throw new UnsupportedOperationException();
   }
 
   public boolean isSerialPort1Menu()
@@ -112,11 +136,27 @@ public enum MenuTag
     return getMenuTag("wiimote_extension", subtype);
   }
 
+  public static MenuTag getWiimoteGeneralMenuTag(int subtype)
+  {
+    return getMenuTag("wiimote_general", subtype);
+  }
+
+  public static MenuTag getWiimoteMotionSimulationMenuTag(int subtype)
+  {
+    return getMenuTag("wiimote_motion_simulation", subtype);
+  }
+
+  public static MenuTag getWiimoteMotionInputMenuTag(int subtype)
+  {
+    return getMenuTag("wiimote_motion_input", subtype);
+  }
+
   private static MenuTag getMenuTag(String tag, int subtype)
   {
     for (MenuTag menuTag : MenuTag.values())
     {
-      if (menuTag.tag.equals(tag) && menuTag.subType == subtype) return menuTag;
+      if (menuTag.tag.equals(tag) && menuTag.subType == subtype)
+        return menuTag;
     }
 
     throw new IllegalArgumentException("You are asking for a menu that is not available or " +

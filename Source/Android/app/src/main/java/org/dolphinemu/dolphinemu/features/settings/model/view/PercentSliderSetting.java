@@ -17,9 +17,9 @@ public final class PercentSliderSetting extends FloatSliderSetting
   }
 
   @Override
-  public int getSelectedValue(Settings settings)
+  public int getSelectedValue()
   {
-    return Math.round(mSetting.getFloat(settings) * 100);
+    return Math.round(mSetting.getFloat() * 100);
   }
 
   @Override

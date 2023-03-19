@@ -366,7 +366,8 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager,
       {
         if (FifoPlayer::GetInstance().IsRunningWithFakeVideoInterfaceUpdates())
         {
-          VideoInterface::FakeVIUpdate(destAddr, srcRect.GetWidth(), destStride, height);
+          auto& vi = Core::System::GetInstance().GetVideoInterface();
+          vi.FakeVIUpdate(destAddr, srcRect.GetWidth(), destStride, height);
         }
       }
     }

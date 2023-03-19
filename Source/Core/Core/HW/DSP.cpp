@@ -68,191 +68,101 @@ enum
   AUDIO_DMA_BLOCKS_LEFT = 0x503A,
 };
 
-// UARAMCount
-union UARAMCount
-{
-  u32 Hex = 0;
-  struct
-  {
-    u32 count : 31;
-    u32 dir : 1;  // 0: MRAM -> ARAM 1: ARAM -> MRAM
-  };
-};
-
-// Blocks are 32 bytes.
-union UAudioDMAControl
-{
-  u16 Hex = 0;
-  struct
-  {
-    u16 NumBlocks : 15;
-    u16 Enable : 1;
-  };
-};
-
-// AudioDMA
-struct AudioDMA
-{
-  u32 current_source_address = 0;
-  u16 remaining_blocks_count = 0;
-  u32 SourceAddress = 0;
-  UAudioDMAControl AudioDMAControl;
-};
-
-// ARAM_DMA
-struct ARAM_DMA
-{
-  u32 MMAddr = 0;
-  u32 ARAddr = 0;
-  UARAMCount Cnt;
-};
-
-// So we may abstract GC/Wii differences a little
-struct ARAMInfo
-{
-  bool wii_mode = false;  // Wii EXRAM is managed in Memory:: so we need to skip statesaving, etc
-  u32 size = ARAM_SIZE;
-  u32 mask = ARAM_MASK;
-  u8* ptr = nullptr;  // aka audio ram, auxiliary ram, MEM2, EXRAM, etc...
-};
-
-union ARAM_Info
-{
-  u16 Hex = 0;
-  struct
-  {
-    u16 size : 6;
-    u16 unk : 1;
-    u16 : 9;
-  };
-};
-
-struct DSPState::Data
-{
-  ARAMInfo aram;
-  AudioDMA audio_dma;
-  ARAM_DMA aram_dma;
-  UDSPControl dsp_control;
-  ARAM_Info aram_info;
-  // Contains bitfields for some stuff we don't care about (and nothing ever reads):
-  //  CAS latency/burst length/addressing mode/write mode
-  // We care about the LSB tho. It indicates that the ARAM controller has finished initializing
-  u16 aram_mode = 0;
-  u16 aram_refresh = 0;
-  int dsp_slice = 0;
-
-  std::unique_ptr<DSPEmulator> dsp_emulator;
-
-  bool is_lle = false;
-
-  CoreTiming::EventType* event_type_generate_dsp_interrupt = nullptr;
-  CoreTiming::EventType* event_type_complete_aram = nullptr;
-};
-
-DSPState::DSPState() : m_data(std::make_unique<Data>())
+DSPManager::DSPManager(Core::System& system) : m_system(system)
 {
 }
 
-DSPState::~DSPState() = default;
+DSPManager::~DSPManager() = default;
 
 // time given to LLE DSP on every read of the high bits in a mailbox
 constexpr int DSP_MAIL_SLICE = 72;
 
-void DoState(PointerWrap& p)
+void DSPManager::DoState(PointerWrap& p)
 {
-  auto& state = Core::System::GetInstance().GetDSPState().GetData();
+  if (!m_aram.wii_mode)
+    p.DoArray(m_aram.ptr, m_aram.size);
+  p.Do(m_dsp_control);
+  p.Do(m_audio_dma);
+  p.Do(m_aram_dma);
+  p.Do(m_aram_info);
+  p.Do(m_aram_mode);
+  p.Do(m_aram_refresh);
+  p.Do(m_dsp_slice);
 
-  if (!state.aram.wii_mode)
-    p.DoArray(state.aram.ptr, state.aram.size);
-  p.Do(state.dsp_control);
-  p.Do(state.audio_dma);
-  p.Do(state.aram_dma);
-  p.Do(state.aram_info);
-  p.Do(state.aram_mode);
-  p.Do(state.aram_refresh);
-  p.Do(state.dsp_slice);
-
-  state.dsp_emulator->DoState(p);
+  m_dsp_emulator->DoState(p);
 }
 
-static void UpdateInterrupts();
-static void Do_ARAM_DMA();
-static void GenerateDSPInterrupt(Core::System& system, u64 DSPIntType, s64 cyclesLate = 0);
-
-static void CompleteARAM(Core::System& system, u64 userdata, s64 cyclesLate)
+void DSPManager::GlobalCompleteARAM(Core::System& system, u64 userdata, s64 cyclesLate)
 {
-  auto& state = system.GetDSPState().GetData();
-  state.dsp_control.DMAState = 0;
-  GenerateDSPInterrupt(system, INT_ARAM);
+  system.GetDSP().CompleteARAM(userdata, cyclesLate);
 }
 
-DSPEmulator* GetDSPEmulator()
+void DSPManager::CompleteARAM(u64 userdata, s64 cyclesLate)
 {
-  auto& state = Core::System::GetInstance().GetDSPState().GetData();
-  return state.dsp_emulator.get();
+  m_dsp_control.DMAState = 0;
+  GenerateDSPInterrupt(INT_ARAM, 0);
 }
 
-void Init(bool hle)
+DSPEmulator* DSPManager::GetDSPEmulator()
 {
-  auto& system = Core::System::GetInstance();
-  auto& core_timing = system.GetCoreTiming();
-  auto& state = system.GetDSPState().GetData();
+  return m_dsp_emulator.get();
+}
+
+void DSPManager::Init(bool hle)
+{
   Reinit(hle);
-  state.event_type_generate_dsp_interrupt =
-      core_timing.RegisterEvent("DSPint", GenerateDSPInterrupt);
-  state.event_type_complete_aram = core_timing.RegisterEvent("ARAMint", CompleteARAM);
+  auto& core_timing = m_system.GetCoreTiming();
+  m_event_type_generate_dsp_interrupt =
+      core_timing.RegisterEvent("DSPint", GlobalGenerateDSPInterrupt);
+  m_event_type_complete_aram = core_timing.RegisterEvent("ARAMint", GlobalCompleteARAM);
 }
 
-void Reinit(bool hle)
+void DSPManager::Reinit(bool hle)
 {
-  auto& system = Core::System::GetInstance();
-  auto& state = system.GetDSPState().GetData();
-  state.dsp_emulator = CreateDSPEmulator(hle);
-  state.is_lle = state.dsp_emulator->IsLLE();
+  m_dsp_emulator = CreateDSPEmulator(hle);
+  m_is_lle = m_dsp_emulator->IsLLE();
 
   if (SConfig::GetInstance().bWii)
   {
-    auto& memory = system.GetMemory();
-    state.aram.wii_mode = true;
-    state.aram.size = memory.GetExRamSizeReal();
-    state.aram.mask = memory.GetExRamMask();
-    state.aram.ptr = memory.GetEXRAM();
+    auto& memory = m_system.GetMemory();
+    m_aram.wii_mode = true;
+    m_aram.size = memory.GetExRamSizeReal();
+    m_aram.mask = memory.GetExRamMask();
+    m_aram.ptr = memory.GetEXRAM();
   }
   else
   {
     // On the GameCube, ARAM is accessible only through this interface.
-    state.aram.wii_mode = false;
-    state.aram.size = ARAM_SIZE;
-    state.aram.mask = ARAM_MASK;
-    state.aram.ptr = static_cast<u8*>(Common::AllocateMemoryPages(state.aram.size));
+    m_aram.wii_mode = false;
+    m_aram.size = ARAM_SIZE;
+    m_aram.mask = ARAM_MASK;
+    m_aram.ptr = static_cast<u8*>(Common::AllocateMemoryPages(m_aram.size));
   }
 
-  state.audio_dma = {};
-  state.aram_dma = {};
+  m_audio_dma = {};
+  m_aram_dma = {};
 
-  state.dsp_control.Hex = 0;
-  state.dsp_control.DSPHalt = 1;
+  m_dsp_control.Hex = 0;
+  m_dsp_control.DSPHalt = 1;
 
-  state.aram_info.Hex = 0;
-  state.aram_mode = 1;       // ARAM Controller has init'd
-  state.aram_refresh = 156;  // 156MHz
+  m_aram_info.Hex = 0;
+  m_aram_mode = 1;       // ARAM Controller has init'd
+  m_aram_refresh = 156;  // 156MHz
 }
 
-void Shutdown()
+void DSPManager::Shutdown()
 {
-  auto& state = Core::System::GetInstance().GetDSPState().GetData();
-
-  if (!state.aram.wii_mode)
+  if (!m_aram.wii_mode)
   {
-    Common::FreeMemoryPages(state.aram.ptr, state.aram.size);
-    state.aram.ptr = nullptr;
+    Common::FreeMemoryPages(m_aram.ptr, m_aram.size);
+    m_aram.ptr = nullptr;
   }
 
-  state.dsp_emulator->Shutdown();
-  state.dsp_emulator.reset();
+  m_dsp_emulator->Shutdown();
+  m_dsp_emulator.reset();
 }
 
-void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
+void DSPManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
   static constexpr u16 WMASK_NONE = 0x0000;
   static constexpr u16 WMASK_AR_INFO = 0x007f;
@@ -263,8 +173,6 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   static constexpr u16 WMASK_AUDIO_HI_RESTRICT_WII = 0x1fff;
   static constexpr u16 WMASK_LO_ALIGN_32BIT = 0xffe0;
 
-  auto& state = Core::System::GetInstance().GetDSPState().GetData();
-
   // Declare all the boilerplate direct MMIOs.
   struct
   {
@@ -273,28 +181,27 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
     u16 wmask;
   } directly_mapped_vars[] = {
       // This register is read-only
-      {AR_MODE, &state.aram_mode, WMASK_NONE},
+      {AR_MODE, &m_aram_mode, WMASK_NONE},
 
       // For these registers, only some bits can be set
-      {AR_INFO, &state.aram_info.Hex, WMASK_AR_INFO},
-      {AR_REFRESH, &state.aram_refresh, WMASK_AR_REFRESH},
+      {AR_INFO, &m_aram_info.Hex, WMASK_AR_INFO},
+      {AR_REFRESH, &m_aram_refresh, WMASK_AR_REFRESH},
 
       // For AR_DMA_*_H registers, only bits 0x03ff can be set
       // For AR_DMA_*_L registers, only bits 0xffe0 can be set
-      {AR_DMA_MMADDR_H, MMIO::Utils::HighPart(&state.aram_dma.MMAddr), WMASK_AR_HI_RESTRICT},
-      {AR_DMA_MMADDR_L, MMIO::Utils::LowPart(&state.aram_dma.MMAddr), WMASK_LO_ALIGN_32BIT},
-      {AR_DMA_ARADDR_H, MMIO::Utils::HighPart(&state.aram_dma.ARAddr), WMASK_AR_HI_RESTRICT},
-      {AR_DMA_ARADDR_L, MMIO::Utils::LowPart(&state.aram_dma.ARAddr), WMASK_LO_ALIGN_32BIT},
+      {AR_DMA_MMADDR_H, MMIO::Utils::HighPart(&m_aram_dma.MMAddr), WMASK_AR_HI_RESTRICT},
+      {AR_DMA_MMADDR_L, MMIO::Utils::LowPart(&m_aram_dma.MMAddr), WMASK_LO_ALIGN_32BIT},
+      {AR_DMA_ARADDR_H, MMIO::Utils::HighPart(&m_aram_dma.ARAddr), WMASK_AR_HI_RESTRICT},
+      {AR_DMA_ARADDR_L, MMIO::Utils::LowPart(&m_aram_dma.ARAddr), WMASK_LO_ALIGN_32BIT},
       // For this register, the topmost (dir) bit can also be set
-      {AR_DMA_CNT_H, MMIO::Utils::HighPart(&state.aram_dma.Cnt.Hex),
+      {AR_DMA_CNT_H, MMIO::Utils::HighPart(&m_aram_dma.Cnt.Hex),
        WMASK_AR_HI_RESTRICT | WMASK_AR_CNT_DIR_BIT},
       // AR_DMA_CNT_L triggers DMA
 
       // For AUDIO_DMA_START_HI, only bits 0x03ff can be set on GCN and 0x1fff on Wii
       // For AUDIO_DMA_START_LO, only bits 0xffe0 can be set
       // AUDIO_DMA_START_HI requires a complex write handler
-      {AUDIO_DMA_START_LO, MMIO::Utils::LowPart(&state.audio_dma.SourceAddress),
-       WMASK_LO_ALIGN_32BIT},
+      {AUDIO_DMA_START_LO, MMIO::Utils::LowPart(&m_audio_dma.SourceAddress), WMASK_LO_ALIGN_32BIT},
   };
   for (auto& mapped_var : directly_mapped_vars)
   {
@@ -306,137 +213,137 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
   // DSP mail MMIOs call DSP emulator functions to get results or write data.
   mmio->Register(base | DSP_MAIL_TO_DSP_HI, MMIO::ComplexRead<u16>([](Core::System& system, u32) {
-                   auto& state_ = system.GetDSPState().GetData();
-                   if (state_.dsp_slice > DSP_MAIL_SLICE && state_.is_lle)
+                   auto& dsp = system.GetDSP();
+                   if (dsp.m_dsp_slice > DSP_MAIL_SLICE && dsp.m_is_lle)
                    {
-                     state_.dsp_emulator->DSP_Update(DSP_MAIL_SLICE);
-                     state_.dsp_slice -= DSP_MAIL_SLICE;
+                     dsp.m_dsp_emulator->DSP_Update(DSP_MAIL_SLICE);
+                     dsp.m_dsp_slice -= DSP_MAIL_SLICE;
                    }
-                   return state_.dsp_emulator->DSP_ReadMailBoxHigh(true);
+                   return dsp.m_dsp_emulator->DSP_ReadMailBoxHigh(true);
                  }),
                  MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
-                   auto& state_ = system.GetDSPState().GetData();
-                   state_.dsp_emulator->DSP_WriteMailBoxHigh(true, val);
+                   auto& dsp = system.GetDSP();
+                   dsp.m_dsp_emulator->DSP_WriteMailBoxHigh(true, val);
                  }));
   mmio->Register(base | DSP_MAIL_TO_DSP_LO, MMIO::ComplexRead<u16>([](Core::System& system, u32) {
-                   auto& state_ = system.GetDSPState().GetData();
-                   return state_.dsp_emulator->DSP_ReadMailBoxLow(true);
+                   auto& dsp = system.GetDSP();
+                   return dsp.m_dsp_emulator->DSP_ReadMailBoxLow(true);
                  }),
                  MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
-                   auto& state_ = system.GetDSPState().GetData();
-                   state_.dsp_emulator->DSP_WriteMailBoxLow(true, val);
+                   auto& dsp = system.GetDSP();
+                   dsp.m_dsp_emulator->DSP_WriteMailBoxLow(true, val);
                  }));
   mmio->Register(base | DSP_MAIL_FROM_DSP_HI, MMIO::ComplexRead<u16>([](Core::System& system, u32) {
-                   auto& state_ = system.GetDSPState().GetData();
-                   if (state_.dsp_slice > DSP_MAIL_SLICE && state_.is_lle)
+                   auto& dsp = system.GetDSP();
+                   if (dsp.m_dsp_slice > DSP_MAIL_SLICE && dsp.m_is_lle)
                    {
-                     state_.dsp_emulator->DSP_Update(DSP_MAIL_SLICE);
-                     state_.dsp_slice -= DSP_MAIL_SLICE;
+                     dsp.m_dsp_emulator->DSP_Update(DSP_MAIL_SLICE);
+                     dsp.m_dsp_slice -= DSP_MAIL_SLICE;
                    }
-                   return state_.dsp_emulator->DSP_ReadMailBoxHigh(false);
+                   return dsp.m_dsp_emulator->DSP_ReadMailBoxHigh(false);
                  }),
                  MMIO::InvalidWrite<u16>());
   mmio->Register(base | DSP_MAIL_FROM_DSP_LO, MMIO::ComplexRead<u16>([](Core::System& system, u32) {
-                   auto& state_ = system.GetDSPState().GetData();
-                   return state_.dsp_emulator->DSP_ReadMailBoxLow(false);
+                   auto& dsp = system.GetDSP();
+                   return dsp.m_dsp_emulator->DSP_ReadMailBoxLow(false);
                  }),
                  MMIO::InvalidWrite<u16>());
 
   mmio->Register(
       base | DSP_CONTROL, MMIO::ComplexRead<u16>([](Core::System& system, u32) {
-        auto& state_ = system.GetDSPState().GetData();
-        return (state_.dsp_control.Hex & ~DSP_CONTROL_MASK) |
-               (state_.dsp_emulator->DSP_ReadControlRegister() & DSP_CONTROL_MASK);
+        auto& dsp = system.GetDSP();
+        return (dsp.m_dsp_control.Hex & ~DSP_CONTROL_MASK) |
+               (dsp.m_dsp_emulator->DSP_ReadControlRegister() & DSP_CONTROL_MASK);
       }),
       MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
-        auto& state_ = system.GetDSPState().GetData();
+        auto& dsp = system.GetDSP();
 
         UDSPControl tmpControl;
         tmpControl.Hex = (val & ~DSP_CONTROL_MASK) |
-                         (state_.dsp_emulator->DSP_WriteControlRegister(val) & DSP_CONTROL_MASK);
+                         (dsp.m_dsp_emulator->DSP_WriteControlRegister(val) & DSP_CONTROL_MASK);
 
         // Not really sure if this is correct, but it works...
         // Kind of a hack because DSP_CONTROL_MASK should make this bit
         // only viewable to DSP emulator
         if (val & 1 /*DSPReset*/)
         {
-          state_.audio_dma.AudioDMAControl.Hex = 0;
+          dsp.m_audio_dma.AudioDMAControl.Hex = 0;
         }
 
         // Update DSP related flags
-        state_.dsp_control.DSPReset = tmpControl.DSPReset;
-        state_.dsp_control.DSPAssertInt = tmpControl.DSPAssertInt;
-        state_.dsp_control.DSPHalt = tmpControl.DSPHalt;
-        state_.dsp_control.DSPInitCode = tmpControl.DSPInitCode;
-        state_.dsp_control.DSPInit = tmpControl.DSPInit;
+        dsp.m_dsp_control.DSPReset = tmpControl.DSPReset;
+        dsp.m_dsp_control.DSPAssertInt = tmpControl.DSPAssertInt;
+        dsp.m_dsp_control.DSPHalt = tmpControl.DSPHalt;
+        dsp.m_dsp_control.DSPInitCode = tmpControl.DSPInitCode;
+        dsp.m_dsp_control.DSPInit = tmpControl.DSPInit;
 
         // Interrupt (mask)
-        state_.dsp_control.AID_mask = tmpControl.AID_mask;
-        state_.dsp_control.ARAM_mask = tmpControl.ARAM_mask;
-        state_.dsp_control.DSP_mask = tmpControl.DSP_mask;
+        dsp.m_dsp_control.AID_mask = tmpControl.AID_mask;
+        dsp.m_dsp_control.ARAM_mask = tmpControl.ARAM_mask;
+        dsp.m_dsp_control.DSP_mask = tmpControl.DSP_mask;
 
         // Interrupt
         if (tmpControl.AID)
-          state_.dsp_control.AID = 0;
+          dsp.m_dsp_control.AID = 0;
         if (tmpControl.ARAM)
-          state_.dsp_control.ARAM = 0;
+          dsp.m_dsp_control.ARAM = 0;
         if (tmpControl.DSP)
-          state_.dsp_control.DSP = 0;
+          dsp.m_dsp_control.DSP = 0;
 
         // unknown
-        state_.dsp_control.pad = tmpControl.pad;
-        if (state_.dsp_control.pad != 0)
+        dsp.m_dsp_control.pad = tmpControl.pad;
+        if (dsp.m_dsp_control.pad != 0)
         {
           PanicAlertFmt(
               "DSPInterface (w) DSP state (CC00500A) gets a value with junk in the padding {:08x}",
               val);
         }
 
-        UpdateInterrupts();
+        dsp.UpdateInterrupts();
       }));
 
   // ARAM MMIO controlling the DMA start.
   mmio->Register(base | AR_DMA_CNT_L,
-                 MMIO::DirectRead<u16>(MMIO::Utils::LowPart(&state.aram_dma.Cnt.Hex)),
+                 MMIO::DirectRead<u16>(MMIO::Utils::LowPart(&m_aram_dma.Cnt.Hex)),
                  MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
-                   auto& state_ = system.GetDSPState().GetData();
-                   state_.aram_dma.Cnt.Hex =
-                       (state_.aram_dma.Cnt.Hex & 0xFFFF0000) | (val & WMASK_LO_ALIGN_32BIT);
-                   Do_ARAM_DMA();
+                   auto& dsp = system.GetDSP();
+                   dsp.m_aram_dma.Cnt.Hex =
+                       (dsp.m_aram_dma.Cnt.Hex & 0xFFFF0000) | (val & WMASK_LO_ALIGN_32BIT);
+                   dsp.Do_ARAM_DMA();
                  }));
 
   mmio->Register(base | AUDIO_DMA_START_HI,
-                 MMIO::DirectRead<u16>(MMIO::Utils::HighPart(&state.audio_dma.SourceAddress)),
+                 MMIO::DirectRead<u16>(MMIO::Utils::HighPart(&m_audio_dma.SourceAddress)),
                  MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
-                   auto& state_ = system.GetDSPState().GetData();
-                   *MMIO::Utils::HighPart(&state_.audio_dma.SourceAddress) =
+                   auto& dsp = system.GetDSP();
+                   *MMIO::Utils::HighPart(&dsp.m_audio_dma.SourceAddress) =
                        val & (SConfig::GetInstance().bWii ? WMASK_AUDIO_HI_RESTRICT_WII :
                                                             WMASK_AUDIO_HI_RESTRICT_GCN);
                  }));
 
   // Audio DMA MMIO controlling the DMA start.
   mmio->Register(
-      base | AUDIO_DMA_CONTROL_LEN, MMIO::DirectRead<u16>(&state.audio_dma.AudioDMAControl.Hex),
+      base | AUDIO_DMA_CONTROL_LEN, MMIO::DirectRead<u16>(&m_audio_dma.AudioDMAControl.Hex),
       MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
-        auto& state_ = system.GetDSPState().GetData();
-        bool already_enabled = state_.audio_dma.AudioDMAControl.Enable;
-        state_.audio_dma.AudioDMAControl.Hex = val;
+        auto& dsp = system.GetDSP();
+        bool already_enabled = dsp.m_audio_dma.AudioDMAControl.Enable;
+        dsp.m_audio_dma.AudioDMAControl.Hex = val;
 
         // Only load new values if we're not already doing a DMA transfer,
         // otherwise just let the new values be autoloaded in when the
         // current transfer ends.
-        if (!already_enabled && state_.audio_dma.AudioDMAControl.Enable)
+        if (!already_enabled && dsp.m_audio_dma.AudioDMAControl.Enable)
         {
-          state_.audio_dma.current_source_address = state_.audio_dma.SourceAddress;
-          state_.audio_dma.remaining_blocks_count = state_.audio_dma.AudioDMAControl.NumBlocks;
+          dsp.m_audio_dma.current_source_address = dsp.m_audio_dma.SourceAddress;
+          dsp.m_audio_dma.remaining_blocks_count = dsp.m_audio_dma.AudioDMAControl.NumBlocks;
 
           INFO_LOG_FMT(AUDIO_INTERFACE, "Audio DMA configured: {} blocks from {:#010x}",
-                       state_.audio_dma.AudioDMAControl.NumBlocks, state_.audio_dma.SourceAddress);
+                       dsp.m_audio_dma.AudioDMAControl.NumBlocks, dsp.m_audio_dma.SourceAddress);
 
           // TODO: need hardware tests for the timing of this interrupt.
           // Sky Crawlers crashes at boot if this is scheduled less than 87 cycles in the future.
           // Other Namco games crash too, see issue 9509. For now we will just push it to 200 cycles
-          system.GetCoreTiming().ScheduleEvent(200, state_.event_type_generate_dsp_interrupt,
+          system.GetCoreTiming().ScheduleEvent(200, dsp.m_event_type_generate_dsp_interrupt,
                                                INT_AID);
         }
       }));
@@ -447,9 +354,9 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::ComplexRead<u16>([](Core::System& system, u32) {
                    // remaining_blocks_count is zero-based.  DreamMix World Fighters will hang if it
                    // never reaches zero.
-                   auto& state_ = system.GetDSPState().GetData();
-                   return (state_.audio_dma.remaining_blocks_count > 0 ?
-                               state_.audio_dma.remaining_blocks_count - 1 :
+                   auto& dsp = system.GetDSP();
+                   return (dsp.m_audio_dma.remaining_blocks_count > 0 ?
+                               dsp.m_audio_dma.remaining_blocks_count - 1 :
                                0);
                  }),
                  MMIO::InvalidWrite<u16>());
@@ -463,157 +370,148 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 }
 
 // UpdateInterrupts
-static void UpdateInterrupts()
+void DSPManager::UpdateInterrupts()
 {
-  auto& system = Core::System::GetInstance();
-  auto& state = system.GetDSPState().GetData();
-
   // For each interrupt bit in DSP_CONTROL, the interrupt enablemask is the bit directly
   // to the left of it. By doing:
   // (DSP_CONTROL>>1) & DSP_CONTROL & MASK_OF_ALL_INTERRUPT_BITS
   // We can check if any of the interrupts are enabled and active, all at once.
-  bool ints_set = (((state.dsp_control.Hex >> 1) & state.dsp_control.Hex &
-                    (INT_DSP | INT_ARAM | INT_AID)) != 0);
+  bool ints_set =
+      (((m_dsp_control.Hex >> 1) & m_dsp_control.Hex & (INT_DSP | INT_ARAM | INT_AID)) != 0);
 
-  system.GetProcessorInterface().SetInterrupt(ProcessorInterface::INT_CAUSE_DSP, ints_set);
+  m_system.GetProcessorInterface().SetInterrupt(ProcessorInterface::INT_CAUSE_DSP, ints_set);
 }
 
-static void GenerateDSPInterrupt(Core::System& system, u64 DSPIntType, s64 cyclesLate)
+void DSPManager::GlobalGenerateDSPInterrupt(Core::System& system, u64 DSPIntType, s64 cyclesLate)
 {
-  auto& state = system.GetDSPState().GetData();
+  system.GetDSP().GenerateDSPInterrupt(DSPIntType, cyclesLate);
+}
 
+void DSPManager::GenerateDSPInterrupt(u64 DSPIntType, s64 cyclesLate)
+{
   // The INT_* enumeration members have values that reflect their bit positions in
   // DSP_CONTROL - we mask by (INT_DSP | INT_ARAM | INT_AID) just to ensure people
   // don't call this with bogus values.
-  state.dsp_control.Hex |= (DSPIntType & (INT_DSP | INT_ARAM | INT_AID));
+  m_dsp_control.Hex |= (DSPIntType & (INT_DSP | INT_ARAM | INT_AID));
   UpdateInterrupts();
 }
 
 // CALLED FROM DSP EMULATOR, POSSIBLY THREADED
-void GenerateDSPInterruptFromDSPEmu(DSPInterruptType type, int cycles_into_future)
+void DSPManager::GenerateDSPInterruptFromDSPEmu(DSPInterruptType type, int cycles_into_future)
 {
-  auto& system = Core::System::GetInstance();
-  auto& core_timing = system.GetCoreTiming();
-  auto& state = system.GetDSPState().GetData();
-  core_timing.ScheduleEvent(cycles_into_future, state.event_type_generate_dsp_interrupt, type,
+  auto& core_timing = m_system.GetCoreTiming();
+  core_timing.ScheduleEvent(cycles_into_future, m_event_type_generate_dsp_interrupt, type,
                             CoreTiming::FromThread::ANY);
 }
 
 // called whenever SystemTimers thinks the DSP deserves a few more cycles
-void UpdateDSPSlice(int cycles)
+void DSPManager::UpdateDSPSlice(int cycles)
 {
-  auto& state = Core::System::GetInstance().GetDSPState().GetData();
-
-  if (state.is_lle)
+  if (m_is_lle)
   {
     // use up the rest of the slice(if any)
-    state.dsp_emulator->DSP_Update(state.dsp_slice);
-    state.dsp_slice %= 6;
+    m_dsp_emulator->DSP_Update(m_dsp_slice);
+    m_dsp_slice %= 6;
     // note the new budget
-    state.dsp_slice += cycles;
+    m_dsp_slice += cycles;
   }
   else
   {
-    state.dsp_emulator->DSP_Update(cycles);
+    m_dsp_emulator->DSP_Update(cycles);
   }
 }
 
 // This happens at 4 khz, since 32 bytes at 4khz = 4 bytes at 32 khz (16bit stereo pcm)
-void UpdateAudioDMA()
+void DSPManager::UpdateAudioDMA()
 {
-  auto& system = Core::System::GetInstance();
-  auto& state = system.GetDSPState().GetData();
-
   static short zero_samples[8 * 2] = {0};
-  if (state.audio_dma.AudioDMAControl.Enable)
+  if (m_audio_dma.AudioDMAControl.Enable)
   {
     // Read audio at g_audioDMA.current_source_address in RAM and push onto an
     // external audio fifo in the emulator, to be mixed with the disc
     // streaming output.
-    auto& memory = system.GetMemory();
-    void* address = memory.GetPointer(state.audio_dma.current_source_address);
-    AudioCommon::SendAIBuffer(system, reinterpret_cast<short*>(address), 8);
+    auto& memory = m_system.GetMemory();
+    void* address = memory.GetPointer(m_audio_dma.current_source_address);
+    AudioCommon::SendAIBuffer(m_system, reinterpret_cast<short*>(address), 8);
 
-    if (state.audio_dma.remaining_blocks_count != 0)
+    if (m_audio_dma.remaining_blocks_count != 0)
     {
-      state.audio_dma.remaining_blocks_count--;
-      state.audio_dma.current_source_address += 32;
+      m_audio_dma.remaining_blocks_count--;
+      m_audio_dma.current_source_address += 32;
     }
 
-    if (state.audio_dma.remaining_blocks_count == 0)
+    if (m_audio_dma.remaining_blocks_count == 0)
     {
-      state.audio_dma.current_source_address = state.audio_dma.SourceAddress;
-      state.audio_dma.remaining_blocks_count = state.audio_dma.AudioDMAControl.NumBlocks;
+      m_audio_dma.current_source_address = m_audio_dma.SourceAddress;
+      m_audio_dma.remaining_blocks_count = m_audio_dma.AudioDMAControl.NumBlocks;
 
-      GenerateDSPInterrupt(system, DSP::INT_AID);
+      GenerateDSPInterrupt(DSP::INT_AID, 0);
     }
   }
   else
   {
-    AudioCommon::SendAIBuffer(system, &zero_samples[0], 8);
+    AudioCommon::SendAIBuffer(m_system, &zero_samples[0], 8);
   }
 }
 
-static void Do_ARAM_DMA()
+void DSPManager::Do_ARAM_DMA()
 {
-  auto& system = Core::System::GetInstance();
-  auto& core_timing = system.GetCoreTiming();
-  auto& memory = system.GetMemory();
-  auto& state = system.GetDSPState().GetData();
+  auto& core_timing = m_system.GetCoreTiming();
+  auto& memory = m_system.GetMemory();
 
-  state.dsp_control.DMAState = 1;
+  m_dsp_control.DMAState = 1;
 
   // ARAM DMA transfer rate has been measured on real hw
-  int ticksToTransfer = (state.aram_dma.Cnt.count / 32) * 246;
-  core_timing.ScheduleEvent(ticksToTransfer, state.event_type_complete_aram);
+  int ticksToTransfer = (m_aram_dma.Cnt.count / 32) * 246;
+  core_timing.ScheduleEvent(ticksToTransfer, m_event_type_complete_aram);
 
   // Real hardware DMAs in 32byte chunks, but we can get by with 8byte chunks
-  if (state.aram_dma.Cnt.dir)
+  if (m_aram_dma.Cnt.dir)
   {
     // ARAM -> MRAM
     DEBUG_LOG_FMT(DSPINTERFACE, "DMA {:08x} bytes from ARAM {:08x} to MRAM {:08x} PC: {:08x}",
-                  state.aram_dma.Cnt.count, state.aram_dma.ARAddr, state.aram_dma.MMAddr,
-                  system.GetPPCState().pc);
+                  m_aram_dma.Cnt.count, m_aram_dma.ARAddr, m_aram_dma.MMAddr,
+                  m_system.GetPPCState().pc);
 
     // Outgoing data from ARAM is mirrored every 64MB (verified on real HW)
-    state.aram_dma.ARAddr &= 0x3ffffff;
-    state.aram_dma.MMAddr &= 0x3ffffff;
+    m_aram_dma.ARAddr &= 0x3ffffff;
+    m_aram_dma.MMAddr &= 0x3ffffff;
 
-    if (state.aram_dma.ARAddr < state.aram.size)
+    if (m_aram_dma.ARAddr < m_aram.size)
     {
-      while (state.aram_dma.Cnt.count)
+      while (m_aram_dma.Cnt.count)
       {
         // These are logically separated in code to show that a memory map has been set up
         // See below in the write section for more information
-        if ((state.aram_info.Hex & 0xf) == 3)
+        if ((m_aram_info.Hex & 0xf) == 3)
         {
-          memory.Write_U64_Swap(*(u64*)&state.aram.ptr[state.aram_dma.ARAddr & state.aram.mask],
-                                state.aram_dma.MMAddr);
+          memory.Write_U64_Swap(*(u64*)&m_aram.ptr[m_aram_dma.ARAddr & m_aram.mask],
+                                m_aram_dma.MMAddr);
         }
-        else if ((state.aram_info.Hex & 0xf) == 4)
+        else if ((m_aram_info.Hex & 0xf) == 4)
         {
-          memory.Write_U64_Swap(*(u64*)&state.aram.ptr[state.aram_dma.ARAddr & state.aram.mask],
-                                state.aram_dma.MMAddr);
+          memory.Write_U64_Swap(*(u64*)&m_aram.ptr[m_aram_dma.ARAddr & m_aram.mask],
+                                m_aram_dma.MMAddr);
         }
         else
         {
-          memory.Write_U64_Swap(*(u64*)&state.aram.ptr[state.aram_dma.ARAddr & state.aram.mask],
-                                state.aram_dma.MMAddr);
+          memory.Write_U64_Swap(*(u64*)&m_aram.ptr[m_aram_dma.ARAddr & m_aram.mask],
+                                m_aram_dma.MMAddr);
         }
 
-        state.aram_dma.MMAddr += 8;
-        state.aram_dma.ARAddr += 8;
-        state.aram_dma.Cnt.count -= 8;
+        m_aram_dma.MMAddr += 8;
+        m_aram_dma.ARAddr += 8;
+        m_aram_dma.Cnt.count -= 8;
       }
     }
-    else if (!state.aram.wii_mode)
+    else if (!m_aram.wii_mode)
     {
-      while (state.aram_dma.Cnt.count)
+      while (m_aram_dma.Cnt.count)
       {
-        memory.Write_U64(system.GetHSP().Read(state.aram_dma.ARAddr), state.aram_dma.MMAddr);
-        state.aram_dma.MMAddr += 8;
-        state.aram_dma.ARAddr += 8;
-        state.aram_dma.Cnt.count -= 8;
+        memory.Write_U64(m_system.GetHSP().Read(m_aram_dma.ARAddr), m_aram_dma.MMAddr);
+        m_aram_dma.MMAddr += 8;
+        m_aram_dma.ARAddr += 8;
+        m_aram_dma.Cnt.count -= 8;
       }
     }
   }
@@ -621,52 +519,52 @@ static void Do_ARAM_DMA()
   {
     // MRAM -> ARAM
     DEBUG_LOG_FMT(DSPINTERFACE, "DMA {:08x} bytes from MRAM {:08x} to ARAM {:08x} PC: {:08x}",
-                  state.aram_dma.Cnt.count, state.aram_dma.MMAddr, state.aram_dma.ARAddr,
-                  system.GetPPCState().pc);
+                  m_aram_dma.Cnt.count, m_aram_dma.MMAddr, m_aram_dma.ARAddr,
+                  m_system.GetPPCState().pc);
 
     // Incoming data into ARAM is mirrored every 64MB (verified on real HW)
-    state.aram_dma.ARAddr &= 0x3ffffff;
-    state.aram_dma.MMAddr &= 0x3ffffff;
+    m_aram_dma.ARAddr &= 0x3ffffff;
+    m_aram_dma.MMAddr &= 0x3ffffff;
 
-    if (state.aram_dma.ARAddr < state.aram.size)
+    if (m_aram_dma.ARAddr < m_aram.size)
     {
-      while (state.aram_dma.Cnt.count)
+      while (m_aram_dma.Cnt.count)
       {
-        if ((state.aram_info.Hex & 0xf) == 3)
+        if ((m_aram_info.Hex & 0xf) == 3)
         {
-          *(u64*)&state.aram.ptr[state.aram_dma.ARAddr & state.aram.mask] =
-              Common::swap64(memory.Read_U64(state.aram_dma.MMAddr));
+          *(u64*)&m_aram.ptr[m_aram_dma.ARAddr & m_aram.mask] =
+              Common::swap64(memory.Read_U64(m_aram_dma.MMAddr));
         }
-        else if ((state.aram_info.Hex & 0xf) == 4)
+        else if ((m_aram_info.Hex & 0xf) == 4)
         {
-          if (state.aram_dma.ARAddr < 0x400000)
+          if (m_aram_dma.ARAddr < 0x400000)
           {
-            *(u64*)&state.aram.ptr[(state.aram_dma.ARAddr + 0x400000) & state.aram.mask] =
-                Common::swap64(memory.Read_U64(state.aram_dma.MMAddr));
+            *(u64*)&m_aram.ptr[(m_aram_dma.ARAddr + 0x400000) & m_aram.mask] =
+                Common::swap64(memory.Read_U64(m_aram_dma.MMAddr));
           }
-          *(u64*)&state.aram.ptr[state.aram_dma.ARAddr & state.aram.mask] =
-              Common::swap64(memory.Read_U64(state.aram_dma.MMAddr));
+          *(u64*)&m_aram.ptr[m_aram_dma.ARAddr & m_aram.mask] =
+              Common::swap64(memory.Read_U64(m_aram_dma.MMAddr));
         }
         else
         {
-          *(u64*)&state.aram.ptr[state.aram_dma.ARAddr & state.aram.mask] =
-              Common::swap64(memory.Read_U64(state.aram_dma.MMAddr));
+          *(u64*)&m_aram.ptr[m_aram_dma.ARAddr & m_aram.mask] =
+              Common::swap64(memory.Read_U64(m_aram_dma.MMAddr));
         }
 
-        state.aram_dma.MMAddr += 8;
-        state.aram_dma.ARAddr += 8;
-        state.aram_dma.Cnt.count -= 8;
+        m_aram_dma.MMAddr += 8;
+        m_aram_dma.ARAddr += 8;
+        m_aram_dma.Cnt.count -= 8;
       }
     }
-    else if (!state.aram.wii_mode)
+    else if (!m_aram.wii_mode)
     {
-      while (state.aram_dma.Cnt.count)
+      while (m_aram_dma.Cnt.count)
       {
-        system.GetHSP().Write(state.aram_dma.ARAddr, memory.Read_U64(state.aram_dma.MMAddr));
+        m_system.GetHSP().Write(m_aram_dma.ARAddr, memory.Read_U64(m_aram_dma.MMAddr));
 
-        state.aram_dma.MMAddr += 8;
-        state.aram_dma.ARAddr += 8;
-        state.aram_dma.Cnt.count -= 8;
+        m_aram_dma.MMAddr += 8;
+        m_aram_dma.ARAddr += 8;
+        m_aram_dma.Cnt.count -= 8;
       }
     }
   }
@@ -675,41 +573,35 @@ static void Do_ARAM_DMA()
 // (shuffle2) I still don't believe that this hack is actually needed... :(
 // Maybe the Wii Sports ucode is processed incorrectly?
 // (LM) It just means that DSP reads via '0xffdd' on Wii can end up in EXRAM or main RAM
-u8 ReadARAM(u32 address)
+u8 DSPManager::ReadARAM(u32 address) const
 {
-  auto& system = Core::System::GetInstance();
-  auto& state = system.GetDSPState().GetData();
-
-  if (state.aram.wii_mode)
+  if (m_aram.wii_mode)
   {
     if (address & 0x10000000)
     {
-      return state.aram.ptr[address & state.aram.mask];
+      return m_aram.ptr[address & m_aram.mask];
     }
     else
     {
-      auto& memory = system.GetMemory();
+      auto& memory = m_system.GetMemory();
       return memory.Read_U8(address & memory.GetRamMask());
     }
   }
   else
   {
-    return state.aram.ptr[address & state.aram.mask];
+    return m_aram.ptr[address & m_aram.mask];
   }
 }
 
-void WriteARAM(u8 value, u32 address)
+void DSPManager::WriteARAM(u8 value, u32 address)
 {
-  auto& state = Core::System::GetInstance().GetDSPState().GetData();
-
   // TODO: verify this on Wii
-  state.aram.ptr[address & state.aram.mask] = value;
+  m_aram.ptr[address & m_aram.mask] = value;
 }
 
-u8* GetARAMPtr()
+u8* DSPManager::GetARAMPtr() const
 {
-  auto& state = Core::System::GetInstance().GetDSPState().GetData();
-  return state.aram.ptr;
+  return m_aram.ptr;
 }
 
 }  // end of namespace DSP

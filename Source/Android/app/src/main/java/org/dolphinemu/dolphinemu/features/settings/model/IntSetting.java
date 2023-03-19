@@ -33,6 +33,10 @@ public enum IntSetting implements AbstractIntSetting
 
   MAIN_AUDIO_VOLUME(Settings.FILE_DOLPHIN, Settings.SECTION_INI_DSP, "Volume", 100),
 
+  MAIN_OVERLAY_GC_CONTROLLER(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
+          "OverlayGCController", 0),  // Defaults to GameCube controller 1
+  MAIN_OVERLAY_WII_CONTROLLER(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
+          "OverlayWiiController", 4),  // Defaults to Wii Remote 1
   MAIN_CONTROL_SCALE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "ControlScale", 50),
   MAIN_CONTROL_OPACITY(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "ControlOpacity", 65),
   MAIN_EMULATION_ORIENTATION(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
@@ -41,7 +45,6 @@ public enum IntSetting implements AbstractIntSetting
   MAIN_INTERFACE_THEME_MODE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
           "InterfaceThemeMode", -1),
   MAIN_LAST_PLATFORM_TAB(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "LastPlatformTab", 0),
-  MAIN_MOTION_CONTROLS(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "MotionControls", 1),
   MAIN_IR_MODE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "IRMode",
           InputOverlayPointer.MODE_FOLLOW),
 
@@ -118,12 +121,9 @@ public enum IntSetting implements AbstractIntSetting
   }
 
   @Override
-  public boolean isOverridden(@NonNull Settings settings)
+  public boolean isOverridden()
   {
-    if (settings.isGameSpecific() && !NativeConfig.isSettingSaveable(mFile, mSection, mKey))
-      return settings.getSection(mFile, mSection).exists(mKey);
-    else
-      return NativeConfig.isOverridden(mFile, mSection, mKey);
+    return NativeConfig.isOverridden(mFile, mSection, mKey);
   }
 
   @Override
@@ -144,49 +144,53 @@ public enum IntSetting implements AbstractIntSetting
   @Override
   public boolean delete(@NonNull Settings settings)
   {
-    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
+    if (!NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      return NativeConfig.deleteKey(settings.getWriteLayer(), mFile, mSection, mKey);
+      throw new UnsupportedOperationException(
+              "Unsupported setting: " + mFile + ", " + mSection + ", " + mKey);
     }
-    else
-    {
-      return settings.getSection(mFile, mSection).delete(mKey);
-    }
+
+    return NativeConfig.deleteKey(settings.getWriteLayer(), mFile, mSection, mKey);
   }
 
   @Override
-  public int getInt(@NonNull Settings settings)
+  public int getInt()
   {
-    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
-    {
-      return NativeConfig.getInt(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey, mDefaultValue);
-    }
-    else
-    {
-      return settings.getSection(mFile, mSection).getInt(mKey, mDefaultValue);
-    }
+    return NativeConfig.getInt(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey, mDefaultValue);
   }
 
   @Override
   public void setInt(@NonNull Settings settings, int newValue)
   {
-    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
+    if (!NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      NativeConfig.setInt(settings.getWriteLayer(), mFile, mSection, mKey, newValue);
+      throw new UnsupportedOperationException(
+              "Unsupported setting: " + mFile + ", " + mSection + ", " + mKey);
     }
-    else
-    {
-      settings.getSection(mFile, mSection).setInt(mKey, newValue);
-    }
+
+    NativeConfig.setInt(settings.getWriteLayer(), mFile, mSection, mKey, newValue);
   }
 
-  public int getIntGlobal()
+  public void setInt(int layer, int newValue)
   {
-    return NativeConfig.getInt(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey, mDefaultValue);
-  }
+    if (!NativeConfig.isSettingSaveable(mFile, mSection, mKey))
+    {
+      throw new UnsupportedOperationException(
+              "Unsupported setting: " + mFile + ", " + mSection + ", " + mKey);
+    }
 
-  public void setIntGlobal(int layer, int newValue)
-  {
     NativeConfig.setInt(layer, mFile, mSection, mKey, newValue);
+  }
+
+  public static IntSetting getSettingForSIDevice(int channel)
+  {
+    return new IntSetting[]{MAIN_SI_DEVICE_0, MAIN_SI_DEVICE_1, MAIN_SI_DEVICE_2, MAIN_SI_DEVICE_3}
+            [channel];
+  }
+
+  public static IntSetting getSettingForWiimoteSource(int index)
+  {
+    return new IntSetting[]{WIIMOTE_1_SOURCE, WIIMOTE_2_SOURCE, WIIMOTE_3_SOURCE, WIIMOTE_4_SOURCE,
+            WIIMOTE_BB_SOURCE}[index];
   }
 }

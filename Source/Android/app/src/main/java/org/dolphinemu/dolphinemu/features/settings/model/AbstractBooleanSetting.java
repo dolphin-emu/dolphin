@@ -6,7 +6,7 @@ import androidx.annotation.NonNull;
 
 public interface AbstractBooleanSetting extends AbstractSetting
 {
-  boolean getBoolean(@NonNull Settings settings);
+  boolean getBoolean();
 
   void setBoolean(@NonNull Settings settings, boolean newValue);
 }

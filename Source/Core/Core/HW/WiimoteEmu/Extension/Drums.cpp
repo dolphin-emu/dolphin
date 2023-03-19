@@ -69,14 +69,14 @@ Drums::Drums() : Extension1stParty("Drums", _trans("Drum Kit"))
                       _trans("%")},
                      50);
 
-  // Stick.
-  groups.emplace_back(m_stick =
-                          new ControllerEmu::OctagonAnalogStick(_trans("Stick"), GATE_RADIUS));
-
   // Buttons.
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
   m_buttons->AddInput(ControllerEmu::DoNotTranslate, "-");
   m_buttons->AddInput(ControllerEmu::DoNotTranslate, "+");
+
+  // Stick.
+  groups.emplace_back(m_stick =
+                          new ControllerEmu::OctagonAnalogStick(_trans("Stick"), GATE_RADIUS));
 }
 
 void Drums::BuildDesiredExtensionState(DesiredExtensionState* target_state)

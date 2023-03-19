@@ -15,7 +15,7 @@
 class CBoot;
 class PointerWrap;
 
-namespace DVDInterface
+namespace DVD
 {
 enum class DIInterruptType : int;
 }
@@ -40,7 +40,7 @@ class DIDevice : public Device
 public:
   DIDevice(Kernel& ios, const std::string& device_name);
 
-  static void InterruptFromDVDInterface(DVDInterface::DIInterruptType interrupt_type);
+  static void InterruptFromDVDInterface(DVD::DIInterruptType interrupt_type);
   static DiscIO::Partition GetCurrentPartition();
 
   void DoState(PointerWrap& p) override;

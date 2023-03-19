@@ -38,6 +38,7 @@ TEST_CASE("TokenHelpersTests::VerifyOpenCurrentAccessToken", "[token_helpers]")
 }
 #endif
 
+#if (_WIN32_WINNT >= _WIN32_WINNT_WIN8)
 TEST_CASE("TokenHelpersTests::VerifyGetTokenInformationNoThrow", "[token_helpers]")
 {
     SECTION("Passing a null token")
@@ -91,6 +92,7 @@ TEST_CASE("TokenHelpersTests::VerifyLinkedToken", "[token_helpers]")
     REQUIRE_NOTHROW(wil::get_linked_token_information());
 #endif
 }
+#endif
 #endif
 
 bool IsImpersonating()
@@ -186,6 +188,7 @@ TEST_CASE("TokenHelpersTests::VerifyResetThreadToken", "[token_helpers]")
 }
 #endif // WIL_ENABLE_EXCEPTIONS
 
+#if (_WIN32_WINNT >= _WIN32_WINNT_WIN8)
 template <typename T, wistd::enable_if_t<!wil::details::MapTokenStructToInfoClass<T>::FixedSize>* = nullptr>
 void TestGetTokenInfoForCurrentThread()
 {
@@ -251,6 +254,7 @@ TEST_CASE("TokenHelpersTests::VerifyGetTokenInformationSecurityImpersonationLeve
 
     RevertToSelf();
 }
+#endif
 
 bool operator==(const SID_IDENTIFIER_AUTHORITY& left, const SID_IDENTIFIER_AUTHORITY& right)
 {
@@ -274,6 +278,7 @@ TEST_CASE("TokenHelpersTests::StaticSid", "[token_helpers]")
     REQUIRE(*GetSidSubAuthority(staticSid.get(), 1) == DOMAIN_ALIAS_RID_GUESTS);
 }
 
+#if (_WIN32_WINNT >= _WIN32_WINNT_WIN8)
 TEST_CASE("TokenHelpersTests::TestMembership", "[token_helpers]")
 {
     bool member;
@@ -318,3 +323,4 @@ TEST_CASE("TokenHelpersTests::Verify_impersonate_token", "[token_helpers]")
     REQUIRE_NOTHROW(wil::get_token_information<TOKEN_TYPE>());
 }
 #endif // WIL_ENABLE_EXCEPTIONS
+#endif

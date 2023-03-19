@@ -169,9 +169,10 @@ std::string GetInputDisplay()
     s_wiimotes = {};
     for (int i = 0; i < 4; ++i)
     {
-      if (SerialInterface::GetDeviceType(i) == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
+      auto& si = Core::System::GetInstance().GetSerialInterface();
+      if (si.GetDeviceType(i) == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
         s_controllers[i] = ControllerType::GBA;
-      else if (SerialInterface::GetDeviceType(i) != SerialInterface::SIDEVICE_NONE)
+      else if (si.GetDeviceType(i) != SerialInterface::SIDEVICE_NONE)
         s_controllers[i] = ControllerType::GC;
       else
         s_controllers[i] = ControllerType::None;
@@ -484,6 +485,7 @@ void ChangePads()
   if (s_controllers == controllers)
     return;
 
+  auto& si = Core::System::GetInstance().GetSerialInterface();
   for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
   {
     SerialInterface::SIDevices device = SerialInterface::SIDEVICE_NONE;
@@ -505,7 +507,7 @@ void ChangePads()
       }
     }
 
-    SerialInterface::ChangeDevice(device, i);
+    si.ChangeDevice(device, i);
   }
 }
 
@@ -1274,9 +1276,9 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
   if (s_padState.disc)
   {
     Core::RunAsCPUThread([] {
-      if (!DVDInterface::AutoChangeDisc())
+      auto& system = Core::System::GetInstance();
+      if (!system.GetDVDInterface().AutoChangeDisc())
       {
-        auto& system = Core::System::GetInstance();
         system.GetCPU().Break();
         PanicAlertFmtT("Change the disc to {0}", s_discChange);
       }

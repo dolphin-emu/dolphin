@@ -6,8 +6,8 @@ class ScaledIntSetting(
     private val scale: Int,
     private val setting: AbstractIntSetting
 ) : AbstractIntSetting {
-    override fun isOverridden(settings: Settings): Boolean {
-        return setting.isOverridden(settings)
+    override fun isOverridden(): Boolean {
+        return setting.isOverridden()
     }
 
     override fun isRuntimeEditable(): Boolean {
@@ -18,8 +18,8 @@ class ScaledIntSetting(
         return setting.delete(settings)
     }
 
-    override fun getInt(settings: Settings): Int {
-        return setting.getInt(settings) / scale
+    override fun getInt(): Int {
+        return setting.getInt() / scale
     }
 
     override fun setInt(settings: Settings, newValue: Int) {

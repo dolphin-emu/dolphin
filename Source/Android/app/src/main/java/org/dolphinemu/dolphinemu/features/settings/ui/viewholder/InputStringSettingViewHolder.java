@@ -31,7 +31,7 @@ public final class InputStringSettingViewHolder extends SettingViewHolder
   {
     mInputString = (InputStringSetting) item;
 
-    String inputString = mInputString.getSelectedValue(getAdapter().getSettings());
+    String inputString = mInputString.getSelectedValue();
 
     mBinding.textSettingName.setText(item.getName());
 

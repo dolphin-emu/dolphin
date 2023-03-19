@@ -8,6 +8,7 @@
 #include <regex>
 
 #include "Common/Event.h"
+#include "Core/Core.h"
 #include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/HW/CPU.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -122,14 +123,14 @@ InstructionAttributes CodeTrace::GetInstructionAttributes(const TraceOutput& ins
   return tmp_attributes;
 }
 
-TraceOutput CodeTrace::SaveCurrentInstruction(const Core::CPUThreadGuard* guard) const
+TraceOutput CodeTrace::SaveCurrentInstruction(const Core::CPUThreadGuard& guard) const
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = guard.GetSystem();
   auto& ppc_state = system.GetPPCState();
 
   // Quickly save instruction and memory target for fast logging.
   TraceOutput output;
-  const std::string instr = PowerPC::debug_interface.Disassemble(guard, ppc_state.pc);
+  const std::string instr = PowerPC::debug_interface.Disassemble(&guard, ppc_state.pc);
   output.instruction = instr;
   output.address = ppc_state.pc;
 
@@ -147,7 +148,7 @@ AutoStepResults CodeTrace::AutoStepping(const Core::CPUThreadGuard& guard, bool 
   if (m_recording)
     return results;
 
-  TraceOutput pc_instr = SaveCurrentInstruction(&guard);
+  TraceOutput pc_instr = SaveCurrentInstruction(guard);
   const InstructionAttributes instr = GetInstructionAttributes(pc_instr);
 
   // Not an instruction we should start autostepping from (ie branches).
@@ -199,7 +200,7 @@ AutoStepResults CodeTrace::AutoStepping(const Core::CPUThreadGuard& guard, bool 
   {
     PowerPC::SingleStep();
 
-    pc_instr = SaveCurrentInstruction(&guard);
+    pc_instr = SaveCurrentInstruction(guard);
     hit = TraceLogic(pc_instr);
     results.count += 1;
   } while (clock::now() < timeout && hit < stop_condition &&

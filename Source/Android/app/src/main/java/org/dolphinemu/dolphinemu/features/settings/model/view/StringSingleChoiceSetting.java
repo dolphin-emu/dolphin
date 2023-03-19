@@ -12,11 +12,12 @@ import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 
 public class StringSingleChoiceSetting extends SettingsItem
 {
-  private AbstractStringSetting mSetting;
+  private final AbstractStringSetting mSetting;
 
-  private String[] mChoices;
-  private String[] mValues;
-  private MenuTag mMenuTag;
+  protected String[] mChoices;
+  protected String[] mValues;
+  private final MenuTag mMenuTag;
+  private int mNoChoicesAvailableString = 0;
 
   public StringSingleChoiceSetting(Context context, AbstractStringSetting setting, int titleId,
           int descriptionId, String[] choices, String[] values, MenuTag menuTag)
@@ -32,6 +33,13 @@ public class StringSingleChoiceSetting extends SettingsItem
           int descriptionId, String[] choices, String[] values)
   {
     this(context, setting, titleId, descriptionId, choices, values, null);
+  }
+
+  public StringSingleChoiceSetting(Context context, AbstractStringSetting setting, int titleId,
+          int descriptionId, String[] choices, String[] values, int noChoicesAvailableString)
+  {
+    this(context, setting, titleId, descriptionId, choices, values, null);
+    mNoChoicesAvailableString = noChoicesAvailableString;
   }
 
   public StringSingleChoiceSetting(Context context, AbstractStringSetting setting, int titleId,
@@ -60,6 +68,19 @@ public class StringSingleChoiceSetting extends SettingsItem
     return mValues;
   }
 
+  public String getChoiceAt(int index)
+  {
+    if (mChoices == null)
+      return null;
+
+    if (index >= 0 && index < mChoices.length)
+    {
+      return mChoices[index];
+    }
+
+    return "";
+  }
+
   public String getValueAt(int index)
   {
     if (mValues == null)
@@ -73,14 +94,19 @@ public class StringSingleChoiceSetting extends SettingsItem
     return "";
   }
 
-  public String getSelectedValue(Settings settings)
+  public String getSelectedChoice()
   {
-    return mSetting.getString(settings);
+    return getChoiceAt(getSelectedValueIndex());
   }
 
-  public int getSelectedValueIndex(Settings settings)
+  public String getSelectedValue()
   {
-    String selectedValue = getSelectedValue(settings);
+    return mSetting.getString();
+  }
+
+  public int getSelectedValueIndex()
+  {
+    String selectedValue = getSelectedValue();
     for (int i = 0; i < mValues.length; i++)
     {
       if (mValues[i].equals(selectedValue))
@@ -97,9 +123,18 @@ public class StringSingleChoiceSetting extends SettingsItem
     return mMenuTag;
   }
 
+  public int getNoChoicesAvailableString()
+  {
+    return mNoChoicesAvailableString;
+  }
+
   public void setSelectedValue(Settings settings, String selection)
   {
     mSetting.setString(settings, selection);
+  }
+
+  public void refreshChoicesAndValues()
+  {
   }
 
   @Override

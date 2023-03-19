@@ -35,7 +35,7 @@ public final class FilePickerViewHolder extends SettingViewHolder
     mFilePicker = (FilePicker) item;
     mItem = item;
 
-    String path = mFilePicker.getSelectedValue(getAdapter().getSettings());
+    String path = mFilePicker.getSelectedValue();
 
     if (FileBrowserHelper.isPathEmptyOrValid(path))
     {

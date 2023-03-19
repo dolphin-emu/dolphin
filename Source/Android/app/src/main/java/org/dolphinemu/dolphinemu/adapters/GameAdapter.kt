@@ -59,7 +59,7 @@ class GameAdapter(private val mActivity: FragmentActivity) : RecyclerView.Adapte
         val gameFile = mGameFiles[position]
 
         holder.apply {
-            if (BooleanSetting.MAIN_SHOW_GAME_TITLES.booleanGlobal) {
+            if (BooleanSetting.MAIN_SHOW_GAME_TITLES.boolean) {
                 binding.textGameTitle.text = gameFile.title
                 binding.textGameTitle.visibility = View.VISIBLE
                 binding.textGameTitleInner.visibility = View.GONE

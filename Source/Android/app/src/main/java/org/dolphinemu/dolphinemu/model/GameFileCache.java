@@ -98,7 +98,7 @@ public class GameFileCache
 
   public static String[] getAllGamePaths()
   {
-    boolean recursiveScan = BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.getBooleanGlobal();
+    boolean recursiveScan = BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.getBoolean();
 
     LinkedHashSet<String> folderPathsSet = getPathSet(true);
 

@@ -21,9 +21,8 @@ public abstract class SettingsItem
   public static final int TYPE_SINGLE_CHOICE = 2;
   public static final int TYPE_SLIDER = 3;
   public static final int TYPE_SUBMENU = 4;
-  public static final int TYPE_INPUT_BINDING = 5;
+  public static final int TYPE_INPUT_MAPPING_CONTROL = 5;
   public static final int TYPE_STRING_SINGLE_CHOICE = 6;
-  public static final int TYPE_RUMBLE_BINDING = 7;
   public static final int TYPE_SINGLE_CHOICE_DYNAMIC_DESCRIPTIONS = 8;
   public static final int TYPE_FILE_PICKER = 9;
   public static final int TYPE_RUN_RUNNABLE = 10;
@@ -76,10 +75,10 @@ public abstract class SettingsItem
 
   protected abstract AbstractSetting getSetting();
 
-  public boolean isOverridden(Settings settings)
+  public boolean isOverridden()
   {
     AbstractSetting setting = getSetting();
-    return setting != null && setting.isOverridden(settings);
+    return setting != null && setting.isOverridden();
   }
 
   public boolean isEditable()
@@ -94,6 +93,11 @@ public abstract class SettingsItem
   public boolean hasSetting()
   {
     return getSetting() != null;
+  }
+
+  public boolean canClear()
+  {
+    return hasSetting();
   }
 
   public void clear(Settings settings)

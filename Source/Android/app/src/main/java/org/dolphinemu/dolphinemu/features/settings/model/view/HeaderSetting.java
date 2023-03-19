@@ -13,6 +13,11 @@ public class HeaderSetting extends SettingsItem
     super(context, titleId, descriptionId);
   }
 
+  public HeaderSetting(CharSequence title, CharSequence description)
+  {
+    super(title, description);
+  }
+
   @Override
   public int getType()
   {

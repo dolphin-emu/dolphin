@@ -62,7 +62,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
                    return m_status.Hex;
                  }),
-                 MMIO::ComplexWrite<u32>([this](Core::System&, u32, u32 val) {
+                 MMIO::ComplexWrite<u32>([this](Core::System& system, u32, u32 val) {
                    UEXI_STATUS new_status(val);
 
                    m_status.EXIINTMASK = new_status.EXIINTMASK;
@@ -91,7 +91,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    if (device != nullptr)
                      device->SetCS(m_status.CHIP_SELECT);
 
-                   ExpansionInterface::UpdateInterrupts();
+                   system.GetExpansionInterface().UpdateInterrupts();
                  }));
 
   mmio->Register(base + EXI_DMA_ADDRESS, MMIO::DirectRead<u32>(&m_dma_memory_address),
@@ -160,7 +160,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 void CEXIChannel::SendTransferComplete()
 {
   m_status.TCINT = 1;
-  ExpansionInterface::UpdateInterrupts();
+  m_system.GetExpansionInterface().UpdateInterrupts();
 }
 
 void CEXIChannel::RemoveDevices()
@@ -195,7 +195,7 @@ void CEXIChannel::AddDevice(std::unique_ptr<IEXIDevice> device, const int device
     if (m_channel_id != 2)
     {
       m_status.EXTINT = 1;
-      ExpansionInterface::UpdateInterrupts();
+      m_system.GetExpansionInterface().UpdateInterrupts();
     }
   }
 }
@@ -280,8 +280,8 @@ void CEXIChannel::DoState(PointerWrap& p)
       // the new device type are identical in this case. I assume there is a reason we have this
       // grace period when switching in the GUI.
       AddDevice(EXIDeviceType::None, device_index);
-      ExpansionInterface::ChangeDevice(m_channel_id, device_index, EXIDeviceType::MemoryCardFolder,
-                                       CoreTiming::FromThread::CPU);
+      m_system.GetExpansionInterface().ChangeDevice(
+          m_channel_id, device_index, EXIDeviceType::MemoryCardFolder, CoreTiming::FromThread::CPU);
     }
   }
 }

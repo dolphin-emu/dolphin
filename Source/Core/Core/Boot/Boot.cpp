@@ -317,7 +317,7 @@ static const DiscIO::VolumeDisc* SetDisc(std::unique_ptr<DiscIO::VolumeDisc> dis
                                          std::vector<std::string> auto_disc_change_paths = {})
 {
   const DiscIO::VolumeDisc* pointer = disc.get();
-  DVDInterface::SetDisc(std::move(disc), auto_disc_change_paths);
+  Core::System::GetInstance().GetDVDInterface().SetDisc(std::move(disc), auto_disc_change_paths);
   return pointer;
 }
 
@@ -344,7 +344,7 @@ bool CBoot::DVDReadDiscID(Core::System& system, const DiscIO::VolumeDisc& disc, 
 
   // Transition out of the DiscIdNotRead state (which the drive should be in at this point,
   // on the assumption that this is only used for the first read)
-  DVDInterface::SetDriveState(DVDInterface::DriveState::ReadyNoReadsMade);
+  system.GetDVDInterface().SetDriveState(DVD::DriveState::ReadyNoReadsMade);
   return true;
 }
 
@@ -496,8 +496,8 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
   }
 
   // PAL Wii uses NTSC framerate and linecount in 60Hz modes
-  VideoInterface::Preset(DiscIO::IsNTSC(config.m_region) ||
-                         (config.bWii && Config::Get(Config::SYSCONF_PAL60)));
+  system.GetVideoInterface().Preset(DiscIO::IsNTSC(config.m_region) ||
+                                    (config.bWii && Config::Get(Config::SYSCONF_PAL60)));
 
   struct BootTitle
   {

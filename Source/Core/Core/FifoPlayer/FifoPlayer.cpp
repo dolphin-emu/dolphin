@@ -414,9 +414,9 @@ FifoPlayer& FifoPlayer::GetInstance()
 void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo& info)
 {
   // Core timing information
+  auto& vi = Core::System::GetInstance().GetVideoInterface();
   m_CyclesPerFrame = static_cast<u64>(SystemTimers::GetTicksPerSecond()) *
-                     VideoInterface::GetTargetRefreshRateDenominator() /
-                     VideoInterface::GetTargetRefreshRateNumerator();
+                     vi.GetTargetRefreshRateDenominator() / vi.GetTargetRefreshRateNumerator();
   m_ElapsedCycles = 0;
   m_FrameFifoSize = static_cast<u32>(frame.fifoData.size());
 

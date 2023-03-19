@@ -66,11 +66,11 @@ public final class SettingsActivityPresenter
   {
     mView.hideLoading();
 
-    if (mSettings.isEmpty())
+    if (!mSettings.areSettingsLoaded())
     {
       if (!TextUtils.isEmpty(mGameId))
       {
-        mSettings.loadSettings(mView, mGameId, mRevision, mIsWii);
+        mSettings.loadSettings(mGameId, mRevision, mIsWii);
 
         if (mSettings.gameIniContainsJunk())
         {
@@ -79,7 +79,7 @@ public final class SettingsActivityPresenter
       }
       else
       {
-        mSettings.loadSettings(mView, mIsWii);
+        mSettings.loadSettings(mIsWii);
       }
     }
 
@@ -99,9 +99,9 @@ public final class SettingsActivityPresenter
     return mSettings;
   }
 
-  public void clearSettings()
+  public void clearGameSettings()
   {
-    mSettings.clearSettings();
+    mSettings.clearGameSettings();
     onSettingChanged();
   }
 
@@ -110,7 +110,7 @@ public final class SettingsActivityPresenter
     if (mSettings != null && finishing && mShouldSave)
     {
       Log.debug("[SettingsActivity] Settings activity stopping. Saving settings to INI...");
-      mSettings.saveSettings(mView, mActivity);
+      mSettings.saveSettings(mActivity);
     }
   }
 

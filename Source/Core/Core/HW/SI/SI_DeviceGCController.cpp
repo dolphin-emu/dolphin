@@ -24,8 +24,9 @@
 namespace SerialInterface
 {
 // --- standard GameCube controller ---
-CSIDevice_GCController::CSIDevice_GCController(SIDevices device, int device_number)
-    : ISIDevice(device, device_number)
+CSIDevice_GCController::CSIDevice_GCController(Core::System& system, SIDevices device,
+                                               int device_number)
+    : ISIDevice(system, device, device_number)
 {
   // Here we set origin to perfectly centered values.
   // This purposely differs from real hardware which sets origin to current input state.
@@ -264,19 +265,18 @@ CSIDevice_GCController::HandleButtonCombos(const GCPadStatus& pad_status)
   {
     m_last_button_combo = temp_combo;
     if (m_last_button_combo != COMBO_NONE)
-      m_timer_button_combo_start = Core::System::GetInstance().GetCoreTiming().GetTicks();
+      m_timer_button_combo_start = m_system.GetCoreTiming().GetTicks();
   }
 
   if (m_last_button_combo != COMBO_NONE)
   {
-    auto& system = Core::System::GetInstance();
-    const u64 current_time = system.GetCoreTiming().GetTicks();
+    const u64 current_time = m_system.GetCoreTiming().GetTicks();
     if (u32(current_time - m_timer_button_combo_start) > SystemTimers::GetTicksPerSecond() * 3)
     {
       if (m_last_button_combo == COMBO_RESET)
       {
         INFO_LOG_FMT(SERIALINTERFACE, "PAD - COMBO_RESET");
-        system.GetProcessorInterface().ResetButton_Tap();
+        m_system.GetProcessorInterface().ResetButton_Tap();
       }
       else if (m_last_button_combo == COMBO_ORIGIN)
       {
@@ -355,8 +355,8 @@ void CSIDevice_GCController::RefreshConfig()
   }
 }
 
-CSIDevice_TaruKonga::CSIDevice_TaruKonga(SIDevices device, int device_number)
-    : CSIDevice_GCController(device, device_number)
+CSIDevice_TaruKonga::CSIDevice_TaruKonga(Core::System& system, SIDevices device, int device_number)
+    : CSIDevice_GCController(system, device, device_number)
 {
 }
 

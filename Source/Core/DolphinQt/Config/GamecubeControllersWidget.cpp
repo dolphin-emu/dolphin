@@ -19,6 +19,7 @@
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/NetPlayProto.h"
+#include "Core/System.h"
 
 #include "DolphinQt/Config/Mapping/GCPadWiiUConfigDialog.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
@@ -192,7 +193,10 @@ void GamecubeControllersWidget::SaveSettings()
       Config::SetBaseOrCurrent(Config::GetInfoForSIDevice(static_cast<int>(i)), si_device);
 
       if (Core::IsRunning())
-        SerialInterface::ChangeDevice(si_device, static_cast<s32>(i));
+      {
+        Core::System::GetInstance().GetSerialInterface().ChangeDevice(si_device,
+                                                                      static_cast<s32>(i));
+      }
     }
 
     if (GCAdapter::UseAdapter())

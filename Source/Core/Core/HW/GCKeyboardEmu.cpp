@@ -257,6 +257,47 @@ void GCKeyboard::LoadDefaults(const ControllerInterface& ciface)
   m_keys5x->SetControlExpression(2, "`Up Arrow`");
   m_keys5x->SetControlExpression(3, "`Right Arrow`");
   m_keys5x->SetControlExpression(4, "Return");
+#elif ANDROID
+  m_keys0x->SetControlExpression(0, "`Move Home`");
+  m_keys0x->SetControlExpression(1, "`Move End`");
+  m_keys0x->SetControlExpression(2, "`Page Up`");
+  m_keys0x->SetControlExpression(3, "`Page Down`");
+  m_keys0x->SetControlExpression(4, "`Scroll Lock`");
+
+  m_keys2x->SetControlExpression(9, "`Minus`");
+  m_keys2x->SetControlExpression(10, "`Grave`");
+  m_keys2x->SetControlExpression(11, "`PrtSc SysRq`");
+  m_keys2x->SetControlExpression(12, "`Apostrophe`");
+  m_keys2x->SetControlExpression(13, "`Left Bracket`");
+  m_keys2x->SetControlExpression(14, "``Equals``");
+  m_keys2x->SetControlExpression(15, "`Numpad Multiply`");
+  m_keys3x->SetControlExpression(0, "`Right Bracket`");
+  m_keys3x->SetControlExpression(1, "`Comma`");
+  m_keys3x->SetControlExpression(2, "`Period`");
+  m_keys3x->SetControlExpression(3, "`Slash`");
+  m_keys3x->SetControlExpression(4, "`Backslash`");
+
+  m_keys4x->SetControlExpression(1, "`Escape`");
+  m_keys4x->SetControlExpression(2, "`Insert`");
+  m_keys4x->SetControlExpression(3, "`Delete`");
+  m_keys4x->SetControlExpression(4, "`Semicolon`");
+  m_keys4x->SetControlExpression(5, "`Backspace`");
+  m_keys4x->SetControlExpression(6, "`Tab`");
+  m_keys4x->SetControlExpression(7, "`Caps Lock`");
+  m_keys4x->SetControlExpression(8, "`Left Shift`");
+  m_keys4x->SetControlExpression(9, "`Right Shift`");
+  m_keys4x->SetControlExpression(10, "`Left Ctrl`");
+  m_keys4x->SetControlExpression(11, "`Right Alt`");
+  m_keys4x->SetControlExpression(12, "`Left Meta`");
+  m_keys4x->SetControlExpression(13, "`Space`");
+  m_keys4x->SetControlExpression(14, "`Right Meta`");
+  m_keys4x->SetControlExpression(15, "`Menu`");
+
+  m_keys5x->SetControlExpression(0, "`Left`");
+  m_keys5x->SetControlExpression(1, "`Down`");
+  m_keys5x->SetControlExpression(2, "`Up`");
+  m_keys5x->SetControlExpression(3, "`Right`");
+  m_keys5x->SetControlExpression(4, "`Enter`");
 #else  // linux
   m_keys0x->SetControlExpression(0, "Home");
   m_keys0x->SetControlExpression(1, "End");

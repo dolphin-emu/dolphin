@@ -267,7 +267,7 @@ void Jit64::dcbx(UGeckoInstruction inst)
 
     // Alright, now figure out how many loops we want to do.
     const u8 cycle_count_per_loop =
-        js.op[0].opinfo->numCycles + js.op[1].opinfo->numCycles + js.op[2].opinfo->numCycles;
+        js.op[0].opinfo->num_cycles + js.op[1].opinfo->num_cycles + js.op[2].opinfo->num_cycles;
 
     // This is both setting the adjusted loop count to 0 for the downcount <= 0 case and clearing
     // the upper bits for the DIV instruction in the downcount > 0 case.

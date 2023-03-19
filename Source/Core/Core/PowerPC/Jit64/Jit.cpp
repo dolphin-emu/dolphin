@@ -241,7 +241,7 @@ bool Jit64::BackPatch(SContext* ctx)
   if (info.offsetAddedToAddress)
   {
     u64* ptr = ContextRN(ctx, info.op_arg.GetSimpleReg());
-    *ptr -= static_cast<u32>(info.offset);
+    *ptr = static_cast<u32>(*ptr - info.offset);
   }
 
   ctx->CTX_PC = reinterpret_cast<u64>(trampoline);
@@ -342,7 +342,7 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
     MOV(32, PPCSTATE(npc), Imm32(js.compilerPC + 4));
   }
 
-  Interpreter::Instruction instr = PPCTables::GetInterpreterOp(inst);
+  Interpreter::Instruction instr = Interpreter::GetInterpreterOp(inst);
   ABI_PushRegistersAndAdjustStack({}, 0);
   ABI_CallFunctionC(instr, inst.hex);
   ABI_PopRegistersAndAdjustStack({}, 0);
@@ -921,7 +921,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     js.instructionNumber = i;
     js.instructionsLeft = (code_block.m_num_instructions - 1) - i;
     const GekkoOPInfo* opinfo = op.opinfo;
-    js.downcountAmount += opinfo->numCycles;
+    js.downcountAmount += opinfo->num_cycles;
     js.fastmemLoadStore = nullptr;
     js.fixupExceptionHandler = false;
 

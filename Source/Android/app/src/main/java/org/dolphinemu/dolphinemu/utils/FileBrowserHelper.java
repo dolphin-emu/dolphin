@@ -79,7 +79,7 @@ public final class FileBrowserHelper
 
   public static boolean isPathEmptyOrValid(StringSetting path)
   {
-    return isPathEmptyOrValid(path.getStringGlobal());
+    return isPathEmptyOrValid(path.getString());
   }
 
   /**

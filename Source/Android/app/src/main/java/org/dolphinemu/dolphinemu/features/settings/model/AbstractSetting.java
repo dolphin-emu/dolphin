@@ -6,7 +6,7 @@ import androidx.annotation.NonNull;
 
 public interface AbstractSetting
 {
-  boolean isOverridden(@NonNull Settings settings);
+  boolean isOverridden();
 
   boolean isRuntimeEditable();
 

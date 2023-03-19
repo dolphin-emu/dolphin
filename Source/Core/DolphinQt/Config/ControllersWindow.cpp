@@ -23,6 +23,12 @@ ControllersWindow::ControllersWindow(QWidget* parent) : QDialog(parent)
   ConnectWidgets();
 }
 
+void ControllersWindow::showEvent(QShowEvent* event)
+{
+  QDialog::showEvent(event);
+  m_wiimote_controllers->UpdateBluetoothAvailableStatus();
+}
+
 void ControllersWindow::CreateMainLayout()
 {
   auto* layout = new QVBoxLayout();

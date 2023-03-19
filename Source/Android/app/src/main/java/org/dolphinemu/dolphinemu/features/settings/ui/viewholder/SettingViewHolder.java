@@ -41,7 +41,7 @@ public abstract class SettingViewHolder extends RecyclerView.ViewHolder
 
   protected void setStyle(TextView textView, SettingsItem settingsItem)
   {
-    boolean overridden = settingsItem.isOverridden(mAdapter.getSettings());
+    boolean overridden = settingsItem.isOverridden();
     textView.setTypeface(null, overridden ? Typeface.BOLD : Typeface.NORMAL);
 
     if (!settingsItem.isEditable())
@@ -83,7 +83,7 @@ public abstract class SettingViewHolder extends RecyclerView.ViewHolder
   {
     SettingsItem item = getItem();
 
-    if (item == null || !item.hasSetting())
+    if (item == null || !item.canClear())
       return false;
 
     if (!item.isEditable())

@@ -21,7 +21,7 @@ object Analytics {
     @JvmStatic
     fun checkAnalyticsInit(activity: FragmentActivity) {
         AfterDirectoryInitializationRunner().runWithoutLifecycle {
-            if (!BooleanSetting.MAIN_ANALYTICS_PERMISSION_ASKED.booleanGlobal) {
+            if (!BooleanSetting.MAIN_ANALYTICS_PERMISSION_ASKED.boolean) {
                 AnalyticsDialog().show(activity.supportFragmentManager, AnalyticsDialog.TAG)
             }
         }
@@ -34,7 +34,7 @@ object Analytics {
             BooleanSetting.MAIN_ANALYTICS_PERMISSION_ASKED.setBoolean(settings, true)
 
             // Context is set to null to avoid toasts
-            settings.saveSettings(null, null)
+            settings.saveSettings(null)
         }
     }
 

@@ -73,7 +73,7 @@ public:
 
 private:
   InstructionAttributes GetInstructionAttributes(const TraceOutput& line) const;
-  TraceOutput SaveCurrentInstruction(const Core::CPUThreadGuard* guard) const;
+  TraceOutput SaveCurrentInstruction(const Core::CPUThreadGuard& guard) const;
   HitType TraceLogic(const TraceOutput& current_instr, bool first_hit = false);
 
   bool m_recording = false;

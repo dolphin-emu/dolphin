@@ -42,13 +42,14 @@ static void ReinitHardware()
   // HACK However, resetting DI will reset the DTK config, which is set by the system menu
   // (and not by MIOS), causing games that use DTK to break.  Perhaps MIOS doesn't actually
   // reset DI fully, in such a way that the DTK config isn't cleared?
-  // DVDInterface::ResetDrive(true);
+  // system.GetDVDInterface().ResetDrive(true);
   PowerPC::Reset();
   Wiimote::ResetAllWiimotes();
   // Note: this is specific to Dolphin and is required because we initialised it in Wii mode.
-  DSP::Reinit(Config::Get(Config::MAIN_DSP_HLE));
-  DSP::GetDSPEmulator()->Initialize(SConfig::GetInstance().bWii,
-                                    Config::Get(Config::MAIN_DSP_THREAD));
+  auto& dsp = system.GetDSP();
+  dsp.Reinit(Config::Get(Config::MAIN_DSP_HLE));
+  dsp.GetDSPEmulator()->Initialize(SConfig::GetInstance().bWii,
+                                   Config::Get(Config::MAIN_DSP_THREAD));
 
   SystemTimers::ChangePPCClock(SystemTimers::Mode::GC);
 }
@@ -98,7 +99,7 @@ bool Load()
   memory.Write_U32(0x00000000, ADDRESS_INIT_SEMAPHORE);
   NOTICE_LOG_FMT(IOS, "IPL ready.");
   SConfig::GetInstance().m_is_mios = true;
-  DVDInterface::UpdateRunningGameMetadata();
+  system.GetDVDInterface().UpdateRunningGameMetadata();
   SConfig::OnNewTitleLoad(guard);
   return true;
 }

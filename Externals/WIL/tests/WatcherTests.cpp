@@ -91,7 +91,7 @@ TEST_CASE("EventWatcherTests::VerifyDelivery", "[resource][event_watcher]")
     int volatile countObserved = 0;
     auto watcher = wil::make_event_watcher_nothrow([&]
     {
-        countObserved++;
+        countObserved = countObserved + 1;
         notificationReceived.SetEvent();
     });
     REQUIRE(watcher != nullptr);
@@ -125,7 +125,7 @@ TEST_CASE("EventWatcherTests::VerifyLastChangeObserved", "[resource][event_watch
         auto watcher = wil::make_event_watcher_nothrow(make_event(eventOption), [&]
         {
             allChangesMade.wait();
-            countObserved++;
+            countObserved = countObserved + 1;
             lastObservedState = stateToObserve;
             processedChange.SetEvent();
         });
@@ -213,7 +213,7 @@ TEST_CASE("RegistryWatcherTests::VerifyDelivery", "[registry][registry_watcher]"
     auto volatile observedChangeType = wil::RegistryChangeKind::Delete;
     auto watcher = wil::make_registry_watcher_nothrow(ROOT_KEY_PAIR, true, [&](wil::RegistryChangeKind changeType)
     {
-        countObserved++;
+        countObserved = countObserved + 1;
         observedChangeType = changeType;
         notificationReceived.SetEvent();
     });
@@ -252,7 +252,7 @@ TEST_CASE("RegistryWatcherTests::VerifyLastChangeObserved", "[registry][registry
         called = true;
 
         allChangesMade.wait();
-        countObserved++;
+        countObserved = countObserved + 1;
         lastObservedState = stateToObserve;
         DWORD value, cbValue = sizeof(value);
         RegGetValueW(ROOT_KEY_PAIR, L"value", RRF_RT_REG_DWORD, nullptr, &value, &cbValue);
@@ -287,7 +287,7 @@ TEST_CASE("RegistryWatcherTests::VerifyDeleteBehavior", "[registry][registry_wat
     auto volatile observedChangeType = wil::RegistryChangeKind::Modify;
     auto watcher = wil::make_registry_watcher_nothrow(ROOT_KEY_PAIR, true, [&](wil::RegistryChangeKind changeType)
     {
-        countObserved++;
+        countObserved = countObserved + 1;
         observedChangeType = changeType;
         notificationReceived.SetEvent();
     });
@@ -318,7 +318,7 @@ TEST_CASE("RegistryWatcherTests::VerifyResetInCallback", "[registry][registry_wa
 }
 
 // Stress test, disabled by default
-TEST_CASE("RegistryWatcherTests::VerifyResetInCallbackStress", "[!hide][registry][registry_watcher][stress]")
+TEST_CASE("RegistryWatcherTests::VerifyResetInCallbackStress", "[LocalOnly][registry][registry_watcher][stress]")
 {
     for (DWORD value = 0; value < 10000; ++value)
     {
@@ -355,12 +355,12 @@ TEST_CASE("RegistryWatcherTests::VerifyResetAfterDelete", "[registry][registry_w
     auto volatile observedChangeType = wil::RegistryChangeKind::Modify;
     wil::unique_registry_watcher_nothrow watcher = wil::make_registry_watcher_nothrow(ROOT_KEY_PAIR, true, [&](wil::RegistryChangeKind changeType)
     {
-        countObserved++;
+        countObserved = countObserved + 1;
         observedChangeType = changeType;
         notificationReceived.SetEvent();
         watcher = wil::make_registry_watcher_nothrow(ROOT_KEY_PAIR, true, [&](wil::RegistryChangeKind changeType)
         {
-            countObserved++;
+            countObserved = countObserved + 1;
             observedChangeType = changeType;
             notificationReceived.SetEvent();
         });
@@ -394,7 +394,7 @@ TEST_CASE("RegistryWatcherTests::VerifyCallbackFinishesBeforeFreed", "[registry]
         notificationReceived.SetEvent();
         // ensure that the callback is still being executed while the watcher is reset().
         deleteNotification.wait(200);
-        deleteObserved++;
+        deleteObserved = deleteObserved + 1;
         notificationReceived.SetEvent();
     });
 

@@ -39,6 +39,18 @@
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
 
+    <TextView
+        android:id="@+id/old_controller_settings_warning"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="?attr/colorErrorContainer"
+        android:text="@string/old_controller_settings"
+        android:textColor="?attr/colorOnErrorContainer"
+        android:visibility="invisible"
+        android:clickable="true"
+        android:focusable="false" />
+
     <View
         android:id="@+id/workaround_view"
         android:layout_width="match_parent"

@@ -214,21 +214,22 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
   }
   m_buttons->AddInput(ControllerEmu::DoNotTranslate, HOME_BUTTON, "HOME");
 
-  // Pointing (IR)
+  // D-Pad
+  groups.emplace_back(m_dpad = new ControllerEmu::Buttons(DPAD_GROUP));
+  for (const char* named_direction : named_directions)
+  {
+    m_dpad->AddInput(ControllerEmu::Translate, named_direction);
+  }
+
   // i18n: "Point" refers to the action of pointing a Wii Remote.
   groups.emplace_back(m_ir = new ControllerEmu::Cursor(IR_GROUP, _trans("Point")));
-  groups.emplace_back(m_swing = new ControllerEmu::Force(_trans("Swing")));
-  groups.emplace_back(m_tilt = new ControllerEmu::Tilt(_trans("Tilt")));
   groups.emplace_back(m_shake = new ControllerEmu::Shake(_trans("Shake")));
-  groups.emplace_back(m_imu_accelerometer = new ControllerEmu::IMUAccelerometer(
-                          ACCELEROMETER_GROUP, _trans("Accelerometer")));
-  groups.emplace_back(m_imu_gyroscope =
-                          new ControllerEmu::IMUGyroscope(GYROSCOPE_GROUP, _trans("Gyroscope")));
-  groups.emplace_back(m_imu_ir = new ControllerEmu::IMUCursor("IMUIR", _trans("Point")));
+  groups.emplace_back(m_tilt = new ControllerEmu::Tilt(_trans("Tilt")));
+  groups.emplace_back(m_swing = new ControllerEmu::Force(_trans("Swing")));
 
+  groups.emplace_back(m_imu_ir = new ControllerEmu::IMUCursor("IMUIR", _trans("Point")));
   const auto fov_default =
       Common::DVec2(CameraLogic::CAMERA_FOV_X, CameraLogic::CAMERA_FOV_Y) / MathUtil::TAU * 360;
-
   m_imu_ir->AddSetting(&m_fov_x_setting,
                        // i18n: FOV stands for "Field of view".
                        {_trans("Horizontal FOV"),
@@ -237,7 +238,6 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
                         // i18n: Refers to emulated wii remote camera properties.
                         _trans("Camera field of view (affects sensitivity of pointing).")},
                        fov_default.x, 0.01, 180);
-
   m_imu_ir->AddSetting(&m_fov_y_setting,
                        // i18n: FOV stands for "Field of view".
                        {_trans("Vertical FOV"),
@@ -246,6 +246,21 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
                         // i18n: Refers to emulated wii remote camera properties.
                         _trans("Camera field of view (affects sensitivity of pointing).")},
                        fov_default.y, 0.01, 180);
+
+  groups.emplace_back(m_imu_accelerometer = new ControllerEmu::IMUAccelerometer(
+                          ACCELEROMETER_GROUP, _trans("Accelerometer")));
+  groups.emplace_back(m_imu_gyroscope =
+                          new ControllerEmu::IMUGyroscope(GYROSCOPE_GROUP, _trans("Gyroscope")));
+
+  // Hotkeys
+  groups.emplace_back(m_hotkeys = new ControllerEmu::ModifySettingsButton(_trans("Hotkeys")));
+  // hotkeys to temporarily modify the Wii Remote orientation (sideways, upright)
+  // this setting modifier is toggled
+  m_hotkeys->AddInput(_trans("Sideways Toggle"), true);
+  m_hotkeys->AddInput(_trans("Upright Toggle"), true);
+  // this setting modifier is not toggled
+  m_hotkeys->AddInput(_trans("Sideways Hold"), false);
+  m_hotkeys->AddInput(_trans("Upright Hold"), false);
 
   // Extension
   groups.emplace_back(m_attachments = new ControllerEmu::Attachments(_trans("Extension")));
@@ -266,13 +281,6 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
   groups.emplace_back(m_rumble = new ControllerEmu::ControlGroup(_trans("Rumble")));
   m_rumble->AddOutput(ControllerEmu::Translate, _trans("Motor"));
 
-  // D-Pad
-  groups.emplace_back(m_dpad = new ControllerEmu::Buttons(DPAD_GROUP));
-  for (const char* named_direction : named_directions)
-  {
-    m_dpad->AddInput(ControllerEmu::Translate, named_direction);
-  }
-
   // Options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
 
@@ -291,21 +299,10 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
   // Note: "Upright" and "Sideways" options can be enabled at the same time which produces an
   // orientation where the wiimote points towards the left with the buttons towards you.
   m_options->AddSetting(&m_upright_setting,
-                        {"Upright Wiimote", nullptr, nullptr, _trans("Upright Wii Remote")}, false);
+                        {UPRIGHT_OPTION, nullptr, nullptr, _trans("Upright Wii Remote")}, false);
 
   m_options->AddSetting(&m_sideways_setting,
-                        {"Sideways Wiimote", nullptr, nullptr, _trans("Sideways Wii Remote")},
-                        false);
-
-  // Hotkeys
-  groups.emplace_back(m_hotkeys = new ControllerEmu::ModifySettingsButton(_trans("Hotkeys")));
-  // hotkeys to temporarily modify the Wii Remote orientation (sideways, upright)
-  // this setting modifier is toggled
-  m_hotkeys->AddInput(_trans("Sideways Toggle"), true);
-  m_hotkeys->AddInput(_trans("Upright Toggle"), true);
-  // this setting modifier is not toggled
-  m_hotkeys->AddInput(_trans("Sideways Hold"), false);
-  m_hotkeys->AddInput(_trans("Upright Hold"), false);
+                        {SIDEWAYS_OPTION, nullptr, nullptr, _trans("Sideways Wii Remote")}, false);
 
   Reset();
 
@@ -655,6 +652,24 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 {
   EmulatedController::LoadDefaults(ciface);
 
+#ifdef ANDROID
+  // Rumble
+  m_rumble->SetControlExpression(0, "`Android/0/Device Sensors:Motor 0`");
+
+  // Motion Source
+  m_imu_accelerometer->SetControlExpression(0, "`Android/0/Device Sensors:Accel Up`");
+  m_imu_accelerometer->SetControlExpression(1, "`Android/0/Device Sensors:Accel Down`");
+  m_imu_accelerometer->SetControlExpression(2, "`Android/0/Device Sensors:Accel Left`");
+  m_imu_accelerometer->SetControlExpression(3, "`Android/0/Device Sensors:Accel Right`");
+  m_imu_accelerometer->SetControlExpression(4, "`Android/0/Device Sensors:Accel Forward`");
+  m_imu_accelerometer->SetControlExpression(5, "`Android/0/Device Sensors:Accel Backward`");
+  m_imu_gyroscope->SetControlExpression(0, "`Android/0/Device Sensors:Gyro Pitch Up`");
+  m_imu_gyroscope->SetControlExpression(1, "`Android/0/Device Sensors:Gyro Pitch Down`");
+  m_imu_gyroscope->SetControlExpression(2, "`Android/0/Device Sensors:Gyro Roll Left`");
+  m_imu_gyroscope->SetControlExpression(3, "`Android/0/Device Sensors:Gyro Roll Right`");
+  m_imu_gyroscope->SetControlExpression(4, "`Android/0/Device Sensors:Gyro Yaw Left`");
+  m_imu_gyroscope->SetControlExpression(5, "`Android/0/Device Sensors:Gyro Yaw Right`");
+#else
 // Buttons
 #if defined HAVE_X11 && HAVE_X11
   // A
@@ -672,10 +687,10 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   // B
   m_buttons->SetControlExpression(1, "`Click 1`");
 #endif
-  m_buttons->SetControlExpression(2, "`1`");  // 1
-  m_buttons->SetControlExpression(3, "`2`");  // 2
-  m_buttons->SetControlExpression(4, "Q");    // -
-  m_buttons->SetControlExpression(5, "E");    // +
+  m_buttons->SetControlExpression(2, "`1`");     // 1
+  m_buttons->SetControlExpression(3, "`2`");     // 2
+  m_buttons->SetControlExpression(4, "Q");       // -
+  m_buttons->SetControlExpression(5, "E");       // +
 
 #ifdef _WIN32
   m_buttons->SetControlExpression(6, "RETURN");  // Home
@@ -729,6 +744,7 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   m_imu_gyroscope->SetControlExpression(3, "`Gyro Roll Right`");
   m_imu_gyroscope->SetControlExpression(4, "`Gyro Yaw Left`");
   m_imu_gyroscope->SetControlExpression(5, "`Gyro Yaw Right`");
+#endif
 
   // Enable Nunchuk:
   constexpr ExtensionNumber DEFAULT_EXT = ExtensionNumber::NUNCHUK;

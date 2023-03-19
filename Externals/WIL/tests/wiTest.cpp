@@ -3,12 +3,15 @@
 #include <wil/resource.h>
 #include <wil/win32_helpers.h>
 #include <wil/filesystem.h>
+#if (_WIN32_WINNT >= _WIN32_WINNT_WIN8)
 #include <wil/wrl.h>
+#endif
 #include <wil/com.h>
 
 #ifdef WIL_ENABLE_EXCEPTIONS
 #include <memory>
 #include <set>
+#include <thread>
 #include <unordered_set>
 #endif
 
@@ -96,7 +99,7 @@ void TestErrorCallbacks()
             return false;
         });
 
-        size_t const depthCount = 10;
+        constexpr size_t depthCount = 10;
         for (size_t index = 0; index < depthCount; index++)
         {
             LOG_HR(E_ACCESSDENIED);
@@ -146,7 +149,7 @@ void StressErrorCallbacks()
 {
     auto restore = witest::AssignTemporaryValue(&wil::g_fResultOutputDebugString, false);
 
-    size_t const threadCount = 20;
+    constexpr size_t threadCount = 20;
     wil::unique_event eventArray[threadCount];
 
     for (size_t index = 0; index < threadCount; index++)
@@ -164,7 +167,7 @@ void StressErrorCallbacks()
     }
 }
 
-TEST_CASE("WindowsInternalTests::ResultMacrosStress", "[!hide][result_macros][stress]")
+TEST_CASE("WindowsInternalTests::ResultMacrosStress", "[LocalOnly][result_macros][stress]")
 {
     auto restore = witest::AssignTemporaryValue(&wil::g_pfnResultLoggingCallback, EmptyResultMacrosLoggingCallback);
     StressErrorCallbacks();
@@ -485,8 +488,8 @@ TEST_CASE("WindowsInternalTests::ResultMacros", "[result_macros]")
     REQUIRE_RETURNS_EXPECTED(E_hrNtAssertionFailure, [] { RETURN_IF_NTSTATUS_FAILED_EXPECTED(STATUS_ASSERTION_FAILURE); return S_OK; });
     REQUIRE_THROWS_RESULT(E_hrNtAssertionFailure, [] { THROW_IF_NTSTATUS_FAILED(STATUS_ASSERTION_FAILURE); });
     REQUIRE_THROWS_MSG(E_hrNtAssertionFailure, [] { THROW_IF_NTSTATUS_FAILED_MSG(STATUS_ASSERTION_FAILURE, "msg: %d", __LINE__); });
-    REQUIRE_LOG(E_hrNtAssertionFailure, [] { REQUIRE(STATUS_ASSERTION_FAILURE == LOG_IF_NTSTATUS_FAILED(STATUS_ASSERTION_FAILURE)); });
-    REQUIRE_LOG_MSG(E_hrNtAssertionFailure, [] { REQUIRE(STATUS_ASSERTION_FAILURE == LOG_IF_NTSTATUS_FAILED_MSG(STATUS_ASSERTION_FAILURE, "msg: %d", __LINE__)); });
+    REQUIRE_LOG(E_hrNtAssertionFailure, [] { REQUIRE(STATUS_ASSERTION_FAILURE == static_cast<DWORD>(LOG_IF_NTSTATUS_FAILED(STATUS_ASSERTION_FAILURE))); });
+    REQUIRE_LOG_MSG(E_hrNtAssertionFailure, [] { REQUIRE(STATUS_ASSERTION_FAILURE == static_cast<DWORD>(LOG_IF_NTSTATUS_FAILED_MSG(STATUS_ASSERTION_FAILURE, "msg: %d", __LINE__))); });
     REQUIRE_FAILFAST(E_hrNtAssertionFailure, [] { FAIL_FAST_IF_NTSTATUS_FAILED(STATUS_ASSERTION_FAILURE); });
     REQUIRE_FAILFAST_MSG(E_hrNtAssertionFailure, [] { FAIL_FAST_IF_NTSTATUS_FAILED_MSG(STATUS_ASSERTION_FAILURE, "msg: %d", __LINE__); });
 
@@ -495,8 +498,8 @@ TEST_CASE("WindowsInternalTests::ResultMacros", "[result_macros]")
     REQUIRE_RETURNS_EXPECTED(E_OUTOFMEMORY, [] { RETURN_IF_NTSTATUS_FAILED_EXPECTED(STATUS_NO_MEMORY); return S_OK; });
     REQUIRE_THROWS_RESULT(E_OUTOFMEMORY, [] { THROW_IF_NTSTATUS_FAILED(STATUS_NO_MEMORY); });
     REQUIRE_THROWS_MSG(E_OUTOFMEMORY, [] { THROW_IF_NTSTATUS_FAILED_MSG(STATUS_NO_MEMORY, "msg: %d", __LINE__); });
-    REQUIRE_LOG(E_OUTOFMEMORY, [] { REQUIRE(STATUS_NO_MEMORY == LOG_IF_NTSTATUS_FAILED(STATUS_NO_MEMORY)); });
-    REQUIRE_LOG_MSG(E_OUTOFMEMORY, [] { REQUIRE(STATUS_NO_MEMORY == LOG_IF_NTSTATUS_FAILED_MSG(STATUS_NO_MEMORY, "msg: %d", __LINE__)); });
+    REQUIRE_LOG(E_OUTOFMEMORY, [] { REQUIRE(STATUS_NO_MEMORY == static_cast<DWORD>(LOG_IF_NTSTATUS_FAILED(STATUS_NO_MEMORY))); });
+    REQUIRE_LOG_MSG(E_OUTOFMEMORY, [] { REQUIRE(STATUS_NO_MEMORY == static_cast<DWORD>(LOG_IF_NTSTATUS_FAILED_MSG(STATUS_NO_MEMORY, "msg: %d", __LINE__))); });
     REQUIRE_FAILFAST(E_OUTOFMEMORY, [] { FAIL_FAST_IF_NTSTATUS_FAILED(STATUS_NO_MEMORY); });
     REQUIRE_FAILFAST_MSG(E_OUTOFMEMORY, [] { FAIL_FAST_IF_NTSTATUS_FAILED_MSG(STATUS_NO_MEMORY, "msg: %d", __LINE__); });
 
@@ -1015,9 +1018,13 @@ TEST_CASE("WindowsInternalTests::UniqueHandle", "[resource][unique_any]")
         wchar_t tempFileName[MAX_PATH];
         REQUIRE_SUCCEEDED(witest::GetTempFileName(tempFileName));
 
+#if (_WIN32_WINNT >= _WIN32_WINNT_WIN8)
         CREATEFILE2_EXTENDED_PARAMETERS params = { sizeof(params) };
         params.dwFileAttributes = FILE_ATTRIBUTE_TEMPORARY;
         wil::unique_hfile spValidHandle(::CreateFile2(tempFileName, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_DELETE, CREATE_ALWAYS, &params));
+#else
+        wil::unique_hfile spValidHandle(::CreateFileW(tempFileName, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_DELETE, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_TEMPORARY, nullptr));
+#endif
 
         ::DeleteFileW(tempFileName);
         REQUIRE(spValidHandle.get() != INVALID_HANDLE_VALUE);
@@ -1072,9 +1079,13 @@ TEST_CASE("WindowsInternalTests::UniqueHandle", "[resource][unique_any]")
         wchar_t tempFileName2[MAX_PATH];
         REQUIRE_SUCCEEDED(witest::GetTempFileName(tempFileName2));
 
+#if (_WIN32_WINNT >= _WIN32_WINNT_WIN8)
         CREATEFILE2_EXTENDED_PARAMETERS params2 = { sizeof(params2) };
         params2.dwFileAttributes = FILE_ATTRIBUTE_TEMPORARY;
         *(&spMoveHandle) = ::CreateFile2(tempFileName2, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_DELETE, CREATE_ALWAYS, &params2);
+#else
+        *(&spMoveHandle) = ::CreateFileW(tempFileName2, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_DELETE, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_TEMPORARY, nullptr);
+#endif
 
         ::DeleteFileW(tempFileName2);
         REQUIRE(spMoveHandle);
@@ -1434,6 +1445,62 @@ void SemaphoreTestCommon()
     REQUIRE(eManual.try_open(L"BAR-TEST"));
 }
 
+template <typename test_t>
+void MutexRaiiTests()
+{
+    test_t var1;
+    var1.create();
+
+    {
+        REQUIRE(var1.acquire());
+    }
+
+    // try_create
+    bool exists = false;
+    REQUIRE(var1.try_create(L"wiltestmutex", 0, MUTEX_ALL_ACCESS, nullptr, &exists));
+    REQUIRE_FALSE(exists);
+    test_t var2;
+    REQUIRE(var2.try_create(L"wiltestmutex", 0, MUTEX_ALL_ACCESS, nullptr, &exists));
+    REQUIRE(exists);
+    test_t var3;
+    REQUIRE_FALSE(var3.try_create(L"\\illegal\\chars\\too\\\\many\\\\namespaces", 0, MUTEX_ALL_ACCESS, nullptr, &exists));
+    REQUIRE(::GetLastError() != ERROR_SUCCESS);
+
+    // try_open
+    test_t var4;
+    REQUIRE_FALSE(var4.try_open(L"\\illegal\\chars\\too\\\\many\\\\namespaces"));
+    REQUIRE(::GetLastError() != ERROR_SUCCESS);
+    REQUIRE(var4.try_open(L"wiltestmutex"));
+}
+
+template <typename test_t>
+void SemaphoreRaiiTests()
+{
+    test_t var1;
+    var1.create(1, 1);
+
+    {
+        REQUIRE(var1.acquire());
+    }
+
+    // try_create
+    bool exists = false;
+    REQUIRE(var1.try_create(1, 1, L"wiltestsemaphore", MUTEX_ALL_ACCESS, nullptr, &exists));
+    REQUIRE_FALSE(exists);
+    test_t var2;
+    REQUIRE(var2.try_create(1, 1, L"wiltestsemaphore", MUTEX_ALL_ACCESS, nullptr, &exists));
+    REQUIRE(exists);
+    test_t var3;
+    REQUIRE_FALSE(var3.try_create(1, 1, L"\\illegal\\chars\\too\\\\many\\\\namespaces", MUTEX_ALL_ACCESS, nullptr, &exists));
+    REQUIRE(::GetLastError() != ERROR_SUCCESS);
+
+    // try_open
+    test_t var4;
+    REQUIRE_FALSE(var4.try_open(L"\\illegal\\chars\\too\\\\many\\\\namespaces"));
+    REQUIRE(::GetLastError() != ERROR_SUCCESS);
+    REQUIRE(var4.try_open(L"wiltestsemaphore"));
+}
+
 TEST_CASE("WindowsInternalTests::HandleWrappers", "[resource][unique_any]")
 {
     EventTestCommon<wil::unique_event_nothrow>();
@@ -1467,15 +1534,17 @@ TEST_CASE("WindowsInternalTests::HandleWrappers", "[resource][unique_any]")
     wil::unique_event_nothrow testEventNoExcept;
     REQUIRE(SUCCEEDED(testEventNoExcept.create(wil::EventOptions::ManualReset)));
 
-
     MutexTestCommon<wil::unique_mutex_nothrow>();
     MutexTestCommon<wil::unique_mutex_failfast>();
+    MutexRaiiTests<wil::unique_mutex_nothrow>();
+    MutexRaiiTests<wil::unique_mutex_failfast>();
 
     // intentionally disabled in the non-exception version...
     // wil::unique_mutex_nothrow testMutex2(L"FOO-TEST-2");
     wil::unique_mutex_failfast testMutex3(L"FOO-TEST-3");
 #ifdef WIL_ENABLE_EXCEPTIONS
     MutexTestCommon<wil::unique_mutex>();
+    MutexRaiiTests<wil::unique_mutex>();
 
     wil::unique_mutex testMutex(L"FOO-TEST");
     WaitForSingleObjectEx(testMutex.get(), INFINITE, TRUE);
@@ -1494,12 +1563,15 @@ TEST_CASE("WindowsInternalTests::HandleWrappers", "[resource][unique_any]")
 
     SemaphoreTestCommon<wil::unique_semaphore_nothrow>();
     SemaphoreTestCommon<wil::unique_semaphore_failfast>();
+    SemaphoreRaiiTests<wil::unique_semaphore_nothrow>();
+    SemaphoreRaiiTests<wil::unique_semaphore_failfast>();
 
     // intentionally disabled in the non-exception version...
     // wil::unique_semaphore_nothrow testSemaphore2(1, 1);
     wil::unique_semaphore_failfast testSemaphore3(1, 1);
 #ifdef WIL_ENABLE_EXCEPTIONS
     SemaphoreTestCommon<wil::unique_semaphore>();
+    SemaphoreRaiiTests<wil::unique_semaphore>();
 
     wil::unique_semaphore testSemaphore(1, 1);
     WaitForSingleObjectEx(testSemaphore.get(), INFINITE, true);
@@ -1683,6 +1755,15 @@ TEST_CASE("WindowsInternalTests::HandleWrappers", "[resource][unique_any]")
     auto unique_bstr_nothrow2 = wil::make_bstr_nothrow(L"");
     REQUIRE(wcscmp(L"", unique_bstr_nothrow2.get()) == 0);
 
+    auto unique_variant_bstr_failfast1 = wil::make_variant_bstr_failfast(L"Foo");
+    REQUIRE(wcscmp(L"Foo", V_UNION(unique_variant_bstr_failfast1.addressof(), bstrVal)) == 0);
+
+    auto unique_variant_bstr_nothrow1 = wil::make_variant_bstr_nothrow(L"Foo");
+    REQUIRE(wcscmp(L"Foo", V_UNION(unique_variant_bstr_nothrow1.addressof(), bstrVal)) == 0);
+
+    auto unique_variant_bstr_nothrow2 = wil::make_variant_bstr_nothrow(L"");
+    REQUIRE(wcscmp(L"", V_UNION(unique_variant_bstr_nothrow2.addressof(), bstrVal)) == 0);
+
 #ifdef WIL_ENABLE_EXCEPTIONS
     auto unique_bstr_te1 = wil::make_bstr(L"Foo");
     REQUIRE(wcscmp(L"Foo", unique_bstr_te1.get()) == 0);
@@ -1690,6 +1771,11 @@ TEST_CASE("WindowsInternalTests::HandleWrappers", "[resource][unique_any]")
     auto unique_bstr_te2 = wil::make_bstr(L"");
     REQUIRE(wcscmp(L"", unique_bstr_te2.get()) == 0);
 
+    auto unique_variant_bstr_te1 = wil::make_variant_bstr(L"Foo");
+    REQUIRE(wcscmp(L"Foo", V_UNION(unique_variant_bstr_te1.addressof(), bstrVal)) == 0);
+
+    auto unique_variant_bstr_te2 = wil::make_variant_bstr(L"");
+    REQUIRE(wcscmp(L"", V_UNION(unique_variant_bstr_te2.addressof(), bstrVal)) == 0);
 
     auto testString = wil::make_cotaskmem_string(L"Foo");
     {
@@ -1774,10 +1860,13 @@ TEST_CASE("WindowsInternalTests::Locking", "[resource]")
     {
         CRITICAL_SECTION cs;
         ::InitializeCriticalSectionEx(&cs, 0, 0);
-        auto lock = wil::EnterCriticalSection(&cs);
-        REQUIRE(lock);
-        auto tryLock = wil::TryEnterCriticalSection(&cs);
-        REQUIRE(tryLock);
+        {
+            auto lock = wil::EnterCriticalSection(&cs);
+            REQUIRE(lock);
+            auto tryLock = wil::TryEnterCriticalSection(&cs);
+            REQUIRE(tryLock);
+        }
+        ::DeleteCriticalSection(&cs);
     }
     {
         wil::critical_section cs;
@@ -2451,6 +2540,43 @@ TEST_CASE("WindowsInternalTests::Win32HelperTests", "[win32_helpers]")
     REQUIRE(systemTimePlusOneHour64 == (systemTime64 + wil::filetime_duration::one_hour));
 }
 
+TEST_CASE("WindowsInternalTests::RectHelperTests", "[win32_helpers]")
+{
+    RECT rect{ 50, 100, 200, 300 };
+    POINT leftEdgePoint{ 50, 150 };
+    POINT topEdgePoint{ 100, 100 };
+    POINT rightEdgePoint{ 200, 150 };
+    POINT bottomEdgePoint{ 100, 300 };
+    POINT insidePoint{ 150, 150};
+
+    RECT emptyRectAtOrigin{};
+    RECT emptyRectNotAtOrigin{ 50, 50, 50, 50 };
+    RECT nonNormalizedRect{ 300, 300, 0, 0 };
+
+    REQUIRE(wil::rect_width(rect) == 150);
+    REQUIRE(wil::rect_height(rect) == 200);
+
+    // rect_is_empty should work like user32's IsRectEmpty
+    REQUIRE_FALSE(wil::rect_is_empty(rect));
+    REQUIRE(wil::rect_is_empty(emptyRectAtOrigin));
+    REQUIRE(wil::rect_is_empty(emptyRectNotAtOrigin));
+    REQUIRE(wil::rect_is_empty(nonNormalizedRect));
+
+    // rect_contains_point should work like user32's PtInRect
+    REQUIRE(wil::rect_contains_point(rect, insidePoint));
+    REQUIRE(wil::rect_contains_point(rect, leftEdgePoint));
+    REQUIRE(wil::rect_contains_point(rect, topEdgePoint));
+    REQUIRE_FALSE(wil::rect_contains_point(rect, rightEdgePoint));
+    REQUIRE_FALSE(wil::rect_contains_point(rect, bottomEdgePoint));
+    REQUIRE_FALSE(wil::rect_contains_point(nonNormalizedRect, insidePoint));
+
+    auto rectFromSize = wil::rect_from_size<RECT>(50, 100, 150, 200);
+    REQUIRE(rectFromSize.left == rect.left);
+    REQUIRE(rectFromSize.top == rect.top);
+    REQUIRE(rectFromSize.right == rect.right);
+    REQUIRE(rectFromSize.bottom == rect.bottom);
+}
+
 TEST_CASE("WindowsInternalTests::InitOnceNonTests")
 {
     bool called = false;
@@ -2494,7 +2620,8 @@ TEST_CASE("WindowsInternalTests::InitOnceNonTests")
     init = {};
 
     // A thrown exception leaves the object un-initialized
-    REQUIRE_THROWS_AS(winner = wil::init_once(init, [&] { called = true; throw wil::ResultException(E_FAIL); }), wil::ResultException);
+    static volatile bool always_true = true; // So that the compiler can't determine that we unconditionally throw below (warning C4702)
+    REQUIRE_THROWS_AS(winner = wil::init_once(init, [&] { called = true; THROW_HR_IF(E_FAIL, always_true); }), wil::ResultException);
     REQUIRE_FALSE(wil::init_once_initialized(init));
     REQUIRE(called);
     REQUIRE_FALSE(winner);
@@ -2930,7 +3057,7 @@ TEST_CASE("WindowsInternalTests::TestUniqueArrayCases", "[resource]")
 }
 #endif
 
-#ifndef __cplusplus_winrt
+#if !defined(__cplusplus_winrt) && (_WIN32_WINNT >= _WIN32_WINNT_WIN8)
 TEST_CASE("WindowsInternalTests::VerifyMakeAgileCallback", "[wrl]")
 {
     using namespace ABI::Windows::Foundation;
@@ -2987,6 +3114,7 @@ TEST_CASE("WindowsInternalTests::Ranges", "[common]")
         {
             ++count;
             m = 1;
+            (void)m;
         }
         REQUIRE(ARRAYSIZE(things) == count);
         REQUIRE(0 == things[0]);
@@ -3084,12 +3212,12 @@ void ThreadPoolWaitTestHelper(bool requireExactCallbackCount)
     REQUIRE_SUCCEEDED(myContext.Event.create());
 
     WaitResourceT wait;
-    wait.reset(CreateThreadpoolWait(ThreadPoolWaitTestCallback, &myContext, NULL));
+    wait.reset(CreateThreadpoolWait(ThreadPoolWaitTestCallback, &myContext, nullptr));
     REQUIRE(wait);
 
     SetThreadpoolWait(wait.get(), myContext.Event.get(), nullptr);
 
-    const int loopCount = 5;
+    constexpr int loopCount = 5;
     for (int currCallbackCount = 0; currCallbackCount != loopCount; ++currCallbackCount)
     {
         // Signal event.
@@ -3149,10 +3277,10 @@ void ThreadPoolWaitWorkHelper(bool requireExactCallbackCount)
     ThreadPoolWaitWorkContext myContext;
 
     WaitResourceT work;
-    work.reset(CreateThreadpoolWork(ThreadPoolWaitWorkCallback, &myContext, NULL));
+    work.reset(CreateThreadpoolWork(ThreadPoolWaitWorkCallback, &myContext, nullptr));
     REQUIRE(work);
 
-    const int loopCount = 5;
+    constexpr int loopCount = 5;
     for (int itr = 0; itr != loopCount; ++itr)
     {
         SubmitThreadpoolWork(work.get());
@@ -3202,7 +3330,7 @@ void ThreadPoolTimerWorkHelper(SetThreadpoolTimerT const &setThreadpoolTimerFn, 
     timer.reset(CreateThreadpoolTimer(ThreadPoolTimerWorkCallback, &myContext, nullptr));
     REQUIRE(timer);
 
-    const int loopCount = 5;
+    constexpr int loopCount = 5;
     for (int currCallbackCount = 0; currCallbackCount != loopCount; ++currCallbackCount)
     {
         // Schedule timer
@@ -3256,7 +3384,7 @@ TEST_CASE("WindowsInternalTests::ThreadPoolTimerTest", "[resource][unique_thread
     ThreadPoolTimerWorkHelper<wil::unique_threadpool_timer_nocancel, FILETIME>(SetThreadpoolTimer, true);
 }
 
-#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
+#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP) && (_WIN32_WINNT >= _WIN32_WINNT_WIN8)
 static void __stdcall SlimEventTrollCallback(
     _Inout_ PTP_CALLBACK_INSTANCE /*instance*/,
     _Inout_opt_ void* context,
@@ -3328,7 +3456,7 @@ TEST_CASE("WindowsInternalTests::SlimEventTests", "[resource][slim_event]")
     }
 
 }
-#endif // WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
+#endif // WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP) && (_WIN32_WINNT >= _WIN32_WINNT_WIN8)
 
 struct ConditionVariableCSCallbackContext
 {
@@ -3468,5 +3596,89 @@ TEST_CASE("WindowsInternalTests::ShutdownAwareObjectAlignmentTests", "[result_ma
     VerifyAlignment<wil::shutdown_aware_object>();
     VerifyAlignment<wil::object_without_destructor_on_shutdown>();
 }
+
+#if (_WIN32_WINNT >= _WIN32_WINNT_WIN8)
+TEST_CASE("WindowsInternalTests::ModuleReference", "[wrl]")
+{
+    REQUIRE(::Microsoft::WRL::GetModuleBase() == nullptr);
+    // Executables don't have a ModuleBase, so we need to create one.
+    struct FakeModuleBase : Microsoft::WRL::Details::ModuleBase
+    {
+        unsigned long count = 42;
+        STDMETHOD_(unsigned long, IncrementObjectCount)()
+        {
+            return InterlockedIncrement(&count);
+        }
+        STDMETHOD_(unsigned long, DecrementObjectCount)()
+        {
+            return InterlockedDecrement(&count);
+        }
+        STDMETHOD_(unsigned long, GetObjectCount)() const
+        {
+            return count;
+        }
+        // Dummy implementations of everything else (never called).
+        STDMETHOD_(const Microsoft::WRL::Details::CreatorMap**, GetFirstEntryPointer)() const { return nullptr; }
+        STDMETHOD_(const Microsoft::WRL::Details::CreatorMap**, GetMidEntryPointer)() const { return nullptr; }
+        STDMETHOD_(const Microsoft::WRL::Details::CreatorMap**, GetLastEntryPointer)() const { return nullptr; }
+        STDMETHOD_(SRWLOCK*, GetLock)() const { return nullptr; }
+        STDMETHOD(RegisterWinRTObject)(const wchar_t*, const wchar_t**, _Inout_ RO_REGISTRATION_COOKIE*, unsigned int) { return E_NOTIMPL; }
+        STDMETHOD(UnregisterWinRTObject)(const wchar_t*, _In_ RO_REGISTRATION_COOKIE) { return E_NOTIMPL; }
+        STDMETHOD(RegisterCOMObject)(const wchar_t*, _In_ IID*, _In_ IClassFactory**, _Inout_ DWORD*, unsigned int) { return E_NOTIMPL; }
+        STDMETHOD(UnregisterCOMObject)(const wchar_t*, _Inout_ DWORD*, unsigned int) { return E_NOTIMPL; }
+
+    };
+    FakeModuleBase fake;
+
+    auto peek_module_ref_count = []()
+    {
+        return ::Microsoft::WRL::GetModuleBase()->GetObjectCount();
+    };
+
+    auto initial = peek_module_ref_count();
+
+    // Basic test: Construct and destruct.
+    {
+        auto module_ref = wil::wrl_module_reference();
+        REQUIRE(peek_module_ref_count() == initial + 1);
+    }
+    REQUIRE(peek_module_ref_count() == initial);
+
+    // Fancy test: Copy object with embedded reference.
+    {
+        struct object_with_ref
+        {
+            wil::wrl_module_reference ref;
+        };
+        object_with_ref o1;
+        REQUIRE(peek_module_ref_count() == initial + 1);
+        auto o2 = o1;
+        REQUIRE(peek_module_ref_count() == initial + 2);
+        o1 = o2;
+        REQUIRE(peek_module_ref_count() == initial + 2);
+        o2 = std::move(o1);
+        REQUIRE(peek_module_ref_count() == initial + 2);
+    }
+    REQUIRE(peek_module_ref_count() == initial);
+}
+#endif
+
+#if defined(WIL_ENABLE_EXCEPTIONS) && (defined(NTDDI_WIN10_CO) ? \
+    WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP | WINAPI_PARTITION_SYSTEM | WINAPI_PARTITION_GAMES) : \
+    WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP | WINAPI_PARTITION_SYSTEM | WINAPI_PARTITION_GAMES))
+TEST_CASE("WindowsInternalTests::VerifyModuleReferencesForThread", "[win32_helpers]")
+{
+    bool success = true;
+    std::thread([&]
+    {
+        auto moduleRef = wil::get_module_reference_for_thread();
+        moduleRef.reset(); // results in exiting the thread
+        // should never get here
+        success = false;
+        FAIL();
+    }).join();
+    REQUIRE(success);
+}
+#endif
 
 #pragma warning(pop)
