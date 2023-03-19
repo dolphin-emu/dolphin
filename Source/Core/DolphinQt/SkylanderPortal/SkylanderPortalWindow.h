@@ -24,12 +24,12 @@ struct Skylander
   u16 sky_var;
 };
 
-class SkylanderPortalWindow : public QWidget
+class SkylanderPortalMenu : public QWidget
 {
   Q_OBJECT
 public:
-  explicit SkylanderPortalWindow(QWidget* parent = nullptr);
-  ~SkylanderPortalWindow() override;
+  explicit SkylanderPortalMenu(QWidget* parent = nullptr);
+  ~SkylanderPortalMenu() override;
 
 protected:
   std::array<QLineEdit*, MAX_SKYLANDERS> m_edit_skylanders;
@@ -49,6 +49,21 @@ private:
 
   QCheckBox* m_checkbox;
   QGroupBox* m_group_skylanders;
+};
+
+class SkylanderPortalWindow : public QWidget
+{
+  Q_OBJECT
+public:
+  explicit SkylanderPortalWindow(QWidget* parent = nullptr);
+  ~SkylanderPortalWindow() override;
+
+  void OpenMenu();
+
+  QCheckBox* m_checkbox;
+  QLabel* portal;
+  QPushButton* button;
+  SkylanderPortalMenu* menu = nullptr;
 };
 
 class CreateSkylanderDialog : public QDialog

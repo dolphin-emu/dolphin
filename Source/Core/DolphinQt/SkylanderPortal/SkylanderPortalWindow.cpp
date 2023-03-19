@@ -32,11 +32,59 @@
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
+SkylanderPortalWindow::SkylanderPortalWindow(QWidget* parent) : QWidget(parent)
+{
+  setWindowTitle(tr("Portal of Power"));
+  setMinimumSize(QSize(200, 200));
+
+  setWindowFlags(Qt::Widget | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+  setParent(0);  // Create TopLevel-Widget
+  setAttribute(Qt::WA_NoSystemBackground, true);
+  setAttribute(Qt::WA_TranslucentBackground, true);
+
+  QPixmap pixmap(tr("/Users/jnaid/Projects/Sky/dolphin/portal.png"));
+  QIcon ButtonIcon(pixmap);
+  button = new QPushButton(this);
+  button->setStyleSheet(tr("background-color: rgba(255, 255, 255, 0); "));
+  button->resize(75, 75);
+  button->setIcon(ButtonIcon);
+  button->setIconSize(QSize(75,75));
+
+  connect(button, &QAbstractButton::clicked, this, [this]() { OpenMenu(); });
+
+  move(50, 50);
+
+  /* QImage myImage;
+  myImage.load(tr("/Users/jnaid/Projects/Sky/dolphin/portal.png"));
+
+  portal = new QLabel(this);
+  portal->setPixmap(QPixmap::fromImage(myImage));
+
+  portal->resize(100,100);
+
+  portal->setScaledContents(true);
+
+  // portal->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+
+  portal->show();*/
+
+  //m_checkbox = new QCheckBox(tr("Emulate Skylander Portal"), this);
+  //connect(m_checkbox, &QCheckBox::toggled, [&](bool checked) { OpenMenu(checked); });
+}
+
+SkylanderPortalWindow::~SkylanderPortalWindow() = default;
+
+void SkylanderPortalWindow::OpenMenu()
+{
+  menu = new SkylanderPortalMenu;
+  menu->show();
+}
+
 // Qt is not guaranteed to keep track of file paths using native file pickers, so we use this
 // static variable to ensure we open at the most recent Skylander file location
 static QString s_last_skylander_path;
 
-SkylanderPortalWindow::SkylanderPortalWindow(QWidget* parent) : QWidget(parent)
+SkylanderPortalMenu::SkylanderPortalMenu(QWidget* parent) : QWidget(parent)
 {
   setWindowTitle(tr("Skylanders Manager"));
   setWindowIcon(Resources::GetAppIcon());
@@ -46,16 +94,16 @@ SkylanderPortalWindow::SkylanderPortalWindow(QWidget* parent) : QWidget(parent)
   CreateMainWindow();
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
-          &SkylanderPortalWindow::OnEmulationStateChanged);
+          &SkylanderPortalMenu::OnEmulationStateChanged);
 
   installEventFilter(this);
 
   OnEmulationStateChanged(Core::GetState());
 };
 
-SkylanderPortalWindow::~SkylanderPortalWindow() = default;
+SkylanderPortalMenu::~SkylanderPortalMenu() = default;
 
-void SkylanderPortalWindow::CreateMainWindow()
+void SkylanderPortalMenu::CreateMainWindow()
 {
   auto* main_layout = new QVBoxLayout();
 
@@ -119,7 +167,7 @@ void SkylanderPortalWindow::CreateMainWindow()
   UpdateEdits();
 }
 
-void SkylanderPortalWindow::OnEmulationStateChanged(Core::State state)
+void SkylanderPortalMenu::OnEmulationStateChanged(Core::State state)
 {
   const bool running = state != Core::State::Uninitialized;
 
@@ -254,13 +302,13 @@ QString CreateSkylanderDialog::GetFilePath() const
   return m_file_path;
 }
 
-void SkylanderPortalWindow::EmulatePortal(bool emulate)
+void SkylanderPortalMenu::EmulatePortal(bool emulate)
 {
   Config::SetBaseOrCurrent(Config::MAIN_EMULATE_SKYLANDER_PORTAL, emulate);
   m_group_skylanders->setVisible(emulate);
 }
 
-void SkylanderPortalWindow::CreateSkylander(u8 slot)
+void SkylanderPortalMenu::CreateSkylander(u8 slot)
 {
   CreateSkylanderDialog create_dlg(this);
   if (create_dlg.exec() == CreateSkylanderDialog::Accepted)
@@ -269,7 +317,7 @@ void SkylanderPortalWindow::CreateSkylander(u8 slot)
   }
 }
 
-void SkylanderPortalWindow::LoadSkylander(u8 slot)
+void SkylanderPortalMenu::LoadSkylander(u8 slot)
 {
   const QString file_path =
       DolphinFileDialog::getOpenFileName(this, tr("Select Skylander File"), s_last_skylander_path,
@@ -283,7 +331,7 @@ void SkylanderPortalWindow::LoadSkylander(u8 slot)
   LoadSkylanderPath(slot, file_path);
 }
 
-void SkylanderPortalWindow::LoadSkylanderPath(u8 slot, const QString& path)
+void SkylanderPortalMenu::LoadSkylanderPath(u8 slot, const QString& path)
 {
   File::IOFile sky_file(path.toStdString(), "r+b");
   if (!sky_file)
@@ -320,7 +368,7 @@ void SkylanderPortalWindow::LoadSkylanderPath(u8 slot, const QString& path)
   UpdateEdits();
 }
 
-void SkylanderPortalWindow::ClearSkylander(u8 slot)
+void SkylanderPortalMenu::ClearSkylander(u8 slot)
 {
   auto& system = Core::System::GetInstance();
   if (auto slot_infos = m_sky_slots[slot])
@@ -337,7 +385,7 @@ void SkylanderPortalWindow::ClearSkylander(u8 slot)
   }
 }
 
-void SkylanderPortalWindow::UpdateEdits()
+void SkylanderPortalMenu::UpdateEdits()
 {
   for (auto i = 0; i < MAX_SKYLANDERS; i++)
   {
@@ -363,7 +411,7 @@ void SkylanderPortalWindow::UpdateEdits()
   }
 }
 
-bool SkylanderPortalWindow::eventFilter(QObject* object, QEvent* event)
+bool SkylanderPortalMenu::eventFilter(QObject* object, QEvent* event)
 {
   // Close when escape is pressed
   if (event->type() == QEvent::KeyPress)
@@ -375,7 +423,7 @@ bool SkylanderPortalWindow::eventFilter(QObject* object, QEvent* event)
   return false;
 }
 
-void SkylanderPortalWindow::closeEvent(QCloseEvent* event)
+void SkylanderPortalMenu::closeEvent(QCloseEvent* event)
 {
   hide();
 }
