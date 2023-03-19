@@ -12,6 +12,7 @@ if (MSVC)
 endif()
 
 set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Svg)
 message(STATUS "Found Qt version ${Qt6_VERSION}")
@@ -293,6 +294,8 @@ add_executable(dolphin-emu
   QtUtils/ParallelProgressDialog.h
   QtUtils/PartiallyClosableTabWidget.cpp
   QtUtils/PartiallyClosableTabWidget.h
+  QtUtils/SetWindowDecorations.cpp
+  QtUtils/SetWindowDecorations.h
   QtUtils/SignalBlocking.h
   QtUtils/UTF8CodePointCountValidator.cpp
   QtUtils/UTF8CodePointCountValidator.h
@@ -361,6 +364,12 @@ add_executable(dolphin-emu
   WiiUpdate.cpp
   WiiUpdate.h
 )
+
+if (WIN32)
+  target_sources(dolphin-emu PRIVATE
+    Styles/Dark/dark.qrc
+  )
+endif()
 
 if (NOT WIN32)
   target_sources(dolphin-emu PRIVATE

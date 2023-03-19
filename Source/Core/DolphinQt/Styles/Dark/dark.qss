@@ -1,0 +1,99 @@
+/*
+Qt dark theme for a Window 10-like look and feel
+*/
+
+* {
+	color: #dcdcdc;
+}
+*:disabled {
+	color: #7e7e7e;
+}
+
+/*
+window title bars apparently can't be styled
+would be #000000 for active, #2b2b2b for background
+*/
+
+QMenu {
+	border: 1px solid #7e7e7e;
+}
+QMenuBar, QMenuBar::item, QMenu, QMenu::item {
+	background-color: #202020;
+	color: #dcdcdc;
+}
+QMenu::item {
+	background-color: #202020;
+	color: #dcdcdc;
+	padding-left: 8px;
+	padding-right: 32px;
+	padding-top: 4px;
+	padding-bottom: 4px;
+}
+QMenuBar::item:hover, QMenuBar::item:selected, QMenu::item:hover, QMenu::item:selected {
+	background-color: #404040;
+	color: #dcdcdc;
+}
+QMenuBar::item:disabled, QMenu::item:disabled {
+	color: #7e7e7e;
+}
+QMenu::separator {
+	height: 1px;
+	background-color: #7e7e7e;
+	margin-left: 2px;
+	margin-right: 2px;
+	margin-top: 5px;
+	margin-bottom: 5px;
+}
+
+QWidget {
+	background-color: #202020;
+}
+QListView, QTableView {
+	background-color: #202020;
+	alternate-background-color: #303030;
+}
+QHeaderView::section {
+	background-color: #202020;
+}
+QHeaderView::section:hover, QHeaderView::section:checked {
+	background-color: #404040;
+}
+
+QTabBar::tab {
+	background-color: #202020;
+	border-left: 1px solid #7e7e7e;
+	border-right: 0px;
+	border-top: 1px solid #7e7e7e;
+	border-bottom: 1px solid #7e7e7e;
+	padding: 5px;
+	margin-top: 1px;
+}
+QTabBar::tab:last {
+	border-right: 1px solid #7e7e7e;
+}
+QTabBar::tab:hover {
+	background-color: #404040;
+}
+QTabBar::tab:next-selected {
+	border-right: 0px;
+}
+QTabBar::tab:previous-selected {
+	border-left: 0px;
+}
+QTabBar::tab:selected {
+	border-right: 1px solid #7e7e7e;
+	background-color: #404040;
+	margin-top: 0px;
+}
+
+QPushButton {
+	border: 1px solid #7e7e7e;
+	padding: 2px;
+	min-width: 67px;
+}
+QPushButton:hover {
+	background-color: #404040;
+}
+QPushButton:focus {
+	border: 2px solid #7e7e7e;
+}

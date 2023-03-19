@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="/dolphin_dark_win">
+    <file>dark.qss</file>
+  </qresource>
+</RCC>
