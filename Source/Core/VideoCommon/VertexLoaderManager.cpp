@@ -258,11 +258,6 @@ VertexLoaderBase* GetOrCreateLoader(int vtx_attr_group)
 
 static void CheckCPConfiguration(int vtx_attr_group)
 {
-  if (!g_needs_cp_xf_consistency_check) [[likely]]
-    return;
-
-  g_needs_cp_xf_consistency_check = false;
-
   // Validate that the XF input configuration matches the CP configuration
   u32 num_cp_colors = std::count_if(
       g_main_cp_state.vtx_desc.low.Color.begin(), g_main_cp_state.vtx_desc.low.Color.end(),
@@ -359,20 +354,25 @@ int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int coun
     // Doing early return for the opposite case would be cleaner
     // but triggers a false unreachable code warning in MSVC debug builds.
 
-    CheckCPConfiguration(vtx_attr_group);
+    if (g_needs_cp_xf_consistency_check) [[unlikely]]
+    {
+      CheckCPConfiguration(vtx_attr_group);
+      g_needs_cp_xf_consistency_check = false;
+    }
 
     // If the native vertex format changed, force a flush.
     if (loader->m_native_vertex_format != s_current_vtx_fmt ||
         loader->m_native_components != g_current_components) [[unlikely]]
     {
       g_vertex_manager->Flush();
+
+      s_current_vtx_fmt = loader->m_native_vertex_format;
+      g_current_components = loader->m_native_components;
+      auto& system = Core::System::GetInstance();
+      auto& vertex_shader_manager = system.GetVertexShaderManager();
+      vertex_shader_manager.SetVertexFormat(loader->m_native_components,
+                                            loader->m_native_vertex_format->GetVertexDeclaration());
     }
-    s_current_vtx_fmt = loader->m_native_vertex_format;
-    g_current_components = loader->m_native_components;
-    auto& system = Core::System::GetInstance();
-    auto& vertex_shader_manager = system.GetVertexShaderManager();
-    vertex_shader_manager.SetVertexFormat(loader->m_native_components,
-                                          loader->m_native_vertex_format->GetVertexDeclaration());
 
     // CPUCull's performance increase comes from encoding fewer GPU commands, not sending less data
     // Therefore it's only useful to check if culling could remove a flush
