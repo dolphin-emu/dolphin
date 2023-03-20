@@ -1582,7 +1582,7 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
     InvalidateTexture(oldest_entry);
   }
 
-  VideoCommon::CustomTextureData* data = nullptr;
+  std::shared_ptr<VideoCommon::CustomTextureData> data = nullptr;
   bool has_arbitrary_mipmaps = false;
   std::shared_ptr<HiresTexture> hires_texture;
   if (g_ActiveConfig.bHiresTextures)
@@ -1590,19 +1590,27 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
     hires_texture = HiresTexture::Search(texture_info);
     if (hires_texture)
     {
-      data = &hires_texture->GetData();
+      data = hires_texture->GetAsset()->GetData();
       has_arbitrary_mipmaps = hires_texture->HasArbitraryMipmaps();
+      if (data)
+      {
+        if (!hires_texture->GetAsset()->Validate(texture_info.GetRawWidth(),
+                                                 texture_info.GetRawHeight()))
+        {
+          data = nullptr;
+        }
+      }
     }
   }
 
   return CreateTextureEntry(
       TextureCreationInfo{base_hash, full_hash, bytes_per_block, palette_size}, texture_info,
-      textureCacheSafetyColorSampleSize, data, has_arbitrary_mipmaps);
+      textureCacheSafetyColorSampleSize, data.get(), has_arbitrary_mipmaps);
 }
 
 RcTcacheEntry TextureCacheBase::CreateTextureEntry(
     const TextureCreationInfo& creation_info, const TextureInfo& texture_info,
-    const int safety_color_sample_size, VideoCommon::CustomTextureData* custom_texture_data,
+    const int safety_color_sample_size, const VideoCommon::CustomTextureData* custom_texture_data,
     const bool custom_arbitrary_mipmaps)
 {
 #ifdef __APPLE__
@@ -1741,7 +1749,7 @@ RcTcacheEntry TextureCacheBase::CreateTextureEntry(
 
     if (g_ActiveConfig.bDumpTextures)
     {
-      const std::string basename = HiresTexture::GenBaseName(texture_info, true);
+      const std::string basename = texture_info.CalculateTextureName().GetFullName();
       for (u32 level = 0; level < texLevels; ++level)
       {
         DumpTexture(entry, basename, level, entry->has_arbitrary_mips);

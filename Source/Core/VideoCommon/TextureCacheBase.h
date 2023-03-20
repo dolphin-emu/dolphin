@@ -343,7 +343,7 @@ private:
 
   RcTcacheEntry CreateTextureEntry(const TextureCreationInfo& creation_info,
                                    const TextureInfo& texture_info, int safety_color_sample_size,
-                                   VideoCommon::CustomTextureData* custom_texture_data,
+                                   const VideoCommon::CustomTextureData* custom_texture_data,
                                    bool custom_arbitrary_mipmaps);
 
   RcTcacheEntry GetXFBFromCache(u32 address, u32 width, u32 height, u32 stride);

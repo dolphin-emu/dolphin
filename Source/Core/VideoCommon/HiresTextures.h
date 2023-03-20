@@ -10,6 +10,7 @@
 
 #include "Common/CommonTypes.h"
 #include "VideoCommon/Assets/CustomTextureData.h"
+#include "VideoCommon/Assets/TextureAsset.h"
 #include "VideoCommon/TextureConfig.h"
 #include "VideoCommon/TextureInfo.h"
 
@@ -25,26 +26,14 @@ public:
   static void Update();
   static void Clear();
   static void Shutdown();
-
   static std::shared_ptr<HiresTexture> Search(const TextureInfo& texture_info);
 
-  static std::string GenBaseName(const TextureInfo& texture_info, bool dump = false);
+  HiresTexture(bool has_arbitrary_mipmaps, std::shared_ptr<VideoCommon::GameTextureAsset> asset);
 
-  ~HiresTexture();
-
-  AbstractTextureFormat GetFormat() const;
-  bool HasArbitraryMipmaps() const;
-
-  VideoCommon::CustomTextureData& GetData() { return m_data; }
-  const VideoCommon::CustomTextureData& GetData() const { return m_data; }
+  bool HasArbitraryMipmaps() const { return m_has_arbitrary_mipmaps; }
+  const std::shared_ptr<VideoCommon::GameTextureAsset>& GetAsset() const { return m_game_texture; }
 
 private:
-  static std::unique_ptr<HiresTexture> Load(const std::string& base_filename, u32 width,
-                                            u32 height);
-  static void Prefetch();
-
-  HiresTexture() = default;
-
-  VideoCommon::CustomTextureData m_data;
   bool m_has_arbitrary_mipmaps = false;
+  std::shared_ptr<VideoCommon::GameTextureAsset> m_game_texture;
 };
