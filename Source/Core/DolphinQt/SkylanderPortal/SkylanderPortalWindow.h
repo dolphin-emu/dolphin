@@ -66,13 +66,15 @@ private:
   void CreateSkylander(u8 slot);
   void ClearSkylander(u8 slot);
   void EmulatePortal(bool emulate);
+  void ShowInGame(bool show);
   void LoadSkylander(u8 slot);
   void LoadSkylanderPath(u8 slot, const QString& path);
   void UpdateEdits();
   void closeEvent(QCloseEvent* bar) override;
   bool eventFilter(QObject* object, QEvent* event) final override;
 
-  QCheckBox* m_checkbox;
+  QCheckBox* m_enabled_checkbox;
+  QCheckBox* m_show_button_ingame_checkbox;
   QGroupBox* m_group_skylanders;
   PortalButton* portalButton;
 };

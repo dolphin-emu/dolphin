@@ -94,9 +94,12 @@ void PortalButton::setRender(RenderWidget* r)
 
 void PortalButton::Hovered()
 {
-  show();
-  raise();
-  fadeout.start(1000);
+  if (enabled)
+  {
+    show();
+    raise();
+    fadeout.start(1000);
+  }
 }
 
 void PortalButton::TimeUp()
@@ -139,10 +142,13 @@ void SkylanderPortalWindow::CreateMainWindow()
   auto* checkbox_group = new QGroupBox();
   auto* checkbox_layout = new QHBoxLayout();
   checkbox_layout->setAlignment(Qt::AlignHCenter);
-  m_checkbox = new QCheckBox(tr("Emulate Skylander Portal"), this);
-  m_checkbox->setChecked(Config::Get(Config::MAIN_EMULATE_SKYLANDER_PORTAL));
-  connect(m_checkbox, &QCheckBox::toggled, [&](bool checked) { EmulatePortal(checked); });
-  checkbox_layout->addWidget(m_checkbox);
+  m_enabled_checkbox = new QCheckBox(tr("Emulate Skylander Portal"), this);
+  m_enabled_checkbox->setChecked(Config::Get(Config::MAIN_EMULATE_SKYLANDER_PORTAL));
+  m_show_button_ingame_checkbox = new QCheckBox(tr("Show Portal Button In-Game"), this);
+  connect(m_enabled_checkbox, &QCheckBox::toggled, [&](bool checked) { EmulatePortal(checked); });
+  connect(m_show_button_ingame_checkbox, &QCheckBox::toggled, [&](bool checked) { ShowInGame(checked); });
+  checkbox_layout->addWidget(m_enabled_checkbox);
+  checkbox_layout->addWidget(m_show_button_ingame_checkbox);
   checkbox_group->setLayout(checkbox_layout);
   main_layout->addWidget(checkbox_group);
 
@@ -200,7 +206,7 @@ void SkylanderPortalWindow::OnEmulationStateChanged(Core::State state)
 {
   const bool running = state != Core::State::Uninitialized;
 
-  m_checkbox->setEnabled(!running);
+  m_enabled_checkbox->setEnabled(!running);
 }
 
 CreateSkylanderDialog::CreateSkylanderDialog(QWidget* parent) : QDialog(parent)
@@ -335,6 +341,18 @@ void SkylanderPortalWindow::EmulatePortal(bool emulate)
 {
   Config::SetBaseOrCurrent(Config::MAIN_EMULATE_SKYLANDER_PORTAL, emulate);
   m_group_skylanders->setVisible(emulate);
+}
+
+void SkylanderPortalWindow::ShowInGame(bool show)
+{
+  if (show)
+  {
+    portalButton->Enable();
+  }
+  else
+  {
+    portalButton->Disable();
+  }
 }
 
 void SkylanderPortalWindow::CreateSkylander(u8 slot)
