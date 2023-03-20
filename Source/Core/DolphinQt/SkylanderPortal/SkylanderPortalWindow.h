@@ -13,6 +13,7 @@
 
 #include "Core/Core.h"
 #include "Core/IOS/USB/Emulated/Skylander.h"
+#include "DolphinQt/MainWindow.h"
 #include "DolphinQt/RenderWidget.h"
 
 class QCheckBox;
@@ -26,12 +27,34 @@ struct Skylander
   u16 sky_var;
 };
 
-class skylanderportalwindow : public QWidget
+class PortalButton : public QWidget
 {
   Q_OBJECT
 public:
-  explicit skylanderportalwindow(QWidget* parent = nullptr);
-  ~skylanderportalwindow() override;
+  explicit PortalButton(RenderWidget* rend, QWidget* pWindow, QWidget* parent = nullptr);
+  ~PortalButton() override;
+
+  void OpenMenu();
+  void setRender(RenderWidget* r);
+  void Hovered();
+  void TimeUp();
+  void Enable();
+  void Disable();
+
+private:
+  QPushButton* button;
+  QTimer fadeout;
+  RenderWidget* render = nullptr;
+  QWidget* portalWindow= nullptr;
+  bool enabled;
+};
+
+class SkylanderPortalWindow : public QWidget
+{
+  Q_OBJECT
+public:
+  explicit SkylanderPortalWindow(RenderWidget* render, MainWindow* main, QWidget* parent = nullptr);
+  ~SkylanderPortalWindow() override;
 
 protected:
   std::array<QLineEdit*, MAX_SKYLANDERS> m_edit_skylanders;
@@ -51,26 +74,7 @@ private:
 
   QCheckBox* m_checkbox;
   QGroupBox* m_group_skylanders;
-};
-
-class PortalButton : public QWidget
-{
-  Q_OBJECT
-public:
-  explicit PortalButton(QWidget* parent = nullptr);
-  ~PortalButton() override;
-
-  void OpenMenu();
-  void setRender(RenderWidget* r);
-  void Hovered();
-  void TimeUp();
-
-  QCheckBox* m_checkbox;
-  QLabel* portal;
-  QPushButton* button;
-  skylanderportalwindow* menu = nullptr;
-  QTimer fadeout;
-  RenderWidget* render=nullptr;
+  PortalButton* portalButton;
 };
 
 class CreateSkylanderDialog : public QDialog

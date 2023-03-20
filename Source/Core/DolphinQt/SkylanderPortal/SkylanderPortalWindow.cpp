@@ -29,18 +29,22 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/System.h"
 #include "DolphinQT/RenderWidget.h"
+#include "DolphinQt/MainWindow.h"
 
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
-SkylanderPortalWindow::SkylanderPortalWindow(QWidget* parent) : QWidget(parent)
+PortalButton::PortalButton(RenderWidget* rend, QWidget* pWindow, QWidget* parent) : QWidget(parent)
 {
+  setRender(rend);
+  portalWindow = pWindow;
+
   setWindowTitle(tr("Portal of Power"));
   setMinimumSize(QSize(500, 500));
 
   setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
-  setParent(0);  // Create TopLevel-Widget
+  setParent(0);
   setAttribute(Qt::WA_NoSystemBackground, true);
   setAttribute(Qt::WA_TranslucentBackground, true);
 
@@ -49,37 +53,53 @@ SkylanderPortalWindow::SkylanderPortalWindow(QWidget* parent) : QWidget(parent)
   button->setText(tr("Portal of Power"));
 
   connect(button, &QAbstractButton::clicked, this, [this]() { OpenMenu(); });
-  fadeout.callOnTimeout(this, &SkylanderPortalWindow::TimeUp, Qt::AutoConnection);
+  fadeout.callOnTimeout(this, &PortalButton::TimeUp, Qt::AutoConnection);
 
-  move(50, 50);
+  move(100, 150);
 }
 
-SkylanderPortalWindow::~SkylanderPortalWindow() = default;
+PortalButton::~PortalButton() = default;
 
-void SkylanderPortalWindow::OpenMenu()
+void PortalButton::Enable()
 {
-  menu = new SkylanderPortalMenu;
-  menu->show();
+  enabled = true;
+  render->SetReportMouseMovement(true);
+  hide();
 }
 
-void SkylanderPortalWindow::setRender(RenderWidget* r)
+void PortalButton::Disable()
+{
+  enabled = false;
+  render->SetReportMouseMovement(false);
+  hide();
+}
+
+void PortalButton::OpenMenu()
+{
+  portalWindow->show();
+  portalWindow->raise();
+  portalWindow->activateWindow();
+}
+
+void PortalButton::setRender(RenderWidget* r)
 {
   if (render != nullptr)
   {
-    disconnect(render, &RenderWidget::MouseMoved, this, &SkylanderPortalWindow::Hovered);
+    disconnect(render, &RenderWidget::MouseMoved, this, &PortalButton::Hovered);
   }
   render = r;
-  connect(render, &RenderWidget::MouseMoved, this, &SkylanderPortalWindow::Hovered,
+  connect(render, &RenderWidget::MouseMoved, this, &PortalButton::Hovered,
           Qt::DirectConnection);
 }
 
-void SkylanderPortalWindow::Hovered()
+void PortalButton::Hovered()
 {
   show();
+  raise();
   fadeout.start(1000);
 }
 
-void SkylanderPortalWindow::TimeUp()
+void PortalButton::TimeUp()
 {
   hide();
 }
@@ -88,26 +108,31 @@ void SkylanderPortalWindow::TimeUp()
 // static variable to ensure we open at the most recent Skylander file location
 static QString s_last_skylander_path;
 
-SkylanderPortalMenu::SkylanderPortalMenu(QWidget* parent) : QWidget(parent)
+SkylanderPortalWindow::SkylanderPortalWindow(RenderWidget* render, MainWindow* main, QWidget* parent) : QWidget(parent)
 {
   setWindowTitle(tr("Skylanders Manager"));
   setWindowIcon(Resources::GetAppIcon());
   setObjectName(QString::fromStdString("skylanders_manager"));
-  setMinimumSize(QSize(700, 200));
+  setMinimumSize(QSize(500, 200));
 
   CreateMainWindow();
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
-          &SkylanderPortalMenu::OnEmulationStateChanged);
+          &SkylanderPortalWindow::OnEmulationStateChanged);
 
   installEventFilter(this);
 
   OnEmulationStateChanged(Core::GetState());
+
+  portalButton = new PortalButton(render,this);
+  connect(main, &MainWindow::RenderInstanceChanged, portalButton,
+          &PortalButton::setRender);
+  portalButton->Enable();
 };
 
-SkylanderPortalMenu::~SkylanderPortalMenu() = default;
+SkylanderPortalWindow::~SkylanderPortalWindow() = default;
 
-void SkylanderPortalMenu::CreateMainWindow()
+void SkylanderPortalWindow::CreateMainWindow()
 {
   auto* main_layout = new QVBoxLayout();
 
@@ -171,7 +196,7 @@ void SkylanderPortalMenu::CreateMainWindow()
   UpdateEdits();
 }
 
-void SkylanderPortalMenu::OnEmulationStateChanged(Core::State state)
+void SkylanderPortalWindow::OnEmulationStateChanged(Core::State state)
 {
   const bool running = state != Core::State::Uninitialized;
 
@@ -306,13 +331,13 @@ QString CreateSkylanderDialog::GetFilePath() const
   return m_file_path;
 }
 
-void SkylanderPortalMenu::EmulatePortal(bool emulate)
+void SkylanderPortalWindow::EmulatePortal(bool emulate)
 {
   Config::SetBaseOrCurrent(Config::MAIN_EMULATE_SKYLANDER_PORTAL, emulate);
   m_group_skylanders->setVisible(emulate);
 }
 
-void SkylanderPortalMenu::CreateSkylander(u8 slot)
+void SkylanderPortalWindow::CreateSkylander(u8 slot)
 {
   CreateSkylanderDialog create_dlg(this);
   if (create_dlg.exec() == CreateSkylanderDialog::Accepted)
@@ -321,7 +346,7 @@ void SkylanderPortalMenu::CreateSkylander(u8 slot)
   }
 }
 
-void SkylanderPortalMenu::LoadSkylander(u8 slot)
+void SkylanderPortalWindow::LoadSkylander(u8 slot)
 {
   const QString file_path =
       DolphinFileDialog::getOpenFileName(this, tr("Select Skylander File"), s_last_skylander_path,
@@ -335,7 +360,7 @@ void SkylanderPortalMenu::LoadSkylander(u8 slot)
   LoadSkylanderPath(slot, file_path);
 }
 
-void SkylanderPortalMenu::LoadSkylanderPath(u8 slot, const QString& path)
+void SkylanderPortalWindow::LoadSkylanderPath(u8 slot, const QString& path)
 {
   File::IOFile sky_file(path.toStdString(), "r+b");
   if (!sky_file)
@@ -372,7 +397,7 @@ void SkylanderPortalMenu::LoadSkylanderPath(u8 slot, const QString& path)
   UpdateEdits();
 }
 
-void SkylanderPortalMenu::ClearSkylander(u8 slot)
+void SkylanderPortalWindow::ClearSkylander(u8 slot)
 {
   auto& system = Core::System::GetInstance();
   if (auto slot_infos = m_sky_slots[slot])
@@ -389,7 +414,7 @@ void SkylanderPortalMenu::ClearSkylander(u8 slot)
   }
 }
 
-void SkylanderPortalMenu::UpdateEdits()
+void SkylanderPortalWindow::UpdateEdits()
 {
   for (auto i = 0; i < MAX_SKYLANDERS; i++)
   {
@@ -415,7 +440,7 @@ void SkylanderPortalMenu::UpdateEdits()
   }
 }
 
-bool SkylanderPortalMenu::eventFilter(QObject* object, QEvent* event)
+bool SkylanderPortalWindow::eventFilter(QObject* object, QEvent* event)
 {
   // Close when escape is pressed
   if (event->type() == QEvent::KeyPress)
@@ -427,7 +452,7 @@ bool SkylanderPortalMenu::eventFilter(QObject* object, QEvent* event)
   return false;
 }
 
-void SkylanderPortalMenu::closeEvent(QCloseEvent* event)
+void SkylanderPortalWindow::closeEvent(QCloseEvent* event)
 {
   hide();
 }

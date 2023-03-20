@@ -1165,7 +1165,7 @@ void MainWindow::HideRenderWidget(bool reinit, bool is_exit)
     m_render_widget->deleteLater();
 
     m_render_widget = new RenderWidget;
-    m_skylander_window->setRender(m_render_widget);
+    emit RenderInstanceChanged(m_render_widget);
 
     m_render_widget->installEventFilter(this);
     connect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
@@ -1310,8 +1310,7 @@ void MainWindow::ShowSkylanderPortal()
 {
   if (!m_skylander_window)
   {
-    m_skylander_window = new SkylanderPortalWindow;
-    m_skylander_window->setRender(m_render_widget);
+    m_skylander_window = new SkylanderPortalWindow(m_render_widget,this);
   }
 
   m_skylander_window->show();
