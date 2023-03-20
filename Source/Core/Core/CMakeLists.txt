@@ -602,6 +602,7 @@ PUBLIC
   Lua
   ${MBEDTLS_LIBRARIES}
   pugixml
+  python
   RangeSet::RangeSet
   sfml-network
   sfml-system
