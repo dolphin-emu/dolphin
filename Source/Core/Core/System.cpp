@@ -27,6 +27,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "IOS/USB/Emulated/Infinity.h"
 #include "IOS/USB/Emulated/Skylander.h"
+#include "VideoCommon/Assets/CustomAssetLoader.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/GeometryShaderManager.h"
@@ -79,6 +80,7 @@ struct System::Impl
   VideoInterface::VideoInterfaceManager m_video_interface;
   Interpreter m_interpreter;
   JitInterface m_jit_interface;
+  VideoCommon::CustomAssetLoader m_custom_asset_loader;
 };
 
 System::System() : m_impl{std::make_unique<Impl>(*this)}
@@ -262,5 +264,10 @@ VertexShaderManager& System::GetVertexShaderManager() const
 VideoInterface::VideoInterfaceManager& System::GetVideoInterface() const
 {
   return m_impl->m_video_interface;
+}
+
+VideoCommon::CustomAssetLoader& System::GetCustomAssetLoader() const
+{
+  return m_impl->m_custom_asset_loader;
 }
 }  // namespace Core
