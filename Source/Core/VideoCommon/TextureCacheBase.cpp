@@ -1769,7 +1769,7 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
   }
 
   INCSTAT(g_stats.num_textures_uploaded);
-  SETSTAT(g_stats.num_textures_alive, static_cast<int>(textures_by_address.size()));
+  SETSTAT(g_stats.num_textures_alive, std::ssize(textures_by_address));
 
   entry = DoPartialTextureUpdates(iter->second, texture_info.GetTlutAddress(),
                                   texture_info.GetTlutFormat());
@@ -1848,7 +1848,7 @@ RcTcacheEntry TextureCacheBase::GetXFBTexture(u32 address, u32 width, u32 height
 
   // Insert into the texture cache so we can re-use it next frame, if needed.
   textures_by_address.emplace(entry->addr, entry);
-  SETSTAT(g_stats.num_textures_alive, static_cast<int>(textures_by_address.size()));
+  SETSTAT(g_stats.num_textures_alive, std::ssize(textures_by_address));
   INCSTAT(g_stats.num_textures_uploaded);
 
   if (g_ActiveConfig.bDumpXFBTarget || g_ActiveConfig.bGraphicMods)

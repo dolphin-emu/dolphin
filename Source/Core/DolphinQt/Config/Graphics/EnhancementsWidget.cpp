@@ -68,13 +68,13 @@ void EnhancementsWidget::CreateWidgets()
       tr("4x Native (2560x2112) for 1440p"), tr("5x Native (3200x2640)"),
       tr("6x Native (3840x3168) for 4K"),    tr("7x Native (4480x3696)"),
       tr("8x Native (5120x4224) for 5K")};
-  const int visible_resolution_option_count = static_cast<int>(resolution_options.size());
+  const int visible_resolution_option_count = std::ssize(resolution_options);
 
   // If the current scale is greater than the max scale in the ini, add sufficient options so that
   // when the settings are saved we don't lose the user-modified value from the ini.
   const int max_efb_scale =
       std::max(Config::Get(Config::GFX_EFB_SCALE), Config::Get(Config::GFX_MAX_EFB_SCALE));
-  for (int scale = static_cast<int>(resolution_options.size()); scale <= max_efb_scale; scale++)
+  for (int scale = std::ssize(resolution_options); scale <= max_efb_scale; scale++)
   {
     resolution_options.append(tr("%1x Native (%2x%3)")
                                   .arg(QString::number(scale),

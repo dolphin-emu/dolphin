@@ -55,7 +55,7 @@ int main(int argc, char* argv[])
 int wmain(int, wchar_t*[], wchar_t*[])
 {
   std::vector<std::string> args = CommandLineToUtf8Argv(GetCommandLineW());
-  const int argc = static_cast<int>(args.size());
+  const int argc = std::ssize(args);
   std::vector<char*> argv(args.size());
   for (size_t i = 0; i < args.size(); ++i)
     argv[i] = args[i].data();

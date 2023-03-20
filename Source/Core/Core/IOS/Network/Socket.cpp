@@ -1046,7 +1046,7 @@ void WiiSockMan::UpdatePollCommands()
             // Happens only on savestate load
             if (pfds[0].revents & error_event)
             {
-              ret = static_cast<int>(pfds.size());
+              ret = std::ssize(pfds);
             }
             else
             {

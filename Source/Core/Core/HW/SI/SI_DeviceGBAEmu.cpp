@@ -104,7 +104,7 @@ int CSIDevice_GBAEmu::RunBuffer(u8* buffer, int request_length)
                     response.size());
 #endif
 
-    return static_cast<int>(response.size());
+    return std::ssize(response);
   }
   }
 

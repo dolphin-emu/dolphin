@@ -386,7 +386,7 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("cfg-gfx-vertex-rounding", g_Config.UseVertexRounding());
 
   // GPU features.
-  if (g_Config.iAdapter < static_cast<int>(g_Config.backend_info.Adapters.size()))
+  if (g_Config.iAdapter < std::ssize(g_Config.backend_info.Adapters))
   {
     builder.AddData("gpu-adapter", g_Config.backend_info.Adapters[g_Config.iAdapter]);
   }

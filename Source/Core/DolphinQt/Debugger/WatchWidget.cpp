@@ -169,7 +169,7 @@ void WatchWidget::Update()
 
   Core::CPUThreadGuard guard(Core::System::GetInstance());
 
-  int size = static_cast<int>(PowerPC::debug_interface.GetWatches().size());
+  int size = std::ssize(PowerPC::debug_interface.GetWatches());
 
   m_table->setRowCount(size + 1);
 

@@ -216,7 +216,7 @@ void NetPlayBrowser::RefreshLoop()
 
 void NetPlayBrowser::UpdateList()
 {
-  const int session_count = static_cast<int>(m_sessions.size());
+  const int session_count = std::ssize(m_sessions);
 
   m_table_widget->clear();
   m_table_widget->setColumnCount(7);

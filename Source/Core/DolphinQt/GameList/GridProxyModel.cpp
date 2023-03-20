@@ -61,8 +61,8 @@ QVariant GridProxyModel::data(const QModelIndex& i, int role) const
     }
     else
     {
-      pixmap = QPixmap::fromImage(QImage::fromData(
-          reinterpret_cast<const unsigned char*>(&buffer[0]), static_cast<int>(buffer.size())));
+      pixmap = QPixmap::fromImage(
+          QImage::fromData(reinterpret_cast<const unsigned char*>(&buffer[0]), std::ssize(buffer)));
 
       return pixmap.scaled(QSize(160, 224) * model->GetScale() * pixmap.devicePixelRatio(),
                            Qt::KeepAspectRatio, Qt::SmoothTransformation);

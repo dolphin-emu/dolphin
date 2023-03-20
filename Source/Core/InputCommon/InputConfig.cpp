@@ -178,7 +178,7 @@ bool InputConfig::ControllersNeedToBeCreated() const
 
 int InputConfig::GetControllerCount() const
 {
-  return static_cast<int>(m_controllers.size());
+  return std::ssize(m_controllers);
 }
 
 void InputConfig::RegisterHotplugCallback()

@@ -60,7 +60,7 @@ CompileShaderToSPV(EShLanguage stage, APIType api_type,
   int default_version = 450;
 
   const char* pass_source_code = source.data();
-  int pass_source_code_length = static_cast<int>(source.size());
+  int pass_source_code_length = std::ssize(source);
 
   shader->setEnvTarget(glslang::EShTargetSpv, language_version);
 

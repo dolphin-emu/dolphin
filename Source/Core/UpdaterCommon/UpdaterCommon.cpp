@@ -211,7 +211,7 @@ bool DownloadContent(const std::vector<TodoList::DownloadOp>& to_download,
 
   for (size_t i = 0; i < to_download.size(); i++)
   {
-    UI::SetTotalProgress(static_cast<int>(i + 1), static_cast<int>(to_download.size()));
+    UI::SetTotalProgress(static_cast<int>(i + 1), std::ssize(to_download));
 
     auto& download = to_download[i];
 

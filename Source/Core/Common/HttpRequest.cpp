@@ -161,7 +161,7 @@ void HttpRequest::Impl::FollowRedirects(long max)
 
 std::string HttpRequest::Impl::EscapeComponent(const std::string& string)
 {
-  char* escaped = curl_easy_escape(m_curl.get(), string.c_str(), static_cast<int>(string.size()));
+  char* escaped = curl_easy_escape(m_curl.get(), string.c_str(), std::ssize(string));
   std::string escaped_str(escaped);
   curl_free(escaped);
 
@@ -229,7 +229,7 @@ HttpRequest::Response HttpRequest::Impl::Fetch(const std::string& url, Method me
     {
       ERROR_LOG_FMT(COMMON, "Failed to {} {}: server replied with code {} and body\n\x1b[0m{:.{}}",
                     type, url, response_code, reinterpret_cast<char*>(buffer.data()),
-                    static_cast<int>(buffer.size()));
+                    std::ssize(buffer));
     }
     return {};
   }

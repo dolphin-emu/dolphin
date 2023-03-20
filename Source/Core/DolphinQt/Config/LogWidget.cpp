@@ -26,7 +26,7 @@ constexpr size_t TIMESTAMP_LENGTH = 10;
 // A helper function to construct QString from std::string_view in one line
 static QString QStringFromStringView(std::string_view str)
 {
-  return QString::fromUtf8(str.data(), static_cast<int>(str.size()));
+  return QString::fromUtf8(str.data(), std::ssize(str));
 }
 
 LogWidget::LogWidget(QWidget* parent) : QDockWidget(parent), m_timer(new QTimer(this))

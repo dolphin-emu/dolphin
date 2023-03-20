@@ -199,7 +199,7 @@ void NetPlayServer::SetupIndex()
   session.has_password = !Config::Get(Config::NETPLAY_INDEX_PASSWORD).empty();
   session.method = m_traversal_client ? "traversal" : "direct";
   session.game_id = m_selected_game_name.empty() ? "UNKNOWN" : m_selected_game_name;
-  session.player_count = static_cast<int>(m_players.size());
+  session.player_count = std::ssize(m_players);
   session.in_game = m_is_running;
   session.port = GetPort();
 
@@ -254,7 +254,7 @@ void NetPlayServer::ThreadFunc()
       m_ping_timer.Start();
       SendToClients(spac);
 
-      m_index.SetPlayerCount(static_cast<int>(m_players.size()));
+      m_index.SetPlayerCount(std::ssize(m_players));
       m_index.SetGame(m_selected_game_name);
       m_index.SetInGame(m_is_running);
 

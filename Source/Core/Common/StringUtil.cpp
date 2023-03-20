@@ -447,15 +447,13 @@ size_t StringUTF8CodePointCount(std::string_view str)
 
 std::wstring CPToUTF16(u32 code_page, std::string_view input)
 {
-  auto const size =
-      MultiByteToWideChar(code_page, 0, input.data(), static_cast<int>(input.size()), nullptr, 0);
+  auto const size = MultiByteToWideChar(code_page, 0, input.data(), std::ssize(input), nullptr, 0);
 
   std::wstring output;
   output.resize(size);
 
-  if (size == 0 ||
-      size != MultiByteToWideChar(code_page, 0, input.data(), static_cast<int>(input.size()),
-                                  &output[0], static_cast<int>(output.size())))
+  if (size == 0 || size != MultiByteToWideChar(code_page, 0, input.data(), std::ssize(input),
+                                               &output[0], std::ssize(output)))
   {
     output.clear();
   }
@@ -469,13 +467,13 @@ std::string UTF16ToCP(u32 code_page, std::wstring_view input)
     return {};
 
   // "If cchWideChar [input buffer size] is set to 0, the function fails." -MSDN
-  auto const size = WideCharToMultiByte(code_page, 0, input.data(), static_cast<int>(input.size()),
-                                        nullptr, 0, nullptr, nullptr);
+  auto const size = WideCharToMultiByte(code_page, 0, input.data(), std::ssize(input), nullptr, 0,
+                                        nullptr, nullptr);
 
   std::string output(size, '\0');
 
-  if (size != WideCharToMultiByte(code_page, 0, input.data(), static_cast<int>(input.size()),
-                                  output.data(), static_cast<int>(output.size()), nullptr, nullptr))
+  if (size != WideCharToMultiByte(code_page, 0, input.data(), std::ssize(input), output.data(),
+                                  std::ssize(output), nullptr, nullptr))
   {
     const DWORD error_code = GetLastError();
     ERROR_LOG_FMT(COMMON, "WideCharToMultiByte Error in String '{}': {}", WStringToUTF8(input),

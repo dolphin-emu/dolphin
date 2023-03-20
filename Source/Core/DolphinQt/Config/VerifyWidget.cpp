@@ -125,8 +125,8 @@ void VerifyWidget::ConnectWidgets()
 
 static void SetHash(QLineEdit* line_edit, const std::vector<u8>& hash)
 {
-  const QByteArray byte_array = QByteArray::fromRawData(reinterpret_cast<const char*>(hash.data()),
-                                                        static_cast<int>(hash.size()));
+  const QByteArray byte_array =
+      QByteArray::fromRawData(reinterpret_cast<const char*>(hash.data()), std::ssize(hash));
   line_edit->setText(QString::fromLatin1(byte_array.toHex()));
 }
 
@@ -188,7 +188,7 @@ void VerifyWidget::Verify()
 
   m_summary_text->setText(QString::fromStdString(result->summary_text));
 
-  m_problems->setRowCount(static_cast<int>(result->problems.size()));
+  m_problems->setRowCount(std::ssize(result->problems));
   for (int i = 0; i < m_problems->rowCount(); ++i)
   {
     const DiscIO::VolumeVerifier::Problem problem = result->problems[i];

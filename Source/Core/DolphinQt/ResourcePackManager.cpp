@@ -98,7 +98,7 @@ void ResourcePackManager::RepopulateTable()
   header->setStretchLastSection(true);
   header->setHighlightSections(false);
 
-  int size = static_cast<int>(ResourcePack::GetPacks().size());
+  int size = std::ssize(ResourcePack::GetPacks());
 
   m_table_widget->setSelectionBehavior(QAbstractItemView::SelectRows);
   m_table_widget->setSelectionMode(QAbstractItemView::SingleSelection);

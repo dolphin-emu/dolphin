@@ -409,7 +409,7 @@ void BluetoothRealDevice::WaitForHCICommandComplete(const u16 opcode)
   for (int tries = 0; tries < 100; ++tries)
   {
     const int ret = libusb_interrupt_transfer(m_handle, HCI_EVENT, buffer.data(),
-                                              static_cast<int>(buffer.size()), &actual_length, 20);
+                                              std::ssize(buffer), &actual_length, 20);
     if (ret != LIBUSB_SUCCESS || actual_length < static_cast<int>(sizeof(packet)))
       continue;
     std::memcpy(&packet, buffer.data(), sizeof(packet));

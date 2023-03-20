@@ -66,7 +66,7 @@ std::string ProfileCycler::GetProfile(CycleDirection cycle_direction, int& profi
   // update the index and bind it to the number of available strings
   auto positive_modulo = [](int& i, int n) { i = (i % n + n) % n; };
   profile_index += static_cast<int>(cycle_direction);
-  positive_modulo(profile_index, static_cast<int>(profiles.size()));
+  positive_modulo(profile_index, std::ssize(profiles));
 
   return profiles[profile_index];
 }

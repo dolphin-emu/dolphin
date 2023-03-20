@@ -78,12 +78,11 @@ static bool InitUPnP()
     std::unique_ptr<char, decltype(&std::free)> desc_xml(nullptr, std::free);
     int statusCode = 200;
 #if MINIUPNPC_API_VERSION >= 16
-    desc_xml.reset(
-        static_cast<char*>(miniwget_getaddr(dev->descURL, &desc_xml_size, s_our_ip.data(),
-                                            static_cast<int>(s_our_ip.size()), 0, &statusCode)));
-#else
     desc_xml.reset(static_cast<char*>(miniwget_getaddr(
-        dev->descURL, &desc_xml_size, s_our_ip.data(), static_cast<int>(s_our_ip.size()), 0)));
+        dev->descURL, &desc_xml_size, s_our_ip.data(), std::ssize(s_our_ip), 0, &statusCode)));
+#else
+    desc_xml.reset(static_cast<char*>(
+        miniwget_getaddr(dev->descURL, &desc_xml_size, s_our_ip.data(), std::ssize(s_our_ip), 0)));
 #endif
     if (desc_xml && statusCode == 200)
     {

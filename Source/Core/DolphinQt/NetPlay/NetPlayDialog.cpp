@@ -619,10 +619,10 @@ void NetPlayDialog::UpdateGUI()
   // Update Player List
   const auto players = client->GetPlayers();
 
-  if (static_cast<int>(players.size()) != m_player_count && m_player_count != 0)
+  if (std::ssize(players) != m_player_count && m_player_count != 0)
     QApplication::alert(this);
 
-  m_player_count = static_cast<int>(players.size());
+  m_player_count = std::ssize(players);
 
   int selection_pid = m_players_list->currentItem() ?
                           m_players_list->currentItem()->data(Qt::UserRole).toInt() :

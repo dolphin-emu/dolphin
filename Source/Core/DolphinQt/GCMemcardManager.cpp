@@ -655,8 +655,8 @@ void GCMemcardManager::DeleteFiles()
   if (selected_indices.empty())
     return;
 
-  const QString text = tr("Do you want to delete the %n selected save file(s)?", "",
-                          static_cast<int>(selected_indices.size()));
+  const QString text =
+      tr("Do you want to delete the %n selected save file(s)?", "", std::ssize(selected_indices));
   const auto response = ModalMessageBox::question(this, tr("Question"), text);
   if (response != QMessageBox::Yes)
     return;
