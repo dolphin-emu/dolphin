@@ -142,7 +142,7 @@ bool VideoBackend::FillBackendInfo(GLContext* context)
   g_Config.backend_info.bSupportsGPUTextureDecoding = true;
   g_Config.backend_info.bSupportsBBox = true;
 
-  // Overwritten in OGLRender.cpp later
+  // Overwritten in OGLConfig.cpp later
   g_Config.backend_info.bSupportsDualSourceBlend = true;
   g_Config.backend_info.bSupportsPrimitiveRestart = true;
   g_Config.backend_info.bSupportsPaletteConversion = true;
@@ -179,6 +179,13 @@ bool VideoBackend::FillBackendInfo(GLContext* context)
   if (max_texture_size < 1024)
   {
     PanicAlertFmtT("GL_MAX_TEXTURE_SIZE is {0} - must be at least 1024.", max_texture_size);
+    return false;
+  }
+
+  if (!PopulateConfig(context))
+  {
+    // Not all needed extensions are supported, so we have to stop here.
+    // Else some of the next calls might crash.
     return false;
   }
 
