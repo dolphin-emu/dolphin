@@ -468,29 +468,29 @@ Interpreter::Instruction Interpreter::GetInterpreterOp(UGeckoInstruction inst)
     return result;
 }
 
-void Interpreter::RunInterpreterOp(UGeckoInstruction inst)
+void Interpreter::RunInterpreterOp(Interpreter& interpreter, UGeckoInstruction inst)
 {
   // Will handle subtables using RunTable4 etc.
-  s_interpreter_op_table[inst.OPCD](inst);
+  s_interpreter_op_table[inst.OPCD](interpreter, inst);
 }
 
-void Interpreter::RunTable4(UGeckoInstruction inst)
+void Interpreter::RunTable4(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  s_interpreter_op_table4[inst.SUBOP10](inst);
+  s_interpreter_op_table4[inst.SUBOP10](interpreter, inst);
 }
-void Interpreter::RunTable19(UGeckoInstruction inst)
+void Interpreter::RunTable19(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  s_interpreter_op_table19[inst.SUBOP10](inst);
+  s_interpreter_op_table19[inst.SUBOP10](interpreter, inst);
 }
-void Interpreter::RunTable31(UGeckoInstruction inst)
+void Interpreter::RunTable31(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  s_interpreter_op_table31[inst.SUBOP10](inst);
+  s_interpreter_op_table31[inst.SUBOP10](interpreter, inst);
 }
-void Interpreter::RunTable59(UGeckoInstruction inst)
+void Interpreter::RunTable59(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  s_interpreter_op_table59[inst.SUBOP5](inst);
+  s_interpreter_op_table59[inst.SUBOP5](interpreter, inst);
 }
-void Interpreter::RunTable63(UGeckoInstruction inst)
+void Interpreter::RunTable63(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  s_interpreter_op_table63[inst.SUBOP10](inst);
+  s_interpreter_op_table63[inst.SUBOP10](interpreter, inst);
 }
