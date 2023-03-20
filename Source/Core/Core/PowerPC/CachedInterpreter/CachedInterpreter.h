@@ -13,7 +13,11 @@
 class CachedInterpreter : public JitBase
 {
 public:
-  CachedInterpreter();
+  explicit CachedInterpreter(Core::System& system);
+  CachedInterpreter(const CachedInterpreter&) = delete;
+  CachedInterpreter(CachedInterpreter&&) = delete;
+  CachedInterpreter& operator=(const CachedInterpreter&) = delete;
+  CachedInterpreter& operator=(CachedInterpreter&&) = delete;
   ~CachedInterpreter();
 
   void Init() override;

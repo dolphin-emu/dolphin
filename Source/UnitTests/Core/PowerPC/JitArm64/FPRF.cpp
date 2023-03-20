@@ -10,6 +10,7 @@
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 #include "../TestValues.h"
 
@@ -22,7 +23,7 @@ using namespace Arm64Gen;
 class TestFPRF : public JitArm64
 {
 public:
-  TestFPRF()
+  explicit TestFPRF(Core::System& system) : JitArm64(system)
   {
     const Common::ScopedJITPageWriteAndNoExecute enable_jit_page_writes;
 
@@ -67,7 +68,7 @@ static u32 RunUpdateFPRF(const std::function<void()>& f)
 
 TEST(JitArm64, FPRF)
 {
-  TestFPRF test;
+  TestFPRF test(Core::System::GetInstance());
 
   for (const u64 double_input : double_test_values)
   {

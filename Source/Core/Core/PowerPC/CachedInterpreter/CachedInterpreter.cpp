@@ -56,7 +56,9 @@ struct CachedInterpreter::Instruction
   Type type = Type::Abort;
 };
 
-CachedInterpreter::CachedInterpreter() = default;
+CachedInterpreter::CachedInterpreter(Core::System& system) : JitBase(system)
+{
+}
 
 CachedInterpreter::~CachedInterpreter() = default;
 

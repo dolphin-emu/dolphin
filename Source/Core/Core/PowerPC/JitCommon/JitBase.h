@@ -17,6 +17,15 @@
 #include "Core/PowerPC/JitCommon/JitCache.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 
+namespace Core
+{
+class System;
+}
+namespace PowerPC
+{
+struct PowerPCState;
+}
+
 //#define JIT_LOG_GENERATED_CODE  // Enables logging of generated code
 //#define JIT_LOG_GPR             // Enables logging of the PPC general purpose regs
 //#define JIT_LOG_FPR             // Enables logging of the PPC floating point regs
@@ -162,7 +171,11 @@ protected:
   bool ShouldHandleFPExceptionForInstruction(const PPCAnalyst::CodeOp* op);
 
 public:
-  JitBase();
+  explicit JitBase(Core::System& system);
+  JitBase(const JitBase&) = delete;
+  JitBase(JitBase&&) = delete;
+  JitBase& operator=(const JitBase&) = delete;
+  JitBase& operator=(JitBase&&) = delete;
   ~JitBase() override;
 
   bool IsDebuggingEnabled() const { return m_enable_debugging; }
@@ -182,6 +195,9 @@ public:
   // This should probably be removed from public:
   JitOptions jo{};
   JitState js{};
+
+  Core::System& m_system;
+  PowerPC::PowerPCState& m_ppc_state;
 };
 
 void JitTrampoline(JitBase& jit, u32 em_address);

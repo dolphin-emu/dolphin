@@ -38,7 +38,7 @@ constexpr size_t CODE_SIZE = 1024 * 1024 * 32;
 constexpr size_t FARCODE_SIZE = 1024 * 1024 * 64;
 constexpr size_t FARCODE_SIZE_MMU = 1024 * 1024 * 64;
 
-JitArm64::JitArm64() : m_float_emit(this)
+JitArm64::JitArm64(Core::System& system) : JitBase(system), m_float_emit(this)
 {
 }
 

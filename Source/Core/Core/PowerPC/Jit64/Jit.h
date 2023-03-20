@@ -43,7 +43,11 @@ struct CodeOp;
 class Jit64 : public JitBase, public QuantizedMemoryRoutines
 {
 public:
-  Jit64();
+  explicit Jit64(Core::System& system);
+  Jit64(const Jit64&) = delete;
+  Jit64(Jit64&&) = delete;
+  Jit64& operator=(const Jit64&) = delete;
+  Jit64& operator=(Jit64&&) = delete;
   ~Jit64() override;
 
   void Init() override;

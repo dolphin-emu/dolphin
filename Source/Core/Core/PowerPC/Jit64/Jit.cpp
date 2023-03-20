@@ -116,7 +116,7 @@ using namespace PowerPC;
     and such, but it's currently limited to integer ops only. This can definitely be made better.
 */
 
-Jit64::Jit64() : QuantizedMemoryRoutines(*this)
+Jit64::Jit64(Core::System& system) : JitBase(system), QuantizedMemoryRoutines(*this)
 {
 }
 
