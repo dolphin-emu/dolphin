@@ -44,13 +44,9 @@ SkylanderPortalWindow::SkylanderPortalWindow(QWidget* parent) : QWidget(parent)
   setAttribute(Qt::WA_NoSystemBackground, true);
   setAttribute(Qt::WA_TranslucentBackground, true);
 
-  QPixmap pixmap(tr("/Users/jnaid/Projects/Sky/dolphin/portal.png"));
-  QIcon ButtonIcon(pixmap);
   button = new QPushButton(this);
-  button->setStyleSheet(tr("background-color: rgba(255, 255, 255, 0); "));
-  button->resize(300, 300);
-  button->setIcon(ButtonIcon);
-  button->setIconSize(QSize(75,75));
+  button->resize(100, 50);
+  button->setText(tr("Portal of Power"));
 
   connect(button, &QAbstractButton::clicked, this, [this]() { OpenMenu(); });
   fadeout.callOnTimeout(this, &SkylanderPortalWindow::TimeUp, Qt::AutoConnection);
