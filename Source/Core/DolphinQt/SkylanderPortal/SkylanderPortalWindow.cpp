@@ -286,134 +286,6 @@ void SkylanderPortalWindow::OnEmulationStateChanged(Core::State state)
   m_enabled_checkbox->setEnabled(!running);
 }
 
-CreateSkylanderDialog::CreateSkylanderDialog(QWidget* parent) : QDialog(parent)
-{
-  setWindowTitle(tr("Skylander Creator"));
-  setObjectName(QString::fromStdString("skylanders_creator"));
-  setMinimumSize(QSize(500, 150));
-  auto* layout = new QVBoxLayout;
-
-  auto* combo_skylist = new QComboBox();
-  QStringList filterlist;
-  for (const auto& entry : IOS::HLE::USB::list_skylanders)
-  {
-    const uint qvar = (entry.first.first << 16) | entry.first.second;
-    combo_skylist->addItem(QString::fromStdString(entry.second), QVariant(qvar));
-    filterlist << QString::fromStdString(entry.second);
-  }
-  combo_skylist->addItem(tr("--Unknown--"), QVariant(0xFFFFFFFF));
-  combo_skylist->setEditable(true);
-  combo_skylist->setInsertPolicy(QComboBox::NoInsert);
-
-  auto* co_compl = new QCompleter(filterlist, this);
-  co_compl->setCaseSensitivity(Qt::CaseInsensitive);
-  co_compl->setCompletionMode(QCompleter::PopupCompletion);
-  co_compl->setFilterMode(Qt::MatchContains);
-  combo_skylist->setCompleter(co_compl);
-
-  layout->addWidget(combo_skylist);
-
-  auto* line = new QFrame();
-  line->setFrameShape(QFrame::HLine);
-  line->setFrameShadow(QFrame::Sunken);
-  layout->addWidget(line);
-
-  auto* hbox_idvar = new QHBoxLayout();
-  auto* label_id = new QLabel(tr("ID:"));
-  auto* label_var = new QLabel(tr("Variant:"));
-  auto* edit_id = new QLineEdit(tr("0"));
-  auto* edit_var = new QLineEdit(tr("0"));
-  auto* rxv =
-      new QRegularExpressionValidator(QRegularExpression(QString::fromStdString("\\d*")), this);
-  edit_id->setValidator(rxv);
-  edit_var->setValidator(rxv);
-  hbox_idvar->addWidget(label_id);
-  hbox_idvar->addWidget(edit_id);
-  hbox_idvar->addWidget(label_var);
-  hbox_idvar->addWidget(edit_var);
-  layout->addLayout(hbox_idvar);
-
-  auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-  buttons->button(QDialogButtonBox::Ok)->setText(tr("Create"));
-  layout->addWidget(buttons);
-
-  setLayout(layout);
-
-  connect(combo_skylist, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index) {
-    const u32 sky_info = combo_skylist->itemData(index).toUInt();
-    if (sky_info != 0xFFFFFFFF)
-    {
-      const u16 sky_id = sky_info >> 16;
-      const u16 sky_var = sky_info & 0xFFFF;
-
-      edit_id->setText(QString::number(sky_id));
-      edit_var->setText(QString::number(sky_var));
-    }
-  });
-
-  connect(buttons, &QDialogButtonBox::accepted, this, [=, this]() {
-    bool ok_id = false, ok_var = false;
-    const u16 sky_id = edit_id->text().toUShort(&ok_id);
-    if (!ok_id)
-    {
-      QMessageBox::warning(this, tr("Error converting value"), tr("ID entered is invalid!"),
-                           QMessageBox::Ok);
-      return;
-    }
-    const u16 sky_var = edit_var->text().toUShort(&ok_var);
-    if (!ok_var)
-    {
-      QMessageBox::warning(this, tr("Error converting value"), tr("Variant entered is invalid!"),
-                           QMessageBox::Ok);
-      return;
-    }
-
-    QString predef_name = s_last_skylander_path;
-    const auto found_sky = IOS::HLE::USB::list_skylanders.find(std::make_pair(sky_id, sky_var));
-    if (found_sky != IOS::HLE::USB::list_skylanders.end())
-    {
-      predef_name += QString::fromStdString(std::string(found_sky->second) + ".sky");
-    }
-    else
-    {
-      QString str = tr("Unknown(%1 %2).sky");
-      predef_name += str.arg(sky_id, sky_var);
-    }
-
-    m_file_path = DolphinFileDialog::getSaveFileName(this, tr("Create Skylander File"), predef_name,
-                                                     tr("Skylander Object (*.sky);;"));
-    if (m_file_path.isEmpty())
-    {
-      return;
-    }
-
-    auto& system = Core::System::GetInstance();
-
-    if (!system.GetSkylanderPortal().CreateSkylander(m_file_path.toStdString(), sky_id, sky_var))
-    {
-      QMessageBox::warning(this, tr("Failed to create Skylander file!"),
-                           tr("Failed to create Skylander file:\n%1").arg(m_file_path),
-                           QMessageBox::Ok);
-      return;
-    }
-    s_last_skylander_path = QFileInfo(m_file_path).absolutePath() + QString::fromStdString("/");
-    accept();
-  });
-
-  connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
-
-  connect(co_compl, QOverload<const QString&>::of(&QCompleter::activated),
-          [=](const QString& text) {
-            combo_skylist->setCurrentText(text);
-            combo_skylist->setCurrentIndex(combo_skylist->findText(text));
-          });
-}
-
-QString CreateSkylanderDialog::GetFilePath() const
-{
-  return m_file_path;
-}
-
 void SkylanderPortalWindow::EmulatePortal(bool emulate)
 {
   Config::SetBaseOrCurrent(Config::MAIN_EMULATE_SKYLANDER_PORTAL, emulate);
@@ -464,7 +336,7 @@ void SkylanderPortalWindow::CreateSkylander(u8 slot)
   }
   s_last_skylander_path = QFileInfo(m_file_path).absolutePath() + QString::fromStdString("/");
 
-  LoadSkylanderPath(slot, s_last_skylander_path);
+  LoadSkylanderPath(slot, m_file_path);
 }
 
 void SkylanderPortalWindow::LoadSkylander(u8 slot)
@@ -576,4 +448,85 @@ bool SkylanderPortalWindow::eventFilter(QObject* object, QEvent* event)
 void SkylanderPortalWindow::closeEvent(QCloseEvent* event)
 {
   hide();
+}
+
+CreateSkylanderDialog::CreateSkylanderDialog(QWidget* parent) : QDialog(parent)
+{
+  setWindowTitle(tr("Skylander Creator"));
+  setObjectName(QString::fromStdString("skylanders_creator"));
+  setMinimumSize(QSize(500, 150));
+  auto* layout = new QVBoxLayout;
+
+  auto* combo_skylist = new QComboBox();
+  QStringList filterlist;
+  for (const auto& entry : IOS::HLE::USB::list_skylanders)
+  {
+    const uint qvar = (entry.first.first << 16) | entry.first.second;
+    combo_skylist->addItem(QString::fromStdString(entry.second), QVariant(qvar));
+    filterlist << QString::fromStdString(entry.second);
+  }
+  combo_skylist->addItem(tr("--Unknown--"), QVariant(0xFFFFFFFF));
+  combo_skylist->setEditable(true);
+  combo_skylist->setInsertPolicy(QComboBox::NoInsert);
+
+  auto* co_compl = new QCompleter(filterlist, this);
+  co_compl->setCaseSensitivity(Qt::CaseInsensitive);
+  co_compl->setCompletionMode(QCompleter::PopupCompletion);
+  co_compl->setFilterMode(Qt::MatchContains);
+  combo_skylist->setCompleter(co_compl);
+
+  layout->addWidget(combo_skylist);
+
+  auto* line = new QFrame();
+  line->setFrameShape(QFrame::HLine);
+  line->setFrameShadow(QFrame::Sunken);
+  layout->addWidget(line);
+
+  auto* hbox_idvar = new QHBoxLayout();
+  auto* label_id = new QLabel(tr("ID:"));
+  auto* label_var = new QLabel(tr("Variant:"));
+  auto* edit_id = new QLineEdit(tr("0"));
+  auto* edit_var = new QLineEdit(tr("0"));
+  auto* rxv =
+      new QRegularExpressionValidator(QRegularExpression(QString::fromStdString("\\d*")), this);
+  edit_id->setValidator(rxv);
+  edit_var->setValidator(rxv);
+  hbox_idvar->addWidget(label_id);
+  hbox_idvar->addWidget(edit_id);
+  hbox_idvar->addWidget(label_var);
+  hbox_idvar->addWidget(edit_var);
+  layout->addLayout(hbox_idvar);
+
+  auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+  buttons->button(QDialogButtonBox::Ok)->setText(tr("Create"));
+  layout->addWidget(buttons);
+
+  setLayout(layout);
+
+  connect(combo_skylist, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index) {
+    const u32 sky_info = combo_skylist->itemData(index).toUInt();
+    if (sky_info != 0xFFFFFFFF)
+    {
+      const u16 sky_id = sky_info >> 16;
+      const u16 sky_var = sky_info & 0xFFFF;
+
+      edit_id->setText(QString::number(sky_id));
+      edit_var->setText(QString::number(sky_var));
+    }
+  });
+
+  // accept code used to be here
+
+  connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
+
+  connect(co_compl, QOverload<const QString&>::of(&QCompleter::activated),
+          [=](const QString& text) {
+            combo_skylist->setCurrentText(text);
+            combo_skylist->setCurrentIndex(combo_skylist->findText(text));
+          });
+}
+
+QString CreateSkylanderDialog::GetFilePath() const
+{
+  return m_file_path;
 }
