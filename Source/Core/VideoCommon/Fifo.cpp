@@ -455,8 +455,8 @@ int FifoManager::RunGpuOnCpu(Core::System& system, int ticks)
     {
       if (!reset_simd_state)
       {
-        FPURoundMode::SaveSIMDState();
-        FPURoundMode::LoadDefaultSIMDState();
+        Common::FPU::SaveSIMDState();
+        Common::FPU::LoadDefaultSIMDState();
         reset_simd_state = true;
       }
       ReadDataFromFifo(system, fifo.CPReadPointer.load(std::memory_order_relaxed));
@@ -484,7 +484,7 @@ int FifoManager::RunGpuOnCpu(Core::System& system, int ticks)
 
   if (reset_simd_state)
   {
-    FPURoundMode::LoadSIMDState();
+    Common::FPU::LoadSIMDState();
   }
 
   // Discard all available ticks as there is nothing to do any more.

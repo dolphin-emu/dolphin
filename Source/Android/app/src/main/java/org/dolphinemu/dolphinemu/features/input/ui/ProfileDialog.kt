@@ -2,7 +2,6 @@
 
 package org.dolphinemu.dolphinemu.features.input.ui
 
-import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,6 +13,7 @@ import com.google.android.material.divider.MaterialDividerItemDecoration
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.databinding.DialogInputProfilesBinding
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag
+import org.dolphinemu.dolphinemu.utils.SerializableHelper.serializable
 
 class ProfileDialog : BottomSheetDialogFragment() {
     private var presenter: ProfileDialogPresenter? = null
@@ -22,11 +22,7 @@ class ProfileDialog : BottomSheetDialogFragment() {
     private val binding get() = _binding!!
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val menuTag: MenuTag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            requireArguments().getSerializable(KEY_MENU_TAG, MenuTag::class.java) as MenuTag
-        } else {
-            requireArguments().getSerializable(KEY_MENU_TAG) as MenuTag
-        }
+        val menuTag = requireArguments().serializable<MenuTag>(KEY_MENU_TAG)
 
         presenter = ProfileDialogPresenter(this, menuTag)
 

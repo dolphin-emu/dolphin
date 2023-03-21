@@ -43,7 +43,7 @@ abstract class SettingDisabledWarningFragment(
         super.onResume()
         val activity = requireActivity() as CheatsActivity
         activity.loadGameSpecificSettings().use {
-            val cheatsEnabled = setting.getBoolean()
+            val cheatsEnabled = setting.boolean
             requireView().visibility = if (cheatsEnabled) View.GONE else View.VISIBLE
         }
     }

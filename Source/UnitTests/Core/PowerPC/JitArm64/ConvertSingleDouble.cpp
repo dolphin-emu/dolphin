@@ -84,12 +84,12 @@ public:
 
     // Set the rounding mode to something that's as annoying as possible to handle
     // (flush-to-zero enabled, and rounding not symmetric about the origin)
-    FPURoundMode::SetSIMDMode(FPURoundMode::RoundMode::ROUND_UP, true);
+    Common::FPU::SetSIMDMode(Common::FPU::RoundMode::ROUND_UP, true);
   }
 
   ~TestConversion() override
   {
-    FPURoundMode::LoadDefaultSIMDState();
+    Common::FPU::LoadDefaultSIMDState();
 
     FreeCodeSpace();
   }
