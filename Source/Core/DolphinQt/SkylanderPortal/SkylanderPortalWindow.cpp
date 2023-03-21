@@ -43,7 +43,7 @@ PortalButton::PortalButton(RenderWidget* rend, QWidget* pWindow, QWidget* parent
   portalWindow = pWindow;
 
   setWindowTitle(tr("Portal of Power"));
-  setMinimumSize(QSize(500, 500));
+  setMinimumSize(QSize(400, 200));
 
   setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
   setParent(0);
@@ -144,11 +144,25 @@ SkylanderPortalWindow::~SkylanderPortalWindow() = default;
 
 void SkylanderPortalWindow::CreateMainWindow()
 {
-  auto* main_layout = new QHBoxLayout();
+  auto* main_layout = new QVBoxLayout();
 
-  main_layout->addWidget(CreatePortalGroup());
+  auto* select_layout = new QHBoxLayout;
 
-  main_layout->addWidget(CreateSearchGroup());
+  select_layout->addWidget(CreatePortalGroup());
+  select_layout->addWidget(CreateSearchGroup());
+
+  main_layout->addLayout(select_layout);
+
+  QBoxLayout* command_layout = new QHBoxLayout;
+  command_layout->setAlignment(Qt::AlignCenter);
+  auto* clear_btn = new QPushButton(tr("Clear Slot"));
+  auto* load_btn = new QPushButton(tr("Load Slot"));
+  connect(clear_btn, &QAbstractButton::clicked, this,
+          [this]() { ClearSkylander(GetCurrentSlot()); });
+  connect(load_btn, &QAbstractButton::clicked, this, &SkylanderPortalWindow::LoadSkylander);
+  command_layout->addWidget(clear_btn);
+  command_layout->addWidget(load_btn);
+  main_layout->addLayout(command_layout);
 
   setLayout(main_layout);
 
@@ -182,7 +196,7 @@ QGroupBox* SkylanderPortalWindow::CreatePortalGroup()
     vbox->addWidget(line);
   };
 
-  m_group_skylanders = new QGroupBox(tr("Active Portal Skylanders:"));
+  m_group_skylanders = new QGroupBox(tr("Portal Slots:"));
   auto* vbox_group = new QVBoxLayout();
   auto* scroll_area = new QScrollArea();
 
@@ -198,22 +212,16 @@ QGroupBox* SkylanderPortalWindow::CreatePortalGroup()
     m_edit_skylanders[i] = new QLineEdit();
     m_edit_skylanders[i]->setEnabled(false);
 
-    auto* clear_btn = new QPushButton(tr("Clear"));
-    auto* create_btn = new QPushButton(tr("Create"));
-    auto* load_btn = new QPushButton(tr("Load"));
-
-    connect(clear_btn, &QAbstractButton::clicked, this, [this, i]() { ClearSkylander(i); });
-    connect(create_btn, &QAbstractButton::clicked, this, [this, i]() { CreateSkylander(i); });
-    connect(load_btn, &QAbstractButton::clicked, this, [this, i]() { LoadSkylander(i); });
-
+    QRadioButton* button = new QRadioButton;
+    m_slot_radios[i] = button;
+    button->setProperty("id", i);
+    hbox_skylander->addWidget(button);
     hbox_skylander->addWidget(label_skyname);
     hbox_skylander->addWidget(m_edit_skylanders[i]);
-    hbox_skylander->addWidget(clear_btn);
-    hbox_skylander->addWidget(create_btn);
-    hbox_skylander->addWidget(load_btn);
 
     vbox_group->addLayout(hbox_skylander);
   }
+  m_slot_radios[0]->setChecked(true);
 
   m_group_skylanders->setLayout(vbox_group);
   scroll_area->setWidget(m_group_skylanders);
@@ -228,6 +236,7 @@ QGroupBox* SkylanderPortalWindow::CreatePortalGroup()
 QGroupBox* SkylanderPortalWindow::CreateSearchGroup()
 {
   skylanderList = new QListWidget;
+  skylanderList->setMaximumSize(QSize(200, skylanderList->maximumHeight()));
 
   auto* main_group = new QGroupBox();
   auto* main_layout = new QVBoxLayout();
@@ -325,6 +334,7 @@ QGroupBox* SkylanderPortalWindow::CreateSearchGroup()
 
   search_group->setLayout(search_layout);
   main_layout->addWidget(search_group);
+
   main_group->setLayout(main_layout);
 
   return main_group;
@@ -521,8 +531,10 @@ QString SkylanderPortalWindow::CreateSkylanderInCollection()
   return m_file_path;
 }
 
-void SkylanderPortalWindow::LoadSkylander(u8 slot)
+void SkylanderPortalWindow::LoadSkylander()
 {
+  u8 slot = GetCurrentSlot();
+
   QDir collection = QDir(m_collection_path);
   QString skyName = tr(IOS::HLE::USB::list_skylanders.at(std::make_pair(sky_id, sky_var)));
   QString file_path;
@@ -652,6 +664,18 @@ bool SkylanderPortalWindow::eventFilter(QObject* object, QEvent* event)
 void SkylanderPortalWindow::closeEvent(QCloseEvent* event)
 {
   hide();
+}
+
+u8 SkylanderPortalWindow::GetCurrentSlot()
+{
+  for (auto radio : m_slot_radios)
+  {
+    if (radio->isChecked())
+    {
+      return radio->property("id").toInt();
+    }
+  }
+  return 0;
 }
 
 //CreateSkylanderDialog

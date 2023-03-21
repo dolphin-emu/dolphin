@@ -67,10 +67,11 @@ private:
   void OnEmulationStateChanged(Core::State state);
   void CreateSkylander(u8 slot);
   QString CreateSkylanderInCollection();
+  void ClearSkylander();
   void ClearSkylander(u8 slot);
   void EmulatePortal(bool emulate);
   void ShowInGame(bool show);
-  void LoadSkylander(u8 slot);
+  void LoadSkylander();
   void LoadSkylanderPath(u8 slot, const QString& path);
   void UpdateEdits();
   void closeEvent(QCloseEvent* bar) override;
@@ -82,11 +83,13 @@ private:
   void OnPathChanged();
   QGroupBox* CreatePortalGroup();
   QGroupBox* CreateSearchGroup();
+  u8 GetCurrentSlot();
 
   QCheckBox* m_enabled_checkbox;
   QCheckBox* m_show_button_ingame_checkbox;
   QGroupBox* m_group_skylanders;
   PortalButton* portalButton;
+  QRadioButton* m_slot_radios[16];
 
   QString m_collection_path;
   QLineEdit* m_path_edit;
