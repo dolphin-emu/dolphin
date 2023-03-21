@@ -36,6 +36,7 @@
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
+//PortalButton
 PortalButton::PortalButton(RenderWidget* rend, QWidget* pWindow, QWidget* parent) : QWidget(parent)
 {
   setRender(rend);
@@ -145,8 +146,18 @@ void SkylanderPortalWindow::CreateMainWindow()
 {
   auto* main_layout = new QHBoxLayout();
 
-  skylanderList = new QListWidget;
+  main_layout->addWidget(CreatePortalGroup());
 
+  main_layout->addWidget(CreateSearchGroup());
+
+  setLayout(main_layout);
+
+  RefreshList();
+  UpdateEdits();
+}
+
+QGroupBox* SkylanderPortalWindow::CreatePortalGroup()
+{
   auto* slot_group = new QGroupBox();
   auto* slot_layout = new QVBoxLayout();
 
@@ -157,7 +168,8 @@ void SkylanderPortalWindow::CreateMainWindow()
   m_enabled_checkbox->setChecked(Config::Get(Config::MAIN_EMULATE_SKYLANDER_PORTAL));
   m_show_button_ingame_checkbox = new QCheckBox(tr("Show Portal Button In-Game"), this);
   connect(m_enabled_checkbox, &QCheckBox::toggled, [&](bool checked) { EmulatePortal(checked); });
-  connect(m_show_button_ingame_checkbox, &QCheckBox::toggled, [&](bool checked) { ShowInGame(checked); });
+  connect(m_show_button_ingame_checkbox, &QCheckBox::toggled,
+          [&](bool checked) { ShowInGame(checked); });
   checkbox_layout->addWidget(m_enabled_checkbox);
   checkbox_layout->addWidget(m_show_button_ingame_checkbox);
   checkbox_group->setLayout(checkbox_layout);
@@ -210,7 +222,12 @@ void SkylanderPortalWindow::CreateMainWindow()
   slot_layout->addWidget(scroll_area);
 
   slot_group->setLayout(slot_layout);
-  main_layout->addWidget(slot_group);
+  return slot_group;
+}
+
+QGroupBox* SkylanderPortalWindow::CreateSearchGroup()
+{
+  skylanderList = new QListWidget;
 
   auto* search_group = new QGroupBox();
   auto* search_layout = new QHBoxLayout();
@@ -225,8 +242,7 @@ void SkylanderPortalWindow::CreateMainWindow()
   {
     QCheckBox* checkbox = new QCheckBox(this);
     checkbox->setChecked(true);
-    connect(checkbox, &QCheckBox::toggled,
-            this, &SkylanderPortalWindow::RefreshList);
+    connect(checkbox, &QCheckBox::toggled, this, &SkylanderPortalWindow::RefreshList);
     m_game_filters[i] = checkbox;
     search_checkbox_layout->addWidget(checkbox);
   }
@@ -265,12 +281,7 @@ void SkylanderPortalWindow::CreateMainWindow()
   search_layout->addWidget(skylanderList);
 
   search_group->setLayout(search_layout);
-  main_layout->addWidget(search_group);
-
-  setLayout(main_layout);
-
-  RefreshList();
-  UpdateEdits();
+  return search_group;
 }
 
 void SkylanderPortalWindow::UpdateSelectedVals()
@@ -507,6 +518,7 @@ void SkylanderPortalWindow::closeEvent(QCloseEvent* event)
   hide();
 }
 
+//CreateSkylanderDialog
 CreateSkylanderDialog::CreateSkylanderDialog(QWidget* parent) : QDialog(parent)
 {
   setWindowTitle(tr("Skylander Creator"));

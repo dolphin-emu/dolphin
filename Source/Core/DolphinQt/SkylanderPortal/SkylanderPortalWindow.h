@@ -76,6 +76,8 @@ private:
   bool eventFilter(QObject* object, QEvent* event) final override;
   void RefreshList();
   void UpdateSelectedVals();
+  QGroupBox* CreatePortalGroup();
+  QGroupBox* CreateSearchGroup();
 
   QCheckBox* m_enabled_checkbox;
   QCheckBox* m_show_button_ingame_checkbox;
