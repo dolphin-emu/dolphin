@@ -136,7 +136,7 @@ SkylanderPortalWindow::SkylanderPortalWindow(RenderWidget* render, MainWindow* m
   sky_id = 0;
   sky_var = 0;
 
-  connect(skylanderList, &QListWidget::currentItemChanged, this, &SkylanderPortalWindow::UpdateSelectedVals);
+  connect(skylanderList, &QListWidget::itemSelectionChanged, this, &SkylanderPortalWindow::UpdateSelectedVals);
 };
 
 SkylanderPortalWindow::~SkylanderPortalWindow() = default;
@@ -317,6 +317,10 @@ void SkylanderPortalWindow::RefreshList()
       skylander->setData(1, qvar);
       skylanderList->addItem(skylander);
     }
+  }
+  if (skylanderList->count()>0)
+  {
+    skylanderList->setCurrentItem(skylanderList->item(0), QItemSelectionModel::Select);
   }
 }
 
