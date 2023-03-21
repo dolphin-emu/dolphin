@@ -20,7 +20,7 @@ using namespace Gen;
 
 static OpArg CROffset(int field)
 {
-  return PPCSTATE(cr.fields[field]);
+  return PPCSTATE_CR(field);
 }
 
 void Jit64::GetCRFieldBit(int field, int bit, X64Reg out, bool negate)
@@ -216,9 +216,9 @@ void Jit64::UpdateFPExceptionSummary(X64Reg fpscr, X64Reg tmp1, X64Reg tmp2)
   OR(32, R(fpscr), R(tmp1));
 }
 
-static void DoICacheReset()
+static void DoICacheReset(PowerPC::PowerPCState& ppc_state)
 {
-  PowerPC::ppcState.iCache.Reset();
+  ppc_state.iCache.Reset();
 }
 
 void Jit64::mtspr(UGeckoInstruction inst)
@@ -282,11 +282,11 @@ void Jit64::mtspr(UGeckoInstruction inst)
 
     MOV(32, R(RSCRATCH), Rd);
     BTR(32, R(RSCRATCH), Imm8(31 - 20));  // ICFI
-    MOV(32, PPCSTATE(spr[iIndex]), R(RSCRATCH));
+    MOV(32, PPCSTATE_SPR(iIndex), R(RSCRATCH));
     FixupBranch dont_reset_icache = J_CC(CC_NC);
     BitSet32 regs = CallerSavedRegistersInUse();
     ABI_PushRegistersAndAdjustStack(regs, 0);
-    ABI_CallFunction(DoICacheReset);
+    ABI_CallFunctionP(DoICacheReset, &m_ppc_state);
     ABI_PopRegistersAndAdjustStack(regs, 0);
     SetJumpTarget(dont_reset_icache);
     return;
@@ -299,7 +299,7 @@ void Jit64::mtspr(UGeckoInstruction inst)
   // OK, this is easy.
   RCOpArg Rd = gpr.BindOrImm(d, RCMode::Read);
   RegCache::Realize(Rd);
-  MOV(32, PPCSTATE(spr[iIndex]), Rd);
+  MOV(32, PPCSTATE_SPR(iIndex), Rd);
 }
 
 void Jit64::mfspr(UGeckoInstruction inst)
@@ -323,7 +323,7 @@ void Jit64::mfspr(UGeckoInstruction inst)
     RCX64Reg rax = gpr.Scratch(RAX);
     RCX64Reg rcx = gpr.Scratch(RCX);
 
-    auto& core_timing_globals = Core::System::GetInstance().GetCoreTiming().GetGlobals();
+    auto& core_timing_globals = m_system.GetCoreTiming().GetGlobals();
     MOV(64, rcx, ImmPtr(&core_timing_globals));
 
     // An inline implementation of CoreTiming::GetFakeTimeBase, since in timer-heavy games the
@@ -355,7 +355,7 @@ void Jit64::mfspr(UGeckoInstruction inst)
     MOV(64, rax, MDisp(rcx, offsetof(CoreTiming::Globals, fake_TB_start_value)));
     SHR(64, rdx, Imm8(3));
     ADD(64, rax, rdx);
-    MOV(64, PPCSTATE(spr[SPR_TL]), rax);
+    MOV(64, PPCSTATE_SPR(SPR_TL), rax);
 
     if (CanMergeNextInstructions(1))
     {
@@ -422,7 +422,7 @@ void Jit64::mfspr(UGeckoInstruction inst)
   {
     RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
     RegCache::Realize(Rd);
-    MOV(32, Rd, PPCSTATE(spr[iIndex]));
+    MOV(32, Rd, PPCSTATE_SPR(iIndex));
     break;
   }
   }
@@ -457,8 +457,7 @@ void Jit64::mtmsr(UGeckoInstruction inst)
   FixupBranch noExceptionsPending = J_CC(CC_Z, true);
 
   // Check if a CP interrupt is waiting and keep the GPU emulation in sync (issue 4336)
-  auto& system = Core::System::GetInstance();
-  MOV(64, R(RSCRATCH), ImmPtr(&system.GetProcessorInterface().m_interrupt_cause));
+  MOV(64, R(RSCRATCH), ImmPtr(&m_system.GetProcessorInterface().m_interrupt_cause));
   TEST(32, MatR(RSCRATCH), Imm32(ProcessorInterface::INT_CAUSE_CP));
   FixupBranch cpInt = J_CC(CC_NZ, true);
 

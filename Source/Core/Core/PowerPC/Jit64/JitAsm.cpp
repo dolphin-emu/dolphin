@@ -20,7 +20,7 @@
 
 using namespace Gen;
 
-Jit64AsmRoutineManager::Jit64AsmRoutineManager(Jit64& jit) : CommonAsmRoutines(jit), m_jit{jit}
+Jit64AsmRoutineManager::Jit64AsmRoutineManager(Jit64& jit) : CommonAsmRoutines(jit)
 {
 }
 
@@ -45,9 +45,11 @@ void Jit64AsmRoutineManager::Generate()
   // waste a bit of space for a second shadow, but whatever.
   ABI_PushRegistersAndAdjustStack(ABI_ALL_CALLEE_SAVED, 8, /*frame*/ 16);
 
+  auto& ppc_state = m_jit.m_ppc_state;
+
   // Two statically allocated registers.
   // MOV(64, R(RMEM), Imm64((u64)Memory::physical_base));
-  MOV(64, R(RPPCSTATE), Imm64((u64)&PowerPC::ppcState + 0x80));
+  MOV(64, R(RPPCSTATE), Imm64((u64)&ppc_state + 0x80));
 
   MOV(64, PPCSTATE(stored_stack_pointer), R(RSP));
 
@@ -81,7 +83,7 @@ void Jit64AsmRoutineManager::Generate()
 
   dispatcher_no_timing_check = GetCodePtr();
 
-  auto& system = Core::System::GetInstance();
+  auto& system = m_jit.m_system;
 
   FixupBranch dbg_exit;
   if (enable_debugging)

@@ -260,6 +260,8 @@ private:
 
   void ResetFreeMemoryRanges();
 
+  static void ImHere(Jit64& jit);
+
   JitBlockCache blocks{*this};
   TrampolineCache trampolines{*this};
 
@@ -270,6 +272,10 @@ private:
 
   HyoutaUtilities::RangeSizeSet<u8*> m_free_ranges_near;
   HyoutaUtilities::RangeSizeSet<u8*> m_free_ranges_far;
+
+  const bool m_im_here_debug = false;
+  const bool m_im_here_log = false;
+  std::map<u32, int> m_been_here;
 };
 
 void LogGeneratedX86(size_t size, const PPCAnalyst::CodeBuffer& code_buffer, const u8* normalEntry,

@@ -23,7 +23,7 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
   JITDISABLE(bJITLoadStorePairedOff);
 
   // For performance, the AsmCommon routines assume address translation is on.
-  FALLBACK_IF(!PowerPC::ppcState.msr.DR);
+  FALLBACK_IF(!m_ppc_state.msr.DR);
 
   s32 offset = inst.SIMM_12;
   bool indexed = inst.OPCD == 4;
@@ -90,7 +90,7 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
     // UU[SCALE]UUUUU[TYPE] where SCALE is 6 bits and TYPE is 3 bits, so we have to AND with
     // 0b0011111100000111, or 0x3F07.
     MOV(32, R(RSCRATCH2), Imm32(0x3F07));
-    AND(32, R(RSCRATCH2), PPCSTATE(spr[SPR_GQR0 + i]));
+    AND(32, R(RSCRATCH2), PPCSTATE_SPR(SPR_GQR0 + i));
     LEA(64, RSCRATCH,
         M(w ? asm_routines.single_store_quantized : asm_routines.paired_store_quantized));
     // 8-bit operations do not zero upper 32-bits of 64-bit registers.
@@ -112,7 +112,7 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
   JITDISABLE(bJITLoadStorePairedOff);
 
   // For performance, the AsmCommon routines assume address translation is on.
-  FALLBACK_IF(!PowerPC::ppcState.msr.DR);
+  FALLBACK_IF(!m_ppc_state.msr.DR);
 
   s32 offset = inst.SIMM_12;
   bool indexed = inst.OPCD == 4;
@@ -147,7 +147,7 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
     // Stash PC in case asm_routine causes exception
     MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
     // Get the high part of the GQR register
-    OpArg gqr = PPCSTATE(spr[SPR_GQR0 + i]);
+    OpArg gqr = PPCSTATE_SPR(SPR_GQR0 + i);
     gqr.AddMemOffset(2);
     MOV(32, R(RSCRATCH2), Imm32(0x3F07));
     AND(32, R(RSCRATCH2), gqr);

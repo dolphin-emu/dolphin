@@ -27,7 +27,7 @@ void GPRRegCache::LoadRegister(preg_t preg, X64Reg new_loc)
 
 OpArg GPRRegCache::GetDefaultLocation(preg_t preg) const
 {
-  return PPCSTATE(gpr[preg]);
+  return PPCSTATE_GPR(preg);
 }
 
 const X64Reg* GPRRegCache::GetAllocationOrder(size_t* count) const
