@@ -118,7 +118,7 @@ SkylanderPortalWindow::SkylanderPortalWindow(RenderWidget* render, MainWindow* m
   setWindowTitle(tr("Skylanders Manager"));
   setWindowIcon(Resources::GetAppIcon());
   setObjectName(QString::fromStdString("skylanders_manager"));
-  setMinimumSize(QSize(600, 400));
+  setMinimumSize(QSize(500, 400));
 
   CreateMainWindow();
 
@@ -254,24 +254,50 @@ QGroupBox* SkylanderPortalWindow::CreateSearchGroup()
   search_filters_layout->addWidget(search_checkbox_group);
 
   auto* search_radio_group = new QGroupBox(tr("Element"));
-  auto* search_radio_layout = new QVBoxLayout();
-  for (int i = 0; i < 10; i++)
+  auto* search_radio_layout = new QHBoxLayout();
+
+  auto* radio_group_left = new QGroupBox();
+  auto* radio_layout_left = new QVBoxLayout();
+  radio_group_left->setFlat(true);
+  for (int i = 0; i < 5; i++)
   {
     QRadioButton* radio = new QRadioButton(this);
-    m_element_filters[i] = radio;
-    search_radio_layout->addWidget(radio);
+    radio->setProperty("id", i);
+    connect(radio, &QRadioButton::toggled, this, &SkylanderPortalWindow::UncheckElementRadios);
+    m_element_filter[i] = radio;
+    radio_layout_left->addWidget(radio);
   }
-  m_element_filters[0]->setText(tr("All"));
-  m_element_filters[0]->setChecked(true);
-  m_element_filters[1]->setText(tr("Magic"));
-  m_element_filters[2]->setText(tr("Water"));
-  m_element_filters[3]->setText(tr("Tech"));
-  m_element_filters[4]->setText(tr("Fire"));
-  m_element_filters[5]->setText(tr("Earth"));
-  m_element_filters[6]->setText(tr("Life"));
-  m_element_filters[7]->setText(tr("Air"));
-  m_element_filters[8]->setText(tr("Undead"));
-  m_element_filters[9]->setText(tr("Other"));
+  radio_layout_left->setContentsMargins(0,0,0,0);
+  radio_group_left->setLayout(radio_layout_left);
+  search_radio_layout->addWidget(radio_group_left);
+
+  auto* radio_group_right = new QGroupBox();
+  auto* radio_layout_right = new QVBoxLayout();
+  radio_group_right->setFlat(true);
+  for (int i = 0; i < 5; i++)
+  {
+    QRadioButton* radio = new QRadioButton(this);
+    radio->setProperty("id", 5+i);
+    connect(radio, &QRadioButton::toggled, this, &SkylanderPortalWindow::UncheckElementRadios);
+    m_element_filter[5+i] = radio;
+    radio_layout_right->addWidget(radio);
+  }
+  radio_layout_right->setContentsMargins(0,0,0,0);
+  radio_group_right->setLayout(radio_layout_right);
+  search_radio_layout->addWidget(radio_group_right);
+
+  m_element_filter[0]->setText(tr("All"));
+  m_element_filter[0]->setChecked(true);
+  m_element_filter[1]->setText(tr("Magic"));
+  m_element_filter[2]->setText(tr("Water"));
+  m_element_filter[3]->setText(tr("Tech"));
+  m_element_filter[4]->setText(tr("Fire"));
+  m_element_filter[5]->setText(tr("Earth"));
+  m_element_filter[6]->setText(tr("Life"));
+  m_element_filter[7]->setText(tr("Air"));
+  m_element_filter[8]->setText(tr("Undead"));
+  m_element_filter[9]->setText(tr("Other"));
+
   search_radio_group->setLayout(search_radio_layout);
   search_filters_layout->addWidget(search_radio_group);
 
@@ -282,6 +308,36 @@ QGroupBox* SkylanderPortalWindow::CreateSearchGroup()
 
   search_group->setLayout(search_layout);
   return search_group;
+}
+
+void SkylanderPortalWindow::UncheckElementRadios()
+{
+  QRadioButton* next = nullptr;
+  QRadioButton* prev = nullptr;
+  for (auto radio : m_element_filter)
+  {
+    if (radio->isChecked())
+    {
+      if (radio->property("id").toInt() == lastElementID)
+      {
+        prev = radio;
+      }
+      else
+      {
+        next = radio;
+      }
+    }
+  }
+  if (next != nullptr && prev != nullptr)
+  {
+    prev->setAutoExclusive(false);
+    prev->setChecked(false);
+    prev->setAutoExclusive(true);
+  }
+  else if (next != nullptr)
+  {
+    lastElementID = next->property("id").toInt();
+  }
 }
 
 void SkylanderPortalWindow::UpdateSelectedVals()
@@ -313,12 +369,12 @@ void SkylanderPortalWindow::RefreshList()
     }
     if (m_game_filters[2]->isChecked())
     {
-      if (id >= 210 && id <= 543)
+      if (id >= 1000 && id <= 3303)
         included = true;
     }
     if (m_game_filters[3]->isChecked())
     {
-      if (id >= 1000 && id <= 3303)
+      if (id >= 210 && id <= 543)
         included = true;
     }
     if (included)

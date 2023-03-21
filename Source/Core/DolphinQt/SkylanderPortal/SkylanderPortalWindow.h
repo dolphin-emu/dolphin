@@ -76,6 +76,7 @@ private:
   bool eventFilter(QObject* object, QEvent* event) final override;
   void RefreshList();
   void UpdateSelectedVals();
+  void UncheckElementRadios();
   QGroupBox* CreatePortalGroup();
   QGroupBox* CreateSearchGroup();
 
@@ -85,7 +86,8 @@ private:
   PortalButton* portalButton;
 
   QCheckBox* m_game_filters[4];
-  QRadioButton* m_element_filters[10];
+  QRadioButton* m_element_filter[10];
+  int lastElementID=-1;
   QListWidget* skylanderList;
   QString m_file_path;
   u16 sky_id;
