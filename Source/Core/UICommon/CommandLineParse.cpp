@@ -103,6 +103,10 @@ std::unique_ptr<optparse::OptionParser> CreateParser(ParserOptions options)
       .type("string")
       .help("Load the initial save state");
 
+  parser->add_option("--raintegration")
+      .action("store_true")
+      .help("Enable RetroAchievements dev toolkit");
+
   if (options == ParserOptions::IncludeGUIOptions)
   {
     parser->add_option("-d", "--debugger")

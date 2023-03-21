@@ -19,6 +19,7 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
+#include "Core/AchievementManager.h"
 #include "Core/Boot/Boot.h"
 #include "Core/CommonTitles.h"
 #include "Core/Config/MainSettings.h"
@@ -226,6 +227,37 @@ void MenuBar::AddToolsMenu()
 
   tools_menu->addAction(tr("Start &NetPlay..."), this, &MenuBar::StartNetPlay);
   tools_menu->addAction(tr("Browse &NetPlay Sessions...."), this, &MenuBar::BrowseNetPlay);
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+#ifdef ENABLE_RAINTEGRATION
+  tools_menu->addSeparator();
+
+  if (AchievementManager::GetInstance()->IsDLLEnabled())
+  {
+    QMenu* ra_dev_ipl = tools_menu->addMenu(tr("Achievement Development"));
+
+    const auto items = AchievementManager::GetInstance()->GetMenuItems();
+    for (const auto& [id, title, checked] : items)
+    {
+      if (id == 0)
+      {
+        ra_dev_ipl->addSeparator();
+        continue;
+      }
+
+      QAction* raAction = ra_dev_ipl->addAction(QString::fromUtf8(title));
+      if (checked)
+      {
+        raAction->setCheckable(true);
+        raAction->setChecked(checked);
+      }
+
+      connect(raAction, &QAction::triggered, this,
+              [this, id = id]() { emit ActivateRAMenuItem(id); });
+    }
+  }
+#endif  // ENABLE_RAINTEGRATION
+#endif  // USE_RETRO_ACHIEVEMENTS
 
   tools_menu->addSeparator();
 

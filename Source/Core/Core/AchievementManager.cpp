@@ -9,6 +9,18 @@
 #include "Config/AchievementSettings.h"
 #include "Core/Core.h"
 
+#ifdef ENABLE_RAINTEGRATION
+#include <Windows.h>
+#include <cstring>
+#include "Common/scmrev.h"
+#include "Core.h"
+#include "Core/HW/Memmap.h"
+#include "Core/HW/ProcessorInterface.h"
+#include "RAInterface/RA_Consoles.h"
+#include "RAInterface/RA_Interface.h"
+#include "System.h"
+#endif  // ENABLE_RAINTEGRATION
+
 AchievementManager* AchievementManager::GetInstance()
 {
   static AchievementManager s_instance;
@@ -111,4 +123,210 @@ AchievementManager::ResponseType AchievementManager::Request(
   }
 }
 
+void AchievementManager::EnableDLL(bool enable)
+{
+  m_dll_enabled = enable;
+}
+
+bool AchievementManager::IsDLLEnabled()
+{
+  return m_dll_enabled;
+}
+
+#ifdef ENABLE_RAINTEGRATION
+void AchievementManager::InitializeRAIntegration(void* main_window_handle)
+{
+  if (!m_dll_enabled)
+    return;
+  RA_InitClient((HWND)main_window_handle, "Dolphin", SCM_DESC_STR);
+  RA_SetUserAgentDetail(std::format("Dolphin {} {}", SCM_DESC_STR, SCM_BRANCH_STR).c_str());
+
+  RA_InstallSharedFunctions(RACallbackIsActive, RACallbackCauseUnpause, RACallbackCausePause,
+                            RACallbackRebuildMenu, RACallbackEstimateTitle, RACallbackResetEmulator,
+                            RACallbackLoadROM);
+
+  // EE physical memory and scratchpad are currently exposed (matching direct rcheevos
+  // implementation).
+  m_memory_manager = &Core::System::GetInstance().GetMemory();
+  ReinstallMemoryBanks();
+
+  m_raintegration_initialized = true;
+
+  RA_AttemptLogin(0);
+
+  // this is pretty lame, but we may as well persist until we exit anyway
+  std::atexit(RA_Shutdown);
+}
+
+void AchievementManager::ReinstallMemoryBanks()
+{
+  if (!m_dll_enabled)
+    return;
+  RA_ClearMemoryBanks();
+  int memory_bank_size = 0;
+  if (Core::GetState() != Core::State::Uninitialized)
+  {
+    memory_bank_size = m_memory_manager->GetExRamSizeReal();
+  }
+  RA_InstallMemoryBank(0, RACallbackReadMemory, RACallbackWriteMemory, memory_bank_size);
+  RA_InstallMemoryBankBlockReader(0, RACallbackReadBlock);
+}
+
+void AchievementManager::MainWindowChanged(void* new_handle)
+{
+  if (!m_dll_enabled)
+    return;
+  if (m_raintegration_initialized)
+  {
+    RA_UpdateHWnd((HWND)new_handle);
+    return;
+  }
+
+  InitializeRAIntegration(new_handle);
+}
+
+void AchievementManager::GameChanged(bool isWii)
+{
+  if (!m_dll_enabled)
+    return;
+  ReinstallMemoryBanks();
+  if (Core::GetState() == Core::State::Uninitialized)
+  {
+    m_game_id = 0;
+    return;
+  }
+
+  //  Must call this before calling RA_IdentifyHash
+  RA_SetConsoleID(isWii ? WII : GameCube);
+
+  m_game_id = RA_IdentifyHash(m_game_hash);
+  if (m_game_id != 0)
+  {
+    RA_ActivateGame(m_game_id);
+  }
+}
+
+void AchievementManager::RAIDoFrame()
+{
+  if (!m_dll_enabled)
+    return;
+  RA_DoAchievementsFrame();
+}
+
+bool WideStringToUTF8String(std::string& dest, const std::wstring_view& str)
+{
+  int mblen = WideCharToMultiByte(CP_UTF8, 0, str.data(), static_cast<int>(str.length()), nullptr,
+                                  0, nullptr, nullptr);
+  if (mblen < 0)
+    return false;
+
+  dest.resize(mblen);
+  if (mblen > 0 && WideCharToMultiByte(CP_UTF8, 0, str.data(), static_cast<int>(str.length()),
+                                       dest.data(), mblen, nullptr, nullptr) < 0)
+  {
+    return false;
+  }
+
+  return true;
+}
+
+std::string WideStringToUTF8String(const std::wstring_view& str)
+{
+  std::string ret;
+  if (!WideStringToUTF8String(ret, str))
+    ret.clear();
+
+  return ret;
+}
+
+std::vector<std::tuple<int, std::string, bool>> AchievementManager::GetMenuItems()
+{
+  if (!m_dll_enabled)
+    return std::vector<std::tuple<int, std::string, bool>>();
+  std::array<RA_MenuItem, 64> items;
+  const int num_items = RA_GetPopupMenuItems(items.data());
+
+  std::vector<std::tuple<int, std::string, bool>> ret;
+  ret.reserve(static_cast<u32>(num_items));
+
+  for (int i = 0; i < num_items; i++)
+  {
+    const RA_MenuItem& it = items[i];
+    if (!it.sLabel)
+    {
+      // separator
+      ret.emplace_back(0, std::string(), false);
+    }
+    else
+    {
+      // option, maybe checkable
+//      ret.emplace_back(static_cast<int>(it.nID), it.sLabel, it.bChecked);
+      ret.emplace_back(static_cast<int>(it.nID), WideStringToUTF8String(it.sLabel), it.bChecked);
+    }
+  }
+
+  return ret;
+}
+
+void AchievementManager::ActivateMenuItem(int item)
+{
+  if (!m_dll_enabled)
+    return;
+  RA_InvokeDialog(item);
+}
+
+int AchievementManager::RACallbackIsActive()
+{
+  return m_game_id;
+}
+
+void AchievementManager::RACallbackCauseUnpause()
+{
+  if (Core::GetState() != Core::State::Uninitialized)
+    Core::SetState(Core::State::Running);
+}
+
+void AchievementManager::RACallbackCausePause()
+{
+  if (Core::GetState() != Core::State::Uninitialized)
+    Core::SetState(Core::State::Paused);
+}
+
+void AchievementManager::RACallbackRebuildMenu()
+{
+  // unused
+}
+
+void AchievementManager::RACallbackEstimateTitle(char* buf)
+{
+  strcpy(buf, m_filename.c_str());
+}
+
+void AchievementManager::RACallbackResetEmulator()
+{
+  Core::Stop();
+}
+
+void AchievementManager::RACallbackLoadROM(const char* unused)
+{
+  // unused
+}
+
+unsigned char AchievementManager::RACallbackReadMemory(unsigned int address)
+{
+  return m_memory_manager->Read_U8(address);
+}
+
+unsigned int AchievementManager::RACallbackReadBlock(unsigned int address, unsigned char* buffer,
+                                                     unsigned int bytes)
+{
+  m_memory_manager->CopyFromEmu(buffer, address, bytes);
+  return bytes;
+}
+
+void AchievementManager::RACallbackWriteMemory(unsigned int address, unsigned char value)
+{
+  m_memory_manager->Write_U8(value, address);
+}
+#endif  // ENABLE_RAINTEGRATION
 #endif  // USE_RETRO_ACHIEVEMENTS

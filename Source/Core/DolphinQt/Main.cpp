@@ -24,6 +24,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/ScopeGuard.h"
 
+#include "Core/AchievementManager.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
@@ -185,6 +186,8 @@ int main(int argc, char* argv[])
 
   // Hook up translations
   Translation::Initialize();
+
+  AchievementManager::GetInstance()->EnableDLL(options.is_set("raintegration"));
 
   // Whenever the event loop is about to go to sleep, dispatch the jobs
   // queued in the Core first.

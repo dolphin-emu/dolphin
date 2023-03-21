@@ -226,6 +226,7 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
 #ifdef USE_RETRO_ACHIEVEMENTS
   // This has to be done before CreateComponents() so it's initialized.
   AchievementManager::GetInstance()->Init();
+  MainWindowChanged((HANDLE)winId());
 #endif  // USE_RETRO_ACHIEVEMENTS
 
   CreateComponents();
@@ -533,6 +534,7 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::ShowFIFOPlayer, this, &MainWindow::ShowFIFOPlayer);
   connect(m_menu_bar, &MenuBar::ShowSkylanderPortal, this, &MainWindow::ShowSkylanderPortal);
   connect(m_menu_bar, &MenuBar::ConnectWiiRemote, this, &MainWindow::OnConnectWiiRemote);
+  connect(m_menu_bar, &MenuBar::ActivateRAMenuItem, this, &MainWindow::ActivateRAMenuItem);
 
   // Movie
   connect(m_menu_bar, &MenuBar::PlayRecording, this, &MainWindow::OnPlayRecording);
@@ -1138,6 +1140,8 @@ void MainWindow::ShowRenderWidget()
     m_stack->repaint();
 
     Host::GetInstance()->SetRenderFocus(isActiveWindow());
+
+    MainWindowChanged((HANDLE)winId());
   }
   else
   {
@@ -1146,6 +1150,8 @@ void MainWindow::ShowRenderWidget()
 
     m_render_widget->showNormal();
     m_render_widget->restoreGeometry(m_render_widget_geometry);
+
+    MainWindowChanged((HANDLE)m_render_widget->winId());
   }
 }
 
@@ -1189,6 +1195,8 @@ void MainWindow::HideRenderWidget(bool reinit, bool is_exit)
     g_controller_interface.ChangeWindow(GetWindowSystemInfo(windowHandle()).render_window,
                                         is_exit ? ControllerInterface::WindowChangeReason::Exit :
                                                   ControllerInterface::WindowChangeReason::Other);
+
+    MainWindowChanged((HANDLE)winId());
   }
 }
 
@@ -1419,6 +1427,15 @@ void MainWindow::PerformOnlineUpdate(const std::string& region)
 void MainWindow::BootWiiSystemMenu()
 {
   StartGame(std::make_unique<BootParameters>(BootParameters::NANDTitle{Titles::SYSTEM_MENU}));
+}
+
+void MainWindow::MainWindowChanged(void* new_handle)
+{
+#ifdef USE_RETRO_ACHIEVEMENTS
+#ifdef ENABLE_RAINTEGRATION
+  AchievementManager::GetInstance()->MainWindowChanged(new_handle);
+#endif  // ENABLE_RAINTEGRATION
+#endif  // USE_RETRO_ACHIEVEMENTS
 }
 
 void MainWindow::NetPlayInit()
@@ -1863,6 +1880,15 @@ void MainWindow::OnConnectWiiRemote(int id)
       wm->Activate(!wm->IsConnected());
     }
   });
+}
+
+void MainWindow::ActivateRAMenuItem(int id)
+{
+#ifdef USE_RETRO_ACHIEVEMENTS
+#ifdef ENABLE_RAINTEGRATION
+  AchievementManager::GetInstance()->ActivateMenuItem(id);
+#endif  // ENABLE_RAINTEGRATION
+#endif  // USE_RETRO_ACHIEVEMENTS
 }
 
 void MainWindow::ShowMemcardManager()
