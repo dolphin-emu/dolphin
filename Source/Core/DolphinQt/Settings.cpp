@@ -131,6 +131,7 @@ QString Settings::GetCurrentUserStyle() const
 // Calling this before the main window has been created breaks the style of some widgets.
 void Settings::SetCurrentUserStyle(QString stylesheet_name)
 {
+  bool load_dark_theme = stylesheet_name == QStringLiteral("Dark");
 #ifdef _WIN32
   // On the first boot of Dolphin, automatically select the dark theme
   // if the Windows system has it enabled
@@ -142,31 +143,31 @@ void Settings::SetCurrentUserStyle(QString stylesheet_name)
 
     const bool is_system_dark = 5 * color.G + 2 * color.R + color.B > 8 * 128;
     if (is_system_dark)
-    {
-      stylesheet_name = QStringLiteral("Dark");
-    }
+      load_dark_theme = true;
   }
 #endif
 
   QString stylesheet_contents;
-
-  // If we haven't found one, we continue with an empty (default) style
-  if (!stylesheet_name.isEmpty())
+  if (load_dark_theme)
   {
-    const auto& stylesheet_path = File::GetStylesDir(stylesheet_name.toStdString());
-    if (stylesheet_path)
+    // The dark theme is loadead from the Qt Resource System instead of the Data folder
+    stylesheet_name = QStringLiteral("Dark");
+    QFile file(QStringLiteral(":/qdarkstyle/dark.qss"));
+
+    if (file.open(QFile::ReadOnly))
+      stylesheet_contents = QString::fromUtf8(file.readAll().data());
+  }
+  else
+  {
+    // If we haven't found one, we continue with an empty (default) style
+    if (!stylesheet_name.isEmpty())
     {
-      // Load stylesheet
-      QDir directory = QDir(QString::fromStdString(stylesheet_path.value()));
-      QFile stylesheet(directory.filePath(QStringLiteral("style.qss")));
-      QString resource_path = directory.filePath(QStringLiteral("style.rcc"));
+      // Load custom user stylesheet
+      QDir directory = QDir(QString::fromStdString(File::GetUserPath(D_STYLES_IDX)));
+      QFile stylesheet(directory.filePath(stylesheet_name));
 
       if (stylesheet.open(QFile::ReadOnly))
         stylesheet_contents = QString::fromUtf8(stylesheet.readAll().data());
-
-      // Register QResource file if it exists
-      if (QFile(resource_path).exists())
-        QResource::registerResource(resource_path);
     }
   }
 
