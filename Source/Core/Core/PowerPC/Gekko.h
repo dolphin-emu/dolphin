@@ -436,7 +436,7 @@ enum FPSCRExceptionFlag : u32
 union UReg_FPSCR
 {
   // Rounding mode (towards: nearest, zero, +inf, -inf)
-  BitField<0, 2, FPURoundMode::RoundMode> RN;
+  BitField<0, 2, Common::FPU::RoundMode> RN;
   // Non-IEEE mode enable (aka flush-to-zero)
   BitField<2, 1, u32> NI;
   // Inexact exception enable
