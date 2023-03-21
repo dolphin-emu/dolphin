@@ -560,7 +560,7 @@ ArgHolder AddRadioButton(ScriptContext* current_script, std::vector<ArgHolder>& 
         fmt::format("Attempted to add radio button to an invalid group of {}. Please create the "
                     "Radio Button Group by calling GraphicsAPI:addRadioButtonGroup(idNumber) "
                     "before trying to pass IdNumber into this function for the radio group number!",
-                    radio_group_number));
+                    radio_button_group_id));
   }
   else if (!display_stack.empty() && display_stack.top())
     ImGui::RadioButton(button_name.c_str(), id_to_radio_group_map[radio_button_group_id],

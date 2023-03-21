@@ -30,9 +30,8 @@ void StartScript(int unique_script_identifier, const std::string& script_locatio
 
 void StopScript(int unique_script_identifier);
 
-void DoFrameStartSetup();
-void RunGlobalCode();
-void RunOnFrameStartCallbacks();
+bool RunGlobalCode();
+bool RunOnFrameStartCallbacks();
 void RunOnGCInputPolledCallbacks();
 void RunOnInstructionHitCallbacks(size_t instruction_address);
 void RunOnMemoryAddressReadFromCallbacks(size_t memory_address);

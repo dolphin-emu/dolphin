@@ -1,7 +1,10 @@
 #pragma once
 #include <Python.h>
 #include <functional>
+#include <thread>
+#include <mutex>
 #include <unordered_map>
+#include <condition_variable>
 
 #include "Core/Scripting/ScriptContext.h"
 
@@ -22,6 +25,21 @@ public:
   PyThreadState* button_callback_thread;
 
   PyThreadState* current_thread;
+
+
+  std::thread main_thread;
+  std::thread frame_callback_thread;
+  std::thread instruction_address_hit_thread;
+  std::thread memory_address_read_from_callback_thread;
+  std::thread memory_address_written_to_callback_thread;
+  std::thread gc_controller_input_polled_thread;
+  std::thread wii_input_polled_callback_thread;
+  std::thread button_callback_thread;
+
+  std::condition_variable thread_running_signal;
+  std::mutex thread_lock;
+  bool is_thread_running;
+
 
   std::vector<PyObject*> frame_callbacks;
   std::vector<PyObject*> gc_controller_input_polled_callbacks;
@@ -115,8 +133,15 @@ public:
   current_thread = main_python_thread;
   current_script_call_location = ScriptCallLocations::FromScriptStartup;
 
+  main_thread = std::thread(StartMainScript, new_script_filename);
+
    
   
+  }
+
+  static void StartMainScript(const char* script_name)
+  {
+  PyRun_AnyFileExFlags(nullptr, script_name, true, nullptr);
   }
 
   virtual ~PythonScriptContext() {}

@@ -61,7 +61,6 @@
 
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
-#include "Core/Scripting/InternalAPIModules/EmuAPI.h"
 #include "Core/Scripting/InternalAPIModules/GameCubeControllerAPI.h"
 #include "Core/Scripting/ScriptUtilities.h"
 #include "Core/Scripting/HelperClasses/GCButtons.h"
@@ -1025,11 +1024,6 @@ bool PlayInput(const std::string& movie_path, std::optional<std::string>* savest
     Movie::LoadInput(movie_path);
   }
 
-  if (Scripting::ScriptUtilities::IsScriptingCoreInitialized())
-  {
-    Scripting::EmuApi::waiting_to_start_playing_movie = false;
-  }
-
   return true;
 }
 
@@ -1545,11 +1539,6 @@ void SaveRecording(const std::string& filename)
     Core::DisplayMessage(fmt::format("DTM {} saved", filename), 2000);
   else
     Core::DisplayMessage(fmt::format("Failed to save {}", filename), 2000);
-
-  if (Scripting::ScriptUtilities::IsScriptingCoreInitialized())
-  {
-    Scripting::EmuApi::waiting_to_save_movie = false;
-  }
 }
 
 // NOTE: GPU Thread

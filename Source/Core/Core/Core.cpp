@@ -859,30 +859,18 @@ void Callback_FramePresented(double actual_emulation_speed)
 // Called from VideoInterface::Update (CPU thread) at emulated field boundaries
 void Callback_NewField()
 {
-  if (Scripting::ScriptUtilities::IsScriptingCoreInitialized() &&
-      !Scripting::EmuApi::waiting_for_save_state_load &&
-      !Scripting::EmuApi::waiting_for_save_state_save &&
-      !Scripting::EmuApi::waiting_to_start_playing_movie &&
-      !Scripting::EmuApi::waiting_to_save_movie)
-  {
-    Scripting::ScriptUtilities::DoFrameStartSetup();
-  }
 
-  if (Scripting::ScriptUtilities::IsScriptingCoreInitialized() &&
-      !Scripting::EmuApi::waiting_for_save_state_load &&
-      !Scripting::EmuApi::waiting_for_save_state_save && !Scripting::EmuApi::waiting_to_start_playing_movie &&
-      !Scripting::EmuApi::waiting_to_save_movie)
+  if (Scripting::ScriptUtilities::IsScriptingCoreInitialized())
   {
-    Scripting::ScriptUtilities::RunOnFrameStartCallbacks();
-  }
+    Core::QueueHostJob([]() {
+      Core::RunOnCPUThread([]() {
+        std::lock_guard<std::mutex> lock(
+            Scripting::ScriptUtilities::global_code_and_frame_callback_running_lock);
 
-    if (Scripting::ScriptUtilities::IsScriptingCoreInitialized() &&
-      !Scripting::EmuApi::waiting_for_save_state_load &&
-      !Scripting::EmuApi::waiting_for_save_state_save &&
-      !Scripting::EmuApi::waiting_to_start_playing_movie &&
-      !Scripting::EmuApi::waiting_to_save_movie)
-  {
-    Scripting::ScriptUtilities::RunGlobalCode();
+        if (!Scripting::ScriptUtilities::RunOnFrameStartCallbacks())
+          Scripting::ScriptUtilities::RunGlobalCode();
+      }, true);
+    });
   }
 
   if (s_frame_step)

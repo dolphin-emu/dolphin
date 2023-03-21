@@ -37,8 +37,6 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
-#include "Core/Scripting/InternalAPIModules/EmuAPI.h"
-#include "Core/Scripting/ScriptUtilities.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -523,10 +521,6 @@ void SaveAs(const std::string& filename, bool wait)
           }
           Core::DisplayMessage("Unable to save: Internal DoState Error", 4000);
         }
-        if (Scripting::ScriptUtilities::IsScriptingCoreInitialized())
-        {
-          Scripting::EmuApi::waiting_for_save_state_save = false;
-        }
       },
       true);
 }
@@ -716,10 +710,6 @@ void LoadAs(const std::string& filename)
 
         if (s_on_after_load_callback)
           s_on_after_load_callback();
-        if (Scripting::ScriptUtilities::IsScriptingCoreInitialized())
-        {
-          Scripting::EmuApi::waiting_for_save_state_load = false;
-        }
       },
       true);
 }

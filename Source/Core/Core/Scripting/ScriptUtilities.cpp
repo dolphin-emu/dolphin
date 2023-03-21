@@ -79,18 +79,11 @@ void StopScript(int unique_script_identifier)
   initialization_and_destruction_lock.unlock();
 }
 
-void DoFrameStartSetup()
+bool RunGlobalCode()
 {
-  GraphicsAPI::checkbox_number = 0;
-  GraphicsAPI::radio_group_number = 0;
-  GraphicsAPI::offset_into_radio_group = 0;
-}
-
-void RunGlobalCode()
-{
-  std::lock_guard<std::mutex> lock(global_code_and_frame_callback_running_lock);
+  bool return_value = false;
   if (global_pointer_to_list_of_all_scripts == nullptr)
-    return;
+    return return_value;
   for (size_t i = 0; i < global_pointer_to_list_of_all_scripts->size(); ++i)
   {
     ScriptContext* current_script = (*global_pointer_to_list_of_all_scripts)[i];
@@ -100,15 +93,19 @@ void RunGlobalCode()
       current_script->current_script_call_location = ScriptCallLocations::FromFrameStartGlobalScope;
       current_script->RunGlobalScopeCode();
     }
+    return_value = current_script->called_yielding_function_in_last_global_script_resume;
     current_script->script_specific_lock.unlock();
+    if (return_value)
+      break;
   }
+  return return_value;
 }
 
-void RunOnFrameStartCallbacks()
+bool RunOnFrameStartCallbacks()
 {
-  std::lock_guard<std::mutex> lock(global_code_and_frame_callback_running_lock);
+  bool return_value = false;
   if (global_pointer_to_list_of_all_scripts == nullptr)
-    return;
+    return return_value;
   for (size_t i = 0; i < global_pointer_to_list_of_all_scripts->size(); ++i)
   {
     ScriptContext* current_script = (*global_pointer_to_list_of_all_scripts)[i];
@@ -118,9 +115,12 @@ void RunOnFrameStartCallbacks()
       current_script->current_script_call_location = ScriptCallLocations::FromFrameStartCallback;
       current_script->RunOnFrameStartCallbacks();
     }
+    return_value = current_script->called_yielding_function_in_last_frame_callback_script_resume;
     current_script->script_specific_lock.unlock();
+    if (return_value)
+      break;
   }
-
+  return return_value;
 }
 
 void RunOnGCInputPolledCallbacks()
