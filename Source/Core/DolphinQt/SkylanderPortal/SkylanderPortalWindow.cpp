@@ -23,6 +23,7 @@
 #include <QStringList>
 #include <QVBoxLayout>
 #include <QThread>
+#include <QListWidget>
 
 #include "Common/IOFile.h"
 
@@ -134,6 +135,8 @@ SkylanderPortalWindow::SkylanderPortalWindow(RenderWidget* render, MainWindow* m
 
   sky_id = 0;
   sky_var = 0;
+
+  connect(skylanderList, &QListWidget::currentItemChanged, this, &SkylanderPortalWindow::UpdateSelectedVals);
 };
 
 SkylanderPortalWindow::~SkylanderPortalWindow() = default;
@@ -220,7 +223,7 @@ void SkylanderPortalWindow::CreateMainWindow()
   {
     QCheckBox* checkbox = new QCheckBox(this);
     connect(checkbox, &QCheckBox::toggled,
-            [&](bool checked) { EmulatePortal(checked); });
+            this, &SkylanderPortalWindow::RefreshList);
     m_game_filters[i] = checkbox;
     search_checkbox_layout->addWidget(checkbox);
   }
@@ -268,14 +271,50 @@ void SkylanderPortalWindow::CreateMainWindow()
   UpdateEdits();
 }
 
+void SkylanderPortalWindow::UpdateSelectedVals()
+{
+  const u32 sky_info = skylanderList->currentItem()->data(1).toUInt();
+  if (sky_info != 0xFFFFFFFF)
+  {
+    sky_id = sky_info >> 16;
+    sky_var = sky_info & 0xFFFF;
+  }
+}
+
 void SkylanderPortalWindow::RefreshList()
 {
+  skylanderList->clear();
   for (const auto& entry : IOS::HLE::USB::list_skylanders)
   {
-    const uint qvar = (entry.first.first << 16) | entry.first.second;
-    QListWidgetItem* skylander = new QListWidgetItem(tr(entry.second));
-    skylander->setData(1, qvar);
-    skylanderList->addItem(skylander);
+    int id = entry.first.first;
+    bool included = false;
+    if (m_game_filters[0]->isChecked())
+    {
+      if (id <= 32)
+        included = true;
+    }
+    if (m_game_filters[1]->isChecked())
+    {
+      if (id >= 100 && id <= 209)
+        included = true;
+    }
+    if (m_game_filters[2]->isChecked())
+    {
+      if (id >= 210 && id <= 543)
+        included = true;
+    }
+    if (m_game_filters[3]->isChecked())
+    {
+      if (id >= 1000 && id <= 3303)
+        included = true;
+    }
+    if (included)
+    {
+      const uint qvar = (entry.first.first << 16) | entry.first.second;
+      QListWidgetItem* skylander = new QListWidgetItem(tr(entry.second));
+      skylander->setData(1, qvar);
+      skylanderList->addItem(skylander);
+    }
   }
 }
 
