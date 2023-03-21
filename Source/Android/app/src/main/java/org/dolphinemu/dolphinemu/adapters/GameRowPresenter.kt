@@ -54,11 +54,12 @@ class GameRowPresenter(private val mActivity: FragmentActivity) : Presenter() {
             // Set the background color of the card
             val background = ContextCompat.getDrawable(context, R.drawable.tv_card_background)
             cardParent.infoAreaBackground = background
-            cardParent.setOnClickListener { view: View ->
+            cardParent.setOnLongClickListener { view: View ->
                 val activity = view.context as FragmentActivity
                 val fragment = GamePropertiesDialog.newInstance(holder.gameFile)
                 activity.supportFragmentManager.beginTransaction()
                     .add(fragment, GamePropertiesDialog.TAG).commit()
+                true
             }
 
             if (GameFileCacheManager.findSecondDisc(gameFile) != null) {
