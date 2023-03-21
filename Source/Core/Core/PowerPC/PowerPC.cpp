@@ -686,7 +686,7 @@ void RoundingModeUpdated()
   // The rounding mode is separate for each thread, so this must run on the CPU thread
   ASSERT(Core::IsCPUThread());
 
-  FPURoundMode::SetSIMDMode(PowerPC::ppcState.fpscr.RN, PowerPC::ppcState.fpscr.NI);
+  Common::FPU::SetSIMDMode(PowerPC::ppcState.fpscr.RN, PowerPC::ppcState.fpscr.NI);
 }
 
 }  // namespace PowerPC

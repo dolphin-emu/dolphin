@@ -6,7 +6,7 @@
 #include "Common/CommonTypes.h"
 
 // Generic, do nothing
-namespace FPURoundMode
+namespace Common::FPU
 {
 void SetSIMDMode(RoundMode rounding_mode, bool non_ieee_mode)
 {
@@ -20,4 +20,4 @@ void LoadSIMDState()
 void LoadDefaultSIMDState()
 {
 }
-}  // namespace FPURoundMode
+}  // namespace Common::FPU
