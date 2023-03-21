@@ -116,7 +116,7 @@ SkylanderPortalWindow::SkylanderPortalWindow(RenderWidget* render, MainWindow* m
   setWindowTitle(tr("Skylanders Manager"));
   setWindowIcon(Resources::GetAppIcon());
   setObjectName(QString::fromStdString("skylanders_manager"));
-  setMinimumSize(QSize(500, 200));
+  setMinimumSize(QSize(800, 500));
 
   CreateMainWindow();
 
@@ -131,13 +131,19 @@ SkylanderPortalWindow::SkylanderPortalWindow(RenderWidget* render, MainWindow* m
   connect(main, &MainWindow::RenderInstanceChanged, portalButton,
           &PortalButton::setRender);
   portalButton->Enable();
+
+  sky_id = 0;
+  sky_var = 0;
 };
 
 SkylanderPortalWindow::~SkylanderPortalWindow() = default;
 
 void SkylanderPortalWindow::CreateMainWindow()
 {
-  auto* main_layout = new QVBoxLayout();
+  auto* main_layout = new QHBoxLayout();
+
+  auto* slot_group = new QGroupBox();
+  auto* slot_layout = new QVBoxLayout();
 
   auto* checkbox_group = new QGroupBox();
   auto* checkbox_layout = new QHBoxLayout();
@@ -150,7 +156,7 @@ void SkylanderPortalWindow::CreateMainWindow()
   checkbox_layout->addWidget(m_enabled_checkbox);
   checkbox_layout->addWidget(m_show_button_ingame_checkbox);
   checkbox_group->setLayout(checkbox_layout);
-  main_layout->addWidget(checkbox_group);
+  slot_layout->addWidget(checkbox_group);
 
   auto add_line = [](QVBoxLayout* vbox) {
     auto* line = new QFrame();
@@ -196,10 +202,81 @@ void SkylanderPortalWindow::CreateMainWindow()
   scroll_area->setWidget(m_group_skylanders);
   scroll_area->setWidgetResizable(true);
   m_group_skylanders->setVisible(Config::Get(Config::MAIN_EMULATE_SKYLANDER_PORTAL));
-  main_layout->addWidget(scroll_area);
+  slot_layout->addWidget(scroll_area);
+
+  slot_group->setLayout(slot_layout);
+  main_layout->addWidget(slot_group);
+
+  auto* search_group = new QGroupBox();
+  auto* search_layout = new QHBoxLayout();
+
+  auto* search_filters_group = new QGroupBox();
+  auto* search_filters_layout = new QVBoxLayout();
+
+  auto* search_checkbox_group = new QGroupBox(tr("Game"));
+  auto* search_checkbox_layout = new QVBoxLayout();
+
+  for (int i = 0; i < 4; i++)
+  {
+    QCheckBox* checkbox = new QCheckBox(this);
+    connect(checkbox, &QCheckBox::toggled,
+            [&](bool checked) { EmulatePortal(checked); });
+    m_game_filters[i] = checkbox;
+    search_checkbox_layout->addWidget(checkbox);
+  }
+  m_game_filters[0]->setText(tr("Spyro's Adventure"));
+  m_game_filters[1]->setText(tr("Giants"));
+  m_game_filters[2]->setText(tr("Swap Force"));
+  m_game_filters[3]->setText(tr("Trap Team"));
+  search_checkbox_group->setLayout(search_checkbox_layout);
+  search_filters_layout->addWidget(search_checkbox_group);
+
+  auto* search_radio_group = new QGroupBox(tr("Element"));
+  auto* search_radio_layout = new QVBoxLayout();
+  for (int i = 0; i < 10; i++)
+  {
+    QRadioButton* radio = new QRadioButton(this);
+    m_element_filters[i] = radio;
+    search_radio_layout->addWidget(radio);
+  }
+  m_element_filters[0]->setText(tr("All"));
+  m_element_filters[0]->setChecked(true);
+  m_element_filters[1]->setText(tr("Magic"));
+  m_element_filters[2]->setText(tr("Water"));
+  m_element_filters[3]->setText(tr("Tech"));
+  m_element_filters[4]->setText(tr("Fire"));
+  m_element_filters[5]->setText(tr("Earth"));
+  m_element_filters[6]->setText(tr("Life"));
+  m_element_filters[7]->setText(tr("Air"));
+  m_element_filters[8]->setText(tr("Undead"));
+  m_element_filters[9]->setText(tr("Other"));
+  search_radio_group->setLayout(search_radio_layout);
+  search_filters_layout->addWidget(search_radio_group);
+
+  search_filters_group->setLayout(search_filters_layout);
+  search_layout->addWidget(search_filters_group);
+
+  skylanderList = new QListWidget;
+  search_layout->addWidget(skylanderList);
+
+  search_group->setLayout(search_layout);
+  main_layout->addWidget(search_group);
+
   setLayout(main_layout);
 
+  RefreshList();
   UpdateEdits();
+}
+
+void SkylanderPortalWindow::RefreshList()
+{
+  for (const auto& entry : IOS::HLE::USB::list_skylanders)
+  {
+    const uint qvar = (entry.first.first << 16) | entry.first.second;
+    QListWidgetItem* skylander = new QListWidgetItem(tr(entry.second));
+    skylander->setData(1, qvar);
+    skylanderList->addItem(skylander);
+  }
 }
 
 void SkylanderPortalWindow::OnEmulationStateChanged(Core::State state)
@@ -357,11 +434,37 @@ void SkylanderPortalWindow::ShowInGame(bool show)
 
 void SkylanderPortalWindow::CreateSkylander(u8 slot)
 {
-  CreateSkylanderDialog create_dlg(this);
-  if (create_dlg.exec() == CreateSkylanderDialog::Accepted)
+  QString predef_name = s_last_skylander_path;
+  const auto found_sky = IOS::HLE::USB::list_skylanders.find(std::make_pair(sky_id, sky_var));
+  if (found_sky != IOS::HLE::USB::list_skylanders.end())
   {
-    LoadSkylanderPath(slot, create_dlg.GetFilePath());
+    predef_name += QString::fromStdString(std::string(found_sky->second) + ".sky");
   }
+  else
+  {
+    QString str = tr("Unknown(%1 %2).sky");
+    predef_name += str.arg(sky_id, sky_var);
+  }
+
+  m_file_path = DolphinFileDialog::getSaveFileName(this, tr("Create Skylander File"), predef_name,
+                                                   tr("Skylander Object (*.sky);;"));
+  if (m_file_path.isEmpty())
+  {
+    return;
+  }
+
+  auto& system = Core::System::GetInstance();
+
+  if (!system.GetSkylanderPortal().CreateSkylander(m_file_path.toStdString(), sky_id, sky_var))
+  {
+    QMessageBox::warning(this, tr("Failed to create Skylander file!"),
+                         tr("Failed to create Skylander file:\n%1").arg(m_file_path),
+                         QMessageBox::Ok);
+    return;
+  }
+  s_last_skylander_path = QFileInfo(m_file_path).absolutePath() + QString::fromStdString("/");
+
+  LoadSkylanderPath(slot, s_last_skylander_path);
 }
 
 void SkylanderPortalWindow::LoadSkylander(u8 slot)

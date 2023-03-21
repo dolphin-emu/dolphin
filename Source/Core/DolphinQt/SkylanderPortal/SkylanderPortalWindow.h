@@ -10,6 +10,8 @@
 #include <QString>
 #include <QWidget>
 #include <QTimer>
+#include <QRadioButton>
+#include <QListWidget>
 
 #include "Core/Core.h"
 #include "Core/IOS/USB/Emulated/Skylander.h"
@@ -72,11 +74,19 @@ private:
   void UpdateEdits();
   void closeEvent(QCloseEvent* bar) override;
   bool eventFilter(QObject* object, QEvent* event) final override;
+  void RefreshList();
 
   QCheckBox* m_enabled_checkbox;
   QCheckBox* m_show_button_ingame_checkbox;
   QGroupBox* m_group_skylanders;
   PortalButton* portalButton;
+
+  QCheckBox* m_game_filters[4];
+  QRadioButton* m_element_filters[10];
+  QListWidget* skylanderList;
+  QString m_file_path;
+  u16 sky_id;
+  u16 sky_var;
 };
 
 class CreateSkylanderDialog : public QDialog
