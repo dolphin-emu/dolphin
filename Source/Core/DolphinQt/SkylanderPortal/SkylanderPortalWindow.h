@@ -66,6 +66,7 @@ private:
   void CreateMainWindow();
   void OnEmulationStateChanged(Core::State state);
   void CreateSkylander(u8 slot);
+  QString CreateSkylanderInCollection();
   void ClearSkylander(u8 slot);
   void EmulatePortal(bool emulate);
   void ShowInGame(bool show);

@@ -341,6 +341,7 @@ void SkylanderPortalWindow::SelectPath()
       this, tr("Select Skylander Collection"), m_collection_path));
   if (!dir.isEmpty())
   {
+    dir += QString::fromStdString("/");
     m_path_edit->setText(dir);
     m_collection_path = dir;
   }
@@ -487,6 +488,39 @@ void SkylanderPortalWindow::CreateSkylander(u8 slot)
   LoadSkylanderPath(slot, m_file_path);
 }
 
+QString SkylanderPortalWindow::CreateSkylanderInCollection()
+{
+  QString predef_name = m_collection_path;
+  const auto found_sky = IOS::HLE::USB::list_skylanders.find(std::make_pair(sky_id, sky_var));
+  if (found_sky != IOS::HLE::USB::list_skylanders.end())
+  {
+    predef_name += QString::fromStdString(std::string(found_sky->second) + ".sky");
+  }
+  else
+  {
+    QString str = tr("Unknown(%1 %2).sky");
+    predef_name += str.arg(sky_id, sky_var);
+  }
+
+  m_file_path = predef_name;
+  if (m_file_path.isEmpty())
+  {
+    return QString();
+  }
+
+  auto& system = Core::System::GetInstance();
+
+  if (!system.GetSkylanderPortal().CreateSkylander(m_file_path.toStdString(), sky_id, sky_var))
+  {
+    QMessageBox::warning(this, tr("Failed to create Skylander file!"),
+                         tr("Failed to create Skylander file:\n%1").arg(m_file_path),
+                         QMessageBox::Ok);
+    return QString();
+  }
+
+  return m_file_path;
+}
+
 void SkylanderPortalWindow::LoadSkylander(u8 slot)
 {
   QDir collection = QDir(m_collection_path);
@@ -503,7 +537,17 @@ void SkylanderPortalWindow::LoadSkylander(u8 slot)
 
   if (file_path.isEmpty())
   {
-    //ask to create skylander file
+    QMessageBox::StandardButton createFileResponse;
+    createFileResponse = QMessageBox::question(this, tr("Create Skylander File"),
+        tr("Skylander not found in this collection. Create new file?"), QMessageBox::Yes | QMessageBox::No);
+
+    if (createFileResponse == QMessageBox::Yes)
+    {
+      file_path=CreateSkylanderInCollection();
+
+      if (!file_path.isEmpty())
+        LoadSkylanderPath(slot, file_path);
+    }
   }
   else
   {
