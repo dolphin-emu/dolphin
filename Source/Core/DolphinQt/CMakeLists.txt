@@ -368,7 +368,7 @@ add_executable(dolphin-emu
 
 if (WIN32)
   target_sources(dolphin-emu PRIVATE
-    Styles/Dark/style.qrc
+    Styles/Dark/dark.qrc
   )
 endif()
 

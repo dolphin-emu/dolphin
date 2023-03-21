@@ -140,7 +140,7 @@ void Settings::SetCurrentUserStyle(QString stylesheet_name)
     const UISettings settings;
     const auto& color = settings.GetColorValue(UIColorType::Foreground);
 
-    const bool is_system_dark = (((5 * color.G) + (2 * color.R) + color.B) > (8 * 128));
+    const bool is_system_dark = 5 * color.G + 2 * color.R + color.B > 8 * 128;
     if (is_system_dark)
     {
       stylesheet_name = QStringLiteral("Dark");
