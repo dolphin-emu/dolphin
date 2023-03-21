@@ -76,7 +76,7 @@ private:
   void closeEvent(QCloseEvent* bar) override;
   bool eventFilter(QObject* object, QEvent* event) final override;
   void RefreshList();
-  bool PassesFilter(u16 id, u16 var);
+  bool PassesFilter(QString name, u16 id, u16 var);
   void UpdateSelectedVals();
   void SelectPath();
   void OnPathChanged();
@@ -99,6 +99,7 @@ private:
   QRadioButton* m_element_filter[10];
   int lastElementID=-1;
   QCheckBox* m_only_show_collection;
+  QLineEdit* m_sky_search;
   QListWidget* skylanderList;
   QString m_file_path;
   u16 sky_id;

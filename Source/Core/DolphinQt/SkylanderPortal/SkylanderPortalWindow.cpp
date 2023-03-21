@@ -32,6 +32,7 @@
 #include "DolphinQT/RenderWidget.h"
 #include "DolphinQt/MainWindow.h"
 #include "Core/IOS/USB/Emulated/Skylander.h"
+#include "Common/FileUtil.h"
 
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/Resources.h"
@@ -121,7 +122,7 @@ SkylanderPortalWindow::SkylanderPortalWindow(RenderWidget* render, MainWindow* m
   setObjectName(QString::fromStdString("skylanders_manager"));
   setMinimumSize(QSize(500, 400));
 
-  m_only_show_collection = new QCheckBox(tr("Only Show Collection"));
+  m_only_show_collection = new QCheckBox(tr("Only Show Files in Collection"));
 
   CreateMainWindow();
 
@@ -141,6 +142,9 @@ SkylanderPortalWindow::SkylanderPortalWindow(RenderWidget* render, MainWindow* m
   sky_var = 0;
 
   connect(skylanderList, &QListWidget::itemSelectionChanged, this, &SkylanderPortalWindow::UpdateSelectedVals);
+
+  m_collection_path = QString::fromStdString(File::GetUserPath(D_USER_IDX) + "Skylanders");
+  m_path_edit->setText(m_collection_path);
 };
 
 SkylanderPortalWindow::~SkylanderPortalWindow() = default;
@@ -170,6 +174,7 @@ void SkylanderPortalWindow::CreateMainWindow()
   setLayout(main_layout);
 
   RefreshList();
+  skylanderList->setCurrentItem(skylanderList->item(0), QItemSelectionModel::Select);
   UpdateEdits();
 }
 
@@ -240,6 +245,8 @@ QGroupBox* SkylanderPortalWindow::CreateSearchGroup()
 {
   skylanderList = new QListWidget;
   skylanderList->setMaximumSize(QSize(200, skylanderList->maximumHeight()));
+  connect(skylanderList, &QListWidget::itemDoubleClicked, this,
+          &SkylanderPortalWindow::LoadSkylander);
 
   auto* main_group = new QGroupBox();
   auto* main_layout = new QVBoxLayout();
@@ -257,6 +264,14 @@ QGroupBox* SkylanderPortalWindow::CreateSearchGroup()
 
   header_group->setLayout(header_layout);
   main_layout->addWidget(header_group);
+
+  auto* search_bar_layout = new QHBoxLayout;
+  m_sky_search = new QLineEdit;
+  m_sky_search->setClearButtonEnabled(true);
+  connect(m_sky_search, &QLineEdit::textChanged, this, &SkylanderPortalWindow::RefreshList);
+  search_bar_layout->addWidget(new QLabel(tr("Search:")));
+  search_bar_layout->addWidget(m_sky_search);
+  main_layout->addLayout(search_bar_layout);
 
   auto* search_group = new QGroupBox();
   auto* search_layout = new QHBoxLayout();
@@ -360,7 +375,8 @@ void SkylanderPortalWindow::SelectPath()
     m_path_edit->setText(dir);
     m_collection_path = dir;
   }
-  RefreshList();
+  if (m_only_show_collection->isChecked()) 
+    RefreshList();
 }
 
 void SkylanderPortalWindow::UpdateSelectedVals()
@@ -375,6 +391,7 @@ void SkylanderPortalWindow::UpdateSelectedVals()
 
 void SkylanderPortalWindow::RefreshList()
 {
+  int row = skylanderList->currentRow();
   skylanderList->clear();
   if (m_only_show_collection->isChecked())
   {
@@ -392,7 +409,7 @@ void SkylanderPortalWindow::RefreshList()
         continue;
       }
       auto ids = system.GetSkylanderPortal().CalculateIDs(file_data);
-      if (PassesFilter(ids.first, ids.second))
+      if (PassesFilter(file.baseName(), ids.first, ids.second))
       {
         const uint qvar = (ids.first << 16) | ids.second;
         QListWidgetItem* skylander = new QListWidgetItem(file.fileName());
@@ -407,7 +424,7 @@ void SkylanderPortalWindow::RefreshList()
     {
       int id = entry.first.first;
       int var = entry.first.second;
-      if (PassesFilter(id,var))
+      if (PassesFilter(tr(entry.second),id,var))
       {
         const uint qvar = (entry.first.first << 16) | entry.first.second;
         QListWidgetItem* skylander = new QListWidgetItem(tr(entry.second));
@@ -416,13 +433,17 @@ void SkylanderPortalWindow::RefreshList()
       }
     }
   }
-  if (skylanderList->count()>0)
+  if (skylanderList->count() >= row)
   {
-    skylanderList->setCurrentItem(skylanderList->item(0), QItemSelectionModel::Select);
+    skylanderList->setCurrentItem(skylanderList->item(row), QItemSelectionModel::Select);
+  }
+  else if (skylanderList->count()>0)
+  {
+    skylanderList->setCurrentItem(skylanderList->item(skylanderList->count()-1), QItemSelectionModel::Select);
   }
 }
 
-bool SkylanderPortalWindow::PassesFilter(u16 id, u16 var)
+bool SkylanderPortalWindow::PassesFilter(QString name, u16 id, u16 var)
 {
   bool pass = false;
   if (m_game_filters[0]->isChecked())
@@ -444,6 +465,10 @@ bool SkylanderPortalWindow::PassesFilter(u16 id, u16 var)
   {
     if (id >= 210 && id <= 543)
       pass = true;
+  }
+  if (!name.contains(m_sky_search->text(),Qt::CaseInsensitive))
+  {
+    pass = false;
   }
   return pass;
 }
