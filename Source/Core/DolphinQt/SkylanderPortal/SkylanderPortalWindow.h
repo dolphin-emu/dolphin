@@ -67,7 +67,6 @@ private:
   void OnEmulationStateChanged(Core::State state);
   void CreateSkylander(u8 slot);
   QString CreateSkylanderInCollection();
-  void ClearSkylander();
   void ClearSkylander(u8 slot);
   void EmulatePortal(bool emulate);
   void ShowInGame(bool show);
@@ -77,6 +76,7 @@ private:
   void closeEvent(QCloseEvent* bar) override;
   bool eventFilter(QObject* object, QEvent* event) final override;
   void RefreshList();
+  bool PassesFilter(u16 id, u16 var);
   void UpdateSelectedVals();
   void SelectPath();
   void OnPathChanged();
@@ -97,6 +97,7 @@ private:
   QCheckBox* m_game_filters[4];
   QRadioButton* m_element_filter[10];
   int lastElementID=-1;
+  QCheckBox* m_only_show_collection;
   QListWidget* skylanderList;
   QString m_file_path;
   u16 sky_id;

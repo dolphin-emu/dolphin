@@ -120,6 +120,8 @@ SkylanderPortalWindow::SkylanderPortalWindow(RenderWidget* render, MainWindow* m
   setObjectName(QString::fromStdString("skylanders_manager"));
   setMinimumSize(QSize(500, 400));
 
+  m_only_show_collection = new QCheckBox(tr("Only Show Collection"));
+
   CreateMainWindow();
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
@@ -283,7 +285,7 @@ QGroupBox* SkylanderPortalWindow::CreateSearchGroup()
   auto* search_radio_layout = new QHBoxLayout();
 
   auto* radio_layout_left = new QVBoxLayout();
-  for (int i = 0; i < 5; i++)
+  for (int i = 0; i < 10; i+=2)
   {
     QRadioButton* radio = new QRadioButton(this);
     radio->setProperty("id", i);
@@ -294,12 +296,12 @@ QGroupBox* SkylanderPortalWindow::CreateSearchGroup()
   search_radio_layout->addLayout(radio_layout_left);
 
   auto* radio_layout_right = new QVBoxLayout();
-  for (int i = 0; i < 5; i++)
+  for (int i = 1; i < 10; i+=2)
   {
     QRadioButton* radio = new QRadioButton(this);
-    radio->setProperty("id", 5+i);
+    radio->setProperty("id", i);
     connect(radio, &QRadioButton::toggled, this, &SkylanderPortalWindow::RefreshList);
-    m_element_filter[5+i] = radio;
+    m_element_filter[i] = radio;
     radio_layout_right->addWidget(radio);
   }
   search_radio_layout->addLayout(radio_layout_right);
@@ -318,6 +320,14 @@ QGroupBox* SkylanderPortalWindow::CreateSearchGroup()
 
   search_radio_group->setLayout(search_radio_layout);
   search_filters_layout->addWidget(search_radio_group);
+
+  auto* other_box = new QGroupBox(tr("Other"));
+  auto* other_layout = new QVBoxLayout;
+  connect(m_only_show_collection, &QCheckBox::toggled, this, &SkylanderPortalWindow::RefreshList);
+  other_layout->addWidget(m_only_show_collection);
+  other_box->setLayout(other_layout);
+  search_filters_layout->addWidget(other_box);
+
   search_filters_layout->addStretch(50);
 
   search_filters_group->setLayout(search_filters_layout);
@@ -363,42 +373,76 @@ void SkylanderPortalWindow::UpdateSelectedVals()
 void SkylanderPortalWindow::RefreshList()
 {
   skylanderList->clear();
-  for (const auto& entry : IOS::HLE::USB::list_skylanders)
+  if (m_only_show_collection->isChecked())
   {
-    int id = entry.first.first;
-    bool included = false;
-    if (m_game_filters[0]->isChecked())
-    {
-      if (id <= 32)
-        included = true;
+    QDir collection = QDir(m_collection_path);
+    auto& system = Core::System::GetInstance();
+    for (auto file : collection.entryInfoList(QStringList(tr("*.sky")))) {
+      File::IOFile sky_file(file.filePath().toStdString(), "r+b");
+      if (!sky_file)
+      {
+        continue;
+      }
+      std::array<u8, 0x40 * 0x10> file_data;
+      if (!sky_file.ReadBytes(file_data.data(), file_data.size()))
+      {
+        continue;
+      }
+      auto ids = system.GetSkylanderPortal().CalculateIDs(file_data);
+      if (PassesFilter(ids.first, ids.second))
+      {
+        const uint qvar = (ids.first << 16) | ids.second;
+        QListWidgetItem* skylander = new QListWidgetItem(file.fileName());
+        skylander->setData(1, qvar);
+        skylanderList->addItem(skylander);
+      }
     }
-    if (m_game_filters[1]->isChecked())
+  }
+  else
+  {
+    for (const auto& entry : IOS::HLE::USB::list_skylanders)
     {
-      if (id >= 100 && id <= 209)
-        included = true;
-    }
-    if (m_game_filters[2]->isChecked())
-    {
-      if (id >= 1000 && id <= 3303)
-        included = true;
-    }
-    if (m_game_filters[3]->isChecked())
-    {
-      if (id >= 210 && id <= 543)
-        included = true;
-    }
-    if (included)
-    {
-      const uint qvar = (entry.first.first << 16) | entry.first.second;
-      QListWidgetItem* skylander = new QListWidgetItem(tr(entry.second));
-      skylander->setData(1, qvar);
-      skylanderList->addItem(skylander);
+      int id = entry.first.first;
+      int var = entry.first.second;
+      if (PassesFilter(id,var))
+      {
+        const uint qvar = (entry.first.first << 16) | entry.first.second;
+        QListWidgetItem* skylander = new QListWidgetItem(tr(entry.second));
+        skylander->setData(1, qvar);
+        skylanderList->addItem(skylander);
+      }
     }
   }
   if (skylanderList->count()>0)
   {
     skylanderList->setCurrentItem(skylanderList->item(0), QItemSelectionModel::Select);
   }
+}
+
+bool SkylanderPortalWindow::PassesFilter(u16 id, u16 var)
+{
+  bool pass = false;
+  if (m_game_filters[0]->isChecked())
+  {
+    if (id <= 32)
+      pass = true;
+  }
+  if (m_game_filters[1]->isChecked())
+  {
+    if (id >= 100 && id <= 209)
+      pass = true;
+  }
+  if (m_game_filters[2]->isChecked())
+  {
+    if (id >= 1000 && id <= 3303)
+      pass = true;
+  }
+  if (m_game_filters[3]->isChecked())
+  {
+    if (id >= 210 && id <= 543)
+      pass = true;
+  }
+  return pass;
 }
 
 void SkylanderPortalWindow::OnEmulationStateChanged(Core::State state)
