@@ -117,7 +117,7 @@ SkylanderPortalWindow::SkylanderPortalWindow(RenderWidget* render, MainWindow* m
   setWindowTitle(tr("Skylanders Manager"));
   setWindowIcon(Resources::GetAppIcon());
   setObjectName(QString::fromStdString("skylanders_manager"));
-  setMinimumSize(QSize(800, 500));
+  setMinimumSize(QSize(600, 400));
 
   CreateMainWindow();
 
@@ -144,6 +144,8 @@ SkylanderPortalWindow::~SkylanderPortalWindow() = default;
 void SkylanderPortalWindow::CreateMainWindow()
 {
   auto* main_layout = new QHBoxLayout();
+
+  skylanderList = new QListWidget;
 
   auto* slot_group = new QGroupBox();
   auto* slot_layout = new QVBoxLayout();
@@ -222,6 +224,7 @@ void SkylanderPortalWindow::CreateMainWindow()
   for (int i = 0; i < 4; i++)
   {
     QCheckBox* checkbox = new QCheckBox(this);
+    checkbox->setChecked(true);
     connect(checkbox, &QCheckBox::toggled,
             this, &SkylanderPortalWindow::RefreshList);
     m_game_filters[i] = checkbox;
@@ -259,7 +262,6 @@ void SkylanderPortalWindow::CreateMainWindow()
   search_filters_group->setLayout(search_filters_layout);
   search_layout->addWidget(search_filters_group);
 
-  skylanderList = new QListWidget;
   search_layout->addWidget(skylanderList);
 
   search_group->setLayout(search_layout);
@@ -380,9 +382,21 @@ void SkylanderPortalWindow::CreateSkylander(u8 slot)
 
 void SkylanderPortalWindow::LoadSkylander(u8 slot)
 {
-  const QString file_path =
+  QDir collection = QDir(s_last_skylander_path);
+  QString skyName = tr(IOS::HLE::USB::list_skylanders.at(std::make_pair(sky_id, sky_var)));
+  QString file_path;
+
+  for (QFileInfo file : collection.entryInfoList(QStringList(tr("*.sky"))))
+  {
+    if (file.baseName()==skyName)
+    {
+      file_path = file.filePath();
+    }
+  }
+
+  /*const QString file_path =
       DolphinFileDialog::getOpenFileName(this, tr("Select Skylander File"), s_last_skylander_path,
-                                         QString::fromStdString("Skylander (*.sky);;"));
+                                         QString::fromStdString("Skylander (*.sky);;"));*/
   if (file_path.isEmpty())
   {
     return;
