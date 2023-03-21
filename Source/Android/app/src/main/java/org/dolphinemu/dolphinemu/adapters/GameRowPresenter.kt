@@ -15,6 +15,7 @@ import android.widget.ImageView
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.dolphinemu.dolphinemu.dialogs.GamePropertiesDialog
 import org.dolphinemu.dolphinemu.utils.CoilUtils
@@ -68,7 +69,7 @@ class GameRowPresenter(private val mActivity: FragmentActivity) : Presenter() {
             }
         }
 
-        mActivity.lifecycleScope.launchWhenStarted {
+        mActivity.lifecycleScope.launch {
             withContext(Dispatchers.IO) {
                 val customCoverUri = CoilUtils.findCustomCover(gameFile)
                 withContext(Dispatchers.Main) {
