@@ -83,6 +83,7 @@ private:
   QGroupBox* CreatePortalGroup();
   QGroupBox* CreateSearchGroup();
   u8 GetCurrentSlot();
+  QString GetFilePath(u16 id, u16 var);
 
   QCheckBox* m_enabled_checkbox;
   QCheckBox* m_show_button_ingame_checkbox;

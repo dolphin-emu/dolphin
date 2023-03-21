@@ -554,15 +554,7 @@ void SkylanderPortalWindow::LoadSkylander()
   }
   else
   {
-    skyName = tr(IOS::HLE::USB::list_skylanders.at(std::make_pair(sky_id, sky_var)));
-
-    for (QFileInfo file : collection.entryInfoList(QStringList(tr("*.sky"))))
-    {
-      if (file.baseName() == skyName)
-      {
-        file_path = file.filePath();
-      }
-    }
+    file_path = GetFilePath(sky_id, sky_var);
   }
 
   if (file_path.isEmpty())
@@ -621,6 +613,7 @@ void SkylanderPortalWindow::LoadSkylanderPath(u8 slot, const QString& path)
     return;
   }
   m_sky_slots[slot] = {portal_slot, id_var.first, id_var.second};
+  RefreshList();
   UpdateEdits();
 }
 
@@ -694,6 +687,32 @@ u8 SkylanderPortalWindow::GetCurrentSlot()
     }
   }
   return 0;
+}
+
+QString SkylanderPortalWindow::GetFilePath(u16 id, u16 var)
+{
+  QDir collection = QDir(m_collection_path);
+  auto& system = Core::System::GetInstance();
+  QString file_path;
+  for (auto file : collection.entryInfoList(QStringList(tr("*.sky"))))
+  {
+    File::IOFile sky_file(file.filePath().toStdString(), "r+b");
+    if (!sky_file)
+    {
+      continue;
+    }
+    std::array<u8, 0x40 * 0x10> file_data;
+    if (!sky_file.ReadBytes(file_data.data(), file_data.size()))
+    {
+      continue;
+    }
+    auto ids = system.GetSkylanderPortal().CalculateIDs(file_data);
+    if (ids.first == id && ids.second == var)
+    {
+      return file.filePath();
+    }
+  }
+  return file_path;
 }
 
 //CreateSkylanderDialog
