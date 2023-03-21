@@ -13,6 +13,10 @@ endif()
 
 set(CMAKE_AUTOMOC ON)
 
+if (WIN32)
+  set(CMAKE_AUTORCC ON)
+endif()
+
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Svg)
 message(STATUS "Found Qt version ${Qt6_VERSION}")
 
@@ -361,6 +365,12 @@ add_executable(dolphin-emu
   WiiUpdate.cpp
   WiiUpdate.h
 )
+
+if (WIN32)
+  target_sources(dolphin-emu PRIVATE
+    Styles/Dark/style.qrc
+  )
+endif()
 
 if (NOT WIN32)
   target_sources(dolphin-emu PRIVATE

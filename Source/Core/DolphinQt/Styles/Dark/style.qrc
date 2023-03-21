@@ -40,7 +40,7 @@
     <file>rc/radio_unchecked_focus.png</file>
     <file>rc/radio_unchecked.png</file>
   </qresource>
-  <qresource prefix="qdarkstyle">
+  <qresource prefix="/qdarkstyle">
     <file>style.qss</file>
   </qresource>
 </RCC>
