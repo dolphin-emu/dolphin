@@ -6,6 +6,7 @@
 #include <memory>
 
 class GeometryShaderManager;
+class Interpreter;
 class PixelShaderManager;
 class SoundStream;
 struct Sram;
@@ -131,6 +132,7 @@ public:
   GeometryShaderManager& GetGeometryShaderManager() const;
   GPFifo::GPFifoManager& GetGPFifo() const;
   HSP::HSPManager& GetHSP() const;
+  Interpreter& GetInterpreter() const;
   IOS::HLE::USB::SkylanderPortal& GetSkylanderPortal() const;
   Memory::MemoryManager& GetMemory() const;
   MemoryInterface::MemoryInterfaceManager& GetMemoryInterface() const;

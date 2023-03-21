@@ -22,6 +22,7 @@
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/Sram.h"
 #include "Core/HW/VideoInterface.h"
+#include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "IOS/USB/Emulated/Skylander.h"
 #include "VideoCommon/CommandProcessor.h"
@@ -39,7 +40,7 @@ struct System::Impl
       : m_audio_interface(system), m_core_timing(system), m_dsp(system), m_dvd_interface(system),
         m_dvd_thread(system), m_expansion_interface(system), m_gp_fifo(system), m_memory(system),
         m_ppc_state(PowerPC::ppcState), m_processor_interface(system), m_serial_interface(system),
-        m_video_interface(system)
+        m_video_interface(system), m_interpreter(system, m_ppc_state)
   {
   }
 
@@ -70,6 +71,7 @@ struct System::Impl
   Sram m_sram;
   VertexShaderManager m_vertex_shader_manager;
   VideoInterface::VideoInterfaceManager m_video_interface;
+  Interpreter m_interpreter;
 };
 
 System::System() : m_impl{std::make_unique<Impl>(*this)}
@@ -173,6 +175,11 @@ GPFifo::GPFifoManager& System::GetGPFifo() const
 HSP::HSPManager& System::GetHSP() const
 {
   return m_impl->m_hsp;
+}
+
+Interpreter& System::GetInterpreter() const
+{
+  return m_impl->m_interpreter;
 }
 
 IOS::HLE::USB::SkylanderPortal& System::GetSkylanderPortal() const

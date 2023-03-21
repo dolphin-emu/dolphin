@@ -29,13 +29,6 @@
 
 namespace
 {
-u32 last_pc;
-}
-
-bool Interpreter::m_end_block;
-
-namespace
-{
 // Determines whether or not the given instruction is one where its execution
 // validity is determined by whether or not HID2's LSQE bit is set.
 // In other words, if the instruction is psq_l, psq_lu, psq_st, or psq_stu
@@ -49,27 +42,34 @@ bool IsPairedSingleInstruction(UGeckoInstruction inst)
 {
   return inst.OPCD == 4 || IsPairedSingleQuantizedNonIndexedInstruction(inst);
 }
+}  // namespace
 
 // Checks if a given instruction would be illegal to execute if it's a paired single instruction.
 //
 // Paired single instructions are illegal to execute if HID2.PSE is not set.
 // It's also illegal to execute psq_l, psq_lu, psq_st, and psq_stu if HID2.PSE is enabled,
 // but HID2.LSQE is not set.
-bool IsInvalidPairedSingleExecution(UGeckoInstruction inst)
+bool Interpreter::IsInvalidPairedSingleExecution(UGeckoInstruction inst)
 {
-  if (!HID2(PowerPC::ppcState).PSE && IsPairedSingleInstruction(inst))
+  if (!HID2(m_ppc_state).PSE && IsPairedSingleInstruction(inst))
     return true;
 
-  return HID2(PowerPC::ppcState).PSE && !HID2(PowerPC::ppcState).LSQE &&
+  return HID2(m_ppc_state).PSE && !HID2(m_ppc_state).LSQE &&
          IsPairedSingleQuantizedNonIndexedInstruction(inst);
 }
 
-void UpdatePC()
+void Interpreter::UpdatePC()
 {
-  last_pc = PowerPC::ppcState.pc;
-  PowerPC::ppcState.pc = PowerPC::ppcState.npc;
+  m_last_pc = m_ppc_state.pc;
+  m_ppc_state.pc = m_ppc_state.npc;
 }
-}  // Anonymous namespace
+
+Interpreter::Interpreter(Core::System& system, PowerPC::PowerPCState& ppc_state)
+    : m_system(system), m_ppc_state(ppc_state)
+{
+}
+
+Interpreter::~Interpreter() = default;
 
 void Interpreter::Init()
 {
@@ -80,44 +80,41 @@ void Interpreter::Shutdown()
 {
 }
 
-static bool s_start_trace = false;
-
-static void Trace(const UGeckoInstruction& inst)
+void Interpreter::Trace(const UGeckoInstruction& inst)
 {
   std::string regs;
-  for (size_t i = 0; i < std::size(PowerPC::ppcState.gpr); i++)
+  for (size_t i = 0; i < std::size(m_ppc_state.gpr); i++)
   {
-    regs += fmt::format("r{:02d}: {:08x} ", i, PowerPC::ppcState.gpr[i]);
+    regs += fmt::format("r{:02d}: {:08x} ", i, m_ppc_state.gpr[i]);
   }
 
   std::string fregs;
-  for (size_t i = 0; i < std::size(PowerPC::ppcState.ps); i++)
+  for (size_t i = 0; i < std::size(m_ppc_state.ps); i++)
   {
-    const auto& ps = PowerPC::ppcState.ps[i];
+    const auto& ps = m_ppc_state.ps[i];
     fregs += fmt::format("f{:02d}: {:08x} {:08x} ", i, ps.PS0AsU64(), ps.PS1AsU64());
   }
 
-  const std::string ppc_inst =
-      Common::GekkoDisassembler::Disassemble(inst.hex, PowerPC::ppcState.pc);
+  const std::string ppc_inst = Common::GekkoDisassembler::Disassemble(inst.hex, m_ppc_state.pc);
   DEBUG_LOG_FMT(POWERPC,
                 "INTER PC: {:08x} SRR0: {:08x} SRR1: {:08x} CRval: {:016x} "
                 "FPSCR: {:08x} MSR: {:08x} LR: {:08x} {} {:08x} {}",
-                PowerPC::ppcState.pc, SRR0(PowerPC::ppcState), SRR1(PowerPC::ppcState),
-                PowerPC::ppcState.cr.fields[0], PowerPC::ppcState.fpscr.Hex,
-                PowerPC::ppcState.msr.Hex, PowerPC::ppcState.spr[8], regs, inst.hex, ppc_inst);
+                m_ppc_state.pc, SRR0(m_ppc_state), SRR1(m_ppc_state), m_ppc_state.cr.fields[0],
+                m_ppc_state.fpscr.Hex, m_ppc_state.msr.Hex, m_ppc_state.spr[8], regs, inst.hex,
+                ppc_inst);
 }
 
 bool Interpreter::HandleFunctionHooking(u32 address)
 {
-  return HLE::ReplaceFunctionIfPossible(address, [](u32 hook_index, HLE::HookType type) {
-    HLEFunction(hook_index);
+  return HLE::ReplaceFunctionIfPossible(address, [this](u32 hook_index, HLE::HookType type) {
+    HLEFunction(*this, hook_index);
     return type != HLE::HookType::Start;
   });
 }
 
 int Interpreter::SingleStepInner()
 {
-  if (HandleFunctionHooking(PowerPC::ppcState.pc))
+  if (HandleFunctionHooking(m_ppc_state.pc))
   {
     UpdatePC();
     // TODO: Does it make sense to use m_prev_inst here?
@@ -126,23 +123,23 @@ int Interpreter::SingleStepInner()
     return PPCTables::GetOpInfo(m_prev_inst)->num_cycles;
   }
 
-  PowerPC::ppcState.npc = PowerPC::ppcState.pc + sizeof(UGeckoInstruction);
-  m_prev_inst.hex = PowerPC::Read_Opcode(PowerPC::ppcState.pc);
+  m_ppc_state.npc = m_ppc_state.pc + sizeof(UGeckoInstruction);
+  m_prev_inst.hex = PowerPC::Read_Opcode(m_ppc_state.pc);
 
   const GekkoOPInfo* opinfo = PPCTables::GetOpInfo(m_prev_inst);
 
   // Uncomment to trace the interpreter
-  // if ((PowerPC::ppcState.pc & 0x00FFFFFF) >= 0x000AB54C &&
-  //     (PowerPC::ppcState.pc & 0x00FFFFFF) <= 0x000AB624)
+  // if ((m_ppc_state.pc & 0x00FFFFFF) >= 0x000AB54C &&
+  //     (m_ppc_state.pc & 0x00FFFFFF) <= 0x000AB624)
   // {
-  //   s_start_trace = true;
+  //   m_start_trace = true;
   // }
   // else
   // {
-  //   s_start_trace = false;
+  //   m_start_trace = false;
   // }
 
-  if (s_start_trace)
+  if (m_start_trace)
   {
     Trace(m_prev_inst);
   }
@@ -154,10 +151,10 @@ int Interpreter::SingleStepInner()
       GenerateProgramException(ProgramExceptionCause::IllegalInstruction);
       CheckExceptions();
     }
-    else if (PowerPC::ppcState.msr.FP)
+    else if (m_ppc_state.msr.FP)
     {
-      RunInterpreterOp(m_prev_inst);
-      if ((PowerPC::ppcState.Exceptions & EXCEPTION_DSI) != 0)
+      RunInterpreterOp(*this, m_prev_inst);
+      if ((m_ppc_state.Exceptions & EXCEPTION_DSI) != 0)
       {
         CheckExceptions();
       }
@@ -167,13 +164,13 @@ int Interpreter::SingleStepInner()
       // check if we have to generate a FPU unavailable exception or a program exception.
       if ((opinfo->flags & FL_USE_FPU) != 0)
       {
-        PowerPC::ppcState.Exceptions |= EXCEPTION_FPU_UNAVAILABLE;
+        m_ppc_state.Exceptions |= EXCEPTION_FPU_UNAVAILABLE;
         CheckExceptions();
       }
       else
       {
-        RunInterpreterOp(m_prev_inst);
-        if ((PowerPC::ppcState.Exceptions & EXCEPTION_DSI) != 0)
+        RunInterpreterOp(*this, m_prev_inst);
+        if ((m_ppc_state.Exceptions & EXCEPTION_DSI) != 0)
         {
           CheckExceptions();
         }
@@ -189,13 +186,13 @@ int Interpreter::SingleStepInner()
   UpdatePC();
 
   PowerPC::UpdatePerformanceMonitor(opinfo->num_cycles, (opinfo->flags & FL_LOADSTORE) != 0,
-                                    (opinfo->flags & FL_USE_FPU) != 0, PowerPC::ppcState);
+                                    (opinfo->flags & FL_USE_FPU) != 0, m_ppc_state);
   return opinfo->num_cycles;
 }
 
 void Interpreter::SingleStep()
 {
-  auto& core_timing = Core::System::GetInstance().GetCoreTiming();
+  auto& core_timing = m_system.GetCoreTiming();
   auto& core_timing_globals = core_timing.GetGlobals();
 
   // Declare start of new slice
@@ -205,12 +202,12 @@ void Interpreter::SingleStep()
 
   // The interpreter ignores instruction timing information outside the 'fast runloop'.
   core_timing_globals.slice_length = 1;
-  PowerPC::ppcState.downcount = 0;
+  m_ppc_state.downcount = 0;
 
-  if (PowerPC::ppcState.Exceptions != 0)
+  if (m_ppc_state.Exceptions != 0)
   {
     PowerPC::CheckExceptions();
-    PowerPC::ppcState.pc = PowerPC::ppcState.npc;
+    m_ppc_state.pc = m_ppc_state.npc;
   }
 }
 
@@ -225,9 +222,8 @@ constexpr u32 s_show_steps = 300;
 // FastRun - inspired by GCemu (to imitate the JIT so that they can be compared).
 void Interpreter::Run()
 {
-  auto& system = Core::System::GetInstance();
-  auto& core_timing = system.GetCoreTiming();
-  auto& cpu = system.GetCPU();
+  auto& core_timing = m_system.GetCoreTiming();
+  auto& cpu = m_system.GetCPU();
   while (cpu.GetState() == CPU::State::Running)
   {
     // CoreTiming Advance() ends the previous slice and declares the start of the next
@@ -239,27 +235,27 @@ void Interpreter::Run()
     if (Config::Get(Config::MAIN_ENABLE_DEBUGGING))
     {
 #ifdef SHOW_HISTORY
-      s_pc_block_vec.push_back(PowerPC::ppcState.pc);
+      s_pc_block_vec.push_back(m_ppc_state.pc);
       if (s_pc_block_vec.size() > s_show_blocks)
         s_pc_block_vec.erase(s_pc_block_vec.begin());
 #endif
 
       // Debugging friendly version of inner loop. Tries to do the timing as similarly to the
       // JIT as possible. Does not take into account that some instructions take multiple cycles.
-      while (PowerPC::ppcState.downcount > 0)
+      while (m_ppc_state.downcount > 0)
       {
         m_end_block = false;
         int cycles = 0;
         while (!m_end_block)
         {
 #ifdef SHOW_HISTORY
-          s_pc_vec.push_back(PowerPC::ppcState.pc);
+          s_pc_vec.push_back(m_ppc_state.pc);
           if (s_pc_vec.size() > s_show_steps)
             s_pc_vec.erase(s_pc_vec.begin());
 #endif
 
           // 2: check for breakpoint
-          if (PowerPC::breakpoints.IsAddressBreakPoint(PowerPC::ppcState.pc))
+          if (PowerPC::breakpoints.IsAddressBreakPoint(m_ppc_state.pc))
           {
 #ifdef SHOW_HISTORY
             NOTICE_LOG_FMT(POWERPC, "----------------------------");
@@ -280,25 +276,25 @@ void Interpreter::Run()
               NOTICE_LOG_FMT(POWERPC, "PC: {:#010x}", s_pc_vec[j]);
             }
 #endif
-            INFO_LOG_FMT(POWERPC, "Hit Breakpoint - {:08x}", PowerPC::ppcState.pc);
+            INFO_LOG_FMT(POWERPC, "Hit Breakpoint - {:08x}", m_ppc_state.pc);
             cpu.Break();
             if (GDBStub::IsActive())
               GDBStub::TakeControl();
-            if (PowerPC::breakpoints.IsTempBreakPoint(PowerPC::ppcState.pc))
-              PowerPC::breakpoints.Remove(PowerPC::ppcState.pc);
+            if (PowerPC::breakpoints.IsTempBreakPoint(m_ppc_state.pc))
+              PowerPC::breakpoints.Remove(m_ppc_state.pc);
 
             Host_UpdateDisasmDialog();
             return;
           }
           cycles += SingleStepInner();
         }
-        PowerPC::ppcState.downcount -= cycles;
+        m_ppc_state.downcount -= cycles;
       }
     }
     else
     {
       // "fast" version of inner loop. well, it's not so fast.
-      while (PowerPC::ppcState.downcount > 0)
+      while (m_ppc_state.downcount > 0)
       {
         m_end_block = false;
 
@@ -307,36 +303,39 @@ void Interpreter::Run()
         {
           cycles += SingleStepInner();
         }
-        PowerPC::ppcState.downcount -= cycles;
+        m_ppc_state.downcount -= cycles;
       }
     }
   }
 }
 
-void Interpreter::unknown_instruction(UGeckoInstruction inst)
+void Interpreter::unknown_instruction(Interpreter& interpreter, UGeckoInstruction inst)
 {
   ASSERT(Core::IsCPUThread());
-  auto& system = Core::System::GetInstance();
+  auto& system = interpreter.m_system;
   Core::CPUThreadGuard guard(system);
 
+  const u32 last_pc = interpreter.m_last_pc;
   const u32 opcode = PowerPC::HostRead_U32(guard, last_pc);
   const std::string disasm = Common::GekkoDisassembler::Disassemble(opcode, last_pc);
   NOTICE_LOG_FMT(POWERPC, "Last PC = {:08x} : {}", last_pc, disasm);
   Dolphin_Debugger::PrintCallstack(system, guard, Common::Log::LogType::POWERPC,
                                    Common::Log::LogLevel::LNOTICE);
+
+  const auto& ppc_state = interpreter.m_ppc_state;
   NOTICE_LOG_FMT(
       POWERPC,
       "\nIntCPU: Unknown instruction {:08x} at PC = {:08x}  last_PC = {:08x}  LR = {:08x}\n",
-      inst.hex, PowerPC::ppcState.pc, last_pc, LR(PowerPC::ppcState));
+      inst.hex, ppc_state.pc, last_pc, LR(ppc_state));
   for (int i = 0; i < 32; i += 4)
   {
     NOTICE_LOG_FMT(POWERPC, "r{}: {:#010x} r{}: {:#010x} r{}: {:#010x} r{}: {:#010x}", i,
-                   PowerPC::ppcState.gpr[i], i + 1, PowerPC::ppcState.gpr[i + 1], i + 2,
-                   PowerPC::ppcState.gpr[i + 2], i + 3, PowerPC::ppcState.gpr[i + 3]);
+                   ppc_state.gpr[i], i + 1, ppc_state.gpr[i + 1], i + 2, ppc_state.gpr[i + 2],
+                   i + 3, ppc_state.gpr[i + 3]);
   }
   ASSERT_MSG(POWERPC, 0,
              "\nIntCPU: Unknown instruction {:08x} at PC = {:08x}  last_PC = {:08x}  LR = {:08x}\n",
-             inst.hex, PowerPC::ppcState.pc, last_pc, LR(PowerPC::ppcState));
+             inst.hex, ppc_state.pc, last_pc, LR(ppc_state));
   if (system.IsPauseOnPanicMode())
     system.GetCPU().Break();
 }
@@ -359,10 +358,4 @@ const char* Interpreter::GetName() const
 #else
   return "Interpreter32";
 #endif
-}
-
-Interpreter* Interpreter::getInstance()
-{
-  static Interpreter instance;
-  return &instance;
 }
