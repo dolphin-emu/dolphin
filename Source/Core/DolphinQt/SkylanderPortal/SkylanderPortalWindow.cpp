@@ -282,35 +282,27 @@ QGroupBox* SkylanderPortalWindow::CreateSearchGroup()
   auto* search_radio_group = new QGroupBox(tr("Element"));
   auto* search_radio_layout = new QHBoxLayout();
 
-  auto* radio_group_left = new QGroupBox();
   auto* radio_layout_left = new QVBoxLayout();
-  radio_group_left->setFlat(true);
   for (int i = 0; i < 5; i++)
   {
     QRadioButton* radio = new QRadioButton(this);
     radio->setProperty("id", i);
-    connect(radio, &QRadioButton::toggled, this, &SkylanderPortalWindow::UncheckElementRadios);
+    connect(radio, &QRadioButton::toggled, this, &SkylanderPortalWindow::RefreshList);
     m_element_filter[i] = radio;
     radio_layout_left->addWidget(radio);
   }
-  radio_layout_left->setContentsMargins(0,0,0,0);
-  radio_group_left->setLayout(radio_layout_left);
-  search_radio_layout->addWidget(radio_group_left);
+  search_radio_layout->addLayout(radio_layout_left);
 
-  auto* radio_group_right = new QGroupBox();
   auto* radio_layout_right = new QVBoxLayout();
-  radio_group_right->setFlat(true);
   for (int i = 0; i < 5; i++)
   {
     QRadioButton* radio = new QRadioButton(this);
     radio->setProperty("id", 5+i);
-    connect(radio, &QRadioButton::toggled, this, &SkylanderPortalWindow::UncheckElementRadios);
+    connect(radio, &QRadioButton::toggled, this, &SkylanderPortalWindow::RefreshList);
     m_element_filter[5+i] = radio;
     radio_layout_right->addWidget(radio);
   }
-  radio_layout_right->setContentsMargins(0,0,0,0);
-  radio_group_right->setLayout(radio_layout_right);
-  search_radio_layout->addWidget(radio_group_right);
+  search_radio_layout->addLayout(radio_layout_right);
 
   m_element_filter[0]->setText(tr("All"));
   m_element_filter[0]->setChecked(true);
@@ -326,6 +318,7 @@ QGroupBox* SkylanderPortalWindow::CreateSearchGroup()
 
   search_radio_group->setLayout(search_radio_layout);
   search_filters_layout->addWidget(search_radio_group);
+  search_filters_layout->addStretch(50);
 
   search_filters_group->setLayout(search_filters_layout);
   search_layout->addWidget(search_filters_group);
@@ -354,36 +347,6 @@ void SkylanderPortalWindow::SelectPath()
     dir += QString::fromStdString("/");
     m_path_edit->setText(dir);
     m_collection_path = dir;
-  }
-}
-
-void SkylanderPortalWindow::UncheckElementRadios()
-{
-  QRadioButton* next = nullptr;
-  QRadioButton* prev = nullptr;
-  for (auto radio : m_element_filter)
-  {
-    if (radio->isChecked())
-    {
-      if (radio->property("id").toInt() == lastElementID)
-      {
-        prev = radio;
-      }
-      else
-      {
-        next = radio;
-      }
-    }
-  }
-  if (next != nullptr && prev != nullptr)
-  {
-    prev->setAutoExclusive(false);
-    prev->setChecked(false);
-    prev->setAutoExclusive(true);
-  }
-  else if (next != nullptr)
-  {
-    lastElementID = next->property("id").toInt();
   }
 }
 

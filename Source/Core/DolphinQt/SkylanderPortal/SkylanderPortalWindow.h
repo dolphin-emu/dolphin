@@ -78,7 +78,6 @@ private:
   bool eventFilter(QObject* object, QEvent* event) final override;
   void RefreshList();
   void UpdateSelectedVals();
-  void UncheckElementRadios();
   void SelectPath();
   void OnPathChanged();
   QGroupBox* CreatePortalGroup();
