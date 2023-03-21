@@ -40,7 +40,6 @@ PowerPCState ppcState;
 
 static CPUCoreBase* s_cpu_core_base = nullptr;
 static bool s_cpu_core_base_is_injected = false;
-Interpreter* const s_interpreter = Interpreter::getInstance();
 static CoreMode s_mode = CoreMode::Interpreter;
 
 BreakPoints breakpoints;
@@ -220,12 +219,13 @@ static void InitializeCPUCore(CPUCore cpu_core)
 {
   // We initialize the interpreter because
   // it is used on boot and code window independently.
-  s_interpreter->Init();
+  auto& interpreter = Core::System::GetInstance().GetInterpreter();
+  interpreter.Init();
 
   switch (cpu_core)
   {
   case CPUCore::Interpreter:
-    s_cpu_core_base = s_interpreter;
+    s_cpu_core_base = &interpreter;
     break;
 
   default:
@@ -239,7 +239,7 @@ static void InitializeCPUCore(CPUCore cpu_core)
     break;
   }
 
-  s_mode = s_cpu_core_base == s_interpreter ? CoreMode::Interpreter : CoreMode::JIT;
+  s_mode = s_cpu_core_base == &interpreter ? CoreMode::Interpreter : CoreMode::JIT;
 }
 
 const std::vector<CPUCore>& AvailableCPUCores()
@@ -316,7 +316,8 @@ void Shutdown()
 {
   InjectExternalCPUCore(nullptr);
   JitInterface::Shutdown();
-  s_interpreter->Shutdown();
+  auto& interpreter = Core::System::GetInstance().GetInterpreter();
+  interpreter.Shutdown();
   s_cpu_core_base = nullptr;
 }
 
@@ -327,17 +328,19 @@ CoreMode GetMode()
 
 static void ApplyMode()
 {
+  auto& interpreter = Core::System::GetInstance().GetInterpreter();
+
   switch (s_mode)
   {
   case CoreMode::Interpreter:  // Switching from JIT to interpreter
-    s_cpu_core_base = s_interpreter;
+    s_cpu_core_base = &interpreter;
     break;
 
   case CoreMode::JIT:  // Switching from interpreter to JIT.
     // Don't really need to do much. It'll work, the cache will refill itself.
     s_cpu_core_base = JitInterface::GetCore();
     if (!s_cpu_core_base)  // Has a chance to not get a working JIT core if one isn't active on host
-      s_cpu_core_base = s_interpreter;
+      s_cpu_core_base = &interpreter;
     break;
   }
 }
