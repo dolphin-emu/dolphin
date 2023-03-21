@@ -229,6 +229,23 @@ QGroupBox* SkylanderPortalWindow::CreateSearchGroup()
 {
   skylanderList = new QListWidget;
 
+  auto* main_group = new QGroupBox();
+  auto* main_layout = new QVBoxLayout();
+
+  auto* header_group = new QGroupBox();
+  auto* header_layout = new QHBoxLayout();
+
+  header_layout->addWidget(new QLabel(tr("Skylander Collection Path:")));
+  m_path_edit = new QLineEdit;
+  header_layout->addWidget(m_path_edit);
+  m_path_select = new QPushButton(tr("Choose"));
+  connect(m_path_edit, &QLineEdit::editingFinished, this, &SkylanderPortalWindow::OnPathChanged);
+  connect(m_path_select, &QAbstractButton::clicked, this, &SkylanderPortalWindow::SelectPath);
+  header_layout->addWidget(m_path_select);
+
+  header_group->setLayout(header_layout);
+  main_layout->addWidget(header_group);
+
   auto* search_group = new QGroupBox();
   auto* search_layout = new QHBoxLayout();
 
@@ -307,7 +324,26 @@ QGroupBox* SkylanderPortalWindow::CreateSearchGroup()
   search_layout->addWidget(skylanderList);
 
   search_group->setLayout(search_layout);
-  return search_group;
+  main_layout->addWidget(search_group);
+  main_group->setLayout(main_layout);
+
+  return main_group;
+}
+
+void SkylanderPortalWindow::OnPathChanged()
+{
+  m_collection_path = m_path_edit->text();
+}
+
+void SkylanderPortalWindow::SelectPath()
+{
+  QString dir = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
+      this, tr("Select Skylander Collection"), m_collection_path));
+  if (!dir.isEmpty())
+  {
+    m_path_edit->setText(dir);
+    m_collection_path = dir;
+  }
 }
 
 void SkylanderPortalWindow::UncheckElementRadios()
@@ -453,7 +489,7 @@ void SkylanderPortalWindow::CreateSkylander(u8 slot)
 
 void SkylanderPortalWindow::LoadSkylander(u8 slot)
 {
-  QDir collection = QDir(s_last_skylander_path);
+  QDir collection = QDir(m_collection_path);
   QString skyName = tr(IOS::HLE::USB::list_skylanders.at(std::make_pair(sky_id, sky_var)));
   QString file_path;
 
@@ -465,16 +501,16 @@ void SkylanderPortalWindow::LoadSkylander(u8 slot)
     }
   }
 
-  /*const QString file_path =
-      DolphinFileDialog::getOpenFileName(this, tr("Select Skylander File"), s_last_skylander_path,
-                                         QString::fromStdString("Skylander (*.sky);;"));*/
   if (file_path.isEmpty())
   {
-    return;
+    //ask to create skylander file
   }
-  s_last_skylander_path = QFileInfo(file_path).absolutePath() + QString::fromStdString("/");
+  else
+  {
+    s_last_skylander_path = QFileInfo(file_path).absolutePath() + QString::fromStdString("/");
 
-  LoadSkylanderPath(slot, file_path);
+    LoadSkylanderPath(slot, file_path);
+  }
 }
 
 void SkylanderPortalWindow::LoadSkylanderPath(u8 slot, const QString& path)

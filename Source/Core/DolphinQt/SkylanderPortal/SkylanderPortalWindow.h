@@ -77,6 +77,8 @@ private:
   void RefreshList();
   void UpdateSelectedVals();
   void UncheckElementRadios();
+  void SelectPath();
+  void OnPathChanged();
   QGroupBox* CreatePortalGroup();
   QGroupBox* CreateSearchGroup();
 
@@ -84,6 +86,10 @@ private:
   QCheckBox* m_show_button_ingame_checkbox;
   QGroupBox* m_group_skylanders;
   PortalButton* portalButton;
+
+  QString m_collection_path;
+  QLineEdit* m_path_edit;
+  QPushButton* m_path_select;
 
   QCheckBox* m_game_filters[4];
   QRadioButton* m_element_filter[10];
