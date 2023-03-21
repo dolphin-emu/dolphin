@@ -31,6 +31,7 @@
 #include "Core/System.h"
 #include "DolphinQT/RenderWidget.h"
 #include "DolphinQt/MainWindow.h"
+#include "Core/IOS/USB/Emulated/Skylander.h"
 
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/Resources.h"
@@ -346,6 +347,7 @@ QGroupBox* SkylanderPortalWindow::CreateSearchGroup()
 void SkylanderPortalWindow::OnPathChanged()
 {
   m_collection_path = m_path_edit->text();
+  RefreshList();
 }
 
 void SkylanderPortalWindow::SelectPath()
@@ -354,10 +356,11 @@ void SkylanderPortalWindow::SelectPath()
       this, tr("Select Skylander Collection"), m_collection_path));
   if (!dir.isEmpty())
   {
-    dir += QString::fromStdString("/");
+    dir += QString::fromStdString("\\");
     m_path_edit->setText(dir);
     m_collection_path = dir;
   }
+  RefreshList();
 }
 
 void SkylanderPortalWindow::UpdateSelectedVals()
@@ -543,14 +546,22 @@ void SkylanderPortalWindow::LoadSkylander()
   u8 slot = GetCurrentSlot();
 
   QDir collection = QDir(m_collection_path);
-  QString skyName = tr(IOS::HLE::USB::list_skylanders.at(std::make_pair(sky_id, sky_var)));
+  QString skyName;
   QString file_path;
-
-  for (QFileInfo file : collection.entryInfoList(QStringList(tr("*.sky"))))
+  if (m_only_show_collection->isChecked())
   {
-    if (file.baseName()==skyName)
+    file_path = m_collection_path+skylanderList->currentItem()->text();
+  }
+  else
+  {
+    skyName = tr(IOS::HLE::USB::list_skylanders.at(std::make_pair(sky_id, sky_var)));
+
+    for (QFileInfo file : collection.entryInfoList(QStringList(tr("*.sky"))))
     {
-      file_path = file.filePath();
+      if (file.baseName() == skyName)
+      {
+        file_path = file.filePath();
+      }
     }
   }
 
@@ -570,7 +581,7 @@ void SkylanderPortalWindow::LoadSkylander()
   }
   else
   {
-    s_last_skylander_path = QFileInfo(file_path).absolutePath() + QString::fromStdString("/");
+    s_last_skylander_path = QFileInfo(file_path).absolutePath() + QString::fromStdString("\\");
 
     LoadSkylanderPath(slot, file_path);
   }
