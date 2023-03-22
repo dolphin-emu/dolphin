@@ -15,6 +15,7 @@ import android.widget.ImageView
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.dolphinemu.dolphinemu.dialogs.GamePropertiesDialog
 import org.dolphinemu.dolphinemu.utils.CoilUtils
@@ -53,11 +54,12 @@ class GameRowPresenter(private val mActivity: FragmentActivity) : Presenter() {
             // Set the background color of the card
             val background = ContextCompat.getDrawable(context, R.drawable.tv_card_background)
             cardParent.infoAreaBackground = background
-            cardParent.setOnClickListener { view: View ->
+            cardParent.setOnLongClickListener { view: View ->
                 val activity = view.context as FragmentActivity
                 val fragment = GamePropertiesDialog.newInstance(holder.gameFile)
                 activity.supportFragmentManager.beginTransaction()
                     .add(fragment, GamePropertiesDialog.TAG).commit()
+                true
             }
 
             if (GameFileCacheManager.findSecondDisc(gameFile) != null) {
@@ -68,7 +70,7 @@ class GameRowPresenter(private val mActivity: FragmentActivity) : Presenter() {
             }
         }
 
-        mActivity.lifecycleScope.launchWhenStarted {
+        mActivity.lifecycleScope.launch {
             withContext(Dispatchers.IO) {
                 val customCoverUri = CoilUtils.findCustomCover(gameFile)
                 withContext(Dispatchers.Main) {
