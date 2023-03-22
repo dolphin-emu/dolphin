@@ -51,6 +51,43 @@ private:
   bool enabled;
 };
 
+class SkylanderFilters
+{
+public:
+  enum Filter
+  {
+    G_SPYROS_ADV,
+    G_GIANTS,
+    G_SWAP_FORCE,
+    G_TRAP_TEAM,
+    E_MAGIC,
+    E_WATER,
+    E_TECH,
+    E_FIRE,
+    E_EARTH,
+    E_LIFE,
+    E_AIR,
+    E_UNDEAD,
+    E_OTHER
+  };
+
+  SkylanderFilters();
+
+  bool PassesFilter(Filter filter, u16 id, u16 var);
+
+private:
+  struct FilterData
+  {
+    std::vector<u16> ids;
+    std::vector<u16> vars;
+
+    std::vector<std::pair<u16, u16>> includedSkylanders;
+    std::vector<std::pair<u16,u16>> excludedSkylanders;
+  };
+
+  FilterData filters[13];
+};
+
 class SkylanderPortalWindow : public QWidget
 {
   Q_OBJECT
@@ -84,6 +121,7 @@ private:
   QGroupBox* CreateSearchGroup();
   u8 GetCurrentSlot();
   QString GetFilePath(u16 id, u16 var);
+  int GetElementRadio();
 
   QCheckBox* m_enabled_checkbox;
   QCheckBox* m_show_button_ingame_checkbox;
@@ -104,16 +142,6 @@ private:
   QString m_file_path;
   u16 sky_id;
   u16 sky_var;
-};
 
-class CreateSkylanderDialog : public QDialog
-{
-  Q_OBJECT
-
-public:
-  explicit CreateSkylanderDialog(QWidget* parent);
-  QString GetFilePath() const;
-
-protected:
-  QString m_file_path;
+  SkylanderFilters filters;
 };

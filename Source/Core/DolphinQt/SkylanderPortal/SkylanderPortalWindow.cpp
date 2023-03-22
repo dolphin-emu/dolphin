@@ -143,7 +143,7 @@ SkylanderPortalWindow::SkylanderPortalWindow(RenderWidget* render, MainWindow* m
 
   connect(skylanderList, &QListWidget::itemSelectionChanged, this, &SkylanderPortalWindow::UpdateSelectedVals);
 
-  m_collection_path = QString::fromStdString(File::GetUserPath(D_USER_IDX) + "Skylanders");
+  m_collection_path = QString::fromStdString(File::GetUserPath(D_USER_IDX) + "Skylanders/");
   m_path_edit->setText(m_collection_path);
 };
 
@@ -172,6 +172,8 @@ void SkylanderPortalWindow::CreateMainWindow()
   main_layout->addLayout(command_layout);
 
   setLayout(main_layout);
+
+  filters = SkylanderFilters();
 
   RefreshList();
   skylanderList->setCurrentItem(skylanderList->item(0), QItemSelectionModel::Select);
@@ -448,27 +450,57 @@ bool SkylanderPortalWindow::PassesFilter(QString name, u16 id, u16 var)
   bool pass = false;
   if (m_game_filters[0]->isChecked())
   {
-    if (id <= 32)
+    if (filters.PassesFilter(SkylanderFilters::G_SPYROS_ADV, id, var))
       pass = true;
   }
   if (m_game_filters[1]->isChecked())
   {
-    if (id >= 100 && id <= 209)
+    if (filters.PassesFilter(SkylanderFilters::G_GIANTS, id, var))
       pass = true;
   }
   if (m_game_filters[2]->isChecked())
   {
-    if (id >= 1000 && id <= 3303)
+    if (filters.PassesFilter(SkylanderFilters::G_SWAP_FORCE, id, var))
       pass = true;
   }
   if (m_game_filters[3]->isChecked())
   {
-    if (id >= 210 && id <= 543)
+    if (filters.PassesFilter(SkylanderFilters::G_TRAP_TEAM, id, var))
       pass = true;
   }
   if (!name.contains(m_sky_search->text(),Qt::CaseInsensitive))
   {
     pass = false;
+  }
+  switch (GetElementRadio())
+  {
+  case 1:
+    pass = pass&&filters.PassesFilter(SkylanderFilters::E_MAGIC,id,var);
+    break;
+  case 2:
+    pass = pass&&filters.PassesFilter(SkylanderFilters::E_WATER,id,var);
+    break;
+  case 3:
+    pass = pass && filters.PassesFilter(SkylanderFilters::E_TECH, id, var);
+    break;
+  case 4:
+    pass = pass && filters.PassesFilter(SkylanderFilters::E_FIRE, id, var);
+    break;
+  case 5:
+    pass = pass && filters.PassesFilter(SkylanderFilters::E_EARTH, id, var);
+    break;
+  case 6:
+    pass = pass && filters.PassesFilter(SkylanderFilters::E_LIFE, id, var);
+    break;
+  case 7:
+    pass = pass && filters.PassesFilter(SkylanderFilters::E_AIR, id, var);
+    break;
+  case 8:
+    pass = pass && filters.PassesFilter(SkylanderFilters::E_UNDEAD, id, var);
+    break;
+  case 9:
+    pass = pass && filters.PassesFilter(SkylanderFilters::E_OTHER, id, var);
+    break;
   }
   return pass;
 }
@@ -575,6 +607,8 @@ void SkylanderPortalWindow::LoadSkylander()
   QString file_path;
   if (m_only_show_collection->isChecked())
   {
+    if (skylanderList->currentItem() == nullptr)
+      return;
     file_path = m_collection_path+skylanderList->currentItem()->text();
   }
   else
@@ -655,6 +689,8 @@ void SkylanderPortalWindow::ClearSkylander(u8 slot)
       return;
     }
     m_sky_slots[slot].reset();
+    if (m_only_show_collection->isChecked())
+      RefreshList();
     UpdateEdits();
   }
 }
@@ -740,84 +776,141 @@ QString SkylanderPortalWindow::GetFilePath(u16 id, u16 var)
   return file_path;
 }
 
-//CreateSkylanderDialog
-CreateSkylanderDialog::CreateSkylanderDialog(QWidget* parent) : QDialog(parent)
+int SkylanderPortalWindow::GetElementRadio()
 {
-  setWindowTitle(tr("Skylander Creator"));
-  setObjectName(QString::fromStdString("skylanders_creator"));
-  setMinimumSize(QSize(500, 150));
-  auto* layout = new QVBoxLayout;
-
-  auto* combo_skylist = new QComboBox();
-  QStringList filterlist;
-  for (const auto& entry : IOS::HLE::USB::list_skylanders)
+  for (auto radio : m_element_filter)
   {
-    const uint qvar = (entry.first.first << 16) | entry.first.second;
-    combo_skylist->addItem(QString::fromStdString(entry.second), QVariant(qvar));
-    filterlist << QString::fromStdString(entry.second);
-  }
-  combo_skylist->addItem(tr("--Unknown--"), QVariant(0xFFFFFFFF));
-  combo_skylist->setEditable(true);
-  combo_skylist->setInsertPolicy(QComboBox::NoInsert);
-
-  auto* co_compl = new QCompleter(filterlist, this);
-  co_compl->setCaseSensitivity(Qt::CaseInsensitive);
-  co_compl->setCompletionMode(QCompleter::PopupCompletion);
-  co_compl->setFilterMode(Qt::MatchContains);
-  combo_skylist->setCompleter(co_compl);
-
-  layout->addWidget(combo_skylist);
-
-  auto* line = new QFrame();
-  line->setFrameShape(QFrame::HLine);
-  line->setFrameShadow(QFrame::Sunken);
-  layout->addWidget(line);
-
-  auto* hbox_idvar = new QHBoxLayout();
-  auto* label_id = new QLabel(tr("ID:"));
-  auto* label_var = new QLabel(tr("Variant:"));
-  auto* edit_id = new QLineEdit(tr("0"));
-  auto* edit_var = new QLineEdit(tr("0"));
-  auto* rxv =
-      new QRegularExpressionValidator(QRegularExpression(QString::fromStdString("\\d*")), this);
-  edit_id->setValidator(rxv);
-  edit_var->setValidator(rxv);
-  hbox_idvar->addWidget(label_id);
-  hbox_idvar->addWidget(edit_id);
-  hbox_idvar->addWidget(label_var);
-  hbox_idvar->addWidget(edit_var);
-  layout->addLayout(hbox_idvar);
-
-  auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-  buttons->button(QDialogButtonBox::Ok)->setText(tr("Create"));
-  layout->addWidget(buttons);
-
-  setLayout(layout);
-
-  connect(combo_skylist, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index) {
-    const u32 sky_info = combo_skylist->itemData(index).toUInt();
-    if (sky_info != 0xFFFFFFFF)
+    if (radio->isChecked())
     {
-      const u16 sky_id = sky_info >> 16;
-      const u16 sky_var = sky_info & 0xFFFF;
-
-      edit_id->setText(QString::number(sky_id));
-      edit_var->setText(QString::number(sky_var));
+      return radio->property("id").toInt();
     }
-  });
-
-  // accept code used to be here
-
-  connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
-
-  connect(co_compl, QOverload<const QString&>::of(&QCompleter::activated),
-          [=](const QString& text) {
-            combo_skylist->setCurrentText(text);
-            combo_skylist->setCurrentIndex(combo_skylist->findText(text));
-          });
+  }
+  return -1;
 }
 
-QString CreateSkylanderDialog::GetFilePath() const
+//Skylander filters
+SkylanderFilters::SkylanderFilters()
 {
-  return m_file_path;
+  //Spyro's adventure
+  FilterData spyroAdv = FilterData();
+  spyroAdv.vars = {0x0000};
+  spyroAdv.ids = {
+      404, 416, 419, 430,  // legendaries
+      514, 505, 519, 526   // sidekicks
+  };
+  for (int i = 0; i <= 32; i++)
+  {
+    spyroAdv.ids.push_back(i);  // standard chars
+  }
+  for (int i = 200; i <= 207; i++)  //abilities
+  {
+    spyroAdv.ids.push_back(i); 
+  }
+  for (int i = 300; i <= 303; i++)  //adventure packs
+  {
+    spyroAdv.ids.push_back(i);
+  }
+  filters[G_SPYROS_ADV] = spyroAdv;
+
+  //magic
+  FilterData magic = FilterData();
+  magic.ids = {
+      16, 18, 23, 17,  // standard
+      28, 416          // special
+  };
+  filters[E_MAGIC] = magic;
+
+  //fire
+  FilterData fire = FilterData();
+  fire.ids = {
+      10, 8, 11, 9  //standard
+  };
+  filters[E_FIRE] = fire;
+
+  // earth
+  FilterData earth = FilterData();
+  earth.ids = {
+      4, 6, 7, 5,  // standard
+      404, 505  //special
+  };
+  filters[E_EARTH] = earth;
+
+  //tech
+  FilterData tech = FilterData();
+  tech.ids = {
+      22,   21,  20, 19,  // standard
+      419, 519        // special
+  };
+  filters[E_TECH] = tech;
+
+  // water
+  FilterData water = FilterData();
+  water.ids = {
+      15, 12, 13, 14,  // standard
+      514        // special
+  };
+  filters[E_WATER] = water;
+
+  // undead
+  FilterData undead = FilterData();
+  undead.ids = {
+      29, 32, 30, 31,  // standard
+      430              // special
+  };
+  filters[E_UNDEAD] = undead;
+
+  // air
+  FilterData air = FilterData();
+  air.ids = {
+      0, 2, 1, 3,  // standard
+  };
+  filters[E_AIR] = air;
+
+  //life
+  FilterData life = FilterData();
+  life.ids = {
+      24, 27, 26, 25,  // standard
+      526              // special
+  };
+  filters[E_LIFE] = life;
+
+  // other
+  FilterData other = FilterData();
+  other.ids = {300, 301, 302, 303,  // adventure packs
+               200, 203, 202, 201,  // items
+               205, 207, 204, 304, 206};
+  filters[E_OTHER] = other;
+}
+
+bool SkylanderFilters::PassesFilter(Filter filter, u16 id, u16 var)
+{
+  FilterData* data = &filters[filter];
+  std::pair<u16, u16> ids = std::make_pair<>(id,var);
+
+  if (std::find(data->includedSkylanders.begin(),
+      data->includedSkylanders.end(), ids) != data->includedSkylanders.end())
+  {
+    return true;
+  }
+  else if (std::find(data->excludedSkylanders.begin(), data->excludedSkylanders.end(), ids) !=
+           data->excludedSkylanders.end())
+  {
+    return false;
+  }
+
+  if (std::find(data->ids.begin(), data->ids.end(), id) != data->ids.end())
+  {
+    if (data->vars.size() > 0)
+    {
+      if (std::find(data->vars.begin(), data->vars.end(), var) != data->vars.end())
+      {
+        return true;
+      }
+    }
+    else
+    {
+      return true;
+    }
+  }
+  return false;
 }
