@@ -19,5 +19,5 @@ OSMinimumVersionWin11=10.0.22000.0
 //   VCToolsVersion=14.33.31629
 // We're really looking for "14.32.31332.0" (because that's what will appear in the registry once
 // installed), NOT the other values!
-VCToolsVersion=${VC_TOOLS_VERSION}
+VCToolsVersion=14.34.31931.0
 VCToolsUpdateURL=https://aka.ms/vs/17/release/vc_redist.x64.exe
