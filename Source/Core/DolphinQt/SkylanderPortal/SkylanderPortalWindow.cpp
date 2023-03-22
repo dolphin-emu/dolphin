@@ -793,92 +793,189 @@ SkylanderFilters::SkylanderFilters()
 {
   //Spyro's adventure
   FilterData spyroAdv = FilterData();
-  spyroAdv.vars = {0x0000};
-  spyroAdv.ids = {
+  spyroAdv.varSets[0] = {0x0000};
+  spyroAdv.idSets[0] = {
       404, 416, 419, 430,  // legendaries
       514, 505, 519, 526   // sidekicks
   };
   for (int i = 0; i <= 32; i++)
   {
-    spyroAdv.ids.push_back(i);  // standard chars
+    spyroAdv.idSets[0].push_back(i);  // standard chars
   }
   for (int i = 200; i <= 207; i++)  //abilities
   {
-    spyroAdv.ids.push_back(i); 
+    spyroAdv.idSets[0].push_back(i); 
   }
   for (int i = 300; i <= 303; i++)  //adventure packs
   {
-    spyroAdv.ids.push_back(i);
+    spyroAdv.idSets[0].push_back(i);
   }
   filters[G_SPYROS_ADV] = spyroAdv;
 
+  // Giants
+  FilterData giants = FilterData();
+  for (int i = 100; i <= 115; i++)
+  {
+    giants.idSets[0].push_back(i);  // giants chars
+  }
+  giants.idSets[0].push_back(208);  //magic items
+  giants.idSets[0].push_back(209);
+  giants.idSets[0].push_back(540);  //sidekicks
+  giants.idSets[0].push_back(542);
+  giants.idSets[0].push_back(541);
+  giants.idSets[0].push_back(543); 
+
+  giants.varSets[1] = {0x1801, 0x1206, 0x1C02, 0x1C03};
+  for (int i = 0; i <= 32; i++)
+  {
+    giants.idSets[1].push_back(i);  // lightcore and series2
+  }
+  giants.includedSkylanders.push_back(std::make_pair<>(201, 0x2000));  // platinum treasure
+  filters[G_GIANTS] = giants;
+
+  // Swap force
+  FilterData swapForce = FilterData();
+  for (int i = 1000; i <= 3204; i++)
+  {
+    swapForce.idSets[0].push_back(i);  // swapForce chars
+  }
+  for (int i = 3300; i <= 3303; i++)
+  {
+    swapForce.idSets[0].push_back(i);  //adventure
+  }
+
+  swapForce.varSets[1] = {0x2805, 0x2C02};
+  for (int i = 0; i <= 111; i++)
+  {
+    swapForce.idSets[1].push_back(i);  // adventure
+  }
+  filters[G_SWAP_FORCE] = swapForce;
+
   //magic
   FilterData magic = FilterData();
-  magic.ids = {
+  magic.idSets[0] = {
+    //spyros adventure
       16, 18, 23, 17,  // standard
-      28, 416          // special
+      28, 416,         // special
+    //giants
+      109, 108, 542,
+      //swapforce
+      1008,2008,1009,2009,
+      3008,3009
   };
   filters[E_MAGIC] = magic;
 
   //fire
   FilterData fire = FilterData();
-  fire.ids = {
-      10, 8, 11, 9  //standard
+  fire.idSets[0] = {
+    // spyros adventure
+      10, 8, 11, 9,  //standard
+    //giants
+      104, 105,
+      //swapforce
+      1004, 2004, 1005,2005,
+      3004,3005
   };
   filters[E_FIRE] = fire;
 
   // earth
   FilterData earth = FilterData();
-  earth.ids = {
+  earth.idSets[0] = {
+    //spyro's adventure
       4, 6, 7, 5,  // standard
-      404, 505  //special
+      404, 505,  //special
+    //giants
+      102, 103,
+      //swapforce
+      1003,2003,1002,2002,
+      3003,3002
   };
   filters[E_EARTH] = earth;
 
   //tech
   FilterData tech = FilterData();
-  tech.ids = {
+  tech.idSets[0] = {
+    //spyro's adventure
       22,   21,  20, 19,  // standard
-      419, 519        // special
+      419, 519,        // special
+    // giants
+      110,111,
+      //swapforce
+      1010,2010,1011,2011,
+      3010,3011
   };
   filters[E_TECH] = tech;
 
   // water
   FilterData water = FilterData();
-  water.ids = {
+  water.idSets[0] = {
+    //spyro's adventure
       15, 12, 13, 14,  // standard
-      514        // special
+      514,        // special
+    // giants
+      107,106,541,
+      //swapforce
+      1015,2015,1014,2014,
+      3014,3015
   };
   filters[E_WATER] = water;
 
   // undead
   FilterData undead = FilterData();
-  undead.ids = {
+  undead.idSets[0] = {
+    // spyro's adventure
       29, 32, 30, 31,  // standard
-      430              // special
+      430,              // special
+    // giants
+      114, 115,543,
+      //swapforce
+      1012,2012,1013,2013,
+      3013,3012
   };
   filters[E_UNDEAD] = undead;
 
   // air
   FilterData air = FilterData();
-  air.ids = {
+  air.idSets[0] = {
+    // spyro's adventure
       0, 2, 1, 3,  // standard
+    // giants
+      101,100,
+      //swapforce
+      1000,2000,1001,2001,
+      3001,3000
   };
   filters[E_AIR] = air;
 
   //life
   FilterData life = FilterData();
-  life.ids = {
+  life.idSets[0] = {
+    // spyro's adventure
       24, 27, 26, 25,  // standard
-      526              // special
+      526,              // special
+    // giants
+      112,113,540,
+      //swapforce
+      1007,2007,1006,2006,
+      3006,3007
   };
   filters[E_LIFE] = life;
 
   // other
   FilterData other = FilterData();
-  other.ids = {300, 301, 302, 303,  // adventure packs
-               200, 203, 202, 201,  // items
-               205, 207, 204, 304, 206};
+  other.idSets[0] = {
+    //spyro's adventure
+      300, 301, 302, 303,  // adventure packs
+      200, 203, 202, 201,  // items
+      205, 207, 204, 304,
+      206,
+    //giants
+      208,209,
+      //swapforce
+      3300,3301,3302,3303,  //adventure
+      3200,3201,3202,3203,  //items
+      3204
+  };
   filters[E_OTHER] = other;
 }
 
@@ -898,18 +995,21 @@ bool SkylanderFilters::PassesFilter(Filter filter, u16 id, u16 var)
     return false;
   }
 
-  if (std::find(data->ids.begin(), data->ids.end(), id) != data->ids.end())
+  for (int i = 0; i < 10; i++) 
   {
-    if (data->vars.size() > 0)
+    if (std::find(data->idSets[i].begin(), data->idSets[i].end(), id) != data->idSets[i].end())
     {
-      if (std::find(data->vars.begin(), data->vars.end(), var) != data->vars.end())
+      if (data->varSets[i].size() > 0)
+      {
+        if (std::find(data->varSets[i].begin(), data->varSets[i].end(), var) != data->varSets[i].end())
+        {
+          return true;
+        }
+      }
+      else
       {
         return true;
       }
-    }
-    else
-    {
-      return true;
     }
   }
   return false;

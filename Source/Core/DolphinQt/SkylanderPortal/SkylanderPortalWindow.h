@@ -78,8 +78,8 @@ public:
 private:
   struct FilterData
   {
-    std::vector<u16> ids;
-    std::vector<u16> vars;
+    std::vector<u16> idSets[10];
+    std::vector<u16> varSets[10];
 
     std::vector<std::pair<u16, u16>> includedSkylanders;
     std::vector<std::pair<u16,u16>> excludedSkylanders;
