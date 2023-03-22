@@ -123,7 +123,7 @@ if __name__ == "__main__":
 
     threading.Thread(target=http_server, daemon=True).start()
 
-    with tempfile.TemporaryDirectory() as tmp_dir:
+    with tempfile.TemporaryDirectory(suffix=" ¿ 😎") as tmp_dir:
         tmp_dir = Path(tmp_dir)
 
         tmp_dolphin = tmp_dir.joinpath("dolphin")
@@ -143,6 +143,7 @@ if __name__ == "__main__":
         # XXX copies from just-created dir so Dolphin.ini is kept
         shutil.copytree(tmp_dolphin, tmp_dolphin_next)
         tmp_dolphin_next.joinpath("updater-test-file").write_text("test")
+        tmp_dolphin_next.joinpath("updater-test-filἑ").write_text("test")
         with tmp_dolphin_next.joinpath("build_info.txt").open("a") as f:
             print("test", file=f)
         for ext in ("exe", "dll"):
