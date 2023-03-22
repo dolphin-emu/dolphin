@@ -851,6 +851,29 @@ SkylanderFilters::SkylanderFilters()
   }
   filters[G_SWAP_FORCE] = swapForce;
 
+  //Trap team
+  FilterData trapTeam = FilterData();
+  for (int i = 210; i <= 484; i++)
+  {
+    trapTeam.idSets[0].push_back(i);  // trapTeam chars
+  }
+  trapTeam.idSets[0].push_back(502);  //sidekicks
+  trapTeam.idSets[0].push_back(506);
+  trapTeam.idSets[0].push_back(510);
+  trapTeam.idSets[0].push_back(504);
+  trapTeam.idSets[0].push_back(508);
+  trapTeam.idSets[0].push_back(509);
+  trapTeam.idSets[0].push_back(503);
+  trapTeam.idSets[0].push_back(507);
+
+  trapTeam.varSets[1] = {0x3805}; //returning chars
+  trapTeam.idSets[1].push_back(108);
+  trapTeam.idSets[1].push_back(100);
+  trapTeam.idSets[1].push_back(14);
+  trapTeam.idSets[1].push_back(113);
+  trapTeam.idSets[1].push_back(3004);
+  filters[G_TRAP_TEAM] = trapTeam;
+
   //magic
   FilterData magic = FilterData();
   magic.idSets[0] = {
