@@ -145,10 +145,8 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
     regs_in_use[DecodeReg(ARM64Reg::W0)] = 0;
     regs_in_use[DecodeReg(ARM64Reg::W30)] = 0;
     regs_in_use[DecodeReg(dest_reg)] = 0;
-    auto& system = Core::System::GetInstance();
-    auto& memory = system.GetMemory();
-    MMIOLoadToReg(memory.GetMMIOMapping(), this, &m_float_emit, regs_in_use, fprs_in_use, dest_reg,
-                  mmio_address, flags);
+    MMIOLoadToReg(m_system, m_system.GetMemory().GetMMIOMapping(), this, &m_float_emit, regs_in_use,
+                  fprs_in_use, dest_reg, mmio_address, flags);
     addr_reg_set = false;
   }
   else
@@ -319,10 +317,8 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
     regs_in_use[DecodeReg(ARM64Reg::W1)] = 0;
     regs_in_use[DecodeReg(ARM64Reg::W30)] = 0;
     regs_in_use[DecodeReg(RS)] = 0;
-    auto& system = Core::System::GetInstance();
-    auto& memory = system.GetMemory();
-    MMIOWriteRegToAddr(memory.GetMMIOMapping(), this, &m_float_emit, regs_in_use, fprs_in_use, RS,
-                       mmio_address, flags);
+    MMIOWriteRegToAddr(m_system, m_system.GetMemory().GetMMIOMapping(), this, &m_float_emit,
+                       regs_in_use, fprs_in_use, RS, mmio_address, flags);
     addr_reg_set = false;
   }
   else
@@ -731,7 +727,7 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   // Translate effective address to physical address.
   const u8* loop_start = GetCodePtr();
   FixupBranch bat_lookup_failed;
-  if (PowerPC::ppcState.msr.IR)
+  if (m_ppc_state.msr.IR)
   {
     bat_lookup_failed =
         BATAddressLookup(physical_addr, effective_addr, WA, PowerPC::ibat_table.data());
@@ -760,7 +756,7 @@ void JitArm64::dcbx(UGeckoInstruction inst)
 
   SwitchToFarCode();
   SetJumpTarget(invalidate_needed);
-  if (PowerPC::ppcState.msr.IR)
+  if (m_ppc_state.msr.IR)
     SetJumpTarget(bat_lookup_failed);
 
   BitSet32 gprs_to_push = gpr.GetCallerSavedUsed();
