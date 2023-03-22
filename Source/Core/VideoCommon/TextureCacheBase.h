@@ -4,6 +4,7 @@
 #pragma once
 
 #include <array>
+#include <filesystem>
 #include <fmt/format.h>
 #include <map>
 #include <memory>
@@ -35,7 +36,8 @@ struct VideoConfig;
 namespace VideoCommon
 {
 class CustomTextureData;
-}
+class GameTextureAsset;
+}  // namespace VideoCommon
 
 constexpr std::string_view EFB_DUMP_PREFIX = "efb1";
 constexpr std::string_view XFB_DUMP_PREFIX = "xfb1";
@@ -113,6 +115,12 @@ struct fmt::formatter<EFBCopyParams>
   }
 };
 
+struct CachedTextureAsset
+{
+  std::shared_ptr<VideoCommon::GameTextureAsset> m_asset;
+  std::optional<std::filesystem::file_time_type> m_last_write_time;
+};
+
 struct TCacheEntry
 {
   // common members
@@ -163,6 +171,8 @@ struct TCacheEntry
   u32 pending_efb_copy_height = 0;
 
   std::string texture_info_name = "";
+
+  CachedTextureAsset linked_asset;
 
   explicit TCacheEntry(std::unique_ptr<AbstractTexture> tex,
                        std::unique_ptr<AbstractFramebuffer> fb);
@@ -336,6 +346,10 @@ private:
   using TexHashCache = std::multimap<u64, RcTcacheEntry>;
 
   using TexPool = std::unordered_multimap<TextureConfig, TexPoolEntry>;
+
+  static bool DidLinkedAssetsChange(const TCacheEntry& entry);
+
+  TCacheEntry* LoadImpl(const TextureInfo& texture_info, bool force_reload);
 
   bool CreateUtilityTextures();
 
