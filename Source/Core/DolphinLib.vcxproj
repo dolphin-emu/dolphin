@@ -83,6 +83,7 @@
     <ClInclude Include="Core\Scripting\InternalAPIModules\ImportAPI.h" />
     <ClInclude Include="Core\Scripting\InternalAPIModules\WiiAPI.h" />
     <ClInclude Include="Core\Scripting\LanguageDefinitions\DefinedScriptingLanguagesEnum.h" />
+    <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\BitModuleImporter.h" />
     <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\PythonScriptContext.h" />
     <ClInclude Include="Core\Scripting\ScriptContext.h" />
     <ClInclude Include="Core\Scripting\InternalAPIModules\BitAPI.h" />
@@ -125,6 +126,8 @@
     <ClCompile Include="Core\Scripting\HelperClasses\ArgHolder.cpp" />
     <ClCompile Include="Core\Scripting\InternalAPIModules\WiiAPI.cpp" />
     <ClCompile Include="Core\Scripting\LanguageDefinitions\Lua\LuaScriptContext.cpp" />
+    <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\BitModuleImporter.cpp" />
+    <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\PythonScriptContext.cpp" />
     <ClCompile Include="Core\Scripting\ScriptUtilities.cpp" />
   </ItemGroup>
   <UsingTask TaskName="GetProductVersion" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">

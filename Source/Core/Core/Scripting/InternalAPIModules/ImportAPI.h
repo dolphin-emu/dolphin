@@ -9,7 +9,8 @@ namespace Scripting::ImportAPI
 {
 extern const char* class_name;
 
-ClassMetadata GetImportApiClassData(const std::string& api_version);
+ClassMetadata GetClassMetadataForVersion(const std::string& api_version);
+ClassMetadata GetAllClassMetadata();
 
 ArgHolder ImportCommon(ScriptContext* current_script, std::string api_name,
                         std::string version_number);

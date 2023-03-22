@@ -44,11 +44,17 @@ static std::array all_memory_functions_metadata_list = {
   FunctionMetadata("write_bytes", "1.0", "write_bytes(addressToValueMap)", WriteBytes, ArgTypeEnum::VoidType, {ArgTypeEnum::AddressToByteMap}),
 };
 
-ClassMetadata GetMemoryApiClassData(const std::string& api_version)
+ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
 {
   std::unordered_map<std::string, std::string> deprecated_functions_map;
   return {class_name, GetLatestFunctionsForVersion(all_memory_functions_metadata_list, api_version, deprecated_functions_map)};
 }
+
+ ClassMetadata GetAllClassMetadata()
+{
+  return {class_name, GetAllFunctions(all_memory_functions_metadata_list)};
+}
+
 ArgHolder ReadU8(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   long long address = args_list[0].long_long_val;

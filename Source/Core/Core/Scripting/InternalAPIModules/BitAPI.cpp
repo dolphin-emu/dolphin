@@ -33,10 +33,15 @@ static std::array all_bit_functions_metadata_list = {
                      {ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),
 };
 
- ClassMetadata GetBitApiClassData(const std::string& api_version)
+ ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
 {
   std::unordered_map<std::string, std::string> deprecated_functions_map;
   return {class_name, GetLatestFunctionsForVersion(all_bit_functions_metadata_list, api_version, deprecated_functions_map)};
+}
+
+ ClassMetadata GetAllClassMetadata()
+{
+  return {class_name, GetAllFunctions(all_bit_functions_metadata_list)};
 }
 
 ArgHolder BitwiseAnd(ScriptContext* current_script, std::vector<ArgHolder>& args_list)

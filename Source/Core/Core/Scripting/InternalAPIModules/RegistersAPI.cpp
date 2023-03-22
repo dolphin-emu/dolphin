@@ -45,10 +45,15 @@ static std::array all_registers_functions_metadata_list = {
   FunctionMetadata("writeBytesToRegister", "1.0", "writeBytesToRegister(\"R5\", indexToByteMap, 1)", WriteBytesToRegister, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::AddressToByteMap, ArgTypeEnum::LongLong})
 };
 
- ClassMetadata GetRegistersApiClassData(const std::string& api_version)
+ ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
 {
   std::unordered_map<std::string, std::string> deprecated_functions_map;
   return {class_name, GetLatestFunctionsForVersion(all_registers_functions_metadata_list, api_version, deprecated_functions_map)};
+}
+
+ClassMetadata GetAllClassMetadata()
+{
+  return {class_name, GetAllFunctions(all_registers_functions_metadata_list)};
 }
 
 // Currently supported registers are:

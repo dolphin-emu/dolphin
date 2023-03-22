@@ -33,10 +33,15 @@ static std::string play_movie_name;
 static std::optional<std::string> blank_string;
 static std::string save_movie_name;
 
- ClassMetadata GetEmuApiClassData(const std::string& api_version)
+ ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
 {
   std::unordered_map<std::string, std::string> deprecated_functions_map;
   return {class_name, GetLatestFunctionsForVersion(all_emu_functions_metadata_list, api_version, deprecated_functions_map)};
+}
+
+ ClassMetadata GetAllClassMetadata()
+{
+  return {class_name, GetAllFunctions(all_emu_functions_metadata_list)};
 }
 
 void StatePauseFunction()

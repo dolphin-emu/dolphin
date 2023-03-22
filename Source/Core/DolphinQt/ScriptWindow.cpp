@@ -90,7 +90,7 @@ void ScriptWindow::LoadScriptFunction()
   QString path = DolphinFileDialog::getOpenFileName(
       this, tr("Select a File"),
       settings.value(QStringLiteral("scriptwindow/lastdir"), QString{}).toString(),
-      QStringLiteral("%1 (*.lua *.txt);;%2 (*)").arg(tr("All lua/txt files")).arg(tr("All Files")));
+      QStringLiteral("%1 (*.lua *.txt *.py);;%3 (*)").arg(tr("All Lua/txt files")).arg(tr("All Python files")).arg(tr("All Files")));
 
   if (!path.isEmpty())
   {
@@ -121,6 +121,11 @@ void ScriptWindow::PlayScriptFunction()
       script_name_list_widget_ptr->currentItem()->text().toStdString();
   script_start_or_stop_lock.unlock();
 
+  if (current_script_name.substr(current_script_name.length() - 3) == ".py")
+    Scripting::ScriptUtilities::StartScript(
+        current_row, current_script_name, &callback_print_function,
+        &finished_script_callback_function, DefinedScriptingLanguagesEnum::PYTHON);
+  else
   Scripting::ScriptUtilities::StartScript(current_row, current_script_name, &callback_print_function,
                                           &finished_script_callback_function,
                                           DefinedScriptingLanguagesEnum::LUA);

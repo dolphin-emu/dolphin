@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PYTHON_SCRIPT_CONTEXT
+#define PYTHON_SCRIPT_CONTEXT
 #include <Python.h>
 #include <functional>
 #include <thread>
@@ -11,42 +12,18 @@
 namespace Scripting::Python
 {
 extern bool python_initialized;
+extern const char* THIS_VARIABLE_NAME;  // Making this something unlikely to overlap with a user-defined global.
 
 class PythonScriptContext : public ScriptContext
 {
 public:
-  PyThreadState* main_python_thread;
-  PyThreadState* frame_callback_python_thread;
-  PyThreadState* instruction_address_hit_callback_python_thread;
-  PyThreadState* memory_address_read_from_callback_python_thread;
-  PyThreadState* memory_address_written_to_callback_python_thread;
-  PyThreadState* gc_controller_input_polled_callback_python_thread;
-  PyThreadState* wii_input_polled_callback_python_thread;
-  PyThreadState* button_callback_thread;
-
-  PyThreadState* current_thread;
-
-
-  std::thread main_thread;
-  std::thread frame_callback_thread;
-  std::thread instruction_address_hit_thread;
-  std::thread memory_address_read_from_callback_thread;
-  std::thread memory_address_written_to_callback_thread;
-  std::thread gc_controller_input_polled_thread;
-  std::thread wii_input_polled_callback_thread;
-  std::thread button_callback_thread;
-
-  std::condition_variable thread_running_signal;
-  std::mutex thread_lock;
-  bool is_thread_running;
-
+  PyThreadState* python_thread;
 
   std::vector<PyObject*> frame_callbacks;
   std::vector<PyObject*> gc_controller_input_polled_callbacks;
   std::vector<PyObject*> wii_controller_input_polled_callbacks;
 
-  int index_of_next_frame_callback_to_execute;
-
+  std::vector<PyObject*> list_of_imported_modules;
 
   std::unordered_map<size_t, std::vector<PyObject*>> map_of_instruction_address_to_python_callbacks;
 
@@ -106,6 +83,15 @@ public:
     return false;
   }
 
+  const char* THIS_MODULE_NAME = "ThisPointerModule";
+
+    PyModuleDef ThisModule = {
+      PyModuleDef_HEAD_INIT, THIS_MODULE_NAME, /* name of module */
+      nullptr,                                    /* module documentation, may be NULL */
+      sizeof(long long),                          /* size of per-interpreter state of the module,
+                                                                  or -1 if the module keeps state in global variables. */
+      nullptr};
+
   PythonScriptContext(int new_unique_script_identifier, const std::string& new_script_filename,
                    std::vector<ScriptContext*>* new_pointer_to_list_of_all_scripts,
                    const std::string& api_version,
@@ -120,29 +106,33 @@ public:
       Py_Initialize();
       python_initialized = true;
     }
-  PyInterpreterState* interpretter = PyInterpreterState_New();
-  main_python_thread = PyThreadState_New(interpretter);
-  frame_callback_python_thread = PyThreadState_New(interpretter);
-  instruction_address_hit_callback_python_thread = PyThreadState_New(interpretter);
-  memory_address_read_from_callback_python_thread = PyThreadState_New(interpretter);
-  memory_address_written_to_callback_python_thread = PyThreadState_New(interpretter);
-  gc_controller_input_polled_callback_python_thread = PyThreadState_New(interpretter);
-  wii_input_polled_callback_python_thread = PyThreadState_New(interpretter);
-  button_callback_thread = PyThreadState_New(interpretter);
 
-  current_thread = main_python_thread;
+  PyEval_AcquireLock();
+  python_thread = Py_NewInterpreter();
+  long long this_address = (long long)this;
+  *((long long*)(PyModule_GetState(PyModule_Create(&ThisModule)))) = this_address;
+
   current_script_call_location = ScriptCallLocations::FromScriptStartup;
-
-  main_thread = std::thread(StartMainScript, new_script_filename);
-
-   
-  
+  this->ImportModule("dolphin", api_version);
+  this->ImportModule("OnFrameStart", api_version);
+  this->ImportModule("OnGCControllerPolled", api_version);
+  this->ImportModule("OnInstructionHit", api_version);
+  this->ImportModule("OnMemoryAddressReadFrom", api_version);
+  this->ImportModule("OnMemoryAddressWrittenTo", api_version);
+  this->ImportModule("OnWiiInputPolled", api_version);
+  StartMainScript(new_script_filename.c_str());
+  PyEval_ReleaseLock();
   }
+
+
 
   static void StartMainScript(const char* script_name)
   {
   PyRun_AnyFileExFlags(nullptr, script_name, true, nullptr);
   }
+
+  static PyObject* RunFunction(PyObject* self, PyObject* args, std::string class_name,
+                               FunctionMetadata* functionMetadata);
 
   virtual ~PythonScriptContext() {}
   virtual void ImportModule(const std::string& api_name, const std::string& api_version);
@@ -212,3 +202,4 @@ private:
 };
 
 }  // namespace Scripting::Python
+#endif

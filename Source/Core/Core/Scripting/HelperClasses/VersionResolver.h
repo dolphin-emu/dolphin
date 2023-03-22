@@ -63,4 +63,10 @@ std::vector<FunctionMetadata> GetLatestFunctionsForVersion(const std::array<Func
 
   return final_list_of_functions_for_version;
 }
+
+template <size_t array_size>
+std::vector<FunctionMetadata> GetAllFunctions(const std::array<FunctionMetadata, array_size> all_functions)
+{
+  return std::vector<FunctionMetadata>(&all_functions[0], &all_functions[0] + array_size);
+}
 }  // namespace Scripting

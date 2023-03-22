@@ -7,11 +7,10 @@ namespace Scripting::GraphicsAPI
 {
 
 extern const char* class_name;
-extern long long checkbox_number;
-extern long long radio_group_number;
-extern long long offset_into_radio_group;
 
-ClassMetadata GetGraphicsApiClassData(const std::string& api_version);
+ClassMetadata GetClassMetadataForVersion(const std::string& api_version);
+ClassMetadata GetAllClassMetadata();
+
 ArgHolder DrawLine(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder DrawEmptyRectangle(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder DrawFilledRectangle(ScriptContext* current_script, std::vector<ArgHolder>& args_list);

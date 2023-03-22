@@ -11,7 +11,8 @@ namespace Scripting::RegistersAPI
 
 extern const char* class_name;
 
-ClassMetadata GetRegistersApiClassData(const std::string& api_version);
+ClassMetadata GetClassMetadataForVersion(const std::string& api_version);
+ClassMetadata GetAllClassMetadata();
 
 ArgHolder GetU8FromRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder GetU16FromRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list);

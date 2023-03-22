@@ -27,14 +27,18 @@ std::array<Movie::ControllerState, 4> new_controller_inputs{};
 std::array<Movie::ControllerState, 4> controller_inputs_on_last_frame{};
 int current_controller_number_polled = -1;
 
-ClassMetadata GetGameCubeControllerApiClassData(const std::string& api_version)
+ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
 {
   std::unordered_map<std::string, std::string> deprecated_functions_map;
   return {class_name, GetLatestFunctionsForVersion(all_game_cube_controller_functions_metadata_list, api_version, deprecated_functions_map)};
 }
 
-ArgHolder
-GetCurrentPortNumberOfPoll(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ ClassMetadata GetAllClassMetadata()
+{
+  return {class_name, GetAllFunctions(all_game_cube_controller_functions_metadata_list)};
+}
+
+ArgHolder GetCurrentPortNumberOfPoll(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   return CreateLongLongArgHolder(current_controller_number_polled + 1);
 }

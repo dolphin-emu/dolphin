@@ -1,6 +1,7 @@
 #include "Core/Scripting/ScriptUtilities.h"
 #include "Core/Scripting/InternalAPIModules/GraphicsAPI.h"
 #include "Core/Scripting/LanguageDefinitions/Lua/LuaScriptContext.h"
+#include "Core/Scripting/LanguageDefinitions/Python/PythonScriptContext.h"
 
 namespace Scripting::ScriptUtilities {
 
@@ -34,6 +35,12 @@ void StartScript(int unique_script_identifier, const std::string& script_filenam
   if (language == DefinedScriptingLanguagesEnum::LUA)
   {
     global_pointer_to_list_of_all_scripts->push_back(new Scripting::Lua::LuaScriptContext(unique_script_identifier, script_filename, global_pointer_to_list_of_all_scripts, newest_api_version, new_print_callback, new_script_end_callback));
+  }
+  else if (language == DefinedScriptingLanguagesEnum::PYTHON)
+  {
+    global_pointer_to_list_of_all_scripts->push_back(new Scripting::Python::PythonScriptContext(
+        unique_script_identifier, script_filename, global_pointer_to_list_of_all_scripts,
+        newest_api_version, new_print_callback, new_script_end_callback));
   }
   global_code_and_frame_callback_running_lock.unlock();
   initialization_and_destruction_lock.unlock();

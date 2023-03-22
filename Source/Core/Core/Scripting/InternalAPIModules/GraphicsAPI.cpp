@@ -18,9 +18,6 @@ namespace Scripting::GraphicsAPI
 std::stack<bool> display_stack = std::stack<bool>();
 bool window_is_open = false;
 const char* class_name = "GraphicsAPI";
-long long checkbox_number = 0;
-long long radio_group_number = 0;
-long long offset_into_radio_group = 0;
 
 static std::deque<bool> all_checkboxes = std::deque<bool>();
 static std::map<long long, bool*> id_to_checkbox_map = std::map<long long, bool*>();
@@ -194,11 +191,16 @@ u32 ParseColor(const char* color_string)
     return 0x000000ff;
 }
 
-ClassMetadata GetGraphicsApiClassData(const std::string& api_version)
+ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
 {
   std::unordered_map<std::string, std::string> deprecated_functions_map;
   return {class_name, GetLatestFunctionsForVersion(all_graphics_functions_metadata_list,
                                                    api_version, deprecated_functions_map)};
+}
+
+ ClassMetadata GetAllClassMetadata()
+{
+  return {class_name, GetAllFunctions(all_graphics_functions_metadata_list)};
 }
 
 ArgHolder DrawLine(ScriptContext* current_script, std::vector<ArgHolder>& args_list)

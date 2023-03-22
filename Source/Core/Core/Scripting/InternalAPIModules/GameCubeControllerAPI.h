@@ -22,7 +22,9 @@ extern std::array<Movie::ControllerState, 4> new_controller_inputs;
 extern std::array<Movie::ControllerState, 4> controller_inputs_on_last_frame;
 extern int current_controller_number_polled;
 
-ClassMetadata GetGameCubeControllerApiClassData(const std::string& api_version);
+ClassMetadata GetClassMetadataForVersion(const std::string& api_version);
+ClassMetadata GetAllClassMetadata();
+
 ArgHolder GetCurrentPortNumberOfPoll(ScriptContext* current_script,
                                      std::vector<ArgHolder>& args_list);
 ArgHolder SetInputsForPoll(ScriptContext* current_script, std::vector<ArgHolder>& args_list);

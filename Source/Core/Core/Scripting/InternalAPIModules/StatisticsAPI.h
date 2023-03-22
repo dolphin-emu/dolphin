@@ -12,7 +12,8 @@ namespace Scripting::StatisticsApi
 {
 extern const char* class_name;
 
-ClassMetadata GetStatisticsApiClassData(const std::string& api_version);
+ClassMetadata GetClassMetadataForVersion(const std::string& api_version);
+ClassMetadata GetAllClassMetadata();
 
 ArgHolder IsRecordingInput(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder IsRecordingInputFromSaveState(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
