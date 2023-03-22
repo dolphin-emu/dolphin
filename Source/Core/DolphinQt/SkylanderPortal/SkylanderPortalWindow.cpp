@@ -44,37 +44,26 @@ PortalButton::PortalButton(RenderWidget* rend, QWidget* pWindow, QWidget* parent
   setRender(rend);
   portalWindow = pWindow;
 
-  setWindowTitle(tr("Portal of Power"));
-  setMinimumSize(QSize(400, 200));
-
+  setWindowTitle(tr("Portal Button"));
   setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
   setParent(0);
   setAttribute(Qt::WA_NoSystemBackground, true);
   setAttribute(Qt::WA_TranslucentBackground, true);
 
-  button = new QPushButton(this);
+  button = new QPushButton(tr("Portal of Power"),this);
   button->resize(100, 50);
-  button->setText(tr("Portal of Power"));
-
   connect(button, &QAbstractButton::clicked, this, [this]() { OpenMenu(); });
-  fadeout.callOnTimeout(this, &PortalButton::TimeUp, Qt::AutoConnection);
+  fadeout.callOnTimeout(this, &PortalButton::hide);
 
   move(100, 150);
 }
 
 PortalButton::~PortalButton() = default;
 
-void PortalButton::Enable()
+void PortalButton::setEnabled(bool enable)
 {
-  enabled = true;
-  render->SetReportMouseMovement(true);
-  hide();
-}
-
-void PortalButton::Disable()
-{
-  enabled = false;
-  render->SetReportMouseMovement(false);
+  enabled = enable;
+  render->SetReportMouseMovement(enable);
   hide();
 }
 
@@ -106,11 +95,6 @@ void PortalButton::Hovered()
   }
 }
 
-void PortalButton::TimeUp()
-{
-  hide();
-}
-
 // Qt is not guaranteed to keep track of file paths using native file pickers, so we use this
 // static variable to ensure we open at the most recent Skylander file location
 static QString s_last_skylander_path;
@@ -136,7 +120,7 @@ SkylanderPortalWindow::SkylanderPortalWindow(RenderWidget* render, MainWindow* m
   portalButton = new PortalButton(render,this);
   connect(main, &MainWindow::RenderInstanceChanged, portalButton,
           &PortalButton::setRender);
-  portalButton->Enable();
+  //portalButton->setEnabled(true);
 
   sky_id = 0;
   sky_var = 0;
@@ -193,7 +177,7 @@ QGroupBox* SkylanderPortalWindow::CreatePortalGroup()
   m_show_button_ingame_checkbox = new QCheckBox(tr("Show Portal Button In-Game"), this);
   connect(m_enabled_checkbox, &QCheckBox::toggled, [&](bool checked) { EmulatePortal(checked); });
   connect(m_show_button_ingame_checkbox, &QCheckBox::toggled,
-          [&](bool checked) { ShowInGame(checked); });
+          [&](bool checked) { portalButton->setEnabled(checked); });
   checkbox_layout->addWidget(m_enabled_checkbox);
   checkbox_layout->addWidget(m_show_button_ingame_checkbox);
   checkbox_group->setLayout(checkbox_layout);
@@ -240,13 +224,16 @@ QGroupBox* SkylanderPortalWindow::CreatePortalGroup()
   slot_layout->addWidget(scroll_area);
 
   slot_group->setLayout(slot_layout);
+  slot_group->setMaximumWidth(225);
+
   return slot_group;
 }
 
 QGroupBox* SkylanderPortalWindow::CreateSearchGroup()
 {
   skylanderList = new QListWidget;
-  skylanderList->setMaximumSize(QSize(200, skylanderList->maximumHeight()));
+ 
+  skylanderList->setMinimumWidth(200);
   connect(skylanderList, &QListWidget::itemDoubleClicked, this,
           &SkylanderPortalWindow::LoadSkylander);
 
@@ -516,18 +503,6 @@ void SkylanderPortalWindow::EmulatePortal(bool emulate)
 {
   Config::SetBaseOrCurrent(Config::MAIN_EMULATE_SKYLANDER_PORTAL, emulate);
   m_group_skylanders->setVisible(emulate);
-}
-
-void SkylanderPortalWindow::ShowInGame(bool show)
-{
-  if (show)
-  {
-    portalButton->Enable();
-  }
-  else
-  {
-    portalButton->Disable();
-  }
 }
 
 void SkylanderPortalWindow::CreateSkylander(u8 slot)
@@ -818,18 +793,14 @@ SkylanderFilters::SkylanderFilters()
       0x000, 0x1206, 0x1403, 0x1602,  //variants
       0x1402, 0x1602,0x2000
   };
+  giants.idSets[0] = {
+    208,201,209,  //magic items
+    540,542,541,543 //sidekicks
+  };
   for (int i = 100; i <= 115; i++)
   {
     giants.idSets[0].push_back(i);  // giants chars
   }
-  giants.idSets[0].push_back(208);  //magic items
-  giants.idSets[0].push_back(201); 
-  giants.idSets[0].push_back(209);
-  giants.idSets[0].push_back(540);  //sidekicks
-  giants.idSets[0].push_back(542);
-  giants.idSets[0].push_back(541);
-  giants.idSets[0].push_back(543);
-
   giants.varSets[1] = {0x1801, 0x1206, 0x1C02, 0x1C03};
   for (int i = 0; i <= 32; i++)
   {
@@ -845,123 +816,116 @@ SkylanderFilters::SkylanderFilters()
   };
   for (int i = 1000; i <= 3204; i++)
   {
-    swapForce.idSets[0].push_back(i);  // swapForce chars
+    swapForce.idSets[0].push_back(i);  // swapforce chars
   }
   for (int i = 3300; i <= 3303; i++)
   {
     swapForce.idSets[0].push_back(i);  //adventure
   }
-
   swapForce.varSets[1] = {0x2805, 0x2C02};
   for (int i = 0; i <= 111; i++)
   {
-    swapForce.idSets[1].push_back(i);  // adventure
+    swapForce.idSets[1].push_back(i);  //returning chars
   }
   filters[G_SWAP_FORCE] = swapForce;
 
   //Trap team
   FilterData trapTeam = FilterData();
+  trapTeam.idSets[0] = {
+    502,506,510,504,  //sidekicks
+    508,509,503,507
+  };
   for (int i = 210; i <= 484; i++)
   {
     trapTeam.idSets[0].push_back(i);  // trapTeam chars
   }
-  trapTeam.idSets[0].push_back(502);  //sidekicks
-  trapTeam.idSets[0].push_back(506);
-  trapTeam.idSets[0].push_back(510);
-  trapTeam.idSets[0].push_back(504);
-  trapTeam.idSets[0].push_back(508);
-  trapTeam.idSets[0].push_back(509);
-  trapTeam.idSets[0].push_back(503);
-  trapTeam.idSets[0].push_back(507);
-
-  trapTeam.varSets[1] = {0x3805}; //returning chars
-  trapTeam.idSets[1].push_back(108);
-  trapTeam.idSets[1].push_back(100);
-  trapTeam.idSets[1].push_back(14);
-  trapTeam.idSets[1].push_back(113);
-  trapTeam.idSets[1].push_back(3004);
+  trapTeam.varSets[1] = {0x3805};
+  trapTeam.idSets[1] = {
+    108, 100, 14, 113,  //returning chars
+    3004
+  };
   filters[G_TRAP_TEAM] = trapTeam;
 
   //magic
   FilterData magic = FilterData();
   magic.idSets[0] = {
-    //spyros adventure
-      16, 18, 23, 17,  // standard
-      28, 416,         // special
-    //giants
+      //spyros adventure
+      16, 18, 23, 17,  
+      28, 416,         
+      //giants
       109, 108, 542,
       //swapforce
       1008,2008,1009,2009,
       3008,3009,
       //trapteam
-    466,467,469,468,
-    503,
+      466,467,469,468,
+      503,
   };
   filters[E_MAGIC] = magic;
 
   //fire
   FilterData fire = FilterData();
   fire.idSets[0] = {
-    // spyros adventure
-      10, 8, 11, 9,  //standard
-    //giants
+      //spyros adventure
+      10, 8, 11, 9, 
+      //giants
       104, 105,
       //swapforce
       1004, 2004, 1005,2005,
       3004,3005,
       // trapteam
-    459,458,461,460,
-    509,507,
+      459,458,461,460,
+      509,507
   };
   filters[E_FIRE] = fire;
 
   // earth
   FilterData earth = FilterData();
   earth.idSets[0] = {
-    //spyro's adventure
-      4, 6, 7, 5,  // standard
-      404, 505,  //special
-    //giants
+      //spyro's adventure
+      4, 6, 7, 5,
+      404, 505,
+      //giants
       102, 103,
       //swapforce
       1003,2003,1002,2002,
       3003,3002,
       // trapteam
-    455,454,456,457,
-    502,
+      455,454,456,457,
+      502
   };
   filters[E_EARTH] = earth;
 
   //tech
   FilterData tech = FilterData();
   tech.idSets[0] = {
-    //spyro's adventure
-      22,   21,  20, 19,  // standard
-      419, 519,        // special
-    // giants
+      //spyro's adventure
+      22,   21,  20, 19, 
+      419, 519,
+      // giants
       110,111,
       //swapforce
       1010,2010,1011,2011,
       3010,3011,
-      // trapteam
-    471,470,472,473,
-    510,
+      //trapteam
+      471,470,472,473,
+      510,
   };
   filters[E_TECH] = tech;
 
   // water
   FilterData water = FilterData();
   water.idSets[0] = {
-    //spyro's adventure
-      15, 12, 13, 14,  // standard
-      514,        // special
-    // giants
+      //spyro's adventure
+      15, 12, 13, 14, 
+      514,
+      // giants
       107,106,541,
       //swapforce
       1015,2015,1014,2014,
       3014,3015,
-      // trapteam
-    463,462,465,464,
+      //trapteam
+      463,462,465,464,
 
   };
   filters[E_WATER] = water;
@@ -969,68 +933,68 @@ SkylanderFilters::SkylanderFilters()
   // undead
   FilterData undead = FilterData();
   undead.idSets[0] = {
-    // spyro's adventure
-      29, 32, 30, 31,  // standard
-      430,              // special
-    // giants
+      //spyro's adventure
+      29, 32, 30, 31, 
+      430,
+      //giants
       114, 115,543,
       //swapforce
       1012,2012,1013,2013,
       3013,3012,
-      // trapteam
-    478,479,480,481,
-    504
+      //trapteam
+      478,479,480,481,
+      504
   };
   filters[E_UNDEAD] = undead;
 
   // air
   FilterData air = FilterData();
   air.idSets[0] = {
-    // spyro's adventure
-      0, 2, 1, 3,  // standard
-    // giants
+      //spyro's adventure
+      0, 2, 1, 3,
+      //giants
       101,100,
       //swapforce
       1000,2000,1001,2001,
       3001,3000,
-      // trapteam
-    450,451,453,452,
-    506,508,
+      //trapteam
+      450,451,453,452,
+      506,508,
   };
   filters[E_AIR] = air;
 
   //life
   FilterData life = FilterData();
   life.idSets[0] = {
-    // spyro's adventure
-      24, 27, 26, 25,  // standard
-      526,              // special
-    // giants
+      //spyro's adventure
+      24, 27, 26, 25,
+      526,
+      //giants
       112,113,540,
       //swapforce
       1007,2007,1006,2006,
       3006,3007,
       // trapteam
-    474,475,476,477,
+      474,475,476,477,
   };
   filters[E_LIFE] = life;
 
   // other
   FilterData other = FilterData();
   other.idSets[0] = {
-    //spyro's adventure
+      //spyro's adventure
       300, 301, 302, 303,  // adventure packs
       200, 203, 202, 201,  // items
       205, 207, 204, 304,
       206,
-    //giants
+      //giants
       208,209,
       //swapforce
       3300,3301,3302,3303,  //adventure
       3200,3201,3202,3203,  //items
       3204
       //trapteam
-
+      
   };
   filters[E_OTHER] = other;
 }

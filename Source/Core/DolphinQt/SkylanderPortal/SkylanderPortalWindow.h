@@ -39,9 +39,7 @@ public:
   void OpenMenu();
   void setRender(RenderWidget* r);
   void Hovered();
-  void TimeUp();
-  void Enable();
-  void Disable();
+  void setEnabled(bool enable);
 
 private:
   QPushButton* button;
@@ -100,27 +98,33 @@ protected:
   std::array<std::optional<Skylander>, MAX_SKYLANDERS> m_sky_slots;
 
 private:
+  //window
   void CreateMainWindow();
-  void OnEmulationStateChanged(Core::State state);
-  void CreateSkylander(u8 slot);
-  QString CreateSkylanderInCollection();
-  void ClearSkylander(u8 slot);
-  void EmulatePortal(bool emulate);
-  void ShowInGame(bool show);
-  void LoadSkylander();
-  void LoadSkylanderPath(u8 slot, const QString& path);
-  void UpdateEdits();
-  void closeEvent(QCloseEvent* bar) override;
-  bool eventFilter(QObject* object, QEvent* event) final override;
-  void RefreshList();
-  bool PassesFilter(QString name, u16 id, u16 var);
-  void UpdateSelectedVals();
-  void SelectPath();
-  void OnPathChanged();
   QGroupBox* CreatePortalGroup();
   QGroupBox* CreateSearchGroup();
-  u8 GetCurrentSlot();
+  void closeEvent(QCloseEvent* bar) override;
+  bool eventFilter(QObject* object, QEvent* event) final override;
+
+  //user interface
+  void EmulatePortal(bool emulate);
+  void SelectPath();
+  void LoadSkylander();
+  void ClearSkylander(u8 slot);
+
+  //behind the scenes
+  void OnEmulationStateChanged(Core::State state);
+  void OnPathChanged();
+  void RefreshList();
+  void UpdateSelectedVals();
+  void CreateSkylander(u8 slot);
+  void LoadSkylanderPath(u8 slot, const QString& path);
+  void UpdateEdits();
+  QString CreateSkylanderInCollection();
+
+  //helpers
+  bool PassesFilter(QString name, u16 id, u16 var);
   QString GetFilePath(u16 id, u16 var);
+  u8 GetCurrentSlot();
   int GetElementRadio();
 
   QCheckBox* m_enabled_checkbox;
