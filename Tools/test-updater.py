@@ -123,7 +123,7 @@ if __name__ == "__main__":
 
     threading.Thread(target=http_server, daemon=True).start()
 
-    with tempfile.TemporaryDirectory(suffix=" ¿ 😎") as tmp_dir:
+    with tempfile.TemporaryDirectory(suffix=" ¿ 🐬") as tmp_dir:
         tmp_dir = Path(tmp_dir)
 
         tmp_dolphin = tmp_dir.joinpath("dolphin")
