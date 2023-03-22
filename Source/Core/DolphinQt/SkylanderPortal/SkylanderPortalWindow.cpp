@@ -814,27 +814,35 @@ SkylanderFilters::SkylanderFilters()
 
   // Giants
   FilterData giants = FilterData();
+  giants.varSets[1] = {
+      0x000, 0x1206, 0x1403, 0x1602,  //variants
+      0x1402, 0x1602,0x2000
+  };
   for (int i = 100; i <= 115; i++)
   {
     giants.idSets[0].push_back(i);  // giants chars
   }
   giants.idSets[0].push_back(208);  //magic items
+  giants.idSets[0].push_back(201); 
   giants.idSets[0].push_back(209);
   giants.idSets[0].push_back(540);  //sidekicks
   giants.idSets[0].push_back(542);
   giants.idSets[0].push_back(541);
-  giants.idSets[0].push_back(543); 
+  giants.idSets[0].push_back(543);
 
   giants.varSets[1] = {0x1801, 0x1206, 0x1C02, 0x1C03};
   for (int i = 0; i <= 32; i++)
   {
     giants.idSets[1].push_back(i);  // lightcore and series2
   }
-  giants.includedSkylanders.push_back(std::make_pair<>(201, 0x2000));  // platinum treasure
   filters[G_GIANTS] = giants;
 
   // Swap force
   FilterData swapForce = FilterData();
+  swapForce.varSets[0] = {
+      0x0000, 0x2403, 0x2402, 0x2206,  // variants
+      0x2602
+  };
   for (int i = 1000; i <= 3204; i++)
   {
     swapForce.idSets[0].push_back(i);  // swapForce chars
@@ -884,7 +892,10 @@ SkylanderFilters::SkylanderFilters()
       109, 108, 542,
       //swapforce
       1008,2008,1009,2009,
-      3008,3009
+      3008,3009,
+      //trapteam
+    466,467,469,468,
+    503,
   };
   filters[E_MAGIC] = magic;
 
@@ -897,7 +908,10 @@ SkylanderFilters::SkylanderFilters()
       104, 105,
       //swapforce
       1004, 2004, 1005,2005,
-      3004,3005
+      3004,3005,
+      // trapteam
+    459,458,461,460,
+    509,507,
   };
   filters[E_FIRE] = fire;
 
@@ -911,7 +925,10 @@ SkylanderFilters::SkylanderFilters()
       102, 103,
       //swapforce
       1003,2003,1002,2002,
-      3003,3002
+      3003,3002,
+      // trapteam
+    455,454,456,457,
+    502,
   };
   filters[E_EARTH] = earth;
 
@@ -925,7 +942,10 @@ SkylanderFilters::SkylanderFilters()
       110,111,
       //swapforce
       1010,2010,1011,2011,
-      3010,3011
+      3010,3011,
+      // trapteam
+    471,470,472,473,
+    510,
   };
   filters[E_TECH] = tech;
 
@@ -939,7 +959,10 @@ SkylanderFilters::SkylanderFilters()
       107,106,541,
       //swapforce
       1015,2015,1014,2014,
-      3014,3015
+      3014,3015,
+      // trapteam
+    463,462,465,464,
+
   };
   filters[E_WATER] = water;
 
@@ -953,7 +976,10 @@ SkylanderFilters::SkylanderFilters()
       114, 115,543,
       //swapforce
       1012,2012,1013,2013,
-      3013,3012
+      3013,3012,
+      // trapteam
+    478,479,480,481,
+    504
   };
   filters[E_UNDEAD] = undead;
 
@@ -966,7 +992,10 @@ SkylanderFilters::SkylanderFilters()
       101,100,
       //swapforce
       1000,2000,1001,2001,
-      3001,3000
+      3001,3000,
+      // trapteam
+    450,451,453,452,
+    506,508,
   };
   filters[E_AIR] = air;
 
@@ -980,7 +1009,9 @@ SkylanderFilters::SkylanderFilters()
       112,113,540,
       //swapforce
       1007,2007,1006,2006,
-      3006,3007
+      3006,3007,
+      // trapteam
+    474,475,476,477,
   };
   filters[E_LIFE] = life;
 
@@ -998,6 +1029,8 @@ SkylanderFilters::SkylanderFilters()
       3300,3301,3302,3303,  //adventure
       3200,3201,3202,3203,  //items
       3204
+      //trapteam
+
   };
   filters[E_OTHER] = other;
 }
