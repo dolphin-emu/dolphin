@@ -272,7 +272,6 @@ public:
   void Shutdown();
 
   void OnConfigChanged(const VideoConfig& config);
-  void ForceReload();
 
   // Removes textures which aren't used for more than TEXTURE_KILL_THRESHOLD frames,
   // frameCount is the current frame number.
@@ -312,9 +311,6 @@ public:
 
   static bool AllCopyFilterCoefsNeeded(const std::array<u32, 3>& coefficients);
   static bool CopyFilterCanOverflow(const std::array<u32, 3>& coefficients);
-
-  // Will forcibly reload all textures when the frame next ends
-  void ForceReloadTextures() { m_force_reload_textures.Set(); }
 
 protected:
   // Decodes the specified data to the GPU texture specified by entry.
@@ -468,7 +464,6 @@ private:
 
   void OnFrameEnd();
 
-  Common::Flag m_force_reload_textures;
   Common::EventHook m_frame_event =
       AfterFrameEvent::Register([this] { OnFrameEnd(); }, "TextureCache");
 };

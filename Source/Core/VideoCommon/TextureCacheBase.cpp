@@ -145,17 +145,6 @@ void TextureCacheBase::Invalidate()
   texture_pool.clear();
 }
 
-void TextureCacheBase::ForceReload()
-{
-  Invalidate();
-
-  // Clear all current hires textures, they are invalid
-  HiresTexture::Clear();
-
-  // Load fresh
-  HiresTexture::Update();
-}
-
 void TextureCacheBase::OnConfigChanged(const VideoConfig& config)
 {
   if (config.bHiresTextures != backup_config.hires_textures ||
@@ -781,17 +770,10 @@ void TextureCacheBase::DoLoadState(PointerWrap& p)
 
 void TextureCacheBase::OnFrameEnd()
 {
-  if (m_force_reload_textures.TestAndClear())
-  {
-    ForceReload();
-  }
-  else
-  {
-    // Flush any outstanding EFB copies to RAM, in case the game is running at an uncapped frame
-    // rate and not waiting for vblank. Otherwise, we'd end up with a huge list of pending
-    // copies.
-    FlushEFBCopies();
-  }
+  // Flush any outstanding EFB copies to RAM, in case the game is running at an uncapped frame
+  // rate and not waiting for vblank. Otherwise, we'd end up with a huge list of pending
+  // copies.
+  FlushEFBCopies();
 
   Cleanup(g_presenter->FrameCount());
 }
