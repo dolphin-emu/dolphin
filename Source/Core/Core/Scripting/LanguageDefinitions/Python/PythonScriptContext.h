@@ -8,6 +8,7 @@
 #include <condition_variable>
 
 #include "Core/Scripting/ScriptContext.h"
+#include "Core/Scripting/HelperClasses/FunctionMetadata.h"
 
 namespace Scripting::Python
 {
@@ -42,88 +43,14 @@ public:
   std::atomic<size_t> number_of_memory_address_read_callbacks_to_auto_deregister;
   std::atomic<size_t> number_of_memory_address_write_callbacks_to_auto_deregister;
 
+  bool ShouldCallEndScriptFunction();
 
-
-  int getNumberOfCallbacksInMap(std::unordered_map<size_t, std::vector<PyObject*>>& input_map)
-  {
-    int return_val = 0;
-    for (auto& element : input_map)
-    {
-      return_val += (int)element.second.size();
-    }
-    return return_val;
-  }
-
-  bool ShouldCallEndScriptFunction()
-  {
-    if (finished_with_global_code &&
-        (frame_callbacks.size() == 0 ||
-         frame_callbacks.size() - number_of_frame_callbacks_to_auto_deregister <= 0) &&
-        (gc_controller_input_polled_callbacks.size() == 0 ||
-         gc_controller_input_polled_callbacks.size() -
-                 number_of_gc_controller_input_callbacks_to_auto_deregister <=
-             0) &&
-        (wii_controller_input_polled_callbacks.size() == 0 ||
-         wii_controller_input_polled_callbacks.size() -
-                 number_of_wii_input_callbacks_to_auto_deregister <=
-             0) &&
-        (map_of_instruction_address_to_python_callbacks.size() == 0 ||
-         getNumberOfCallbacksInMap(map_of_instruction_address_to_python_callbacks) -
-                 number_of_instruction_address_callbacks_to_auto_deregister <=
-             0) &&
-        (map_of_memory_address_read_from_to_python_callbacks.size() == 0 ||
-         getNumberOfCallbacksInMap(map_of_memory_address_read_from_to_python_callbacks) -
-                 number_of_memory_address_read_callbacks_to_auto_deregister <=
-             0) &&
-        (map_of_memory_address_written_to_to_python_callbacks.size() == 0 ||
-         getNumberOfCallbacksInMap(map_of_memory_address_written_to_to_python_callbacks) -
-                 number_of_memory_address_write_callbacks_to_auto_deregister <=
-             0))
-      return true;
-    return false;
-  }
-
-  const char* THIS_MODULE_NAME = "ThisPointerModule";
-
-    PyModuleDef ThisModule = {
-      PyModuleDef_HEAD_INIT, THIS_MODULE_NAME, /* name of module */
-      nullptr,                                    /* module documentation, may be NULL */
-      sizeof(long long),                          /* size of per-interpreter state of the module,
-                                                                  or -1 if the module keeps state in global variables. */
-      nullptr};
 
   PythonScriptContext(int new_unique_script_identifier, const std::string& new_script_filename,
-                   std::vector<ScriptContext*>* new_pointer_to_list_of_all_scripts,
-                   const std::string& api_version,
-                   std::function<void(const std::string&)>* new_print_callback,
-                   std::function<void(int)>* new_script_end_callback)
-      : ScriptContext(new_unique_script_identifier, new_script_filename,
-                      new_pointer_to_list_of_all_scripts)
-  {
-  const std::lock_guard<std::mutex> lock(script_specific_lock);
-    if (!python_initialized)
-    {
-      Py_Initialize();
-      python_initialized = true;
-    }
-
-  PyEval_AcquireLock();
-  python_thread = Py_NewInterpreter();
-  long long this_address = (long long)this;
-  *((long long*)(PyModule_GetState(PyModule_Create(&ThisModule)))) = this_address;
-
-  current_script_call_location = ScriptCallLocations::FromScriptStartup;
-  this->ImportModule("dolphin", api_version);
-  this->ImportModule("OnFrameStart", api_version);
-  this->ImportModule("OnGCControllerPolled", api_version);
-  this->ImportModule("OnInstructionHit", api_version);
-  this->ImportModule("OnMemoryAddressReadFrom", api_version);
-  this->ImportModule("OnMemoryAddressWrittenTo", api_version);
-  this->ImportModule("OnWiiInputPolled", api_version);
-  StartMainScript(new_script_filename.c_str());
-  PyEval_ReleaseLock();
-  }
-
+                        std::vector<ScriptContext*>* new_pointer_to_list_of_all_scripts,
+                        const std::string& api_version,
+                        std::function<void(const std::string&)>* new_print_callback,
+                        std::function<void(int)>* new_script_end_callback);
 
 
   static void StartMainScript(const char* script_name)

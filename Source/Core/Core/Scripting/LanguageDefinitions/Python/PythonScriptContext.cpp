@@ -6,6 +6,7 @@
 
 namespace Scripting::Python
 {
+static const char* THIS_MODULE_NAME = "ThisPointerModule";
 int getNumberOfCallbacksInMap(std::unordered_map<size_t, std::vector<PyObject*>>& input_map)
 {
   int return_val = 0;
@@ -45,7 +46,6 @@ bool PythonScriptContext::ShouldCallEndScriptFunction()
   return false;
 }
 
-static const char* THIS_MODULE_NAME = "ThisPointerModule";
 
 PyModuleDef ThisModule = {
     PyModuleDef_HEAD_INIT, THIS_MODULE_NAME, /* name of module */
@@ -69,9 +69,9 @@ PythonScriptContext::PythonScriptContext(int new_unique_script_identifier, const
     python_initialized = true;
   }
 
-  PyEval_AcquireLock();
   list_of_imported_modules = std::vector<PyObject*>();
   python_thread = Py_NewInterpreter();
+  PyEval_RestoreThread(python_thread);
   long long this_address = (long long)this;
   PyObject* this_module = PyModule_Create(&ThisModule);
   list_of_imported_modules.push_back(this_module);
@@ -86,10 +86,10 @@ PythonScriptContext::PythonScriptContext(int new_unique_script_identifier, const
   this->ImportModule("OnMemoryAddressWrittenTo", api_version);
   this->ImportModule("OnWiiInputPolled", api_version);
   StartMainScript(new_script_filename.c_str());
-  PyEval_ReleaseLock();
+  PyEval_ReleaseThread(python_thread);
 }
 
-PyObject* RunFunction(PyObject* self, PyObject* args, std::string class_name, FunctionMetadata* functionMetadata)
+PyObject* PythonScriptContext::RunFunction(PyObject* self, PyObject* args, std::string class_name, FunctionMetadata* functionMetadata)
 {
   if (functionMetadata == nullptr)
   {
@@ -107,7 +107,7 @@ PyObject* RunFunction(PyObject* self, PyObject* args, std::string class_name, Fu
 
   std::vector<ArgHolder> arguments_list = std::vector<ArgHolder>();
 
-  if (PyTuple_GET_SIZE(args) != functionMetadata->arguments_list.size())
+  if (PyTuple_GET_SIZE(args) != (int) functionMetadata->arguments_list.size())
   {
     PyErr_SetString(PyExc_RuntimeError, fmt::format("Error: In {}.{}() function, expected {} arguments, but got {} arguments instead. The method should be called like this: {}.{}", class_name, functionMetadata->function_name, functionMetadata->arguments_list.size(), PyTuple_GET_SIZE(args), class_name, functionMetadata->example_function_call).c_str());
     return nullptr;
@@ -222,7 +222,7 @@ PyObject* RunFunction(PyObject* self, PyObject* args, std::string class_name, Fu
 void PythonScriptContext::ImportModule(const std::string& api_name, const std::string& api_version)
 {
   if (api_name == BitApi::class_name)
-    list_of_imported_modules.push_back(BitModuleImporter::ImportModule(api_version);
+    list_of_imported_modules.push_back(BitModuleImporter::ImportModule(api_version));
   return;
 }
 

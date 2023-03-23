@@ -691,6 +691,7 @@ add_subdirectory(Externals/implot)
 add_subdirectory(Externals/glslang)
 add_subdirectory(Externals/spirv_cross)
 add_subdirectory(Externals/Lua)
+add_subdirectory(Externals/cpython)
 
 if(ENABLE_VULKAN)
   add_definitions(-DHAS_VULKAN)

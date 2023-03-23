@@ -26,51 +26,40 @@ void InitFunctionList()
   ClassMetadata classMetadata = BitApi::GetAllClassMetadata();
   bit_class_name = classMetadata.class_name;
   all_bit_functions = classMetadata.functions_list;
-  int number_of_functions = all_bit_functions.size();
+  int number_of_functions = (int)all_bit_functions.size();
   for (int i = 0; i < number_of_functions; ++i)
   {
     FunctionMetadata* function_reference = &(all_bit_functions[i]);
 
-    switch ((unsigned long long) all_bit_functions[i].function_pointer)
-    {
-    case (unsigned long long)BitApi::BitwiseAnd:
+   if (all_bit_functions[i].function_pointer == BitApi::BitwiseAnd)
       bitwise_and_1_0_metadata = function_reference;
-      break;
-    case (unsigned long long)BitApi::BitwiseOr:
+    else if (all_bit_functions[i].function_pointer == BitApi::BitwiseOr)
       bitwise_or_1_0_metadata = function_reference;
-      break;
-    case (unsigned long long)BitApi::BitwiseNot:
+    else if (all_bit_functions[i].function_pointer == BitApi::BitwiseNot)
       bitwise_not_1_0_metadata = function_reference;
-      break;
-    case (unsigned long long)BitApi::BitwiseXor:
+   else if (all_bit_functions[i].function_pointer == BitApi::BitwiseXor)
       bitwise_xor_1_0_metadata = function_reference;
-      break;
-    case (unsigned long long)BitApi::LogicalAnd:
+    else if (all_bit_functions[i].function_pointer == BitApi::LogicalAnd)
       logical_and_1_0_metadata = function_reference;
-      break;
-    case (unsigned long long)BitApi::LogicalOr:
+    else if (all_bit_functions[i].function_pointer == BitApi::LogicalOr)
       logical_or_1_0_metadata = function_reference;
-      break;
-    case (unsigned long long)BitApi::LogicalXor:
+    else if (all_bit_functions[i].function_pointer == BitApi::LogicalXor)
       logical_xor_1_0_metadata = function_reference;
-      break;
-    case (unsigned long long)BitApi::LogicalNot:
+    else if (all_bit_functions[i].function_pointer == BitApi::LogicalNot)
       logical_not_1_0_metadata = function_reference;
-      break;
-    case (unsigned long long)BitApi::BitShiftLeft:
+    else if (all_bit_functions[i].function_pointer == BitApi::BitShiftLeft)
       bit_shift_left_1_0_metadata = function_reference;
-      break;
-    case (unsigned long long)BitApi::BitShiftRight:
+    else if (all_bit_functions[i].function_pointer == BitApi::BitShiftRight)
       bit_shift_right_1_0_metadata = function_reference;
-      break;
-    default:
+     else
+      {
       throw std::invalid_argument(
           "Unknown argument inside of BitModuleImporter::InitFunctionsList(). Did you add a new "
           "function to the BitApi and forget to update the list in this function?");
       return;
+      }
     }
   }
-}
 
 static PyObject* python_bitwise_and_1_0(PyObject* self, PyObject* args)
 {
@@ -139,41 +128,26 @@ PyObject* ImportModule(const std::string& api_version)
   for (auto& functionMetadata : functions_for_version)
   {
     PyCFunction next_function_to_register = nullptr;
-    switch ((unsigned long long)functionMetadata.function_pointer)
-    {
-    case (unsigned long long)BitApi::BitwiseAnd:
+   if (functionMetadata.function_pointer == BitApi::BitwiseAnd)
       next_function_to_register = python_bitwise_and_1_0;
-      break;
-    case (unsigned long long)BitApi::BitwiseOr:
+   else if (functionMetadata.function_pointer == BitApi::BitwiseOr)
       next_function_to_register = python_bitwise_or_1_0;
-      break;
-    case (unsigned long long)BitApi::BitwiseNot:
+   else if (functionMetadata.function_pointer == BitApi::BitwiseNot)
       next_function_to_register = python_bitwise_not_1_0;
-      break;
-    case (unsigned long long)BitApi::BitwiseXor:
+   else if (functionMetadata.function_pointer == BitApi::BitwiseXor)
       next_function_to_register = python_bitwise_xor_1_0;
-      break;
-    case (unsigned long long)BitApi::LogicalAnd:
+   else if (functionMetadata.function_pointer == BitApi::LogicalAnd)
       next_function_to_register = python_logical_and_1_0;
-      break;
-    case (unsigned long long)BitApi::LogicalOr:
+   else if (functionMetadata.function_pointer == BitApi::LogicalOr)
       next_function_to_register = python_logical_or_1_0;
-      break;
-    case (unsigned long long)BitApi::LogicalXor:
+   else if (functionMetadata.function_pointer == BitApi::LogicalXor)
       next_function_to_register = python_logical_xor_1_0;
-      break;
-    case (unsigned long long)BitApi::LogicalNot:
+   else if (functionMetadata.function_pointer == BitApi::LogicalNot)
       next_function_to_register = python_logical_not_1_0;
-      break;
-    case (unsigned long long)BitApi::BitShiftLeft:
+   else if (functionMetadata.function_pointer == BitApi::BitShiftLeft)
       next_function_to_register = python_bit_shift_left_1_0;
-      break;
-    case (unsigned long long)BitApi::BitShiftRight:
+    else if (functionMetadata.function_pointer == BitApi::BitShiftRight)
       next_function_to_register = python_bit_shift_right_1_0;
-      break;
-    default:
-      break;
-    }
 
     if (next_function_to_register == nullptr)
     {
