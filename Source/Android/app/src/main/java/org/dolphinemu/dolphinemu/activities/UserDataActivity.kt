@@ -51,6 +51,7 @@ class UserDataActivity : AppCompatActivity() {
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
+        val android7 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
         val android10 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
         val android11 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
         val legacy = DirectoryInitialization.isUsingLegacyUserDirectory()
@@ -58,6 +59,10 @@ class UserDataActivity : AppCompatActivity() {
         val userDataNewLocation =
             if (android10) R.string.user_data_new_location_android_10 else R.string.user_data_new_location
         mBinding.textType.setText(if (legacy) R.string.user_data_old_location else userDataNewLocation)
+
+        val openFileManagerStringId =
+            if (android7) R.string.user_data_open_user_folder else R.string.user_data_open_system_file_manager
+        mBinding.buttonOpenSystemFileManager.setText(openFileManagerStringId)
 
         mBinding.textPath.text = DirectoryInitialization.getUserDirectory()
 

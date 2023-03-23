@@ -401,8 +401,10 @@
     <string name="user_data_new_location">Your user data (settings, saves, etc.) is stored in a location which <b>will be deleted</b> when you uninstall the app:</string>
     <!-- Android 10 and up support android:hasFragileUserData -->
     <string name="user_data_new_location_android_10">Your user data (settings, saves, etc.) is stored in a location which by default <b>will be deleted</b> when you uninstall the app:</string>
-    <string name="user_data_new_location_android_11">Because you\'re using Android 11 or newer, file manager apps can\'t access this folder in the same way as regular folders. You might be able to access the folder using the system file manager (if present on your device), or by connecting your device to a PC.</string>
+    <string name="user_data_new_location_android_11">Because you\'re using Android 11 or newer, file manager apps can\'t access this folder in the same way as regular folders. Instead, Dolphin acts as a file provider.</string>
     <string name="user_data_open_system_file_manager">Open System File Manager</string>
+    <string name="user_data_open_user_folder">Open User Data Folder</string>
+
     <string name="user_data_import">Import User Data</string>
     <string name="user_data_export">Export User Data</string>
     <string name="user_data_open_system_file_manager_failed">Sorry, Dolphin couldn\'t find the system file manager on your device.</string>
