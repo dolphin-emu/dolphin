@@ -4,6 +4,7 @@
 #include "VideoCommon/CPMemory.h"
 
 #include <cstring>
+#include <type_traits>
 
 #include "Common/ChunkFile.h"
 #include "Common/Logging/Log.h"
@@ -17,14 +18,9 @@ CPState g_preprocess_cp_state;
 
 void CopyPreprocessCPStateFromMain()
 {
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wclass-memaccess"
-#endif
-  std::memcpy(&g_preprocess_cp_state, &g_main_cp_state, sizeof(CPState));
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
+  static_assert(std::is_trivially_copyable_v<CPState>);
+  std::memcpy(static_cast<void*>(&g_preprocess_cp_state),
+              static_cast<const void*>(&g_main_cp_state), sizeof(CPState));
 }
 
 std::pair<std::string, std::string> GetCPRegInfo(u8 cmd, u32 value)
