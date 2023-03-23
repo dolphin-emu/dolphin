@@ -27,7 +27,7 @@ class DocumentProvider : DocumentsProvider() {
     private var rootDirectory: File? = null
 
     companion object {
-        private const val ROOT_ID = "root"
+        public const val ROOT_ID = "root"
 
         private val DEFAULT_ROOT_PROJECTION = arrayOf(
             DocumentsContract.Root.COLUMN_ROOT_ID,
