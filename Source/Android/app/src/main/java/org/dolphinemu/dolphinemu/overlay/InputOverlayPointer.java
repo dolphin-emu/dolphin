@@ -108,20 +108,21 @@ public class InputOverlayPointer
         break;
     }
 
-    if (trackId == -1)
+    int eventPointerIndex = event.findPointerIndex(trackId);
+    if (trackId == -1 || eventPointerIndex == -1)
       return;
 
     if (mMode == MODE_FOLLOW)
     {
-      mCurrentX = (event.getX(event.findPointerIndex(trackId)) - mGameCenterX) * mGameWidthHalfInv;
-      mCurrentY = (event.getY(event.findPointerIndex(trackId)) - mGameCenterY) * mGameHeightHalfInv;
+      mCurrentX = (event.getX(eventPointerIndex) - mGameCenterX) * mGameWidthHalfInv;
+      mCurrentY = (event.getY(eventPointerIndex) - mGameCenterY) * mGameHeightHalfInv;
     }
     else if (mMode == MODE_DRAG)
     {
       mCurrentX = mOldX +
-              (event.getX(event.findPointerIndex(trackId)) - mTouchStartX) * mGameWidthHalfInv;
+              (event.getX(eventPointerIndex) - mTouchStartX) * mGameWidthHalfInv;
       mCurrentY = mOldY +
-              (event.getY(event.findPointerIndex(trackId)) - mTouchStartY) * mGameHeightHalfInv;
+              (event.getY(eventPointerIndex) - mTouchStartY) * mGameHeightHalfInv;
     }
   }
 
