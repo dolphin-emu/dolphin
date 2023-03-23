@@ -58,7 +58,7 @@ void LogToFile(const char* fmt, ...)
   va_end(args);
 }
 
-bool ProgressCallback(double total, double now, double, double)
+bool ProgressCallback(s64 total, s64 now, s64, s64)
 {
   UI::SetCurrentProgress(static_cast<int>(now), static_cast<int>(total));
   return true;
