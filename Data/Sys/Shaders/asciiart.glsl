@@ -21,6 +21,14 @@ const uint UNROLL_SIMD = 3; // max MAX_CHARS / 32
 
 // #undef SUPPORTS_SUBGROUP_REDUCTION
 
+#ifdef API_VULKAN
+// By default, subgroupBroadcast only supports compile time constants as index.
+// However we need an uniform instead. This is always supported in OpenGL,
+// but in Vulkan only in SPIR-V >= 1.5.
+// So fall back to subgroupShuffle on Vulkan instead.
+#define subgroupBroadcast subgroupShuffle
+#endif
+
 /*
 The header-only font
 We have 96 (ASCII) characters, each of them is 12 pixels high and 8 pixels wide.

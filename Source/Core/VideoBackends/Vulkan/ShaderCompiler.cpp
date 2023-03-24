@@ -79,6 +79,7 @@ static const char SUBGROUP_HELPER_HEADER[] = R"(
   #extension GL_KHR_shader_subgroup_basic : enable
   #extension GL_KHR_shader_subgroup_arithmetic : enable
   #extension GL_KHR_shader_subgroup_ballot : enable
+  #extension GL_KHR_shader_subgroup_shuffle : enable
 
   #define SUPPORTS_SUBGROUP_REDUCTION 1
   #define IS_HELPER_INVOCATION gl_HelperInvocation
