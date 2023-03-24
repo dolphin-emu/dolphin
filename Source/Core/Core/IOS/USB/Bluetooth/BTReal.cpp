@@ -16,7 +16,14 @@
 #include <vector>
 
 #include <fmt/format.h>
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wzero-as-null-pointer-constant"
+#endif
 #include <libusb.h>
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
 #include "Common/ChunkFile.h"
 #include "Common/Logging/Log.h"

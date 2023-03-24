@@ -571,7 +571,15 @@ bool SyncSDFolderToSDImage(const std::function<bool()>& cancelled, bool determin
                   FatFsErrorToString(mount_error_code));
     return false;
   }
+
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wzero-as-null-pointer-constant"
+#endif
   Common::ScopeGuard unmount_guard{[] { f_unmount(""); }};
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
   if (!Pack(cancelled, root, true, tmp_buffer))
   {
@@ -795,7 +803,15 @@ bool SyncSDImageToSDFolder(const std::function<bool()>& cancelled)
                   FatFsErrorToString(mount_error_code));
     return false;
   }
+
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wzero-as-null-pointer-constant"
+#endif
   Common::ScopeGuard unmount_guard{[] { f_unmount(""); }};
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
   // Unpack() and GetTempFilenameForAtomicWrite() don't want the trailing separator.
   const std::string target_dir_without_slash = target_dir.substr(0, target_dir.length() - 1);

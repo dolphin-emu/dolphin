@@ -294,7 +294,14 @@ ErrorCode OpenVFF(const std::string& path, const std::string& filename,
       return;
     }
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wzero-as-null-pointer-constant"
+#endif
     Common::ScopeGuard unmount_guard{[] { f_unmount(""); }};
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
     const auto write_error_code = WriteFile(filename, data);
     if (write_error_code != WC24_OK)
