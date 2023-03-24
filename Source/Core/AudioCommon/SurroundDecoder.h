@@ -29,7 +29,7 @@ private:
 
   std::unique_ptr<DPL2FSDecoder> m_fsdecoder;
   std::array<float, 32768> m_float_conversion_buffer;
-  FixedSizeQueue<float, 32768> m_decoded_fifo;
+  Common::FixedSizeQueue<float, 32768> m_decoded_fifo;
 };
 
 }  // namespace AudioCommon
