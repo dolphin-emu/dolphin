@@ -6,12 +6,9 @@
 #include <array>
 #include <optional>
 
-#include <QDialog>
-#include <QListWidget>
-#include <QRadioButton>
 #include <QString>
-#include <QTimer>
 #include <QWidget>
+#include <QTimer>
 
 #include "Core/Core.h"
 #include "Core/IOS/USB/Emulated/Skylander.h"
@@ -21,6 +18,9 @@
 class QCheckBox;
 class QGroupBox;
 class QLineEdit;
+class QPushButton;
+class QRadioButton;
+class QListWidget;
 
 struct Skylander
 {
@@ -33,25 +33,28 @@ class PortalButton : public QWidget
 {
   Q_OBJECT
 public:
-  explicit PortalButton(RenderWidget* rend, QWidget* pWindow, QWidget* parent = nullptr);
+  explicit PortalButton(RenderWidget* rend, QWidget* pWindow,
+    QWidget* parent = nullptr);
   ~PortalButton() override;
 
   void OpenMenu();
-  void setRender(RenderWidget* r);
+  void SetRender(RenderWidget* r);
   void Hovered();
-  void setEnabled(bool enable);
+  void SetEnabled(bool enable);
 
 private:
   QPushButton* button;
-  QTimer fadeout;
+  QTimer fade_out;
   RenderWidget* render = nullptr;
-  QWidget* portalWindow = nullptr;
+  QWidget* portal_window = nullptr;
   bool enabled;
 };
 
 class SkylanderFilters
 {
 public:
+  SkylanderFilters();
+
   enum Filter
   {
     G_SPYROS_ADV,
@@ -70,18 +73,16 @@ public:
     E_OTHER
   };
 
-  SkylanderFilters();
-
   bool PassesFilter(Filter filter, u16 id, u16 var);
 
 private:
   struct FilterData
   {
-    std::vector<u16> idSets[10];
-    std::vector<u16> varSets[10];
+    std::vector<u16> id_sets[10];
+    std::vector<u16> var_sets[10];
 
-    std::vector<std::pair<u16, u16>> includedSkylanders;
-    std::vector<std::pair<u16, u16>> excludedSkylanders;
+    std::vector<std::pair<u16, u16>> included_skylanders;
+    std::vector<std::pair<u16, u16>> excluded_skylanders;
   };
 
   FilterData filters[14];
@@ -91,7 +92,8 @@ class SkylanderPortalWindow : public QWidget
 {
   Q_OBJECT
 public:
-  explicit SkylanderPortalWindow(RenderWidget* render, MainWindow* main, QWidget* parent = nullptr);
+  explicit SkylanderPortalWindow(RenderWidget* render, const MainWindow* main,
+    QWidget* parent = nullptr);
   ~SkylanderPortalWindow() override;
 
 protected:
@@ -133,7 +135,7 @@ private:
   QCheckBox* m_enabled_checkbox;
   QCheckBox* m_show_button_ingame_checkbox;
   QGroupBox* m_group_skylanders;
-  PortalButton* portalButton;
+  PortalButton* open_portal_btn;
   QRadioButton* m_slot_radios[16];
 
   // Qt is not guaranteed to keep track of file paths using native file pickers, so we use this
@@ -146,10 +148,9 @@ private:
 
   QCheckBox* m_game_filters[5];
   QRadioButton* m_element_filter[10];
-  int lastElementID = -1;
   QCheckBox* m_only_show_collection;
   QLineEdit* m_sky_search;
-  QListWidget* skylanderList;
+  QListWidget* m_skylander_list;
   QString m_file_path;
   u16 sky_id;
   u16 sky_var;
