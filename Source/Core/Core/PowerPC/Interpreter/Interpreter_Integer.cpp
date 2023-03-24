@@ -149,7 +149,7 @@ void Interpreter::twi(Interpreter& interpreter, UGeckoInstruction inst)
   if ((a < b && (TO & 0x10) != 0) || (a > b && (TO & 0x08) != 0) || (a == b && (TO & 0x04) != 0) ||
       (u32(a) < u32(b) && (TO & 0x02) != 0) || (u32(a) > u32(b) && (TO & 0x01) != 0))
   {
-    GenerateProgramException(ProgramExceptionCause::Trap);
+    GenerateProgramException(ppc_state, ProgramExceptionCause::Trap);
     PowerPC::CheckExceptions();
     interpreter.m_end_block = true;  // Dunno about this
   }
@@ -380,7 +380,7 @@ void Interpreter::tw(Interpreter& interpreter, UGeckoInstruction inst)
   if ((a < b && (TO & 0x10) != 0) || (a > b && (TO & 0x08) != 0) || (a == b && (TO & 0x04) != 0) ||
       ((u32(a) < u32(b)) && (TO & 0x02) != 0) || ((u32(a) > u32(b)) && (TO & 0x01) != 0))
   {
-    GenerateProgramException(ProgramExceptionCause::Trap);
+    GenerateProgramException(ppc_state, ProgramExceptionCause::Trap);
     PowerPC::CheckExceptions();
     interpreter.m_end_block = true;  // Dunno about this
   }

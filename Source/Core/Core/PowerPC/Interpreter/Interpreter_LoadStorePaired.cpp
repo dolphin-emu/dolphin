@@ -313,7 +313,7 @@ void Interpreter::psq_l(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   if (HID2(ppc_state).LSQE == 0)
   {
-    GenerateProgramException(ProgramExceptionCause::IllegalInstruction);
+    GenerateProgramException(ppc_state, ProgramExceptionCause::IllegalInstruction);
     return;
   }
 
@@ -326,7 +326,7 @@ void Interpreter::psq_lu(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   if (HID2(ppc_state).LSQE == 0)
   {
-    GenerateProgramException(ProgramExceptionCause::IllegalInstruction);
+    GenerateProgramException(ppc_state, ProgramExceptionCause::IllegalInstruction);
     return;
   }
 
@@ -346,7 +346,7 @@ void Interpreter::psq_st(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   if (HID2(ppc_state).LSQE == 0)
   {
-    GenerateProgramException(ProgramExceptionCause::IllegalInstruction);
+    GenerateProgramException(ppc_state, ProgramExceptionCause::IllegalInstruction);
     return;
   }
 
@@ -359,7 +359,7 @@ void Interpreter::psq_stu(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   if (HID2(ppc_state).LSQE == 0)
   {
-    GenerateProgramException(ProgramExceptionCause::IllegalInstruction);
+    GenerateProgramException(ppc_state, ProgramExceptionCause::IllegalInstruction);
     return;
   }
 

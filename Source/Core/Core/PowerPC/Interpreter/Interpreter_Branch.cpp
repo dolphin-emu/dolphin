@@ -117,7 +117,7 @@ void Interpreter::rfi(Interpreter& interpreter, UGeckoInstruction inst)
 
   if (ppc_state.msr.PR)
   {
-    GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
+    GenerateProgramException(ppc_state, ProgramExceptionCause::PrivilegedInstruction);
     return;
   }
 

@@ -66,7 +66,7 @@ void Interpreter::lfd(Interpreter& interpreter, UGeckoInstruction inst)
 
   if ((address & 0b11) != 0)
   {
-    GenerateAlignmentException(address);
+    GenerateAlignmentException(ppc_state, address);
     return;
   }
 
@@ -83,7 +83,7 @@ void Interpreter::lfdu(Interpreter& interpreter, UGeckoInstruction inst)
 
   if ((address & 0b11) != 0)
   {
-    GenerateAlignmentException(address);
+    GenerateAlignmentException(ppc_state, address);
     return;
   }
 
@@ -103,7 +103,7 @@ void Interpreter::lfdux(Interpreter& interpreter, UGeckoInstruction inst)
 
   if ((address & 0b11) != 0)
   {
-    GenerateAlignmentException(address);
+    GenerateAlignmentException(ppc_state, address);
     return;
   }
 
@@ -123,7 +123,7 @@ void Interpreter::lfdx(Interpreter& interpreter, UGeckoInstruction inst)
 
   if ((address & 0b11) != 0)
   {
-    GenerateAlignmentException(address);
+    GenerateAlignmentException(ppc_state, address);
     return;
   }
 
@@ -140,7 +140,7 @@ void Interpreter::lfs(Interpreter& interpreter, UGeckoInstruction inst)
 
   if ((address & 0b11) != 0)
   {
-    GenerateAlignmentException(address);
+    GenerateAlignmentException(ppc_state, address);
     return;
   }
 
@@ -160,7 +160,7 @@ void Interpreter::lfsu(Interpreter& interpreter, UGeckoInstruction inst)
 
   if ((address & 0b11) != 0)
   {
-    GenerateAlignmentException(address);
+    GenerateAlignmentException(ppc_state, address);
     return;
   }
 
@@ -181,7 +181,7 @@ void Interpreter::lfsux(Interpreter& interpreter, UGeckoInstruction inst)
 
   if ((address & 0b11) != 0)
   {
-    GenerateAlignmentException(address);
+    GenerateAlignmentException(ppc_state, address);
     return;
   }
 
@@ -202,7 +202,7 @@ void Interpreter::lfsx(Interpreter& interpreter, UGeckoInstruction inst)
 
   if ((address & 0b11) != 0)
   {
-    GenerateAlignmentException(address);
+    GenerateAlignmentException(ppc_state, address);
     return;
   }
 
@@ -271,7 +271,7 @@ void Interpreter::lmw(Interpreter& interpreter, UGeckoInstruction inst)
 
   if ((address & 0b11) != 0 || ppc_state.msr.LE)
   {
-    GenerateAlignmentException(address);
+    GenerateAlignmentException(ppc_state, address);
     return;
   }
 
@@ -300,7 +300,7 @@ void Interpreter::stmw(Interpreter& interpreter, UGeckoInstruction inst)
 
   if ((address & 0b11) != 0 || ppc_state.msr.LE)
   {
-    GenerateAlignmentException(address);
+    GenerateAlignmentException(ppc_state, address);
     return;
   }
 
@@ -366,7 +366,7 @@ void Interpreter::stfd(Interpreter& interpreter, UGeckoInstruction inst)
 
   if ((address & 0b11) != 0)
   {
-    GenerateAlignmentException(address);
+    GenerateAlignmentException(ppc_state, address);
     return;
   }
 
@@ -380,7 +380,7 @@ void Interpreter::stfdu(Interpreter& interpreter, UGeckoInstruction inst)
 
   if ((address & 0b11) != 0)
   {
-    GenerateAlignmentException(address);
+    GenerateAlignmentException(ppc_state, address);
     return;
   }
 
@@ -398,7 +398,7 @@ void Interpreter::stfs(Interpreter& interpreter, UGeckoInstruction inst)
 
   if ((address & 0b11) != 0)
   {
-    GenerateAlignmentException(address);
+    GenerateAlignmentException(ppc_state, address);
     return;
   }
 
@@ -412,7 +412,7 @@ void Interpreter::stfsu(Interpreter& interpreter, UGeckoInstruction inst)
 
   if ((address & 0b11) != 0)
   {
-    GenerateAlignmentException(address);
+    GenerateAlignmentException(ppc_state, address);
     return;
   }
 
@@ -485,7 +485,7 @@ void Interpreter::dcbi(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   if (ppc_state.msr.PR)
   {
-    GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
+    GenerateProgramException(ppc_state, ProgramExceptionCause::PrivilegedInstruction);
     return;
   }
 
@@ -537,7 +537,7 @@ void Interpreter::dcbz(Interpreter& interpreter, UGeckoInstruction inst)
 
   if (!HID0(ppc_state).DCE)
   {
-    GenerateAlignmentException(dcbz_addr);
+    GenerateAlignmentException(ppc_state, dcbz_addr);
     return;
   }
 
@@ -560,7 +560,7 @@ void Interpreter::dcbz_l(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   if (!HID2(ppc_state).LCE)
   {
-    GenerateProgramException(ProgramExceptionCause::IllegalInstruction);
+    GenerateProgramException(ppc_state, ProgramExceptionCause::IllegalInstruction);
     return;
   }
 
@@ -568,7 +568,7 @@ void Interpreter::dcbz_l(Interpreter& interpreter, UGeckoInstruction inst)
 
   if (!HID0(ppc_state).DCE)
   {
-    GenerateAlignmentException(address);
+    GenerateAlignmentException(ppc_state, address);
     return;
   }
 
@@ -584,13 +584,13 @@ void Interpreter::eciwx(Interpreter& interpreter, UGeckoInstruction inst)
 
   if ((ppc_state.spr[SPR_EAR] & 0x80000000) == 0)
   {
-    GenerateDSIException(EA);
+    GenerateDSIException(ppc_state, EA);
     return;
   }
 
   if ((EA & 0b11) != 0)
   {
-    GenerateAlignmentException(EA);
+    GenerateAlignmentException(ppc_state, EA);
     return;
   }
 
@@ -604,13 +604,13 @@ void Interpreter::ecowx(Interpreter& interpreter, UGeckoInstruction inst)
 
   if ((ppc_state.spr[SPR_EAR] & 0x80000000) == 0)
   {
-    GenerateDSIException(EA);
+    GenerateDSIException(ppc_state, EA);
     return;
   }
 
   if ((EA & 0b11) != 0)
   {
-    GenerateAlignmentException(EA);
+    GenerateAlignmentException(ppc_state, EA);
     return;
   }
 
@@ -724,7 +724,7 @@ void Interpreter::lswx(Interpreter& interpreter, UGeckoInstruction inst)
 
   if (ppc_state.msr.LE)
   {
-    GenerateAlignmentException(EA);
+    GenerateAlignmentException(ppc_state, EA);
     return;
   }
 
@@ -811,7 +811,7 @@ void Interpreter::stfdux(Interpreter& interpreter, UGeckoInstruction inst)
 
   if ((address & 0b11) != 0)
   {
-    GenerateAlignmentException(address);
+    GenerateAlignmentException(ppc_state, address);
     return;
   }
 
@@ -829,7 +829,7 @@ void Interpreter::stfdx(Interpreter& interpreter, UGeckoInstruction inst)
 
   if ((address & 0b11) != 0)
   {
-    GenerateAlignmentException(address);
+    GenerateAlignmentException(ppc_state, address);
     return;
   }
 
@@ -844,7 +844,7 @@ void Interpreter::stfiwx(Interpreter& interpreter, UGeckoInstruction inst)
 
   if ((address & 0b11) != 0)
   {
-    GenerateAlignmentException(address);
+    GenerateAlignmentException(ppc_state, address);
     return;
   }
 
@@ -858,7 +858,7 @@ void Interpreter::stfsux(Interpreter& interpreter, UGeckoInstruction inst)
 
   if ((address & 0b11) != 0)
   {
-    GenerateAlignmentException(address);
+    GenerateAlignmentException(ppc_state, address);
     return;
   }
 
@@ -876,7 +876,7 @@ void Interpreter::stfsx(Interpreter& interpreter, UGeckoInstruction inst)
 
   if ((address & 0b11) != 0)
   {
-    GenerateAlignmentException(address);
+    GenerateAlignmentException(ppc_state, address);
     return;
   }
 
@@ -918,7 +918,7 @@ void Interpreter::lswi(Interpreter& interpreter, UGeckoInstruction inst)
 
   if (ppc_state.msr.LE)
   {
-    GenerateAlignmentException(EA);
+    GenerateAlignmentException(ppc_state, EA);
     return;
   }
 
@@ -966,7 +966,7 @@ void Interpreter::stswi(Interpreter& interpreter, UGeckoInstruction inst)
 
   if (ppc_state.msr.LE)
   {
-    GenerateAlignmentException(EA);
+    GenerateAlignmentException(ppc_state, EA);
     return;
   }
 
@@ -1005,7 +1005,7 @@ void Interpreter::stswx(Interpreter& interpreter, UGeckoInstruction inst)
 
   if (ppc_state.msr.LE)
   {
-    GenerateAlignmentException(EA);
+    GenerateAlignmentException(ppc_state, EA);
     return;
   }
 
@@ -1046,7 +1046,7 @@ void Interpreter::lwarx(Interpreter& interpreter, UGeckoInstruction inst)
 
   if ((address & 0b11) != 0)
   {
-    GenerateAlignmentException(address);
+    GenerateAlignmentException(ppc_state, address);
     return;
   }
 
@@ -1068,7 +1068,7 @@ void Interpreter::stwcxd(Interpreter& interpreter, UGeckoInstruction inst)
 
   if ((address & 0b11) != 0)
   {
-    GenerateAlignmentException(address);
+    GenerateAlignmentException(ppc_state, address);
     return;
   }
 
@@ -1119,7 +1119,7 @@ void Interpreter::tlbie(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   if (ppc_state.msr.PR)
   {
-    GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
+    GenerateProgramException(ppc_state, ProgramExceptionCause::PrivilegedInstruction);
     return;
   }
 
@@ -1134,7 +1134,7 @@ void Interpreter::tlbsync(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   if (ppc_state.msr.PR)
   {
-    GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
+    GenerateProgramException(ppc_state, ProgramExceptionCause::PrivilegedInstruction);
   }
 
   // Ignored
