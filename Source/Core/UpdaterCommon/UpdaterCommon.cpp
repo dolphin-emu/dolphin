@@ -17,6 +17,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/HttpRequest.h"
+#include "Common/IOFile.h"
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "UpdaterCommon/Platform.h"
@@ -44,15 +45,15 @@ const std::array<u8, 32> UPDATE_PUB_KEY_TEST = {
     0x9e, 0xe0, 0x9b, 0x28, 0xc9, 0x1a, 0x60, 0xb7, 0x67, 0x1c, 0xf3, 0xf6, 0xca, 0x1b, 0xdd, 0x1a};
 
 // Where to log updater output.
-static FILE* log_fp = stderr;
+static File::IOFile log_file;
 
 void LogToFile(const char* fmt, ...)
 {
   va_list args;
   va_start(args, fmt);
 
-  vfprintf(log_fp, fmt, args);
-  fflush(log_fp);
+  log_file.WriteString(StringFromFormatV(fmt, args));
+  log_file.Flush();
 
   va_end(args);
 }
@@ -174,8 +175,8 @@ bool VerifySignature(const std::string& data, const std::string& b64_signature)
 
 void FlushLog()
 {
-  fflush(log_fp);
-  fclose(log_fp);
+  log_file.Flush();
+  log_file.Close();
 }
 
 void TodoList::Log() const
@@ -698,9 +699,8 @@ bool RunUpdater(std::vector<std::string> args)
 
   if (opts.log_file)
   {
-    log_fp = fopen(opts.log_file.value().c_str(), "w");
-    if (!log_fp)
-      log_fp = stderr;
+    if (!log_file.Open(opts.log_file.value(), "w"))
+      log_file.SetHandle(stderr);
     else
       atexit(FlushLog);
   }
