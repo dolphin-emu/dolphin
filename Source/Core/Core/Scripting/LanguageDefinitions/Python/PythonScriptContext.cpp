@@ -2,11 +2,22 @@
 #include "Core/Scripting/HelperClasses/FunctionMetadata.h"
 
 #include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/BitModuleImporter.h"
+#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/ImportModuleImporter.h"
 #include "Core/Scripting/InternalAPIModules/BitAPI.h"
+#include "Core/Scripting/InternalAPIModules/ImportAPI.h"
+#include <fstream>
 
 namespace Scripting::Python
 {
 static const char* THIS_MODULE_NAME = "ThisPointerModule";
+static bool python_initialized = false;
+static PyThreadState* original_python_thread = nullptr;
+static bool set_print_callback = false;
+static bool set_script_end_callback = false;
+static std::function<void(const std::string&)>* print_callback;
+static std::function<void(int)>* script_end_callback;
+
+
 int getNumberOfCallbacksInMap(std::unordered_map<size_t, std::vector<PyObject*>>& input_map)
 {
   int return_val = 0;
@@ -47,10 +58,10 @@ bool PythonScriptContext::ShouldCallEndScriptFunction()
 }
 
 
-PyModuleDef ThisModule = {
+PyModuleDef ThisModuleDef = {
     PyModuleDef_HEAD_INIT, THIS_MODULE_NAME, /* name of module */
     nullptr,                                 /* module documentation, may be NULL */
-    sizeof(long long),                       /* size of per-interpreter state of the module,
+    sizeof(PyObject*),                       /* size of per-interpreter state of the module,
                                                              or -1 if the module keeps state in global variables. */
     nullptr};
 
@@ -63,21 +74,49 @@ PythonScriptContext::PythonScriptContext(int new_unique_script_identifier, const
                     new_pointer_to_list_of_all_scripts)
 {
   const std::lock_guard<std::mutex> lock(script_specific_lock);
-  if (!python_initialized)
+
+  if (!set_print_callback)
   {
-    Py_Initialize();
-    python_initialized = true;
+    print_callback = new_print_callback;
+    set_print_callback = true;
+  }
+  if (!set_script_end_callback)
+  {
+    script_end_callback = new_script_end_callback;
+    set_script_end_callback = true;
   }
 
   list_of_imported_modules = std::vector<PyObject*>();
+  if (!python_initialized)
+  {
+    Py_Initialize();
+    original_python_thread = PyThreadState_Get();
+    python_initialized = true;
+  }
+  else
+  {
+    PyEval_RestoreThread(original_python_thread);
+  }
   python_thread = Py_NewInterpreter();
-  PyEval_RestoreThread(python_thread);
-  long long this_address = (long long)this;
-  PyObject* this_module = PyModule_Create(&ThisModule);
-  list_of_imported_modules.push_back(this_module);
+  long long this_address = (long long) (ScriptContext*) this;
+  PyObject* this_module = PyModule_Create(&ThisModuleDef);
   *((long long*)PyModule_GetState(this_module)) = this_address;
+  PyDict_SetItemString(PyImport_GetModuleDict(), THIS_MODULE_NAME, this_module);
+  list_of_imported_modules.push_back(this_module);
 
   current_script_call_location = ScriptCallLocations::FromScriptStartup;
+
+   std::string stdOutErr = "import sys\n\
+class CatchOutErr:\n\
+    def __init__(self):\n\
+        self.value = ''\n\
+    def write(self, txt):\n\
+        self.value += txt\n\
+catchOutErr = CatchOutErr()\n\
+sys.stdout = catchOutErr\n\
+sys.stderr = catchOutErr\n\
+";  // this is python code to redirect stdouts/stderr
+  PyRun_SimpleString(stdOutErr.c_str());  // invoke code to redirect
   this->ImportModule("dolphin", api_version);
   this->ImportModule("OnFrameStart", api_version);
   this->ImportModule("OnGCControllerPolled", api_version);
@@ -85,7 +124,23 @@ PythonScriptContext::PythonScriptContext(int new_unique_script_identifier, const
   this->ImportModule("OnMemoryAddressReadFrom", api_version);
   this->ImportModule("OnMemoryAddressWrittenTo", api_version);
   this->ImportModule("OnWiiInputPolled", api_version);
+  PyObject* pModule = PyImport_AddModule("__main__");
   StartMainScript(new_script_filename.c_str());
+  finished_with_global_code = true;
+
+  PyObject* catcher = PyObject_GetAttrString(pModule, "catchOutErr");  // get our catchOutErr created above
+  const char* error_msg = PyUnicode_AsUTF8(catcher);
+  if (error_msg != nullptr && !std::string(error_msg).empty())
+    (*print_callback)(error_msg);
+
+
+  PyObject *output = PyObject_GetAttrString(catcher,"value");
+  const char* output_msg = PyUnicode_AsUTF8(output);
+  if (output_msg != nullptr && !std::string(output_msg).empty())
+    (*print_callback)(output_msg);
+
+  if (ShouldCallEndScriptFunction())
+    ShutdownScript();
   PyEval_ReleaseThread(python_thread);
 }
 
@@ -99,17 +154,29 @@ PyObject* PythonScriptContext::RunFunction(PyObject* self, PyObject* args, std::
                     "Dolphin's internal code.",
                     class_name)
             .c_str());
+    PyErr_Print();
+    (*print_callback)(
+        fmt::format("Error: function metadata in {} class was NULL! This means that the functions "
+                    "in this class weren't properly initialized, which is probably an error in "
+                    "Dolphin's internal code.",
+                    class_name)
+            .c_str());
     return nullptr;
   }
-
-  ScriptContext* this_pointer =
-      (ScriptContext*)(long long)PyModule_GetState(PyImport_ImportModule(THIS_MODULE_NAME));
+  ScriptContext* this_pointer = reinterpret_cast<ScriptContext*>(*((long long*)PyModule_GetState(PyImport_ImportModule(THIS_MODULE_NAME))));
 
   std::vector<ArgHolder> arguments_list = std::vector<ArgHolder>();
 
   if (PyTuple_GET_SIZE(args) != (int) functionMetadata->arguments_list.size())
   {
     PyErr_SetString(PyExc_RuntimeError, fmt::format("Error: In {}.{}() function, expected {} arguments, but got {} arguments instead. The method should be called like this: {}.{}", class_name, functionMetadata->function_name, functionMetadata->arguments_list.size(), PyTuple_GET_SIZE(args), class_name, functionMetadata->example_function_call).c_str());
+    PyErr_Print();
+    (*print_callback)(fmt::format("Error: In {}.{}() function, expected {} arguments, but got {} "
+                                  "arguments instead. The method should be called like this: {}.{}",
+                                  class_name, functionMetadata->function_name,
+                                  functionMetadata->arguments_list.size(), PyTuple_GET_SIZE(args),
+                                  class_name, functionMetadata->example_function_call)
+                          .c_str());
     return nullptr;
   }
 
@@ -163,9 +230,11 @@ PyObject* PythonScriptContext::RunFunction(PyObject* self, PyObject* args, std::
 
     case ArgTypeEnum::String:
       arguments_list.push_back(CreateStringArgHolder(std::string(PyUnicode_AsUTF8(current_item))));
+      break;
 
     default:
       PyErr_SetString(PyExc_RuntimeError, "Argument Type not supported yet!");
+      (*print_callback)("Argument type not supported yet!");
       return nullptr;
     }
     ++argument_index;
@@ -214,6 +283,7 @@ PyObject* PythonScriptContext::RunFunction(PyObject* self, PyObject* args, std::
 
   default:
     PyErr_SetString(PyExc_RuntimeError, "Return Type not supported yet!");
+    (*print_callback)("Return Type not supported yet!");
     return nullptr;
   }
   return nullptr;
@@ -221,9 +291,16 @@ PyObject* PythonScriptContext::RunFunction(PyObject* self, PyObject* args, std::
 
 void PythonScriptContext::ImportModule(const std::string& api_name, const std::string& api_version)
 {
+  PyObject* new_module = nullptr;
   if (api_name == BitApi::class_name)
-    list_of_imported_modules.push_back(BitModuleImporter::ImportModule(api_version));
-  return;
+    new_module = BitModuleImporter::ImportBitModule(api_version);
+  else if (api_name == ImportAPI::class_name)
+    new_module = ImportModuleImporter::ImportImportModule(api_version);
+  else
+    return;
+  list_of_imported_modules.push_back(new_module);
+  PyDict_SetItemString(PyImport_GetModuleDict(), api_name.c_str(), new_module);
+  PyRun_SimpleString(std::string("import " + api_name).c_str());
 }
 
 void PythonScriptContext::RunGlobalScopeCode()
@@ -405,6 +482,9 @@ bool PythonScriptContext::IsCallbackDefinedForButtonId(long long button_id)
 
 void PythonScriptContext::ShutdownScript()
 {
+  this->is_script_active = false;
+  (*script_end_callback)(this->unique_script_identifier);
+  return;
 }
 
 }  // namespace Scripting::Python

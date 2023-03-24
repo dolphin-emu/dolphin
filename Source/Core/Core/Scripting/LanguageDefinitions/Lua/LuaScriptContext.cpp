@@ -2,9 +2,9 @@
 
 namespace Scripting::Lua
 {
-std::function<void(const std::string&)>* print_callback;
 bool set_print_callback = false;
 bool set_script_end_callback = false;
+std::function<void(const std::string&)>* print_callback;
 std::function<void(int)>* script_end_callback;
 const char* THIS_VARIABLE_NAME = "THIS__Internal984Z234";  // Making this something unlikely to overlap with a user-defined global.
 int x = 0;

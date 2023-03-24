@@ -89,8 +89,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spng", "..\Externals\libspn
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lua", "..\Externals\Lua\Lua.vcxproj", "{632B686A-F320-4E96-8E11-F2883D9BE914}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CPython", "..\Externals\cpython\CPython.vcxproj", "{C73A6F82-C72B-4A5A-9917-698CACAAE991}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM64 = Debug|ARM64
@@ -601,18 +599,6 @@ Global
 		{632B686A-F320-4E96-8E11-F2883D9BE914}.Release|x64.Build.0 = Release|x64
 		{632B686A-F320-4E96-8E11-F2883D9BE914}.Release|x86.ActiveCfg = Release|x64
 		{632B686A-F320-4E96-8E11-F2883D9BE914}.Release|x86.Build.0 = Release|x64
-		{C73A6F82-C72B-4A5A-9917-698CACAAE991}.Debug|ARM64.ActiveCfg = Debug|x64
-		{C73A6F82-C72B-4A5A-9917-698CACAAE991}.Debug|ARM64.Build.0 = Debug|x64
-		{C73A6F82-C72B-4A5A-9917-698CACAAE991}.Debug|x64.ActiveCfg = Debug|x64
-		{C73A6F82-C72B-4A5A-9917-698CACAAE991}.Debug|x64.Build.0 = Debug|x64
-		{C73A6F82-C72B-4A5A-9917-698CACAAE991}.Debug|x86.ActiveCfg = Debug|Win32
-		{C73A6F82-C72B-4A5A-9917-698CACAAE991}.Debug|x86.Build.0 = Debug|Win32
-		{C73A6F82-C72B-4A5A-9917-698CACAAE991}.Release|ARM64.ActiveCfg = Release|x64
-		{C73A6F82-C72B-4A5A-9917-698CACAAE991}.Release|ARM64.Build.0 = Release|x64
-		{C73A6F82-C72B-4A5A-9917-698CACAAE991}.Release|x64.ActiveCfg = Release|x64
-		{C73A6F82-C72B-4A5A-9917-698CACAAE991}.Release|x64.Build.0 = Release|x64
-		{C73A6F82-C72B-4A5A-9917-698CACAAE991}.Release|x86.ActiveCfg = Release|Win32
-		{C73A6F82-C72B-4A5A-9917-698CACAAE991}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

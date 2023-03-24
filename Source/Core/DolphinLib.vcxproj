@@ -33,7 +33,6 @@
   <Import Project="$(ExternalsDir)cpp-optparse\exports.props" />
   <Import Project="$(ExternalsDir)cubeb\exports.props" />
   <Import Project="$(ExternalsDir)curl\exports.props" />
-  <Import Project="$(ExternalsDir)cpython\exports.props" />
   <Import Project="$(ExternalsDir)discord-rpc\exports.props" />
   <Import Project="$(ExternalsDir)ed25519\exports.props" />
   <Import Project="$(ExternalsDir)enet\exports.props" />
@@ -67,6 +66,16 @@
     <BuildInfoTemplate>Common\build_info.txt.in</BuildInfoTemplate>
     <BuildInfoOutput>$(BinaryOutputDir)build_info.txt</BuildInfoOutput>
   </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(PYTHONHOME)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(PYTHONHOME)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="$(BuildInfoTemplate)" />
   </ItemGroup>
@@ -84,6 +93,7 @@
     <ClInclude Include="Core\Scripting\InternalAPIModules\WiiAPI.h" />
     <ClInclude Include="Core\Scripting\LanguageDefinitions\DefinedScriptingLanguagesEnum.h" />
     <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\BitModuleImporter.h" />
+    <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\ImportModuleImporter.h" />
     <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\PythonScriptContext.h" />
     <ClInclude Include="Core\Scripting\ScriptContext.h" />
     <ClInclude Include="Core\Scripting\InternalAPIModules\BitAPI.h" />
@@ -127,6 +137,7 @@
     <ClCompile Include="Core\Scripting\InternalAPIModules\WiiAPI.cpp" />
     <ClCompile Include="Core\Scripting\LanguageDefinitions\Lua\LuaScriptContext.cpp" />
     <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\BitModuleImporter.cpp" />
+    <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\ImportModuleImporter.cpp" />
     <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\PythonScriptContext.cpp" />
     <ClCompile Include="Core\Scripting\ScriptUtilities.cpp" />
   </ItemGroup>

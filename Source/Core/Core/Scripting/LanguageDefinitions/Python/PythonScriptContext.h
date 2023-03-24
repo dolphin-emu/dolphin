@@ -12,7 +12,6 @@
 
 namespace Scripting::Python
 {
-extern bool python_initialized;
 extern const char* THIS_VARIABLE_NAME;  // Making this something unlikely to overlap with a user-defined global.
 
 class PythonScriptContext : public ScriptContext
@@ -55,7 +54,9 @@ public:
 
   static void StartMainScript(const char* script_name)
   {
-  PyRun_AnyFileExFlags(nullptr, script_name, true, nullptr);
+    FILE* fp = fopen(script_name, "rb");
+    PyRun_AnyFile(fp, nullptr);
+    fclose(fp);
   }
 
   static PyObject* RunFunction(PyObject* self, PyObject* args, std::string class_name,
