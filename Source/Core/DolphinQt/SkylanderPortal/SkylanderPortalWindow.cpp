@@ -916,7 +916,8 @@ SkylanderFilters::SkylanderFilters()
   {
     giants.idSets[0].push_back(i);  // giants chars
   }
-  giants.varSets[1] = {0x1801, 0x1206, 0x1C02, 0x1C03};
+  giants.varSets[1] = {0x1801, 0x1206, 0x1C02, 0x1C03,
+    0x2000};
   for (int i = 0; i <= 32; i++)
   {
     giants.idSets[1].push_back(i);  // lightcore and series2
@@ -960,6 +961,14 @@ SkylanderFilters::SkylanderFilters()
     108, 100, 14, 113,  //returning chars
     3004
   };
+  for (int i = 300; i <= 304; i++)
+  {
+    trapTeam.excludedSkylanders.push_back(std::make_pair<>(i, 0x0000));
+  }
+  for (int i = 404; i <= 430; i++)
+  {
+    trapTeam.excludedSkylanders.push_back(std::make_pair<>(i, 0x0000));
+  }
   filters[G_TRAP_TEAM] = trapTeam;
 
   // Superchargers
