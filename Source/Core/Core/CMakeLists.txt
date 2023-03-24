@@ -276,6 +276,7 @@ add_library(core
   HW/WiimoteCommon/DataReport.cpp
   HW/WiimoteCommon/DataReport.h
   HW/WiimoteCommon/WiimoteConstants.h
+	HW/WiimoteCommon/WiimoteHid.cpp
   HW/WiimoteCommon/WiimoteHid.h
   HW/WiimoteCommon/WiimoteReport.h
   HW/WiimoteEmu/Camera.cpp

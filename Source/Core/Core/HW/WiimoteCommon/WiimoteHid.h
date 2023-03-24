@@ -88,4 +88,6 @@ struct TypedInputData
 
 #pragma pack(pop)
 
+u32 GetExpectedInputReportSize(InputReportID);
+
 }  // namespace WiimoteCommon

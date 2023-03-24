@@ -313,19 +313,38 @@ void Wiimote::Read()
   if (!m_is_linked)
     return;
 
-  if (result > 0)
-  {
-    if (m_balance_board_dump_port > 0 && m_index == WIIMOTE_BALANCE_BOARD)
-    {
-      static sf::UdpSocket Socket;
-      Socket.send((char*)rpt.data(), rpt.size(), sf::IpAddress::LocalHost,
-                  m_balance_board_dump_port);
-    }
+  if (result < 0)
+    return;
 
-    // Add it to queue
-    rpt.resize(result);
-    m_read_reports.Push(std::move(rpt));
+  if (m_balance_board_dump_port > 0 && m_index == WIIMOTE_BALANCE_BOARD)
+  {
+    static sf::UdpSocket Socket;
+    Socket.send((char*)rpt.data(), rpt.size(), sf::IpAddress::LocalHost, m_balance_board_dump_port);
   }
+
+  constexpr u32 INPUT_REPORT_HEADER_SIZE = 1;
+
+  if (result < REPORT_HID_HEADER_SIZE + INPUT_REPORT_HEADER_SIZE)
+    return;
+
+  const u32 expected_size = REPORT_HID_HEADER_SIZE + INPUT_REPORT_HEADER_SIZE +
+                            GetExpectedInputReportSize(InputReportID(rpt[REPORT_HID_HEADER_SIZE]));
+
+  if (expected_size == 0)
+  {
+    ERROR_LOG_FMT(WIIMOTE, "Unexpected report ID {:#04x}.", rpt[0]);
+    return;
+  }
+
+  if (u32(result) != expected_size)
+  {
+    // Off-brand (e.g. "NEW 2in1") remotes like to truncate read data replies.
+    WARN_LOG_FMT(WIIMOTE, "Incorrect size {} for report ID {:#04x}.", result, rpt[0]);
+  }
+
+  // Add it to queue
+  rpt.resize(expected_size);
+  m_read_reports.Push(std::move(rpt));
 }
 
 bool Wiimote::Write()

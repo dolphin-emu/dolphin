@@ -68,9 +68,10 @@
   <ItemGroup>
     <Text Include="$(BuildInfoTemplate)" />
   </ItemGroup>
-  <UsingTask TaskName="GetProductVersion"
-    TaskFactory="CodeTaskFactory"
-    AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+  <ItemGroup>
+    <ClCompile Include="Core\HW\WiimoteCommon\WiimoteHid.cpp" />
+  </ItemGroup>
+  <UsingTask TaskName="GetProductVersion" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
       <Path ParameterType="System.String" Required="true" />
       <ProductVersion ParameterType="System.String" Output="true" />
