@@ -158,7 +158,7 @@ void SkylanderPortalWindow::CreateMainWindow()
 
   QBoxLayout* command_layout = new QHBoxLayout;
   command_layout->setAlignment(Qt::AlignCenter);
-  auto* create_btn = new QPushButton(tr("Create File"));
+  auto* create_btn = new QPushButton(tr("Customize"));
   auto* load_file_btn = new QPushButton(tr("Load File"));
   auto* clear_btn = new QPushButton(tr("Clear Slot"));
   auto* load_btn = new QPushButton(tr("Load Slot"));
@@ -440,23 +440,23 @@ void SkylanderPortalWindow::RefreshList()
         QBrush bground=QBrush();
         if (filters.PassesFilter(SkylanderFilters::G_SPYROS_ADV,id,var))
         {
-          bground = QBrush(QColor(230, 255, 230, 255));
+          bground = QBrush(QColor(240, 255, 240, 255));
         }
         else if (filters.PassesFilter(SkylanderFilters::G_GIANTS,id, var))
         {
-          bground = QBrush(QColor(255, 230, 205, 255));
+          bground = QBrush(QColor(255, 240, 215, 255));
         }
         else if (filters.PassesFilter(SkylanderFilters::G_SWAP_FORCE, id, var))
         {
-          bground = QBrush(QColor(200, 230, 255, 255));
+          bground = QBrush(QColor(240, 250, 255, 255));
         }
         else if (filters.PassesFilter(SkylanderFilters::G_TRAP_TEAM, id, var))
         {
-          bground = QBrush(QColor(255, 230, 230, 255));
+          bground = QBrush(QColor(255, 240, 240, 255));
         }
         else if (filters.PassesFilter(SkylanderFilters::G_SUPERCHARGERS, id, var))
         {
-          bground = QBrush(QColor(240, 215, 190, 255));
+          bground = QBrush(QColor(245, 230, 195, 255));
         }
         skylander->setBackground(bground);
         skylander->setData(1, qvar);
