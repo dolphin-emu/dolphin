@@ -463,11 +463,4 @@ bool PythonScriptContext::IsCallbackDefinedForButtonId(long long button_id)
   return false;
 }
 
-void PythonScriptContext::ShutdownScript()
-{
-  this->is_script_active = false;
-  (*GetScriptEndCallback())(this->unique_script_identifier);
-  return;
-}
-
 }  // namespace Scripting::Python

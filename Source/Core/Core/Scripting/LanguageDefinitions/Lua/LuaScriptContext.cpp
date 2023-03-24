@@ -976,11 +976,4 @@ bool LuaScriptContext::IsCallbackDefinedForButtonId(long long button_id)
   return map_of_button_id_to_callback.count(button_id) > 0;
 }
 
- void LuaScriptContext::ShutdownScript()
- {
-  this->is_script_active = false;
-  (*GetScriptEndCallback())(this->unique_script_identifier);
-  return;
-}
-
  }  // namespace Scripting

@@ -90,8 +90,12 @@ public:
   virtual void RunButtonCallback(long long button_id) = 0;
   virtual bool IsCallbackDefinedForButtonId(long long button_id) = 0;
 
-  virtual void ShutdownScript() = 0;
-};
+  inline void ShutdownScript()
+  {
+    this->is_script_active = false;
+    (*GetScriptEndCallback())(this->unique_script_identifier);
+  }
+  };
 
 }  // namespace Scripting
 #endif

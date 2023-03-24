@@ -264,8 +264,6 @@ public:
   virtual void AddButtonCallback(long long button_id, void* callbacks);
   virtual void RunButtonCallback(long long button_id);
   virtual bool IsCallbackDefinedForButtonId(long long button_id);
-
-  virtual void ShutdownScript();
 };
 }  // namespace Scripting
 
