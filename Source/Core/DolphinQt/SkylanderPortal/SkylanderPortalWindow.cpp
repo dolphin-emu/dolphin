@@ -127,7 +127,21 @@ SkylanderPortalWindow::SkylanderPortalWindow(RenderWidget* render, MainWindow* m
 
   connect(skylanderList, &QListWidget::itemSelectionChanged, this, &SkylanderPortalWindow::UpdateSelectedVals);
 
-  m_collection_path = QString::fromStdString(File::GetUserPath(D_USER_IDX) + "Skylanders/");
+  QDir skylandersFolder = QDir(QString::fromStdString(File::GetUserPath(D_USER_IDX) + "Skylanders/"));
+  if (!skylandersFolder.exists())
+  {
+    QMessageBox::StandardButton createFolderResponse;
+    createFolderResponse =
+        QMessageBox::question(this, tr("Create Skylander Folder"),
+                              tr("Skylanders folder not found for this user. Create new folder?"),
+                              QMessageBox::Yes | QMessageBox::No);
+    if (createFolderResponse == QMessageBox::Yes)
+    {
+      skylandersFolder.mkdir(skylandersFolder.path());
+    }
+  }
+
+  m_collection_path = skylandersFolder.path();
   m_path_edit->setText(m_collection_path);
 };
 
