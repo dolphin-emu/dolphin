@@ -7,11 +7,11 @@
 #include <optional>
 
 #include <QDialog>
-#include <QString>
-#include <QWidget>
-#include <QTimer>
-#include <QRadioButton>
 #include <QListWidget>
+#include <QRadioButton>
+#include <QString>
+#include <QTimer>
+#include <QWidget>
 
 #include "Core/Core.h"
 #include "Core/IOS/USB/Emulated/Skylander.h"
@@ -45,7 +45,7 @@ private:
   QPushButton* button;
   QTimer fadeout;
   RenderWidget* render = nullptr;
-  QWidget* portalWindow= nullptr;
+  QWidget* portalWindow = nullptr;
   bool enabled;
 };
 
@@ -81,7 +81,7 @@ private:
     std::vector<u16> varSets[10];
 
     std::vector<std::pair<u16, u16>> includedSkylanders;
-    std::vector<std::pair<u16,u16>> excludedSkylanders;
+    std::vector<std::pair<u16, u16>> excludedSkylanders;
   };
 
   FilterData filters[14];
@@ -99,21 +99,21 @@ protected:
   std::array<std::optional<Skylander>, MAX_SKYLANDERS> m_sky_slots;
 
 private:
-  //window
+  // window
   void CreateMainWindow();
   QGroupBox* CreatePortalGroup();
   QGroupBox* CreateSearchGroup();
   void closeEvent(QCloseEvent* bar) override;
   bool eventFilter(QObject* object, QEvent* event) final override;
 
-  //user interface
+  // user interface
   void EmulatePortal(bool emulate);
   void SelectPath();
   void LoadSkylander();
   void LoadSkylanderFromFile();
   void ClearSkylander(u8 slot);
 
-  //behind the scenes
+  // behind the scenes
   void OnEmulationStateChanged(Core::State state);
   void OnPathChanged();
   void RefreshList();
@@ -124,7 +124,7 @@ private:
   void UpdateEdits();
   QString CreateSkylanderInCollection();
 
-  //helpers
+  // helpers
   bool PassesFilter(QString name, u16 id, u16 var);
   QString GetFilePath(u16 id, u16 var);
   u8 GetCurrentSlot();
@@ -146,7 +146,7 @@ private:
 
   QCheckBox* m_game_filters[5];
   QRadioButton* m_element_filter[10];
-  int lastElementID=-1;
+  int lastElementID = -1;
   QCheckBox* m_only_show_collection;
   QLineEdit* m_sky_search;
   QListWidget* skylanderList;

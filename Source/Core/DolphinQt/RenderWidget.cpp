@@ -320,7 +320,7 @@ void RenderWidget::SetCursorLockedOnNextActivation(bool locked)
 
 void RenderWidget::SetReportMouseMovement(bool report)
 {
-  m_report_mouse_movement=report;
+  m_report_mouse_movement = report;
 }
 
 void RenderWidget::SetWaitingForMessageBox(bool waiting_for_message_box)

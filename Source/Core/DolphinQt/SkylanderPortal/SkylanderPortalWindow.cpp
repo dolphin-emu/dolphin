@@ -6,6 +6,7 @@
 
 #include "DolphinQt/SkylanderPortal/SkylanderPortalWindow.h"
 
+#include <QBrush>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QCompleter>
@@ -16,30 +17,29 @@
 #include <QKeySequence>
 #include <QLabel>
 #include <QLineEdit>
+#include <QListWidget>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QString>
 #include <QStringList>
-#include <QVBoxLayout>
 #include <QThread>
-#include <QListWidget>
-#include <QBrush>
+#include <QVBoxLayout>
 
 #include "Common/IOFile.h"
 
+#include "Common/FileUtil.h"
 #include "Core/Config/MainSettings.h"
+#include "Core/IOS/USB/Emulated/Skylander.h"
 #include "Core/System.h"
 #include "DolphinQT/RenderWidget.h"
 #include "DolphinQt/MainWindow.h"
-#include "Core/IOS/USB/Emulated/Skylander.h"
-#include "Common/FileUtil.h"
 
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
-//PortalButton
+// PortalButton
 PortalButton::PortalButton(RenderWidget* rend, QWidget* pWindow, QWidget* parent) : QWidget(parent)
 {
   setRender(rend);
@@ -51,7 +51,7 @@ PortalButton::PortalButton(RenderWidget* rend, QWidget* pWindow, QWidget* parent
   setAttribute(Qt::WA_NoSystemBackground, true);
   setAttribute(Qt::WA_TranslucentBackground, true);
 
-  button = new QPushButton(tr("Portal of Power"),this);
+  button = new QPushButton(tr("Portal of Power"), this);
   button->resize(100, 50);
   connect(button, &QAbstractButton::clicked, this, [this]() { OpenMenu(); });
   fadeout.callOnTimeout(this, &PortalButton::hide);
@@ -82,8 +82,7 @@ void PortalButton::setRender(RenderWidget* r)
     disconnect(render, &RenderWidget::MouseMoved, this, &PortalButton::Hovered);
   }
   render = r;
-  connect(render, &RenderWidget::MouseMoved, this, &PortalButton::Hovered,
-          Qt::DirectConnection);
+  connect(render, &RenderWidget::MouseMoved, this, &PortalButton::Hovered, Qt::DirectConnection);
 }
 
 void PortalButton::Hovered()
@@ -96,7 +95,9 @@ void PortalButton::Hovered()
   }
 }
 
-SkylanderPortalWindow::SkylanderPortalWindow(RenderWidget* render, MainWindow* main, QWidget* parent) : QWidget(parent)
+SkylanderPortalWindow::SkylanderPortalWindow(RenderWidget* render, MainWindow* main,
+                                             QWidget* parent)
+    : QWidget(parent)
 {
   setWindowTitle(tr("Skylanders Manager"));
   setWindowIcon(Resources::GetAppIcon());
@@ -114,17 +115,18 @@ SkylanderPortalWindow::SkylanderPortalWindow(RenderWidget* render, MainWindow* m
 
   OnEmulationStateChanged(Core::GetState());
 
-  portalButton = new PortalButton(render,this);
-  connect(main, &MainWindow::RenderInstanceChanged, portalButton,
-          &PortalButton::setRender);
-  //portalButton->setEnabled(true);
+  portalButton = new PortalButton(render, this);
+  connect(main, &MainWindow::RenderInstanceChanged, portalButton, &PortalButton::setRender);
+  // portalButton->setEnabled(true);
 
   sky_id = 0;
   sky_var = 0;
 
-  connect(skylanderList, &QListWidget::itemSelectionChanged, this, &SkylanderPortalWindow::UpdateSelectedVals);
+  connect(skylanderList, &QListWidget::itemSelectionChanged, this,
+          &SkylanderPortalWindow::UpdateSelectedVals);
 
-  QDir skylandersFolder = QDir(QString::fromStdString(File::GetUserPath(D_USER_IDX) + "Skylanders/"));
+  QDir skylandersFolder =
+      QDir(QString::fromStdString(File::GetUserPath(D_USER_IDX) + "Skylanders/"));
   if (!skylandersFolder.exists())
   {
     QMessageBox::StandardButton createFolderResponse;
@@ -138,8 +140,8 @@ SkylanderPortalWindow::SkylanderPortalWindow(RenderWidget* render, MainWindow* m
     }
   }
 
-  m_last_skylander_path = skylandersFolder.path()+QDir::separator();
-  m_collection_path = skylandersFolder.path() +QDir::separator();
+  m_last_skylander_path = skylandersFolder.path() + QDir::separator();
+  m_collection_path = skylandersFolder.path() + QDir::separator();
   m_path_edit->setText(m_collection_path);
 };
 
@@ -162,11 +164,13 @@ void SkylanderPortalWindow::CreateMainWindow()
   auto* load_file_btn = new QPushButton(tr("Load File"));
   auto* clear_btn = new QPushButton(tr("Clear Slot"));
   auto* load_btn = new QPushButton(tr("Load Slot"));
-  connect(create_btn, &QAbstractButton::clicked, this, &SkylanderPortalWindow::CreateSkylanderAdvanced);
+  connect(create_btn, &QAbstractButton::clicked, this,
+          &SkylanderPortalWindow::CreateSkylanderAdvanced);
   connect(clear_btn, &QAbstractButton::clicked, this,
           [this]() { ClearSkylander(GetCurrentSlot()); });
   connect(load_btn, &QAbstractButton::clicked, this, &SkylanderPortalWindow::LoadSkylander);
-  connect(load_file_btn, &QAbstractButton::clicked, this, &SkylanderPortalWindow::LoadSkylanderFromFile);
+  connect(load_file_btn, &QAbstractButton::clicked, this,
+          &SkylanderPortalWindow::LoadSkylanderFromFile);
   command_layout->addWidget(create_btn);
   command_layout->addWidget(load_file_btn);
   command_layout->addWidget(clear_btn);
@@ -250,7 +254,7 @@ QGroupBox* SkylanderPortalWindow::CreatePortalGroup()
 QGroupBox* SkylanderPortalWindow::CreateSearchGroup()
 {
   skylanderList = new QListWidget;
- 
+
   skylanderList->setMinimumWidth(200);
   connect(skylanderList, &QListWidget::itemDoubleClicked, this,
           &SkylanderPortalWindow::LoadSkylander);
@@ -309,7 +313,7 @@ QGroupBox* SkylanderPortalWindow::CreateSearchGroup()
   auto* search_radio_layout = new QHBoxLayout();
 
   auto* radio_layout_left = new QVBoxLayout();
-  for (int i = 0; i < 10; i+=2)
+  for (int i = 0; i < 10; i += 2)
   {
     QRadioButton* radio = new QRadioButton(this);
     radio->setProperty("id", i);
@@ -320,7 +324,7 @@ QGroupBox* SkylanderPortalWindow::CreateSearchGroup()
   search_radio_layout->addLayout(radio_layout_left);
 
   auto* radio_layout_right = new QVBoxLayout();
-  for (int i = 1; i < 10; i+=2)
+  for (int i = 1; i < 10; i += 2)
   {
     QRadioButton* radio = new QRadioButton(this);
     radio->setProperty("id", i);
@@ -383,7 +387,7 @@ void SkylanderPortalWindow::SelectPath()
     m_path_edit->setText(dir);
     m_collection_path = dir;
   }
-  if (m_only_show_collection->isChecked()) 
+  if (m_only_show_collection->isChecked())
     RefreshList();
 }
 
@@ -405,7 +409,8 @@ void SkylanderPortalWindow::RefreshList()
   {
     QDir collection = QDir(m_collection_path);
     auto& system = Core::System::GetInstance();
-    for (auto file : collection.entryInfoList(QStringList(tr("*.sky")))) {
+    for (auto file : collection.entryInfoList(QStringList(tr("*.sky"))))
+    {
       File::IOFile sky_file(file.filePath().toStdString(), "r+b");
       if (!sky_file)
       {
@@ -432,17 +437,17 @@ void SkylanderPortalWindow::RefreshList()
     {
       int id = entry.first.first;
       int var = entry.first.second;
-      if (PassesFilter(tr(entry.second),id,var))
+      if (PassesFilter(tr(entry.second), id, var))
       {
-        //const QBrush bground = QBrush(QColor(100, 0, 0, 0));
+        // const QBrush bground = QBrush(QColor(100, 0, 0, 0));
         const uint qvar = (entry.first.first << 16) | entry.first.second;
         QListWidgetItem* skylander = new QListWidgetItem(tr(entry.second));
-        QBrush bground=QBrush();
-        if (filters.PassesFilter(SkylanderFilters::G_SPYROS_ADV,id,var))
+        QBrush bground = QBrush();
+        if (filters.PassesFilter(SkylanderFilters::G_SPYROS_ADV, id, var))
         {
           bground = QBrush(QColor(240, 255, 240, 255));
         }
-        else if (filters.PassesFilter(SkylanderFilters::G_GIANTS,id, var))
+        else if (filters.PassesFilter(SkylanderFilters::G_GIANTS, id, var))
         {
           bground = QBrush(QColor(255, 240, 215, 255));
         }
@@ -468,9 +473,10 @@ void SkylanderPortalWindow::RefreshList()
   {
     skylanderList->setCurrentItem(skylanderList->item(row), QItemSelectionModel::Select);
   }
-  else if (skylanderList->count()>0)
+  else if (skylanderList->count() > 0)
   {
-    skylanderList->setCurrentItem(skylanderList->item(skylanderList->count()-1), QItemSelectionModel::Select);
+    skylanderList->setCurrentItem(skylanderList->item(skylanderList->count() - 1),
+                                  QItemSelectionModel::Select);
   }
 }
 
@@ -502,17 +508,17 @@ bool SkylanderPortalWindow::PassesFilter(QString name, u16 id, u16 var)
     if (filters.PassesFilter(SkylanderFilters::G_SUPERCHARGERS, id, var))
       pass = true;
   }
-  if (!name.contains(m_sky_search->text(),Qt::CaseInsensitive))
+  if (!name.contains(m_sky_search->text(), Qt::CaseInsensitive))
   {
     pass = false;
   }
   switch (GetElementRadio())
   {
   case 1:
-    pass = pass&&filters.PassesFilter(SkylanderFilters::E_MAGIC,id,var);
+    pass = pass && filters.PassesFilter(SkylanderFilters::E_MAGIC, id, var);
     break;
   case 2:
-    pass = pass&&filters.PassesFilter(SkylanderFilters::E_WATER,id,var);
+    pass = pass && filters.PassesFilter(SkylanderFilters::E_WATER, id, var);
     break;
   case 3:
     pass = pass && filters.PassesFilter(SkylanderFilters::E_TECH, id, var);
@@ -684,7 +690,7 @@ void SkylanderPortalWindow::LoadSkylander()
   {
     if (skylanderList->currentItem() == nullptr)
       return;
-    file_path = m_collection_path+skylanderList->currentItem()->text();
+    file_path = m_collection_path + skylanderList->currentItem()->text();
   }
   else
   {
@@ -694,12 +700,14 @@ void SkylanderPortalWindow::LoadSkylander()
   if (file_path.isEmpty())
   {
     QMessageBox::StandardButton createFileResponse;
-    createFileResponse = QMessageBox::question(this, tr("Create Skylander File"),
-        tr("Skylander not found in this collection. Create new file?"), QMessageBox::Yes | QMessageBox::No);
+    createFileResponse =
+        QMessageBox::question(this, tr("Create Skylander File"),
+                              tr("Skylander not found in this collection. Create new file?"),
+                              QMessageBox::Yes | QMessageBox::No);
 
     if (createFileResponse == QMessageBox::Yes)
     {
-      file_path=CreateSkylanderInCollection();
+      file_path = CreateSkylanderInCollection();
 
       if (!file_path.isEmpty())
         LoadSkylanderPath(slot, file_path);
@@ -878,10 +886,10 @@ int SkylanderPortalWindow::GetElementRadio()
   return -1;
 }
 
-//Skylander filters
+// Skylander filters
 SkylanderFilters::SkylanderFilters()
 {
-  //Spyro's adventure
+  // Spyro's adventure
   FilterData spyroAdv = FilterData();
   spyroAdv.varSets[0] = {0x0000};
   spyroAdv.idSets[0] = {
@@ -892,11 +900,11 @@ SkylanderFilters::SkylanderFilters()
   {
     spyroAdv.idSets[0].push_back(i);  // standard chars
   }
-  for (int i = 200; i <= 207; i++)  //abilities
+  for (int i = 200; i <= 207; i++)  // abilities
   {
-    spyroAdv.idSets[0].push_back(i); 
+    spyroAdv.idSets[0].push_back(i);
   }
-  for (int i = 300; i <= 303; i++)  //adventure packs
+  for (int i = 300; i <= 303; i++)  // adventure packs
   {
     spyroAdv.idSets[0].push_back(i);
   }
@@ -904,63 +912,54 @@ SkylanderFilters::SkylanderFilters()
 
   // Giants
   FilterData giants = FilterData();
-  giants.varSets[0] = {
-      0x000, 0x1206, 0x1403, 0x1602,  //variants
-      0x1402, 0x1602,0x2000
-  };
+  giants.varSets[0] = {0x000,  0x1206, 0x1403, 0x1602,  // variants
+                       0x1402, 0x1602, 0x2000};
   giants.idSets[0] = {
-    208,209,  //magic items
-    540,542,541,543 //sidekicks
+      208, 209,           // magic items
+      540, 542, 541, 543  // sidekicks
   };
   for (int i = 100; i <= 115; i++)
   {
     giants.idSets[0].push_back(i);  // giants chars
   }
-  giants.varSets[1] = {0x1801, 0x1206, 0x1C02, 0x1C03,
-    0x2000};
+  giants.varSets[1] = {0x1801, 0x1206, 0x1C02, 0x1C03, 0x2000};
   for (int i = 0; i <= 32; i++)
   {
     giants.idSets[1].push_back(i);  // lightcore and series2
   }
-  giants.idSets[1].push_back(201);  //platinum treasure
+  giants.idSets[1].push_back(201);  // platinum treasure
   filters[G_GIANTS] = giants;
 
   // Swap force
   FilterData swapForce = FilterData();
-  swapForce.varSets[0] = {
-      0x0000, 0x2403, 0x2402, 0x2206,  // variants
-      0x2602
-  };
+  swapForce.varSets[0] = {0x0000, 0x2403, 0x2402, 0x2206,  // variants
+                          0x2602};
   for (int i = 1000; i <= 3204; i++)
   {
     swapForce.idSets[0].push_back(i);  // swapforce chars
   }
   for (int i = 3300; i <= 3303; i++)
   {
-    swapForce.idSets[0].push_back(i);  //adventure
+    swapForce.idSets[0].push_back(i);  // adventure
   }
   swapForce.varSets[1] = {0x2805, 0x2C02};
   for (int i = 0; i <= 111; i++)
   {
-    swapForce.idSets[1].push_back(i);  //returning chars
+    swapForce.idSets[1].push_back(i);  // returning chars
   }
   filters[G_SWAP_FORCE] = swapForce;
 
-  //Trap team
+  // Trap team
   FilterData trapTeam = FilterData();
-  trapTeam.idSets[0] = {
-    502,506,510,504,  //sidekicks
-    508,509,503,507
-  };
+  trapTeam.idSets[0] = {502, 506, 510, 504,  // sidekicks
+                        508, 509, 503, 507};
   for (int i = 210; i <= 484; i++)
   {
     trapTeam.idSets[0].push_back(i);  // trapTeam chars
   }
   trapTeam.varSets[1] = {0x3805};
-  trapTeam.idSets[1] = {
-    108, 100, 14, 113,  //returning chars
-    3004
-  };
+  trapTeam.idSets[1] = {108, 100, 14, 113,  // returning chars
+                        3004};
   for (int i = 300; i <= 304; i++)
   {
     trapTeam.excludedSkylanders.push_back(std::make_pair<>(i, 0x0000));
@@ -973,11 +972,8 @@ SkylanderFilters::SkylanderFilters()
 
   // Superchargers
   FilterData superchargers = FilterData();
-  superchargers.varSets[0] = {
-    0x0000, 0x4402, 0x4403, 0x4004,
-    0x441E,0x4515, 0x4502, 0x4503,
-    0x450E, 0x4502, 0x450D
-  };
+  superchargers.varSets[0] = {0x0000, 0x4402, 0x4403, 0x4004, 0x441E, 0x4515,
+                              0x4502, 0x4503, 0x450E, 0x4502, 0x450D};
   for (int i = 3220; i <= 3503; i++)
   {
     superchargers.idSets[0].push_back(i);  // superchargers chars
@@ -988,69 +984,85 @@ SkylanderFilters::SkylanderFilters()
   }
   filters[G_SUPERCHARGERS] = superchargers;
 
-  //magic
+  // magic
   FilterData magic = FilterData();
   magic.idSets[0] = {
-      //spyros adventure
-      16, 18, 23, 17,  
-      28, 416,         
-      //giants
-      109, 108, 542,
-      //swapforce
-      1008,2008,1009,2009,
-      3008,3009,
-      //trapteam
-      466,467,469,468,
+      // spyros adventure
+      16,
+      18,
+      23,
+      17,
+      28,
+      416,
+      // giants
+      109,
+      108,
+      542,
+      // swapforce
+      1008,
+      2008,
+      1009,
+      2009,
+      3008,
+      3009,
+      // trapteam
+      466,
+      467,
+      469,
+      468,
       503,
   };
   filters[E_MAGIC] = magic;
 
-  //fire
+  // fire
   FilterData fire = FilterData();
-  fire.idSets[0] = {
-      //spyros adventure
-      10, 8, 11, 9, 
-      //giants
-      104, 105,
-      //swapforce
-      1004, 2004, 1005,2005,
-      3004,3005,
-      // trapteam
-      459,458,461,460,
-      509,507
-  };
+  fire.idSets[0] = {// spyros adventure
+                    10, 8, 11, 9,
+                    // giants
+                    104, 105,
+                    // swapforce
+                    1004, 2004, 1005, 2005, 3004, 3005,
+                    // trapteam
+                    459, 458, 461, 460, 509, 507};
   filters[E_FIRE] = fire;
 
   // earth
   FilterData earth = FilterData();
-  earth.idSets[0] = {
-      //spyro's adventure
-      4, 6, 7, 5,
-      404, 505,
-      //giants
-      102, 103,
-      //swapforce
-      1003,2003,1002,2002,
-      3003,3002,
-      // trapteam
-      455,454,456,457,
-      502
-  };
+  earth.idSets[0] = {// spyro's adventure
+                     4, 6, 7, 5, 404, 505,
+                     // giants
+                     102, 103,
+                     // swapforce
+                     1003, 2003, 1002, 2002, 3003, 3002,
+                     // trapteam
+                     455, 454, 456, 457, 502};
   filters[E_EARTH] = earth;
 
-  //tech
+  // tech
   FilterData tech = FilterData();
   tech.idSets[0] = {
-      //spyro's adventure
-      22,   21,  20, 19, 
-      419, 519,
+      // spyro's adventure
+      22,
+      21,
+      20,
+      19,
+      419,
+      519,
       // giants
-      110,111,
-      //swapforce
-      1010,2010,1011,2011,
-      3010,3011,
-      //trapteam
-      471,470,472,473,
+      110,
+      111,
+      // swapforce
+      1010,
+      2010,
+      1011,
+      2011,
+      3010,
+      3011,
+      // trapteam
+      471,
+      470,
+      472,
+      473,
       510,
   };
   filters[E_TECH] = tech;
@@ -1058,85 +1070,115 @@ SkylanderFilters::SkylanderFilters()
   // water
   FilterData water = FilterData();
   water.idSets[0] = {
-      //spyro's adventure
-      15, 12, 13, 14, 
+      // spyro's adventure
+      15,
+      12,
+      13,
+      14,
       514,
       // giants
-      107,106,541,
-      //swapforce
-      1015,2015,1014,2014,
-      3014,3015,
-      //trapteam
-      463,462,465,464,
+      107,
+      106,
+      541,
+      // swapforce
+      1015,
+      2015,
+      1014,
+      2014,
+      3014,
+      3015,
+      // trapteam
+      463,
+      462,
+      465,
+      464,
 
   };
   filters[E_WATER] = water;
 
   // undead
   FilterData undead = FilterData();
-  undead.idSets[0] = {
-      //spyro's adventure
-      29, 32, 30, 31, 
-      430,
-      //giants
-      114, 115,543,
-      //swapforce
-      1012,2012,1013,2013,
-      3013,3012,
-      //trapteam
-      478,479,480,481,
-      504
-  };
+  undead.idSets[0] = {// spyro's adventure
+                      29, 32, 30, 31, 430,
+                      // giants
+                      114, 115, 543,
+                      // swapforce
+                      1012, 2012, 1013, 2013, 3013, 3012,
+                      // trapteam
+                      478, 479, 480, 481, 504};
   filters[E_UNDEAD] = undead;
 
   // air
   FilterData air = FilterData();
   air.idSets[0] = {
-      //spyro's adventure
-      0, 2, 1, 3,
-      //giants
-      101,100,
-      //swapforce
-      1000,2000,1001,2001,
-      3001,3000,
-      //trapteam
-      450,451,453,452,
-      506,508,
+      // spyro's adventure
+      0,
+      2,
+      1,
+      3,
+      // giants
+      101,
+      100,
+      // swapforce
+      1000,
+      2000,
+      1001,
+      2001,
+      3001,
+      3000,
+      // trapteam
+      450,
+      451,
+      453,
+      452,
+      506,
+      508,
   };
   filters[E_AIR] = air;
 
-  //life
+  // life
   FilterData life = FilterData();
   life.idSets[0] = {
-      //spyro's adventure
-      24, 27, 26, 25,
+      // spyro's adventure
+      24,
+      27,
+      26,
+      25,
       526,
-      //giants
-      112,113,540,
-      //swapforce
-      1007,2007,1006,2006,
-      3006,3007,
+      // giants
+      112,
+      113,
+      540,
+      // swapforce
+      1007,
+      2007,
+      1006,
+      2006,
+      3006,
+      3007,
       // trapteam
-      474,475,476,477,
+      474,
+      475,
+      476,
+      477,
   };
   filters[E_LIFE] = life;
 
   // other
   FilterData other = FilterData();
   other.idSets[0] = {
-      //spyro's adventure
+      // spyro's adventure
       300, 301, 302, 303,  // adventure packs
       200, 203, 202, 201,  // items
-      205, 207, 204, 304,
-      206,
-      //giants
-      208,209,
-      //swapforce
-      3300,3301,3302,3303,  //adventure
-      3200,3201,3202,3203,  //items
+      205, 207, 204, 304, 206,
+      // giants
+      208, 209,
+      // swapforce
+      3300, 3301, 3302, 3303,  // adventure
+      3200, 3201, 3202, 3203,  // items
       3204
-      //trapteam
-      
+      // trapteam
+
   };
   filters[E_OTHER] = other;
 }
@@ -1144,10 +1186,10 @@ SkylanderFilters::SkylanderFilters()
 bool SkylanderFilters::PassesFilter(Filter filter, u16 id, u16 var)
 {
   FilterData* data = &filters[filter];
-  std::pair<u16, u16> ids = std::make_pair<>(id,var);
+  std::pair<u16, u16> ids = std::make_pair<>(id, var);
 
-  if (std::find(data->includedSkylanders.begin(),
-      data->includedSkylanders.end(), ids) != data->includedSkylanders.end())
+  if (std::find(data->includedSkylanders.begin(), data->includedSkylanders.end(), ids) !=
+      data->includedSkylanders.end())
   {
     return true;
   }
@@ -1157,13 +1199,14 @@ bool SkylanderFilters::PassesFilter(Filter filter, u16 id, u16 var)
     return false;
   }
 
-  for (int i = 0; i < 10; i++) 
+  for (int i = 0; i < 10; i++)
   {
     if (std::find(data->idSets[i].begin(), data->idSets[i].end(), id) != data->idSets[i].end())
     {
       if (data->varSets[i].size() > 0)
       {
-        if (std::find(data->varSets[i].begin(), data->varSets[i].end(), var) != data->varSets[i].end())
+        if (std::find(data->varSets[i].begin(), data->varSets[i].end(), var) !=
+            data->varSets[i].end())
         {
           return true;
         }
