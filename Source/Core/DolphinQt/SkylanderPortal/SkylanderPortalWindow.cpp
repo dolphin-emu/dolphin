@@ -141,8 +141,8 @@ SkylanderPortalWindow::SkylanderPortalWindow(RenderWidget* render, MainWindow* m
     }
   }
 
-  s_last_skylander_path = skylandersFolder.path();
-  m_collection_path = skylandersFolder.path();
+  s_last_skylander_path = skylandersFolder.path()+QDir::separator();
+  m_collection_path = skylandersFolder.path() +QDir::separator();
   m_path_edit->setText(m_collection_path);
 };
 
@@ -161,13 +161,16 @@ void SkylanderPortalWindow::CreateMainWindow()
 
   QBoxLayout* command_layout = new QHBoxLayout;
   command_layout->setAlignment(Qt::AlignCenter);
+  auto* create_btn = new QPushButton(tr("Create File"));
   auto* load_file_btn = new QPushButton(tr("Load File"));
   auto* clear_btn = new QPushButton(tr("Clear Slot"));
   auto* load_btn = new QPushButton(tr("Load Slot"));
+  connect(create_btn, &QAbstractButton::clicked, this, &SkylanderPortalWindow::CreateSkylanderAdvanced);
   connect(clear_btn, &QAbstractButton::clicked, this,
           [this]() { ClearSkylander(GetCurrentSlot()); });
   connect(load_btn, &QAbstractButton::clicked, this, &SkylanderPortalWindow::LoadSkylander);
   connect(load_file_btn, &QAbstractButton::clicked, this, &SkylanderPortalWindow::LoadSkylanderFromFile);
+  command_layout->addWidget(create_btn);
   command_layout->addWidget(load_file_btn);
   command_layout->addWidget(clear_btn);
   command_layout->addWidget(load_btn);
@@ -523,18 +526,18 @@ void SkylanderPortalWindow::EmulatePortal(bool emulate)
   m_group_skylanders->setVisible(emulate);
 }
 
-void SkylanderPortalWindow::CreateSkylander(u8 slot)
+void SkylanderPortalWindow::CreateSkylander(bool loadAfter)
 {
-  QString predef_name = s_last_skylander_path;
+  QString predef_name = m_collection_path;
   const auto found_sky = IOS::HLE::USB::list_skylanders.find(std::make_pair(sky_id, sky_var));
   if (found_sky != IOS::HLE::USB::list_skylanders.end())
   {
-    predef_name += QString::fromStdString(std::string(found_sky->second) + ".sky");
+    predef_name = QString::fromStdString(std::string(found_sky->second) + ".sky");
   }
   else
   {
     QString str = tr("Unknown(%1 %2).sky");
-    predef_name += str.arg(sky_id, sky_var);
+    predef_name = str.arg(sky_id, sky_var);
   }
 
   m_file_path = DolphinFileDialog::getSaveFileName(this, tr("Create Skylander File"), predef_name,
@@ -555,7 +558,60 @@ void SkylanderPortalWindow::CreateSkylander(u8 slot)
   }
   s_last_skylander_path = QFileInfo(m_file_path).absolutePath() + QString::fromStdString("/");
 
-  LoadSkylanderPath(slot, m_file_path);
+  if (loadAfter)
+    LoadSkylanderPath(GetCurrentSlot(), m_file_path);
+}
+
+void SkylanderPortalWindow::CreateSkylanderAdvanced()
+{
+  QDialog* createWindow = new QDialog;
+
+  auto* layout = new QVBoxLayout;
+
+  auto* hbox_idvar = new QHBoxLayout();
+  auto* label_id = new QLabel(tr("ID:"));
+  auto* label_var = new QLabel(tr("Variant:"));
+  auto* edit_id = new QLineEdit(tr("0"));
+  auto* edit_var = new QLineEdit(tr("0"));
+  auto* rxv =
+      new QRegularExpressionValidator(QRegularExpression(QString::fromStdString("\\d*")), this);
+  edit_id->setValidator(rxv);
+  edit_var->setValidator(rxv);
+  hbox_idvar->addWidget(label_id);
+  hbox_idvar->addWidget(edit_id);
+  hbox_idvar->addWidget(label_var);
+  hbox_idvar->addWidget(edit_var);
+  layout->addLayout(hbox_idvar);
+
+  auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+  buttons->button(QDialogButtonBox::Ok)->setText(tr("Create"));
+  layout->addWidget(buttons);
+
+  createWindow->setLayout(layout);
+
+  connect(buttons, &QDialogButtonBox::accepted, this, [=, this]() {
+    bool ok_id = false, ok_var = false;
+    sky_id = edit_id->text().toUShort(&ok_id);
+    if (!ok_id)
+    {
+      QMessageBox::warning(this, tr("Error converting value"), tr("ID entered is invalid!"),
+                           QMessageBox::Ok);
+      return;
+    }
+    sky_var = edit_var->text().toUShort(&ok_var);
+    if (!ok_var)
+    {
+      QMessageBox::warning(this, tr("Error converting value"), tr("Variant entered is invalid!"),
+                           QMessageBox::Ok);
+      return;
+    }
+
+    CreateSkylander(true);
+    createWindow->accept();
+  });
+
+  createWindow->show();
+  createWindow->raise();
 }
 
 QString SkylanderPortalWindow::CreateSkylanderInCollection()

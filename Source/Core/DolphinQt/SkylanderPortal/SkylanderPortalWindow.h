@@ -109,6 +109,7 @@ private:
   void EmulatePortal(bool emulate);
   void SelectPath();
   void LoadSkylander();
+  void LoadSkylanderFromFile();
   void ClearSkylander(u8 slot);
 
   //behind the scenes
@@ -116,9 +117,9 @@ private:
   void OnPathChanged();
   void RefreshList();
   void UpdateSelectedVals();
-  void CreateSkylander(u8 slot);
+  void CreateSkylander(bool loadAfter);
+  void CreateSkylanderAdvanced();
   void LoadSkylanderPath(u8 slot, const QString& path);
-  void LoadSkylanderFromFile();
   void UpdateEdits();
   QString CreateSkylanderInCollection();
 
