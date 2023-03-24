@@ -135,6 +135,10 @@ private:
   PortalButton* portalButton;
   QRadioButton* m_slot_radios[16];
 
+  // Qt is not guaranteed to keep track of file paths using native file pickers, so we use this
+  // variable to ensure we open at the most recent Skylander file location
+  QString m_last_skylander_path;
+
   QString m_collection_path;
   QLineEdit* m_path_edit;
   QPushButton* m_path_select;

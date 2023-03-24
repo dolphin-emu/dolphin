@@ -95,10 +95,6 @@ void PortalButton::Hovered()
   }
 }
 
-// Qt is not guaranteed to keep track of file paths using native file pickers, so we use this
-// static variable to ensure we open at the most recent Skylander file location
-static QString s_last_skylander_path;
-
 SkylanderPortalWindow::SkylanderPortalWindow(RenderWidget* render, MainWindow* main, QWidget* parent) : QWidget(parent)
 {
   setWindowTitle(tr("Skylanders Manager"));
@@ -141,7 +137,7 @@ SkylanderPortalWindow::SkylanderPortalWindow(RenderWidget* render, MainWindow* m
     }
   }
 
-  s_last_skylander_path = skylandersFolder.path()+QDir::separator();
+  m_last_skylander_path = skylandersFolder.path()+QDir::separator();
   m_collection_path = skylandersFolder.path() +QDir::separator();
   m_path_edit->setText(m_collection_path);
 };
@@ -528,16 +524,16 @@ void SkylanderPortalWindow::EmulatePortal(bool emulate)
 
 void SkylanderPortalWindow::CreateSkylander(bool loadAfter)
 {
-  QString predef_name = m_collection_path;
+  QString predef_name = m_last_skylander_path;
   const auto found_sky = IOS::HLE::USB::list_skylanders.find(std::make_pair(sky_id, sky_var));
   if (found_sky != IOS::HLE::USB::list_skylanders.end())
   {
-    predef_name = QString::fromStdString(std::string(found_sky->second) + ".sky");
+    predef_name += QString::fromStdString(std::string(found_sky->second) + ".sky");
   }
   else
   {
     QString str = tr("Unknown(%1 %2).sky");
-    predef_name = str.arg(sky_id, sky_var);
+    predef_name += str.arg(sky_id, sky_var);
   }
 
   m_file_path = DolphinFileDialog::getSaveFileName(this, tr("Create Skylander File"), predef_name,
@@ -556,7 +552,7 @@ void SkylanderPortalWindow::CreateSkylander(bool loadAfter)
                          QMessageBox::Ok);
     return;
   }
-  s_last_skylander_path = QFileInfo(m_file_path).absolutePath() + QString::fromStdString("/");
+  m_last_skylander_path = QFileInfo(m_file_path).absolutePath() + QString::fromStdString("/");
 
   if (loadAfter)
     LoadSkylanderPath(GetCurrentSlot(), m_file_path);
@@ -681,7 +677,7 @@ void SkylanderPortalWindow::LoadSkylander()
   }
   else
   {
-    s_last_skylander_path = QFileInfo(file_path).absolutePath() + QString::fromStdString("\\");
+    m_last_skylander_path = QFileInfo(file_path).absolutePath() + QString::fromStdString("\\");
 
     LoadSkylanderPath(slot, file_path);
   }
@@ -729,13 +725,13 @@ void SkylanderPortalWindow::LoadSkylanderFromFile()
 {
   u8 slot = GetCurrentSlot();
   const QString file_path =
-      DolphinFileDialog::getOpenFileName(this, tr("Select Skylander File"), s_last_skylander_path,
+      DolphinFileDialog::getOpenFileName(this, tr("Select Skylander File"), m_last_skylander_path,
                                          QString::fromStdString("Skylander (*.sky);;"));
   if (file_path.isEmpty())
   {
     return;
   }
-  s_last_skylander_path = QFileInfo(file_path).absolutePath() + QString::fromStdString("/");
+  m_last_skylander_path = QFileInfo(file_path).absolutePath() + QString::fromStdString("/");
 
   LoadSkylanderPath(slot, file_path);
 }
