@@ -15,13 +15,6 @@
 ///
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Last changed  : $Date: 2012-11-08 20:53:01 +0200 (Thu, 08 Nov 2012) $
-// File revision : $Revision: 4 $
-//
-// $Id: FIFOSampleBuffer.cpp 160 2012-11-08 18:53:01Z oparviai $
-//
-////////////////////////////////////////////////////////////////////////////////
-//
 // License :
 //
 //  SoundTouch audio processing library
@@ -57,8 +50,8 @@ FIFOSampleBuffer::FIFOSampleBuffer(int numChannels)
 {
     assert(numChannels > 0);
     sizeInBytes = 0; // reasonable initial value
-    buffer = NULL;
-    bufferUnaligned = NULL;
+    buffer = nullptr;
+    bufferUnaligned = nullptr;
     samplesInBuffer = 0;
     bufferPos = 0;
     channels = (uint)numChannels;
@@ -70,8 +63,8 @@ FIFOSampleBuffer::FIFOSampleBuffer(int numChannels)
 FIFOSampleBuffer::~FIFOSampleBuffer()
 {
     delete[] bufferUnaligned;
-    bufferUnaligned = NULL;
-    buffer = NULL;
+    bufferUnaligned = nullptr;
+    buffer = nullptr;
 }
 
 
@@ -80,7 +73,8 @@ void FIFOSampleBuffer::setChannels(int numChannels)
 {
     uint usedBytes;
 
-    assert(numChannels > 0);
+    if (!verifyNumberOfChannels(numChannels)) return;
+
     usedBytes = channels * samplesInBuffer;
     channels = (uint)numChannels;
     samplesInBuffer = usedBytes / channels;
@@ -131,7 +125,7 @@ void FIFOSampleBuffer::putSamples(uint nSamples)
 //
 // Parameter 'slackCapacity' tells the function how much free capacity (in
 // terms of samples) there _at least_ should be, in order to the caller to
-// succesfully insert all the required samples to the buffer. When necessary, 
+// successfully insert all the required samples to the buffer. When necessary, 
 // the function grows the buffer size to comply with this requirement.
 //
 // When using this function as means for inserting new samples, also remember 
@@ -158,7 +152,7 @@ SAMPLETYPE *FIFOSampleBuffer::ptrBegin()
 }
 
 
-// Ensures that the buffer has enought capacity, i.e. space for _at least_
+// Ensures that the buffer has enough capacity, i.e. space for _at least_
 // 'capacityRequirement' number of samples. The buffer is grown in steps of
 // 4 kilobytes to eliminate the need for frequently growing up the buffer,
 // as well as to round the buffer size up to the virtual memory page size.
@@ -172,7 +166,7 @@ void FIFOSampleBuffer::ensureCapacity(uint capacityRequirement)
         sizeInBytes = (capacityRequirement * channels * sizeof(SAMPLETYPE) + 4095) & (uint)-4096;
         assert(sizeInBytes % 2 == 0);
         tempUnaligned = new SAMPLETYPE[sizeInBytes / sizeof(SAMPLETYPE) + 16 / sizeof(SAMPLETYPE)];
-        if (tempUnaligned == NULL)
+        if (tempUnaligned == nullptr)
         {
             ST_THROW_RT_ERROR("Couldn't allocate memory!\n");
         }
@@ -272,3 +266,10 @@ uint FIFOSampleBuffer::adjustAmountOfSamples(uint numSamples)
     return samplesInBuffer;
 }
 
+
+/// Add silence to end of buffer
+void FIFOSampleBuffer::addSilent(uint nSamples)
+{
+    memset(ptrEnd(nSamples), 0, sizeof(SAMPLETYPE) * nSamples * channels);
+    samplesInBuffer += nSamples;
+}

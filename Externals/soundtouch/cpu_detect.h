@@ -12,13 +12,6 @@
 ///
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Last changed  : $Date: 2008-02-10 18:26:55 +0200 (Sun, 10 Feb 2008) $
-// File revision : $Revision: 4 $
-//
-// $Id: cpu_detect.h 11 2008-02-10 16:26:55Z oparviai $
-//
-////////////////////////////////////////////////////////////////////////////////
-//
 // License :
 //
 //  SoundTouch audio processing library
@@ -50,8 +43,6 @@
 #define SUPPORT_ALTIVEC     0x0004
 #define SUPPORT_SSE         0x0008
 #define SUPPORT_SSE2        0x0010
-
-using namespace soundtouch;
 
 /// Checks which instruction set extensions are supported by the CPU.
 ///
