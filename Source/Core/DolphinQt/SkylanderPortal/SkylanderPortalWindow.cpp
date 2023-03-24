@@ -141,6 +141,7 @@ SkylanderPortalWindow::SkylanderPortalWindow(RenderWidget* render, MainWindow* m
     }
   }
 
+  s_last_skylander_path = skylandersFolder.path();
   m_collection_path = skylandersFolder.path();
   m_path_edit->setText(m_collection_path);
 };
@@ -160,11 +161,14 @@ void SkylanderPortalWindow::CreateMainWindow()
 
   QBoxLayout* command_layout = new QHBoxLayout;
   command_layout->setAlignment(Qt::AlignCenter);
+  auto* load_file_btn = new QPushButton(tr("Load File"));
   auto* clear_btn = new QPushButton(tr("Clear Slot"));
   auto* load_btn = new QPushButton(tr("Load Slot"));
   connect(clear_btn, &QAbstractButton::clicked, this,
           [this]() { ClearSkylander(GetCurrentSlot()); });
   connect(load_btn, &QAbstractButton::clicked, this, &SkylanderPortalWindow::LoadSkylander);
+  connect(load_file_btn, &QAbstractButton::clicked, this, &SkylanderPortalWindow::LoadSkylanderFromFile);
+  command_layout->addWidget(load_file_btn);
   command_layout->addWidget(clear_btn);
   command_layout->addWidget(load_btn);
   main_layout->addLayout(command_layout);
@@ -663,6 +667,21 @@ void SkylanderPortalWindow::LoadSkylanderPath(u8 slot, const QString& path)
   m_sky_slots[slot] = {portal_slot, id_var.first, id_var.second};
   RefreshList();
   UpdateEdits();
+}
+
+void SkylanderPortalWindow::LoadSkylanderFromFile()
+{
+  u8 slot = GetCurrentSlot();
+  const QString file_path =
+      DolphinFileDialog::getOpenFileName(this, tr("Select Skylander File"), s_last_skylander_path,
+                                         QString::fromStdString("Skylander (*.sky);;"));
+  if (file_path.isEmpty())
+  {
+    return;
+  }
+  s_last_skylander_path = QFileInfo(file_path).absolutePath() + QString::fromStdString("/");
+
+  LoadSkylanderPath(slot, file_path);
 }
 
 void SkylanderPortalWindow::ClearSkylander(u8 slot)

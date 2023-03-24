@@ -118,6 +118,7 @@ private:
   void UpdateSelectedVals();
   void CreateSkylander(u8 slot);
   void LoadSkylanderPath(u8 slot, const QString& path);
+  void LoadSkylanderFromFile();
   void UpdateEdits();
   QString CreateSkylanderInCollection();
 
