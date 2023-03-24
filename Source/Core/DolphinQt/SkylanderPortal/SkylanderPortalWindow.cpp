@@ -300,7 +300,7 @@ QGroupBox* SkylanderPortalWindow::CreateSearchGroup()
   m_game_filters[1]->setText(tr("Giants"));
   m_game_filters[2]->setText(tr("Swap Force"));
   m_game_filters[3]->setText(tr("Trap Team"));
-  m_game_filters[3]->setText(tr("Superchargers"));
+  m_game_filters[4]->setText(tr("Superchargers"));
   search_checkbox_group->setLayout(search_checkbox_layout);
   search_filters_layout->addWidget(search_checkbox_group);
 
@@ -947,6 +947,10 @@ SkylanderFilters::SkylanderFilters()
   for (int i = 3220; i <= 3503; i++)
   {
     superchargers.idSets[0].push_back(i);  // superchargers chars
+  }
+  for (int i = 3300; i <= 3303; i++)
+  {
+    superchargers.excludedSkylanders.push_back(std::make_pair<>(i, 0x0000));
   }
   filters[G_SUPERCHARGERS] = superchargers;
 

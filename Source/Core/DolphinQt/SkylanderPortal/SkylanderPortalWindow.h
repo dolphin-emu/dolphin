@@ -84,7 +84,7 @@ private:
     std::vector<std::pair<u16,u16>> excludedSkylanders;
   };
 
-  FilterData filters[13];
+  FilterData filters[14];
 };
 
 class SkylanderPortalWindow : public QWidget
