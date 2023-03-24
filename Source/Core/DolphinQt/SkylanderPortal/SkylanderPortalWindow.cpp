@@ -24,6 +24,7 @@
 #include <QVBoxLayout>
 #include <QThread>
 #include <QListWidget>
+#include <QBrush>
 
 #include "Common/IOFile.h"
 
@@ -433,8 +434,31 @@ void SkylanderPortalWindow::RefreshList()
       int var = entry.first.second;
       if (PassesFilter(tr(entry.second),id,var))
       {
+        //const QBrush bground = QBrush(QColor(100, 0, 0, 0));
         const uint qvar = (entry.first.first << 16) | entry.first.second;
         QListWidgetItem* skylander = new QListWidgetItem(tr(entry.second));
+        QBrush bground=QBrush();
+        if (filters.PassesFilter(SkylanderFilters::G_SPYROS_ADV,id,var))
+        {
+          bground = QBrush(QColor(230, 255, 230, 255));
+        }
+        else if (filters.PassesFilter(SkylanderFilters::G_GIANTS,id, var))
+        {
+          bground = QBrush(QColor(255, 230, 205, 255));
+        }
+        else if (filters.PassesFilter(SkylanderFilters::G_SWAP_FORCE, id, var))
+        {
+          bground = QBrush(QColor(200, 230, 255, 255));
+        }
+        else if (filters.PassesFilter(SkylanderFilters::G_TRAP_TEAM, id, var))
+        {
+          bground = QBrush(QColor(255, 230, 230, 255));
+        }
+        else if (filters.PassesFilter(SkylanderFilters::G_SUPERCHARGERS, id, var))
+        {
+          bground = QBrush(QColor(240, 215, 190, 255));
+        }
+        skylander->setBackground(bground);
         skylander->setData(1, qvar);
         skylanderList->addItem(skylander);
       }
@@ -880,12 +904,12 @@ SkylanderFilters::SkylanderFilters()
 
   // Giants
   FilterData giants = FilterData();
-  giants.varSets[1] = {
+  giants.varSets[0] = {
       0x000, 0x1206, 0x1403, 0x1602,  //variants
       0x1402, 0x1602,0x2000
   };
   giants.idSets[0] = {
-    208,201,209,  //magic items
+    208,209,  //magic items
     540,542,541,543 //sidekicks
   };
   for (int i = 100; i <= 115; i++)
@@ -897,6 +921,7 @@ SkylanderFilters::SkylanderFilters()
   {
     giants.idSets[1].push_back(i);  // lightcore and series2
   }
+  giants.idSets[1].push_back(201);  //platinum treasure
   filters[G_GIANTS] = giants;
 
   // Swap force
