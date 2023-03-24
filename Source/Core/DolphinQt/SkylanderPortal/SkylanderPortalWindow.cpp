@@ -288,7 +288,7 @@ QGroupBox* SkylanderPortalWindow::CreateSearchGroup()
   auto* search_checkbox_group = new QGroupBox(tr("Game"));
   auto* search_checkbox_layout = new QVBoxLayout();
 
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < 5; i++)
   {
     QCheckBox* checkbox = new QCheckBox(this);
     checkbox->setChecked(true);
@@ -300,6 +300,7 @@ QGroupBox* SkylanderPortalWindow::CreateSearchGroup()
   m_game_filters[1]->setText(tr("Giants"));
   m_game_filters[2]->setText(tr("Swap Force"));
   m_game_filters[3]->setText(tr("Trap Team"));
+  m_game_filters[3]->setText(tr("Superchargers"));
   search_checkbox_group->setLayout(search_checkbox_layout);
   search_filters_layout->addWidget(search_checkbox_group);
 
@@ -470,6 +471,11 @@ bool SkylanderPortalWindow::PassesFilter(QString name, u16 id, u16 var)
   if (m_game_filters[3]->isChecked())
   {
     if (filters.PassesFilter(SkylanderFilters::G_TRAP_TEAM, id, var))
+      pass = true;
+  }
+  if (m_game_filters[4]->isChecked())
+  {
+    if (filters.PassesFilter(SkylanderFilters::G_SUPERCHARGERS, id, var))
       pass = true;
   }
   if (!name.contains(m_sky_search->text(),Qt::CaseInsensitive))
@@ -930,6 +936,19 @@ SkylanderFilters::SkylanderFilters()
     3004
   };
   filters[G_TRAP_TEAM] = trapTeam;
+
+  // Superchargers
+  FilterData superchargers = FilterData();
+  superchargers.varSets[0] = {
+    0x0000, 0x4402, 0x4403, 0x4004,
+    0x441E,0x4515, 0x4502, 0x4503,
+    0x450E, 0x4502, 0x450D
+  };
+  for (int i = 3220; i <= 3503; i++)
+  {
+    superchargers.idSets[0].push_back(i);  // superchargers chars
+  }
+  filters[G_SUPERCHARGERS] = superchargers;
 
   //magic
   FilterData magic = FilterData();

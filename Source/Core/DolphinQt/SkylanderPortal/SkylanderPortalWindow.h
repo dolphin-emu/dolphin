@@ -58,6 +58,7 @@ public:
     G_GIANTS,
     G_SWAP_FORCE,
     G_TRAP_TEAM,
+    G_SUPERCHARGERS,
     E_MAGIC,
     E_WATER,
     E_TECH,
@@ -143,7 +144,7 @@ private:
   QLineEdit* m_path_edit;
   QPushButton* m_path_select;
 
-  QCheckBox* m_game_filters[4];
+  QCheckBox* m_game_filters[5];
   QRadioButton* m_element_filter[10];
   int lastElementID=-1;
   QCheckBox* m_only_show_collection;
