@@ -2,10 +2,6 @@
 
 namespace Scripting::Lua
 {
-bool set_print_callback = false;
-bool set_script_end_callback = false;
-std::function<void(const std::string&)>* print_callback;
-std::function<void(int)>* script_end_callback;
 const char* THIS_VARIABLE_NAME = "THIS__Internal984Z234";  // Making this something unlikely to overlap with a user-defined global.
 int x = 0;
 
@@ -663,9 +659,9 @@ void LuaScriptContext::GenericRunCallbacksHelperFunction(lua_State*& current_lua
       if (ret_val != LUA_OK)
       {
         const char* error_msg = lua_tostring(current_lua_state, -1);
-        (*print_callback)(error_msg);
+        (*GetPrintCallback())(error_msg);
         this->is_script_active = false;
-        (*script_end_callback)(this->unique_script_identifier);
+        (*GetScriptEndCallback())(this->unique_script_identifier);
         return;
       }
     }
@@ -692,9 +688,9 @@ void LuaScriptContext::RunGlobalScopeCode()
     else
     {
       const char* error_msg = lua_tostring(this->main_lua_thread, -1);
-      (*print_callback)(error_msg);
+      (*GetPrintCallback())(error_msg);
       this->is_script_active = false;
-      (*script_end_callback)(this->unique_script_identifier);
+      (*GetScriptEndCallback())(this->unique_script_identifier);
     }
   }
 }
@@ -983,7 +979,7 @@ bool LuaScriptContext::IsCallbackDefinedForButtonId(long long button_id)
  void LuaScriptContext::ShutdownScript()
  {
   this->is_script_active = false;
-  (*script_end_callback)(this->unique_script_identifier);
+  (*GetScriptEndCallback())(this->unique_script_identifier);
   return;
 }
 

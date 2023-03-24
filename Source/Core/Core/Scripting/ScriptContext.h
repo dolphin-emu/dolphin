@@ -1,15 +1,27 @@
 #ifndef SCRIPT_CONTEXT
 #define SCRIPT_CONTEXT
 #include <string>
+#include <functional>
 #include <mutex>
 #include <vector>
 #include "Core/Scripting/HelperClasses/ScriptCallLocations.h"
 
 namespace Scripting
 {
+extern bool set_print_callback;
+extern bool set_script_end_callback;
+extern std::function<void(const std::string&)>* print_callback;
+extern std::function<void(int)>* script_end_callback;
 
-class ScriptContext
-{
+extern bool IsPrintCallbackSet();
+extern bool IsScriptEndCallbackSet();
+extern void SetPrintCallback(std::function<void(const std::string&)>* new_print_callback);
+extern void SetScriptEndCallback(std::function<void(int)>* new_script_end_callback);
+extern std::function<void(const std::string&)>* GetPrintCallback();
+extern std::function<void(int)>* GetScriptEndCallback();
+
+  class ScriptContext
+  {
 public:
 
   int unique_script_identifier;
@@ -22,7 +34,11 @@ public:
   bool called_yielding_function_in_last_frame_callback_script_resume;
   std::mutex script_specific_lock;
 
-  ScriptContext(int new_unique_script_identifier, std::string new_script_filename, std::vector<ScriptContext*>* new_pointer_to_vector_containing_all_scripts) {
+  ScriptContext(int new_unique_script_identifier, std::string new_script_filename,
+                std::vector<ScriptContext*>* new_pointer_to_vector_containing_all_scripts,
+                std::function<void(const std::string&)>* new_print_callback_for_ui,
+                std::function<void(int)>* new_script_end_callback_for_ui)
+  {
     unique_script_identifier = new_unique_script_identifier;
     script_filename = new_script_filename;
     current_script_call_location = ScriptCallLocations::FromScriptStartup;
@@ -31,6 +47,8 @@ public:
     finished_with_global_code = false;
     called_yielding_function_in_last_global_script_resume = false;
     called_yielding_function_in_last_frame_callback_script_resume = false;
+    SetPrintCallback(new_print_callback_for_ui);
+    SetScriptEndCallback(new_script_end_callback_for_ui);
   }
 
   virtual ~ScriptContext() {}

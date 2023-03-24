@@ -8,7 +8,6 @@ file1.close()
 
 
 dolphin.importModule("BitAPI", "1.0")
-
 file1 = open("SamplePythonOutput.txt", "w")
 file1.write(str(BitAPI.bitwise_and(45, 53)))
 file1.close()

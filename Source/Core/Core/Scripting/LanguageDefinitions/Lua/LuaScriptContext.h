@@ -26,10 +26,6 @@ extern "C" {
 namespace Scripting::Lua
 {
 
-extern std::function<void(const std::string&)>* print_callback;
-extern bool set_print_callback;
-extern bool set_script_end_callback;
-extern std::function<void(int)>* script_end_callback;
 extern const char* THIS_VARIABLE_NAME;  // Making this something unlikely to overlap with a user-defined global.
 extern int x;
 
@@ -103,7 +99,7 @@ public:
       }
     }
 
-    (*print_callback)(output_string);
+    (*GetPrintCallback())(output_string);
 
     return 0;
   }
@@ -136,7 +132,7 @@ public:
                    std::function<void(const std::string&)>* new_print_callback,
                    std::function<void(int)>* new_script_end_callback)
       : ScriptContext(new_unique_script_identifier, new_script_filename,
-                      new_pointer_to_list_of_all_scripts)
+                      new_pointer_to_list_of_all_scripts, new_print_callback, new_script_end_callback)
   {
     number_of_frame_callbacks_to_auto_deregister = 0;
     number_of_gc_controller_input_callbacks_to_auto_deregister = 0;
@@ -145,16 +141,6 @@ public:
     number_of_memory_address_read_callbacks_to_auto_deregister = 0;
     number_of_memory_address_write_callbacks_to_auto_deregister = 0;
 
-    if (!set_print_callback)
-    {
-      print_callback = new_print_callback;
-      set_print_callback = true;
-    }
-    if (!set_script_end_callback)
-    {
-      script_end_callback = new_script_end_callback;
-      set_script_end_callback = true;
-    }
     index_of_next_frame_callback_to_execute = 0;
 
     const std::lock_guard<std::mutex> lock(script_specific_lock);
@@ -192,8 +178,8 @@ public:
                       script_filename.c_str()) != LUA_OK)
     {
       const char* temp_string = lua_tostring(main_lua_thread, -1);
-      (*print_callback)(temp_string);
-      (*script_end_callback)(unique_script_identifier);
+      (*GetPrintCallback())(temp_string);
+      (*GetScriptEndCallback())(unique_script_identifier);
     }
     int retVal = lua_resume(main_lua_thread, nullptr, 0, &Lua::x);
     if (retVal == LUA_YIELD)
@@ -205,16 +191,16 @@ public:
       {
         finished_with_global_code = true;
         if (ShouldCallEndScriptFunction())
-          (*script_end_callback)(unique_script_identifier);
+          (*GetScriptEndCallback())(unique_script_identifier);
       }
       else
       {
         if (retVal == 2)
         {
           const char* error_msg = lua_tostring(main_lua_thread, -1);
-          (*print_callback)(error_msg);
+          (*GetPrintCallback())(error_msg);
         }
-        (*script_end_callback)(unique_script_identifier);
+        (*GetScriptEndCallback())(unique_script_identifier);
         is_script_active = false;
       }
     }

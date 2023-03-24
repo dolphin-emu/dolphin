@@ -101,6 +101,7 @@ public:
   virtual bool UnregisterOnWiiInputPolledCallbacks(void* callbacks);
 
 private:
+  static PyObject* HandleError(const std::string& error_msg);
   void GenericRunCallbacksHelperFunction(PyObject* curr_state,
                                          std::vector<PyObject*>& vector_of_callbacks,
                                          int& index_of_next_callback_to_run,

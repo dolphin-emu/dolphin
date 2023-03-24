@@ -139,6 +139,7 @@
     <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\BitModuleImporter.cpp" />
     <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\ImportModuleImporter.cpp" />
     <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\PythonScriptContext.cpp" />
+    <ClCompile Include="Core\Scripting\ScriptContext.cpp" />
     <ClCompile Include="Core\Scripting\ScriptUtilities.cpp" />
   </ItemGroup>
   <UsingTask TaskName="GetProductVersion" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
