@@ -194,6 +194,7 @@ extern const Info<std::string> MAIN_WIRELESS_MAC;
 extern const Info<std::string> MAIN_GDB_SOCKET;
 extern const Info<int> MAIN_GDB_PORT;
 extern const Info<int> MAIN_ISO_PATH_COUNT;
+extern const Info<std::string> MAIN_SKYLANDERS_PATH;
 std::vector<std::string> GetIsoPaths();
 void SetIsoPaths(const std::vector<std::string>& paths);
 

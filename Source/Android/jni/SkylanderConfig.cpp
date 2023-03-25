@@ -26,7 +26,7 @@ Java_org_dolphinemu_dolphinemu_features_skylanders_SkylanderConfig_getSkylanderM
 
   for (const auto& it : IOS::HLE::USB::list_skylanders)
   {
-    const std::string& name = it.second;
+    const std::string& name = it.second.name;
     jobject skylander_obj =
         env->NewObject(skylander_class, skylander_init, it.first.first, it.first.second);
     env->CallObjectMethod(hash_map_obj, IDCache::GetHashMapPut(), skylander_obj,
@@ -51,7 +51,7 @@ Java_org_dolphinemu_dolphinemu_features_skylanders_SkylanderConfig_getInverseSky
 
   for (const auto& it : IOS::HLE::USB::list_skylanders)
   {
-    const std::string& name = it.second;
+    const std::string& name = it.second.name;
     jobject skylander_obj =
         env->NewObject(skylander_class, skylander_init, it.first.first, it.first.second);
     env->CallObjectMethod(hash_map_obj, IDCache::GetHashMapPut(), ToJString(env, name),
@@ -104,7 +104,7 @@ Java_org_dolphinemu_dolphinemu_features_skylanders_SkylanderConfig_loadSkylander
 
   if (it != IOS::HLE::USB::list_skylanders.end())
   {
-    name = it->second;
+    name = it->second.name;
   }
 
   return env->NewObject(pair_class, pair_init,
@@ -151,7 +151,7 @@ Java_org_dolphinemu_dolphinemu_features_skylanders_SkylanderConfig_createSkyland
 
   if (it != IOS::HLE::USB::list_skylanders.end())
   {
-    name = it->second;
+    name = it->second.name;
   }
 
   return env->NewObject(pair_class, pair_init,
