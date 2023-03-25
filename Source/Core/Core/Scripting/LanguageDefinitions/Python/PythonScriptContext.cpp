@@ -267,12 +267,20 @@ PyObject* PythonScriptContext::RunFunction(PyObject* self, PyObject* args, std::
 void PythonScriptContext::ImportModule(const std::string& api_name, const std::string& api_version)
 {
   PyObject* new_module = nullptr;
-  if (api_name == BitApi::class_name)
-    new_module = BitModuleImporter::ImportBitModule(api_version);
-  else if (api_name == ImportAPI::class_name)
-    new_module = ImportModuleImporter::ImportImportModule(api_version);
-  else
-    return;
+
+  try
+  {
+   if (api_name == BitApi::class_name)
+      new_module = BitModuleImporter::ImportBitModule(api_version);
+   else if (api_name == ImportAPI::class_name)
+      new_module = ImportModuleImporter::ImportImportModule(api_version);
+   else
+      return;
+  }
+  catch (...)
+  {
+   return;
+  }
   list_of_imported_modules.push_back(new_module);
   PyDict_SetItemString(PyImport_GetModuleDict(), api_name.c_str(), new_module);
   PyRun_SimpleString(std::string("import " + api_name).c_str());
