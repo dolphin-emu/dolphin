@@ -13,5 +13,3 @@ file1.close()
 
 print("Hello World!")
 print(str(BitAPI.bitwise_and(45, 53)))
-
-

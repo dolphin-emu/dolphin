@@ -139,11 +139,8 @@ PyObject* PythonScriptContext::RunFunction(PyObject* self, PyObject* args, std::
 {
   if (functionMetadata == nullptr)
   {
-    return HandleError(
-        fmt::format("Error: function metadata in {} class was NULL! This means that the functions "
-                    "in this class weren't properly initialized, which is probably an error in "
-                    "Dolphin's internal code.",
-                    class_name));
+    return HandleError(class_name.c_str(), nullptr, false, 
+        "Function metadata in was NULL! This means that the functions in this class weren't properly initialized, which is probably an error in Dolphin's internal code");
    
   }
   ScriptContext* this_pointer = reinterpret_cast<ScriptContext*>(*((long long*)PyModule_GetState(PyImport_ImportModule(THIS_MODULE_NAME))));
@@ -152,11 +149,7 @@ PyObject* PythonScriptContext::RunFunction(PyObject* self, PyObject* args, std::
 
   if (PyTuple_GET_SIZE(args) != (int) functionMetadata->arguments_list.size())
   {
-    return HandleError(fmt::format("Error: In {}.{}() function, expected {} arguments, but got {} "
-                                  "arguments instead. The method should be called like this: {}.{}",
-                                  class_name, functionMetadata->function_name,
-                                  functionMetadata->arguments_list.size(), PyTuple_GET_SIZE(args),
-                                  class_name, functionMetadata->example_function_call));
+    return HandleError(class_name.c_str(), functionMetadata, true, fmt::format("Expected {} arguments, but got {} arguments instead.", functionMetadata->arguments_list.size(), PyTuple_GET_SIZE(args)));
   }
 
   int argument_index = 0;
@@ -212,7 +205,7 @@ PyObject* PythonScriptContext::RunFunction(PyObject* self, PyObject* args, std::
       break;
 
     default:
-     return HandleError("Argument type not supported yet!");
+     return HandleError(class_name.c_str(), functionMetadata, true, "Argument type not supported yet!");
     }
     ++argument_index;
   }
@@ -258,8 +251,11 @@ PyObject* PythonScriptContext::RunFunction(PyObject* self, PyObject* args, std::
   case ArgTypeEnum::String:
     return Py_BuildValue("s", return_value.string_val.c_str());
 
+  case ArgTypeEnum::ErrorStringType:
+    return HandleError(class_name.c_str(), functionMetadata, true, return_value.error_string_val);
+
   default:
-   return HandleError("Return Type not supported yet!");
+   return HandleError(class_name.c_str(), functionMetadata, true, "Return Type not supported yet!");
   }
   return nullptr;
 }
@@ -267,20 +263,12 @@ PyObject* PythonScriptContext::RunFunction(PyObject* self, PyObject* args, std::
 void PythonScriptContext::ImportModule(const std::string& api_name, const std::string& api_version)
 {
   PyObject* new_module = nullptr;
-
-  try
-  {
    if (api_name == BitApi::class_name)
       new_module = BitModuleImporter::ImportBitModule(api_version);
    else if (api_name == ImportAPI::class_name)
       new_module = ImportModuleImporter::ImportImportModule(api_version);
    else
       return;
-  }
-  catch (...)
-  {
-   return;
-  }
   list_of_imported_modules.push_back(new_module);
   PyDict_SetItemString(PyImport_GetModuleDict(), api_name.c_str(), new_module);
   PyRun_SimpleString(std::string("import " + api_name).c_str());
@@ -406,8 +394,42 @@ bool PythonScriptContext::UnregisterOnWiiInputPolledCallbacks(void* callbacks)
   return false;
 }
 
-PyObject* PythonScriptContext::HandleError(const std::string& error_msg)
+PyObject* PythonScriptContext::HandleError(const char* class_name, const FunctionMetadata* function_metadata, bool include_example, const std::string& base_error_msg)
 {
+  std::string error_msg = "";
+  if (class_name == nullptr)
+  {
+   if (function_metadata == nullptr)
+      error_msg = fmt::format("Error: {}", base_error_msg);
+   else
+   {
+      if (include_example)
+        error_msg = fmt::format("Error: In {}(), {} The method should be called like this: {}",
+                                function_metadata->function_name, base_error_msg,
+                                function_metadata->example_function_call);
+      else
+        error_msg =
+            fmt::format("Error: In {}(), {}", function_metadata->function_name, base_error_msg);
+   }
+  }
+  else
+  {
+   if (function_metadata == nullptr)
+      error_msg =
+          fmt::format("Error: In function call in {} module, {}", class_name, base_error_msg);
+   else
+   {
+      if (include_example)
+        error_msg =
+            fmt::format("Error: In {}.{}, {} The method should be called like this: {}.{}",
+                        class_name, function_metadata->function_name, base_error_msg, class_name,
+                        function_metadata->example_function_call);
+      else
+        error_msg = fmt::format("Error: In {}.{}, {}", class_name,
+                                function_metadata->function_name, base_error_msg);
+   }
+  }
+
   PyErr_SetString(PyExc_RuntimeError, error_msg.c_str());
   error_buffer_str = error_msg;
   return nullptr;

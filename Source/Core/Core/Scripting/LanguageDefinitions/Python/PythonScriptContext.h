@@ -1,18 +1,19 @@
 #ifndef PYTHON_SCRIPT_CONTEXT
 #define PYTHON_SCRIPT_CONTEXT
 #include <Python.h>
-#include <functional>
-#include <thread>
-#include <mutex>
-#include <unordered_map>
 #include <condition_variable>
+#include <functional>
+#include <mutex>
+#include <thread>
+#include <unordered_map>
 
-#include "Core/Scripting/ScriptContext.h"
 #include "Core/Scripting/HelperClasses/FunctionMetadata.h"
+#include "Core/Scripting/ScriptContext.h"
 
 namespace Scripting::Python
 {
-extern const char* THIS_VARIABLE_NAME;  // Making this something unlikely to overlap with a user-defined global.
+extern const char*
+    THIS_VARIABLE_NAME;  // Making this something unlikely to overlap with a user-defined global.
 
 class PythonScriptContext : public ScriptContext
 {
@@ -44,13 +45,11 @@ public:
 
   bool ShouldCallEndScriptFunction();
 
-
   PythonScriptContext(int new_unique_script_identifier, const std::string& new_script_filename,
-                        std::vector<ScriptContext*>* new_pointer_to_list_of_all_scripts,
-                        const std::string& api_version,
-                        std::function<void(const std::string&)>* new_print_callback,
-                        std::function<void(int)>* new_script_end_callback);
-
+                      std::vector<ScriptContext*>* new_pointer_to_list_of_all_scripts,
+                      const std::string& api_version,
+                      std::function<void(const std::string&)>* new_print_callback,
+                      std::function<void(int)>* new_script_end_callback);
 
   static void StartMainScript(const char* script_name)
   {
@@ -101,7 +100,8 @@ public:
   virtual bool UnregisterOnWiiInputPolledCallbacks(void* callbacks);
 
 private:
-  static PyObject* HandleError(const std::string& error_msg);
+  static PyObject* HandleError(const char* class_name, const FunctionMetadata* function_metadata,
+                        bool include_example, const std::string& base_error_msg);
   void GenericRunCallbacksHelperFunction(PyObject* curr_state,
                                          std::vector<PyObject*>& vector_of_callbacks,
                                          int& index_of_next_callback_to_run,
@@ -118,8 +118,8 @@ private:
                              std::unordered_map<size_t, std::vector<PyObject*>>& input_map,
                              void* callbacks);
   void RegisterForMapWithAutoDeregistrationHelper(
-      size_t address, std::unordered_map<size_t, std::vector<PyObject*>>& input_map, void* callbacks,
-      std::atomic<size_t>& number_of_auto_deregistration_callbacks);
+      size_t address, std::unordered_map<size_t, std::vector<PyObject*>>& input_map,
+      void* callbacks, std::atomic<size_t>& number_of_auto_deregistration_callbacks);
   bool UnregisterForMapHelper(size_t address,
                               std::unordered_map<size_t, std::vector<PyObject*>>& input_map,
                               void* callbacks);
