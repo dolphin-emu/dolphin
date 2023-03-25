@@ -9,6 +9,7 @@
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 #include "../TestValues.h"
 
@@ -21,7 +22,7 @@ using namespace Arm64Gen;
 class TestFres : public JitArm64
 {
 public:
-  TestFres()
+  explicit TestFres(Core::System& system) : JitArm64(system)
   {
     const Common::ScopedJITPageWriteAndNoExecute enable_jit_page_writes;
 
@@ -50,7 +51,7 @@ public:
 
 TEST(JitArm64, Fres)
 {
-  TestFres test;
+  TestFres test(Core::System::GetInstance());
 
   for (const u64 ivalue : double_test_values)
   {

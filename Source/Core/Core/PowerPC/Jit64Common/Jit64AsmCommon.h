@@ -9,6 +9,8 @@
 
 enum EQuantizeType : u32;
 
+class Jit64;
+
 class QuantizedMemoryRoutines : public EmuCodeBlock
 {
 public:
@@ -24,7 +26,7 @@ private:
 class CommonAsmRoutines : public CommonAsmRoutinesBase, public QuantizedMemoryRoutines
 {
 public:
-  explicit CommonAsmRoutines(Jit64& jit) : QuantizedMemoryRoutines(jit) {}
+  explicit CommonAsmRoutines(Jit64& jit) : QuantizedMemoryRoutines(jit), m_jit(jit) {}
   void GenFrsqrte();
   void GenFres();
   void GenMfcr();
@@ -37,4 +39,6 @@ protected:
   void GenQuantizedSingleLoads();
   void GenQuantizedStores();
   void GenQuantizedSingleStores();
+
+  Jit64& m_jit;
 };

@@ -60,7 +60,8 @@ void JitTrampoline(JitBase& jit, u32 em_address)
   jit.Jit(em_address);
 }
 
-JitBase::JitBase() : m_code_buffer(code_buffer_size)
+JitBase::JitBase(Core::System& system)
+    : m_code_buffer(code_buffer_size), m_system(system), m_ppc_state(system.GetPPCState())
 {
   m_registered_config_callback_id = Config::AddConfigChangedCallback(
       [this] { Core::RunAsCPUThread([this] { RefreshConfig(); }); });
@@ -94,8 +95,8 @@ void JitBase::RefreshConfig()
   m_fprf = Config::Get(Config::MAIN_FPRF);
   m_accurate_nans = Config::Get(Config::MAIN_ACCURATE_NANS);
   m_fastmem_enabled = Config::Get(Config::MAIN_FASTMEM);
-  m_mmu_enabled = Core::System::GetInstance().IsMMUMode();
-  m_pause_on_panic_enabled = Core::System::GetInstance().IsPauseOnPanicMode();
+  m_mmu_enabled = m_system.IsMMUMode();
+  m_pause_on_panic_enabled = m_system.IsPauseOnPanicMode();
   m_accurate_cpu_cache_enabled = Config::Get(Config::MAIN_ACCURATE_CPU_CACHE);
   if (m_accurate_cpu_cache_enabled)
   {
@@ -192,7 +193,7 @@ bool JitBase::HandleStackFault()
   // to reset the guard page.
   // Yeah, it's kind of gross.
   GetBlockCache()->InvalidateICache(0, 0xffffffff, true);
-  Core::System::GetInstance().GetCoreTiming().ForceExceptionCheck(0);
+  m_system.GetCoreTiming().ForceExceptionCheck(0);
   m_cleanup_after_stackfault = true;
 
   return true;
@@ -213,8 +214,7 @@ void JitBase::CleanUpAfterStackFault()
 
 bool JitBase::CanMergeNextInstructions(int count) const
 {
-  auto& system = Core::System::GetInstance();
-  if (system.GetCPU().IsStepping() || js.instructionsLeft < count)
+  if (m_system.GetCPU().IsStepping() || js.instructionsLeft < count)
     return false;
   // Be careful: a breakpoint kills flags in between instructions
   for (int i = 1; i <= count; i++)
@@ -230,8 +230,7 @@ bool JitBase::CanMergeNextInstructions(int count) const
 void JitBase::UpdateMemoryAndExceptionOptions()
 {
   bool any_watchpoints = PowerPC::memchecks.HasAny();
-  jo.fastmem =
-      m_fastmem_enabled && jo.fastmem_arena && (PowerPC::ppcState.msr.DR || !any_watchpoints);
+  jo.fastmem = m_fastmem_enabled && jo.fastmem_arena && (m_ppc_state.msr.DR || !any_watchpoints);
   jo.memcheck = m_mmu_enabled || m_pause_on_panic_enabled || any_watchpoints;
   jo.fp_exceptions = m_enable_float_exceptions;
   jo.div_by_zero_exceptions = m_enable_div_by_zero_exceptions;

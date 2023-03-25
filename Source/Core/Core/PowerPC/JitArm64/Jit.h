@@ -22,7 +22,11 @@
 class JitArm64 : public JitBase, public Arm64Gen::ARM64CodeBlock, public CommonAsmRoutinesBase
 {
 public:
-  JitArm64();
+  explicit JitArm64(Core::System& system);
+  JitArm64(const JitArm64&) = delete;
+  JitArm64(JitArm64&&) = delete;
+  JitArm64& operator=(const JitArm64&) = delete;
+  JitArm64& operator=(JitArm64&&) = delete;
   ~JitArm64() override;
 
   void Init() override;
