@@ -26,9 +26,9 @@ mffsx: 80036650 (huh?)
 
 */
 
-static void FPSCRUpdated(UReg_FPSCR* fpscr)
+static void FPSCRUpdated(PowerPC::PowerPCState& ppc_state)
 {
-  UpdateFPExceptionSummary(fpscr);
+  UpdateFPExceptionSummary(ppc_state);
   PowerPC::RoundingModeUpdated();
 }
 
@@ -38,7 +38,7 @@ void Interpreter::mtfsb0x(Interpreter& interpreter, UGeckoInstruction inst)
   u32 b = 0x80000000 >> inst.CRBD;
 
   ppc_state.fpscr.Hex &= ~b;
-  FPSCRUpdated(&ppc_state.fpscr);
+  FPSCRUpdated(ppc_state);
 
   if (inst.Rc)
     ppc_state.UpdateCR1();
@@ -52,11 +52,11 @@ void Interpreter::mtfsb1x(Interpreter& interpreter, UGeckoInstruction inst)
   const u32 b = 0x80000000 >> bit;
 
   if ((b & FPSCR_ANY_X) != 0)
-    SetFPException(&ppc_state.fpscr, b);
+    SetFPException(ppc_state, b);
   else
     ppc_state.fpscr |= b;
 
-  FPSCRUpdated(&ppc_state.fpscr);
+  FPSCRUpdated(ppc_state);
 
   if (inst.Rc)
     ppc_state.UpdateCR1();
@@ -72,7 +72,7 @@ void Interpreter::mtfsfix(Interpreter& interpreter, UGeckoInstruction inst)
 
   ppc_state.fpscr = (ppc_state.fpscr.Hex & ~mask) | (imm >> (4 * field));
 
-  FPSCRUpdated(&ppc_state.fpscr);
+  FPSCRUpdated(ppc_state);
 
   if (inst.Rc)
     ppc_state.UpdateCR1();
@@ -91,7 +91,7 @@ void Interpreter::mtfsfx(Interpreter& interpreter, UGeckoInstruction inst)
 
   ppc_state.fpscr =
       (ppc_state.fpscr.Hex & ~m) | (static_cast<u32>(ppc_state.ps[inst.FB].PS0AsU64()) & m);
-  FPSCRUpdated(&ppc_state.fpscr);
+  FPSCRUpdated(ppc_state);
 
   if (inst.Rc)
     ppc_state.UpdateCR1();
@@ -138,7 +138,7 @@ void Interpreter::mfmsr(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   if (ppc_state.msr.PR)
   {
-    GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
+    GenerateProgramException(ppc_state, ProgramExceptionCause::PrivilegedInstruction);
     return;
   }
 
@@ -150,7 +150,7 @@ void Interpreter::mfsr(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   if (ppc_state.msr.PR)
   {
-    GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
+    GenerateProgramException(ppc_state, ProgramExceptionCause::PrivilegedInstruction);
     return;
   }
 
@@ -162,7 +162,7 @@ void Interpreter::mfsrin(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   if (ppc_state.msr.PR)
   {
-    GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
+    GenerateProgramException(ppc_state, ProgramExceptionCause::PrivilegedInstruction);
     return;
   }
 
@@ -175,14 +175,14 @@ void Interpreter::mtmsr(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   if (ppc_state.msr.PR)
   {
-    GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
+    GenerateProgramException(ppc_state, ProgramExceptionCause::PrivilegedInstruction);
     return;
   }
 
   ppc_state.msr.Hex = ppc_state.gpr[inst.RS];
 
   // FE0/FE1 may have been set
-  CheckFPExceptions(ppc_state.fpscr);
+  CheckFPExceptions(ppc_state);
 
   PowerPC::CheckExceptions();
   interpreter.m_end_block = true;
@@ -195,7 +195,7 @@ void Interpreter::mtsr(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   if (ppc_state.msr.PR)
   {
-    GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
+    GenerateProgramException(ppc_state, ProgramExceptionCause::PrivilegedInstruction);
     return;
   }
 
@@ -209,7 +209,7 @@ void Interpreter::mtsrin(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   if (ppc_state.msr.PR)
   {
-    GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
+    GenerateProgramException(ppc_state, ProgramExceptionCause::PrivilegedInstruction);
     return;
   }
 
@@ -234,7 +234,7 @@ void Interpreter::mfspr(Interpreter& interpreter, UGeckoInstruction inst)
   if (ppc_state.msr.PR && index != SPR_XER && index != SPR_LR && index != SPR_CTR &&
       index != SPR_TL && index != SPR_TU)
   {
-    GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
+    GenerateProgramException(ppc_state, ProgramExceptionCause::PrivilegedInstruction);
     return;
   }
 
@@ -260,7 +260,7 @@ void Interpreter::mfspr(Interpreter& interpreter, UGeckoInstruction inst)
     // GPFifo::GATHER_PIPE_PHYSICAL_ADDRESS)).
     // Currently, we always treat the buffer as not empty, as the exact behavior is unclear
     // (and games that use display lists will hang if the bit doesn't eventually become zero).
-    if (Core::System::GetInstance().GetGPFifo().IsBNE())
+    if (interpreter.m_system.GetGPFifo().IsBNE())
       ppc_state.spr[index] |= 1;
     else
       ppc_state.spr[index] &= ~1;
@@ -305,7 +305,7 @@ void Interpreter::mtspr(Interpreter& interpreter, UGeckoInstruction inst)
   // XER, LR, and CTR are the only ones available to be written to in user mode
   if (ppc_state.msr.PR && index != SPR_XER && index != SPR_LR && index != SPR_CTR)
   {
-    GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
+    GenerateProgramException(ppc_state, ProgramExceptionCause::PrivilegedInstruction);
     return;
   }
 
@@ -388,7 +388,7 @@ void Interpreter::mtspr(Interpreter& interpreter, UGeckoInstruction inst)
     ASSERT_MSG(POWERPC, ppc_state.spr[SPR_WPAR] == GPFifo::GATHER_PIPE_PHYSICAL_ADDRESS,
                "Gather pipe changed to unexpected address {:08x} @ PC {:08x}",
                ppc_state.spr[SPR_WPAR], ppc_state.pc);
-    Core::System::GetInstance().GetGPFifo().ResetGatherPipe();
+    interpreter.m_system.GetGPFifo().ResetGatherPipe();
     break;
 
   // Graphics Quantization Registers
@@ -616,7 +616,7 @@ void Interpreter::mcrfs(Interpreter& interpreter, UGeckoInstruction inst)
 
   // If any exception bits were read, clear them
   ppc_state.fpscr.Hex &= ~((0xF << shift) & (FPSCR_FX | FPSCR_ANY_X));
-  FPSCRUpdated(&ppc_state.fpscr);
+  FPSCRUpdated(ppc_state);
 
   ppc_state.cr.SetField(inst.CRFD, fpflags);
 }

@@ -23,13 +23,13 @@ enum class RoundingMode
   TowardsNegativeInfinity = 0b11
 };
 
-void SetFI(UReg_FPSCR* fpscr, u32 FI)
+void SetFI(PowerPC::PowerPCState& ppc_state, u32 FI)
 {
   if (FI != 0)
   {
-    SetFPException(fpscr, FPSCR_XX);
+    SetFPException(ppc_state, FPSCR_XX);
   }
-  fpscr->FI = FI;
+  ppc_state.fpscr.FI = FI;
 }
 
 // Note that the convert to integer operation is defined
@@ -45,24 +45,24 @@ void ConvertToInteger(PowerPC::PowerPCState& ppc_state, UGeckoInstruction inst,
   if (std::isnan(b))
   {
     if (Common::IsSNAN(b))
-      SetFPException(&ppc_state.fpscr, FPSCR_VXSNAN);
+      SetFPException(ppc_state, FPSCR_VXSNAN);
 
     value = 0x80000000;
-    SetFPException(&ppc_state.fpscr, FPSCR_VXCVI);
+    SetFPException(ppc_state, FPSCR_VXCVI);
     exception_occurred = true;
   }
   else if (b > static_cast<double>(0x7fffffff))
   {
     // Positive large operand or +inf
     value = 0x7fffffff;
-    SetFPException(&ppc_state.fpscr, FPSCR_VXCVI);
+    SetFPException(ppc_state, FPSCR_VXCVI);
     exception_occurred = true;
   }
   else if (b < -static_cast<double>(0x80000000))
   {
     // Negative large operand or -inf
     value = 0x80000000;
-    SetFPException(&ppc_state.fpscr, FPSCR_VXCVI);
+    SetFPException(ppc_state, FPSCR_VXCVI);
     exception_occurred = true;
   }
   else
@@ -109,7 +109,7 @@ void ConvertToInteger(PowerPC::PowerPCState& ppc_state, UGeckoInstruction inst,
     else
     {
       // Also sets FPSCR[XX]
-      SetFI(&ppc_state.fpscr, 1);
+      SetFI(ppc_state, 1);
       ppc_state.fpscr.FR = fabs(di) > fabs(b);
     }
   }
@@ -145,15 +145,15 @@ void Interpreter::Helper_FloatCompareOrdered(PowerPC::PowerPCState& ppc_state,
     compare_result = FPCC::FU;
     if (Common::IsSNAN(fa) || Common::IsSNAN(fb))
     {
-      SetFPException(&ppc_state.fpscr, FPSCR_VXSNAN);
+      SetFPException(ppc_state, FPSCR_VXSNAN);
       if (ppc_state.fpscr.VE == 0)
       {
-        SetFPException(&ppc_state.fpscr, FPSCR_VXVC);
+        SetFPException(ppc_state, FPSCR_VXVC);
       }
     }
     else  // QNaN
     {
-      SetFPException(&ppc_state.fpscr, FPSCR_VXVC);
+      SetFPException(ppc_state, FPSCR_VXVC);
     }
   }
   else if (fa < fb)
@@ -188,7 +188,7 @@ void Interpreter::Helper_FloatCompareUnordered(PowerPC::PowerPCState& ppc_state,
 
     if (Common::IsSNAN(fa) || Common::IsSNAN(fb))
     {
-      SetFPException(&ppc_state.fpscr, FPSCR_VXSNAN);
+      SetFPException(ppc_state, FPSCR_VXSNAN);
     }
   }
   else if (fa < fb)
@@ -310,7 +310,7 @@ void Interpreter::frspx(Interpreter& interpreter, UGeckoInstruction inst)  // ro
     const bool is_snan = Common::IsSNAN(b);
 
     if (is_snan)
-      SetFPException(&ppc_state.fpscr, FPSCR_VXSNAN);
+      SetFPException(ppc_state, FPSCR_VXSNAN);
 
     if (!is_snan || ppc_state.fpscr.VE == 0)
     {
@@ -322,7 +322,7 @@ void Interpreter::frspx(Interpreter& interpreter, UGeckoInstruction inst)  // ro
   }
   else
   {
-    SetFI(&ppc_state.fpscr, b != rounded);
+    SetFI(ppc_state, b != rounded);
     ppc_state.fpscr.FR = fabs(rounded) > fabs(b);
     ppc_state.UpdateFPRFSingle(rounded);
     ppc_state.ps[inst.FD].Fill(rounded);
@@ -338,7 +338,7 @@ void Interpreter::fmulx(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& a = ppc_state.ps[inst.FA];
   const auto& c = ppc_state.ps[inst.FC];
 
-  const FPResult product = NI_mul(&ppc_state.fpscr, a.PS0AsDouble(), c.PS0AsDouble());
+  const FPResult product = NI_mul(ppc_state, a.PS0AsDouble(), c.PS0AsDouble());
 
   if (ppc_state.fpscr.VE == 0 || product.HasNoInvalidExceptions())
   {
@@ -360,7 +360,7 @@ void Interpreter::fmulsx(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& c = ppc_state.ps[inst.FC];
 
   const double c_value = Force25Bit(c.PS0AsDouble());
-  const FPResult d_value = NI_mul(&ppc_state.fpscr, a.PS0AsDouble(), c_value);
+  const FPResult d_value = NI_mul(ppc_state, a.PS0AsDouble(), c_value);
 
   if (ppc_state.fpscr.VE == 0 || d_value.HasNoInvalidExceptions())
   {
@@ -382,8 +382,7 @@ void Interpreter::fmaddx(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& a = ppc_state.ps[inst.FA];
   const auto& b = ppc_state.ps[inst.FB];
   const auto& c = ppc_state.ps[inst.FC];
-  const FPResult product =
-      NI_madd(&ppc_state.fpscr, a.PS0AsDouble(), c.PS0AsDouble(), b.PS0AsDouble());
+  const FPResult product = NI_madd(ppc_state, a.PS0AsDouble(), c.PS0AsDouble(), b.PS0AsDouble());
 
   if (ppc_state.fpscr.VE == 0 || product.HasNoInvalidExceptions())
   {
@@ -404,7 +403,7 @@ void Interpreter::fmaddsx(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& c = ppc_state.ps[inst.FC];
 
   const double c_value = Force25Bit(c.PS0AsDouble());
-  const FPResult d_value = NI_madd(&ppc_state.fpscr, a.PS0AsDouble(), c_value, b.PS0AsDouble());
+  const FPResult d_value = NI_madd(ppc_state, a.PS0AsDouble(), c_value, b.PS0AsDouble());
 
   if (ppc_state.fpscr.VE == 0 || d_value.HasNoInvalidExceptions())
   {
@@ -426,7 +425,7 @@ void Interpreter::faddx(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& a = ppc_state.ps[inst.FA];
   const auto& b = ppc_state.ps[inst.FB];
 
-  const FPResult sum = NI_add(&ppc_state.fpscr, a.PS0AsDouble(), b.PS0AsDouble());
+  const FPResult sum = NI_add(ppc_state, a.PS0AsDouble(), b.PS0AsDouble());
 
   if (ppc_state.fpscr.VE == 0 || sum.HasNoInvalidExceptions())
   {
@@ -444,7 +443,7 @@ void Interpreter::faddsx(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& a = ppc_state.ps[inst.FA];
   const auto& b = ppc_state.ps[inst.FB];
 
-  const FPResult sum = NI_add(&ppc_state.fpscr, a.PS0AsDouble(), b.PS0AsDouble());
+  const FPResult sum = NI_add(ppc_state, a.PS0AsDouble(), b.PS0AsDouble());
 
   if (ppc_state.fpscr.VE == 0 || sum.HasNoInvalidExceptions())
   {
@@ -463,7 +462,7 @@ void Interpreter::fdivx(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& a = ppc_state.ps[inst.FA];
   const auto& b = ppc_state.ps[inst.FB];
 
-  const FPResult quotient = NI_div(&ppc_state.fpscr, a.PS0AsDouble(), b.PS0AsDouble());
+  const FPResult quotient = NI_div(ppc_state, a.PS0AsDouble(), b.PS0AsDouble());
   const bool not_divide_by_zero = ppc_state.fpscr.ZE == 0 || quotient.exception != FPSCR_ZX;
   const bool not_invalid = ppc_state.fpscr.VE == 0 || quotient.HasNoInvalidExceptions();
 
@@ -484,7 +483,7 @@ void Interpreter::fdivsx(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& a = ppc_state.ps[inst.FA];
   const auto& b = ppc_state.ps[inst.FB];
 
-  const FPResult quotient = NI_div(&ppc_state.fpscr, a.PS0AsDouble(), b.PS0AsDouble());
+  const FPResult quotient = NI_div(ppc_state, a.PS0AsDouble(), b.PS0AsDouble());
   const bool not_divide_by_zero = ppc_state.fpscr.ZE == 0 || quotient.exception != FPSCR_ZX;
   const bool not_invalid = ppc_state.fpscr.VE == 0 || quotient.HasNoInvalidExceptions();
 
@@ -513,7 +512,7 @@ void Interpreter::fresx(Interpreter& interpreter, UGeckoInstruction inst)
 
   if (b == 0.0)
   {
-    SetFPException(&ppc_state.fpscr, FPSCR_ZX);
+    SetFPException(ppc_state, FPSCR_ZX);
     ppc_state.fpscr.ClearFIFR();
 
     if (ppc_state.fpscr.ZE == 0)
@@ -521,7 +520,7 @@ void Interpreter::fresx(Interpreter& interpreter, UGeckoInstruction inst)
   }
   else if (Common::IsSNAN(b))
   {
-    SetFPException(&ppc_state.fpscr, FPSCR_VXSNAN);
+    SetFPException(ppc_state, FPSCR_VXSNAN);
     ppc_state.fpscr.ClearFIFR();
 
     if (ppc_state.fpscr.VE == 0)
@@ -552,7 +551,7 @@ void Interpreter::frsqrtex(Interpreter& interpreter, UGeckoInstruction inst)
 
   if (b < 0.0)
   {
-    SetFPException(&ppc_state.fpscr, FPSCR_VXSQRT);
+    SetFPException(ppc_state, FPSCR_VXSQRT);
     ppc_state.fpscr.ClearFIFR();
 
     if (ppc_state.fpscr.VE == 0)
@@ -560,7 +559,7 @@ void Interpreter::frsqrtex(Interpreter& interpreter, UGeckoInstruction inst)
   }
   else if (b == 0.0)
   {
-    SetFPException(&ppc_state.fpscr, FPSCR_ZX);
+    SetFPException(ppc_state, FPSCR_ZX);
     ppc_state.fpscr.ClearFIFR();
 
     if (ppc_state.fpscr.ZE == 0)
@@ -568,7 +567,7 @@ void Interpreter::frsqrtex(Interpreter& interpreter, UGeckoInstruction inst)
   }
   else if (Common::IsSNAN(b))
   {
-    SetFPException(&ppc_state.fpscr, FPSCR_VXSNAN);
+    SetFPException(ppc_state, FPSCR_VXSNAN);
     ppc_state.fpscr.ClearFIFR();
 
     if (ppc_state.fpscr.VE == 0)
@@ -593,8 +592,7 @@ void Interpreter::fmsubx(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& b = ppc_state.ps[inst.FB];
   const auto& c = ppc_state.ps[inst.FC];
 
-  const FPResult product =
-      NI_msub(&ppc_state.fpscr, a.PS0AsDouble(), c.PS0AsDouble(), b.PS0AsDouble());
+  const FPResult product = NI_msub(ppc_state, a.PS0AsDouble(), c.PS0AsDouble(), b.PS0AsDouble());
 
   if (ppc_state.fpscr.VE == 0 || product.HasNoInvalidExceptions())
   {
@@ -615,7 +613,7 @@ void Interpreter::fmsubsx(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& c = ppc_state.ps[inst.FC];
 
   const double c_value = Force25Bit(c.PS0AsDouble());
-  const FPResult product = NI_msub(&ppc_state.fpscr, a.PS0AsDouble(), c_value, b.PS0AsDouble());
+  const FPResult product = NI_msub(ppc_state, a.PS0AsDouble(), c_value, b.PS0AsDouble());
 
   if (ppc_state.fpscr.VE == 0 || product.HasNoInvalidExceptions())
   {
@@ -635,8 +633,7 @@ void Interpreter::fnmaddx(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& b = ppc_state.ps[inst.FB];
   const auto& c = ppc_state.ps[inst.FC];
 
-  const FPResult product =
-      NI_madd(&ppc_state.fpscr, a.PS0AsDouble(), c.PS0AsDouble(), b.PS0AsDouble());
+  const FPResult product = NI_madd(ppc_state, a.PS0AsDouble(), c.PS0AsDouble(), b.PS0AsDouble());
 
   if (ppc_state.fpscr.VE == 0 || product.HasNoInvalidExceptions())
   {
@@ -659,7 +656,7 @@ void Interpreter::fnmaddsx(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& c = ppc_state.ps[inst.FC];
 
   const double c_value = Force25Bit(c.PS0AsDouble());
-  const FPResult product = NI_madd(&ppc_state.fpscr, a.PS0AsDouble(), c_value, b.PS0AsDouble());
+  const FPResult product = NI_madd(ppc_state, a.PS0AsDouble(), c_value, b.PS0AsDouble());
 
   if (ppc_state.fpscr.VE == 0 || product.HasNoInvalidExceptions())
   {
@@ -681,8 +678,7 @@ void Interpreter::fnmsubx(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& b = ppc_state.ps[inst.FB];
   const auto& c = ppc_state.ps[inst.FC];
 
-  const FPResult product =
-      NI_msub(&ppc_state.fpscr, a.PS0AsDouble(), c.PS0AsDouble(), b.PS0AsDouble());
+  const FPResult product = NI_msub(ppc_state, a.PS0AsDouble(), c.PS0AsDouble(), b.PS0AsDouble());
 
   if (ppc_state.fpscr.VE == 0 || product.HasNoInvalidExceptions())
   {
@@ -705,7 +701,7 @@ void Interpreter::fnmsubsx(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& c = ppc_state.ps[inst.FC];
 
   const double c_value = Force25Bit(c.PS0AsDouble());
-  const FPResult product = NI_msub(&ppc_state.fpscr, a.PS0AsDouble(), c_value, b.PS0AsDouble());
+  const FPResult product = NI_msub(ppc_state, a.PS0AsDouble(), c_value, b.PS0AsDouble());
 
   if (ppc_state.fpscr.VE == 0 || product.HasNoInvalidExceptions())
   {
@@ -726,7 +722,7 @@ void Interpreter::fsubx(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& a = ppc_state.ps[inst.FA];
   const auto& b = ppc_state.ps[inst.FB];
 
-  const FPResult difference = NI_sub(&ppc_state.fpscr, a.PS0AsDouble(), b.PS0AsDouble());
+  const FPResult difference = NI_sub(ppc_state, a.PS0AsDouble(), b.PS0AsDouble());
 
   if (ppc_state.fpscr.VE == 0 || difference.HasNoInvalidExceptions())
   {
@@ -745,7 +741,7 @@ void Interpreter::fsubsx(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& a = ppc_state.ps[inst.FA];
   const auto& b = ppc_state.ps[inst.FB];
 
-  const FPResult difference = NI_sub(&ppc_state.fpscr, a.PS0AsDouble(), b.PS0AsDouble());
+  const FPResult difference = NI_sub(ppc_state, a.PS0AsDouble(), b.PS0AsDouble());
 
   if (ppc_state.fpscr.VE == 0 || difference.HasNoInvalidExceptions())
   {

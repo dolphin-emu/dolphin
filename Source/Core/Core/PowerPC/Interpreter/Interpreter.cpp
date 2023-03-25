@@ -148,7 +148,7 @@ int Interpreter::SingleStepInner()
   {
     if (IsInvalidPairedSingleExecution(m_prev_inst))
     {
-      GenerateProgramException(ProgramExceptionCause::IllegalInstruction);
+      GenerateProgramException(m_ppc_state, ProgramExceptionCause::IllegalInstruction);
       CheckExceptions();
     }
     else if (m_ppc_state.msr.FP)
