@@ -46,9 +46,9 @@ JitInterface::JitInterface(Core::System& system) : m_system(system)
 
 JitInterface::~JitInterface() = default;
 
-void JitInterface::SetJit(JitBase* jit)
+void JitInterface::SetJit(std::unique_ptr<JitBase> jit)
 {
-  m_jit = jit;
+  m_jit = std::move(jit);
 }
 
 void JitInterface::DoState(PointerWrap& p)
@@ -65,31 +65,31 @@ CPUCoreBase* JitInterface::InitJitCore(PowerPC::CPUCore core)
   {
 #if _M_X86
   case PowerPC::CPUCore::JIT64:
-    m_jit = new Jit64(system);
+    m_jit = std::make_unique<Jit64>(system);
     break;
 #endif
 #if _M_ARM_64
   case PowerPC::CPUCore::JITARM64:
-    m_jit = new JitArm64(system);
+    m_jit = std::make_unique<JitArm64>(system);
     break;
 #endif
   case PowerPC::CPUCore::CachedInterpreter:
-    m_jit = new CachedInterpreter(system);
+    m_jit = std::make_unique<CachedInterpreter>(system);
     break;
 
   default:
     // Under this case the caller overrides the CPU core to the default and logs that
     // it performed the override.
-    m_jit = nullptr;
+    m_jit.reset();
     return nullptr;
   }
   m_jit->Init();
-  return m_jit;
+  return m_jit.get();
 }
 
 CPUCoreBase* JitInterface::GetCore() const
 {
-  return m_jit;
+  return m_jit.get();
 }
 
 void JitInterface::SetProfilingState(ProfilingState state)
@@ -319,7 +319,6 @@ void JitInterface::Shutdown()
   if (m_jit)
   {
     m_jit->Shutdown();
-    delete m_jit;
-    m_jit = nullptr;
+    m_jit.reset();
   }
 }

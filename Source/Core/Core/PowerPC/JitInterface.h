@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include <variant>
 
@@ -94,11 +95,11 @@ public:
   static void CompileExceptionCheckFromJIT(JitInterface& jit_interface, ExceptionType type);
 
   /// used for the page fault unit test, don't use outside of tests!
-  void SetJit(JitBase* jit);
+  void SetJit(std::unique_ptr<JitBase> jit);
 
   void Shutdown();
 
 private:
-  JitBase* m_jit = nullptr;
+  std::unique_ptr<JitBase> m_jit;
   Core::System& m_system;
 };

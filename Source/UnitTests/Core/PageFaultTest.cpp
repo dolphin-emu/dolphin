@@ -75,8 +75,10 @@ TEST(PageFault, PageFault)
   EXPECT_NE(data, nullptr);
   Common::WriteProtectMemory(data, PAGE_GRAN, false);
 
-  PageFaultFakeJit pfjit(Core::System::GetInstance());
-  Core::System::GetInstance().GetJitInterface().SetJit(&pfjit);
+  auto& system = Core::System::GetInstance();
+  auto unique_pfjit = std::make_unique<PageFaultFakeJit>(system);
+  auto& pfjit = *unique_pfjit;
+  system.GetJitInterface().SetJit(std::move(unique_pfjit));
   pfjit.m_data = data;
 
   auto start = std::chrono::high_resolution_clock::now();
@@ -88,7 +90,6 @@ TEST(PageFault, PageFault)
   };
 
   EMM::UninstallExceptionHandler();
-  Core::System::GetInstance().GetJitInterface().SetJit(nullptr);
 
   fmt::print("page fault timing:\n");
   fmt::print("start->HandleFault     {} ns\n",
@@ -98,4 +99,6 @@ TEST(PageFault, PageFault)
   fmt::print("HandleFault->end       {} ns\n",
              difference_in_nanoseconds(pfjit.m_post_unprotect_time, end));
   fmt::print("total                  {} ns\n", difference_in_nanoseconds(start, end));
+
+  system.GetJitInterface().SetJit(nullptr);
 }
