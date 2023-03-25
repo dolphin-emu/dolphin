@@ -22,6 +22,7 @@
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 using namespace Gen;
 
@@ -362,12 +363,14 @@ void Jit64::dcbx(UGeckoInstruction inst)
   {
     MOV(32, R(ABI_PARAM1), R(effective_address));
     MOV(32, R(ABI_PARAM2), R(loop_counter));
-    ABI_CallFunction(JitInterface::InvalidateICacheLines);
+    MOV(64, R(ABI_PARAM3), Imm64(reinterpret_cast<u64>(&m_system.GetJitInterface())));
+    ABI_CallFunction(JitInterface::InvalidateICacheLinesFromJIT);
   }
   else
   {
     MOV(32, R(ABI_PARAM1), R(effective_address));
-    ABI_CallFunction(JitInterface::InvalidateICacheLine);
+    MOV(64, R(ABI_PARAM3), Imm64(reinterpret_cast<u64>(&m_system.GetJitInterface())));
+    ABI_CallFunction(JitInterface::InvalidateICacheLineFromJIT);
   }
   ABI_PopRegistersAndAdjustStack(registersInUse, 0);
   asm_routines.ResetStack(*this);

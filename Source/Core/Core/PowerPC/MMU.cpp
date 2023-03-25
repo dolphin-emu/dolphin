@@ -1770,7 +1770,7 @@ void DBATUpdated()
 #endif
 
   // IsOptimizable*Address and dcbz depends on the BAT mapping, so we need a flush here.
-  JitInterface::ClearSafe();
+  system.GetJitInterface().ClearSafe();
 }
 
 void IBATUpdated()
@@ -1789,7 +1789,7 @@ void IBATUpdated()
     UpdateFakeMMUBat(ibat_table, 0x40000000);
     UpdateFakeMMUBat(ibat_table, 0x70000000);
   }
-  JitInterface::ClearSafe();
+  system.GetJitInterface().ClearSafe();
 }
 
 // Translate effective address using BAT or PAT.  Returns 0 if the address cannot be translated.

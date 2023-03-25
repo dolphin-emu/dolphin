@@ -76,7 +76,7 @@ TEST(PageFault, PageFault)
   Common::WriteProtectMemory(data, PAGE_GRAN, false);
 
   PageFaultFakeJit pfjit(Core::System::GetInstance());
-  JitInterface::SetJit(&pfjit);
+  Core::System::GetInstance().GetJitInterface().SetJit(&pfjit);
   pfjit.m_data = data;
 
   auto start = std::chrono::high_resolution_clock::now();
@@ -88,7 +88,7 @@ TEST(PageFault, PageFault)
   };
 
   EMM::UninstallExceptionHandler();
-  JitInterface::SetJit(nullptr);
+  Core::System::GetInstance().GetJitInterface().SetJit(nullptr);
 
   fmt::print("page fault timing:\n");
   fmt::print("start->HandleFault     {} ns\n",
