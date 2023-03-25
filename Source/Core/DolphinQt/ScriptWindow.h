@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "Core/Scripting/ScriptUtilities.h"
-#include "DolphinQt/ThreadSafeIntQueue.h"
+#include "Common/ThreadSafeQueue.h"
 
 class QDialogButtonBox;
 class QListWidget;
@@ -38,7 +38,7 @@ private:
   NonDefaultQPushButton* m_load_script_button;
   NonDefaultQPushButton* m_play_or_stop_script_button;
   std::vector<std::string> output_lines;
-  ThreadSafeIntQueue ids_of_scripts_to_stop;
+  ThreadSafeQueue<int> ids_of_scripts_to_stop;
   std::map<int, bool> row_num_to_is_running;  // row_num = unique_identifier for script
   std::mutex print_lock;
   std::mutex script_start_or_stop_lock;

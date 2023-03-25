@@ -23,13 +23,14 @@ extern std::mutex graphics_callback_running_lock;
 
 bool IsScriptingCoreInitialized();
 
-void StartScript(int unique_script_identifier, const std::string& script_location, 
+void InitializeScript(int unique_script_identifier, const std::string& script_location, 
                  std::function<void(const std::string&)>* new_print_callback,
                  std::function<void(int)>* new_script_end_callback,
                  DefinedScriptingLanguagesEnum language);
 
 void StopScript(int unique_script_identifier);
 
+bool StartScripts();
 bool RunGlobalCode();
 bool RunOnFrameStartCallbacks();
 void RunOnGCInputPolledCallbacks();

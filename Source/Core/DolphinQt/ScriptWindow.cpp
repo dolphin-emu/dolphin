@@ -11,7 +11,7 @@
 
 ScriptWindow::ScriptWindow(QWidget* parent) : QDialog(parent)
 {
-  next_unique_identifier = 0;
+  next_unique_identifier = 1;
   callback_print_function = [this](const std::string& message) {
     std::lock_guard<std::mutex> lock(print_lock);
     output_lines.push_back(message);
@@ -116,17 +116,17 @@ void ScriptWindow::PlayScriptFunction()
   print_lock.unlock();
 
   script_start_or_stop_lock.lock();
-  int current_row = script_name_list_widget_ptr->currentRow();
+  int current_row = script_name_list_widget_ptr->currentRow() + 1;
   std::string current_script_name =
       script_name_list_widget_ptr->currentItem()->text().toStdString();
   script_start_or_stop_lock.unlock();
 
   if (current_script_name.substr(current_script_name.length() - 3) == ".py")
-    Scripting::ScriptUtilities::StartScript(
+    Scripting::ScriptUtilities::InitializeScript(
         current_row, current_script_name, &callback_print_function,
         &finished_script_callback_function, DefinedScriptingLanguagesEnum::PYTHON);
   else
-  Scripting::ScriptUtilities::StartScript(current_row, current_script_name, &callback_print_function,
+  Scripting::ScriptUtilities::InitializeScript(current_row, current_script_name, &callback_print_function,
                                           &finished_script_callback_function,
                                           DefinedScriptingLanguagesEnum::LUA);
 
@@ -140,7 +140,7 @@ void ScriptWindow::StopScriptFunction()
     return;
 
   script_start_or_stop_lock.lock();
-  int current_row = script_name_list_widget_ptr->currentRow();
+  int current_row = script_name_list_widget_ptr->currentRow() + 1;
   script_start_or_stop_lock.unlock();
 
   Scripting::ScriptUtilities::StopScript(current_row);
@@ -153,7 +153,7 @@ void ScriptWindow::PlayOrStopScriptFunction()
   if (script_name_list_widget_ptr->count() == 0)
     return;
 
-  int current_row = script_name_list_widget_ptr->currentRow();
+  int current_row = script_name_list_widget_ptr->currentRow() + 1;
   if (row_num_to_is_running[current_row])
     StopScriptFunction();
   else if (!row_num_to_is_running[current_row])
@@ -178,7 +178,7 @@ void ScriptWindow::UpdateOutputWindow()
 void ScriptWindow::OnScriptFinish()
 {
   int id_of_script_to_stop = ids_of_scripts_to_stop.pop();
-  if (id_of_script_to_stop >= 0 && row_num_to_is_running[id_of_script_to_stop])
+  if (id_of_script_to_stop > 0 && row_num_to_is_running[id_of_script_to_stop])
   {
     row_num_to_is_running[id_of_script_to_stop] = false;
     Scripting::ScriptUtilities::StopScript(id_of_script_to_stop);
@@ -194,7 +194,7 @@ void ScriptWindow::UpdateButtonText()
     m_play_or_stop_script_button->setText(tr("N/A"));
     return;
   }
-  else if (row_num_to_is_running[script_name_list_widget_ptr->currentRow()])
+  else if (row_num_to_is_running[script_name_list_widget_ptr->currentRow() + 1])
   {
     m_play_or_stop_script_button->setStyleSheet(tr("background-color:red;"));
     m_play_or_stop_script_button->setText(tr("Stop"));

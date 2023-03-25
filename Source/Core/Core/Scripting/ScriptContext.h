@@ -4,10 +4,12 @@
 #include <functional>
 #include <mutex>
 #include <vector>
+#include "Common/ThreadSafeQueue.h"
 #include "Core/Scripting/HelperClasses/ScriptCallLocations.h"
 
 namespace Scripting
 {
+
 extern bool set_print_callback;
 extern bool set_script_end_callback;
 extern std::function<void(const std::string&)>* print_callback;
@@ -54,6 +56,7 @@ public:
   virtual ~ScriptContext() {}
   virtual void ImportModule(const std::string& api_name, const std::string& api_version) = 0;
 
+  virtual void StartScript() = 0;
   virtual void RunGlobalScopeCode() = 0;
   virtual void RunOnFrameStartCallbacks() = 0;
   virtual void RunOnGCControllerPolledCallbacks() = 0;
@@ -97,5 +100,9 @@ public:
   }
   };
 
-}  // namespace Scripting
+  extern ThreadSafeQueue<ScriptContext*> queue_of_scripts_waiting_to_start;
+  extern void AddScriptToQueueOfScriptsWaitingToStart(ScriptContext*);
+  extern ScriptContext* RemoveNextScriptToStartFromQueue();
+
+  }  // namespace Scripting
 #endif

@@ -2,8 +2,10 @@
 #include "Core/Scripting/HelperClasses/FunctionMetadata.h"
 
 #include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/BitModuleImporter.h"
+#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/EmuModuleImporter.h"
 #include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/ImportModuleImporter.h"
 #include "Core/Scripting/InternalAPIModules/BitAPI.h"
+#include "Core/Scripting/InternalAPIModules/EmuAPI.h"
 #include "Core/Scripting/InternalAPIModules/ImportAPI.h"
 #include <fstream>
 
@@ -83,7 +85,7 @@ PythonScriptContext::PythonScriptContext(int new_unique_script_identifier, const
   {
     PyEval_RestoreThread(original_python_thread);
   }
-  python_thread = Py_NewInterpreter();
+  main_python_thread = Py_NewInterpreter();
   long long this_address = (long long) (ScriptContext*) this;
   PyObject* this_module = PyModule_Create(&ThisModuleDef);
   *((long long*)PyModule_GetState(this_module)) = this_address;
@@ -92,7 +94,14 @@ PythonScriptContext::PythonScriptContext(int new_unique_script_identifier, const
 
   current_script_call_location = ScriptCallLocations::FromScriptStartup;
 
-   std::string stdOutErr = "import sys\n\
+  this->ImportModule("dolphin", api_version);
+  this->ImportModule("OnFrameStart", api_version);
+  this->ImportModule("OnGCControllerPolled", api_version);
+  this->ImportModule("OnInstructionHit", api_version);
+  this->ImportModule("OnMemoryAddressReadFrom", api_version);
+  this->ImportModule("OnMemoryAddressWrittenTo", api_version);
+  this->ImportModule("OnWiiInputPolled", api_version);
+  std::string stdOutErr = "import sys\n\
 class CatchOutErr:\n\
     def __init__(self):\n\
         self.value = ''\n\
@@ -101,38 +110,10 @@ class CatchOutErr:\n\
 catchOutErr = CatchOutErr()\n\
 sys.stdout = catchOutErr\n\
 sys.stderr = catchOutErr\n\
-";  // this is python code to redirect stdouts/stderr
+";                                        // this is python code to redirect stdouts/stderr
   PyRun_SimpleString(stdOutErr.c_str());  // invoke code to redirect
-  this->ImportModule("dolphin", api_version);
-  this->ImportModule("OnFrameStart", api_version);
-  this->ImportModule("OnGCControllerPolled", api_version);
-  this->ImportModule("OnInstructionHit", api_version);
-  this->ImportModule("OnMemoryAddressReadFrom", api_version);
-  this->ImportModule("OnMemoryAddressWrittenTo", api_version);
-  this->ImportModule("OnWiiInputPolled", api_version);
-  PyObject* pModule = PyImport_AddModule("__main__");
-  StartMainScript(new_script_filename.c_str());
-  finished_with_global_code = true;
-
-  PyObject* catcher = PyObject_GetAttrString(pModule, "catchOutErr");  // get our catchOutErr created above
-  PyObject* output = PyObject_GetAttrString(catcher, "value");
-  const char* output_msg = PyUnicode_AsUTF8(output);
-  if (output_msg != nullptr && !std::string(output_msg).empty())
-    (*GetPrintCallback())(output_msg);
-
-  const char* error_msg = PyUnicode_AsUTF8(catcher);
-  if (error_msg != nullptr && !std::string(error_msg).empty())
-    (*GetPrintCallback())(error_msg);
-
-  if (!error_buffer_str.empty())
-  {
-    (*GetPrintCallback())(error_buffer_str);
-    error_buffer_str = "";
-  }
-
-  if (ShouldCallEndScriptFunction())
-    ShutdownScript();
-  PyEval_ReleaseThread(python_thread);
+  PyEval_ReleaseThread(main_python_thread);
+  AddScriptToQueueOfScriptsWaitingToStart(this);
 }
 
 PyObject* PythonScriptContext::RunFunction(PyObject* self, PyObject* args, std::string class_name, FunctionMetadata* functionMetadata)
@@ -263,15 +244,28 @@ PyObject* PythonScriptContext::RunFunction(PyObject* self, PyObject* args, std::
 void PythonScriptContext::ImportModule(const std::string& api_name, const std::string& api_version)
 {
   PyObject* new_module = nullptr;
-   if (api_name == BitApi::class_name)
+  if (api_name == BitApi::class_name)
       new_module = BitModuleImporter::ImportBitModule(api_version);
-   else if (api_name == ImportAPI::class_name)
+  else if (api_name == EmuApi::class_name)
+      new_module = EmuModuleImporter::ImportEmuModule(api_version);
+  else if (api_name == ImportAPI::class_name)
       new_module = ImportModuleImporter::ImportImportModule(api_version);
    else
       return;
   list_of_imported_modules.push_back(new_module);
+  Py_INCREF(new_module);
   PyDict_SetItemString(PyImport_GetModuleDict(), api_name.c_str(), new_module);
   PyRun_SimpleString(std::string("import " + api_name).c_str());
+}
+
+void PythonScriptContext::StartScript()
+{
+  PyEval_RestoreThread(main_python_thread);
+  FILE* fp = fopen(script_filename.c_str(), "rb");
+  PyRun_AnyFile(fp, nullptr);
+  fclose(fp);
+  this->RunEndOfIteraionTasks();
+  PyEval_ReleaseThread(main_python_thread);
 }
 
 void PythonScriptContext::RunGlobalScopeCode()
@@ -433,6 +427,30 @@ PyObject* PythonScriptContext::HandleError(const char* class_name, const Functio
   PyErr_SetString(PyExc_RuntimeError, error_msg.c_str());
   error_buffer_str = error_msg;
   return nullptr;
+}
+
+void PythonScriptContext::RunEndOfIteraionTasks()
+{
+  PyObject* pModule = PyImport_AddModule("__main__");
+  PyObject* catcher = PyObject_GetAttrString(pModule, "catchOutErr");  // get our catchOutErr created above
+  PyObject* output = PyObject_GetAttrString(catcher, "value");
+
+  const char* output_msg = PyUnicode_AsUTF8(output);
+  if (output_msg != nullptr && !std::string(output_msg).empty())
+   (*GetPrintCallback())(output_msg);
+
+  const char* error_msg = PyUnicode_AsUTF8(catcher);
+  if (error_msg != nullptr && !std::string(error_msg).empty())
+   (*GetPrintCallback())(error_msg);
+
+  if (!error_buffer_str.empty())
+  {
+   (*GetPrintCallback())(error_buffer_str);
+   error_buffer_str = "";
+  }
+
+  if (ShouldCallEndScriptFunction())
+   ShutdownScript();
 }
 
 

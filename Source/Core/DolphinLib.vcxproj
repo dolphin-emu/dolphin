@@ -80,6 +80,7 @@
     <Text Include="$(BuildInfoTemplate)" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Common\ThreadSafeQueue.h" />
     <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnFrameStartCallbackAPI.h" />
     <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnGCControllerPolledCallbackAPI.h" />
     <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnInstructionHitCallbackAPI.h" />
@@ -94,6 +95,7 @@
     <ClInclude Include="Core\Scripting\LanguageDefinitions\DefinedScriptingLanguagesEnum.h" />
     <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\BitModuleImporter.h" />
     <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\HelperClasses\CommonModuleImporterHelper.h" />
+    <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\EmuModuleImporter.h" />
     <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\HelperClasses\ImportHelperStruct.h" />
     <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\ImportModuleImporter.h" />
     <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\PythonScriptContext.h" />
@@ -114,7 +116,6 @@
     <ClInclude Include="Core\Scripting\HelperClasses\VersionResolver.h" />
     <ClInclude Include="Core\Scripting\LanguageDefinitions\Lua\LuaScriptContext.h" />
     <ClInclude Include="Core\Scripting\ScriptUtilities.h" />
-    <ClInclude Include="DolphinQt\ThreadSafeIntQueue.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnFrameStartCallbackAPI.cpp" />
@@ -139,6 +140,7 @@
     <ClCompile Include="Core\Scripting\InternalAPIModules\WiiAPI.cpp" />
     <ClCompile Include="Core\Scripting\LanguageDefinitions\Lua\LuaScriptContext.cpp" />
     <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\BitModuleImporter.cpp" />
+    <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\EmuModuleImporter.cpp" />
     <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\HelperClasses\CommonModuleImporterHelper.cpp" />
     <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\ImportModuleImporter.cpp" />
     <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\PythonScriptContext.cpp" />

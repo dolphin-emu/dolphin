@@ -7,6 +7,7 @@
 #include <thread>
 #include <unordered_map>
 
+#include "Core/Core.h"
 #include "Core/Scripting/HelperClasses/FunctionMetadata.h"
 #include "Core/Scripting/ScriptContext.h"
 
@@ -18,7 +19,7 @@ extern const char*
 class PythonScriptContext : public ScriptContext
 {
 public:
-  PyThreadState* python_thread;
+  PyThreadState* main_python_thread;
 
   std::vector<PyObject*> frame_callbacks;
   std::vector<PyObject*> gc_controller_input_polled_callbacks;
@@ -53,9 +54,13 @@ public:
 
   static void StartMainScript(const char* script_name)
   {
-    FILE* fp = fopen(script_name, "rb");
-    PyRun_AnyFile(fp, nullptr);
-    fclose(fp);
+    Core::QueueHostJob([&]() {
+      Core::RunOnCPUThread([&]() {
+        FILE* fp = fopen(script_name, "rb");
+        PyRun_AnyFile(fp, nullptr);
+        fclose(fp);
+      }, true);
+    });
   }
 
   static PyObject* RunFunction(PyObject* self, PyObject* args, std::string class_name,
@@ -63,6 +68,7 @@ public:
 
   virtual ~PythonScriptContext() {}
   virtual void ImportModule(const std::string& api_name, const std::string& api_version);
+  virtual void StartScript();
   virtual void RunGlobalScopeCode();
   virtual void RunOnFrameStartCallbacks();
   virtual void RunOnGCControllerPolledCallbacks();
@@ -98,10 +104,11 @@ public:
   virtual void* RegisterOnWiiInputPolledCallbacks(void* callbacks);
   virtual void RegisterOnWiiInputPolledWithAutoDeregistrationCallbacks(void* callbacks);
   virtual bool UnregisterOnWiiInputPolledCallbacks(void* callbacks);
+  static PyObject* HandleError(const char* class_name, const FunctionMetadata* function_metadata,
+                               bool include_example, const std::string& base_error_msg);
 
 private:
-  static PyObject* HandleError(const char* class_name, const FunctionMetadata* function_metadata,
-                        bool include_example, const std::string& base_error_msg);
+  void RunEndOfIteraionTasks();
   void GenericRunCallbacksHelperFunction(PyObject* curr_state,
                                          std::vector<PyObject*>& vector_of_callbacks,
                                          int& index_of_next_callback_to_run,

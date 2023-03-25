@@ -20,6 +20,7 @@ extern "C" {
 
 #include "Core/Scripting/HelperClasses/ClassMetadata.h"
 
+#include "Core/Core.h"
 #include "Core/Scripting/HelperClasses/ClassFunctionsResolver.h"
 #include "Common/FileUtil.h"
 
@@ -181,33 +182,15 @@ public:
       (*GetPrintCallback())(temp_string);
       (*GetScriptEndCallback())(unique_script_identifier);
     }
-    int retVal = lua_resume(main_lua_thread, nullptr, 0, &Lua::x);
-    if (retVal == LUA_YIELD)
-      called_yielding_function_in_last_global_script_resume = true;
     else
     {
-      called_yielding_function_in_last_global_script_resume = false;
-      if (retVal == LUA_OK)
-      {
-        finished_with_global_code = true;
-        if (ShouldCallEndScriptFunction())
-          (*GetScriptEndCallback())(unique_script_identifier);
-      }
-      else
-      {
-        if (retVal == 2)
-        {
-          const char* error_msg = lua_tostring(main_lua_thread, -1);
-          (*GetPrintCallback())(error_msg);
-        }
-        (*GetScriptEndCallback())(unique_script_identifier);
-        is_script_active = false;
-      }
+      AddScriptToQueueOfScriptsWaitingToStart(this);
     }
   }
 
   virtual ~LuaScriptContext() {}
   virtual void ImportModule(const std::string& api_name, const std::string& api_version);
+  virtual void StartScript();
   virtual void RunGlobalScopeCode();
   virtual void RunOnFrameStartCallbacks();
   virtual void RunOnGCControllerPolledCallbacks();

@@ -864,11 +864,10 @@ void Callback_NewField()
   {
     Core::QueueHostJob([]() {
       Core::RunOnCPUThread([]() {
-        std::lock_guard<std::mutex> lock(
-            Scripting::ScriptUtilities::global_code_and_frame_callback_running_lock);
 
-        if (!Scripting::ScriptUtilities::RunOnFrameStartCallbacks())
-          Scripting::ScriptUtilities::RunGlobalCode();
+        if (!Scripting::ScriptUtilities::StartScripts())
+          if (!Scripting::ScriptUtilities::RunOnFrameStartCallbacks())
+              Scripting::ScriptUtilities::RunGlobalCode();
       }, true);
     });
   }

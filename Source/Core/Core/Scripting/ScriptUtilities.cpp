@@ -22,7 +22,7 @@ bool IsScriptingCoreInitialized()
   return global_pointer_to_list_of_all_scripts != nullptr;
 }
 
-void StartScript(int unique_script_identifier, const std::string& script_filename, 
+void InitializeScript(int unique_script_identifier, const std::string& script_filename, 
                  std::function<void(const std::string&)>* new_print_callback,
                  std::function<void(int)>* new_script_end_callback,
                  DefinedScriptingLanguagesEnum language)
@@ -86,8 +86,35 @@ void StopScript(int unique_script_identifier)
   initialization_and_destruction_lock.unlock();
 }
 
+bool StartScripts()
+{
+  std::lock_guard<std::mutex> lock(initialization_and_destruction_lock);
+  std::lock_guard<std::mutex> second_lock(global_code_and_frame_callback_running_lock);
+  bool return_value = false;
+  if (global_pointer_to_list_of_all_scripts == nullptr || global_pointer_to_list_of_all_scripts->size() == 0 || Scripting::queue_of_scripts_waiting_to_start.IsEmpty())
+    return false;
+  while (!queue_of_scripts_waiting_to_start.IsEmpty())
+  {
+    ScriptContext* next_script = queue_of_scripts_waiting_to_start.pop();
+    if (next_script == nullptr)
+      break;
+    next_script->script_specific_lock.lock();
+    if (next_script->is_script_active)
+    {
+      next_script->current_script_call_location = ScriptCallLocations::FromScriptStartup;
+      next_script->StartScript();
+    }
+    return_value = next_script->called_yielding_function_in_last_global_script_resume;
+    next_script->script_specific_lock.unlock();
+    if (return_value)
+      break;
+  }
+  return return_value;
+}
+
 bool RunGlobalCode()
 {
+  std::lock_guard<std::mutex> lock(global_code_and_frame_callback_running_lock);
   bool return_value = false;
   if (global_pointer_to_list_of_all_scripts == nullptr)
     return return_value;
@@ -110,6 +137,7 @@ bool RunGlobalCode()
 
 bool RunOnFrameStartCallbacks()
 {
+  std::lock_guard<std::mutex> lock(global_code_and_frame_callback_running_lock);
   bool return_value = false;
   if (global_pointer_to_list_of_all_scripts == nullptr)
     return return_value;
