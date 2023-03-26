@@ -307,7 +307,7 @@ void JitArm64::mfspr(UGeckoInstruction inst)
     // An inline implementation of CoreTiming::GetFakeTimeBase, since in timer-heavy games the
     // cost of calling out to C for this is actually significant.
 
-    auto& core_timing_globals = Core::System::GetInstance().GetCoreTiming().GetGlobals();
+    auto& core_timing_globals = m_system.GetCoreTiming().GetGlobals();
     MOVP2R(Xg, &core_timing_globals);
 
     LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(downcount));

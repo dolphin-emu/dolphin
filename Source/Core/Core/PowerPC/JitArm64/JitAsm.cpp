@@ -43,7 +43,7 @@ void JitArm64::GenerateAsm()
   ABI_PushRegisters(regs_to_save);
   m_float_emit.ABI_PushRegisters(regs_to_save_fpr, ARM64Reg::X30);
 
-  MOVP2R(PPC_REG, &PowerPC::ppcState);
+  MOVP2R(PPC_REG, &m_ppc_state);
 
   // Store the stack pointer, so we can reset it if the BLR optimization fails.
   ADD(ARM64Reg::X0, ARM64Reg::SP, 0);
@@ -67,7 +67,7 @@ void JitArm64::GenerateAsm()
   // dispatcher_no_check:
   //     ExecuteBlock(JitBase::Dispatch());
   // dispatcher:
-  //   } while (PowerPC::ppcState.downcount > 0);
+  //   } while (m_ppc_state.downcount > 0);
   // do_timing:
   //   NPC = PC = DISPATCHER_PC;
   // } while (CPU::GetState() == CPU::State::Running);
@@ -81,8 +81,7 @@ void JitArm64::GenerateAsm()
 
   dispatcher_no_timing_check = GetCodePtr();
 
-  auto& system = Core::System::GetInstance();
-  auto& cpu = system.GetCPU();
+  auto& cpu = m_system.GetCPU();
 
   FixupBranch debug_exit;
   if (enable_debugging)
@@ -96,7 +95,7 @@ void JitArm64::GenerateAsm()
 
   bool assembly_dispatcher = true;
 
-  auto& memory = system.GetMemory();
+  auto& memory = m_system.GetMemory();
 
   if (assembly_dispatcher)
   {
