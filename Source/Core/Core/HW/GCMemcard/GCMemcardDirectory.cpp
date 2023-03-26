@@ -666,7 +666,7 @@ void GCMemcardDirectory::FlushToFile()
 
           if (gci.IsGood())
           {
-            Core::DisplayMessage(fmt::format("Wrote save contents to {}", save.m_filename), 4000);
+            Core::DisplayMessage("Wrote save contents to GCI Folder", 4000);
           }
           else
           {
