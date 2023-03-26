@@ -292,6 +292,7 @@ void PythonScriptContext::StartScript()
   FILE* fp = fopen(script_filename.c_str(), "rb");
   PyRun_AnyFile(fp, nullptr);
   fclose(fp);
+  this->finished_with_global_code = true;
   this->RunEndOfIteraionTasks();
   PyEval_ReleaseThread(main_python_thread);
 }
