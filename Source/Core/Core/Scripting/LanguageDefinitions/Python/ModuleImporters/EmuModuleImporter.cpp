@@ -1,65 +1,62 @@
-#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/EmuModuleImporter.h"
 #include "Core/Scripting/HelperClasses/FunctionMetadata.h"
 #include "Core/Scripting/InternalAPIModules/EmuAPI.h"
+#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/EmuModuleImporter.h"
 
 #include <vector>
-#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/HelperClasses/CommonModuleImporterHelper.h"
 #include "Core/Scripting/LanguageDefinitions/Python/PythonScriptContext.h"
 
 namespace Scripting::Python::EmuModuleImporter
 {
-static bool initialized_emu_module_importer = false;
-static std::string emu_class_name;
-static std::vector<FunctionMetadata> all_emu_functions;
-static FunctionMetadata* frame_advance_1_0_metadata = nullptr;
-static FunctionMetadata* load_state_1_0_metadata = nullptr;
-static FunctionMetadata* save_state_1_0_metadata = nullptr;
-static FunctionMetadata* play_movie_1_0_metadata = nullptr;
-static FunctionMetadata* save_movie_1_0_metadata = nullptr;
+static std::string emu_class_name = EmuApi::class_name;
+static const char* frame_advance_function_name = "frameAdvance";
+static const char* load_state_function_name = "loadState";
+static const char* save_state_function_name = "saveState";
+static const char* play_movie_function_name = "playMovie";
+static const char* save_movie_function_name = "saveMovie";
 
-static PyObject* python_frame_advance_1_0(PyObject* self, PyObject* args)
+static PyObject* python_frame_advance(PyObject* self, PyObject* args)
 {
-  PythonScriptContext::HandleError(
-      emu_class_name.c_str(), nullptr, false,
-      "The frameAdvance() function is not supported in Python. Please register a method with "
-      "OnFrameStart.register(funcName) instead, where funcName is the name of a function that will "
-      "run at the start of each frame. To stop this function from running after it's been "
-      "registered, you can run OnFrameStart.unregister(funcName), which will prevent it from being "
-      "called again.");
-  return nullptr;
+  return PythonScriptContext::RunFunction(self, args, emu_class_name, frame_advance_function_name);
 }
 
-static PyObject* python_load_state_1_0(PyObject* self, PyObject* args)
+static PyObject* python_load_state(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, emu_class_name, load_state_1_0_metadata);
+  return PythonScriptContext::RunFunction(self, args, emu_class_name, load_state_function_name);
 }
 
-static PyObject* python_save_state_1_0(PyObject* self, PyObject* args)
+static PyObject* python_save_state(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, emu_class_name, save_state_1_0_metadata);
+  return PythonScriptContext::RunFunction(self, args, emu_class_name, save_state_function_name);
 }
 
-static PyObject* python_play_movie_1_0(PyObject* self, PyObject* args)
+static PyObject* python_play_movie(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, emu_class_name, play_movie_1_0_metadata);
+  return PythonScriptContext::RunFunction(self, args, emu_class_name, play_movie_function_name);
 }
 
-static PyObject* python_save_movie_1_0(PyObject* self, PyObject* args)
+static PyObject* python_save_movie(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, emu_class_name, save_movie_1_0_metadata);
+  return PythonScriptContext::RunFunction(self, args, emu_class_name, save_movie_function_name);
 }
 
-PyMODINIT_FUNC ImportEmuModule(const std::string& api_version)
-{
-  return CommonModuleImporterHelper::DoImport(
-      api_version, &initialized_emu_module_importer, &emu_class_name, &all_emu_functions,
-      EmuApi::GetAllClassMetadata, EmuApi::GetClassMetadataForVersion,
+static PyMethodDef emu_api_methods[] = {
+    {frame_advance_function_name, python_frame_advance, METH_VARARGS, nullptr},
+    {load_state_function_name, python_load_state, METH_VARARGS, nullptr},
+    {save_state_function_name, python_save_state, METH_VARARGS, nullptr},
+    {play_movie_function_name, python_play_movie, METH_VARARGS, nullptr},
+    {save_movie_function_name, python_save_movie, METH_VARARGS, nullptr},
+    {nullptr, nullptr, 0, nullptr}};
 
-      {{python_frame_advance_1_0, EmuApi::EmuFrameAdvance, &frame_advance_1_0_metadata},
-       {python_load_state_1_0, EmuApi::EmuLoadState, &load_state_1_0_metadata},
-       {python_save_state_1_0, EmuApi::EmuSaveState, &save_state_1_0_metadata},
-       {python_play_movie_1_0, EmuApi::EmuPlayMovie, &play_movie_1_0_metadata},
-       {python_save_movie_1_0, EmuApi::EmuSaveMovie, &save_movie_1_0_metadata}});
+static struct PyModuleDef EmuAPImodule = {
+    PyModuleDef_HEAD_INIT, emu_class_name.c_str(), /* name of module */
+    "EmuAPI Module",                               /* module documentation, may be NULL */
+    sizeof(std::string), /* size of per-interpreter state of the module, or -1 if the module keeps
+                            state in global variables. */
+    emu_api_methods};
+
+PyMODINIT_FUNC PyInit_EmuAPI()
+{
+  return PyModule_Create(&EmuAPImodule);
 }
 
-}  // namespace Scripting::Python::EmuModuleImporter
+}  // namespace Scripting::Python::BitModuleImporter

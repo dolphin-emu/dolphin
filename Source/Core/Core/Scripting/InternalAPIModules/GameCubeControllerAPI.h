@@ -24,6 +24,8 @@ extern int current_controller_number_polled;
 
 ClassMetadata GetClassMetadataForVersion(const std::string& api_version);
 ClassMetadata GetAllClassMetadata();
+FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
+                                               const std::string& function_name);
 
 ArgHolder GetCurrentPortNumberOfPoll(ScriptContext* current_script,
                                      std::vector<ArgHolder>& args_list);

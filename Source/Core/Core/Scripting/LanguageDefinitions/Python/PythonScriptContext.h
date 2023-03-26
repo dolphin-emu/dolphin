@@ -52,19 +52,7 @@ public:
                       std::function<void(const std::string&)>* new_print_callback,
                       std::function<void(int)>* new_script_end_callback);
 
-  static void StartMainScript(const char* script_name)
-  {
-    Core::QueueHostJob([&]() {
-      Core::RunOnCPUThread([&]() {
-        FILE* fp = fopen(script_name, "rb");
-        PyRun_AnyFile(fp, nullptr);
-        fclose(fp);
-      }, true);
-    });
-  }
-
-  static PyObject* RunFunction(PyObject* self, PyObject* args, std::string class_name,
-                               FunctionMetadata* functionMetadata);
+  static PyObject* RunFunction(PyObject* self, PyObject* args, std::string class_name, std::string function_name);
 
   virtual ~PythonScriptContext() {}
   virtual void ImportModule(const std::string& api_name, const std::string& api_version);

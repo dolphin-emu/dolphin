@@ -44,9 +44,13 @@ static std::string save_movie_name;
   return {class_name, GetAllFunctions(all_emu_functions_metadata_list)};
 }
 
-void StatePauseFunction()
+
+FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
+                                               const std::string& function_name)
 {
-  Core::SetState(Core::State::Paused);
+  std::unordered_map<std::string, std::string> deprecated_functions_map;
+  return GetFunctionForVersion(all_emu_functions_metadata_list, api_version, function_name,
+                               deprecated_functions_map);
 }
 
 ArgHolder EmuFrameAdvance(ScriptContext* current_script, std::vector<ArgHolder>& args_list)

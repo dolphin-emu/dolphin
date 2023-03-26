@@ -12,6 +12,8 @@ extern const char* class_name;
 
 ClassMetadata GetClassMetadataForVersion(const std::string& api_version);
 ClassMetadata GetAllClassMetadata();
+FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
+                                               const std::string& function_name);
 
 ArgHolder EmuFrameAdvance(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder EmuLoadState(ScriptContext* current_script, std::vector<ArgHolder>& args_list);

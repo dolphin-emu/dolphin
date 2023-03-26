@@ -38,6 +38,14 @@ ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
   return {class_name, GetAllFunctions(all_game_cube_controller_functions_metadata_list)};
 }
 
+FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
+                                               const std::string& function_name)
+{
+  std::unordered_map<std::string, std::string> deprecated_functions_map;
+  return GetFunctionForVersion(all_game_cube_controller_functions_metadata_list, api_version, function_name,
+                               deprecated_functions_map);
+}
+
 ArgHolder GetCurrentPortNumberOfPoll(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   return CreateLongLongArgHolder(current_controller_number_polled + 1);

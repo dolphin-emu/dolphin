@@ -34,6 +34,14 @@ ClassMetadata GetAllClassMetadata()
   return {class_name, GetAllFunctions(all_import_functions_metadata_list)};
 }
 
+FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
+                                               const std::string& function_name)
+{
+  std::unordered_map<std::string, std::string> deprecated_functions_map;
+  return GetFunctionForVersion(all_import_functions_metadata_list, api_version, function_name,
+                               deprecated_functions_map);
+}
+
 ArgHolder ImportCommon(ScriptContext* current_script, std::string api_name, std::string version_number)
 {
   current_script->ImportModule(api_name, version_number);

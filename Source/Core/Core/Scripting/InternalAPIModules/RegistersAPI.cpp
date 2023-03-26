@@ -56,6 +56,14 @@ ClassMetadata GetAllClassMetadata()
   return {class_name, GetAllFunctions(all_registers_functions_metadata_list)};
 }
 
+ FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
+                                               const std::string& function_name)
+{
+  std::unordered_map<std::string, std::string> deprecated_functions_map;
+  return GetFunctionForVersion(all_registers_functions_metadata_list, api_version, function_name,
+                               deprecated_functions_map);
+}
+
 // Currently supported registers are:
 // r0 - r31, f0 - f31, PC, and LR (the register which stores the return address to jump to when a
 // function call ends)

@@ -203,6 +203,14 @@ ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
   return {class_name, GetAllFunctions(all_graphics_functions_metadata_list)};
 }
 
+FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
+                                               const std::string& function_name)
+{
+  std::unordered_map<std::string, std::string> deprecated_functions_map;
+  return GetFunctionForVersion(all_graphics_functions_metadata_list, api_version, function_name,
+                               deprecated_functions_map);
+}
+
 ArgHolder DrawLine(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   float x_coord_1 = args_list[0].float_val;

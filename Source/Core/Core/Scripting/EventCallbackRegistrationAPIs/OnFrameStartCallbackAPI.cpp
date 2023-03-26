@@ -26,6 +26,14 @@ ClassMetadata GetAllClassMetadata()
   return {class_name, GetAllFunctions(all_on_frame_start_callback_functions_metadata_list)};
 }
 
+FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
+                                               const std::string& function_name)
+{
+  std::unordered_map<std::string, std::string> deprecated_functions_map;
+  return GetFunctionForVersion(all_on_frame_start_callback_functions_metadata_list, api_version, function_name,
+                               deprecated_functions_map);
+}
+
 ArgHolder Register(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   return CreateRegistrationReturnTypeArgHolder(current_script->RegisterOnFrameStartCallbacks(args_list[0].void_pointer_val));

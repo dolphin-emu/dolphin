@@ -60,9 +60,16 @@ bool PythonScriptContext::ShouldCallEndScriptFunction()
 PyModuleDef ThisModuleDef = {
     PyModuleDef_HEAD_INIT, THIS_MODULE_NAME, /* name of module */
     nullptr,                                 /* module documentation, may be NULL */
-    sizeof(PyObject*),                       /* size of per-interpreter state of the module,
+    sizeof(long long*),                       /* size of per-interpreter state of the module,
                                                              or -1 if the module keeps state in global variables. */
     nullptr};
+
+
+PyMODINIT_FUNC PyInit_ThisPointerModule()
+{
+  return PyModule_Create(&ThisModuleDef);
+}
+
 
 PythonScriptContext::PythonScriptContext(int new_unique_script_identifier, const std::string& new_script_filename,
                     std::vector<ScriptContext*>* new_pointer_to_list_of_all_scripts,
@@ -77,6 +84,10 @@ PythonScriptContext::PythonScriptContext(int new_unique_script_identifier, const
   list_of_imported_modules = std::vector<PyObject*>();
   if (!python_initialized)
   {
+    PyImport_AppendInittab(THIS_MODULE_NAME, PyInit_ThisPointerModule);
+    PyImport_AppendInittab(ImportAPI::class_name, ImportModuleImporter::PyInit_ImportAPI);
+    PyImport_AppendInittab(BitApi::class_name, BitModuleImporter::PyInit_BitAPI);
+    PyImport_AppendInittab(EmuApi::class_name, EmuModuleImporter::PyInit_EmuAPI);
     Py_Initialize();
     original_python_thread = PyThreadState_Get();
     python_initialized = true;
@@ -87,20 +98,15 @@ PythonScriptContext::PythonScriptContext(int new_unique_script_identifier, const
   }
   main_python_thread = Py_NewInterpreter();
   long long this_address = (long long) (ScriptContext*) this;
-  PyObject* this_module = PyModule_Create(&ThisModuleDef);
-  *((long long*)PyModule_GetState(this_module)) = this_address;
-  PyDict_SetItemString(PyImport_GetModuleDict(), THIS_MODULE_NAME, this_module);
-  list_of_imported_modules.push_back(this_module);
+  *((long long*)PyModule_GetState(PyImport_ImportModule(THIS_MODULE_NAME))) =  this_address;
+  *((std::string*)PyModule_GetState(PyImport_ImportModule(ImportAPI::class_name))) = std::string("1.0");
+  PyRun_SimpleString("import dolphin");
+  *((std::string*)PyModule_GetState(PyImport_ImportModule(BitApi::class_name))) = std::string("0.0");
+  *((std::string*)PyModule_GetState(PyImport_ImportModule(EmuApi::class_name))) = std::string("0.0");
+
 
   current_script_call_location = ScriptCallLocations::FromScriptStartup;
 
-  this->ImportModule("dolphin", api_version);
-  this->ImportModule("OnFrameStart", api_version);
-  this->ImportModule("OnGCControllerPolled", api_version);
-  this->ImportModule("OnInstructionHit", api_version);
-  this->ImportModule("OnMemoryAddressReadFrom", api_version);
-  this->ImportModule("OnMemoryAddressWrittenTo", api_version);
-  this->ImportModule("OnWiiInputPolled", api_version);
   std::string stdOutErr = "import sys\n\
 class CatchOutErr:\n\
     def __init__(self):\n\
@@ -116,25 +122,53 @@ sys.stderr = catchOutErr\n\
   AddScriptToQueueOfScriptsWaitingToStart(this);
 }
 
-PyObject* PythonScriptContext::RunFunction(PyObject* self, PyObject* args, std::string class_name, FunctionMetadata* functionMetadata)
+PyObject* PythonScriptContext::RunFunction(PyObject* self, PyObject* args, std::string class_name, std::string function_name)
 {
-  if (functionMetadata == nullptr)
+  if (class_name.empty())
+  {
+    return HandleError(nullptr, nullptr, false, "Class name was NULL!");
+  }
+
+  if (function_name.empty())
   {
     return HandleError(class_name.c_str(), nullptr, false, 
         "Function metadata in was NULL! This means that the functions in this class weren't properly initialized, which is probably an error in Dolphin's internal code");
    
   }
+
   ScriptContext* this_pointer = reinterpret_cast<ScriptContext*>(*((long long*)PyModule_GetState(PyImport_ImportModule(THIS_MODULE_NAME))));
+  std::string version_number = *((std::string*)PyModule_GetState(PyImport_ImportModule(class_name.c_str())));
+
+  FunctionMetadata functionMetadata = {};
+
+  if (class_name == ImportAPI::class_name)
+    functionMetadata = ImportAPI::GetFunctionMetadataForVersion(version_number, function_name);
+  else if (class_name == BitApi::class_name)
+    functionMetadata = BitApi::GetFunctionMetadataForVersion(version_number, function_name);
+  else if (class_name == EmuApi::class_name)
+    functionMetadata = EmuApi::GetFunctionMetadataForVersion(version_number, function_name);
+  else
+  {
+    return HandleError(nullptr, nullptr, false,
+                       fmt::format("Class name {} was undefined", class_name));
+  }
+
+  if (functionMetadata.function_pointer == nullptr)
+  {
+    return HandleError(class_name.c_str(), nullptr, false,
+                       fmt::format("Function {} was undefined for class {} and version {}",
+                                   function_name, class_name, version_number));
+  }
 
   std::vector<ArgHolder> arguments_list = std::vector<ArgHolder>();
 
-  if (PyTuple_GET_SIZE(args) != (int) functionMetadata->arguments_list.size())
+  if (PyTuple_GET_SIZE(args) != (int) functionMetadata.arguments_list.size())
   {
-    return HandleError(class_name.c_str(), functionMetadata, true, fmt::format("Expected {} arguments, but got {} arguments instead.", functionMetadata->arguments_list.size(), PyTuple_GET_SIZE(args)));
+    return HandleError(class_name.c_str(), &functionMetadata, true, fmt::format("Expected {} arguments, but got {} arguments instead.", functionMetadata.arguments_list.size(), PyTuple_GET_SIZE(args)));
   }
 
   int argument_index = 0;
-  for (auto argument_type : functionMetadata->arguments_list)
+  for (auto argument_type : functionMetadata.arguments_list)
   {
     PyObject* current_item = PyTuple_GET_ITEM(args, argument_index);
 
@@ -186,12 +220,12 @@ PyObject* PythonScriptContext::RunFunction(PyObject* self, PyObject* args, std::
       break;
 
     default:
-     return HandleError(class_name.c_str(), functionMetadata, true, "Argument type not supported yet!");
+     return HandleError(class_name.c_str(), &functionMetadata, true, "Argument type not supported yet!");
     }
     ++argument_index;
   }
 
-  ArgHolder return_value = (*functionMetadata->function_pointer)(this_pointer, arguments_list);
+  ArgHolder return_value = (*functionMetadata.function_pointer)(this_pointer, arguments_list);
 
   switch (return_value.argument_type)
   {
@@ -233,28 +267,22 @@ PyObject* PythonScriptContext::RunFunction(PyObject* self, PyObject* args, std::
     return Py_BuildValue("s", return_value.string_val.c_str());
 
   case ArgTypeEnum::ErrorStringType:
-    return HandleError(class_name.c_str(), functionMetadata, true, return_value.error_string_val);
+    return HandleError(class_name.c_str(), &functionMetadata, true, return_value.error_string_val);
 
   default:
-   return HandleError(class_name.c_str(), functionMetadata, true, "Return Type not supported yet!");
+   return HandleError(class_name.c_str(), &functionMetadata, true, "Return Type not supported yet!");
   }
   return nullptr;
 }
 
 void PythonScriptContext::ImportModule(const std::string& api_name, const std::string& api_version)
 {
-  PyObject* new_module = nullptr;
-  if (api_name == BitApi::class_name)
-      new_module = BitModuleImporter::ImportBitModule(api_version);
-  else if (api_name == EmuApi::class_name)
-      new_module = EmuModuleImporter::ImportEmuModule(api_version);
-  else if (api_name == ImportAPI::class_name)
-      new_module = ImportModuleImporter::ImportImportModule(api_version);
-   else
-      return;
-  list_of_imported_modules.push_back(new_module);
-  Py_INCREF(new_module);
-  PyDict_SetItemString(PyImport_GetModuleDict(), api_name.c_str(), new_module);
+  PyObject* current_module = PyImport_ImportModule(api_name.c_str());
+  if (current_module == nullptr)
+   return;
+
+  *((std::string*)PyModule_GetState(current_module)) = api_version;
+
   PyRun_SimpleString(std::string("import " + api_name).c_str());
 }
 

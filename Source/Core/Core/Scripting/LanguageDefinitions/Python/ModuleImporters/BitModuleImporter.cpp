@@ -3,91 +3,97 @@
 #include "Core/Scripting/InternalAPIModules/BitAPI.h"
 
 #include <vector>
-#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/HelperClasses/CommonModuleImporterHelper.h"
 #include "Core/Scripting/LanguageDefinitions/Python/PythonScriptContext.h"
 
 namespace Scripting::Python::BitModuleImporter
 {
-static bool initialized_bit_module_importer = false;
-static std::string bit_class_name;
-static std::vector<FunctionMetadata> all_bit_functions;
-static FunctionMetadata* bitwise_and_1_0_metadata = nullptr;
-static FunctionMetadata* bitwise_or_1_0_metadata = nullptr;
-static FunctionMetadata* bitwise_not_1_0_metadata = nullptr;
-static FunctionMetadata* bitwise_xor_1_0_metadata = nullptr;
-static FunctionMetadata* logical_and_1_0_metadata = nullptr;
-static FunctionMetadata* logical_or_1_0_metadata = nullptr;
-static FunctionMetadata* logical_xor_1_0_metadata = nullptr;
-static FunctionMetadata* logical_not_1_0_metadata = nullptr;
-static FunctionMetadata* bit_shift_left_1_0_metadata = nullptr;
-static FunctionMetadata* bit_shift_right_1_0_metadata = nullptr;
+static std::string bit_class_name = BitApi::class_name;
+static const char* bitwise_and_function_name = "bitwise_and";
+static const char* bitwise_or_function_name = "bitwise_or";
+static const char* bitwise_not_function_name = "bitwise_not";
+static const char* bitwise_xor_function_name = "bitwise_xor";
+static const char* logical_and_function_name = "logical_and";
+static const char* logical_or_function_name = "logical_or";
+static const char* logical_xor_function_name = "logical_xor";
+static const char* logical_not_function_name = "logical_not";
+static const char* bit_shift_left_function_name = "bit_shift_left";
+static const char* bit_shift_right_function_name = "bit_shift_right";
 
-static PyObject* python_bitwise_and_1_0(PyObject* self, PyObject* args)
+static PyObject* python_bitwise_and(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, bit_class_name, bitwise_and_1_0_metadata);
+  return PythonScriptContext::RunFunction(self, args, bit_class_name, bitwise_and_function_name);
 }
 
-static PyObject* python_bitwise_or_1_0(PyObject* self, PyObject* args)
+static PyObject* python_bitwise_or(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, bit_class_name, bitwise_or_1_0_metadata);
+  return PythonScriptContext::RunFunction(self, args, bit_class_name, bitwise_or_function_name);
 }
 
-static PyObject* python_bitwise_not_1_0(PyObject* self, PyObject* args)
+static PyObject* python_bitwise_not(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, bit_class_name, bitwise_not_1_0_metadata);
+  return PythonScriptContext::RunFunction(self, args, bit_class_name, bitwise_not_function_name);
 }
 
-static PyObject* python_bitwise_xor_1_0(PyObject* self, PyObject* args)
+static PyObject* python_bitwise_xor(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, bit_class_name, bitwise_xor_1_0_metadata);
+  return PythonScriptContext::RunFunction(self, args, bit_class_name, bitwise_xor_function_name);
 }
 
-static PyObject* python_logical_and_1_0(PyObject* self, PyObject* args)
+static PyObject* python_logical_and(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, bit_class_name, logical_and_1_0_metadata);
+  return PythonScriptContext::RunFunction(self, args, bit_class_name, logical_and_function_name);
 }
 
-static PyObject* python_logical_or_1_0(PyObject* self, PyObject* args)
+static PyObject* python_logical_or(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, bit_class_name, logical_or_1_0_metadata);
+  return PythonScriptContext::RunFunction(self, args, bit_class_name, logical_or_function_name);
 }
 
-static PyObject* python_logical_xor_1_0(PyObject* self, PyObject* args)
+static PyObject* python_logical_xor(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, bit_class_name, logical_xor_1_0_metadata);
+  return PythonScriptContext::RunFunction(self, args, bit_class_name, logical_xor_function_name);
 }
 
-static PyObject* python_logical_not_1_0(PyObject* self, PyObject* args)
+static PyObject* python_logical_not(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, bit_class_name, logical_not_1_0_metadata);
+  return PythonScriptContext::RunFunction(self, args, bit_class_name, logical_not_function_name);
 }
 
-static PyObject* python_bit_shift_left_1_0(PyObject* self, PyObject* args)
+static PyObject* python_bit_shift_left(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, bit_class_name, bit_shift_left_1_0_metadata);
+  return PythonScriptContext::RunFunction(self, args, bit_class_name, bit_shift_left_function_name);
 }
 
-static PyObject* python_bit_shift_right_1_0(PyObject* self, PyObject* args)
+static PyObject* python_bit_shift_right(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, bit_class_name, bit_shift_right_1_0_metadata);
+  return PythonScriptContext::RunFunction(self, args, bit_class_name, bit_shift_right_function_name);
 }
 
-PyMODINIT_FUNC ImportBitModule(const std::string& api_version)
-{
-    return CommonModuleImporterHelper::DoImport(
-        api_version, &initialized_bit_module_importer, &bit_class_name, &all_bit_functions,
-        BitApi::GetAllClassMetadata, BitApi::GetClassMetadataForVersion,
 
-        {{python_bitwise_and_1_0, BitApi::BitwiseAnd, &bitwise_and_1_0_metadata},
-         {python_bitwise_or_1_0, BitApi::BitwiseOr, &bitwise_or_1_0_metadata},
-         {python_bitwise_not_1_0, BitApi::BitwiseNot, &bitwise_not_1_0_metadata},
-         {python_bitwise_xor_1_0, BitApi::BitwiseXor, &bitwise_xor_1_0_metadata},
-         {python_logical_and_1_0, BitApi::LogicalAnd, &logical_and_1_0_metadata},
-         {python_logical_or_1_0, BitApi::LogicalOr, &logical_or_1_0_metadata},
-         {python_logical_xor_1_0, BitApi::LogicalXor, &logical_xor_1_0_metadata},
-         {python_logical_not_1_0, BitApi::LogicalNot, &logical_not_1_0_metadata},
-         {python_bit_shift_left_1_0, BitApi::BitShiftLeft, &bit_shift_left_1_0_metadata},
-         {python_bit_shift_right_1_0, BitApi::BitShiftRight, &bit_shift_right_1_0_metadata}});
+static PyMethodDef bit_api_methods[] = {
+    {bitwise_and_function_name, python_bitwise_and, METH_VARARGS, nullptr},
+    {bitwise_or_function_name, python_bitwise_or, METH_VARARGS, nullptr},
+    {bitwise_not_function_name, python_bitwise_not, METH_VARARGS, nullptr},
+    {bitwise_xor_function_name, python_bitwise_xor, METH_VARARGS, nullptr},
+    {logical_and_function_name, python_logical_and, METH_VARARGS, nullptr},
+    {logical_or_function_name, python_logical_or, METH_VARARGS, nullptr},
+    {logical_xor_function_name, python_logical_xor, METH_VARARGS, nullptr},
+    {logical_not_function_name, python_logical_not, METH_VARARGS, nullptr},
+    {bit_shift_left_function_name, python_bit_shift_left, METH_VARARGS, nullptr},
+    {bit_shift_right_function_name, python_bit_shift_right, METH_VARARGS, nullptr},
+    {nullptr, nullptr, 0, nullptr}
+};
+
+static struct PyModuleDef BitAPImodule = {
+    PyModuleDef_HEAD_INIT, bit_class_name.c_str(), /* name of module */
+    "BitAPI Module",                                            /* module documentation, may be NULL */
+    sizeof(std::string),                                      /* size of per-interpreter state of the module, or -1 if the module keeps state in global variables. */
+    bit_api_methods
+};
+
+PyMODINIT_FUNC PyInit_BitAPI()
+{
+  return PyModule_Create(&BitAPImodule);
 }
 
 }  // namespace Scripting::Python::BitModuleImporter

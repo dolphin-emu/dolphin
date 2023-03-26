@@ -44,6 +44,15 @@ static std::array all_bit_functions_metadata_list = {
   return {class_name, GetAllFunctions(all_bit_functions_metadata_list)};
 }
 
+ FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
+                                       const std::string& function_name)
+{
+  std::unordered_map<std::string, std::string> deprecated_functions_map;
+  return GetFunctionForVersion(all_bit_functions_metadata_list, api_version, function_name,
+                               deprecated_functions_map);
+ }
+
+
 ArgHolder BitwiseAnd(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   s64 first_val = args_list[0].long_long_val;

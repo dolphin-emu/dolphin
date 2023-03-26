@@ -35,6 +35,14 @@ ClassMetadata GetAllClassMetadata()
   return {class_name, GetAllFunctions(all_statistics_functions_metadata_list)};
 }
 
+FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
+                                               const std::string& function_name)
+{
+  std::unordered_map<std::string, std::string> deprecated_functions_map;
+  return GetFunctionForVersion(all_statistics_functions_metadata_list, api_version, function_name,
+                               deprecated_functions_map);
+}
+
 ArgHolder IsRecordingInput(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   return CreateBoolArgHolder(Movie::IsRecordingInput());

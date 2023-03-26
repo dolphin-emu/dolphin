@@ -1,43 +1,47 @@
 #include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/ImportModuleImporter.h"
 #include "Core/Scripting/HelperClasses/FunctionMetadata.h"
 #include "Core/Scripting/InternalAPIModules/ImportAPI.h"
-#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/HelperClasses/CommonModuleImporterHelper.h"
 #include "Core/Scripting/LanguageDefinitions/Python/PythonScriptContext.h"
 
 namespace Scripting::Python::ImportModuleImporter
 {
-static bool initialized_import_module_importer = false;
-static std::string import_class_name;
-static std::vector<FunctionMetadata> all_import_functions;
-static FunctionMetadata* import_module_1_0_metadata = nullptr;
-static FunctionMetadata* import_1_0_metadata = nullptr;
-static FunctionMetadata* shutdown_1_0_metadata = nullptr;
+static std::string import_class_name = ImportAPI::class_name;
+static const char* import_module_function_name = "importModule";
+static const char* import_function_name = "import";
+static const char* shutdown_function_name = "shutdown";
 
-static PyObject* python_import_module_1_0(PyObject* self, PyObject* args)
+static PyObject* python_import_module(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, import_class_name,
-                                          import_module_1_0_metadata);
+  return PythonScriptContext::RunFunction(self, args, import_class_name, import_module_function_name);
 }
 
-static PyObject* python_import_1_0(PyObject* self, PyObject* args)
+static PyObject* python_import(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, import_class_name, import_1_0_metadata);
+  return PythonScriptContext::RunFunction(self, args, import_class_name, import_function_name);
 }
 
-static PyObject* python_shutdown_1_0(PyObject* self, PyObject* args)
+static PyObject* python_shutdown(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, import_class_name, shutdown_1_0_metadata);
+  return PythonScriptContext::RunFunction(self, args, import_class_name, shutdown_function_name);
 }
 
-PyMODINIT_FUNC ImportImportModule(const std::string& api_version)
-{
-    return CommonModuleImporterHelper::DoImport(
-        api_version, &initialized_import_module_importer, &import_class_name, &all_import_functions,
-        ImportAPI::GetAllClassMetadata, ImportAPI::GetClassMetadataForVersion,
+static PyMethodDef import_api_methods[] = {
+    {import_module_function_name, python_import_module, METH_VARARGS, nullptr},
+    {import_function_name, python_import, METH_VARARGS, nullptr},
+    {shutdown_function_name, python_shutdown, METH_VARARGS, nullptr},
+    {nullptr, nullptr, 0, nullptr}};
 
-        {{python_import_module_1_0, ImportAPI::ImportModule, &import_module_1_0_metadata},
-         {python_import_1_0, ImportAPI::ImportAlt, &import_1_0_metadata},
-         {python_shutdown_1_0, ImportAPI::Shutdown, &shutdown_1_0_metadata}});
-  }
+static struct PyModuleDef ImportAPImodule = {
+    PyModuleDef_HEAD_INIT, import_class_name.c_str(), /* name of module */
+    "ImportAPI Module",                               /* module documentation, may be NULL */
+    sizeof(std::string), /* size of per-interpreter state of the module, or -1 if the module keeps
+                            state in global variables. */
+    import_api_methods};
+
+
+PyMODINIT_FUNC PyInit_ImportAPI()
+{
+  return PyModule_Create(&ImportAPImodule);
+}
 
 }  // namespace Scripting::Python::ImportModuleImporter

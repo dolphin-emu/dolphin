@@ -5,6 +5,6 @@
 
 namespace Scripting::Python::EmuModuleImporter
 {
-PyMODINIT_FUNC ImportEmuModule(const std::string& api_version);
+PyMODINIT_FUNC PyInit_EmuAPI();
 }
 #endif

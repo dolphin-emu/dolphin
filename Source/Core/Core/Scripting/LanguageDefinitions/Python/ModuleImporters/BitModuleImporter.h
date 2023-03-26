@@ -5,6 +5,6 @@
 
 namespace Scripting::Python::BitModuleImporter
 {
-PyMODINIT_FUNC ImportBitModule(const std::string& api_version);
+PyMODINIT_FUNC PyInit_BitAPI();
 }
 #endif

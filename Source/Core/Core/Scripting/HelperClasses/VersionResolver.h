@@ -65,6 +65,22 @@ std::vector<FunctionMetadata> GetLatestFunctionsForVersion(const std::array<Func
 }
 
 template <size_t array_size>
+FunctionMetadata GetFunctionForVersion(const std::array<FunctionMetadata, array_size> all_functions,
+                                       const std::string& api_version, const std::string& function_name,
+                                       std::unordered_map<std::string, std::string>& deprecated_functions_to_version_they_were_removed_in_map)
+{
+ std::vector<FunctionMetadata> functions_for_version = GetLatestFunctionsForVersion(all_functions, api_version,
+                               deprecated_functions_to_version_they_were_removed_in_map);
+
+ for (auto& func : functions_for_version)
+ {
+    if (func.function_name == function_name)
+      return func;
+ }
+ return {};
+}
+
+template <size_t array_size>
 std::vector<FunctionMetadata> GetAllFunctions(const std::array<FunctionMetadata, array_size> all_functions)
 {
   return std::vector<FunctionMetadata>(&all_functions[0], &all_functions[0] + array_size);
