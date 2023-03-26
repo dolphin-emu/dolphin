@@ -24,7 +24,7 @@
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
-GraphicsWindow::GraphicsWindow(MainWindow* parent) : QDialog(parent)
+GraphicsWindow::GraphicsWindow(MainWindow* parent) : QDialog(parent), m_main_window(parent)
 {
   CreateMainLayout();
 
@@ -68,7 +68,7 @@ void GraphicsWindow::CreateMainLayout()
 void GraphicsWindow::OnBackendChanged(const QString& backend_name)
 {
   Config::SetBase(Config::MAIN_GFX_BACKEND, backend_name.toStdString());
-  VideoBackendBase::PopulateBackendInfoFromUI();
+  VideoBackendBase::PopulateBackendInfoFromUI(m_main_window->GetWindowSystemInfo());
 
   setWindowTitle(
       tr("%1 Graphics Configuration").arg(tr(g_video_backend->GetDisplayName().c_str())));

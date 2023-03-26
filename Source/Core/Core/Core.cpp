@@ -261,7 +261,7 @@ bool Init(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   Host_UpdateMainFrame();  // Disable any menus or buttons at boot
 
   // Manually reactivate the video backend in case a GameINI overrides the video backend setting.
-  VideoBackendBase::PopulateBackendInfo();
+  VideoBackendBase::PopulateBackendInfo(wsi);
 
   // Issue any API calls which must occur on the main thread for the graphics backend.
   WindowSystemInfo prepared_wsi(wsi);
@@ -579,7 +579,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     system.GetPowerPC().GetDebugInterface().Clear(guard);
   }};
 
-  VideoBackendBase::PopulateBackendInfo();
+  VideoBackendBase::PopulateBackendInfo(wsi);
 
   if (!g_video_backend->Initialize(wsi))
   {
