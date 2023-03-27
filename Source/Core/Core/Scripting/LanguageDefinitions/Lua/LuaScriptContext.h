@@ -23,6 +23,7 @@ extern "C" {
 #include "Core/Core.h"
 #include "Core/Scripting/HelperClasses/ClassFunctionsResolver.h"
 #include "Common/FileUtil.h"
+#include "common/ThreadSafeQueue.h"
 
 namespace Scripting::Lua
 {
@@ -43,6 +44,7 @@ public:
   lua_State* wii_input_polled_callback_lua_thread;
   lua_State* button_callback_thread;
 
+  ThreadSafeQueue<int> button_callbacks_to_run;
   std::vector<int> frame_callback_locations;
   std::vector<int> gc_controller_input_polled_callback_locations;
   std::vector<int> wii_controller_input_polled_callback_locations;
@@ -244,9 +246,11 @@ public:
   void* RegisterForMapHelper(size_t address, std::unordered_map<size_t, std::vector<int>>& input_map, void* callbacks);
   void RegisterForMapWithAutoDeregistrationHelper(size_t address, std::unordered_map<size_t, std::vector<int>>& input_map, void* callbacks, std::atomic<size_t>& number_of_auto_deregistration_callbacks);
   bool UnregisterForMapHelper(size_t address, std::unordered_map<size_t, std::vector<int>>& input_map, void* callbacks);
-  virtual void AddButtonCallback(long long button_id, void* callbacks);
-  virtual void RunButtonCallback(long long button_id);
-  virtual bool IsCallbackDefinedForButtonId(long long button_id);
+  virtual void RegisterButtonCallback(long long button_id, void* callbacks);
+  virtual bool IsButtonRegistered(long long button_id);
+  virtual void AddButtonCallbackToQueue(void* callbacks);
+  virtual void GetButtonCallbackAndAddToQueue(long long button_id);
+  virtual void RunButtonCallbacksInQueue();
 };
 }  // namespace Scripting
 

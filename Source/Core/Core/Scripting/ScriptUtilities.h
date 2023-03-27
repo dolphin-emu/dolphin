@@ -38,6 +38,7 @@ void RunOnInstructionHitCallbacks(size_t instruction_address);
 void RunOnMemoryAddressReadFromCallbacks(size_t memory_address);
 void RunOnMemoryAddressWrittenToCallbacks(size_t memory_address);
 void RunOnWiiInputPolledCallbacks();
+void RunButtonCallbacksInQueues();
 
 }  // namespace Scripting::ScriptUtilities
 #endif

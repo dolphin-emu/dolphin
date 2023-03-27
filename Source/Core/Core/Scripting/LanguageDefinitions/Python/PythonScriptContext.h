@@ -92,6 +92,13 @@ public:
   virtual void* RegisterOnWiiInputPolledCallbacks(void* callbacks);
   virtual void RegisterOnWiiInputPolledWithAutoDeregistrationCallbacks(void* callbacks);
   virtual bool UnregisterOnWiiInputPolledCallbacks(void* callbacks);
+
+  virtual void RegisterButtonCallback(long long button_id, void* callbacks);
+  virtual void AddButtonCallbackToQueue(void* callbacks);
+  virtual bool IsButtonRegistered(long long button_id);
+  virtual void GetButtonCallbackAndAddToQueue(long long button_id);
+  virtual void RunButtonCallbacksInQueue();
+
   static PyObject* HandleError(const char* class_name, const FunctionMetadata* function_metadata,
                                bool include_example, const std::string& base_error_msg);
 
@@ -118,9 +125,6 @@ private:
   bool UnregisterForMapHelper(size_t address,
                               std::unordered_map<size_t, std::vector<PyObject*>>& input_map,
                               void* callbacks);
-  virtual void AddButtonCallback(long long button_id, void* callbacks);
-  virtual void RunButtonCallback(long long button_id);
-  virtual bool IsCallbackDefinedForButtonId(long long button_id);
 };
 
 }  // namespace Scripting::Python

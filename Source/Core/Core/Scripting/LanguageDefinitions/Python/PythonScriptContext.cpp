@@ -139,6 +139,14 @@ PyObject* PythonScriptContext::RunFunction(PyObject* self, PyObject* args, std::
   ScriptContext* this_pointer = reinterpret_cast<ScriptContext*>(*((long long*)PyModule_GetState(PyImport_ImportModule(THIS_MODULE_NAME))));
   std::string version_number = *((std::string*)PyModule_GetState(PyImport_ImportModule(class_name.c_str())));
 
+  if (version_number == "0.0")
+  {
+    return HandleError(
+        class_name.c_str(), nullptr, false,
+        "Attempted to call function of class without properly importing it. Please import "
+        "the builtin classes for Dolphin like this: 'dolphin.importModule(\"EmuAPI\", \"1.0\")' "
+        "(note that version number must be >= \"1.0\")");
+  }
   FunctionMetadata functionMetadata = {};
 
   if (class_name == ImportAPI::class_name)
@@ -232,6 +240,14 @@ PyObject* PythonScriptContext::RunFunction(PyObject* self, PyObject* args, std::
   case ArgTypeEnum::VoidType:
     Py_INCREF(Py_None);
     return Py_None;
+
+  case ArgTypeEnum::YieldType:
+    return HandleError(
+        nullptr, nullptr, false,
+        "EmuAPI.frameAdvance() function is not supported for Python scripts. You can register a "
+        "fucntion to run once at the start of each frame with: 'funcRef = "
+        "OnFrameStart.register(funcName)'. You can later stop this function from running each "
+        "frame by running 'OnFrameStart.unregister(funcRef)'");
 
   case ArgTypeEnum::Boolean:
     if (return_value.bool_val)
@@ -417,6 +433,27 @@ bool PythonScriptContext::UnregisterOnWiiInputPolledCallbacks(void* callbacks)
   return false;
 }
 
+void PythonScriptContext::RegisterButtonCallback(long long button_id, void* callbacks)
+{
+}
+
+void PythonScriptContext::AddButtonCallbackToQueue(void* callbacks)
+{
+}
+
+bool PythonScriptContext::IsButtonRegistered(long long button_id)
+{
+  return false;
+}
+
+void PythonScriptContext::GetButtonCallbackAndAddToQueue(long long button_id)
+{
+}
+
+void PythonScriptContext::RunButtonCallbacksInQueue()
+{
+}
+
 PyObject* PythonScriptContext::HandleError(const char* class_name, const FunctionMetadata* function_metadata, bool include_example, const std::string& base_error_msg)
 {
   std::string error_msg = "";
@@ -454,7 +491,6 @@ PyObject* PythonScriptContext::HandleError(const char* class_name, const Functio
   }
 
   PyErr_SetString(PyExc_RuntimeError, error_msg.c_str());
-  error_buffer_str = error_msg;
   return nullptr;
 }
 
@@ -471,12 +507,6 @@ void PythonScriptContext::RunEndOfIteraionTasks()
   const char* error_msg = PyUnicode_AsUTF8(catcher);
   if (error_msg != nullptr && !std::string(error_msg).empty())
    (*GetPrintCallback())(error_msg);
-
-  if (!error_buffer_str.empty())
-  {
-   (*GetPrintCallback())(error_buffer_str);
-   error_buffer_str = "";
-  }
 
   if (ShouldCallEndScriptFunction())
    ShutdownScript();
@@ -523,19 +553,6 @@ void PythonScriptContext::RegisterForMapWithAutoDeregistrationHelper(
 
 bool PythonScriptContext::UnregisterForMapHelper(
     size_t address, std::unordered_map<size_t, std::vector<PyObject*>>& input_map, void* callbacks)
-{
-  return false;
-}
-
-void PythonScriptContext::AddButtonCallback(long long button_id, void* callbacks)
-{
-}
-
-void PythonScriptContext::RunButtonCallback(long long button_id)
-{
-}
-
-bool PythonScriptContext::IsCallbackDefinedForButtonId(long long button_id)
 {
   return false;
 }

@@ -12,7 +12,8 @@ enum class ScriptCallLocations
   FromMemoryAddressReadFromCallback,
   FromMemoryAddressWrittenToCallback,
   FromGCControllerInputPolled,
-  FromWiiInputPolled
+  FromWiiInputPolled,
+  FromGraphicsCallback
 };
 }
 

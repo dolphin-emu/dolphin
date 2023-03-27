@@ -250,4 +250,23 @@ void RunOnWiiInputPolledCallbacks()
     current_script->script_specific_lock.unlock();
   }
 }
+
+void RunButtonCallbacksInQueues()
+{
+  std::lock_guard<std::mutex> lock(graphics_callback_running_lock);
+  if (global_pointer_to_list_of_all_scripts == nullptr)
+    return;
+  for (size_t i = 0; i < global_pointer_to_list_of_all_scripts->size(); ++i)
+  {
+    ScriptContext* current_script = (*global_pointer_to_list_of_all_scripts)[i];
+    current_script->script_specific_lock.lock();
+    if (current_script->is_script_active)
+    {
+      current_script->current_script_call_location = ScriptCallLocations::FromGraphicsCallback;
+      current_script->RunButtonCallbacksInQueue();
+    }
+    current_script->script_specific_lock.unlock();
+  }
+}
+
 }
