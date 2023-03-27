@@ -7,6 +7,7 @@
 
 class GeometryShaderManager;
 class Interpreter;
+class JitInterface;
 class PixelShaderManager;
 class SoundStream;
 struct Sram;
@@ -133,6 +134,7 @@ public:
   GPFifo::GPFifoManager& GetGPFifo() const;
   HSP::HSPManager& GetHSP() const;
   Interpreter& GetInterpreter() const;
+  JitInterface& GetJitInterface() const;
   IOS::HLE::USB::SkylanderPortal& GetSkylanderPortal() const;
   Memory::MemoryManager& GetMemory() const;
   MemoryInterface::MemoryInterfaceManager& GetMemoryInterface() const;

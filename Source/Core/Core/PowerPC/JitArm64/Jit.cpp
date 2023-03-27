@@ -327,8 +327,9 @@ void JitArm64::IntializeSpeculativeConstants()
         fail = GetCodePtr();
         MOVI2R(DISPATCHER_PC, js.blockStart);
         STR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-        MOVP2R(ARM64Reg::X8, &JitInterface::CompileExceptionCheck);
-        MOVI2R(ARM64Reg::W0, static_cast<u32>(JitInterface::ExceptionType::SpeculativeConstants));
+        MOVP2R(ARM64Reg::X8, &JitInterface::CompileExceptionCheckFromJIT);
+        MOVP2R(ARM64Reg::X0, &m_system.GetJitInterface());
+        MOVI2R(ARM64Reg::W1, static_cast<u32>(JitInterface::ExceptionType::SpeculativeConstants));
         BLR(ARM64Reg::X8);
         B(dispatcher_no_check);
         SwitchToNearCode();
@@ -866,9 +867,10 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       SetJumpTarget(fail);
       MOVI2R(DISPATCHER_PC, js.blockStart);
       STR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-      MOVI2R(ARM64Reg::W0, static_cast<u32>(JitInterface::ExceptionType::PairedQuantize));
-      MOVP2R(ARM64Reg::X1, &JitInterface::CompileExceptionCheck);
-      BLR(ARM64Reg::X1);
+      MOVP2R(ARM64Reg::X0, &m_system.GetJitInterface());
+      MOVI2R(ARM64Reg::W1, static_cast<u32>(JitInterface::ExceptionType::PairedQuantize));
+      MOVP2R(ARM64Reg::X2, &JitInterface::CompileExceptionCheckFromJIT);
+      BLR(ARM64Reg::X2);
       B(dispatcher_no_check);
       SwitchToNearCode();
       SetJumpTarget(no_fail);

@@ -140,7 +140,8 @@ void CodeDiffDialog::ClearData()
   // Swap is used instead of clear for efficiency in the case of huge m_include/m_exclude
   std::vector<Diff>().swap(m_include);
   std::vector<Diff>().swap(m_exclude);
-  JitInterface::SetProfilingState(JitInterface::ProfilingState::Disabled);
+  Core::System::GetInstance().GetJitInterface().SetProfilingState(
+      JitInterface::ProfilingState::Disabled);
 }
 
 void CodeDiffDialog::ClearBlockCache()
@@ -150,7 +151,7 @@ void CodeDiffDialog::ClearBlockCache()
   if (old_state == Core::State::Running)
     Core::SetState(Core::State::Paused);
 
-  JitInterface::ClearCache();
+  Core::System::GetInstance().GetJitInterface().ClearCache();
 
   if (old_state == Core::State::Running)
     Core::SetState(Core::State::Running);
@@ -205,7 +206,7 @@ void CodeDiffDialog::OnRecord(bool enabled)
   }
 
   m_record_btn->update();
-  JitInterface::SetProfilingState(state);
+  Core::System::GetInstance().GetJitInterface().SetProfilingState(state);
 }
 
 void CodeDiffDialog::OnInclude()
@@ -271,7 +272,7 @@ std::vector<Diff> CodeDiffDialog::CalculateSymbolsFromProfile()
 {
   Profiler::ProfileStats prof_stats;
   auto& blockstats = prof_stats.block_stats;
-  JitInterface::GetProfileResults(&prof_stats);
+  Core::System::GetInstance().GetJitInterface().GetProfileResults(&prof_stats);
   std::vector<Diff> current;
   current.reserve(20000);
 
@@ -391,7 +392,7 @@ void CodeDiffDialog::Update(bool include)
   m_exclude_size_label->setText(tr("Excluded: %1").arg(m_exclude.size()));
   m_include_size_label->setText(tr("Included: %1").arg(m_include.size()));
 
-  JitInterface::ClearCache();
+  Core::System::GetInstance().GetJitInterface().ClearCache();
   if (old_state == Core::State::Running)
     Core::SetState(Core::State::Running);
 }

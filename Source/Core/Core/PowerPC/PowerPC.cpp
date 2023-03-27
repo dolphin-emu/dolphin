@@ -153,7 +153,7 @@ void DoState(PointerWrap& p)
   // SystemTimers::DecrementerSet();
   // SystemTimers::TimeBaseSet();
 
-  JitInterface::DoState(p);
+  Core::System::GetInstance().GetJitInterface().DoState(p);
 }
 
 static void ResetRegisters()
@@ -219,7 +219,8 @@ static void InitializeCPUCore(CPUCore cpu_core)
 {
   // We initialize the interpreter because
   // it is used on boot and code window independently.
-  auto& interpreter = Core::System::GetInstance().GetInterpreter();
+  auto& system = Core::System::GetInstance();
+  auto& interpreter = system.GetInterpreter();
   interpreter.Init();
 
   switch (cpu_core)
@@ -229,12 +230,12 @@ static void InitializeCPUCore(CPUCore cpu_core)
     break;
 
   default:
-    s_cpu_core_base = JitInterface::InitJitCore(cpu_core);
+    s_cpu_core_base = system.GetJitInterface().InitJitCore(cpu_core);
     if (!s_cpu_core_base)  // Handle Situations where JIT core isn't available
     {
       WARN_LOG_FMT(POWERPC, "CPU core {} not available. Falling back to default.",
                    static_cast<int>(cpu_core));
-      s_cpu_core_base = JitInterface::InitJitCore(DefaultCPUCore());
+      s_cpu_core_base = system.GetJitInterface().InitJitCore(DefaultCPUCore());
     }
     break;
   }
@@ -315,8 +316,9 @@ void ScheduleInvalidateCacheThreadSafe(u32 address)
 void Shutdown()
 {
   InjectExternalCPUCore(nullptr);
-  JitInterface::Shutdown();
-  auto& interpreter = Core::System::GetInstance().GetInterpreter();
+  auto& system = Core::System::GetInstance();
+  system.GetJitInterface().Shutdown();
+  auto& interpreter = system.GetInterpreter();
   interpreter.Shutdown();
   s_cpu_core_base = nullptr;
 }
@@ -328,7 +330,8 @@ CoreMode GetMode()
 
 static void ApplyMode()
 {
-  auto& interpreter = Core::System::GetInstance().GetInterpreter();
+  auto& system = Core::System::GetInstance();
+  auto& interpreter = system.GetInterpreter();
 
   switch (s_mode)
   {
@@ -338,7 +341,7 @@ static void ApplyMode()
 
   case CoreMode::JIT:  // Switching from interpreter to JIT.
     // Don't really need to do much. It'll work, the cache will refill itself.
-    s_cpu_core_base = JitInterface::GetCore();
+    s_cpu_core_base = system.GetJitInterface().GetCore();
     if (!s_cpu_core_base)  // Has a chance to not get a working JIT core if one isn't active on host
       s_cpu_core_base = &interpreter;
     break;

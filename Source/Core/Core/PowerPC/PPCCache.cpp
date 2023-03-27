@@ -107,7 +107,7 @@ void Cache::Reset()
 void InstructionCache::Reset()
 {
   Cache::Reset();
-  JitInterface::ClearSafe();
+  Core::System::GetInstance().GetJitInterface().ClearSafe();
 }
 
 void Cache::Init()
@@ -424,7 +424,7 @@ void InstructionCache::Invalidate(u32 addr)
   valid[set] = 0;
   modified[set] = 0;
 
-  JitInterface::InvalidateICacheLine(addr);
+  Core::System::GetInstance().GetJitInterface().InvalidateICacheLine(addr);
 }
 
 void InstructionCache::RefreshConfig()

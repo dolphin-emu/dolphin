@@ -16,6 +16,7 @@
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 static u32 Helper_Get_EA(const PowerPC::PowerPCState& ppcs, const UGeckoInstruction inst)
 {
@@ -473,7 +474,7 @@ void Interpreter::dcbf(Interpreter& interpreter, UGeckoInstruction inst)
     // Invalidate the JIT cache here as a heuristic to compensate for
     // the lack of precise L1 icache emulation in the JIT. (Portable software
     // should use icbi consistently, but games aren't portable.)
-    JitInterface::InvalidateICacheLine(address);
+    interpreter.m_system.GetJitInterface().InvalidateICacheLine(address);
     return;
   }
 
@@ -495,7 +496,7 @@ void Interpreter::dcbi(Interpreter& interpreter, UGeckoInstruction inst)
     // Invalidate the JIT cache here as a heuristic to compensate for
     // the lack of precise L1 icache emulation in the JIT. (Portable software
     // should use icbi consistently, but games aren't portable.)
-    JitInterface::InvalidateICacheLine(address);
+    interpreter.m_system.GetJitInterface().InvalidateICacheLine(address);
     return;
   }
 
@@ -511,7 +512,7 @@ void Interpreter::dcbst(Interpreter& interpreter, UGeckoInstruction inst)
     // Invalidate the JIT cache here as a heuristic to compensate for
     // the lack of precise L1 icache emulation in the JIT. (Portable software
     // should use icbi consistently, but games aren't portable.)
-    JitInterface::InvalidateICacheLine(address);
+    interpreter.m_system.GetJitInterface().InvalidateICacheLine(address);
     return;
   }
 
