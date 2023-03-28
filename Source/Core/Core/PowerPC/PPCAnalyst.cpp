@@ -209,10 +209,11 @@ bool PPCAnalyzer::CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b) const
   u64 b_flags = b_info->flags;
 
   // can't reorder around breakpoints
-  if (m_is_debugging_enabled && (PowerPC::breakpoints.IsAddressBreakPoint(a.address) ||
-                                 PowerPC::breakpoints.IsAddressBreakPoint(b.address)))
+  if (m_is_debugging_enabled)
   {
-    return false;
+    auto& breakpoints = Core::System::GetInstance().GetPowerPC().GetBreakPoints();
+    if (breakpoints.IsAddressBreakPoint(a.address) || breakpoints.IsAddressBreakPoint(b.address))
+      return false;
   }
   // Any instruction which can raise an interrupt is *not* a possible swap candidate:
   // see [1] for an example of a crash caused by this error.

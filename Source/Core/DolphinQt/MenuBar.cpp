@@ -800,7 +800,8 @@ void MenuBar::AddJITMenu()
                                      PowerPC::CPUCore::Interpreter);
 
   connect(m_jit_interpreter_core, &QAction::toggled, [](bool enabled) {
-    PowerPC::SetMode(enabled ? PowerPC::CoreMode::Interpreter : PowerPC::CoreMode::JIT);
+    Core::System::GetInstance().GetPowerPC().SetMode(enabled ? PowerPC::CoreMode::Interpreter :
+                                                               PowerPC::CoreMode::JIT);
   });
 
   m_jit->addSeparator();

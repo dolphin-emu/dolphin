@@ -29,7 +29,7 @@ mffsx: 80036650 (huh?)
 static void FPSCRUpdated(PowerPC::PowerPCState& ppc_state)
 {
   UpdateFPExceptionSummary(ppc_state);
-  PowerPC::RoundingModeUpdated();
+  PowerPC::RoundingModeUpdated(ppc_state);
 }
 
 void Interpreter::mtfsb0x(Interpreter& interpreter, UGeckoInstruction inst)
@@ -184,7 +184,7 @@ void Interpreter::mtmsr(Interpreter& interpreter, UGeckoInstruction inst)
   // FE0/FE1 may have been set
   CheckFPExceptions(ppc_state);
 
-  PowerPC::CheckExceptions();
+  interpreter.m_system.GetPowerPC().CheckExceptions();
   interpreter.m_end_block = true;
 }
 
@@ -249,7 +249,7 @@ void Interpreter::mfspr(Interpreter& interpreter, UGeckoInstruction inst)
 
   case SPR_TL:
   case SPR_TU:
-    PowerPC::WriteFullTimeBaseValue(SystemTimers::GetFakeTimeBase());
+    interpreter.m_system.GetPowerPC().WriteFullTimeBaseValue(SystemTimers::GetFakeTimeBase());
     break;
 
   case SPR_WPAR:

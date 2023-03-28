@@ -203,7 +203,7 @@ HookFlag GetHookFlagsByIndex(u32 index)
 bool IsEnabled(HookFlag flag)
 {
   return flag != HLE::HookFlag::Debug || Config::Get(Config::MAIN_ENABLE_DEBUGGING) ||
-         PowerPC::GetMode() == PowerPC::CoreMode::Interpreter;
+         Core::System::GetInstance().GetPowerPC().GetMode() == PowerPC::CoreMode::Interpreter;
 }
 
 u32 UnPatch(Core::System& system, std::string_view patch_name)

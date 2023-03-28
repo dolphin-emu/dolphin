@@ -223,7 +223,7 @@ void TimeBaseSet()
   auto& system = Core::System::GetInstance();
   auto& core_timing = system.GetCoreTiming();
   core_timing.SetFakeTBStartTicks(core_timing.GetTicks());
-  core_timing.SetFakeTBStartValue(PowerPC::ReadFullTimeBaseValue());
+  core_timing.SetFakeTBStartValue(system.GetPowerPC().ReadFullTimeBaseValue());
 }
 
 u64 GetFakeTimeBase()

@@ -36,6 +36,7 @@ void ApplyMemoryPatch(const Core::CPUThreadGuard& guard, Common::Debug::MemoryPa
   if (!PowerPC::MMU::HostIsRAMAddress(guard, address))
     return;
 
+  auto& power_pc = guard.GetSystem().GetPowerPC();
   for (u32 offset = 0; offset < size; ++offset)
   {
     if (store_existing_value)
@@ -50,11 +51,11 @@ void ApplyMemoryPatch(const Core::CPUThreadGuard& guard, Common::Debug::MemoryPa
     }
 
     if (((address + offset) % 4) == 3)
-      PowerPC::ScheduleInvalidateCacheThreadSafe(Common::AlignDown(address + offset, 4));
+      power_pc.ScheduleInvalidateCacheThreadSafe(Common::AlignDown(address + offset, 4));
   }
   if (((address + size) % 4) != 0)
   {
-    PowerPC::ScheduleInvalidateCacheThreadSafe(
+    power_pc.ScheduleInvalidateCacheThreadSafe(
         Common::AlignDown(address + static_cast<u32>(size), 4));
   }
 }
@@ -347,40 +348,41 @@ bool PPCDebugInterface::IsAlive() const
 
 bool PPCDebugInterface::IsBreakpoint(u32 address) const
 {
-  return PowerPC::breakpoints.IsAddressBreakPoint(address);
+  return m_system.GetPowerPC().GetBreakPoints().IsAddressBreakPoint(address);
 }
 
 void PPCDebugInterface::SetBreakpoint(u32 address)
 {
-  PowerPC::breakpoints.Add(address);
+  m_system.GetPowerPC().GetBreakPoints().Add(address);
 }
 
 void PPCDebugInterface::ClearBreakpoint(u32 address)
 {
-  PowerPC::breakpoints.Remove(address);
+  m_system.GetPowerPC().GetBreakPoints().Remove(address);
 }
 
 void PPCDebugInterface::ClearAllBreakpoints()
 {
-  PowerPC::breakpoints.Clear();
+  m_system.GetPowerPC().GetBreakPoints().Clear();
 }
 
 void PPCDebugInterface::ToggleBreakpoint(u32 address)
 {
-  if (PowerPC::breakpoints.IsAddressBreakPoint(address))
-    PowerPC::breakpoints.Remove(address);
+  auto& breakpoints = m_system.GetPowerPC().GetBreakPoints();
+  if (breakpoints.IsAddressBreakPoint(address))
+    breakpoints.Remove(address);
   else
-    PowerPC::breakpoints.Add(address);
+    breakpoints.Add(address);
 }
 
 void PPCDebugInterface::ClearAllMemChecks()
 {
-  PowerPC::memchecks.Clear();
+  m_system.GetPowerPC().GetMemChecks().Clear();
 }
 
 bool PPCDebugInterface::IsMemCheck(u32 address, size_t size) const
 {
-  return PowerPC::memchecks.GetMemCheck(address, size) != nullptr;
+  return m_system.GetPowerPC().GetMemChecks().GetMemCheck(address, size) != nullptr;
 }
 
 void PPCDebugInterface::ToggleMemCheck(u32 address, bool read, bool write, bool log)
@@ -397,11 +399,11 @@ void PPCDebugInterface::ToggleMemCheck(u32 address, bool read, bool write, bool 
     MemCheck.log_on_hit = log;
     MemCheck.break_on_hit = true;
 
-    PowerPC::memchecks.Add(std::move(MemCheck));
+    m_system.GetPowerPC().GetMemChecks().Add(std::move(MemCheck));
   }
   else
   {
-    PowerPC::memchecks.Remove(address);
+    m_system.GetPowerPC().GetMemChecks().Remove(address);
   }
 }
 

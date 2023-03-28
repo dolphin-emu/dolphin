@@ -206,7 +206,7 @@ void Interpreter::SingleStep()
 
   if (m_ppc_state.Exceptions != 0)
   {
-    PowerPC::CheckExceptions();
+    m_system.GetPowerPC().CheckExceptions();
     m_ppc_state.pc = m_ppc_state.npc;
   }
 }
@@ -224,6 +224,7 @@ void Interpreter::Run()
 {
   auto& core_timing = m_system.GetCoreTiming();
   auto& cpu = m_system.GetCPU();
+  auto& power_pc = m_system.GetPowerPC();
   while (cpu.GetState() == CPU::State::Running)
   {
     // CoreTiming Advance() ends the previous slice and declares the start of the next
@@ -255,7 +256,7 @@ void Interpreter::Run()
 #endif
 
           // 2: check for breakpoint
-          if (PowerPC::breakpoints.IsAddressBreakPoint(m_ppc_state.pc))
+          if (power_pc.GetBreakPoints().IsAddressBreakPoint(m_ppc_state.pc))
           {
 #ifdef SHOW_HISTORY
             NOTICE_LOG_FMT(POWERPC, "----------------------------");
@@ -280,8 +281,8 @@ void Interpreter::Run()
             cpu.Break();
             if (GDBStub::IsActive())
               GDBStub::TakeControl();
-            if (PowerPC::breakpoints.IsTempBreakPoint(m_ppc_state.pc))
-              PowerPC::breakpoints.Remove(m_ppc_state.pc);
+            if (power_pc.GetBreakPoints().IsTempBreakPoint(m_ppc_state.pc))
+              power_pc.GetBreakPoints().Remove(m_ppc_state.pc);
 
             Host_UpdateDisasmDialog();
             return;
@@ -347,7 +348,7 @@ void Interpreter::ClearCache()
 
 void Interpreter::CheckExceptions()
 {
-  PowerPC::CheckExceptions();
+  m_system.GetPowerPC().CheckExceptions();
   m_end_block = true;
 }
 
