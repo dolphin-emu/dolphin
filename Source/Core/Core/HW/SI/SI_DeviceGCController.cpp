@@ -293,6 +293,7 @@ GCPadStatus CSIDevice_GCController::GetPadStatus()
         pad_status.button |= PAD_USE_ORIGIN;
         CopyControllerStateToGCPadStatus(temp_controller_state, pad_status);
       }
+      Scripting::ScriptUtilities::RunButtonCallbacksInQueues();
     }
   }
   HandleMoviePadStatus(m_device_number, &pad_status);

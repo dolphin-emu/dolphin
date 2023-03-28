@@ -9,7 +9,7 @@
 
 namespace Scripting
 {
-
+extern std::string most_recent_script_version;
 extern bool set_print_callback;
 extern bool set_script_end_callback;
 extern std::function<void(const std::string&)>* print_callback;

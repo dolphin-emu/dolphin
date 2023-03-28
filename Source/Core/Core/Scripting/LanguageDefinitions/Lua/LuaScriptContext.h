@@ -124,14 +124,14 @@ public:
       (wii_controller_input_polled_callback_locations.size() == 0 || wii_controller_input_polled_callback_locations.size() - number_of_wii_input_callbacks_to_auto_deregister <= 0) &&
       (map_of_instruction_address_to_lua_callback_locations.size() == 0 || getNumberOfCallbacksInMap(map_of_instruction_address_to_lua_callback_locations) - number_of_instruction_address_callbacks_to_auto_deregister <= 0) &&
       (map_of_memory_address_read_from_to_lua_callback_locations.size() == 0 || getNumberOfCallbacksInMap(map_of_memory_address_read_from_to_lua_callback_locations) - number_of_memory_address_read_callbacks_to_auto_deregister <= 0) &&
-      (map_of_memory_address_written_to_to_lua_callback_locations.size() == 0 || getNumberOfCallbacksInMap(map_of_memory_address_written_to_to_lua_callback_locations) - number_of_memory_address_write_callbacks_to_auto_deregister <= 0))
+      (map_of_memory_address_written_to_to_lua_callback_locations.size() == 0 || getNumberOfCallbacksInMap(map_of_memory_address_written_to_to_lua_callback_locations) - number_of_memory_address_write_callbacks_to_auto_deregister <= 0)
+        && button_callbacks_to_run.IsEmpty())
       return true;
     return false;
 
   }
   LuaScriptContext(int new_unique_script_identifier, const std::string& new_script_filename,
                    std::vector<ScriptContext*>* new_pointer_to_list_of_all_scripts,
-                   const std::string& api_version,
                    std::function<void(const std::string&)>* new_print_callback,
                    std::function<void(int)>* new_script_end_callback)
       : ScriptContext(new_unique_script_identifier, new_script_filename,
@@ -161,13 +161,13 @@ public:
     lua_newtable(main_lua_thread);
     lua_pushcfunction(main_lua_thread, CustomPrintFunction);
     lua_setglobal(main_lua_thread, "print");
-    this->ImportModule("dolphin", api_version);
-    this->ImportModule("OnFrameStart", api_version);
-    this->ImportModule("OnGCControllerPolled", api_version);
-    this->ImportModule("OnInstructionHit", api_version);
-    this->ImportModule("OnMemoryAddressReadFrom", api_version);
-    this->ImportModule("OnMemoryAddressWrittenTo", api_version);
-    this->ImportModule("OnWiiInputPolled", api_version);
+    this->ImportModule("dolphin", most_recent_script_version);
+    this->ImportModule("OnFrameStart", most_recent_script_version);
+    this->ImportModule("OnGCControllerPolled", most_recent_script_version);
+    this->ImportModule("OnInstructionHit", most_recent_script_version);
+    this->ImportModule("OnMemoryAddressReadFrom", most_recent_script_version);
+    this->ImportModule("OnMemoryAddressWrittenTo", most_recent_script_version);
+    this->ImportModule("OnWiiInputPolled", most_recent_script_version);
 
     frame_callback_lua_thread = lua_newthread(main_lua_thread);
     instruction_address_hit_callback_lua_thread = lua_newthread(main_lua_thread);

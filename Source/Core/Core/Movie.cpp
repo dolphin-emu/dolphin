@@ -1314,7 +1314,8 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
              &Scripting::GameCubeControllerApi::new_controller_inputs[controllerID],
              sizeof(ControllerState));
 
-    }  
+    }
+    Scripting::ScriptUtilities::RunButtonCallbacksInQueues();
   }
 
   memcpy(&s_padState, &s_temp_input[s_currentByte], sizeof(ControllerState));

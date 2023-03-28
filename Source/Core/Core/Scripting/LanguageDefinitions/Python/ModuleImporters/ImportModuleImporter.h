@@ -5,7 +5,7 @@
 
 namespace Scripting::Python::ImportModuleImporter
 {
-  // It's turtles all the way down!!!!!!!!
+// It's turtles all the way down!!!!!!!!
 PyMODINIT_FUNC PyInit_ImportAPI();
 }
 #endif

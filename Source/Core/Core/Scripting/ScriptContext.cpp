@@ -2,6 +2,7 @@
 
 namespace Scripting
 {
+std::string most_recent_script_version = "1.0.0";
 bool set_print_callback = false;
 bool set_script_end_callback = false;
 std::function<void(const std::string&)>* print_callback = nullptr;

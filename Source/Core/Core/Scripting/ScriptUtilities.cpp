@@ -15,8 +15,6 @@ std::mutex memory_address_written_to_callback_running_lock;
 std::mutex wii_input_polled_callback_running_lock;
 std::mutex graphics_callback_running_lock;
 
-const std::string newest_api_version = "1.0.0";
-
 bool IsScriptingCoreInitialized()
 {
   return global_pointer_to_list_of_all_scripts != nullptr;
@@ -34,13 +32,13 @@ void InitializeScript(int unique_script_identifier, const std::string& script_fi
 
   if (language == DefinedScriptingLanguagesEnum::LUA)
   {
-    global_pointer_to_list_of_all_scripts->push_back(new Scripting::Lua::LuaScriptContext(unique_script_identifier, script_filename, global_pointer_to_list_of_all_scripts, newest_api_version, new_print_callback, new_script_end_callback));
+    global_pointer_to_list_of_all_scripts->push_back(new Scripting::Lua::LuaScriptContext(unique_script_identifier, script_filename, global_pointer_to_list_of_all_scripts, new_print_callback, new_script_end_callback));
   }
   else if (language == DefinedScriptingLanguagesEnum::PYTHON)
   {
     global_pointer_to_list_of_all_scripts->push_back(new Scripting::Python::PythonScriptContext(
         unique_script_identifier, script_filename, global_pointer_to_list_of_all_scripts,
-        newest_api_version, new_print_callback, new_script_end_callback));
+        new_print_callback, new_script_end_callback));
   }
   global_code_and_frame_callback_running_lock.unlock();
   initialization_and_destruction_lock.unlock();

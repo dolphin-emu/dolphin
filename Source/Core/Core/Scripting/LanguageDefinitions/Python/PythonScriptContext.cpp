@@ -1,12 +1,23 @@
 #include "Core/Scripting/LanguageDefinitions/Python/PythonScriptContext.h"
 #include "Core/Scripting/HelperClasses/FunctionMetadata.h"
 
-#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/BitModuleImporter.h"
-#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/EmuModuleImporter.h"
-#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/ImportModuleImporter.h"
 #include "Core/Scripting/InternalAPIModules/BitAPI.h"
 #include "Core/Scripting/InternalAPIModules/EmuAPI.h"
+#include "Core/Scripting/InternalAPIModules/GameCubeControllerAPI.h"
+#include "Core/Scripting/InternalAPIModules/GraphicsAPI.h"
 #include "Core/Scripting/InternalAPIModules/ImportAPI.h"
+#include "Core/Scripting/InternalAPIModules/MemoryAPI.h"
+#include "Core/Scripting/InternalAPIModules/RegistersAPI.h"
+#include "Core/Scripting/InternalAPIModules/StatisticsAPI.h"
+
+#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/BitModuleImporter.h"
+#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/EmuModuleImporter.h"
+#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/GameCubeControllerModuleImporter.h"
+#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/GraphicsModuleImporter.h"
+#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/ImportModuleImporter.h"
+#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/MemoryModuleImporter.h" 
+#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/RegistersModuleImporter.h"
+#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/StatisticsModuleImporter.h"
 #include <fstream>
 
 namespace Scripting::Python
@@ -51,7 +62,7 @@ bool PythonScriptContext::ShouldCallEndScriptFunction()
       (map_of_memory_address_written_to_to_python_callbacks.size() == 0 ||
        getNumberOfCallbacksInMap(map_of_memory_address_written_to_to_python_callbacks) -
                number_of_memory_address_write_callbacks_to_auto_deregister <=
-           0))
+           0) && button_callbacks_to_run.IsEmpty())
     return true;
   return false;
 }
@@ -73,7 +84,6 @@ PyMODINIT_FUNC PyInit_ThisPointerModule()
 
 PythonScriptContext::PythonScriptContext(int new_unique_script_identifier, const std::string& new_script_filename,
                     std::vector<ScriptContext*>* new_pointer_to_list_of_all_scripts,
-                    const std::string& api_version,
                     std::function<void(const std::string&)>* new_print_callback,
                     std::function<void(int)>* new_script_end_callback)
     : ScriptContext(new_unique_script_identifier, new_script_filename,
@@ -88,6 +98,11 @@ PythonScriptContext::PythonScriptContext(int new_unique_script_identifier, const
     PyImport_AppendInittab(ImportAPI::class_name, ImportModuleImporter::PyInit_ImportAPI);
     PyImport_AppendInittab(BitApi::class_name, BitModuleImporter::PyInit_BitAPI);
     PyImport_AppendInittab(EmuApi::class_name, EmuModuleImporter::PyInit_EmuAPI);
+    PyImport_AppendInittab(GameCubeControllerApi::class_name, GameCubeControllerModuleImporter::PyInit_GameCubeControllerAPI);
+    PyImport_AppendInittab(GraphicsAPI::class_name, GraphicsModuleImporter::PyInit_GraphicsAPI);
+    PyImport_AppendInittab(MemoryApi::class_name, MemoryModuleImporter::PyInit_MemoryAPI);
+    PyImport_AppendInittab(RegistersAPI::class_name, RegistersModuleImporter::PyInit_RegistersAPI);
+    PyImport_AppendInittab(StatisticsApi::class_name, StatisticsModuleImporter::PyInit_StatisticsAPI);
     Py_Initialize();
     original_python_thread = PyThreadState_Get();
     python_initialized = true;
@@ -99,10 +114,15 @@ PythonScriptContext::PythonScriptContext(int new_unique_script_identifier, const
   main_python_thread = Py_NewInterpreter();
   long long this_address = (long long) (ScriptContext*) this;
   *((long long*)PyModule_GetState(PyImport_ImportModule(THIS_MODULE_NAME))) =  this_address;
-  *((std::string*)PyModule_GetState(PyImport_ImportModule(ImportAPI::class_name))) = std::string("1.0");
+  *((std::string*)PyModule_GetState(PyImport_ImportModule(ImportAPI::class_name))) = std::string(most_recent_script_version);
   PyRun_SimpleString("import dolphin");
   *((std::string*)PyModule_GetState(PyImport_ImportModule(BitApi::class_name))) = std::string("0.0");
   *((std::string*)PyModule_GetState(PyImport_ImportModule(EmuApi::class_name))) = std::string("0.0");
+  *((std::string*)PyModule_GetState(PyImport_ImportModule(GameCubeControllerApi::class_name))) = std::string("0.0");
+  *((std::string*)PyModule_GetState(PyImport_ImportModule(GraphicsAPI::class_name))) = std::string("0.0");
+  *((std::string*)PyModule_GetState(PyImport_ImportModule(MemoryApi::class_name))) = std::string("0.0");
+  *((std::string*)PyModule_GetState(PyImport_ImportModule(RegistersAPI::class_name))) = std::string("0.0");
+  *((std::string*)PyModule_GetState(PyImport_ImportModule(StatisticsApi::class_name))) = std::string("0.0");
 
 
   current_script_call_location = ScriptCallLocations::FromScriptStartup;
@@ -155,6 +175,14 @@ PyObject* PythonScriptContext::RunFunction(PyObject* self, PyObject* args, std::
     functionMetadata = BitApi::GetFunctionMetadataForVersion(version_number, function_name);
   else if (class_name == EmuApi::class_name)
     functionMetadata = EmuApi::GetFunctionMetadataForVersion(version_number, function_name);
+  else if (class_name == GameCubeControllerApi::class_name)
+    functionMetadata = GameCubeControllerApi::GetFunctionMetadataForVersion(version_number, function_name);
+  else if (class_name == MemoryApi::class_name)
+    functionMetadata = MemoryApi::GetFunctionMetadataForVersion(version_number, function_name);
+  else if (class_name == RegistersAPI::class_name)
+    functionMetadata = RegistersAPI::GetFunctionMetadataForVersion(version_number, function_name);
+  else if (class_name == StatisticsApi::class_name)
+    functionMetadata = StatisticsApi::GetFunctionMetadataForVersion(version_number, function_name);
   else
   {
     return HandleError(nullptr, nullptr, false,

@@ -37,6 +37,9 @@ public:
 
   std::unordered_map<long long, PyObject*> map_of_button_id_to_callback;
 
+  ThreadSafeQueue<PyObject*> button_callbacks_to_run;
+
+
   std::atomic<size_t> number_of_frame_callbacks_to_auto_deregister;
   std::atomic<size_t> number_of_gc_controller_input_callbacks_to_auto_deregister;
   std::atomic<size_t> number_of_wii_input_callbacks_to_auto_deregister;
@@ -48,7 +51,6 @@ public:
 
   PythonScriptContext(int new_unique_script_identifier, const std::string& new_script_filename,
                       std::vector<ScriptContext*>* new_pointer_to_list_of_all_scripts,
-                      const std::string& api_version,
                       std::function<void(const std::string&)>* new_print_callback,
                       std::function<void(int)>* new_script_end_callback);
 
