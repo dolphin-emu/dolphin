@@ -361,16 +361,13 @@ void Jit64::dcbx(UGeckoInstruction inst)
   ABI_PushRegistersAndAdjustStack(registersInUse, 0);
   if (make_loop)
   {
-    MOV(32, R(ABI_PARAM2), R(effective_address));
-    MOV(32, R(ABI_PARAM3), R(loop_counter));
-    MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(&m_system.GetJitInterface())));
-    ABI_CallFunction(JitInterface::InvalidateICacheLinesFromJIT);
+    ABI_CallFunctionPRR(JitInterface::InvalidateICacheLinesFromJIT, &m_system.GetJitInterface(),
+                        effective_address, loop_counter);
   }
   else
   {
-    MOV(32, R(ABI_PARAM2), R(effective_address));
-    MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(&m_system.GetJitInterface())));
-    ABI_CallFunction(JitInterface::InvalidateICacheLineFromJIT);
+    ABI_CallFunctionPR(JitInterface::InvalidateICacheLineFromJIT, &m_system.GetJitInterface(),
+                       effective_address);
   }
   ABI_PopRegistersAndAdjustStack(registersInUse, 0);
   asm_routines.ResetStack(*this);
