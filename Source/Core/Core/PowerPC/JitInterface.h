@@ -82,8 +82,11 @@ public:
   void InvalidateICache(u32 address, u32 size, bool forced);
   void InvalidateICacheLine(u32 address);
   void InvalidateICacheLines(u32 address, u32 count);
-  static void InvalidateICacheLineFromJIT(u32 address, u32 dummy, JitInterface& jit_interface);
-  static void InvalidateICacheLinesFromJIT(u32 address, u32 count, JitInterface& jit_interface);
+  static void InvalidateICacheLineFromJit64(JitInterface& jit_interface, u32 address);
+  static void InvalidateICacheLinesFromJit64(JitInterface& jit_interface, u32 address, u32 count);
+  static void InvalidateICacheLineFromJitArm64(u32 address, u32 dummy, JitInterface& jit_interface);
+  static void InvalidateICacheLinesFromJitArm64(u32 address, u32 count,
+                                                JitInterface& jit_interface);
 
   enum class ExceptionType
   {

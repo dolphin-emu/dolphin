@@ -773,9 +773,9 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   // The first two function call arguments are already in the correct registers
   MOVP2R(ARM64Reg::X2, &m_system.GetJitInterface());
   if (make_loop)
-    MOVP2R(ARM64Reg::X8, &JitInterface::InvalidateICacheLinesFromJIT);
+    MOVP2R(ARM64Reg::X8, &JitInterface::InvalidateICacheLinesFromJitArm64);
   else
-    MOVP2R(ARM64Reg::X8, &JitInterface::InvalidateICacheLineFromJIT);
+    MOVP2R(ARM64Reg::X8, &JitInterface::InvalidateICacheLineFromJitArm64);
   BLR(ARM64Reg::X8);
 
   m_float_emit.ABI_PopRegisters(fprs_to_push, WA);
