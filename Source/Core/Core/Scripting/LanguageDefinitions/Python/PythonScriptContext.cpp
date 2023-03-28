@@ -1,6 +1,8 @@
 #include "Core/Scripting/LanguageDefinitions/Python/PythonScriptContext.h"
 #include "Core/Scripting/HelperClasses/FunctionMetadata.h"
 
+#include "Core/Scripting/EventCallbackRegistrationAPIs/OnFrameStartCallbackAPI.h"
+
 #include "Core/Scripting/InternalAPIModules/BitAPI.h"
 #include "Core/Scripting/InternalAPIModules/EmuAPI.h"
 #include "Core/Scripting/InternalAPIModules/GameCubeControllerAPI.h"
@@ -15,7 +17,8 @@
 #include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/GameCubeControllerModuleImporter.h"
 #include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/GraphicsModuleImporter.h"
 #include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/ImportModuleImporter.h"
-#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/MemoryModuleImporter.h" 
+#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/MemoryModuleImporter.h"
+#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/OnFrameStartCallbackModuleImporter.h"
 #include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/RegistersModuleImporter.h"
 #include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/StatisticsModuleImporter.h"
 #include <fstream>
@@ -81,6 +84,15 @@ PyMODINIT_FUNC PyInit_ThisPointerModule()
   return PyModule_Create(&ThisModuleDef);
 }
 
+void SetModuleVersion(const char* module_name, std::string new_version_number)
+{
+  *((std::string*)PyModule_GetState(PyImport_ImportModule(module_name))) = std::string(new_version_number);
+}
+
+void ImportBuiltinModule(const char* module_name)
+{
+  PyRun_SimpleString((std::string("import ") + module_name).c_str());
+}
 
 PythonScriptContext::PythonScriptContext(int new_unique_script_identifier, const std::string& new_script_filename,
                     std::vector<ScriptContext*>* new_pointer_to_list_of_all_scripts,
@@ -96,6 +108,7 @@ PythonScriptContext::PythonScriptContext(int new_unique_script_identifier, const
   {
     PyImport_AppendInittab(THIS_MODULE_NAME, PyInit_ThisPointerModule);
     PyImport_AppendInittab(ImportAPI::class_name, ImportModuleImporter::PyInit_ImportAPI);
+    PyImport_AppendInittab(OnFrameStartCallbackAPI::class_name, OnFrameStartCallbackModuleImporter::PyInit_OnFrameStart);
     PyImport_AppendInittab(BitApi::class_name, BitModuleImporter::PyInit_BitAPI);
     PyImport_AppendInittab(EmuApi::class_name, EmuModuleImporter::PyInit_EmuAPI);
     PyImport_AppendInittab(GameCubeControllerApi::class_name, GameCubeControllerModuleImporter::PyInit_GameCubeControllerAPI);
@@ -114,16 +127,19 @@ PythonScriptContext::PythonScriptContext(int new_unique_script_identifier, const
   main_python_thread = Py_NewInterpreter();
   long long this_address = (long long) (ScriptContext*) this;
   *((long long*)PyModule_GetState(PyImport_ImportModule(THIS_MODULE_NAME))) =  this_address;
-  *((std::string*)PyModule_GetState(PyImport_ImportModule(ImportAPI::class_name))) = std::string(most_recent_script_version);
-  PyRun_SimpleString("import dolphin");
-  *((std::string*)PyModule_GetState(PyImport_ImportModule(BitApi::class_name))) = std::string("0.0");
-  *((std::string*)PyModule_GetState(PyImport_ImportModule(EmuApi::class_name))) = std::string("0.0");
-  *((std::string*)PyModule_GetState(PyImport_ImportModule(GameCubeControllerApi::class_name))) = std::string("0.0");
-  *((std::string*)PyModule_GetState(PyImport_ImportModule(GraphicsAPI::class_name))) = std::string("0.0");
-  *((std::string*)PyModule_GetState(PyImport_ImportModule(MemoryApi::class_name))) = std::string("0.0");
-  *((std::string*)PyModule_GetState(PyImport_ImportModule(RegistersAPI::class_name))) = std::string("0.0");
-  *((std::string*)PyModule_GetState(PyImport_ImportModule(StatisticsApi::class_name))) = std::string("0.0");
 
+  SetModuleVersion(ImportAPI::class_name, most_recent_script_version);
+  ImportBuiltinModule(ImportAPI::class_name);
+  SetModuleVersion(OnFrameStartCallbackAPI::class_name, most_recent_script_version);
+  ImportBuiltinModule(OnFrameStartCallbackAPI::class_name);
+
+  SetModuleVersion(BitApi::class_name, std::string("0.0"));
+  SetModuleVersion(EmuApi::class_name, std::string("0.0"));
+  SetModuleVersion(GameCubeControllerApi::class_name, std::string("0.0"));
+  SetModuleVersion(GraphicsAPI::class_name, std::string("0.0"));
+  SetModuleVersion(MemoryApi::class_name, std::string("0.0"));
+  SetModuleVersion(RegistersAPI::class_name, std::string("0.0"));
+  SetModuleVersion(StatisticsApi::class_name, std::string("0.0"));
 
   current_script_call_location = ScriptCallLocations::FromScriptStartup;
 
