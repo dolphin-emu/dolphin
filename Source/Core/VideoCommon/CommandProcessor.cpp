@@ -637,7 +637,8 @@ void CommandProcessorManager::SetCpClearRegister()
 {
 }
 
-void CommandProcessorManager::HandleUnknownOpcode(u8 cmd_byte, const u8* buffer, bool preprocess)
+void CommandProcessorManager::HandleUnknownOpcode(Core::System& system, u8 cmd_byte,
+                                                  const u8* buffer, bool preprocess)
 {
   const auto& fifo = m_fifo;
 
@@ -665,6 +666,7 @@ void CommandProcessorManager::HandleUnknownOpcode(u8 cmd_byte, const u8* buffer,
   // PC and LR are meaningless when using the fifoplayer, and will generally not be helpful if the
   // unknown opcode is inside of a display list.  Also note that the changes in GPFifo.h are not
   // accurate and may introduce timing issues.
+  const auto& ppc_state = system.GetPPCState();
   GENERIC_LOG_FMT(
       Common::Log::LogType::VIDEO, log_level,
       "FIFO: Unknown Opcode {:#04x} @ {}, preprocessing = {}, CPBase: {:#010x}, CPEnd: "
@@ -686,8 +688,8 @@ void CommandProcessorManager::HandleUnknownOpcode(u8 cmd_byte, const u8* buffer,
       fifo.bFF_Breakpoint.load(std::memory_order_relaxed) ? "true" : "false",
       fifo.bFF_GPLinkEnable.load(std::memory_order_relaxed) ? "true" : "false",
       fifo.bFF_HiWatermarkInt.load(std::memory_order_relaxed) ? "true" : "false",
-      fifo.bFF_LoWatermarkInt.load(std::memory_order_relaxed) ? "true" : "false",
-      PowerPC::ppcState.pc, LR(PowerPC::ppcState));
+      fifo.bFF_LoWatermarkInt.load(std::memory_order_relaxed) ? "true" : "false", ppc_state.pc,
+      LR(ppc_state));
 
   if (!m_is_fifo_error_seen && !suppress_panic_alert)
   {
