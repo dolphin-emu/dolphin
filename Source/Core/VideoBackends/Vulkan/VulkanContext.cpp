@@ -981,9 +981,11 @@ void VulkanContext::PopulateShaderSubgroupSupport()
 
   // We require basic ops (for gl_SubgroupInvocationID), ballot (for subgroupBallot,
   // subgroupBallotFindLSB), and arithmetic (for subgroupMin/subgroupMax).
-  constexpr VkSubgroupFeatureFlags required_operations = VK_SUBGROUP_FEATURE_BASIC_BIT |
-                                                         VK_SUBGROUP_FEATURE_ARITHMETIC_BIT |
-                                                         VK_SUBGROUP_FEATURE_BALLOT_BIT;
+  // Shuffle is enabled as a workaround until SPIR-V >= 1.5 is enabled with broadcast(uniform)
+  // support.
+  constexpr VkSubgroupFeatureFlags required_operations =
+      VK_SUBGROUP_FEATURE_BASIC_BIT | VK_SUBGROUP_FEATURE_ARITHMETIC_BIT |
+      VK_SUBGROUP_FEATURE_BALLOT_BIT | VK_SUBGROUP_FEATURE_SHUFFLE_BIT;
   m_supports_shader_subgroup_operations =
       (subgroup_properties.supportedOperations & required_operations) == required_operations &&
       subgroup_properties.supportedStages & VK_SHADER_STAGE_FRAGMENT_BIT &&
