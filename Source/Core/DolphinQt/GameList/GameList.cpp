@@ -212,7 +212,11 @@ void GameList::MakeListView()
     m_list->setColumnWidth(static_cast<int>(Column::Banner), 102);
     m_list->setColumnWidth(static_cast<int>(Column::Platform), 38);
     m_list->setColumnWidth(static_cast<int>(Column::Country), 38);
-    m_list->setColumnWidth(static_cast<int>(Column::Size), 85);
+    m_list->resizeColumnToContents(static_cast<int>(Column::Size));
+    if (m_list->columnWidth(static_cast<int>(Column::Size)) < 85)
+    {
+      m_list->setColumnWidth(static_cast<int>(Column::Size), 85);
+    }
     m_list->setColumnWidth(static_cast<int>(Column::ID), 70);
   }
 
@@ -306,6 +310,12 @@ void GameList::MakeEmptyView()
           [this, empty_msg = empty_msg] {
             m_empty->setText(empty_msg);
             m_empty->setEnabled(true);
+            using Column = GameListModel::Column;
+            m_list->resizeColumnToContents(static_cast<int>(Column::Size));
+            if (m_list->columnWidth(static_cast<int>(Column::Size)) < 85)
+            {
+              m_list->setColumnWidth(static_cast<int>(Column::Size), 85);
+            }
           });
 }
 
