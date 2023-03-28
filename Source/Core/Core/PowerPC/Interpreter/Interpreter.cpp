@@ -120,13 +120,13 @@ int Interpreter::SingleStepInner()
     // TODO: Does it make sense to use m_prev_inst here?
     // It seems like we should use the num_cycles for the instruction at PC instead
     // (m_prev_inst has not yet been updated)
-    return PPCTables::GetOpInfo(m_prev_inst)->num_cycles;
+    return PPCTables::GetOpInfo(m_prev_inst, m_ppc_state.pc)->num_cycles;
   }
 
   m_ppc_state.npc = m_ppc_state.pc + sizeof(UGeckoInstruction);
   m_prev_inst.hex = m_mmu.Read_Opcode(m_ppc_state.pc);
 
-  const GekkoOPInfo* opinfo = PPCTables::GetOpInfo(m_prev_inst);
+  const GekkoOPInfo* opinfo = PPCTables::GetOpInfo(m_prev_inst, m_ppc_state.pc);
 
   // Uncomment to trace the interpreter
   // if ((m_ppc_state.pc & 0x00FFFFFF) >= 0x000AB54C &&
