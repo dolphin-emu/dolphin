@@ -14,10 +14,10 @@ DefaultValue = false
 [/configuration]
 */
 
-const uint MAX_CHARS = 96u; // max 96, must be a multiple of 32
+const uint MAX_CHARS = 96u;  // max 96, must be a multiple of 32
 const bool HAVE_FULL_FEATURE_FALLBACK = true;
 const uint UNROLL_FALLBACK = 4;
-const uint UNROLL_SIMD = 3; // max MAX_CHARS / 32
+const uint UNROLL_SIMD = 3;  // max MAX_CHARS / 32
 
 // #undef SUPPORTS_SUBGROUP_REDUCTION
 
@@ -95,34 +95,37 @@ const uint rasters[char_count][(char_pixels + 31) / 32] = {
 
 // Precalculated sum of all pixels per character
 const uint raster_active_pixels[char_count] = {
-    96, 18, 16, 40, 56, 42, 46, 10, 22, 22, 32, 28, 10, 16, 6,  24,
-    52, 29, 36, 44, 35, 42, 50, 28, 58, 51, 12, 16, 22, 32, 22, 26,
-    41, 46, 57, 38, 52, 38, 32, 46, 48, 30, 31, 43, 28, 56, 64, 52,
-    42, 52, 52, 44, 28, 48, 42, 58, 42, 32, 38, 26, 24, 26, 14, 8,
-    10, 34, 40, 26, 40, 32, 30, 33, 39, 16, 20, 37, 28, 43, 30, 30,
-    34, 34, 20, 28, 27, 30, 26, 36, 26, 24, 26, 30, 24, 30, 14, 0};
+    96, 18, 16, 40, 56, 42, 46, 10, 22, 22, 32, 28, 10, 16, 6,  24, 52, 29, 36, 44, 35, 42, 50, 28,
+    58, 51, 12, 16, 22, 32, 22, 26, 41, 46, 57, 38, 52, 38, 32, 46, 48, 30, 31, 43, 28, 56, 64, 52,
+    42, 52, 52, 44, 28, 48, 42, 58, 42, 32, 38, 26, 24, 26, 14, 8,  10, 34, 40, 26, 40, 32, 30, 33,
+    39, 16, 20, 37, 28, 43, 30, 30, 34, 34, 20, 28, 27, 30, 26, 36, 26, 24, 26, 30, 24, 30, 14, 0};
 
 // Get one sample of the font: (pixel index, character index)
-float SampleFont(uint2 pos) {
+float SampleFont(uint2 pos)
+{
   return (rasters[pos.y][pos.x / 32] >> (pos.x % 32)) & uint(1);
 }
 
 // Get one sample of the framebuffer: (character position in screen space, pixel index)
-float3 SampleTex(uint2 char_pos, uint pixel) {
-  float2 inv_resoltion = OptionEnabled(USE_WINDOW_RES) ? GetInvWindowResolution() : GetInvResolution();
+float3 SampleTex(uint2 char_pos, uint pixel)
+{
+  float2 inv_resoltion =
+      OptionEnabled(USE_WINDOW_RES) ? GetInvWindowResolution() : GetInvResolution();
   float2 tex_pos = char_pos * char_dim + float2(pixel % char_width, pixel / char_width) + 0.5;
   return SampleLocation(tex_pos * inv_resoltion).xyz;
 }
 
-struct CharResults {
-  float3 fg; // font color
-  float3 bg; // background color
-  float err; // MSE of this configuration
-  uint c;    // character index
+struct CharResults
+{
+  float3 fg;  // font color
+  float3 bg;  // background color
+  float err;  // MSE of this configuration
+  uint c;     // character index
 };
 
 // Calculate the font and background color and the MSE for a given character
-CharResults CalcCharRes(uint c, float3 t, float3 ft) {
+CharResults CalcCharRes(uint c, float3 t, float3 ft)
+{
   CharResults o;
   o.c = c;
 
@@ -140,7 +143,8 @@ CharResults CalcCharRes(uint c, float3 t, float3 ft) {
 
   // The calculation isn't stable if the font is all-one. Return max err
   // instead.
-  if (f == char_pixels) {
+  if (f == char_pixels)
+  {
     o.err = char_pixels * char_pixels;
     return o;
   }
@@ -184,11 +188,10 @@ CharResults CalcCharRes(uint c, float3 t, float3 ft) {
   // solution.
 
   float3 a = (ft * (f - float(char_pixels)) + t * (f - ff)) / (f * f - ff * float(char_pixels));
-  float3 b = (ft * f - t * ff)                              / (f * f - ff * float(char_pixels));
+  float3 b = (ft * f - t * ff) / (f * f - ff * float(char_pixels));
 
   float3 e = a * a * ff + 2.0 * a * b * (f - ff) - 2.0 * a * ft +
-             b * b * (-2.0 * f + ff + float(char_pixels)) + 2.0 * b * ft -
-             2.0 * b * t + tt;
+             b * b * (-2.0 * f + ff + float(char_pixels)) + 2.0 * b * ft - 2.0 * b * t + tt;
   o.err = dot(e, float3(1.0, 1.0, 1.0));
 
   o.fg = a;
@@ -199,12 +202,13 @@ CharResults CalcCharRes(uint c, float3 t, float3 ft) {
 }
 
 // Get the color of the pixel of this invocation based on the character details
-float3 GetFinalPixel(CharResults char_out) {
-    float2 resolution = OptionEnabled(USE_WINDOW_RES) ? GetWindowResolution() : GetResolution();
-    uint2 char_pos = uint2(floor(GetCoordinates() * resolution / char_dim));
-    uint2 pixel_offset = uint2(floor(GetCoordinates() * resolution) - char_pos * char_dim);
-    float font = SampleFont(int2(pixel_offset.x + char_width * pixel_offset.y, char_out.c));
-    return char_out.fg * font + char_out.bg * (1.0 - font);
+float3 GetFinalPixel(CharResults char_out)
+{
+  float2 resolution = OptionEnabled(USE_WINDOW_RES) ? GetWindowResolution() : GetResolution();
+  uint2 char_pos = uint2(floor(GetCoordinates() * resolution / char_dim));
+  uint2 pixel_offset = uint2(floor(GetCoordinates() * resolution) - char_pos * char_dim);
+  float font = SampleFont(int2(pixel_offset.x + char_width * pixel_offset.y, char_out.c));
+  return char_out.fg * font + char_out.bg * (1.0 - font);
 }
 
 /*
@@ -218,18 +222,22 @@ float3 GetFinalPixel(CharResults char_out) {
 
   Terrible in performance, only for reference.
   */
-CharResults CalcCharTrivial(uint2 char_pos) {
+CharResults CalcCharTrivial(uint2 char_pos)
+{
   float3 t;
   CharResults char_out;
   char_out.err = char_pixels * char_pixels;
-  for (uint c = 0; c < MAX_CHARS; c += 1) {
+  for (uint c = 0; c < MAX_CHARS; c += 1)
+  {
     float3 ft = float3(0.0, 0.0, 0.0);
-    for (uint pixel = 0; pixel < char_pixels; pixel += 1) {
+    for (uint pixel = 0; pixel < char_pixels; pixel += 1)
+    {
       float3 tex = SampleTex(char_pos, pixel);
       float font = SampleFont(uint2(pixel, c));
       ft += font * tex;
     }
-    if (c == 0) t = ft;
+    if (c == 0)
+      t = ft;
     CharResults res = CalcCharRes(c, t, ft);
     if (res.err < char_out.err)
       char_out = res;
@@ -238,43 +246,52 @@ CharResults CalcCharTrivial(uint2 char_pos) {
 }
 
 /*
-  However for better performance, some characters are tested at once. This saves some expensive texture() calls.
-  Also split the loop over the pixels in groups of 32 for only fetching the uint32 of the font once.
+  However for better performance, some characters are tested at once. This saves some expensive
+  texture() calls. Also split the loop over the pixels in groups of 32 for only fetching the uint32
+  of the font once.
 */
-CharResults CalcCharFallback(uint2 char_pos) {
+CharResults CalcCharFallback(uint2 char_pos)
+{
   float3 t;
   CharResults char_out;
   char_out.err = char_pixels * char_pixels;
-  for (uint c = 0; c < MAX_CHARS; c += UNROLL_FALLBACK) {
+  for (uint c = 0; c < MAX_CHARS; c += UNROLL_FALLBACK)
+  {
     // Declare ft
     float3 ft[UNROLL_FALLBACK];
     for (uint i = 0; i < UNROLL_FALLBACK; i++)
       ft[i] = float3(0.0, 0.0, 0.0);
 
-    // Split `for p : pixels` in groups of 32. This makes accessing the texture (bit in uint32) easier.
-    for (uint pixel = 0; pixel < char_pixels; pixel += 32) {
+    // Split `for p : pixels` in groups of 32. This makes accessing the texture (bit in uint32)
+    // easier.
+    for (uint pixel = 0; pixel < char_pixels; pixel += 32)
+    {
       uint font_i[UNROLL_FALLBACK];
       for (uint i = 0; i < UNROLL_FALLBACK; i++)
         font_i[i] = rasters[c + i][pixel / 32];
 
-      for (uint pixel_offset = 0; pixel_offset < 32; pixel_offset += 1) {
+      for (uint pixel_offset = 0; pixel_offset < 32; pixel_offset += 1)
+      {
         float3 tex = SampleTex(char_pos, pixel + pixel_offset);
 
         // Inner kernel of `ft += font * tex`. Most time is spend in here.
-        for (uint i = 0; i < UNROLL_FALLBACK; i++) {
+        for (uint i = 0; i < UNROLL_FALLBACK; i++)
+        {
           float font = (font_i[i] >> pixel_offset) & uint(1);
 
           ft[i] += font * tex;
         }
       }
     }
-    if (c == 0) {
+    if (c == 0)
+    {
       // First char has font := 1, so t = ft. Cache this value for the next iterations.
       t = ft[0];
     }
 
     // Check if this character fits better than the last one.
-    for (uint i = 0; i < UNROLL_FALLBACK; i++) {
+    for (uint i = 0; i < UNROLL_FALLBACK; i++)
+    {
       CharResults res = CalcCharRes(c + i, t, ft[i]);
       if (res.err < char_out.err)
         char_out = res;
@@ -289,58 +306,63 @@ CharResults CalcCharFallback(uint2 char_pos) {
   - distribute all characters over the lanes and check for them in parallel
   - distribute the uniform texture access and broadcast each back to each lane
 */
-CharResults CalcCharSIMD(uint2 char_pos, uint simd_width) {
+CharResults CalcCharSIMD(uint2 char_pos, uint simd_width)
+{
   // Font color, bg color, character, error -- of character with minimum error
   CharResults char_out;
   char_out.err = char_pixels * char_pixels;
   float3 t;
-  #ifdef SUPPORTS_SUBGROUP_REDUCTION
+#ifdef SUPPORTS_SUBGROUP_REDUCTION
 
   // Hack: Work in hard-codeded fixed SIMD mode
-  if (gl_SubgroupInvocationID < simd_width) {
-
+  if (gl_SubgroupInvocationID < simd_width)
+  {
     // Loop over all characters
-    for (uint c = 0; c < MAX_CHARS; c += UNROLL_SIMD * simd_width) {
-
+    for (uint c = 0; c < MAX_CHARS; c += UNROLL_SIMD * simd_width)
+    {
       // registers for "sum of font * texture"
       float3 ft[UNROLL_SIMD];
       for (uint i = 0; i < UNROLL_SIMD; i++)
         ft[i] = float3(0.0, 0.0, 0.0);
 
-      for (uint pixel = 0; pixel < char_pixels; pixel += 32) {
-
+      for (uint pixel = 0; pixel < char_pixels; pixel += 32)
+      {
         // Preload the font uint32 for the next 32 pixels
         uint font_i[UNROLL_SIMD];
         for (uint i = 0; i < UNROLL_SIMD; i++)
-          font_i[i] = rasters[c + UNROLL_SIMD*gl_SubgroupInvocationID + i][pixel / 32];
+          font_i[i] = rasters[c + UNROLL_SIMD * gl_SubgroupInvocationID + i][pixel / 32];
 
-        for (uint pixel_offset = 0; pixel_offset < 32; pixel_offset += simd_width) {
-          // Copy one full WRAP of textures into registers and shuffle them around
-          // for later usage. This avoids one memory transaction per tested pixel
-          // & character.
+        for (uint pixel_offset = 0; pixel_offset < 32; pixel_offset += simd_width)
+        {
+          // Copy one full WRAP of textures into registers and shuffle them around for later usage.
+          // This avoids one memory transaction per tested pixel & character.
           float3 tex_simd = SampleTex(char_pos, pixel + pixel_offset + gl_SubgroupInvocationID);
 
-          for (uint k = 0; k < simd_width; k += 1) {
+          for (uint k = 0; k < simd_width; k += 1)
+          {
             float3 tex = subgroupBroadcast(tex_simd, k);
 
-            // Note: As pixel iterates based on power-of-two gl_SubgroupSize, the
-            // const memory access to rasters is CSE'd and the inner loop
+            // Note: As pixel iterates based on power-of-two gl_SubgroupSize,
+            // the const memory access to rasters is CSE'd and the inner loop
             // after unrolling only contains: testing one bit + shuffle +
             // conditional add
-            for (uint i = 0; i < UNROLL_SIMD; i++) {
+            for (uint i = 0; i < UNROLL_SIMD; i++)
+            {
               float font = (font_i[i] >> (k + pixel_offset % 32)) & uint(1);
               ft[i] += font * tex;
             }
           }
         }
       }
-      if (c == 0) {
+      if (c == 0)
+      {
         // font[0] is a hardcoded 1 font, so t = ft
         t = subgroupBroadcast(ft[0], 0);
       }
 
-      for (uint i = 0; i < UNROLL_SIMD; i++) {
-        CharResults res = CalcCharRes(c + UNROLL_SIMD*gl_SubgroupInvocationID + i, t, ft[i]);
+      for (uint i = 0; i < UNROLL_SIMD; i++)
+      {
+        CharResults res = CalcCharRes(c + UNROLL_SIMD * gl_SubgroupInvocationID + i, t, ft[i]);
         if (res.err < char_out.err)
           char_out = res;
       }
@@ -355,63 +377,78 @@ CharResults CalcCharSIMD(uint2 char_pos, uint simd_width) {
   char_out.c = subgroupBroadcast(char_out.c, smallest);
   char_out.err = err_min;
 
-  #endif
+#endif
   return char_out;
 }
 
-bool supportsSIMD(uint simd_width) {
-  #ifdef SUPPORTS_SUBGROUP_REDUCTION
+bool supportsSIMD(uint simd_width)
+{
+#ifdef SUPPORTS_SUBGROUP_REDUCTION
   const uint mask = simd_width == 32u ? 0xFFFFFFFFu : (1u << simd_width) - 1;
   return (subgroupBallot(true)[0] & mask) == mask;
-  #else
+#else
   return false;
-  #endif
+#endif
 }
 
-void main() {
+void main()
+{
   // Calculate the character position of this pixel
   float2 resolution = OptionEnabled(USE_WINDOW_RES) ? GetWindowResolution() : GetResolution();
   uint2 char_pos_self = uint2(floor(GetCoordinates() * resolution / char_dim));
 
   float3 color_out;
 
-  #ifdef SUPPORTS_SUBGROUP_REDUCTION
-  if (supportsSIMD(8)) {
+#ifdef SUPPORTS_SUBGROUP_REDUCTION
+  if (supportsSIMD(8))
+  {
     // Loop over all character positions covered by this wave
     bool pixel_active = !gl_HelperInvocation;
     CharResults char_out;
-    while (true) {
-
+    while (true)
+    {
       // Fetch the next active character position
       uint4 active_lanes = subgroupBallot(pixel_active);
-      if (active_lanes == uint4(0, 0, 0, 0)) {
+      if (active_lanes == uint4(0, 0, 0, 0))
+      {
         break;
       }
       uint2 char_pos = subgroupBroadcast(char_pos_self, subgroupBallotFindLSB(active_lanes));
 
       // And calculate everything for this character position
-      if (supportsSIMD(32)) {
+      if (supportsSIMD(32))
+      {
         char_out = CalcCharSIMD(char_pos, 32);
-      } else if (supportsSIMD(16)) {
+      }
+      else if (supportsSIMD(16))
+      {
         char_out = CalcCharSIMD(char_pos, 16);
-      } else if (supportsSIMD(8)) {
+      }
+      else if (supportsSIMD(8))
+      {
         char_out = CalcCharSIMD(char_pos, 8);
       }
 
       // Draw the character on screen
-      if (char_pos == char_pos_self) {
+      if (char_pos == char_pos_self)
+      {
         color_out = GetFinalPixel(char_out);
         pixel_active = false;
       }
-      if (OptionEnabled(DEBUG_ONLY_ONE_CHAR)) {
+      if (OptionEnabled(DEBUG_ONLY_ONE_CHAR))
+      {
         break;
       }
     }
-  } else
-  #endif
-  if (HAVE_FULL_FEATURE_FALLBACK) {
+  }
+  else
+#endif
+      if (HAVE_FULL_FEATURE_FALLBACK)
+  {
     color_out = GetFinalPixel(CalcCharFallback(char_pos_self));
-  } else {
+  }
+  else
+  {
     color_out = Sample().xyz;
   }
 
