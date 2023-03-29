@@ -83,25 +83,6 @@ void LuaScriptContext::ImportModule(const std::string& api_name, const std::stri
       float point2;
       int debug = 0;
       Movie::ControllerState controller_state_arg;
-      GcButtonName all_gc_buttons[] = {GcButtonName::A,
-                                       GcButtonName::B,
-                                       GcButtonName::X,
-                                       GcButtonName::Y,
-                                       GcButtonName::Z,
-                                       GcButtonName::L,
-                                       GcButtonName::R,
-                                       GcButtonName::DPadUp,
-                                       GcButtonName::DPadDown,
-                                       GcButtonName::DPadLeft,
-                                       GcButtonName::DPadRight,
-                                       GcButtonName::AnalogStickX,
-                                       GcButtonName::AnalogStickY,
-                                       GcButtonName::CStickX,
-                                       GcButtonName::CStickY,
-                                       GcButtonName::TriggerL,
-                                       GcButtonName::TriggerR,
-                                       GcButtonName::Start,
-                                       GcButtonName::Reset};
       u8 magnitude = 0;
       long long key = 0;
       long long value = 0;
@@ -192,10 +173,17 @@ void LuaScriptContext::ImportModule(const std::string& api_name, const std::stri
               CreateRegistrationWithAutoDeregistrationInputTypeArgHolder(*((void**)(&function_reference))));
           break;
         case ArgTypeEnum::RegistrationForButtonCallbackInputType:
+          if (!corresponding_script_context->IsButtonRegistered(
+                  arguments[arguments.size() - 1].long_long_val)) // this is a terrible hack - but it works to prevent a button callback from being added to Lua's stack once every frame.
+          {
             lua_pushvalue(lua_state, next_index_in_args);
             function_reference = luaL_ref(lua_state, LUA_REGISTRYINDEX);
-            arguments.push_back(
-                CreateRegistrationForButtonCallbackInputTypeArgHolder(*((void**) (&function_reference))));
+          }
+          else
+          {
+            function_reference = -1;
+          }
+            arguments.push_back(CreateRegistrationForButtonCallbackInputTypeArgHolder(*((void**)(&function_reference))));
           break;
         case ArgTypeEnum::UnregistrationInputType:
           function_reference = lua_tointeger(lua_state, next_index_in_args);
@@ -500,7 +488,7 @@ void LuaScriptContext::ImportModule(const std::string& api_name, const std::stri
         controller_state_arg = returnValue.controller_state_val;
 
         lua_newtable(lua_state);
-        for (GcButtonName button_code : all_gc_buttons)
+        for (GcButtonName button_code : GetListOfAllButtons())
         {
           const char* button_name_string = ConvertButtonEnumToString(button_code);
           lua_pushlstring(lua_state, button_name_string, std::strlen(button_name_string));
@@ -979,7 +967,8 @@ bool LuaScriptContext::UnregisterOnFrameStartCallbacks(void* callbacks)
 void LuaScriptContext::RegisterButtonCallback(long long button_id, void* callbacks)
  {
   int function_reference = *((int*)(&callbacks));
-  map_of_button_id_to_callback[button_id] = function_reference;
+  if (function_reference >= 0)
+    map_of_button_id_to_callback[button_id] = function_reference;
 }
 
 void LuaScriptContext::AddButtonCallbackToQueue(void* callbacks)

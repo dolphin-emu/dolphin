@@ -168,3 +168,26 @@ const char* ConvertButtonEnumToString(GcButtonName button)
     return "";
   }
 }
+
+std::vector<GcButtonName> GetListOfAllButtons()
+{
+  return {GcButtonName::A,
+          GcButtonName::B,
+          GcButtonName::X,
+          GcButtonName::Y,
+          GcButtonName::Z,
+          GcButtonName::L,
+          GcButtonName::R,
+          GcButtonName::DPadUp,
+          GcButtonName::DPadDown,
+          GcButtonName::DPadLeft,
+          GcButtonName::DPadRight,
+          GcButtonName::AnalogStickX,
+          GcButtonName::AnalogStickY,
+          GcButtonName::CStickX,
+          GcButtonName::CStickY,
+          GcButtonName::TriggerL,
+          GcButtonName::TriggerR,
+          GcButtonName::Start,
+          GcButtonName::Reset};
+}

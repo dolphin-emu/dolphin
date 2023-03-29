@@ -8,6 +8,8 @@
 #include "Core/Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressWrittenToCallbackAPI.h"
 #include "Core/Scripting/EventCallbackRegistrationAPIs/OnWiiInputPolledCallbackAPI.h"
 
+#include "Core/Scripting/HelperClasses/GCButtons.h"
+
 #include "Core/Scripting/InternalAPIModules/BitAPI.h"
 #include "Core/Scripting/InternalAPIModules/EmuAPI.h"
 #include "Core/Scripting/InternalAPIModules/GameCubeControllerAPI.h"
@@ -183,6 +185,11 @@ sys.stderr = catchOutErr\n\
   AddScriptToQueueOfScriptsWaitingToStart(this);
 }
 
+bool ExtractBoolFromObject(PyObject* py_obj)
+{
+  return static_cast<bool>(PyObject_IsTrue(py_obj));
+}
+
 PyObject* PythonScriptContext::RunFunction(PyObject* self, PyObject* args, std::string class_name, std::string function_name)
 {
   if (class_name.empty())
@@ -249,6 +256,18 @@ PyObject* PythonScriptContext::RunFunction(PyObject* self, PyObject* args, std::
                                    function_name, class_name, version_number));
   }
 
+  std::map<long long, u8> address_to_unsigned_byte_map;
+  std::map<long long, s8> address_to_signed_byte_map;
+  std::map<long long, s16> address_to_byte_map;
+  Py_ssize_t pos = 0;
+  PyObject *key, *value;
+  PyObject* return_dictionary_object;
+  Movie::ControllerState controller_state_arg = {};
+  long long magnitude = 0;
+  std::vector<ImVec2> list_of_points = std::vector<ImVec2>();
+  Py_ssize_t list_size = 0;
+
+
   std::vector<ArgHolder> arguments_list = std::vector<ArgHolder>();
 
   if (PyTuple_GET_SIZE(args) != (int) functionMetadata.arguments_list.size())
@@ -308,12 +327,193 @@ PyObject* PythonScriptContext::RunFunction(PyObject* self, PyObject* args, std::
       arguments_list.push_back(CreateStringArgHolder(std::string(PyUnicode_AsUTF8(current_item))));
       break;
 
+    case ArgTypeEnum::AddressToByteMap:
+      pos = 0;
+      address_to_byte_map = std::map<long long, s16>();
+      while (PyDict_Next(current_item, &pos, &key, &value))
+      {
+        long long key_number = PyLong_AsLongLong(key);
+        long long value_number = PyLong_AsLongLong(value);
+        if (key_number < 0)
+          return HandleError(class_name.c_str(), &functionMetadata, true,
+                             "Key in dictionary of addresses to values was less tha 0!");
+        else if (value_number < -128)
+          return HandleError(class_name.c_str(), &functionMetadata, true,
+                             "In address to byte map, byte value was less than -128, which can't "
+                             "be represented by 1 byte!");
+        else if (value_number > 255)
+          return HandleError(class_name.c_str(), &functionMetadata, true,
+                             "In address to byte map, byte value was greater than 255, which can't "
+                             "be represented by 1 byte!");
+        else
+        {
+          address_to_byte_map[key_number] = static_cast<s16>(value_number);
+        }
+      }
+      arguments_list.push_back(CreateAddressToByteMapArgHolder(address_to_byte_map));
+      break;
+
+      case ArgTypeEnum::ControllerStateObject:
+      controller_state_arg = {};
+      memset(&controller_state_arg, 0, sizeof(Movie::ControllerState));
+      controller_state_arg.is_connected = true;
+      controller_state_arg.CStickX = 128;
+      controller_state_arg.CStickY = 128;
+      controller_state_arg.AnalogStickX = 128;
+      controller_state_arg.AnalogStickY = 128;
+      pos = 0;
+
+      while (PyDict_Next(current_item, &pos, &key, &value))
+      {
+        const char* button_name = PyUnicode_AsUTF8(key);
+        if (button_name == nullptr || button_name[0] == '\0')
+        {
+          return HandleError(class_name.c_str(), &functionMetadata, true,
+                             "An empty string (or a value not convertible to a string) was passed "
+                             "in as a button name!");
+        }
+        switch (ParseGCButton(button_name))
+        {
+        case GcButtonName::A:
+          controller_state_arg.A = ExtractBoolFromObject(value);
+          break;
+        case GcButtonName::B:
+          controller_state_arg.B = ExtractBoolFromObject(value);
+          break;
+        case GcButtonName::X:
+          controller_state_arg.X = ExtractBoolFromObject(value);
+          break;
+        case GcButtonName::Y:
+          controller_state_arg.Y = ExtractBoolFromObject(value);
+          break;
+        case GcButtonName::Z:
+          controller_state_arg.Z = ExtractBoolFromObject(value);
+          break;
+        case GcButtonName::L:
+          controller_state_arg.L = ExtractBoolFromObject(value);
+          break;
+        case GcButtonName::R:
+          controller_state_arg.R = ExtractBoolFromObject(value);
+          break;
+        case GcButtonName::DPadUp:
+          controller_state_arg.DPadUp = ExtractBoolFromObject(value);
+          break;
+        case GcButtonName::DPadDown:
+          controller_state_arg.DPadDown = ExtractBoolFromObject(value);
+          break;
+        case GcButtonName::DPadLeft:
+          controller_state_arg.DPadLeft = ExtractBoolFromObject(value);
+          break;
+        case GcButtonName::DPadRight:
+          controller_state_arg.DPadRight = ExtractBoolFromObject(value);
+          break;
+        case GcButtonName::Start:
+          controller_state_arg.Start = ExtractBoolFromObject(value);
+          break;
+        case GcButtonName::Reset:
+          controller_state_arg.reset = ExtractBoolFromObject(value);
+          break;
+        case GcButtonName::TriggerL:
+          magnitude = PyLong_AsLongLong(value);
+          if (magnitude < 0 || magnitude > 255)
+            return HandleError(class_name.c_str(), &functionMetadata, true,
+                               "Magnitude of triggerL was outside the valid bounds of 0-255");
+          controller_state_arg.TriggerL = static_cast<u8>(magnitude);
+          break;
+        case GcButtonName::TriggerR:
+          magnitude = PyLong_AsLongLong(value);
+          if (magnitude < 0 || magnitude > 255)
+            return HandleError(class_name.c_str(), &functionMetadata, true,
+                               "Magnitude of triggerR was outside the valid bounds of 0-255");
+          controller_state_arg.TriggerR = static_cast<u8>(magnitude);
+          break;
+        case GcButtonName::AnalogStickX:
+          magnitude = PyLong_AsLongLong(value);
+          if (magnitude < 0 || magnitude > 255)
+            return HandleError(class_name.c_str(), &functionMetadata, true,
+                               "Magnitude of analogStickX was outside the valid bounds of 0-255");
+          controller_state_arg.AnalogStickX = static_cast<u8>(magnitude);
+          break;
+        case GcButtonName::AnalogStickY:
+          magnitude = PyLong_AsLongLong(value);
+          if (magnitude < 0 || magnitude > 255)
+            return HandleError(class_name.c_str(), &functionMetadata, true,
+                               "Magnitude of analogStickY was outside the valid bounds of 0-255");
+          controller_state_arg.AnalogStickY = static_cast<u8>(magnitude);
+          break;
+        case GcButtonName::CStickX:
+          magnitude = PyLong_AsLongLong(value);
+          if (magnitude < 0 || magnitude > 255)
+            return HandleError(class_name.c_str(), &functionMetadata, true,
+                                "Magnitude of cStickX was outside the valid bounds of 0-255");
+          controller_state_arg.CStickX = static_cast<u8>(magnitude);
+          break;
+        case GcButtonName::CStickY:
+          magnitude = PyLong_AsLongLong(value);
+          if (magnitude < 0 || magnitude > 255)
+            return HandleError(class_name.c_str(), &functionMetadata, true,
+                               "Magnitude of cStickY was outside the valid bounds of 0-255");
+          controller_state_arg.CStickY = static_cast<u8>(magnitude);
+          break;
+        default:
+          return HandleError(class_name.c_str(), &functionMetadata, true,
+                             "Unknown button name encountered. Valid "
+                             "button names are: A, B, X, Y, Z, L, R, Z, dPadUp, dPadDown, dPadLeft, "
+                             "dPadRight, cStickX, cStickY, analogStickX, analogStickY, triggerL, triggerR, "
+                             "RESET, and START");
+        }
+      }
+
+      arguments_list.push_back(CreateControllerStateArgHolder(controller_state_arg));
+       break;
+      case ArgTypeEnum::ListOfPoints:
+       list_of_points = std::vector<ImVec2>();
+       list_size = PyList_Size(current_item);
+       for (Py_ssize_t i = 0; i < list_size; ++i)
+       {
+        float x = 0.0f;
+        float y = 0.0f;
+        PyObject* next_object_in_list = PyList_GetItem(current_item, i);
+        if (PyList_Check(next_object_in_list))  // case where list contains list objects, and looks
+                                                // like this: "[ [45.0, 55.0], [33.0, 22.0], ... ]"
+        {
+          if (PyList_Size(next_object_in_list) != 2)
+            return HandleError(
+                class_name.c_str(), &functionMetadata, true,
+                "Expected a list of lists, where each list contains 2 float values representing X "
+                "and Y points. However, sub-list did not have 2 elements!");
+          x = static_cast<float>(PyFloat_AsDouble(PyList_GetItem(next_object_in_list, 0)));
+          y = static_cast<float>(PyFloat_AsDouble(PyList_GetItem(next_object_in_list, 1)));
+          list_of_points.push_back({x, y});
+          continue;
+        }
+        else if (PyTuple_Check(next_object_in_list))
+        {
+          if (PyTuple_Size(next_object_in_list) != 2)
+            return HandleError(
+                class_name.c_str(), &functionMetadata, true,
+                "Expected a list of tuples, where each tuple contains 2 float values representing "
+                "x and y points. However, the tuple did not have 2 elements!");
+          x = static_cast<float>(PyFloat_AsDouble(PyTuple_GetItem(next_object_in_list, 0)));
+          y = static_cast<float>(PyFloat_AsDouble(PyTuple_GetItem(next_object_in_list, 1)));
+          list_of_points.push_back({x, y});
+          continue;
+        }
+        else
+          return HandleError(
+              class_name.c_str(), &functionMetadata, true,
+              "Expected list of points, which would be either a list of lists or a list of tuples. "
+              "However, the arguments of the list were neither of these 2 types. An example of a "
+              "valid value is this: [ (45.0, 55.0), (87.3, 21.3)]");
+       }
+       arguments_list.push_back(CreateListOfPointsArgHolder(list_of_points));
+       break;
     default:
      return HandleError(class_name.c_str(), &functionMetadata, true, "Argument type not supported yet!");
     }
     ++argument_index;
   }
-
+  
   ArgHolder return_value = (*functionMetadata.function_pointer)(this_pointer, arguments_list);
 
   switch (return_value.argument_type)
@@ -362,6 +562,116 @@ PyObject* PythonScriptContext::RunFunction(PyObject* self, PyObject* args, std::
 
   case ArgTypeEnum::String:
     return Py_BuildValue("s", return_value.string_val.c_str());
+
+  case ArgTypeEnum::AddressToUnsignedByteMap:
+    return_dictionary_object = PyDict_New();
+    for (auto& it : return_value.address_to_unsigned_byte_map)
+    {
+      PyDict_SetItem(return_dictionary_object, PyLong_FromLongLong(it.first),
+                     PyLong_FromLongLong(static_cast<long long>(it.second)));
+    }
+    return return_dictionary_object;
+
+  case ArgTypeEnum::AddressToSignedByteMap:
+    return_dictionary_object = PyDict_New();
+    for (auto& it : return_value.address_to_signed_byte_map)
+    {
+      PyDict_SetItem(return_dictionary_object, PyLong_FromLongLong(it.first), PyLong_FromLongLong(static_cast<long long>(it.second)));
+    }
+    return return_dictionary_object;
+
+  case ArgTypeEnum::ControllerStateObject:
+    controller_state_arg = return_value.controller_state_val;
+    return_dictionary_object = PyDict_New();
+    for (GcButtonName button_code : GetListOfAllButtons())
+    {
+      PyObject* button_name_object = PyUnicode_FromString(ConvertButtonEnumToString(button_code));
+      switch (button_code)
+      {
+      case GcButtonName::A:
+        PyDict_SetItem(return_dictionary_object, button_name_object,
+                       PyBool_FromLong(static_cast<long long>(controller_state_arg.A)));
+        break;
+      case GcButtonName::B:
+        PyDict_SetItem(return_dictionary_object, button_name_object,
+                       PyBool_FromLong(static_cast<long long>(controller_state_arg.B)));
+        break;
+      case GcButtonName::X:
+        PyDict_SetItem(return_dictionary_object, button_name_object,
+                       PyBool_FromLong(static_cast<long long>(controller_state_arg.X)));
+        break;
+      case GcButtonName::Y:
+        PyDict_SetItem(return_dictionary_object, button_name_object,
+                       PyBool_FromLong(static_cast<long long>(controller_state_arg.Y)));
+        break;
+      case GcButtonName::Z:
+        PyDict_SetItem(return_dictionary_object, button_name_object,
+                       PyBool_FromLong(static_cast<long long>(controller_state_arg.Z)));
+        break;
+      case GcButtonName::L:
+        PyDict_SetItem(return_dictionary_object, button_name_object,
+                       PyBool_FromLong(static_cast<long long>(controller_state_arg.L)));
+        break;
+      case GcButtonName::R:
+        PyDict_SetItem(return_dictionary_object, button_name_object,
+                       PyBool_FromLong(static_cast<long long>(controller_state_arg.R)));
+        break;
+      case GcButtonName::DPadUp:
+        PyDict_SetItem(return_dictionary_object, button_name_object,
+                       PyBool_FromLong(static_cast<long long>(controller_state_arg.DPadUp)));
+        break;
+      case GcButtonName::DPadDown:
+        PyDict_SetItem(return_dictionary_object, button_name_object,
+                       PyBool_FromLong(static_cast<long long>(controller_state_arg.DPadDown)));
+        break;
+      case GcButtonName::DPadLeft:
+        PyDict_SetItem(return_dictionary_object, button_name_object,
+                       PyBool_FromLong(static_cast<long long>(controller_state_arg.DPadLeft)));
+        break;
+      case GcButtonName::DPadRight:
+        PyDict_SetItem(return_dictionary_object, button_name_object,
+                       PyBool_FromLong(static_cast<long long>(controller_state_arg.DPadRight)));
+        break;
+      case GcButtonName::Start:
+        PyDict_SetItem(return_dictionary_object, button_name_object,
+                       PyBool_FromLong(static_cast<long long>(controller_state_arg.Start)));
+        break;
+      case GcButtonName::Reset:
+        PyDict_SetItem(return_dictionary_object, button_name_object,
+                       PyBool_FromLong(static_cast<long long>(controller_state_arg.reset)));
+        break;
+      case GcButtonName::TriggerL:
+        PyDict_SetItem(return_dictionary_object, button_name_object,
+                       PyLong_FromLong(static_cast<long>(controller_state_arg.TriggerL)));
+        break;
+      case GcButtonName::TriggerR:
+        PyDict_SetItem(return_dictionary_object, button_name_object,
+                       PyLong_FromLong(static_cast<long>(controller_state_arg.TriggerR)));
+        break;
+      case GcButtonName::AnalogStickX:
+        PyDict_SetItem(return_dictionary_object, button_name_object,
+                       PyLong_FromLong(static_cast<long>(controller_state_arg.AnalogStickX)));
+        break;
+      case GcButtonName::AnalogStickY:
+        PyDict_SetItem(return_dictionary_object, button_name_object,
+                       PyLong_FromLong(static_cast<long>(controller_state_arg.AnalogStickY)));
+        break;
+      case GcButtonName::CStickX:
+        PyDict_SetItem(return_dictionary_object, button_name_object,
+                       PyLong_FromLong(static_cast<long>(controller_state_arg.CStickX)));
+        break;
+      case GcButtonName::CStickY:
+        PyDict_SetItem(return_dictionary_object, button_name_object,
+                       PyLong_FromLong(static_cast<long>(controller_state_arg.CStickY)));
+        break;
+      default:
+        return HandleError(class_name.c_str(), &functionMetadata, true,
+                           "Unknown button name encountered when returning GC controller values "
+                           "from function. Did you update the buttons in the GCButtons.h file and "
+                           "then forget to update the list of all buttons?");
+      }
+    }
+    return return_dictionary_object;
 
   case ArgTypeEnum::ErrorStringType:
     return HandleError(class_name.c_str(), &functionMetadata, true, return_value.error_string_val);

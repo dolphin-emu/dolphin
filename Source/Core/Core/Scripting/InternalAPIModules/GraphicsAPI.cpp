@@ -668,7 +668,7 @@ ArgHolder AddButton(ScriptContext* current_script, std::vector<ArgHolder>& args_
     current_script->RegisterButtonCallback(button_id, function_callback);
     if (ImGui::Button(button_label.c_str(), {button_width, button_height}))
     {  // true when button was pressed, and false otherwise
-      current_script->AddButtonCallbackToQueue(function_callback);
+     current_script->GetButtonCallbackAndAddToQueue(button_id);
     }
   }
   return CreateVoidTypeArgHolder();

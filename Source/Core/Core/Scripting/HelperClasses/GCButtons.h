@@ -1,5 +1,6 @@
 #pragma once
 #include "string.h"
+#include <vector>
 
 enum class GcButtonName
 {
@@ -27,3 +28,4 @@ enum class GcButtonName
 
 extern GcButtonName ParseGCButton(const char* button_name);
 extern const char* ConvertButtonEnumToString(GcButtonName button);
+extern std::vector<GcButtonName> GetListOfAllButtons();
