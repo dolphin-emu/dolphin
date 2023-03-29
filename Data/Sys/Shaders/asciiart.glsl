@@ -14,8 +14,8 @@ DefaultValue = false
 [/configuration]
 */
 
-const uint MAX_CHARS = 96u;  // max 96, must be a multiple of 32
-const bool HAVE_FULL_FEATURE_FALLBACK = true;
+const uint MAX_CHARS = 96u;                     // max 96, must be a multiple of 32
+const bool HAVE_FULL_FEATURE_FALLBACK = false;  // terrible slow, can easily softlock the GPU
 const uint UNROLL_FALLBACK = 4;
 const uint UNROLL_SIMD = 3;  // max MAX_CHARS / 32
 
@@ -391,6 +391,29 @@ bool supportsSIMD(uint simd_width)
 #endif
 }
 
+// "Error: The AsciiArt shader requires the missing GPU extention KHR_shader_subgroup."
+const uint missing_subgroup_warning_len = 82;
+const uint missing_subgroup_warning[missing_subgroup_warning_len] = {
+    37, 82, 82, 79, 82, 26, 95, 52, 72, 69, 95, 33, 83, 67, 73, 73, 33, 82, 84, 95, 83,
+    72, 65, 68, 69, 82, 95, 82, 69, 81, 85, 73, 82, 69, 83, 95, 84, 72, 69, 95, 77, 73,
+    83, 83, 73, 78, 71, 95, 39, 48, 53, 95, 69, 88, 84, 69, 78, 84, 73, 79, 78, 95, 43,
+    40, 50, 63, 83, 72, 65, 68, 69, 82, 63, 83, 85, 66, 71, 82, 79, 85, 80, 14};
+
+float3 ShowWarning(uint2 char_pos)
+{
+  CharResults char_out;
+  char_out.fg = float3(1.0, 1.0, 1.0);
+  char_out.bg = float3(0.0, 0.0, 0.0);
+  char_out.c = 95u;  // just background
+
+  if (char_pos.y == 0u && char_pos.x < missing_subgroup_warning_len)
+  {
+    char_out.c = missing_subgroup_warning[char_pos.x];
+  }
+
+  return GetFinalPixel(char_out);
+}
+
 void main()
 {
   // Calculate the character position of this pixel
@@ -440,6 +463,12 @@ void main()
         break;
       }
     }
+  }
+  else
+#else
+  if (char_pos_self.y <= 1u)
+  {
+    color_out = ShowWarning(char_pos_self);
   }
   else
 #endif
