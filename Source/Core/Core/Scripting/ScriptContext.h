@@ -90,7 +90,6 @@ public:
   virtual bool UnregisterOnWiiInputPolledCallbacks(void* callbacks) = 0;
 
   virtual void RegisterButtonCallback(long long button_id, void* callbacks) = 0;
-  virtual void AddButtonCallbackToQueue(void* callbacks) = 0;
   virtual bool IsButtonRegistered(long long button_id) = 0;
   virtual void GetButtonCallbackAndAddToQueue(long long button_id) = 0;
   virtual void RunButtonCallbacksInQueue() = 0;

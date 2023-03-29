@@ -248,7 +248,6 @@ public:
   bool UnregisterForMapHelper(size_t address, std::unordered_map<size_t, std::vector<int>>& input_map, void* callbacks);
   virtual void RegisterButtonCallback(long long button_id, void* callbacks);
   virtual bool IsButtonRegistered(long long button_id);
-  virtual void AddButtonCallbackToQueue(void* callbacks);
   virtual void GetButtonCallbackAndAddToQueue(long long button_id);
   virtual void RunButtonCallbacksInQueue();
 };

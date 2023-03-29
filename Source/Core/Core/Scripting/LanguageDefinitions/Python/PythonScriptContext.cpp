@@ -106,6 +106,16 @@ void RunImportCommand(const char* module_name)
   PyRun_SimpleString((std::string("import ") + module_name).c_str());
 }
 
+static std::string redirect_output_code = "import sys\n\
+class CatchOutErr:\n\
+    def __init__(self):\n\
+        self.value = ''\n\
+    def write(self, txt):\n\
+        self.value += txt\n\
+catchOutErr = CatchOutErr()\n\
+sys.stdout = catchOutErr\n\
+sys.stderr = catchOutErr\n\
+";
 PythonScriptContext::PythonScriptContext(int new_unique_script_identifier, const std::string& new_script_filename,
                     std::vector<ScriptContext*>* new_pointer_to_list_of_all_scripts,
                     std::function<void(const std::string&)>* new_print_callback,
@@ -169,18 +179,8 @@ PythonScriptContext::PythonScriptContext(int new_unique_script_identifier, const
   SetModuleVersion(StatisticsApi::class_name, std::string("0.0"));
 
   current_script_call_location = ScriptCallLocations::FromScriptStartup;
-
-  std::string stdOutErr = "import sys\n\
-class CatchOutErr:\n\
-    def __init__(self):\n\
-        self.value = ''\n\
-    def write(self, txt):\n\
-        self.value += txt\n\
-catchOutErr = CatchOutErr()\n\
-sys.stdout = catchOutErr\n\
-sys.stderr = catchOutErr\n\
-";                                        // this is python code to redirect stdouts/stderr
-  PyRun_SimpleString(stdOutErr.c_str());  // invoke code to redirect
+                                      // this is python code to redirect stdouts/stderr
+  PyRun_SimpleString(redirect_output_code.c_str());  // invoke code to redirect
   PyEval_ReleaseThread(main_python_thread);
   AddScriptToQueueOfScriptsWaitingToStart(this);
 }
@@ -508,6 +508,21 @@ PyObject* PythonScriptContext::RunFunction(PyObject* self, PyObject* args, std::
        }
        arguments_list.push_back(CreateListOfPointsArgHolder(list_of_points));
        break;
+
+    case ArgTypeEnum::RegistrationForButtonCallbackInputType:
+       arguments_list.push_back(
+           CreateRegistrationForButtonCallbackInputTypeArgHolder(*((void**)(&current_item))));
+       break;
+    case ArgTypeEnum::RegistrationInputType:
+       arguments_list.push_back(CreateRegistrationInputTypeArgHolder((*((void**)(&current_item)))));
+       break;
+    case ArgTypeEnum::RegistrationWithAutoDeregistrationInputType:
+       arguments_list.push_back(
+           CreateRegistrationWithAutoDeregistrationInputTypeArgHolder((*((void**)(&current_item)))));
+       break;
+    case ArgTypeEnum::UnregistrationInputType:
+       arguments_list.push_back(CreateUnregistrationInputTypeArgHolder(*((void**)(&current_item))));
+       break;
     default:
      return HandleError(class_name.c_str(), &functionMetadata, true, "Argument type not supported yet!");
     }
@@ -673,6 +688,20 @@ PyObject* PythonScriptContext::RunFunction(PyObject* self, PyObject* args, std::
     }
     return return_dictionary_object;
 
+    case ArgTypeEnum::RegistrationReturnType:
+    if (PyErr_Occurred())
+    {
+      break;
+    }
+      return (*((PyObject**)&(return_value.void_pointer_val)));
+    case ArgTypeEnum::RegistrationWithAutoDeregistrationReturnType:
+    case ArgTypeEnum::UnregistrationReturnType:
+      Py_INCREF(Py_None);
+      return Py_None;
+    case ArgTypeEnum::ShutdownType:
+      this_pointer->ShutdownScript();
+      Py_INCREF(Py_None);
+      return Py_None;
   case ArgTypeEnum::ErrorStringType:
     return HandleError(class_name.c_str(), &functionMetadata, true, return_value.error_string_val);
 
@@ -706,143 +735,403 @@ void PythonScriptContext::StartScript()
 
 void PythonScriptContext::RunGlobalScopeCode()
 {
+  return; // python scripts can't run on the global scope - except for when a script is started for the very first time, which is handld in the StartScript function above
+}
+
+void PythonScriptContext::RunCallbacksForVector(std::vector<PyObject*>& callback_list)
+{
+  if (ShouldCallEndScriptFunction())
+  {
+   ShutdownScript();
+   return;
+  }
+
+  if (!this->finished_with_global_code)
+   return;
+
+
+  PyEval_RestoreThread(main_python_thread);
+  if (PyErr_Occurred())
+  {
+   HandleError(nullptr, nullptr, false, "Error before function call!");
+  }
+  for (int i = 0; i < callback_list.size(); ++i)
+  {
+   PyObject* func = callback_list[i];
+   Py_INCREF(func);
+   if (!PyCallable_Check(func))
+   {
+      HandleError(nullptr, nullptr, false, "Not callable!");
+      return;
+   }
+   if (PyErr_Occurred())
+   {
+      PyErr_PrintEx(1);
+      break;
+   }
+   PyObject* return_value = PyObject_CallFunction(func, nullptr);
+   if (PyErr_Occurred())
+   {
+      HandleError(nullptr, nullptr, false, "Error after function call!");
+   }
+   Py_DECREF(func);
+   if (return_value == nullptr)
+      break;
+  }
+
+  this->RunEndOfIteraionTasks();
+  PyEval_ReleaseThread(main_python_thread);
+}
+void PythonScriptContext::RunCallbacksForMap(std::unordered_map<size_t, std::vector<PyObject*>>& map_of_callbacks, size_t current_address)
+{
+  if (ShouldCallEndScriptFunction())
+  {
+   ShutdownScript();
+   return;
+  }
+
+  if (!this->finished_with_global_code)
+   return;
+
+  PyEval_RestoreThread(main_python_thread);
+  if (map_of_callbacks.count(current_address) == 0)
+   return;
+
+  std::vector<PyObject*>* callbacks_for_address = &map_of_callbacks[current_address];
+
+  if (callbacks_for_address == nullptr || callbacks_for_address->empty())
+   return;
+
+  for (int i = 0; i < callbacks_for_address->size(); ++i)
+  {
+   PyObject* func = (*callbacks_for_address)[i];
+   Py_IncRef(func);
+   PyObject* return_value = PyObject_CallNoArgs(func);
+   Py_DECREF(func);
+   if (return_value == nullptr)
+      break;
+  }
+
+  this->RunEndOfIteraionTasks();
+  PyEval_ReleaseThread(main_python_thread);
+}
+
+void* PythonScriptContext::RegisterForVectorHelper(std::vector<PyObject*>& callback_list,
+                                                  void* callback)
+{
+  PyObject* func = *((PyObject**)&callback);
+  if (func == nullptr || !PyCallable_Check(func))
+    HandleError(nullptr, nullptr, false,
+               "Attempted to add a non-callable function to the list of callbacks with a register "
+               "function call!");
+  else
+  {
+   Py_INCREF(func);
+   callback_list.push_back(func);
+  }
+  return callback;
+ }
+
+void PythonScriptContext::RegisterForVectorWithAutoDeregistrationHelper(
+    std::vector<PyObject*>& callback_list, void* callback,
+     std::atomic<size_t>& number_of_callbacks_to_auto_deregister)
+{
+  PyObject* func = *((PyObject**)&callback);
+  if (func == nullptr || !PyCallable_Check(func))
+    HandleError(nullptr, nullptr, false,
+                "Attempted to add a non-callable function to the list of callbacks with a "
+                "registerWithAutoDeregistration function call!");
+  else
+  {
+    Py_INCREF(func);
+    callback_list.push_back(func);
+    ++number_of_callbacks_to_auto_deregister;
+  }
+}
+
+bool PythonScriptContext::UnregisterForVectorHelper(std::vector<PyObject*>& callback_list,
+                                                    void* callback)
+{
+  PyObject* func = *((PyObject**)&callback);
+  if (func == nullptr || !PyCallable_Check(func))
+  {
+    HandleError(
+        nullptr, nullptr, false,
+        "Attempted to pass a non-callable function as an argument to the unregister function!");
+    return false;
+  }
+  if (std::find(callback_list.begin(), callback_list.end(), func) == callback_list.end())
+  {
+    HandleError(nullptr, nullptr, false,
+                "Attempted to unregister a function which wasn't registered!");
+    return false;
+  }
+  Py_DECREF(func);
+  callback_list.erase(std::find(callback_list.begin(), callback_list.end(), func));
+  return true;
+}
+
+void* PythonScriptContext::RegisterForMapHelper(size_t address,
+                           std::unordered_map<size_t, std::vector<PyObject*>>& map_of_callbacks, void* callbacks)
+{
+  PyObject* func = *((PyObject**)&callbacks);
+  if (func == nullptr || !PyCallable_Check(func))
+  {
+    HandleError(nullptr, nullptr, false, "Attempted to register function which was not callable!");
+    return nullptr;
+  }
+  else
+  {
+    if (map_of_callbacks.count(address) == 0)
+      map_of_callbacks[address] = std::vector<PyObject*>();
+    Py_INCREF(func);
+    map_of_callbacks[address].push_back(func);
+    return callbacks;
+  }
+}
+
+void PythonScriptContext::RegisterForMapWithAutoDeregistrationHelper(
+    size_t address, std::unordered_map<size_t, std::vector<PyObject*>>& map_of_callbacks, void* callbacks, std::atomic<size_t>& number_of_auto_deregistration_callbacks)
+{
+  PyObject* func = *((PyObject**)&callbacks);
+  if (func == nullptr || !PyCallable_Check(func))
+  {
+    HandleError(nullptr, nullptr, false,
+                "Attempted to registerWithAutoDeregistration a function which was not callable!");
+  }
+  else
+  {
+    if (map_of_callbacks.count(address) == 0)
+      map_of_callbacks[address] = std::vector<PyObject*>();
+    Py_INCREF(func);
+    map_of_callbacks[address].push_back(func);
+    ++number_of_auto_deregistration_callbacks;
+  }
+}
+
+bool PythonScriptContext::UnregisterForMapHelper(size_t address,
+                            std::unordered_map<size_t, std::vector<PyObject*>>& map_of_callbacks,
+                            void* callbacks)
+{
+  PyObject* func = *((PyObject**)&callbacks);
+  if (func == nullptr || !PyCallable_Check(func))
+  {
+    HandleError(nullptr, nullptr, false, "Attempted to unregister an invalid function!");
+    return false;
+  }
+  else
+  {
+    if (map_of_callbacks.count(address) == 0)
+    {
+      HandleError(nullptr, nullptr, false,
+                  "Attempted to unregister a function which was not registered!");
+      return false;
+    }
+    std::vector<PyObject*>* reference_to_vector = &map_of_callbacks[address];
+    if (std::find(reference_to_vector->begin(), reference_to_vector->end(), func) ==
+        reference_to_vector->end())
+    {
+      HandleError(nullptr, nullptr, false,
+                  "Attmpted to unregister a function which was not registered!");
+      return false;
+    }
+    Py_DECREF(func);
+    reference_to_vector->erase(
+        std::find(reference_to_vector->begin(), reference_to_vector->end(), func));
+    return true;
+
+  }
 }
 
 void PythonScriptContext::RunOnFrameStartCallbacks()
 {
+  if (this->frame_callbacks.size() == 0)
+    return;
+  this->RunCallbacksForVector(this->frame_callbacks);
 }
 
 void PythonScriptContext::RunOnGCControllerPolledCallbacks()
 {
+  this->RunCallbacksForVector(this->gc_controller_input_polled_callbacks);
 }
 
 void PythonScriptContext::RunOnInstructionReachedCallbacks(size_t current_address)
 {
+  this->RunCallbacksForMap(this->map_of_instruction_address_to_python_callbacks, current_address);
 }
 
 void PythonScriptContext::RunOnMemoryAddressReadFromCallbacks(size_t current_memory_address)
 {
+  this->RunCallbacksForMap(this->map_of_memory_address_read_from_to_python_callbacks,
+                          current_memory_address);
 }
 
 void PythonScriptContext::RunOnMemoryAddressWrittenToCallbacks(size_t current_memory_address)
 {
+  this->RunCallbacksForMap(this->map_of_memory_address_written_to_to_python_callbacks,
+                          current_memory_address);
 }
 
 void PythonScriptContext::RunOnWiiInputPolledCallbacks()
 {
+  this->RunCallbacksForVector(this->wii_controller_input_polled_callbacks);
 }
 
 void* PythonScriptContext::RegisterOnFrameStartCallbacks(void* callbacks)
 {
-  return nullptr;
+  return this->RegisterForVectorHelper(this->frame_callbacks, callbacks);
 }
 
 void PythonScriptContext::RegisterOnFrameStartWithAutoDeregistrationCallbacks(void* callbacks)
 {
+  this->RegisterForVectorWithAutoDeregistrationHelper(
+      this->frame_callbacks, callbacks, this->number_of_frame_callbacks_to_auto_deregister);
 }
 
 bool PythonScriptContext::UnregisterOnFrameStartCallbacks(void* callbacks)
 {
-  return false;
+  return this->UnregisterForVectorHelper(this->frame_callbacks, callbacks);
 }
 
 void* PythonScriptContext::RegisterOnGCCControllerPolledCallbacks(void* callbacks)
 {
-  return nullptr;
+  return this->RegisterForVectorHelper(this->gc_controller_input_polled_callbacks, callbacks);
 }
 
 void PythonScriptContext::RegisterOnGCControllerPolledWithAutoDeregistrationCallbacks(
     void* callbacks)
 {
+  this->RegisterForVectorWithAutoDeregistrationHelper(
+      this->gc_controller_input_polled_callbacks, callbacks,
+      this->number_of_gc_controller_input_callbacks_to_auto_deregister);
 }
 
 bool PythonScriptContext::UnregisterOnGCControllerPolledCallbacks(void* callbacks)
 {
-  return false;
+  return this->UnregisterForVectorHelper(this->gc_controller_input_polled_callbacks, callbacks);
 }
 
 void* PythonScriptContext::RegisterOnInstructionReachedCallbacks(size_t address, void* callbacks)
 {
-  return nullptr;
+  return this->RegisterForMapHelper(
+      address, this->map_of_instruction_address_to_python_callbacks, callbacks);
 }
 
 void PythonScriptContext::RegisterOnInstructionReachedWithAutoDeregistrationCallbacks(
     size_t address, void* callbacks)
 {
+  this->RegisterForMapWithAutoDeregistrationHelper(
+      address, this->map_of_instruction_address_to_python_callbacks, callbacks,
+      this->number_of_instruction_address_callbacks_to_auto_deregister);
 }
 
 bool PythonScriptContext::UnregisterOnInstructionReachedCallbacks(size_t address, void* callbacks)
 {
-  return false;
+  return this->UnregisterForMapHelper(address, this->map_of_instruction_address_to_python_callbacks,
+                               callbacks);
 }
 
 void* PythonScriptContext::RegisterOnMemoryAddressReadFromCallbacks(size_t memory_address,
                                                                     void* callbacks)
 {
-  return nullptr;
+  return this->RegisterForMapHelper(
+      memory_address, this->map_of_memory_address_read_from_to_python_callbacks, callbacks);
 }
 
 void PythonScriptContext::RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallbacks(
     size_t memory_address, void* callbacks)
 {
+  this->RegisterForMapWithAutoDeregistrationHelper(
+      memory_address, this->map_of_memory_address_read_from_to_python_callbacks, callbacks,
+      this->number_of_memory_address_read_callbacks_to_auto_deregister);
 }
 
 bool PythonScriptContext::UnregisterOnMemoryAddressReadFromCallbacks(size_t memory_address,
                                                                      void* callbacks)
 {
-  return false;
+  return this->UnregisterForMapHelper(
+      memory_address, this->map_of_memory_address_read_from_to_python_callbacks, callbacks);
 }
 
 void* PythonScriptContext::RegisterOnMemoryAddressWrittenToCallbacks(size_t memory_address,
                                                                      void* callbacks)
 {
-  return nullptr;
+  return this->RegisterForMapHelper(
+      memory_address, this->map_of_memory_address_written_to_to_python_callbacks, callbacks);
 }
 
 void PythonScriptContext::RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallbacks(
     size_t memory_address, void* callbacks)
 {
+  this->RegisterForMapWithAutoDeregistrationHelper(
+      memory_address, this->map_of_memory_address_written_to_to_python_callbacks, callbacks,
+      this->number_of_memory_address_write_callbacks_to_auto_deregister);
 }
 
 bool PythonScriptContext::UnregisterOnMemoryAddressWrittenToCallbacks(size_t memory_address,
                                                                       void* callbacks)
 {
-  return false;
+  return this->UnregisterForMapHelper(
+      memory_address, this->map_of_memory_address_written_to_to_python_callbacks, callbacks);
 }
 
 void* PythonScriptContext::RegisterOnWiiInputPolledCallbacks(void* callbacks)
 {
-  return nullptr;
+  return this->RegisterForVectorHelper(this->wii_controller_input_polled_callbacks, callbacks);
 }
 
 void PythonScriptContext::RegisterOnWiiInputPolledWithAutoDeregistrationCallbacks(void* callbacks)
 {
+  this->RegisterForVectorWithAutoDeregistrationHelper(
+      this->wii_controller_input_polled_callbacks, callbacks,
+      number_of_wii_input_callbacks_to_auto_deregister);
 }
 
 bool PythonScriptContext::UnregisterOnWiiInputPolledCallbacks(void* callbacks)
 {
-  return false;
+  return this->UnregisterForVectorHelper(this->wii_controller_input_polled_callbacks, callbacks);
 }
 
 void PythonScriptContext::RegisterButtonCallback(long long button_id, void* callbacks)
 {
-}
-
-void PythonScriptContext::AddButtonCallbackToQueue(void* callbacks)
-{
+  PyObject* func = *((PyObject**)&callbacks);
+  if (func == nullptr || !PyCallable_Check(func))
+    HandleError(nullptr, nullptr, false,
+                "Attempted to register button callback which was not a callable function!");
+  else
+  {
+    map_of_button_id_to_callback[button_id] = func;
+  }
 }
 
 bool PythonScriptContext::IsButtonRegistered(long long button_id)
 {
-  return false;
+  return map_of_button_id_to_callback.count(button_id) != 0;
 }
 
 void PythonScriptContext::GetButtonCallbackAndAddToQueue(long long button_id)
 {
+  if (map_of_button_id_to_callback.count(button_id) == 0)
+    HandleError(nullptr, nullptr, false,
+                "Attempted to press button with an undefined function callback!");
+  else
+  {
+    PyObject* callback_func = map_of_button_id_to_callback[button_id];
+    button_callbacks_to_run.push(callback_func);
+  }
 }
 
 void PythonScriptContext::RunButtonCallbacksInQueue()
 {
+  if (button_callbacks_to_run.IsEmpty())
+    return;
+  std::vector<PyObject*> list_of_functions;
+
+  while (!button_callbacks_to_run.IsEmpty())
+  {
+    list_of_functions.push_back(button_callbacks_to_run.pop());
+  }
+  this->RunCallbacksForVector(list_of_functions);
 }
 
 PyObject* PythonScriptContext::HandleError(const char* class_name, const FunctionMetadata* function_metadata, bool include_example, const std::string& base_error_msg)
@@ -886,7 +1175,7 @@ PyObject* PythonScriptContext::HandleError(const char* class_name, const Functio
 }
 
 void PythonScriptContext::RunEndOfIteraionTasks()
-{
+{ /*
   PyObject* pModule = PyImport_AddModule("__main__");
   PyObject* catcher = PyObject_GetAttrString(pModule, "catchOutErr");  // get our catchOutErr created above
   PyObject* output = PyObject_GetAttrString(catcher, "value");
@@ -894,58 +1183,13 @@ void PythonScriptContext::RunEndOfIteraionTasks()
   const char* output_msg = PyUnicode_AsUTF8(output);
   if (output_msg != nullptr && !std::string(output_msg).empty())
    (*GetPrintCallback())(output_msg);
-
+  /*
   const char* error_msg = PyUnicode_AsUTF8(catcher);
   if (error_msg != nullptr && !std::string(error_msg).empty())
-   (*GetPrintCallback())(error_msg);
+   (*GetPrintCallback())(error_msg);*/
 
   if (ShouldCallEndScriptFunction())
    ShutdownScript();
-}
-
-
-void PythonScriptContext::GenericRunCallbacksHelperFunction(
-    PyObject* curr_state,
-                                       std::vector<PyObject*>& vector_of_callbacks,
-                                       int& index_of_next_callback_to_run,
-                                       bool& yielded_on_last_callback_call, bool yields_are_allowed)
-{
-
-}
-
-void* PythonScriptContext::RegisterForVectorHelper(std::vector<PyObject*>& input_vector,
-                                                   void* callbacks)
-{
-  return nullptr;
-}
-
-void PythonScriptContext::RegisterForVectorWithAutoDeregistrationHelper(
-    std::vector<PyObject*>& input_vector, void* callbacks,
-    std::atomic<size_t>& number_of_auto_deregister_callbacks)
-{
-}
-bool PythonScriptContext::UnregisterForVectorHelper(std::vector<PyObject*>& input_vector,
-                                                    void* callbacks)
-{
-  return false;
-}
-
-void* PythonScriptContext::RegisterForMapHelper(
-    size_t address, std::unordered_map<size_t, std::vector<PyObject*>>& input_map, void* callbacks)
-{
-  return nullptr;
-}
-
-void PythonScriptContext::RegisterForMapWithAutoDeregistrationHelper(
-    size_t address, std::unordered_map<size_t, std::vector<PyObject*>>& input_map, void* callbacks,
-    std::atomic<size_t>& number_of_auto_deregistration_callbacks)
-{
-}
-
-bool PythonScriptContext::UnregisterForMapHelper(
-    size_t address, std::unordered_map<size_t, std::vector<PyObject*>>& input_map, void* callbacks)
-{
-  return false;
 }
 
 }  // namespace Scripting::Python

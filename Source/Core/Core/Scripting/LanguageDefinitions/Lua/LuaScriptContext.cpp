@@ -461,6 +461,9 @@ void LuaScriptContext::ImportModule(const std::string& api_name, const std::stri
       case ArgTypeEnum::RegistrationWithAutoDeregistrationReturnType:
       case ArgTypeEnum::UnregistrationReturnType:
         return 0;
+      case ArgTypeEnum::ShutdownType:
+        corresponding_script_context->ShutdownScript();
+        return 0;
       case ArgTypeEnum::AddressToUnsignedByteMap:
         address_to_unsigned_byte_map = returnValue.address_to_unsigned_byte_map;
         lua_createtable(lua_state, static_cast<int>(address_to_unsigned_byte_map.size()), 0);
@@ -969,11 +972,6 @@ void LuaScriptContext::RegisterButtonCallback(long long button_id, void* callbac
   int function_reference = *((int*)(&callbacks));
   if (function_reference >= 0)
     map_of_button_id_to_callback[button_id] = function_reference;
-}
-
-void LuaScriptContext::AddButtonCallbackToQueue(void* callbacks)
-{
-  button_callbacks_to_run.push(*((int*)(&callbacks)));
 }
 
 bool LuaScriptContext::IsButtonRegistered(long long button_id)
