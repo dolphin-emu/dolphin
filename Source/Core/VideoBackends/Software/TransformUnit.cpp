@@ -206,7 +206,7 @@ static inline void AddScaledIntegerColor(const u8* src, float scale, Vec3& dst)
 
 static inline float SafeDivide(float n, float d)
 {
-  return (d == 0) ? (n > 0 ? 1 : 0) : n / d;
+  return (std::fpclassify(d) == FP_ZERO) ? (n > 0 ? 1 : 0) : n / d;
 }
 
 static float CalculateLightAttn(const LightPointer* light, Vec3* _ldir, const Vec3& normal,

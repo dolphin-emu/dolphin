@@ -705,7 +705,7 @@ void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)
   float c = -dx12 * dy31 - dx31 * -dy12;
 
   // Sometimes we process de-generate triangles. Stop any divide by zeros
-  if (c == 0)
+  if (std::fpclassify(c) == FP_ZERO)
     return;
 
   m_zslope.dfdx = -a / c;
