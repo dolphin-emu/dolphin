@@ -239,6 +239,8 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
 
 bool NetPlayClient::Connect()
 {
+  INFO_LOG_FMT(NETPLAY, "Connecting to server.");
+
   // send connect message
   sf::Packet packet;
   packet << Common::GetScmRevGitStr();
@@ -541,6 +543,8 @@ void NetPlayClient::OnChunkedDataStart(sf::Packet& packet)
   packet >> title;
   const u64 data_size = Common::PacketReadU64(packet);
 
+  INFO_LOG_FMT(NETPLAY, "Starting data chunk {}.", cid);
+
   m_chunked_data_receive_queue.emplace(cid, sf::Packet{});
 
   std::vector<int> players;
@@ -555,7 +559,12 @@ void NetPlayClient::OnChunkedDataEnd(sf::Packet& packet)
 
   const auto data_packet_iter = m_chunked_data_receive_queue.find(cid);
   if (data_packet_iter == m_chunked_data_receive_queue.end())
+  {
+    INFO_LOG_FMT(NETPLAY, "Invalid data chunk ID {}.", cid);
     return;
+  }
+
+  INFO_LOG_FMT(NETPLAY, "Ending data chunk {}.", cid);
 
   auto& data_packet = data_packet_iter->second;
   OnData(data_packet);
@@ -575,7 +584,10 @@ void NetPlayClient::OnChunkedDataPayload(sf::Packet& packet)
 
   const auto data_packet_iter = m_chunked_data_receive_queue.find(cid);
   if (data_packet_iter == m_chunked_data_receive_queue.end())
+  {
+    INFO_LOG_FMT(NETPLAY, "Invalid data chunk ID {}.", cid);
     return;
+  }
 
   auto& data_packet = data_packet_iter->second;
   while (!packet.endOfPacket())
@@ -584,6 +596,8 @@ void NetPlayClient::OnChunkedDataPayload(sf::Packet& packet)
     packet >> byte;
     data_packet << byte;
   }
+
+  INFO_LOG_FMT(NETPLAY, "Received {} bytes of data chunk {}.", data_packet.getDataSize(), cid);
 
   m_dialog->SetChunkedProgress(m_local_player->pid, data_packet.getDataSize());
 
@@ -601,7 +615,12 @@ void NetPlayClient::OnChunkedDataAbort(sf::Packet& packet)
 
   const auto iter = m_chunked_data_receive_queue.find(cid);
   if (iter == m_chunked_data_receive_queue.end())
+  {
+    INFO_LOG_FMT(NETPLAY, "Invalid data chunk ID {}.", cid);
     return;
+  }
+
+  INFO_LOG_FMT(NETPLAY, "Aborting data chunk {}.", cid);
 
   m_chunked_data_receive_queue.erase(iter);
   m_dialog->HideChunkedProgressDialog();
@@ -1284,6 +1303,8 @@ void NetPlayClient::OnSyncCodes(sf::Packet& packet)
   SyncCodeID sub_id;
   packet >> sub_id;
 
+  INFO_LOG_FMT(NETPLAY, "Processing OnSyncCodes sub id: {}", static_cast<u8>(sub_id));
+
   // Check Which Operation to Perform with This Packet
   switch (sub_id)
   {
@@ -1331,7 +1352,7 @@ void NetPlayClient::OnSyncCodesNotifyGecko(sf::Packet& packet)
 
   m_sync_gecko_codes_success_count = 0;
 
-  NOTICE_LOG_FMT(ACTIONREPLAY, "Receiving {} Gecko codelines", m_sync_gecko_codes_count);
+  INFO_LOG_FMT(NETPLAY, "Receiving {} Gecko codelines", m_sync_gecko_codes_count);
 
   // Check if no codes to sync, if so return as finished
   if (m_sync_gecko_codes_count == 0)
@@ -1365,7 +1386,7 @@ void NetPlayClient::OnSyncCodesDataGecko(sf::Packet& packet)
     packet >> new_code.address;
     packet >> new_code.data;
 
-    NOTICE_LOG_FMT(ACTIONREPLAY, "Received {:08x} {:08x}", new_code.address, new_code.data);
+    INFO_LOG_FMT(NETPLAY, "Received {:08x} {:08x}", new_code.address, new_code.data);
 
     gcode.codes.push_back(std::move(new_code));
 
@@ -1398,7 +1419,7 @@ void NetPlayClient::OnSyncCodesNotifyAR(sf::Packet& packet)
 
   m_sync_ar_codes_success_count = 0;
 
-  NOTICE_LOG_FMT(ACTIONREPLAY, "Receiving {} AR codelines", m_sync_ar_codes_count);
+  INFO_LOG_FMT(NETPLAY, "Receiving {} AR codelines", m_sync_ar_codes_count);
 
   // Check if no codes to sync, if so return as finished
   if (m_sync_ar_codes_count == 0)
@@ -1432,7 +1453,7 @@ void NetPlayClient::OnSyncCodesDataAR(sf::Packet& packet)
     packet >> new_code.cmd_addr;
     packet >> new_code.value;
 
-    NOTICE_LOG_FMT(ACTIONREPLAY, "Received {:08x} {:08x}", new_code.cmd_addr, new_code.value);
+    INFO_LOG_FMT(NETPLAY, "Received {:08x} {:08x}", new_code.cmd_addr, new_code.value);
     arcode.ops.push_back(new_code);
 
     if (++m_sync_ar_codes_success_count >= m_sync_ar_codes_count)
