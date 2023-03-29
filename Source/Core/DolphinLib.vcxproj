@@ -100,6 +100,11 @@
     <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\ImportModuleImporter.h" />
     <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\MemoryModuleImporter.h" />
     <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\OnFrameStartCallbackModuleImporter.h" />
+    <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\OnGCControllerPolledCallbackModuleImporter.h" />
+    <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\OnInstructionHitCallbackModuleImporter.h" />
+    <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\OnMemoryAddressReadFromCallbackModuleImporter.h" />
+    <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\OnMemoryAddressWrittenToCallbackModuleImporter.h" />
+    <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\OnWiiInputPolledCallbackModuleImporter.h" />
     <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\RegistersModuleImporter.h" />
     <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\StatisticsModuleImporter.h" />
     <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\PythonScriptContext.h" />
@@ -150,6 +155,11 @@
     <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\GraphicsModuleImporter.cpp" />
     <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\ImportModuleImporter.cpp" />
     <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\MemoryModuleImporter.cpp" />
+    <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\OnGCControllerPolledCallbackModuleImporter.cpp" />
+    <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\OnInstructionHitCallbackModuleImporter.cpp" />
+    <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\OnMemoryAddressReadFromCallbackModuleImporter.cpp" />
+    <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\OnMemoryAddressWrittenToCallbackModulerImporter.cpp" />
+    <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\OnWiiInputPolledCallbackModuleImporter.cpp" />
     <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\RegistersModuleImporter.cpp" />
     <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\StatisticsModuleImporter.cpp" />
     <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\PythonScriptContext.cpp" />

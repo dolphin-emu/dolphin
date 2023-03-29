@@ -2,6 +2,11 @@
 #include "Core/Scripting/HelperClasses/FunctionMetadata.h"
 
 #include "Core/Scripting/EventCallbackRegistrationAPIs/OnFrameStartCallbackAPI.h"
+#include "Core/Scripting/EventCallbackRegistrationAPIs/OnGCControllerPolledCallbackAPI.h"
+#include "Core/Scripting/EventCallbackRegistrationAPIs/OnInstructionHitCallbackAPI.h"
+#include "Core/Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressReadFromCallbackAPI.h"
+#include "Core/Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressWrittenToCallbackAPI.h"
+#include "Core/Scripting/EventCallbackRegistrationAPIs/OnWiiInputPolledCallbackAPI.h"
 
 #include "Core/Scripting/InternalAPIModules/BitAPI.h"
 #include "Core/Scripting/InternalAPIModules/EmuAPI.h"
@@ -19,6 +24,11 @@
 #include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/ImportModuleImporter.h"
 #include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/MemoryModuleImporter.h"
 #include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/OnFrameStartCallbackModuleImporter.h"
+#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/OnGCControllerPolledCallbackModuleImporter.h"
+#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/OnInstructionHitCallbackModuleImporter.h"
+#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/OnMemoryAddressReadFromCallbackModuleImporter.h"
+#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/OnMemoryAddressWrittenToCallbackModuleImporter.h"
+#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/OnWiiInputPolledCallbackModuleImporter.h"
 #include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/RegistersModuleImporter.h"
 #include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/StatisticsModuleImporter.h"
 #include <fstream>
@@ -89,7 +99,7 @@ void SetModuleVersion(const char* module_name, std::string new_version_number)
   *((std::string*)PyModule_GetState(PyImport_ImportModule(module_name))) = std::string(new_version_number);
 }
 
-void ImportBuiltinModule(const char* module_name)
+void RunImportCommand(const char* module_name)
 {
   PyRun_SimpleString((std::string("import ") + module_name).c_str());
 }
@@ -109,6 +119,11 @@ PythonScriptContext::PythonScriptContext(int new_unique_script_identifier, const
     PyImport_AppendInittab(THIS_MODULE_NAME, PyInit_ThisPointerModule);
     PyImport_AppendInittab(ImportAPI::class_name, ImportModuleImporter::PyInit_ImportAPI);
     PyImport_AppendInittab(OnFrameStartCallbackAPI::class_name, OnFrameStartCallbackModuleImporter::PyInit_OnFrameStart);
+    PyImport_AppendInittab(OnGCControllerPolledCallbackAPI::class_name, OnGCControllerPolledCallbackModuleImporter::PyInit_OnGCControllerPolled);
+    PyImport_AppendInittab(OnInstructionHitCallbackAPI::class_name, OnInstructionHitCallbackModuleImporter::PyInit_OnInstructionHit);
+    PyImport_AppendInittab(OnMemoryAddressReadFromCallbackAPI::class_name, OnMemoryAddressReadFromCallbackModuleImporter::PyInit_OnMemoryAddressReadFrom);
+    PyImport_AppendInittab(OnMemoryAddressWrittenToCallbackAPI::class_name, OnMemoryAddressWrittenToCallbackModuleImporter::PyInit_OnMemoryAddressWrittenTo);
+    PyImport_AppendInittab(OnWiiInputPolledCallbackAPI::class_name, OnWiiInputPolledCallbackModuleImporter::PyInit_OnWiiInputPolled);
     PyImport_AppendInittab(BitApi::class_name, BitModuleImporter::PyInit_BitAPI);
     PyImport_AppendInittab(EmuApi::class_name, EmuModuleImporter::PyInit_EmuAPI);
     PyImport_AppendInittab(GameCubeControllerApi::class_name, GameCubeControllerModuleImporter::PyInit_GameCubeControllerAPI);
@@ -129,9 +144,19 @@ PythonScriptContext::PythonScriptContext(int new_unique_script_identifier, const
   *((long long*)PyModule_GetState(PyImport_ImportModule(THIS_MODULE_NAME))) =  this_address;
 
   SetModuleVersion(ImportAPI::class_name, most_recent_script_version);
-  ImportBuiltinModule(ImportAPI::class_name);
+  RunImportCommand(ImportAPI::class_name);
   SetModuleVersion(OnFrameStartCallbackAPI::class_name, most_recent_script_version);
-  ImportBuiltinModule(OnFrameStartCallbackAPI::class_name);
+  RunImportCommand(OnFrameStartCallbackAPI::class_name);
+  SetModuleVersion(OnGCControllerPolledCallbackAPI::class_name, most_recent_script_version);
+  RunImportCommand(OnGCControllerPolledCallbackAPI::class_name);
+  SetModuleVersion(OnInstructionHitCallbackAPI::class_name, most_recent_script_version);
+  RunImportCommand(OnInstructionHitCallbackAPI::class_name);
+  SetModuleVersion(OnMemoryAddressReadFromCallbackAPI::class_name, most_recent_script_version);
+  RunImportCommand(OnMemoryAddressReadFromCallbackAPI::class_name);
+  SetModuleVersion(OnMemoryAddressWrittenToCallbackAPI::class_name, most_recent_script_version);
+  RunImportCommand(OnMemoryAddressWrittenToCallbackAPI::class_name);
+  SetModuleVersion(OnWiiInputPolledCallbackAPI::class_name, most_recent_script_version);
+  RunImportCommand(OnWiiInputPolledCallbackAPI::class_name);
 
   SetModuleVersion(BitApi::class_name, std::string("0.0"));
   SetModuleVersion(EmuApi::class_name, std::string("0.0"));
@@ -187,6 +212,18 @@ PyObject* PythonScriptContext::RunFunction(PyObject* self, PyObject* args, std::
 
   if (class_name == ImportAPI::class_name)
     functionMetadata = ImportAPI::GetFunctionMetadataForVersion(version_number, function_name);
+  else if (class_name == OnFrameStartCallbackAPI::class_name)
+    functionMetadata = OnFrameStartCallbackAPI::GetFunctionMetadataForVersion(version_number, function_name);
+  else if (class_name == OnGCControllerPolledCallbackAPI::class_name)
+    functionMetadata = OnGCControllerPolledCallbackAPI::GetFunctionMetadataForVersion(version_number, function_name);
+  else if (class_name == OnInstructionHitCallbackAPI::class_name)
+    functionMetadata = OnInstructionHitCallbackAPI::GetFunctionMetadataForVersion(version_number, function_name);
+  else if (class_name == OnMemoryAddressReadFromCallbackAPI::class_name)
+    functionMetadata = OnMemoryAddressReadFromCallbackAPI::GetFunctionMetadataForVersion(version_number, function_name);
+  else if (class_name == OnMemoryAddressWrittenToCallbackAPI::class_name)
+    functionMetadata = OnMemoryAddressWrittenToCallbackAPI::GetFunctionMetadataForVersion(version_number, function_name);
+  else if (class_name == OnWiiInputPolledCallbackAPI::class_name)
+    functionMetadata = OnWiiInputPolledCallbackAPI::GetFunctionMetadataForVersion(version_number, function_name);
   else if (class_name == BitApi::class_name)
     functionMetadata = BitApi::GetFunctionMetadataForVersion(version_number, function_name);
   else if (class_name == EmuApi::class_name)
@@ -338,12 +375,12 @@ PyObject* PythonScriptContext::RunFunction(PyObject* self, PyObject* args, std::
 void PythonScriptContext::ImportModule(const std::string& api_name, const std::string& api_version)
 {
   PyObject* current_module = PyImport_ImportModule(api_name.c_str());
+
   if (current_module == nullptr)
    return;
 
-  *((std::string*)PyModule_GetState(current_module)) = api_version;
-
-  PyRun_SimpleString(std::string("import " + api_name).c_str());
+  SetModuleVersion(api_name.c_str(), api_version);
+  RunImportCommand(api_name.c_str());
 }
 
 void PythonScriptContext::StartScript()
