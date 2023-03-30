@@ -17,6 +17,7 @@
 #include "VideoBackends/Metal/MTLTexture.h"
 #include "VideoBackends/Metal/MTLUtil.h"
 
+#include "VideoCommon/Constants.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/PerfQueryBase.h"
 
@@ -194,6 +195,8 @@ private:
   // MARK: State
   u8 m_dirty_textures;
   u8 m_dirty_samplers;
+  static_assert(sizeof(m_dirty_textures) * 8 >= VideoCommon::MAX_PIXEL_SHADER_SAMPLERS,
+                "Make these bigger");
   union Flags
   {
     struct
@@ -249,11 +252,11 @@ private:
     Util::Viewport viewport;
     const Pipeline* render_pipeline = nullptr;
     const ComputePipeline* compute_pipeline = nullptr;
-    std::array<id<MTLTexture>, 8> textures = {};
-    std::array<id<MTLSamplerState>, 8> samplers = {};
-    std::array<float, 8> sampler_min_lod;
-    std::array<float, 8> sampler_max_lod;
-    std::array<SamplerState, 8> sampler_states;
+    std::array<id<MTLTexture>, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS> textures = {};
+    std::array<id<MTLSamplerState>, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS> samplers = {};
+    std::array<float, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS> sampler_min_lod;
+    std::array<float, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS> sampler_max_lod;
+    std::array<SamplerState, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS> sampler_states;
     const Texture* compute_texture = nullptr;
     std::unique_ptr<u8[]> utility_uniform;
     u32 utility_uniform_size = 0;
