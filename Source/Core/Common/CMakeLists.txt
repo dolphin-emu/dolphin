@@ -156,7 +156,7 @@ PUBLIC
 PRIVATE
   ${CURL_LIBRARIES}
   FatFs
-  ${ICONV_LIBRARIES}
+  Iconv::Iconv
   ${spng_target}
   ${VTUNE_LIBRARIES}
 )
