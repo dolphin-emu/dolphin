@@ -1,4 +1,7 @@
 #include "Core/Scripting/LanguageDefinitions/Python/PythonScriptContext.h"
+
+#include "Common/FileUtil.h"
+
 #include "Core/Scripting/HelperClasses/FunctionMetadata.h"
 
 #include "Core/Scripting/EventCallbackRegistrationAPIs/OnFrameStartCallbackAPI.h"
@@ -106,17 +109,10 @@ void RunImportCommand(const char* module_name)
   PyRun_SimpleString((std::string("import ") + module_name).c_str());
 }
 
-static std::string redirect_output_code = "import sys\n\
-class CatchOutErr:\n\
-    def __init__(self):\n\
-        self.value = ''\n\
-    def write(self, txt):\n\
-        self.value += txt\n\
-catchOutErr = CatchOutErr()\n\
-sys.stdout = catchOutErr\n\
-sys.stderr = catchOutErr\n\
-";
-PythonScriptContext::PythonScriptContext(int new_unique_script_identifier, const std::string& new_script_filename,
+static const char* redirect_output_module_name = "RedirectStdOut";
+
+PythonScriptContext::PythonScriptContext(
+    int new_unique_script_identifier, const std::string& new_script_filename,
                     std::vector<ScriptContext*>* new_pointer_to_list_of_all_scripts,
                     std::function<void(const std::string&)>* new_print_callback,
                     std::function<void(int)>* new_script_end_callback)
@@ -180,7 +176,17 @@ PythonScriptContext::PythonScriptContext(int new_unique_script_identifier, const
 
   current_script_call_location = ScriptCallLocations::FromScriptStartup;
                                       // this is python code to redirect stdouts/stderr
-  PyRun_SimpleString(redirect_output_code.c_str());  // invoke code to redirect
+  std::string user_path = File::GetUserPath(D_LOAD_IDX) + "PythonLibs";
+  std::replace(user_path.begin(), user_path.end(), '\\', '/');
+
+  std::string system_path = File::GetSysDirectory() + "PythonLibs";
+  std::replace(system_path.begin(), system_path.end(), '\\', '/');
+
+  PyRun_SimpleString((std::string("import sys\nsys.path.append('") + user_path + "')\n").c_str());
+  PyRun_SimpleString((std::string("sys.path.append('") + system_path + "')\n").c_str());
+  PyRun_SimpleString((std::string("import ") + redirect_output_module_name + "\n")
+                         .c_str());  // invoke code to redirect
+  PyImport_ImportModule(redirect_output_module_name);
   PyEval_ReleaseThread(main_python_thread);
   AddScriptToQueueOfScriptsWaitingToStart(this);
 }
@@ -751,29 +757,12 @@ void PythonScriptContext::RunCallbacksForVector(std::vector<PyObject*>& callback
 
 
   PyEval_RestoreThread(main_python_thread);
-  if (PyErr_Occurred())
-  {
-   HandleError(nullptr, nullptr, false, "Error before function call!");
-  }
+
   for (int i = 0; i < callback_list.size(); ++i)
   {
    PyObject* func = callback_list[i];
    Py_INCREF(func);
-   if (!PyCallable_Check(func))
-   {
-      HandleError(nullptr, nullptr, false, "Not callable!");
-      return;
-   }
-   if (PyErr_Occurred())
-   {
-      PyErr_PrintEx(1);
-      break;
-   }
    PyObject* return_value = PyObject_CallFunction(func, nullptr);
-   if (PyErr_Occurred())
-   {
-      HandleError(nullptr, nullptr, false, "Error after function call!");
-   }
    Py_DECREF(func);
    if (return_value == nullptr)
       break;
@@ -806,7 +795,7 @@ void PythonScriptContext::RunCallbacksForMap(std::unordered_map<size_t, std::vec
   {
    PyObject* func = (*callbacks_for_address)[i];
    Py_IncRef(func);
-   PyObject* return_value = PyObject_CallNoArgs(func);
+   PyObject* return_value = PyObject_CallFunction(func, nullptr);
    Py_DECREF(func);
    if (return_value == nullptr)
       break;
@@ -1175,18 +1164,22 @@ PyObject* PythonScriptContext::HandleError(const char* class_name, const Functio
 }
 
 void PythonScriptContext::RunEndOfIteraionTasks()
-{ /*
-  PyObject* pModule = PyImport_AddModule("__main__");
+{
+  if (PyErr_Occurred())
+  {
+   PyErr_PrintEx(1);
+  }
+
+  PyObject* pModule = PyImport_ImportModule(redirect_output_module_name);
   PyObject* catcher = PyObject_GetAttrString(pModule, "catchOutErr");  // get our catchOutErr created above
   PyObject* output = PyObject_GetAttrString(catcher, "value");
 
   const char* output_msg = PyUnicode_AsUTF8(output);
   if (output_msg != nullptr && !std::string(output_msg).empty())
    (*GetPrintCallback())(output_msg);
-  /*
-  const char* error_msg = PyUnicode_AsUTF8(catcher);
-  if (error_msg != nullptr && !std::string(error_msg).empty())
-   (*GetPrintCallback())(error_msg);*/
+
+  PyObject* clear_method = PyObject_GetAttrString(catcher, "clear");
+  PyObject_CallFunction(clear_method, nullptr);
 
   if (ShouldCallEndScriptFunction())
    ShutdownScript();
