@@ -1,4 +1,5 @@
 import testScript
+import dolphin_statistics
 
 dolphin.importModule("GameCubeControllerAPI", "1.0")
 val = 0
