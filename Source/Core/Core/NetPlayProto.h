@@ -219,7 +219,7 @@ enum class SyncCodeID : u8
 };
 
 constexpr u32 MAX_NAME_LENGTH = 30;
-constexpr size_t CHUNKED_DATA_UNIT_SIZE = 16384;
+constexpr size_t CHUNKED_DATA_UNIT_SIZE = 512;
 
 enum : u8
 {
