@@ -270,8 +270,10 @@ void NetPlayServer::ThreadFunc()
     net = enet_host_service(m_server, &netEvent, 1000);
     while (!m_async_queue.Empty())
     {
+      INFO_LOG_FMT(NETPLAY, "Processing async queue event.");
       {
         std::lock_guard lkp(m_crit.players);
+        INFO_LOG_FMT(NETPLAY, "Locked player mutex.");
         auto& e = m_async_queue.Front();
         if (e.target_mode == TargetMode::Only)
         {
@@ -283,6 +285,7 @@ void NetPlayServer::ThreadFunc()
           SendToClients(e.packet, e.target_pid, e.channel_id);
         }
       }
+      INFO_LOG_FMT(NETPLAY, "Processing async queue event done.");
       m_async_queue.Pop();
     }
     if (net > 0)
@@ -299,6 +302,8 @@ void NetPlayServer::ThreadFunc()
       break;
       case ENET_EVENT_TYPE_RECEIVE:
       {
+        INFO_LOG_FMT(NETPLAY, "enet_host_service: receive event");
+
         sf::Packet rpac;
         rpac.append(netEvent.packet->data, netEvent.packet->dataLength);
 
@@ -341,16 +346,26 @@ void NetPlayServer::ThreadFunc()
 
             ClearPeerPlayerId(netEvent.peer);
           }
+          else
+          {
+            INFO_LOG_FMT(NETPLAY, "successfully handled packet from client {}", client.pid);
+          }
         }
         enet_packet_destroy(netEvent.packet);
       }
       break;
       case ENET_EVENT_TYPE_DISCONNECT:
       {
+        INFO_LOG_FMT(NETPLAY, "enet_host_service: disconnect event");
+
         std::lock_guard lkg(m_crit.game);
         if (!netEvent.peer->data)
+        {
+          ERROR_LOG_FMT(NETPLAY, "enet_host_service: no peer data");
           break;
-        auto it = m_players.find(*PeerPlayerId(netEvent.peer));
+        }
+        const auto player_id = *PeerPlayerId(netEvent.peer);
+        auto it = m_players.find(player_id);
         if (it != m_players.end())
         {
           Client& client = it->second;
@@ -359,11 +374,24 @@ void NetPlayServer::ThreadFunc()
 
           ClearPeerPlayerId(netEvent.peer);
         }
+        else
+        {
+          ERROR_LOG_FMT(NETPLAY, "Invalid player {} to disconnect.", player_id);
+        }
       }
       break;
       default:
+        ERROR_LOG_FMT(NETPLAY, "enet_host_service: unknown event type: {}", int(netEvent.type));
         break;
       }
+    }
+    else if (net == 0)
+    {
+      INFO_LOG_FMT(NETPLAY, "enet_host_service: no event occurred");
+    }
+    else
+    {
+      ERROR_LOG_FMT(NETPLAY, "enet_host_service error: {}", net);
     }
   }
 

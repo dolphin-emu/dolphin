@@ -1581,6 +1581,8 @@ void NetPlayClient::SendAsync(sf::Packet&& packet, const u8 channel_id)
 // called from ---NETPLAY--- thread
 void NetPlayClient::ThreadFunc()
 {
+  INFO_LOG_FMT(NETPLAY, "NetPlayClient starting.");
+
   Common::QoSSession qos_session;
   if (Config::Get(Config::NETPLAY_ENABLE_QOS))
   {
@@ -1606,10 +1608,12 @@ void NetPlayClient::ThreadFunc()
     net = enet_host_service(m_client, &netEvent, 250);
     while (!m_async_queue.Empty())
     {
+      INFO_LOG_FMT(NETPLAY, "Processing async queue event.");
       {
         auto& e = m_async_queue.Front();
         Send(e.packet, e.channel_id);
       }
+      INFO_LOG_FMT(NETPLAY, "Processing async queue event done.");
       m_async_queue.Pop();
     }
     if (net > 0)
@@ -1617,13 +1621,20 @@ void NetPlayClient::ThreadFunc()
       sf::Packet rpac;
       switch (netEvent.type)
       {
+      case ENET_EVENT_TYPE_CONNECT:
+        INFO_LOG_FMT(NETPLAY, "enet_host_service: connect event");
+        break;
       case ENET_EVENT_TYPE_RECEIVE:
+        INFO_LOG_FMT(NETPLAY, "enet_host_service: receive event");
+
         rpac.append(netEvent.packet->data, netEvent.packet->dataLength);
         OnData(rpac);
 
         enet_packet_destroy(netEvent.packet);
         break;
       case ENET_EVENT_TYPE_DISCONNECT:
+        INFO_LOG_FMT(NETPLAY, "enet_host_service: disconnect event");
+
         m_dialog->OnConnectionLost();
 
         if (m_is_running.IsSet())
@@ -1631,10 +1642,21 @@ void NetPlayClient::ThreadFunc()
 
         break;
       default:
+        ERROR_LOG_FMT(NETPLAY, "enet_host_service: unknown event type: {}", int(netEvent.type));
         break;
       }
     }
+    else if (net == 0)
+    {
+      INFO_LOG_FMT(NETPLAY, "enet_host_service: no event occurred");
+    }
+    else
+    {
+      ERROR_LOG_FMT(NETPLAY, "enet_host_service error: {}", net);
+    }
   }
+
+  INFO_LOG_FMT(NETPLAY, "NetPlayClient shutting down.");
 
   Disconnect();
   return;
