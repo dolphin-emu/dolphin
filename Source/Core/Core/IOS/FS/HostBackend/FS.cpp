@@ -4,6 +4,7 @@
 #include "Core/IOS/FS/HostBackend/FS.h"
 
 #include <algorithm>
+#include <cmath>
 #include <optional>
 #include <string_view>
 #include <type_traits>
@@ -11,6 +12,7 @@
 
 #include <fmt/format.h>
 
+#include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/FileUtil.h"
@@ -26,6 +28,21 @@
 namespace IOS::HLE::FS
 {
 constexpr u32 BUFFER_CHUNK_SIZE = 65536;
+
+// size of a single cluster in the NAND
+constexpr u16 CLUSTER_SIZE = 16384;
+
+// total number of clusters available in the NAND
+constexpr u16 TOTAL_CLUSTERS = 0x7ec0;
+
+// number of clusters reserved for bad blocks and similar, not accessible to normal writes
+constexpr u16 RESERVED_CLUSTERS = 0x0300;
+
+// number of clusters actually usable by the file system
+constexpr u16 USABLE_CLUSTERS = TOTAL_CLUSTERS - RESERVED_CLUSTERS;
+
+// total number of inodes available in the NAND
+constexpr u16 TOTAL_INODES = 0x17ff;
 
 HostFileSystem::HostFilename HostFileSystem::BuildFilename(const std::string& wii_path) const
 {
@@ -45,21 +62,6 @@ HostFileSystem::HostFilename HostFileSystem::BuildFilename(const std::string& wi
 
   ASSERT(false);
   return HostFilename{m_root_path, false};
-}
-
-// Get total filesize of contents of a directory (recursive)
-// Only used for ES_GetUsage atm, could be useful elsewhere?
-static u64 ComputeTotalFileSize(const File::FSTEntry& parent_entry)
-{
-  u64 sizeOfFiles = 0;
-  for (const File::FSTEntry& entry : parent_entry.children)
-  {
-    if (entry.isDirectory)
-      sizeOfFiles += ComputeTotalFileSize(entry);
-    else
-      sizeOfFiles += entry.size;
-  }
-  return sizeOfFiles;
 }
 
 namespace
@@ -747,6 +749,19 @@ ResultCode HostFileSystem::SetMetadata(Uid caller_uid, const std::string& path, 
   return ResultCode::Success;
 }
 
+static u64 ComputeUsedClusters(const File::FSTEntry& parent_entry)
+{
+  u64 clusters = 0;
+  for (const File::FSTEntry& entry : parent_entry.children)
+  {
+    if (entry.isDirectory)
+      clusters += ComputeUsedClusters(entry);
+    else
+      clusters += Common::AlignUp(entry.size, CLUSTER_SIZE) / CLUSTER_SIZE;
+  }
+  return clusters;
+}
+
 Result<NandStats> HostFileSystem::GetNandStats()
 {
   WARN_LOG_FMT(IOS_FS, "GET STATS - returning static values for now");
@@ -779,12 +794,12 @@ Result<DirectoryStats> HostFileSystem::GetDirectoryStats(const std::string& wii_
   if (info.IsDirectory())
   {
     File::FSTEntry parent_dir = File::ScanDirectoryTree(path, true);
+
     // add one for the folder itself
-    stats.used_inodes = 1 + (u32)parent_dir.size;
+    stats.used_inodes = static_cast<u32>(std::min<u64>(1 + parent_dir.size, TOTAL_INODES));
 
-    u64 total_size = ComputeTotalFileSize(parent_dir);  // "Real" size to convert to nand blocks
-
-    stats.used_clusters = (u32)(total_size / (16 * 1024));  // one block is 16kb
+    const u64 clusters = ComputeUsedClusters(parent_dir);
+    stats.used_clusters = static_cast<u32>(std::min<u64>(clusters, USABLE_CLUSTERS));
   }
   else
   {
