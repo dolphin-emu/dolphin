@@ -1,0 +1,336 @@
+Test 1
+	Calling setInput() on controller 1 with just setting A to True...
+PASS!
+
+Test 2
+	Calling setInput() on controller 1 with just setting B to True...
+PASS!
+
+Test 3
+	Calling setInput() on controller 1 with just setting X to True...
+PASS!
+
+Test 4
+	Calling setInput() on controller 1 with just setting Y to True...
+PASS!
+
+Test 5
+	Calling setInput() on controller 1 with just setting Z to True...
+PASS!
+
+Test 6
+	Calling setInput() on controller 1 with just setting L to True...
+PASS!
+
+Test 7
+	Calling setInput() on controller 1 with just setting R to True...
+PASS!
+
+Test 8
+	Calling setInput() on controller 1 with just setting Start to True...
+PASS!
+
+Test 9
+	Calling setInput() on controller 1 with just setting Reset to True...
+PASS!
+
+Test 10
+	Calling setInput() on controller 1 with just setting triggerL to 183...
+PASS!
+
+Test 11
+	Calling setInput() on controller 1 with just setting triggerR to 112...
+PASS!
+
+Test 12
+	Calling setInput() on controller 1 with just setting dPadUp to True...
+PASS!
+
+Test 13
+	Calling setInput() on controller 1 with just setting dPadDown to True...
+PASS!
+
+Test 14
+	Calling setInput() on controller 1 with just setting dPadLeft to True...
+PASS!
+
+Test 15
+	Calling setInput() on controller 1 with just setting dPadRight to True...
+PASS!
+
+Test 16
+	Calling setInput() on controller 1 with just setting analogStickX to 131...
+PASS!
+
+Test 17
+	Calling setInput() on controller 1 with just setting analogStickY to 190...
+PASS!
+
+Test 18
+	Calling setInput() on controller 1 with just setting cStickX to 99...
+PASS!
+
+Test 19
+	Calling setInput() on controller 1 with just setting cStickY to 43...
+PASS!
+
+Test 20
+	Calling setInput() on controller 1 with setting A to True and setting cStickX to 232...
+PASS!
+
+Test 21
+	Calling setInput() on controller 1 with setting all buttons to pressed and all analog inputs to their maximum values...
+PASS!
+
+Test 22
+	Calling setInput() on controller 2 with just setting A to True...
+PASS!
+
+Test 23
+	Calling setInput() on controller 2 with just setting B to True...
+PASS!
+
+Test 24
+	Calling setInput() on controller 2 with just setting X to True...
+PASS!
+
+Test 25
+	Calling setInput() on controller 2 with just setting Y to True...
+PASS!
+
+Test 26
+	Calling setInput() on controller 2 with just setting Z to True...
+PASS!
+
+Test 27
+	Calling setInput() on controller 2 with just setting L to True...
+PASS!
+
+Test 28
+	Calling setInput() on controller 2 with just setting R to True...
+PASS!
+
+Test 29
+	Calling setInput() on controller 2 with just setting Start to True...
+PASS!
+
+Test 30
+	Calling setInput() on controller 2 with just setting Reset to True...
+PASS!
+
+Test 31
+	Calling setInput() on controller 2 with just setting triggerL to 183...
+PASS!
+
+Test 32
+	Calling setInput() on controller 2 with just setting triggerR to 112...
+PASS!
+
+Test 33
+	Calling setInput() on controller 2 with just setting dPadUp to True...
+PASS!
+
+Test 34
+	Calling setInput() on controller 2 with just setting dPadDown to True...
+PASS!
+
+Test 35
+	Calling setInput() on controller 2 with just setting dPadLeft to True...
+PASS!
+
+Test 36
+	Calling setInput() on controller 2 with just setting dPadRight to True...
+PASS!
+
+Test 37
+	Calling setInput() on controller 2 with just setting analogStickX to 131...
+PASS!
+
+Test 38
+	Calling setInput() on controller 2 with just setting analogStickY to 190...
+PASS!
+
+Test 39
+	Calling setInput() on controller 2 with just setting cStickX to 99...
+PASS!
+
+Test 40
+	Calling setInput() on controller 2 with just setting cStickY to 43...
+PASS!
+
+Test 41
+	Calling setInput() on controller 2 with setting A to True and setting cStickX to 232...
+PASS!
+
+Test 42
+	Calling setInput() on controller 2 with setting all buttons to pressed and all analog inputs to their maximum values...
+PASS!
+
+Test 43
+	Calling setInput() on controller 3 with just setting A to True...
+PASS!
+
+Test 44
+	Calling setInput() on controller 3 with just setting B to True...
+PASS!
+
+Test 45
+	Calling setInput() on controller 3 with just setting X to True...
+PASS!
+
+Test 46
+	Calling setInput() on controller 3 with just setting Y to True...
+PASS!
+
+Test 47
+	Calling setInput() on controller 3 with just setting Z to True...
+PASS!
+
+Test 48
+	Calling setInput() on controller 3 with just setting L to True...
+PASS!
+
+Test 49
+	Calling setInput() on controller 3 with just setting R to True...
+PASS!
+
+Test 50
+	Calling setInput() on controller 3 with just setting Start to True...
+PASS!
+
+Test 51
+	Calling setInput() on controller 3 with just setting Reset to True...
+PASS!
+
+Test 52
+	Calling setInput() on controller 3 with just setting triggerL to 183...
+PASS!
+
+Test 53
+	Calling setInput() on controller 3 with just setting triggerR to 112...
+PASS!
+
+Test 54
+	Calling setInput() on controller 3 with just setting dPadUp to True...
+PASS!
+
+Test 55
+	Calling setInput() on controller 3 with just setting dPadDown to True...
+PASS!
+
+Test 56
+	Calling setInput() on controller 3 with just setting dPadLeft to True...
+PASS!
+
+Test 57
+	Calling setInput() on controller 3 with just setting dPadRight to True...
+PASS!
+
+Test 58
+	Calling setInput() on controller 3 with just setting analogStickX to 131...
+PASS!
+
+Test 59
+	Calling setInput() on controller 3 with just setting analogStickY to 190...
+PASS!
+
+Test 60
+	Calling setInput() on controller 3 with just setting cStickX to 99...
+PASS!
+
+Test 61
+	Calling setInput() on controller 3 with just setting cStickY to 43...
+PASS!
+
+Test 62
+	Calling setInput() on controller 3 with setting A to True and setting cStickX to 232...
+PASS!
+
+Test 63
+	Calling setInput() on controller 3 with setting all buttons to pressed and all analog inputs to their maximum values...
+PASS!
+
+Test 64
+	Calling setInput() on controller 4 with just setting A to True...
+PASS!
+
+Test 65
+	Calling setInput() on controller 4 with just setting B to True...
+PASS!
+
+Test 66
+	Calling setInput() on controller 4 with just setting X to True...
+PASS!
+
+Test 67
+	Calling setInput() on controller 4 with just setting Y to True...
+PASS!
+
+Test 68
+	Calling setInput() on controller 4 with just setting Z to True...
+PASS!
+
+Test 69
+	Calling setInput() on controller 4 with just setting L to True...
+PASS!
+
+Test 70
+	Calling setInput() on controller 4 with just setting R to True...
+PASS!
+
+Test 71
+	Calling setInput() on controller 4 with just setting Start to True...
+PASS!
+
+Test 72
+	Calling setInput() on controller 4 with just setting Reset to True...
+PASS!
+
+Test 73
+	Calling setInput() on controller 4 with just setting triggerL to 183...
+PASS!
+
+Test 74
+	Calling setInput() on controller 4 with just setting triggerR to 112...
+PASS!
+
+Test 75
+	Calling setInput() on controller 4 with just setting dPadUp to True...
+PASS!
+
+Test 76
+	Calling setInput() on controller 4 with just setting dPadDown to True...
+PASS!
+
+Test 77
+	Calling setInput() on controller 4 with just setting dPadLeft to True...
+PASS!
+
+Test 78
+	Calling setInput() on controller 4 with just setting dPadRight to True...
+PASS!
+
+Test 79
+	Calling setInput() on controller 4 with just setting analogStickX to 131...
+PASS!
+
+Test 80
+	Calling setInput() on controller 4 with just setting analogStickY to 190...
+PASS!
+
+Test 81
+	Calling setInput() on controller 4 with just setting cStickX to 99...
+PASS!
+
+Test 82
+	Calling setInput() on controller 4 with just setting cStickY to 43...
+PASS!
+
+Test 83
+	Calling setInput() on controller 4 with setting A to True and setting cStickX to 232...
+PASS!
+
+Test 84
+	Calling setInput() on controller 4 with setting all buttons to pressed and all analog inputs to their maximum values...
+PASS!
+
