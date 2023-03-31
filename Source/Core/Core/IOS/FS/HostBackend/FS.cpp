@@ -771,7 +771,12 @@ Result<DirectoryStats> HostFileSystem::GetDirectoryStats(const std::string& wii_
 
   DirectoryStats stats{};
   std::string path(BuildFilename(wii_path).host_path);
-  if (File::IsDirectory(path))
+  File::FileInfo info(path);
+  if (!info.Exists())
+  {
+    return ResultCode::NotFound;
+  }
+  if (info.IsDirectory())
   {
     File::FSTEntry parent_dir = File::ScanDirectoryTree(path, true);
     // add one for the folder itself
@@ -783,7 +788,7 @@ Result<DirectoryStats> HostFileSystem::GetDirectoryStats(const std::string& wii_
   }
   else
   {
-    WARN_LOG_FMT(IOS_FS, "fsBlock failed, cannot find directory: {}", path);
+    return ResultCode::Invalid;
   }
   return stats;
 }
