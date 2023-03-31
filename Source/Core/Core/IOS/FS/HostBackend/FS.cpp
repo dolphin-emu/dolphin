@@ -104,6 +104,45 @@ auto GetNamePredicate(const std::string& name)
 {
   return [&name](const auto& entry) { return entry.name == name; };
 }
+
+// Convert the host directory entries into ones that can be exposed to the emulated system.
+static u64 FixupDirectoryEntries(File::FSTEntry* dir, bool is_root)
+{
+  u64 removed_entries = 0;
+  for (auto it = dir->children.begin(); it != dir->children.end();)
+  {
+    // Drop files in the root of the Wii NAND folder, since we store extra files there that the
+    // emulated system shouldn't know about.
+    if (is_root && !it->isDirectory)
+    {
+      ++removed_entries;
+      it = dir->children.erase(it);
+      continue;
+    }
+
+    // Decode escaped invalid file system characters so that games (such as Harry Potter and the
+    // Half-Blood Prince) can find what they expect.
+    if (it->virtualName.find("__") != std::string::npos)
+      it->virtualName = Common::UnescapeFileName(it->virtualName);
+
+    // Drop files that have too long filenames.
+    if (!IsValidFilename(it->virtualName))
+    {
+      if (it->isDirectory)
+        removed_entries += it->size;
+      ++removed_entries;
+      it = dir->children.erase(it);
+      continue;
+    }
+
+    if (dir->isDirectory)
+      removed_entries += FixupDirectoryEntries(&*it, false);
+
+    ++it;
+  }
+  dir->size -= removed_entries;
+  return removed_entries;
+}
 }  // namespace
 
 bool HostFileSystem::FstEntry::CheckPermission(Uid caller_uid, Gid caller_gid,
@@ -647,12 +686,7 @@ Result<std::vector<std::string>> HostFileSystem::ReadDirectory(Uid uid, Gid gid,
 
   const std::string host_path = BuildFilename(path).host_path;
   File::FSTEntry host_entry = File::ScanDirectoryTree(host_path, false);
-  for (File::FSTEntry& child : host_entry.children)
-  {
-    // Decode escaped invalid file system characters so that games (such as
-    // Harry Potter and the Half-Blood Prince) can find what they expect.
-    child.virtualName = Common::UnescapeFileName(child.virtualName);
-  }
+  FixupDirectoryEntries(&host_entry, path == "/");
 
   // Sort files according to their order in the FST tree (issue 10234).
   // The result should look like this:
@@ -795,6 +829,7 @@ Result<DirectoryStats> HostFileSystem::GetDirectoryStats(const std::string& wii_
   if (info.IsDirectory())
   {
     File::FSTEntry parent_dir = File::ScanDirectoryTree(path, true);
+    FixupDirectoryEntries(&parent_dir, wii_path == "/");
 
     // add one for the folder itself
     stats.used_inodes = static_cast<u32>(std::min<u64>(1 + parent_dir.size, TOTAL_INODES));
