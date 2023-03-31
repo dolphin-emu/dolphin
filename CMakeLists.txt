@@ -6,6 +6,10 @@ cmake_minimum_required(VERSION 3.13)
 cmake_policy(SET CMP0079 NEW) # let target_link_libraries() link to a target defined in a different directory
 cmake_policy(SET CMP0080 OLD) # allow using BundleUtilities at configure time
 
+if (POLICY CMP0099)
+  cmake_policy(SET CMP0099 NEW) # Propagate INTERFACE_LINK_OPTIONS from private dependencies, used by MacOS framework builds of SDL
+endif()
+
 # Weird chicken-and-egg problem: We can't check the compiler before the project() call, but we have to set the policies before it.
 # So we do this in two steps: Set the policies if they exist, then error out afterwards if we end up being MSVC and they don't exist.
 if (POLICY CMP0117)
