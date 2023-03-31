@@ -764,17 +764,18 @@ static u64 ComputeUsedClusters(const File::FSTEntry& parent_entry)
 
 Result<NandStats> HostFileSystem::GetNandStats()
 {
-  WARN_LOG_FMT(IOS_FS, "GET STATS - returning static values for now");
+  const auto root_stats = GetDirectoryStats("/");
+  if (!root_stats)
+    return root_stats.Error();  // TODO: is this right? can this fail on hardware?
 
-  // TODO: scrape the real amounts from somewhere...
   NandStats stats{};
-  stats.cluster_size = 0x4000;
-  stats.free_clusters = 0x5DEC;
-  stats.used_clusters = 0x1DD4;
-  stats.bad_clusters = 0x10;
-  stats.reserved_clusters = 0x02F0;
-  stats.free_inodes = 0x146B;
-  stats.used_inodes = 0x0394;
+  stats.cluster_size = CLUSTER_SIZE;
+  stats.free_clusters = USABLE_CLUSTERS - root_stats->used_clusters;
+  stats.used_clusters = root_stats->used_clusters;
+  stats.bad_clusters = 0;
+  stats.reserved_clusters = RESERVED_CLUSTERS;
+  stats.free_inodes = TOTAL_INODES - root_stats->used_inodes;
+  stats.used_inodes = root_stats->used_inodes;
 
   return stats;
 }
