@@ -58,16 +58,20 @@ BuildRequires:  miniupnpc-devel
 BuildRequires:  openal-soft-devel
 #polarssl is now mbedtls:
 BuildRequires:  mbedtls-devel
+BuildRequires:  portaudio-devel
 BuildRequires:  SDL2-devel
 BuildRequires:  SFML-devel
+BuildRequires:  SOIL-devel
 BuildRequires:  soundtouch-devel
 %endif
 
 %if 0%{?suse_version}
 BuildRequires:  libminiupnpc-devel
 BuildRequires:  libSDL2-devel
+BuildRequires:  libSOIL-devel
 BuildRequires:  lzo-devel
 BuildRequires:  openal-devel
+BuildRequires:  portaudio-devel
 BuildRequires:  sfml-devel
 BuildRequires:  soundtouch-devel
 BuildRequires:  update-desktop-files

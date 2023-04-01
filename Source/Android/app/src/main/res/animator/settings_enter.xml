@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <objectAnimator
+        android:duration="@android:integer/config_mediumAnimTime"
+        android:interpolator="@android:interpolator/decelerate_cubic"
+        android:propertyName="yFraction"
+        android:startOffset="@android:integer/config_shortAnimTime"
+        android:valueFrom="1.0"
+        android:valueTo="0"/>
+
+    <objectAnimator
+        android:duration="@android:integer/config_mediumAnimTime"
+        android:interpolator="@android:interpolator/decelerate_cubic"
+        android:propertyName="translationZ"
+        android:startOffset="@android:integer/config_shortAnimTime"
+        android:valueFrom="100.0"
+        android:valueTo="0"/>
+
+    <objectAnimator
+        android:duration="@android:integer/config_mediumAnimTime"
+        android:interpolator="@android:interpolator/decelerate_cubic"
+        android:propertyName="elevation"
+        android:startOffset="@android:integer/config_shortAnimTime"
+        android:valueFrom="100.0"
+        android:valueTo="0"/>
+</set>

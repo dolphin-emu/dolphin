@@ -1,33 +1,76 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project>
-  <Import Project="..\Source\VSProps\Base.Macros.props" />
-  <Import Project="$(VSPropsDir)Base.Targets.props" />
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <msgfmt Include="po\ar.po" />
+    <msgfmt Include="po\ca.po" />
+    <msgfmt Include="po\cs.po" />
+    <msgfmt Include="po\da_DK.po" />
+    <msgfmt Include="po\de.po" />
+    <msgfmt Include="po\el.po" />
+    <msgfmt Include="po\en.po" />
+    <msgfmt Include="po\es.po" />
+    <msgfmt Include="po\fa.po" />
+    <msgfmt Include="po\fr.po" />
+    <msgfmt Include="po\hr.po" />
+    <msgfmt Include="po\hu.po" />
+    <msgfmt Include="po\it.po" />
+    <msgfmt Include="po\ja.po" />
+    <msgfmt Include="po\ko.po" />
+    <msgfmt Include="po\ms_MY.po" />
+    <msgfmt Include="po\nb.po" />
+    <msgfmt Include="po\nl.po" />
+    <msgfmt Include="po\pl.po" />
+    <msgfmt Include="po\pt.po" />
+    <msgfmt Include="po\pt_BR.po" />
+    <msgfmt Include="po\ro_RO.po" />
+    <msgfmt Include="po\ru.po" />
+    <msgfmt Include="po\sr.po" />
+    <msgfmt Include="po\sv.po" />
+    <msgfmt Include="po\tr.po" />
+    <msgfmt Include="po\zh_CN.po" />
+    <msgfmt Include="po\zh_TW.po" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{0E033BE3-2E08-428E-9AE9-BC673EFA12B5}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <Import Project="$(VSPropsDir)Configuration.Utility.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="ExtensionSettings">
+    <Import Project="po.props" />
+  </ImportGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(VSPropsDir)Base.props" />
+    <Import Project="..\Source\VSProps\Base.props" />
   </ImportGroup>
-  <PropertyGroup Label="UserMacros" />
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets" />
+  <!--Output directly to binary directory...-->
   <PropertyGroup>
-    <msgfmt>..\Externals\gettext\msgfmt</msgfmt>
+    <OutDir>$(BinaryOutputDir)</OutDir>
   </PropertyGroup>
-  <ItemGroup>
-    <PoFiles Include="po\*.po" />
-    <MoFiles Include="@(PoFiles -> '$(OutDir)%(Filename).mo')" />
-    <MoFilesDst Include="@(MoFiles -> '$(BinaryOutputDir)Languages\%(Filename)%(Extension)')" />
-  </ItemGroup>
-  <Target Name="MsgFmtCompile" BeforeTargets="BuildGenerateSources" Inputs="@(PoFiles)" Outputs="@(MoFiles)">
-    <Exec Command='$(msgfmt) -o "$(OutDir)%(PoFiles.Filename).mo" "@(PoFiles)"' />
-  </Target>
-  <Target Name="MsgFmtCopy" AfterTargets="MsgFmtCompile" Inputs="@(MoFiles)" Outputs="@(MoFilesDst)">
-    <Copy SourceFiles="@(MoFiles)" DestinationFiles="@(MoFilesDst)" SkipUnchangedFiles="true" />
-  </Target>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="po.targets" />
+  </ImportGroup>
 </Project>

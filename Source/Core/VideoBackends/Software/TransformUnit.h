@@ -1,5 +1,6 @@
 // Copyright 2009 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #pragma once
 
@@ -8,8 +9,8 @@ struct OutputVertexData;
 
 namespace TransformUnit
 {
-void TransformPosition(const InputVertexData* src, OutputVertexData* dst);
-void TransformNormal(const InputVertexData* src, OutputVertexData* dst);
-void TransformColor(const InputVertexData* src, OutputVertexData* dst);
-void TransformTexCoord(const InputVertexData* src, OutputVertexData* dst);
-}  // namespace TransformUnit
+	void TransformPosition(const InputVertexData *src, OutputVertexData *dst);
+	void TransformNormal(const InputVertexData *src, bool nbt, OutputVertexData *dst);
+	void TransformColor(const InputVertexData *src, OutputVertexData *dst);
+	void TransformTexCoord(const InputVertexData *src, OutputVertexData *dst, bool specialCase);
+}

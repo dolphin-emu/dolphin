@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{3DE9EE35-3E91-4F27-A014-2866AD8C3FE3}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\VSProps\Base.props" />
+    <Import Project="..\..\VSProps\PCHUse.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ExternalsDir)ffmpeg\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Lib>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ExternalsDir)ffmpeg\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Lib>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="AsyncRequests.cpp" />
+    <ClCompile Include="AVIDump.cpp" />
+    <ClCompile Include="BoundingBox.cpp" />
+    <ClCompile Include="BPFunctions.cpp" />
+    <ClCompile Include="BPMemory.cpp" />
+    <ClCompile Include="BPStructs.cpp" />
+    <ClCompile Include="CommandProcessor.cpp" />
+    <ClCompile Include="CPMemory.cpp" />
+    <ClCompile Include="Debugger.cpp" />
+    <ClCompile Include="DriverDetails.cpp" />
+    <ClCompile Include="Fifo.cpp" />
+    <ClCompile Include="FPSCounter.cpp" />
+    <ClCompile Include="FramebufferManagerBase.cpp" />
+    <ClCompile Include="HiresTextures.cpp" />
+    <ClCompile Include="ImageWrite.cpp" />
+    <ClCompile Include="IndexGenerator.cpp" />
+    <ClCompile Include="MainBase.cpp" />
+    <ClCompile Include="OnScreenDisplay.cpp" />
+    <ClCompile Include="OpcodeDecoding.cpp" />
+    <ClCompile Include="PerfQueryBase.cpp" />
+    <ClCompile Include="PixelEngine.cpp" />
+    <ClCompile Include="PixelShaderGen.cpp" />
+    <ClCompile Include="PixelShaderManager.cpp" />
+    <ClCompile Include="PostProcessing.cpp" />
+    <ClCompile Include="RenderBase.cpp" />
+    <ClCompile Include="Statistics.cpp" />
+    <ClCompile Include="GeometryShaderGen.cpp" />
+    <ClCompile Include="GeometryShaderManager.cpp" />
+    <ClCompile Include="TextureCacheBase.cpp" />
+    <ClCompile Include="TextureConversionShader.cpp" />
+    <ClCompile Include="VertexLoader.cpp" />
+    <ClCompile Include="VertexLoaderBase.cpp" />
+    <ClCompile Include="VertexLoaderX64.cpp" />
+    <ClCompile Include="VertexLoaderManager.cpp" />
+    <ClCompile Include="VertexLoader_Color.cpp" />
+    <ClCompile Include="VertexLoader_Normal.cpp" />
+    <ClCompile Include="VertexLoader_Position.cpp" />
+    <ClCompile Include="VertexLoader_TextCoord.cpp" />
+    <ClCompile Include="VertexManagerBase.cpp" />
+    <ClCompile Include="VertexShaderGen.cpp" />
+    <ClCompile Include="VertexShaderManager.cpp" />
+    <ClCompile Include="VideoBackendBase.cpp" />
+    <ClCompile Include="VideoConfig.cpp" />
+    <ClCompile Include="VideoState.cpp" />
+    <ClCompile Include="TextureDecoder_Common.cpp" />
+    <ClCompile Include="TextureDecoder_x64.cpp" />
+    <ClCompile Include="XFMemory.cpp" />
+    <ClCompile Include="XFStructs.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AsyncRequests.h" />
+    <ClInclude Include="AVIDump.h" />
+    <ClInclude Include="BoundingBox.h" />
+    <ClInclude Include="BPFunctions.h" />
+    <ClInclude Include="BPMemory.h" />
+    <ClInclude Include="BPStructs.h" />
+    <ClInclude Include="CommandProcessor.h" />
+    <ClInclude Include="CPMemory.h" />
+    <ClInclude Include="DataReader.h" />
+    <ClInclude Include="Debugger.h" />
+    <ClInclude Include="DriverDetails.h" />
+    <ClInclude Include="Fifo.h" />
+    <ClInclude Include="FPSCounter.h" />
+    <ClInclude Include="FramebufferManagerBase.h" />
+    <ClInclude Include="HiresTextures.h" />
+    <ClInclude Include="ImageWrite.h" />
+    <ClInclude Include="IndexGenerator.h" />
+    <ClInclude Include="LightingShaderGen.h" />
+    <ClInclude Include="LookUpTables.h" />
+    <ClInclude Include="NativeVertexFormat.h" />
+    <ClInclude Include="OnScreenDisplay.h" />
+    <ClInclude Include="OpcodeDecoding.h" />
+    <ClInclude Include="PerfQueryBase.h" />
+    <ClInclude Include="PixelEngine.h" />
+    <ClInclude Include="PixelShaderGen.h" />
+    <ClInclude Include="PixelShaderManager.h" />
+    <ClInclude Include="PostProcessing.h" />
+    <ClInclude Include="RenderBase.h" />
+    <ClInclude Include="SamplerCommon.h" />
+    <ClInclude Include="ShaderGenCommon.h" />
+    <ClInclude Include="Statistics.h" />
+    <ClInclude Include="GeometryShaderGen.h" />
+    <ClInclude Include="GeometryShaderManager.h" />
+    <ClInclude Include="TextureCacheBase.h" />
+    <ClInclude Include="TextureConversionShader.h" />
+    <ClInclude Include="TextureDecoder.h" />
+    <ClInclude Include="VertexLoader.h" />
+    <ClInclude Include="VertexLoaderBase.h" />
+    <ClInclude Include="VertexLoaderManager.h" />
+    <ClInclude Include="VertexLoaderUtils.h" />
+    <ClInclude Include="VertexLoader_Color.h" />
+    <ClInclude Include="VertexLoader_Normal.h" />
+    <ClInclude Include="VertexLoader_Position.h" />
+    <ClInclude Include="VertexLoader_TextCoord.h" />
+    <ClInclude Include="VertexManagerBase.h" />
+    <ClInclude Include="VertexShaderGen.h" />
+    <ClInclude Include="VertexShaderManager.h" />
+    <ClInclude Include="VideoBackendBase.h" />
+    <ClInclude Include="VideoCommon.h" />
+    <ClInclude Include="VideoConfig.h" />
+    <ClInclude Include="VideoState.h" />
+    <ClInclude Include="XFMemory.h" />
+    <ClInclude Include="XFStructs.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)libpng\png\png.vcxproj">
+      <Project>{4c9f135b-a85e-430c-bad4-4c67ef5fc12c}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)SOIL\SOIL.vcxproj">
+      <Project>{b441cc62-877e-4b3f-93e0-0de80544f705}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)xxhash\xxhash.vcxproj">
+      <Project>{677EA016-1182-440C-9345-DC88D1E98C0C}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)zlib\zlib.vcxproj">
+      <Project>{ff213b23-2c26-4214-9f88-85271e557e87}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)Common\Common.vcxproj">
+      <Project>{2e6c348c-c75c-4d94-8d1e-9c1fcbf3efe4}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

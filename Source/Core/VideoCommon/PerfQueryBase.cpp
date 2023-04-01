@@ -1,13 +1,14 @@
 // Copyright 2012 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
-#include "VideoCommon/PerfQueryBase.h"
 #include <memory>
+#include "VideoCommon/PerfQueryBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 std::unique_ptr<PerfQueryBase> g_perf_query;
 
 bool PerfQueryBase::ShouldEmulate()
 {
-  return g_ActiveConfig.bPerfQueriesEnable;
+	return g_ActiveConfig.bPerfQueriesEnable;
 }

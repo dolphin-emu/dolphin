@@ -1,0 +1,88 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="ControllerInterface">
+      <UniqueIdentifier>{3a755a86-0efa-4396-bf79-bb3a1910764d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ControllerInterface\DInput">
+      <UniqueIdentifier>{0289ef91-50f5-4c16-9fa4-ff4c4d8208e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ControllerInterface\XInput">
+      <UniqueIdentifier>{07bad1aa-7e03-4f5c-ade2-a44857c5cbc3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ControllerInterface\ForceFeedback">
+      <UniqueIdentifier>{e10ce316-283c-4be0-848d-578dec2b6404}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ControllerEmu.cpp" />
+    <ClCompile Include="GCAdapter.cpp" />
+    <ClCompile Include="InputConfig.cpp" />
+    <ClCompile Include="ControllerInterface\DInput\DInput.cpp">
+      <Filter>ControllerInterface\DInput</Filter>
+    </ClCompile>
+    <ClCompile Include="ControllerInterface\DInput\DInputJoystick.cpp">
+      <Filter>ControllerInterface\DInput</Filter>
+    </ClCompile>
+    <ClCompile Include="ControllerInterface\DInput\DInputKeyboardMouse.cpp">
+      <Filter>ControllerInterface\DInput</Filter>
+    </ClCompile>
+    <ClCompile Include="ControllerInterface\XInput\XInput.cpp">
+      <Filter>ControllerInterface\XInput</Filter>
+    </ClCompile>
+    <ClCompile Include="ControllerInterface\Device.cpp">
+      <Filter>ControllerInterface</Filter>
+    </ClCompile>
+    <ClCompile Include="ControllerInterface\ControllerInterface.cpp">
+      <Filter>ControllerInterface</Filter>
+    </ClCompile>
+    <ClCompile Include="ControllerInterface\ExpressionParser.cpp">
+      <Filter>ControllerInterface</Filter>
+    </ClCompile>
+    <ClCompile Include="ControllerInterface\ForceFeedback\ForceFeedbackDevice.cpp">
+      <Filter>ControllerInterface\ForceFeedback</Filter>
+    </ClCompile>
+    <ClCompile Include="ControllerInterface\DInput\XInputFilter.cpp">
+      <Filter>ControllerInterface\DInput</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ControllerEmu.h" />
+    <ClCompile Include="GCAdapter.h" />
+    <ClInclude Include="GCPadStatus.h" />
+    <ClInclude Include="InputConfig.h" />
+    <ClInclude Include="ControllerInterface\DInput\DInput.h">
+      <Filter>ControllerInterface\DInput</Filter>
+    </ClInclude>
+    <ClInclude Include="ControllerInterface\DInput\DInputJoystick.h">
+      <Filter>ControllerInterface\DInput</Filter>
+    </ClInclude>
+    <ClInclude Include="ControllerInterface\DInput\DInputKeyboardMouse.h">
+      <Filter>ControllerInterface\DInput</Filter>
+    </ClInclude>
+    <ClInclude Include="ControllerInterface\XInput\XInput.h">
+      <Filter>ControllerInterface\XInput</Filter>
+    </ClInclude>
+    <ClInclude Include="ControllerInterface\ControllerInterface.h">
+      <Filter>ControllerInterface</Filter>
+    </ClInclude>
+    <ClInclude Include="ControllerInterface\Device.h">
+      <Filter>ControllerInterface</Filter>
+    </ClInclude>
+    <ClInclude Include="ControllerInterface\ExpressionParser.h">
+      <Filter>ControllerInterface</Filter>
+    </ClInclude>
+    <ClInclude Include="ControllerInterface\ForceFeedback\ForceFeedbackDevice.h">
+      <Filter>ControllerInterface\ForceFeedback</Filter>
+    </ClInclude>
+    <ClInclude Include="ControllerInterface\DInput\DInput8.h">
+      <Filter>ControllerInterface\DInput</Filter>
+    </ClInclude>
+    <ClInclude Include="ControllerInterface\DInput\XInputFilter.h">
+      <Filter>ControllerInterface\DInput</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="CMakeLists.txt" />
+  </ItemGroup>
+</Project>

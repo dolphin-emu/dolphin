@@ -1,10 +1,9 @@
 /**
- * \file x509_crl.h
+ * \file mbedtls_x509_crl.h
  *
  * \brief X.509 certificate revocation list parsing
- */
-/*
- *  Copyright The Mbed TLS Contributors
+ *
+ *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -18,17 +17,19 @@
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
+ *
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 #ifndef MBEDTLS_X509_CRL_H
 #define MBEDTLS_X509_CRL_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
+#include "config.h"
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "mbedtls/x509.h"
+#include "x509.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -99,7 +100,6 @@ mbedtls_x509_crl;
  *
  * \param chain    points to the start of the chain
  * \param buf      buffer holding the CRL data in DER format
- * \param buflen   size of the buffer
  *                 (including the terminating null byte for PEM data)
  *
  * \return         0 if successful, or a specific X509 or PEM error code
@@ -109,7 +109,7 @@ int mbedtls_x509_crl_parse_der( mbedtls_x509_crl *chain,
 /**
  * \brief          Parse one or more CRLs and append them to the chained list
  *
- * \note           Multiple CRLs are accepted only if using PEM format
+ * \note           Mutliple CRLs are accepted only if using PEM format
  *
  * \param chain    points to the start of the chain
  * \param buf      buffer holding the CRL data in PEM or DER format
@@ -124,7 +124,7 @@ int mbedtls_x509_crl_parse( mbedtls_x509_crl *chain, const unsigned char *buf, s
 /**
  * \brief          Load one or more CRLs and append them to the chained list
  *
- * \note           Multiple CRLs are accepted only if using PEM format
+ * \note           Mutliple CRLs are accepted only if using PEM format
  *
  * \param chain    points to the start of the chain
  * \param path     filename to read the CRLs from (in PEM or DER encoding)

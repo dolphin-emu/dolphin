@@ -2,9 +2,8 @@
  * \file asn1write.h
  *
  * \brief ASN.1 buffer writing functionality
- */
-/*
- *  Copyright The Mbed TLS Contributors
+ *
+ *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -18,324 +17,199 @@
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
+ *
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 #ifndef MBEDTLS_ASN1_WRITE_H
 #define MBEDTLS_ASN1_WRITE_H
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "asn1.h"
 
-#include "mbedtls/asn1.h"
-
-#define MBEDTLS_ASN1_CHK_ADD(g, f)                      \
-    do                                                  \
-    {                                                   \
-        if( ( ret = (f) ) < 0 )                         \
-            return( ret );                              \
-        else                                            \
-            (g) += ret;                                 \
-    } while( 0 )
+#define MBEDTLS_ASN1_CHK_ADD(g, f) do { if( ( ret = f ) < 0 ) return( ret ); else   \
+                                g += ret; } while( 0 )
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
- * \brief           Write a length field in ASN.1 format.
+ * \brief           Write a length field in ASN.1 format
+ *                  Note: function works backwards in data buffer
  *
- * \note            This function works backwards in data buffer.
+ * \param p         reference to current position pointer
+ * \param start     start of the buffer (for bounds-checking)
+ * \param len       the length to write
  *
- * \param p         The reference to the current position pointer.
- * \param start     The start of the buffer, for bounds-checking.
- * \param len       The length value to write.
- *
- * \return          The number of bytes written to \p p on success.
- * \return          A negative \c MBEDTLS_ERR_ASN1_XXX error code on failure.
+ * \return          the length written or a negative error code
  */
-int mbedtls_asn1_write_len( unsigned char **p, unsigned char *start,
-                            size_t len );
-/**
- * \brief           Write an ASN.1 tag in ASN.1 format.
- *
- * \note            This function works backwards in data buffer.
- *
- * \param p         The reference to the current position pointer.
- * \param start     The start of the buffer, for bounds-checking.
- * \param tag       The tag to write.
- *
- * \return          The number of bytes written to \p p on success.
- * \return          A negative \c MBEDTLS_ERR_ASN1_XXX error code on failure.
- */
-int mbedtls_asn1_write_tag( unsigned char **p, unsigned char *start,
-                            unsigned char tag );
+int mbedtls_asn1_write_len( unsigned char **p, unsigned char *start, size_t len );
 
 /**
- * \brief           Write raw buffer data.
+ * \brief           Write a ASN.1 tag in ASN.1 format
+ *                  Note: function works backwards in data buffer
  *
- * \note            This function works backwards in data buffer.
+ * \param p         reference to current position pointer
+ * \param start     start of the buffer (for bounds-checking)
+ * \param tag       the tag to write
  *
- * \param p         The reference to the current position pointer.
- * \param start     The start of the buffer, for bounds-checking.
- * \param buf       The data buffer to write.
- * \param size      The length of the data buffer.
+ * \return          the length written or a negative error code
+ */
+int mbedtls_asn1_write_tag( unsigned char **p, unsigned char *start,
+                    unsigned char tag );
+
+/**
+ * \brief           Write raw buffer data
+ *                  Note: function works backwards in data buffer
  *
- * \return          The number of bytes written to \p p on success.
- * \return          A negative \c MBEDTLS_ERR_ASN1_XXX error code on failure.
+ * \param p         reference to current position pointer
+ * \param start     start of the buffer (for bounds-checking)
+ * \param buf       data buffer to write
+ * \param size      length of the data buffer
+ *
+ * \return          the length written or a negative error code
  */
 int mbedtls_asn1_write_raw_buffer( unsigned char **p, unsigned char *start,
-                                   const unsigned char *buf, size_t size );
+                           const unsigned char *buf, size_t size );
 
 #if defined(MBEDTLS_BIGNUM_C)
 /**
- * \brief           Write a arbitrary-precision number (#MBEDTLS_ASN1_INTEGER)
- *                  in ASN.1 format.
+ * \brief           Write a big number (MBEDTLS_ASN1_INTEGER) in ASN.1 format
+ *                  Note: function works backwards in data buffer
  *
- * \note            This function works backwards in data buffer.
+ * \param p         reference to current position pointer
+ * \param start     start of the buffer (for bounds-checking)
+ * \param X         the MPI to write
  *
- * \param p         The reference to the current position pointer.
- * \param start     The start of the buffer, for bounds-checking.
- * \param X         The MPI to write.
- *                  It must be non-negative.
- *
- * \return          The number of bytes written to \p p on success.
- * \return          A negative \c MBEDTLS_ERR_ASN1_XXX error code on failure.
+ * \return          the length written or a negative error code
  */
-int mbedtls_asn1_write_mpi( unsigned char **p, unsigned char *start,
-                            const mbedtls_mpi *X );
+int mbedtls_asn1_write_mpi( unsigned char **p, unsigned char *start, const mbedtls_mpi *X );
 #endif /* MBEDTLS_BIGNUM_C */
 
 /**
- * \brief           Write a NULL tag (#MBEDTLS_ASN1_NULL) with zero data
- *                  in ASN.1 format.
+ * \brief           Write a NULL tag (MBEDTLS_ASN1_NULL) with zero data in ASN.1 format
+ *                  Note: function works backwards in data buffer
  *
- * \note            This function works backwards in data buffer.
+ * \param p         reference to current position pointer
+ * \param start     start of the buffer (for bounds-checking)
  *
- * \param p         The reference to the current position pointer.
- * \param start     The start of the buffer, for bounds-checking.
- *
- * \return          The number of bytes written to \p p on success.
- * \return          A negative \c MBEDTLS_ERR_ASN1_XXX error code on failure.
+ * \return          the length written or a negative error code
  */
 int mbedtls_asn1_write_null( unsigned char **p, unsigned char *start );
 
 /**
- * \brief           Write an OID tag (#MBEDTLS_ASN1_OID) and data
- *                  in ASN.1 format.
+ * \brief           Write an OID tag (MBEDTLS_ASN1_OID) and data in ASN.1 format
+ *                  Note: function works backwards in data buffer
  *
- * \note            This function works backwards in data buffer.
+ * \param p         reference to current position pointer
+ * \param start     start of the buffer (for bounds-checking)
+ * \param oid       the OID to write
+ * \param oid_len   length of the OID
  *
- * \param p         The reference to the current position pointer.
- * \param start     The start of the buffer, for bounds-checking.
- * \param oid       The OID to write.
- * \param oid_len   The length of the OID.
- *
- * \return          The number of bytes written to \p p on success.
- * \return          A negative \c MBEDTLS_ERR_ASN1_XXX error code on failure.
+ * \return          the length written or a negative error code
  */
 int mbedtls_asn1_write_oid( unsigned char **p, unsigned char *start,
-                            const char *oid, size_t oid_len );
+                    const char *oid, size_t oid_len );
 
 /**
- * \brief           Write an AlgorithmIdentifier sequence in ASN.1 format.
+ * \brief           Write an AlgorithmIdentifier sequence in ASN.1 format
+ *                  Note: function works backwards in data buffer
  *
- * \note            This function works backwards in data buffer.
- *
- * \param p         The reference to the current position pointer.
- * \param start     The start of the buffer, for bounds-checking.
- * \param oid       The OID of the algorithm to write.
- * \param oid_len   The length of the algorithm's OID.
- * \param par_len   The length of the parameters, which must be already written.
+ * \param p         reference to current position pointer
+ * \param start     start of the buffer (for bounds-checking)
+ * \param oid       the OID of the algorithm
+ * \param oid_len   length of the OID
+ * \param par_len   length of parameters, which must be already written.
  *                  If 0, NULL parameters are added
  *
- * \return          The number of bytes written to \p p on success.
- * \return          A negative \c MBEDTLS_ERR_ASN1_XXX error code on failure.
+ * \return          the length written or a negative error code
  */
-int mbedtls_asn1_write_algorithm_identifier( unsigned char **p,
-                                             unsigned char *start,
-                                             const char *oid, size_t oid_len,
-                                             size_t par_len );
+int mbedtls_asn1_write_algorithm_identifier( unsigned char **p, unsigned char *start,
+                                     const char *oid, size_t oid_len,
+                                     size_t par_len );
 
 /**
- * \brief           Write a boolean tag (#MBEDTLS_ASN1_BOOLEAN) and value
- *                  in ASN.1 format.
+ * \brief           Write a boolean tag (MBEDTLS_ASN1_BOOLEAN) and value in ASN.1 format
+ *                  Note: function works backwards in data buffer
  *
- * \note            This function works backwards in data buffer.
+ * \param p         reference to current position pointer
+ * \param start     start of the buffer (for bounds-checking)
+ * \param boolean   0 or 1
  *
- * \param p         The reference to the current position pointer.
- * \param start     The start of the buffer, for bounds-checking.
- * \param boolean   The boolean value to write, either \c 0 or \c 1.
- *
- * \return          The number of bytes written to \p p on success.
- * \return          A negative \c MBEDTLS_ERR_ASN1_XXX error code on failure.
+ * \return          the length written or a negative error code
  */
-int mbedtls_asn1_write_bool( unsigned char **p, unsigned char *start,
-                             int boolean );
+int mbedtls_asn1_write_bool( unsigned char **p, unsigned char *start, int boolean );
 
 /**
- * \brief           Write an int tag (#MBEDTLS_ASN1_INTEGER) and value
- *                  in ASN.1 format.
+ * \brief           Write an int tag (MBEDTLS_ASN1_INTEGER) and value in ASN.1 format
+ *                  Note: function works backwards in data buffer
  *
- * \note            This function works backwards in data buffer.
+ * \param p         reference to current position pointer
+ * \param start     start of the buffer (for bounds-checking)
+ * \param val       the integer value
  *
- * \param p         The reference to the current position pointer.
- * \param start     The start of the buffer, for bounds-checking.
- * \param val       The integer value to write.
- *                  It must be non-negative.
- *
- * \return          The number of bytes written to \p p on success.
- * \return          A negative \c MBEDTLS_ERR_ASN1_XXX error code on failure.
+ * \return          the length written or a negative error code
  */
 int mbedtls_asn1_write_int( unsigned char **p, unsigned char *start, int val );
 
 /**
- * \brief           Write an enum tag (#MBEDTLS_ASN1_ENUMERATED) and value
- *                  in ASN.1 format.
+ * \brief           Write a printable string tag (MBEDTLS_ASN1_PRINTABLE_STRING) and
+ *                  value in ASN.1 format
+ *                  Note: function works backwards in data buffer
  *
- * \note            This function works backwards in data buffer.
+ * \param p         reference to current position pointer
+ * \param start     start of the buffer (for bounds-checking)
+ * \param text      the text to write
+ * \param text_len  length of the text
  *
- * \param p         The reference to the current position pointer.
- * \param start     The start of the buffer, for bounds-checking.
- * \param val       The integer value to write.
- *
- * \return          The number of bytes written to \p p on success.
- * \return          A negative \c MBEDTLS_ERR_ASN1_XXX error code on failure.
+ * \return          the length written or a negative error code
  */
-int mbedtls_asn1_write_enum( unsigned char **p, unsigned char *start, int val );
+int mbedtls_asn1_write_printable_string( unsigned char **p, unsigned char *start,
+                                 const char *text, size_t text_len );
 
 /**
- * \brief           Write a string in ASN.1 format using a specific
- *                  string encoding tag.
-
- * \note            This function works backwards in data buffer.
+ * \brief           Write an IA5 string tag (MBEDTLS_ASN1_IA5_STRING) and
+ *                  value in ASN.1 format
+ *                  Note: function works backwards in data buffer
  *
- * \param p         The reference to the current position pointer.
- * \param start     The start of the buffer, for bounds-checking.
- * \param tag       The string encoding tag to write, e.g.
- *                  #MBEDTLS_ASN1_UTF8_STRING.
- * \param text      The string to write.
- * \param text_len  The length of \p text in bytes (which might
- *                  be strictly larger than the number of characters).
+ * \param p         reference to current position pointer
+ * \param start     start of the buffer (for bounds-checking)
+ * \param text      the text to write
+ * \param text_len  length of the text
  *
- * \return          The number of bytes written to \p p on success.
- * \return          A negative error code on failure.
- */
-int mbedtls_asn1_write_tagged_string( unsigned char **p, unsigned char *start,
-                                      int tag, const char *text,
-                                      size_t text_len );
-
-/**
- * \brief           Write a string in ASN.1 format using the PrintableString
- *                  string encoding tag (#MBEDTLS_ASN1_PRINTABLE_STRING).
- *
- * \note            This function works backwards in data buffer.
- *
- * \param p         The reference to the current position pointer.
- * \param start     The start of the buffer, for bounds-checking.
- * \param text      The string to write.
- * \param text_len  The length of \p text in bytes (which might
- *                  be strictly larger than the number of characters).
- *
- * \return          The number of bytes written to \p p on success.
- * \return          A negative error code on failure.
- */
-int mbedtls_asn1_write_printable_string( unsigned char **p,
-                                         unsigned char *start,
-                                         const char *text, size_t text_len );
-
-/**
- * \brief           Write a UTF8 string in ASN.1 format using the UTF8String
- *                  string encoding tag (#MBEDTLS_ASN1_UTF8_STRING).
- *
- * \note            This function works backwards in data buffer.
- *
- * \param p         The reference to the current position pointer.
- * \param start     The start of the buffer, for bounds-checking.
- * \param text      The string to write.
- * \param text_len  The length of \p text in bytes (which might
- *                  be strictly larger than the number of characters).
- *
- * \return          The number of bytes written to \p p on success.
- * \return          A negative error code on failure.
- */
-int mbedtls_asn1_write_utf8_string( unsigned char **p, unsigned char *start,
-                                    const char *text, size_t text_len );
-
-/**
- * \brief           Write a string in ASN.1 format using the IA5String
- *                  string encoding tag (#MBEDTLS_ASN1_IA5_STRING).
- *
- * \note            This function works backwards in data buffer.
- *
- * \param p         The reference to the current position pointer.
- * \param start     The start of the buffer, for bounds-checking.
- * \param text      The string to write.
- * \param text_len  The length of \p text in bytes (which might
- *                  be strictly larger than the number of characters).
- *
- * \return          The number of bytes written to \p p on success.
- * \return          A negative error code on failure.
+ * \return          the length written or a negative error code
  */
 int mbedtls_asn1_write_ia5_string( unsigned char **p, unsigned char *start,
-                                   const char *text, size_t text_len );
+                           const char *text, size_t text_len );
 
 /**
- * \brief           Write a bitstring tag (#MBEDTLS_ASN1_BIT_STRING) and
- *                  value in ASN.1 format.
+ * \brief           Write a bitstring tag (MBEDTLS_ASN1_BIT_STRING) and
+ *                  value in ASN.1 format
+ *                  Note: function works backwards in data buffer
  *
- * \note            This function works backwards in data buffer.
+ * \param p         reference to current position pointer
+ * \param start     start of the buffer (for bounds-checking)
+ * \param buf       the bitstring
+ * \param bits      the total number of bits in the bitstring
  *
- * \param p         The reference to the current position pointer.
- * \param start     The start of the buffer, for bounds-checking.
- * \param buf       The bitstring to write.
- * \param bits      The total number of bits in the bitstring.
- *
- * \return          The number of bytes written to \p p on success.
- * \return          A negative error code on failure.
+ * \return          the length written or a negative error code
  */
 int mbedtls_asn1_write_bitstring( unsigned char **p, unsigned char *start,
-                                  const unsigned char *buf, size_t bits );
+                          const unsigned char *buf, size_t bits );
 
 /**
- * \brief           This function writes a named bitstring tag
- *                  (#MBEDTLS_ASN1_BIT_STRING) and value in ASN.1 format.
+ * \brief           Write an octet string tag (MBEDTLS_ASN1_OCTET_STRING) and
+ *                  value in ASN.1 format
+ *                  Note: function works backwards in data buffer
  *
- *                  As stated in RFC 5280 Appendix B, trailing zeroes are
- *                  omitted when encoding named bitstrings in DER.
+ * \param p         reference to current position pointer
+ * \param start     start of the buffer (for bounds-checking)
+ * \param buf       data buffer to write
+ * \param size      length of the data buffer
  *
- * \note            This function works backwards within the data buffer.
- *
- * \param p         The reference to the current position pointer.
- * \param start     The start of the buffer which is used for bounds-checking.
- * \param buf       The bitstring to write.
- * \param bits      The total number of bits in the bitstring.
- *
- * \return          The number of bytes written to \p p on success.
- * \return          A negative error code on failure.
- */
-int mbedtls_asn1_write_named_bitstring( unsigned char **p,
-                                        unsigned char *start,
-                                        const unsigned char *buf,
-                                        size_t bits );
-
-/**
- * \brief           Write an octet string tag (#MBEDTLS_ASN1_OCTET_STRING)
- *                  and value in ASN.1 format.
- *
- * \note            This function works backwards in data buffer.
- *
- * \param p         The reference to the current position pointer.
- * \param start     The start of the buffer, for bounds-checking.
- * \param buf       The buffer holding the data to write.
- * \param size      The length of the data buffer \p buf.
- *
- * \return          The number of bytes written to \p p on success.
- * \return          A negative error code on failure.
+ * \return          the length written or a negative error code
  */
 int mbedtls_asn1_write_octet_string( unsigned char **p, unsigned char *start,
-                                     const unsigned char *buf, size_t size );
+                             const unsigned char *buf, size_t size );
 
 /**
  * \brief           Create or find a specific named_data entry for writing in a
@@ -343,20 +217,15 @@ int mbedtls_asn1_write_octet_string( unsigned char **p, unsigned char *start,
  *                  a new entry is added to the head of the list.
  *                  Warning: Destructive behaviour for the val data!
  *
- * \param list      The pointer to the location of the head of the list to seek
- *                  through (will be updated in case of a new entry).
- * \param oid       The OID to look for.
- * \param oid_len   The size of the OID.
- * \param val       The associated data to store. If this is \c NULL,
- *                  no data is copied to the new or existing buffer.
- * \param val_len   The minimum length of the data buffer needed.
- *                  If this is 0, do not allocate a buffer for the associated
- *                  data.
- *                  If the OID was already present, enlarge, shrink or free
- *                  the existing buffer to fit \p val_len.
+ * \param list      Pointer to the location of the head of the list to seek
+ *                  through (will be updated in case of a new entry)
+ * \param oid       The OID to look for
+ * \param oid_len   Size of the OID
+ * \param val       Data to store (can be NULL if you want to fill it by hand)
+ * \param val_len   Minimum length of the data buffer needed
  *
- * \return          A pointer to the new / existing entry on success.
- * \return          \c NULL if if there was a memory allocation error.
+ * \return      NULL if if there was a memory allocation error, or a pointer
+ *              to the new / existing entry.
  */
 mbedtls_asn1_named_data *mbedtls_asn1_store_named_data( mbedtls_asn1_named_data **list,
                                         const char *oid, size_t oid_len,

@@ -1,5 +1,6 @@
 // Copyright 2014 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #pragma once
 
@@ -11,21 +12,23 @@ struct GCPadStatus;
 
 namespace GCAdapter
 {
+enum ControllerTypes
+{
+	CONTROLLER_NONE = 0,
+	CONTROLLER_WIRED = 1,
+	CONTROLLER_WIRELESS = 2
+};
 void Init();
 void ResetRumble();
 void Shutdown();
 void SetAdapterCallback(std::function<void(void)> func);
 void StartScanThread();
 void StopScanThread();
-
-// Buttons have PAD_GET_ORIGIN set on new connection
-// Netplay and CSIDevice_GCAdapter make use of this.
-GCPadStatus Input(int chan);
-
+void Input(int chan, GCPadStatus* pad);
 void Output(int chan, u8 rumble_command);
-bool IsDetected(const char** error_message);
+bool IsDetected();
+bool IsDriverDetected();
 bool DeviceConnected(int chan);
-void ResetDeviceType(int chan);
 bool UseAdapter();
 
-}  // namespace GCAdapter
+} // end of namespace GCAdapter

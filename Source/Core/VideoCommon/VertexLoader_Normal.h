@@ -1,113 +1,72 @@
 // Copyright 2008 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #pragma once
 
 #include "Common/CommonTypes.h"
-#include "Common/EnumMap.h"
-#include "Common/Inline.h"
-
-#include "VideoCommon/CPMemory.h"
-#include "VideoCommon/VertexLoader.h"
 
 class VertexLoader_Normal
 {
 public:
-  static DOLPHIN_FORCE_INLINE u32 GetSize(VertexComponentFormat type, ComponentFormat format,
-                                          NormalComponentCount elements, bool index3)
-  {
-    return s_table_size[type][index3][elements][format];
-  }
 
-  static TPipelineFunction GetFunction(VertexComponentFormat type, ComponentFormat format,
-                                       NormalComponentCount elements, bool index3);
+	// Init
+	static void Init();
+
+	// GetSize
+	static unsigned int GetSize(u64 _type, unsigned int _format,
+		unsigned int _elements, unsigned int _index3);
+
+	// GetFunction
+	static TPipelineFunction GetFunction(u64 _type,
+		unsigned int _format, unsigned int _elements, unsigned int _index3);
 
 private:
-  template <typename T, auto last_member>
-  using EnumMap = typename Common::EnumMap<T, last_member>;
+	enum ENormalType
+	{
+		NRM_NOT_PRESENT = 0,
+		NRM_DIRECT      = 1,
+		NRM_INDEX8      = 2,
+		NRM_INDEX16     = 3,
+		NUM_NRM_TYPE
+	};
 
-  using SizeTable = EnumMap<
-      std::array<EnumMap<EnumMap<u32, ComponentFormat::Float>, NormalComponentCount::NTB>, 2>,
-      VertexComponentFormat::Index16>;
+	enum ENormalFormat
+	{
+		FORMAT_UBYTE   = 0,
+		FORMAT_BYTE    = 1,
+		FORMAT_USHORT  = 2,
+		FORMAT_SHORT   = 3,
+		FORMAT_FLOAT   = 4,
+		NUM_NRM_FORMAT
+	};
 
-  static constexpr SizeTable s_table_size = []() consteval
-  {
-    SizeTable table{};
+	enum ENormalElements
+	{
+		NRM_NBT          = 0,
+		NRM_NBT3         = 1,
+		NUM_NRM_ELEMENTS
+	};
 
-    using VCF = VertexComponentFormat;
-    using NCC = NormalComponentCount;
-    using FMT = ComponentFormat;
+	enum ENormalIndices
+	{
+		NRM_INDICES1    = 0,
+		NRM_INDICES3    = 1,
+		NUM_NRM_INDICES
+	};
 
-    table[VCF::Direct][false][NCC::N][FMT::UByte] = 3;
-    table[VCF::Direct][false][NCC::N][FMT::Byte] = 3;
-    table[VCF::Direct][false][NCC::N][FMT::UShort] = 6;
-    table[VCF::Direct][false][NCC::N][FMT::Short] = 6;
-    table[VCF::Direct][false][NCC::N][FMT::Float] = 12;
-    table[VCF::Direct][false][NCC::NTB][FMT::UByte] = 9;
-    table[VCF::Direct][false][NCC::NTB][FMT::Byte] = 9;
-    table[VCF::Direct][false][NCC::NTB][FMT::UShort] = 18;
-    table[VCF::Direct][false][NCC::NTB][FMT::Short] = 18;
-    table[VCF::Direct][false][NCC::NTB][FMT::Float] = 36;
+	struct Set
+	{
+		template <typename T>
+		void operator=(const T&)
+		{
+			gc_size = T::size;
+			function = T::function;
+		}
 
-    // Same as above, since there are no indices
-    table[VCF::Direct][true][NCC::N][FMT::UByte] = 3;
-    table[VCF::Direct][true][NCC::N][FMT::Byte] = 3;
-    table[VCF::Direct][true][NCC::N][FMT::UShort] = 6;
-    table[VCF::Direct][true][NCC::N][FMT::Short] = 6;
-    table[VCF::Direct][true][NCC::N][FMT::Float] = 12;
-    table[VCF::Direct][true][NCC::NTB][FMT::UByte] = 9;
-    table[VCF::Direct][true][NCC::NTB][FMT::Byte] = 9;
-    table[VCF::Direct][true][NCC::NTB][FMT::UShort] = 18;
-    table[VCF::Direct][true][NCC::NTB][FMT::Short] = 18;
-    table[VCF::Direct][true][NCC::NTB][FMT::Float] = 36;
+		int gc_size;
+		TPipelineFunction function;
+	};
 
-    table[VCF::Index8][false][NCC::N][FMT::UByte] = 1;
-    table[VCF::Index8][false][NCC::N][FMT::Byte] = 1;
-    table[VCF::Index8][false][NCC::N][FMT::UShort] = 1;
-    table[VCF::Index8][false][NCC::N][FMT::Short] = 1;
-    table[VCF::Index8][false][NCC::N][FMT::Float] = 1;
-    table[VCF::Index8][false][NCC::NTB][FMT::UByte] = 1;
-    table[VCF::Index8][false][NCC::NTB][FMT::Byte] = 1;
-    table[VCF::Index8][false][NCC::NTB][FMT::UShort] = 1;
-    table[VCF::Index8][false][NCC::NTB][FMT::Short] = 1;
-    table[VCF::Index8][false][NCC::NTB][FMT::Float] = 1;
-
-    // Same for NormalComponentCount::N; differs for NTB
-    table[VCF::Index8][true][NCC::N][FMT::UByte] = 1;
-    table[VCF::Index8][true][NCC::N][FMT::Byte] = 1;
-    table[VCF::Index8][true][NCC::N][FMT::UShort] = 1;
-    table[VCF::Index8][true][NCC::N][FMT::Short] = 1;
-    table[VCF::Index8][true][NCC::N][FMT::Float] = 1;
-    table[VCF::Index8][true][NCC::NTB][FMT::UByte] = 3;
-    table[VCF::Index8][true][NCC::NTB][FMT::Byte] = 3;
-    table[VCF::Index8][true][NCC::NTB][FMT::UShort] = 3;
-    table[VCF::Index8][true][NCC::NTB][FMT::Short] = 3;
-    table[VCF::Index8][true][NCC::NTB][FMT::Float] = 3;
-
-    table[VCF::Index16][false][NCC::N][FMT::UByte] = 2;
-    table[VCF::Index16][false][NCC::N][FMT::Byte] = 2;
-    table[VCF::Index16][false][NCC::N][FMT::UShort] = 2;
-    table[VCF::Index16][false][NCC::N][FMT::Short] = 2;
-    table[VCF::Index16][false][NCC::N][FMT::Float] = 2;
-    table[VCF::Index16][false][NCC::NTB][FMT::UByte] = 2;
-    table[VCF::Index16][false][NCC::NTB][FMT::Byte] = 2;
-    table[VCF::Index16][false][NCC::NTB][FMT::UShort] = 2;
-    table[VCF::Index16][false][NCC::NTB][FMT::Short] = 2;
-    table[VCF::Index16][false][NCC::NTB][FMT::Float] = 2;
-
-    // Same for NormalComponentCount::N; differs for NTB
-    table[VCF::Index16][true][NCC::N][FMT::UByte] = 2;
-    table[VCF::Index16][true][NCC::N][FMT::Byte] = 2;
-    table[VCF::Index16][true][NCC::N][FMT::UShort] = 2;
-    table[VCF::Index16][true][NCC::N][FMT::Short] = 2;
-    table[VCF::Index16][true][NCC::N][FMT::Float] = 2;
-    table[VCF::Index16][true][NCC::NTB][FMT::UByte] = 6;
-    table[VCF::Index16][true][NCC::NTB][FMT::Byte] = 6;
-    table[VCF::Index16][true][NCC::NTB][FMT::UShort] = 6;
-    table[VCF::Index16][true][NCC::NTB][FMT::Short] = 6;
-    table[VCF::Index16][true][NCC::NTB][FMT::Float] = 6;
-
-    return table;
-  }
-  ();
+	static Set m_Table[NUM_NRM_TYPE][NUM_NRM_INDICES][NUM_NRM_ELEMENTS][NUM_NRM_FORMAT];
 };

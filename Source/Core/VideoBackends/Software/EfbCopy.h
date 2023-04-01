@@ -1,9 +1,15 @@
 // Copyright 2008 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 namespace EfbCopy
 {
-void ClearEfb();
+	// Copy the EFB to RAM as a texture format or XFB
+	void CopyEfb();
+
+	void ClearEfb();
 }

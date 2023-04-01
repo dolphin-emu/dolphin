@@ -1,364 +1,232 @@
 // Copyright 2008 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
 
 // PatchEngine
 // Supports simple memory patches, and has a partial Action Replay implementation
 // in ActionReplay.cpp/h.
 
-#include "Core/PatchEngine.h"
+// TODO: Still even needed?  Zelda WW now works with improved DSP code.
+// Zelda item hang fixes:
+// [Tue Aug 21 2007] [18:30:40] <Knuckles->    0x802904b4 in US released
+// [Tue Aug 21 2007] [18:30:53] <Knuckles->    0x80294d54 in EUR Demo version
+// [Tue Aug 21 2007] [18:31:10] <Knuckles->    we just patch a blr on it (0x4E800020)
+// [OnLoad]
+// 0x80020394=dword,0x4e800020
 
 #include <algorithm>
-#include <array>
-#include <iterator>
 #include <map>
-#include <mutex>
-#include <optional>
-#include <span>
+#include <set>
 #include <string>
 #include <vector>
 
-#include <fmt/format.h>
-
-#include "Common/Assert.h"
-#include "Common/Debug/MemoryPatches.h"
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 
 #include "Core/ActionReplay.h"
-#include "Core/CheatCodes.h"
-#include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
-#include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/GeckoCode.h"
 #include "Core/GeckoCodeConfig.h"
-#include "Core/PowerPC/MMU.h"
+#include "Core/PatchEngine.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "Core/System.h"
+
+using namespace Common;
 
 namespace PatchEngine
 {
-constexpr std::array<const char*, 3> s_patch_type_strings{{
-    "byte",
-    "word",
-    "dword",
-}};
 
-static std::vector<Patch> s_on_frame;
-static std::vector<std::size_t> s_on_frame_memory;
-static std::mutex s_on_frame_memory_mutex;
-static std::map<u32, int> s_speed_hacks;
-
-const char* PatchTypeAsString(PatchType type)
+const char *PatchTypeStrings[] =
 {
-  return s_patch_type_strings.at(static_cast<int>(type));
-}
+	"byte",
+	"word",
+	"dword",
+};
 
-std::optional<PatchEntry> DeserializeLine(std::string line)
+static std::vector<Patch> onFrame;
+static std::map<u32, int> speedHacks;
+
+void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, IniFile& globalIni, IniFile& localIni)
 {
-  std::string::size_type loc = line.find('=');
-  if (loc != std::string::npos)
-    line[loc] = ':';
+	// Load the name of all enabled patches
+	std::string enabledSectionName = section + "_Enabled";
+	std::vector<std::string> enabledLines;
+	std::set<std::string> enabledNames;
+	localIni.GetLines(enabledSectionName, &enabledLines);
+	for (const std::string& line : enabledLines)
+	{
+		if (line.size() != 0 && line[0] == '$')
+		{
+			std::string name = line.substr(1, line.size() - 1);
+			enabledNames.insert(name);
+		}
+	}
 
-  const std::vector<std::string> items = SplitString(line, ':');
-  PatchEntry entry;
+	const IniFile* inis[2] = {&globalIni, &localIni};
 
-  if (items.size() < 3)
-    return std::nullopt;
+	for (const IniFile* ini : inis)
+	{
+		std::vector<std::string> lines;
+		Patch currentPatch;
+		ini->GetLines(section, &lines);
 
-  if (!TryParse(items[0], &entry.address))
-    return std::nullopt;
-  if (!TryParse(items[2], &entry.value))
-    return std::nullopt;
+		for (std::string& line : lines)
+		{
+			if (line.size() == 0)
+				continue;
 
-  if (items.size() >= 4)
-  {
-    if (!TryParse(items[3], &entry.comparand))
-      return std::nullopt;
-    entry.conditional = true;
-  }
+			if (line[0] == '$')
+			{
+				// Take care of the previous code
+				if (currentPatch.name.size())
+				{
+					patches.push_back(currentPatch);
+				}
+				currentPatch.entries.clear();
 
-  const auto iter = std::find(s_patch_type_strings.begin(), s_patch_type_strings.end(), items[1]);
-  if (iter == s_patch_type_strings.end())
-    return std::nullopt;
-  entry.type = static_cast<PatchType>(std::distance(s_patch_type_strings.begin(), iter));
+				// Set active and name
+				currentPatch.name = line.substr(1, line.size() - 1);
+				currentPatch.active = enabledNames.find(currentPatch.name) != enabledNames.end();
+				currentPatch.user_defined = (ini == &localIni);
+			}
+			else
+			{
+				std::string::size_type loc = line.find('=');
 
-  return entry;
-}
+				if (loc != std::string::npos)
+				{
+					line[loc] = ':';
+				}
 
-std::string SerializeLine(const PatchEntry& entry)
-{
-  if (entry.conditional)
-  {
-    return fmt::format("0x{:08X}:{}:0x{:08X}:0x{:08X}", entry.address,
-                       PatchEngine::PatchTypeAsString(entry.type), entry.value, entry.comparand);
-  }
-  else
-  {
-    return fmt::format("0x{:08X}:{}:0x{:08X}", entry.address,
-                       PatchEngine::PatchTypeAsString(entry.type), entry.value);
-  }
-}
+				std::vector<std::string> items;
+				SplitString(line, ':', items);
 
-void LoadPatchSection(const std::string& section, std::vector<Patch>* patches,
-                      const IniFile& globalIni, const IniFile& localIni)
-{
-  const IniFile* inis[2] = {&globalIni, &localIni};
+				if (items.size() >= 3)
+				{
+					PatchEntry pE;
+					bool success = true;
+					success &= TryParse(items[0], &pE.address);
+					success &= TryParse(items[2], &pE.value);
 
-  for (const IniFile* ini : inis)
-  {
-    std::vector<std::string> lines;
-    Patch currentPatch;
-    ini->GetLines(section, &lines);
+					pE.type = PatchType(std::find(PatchTypeStrings, PatchTypeStrings + 3, items[1]) - PatchTypeStrings);
+					success &= (pE.type != (PatchType)3);
+					if (success)
+					{
+						currentPatch.entries.push_back(pE);
+					}
+				}
+			}
+		}
 
-    for (std::string& line : lines)
-    {
-      if (line.empty())
-        continue;
-
-      if (line[0] == '$')
-      {
-        // Take care of the previous code
-        if (!currentPatch.name.empty())
-        {
-          patches->push_back(currentPatch);
-        }
-        currentPatch.entries.clear();
-
-        // Set name and whether the patch is user defined
-        currentPatch.name = line.substr(1, line.size() - 1);
-        currentPatch.user_defined = (ini == &localIni);
-      }
-      else
-      {
-        if (std::optional<PatchEntry> entry = DeserializeLine(line))
-          currentPatch.entries.push_back(*entry);
-      }
-    }
-
-    if (!currentPatch.name.empty() && !currentPatch.entries.empty())
-    {
-      patches->push_back(currentPatch);
-    }
-
-    ReadEnabledAndDisabled(*ini, section, patches);
-
-    if (ini == &globalIni)
-    {
-      for (Patch& patch : *patches)
-        patch.default_enabled = patch.enabled;
-    }
-  }
-}
-
-void SavePatchSection(IniFile* local_ini, const std::vector<Patch>& patches)
-{
-  std::vector<std::string> lines;
-  std::vector<std::string> lines_enabled;
-  std::vector<std::string> lines_disabled;
-
-  for (const auto& patch : patches)
-  {
-    if (patch.enabled != patch.default_enabled)
-      (patch.enabled ? lines_enabled : lines_disabled).emplace_back('$' + patch.name);
-
-    if (!patch.user_defined)
-      continue;
-
-    lines.emplace_back('$' + patch.name);
-
-    for (const PatchEntry& entry : patch.entries)
-      lines.emplace_back(SerializeLine(entry));
-  }
-
-  local_ini->SetLines("OnFrame_Enabled", lines_enabled);
-  local_ini->SetLines("OnFrame_Disabled", lines_disabled);
-  local_ini->SetLines("OnFrame", lines);
+		if (currentPatch.name.size() && currentPatch.entries.size())
+		{
+			patches.push_back(currentPatch);
+		}
+	}
 }
 
 static void LoadSpeedhacks(const std::string& section, IniFile& ini)
 {
-  std::vector<std::string> keys;
-  ini.GetKeys(section, &keys);
-  for (const std::string& key : keys)
-  {
-    std::string value;
-    ini.GetOrCreateSection(section)->Get(key, &value, "BOGUS");
-    if (value != "BOGUS")
-    {
-      u32 address;
-      u32 cycles;
-      bool success = true;
-      success &= TryParse(key, &address);
-      success &= TryParse(value, &cycles);
-      if (success)
-      {
-        s_speed_hacks[address] = static_cast<int>(cycles);
-      }
-    }
-  }
+	std::vector<std::string> keys;
+	ini.GetKeys(section, &keys);
+	for (const std::string& key : keys)
+	{
+		std::string value;
+		ini.GetOrCreateSection(section)->Get(key, &value, "BOGUS");
+		if (value != "BOGUS")
+		{
+			u32 address;
+			u32 cycles;
+			bool success = true;
+			success &= TryParse(key, &address);
+			success &= TryParse(value, &cycles);
+			if (success)
+			{
+				speedHacks[address] = (int)cycles;
+			}
+		}
+	}
 }
 
 int GetSpeedhackCycles(const u32 addr)
 {
-  const auto iter = s_speed_hacks.find(addr);
-  if (iter == s_speed_hacks.end())
-    return 0;
-
-  return iter->second;
+	std::map<u32, int>::const_iterator iter = speedHacks.find(addr);
+	if (iter == speedHacks.end())
+		return 0;
+	else
+		return iter->second;
 }
 
 void LoadPatches()
 {
-  IniFile merged = SConfig::GetInstance().LoadGameIni();
-  IniFile globalIni = SConfig::GetInstance().LoadDefaultGameIni();
-  IniFile localIni = SConfig::GetInstance().LoadLocalGameIni();
+	IniFile merged = SConfig::GetInstance().LoadGameIni();
+	IniFile globalIni = SConfig::GetInstance().LoadDefaultGameIni();
+	IniFile localIni = SConfig::GetInstance().LoadLocalGameIni();
 
-  LoadPatchSection("OnFrame", &s_on_frame, globalIni, localIni);
+	LoadPatchSection("OnFrame", onFrame, globalIni, localIni);
+	ActionReplay::LoadAndApplyCodes(globalIni, localIni);
 
-  // Check if I'm syncing Codes
-  if (Config::Get(Config::SESSION_CODE_SYNC_OVERRIDE))
-  {
-    Gecko::SetSyncedCodesAsActive();
-    ActionReplay::SetSyncedCodesAsActive();
-  }
-  else
-  {
-    Gecko::SetActiveCodes(Gecko::LoadCodes(globalIni, localIni));
-    ActionReplay::LoadAndApplyCodes(globalIni, localIni);
-  }
+	// lil silly
+	std::vector<Gecko::GeckoCode> gcodes;
+	Gecko::LoadCodes(globalIni, localIni, gcodes);
+	Gecko::SetActiveCodes(gcodes);
 
-  LoadSpeedhacks("Speedhacks", merged);
+	LoadSpeedhacks("Speedhacks", merged);
 }
 
-static void ApplyPatches(const Core::CPUThreadGuard& guard, const std::vector<Patch>& patches)
+static void ApplyPatches(const std::vector<Patch> &patches)
 {
-  for (const Patch& patch : patches)
-  {
-    if (patch.enabled)
-    {
-      for (const PatchEntry& entry : patch.entries)
-      {
-        u32 addr = entry.address;
-        u32 value = entry.value;
-        u32 comparand = entry.comparand;
-        switch (entry.type)
-        {
-        case PatchType::Patch8Bit:
-          if (!entry.conditional || PowerPC::HostRead_U8(guard, addr) == static_cast<u8>(comparand))
-            PowerPC::HostWrite_U8(guard, static_cast<u8>(value), addr);
-          break;
-        case PatchType::Patch16Bit:
-          if (!entry.conditional ||
-              PowerPC::HostRead_U16(guard, addr) == static_cast<u16>(comparand))
-            PowerPC::HostWrite_U16(guard, static_cast<u16>(value), addr);
-          break;
-        case PatchType::Patch32Bit:
-          if (!entry.conditional || PowerPC::HostRead_U32(guard, addr) == comparand)
-            PowerPC::HostWrite_U32(guard, value, addr);
-          break;
-        default:
-          // unknown patchtype
-          break;
-        }
-      }
-    }
-  }
+	for (const Patch& patch : patches)
+	{
+		if (patch.active)
+		{
+			for (const PatchEntry& entry : patch.entries)
+			{
+				u32 addr = entry.address;
+				u32 value = entry.value;
+				switch (entry.type)
+				{
+				case PATCH_8BIT:
+					PowerPC::HostWrite_U8((u8)value, addr);
+					break;
+				case PATCH_16BIT:
+					PowerPC::HostWrite_U16((u16)value, addr);
+					break;
+				case PATCH_32BIT:
+					PowerPC::HostWrite_U32(value, addr);
+					break;
+				default:
+					//unknown patchtype
+					break;
+				}
+			}
+		}
+	}
 }
 
-static void ApplyMemoryPatches(const Core::CPUThreadGuard& guard,
-                               std::span<const std::size_t> memory_patch_indices)
+void ApplyFramePatches()
 {
-  std::lock_guard lock(s_on_frame_memory_mutex);
-  for (std::size_t index : memory_patch_indices)
-  {
-    PowerPC::debug_interface.ApplyExistingPatch(guard, index);
-  }
-}
+	// TODO: Messing with MSR this way is really, really, evil; we should
+	// probably be using some sort of Gecko OS-style hooking mechanism
+	// so the emulated CPU is in a predictable state when we process cheats.
+	u32 oldMSR = MSR;
+	UReg_MSR newMSR = oldMSR;
+	newMSR.IR = 1;
+	newMSR.DR = 1;
+	MSR = newMSR.Hex;
+	ApplyPatches(onFrame);
 
-// Requires MSR.DR, MSR.IR
-// There's no perfect way to do this, it's just a heuristic.
-// We require at least 2 stack frames, if the stack is shallower than that then it won't work.
-static bool IsStackValid(const Core::CPUThreadGuard& guard)
-{
-  auto& system = Core::System::GetInstance();
-  auto& ppc_state = system.GetPPCState();
-
-  DEBUG_ASSERT(ppc_state.msr.DR && ppc_state.msr.IR);
-
-  // Check the stack pointer
-  u32 SP = ppc_state.gpr[1];
-  if (!PowerPC::HostIsRAMAddress(guard, SP))
-    return false;
-
-  // Read the frame pointer from the stack (find 2nd frame from top), assert that it makes sense
-  u32 next_SP = PowerPC::HostRead_U32(guard, SP);
-  if (next_SP <= SP || !PowerPC::HostIsRAMAddress(guard, next_SP) ||
-      !PowerPC::HostIsRAMAddress(guard, next_SP + 4))
-    return false;
-
-  // Check the link register makes sense (that it points to a valid IBAT address)
-  const u32 address = PowerPC::HostRead_U32(guard, next_SP + 4);
-  return PowerPC::HostIsInstructionRAMAddress(guard, address) &&
-         0 != PowerPC::HostRead_Instruction(guard, address);
-}
-
-void AddMemoryPatch(std::size_t index)
-{
-  std::lock_guard lock(s_on_frame_memory_mutex);
-  s_on_frame_memory.push_back(index);
-}
-
-void RemoveMemoryPatch(std::size_t index)
-{
-  std::lock_guard lock(s_on_frame_memory_mutex);
-  s_on_frame_memory.erase(std::remove(s_on_frame_memory.begin(), s_on_frame_memory.end(), index),
-                          s_on_frame_memory.end());
-}
-
-bool ApplyFramePatches()
-{
-  auto& system = Core::System::GetInstance();
-  auto& ppc_state = system.GetPPCState();
-
-  ASSERT(Core::IsCPUThread());
-  Core::CPUThreadGuard guard(system);
-
-  // Because we're using the VI Interrupt to time this instead of patching the game with a
-  // callback hook we can end up catching the game in an exception vector.
-  // We deal with this by returning false so that SystemTimers will reschedule us in a few cycles
-  // where we can try again after the CPU hopefully returns back to the normal instruction flow.
-  if (!ppc_state.msr.DR || !ppc_state.msr.IR || !IsStackValid(guard))
-  {
-    DEBUG_LOG_FMT(ACTIONREPLAY,
-                  "Need to retry later. CPU configuration is currently incorrect. PC = {:#010x}, "
-                  "MSR = {:#010x}",
-                  ppc_state.pc, ppc_state.msr.Hex);
-    return false;
-  }
-
-  ApplyPatches(guard, s_on_frame);
-  ApplyMemoryPatches(guard, s_on_frame_memory);
-
-  // Run the Gecko code handler
-  Gecko::RunCodeHandler(guard);
-  ActionReplay::RunAllActive(guard);
-
-  return true;
+	// Run the Gecko code handler
+	Gecko::RunCodeHandler();
+	ActionReplay::RunAllActive();
+	MSR = oldMSR;
 }
 
 void Shutdown()
 {
-  s_on_frame.clear();
-  s_speed_hacks.clear();
-  ActionReplay::ApplyCodes({});
-  Gecko::Shutdown();
+	onFrame.clear();
 }
 
-void Reload()
-{
-  Shutdown();
-  LoadPatches();
-}
-
-}  // namespace PatchEngine
+}  // namespace

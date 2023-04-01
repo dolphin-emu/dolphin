@@ -6,14 +6,16 @@ include "dsp_base.inc"
         
 ;  We can call send_back at any time to send data back to the PowerPC.
 
-test_main:
-  lri $AC0.M, #0x1000
-  call send_back
+;  Calling set40 here seemed to crash the dsp tester in strange ways
+;  until I added set16 in send_back. Seems clear that it affects something important.
 
-  set40
-  lri $AC0.M, #0x1000
-  set16
-  call send_back
+       lri $AC0.M, #0x1000	
+	call send_back
+
+       set40
+       lri $AC0.M, #0x1000
+       set16
+	call send_back
 
 ; We're done, DO NOT DELETE THIS LINE
-  jmp end_of_test
+	jmp end_of_test

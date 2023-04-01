@@ -1,5 +1,6 @@
 // Copyright 2008 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 // ---------------------------------------------------------------------------------
 // Class: WaveFileWriter
@@ -15,43 +16,32 @@
 
 #include <array>
 #include <string>
-
 #include "Common/CommonTypes.h"
-#include "Common/IOFile.h"
+#include "Common/FileUtil.h"
+#include "Common/NonCopyable.h"
 
-class WaveFileWriter
+class WaveFileWriter : NonCopyable
 {
 public:
-  WaveFileWriter();
-  ~WaveFileWriter();
+	WaveFileWriter();
+	~WaveFileWriter();
 
-  WaveFileWriter(const WaveFileWriter&) = delete;
-  WaveFileWriter& operator=(const WaveFileWriter&) = delete;
-  WaveFileWriter(WaveFileWriter&&) = delete;
-  WaveFileWriter& operator=(WaveFileWriter&&) = delete;
+	bool Start(const std::string& filename, unsigned int HLESampleRate);
+	void Stop();
 
-  bool Start(const std::string& filename, u32 sample_rate_divisor);
-  void Stop();
+	void SetSkipSilence(bool skip) { skip_silence = skip; }
 
-  void SetSkipSilence(bool skip) { skip_silence = skip; }
-  // big endian
-  void AddStereoSamplesBE(const short* sample_data, u32 count, u32 sample_rate_divisor,
-                          int l_volume, int r_volume);
-  u32 GetAudioSize() const { return audio_size; }
+	void AddStereoSamples(const short *sample_data, u32 count);
+	void AddStereoSamplesBE(const short *sample_data, u32 count);  // big endian
+	u32 GetAudioSize() const { return audio_size; }
 
 private:
-  static constexpr size_t BUFFER_SIZE = 32 * 1024;
+	static constexpr size_t BUFFER_SIZE = 32 * 1024;
 
-  void Write(u32 value);
-  void Write4(const char* ptr);
-
-  File::IOFile file;
-  std::string basename;
-  u32 file_index = 0;
-  u32 audio_size = 0;
-
-  u32 current_sample_rate_divisor;
-  std::array<short, BUFFER_SIZE> conv_buffer{};
-
-  bool skip_silence = false;
+	File::IOFile file;
+	bool skip_silence = false;
+	u32 audio_size = 0;
+	std::array<short, BUFFER_SIZE> conv_buffer{};
+	void Write(u32 value);
+	void Write4(const char* ptr);
 };

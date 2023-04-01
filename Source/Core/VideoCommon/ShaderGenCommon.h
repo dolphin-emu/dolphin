@@ -1,210 +1,274 @@
 // Copyright 2012 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #pragma once
 
+#include <cstdarg>
 #include <cstring>
-#include <functional>
-#include <iterator>
+#include <fstream>
+#include <iomanip>
+#include <map>
 #include <string>
-#include <type_traits>
 #include <vector>
 
-#include <fmt/format.h>
-
-#include "Common/BitField.h"
 #include "Common/CommonTypes.h"
-#include "Common/EnumMap.h"
+#include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
-#include "Common/TypeUtils.h"
-
-#include "VideoCommon/AbstractShader.h"
+#include "Common/Logging/Log.h"
 #include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/XFMemory.h"
 
 /**
- * Common interface for classes that need to go through the shader generation path
- * (GenerateVertexShader, GenerateGeometryShader, GeneratePixelShader)
+ * Common interface for classes that need to go through the shader generation path (GenerateVertexShader, GenerateGeometryShader, GeneratePixelShader)
  * In particular, this includes the shader code generator (ShaderCode).
  * A different class (ShaderUid) can be used to uniquely identify each ShaderCode object.
- * More interesting things can be done with this, e.g. ShaderConstantProfile checks what shader
- * constants are being used. This can be used to optimize buffer management.
- * If the class does not use one or more of these methods (e.g. Uid class does not need code), the
- * method will be defined as a no-op by the base class, and the call
- * should be optimized out. The reason for this implementation is so that shader
- * selection/generation can be done in two passes, with only a cache lookup being
+ * More interesting things can be done with this, e.g. ShaderConstantProfile checks what shader constants are being used. This can be used to optimize buffer management.
+ * If the class does not use one or more of these methods (e.g. Uid class does not need code), the method will be defined as a no-op by the base class, and the call
+ * should be optimized out. The reason for this implementation is so that shader selection/generation can be done in two passes, with only a cache lookup being
  * required if the shader has already been generated.
  */
 class ShaderGeneratorInterface
 {
 public:
-  /*
-   * Used when the shader generator would write a piece of ShaderCode.
-   * Can be used like printf.
-   * @note In the ShaderCode implementation, this does indeed write the parameter string to an
-   * internal buffer. However, you're free to do whatever you like with the parameter.
-   */
-  void Write(const char*, ...)
+	/*
+	 * Used when the shader generator would write a piece of ShaderCode.
+	 * Can be used like printf.
+	 * @note In the ShaderCode implementation, this does indeed write the parameter string to an internal buffer. However, you're free to do whatever you like with the parameter.
+	 */
+	void Write(const char*, ...)
 #ifdef __GNUC__
-      __attribute__((format(printf, 2, 3)))
+	__attribute__((format(printf, 2, 3)))
 #endif
-  {
-  }
+	{
+	}
 
-  /*
-   * Tells us that a specific constant range (including last_index) is being used by the shader
-   */
-  void SetConstantsUsed(unsigned int first_index, unsigned int last_index) {}
+	/*
+	 * Tells us that a specific constant range (including last_index) is being used by the shader
+	 */
+	void SetConstantsUsed(unsigned int first_index, unsigned int last_index) {}
+
+	/*
+	 * Returns a pointer to an internally stored object of the uid_data type.
+	 * @warning since most child classes use the default implementation you shouldn't access this directly without adding precautions against nullptr access (e.g. via adding a dummy structure, cf. the vertex/pixel shader generators)
+	 */
+	template<class uid_data>
+	uid_data* GetUidData() { return nullptr; }
 };
 
 /*
  * Shader UID class used to uniquely identify the ShaderCode output written in the shader generator.
  * uid_data can be any struct of parameters that uniquely identify each shader code output.
  * Unless performance is not an issue, uid_data should be tightly packed to reduce memory footprint.
- * Shader generators will write to specific uid_data fields; ShaderUid methods will only read raw
- * u32 values from a union.
- * NOTE: Because LinearDiskCache reads and writes the storage associated with a ShaderUid instance,
- * ShaderUid must be trivially copyable.
+ * Shader generators will write to specific uid_data fields; ShaderUid methods will only read raw u32 values from a union.
+ * NOTE: Because LinearDiskCache reads and writes the storage associated with a ShaderUid instance, ShaderUid must be trivially copyable.
  */
-template <class uid_data>
+template<class uid_data>
 class ShaderUid : public ShaderGeneratorInterface
 {
 public:
-  static_assert(std::is_trivially_copyable_v<uid_data>,
-                "uid_data must be a trivially copyable type");
+	bool operator == (const ShaderUid& obj) const
+	{
+		return memcmp(this->values, obj.values, data.NumValues() * sizeof(*values)) == 0;
+	}
 
-  ShaderUid() { memset(GetUidData(), 0, GetUidDataSize()); }
+	bool operator != (const ShaderUid& obj) const
+	{
+		return memcmp(this->values, obj.values, data.NumValues() * sizeof(*values)) != 0;
+	}
 
-  bool operator==(const ShaderUid& obj) const
-  {
-    return memcmp(GetUidData(), obj.GetUidData(), GetUidDataSize()) == 0;
-  }
+	// determines the storage order inside STL containers
+	bool operator < (const ShaderUid& obj) const
+	{
+		return memcmp(this->values, obj.values, data.NumValues() * sizeof(*values)) < 0;
+	}
 
-  bool operator!=(const ShaderUid& obj) const { return !operator==(obj); }
+	template<class uid_data2>
+	uid_data2* GetUidData() { return &data; }
+	const uid_data* GetUidData() const { return &data; }
+	const u8* GetUidDataRaw() const { return &values[0]; }
 
-  // determines the storage order inside STL containers
-  bool operator<(const ShaderUid& obj) const
-  {
-    return memcmp(GetUidData(), obj.GetUidData(), GetUidDataSize()) < 0;
-  }
-
-  // Returns a pointer to an internally stored object of the uid_data type.
-  uid_data* GetUidData() { return &data; }
-
-  // Returns a pointer to an internally stored object of the uid_data type.
-  const uid_data* GetUidData() const { return &data; }
-
-  // Returns the raw bytes that make up the shader UID.
-  const u8* GetUidDataRaw() const { return reinterpret_cast<const u8*>(&data); }
-
-  // Returns the size of the underlying UID data structure in bytes.
-  size_t GetUidDataSize() const { return sizeof(data); }
+	size_t GetUidDataSize() const { return sizeof(values); }
 
 private:
-  uid_data data{};
+	union
+	{
+		uid_data data;
+		u8 values[sizeof(uid_data)];
+	};
 };
 
 class ShaderCode : public ShaderGeneratorInterface
 {
 public:
-  ShaderCode() { m_buffer.reserve(16384); }
-  const std::string& GetBuffer() const { return m_buffer; }
+	ShaderCode()
+	{
+		m_buffer.reserve(16384);
+	}
 
-  // Writes format strings using fmtlib format strings.
-  template <typename... Args>
-  void Write(fmt::format_string<Args...> format, Args&&... args)
-  {
-    fmt::format_to(std::back_inserter(m_buffer), format, std::forward<Args>(args)...);
-  }
+	const std::string& GetBuffer() const { return m_buffer; }
+
+	void Write(const char* fmt, ...)
+#ifdef __GNUC__
+	__attribute__((format(printf, 2, 3)))
+#endif
+	{
+		va_list arglist;
+		va_start(arglist, fmt);
+		m_buffer += StringFromFormatV(fmt, arglist);
+		va_end(arglist);
+	}
 
 protected:
-  std::string m_buffer;
+	std::string m_buffer;
 };
 
 /**
- * Generates a shader constant profile which can be used to query which constants are used in a
- * shader
+ * Generates a shader constant profile which can be used to query which constants are used in a shader
  */
 class ShaderConstantProfile : public ShaderGeneratorInterface
 {
 public:
-  ShaderConstantProfile(int num_constants) { constant_usage.resize(num_constants); }
-  void SetConstantsUsed(unsigned int first_index, unsigned int last_index)
-  {
-    for (unsigned int i = first_index; i < last_index + 1; ++i)
-      constant_usage[i] = true;
-  }
+	ShaderConstantProfile(int num_constants) { constant_usage.resize(num_constants); }
 
-  bool ConstantIsUsed(unsigned int index) const
-  {
-    // TODO: Not ready for usage yet
-    return true;
-    // return constant_usage[index];
-  }
+	void SetConstantsUsed(unsigned int first_index, unsigned int last_index)
+	{
+		for (unsigned int i = first_index; i < last_index + 1; ++i)
+			constant_usage[i] = true;
+	}
+
+	bool ConstantIsUsed(unsigned int index) const
+	{
+		// TODO: Not ready for usage yet
+		return true;
+		//return constant_usage[index];
+	}
 
 private:
-  std::vector<bool> constant_usage;  // TODO: Is vector<bool> appropriate here?
+	std::vector<bool> constant_usage; // TODO: Is vector<bool> appropriate here?
 };
-
-// Host config contains the settings which can influence generated shaders.
-union ShaderHostConfig
+/**
+ * Checks if there has been
+ */
+template<class UidT, class CodeT>
+class UidChecker
 {
-  u32 bits;
+public:
+	void Invalidate()
+	{
+		m_shaders.clear();
+		m_uids.clear();
+	}
 
-  BitField<0, 1, bool, u32> msaa;
-  BitField<1, 1, bool, u32> ssaa;
-  BitField<2, 1, bool, u32> stereo;
-  BitField<3, 1, bool, u32> wireframe;
-  BitField<4, 1, bool, u32> per_pixel_lighting;
-  BitField<5, 1, bool, u32> vertex_rounding;
-  BitField<6, 1, bool, u32> fast_depth_calc;
-  BitField<7, 1, bool, u32> bounding_box;
-  BitField<8, 1, bool, u32> backend_dual_source_blend;
-  BitField<9, 1, bool, u32> backend_geometry_shaders;
-  BitField<10, 1, bool, u32> backend_early_z;
-  BitField<11, 1, bool, u32> backend_bbox;
-  BitField<12, 1, bool, u32> backend_gs_instancing;
-  BitField<13, 1, bool, u32> backend_clip_control;
-  BitField<14, 1, bool, u32> backend_ssaa;
-  BitField<15, 1, bool, u32> backend_atomics;
-  BitField<16, 1, bool, u32> backend_depth_clamp;
-  BitField<17, 1, bool, u32> backend_reversed_depth_range;
-  BitField<18, 1, bool, u32> backend_bitfield;
-  BitField<19, 1, bool, u32> backend_dynamic_sampler_indexing;
-  BitField<20, 1, bool, u32> backend_shader_framebuffer_fetch;
-  BitField<21, 1, bool, u32> backend_logic_op;
-  BitField<22, 1, bool, u32> backend_palette_conversion;
-  BitField<23, 1, bool, u32> enable_validation_layer;
-  BitField<24, 1, bool, u32> manual_texture_sampling;
-  BitField<25, 1, bool, u32> manual_texture_sampling_custom_texture_sizes;
-  BitField<26, 1, bool, u32> backend_sampler_lod_bias;
-  BitField<27, 1, bool, u32> backend_dynamic_vertex_loader;
-  BitField<28, 1, bool, u32> backend_vs_point_line_expand;
-  BitField<29, 1, bool, u32> backend_gl_layer_in_fs;
+	void AddToIndexAndCheck(CodeT& new_code, const UidT& new_uid, const char* shader_type, const char* dump_prefix)
+	{
+		bool uid_is_indexed = std::find(m_uids.begin(), m_uids.end(), new_uid) != m_uids.end();
+		if (!uid_is_indexed)
+		{
+			m_uids.push_back(new_uid);
+			m_shaders[new_uid] = new_code.GetBuffer();
+		}
+		else
+		{
+			// uid is already in the index => check if there's a shader with the same uid but different code
+			auto& old_code = m_shaders[new_uid];
+			if (old_code != new_code.GetBuffer())
+			{
+				static int num_failures = 0;
 
-  static ShaderHostConfig GetCurrent();
+				std::string temp = StringFromFormat("%s%ssuid_mismatch_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(),
+						dump_prefix, ++num_failures);
+
+				// TODO: Should also dump uids
+				std::ofstream file;
+				OpenFStream(file, temp, std::ios_base::out);
+				file << "Old shader code:\n" << old_code;
+				file << "\n\nNew shader code:\n" << new_code.GetBuffer();
+				file << "\n\nShader uid:\n";
+				for (unsigned int i = 0; i < new_uid.GetUidDataSize(); ++i)
+				{
+					u8 value = new_uid.GetUidDataRaw()[i];
+					if ((i % 4) == 0)
+					{
+						auto last_value = (i + 3 < new_uid.GetUidDataSize() - 1) ? i + 3 : new_uid.GetUidDataSize();
+						file << std::setfill(' ') << std::dec;
+						file << "Values " << std::setw(2) << i << " - " << last_value << ": ";
+					}
+
+					file << std::setw(2) << std::setfill('0') << std::hex << value << std::setw(1);
+					if ((i % 4) < 3)
+						file << ' ';
+					else
+						file << std::endl;
+				}
+
+				ERROR_LOG(VIDEO, "%s shader uid mismatch! See %s for details", shader_type, temp.c_str());
+			}
+		}
+	}
+
+private:
+	std::map<UidT, std::string> m_shaders;
+	std::vector<UidT> m_uids;
 };
 
-// Gets the filename of the specified type of cache object (e.g. vertex shader, pipeline).
-std::string GetDiskShaderCacheFileName(APIType api_type, const char* type, bool include_gameid,
-                                       bool include_host_config, bool include_api = true);
+template<class T>
+inline void DefineOutputMember(T& object, API_TYPE api_type, const char* qualifier, const char* type, const char* name, int var_index, const char* semantic = "", int semantic_index = -1)
+{
+	object.Write("\t%s %s %s", qualifier, type, name);
 
-void WriteIsNanHeader(ShaderCode& out, APIType api_type);
-void WriteBitfieldExtractHeader(ShaderCode& out, APIType api_type,
-                                const ShaderHostConfig& host_config);
+	if (var_index != -1)
+		object.Write("%d", var_index);
 
-void GenerateVSOutputMembers(ShaderCode& object, APIType api_type, u32 texgens,
-                             const ShaderHostConfig& host_config, std::string_view qualifier,
-                             ShaderStage stage);
+	if (api_type == API_D3D && strlen(semantic) > 0)
+	{
+		if (semantic_index != -1)
+			object.Write(" : %s%d", semantic, semantic_index);
+		else
+			object.Write(" : %s", semantic);
+	}
 
-void AssignVSOutputMembers(ShaderCode& object, std::string_view a, std::string_view b, u32 texgens,
-                           const ShaderHostConfig& host_config);
+	object.Write(";\n");
+}
 
-void GenerateLineOffset(ShaderCode& object, std::string_view indent0, std::string_view indent1,
-                        std::string_view pos_a, std::string_view pos_b, std::string_view sign);
+template<class T>
+inline void GenerateVSOutputMembers(T& object, API_TYPE api_type, const char* qualifier)
+{
+	DefineOutputMember(object, api_type, qualifier, "float4", "pos", -1, "POSITION");
+	DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 0, "COLOR", 0);
+	DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 1, "COLOR", 1);
 
-void GenerateVSLineExpansion(ShaderCode& object, std::string_view indent, u32 texgens);
+	for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
+		DefineOutputMember(object, api_type, qualifier, "float3", "tex", i, "TEXCOORD", i);
 
-void GenerateVSPointExpansion(ShaderCode& object, std::string_view indent, u32 texgens);
+	DefineOutputMember(object, api_type, qualifier, "float4", "clipPos", -1, "TEXCOORD", xfmem.numTexGen.numTexGens);
+
+	if (g_ActiveConfig.bEnablePixelLighting)
+	{
+		DefineOutputMember(object, api_type, qualifier, "float3", "Normal", -1, "TEXCOORD", xfmem.numTexGen.numTexGens + 1);
+		DefineOutputMember(object, api_type, qualifier, "float3", "WorldPos", -1, "TEXCOORD", xfmem.numTexGen.numTexGens + 2);
+	}
+}
+
+template<class T>
+inline void AssignVSOutputMembers(T& object, const char* a, const char* b)
+{
+	object.Write("\t%s.pos = %s.pos;\n", a, b);
+	object.Write("\t%s.colors_0 = %s.colors_0;\n", a, b);
+	object.Write("\t%s.colors_1 = %s.colors_1;\n", a, b);
+
+	for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
+		object.Write("\t%s.tex%d = %s.tex%d;\n", a, i, b, i);
+
+	object.Write("\t%s.clipPos = %s.clipPos;\n", a, b);
+
+	if (g_ActiveConfig.bEnablePixelLighting)
+	{
+		object.Write("\t%s.Normal = %s.Normal;\n", a, b);
+		object.Write("\t%s.WorldPos = %s.WorldPos;\n", a, b);
+	}
+}
 
 // We use the flag "centroid" to fix some MSAA rendering bugs. With MSAA, the
 // pixel shader will be executed for each pixel which has at least one passed sample.
@@ -214,119 +278,64 @@ void GenerateVSPointExpansion(ShaderCode& object, std::string_view indent, u32 t
 // As a workaround, we interpolate at the centroid of the coveraged pixel, which
 // is always inside the primitive.
 // Without MSAA, this flag is defined to have no effect.
-const char* GetInterpolationQualifier(bool msaa, bool ssaa, bool in_glsl_interface_block = false,
-                                      bool in = false);
-
-// bitfieldExtract generator for BitField types
-template <auto ptr_to_bitfield_member>
-std::string BitfieldExtract(std::string_view source)
+inline const char* GetInterpolationQualifier(bool in_glsl_interface_block = false, bool in = false)
 {
-  using BitFieldT = Common::MemberType<ptr_to_bitfield_member>;
-  return fmt::format("bitfieldExtract({}({}), {}, {})", BitFieldT::IsSigned() ? "int" : "uint",
-                     source, static_cast<u32>(BitFieldT::StartBit()),
-                     static_cast<u32>(BitFieldT::NumBits()));
-}
+	if (g_ActiveConfig.iMultisamples <= 1)
+		return "";
 
-template <auto last_member, typename = decltype(last_member)>
-void WriteSwitch(ShaderCode& out, APIType ApiType, std::string_view variable,
-                 const Common::EnumMap<std::string_view, last_member>& values, int indent,
-                 bool break_)
-{
-  // The second template argument is needed to avoid compile errors from ambiguity with multiple
-  // enums with the same number of members in GCC prior to 8.  See https://godbolt.org/z/xcKaW1seW
-  // and https://godbolt.org/z/hz7Yqq1P5
-  using enum_type = decltype(last_member);
-
-  // Generate a tree of if statements recursively
-  // std::function must be used because auto won't capture before initialization and thus can't be
-  // used recursively
-  std::function<void(u32, u32, u32)> BuildTree = [&](u32 cur_indent, u32 low, u32 high) {
-    // Each generated statement is for low <= x < high
-    if (high == low + 1)
-    {
-      // Down to 1 case (low <= x < low + 1 means x == low)
-      const enum_type key = static_cast<enum_type>(low);
-      // Note that this indentation behaves poorly for multi-line code
-      out.Write("{:{}}{}  // {}\n", "", cur_indent, values[key], key);
-    }
-    else
-    {
-      u32 mid = low + ((high - low) / 2);
-      out.Write("{:{}}if ({} < {}u) {{\n", "", cur_indent, variable, mid);
-      BuildTree(cur_indent + 2, low, mid);
-      out.Write("{:{}}}} else {{\n", "", cur_indent);
-      BuildTree(cur_indent + 2, mid, high);
-      out.Write("{:{}}}}\n", "", cur_indent);
-    }
-  };
-  BuildTree(indent, 0, static_cast<u32>(last_member) + 1);
+	// Without GL_ARB_shading_language_420pack support, the interpolation qualifier must be
+	// "centroid in" and not "centroid", even within an interface block.
+	if (in_glsl_interface_block && !g_ActiveConfig.backend_info.bSupportsBindingLayout)
+	{
+		if (!g_ActiveConfig.bSSAA)
+			return in ? "centroid in" : "centroid out";
+		else
+			return in ? "sample in" : "sample out";
+	}
+	else
+	{
+		if (!g_ActiveConfig.bSSAA)
+			return "centroid";
+		else
+			return "sample";
+	}
 }
 
 // Constant variable names
-#define I_COLORS "color"
-#define I_KCOLORS "k"
-#define I_ALPHA "alphaRef"
-#define I_TEXDIMS "texdim"
-#define I_ZBIAS "czbias"
-#define I_INDTEXSCALE "cindscale"
-#define I_INDTEXMTX "cindmtx"
-#define I_FOGCOLOR "cfogcolor"
-#define I_FOGI "cfogi"
-#define I_FOGF "cfogf"
-#define I_FOGRANGE "cfogrange"
-#define I_ZSLOPE "czslope"
-#define I_EFBSCALE "cefbscale"
+#define I_COLORS        "color"
+#define I_KCOLORS       "k"
+#define I_ALPHA         "alphaRef"
+#define I_TEXDIMS       "texdim"
+#define I_ZBIAS         "czbias"
+#define I_INDTEXSCALE   "cindscale"
+#define I_INDTEXMTX     "cindmtx"
+#define I_FOGCOLOR      "cfogcolor"
+#define I_FOGI          "cfogi"
+#define I_FOGF          "cfogf"
+#define I_ZSLOPE        "czslope"
+#define I_EFBSCALE      "cefbscale"
 
-#define I_POSNORMALMATRIX "cpnmtx"
-#define I_PROJECTION "cproj"
-#define I_MATERIALS "cmtrl"
-#define I_LIGHTS "clights"
-#define I_TEXMATRICES "ctexmtx"
-#define I_TRANSFORMMATRICES "ctrmtx"
-#define I_NORMALMATRICES "cnmtx"
+#define I_POSNORMALMATRIX       "cpnmtx"
+#define I_PROJECTION            "cproj"
+#define I_MATERIALS             "cmtrl"
+#define I_LIGHTS                "clights"
+#define I_TEXMATRICES           "ctexmtx"
+#define I_TRANSFORMMATRICES     "ctrmtx"
+#define I_NORMALMATRICES        "cnmtx"
 #define I_POSTTRANSFORMMATRICES "cpostmtx"
 #define I_PIXELCENTERCORRECTION "cpixelcenter"
-#define I_VIEWPORT_SIZE "cviewport"
-#define I_CACHED_TANGENT "ctangent"
-#define I_CACHED_BINORMAL "cbinormal"
 
-#define I_STEREOPARAMS "cstereo"
-#define I_LINEPTPARAMS "clinept"
-#define I_TEXOFFSET "ctexoffset"
+#define I_STEREOPARAMS  "cstereo"
+#define I_LINEPTPARAMS  "clinept"
+#define I_TEXOFFSET     "ctexoffset"
 
-static const char s_shader_uniforms[] = "\tuint    components;\n"
-                                        "\tuint    xfmem_dualTexInfo;\n"
-                                        "\tuint    xfmem_numColorChans;\n"
-                                        "\tuint    missing_color_hex;\n"
-                                        "\tfloat4  missing_color_value;\n"
-                                        "\tfloat4 " I_POSNORMALMATRIX "[6];\n"
-                                        "\tfloat4 " I_PROJECTION "[4];\n"
-                                        "\tint4 " I_MATERIALS "[4];\n"
-                                        "\tLight " I_LIGHTS "[8];\n"
-                                        "\tfloat4 " I_TEXMATRICES "[24];\n"
-                                        "\tfloat4 " I_TRANSFORMMATRICES "[64];\n"
-                                        "\tfloat4 " I_NORMALMATRICES "[32];\n"
-                                        "\tfloat4 " I_POSTTRANSFORMMATRICES "[64];\n"
-                                        "\tfloat4 " I_PIXELCENTERCORRECTION ";\n"
-                                        "\tfloat2 " I_VIEWPORT_SIZE ";\n"
-                                        "\tuint4   xfmem_pack1[8];\n"
-                                        "\tfloat4 " I_CACHED_TANGENT ";\n"
-                                        "\tfloat4 " I_CACHED_BINORMAL ";\n"
-                                        "\tuint vertex_stride;\n"
-                                        "\tuint vertex_offset_rawnormal;\n"
-                                        "\tuint vertex_offset_rawtangent;\n"
-                                        "\tuint vertex_offset_rawbinormal;\n"
-                                        "\tuint vertex_offset_rawpos;\n"
-                                        "\tuint vertex_offset_posmtx;\n"
-                                        "\tuint vertex_offset_rawcolor0;\n"
-                                        "\tuint vertex_offset_rawcolor1;\n"
-                                        "\tuint4 vertex_offset_rawtex[2];\n"  // std140 is pain
-                                        "\t#define xfmem_texMtxInfo(i) (xfmem_pack1[(i)].x)\n"
-                                        "\t#define xfmem_postMtxInfo(i) (xfmem_pack1[(i)].y)\n"
-                                        "\t#define xfmem_color(i) (xfmem_pack1[(i)].z)\n"
-                                        "\t#define xfmem_alpha(i) (xfmem_pack1[(i)].w)\n";
-
-static const char s_geometry_shader_uniforms[] = "\tfloat4 " I_STEREOPARAMS ";\n"
-                                                 "\tfloat4 " I_LINEPTPARAMS ";\n"
-                                                 "\tint4 " I_TEXOFFSET ";\n"
-                                                 "\tuint vs_expand;\n";
+static const char s_shader_uniforms[] =
+	"\tfloat4 " I_POSNORMALMATRIX"[6];\n"
+	"\tfloat4 " I_PROJECTION"[4];\n"
+	"\tint4 " I_MATERIALS"[4];\n"
+	"\tLight " I_LIGHTS"[8];\n"
+	"\tfloat4 " I_TEXMATRICES"[24];\n"
+	"\tfloat4 " I_TRANSFORMMATRICES"[64];\n"
+	"\tfloat4 " I_NORMALMATRICES"[32];\n"
+	"\tfloat4 " I_POSTTRANSFORMMATRICES"[64];\n"
+	"\tfloat4 " I_PIXELCENTERCORRECTION";\n";

@@ -1,20 +1,19 @@
 // Copyright 2010 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #pragma once
 
 #include "Common/Logging/LogManager.h"
 
-class ConsoleListener : public Common::Log::LogListener
+class ConsoleListener : public LogListener
 {
 public:
-  ConsoleListener();
-  ~ConsoleListener();
+	ConsoleListener();
+	~ConsoleListener();
 
-  void Log(Common::Log::LogLevel level, const char* text) override;
+	void Log(LogTypes::LOG_LEVELS, const char* text) override;
 
 private:
-#if !defined _WIN32 && !defined ANDROID
-  bool m_use_color = false;
-#endif
+	bool m_use_color;
 };

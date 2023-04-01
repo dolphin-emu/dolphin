@@ -1,362 +1,341 @@
 // Copyright 2008 Dolphin Emulator Project
 // Copyright 2004 Duddie & Tratax
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
-#include "Core/DSP/DSPCore.h"
-
-#include <atomic>
-#include <cstddef>
-#include <cstring>
-
+#include "Common/CommonFuncs.h"
 #include "Common/CPUDetect.h"
-#include "Common/CommonTypes.h"
 #include "Common/Intrinsics.h"
-#include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
-#include "Common/Swap.h"
+#include "Common/Thread.h"
 
 #include "Core/DSP/DSPAccelerator.h"
+#include "Core/DSP/DSPAnalyzer.h"
+#include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPHost.h"
+#include "Core/DSP/DSPHWInterface.h"
+#include "Core/DSP/DSPInterpreter.h"
 #include "Core/DSP/DSPTables.h"
 
-namespace DSP
-{
-void SDSP::InitializeIFX()
-{
-  m_ifx_regs.fill(0);
+static void gdsp_do_dma();
 
-  GetMailbox(Mailbox::CPU).store(0);
-  GetMailbox(Mailbox::DSP).store(0);
+void gdsp_ifx_init()
+{
+	g_dsp.ifx_regs.fill(0);
+
+	g_dsp.mbox[MAILBOX_CPU].store(0);
+	g_dsp.mbox[MAILBOX_DSP].store(0);
 }
 
-u32 SDSP::PeekMailbox(Mailbox mailbox) const
+u32 gdsp_mbox_peek(Mailbox mbx)
 {
-  return GetMailbox(mailbox).load();
+	return g_dsp.mbox[mbx].load();
 }
 
-u16 SDSP::ReadMailboxLow(Mailbox mailbox)
+void gdsp_mbox_write_h(Mailbox mbx, u16 val)
 {
-  const u32 value = GetMailbox(mailbox).load(std::memory_order_acquire);
-  GetMailbox(mailbox).store(value & ~0x80000000, std::memory_order_release);
+	const u32 old_value = g_dsp.mbox[mbx].load(std::memory_order_acquire);
+	const u32 new_value = (old_value & 0xffff) | (val << 16);
+
+	g_dsp.mbox[mbx].store(new_value & ~0x80000000, std::memory_order_release);
+}
+
+void gdsp_mbox_write_l(Mailbox mbx, u16 val)
+{
+	const u32 old_value = g_dsp.mbox[mbx].load(std::memory_order_acquire);
+	const u32 new_value = (old_value & ~0xffff) | val;
+
+	g_dsp.mbox[mbx].store(new_value | 0x80000000, std::memory_order_release);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
-  const char* const type = mailbox == Mailbox::DSP ? "DSP" : "CPU";
-  DEBUG_LOG_FMT(DSP_MAIL, "{}(RM) B:{} M:{:#010x} (pc={:#06x})", type, static_cast<int>(mailbox),
-                PeekMailbox(mailbox), pc);
-#endif
-
-  return static_cast<u16>(value);
-}
-
-u16 SDSP::ReadMailboxHigh(Mailbox mailbox)
-{
-  // TODO: mask away the top bit?
-  return static_cast<u16>(PeekMailbox(mailbox) >> 16);
-}
-
-void SDSP::WriteMailboxLow(Mailbox mailbox, u16 value)
-{
-  const u32 old_value = GetMailbox(mailbox).load(std::memory_order_acquire);
-  const u32 new_value = (old_value & ~0xffff) | value;
-
-  GetMailbox(mailbox).store(new_value | 0x80000000, std::memory_order_release);
-
-#if defined(_DEBUG) || defined(DEBUGFAST)
-  const char* const type = mailbox == Mailbox::DSP ? "DSP" : "CPU";
-  DEBUG_LOG_FMT(DSP_MAIL, "{}(WM) B:{} M:{:#010x} (pc={:#06x})", type, static_cast<int>(mailbox),
-                PeekMailbox(mailbox), pc);
+	if (mbx == MAILBOX_DSP)
+		INFO_LOG(DSP_MAIL, "DSP(WM) B:%i M:0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(MAILBOX_DSP), g_dsp.pc);
+	else
+		INFO_LOG(DSP_MAIL, "CPU(WM) B:%i M:0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(MAILBOX_CPU), g_dsp.pc);
 #endif
 }
 
-void SDSP::WriteMailboxHigh(Mailbox mailbox, u16 value)
+u16 gdsp_mbox_read_h(Mailbox mbx)
 {
-  const u32 old_value = GetMailbox(mailbox).load(std::memory_order_acquire);
-  const u32 new_value = (old_value & 0xffff) | (value << 16);
+	if (g_init_hax && mbx == MAILBOX_DSP)
+	{
+		return 0x8054;
+	}
 
-  GetMailbox(mailbox).store(new_value & ~0x80000000, std::memory_order_release);
+	return (u16)(g_dsp.mbox[mbx].load() >> 16); // TODO: mask away the top bit?
 }
 
-void SDSP::WriteIFX(u32 address, u16 value)
+u16 gdsp_mbox_read_l(Mailbox mbx)
 {
-  m_dsp_core.LogIFXWrite(address, value);
+	const u32 value = g_dsp.mbox[mbx].load(std::memory_order_acquire);
+	g_dsp.mbox[mbx].store(value & ~0x80000000, std::memory_order_release);
 
-  switch (address & 0xff)
-  {
-  case DSP_DIRQ:
-    if ((value & 1) != 0)
-    {
-      Host::InterruptRequest();
-    }
-    else if (value != 0)
-    {
-      // The homebrew libasnd uCode frequently writes 0 to DIRQ with a comment
-      // saying "clear the interrupt" - we don't need to log in this case.
-      WARN_LOG_FMT(DSPLLE, "Unknown Interrupt Request pc={:#06x} ({:#06x})", pc, value);
-    }
-    break;
+	if (g_init_hax && mbx == MAILBOX_DSP)
+	{
+		g_init_hax = false;
+		DSPCore_Reset();
+		return 0x4348;
+	}
 
-  case DSP_DMBH:
-    WriteMailboxHigh(Mailbox::DSP, value);
-    break;
+#if defined(_DEBUG) || defined(DEBUGFAST)
+	if (mbx == MAILBOX_DSP)
+		INFO_LOG(DSP_MAIL, "DSP(RM) B:%i M:0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(MAILBOX_DSP), g_dsp.pc);
+	else
+		INFO_LOG(DSP_MAIL, "CPU(RM) B:%i M:0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(MAILBOX_CPU), g_dsp.pc);
+#endif
 
-  case DSP_DMBL:
-    WriteMailboxLow(Mailbox::DSP, value);
-    break;
-
-  case DSP_CMBH:
-    WriteMailboxHigh(Mailbox::CPU, value);
-    break;
-
-  case DSP_CMBL:
-    WriteMailboxLow(Mailbox::CPU, value);
-    break;
-
-  case DSP_DSBL:
-    m_ifx_regs[DSP_DSBL] = value;
-    m_ifx_regs[DSP_DSCR] |= 4;  // Doesn't really matter since we do DMA instantly
-    if (!m_ifx_regs[DSP_AMDM])
-      DoDMA();
-    else
-      NOTICE_LOG_FMT(DSPLLE, "Masked DMA skipped");
-    m_ifx_regs[DSP_DSCR] &= ~4;
-    m_ifx_regs[DSP_DSBL] = 0;
-    break;
-
-  case DSP_GAIN:
-    if (value != 0)
-    {
-      DEBUG_LOG_FMT(DSPLLE, "Gain Written: {:#06x}", value);
-    }
-    [[fallthrough]];
-  case DSP_DSPA:
-  case DSP_DSMAH:
-  case DSP_DSMAL:
-  case DSP_DSCR:
-    m_ifx_regs[address & 0xFF] = value;
-    break;
-
-  case DSP_ACSAH:
-    m_accelerator->SetStartAddress(value << 16 |
-                                   static_cast<u16>(m_accelerator->GetStartAddress()));
-    break;
-  case DSP_ACSAL:
-    m_accelerator->SetStartAddress(static_cast<u16>(m_accelerator->GetStartAddress() >> 16) << 16 |
-                                   value);
-    break;
-  case DSP_ACEAH:
-    m_accelerator->SetEndAddress(value << 16 | static_cast<u16>(m_accelerator->GetEndAddress()));
-    break;
-  case DSP_ACEAL:
-    m_accelerator->SetEndAddress(static_cast<u16>(m_accelerator->GetEndAddress() >> 16) << 16 |
-                                 value);
-    break;
-  case DSP_ACCAH:
-    m_accelerator->SetCurrentAddress(value << 16 |
-                                     static_cast<u16>(m_accelerator->GetCurrentAddress()));
-    break;
-  case DSP_ACCAL:
-    m_accelerator->SetCurrentAddress(
-        static_cast<u16>(m_accelerator->GetCurrentAddress() >> 16) << 16 | value);
-    break;
-  case DSP_FORMAT:
-    m_accelerator->SetSampleFormat(value);
-    break;
-  case DSP_YN1:
-    m_accelerator->SetYn1(value);
-    break;
-  case DSP_YN2:
-    m_accelerator->SetYn2(value);
-    break;
-  case DSP_PRED_SCALE:
-    m_accelerator->SetPredScale(value);
-    break;
-  case DSP_ACDATA1:  // Accelerator write (Zelda type) - "UnkZelda"
-    m_accelerator->WriteD3(value);
-    break;
-
-  default:
-    if ((address & 0xff) >= 0xa0)
-    {
-      const u32 index = (address & 0xFF) - 0xa0;
-      const auto& label = pdlabels[index];
-
-      if (label.name && label.description)
-      {
-        DEBUG_LOG_FMT(DSPLLE, "{:04x} MW {} ({:04x})", pc, label.name, value);
-      }
-      else
-      {
-        ERROR_LOG_FMT(DSPLLE, "{:04x} MW {:04x} ({:04x})", pc, address, value);
-      }
-    }
-    else
-    {
-      ERROR_LOG_FMT(DSPLLE, "{:04x} MW {:04x} ({:04x})", pc, address, value);
-    }
-    m_ifx_regs[address & 0xFF] = value;
-    break;
-  }
+	return (u16)value;
 }
 
-u16 SDSP::ReadIFXImpl(u16 address)
+void gdsp_ifx_write(u32 addr, u32 val)
 {
-  switch (address & 0xff)
-  {
-  case DSP_DMBH:
-    return ReadMailboxHigh(Mailbox::DSP);
+	g_dsp_cap->LogIFXWrite(addr, val);
 
-  case DSP_DMBL:
-    return ReadMailboxLow(Mailbox::DSP);
+	switch (addr & 0xff)
+	{
+		case DSP_DIRQ:
+			if (val & 0x1)
+				DSPHost::InterruptRequest();
+			else
+				INFO_LOG(DSPLLE, "Unknown Interrupt Request pc=%04x (%04x)", g_dsp.pc, val);
+			break;
 
-  case DSP_CMBH:
-    return ReadMailboxHigh(Mailbox::CPU);
+		case DSP_DMBH:
+			gdsp_mbox_write_h(MAILBOX_DSP, val);
+			break;
 
-  case DSP_CMBL:
-    return ReadMailboxLow(Mailbox::CPU);
+		case DSP_DMBL:
+			gdsp_mbox_write_l(MAILBOX_DSP, val);
+			break;
 
-  case DSP_DSCR:
-    return m_ifx_regs[address & 0xFF];
+		case DSP_CMBH:
+			return gdsp_mbox_write_h(MAILBOX_CPU, val);
 
-  case DSP_ACSAH:
-    return static_cast<u16>(m_accelerator->GetStartAddress() >> 16);
-  case DSP_ACSAL:
-    return static_cast<u16>(m_accelerator->GetStartAddress());
-  case DSP_ACEAH:
-    return static_cast<u16>(m_accelerator->GetEndAddress() >> 16);
-  case DSP_ACEAL:
-    return static_cast<u16>(m_accelerator->GetEndAddress());
-  case DSP_ACCAH:
-    return static_cast<u16>(m_accelerator->GetCurrentAddress() >> 16);
-  case DSP_ACCAL:
-    return static_cast<u16>(m_accelerator->GetCurrentAddress());
-  case DSP_FORMAT:
-    return m_accelerator->GetSampleFormat();
-  case DSP_YN1:
-    return m_accelerator->GetYn1();
-  case DSP_YN2:
-    return m_accelerator->GetYn2();
-  case DSP_PRED_SCALE:
-    return m_accelerator->GetPredScale();
-  case DSP_ACCELERATOR:  // ADPCM Accelerator reads
-    return m_accelerator->Read(reinterpret_cast<s16*>(&m_ifx_regs[DSP_COEF_A1_0]));
-  case DSP_ACDATA1:  // Accelerator reads (Zelda type) - "UnkZelda"
-    return m_accelerator->ReadD3();
+		case DSP_CMBL:
+			return gdsp_mbox_write_l(MAILBOX_CPU, val);
 
-  default:
-  {
-    const u16 ifx_reg = m_ifx_regs[address & 0xFF];
+		case DSP_DSBL:
+			g_dsp.ifx_regs[DSP_DSBL] = val;
+			g_dsp.ifx_regs[DSP_DSCR] |= 4; // Doesn't really matter since we do DMA instantly
+			if (!g_dsp.ifx_regs[DSP_AMDM])
+				gdsp_do_dma();
+			else
+				NOTICE_LOG(DSPLLE, "Masked DMA skipped");
+			g_dsp.ifx_regs[DSP_DSCR] &= ~4;
+			g_dsp.ifx_regs[DSP_DSBL] = 0;
+			break;
 
-    if ((address & 0xff) >= 0xa0)
-    {
-      const u32 index = (address & 0xFF) - 0xa0;
-      const auto& label = pdlabels[index];
+		case DSP_ACDATA1: // Accelerator write (Zelda type) - "UnkZelda"
+			dsp_write_aram_d3(val);
+			break;
 
-      if (label.name && label.description)
-      {
-        DEBUG_LOG_FMT(DSPLLE, "{:04x} MR {} ({:04x})", pc, label.name, ifx_reg);
-      }
-      else
-      {
-        ERROR_LOG_FMT(DSPLLE, "{:04x} MR {:04x} ({:04x})", pc, address, ifx_reg);
-      }
-    }
-    else
-    {
-      ERROR_LOG_FMT(DSPLLE, "{:04x} MR {:04x} ({:04x})", pc, address, ifx_reg);
-    }
-    return ifx_reg;
-  }
-  }
+		case DSP_GAIN:
+			if (val)
+			{
+				INFO_LOG(DSPLLE,"Gain Written: 0x%04x", val);
+			}
+		case DSP_DSPA:
+		case DSP_DSMAH:
+		case DSP_DSMAL:
+		case DSP_DSCR:
+			g_dsp.ifx_regs[addr & 0xFF] = val;
+			break;
+/*
+		case DSP_ACCAL:
+			dsp_step_accelerator();
+			break;
+*/
+		default:
+			if ((addr & 0xff) >= 0xa0)
+			{
+				if (pdlabels[(addr & 0xFF) - 0xa0].name && pdlabels[(addr & 0xFF) - 0xa0].description)
+				{
+					INFO_LOG(DSPLLE, "%04x MW %s (%04x)", g_dsp.pc, pdlabels[(addr & 0xFF) - 0xa0].name, val);
+				}
+				else
+				{
+					ERROR_LOG(DSPLLE, "%04x MW %04x (%04x)", g_dsp.pc, addr, val);
+				}
+			}
+			else
+			{
+				ERROR_LOG(DSPLLE, "%04x MW %04x (%04x)", g_dsp.pc, addr, val);
+			}
+			g_dsp.ifx_regs[addr & 0xFF] = val;
+			break;
+	}
 }
 
-u16 SDSP::ReadIFX(u16 address)
+static u16 _gdsp_ifx_read(u16 addr)
 {
-  const u16 retval = ReadIFXImpl(address);
-  m_dsp_core.LogIFXRead(address, retval);
-  return retval;
+	switch (addr & 0xff)
+	{
+		case DSP_DMBH:
+			return gdsp_mbox_read_h(MAILBOX_DSP);
+
+		case DSP_DMBL:
+			return gdsp_mbox_read_l(MAILBOX_DSP);
+
+		case DSP_CMBH:
+			return gdsp_mbox_read_h(MAILBOX_CPU);
+
+		case DSP_CMBL:
+			return gdsp_mbox_read_l(MAILBOX_CPU);
+
+		case DSP_DSCR:
+			return g_dsp.ifx_regs[addr & 0xFF];
+
+		case DSP_ACCELERATOR:  // ADPCM Accelerator reads
+			return dsp_read_accelerator();
+
+		case DSP_ACDATA1: // Accelerator reads (Zelda type) - "UnkZelda"
+			return dsp_read_aram_d3();
+
+		default:
+			if ((addr & 0xff) >= 0xa0)
+			{
+				if (pdlabels[(addr & 0xFF) - 0xa0].name && pdlabels[(addr & 0xFF) - 0xa0].description)
+				{
+					INFO_LOG(DSPLLE, "%04x MR %s (%04x)", g_dsp.pc, pdlabels[(addr & 0xFF) - 0xa0].name, g_dsp.ifx_regs[addr & 0xFF]);
+				}
+				else
+				{
+					ERROR_LOG(DSPLLE, "%04x MR %04x (%04x)", g_dsp.pc, addr, g_dsp.ifx_regs[addr & 0xFF]);
+				}
+			}
+			else
+			{
+				ERROR_LOG(DSPLLE, "%04x MR %04x (%04x)", g_dsp.pc, addr, g_dsp.ifx_regs[addr & 0xFF]);
+			}
+			return g_dsp.ifx_regs[addr & 0xFF];
+	}
 }
 
-const u8* SDSP::IDMAIn(u16 dsp_addr, u32 addr, u32 size)
+u16 gdsp_ifx_read(u16 addr)
 {
-  Common::UnWriteProtectMemory(iram, DSP_IRAM_BYTE_SIZE, false);
-  Host::DMAToDSP(iram + dsp_addr / 2, addr, size);
-  Common::WriteProtectMemory(iram, DSP_IRAM_BYTE_SIZE, false);
-
-  Host::CodeLoaded(m_dsp_core, addr, size);
-  NOTICE_LOG_FMT(DSPLLE, "*** Copy new UCode from {:#010x} to {:#06x} (crc: {:#08x})", addr,
-                 dsp_addr, m_iram_crc);
-
-  return reinterpret_cast<const u8*>(iram) + dsp_addr;
+	u16 retval = _gdsp_ifx_read(addr);
+	g_dsp_cap->LogIFXRead(addr, retval);
+	return retval;
 }
 
-const u8* SDSP::IDMAOut(u16 dsp_addr, u32 addr, u32 size)
+static const u8* gdsp_idma_in(u16 dsp_addr, u32 addr, u32 size)
 {
-  ERROR_LOG_FMT(DSPLLE, "*** idma_out IRAM_DSP ({:#06x}) -> RAM ({:#010x}) : size ({:#010x})",
-                dsp_addr / 2, addr, size);
-  return nullptr;
+	UnWriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
+
+	u8* dst = ((u8*)g_dsp.iram);
+	for (u32 i = 0; i < size; i += 2)
+	{
+		*(u16*)&dst[dsp_addr + i] = Common::swap16(*(const u16*)&g_dsp.cpu_ram[(addr + i) & 0x0fffffff]);
+	}
+	WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
+
+	DSPHost::CodeLoaded((const u8*)g_dsp.iram + dsp_addr, size);
+
+	NOTICE_LOG(DSPLLE, "*** Copy new UCode from 0x%08x to 0x%04x (crc: %8x)", addr, dsp_addr, g_dsp.iram_crc);
+
+	return dst + dsp_addr;
 }
+
+static const u8* gdsp_idma_out(u16 dsp_addr, u32 addr, u32 size)
+{
+	ERROR_LOG(DSPLLE, "*** idma_out IRAM_DSP (0x%04x) -> RAM (0x%08x) : size (0x%08x)", dsp_addr / 2, addr, size);
+
+	return nullptr;
+}
+
+#if _M_SSE >= 0x301
+static const __m128i s_mask = _mm_set_epi32(0x0E0F0C0DL, 0x0A0B0809L, 0x06070405L, 0x02030001L);
+#endif
 
 // TODO: These should eat clock cycles.
-const u8* SDSP::DDMAIn(u16 dsp_addr, u32 addr, u32 size)
+static const u8* gdsp_ddma_in(u16 dsp_addr, u32 addr, u32 size)
 {
-  Host::DMAToDSP(dram + dsp_addr / 2, addr, size);
-  DEBUG_LOG_FMT(DSPLLE, "*** ddma_in RAM ({:#010x}) -> DRAM_DSP ({:#06x}) : size ({:#010x})", addr,
-                dsp_addr / 2, size);
+	u8* dst = ((u8*)g_dsp.dram);
 
-  return reinterpret_cast<const u8*>(dram) + dsp_addr;
+#if _M_SSE >= 0x301
+	if (cpu_info.bSSSE3 && !(size % 16))
+	{
+		for (u32 i = 0; i < size; i += 16)
+		{
+			_mm_storeu_si128((__m128i *)&dst[dsp_addr + i], _mm_shuffle_epi8(_mm_loadu_si128((__m128i *)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF]), s_mask));
+		}
+	}
+	else
+#endif
+	{
+		for (u32 i = 0; i < size; i += 2)
+		{
+			*(u16*)&dst[dsp_addr + i] = Common::swap16(*(const u16*)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF]);
+		}
+	}
+	INFO_LOG(DSPLLE, "*** ddma_in RAM (0x%08x) -> DRAM_DSP (0x%04x) : size (0x%08x)", addr, dsp_addr / 2, size);
+
+	return dst + dsp_addr;
 }
 
-const u8* SDSP::DDMAOut(u16 dsp_addr, u32 addr, u32 size)
+static const u8* gdsp_ddma_out(u16 dsp_addr, u32 addr, u32 size)
 {
-  Host::DMAFromDSP(dram + dsp_addr / 2, addr, size);
-  DEBUG_LOG_FMT(DSPLLE, "*** ddma_out DRAM_DSP ({:#06x}) -> RAM ({:#010x}) : size ({:#010x})",
-                dsp_addr / 2, addr, size);
+	const u8* src = ((const u8*)g_dsp.dram);
 
-  return reinterpret_cast<const u8*>(dram) + dsp_addr;
+#if _M_SSE >= 0x301
+	if (cpu_info.bSSSE3 && !(size % 16))
+	{
+		for (u32 i = 0; i < size; i += 16)
+		{
+			_mm_storeu_si128((__m128i *)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF], _mm_shuffle_epi8(_mm_loadu_si128((__m128i *)&src[dsp_addr + i]), s_mask));
+		}
+	}
+	else
+#endif
+	{
+		for (u32 i = 0; i < size; i += 2)
+		{
+			*(u16*)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF] = Common::swap16(*(const u16*)&src[dsp_addr + i]);
+		}
+	}
+
+	INFO_LOG(DSPLLE, "*** ddma_out DRAM_DSP (0x%04x) -> RAM (0x%08x) : size (0x%08x)", dsp_addr / 2, addr, size);
+
+	return src + dsp_addr;
 }
 
-void SDSP::DoDMA()
+static void gdsp_do_dma()
 {
-  const u32 addr = (m_ifx_regs[DSP_DSMAH] << 16) | m_ifx_regs[DSP_DSMAL];
-  const u16 ctl = m_ifx_regs[DSP_DSCR];
-  const u16 dsp_addr = m_ifx_regs[DSP_DSPA] * 2;
-  const u16 len = m_ifx_regs[DSP_DSBL];
+	u32 addr     = (g_dsp.ifx_regs[DSP_DSMAH] << 16) | g_dsp.ifx_regs[DSP_DSMAL];
+	u16 ctl      = g_dsp.ifx_regs[DSP_DSCR];
+	u16 dsp_addr = g_dsp.ifx_regs[DSP_DSPA] * 2;
+	u16 len      = g_dsp.ifx_regs[DSP_DSBL];
 
-  if (len > 0x4000)
-  {
-    ERROR_LOG_FMT(DSPLLE,
-                  "DMA ERROR: PC: {:04x}, Control: {:04x}, Address: {:08x}, DSP Address: {:04x}, "
-                  "Size: {:04x}",
-                  pc, ctl, addr, dsp_addr, len);
-    std::exit(0);
-  }
+	if (len > 0x4000)
+	{
+		ERROR_LOG(DSPLLE, "DMA ERROR: PC: %04x, Control: %04x, Address: %08x, DSP Address: %04x, Size: %04x", g_dsp.pc, ctl, addr, dsp_addr, len);
+		exit(0);
+	}
 #if defined(_DEBUG) || defined(DEBUGFAST)
-  DEBUG_LOG_FMT(
-      DSPLLE, "DMA pc: {:04x}, Control: {:04x}, Address: {:08x}, DSP Address: {:04x}, Size: {:04x}",
-      pc, ctl, addr, dsp_addr, len);
+	DEBUG_LOG(DSPLLE, "DMA pc: %04x, Control: %04x, Address: %08x, DSP Address: %04x, Size: %04x", g_dsp.pc, ctl, addr, dsp_addr, len);
 #endif
 
-  const u8* copied_data_ptr = nullptr;
-  switch (ctl & 0x3)
-  {
-  case (DSP_CR_DMEM | DSP_CR_TO_CPU):
-    copied_data_ptr = DDMAOut(dsp_addr, addr, len);
-    break;
+	const u8* copied_data_ptr = nullptr;
+	switch (ctl & 0x3)
+	{
+		case (DSP_CR_DMEM | DSP_CR_TO_CPU):
+			copied_data_ptr = gdsp_ddma_out(dsp_addr, addr, len);
+			break;
 
-  case (DSP_CR_DMEM | DSP_CR_FROM_CPU):
-    copied_data_ptr = DDMAIn(dsp_addr, addr, len);
-    break;
+		case (DSP_CR_DMEM | DSP_CR_FROM_CPU):
+			copied_data_ptr = gdsp_ddma_in(dsp_addr, addr, len);
+			break;
 
-  case (DSP_CR_IMEM | DSP_CR_TO_CPU):
-    copied_data_ptr = IDMAOut(dsp_addr, addr, len);
-    break;
+		case (DSP_CR_IMEM | DSP_CR_TO_CPU):
+			copied_data_ptr = gdsp_idma_out(dsp_addr, addr, len);
+			break;
 
-  case (DSP_CR_IMEM | DSP_CR_FROM_CPU):
-    copied_data_ptr = IDMAIn(dsp_addr, addr, len);
-    break;
-  }
+		case (DSP_CR_IMEM | DSP_CR_FROM_CPU):
+			copied_data_ptr = gdsp_idma_in(dsp_addr, addr, len);
+			break;
+	}
 
-  if (copied_data_ptr)
-    m_dsp_core.LogDMA(ctl, addr, dsp_addr, len, copied_data_ptr);
+	if (copied_data_ptr)
+		g_dsp_cap->LogDMA(ctl, addr, dsp_addr, len, copied_data_ptr);
+
 }
-}  // namespace DSP

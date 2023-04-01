@@ -1,121 +1,86 @@
 // Copyright 2008 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #pragma once
 
-#include <array>
-#include <vector>
-
-#include "VideoCommon/BPFunctions.h"
+#include <string>
 
 struct Statistics
 {
-  int num_pixel_shaders_created = 0;
-  int num_pixel_shaders_alive = 0;
-  int num_vertex_shaders_created = 0;
-  int num_vertex_shaders_alive = 0;
+	int numPixelShadersCreated;
+	int numPixelShadersAlive;
+	int numVertexShadersCreated;
+	int numVertexShadersAlive;
 
-  int num_textures_created = 0;
-  int num_textures_uploaded = 0;
-  int num_textures_alive = 0;
+	int numTexturesCreated;
+	int numTexturesUploaded;
+	int numTexturesAlive;
 
-  int num_vertex_loaders = 0;
+	int numVertexLoaders;
 
-  std::array<float, 6> proj{};
-  std::array<float, 16> gproj{};
-  std::array<float, 16> g2proj{};
+	float proj_0, proj_1, proj_2, proj_3, proj_4, proj_5;
+	float gproj_0, gproj_1, gproj_2, gproj_3, gproj_4, gproj_5;
+	float gproj_6, gproj_7, gproj_8, gproj_9, gproj_10, gproj_11, gproj_12, gproj_13, gproj_14, gproj_15;
 
-  std::vector<BPFunctions::ScissorResult> scissors{};
-  size_t current_scissor = 0;  // 0 => all, otherwise index + 1
-  int scissor_scale = 10;
-  int scissor_expected_count = 0;
-  bool allow_duplicate_scissors = false;
-  bool show_scissors = true;
-  bool show_raw_scissors = true;
-  bool show_viewports = false;
-  bool show_text = true;
+	float g2proj_0, g2proj_1, g2proj_2, g2proj_3, g2proj_4, g2proj_5;
+	float g2proj_6, g2proj_7, g2proj_8, g2proj_9, g2proj_10, g2proj_11, g2proj_12, g2proj_13, g2proj_14, g2proj_15;
 
-  struct ThisFrame
-  {
-    int num_bp_loads = 0;
-    int num_cp_loads = 0;
-    int num_xf_loads = 0;
+	struct ThisFrame
+	{
+		int numBPLoads;
+		int numCPLoads;
+		int numXFLoads;
 
-    int num_bp_loads_in_dl = 0;
-    int num_cp_loads_in_dl = 0;
-    int num_xf_loads_in_dl = 0;
+		int numBPLoadsInDL;
+		int numCPLoadsInDL;
+		int numXFLoadsInDL;
 
-    int num_prims = 0;
-    int num_dl_prims = 0;
-    int num_shader_changes = 0;
+		int numPrims;
+		int numDLPrims;
+		int numShaderChanges;
 
-    int num_primitive_joins = 0;
-    int num_draw_calls = 0;
+		int numPrimitiveJoins;
+		int numDrawCalls;
 
-    int num_dlists_called = 0;
+		int numDListsCalled;
 
-    int bytes_vertex_streamed = 0;
-    int bytes_index_streamed = 0;
-    int bytes_uniform_streamed = 0;
+		int bytesVertexStreamed;
+		int bytesIndexStreamed;
+		int bytesUniformStreamed;
 
-    int num_triangles_clipped = 0;
-    int num_triangles_in = 0;
-    int num_triangles_rejected = 0;
-    int num_triangles_culled = 0;
-    int num_drawn_objects = 0;
-    int rasterized_pixels = 0;
-    int num_triangles_drawn = 0;
-    int num_vertices_loaded = 0;
-    int tev_pixels_in = 0;
-    int tev_pixels_out = 0;
+		int numTrianglesClipped;
+		int numTrianglesIn;
+		int numTrianglesRejected;
+		int numTrianglesCulled;
+		int numDrawnObjects;
+		int rasterizedPixels;
+		int numTrianglesDrawn;
+		int numVerticesLoaded;
+		int tevPixelsIn;
+		int tevPixelsOut;
+	};
+	ThisFrame thisFrame;
+	void ResetFrame();
+	static void SwapDL();
 
-    int num_efb_peeks = 0;
-    int num_efb_pokes = 0;
-
-    int num_draw_done = 0;
-    int num_token = 0;
-    int num_token_int = 0;
-  };
-  ThisFrame this_frame;
-  void ResetFrame();
-  void SwapDL();
-  void AddScissorRect();
-  void Display() const;
-  void DisplayProj() const;
-  void DisplayScissor();
+	static std::string ToString();
+	static std::string ToStringProj();
 };
 
-extern Statistics g_stats;
+extern Statistics stats;
 
 #define STATISTICS
 
 #ifdef STATISTICS
-#define INCSTAT(a)                                                                                 \
-  do                                                                                               \
-  {                                                                                                \
-    (a)++;                                                                                         \
-  } while (false)
-#define ADDSTAT(a, b)                                                                              \
-  do                                                                                               \
-  {                                                                                                \
-    (a) += (b);                                                                                    \
-  } while (false)
-#define SETSTAT(a, x)                                                                              \
-  do                                                                                               \
-  {                                                                                                \
-    (a) = static_cast<int>(x);                                                                     \
-  } while (false)
+#define INCSTAT(a) (a)++;
+#define DECSTAT(a) (a)--;
+#define ADDSTAT(a,b) (a)+=(b);
+#define SETSTAT(a,x) (a)=(int)(x);
+#define SETSTAT_UINT(a,x) (a)=(u32)(x);
+#define SETSTAT_FT(a,x) (a)=(float)(x);
 #else
-#define INCSTAT(a)                                                                                 \
-  do                                                                                               \
-  {                                                                                                \
-  } while (false)
-#define ADDSTAT(a, b)                                                                              \
-  do                                                                                               \
-  {                                                                                                \
-  } while (false)
-#define SETSTAT(a, x)                                                                              \
-  do                                                                                               \
-  {                                                                                                \
-  } while (false)
+#define INCSTAT(a) ;
+#define ADDSTAT(a,b) ;
+#define SETSTAT(a,x) ;
 #endif

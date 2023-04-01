@@ -1,86 +1,120 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project>
-  <!--
-    This file is included by *everything* (Externals and Dolphin code).
-    If you want to define something that only applies to Dolphin code, use Base.Dolphin.props
-  -->
-  <Import Project="Base.Macros.props" Condition="'$(BaseMacrosImported)'==''" />
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <DolphinRelease Condition="'$(DolphinRelease)'!='true' or '$(Configuration)'!='Release'">false</DolphinRelease>
+    <TargetSuffix>
+    </TargetSuffix>
+    <TargetSuffix Condition="'$(Configuration)'=='Debug'">D</TargetSuffix>
+    <DolphinRootDir>$(SolutionDir)..\</DolphinRootDir>
+    <BuildRootDir>$(DolphinRootDir)Build\</BuildRootDir>
+    <BinaryRootDir>$(DolphinRootDir)Binary\</BinaryRootDir>
+    <BinaryOutputDir>$(BinaryRootDir)$(Platform)\</BinaryOutputDir>
+    <ExternalsDir>$(DolphinRootDir)Externals\</ExternalsDir>
+    <CoreDir>$(SolutionDir)Core\</CoreDir>
+  </PropertyGroup>
   <PropertyGroup>
+    <!--
+    Opt-in to x64 compiler and tools.
+    Unfortunately we can't set this property here, as it'll be overridden later. Instead, set it
+    from commandline if you're interested in using x64 toolset
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+    -->
     <IntDir>$(BuildRootDir)$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
     <OutDir>$(IntDir)bin\</OutDir>
-    <!--Set link /INCREMENTAL:NO to remove some entropy from builds (assists with deterministic build)-->
-    <LinkIncremental>false</LinkIncremental>
+    <TargetName Condition="'$(ConfigurationType)'=='Application'">$(ProjectName)$(TargetSuffix)</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <!--ClCompile Base-->
     <ClCompile>
-      <!--Base external header policy: ignore all warnings except template instantiations, and disable analyzer-->
-      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
-      <ExternalTemplatesDiagnostics>true</ExternalTemplatesDiagnostics>
-      <DisableAnalyzeExternal>true</DisableAnalyzeExternal>
-      <TreatAngleIncludeAsExternal>true</TreatAngleIncludeAsExternal>
-
-      <WarningLevel>Level4</WarningLevel>
+      <!--
+      Coagulate all the needed include directories.
+      Order matters! (first hit, first use).
+        Note: Directory containing source file being compiled is always searched first.
+      -->
+      <AdditionalIncludeDirectories>$(CoreDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)Bochs_disasm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)curl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)enet\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)GL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)libpng;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)libusb\libusb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)LZO;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)miniupnpc\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)mbedtls\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)portaudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)SOIL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)wxWidgets3;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)wxWidgets3\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)xxhash;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_UPNP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PSAPI_VERSION=1;_M_X86=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SFML_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CURL_STATICLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Platform)'=='x64'">_ARCH_64=1;_M_X86_64=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <!--
+      Make sure we include a clean version of windows.h.
+      -->
+      <PreprocessorDefinitions Condition="'$(ProjectName)'!='portaudio' And '$(ProjectName)'!='wxWidgets'">WIN32_LEAN_AND_MEAN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <!--
+      This numeral indicates the "minimum system required" to run the resulting
+      program. Dolphin targets Vista+, so it should be 0x0600. However in practice,
+      _WIN32_WINNT just removes up-level API declarations from headers. This is a
+      problem for XAudio2 and XInput, where Dolphin expects to compile against the
+      Win8+ versions of their headers. So while we really need Vista+ level of
+      support, we declare Win8+ here globally. If this becomes a problem, the
+      higher declaration can be contained to just the XAudio2/XInput related code.
+      -->
+      <PreprocessorDefinitions>_WIN32_WINNT=0x0602;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <WarningLevel>Level3</WarningLevel>
       <TreatWarningAsError>true</TreatWarningAsError>
       <IntrinsicFunctions>true</IntrinsicFunctions>
+      <StructMemberAlignment>16Bytes</StructMemberAlignment>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <MinimalRebuild>false</MinimalRebuild>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <!--This doesn't seem required but nice to be future-proof-->
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <!--Enable latest C++ standard-->
-      <LanguageStandard>stdcpplatest</LanguageStandard>
-      <!--Enable Standard Conformance-->
-      <ConformanceMode>true</ConformanceMode>
-      <!--Enforce some behaviors as standards-conformant when they don't default as such.-->
-      <AdditionalOptions>/Zc:__cplusplus,enumTypes,externConstexpr,preprocessor,templateScope,throwingNew /volatile:iso %(AdditionalOptions)</AdditionalOptions>
+      <!--Enforce some behaviors as standards-conformant when they don't default as such-->
+      <AdditionalOptions>/Zc:inline /Zc:rvalueCast /volatile:iso %(AdditionalOptions)</AdditionalOptions>
       <!--Enable detailed debug info-->
       <AdditionalOptions>/Zo %(AdditionalOptions)</AdditionalOptions>
-      <!--Treat sources as utf-8-->
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
-      <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <!--
-        A (currently) hidden switch, like /Brepro, furthermore enabling warnings about non-deterministic code.
-        This may be advantageous over /Brepro, which inits __DATE__, __TIME__, etc. equal to 1 (and allows
-        them to be redefined), which could have unexpected results.
+      This is for GetVersionEx being marked as depreciated - which is idiotic and there's
+      not much else we can do since many externals use it. The bad part is that there doesn't
+      seem to be a way to only ignore the specific instance we don't care about...
       -->
-      <AdditionalOptions>/experimental:deterministic %(AdditionalOptions)</AdditionalOptions>
-      <!--
-        pathmap replaces path prefixes of source files with a hardcoded value, assisting with keeping output
-        files uniform even if actually built from different locations. The mapped path doesn't really need full
-        drive prefix, but it keeps things human readable. Note the trailing "\" is actually to be escaped by a
-        preceeding "\" in the expanded variable.
-      -->
-      <AdditionalOptions>/pathmap:"$(DolphinRootDir)\"=d:\ %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalOptions>/pathmap:"$(WindowsSdkDir)\"=w:\ %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalOptions>/pathmap:"$(VCToolsetsDir)\"=v:\ %(AdditionalOptions)</AdditionalOptions>
+      <DisableSpecificWarnings>4996;4351</DisableSpecificWarnings>
     </ClCompile>
     <!--ClCompile Debug-->
     <ClCompile Condition="'$(Configuration)'=='Debug'">
-      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PreprocessorDefinitions>_DEBUG;_SECURE_SCL=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <Optimization>Disabled</Optimization>
     </ClCompile>
-    <ClCompile Condition="'$(Configuration)'=='Debug' And '$(EnableASAN)'=='true'">
-      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
-    </ClCompile>
     <!--ClCompile Release-->
     <ClCompile Condition="'$(Configuration)'=='Release'">
+      <WholeProgramOptimization Condition="'$(DolphinRelease)'=='true'">true</WholeProgramOptimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
-      <AdditionalOptions>/Gw /Zc:checkGwOdr %(AdditionalOptions)</AdditionalOptions>
-      <WholeProgramOptimization Condition="'$(DolphinRelease)'=='true'">true</WholeProgramOptimization>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <!--This option is not supported in debug mode (for VS2013)-->
+      <AdditionalOptions>/Zc:strictStrings %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <!--Link Base-->
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
-      <AdditionalOptions>/experimental:deterministic %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <!--Link Release-->
     <Link Condition="'$(Configuration)'=='Release'">
@@ -88,11 +122,34 @@
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
     </Link>
+    <!--Link Base:Application-->
+    <Link Condition="'$(ConfigurationType)'=='Application'">
+      <!--See Common/ucrtFreadWorkaround.cpp-->
+      <ForceSymbolReferences>ucrtFreadWorkaround</ForceSymbolReferences>
+    </Link>
     <Lib>
       <TreatLibWarningAsErrors>true</TreatLibWarningAsErrors>
       <LinkTimeCodeGeneration Condition="'$(DolphinRelease)'=='true'">true</LinkTimeCodeGeneration>
-      <AdditionalOptions>/experimental:deterministic %(AdditionalOptions)</AdditionalOptions>
     </Lib>
+    <!--
+    Prefer VTune 2015 over 2013 but support both since there is no non-commercial license for 2015 :(
+    -->
+    <ItemDefinitionGroup Condition="Exists('$(VTUNE_AMPLIFIER_XE_2015_DIR)')">
+      <ClCompile>
+        <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);"$(VTUNE_AMPLIFIER_XE_2015_DIR)\include"</AdditionalIncludeDirectories>
+      </ClCompile>
+      <Link>
+        <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);"$(VTUNE_AMPLIFIER_XE_2015_DIR)\lib64"</AdditionalLibraryDirectories>
+      </Link>
+    </ItemDefinitionGroup>
+    <ItemDefinitionGroup Condition="Exists('$(VTUNE_AMPLIFIER_XE_2013_DIR)') And !Exists('$(VTUNE_AMPLIFIER_XE_2015_DIR)')">
+      <ClCompile>
+        <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);"$(VTUNE_AMPLIFIER_XE_2013_DIR)\include"</AdditionalIncludeDirectories>
+      </ClCompile>
+      <Link>
+        <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);"$(VTUNE_AMPLIFIER_XE_2013_DIR)\lib64"</AdditionalLibraryDirectories>
+      </Link>
+    </ItemDefinitionGroup>
   </ItemDefinitionGroup>
   <ItemGroup />
 </Project>

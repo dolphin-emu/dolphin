@@ -1,5 +1,6 @@
 // Copyright 2008 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #pragma once
 
@@ -10,16 +11,14 @@
 
 class OpenSLESStream final : public SoundStream
 {
-#ifdef HAVE_OPENSL_ES
+#ifdef ANDROID
 public:
-  ~OpenSLESStream() override;
-  bool Init() override;
-  bool SetRunning(bool running) override { return true; }
-  void SetVolume(int volume) override;
-  static bool IsValid() { return true; }
+	bool Start() override;
+	void Stop() override;
+	static bool isValid() { return true; }
 
 private:
-  std::thread thread;
-  Common::Event soundSyncEvent;
-#endif  // HAVE_OPENSL_ES
+	std::thread thread;
+	Common::Event soundSyncEvent;
+#endif // HAVE_OPENSL
 };

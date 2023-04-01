@@ -1,7 +1,6 @@
 // Copyright 2015 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
-
-#include "Common/Logging/ConsoleListener.h"
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #include <cstdio>
 #include <cstring>
@@ -10,43 +9,44 @@
 #include <unistd.h>
 #endif
 
+#include "Common/Logging/ConsoleListener.h"
 #include "Common/Logging/Log.h"
 
 ConsoleListener::ConsoleListener()
 {
-  m_use_color = !!isatty(fileno(stdout));
+	m_use_color = !!isatty(fileno(stdout));
 }
 
 ConsoleListener::~ConsoleListener()
 {
-  fflush(nullptr);
+	fflush(nullptr);
 }
 
-void ConsoleListener::Log(Common::Log::LogLevel level, const char* text)
+void ConsoleListener::Log(LogTypes::LOG_LEVELS level, const char* text)
 {
-  char color_attr[16] = "";
-  char reset_attr[16] = "";
+	char color_attr[16] = "";
+	char reset_attr[16] = "";
 
-  if (m_use_color)
-  {
-    strcpy(reset_attr, "\x1b[0m");
-    switch (level)
-    {
-    case Common::Log::LogLevel::LNOTICE:
-      // light green
-      strcpy(color_attr, "\x1b[92m");
-      break;
-    case Common::Log::LogLevel::LERROR:
-      // light red
-      strcpy(color_attr, "\x1b[91m");
-      break;
-    case Common::Log::LogLevel::LWARNING:
-      // light yellow
-      strcpy(color_attr, "\x1b[93m");
-      break;
-    default:
-      break;
-    }
-  }
-  fprintf(stderr, "%s%s%s", color_attr, text, reset_attr);
+	if (m_use_color)
+	{
+		strcpy(reset_attr, "\x1b[0m");
+		switch (level)
+		{
+		case LogTypes::LOG_LEVELS::LNOTICE:
+			// light green
+			strcpy(color_attr, "\x1b[92m");
+			break;
+		case LogTypes::LOG_LEVELS::LERROR:
+			// light red
+			strcpy(color_attr, "\x1b[91m");
+			break;
+		case LogTypes::LOG_LEVELS::LWARNING:
+			// light yellow
+			strcpy(color_attr, "\x1b[93m");
+			break;
+		default:
+			break;
+		}
+	}
+	fprintf(stderr, "%s%s%s", color_attr, text, reset_attr);
 }

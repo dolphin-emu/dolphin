@@ -1,25 +1,34 @@
 // Copyright 2008 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
+#include <memory>
 #include "DiscIO/Filesystem.h"
+#include "DiscIO/FileSystemGCWii.h"
 
 namespace DiscIO
 {
-FileInfo::~FileInfo() = default;
 
-u64 FileInfo::GetTotalSize() const
+IFileSystem::IFileSystem(const IVolume *_rVolume)
+	: m_rVolume(_rVolume)
+{}
+
+
+IFileSystem::~IFileSystem()
+{}
+
+
+std::unique_ptr<IFileSystem> CreateFileSystem(const IVolume* volume)
 {
-  if (!IsDirectory())
-    return GetSize();
+	std::unique_ptr<IFileSystem> filesystem = std::make_unique<CFileSystemGCWii>(volume);
 
-  u64 size = 0;
+	if (!filesystem)
+		return nullptr;
 
-  for (const auto& entry : *this)
-    size += entry.GetTotalSize();
+	if (!filesystem->IsValid())
+		filesystem.reset();
 
-  return size;
+	return filesystem;
 }
 
-FileSystem::~FileSystem() = default;
-
-}  // namespace DiscIO
+} // namespace

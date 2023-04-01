@@ -1,5 +1,6 @@
 // Copyright 2014 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #pragma once
 
@@ -7,28 +8,22 @@
 #include "VideoCommon/ConstantManager.h"
 
 class PointerWrap;
-enum class PrimitiveType : u32;
 
 // The non-API dependent parts.
 class GeometryShaderManager
 {
 public:
-  void Init();
-  void Dirty();
-  void DoState(PointerWrap& p);
+	static void Init();
+	static void Dirty();
+	static void Shutdown();
+	static void DoState(PointerWrap &p);
 
-  void SetConstants(PrimitiveType prim);
-  void SetViewportChanged();
-  void SetProjectionChanged();
-  void SetLinePtWidthChanged();
-  void SetTexCoordChanged(u8 texmapid);
+	static void SetConstants();
+	static void SetViewportChanged();
+	static void SetProjectionChanged();
+	static void SetLinePtWidthChanged();
+	static void SetTexCoordChanged(u8 texmapid);
 
-  GeometryShaderConstants constants{};
-  bool dirty = false;
-
-private:
-  void SetVSExpand(VSExpand expand);
-
-  bool m_projection_changed = false;
-  bool m_viewport_changed = false;
+	static GeometryShaderConstants constants;
+	static bool dirty;
 };

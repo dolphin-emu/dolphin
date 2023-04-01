@@ -1,108 +1,69 @@
 // Copyright 2010 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #pragma once
 
-#include <array>
-#include <atomic>
-
 #include "Common/Common.h"
-#include "Common/CommonTypes.h"
 
 class InputConfig;
 class PointerWrap;
 
-namespace ControllerEmu
+enum
 {
-class ControlGroup;
-}
+	WIIMOTE_CHAN_0 = 0,
+	WIIMOTE_CHAN_1,
+	WIIMOTE_CHAN_2,
+	WIIMOTE_CHAN_3,
+	WIIMOTE_BALANCE_BOARD,
+	MAX_WIIMOTES = WIIMOTE_BALANCE_BOARD,
+	MAX_BBMOTES = 5,
+};
 
-namespace WiimoteEmu
-{
-enum class WiimoteGroup;
-enum class NunchukGroup;
-enum class ClassicGroup;
-enum class GuitarGroup;
-enum class DrumsGroup;
-enum class TurntableGroup;
-enum class UDrawTabletGroup;
-enum class DrawsomeTabletGroup;
-enum class TaTaConGroup;
-enum class ShinkansenGroup;
-}  // namespace WiimoteEmu
+
+#define WIIMOTE_INI_NAME  "WiimoteNew"
 
 enum
 {
-  WIIMOTE_CHAN_0 = 0,
-  WIIMOTE_CHAN_1,
-  WIIMOTE_CHAN_2,
-  WIIMOTE_CHAN_3,
-  WIIMOTE_BALANCE_BOARD,
-  MAX_WIIMOTES = WIIMOTE_BALANCE_BOARD,
-  MAX_BBMOTES = 5,
+	WIIMOTE_SRC_NONE   = 0,
+	WIIMOTE_SRC_EMU    = 1,
+	WIIMOTE_SRC_REAL   = 2,
+	WIIMOTE_SRC_HYBRID = 3, // emu + real
 };
 
-#define WIIMOTE_INI_NAME "WiimoteNew"
-
-enum class WiimoteSource
-{
-  None = 0,
-  Emulated = 1,
-  Real = 2,
-};
-
-namespace WiimoteCommon
-{
-class HIDWiimote;
-
-// Used to reconnect WiimoteDevice instance to HID source.
-// Must be run from CPU thread.
-void UpdateSource(unsigned int index);
-
-HIDWiimote* GetHIDWiimoteSource(unsigned int index);
-
-}  // namespace WiimoteCommon
+extern unsigned int g_wiimote_sources[MAX_BBMOTES];
 
 namespace Wiimote
 {
-enum class InitializeMode
-{
-  DO_WAIT_FOR_WIIMOTES,
-  DO_NOT_WAIT_FOR_WIIMOTES,
-};
-
-// The Real Wii Remote sends report every ~5ms (200 Hz).
-constexpr int UPDATE_FREQ = 200;
 
 void Shutdown();
-void Initialize(InitializeMode init_mode);
+void Initialize(void* const hwnd, bool wait = false);
 void ResetAllWiimotes();
 void LoadConfig();
 void Resume();
 void Pause();
 
+unsigned int GetAttached();
 void DoState(PointerWrap& p);
+void EmuStateChange(EMUSTATE_CHANGE newState);
 InputConfig* GetConfig();
-ControllerEmu::ControlGroup* GetWiimoteGroup(int number, WiimoteEmu::WiimoteGroup group);
-ControllerEmu::ControlGroup* GetNunchukGroup(int number, WiimoteEmu::NunchukGroup group);
-ControllerEmu::ControlGroup* GetClassicGroup(int number, WiimoteEmu::ClassicGroup group);
-ControllerEmu::ControlGroup* GetGuitarGroup(int number, WiimoteEmu::GuitarGroup group);
-ControllerEmu::ControlGroup* GetDrumsGroup(int number, WiimoteEmu::DrumsGroup group);
-ControllerEmu::ControlGroup* GetTurntableGroup(int number, WiimoteEmu::TurntableGroup group);
-ControllerEmu::ControlGroup* GetUDrawTabletGroup(int number, WiimoteEmu::UDrawTabletGroup group);
-ControllerEmu::ControlGroup* GetDrawsomeTabletGroup(int number,
-                                                    WiimoteEmu::DrawsomeTabletGroup group);
-ControllerEmu::ControlGroup* GetTaTaConGroup(int number, WiimoteEmu::TaTaConGroup group);
-ControllerEmu::ControlGroup* GetShinkansenGroup(int number, WiimoteEmu::ShinkansenGroup group);
-}  // namespace Wiimote
+
+void ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
+void InterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
+void Update(int _number, bool _connected);
+
+}
 
 namespace WiimoteReal
 {
-void Initialize(::Wiimote::InitializeMode init_mode);
+
+void Initialize(bool wait = false);
 void Stop();
 void Shutdown();
 void Resume();
 void Pause();
 void Refresh();
 
-}  // namespace WiimoteReal
+void LoadSettings();
+
+}

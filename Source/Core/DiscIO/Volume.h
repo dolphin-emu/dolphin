@@ -1,192 +1,142 @@
 // Copyright 2008 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #pragma once
 
 #include <cstring>
-#include <limits>
 #include <map>
-#include <memory>
-#include <optional>
 #include <string>
 #include <vector>
 
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
-#include "Common/Crypto/SHA1.h"
 #include "Common/StringUtil.h"
-#include "Common/Swap.h"
-#include "Core/IOS/ES/Formats.h"
-#include "DiscIO/Enums.h"
+#include "DiscIO/Blob.h"
 
 namespace DiscIO
 {
-class BlobReader;
-enum class BlobType;
-enum class DataSizeType;
-class FileSystem;
-class VolumeDisc;
-class VolumeWAD;
-
-struct Partition final
-{
-  constexpr Partition() = default;
-  constexpr explicit Partition(u64 offset_) : offset(offset_) {}
-  constexpr bool operator==(const Partition& other) const { return offset == other.offset; }
-  constexpr bool operator!=(const Partition& other) const { return !(*this == other); }
-  constexpr bool operator<(const Partition& other) const { return offset < other.offset; }
-  constexpr bool operator>(const Partition& other) const { return other < *this; }
-  constexpr bool operator<=(const Partition& other) const { return !(*this < other); }
-  constexpr bool operator>=(const Partition& other) const { return !(*this > other); }
-  u64 offset{std::numeric_limits<u64>::max()};
-};
-
-constexpr Partition PARTITION_NONE(std::numeric_limits<u64>::max() - 1);
-
-class Volume
+class IVolume
 {
 public:
-  Volume() {}
-  virtual ~Volume() {}
-  virtual bool Read(u64 offset, u64 length, u8* buffer, const Partition& partition) const = 0;
-  template <typename T>
-  std::optional<T> ReadSwapped(u64 offset, const Partition& partition) const
-  {
-    T temp;
-    if (!Read(offset, sizeof(T), reinterpret_cast<u8*>(&temp), partition))
-      return std::nullopt;
-    return Common::FromBigEndian(temp);
-  }
-  std::optional<u64> ReadSwappedAndShifted(u64 offset, const Partition& partition) const
-  {
-    const std::optional<u32> temp = ReadSwapped<u32>(offset, partition);
-    if (!temp)
-      return std::nullopt;
-    return static_cast<u64>(*temp) << GetOffsetShift();
-  }
+	// Increment CACHE_REVISION if the enums below are modified (ISOFile.cpp & GameFile.cpp)
+	enum EPlatform
+	{
+		GAMECUBE_DISC = 0,
+		WII_DISC,
+		WII_WAD,
+		ELF_DOL,
+		NUMBER_OF_PLATFORMS
+	};
 
-  virtual bool HasWiiHashes() const { return false; }
-  virtual bool HasWiiEncryption() const { return false; }
-  virtual std::vector<Partition> GetPartitions() const { return {}; }
-  virtual Partition GetGamePartition() const { return PARTITION_NONE; }
-  virtual std::optional<u32> GetPartitionType(const Partition& partition) const
-  {
-    return std::nullopt;
-  }
-  std::optional<u64> GetTitleID() const { return GetTitleID(GetGamePartition()); }
-  virtual std::optional<u64> GetTitleID(const Partition& partition) const { return std::nullopt; }
-  virtual const IOS::ES::TicketReader& GetTicket(const Partition& partition) const
-  {
-    return INVALID_TICKET;
-  }
-  virtual const IOS::ES::TMDReader& GetTMD(const Partition& partition) const { return INVALID_TMD; }
-  virtual const std::vector<u8>& GetCertificateChain(const Partition& partition) const
-  {
-    return INVALID_CERT_CHAIN;
-  }
-  virtual std::vector<u8> GetContent(u16 index) const { return {}; }
-  virtual std::vector<u64> GetContentOffsets() const { return {}; }
-  virtual bool CheckContentIntegrity(const IOS::ES::Content& content,
-                                     const std::vector<u8>& encrypted_data,
-                                     const IOS::ES::TicketReader& ticket) const
-  {
-    return false;
-  }
-  virtual bool CheckContentIntegrity(const IOS::ES::Content& content, u64 content_offset,
-                                     const IOS::ES::TicketReader& ticket) const
-  {
-    return false;
-  }
-  virtual IOS::ES::TicketReader GetTicketWithFixedCommonKey() const { return {}; }
-  // Returns a non-owning pointer. Returns nullptr if the file system couldn't be read.
-  virtual const FileSystem* GetFileSystem(const Partition& partition) const = 0;
-  virtual u64 PartitionOffsetToRawOffset(u64 offset, const Partition& partition) const
-  {
-    return offset;
-  }
-  virtual std::string GetGameID(const Partition& partition = PARTITION_NONE) const = 0;
-  virtual std::string GetGameTDBID(const Partition& partition = PARTITION_NONE) const = 0;
-  virtual std::string GetMakerID(const Partition& partition = PARTITION_NONE) const = 0;
-  virtual std::optional<u16> GetRevision(const Partition& partition = PARTITION_NONE) const = 0;
-  virtual std::string GetInternalName(const Partition& partition = PARTITION_NONE) const = 0;
-  virtual std::map<Language, std::string> GetShortNames() const { return {}; }
-  virtual std::map<Language, std::string> GetLongNames() const { return {}; }
-  virtual std::map<Language, std::string> GetShortMakers() const { return {}; }
-  virtual std::map<Language, std::string> GetLongMakers() const { return {}; }
-  virtual std::map<Language, std::string> GetDescriptions() const { return {}; }
-  virtual std::vector<u32> GetBanner(u32* width, u32* height) const = 0;
-  std::string GetApploaderDate() const { return GetApploaderDate(GetGamePartition()); }
-  virtual std::string GetApploaderDate(const Partition& partition) const = 0;
-  // 0 is the first disc, 1 is the second disc
-  virtual std::optional<u8> GetDiscNumber(const Partition& partition = PARTITION_NONE) const
-  {
-    return 0;
-  }
-  virtual Platform GetVolumeType() const = 0;
-  virtual bool IsDatelDisc() const = 0;
-  virtual bool IsNKit() const = 0;
-  virtual bool CheckH3TableIntegrity(const Partition& partition) const { return false; }
-  virtual bool CheckBlockIntegrity(u64 block_index, const u8* encrypted_data,
-                                   const Partition& partition) const
-  {
-    return false;
-  }
-  virtual bool CheckBlockIntegrity(u64 block_index, const Partition& partition) const
-  {
-    return false;
-  }
-  virtual Region GetRegion() const = 0;
-  virtual Country GetCountry(const Partition& partition = PARTITION_NONE) const = 0;
-  virtual BlobType GetBlobType() const = 0;
-  // Size of virtual disc (may be inaccurate depending on the blob type)
-  virtual u64 GetDataSize() const = 0;
-  virtual DataSizeType GetDataSizeType() const = 0;
-  // Size on disc (compressed size)
-  virtual u64 GetRawSize() const = 0;
-  virtual const BlobReader& GetBlobReader() const = 0;
+	enum ECountry
+	{
+		COUNTRY_EUROPE = 0,
+		COUNTRY_JAPAN,
+		COUNTRY_USA,
+		COUNTRY_AUSTRALIA,
+		COUNTRY_FRANCE,
+		COUNTRY_GERMANY,
+		COUNTRY_ITALY,
+		COUNTRY_KOREA,
+		COUNTRY_NETHERLANDS,
+		COUNTRY_RUSSIA,
+		COUNTRY_SPAIN,
+		COUNTRY_TAIWAN,
+		COUNTRY_WORLD,
+		COUNTRY_UNKNOWN,
+		NUMBER_OF_COUNTRIES
+	};
 
-  // This hash is intended to be (but is not guaranteed to be):
-  // 1. Identical for discs with no differences that affect netplay/TAS sync
-  // 2. Different for discs with differences that affect netplay/TAS sync
-  // 3. Much faster than hashing the entire disc
-  // The way the hash is calculated may change with updates to Dolphin.
-  virtual std::array<u8, 20> GetSyncHash() const = 0;
+	// Languages 0 - 9 match the official Wii language numbering.
+	// Languages 1 - 6 match the official GC PAL languages 0 - 5.
+	enum ELanguage
+	{
+		LANGUAGE_JAPANESE = 0,
+		LANGUAGE_ENGLISH = 1,
+		LANGUAGE_GERMAN = 2,
+		LANGUAGE_FRENCH = 3,
+		LANGUAGE_SPANISH = 4,
+		LANGUAGE_ITALIAN = 5,
+		LANGUAGE_DUTCH = 6,
+		LANGUAGE_SIMPLIFIED_CHINESE = 7,
+		LANGUAGE_TRADITIONAL_CHINESE = 8,
+		LANGUAGE_KOREAN = 9,
+		LANGUAGE_UNKNOWN
+	};
+
+	IVolume() {}
+	virtual ~IVolume() {}
+
+	// decrypt parameter must be false if not reading a Wii disc
+	virtual bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const = 0;
+	template <typename T>
+	bool ReadSwapped(u64 offset, T* buffer, bool decrypt) const
+	{
+		T temp;
+		if (!Read(offset, sizeof(T), reinterpret_cast<u8*>(&temp), decrypt))
+			return false;
+		*buffer = Common::FromBigEndian(temp);
+		return true;
+	}
+
+	virtual bool GetTitleID(u64*) const { return false; }
+	virtual std::vector<u8> GetTMD() const { return {}; }
+	virtual std::string GetUniqueID() const = 0;
+	virtual std::string GetMakerID() const = 0;
+	virtual u16 GetRevision() const = 0;
+	virtual std::string GetInternalName() const = 0;
+	virtual std::map<ELanguage, std::string> GetNames(bool prefer_long) const = 0;
+	virtual std::map<ELanguage, std::string> GetDescriptions() const { return std::map<ELanguage, std::string>(); }
+	virtual std::string GetCompany() const { return std::string(); }
+	virtual std::vector<u32> GetBanner(int* width, int* height) const = 0;
+	virtual u64 GetFSTSize() const = 0;
+	virtual std::string GetApploaderDate() const = 0;
+	// 0 is the first disc, 1 is the second disc
+	virtual u8 GetDiscNumber() const { return 0; }
+
+	virtual EPlatform GetVolumeType() const = 0;
+	virtual bool SupportsIntegrityCheck() const { return false; }
+	virtual bool CheckIntegrity() const { return false; }
+	virtual bool ChangePartition(u64 offset) { return false; }
+
+	virtual ECountry GetCountry() const = 0;
+	virtual BlobType GetBlobType() const = 0;
+	// Size of virtual disc (not always accurate)
+	virtual u64 GetSize() const = 0;
+	// Size on disc (compressed size)
+	virtual u64 GetRawSize() const = 0;
+
+	static std::vector<u32> GetWiiBanner(int* width, int* height, u64 title_id);
 
 protected:
-  template <u32 N>
-  std::string DecodeString(const char (&data)[N]) const
-  {
-    // strnlen to trim NULLs
-    std::string string(data, strnlen(data, sizeof(data)));
+	template <u32 N>
+	std::string DecodeString(const char(&data)[N]) const
+	{
+		// strnlen to trim NULLs
+		std::string string(data, strnlen(data, sizeof(data)));
 
-    if (GetRegion() == Region::NTSC_J)
-      return SHIFTJISToUTF8(string);
-    else
-      return CP1252ToUTF8(string);
-  }
+		// There don't seem to be any GC discs with the country set to Taiwan...
+		// But maybe they would use Shift_JIS if they existed? Not sure
+		bool use_shift_jis = (COUNTRY_JAPAN == GetCountry() || COUNTRY_TAIWAN == GetCountry());
 
-  void ReadAndAddToSyncHash(Common::SHA1::Context* context, u64 offset, u64 length,
-                            const Partition& partition) const;
-  void AddTMDToSyncHash(Common::SHA1::Context* context, const Partition& partition) const;
+		if (use_shift_jis)
+			return SHIFTJISToUTF8(string);
+		else
+			return CP1252ToUTF8(string);
+	}
 
-  virtual u32 GetOffsetShift() const { return 0; }
-  static std::map<Language, std::string> ReadWiiNames(const std::vector<char16_t>& data);
+	static std::map<IVolume::ELanguage, std::string> ReadWiiNames(const std::vector<u8>& data);
 
-  static const size_t NUMBER_OF_LANGUAGES = 10;
-  static const size_t NAME_CHARS_LENGTH = 42;
-  static const size_t NAME_BYTES_LENGTH = NAME_CHARS_LENGTH * sizeof(char16_t);
-  static const size_t NAMES_TOTAL_CHARS = NAME_CHARS_LENGTH * NUMBER_OF_LANGUAGES;
-  static const size_t NAMES_TOTAL_BYTES = NAME_BYTES_LENGTH * NUMBER_OF_LANGUAGES;
-
-  static const IOS::ES::TicketReader INVALID_TICKET;
-  static const IOS::ES::TMDReader INVALID_TMD;
-  static const std::vector<u8> INVALID_CERT_CHAIN;
+	static const size_t NUMBER_OF_LANGUAGES = 10;
+	static const size_t NAME_STRING_LENGTH = 42;
+	static const size_t NAME_BYTES_LENGTH = NAME_STRING_LENGTH * sizeof(u16);
+	static const size_t NAMES_TOTAL_BYTES = NAME_BYTES_LENGTH * NUMBER_OF_LANGUAGES;
 };
 
-std::unique_ptr<VolumeDisc> CreateDisc(std::unique_ptr<BlobReader> reader);
-std::unique_ptr<VolumeDisc> CreateDisc(const std::string& path);
-std::unique_ptr<VolumeWAD> CreateWAD(std::unique_ptr<BlobReader> reader);
-std::unique_ptr<VolumeWAD> CreateWAD(const std::string& path);
-std::unique_ptr<Volume> CreateVolume(std::unique_ptr<BlobReader> reader);
-std::unique_ptr<Volume> CreateVolume(const std::string& path);
+// Generic Switch function for all volumes
+IVolume::ECountry CountrySwitch(u8 country_code);
+u8 GetSysMenuRegion(u16 _TitleVersion);
+std::string GetCompanyFromID(const std::string& company_id);
 
-}  // namespace DiscIO
+} // namespace

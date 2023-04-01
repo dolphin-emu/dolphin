@@ -7,4 +7,3 @@ set(SRCS	lib/iconv.c
 )
 
 add_library(iconv STATIC ${SRCS})
-dolphin_disable_warnings_msvc(iconv)

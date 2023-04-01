@@ -1,7 +1,6 @@
 // Copyright 2008 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
-
-#include "Common/MemoryUtil.h"
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #include <cstddef>
 #include <cstdlib>
@@ -9,258 +8,262 @@
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
-#include "Common/Logging/Log.h"
+#include "Common/MemoryUtil.h"
 #include "Common/MsgHandler.h"
+#include "Common/Logging/Log.h"
 
 #ifdef _WIN32
 #include <windows.h>
+#include <psapi.h>
 #include "Common/StringUtil.h"
 #else
-#include <pthread.h>
 #include <stdio.h>
 #include <sys/mman.h>
 #include <sys/types.h>
-#if defined __APPLE__ || defined __FreeBSD__ || defined __OpenBSD__ || defined __NetBSD__
+#if defined __APPLE__ || defined __FreeBSD__
 #include <sys/sysctl.h>
-#elif defined __HAIKU__
-#include <OS.h>
 #else
 #include <sys/sysinfo.h>
 #endif
 #endif
 
-namespace Common
-{
+// Valgrind doesn't support MAP_32BIT.
+// Uncomment the following line to be able to run Dolphin in Valgrind.
+//#undef MAP_32BIT
+
+#if !defined(_WIN32) && defined(_M_X86_64) && !defined(MAP_32BIT)
+#include <unistd.h>
+#define PAGE_MASK     (getpagesize() - 1)
+#define round_page(x) ((((unsigned long)(x)) + PAGE_MASK) & ~(PAGE_MASK))
+#endif
+
 // This is purposely not a full wrapper for virtualalloc/mmap, but it
 // provides exactly the primitive operations that Dolphin needs.
 
-void* AllocateExecutableMemory(size_t size)
+void* AllocateExecutableMemory(size_t size, bool low)
 {
 #if defined(_WIN32)
-  void* ptr = VirtualAlloc(nullptr, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+	void* ptr = VirtualAlloc(0, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 #else
-  int map_flags = MAP_ANON | MAP_PRIVATE;
-#if defined(__APPLE__)
-  map_flags |= MAP_JIT;
+	static char* map_hint = nullptr;
+#if defined(_M_X86_64) && !defined(MAP_32BIT)
+	// This OS has no flag to enforce allocation below the 4 GB boundary,
+	// but if we hint that we want a low address it is very likely we will
+	// get one.
+	// An older version of this code used MAP_FIXED, but that has the side
+	// effect of discarding already mapped pages that happen to be in the
+	// requested virtual memory range (such as the emulated RAM, sometimes).
+	if (low && (!map_hint))
+		map_hint = (char*)round_page(512*1024*1024); /* 0.5 GB rounded up to the next page */
 #endif
-  void* ptr = mmap(nullptr, size, PROT_READ | PROT_WRITE | PROT_EXEC, map_flags, -1, 0);
-  if (ptr == MAP_FAILED)
-    ptr = nullptr;
+	void* ptr = mmap(map_hint, size, PROT_READ | PROT_WRITE | PROT_EXEC,
+		MAP_ANON | MAP_PRIVATE
+#if defined(_M_X86_64) && defined(MAP_32BIT)
+		| (low ? MAP_32BIT : 0)
+#endif
+		, -1, 0);
+#endif /* defined(_WIN32) */
+
+#ifdef _WIN32
+	if (ptr == nullptr)
+	{
+#else
+	if (ptr == MAP_FAILED)
+	{
+		ptr = nullptr;
+#endif
+		PanicAlert("Failed to allocate executable memory. If you are running Dolphin in Valgrind, try '#undef MAP_32BIT'.");
+	}
+#if !defined(_WIN32) && defined(_M_X86_64) && !defined(MAP_32BIT)
+	else
+	{
+		if (low)
+		{
+			map_hint += size;
+			map_hint = (char*)round_page(map_hint); /* round up to the next page */
+		}
+	}
 #endif
 
-  if (ptr == nullptr)
-    PanicAlertFmt("Failed to allocate executable memory");
-
-  return ptr;
-}
-// This function is used to provide a counter for the JITPageWrite*Execute*
-// functions to enable nesting. The static variable is wrapped in a a function
-// to allow those functions to be called inside of the constructor of a static
-// variable portably.
-//
-// The variable is thread_local as the W^X mode is specific to each running thread.
-static int& JITPageWriteNestCounter()
-{
-  static thread_local int nest_counter = 0;
-  return nest_counter;
-}
-
-// Certain platforms (Mac OS on ARM) enforce that a single thread can only have write or
-// execute permissions to pages at any given point of time. The two below functions
-// are used to toggle between having write permissions or execute permissions.
-//
-// The default state of these allocations in Dolphin is for them to be executable,
-// but not writeable. So, functions that are updating these pages should wrap their
-// writes like below:
-
-// JITPageWriteEnableExecuteDisable();
-// PrepareInstructionStreamForJIT();
-// JITPageWriteDisableExecuteEnable();
-
-// These functions can be nested, in which case execution will only be enabled
-// after the call to the JITPageWriteDisableExecuteEnable from the top most
-// nesting level. Example:
-
-// [JIT page is in execute mode for the thread]
-// JITPageWriteEnableExecuteDisable();
-//   [JIT page is in write mode for the thread]
-//   JITPageWriteEnableExecuteDisable();
-//     [JIT page is in write mode for the thread]
-//   JITPageWriteDisableExecuteEnable();
-//   [JIT page is in write mode for the thread]
-// JITPageWriteDisableExecuteEnable();
-// [JIT page is in execute mode for the thread]
-
-// Allows a thread to write to executable memory, but not execute the data.
-void JITPageWriteEnableExecuteDisable()
-{
-#if defined(_M_ARM_64) && defined(__APPLE__)
-  if (JITPageWriteNestCounter() == 0)
-  {
-    if (__builtin_available(macOS 11.0, *))
-    {
-      pthread_jit_write_protect_np(0);
-    }
-  }
+#if _M_X86_64
+	if ((u64)ptr >= 0x80000000 && low == true)
+		PanicAlert("Executable memory ended up above 2GB!");
 #endif
-  JITPageWriteNestCounter()++;
-}
-// Allows a thread to execute memory allocated for execution, but not write to it.
-void JITPageWriteDisableExecuteEnable()
-{
-  JITPageWriteNestCounter()--;
 
-  // Sanity check the NestCounter to identify underflow
-  // This can indicate the calls to JITPageWriteDisableExecuteEnable()
-  // are not matched with previous calls to JITPageWriteEnableExecuteDisable()
-  if (JITPageWriteNestCounter() < 0)
-    PanicAlertFmt("JITPageWriteNestCounter() underflowed");
-
-#if defined(_M_ARM_64) && defined(__APPLE__)
-  if (JITPageWriteNestCounter() == 0)
-  {
-    if (__builtin_available(macOS 11.0, *))
-    {
-      pthread_jit_write_protect_np(1);
-    }
-  }
-#endif
+	return ptr;
 }
 
 void* AllocateMemoryPages(size_t size)
 {
 #ifdef _WIN32
-  void* ptr = VirtualAlloc(nullptr, size, MEM_COMMIT, PAGE_READWRITE);
+	void* ptr = VirtualAlloc(0, size, MEM_COMMIT, PAGE_READWRITE);
 #else
-  void* ptr = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
+	void* ptr = mmap(nullptr, size, PROT_READ | PROT_WRITE,
+			MAP_ANON | MAP_PRIVATE, -1, 0);
 
-  if (ptr == MAP_FAILED)
-    ptr = nullptr;
+	if (ptr == MAP_FAILED)
+		ptr = nullptr;
 #endif
 
-  if (ptr == nullptr)
-    PanicAlertFmt("Failed to allocate raw memory");
+	if (ptr == nullptr)
+		PanicAlert("Failed to allocate raw memory");
 
-  return ptr;
+	return ptr;
 }
 
 void* AllocateAlignedMemory(size_t size, size_t alignment)
 {
 #ifdef _WIN32
-  void* ptr = _aligned_malloc(size, alignment);
+	void* ptr = _aligned_malloc(size, alignment);
 #else
-  void* ptr = nullptr;
-  if (posix_memalign(&ptr, alignment, size) != 0)
-    ERROR_LOG_FMT(MEMMAP, "Failed to allocate aligned memory");
+	void* ptr = nullptr;
+	if (posix_memalign(&ptr, alignment, size) != 0)
+		ERROR_LOG(MEMMAP, "Failed to allocate aligned memory");
 #endif
 
-  if (ptr == nullptr)
-    PanicAlertFmt("Failed to allocate aligned memory");
+	if (ptr == nullptr)
+		PanicAlert("Failed to allocate aligned memory");
 
-  return ptr;
+	return ptr;
 }
 
 void FreeMemoryPages(void* ptr, size_t size)
 {
-  if (ptr)
-  {
+	if (ptr)
+	{
+		bool error_occurred = false;
+
 #ifdef _WIN32
-    if (!VirtualFree(ptr, 0, MEM_RELEASE))
-      PanicAlertFmt("FreeMemoryPages failed!\nVirtualFree: {}", GetLastErrorString());
+		if (!VirtualFree(ptr, 0, MEM_RELEASE))
+			error_occurred = true;
 #else
-    if (munmap(ptr, size) != 0)
-      PanicAlertFmt("FreeMemoryPages failed!\nmunmap: {}", LastStrerrorString());
+		int retval = munmap(ptr, size);
+
+		if (retval != 0)
+			error_occurred = true;
 #endif
-  }
+
+		if (error_occurred)
+			PanicAlert("FreeMemoryPages failed!\n%s", GetLastErrorMsg().c_str());
+	}
 }
 
 void FreeAlignedMemory(void* ptr)
 {
-  if (ptr)
-  {
+	if (ptr)
+	{
 #ifdef _WIN32
-    _aligned_free(ptr);
+		_aligned_free(ptr);
 #else
-    free(ptr);
+		free(ptr);
 #endif
-  }
+	}
 }
 
 void ReadProtectMemory(void* ptr, size_t size)
 {
+	bool error_occurred = false;
+
 #ifdef _WIN32
-  DWORD oldValue;
-  if (!VirtualProtect(ptr, size, PAGE_NOACCESS, &oldValue))
-    PanicAlertFmt("ReadProtectMemory failed!\nVirtualProtect: {}", GetLastErrorString());
+	DWORD oldValue;
+	if (!VirtualProtect(ptr, size, PAGE_NOACCESS, &oldValue))
+		error_occurred = true;
 #else
-  if (mprotect(ptr, size, PROT_NONE) != 0)
-    PanicAlertFmt("ReadProtectMemory failed!\nmprotect: {}", LastStrerrorString());
+	int retval = mprotect(ptr, size, PROT_NONE);
+
+	if (retval != 0)
+		error_occurred = true;
 #endif
+
+	if (error_occurred)
+		PanicAlert("ReadProtectMemory failed!\n%s", GetLastErrorMsg().c_str());
 }
 
 void WriteProtectMemory(void* ptr, size_t size, bool allowExecute)
 {
+	bool error_occurred = false;
+
 #ifdef _WIN32
-  DWORD oldValue;
-  if (!VirtualProtect(ptr, size, allowExecute ? PAGE_EXECUTE_READ : PAGE_READONLY, &oldValue))
-    PanicAlertFmt("WriteProtectMemory failed!\nVirtualProtect: {}", GetLastErrorString());
-#elif !(defined(_M_ARM_64) && defined(__APPLE__))
-  // MacOS 11.2 on ARM does not allow for changing the access permissions of pages
-  // that were marked executable, instead it uses the protections offered by MAP_JIT
-  // for write protection.
-  if (mprotect(ptr, size, allowExecute ? (PROT_READ | PROT_EXEC) : PROT_READ) != 0)
-    PanicAlertFmt("WriteProtectMemory failed!\nmprotect: {}", LastStrerrorString());
+	DWORD oldValue;
+	if (!VirtualProtect(ptr, size, allowExecute ? PAGE_EXECUTE_READ : PAGE_READONLY, &oldValue))
+		error_occurred = true;
+#else
+	int retval = mprotect(ptr, size, allowExecute ? (PROT_READ | PROT_EXEC) : PROT_READ);
+
+	if (retval != 0)
+		error_occurred = true;
 #endif
+
+	if (error_occurred)
+		PanicAlert("WriteProtectMemory failed!\n%s", GetLastErrorMsg().c_str());
 }
 
 void UnWriteProtectMemory(void* ptr, size_t size, bool allowExecute)
 {
+	bool error_occurred = false;
+
 #ifdef _WIN32
-  DWORD oldValue;
-  if (!VirtualProtect(ptr, size, allowExecute ? PAGE_EXECUTE_READWRITE : PAGE_READWRITE, &oldValue))
-    PanicAlertFmt("UnWriteProtectMemory failed!\nVirtualProtect: {}", GetLastErrorString());
-#elif !(defined(_M_ARM_64) && defined(__APPLE__))
-  // MacOS 11.2 on ARM does not allow for changing the access permissions of pages
-  // that were marked executable, instead it uses the protections offered by MAP_JIT
-  // for write protection.
-  if (mprotect(ptr, size,
-               allowExecute ? (PROT_READ | PROT_WRITE | PROT_EXEC) : PROT_WRITE | PROT_READ) != 0)
-  {
-    PanicAlertFmt("UnWriteProtectMemory failed!\nmprotect: {}", LastStrerrorString());
-  }
+	DWORD oldValue;
+	if (!VirtualProtect(ptr, size, allowExecute ? PAGE_EXECUTE_READWRITE : PAGE_READWRITE, &oldValue))
+		error_occurred = true;
+#else
+	int retval = mprotect(ptr, size, allowExecute ? (PROT_READ | PROT_WRITE | PROT_EXEC) : PROT_WRITE | PROT_READ);
+
+	if (retval != 0)
+		error_occurred = true;
+#endif
+
+	if (error_occurred)
+		PanicAlert("UnWriteProtectMemory failed!\n%s", GetLastErrorMsg().c_str());
+}
+
+std::string MemUsage()
+{
+#ifdef _WIN32
+#pragma comment(lib, "psapi")
+	DWORD processID = GetCurrentProcessId();
+	HANDLE hProcess;
+	PROCESS_MEMORY_COUNTERS pmc;
+	std::string Ret;
+
+	// Print information about the memory usage of the process.
+
+	hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
+	if (nullptr == hProcess) return "MemUsage Error";
+
+	if (GetProcessMemoryInfo(hProcess, &pmc, sizeof(pmc)))
+		Ret = StringFromFormat("%s K", ThousandSeparate(pmc.WorkingSetSize / 1024, 7).c_str());
+
+	CloseHandle(hProcess);
+	return Ret;
+#else
+	return "";
 #endif
 }
+
 
 size_t MemPhysical()
 {
 #ifdef _WIN32
-  MEMORYSTATUSEX memInfo;
-  memInfo.dwLength = sizeof(MEMORYSTATUSEX);
-  GlobalMemoryStatusEx(&memInfo);
-  return memInfo.ullTotalPhys;
-#elif defined __APPLE__ || defined __FreeBSD__ || defined __OpenBSD__ || defined __NetBSD__
-  int mib[2];
-  size_t physical_memory;
-  mib[0] = CTL_HW;
+	MEMORYSTATUSEX memInfo;
+	memInfo.dwLength = sizeof(MEMORYSTATUSEX);
+	GlobalMemoryStatusEx(&memInfo);
+	return memInfo.ullTotalPhys;
+#elif defined __APPLE__ || defined __FreeBSD__
+	int mib[2];
+	size_t physical_memory;
+	mib[0] = CTL_HW;
 #ifdef __APPLE__
-  mib[1] = HW_MEMSIZE;
+	mib[1] = HW_MEMSIZE;
 #elif defined __FreeBSD__
-  mib[1] = HW_REALMEM;
-#elif defined __OpenBSD__ || defined __NetBSD__
-  mib[1] = HW_PHYSMEM64;
+	mib[1] = HW_REALMEM;
 #endif
-  size_t length = sizeof(size_t);
-  sysctl(mib, 2, &physical_memory, &length, NULL, 0);
-  return physical_memory;
-#elif defined __HAIKU__
-  system_info sysinfo;
-  get_system_info(&sysinfo);
-  return static_cast<size_t>(sysinfo.max_pages * B_PAGE_SIZE);
+	size_t length = sizeof(size_t);
+	sysctl(mib, 2, &physical_memory, &length, NULL, 0);
+	return physical_memory;
 #else
-  struct sysinfo memInfo;
-  sysinfo(&memInfo);
-  return (size_t)memInfo.totalram * memInfo.mem_unit;
+	struct sysinfo memInfo;
+	sysinfo (&memInfo);
+	return (size_t)memInfo.totalram * memInfo.mem_unit;
 #endif
 }
-
-}  // namespace Common

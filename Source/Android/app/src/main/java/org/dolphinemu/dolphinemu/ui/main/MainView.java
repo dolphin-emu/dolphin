@@ -1,8 +1,7 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
-
 package org.dolphinemu.dolphinemu.ui.main;
 
-import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
+
+import android.database.Cursor;
 
 /**
  * Abstraction for the screen that shows on application launch.
@@ -11,31 +10,38 @@ import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
  */
 public interface MainView
 {
-  /**
-   * Pass the view the native library's version string. Displaying
-   * it is optional.
-   *
-   * @param version A string pulled from native code.
-   */
-  void setVersionString(String version);
+	/**
+	 * Pass the view the native library's version string. Displaying
+	 * it is optional.
+	 *
+	 * @param version A string pulled from native code.
+	 */
+	void setVersionString(String version);
 
-  void launchSettingsActivity(MenuTag menuTag);
+	/**
+	 * Tell the view to refresh its contents.
+	 */
+	void refresh();
 
-  void launchFileListActivity();
+	/**
+	 * Tell the view to tell the currently displayed {@link android.support.v4.app.Fragment}
+	 * to refresh the screenshot at the given position in its list of games.
+	 *
+	 * @param fragmentPosition An index corresponding to the list or grid of games.
+	 */
+	void refreshFragmentScreenshot(int fragmentPosition);
 
-  void launchOpenFileActivity(int requestCode);
 
-  /**
-   * Shows or hides the loading indicator.
-   */
-  void setRefreshing(boolean refreshing);
+	void launchSettingsActivity(String menuTag);
 
-  /**
-   * To be called when the game file cache is updated.
-   */
-  void showGames();
+	void launchFileListActivity();
 
-  void reloadGrid();
-
-  void showGridOptions();
+	/**
+	 * To be called when an asynchronous database read completes. Passes the
+	 * result, in this case a {@link Cursor} to the view.
+	 *
+	 * @param platformIndex Which platform contains these games.
+	 * @param games A Cursor containing the games read from the database.
+	 */
+	void showGames(int platformIndex, Cursor games);
 }

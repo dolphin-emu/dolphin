@@ -1,48 +1,37 @@
 // Copyright 2008 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #pragma once
 
-#include <optional>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 
+static const u64 TITLEID_SYSMENU = 0x0000000100000002;
+static const std::string TITLEID_SYSMENU_STRING = "0000000100000002";
+
 namespace Common
 {
-enum FromWhichRoot
-{
-  FROM_CONFIGURED_ROOT,  // not related to currently running game - use D_WIIROOT_IDX
-  FROM_SESSION_ROOT,     // request from currently running game - use D_SESSION_WIIROOT_IDX
-};
+	typedef std::pair<char, std::string> replace_t;
+	typedef std::vector<replace_t> replace_v;
 
-std::string RootUserPath(FromWhichRoot from);
+	void InitializeWiiRoot(bool use_temporary);
+	void ShutdownWiiRoot();
 
-// The following functions return paths relative to the NAND root.
-// If a FromWhichRoot is passed, the NAND root on the host filesystem will be prepended to the path.
-// TODO: remove the from parameter after all code is migrated off direct FS access.
+	enum FromWhichRoot
+	{
+		FROM_CONFIGURED_ROOT, // not related to currently running game - use D_WIIROOT_IDX
+		FROM_SESSION_ROOT, // request from currently running game - use D_SESSION_WIIROOT_IDX
+	};
 
-// Returns /import/%08x/%08x. Intended for use by ES.
-std::string GetImportTitlePath(u64 title_id, std::optional<FromWhichRoot> from = {});
-
-std::string GetTicketFileName(u64 title_id, std::optional<FromWhichRoot> from = {});
-std::string GetV1TicketFileName(u64 title_id, std::optional<FromWhichRoot> from = {});
-std::string GetTitlePath(u64 title_id, std::optional<FromWhichRoot> from = {});
-std::string GetTitleDataPath(u64 title_id, std::optional<FromWhichRoot> from = {});
-std::string GetTitleContentPath(u64 title_id, std::optional<FromWhichRoot> from = {});
-std::string GetTMDFileName(u64 title_id, std::optional<FromWhichRoot> from = {});
-std::string GetMiiDatabasePath(std::optional<FromWhichRoot> from = {});
-
-// Returns whether a path is within an installed title's directory.
-bool IsTitlePath(const std::string& path, std::optional<FromWhichRoot> from = {},
-                 u64* title_id = nullptr);
-
-// Escapes characters that are invalid or have special meanings in the host file system
-std::string EscapeFileName(const std::string& filename);
-// Escapes characters that are invalid or have special meanings in the host file system
-std::string EscapePath(const std::string& path);
-// Reverses escaping done by EscapeFileName
-std::string UnescapeFileName(const std::string& filename);
-// Tests for a file name being "safe" as per the escaping defined in EscapeFileName
-bool IsFileNameSafe(const std::string_view filename);
-}  // namespace Common
+	std::string GetTicketFileName(u64 _titleID, FromWhichRoot from);
+	std::string GetTMDFileName(u64 _titleID, FromWhichRoot from);
+	std::string GetTitleDataPath(u64 _titleID, FromWhichRoot from);
+	std::string GetTitleContentPath(u64 _titleID, FromWhichRoot from);
+	bool CheckTitleTMD(u64 _titleID, FromWhichRoot from);
+	bool CheckTitleTIK(u64 _titleID, FromWhichRoot from);
+	void ReadReplacements(replace_v& replacements);
+}

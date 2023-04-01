@@ -1,137 +1,124 @@
 // Copyright 2014 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
-
-#include "VideoCommon/GeometryShaderManager.h"
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #include <cstring>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "VideoCommon/BPMemory.h"
-#include "VideoCommon/RenderState.h"
+#include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
-static constexpr int LINE_PT_TEX_OFFSETS[8] = {0, 16, 8, 4, 2, 1, 1, 1};
+static const int LINE_PT_TEX_OFFSETS[8] = {
+	0, 16, 8, 4, 2, 1, 1, 1
+};
+
+GeometryShaderConstants GeometryShaderManager::constants;
+bool GeometryShaderManager::dirty;
+
+static bool s_projection_changed;
+static bool s_viewport_changed;
 
 void GeometryShaderManager::Init()
 {
-  constants = {};
+	memset(&constants, 0, sizeof(constants));
 
-  // Init any intial constants which aren't zero when bpmem is zero.
-  SetViewportChanged();
-  SetProjectionChanged();
+	// Init any intial constants which aren't zero when bpmem is zero.
+	SetViewportChanged();
+	SetProjectionChanged();
 
-  dirty = true;
+	dirty = true;
+}
+
+void GeometryShaderManager::Shutdown()
+{
 }
 
 void GeometryShaderManager::Dirty()
 {
-  // This function is called after a savestate is loaded.
-  // Any constants that can changed based on settings should be re-calculated
-  m_projection_changed = true;
+	// This function is called after a savestate is loaded.
+	// Any constants that can changed based on settings should be re-calculated
+	s_projection_changed = true;
 
-  // Uses EFB scale config
-  SetLinePtWidthChanged();
-
-  dirty = true;
+	dirty = true;
 }
 
-void GeometryShaderManager::SetVSExpand(VSExpand expand)
+void GeometryShaderManager::SetConstants()
 {
-  if (constants.vs_expand != expand)
-  {
-    constants.vs_expand = expand;
-    dirty = true;
-  }
-}
+	if (s_projection_changed && g_ActiveConfig.iStereoMode > 0)
+	{
+		s_projection_changed = false;
 
-void GeometryShaderManager::SetConstants(PrimitiveType prim)
-{
-  if (m_projection_changed && g_ActiveConfig.stereo_mode != StereoMode::Off)
-  {
-    m_projection_changed = false;
+		if (xfmem.projection.type == GX_PERSPECTIVE)
+		{
+			float offset = (g_ActiveConfig.iStereoDepth / 1000.0f) * (g_ActiveConfig.iStereoDepthPercentage / 100.0f);
+			constants.stereoparams[0] = g_ActiveConfig.bStereoSwapEyes ? offset : -offset;
+			constants.stereoparams[1] = g_ActiveConfig.bStereoSwapEyes ? -offset : offset;
+		}
+		else
+		{
+			constants.stereoparams[0] = constants.stereoparams[1] = 0;
+		}
 
-    if (xfmem.projection.type == ProjectionType::Perspective)
-    {
-      float offset = (g_ActiveConfig.iStereoDepth / 1000.0f) *
-                     (g_ActiveConfig.iStereoDepthPercentage / 100.0f);
-      constants.stereoparams[0] = g_ActiveConfig.bStereoSwapEyes ? offset : -offset;
-      constants.stereoparams[1] = g_ActiveConfig.bStereoSwapEyes ? -offset : offset;
-    }
-    else
-    {
-      constants.stereoparams[0] = constants.stereoparams[1] = 0;
-    }
+		constants.stereoparams[2] = (float)(g_ActiveConfig.iStereoConvergence * (g_ActiveConfig.iStereoConvergencePercentage / 100.0f));
 
-    constants.stereoparams[2] = (float)(g_ActiveConfig.iStereoConvergence *
-                                        (g_ActiveConfig.iStereoConvergencePercentage / 100.0f));
+		dirty = true;
+	}
 
-    dirty = true;
-  }
+	if (s_viewport_changed)
+	{
+		s_viewport_changed = false;
 
-  if (g_ActiveConfig.UseVSForLinePointExpand())
-  {
-    if (prim == PrimitiveType::Points)
-      SetVSExpand(VSExpand::Point);
-    else if (prim == PrimitiveType::Lines)
-      SetVSExpand(VSExpand::Line);
-    else
-      SetVSExpand(VSExpand::None);
-  }
+		constants.lineptparams[0] = 2.0f * xfmem.viewport.wd;
+		constants.lineptparams[1] = -2.0f * xfmem.viewport.ht;
 
-  if (m_viewport_changed)
-  {
-    m_viewport_changed = false;
-
-    constants.lineptparams[0] = 2.0f * xfmem.viewport.wd;
-    constants.lineptparams[1] = -2.0f * xfmem.viewport.ht;
-
-    dirty = true;
-  }
+		dirty = true;
+	}
 }
 
 void GeometryShaderManager::SetViewportChanged()
 {
-  m_viewport_changed = true;
+	s_viewport_changed = true;
 }
 
 void GeometryShaderManager::SetProjectionChanged()
 {
-  m_projection_changed = true;
+	s_projection_changed = true;
 }
 
 void GeometryShaderManager::SetLinePtWidthChanged()
 {
-  constants.lineptparams[2] = bpmem.lineptwidth.linesize / 6.f;
-  constants.lineptparams[3] = bpmem.lineptwidth.pointsize / 6.f;
-  constants.texoffset[2] = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.lineoff];
-  constants.texoffset[3] = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.pointoff];
-  dirty = true;
+	constants.lineptparams[2] = bpmem.lineptwidth.linesize / 6.f;
+	constants.lineptparams[3] = bpmem.lineptwidth.pointsize / 6.f;
+	constants.texoffset[2] = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.lineoff];
+	constants.texoffset[3] = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.pointoff];
+	dirty = true;
 }
 
 void GeometryShaderManager::SetTexCoordChanged(u8 texmapid)
 {
-  TCoordInfo& tc = bpmem.texcoords[texmapid];
-  int bitmask = 1 << texmapid;
-  constants.texoffset[0] &= ~bitmask;
-  constants.texoffset[0] |= tc.s.line_offset << texmapid;
-  constants.texoffset[1] &= ~bitmask;
-  constants.texoffset[1] |= tc.s.point_offset << texmapid;
-  dirty = true;
+	TCoordInfo& tc = bpmem.texcoords[texmapid];
+	int bitmask = 1 << texmapid;
+	constants.texoffset[0] &= ~bitmask;
+	constants.texoffset[0] |= tc.s.line_offset << texmapid;
+	constants.texoffset[1] &= ~bitmask;
+	constants.texoffset[1] |= tc.s.point_offset << texmapid;
+	dirty = true;
 }
 
-void GeometryShaderManager::DoState(PointerWrap& p)
+void GeometryShaderManager::DoState(PointerWrap &p)
 {
-  p.Do(m_projection_changed);
-  p.Do(m_viewport_changed);
+	p.Do(s_projection_changed);
+	p.Do(s_viewport_changed);
 
-  p.Do(constants);
+	p.Do(constants);
 
-  if (p.IsReadMode())
-  {
-    // Fixup the current state from global GPU state
-    // NOTE: This requires that all GPU memory has been loaded already.
-    Dirty();
-  }
+	if (p.GetMode() == PointerWrap::MODE_READ)
+	{
+		// Fixup the current state from global GPU state
+		// NOTE: This requires that all GPU memory has been loaded already.
+		Dirty();
+	}
 }

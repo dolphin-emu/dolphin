@@ -1,48 +1,40 @@
 // Copyright 2008 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 // Thanks to Treeki for writing the original class - 29/01/2012
 
 #pragma once
 
-#include <array>
 #include <string>
-#include <string_view>
 
 #include "Common/CommonTypes.h"
 
-namespace Common
-{
 class SettingsHandler
 {
 public:
-  enum
-  {
-    SETTINGS_SIZE = 0x100,
-    // Key used to encrypt/decrypt setting.txt contents
-    INITIAL_SEED = 0x73B5DBFA
-  };
+	SettingsHandler();
 
-  using Buffer = std::array<u8, SETTINGS_SIZE>;
-  SettingsHandler();
-  explicit SettingsHandler(Buffer&& buffer);
+	enum
+	{
+		SETTINGS_SIZE = 0x100,
+		// Key used to encrypt/decrypt setting.txt contents
+		INITIAL_SEED = 0x73B5DBFA
+	};
 
-  void AddSetting(const std::string& key, const std::string& value);
+	void AddSetting(const std::string& key, const std::string& value);
 
-  const Buffer& GetBytes() const;
-  void SetBytes(Buffer&& buffer);
-  std::string GetValue(std::string_view key) const;
+	const u8* GetData() const;
+	const std::string GetValue(const std::string& key);
 
-  void Decrypt();
-  void Reset();
-  static std::string GenerateSerialNumber();
+	void Decrypt();
+	void Reset();
+	const std::string generateSerialNumber();
 
 private:
-  void WriteLine(const std::string& str);
-  void WriteByte(u8 b);
+	void WriteByte(u8 b);
 
-  std::array<u8, SETTINGS_SIZE> m_buffer;
-  u32 m_position, m_key;
-  std::string decoded;
+	u8 m_buffer[SETTINGS_SIZE];
+	u32 m_position, m_key;
+	std::string decoded;
 };
-}  // namespace Common

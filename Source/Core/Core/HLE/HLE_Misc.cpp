@@ -1,80 +1,65 @@
 // Copyright 2008 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
-#include "Core/HLE/HLE_Misc.h"
+#include <cmath>
+#include <string>
 
-#include "Common/Common.h"
 #include "Common/CommonTypes.h"
-#include "Core/GeckoCode.h"
-#include "Core/HW/CPU.h"
+#include "Core/ConfigManager.h"
 #include "Core/Host.h"
-#include "Core/PowerPC/MMU.h"
+#include "Core/HLE/HLE_Misc.h"
+#include "Core/HW/CPU.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "Core/System.h"
+#include "Core/PowerPC/PPCCache.h"
 
 namespace HLE_Misc
 {
+
+static std::string args;
+
 // If you just want to kill a function, one of the three following are usually appropriate.
 // According to the PPC ABI, the return value is always in r3.
-void UnimplementedFunction(const Core::CPUThreadGuard&)
+void UnimplementedFunction()
 {
-  auto& system = Core::System::GetInstance();
-  auto& ppc_state = system.GetPPCState();
-  ppc_state.npc = LR(ppc_state);
+	NPC = LR;
 }
 
-void HBReload(const Core::CPUThreadGuard&)
+// If you want a function to panic, you can rename it PanicAlert :p
+// Don't know if this is worth keeping.
+void HLEPanicAlert()
 {
-  // There isn't much we can do. Just stop cleanly.
-  auto& system = Core::System::GetInstance();
-  system.GetCPU().Break();
-  Host_Message(HostMessageID::WMUserStop);
+	::PanicAlert("HLE: PanicAlert %08x", LR);
+	NPC = LR;
 }
 
-void GeckoCodeHandlerICacheFlush(const Core::CPUThreadGuard& guard)
+void HBReload()
 {
-  auto& system = Core::System::GetInstance();
-  auto& ppc_state = system.GetPPCState();
-
-  // Work around the codehandler not properly invalidating the icache, but
-  // only the first few frames.
-  // (Project M uses a conditional to only apply patches after something has
-  // been read into memory, or such, so we do the first 5 frames.  More
-  // robust alternative would be to actually detect memory writes, but that
-  // would be even uglier.)
-  u32 gch_gameid = PowerPC::HostRead_U32(guard, Gecko::INSTALLER_BASE_ADDRESS);
-  if (gch_gameid - Gecko::MAGIC_GAMEID == 5)
-  {
-    return;
-  }
-  else if (gch_gameid - Gecko::MAGIC_GAMEID > 5)
-  {
-    gch_gameid = Gecko::MAGIC_GAMEID;
-  }
-  PowerPC::HostWrite_U32(guard, gch_gameid + 1, Gecko::INSTALLER_BASE_ADDRESS);
-
-  ppc_state.iCache.Reset();
+	// There isn't much we can do. Just stop cleanly.
+	CPU::Break();
+	Host_Message(WM_USER_STOP);
 }
 
-// Because Dolphin messes around with the CPU state instead of patching the game binary, we
-// need a way to branch into the GCH from an arbitrary PC address. Branching is easy, returning
-// back is the hard part. This HLE function acts as a trampoline that restores the original LR, SP,
-// and PC before the magic, invisible BL instruction happened.
-void GeckoReturnTrampoline(const Core::CPUThreadGuard& guard)
+void HLEGeckoCodehandler()
 {
-  auto& system = Core::System::GetInstance();
-  auto& ppc_state = system.GetPPCState();
-
-  // Stack frame is built in GeckoCode.cpp, Gecko::RunCodeHandler.
-  u32 SP = ppc_state.gpr[1];
-  ppc_state.gpr[1] = PowerPC::HostRead_U32(guard, SP + 8);
-  ppc_state.npc = PowerPC::HostRead_U32(guard, SP + 12);
-  LR(ppc_state) = PowerPC::HostRead_U32(guard, SP + 16);
-  ppc_state.cr.Set(PowerPC::HostRead_U32(guard, SP + 20));
-  for (int i = 0; i < 14; ++i)
-  {
-    ppc_state.ps[i].SetBoth(PowerPC::HostRead_U64(guard, SP + 24 + 2 * i * sizeof(u64)),
-                            PowerPC::HostRead_U64(guard, SP + 24 + (2 * i + 1) * sizeof(u64)));
-  }
+	// Work around the codehandler not properly invalidating the icache, but
+	// only the first few frames.
+	// (Project M uses a conditional to only apply patches after something has
+	// been read into memory, or such, so we do the first 5 frames.  More
+	// robust alternative would be to actually detect memory writes, but that
+	// would be even uglier.)
+	u32 magic = 0xd01f1bad;
+	u32 existing = PowerPC::HostRead_U32(0x80001800);
+	if (existing - magic == 5)
+	{
+		return;
+	}
+	else if (existing - magic > 5)
+	{
+		existing = magic;
+	}
+	PowerPC::HostWrite_U32(existing + 1, 0x80001800);
+	PowerPC::ppcState.iCache.Reset();
 }
-}  // namespace HLE_Misc
+
+}

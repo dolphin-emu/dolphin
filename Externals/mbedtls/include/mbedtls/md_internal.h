@@ -6,9 +6,8 @@
  * \warning This in an internal header. Do not include directly.
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
- */
-/*
- *  Copyright The Mbed TLS Contributors
+ *
+ *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -22,17 +21,19 @@
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
+ *
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 #ifndef MBEDTLS_MD_WRAP_H
 #define MBEDTLS_MD_WRAP_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
+#include "config.h"
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "mbedtls/md.h"
+#include "md.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -44,17 +45,42 @@ extern "C" {
  */
 struct mbedtls_md_info_t
 {
-    /** Name of the message digest */
-    const char * name;
-
     /** Digest identifier */
     mbedtls_md_type_t type;
 
+    /** Name of the message digest */
+    const char * name;
+
     /** Output length of the digest function in bytes */
-    unsigned char size;
+    int size;
 
     /** Block length of the digest function in bytes */
-    unsigned char block_size;
+    int block_size;
+
+    /** Digest initialisation function */
+    void (*starts_func)( void *ctx );
+
+    /** Digest update function */
+    void (*update_func)( void *ctx, const unsigned char *input, size_t ilen );
+
+    /** Digest finalisation function */
+    void (*finish_func)( void *ctx, unsigned char *output );
+
+    /** Generic digest function */
+    void (*digest_func)( const unsigned char *input, size_t ilen,
+                         unsigned char *output );
+
+    /** Allocate a new context */
+    void * (*ctx_alloc_func)( void );
+
+    /** Free the given context */
+    void (*ctx_free_func)( void *ctx );
+
+    /** Clone state from a context */
+    void (*clone_func)( void *dst, const void *src );
+
+    /** Internal use only */
+    void (*process_func)( void *ctx, const unsigned char *input );
 };
 
 #if defined(MBEDTLS_MD2_C)
@@ -77,9 +103,7 @@ extern const mbedtls_md_info_t mbedtls_sha224_info;
 extern const mbedtls_md_info_t mbedtls_sha256_info;
 #endif
 #if defined(MBEDTLS_SHA512_C)
-#if !defined(MBEDTLS_SHA512_NO_SHA384)
 extern const mbedtls_md_info_t mbedtls_sha384_info;
-#endif
 extern const mbedtls_md_info_t mbedtls_sha512_info;
 #endif
 

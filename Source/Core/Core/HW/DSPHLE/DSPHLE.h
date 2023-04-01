@@ -1,9 +1,8 @@
 // Copyright 2011 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #pragma once
-
-#include <memory>
 
 #include "Common/CommonTypes.h"
 #include "Core/DSPEmulator.h"
@@ -11,61 +10,67 @@
 #include "Core/HW/DSPHLE/MailHandler.h"
 
 class PointerWrap;
-
-namespace DSP::HLE
-{
 class UCodeInterface;
 
-class DSPHLE : public DSPEmulator
-{
+class DSPHLE : public DSPEmulator {
 public:
-  DSPHLE();
-  ~DSPHLE();
+	DSPHLE();
 
-  bool Initialize(bool wii, bool dsp_thread) override;
-  void Shutdown() override;
-  bool IsLLE() const override { return false; }
-  void DoState(PointerWrap& p) override;
-  void PauseAndLock(bool do_lock, bool unpause_on_unlock = true) override;
+	bool Initialize(bool bWii, bool bDSPThread) override;
+	void Shutdown() override;
+	bool IsLLE() override { return false ; }
 
-  void DSP_WriteMailBoxHigh(bool cpu_mailbox, u16 value) override;
-  void DSP_WriteMailBoxLow(bool cpu_mailbox, u16 value) override;
-  u16 DSP_ReadMailBoxHigh(bool cpu_mailbox) override;
-  u16 DSP_ReadMailBoxLow(bool cpu_mailbox) override;
-  u16 DSP_ReadControlRegister() override;
-  u16 DSP_WriteControlRegister(u16 value) override;
-  void DSP_Update(int cycles) override;
-  void DSP_StopSoundStream() override;
-  u32 DSP_UpdateRate() override;
+	void DoState(PointerWrap &p) override;
+	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true) override;
 
-  CMailHandler& AccessMailHandler() { return m_mail_handler; }
-  void SetUCode(u32 crc);
-  void SwapUCode(u32 crc);
+	void DSP_WriteMailBoxHigh(bool _CPUMailbox, unsigned short) override;
+	void DSP_WriteMailBoxLow(bool _CPUMailbox, unsigned short) override;
+	unsigned short DSP_ReadMailBoxHigh(bool _CPUMailbox) override;
+	unsigned short DSP_ReadMailBoxLow(bool _CPUMailbox) override;
+	unsigned short DSP_ReadControlRegister() override;
+	unsigned short DSP_WriteControlRegister(unsigned short) override;
+	void DSP_Update(int cycles) override;
+	void DSP_StopSoundStream() override;
+	u32 DSP_UpdateRate() override;
+
+	CMailHandler& AccessMailHandler() { return m_MailHandler; }
+
+	// Formerly DSPHandler
+	UCodeInterface *GetUCode();
+	void SetUCode(u32 _crc);
+	void SwapUCode(u32 _crc);
 
 private:
-  void SendMailToDSP(u32 mail);
+	void SendMailToDSP(u32 _uMail);
 
-  // Fake mailbox utility
-  struct DSPState
-  {
-    u32 cpu_mailbox;
-    u32 dsp_mailbox;
+	// Declarations and definitions
+	bool m_bWii;
 
-    void Reset()
-    {
-      cpu_mailbox = 0x00000000;
-      dsp_mailbox = 0x00000000;
-    }
+	// Fake mailbox utility
+	struct DSPState
+	{
+		u32 CPUMailbox;
+		u32 DSPMailbox;
 
-    DSPState() { Reset(); }
-  };
-  DSPState m_dsp_state;
+		void Reset()
+		{
+			CPUMailbox = 0x00000000;
+			DSPMailbox = 0x00000000;
+		}
 
-  std::unique_ptr<UCodeInterface> m_ucode;
-  std::unique_ptr<UCodeInterface> m_last_ucode;
+		DSPState()
+		{
+			Reset();
+		}
+	};
+	DSPState m_dspState;
 
-  DSP::UDSPControl m_dsp_control;
-  u64 m_control_reg_init_code_clear_time = 0;
-  CMailHandler m_mail_handler;
+	UCodeInterface* m_pUCode;
+	UCodeInterface* m_lastUCode;
+
+	DSP::UDSPControl m_DSPControl;
+	CMailHandler m_MailHandler;
+
+	bool m_bHalt;
+	bool m_bAssertInt;
 };
-}  // namespace DSP::HLE

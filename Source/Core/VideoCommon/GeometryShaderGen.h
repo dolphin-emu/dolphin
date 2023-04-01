@@ -1,44 +1,30 @@
 // Copyright 2014 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #pragma once
 
-#include <fmt/format.h>
-#include <functional>
-
-#include "Common/CommonTypes.h"
-
-#include "VideoCommon/RenderState.h"
 #include "VideoCommon/ShaderGenCommon.h"
-
-enum class APIType;
+#include "VideoCommon/VertexManagerBase.h"
+#include "VideoCommon/VideoCommon.h"
 
 #pragma pack(1)
+
 struct geometry_shader_uid_data
 {
-  u32 NumValues() const { return sizeof(geometry_shader_uid_data); }
-  bool IsPassthrough() const;
+	u32 NumValues() const { return sizeof(geometry_shader_uid_data); }
+	bool IsPassthrough() const { return primitive_type == PRIMITIVE_TRIANGLES && !stereo && !wireframe; }
 
-  u32 numTexGens : 4;
-  u32 primitive_type : 2;
+	u32 stereo : 1;
+	u32 numTexGens : 4;
+	u32 pixel_lighting : 1;
+	u32 primitive_type : 2;
+	u32 wireframe : 1;
 };
+
 #pragma pack()
 
-using GeometryShaderUid = ShaderUid<geometry_shader_uid_data>;
+typedef ShaderUid<geometry_shader_uid_data> GeometryShaderUid;
 
-ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& host_config,
-                                      const geometry_shader_uid_data* uid_data);
-GeometryShaderUid GetGeometryShaderUid(PrimitiveType primitive_type);
-void EnumerateGeometryShaderUids(const std::function<void(const GeometryShaderUid&)>& callback);
-
-template <>
-struct fmt::formatter<geometry_shader_uid_data>
-{
-  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
-  template <typename FormatContext>
-  auto format(const geometry_shader_uid_data& uid, FormatContext& ctx) const
-  {
-    return fmt::format_to(ctx.out(), "passthrough: {}, {} tex gens, primitive type {}",
-                          uid.IsPassthrough(), uid.numTexGens, uid.primitive_type);
-  }
-};
+ShaderCode GenerateGeometryShaderCode(u32 primitive_type, API_TYPE ApiType);
+GeometryShaderUid GetGeometryShaderUid(u32 primitive_type, API_TYPE ApiType);

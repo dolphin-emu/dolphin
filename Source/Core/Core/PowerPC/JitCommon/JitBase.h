@@ -1,203 +1,141 @@
 // Copyright 2010 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #pragma once
 
-#include <cstddef>
-#include <map>
+//#define JIT_LOG_X86     // Enables logging of the generated x86 code
+//#define JIT_LOG_GPR     // Enables logging of the PPC general purpose regs
+//#define JIT_LOG_FPR     // Enables logging of the PPC floating point regs
+
 #include <unordered_set>
 
-#include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
 #include "Core/ConfigManager.h"
 #include "Core/MachineContext.h"
 #include "Core/PowerPC/CPUCoreBase.h"
-#include "Core/PowerPC/JitCommon/JitAsmCommon.h"
-#include "Core/PowerPC/JitCommon/JitCache.h"
 #include "Core/PowerPC/PPCAnalyst.h"
+#include "Core/PowerPC/Jit64Common/Jit64AsmCommon.h"
+#include "Core/PowerPC/JitCommon/Jit_Util.h"
+#include "Core/PowerPC/JitCommon/JitCache.h"
+#include "Core/PowerPC/JitCommon/TrampolineCache.h"
 
-namespace Core
-{
-class System;
-}
-namespace PowerPC
-{
-struct PowerPCState;
-}
-
-//#define JIT_LOG_GENERATED_CODE  // Enables logging of generated code
-//#define JIT_LOG_GPR             // Enables logging of the PPC general purpose regs
-//#define JIT_LOG_FPR             // Enables logging of the PPC floating point regs
+// TODO: find a better place for x86-specific stuff
+// The following register assignments are common to Jit64 and Jit64IL:
+// RSCRATCH and RSCRATCH2 are always scratch registers and can be used without
+// limitation.
+#define RSCRATCH RAX
+#define RSCRATCH2 RDX
+// RSCRATCH_EXTRA may be in the allocation order, so it has to be flushed
+// before use.
+#define RSCRATCH_EXTRA RCX
+// RMEM points to the start of emulated memory.
+#define RMEM RBX
+// RPPCSTATE points to ppcState + 0x80.  It's offset because we want to be able
+// to address as much as possible in a one-byte offset form.
+#define RPPCSTATE RBP
 
 // Use these to control the instruction selection
 // #define INSTRUCTION_START FallBackToInterpreter(inst); return;
 // #define INSTRUCTION_START PPCTables::CountInstruction(inst);
 #define INSTRUCTION_START
 
-#define FALLBACK_IF(cond)                                                                          \
-  do                                                                                               \
-  {                                                                                                \
-    if (cond)                                                                                      \
-    {                                                                                              \
-      FallBackToInterpreter(inst);                                                                 \
-      return;                                                                                      \
-    }                                                                                              \
-  } while (0)
+#define FALLBACK_IF(cond) do { if (cond) { FallBackToInterpreter(inst); return; } } while (0)
 
-#define JITDISABLE(setting) FALLBACK_IF(bJITOff || setting)
+#define JITDISABLE(setting) FALLBACK_IF(SConfig::GetInstance().bJITOff || \
+                                        SConfig::GetInstance().setting)
 
 class JitBase : public CPUCoreBase
 {
 protected:
-  enum class CarryFlag
-  {
-    InPPCState,
-    InHostCarry,
-#ifdef _M_X86_64
-    InHostCarryInverted,
-#endif
-#ifdef _M_ARM_64
-    ConstantTrue,
-    ConstantFalse,
-#endif
-  };
+	struct JitOptions
+	{
+		bool enableBlocklink;
+		bool optimizeGatherPipe;
+		bool accurateSinglePrecision;
+		bool fastmem;
+		bool memcheck;
+		bool alwaysUseMemFuncs;
+	};
+	struct JitState
+	{
+		u32 compilerPC;
+		u32 blockStart;
+		int instructionNumber;
+		int instructionsLeft;
+		int downcountAmount;
+		u32 numLoadStoreInst;
+		u32 numFloatingPointInst;
+		// If this is set, we need to generate an exception handler for the fastmem load.
+		u8* fastmemLoadStore;
+		// If this is set, a load or store already prepared a jump to the exception handler for us,
+		// so just fixup that branch instead of testing for a DSI again.
+		bool fixupExceptionHandler;
+		Gen::FixupBranch exceptionHandler;
+		// If these are set, we've stored the old value of a register which will be loaded in revertLoad,
+		// which lets us revert it on the exception path.
+		int revertGprLoad;
+		int revertFprLoad;
 
-  static constexpr size_t SAFE_STACK_SIZE = 256 * 1024;
-  static constexpr size_t MIN_UNSAFE_STACK_SIZE = 192 * 1024;
-  static constexpr size_t MIN_STACK_SIZE = SAFE_STACK_SIZE + MIN_UNSAFE_STACK_SIZE;
-  static constexpr size_t GUARD_SIZE = 64 * 1024;
-  static constexpr size_t GUARD_OFFSET = SAFE_STACK_SIZE - GUARD_SIZE;
+		bool assumeNoPairedQuantize;
+		bool firstFPInstructionFound;
+		bool isLastInstruction;
+		int skipInstructions;
+		bool carryFlagSet;
+		bool carryFlagInverted;
 
-  struct JitOptions
-  {
-    bool enableBlocklink;
-    bool optimizeGatherPipe;
-    bool accurateSinglePrecision;
-    bool fastmem;
-    bool fastmem_arena;
-    bool memcheck;
-    bool fp_exceptions;
-    bool div_by_zero_exceptions;
-    bool profile_blocks;
-  };
-  struct JitState
-  {
-    u32 compilerPC;
-    u32 blockStart;
-    int instructionNumber;
-    int instructionsLeft;
-    int downcountAmount;
-    u32 numLoadStoreInst;
-    u32 numFloatingPointInst;
-    // If this is set, we need to generate an exception handler for the fastmem load.
-    u8* fastmemLoadStore;
-    // If this is set, a load or store already prepared a jump to the exception handler for us,
-    // so just fixup that branch instead of testing for a DSI again.
-    bool fixupExceptionHandler;
-    Gen::FixupBranch exceptionHandler;
+		int fifoBytesThisBlock;
 
-    bool assumeNoPairedQuantize;
-    BitSet8 constantGqrValid;
-    std::array<u32, 8> constantGqr;
-    bool firstFPInstructionFound;
-    bool isLastInstruction;
-    int skipInstructions;
-    CarryFlag carryFlag;
+		PPCAnalyst::BlockStats st;
+		PPCAnalyst::BlockRegStats gpa;
+		PPCAnalyst::BlockRegStats fpa;
+		PPCAnalyst::CodeOp* op;
+		u8* rewriteStart;
 
-    bool generatingTrampoline = false;
-    u8* trampolineExceptionHandler;
+		JitBlock *curBlock;
 
-    bool mustCheckFifo;
-    u32 fifoBytesSinceCheck;
+		std::unordered_set<u32> fifoWriteAddresses;
+		std::unordered_set<u32> pairedQuantizeAddresses;
+	};
 
-    PPCAnalyst::BlockStats st;
-    PPCAnalyst::BlockRegStats gpa;
-    PPCAnalyst::BlockRegStats fpa;
-    PPCAnalyst::CodeOp* op;
-    BitSet32 fpr_is_store_safe;
+	PPCAnalyst::CodeBlock code_block;
+	PPCAnalyst::PPCAnalyzer analyzer;
 
-    JitBlock* curBlock;
+	bool MergeAllowedNextInstructions(int count);
 
-    std::unordered_set<u32> fifoWriteAddresses;
-    std::unordered_set<u32> pairedQuantizeAddresses;
-    std::unordered_set<u32> noSpeculativeConstantsAddresses;
-  };
-
-  PPCAnalyst::CodeBlock code_block;
-  PPCAnalyst::CodeBuffer m_code_buffer;
-  PPCAnalyst::PPCAnalyzer analyzer;
-
-  size_t m_registered_config_callback_id;
-  bool bJITOff = false;
-  bool bJITLoadStoreOff = false;
-  bool bJITLoadStorelXzOff = false;
-  bool bJITLoadStorelwzOff = false;
-  bool bJITLoadStorelbzxOff = false;
-  bool bJITLoadStoreFloatingOff = false;
-  bool bJITLoadStorePairedOff = false;
-  bool bJITFloatingPointOff = false;
-  bool bJITIntegerOff = false;
-  bool bJITPairedOff = false;
-  bool bJITSystemRegistersOff = false;
-  bool bJITBranchOff = false;
-  bool bJITRegisterCacheOff = false;
-  bool m_enable_debugging = false;
-  bool m_enable_float_exceptions = false;
-  bool m_enable_div_by_zero_exceptions = false;
-  bool m_low_dcbz_hack = false;
-  bool m_fprf = false;
-  bool m_accurate_nans = false;
-  bool m_fastmem_enabled = false;
-  bool m_mmu_enabled = false;
-  bool m_pause_on_panic_enabled = false;
-  bool m_accurate_cpu_cache_enabled = false;
-
-  bool m_enable_blr_optimization = false;
-  bool m_cleanup_after_stackfault = false;
-  u8* m_stack_guard = nullptr;
-
-  void RefreshConfig();
-
-  void InitBLROptimization();
-  void ProtectStack();
-  void UnprotectStack();
-  void CleanUpAfterStackFault();
-
-  bool CanMergeNextInstructions(int count) const;
-
-  void UpdateMemoryAndExceptionOptions();
-
-  bool ShouldHandleFPExceptionForInstruction(const PPCAnalyst::CodeOp* op);
+	void UpdateMemoryOptions();
 
 public:
-  explicit JitBase(Core::System& system);
-  JitBase(const JitBase&) = delete;
-  JitBase(JitBase&&) = delete;
-  JitBase& operator=(const JitBase&) = delete;
-  JitBase& operator=(JitBase&&) = delete;
-  ~JitBase() override;
+	// This should probably be removed from public:
+	JitOptions jo;
+	JitState js;
 
-  bool IsDebuggingEnabled() const { return m_enable_debugging; }
+	virtual JitBaseBlockCache *GetBlockCache() = 0;
 
-  static const u8* Dispatch(JitBase& jit);
-  virtual JitBaseBlockCache* GetBlockCache() = 0;
+	virtual void Jit(u32 em_address) = 0;
 
-  virtual void Jit(u32 em_address) = 0;
+	virtual const CommonAsmRoutinesBase *GetAsmRoutines() = 0;
 
-  virtual const CommonAsmRoutinesBase* GetAsmRoutines() = 0;
-
-  virtual bool HandleFault(uintptr_t access_address, SContext* ctx) = 0;
-  bool HandleStackFault();
-
-  static constexpr std::size_t code_buffer_size = 32000;
-
-  // This should probably be removed from public:
-  JitOptions jo{};
-  JitState js{};
-
-  Core::System& m_system;
-  PowerPC::PowerPCState& m_ppc_state;
+	virtual bool HandleFault(uintptr_t access_address, SContext* ctx) = 0;
+	virtual bool HandleStackFault() { return false; }
 };
 
-void JitTrampoline(JitBase& jit, u32 em_address);
+class Jitx86Base : public JitBase, public EmuCodeBlock
+{
+protected:
+	bool BackPatch(u32 emAddress, SContext* ctx);
+	JitBlockCache blocks;
+	TrampolineCache trampolines;
+public:
+	JitBlockCache *GetBlockCache() override { return &blocks; }
+	bool HandleFault(uintptr_t access_address, SContext* ctx) override;
+};
+
+extern JitBase *jit;
+
+void Jit(u32 em_address);
+
+// Merged routines that should be moved somewhere better
+u32 Helper_Mask(u8 mb, u8 me);
+void LogGeneratedX86(int size, PPCAnalyst::CodeBuffer *code_buffer, const u8 *normalEntry, JitBlock *b);

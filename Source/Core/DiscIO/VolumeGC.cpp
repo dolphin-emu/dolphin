@@ -1,249 +1,300 @@
 // Copyright 2008 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
-
-#include "DiscIO/VolumeGC.h"
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #include <cstddef>
 #include <map>
 #include <memory>
-#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
 
-#include "Common/Assert.h"
 #include "Common/ColorUtil.h"
 #include "Common/CommonTypes.h"
-#include "Common/Crypto/SHA1.h"
-#include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
-
+#include "Common/Logging/Log.h"
 #include "DiscIO/Blob.h"
-#include "DiscIO/DiscExtractor.h"
-#include "DiscIO/DiscUtils.h"
-#include "DiscIO/Enums.h"
-#include "DiscIO/FileSystemGCWii.h"
+#include "DiscIO/FileMonitor.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
+#include "DiscIO/VolumeGC.h"
 
 namespace DiscIO
 {
-VolumeGC::VolumeGC(std::unique_ptr<BlobReader> reader) : m_reader(std::move(reader))
-{
-  ASSERT(m_reader);
+CVolumeGC::CVolumeGC(std::unique_ptr<IBlobReader> reader)
+	: m_pReader(std::move(reader))
+{}
 
-  m_file_system = [this]() -> std::unique_ptr<FileSystem> {
-    auto file_system = std::make_unique<FileSystemGCWii>(this, PARTITION_NONE);
-    return file_system->IsValid() ? std::move(file_system) : nullptr;
-  };
-
-  m_converted_banner = [this] { return LoadBannerFile(); };
-}
-
-VolumeGC::~VolumeGC()
+CVolumeGC::~CVolumeGC()
 {
 }
 
-bool VolumeGC::Read(u64 offset, u64 length, u8* buffer, const Partition& partition) const
+bool CVolumeGC::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const
 {
-  if (partition != PARTITION_NONE)
-    return false;
+	if (decrypt)
+		PanicAlertT("Tried to decrypt data from a non-Wii volume");
 
-  return m_reader->Read(offset, length, buffer);
+	if (m_pReader == nullptr)
+		return false;
+
+	FileMon::FindFilename(_Offset);
+
+	return m_pReader->Read(_Offset, _Length, _pBuffer);
 }
 
-const FileSystem* VolumeGC::GetFileSystem(const Partition& partition) const
+std::string CVolumeGC::GetUniqueID() const
 {
-  return m_file_system->get();
+	static const std::string NO_UID("NO_UID");
+	if (m_pReader == nullptr)
+		return NO_UID;
+
+	char ID[6];
+
+	if (!Read(0, sizeof(ID), reinterpret_cast<u8*>(ID)))
+	{
+		PanicAlertT("Failed to read unique ID from disc image");
+		return NO_UID;
+	}
+
+	return DecodeString(ID);
 }
 
-std::string VolumeGC::GetGameTDBID(const Partition& partition) const
+IVolume::ECountry CVolumeGC::GetCountry() const
 {
-  // Datel discs for the GameCube can have one of two different game IDs:
-  //
-  // 1: GNHE5d. (Yes, with a lowercase d.) This game ID is used not only for
-  // all kinds of Datel discs, but also for the licensed release NHL Hitz 2002.
-  //
-  // 2: DTLX01. This game ID is used for a few late Datel releases. Both Action Replay
-  // and FreeLoader are known to have been released under this game ID.
-  //
-  // Since no game ID used for Datel discs uniquely represents one product,
-  // never use the game ID of a Datel disc for looking up the title or cover art.
-  if (IsDatelDisc())
-    return "";
+	if (!m_pReader)
+		return COUNTRY_UNKNOWN;
 
-  // Normal case. Just return the usual game ID.
-  return GetGameID(partition);
+	u8 country_code;
+	m_pReader->Read(3, 1, &country_code);
+
+	return CountrySwitch(country_code);
 }
 
-Region VolumeGC::GetRegion() const
+std::string CVolumeGC::GetMakerID() const
 {
-  return RegionCodeToRegion(m_reader->ReadSwapped<u32>(0x458));
+	if (m_pReader == nullptr)
+		return std::string();
+
+	char makerID[2];
+	if (!Read(0x4, 0x2, (u8*)&makerID))
+		return std::string();
+
+	return DecodeString(makerID);
 }
 
-std::map<Language, std::string> VolumeGC::GetShortNames() const
+u16 CVolumeGC::GetRevision() const
 {
-  return m_converted_banner->short_names;
+	if (!m_pReader)
+		return 0;
+
+	u8 revision;
+	if (!Read(7, 1, &revision))
+		return 0;
+
+	return revision;
 }
 
-std::map<Language, std::string> VolumeGC::GetLongNames() const
+std::string CVolumeGC::GetInternalName() const
 {
-  return m_converted_banner->long_names;
+	char name[0x60];
+	if (m_pReader != nullptr && Read(0x20, 0x60, (u8*)name))
+		return DecodeString(name);
+	else
+		return "";
 }
 
-std::map<Language, std::string> VolumeGC::GetShortMakers() const
+std::map<IVolume::ELanguage, std::string> CVolumeGC::GetNames(bool prefer_long) const
 {
-  return m_converted_banner->short_makers;
+	return ReadMultiLanguageStrings(false, prefer_long);
 }
 
-std::map<Language, std::string> VolumeGC::GetLongMakers() const
+std::map<IVolume::ELanguage, std::string> CVolumeGC::GetDescriptions() const
 {
-  return m_converted_banner->long_makers;
+	return ReadMultiLanguageStrings(true);
 }
 
-std::map<Language, std::string> VolumeGC::GetDescriptions() const
+std::string CVolumeGC::GetCompany() const
 {
-  return m_converted_banner->descriptions;
+	if (!LoadBannerFile())
+		return "";
+
+	std::string company = DecodeString(m_banner_file.comment[0].longMaker);
+
+	if (company.empty())
+		company = DecodeString(m_banner_file.comment[0].shortMaker);
+
+	return company;
 }
 
-std::vector<u32> VolumeGC::GetBanner(u32* width, u32* height) const
+std::vector<u32> CVolumeGC::GetBanner(int* width, int* height) const
 {
-  *width = m_converted_banner->image_width;
-  *height = m_converted_banner->image_height;
-  return m_converted_banner->image_buffer;
+	if (!LoadBannerFile())
+	{
+		*width = 0;
+		*height = 0;
+		return std::vector<u32>();
+	}
+
+	std::vector<u32> image_buffer(GC_BANNER_WIDTH * GC_BANNER_HEIGHT);
+	ColorUtil::decode5A3image(image_buffer.data(), m_banner_file.image, GC_BANNER_WIDTH, GC_BANNER_HEIGHT);
+	*width = GC_BANNER_WIDTH;
+	*height = GC_BANNER_HEIGHT;
+	return image_buffer;
 }
 
-BlobType VolumeGC::GetBlobType() const
+u64 CVolumeGC::GetFSTSize() const
 {
-  return m_reader->GetBlobType();
+	if (m_pReader == nullptr)
+		return 0;
+
+	u32 size;
+	if (!Read(0x428, 0x4, (u8*)&size))
+		return 0;
+
+	return Common::swap32(size);
 }
 
-u64 VolumeGC::GetDataSize() const
+std::string CVolumeGC::GetApploaderDate() const
 {
-  return m_reader->GetDataSize();
+	if (m_pReader == nullptr)
+		return std::string();
+
+	char date[16];
+	if (!Read(0x2440, 0x10, (u8*)&date))
+		return std::string();
+
+	return DecodeString(date);
 }
 
-DataSizeType VolumeGC::GetDataSizeType() const
+BlobType CVolumeGC::GetBlobType() const
 {
-  return m_reader->GetDataSizeType();
+	return m_pReader ? m_pReader->GetBlobType() : BlobType::PLAIN;
 }
 
-u64 VolumeGC::GetRawSize() const
+u64 CVolumeGC::GetSize() const
 {
-  return m_reader->GetRawSize();
+	if (m_pReader)
+		return m_pReader->GetDataSize();
+	else
+		return 0;
 }
 
-const BlobReader& VolumeGC::GetBlobReader() const
+u64 CVolumeGC::GetRawSize() const
 {
-  return *m_reader;
+	if (m_pReader)
+		return m_pReader->GetRawSize();
+	else
+		return 0;
 }
 
-Platform VolumeGC::GetVolumeType() const
+u8 CVolumeGC::GetDiscNumber() const
 {
-  return Platform::GameCubeDisc;
+	u8 disc_number;
+	Read(6, 1, &disc_number);
+	return disc_number;
 }
 
-bool VolumeGC::IsDatelDisc() const
+IVolume::EPlatform CVolumeGC::GetVolumeType() const
 {
-  return GetGameID() == "DTLX01" || !GetBootDOLOffset(*this, PARTITION_NONE).has_value();
+	return GAMECUBE_DISC;
 }
 
-std::array<u8, 20> VolumeGC::GetSyncHash() const
+// Returns true if the loaded banner file is valid,
+// regardless of whether it was loaded by the current call
+bool CVolumeGC::LoadBannerFile() const
 {
-  auto context = Common::SHA1::CreateContext();
+	// The methods ReadMultiLanguageStrings, GetCompany and GetBanner
+	// need to access the opening.bnr file. These methods are
+	// usually called one after another. The file is cached in
+	// RAM to avoid reading it from the disc several times, but
+	// if none of these methods are called, the file is never loaded.
 
-  AddGamePartitionToSyncHash(context.get());
+	// If opening.bnr has been loaded already, return immediately
+	if (m_banner_file_type != BANNER_NOT_LOADED)
+		return m_banner_file_type != BANNER_INVALID;
 
-  return context->Finish();
+	std::unique_ptr<IFileSystem> file_system(CreateFileSystem(this));
+	size_t file_size = (size_t)file_system->GetFileSize("opening.bnr");
+	if (file_size == BNR1_SIZE || file_size == BNR2_SIZE)
+	{
+		file_system->ReadFile("opening.bnr", reinterpret_cast<u8*>(&m_banner_file), file_size);
+
+		if (file_size == BNR1_SIZE && m_banner_file.id == 0x31524e42)      // "BNR1"
+		{
+			m_banner_file_type = BANNER_BNR1;
+		}
+		else if (file_size == BNR2_SIZE && m_banner_file.id == 0x32524e42) // "BNR2"
+		{
+			m_banner_file_type = BANNER_BNR2;
+		}
+		else
+		{
+			m_banner_file_type = BANNER_INVALID;
+			WARN_LOG(DISCIO, "Invalid opening.bnr. Type: %0x Size: %0zx", m_banner_file.id, file_size);
+		}
+	}
+	else
+	{
+		m_banner_file_type = BANNER_INVALID;
+		WARN_LOG(DISCIO, "Invalid opening.bnr. Size: %0zx", file_size);
+	}
+
+	return m_banner_file_type != BANNER_INVALID;
 }
 
-VolumeGC::ConvertedGCBanner VolumeGC::LoadBannerFile() const
+std::map<IVolume::ELanguage, std::string> CVolumeGC::ReadMultiLanguageStrings(bool description, bool prefer_long) const
 {
-  GCBanner banner_file;
-  const u64 file_size = ReadFile(*this, PARTITION_NONE, "opening.bnr",
-                                 reinterpret_cast<u8*>(&banner_file), sizeof(GCBanner));
-  if (file_size < 4)
-  {
-    WARN_LOG_FMT(DISCIO, "Could not read opening.bnr.");
-    return {};  // Return early so that we don't access the uninitialized banner_file.id
-  }
+	std::map<ELanguage, std::string> strings;
 
-  constexpr u32 BNR1_MAGIC = 0x31524e42;
-  constexpr u32 BNR2_MAGIC = 0x32524e42;
-  bool is_bnr1;
-  if (banner_file.id == BNR1_MAGIC && file_size == BNR1_SIZE)
-  {
-    is_bnr1 = true;
-  }
-  else if (banner_file.id == BNR2_MAGIC && file_size == BNR2_SIZE)
-  {
-    is_bnr1 = false;
-  }
-  else
-  {
-    WARN_LOG_FMT(DISCIO, "Invalid opening.bnr. Type: {:#0x} Size: {:#0x}", banner_file.id,
-                 file_size);
-    return {};
-  }
+	if (!LoadBannerFile())
+		return strings;
 
-  return ExtractBannerInformation(banner_file, is_bnr1);
+	u32 number_of_languages = 0;
+	ELanguage start_language = LANGUAGE_UNKNOWN;
+	bool is_japanese = GetCountry() == ECountry::COUNTRY_JAPAN;
+
+	switch (m_banner_file_type)
+	{
+	case BANNER_BNR1:	// NTSC
+		number_of_languages = 1;
+		start_language = is_japanese ? ELanguage::LANGUAGE_JAPANESE : ELanguage::LANGUAGE_ENGLISH;
+		break;
+
+	case BANNER_BNR2:	// PAL
+		number_of_languages = 6;
+		start_language = ELanguage::LANGUAGE_ENGLISH;
+		break;
+
+	// Shouldn't happen
+	case BANNER_INVALID:
+	case BANNER_NOT_LOADED:
+		break;
+	}
+
+	for (u32 i = 0; i < number_of_languages; ++i)
+	{
+		const GCBannerComment& comment = m_banner_file.comment[i];
+		std::string string;
+
+		if (description)
+		{
+			string = DecodeString(comment.comment);
+		}
+		else // Title
+		{
+			if (prefer_long)
+				string = DecodeString(comment.longTitle);
+
+			if (string.empty())
+				string = DecodeString(comment.shortTitle);
+		}
+
+		if (!string.empty())
+			strings[(ELanguage)(start_language + i)] = string;
+	}
+
+	return strings;
 }
 
-VolumeGC::ConvertedGCBanner VolumeGC::ExtractBannerInformation(const GCBanner& banner_file,
-                                                               bool is_bnr1) const
-{
-  ConvertedGCBanner banner;
-
-  u32 number_of_languages = 0;
-  Language start_language = Language::Unknown;
-
-  if (is_bnr1)  // NTSC
-  {
-    number_of_languages = 1;
-    start_language = GetRegion() == Region::NTSC_J ? Language::Japanese : Language::English;
-  }
-  else  // PAL
-  {
-    number_of_languages = 6;
-    start_language = Language::English;
-  }
-
-  banner.image_width = GC_BANNER_WIDTH;
-  banner.image_height = GC_BANNER_HEIGHT;
-  banner.image_buffer = std::vector<u32>(GC_BANNER_WIDTH * GC_BANNER_HEIGHT);
-  Common::Decode5A3Image(banner.image_buffer.data(), banner_file.image, GC_BANNER_WIDTH,
-                         GC_BANNER_HEIGHT);
-
-  for (u32 i = 0; i < number_of_languages; ++i)
-  {
-    const GCBannerInformation& info = banner_file.information[i];
-    Language language = static_cast<Language>(static_cast<int>(start_language) + i);
-
-    std::string description = DecodeString(info.description);
-    if (!description.empty())
-      banner.descriptions.emplace(language, description);
-
-    std::string short_name = DecodeString(info.short_name);
-    if (!short_name.empty())
-      banner.short_names.emplace(language, short_name);
-
-    std::string long_name = DecodeString(info.long_name);
-    if (!long_name.empty())
-      banner.long_names.emplace(language, long_name);
-
-    std::string short_maker = DecodeString(info.short_maker);
-    if (!short_maker.empty())
-      banner.short_makers.emplace(language, short_maker);
-
-    std::string long_maker = DecodeString(info.long_maker);
-    if (!long_maker.empty())
-      banner.long_makers.emplace(language, long_maker);
-  }
-
-  return banner;
-}
-
-VolumeGC::ConvertedGCBanner::ConvertedGCBanner() = default;
-VolumeGC::ConvertedGCBanner::~ConvertedGCBanner() = default;
-}  // namespace DiscIO
+} // namespace

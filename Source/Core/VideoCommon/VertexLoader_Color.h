@@ -1,47 +1,28 @@
 // Copyright 2008 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #pragma once
 
-#include "Common/CommonTypes.h"
-#include "Common/EnumMap.h"
-#include "Common/Inline.h"
+class VertexLoader;
 
-#include "VideoCommon/CPMemory.h"
-#include "VideoCommon/VertexLoader.h"
+void Color_ReadDirect_24b_888(VertexLoader* loader);
+void Color_ReadDirect_32b_888x(VertexLoader* loader);
+void Color_ReadDirect_16b_565(VertexLoader* loader);
+void Color_ReadDirect_16b_4444(VertexLoader* loader);
+void Color_ReadDirect_24b_6666(VertexLoader* loader);
+void Color_ReadDirect_32b_8888(VertexLoader* loader);
 
-class VertexLoader_Color
-{
-public:
-  static DOLPHIN_FORCE_INLINE u32 GetSize(VertexComponentFormat type, ColorFormat format)
-  {
-    if (format > ColorFormat::RGBA8888)
-    {
-      PanicAlertFmt("Invalid color format {}", format);
-      return 0;
-    }
-    return s_table_size[type][format];
-  }
+void Color_ReadIndex8_16b_565(VertexLoader* loader);
+void Color_ReadIndex8_24b_888(VertexLoader* loader);
+void Color_ReadIndex8_32b_888x(VertexLoader* loader);
+void Color_ReadIndex8_16b_4444(VertexLoader* loader);
+void Color_ReadIndex8_24b_6666(VertexLoader* loader);
+void Color_ReadIndex8_32b_8888(VertexLoader* loader);
 
-  static TPipelineFunction GetFunction(VertexComponentFormat type, ColorFormat format);
-
-private:
-  template <typename T, auto last_member>
-  using EnumMap = typename Common::EnumMap<T, last_member>;
-
-  using SizeTable = EnumMap<EnumMap<u32, ColorFormat::RGBA8888>, VertexComponentFormat::Index16>;
-
-  static constexpr SizeTable s_table_size = []() consteval
-  {
-    SizeTable table{};
-
-    using VCF = VertexComponentFormat;
-
-    table[VCF::Direct] = {2u, 3u, 4u, 2u, 3u, 4u};
-    table[VCF::Index8] = {1u, 1u, 1u, 1u, 1u, 1u};
-    table[VCF::Index16] = {2u, 2u, 2u, 2u, 2u, 2u};
-
-    return table;
-  }
-  ();
-};
+void Color_ReadIndex16_16b_565(VertexLoader* loader);
+void Color_ReadIndex16_24b_888(VertexLoader* loader);
+void Color_ReadIndex16_32b_888x(VertexLoader* loader);
+void Color_ReadIndex16_16b_4444(VertexLoader* loader);
+void Color_ReadIndex16_24b_6666(VertexLoader* loader);
+void Color_ReadIndex16_32b_8888(VertexLoader* loader);

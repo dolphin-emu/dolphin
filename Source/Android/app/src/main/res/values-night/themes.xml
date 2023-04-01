@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <style name="ThemeOverlay.Dolphin.Dark" parent="">
-        <item name="colorSurface">@color/background_black</item>
-        <item name="android:colorBackground">@color/background_black</item>
-    </style>
-</resources>

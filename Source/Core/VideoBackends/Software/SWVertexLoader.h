@@ -1,33 +1,47 @@
 // Copyright 2009 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #pragma once
 
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
 #include "Common/CommonTypes.h"
 
 #include "VideoBackends/Software/NativeVertexFormat.h"
-#include "VideoBackends/Software/SetupUnit.h"
 
+#include "VideoCommon/VertexLoaderBase.h"
 #include "VideoCommon/VertexManagerBase.h"
 
-class SWVertexLoader final : public VertexManagerBase
+class SetupUnit;
+
+class SWVertexLoader : public VertexManagerBase
 {
 public:
-  SWVertexLoader();
-  ~SWVertexLoader();
+	SWVertexLoader();
+	~SWVertexLoader();
 
-  DataReader PrepareForAdditionalData(OpcodeDecoder::Primitive primitive, u32 count, u32 stride,
-                                      bool cullall) override;
+	NativeVertexFormat* CreateNativeVertexFormat(const PortableVertexDeclaration& vdec) override;
 
 protected:
-  void DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex) override;
+	void ResetBuffer(u32 stride) override;
+	u16* GetIndexBuffer() { return &LocalIBuffer[0]; }
+private:
+	void vFlush(bool useDstAlpha) override;
+	std::vector<u8> LocalVBuffer;
+	std::vector<u16> LocalIBuffer;
 
-  void SetFormat();
-  void ParseVertex(const PortableVertexDeclaration& vdec, int index);
+	InputVertexData m_Vertex;
 
-  InputVertexData m_vertex{};
-  SetupUnit m_setup_unit;
+	void ParseVertex(const PortableVertexDeclaration& vdec, int index);
+
+	SetupUnit *m_SetupUnit;
+
+	bool m_TexGenSpecialCase;
+
+public:
+
+	void SetFormat(u8 attributeIndex, u8 primitiveType);
 };

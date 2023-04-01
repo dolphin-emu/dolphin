@@ -1,9 +1,9 @@
 // Copyright 2008 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #pragma once
 
-#include <optional>
 #include <string>
 #include <vector>
 
@@ -13,69 +13,59 @@ class IniFile;
 
 namespace PatchEngine
 {
-enum class PatchType
+
+enum PatchType
 {
-  Patch8Bit,
-  Patch16Bit,
-  Patch32Bit,
+	PATCH_8BIT,
+	PATCH_16BIT,
+	PATCH_32BIT,
 };
+
+extern const char *PatchTypeStrings[];
 
 struct PatchEntry
 {
-  PatchEntry() = default;
-  PatchEntry(PatchType t, u32 addr, u32 value_) : type(t), address(addr), value(value_) {}
-  PatchType type = PatchType::Patch8Bit;
-  u32 address = 0;
-  u32 value = 0;
-  u32 comparand = 0;
-  bool conditional = false;
+	PatchEntry() {}
+	PatchEntry(PatchType _t, u32 _addr, u32 _value) : type(_t), address(_addr), value(_value) {}
+	PatchType type;
+	u32 address;
+	u32 value;
 };
 
 struct Patch
 {
-  std::string name;
-  std::vector<PatchEntry> entries;
-  bool enabled = false;
-  bool default_enabled = false;
-  bool user_defined = false;  // False if this code is shipped with Dolphin.
+	std::string name;
+	std::vector<PatchEntry> entries;
+	bool active;
+	bool user_defined; // False if this code is shipped with Dolphin.
 };
 
-const char* PatchTypeAsString(PatchType type);
-
 int GetSpeedhackCycles(const u32 addr);
-
-std::optional<PatchEntry> DeserializeLine(std::string line);
-std::string SerializeLine(const PatchEntry& entry);
-void LoadPatchSection(const std::string& section, std::vector<Patch>* patches,
-                      const IniFile& globalIni, const IniFile& localIni);
-void SavePatchSection(IniFile* local_ini, const std::vector<Patch>& patches);
+void LoadPatchSection(const std::string& section, std::vector<Patch> &patches,
+                      IniFile &globalIni, IniFile &localIni);
 void LoadPatches();
-
-void AddMemoryPatch(std::size_t index);
-void RemoveMemoryPatch(std::size_t index);
-
-bool ApplyFramePatches();
+void ApplyFramePatches();
 void Shutdown();
-void Reload();
 
 inline int GetPatchTypeCharLength(PatchType type)
 {
-  int size = 8;
-  switch (type)
-  {
-  case PatchType::Patch8Bit:
-    size = 2;
-    break;
+	int size = 8;
+	switch (type)
+	{
+	case PatchEngine::PATCH_8BIT:
+		size = 2;
+		break;
 
-  case PatchType::Patch16Bit:
-    size = 4;
-    break;
+	case PatchEngine::PATCH_16BIT:
+		size = 4;
+		break;
 
-  case PatchType::Patch32Bit:
-    size = 8;
-    break;
-  }
-  return size;
+	case PatchEngine::PATCH_32BIT:
+		size = 8;
+		break;
+	}
+	return size;
 }
 
-}  // namespace PatchEngine
+}  // namespace
+extern std::vector<PatchEngine::Patch> onFrame;

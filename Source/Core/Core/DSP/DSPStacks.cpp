@@ -1,36 +1,38 @@
 // Copyright 2008 Dolphin Emulator Project
 // Copyright 2004 Duddie & Tratax
-// SPDX-License-Identifier: GPL-2.0-or-later
-
-#include "Core/DSP/DSPCore.h"
-
-#include <cstddef>
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #include "Common/CommonTypes.h"
 
+#include "Core/DSP/DSPCore.h"
+#include "Core/DSP/DSPStacks.h"
+
 // Stacks. The stacks are outside the DSP RAM, in dedicated hardware.
-namespace DSP
-{
-void SDSP::StoreStack(StackRegister stack_reg, u16 val)
-{
-  const auto reg_index = static_cast<size_t>(stack_reg);
 
-  reg_stack_ptrs[reg_index]++;
-  reg_stack_ptrs[reg_index] &= DSP_STACK_MASK;
-  reg_stacks[reg_index][reg_stack_ptrs[reg_index]] = r.st[reg_index];
-
-  r.st[reg_index] = val;
+static void dsp_reg_stack_push(int stack_reg)
+{
+	g_dsp.reg_stack_ptr[stack_reg]++;
+	g_dsp.reg_stack_ptr[stack_reg] &= DSP_STACK_MASK;
+	g_dsp.reg_stack[stack_reg][g_dsp.reg_stack_ptr[stack_reg]] = g_dsp.r.st[stack_reg];
 }
 
-u16 SDSP::PopStack(StackRegister stack_reg)
+static void dsp_reg_stack_pop(int stack_reg)
 {
-  const auto reg_index = static_cast<size_t>(stack_reg);
-  const u16 val = r.st[reg_index];
-
-  r.st[reg_index] = reg_stacks[reg_index][reg_stack_ptrs[reg_index]];
-  reg_stack_ptrs[reg_index]--;
-  reg_stack_ptrs[reg_index] &= DSP_STACK_MASK;
-
-  return val;
+	g_dsp.r.st[stack_reg] = g_dsp.reg_stack[stack_reg][g_dsp.reg_stack_ptr[stack_reg]];
+	g_dsp.reg_stack_ptr[stack_reg]--;
+	g_dsp.reg_stack_ptr[stack_reg] &= DSP_STACK_MASK;
 }
-}  // namespace DSP
+
+void dsp_reg_store_stack(int stack_reg, u16 val)
+{
+	dsp_reg_stack_push(stack_reg);
+	g_dsp.r.st[stack_reg] = val;
+}
+
+u16 dsp_reg_load_stack(int stack_reg)
+{
+	u16 val = g_dsp.r.st[stack_reg];
+	dsp_reg_stack_pop(stack_reg);
+	return val;
+}

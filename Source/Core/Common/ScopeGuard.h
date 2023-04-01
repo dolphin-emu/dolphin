@@ -1,40 +1,50 @@
 // Copyright 2015 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #pragma once
 
-#include <optional>
+#include <functional>
 
 namespace Common
 {
-template <typename Callable>
+
 class ScopeGuard final
 {
 public:
-  ScopeGuard(Callable&& finalizer) : m_finalizer(std::forward<Callable>(finalizer)) {}
+	template<class Callable>
+	ScopeGuard(Callable&& finalizer) : m_finalizer(std::forward<Callable>(finalizer)) {}
 
-  ScopeGuard(ScopeGuard&& other) : m_finalizer(std::move(other.m_finalizer))
-  {
-    other.m_finalizer = nullptr;
-  }
+	ScopeGuard(ScopeGuard&& other) : m_finalizer(std::move(other.m_finalizer))
+	{
+		other.m_finalizer = nullptr;
+	}
 
-  ~ScopeGuard() { Exit(); }
-  void Dismiss() { m_finalizer.reset(); }
-  void Exit()
-  {
-    if (m_finalizer)
-    {
-      (*m_finalizer)();  // must not throw
-      m_finalizer.reset();
-    }
-  }
+	~ScopeGuard()
+	{
+		Exit();
+	}
 
-  ScopeGuard(const ScopeGuard&) = delete;
+	void Dismiss()
+	{
+		m_finalizer = nullptr;
+	}
 
-  void operator=(const ScopeGuard&) = delete;
+	void Exit()
+	{
+		if (m_finalizer)
+		{
+			m_finalizer(); // must not throw
+			m_finalizer = nullptr;
+		}
+	}
+
+	ScopeGuard(const ScopeGuard&) = delete;
+
+	void operator=(const ScopeGuard&) = delete;
 
 private:
-  std::optional<Callable> m_finalizer;
+	std::function<void()> m_finalizer;
 };
 
 }  // Namespace Common

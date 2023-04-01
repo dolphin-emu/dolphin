@@ -1,18 +1,42 @@
 // Copyright 2008 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #include "AudioCommon/NullSoundStream.h"
+#include "Common/CommonTypes.h"
+#include "Core/HW/AudioInterface.h"
+#include "Core/HW/SystemTimers.h"
 
-bool NullSound::Init()
+void NullSound::SoundLoop()
 {
-  return true;
 }
 
-bool NullSound::SetRunning(bool running)
+bool NullSound::Start()
 {
-  return true;
+	return true;
 }
 
 void NullSound::SetVolume(int volume)
+{
+}
+
+void NullSound::Update()
+{
+	// num_samples_to_render in this update - depends on SystemTimers::AUDIO_DMA_PERIOD.
+	constexpr u32 stereo_16_bit_size = 4;
+	constexpr u32 dma_length = 32;
+	const u64 audio_dma_period = SystemTimers::GetTicksPerSecond() / (AudioInterface::GetAIDSampleRate() * stereo_16_bit_size / dma_length);
+	const u64 ais_samples_per_second = 48000 * stereo_16_bit_size;
+	const u64 num_samples_to_render = (audio_dma_period * ais_samples_per_second) / SystemTimers::GetTicksPerSecond();
+
+	m_mixer->Mix(m_realtime_buffer.data(), (unsigned int)num_samples_to_render);
+}
+
+void NullSound::Clear(bool mute)
+{
+	m_muted = mute;
+}
+
+void NullSound::Stop()
 {
 }

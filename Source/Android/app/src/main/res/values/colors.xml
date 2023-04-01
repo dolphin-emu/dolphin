@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="dolphin_blue">#2196f3</color>
+    <color name="dolphin_blue_dark">#1976d2</color>
+
+    <color name="dolphin_accent_wii">#9e9e9e</color>
+    <color name="dolphin_accent_wiiware">#2979ff</color>
+    <color name="dolphin_accent_gamecube">#651fff</color>
+
+    <color name="circle_grey">#bdbdbd</color>
+
+    <color name="tv_card_unselected">#444444</color>
+</resources>

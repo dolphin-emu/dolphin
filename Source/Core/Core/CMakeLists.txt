@@ -1,749 +1,283 @@
-add_library(core
-  ActionReplay.cpp
-  ActionReplay.h
-  ARDecrypt.cpp
-  ARDecrypt.h
-  Boot/AncastTypes.h
-  Boot/Boot_BS2Emu.cpp
-  Boot/Boot_WiiWAD.cpp
-  Boot/Boot.cpp
-  Boot/Boot.h
-  Boot/DolReader.cpp
-  Boot/DolReader.h
-  Boot/ElfReader.cpp
-  Boot/ElfReader.h
-  Boot/ElfTypes.h
-  BootManager.cpp
-  BootManager.h
-  CheatCodes.h
-  CheatGeneration.cpp
-  CheatGeneration.h
-  CheatSearch.cpp
-  CheatSearch.h
-  CommonTitles.h
-  Config/DefaultLocale.cpp
-  Config/DefaultLocale.h
-  Config/FreeLookSettings.cpp
-  Config/FreeLookSettings.h
-  Config/GraphicsSettings.cpp
-  Config/GraphicsSettings.h
-  Config/MainSettings.cpp
-  Config/MainSettings.h
-  Config/NetplaySettings.cpp
-  Config/NetplaySettings.h
-  Config/SessionSettings.cpp
-  Config/SessionSettings.h
-  Config/SYSCONFSettings.cpp
-  Config/SYSCONFSettings.h
-  Config/UISettings.cpp
-  Config/UISettings.h
-  Config/WiimoteSettings.cpp
-  Config/WiimoteSettings.h
-  ConfigLoaders/BaseConfigLoader.cpp
-  ConfigLoaders/BaseConfigLoader.h
-  ConfigLoaders/GameConfigLoader.cpp
-  ConfigLoaders/GameConfigLoader.h
-  ConfigLoaders/IsSettingSaveable.cpp
-  ConfigLoaders/IsSettingSaveable.h
-  ConfigLoaders/MovieConfigLoader.cpp
-  ConfigLoaders/MovieConfigLoader.h
-  ConfigLoaders/NetPlayConfigLoader.cpp
-  ConfigLoaders/NetPlayConfigLoader.h
-  ConfigManager.cpp
-  ConfigManager.h
-  Core.cpp
-  Core.h
-  CoreTiming.cpp
-  CoreTiming.h
-  Debugger/Debugger_SymbolMap.cpp
-  Debugger/Debugger_SymbolMap.h
-  Debugger/Dump.cpp
-  Debugger/Dump.h
-  Debugger/GCELF.h
-  Debugger/OSThread.cpp
-  Debugger/OSThread.h
-  Debugger/PPCDebugInterface.cpp
-  Debugger/PPCDebugInterface.h
-  Debugger/RSO.cpp
-  Debugger/RSO.h
-  DolphinAnalytics.cpp
-  DolphinAnalytics.h
-  DSP/DSPAccelerator.cpp
-  DSP/DSPAccelerator.h
-  DSP/DSPAnalyzer.cpp
-  DSP/DSPAnalyzer.h
-  DSP/DSPAssembler.cpp
-  DSP/DSPAssembler.h
-  DSP/DSPCaptureLogger.cpp
-  DSP/DSPCaptureLogger.h
-  DSP/DSPCodeUtil.cpp
-  DSP/DSPCodeUtil.h
-  DSP/DSPCommon.h
-  DSP/DSPCore.cpp
-  DSP/DSPCore.h
-  DSP/DSPDisassembler.cpp
-  DSP/DSPDisassembler.h
-  DSP/DSPHWInterface.cpp
-  DSP/DSPMemoryMap.cpp
-  DSP/DSPStacks.cpp
-  DSP/DSPTables.cpp
-  DSP/DSPTables.h
-  DSP/Interpreter/DSPIntArithmetic.cpp
-  DSP/Interpreter/DSPIntBranch.cpp
-  DSP/Interpreter/DSPIntCCUtil.h
-  DSP/Interpreter/DSPInterpreter.cpp
-  DSP/Interpreter/DSPInterpreter.h
-  DSP/Interpreter/DSPIntExtOps.cpp
-  DSP/Interpreter/DSPIntLoadStore.cpp
-  DSP/Interpreter/DSPIntMisc.cpp
-  DSP/Interpreter/DSPIntMultiplier.cpp
-  DSP/Interpreter/DSPIntTables.cpp
-  DSP/Interpreter/DSPIntTables.h
-  DSP/Interpreter/DSPIntUtil.h
-  DSP/Jit/DSPEmitterBase.cpp
-  DSP/Jit/DSPEmitterBase.h
-  DSP/LabelMap.cpp
-  DSP/LabelMap.h
-  DSPEmulator.cpp
-  DSPEmulator.h
-  FifoPlayer/FifoDataFile.cpp
-  FifoPlayer/FifoDataFile.h
-  FifoPlayer/FifoPlayer.cpp
-  FifoPlayer/FifoPlayer.h
-  FifoPlayer/FifoRecorder.cpp
-  FifoPlayer/FifoRecorder.h
-  FreeLookConfig.cpp
-  FreeLookConfig.h
-  FreeLookManager.cpp
-  FreeLookManager.h
-  GeckoCode.cpp
-  GeckoCode.h
-  GeckoCodeConfig.cpp
-  GeckoCodeConfig.h
-  HLE/HLE_Misc.cpp
-  HLE/HLE_Misc.h
-  HLE/HLE_OS.cpp
-  HLE/HLE_OS.h
-  HLE/HLE_VarArgs.cpp
-  HLE/HLE_VarArgs.h
-  HLE/HLE.cpp
-  HLE/HLE.h
-  Host.h
-  HotkeyManager.cpp
-  HotkeyManager.h
-  HW/AddressSpace.cpp
-  HW/AddressSpace.h
-  HW/AudioInterface.cpp
-  HW/AudioInterface.h
-  HW/CPU.cpp
-  HW/CPU.h
-  HW/DSP.cpp
-  HW/DSP.h
-  HW/DSPHLE/DSPHLE.cpp
-  HW/DSPHLE/DSPHLE.h
-  HW/DSPHLE/MailHandler.cpp
-  HW/DSPHLE/MailHandler.h
-  HW/DSPHLE/UCodes/ASnd.cpp
-  HW/DSPHLE/UCodes/ASnd.h
-  HW/DSPHLE/UCodes/AESnd.cpp
-  HW/DSPHLE/UCodes/AESnd.h
-  HW/DSPHLE/UCodes/AX.cpp
-  HW/DSPHLE/UCodes/AX.h
-  HW/DSPHLE/UCodes/AXStructs.h
-  HW/DSPHLE/UCodes/AXVoice.h
-  HW/DSPHLE/UCodes/AXWii.cpp
-  HW/DSPHLE/UCodes/AXWii.h
-  HW/DSPHLE/UCodes/CARD.cpp
-  HW/DSPHLE/UCodes/CARD.h
-  HW/DSPHLE/UCodes/GBA.cpp
-  HW/DSPHLE/UCodes/GBA.h
-  HW/DSPHLE/UCodes/INIT.cpp
-  HW/DSPHLE/UCodes/INIT.h
-  HW/DSPHLE/UCodes/ROM.cpp
-  HW/DSPHLE/UCodes/ROM.h
-  HW/DSPHLE/UCodes/UCodes.cpp
-  HW/DSPHLE/UCodes/UCodes.h
-  HW/DSPHLE/UCodes/Zelda.cpp
-  HW/DSPHLE/UCodes/Zelda.h
-  HW/DSPLLE/DSPHost.cpp
-  HW/DSPLLE/DSPLLE.cpp
-  HW/DSPLLE/DSPLLE.h
-  HW/DSPLLE/DSPSymbols.cpp
-  HW/DSPLLE/DSPSymbols.h
-  HW/DVD/DVDInterface.cpp
-  HW/DVD/DVDInterface.h
-  HW/DVD/DVDMath.cpp
-  HW/DVD/DVDMath.h
-  HW/DVD/DVDThread.cpp
-  HW/DVD/DVDThread.h
-  HW/DVD/FileMonitor.cpp
-  HW/DVD/FileMonitor.h
-  HW/EXI/EXI_Channel.cpp
-  HW/EXI/EXI_Channel.h
-  HW/EXI/EXI_Device.cpp
-  HW/EXI/EXI_Device.h
-  HW/EXI/EXI_DeviceAD16.cpp
-  HW/EXI/EXI_DeviceAD16.h
-  HW/EXI/EXI_DeviceAGP.cpp
-  HW/EXI/EXI_DeviceAGP.h
-  HW/EXI/EXI_DeviceDummy.cpp
-  HW/EXI/EXI_DeviceDummy.h
-  HW/EXI/EXI_DeviceEthernet.cpp
-  HW/EXI/EXI_DeviceEthernet.h
-  HW/EXI/EXI_DeviceGecko.cpp
-  HW/EXI/EXI_DeviceGecko.h
-  HW/EXI/EXI_DeviceIPL.cpp
-  HW/EXI/EXI_DeviceIPL.h
-  HW/EXI/EXI_DeviceMemoryCard.cpp
-  HW/EXI/EXI_DeviceMemoryCard.h
-  HW/EXI/EXI_DeviceMic.cpp
-  HW/EXI/EXI_DeviceMic.h
-  HW/EXI/EXI.cpp
-  HW/EXI/EXI.h
-  HW/GBAPad.cpp
-  HW/GBAPad.h
-  HW/GBAPadEmu.cpp
-  HW/GBAPadEmu.h
-  HW/GCKeyboard.cpp
-  HW/GCKeyboard.h
-  HW/GCKeyboardEmu.cpp
-  HW/GCKeyboardEmu.h
-  HW/GCMemcard/GCIFile.cpp
-  HW/GCMemcard/GCIFile.h
-  HW/GCMemcard/GCMemcard.cpp
-  HW/GCMemcard/GCMemcard.h
-  HW/GCMemcard/GCMemcardBase.h
-  HW/GCMemcard/GCMemcardDirectory.cpp
-  HW/GCMemcard/GCMemcardDirectory.h
-  HW/GCMemcard/GCMemcardRaw.cpp
-  HW/GCMemcard/GCMemcardRaw.h
-  HW/GCMemcard/GCMemcardUtils.cpp
-  HW/GCMemcard/GCMemcardUtils.h
-  HW/GCPad.cpp
-  HW/GCPad.h
-  HW/GCPadEmu.cpp
-  HW/GCPadEmu.h
-  HW/GPFifo.cpp
-  HW/GPFifo.h
-  HW/HSP/HSP.cpp
-  HW/HSP/HSP.h
-  HW/HSP/HSP_Device.cpp
-  HW/HSP/HSP_Device.h
-  HW/HSP/HSP_DeviceARAMExpansion.cpp
-  HW/HSP/HSP_DeviceARAMExpansion.h
-  HW/HSP/HSP_DeviceNull.cpp
-  HW/HSP/HSP_DeviceNull.h
-  HW/HW.cpp
-  HW/HW.h
-  HW/Memmap.cpp
-  HW/Memmap.h
-  HW/MemoryInterface.cpp
-  HW/MemoryInterface.h
-  HW/MMIO.cpp
-  HW/MMIO.h
-  HW/ProcessorInterface.cpp
-  HW/ProcessorInterface.h
-  HW/SI/SI_Device.cpp
-  HW/SI/SI_Device.h
-  HW/SI/SI_DeviceDanceMat.cpp
-  HW/SI/SI_DeviceDanceMat.h
-  HW/SI/SI_DeviceGBA.cpp
-  HW/SI/SI_DeviceGBA.h
-  HW/SI/SI_DeviceGCAdapter.cpp
-  HW/SI/SI_DeviceGCAdapter.h
-  HW/SI/SI_DeviceGCController.cpp
-  HW/SI/SI_DeviceGCController.h
-  HW/SI/SI_DeviceGCSteeringWheel.cpp
-  HW/SI/SI_DeviceGCSteeringWheel.h
-  HW/SI/SI_DeviceKeyboard.cpp
-  HW/SI/SI_DeviceKeyboard.h
-  HW/SI/SI_DeviceNull.cpp
-  HW/SI/SI_DeviceNull.h
-  HW/SI/SI.cpp
-  HW/SI/SI.h
-  HW/Sram.cpp
-  HW/Sram.h
-  HW/StreamADPCM.cpp
-  HW/StreamADPCM.h
-  HW/SystemTimers.cpp
-  HW/SystemTimers.h
-  HW/VideoInterface.cpp
-  HW/VideoInterface.h
-  HW/WII_IPC.cpp
-  HW/WII_IPC.h
-  HW/Wiimote.cpp
-  HW/Wiimote.h
-  HW/WiimoteCommon/DataReport.cpp
-  HW/WiimoteCommon/DataReport.h
-  HW/WiimoteCommon/WiimoteConstants.h
-  HW/WiimoteCommon/WiimoteHid.h
-  HW/WiimoteCommon/WiimoteReport.h
-  HW/WiimoteEmu/Camera.cpp
-  HW/WiimoteEmu/Camera.h
-  HW/WiimoteEmu/DesiredWiimoteState.cpp
-  HW/WiimoteEmu/DesiredWiimoteState.h
-  HW/WiimoteEmu/Dynamics.cpp
-  HW/WiimoteEmu/Dynamics.h
-  HW/WiimoteEmu/EmuSubroutines.cpp
-  HW/WiimoteEmu/Encryption.cpp
-  HW/WiimoteEmu/Encryption.h
-  HW/WiimoteEmu/Extension/Classic.cpp
-  HW/WiimoteEmu/Extension/Classic.h
-  HW/WiimoteEmu/Extension/DesiredExtensionState.h
-  HW/WiimoteEmu/Extension/DrawsomeTablet.cpp
-  HW/WiimoteEmu/Extension/DrawsomeTablet.h
-  HW/WiimoteEmu/Extension/Drums.cpp
-  HW/WiimoteEmu/Extension/Drums.h
-  HW/WiimoteEmu/Extension/Extension.cpp
-  HW/WiimoteEmu/Extension/Extension.h
-  HW/WiimoteEmu/Extension/Guitar.cpp
-  HW/WiimoteEmu/Extension/Guitar.h
-  HW/WiimoteEmu/Extension/Nunchuk.cpp
-  HW/WiimoteEmu/Extension/Nunchuk.h
-  HW/WiimoteEmu/Extension/Shinkansen.cpp
-  HW/WiimoteEmu/Extension/Shinkansen.h
-  HW/WiimoteEmu/Extension/TaTaCon.cpp
-  HW/WiimoteEmu/Extension/TaTaCon.h
-  HW/WiimoteEmu/Extension/Turntable.cpp
-  HW/WiimoteEmu/Extension/Turntable.h
-  HW/WiimoteEmu/Extension/UDrawTablet.cpp
-  HW/WiimoteEmu/Extension/UDrawTablet.h
-  HW/WiimoteEmu/ExtensionPort.cpp
-  HW/WiimoteEmu/ExtensionPort.h
-  HW/WiimoteEmu/I2CBus.cpp
-  HW/WiimoteEmu/I2CBus.h
-  HW/WiimoteEmu/MotionPlus.cpp
-  HW/WiimoteEmu/MotionPlus.h
-  HW/WiimoteEmu/Speaker.cpp
-  HW/WiimoteEmu/Speaker.h
-  HW/WiimoteEmu/WiimoteEmu.cpp
-  HW/WiimoteEmu/WiimoteEmu.h
-  HW/WiimoteReal/WiimoteReal.cpp
-  HW/WiimoteReal/WiimoteReal.h
-  HW/WiiSave.cpp
-  HW/WiiSave.h
-  HW/WiiSaveStructs.h
-  IOS/Device.cpp
-  IOS/Device.h
-  IOS/DeviceStub.cpp
-  IOS/DeviceStub.h
-  IOS/DI/DI.cpp
-  IOS/DI/DI.h
-  IOS/DolphinDevice.cpp
-  IOS/DolphinDevice.h
-  IOS/ES/ES.cpp
-  IOS/ES/ES.h
-  IOS/ES/Formats.cpp
-  IOS/ES/Formats.h
-  IOS/ES/Identity.cpp
-  IOS/ES/NandUtils.cpp
-  IOS/ES/TitleContents.cpp
-  IOS/ES/TitleInformation.cpp
-  IOS/ES/TitleManagement.cpp
-  IOS/ES/Views.cpp
-  IOS/FS/FileSystem.h
-  IOS/FS/FileSystemCommon.cpp
-  IOS/FS/FileSystemProxy.cpp
-  IOS/FS/FileSystemProxy.h
-  IOS/FS/HostBackend/File.cpp
-  IOS/FS/HostBackend/FS.cpp
-  IOS/FS/HostBackend/FS.h
-  IOS/IOS.cpp
-  IOS/IOS.h
-  IOS/IOSC.cpp
-  IOS/IOSC.h
-  IOS/MIOS.cpp
-  IOS/MIOS.h
-  IOS/Network/ICMP.h
-  IOS/Network/ICMPLin.cpp
-  IOS/Network/IP/Top.cpp
-  IOS/Network/IP/Top.h
-  IOS/Network/KD/NetKDRequest.cpp
-  IOS/Network/KD/NetKDRequest.h
-  IOS/Network/KD/NetKDTime.cpp
-  IOS/Network/KD/NetKDTime.h
-  IOS/Network/KD/NWC24Config.cpp
-  IOS/Network/KD/NWC24Config.h
-  IOS/Network/KD/NWC24DL.cpp
-  IOS/Network/KD/NWC24DL.h
-  IOS/Network/KD/VFF/VFFUtil.cpp
-  IOS/Network/KD/VFF/VFFUtil.h
-  IOS/Network/KD/WC24File.h
-  IOS/Network/MACUtils.cpp
-  IOS/Network/MACUtils.h
-  IOS/Network/NCD/Manage.cpp
-  IOS/Network/NCD/Manage.h
-  IOS/Network/NCD/WiiNetConfig.cpp
-  IOS/Network/NCD/WiiNetConfig.h
-  IOS/Network/Socket.cpp
-  IOS/Network/Socket.h
-  IOS/Network/SSL.cpp
-  IOS/Network/SSL.h
-  IOS/Network/WD/Command.cpp
-  IOS/Network/WD/Command.h
-  IOS/SDIO/SDIOSlot0.cpp
-  IOS/SDIO/SDIOSlot0.h
-  IOS/STM/STM.cpp
-  IOS/STM/STM.h
-  IOS/USB/Bluetooth/BTBase.cpp
-  IOS/USB/Bluetooth/BTBase.h
-  IOS/USB/Bluetooth/BTEmu.cpp
-  IOS/USB/Bluetooth/BTEmu.h
-  IOS/USB/Bluetooth/BTStub.cpp
-  IOS/USB/Bluetooth/BTStub.h
-  IOS/USB/Bluetooth/hci.h
-  IOS/USB/Bluetooth/l2cap.h
-  IOS/USB/Bluetooth/WiimoteDevice.cpp
-  IOS/USB/Bluetooth/WiimoteDevice.h
-  IOS/USB/Bluetooth/WiimoteHIDAttr.cpp
-  IOS/USB/Bluetooth/WiimoteHIDAttr.h
-  IOS/USB/Common.cpp
-  IOS/USB/Common.h
-  IOS/USB/Emulated/Skylander.cpp
-  IOS/USB/Emulated/Skylander.h
-  IOS/USB/Host.cpp
-  IOS/USB/Host.h
-  IOS/USB/OH0/OH0.cpp
-  IOS/USB/OH0/OH0.h
-  IOS/USB/OH0/OH0Device.cpp
-  IOS/USB/OH0/OH0Device.h
-  IOS/USB/USB_HID/HIDv4.cpp
-  IOS/USB/USB_HID/HIDv4.h
-  IOS/USB/USB_HID/HIDv5.cpp
-  IOS/USB/USB_HID/HIDv5.h
-  IOS/USB/USB_KBD.cpp
-  IOS/USB/USB_KBD.h
-  IOS/USB/USB_VEN/VEN.cpp
-  IOS/USB/USB_VEN/VEN.h
-  IOS/USB/USBV0.cpp
-  IOS/USB/USBV0.h
-  IOS/USB/USBV4.cpp
-  IOS/USB/USBV4.h
-  IOS/USB/USBV5.cpp
-  IOS/USB/USBV5.h
-  IOS/VersionInfo.cpp
-  IOS/VersionInfo.h
-  IOS/WFS/WFSI.cpp
-  IOS/WFS/WFSI.h
-  IOS/WFS/WFSSRV.cpp
-  IOS/WFS/WFSSRV.h
-  LibusbUtils.cpp
-  LibusbUtils.h
-  MemTools.cpp
-  MemTools.h
-  Movie.cpp
-  Movie.h
-  NetPlayClient.cpp
-  NetPlayClient.h
-  NetPlayCommon.cpp
-  NetPlayCommon.h
-  NetPlayServer.cpp
-  NetPlayServer.h
-  NetworkCaptureLogger.cpp
-  NetworkCaptureLogger.h
-  PatchEngine.cpp
-  PatchEngine.h
-  PowerPC/BreakPoints.cpp
-  PowerPC/BreakPoints.h
-  PowerPC/CachedInterpreter/CachedInterpreter.cpp
-  PowerPC/CachedInterpreter/CachedInterpreter.h
-  PowerPC/CachedInterpreter/InterpreterBlockCache.cpp
-  PowerPC/CachedInterpreter/InterpreterBlockCache.h
-  PowerPC/ConditionRegister.cpp
-  PowerPC/ConditionRegister.h
-  PowerPC/Expression.cpp
-  PowerPC/Expression.h
-  PowerPC/Interpreter/ExceptionUtils.h
-  PowerPC/Interpreter/Interpreter_Branch.cpp
-  PowerPC/Interpreter/Interpreter_FloatingPoint.cpp
-  PowerPC/Interpreter/Interpreter_FPUtils.h
-  PowerPC/Interpreter/Interpreter_Integer.cpp
-  PowerPC/Interpreter/Interpreter_LoadStore.cpp
-  PowerPC/Interpreter/Interpreter_LoadStorePaired.cpp
-  PowerPC/Interpreter/Interpreter_Paired.cpp
-  PowerPC/Interpreter/Interpreter_SystemRegisters.cpp
-  PowerPC/Interpreter/Interpreter_Tables.cpp
-  PowerPC/Interpreter/Interpreter.cpp
-  PowerPC/Interpreter/Interpreter.h
-  PowerPC/JitCommon/DivUtils.cpp
-  PowerPC/JitCommon/DivUtils.h
-  PowerPC/JitCommon/JitAsmCommon.cpp
-  PowerPC/JitCommon/JitAsmCommon.h
-  PowerPC/JitCommon/JitBase.cpp
-  PowerPC/JitCommon/JitBase.h
-  PowerPC/JitCommon/JitCache.cpp
-  PowerPC/JitCommon/JitCache.h
-  PowerPC/JitInterface.cpp
-  PowerPC/JitInterface.h
-  PowerPC/GDBStub.cpp
-  PowerPC/GDBStub.h
-  PowerPC/MMU.cpp
-  PowerPC/MMU.h
-  PowerPC/PowerPC.cpp
-  PowerPC/PowerPC.h
-  PowerPC/PPCAnalyst.cpp
-  PowerPC/PPCAnalyst.h
-  PowerPC/PPCCache.cpp
-  PowerPC/PPCCache.h
-  PowerPC/PPCSymbolDB.cpp
-  PowerPC/PPCSymbolDB.h
-  PowerPC/PPCTables.cpp
-  PowerPC/PPCTables.h
-  PowerPC/Profiler.h
-  PowerPC/SignatureDB/CSVSignatureDB.cpp
-  PowerPC/SignatureDB/CSVSignatureDB.h
-  PowerPC/SignatureDB/DSYSignatureDB.cpp
-  PowerPC/SignatureDB/DSYSignatureDB.h
-  PowerPC/SignatureDB/MEGASignatureDB.cpp
-  PowerPC/SignatureDB/MEGASignatureDB.h
-  PowerPC/SignatureDB/SignatureDB.cpp
-  PowerPC/SignatureDB/SignatureDB.h
-  State.cpp
-  State.h
-  SyncIdentifier.h
-  SysConf.cpp
-  SysConf.h
-  System.cpp
-  System.h
-  TitleDatabase.cpp
-  TitleDatabase.h
-  WiiRoot.cpp
-  WiiRoot.h
-  WiiUtils.cpp
-  WiiUtils.h
-)
+set(SRCS	ActionReplay.cpp
+			Analytics.cpp
+			ARDecrypt.cpp
+			BootManager.cpp
+			ConfigManager.cpp
+			Core.cpp
+			CoreTiming.cpp
+			DSPEmulator.cpp
+			ec_wii.cpp
+			GeckoCodeConfig.cpp
+			GeckoCode.cpp
+			HotkeyManager.cpp
+			MemTools.cpp
+			Movie.cpp
+			NetPlayClient.cpp
+			NetPlayServer.cpp
+			PatchEngine.cpp
+			State.cpp
+			Boot/Boot_BS2Emu.cpp
+			Boot/Boot.cpp
+			Boot/Boot_DOL.cpp
+			Boot/Boot_ELF.cpp
+			Boot/Boot_WiiWAD.cpp
+			Boot/ElfReader.cpp
+			Debugger/Debugger_SymbolMap.cpp
+			Debugger/Dump.cpp
+			Debugger/PPCDebugInterface.cpp
+			DSP/DSPAssembler.cpp
+			DSP/DSPDisassembler.cpp
+			DSP/DSPAccelerator.cpp
+			DSP/DSPCaptureLogger.cpp
+			DSP/DSPIntCCUtil.cpp
+			DSP/DSPIntExtOps.cpp
+			DSP/DSPHWInterface.cpp
+			DSP/DSPMemoryMap.cpp
+			DSP/DSPStacks.cpp
+			DSP/DSPAnalyzer.cpp
+			DSP/DSPIntArithmetic.cpp
+			DSP/DSPIntBranch.cpp
+			DSP/DSPIntLoadStore.cpp
+			DSP/DSPIntMisc.cpp
+			DSP/DSPIntMultiplier.cpp
+			DSP/DSPEmitter.cpp
+			DSP/DSPCodeUtil.cpp
+			DSP/LabelMap.cpp
+			DSP/DSPInterpreter.cpp
+			DSP/DSPCore.cpp
+			DSP/DSPTables.cpp
+			DSP/Jit/DSPJitRegCache.cpp
+			DSP/Jit/DSPJitExtOps.cpp
+			DSP/Jit/DSPJitBranch.cpp
+			DSP/Jit/DSPJitCCUtil.cpp
+			DSP/Jit/DSPJitArithmetic.cpp
+			DSP/Jit/DSPJitLoadStore.cpp
+			DSP/Jit/DSPJitMultiplier.cpp
+			DSP/Jit/DSPJitUtil.cpp
+			DSP/Jit/DSPJitMisc.cpp
+			FifoPlayer/FifoAnalyzer.cpp
+			FifoPlayer/FifoDataFile.cpp
+			FifoPlayer/FifoPlaybackAnalyzer.cpp
+			FifoPlayer/FifoPlayer.cpp
+			FifoPlayer/FifoRecordAnalyzer.cpp
+			FifoPlayer/FifoRecorder.cpp
+			HLE/HLE.cpp
+			HLE/HLE_Misc.cpp
+			HLE/HLE_OS.cpp
+			HW/AudioInterface.cpp
+			HW/CPU.cpp
+			HW/DSP.cpp
+			HW/DSPHLE/UCodes/AX.cpp
+			HW/DSPHLE/UCodes/AXWii.cpp
+			HW/DSPHLE/UCodes/CARD.cpp
+			HW/DSPHLE/UCodes/GBA.cpp
+			HW/DSPHLE/UCodes/INIT.cpp
+			HW/DSPHLE/UCodes/ROM.cpp
+			HW/DSPHLE/UCodes/UCodes.cpp
+			HW/DSPHLE/UCodes/Zelda.cpp
+			HW/DSPHLE/MailHandler.cpp
+			HW/DSPHLE/DSPHLE.cpp
+			HW/DSPLLE/DSPDebugInterface.cpp
+			HW/DSPLLE/DSPHost.cpp
+			HW/DSPLLE/DSPSymbols.cpp
+			HW/DSPLLE/DSPLLEGlobals.cpp
+			HW/DSPLLE/DSPLLE.cpp
+			HW/DSPLLE/DSPLLETools.cpp
+			HW/DVDInterface.cpp
+			HW/DVDThread.cpp
+			HW/EXI_Channel.cpp
+			HW/EXI.cpp
+			HW/EXI_Device.cpp
+			HW/EXI_DeviceAD16.cpp
+			HW/EXI_DeviceAGP.cpp
+			HW/EXI_DeviceAMBaseboard.cpp
+			HW/EXI_DeviceEthernet.cpp
+			HW/EXI_DeviceGecko.cpp
+			HW/EXI_DeviceIPL.cpp
+			HW/EXI_DeviceMemoryCard.cpp
+			HW/EXI_DeviceMic.cpp
+			HW/GCKeyboard.cpp
+			HW/GCKeyboardEmu.cpp
+			HW/GCMemcard.cpp
+			HW/GCMemcardDirectory.cpp
+			HW/GCMemcardRaw.cpp
+			HW/GCPad.cpp
+			HW/GCPadEmu.cpp
+			HW/GPFifo.cpp
+			HW/HW.cpp
+			HW/Memmap.cpp
+			HW/MemoryInterface.cpp
+			HW/MMIO.cpp
+			HW/ProcessorInterface.cpp
+			HW/SI.cpp
+			HW/SI_DeviceAMBaseboard.cpp
+			HW/SI_Device.cpp
+			HW/SI_DeviceDanceMat.cpp
+			HW/SI_DeviceGBA.cpp
+			HW/SI_DeviceGCAdapter.cpp
+			HW/SI_DeviceGCController.cpp
+			HW/SI_DeviceGCSteeringWheel.cpp
+			HW/SI_DeviceKeyboard.cpp
+			HW/Sram.cpp
+			HW/StreamADPCM.cpp
+			HW/SystemTimers.cpp
+			HW/VideoInterface.cpp
+			HW/WII_IPC.cpp
+			HW/Wiimote.cpp
+			HW/WiimoteEmu/WiimoteEmu.cpp
+			HW/WiimoteEmu/Attachment/Classic.cpp
+			HW/WiimoteEmu/Attachment/Attachment.cpp
+			HW/WiimoteEmu/Attachment/Nunchuk.cpp
+			HW/WiimoteEmu/Attachment/Drums.cpp
+			HW/WiimoteEmu/Attachment/Guitar.cpp
+			HW/WiimoteEmu/Attachment/Turntable.cpp
+			HW/WiimoteEmu/EmuSubroutines.cpp
+			HW/WiimoteEmu/Encryption.cpp
+			HW/WiimoteEmu/Speaker.cpp
+			HW/WiimoteReal/WiimoteReal.cpp
+			HW/WiiSaveCrypted.cpp
+			IPC_HLE/ICMPLin.cpp
+			IPC_HLE/WII_IPC_HLE.cpp
+			IPC_HLE/WII_IPC_HLE_Device_DI.cpp
+			IPC_HLE/WII_IPC_HLE_Device_es.cpp
+			IPC_HLE/WII_IPC_HLE_Device_FileIO.cpp
+			IPC_HLE/WII_IPC_HLE_Device_fs.cpp
+			IPC_HLE/WII_Socket.cpp
+			IPC_HLE/WII_IPC_HLE_Device_net.cpp
+			IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp
+			IPC_HLE/WII_IPC_HLE_Device_sdio_slot0.cpp
+			IPC_HLE/WII_IPC_HLE_Device_usb.cpp
+			IPC_HLE/WII_IPC_HLE_Device_usb_kbd.cpp
+			IPC_HLE/WII_IPC_HLE_WiiMote.cpp
+			IPC_HLE/WiiMote_HID_Attr.cpp
+			PowerPC/MMU.cpp
+			PowerPC/PowerPC.cpp
+			PowerPC/PPCAnalyst.cpp
+			PowerPC/PPCCache.cpp
+			PowerPC/PPCSymbolDB.cpp
+			PowerPC/PPCTables.cpp
+			PowerPC/Profiler.cpp
+			PowerPC/SignatureDB.cpp
+			PowerPC/JitInterface.cpp
+			PowerPC/Interpreter/Interpreter_Branch.cpp
+			PowerPC/Interpreter/Interpreter.cpp
+			PowerPC/Interpreter/Interpreter_FloatingPoint.cpp
+			PowerPC/Interpreter/Interpreter_Integer.cpp
+			PowerPC/Interpreter/Interpreter_LoadStore.cpp
+			PowerPC/Interpreter/Interpreter_LoadStorePaired.cpp
+			PowerPC/Interpreter/Interpreter_Paired.cpp
+			PowerPC/Interpreter/Interpreter_SystemRegisters.cpp
+			PowerPC/Interpreter/Interpreter_Tables.cpp
+			PowerPC/JitCommon/JitAsmCommon.cpp
+			PowerPC/JitCommon/JitBase.cpp
+			PowerPC/JitCommon/JitCache.cpp
+			PowerPC/CachedInterpreter.cpp
+			PowerPC/JitILCommon/IR.cpp
+			PowerPC/JitILCommon/JitILBase_Branch.cpp
+			PowerPC/JitILCommon/JitILBase_LoadStore.cpp
+			PowerPC/JitILCommon/JitILBase_SystemRegisters.cpp
+			PowerPC/JitILCommon/JitILBase_LoadStoreFloating.cpp
+			PowerPC/JitILCommon/JitILBase_LoadStorePaired.cpp
+			PowerPC/JitILCommon/JitILBase_Paired.cpp
+			PowerPC/JitILCommon/JitILBase_FloatingPoint.cpp
+			PowerPC/JitILCommon/JitILBase_Integer.cpp
+			)
 
 if(_M_X86)
-  target_sources(core PRIVATE
-    DSP/Jit/x64/DSPEmitter.cpp
-    DSP/Jit/x64/DSPEmitter.h
-    DSP/Jit/x64/DSPJitArithmetic.cpp
-    DSP/Jit/x64/DSPJitBranch.cpp
-    DSP/Jit/x64/DSPJitCCUtil.cpp
-    DSP/Jit/x64/DSPJitExtOps.cpp
-    DSP/Jit/x64/DSPJitLoadStore.cpp
-    DSP/Jit/x64/DSPJitMisc.cpp
-    DSP/Jit/x64/DSPJitMultiplier.cpp
-    DSP/Jit/x64/DSPJitRegCache.cpp
-    DSP/Jit/x64/DSPJitRegCache.h
-    DSP/Jit/x64/DSPJitTables.cpp
-    DSP/Jit/x64/DSPJitTables.h
-    DSP/Jit/x64/DSPJitUtil.cpp
-    PowerPC/Jit64/Jit.cpp
-    PowerPC/Jit64/Jit.h
-    PowerPC/Jit64/Jit64_Tables.cpp
-    PowerPC/Jit64/Jit_Branch.cpp
-    PowerPC/Jit64/Jit_FloatingPoint.cpp
-    PowerPC/Jit64/Jit_Integer.cpp
-    PowerPC/Jit64/Jit_LoadStore.cpp
-    PowerPC/Jit64/Jit_LoadStoreFloating.cpp
-    PowerPC/Jit64/Jit_LoadStorePaired.cpp
-    PowerPC/Jit64/Jit_Paired.cpp
-    PowerPC/Jit64/Jit_SystemRegisters.cpp
-    PowerPC/Jit64/JitAsm.cpp
-    PowerPC/Jit64/JitAsm.h
-    PowerPC/Jit64/RegCache/CachedReg.h
-    PowerPC/Jit64/RegCache/FPURegCache.cpp
-    PowerPC/Jit64/RegCache/FPURegCache.h
-    PowerPC/Jit64/RegCache/GPRRegCache.cpp
-    PowerPC/Jit64/RegCache/GPRRegCache.h
-    PowerPC/Jit64/RegCache/JitRegCache.cpp
-    PowerPC/Jit64/RegCache/JitRegCache.h
-    PowerPC/Jit64/RegCache/RCMode.h
-    PowerPC/Jit64Common/BlockCache.cpp
-    PowerPC/Jit64Common/BlockCache.h
-    PowerPC/Jit64Common/ConstantPool.cpp
-    PowerPC/Jit64Common/ConstantPool.h
-    PowerPC/Jit64Common/EmuCodeBlock.cpp
-    PowerPC/Jit64Common/EmuCodeBlock.h
-    PowerPC/Jit64Common/FarCodeCache.cpp
-    PowerPC/Jit64Common/FarCodeCache.h
-    PowerPC/Jit64Common/Jit64AsmCommon.cpp
-    PowerPC/Jit64Common/Jit64AsmCommon.h
-    PowerPC/Jit64Common/Jit64Constants.h
-    PowerPC/Jit64Common/Jit64PowerPCState.h
-    PowerPC/Jit64Common/TrampolineCache.cpp
-    PowerPC/Jit64Common/TrampolineCache.h
-    PowerPC/Jit64Common/TrampolineInfo.h
-  )
+	set(SRCS ${SRCS}
+			PowerPC/Jit64IL/IR_X86.cpp
+			PowerPC/Jit64IL/JitIL.cpp
+			PowerPC/Jit64IL/JitIL_Tables.cpp
+			PowerPC/Jit64/Jit64_Tables.cpp
+			PowerPC/Jit64/JitAsm.cpp
+			PowerPC/Jit64/Jit_Branch.cpp
+			PowerPC/Jit64/Jit.cpp
+			PowerPC/Jit64/Jit_FloatingPoint.cpp
+			PowerPC/Jit64/Jit_Integer.cpp
+			PowerPC/Jit64/Jit_LoadStore.cpp
+			PowerPC/Jit64/Jit_LoadStoreFloating.cpp
+			PowerPC/Jit64/Jit_LoadStorePaired.cpp
+			PowerPC/Jit64/Jit_Paired.cpp
+			PowerPC/Jit64/JitRegCache.cpp
+			PowerPC/Jit64/Jit_SystemRegisters.cpp
+			PowerPC/Jit64Common/Jit64AsmCommon.cpp
+			PowerPC/JitCommon/JitBackpatch.cpp
+			PowerPC/JitCommon/Jit_Util.cpp
+			PowerPC/JitCommon/TrampolineCache.cpp)
 elseif(_M_ARM_64)
-  target_sources(core PRIVATE
-    PowerPC/JitArm64/Jit.cpp
-    PowerPC/JitArm64/Jit.h
-    PowerPC/JitArm64/JitAsm.cpp
-    PowerPC/JitArm64/JitArm64Cache.cpp
-    PowerPC/JitArm64/JitArm64_BackPatch.cpp
-    PowerPC/JitArm64/JitArm64_Branch.cpp
-    PowerPC/JitArm64/JitArm64_FloatingPoint.cpp
-    PowerPC/JitArm64/JitArm64_Integer.cpp
-    PowerPC/JitArm64/JitArm64_LoadStore.cpp
-    PowerPC/JitArm64/JitArm64_LoadStoreFloating.cpp
-    PowerPC/JitArm64/JitArm64_LoadStorePaired.cpp
-    PowerPC/JitArm64/JitArm64_Paired.cpp
-    PowerPC/JitArm64/JitArm64_RegCache.cpp
-    PowerPC/JitArm64/JitArm64_RegCache.h
-    PowerPC/JitArm64/JitArm64_SystemRegisters.cpp
-    PowerPC/JitArm64/Jit_Util.cpp
-    PowerPC/JitArm64/Jit_Util.h
-    PowerPC/JitArm64/JitArm64_Tables.cpp
-    PowerPC/JitArmCommon/BackPatch.h
-  )
+	set(SRCS ${SRCS}
+	         PowerPC/JitArm64/Jit.cpp
+	         PowerPC/JitArm64/JitAsm.cpp
+	         PowerPC/JitArm64/JitArm64Cache.cpp
+	         PowerPC/JitArm64/JitArm64_RegCache.cpp
+	         PowerPC/JitArm64/JitArm64_BackPatch.cpp
+	         PowerPC/JitArm64/JitArm64_Branch.cpp
+	         PowerPC/JitArm64/JitArm64_FloatingPoint.cpp
+	         PowerPC/JitArm64/JitArm64_Integer.cpp
+	         PowerPC/JitArm64/JitArm64_LoadStore.cpp
+	         PowerPC/JitArm64/JitArm64_LoadStoreFloating.cpp
+	         PowerPC/JitArm64/JitArm64_Paired.cpp
+	         PowerPC/JitArm64/JitArm64_LoadStorePaired.cpp
+	         PowerPC/JitArm64/JitArm64_SystemRegisters.cpp
+	         PowerPC/JitArm64/Jit_Util.cpp
+	         PowerPC/JitArm64/JitArm64_Tables.cpp)
 endif()
 
-target_link_libraries(core
-PUBLIC
-  audiocommon
-  common
-  cubeb
-  discio
-  enet
-  expr
-  inputcommon
-  ${MBEDTLS_LIBRARIES}
-  pugixml
-  RangeSet::RangeSet
-  sfml-network
-  sfml-system
-  videonull
-  videoogl
-  videosoftware
-
-PRIVATE
-  FatFs
-  fmt::fmt
-  ${LZO}
-  ZLIB::ZLIB
-)
-
-if ((DEFINED CMAKE_ANDROID_ARCH_ABI AND CMAKE_ANDROID_ARCH_ABI MATCHES "x86|x86_64") OR
-    (NOT DEFINED CMAKE_ANDROID_ARCH_ABI AND _M_X86))
-  target_link_libraries(core PRIVATE bdisasm)
-endif()
-
-if (APPLE)
-  target_link_libraries(core
-  PRIVATE
-    ${CORESERV_LIBRARY}
-    ${IOB_LIBRARY}
-    ${IOK_LIBRARY}
-    resolv
-  )
-elseif (ANDROID)
-  target_link_libraries(core
-  PRIVATE
-    androidcommon
-  )
-endif()
+set(LIBS
+	audiocommon
+	bdisasm
+	common
+	discio
+	enet
+	inputcommon
+	${LZO}
+	sfml-network
+	sfml-system
+	videoogl
+	videosoftware
+	z
+	)
 
 if(LIBUSB_FOUND)
-  # Using shared LibUSB
-  target_link_libraries(core PUBLIC ${LIBUSB_LIBRARIES})
-  target_sources(core PRIVATE
-    IOS/USB/LibusbDevice.cpp
-    IOS/USB/LibusbDevice.h
-    IOS/USB/Bluetooth/BTReal.cpp
-    IOS/USB/Bluetooth/BTReal.h
-  )
-endif()
+	# Using shared LibUSB
+	set(LIBS	${LIBS}	${LIBUSB_LIBRARIES})
+	set(SRCS	${SRCS}	IPC_HLE/WII_IPC_HLE_Device_hid.cpp)
+endif(LIBUSB_FOUND)
 
-if(ENABLE_VULKAN)
-  target_link_libraries(core PUBLIC videovulkan)
-endif()
-
-if(APPLE)
-  target_link_libraries(core PUBLIC videometal)
-endif()
-
-if(USE_MGBA)
-  target_sources(core PRIVATE
-    HW/GBACore.cpp
-    HW/GBACore.h
-    HW/SI/SI_DeviceGBAEmu.cpp
-    HW/SI/SI_DeviceGBAEmu.h
-  )
-  target_link_libraries(core PUBLIC mGBA::mgba)
-  target_compile_definitions(core PUBLIC -DHAS_LIBMGBA)
-endif()
+set(LIBS ${LIBS} ${MBEDTLS_LIBRARIES})
 
 if(WIN32)
-  target_sources(core PRIVATE
-    HW/EXI/BBA/TAP_Win32.cpp
-    HW/EXI/BBA/TAP_Win32.h
-    HW/EXI/BBA/XLINK_KAI_BBA.cpp
-    HW/EXI/BBA/BuiltIn.cpp
-    HW/EXI/BBA/BuiltIn.h
-    HW/WiimoteReal/IOWin.cpp
-    HW/WiimoteReal/IOWin.h
-  )
-  target_link_libraries(core PUBLIC
-    videod3d
-    videod3d12
-    setupapi.lib
-    iphlpapi.lib
-  )
-  target_compile_definitions(core PRIVATE "-D_WINSOCK_DEPRECATED_NO_WARNINGS")
+	set(SRCS ${SRCS} HW/BBA-TAP/TAP_Win32.cpp HW/WiimoteReal/IOWin.cpp)
 elseif(APPLE)
-  target_sources(core PRIVATE
-    HW/EXI/BBA/TAP_Apple.cpp
-    HW/EXI/BBA/TAPServer_Apple.cpp
-    HW/EXI/BBA/XLINK_KAI_BBA.cpp
-    HW/EXI/BBA/BuiltIn.cpp
-    HW/EXI/BBA/BuiltIn.h
-  )
-  target_link_libraries(core PUBLIC ${IOB_LIBRARY})
+	set(SRCS ${SRCS} HW/BBA-TAP/TAP_Apple.cpp HW/WiimoteReal/IOdarwin.mm)
+	set(LIBS ${LIBS}
+		${IOB_LIBRARY})
 elseif(UNIX)
-  target_sources(core PRIVATE
-    HW/EXI/BBA/TAP_Unix.cpp
-    HW/EXI/BBA/XLINK_KAI_BBA.cpp
-    HW/EXI/BBA/BuiltIn.cpp
-    HW/EXI/BBA/BuiltIn.h
-  )
-  if(ANDROID)
-    target_sources(core PRIVATE
-      HW/WiimoteReal/IOAndroid.cpp
-      HW/WiimoteReal/IOAndroid.h
-    )
-  endif()
+	set(SRCS ${SRCS} HW/BBA-TAP/TAP_Unix.cpp)
+	if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND BLUEZ_FOUND)
+		set(SRCS ${SRCS} HW/WiimoteReal/IONix.cpp)
+		set(LIBS ${LIBS} bluetooth)
+	elseif(ANDROID)
+		set(SRCS ${SRCS} HW/WiimoteReal/IOAndroid.cpp)
+	else()
+		set(SRCS ${SRCS} HW/WiimoteReal/IODummy.cpp)
+	endif()
 endif()
 
-# Bluez doesn't support all the communication modes on FreeBSD, so only using it on Linux
-if(CMAKE_SYSTEM_NAME MATCHES "Linux")
-  option(ENABLE_BLUEZ "Enables bluetooth support" ON)
-  if(ENABLE_BLUEZ)
-    find_package(BlueZ)
-    if(BlueZ_FOUND)
-      message(STATUS "BlueZ found, enabling bluetooth support")
-      target_sources(core PRIVATE
-        HW/WiimoteReal/IOLinux.cpp
-        HW/WiimoteReal/IOLinux.h
-      )
-      target_link_libraries(core PUBLIC BlueZ::BlueZ)
-      target_compile_definitions(core PRIVATE -DHAVE_BLUEZ=1)
-    else()
-      message(STATUS "BlueZ NOT found, disabling bluetooth support")
-    endif()
-  else()
-    message(STATUS "BlueZ explicitly disabled, disabling bluetooth support")
-  endif()
-endif()
+if(PORTAUDIO_FOUND)
+	set(LIBS ${LIBS} portaudio)
+endif(PORTAUDIO_FOUND)
 
-if(TARGET Hidapi::Hidapi)
-  target_sources(core PRIVATE
-    HW/WiimoteReal/IOhidapi.cpp
-    HW/WiimoteReal/IOhidapi.h
-  )
-  target_link_libraries(core PUBLIC Hidapi::Hidapi)
-  target_compile_definitions(core PRIVATE -DHAVE_HIDAPI=1)
-endif()
+if(OPROFILE_FOUND)
+	set(LIBS ${LIBS} ${OPROFILE_LIBRARIES})
+endif(OPROFILE_FOUND)
+
+if(GDBSTUB)
+	set(SRCS ${SRCS} PowerPC/GDBStub.cpp)
+endif(GDBSTUB)
 
 if(UNIX)
-  target_sources(core PRIVATE
-    MemoryWatcher.cpp
-    MemoryWatcher.h
-  )
-endif()
+	set(SRCS ${SRCS} MemoryWatcher.cpp)
+endif(UNIX)
 
-if(MSVC)
-  # Add precompiled header
-  target_link_libraries(core PRIVATE use_pch)
-endif()
+add_dolphin_library(core "${SRCS}" "${LIBS}")

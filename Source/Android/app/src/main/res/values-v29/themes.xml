@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <style name="Theme.V29.Dolphin" parent="Theme.Dolphin">
-        <item name="android:enforceStatusBarContrast">false</item>
-        <item name="android:enforceNavigationBarContrast">false</item>
-    </style>
-
-    <style name="Theme.Dolphin.Main" parent="Theme.V29.Dolphin" />
-</resources>

@@ -1,115 +1,74 @@
 // Copyright 2008 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
-
-#include "VideoCommon/VideoState.h"
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #include <cstring>
 
 #include "Common/ChunkFile.h"
-#include "Core/System.h"
-#include "VideoCommon/BPMemory.h"
-#include "VideoCommon/BPStructs.h"
 #include "VideoCommon/BoundingBox.h"
-#include "VideoCommon/CPMemory.h"
+#include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
+#include "VideoCommon/CPMemory.h"
 #include "VideoCommon/Fifo.h"
-#include "VideoCommon/FrameDumper.h"
-#include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
-#include "VideoCommon/Present.h"
-#include "VideoCommon/TMEM.h"
-#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureDecoder.h"
-#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
-#include "VideoCommon/Widescreen.h"
+#include "VideoCommon/VideoState.h"
 #include "VideoCommon/XFMemory.h"
 
-void VideoCommon_DoState(PointerWrap& p)
+void VideoCommon_DoState(PointerWrap &p)
 {
-  bool software = false;
-  p.Do(software);
+	// BP Memory
+	p.Do(bpmem);
+	p.DoMarker("BP Memory");
 
-  if (p.IsReadMode() && software == true)
-  {
-    // change mode to abort load of incompatible save state.
-    p.SetVerifyMode();
-  }
+	// CP Memory
+	DoCPState(p);
 
-  // BP Memory
-  p.Do(bpmem);
-  p.DoMarker("BP Memory");
+	// XF Memory
+	p.Do(xfmem);
+	p.DoMarker("XF Memory");
 
-  // CP Memory
-  // We don't save g_preprocess_cp_state separately because the GPU should be
-  // synced around state save/load.
-  p.Do(g_main_cp_state);
-  p.DoMarker("CP Memory");
-  if (p.IsReadMode())
-    CopyPreprocessCPStateFromMain();
+	// Texture decoder
+	p.DoArray(texMem);
+	p.DoMarker("texMem");
 
-  // XF Memory
-  p.Do(xfmem);
-  p.DoMarker("XF Memory");
+	// FIFO
+	Fifo::DoState(p);
+	p.DoMarker("Fifo");
 
-  // Texture decoder
-  p.DoArray(texMem);
-  p.DoMarker("texMem");
+	CommandProcessor::DoState(p);
+	p.DoMarker("CommandProcessor");
 
-  // TMEM
-  TMEM::DoState(p);
-  p.DoMarker("TMEM");
+	PixelEngine::DoState(p);
+	p.DoMarker("PixelEngine");
 
-  // FIFO
-  auto& system = Core::System::GetInstance();
-  system.GetFifo().DoState(p);
-  p.DoMarker("Fifo");
+	// the old way of replaying current bpmem as writes to push side effects to pixel shader manager doesn't really work.
+	PixelShaderManager::DoState(p);
+	p.DoMarker("PixelShaderManager");
 
-  auto& command_processor = system.GetCommandProcessor();
-  command_processor.DoState(p);
-  p.DoMarker("CommandProcessor");
+	VertexShaderManager::DoState(p);
+	p.DoMarker("VertexShaderManager");
 
-  system.GetPixelEngine().DoState(p);
-  p.DoMarker("PixelEngine");
+	GeometryShaderManager::DoState(p);
+	p.DoMarker("GeometryShaderManager");
 
-  // the old way of replaying current bpmem as writes to push side effects to pixel shader manager
-  // doesn't really work.
-  system.GetPixelShaderManager().DoState(p);
-  p.DoMarker("PixelShaderManager");
+	VertexManagerBase::DoState(p);
+	p.DoMarker("VertexManager");
 
-  system.GetVertexShaderManager().DoState(p);
-  p.DoMarker("VertexShaderManager");
+	BoundingBox::DoState(p);
+	p.DoMarker("BoundingBox");
 
-  system.GetGeometryShaderManager().DoState(p);
-  p.DoMarker("GeometryShaderManager");
 
-  g_vertex_manager->DoState(p);
-  p.DoMarker("VertexManager");
+	// TODO: search for more data that should be saved and add it here
+}
 
-  g_framebuffer_manager->DoState(p);
-  p.DoMarker("FramebufferManager");
-
-  g_texture_cache->DoState(p);
-  p.DoMarker("TextureCache");
-
-  g_presenter->DoState(p);
-  g_frame_dumper->DoState(p);
-  p.DoMarker("Presenter");
-
-  g_bounding_box->DoState(p);
-  p.DoMarker("Bounding Box");
-
-  g_widescreen->DoState(p);
-  p.DoMarker("Widescreen");
-
-  // Refresh state.
-  if (p.IsReadMode())
-  {
-    // Inform backend of new state from registers.
-    BPReload();
-    VertexLoaderManager::MarkAllDirty();
-  }
+void VideoCommon_Init()
+{
+	memset(&g_main_cp_state, 0, sizeof(g_main_cp_state));
+	memset(&g_preprocess_cp_state, 0, sizeof(g_preprocess_cp_state));
+	memset(texMem, 0, TMEM_SIZE);
 }

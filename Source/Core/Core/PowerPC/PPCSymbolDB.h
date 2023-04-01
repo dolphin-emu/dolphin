@@ -1,5 +1,6 @@
 // Copyright 2009 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #pragma once
 
@@ -12,39 +13,33 @@
 
 #include "Core/Debugger/PPCDebugInterface.h"
 
-namespace Core
-{
-class CPUThreadGuard;
-}
-
 // This has functionality overlapping Debugger_Symbolmap. Should merge that stuff in here later.
-class PPCSymbolDB : public Common::SymbolDB
+class PPCSymbolDB : public SymbolDB
 {
-public:
-  PPCSymbolDB();
-  ~PPCSymbolDB() override;
-
-  Common::Symbol* AddFunction(const Core::CPUThreadGuard& guard, u32 start_addr) override;
-  void AddKnownSymbol(const Core::CPUThreadGuard& guard, u32 startAddr, u32 size,
-                      const std::string& name,
-                      Common::Symbol::Type type = Common::Symbol::Type::Function);
-
-  Common::Symbol* GetSymbolFromAddr(u32 addr) override;
-
-  std::string GetDescription(u32 addr);
-
-  void FillInCallers();
-
-  bool LoadMap(const Core::CPUThreadGuard& guard, const std::string& filename, bool bad = false);
-  bool SaveSymbolMap(const std::string& filename) const;
-  bool SaveCodeMap(const Core::CPUThreadGuard& guard, const std::string& filename) const;
-
-  void PrintCalls(u32 funcAddr) const;
-  void PrintCallers(u32 funcAddr) const;
-  void LogFunctionCall(u32 addr);
-
 private:
-  Common::DebugInterface* debugger;
+	DebugInterface* debugger;
+
+public:
+	typedef void (*functionGetterCallback)(Symbol *f);
+
+	PPCSymbolDB();
+	~PPCSymbolDB();
+
+	Symbol *AddFunction(u32 startAddr) override;
+	void AddKnownSymbol(u32 startAddr, u32 size, const std::string& name, int type = Symbol::SYMBOL_FUNCTION);
+
+	Symbol *GetSymbolFromAddr(u32 addr) override;
+
+	const std::string GetDescription(u32 addr);
+
+	void FillInCallers();
+
+	bool LoadMap(const std::string& filename, bool bad = false);
+	bool SaveMap(const std::string& filename, bool WithCodes = false) const;
+
+	void PrintCalls(u32 funcAddr) const;
+	void PrintCallers(u32 funcAddr) const;
+	void LogFunctionCall(u32 addr);
 };
 
 extern PPCSymbolDB g_symbolDB;

@@ -1,78 +1,69 @@
 // Copyright 2010 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
-
-#include "Core/HW/GCPad.h"
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #include <cstring>
 
 #include "Common/Common.h"
+#include "Common/CommonTypes.h"
+#include "Core/HW/GCPad.h"
 #include "Core/HW/GCPadEmu.h"
-#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCPadStatus.h"
 #include "InputCommon/InputConfig.h"
 
 namespace Pad
 {
+
 static InputConfig s_config("GCPadNew", _trans("Pad"), "GCPad");
 InputConfig* GetConfig()
 {
-  return &s_config;
+	return &s_config;
 }
 
 void Shutdown()
 {
-  s_config.UnregisterHotplugCallback();
+	s_config.ClearControllers();
 
-  s_config.ClearControllers();
+	g_controller_interface.Shutdown();
 }
 
-void Initialize()
+void Initialize(void* const hwnd)
 {
-  if (s_config.ControllersNeedToBeCreated())
-  {
-    for (unsigned int i = 0; i < 4; ++i)
-      s_config.CreateController<GCPad>(i);
-  }
+	if (s_config.ControllersNeedToBeCreated())
+	{
+		for (unsigned int i = 0; i < 4; ++i)
+			s_config.CreateController<GCPad>(i);
+	}
 
-  s_config.RegisterHotplugCallback();
+	g_controller_interface.Initialize(hwnd);
 
-  // Load the saved controller config
-  s_config.LoadConfig(InputConfig::InputClass::GC);
+	// Load the saved controller config
+	s_config.LoadConfig(true);
 }
 
 void LoadConfig()
 {
-  s_config.LoadConfig(InputConfig::InputClass::GC);
+	s_config.LoadConfig(true);
 }
 
-bool IsInitialized()
+
+void GetStatus(u8 pad_num, GCPadStatus* pad_status)
 {
-  return !s_config.ControllersNeedToBeCreated();
+	memset(pad_status, 0, sizeof(*pad_status));
+	pad_status->err = PAD_ERR_NONE;
+
+	// Get input
+	static_cast<GCPad*>(s_config.GetController(pad_num))->GetInput(pad_status);
 }
 
-GCPadStatus GetStatus(int pad_num)
+void Rumble(const u8 pad_num, const ControlState strength)
 {
-  return static_cast<GCPad*>(s_config.GetController(pad_num))->GetInput();
+	static_cast<GCPad*>(s_config.GetController(pad_num))->SetOutput(strength);
 }
 
-ControllerEmu::ControlGroup* GetGroup(int pad_num, PadGroup group)
+bool GetMicButton(const u8 pad_num)
 {
-  return static_cast<GCPad*>(s_config.GetController(pad_num))->GetGroup(group);
+	return static_cast<GCPad*>(s_config.GetController(pad_num))->GetMicButton();
 }
 
-void Rumble(const int pad_num, const ControlState strength)
-{
-  static_cast<GCPad*>(s_config.GetController(pad_num))->SetOutput(strength);
 }
-
-void ResetRumble(const int pad_num)
-{
-  static_cast<GCPad*>(s_config.GetController(pad_num))->SetOutput(0.0);
-}
-
-bool GetMicButton(const int pad_num)
-{
-  return static_cast<GCPad*>(s_config.GetController(pad_num))->GetMicButton();
-}
-}  // namespace Pad

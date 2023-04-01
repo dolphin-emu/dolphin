@@ -246,6 +246,10 @@
 			RelativePath=".\sbuild.sh"
 			>
 		</File>
+		<File
+			RelativePath=".\Stubs.cpp"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

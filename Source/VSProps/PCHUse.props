@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="PropertySheets">
-    <Import Project="Base.Macros.props" Condition="'$(BaseMacrosImported)'==''" />
     <Import Project="PCHCommon.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
@@ -12,7 +11,7 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ProjectReference Include="$(SourceDir)PCH\pch.vcxproj">
+    <ProjectReference Include="$(SolutionDir)PCH/pch.vcxproj">
       <Project>{76563A7F-1011-4EAD-B667-7BB18D09568E}</Project>
       <Private>false</Private>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>

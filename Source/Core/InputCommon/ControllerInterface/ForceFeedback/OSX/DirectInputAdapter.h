@@ -1,5 +1,6 @@
 // Copyright 2014 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 /*
  * The OS X Force Feedback API is very similar to the DirectInput API,
@@ -13,184 +14,210 @@
 
 #include <atomic>
 
-typedef LONG* LPLONG;  // Missing type for ForceFeedback.h
+typedef LONG* LPLONG; // Missing type for ForceFeedback.h
 #include <CoreFoundation/CoreFoundation.h>
 #include <ForceFeedback/ForceFeedback.h>
-#include "Common/CommonTypes.h"    // for LONG
-#include "DirectInputConstants.h"  // Not stricty necessary
+#include "DirectInputConstants.h" // Not stricty necessary
+#include "Common/CommonTypes.h" // for LONG
 
-namespace ciface::ForceFeedback
+namespace ciface
 {
+namespace ForceFeedback
+{
+
+
 // Prototypes
 class IUnknownImpl;
 class FFEffectAdapter;
 class FFDeviceAdapter;
 
 // Structs
-typedef FFCAPABILITIES DICAPABILITIES;
-typedef FFCONDITION DICONDITION;
-typedef FFCONSTANTFORCE DICONSTANTFORCE;
-typedef FFCUSTOMFORCE DICUSTOMFORCE;
-typedef FFEFFECT DIEFFECT;
-typedef FFEFFESCAPE DIEFFESCAPE;
-typedef FFENVELOPE DIENVELOPE;
-typedef FFPERIODIC DIPERIODIC;
-typedef FFRAMPFORCE DIRAMPFORCE;
+typedef FFCAPABILITIES              DICAPABILITIES;
+typedef FFCONDITION                 DICONDITION;
+typedef FFCONSTANTFORCE             DICONSTANTFORCE;
+typedef FFCUSTOMFORCE               DICUSTOMFORCE;
+typedef FFEFFECT                    DIEFFECT;
+typedef FFEFFESCAPE                 DIEFFESCAPE;
+typedef FFENVELOPE                  DIENVELOPE;
+typedef FFPERIODIC                  DIPERIODIC;
+typedef FFRAMPFORCE                 DIRAMPFORCE;
 
 // Other types
-typedef CFUUIDRef GUID;
-typedef FFDeviceAdapter* FFDeviceAdapterReference;
-typedef FFEffectAdapter* FFEffectAdapterReference;
-typedef FFDeviceAdapterReference LPDIRECTINPUTDEVICE8;
-typedef FFEffectAdapterReference LPDIRECTINPUTEFFECT;
+typedef CFUUIDRef                   GUID;
+typedef FFDeviceAdapter*            FFDeviceAdapterReference;
+typedef FFEffectAdapter*            FFEffectAdapterReference;
+typedef FFDeviceAdapterReference    LPDIRECTINPUTDEVICE8;
+typedef FFEffectAdapterReference    LPDIRECTINPUTEFFECT;
 
 // Property structures
 #define DIPH_DEVICE 0
 
-typedef struct DIPROPHEADER
-{
-  DWORD dwSize;
-  DWORD dwHeaderSize;
-  DWORD dwObj;
-  DWORD dwHow;
+typedef struct DIPROPHEADER {
+	DWORD dwSize;
+	DWORD dwHeaderSize;
+	DWORD dwObj;
+	DWORD dwHow;
 } DIPROPHEADER, *LPDIPROPHEADER;
 
-typedef struct DIPROPDWORD
-{
-  DIPROPHEADER diph;
-  DWORD dwData;
+typedef struct DIPROPDWORD {
+	DIPROPHEADER diph;
+	DWORD dwData;
 } DIPROPDWORD, *LPDIPROPDWORD;
 
 class IUnknownImpl : public IUnknown
 {
 private:
-  std::atomic<ULONG> m_cRef;
+	std::atomic<ULONG> m_cRef;
 
 public:
-  IUnknownImpl() : m_cRef(1) {}
-  virtual ~IUnknownImpl() {}
-  HRESULT QueryInterface(REFIID iid, LPVOID* ppv)
-  {
-    *ppv = nullptr;
+	IUnknownImpl() : m_cRef(1) {}
+	virtual ~IUnknownImpl() {}
 
-    if (CFEqual(&iid, IUnknownUUID))
-      *ppv = this;
-    if (nullptr == *ppv)
-      return E_NOINTERFACE;
+	HRESULT QueryInterface(REFIID iid, LPVOID *ppv)
+	{
+		*ppv = nullptr;
 
-    ((IUnknown*)*ppv)->AddRef();
+		if (CFEqual(&iid, IUnknownUUID))
+			*ppv = this;
+		if (nullptr == *ppv)
+			return E_NOINTERFACE;
 
-    return S_OK;
-  }
+		((IUnknown*)*ppv)->AddRef();
 
-  ULONG AddRef() { return ++m_cRef; }
-  ULONG Release()
-  {
-    if (--m_cRef == 0)
-      delete this;
+		return S_OK;
+	}
 
-    return m_cRef;
-  }
+	ULONG AddRef()
+	{
+		return ++m_cRef;
+	}
+
+	ULONG Release()
+	{
+		if (--m_cRef == 0)
+			delete this;
+
+		return m_cRef;
+	}
 };
 
 class FFEffectAdapter : public IUnknownImpl
 {
 private:
-  // Only used for destruction
-  FFDeviceObjectReference m_device;
+	// Only used for destruction
+	FFDeviceObjectReference m_device;
 
 public:
-  FFEffectObjectReference m_effect;
+	FFEffectObjectReference m_effect;
 
-  FFEffectAdapter(FFDeviceObjectReference device, FFEffectObjectReference effect)
-      : m_device(device), m_effect(effect)
-  {
-  }
-  ~FFEffectAdapter() { FFDeviceReleaseEffect(m_device, m_effect); }
-  HRESULT Download() { return FFEffectDownload(m_effect); }
-  HRESULT Escape(FFEFFESCAPE* pFFEffectEscape) { return FFEffectEscape(m_effect, pFFEffectEscape); }
-  HRESULT GetEffectStatus(FFEffectStatusFlag* pFlags)
-  {
-    return FFEffectGetEffectStatus(m_effect, pFlags);
-  }
+	FFEffectAdapter(FFDeviceObjectReference device, FFEffectObjectReference effect) : m_device(device), m_effect(effect) {}
+	~FFEffectAdapter() { FFDeviceReleaseEffect(m_device, m_effect); }
 
-  HRESULT GetParameters(FFEFFECT* pFFEffect, FFEffectParameterFlag flags)
-  {
-    return FFEffectGetParameters(m_effect, pFFEffect, flags);
-  }
+	HRESULT Download()
+	{
+		return FFEffectDownload(m_effect);
+	}
 
-  HRESULT SetParameters(FFEFFECT* pFFEffect, FFEffectParameterFlag flags)
-  {
-    return FFEffectSetParameters(m_effect, pFFEffect, flags);
-  }
+	HRESULT Escape(FFEFFESCAPE *pFFEffectEscape)
+	{
+		return FFEffectEscape(m_effect, pFFEffectEscape);
+	}
 
-  HRESULT Start(UInt32 iterations, FFEffectStartFlag flags)
-  {
-    return FFEffectStart(m_effect, iterations, flags);
-  }
+	HRESULT GetEffectStatus(FFEffectStatusFlag *pFlags)
+	{
+		return FFEffectGetEffectStatus(m_effect, pFlags);
+	}
 
-  HRESULT Stop() { return FFEffectStop(m_effect); }
-  HRESULT Unload() { return FFEffectUnload(m_effect); }
+	HRESULT GetParameters(FFEFFECT *pFFEffect, FFEffectParameterFlag flags)
+	{
+		return FFEffectGetParameters(m_effect, pFFEffect, flags);
+	}
+
+	HRESULT SetParameters(FFEFFECT *pFFEffect, FFEffectParameterFlag flags)
+	{
+		return FFEffectSetParameters(m_effect, pFFEffect, flags);
+	}
+
+	HRESULT Start(UInt32 iterations, FFEffectStartFlag flags)
+	{
+		return FFEffectStart(m_effect, iterations, flags);
+	}
+
+	HRESULT Stop()
+	{
+		return FFEffectStop(m_effect);
+	}
+
+	HRESULT Unload()
+	{
+		return FFEffectUnload(m_effect);
+	}
 };
 
 class FFDeviceAdapter : public IUnknownImpl
 {
 public:
-  FFDeviceObjectReference m_device;
+	FFDeviceObjectReference m_device;
 
-  FFDeviceAdapter(FFDeviceObjectReference device) : m_device(device) {}
-  ~FFDeviceAdapter() { FFReleaseDevice(m_device); }
-  static HRESULT Create(io_service_t hidDevice, FFDeviceAdapterReference* pDeviceReference)
-  {
-    FFDeviceObjectReference ref;
+	FFDeviceAdapter(FFDeviceObjectReference device) : m_device(device) {}
+	~FFDeviceAdapter() { FFReleaseDevice(m_device); }
 
-    HRESULT hr = FFCreateDevice(hidDevice, &ref);
-    if (SUCCEEDED(hr))
-      *pDeviceReference = new FFDeviceAdapter(ref);
+	static HRESULT Create(io_service_t hidDevice, FFDeviceAdapterReference *pDeviceReference)
+	{
+		FFDeviceObjectReference ref;
 
-    return hr;
-  }
+		HRESULT hr = FFCreateDevice(hidDevice, &ref);
+		if (SUCCEEDED(hr))
+			*pDeviceReference = new FFDeviceAdapter(ref);
 
-  HRESULT CreateEffect(CFUUIDRef uuidRef, FFEFFECT* pEffectDefinition,
-                       FFEffectAdapterReference* pEffectReference, IUnknown* punkOuter)
-  {
-    FFEffectObjectReference ref;
+		return hr;
+	}
 
-    HRESULT hr = FFDeviceCreateEffect(m_device, uuidRef, pEffectDefinition, &ref);
-    if (SUCCEEDED(hr))
-      *pEffectReference = new FFEffectAdapter(m_device, ref);
+	HRESULT CreateEffect(CFUUIDRef uuidRef, FFEFFECT *pEffectDefinition, FFEffectAdapterReference *pEffectReference, IUnknown *punkOuter)
+	{
+		FFEffectObjectReference ref;
 
-    return hr;
-  }
+		HRESULT hr = FFDeviceCreateEffect(m_device, uuidRef, pEffectDefinition, &ref);
+		if (SUCCEEDED(hr))
+			*pEffectReference = new FFEffectAdapter(m_device, ref);
 
-  HRESULT Escape(FFEFFESCAPE* pFFEffectEscape) { return FFDeviceEscape(m_device, pFFEffectEscape); }
-  HRESULT GetForceFeedbackState(FFState* pFFState)
-  {
-    return FFDeviceGetForceFeedbackState(m_device, pFFState);
-  }
+		return hr;
+	}
 
-  HRESULT SendForceFeedbackCommand(FFCommandFlag flags)
-  {
-    return FFDeviceSendForceFeedbackCommand(m_device, flags);
-  }
+	HRESULT Escape(FFEFFESCAPE *pFFEffectEscape)
+	{
+		return FFDeviceEscape(m_device, pFFEffectEscape);
+	}
 
-  HRESULT SetCooperativeLevel(void* taskIdentifier, FFCooperativeLevelFlag flags)
-  {
-    return FFDeviceSetCooperativeLevel(m_device, taskIdentifier, flags);
-  }
+	HRESULT GetForceFeedbackState(FFState *pFFState)
+	{
+		return FFDeviceGetForceFeedbackState(m_device, pFFState);
+	}
 
-  HRESULT SetProperty(FFProperty property, const LPDIPROPHEADER pdiph)
-  {
-    // There are only two properties supported
-    if (property != DIPROP_FFGAIN && property != DIPROP_AUTOCENTER)
-      return DIERR_UNSUPPORTED;
+	HRESULT SendForceFeedbackCommand(FFCommandFlag flags)
+	{
+		return FFDeviceSendForceFeedbackCommand(m_device, flags);
+	}
 
-    // And they are both device properties
-    if (pdiph->dwHow != DIPH_DEVICE)
-      return DIERR_INVALIDPARAM;
+	HRESULT SetCooperativeLevel(void *taskIdentifier, FFCooperativeLevelFlag flags)
+	{
+		return FFDeviceSetCooperativeLevel(m_device, taskIdentifier, flags);
+	}
 
-    UInt32 value = ((const LPDIPROPDWORD)pdiph)->dwData;
-    return FFDeviceSetForceFeedbackProperty(m_device, property, &value);
-  }
+	HRESULT SetProperty(FFProperty property, const LPDIPROPHEADER pdiph)
+	{
+		// There are only two properties supported
+		if (property != DIPROP_FFGAIN && property != DIPROP_AUTOCENTER)
+			return DIERR_UNSUPPORTED;
+
+		// And they are both device properties
+		if (pdiph->dwHow != DIPH_DEVICE)
+			return DIERR_INVALIDPARAM;
+
+		UInt32 value = ((const LPDIPROPDWORD)pdiph)->dwData;
+		return FFDeviceSetForceFeedbackProperty(m_device, property, &value);
+	}
 };
-}  // namespace ciface::ForceFeedback
+
+}
+}

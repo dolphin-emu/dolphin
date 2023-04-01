@@ -1,4 +1,4 @@
 void main()
 {
-	SetOutput(Sample().gbra);
+	SetOutput(Sample());
 }

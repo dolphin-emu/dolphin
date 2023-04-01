@@ -1,24 +1,18 @@
 // Copyright 2009 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
-
-#include "Core/DSP/DSPHost.h"
-
-#include <string>
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #include "Common/CommonTypes.h"
 #include "Common/Hash.h"
 #include "Common/Logging/Log.h"
-#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
-#include "Core/DSP/DSPAnalyzer.h"
-#include "Core/DSP/DSPCodeUtil.h"
-#include "Core/DSP/DSPCore.h"
-#include "Core/DSP/Jit/x64/DSPEmitter.h"
-#include "Core/HW/DSP.h"
-#include "Core/HW/DSPLLE/DSPSymbols.h"
-#include "Core/HW/Memmap.h"
 #include "Core/Host.h"
-#include "Core/System.h"
+#include "Core/DSP/DSPAnalyzer.h"
+#include "Core/DSP/DSPCore.h"
+#include "Core/DSP/DSPHost.h"
+#include "Core/HW/DSP.h"
+#include "Core/HW/DSPLLE/DSPLLETools.h"
+#include "Core/HW/DSPLLE/DSPSymbols.h"
 #include "VideoCommon/OnScreenDisplay.h"
 
 // The user of the DSPCore library must supply a few functions so that the
@@ -26,85 +20,90 @@
 // core isn't used, for example in an asm/disasm tool, then most of these
 // can be stubbed out.
 
-namespace DSP::Host
+namespace DSPHost
 {
+
 u8 ReadHostMemory(u32 addr)
 {
-  return Core::System::GetInstance().GetDSP().ReadARAM(addr);
+	return DSP::ReadARAM(addr);
 }
 
 void WriteHostMemory(u8 value, u32 addr)
 {
-  Core::System::GetInstance().GetDSP().WriteARAM(value, addr);
+	DSP::WriteARAM(value, addr);
 }
 
-void DMAToDSP(u16* dst, u32 addr, u32 size)
+void OSD_AddMessage(const std::string& str, u32 ms)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
-  memory.CopyFromEmuSwapped(dst, addr, size);
-}
-
-void DMAFromDSP(const u16* src, u32 addr, u32 size)
-{
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
-  memory.CopyToEmuSwapped(addr, src, size);
-}
-
-void OSD_AddMessage(std::string str, u32 ms)
-{
-  OSD::AddMessage(std::move(str), ms);
+	OSD::AddMessage(str, ms);
 }
 
 bool OnThread()
 {
-  return Config::Get(Config::MAIN_DSP_THREAD);
+	return  SConfig::GetInstance().bDSPThread;
 }
 
 bool IsWiiHost()
 {
-  return SConfig::GetInstance().bWii;
+	return  SConfig::GetInstance().bWii;
 }
 
 void InterruptRequest()
 {
-  // Fire an interrupt on the PPC ASAP.
-  Core::System::GetInstance().GetDSP().GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+	// Fire an interrupt on the PPC ASAP.
+	DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 }
 
-void CodeLoaded(DSPCore& dsp, u32 addr, size_t size)
+void CodeLoaded(const u8 *ptr, int size)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
-  CodeLoaded(dsp, memory.GetPointer(addr), size);
-}
+	g_dsp.iram_crc = HashEctor(ptr, size);
 
-void CodeLoaded(DSPCore& dsp, const u8* ptr, size_t size)
-{
-  auto& state = dsp.DSPState();
-  const u32 iram_crc = Common::HashEctor(ptr, size);
-  state.SetIRAMCRC(iram_crc);
+#if defined(_DEBUG) || defined(DEBUGFAST)
+	DumpDSPCode(ptr, size, g_dsp.iram_crc);
+#endif
 
-  if (Config::Get(Config::MAIN_DUMP_UCODE))
-  {
-    DSP::DumpDSPCode(ptr, size, iram_crc);
-  }
+	DSPSymbols::Clear();
 
-  NOTICE_LOG_FMT(DSPLLE, "g_dsp.iram_crc: {:08x}", iram_crc);
+	// Auto load text file - if none just disassemble.
 
-  Symbols::Clear();
-  Symbols::AutoDisassembly(state, 0x0, 0x1000);
-  Symbols::AutoDisassembly(state, 0x8000, 0x9000);
+	NOTICE_LOG(DSPLLE, "g_dsp.iram_crc: %08x", g_dsp.iram_crc);
 
-  UpdateDebugger();
+	DSPSymbols::Clear();
+	bool success = false;
+	switch (g_dsp.iram_crc)
+	{
+		case 0x86840740: success = DSPSymbols::ReadAnnotatedAssembly("../../docs/DSP/DSP_UC_Zelda.txt"); break;
+		case 0x42f64ac4: success = DSPSymbols::ReadAnnotatedAssembly("../../docs/DSP/DSP_UC_Luigi.txt"); break;
+		case 0x07f88145: success = DSPSymbols::ReadAnnotatedAssembly("../../docs/DSP/DSP_UC_AX_07F88145.txt"); break;
+		case 0x3ad3b7ac: success = DSPSymbols::ReadAnnotatedAssembly("../../docs/DSP/DSP_UC_AX_3AD3B7AC.txt"); break;
+		case 0x3daf59b9: success = DSPSymbols::ReadAnnotatedAssembly("../../docs/DSP/DSP_UC_AX_3DAF59B9.txt"); break;
+		case 0x4e8a8b21: success = DSPSymbols::ReadAnnotatedAssembly("../../docs/DSP/DSP_UC_AX_4E8A8B21.txt"); break;
+		case 0xe2136399: success = DSPSymbols::ReadAnnotatedAssembly("../../docs/DSP/DSP_UC_AX_E2136399.txt"); break;
+		case 0xdd7e72d5: success = DSPSymbols::ReadAnnotatedAssembly("../../docs/DSP/DSP_UC_GBA.txt"); break;
+		case 0x347112BA: success = DSPSymbols::ReadAnnotatedAssembly("../../docs/DSP/DSP_UC_AXWii.txt"); break;
+		case 0xD643001F: success = DSPSymbols::ReadAnnotatedAssembly("../../docs/DSP/DSP_UC_SuperMarioGalaxy.txt"); break;
+		default: success = false; break;
+	}
 
-  dsp.ClearIRAM();
-  state.GetAnalyzer().Analyze(state);
+	if (!success)
+	{
+		DSPSymbols::AutoDisassembly(0x0, 0x1000);
+	}
+
+	// Always add the ROM.
+	DSPSymbols::AutoDisassembly(0x8000, 0x9000);
+
+	UpdateDebugger();
+
+	if (g_dsp_jit)
+		g_dsp_jit->ClearIRAM();
+
+	DSPAnalyzer::Analyze();
 }
 
 void UpdateDebugger()
 {
-  Host_RefreshDSPDebuggerWindow();
+	Host_RefreshDSPDebuggerWindow();
 }
-}  // namespace DSP::Host
+
+}

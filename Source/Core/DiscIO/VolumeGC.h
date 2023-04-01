@@ -1,108 +1,87 @@
 // Copyright 2008 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #pragma once
 
 #include <map>
 #include <memory>
-#include <optional>
 #include <string>
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/Lazy.h"
-#include "DiscIO/Filesystem.h"
+#include "DiscIO/Blob.h"
 #include "DiscIO/Volume.h"
-#include "DiscIO/VolumeDisc.h"
+
+// --- this volume type is used for GC disc images ---
 
 namespace DiscIO
 {
-class BlobReader;
-enum class BlobType;
-enum class Country;
-class FileSystem;
-enum class Language;
-enum class Region;
-enum class Platform;
 
-class VolumeGC : public VolumeDisc
+class CVolumeGC : public IVolume
 {
 public:
-  VolumeGC(std::unique_ptr<BlobReader> reader);
-  ~VolumeGC();
-  bool Read(u64 offset, u64 length, u8* buffer,
-            const Partition& partition = PARTITION_NONE) const override;
-  const FileSystem* GetFileSystem(const Partition& partition = PARTITION_NONE) const override;
-  std::string GetGameTDBID(const Partition& partition = PARTITION_NONE) const override;
-  std::map<Language, std::string> GetShortNames() const override;
-  std::map<Language, std::string> GetLongNames() const override;
-  std::map<Language, std::string> GetShortMakers() const override;
-  std::map<Language, std::string> GetLongMakers() const override;
-  std::map<Language, std::string> GetDescriptions() const override;
-  std::vector<u32> GetBanner(u32* width, u32* height) const override;
+	CVolumeGC(std::unique_ptr<IBlobReader> reader);
+	~CVolumeGC();
+	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt = false) const override;
+	std::string GetUniqueID() const override;
+	std::string GetMakerID() const override;
+	u16 GetRevision() const override;
+	std::string GetInternalName() const override;
+	std::map<ELanguage, std::string> GetNames(bool prefer_long) const override;
+	std::map<ELanguage, std::string> GetDescriptions() const override;
+	std::string GetCompany() const override;
+	std::vector<u32> GetBanner(int* width, int* height) const override;
+	u64 GetFSTSize() const override;
+	std::string GetApploaderDate() const override;
+	u8 GetDiscNumber() const override;
 
-  Platform GetVolumeType() const override;
-  bool IsDatelDisc() const override;
-  Region GetRegion() const override;
-  BlobType GetBlobType() const override;
-  u64 GetDataSize() const override;
-  DataSizeType GetDataSizeType() const override;
-  u64 GetRawSize() const override;
-  const BlobReader& GetBlobReader() const override;
-
-  std::array<u8, 20> GetSyncHash() const override;
+	EPlatform GetVolumeType() const override;
+	ECountry GetCountry() const override;
+	BlobType GetBlobType() const override;
+	u64 GetSize() const override;
+	u64 GetRawSize() const override;
 
 private:
-  static const u32 GC_BANNER_WIDTH = 96;
-  static const u32 GC_BANNER_HEIGHT = 32;
+	bool LoadBannerFile() const;
+	std::map<ELanguage, std::string> ReadMultiLanguageStrings(bool description, bool prefer_long = true) const;
 
-  struct GCBannerInformation
-  {
-    char short_name[32];    // Short game title shown in IPL menu
-    char short_maker[32];   // Short developer, publisher names shown in IPL menu
-    char long_name[64];     // Long game title shown in IPL game start screen
-    char long_maker[64];    // Long developer, publisher names shown in IPL game
-                            // start screen
-    char description[128];  // Game description shown in IPL game start screen in
-                            // two lines.
-  };
+	static const int GC_BANNER_WIDTH = 96;
+	static const int GC_BANNER_HEIGHT = 32;
 
-  struct GCBanner
-  {
-    u32 id;  // "BNR1" for NTSC, "BNR2" for PAL
-    u32 padding[7];
-    u16 image[GC_BANNER_WIDTH * GC_BANNER_HEIGHT];  // RGB5A3 96x32 image
-    GCBannerInformation information[6];             // information comes in six languages
-                                                    // (only one for BNR1 type)
-  };
+	// Banner Comment
+	struct GCBannerComment
+	{
+		char shortTitle[32]; // Short game title shown in IPL menu
+		char shortMaker[32]; // Short developer, publisher names shown in IPL menu
+		char longTitle[64];  // Long game title shown in IPL game start screen
+		char longMaker[64];  // Long developer, publisher names shown in IPL game start screen
+		char comment[128];   // Game description shown in IPL game start screen in two lines.
+	};
 
-  struct ConvertedGCBanner
-  {
-    ConvertedGCBanner();
-    ~ConvertedGCBanner();
+	struct GCBanner
+	{
+		u32 id; // "BNR1" for NTSC, "BNR2" for PAL
+		u32 padding[7];
+		u16 image[GC_BANNER_WIDTH * GC_BANNER_HEIGHT]; // RGB5A3 96x32 image
+		GCBannerComment comment[6]; // Comments in six languages (only one for BNR1 type)
+	};
 
-    std::map<Language, std::string> short_names;
-    std::map<Language, std::string> long_names;
-    std::map<Language, std::string> short_makers;
-    std::map<Language, std::string> long_makers;
-    std::map<Language, std::string> descriptions;
+	static const size_t BNR1_SIZE = sizeof(GCBanner) - sizeof(GCBannerComment) * 5;
+	static const size_t BNR2_SIZE = sizeof(GCBanner);
 
-    std::vector<u32> image_buffer;
-    u32 image_height = 0;
-    u32 image_width = 0;
-  };
+	enum BannerFileType
+	{
+		BANNER_NOT_LOADED,
+		BANNER_INVALID,
+		BANNER_BNR1,
+		BANNER_BNR2
+	};
 
-  ConvertedGCBanner LoadBannerFile() const;
-  ConvertedGCBanner ExtractBannerInformation(const GCBanner& banner_file, bool is_bnr1) const;
+	mutable BannerFileType m_banner_file_type = BANNER_NOT_LOADED;
+	mutable GCBanner m_banner_file;
 
-  static const size_t BNR1_SIZE = sizeof(GCBanner) - sizeof(GCBannerInformation) * 5;
-  static const size_t BNR2_SIZE = sizeof(GCBanner);
-
-  Common::Lazy<ConvertedGCBanner> m_converted_banner;
-
-  Common::Lazy<std::unique_ptr<FileSystem>> m_file_system;
-
-  std::unique_ptr<BlobReader> m_reader;
+	std::unique_ptr<IBlobReader> m_pReader;
 };
 
-}  // namespace DiscIO
+} // namespace

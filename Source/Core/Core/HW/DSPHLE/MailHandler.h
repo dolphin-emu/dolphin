@@ -1,48 +1,32 @@
 // Copyright 2008 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #pragma once
 
-#include <deque>
+#include <queue>
 #include <utility>
 
 #include "Common/CommonTypes.h"
 
 class PointerWrap;
 
-namespace DSP::HLE
-{
 class CMailHandler
 {
 public:
-  CMailHandler();
-  ~CMailHandler();
+	CMailHandler();
+	~CMailHandler();
 
-  // TODO: figure out correct timing for interrupts rather than defaulting to "immediately."
-  void PushMail(u32 mail, bool interrupt = false, int cycles_into_future = 0);
-  void SetHalted(bool halt);
-  void DoState(PointerWrap& p);
-  bool HasPending() const;
+	void PushMail(u32 _Mail, bool interrupt = false);
+	void Clear();
+	void Halt(bool _Halt);
+	void DoState(PointerWrap &p);
+	bool IsEmpty() const;
 
-  // Clear any pending mail from the current uCode.  This is called by DSPHLE::SetUCode and
-  // DSPHLE::SwapUCode. Since pending mail is an abstraction for DSPHLE and not something that
-  // actually exists on real hardware, HLE implementations do not need to call this directly.
-  // Note that this function does not reset m_last_mail, which will continue to read the same value
-  // until the new uCode sends mail.
-  void ClearPending();
-
-  u16 ReadDSPMailboxHigh();
-  u16 ReadDSPMailboxLow();
+	u16 ReadDSPMailboxHigh();
+	u16 ReadDSPMailboxLow();
 
 private:
-  // The actual DSP only has a single pair of mail registers, and doesn't keep track of pending
-  // mails. But for HLE, it's a lot easier to write all the mails that will be read ahead of time,
-  // and then give them to the CPU in the requested order.
-  std::deque<std::pair<u32, bool>> m_pending_mails;
-  // If no pending mail exists, the last mail that was read is returned,
-  // but with the top bit (0x80000000) cleared.
-  u32 m_last_mail = 0;
-  // When halted, the DSP itself is not running, but the last mail can be read.
-  bool m_halted = false;
+	// mail handler
+	std::queue<std::pair<u32, bool>> m_Mails;
 };
-}  // namespace DSP::HLE

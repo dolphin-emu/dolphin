@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="..\..\src\SFML\Network\Http.cpp" />
     <ClCompile Include="..\..\src\SFML\Network\IPAddress.cpp" />
@@ -34,7 +34,6 @@
     <ClInclude Include="..\..\include\SFML\System\Export.hpp" />
     <ClInclude Include="..\..\include\SFML\System\NonCopyable.hpp" />
     <ClInclude Include="..\..\include\SFML\System\String.hpp" />
-    <ClInclude Include="..\..\include\SFML\System\String.inl" />
     <ClInclude Include="..\..\include\SFML\System\Time.hpp" />
     <ClInclude Include="..\..\include\SFML\System\Utf.hpp" />
     <ClInclude Include="..\..\include\SFML\System\Utf.inl" />

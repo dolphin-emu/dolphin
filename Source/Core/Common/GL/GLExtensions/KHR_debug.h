@@ -1,6 +1,24 @@
 /*
 ** Copyright (c) 2013-2015 The Khronos Group Inc.
-** SPDX-License-Identifier: MIT
+**
+** Permission is hereby granted, free of charge, to any person obtaining a
+** copy of this software and/or associated documentation files (the
+** "Materials"), to deal in the Materials without restriction, including
+** without limitation the rights to use, copy, modify, merge, publish,
+** distribute, sublicense, and/or sell copies of the Materials, and to
+** permit persons to whom the Materials are furnished to do so, subject to
+** the following conditions:
+**
+** The above copyright notice and this permission notice shall be included
+** in all copies or substantial portions of the Materials.
+**
+** THE MATERIALS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+** EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+** MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+** IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+** CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+** TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+** MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 */
 
 #include "Common/GL/GLExtensions/gl_common.h"
@@ -46,31 +64,18 @@
 #define GL_DEBUG_SEVERITY_LOW 0x9148
 #define GL_DEBUG_OUTPUT 0x92E0
 
-typedef void(APIENTRYP GLDEBUGPROC)(GLenum source, GLenum type, GLuint id, GLenum severity,
-                                    GLsizei length, const GLchar* message, const void* userParam);
+typedef void (APIENTRYP GLDEBUGPROC)(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei length,const GLchar *message,const void *userParam);
 
-typedef void(APIENTRYP PFNDOLDEBUGMESSAGECALLBACKPROC)(GLDEBUGPROC callback,
-                                                       const GLvoid* userParam);
-typedef void(APIENTRYP PFNDOLDEBUGMESSAGECONTROLPROC)(GLenum source, GLenum type, GLenum severity,
-                                                      GLsizei count, const GLuint* ids,
-                                                      GLboolean enabled);
-typedef void(APIENTRYP PFNDOLDEBUGMESSAGEINSERTPROC)(GLenum source, GLenum type, GLuint id,
-                                                     GLenum severity, GLsizei length,
-                                                     const GLchar* buf);
-typedef GLuint(APIENTRYP PFNDOLGETDEBUGMESSAGELOGPROC)(GLuint count, GLsizei bufsize,
-                                                       GLenum* sources, GLenum* types, GLuint* ids,
-                                                       GLenum* severities, GLsizei* lengths,
-                                                       GLchar* messageLog);
-typedef void(APIENTRYP PFNDOLGETOBJECTLABELPROC)(GLenum identifier, GLuint name, GLsizei bufSize,
-                                                 GLsizei* length, GLchar* label);
-typedef void(APIENTRYP PFNDOLGETOBJECTPTRLABELPROC)(void* ptr, GLsizei bufSize, GLsizei* length,
-                                                    GLchar* label);
-typedef void(APIENTRYP PFNDOLOBJECTLABELPROC)(GLenum identifier, GLuint name, GLsizei length,
-                                              const GLchar* label);
-typedef void(APIENTRYP PFNDOLOBJECTPTRLABELPROC)(void* ptr, GLsizei length, const GLchar* label);
-typedef void(APIENTRYP PFNDOLPOPDEBUGGROUPPROC)(void);
-typedef void(APIENTRYP PFNDOLPUSHDEBUGGROUPPROC)(GLenum source, GLuint id, GLsizei length,
-                                                 const GLchar* message);
+typedef void (APIENTRYP PFNDOLDEBUGMESSAGECALLBACKPROC) (GLDEBUGPROC callback, const GLvoid *userParam);
+typedef void (APIENTRYP PFNDOLDEBUGMESSAGECONTROLPROC) (GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint* ids, GLboolean enabled);
+typedef void (APIENTRYP PFNDOLDEBUGMESSAGEINSERTPROC) (GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* buf);
+typedef GLuint (APIENTRYP PFNDOLGETDEBUGMESSAGELOGPROC) (GLuint count, GLsizei bufsize, GLenum* sources, GLenum* types, GLuint* ids, GLenum* severities, GLsizei* lengths, GLchar* messageLog);
+typedef void (APIENTRYP PFNDOLGETOBJECTLABELPROC) (GLenum identifier, GLuint name, GLsizei bufSize, GLsizei* length, GLchar *label);
+typedef void (APIENTRYP PFNDOLGETOBJECTPTRLABELPROC) (void* ptr, GLsizei bufSize, GLsizei* length, GLchar *label);
+typedef void (APIENTRYP PFNDOLOBJECTLABELPROC) (GLenum identifier, GLuint name, GLsizei length, const GLchar* label);
+typedef void (APIENTRYP PFNDOLOBJECTPTRLABELPROC) (void* ptr, GLsizei length, const GLchar* label);
+typedef void (APIENTRYP PFNDOLPOPDEBUGGROUPPROC) (void);
+typedef void (APIENTRYP PFNDOLPUSHDEBUGGROUPPROC) (GLenum source, GLuint id, GLsizei length, const GLchar * message);
 
 extern PFNDOLDEBUGMESSAGECALLBACKPROC dolDebugMessageCallback;
 extern PFNDOLDEBUGMESSAGECONTROLPROC dolDebugMessageControl;

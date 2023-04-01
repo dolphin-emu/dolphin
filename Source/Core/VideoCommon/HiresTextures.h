@@ -1,50 +1,58 @@
 // Copyright 2008 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #pragma once
 
 #include <memory>
-#include <set>
 #include <string>
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "VideoCommon/GraphicsModSystem/Runtime/CustomTextureData.h"
-#include "VideoCommon/TextureConfig.h"
-#include "VideoCommon/TextureInfo.h"
-
-enum class TextureFormat;
-
-std::set<std::string> GetTextureDirectoriesWithGameId(const std::string& root_directory,
-                                                      const std::string& game_id);
 
 class HiresTexture
 {
 public:
-  static void Init();
-  static void Update();
-  static void Clear();
-  static void Shutdown();
+	using SOILPointer = std::unique_ptr<u8, void(*)(unsigned char*)>;
 
-  static std::shared_ptr<HiresTexture> Search(const TextureInfo& texture_info);
+	static void Init();
+	static void Update();
+	static void Shutdown();
 
-  static std::string GenBaseName(const TextureInfo& texture_info, bool dump = false);
+	static std::shared_ptr<HiresTexture> Search(
+		const u8* texture, size_t texture_size,
+		const u8* tlut, size_t tlut_size,
+		u32 width, u32 height,
+		int format, bool has_mipmaps
+	);
 
-  ~HiresTexture();
+	static std::string GenBaseName(
+		const u8* texture, size_t texture_size,
+		const u8* tlut, size_t tlut_size,
+		u32 width, u32 height,
+		int format, bool has_mipmaps,
+		bool dump = false
+	);
 
-  AbstractTextureFormat GetFormat() const;
-  bool HasArbitraryMipmaps() const;
+	~HiresTexture();
 
-  VideoCommon::CustomTextureData& GetData() { return m_data; }
-  const VideoCommon::CustomTextureData& GetData() const { return m_data; }
+	struct Level
+	{
+		Level();
+
+		SOILPointer data;
+		size_t data_size = 0;
+		u32 width = 0;
+		u32 height = 0;
+	};
+	std::vector<Level> m_levels;
 
 private:
-  static std::unique_ptr<HiresTexture> Load(const std::string& base_filename, u32 width,
-                                            u32 height);
-  static void Prefetch();
+	static std::unique_ptr<HiresTexture> Load(const std::string& base_filename, u32 width, u32 height);
+	static void Prefetch();
 
-  HiresTexture() = default;
+	static std::string GetTextureDirectory(const std::string& game_id);
 
-  VideoCommon::CustomTextureData m_data;
-  bool m_has_arbitrary_mipmaps = false;
+	HiresTexture() {}
+
 };

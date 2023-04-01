@@ -1,7 +1,7 @@
 /*
  *  AES-NI support functions
  *
- *  Copyright The Mbed TLS Contributors
+ *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -15,6 +15,8 @@
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
+ *
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
 /*
@@ -22,15 +24,13 @@
  * [CLMUL-WP] http://software.intel.com/en-us/articles/intel-carry-less-multiplication-instruction-and-its-usage-for-computing-the-gcm-mode/
  */
 
-#include "common.h"
+#if !defined(MBEDTLS_CONFIG_FILE)
+#include "mbedtls/config.h"
+#else
+#include MBEDTLS_CONFIG_FILE
+#endif
 
 #if defined(MBEDTLS_AESNI_C)
-
-#if defined(__has_feature)
-#if __has_feature(memory_sanitizer)
-#warning "MBEDTLS_AESNI_C is known to cause spurious error reports with some memory sanitizers as they do not understand the assembly code."
-#endif
-#endif
 
 #include "mbedtls/aesni.h"
 
@@ -100,7 +100,7 @@ int mbedtls_aesni_crypt_ecb( mbedtls_aes_context *ctx,
     asm( "movdqu    (%3), %%xmm0    \n\t" // load input
          "movdqu    (%1), %%xmm1    \n\t" // load round key 0
          "pxor      %%xmm1, %%xmm0  \n\t" // round 0
-         "add       $16, %1         \n\t" // point to next round key
+         "addq      $16, %1         \n\t" // point to next round key
          "subl      $1, %0          \n\t" // normal rounds = nr - 1
          "test      %2, %2          \n\t" // mode?
          "jz        2f              \n\t" // 0 = decrypt
@@ -108,7 +108,7 @@ int mbedtls_aesni_crypt_ecb( mbedtls_aes_context *ctx,
          "1:                        \n\t" // encryption loop
          "movdqu    (%1), %%xmm1    \n\t" // load round key
          AESENC     xmm1_xmm0      "\n\t" // do round
-         "add       $16, %1         \n\t" // point to next round key
+         "addq      $16, %1         \n\t" // point to next round key
          "subl      $1, %0          \n\t" // loop
          "jnz       1b              \n\t"
          "movdqu    (%1), %%xmm1    \n\t" // load round key
@@ -118,7 +118,7 @@ int mbedtls_aesni_crypt_ecb( mbedtls_aes_context *ctx,
          "2:                        \n\t" // decryption loop
          "movdqu    (%1), %%xmm1    \n\t"
          AESDEC     xmm1_xmm0      "\n\t" // do round
-         "add       $16, %1         \n\t"
+         "addq      $16, %1         \n\t"
          "subl      $1, %0          \n\t"
          "jnz       2b              \n\t"
          "movdqu    (%1), %%xmm1    \n\t" // load round key

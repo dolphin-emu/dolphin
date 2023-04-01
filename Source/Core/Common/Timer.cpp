@@ -1,122 +1,275 @@
 // Copyright 2008 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
-#include "Common/Timer.h"
-
-#include <chrono>
+#include <cinttypes>
+#include <ctime>
+#include <string>
 
 #ifdef _WIN32
-#include <Windows.h>
-#include <ctime>
-#include <timeapi.h>
+#include <mmsystem.h>
+#include <sys/timeb.h>
+#include <windows.h>
 #else
 #include <sys/time.h>
 #endif
 
 #include "Common/CommonTypes.h"
+#include "Common/StringUtil.h"
+#include "Common/Timer.h"
 
 namespace Common
 {
-template <typename Clock, typename Duration>
-static typename Clock::rep time_now()
+
+u32 Timer::GetTimeMs()
 {
-  return std::chrono::time_point_cast<Duration>(Clock::now()).time_since_epoch().count();
+#ifdef _WIN32
+	return timeGetTime();
+#elif defined __APPLE__
+	struct timeval t;
+	(void)gettimeofday(&t, nullptr);
+	return ((u32)(t.tv_sec * 1000 + t.tv_usec / 1000));
+#else
+	struct timespec t;
+	(void)clock_gettime(CLOCK_MONOTONIC, &t);
+	return ((u32)(t.tv_sec * 1000 + t.tv_nsec / 1000000));
+#endif
 }
 
-template <typename Duration>
-static auto steady_time_now()
+#ifdef _WIN32
+double GetFreq()
 {
-  return time_now<std::chrono::steady_clock, Duration>();
+	LARGE_INTEGER freq;
+	QueryPerformanceFrequency(&freq);
+	return 1000000.0 / double(freq.QuadPart);
+}
+#endif
+
+u64 Timer::GetTimeUs()
+{
+#ifdef _WIN32
+	LARGE_INTEGER time;
+	static double freq = GetFreq();
+	QueryPerformanceCounter(&time);
+	return u64(double(time.QuadPart) * freq);
+#elif defined __APPLE__
+	struct timeval t;
+	(void)gettimeofday(&t, nullptr);
+	return ((u64)(t.tv_sec * 1000000 + t.tv_usec));
+#else
+	struct timespec t;
+	(void)clock_gettime(CLOCK_MONOTONIC, &t);
+	return ((u64)(t.tv_sec * 1000000 + t.tv_nsec / 1000));
+#endif
 }
 
-u64 Timer::NowUs()
+// --------------------------------------------
+// Initiate, Start, Stop, and Update the time
+// --------------------------------------------
+
+// Set initial values for the class
+Timer::Timer()
+	: m_LastTime(0), m_StartTime(0), m_Running(false)
 {
-  return steady_time_now<std::chrono::microseconds>();
+	Update();
 }
 
-u64 Timer::NowMs()
-{
-  return steady_time_now<std::chrono::milliseconds>();
-}
-
+// Write the starting time
 void Timer::Start()
 {
-  m_start_ms = NowMs();
-  m_end_ms = 0;
-  m_running = true;
+	m_StartTime = GetTimeMs();
+	m_Running = true;
 }
 
-void Timer::StartWithOffset(u64 offset)
-{
-  Start();
-  m_start_ms -= offset;
-}
-
+// Stop the timer
 void Timer::Stop()
 {
-  m_end_ms = NowMs();
-  m_running = false;
+	// Write the final time
+	m_LastTime = GetTimeMs();
+	m_Running = false;
 }
 
-u64 Timer::ElapsedMs() const
+// Update the last time variable
+void Timer::Update()
 {
-  const u64 end = m_running ? NowMs() : m_end_ms;
-  // Can handle up to 1 rollover event (underflow produces correct result)
-  // If Start() has never been called, will return 0
-  return end - m_start_ms;
+	m_LastTime = GetTimeMs();
+	//TODO(ector) - QPF
 }
 
-u64 Timer::GetLocalTimeSinceJan1970()
+// -------------------------------------
+// Get time difference and elapsed time
+// -------------------------------------
+
+// Get the number of milliseconds since the last Update()
+u64 Timer::GetTimeDifference()
 {
-  // TODO Would really, really like to use std::chrono here, but Windows did not support
-  // std::chrono::current_zone() until 19H1, and other compilers don't even provide support for
-  // timezone-related parts of chrono. Someday!
-  // see https://bugs.dolphin-emu.org/issues/13007#note-4
-  time_t sysTime, tzDiff, tzDST;
-  time(&sysTime);
-  tm* gmTime = localtime(&sysTime);
-
-  // Account for DST where needed
-  if (gmTime->tm_isdst == 1)
-    tzDST = 3600;
-  else
-    tzDST = 0;
-
-  // Lazy way to get local time in sec
-  gmTime = gmtime(&sysTime);
-  tzDiff = sysTime - mktime(gmTime);
-
-  return static_cast<u64>(sysTime + tzDiff + tzDST);
+	return GetTimeMs() - m_LastTime;
 }
 
+// Add the time difference since the last Update() to the starting time.
+// This is used to compensate for a paused game.
+void Timer::AddTimeDifference()
+{
+	m_StartTime += GetTimeDifference();
+}
+
+// Get the time elapsed since the Start()
+u64 Timer::GetTimeElapsed()
+{
+	// If we have not started yet, return 1 (because then I don't
+	// have to change the FPS calculation in CoreRerecording.cpp .
+	if (m_StartTime == 0) return 1;
+
+	// Return the final timer time if the timer is stopped
+	if (!m_Running) return (m_LastTime - m_StartTime);
+
+	return (GetTimeMs() - m_StartTime);
+}
+
+// Get the formatted time elapsed since the Start()
+std::string Timer::GetTimeElapsedFormatted() const
+{
+	// If we have not started yet, return zero
+	if (m_StartTime == 0)
+		return "00:00:00:000";
+
+	// The number of milliseconds since the start.
+	// Use a different value if the timer is stopped.
+	u64 Milliseconds;
+	if (m_Running)
+		Milliseconds = GetTimeMs() - m_StartTime;
+	else
+		Milliseconds = m_LastTime - m_StartTime;
+	// Seconds
+	u32 Seconds = (u32)(Milliseconds / 1000);
+	// Minutes
+	u32 Minutes = Seconds / 60;
+	// Hours
+	u32 Hours = Minutes / 60;
+
+	std::string TmpStr = StringFromFormat("%02i:%02i:%02i:%03" PRIu64,
+		Hours, Minutes % 60, Seconds % 60, Milliseconds % 1000);
+	return TmpStr;
+}
+
+// Get current time
 void Timer::IncreaseResolution()
 {
 #ifdef _WIN32
-  // Disable execution speed and timer resolution throttling process-wide.
-  // This mainly will keep Dolphin marked as high performance if it's in the background. The OS
-  // should make it high performance if it's in the foreground anyway (or for some specific
-  // threads e.g. audio).
-  // This is best-effort (i.e. the call may fail on older versions of Windows, where such throttling
-  // doesn't exist, anyway), and we don't bother reverting once set.
-  // This adjusts behavior on CPUs with "performance" and "efficiency" cores
-  PROCESS_POWER_THROTTLING_STATE PowerThrottling{};
-  PowerThrottling.Version = PROCESS_POWER_THROTTLING_CURRENT_VERSION;
-  PowerThrottling.ControlMask =
-      PROCESS_POWER_THROTTLING_EXECUTION_SPEED | PROCESS_POWER_THROTTLING_IGNORE_TIMER_RESOLUTION;
-  PowerThrottling.StateMask = 0;
-  SetProcessInformation(GetCurrentProcess(), ProcessPowerThrottling, &PowerThrottling,
-                        sizeof(PowerThrottling));
-
-  // Not actually sure how useful this is these days.. :')
-  timeBeginPeriod(1);
+	timeBeginPeriod(1);
 #endif
 }
 
 void Timer::RestoreResolution()
 {
 #ifdef _WIN32
-  timeEndPeriod(1);
+	timeEndPeriod(1);
 #endif
 }
 
-}  // Namespace Common
+// Get the number of seconds since January 1 1970
+u64 Timer::GetTimeSinceJan1970()
+{
+	time_t ltime;
+	time(&ltime);
+	return((u64)ltime);
+}
+
+u64 Timer::GetLocalTimeSinceJan1970()
+{
+	time_t sysTime, tzDiff, tzDST;
+	struct tm * gmTime;
+
+	time(&sysTime);
+
+	// Account for DST where needed
+	gmTime = localtime(&sysTime);
+	if (gmTime->tm_isdst == 1)
+		tzDST = 3600;
+	else
+		tzDST = 0;
+
+	// Lazy way to get local time in sec
+	gmTime = gmtime(&sysTime);
+	tzDiff = sysTime - mktime(gmTime);
+
+	return (u64)(sysTime + tzDiff + tzDST);
+}
+
+// Return the current time formatted as Minutes:Seconds:Milliseconds
+// in the form 00:00:000.
+std::string Timer::GetTimeFormatted()
+{
+	time_t sysTime;
+	time(&sysTime);
+
+	struct tm * gmTime = localtime(&sysTime);
+
+	char tmp[13];
+	strftime(tmp, 6, "%M:%S", gmTime);
+
+	// Now tack on the milliseconds
+#ifdef _WIN32
+	struct timeb tp;
+	(void)::ftime(&tp);
+	return StringFromFormat("%s:%03i", tmp, tp.millitm);
+#elif defined __APPLE__
+	struct timeval t;
+	(void)gettimeofday(&t, nullptr);
+	return StringFromFormat("%s:%03d", tmp, (int)(t.tv_usec / 1000));
+#else
+	struct timespec t;
+	(void)clock_gettime(CLOCK_MONOTONIC, &t);
+	return StringFromFormat("%s:%03d", tmp, (int)(t.tv_nsec / 1000000));
+#endif
+}
+
+// Returns a timestamp with decimals for precise time comparisons
+double Timer::GetDoubleTime()
+{
+#ifdef _WIN32
+	struct timeb tp;
+	(void)::ftime(&tp);
+#elif defined __APPLE__
+	struct timeval t;
+	(void)gettimeofday(&t, nullptr);
+#else
+	struct timespec t;
+	(void)clock_gettime(CLOCK_MONOTONIC, &t);
+#endif
+	// Get continuous timestamp
+	u64 TmpSeconds = Common::Timer::GetTimeSinceJan1970();
+
+	// Remove a few years. We only really want enough seconds to make
+	// sure that we are detecting actual actions, perhaps 60 seconds is
+	// enough really, but I leave a year of seconds anyway, in case the
+	// user's clock is incorrect or something like that.
+	TmpSeconds = TmpSeconds - DOUBLE_TIME_OFFSET;
+
+	// Make a smaller integer that fits in the double
+	u32 Seconds = (u32)TmpSeconds;
+#ifdef _WIN32
+	double ms = tp.millitm / 1000.0 / 1000.0;
+#elif defined __APPLE__
+	double ms = t.tv_usec / 1000000.0;
+#else
+	double ms = t.tv_nsec / 1000000000.0;
+#endif
+	double TmpTime = Seconds + ms;
+
+	return TmpTime;
+}
+
+// Formats a timestamp from GetDoubleTime() into a date and time string
+std::string Timer::GetDateTimeFormatted(double time)
+{
+	// revert adjustments from GetDoubleTime() to get a normal Unix timestamp again
+	time_t seconds = (time_t)time + DOUBLE_TIME_OFFSET;
+	tm* localTime = localtime(&seconds);
+
+	char tmp[32] = {};
+	strftime(tmp, sizeof(tmp), "%x %X", localTime);
+	return tmp;
+}
+
+} // Namespace Common

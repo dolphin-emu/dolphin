@@ -1,58 +1,27 @@
-plugins {
-    id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'
-}
-
-task copyProfile (type: Copy) {
-    description('Copies a generated baseline profile text file from managed device to src/main in the app module.')
-    from(project(':benchmark').file('build/outputs/managed_device_android_test_additional_output/pixel6Api31'))
-    into('src/main')
-    include('BaselineProfileGenerator_generate-baseline-prof.txt')
-    rename('BaselineProfileGenerator_generate-baseline-prof', 'baseline-prof')
-}
+apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 33
-    ndkVersion "25.2.9519653"
+    // Leanback support requires >22
+    compileSdkVersion 23
+    buildToolsVersion '23.0.2'
 
-    viewBinding.enabled = true
-
-    compileOptions {
-        // Flag to enable support for the new language APIs
-        coreLibraryDesugaringEnabled true
-
-        sourceCompatibility = "11"
-        targetCompatibility = "11"
-    }
-
-    kotlinOptions {
-        jvmTarget = '11'
-    }
-
-    lint {
+    lintOptions {
         // This is important as it will run lint but not abort on error
         // Lint has some overly obnoxious "errors" that should really be warnings
         abortOnError false
-
-        //Uncomment disable lines for test builds...
-        //disable 'MissingTranslation'
-        //disable 'ExtraTranslation'
     }
 
     defaultConfig {
         // TODO If this is ever modified, change application_id in strings.xml
         applicationId "org.dolphinemu.dolphinemu"
         minSdkVersion 21
-        targetSdkVersion 33
+        targetSdkVersion 21
 
-        versionCode(getBuildVersionCode())
+        // TODO This should be set to the Buildbot build number for release builds, and be "1" for debug builds.
+        versionCode 13
 
-        versionName "${getVersion()}"
-
-        buildConfigField "String", "GIT_HASH", "\"${getGitHash()}\""
-        buildConfigField "String", "BRANCH", "\"${getBranch()}\""
-
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        // TODO This should be set to the string currently provided by NativeLibrary.GetVersionString().
+        versionName "0.13"
     }
 
     signingConfigs {
@@ -70,17 +39,7 @@ android {
     buildTypes {
         // Signed by release key, allowing for upload to Play Store.
         release {
-            if (project.hasProperty('keystore')) {
-                signingConfig signingConfigs.release
-            }
-
-            minifyEnabled true
-            shrinkResources true
-            proguardFiles getDefaultProguardFile(
-                'proguard-android-optimize.txt'),
-                'proguard-rules.pro'
-
-            preBuild.dependsOn copyProfile
+            signingConfig signingConfigs.release
         }
 
         // Signed by debug key disallowing distribution on Play Store.
@@ -90,122 +49,213 @@ android {
             applicationIdSuffix ".debug"
             versionNameSuffix '-debug'
             jniDebuggable true
-        }
 
-        benchmark {
-            signingConfig signingConfigs.debug
-            matchingFallbacks = ['release']
-            debuggable false
-            applicationIdSuffix ".benchmark"
-            versionNameSuffix '-benchmark'
-            proguardFiles getDefaultProguardFile(
-                    'proguard-android-optimize.txt'),
-                    'proguard-rules.pro'
-            minifyEnabled true
-            shrinkResources true
+            tasks.withType(JavaCompile) {
+                compileTask -> compileTask.dependsOn(compileNative)
+            }
         }
     }
 
-    externalNativeBuild {
-        cmake {
-            path "../../../CMakeLists.txt"
+    // Define product flavors, which can be split into categories. Common examples
+    // of product flavors are paid vs. free, ARM vs. x86, etc.
+    productFlavors {
+        arm_64 {
+            dimension "abi"
+            ndk {
+                abiFilter "arm64-v8a"
+            }
         }
-    }
-    namespace 'org.dolphinemu.dolphinemu'
 
-    defaultConfig {
-        externalNativeBuild {
-            cmake {
-                arguments "-DANDROID_STL=c++_static", "-DCMAKE_BUILD_TYPE=RelWithDebInfo"
-                // , "-DENABLE_GENERIC=ON"
-                abiFilters "arm64-v8a", "x86_64" //, "armeabi-v7a", "x86"
-
-                // Remove the line below if you want to build the C++ unit tests
-                targets "main"
+        x86_64 {
+            dimension "abi"
+            ndk {
+                abiFilter "x86_64"
             }
         }
     }
 }
 
 dependencies {
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.2'
-
-    implementation 'androidx.core:core-ktx:1.9.0'
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'androidx.exifinterface:exifinterface:1.3.6'
-    implementation 'androidx.cardview:cardview:1.0.0'
-    implementation 'androidx.recyclerview:recyclerview:1.3.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel:2.6.0'
-    implementation 'androidx.fragment:fragment:1.5.5'
-    implementation 'androidx.slidingpanelayout:slidingpanelayout:1.2.0'
-    implementation 'com.google.android.material:material:1.8.0'
-    implementation 'androidx.core:core-splashscreen:1.0.0'
-    implementation 'androidx.preference:preference:1.2.0'
-    implementation 'androidx.profileinstaller:profileinstaller:1.2.2'
-
-    // Kotlin extensions for lifecycle components
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.0'
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.0'
-    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.6.0'
+    compile 'com.android.support:support-v13:23.1.1'
+    compile 'com.android.support:cardview-v7:23.1.1'
+    compile 'com.android.support:recyclerview-v7:23.1.1'
+    compile 'com.android.support:design:23.1.1'
 
     // Android TV UI libraries.
-    implementation 'androidx.leanback:leanback:1.0.0'
-    implementation 'androidx.tvprovider:tvprovider:1.0.0'
+    compile 'com.android.support:leanback-v17:23.1.1'
 
-    // For REST calls
-    implementation 'com.android.volley:volley:1.2.1'
+    // For showing the banner as a circle a-la Material Design Guidelines
+    compile 'de.hdodenhof:circleimageview:1.2.2'
 
-    // For loading game covers from disk and GameTDB
-    implementation 'io.coil-kt:coil:2.2.2'
+    // For loading huge screenshots from the disk.
+    compile 'com.squareup.picasso:picasso:2.5.2'
 
-    implementation 'com.nononsenseapps:filepicker:4.2.1'
+    // Allows FRP-style asynchronous operations in Android.
+    compile 'io.reactivex:rxandroid:1.1.0'
 }
 
-def getVersion() {
-    def versionNumber = '0.0'
+task setupCMake(type: Exec) {
+    // Check if a build properties file exists.
+    def propsFile = rootProject.file("build.properties")
 
-    try {
-        versionNumber = 'git describe --always --long'.execute([], project.rootDir).text
-                .trim()
-                .replaceAll(/(-0)?-[^-]+$/, "")
-    } catch (Exception e) {
-        logger.error(e + ': Cannot find git, defaulting to dummy version number')
+    // If it does, call CMake.
+    if (propsFile.canRead()) {
+        // Read the properties file's contents.
+        def buildProperties = new Properties()
+        buildProperties.load(new FileInputStream(propsFile))
+
+        String abi = getAbi()
+
+        mkdir('build/' + abi)
+        workingDir 'build/' + abi
+
+        executable getExecutablePath("cmake")
+
+        args "-DANDROID=true",
+                "-DANDROID_NATIVE_API_LEVEL=android-18",
+                "-DCMAKE_TOOLCHAIN_FILE=../../../android.toolchain.cmake",
+                "../../../../..",
+                "-DGIT_EXECUTABLE=" + getExecutablePath("git"),
+                "-DANDROID_NDK=" + getNdkPath(),
+                "-DANDROID_TOOLCHAIN_NAME=" + getToolchainName(),
+                "-DANDROID_ABI=" + abi
+    } else {
+        executable 'echo'
+        args 'No build.properties found; skipping CMake.'
     }
-
-    return versionNumber
 }
 
-def getBuildVersionCode() {
-    try {
-        def versionNumber = 'git rev-list --first-parent --count HEAD'.execute([], project.rootDir).text
-                .trim()
-        return Integer.valueOf(versionNumber)
-    } catch (Exception e) {
-        logger.error(e + ': Cannot find git, defaulting to dummy version number')
-    }
+task compileNative(type: Exec, dependsOn: 'setupCMake') {
+    // Check if a build properties file exists.
+    def propsFile = rootProject.file("build.properties")
 
-    return 1
+    // If it does, call make.
+    if (propsFile.canRead()) {
+        // Read the properties file's contents.
+        def buildProperties = new Properties()
+        buildProperties.load(new FileInputStream(propsFile))
+
+        String abi = getAbi()
+
+        workingDir 'build/' + abi
+
+        executable 'make'
+
+        if (buildProperties.makeArgs == null || buildProperties.makeArgs.isEmpty()) {
+            // TODO
+        } else {
+            args buildProperties.makeArgs
+        }
+    } else {
+        executable 'echo'
+        args 'No build.properties found; skipping native build.'
+    }
 }
 
-def getGitHash() {
-    try {
-        def gitHash = 'git rev-parse HEAD'.execute([], project.rootDir).text.trim()
-        return gitHash
-    } catch (Exception e) {
-        logger.error(e + ': Cannot find git, defaulting to dummy build hash')
+String getExecutablePath(String command) {
+    def propsFile = rootProject.file("build.properties")
+    def path = null
+
+    if (propsFile.canRead()) {
+        def buildProperties = new Properties()
+        buildProperties.load(new FileInputStream(propsFile))
+        println buildProperties
+        path = buildProperties[command + "Path"]
     }
 
-    return 0
+    if (path == null || path.isEmpty()) {
+        try {
+            def stdout = new ByteArrayOutputStream()
+
+            exec {
+                commandLine 'which', command
+                standardOutput = stdout
+            }
+
+            path = stdout.toString().trim()
+        } catch (ignored) {
+            project.logger.error("Gradle error: Couldn't find " + command + " executable.")
+        }
+    }
+
+    if (path != null) {
+        project.logger.quiet("Gradle: Found " + command + " executuable:" + path)
+    }
+
+    return path
 }
 
-def getBranch() {
-    try {
-        def branch = 'git rev-parse --abbrev-ref HEAD'.execute([], project.rootDir).text.trim()
-        return branch
-    } catch (Exception e) {
-        logger.error(e + ': Cannot find git, defaulting to dummy build hash')
+String getNdkPath() {
+    def propsFile = rootProject.file("build.properties")
+    def ndkPath = null
+
+    if (propsFile.canRead()) {
+        def buildProperties = new Properties()
+        buildProperties.load(new FileInputStream(propsFile))
+        ndkPath = buildProperties.ndkPath
     }
 
-    return 'master'
+    if (ndkPath == null || ndkPath.isEmpty()) {
+        try {
+            def stdout = new ByteArrayOutputStream()
+
+            exec {
+                // ndk-build.cmd is a file unique to the root directory of android-ndk-r10e.
+                commandLine 'locate', 'ndk-build.cmd'
+                standardOutput = stdout
+            }
+
+            def ndkCmdPath = stdout.toString()
+            ndkPath = ndkCmdPath.substring(0, ndkCmdPath.lastIndexOf('/'))
+        } catch (ignored) {
+            project.logger.error("Gradle error: Couldn't find NDK.")
+        }
+    }
+
+    if (ndkPath != null) {
+        project.logger.quiet("Gradle: Found Android NDK: " + ndkPath)
+    }
+    return ndkPath
+}
+
+String getAbi() {
+    String taskName = getGradle().startParameter.taskNames[0]
+    String abi;
+
+    if (taskName == null) {
+        return ""
+    }
+
+    project.logger.quiet("Gradle: Build = " + taskName)
+
+    if (taskName.contains("Arm_64")) {
+        abi = "arm64-v8a"
+    } else if (taskName.contains("Arm")) {
+        abi = "armeabi-v7a"
+    } else if (taskName.contains("X86_64")) {
+        abi = "x86_64"
+    }
+
+    project.logger.quiet("Gradle: ABI name: " + abi)
+    return abi;
+}
+
+String getToolchainName() {
+    String taskName = getGradle().startParameter.taskNames[0]
+    String toolchain;
+
+    if (taskName == null) {
+        return ""
+    }
+
+    if (taskName.contains("Arm_64")) {
+        toolchain = "aarch64-linux-android-4.9"
+    } else if (taskName.contains("Arm")) {
+        toolchain = "arm-linux-androideabi-4.9"
+    } else if (taskName.contains("X86_64")) {
+        toolchain = "x86_64-4.9"
+    }
+
+    project.logger.quiet("Gradle: ABI name: " + toolchain)
+    return toolchain;
 }

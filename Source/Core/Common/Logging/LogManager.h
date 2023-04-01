@@ -1,86 +1,162 @@
 // Copyright 2009 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #pragma once
 
 #include <array>
 #include <cstdarg>
-#include <map>
+#include <fstream>
+#include <mutex>
+#include <set>
 #include <string>
 
 #include "Common/BitSet.h"
-#include "Common/EnumMap.h"
+#include "Common/CommonTypes.h"
+#include "Common/NonCopyable.h"
 #include "Common/Logging/Log.h"
 
-namespace Common::Log
-{
+#define MAX_MSGLEN  1024
+
 // pure virtual interface
 class LogListener
 {
 public:
-  virtual ~LogListener() = default;
-  virtual void Log(LogLevel level, const char* msg) = 0;
+	virtual ~LogListener() {}
 
-  enum LISTENER
-  {
-    FILE_LISTENER = 0,
-    CONSOLE_LISTENER,
-    LOG_WINDOW_LISTENER,
+	virtual void Log(LogTypes::LOG_LEVELS, const char* msg) = 0;
 
-    NUMBER_OF_LISTENERS  // Must be last
-  };
+	enum LISTENER
+	{
+		FILE_LISTENER = 0,
+		CONSOLE_LISTENER,
+		LOG_WINDOW_LISTENER,
+
+		NUMBER_OF_LISTENERS // Must be last
+	};
 };
 
-class LogManager
+class FileLogListener : public LogListener
 {
 public:
-  static LogManager* GetInstance();
-  static void Init();
-  static void Shutdown();
+	FileLogListener(const std::string& filename);
 
-  void Log(LogLevel level, LogType type, const char* file, int line, const char* message);
-  void LogWithFullPath(LogLevel level, LogType type, const char* file, int line,
-                       const char* message);
+	void Log(LogTypes::LOG_LEVELS, const char* msg) override;
 
-  LogLevel GetLogLevel() const;
-  void SetLogLevel(LogLevel level);
+	bool IsValid() const { return m_logfile.good(); }
+	bool IsEnabled() const { return m_enable; }
+	void SetEnable(bool enable) { m_enable = enable; }
 
-  void SetEnable(LogType type, bool enable);
-  bool IsEnabled(LogType type, LogLevel level = LogLevel::LNOTICE) const;
-
-  std::map<std::string, std::string> GetLogTypes();
-
-  const char* GetShortName(LogType type) const;
-  const char* GetFullName(LogType type) const;
-
-  void RegisterListener(LogListener::LISTENER id, LogListener* listener);
-  void EnableListener(LogListener::LISTENER id, bool enable);
-  bool IsListenerEnabled(LogListener::LISTENER id) const;
-
-  void SaveSettings();
+	const char* GetName() const { return "file"; }
 
 private:
-  struct LogContainer
-  {
-    const char* m_short_name;
-    const char* m_full_name;
-    bool m_enable = false;
-  };
-
-  LogManager();
-  ~LogManager();
-
-  LogManager(const LogManager&) = delete;
-  LogManager& operator=(const LogManager&) = delete;
-  LogManager(LogManager&&) = delete;
-  LogManager& operator=(LogManager&&) = delete;
-
-  static std::string GetTimestamp();
-
-  LogLevel m_level;
-  EnumMap<LogContainer, LAST_LOG_TYPE> m_log{};
-  std::array<LogListener*, LogListener::NUMBER_OF_LISTENERS> m_listeners{};
-  BitSet32 m_listener_ids;
-  size_t m_path_cutoff_point = 0;
+	std::mutex m_log_lock;
+	std::ofstream m_logfile;
+	bool m_enable;
 };
-}  // namespace Common::Log
+
+class LogContainer
+{
+public:
+	LogContainer(const std::string& shortName, const std::string& fullName, bool enable = false);
+
+	std::string GetShortName() const { return m_shortName; }
+	std::string GetFullName() const { return m_fullName; }
+
+	void AddListener(LogListener::LISTENER id) { m_listener_ids[id] = 1; }
+	void RemoveListener(LogListener::LISTENER id) { m_listener_ids[id] = 0; }
+
+	void Trigger(LogTypes::LOG_LEVELS, const char* msg);
+
+	bool IsEnabled() const { return m_enable; }
+	void SetEnable(bool enable) { m_enable = enable; }
+
+	LogTypes::LOG_LEVELS GetLevel() const { return m_level; }
+
+	void SetLevel(LogTypes::LOG_LEVELS level) { m_level = level; }
+
+	bool HasListeners() const { return bool(m_listener_ids); }
+
+	typedef class BitSet32::Iterator iterator;
+	iterator begin() const { return m_listener_ids.begin(); }
+	iterator end() const { return m_listener_ids.end(); }
+
+private:
+	std::string m_fullName;
+	std::string m_shortName;
+	bool m_enable;
+	LogTypes::LOG_LEVELS m_level;
+	BitSet32 m_listener_ids;
+};
+
+class ConsoleListener;
+
+class LogManager : NonCopyable
+{
+private:
+	LogContainer* m_Log[LogTypes::NUMBER_OF_LOGS];
+	static LogManager* m_logManager;  // Singleton. Ugh.
+	std::array<LogListener*, LogListener::NUMBER_OF_LISTENERS> m_listeners;
+
+	LogManager();
+	~LogManager();
+public:
+
+	static u32 GetMaxLevel() { return MAX_LOGLEVEL; }
+
+	void Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
+			 const char* file, int line, const char* fmt, va_list args);
+
+	void SetLogLevel(LogTypes::LOG_TYPE type, LogTypes::LOG_LEVELS level)
+	{
+		m_Log[type]->SetLevel(level);
+	}
+
+	void SetEnable(LogTypes::LOG_TYPE type, bool enable)
+	{
+		m_Log[type]->SetEnable(enable);
+	}
+
+	bool IsEnabled(LogTypes::LOG_TYPE type, LogTypes::LOG_LEVELS level = LogTypes::LNOTICE) const
+	{
+		return m_Log[type]->IsEnabled() && m_Log[type]->GetLevel() >= level;
+	}
+
+	std::string GetShortName(LogTypes::LOG_TYPE type) const
+	{
+		return m_Log[type]->GetShortName();
+	}
+
+	std::string GetFullName(LogTypes::LOG_TYPE type) const
+	{
+		return m_Log[type]->GetFullName();
+	}
+
+	void RegisterListener(LogListener::LISTENER id, LogListener* listener)
+	{
+		m_listeners[id] = listener;
+	}
+
+	void AddListener(LogTypes::LOG_TYPE type, LogListener::LISTENER id)
+	{
+		m_Log[type]->AddListener(id);
+	}
+
+	void RemoveListener(LogTypes::LOG_TYPE type, LogListener::LISTENER id)
+	{
+		m_Log[type]->RemoveListener(id);
+	}
+
+	static LogManager* GetInstance()
+	{
+		return m_logManager;
+	}
+
+	static void SetInstance(LogManager* logManager)
+	{
+		m_logManager = logManager;
+	}
+
+	static void Init();
+	static void Shutdown();
+};

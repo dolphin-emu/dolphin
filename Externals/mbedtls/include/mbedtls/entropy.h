@@ -2,9 +2,8 @@
  * \file entropy.h
  *
  * \brief Entropy accumulator implementation
- */
-/*
- *  Copyright The Mbed TLS Contributors
+ *
+ *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -18,12 +17,14 @@
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
+ *
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 #ifndef MBEDTLS_ENTROPY_H
 #define MBEDTLS_ENTROPY_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
+#include "config.h"
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
@@ -31,33 +32,28 @@
 #include <stddef.h>
 
 #if defined(MBEDTLS_SHA512_C) && !defined(MBEDTLS_ENTROPY_FORCE_SHA256)
-#include "mbedtls/sha512.h"
+#include "sha512.h"
 #define MBEDTLS_ENTROPY_SHA512_ACCUMULATOR
 #else
 #if defined(MBEDTLS_SHA256_C)
 #define MBEDTLS_ENTROPY_SHA256_ACCUMULATOR
-#include "mbedtls/sha256.h"
+#include "sha256.h"
 #endif
 #endif
 
 #if defined(MBEDTLS_THREADING_C)
-#include "mbedtls/threading.h"
+#include "threading.h"
 #endif
 
 #if defined(MBEDTLS_HAVEGE_C)
-#include "mbedtls/havege.h"
+#include "havege.h"
 #endif
 
-/** Critical entropy source failure. */
-#define MBEDTLS_ERR_ENTROPY_SOURCE_FAILED                 -0x003C
-/** No more sources can be added. */
-#define MBEDTLS_ERR_ENTROPY_MAX_SOURCES                   -0x003E
-/** No sources have been added to poll. */
-#define MBEDTLS_ERR_ENTROPY_NO_SOURCES_DEFINED            -0x0040
-/** No strong sources have been added to poll. */
-#define MBEDTLS_ERR_ENTROPY_NO_STRONG_SOURCE              -0x003D
-/** Read/write error in file. */
-#define MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR                 -0x003F
+#define MBEDTLS_ERR_ENTROPY_SOURCE_FAILED                 -0x003C  /**< Critical entropy source failure. */
+#define MBEDTLS_ERR_ENTROPY_MAX_SOURCES                   -0x003E  /**< No more sources can be added. */
+#define MBEDTLS_ERR_ENTROPY_NO_SOURCES_DEFINED            -0x0040  /**< No sources have been added to poll. */
+#define MBEDTLS_ERR_ENTROPY_NO_STRONG_SOURCE              -0x003D  /**< No strong sources have been added to poll. */
+#define MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR                 -0x003F  /**< Read/write error in file. */
 
 /**
  * \name SECTION: Module settings
@@ -110,7 +106,7 @@ typedef int (*mbedtls_entropy_f_source_ptr)(void *data, unsigned char *output, s
 /**
  * \brief           Entropy source state
  */
-typedef struct mbedtls_entropy_source_state
+typedef struct
 {
     mbedtls_entropy_f_source_ptr    f_source;   /**< The entropy source callback */
     void *          p_source;   /**< The callback data pointer */
@@ -123,26 +119,20 @@ mbedtls_entropy_source_state;
 /**
  * \brief           Entropy context structure
  */
-typedef struct mbedtls_entropy_context
+typedef struct
 {
-    int accumulator_started; /* 0 after init.
-                              * 1 after the first update.
-                              * -1 after free. */
 #if defined(MBEDTLS_ENTROPY_SHA512_ACCUMULATOR)
     mbedtls_sha512_context  accumulator;
-#elif defined(MBEDTLS_ENTROPY_SHA256_ACCUMULATOR)
+#else
     mbedtls_sha256_context  accumulator;
 #endif
-    int             source_count; /* Number of entries used in source. */
+    int             source_count;
     mbedtls_entropy_source_state    source[MBEDTLS_ENTROPY_MAX_SOURCES];
 #if defined(MBEDTLS_HAVEGE_C)
     mbedtls_havege_state    havege_data;
 #endif
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_threading_mutex_t mutex;    /*!< mutex                  */
-#endif
-#if defined(MBEDTLS_ENTROPY_NV_SEED)
-    int initial_entropy_run;
 #endif
 }
 mbedtls_entropy_context;
@@ -171,7 +161,7 @@ void mbedtls_entropy_free( mbedtls_entropy_context *ctx );
  * \param threshold Minimum required from source before entropy is released
  *                  ( with mbedtls_entropy_func() ) (in bytes)
  * \param strong    MBEDTLS_ENTROPY_SOURCE_STRONG or
- *                  MBEDTLS_ENTROPY_SOURCE_WEAK.
+ *                  MBEDTSL_ENTROPY_SOURCE_WEAK.
  *                  At least one strong source needs to be added.
  *                  Weaker sources (such as the cycle counter) can be used as
  *                  a complement.
@@ -218,18 +208,6 @@ int mbedtls_entropy_func( void *data, unsigned char *output, size_t len );
 int mbedtls_entropy_update_manual( mbedtls_entropy_context *ctx,
                            const unsigned char *data, size_t len );
 
-#if defined(MBEDTLS_ENTROPY_NV_SEED)
-/**
- * \brief           Trigger an update of the seed file in NV by using the
- *                  current entropy pool.
- *
- * \param ctx       Entropy context
- *
- * \return          0 if successful
- */
-int mbedtls_entropy_update_nv_seed( mbedtls_entropy_context *ctx );
-#endif /* MBEDTLS_ENTROPY_NV_SEED */
-
 #if defined(MBEDTLS_FS_IO)
 /**
  * \brief               Write a seed file
@@ -262,29 +240,9 @@ int mbedtls_entropy_update_seed_file( mbedtls_entropy_context *ctx, const char *
 /**
  * \brief          Checkup routine
  *
- *                 This module self-test also calls the entropy self-test,
- *                 mbedtls_entropy_source_self_test();
- *
  * \return         0 if successful, or 1 if a test failed
  */
 int mbedtls_entropy_self_test( int verbose );
-
-#if defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
-/**
- * \brief          Checkup routine
- *
- *                 Verifies the integrity of the hardware entropy source
- *                 provided by the function 'mbedtls_hardware_poll()'.
- *
- *                 Note this is the only hardware entropy source that is known
- *                 at link time, and other entropy sources configured
- *                 dynamically at runtime by the function
- *                 mbedtls_entropy_add_source() will not be tested.
- *
- * \return         0 if successful, or 1 if a test failed
- */
-int mbedtls_entropy_source_self_test( int verbose );
-#endif /* MBEDTLS_ENTROPY_HARDWARE_ALT */
 #endif /* MBEDTLS_SELF_TEST */
 
 #ifdef __cplusplus

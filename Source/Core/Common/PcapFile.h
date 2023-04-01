@@ -1,5 +1,6 @@
 // Copyright 2014 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 // PCAP is a standard file format for network capture files. This also extends
 // to any capture of packetized intercommunication data. This file provides a
@@ -16,36 +17,29 @@
 #include <memory>
 
 #include "Common/CommonTypes.h"
-#include "Common/IOFile.h"
+#include "Common/FileUtil.h"
+#include "Common/NonCopyable.h"
 
-namespace Common
-{
-class PCAP final
+class PCAP final : public NonCopyable
 {
 public:
-  enum class LinkType : u32
-  {
-    Ethernet = 1,  // IEEE 802.3 Ethernet
-    User = 147,    // Reserved for internal use
-  };
+	// Takes ownership of the file object. Assumes the file object is already
+	// opened in write mode.
+	explicit PCAP(File::IOFile* fp) : m_fp(fp)
+	{
+		AddHeader();
+	}
 
-  // Takes ownership of the file object. Assumes the file object is already
-  // opened in write mode.
-  explicit PCAP(File::IOFile* fp, LinkType link_type = LinkType::User) : m_fp(fp)
-  {
-    AddHeader(static_cast<u32>(link_type));
-  }
-  template <typename T>
-  void AddPacket(const T& obj)
-  {
-    AddPacket(reinterpret_cast<const u8*>(&obj), sizeof(obj));
-  }
+	template <typename T>
+	void AddPacket(const T& obj)
+	{
+		AddPacket(reinterpret_cast<const u8*>(&obj), sizeof (obj));
+	}
 
-  void AddPacket(const u8* bytes, size_t size);
+	void AddPacket(const u8* bytes, size_t size);
 
 private:
-  void AddHeader(u32 link_type);
+	void AddHeader();
 
-  std::unique_ptr<File::IOFile> m_fp;
+	std::unique_ptr<File::IOFile> m_fp;
 };
-}  // namespace Common

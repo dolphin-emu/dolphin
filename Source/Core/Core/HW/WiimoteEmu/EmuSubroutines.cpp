@@ -1,609 +1,662 @@
 // Copyright 2010 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
-#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
-#include <cmath>
+/* HID reports access guide. */
+
+/* 0x10 - 0x1a   Output   EmuMain.cpp: HidOutputReport()
+       0x10 - 0x14: General
+	   0x15: Status report request from the Wii
+	   0x16 and 0x17: Write and read memory or registers
+       0x19 and 0x1a: General
+   0x20 - 0x22   Input    EmuMain.cpp: HidOutputReport() to the destination
+       0x15 leads to a 0x20 Input report
+       0x17 leads to a 0x21 Input report
+	   0x10 - 0x1a leads to a 0x22 Input report
+   0x30 - 0x3f   Input    This file: Update() */
+
 #include <fstream>
-#include <iterator>
+#include <queue>
+#include <string>
+#include <vector>
 
-#include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "Common/Swap.h"
+#include "Common/Logging/Log.h"
 #include "Core/Core.h"
-#include "Core/DolphinAnalytics.h"
-#include "Core/HW/Wiimote.h"
-#include "Core/HW/WiimoteCommon/WiimoteHid.h"
-#include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "Core/HW/WiimoteEmu/WiimoteHid.h"
+#include "Core/HW/WiimoteEmu/Attachment/Attachment.h"
+#include "Core/HW/WiimoteReal/WiimoteReal.h"
 
 namespace WiimoteEmu
 {
-using namespace WiimoteCommon;
 
-void Wiimote::HandleReportMode(const OutputReportMode& dr)
+void Wiimote::ReportMode(const wm_report_mode* const dr)
 {
-  if (!DataReportBuilder::IsValidMode(dr.mode))
-  {
-    // A real wiimote ignores the entire message if the mode is invalid.
-    WARN_LOG_FMT(WIIMOTE, "Game requested invalid report mode: {:#04x}", static_cast<u8>(dr.mode));
-    return;
-  }
+	//INFO_LOG(WIIMOTE, "Set data report mode");
+	//DEBUG_LOG(WIIMOTE, "  Rumble: %x", dr->rumble);
+	//DEBUG_LOG(WIIMOTE, "  Continuous: %x", dr->continuous);
+	//DEBUG_LOG(WIIMOTE, "  All The Time: %x", dr->all_the_time);
+	//DEBUG_LOG(WIIMOTE, "  Mode: 0x%02x", dr->mode);
 
-  // TODO: A real wiimote sends a report immediately.
-  // even on REPORT_CORE and continuous off when the buttons haven't changed.
-  // But.. it is sent after the ACK
+	//m_reporting_auto = dr->all_the_time;
+	m_reporting_auto = dr->continuous;	// this right?
+	m_reporting_mode = dr->mode;
+	//m_reporting_channel = _channelID;	// this is set in every Interrupt/Control Channel now
 
-  m_reporting_continuous = dr.continuous;
-  m_reporting_mode = dr.mode;
+	// reset IR camera
+	//memset(m_reg_ir, 0, sizeof(*m_reg_ir));  //ugly hack
 
-  if (dr.ack)
-    SendAck(OutputReportID::ReportMode, ErrorCode::Success);
+	if (dr->mode > 0x37)
+		PanicAlert("Wiimote: Unsupported Reporting mode.");
+	else if (dr->mode < WM_REPORT_CORE)
+		PanicAlert("Wiimote: Reporting mode < 0x30.");
 }
 
-// Tests that we have enough bytes for the report before we run the handler.
-template <typename T, typename H>
-void Wiimote::InvokeHandler(H&& handler, const WiimoteCommon::OutputReportGeneric& rpt, u32 size)
-{
-  if (size < sizeof(T))
-  {
-    ERROR_LOG_FMT(WIIMOTE, "InvokeHandler: report: {:#04x} invalid size: {}",
-                  static_cast<u8>(rpt.rpt_id), size);
-    return;
-  }
+/* Here we process the Output Reports that the Wii sends. Our response will be
+   an Input Report back to the Wii. Input and Output is from the Wii's
+   perspective, Output means data to the Wiimote (from the Wii), Input means
+   data from the Wiimote.
 
-  (this->*handler)(Common::BitCastPtr<T>(&rpt.data[0]));
+   The call browser:
+
+   1. Wiimote_InterruptChannel > InterruptChannel > HidOutputReport
+   2. Wiimote_ControlChannel > ControlChannel > HidOutputReport
+
+   The IR enable/disable and speaker enable/disable and mute/unmute values are
+		bit2: 0 = Disable (0x02), 1 = Enable (0x06)
+*/
+void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
+{
+	INFO_LOG(WIIMOTE, "HidOutputReport (page: %i, cid: 0x%02x, wm: 0x%02x)", m_index, m_reporting_channel, sr->wm);
+
+	// WiiBrew:
+	// In every single Output Report, bit 0 (0x01) of the first byte controls the Rumble feature.
+	m_rumble_on = sr->rumble;
+
+	switch (sr->wm)
+	{
+	case WM_RUMBLE : // 0x10
+		// this is handled above
+		return;	// no ack
+		break;
+
+	case WM_LEDS : // 0x11
+		//INFO_LOG(WIIMOTE, "Set LEDs: 0x%02x", sr->data[0]);
+		m_status.leds = sr->data[0] >> 4;
+		break;
+
+	case WM_REPORT_MODE :  // 0x12
+		ReportMode((wm_report_mode*)sr->data);
+		break;
+
+	case WM_IR_PIXEL_CLOCK : // 0x13
+		//INFO_LOG(WIIMOTE, "WM IR Clock: 0x%02x", sr->data[0]);
+		//m_ir_clock = sr->enable;
+		if (false == sr->ack)
+			return;
+		break;
+
+	case WM_SPEAKER_ENABLE : // 0x14
+		//ERROR_LOG(WIIMOTE, "WM Speaker Enable: %02x", sr->enable);
+		//PanicAlert( "WM Speaker Enable: %d", sr->data[0] );
+		m_status.speaker = sr->enable;
+		if (false == sr->ack)
+			return;
+		break;
+
+	case WM_REQUEST_STATUS : // 0x15
+		if (WIIMOTE_SRC_EMU & g_wiimote_sources[m_index])
+			RequestStatus((wm_request_status*)sr->data);
+		return;	// sends its own ack
+		break;
+
+	case WM_WRITE_DATA : // 0x16
+		WriteData((wm_write_data*)sr->data);
+		break;
+
+	case WM_READ_DATA : // 0x17
+		if (WIIMOTE_SRC_EMU & g_wiimote_sources[m_index])
+			ReadData((wm_read_data*)sr->data);
+		return;	// sends its own ack
+		break;
+
+	case WM_WRITE_SPEAKER_DATA : // 0x18
+		//wm_speaker_data *spkz = (wm_speaker_data*)sr->data;
+		//ERROR_LOG(WIIMOTE, "WM_WRITE_SPEAKER_DATA len:%x %s", spkz->length,
+		//	ArrayToString(spkz->data, spkz->length, 100, false).c_str());
+		if (WIIMOTE_SRC_EMU & g_wiimote_sources[m_index] && !m_speaker_mute)
+			Wiimote::SpeakerData((wm_speaker_data*) sr->data);
+		return;	// no ack
+		break;
+
+	case WM_SPEAKER_MUTE : // 0x19
+		//ERROR_LOG(WIIMOTE, "WM Speaker Mute: %02x", sr->enable);
+		//PanicAlert( "WM Speaker Mute: %d", sr->data[0] & 0x04 );
+		// testing
+		//if (sr->data[0] & 0x04)
+		//	memset(&m_channel_status, 0, sizeof(m_channel_status));
+		m_speaker_mute = sr->enable;
+		if (false == sr->ack)
+			return;
+		break;
+
+	case WM_IR_LOGIC: // 0x1a
+		// comment from old plugin:
+		// This enables or disables the IR lights, we update the global variable g_IR
+		// so that WmRequestStatus() knows about it
+		//INFO_LOG(WIIMOTE, "WM IR Enable: 0x%02x", sr->data[0]);
+		m_status.ir = sr->enable;
+		if (false == sr->ack)
+			return;
+		break;
+
+	default:
+		PanicAlert("HidOutputReport: Unknown channel 0x%02x", sr->wm);
+		return; // no ack
+		break;
+	}
+
+	// send ack
+	if (send_ack && WIIMOTE_SRC_EMU & g_wiimote_sources[m_index])
+		SendAck(sr->wm);
 }
 
-void Wiimote::EventLinked()
+/* This will generate the 0x22 acknowledgement for most Input reports.
+   It has the form of "a1 22 00 00 _reportID 00".
+   The first two bytes are the core buttons data,
+   00 00 means nothing is pressed.
+   The last byte is the success code 00. */
+void Wiimote::SendAck(u8 _reportID)
 {
-  Reset();
+	u8 data[6];
+
+	data[0] = 0xA1;
+	data[1] = WM_ACK_DATA;
+
+	wm_acknowledge* const ack = (wm_acknowledge*)(data + 2);
+
+	ack->buttons = m_status.buttons;
+	ack->reportID = _reportID;
+	ack->errorID = 0;
+
+	Core::Callback_WiimoteInterruptChannel(m_index, m_reporting_channel, data, sizeof(data));
 }
 
-void Wiimote::EventUnlinked()
+void Wiimote::HandleExtensionSwap()
 {
-  Reset();
+	// handle switch extension
+	if (m_extension->active_extension != m_extension->switch_extension)
+	{
+		// if an extension is currently connected and we want to switch to a different extension
+		if ((m_extension->active_extension > 0) && m_extension->switch_extension)
+			// detach extension first, wait til next Update() or RequestStatus() call to change to the new extension
+			m_extension->active_extension = 0;
+		else
+			// set the wanted extension
+			m_extension->active_extension = m_extension->switch_extension;
+
+		// reset register
+		((WiimoteEmu::Attachment*)m_extension->attachments[m_extension->active_extension].get())->Reset();
+	}
 }
 
-void Wiimote::InterruptDataOutput(const u8* data, u32 size)
+// old comment
+/* Here we produce a 0x20 status report to send to the Wii. We currently ignore
+   the status request rs and all its eventual instructions it may include (for
+   example turn off rumble or something else) and just send the status
+   report. */
+void Wiimote::RequestStatus(const wm_request_status* const rs)
 {
-  if (size == 0)
-  {
-    ERROR_LOG_FMT(WIIMOTE, "OutputData: zero sized data");
-    return;
-  }
+	HandleExtensionSwap();
 
-  const auto& rpt = *reinterpret_cast<const OutputReportGeneric*>(data);
-  const int rpt_size = size - OutputReportGeneric::HEADER_SIZE;
+	// update status struct
+	m_status.extension = (m_extension->active_extension || m_motion_plus_active) ? 1 : 0;
 
-  if (rpt_size == 0)
-  {
-    ERROR_LOG_FMT(WIIMOTE, "OutputData: zero sized report");
-    return;
-  }
+	// set up report
+	u8 data[8];
+	data[0] = 0xA1;
+	data[1] = WM_STATUS_REPORT;
 
-  // WiiBrew:
-  // In every single Output Report, bit 0 (0x01) of the first byte controls the Rumble feature.
-  InvokeHandler<OutputReportRumble>(&Wiimote::HandleReportRumble, rpt, rpt_size);
+	// status values
+	*(wm_status_report*)(data + 2) = m_status;
 
-  switch (rpt.rpt_id)
-  {
-  case OutputReportID::Rumble:
-    // This is handled above.
-    break;
-  case OutputReportID::LED:
-    InvokeHandler<OutputReportLeds>(&Wiimote::HandleReportLeds, rpt, rpt_size);
-    break;
-  case OutputReportID::ReportMode:
-    InvokeHandler<OutputReportMode>(&Wiimote::HandleReportMode, rpt, rpt_size);
-    break;
-  case OutputReportID::IRLogicEnable:
-    InvokeHandler<OutputReportEnableFeature>(&Wiimote::HandleIRLogicEnable, rpt, rpt_size);
-    break;
-  case OutputReportID::SpeakerEnable:
-    InvokeHandler<OutputReportEnableFeature>(&Wiimote::HandleSpeakerEnable, rpt, rpt_size);
-    break;
-  case OutputReportID::RequestStatus:
-    InvokeHandler<OutputReportRequestStatus>(&Wiimote::HandleRequestStatus, rpt, rpt_size);
-    break;
-  case OutputReportID::WriteData:
-    InvokeHandler<OutputReportWriteData>(&Wiimote::HandleWriteData, rpt, rpt_size);
-    break;
-  case OutputReportID::ReadData:
-    InvokeHandler<OutputReportReadData>(&Wiimote::HandleReadData, rpt, rpt_size);
-    break;
-  case OutputReportID::SpeakerData:
-    InvokeHandler<OutputReportSpeakerData>(&Wiimote::HandleSpeakerData, rpt, rpt_size);
-    break;
-  case OutputReportID::SpeakerMute:
-    InvokeHandler<OutputReportEnableFeature>(&Wiimote::HandleSpeakerMute, rpt, rpt_size);
-    break;
-  case OutputReportID::IRLogicEnable2:
-    InvokeHandler<OutputReportEnableFeature>(&Wiimote::HandleIRLogicEnable2, rpt, rpt_size);
-    break;
-  default:
-    PanicAlertFmt("HidOutputReport: Unknown report ID {:#04x}", static_cast<u8>(rpt.rpt_id));
-    break;
-  }
+	// hybrid Wiimote stuff
+	if (WIIMOTE_SRC_REAL & g_wiimote_sources[m_index] && (m_extension->switch_extension <= 0))
+	{
+		using namespace WiimoteReal;
+
+		std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
+
+		if (g_wiimotes[m_index])
+		{
+			wm_request_status rpt = {};
+			g_wiimotes[m_index]->QueueReport(WM_REQUEST_STATUS, &rpt, sizeof(rpt));
+		}
+
+		return;
+	}
+
+	// send report
+	Core::Callback_WiimoteInterruptChannel(m_index, m_reporting_channel, data, sizeof(data));
 }
 
-void Wiimote::SendAck(OutputReportID rpt_id, ErrorCode error_code)
+/* Write data to Wiimote and Extensions registers. */
+void Wiimote::WriteData(const wm_write_data* const wd)
 {
-  TypedInputData<InputReportAck> rpt(InputReportID::Ack);
-  auto& ack = rpt.payload;
+	u32 address = Common::swap24(wd->address);
 
-  ack.buttons = m_status.buttons;
-  ack.rpt_id = rpt_id;
-  ack.error_code = error_code;
+	// ignore the 0x010000 bit
+	address &= ~0x010000;
 
-  InterruptDataInputCallback(rpt.GetData(), rpt.GetSize());
+	if (wd->size > 16)
+	{
+		PanicAlert("WriteData: size is > 16 bytes");
+		return;
+	}
+
+	switch (wd->space)
+	{
+	case WM_SPACE_EEPROM :
+		{
+			// Write to EEPROM
+
+			if (address + wd->size > WIIMOTE_EEPROM_SIZE)
+			{
+				ERROR_LOG(WIIMOTE, "WriteData: address + size out of bounds!");
+				PanicAlert("WriteData: address + size out of bounds!");
+				return;
+			}
+			memcpy(m_eeprom + address, wd->data, wd->size);
+
+			// write mii data to file
+			// i need to improve this greatly
+			if (address >= 0x0FCA && address < 0x12C0)
+			{
+				// writing the whole mii block each write :/
+				std::ofstream file;
+				OpenFStream(file, File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/mii.bin", std::ios::binary | std::ios::out);
+				file.write((char*)m_eeprom + 0x0FCA, 0x02f0);
+				file.close();
+			}
+		}
+		break;
+
+	case WM_SPACE_REGS1 :
+	case WM_SPACE_REGS2 :
+		{
+			// Write to Control Register
+
+			// ignore second byte for extension area
+			if (0xA4 == (address >> 16))
+				address &= 0xFF00FF;
+
+			const u8 region_offset = (u8)address;
+			void *region_ptr = nullptr;
+			int region_size = 0;
+
+			switch (address >> 16)
+			{
+			// speaker
+			case 0xa2 :
+				region_ptr = &m_reg_speaker;
+				region_size = WIIMOTE_REG_SPEAKER_SIZE;
+				break;
+
+			// extension register
+			case 0xa4 :
+				region_ptr = m_motion_plus_active ? (void*)&m_reg_motion_plus : (void*)&m_reg_ext;
+				region_size = WIIMOTE_REG_EXT_SIZE;
+				break;
+
+			// motion plus
+			case 0xa6 :
+				if (false == m_motion_plus_active)
+				{
+					region_ptr = &m_reg_motion_plus;
+					region_size = WIIMOTE_REG_EXT_SIZE;
+				}
+				break;
+
+			// ir
+			case 0xB0 :
+				region_ptr = &m_reg_ir;
+				region_size = WIIMOTE_REG_IR_SIZE;
+
+				//if (5 == m_reg_ir->mode)
+				//	PanicAlert("IR Full Mode is Unsupported!");
+				break;
+			}
+
+			if (region_ptr && (region_offset + wd->size <= region_size))
+			{
+				memcpy((u8*)region_ptr + region_offset, wd->data, wd->size);
+			}
+			else
+				return;	// TODO: generate a writedata error reply
+
+			/* TODO?
+			if (region_ptr == &m_reg_speaker)
+			{
+				ERROR_LOG(WIIMOTE, "Write to speaker register %x %s", address,
+					ArrayToString(wd->data, wd->size, 100, false).c_str());
+			}
+			*/
+
+			if (&m_reg_ext == region_ptr)
+			{
+				// Run the key generation on all writes in the key area, it doesn't matter
+				// that we send it parts of a key, only the last full key will have an effect
+				if (address >= 0xa40040 && address <= 0xa4004c)
+					WiimoteGenerateKey(&m_ext_key, m_reg_ext.encryption_key);
+			}
+			else if (&m_reg_motion_plus == region_ptr)
+			{
+				// activate/deactivate motion plus
+				if (0x55 == m_reg_motion_plus.activated)
+				{
+					// maybe hacky
+					m_reg_motion_plus.activated = 0;
+					m_motion_plus_active ^= 1;
+
+					RequestStatus();
+				}
+			}
+		}
+		break;
+
+	default:
+		PanicAlert("WriteData: unimplemented parameters!");
+		break;
+	}
 }
 
-void Wiimote::HandleExtensionSwap(ExtensionNumber desired_extension_number,
-                                  bool desired_motion_plus)
+/* Read data from Wiimote and Extensions registers. */
+void Wiimote::ReadData(const wm_read_data* const rd)
 {
-  if (WIIMOTE_BALANCE_BOARD == m_index)
-  {
-    // Prevent M+ or anything else silly from being attached to a balance board.
-    // In the future if we support an emulated balance board we can force the BB "extension" here.
-    return;
-  }
+	u32 address = Common::swap24(rd->address);
+	u16 size = Common::swap16(rd->size);
 
-  // FYI: AttachExtension also connects devices to the i2c bus
+	// ignore the 0x010000 bit
+	address &= 0xFEFFFF;
 
-  if (m_is_motion_plus_attached && !desired_motion_plus)
-  {
-    INFO_LOG_FMT(WIIMOTE, "Detaching Motion Plus (Wiimote {} in slot {})", m_index,
-                 m_bt_device_index);
+	// hybrid Wiimote stuff
+	// relay the read data request to real-Wiimote
+	if (WIIMOTE_SRC_REAL & g_wiimote_sources[m_index] && ((0xA4 != (address >> 16)) || (m_extension->switch_extension <= 0)))
+	{
+		WiimoteReal::InterruptChannel(m_index, m_reporting_channel, ((u8*)rd) - 2, sizeof(wm_read_data) + 2); // hacky
 
-    // M+ is attached and it's not wanted, so remove it.
-    m_extension_port.AttachExtension(GetNoneExtension());
-    m_is_motion_plus_attached = false;
+		// don't want emu-Wiimote to send reply
+		return;
+	}
 
-    // Also remove extension (if any) from the M+'s ext port.
-    m_active_extension = ExtensionNumber::NONE;
-    m_motion_plus.GetExtPort().AttachExtension(GetNoneExtension());
+	ReadRequest rr;
+	u8 *const block = new u8[size];
 
-    // Don't do anything else this update cycle.
-    return;
-  }
+	switch (rd->space)
+	{
+	case WM_SPACE_EEPROM :
+		{
+			//PanicAlert("ReadData: reading from EEPROM: address: 0x%x size: 0x%x", address, size);
+			// Read from EEPROM
+			if (address + size >= WIIMOTE_EEPROM_FREE_SIZE)
+			{
+				if (address + size > WIIMOTE_EEPROM_SIZE)
+				{
+					PanicAlert("ReadData: address + size out of bounds");
+					delete [] block;
+					return;
+				}
+				// generate a read error
+				size = 0;
+			}
 
-  if (desired_motion_plus && !m_is_motion_plus_attached)
-  {
-    // M+ is wanted and it's not attached
+			// read mii data from file
+			// i need to improve this greatly
+			if (address >= 0x0FCA && address < 0x12C0)
+			{
+				// reading the whole mii block :/
+				std::ifstream file;
+				file.open((File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/mii.bin").c_str(), std::ios::binary | std::ios::in);
+				file.read((char*)m_eeprom + 0x0FCA, 0x02f0);
+				file.close();
+			}
 
-    if (GetActiveExtensionNumber() != ExtensionNumber::NONE)
-    {
-      // But an extension is attached. Remove it first.
-      // (handled below)
-      desired_extension_number = ExtensionNumber::NONE;
-    }
-    else
-    {
-      INFO_LOG_FMT(WIIMOTE, "Attaching Motion Plus (Wiimote {} in slot {})", m_index,
-                   m_bt_device_index);
+			// read memory to be sent to Wii
+			memcpy(block, m_eeprom + address, size);
+		}
+		break;
 
-      // No extension attached so attach M+.
-      m_is_motion_plus_attached = true;
-      m_extension_port.AttachExtension(&m_motion_plus);
-      m_motion_plus.Reset();
+	case WM_SPACE_REGS1 :
+	case WM_SPACE_REGS2 :
+		{
+			// Read from Control Register
 
-      // Also attach extension below if desired:
-    }
-  }
+			// ignore second byte for extension area
+			if (0xA4 == (address >> 16))
+				address &= 0xFF00FF;
 
-  if (GetActiveExtensionNumber() != desired_extension_number)
-  {
-    // A different extension is wanted (either by user or by the M+ logic above)
-    if (GetActiveExtensionNumber() != ExtensionNumber::NONE)
-    {
-      INFO_LOG_FMT(WIIMOTE, "Detaching Extension (Wiimote {} in slot {})", m_index,
-                   m_bt_device_index);
+			const u8 region_offset = (u8)address;
+			void *region_ptr = nullptr;
+			int region_size = 0;
 
-      // First we must detach the current extension.
-      // The next call will change to the new extension if needed.
-      m_active_extension = ExtensionNumber::NONE;
-    }
-    else
-    {
-      INFO_LOG_FMT(WIIMOTE, "Switching to Extension {} (Wiimote {} in slot {})",
-                   static_cast<u8>(desired_extension_number), m_index, m_bt_device_index);
+			switch (address >> 16)
+			{
+			// speaker
+			case 0xa2:
+				region_ptr = &m_reg_speaker;
+				region_size = WIIMOTE_REG_SPEAKER_SIZE;
+				break;
 
-      m_active_extension = desired_extension_number;
-    }
+			// extension
+			case 0xa4:
+				region_ptr = m_motion_plus_active ? (void*)&m_reg_motion_plus : (void*)&m_reg_ext;
+				region_size = WIIMOTE_REG_EXT_SIZE;
+				break;
 
-    if (m_is_motion_plus_attached)
-    {
-      // M+ is attached so attach to it.
-      m_motion_plus.GetExtPort().AttachExtension(GetActiveExtension());
-    }
-    else
-    {
-      // M+ is not attached so attach directly.
-      m_extension_port.AttachExtension(GetActiveExtension());
-    }
+			// motion plus
+			case 0xa6:
+				// reading from 0xa6 returns error when mplus is activated
+				if (false == m_motion_plus_active)
+				{
+					region_ptr = &m_reg_motion_plus;
+					region_size = WIIMOTE_REG_EXT_SIZE;
+				}
+				break;
 
-    GetActiveExtension()->Reset();
-  }
+			// ir
+			case 0xb0:
+				region_ptr = &m_reg_ir;
+				region_size = WIIMOTE_REG_IR_SIZE;
+				break;
+			}
+
+			if (region_ptr && (region_offset + size <= region_size))
+			{
+				memcpy(block, (u8*)region_ptr + region_offset, size);
+			}
+			else
+				size = 0;	// generate read error
+
+			if (&m_reg_ext == region_ptr)
+			{
+				// Encrypt data read from extension register
+				// Check if encrypted reads is on
+				if (0xaa == m_reg_ext.encryption)
+					WiimoteEncrypt(&m_ext_key, block, address & 0xffff, (u8)size);
+			}
+		}
+		break;
+
+	default :
+		PanicAlert("WmReadData: unimplemented parameters (size: %i, address: 0x%x)!", size, rd->space);
+		break;
+	}
+
+	// want the requested address, not the above modified one
+	rr.address = Common::swap24(rd->address);
+	rr.size = size;
+	//rr.channel = _channelID;
+	rr.position = 0;
+	rr.data = block;
+
+	// send up to 16 bytes
+	SendReadDataReply(rr);
+
+	// if there is more data to be sent, add it to the queue
+	if (rr.size)
+		m_read_requests.push( rr );
+	else
+		delete[] rr.data;
 }
 
-void Wiimote::HandleRequestStatus(const OutputReportRequestStatus&)
+// old comment
+/* Here we produce the actual 0x21 Input report that we send to the Wii. The
+   message is divided into 16 bytes pieces and sent piece by piece. There will
+   be five formatting bytes at the begging of all reports. A common format is
+   00 00 f0 00 20, the 00 00 means that no buttons are pressed, the f means 16
+   bytes in the message, the 0 means no error, the 00 20 means that the message
+   is at the 00 20 offest in the registry that was read.
+*/
+void Wiimote::SendReadDataReply(ReadRequest& _request)
 {
-  // FYI: buttons are updated in Update() for determinism
+	u8 data[23];
+	data[0] = 0xA1;
+	data[1] = WM_READ_DATA_REPLY;
 
-  // Update status struct
-  m_status.extension = m_extension_port.IsDeviceConnected();
-  m_status.SetEstimatedCharge(m_battery_setting.GetValue() / ciface::BATTERY_INPUT_MAX_VALUE);
+	wm_read_data_reply* const reply = (wm_read_data_reply*)(data + 2);
+	reply->buttons = m_status.buttons;
+	reply->address = Common::swap16(_request.address);
 
-  if (Core::WantsDeterminism())
-  {
-    // One less thing to break determinism:
-    m_status.SetEstimatedCharge(1.f);
-  }
+	// generate a read error
+	// Out of bounds. The real Wiimote generate an error for the first
+	// request to 0x1770 if we dont't replicate that the game will never
+	// read the calibration data at the beginning of Eeprom. I think this
+	// error is supposed to occur when we try to read above the freely
+	// usable space that ends at 0x16ff.
+	if (0 == _request.size)
+	{
+		reply->size = 0x0f;
+		reply->error = 0x08;
 
-  // Less than 0x20 triggers the low-battery flag:
-  m_status.battery_low = m_status.battery < 0x20;
+		memset(reply->data, 0, sizeof(reply->data));
+	}
+	else
+	{
+		// Limit the amt to 16 bytes
+		// AyuanX: the MTU is 640B though... what a waste!
+		const int amt = std::min( (unsigned int)16, _request.size );
 
-  TypedInputData<InputReportStatus> rpt(InputReportID::Status);
-  rpt.payload = m_status;
-  InterruptDataInputCallback(rpt.GetData(), rpt.GetSize());
-}
+		// no error
+		reply->error = 0;
 
-void Wiimote::HandleWriteData(const OutputReportWriteData& wd)
-{
-  if (m_read_request.size)
-  {
-    // FYI: Writes during an active read will occasionally produce a "busy" (0x4) ack.
-    // We won't simulate that as it often does work. Poorly programmed games may rely on it.
-    WARN_LOG_FMT(WIIMOTE, "WriteData: write during active read request.");
-  }
+		// 0x1 means two bytes, 0xf means 16 bytes
+		reply->size = amt - 1;
 
-  const u16 address = Common::swap16(wd.address);
+		// Clear the mem first
+		memset(reply->data, 0, sizeof(reply->data));
 
-  DEBUG_LOG_FMT(WIIMOTE, "Wiimote::WriteData: {:#04x} @ {:#04x} @ {:#04x} ({})", wd.space,
-                wd.slave_address, address, wd.size);
+		// copy piece of mem
+		memcpy(reply->data, _request.data + _request.position, amt);
 
-  if (0 == wd.size || wd.size > 16)
-  {
-    WARN_LOG_FMT(WIIMOTE, "WriteData: invalid size: {}", wd.size);
-    // A real wiimote silently ignores such a request:
-    return;
-  }
+		// update request struct
+		_request.size -= amt;
+		_request.position += amt;
+		_request.address += amt;
+	}
 
-  ErrorCode error_code = ErrorCode::Success;
-
-  switch (static_cast<AddressSpace>(wd.space))
-  {
-  case AddressSpace::EEPROM:
-  {
-    if (address + wd.size > EEPROM_FREE_SIZE)
-    {
-      WARN_LOG_FMT(WIIMOTE, "WriteData: address + size out of bounds!");
-      error_code = ErrorCode::InvalidAddress;
-    }
-    else
-    {
-      std::copy_n(wd.data, wd.size, m_eeprom.data.data() + address);
-      m_eeprom_dirty = true;
-    }
-  }
-  break;
-
-  case AddressSpace::I2CBus:
-  case AddressSpace::I2CBusAlt:
-  {
-    // Attempting to access the EEPROM directly over i2c results in error 8.
-    if (EEPROM_I2C_ADDR == m_read_request.slave_address)
-    {
-      WARN_LOG_FMT(WIIMOTE, "Attempt to write EEPROM directly.");
-      error_code = ErrorCode::InvalidAddress;
-      break;
-    }
-
-    // Top byte of address is ignored on the bus.
-    auto const bytes_written = m_i2c_bus.BusWrite(wd.slave_address, (u8)address, wd.size, wd.data);
-    if (bytes_written != wd.size)
-    {
-      // A real wiimote gives error 7 for failed write to i2c bus (mainly a non-existant slave)
-      error_code = ErrorCode::Nack;
-    }
-  }
-  break;
-
-  default:
-    WARN_LOG_FMT(WIIMOTE, "WriteData: invalid address space: {:#x}", wd.space);
-    // A real wiimote gives error 6:
-    error_code = ErrorCode::InvalidSpace;
-    break;
-  }
-
-  // Real wiimotes seem to always ACK data writes.
-  SendAck(OutputReportID::WriteData, error_code);
-}
-
-void Wiimote::HandleReportRumble(const WiimoteCommon::OutputReportRumble& rpt)
-{
-  SetRumble(rpt.rumble);
-
-  // FYI: A real wiimote never seems to ACK a rumble report:
-}
-
-void Wiimote::HandleReportLeds(const WiimoteCommon::OutputReportLeds& rpt)
-{
-  m_status.leds = rpt.leds;
-
-  if (rpt.ack)
-    SendAck(OutputReportID::LED, ErrorCode::Success);
-}
-
-void Wiimote::HandleIRLogicEnable2(const WiimoteCommon::OutputReportEnableFeature& rpt)
-{
-  // FYI: We ignore this and update camera data regardless.
-
-  if (rpt.ack)
-    SendAck(OutputReportID::IRLogicEnable2, ErrorCode::Success);
-}
-
-void Wiimote::HandleIRLogicEnable(const WiimoteCommon::OutputReportEnableFeature& rpt)
-{
-  // Note: Wiibrew currently refers to this report (0x13) as "Enable IR Pixel Clock"
-  // however my testing shows this affects the relevant status bit and whether or not
-  // the camera responds on the I2C bus.
-
-  m_status.ir = rpt.enable;
-
-  m_camera_logic.SetEnabled(m_status.ir);
-
-  if (rpt.ack)
-    SendAck(OutputReportID::IRLogicEnable, ErrorCode::Success);
-}
-
-void Wiimote::HandleSpeakerMute(const WiimoteCommon::OutputReportEnableFeature& rpt)
-{
-  m_speaker_mute = rpt.enable;
-
-  if (rpt.ack)
-    SendAck(OutputReportID::SpeakerMute, ErrorCode::Success);
-}
-
-void Wiimote::HandleSpeakerEnable(const WiimoteCommon::OutputReportEnableFeature& rpt)
-{
-  m_status.speaker = rpt.enable;
-
-  if (rpt.ack)
-    SendAck(OutputReportID::SpeakerEnable, ErrorCode::Success);
-}
-
-void Wiimote::HandleSpeakerData(const WiimoteCommon::OutputReportSpeakerData& rpt)
-{
-  // TODO: Does speaker_mute stop speaker data processing?
-  // and what about speaker_enable?
-  // (important to keep decoder in proper state)
-  if (!m_speaker_mute)
-  {
-    if (rpt.length > std::size(rpt.data))
-    {
-      ERROR_LOG_FMT(WIIMOTE, "Bad speaker data length: {}", rpt.length);
-    }
-    else
-    {
-      // Speaker data reports result in a write to the speaker hardware at offset 0x00.
-      m_i2c_bus.BusWrite(SpeakerLogic::I2C_ADDR, SpeakerLogic::SPEAKER_DATA_OFFSET, rpt.length,
-                         rpt.data);
-    }
-  }
-
-  // FYI: Speaker data reports normally do not ACK but I have seen them ACK with error codes
-  // It seems some wiimotes do this when receiving data too quickly.
-  // More investigation is needed.
-}
-
-void Wiimote::HandleReadData(const OutputReportReadData& rd)
-{
-  if (m_read_request.size)
-  {
-    // There is already an active read being processed.
-    WARN_LOG_FMT(WIIMOTE, "ReadData: attempting read during active request.");
-
-    // A real wm+ sends a busy ack in this situation.
-    SendAck(OutputReportID::ReadData, ErrorCode::Busy);
-    return;
-  }
-
-  // Save the request and process it on the next "Update()" call(s)
-  m_read_request.space = static_cast<AddressSpace>(rd.space);
-  m_read_request.slave_address = rd.slave_address;
-  m_read_request.address = Common::swap16(rd.address);
-  // A zero size request is just ignored, like on the real wiimote.
-  m_read_request.size = Common::swap16(rd.size);
-
-  DEBUG_LOG_FMT(WIIMOTE, "Wiimote::ReadData: {} @ {:#04x} @ {:#04x} ({})",
-                static_cast<u8>(m_read_request.space), m_read_request.slave_address,
-                m_read_request.address, m_read_request.size);
-
-  // Send up to one read-data-reply.
-  // If more data needs to be sent it will happen on the next "Update()"
-  // TODO: should this be removed and let Update() take care of it?
-  ProcessReadDataRequest();
-
-  // FYI: No "ACK" is sent under normal situations.
-}
-
-bool Wiimote::ProcessReadDataRequest()
-{
-  // Limit the amt to 16 bytes
-  // AyuanX: the MTU is 640B though... what a waste!
-  const u16 bytes_to_read = std::min<u16>(16, m_read_request.size);
-
-  if (0 == bytes_to_read)
-  {
-    // No active request:
-    return false;
-  }
-
-  TypedInputData<InputReportReadDataReply> rpt(InputReportID::ReadDataReply);
-  auto& reply = rpt.payload;
-
-  reply.buttons = m_status.buttons;
-  reply.address = Common::swap16(m_read_request.address);
-
-  // Pre-fill with zeros in case of read-error or read < 16-bytes:
-  std::fill(std::begin(reply.data), std::end(reply.data), 0x00);
-
-  ErrorCode error_code = ErrorCode::Success;
-
-  switch (m_read_request.space)
-  {
-  case AddressSpace::EEPROM:
-  {
-    if (m_read_request.address + m_read_request.size > EEPROM_FREE_SIZE)
-    {
-      // Generate a read error. Even if the start of the block is readable a real wiimote just sends
-      // error code 8
-
-      // The real Wiimote generate an error for the first
-      // request to 0x1770 if we dont't replicate that the game will never
-      // read the calibration data at the beginning of Eeprom.
-      error_code = ErrorCode::InvalidAddress;
-    }
-    else
-    {
-      // Read memory to be sent to Wii
-      std::copy_n(m_eeprom.data.data() + m_read_request.address, bytes_to_read, reply.data);
-      reply.size_minus_one = bytes_to_read - 1;
-    }
-  }
-  break;
-
-  case AddressSpace::I2CBus:
-  case AddressSpace::I2CBusAlt:
-  {
-    // Attempting to access the EEPROM directly over i2c results in error 8.
-    if (EEPROM_I2C_ADDR == m_read_request.slave_address)
-    {
-      WARN_LOG_FMT(WIIMOTE, "Attempt to read EEPROM directly.");
-      error_code = ErrorCode::InvalidAddress;
-      break;
-    }
-
-    // It is possible to bypass data reporting and directly read extension input.
-    // While I am not aware of any games that actually do this,
-    // our NetPlay and TAS methods are completely unprepared for it.
-    const bool is_reading_ext = EncryptedExtension::I2C_ADDR == m_read_request.slave_address &&
-                                m_read_request.address < EncryptedExtension::CONTROLLER_DATA_BYTES;
-    const bool is_reading_ir =
-        CameraLogic::I2C_ADDR == m_read_request.slave_address &&
-        m_read_request.address < CameraLogic::REPORT_DATA_OFFSET + CameraLogic::CAMERA_DATA_BYTES &&
-        m_read_request.address + m_read_request.size > CameraLogic::REPORT_DATA_OFFSET;
-
-    if (is_reading_ext || is_reading_ir)
-      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::DIRECTLY_READS_WIIMOTE_INPUT);
-
-    // Top byte of address is ignored on the bus, but it IS maintained in the read-reply.
-    auto const bytes_read = m_i2c_bus.BusRead(
-        m_read_request.slave_address, (u8)m_read_request.address, bytes_to_read, reply.data);
-
-    if (bytes_read != bytes_to_read)
-    {
-      DEBUG_LOG_FMT(WIIMOTE, "Responding with read error 7 @ {:#x} @ {:#x} ({})",
-                    m_read_request.slave_address, m_read_request.address, m_read_request.size);
-      error_code = ErrorCode::Nack;
-      break;
-    }
-
-    reply.size_minus_one = bytes_read - 1;
-  }
-  break;
-
-  default:
-    WARN_LOG_FMT(WIIMOTE, "ReadData: invalid address space: {:#x}", int(m_read_request.space));
-    // A real wiimote gives error 6:
-    error_code = ErrorCode::InvalidSpace;
-    break;
-  }
-
-  if (ErrorCode::Success != error_code)
-  {
-    // Stop processing request on read error:
-    m_read_request.size = 0;
-    // Real wiimote seems to set size to max value on read errors:
-    reply.size_minus_one = 0xf;
-  }
-  else
-  {
-    // Modify the active read request, zero size == complete
-    m_read_request.address += bytes_to_read;
-    m_read_request.size -= bytes_to_read;
-  }
-
-  reply.error = static_cast<u8>(error_code);
-
-  InterruptDataInputCallback(rpt.GetData(), rpt.GetSize());
-
-  return true;
+	// Send a piece
+	Core::Callback_WiimoteInterruptChannel(m_index, m_reporting_channel, data, sizeof(data));
 }
 
 void Wiimote::DoState(PointerWrap& p)
 {
-  // No need to sync. Index will not change.
-  // p.Do(m_index);
+	p.Do(m_extension->active_extension);
+	p.Do(m_extension->switch_extension);
 
-  // No need to sync. This is not wiimote state.
-  // p.Do(m_sensor_bar_on_top);
+	p.Do(m_accel);
+	p.Do(m_index);
+	p.Do(ir_sin);
+	p.Do(ir_cos);
+	p.Do(m_rumble_on);
+	p.Do(m_speaker_mute);
+	p.Do(m_motion_plus_present);
+	p.Do(m_motion_plus_active);
+	p.Do(m_reporting_auto);
+	p.Do(m_reporting_mode);
+	p.Do(m_reporting_channel);
+	p.Do(m_shake_step);
+	p.Do(m_sensor_bar_on_top);
+	p.Do(m_status);
+	p.Do(m_adpcm_state);
+	p.Do(m_ext_key);
+	p.DoArray(m_eeprom);
+	p.Do(m_reg_motion_plus);
+	p.Do(m_reg_ir);
+	p.Do(m_reg_ext);
+	p.Do(m_reg_speaker);
 
-  p.Do(m_reporting_mode);
-  p.Do(m_reporting_continuous);
+	//Do 'm_read_requests' queue
+	{
+		u32 size = 0;
+		if (p.mode == PointerWrap::MODE_READ)
+		{
+			//clear
+			while (!m_read_requests.empty())
+			{
+				delete[] m_read_requests.front().data;
+				m_read_requests.pop();
+			}
 
-  p.Do(m_speaker_mute);
 
-  p.Do(m_status);
-  p.Do(m_eeprom);
-  p.Do(m_read_request);
+			p.Do(size);
+			while (size--)
+			{
+				ReadRequest tmp;
+				p.Do(tmp.address);
+				p.Do(tmp.position);
+				p.Do(tmp.size);
+				tmp.data = new u8[tmp.size];
+				p.DoArray(tmp.data, tmp.size);
+				m_read_requests.push(tmp);
+			}
+		}
+		else
+		{
+			std::queue<ReadRequest> tmp_queue(m_read_requests);
+			size = (u32)(m_read_requests.size());
+			p.Do(size);
+			while (!tmp_queue.empty())
+			{
+				ReadRequest tmp = tmp_queue.front();
+				p.Do(tmp.address);
+				p.Do(tmp.position);
+				p.Do(tmp.size);
+				p.DoArray(tmp.data, tmp.size);
+				tmp_queue.pop();
+			}
+		}
+	}
+	p.DoMarker("Wiimote");
 
-  // Sub-devices:
-  m_speaker_logic.DoState(p);
-  m_camera_logic.DoState(p);
-
-  if (p.IsReadMode())
-    m_camera_logic.SetEnabled(m_status.ir);
-
-  p.Do(m_is_motion_plus_attached);
-  p.Do(m_active_extension);
-
-  // Attach M+/Extensions.
-  m_extension_port.AttachExtension(m_is_motion_plus_attached ? &m_motion_plus : GetNoneExtension());
-  (m_is_motion_plus_attached ? m_motion_plus.GetExtPort() : m_extension_port)
-      .AttachExtension(GetActiveExtension());
-
-  if (m_is_motion_plus_attached)
-    m_motion_plus.DoState(p);
-
-  if (m_active_extension != ExtensionNumber::NONE)
-    GetActiveExtension()->DoState(p);
-
-  // Dynamics
-  p.Do(m_swing_state);
-  p.Do(m_tilt_state);
-  p.Do(m_point_state);
-  p.Do(m_shake_state);
-
-  // We'll consider the IMU state part of the user's physical controller state and not sync it.
-  // (m_imu_cursor_state)
-
-  p.DoMarker("Wiimote");
+	if (p.GetMode() == PointerWrap::MODE_READ)
+		RealState();
 }
 
-ExtensionNumber Wiimote::GetActiveExtensionNumber() const
+// load real Wiimote state
+void Wiimote::RealState()
 {
-  return m_active_extension;
+	using namespace WiimoteReal;
+
+	if (g_wiimotes[m_index])
+	{
+		g_wiimotes[m_index]->SetChannel(m_reporting_channel);
+		g_wiimotes[m_index]->EnableDataReporting(m_reporting_mode);
+	}
 }
 
-bool Wiimote::IsMotionPlusAttached() const
-{
-  return m_is_motion_plus_attached;
 }
-
-}  // namespace WiimoteEmu

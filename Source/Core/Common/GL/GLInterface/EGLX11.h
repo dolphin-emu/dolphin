@@ -1,23 +1,21 @@
 // Copyright 2014 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #pragma once
 
 #include <X11/Xlib.h>
 
 #include "Common/GL/GLInterface/EGL.h"
-#include "Common/GL/GLX11Window.h"
+#include "Common/GL/GLInterface/X11_Util.h"
 
-class GLContextEGLX11 final : public GLContextEGL
+class cInterfaceEGLX11 : public cInterfaceEGL
 {
-public:
-  ~GLContextEGLX11() override;
-
-  void Update() override;
-
+private:
+	cX11Window XWindow;
+	Display *dpy;
 protected:
-  EGLDisplay OpenEGLDisplay() override;
-  EGLNativeWindowType GetEGLNativeWindow(EGLConfig config) override;
-
-  std::unique_ptr<GLX11Window> m_render_window;
+	EGLDisplay OpenDisplay() override;
+	EGLNativeWindowType InitializePlatform(EGLNativeWindowType host_window, EGLConfig config) override;
+	void ShutdownPlatform() override;
 };

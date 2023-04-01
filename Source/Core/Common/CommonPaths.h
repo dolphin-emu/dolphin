@@ -1,5 +1,6 @@
 // Copyright 2008 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #pragma once
 
@@ -7,150 +8,112 @@
 #define DIR_SEP "/"
 #define DIR_SEP_CHR '/'
 
-// The current working directory
+// The user data dir
 #define ROOT_DIR "."
-
-// The normal user directory
-#ifndef STEAM
 #ifdef _WIN32
-#define NORMAL_USER_DIR "Dolphin Emulator"
-#elif defined(__APPLE__)
-#define NORMAL_USER_DIR "Library/Application Support/Dolphin"
-#elif defined(ANDROID)
-#define NORMAL_USER_DIR "/sdcard/dolphin-emu"
+	#define USERDATA_DIR "User"
+	#define DOLPHIN_DATA_DIR "Dolphin"
+#elif defined __APPLE__
+	// On OS X, USERDATA_DIR exists within the .app, but *always* reference
+	// the copy in Application Support instead! (Copied on first run)
+	// You can use the File::GetUserPath() util for this
+	#define USERDATA_DIR "Contents/Resources/User"
+	#define DOLPHIN_DATA_DIR "Library/Application Support/Dolphin"
+#elif defined ANDROID
+	#define USERDATA_DIR "user"
+	#define DOLPHIN_DATA_DIR "/sdcard/dolphin-emu"
 #else
-#define NORMAL_USER_DIR "dolphin-emu"
-#endif
-#else  // ifndef STEAM
-#ifdef _WIN32
-#define NORMAL_USER_DIR "Dolphin Emulator (Steam)"
-#elif defined(__APPLE__)
-#define NORMAL_USER_DIR "Library/Application Support/Dolphin (Steam)"
-#else
-#define NORMAL_USER_DIR "dolphin-emu-steam"
-#endif
+	#define USERDATA_DIR "user"
+	#define DOLPHIN_DATA_DIR "dolphin-emu"
 #endif
 
-// The portable user directory
-#ifdef _WIN32
-#define PORTABLE_USER_DIR "User"
-#elif defined(__APPLE__)
-#define PORTABLE_USER_DIR "User"
-#define EMBEDDED_USER_DIR "Contents/Resources/User"
+// Shared data dirs (Sys and shared User for Linux)
+#if defined(_WIN32) || defined(LINUX_LOCAL_DEV)
+	#define SYSDATA_DIR "Sys"
+#elif defined __APPLE__
+	#define SYSDATA_DIR "Contents/Resources/Sys"
+#elif defined ANDROID
+	#define SYSDATA_DIR "/sdcard/dolphin-emu"
 #else
-#define PORTABLE_USER_DIR "user"
-#define EMBEDDED_USER_DIR PORTABLE_USER_DIR
+	#ifdef DATA_DIR
+		#define SYSDATA_DIR DATA_DIR "sys"
+	#else
+		#define SYSDATA_DIR "sys"
+	#endif
 #endif
-
-// Flag file to prevent media scanning from indexing a directory
-#define NOMEDIA_FILE ".nomedia"
 
 // Dirs in both User and Sys
-// Legacy setups used /JAP/ while newer setups use /JPN/ by default.
 #define EUR_DIR "EUR"
 #define USA_DIR "USA"
 #define JAP_DIR "JAP"
-#define JPN_DIR "JPN"
 
 // Subdirs in the User dir returned by GetUserPath(D_USER_IDX)
-#define GC_USER_DIR "GC"
-#define GBA_USER_DIR "GBA"
-#define WII_USER_DIR "Wii"
-#define CONFIG_DIR "Config"
-#define GAMESETTINGS_DIR "GameSettings"
-#define MAPS_DIR "Maps"
-#define CACHE_DIR "Cache"
-#define COVERCACHE_DIR "GameCovers"
-#define REDUMPCACHE_DIR "Redump"
-#define SHADERCACHE_DIR "Shaders"
-#define STATESAVES_DIR "StateSaves"
-#define SCREENSHOTS_DIR "ScreenShots"
-#define LOAD_DIR "Load"
-#define HIRES_TEXTURES_DIR "Textures"
-#define RIIVOLUTION_DIR "Riivolution"
-#define DUMP_DIR "Dump"
-#define DUMP_TEXTURES_DIR "Textures"
-#define DUMP_FRAMES_DIR "Frames"
-#define DUMP_OBJECTS_DIR "Objects"
-#define DUMP_AUDIO_DIR "Audio"
-#define DUMP_DSP_DIR "DSP"
-#define DUMP_SSL_DIR "SSL"
-#define LOGS_DIR "Logs"
-#define MAIL_LOGS_DIR "Mail"
-#define SHADERS_DIR "Shaders"
-#define WII_SYSCONF_DIR "shared2" DIR_SEP "sys"
-#define WII_WC24CONF_DIR "shared2" DIR_SEP "wc24"
-#define RESOURCES_DIR "Resources"
-#define THEMES_DIR "Themes"
-#define STYLES_DIR "Styles"
-#define GBASAVES_DIR "Saves"
-#define ANAGLYPH_DIR "Anaglyph"
-#define PASSIVE_DIR "Passive"
-#define PIPES_DIR "Pipes"
-#define MEMORYWATCHER_DIR "MemoryWatcher"
-#define WFSROOT_DIR "WFS"
-#define BACKUP_DIR "Backup"
-#define RESOURCEPACK_DIR "ResourcePacks"
-#define DYNAMICINPUT_DIR "DynamicInputTextures"
-#define GRAPHICSMOD_DIR "GraphicMods"
-#define WIISDSYNC_DIR "WiiSDSync"
+#define GC_USER_DIR         "GC"
+#define WII_USER_DIR        "Wii"
+#define CONFIG_DIR          "Config"
+#define GAMESETTINGS_DIR    "GameSettings"
+#define MAPS_DIR            "Maps"
+#define CACHE_DIR           "Cache"
+#define SHADERCACHE_DIR     "Shaders"
+#define STATESAVES_DIR      "StateSaves"
+#define SCREENSHOTS_DIR     "ScreenShots"
+#define LOAD_DIR            "Load"
+#define HIRES_TEXTURES_DIR  "Textures"
+#define DUMP_DIR            "Dump"
+#define DUMP_TEXTURES_DIR   "Textures"
+#define DUMP_FRAMES_DIR     "Frames"
+#define DUMP_AUDIO_DIR      "Audio"
+#define DUMP_DSP_DIR        "DSP"
+#define LOGS_DIR            "Logs"
+#define MAIL_LOGS_DIR       "Mail"
+#define SHADERS_DIR         "Shaders"
+#define WII_SYSCONF_DIR     "shared2" DIR_SEP "sys"
+#define WII_WC24CONF_DIR    "shared2" DIR_SEP "wc24"
+#define RESOURCES_DIR       "Resources"
+#define THEMES_DIR          "Themes"
+#define ANAGLYPH_DIR        "Anaglyph"
+#define PIPES_DIR           "Pipes"
+#define MEMORYWATCHER_DIR   "MemoryWatcher"
 
 // This one is only used to remove it if it was present
 #define SHADERCACHE_LEGACY_DIR "ShaderCache"
 
-// The theme directory used by default
-#define DEFAULT_THEME_DIR "Clean"
-
 // Filenames
 // Files in the directory returned by GetUserPath(D_CONFIG_IDX)
-#define DOLPHIN_CONFIG "Dolphin.ini"
-#define GCPAD_CONFIG "GCPadNew.ini"
-#define WIIPAD_CONFIG "WiimoteNew.ini"
-#define GCKEYBOARD_CONFIG "GCKeyNew.ini"
-#define GFX_CONFIG "GFX.ini"
+#define DOLPHIN_CONFIG  "Dolphin.ini"
 #define DEBUGGER_CONFIG "Debugger.ini"
-#define LOGGER_CONFIG "Logger.ini"
-#define DUALSHOCKUDPCLIENT_CONFIG "DSUClient.ini"
-#define FREELOOK_CONFIG "FreeLook.ini"
+#define LOGGER_CONFIG   "Logger.ini"
 
 // Files in the directory returned by GetUserPath(D_LOGS_IDX)
-#define MAIN_LOG "dolphin.log"
+#define MAIN_LOG    "dolphin.log"
 
 // Files in the directory returned by GetUserPath(D_WIISYSCONF_IDX)
 #define WII_SYSCONF "SYSCONF"
 
 // Files in the directory returned by GetUserPath(D_DUMP_IDX)
-#define MEM1_DUMP "mem1.raw"
-#define MEM2_DUMP "mem2.raw"
-#define ARAM_DUMP "aram.raw"
+#define RAM_DUMP      "ram.raw"
+#define ARAM_DUMP     "aram.raw"
 #define FAKEVMEM_DUMP "fakevmem.raw"
 
 // Files in the directory returned by GetUserPath(D_MEMORYWATCHER_IDX)
 #define MEMORYWATCHER_LOCATIONS "Locations.txt"
-#define MEMORYWATCHER_SOCKET "MemoryWatcher"
+#define MEMORYWATCHER_SOCKET    "MemoryWatcher"
 
 // Sys files
-#define TOTALDB "totaldb.dsy"
+#define TOTALDB     "totaldb.dsy"
 
-#define FONT_WINDOWS_1252 "font_western.bin"
-#define FONT_SHIFT_JIS "font_japanese.bin"
+#define FONT_ANSI   "font_ansi.bin"
+#define FONT_SJIS   "font_sjis.bin"
 
-#define DSP_IROM "dsp_rom.bin"
-#define DSP_COEF "dsp_coef.bin"
+#define DSP_IROM    "dsp_rom.bin"
+#define DSP_COEF    "dsp_coef.bin"
 
-#define GC_IPL "IPL.bin"
-#define GC_SRAM "SRAM.raw"
+#define GC_IPL      "IPL.bin"
+#define GC_SRAM     "SRAM.raw"
 #define GC_MEMCARDA "MemoryCardA"
 #define GC_MEMCARDB "MemoryCardB"
-#define GC_MEMCARD_NETPLAY "NetPlayTemp"
 
-#define GBA_BIOS "gba_bios.bin"
-#define GBA_SAVE_NETPLAY "NetPlayTemp"
-
-#define WII_STATE "state.dat"
-
-#define WII_SD_CARD_IMAGE "WiiSD.raw"
-#define WII_BTDINF_BACKUP "btdinf.bak"
+#define WII_STATE   "state.dat"
 
 #define WII_SETTING "setting.txt"
 
@@ -159,6 +122,3 @@
 // Subdirs in Sys
 #define GC_SYS_DIR "GC"
 #define WII_SYS_DIR "Wii"
-
-// Subdirs in Config
-#define GRAPHICSMOD_CONFIG_DIR "GraphicMods"

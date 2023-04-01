@@ -1,247 +1,64 @@
-add_library(videocommon
-  AbstractFramebuffer.cpp
-  AbstractFramebuffer.h
-  AbstractGfx.cpp
-  AbstractGfx.h
-  AbstractShader.h
-  AbstractStagingTexture.cpp
-  AbstractStagingTexture.h
-  AbstractTexture.cpp
-  AbstractTexture.h
-  AsyncRequests.cpp
-  AsyncRequests.h
-  AsyncShaderCompiler.cpp
-  AsyncShaderCompiler.h
-  BoundingBox.cpp
-  BoundingBox.h
-  BPFunctions.cpp
-  BPFunctions.h
-  BPMemory.cpp
-  BPMemory.h
-  BPStructs.cpp
-  BPStructs.h
-  CommandProcessor.cpp
-  CommandProcessor.h
-  ConstantManager.h
-  Constants.h
-  CPMemory.cpp
-  CPMemory.h
-  CPUCull.cpp
-  CPUCull.h
-  CPUCullImpl.h
-  DriverDetails.cpp
-  DriverDetails.h
-  Fifo.cpp
-  Fifo.h
-  FramebufferManager.cpp
-  FramebufferManager.h
-  FramebufferShaderGen.cpp
-  FramebufferShaderGen.h
-  FrameDumper.cpp
-  FrameDumper.h
-  FrameDumpFFMpeg.h
-  FreeLookCamera.cpp
-  FreeLookCamera.h
-  GeometryShaderGen.cpp
-  GeometryShaderGen.h
-  GeometryShaderManager.cpp
-  GeometryShaderManager.h
-  GraphicsModSystem/Config/GraphicsMod.cpp
-  GraphicsModSystem/Config/GraphicsMod.h
-  GraphicsModSystem/Config/GraphicsModFeature.cpp
-  GraphicsModSystem/Config/GraphicsModFeature.h
-  GraphicsModSystem/Config/GraphicsModGroup.cpp
-  GraphicsModSystem/Config/GraphicsModGroup.h
-  GraphicsModSystem/Config/GraphicsTarget.cpp
-  GraphicsModSystem/Config/GraphicsTarget.h
-  GraphicsModSystem/Config/GraphicsTargetGroup.cpp
-  GraphicsModSystem/Config/GraphicsTargetGroup.h
-  GraphicsModSystem/Constants.h
-  GraphicsModSystem/Runtime/Actions/MoveAction.cpp
-  GraphicsModSystem/Runtime/Actions/MoveAction.h
-  GraphicsModSystem/Runtime/Actions/PrintAction.cpp
-  GraphicsModSystem/Runtime/Actions/PrintAction.h
-  GraphicsModSystem/Runtime/Actions/ScaleAction.cpp
-  GraphicsModSystem/Runtime/Actions/ScaleAction.h
-  GraphicsModSystem/Runtime/Actions/SkipAction.cpp
-  GraphicsModSystem/Runtime/Actions/SkipAction.h
-  GraphicsModSystem/Runtime/CustomTextureData.cpp
-  GraphicsModSystem/Runtime/CustomTextureData.h
-  GraphicsModSystem/Runtime/FBInfo.cpp
-  GraphicsModSystem/Runtime/FBInfo.h
-  GraphicsModSystem/Runtime/GraphicsModAction.h
-  GraphicsModSystem/Runtime/GraphicsModActionData.h
-  GraphicsModSystem/Runtime/GraphicsModActionFactory.cpp
-  GraphicsModSystem/Runtime/GraphicsModActionFactory.h
-  GraphicsModSystem/Runtime/GraphicsModManager.cpp
-  GraphicsModSystem/Runtime/GraphicsModManager.h
-  HiresTextures.cpp
-  HiresTextures.h
-  IndexGenerator.cpp
-  IndexGenerator.h
-  LightingShaderGen.cpp
-  LightingShaderGen.h
-  LookUpTables.h
-  NativeVertexFormat.h
-  NetPlayChatUI.cpp
-  NetPlayChatUI.h
-  NetPlayGolfUI.cpp
-  NetPlayGolfUI.h
-  OnScreenDisplay.cpp
-  OnScreenDisplay.h
-  OnScreenUI.cpp
-  OnScreenUI.h
-  OnScreenUIKeyMap.h
-  OpcodeDecoding.cpp
-  OpcodeDecoding.h
-  PerfQueryBase.cpp
-  PerfQueryBase.h
-  PerformanceMetrics.cpp
-  PerformanceMetrics.h
-  PerformanceTracker.cpp
-  PerformanceTracker.h
-  PixelEngine.cpp
-  PixelEngine.h
-  PixelShaderGen.cpp
-  PixelShaderGen.h
-  PixelShaderManager.cpp
-  PixelShaderManager.h
-  PostProcessing.cpp
-  PostProcessing.h
-  Present.cpp
-  Present.h
-  RenderBase.cpp
-  RenderBase.h
-  RenderState.cpp
-  RenderState.h
-  ShaderCache.cpp
-  ShaderCache.h
-  ShaderGenCommon.cpp
-  ShaderGenCommon.h
-  Spirv.cpp
-  Spirv.h
-  Statistics.cpp
-  Statistics.h
-  TextureCacheBase.cpp
-  TextureCacheBase.h
-  TextureConfig.cpp
-  TextureConfig.h
-  TextureConversionShader.cpp
-  TextureConversionShader.h
-  TextureConverterShaderGen.cpp
-  TextureConverterShaderGen.h
-  TextureDecoder.h
-  TextureDecoder_Common.cpp
-  TextureDecoder_Util.h
-  TextureInfo.cpp
-  TextureInfo.h
-  TMEM.cpp
-  TMEM.h
-  UberShaderCommon.cpp
-  UberShaderCommon.h
-  UberShaderPixel.cpp
-  UberShaderPixel.h
-  UberShaderVertex.cpp
-  UberShaderVertex.h
-  VertexLoader.cpp
-  VertexLoader.h
-  VertexLoaderBase.cpp
-  VertexLoaderBase.h
-  VertexLoaderManager.cpp
-  VertexLoaderManager.h
-  VertexLoaderUtils.h
-  VertexLoader_Color.cpp
-  VertexLoader_Color.h
-  VertexLoader_Normal.cpp
-  VertexLoader_Normal.h
-  VertexLoader_Position.cpp
-  VertexLoader_Position.h
-  VertexLoader_TextCoord.cpp
-  VertexLoader_TextCoord.h
-  VertexManagerBase.cpp
-  VertexManagerBase.h
-  VertexShaderGen.cpp
-  VertexShaderGen.h
-  VertexShaderManager.cpp
-  VertexShaderManager.h
-  VideoBackendBase.cpp
-  VideoBackendBase.h
-  VideoEvents.h
-  VideoCommon.h
-  VideoConfig.cpp
-  VideoConfig.h
-  VideoState.cpp
-  VideoState.h
-  Widescreen.cpp
-  Widescreen.h
-  XFMemory.cpp
-  XFMemory.h
-  XFStructs.cpp
-  XFStructs.h
-)
-
-target_link_libraries(videocommon
-PUBLIC
-  core
-PRIVATE
-  fmt::fmt
-  ${spng_target}
-  xxhash
-  imgui
-  implot
-  glslang
-)
+set(SRCS	AsyncRequests.cpp
+			BoundingBox.cpp
+			BPFunctions.cpp
+			BPMemory.cpp
+			BPStructs.cpp
+			CPMemory.cpp
+			CommandProcessor.cpp
+			Debugger.cpp
+			DriverDetails.cpp
+			Fifo.cpp
+			FPSCounter.cpp
+			FramebufferManagerBase.cpp
+			GeometryShaderGen.cpp
+			GeometryShaderManager.cpp
+			HiresTextures.cpp
+			ImageWrite.cpp
+			IndexGenerator.cpp
+			MainBase.cpp
+			OnScreenDisplay.cpp
+			OpcodeDecoding.cpp
+			PerfQueryBase.cpp
+			PixelEngine.cpp
+			PixelShaderGen.cpp
+			PixelShaderManager.cpp
+			PostProcessing.cpp
+			RenderBase.cpp
+			Statistics.cpp
+			TextureCacheBase.cpp
+			TextureConversionShader.cpp
+			TextureDecoder_Common.cpp
+			VertexLoader.cpp
+			VertexLoaderBase.cpp
+			VertexLoaderManager.cpp
+			VertexLoader_Color.cpp
+			VertexLoader_Normal.cpp
+			VertexLoader_Position.cpp
+			VertexLoader_TextCoord.cpp
+			VertexManagerBase.cpp
+			VertexShaderGen.cpp
+			VertexShaderManager.cpp
+			VideoBackendBase.cpp
+			VideoConfig.cpp
+			VideoState.cpp
+			XFMemory.cpp
+			XFStructs.cpp)
+set(LIBS core png)
 
 if(_M_X86)
-  target_sources(videocommon PRIVATE
-    TextureDecoder_x64.cpp
-    VertexLoaderX64.cpp
-    VertexLoaderX64.h
-  )
+	set(SRCS ${SRCS} TextureDecoder_x64.cpp VertexLoaderX64.cpp)
 elseif(_M_ARM_64)
-  target_sources(videocommon PRIVATE
-    VertexLoaderARM64.cpp
-    VertexLoaderARM64.h
-    TextureDecoder_Generic.cpp
-  )
+	set(SRCS ${SRCS} VertexLoaderARM64.cpp TextureDecoder_Generic.cpp)
 else()
-  target_sources(videocommon PRIVATE
-    TextureDecoder_Generic.cpp
-  )
+	set(SRCS ${SRCS} TextureDecoder_Generic.cpp)
 endif()
 
-if(FFmpeg_FOUND)
-  target_sources(videocommon PRIVATE
-    FrameDumpFFMpeg.cpp
-  )
-  target_link_libraries(videocommon PRIVATE
-    FFmpeg::avcodec
-    FFmpeg::avformat
-    FFmpeg::avutil
-    FFmpeg::swresample
-    FFmpeg::swscale
-  )
-  if(APPLE)
-    target_link_libraries(videocommon PRIVATE
-      ${COREMEDIA_LIBRARY}
-      ${VIDEOTOOLBOX_LIBRARY}
-      ${COREVIDEO_LIBRARY}
-      ${AUDIOTOOLBOX_LIBRARY}
-    )
-  endif()
+if(LIBAV_FOUND OR WIN32)
+	set(SRCS ${SRCS} AVIDump.cpp)
 endif()
 
-# Silence warnings on glslang by flagging it as a system include
-target_include_directories(videocommon
-SYSTEM PUBLIC
-  ${CMAKE_SOURCE_DIR}/Externals/glslang/glslang/Public
-SYSTEM PRIVATE
-  ${CMAKE_SOURCE_DIR}/Externals/glslang/StandAlone
-  ${CMAKE_SOURCE_DIR}/Externals/glslang/SPIRV
-  ${CMAKE_SOURCE_DIR}/Externals/glslang
-)
+add_dolphin_library(videocommon "${SRCS}" "${LIBS}")
 
-if(MSVC)
-  # Add precompiled header
-  target_link_libraries(videocommon PRIVATE use_pch)
+if(LIBAV_FOUND)
+	target_link_libraries(videocommon ${LIBS} ${LIBAV_LIBRARIES})
 endif()

@@ -1,12 +1,20 @@
 // Copyright 2010 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #pragma once
 
-namespace ciface::OSX
+#include "InputCommon/ControllerInterface/Device.h"
+
+namespace ciface
 {
-void Init();
+namespace OSX
+{
+
+void Init(std::vector<Core::Device*>& devices, void *window);
 void DeInit();
 
-void DeviceElementDebugPrint(const void*, void*);
-}  // namespace ciface::OSX
+void DeviceElementDebugPrint(const void *, void *);
+
+}
+}

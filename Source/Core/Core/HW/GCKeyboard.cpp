@@ -1,61 +1,59 @@
 // Copyright 2015 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
-
-#include "Core/HW/GCKeyboard.h"
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #include <cstring>
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
-
+#include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCKeyboardEmu.h"
-
-#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/InputConfig.h"
 #include "InputCommon/KeyboardStatus.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace Keyboard
 {
+
 static InputConfig s_config("GCKeyNew", _trans("Keyboard"), "GCKey");
 InputConfig* GetConfig()
 {
-  return &s_config;
+	return &s_config;
 }
 
 void Shutdown()
 {
-  s_config.UnregisterHotplugCallback();
+	s_config.ClearControllers();
 
-  s_config.ClearControllers();
+	g_controller_interface.Shutdown();
 }
 
-void Initialize()
+void Initialize(void* const hwnd)
 {
-  if (s_config.ControllersNeedToBeCreated())
-  {
-    for (unsigned int i = 0; i < 4; ++i)
-      s_config.CreateController<GCKeyboard>(i);
-  }
+	if (s_config.ControllersNeedToBeCreated())
+	{
+		for (unsigned int i = 0; i < 4; ++i)
+			s_config.CreateController<GCKeyboard>(i);
+	}
 
-  s_config.RegisterHotplugCallback();
+	g_controller_interface.Initialize(hwnd);
 
-  // Load the saved controller config
-  s_config.LoadConfig(InputConfig::InputClass::GC);
+	// Load the saved controller config
+	s_config.LoadConfig(true);
 }
 
 void LoadConfig()
 {
-  s_config.LoadConfig(InputConfig::InputClass::GC);
+	s_config.LoadConfig(true);
 }
 
-ControllerEmu::ControlGroup* GetGroup(int port, KeyboardGroup group)
+void GetStatus(u8 port, KeyboardStatus* keyboard_status)
 {
-  return static_cast<GCKeyboard*>(s_config.GetController(port))->GetGroup(group);
+	memset(keyboard_status, 0, sizeof(*keyboard_status));
+	keyboard_status->err = PAD_ERR_NONE;
+
+	// Get input
+	static_cast<GCKeyboard*>(s_config.GetController(port))->GetInput(keyboard_status);
 }
 
-KeyboardStatus GetStatus(int port)
-{
-  return static_cast<GCKeyboard*>(s_config.GetController(port))->GetInput();
 }
-}  // namespace Keyboard

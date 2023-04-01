@@ -1,10 +1,9 @@
 /**
- * \file x509_csr.h
+ * \file mbedtls_x509_csr.h
  *
  * \brief X.509 certificate signing request parsing and writing
- */
-/*
- *  Copyright The Mbed TLS Contributors
+ *
+ *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -18,17 +17,19 @@
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
+ *
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 #ifndef MBEDTLS_X509_CSR_H
 #define MBEDTLS_X509_CSR_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
+#include "config.h"
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "mbedtls/x509.h"
+#include "x509.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -82,8 +83,6 @@ mbedtls_x509write_csr;
 /**
  * \brief          Load a Certificate Signing Request (CSR) in DER format
  *
- * \note           CSR attributes (if any) are currently silently ignored.
- *
  * \param csr      CSR context to fill
  * \param buf      buffer holding the CRL data
  * \param buflen   size of the buffer
@@ -95,8 +94,6 @@ int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
 
 /**
  * \brief          Load a Certificate Signing Request (CSR), DER or PEM format
- *
- * \note           See notes for \c mbedtls_x509_csr_parse_der()
  *
  * \param csr      CSR context to fill
  * \param buf      buffer holding the CRL data
@@ -110,8 +107,6 @@ int mbedtls_x509_csr_parse( mbedtls_x509_csr *csr, const unsigned char *buf, siz
 #if defined(MBEDTLS_FS_IO)
 /**
  * \brief          Load a Certificate Signing Request (CSR)
- *
- * \note           See notes for \c mbedtls_x509_csr_parse()
  *
  * \param csr      CSR context to fill
  * \param path     filename to read the CSR from
@@ -203,14 +198,6 @@ void mbedtls_x509write_csr_set_md_alg( mbedtls_x509write_csr *ctx, mbedtls_md_ty
  * \param key_usage key usage flags to set
  *
  * \return          0 if successful, or MBEDTLS_ERR_X509_ALLOC_FAILED
- *
- * \note            The <code>decipherOnly</code> flag from the Key Usage
- *                  extension is represented by bit 8 (i.e.
- *                  <code>0x8000</code>), which cannot typically be represented
- *                  in an unsigned char. Therefore, the flag
- *                  <code>decipherOnly</code> (i.e.
- *                  #MBEDTLS_X509_KU_DECIPHER_ONLY) cannot be set using this
- *                  function.
  */
 int mbedtls_x509write_csr_set_key_usage( mbedtls_x509write_csr *ctx, unsigned char key_usage );
 
@@ -289,7 +276,7 @@ int mbedtls_x509write_csr_der( mbedtls_x509write_csr *ctx, unsigned char *buf, s
  *
  * \note            f_rng may be NULL if RSA is used for signature and the
  *                  signature is made offline (otherwise f_rng is desirable
- *                  for countermeasures against timing attacks).
+ *                  for couermeasures against timing attacks).
  *                  ECDSA signatures always require a non-NULL f_rng.
  */
 int mbedtls_x509write_csr_pem( mbedtls_x509write_csr *ctx, unsigned char *buf, size_t size,
