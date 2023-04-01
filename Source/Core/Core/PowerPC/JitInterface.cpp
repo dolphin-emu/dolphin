@@ -257,12 +257,12 @@ void JitInterface::InvalidateICacheLines(u32 address, u32 count)
     InvalidateICache(address & ~0x1f, 32 * count, false);
 }
 
-void JitInterface::InvalidateICacheLineFromJIT(u32 address, u32 dummy, JitInterface& jit_interface)
+void JitInterface::InvalidateICacheLineFromJIT(JitInterface& jit_interface, u32 address)
 {
   jit_interface.InvalidateICacheLine(address);
 }
 
-void JitInterface::InvalidateICacheLinesFromJIT(u32 address, u32 count, JitInterface& jit_interface)
+void JitInterface::InvalidateICacheLinesFromJIT(JitInterface& jit_interface, u32 address, u32 count)
 {
   jit_interface.InvalidateICacheLines(address, count);
 }
