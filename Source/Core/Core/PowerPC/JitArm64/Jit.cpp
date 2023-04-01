@@ -317,8 +317,8 @@ void JitArm64::IntializeSpeculativeConstants()
   for (auto i : code_block.m_gpr_inputs)
   {
     u32 compile_time_value = m_ppc_state.gpr[i];
-    if (PowerPC::IsOptimizableGatherPipeWrite(compile_time_value) ||
-        PowerPC::IsOptimizableGatherPipeWrite(compile_time_value - 0x8000) ||
+    if (m_mmu.IsOptimizableGatherPipeWrite(compile_time_value) ||
+        m_mmu.IsOptimizableGatherPipeWrite(compile_time_value - 0x8000) ||
         compile_time_value == 0xCC000000)
     {
       if (!fail)

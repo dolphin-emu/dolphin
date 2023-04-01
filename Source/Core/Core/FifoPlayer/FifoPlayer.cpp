@@ -654,8 +654,10 @@ void FifoPlayer::LoadMemory()
   ppc_state.spr[SPR_DBAT0L] = 0x00000002;
   ppc_state.spr[SPR_DBAT1U] = 0xc0001fff;
   ppc_state.spr[SPR_DBAT1L] = 0x0000002a;
-  PowerPC::DBATUpdated();
-  PowerPC::IBATUpdated();
+
+  auto& mmu = system.GetMMU();
+  mmu.DBATUpdated();
+  mmu.IBATUpdated();
 
   SetupFifo();
   LoadRegisters();
@@ -713,12 +715,12 @@ void FifoPlayer::LoadTextureMemory()
 
 void FifoPlayer::WriteCP(u32 address, u16 value)
 {
-  PowerPC::Write_U16(value, 0xCC000000 | address);
+  Core::System::GetInstance().GetMMU().Write_U16(value, 0xCC000000 | address);
 }
 
 void FifoPlayer::WritePI(u32 address, u32 value)
 {
-  PowerPC::Write_U32(value, 0xCC003000 | address);
+  Core::System::GetInstance().GetMMU().Write_U32(value, 0xCC003000 | address);
 }
 
 void FifoPlayer::FlushWGP()
@@ -823,13 +825,13 @@ bool FifoPlayer::ShouldLoadXF(u8 reg)
 bool FifoPlayer::IsIdleSet()
 {
   CommandProcessor::UCPStatusReg status =
-      PowerPC::Read_U16(0xCC000000 | CommandProcessor::STATUS_REGISTER);
+      Core::System::GetInstance().GetMMU().Read_U16(0xCC000000 | CommandProcessor::STATUS_REGISTER);
   return status.CommandIdle;
 }
 
 bool FifoPlayer::IsHighWatermarkSet()
 {
   CommandProcessor::UCPStatusReg status =
-      PowerPC::Read_U16(0xCC000000 | CommandProcessor::STATUS_REGISTER);
+      Core::System::GetInstance().GetMMU().Read_U16(0xCC000000 | CommandProcessor::STATUS_REGISTER);
   return status.OverflowHiWatermark;
 }

@@ -245,17 +245,22 @@ static void ApplyPatches(const Core::CPUThreadGuard& guard, const std::vector<Pa
         switch (entry.type)
         {
         case PatchType::Patch8Bit:
-          if (!entry.conditional || PowerPC::HostRead_U8(guard, addr) == static_cast<u8>(comparand))
-            PowerPC::HostWrite_U8(guard, static_cast<u8>(value), addr);
+          if (!entry.conditional ||
+              PowerPC::MMU::HostRead_U8(guard, addr) == static_cast<u8>(comparand))
+          {
+            PowerPC::MMU::HostWrite_U8(guard, static_cast<u8>(value), addr);
+          }
           break;
         case PatchType::Patch16Bit:
           if (!entry.conditional ||
-              PowerPC::HostRead_U16(guard, addr) == static_cast<u16>(comparand))
-            PowerPC::HostWrite_U16(guard, static_cast<u16>(value), addr);
+              PowerPC::MMU::HostRead_U16(guard, addr) == static_cast<u16>(comparand))
+          {
+            PowerPC::MMU::HostWrite_U16(guard, static_cast<u16>(value), addr);
+          }
           break;
         case PatchType::Patch32Bit:
-          if (!entry.conditional || PowerPC::HostRead_U32(guard, addr) == comparand)
-            PowerPC::HostWrite_U32(guard, value, addr);
+          if (!entry.conditional || PowerPC::MMU::HostRead_U32(guard, addr) == comparand)
+            PowerPC::MMU::HostWrite_U32(guard, value, addr);
           break;
         default:
           // unknown patchtype
@@ -288,19 +293,19 @@ static bool IsStackValid(const Core::CPUThreadGuard& guard)
 
   // Check the stack pointer
   u32 SP = ppc_state.gpr[1];
-  if (!PowerPC::HostIsRAMAddress(guard, SP))
+  if (!PowerPC::MMU::HostIsRAMAddress(guard, SP))
     return false;
 
   // Read the frame pointer from the stack (find 2nd frame from top), assert that it makes sense
-  u32 next_SP = PowerPC::HostRead_U32(guard, SP);
-  if (next_SP <= SP || !PowerPC::HostIsRAMAddress(guard, next_SP) ||
-      !PowerPC::HostIsRAMAddress(guard, next_SP + 4))
+  u32 next_SP = PowerPC::MMU::HostRead_U32(guard, SP);
+  if (next_SP <= SP || !PowerPC::MMU::HostIsRAMAddress(guard, next_SP) ||
+      !PowerPC::MMU::HostIsRAMAddress(guard, next_SP + 4))
     return false;
 
   // Check the link register makes sense (that it points to a valid IBAT address)
-  const u32 address = PowerPC::HostRead_U32(guard, next_SP + 4);
-  return PowerPC::HostIsInstructionRAMAddress(guard, address) &&
-         0 != PowerPC::HostRead_Instruction(guard, address);
+  const u32 address = PowerPC::MMU::HostRead_U32(guard, next_SP + 4);
+  return PowerPC::MMU::HostIsInstructionRAMAddress(guard, address) &&
+         0 != PowerPC::MMU::HostRead_Instruction(guard, address);
 }
 
 void AddMemoryPatch(std::size_t index)

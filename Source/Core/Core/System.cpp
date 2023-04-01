@@ -40,8 +40,9 @@ struct System::Impl
   explicit Impl(System& system)
       : m_audio_interface(system), m_core_timing(system), m_dsp(system), m_dvd_interface(system),
         m_dvd_thread(system), m_expansion_interface(system), m_gp_fifo(system), m_memory(system),
-        m_ppc_state(PowerPC::ppcState), m_processor_interface(system), m_serial_interface(system),
-        m_video_interface(system), m_interpreter(system, m_ppc_state), m_jit_interface(system)
+        m_ppc_state(PowerPC::ppcState), m_mmu(system, m_memory, m_ppc_state),
+        m_processor_interface(system), m_serial_interface(system), m_video_interface(system),
+        m_interpreter(system, m_ppc_state, m_mmu), m_jit_interface(system)
   {
   }
 
@@ -67,6 +68,7 @@ struct System::Impl
   PixelEngine::PixelEngineManager m_pixel_engine;
   PixelShaderManager m_pixel_shader_manager;
   PowerPC::PowerPCState& m_ppc_state;
+  PowerPC::MMU m_mmu;
   ProcessorInterface::ProcessorInterfaceManager m_processor_interface;
   SerialInterface::SerialInterfaceManager m_serial_interface;
   Sram m_sram;
@@ -202,6 +204,11 @@ Memory::MemoryManager& System::GetMemory() const
 MemoryInterface::MemoryInterfaceManager& System::GetMemoryInterface() const
 {
   return m_impl->m_memory_interface;
+}
+
+PowerPC::MMU& System::GetMMU() const
+{
+  return m_impl->m_mmu;
 }
 
 PixelEngine::PixelEngineManager& System::GetPixelEngine() const

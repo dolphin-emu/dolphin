@@ -41,7 +41,7 @@ void AddAutoBreakpoints()
 // Returns true if the address is not a valid RAM address or NULL.
 static bool IsStackBottom(const Core::CPUThreadGuard& guard, u32 addr)
 {
-  return !addr || !PowerPC::HostIsRAMAddress(guard, addr);
+  return !addr || !PowerPC::MMU::HostIsRAMAddress(guard, addr);
 }
 
 static void WalkTheStack(Core::System& system, const Core::CPUThreadGuard& guard,
@@ -51,18 +51,18 @@ static void WalkTheStack(Core::System& system, const Core::CPUThreadGuard& guard
 
   if (!IsStackBottom(guard, ppc_state.gpr[1]))
   {
-    u32 addr = PowerPC::HostRead_U32(guard, ppc_state.gpr[1]);  // SP
+    u32 addr = PowerPC::MMU::HostRead_U32(guard, ppc_state.gpr[1]);  // SP
 
     // Walk the stack chain
     for (int count = 0; !IsStackBottom(guard, addr + 4) && (count++ < 20); ++count)
     {
-      u32 func_addr = PowerPC::HostRead_U32(guard, addr + 4);
+      u32 func_addr = PowerPC::MMU::HostRead_U32(guard, addr + 4);
       stack_step(func_addr);
 
       if (IsStackBottom(guard, addr))
         break;
 
-      addr = PowerPC::HostRead_U32(guard, addr);
+      addr = PowerPC::MMU::HostRead_U32(guard, addr);
     }
   }
 }
@@ -75,7 +75,7 @@ bool GetCallstack(Core::System& system, const Core::CPUThreadGuard& guard,
 {
   auto& ppc_state = system.GetPPCState();
 
-  if (!Core::IsRunning() || !PowerPC::HostIsRAMAddress(guard, ppc_state.gpr[1]))
+  if (!Core::IsRunning() || !PowerPC::MMU::HostIsRAMAddress(guard, ppc_state.gpr[1]))
     return false;
 
   if (LR(ppc_state) == 0)

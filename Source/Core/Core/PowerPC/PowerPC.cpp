@@ -146,8 +146,10 @@ void DoState(PointerWrap& p)
     }
 
     RoundingModeUpdated();
-    IBATUpdated();
-    DBATUpdated();
+
+    auto& mmu = Core::System::GetInstance().GetMMU();
+    mmu.IBATUpdated();
+    mmu.DBATUpdated();
   }
 
   // SystemTimers::DecrementerSet();
@@ -202,8 +204,10 @@ static void ResetRegisters()
   ppcState.SetXER({});
 
   RoundingModeUpdated();
-  DBATUpdated();
-  IBATUpdated();
+
+  auto& mmu = Core::System::GetInstance().GetMMU();
+  mmu.DBATUpdated();
+  mmu.IBATUpdated();
 
   TL(PowerPC::ppcState) = 0;
   TU(PowerPC::ppcState) = 0;

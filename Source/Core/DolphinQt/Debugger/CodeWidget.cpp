@@ -463,7 +463,7 @@ void CodeWidget::StepOver()
 
   const UGeckoInstruction inst = [&] {
     Core::CPUThreadGuard guard(system);
-    return PowerPC::HostRead_Instruction(guard, PowerPC::ppcState.pc);
+    return PowerPC::MMU::HostRead_Instruction(guard, PowerPC::ppcState.pc);
   }();
 
   if (inst.LK)
@@ -516,7 +516,7 @@ void CodeWidget::StepOut()
     // Loop until either the current instruction is a return instruction with no Link flag
     // or a breakpoint is detected so it can step at the breakpoint. If the PC is currently
     // on a breakpoint, skip it.
-    UGeckoInstruction inst = PowerPC::HostRead_Instruction(guard, PowerPC::ppcState.pc);
+    UGeckoInstruction inst = PowerPC::MMU::HostRead_Instruction(guard, PowerPC::ppcState.pc);
     do
     {
       if (WillInstructionReturn(inst))
@@ -540,7 +540,7 @@ void CodeWidget::StepOut()
         PowerPC::SingleStep();
       }
 
-      inst = PowerPC::HostRead_Instruction(guard, PowerPC::ppcState.pc);
+      inst = PowerPC::MMU::HostRead_Instruction(guard, PowerPC::ppcState.pc);
     } while (clock::now() < timeout &&
              !PowerPC::breakpoints.IsAddressBreakPoint(PowerPC::ppcState.pc));
 

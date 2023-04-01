@@ -84,43 +84,43 @@ struct EffectiveAddressSpaceAccessors : Accessors
 {
   bool IsValidAddress(const Core::CPUThreadGuard& guard, u32 address) const override
   {
-    return PowerPC::HostIsRAMAddress(guard, address);
+    return PowerPC::MMU::HostIsRAMAddress(guard, address);
   }
   u8 ReadU8(const Core::CPUThreadGuard& guard, u32 address) const override
   {
-    return PowerPC::HostRead_U8(guard, address);
+    return PowerPC::MMU::HostRead_U8(guard, address);
   }
   void WriteU8(const Core::CPUThreadGuard& guard, u32 address, u8 value) override
   {
-    PowerPC::HostWrite_U8(guard, value, address);
+    PowerPC::MMU::HostWrite_U8(guard, value, address);
   }
   u16 ReadU16(const Core::CPUThreadGuard& guard, u32 address) const override
   {
-    return PowerPC::HostRead_U16(guard, address);
+    return PowerPC::MMU::HostRead_U16(guard, address);
   }
   void WriteU16(const Core::CPUThreadGuard& guard, u32 address, u16 value) override
   {
-    PowerPC::HostWrite_U16(guard, value, address);
+    PowerPC::MMU::HostWrite_U16(guard, value, address);
   }
   u32 ReadU32(const Core::CPUThreadGuard& guard, u32 address) const override
   {
-    return PowerPC::HostRead_U32(guard, address);
+    return PowerPC::MMU::HostRead_U32(guard, address);
   }
   void WriteU32(const Core::CPUThreadGuard& guard, u32 address, u32 value) override
   {
-    PowerPC::HostWrite_U32(guard, value, address);
+    PowerPC::MMU::HostWrite_U32(guard, value, address);
   }
   u64 ReadU64(const Core::CPUThreadGuard& guard, u32 address) const override
   {
-    return PowerPC::HostRead_U64(guard, address);
+    return PowerPC::MMU::HostRead_U64(guard, address);
   }
   void WriteU64(const Core::CPUThreadGuard& guard, u32 address, u64 value) override
   {
-    PowerPC::HostWrite_U64(guard, value, address);
+    PowerPC::MMU::HostWrite_U64(guard, value, address);
   }
   float ReadF32(const Core::CPUThreadGuard& guard, u32 address) const override
   {
-    return PowerPC::HostRead_F32(guard, address);
+    return PowerPC::MMU::HostRead_F32(guard, address);
   };
 
   bool Matches(const Core::CPUThreadGuard& guard, u32 haystack_start, const u8* needle_start,
@@ -128,16 +128,17 @@ struct EffectiveAddressSpaceAccessors : Accessors
   {
     auto& system = guard.GetSystem();
     auto& memory = system.GetMemory();
+    auto& mmu = system.GetMMU();
 
     u32 page_base = haystack_start & 0xfffff000;
     u32 offset = haystack_start & 0x0000fff;
     do
     {
-      if (!PowerPC::HostIsRAMAddress(guard, page_base))
+      if (!PowerPC::MMU::HostIsRAMAddress(guard, page_base))
       {
         return false;
       }
-      auto page_physical_address = PowerPC::GetTranslatedAddress(page_base);
+      auto page_physical_address = mmu.GetTranslatedAddress(page_base);
       if (!page_physical_address.has_value())
       {
         return false;
@@ -184,7 +185,7 @@ struct EffectiveAddressSpaceAccessors : Accessors
     const u32 haystack_offset_change = forward ? 1 : -1;
     do
     {
-      if (PowerPC::HostIsRAMAddress(guard, haystack_address))
+      if (PowerPC::MMU::HostIsRAMAddress(guard, haystack_address))
       {
         do
         {

@@ -72,8 +72,9 @@ class PixelEngineManager;
 };
 namespace PowerPC
 {
+class MMU;
 struct PowerPCState;
-}
+}  // namespace PowerPC
 namespace ProcessorInterface
 {
 class ProcessorInterfaceManager;
@@ -138,6 +139,7 @@ public:
   IOS::HLE::USB::SkylanderPortal& GetSkylanderPortal() const;
   Memory::MemoryManager& GetMemory() const;
   MemoryInterface::MemoryInterfaceManager& GetMemoryInterface() const;
+  PowerPC::MMU& GetMMU() const;
   PixelEngine::PixelEngineManager& GetPixelEngine() const;
   PixelShaderManager& GetPixelShaderManager() const;
   PowerPC::PowerPCState& GetPPCState() const;

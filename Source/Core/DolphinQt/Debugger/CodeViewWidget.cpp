@@ -987,10 +987,11 @@ void CodeViewWidget::OnReplaceInstruction()
 
   const u32 addr = GetContextAddress();
 
-  if (!PowerPC::HostIsInstructionRAMAddress(guard, addr))
+  if (!PowerPC::MMU::HostIsInstructionRAMAddress(guard, addr))
     return;
 
-  const PowerPC::TryReadInstResult read_result = PowerPC::TryReadInstruction(addr);
+  const PowerPC::TryReadInstResult read_result =
+      guard.GetSystem().GetMMU().TryReadInstruction(addr);
   if (!read_result.valid)
     return;
 

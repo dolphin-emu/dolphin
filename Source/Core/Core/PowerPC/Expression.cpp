@@ -31,49 +31,49 @@ static void HostWrite(const Core::CPUThreadGuard& guard, T var, u32 address);
 template <>
 u8 HostRead(const Core::CPUThreadGuard& guard, u32 address)
 {
-  return PowerPC::HostRead_U8(guard, address);
+  return PowerPC::MMU::HostRead_U8(guard, address);
 }
 
 template <>
 u16 HostRead(const Core::CPUThreadGuard& guard, u32 address)
 {
-  return PowerPC::HostRead_U16(guard, address);
+  return PowerPC::MMU::HostRead_U16(guard, address);
 }
 
 template <>
 u32 HostRead(const Core::CPUThreadGuard& guard, u32 address)
 {
-  return PowerPC::HostRead_U32(guard, address);
+  return PowerPC::MMU::HostRead_U32(guard, address);
 }
 
 template <>
 u64 HostRead(const Core::CPUThreadGuard& guard, u32 address)
 {
-  return PowerPC::HostRead_U64(guard, address);
+  return PowerPC::MMU::HostRead_U64(guard, address);
 }
 
 template <>
 void HostWrite(const Core::CPUThreadGuard& guard, u8 var, u32 address)
 {
-  PowerPC::HostWrite_U8(guard, var, address);
+  PowerPC::MMU::HostWrite_U8(guard, var, address);
 }
 
 template <>
 void HostWrite(const Core::CPUThreadGuard& guard, u16 var, u32 address)
 {
-  PowerPC::HostWrite_U16(guard, var, address);
+  PowerPC::MMU::HostWrite_U16(guard, var, address);
 }
 
 template <>
 void HostWrite(const Core::CPUThreadGuard& guard, u32 var, u32 address)
 {
-  PowerPC::HostWrite_U32(guard, var, address);
+  PowerPC::MMU::HostWrite_U32(guard, var, address);
 }
 
 template <>
 void HostWrite(const Core::CPUThreadGuard& guard, u64 var, u32 address)
 {
-  PowerPC::HostWrite_U64(guard, var, address);
+  PowerPC::MMU::HostWrite_U64(guard, var, address);
 }
 
 template <typename T, typename U = T>
@@ -146,7 +146,7 @@ static std::optional<std::string> ReadStringArg(const Core::CPUThreadGuard& guar
   if (!std::isnan(num))
   {
     u32 address = static_cast<u32>(num);
-    return PowerPC::HostGetString(guard, address);
+    return PowerPC::MMU::HostGetString(guard, address);
   }
 
   const char* cstr = expr_get_str(e);

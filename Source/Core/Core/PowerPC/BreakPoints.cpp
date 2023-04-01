@@ -280,7 +280,7 @@ void MemChecks::Add(TMemCheck memory_check)
     // watchpoint-compatible code.
     if (!had_any)
       Core::System::GetInstance().GetJitInterface().ClearCache();
-    PowerPC::DBATUpdated();
+    Core::System::GetInstance().GetMMU().DBATUpdated();
   });
 }
 
@@ -309,7 +309,7 @@ void MemChecks::Remove(u32 address)
     m_mem_checks.erase(iter);
     if (!HasAny())
       Core::System::GetInstance().GetJitInterface().ClearCache();
-    PowerPC::DBATUpdated();
+    Core::System::GetInstance().GetMMU().DBATUpdated();
   });
 }
 
@@ -318,7 +318,7 @@ void MemChecks::Clear()
   Core::RunAsCPUThread([&] {
     m_mem_checks.clear();
     Core::System::GetInstance().GetJitInterface().ClearCache();
-    PowerPC::DBATUpdated();
+    Core::System::GetInstance().GetMMU().DBATUpdated();
   });
 }
 

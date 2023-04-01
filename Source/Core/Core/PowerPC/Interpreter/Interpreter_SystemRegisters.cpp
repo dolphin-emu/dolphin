@@ -379,8 +379,8 @@ void Interpreter::mtspr(Interpreter& interpreter, UGeckoInstruction inst)
     if (old_value != ppc_state.spr[index])
     {
       INFO_LOG_FMT(POWERPC, "HID4 updated {:x} {:x}", old_value, ppc_state.spr[index]);
-      PowerPC::IBATUpdated();
-      PowerPC::DBATUpdated();
+      interpreter.m_mmu.IBATUpdated();
+      interpreter.m_mmu.DBATUpdated();
     }
     break;
 
@@ -414,9 +414,9 @@ void Interpreter::mtspr(Interpreter& interpreter, UGeckoInstruction inst)
       if (length == 0)
         length = 128;
       if (DMAL(ppc_state).DMA_LD)
-        PowerPC::DMA_MemoryToLC(cache_address, mem_address, length);
+        interpreter.m_mmu.DMA_MemoryToLC(cache_address, mem_address, length);
       else
-        PowerPC::DMA_LCToMemory(mem_address, cache_address, length);
+        interpreter.m_mmu.DMA_LCToMemory(mem_address, cache_address, length);
     }
     DMAL(ppc_state).DMA_T = 0;
     break;
@@ -436,7 +436,7 @@ void Interpreter::mtspr(Interpreter& interpreter, UGeckoInstruction inst)
 
   // Page table base etc
   case SPR_SDR:
-    PowerPC::SDRUpdated();
+    interpreter.m_mmu.SDRUpdated();
     break;
 
   case SPR_XER:
@@ -462,7 +462,7 @@ void Interpreter::mtspr(Interpreter& interpreter, UGeckoInstruction inst)
     if (old_value != ppc_state.spr[index])
     {
       INFO_LOG_FMT(POWERPC, "DBAT updated {} {:x} {:x}", index, old_value, ppc_state.spr[index]);
-      PowerPC::DBATUpdated();
+      interpreter.m_mmu.DBATUpdated();
     }
     break;
 
@@ -485,7 +485,7 @@ void Interpreter::mtspr(Interpreter& interpreter, UGeckoInstruction inst)
     if (old_value != ppc_state.spr[index])
     {
       INFO_LOG_FMT(POWERPC, "IBAT updated {} {:x} {:x}", index, old_value, ppc_state.spr[index]);
-      PowerPC::IBATUpdated();
+      interpreter.m_mmu.IBATUpdated();
     }
     break;
 
