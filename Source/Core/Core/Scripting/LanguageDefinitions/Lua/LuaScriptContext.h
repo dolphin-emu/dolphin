@@ -137,14 +137,14 @@ public:
       : ScriptContext(new_unique_script_identifier, new_script_filename,
                       new_pointer_to_list_of_all_scripts, new_print_callback, new_script_end_callback)
   {
-    number_of_frame_callbacks_to_auto_deregister = 0;
-    number_of_gc_controller_input_callbacks_to_auto_deregister = 0;
-    number_of_wii_input_callbacks_to_auto_deregister = 0;
-    number_of_instruction_address_callbacks_to_auto_deregister = 0;
-    number_of_memory_address_read_callbacks_to_auto_deregister = 0;
-    number_of_memory_address_write_callbacks_to_auto_deregister = 0;
+    this->number_of_frame_callbacks_to_auto_deregister = 0;
+    this->number_of_gc_controller_input_callbacks_to_auto_deregister = 0;
+    this->number_of_wii_input_callbacks_to_auto_deregister = 0;
+    this->number_of_instruction_address_callbacks_to_auto_deregister = 0;
+    this->number_of_memory_address_read_callbacks_to_auto_deregister = 0;
+    this->number_of_memory_address_write_callbacks_to_auto_deregister = 0;
 
-    index_of_next_frame_callback_to_execute = 0;
+    this->index_of_next_frame_callback_to_execute = 0;
 
     const std::lock_guard<std::mutex> lock(script_specific_lock);
     current_script_call_location = ScriptCallLocations::FromScriptStartup;

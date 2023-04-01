@@ -46,7 +46,7 @@ static PyThreadState* original_python_thread = nullptr;
 static std::string error_buffer_str;
 
 
-int getNumberOfCallbacksInMap(std::unordered_map<size_t, std::vector<PyObject*>>& input_map)
+int getNumberOfCallbacksInMap(std::unordered_map<size_t, std::vector<PythonScriptContext::IdentifierToCallback>>& input_map)
 {
   int return_val = 0;
   for (auto& element : input_map)
@@ -121,7 +121,16 @@ PythonScriptContext::PythonScriptContext(
 {
   const std::lock_guard<std::mutex> lock(script_specific_lock);
   error_buffer_str = "";
-  list_of_imported_modules = std::vector<PyObject*>();
+
+  this->number_of_frame_callbacks_to_auto_deregister = 0;
+  this->number_of_gc_controller_input_callbacks_to_auto_deregister = 0;
+  this->number_of_wii_input_callbacks_to_auto_deregister = 0;
+  this->number_of_instruction_address_callbacks_to_auto_deregister = 0;
+  this->number_of_memory_address_read_callbacks_to_auto_deregister = 0;
+  this->number_of_memory_address_write_callbacks_to_auto_deregister = 0;
+
+  this->next_unique_identifier_for_callback = 1;
+
   if (!python_initialized)
   {
     PyImport_AppendInittab(THIS_MODULE_NAME, PyInit_ThisPointerModule);
@@ -527,7 +536,7 @@ PyObject* PythonScriptContext::RunFunction(PyObject* self, PyObject* args, std::
            CreateRegistrationWithAutoDeregistrationInputTypeArgHolder((*((void**)(&current_item)))));
        break;
     case ArgTypeEnum::UnregistrationInputType:
-       arguments_list.push_back(CreateUnregistrationInputTypeArgHolder(*((void**)(&current_item))));
+       arguments_list.push_back(CreateUnregistrationInputTypeArgHolder((void*)PyLong_AsUnsignedLongLong(current_item)));
        break;
     default:
      return HandleError(class_name.c_str(), &functionMetadata, true, "Argument type not supported yet!");
@@ -695,11 +704,11 @@ PyObject* PythonScriptContext::RunFunction(PyObject* self, PyObject* args, std::
     return return_dictionary_object;
 
     case ArgTypeEnum::RegistrationReturnType:
-    if (PyErr_Occurred())
-    {
-      break;
-    }
-      return (*((PyObject**)&(return_value.void_pointer_val)));
+      if (PyErr_Occurred())
+      {
+        break;
+      }
+      return Py_BuildValue("K", static_cast<unsigned long long>(*((size_t*) &return_value.void_pointer_val)));
     case ArgTypeEnum::RegistrationWithAutoDeregistrationReturnType:
     case ArgTypeEnum::UnregistrationReturnType:
       Py_INCREF(Py_None);
@@ -744,7 +753,7 @@ void PythonScriptContext::RunGlobalScopeCode()
   return; // python scripts can't run on the global scope - except for when a script is started for the very first time, which is handld in the StartScript function above
 }
 
-void PythonScriptContext::RunCallbacksForVector(std::vector<PyObject*>& callback_list)
+void PythonScriptContext::RunCallbacksForVector(std::vector<PythonScriptContext::IdentifierToCallback>& callback_list)
 {
   if (ShouldCallEndScriptFunction())
   {
@@ -760,7 +769,7 @@ void PythonScriptContext::RunCallbacksForVector(std::vector<PyObject*>& callback
 
   for (int i = 0; i < callback_list.size(); ++i)
   {
-   PyObject* func = callback_list[i];
+   PyObject* func = callback_list[i].callback;
    Py_INCREF(func);
    PyObject* return_value = PyObject_CallFunction(func, nullptr);
    Py_DECREF(func);
@@ -771,7 +780,7 @@ void PythonScriptContext::RunCallbacksForVector(std::vector<PyObject*>& callback
   this->RunEndOfIteraionTasks();
   PyEval_ReleaseThread(main_python_thread);
 }
-void PythonScriptContext::RunCallbacksForMap(std::unordered_map<size_t, std::vector<PyObject*>>& map_of_callbacks, size_t current_address)
+void PythonScriptContext::RunCallbacksForMap(std::unordered_map<size_t, std::vector<PythonScriptContext::IdentifierToCallback>>& map_of_callbacks, size_t current_address)
 {
   if (ShouldCallEndScriptFunction())
   {
@@ -786,14 +795,14 @@ void PythonScriptContext::RunCallbacksForMap(std::unordered_map<size_t, std::vec
   if (map_of_callbacks.count(current_address) == 0)
    return;
 
-  std::vector<PyObject*>* callbacks_for_address = &map_of_callbacks[current_address];
+  std::vector<PythonScriptContext::IdentifierToCallback>* callbacks_for_address = &map_of_callbacks[current_address];
 
   if (callbacks_for_address == nullptr || callbacks_for_address->empty())
    return;
 
   for (int i = 0; i < callbacks_for_address->size(); ++i)
   {
-   PyObject* func = (*callbacks_for_address)[i];
+   PyObject* func = (*callbacks_for_address)[i].callback;
    Py_IncRef(func);
    PyObject* return_value = PyObject_CallFunction(func, nullptr);
    Py_DECREF(func);
@@ -805,9 +814,11 @@ void PythonScriptContext::RunCallbacksForMap(std::unordered_map<size_t, std::vec
   PyEval_ReleaseThread(main_python_thread);
 }
 
-void* PythonScriptContext::RegisterForVectorHelper(std::vector<PyObject*>& callback_list,
-                                                  void* callback)
+void* PythonScriptContext::RegisterForVectorHelper(std::vector<PythonScriptContext::IdentifierToCallback>& callback_list,
+                                                  void* callback) // in this case, callback is of type PyObject*
+  //return value of function is the identifier of the callback (as size_t, but wrapped as a void* for the generic API)
 {
+  size_t return_result = 0;
   PyObject* func = *((PyObject**)&callback);
   if (func == nullptr || !PyCallable_Check(func))
     HandleError(nullptr, nullptr, false,
@@ -816,14 +827,16 @@ void* PythonScriptContext::RegisterForVectorHelper(std::vector<PyObject*>& callb
   else
   {
    Py_INCREF(func);
-   callback_list.push_back(func);
+   callback_list.push_back({this->next_unique_identifier_for_callback, func});
+   return_result = this->next_unique_identifier_for_callback;
+   ++this->next_unique_identifier_for_callback;
   }
-  return callback;
+  return *((void**)(&return_result));
  }
 
 void PythonScriptContext::RegisterForVectorWithAutoDeregistrationHelper(
-    std::vector<PyObject*>& callback_list, void* callback,
-     std::atomic<size_t>& number_of_callbacks_to_auto_deregister)
+    std::vector<PythonScriptContext::IdentifierToCallback>& callback_list, void* callback,
+     std::atomic<size_t>& number_of_callbacks_to_auto_deregister) // in this case, callback is of type PyObject*
 {
   PyObject* func = *((PyObject**)&callback);
   if (func == nullptr || !PyCallable_Check(func))
@@ -833,36 +846,52 @@ void PythonScriptContext::RegisterForVectorWithAutoDeregistrationHelper(
   else
   {
     Py_INCREF(func);
-    callback_list.push_back(func);
+    callback_list.push_back({0, func});
     ++number_of_callbacks_to_auto_deregister;
   }
 }
 
-bool PythonScriptContext::UnregisterForVectorHelper(std::vector<PyObject*>& callback_list,
-                                                    void* callback)
+bool PythonScriptContext::UnregisterForVectorHelper(std::vector<PythonScriptContext::IdentifierToCallback>& callback_list,
+                                                    void* callback) // In this case, callback is of type size_t, which refers to the identifier associated with the callback to unregister
+// returns true if attempt to unregister succeded, and false otherwise
 {
-  PyObject* func = *((PyObject**)&callback);
-  if (func == nullptr || !PyCallable_Check(func))
+  size_t callback_identifier = *((size_t*)&callback);
+  size_t list_size = callback_list.size();
+  for (size_t i = 0; i < list_size; ++i)
   {
-    HandleError(
-        nullptr, nullptr, false,
-        "Attempted to pass a non-callable function as an argument to the unregister function!");
-    return false;
+    if (callback_list[i].identifier == callback_identifier)
+    {
+      if (callback_identifier == 0)
+      {
+        HandleError(
+            nullptr, nullptr, false,
+            "User attempted to de-register a callback that was registered with auto-deregistration "
+            "enabled. These callbacks all have 0 as their unique identifir, and the user is not "
+            "allowed to manually unregister them. They are handled automatically by the "
+            "application when no other auto-deregister callbacks are left to run!");
+        return false;
+      }
+      PyObject* func = callback_list[i].callback;
+      if (func == nullptr || !PyCallable_Check(func))
+      {
+        HandleError(nullptr, nullptr, false, "Callback associated with identifier was not a callable function!");
+        return false;
+      }
+      Py_DECREF(func);
+      callback_list.erase(callback_list.begin() + i);
+      return true;
+    }
   }
-  if (std::find(callback_list.begin(), callback_list.end(), func) == callback_list.end())
-  {
-    HandleError(nullptr, nullptr, false,
-                "Attempted to unregister a function which wasn't registered!");
-    return false;
-  }
-  Py_DECREF(func);
-  callback_list.erase(std::find(callback_list.begin(), callback_list.end(), func));
-  return true;
+
+  HandleError(nullptr, nullptr, false, fmt::format("Callback with identifier {} was not found!", callback_identifier));
+  return false;
 }
 
 void* PythonScriptContext::RegisterForMapHelper(size_t address,
-                           std::unordered_map<size_t, std::vector<PyObject*>>& map_of_callbacks, void* callbacks)
+                           std::unordered_map<size_t, std::vector<PythonScriptContext::IdentifierToCallback>>& map_of_callbacks, void* callbacks) // callbacks is of type PyObject* here
+// return value of function is identifier of the callback (as a size_t, but wrapped as a void* for the generic API)
 {
+  size_t return_result = 0;
   PyObject* func = *((PyObject**)&callbacks);
   if (func == nullptr || !PyCallable_Check(func))
   {
@@ -872,15 +901,17 @@ void* PythonScriptContext::RegisterForMapHelper(size_t address,
   else
   {
     if (map_of_callbacks.count(address) == 0)
-      map_of_callbacks[address] = std::vector<PyObject*>();
+      map_of_callbacks[address] = std::vector<IdentifierToCallback>();
     Py_INCREF(func);
-    map_of_callbacks[address].push_back(func);
-    return callbacks;
+    map_of_callbacks[address].push_back({this->next_unique_identifier_for_callback, func});
+    return_result = this->next_unique_identifier_for_callback;
+    ++this->next_unique_identifier_for_callback;
+    return *((void**)(&return_result));
   }
 }
 
 void PythonScriptContext::RegisterForMapWithAutoDeregistrationHelper(
-    size_t address, std::unordered_map<size_t, std::vector<PyObject*>>& map_of_callbacks, void* callbacks, std::atomic<size_t>& number_of_auto_deregistration_callbacks)
+    size_t address, std::unordered_map<size_t, std::vector<PythonScriptContext::IdentifierToCallback>>& map_of_callbacks, void* callbacks, std::atomic<size_t>& number_of_auto_deregistration_callbacks) // callbacks is of type PyObject* here
 {
   PyObject* func = *((PyObject**)&callbacks);
   if (func == nullptr || !PyCallable_Check(func))
@@ -891,45 +922,61 @@ void PythonScriptContext::RegisterForMapWithAutoDeregistrationHelper(
   else
   {
     if (map_of_callbacks.count(address) == 0)
-      map_of_callbacks[address] = std::vector<PyObject*>();
+      map_of_callbacks[address] = std::vector<PythonScriptContext::IdentifierToCallback>();
     Py_INCREF(func);
-    map_of_callbacks[address].push_back(func);
+    map_of_callbacks[address].push_back({0, func});
     ++number_of_auto_deregistration_callbacks;
   }
 }
 
 bool PythonScriptContext::UnregisterForMapHelper(size_t address,
-                            std::unordered_map<size_t, std::vector<PyObject*>>& map_of_callbacks,
-                            void* callbacks)
+                            std::unordered_map<size_t, std::vector<PythonScriptContext::IdentifierToCallback>>& map_of_callbacks,
+                            void* callback) // In this case, callback is of type size_t, which refers to the identifier associated with the callback to unregister
+// Returns true if attempt to unregister callback suceeded, and false otherwise.
 {
-  PyObject* func = *((PyObject**)&callbacks);
-  if (func == nullptr || !PyCallable_Check(func))
-  {
-    HandleError(nullptr, nullptr, false, "Attempted to unregister an invalid function!");
-    return false;
-  }
-  else
-  {
+  size_t identifier_to_unregister = *((size_t*)(&callback));
     if (map_of_callbacks.count(address) == 0)
     {
       HandleError(nullptr, nullptr, false,
                   "Attempted to unregister a function which was not registered!");
       return false;
     }
-    std::vector<PyObject*>* reference_to_vector = &map_of_callbacks[address];
-    if (std::find(reference_to_vector->begin(), reference_to_vector->end(), func) ==
-        reference_to_vector->end())
+    std::vector<PythonScriptContext::IdentifierToCallback>* reference_to_vector = &map_of_callbacks[address];
+    size_t vector_size = reference_to_vector->size();
+    for (size_t i = 0; i < vector_size; ++i)
     {
-      HandleError(nullptr, nullptr, false,
-                  "Attmpted to unregister a function which was not registered!");
-      return false;
-    }
-    Py_DECREF(func);
-    reference_to_vector->erase(
-        std::find(reference_to_vector->begin(), reference_to_vector->end(), func));
-    return true;
+      size_t current_identifier = (*reference_to_vector)[i].identifier;
+      PyObject* current_func = (*reference_to_vector)[i].callback;
 
-  }
+      if (identifier_to_unregister == current_identifier)
+      {
+        if (current_func == nullptr || !PyCallable_Check(current_func))
+        {
+          HandleError(nullptr, nullptr, false, "Attempted to unregister an invalid function!");
+          return false;
+        }
+
+        if (identifier_to_unregister == 0)
+        {
+          HandleError(
+              nullptr, nullptr, false,
+              "User attempted to de-register a callback that was registered with "
+              "auto-deregistration "
+              "enabled. These callbacks all have 0 as their unique identifir, and the user is not "
+              "allowed to manually unregister them. They are handled automatically by the "
+              "application when no other auto-deregister callbacks are left to run!");
+          return false;
+        }
+        Py_DECREF(current_func);
+        reference_to_vector->erase(reference_to_vector->begin() + i);
+        return true;
+      }
+
+    }
+
+   HandleError(nullptr, nullptr, false, "Attmpted to unregister a function which was not registered!");
+   return false;
+
 }
 
 void PythonScriptContext::RunOnFrameStartCallbacks()
@@ -1089,7 +1136,7 @@ void PythonScriptContext::RegisterButtonCallback(long long button_id, void* call
                 "Attempted to register button callback which was not a callable function!");
   else
   {
-    map_of_button_id_to_callback[button_id] = func;
+    map_of_button_id_to_callback[button_id] = {0, func};
   }
 }
 
@@ -1105,8 +1152,7 @@ void PythonScriptContext::GetButtonCallbackAndAddToQueue(long long button_id)
                 "Attempted to press button with an undefined function callback!");
   else
   {
-    PyObject* callback_func = map_of_button_id_to_callback[button_id];
-    button_callbacks_to_run.push(callback_func);
+    button_callbacks_to_run.push(&map_of_button_id_to_callback[button_id]);
   }
 }
 
@@ -1114,11 +1160,11 @@ void PythonScriptContext::RunButtonCallbacksInQueue()
 {
   if (button_callbacks_to_run.IsEmpty())
     return;
-  std::vector<PyObject*> list_of_functions;
+  std::vector<PythonScriptContext::IdentifierToCallback> list_of_functions;
 
   while (!button_callbacks_to_run.IsEmpty())
   {
-    list_of_functions.push_back(button_callbacks_to_run.pop());
+    list_of_functions.push_back(*button_callbacks_to_run.pop());
   }
   this->RunCallbacksForVector(list_of_functions);
 }

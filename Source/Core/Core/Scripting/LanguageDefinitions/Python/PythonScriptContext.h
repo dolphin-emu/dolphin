@@ -21,23 +21,24 @@ class PythonScriptContext : public ScriptContext
 public:
   PyThreadState* main_python_thread;
 
-  std::vector<PyObject*> frame_callbacks;
-  std::vector<PyObject*> gc_controller_input_polled_callbacks;
-  std::vector<PyObject*> wii_controller_input_polled_callbacks;
+  struct IdentifierToCallback
+  {
+    size_t identifier;
+    PyObject* callback;
+  };
+  std::vector<IdentifierToCallback> frame_callbacks;
+  std::vector<IdentifierToCallback> gc_controller_input_polled_callbacks;
+  std::vector<IdentifierToCallback> wii_controller_input_polled_callbacks;
 
-  std::vector<PyObject*> list_of_imported_modules;
-
-  std::unordered_map<size_t, std::vector<PyObject*>> map_of_instruction_address_to_python_callbacks;
-
-  std::unordered_map<size_t, std::vector<PyObject*>>
+  std::unordered_map<size_t, std::vector<IdentifierToCallback>> map_of_instruction_address_to_python_callbacks;
+  std::unordered_map<size_t, std::vector<IdentifierToCallback>>
       map_of_memory_address_read_from_to_python_callbacks;
-
-  std::unordered_map<size_t, std::vector<PyObject*>>
+  std::unordered_map<size_t, std::vector<IdentifierToCallback>>
       map_of_memory_address_written_to_to_python_callbacks;
 
-  std::unordered_map<long long, PyObject*> map_of_button_id_to_callback;
+  std::unordered_map<long long, IdentifierToCallback> map_of_button_id_to_callback;
 
-  ThreadSafeQueue<PyObject*> button_callbacks_to_run;
+  ThreadSafeQueue<IdentifierToCallback*> button_callbacks_to_run;
 
 
   std::atomic<size_t> number_of_frame_callbacks_to_auto_deregister;
@@ -46,6 +47,15 @@ public:
   std::atomic<size_t> number_of_instruction_address_callbacks_to_auto_deregister;
   std::atomic<size_t> number_of_memory_address_read_callbacks_to_auto_deregister;
   std::atomic<size_t> number_of_memory_address_write_callbacks_to_auto_deregister;
+
+  std::atomic<size_t>
+      next_unique_identifier_for_callback;  // When a callback is registered, this is used as the
+                                            // value for it, and is then incremented by 1. Unless of
+                                            // course a registerWithAutoDeregister callback or
+                                            // button callback are registered. When a
+                                            // registerWithAutoDeregister or button callback is
+                                            // registered, it's assigned an identifier of 0 (which
+                                            // the user can't deregister).
 
   bool ShouldCallEndScriptFunction();
 
@@ -105,26 +115,26 @@ public:
 
 private:
   void RunEndOfIteraionTasks();
-  void RunCallbacksForVector(std::vector<PyObject*>& callback_list);
-  void RunCallbacksForMap(std::unordered_map<size_t, std::vector<PyObject*>>& map_of_callbacks,
+  void RunCallbacksForVector(std::vector<IdentifierToCallback>& callback_list);
+  void RunCallbacksForMap(std::unordered_map<size_t, std::vector<IdentifierToCallback>>& map_of_callbacks,
                          size_t current_address);
-  void* RegisterForVectorHelper(std::vector<PyObject*>& callback_list, void* callback);
+  void* RegisterForVectorHelper(std::vector<IdentifierToCallback>& callback_list, void* callback);
   void RegisterForVectorWithAutoDeregistrationHelper(
-      std::vector<PyObject*>& callback_list, void* callback,
+      std::vector<IdentifierToCallback>& callback_list, void* callback,
       std::atomic<size_t>& number_of_callbacks_to_auto_deregister);
-  bool UnregisterForVectorHelper(std::vector<PyObject*>& callback_list, void* callback);
+  bool UnregisterForVectorHelper(std::vector<IdentifierToCallback>& callback_list, void* callback);
 
 
 
 void* RegisterForMapHelper(
-      size_t address, std::unordered_map<size_t, std::vector<PyObject*>>& map_of_callbacks,
+      size_t address, std::unordered_map<size_t, std::vector<IdentifierToCallback>>& map_of_callbacks,
       void* callbacks);
   void RegisterForMapWithAutoDeregistrationHelper(
-      size_t address, std::unordered_map<size_t, std::vector<PyObject*>>& map_of_callbacks,
+      size_t address, std::unordered_map<size_t, std::vector<IdentifierToCallback>>& map_of_callbacks,
       void* callbacks, std::atomic<size_t>& number_of_auto_deregistration_callbacks);
 
   bool UnregisterForMapHelper(size_t address,
-                              std::unordered_map<size_t, std::vector<PyObject*>>& map_of_callbacks,
+                              std::unordered_map<size_t, std::vector<IdentifierToCallback>>& map_of_callbacks,
                               void* callbacks);
 };
 
