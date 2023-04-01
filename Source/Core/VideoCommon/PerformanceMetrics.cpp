@@ -19,6 +19,7 @@ void PerformanceMetrics::Reset()
 {
   m_fps_counter.Reset();
   m_vps_counter.Reset();
+  m_present_counter.Reset();
   m_speed_counter.Reset();
 
   m_time_sleeping = DT::zero();
@@ -34,6 +35,11 @@ void PerformanceMetrics::CountFrame()
 void PerformanceMetrics::CountVBlank()
 {
   m_vps_counter.Count();
+}
+
+void PerformanceMetrics::CountPresent()
+{
+  m_present_counter.Count();
 }
 
 void PerformanceMetrics::CountThrottleSleep(DT sleep)
@@ -178,6 +184,7 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
         ImPlot::SetupLegend(ImPlotLocation_SouthEast, ImPlotLegendFlags_None);
         m_vps_counter.ImPlotPlotLines("V-Blank (ms)");
         m_fps_counter.ImPlotPlotLines("Frame (ms)");
+        m_present_counter.ImPlotPlotLines("Present (ms)");
         ImPlot::EndPlot();
         ImPlot::PopStyleVar(2);
         ImPlot::PopStyleColor(2);

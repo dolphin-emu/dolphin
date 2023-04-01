@@ -11,6 +11,7 @@
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/Constants.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
+#include "VideoBackends/Vulkan/PresentWait.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/VKBoundingBox.h"
 #include "VideoBackends/Vulkan/VKGfx.h"
@@ -225,6 +226,9 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
       Shutdown();
       return false;
     }
+
+    if (g_vulkan_context->SupportsPresentWait())
+      StartPresentWaitThread();
   }
 
   if (!StateTracker::CreateInstance())
@@ -245,6 +249,9 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 
 void VideoBackend::Shutdown()
 {
+  if (g_vulkan_context->SupportsPresentWait())
+    StopPresentWaitThread();
+
   if (g_vulkan_context)
     vkDeviceWaitIdle(g_vulkan_context->GetDevice());
 
