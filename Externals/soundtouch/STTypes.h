@@ -32,37 +32,36 @@
 #ifndef STTypes_H
 #define STTypes_H
 
-typedef unsigned int    uint;
-typedef unsigned long   ulong;
-
-// Patch for MinGW: on Win64 long is 32-bit
-#ifdef _WIN64
-    typedef unsigned long long ulongptr;
-#else
-    typedef ulong ulongptr;
-#endif
-
-
-// Helper macro for aligning pointer up to next 16-byte boundary
-#define SOUNDTOUCH_ALIGN_POINTER_16(x)      ( ( (ulongptr)(x) + 15 ) & ~(ulongptr)15 )
-
-
 #if (defined(__GNUC__) && !defined(ANDROID))
     // In GCC, include soundtouch_config.h made by config scritps.
     // Skip this in Android compilation that uses GCC but without configure scripts.
-    #include "soundtouch_config.h"
+    //#include "soundtouch_config.h"
 #endif
 
 
 namespace soundtouch
 {
+    typedef unsigned int    uint;
+    typedef unsigned long   ulong;
+
+    // Patch for MinGW: on Win64 long is 32-bit
+    #ifdef _WIN64
+        typedef unsigned long long ulongptr;
+    #else
+        typedef ulong ulongptr;
+    #endif
+
+
+    // Helper macro for aligning pointer up to next 16-byte boundary
+    #define SOUNDTOUCH_ALIGN_POINTER_16(x)      ( ( (ulongptr)(x) + 15 ) & ~(ulongptr)15 )
+
     /// Max allowed number of channels
     #define SOUNDTOUCH_MAX_CHANNELS     16
 
     /// Activate these undef's to overrule the possible sampletype 
     /// setting inherited from some other header file:
-    //#undef SOUNDTOUCH_INTEGER_SAMPLES
-    //#undef SOUNDTOUCH_FLOAT_SAMPLES
+    #undef SOUNDTOUCH_INTEGER_SAMPLES
+    #undef SOUNDTOUCH_FLOAT_SAMPLES
 
     /// If following flag is defined, always uses multichannel processing 
     /// routines also for mono and stero sound. This is for routine testing 
@@ -94,8 +93,8 @@ namespace soundtouch
         ///   However, if you still prefer to select the sample format here 
         ///   also in GNU environment, then please #undef the INTEGER_SAMPLE
         ///   and FLOAT_SAMPLE defines first as in comments above.
-        //#define SOUNDTOUCH_INTEGER_SAMPLES     1    //< 16bit integer samples
-        #define SOUNDTOUCH_FLOAT_SAMPLES       1    //< 32bit float samples
+        #define SOUNDTOUCH_INTEGER_SAMPLES     1    //< 16bit integer samples
+        //#define SOUNDTOUCH_FLOAT_SAMPLES       1    //< 32bit float samples
      
     #endif
 
@@ -106,7 +105,7 @@ namespace soundtouch
         /// routines compiled for whatever reason, you may disable these optimizations 
         /// to make the library compile.
 
-        #define SOUNDTOUCH_ALLOW_X86_OPTIMIZATIONS     1
+        //#define SOUNDTOUCH_ALLOW_X86_OPTIMIZATIONS     1
 
         /// In GNU environment, allow the user to override this setting by
         /// giving the following switch to the configure script:
@@ -124,7 +123,7 @@ namespace soundtouch
     // If defined, allows the SIMD-optimized routines to skip unevenly aligned
     // memory offsets that can cause performance penalty in some SIMD implementations.
     // Causes slight compromise in sound quality.
-    // #define SOUNDTOUCH_ALLOW_NONEXACT_SIMD_OPTIMIZATION    1
+    #define SOUNDTOUCH_ALLOW_NONEXACT_SIMD_OPTIMIZATION    1
 
 
     #ifdef SOUNDTOUCH_INTEGER_SAMPLES
@@ -169,7 +168,7 @@ namespace soundtouch
 }
 
 // define ST_NO_EXCEPTION_HANDLING switch to disable throwing std exceptions:
-// #define ST_NO_EXCEPTION_HANDLING    1
+   #define ST_NO_EXCEPTION_HANDLING    1
 #ifdef ST_NO_EXCEPTION_HANDLING
     // Exceptions disabled. Throw asserts instead if enabled.
     #include <assert.h>

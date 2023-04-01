@@ -47,8 +47,6 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#define _USE_MATH_DEFINES
-
 #include <math.h>
 #include <assert.h>
 #include <string.h>
@@ -85,7 +83,8 @@ static const double XCORR_DECAY_TIME_CONSTANT = 30.0;
 /// Data overlap factor for beat detection algorithm
 static const int OVERLAP_FACTOR = 4;
 
-static const double TWOPI = (2 * M_PI);
+#define PI       3.14159265358979323846
+#define TWOPI    (2 * PI)
 
 ////////////////////////////////////////////////////////////////////////////////
 
