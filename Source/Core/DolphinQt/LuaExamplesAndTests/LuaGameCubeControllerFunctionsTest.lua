@@ -293,7 +293,7 @@ function testProbabilityAddButtonComboInput(buttonName, probability)
 end
 
 function addZeroChanceButtonComboFunction(portNumber, buttonTable)
-	gc_controller:addButtonComboChance(portNumber, 0, buttonTable, true)
+	gc_controller:addButtonComboChance(portNumber, 0, {A = true}, true)
 end
 
 function addOverwritingButtonComboChancesFunction(portNumber, buttonTable)
@@ -653,8 +653,8 @@ function testAddButtonComboChanceUnitTests()
 		testSingleFrameInputFunction("Calling addButtonComboChance() on controller " .. tostring(i) .. " with 100% probability of setting cStickY to 43...", addButtonComboChanceFunction, i, {cStickY = 43}, testActualButtonsEqualExpectedFunction)
 		testSingleFrameInputFunction("Calling addButtonComboChance() on controller " .. tostring(i) .. " with 100% probability of setting A to pressed and cStickX to 232...", addButtonComboChanceFunction, i, {A = true, cStickX = 232}, testActualButtonsEqualExpectedFunction)
 		testSingleFrameInputFunction("Calling addButtonComboChance() on controller " .. tostring(i) .. " with 100% probability of setting all buttons to pressed and all analog inputs to their maximum values...", addButtonComboChanceFunction, i, {A = true, B = true, X = true, Y = true, Z = true, L = true, R = true, Start = true, Reset = true, triggerL = 255, triggerR = 255, dPadUp = true, dPadDown = true, dPadLeft = true, dPadRight = true, analogStickX = 255, analogStickY = 255, cStickX = 255, cStickY = 255}, testActualButtonsEqualExpectedFunction)
-		testSingleFrameInputFunction("Calling addButtonComboChance() on controller " .. tostring(i) .. " with 0% probability of setting button A to pressed...", addZeroChanceButtonComboFunction, 1, {A = false}, testActualButtonsEqualExpectedFunction)
 	end
+	testSingleFrameInputFunction("Calling addButtonComboChance() on controller 1 with 0% probability of setting button A to pressed...", addZeroChanceButtonComboFunction, 1, {A = false}, testActualButtonsEqualExpectedFunction)
 	testSingleFrameInputFunction("Calling addButtonComboChance() on all controllers...", addButtonComboChanceForAllControllers, 1, {}, testSetInputsForAllControllers)
 	testSingleFrameInputFunction("Calling addButtonComboChance() with overwrite-non-specified-values set to true. First call has 100% probability of setting B and X to pressed, and 2nd call has 100% probability of setting A and Z to pressed. Final input should be just A and Z are pressed...", addOverwritingButtonComboChancesFunction, 1, {A = true, Z = true}, testActualButtonsEqualExpectedFunction)
 	testSingleFrameInputFunction("Calling addButtonComboChance() with overwrite-non-specified-values set to false. First call has 100% probability of setting B and X to pressed, and 2nd call has 100% probability of setting A and Z to pressed. Final input should be A, Z, X and B are pressed...", addNonOverwritingButtonComboChancesFunction, 1, {A = true, B = true, X = true, Z = true}, testActualButtonsEqualExpectedFunction)
@@ -698,7 +698,6 @@ function setAndThenAddAndThenProbability(portNumber, buttonTable)
 	setAndThenAddInputs(portNumber, buttonTable)
 	gc_controller:addButtonFlipChance(1, 100, "dPadUp")
 	gc_controller:addButtonPressChance(1, 100, "Y")
-
 end
 
 function integrationTests()
