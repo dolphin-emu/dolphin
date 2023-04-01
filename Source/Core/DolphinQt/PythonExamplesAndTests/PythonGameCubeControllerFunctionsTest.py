@@ -12,7 +12,7 @@ originalSaveState = "testEarlySaveState.sav"
 newMovieName = "newTestMovie.dtm"
 
 outputFile = open("PythonExamplesAndTests/TestResults/PythonGameCubeControllerTestsResults.txt", "w")
-testSuiteNumber = 1
+testSuiteNumber = 25
 outputtedSetInputsTestsHeader = False
 outputtedAddInputsTestsHeader = False
 outputtedAddButtonFlipChanceTestsHeader = False

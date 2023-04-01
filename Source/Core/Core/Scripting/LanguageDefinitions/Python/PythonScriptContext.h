@@ -66,7 +66,17 @@ public:
 
   static PyObject* RunFunction(PyObject* self, PyObject* args, std::string class_name, std::string function_name);
 
-  virtual ~PythonScriptContext() {}
+  virtual ~PythonScriptContext()
+  {
+    unref_vector(this->frame_callbacks);
+    unref_vector(this->gc_controller_input_polled_callbacks);
+    unref_vector(this->wii_controller_input_polled_callbacks);
+    unref_map(this->map_of_instruction_address_to_python_callbacks);
+    unref_map(this->map_of_memory_address_read_from_to_python_callbacks);
+    unref_map(this->map_of_memory_address_written_to_to_python_callbacks);
+    unref_map(this->map_of_button_id_to_callback);
+  }
+
   virtual void ImportModule(const std::string& api_name, const std::string& api_version);
   virtual void StartScript();
   virtual void RunGlobalScopeCode();
@@ -114,6 +124,28 @@ public:
                                bool include_example, const std::string& base_error_msg);
 
 private:
+  void unref_vector(std::vector<IdentifierToCallback>& input_vector)
+  {
+    for (auto& identifier_callback_pair : input_vector)
+      Py_DECREF(identifier_callback_pair.callback);
+    input_vector.clear();
+  }
+
+  void unref_map(std::unordered_map<size_t, std::vector<IdentifierToCallback>>& input_map)
+  {
+    for (auto& addr_input_vector_pair : input_map)
+      unref_vector(addr_input_vector_pair.second);
+    input_map.clear();
+  }
+
+  void unref_map(std::unordered_map<long long, IdentifierToCallback>& input_map)
+  {
+    for (auto& identifier_callback_pair : input_map)
+      Py_DECREF(identifier_callback_pair.second.callback);
+    input_map.clear();
+  }
+
+
   void RunEndOfIteraionTasks();
   void RunCallbacksForVector(std::vector<IdentifierToCallback>& callback_list);
   void RunCallbacksForMap(std::unordered_map<size_t, std::vector<IdentifierToCallback>>& map_of_callbacks,

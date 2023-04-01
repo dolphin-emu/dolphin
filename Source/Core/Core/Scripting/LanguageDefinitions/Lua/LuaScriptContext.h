@@ -190,7 +190,17 @@ public:
     }
   }
 
-  virtual ~LuaScriptContext() {}
+
+  virtual ~LuaScriptContext() {
+    unref_vector(this->frame_callback_locations);
+    unref_vector(this->gc_controller_input_polled_callback_locations);
+    unref_vector(this->wii_controller_input_polled_callback_locations);
+    unref_map(this->map_of_instruction_address_to_lua_callback_locations);
+    unref_map(this->map_of_memory_address_read_from_to_lua_callback_locations);
+    unref_map(this->map_of_memory_address_written_to_to_lua_callback_locations);
+    unref_map(this->map_of_button_id_to_callback);
+  }
+
   virtual void ImportModule(const std::string& api_name, const std::string& api_version);
   virtual void StartScript();
   virtual void RunGlobalScopeCode();
@@ -233,6 +243,28 @@ public:
   virtual bool UnregisterOnWiiInputPolledCallbacks(void* callbacks);
 
   private:
+
+    void unref_vector(std::vector<int>& input_vector)
+    {
+    for (auto& func_ref : input_vector)
+      luaL_unref(this->main_lua_thread, LUA_REGISTRYINDEX, func_ref);
+    input_vector.clear();
+    }
+
+    void unref_map(std::unordered_map<size_t, std::vector<int>>& input_map)
+    {
+    for (auto& addr_func_pair : input_map)
+      unref_vector(addr_func_pair.second);
+    input_map.clear();
+    }
+
+    void unref_map(std::unordered_map<long long, int>& input_map)
+    {
+    for (auto& identifier_func_pair : input_map)
+      luaL_unref(this->main_lua_thread, LUA_REGISTRYINDEX, identifier_func_pair.second);
+    input_map.clear();
+    }
+
   void GenericRunCallbacksHelperFunction(lua_State*& current_lua_state,
                                          std::vector<int>& vector_of_callbacks,
                                          int& index_of_next_callback_to_run,
