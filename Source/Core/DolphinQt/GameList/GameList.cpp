@@ -694,7 +694,14 @@ void GameList::OpenWiiSaveFolder()
   if (!game)
     return;
 
-  QUrl url = QUrl::fromLocalFile(QString::fromStdString(game->GetWiiFSPath()));
+  const std::string path = game->GetWiiFSPath();
+  if (!File::Exists(path))
+  {
+    ModalMessageBox::information(this, tr("Information"), tr("No save data found."));
+    return;
+  }
+
+  const QUrl url = QUrl::fromLocalFile(QString::fromStdString(path));
   QDesktopServices::openUrl(url);
 }
 
