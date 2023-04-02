@@ -87,7 +87,7 @@ _INTERNAL_registers_get_register_table[NumberTypes.FLOAT] = RegistersAPI.getFloa
 _INTERNAL_registers_get_register_table[NumberTypes.DOUBLE] = RegistersAPI.getDoubleFromRegister
 
 
-def getRegister(registerString, returnTypeString, optionalOffset):
+def getRegister(registerString, returnTypeString, optionalOffset = None):
 	if optionalOffset is None:
 		optionalOffset = 0
 	elif optionalOffset < 0 or optionalOffset >= 16:
@@ -113,7 +113,7 @@ def getRegister(registerString, returnTypeString, optionalOffset):
 	return get_register_function_call(registerString, optionalOffset)
 
 
-def getRegisterAsUnsignedByteArray(registerString, arraySize, optionalOffset):
+def getRegisterAsUnsignedByteArray(registerString, arraySize, optionalOffset = None):
 	if optionalOffset is None:
 		optionalOffset = 0
 	elif optionalOffset < 0 or optionalOffset >= 16:
@@ -132,7 +132,7 @@ def getRegisterAsUnsignedByteArray(registerString, arraySize, optionalOffset):
 	return RegistersAPI.getUnsignedBytesFromRegister(registerString, arraySize, optionalOffset)
 
 
-def getRegisterAsSignedByteArray(registerString, arraySize, optionalOffset):
+def getRegisterAsSignedByteArray(registerString, arraySize, optionalOffset = None):
 	if optionalOffset is None:
 		optionalOffset = 0
 	elif optionalOffset < 0 or optionalOffset >= 16:
@@ -164,7 +164,7 @@ _INTERNAL_registers_set_register_table[NumberTypes.FLOAT] = RegistersAPI.writeFl
 _INTERNAL_registers_set_register_table[NumberTypes.DOUBLE] = RegistersAPI.writeDoubleToRegister
 
 
-def setRegister(registerString, writeType, writeValue, optionalOffset):
+def setRegister(registerString, writeType, writeValue, optionalOffset = None):
 	if optionalOffset is None:
 		optionalOffset = 0
 	elif optionalOffset < 0 or optionalOffset >= 16:
@@ -191,7 +191,7 @@ def setRegister(registerString, writeType, writeValue, optionalOffset):
     
 
 
-def setRegisterFromByteArray(registerString, indexToByteTable, optionalOffset):
+def setRegisterFromByteArray(registerString, indexToByteTable, optionalOffset = None):
     if optionalOffset is None:
         optionalOffset = 0
     elif optionalOffset < 0 or optionalOffset >= 16:
