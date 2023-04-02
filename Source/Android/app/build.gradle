@@ -104,6 +104,14 @@ android {
             minifyEnabled true
             shrinkResources true
         }
+
+        vr {
+            signingConfig signingConfigs.debug
+            matchingFallbacks = ['release']
+            applicationIdSuffix ".vr"
+            versionNameSuffix '-vr'
+            jniDebuggable false
+        }
     }
 
     externalNativeBuild {
