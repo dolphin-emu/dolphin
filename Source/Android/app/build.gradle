@@ -114,6 +114,15 @@ android {
         }
     }
 
+    sourceSets {
+        main {
+            manifest.srcFile 'src/main/AndroidManifest.xml'
+        }
+        vr {
+            manifest.srcFile 'src/main/VRManifest.xml'
+        }
+    }
+
     externalNativeBuild {
         cmake {
             path "../../../CMakeLists.txt"

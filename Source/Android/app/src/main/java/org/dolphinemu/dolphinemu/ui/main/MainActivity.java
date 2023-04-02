@@ -107,6 +107,26 @@ public final class MainActivity extends AppCompatActivity
       new AfterDirectoryInitializationRunner()
               .runWithLifecycle(this, this::setPlatformTabsAndStartGameFileCacheService);
     }
+
+    // Virtual reality flow
+    if (getPackageName().compareTo(EmulationActivity.VR_PACKAGE) == 0)
+    {
+      Intent gameToEmulate = getIntent();
+      if (gameToEmulate != null)
+      {
+        String[] filePaths = gameToEmulate.getStringArrayExtra(EmulationActivity.EXTRA_SELECTED_GAMES);
+        boolean riivolution = gameToEmulate.getBooleanExtra(EmulationActivity.EXTRA_RIIVOLUTION, false);
+
+        if (filePaths != null)
+        {
+          Intent launcher = new Intent(this, EmulationActivity.class);
+          launcher.putExtra(EmulationActivity.EXTRA_SELECTED_GAMES, filePaths);
+          launcher.putExtra(EmulationActivity.EXTRA_RIIVOLUTION, riivolution);
+          startActivity(launcher);
+          finish();
+        }
+      }
+    }
   }
 
   @Override
