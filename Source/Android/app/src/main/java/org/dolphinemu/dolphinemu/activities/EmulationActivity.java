@@ -1187,7 +1187,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
     return mThemeId;
   }
 
-  private static boolean isVRInstalled(Context context)
+  public static boolean isVRInstalled(Context context)
   {
     if (context.getPackageName().compareTo(EmulationActivity.VR_PACKAGE) == 0)
     {
