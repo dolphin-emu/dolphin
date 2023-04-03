@@ -53,6 +53,7 @@ static QComboBox* MakeLanguageComboBox()
       {QStringLiteral(u"Portugu\u00EAs (Brasil)"), "pt_BR"},  // Portuguese (Brazil)
       {QStringLiteral(u"Rom\u00E2n\u0103"), "ro"},            // Romanian
       {QStringLiteral(u"Srpski"), "sr"},                      // Serbian
+      {QStringLiteral(u"Suomi"), "fi"},                       // Finnish
       {QStringLiteral(u"Svenska"), "sv"},                     // Swedish
       {QStringLiteral(u"T\u00FCrk\u00E7e"), "tr"},            // Turkish
       {QStringLiteral(u"\u0395\u03BB\u03BB\u03B7\u03BD\u03B9\u03BA\u03AC"), "el"},  // Greek
