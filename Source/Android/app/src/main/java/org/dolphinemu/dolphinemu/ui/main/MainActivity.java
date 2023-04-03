@@ -119,10 +119,17 @@ public final class MainActivity extends AppCompatActivity
 
         if (filePaths != null)
         {
-          Intent launcher = new Intent(this, EmulationActivity.class);
-          launcher.putExtra(EmulationActivity.EXTRA_SELECTED_GAMES, filePaths);
-          launcher.putExtra(EmulationActivity.EXTRA_RIIVOLUTION, riivolution);
-          startActivity(launcher);
+          if (!PermissionsHandler.hasWriteAccess(this))
+          {
+            PermissionsHandler.requestWritePermission(this);
+          }
+          else
+          {
+            Intent launcher = new Intent(this, EmulationActivity.class);
+            launcher.putExtra(EmulationActivity.EXTRA_SELECTED_GAMES, filePaths);
+            launcher.putExtra(EmulationActivity.EXTRA_RIIVOLUTION, riivolution);
+            startActivity(launcher);
+          }
           finish();
         }
       }
