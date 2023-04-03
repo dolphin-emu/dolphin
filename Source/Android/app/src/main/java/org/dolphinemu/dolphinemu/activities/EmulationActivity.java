@@ -284,7 +284,10 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
     }
     else
     {
-      sIgnoreLaunchRequests = true;
+      if (!isVrPackage(activity))
+      {
+        sIgnoreLaunchRequests = true;
+      }
 
       Intent launcher = new Intent(activity, EmulationActivity.class);
       launcher.putExtra(EXTRA_SELECTED_GAMES, filePaths);
