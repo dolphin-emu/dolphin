@@ -1,0 +1,290 @@
+Test 1:
+	Wrote value of 230 to 2147483939 as type u8
+	Value at address 2147483939 as type u8 is now: 230
+PASS!
+
+Test 2:
+	Wrote value of 230 to 2147483939 as type unsigned_byte
+	Value at address 2147483939 as type unsigned_byte is now: 230
+PASS!
+
+Test 3:
+	Wrote value of 230 to 2147483939 as type unsigned byte
+	Value at address 2147483939 as type unsigned byte is now: 230
+PASS!
+
+Test 4:
+	Wrote value of 230 to 2147483939 as type UnsignedByte
+	Value at address 2147483939 as type UnsignedByte is now: 230
+PASS!
+
+Test 5:
+	Wrote value of 230 to 2147483939 as type unsigned_8
+	Value at address 2147483939 as type unsigned_8 is now: 230
+PASS!
+
+Test 6:
+	Wrote value of 230 to 2147483939 as type UNSIGNED 8
+	Value at address 2147483939 as type UNSIGNED 8 is now: 230
+PASS!
+
+Test 7:
+	Wrote value of 230 to 2147483939 as type unsigned8
+	Value at address 2147483939 as type unsigned8 is now: 230
+PASS!
+
+Test 8:
+	Wrote value of 60000 to 2147483939 as type u16
+	Value at address 2147483939 as type u16 is now: 60000
+PASS!
+
+Test 9:
+	Wrote value of 60000 to 2147483939 as type Unsigned_16
+	Value at address 2147483939 as type Unsigned_16 is now: 60000
+PASS!
+
+Test 10:
+	Wrote value of 60000 to 2147483939 as type UNSIGNED 16
+	Value at address 2147483939 as type UNSIGNED 16 is now: 60000
+PASS!
+
+Test 11:
+	Wrote value of 60000 to 2147483939 as type Unsigned16
+	Value at address 2147483939 as type Unsigned16 is now: 60000
+PASS!
+
+Test 12:
+	Wrote value of 4000000000 to 2147483939 as type u32
+	Value at address 2147483939 as type u32 is now: 4000000000
+PASS!
+
+Test 13:
+	Wrote value of 4000000000 to 2147483939 as type UNSIGNED_INT
+	Value at address 2147483939 as type UNSIGNED_INT is now: 4000000000
+PASS!
+
+Test 14:
+	Wrote value of 4000000000 to 2147483939 as type unsigned int
+	Value at address 2147483939 as type unsigned int is now: 4000000000
+PASS!
+
+Test 15:
+	Wrote value of 4000000000 to 2147483939 as type UnsignedInt
+	Value at address 2147483939 as type UnsignedInt is now: 4000000000
+PASS!
+
+Test 16:
+	Wrote value of 4000000000 to 2147483939 as type unsigned_32
+	Value at address 2147483939 as type unsigned_32 is now: 4000000000
+PASS!
+
+Test 17:
+	Wrote value of 4000000000 to 2147483939 as type Unsigned 32
+	Value at address 2147483939 as type Unsigned 32 is now: 4000000000
+PASS!
+
+Test 18:
+	Wrote value of 4000000000 to 2147483939 as type unsigned32
+	Value at address 2147483939 as type unsigned32 is now: 4000000000
+PASS!
+
+Test 19:
+	Wrote value of 10123456789123456789 to 2147483939 as type u64
+	Value at address 2147483939 as type u64 is now: 10123456789123456789
+PASS!
+
+Test 20:
+	Wrote value of 10123456789123456789 to 2147483939 as type Unsigned_Long_Long
+	Value at address 2147483939 as type Unsigned_Long_Long is now: 10123456789123456789
+PASS!
+
+Test 21:
+	Wrote value of 10123456789123456789 to 2147483939 as type unsignedLongLong
+	Value at address 2147483939 as type unsignedLongLong is now: 10123456789123456789
+PASS!
+
+Test 22:
+	Wrote value of 10123456789123456789 to 2147483939 as type unsigned_64
+	Value at address 2147483939 as type unsigned_64 is now: 10123456789123456789
+PASS!
+
+Test 23:
+	Wrote value of 10123456789123456789 to 2147483939 as type unsigned 64
+	Value at address 2147483939 as type unsigned 64 is now: 10123456789123456789
+PASS!
+
+Test 24:
+	Wrote value of 10123456789123456789 to 2147483939 as type unsigned64
+	Value at address 2147483939 as type unsigned64 is now: 10123456789123456789
+PASS!
+
+Test 25:
+	Wrote value of -54 to 2147483939 as type s8
+	Value at address 2147483939 as type s8 is now: -54
+PASS!
+
+Test 26:
+	Wrote value of -54 to 2147483939 as type Signed_Byte
+	Value at address 2147483939 as type Signed_Byte is now: -54
+PASS!
+
+Test 27:
+	Wrote value of -54 to 2147483939 as type signed ByTE
+	Value at address 2147483939 as type signed ByTE is now: -54
+PASS!
+
+Test 28:
+	Wrote value of -54 to 2147483939 as type SignedByte
+	Value at address 2147483939 as type SignedByte is now: -54
+PASS!
+
+Test 29:
+	Wrote value of -54 to 2147483939 as type SIGNED_8
+	Value at address 2147483939 as type SIGNED_8 is now: -54
+PASS!
+
+Test 30:
+	Wrote value of -54 to 2147483939 as type signed 8
+	Value at address 2147483939 as type signed 8 is now: -54
+PASS!
+
+Test 31:
+	Wrote value of -54 to 2147483939 as type signed8
+	Value at address 2147483939 as type signed8 is now: -54
+PASS!
+
+Test 32:
+	Wrote value of -16128 to 2147483939 as type S16
+	Value at address 2147483939 as type S16 is now: -16128
+PASS!
+
+Test 33:
+	Wrote value of -16128 to 2147483939 as type SIGNED_16
+	Value at address 2147483939 as type SIGNED_16 is now: -16128
+PASS!
+
+Test 34:
+	Wrote value of -16128 to 2147483939 as type signed 16
+	Value at address 2147483939 as type signed 16 is now: -16128
+PASS!
+
+Test 35:
+	Wrote value of -16128 to 2147483939 as type signed16
+	Value at address 2147483939 as type signed16 is now: -16128
+PASS!
+
+Test 36:
+	Wrote value of -2000000009 to 2147483939 as type s32
+	Value at address 2147483939 as type s32 is now: -2000000009
+PASS!
+
+Test 37:
+	Wrote value of -2000000009 to 2147483939 as type signed_int
+	Value at address 2147483939 as type signed_int is now: -2000000009
+PASS!
+
+Test 38:
+	Wrote value of -2000000009 to 2147483939 as type signed int
+	Value at address 2147483939 as type signed int is now: -2000000009
+PASS!
+
+Test 39:
+	Wrote value of -2000000009 to 2147483939 as type SignedInt
+	Value at address 2147483939 as type SignedInt is now: -2000000009
+PASS!
+
+Test 40:
+	Wrote value of -2000000009 to 2147483939 as type signed_32
+	Value at address 2147483939 as type signed_32 is now: -2000000009
+PASS!
+
+Test 41:
+	Wrote value of -2000000009 to 2147483939 as type signed 32
+	Value at address 2147483939 as type signed 32 is now: -2000000009
+PASS!
+
+Test 42:
+	Wrote value of -2000000009 to 2147483939 as type signed32
+	Value at address 2147483939 as type signed32 is now: -2000000009
+PASS!
+
+Test 43:
+	Wrote value of -9000000004567 to 2147483939 as type s64
+	Value at address 2147483939 as type s64 is now: -9000000004567
+PASS!
+
+Test 44:
+	Wrote value of -9000000004567 to 2147483939 as type Signed_Long_Long
+	Value at address 2147483939 as type Signed_Long_Long is now: -9000000004567
+PASS!
+
+Test 45:
+	Wrote value of -9000000004567 to 2147483939 as type signed long long
+	Value at address 2147483939 as type signed long long is now: -9000000004567
+PASS!
+
+Test 46:
+	Wrote value of -9000000004567 to 2147483939 as type SignedLongLong
+	Value at address 2147483939 as type SignedLongLong is now: -9000000004567
+PASS!
+
+Test 47:
+	Wrote value of -9000000004567 to 2147483939 as type signed_64
+	Value at address 2147483939 as type signed_64 is now: -9000000004567
+PASS!
+
+Test 48:
+	Wrote value of -9000000004567 to 2147483939 as type signed 64
+	Value at address 2147483939 as type signed 64 is now: -9000000004567
+PASS!
+
+Test 49:
+	Wrote value of -9000000004567 to 2147483939 as type signed64
+	Value at address 2147483939 as type signed64 is now: -9000000004567
+PASS!
+
+Test 50:
+	Wrote value of 300000.375 to 2147483939 as type float
+	Value at address 2147483939 as type float is now: 300000.375
+PASS!
+
+Test 51:
+	Wrote value of 6.022e+23 to 2147483939 as type DoUBle
+	Value at address 2147483939 as type DoUBle is now: 6.022e+23
+PASS!
+
+Test: 52
+	Wrote unsigned byte array value of 58 to address 2147483939
+	Value in resulting spot in memory is: 58
+
+	Wrote unsigned byte array value of 180 to address 2147483940
+	Value in resulting spot in memory is: 180
+
+	Wrote unsigned byte array value of 243 to address 2147483941
+	Value in resulting spot in memory is: 243
+
+PASS!
+
+Test 53:
+	Wrote signed byte array value of 32 to address 2147483939
+	Value in resulting spot in memory is: 32
+
+	Wrote signed byte array value of -43 to address 2147483940
+	Value in resulting spot in memory is: -43
+
+	Wrote signed byte array value of 119 to address 2147483941
+	Value in resulting spot in memory is: 119
+
+PASS!
+
+Test: 54:
+	Wrote "Star Fox" to memory. Null terminated string read back from that spot in memory was: "Star Fox"
+PASS!
+
+Test: 55:
+	Wrote: "Star Fox" to memory. Reading back the first 3 characters of the sample string... Resulting string was: "Sta"
+PASS!
+
+Total Tests: 55
+	Tests Passed: 55
+	Tests Failed: 0
