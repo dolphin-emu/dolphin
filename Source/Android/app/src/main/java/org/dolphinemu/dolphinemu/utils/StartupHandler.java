@@ -36,6 +36,14 @@ public final class StartupHandler
     String[] gamesToLaunch = getGamesFromIntent(parent.getIntent());
     if (gamesToLaunch != null && gamesToLaunch.length > 0)
     {
+      // Open permission dialog, the game will be opened on the next attempt
+      if (!PermissionsHandler.hasWriteAccess(parent))
+      {
+        PermissionsHandler.requestWritePermission(parent);
+        parent.finish();
+        return;
+      }
+
       // Start the emulation activity, send the ISO passed in and finish the main activity
       EmulationActivity.launch(parent, gamesToLaunch, false);
       parent.finish();
