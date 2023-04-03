@@ -114,8 +114,10 @@ public final class MainActivity extends AppCompatActivity
       Intent gameToEmulate = getIntent();
       if (gameToEmulate != null)
       {
-        String[] filePaths = gameToEmulate.getStringArrayExtra(EmulationActivity.EXTRA_SELECTED_GAMES);
-        boolean riivolution = gameToEmulate.getBooleanExtra(EmulationActivity.EXTRA_RIIVOLUTION, false);
+        String[] filePaths =
+                gameToEmulate.getStringArrayExtra(EmulationActivity.EXTRA_SELECTED_GAMES);
+        boolean riivolution =
+                gameToEmulate.getBooleanExtra(EmulationActivity.EXTRA_RIIVOLUTION, false);
 
         if (filePaths != null)
         {
