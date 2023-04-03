@@ -326,7 +326,7 @@ public final class TvMainActivity extends FragmentActivity
 
     for (Platform platform : Platform.values())
     {
-      ListRow row = buildGamesRow(platform, GameFileCacheManager.getGameFilesForPlatform(platform));
+      ListRow row = buildGamesRow(platform, GameFileCacheManager.getGameFilesForPlatform(this, platform));
 
       // Add row to the adapter only if it is not empty.
       if (row != null)

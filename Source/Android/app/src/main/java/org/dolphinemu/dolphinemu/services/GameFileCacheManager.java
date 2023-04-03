@@ -2,6 +2,8 @@
 
 package org.dolphinemu.dolphinemu.services;
 
+import android.content.Context;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
@@ -9,6 +11,7 @@ import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.model.GameFileCache;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,15 +43,20 @@ public final class GameFileCacheManager
     return sGameFiles;
   }
 
-  public static List<GameFile> getGameFilesForPlatform(Platform platform)
+  public static List<GameFile> getGameFilesForPlatform(Context context, Platform platform)
   {
+    boolean legacyPaths = DirectoryInitialization.preferOldFolderPicker(context);
+
     GameFile[] allGames = sGameFiles.getValue();
     ArrayList<GameFile> platformGames = new ArrayList<>();
     for (GameFile game : allGames)
     {
       if (Platform.fromNativeInt(game.getPlatform()) == platform)
       {
-        platformGames.add(game);
+        if (legacyPaths == game.getPath().startsWith("/"))
+        {
+          platformGames.add(game);
+        }
       }
     }
     return platformGames;

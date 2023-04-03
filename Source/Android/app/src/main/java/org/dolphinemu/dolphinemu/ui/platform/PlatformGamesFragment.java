@@ -108,7 +108,7 @@ public final class PlatformGamesFragment extends Fragment implements PlatformGam
     {
       Platform platform = (Platform) getArguments().getSerializable(ARG_PLATFORM);
       ((GameAdapter) mBinding.gridGames.getAdapter()).swapDataSet(
-              GameFileCacheManager.getGameFilesForPlatform(platform));
+              GameFileCacheManager.getGameFilesForPlatform(getContext(), platform));
     }
   }
 
