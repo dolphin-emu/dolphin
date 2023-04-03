@@ -110,7 +110,7 @@ android {
             matchingFallbacks = ['release']
             applicationIdSuffix ".vr"
             versionNameSuffix '-vr'
-            jniDebuggable false
+            jniDebuggable true
         }
     }
 

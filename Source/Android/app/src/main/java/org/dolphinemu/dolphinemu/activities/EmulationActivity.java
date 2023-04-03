@@ -276,20 +276,21 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
   private static void launchWithoutChecks(FragmentActivity activity, String[] filePaths,
           boolean riivolution)
   {
-    Intent launcher = new Intent(activity, EmulationActivity.class);
     if (isVrInstalled(activity) && !isVrPackage(activity))
     {
-      launcher = activity.getPackageManager().getLaunchIntentForPackage(VR_PACKAGE);
+      Intent launcher = activity.getPackageManager().getLaunchIntentForPackage(VR_PACKAGE);
+      launcher.putExtra("AutoStartFiles", filePaths);
+      activity.startActivity(launcher);
     }
     else
     {
       sIgnoreLaunchRequests = true;
+
+      Intent launcher = new Intent(activity, EmulationActivity.class);
+      launcher.putExtra(EXTRA_SELECTED_GAMES, filePaths);
+      launcher.putExtra(EXTRA_RIIVOLUTION, riivolution);
+      activity.startActivity(launcher);
     }
-
-    launcher.putExtra(EXTRA_SELECTED_GAMES, filePaths);
-    launcher.putExtra(EXTRA_RIIVOLUTION, riivolution);
-
-    activity.startActivity(launcher);
   }
 
   public static void stopIgnoringLaunchRequests()
