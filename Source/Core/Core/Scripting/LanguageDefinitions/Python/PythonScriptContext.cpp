@@ -252,6 +252,8 @@ PyObject* PythonScriptContext::RunFunction(PyObject* self, PyObject* args, std::
     functionMetadata = EmuApi::GetFunctionMetadataForVersion(version_number, function_name);
   else if (class_name == GameCubeControllerApi::class_name)
     functionMetadata = GameCubeControllerApi::GetFunctionMetadataForVersion(version_number, function_name);
+  else if (class_name == GraphicsAPI::class_name)
+    functionMetadata = GraphicsAPI::GetFunctionMetadataForVersion(version_number, function_name);
   else if (class_name == MemoryApi::class_name)
     functionMetadata = MemoryApi::GetFunctionMetadataForVersion(version_number, function_name);
   else if (class_name == RegistersAPI::class_name)
@@ -502,7 +504,7 @@ PyObject* PythonScriptContext::RunFunction(PyObject* self, PyObject* args, std::
           list_of_points.push_back({x, y});
           continue;
         }
-        else if (PyTuple_Check(next_object_in_list))
+        else if (PyTuple_Check(next_object_in_list)) // case where list contains tuple objects, and looks like this: "[ (45.0, 55.0), {33.0, 22.0), ... ]"
         {
           if (PyTuple_Size(next_object_in_list) != 2)
             return HandleError(

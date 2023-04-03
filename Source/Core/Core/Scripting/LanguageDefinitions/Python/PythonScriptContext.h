@@ -68,6 +68,7 @@ public:
 
   virtual ~PythonScriptContext()
   {
+    PyEval_RestoreThread(main_python_thread);
     unref_vector(this->frame_callbacks);
     unref_vector(this->gc_controller_input_polled_callbacks);
     unref_vector(this->wii_controller_input_polled_callbacks);
@@ -75,6 +76,7 @@ public:
     unref_map(this->map_of_memory_address_read_from_to_python_callbacks);
     unref_map(this->map_of_memory_address_written_to_to_python_callbacks);
     unref_map(this->map_of_button_id_to_callback);
+    PyEval_ReleaseThread(main_python_thread);
   }
 
   virtual void ImportModule(const std::string& api_name, const std::string& api_version);
