@@ -2,6 +2,7 @@
 
 package org.dolphinemu.dolphinemu.activities;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -9,6 +10,7 @@ import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Rect;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Pair;
@@ -279,7 +281,23 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
     if (isVrInstalled(activity) && !isVrPackage(activity))
     {
       Intent launcher = activity.getPackageManager().getLaunchIntentForPackage(VR_PACKAGE);
-      launcher.putExtra("AutoStartFiles", filePaths);
+
+      boolean legacyPath = filePaths[0].startsWith("/");
+      if (legacyPath)
+      {
+        launcher.putExtra("AutoStartFiles", filePaths);
+      }
+      else
+      {
+        Uri uri = Uri.parse(filePaths[0]);
+        ContentResolver resolver = activity.getContentResolver();
+        resolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        launcher.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+        launcher.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        launcher.setAction(Intent.ACTION_GET_CONTENT);
+        launcher.setData(uri);
+      }
+
       activity.startActivity(launcher);
     }
     else
