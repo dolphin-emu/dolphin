@@ -292,7 +292,7 @@ public final class DirectoryInitialization
 
   public static boolean preferOldFolderPicker(Context context)
   {
-    if (EmulationActivity.isVRInstalled(context))
+    if (EmulationActivity.isVrInstalled(context))
     {
       return true;
     }

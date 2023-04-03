@@ -7,11 +7,11 @@ import android.content.Context;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.model.GameFileCache;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
-import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,7 +45,7 @@ public final class GameFileCacheManager
 
   public static List<GameFile> getGameFilesForPlatform(Context context, Platform platform)
   {
-    boolean legacyPaths = DirectoryInitialization.preferOldFolderPicker(context);
+    boolean vrInstalled = EmulationActivity.isVrInstalled(context);
 
     GameFile[] allGames = sGameFiles.getValue();
     ArrayList<GameFile> platformGames = new ArrayList<>();
@@ -53,10 +53,12 @@ public final class GameFileCacheManager
     {
       if (Platform.fromNativeInt(game.getPlatform()) == platform)
       {
-        if (legacyPaths == game.getPath().startsWith("/"))
+        boolean legacyPath = game.getPath().startsWith("/");
+        if (vrInstalled && !legacyPath)
         {
-          platformGames.add(game);
+          continue;
         }
+        platformGames.add(game);
       }
     }
     return platformGames;

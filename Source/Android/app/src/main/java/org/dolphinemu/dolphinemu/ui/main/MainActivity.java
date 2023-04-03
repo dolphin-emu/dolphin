@@ -109,7 +109,7 @@ public final class MainActivity extends AppCompatActivity
     }
 
     // Virtual reality flow
-    if (getPackageName().compareTo(EmulationActivity.VR_PACKAGE) == 0)
+    if (EmulationActivity.isVrPackage(this))
     {
       Intent gameToEmulate = getIntent();
       if (gameToEmulate != null)

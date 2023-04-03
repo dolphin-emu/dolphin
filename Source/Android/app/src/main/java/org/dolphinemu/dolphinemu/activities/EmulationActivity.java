@@ -81,7 +81,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
   public static final int REQUEST_CHANGE_DISC = 1;
   public static final int REQUEST_SKYLANDER_FILE = 2;
   public static final int REQUEST_CREATE_SKYLANDER = 3;
-  public static final String VR_PACKAGE = "org.dolphinemu.dolphinemu.vr";
+  private static final String VR_PACKAGE = "org.dolphinemu.dolphinemu.vr";
 
   private EmulationFragment mEmulationFragment;
 
@@ -277,7 +277,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
           boolean riivolution)
   {
     Intent launcher = new Intent(activity, EmulationActivity.class);
-    if (isVRInstalled(activity))
+    if (isVrInstalled(activity) && !isVrPackage(activity))
     {
       launcher = activity.getPackageManager().getLaunchIntentForPackage(VR_PACKAGE);
     }
@@ -1187,21 +1187,21 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
     return mThemeId;
   }
 
-  public static boolean isVRInstalled(Context context)
+  public static boolean isVrInstalled(Context context)
   {
-    if (context.getPackageName().compareTo(EmulationActivity.VR_PACKAGE) == 0)
-    {
-      return false;
-    }
-
     PackageManager pm = context.getPackageManager();
     for (ApplicationInfo app : pm.getInstalledApplications(PackageManager.GET_META_DATA))
     {
-      if (app.packageName.compareTo(VR_PACKAGE) == 0)
+      if (app.packageName.equals(VR_PACKAGE))
       {
         return true;
       }
     }
     return false;
+  }
+
+  public static boolean isVrPackage(Context context)
+  {
+    return context.getPackageName().equals(EmulationActivity.VR_PACKAGE);
   }
 }
