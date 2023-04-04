@@ -237,15 +237,10 @@ void VR_InitRenderer(engine_t* engine, bool multiview)
 
   projections = (XrView*)(malloc(ovrMaxNumEyes*  sizeof(XrView)));
 
-  void* vulkanContext = nullptr;
-  if (VR_GetPlatformFlag(VR_PLATFORM_RENDERER_VULKAN))
-  {
-    vulkanContext = &engine->graphicsBindingVulkan;
-  }
   ovrRenderer_Create(engine->appState.Session, &engine->appState.Renderer,
       engine->appState.ViewConfigurationView[0].recommendedImageRectWidth,
       engine->appState.ViewConfigurationView[0].recommendedImageRectHeight,
-      multiview, vulkanContext);
+      multiview);
 #ifdef ANDROID
   if (VR_GetPlatformFlag(VR_PLATFORM_EXTENSION_FOVEATION))
   {
@@ -521,11 +516,11 @@ void VR_SetConfigFloat(VRConfigFloat config, float value)
   vrConfigFloat[config] = value;
 }
 
-void* VR_BindFramebuffer(engine_t* engine)
+void VR_BindFramebuffer(engine_t* engine)
 {
-  if (!initialized) return nullptr;
+  if (!initialized) return;
   int fboIndex = VR_GetConfig(VR_CONFIG_CURRENT_FBO);
-  return ovrFramebuffer_SetCurrent(&engine->appState.Renderer.FrameBuffer[fboIndex]);
+  ovrFramebuffer_SetCurrent(&engine->appState.Renderer.FrameBuffer[fboIndex]);
 }
 
 XrView VR_GetView(int eye)

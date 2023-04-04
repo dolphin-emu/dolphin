@@ -1,13 +1,9 @@
 #pragma once
 
-// Vulkan
-#include "vulkan/vulkan.h"
-
 #ifdef ANDROID
 #include <jni.h>
 #define XR_USE_PLATFORM_ANDROID 1
 #define XR_USE_GRAPHICS_API_OPENGL_ES 1
-#define XR_USE_GRAPHICS_API_VULKAN 1
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
@@ -29,12 +25,10 @@
 #define XR_USE_PLATFORM_WIN32 1
 #endif
 #endif
-#define XR_USE_GRAPHICS_API_VULKAN 1
 #include <unknwn.h>
 #include "Common/VR/OpenXRLoader.h"
 #define XR_NO_PROTOTYPES 1
 #else
-#define XR_USE_GRAPHICS_API_VULKAN 1
 #define XR_NO_PROTOTYPES 1
 #endif
 
@@ -104,7 +98,6 @@ extern PFN_xrStopHapticFeedback xrStopHapticFeedback;
 // On Windows (and Linux etc), we're not so lucky - we could link to static libraries, but we really
 // don't want to as we still want to function when one is not present.
 //
-// Similar to our dynamic Vulkan loader.
 
 bool XRLoad();
 void XRLoadInstanceFunctions(XrInstance instance);
