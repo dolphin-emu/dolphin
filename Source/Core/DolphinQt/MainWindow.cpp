@@ -37,6 +37,7 @@
 #include "Common/Version.h"
 #include "Common/WindowSystemInfo.h"
 
+#include "Core/AchievementManager.h"
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/CommonTitles.h"
@@ -222,6 +223,11 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
 
   InitControllers();
 
+#ifdef USE_RETRO_ACHIEVEMENTS
+  // This has to be done before CreateComponents() so it's initialized.
+  AchievementManager::GetInstance()->Init();
+#endif  // USE_RETRO_ACHIEVEMENTS
+
   CreateComponents();
 
   ConnectGameList();
@@ -300,6 +306,10 @@ MainWindow::~MainWindow()
   // Shut down NetPlay first to avoid race condition segfault
   Settings::Instance().ResetNetPlayClient();
   Settings::Instance().ResetNetPlayServer();
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+  AchievementManager::GetInstance()->Shutdown();
+#endif  // USE_RETRO_ACHIEVEMENTS
 
   delete m_render_widget;
   delete m_netplay_dialog;

@@ -1,4 +1,6 @@
 add_library(core
+  AchievementManager.cpp
+  AchievementManager.h
   ActionReplay.cpp
   ActionReplay.h
   ARDecrypt.cpp
@@ -21,6 +23,8 @@ add_library(core
   CheatSearch.cpp
   CheatSearch.h
   CommonTitles.h
+  Config/AchievementSettings.cpp
+  Config/AchievementSettings.h
   Config/DefaultLocale.cpp
   Config/DefaultLocale.h
   Config/FreeLookSettings.cpp
@@ -746,4 +750,9 @@ endif()
 if(MSVC)
   # Add precompiled header
   target_link_libraries(core PRIVATE use_pch)
+endif()
+
+if(USE_RETRO_ACHIEVEMENTS)
+  target_link_libraries(core PRIVATE rcheevos)
+  target_compile_definitions(core PRIVATE -DUSE_RETRO_ACHIEVEMENTS)
 endif()

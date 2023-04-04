@@ -687,3 +687,8 @@ endif()
 if(USE_DISCORD_PRESENCE)
   target_compile_definitions(dolphin-emu PRIVATE -DUSE_DISCORD_PRESENCE)
 endif()
+
+if(USE_RETRO_ACHIEVEMENTS)
+  target_link_libraries(dolphin-emu PRIVATE rcheevos)
+  target_compile_definitions(dolphin-emu PRIVATE -DUSE_RETRO_ACHIEVEMENTS)
+endif()
