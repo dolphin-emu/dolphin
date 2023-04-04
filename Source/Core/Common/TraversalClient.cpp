@@ -333,6 +333,7 @@ bool EnsureTraversalClient(const std::string& server, u16 server_port, u16 liste
       g_MainNetHost.reset();
       return false;
     }
+    host->mtu = std::min(host->mtu, NetPlay::MAX_ENET_MTU);
     g_MainNetHost.reset(host);
     g_TraversalClient.reset(new TraversalClient(g_MainNetHost.get(), server, server_port));
   }

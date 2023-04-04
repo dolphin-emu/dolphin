@@ -151,7 +151,10 @@ NetPlayServer::NetPlayServer(const u16 port, const bool forward_port, NetPlayUI*
     serverAddr.port = port;
     m_server = enet_host_create(&serverAddr, 10, CHANNEL_COUNT, 0, 0);
     if (m_server != nullptr)
+    {
+      m_server->mtu = std::min(m_server->mtu, NetPlay::MAX_ENET_MTU);
       m_server->intercept = ENetUtil::InterceptCallback;
+    }
 
     SetupIndex();
   }
