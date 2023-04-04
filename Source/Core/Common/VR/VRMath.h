@@ -25,7 +25,7 @@ void XrQuaternionf_ToMatrix4f(const XrQuaternionf* q, float* m);
 
 // XrVector3f, XrVector4f
 float XrVector3f_LengthSquared(const XrVector3f v);
-XrVector3f XrVector3f_GetAnglesFromVectors(const XrVector3f forward, const XrVector3f right, const XrVector3f up);
+XrVector3f XrVector3f_GetAnglesFromVectors(XrVector3f forward, XrVector3f right, XrVector3f up);
 XrVector3f XrVector3f_Normalized(const XrVector3f v);
 XrVector3f XrVector3f_ScalarMultiply(const XrVector3f v, float scale);
 XrVector4f XrVector4f_MultiplyMatrix4f(const float* m, const XrVector4f* v);

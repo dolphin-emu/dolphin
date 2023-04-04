@@ -18,7 +18,8 @@ public class VirtualReality
 {
   private static final String VR_PACKAGE = "org.dolphinemu.dolphinemu.vr";
 
-  static {
+  static
+  {
     if (isActive())
     {
       String manufacturer = Build.MANUFACTURER.toLowerCase(Locale.ROOT);
