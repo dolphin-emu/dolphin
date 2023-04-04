@@ -2,15 +2,10 @@
 
 package org.dolphinemu.dolphinemu.activities;
 
-import android.content.ContentResolver;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
 import android.graphics.Rect;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Pair;
@@ -66,6 +61,7 @@ import org.dolphinemu.dolphinemu.ui.main.ThemeProvider;
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.ThemeHelper;
+import org.dolphinemu.dolphinemu.utils.VirtualReality;
 
 import java.lang.annotation.Retention;
 import java.util.ArrayList;
@@ -83,7 +79,6 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
   public static final int REQUEST_CHANGE_DISC = 1;
   public static final int REQUEST_SKYLANDER_FILE = 2;
   public static final int REQUEST_CREATE_SKYLANDER = 3;
-  private static final String VR_PACKAGE = "org.dolphinemu.dolphinemu.vr";
 
   private EmulationFragment mEmulationFragment;
 
@@ -278,31 +273,13 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
   private static void launchWithoutChecks(FragmentActivity activity, String[] filePaths,
           boolean riivolution)
   {
-    if (isVrInstalled(activity) && !isVrPackage(activity))
+    if (VirtualReality.isInstalled(activity) && !VirtualReality.isActive(activity))
     {
-      Intent launcher = activity.getPackageManager().getLaunchIntentForPackage(VR_PACKAGE);
-
-      boolean legacyPath = filePaths[0].startsWith("/");
-      if (legacyPath)
-      {
-        launcher.putExtra("AutoStartFiles", filePaths);
-      }
-      else
-      {
-        Uri uri = Uri.parse(filePaths[0]);
-        ContentResolver resolver = activity.getContentResolver();
-        resolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        launcher.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
-        launcher.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        launcher.setAction(Intent.ACTION_GET_CONTENT);
-        launcher.setData(uri);
-      }
-
-      activity.startActivity(launcher);
+      VirtualReality.openIntent(activity, filePaths);
     }
     else
     {
-      if (!isVrPackage(activity))
+      if (!VirtualReality.isActive(activity))
       {
         sIgnoreLaunchRequests = true;
       }
@@ -1207,23 +1184,5 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
   public int getThemeId()
   {
     return mThemeId;
-  }
-
-  public static boolean isVrInstalled(Context context)
-  {
-    PackageManager pm = context.getPackageManager();
-    for (ApplicationInfo app : pm.getInstalledApplications(PackageManager.GET_META_DATA))
-    {
-      if (app.packageName.equals(VR_PACKAGE))
-      {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  public static boolean isVrPackage(Context context)
-  {
-    return context.getPackageName().equals(EmulationActivity.VR_PACKAGE);
   }
 }

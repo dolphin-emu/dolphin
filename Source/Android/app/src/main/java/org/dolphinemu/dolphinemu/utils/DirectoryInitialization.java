@@ -20,7 +20,6 @@ import androidx.preference.PreferenceManager;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
 
@@ -292,7 +291,7 @@ public final class DirectoryInitialization
 
   public static boolean preferOldFolderPicker(Context context)
   {
-    if (EmulationActivity.isVrInstalled(context))
+    if (VirtualReality.isInstalled(context))
     {
       return true;
     }
