@@ -33,6 +33,10 @@ LogConfigWidget::LogConfigWidget(QWidget* parent) : QDockWidget(parent)
 LogConfigWidget::~LogConfigWidget()
 {
   SaveSettings();
+  if constexpr (Common::Log::MAX_LOGLEVEL != Common::Log::LogLevel::LDEBUG)
+  {
+    delete m_verbosity_debug;
+  }
 }
 
 void LogConfigWidget::CreateWidgets()
