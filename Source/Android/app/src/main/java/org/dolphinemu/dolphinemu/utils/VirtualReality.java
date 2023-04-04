@@ -2,7 +2,6 @@
 
 package org.dolphinemu.dolphinemu.utils;
 
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
@@ -81,8 +80,6 @@ public class VirtualReality
       catch (FileNotFoundException e)
       {
         uri = Uri.parse(filePaths[0]);
-        ContentResolver resolver = context.getContentResolver();
-        resolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
       }
       launcher.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
       launcher.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
