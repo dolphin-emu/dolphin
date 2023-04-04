@@ -11,7 +11,6 @@ import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.model.GameFileCache;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
-import org.dolphinemu.dolphinemu.utils.VirtualReality;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,18 +44,12 @@ public final class GameFileCacheManager
 
   public static List<GameFile> getGameFilesForPlatform(Context context, Platform platform)
   {
-    boolean vrInstalled = VirtualReality.isInstalled(context);
-
     GameFile[] allGames = sGameFiles.getValue();
     ArrayList<GameFile> platformGames = new ArrayList<>();
     for (GameFile game : allGames)
     {
       if (Platform.fromNativeInt(game.getPlatform()) == platform)
       {
-        if (vrInstalled && !VirtualReality.isLegacyPath(game.getPath()))
-        {
-          continue;
-        }
         platformGames.add(game);
       }
     }

@@ -12,6 +12,7 @@ import android.os.Build;
 
 import org.dolphinemu.dolphinemu.BuildConfig;
 
+import java.io.FileNotFoundException;
 import java.util.Locale;
 
 public class VirtualReality
@@ -22,7 +23,8 @@ public class VirtualReality
     if (isActive())
     {
       String manufacturer = Build.MANUFACTURER.toLowerCase(Locale.ROOT);
-      if (manufacturer.contains("oculus")) // rename oculus to meta as this will probably happen in the future anyway
+      // rename oculus to meta as this will probably happen in the future anyway
+      if (manufacturer.contains("oculus"))
         manufacturer = "meta";
 
       //Load manufacturer specific loader
@@ -71,9 +73,17 @@ public class VirtualReality
     }
     else
     {
-      Uri uri = Uri.parse(filePaths[0]);
-      ContentResolver resolver = context.getContentResolver();
-      resolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+      Uri uri;
+      try
+      {
+        uri = ContentHandler.unmangle(filePaths[0]);
+      }
+      catch (FileNotFoundException e)
+      {
+        uri = Uri.parse(filePaths[0]);
+        ContentResolver resolver = context.getContentResolver();
+        resolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+      }
       launcher.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
       launcher.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
       launcher.setAction(Intent.ACTION_GET_CONTENT);

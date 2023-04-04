@@ -291,11 +291,6 @@ public final class DirectoryInitialization
 
   public static boolean preferOldFolderPicker(Context context)
   {
-    if (VirtualReality.isInstalled(context))
-    {
-      return true;
-    }
-
     // As of January 2021, ACTION_OPEN_DOCUMENT_TREE seems to be broken on the Nvidia Shield TV
     // (the activity can't be navigated correctly with a gamepad). We can use the old folder picker
     // for the time being - Android 11 hasn't been released for this device. We have an explicit
