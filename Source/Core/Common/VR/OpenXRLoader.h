@@ -1,7 +1,7 @@
 #pragma once
 
 // Vulkan
-#include <vulkan/vulkan.h>
+#include "vulkan/vulkan.h"
 
 #ifdef ANDROID
 #include <jni.h>
