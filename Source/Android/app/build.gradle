@@ -111,6 +111,15 @@ android {
             applicationIdSuffix ".vr"
             versionNameSuffix '-vr'
             jniDebuggable true
+
+            externalNativeBuild {
+                cmake {
+                    arguments '-DOPENXR=TRUE'
+                }
+            }
+            ndk {
+                abiFilters 'arm64-v8a'
+            }
         }
     }
 
@@ -119,6 +128,7 @@ android {
             manifest.srcFile 'src/main/AndroidManifest.xml'
         }
         vr {
+            jniLibs.srcDirs = ['../../../Externals/openxr/android']
             manifest.srcFile 'src/main/VRManifest.xml'
         }
     }
@@ -126,6 +136,12 @@ android {
     externalNativeBuild {
         cmake {
             path "../../../CMakeLists.txt"
+        }
+    }
+
+    packagingOptions {
+        jniLibs {
+            excludes += ['lib/arm64-v8a/libopenxr_loader.so']
         }
     }
     namespace 'org.dolphinemu.dolphinemu'

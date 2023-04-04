@@ -8,14 +8,39 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
+
+import org.dolphinemu.dolphinemu.BuildConfig;
+
+import java.util.Locale;
 
 public class VirtualReality
 {
   private static final String VR_PACKAGE = "org.dolphinemu.dolphinemu.vr";
 
-  public static boolean isActive(Context context)
+  static {
+    if (isActive())
+    {
+      String manufacturer = Build.MANUFACTURER.toLowerCase(Locale.ROOT);
+      if (manufacturer.contains("oculus")) // rename oculus to meta as this will probably happen in the future anyway
+        manufacturer = "meta";
+
+      //Load manufacturer specific loader
+      try
+      {
+        System.loadLibrary("openxr_" + manufacturer);
+      }
+      catch (UnsatisfiedLinkError e)
+      {
+        Log.error("Unsupported VR device: " + manufacturer);
+        System.exit(0);
+      }
+    }
+  }
+
+  public static boolean isActive()
   {
-    return context.getPackageName().equals(VR_PACKAGE);
+    return BuildConfig.BUILD_TYPE.equals("vr");
   }
 
   public static boolean isInstalled(Context context)

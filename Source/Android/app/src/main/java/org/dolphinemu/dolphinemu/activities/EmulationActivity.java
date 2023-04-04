@@ -273,13 +273,13 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
   private static void launchWithoutChecks(FragmentActivity activity, String[] filePaths,
           boolean riivolution)
   {
-    if (VirtualReality.isInstalled(activity) && !VirtualReality.isActive(activity))
+    if (VirtualReality.isInstalled(activity) && !VirtualReality.isActive())
     {
       VirtualReality.openIntent(activity, filePaths);
     }
     else
     {
-      if (!VirtualReality.isActive(activity))
+      if (!VirtualReality.isActive())
       {
         sIgnoreLaunchRequests = true;
       }
