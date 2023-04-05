@@ -6,9 +6,7 @@ name: macOS CI
 # events but only for the master branch
 on:
   push:
-    branches: [ master ]
   pull_request:
-    branches: [ master ]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -27,7 +25,7 @@ jobs:
         platform: mac
     # Setup Packages
     - name: Setup Packages
-      run: brew install qt5 pkgconfig
+      run: brew install qt6 pkgconfig
     # Use Static ZSTD
     - name: Remove ZSTD
       run: brew uninstall zstd curl php --force --ignore-dependencies
@@ -36,7 +34,7 @@ jobs:
       run: git submodule update --init --recursive
     # Run CMake
     - name: Run CMake
-      run: mkdir -p build && cd build && cmake .. -G Ninja -DCMAKE_CXX_FLAGS="-Xclang -fcolor-diagnostics" -DCMAKE_PREFIX_PATH=$(brew --prefix qt5)
+      run: mkdir -p build && cd build && cmake .. -G Ninja -DCMAKE_CXX_FLAGS="-Xclang -fcolor-diagnostics" -DCMAKE_PREFIX_PATH=$(brew --prefix qt6)
     # Build Project
     - name: Run Ninja
       run: cd build && ninja -j4
@@ -48,4 +46,4 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: DolphinMPN-macOS
-        path: /Users/runner/work/dolphin-mpn-advanced-src/dolphin-mpn-advanced-src/build/Binaries/
+        path: /Users/runner/work/dolphin-mpn-src/dolphin-mpn-src/build/Binaries/
