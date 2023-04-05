@@ -1106,7 +1106,8 @@ public:
   template <typename FunctionPointer>
   void ABI_CallFunctionPR(FunctionPointer func, const void* ptr, X64Reg reg1)
   {
-    MOV(64, R(ABI_PARAM2), R(reg1));
+    if (reg1 != ABI_PARAM2)
+      MOV(64, R(ABI_PARAM2), R(reg1));
     MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(ptr)));
     ABI_CallFunction(func);
   }
