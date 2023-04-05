@@ -194,7 +194,6 @@ void AutoUpdateChecker::CheckForUpdate(std::string_view update_track,
   std::string url = fmt::format("{}/update/check/v1/{}/{}/{}", GetUpdateServerUrl(), update_track,
                                 version_hash, GetPlatformID());
 
-  const bool is_manual_check = check_type == CheckType::Manual;
 }
 
 void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInformation& info,
