@@ -27,7 +27,10 @@ public final class StartupHandler
   public static void HandleInit(FragmentActivity parent)
   {
     // Ask the user if he wants to enable analytics if we haven't yet.
-    Analytics.checkAnalyticsInit(parent);
+    if (!VirtualReality.isActive())
+    {
+      Analytics.checkAnalyticsInit(parent);
+    }
 
     // Set up and/or sync Android TV channels
     if (TvUtil.isLeanback(parent))
