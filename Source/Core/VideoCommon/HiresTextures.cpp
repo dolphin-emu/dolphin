@@ -197,7 +197,7 @@ void HiresTexture::Prefetch()
 
     if (size_sum > max_mem)
     {
-      Config::SetCurrent(Config::GFX_HIRES_TEXTURES, false);
+      Config::SetCurrent(Config::GFX_HIRES_TEXTURES, true);
 
       OSD::AddMessage(
           fmt::format(

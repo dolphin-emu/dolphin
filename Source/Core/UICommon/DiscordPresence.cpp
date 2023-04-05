@@ -3,6 +3,9 @@
 
 #include "UICommon/DiscordPresence.h"
 
+#include "Common/Hash.h"
+#include "Common/StringUtil.h"
+
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Config/UISettings.h"
 #include "Core/ConfigManager.h"
@@ -109,11 +112,6 @@ std::string ArtworkForGameId(const std::string& gameid)
       "GFT",  // GFTE01: Mario Golf: Toadstool Tour
       "RMC",  // RMCE01: Mario Kart Wii
       "GM4",  // GM4E01: Mario Kart: Double Dash!!
-      "GMP",  // GMPE01: Mario Party 4
-      "GP5",  // GP5E01: Mario Party 5
-      "GP6",  // GP6E01: Mario Party 6
-      "GP7",  // GP7E01: Mario Party 7
-      "RM8",  // RM8E01: Mario Party 8
       "SSQ",  // SSQE01: Mario Party 9
       "GOM",  // GOME01: Mario Power Tennis
       "GYQ",  // GYQE01: Mario Superstar Baseball
@@ -191,7 +189,8 @@ void Init()
   handlers.ready = HandleDiscordReady;
   handlers.joinRequest = HandleDiscordJoinRequest;
   handlers.joinGame = HandleDiscordJoin;
-  Discord_Initialize(DEFAULT_CLIENT_ID.c_str(), &handlers, 1, nullptr);
+  // The number is the client ID for Dolphin, it's used for images and the application name
+  Discord_Initialize("888655408623943731", &handlers, 1, nullptr);
   UpdateDiscordPresence();
 #endif
 }
@@ -283,33 +282,26 @@ void UpdateDiscordPresence(int party_size, SecretType type, const std::string& s
   DiscordRichPresence discord_presence = {};
   if (game_artwork.empty())
   {
-    discord_presence.largeImageKey = "dolphin_logo";
-    discord_presence.largeImageText = "Dolphin is an emulator for the GameCube and the Wii.";
+    discord_presence.largeImageKey = "dolphin";
   }
   else
   {
     discord_presence.largeImageKey = game_artwork.c_str();
     discord_presence.largeImageText = title.c_str();
-    discord_presence.smallImageKey = "dolphin_logo";
-    discord_presence.smallImageText = "Dolphin is an emulator for the GameCube and the Wii.";
+    discord_presence.smallImageKey = "dolphin";
   }
   discord_presence.details = title.empty() ? "Not in-game" : title.c_str();
-  discord_presence.startTimestamp = std::chrono::duration_cast<std::chrono::seconds>(
-                                        std::chrono::system_clock::now().time_since_epoch())
-                                        .count();
 
   if (party_size > 0)
   {
     if (party_size < 4)
     {
-      discord_presence.state = "In a party";
       discord_presence.partySize = party_size;
       discord_presence.partyMax = 4;
     }
     else
     {
       // others can still join to spectate
-      discord_presence.state = "In a full party";
       discord_presence.partySize = party_size;
       // Note: joining still works without partyMax
     }

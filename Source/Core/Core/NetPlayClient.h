@@ -130,9 +130,12 @@ public:
   void SendChatMessage(const std::string& msg);
   void RequestStopGame();
   void SendPowerButtonEvent();
+  void SendActiveGeckoCodes();
+  void GetActiveGeckoCodes();
   void RequestGolfControl(PlayerId pid);
   void RequestGolfControl();
   std::string GetCurrentGolfer();
+  std::vector<std::string> v_ActiveGeckoCodes;
 
   // Send and receive pads values
   struct WiimoteDataBatchEntry

@@ -33,6 +33,8 @@ signals:
   void ControllersPressed();
   void GraphicsPressed();
 
+  void StartNetPlayPressed();
+
   void StepPressed();
   void StepOverPressed();
   void StepOutPressed();
@@ -57,6 +59,8 @@ private:
   QAction* m_config_action;
   QAction* m_controllers_action;
   QAction* m_graphics_action;
+
+  QAction* m_start_netplay_action;
 
   QAction* m_step_action;
   QAction* m_step_over_action;

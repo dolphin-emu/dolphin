@@ -32,6 +32,7 @@
 #include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/GeckoCode.h"
 #include "Core/GeckoCodeConfig.h"
+#include "Core/MarioPartyNetplay/Gamestate.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
@@ -344,6 +345,8 @@ bool ApplyFramePatches()
 
   ApplyPatches(guard, s_on_frame);
   ApplyMemoryPatches(guard, s_on_frame_memory);
+
+  mpn_per_frame();
 
   // Run the Gecko code handler
   Gecko::RunCodeHandler(guard);

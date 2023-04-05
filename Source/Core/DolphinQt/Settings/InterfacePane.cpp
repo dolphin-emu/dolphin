@@ -128,7 +128,7 @@ void InterfacePane::CreateUI()
 
   // User Style Combobox
   m_combobox_userstyle = new QComboBox;
-  m_label_userstyle = new QLabel(tr("User Style:"));
+  m_label_userstyle = new QLabel(tr("Window Theme:"));
   combobox_layout->addRow(m_label_userstyle, m_combobox_userstyle);
 
   auto userstyle_search_results = Common::DoFileSearch({File::GetUserPath(D_STYLES_IDX)});
@@ -210,6 +210,7 @@ void InterfacePane::ConnectLayout()
 {
   connect(m_checkbox_use_builtin_title_database, &QCheckBox::toggled, this,
           &InterfacePane::OnSaveConfig);
+  connect(m_checkbox_use_userstyle, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_use_covers, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_disable_screensaver, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_show_debugging_ui, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);

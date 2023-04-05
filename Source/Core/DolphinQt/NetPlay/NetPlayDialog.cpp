@@ -129,6 +129,12 @@ void NetPlayDialog::CreateMainLayout()
   m_game_button = new QPushButton;
   m_start_button = new QPushButton(tr("Start"));
   m_buffer_size_box = new QSpinBox;
+  m_buffer_size_box->setToolTip(
+      tr("Set the buffer based on the ping. The buffer should be ping ÷ 8 (rounded up).\nFor a "
+         "simple method, "
+         "use 8 for 64 ping and less, 12 for 100 ping and less, and 16 for 150 ping and "
+         "less.\nGames above 150 ping will be very laggy and are not recommended for competitive "
+         "play."));
   m_buffer_label = new QLabel(tr("Buffer:"));
   m_quit_button = new QPushButton(tr("Quit"));
   m_splitter = new QSplitter(Qt::Horizontal);
@@ -922,7 +928,7 @@ void NetPlayDialog::OnPadBufferChanged(u32 buffer)
   });
   DisplayMessage(m_host_input_authority ? tr("Max buffer size changed to %1").arg(buffer) :
                                           tr("Buffer size changed to %1").arg(buffer),
-                 "darkcyan");
+                 "orange");
 
   m_buffer_size = static_cast<int>(buffer);
 }

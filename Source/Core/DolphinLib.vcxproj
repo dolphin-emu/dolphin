@@ -59,6 +59,14 @@
   <Import Project="$(ExternalsDir)xxhash\exports.props" />
   <Import Project="$(ExternalsDir)zlib-ng\exports.props" />
   <Import Project="$(ExternalsDir)zstd\exports.props" />
+  <ItemGroup>
+    <ClCompile Include="Core\MarioPartyNetplay\Discord.cpp" />
+    <ClCompile Include="Core\MarioPartyNetplay\Gamestate.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Core\MarioPartyNetplay\Discord.h" />
+    <ClInclude Include="Core\MarioPartyNetplay\Gamestate.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
   <PropertyGroup>

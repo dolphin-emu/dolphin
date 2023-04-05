@@ -195,65 +195,17 @@ void AutoUpdateChecker::CheckForUpdate(std::string_view update_track,
                                 version_hash, GetPlatformID());
 
   const bool is_manual_check = check_type == CheckType::Manual;
-
-  Common::HttpRequest req{std::chrono::seconds{10}};
-  auto resp = req.Get(url);
-  if (!resp)
-  {
-    if (is_manual_check)
-      CriticalAlertFmtT("Unable to contact update server.");
-    return;
-  }
-  const std::string contents(reinterpret_cast<char*>(resp->data()), resp->size());
-  INFO_LOG_FMT(COMMON, "Auto-update JSON response: {}", contents);
-
-  picojson::value json;
-  const std::string err = picojson::parse(json, contents);
-  if (!err.empty())
-  {
-    CriticalAlertFmtT("Invalid JSON received from auto-update service : {0}", err);
-    return;
-  }
-  picojson::object obj = json.get<picojson::object>();
-
-  if (obj["status"].get<std::string>() != "outdated")
-  {
-    if (is_manual_check)
-      SuccessAlertFmtT("You are running the latest version available on this update track.");
-    INFO_LOG_FMT(COMMON, "Auto-update status: we are up to date.");
-    return;
-  }
-
-  NewVersionInformation nvi;
-  nvi.this_manifest_url = obj["old"].get<picojson::object>()["manifest"].get<std::string>();
-  nvi.next_manifest_url = obj["new"].get<picojson::object>()["manifest"].get<std::string>();
-  nvi.content_store_url = obj["content-store"].get<std::string>();
-  nvi.new_shortrev = obj["new"].get<picojson::object>()["name"].get<std::string>();
-  nvi.new_hash = obj["new"].get<picojson::object>()["hash"].get<std::string>();
-
-  // TODO: generate the HTML changelog from the JSON information.
-  nvi.changelog_html = GenerateChangelog(obj["changelog"].get<picojson::array>());
-
-  if (std::getenv("DOLPHIN_UPDATE_TEST_DONE"))
-  {
-    // We are at end of updater test flow, send a message to server, which will kill us.
-    req.Get(fmt::format("{}/update-test-done/{}", GetUpdateServerUrl(), GetOwnProcessId()));
-  }
-  else
-  {
-    OnUpdateAvailable(nvi);
-  }
 }
 
 void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInformation& info,
                                       const AutoUpdateChecker::RestartMode restart_mode)
 {
   // Check to make sure we don't already have an update triggered
-  if (s_update_triggered)
+  /* if (s_update_triggered)
   {
     WARN_LOG_FMT(COMMON, "Auto-update: received a redundant trigger request, ignoring");
     return;
-  }
+  }*/
 
   s_update_triggered = true;
 #ifdef OS_SUPPORTS_UPDATER

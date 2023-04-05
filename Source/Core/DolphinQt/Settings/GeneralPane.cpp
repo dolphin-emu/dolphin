@@ -65,9 +65,6 @@ void GeneralPane::CreateLayout()
   // Create layout here
   CreateBasic();
 
-  if (AutoUpdateChecker::SystemSupportsAutoUpdates())
-    CreateAutoUpdate();
-
   CreateFallbackRegion();
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
@@ -173,25 +170,6 @@ void GeneralPane::CreateBasic()
   }
 
   speed_limit_layout->addRow(tr("&Speed Limit:"), m_combobox_speedlimit);
-}
-
-void GeneralPane::CreateAutoUpdate()
-{
-  auto* auto_update_group = new QGroupBox(tr("Auto Update Settings"));
-  auto* auto_update_group_layout = new QFormLayout;
-  auto_update_group->setLayout(auto_update_group_layout);
-  m_main_layout->addWidget(auto_update_group);
-
-  auto_update_group_layout->setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
-  auto_update_group_layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
-
-  m_combobox_update_track = new QComboBox(this);
-
-  auto_update_group_layout->addRow(tr("&Auto Update:"), m_combobox_update_track);
-
-  for (const QString& option :
-       {tr("Don't Update"), tr("Beta (once a month)"), tr("Dev (multiple times a day)")})
-    m_combobox_update_track->addItem(option);
 }
 
 void GeneralPane::CreateFallbackRegion()

@@ -96,4 +96,5 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& ga
   layout->addWidget(close_box);
 
   setLayout(layout);
+  tab_widget->setCurrentIndex(3);
 }

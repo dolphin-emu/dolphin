@@ -429,6 +429,10 @@ add_library(core
   IOS/WFS/WFSSRV.h
   LibusbUtils.cpp
   LibusbUtils.h
+  MarioPartyNetplay/Discord.cpp
+  MarioPartyNetplay/Discord.h
+  MarioPartyNetplay/Gamestate.cpp
+  MarioPartyNetplay/Gamestate.h
   MemTools.cpp
   MemTools.h
   Movie.cpp
