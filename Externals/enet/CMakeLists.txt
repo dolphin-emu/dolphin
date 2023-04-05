@@ -8,7 +8,7 @@ include(CheckStructHasMember)
 include(CheckTypeSize)
 
 if(HAIKU)
-  set(CMAKE_REQUIRED_LIBRARIES network)
+    set(CMAKE_REQUIRED_LIBRARIES network)
 endif(HAIKU)
 
 check_function_exists("fcntl" HAS_FCNTL)
@@ -25,7 +25,7 @@ check_type_size("socklen_t" HAS_SOCKLEN_T BUILTIN_TYPES_ONLY)
 unset(CMAKE_EXTRA_INCLUDE_FILES)
 
 if(HAIKU)
-  unset(CMAKE_REQUIRED_LIBRARIES)
+    unset(CMAKE_REQUIRED_LIBRARIES)
 endif()
 
 if(HAS_FCNTL)
@@ -61,18 +61,44 @@ endif()
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
+set(INCLUDE_FILES_PREFIX include/enet)
+set(INCLUDE_FILES
+    ${INCLUDE_FILES_PREFIX}/callbacks.h
+    ${INCLUDE_FILES_PREFIX}/enet.h
+    ${INCLUDE_FILES_PREFIX}/list.h
+    ${INCLUDE_FILES_PREFIX}/protocol.h
+    ${INCLUDE_FILES_PREFIX}/time.h
+    ${INCLUDE_FILES_PREFIX}/types.h
+    ${INCLUDE_FILES_PREFIX}/unix.h
+    ${INCLUDE_FILES_PREFIX}/utility.h
+    ${INCLUDE_FILES_PREFIX}/win32.h
+)
+
+set(SOURCE_FILES
+    callbacks.c
+    compress.c
+    host.c
+    list.c
+    packet.c
+    peer.c
+    protocol.c
+    unix.c
+    win32.c)
+
+source_group(include FILES ${INCLUDE_FILES})
+source_group(source FILES ${SOURCE_FILES})
+
 add_library(enet STATIC
-        callbacks.c
-        compress.c
-        host.c
-        list.c
-        packet.c
-        peer.c
-        protocol.c
-        unix.c
-        win32.c
-    )
+    ${INCLUDE_FILES}
+    ${SOURCE_FILES}
+)
+
 dolphin_disable_warnings_msvc(enet)
+
+if (MINGW)
+    target_link_libraries(enet winmm ws2_32)
+endif()
+
 if(HAIKU)
-  target_link_libraries(enet network)
+    target_link_libraries(enet network)
 endif(HAIKU)

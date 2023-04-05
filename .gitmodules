@@ -51,3 +51,6 @@
 [submodule "Externals/gtest"]
 	path = Externals/gtest
 	url = https://github.com/google/googletest.git
+[submodule "Externals/rcheevos/rcheevos"]
+	path = Externals/rcheevos/rcheevos
+	url = https://github.com/RetroAchievements/rcheevos.git
