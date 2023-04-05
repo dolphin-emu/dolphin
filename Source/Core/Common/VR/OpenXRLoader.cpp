@@ -72,7 +72,6 @@ void* g_xrLibrary;
 #define LOAD_INSTANCE_FUNC(name)                                                                   \
   (PFN_##name) xrGetInstanceProcAddr(instance, #name, (PFN_xrVoidFunction*)(&name))
 
-
 bool XRLoad()
 {
   if (g_xrLibrary)

@@ -11,10 +11,10 @@ void ovrFramebuffer_Release(ovrFramebuffer* frameBuffer);
 void ovrFramebuffer_SetCurrent(ovrFramebuffer* frameBuffer);
 
 void ovrRenderer_Create(XrSession session, ovrRenderer* renderer, int width, int height,
-						bool multiview);
+                        bool multiview);
 void ovrRenderer_Destroy(ovrRenderer* renderer);
 void ovrRenderer_MouseCursor(ovrRenderer* renderer, int x, int y, int sx, int sy);
 #ifdef ANDROID
 void ovrRenderer_SetFoveation(XrInstance* instance, XrSession* session, ovrRenderer* renderer,
-							  XrFoveationLevelFB level, float offset, XrFoveationDynamicFB dynamic);
+                              XrFoveationLevelFB level, float offset, XrFoveationDynamicFB dynamic);
 #endif

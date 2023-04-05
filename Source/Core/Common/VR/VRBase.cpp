@@ -28,7 +28,8 @@ void VR_Init(void* system, const char* name, int version)
 
 #ifdef ANDROID
   PFN_xrInitializeLoaderKHR xrInitializeLoaderKHR;
-  xrGetInstanceProcAddr(XR_NULL_HANDLE, "xrInitializeLoaderKHR", (PFN_xrVoidFunction*)&xrInitializeLoaderKHR);
+  xrGetInstanceProcAddr(XR_NULL_HANDLE, "xrInitializeLoaderKHR",
+                        (PFN_xrVoidFunction*)&xrInitializeLoaderKHR);
   if (xrInitializeLoaderKHR != NULL)
   {
     ovrJava* java = (ovrJava*)system;
@@ -42,7 +43,7 @@ void VR_Init(void* system, const char* name, int version)
   }
 #endif
 
-  std::vector<const char *> extensions;
+  std::vector<const char*> extensions;
 #ifdef XR_USE_GRAPHICS_API_OPENGL_ES
   extensions.push_back(XR_KHR_OPENGL_ES_ENABLE_EXTENSION_NAME);
 #endif
@@ -87,7 +88,8 @@ void VR_Init(void* system, const char* name, int version)
   instanceCreateInfo.enabledExtensionNames = extensions.data();
 
 #ifdef ANDROID
-  XrInstanceCreateInfoAndroidKHR instanceCreateInfoAndroid = {XR_TYPE_INSTANCE_CREATE_INFO_ANDROID_KHR};
+  XrInstanceCreateInfoAndroidKHR instanceCreateInfoAndroid = {
+      XR_TYPE_INSTANCE_CREATE_INFO_ANDROID_KHR};
   if (VR_GetPlatformFlag(VR_PLATFORM_EXTENSION_INSTANCE))
   {
     ovrJava* java = (ovrJava*)system;
@@ -111,12 +113,10 @@ void VR_Init(void* system, const char* name, int version)
   instanceInfo.type = XR_TYPE_INSTANCE_PROPERTIES;
   instanceInfo.next = NULL;
   OXR(xrGetInstanceProperties(vr_engine.appState.Instance, &instanceInfo));
-  ALOGV(
-      "Runtime %s: Version : %u.%u.%u",
-      instanceInfo.runtimeName,
-      XR_VERSION_MAJOR(instanceInfo.runtimeVersion),
-      XR_VERSION_MINOR(instanceInfo.runtimeVersion),
-      XR_VERSION_PATCH(instanceInfo.runtimeVersion));
+  ALOGV("Runtime %s: Version : %u.%u.%u", instanceInfo.runtimeName,
+        XR_VERSION_MAJOR(instanceInfo.runtimeVersion),
+        XR_VERSION_MINOR(instanceInfo.runtimeVersion),
+        XR_VERSION_PATCH(instanceInfo.runtimeVersion));
 
   XrSystemGetInfo systemGetInfo;
   memset(&systemGetInfo, 0, sizeof(systemGetInfo));
@@ -135,15 +135,13 @@ void VR_Init(void* system, const char* name, int version)
   // Get the graphics requirements.
 #ifdef XR_USE_GRAPHICS_API_OPENGL_ES
   PFN_xrGetOpenGLESGraphicsRequirementsKHR pfnGetOpenGLESGraphicsRequirementsKHR = NULL;
-  OXR(xrGetInstanceProcAddr(
-      vr_engine.appState.Instance,
-      "xrGetOpenGLESGraphicsRequirementsKHR",
-      (PFN_xrVoidFunction*)(&pfnGetOpenGLESGraphicsRequirementsKHR)));
+  OXR(xrGetInstanceProcAddr(vr_engine.appState.Instance, "xrGetOpenGLESGraphicsRequirementsKHR",
+                            (PFN_xrVoidFunction*)(&pfnGetOpenGLESGraphicsRequirementsKHR)));
 
   XrGraphicsRequirementsOpenGLESKHR graphicsRequirements = {};
   graphicsRequirements.type = XR_TYPE_GRAPHICS_REQUIREMENTS_OPENGL_ES_KHR;
-  OXR(pfnGetOpenGLESGraphicsRequirementsKHR(
-      vr_engine.appState.Instance, systemId, &graphicsRequirements));
+  OXR(pfnGetOpenGLESGraphicsRequirementsKHR(vr_engine.appState.Instance, systemId,
+                                            &graphicsRequirements));
 #endif
 
 #ifdef ANDROID
@@ -186,15 +184,15 @@ void VR_EnterVR(engine_t* engine)
   graphicsBindingGL.context = eglGetCurrentContext();
   sessionCreateInfo.next = &graphicsBindingGL;
 #else
-  //TODO:PCVR definition
+  // TODO:PCVR definition
 #endif
   sessionCreateInfo.type = XR_TYPE_SESSION_CREATE_INFO;
   sessionCreateInfo.createFlags = 0;
   sessionCreateInfo.systemId = engine->appState.SystemId;
 
   XrResult initResult;
-  OXR(initResult = xrCreateSession(
-      engine->appState.Instance, &sessionCreateInfo, &engine->appState.Session));
+  OXR(initResult = xrCreateSession(engine->appState.Instance, &sessionCreateInfo,
+                                   &engine->appState.Session));
   if (initResult != XR_SUCCESS)
   {
     ALOGE("Failed to create XR session: %d.", initResult);
@@ -206,7 +204,8 @@ void VR_EnterVR(engine_t* engine)
   spaceCreateInfo.type = XR_TYPE_REFERENCE_SPACE_CREATE_INFO;
   spaceCreateInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_VIEW;
   spaceCreateInfo.poseInReferenceSpace.orientation.w = 1.0f;
-  OXR(xrCreateReferenceSpace(engine->appState.Session, &spaceCreateInfo, &engine->appState.HeadSpace));
+  OXR(xrCreateReferenceSpace(engine->appState.Session, &spaceCreateInfo,
+                             &engine->appState.HeadSpace));
 }
 
 void VR_LeaveVR(engine_t* engine)

@@ -13,21 +13,24 @@
 #include "Common/VR/OpenXRLoader.h"
 
 #define _USE_MATH_DEFINES
-#include <cmath>
 #include <cassert>
+#include <cmath>
 
-#if defined(_DEBUG) && (defined(XR_USE_GRAPHICS_API_OPENGL) || defined(XR_USE_GRAPHICS_API_OPENGL_ES))
+#if defined(_DEBUG) &&                                                                             \
+    (defined(XR_USE_GRAPHICS_API_OPENGL) || defined(XR_USE_GRAPHICS_API_OPENGL_ES))
 
 void GLCheckErrors(const char* file, int line);
 
-#define GL(func) func; GLCheckErrors(__FILE__ , __LINE__);
+#define GL(func)                                                                                   \
+  func;                                                                                            \
+  GLCheckErrors(__FILE__, __LINE__);
 #else
 #define GL(func) func;
 #endif
 
 #if defined(_DEBUG)
-static void OXR_CheckErrors(XrInstance instance, XrResult result,
-              const char* function, bool failOnError)
+static void OXR_CheckErrors(XrInstance instance, XrResult result, const char* function,
+                            bool failOnError)
 {
   if (XR_FAILED(result))
   {
@@ -48,8 +51,14 @@ static void OXR_CheckErrors(XrInstance instance, XrResult result,
 #define OXR(func) func;
 #endif
 
-enum { ovrMaxLayerCount = 2 };
-enum { ovrMaxNumEyes = 2 };
+enum
+{
+  ovrMaxLayerCount = 2
+};
+enum
+{
+  ovrMaxNumEyes = 2
+};
 
 typedef union
 {

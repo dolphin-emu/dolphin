@@ -1,10 +1,10 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
+#include "OpenXRLoader.h"
 #include "VRBase.h"
 #include "VRInput.h"
 #include "VRRenderer.h"
-#include "OpenXRLoader.h"
 
 #include <cstdlib>
 #include <cstring>
@@ -26,7 +26,7 @@ void VR_UpdateStageBounds(ovrApp* pappState)
 
   XrResult result;
   OXR(result = xrGetReferenceSpaceBoundsRect(pappState->Session, XR_REFERENCE_SPACE_TYPE_STAGE,
-											 &stageBounds));
+                                             &stageBounds));
   if (result != XR_SUCCESS)
   {
     ALOGV("Stage bounds query failed: using small defaults");
@@ -48,18 +48,15 @@ void VR_GetResolution(engine_t* engine, int* pWidth, int* pHeight)
   {
     // Enumerate the viewport configurations.
     uint32_t viewportConfigTypeCount = 0;
-    OXR(xrEnumerateViewConfigurations(
-        engine->appState.Instance, engine->appState.SystemId, 0, &viewportConfigTypeCount, NULL));
+    OXR(xrEnumerateViewConfigurations(engine->appState.Instance, engine->appState.SystemId, 0,
+                                      &viewportConfigTypeCount, NULL));
 
     XrViewConfigurationType* viewportConfigurationTypes =
-        (XrViewConfigurationType*)malloc(viewportConfigTypeCount*  sizeof(XrViewConfigurationType));
+        (XrViewConfigurationType*)malloc(viewportConfigTypeCount * sizeof(XrViewConfigurationType));
 
-    OXR(xrEnumerateViewConfigurations(
-        engine->appState.Instance,
-        engine->appState.SystemId,
-        viewportConfigTypeCount,
-        &viewportConfigTypeCount,
-        viewportConfigurationTypes));
+    OXR(xrEnumerateViewConfigurations(engine->appState.Instance, engine->appState.SystemId,
+                                      viewportConfigTypeCount, &viewportConfigTypeCount,
+                                      viewportConfigurationTypes));
 
     ALOGV("Available Viewport Configuration Types: %d", viewportConfigTypeCount);
 
@@ -67,57 +64,48 @@ void VR_GetResolution(engine_t* engine, int* pWidth, int* pHeight)
     {
       const XrViewConfigurationType viewportConfigType = viewportConfigurationTypes[i];
 
-      ALOGV(
-          "Viewport configuration type %d : %s",
-          viewportConfigType,
-          viewportConfigType == XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO ? "Selected" : "");
+      ALOGV("Viewport configuration type %d : %s", viewportConfigType,
+            viewportConfigType == XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO ? "Selected" : "");
 
       XrViewConfigurationProperties viewportConfig;
       viewportConfig.type = XR_TYPE_VIEW_CONFIGURATION_PROPERTIES;
       OXR(xrGetViewConfigurationProperties(engine->appState.Instance, engine->appState.SystemId,
-										   viewportConfigType, &viewportConfig));
-      ALOGV(
-          "FovMutable=%s ConfigurationType %d",
-          viewportConfig.fovMutable ? "true" : "false",
-          viewportConfig.viewConfigurationType);
+                                           viewportConfigType, &viewportConfig));
+      ALOGV("FovMutable=%s ConfigurationType %d", viewportConfig.fovMutable ? "true" : "false",
+            viewportConfig.viewConfigurationType);
 
       uint32_t viewCount;
       OXR(xrEnumerateViewConfigurationViews(engine->appState.Instance, engine->appState.SystemId,
-											viewportConfigType, 0, &viewCount, NULL));
+                                            viewportConfigType, 0, &viewCount, NULL));
 
       if (viewCount > 0)
-	  {
+      {
         XrViewConfigurationView* elements =
-            (XrViewConfigurationView*)malloc(viewCount*  sizeof(XrViewConfigurationView));
+            (XrViewConfigurationView*)malloc(viewCount * sizeof(XrViewConfigurationView));
 
         for (uint32_t e = 0; e < viewCount; e++)
-	    {
+        {
           elements[e].type = XR_TYPE_VIEW_CONFIGURATION_VIEW;
           elements[e].next = NULL;
         }
 
-        OXR(xrEnumerateViewConfigurationViews(
-            engine->appState.Instance,
-            engine->appState.SystemId,
-            viewportConfigType,
-            viewCount,
-            &viewCount,
-            elements));
+        OXR(xrEnumerateViewConfigurationViews(engine->appState.Instance, engine->appState.SystemId,
+                                              viewportConfigType, viewCount, &viewCount, elements));
 
         // Cache the view config properties for the selected config type.
         if (viewportConfigType == XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO)
-	    {
+        {
           assert(viewCount == ovrMaxNumEyes);
           for (uint32_t e = 0; e < viewCount; e++)
-		  {
+          {
             engine->appState.ViewConfigurationView[e] = elements[e];
           }
         }
 
         free(elements);
       }
-	  else
-	  {
+      else
+      {
         ALOGE("Empty viewport configuration type: %d", viewCount);
       }
     }
@@ -129,7 +117,7 @@ void VR_GetResolution(engine_t* engine, int* pWidth, int* pHeight)
   }
   else
   {
-    //use cached values
+    // use cached values
     *pWidth = width;
     *pHeight = height;
   }
@@ -139,23 +127,23 @@ void VR_Recenter(engine_t* engine)
 {
   // Calculate recenter reference
   XrReferenceSpaceCreateInfo spaceInfo = {};
-	spaceInfo.type = XR_TYPE_REFERENCE_SPACE_CREATE_INFO;
-	spaceInfo.poseInReferenceSpace.orientation.w = 1.0f;
+  spaceInfo.type = XR_TYPE_REFERENCE_SPACE_CREATE_INFO;
+  spaceInfo.poseInReferenceSpace.orientation.w = 1.0f;
   if (engine->appState.CurrentSpace != XR_NULL_HANDLE)
   {
     XrSpaceLocation loc = {};
     loc.type = XR_TYPE_SPACE_LOCATION;
     OXR(xrLocateSpace(engine->appState.HeadSpace, engine->appState.CurrentSpace,
-					  engine->predictedDisplayTime, &loc));
+                      engine->predictedDisplayTime, &loc));
     hmdorientation = XrQuaternionf_ToEulerAngles(loc.pose.orientation);
-	float yaw = hmdorientation.y;
+    float yaw = hmdorientation.y;
 
     VR_SetConfigFloat(VR_CONFIG_RECENTER_YAW, VR_GetConfigFloat(VR_CONFIG_RECENTER_YAW) + yaw);
     float recenterYaw = ToRadians(VR_GetConfigFloat(VR_CONFIG_RECENTER_YAW));
-	  spaceInfo.poseInReferenceSpace.orientation.x = 0;
-	  spaceInfo.poseInReferenceSpace.orientation.y = sinf(recenterYaw / 2);
-	  spaceInfo.poseInReferenceSpace.orientation.z = 0;
-	  spaceInfo.poseInReferenceSpace.orientation.w = cosf(recenterYaw / 2);
+    spaceInfo.poseInReferenceSpace.orientation.x = 0;
+    spaceInfo.poseInReferenceSpace.orientation.y = sinf(recenterYaw / 2);
+    spaceInfo.poseInReferenceSpace.orientation.z = 0;
+    spaceInfo.poseInReferenceSpace.orientation.w = cosf(recenterYaw / 2);
   }
 
   // Delete previous space instances
@@ -173,7 +161,7 @@ void VR_Recenter(engine_t* engine)
   spaceInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_LOCAL;
   if (VR_GetPlatformFlag(VR_PLATFORM_TRACKING_FLOOR))
   {
-	  spaceInfo.poseInReferenceSpace.position.y = -1.6750f;
+    spaceInfo.poseInReferenceSpace.position.y = -1.6750f;
   }
   OXR(xrCreateReferenceSpace(engine->appState.Session, &spaceInfo, &engine->appState.FakeSpace));
   ALOGV("Created fake stage space from local space with offset");
@@ -181,8 +169,8 @@ void VR_Recenter(engine_t* engine)
 
   if (stageSupported)
   {
-	spaceInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_STAGE;
-	spaceInfo.poseInReferenceSpace.position.y = 0.0;
+    spaceInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_STAGE;
+    spaceInfo.poseInReferenceSpace.position.y = 0.0;
     OXR(xrCreateReferenceSpace(engine->appState.Session, &spaceInfo, &engine->appState.StageSpace));
     ALOGV("Created stage space");
     if (VR_GetPlatformFlag(VR_PLATFORM_TRACKING_FLOOR))
@@ -211,8 +199,8 @@ void VR_InitRenderer(engine_t* engine, bool multiview)
   // Get the viewport configuration info for the chosen viewport configuration type.
   engine->appState.ViewportConfig.type = XR_TYPE_VIEW_CONFIGURATION_PROPERTIES;
   OXR(xrGetViewConfigurationProperties(engine->appState.Instance, engine->appState.SystemId,
-									   XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO,
-									   &engine->appState.ViewportConfig));
+                                       XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO,
+                                       &engine->appState.ViewportConfig));
 
   uint32_t numSpaces = 0;
   OXR(xrEnumerateReferenceSpaces(engine->appState.Session, 0, &numSpaces, NULL));
@@ -235,18 +223,18 @@ void VR_InitRenderer(engine_t* engine, bool multiview)
     VR_Recenter(engine);
   }
 
-  projections = (XrView*)(malloc(ovrMaxNumEyes*  sizeof(XrView)));
+  projections = (XrView*)(malloc(ovrMaxNumEyes * sizeof(XrView)));
 
   ovrRenderer_Create(engine->appState.Session, &engine->appState.Renderer,
-      engine->appState.ViewConfigurationView[0].recommendedImageRectWidth,
-      engine->appState.ViewConfigurationView[0].recommendedImageRectHeight,
-      multiview);
+                     engine->appState.ViewConfigurationView[0].recommendedImageRectWidth,
+                     engine->appState.ViewConfigurationView[0].recommendedImageRectHeight,
+                     multiview);
 #ifdef ANDROID
   if (VR_GetPlatformFlag(VR_PLATFORM_EXTENSION_FOVEATION))
   {
     ovrRenderer_SetFoveation(&engine->appState.Instance, &engine->appState.Session,
-							 &engine->appState.Renderer, XR_FOVEATION_LEVEL_HIGH_TOP_FB, 0,
-							 XR_FOVEATION_DYNAMIC_LEVEL_ENABLED_FB);
+                             &engine->appState.Renderer, XR_FOVEATION_LEVEL_HIGH_TOP_FB, 0,
+                             XR_FOVEATION_DYNAMIC_LEVEL_ENABLED_FB);
   }
 #endif
   initialized = true;
@@ -309,13 +297,8 @@ bool VR_InitFrame(engine_t* engine)
   uint32_t projectionCapacityInput = ovrMaxNumEyes;
   uint32_t projectionCountOutput = projectionCapacityInput;
 
-  OXR(xrLocateViews(
-      engine->appState.Session,
-      &projectionInfo,
-      &viewState,
-      projectionCapacityInput,
-      &projectionCountOutput,
-      projections));
+  OXR(xrLocateViews(engine->appState.Session, &projectionInfo, &viewState, projectionCapacityInput,
+                    &projectionCountOutput, projections));
   //
 
   fov = {};
@@ -377,9 +360,9 @@ void VR_FinishFrame(engine_t* engine)
       ovrFramebuffer* frameBuffer = &engine->appState.Renderer.FrameBuffer[0];
       XrPosef pose = invViewTransform[0];
       if (vrMode != VR_MODE_MONO_6DOF)
-	  {
+      {
         if (!engine->appState.Renderer.Multiview)
-	    {
+        {
           frameBuffer = &engine->appState.Renderer.FrameBuffer[eye];
         }
         pose = invViewTransform[eye];
@@ -394,8 +377,10 @@ void VR_FinishFrame(engine_t* engine)
       projection_layer_elements[eye].subImage.swapchain = frameBuffer->ColorSwapChain.Handle;
       projection_layer_elements[eye].subImage.imageRect.offset.x = 0;
       projection_layer_elements[eye].subImage.imageRect.offset.y = 0;
-      projection_layer_elements[eye].subImage.imageRect.extent.width = frameBuffer->ColorSwapChain.Width;
-      projection_layer_elements[eye].subImage.imageRect.extent.height = frameBuffer->ColorSwapChain.Height;
+      projection_layer_elements[eye].subImage.imageRect.extent.width =
+          frameBuffer->ColorSwapChain.Width;
+      projection_layer_elements[eye].subImage.imageRect.extent.height =
+          frameBuffer->ColorSwapChain.Height;
       projection_layer_elements[eye].subImage.imageArrayIndex = imageLayer;
     }
 
@@ -411,22 +396,18 @@ void VR_FinishFrame(engine_t* engine)
   }
   else if ((vrMode == VR_MODE_MONO_SCREEN) || (vrMode == VR_MODE_STEREO_SCREEN))
   {
-
     // Flat screen pose
     float distance = VR_GetConfigFloat(VR_CONFIG_CANVAS_DISTANCE);
     float menuPitch = ToRadians(VR_GetConfigFloat(VR_CONFIG_MENU_PITCH));
     float menuYaw = ToRadians(VR_GetConfigFloat(VR_CONFIG_MENU_YAW));
-    XrVector3f pos =
-    {
-        invViewTransform[0].position.x - sinf(menuYaw) * distance,
-        invViewTransform[0].position.y,
-        invViewTransform[0].position.z - cosf(menuYaw) * distance
-    };
+    XrVector3f pos = {invViewTransform[0].position.x - sinf(menuYaw) * distance,
+                      invViewTransform[0].position.y,
+                      invViewTransform[0].position.z - cosf(menuYaw) * distance};
     XrQuaternionf pitch = XrQuaternionf_CreateFromVectorAngle({1, 0, 0}, -menuPitch);
     XrQuaternionf yaw = XrQuaternionf_CreateFromVectorAngle({0, 1, 0}, menuYaw);
 
     // Setup the cylinder layer
-	ovrFramebuffer* frameBuffer = &engine->appState.Renderer.FrameBuffer[0];
+    ovrFramebuffer* frameBuffer = &engine->appState.Renderer.FrameBuffer[0];
     XrCompositionLayerCylinderKHR cylinder_layer = {};
     cylinder_layer.type = XR_TYPE_COMPOSITION_LAYER_CYLINDER_KHR;
     cylinder_layer.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
@@ -450,7 +431,7 @@ void VR_FinishFrame(engine_t* engine)
       cylinder_layer.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
       engine->appState.Layers[engine->appState.LayerCount++].Cylinder = cylinder_layer;
     }
-	else if (engine->appState.Renderer.Multiview)
+    else if (engine->appState.Renderer.Multiview)
     {
       cylinder_layer.eyeVisibility = XR_EYE_VISIBILITY_LEFT;
       engine->appState.Layers[engine->appState.LayerCount++].Cylinder = cylinder_layer;
@@ -458,12 +439,13 @@ void VR_FinishFrame(engine_t* engine)
       cylinder_layer.subImage.imageArrayIndex = 1;
       engine->appState.Layers[engine->appState.LayerCount++].Cylinder = cylinder_layer;
     }
-	else
+    else
     {
       cylinder_layer.eyeVisibility = XR_EYE_VISIBILITY_LEFT;
       engine->appState.Layers[engine->appState.LayerCount++].Cylinder = cylinder_layer;
       cylinder_layer.eyeVisibility = XR_EYE_VISIBILITY_RIGHT;
-      cylinder_layer.subImage.swapchain = engine->appState.Renderer.FrameBuffer[1].ColorSwapChain.Handle;
+      cylinder_layer.subImage.swapchain =
+          engine->appState.Renderer.FrameBuffer[1].ColorSwapChain.Handle;
       engine->appState.Layers[engine->appState.LayerCount++].Cylinder = cylinder_layer;
     }
   }
@@ -518,7 +500,8 @@ void VR_SetConfigFloat(VRConfigFloat config, float value)
 
 void VR_BindFramebuffer(engine_t* engine)
 {
-  if (!initialized) return;
+  if (!initialized)
+    return;
   int fboIndex = VR_GetConfig(VR_CONFIG_CURRENT_FBO);
   ovrFramebuffer_SetCurrent(&engine->appState.Renderer.FrameBuffer[fboIndex]);
 }

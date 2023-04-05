@@ -24,9 +24,11 @@ bool IsMatrixIdentity(float* matrix)
       float value = matrix[i * 4 + j];
 
       // Other number than zero on non-diagonale
-      if ((i != j) && (fabs(value) > EPSILON)) return false;
+      if ((i != j) && (fabs(value) > EPSILON))
+        return false;
       // Other number than one on diagonale
-      if ((i == j) && (fabs(value - 1.0f) > EPSILON)) return false;
+      if ((i == j) && (fabs(value - 1.0f) > EPSILON))
+        return false;
     }
   }
   return true;
@@ -42,15 +44,15 @@ XrPosef
 
 XrPosef XrPosef_Identity()
 {
-       XrPosef r;
-       r.orientation.x = 0;
-       r.orientation.y = 0;
-       r.orientation.z = 0;
-       r.orientation.w = 1;
-       r.position.x = 0;
-       r.position.y = 0;
-       r.position.z = 0;
-       return r;
+  XrPosef r;
+  r.orientation.x = 0;
+  r.orientation.y = 0;
+  r.orientation.z = 0;
+  r.orientation.w = 1;
+  r.position.x = 0;
+  r.position.y = 0;
+  r.position.z = 0;
+  return r;
 }
 
 XrPosef XrPosef_Inverse(const XrPosef a)
@@ -111,7 +113,8 @@ XrQuaternionf XrQuaternionf_Multiply(const XrQuaternionf a, const XrQuaternionf 
   return c;
 }
 
-XrVector3f XrQuaternionf_Rotate(const XrQuaternionf a, const XrVector3f v) {
+XrVector3f XrQuaternionf_Rotate(const XrQuaternionf a, const XrVector3f v)
+{
   XrVector3f r;
   XrQuaternionf q = {v.x, v.y, v.z, 0.0f};
   XrQuaternionf aq = XrQuaternionf_Multiply(a, q);
@@ -188,7 +191,8 @@ XrVector3f, XrVector4f
 
 float XrVector3f_LengthSquared(const XrVector3f v)
 {
-  return v.x * v.x + v.y * v.y + v.z * v.z;;
+  return v.x * v.x + v.y * v.y + v.z * v.z;
+  ;
 }
 
 XrVector3f XrVector3f_GetAnglesFromVectors(XrVector3f forward, XrVector3f right, XrVector3f up)

@@ -1,7 +1,7 @@
 #include "VRInput.h"
 #include <cstring>
 
-//OpenXR
+// OpenXR
 XrPath leftHandPath;
 XrPath rightHandPath;
 XrAction handPoseLeftAction;
@@ -33,7 +33,7 @@ uint32_t lButtons = 0;
 uint32_t rButtons = 0;
 XrActionStateVector2f moveJoystickState[2];
 
-//0 = left, 1 = right
+// 0 = left, 1 = right
 float vibration_channel_duration[2] = {0.0f, 0.0f};
 float vibration_channel_intensity[2] = {0.0f, 0.0f};
 
@@ -124,7 +124,7 @@ void VR_processHaptics()
       hapticActionInfo.next = NULL;
       hapticActionInfo.action = i == 0 ? vibrateLeftFeedback : vibrateRightFeedback;
       OXR(xrApplyHapticFeedback(VR_GetEngine()->appState.Session, &hapticActionInfo,
-                    (const XrHapticBaseHeader*)&vibration));
+                                (const XrHapticBaseHeader*)&vibration));
 
       if (vibration_channel_duration[i] != -1.0f)
       {
@@ -184,15 +184,9 @@ XrActionSet CreateActionSet(int priority, const char* name, const char* localize
   return actionSet;
 }
 
-XrAction CreateAction(
-    XrActionSet actionSet,
-    XrActionType type,
-    const char* actionName,
-    const char* localizedName,
-    int countSubactionPaths,
-    XrPath* subactionPaths)
-  {
-
+XrAction CreateAction(XrActionSet actionSet, XrActionType type, const char* actionName,
+                      const char* localizedName, int countSubactionPaths, XrPath* subactionPaths)
+{
   XrActionCreateInfo aci = {};
   aci.type = XR_TYPE_ACTION_CREATE_INFO;
   aci.next = NULL;
@@ -261,67 +255,67 @@ XrActionStateVector2f GetActionStateVector2(XrAction action)
   return state;
 }
 
-void IN_VRInit(engine_t *engine)
+void IN_VRInit(engine_t* engine)
 {
   if (inputInitialized)
     return;
 
   // Actions
   actionSet = CreateActionSet(1, "running_action_set", "Action Set used on main loop");
-  indexLeftAction = CreateAction(actionSet, XR_ACTION_TYPE_BOOLEAN_INPUT,
-                   "index_left", "Index left", 0, NULL);
-  indexRightAction = CreateAction(actionSet, XR_ACTION_TYPE_BOOLEAN_INPUT,
-                  "index_right", "Index right", 0, NULL);
-  menuAction = CreateAction(actionSet, XR_ACTION_TYPE_BOOLEAN_INPUT,
-                "menu_action", "Menu", 0, NULL);
-  buttonAAction = CreateAction(actionSet, XR_ACTION_TYPE_BOOLEAN_INPUT,
-                 "button_a", "Button A", 0, NULL);
-  buttonBAction = CreateAction(actionSet, XR_ACTION_TYPE_BOOLEAN_INPUT,
-                 "button_b", "Button B", 0, NULL);
-  buttonXAction = CreateAction(actionSet, XR_ACTION_TYPE_BOOLEAN_INPUT,
-                 "button_x", "Button X", 0, NULL);
-  buttonYAction = CreateAction(actionSet, XR_ACTION_TYPE_BOOLEAN_INPUT,
-                 "button_y", "Button Y", 0, NULL);
-  gripLeftAction = CreateAction(actionSet, XR_ACTION_TYPE_FLOAT_INPUT,
-                  "grip_left", "Grip left", 0, NULL);
-  gripRightAction = CreateAction(actionSet, XR_ACTION_TYPE_FLOAT_INPUT,
-                   "grip_right", "Grip right", 0, NULL);
+  indexLeftAction =
+      CreateAction(actionSet, XR_ACTION_TYPE_BOOLEAN_INPUT, "index_left", "Index left", 0, NULL);
+  indexRightAction =
+      CreateAction(actionSet, XR_ACTION_TYPE_BOOLEAN_INPUT, "index_right", "Index right", 0, NULL);
+  menuAction =
+      CreateAction(actionSet, XR_ACTION_TYPE_BOOLEAN_INPUT, "menu_action", "Menu", 0, NULL);
+  buttonAAction =
+      CreateAction(actionSet, XR_ACTION_TYPE_BOOLEAN_INPUT, "button_a", "Button A", 0, NULL);
+  buttonBAction =
+      CreateAction(actionSet, XR_ACTION_TYPE_BOOLEAN_INPUT, "button_b", "Button B", 0, NULL);
+  buttonXAction =
+      CreateAction(actionSet, XR_ACTION_TYPE_BOOLEAN_INPUT, "button_x", "Button X", 0, NULL);
+  buttonYAction =
+      CreateAction(actionSet, XR_ACTION_TYPE_BOOLEAN_INPUT, "button_y", "Button Y", 0, NULL);
+  gripLeftAction =
+      CreateAction(actionSet, XR_ACTION_TYPE_FLOAT_INPUT, "grip_left", "Grip left", 0, NULL);
+  gripRightAction =
+      CreateAction(actionSet, XR_ACTION_TYPE_FLOAT_INPUT, "grip_right", "Grip right", 0, NULL);
   moveOnLeftJoystickAction = CreateAction(actionSet, XR_ACTION_TYPE_VECTOR2F_INPUT,
-                      "move_on_left_joy", "Move on left Joy", 0, NULL);
+                                          "move_on_left_joy", "Move on left Joy", 0, NULL);
   moveOnRightJoystickAction = CreateAction(actionSet, XR_ACTION_TYPE_VECTOR2F_INPUT,
-                       "move_on_right_joy", "Move on right Joy", 0, NULL);
-  thumbLeftClickAction = CreateAction(actionSet, XR_ACTION_TYPE_BOOLEAN_INPUT,
-                    "thumbstick_left", "Thumbstick left", 0, NULL);
-  thumbRightClickAction = CreateAction(actionSet, XR_ACTION_TYPE_BOOLEAN_INPUT,
-                     "thumbstick_right", "Thumbstick right", 0, NULL);
+                                           "move_on_right_joy", "Move on right Joy", 0, NULL);
+  thumbLeftClickAction = CreateAction(actionSet, XR_ACTION_TYPE_BOOLEAN_INPUT, "thumbstick_left",
+                                      "Thumbstick left", 0, NULL);
+  thumbRightClickAction = CreateAction(actionSet, XR_ACTION_TYPE_BOOLEAN_INPUT, "thumbstick_right",
+                                       "Thumbstick right", 0, NULL);
   vibrateLeftFeedback = CreateAction(actionSet, XR_ACTION_TYPE_VIBRATION_OUTPUT,
-                     "vibrate_left_feedback", "Vibrate Left Controller", 0, NULL);
-  vibrateRightFeedback = CreateAction(actionSet, XR_ACTION_TYPE_VIBRATION_OUTPUT,
-                    "vibrate_right_feedback", "Vibrate Right Controller", 0, NULL);
+                                     "vibrate_left_feedback", "Vibrate Left Controller", 0, NULL);
+  vibrateRightFeedback =
+      CreateAction(actionSet, XR_ACTION_TYPE_VIBRATION_OUTPUT, "vibrate_right_feedback",
+                   "Vibrate Right Controller", 0, NULL);
 
   OXR(xrStringToPath(engine->appState.Instance, "/user/hand/left", &leftHandPath));
   OXR(xrStringToPath(engine->appState.Instance, "/user/hand/right", &rightHandPath));
-  handPoseLeftAction = CreateAction(actionSet, XR_ACTION_TYPE_POSE_INPUT,
-                                    "hand_pose_left", NULL, 1, &leftHandPath);
-  handPoseRightAction = CreateAction(actionSet, XR_ACTION_TYPE_POSE_INPUT,
-                                     "hand_pose_right", NULL, 1, &rightHandPath);
+  handPoseLeftAction =
+      CreateAction(actionSet, XR_ACTION_TYPE_POSE_INPUT, "hand_pose_left", NULL, 1, &leftHandPath);
+  handPoseRightAction = CreateAction(actionSet, XR_ACTION_TYPE_POSE_INPUT, "hand_pose_right", NULL,
+                                     1, &rightHandPath);
 
   XrPath interactionProfilePath = XR_NULL_PATH;
   if (VR_GetPlatformFlag(VR_PLATFORM_CONTROLLER_QUEST))
   {
     OXR(xrStringToPath(engine->appState.Instance, "/interaction_profiles/oculus/touch_controller",
-               &interactionProfilePath));
+                       &interactionProfilePath));
   }
   else if (VR_GetPlatformFlag(VR_PLATFORM_CONTROLLER_PICO))
   {
     OXR(xrStringToPath(engine->appState.Instance, "/interaction_profiles/pico/neo3_controller",
-               &interactionProfilePath));
+                       &interactionProfilePath));
   }
 
   // Map bindings
-  XrActionSuggestedBinding bindings[32]; // large enough for all profiles
+  XrActionSuggestedBinding bindings[32];  // large enough for all profiles
   int curr = 0;
-
 
   if (VR_GetPlatformFlag(VR_PLATFORM_CONTROLLER_QUEST))
   {
@@ -370,27 +364,24 @@ void IN_VRInit(engine_t *engine)
   // Enumerate actions
   XrPath actionPathsBuffer[32];
   char stringBuffer[256];
-  XrAction actionsToEnumerate[] =
-  {
-      indexLeftAction,
-      indexRightAction,
-      menuAction,
-      buttonAAction,
-      buttonBAction,
-      buttonXAction,
-      buttonYAction,
-      gripLeftAction,
-      gripRightAction,
-      moveOnLeftJoystickAction,
-      moveOnRightJoystickAction,
-      thumbLeftClickAction,
-      thumbRightClickAction,
-      vibrateLeftFeedback,
-      vibrateRightFeedback,
-      handPoseLeftAction,
-      handPoseRightAction
-  };
-  for (XrAction & i : actionsToEnumerate)
+  XrAction actionsToEnumerate[] = {indexLeftAction,
+                                   indexRightAction,
+                                   menuAction,
+                                   buttonAAction,
+                                   buttonBAction,
+                                   buttonXAction,
+                                   buttonYAction,
+                                   gripLeftAction,
+                                   gripRightAction,
+                                   moveOnLeftJoystickAction,
+                                   moveOnRightJoystickAction,
+                                   thumbLeftClickAction,
+                                   thumbRightClickAction,
+                                   vibrateLeftFeedback,
+                                   vibrateRightFeedback,
+                                   handPoseLeftAction,
+                                   handPoseRightAction};
+  for (XrAction& i : actionsToEnumerate)
   {
     XrBoundSourcesForActionEnumerateInfo e = {};
     e.type = XR_TYPE_BOUND_SOURCES_FOR_ACTION_ENUMERATE_INFO;
@@ -404,8 +395,8 @@ void IN_VRInit(engine_t *engine)
 
     if (countOutput < 32)
     {
-      OXR(xrEnumerateBoundSourcesForAction(
-          engine->appState.Session, &e, 32, &countOutput, actionPathsBuffer));
+      OXR(xrEnumerateBoundSourcesForAction(engine->appState.Session, &e, 32, &countOutput,
+                                           actionPathsBuffer));
       for (uint32_t a = 0; a < countOutput; ++a)
       {
         XrInputSourceLocalizedNameGetInfo nameInfo = {};
@@ -417,18 +408,18 @@ void IN_VRInit(engine_t *engine)
                                    XR_INPUT_SOURCE_LOCALIZED_NAME_COMPONENT_BIT;
 
         uint32_t stringCount = 0u;
-        OXR(xrGetInputSourceLocalizedName(engine->appState.Session, &nameInfo, 0,
-                          &stringCount, NULL));
+        OXR(xrGetInputSourceLocalizedName(engine->appState.Session, &nameInfo, 0, &stringCount,
+                                          NULL));
         if (stringCount < 256)
         {
-          OXR(xrGetInputSourceLocalizedName(engine->appState.Session, &nameInfo, 256,
-                                            &stringCount, stringBuffer));
+          OXR(xrGetInputSourceLocalizedName(engine->appState.Session, &nameInfo, 256, &stringCount,
+                                            stringBuffer));
           char pathStr[256];
           uint32_t strLen = 0;
           OXR(xrPathToString(engine->appState.Instance, actionPathsBuffer[a],
-                     (uint32_t)sizeof(pathStr), &strLen, pathStr));
+                             (uint32_t)sizeof(pathStr), &strLen, pathStr));
           ALOGV("  -> path = %lld `%s` -> `%s`", (long long)actionPathsBuffer[a], pathStr,
-              stringBuffer);
+                stringBuffer);
         }
       }
     }
@@ -467,48 +458,66 @@ void IN_VRInputFrame(engine_t* engine)
     rightControllerAimSpace = CreateActionSpace(handPoseRightAction, rightHandPath);
   }
 
-  //button mapping
+  // button mapping
   lButtons = 0;
-  if (GetActionStateBoolean(menuAction).currentState) lButtons |= xrButton_Enter;
-  if (GetActionStateBoolean(buttonXAction).currentState) lButtons |= xrButton_X;
-  if (GetActionStateBoolean(buttonYAction).currentState) lButtons |= xrButton_Y;
-  if (GetActionStateBoolean(indexLeftAction).currentState) lButtons |= xrButton_Trigger;
-  if (GetActionStateFloat(gripLeftAction).currentState > 0.5f) lButtons |= xrButton_GripTrigger;
-  if (GetActionStateBoolean(thumbLeftClickAction).currentState) lButtons |= xrButton_LThumb;
+  if (GetActionStateBoolean(menuAction).currentState)
+    lButtons |= xrButton_Enter;
+  if (GetActionStateBoolean(buttonXAction).currentState)
+    lButtons |= xrButton_X;
+  if (GetActionStateBoolean(buttonYAction).currentState)
+    lButtons |= xrButton_Y;
+  if (GetActionStateBoolean(indexLeftAction).currentState)
+    lButtons |= xrButton_Trigger;
+  if (GetActionStateFloat(gripLeftAction).currentState > 0.5f)
+    lButtons |= xrButton_GripTrigger;
+  if (GetActionStateBoolean(thumbLeftClickAction).currentState)
+    lButtons |= xrButton_LThumb;
   rButtons = 0;
-  if (GetActionStateBoolean(buttonAAction).currentState) rButtons |= xrButton_A;
-  if (GetActionStateBoolean(buttonBAction).currentState) rButtons |= xrButton_B;
-  if (GetActionStateBoolean(indexRightAction).currentState) rButtons |= xrButton_Trigger;
-  if (GetActionStateFloat(gripRightAction).currentState > 0.5f) rButtons |= xrButton_GripTrigger;
-  if (GetActionStateBoolean(thumbRightClickAction).currentState) rButtons |= xrButton_RThumb;
+  if (GetActionStateBoolean(buttonAAction).currentState)
+    rButtons |= xrButton_A;
+  if (GetActionStateBoolean(buttonBAction).currentState)
+    rButtons |= xrButton_B;
+  if (GetActionStateBoolean(indexRightAction).currentState)
+    rButtons |= xrButton_Trigger;
+  if (GetActionStateFloat(gripRightAction).currentState > 0.5f)
+    rButtons |= xrButton_GripTrigger;
+  if (GetActionStateBoolean(thumbRightClickAction).currentState)
+    rButtons |= xrButton_RThumb;
 
-  //thumbstick
+  // thumbstick
   moveJoystickState[0] = GetActionStateVector2(moveOnLeftJoystickAction);
   moveJoystickState[1] = GetActionStateVector2(moveOnRightJoystickAction);
-  if (moveJoystickState[0].currentState.x > 0.5) lButtons |= xrButton_Right;
-  if (moveJoystickState[0].currentState.x < -0.5) lButtons |= xrButton_Left;
-  if (moveJoystickState[0].currentState.y > 0.5) lButtons |= xrButton_Up;
-  if (moveJoystickState[0].currentState.y < -0.5) lButtons |= xrButton_Down;
-  if (moveJoystickState[1].currentState.x > 0.5) rButtons |= xrButton_Right;
-  if (moveJoystickState[1].currentState.x < -0.5) rButtons |= xrButton_Left;
-  if (moveJoystickState[1].currentState.y > 0.5) rButtons |= xrButton_Up;
-  if (moveJoystickState[1].currentState.y < -0.5) rButtons |= xrButton_Down;
+  if (moveJoystickState[0].currentState.x > 0.5)
+    lButtons |= xrButton_Right;
+  if (moveJoystickState[0].currentState.x < -0.5)
+    lButtons |= xrButton_Left;
+  if (moveJoystickState[0].currentState.y > 0.5)
+    lButtons |= xrButton_Up;
+  if (moveJoystickState[0].currentState.y < -0.5)
+    lButtons |= xrButton_Down;
+  if (moveJoystickState[1].currentState.x > 0.5)
+    rButtons |= xrButton_Right;
+  if (moveJoystickState[1].currentState.x < -0.5)
+    rButtons |= xrButton_Left;
+  if (moveJoystickState[1].currentState.y > 0.5)
+    rButtons |= xrButton_Up;
+  if (moveJoystickState[1].currentState.y < -0.5)
+    rButtons |= xrButton_Down;
 
   lastframetime = in_vrEventTime;
   in_vrEventTime = milliseconds();
 }
 
-
 uint32_t IN_VRGetButtonState(int controllerIndex)
 {
   switch (controllerIndex)
   {
-    case 0:
-      return lButtons;
-    case 1:
-      return rButtons;
-    default:
-      return 0;
+  case 0:
+    return lButtons;
+  case 1:
+    return rButtons;
+  default:
+    return 0;
   }
 }
 
@@ -522,8 +531,8 @@ XrPosef IN_VRGetPose(int controllerIndex)
   engine_t* engine = VR_GetEngine();
   XrSpaceLocation loc = {};
   loc.type = XR_TYPE_SPACE_LOCATION;
-  XrSpace aimSpace[] = { leftControllerAimSpace, rightControllerAimSpace };
+  XrSpace aimSpace[] = {leftControllerAimSpace, rightControllerAimSpace};
   xrLocateSpace(aimSpace[controllerIndex], engine->appState.CurrentSpace,
-          (XrTime)(engine->predictedDisplayTime), &loc);
+                (XrTime)(engine->predictedDisplayTime), &loc);
   return loc.pose;
 }

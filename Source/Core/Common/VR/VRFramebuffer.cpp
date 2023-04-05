@@ -2,22 +2,22 @@
 
 #if XR_USE_GRAPHICS_API_OPENGL_ES
 
-#include <Common/GL/GLExtensions/gl_common.h>
+#include <Common/GL/GLExtensions/ARB_framebuffer_object.h>
+#include <Common/GL/GLExtensions/ARB_texture_storage.h>
 #include <Common/GL/GLExtensions/gl_1_1.h>
 #include <Common/GL/GLExtensions/gl_1_2.h>
 #include <Common/GL/GLExtensions/gl_2_1.h>
 #include <Common/GL/GLExtensions/gl_3_0.h>
-#include <Common/GL/GLExtensions/ARB_framebuffer_object.h>
-#include <Common/GL/GLExtensions/ARB_texture_storage.h>
+#include <Common/GL/GLExtensions/gl_common.h>
 
 #endif
 
+#include <cassert>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <cmath>
 #include <ctime>
-#include <cassert>
 
 #if !defined(_WIN32)
 #include <pthread.h>
@@ -35,7 +35,6 @@ ovrFramebuffer
 
 ================================================================================
 */
-
 
 void ovrFramebuffer_Clear(ovrFramebuffer* frameBuffer)
 {
@@ -93,7 +92,8 @@ void GLCheckErrors(const char* file, int line)
 
 #if XR_USE_GRAPHICS_API_OPENGL_ES
 
-static bool ovrFramebuffer_CreateGLES(XrSession session, ovrFramebuffer* frameBuffer, int width, int height, bool multiview)
+static bool ovrFramebuffer_CreateGLES(XrSession session, ovrFramebuffer* frameBuffer, int width,
+                                      int height, bool multiview)
 {
   frameBuffer->Width = width;
   frameBuffer->Height = height;
@@ -103,10 +103,11 @@ static bool ovrFramebuffer_CreateGLES(XrSession session, ovrFramebuffer* frameBu
     ALOGE("OpenGL implementation does not support GL_OVR_multiview2 extension.\n");
   }
 
-  typedef void (*PFNGLFRAMEBUFFERTEXTUREMULTIVIEWOVR)(GLenum, GLenum, GLuint, GLint, GLint, GLsizei);
+  typedef void (*PFNGLFRAMEBUFFERTEXTUREMULTIVIEWOVR)(GLenum, GLenum, GLuint, GLint, GLint,
+                                                      GLsizei);
   PFNGLFRAMEBUFFERTEXTUREMULTIVIEWOVR glFramebufferTextureMultiviewOVR = nullptr;
-  glFramebufferTextureMultiviewOVR = (PFNGLFRAMEBUFFERTEXTUREMULTIVIEWOVR)eglGetProcAddress (
-      "glFramebufferTextureMultiviewOVR");
+  glFramebufferTextureMultiviewOVR =
+      (PFNGLFRAMEBUFFERTEXTUREMULTIVIEWOVR)eglGetProcAddress("glFramebufferTextureMultiviewOVR");
   if (!glFramebufferTextureMultiviewOVR)
   {
     ALOGE("Can not get proc address for glFramebufferTextureMultiviewOVR.\n");
@@ -138,26 +139,28 @@ static bool ovrFramebuffer_CreateGLES(XrSession session, ovrFramebuffer* frameBu
   swapChainCreateInfo.format = GL_SRGB8_ALPHA8;
   swapChainCreateInfo.usageFlags = XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT;
   OXR(xrCreateSwapchain(session, &swapChainCreateInfo, &frameBuffer->ColorSwapChain.Handle));
-  OXR(xrEnumerateSwapchainImages(
-      frameBuffer->ColorSwapChain.Handle, 0, &frameBuffer->TextureSwapChainLength, NULL));
-  frameBuffer->ColorSwapChainImage = malloc(
-      frameBuffer->TextureSwapChainLength * sizeof(XrSwapchainImageOpenGLESKHR));
+  OXR(xrEnumerateSwapchainImages(frameBuffer->ColorSwapChain.Handle, 0,
+                                 &frameBuffer->TextureSwapChainLength, NULL));
+  frameBuffer->ColorSwapChainImage =
+      malloc(frameBuffer->TextureSwapChainLength * sizeof(XrSwapchainImageOpenGLESKHR));
 
   // Populate the swapchain image array.
   for (uint32_t i = 0; i < frameBuffer->TextureSwapChainLength; i++)
   {
-    XrSwapchainImageOpenGLESKHR* swapchain = (XrSwapchainImageOpenGLESKHR*)frameBuffer->ColorSwapChainImage;
+    XrSwapchainImageOpenGLESKHR* swapchain =
+        (XrSwapchainImageOpenGLESKHR*)frameBuffer->ColorSwapChainImage;
     swapchain[i].type = XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_ES_KHR;
     swapchain[i].next = NULL;
   }
-  OXR(xrEnumerateSwapchainImages(
-      frameBuffer->ColorSwapChain.Handle,
-      frameBuffer->TextureSwapChainLength,
-      &frameBuffer->TextureSwapChainLength,
-      (XrSwapchainImageBaseHeader*)frameBuffer->ColorSwapChainImage));
+  OXR(xrEnumerateSwapchainImages(frameBuffer->ColorSwapChain.Handle,
+                                 frameBuffer->TextureSwapChainLength,
+                                 &frameBuffer->TextureSwapChainLength,
+                                 (XrSwapchainImageBaseHeader*)frameBuffer->ColorSwapChainImage));
 
-  frameBuffer->GLDepthBuffers = (GLuint*)malloc(frameBuffer->TextureSwapChainLength * sizeof(GLuint));
-  frameBuffer->GLFrameBuffers = (GLuint*)malloc(frameBuffer->TextureSwapChainLength * sizeof(GLuint));
+  frameBuffer->GLDepthBuffers =
+      (GLuint*)malloc(frameBuffer->TextureSwapChainLength * sizeof(GLuint));
+  frameBuffer->GLFrameBuffers =
+      (GLuint*)malloc(frameBuffer->TextureSwapChainLength * sizeof(GLuint));
   for (uint32_t i = 0; i < frameBuffer->TextureSwapChainLength; i++)
   {
     // Create color texture.
@@ -173,19 +176,18 @@ static bool ovrFramebuffer_CreateGLES(XrSession session, ovrFramebuffer* frameBu
     // Create depth buffer.
     if (multiview)
     {
-         GL(glGenTextures(1, &frameBuffer->GLDepthBuffers[i]));
-         GL(glBindTexture(GL_TEXTURE_2D_ARRAY, frameBuffer->GLDepthBuffers[i]));
-         GL(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_DEPTH24_STENCIL8, width, height, 2));
-         GL(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
+      GL(glGenTextures(1, &frameBuffer->GLDepthBuffers[i]));
+      GL(glBindTexture(GL_TEXTURE_2D_ARRAY, frameBuffer->GLDepthBuffers[i]));
+      GL(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_DEPTH24_STENCIL8, width, height, 2));
+      GL(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
     }
     else
     {
-         GL(glGenRenderbuffers(1, &frameBuffer->GLDepthBuffers[i]));
-         GL(glBindRenderbuffer(GL_RENDERBUFFER, frameBuffer->GLDepthBuffers[i]));
-         GL(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height));
-         GL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
+      GL(glGenRenderbuffers(1, &frameBuffer->GLDepthBuffers[i]));
+      GL(glBindRenderbuffer(GL_RENDERBUFFER, frameBuffer->GLDepthBuffers[i]));
+      GL(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height));
+      GL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
     }
-
 
     // Create the frame buffer.
     GL(glGenFramebuffers(1, &frameBuffer->GLFrameBuffers[i]));
@@ -193,20 +195,20 @@ static bool ovrFramebuffer_CreateGLES(XrSession session, ovrFramebuffer* frameBu
     if (multiview)
     {
       GL(glFramebufferTextureMultiviewOVR(GL_DRAW_FRAMEBUFFER, GL_STENCIL_ATTACHMENT,
-                        frameBuffer->GLDepthBuffers[i], 0, 0, 2));
+                                          frameBuffer->GLDepthBuffers[i], 0, 0, 2));
       GL(glFramebufferTextureMultiviewOVR(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                        frameBuffer->GLDepthBuffers[i], 0, 0, 2));
-      GL(glFramebufferTextureMultiviewOVR(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                        colorTexture, 0, 0, 2));
+                                          frameBuffer->GLDepthBuffers[i], 0, 0, 2));
+      GL(glFramebufferTextureMultiviewOVR(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, colorTexture,
+                                          0, 0, 2));
     }
     else
     {
       GL(glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER,
-                     frameBuffer->GLDepthBuffers[i]));
+                                   frameBuffer->GLDepthBuffers[i]));
       GL(glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER,
-                     frameBuffer->GLDepthBuffers[i]));
+                                   frameBuffer->GLDepthBuffers[i]));
       GL(glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-                    colorTexture, 0));
+                                colorTexture, 0));
     }
     GL(GLenum renderFramebufferStatus = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER));
     GL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0));
@@ -239,14 +241,16 @@ void ovrFramebuffer_Destroy(ovrFramebuffer* frameBuffer)
 void ovrFramebuffer_SetCurrent(ovrFramebuffer* frameBuffer)
 {
 #if XR_USE_GRAPHICS_API_OPENGL_ES || XR_USE_GRAPHICS_API_OPENGL
-    GL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBuffer->GLFrameBuffers[frameBuffer->TextureSwapChainIndex]));
+  GL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER,
+                       frameBuffer->GLFrameBuffers[frameBuffer->TextureSwapChainIndex]));
 #endif
 }
 
 void ovrFramebuffer_Acquire(ovrFramebuffer* frameBuffer)
 {
   XrSwapchainImageAcquireInfo acquireInfo = {XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO, NULL};
-  OXR(xrAcquireSwapchainImage(frameBuffer->ColorSwapChain.Handle, &acquireInfo, &frameBuffer->TextureSwapChainIndex));
+  OXR(xrAcquireSwapchainImage(frameBuffer->ColorSwapChain.Handle, &acquireInfo,
+                              &frameBuffer->TextureSwapChainIndex));
 
   XrSwapchainImageWaitInfo waitInfo;
   waitInfo.type = XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO;
@@ -258,10 +262,9 @@ void ovrFramebuffer_Acquire(ovrFramebuffer* frameBuffer)
   {
     res = xrWaitSwapchainImage(frameBuffer->ColorSwapChain.Handle, &waitInfo);
     i++;
-    ALOGV(
-        " Retry xrWaitSwapchainImage %d times due to XR_TIMEOUT_EXPIRED (duration %f micro seconds)",
-        i,
-        waitInfo.timeout * (1E-9));
+    ALOGV(" Retry xrWaitSwapchainImage %d times due to XR_TIMEOUT_EXPIRED (duration %f micro "
+          "seconds)",
+          i, waitInfo.timeout * (1E-9));
   }
   frameBuffer->Acquired = res == XR_SUCCESS;
 
@@ -313,7 +316,7 @@ void ovrRenderer_Clear(ovrRenderer* renderer)
 }
 
 void ovrRenderer_Create(XrSession session, ovrRenderer* renderer, int width, int height,
-            bool multiview)
+                        bool multiview)
 {
   renderer->Multiview = multiview;
   int instances = renderer->Multiview ? 1 : ovrMaxNumEyes;
@@ -350,19 +353,19 @@ void ovrRenderer_MouseCursor(ovrRenderer* renderer, int x, int y, int sx, int sy
 
 #ifdef ANDROID
 void ovrRenderer_SetFoveation(XrInstance* instance, XrSession* session, ovrRenderer* renderer,
-                XrFoveationLevelFB level, float offset, XrFoveationDynamicFB dynamic)
+                              XrFoveationLevelFB level, float offset, XrFoveationDynamicFB dynamic)
 {
   PFN_xrCreateFoveationProfileFB pfnCreateFoveationProfileFB;
   OXR(xrGetInstanceProcAddr(*instance, "xrCreateFoveationProfileFB",
-                (PFN_xrVoidFunction*)(&pfnCreateFoveationProfileFB)));
+                            (PFN_xrVoidFunction*)(&pfnCreateFoveationProfileFB)));
 
   PFN_xrDestroyFoveationProfileFB pfnDestroyFoveationProfileFB;
   OXR(xrGetInstanceProcAddr(*instance, "xrDestroyFoveationProfileFB",
-                (PFN_xrVoidFunction*)(&pfnDestroyFoveationProfileFB)));
+                            (PFN_xrVoidFunction*)(&pfnDestroyFoveationProfileFB)));
 
   PFN_xrUpdateSwapchainFB pfnUpdateSwapchainFB;
-  OXR(xrGetInstanceProcAddr(
-      *instance, "xrUpdateSwapchainFB", (PFN_xrVoidFunction*)(&pfnUpdateSwapchainFB)));
+  OXR(xrGetInstanceProcAddr(*instance, "xrUpdateSwapchainFB",
+                            (PFN_xrVoidFunction*)(&pfnUpdateSwapchainFB)));
 
   int instances = renderer->Multiview ? 1 : ovrMaxNumEyes;
   for (int eye = 0; eye < instances; eye++)
@@ -389,7 +392,7 @@ void ovrRenderer_SetFoveation(XrInstance* instance, XrSession* session, ovrRende
     foveationUpdateState.profile = foveationProfile;
 
     pfnUpdateSwapchainFB(renderer->FrameBuffer[eye].ColorSwapChain.Handle,
-               (XrSwapchainStateBaseHeaderFB*)(&foveationUpdateState));
+                         (XrSwapchainStateBaseHeaderFB*)(&foveationUpdateState));
 
     pfnDestroyFoveationProfileFB(foveationProfile);
   }
@@ -431,7 +434,6 @@ void ovrApp_Destroy(ovrApp* app)
   ovrApp_Clear(app);
 }
 
-
 void ovrApp_HandleSessionStateChanges(ovrApp* app, XrSessionState state)
 {
   if (state == XR_SESSION_STATE_READY)
@@ -455,26 +457,22 @@ void ovrApp_HandleSessionStateChanges(ovrApp* app, XrSessionState state)
       XrPerfSettingsLevelEXT gpuPerfLevel = XR_PERF_SETTINGS_LEVEL_PERFORMANCE_MAX_EXT;
 
       PFN_xrPerfSettingsSetPerformanceLevelEXT pfnPerfSettingsSetPerformanceLevelEXT = NULL;
-      OXR(xrGetInstanceProcAddr(
-          app->Instance,
-          "xrPerfSettingsSetPerformanceLevelEXT",
-          (PFN_xrVoidFunction*)(&pfnPerfSettingsSetPerformanceLevelEXT)));
+      OXR(xrGetInstanceProcAddr(app->Instance, "xrPerfSettingsSetPerformanceLevelEXT",
+                                (PFN_xrVoidFunction*)(&pfnPerfSettingsSetPerformanceLevelEXT)));
 
-      OXR(pfnPerfSettingsSetPerformanceLevelEXT(
-          app->Session, XR_PERF_SETTINGS_DOMAIN_CPU_EXT, cpuPerfLevel));
-      OXR(pfnPerfSettingsSetPerformanceLevelEXT(
-          app->Session, XR_PERF_SETTINGS_DOMAIN_GPU_EXT, gpuPerfLevel));
+      OXR(pfnPerfSettingsSetPerformanceLevelEXT(app->Session, XR_PERF_SETTINGS_DOMAIN_CPU_EXT,
+                                                cpuPerfLevel));
+      OXR(pfnPerfSettingsSetPerformanceLevelEXT(app->Session, XR_PERF_SETTINGS_DOMAIN_GPU_EXT,
+                                                gpuPerfLevel));
 
       PFN_xrSetAndroidApplicationThreadKHR pfnSetAndroidApplicationThreadKHR = NULL;
-      OXR(xrGetInstanceProcAddr(
-          app->Instance,
-          "xrSetAndroidApplicationThreadKHR",
-          (PFN_xrVoidFunction*)(&pfnSetAndroidApplicationThreadKHR)));
+      OXR(xrGetInstanceProcAddr(app->Instance, "xrSetAndroidApplicationThreadKHR",
+                                (PFN_xrVoidFunction*)(&pfnSetAndroidApplicationThreadKHR)));
 
       OXR(pfnSetAndroidApplicationThreadKHR(
-          app->Session,XR_ANDROID_THREAD_TYPE_APPLICATION_MAIN_KHR, app->MainThreadTid));
-      OXR(pfnSetAndroidApplicationThreadKHR(
-          app->Session, XR_ANDROID_THREAD_TYPE_RENDERER_MAIN_KHR, app->RenderThreadTid));
+          app->Session, XR_ANDROID_THREAD_TYPE_APPLICATION_MAIN_KHR, app->MainThreadTid));
+      OXR(pfnSetAndroidApplicationThreadKHR(app->Session, XR_ANDROID_THREAD_TYPE_RENDERER_MAIN_KHR,
+                                            app->RenderThreadTid));
     }
 #endif
   }
@@ -507,54 +505,53 @@ int ovrApp_HandleXrEvents(ovrApp* app)
 
     switch (baseEventHeader->type)
     {
-      case XR_TYPE_EVENT_DATA_EVENTS_LOST:
-        ALOGV("xrPollEvent: received XR_TYPE_EVENT_DATA_EVENTS_LOST event");
-        break;
-      case XR_TYPE_EVENT_DATA_INSTANCE_LOSS_PENDING:
-      {
-        const XrEventDataInstanceLossPending* instance_loss_pending_event =
-            (XrEventDataInstanceLossPending*)(baseEventHeader);
-        ALOGV(
-            "xrPollEvent: received XR_TYPE_EVENT_DATA_INSTANCE_LOSS_PENDING event: time %f",
+    case XR_TYPE_EVENT_DATA_EVENTS_LOST:
+      ALOGV("xrPollEvent: received XR_TYPE_EVENT_DATA_EVENTS_LOST event");
+      break;
+    case XR_TYPE_EVENT_DATA_INSTANCE_LOSS_PENDING:
+    {
+      const XrEventDataInstanceLossPending* instance_loss_pending_event =
+          (XrEventDataInstanceLossPending*)(baseEventHeader);
+      ALOGV("xrPollEvent: received XR_TYPE_EVENT_DATA_INSTANCE_LOSS_PENDING event: time %f",
             FromXrTime(instance_loss_pending_event->lossTime));
-      }
+    }
+    break;
+    case XR_TYPE_EVENT_DATA_INTERACTION_PROFILE_CHANGED:
+      ALOGV("xrPollEvent: received XR_TYPE_EVENT_DATA_INTERACTION_PROFILE_CHANGED event");
       break;
-      case XR_TYPE_EVENT_DATA_INTERACTION_PROFILE_CHANGED:
-        ALOGV("xrPollEvent: received XR_TYPE_EVENT_DATA_INTERACTION_PROFILE_CHANGED event");
+    case XR_TYPE_EVENT_DATA_PERF_SETTINGS_EXT:
+    {
+    }
+    break;
+    case XR_TYPE_EVENT_DATA_REFERENCE_SPACE_CHANGE_PENDING:
+    {
+      recenter = 1;
+    }
+    break;
+    case XR_TYPE_EVENT_DATA_SESSION_STATE_CHANGED:
+    {
+      const XrEventDataSessionStateChanged* session_state_changed_event =
+          (XrEventDataSessionStateChanged*)(baseEventHeader);
+      switch (session_state_changed_event->state)
+      {
+      case XR_SESSION_STATE_FOCUSED:
+        app->Focused = true;
         break;
-      case XR_TYPE_EVENT_DATA_PERF_SETTINGS_EXT:
-      {
-      }
-      break;
-      case XR_TYPE_EVENT_DATA_REFERENCE_SPACE_CHANGE_PENDING:
-      {
-        recenter = 1;
-      }
-      break;
-      case XR_TYPE_EVENT_DATA_SESSION_STATE_CHANGED:
-      {
-        const XrEventDataSessionStateChanged* session_state_changed_event =
-            (XrEventDataSessionStateChanged*)(baseEventHeader);
-        switch (session_state_changed_event->state)
-        {
-          case XR_SESSION_STATE_FOCUSED:
-            app->Focused = true;
-            break;
-          case XR_SESSION_STATE_VISIBLE:
-            app->Focused = false;
-            break;
-          case XR_SESSION_STATE_READY:
-          case XR_SESSION_STATE_STOPPING:
-            ovrApp_HandleSessionStateChanges(app, session_state_changed_event->state);
-            break;
-          default:
-            break;
-        }
-      }
-      break;
+      case XR_SESSION_STATE_VISIBLE:
+        app->Focused = false;
+        break;
+      case XR_SESSION_STATE_READY:
+      case XR_SESSION_STATE_STOPPING:
+        ovrApp_HandleSessionStateChanges(app, session_state_changed_event->state);
+        break;
       default:
-        ALOGV("xrPollEvent: Unknown event");
         break;
+      }
+    }
+    break;
+    default:
+      ALOGV("xrPollEvent: Unknown event");
+      break;
     }
   }
   return recenter;
