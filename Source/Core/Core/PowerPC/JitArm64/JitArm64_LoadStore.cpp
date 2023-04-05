@@ -647,11 +647,11 @@ void JitArm64::dcbx(UGeckoInstruction inst)
                          js.op[1].inst.RA_6 == b && js.op[1].inst.RD_2 == b &&
                          js.op[2].inst.hex == 0x4200fff8;
 
-  gpr.Lock(ARM64Reg::W0);
+  gpr.Lock(ARM64Reg::W0, ARM64Reg::W1);
   if (make_loop)
-    gpr.Lock(ARM64Reg::W1);
+    gpr.Lock(ARM64Reg::W2);
 
-  ARM64Reg WA = gpr.GetReg();
+  ARM64Reg WA = ARM64Reg::W0;
 
   if (make_loop)
     gpr.BindToRegister(b, true);
@@ -668,8 +668,8 @@ void JitArm64::dcbx(UGeckoInstruction inst)
 
     ARM64Reg reg_cycle_count = gpr.GetReg();
     ARM64Reg reg_downcount = gpr.GetReg();
-    loop_counter = ARM64Reg::W1;
-    ARM64Reg WB = ARM64Reg::W0;
+    loop_counter = ARM64Reg::W2;
+    ARM64Reg WB = ARM64Reg::W1;
 
     // Figure out how many loops we want to do.
     const u8 cycle_count_per_loop =
@@ -709,7 +709,7 @@ void JitArm64::dcbx(UGeckoInstruction inst)
     gpr.Unlock(reg_cycle_count, reg_downcount);
   }
 
-  ARM64Reg effective_addr = ARM64Reg::W0;
+  ARM64Reg effective_addr = ARM64Reg::W1;
   ARM64Reg physical_addr = gpr.GetReg();
 
   if (a)
@@ -770,8 +770,8 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   ABI_PushRegisters(gprs_to_push);
   m_float_emit.ABI_PushRegisters(fprs_to_push, WA);
 
-  // The first two function call arguments are already in the correct registers
-  MOVP2R(ARM64Reg::X2, &m_system.GetJitInterface());
+  MOVP2R(ARM64Reg::X0, &m_system.GetJitInterface());
+  // effective_address and loop_counter are already in W1 and W2 respectively
   if (make_loop)
     MOVP2R(ARM64Reg::X8, &JitInterface::InvalidateICacheLinesFromJIT);
   else
