@@ -144,6 +144,8 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
       return;
     }
 
+    m_client->mtu = std::min(m_client->mtu, NetPlay::MAX_ENET_MTU);
+
     ENetAddress addr;
     enet_address_set_host(&addr, address.c_str());
     addr.port = port;

@@ -14,6 +14,7 @@
 #include <utility>
 #include <vector>
 
+#include <Common/WorkQueueThread.h>
 #include "Common/BlockingLoop.h"
 #include "Common/Flag.h"
 #include "Common/Semaphore.h"
@@ -146,19 +147,14 @@ private:
   u32 m_current_cmd_buffer = 0;
 
   // Threaded command buffer execution
-  std::thread m_submit_thread;
-  std::unique_ptr<Common::BlockingLoop> m_submit_loop;
   struct PendingCommandBufferSubmit
   {
     VkSwapchainKHR present_swap_chain;
     u32 present_image_index;
     u32 command_buffer_index;
   };
+  Common::WorkQueueThread<PendingCommandBufferSubmit> m_submit_thread;
   VkSemaphore m_present_semaphore = VK_NULL_HANDLE;
-  std::deque<PendingCommandBufferSubmit> m_pending_submits;
-  std::mutex m_pending_submit_lock;
-  std::condition_variable m_submit_worker_condvar;
-  bool m_submit_worker_idle = true;
   Common::Flag m_last_present_failed;
   Common::Flag m_last_present_done;
   VkResult m_last_present_result = VK_SUCCESS;

@@ -62,6 +62,7 @@ void FilesystemWidget::CreateWidgets()
   m_tree_view = new QTreeView(this);
   m_tree_view->setModel(m_tree_model);
   m_tree_view->setContextMenuPolicy(Qt::CustomContextMenu);
+  m_tree_model->setParent(m_tree_view);
 
   auto* header = m_tree_view->header();
 
