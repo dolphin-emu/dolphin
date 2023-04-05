@@ -189,7 +189,8 @@ void InterfacePane::CreateInGame()
   m_vboxlayout_hide_mouse->addWidget(m_radio_cursor_visible_never);
   m_vboxlayout_hide_mouse->addWidget(m_radio_cursor_visible_always);
 
-  m_checkbox_lock_mouse = new QCheckBox(tr("Lock Mouse Cursor"));
+  // this ends up not being managed unless _WIN32, so lets not leak
+  m_checkbox_lock_mouse = new QCheckBox(tr("Lock Mouse Cursor"), this);
   m_checkbox_lock_mouse->setToolTip(tr("Will lock the Mouse Cursor to the Render Widget as long as "
                                        "it has focus. You can set a hotkey to unlock it."));
 
