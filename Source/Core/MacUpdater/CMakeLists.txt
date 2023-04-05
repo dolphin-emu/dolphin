@@ -24,8 +24,8 @@ set_target_properties(MacUpdater PROPERTIES
 target_compile_options(MacUpdater PRIVATE -x objective-c++)
 
 # Copy icon into the bundle
-target_sources(MacUpdater PRIVATE "${CMAKE_SOURCE_DIR}/Data/Dolphin.icns")
-set_source_files_properties("${CMAKE_SOURCE_DIR}/Data/Dolphin.icns" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+target_sources(MacUpdater PRIVATE "${CMAKE_SOURCE_DIR}/Data/Dolphin-installer.icns")
+set_source_files_properties("${CMAKE_SOURCE_DIR}/Data/Dolphin-installer.icns" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 
 target_link_libraries(MacUpdater PRIVATE
     "-framework Cocoa"
@@ -68,11 +68,11 @@ if(MACOS_CODE_SIGNING)
   # Make file build code sign
   add_custom_command(TARGET MacUpdater POST_BUILD
     COMMAND test ${MacUpdater_BUNDLE_PATH} || /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY_UPDATER}" --deep --options runtime ${MacUpdater_BUNDLE_PATH})
-  
+
   # Xcode build code sign
   add_custom_command(TARGET MacUpdater POST_BUILD
     COMMAND test "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}/${MacUpdater_NAME}.app" || /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY_UPDATER}" --deep --options runtime "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}/${MacUpdater_NAME}.app")
-    
+
   add_custom_command(TARGET MacUpdater POST_BUILD
     COMMAND test "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}/${MacUpdater_NAME}.app" || /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY_UPDATER}" --deep --options runtime "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}/${MacUpdater_NAME}.app")
 endif()

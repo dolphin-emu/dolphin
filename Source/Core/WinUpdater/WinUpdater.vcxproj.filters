@@ -3,8 +3,18 @@
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="WinUI.cpp" />
+    <ClCompile Include="..\UpdaterCommon\UpdaterCommon.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="Updater.exe.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="WinUpdater.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\..\Installer\DolphinUpdater.ico" />
   </ItemGroup>
 </Project>
