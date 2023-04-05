@@ -99,14 +99,6 @@ void GeneralPane::ConnectLayout()
   connect(m_checkbox_discord_presence, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
 #endif
 
-  if (AutoUpdateChecker::SystemSupportsAutoUpdates())
-  {
-    connect(m_combobox_update_track, qOverload<int>(&QComboBox::currentIndexChanged), this,
-            &GeneralPane::OnSaveConfig);
-    connect(&Settings::Instance(), &Settings::AutoUpdateTrackChanged, this,
-            &GeneralPane::LoadConfig);
-  }
-
   // Advanced
   connect(m_combobox_speedlimit, qOverload<int>(&QComboBox::currentIndexChanged), [this]() {
     Config::SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED,
