@@ -35,9 +35,6 @@ jobs:
     # Build Project
     - name: Run Make
       run: cd build && ninja -j$(nproc)
-    # cpack the Deb
-    - name: Generate .DEB
-      run: cpack -G DEB
     # Configure Dolphin
     - name: Configure Dolphin
       run: cd build && cp -r ../Data/Sys/ Binaries/ && cp -r ../Data/User/ Binaries/ && cp -r ../Data/dolphin-emu.png Binaries/ && touch Binaries/portable.txt

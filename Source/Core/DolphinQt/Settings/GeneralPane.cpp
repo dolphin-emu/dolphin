@@ -218,18 +218,6 @@ void GeneralPane::LoadConfig()
   const QSignalBlocker blocker(this);
 
   if (AutoUpdateChecker::SystemSupportsAutoUpdates())
-  {
-    const auto track = Settings::Instance().GetAutoUpdateTrack().toStdString();
-
-    // If the track doesn't match any known value, set to "beta" which is the
-    // default config value on Dolphin release builds.
-    if (track == AUTO_UPDATE_DISABLE_STRING)
-      SignalBlocking(m_combobox_update_track)->setCurrentIndex(AUTO_UPDATE_DISABLE_INDEX);
-    else if (track == AUTO_UPDATE_DEV_STRING)
-      SignalBlocking(m_combobox_update_track)->setCurrentIndex(AUTO_UPDATE_DEV_INDEX);
-    else
-      SignalBlocking(m_combobox_update_track)->setCurrentIndex(AUTO_UPDATE_BETA_INDEX);
-  }
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   SignalBlocking(m_checkbox_enable_analytics)
