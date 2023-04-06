@@ -25,7 +25,7 @@ bool IsVREnabled()
 #ifdef ANDROID
 void InitVROnAndroid(void* vm, void* activity, const char* system, int version, const char* name)
 {
-  //Get device vendor (uppercase)
+  // Get device vendor (uppercase)
   char vendor[64];
   sscanf(system, "%[^:]", vendor);
   for (unsigned int i = 0; i < strlen(vendor); i++)
@@ -36,7 +36,7 @@ void InitVROnAndroid(void* vm, void* activity, const char* system, int version, 
     }
   }
 
-  //Set platform flags
+  // Set platform flags
   if (strcmp(vendor, "PICO") == 0)
   {
     VR_SetPlatformFLag(VR_PLATFORM_CONTROLLER_PICO, true);
@@ -49,7 +49,7 @@ void InitVROnAndroid(void* vm, void* activity, const char* system, int version, 
     VR_SetPlatformFLag(VR_PLATFORM_EXTENSION_PERFORMANCE, true);
   }
 
-  //Init VR
+  // Init VR
   ovrJava java;
   java.Vm = (JavaVM*)vm;
   java.ActivityObject = (jobject)activity;
