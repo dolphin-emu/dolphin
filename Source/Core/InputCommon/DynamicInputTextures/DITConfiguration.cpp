@@ -13,6 +13,7 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
+#include "Common/VariantUtil.h"
 #include "Core/ConfigManager.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/DynamicInputTextures/DITSpecification.h"
@@ -72,7 +73,15 @@ Configuration::Configuration(const std::string& json_file)
     specification = static_cast<u8>(spec_from_json);
   }
 
-  if (specification != 1)
+  if (specification == 1)
+  {
+    m_valid = ProcessSpecificationV1(root, m_dynamic_input_textures, m_base_path, json_file);
+  }
+  else if (specification == 2)
+  {
+    m_valid = ProcessSpecificationV2(root, m_dynamic_input_textures, m_base_path, json_file);
+  }
+  else
   {
     ERROR_LOG_FMT(VIDEO,
                   "Failed to load dynamic input json file '{}', specification '{}' is invalid",
@@ -80,8 +89,6 @@ Configuration::Configuration(const std::string& json_file)
     m_valid = false;
     return;
   }
-
-  m_valid = ProcessSpecificationV1(root, m_dynamic_input_textures, m_base_path, json_file);
 }
 
 Configuration::~Configuration() = default;
@@ -109,7 +116,6 @@ bool Configuration::GenerateTexture(const IniFile& file,
   auto image_to_write = original_image;
 
   bool dirty = false;
-
   for (const auto& controller_name : controller_names)
   {
     auto* sec = file.GetSection(controller_name);
@@ -145,7 +151,7 @@ bool Configuration::GenerateTexture(const IniFile& file,
       }
     }
 
-    for (auto& [emulated_key, rects] : emulated_controls_iter->second)
+    for (auto& emulated_entry : emulated_controls_iter->second)
     {
       if (!device_found)
       {
@@ -155,42 +161,10 @@ bool Configuration::GenerateTexture(const IniFile& file,
         continue;
       }
 
-      std::string host_key;
-      sec->Get(emulated_key, &host_key);
-
-      const auto input_image_iter = host_devices_iter->second.find(host_key);
-      if (input_image_iter == host_devices_iter->second.end())
+      if (ApplyEmulatedEntry(host_devices_iter->second, emulated_entry, sec, *image_to_write,
+                             texture_data.m_preserve_aspect_ratio))
       {
         dirty = true;
-      }
-      else
-      {
-        const auto host_key_image = LoadImage(m_base_path + input_image_iter->second);
-
-        for (const auto& rect : rects)
-        {
-          InputCommon::ImagePixelData pixel_data;
-          if (host_key_image->width == rect.GetWidth() &&
-              host_key_image->height == rect.GetHeight())
-          {
-            pixel_data = *host_key_image;
-          }
-          else if (texture_data.m_preserve_aspect_ratio)
-          {
-            pixel_data =
-                ResizeKeepAspectRatio(ResizeMode::Nearest, *host_key_image, rect.GetWidth(),
-                                      rect.GetHeight(), Pixel{0, 0, 0, 0});
-          }
-          else
-          {
-            pixel_data =
-                Resize(ResizeMode::Nearest, *host_key_image, rect.GetWidth(), rect.GetHeight());
-          }
-
-          CopyImageRegion(pixel_data, *image_to_write,
-                          Rect{0, 0, rect.GetWidth(), rect.GetHeight()}, rect);
-          dirty = true;
-        }
       }
     }
   }
@@ -217,5 +191,153 @@ bool Configuration::GenerateTexture(const IniFile& file,
   }
 
   return false;
+}
+
+bool Configuration::ApplyEmulatedEntry(const Configuration::HostEntries& host_entries,
+                                       const Data::EmulatedEntry& emulated_entry,
+                                       const IniFile::Section* section,
+                                       ImagePixelData& image_to_write,
+                                       bool preserve_aspect_ratio) const
+{
+  return std::visit(overloaded{
+                        [&, this](const Data::EmulatedSingleEntry& entry) {
+                          std::string host_key;
+                          section->Get(entry.m_key, &host_key);
+                          return ApplyEmulatedSingleEntry(
+                              host_entries, std::vector<std::string>{host_key}, entry.m_tag,
+                              entry.m_region, entry.m_copy_type, image_to_write,
+                              preserve_aspect_ratio);
+                        },
+                        [&, this](const Data::EmulatedMultiEntry& entry) {
+                          return ApplyEmulatedMultiEntry(host_entries, entry, section,
+                                                         image_to_write, preserve_aspect_ratio);
+                        },
+                    },
+                    emulated_entry);
+}
+
+bool Configuration::ApplyEmulatedSingleEntry(const Configuration::HostEntries& host_entries,
+                                             const std::vector<std::string> keys,
+                                             const std::optional<std::string> tag,
+                                             const Rect& region, Data::CopyType copy_type,
+                                             ImagePixelData& image_to_write,
+                                             bool preserve_aspect_ratio) const
+{
+  for (auto& host_entry : host_entries)
+  {
+    if (keys == host_entry.m_keys && tag == host_entry.m_tag)
+    {
+      const auto host_key_image = LoadImage(m_base_path + host_entry.m_path);
+      ImagePixelData pixel_data;
+      if (host_key_image->width == region.GetWidth() &&
+          host_key_image->height == region.GetHeight())
+      {
+        pixel_data = *host_key_image;
+      }
+      else if (preserve_aspect_ratio)
+      {
+        pixel_data = ResizeKeepAspectRatio(ResizeMode::Nearest, *host_key_image, region.GetWidth(),
+                                           region.GetHeight(), Pixel{0, 0, 0, 0});
+      }
+      else
+      {
+        pixel_data =
+            Resize(ResizeMode::Nearest, *host_key_image, region.GetWidth(), region.GetHeight());
+      }
+
+      if (copy_type == DynamicInputTextures::Data::CopyType::Overwrite)
+      {
+        CopyImageRegion(pixel_data, image_to_write,
+                        Rect{0, 0, region.GetWidth(), region.GetHeight()}, region);
+      }
+      else
+      {
+        OverlayImageRegion(pixel_data, image_to_write,
+                           Rect{0, 0, region.GetWidth(), region.GetHeight()}, region);
+      }
+
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool Configuration::ApplyEmulatedMultiEntry(const Configuration::HostEntries& host_entries,
+                                            const Data::EmulatedMultiEntry& emulated_entry,
+                                            const IniFile::Section* section,
+                                            InputCommon::ImagePixelData& image_to_write,
+                                            bool preserve_aspect_ratio) const
+{
+  // Try to apply our group'd region first
+  const auto emulated_keys = GetKeysFrom(emulated_entry);
+  std::vector<std::string> host_keys;
+  host_keys.reserve(emulated_keys.size());
+  for (const auto& emulated_key : emulated_keys)
+  {
+    std::string host_key;
+    section->Get(emulated_key, &host_key);
+    host_keys.push_back(host_key);
+  }
+  if (ApplyEmulatedSingleEntry(host_entries, host_keys, emulated_entry.m_combined_tag,
+                               emulated_entry.m_combined_region, emulated_entry.m_copy_type,
+                               image_to_write, preserve_aspect_ratio))
+  {
+    return true;
+  }
+
+  ImagePixelData temporary_pixel_data(emulated_entry.m_combined_region.GetWidth(),
+                                      emulated_entry.m_combined_region.GetHeight());
+  bool apply = false;
+  for (const auto& sub_entry : emulated_entry.m_sub_entries)
+  {
+    apply |= ApplyEmulatedEntry(host_entries, sub_entry, section, temporary_pixel_data,
+                                preserve_aspect_ratio);
+  }
+
+  if (apply)
+  {
+    if (emulated_entry.m_copy_type == DynamicInputTextures::Data::CopyType::Overwrite)
+    {
+      CopyImageRegion(temporary_pixel_data, image_to_write,
+                      Rect{0, 0, emulated_entry.m_combined_region.GetWidth(),
+                           emulated_entry.m_combined_region.GetHeight()},
+                      emulated_entry.m_combined_region);
+    }
+    else
+    {
+      OverlayImageRegion(temporary_pixel_data, image_to_write,
+                         Rect{0, 0, emulated_entry.m_combined_region.GetWidth(),
+                              emulated_entry.m_combined_region.GetHeight()},
+                         emulated_entry.m_combined_region);
+    }
+  }
+
+  return apply;
+}
+
+std::vector<std::string> Configuration::GetKeysFrom(const Data::EmulatedEntry& emulated_entry) const
+{
+  return std::visit(
+      overloaded{
+          [&, this](const Data::EmulatedSingleEntry& entry) {
+            return std::vector<std::string>{entry.m_key};
+          },
+          [&, this](const Data::EmulatedMultiEntry& entry) { return GetKeysFrom(entry); },
+      },
+      emulated_entry);
+}
+
+std::vector<std::string>
+Configuration::GetKeysFrom(const Data::EmulatedMultiEntry& emulated_entry) const
+{
+  std::vector<std::string> result;
+  for (const auto& sub_entry : emulated_entry.m_sub_entries)
+  {
+    const auto sub_entry_keys = GetKeysFrom(sub_entry);
+    result.reserve(result.size() + sub_entry_keys.size());
+    result.insert(result.end(), sub_entry_keys.begin(), sub_entry_keys.end());
+  }
+  return result;
 }
 }  // namespace InputCommon::DynamicInputTextures

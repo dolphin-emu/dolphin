@@ -32,11 +32,11 @@ You need at least a single json file that describes the generation parameters.  
 
 In each json, one or more generated textures can be specified.  Each of those textures can have the following fields:
 
-|Identifier               |Required | Since |
-|-------------------------|---------|-------|
-|``image``                | **Yes** | v1    |
-|``emulated_controls``    | **Yes** | v1    |
-|``host_controls``        | No      | v1    |
+|Identifier               |Required |
+|-------------------------|---------|
+|``image``                | **Yes** |
+|``emulated_controls``    | **Yes** |
+|``host_controls``        | No      |
 
 *image* - the image that has the input buttons you wish to replace, can be upscaled/redrawn if desired.
 
@@ -48,11 +48,11 @@ In each json, one or more generated textures can be specified.  Each of those te
 
 The following fields apply to all textures in the json file:
 
-|Identifier               | Since |
-|-------------------------|-------|
-|``generated_folder_name``| v1    |
-|``preserve_aspect_ratio``| v1    |
-|``default_host_controls``| v1    |
+|Identifier               |
+|-------------------------|
+|``generated_folder_name``|
+|``preserve_aspect_ratio``|
+|``default_host_controls``|
 
 *generated_folder_name* - the folder name that the textures will be generated into.  Optional, defaults to '<gameid>_Generated'
 
