@@ -38,6 +38,8 @@ add_library(common
   Debug/Threads.h
   Debug/Watches.cpp
   Debug/Watches.h
+  VR/DolphinVR.cpp
+  VR/DolphinVR.h
   VR/OpenXRLoader.cpp
   VR/OpenXRLoader.h
   VR/VRBase.cpp
