@@ -44,6 +44,7 @@ private:
   ResponseType VerifyCredentials(const std::string& password);
   ResponseType ResolveHash(std::array<char, HASH_LENGTH> game_hash);
   ResponseType StartRASession();
+  ResponseType FetchGameData();
 
   template <typename RcRequest, typename RcResponse>
   ResponseType Request(RcRequest rc_request, RcResponse* rc_response,
@@ -56,6 +57,8 @@ private:
   rc_api_login_response_t m_login_data{};
 
 
+
+  rc_api_fetch_game_data_response_t m_game_data{};
 
   Common::WorkQueueThread<std::function<void()>> m_queue;
 };  // class AchievementManager

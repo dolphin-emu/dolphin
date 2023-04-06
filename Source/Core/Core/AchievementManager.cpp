@@ -106,6 +106,17 @@ AchievementManager::ResponseType AchievementManager::StartRASession()
   return r_type;
 }
 
+AchievementManager::ResponseType AchievementManager::FetchGameData()
+{
+  std::string username = Config::Get(Config::RA_USERNAME);
+  std::string api_token = Config::Get(Config::RA_API_TOKEN);
+  rc_api_fetch_game_data_request_t fetch_data_request = {
+      .username = username.c_str(), .api_token = api_token.c_str(), .game_id = m_game_id};
+  return Request<rc_api_fetch_game_data_request_t, rc_api_fetch_game_data_response_t>(
+      fetch_data_request, &m_game_data, rc_api_init_fetch_game_data_request,
+      rc_api_process_fetch_game_data_response);
+}
+
 // Every RetroAchievements API call, with only a partial exception for fetch_image, follows
 // the same design pattern (here, X is the name of the call):
 //   Create a specific rc_api_X_request_t struct and populate with the necessary values
