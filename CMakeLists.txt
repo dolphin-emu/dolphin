@@ -693,7 +693,11 @@ endif()
 add_subdirectory(Externals/imgui)
 add_subdirectory(Externals/implot)
 add_subdirectory(Externals/glslang)
-add_subdirectory(Externals/spirv_cross)
+# SPIRV-Cross is used on Windows for GLSL to HLSL conversion for the Direct3D 11 and Direct3D 12
+# video backends, and on Apple devices for the Metal video backend.
+if(WIN32 OR APPLE)
+  add_subdirectory(Externals/spirv_cross)
+endif()
 
 if(ENABLE_VULKAN)
   add_definitions(-DHAS_VULKAN)
