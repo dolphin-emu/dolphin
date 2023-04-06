@@ -34,6 +34,14 @@ constexpr const char* DETERMINISM_AUTO_STRING = "auto";
 constexpr const char* DETERMINISM_NONE_STRING = "none";
 constexpr const char* DETERMINISM_FAKE_COMPLETION_STRING = "fake-completion";
 
+constexpr int CONSOLE_TYPE_NOT_SET_INDEX = 0;
+constexpr int CONSOLE_TYPE_LATEST_DEVKIT_INDEX = 1;
+constexpr int CONSOLE_TYPE_LATEST_PRODUCTION_INDEX = 2;
+
+constexpr const char* CONSOLE_TYPE_NOT_SET_STRING = "";
+constexpr const char* CONSOLE_TYPE_LATEST_DEVKIT_STRING = "Latest Devkit";
+constexpr const char* CONSOLE_TYPE_LATEST_PRODUCTION_STRING = "Latest Production Board";
+
 static void PopulateTab(QTabWidget* tab, const std::string& path, std::string& game_id,
                         u16 revision, bool read_only)
 {
@@ -95,6 +103,12 @@ void GameConfigWidget::CreateWidgets()
   for (const auto& item : {tr("Not Set"), tr("auto"), tr("none"), tr("fake-completion")})
     m_deterministic_dual_core->addItem(item);
 
+  m_console_type = new QComboBox;
+
+  for (const auto& item : {tr("Not Set"), tr("Latest Devkit"), tr("Latest Production Board")})
+    m_console_type->addItem(item);
+
+
   m_enable_mmu->setToolTip(tr(
       "Enables the Memory Management Unit, needed for some games. (ON = Compatible, OFF = Fast)"));
 
@@ -114,6 +128,8 @@ void GameConfigWidget::CreateWidgets()
   core_layout->addWidget(m_use_dsp_hle, 5, 0);
   core_layout->addWidget(new QLabel(tr("Deterministic dual core:")), 6, 0);
   core_layout->addWidget(m_deterministic_dual_core, 6, 1);
+  core_layout->addWidget(new QLabel(tr("Console type:")), 7, 0);
+  core_layout->addWidget(m_console_type, 7, 1);
 
   // Stereoscopy
   auto* stereoscopy_box = new QGroupBox(tr("Stereoscopy"));
@@ -211,6 +227,8 @@ void GameConfigWidget::ConnectWidgets()
     connect(box, &QCheckBox::stateChanged, this, &GameConfigWidget::SaveSettings);
 
   connect(m_deterministic_dual_core, qOverload<int>(&QComboBox::currentIndexChanged), this,
+          &GameConfigWidget::SaveSettings);
+  connect(m_console_type, qOverload<int>(&QComboBox::currentIndexChanged), this,
           &GameConfigWidget::SaveSettings);
   connect(m_depth_slider, qOverload<int>(&QSlider::valueChanged), this,
           &GameConfigWidget::SaveSettings);
@@ -318,6 +336,24 @@ void GameConfigWidget::LoadSettings()
 
   m_deterministic_dual_core->setCurrentIndex(determinism_index);
 
+  std::string console_type;
+
+  int console_type_index = CONSOLE_TYPE_NOT_SET_INDEX;
+
+  m_gameini_default.GetIfExists("Core", "ConsoleType", &console_type);
+  m_gameini_local.GetIfExists("Core", "ConsoleType", &console_type);
+
+  if (console_type == CONSOLE_TYPE_LATEST_DEVKIT_STRING)
+  {
+    console_type_index = CONSOLE_TYPE_LATEST_DEVKIT_INDEX;
+  }
+  else if (console_type == CONSOLE_TYPE_LATEST_PRODUCTION_STRING)
+  {
+    console_type_index = CONSOLE_TYPE_LATEST_PRODUCTION_INDEX;
+  }
+
+  m_console_type->setCurrentIndex(console_type_index);
+
   // Stereoscopy
   int depth_percentage = 100;
 
@@ -375,6 +411,34 @@ void GameConfigWidget::SaveSettings()
   else
   {
     m_gameini_local.DeleteKey("Core", "GPUDeterminismMode");
+  }
+
+  int console_type_num = m_console_type->currentIndex();
+
+  std::string console_type = CONSOLE_TYPE_NOT_SET_STRING;
+
+  switch (console_type_num)
+  {
+  case CONSOLE_TYPE_LATEST_DEVKIT_INDEX:
+    console_type = CONSOLE_TYPE_LATEST_DEVKIT_STRING;
+    break;
+  case CONSOLE_TYPE_LATEST_PRODUCTION_INDEX:
+    console_type = CONSOLE_TYPE_LATEST_PRODUCTION_STRING;
+    break;
+  }
+
+  if (console_type != CONSOLE_TYPE_NOT_SET_STRING)
+  {
+    std::string default_console_type = CONSOLE_TYPE_NOT_SET_STRING;
+    if (!(m_gameini_default.GetIfExists("Core", "ConsoleType", &default_console_type) &&
+          default_console_type == console_type))
+    {
+      m_gameini_local.GetOrCreateSection("Core")->Set("ConsoleType", console_type);
+    }
+  }
+  else
+  {
+    m_gameini_local.DeleteKey("Core", "ConsoleType");
   }
 
   // Stereoscopy

@@ -13,6 +13,8 @@
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
+#include "Core/Core.h"
+
 
 namespace Common
 {
@@ -54,6 +56,7 @@ struct SConfig
   bool bWii = false;
   bool m_is_mios = false;
 
+  Core::ConsoleType m_gc_console_type;
   DiscIO::Region m_region;
 
   // files

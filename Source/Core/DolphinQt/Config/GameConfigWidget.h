@@ -56,6 +56,8 @@ private:
 
   QComboBox* m_deterministic_dual_core;
 
+  QComboBox* m_console_type;
+
   QSlider* m_depth_slider;
 
   QSpinBox* m_convergence_spin;

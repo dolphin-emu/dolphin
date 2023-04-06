@@ -210,6 +210,7 @@ const Info<u32> MAIN_ARAM_EXPANSION_SIZE{{System::Main, "Core", "ARAMExpansionSi
 
 const Info<std::string> MAIN_GPU_DETERMINISM_MODE{{System::Main, "Core", "GPUDeterminismMode"},
                                                   "auto"};
+const Info<std::string> MAIN_CONSOLE_TYPE{{System::Main, "Core", "ConsoleType"}, "Latest Devkit"};
 const Info<s32> MAIN_OVERRIDE_BOOT_IOS{{System::Main, "Core", "OverrideBootIOS"}, -1};
 
 GPUDeterminismMode GetGPUDeterminismMode()
@@ -224,6 +225,18 @@ GPUDeterminismMode GetGPUDeterminismMode()
 
   NOTICE_LOG_FMT(CORE, "Unknown GPU determinism mode {}", mode);
   return GPUDeterminismMode::Auto;
+}
+
+Core::ConsoleType GetConsoleType()
+{
+  auto console_type = Config::Get(Config::MAIN_CONSOLE_TYPE);
+  if (console_type == "Latest Devkit")
+    return Core::ConsoleType::LatestDevkit;
+  if (console_type == "Latest Production Board")
+    return Core::ConsoleType::LatestProductionBoard;
+
+  NOTICE_LOG_FMT(CORE, "Unknown Console Type {}", console_type);
+  return Core::ConsoleType::LatestDevkit;
 }
 
 const Info<std::string> MAIN_PERF_MAP_DIR{{System::Main, "Core", "PerfMapDir"}, ""};

@@ -10,6 +10,7 @@
 
 #include "Common/Common.h"
 #include "Common/Config/Config.h"
+#include "Core/Core.h"
 #include "DiscIO/Enums.h"
 
 // DSP Backend Types
@@ -137,6 +138,9 @@ enum class GPUDeterminismMode
 };
 extern const Info<std::string> MAIN_GPU_DETERMINISM_MODE;
 GPUDeterminismMode GetGPUDeterminismMode();
+
+extern const Info<std::string> MAIN_CONSOLE_TYPE;
+Core::ConsoleType GetConsoleType();
 
 extern const Info<std::string> MAIN_PERF_MAP_DIR;
 extern const Info<bool> MAIN_CUSTOM_RTC_ENABLE;
