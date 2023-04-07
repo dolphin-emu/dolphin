@@ -34,7 +34,7 @@ public:
     frsqrte = Common::BitCast<u64 (*)(u64)>(GetCodePtr());
     MOV(ARM64Reg::X15, ARM64Reg::X30);
     MOV(ARM64Reg::X14, PPC_REG);
-    MOVP2R(PPC_REG, &PowerPC::ppcState);
+    MOVP2R(PPC_REG, &system.GetPPCState());
     MOV(ARM64Reg::X1, ARM64Reg::X0);
     m_float_emit.FMOV(ARM64Reg::D0, ARM64Reg::X0);
     m_float_emit.FRSQRTE(ARM64Reg::D0, ARM64Reg::D0);

@@ -32,7 +32,7 @@ struct PowerPCState;
 
 // Use these to control the instruction selection
 // #define INSTRUCTION_START FallBackToInterpreter(inst); return;
-// #define INSTRUCTION_START PPCTables::CountInstruction(inst);
+// #define INSTRUCTION_START PPCTables::CountInstruction(inst, m_ppc_state.pc);
 #define INSTRUCTION_START
 
 #define FALLBACK_IF(cond)                                                                          \

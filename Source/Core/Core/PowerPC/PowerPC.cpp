@@ -645,7 +645,7 @@ void CheckBreakPoints()
 {
   const TBreakPoint* bp = PowerPC::breakpoints.GetBreakpoint(PowerPC::ppcState.pc);
 
-  if (!bp || !bp->is_enabled || !EvaluateCondition(bp->condition))
+  if (!bp || !bp->is_enabled || !EvaluateCondition(Core::System::GetInstance(), bp->condition))
     return;
 
   if (bp->break_on_hit)

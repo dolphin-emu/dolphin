@@ -1699,7 +1699,7 @@ void MenuBar::SearchInstruction()
        addr += 4)
   {
     const auto ins_name = QString::fromStdString(
-        PPCTables::GetInstructionName(PowerPC::MMU::HostRead_U32(guard, addr)));
+        PPCTables::GetInstructionName(PowerPC::MMU::HostRead_U32(guard, addr), addr));
     if (op == ins_name)
     {
       NOTICE_LOG_FMT(POWERPC, "Found {} at {:08x}", op.toStdString(), addr);

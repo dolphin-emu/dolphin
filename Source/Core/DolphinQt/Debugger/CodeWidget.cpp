@@ -28,7 +28,7 @@
 #include "DolphinQt/Host.h"
 #include "DolphinQt/Settings.h"
 
-CodeWidget::CodeWidget(QWidget* parent) : QDockWidget(parent)
+CodeWidget::CodeWidget(QWidget* parent) : QDockWidget(parent), m_system(Core::System::GetInstance())
 {
   setWindowTitle(tr("Code"));
   setObjectName(QStringLiteral("code"));
@@ -51,7 +51,7 @@ CodeWidget::CodeWidget(QWidget* parent) : QDockWidget(parent)
 
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, [this] {
     if (Core::GetState() == Core::State::Paused)
-      SetAddress(PowerPC::ppcState.pc, CodeViewWidget::SetAddressUpdate::WithoutUpdate);
+      SetAddress(m_system.GetPPCState().pc, CodeViewWidget::SetAddressUpdate::WithoutUpdate);
     Update();
   });
 
@@ -329,9 +329,9 @@ void CodeWidget::UpdateCallstack()
 
   std::vector<Dolphin_Debugger::CallstackEntry> stack;
 
-  const bool success = [&stack] {
-    Core::CPUThreadGuard guard(Core::System::GetInstance());
-    return Dolphin_Debugger::GetCallstack(Core::System::GetInstance(), guard, stack);
+  const bool success = [this, &stack] {
+    Core::CPUThreadGuard guard(m_system);
+    return Dolphin_Debugger::GetCallstack(m_system, guard, stack);
   }();
 
   if (!success)
@@ -435,8 +435,7 @@ void CodeWidget::UpdateFunctionCallers(const Common::Symbol* symbol)
 
 void CodeWidget::Step()
 {
-  auto& system = Core::System::GetInstance();
-  auto& cpu = system.GetCPU();
+  auto& cpu = m_system.GetCPU();
 
   if (!cpu.IsStepping())
     return;
@@ -455,21 +454,20 @@ void CodeWidget::Step()
 
 void CodeWidget::StepOver()
 {
-  auto& system = Core::System::GetInstance();
-  auto& cpu = system.GetCPU();
+  auto& cpu = m_system.GetCPU();
 
   if (!cpu.IsStepping())
     return;
 
   const UGeckoInstruction inst = [&] {
-    Core::CPUThreadGuard guard(system);
-    return PowerPC::MMU::HostRead_Instruction(guard, PowerPC::ppcState.pc);
+    Core::CPUThreadGuard guard(m_system);
+    return PowerPC::MMU::HostRead_Instruction(guard, m_system.GetPPCState().pc);
   }();
 
   if (inst.LK)
   {
     PowerPC::breakpoints.ClearAllTemporary();
-    PowerPC::breakpoints.Add(PowerPC::ppcState.pc + 4, true);
+    PowerPC::breakpoints.Add(m_system.GetPPCState().pc + 4, true);
     cpu.EnableStepping(false);
     Core::DisplayMessage(tr("Step over in progress...").toStdString(), 2000);
   }
@@ -480,23 +478,21 @@ void CodeWidget::StepOver()
 }
 
 // Returns true on a rfi, blr or on a bclr that evaluates to true.
-static bool WillInstructionReturn(UGeckoInstruction inst)
+static bool WillInstructionReturn(Core::System& system, UGeckoInstruction inst)
 {
   // Is a rfi instruction
   if (inst.hex == 0x4C000064u)
     return true;
-  bool counter =
-      (inst.BO_2 >> 2 & 1) != 0 || (CTR(PowerPC::ppcState) != 0) != ((inst.BO_2 >> 1 & 1) != 0);
-  bool condition =
-      inst.BO_2 >> 4 != 0 || PowerPC::ppcState.cr.GetBit(inst.BI_2) == (inst.BO_2 >> 3 & 1);
+  const auto& ppc_state = system.GetPPCState();
+  bool counter = (inst.BO_2 >> 2 & 1) != 0 || (CTR(ppc_state) != 0) != ((inst.BO_2 >> 1 & 1) != 0);
+  bool condition = inst.BO_2 >> 4 != 0 || ppc_state.cr.GetBit(inst.BI_2) == (inst.BO_2 >> 3 & 1);
   bool isBclr = inst.OPCD_7 == 0b010011 && (inst.hex >> 1 & 0b10000) != 0;
   return isBclr && counter && condition && !inst.LK_3;
 }
 
 void CodeWidget::StepOut()
 {
-  auto& system = Core::System::GetInstance();
-  auto& cpu = system.GetCPU();
+  auto& cpu = m_system.GetCPU();
 
   if (!cpu.IsStepping())
     return;
@@ -505,8 +501,9 @@ void CodeWidget::StepOut()
   using clock = std::chrono::steady_clock;
   clock::time_point timeout = clock::now() + std::chrono::seconds(5);
 
+  auto& ppc_state = m_system.GetPPCState();
   {
-    Core::CPUThreadGuard guard(system);
+    Core::CPUThreadGuard guard(m_system);
 
     PowerPC::breakpoints.ClearAllTemporary();
 
@@ -516,10 +513,10 @@ void CodeWidget::StepOut()
     // Loop until either the current instruction is a return instruction with no Link flag
     // or a breakpoint is detected so it can step at the breakpoint. If the PC is currently
     // on a breakpoint, skip it.
-    UGeckoInstruction inst = PowerPC::MMU::HostRead_Instruction(guard, PowerPC::ppcState.pc);
+    UGeckoInstruction inst = PowerPC::MMU::HostRead_Instruction(guard, ppc_state.pc);
     do
     {
-      if (WillInstructionReturn(inst))
+      if (WillInstructionReturn(m_system, inst))
       {
         PowerPC::SingleStep();
         break;
@@ -528,28 +525,27 @@ void CodeWidget::StepOut()
       if (inst.LK)
       {
         // Step over branches
-        u32 next_pc = PowerPC::ppcState.pc + 4;
+        u32 next_pc = ppc_state.pc + 4;
         do
         {
           PowerPC::SingleStep();
-        } while (PowerPC::ppcState.pc != next_pc && clock::now() < timeout &&
-                 !PowerPC::breakpoints.IsAddressBreakPoint(PowerPC::ppcState.pc));
+        } while (ppc_state.pc != next_pc && clock::now() < timeout &&
+                 !PowerPC::breakpoints.IsAddressBreakPoint(ppc_state.pc));
       }
       else
       {
         PowerPC::SingleStep();
       }
 
-      inst = PowerPC::MMU::HostRead_Instruction(guard, PowerPC::ppcState.pc);
-    } while (clock::now() < timeout &&
-             !PowerPC::breakpoints.IsAddressBreakPoint(PowerPC::ppcState.pc));
+      inst = PowerPC::MMU::HostRead_Instruction(guard, ppc_state.pc);
+    } while (clock::now() < timeout && !PowerPC::breakpoints.IsAddressBreakPoint(ppc_state.pc));
 
     PowerPC::SetMode(old_mode);
   }
 
   emit Host::GetInstance()->UpdateDisasmDialog();
 
-  if (PowerPC::breakpoints.IsAddressBreakPoint(PowerPC::ppcState.pc))
+  if (PowerPC::breakpoints.IsAddressBreakPoint(ppc_state.pc))
     Core::DisplayMessage(tr("Breakpoint encountered! Step out aborted.").toStdString(), 2000);
   else if (clock::now() >= timeout)
     Core::DisplayMessage(tr("Step out timed out!").toStdString(), 2000);
@@ -559,19 +555,19 @@ void CodeWidget::StepOut()
 
 void CodeWidget::Skip()
 {
-  PowerPC::ppcState.pc += 4;
+  m_system.GetPPCState().pc += 4;
   ShowPC();
 }
 
 void CodeWidget::ShowPC()
 {
-  m_code_view->SetAddress(PowerPC::ppcState.pc, CodeViewWidget::SetAddressUpdate::WithUpdate);
+  m_code_view->SetAddress(m_system.GetPPCState().pc, CodeViewWidget::SetAddressUpdate::WithUpdate);
   Update();
 }
 
 void CodeWidget::SetPC()
 {
-  PowerPC::ppcState.pc = m_code_view->GetAddress();
+  m_system.GetPPCState().pc = m_code_view->GetAddress();
   Update();
 }
 

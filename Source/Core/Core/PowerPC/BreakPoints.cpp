@@ -16,6 +16,7 @@
 #include "Core/PowerPC/Expression.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/MMU.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 
 bool BreakPoints::IsAddressBreakPoint(u32 address) const
@@ -352,14 +353,14 @@ bool MemChecks::OverlapsMemcheck(u32 address, u32 length) const
   });
 }
 
-bool TMemCheck::Action(Common::DebugInterface* debug_interface, u64 value, u32 addr, bool write,
-                       size_t size, u32 pc)
+bool TMemCheck::Action(Core::System& system, Common::DebugInterface* debug_interface, u64 value,
+                       u32 addr, bool write, size_t size, u32 pc)
 {
   if (!is_enabled)
     return false;
 
   if (((write && is_break_on_write) || (!write && is_break_on_read)) &&
-      EvaluateCondition(this->condition))
+      EvaluateCondition(system, this->condition))
   {
     if (log_on_hit)
     {
