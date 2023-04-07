@@ -437,6 +437,9 @@ void MemoryViewWidget::Update()
 
 void MemoryViewWidget::UpdateColumns()
 {
+  if (!isVisible())
+    return;
+
   // Check if table is created
   if (m_table->item(1, 1) == nullptr)
     return;
