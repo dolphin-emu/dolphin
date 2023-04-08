@@ -19,30 +19,30 @@ namespace Scripting::RegistersAPI
 const char* class_name = "RegistersAPI";
 
 static std::array all_registers_functions_metadata_list = {
-  FunctionMetadata("getU8FromRegister", "1.0", "getU8FromRegister(\"R5\", 3)", GetU8FromRegister, ArgTypeEnum::U8, {ArgTypeEnum::String, ArgTypeEnum::LongLong}),
-  FunctionMetadata("getU16FromRegister", "1.0", "getU16FromRegister(\"R5\", 2)", GetU16FromRegister, ArgTypeEnum::U16, {ArgTypeEnum::String, ArgTypeEnum::LongLong}),
-  FunctionMetadata("getU32FromRegister", "1.0", "getU32FromRegister(\"R5\", 0)", GetU32FromRegister, ArgTypeEnum::U32, {ArgTypeEnum::String, ArgTypeEnum::LongLong}),
-  FunctionMetadata("getU64FromRegister", "1.0", "getU64FromRegister(\"F5\", 0)", GetU64FromRegister, ArgTypeEnum::U64, {ArgTypeEnum::String, ArgTypeEnum::LongLong}),
-  FunctionMetadata("getS8FromRegister", "1.0", "getS8FromRegister(\"R5\", 3)", GetS8FromRegister, ArgTypeEnum::S8, {ArgTypeEnum::String, ArgTypeEnum::LongLong}),
-  FunctionMetadata("getS16FromRegister", "1.0", "getS16FromRegister(\"R5\", 2)", GetS16FromRegister, ArgTypeEnum::S16, {ArgTypeEnum::String, ArgTypeEnum::LongLong}),
-  FunctionMetadata("getS32FromRegister", "1.0", "getS32FromRegister(\"R5\", 0)", GetS32FromRegister, ArgTypeEnum::Integer, {ArgTypeEnum::String, ArgTypeEnum::LongLong}),
-  FunctionMetadata("getS64FromRegister", "1.0", "getS64FromRegister(\"F5\", 0)", GetS64FromRegister, ArgTypeEnum::LongLong, {ArgTypeEnum::String, ArgTypeEnum::LongLong}),
-  FunctionMetadata("getFloatFromRegister", "1.0", "getFloatFromRegister(\"F5\", 4)", GetFloatFromRegister, ArgTypeEnum::Float, {ArgTypeEnum::String, ArgTypeEnum::LongLong}),
-  FunctionMetadata("getDoubleFromRegister", "1.0", "getDoubleFromRegister(\"F5\", 0)", GetDoubleFromRegister, ArgTypeEnum::Double, {ArgTypeEnum::String, ArgTypeEnum::LongLong}),
-  FunctionMetadata("getUnsignedBytesFromRegister", "1.0", "getUnsignedBytesFromRegister(\"R5\", 3, 1)", GetUnsignedBytesFromRegister, ArgTypeEnum::AddressToUnsignedByteMap, {ArgTypeEnum::String, ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),
-  FunctionMetadata("getSignedBytesFromRegister", "1.0", "getSignedBytesFromRegister(\"R5\", 3, 1)", GetSignedBytesFromRegister, ArgTypeEnum::AddressToSignedByteMap, {ArgTypeEnum::String, ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),
+  FunctionMetadata("getU8FromRegister", "1.0", "getU8FromRegister(\"R5\", 3)", GetU8FromRegister, ArgTypeEnum::U8, {ArgTypeEnum::String, ArgTypeEnum::U8}),
+  FunctionMetadata("getU16FromRegister", "1.0", "getU16FromRegister(\"R5\", 2)", GetU16FromRegister, ArgTypeEnum::U16, {ArgTypeEnum::String, ArgTypeEnum::U8}),
+  FunctionMetadata("getU32FromRegister", "1.0", "getU32FromRegister(\"R5\", 0)", GetU32FromRegister, ArgTypeEnum::U32, {ArgTypeEnum::String, ArgTypeEnum::U8}),
+  FunctionMetadata("getU64FromRegister", "1.0", "getU64FromRegister(\"F5\", 0)", GetU64FromRegister, ArgTypeEnum::U64, {ArgTypeEnum::String, ArgTypeEnum::U8}),
+  FunctionMetadata("getS8FromRegister", "1.0", "getS8FromRegister(\"R5\", 3)", GetS8FromRegister, ArgTypeEnum::S8, {ArgTypeEnum::String, ArgTypeEnum::U8}),
+  FunctionMetadata("getS16FromRegister", "1.0", "getS16FromRegister(\"R5\", 2)", GetS16FromRegister, ArgTypeEnum::S16, {ArgTypeEnum::String, ArgTypeEnum::U8}),
+  FunctionMetadata("getS32FromRegister", "1.0", "getS32FromRegister(\"R5\", 0)", GetS32FromRegister, ArgTypeEnum::Integer, {ArgTypeEnum::String, ArgTypeEnum::U8}),
+  FunctionMetadata("getS64FromRegister", "1.0", "getS64FromRegister(\"F5\", 0)", GetS64FromRegister, ArgTypeEnum::LongLong, {ArgTypeEnum::String, ArgTypeEnum::U8}),
+  FunctionMetadata("getFloatFromRegister", "1.0", "getFloatFromRegister(\"F5\", 4)", GetFloatFromRegister, ArgTypeEnum::Float, {ArgTypeEnum::String, ArgTypeEnum::U8}),
+  FunctionMetadata("getDoubleFromRegister", "1.0", "getDoubleFromRegister(\"F5\", 0)", GetDoubleFromRegister, ArgTypeEnum::Double, {ArgTypeEnum::String, ArgTypeEnum::U8}),
+  FunctionMetadata("getUnsignedBytesFromRegister", "1.0", "getUnsignedBytesFromRegister(\"R5\", 3, 1)", GetUnsignedBytesFromRegister, ArgTypeEnum::AddressToUnsignedByteMap, {ArgTypeEnum::String, ArgTypeEnum::U8, ArgTypeEnum::U8}),
+  FunctionMetadata("getSignedBytesFromRegister", "1.0", "getSignedBytesFromRegister(\"R5\", 3, 1)", GetSignedBytesFromRegister, ArgTypeEnum::AddressToSignedByteMap, {ArgTypeEnum::String, ArgTypeEnum::U8, ArgTypeEnum::U8}),
 
-  FunctionMetadata("writeU8ToRegister", "1.0", "writeU8ToRegister(\"R5\", 41, 3)", WriteU8ToRegister, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::U8, ArgTypeEnum::LongLong}),
-  FunctionMetadata("writeU16ToRegister", "1.0", "writeU16ToRegister(\"R5\", 410, 2)", WriteU16ToRegister, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::U16, ArgTypeEnum::LongLong}),
-  FunctionMetadata("writeU32ToRegister", "1.0", "writeU32ToRegister(\"R5\", 500300, 0)", WriteU32ToRegister, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::U32, ArgTypeEnum::LongLong}),
-  FunctionMetadata("writeU64ToRegister", "1.0", "writeU64ToRegister(\"F5\", 700000, 0)", WriteU64ToRegister, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::U64, ArgTypeEnum::LongLong}),
-  FunctionMetadata("writeS8ToRegister", "1.0", "writeS8ToRegister(\"R5\", -41, 3)", WriteS8ToRegister, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::S8, ArgTypeEnum::LongLong}),
-  FunctionMetadata("writeS16ToRegister", "1.0", "writeS16ToRegister(\"R5\", -9850, 2)", WriteS16ToRegister, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::S16, ArgTypeEnum::LongLong}),
-  FunctionMetadata("writeS32ToRegister", "1.0", "writeS32ToRegister(\"R5\", -800567, 0)", WriteS32ToRegister, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::Integer, ArgTypeEnum::LongLong}),
-  FunctionMetadata("writeS64ToRegister", "1.0", "writeS64ToRegister(\"F5\", -1123456, 0)", WriteS64ToRegister, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),
-  FunctionMetadata("writeFloatToRegister", "1.0", "writeFloatToRegister(\"F5\", 41.23, 4)", WriteFloatToRegister, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::Float, ArgTypeEnum::LongLong}),
-  FunctionMetadata("writeDoubleToRegister", "1.0", "writeDoubleToRegister(\"R5\", 78.32, 0)", WriteDoubleToRegister, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::Double, ArgTypeEnum::LongLong}),
-  FunctionMetadata("writeBytesToRegister", "1.0", "writeBytesToRegister(\"R5\", indexToByteMap, 1)", WriteBytesToRegister, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::AddressToByteMap, ArgTypeEnum::LongLong})
+  FunctionMetadata("writeU8ToRegister", "1.0", "writeU8ToRegister(\"R5\", 41, 3)", WriteU8ToRegister, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::U8, ArgTypeEnum::U8}),
+  FunctionMetadata("writeU16ToRegister", "1.0", "writeU16ToRegister(\"R5\", 410, 2)", WriteU16ToRegister, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::U16, ArgTypeEnum::U8}),
+  FunctionMetadata("writeU32ToRegister", "1.0", "writeU32ToRegister(\"R5\", 500300, 0)", WriteU32ToRegister, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::U32, ArgTypeEnum::U8}),
+  FunctionMetadata("writeU64ToRegister", "1.0", "writeU64ToRegister(\"F5\", 700000, 0)", WriteU64ToRegister, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::U64, ArgTypeEnum::U8}),
+  FunctionMetadata("writeS8ToRegister", "1.0", "writeS8ToRegister(\"R5\", -41, 3)", WriteS8ToRegister, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::S8, ArgTypeEnum::U8}),
+  FunctionMetadata("writeS16ToRegister", "1.0", "writeS16ToRegister(\"R5\", -9850, 2)", WriteS16ToRegister, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::S16, ArgTypeEnum::U8}),
+  FunctionMetadata("writeS32ToRegister", "1.0", "writeS32ToRegister(\"R5\", -800567, 0)", WriteS32ToRegister, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::Integer, ArgTypeEnum::U8}),
+  FunctionMetadata("writeS64ToRegister", "1.0", "writeS64ToRegister(\"F5\", -1123456, 0)", WriteS64ToRegister, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::LongLong, ArgTypeEnum::U8}),
+  FunctionMetadata("writeFloatToRegister", "1.0", "writeFloatToRegister(\"F5\", 41.23, 4)", WriteFloatToRegister, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::Float, ArgTypeEnum::U8}),
+  FunctionMetadata("writeDoubleToRegister", "1.0", "writeDoubleToRegister(\"R5\", 78.32, 0)", WriteDoubleToRegister, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::Double, ArgTypeEnum::U8}),
+  FunctionMetadata("writeBytesToRegister", "1.0", "writeBytesToRegister(\"R5\", indexToByteMap, 1)", WriteBytesToRegister, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::AddressToByteMap, ArgTypeEnum::U8})
 };
 
  ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
@@ -133,7 +133,7 @@ RegisterObject ParseRegister(const std::string& register_string)
   }
 }
 
-u8* GetAddressForRegister(RegisterObject register_object)
+u8* GetAddressForRegister(RegisterObject register_object, u8 offset)
 {
   u8 register_number = 0;
   u8* address = nullptr;
@@ -141,15 +141,15 @@ u8* GetAddressForRegister(RegisterObject register_object)
   {
   case RegisterObject::RegisterType::GeneralPurposeRegister:
     register_number = register_object.register_number;
-    address = reinterpret_cast<u8*>(PowerPC::ppcState.gpr + register_number);
+    address = (reinterpret_cast<u8*>(PowerPC::ppcState.gpr + register_number)) + offset;
     return address;
   case RegisterObject::RegisterType::PcRegister:
-    address = reinterpret_cast<u8*>(&PowerPC::ppcState.pc);
+    address = (reinterpret_cast<u8*>(&PowerPC::ppcState.pc)) + offset;
     return address;
   case RegisterObject::RegisterType::ReturnRegister:
-    address = reinterpret_cast<u8*>(&PowerPC::ppcState.spr[SPR_LR]);
+    address = (reinterpret_cast<u8*>(&PowerPC::ppcState.spr[SPR_LR])) + offset;
   case RegisterObject::RegisterType::FloatingPointRegister:
-    address = reinterpret_cast<u8*>(PowerPC::ppcState.ps + register_number);
+    address = (reinterpret_cast<u8*>(PowerPC::ppcState.ps + register_number)) + offset;
     return address;
 
   default:
@@ -165,20 +165,20 @@ ArgHolder ReturnInvalidRegisterNameArgHolder(const std::string& register_name)
                   register_name));
 }
 
-bool IsOperationOutOfBounds(RegisterObject register_val, long long offset,
-                            long long return_value_size)
+bool IsOperationOutOfBounds(RegisterObject register_val, u8 offset,
+                            u8 return_value_size)
 {
-  long long register_size_in_bytes = 4;
+  u8 register_size_in_bytes = 4;
   if (register_val.register_type == RegisterObject::RegisterType::FloatingPointRegister)
     register_size_in_bytes = 16;
 
-  if (offset < 0 || offset + return_value_size > register_size_in_bytes)
+  if (offset + return_value_size > register_size_in_bytes)
     return true;
   return false;
 }
 
 ArgHolder ReturnOperationOutOfBoundsError(std::string read_or_write, std::string return_type,
-                                          std::string register_string, long long offset)
+                                          std::string register_string, u8 offset)
 {
   return CreateErrorStringArgHolder(
       fmt::format("Attempt to {} {} with offset of {} at register {} failed. Attempted to {} past "
@@ -194,14 +194,14 @@ bool IsRegisterObjectUndefined(const RegisterObject& register_object)
 ArgHolder GetU8FromRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
-  long long offset = args_list[1].long_long_val;
+  u8 offset = args_list[1].u8_val;
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
     return ReturnInvalidRegisterNameArgHolder(register_string);
   if (IsOperationOutOfBounds(register_val, offset, 1))
     return ReturnOperationOutOfBoundsError("read", "u8", register_string, offset);
  
-  u8* address_pointer = GetAddressForRegister(register_val);
+  u8* address_pointer = GetAddressForRegister(register_val, offset);
   if (address_pointer == nullptr)
     return ReturnInvalidRegisterNameArgHolder(register_string);
 
@@ -213,14 +213,14 @@ ArgHolder GetU8FromRegister(ScriptContext* current_script, std::vector<ArgHolder
 ArgHolder GetU16FromRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
-  long long offset = args_list[1].long_long_val;
+  u8 offset = args_list[1].u8_val;
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
     return ReturnInvalidRegisterNameArgHolder(register_string);
   if (IsOperationOutOfBounds(register_val, offset, 2))
     return ReturnOperationOutOfBoundsError("read", "u16", register_string, offset);
 
-  u8* address_pointer = GetAddressForRegister(register_val);
+  u8* address_pointer = GetAddressForRegister(register_val, offset);
   if (address_pointer == nullptr)
     return ReturnInvalidRegisterNameArgHolder(register_string);
 
@@ -232,14 +232,14 @@ ArgHolder GetU16FromRegister(ScriptContext* current_script, std::vector<ArgHolde
 ArgHolder GetU32FromRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
-  long long offset = args_list[1].long_long_val;
+  u8 offset = args_list[1].u8_val;
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
     return ReturnInvalidRegisterNameArgHolder(register_string);
   if (IsOperationOutOfBounds(register_val, offset, 4))
     return ReturnOperationOutOfBoundsError("read", "u32", register_string, offset);
 
-  u8* address_pointer = GetAddressForRegister(register_val);
+  u8* address_pointer = GetAddressForRegister(register_val, offset);
   if (address_pointer == nullptr)
     return ReturnInvalidRegisterNameArgHolder(register_string);
 
@@ -251,14 +251,14 @@ ArgHolder GetU32FromRegister(ScriptContext* current_script, std::vector<ArgHolde
 ArgHolder GetU64FromRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
-  long long offset = args_list[1].long_long_val;
+  u8 offset = args_list[1].u8_val;
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
     return ReturnInvalidRegisterNameArgHolder(register_string);
   if (IsOperationOutOfBounds(register_val, offset, 8))
     return ReturnOperationOutOfBoundsError("read", "u64", register_string, offset);
 
-  u8* address_pointer = GetAddressForRegister(register_val);
+  u8* address_pointer = GetAddressForRegister(register_val, offset);
   if (address_pointer == nullptr)
     return ReturnInvalidRegisterNameArgHolder(register_string);
 
@@ -270,14 +270,14 @@ ArgHolder GetU64FromRegister(ScriptContext* current_script, std::vector<ArgHolde
 ArgHolder GetS8FromRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
-  long long offset = args_list[1].long_long_val;
+  u8 offset = args_list[1].u8_val;
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
     return ReturnInvalidRegisterNameArgHolder(register_string);
   if (IsOperationOutOfBounds(register_val, offset, 1))
     return ReturnOperationOutOfBoundsError("read", "s8", register_string, offset);
 
-  u8* address_pointer = GetAddressForRegister(register_val);
+  u8* address_pointer = GetAddressForRegister(register_val, offset);
   if (address_pointer == nullptr)
     return ReturnInvalidRegisterNameArgHolder(register_string);
 
@@ -289,14 +289,14 @@ ArgHolder GetS8FromRegister(ScriptContext* current_script, std::vector<ArgHolder
 ArgHolder GetS16FromRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
-  long long offset = args_list[1].long_long_val;
+  u8 offset = args_list[1].u8_val;
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
     return ReturnInvalidRegisterNameArgHolder(register_string);
   if (IsOperationOutOfBounds(register_val, offset, 2))
     return ReturnOperationOutOfBoundsError("read", "s16", register_string, offset);
 
-  u8* address_pointer = GetAddressForRegister(register_val);
+  u8* address_pointer = GetAddressForRegister(register_val, offset);
   if (address_pointer == nullptr)
     return ReturnInvalidRegisterNameArgHolder(register_string);
   s16 s16_return_val = 0;
@@ -307,14 +307,14 @@ ArgHolder GetS16FromRegister(ScriptContext* current_script, std::vector<ArgHolde
 ArgHolder GetS32FromRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
-  long long offset = args_list[1].long_long_val;
+  u8 offset = args_list[1].u8_val;
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
     return ReturnInvalidRegisterNameArgHolder(register_string);
   if (IsOperationOutOfBounds(register_val, offset, 4))
     return ReturnOperationOutOfBoundsError("read", "s32", register_string, offset);
 
-  u8* address_pointer = GetAddressForRegister(register_val);
+  u8* address_pointer = GetAddressForRegister(register_val, offset);
   if (address_pointer == nullptr)
     return ReturnInvalidRegisterNameArgHolder(register_string);
 
@@ -326,14 +326,14 @@ ArgHolder GetS32FromRegister(ScriptContext* current_script, std::vector<ArgHolde
 ArgHolder GetS64FromRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
-  long long offset = args_list[1].long_long_val;
+  u8 offset = args_list[1].u8_val;
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
     return ReturnInvalidRegisterNameArgHolder(register_string);
   if (IsOperationOutOfBounds(register_val, offset, 8))
     return ReturnOperationOutOfBoundsError("read", "s64", register_string, offset);
 
-  u8* address_pointer = GetAddressForRegister(register_val);
+  u8* address_pointer = GetAddressForRegister(register_val, offset);
   if (address_pointer == nullptr)
     return ReturnInvalidRegisterNameArgHolder(register_string);
 
@@ -345,14 +345,14 @@ ArgHolder GetS64FromRegister(ScriptContext* current_script, std::vector<ArgHolde
 ArgHolder GetFloatFromRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
-  long long offset = args_list[1].long_long_val;
+  u8 offset = args_list[1].u8_val;
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
     return ReturnInvalidRegisterNameArgHolder(register_string);
   if (IsOperationOutOfBounds(register_val, offset, 4))
     return ReturnOperationOutOfBoundsError("read", "float", register_string, offset);
 
-  u8* address_pointer = GetAddressForRegister(register_val);
+  u8* address_pointer = GetAddressForRegister(register_val, offset);
   if (address_pointer == nullptr)
     return ReturnInvalidRegisterNameArgHolder(register_string);
 
@@ -364,14 +364,14 @@ ArgHolder GetFloatFromRegister(ScriptContext* current_script, std::vector<ArgHol
 ArgHolder GetDoubleFromRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
-  long long offset = args_list[1].long_long_val;
+  u8 offset = args_list[1].u8_val;
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
     return ReturnInvalidRegisterNameArgHolder(register_string);
   if (IsOperationOutOfBounds(register_val, offset, 8))
     return ReturnOperationOutOfBoundsError("read", "double", register_string, offset);
 
-  u8* address_pointer = GetAddressForRegister(register_val);
+  u8* address_pointer = GetAddressForRegister(register_val, offset);
   if (address_pointer == nullptr)
     return ReturnInvalidRegisterNameArgHolder(register_string);
 
@@ -384,8 +384,8 @@ ArgHolder GetUnsignedBytesFromRegister(ScriptContext* current_script,
                                        std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
-  long long num_bytes_to_read = args_list[1].long_long_val;
-  long long offset = args_list[2].long_long_val;
+  u8 num_bytes_to_read = args_list[1].u8_val;
+  u8 offset = args_list[2].u8_val;
 
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
@@ -396,7 +396,7 @@ ArgHolder GetUnsignedBytesFromRegister(ScriptContext* current_script,
                     "failed. Attempted to read past the end of the register!",
                     num_bytes_to_read, register_string, offset));
 
-  u8* address_pointer = GetAddressForRegister(register_val);
+  u8* address_pointer = GetAddressForRegister(register_val, offset);
   if (address_pointer == nullptr)
     return ReturnInvalidRegisterNameArgHolder(register_string);
 
@@ -404,7 +404,7 @@ ArgHolder GetUnsignedBytesFromRegister(ScriptContext* current_script,
   for (u8 i = 0; i < num_bytes_to_read; ++i)
   {
     u8 next_byte = 0;
-    memcpy(&next_byte, address_pointer + offset + i, sizeof(u8));
+    memcpy(&next_byte, address_pointer + i, sizeof(u8));
     index_to_unsigned_byte_map[i + 1] = next_byte;
   }
 
@@ -415,8 +415,8 @@ ArgHolder GetSignedBytesFromRegister(ScriptContext* current_script,
                                        std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
-  long long num_bytes_to_read = args_list[1].long_long_val;
-  long long offset = args_list[2].long_long_val;
+  u8 num_bytes_to_read = args_list[1].u8_val;
+  u8 offset = args_list[2].u8_val;
 
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
@@ -427,7 +427,7 @@ ArgHolder GetSignedBytesFromRegister(ScriptContext* current_script,
         "failed. Attempted to read past the end of the register!",
         num_bytes_to_read, register_string, offset));
 
-  u8* address_pointer = GetAddressForRegister(register_val);
+  u8* address_pointer = GetAddressForRegister(register_val, offset);
   if (address_pointer == nullptr)
     return ReturnInvalidRegisterNameArgHolder(register_string);
 
@@ -435,7 +435,7 @@ ArgHolder GetSignedBytesFromRegister(ScriptContext* current_script,
   for (u8 i = 0; i < num_bytes_to_read; ++i)
   {
     s8 next_byte = 0;
-    memcpy(&next_byte, address_pointer + offset + i, sizeof(s8));
+    memcpy(&next_byte, address_pointer + i, sizeof(s8));
     index_to_signed_byte_map[i + 1] = next_byte;
   }
 
@@ -446,7 +446,7 @@ ArgHolder WriteU8ToRegister(ScriptContext* current_script, std::vector<ArgHolder
 {
   const std::string register_string = args_list[0].string_val;
   u8 u8_val = args_list[1].u8_val;
-  long long offset = args_list[2].long_long_val;
+  u8 offset = args_list[2].u8_val;
 
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
@@ -454,7 +454,7 @@ ArgHolder WriteU8ToRegister(ScriptContext* current_script, std::vector<ArgHolder
   if (IsOperationOutOfBounds(register_val, offset, 1))
     return ReturnOperationOutOfBoundsError("write", "u8", register_string, offset);
 
-  u8* address_pointer = GetAddressForRegister(register_val);
+  u8* address_pointer = GetAddressForRegister(register_val, offset);
   if (address_pointer == nullptr)
     return ReturnInvalidRegisterNameArgHolder(register_string);
 
@@ -466,7 +466,7 @@ ArgHolder WriteU16ToRegister(ScriptContext* current_script, std::vector<ArgHolde
 {
   const std::string register_string = args_list[0].string_val;
   u16 u16_val = args_list[1].u16_val;
-  long long offset = args_list[2].long_long_val;
+  u8 offset = args_list[2].u8_val;
 
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
@@ -474,7 +474,7 @@ ArgHolder WriteU16ToRegister(ScriptContext* current_script, std::vector<ArgHolde
   if (IsOperationOutOfBounds(register_val, offset, 2))
     return ReturnOperationOutOfBoundsError("write", "u16", register_string, offset);
 
-  u8* address_pointer = GetAddressForRegister(register_val);
+  u8* address_pointer = GetAddressForRegister(register_val, offset);
   if (address_pointer == nullptr)
     return ReturnInvalidRegisterNameArgHolder(register_string);
 
@@ -486,7 +486,7 @@ ArgHolder WriteU32ToRegister(ScriptContext* current_script, std::vector<ArgHolde
 {
   const std::string register_string = args_list[0].string_val;
   u32 u32_val = args_list[1].u32_val;
-  long long offset = args_list[2].long_long_val;
+  u8 offset = args_list[2].u8_val;
 
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
@@ -494,7 +494,7 @@ ArgHolder WriteU32ToRegister(ScriptContext* current_script, std::vector<ArgHolde
   if (IsOperationOutOfBounds(register_val, offset, 4))
     return ReturnOperationOutOfBoundsError("write", "u32", register_string, offset);
 
-  u8* address_pointer = GetAddressForRegister(register_val);
+  u8* address_pointer = GetAddressForRegister(register_val, offset);
   if (address_pointer == nullptr)
     return ReturnInvalidRegisterNameArgHolder(register_string);
 
@@ -506,7 +506,7 @@ ArgHolder WriteU64ToRegister(ScriptContext* current_script, std::vector<ArgHolde
 {
   const std::string register_string = args_list[0].string_val;
   u64 u64_val = args_list[1].u64_val;
-  long long offset = args_list[2].long_long_val;
+  u8 offset = args_list[2].u8_val;
 
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
@@ -514,7 +514,7 @@ ArgHolder WriteU64ToRegister(ScriptContext* current_script, std::vector<ArgHolde
   if (IsOperationOutOfBounds(register_val, offset, 8))
     return ReturnOperationOutOfBoundsError("write", "u64", register_string, offset);
 
-  u8* address_pointer = GetAddressForRegister(register_val);
+  u8* address_pointer = GetAddressForRegister(register_val, offset);
   if (address_pointer == nullptr)
     return ReturnInvalidRegisterNameArgHolder(register_string);
 
@@ -526,7 +526,7 @@ ArgHolder WriteS8ToRegister(ScriptContext* current_script, std::vector<ArgHolder
 {
   const std::string register_string = args_list[0].string_val;
   s8 s8_val = args_list[1].s8_val;
-  long long offset = args_list[2].long_long_val;
+  u8 offset = args_list[2].u8_val;
 
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
@@ -534,7 +534,7 @@ ArgHolder WriteS8ToRegister(ScriptContext* current_script, std::vector<ArgHolder
   if (IsOperationOutOfBounds(register_val, offset, 1))
     return ReturnOperationOutOfBoundsError("write", "s8", register_string, offset);
 
-  u8* address_pointer = GetAddressForRegister(register_val);
+  u8* address_pointer = GetAddressForRegister(register_val, offset);
   if (address_pointer == nullptr)
     return ReturnInvalidRegisterNameArgHolder(register_string);
 
@@ -546,7 +546,7 @@ ArgHolder WriteS16ToRegister(ScriptContext* current_script, std::vector<ArgHolde
 {
   const std::string register_string = args_list[0].string_val;
   s16 s16_val = args_list[1].s16_val;
-  long long offset = args_list[2].long_long_val;
+  u8 offset = args_list[2].u8_val;
 
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
@@ -554,7 +554,7 @@ ArgHolder WriteS16ToRegister(ScriptContext* current_script, std::vector<ArgHolde
   if (IsOperationOutOfBounds(register_val, offset, 2))
     return ReturnOperationOutOfBoundsError("write", "s16", register_string, offset);
 
-  u8* address_pointer = GetAddressForRegister(register_val);
+  u8* address_pointer = GetAddressForRegister(register_val, offset);
   if (address_pointer == nullptr)
     return ReturnInvalidRegisterNameArgHolder(register_string);
 
@@ -566,7 +566,7 @@ ArgHolder WriteS32ToRegister(ScriptContext* current_script, std::vector<ArgHolde
 {
   const std::string register_string = args_list[0].string_val;
   s32 s32_val = args_list[1].int_val;
-  long long offset = args_list[2].long_long_val;
+  u8 offset = args_list[2].u8_val;
 
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
@@ -574,7 +574,7 @@ ArgHolder WriteS32ToRegister(ScriptContext* current_script, std::vector<ArgHolde
   if (IsOperationOutOfBounds(register_val, offset, 4))
     return ReturnOperationOutOfBoundsError("write", "s32", register_string, offset);
 
-  u8* address_pointer = GetAddressForRegister(register_val);
+  u8* address_pointer = GetAddressForRegister(register_val, offset);
   if (address_pointer == nullptr)
     return ReturnInvalidRegisterNameArgHolder(register_string);
 
@@ -586,7 +586,7 @@ ArgHolder WriteS64ToRegister(ScriptContext* current_script, std::vector<ArgHolde
 {
   const std::string register_string = args_list[0].string_val;
   s64 s64_val = args_list[1].long_long_val;
-  long long offset = args_list[2].long_long_val;
+  u8 offset = args_list[2].u8_val;
 
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
@@ -594,7 +594,7 @@ ArgHolder WriteS64ToRegister(ScriptContext* current_script, std::vector<ArgHolde
   if (IsOperationOutOfBounds(register_val, offset, 8))
     return ReturnOperationOutOfBoundsError("write", "s64", register_string, offset);
 
-  u8* address_pointer = GetAddressForRegister(register_val);
+  u8* address_pointer = GetAddressForRegister(register_val, offset);
   if (address_pointer == nullptr)
     return ReturnInvalidRegisterNameArgHolder(register_string);
 
@@ -606,7 +606,7 @@ ArgHolder WriteFloatToRegister(ScriptContext* current_script, std::vector<ArgHol
 {
   const std::string register_string = args_list[0].string_val;
   float float_val = args_list[1].float_val;
-  long long offset = args_list[2].long_long_val;
+  u8 offset = args_list[2].u8_val;
 
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
@@ -614,7 +614,7 @@ ArgHolder WriteFloatToRegister(ScriptContext* current_script, std::vector<ArgHol
   if (IsOperationOutOfBounds(register_val, offset, 4))
     return ReturnOperationOutOfBoundsError("write", "float", register_string, offset);
 
-  u8* address_pointer = GetAddressForRegister(register_val);
+  u8* address_pointer = GetAddressForRegister(register_val, offset);
   if (address_pointer == nullptr)
     return ReturnInvalidRegisterNameArgHolder(register_string);
 
@@ -626,7 +626,7 @@ ArgHolder WriteDoubleToRegister(ScriptContext* current_script, std::vector<ArgHo
 {
   const std::string register_string = args_list[0].string_val;
   double double_val = args_list[1].double_val;
-  long long offset = args_list[2].long_long_val;
+  u8 offset = args_list[2].u8_val;
 
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
@@ -634,7 +634,7 @@ ArgHolder WriteDoubleToRegister(ScriptContext* current_script, std::vector<ArgHo
   if (IsOperationOutOfBounds(register_val, offset, 8))
     return ReturnOperationOutOfBoundsError("write", "double", register_string, offset);
 
-  u8* address_pointer = GetAddressForRegister(register_val);
+  u8* address_pointer = GetAddressForRegister(register_val, offset);
   if (address_pointer == nullptr)
     return ReturnInvalidRegisterNameArgHolder(register_string);
 
@@ -646,15 +646,15 @@ ArgHolder WriteBytesToRegister(ScriptContext* current_script, std::vector<ArgHol
 {
   const std::string register_string = args_list[0].string_val;
   std::map<long long, s16> index_to_byte_map = args_list[1].address_to_byte_map;
-  long long offset = args_list[2].long_long_val;
+  u8 offset = args_list[2].u8_val;
 
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
     return ReturnInvalidRegisterNameArgHolder(register_string);
-  if (IsOperationOutOfBounds(register_val, offset, index_to_byte_map.size()))
+  if (IsOperationOutOfBounds(register_val, offset, static_cast<u8>(index_to_byte_map.size())))
     return ReturnOperationOutOfBoundsError("write", "Bytes", register_string, offset);
 
-  u8* address_pointer = GetAddressForRegister(register_val);
+  u8* address_pointer = GetAddressForRegister(register_val, offset);
   if (address_pointer == nullptr)
     return ReturnInvalidRegisterNameArgHolder(register_string);
 
@@ -664,18 +664,18 @@ ArgHolder WriteBytesToRegister(ScriptContext* current_script, std::vector<ArgHol
     s16 curr_byte = it.second;
     if (curr_byte < -128 || curr_byte > 255)
       return CreateErrorStringArgHolder(
-          fmt::format("Byte at offset of {} for register {} was outside the valid range of what can be represented by 1 byte "
-          "(it was outside the range of -128-255)", i + offset, register_string));
+          fmt::format("Byte at offset of {} from start of register {} was outside the valid range of what can be represented by 1 byte "
+          "(it was outside the range of -128 to 255)", i + offset, register_string));
 
     if (curr_byte < 0)
     {
       s8 curr_s8 = static_cast<s8>(curr_byte);
-      memcpy(address_pointer + offset + i, &curr_s8, sizeof(s8));
+      memcpy(address_pointer + i, &curr_s8, sizeof(s8));
     }
     else
     {
       u8 curr_u8 = static_cast<u8>(curr_byte);
-      memcpy(address_pointer + offset + i, &curr_u8, sizeof(u8));
+      memcpy(address_pointer + i, &curr_u8, sizeof(u8));
     }
     i++;
   }

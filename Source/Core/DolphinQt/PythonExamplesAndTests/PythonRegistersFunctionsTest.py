@@ -66,6 +66,12 @@ signedByteArray[14] = 82
 signedByteArray[15] = -10
 signedByteArray[16] = 63
 
+def clearRegister(registerName):
+    if registerName[0] == 'f' or registerName[0] == 'F':
+        registers.setRegister(registerName, "s64", 0, 0)
+        registers.setRegister(registerName, "s64", 0, 8)
+    else:
+        registers.setRegister(registerName, "u32", 0, 0)
 
 def getSizeOfType(valueType):
     if valueType == "u8":
@@ -95,6 +101,7 @@ def getSizeOfType(valueType):
 def setRegisterTestCase(registerName, valueType, valueToWrite):
     global testNum
     global resultsTable
+    clearRegister(registerName)
     outputFile.write("Test " + str(testNum) + ":\n\t")
     outputFile.write("Testing writing " + str(valueToWrite) + " to " + registerName + " as a " + valueType + " and making sure that the value read back out after writing is the same value...\n\t")
     testNum = testNum + 1
@@ -111,6 +118,7 @@ def setRegisterTestCase(registerName, valueType, valueToWrite):
 def setRegisterWithOffsetTestCase(registerName, valueType, valueToWrite, offset):
     global testNum
     global resultsTable
+    clearRegister(registerName)
     outputFile.write("Test " + str(testNum) + ":\n\t")
     outputFile.write("Testing writing " + str(valueToWrite) + " to " + registerName + " as a " + valueType + " with an offset of " + str(offset) + " and making sure that the value read back out after writing is the same value...\n\t")
     testNum = testNum + 1
@@ -128,6 +136,7 @@ def byteArrayTestCase(registerName, byteArray, arraySize, offset, isUnsigned):
     global testNum
     global resultsTable
     
+    clearRegister(registerName)
     typeName = "signed"
     if isUnsigned:
         typeName = "unsigned"

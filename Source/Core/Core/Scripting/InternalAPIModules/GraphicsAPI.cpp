@@ -75,7 +75,7 @@ static std::array all_graphics_functions_metadata_list = {
                      {ArgTypeEnum::ListOfPoints, ArgTypeEnum::Float, ArgTypeEnum::String}),
 
     FunctionMetadata("drawFilledPolygon", "1.0",
-                     "drawFilledPolygon( {45.0, 100.0}, {45.0, 500.0}, {67.4, 54.2}}, color)",
+                     "drawFilledPolygon({ {45.0, 100.0}, {45.0, 500.0}, {67.4, 54.2}}, color)",
                      DrawFilledPolygon, ArgTypeEnum::VoidType,
                      {ArgTypeEnum::ListOfPoints, ArgTypeEnum::String}),
 

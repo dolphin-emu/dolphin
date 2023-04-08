@@ -66,6 +66,15 @@ signedByteArray[15] = -10
 signedByteArray[16] = 63
 
 
+function clearRegister(registerName)
+	if registerName[0] == 'f' or registerName[0] == 'F' then
+		registers:setRegister(registerName "s64", 0, 0)
+		registers:setRegister(registerName, "s64", 0, 8)
+	else
+		registers:setRegister(registerName, "u32", 0, 0)
+	end
+end
+
 function getSizeOfType(valueType)
 	if valueType == "u8" then
 		return 1
@@ -93,6 +102,7 @@ function getSizeOfType(valueType)
 end
 
 function setRegisterTestCase(registerName, valueType, valueToWrite)
+	clearRegister(registerName)
 	io.write("Test " .. tostring(testNum) .. ":\n\t")
 	io.write("Testing writing " .. tostring(valueToWrite) .. " to " .. registerName .. " as a " .. valueType .. " and making sure that the value read back out after writing is the same value...\n\t")
 	testNum = testNum + 1
@@ -108,6 +118,7 @@ function setRegisterTestCase(registerName, valueType, valueToWrite)
 end
 
 function setRegisterWithOffsetTestCase(registerName, valueType, valueToWrite, offset)
+	clearRegister(registerName)
 	io.write("Test " .. tostring(testNum) .. ":\n\t")
 	io.write("Testing writing " .. tostring(valueToWrite) .. " to " .. registerName .. " as a " .. valueType .. " with an offset of " .. tostring(offset) .. " and making sure that the value read back out after writing is the same value...\n\t")
 	testNum = testNum + 1
@@ -118,11 +129,12 @@ function setRegisterWithOffsetTestCase(registerName, valueType, valueToWrite, of
 		resultsTable["PASS"] = resultsTable["PASS"] + 1
 	else
 		io.write("Value read out of " .. tostring(valueReadOut) .. " != value written, which was " .. tostring(valueToWrite) .. "\nFAILURE!\n\n")
-		resultsTabe["FAIL"] = resultsTable["FAIL"] + 1
+		resultsTable["FAIL"] = resultsTable["FAIL"] + 1
 	end
 end
 
 function byteArrayTestCase(registerName, byteArray, arraySize, offset, isUnsigned)
+	clearRegister(registerName)
 	typeName = "signed"
 	if isUnsigned then
 		typeName = "unsigned"
@@ -175,7 +187,6 @@ function byteArrayTestCase(registerName, byteArray, arraySize, offset, isUnsigne
 end
 
 function setRegisterUnitTests()
-
 	io.write("Testing writing to/reading from all of the integer registers:\n\n")
 	for registerNumber = 0, 31 do
 		for i = 1, 7 do
