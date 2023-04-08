@@ -9,6 +9,7 @@
 #include <utility>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -102,10 +103,9 @@ ESDevice::ESDevice(Kernel& ios, const std::string& device_name) : Device(ios, de
 
   FinishAllStaleImports();
 
-  if (Core::IsRunningAndStarted())
+  if (m_ios.HasSystem())
   {
-    auto& system = Core::System::GetInstance();
-    auto& core_timing = system.GetCoreTiming();
+    auto& core_timing = m_ios.GetSystem().GetCoreTiming();
     core_timing.RemoveEvent(s_finish_init_event);
     core_timing.ScheduleEvent(GetESBootTicks(m_ios.GetVersion()), s_finish_init_event);
   }
@@ -202,8 +202,11 @@ IPCReply ESDevice::GetTitleDirectory(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(1, 1))
     return IPCReply(ES_EINVAL);
 
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
+  ASSERT(m_ios.HasSystem());
+  if (!m_ios.HasSystem())
+    return IPCReply(ES_EINVAL);
+
+  auto& memory = m_ios.GetSystem().GetMemory();
 
   const u64 title_id = memory.Read_U64(request.in_vectors[0].address);
 
@@ -233,8 +236,11 @@ IPCReply ESDevice::GetTitleId(const IOCtlVRequest& request)
   if (ret != IPC_SUCCESS)
     return IPCReply(ret);
 
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
+  ASSERT(m_ios.HasSystem());
+  if (!m_ios.HasSystem())
+    return IPCReply(ES_EINVAL);
+
+  auto& memory = m_ios.GetSystem().GetMemory();
 
   memory.Write_U64(title_id, request.io_vectors[0].address);
   INFO_LOG_FMT(IOS_ES, "IOCTL_ES_GETTITLEID: {:08x}/{:08x}", static_cast<u32>(title_id >> 32),
@@ -284,8 +290,11 @@ IPCReply ESDevice::SetUID(u32 uid, const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != 8)
     return IPCReply(ES_EINVAL);
 
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
+  ASSERT(m_ios.HasSystem());
+  if (!m_ios.HasSystem())
+    return IPCReply(ES_EINVAL);
+
+  auto& memory = m_ios.GetSystem().GetMemory();
 
   const u64 title_id = memory.Read_U64(request.in_vectors[0].address);
 
@@ -362,8 +371,7 @@ bool ESDevice::LaunchIOS(u64 ios_title_id, HangPPC hang_ppc)
     const ES::TicketReader ticket = FindSignedTicket(ios_title_id);
     ES::Content content;
     if (!tmd.IsValid() || !ticket.IsValid() || !tmd.GetContent(tmd.GetBootIndex(), &content) ||
-        !m_ios.BootIOS(Core::System::GetInstance(), ios_title_id, hang_ppc,
-                       GetContentPath(ios_title_id, content)))
+        !m_ios.BootIOS(ios_title_id, hang_ppc, GetContentPath(ios_title_id, content)))
     {
       PanicAlertFmtT("Could not launch IOS {0:016x} because it is missing from the NAND.\n"
                      "The emulated software will likely hang now.",
@@ -373,7 +381,7 @@ bool ESDevice::LaunchIOS(u64 ios_title_id, HangPPC hang_ppc)
     return true;
   }
 
-  return m_ios.BootIOS(Core::System::GetInstance(), ios_title_id, hang_ppc);
+  return m_ios.BootIOS(ios_title_id, hang_ppc);
 }
 
 s32 ESDevice::WriteLaunchFile(const ES::TMDReader& tmd, Ticks ticks)
@@ -472,8 +480,7 @@ bool ESDevice::LaunchPPCTitle(u64 title_id)
 
 bool ESDevice::BootstrapPPC()
 {
-  const bool result =
-      m_ios.BootstrapPPC(Core::System::GetInstance(), m_pending_ppc_boot_content_path);
+  const bool result = m_ios.BootstrapPPC(m_pending_ppc_boot_content_path);
   m_pending_ppc_boot_content_path = {};
   return result;
 }
@@ -700,12 +707,16 @@ std::optional<IPCReply> ESDevice::IOCtlV(const IOCtlVRequest& request)
 
   case IOCTL_ES_UNKNOWN_41:
   case IOCTL_ES_UNKNOWN_42:
+  {
     PanicAlertFmt("IOS-ES: Unimplemented ioctlv {:#x} ({} in vectors, {} io vectors)",
                   request.request, request.in_vectors.size(), request.io_vectors.size());
-    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_ES,
-                        Common::Log::LogLevel::LERROR);
+    if (m_ios.HasSystem())
+    {
+      request.DumpUnknown(m_ios.GetSystem(), GetDeviceName(), Common::Log::LogType::IOS_ES,
+                          Common::Log::LogLevel::LERROR);
+    }
     return IPCReply(IPC_EINVAL);
-
+  }
   case IOCTL_ES_INVALID_3F:
   default:
     return IPCReply(IPC_EINVAL);

@@ -122,11 +122,12 @@ private:
   friend class ::CBoot;
   friend void ::IOS::HLE::Init();
 
-  void ProcessQueuedIOCtl();
-  std::optional<DIResult> StartIOCtl(const IOCtlRequest& request);
-  std::optional<DIResult> WriteIfFits(const IOCtlRequest& request, u32 value);
-  std::optional<DIResult> StartDMATransfer(u32 command_length, const IOCtlRequest& request);
-  std::optional<DIResult> StartImmediateTransfer(const IOCtlRequest& request,
+  void ProcessQueuedIOCtl(Core::System& system);
+  std::optional<DIResult> StartIOCtl(Core::System& system, const IOCtlRequest& request);
+  std::optional<DIResult> WriteIfFits(Core::System& system, const IOCtlRequest& request, u32 value);
+  std::optional<DIResult> StartDMATransfer(Core::System& system, u32 command_length,
+                                           const IOCtlRequest& request);
+  std::optional<DIResult> StartImmediateTransfer(Core::System& system, const IOCtlRequest& request,
                                                  bool write_to_buf = true);
 
   void ChangePartition(const DiscIO::Partition partition);

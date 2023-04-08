@@ -6,6 +6,7 @@
 #include <cstring>
 #include <string>
 
+#include "Common/Assert.h"
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -87,6 +88,12 @@ void NetWDCommandDevice::Update()
 
 void NetWDCommandDevice::ProcessRecvRequests()
 {
+  ASSERT(m_ios.HasSystem());
+  if (!m_ios.HasSystem())
+    return;
+
+  auto& system = m_ios.GetSystem();
+
   // Because we currently do not actually emulate the wireless driver, we have no frames
   // and no notification data that could be used to reply to requests.
   // Therefore, requests are left pending to simulate the situation where there is nothing to send.
@@ -117,7 +124,7 @@ void NetWDCommandDevice::ProcessRecvRequests()
       }
 
       INFO_LOG_FMT(IOS_NET, "Processed request {:08x} (result {:08x})", request, result);
-      m_ios.EnqueueIPCReply(Request{request}, result);
+      m_ios.EnqueueIPCReply(Request{system, request}, result);
       queue.pop_front();
     }
   };
@@ -388,7 +395,15 @@ std::optional<IPCReply> NetWDCommandDevice::IOCtlV(const IOCtlVRequest& request)
   case IOCTLV_WD_CHANGE_VTSF:
   default:
     DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_WD_UNIMPLEMENTED_IOCTL);
-    request.Dump(GetDeviceName(), Common::Log::LogType::IOS_NET, Common::Log::LogLevel::LWARNING);
+    if (m_ios.HasSystem())
+    {
+      request.Dump(m_ios.GetSystem(), GetDeviceName(), Common::Log::LogType::IOS_NET,
+                   Common::Log::LogLevel::LWARNING);
+    }
+    else
+    {
+      ERROR_LOG_FMT(IOS_NET, "Unimplemented IOCtlV without System instance.");
+    }
   }
 
   return IPCReply(IPC_SUCCESS);

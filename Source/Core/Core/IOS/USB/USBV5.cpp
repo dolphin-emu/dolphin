@@ -94,11 +94,15 @@ struct DeviceEntry
 
 void USBV5ResourceManager::DoState(PointerWrap& p)
 {
+  ASSERT(m_ios.HasSystem());
+  if (!m_ios.HasSystem())
+    return;
+
   p.Do(m_has_pending_changes);
   u32 hook_address = m_devicechange_hook_request ? m_devicechange_hook_request->address : 0;
   p.Do(hook_address);
   if (hook_address != 0)
-    m_devicechange_hook_request = std::make_unique<IOCtlRequest>(hook_address);
+    m_devicechange_hook_request = std::make_unique<IOCtlRequest>(m_ios.GetSystem(), hook_address);
   else
     m_devicechange_hook_request.reset();
 
@@ -128,8 +132,12 @@ std::optional<IPCReply> USBV5ResourceManager::GetDeviceChange(const IOCtlRequest
   if (request.buffer_out_size != 0x180 || m_devicechange_hook_request)
     return IPCReply(IPC_EINVAL);
 
+  ASSERT(m_ios.HasSystem());
+  if (!m_ios.HasSystem())
+    return std::nullopt;
+
   std::lock_guard lk{m_devicechange_hook_address_mutex};
-  m_devicechange_hook_request = std::make_unique<IOCtlRequest>(request.address);
+  m_devicechange_hook_request = std::make_unique<IOCtlRequest>(m_ios.GetSystem(), request.address);
   // If there are pending changes, the reply is sent immediately (instead of on device
   // insertion/removal).
   if (m_has_pending_changes)

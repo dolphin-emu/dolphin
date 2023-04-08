@@ -53,8 +53,15 @@ std::optional<IPCReply> USB_VEN::IOCtl(const IOCtlRequest& request)
     return HandleDeviceIOCtl(request,
                              [&](USBV5Device& device) { return CancelEndpoint(device, request); });
   default:
-    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_USB,
-                        Common::Log::LogLevel::LERROR);
+    if (m_ios.HasSystem())
+    {
+      request.DumpUnknown(m_ios.GetSystem(), GetDeviceName(), Common::Log::LogType::IOS_USB,
+                          Common::Log::LogLevel::LERROR);
+    }
+    else
+    {
+      ERROR_LOG_FMT(IOS_NET, "Unknown IOCtl without System instance.");
+    }
     return IPCReply(IPC_SUCCESS);
   }
 }

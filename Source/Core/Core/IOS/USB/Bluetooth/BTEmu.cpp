@@ -87,7 +87,11 @@ static void DoStateForMessage(Kernel& ios, PointerWrap& p, std::unique_ptr<T>& m
   p.Do(request_address);
   if (request_address != 0)
   {
-    IOCtlVRequest request{request_address};
+    ASSERT(ios.HasSystem());
+    if (!ios.HasSystem())
+      return;
+
+    IOCtlVRequest request{ios.GetSystem(), request_address};
     message = std::make_unique<T>(ios, request);
   }
 }
@@ -209,7 +213,10 @@ std::optional<IPCReply> BluetoothEmuDevice::IOCtlV(const IOCtlVRequest& request)
   }
 
   default:
-    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_WIIMOTE);
+    if (m_ios.HasSystem())
+      request.DumpUnknown(m_ios.GetSystem(), GetDeviceName(), Common::Log::LogType::IOS_WIIMOTE);
+    else
+      ERROR_LOG_FMT(IOS_NET, "Unknown IOCtlV without System instance.");
   }
 
   if (!send_reply)

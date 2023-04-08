@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
@@ -32,9 +33,13 @@ WFSSRVDevice::WFSSRVDevice(Kernel& ios, const std::string& device_name) : Device
 
 std::optional<IPCReply> WFSSRVDevice::IOCtl(const IOCtlRequest& request)
 {
+  ASSERT(m_ios.HasSystem());
+  if (!m_ios.HasSystem())
+    return std::nullopt;
+
   int return_error_code = IPC_SUCCESS;
 
-  auto& system = Core::System::GetInstance();
+  auto& system = m_ios.GetSystem();
   auto& memory = system.GetMemory();
 
   switch (request.request)
@@ -57,7 +62,7 @@ std::optional<IPCReply> WFSSRVDevice::IOCtl(const IOCtlRequest& request)
     // Close all hanging attach/detach ioctls with an appropriate error code.
     for (auto address : m_hanging)
     {
-      IOCtlRequest hanging_request{address};
+      IOCtlRequest hanging_request{system, address};
       memory.Write_U32(0x80000000, hanging_request.buffer_out);
       memory.Write_U32(0, hanging_request.buffer_out + 4);
       memory.Write_U32(0, hanging_request.buffer_out + 8);
@@ -355,7 +360,7 @@ std::optional<IPCReply> WFSSRVDevice::IOCtl(const IOCtlRequest& request)
   default:
     // TODO(wfs): Should be returning -3. However until we have everything
     // properly stubbed it's easier to simulate the methods succeeding.
-    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_WFS,
+    request.DumpUnknown(system, GetDeviceName(), Common::Log::LogType::IOS_WFS,
                         Common::Log::LogLevel::LWARNING);
     memory.Memset(request.buffer_out, 0, request.buffer_out_size);
     break;

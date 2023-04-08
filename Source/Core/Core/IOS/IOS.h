@@ -115,7 +115,8 @@ void WriteReturnValue(s32 value, u32 address);
 class Kernel
 {
 public:
-  explicit Kernel(IOSC::ConsoleType console_type = IOSC::ConsoleType::Retail);
+  explicit Kernel(Core::System* system = nullptr,
+                  IOSC::ConsoleType console_type = IOSC::ConsoleType::Retail);
   virtual ~Kernel();
 
   void DoState(PointerWrap& p);
@@ -139,16 +140,19 @@ public:
   void SetGidForPPC(u16 gid);
   u16 GetGidForPPC() const;
 
-  bool BootstrapPPC(Core::System& system, const std::string& boot_content_path);
-  bool BootIOS(Core::System& system, u64 ios_title_id, HangPPC hang_ppc = HangPPC::No,
+  bool BootstrapPPC(const std::string& boot_content_path);
+  bool BootIOS(u64 ios_title_id, HangPPC hang_ppc = HangPPC::No,
                const std::string& boot_content_path = {});
   void InitIPC();
   u32 GetVersion() const;
 
   IOSC& GetIOSC();
 
+  bool HasSystem() const { return m_system != nullptr; }
+  Core::System& GetSystem() const { return *m_system; }
+
 protected:
-  explicit Kernel(u64 title_id);
+  Kernel(Core::System* system, u64 title_id);
 
   void ExecuteIPCCommand(u32 address);
   std::optional<IPCReply> HandleIPCCommand(const Request& request);
@@ -159,6 +163,11 @@ protected:
   std::shared_ptr<Device> GetDeviceByName(std::string_view device_name);
   s32 GetFreeDeviceID();
   std::optional<IPCReply> OpenDevice(OpenRequest& request);
+
+  // Will hold a pointer to the currently running system if this IOS is part of an emulated game
+  // session. Will hold nullptr otherwise, eg. if this IOS instance is just a helper for copying
+  // saves in the GUI.
+  Core::System* const m_system;
 
   bool m_is_responsible_for_nand_root = false;
   u64 m_title_id = 0;
@@ -185,7 +194,7 @@ protected:
 class EmulationKernel : public Kernel
 {
 public:
-  explicit EmulationKernel(u64 ios_title_id);
+  EmulationKernel(Core::System& system, u64 ios_title_id);
   ~EmulationKernel();
 
   // Get a resource manager by name.

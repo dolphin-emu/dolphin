@@ -331,7 +331,10 @@ std::optional<IPCReply> NetIPTopDevice::IOCtl(const IOCtlRequest& request)
   case IOCTL_SO_ICMPCANCEL:
     return HandleICMPCancelRequest(request);
   default:
-    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_NET);
+    if (m_ios.HasSystem())
+      request.DumpUnknown(m_ios.GetSystem(), GetDeviceName(), Common::Log::LogType::IOS_NET);
+    else
+      ERROR_LOG_FMT(IOS_NET, "Unknown IOCtl without System instance.");
     break;
   }
 
@@ -353,7 +356,10 @@ std::optional<IPCReply> NetIPTopDevice::IOCtlV(const IOCtlVRequest& request)
   case IOCTLV_SO_ICMPPING:
     return HandleICMPPingRequest(request);
   default:
-    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_NET);
+    if (m_ios.HasSystem())
+      request.DumpUnknown(m_ios.GetSystem(), GetDeviceName(), Common::Log::LogType::IOS_NET);
+    else
+      ERROR_LOG_FMT(IOS_NET, "Unknown IOCtlV without System instance.");
     break;
   }
 
@@ -1118,7 +1124,8 @@ IPCReply NetIPTopDevice::HandleGetAddressInfoRequest(const IOCtlVRequest& reques
     ret = SO_ERROR_HOST_NOT_FOUND;
   }
 
-  request.Dump(GetDeviceName(), Common::Log::LogType::IOS_NET, Common::Log::LogLevel::LINFO);
+  request.Dump(system, GetDeviceName(), Common::Log::LogType::IOS_NET,
+               Common::Log::LogLevel::LINFO);
   return IPCReply(ret);
 }
 

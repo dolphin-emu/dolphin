@@ -18,6 +18,7 @@
 #include <fmt/format.h>
 #include <libusb.h>
 
+#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -347,8 +348,13 @@ void BluetoothRealDevice::DoState(PointerWrap& p)
     // On load, discard any pending transfer to make sure the emulated software is not stuck
     // waiting for the previous request to complete. This is usually not an issue as long as
     // the Bluetooth state is the same (same Wii Remote connections).
-    for (const auto& address_to_discard : addresses_to_discard)
-      m_ios.EnqueueIPCReply(Request{address_to_discard}, 0);
+    ASSERT(m_ios.HasSystem());
+    if (m_ios.HasSystem())
+    {
+      auto& system = m_ios.GetSystem();
+      for (const auto& address_to_discard : addresses_to_discard)
+        m_ios.EnqueueIPCReply(Request{system, address_to_discard}, 0);
+    }
 
     // Prevent the callbacks from replying to a request that has already been discarded.
     m_current_transfers.clear();

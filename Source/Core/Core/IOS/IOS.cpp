@@ -290,7 +290,8 @@ void WriteReturnValue(s32 value, u32 address)
   memory.Write_U32(static_cast<u32>(value), address);
 }
 
-Kernel::Kernel(IOSC::ConsoleType console_type) : m_iosc(console_type)
+Kernel::Kernel(Core::System* system, IOSC::ConsoleType console_type)
+    : m_system(system), m_iosc(console_type)
 {
   // Until the Wii root and NAND path stuff is entirely managed by IOS and made non-static,
   // using more than one IOS instance at a time is not supported.
@@ -314,11 +315,11 @@ Kernel::~Kernel()
     Core::ShutdownWiiRoot();
 }
 
-Kernel::Kernel(u64 title_id) : m_title_id(title_id)
+Kernel::Kernel(Core::System* system, u64 title_id) : m_system(system), m_title_id(title_id)
 {
 }
 
-EmulationKernel::EmulationKernel(u64 title_id) : Kernel(title_id)
+EmulationKernel::EmulationKernel(Core::System& system, u64 title_id) : Kernel(&system, title_id)
 {
   INFO_LOG_FMT(IOS, "Starting IOS {:016x}", title_id);
 
@@ -404,8 +405,12 @@ static std::vector<u8> ReadBootContent(FSDevice* fs, const std::string& path, si
 
 // This corresponds to syscall 0x41, which loads a binary from the NAND and bootstraps the PPC.
 // Unlike 0x42, IOS will set up some constants in memory before booting the PPC.
-bool Kernel::BootstrapPPC(Core::System& system, const std::string& boot_content_path)
+bool Kernel::BootstrapPPC(const std::string& boot_content_path)
 {
+  ASSERT(HasSystem());
+  if (!HasSystem())
+    return false;
+
   // Seeking and processing overhead is ignored as most time is spent reading from the NAND.
   u64 ticks = 0;
 
@@ -423,11 +428,11 @@ bool Kernel::BootstrapPPC(Core::System& system, const std::string& boot_content_
   if (dol.IsAncast())
     INFO_LOG_FMT(IOS, "BootstrapPPC: Loading ancast image");
 
-  if (!dol.LoadIntoMemory(system))
+  if (!dol.LoadIntoMemory(*m_system))
     return false;
 
   INFO_LOG_FMT(IOS, "BootstrapPPC: {}", boot_content_path);
-  system.GetCoreTiming().ScheduleEvent(ticks, s_event_finish_ppc_bootstrap, dol.IsAncast());
+  m_system->GetCoreTiming().ScheduleEvent(ticks, s_event_finish_ppc_bootstrap, dol.IsAncast());
   return true;
 }
 
@@ -456,11 +461,11 @@ private:
   std::vector<u8> m_bytes;
 };
 
-static void FinishIOSBoot(u64 ios_title_id)
+static void FinishIOSBoot(Core::System& system, u64 ios_title_id)
 {
   // Shut down the active IOS first before switching to the new one.
   s_ios.reset();
-  s_ios = std::make_unique<EmulationKernel>(ios_title_id);
+  s_ios = std::make_unique<EmulationKernel>(system, ios_title_id);
 }
 
 static constexpr SystemTimers::TimeBaseTick GetIOSBootTicks(u32 version)
@@ -478,9 +483,12 @@ static constexpr SystemTimers::TimeBaseTick GetIOSBootTicks(u32 version)
 // Passing a boot content path is optional because we do not require IOSes
 // to be installed at the moment. If one is passed, the boot binary must exist
 // on the NAND, or the call will fail like on a Wii.
-bool Kernel::BootIOS(Core::System& system, const u64 ios_title_id, HangPPC hang_ppc,
-                     const std::string& boot_content_path)
+bool Kernel::BootIOS(const u64 ios_title_id, HangPPC hang_ppc, const std::string& boot_content_path)
 {
+  ASSERT(HasSystem());
+  if (!HasSystem())
+    return false;
+
   // IOS suspends regular PPC<->ARM IPC before loading a new IOS.
   // IPC is not resumed if the boot fails for any reason.
   m_ipc_paused = true;
@@ -495,7 +503,7 @@ bool Kernel::BootIOS(Core::System& system, const u64 ios_title_id, HangPPC hang_
       return false;
 
     ElfReader elf{binary.GetElf()};
-    if (!elf.LoadIntoMemory(system, true))
+    if (!elf.LoadIntoMemory(*m_system, true))
       return false;
   }
 
@@ -504,12 +512,12 @@ bool Kernel::BootIOS(Core::System& system, const u64 ios_title_id, HangPPC hang_
 
   if (Core::IsRunningAndStarted())
   {
-    system.GetCoreTiming().ScheduleEvent(GetIOSBootTicks(GetVersion()), s_event_finish_ios_boot,
-                                         ios_title_id);
+    m_system->GetCoreTiming().ScheduleEvent(GetIOSBootTicks(GetVersion()), s_event_finish_ios_boot,
+                                            ios_title_id);
   }
   else
   {
-    FinishIOSBoot(ios_title_id);
+    FinishIOSBoot(*m_system, ios_title_id);
   }
 
   return true;
@@ -680,12 +688,16 @@ std::optional<IPCReply> Kernel::OpenDevice(OpenRequest& request)
 
 std::optional<IPCReply> Kernel::HandleIPCCommand(const Request& request)
 {
+  ASSERT(HasSystem());
+  if (!HasSystem())
+    return std::nullopt;
+
   if (request.command < IPC_CMD_OPEN || request.command > IPC_CMD_IOCTLV)
     return IPCReply{IPC_EINVAL, 978_tbticks};
 
   if (request.command == IPC_CMD_OPEN)
   {
-    OpenRequest open_request{request.address};
+    OpenRequest open_request{*m_system, request.address};
     return OpenDevice(open_request);
   }
 
@@ -703,19 +715,19 @@ std::optional<IPCReply> Kernel::HandleIPCCommand(const Request& request)
     ret = device->Close(request.fd);
     break;
   case IPC_CMD_READ:
-    ret = device->Read(ReadWriteRequest{request.address});
+    ret = device->Read(ReadWriteRequest{*m_system, request.address});
     break;
   case IPC_CMD_WRITE:
-    ret = device->Write(ReadWriteRequest{request.address});
+    ret = device->Write(ReadWriteRequest{*m_system, request.address});
     break;
   case IPC_CMD_SEEK:
-    ret = device->Seek(SeekRequest{request.address});
+    ret = device->Seek(SeekRequest{*m_system, request.address});
     break;
   case IPC_CMD_IOCTL:
-    ret = device->IOCtl(IOCtlRequest{request.address});
+    ret = device->IOCtl(IOCtlRequest{*m_system, request.address});
     break;
   case IPC_CMD_IOCTLV:
-    ret = device->IOCtlV(IOCtlVRequest{request.address});
+    ret = device->IOCtlV(IOCtlVRequest{*m_system, request.address});
     break;
   default:
     ASSERT_MSG(IOS, false, "Unexpected command: {:#x}", static_cast<u32>(request.command));
@@ -736,15 +748,18 @@ std::optional<IPCReply> Kernel::HandleIPCCommand(const Request& request)
 
 void Kernel::ExecuteIPCCommand(const u32 address)
 {
-  Request request{address};
+  ASSERT(HasSystem());
+  if (!HasSystem())
+    return;
+
+  Request request{*m_system, address};
   std::optional<IPCReply> result = HandleIPCCommand(request);
 
   if (!result)
     return;
 
   // Ensure replies happen in order
-  auto& system = Core::System::GetInstance();
-  auto& core_timing = system.GetCoreTiming();
+  auto& core_timing = m_system->GetCoreTiming();
   const s64 ticks_until_last_reply = m_last_reply_time - core_timing.GetTicks();
   if (ticks_until_last_reply > 0)
     result->reply_delay_ticks += ticks_until_last_reply;
@@ -937,15 +952,15 @@ void Init()
   s_event_finish_ppc_bootstrap =
       core_timing.RegisterEvent("IOSFinishPPCBootstrap", FinishPPCBootstrap);
 
-  s_event_finish_ios_boot =
-      core_timing.RegisterEvent("IOSFinishIOSBoot", [](Core::System& system_, u64 ios_title_id,
-                                                       s64) { FinishIOSBoot(ios_title_id); });
+  s_event_finish_ios_boot = core_timing.RegisterEvent(
+      "IOSFinishIOSBoot",
+      [](Core::System& system_, u64 ios_title_id, s64) { FinishIOSBoot(system_, ios_title_id); });
 
   DIDevice::s_finish_executing_di_command =
       core_timing.RegisterEvent("FinishDICommand", DIDevice::FinishDICommandCallback);
 
   // Start with IOS80 to simulate part of the Wii boot process.
-  s_ios = std::make_unique<EmulationKernel>(Titles::SYSTEM_MENU_IOS);
+  s_ios = std::make_unique<EmulationKernel>(system, Titles::SYSTEM_MENU_IOS);
   // On a Wii, boot2 launches the system menu IOS, which then launches the system menu
   // (which bootstraps the PPC). Bootstrapping the PPC results in memory values being set up.
   // This means that the constants in the 0x3100 region are always set up by the time

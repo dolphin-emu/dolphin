@@ -10,6 +10,7 @@
 #include <tuple>
 #include <utility>
 
+#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/Logging/Log.h"
 #include "Core/Core.h"
@@ -140,12 +141,17 @@ IPCReply OH0::GetRhDesca(const IOCtlRequest& request) const
   if (!request.buffer_out || request.buffer_out_size != 4)
     return IPCReply(IPC_EINVAL);
 
-  auto& system = Core::System::GetInstance();
+  ASSERT(m_ios.HasSystem());
+  if (!m_ios.HasSystem())
+    return IPCReply(IPC_EINVAL);
+
+  auto& system = m_ios.GetSystem();
   auto& memory = system.GetMemory();
 
   // Based on a hardware test, this ioctl seems to return a constant value
   memory.Write_U32(0x02000302, request.buffer_out);
-  request.Dump(GetDeviceName(), Common::Log::LogType::IOS_USB, Common::Log::LogLevel::LWARNING);
+  request.Dump(system, GetDeviceName(), Common::Log::LogType::IOS_USB,
+               Common::Log::LogLevel::LWARNING);
   return IPCReply(IPC_SUCCESS);
 }
 
@@ -155,7 +161,11 @@ IPCReply OH0::GetRhPortStatus(const IOCtlVRequest& request) const
     return IPCReply(IPC_EINVAL);
 
   ERROR_LOG_FMT(IOS_USB, "Unimplemented IOCtlV: IOCTLV_USBV0_GETRHPORTSTATUS");
-  request.Dump(GetDeviceName(), Common::Log::LogType::IOS_USB, Common::Log::LogLevel::LERROR);
+  if (m_ios.HasSystem())
+  {
+    request.Dump(m_ios.GetSystem(), GetDeviceName(), Common::Log::LogType::IOS_USB,
+                 Common::Log::LogLevel::LERROR);
+  }
   return IPCReply(IPC_SUCCESS);
 }
 
@@ -165,7 +175,11 @@ IPCReply OH0::SetRhPortStatus(const IOCtlVRequest& request)
     return IPCReply(IPC_EINVAL);
 
   ERROR_LOG_FMT(IOS_USB, "Unimplemented IOCtlV: IOCTLV_USBV0_SETRHPORTSTATUS");
-  request.Dump(GetDeviceName(), Common::Log::LogType::IOS_USB, Common::Log::LogLevel::LERROR);
+  if (m_ios.HasSystem())
+  {
+    request.Dump(m_ios.GetSystem(), GetDeviceName(), Common::Log::LogType::IOS_USB,
+                 Common::Log::LogLevel::LERROR);
+  }
   return IPCReply(IPC_SUCCESS);
 }
 
@@ -224,7 +238,11 @@ std::optional<IPCReply> OH0::RegisterClassChangeHook(const IOCtlVRequest& reques
   if (!request.HasNumberOfValidVectors(1, 0))
     return IPCReply(IPC_EINVAL);
   WARN_LOG_FMT(IOS_USB, "Unimplemented IOCtlV: USB::IOCTLV_USBV0_DEVICECLASSCHANGE (no reply)");
-  request.Dump(GetDeviceName(), Common::Log::LogType::IOS_USB, Common::Log::LogLevel::LWARNING);
+  if (m_ios.HasSystem())
+  {
+    request.Dump(m_ios.GetSystem(), GetDeviceName(), Common::Log::LogType::IOS_USB,
+                 Common::Log::LogLevel::LWARNING);
+  }
   return std::nullopt;
 }
 
@@ -251,7 +269,11 @@ void OH0::TriggerHook(std::map<T, u32>& hooks, T value, const ReturnCode return_
   const auto hook = hooks.find(value);
   if (hook == hooks.end())
     return;
-  m_ios.EnqueueIPCReply(Request{hook->second}, return_value, 0, CoreTiming::FromThread::ANY);
+  ASSERT(m_ios.HasSystem());
+  if (!m_ios.HasSystem())
+    return;
+  m_ios.EnqueueIPCReply(Request{m_ios.GetSystem(), hook->second}, return_value, 0,
+                        CoreTiming::FromThread::ANY);
   hooks.erase(hook);
 }
 
@@ -323,7 +345,10 @@ std::optional<IPCReply> OH0::DeviceIOCtlV(const u64 device_id, const IOCtlVReque
     return HandleTransfer(device, request.request,
                           [&, this]() { return SubmitTransfer(*device, request); });
   case USB::IOCTLV_USBV0_UNKNOWN_32:
-    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_USB);
+    if (m_ios.HasSystem())
+      request.DumpUnknown(m_ios.GetSystem(), GetDeviceName(), Common::Log::LogType::IOS_USB);
+    else
+      ERROR_LOG_FMT(IOS_NET, "Unknown IOCtlV without System instance.");
     return IPCReply(IPC_SUCCESS);
   default:
     return IPCReply(IPC_EINVAL);

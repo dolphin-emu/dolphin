@@ -78,7 +78,7 @@ std::optional<IPCReply> NetKDTimeDevice::IOCtl(const IOCtlRequest& request)
     break;
 
   default:
-    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_WC24);
+    request.DumpUnknown(system, GetDeviceName(), Common::Log::LogType::IOS_WC24);
     break;
   }
 

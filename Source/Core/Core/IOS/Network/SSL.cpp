@@ -619,7 +619,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
     break;
   }
   default:
-    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_SSL);
+    request.DumpUnknown(system, GetDeviceName(), Common::Log::LogType::IOS_SSL);
   }
 
   // SSL return codes are written to BufferIn

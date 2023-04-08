@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "Common/Align.h"
+#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
@@ -64,7 +65,10 @@ std::optional<IPCReply> USB_HIDv4::IOCtl(const IOCtlRequest& request)
                           [&, this]() { return SubmitTransfer(*device, request); });
   }
   default:
-    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_USB);
+    if (m_ios.HasSystem())
+      request.DumpUnknown(m_ios.GetSystem(), GetDeviceName(), Common::Log::LogType::IOS_USB);
+    else
+      ERROR_LOG_FMT(IOS_NET, "Unknown IOCtl without System instance.");
     return IPCReply(IPC_SUCCESS);
   }
 }
@@ -90,7 +94,11 @@ std::optional<IPCReply> USB_HIDv4::GetDeviceChange(const IOCtlRequest& request)
   if (request.buffer_out == 0 || request.buffer_out_size != 0x600)
     return IPCReply(IPC_EINVAL);
 
-  m_devicechange_hook_request = std::make_unique<IOCtlRequest>(request.address);
+  ASSERT(m_ios.HasSystem());
+  if (!m_ios.HasSystem())
+    return std::nullopt;
+
+  m_devicechange_hook_request = std::make_unique<IOCtlRequest>(m_ios.GetSystem(), request.address);
   // On the first call, the reply is sent immediately (instead of on device insertion/removal)
   if (m_devicechange_first_call)
   {
@@ -132,11 +140,15 @@ s32 USB_HIDv4::SubmitTransfer(USB::Device& device, const IOCtlRequest& request)
 
 void USB_HIDv4::DoState(PointerWrap& p)
 {
+  ASSERT(m_ios.HasSystem());
+  if (!m_ios.HasSystem())
+    return;
+
   p.Do(m_devicechange_first_call);
   u32 hook_address = m_devicechange_hook_request ? m_devicechange_hook_request->address : 0;
   p.Do(hook_address);
   if (hook_address != 0)
-    m_devicechange_hook_request = std::make_unique<IOCtlRequest>(hook_address);
+    m_devicechange_hook_request = std::make_unique<IOCtlRequest>(m_ios.GetSystem(), hook_address);
   else
     m_devicechange_hook_request.reset();
 

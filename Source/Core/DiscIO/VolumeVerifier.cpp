@@ -577,7 +577,7 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
   {
     const auto console_type =
         IsDebugSigned() ? IOS::HLE::IOSC::ConsoleType::RVT : IOS::HLE::IOSC::ConsoleType::Retail;
-    IOS::HLE::Kernel ios(console_type);
+    IOS::HLE::Kernel ios(nullptr, console_type);
     const auto es = ios.GetES();
     const std::vector<u8>& cert_chain = m_volume.GetCertificateChain(partition);
 
@@ -981,7 +981,7 @@ void VolumeVerifier::CheckMisc()
 
   if (m_volume.GetVolumeType() == Platform::WiiWAD)
   {
-    IOS::HLE::Kernel ios(m_ticket.GetConsoleType());
+    IOS::HLE::Kernel ios(nullptr, m_ticket.GetConsoleType());
     const auto es = ios.GetES();
     const std::vector<u8>& cert_chain = m_volume.GetCertificateChain(PARTITION_NONE);
 

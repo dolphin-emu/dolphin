@@ -6,6 +6,7 @@
 #include <functional>
 #include <memory>
 
+#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/Logging/Log.h"
 #include "Core/Core.h"
@@ -59,7 +60,10 @@ std::optional<IPCReply> STMImmediateDevice::IOCtl(const IOCtlRequest& request)
     break;
 
   default:
-    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_STM);
+    if (m_ios.HasSystem())
+      request.DumpUnknown(m_ios.GetSystem(), GetDeviceName(), Common::Log::LogType::IOS_STM);
+    else
+      ERROR_LOG_FMT(IOS_NET, "Unknown IOCtl without System instance.");
   }
 
   return IPCReply(return_value);
@@ -72,6 +76,10 @@ STMEventHookDevice::~STMEventHookDevice()
 
 std::optional<IPCReply> STMEventHookDevice::IOCtl(const IOCtlRequest& request)
 {
+  ASSERT(m_ios.HasSystem());
+  if (!m_ios.HasSystem())
+    return std::nullopt;
+
   if (request.request != IOCTL_STM_EVENTHOOK)
     return IPCReply(IPC_EINVAL);
 
@@ -79,17 +87,21 @@ std::optional<IPCReply> STMEventHookDevice::IOCtl(const IOCtlRequest& request)
     return IPCReply(IPC_EEXIST);
 
   // IOCTL_STM_EVENTHOOK waits until the reset button or power button is pressed.
-  s_event_hook_request = std::make_unique<IOCtlRequest>(request.address);
+  s_event_hook_request = std::make_unique<IOCtlRequest>(m_ios.GetSystem(), request.address);
   return std::nullopt;
 }
 
 void STMEventHookDevice::DoState(PointerWrap& p)
 {
+  ASSERT(m_ios.HasSystem());
+  if (!m_ios.HasSystem())
+    return;
+
   Device::DoState(p);
   u32 address = s_event_hook_request ? s_event_hook_request->address : 0;
   p.Do(address);
   if (address != 0)
-    s_event_hook_request = std::make_unique<IOCtlRequest>(address);
+    s_event_hook_request = std::make_unique<IOCtlRequest>(m_ios.GetSystem(), address);
   else
     s_event_hook_request.reset();
 }
