@@ -9,6 +9,7 @@
 #include <string>
 #include <thread>
 
+#include <rcheevos/include/rc_api_runtime.h>
 #include <rcheevos/include/rc_api_user.h>
 #include <rcheevos/include/rc_runtime.h>
 
@@ -38,7 +39,10 @@ public:
 private:
   AchievementManager() = default;
 
+  static constexpr int HASH_LENGTH = 33;
+
   ResponseType VerifyCredentials(const std::string& password);
+  ResponseType ResolveHash(std::array<char, HASH_LENGTH> game_hash);
 
   template <typename RcRequest, typename RcResponse>
   ResponseType Request(RcRequest rc_request, RcResponse* rc_response,
@@ -47,7 +51,10 @@ private:
 
   rc_runtime_t m_runtime{};
   bool m_is_runtime_initialized = false;
+  unsigned int m_game_id = 0;
   rc_api_login_response_t m_login_data{};
+
+
   Common::WorkQueueThread<std::function<void()>> m_queue;
 };  // class AchievementManager
 

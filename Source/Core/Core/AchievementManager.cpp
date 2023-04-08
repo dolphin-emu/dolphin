@@ -4,6 +4,10 @@
 #ifdef USE_RETRO_ACHIEVEMENTS
 
 #include "Core/AchievementManager.h"
+
+#include <array>
+#include <rcheevos/include/rc_hash.h>
+
 #include "Common/HttpRequest.h"
 #include "Common/WorkQueueThread.h"
 #include "Config/AchievementSettings.h"
@@ -68,6 +72,23 @@ AchievementManager::ResponseType AchievementManager::VerifyCredentials(const std
       login_request, &m_login_data, rc_api_init_login_request, rc_api_process_login_response);
   if (r_type == ResponseType::SUCCESS)
     Config::SetBaseOrCurrent(Config::RA_API_TOKEN, m_login_data.api_token);
+  return r_type;
+}
+
+AchievementManager::ResponseType
+AchievementManager::ResolveHash(std::array<char, HASH_LENGTH> game_hash)
+{
+  rc_api_resolve_hash_response_t hash_data{};
+  std::string username = Config::Get(Config::RA_USERNAME);
+  std::string api_token = Config::Get(Config::RA_API_TOKEN);
+  rc_api_resolve_hash_request_t resolve_hash_request = {
+      .username = username.c_str(), .api_token = api_token.c_str(), .game_hash = game_hash.data()};
+  ResponseType r_type = Request<rc_api_resolve_hash_request_t, rc_api_resolve_hash_response_t>(
+      resolve_hash_request, &hash_data, rc_api_init_resolve_hash_request,
+      rc_api_process_resolve_hash_response);
+  if (r_type == ResponseType::SUCCESS)
+    m_game_id = hash_data.game_id;
+  rc_api_destroy_resolve_hash_response(&hash_data);
   return r_type;
 }
 
