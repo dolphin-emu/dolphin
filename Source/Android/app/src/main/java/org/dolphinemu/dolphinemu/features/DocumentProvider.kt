@@ -59,7 +59,7 @@ class DocumentProvider : DocumentsProvider() {
 
         result.newRow().apply {
             add(DocumentsContract.Root.COLUMN_ROOT_ID, ROOT_ID)
-            add(DocumentsContract.Root.COLUMN_TITLE, context!!.getString(R.string.app_name))
+            add(DocumentsContract.Root.COLUMN_TITLE, context!!.getString(R.string.app_name_suffixed))
             add(DocumentsContract.Root.COLUMN_ICON, R.drawable.ic_dolphin)
             add(
                 DocumentsContract.Root.COLUMN_FLAGS,
@@ -171,7 +171,7 @@ class DocumentProvider : DocumentsProvider() {
         }
 
         val name = if (file == rootDirectory) {
-            context!!.getString(R.string.app_name)
+            context!!.getString(R.string.app_name_suffixed)
         } else {
             file.name
         }

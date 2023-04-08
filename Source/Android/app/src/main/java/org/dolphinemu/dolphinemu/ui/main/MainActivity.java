@@ -77,6 +77,7 @@ public final class MainActivity extends AppCompatActivity
     setInsets();
     ThemeHelper.enableStatusBarScrollTint(this, mBinding.appbarMain);
 
+    mBinding.toolbarMain.setTitle(R.string.app_name);
     setSupportActionBar(mBinding.toolbarMain);
 
     // Set up the FAB.
