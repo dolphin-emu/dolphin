@@ -32,6 +32,11 @@ class AbstractStagingTexture;
 class PointerWrap;
 struct VideoConfig;
 
+namespace VideoCommon
+{
+class CustomTextureData;
+}
+
 constexpr std::string_view EFB_DUMP_PREFIX = "efb1";
 constexpr std::string_view XFB_DUMP_PREFIX = "xfb1";
 
@@ -242,6 +247,14 @@ public:
     TexPoolEntry(std::unique_ptr<AbstractTexture> tex, std::unique_ptr<AbstractFramebuffer> fb);
   };
 
+  struct TextureCreationInfo
+  {
+    u64 base_hash;
+    u64 full_hash;
+    u32 bytes_per_block;
+    u32 palette_size;
+  };
+
   TextureCacheBase();
   virtual ~TextureCacheBase();
 
@@ -327,6 +340,11 @@ private:
   bool CreateUtilityTextures();
 
   void SetBackupConfig(const VideoConfig& config);
+
+  RcTcacheEntry CreateTextureEntry(const TextureCreationInfo& creation_info,
+                                   const TextureInfo& texture_info, int safety_color_sample_size,
+                                   VideoCommon::CustomTextureData* custom_texture_data,
+                                   bool custom_arbitrary_mipmaps);
 
   RcTcacheEntry GetXFBFromCache(u32 address, u32 width, u32 height, u32 stride);
 
