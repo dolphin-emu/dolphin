@@ -63,9 +63,8 @@ def drawCircle(x1, y1, radius, thickness, outlineColor, innerColor = None):
     GraphicsAPI.drawEmptyCircle(x1 * 1.0, y1 * 1.0, radius * 1.0, thickness * 1.0, _INTERNAL_ParseColor(outlineColor))
 
 def drawPolygon(listOfPoints, thickness, outlineColor, innerColor = None):
-    for points in listOfPoints:
-        points[0] = points[0] * 1.0
-        points[1] = points[1] * 1.0
+    for i in range(len(listOfPoints)):
+        listOfPoints[i] = (listOfPoints[i][0] * 1.0, listOfPoints[i][1] * 1.0)
     if innerColor is not None:
         GraphicsAPI.drawFilledPolygon(listOfPoints, _INTERNAL_ParseColor(innerColor))
     GraphicsAPI.drawEmptyPolygon(listOfPoints, thickness * 1.0, _INTERNAL_ParseColor(outlineColor))

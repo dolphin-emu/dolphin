@@ -106,10 +106,10 @@ def DrawHouse():
     graphics.drawCircle(580, 700, 15, 3, "black", "golden")
     graphics.drawCircle(580, 700, 5, 3, "black", "golden")
     
-    graphics.drawRectangle(450, 800, 650, 900, 3, "white", "black") #welcome matt
+    graphics.drawRectangle(450, 800, 650, 900, 3, "white", "black") #welcome mat
     graphics.drawText(500, 835, "white", "Welcome!")
     
-    graphics.drawPolygon( [ [250, 399], [450, 150], [650, 150], [850, 399] ], 2, "black", "red") #roof
+    graphics.drawPolygon( [ (250, 399), (450, 150), [650, 150], [850, 399] ], 2, "black", "red") #roof
     graphics.drawTriangle( 460, 230, 660, 230, 560, 100, 15, "black", "0Xe6002dff")
     graphics.drawRectangle(535, 200, 590, 175, 3, "black", "golden")
 
