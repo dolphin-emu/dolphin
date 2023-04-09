@@ -78,6 +78,7 @@ function testSingleFrameInputFunction(testDescription, inputAlterFunction, portN
 	finalInputList = gc_controller:getControllerInputsForPreviousFrame(portNumber)
 	if not testCheckFunction(finalInputList, buttonTable) then
 		resultsTable["FAIL"] = resultsTable["FAIL"] + 1
+		print("Test Failed!")
 		io.write("FAILURE!\n\n")
 	else
 		resultsTable["PASS"] = resultsTable["PASS"] + 1
@@ -113,6 +114,7 @@ function testProbabilityButton(testDescription, inputAlterFunction, buttonName, 
 	else
 		io.write("\tPercentage of impacted frames was " .. tostring(actualPercent) .. "%, which was not in the acceptable range of +- 8% of the probability of " .. tostring(probability) .. "%\nFAILURE!\n\n")
 		resultsTable["FAIL"] = resultsTable["FAIL"] + 1
+		print("Test Failed!")
 	end
 	
 end
@@ -145,6 +147,7 @@ function testProbabilityAnalogFromCurrent(testDescription, inputAlterFunction, p
 		if currentValue < 0 or currentValue > 255 or currentValue < getDefaultValue(buttonName) - lowerOffset or currentValue > getDefaultValue(buttonName) + upperOffset then
 			io.write("\tERROR: current value of " .. buttonName .. " was out of range with value of " .. tostring(currentValue) .. "\nFAILURE!\n\n")
 			resultsTable["FAIL"] = resultsTable["FAIL"] + 1
+			print("Test Failed!")
 			return
 		end
 	end
@@ -157,6 +160,7 @@ function testProbabilityAnalogFromCurrent(testDescription, inputAlterFunction, p
 	if ((finalAverageInput - expectedFinalAverage)/expectedFinalAverage) * 100 > 10 or ((finalAverageInput - expectedFinalAverage)/expectedFinalAverage) * 100 < -10 then
 		io.write("\tFinal average input of " .. tostring(finalAverageInput) .. " for " .. buttonName .. " input, which was outside the acceptable range of +- 10% of the expected final average of " .. tostring(expectedFinalAverage) .. "\nFAILURE!\n\n")
 		resultsTable["FAIL"] = resultsTable["FAIL"] + 1
+		print("Test Failed!")
 	else
 		io.write("\tFinal average input of " .. tostring(finalAverageInput) .. " for " .. buttonName .. " input, which was inside the acceptable range of +- 10% of the expected final average of " .. tostring(expectedFinalAverage) .. "\nPASS!\n\n")
 		resultsTable["PASS"] = resultsTable["PASS"] + 1
@@ -185,6 +189,7 @@ function testProbabilityAnalogFromSpecific(testDescription, inputAlterFunction, 
 		if currentValue < 0 or currentValue > 255 or (currentValue ~= getDefaultValue(buttonName) and (currentValue < specificValue - lowerOffset or currentValue > specificValue + upperOffset)) then
 			io.write("\tERROR: current value of " .. buttonName .. " was out of range with value of " .. tostring(currentValue) .. "\nFAILURE!\n\n")
 			resultsTable["FAIL"] = resultsTable["FAIL"] + 1
+			print("Test Failed!")
 			return
 		end
 	end
@@ -196,6 +201,7 @@ function testProbabilityAnalogFromSpecific(testDescription, inputAlterFunction, 
 	if ((finalAverageInput - expectedFinalAverage)/expectedFinalAverage) * 100 > 10 or ((finalAverageInput - expectedFinalAverage)/expectedFinalAverage) * 100 < -10 then
 		io.write("\tFinal average input of " .. tostring(finalAverageInput) .. " for " .. buttonName .. " input, which was outside the acceptable range of +- 10% of the expected final average of " .. tostring(expectedFinalAverage) .. "\nFAILURE!\n\n")
 		resultsTable["FAIL"] = resultsTable["FAIL"] + 1
+		print("Test failed!")
 	else
 		io.write("\tFinal average input of " .. tostring(finalAverageInput) .. " for " .. buttonName .. " input, which was inside the acceptable range of +- 10% of the expected final average of " .. tostring(expectedFinalAverage) .. "\nPASS!\n\n")
 		resultsTable["PASS"] = resultsTable["PASS"] + 1
@@ -741,5 +747,8 @@ io.write("----------------------------------------------------------------------
 io.write("\nTotal Tests: " .. tostring(testNum - 1) .. "\n")
 io.write("\tTests Passed: " .. tostring(resultsTable["PASS"]) .. "\n")
 io.write("\tTests Failed: " .. tostring(resultsTable["FAIL"]) .. "\n")
+print("Total Tests: " .. tostring(testNum - 1) .. "\n")
+print("\tTests Passed: " .. tostring(resultsTable["PASS"]) .. "\n")
+print("\tTests Failed: " .. tostring(resultsTable["FAIL"]) .. "\n")
 io.flush()
 io.close()

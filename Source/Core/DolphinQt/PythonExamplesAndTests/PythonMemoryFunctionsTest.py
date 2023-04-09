@@ -6,6 +6,10 @@ resultsTable = {}
 resultsTable["PASS"] = 0
 resultsTable["FAIL"] = 0
 
+def clearAddress(address):
+    memory.writeTo(address, "s64", 0)
+
+
 def readFromAndWriteToTest():
     global testNum
     global resultsTable
@@ -87,6 +91,7 @@ def readFromAndWriteToTest():
     typeTable["DoUBle"] = doubleToWrite
 	
     for key, value in typeTable.items():
+        clearAddress(address)
         outputFile.write("Test " + str(testNum) + ":\n")
         memory.writeTo(address, key, value)
         outputFile.write("\tWrote value of " + str(value) + " to " + str(address) + " as type " + key + "\n")
@@ -107,6 +112,7 @@ def readAndWriteBytesTest():
     unsignedBytesTable[baseAddress] = 58
     unsignedBytesTable[baseAddress + 1] = 180
     unsignedBytesTable[baseAddress + 2] = 243
+    clearAddress(baseAddress)
     memory.writeBytes(unsignedBytesTable)
     outputBytesTable = memory.readUnsignedBytes(baseAddress, 3)
     outputFile.write("Test: " + str(testNum) + "\n")
@@ -131,6 +137,7 @@ def readAndWriteBytesTest():
     signedBytesTable[baseAddress] = 32
     signedBytesTable[baseAddress + 1] = -43
     signedBytesTable[baseAddress + 2] = 119
+    clearAddress(baseAddress)
     memory.writeBytes(signedBytesTable)
     outputBytesTable = memory.readSignedBytes(baseAddress, 3)
     outputFile.write("Test " + str(testNum) + ":\n")
@@ -153,6 +160,7 @@ def stringFunctionsTest():
     global resultsTable
     baseAddress = 0X80000123
     sampleString = "Star Fox"
+    clearAddress(baseAddress)
     memory.writeString(baseAddress, sampleString)
 	
     resultString = memory.readNullTerminatedString(baseAddress)
@@ -166,6 +174,7 @@ def stringFunctionsTest():
         resultsTable["FAIL"] = resultsTable["FAIL"] + 1
     testNum = testNum + 1
 
+    clearAddress(baseAddress)
     memory.writeString(baseAddress, sampleString)
     resultString = memory.readFixedLengthString(baseAddress, 3)
     outputFile.write("Test: " + str(testNum) + ":\n")

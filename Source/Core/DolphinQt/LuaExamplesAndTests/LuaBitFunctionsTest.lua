@@ -57,6 +57,9 @@ function LuaBitTests()
 	io.write("Total Tests: " .. tostring(testNum - 1) .. "\n")
 	io.write("\tTests Passed: " .. tostring(resultsTable["PASS"]) .. "\n")
 	io.write("\tTests Failed: " .. tostring(resultsTable["FAIL"]) .. "\n")
+	print("Total Tests: " .. tostring(testNum - 1) .. "\n")
+	print("\tTests Passed: " .. tostring(resultsTable["PASS"]) .. "\n")
+	print("\tTests Failed: " .. tostring(resultsTable["FAIL"]) .. "\n")
 end
 
 

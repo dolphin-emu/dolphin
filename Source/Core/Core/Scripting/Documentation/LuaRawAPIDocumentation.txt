@@ -1,7 +1,8 @@
 When a Lua script is started, it starts execution on the CPU thread at the start of the next frame.
 A script can register frame callbacks, which are functions that are run at the start of each frame.
-It can also register scripts to run when GC input is polled, when wii input is polled, when instructions are hit, and when memory addresses are read or written to.
+It can also register scripts to run when GC input is polled, when Wii input is polled, when instructions are hit, and when memory addresses are read or written to.
 Each function which is registered as a callback must take no arguments.
+Also, callbacks registered for the same event will run in the order in which they were registered each time the event occurs (ex. if 2 functions are registered to run OnFrameStart, they will run in the same order they were registered at the start of each frame).
 
 A Lua script can also run at the global level (which is where a script starts). Additionally, if EmuAPI:frameAdvance() is called, the script will skip over the remaining global scripts and frame callbacks until the start of the next frame (at which point it resumes where it left off).
 
@@ -40,7 +41,7 @@ EmuAPI:frameAdvance()
 
 Where EmuAPI is the name of the class, and frameAdvance is the name of the function.
 
-The following 7 classes do not need to be imported - they are available at the start of every script, along with all  of the functions inside of them:
+The following 7 classes do not need to be imported - they are available at the start of every script, along with all of the functions inside of them:
 
 1. dolphin
 2. OnFrameStart
@@ -50,7 +51,7 @@ The following 7 classes do not need to be imported - they are available at the s
 6. OnMemoryAddressReadFrom
 7. OnMemoryAddressWrittenTo
 
-To use any of the other builtin Lua classes that come with Dolphin, they must be imported using the "importModule" function of the dolphin class. the dolphin class also has an "import" function which does the same thing. A class is imported like this:
+To use any of the other builtin Lua classes that come with Dolphin, they must be imported using the "importModule" function of the dolphin class. The dolphin class also has an "import" function which does the same thing as the "importModule" function. A class is imported like this:
 
 dolphin:importModule("EmuAPI", "1.0.0")
 
@@ -135,7 +136,7 @@ EmuAPI class:
 
 	void playMovie(String movieName):
 		- Starts playing the movie referenced by movieName
-		  EmuAPI:playMovie("myMovie.dtm") ==> Starts playing the movie file with a filename of "myMovie.dtm"\
+		  EmuAPI:playMovie("myMovie.dtm") ==> Starts playing the movie file with a filename of "myMovie.dtm"
 
 	void saveMovie(String movieName):
 		- Saves a movie to the file with the name movieName
@@ -169,7 +170,7 @@ GameCubeControllerAPI class:
 	}
 
 	s64 getCurrentPortNumberOfPoll():
-		- This function is intended to be called only from inside of an OnGCControllerPolled callback fucntion, and it returns which controller number is currently being polled (will be a number between 1 and 4).
+		- This function is intended to be called only from inside of an OnGCControllerPolled callback function, and it returns which controller number is currently being polled (will be a number between 1 and 4).
 		  GameCubeControllerAPI:getCurrentPortNumberOfPoll() ==> If only 1 controller is plugged in to slot 1, then this will return 1
 
 	void setInputsForPoll(GameCubeControllerStateTable newControllerValues):
@@ -195,13 +196,13 @@ GameCubeControllerAPI class:
 -----------------------------------------------------------------------------------------------------------------------------------------------------------
 GraphicsAPI class:
 
-	This class is used to draw graphics on the screen. These functions will render graphics for the next frame, which means they must be called once per frame to make graphics show up on screen. Also, a call to beginWindow() will open up a new window, and any further calls made to beginWindow() before the window has been closed will create a nested subwindow. The window will be closed off by calling endWindow(). On a given frame, there must be an equal number of calls to beginWindow() and endWindow(). Also, certain items like checkboxes can only be added to windows, and not to the screen directly.
+	This class is used to draw graphics on the screen. These functions will render graphics for the next frame, which means they must be called once per frame to make graphics show up on screen. Also, a call to beginWindow() will open up a new window, and any further calls made to beginWindow() before the window has been closed will create a nested sub-window. The window will be closed off by calling endWindow(). On a given frame, there must be an equal number of calls to beginWindow() and endWindow(). Also, certain items like checkboxes can only be added to windows, and not to the screen directly.
 
 Each function which draws graphics with color takes as input a colorString, which starts with "0X". After this, the next 2 numbers represent the hex value of red, then the next 2 numbers represent the hex value of blue, the next 2 numbers represent the hex value of green, and the last 2 numbers represent the brightness. For example, "0X00FFFFFF" would represent yellow (note that the string MUST appear in quotation marks).
 
 The position of graphics drawn for each function will always refer to an offset relative to the top left corner of the currently open innermost window (which is defined as the last window that was opened with beginWindow() which has not yet been closed with a corresponding call to endWindow(), and the graphics will appear in this window. If no window is open, then the graphics will be drawn directly on the screen/over the game, and the offset will be applied relative to the top-left corner of the screen.
 
-The following example shows how to display a window which contains a rectange:
+The following example shows how to display a window which contains a rectangle:
 
 dolphin:importModule("GraphicsAPI", "1.0")
 dolphin:importModule("EmuAPI", "1.0")
@@ -254,11 +255,11 @@ DOCUMENTATION:
 		  GraphicsAPI:drawFilledCircle(500.0, 500.0, 75.0, "0XAAbbCCFF")
 
 	void drawEmptyPolygon(ListOfPoints listOfPoints, float thickness, String lineColorString):
-		- Draws a polygon with no filling in the middle which contains the points contained in listOfPoints, which are all connected together to create a polygon with thickness specified by thickness and a color specified by lineColorString. listOfPoints is a table of tables, where each subtable contains 2 floats (which represent the X and Y coordinates of a point)
+		- Draws a polygon with no filling in the middle which contains the points contained in listOfPoints, which are all connected together to create a polygon with thickness specified by thickness and a color specified by lineColorString. listOfPoints is a table of tables, where each sub-table contains 2 floats (which represent the X and Y coordinates of a point)
 		  GraphicsAPI:drawEmptyPolygon( { {250.0, 399.0}, {450.0, 150.0}, {650.0, 150.0}, {850.0, 399.0} }, 3.0, "0XFF00FFFF") ==> Draws a trapezoid
 
 	void drawFilledPolygon(ListofPoints listOfPoints, String lineColorString):
-		- Draws a filled polygon which contains the points contained in listOfPoints, which are all connected together to create a polygon with thickness specified by thickness and a color specified by lineColorString. listOfPoints is a table of tables, where each subtable contains 2 floats (which represent the X and Y coordinates of a point)
+		- Draws a filled polygon which contains the points contained in listOfPoints, which are all connected together to create a polygon with thickness specified by thickness and a color specified by lineColorString. listOfPoints is a table of tables, where each sub-table contains 2 floats (which represent the X and Y coordinates of a point)
 		  GraphicsAPI:drawFilledPolygon( { {250.0, 399.0}, {450.0, 150.0}, {650.0, 150.0}, {850.0, 399.0} }, "0XFF00FFFF") ==> Draws a trapezoid
 
 	void drawText(float x, float y, String textColor, String textContents):
@@ -287,7 +288,7 @@ DOCUMENTATION:
 
 	s64 getRadioButtonGroupValue(s64 radioButtonGroupId):
 		- Returns the value of the radio button group referenced by radioButtonGroupID.
-		  GraphicsAPI:getRadioButtonGroupValue(42) ==> If the button in the above example was pressed, then calling this function would return 1, since 1 is the value assoicated with that particular radio button in the group.
+		  GraphicsAPI:getRadioButtonGroupValue(42) ==> If the button in the above example was pressed, then calling this function would return 1, since 1 is the value associated with that particular radio button in the group.
 
 	void setRadioButtonGroupValue(s64 radioButtonGroupId, s64 newRadioButtonValue):
 		- Sets the radio button group specified by radioButtonGroupId to the value specified by newRadioButtonValue
@@ -318,7 +319,7 @@ DOCUMENTATION:
 		  GraphicsAPI:newLine(15.0) ==> Advances the cursor by 15.0 pixels
 
 	void beginWindow(String windowName):
-		- Creates a new window with the name/label specified by windowName. This window will be the currently opened window until another call to beginWindow() or endWindow() is made. The first call to this function will create a window, and any subsequent calls to beginWindow() made before the window has been closed will create a nested subwindow inside of the currently opened window. There must be an equal number of calls to beginWindow() and endWindow() on each frame.
+		- Creates a new window with the name/label specified by windowName. This window will be the currently opened window until another call to beginWindow() or endWindow() is made. The first call to this function will create a window, and any subsequent calls to beginWindow() made before the window has been closed will create a nested sub-window inside of the currently opened window. There must be an equal number of calls to beginWindow() and endWindow() on each frame.
 		  GraphicsAPI:beginWindow("My Window") ==> Displays a window on screen with the title "My Window"
 
 	void endWindow():
@@ -373,7 +374,7 @@ MemoryAPI class:
 		  MemoryAPI:read_fixed_length_string(0X800000A8, 3) ==> If 0X800000A8 is the starting address for storing the String "Star Fox" in memory, then this function call would return "Sta"
 
 	String read_null_terminated_string(s64 address):
-		- Returns a string which starts with chars at the specified address, and continues until the null temrinator character is encountered (which is '\0')
+		- Returns a string which starts with chars at the specified address, and continues until the null terminator character is encountered (which is '\0')
 		  MemoryAPI:read_null_terminated_string(0X800000A8) ==> If 0X800000A8 is the starting address for storing the null-terminated String "Star Fox" in memory, then this function call would return "Star Fox"
 
 	AddressToUnsignedByteTable read_unsigned_bytes(s64 address, s64 numBytes):
@@ -429,7 +430,7 @@ MemoryAPI class:
 		  MemoryAPI:write_string(0X800000A8, "Star Fox") ==> After this, if the bytes starting at 0X800000A8 are read back out as unsigned chars, they will read 'S', 't', 'a', 'r', ' ', 'F', 'o', 'x', '\0'
 
 	void write_bytes(AddressToByteMap addressToByteMap):
-		- This function takes as input a table, where the keys of the table are of type s64 (and represent addresses), and the values of the table are s16s (which represent 1 byte. More specifically, they can be any integer number between -128 and 255). The function then writes the specifid value to their associated address. Note that if value of the table is negative, it will be written as a signed byte to that spot in memory. Otherwise, it will be written as an unsigned byte to that spot in memory.
+		- This function takes as input a table, where the keys of the table are of type s64 (and represent addresses), and the values of the table are s16s (which represent 1 byte. More specifically, they can be any integer number between -128 and 255). The function then writes the specified value to their associated address. Note that if value of the table is negative, it will be written as a signed byte to that spot in memory. Otherwise, it will be written as an unsigned byte to that spot in memory.
 		  MemoryAPI:write_bytes( { 0X800000A8 = -120, 0X800000A9 = 241, 0X800000AA = 42 } ) ==> Now the 3 bytes starting at 0X800000A8 contain the signed byte of -120, the unsigned byte of 241, and the unsigned byte of 42, respectively.
 
 ------------------------------------------------------------------------------------------------------------------------------------------------
@@ -497,5 +498,186 @@ RegistersAPI class:
 		  RegistersAPI:writeU8ToRegister("R5", 31, 1) ==> Now the 2nd byte of the register R5 contains 31.
 
 	void writeU16ToRegister(String registerName, u16 new_u16, u8 byteOffset):
-		- Writes the 
-		
+		- Writes the unsigned short referenced by new_u16 to the register specified by registerName (using an offset of byteOffset from the start of the register).
+		  RegistersAPI:writeU16ToRegister("R5", 132, 0) ==> Now the first 2 bytes of the R5 register contain the unsigned short of 132
+
+	void writeU32ToRegister(String registerName, u32 new_u32, u8 byteOffset):
+		- Writes the unsigned int referenced by new_u32 to the register specified by registerName (using an offset of byteOffset from the start of the register).
+		  RegistersAPI:writeU32ToRegister("R7", 4000, 0) ==> Now the R7 register contains the unsigned int of 4000
+
+	void writeU64ToRegister(String registerName, u64 new_u64, u8 byteOffset):
+		- Calling this function throws an error, since Lua doesn't support the u64 data type (s64 is the only 8-byte datatype supported by Lua).
+		  RegistersAPI:writeU64ToRegister("R3", 2000, 0) ==> Throws an error.
+
+	void writeS8ToRegister(String registerName, s8 new_s8, u8 byteOffset):
+		- Writes the signed byte referenced by new_s8 to the register specified by registerName (using an offset of byteOffset from the start of the register).
+		  RegistersAPI:writeS8ToRegister("R2", -5, 0) ==> Now the 1st byte of the R2 register contains the signed byte of -5.
+
+	void writeS16ToRegister(String registerName, s16 new_s16, u8 byteOffset):
+		- Writes the signed short referenced by new_s16 to the register specified by registerName (using an offset of byteOffset from the start of the register).
+		  RegistersAPI:writeS16ToRegister("R9", -100, 0) ==> Now the first 2 bytes of the R9 register contain the signed short of -100
+
+	void writeS32ToRegister(String registerName, s32 new_s32, u8 byteOffset):
+		- Writes the signed int referenced by new_s32 to the register specified by registerName (using an offset of byteOffset from the start of the register).
+		  RegistersAPI:writeS32ToRegister("R15", -9000, 0) ==> Now the R15 register contains the signed int of -9000
+
+	void writeS64ToRegister(String registerName, s64 new_s64, u8 byteOffset):
+		- Writes the signed long long referenced by new_s64 to the register specified by registerName (using an offset of byteOffset from the start of the register).
+		  RegistersAPI:writeS64ToRegister("F8", 35, 8) ==> Now the 9th to 16th bytes of the F8 register contain the signed long long of 35.
+
+	void writeFloatToRegister(String registerName, float new_float, u8 byteOffset):
+		- Writes the float referenced by new_float to the register specified by registerName (using an offset of byteOffset from the start of the register).
+		  RegistersAPI:writeFloatToRegister("F4", 54.63, 0) ==> Now the first 4 bytes of the F4 register contain the float 54.63
+
+	void writeDoubleToRegister(String registerName, double new_double, u8 byteOffset):
+		- Writes the double referenced by new_double to the register specified by registerName (using an offset of byteOffset from the start of the register).
+		  RegistersAPI:writeDoubleToRegister("F13", 112.43, 0) ==> Now the first 8 bytes of the F13 register contain the double 112.43
+
+	void writeBytesToRegister(String registerName, IndexToByteTable indexToByteTable, u8 byteOffset):
+		- Writes the bytes specified by indexToByteTable to the register specified by registerName (using a starting offset of byteOffset from the start of the register). Note that indexToByteTable is expected to be a table whose keys are integers which start with 1, and go up by 1 for each successive byte that should be written to the register. The values of this table are of type s16, since they need to store values between -128 and 255. Also note that all negative values are represented as signed bytes, and all positive values are represented as unsigned bytes.
+		  RegistersAPI:writeBytesToRegister("R9", { 1 = 180, 2 = -97, 3 = 45 }, 1) ==> writes the unsigned byte 180, the signed byte -97, and the unsigned byte of 45 to the Register R9, starting from the 2nd byte of the register (i.e. these bytes are written to the 2nd, 3rd and 4th bytes of the register respectively).
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+StatisticsAPI class:
+
+	boolean isRecordingInput():
+		- Returns true if a movie is currently recording, and false otherwise.
+		  StatisticsAPI:isRecordingInput()
+
+	boolean isRecordingInputFromSaveState():
+		- Returns true if a movie is currently recording from a save state, and false otherwise.
+		  StatisticsAPI:isRecordingInputFromSaveState()
+
+	boolean isPlayingInput():
+		- Returns true if a movie is playing back, and false otherwise.
+		  StatisticsAPI:isPlayingInput()
+
+	boolean isMovieActive():
+		- Returns true if a movie is active, and false otherwise.
+		  StatisticsAPI:isMovieActive()
+
+	s64 getCurrentFrame():
+		- Returns the current frame number.
+		  StatisticsAPI:getCurrentFrame()
+
+	s64 getMovieLength():
+		- Returns the movie length (in terms of number of frames).
+		  StatisticsAPI:getMovieLength()
+
+	s64 getRerecordCount():
+		- Returns the number of rerecords in the movie.
+		  StatisticsAPI:getRerecordCount()
+
+	s64 getCurrentInputCount():
+		- Returns the current input count for the movie.
+		  StatisticsAPI:getCurrentInputCount()
+
+	s64 getTotalInputCount():
+		- Returns the total input count for the movie.
+		  StatisticsAPI:getTotalInputCount()
+
+	s64 getCurrentLagCount():
+		- Returns the current lag count for the movie.
+		  StatisticsAPI:getCurrentLagCount()
+
+	s64 getTotalLagCount():
+		- Returns the total lag count for the movie.
+		  StatisticsAPI:getTotalLagCount()
+
+---------------------------------------------------------------------------------------------------------------
+OnFrameStart class:
+
+	RegistrationReturnType register(LuaFunction luaFunction):
+		- Registers the Lua function which was passed into the function to run on the start of each frame (when Callback_NewField() is called), and returns a RegistrationReturnType value, which is used to deregister the function when the user doesn't want the function to run anymore.
+		  result = OnFrameStart:register(callbackFunc) ==> Now callbackFunc will be called at the start of each frame, and the result variable can be used to unregister the function later on.
+
+	void registerWithAutoDeregistration(LuaFunction luaFunction):
+		- Registers the Lua function which was passed into the function to run on the start of each frame (when Callback_NewFIeld() is called). This function returns nothing, since it unregisters automatically when the only parts of the script that are still running are other callbacks that were registered with auto deregistration.
+		OnFrameStart:registerWithAutoDeregistration(callbackFunc) ==> Now callbackFunc will be called at the start of each frame. This callback will auto-deregister when the only parts of the script that are still running are other callbacks that were registered with auto-deregistration.
+
+	void unregister(RegistrationReturnType callbackReference):
+		- Unregisters the callback referred to by callbackReference, so it will no longer run at the start of each frame (deletes it from the list of functions to run at the start of each frame). This function takes as input the value which was returned when the function was registered, which is what is used to uniquely identify the function to deregister.
+		  resultVal = OnFrameStart:register(callbackFunc) ==> Registers callbackFunc to run at the start of each frame.
+		  OnFrameStart:unregister(resultVal) ==> callbackFunc will no longer run at the start of each frame.
+
+---------------------------------------------------------------------------------------------------------------
+OnGCControllerPolled class:
+
+	RegistrationReturnType register(LuaFunction luaFunction):
+		- Registers the Lua function which was passed into the function to run whenever the game polls for GameCube controller input, and returns a RegistrationReturnType value, which is used to deregister the function when the user doesn't want the function to run anymore.
+		  result = OnGCControllerPolled:register(callbackFunc) ==> Now callbackFunc will be called each time the game polls a GameCube controller for input, and the result variable can be used to unregister the function later on.
+
+	void registerWithAutoDeregistration(LuaFunction luaFunction):
+		- Registers the Lua function which was passed into the function to run whenever the game polls for GameCube controller input. This function returns nothing, since it unregisters automatically when the only parts of the script that are still running are other callbacks that were registered with auto deregistration.
+		OnGCControllerPolled:registerWithAutoDeregistration(callbackFunc) ==> Now callbackFunc will be called whenever the game polls for GameCube controller input. This callback will auto-deregister when the only parts of the script that are still running are other callbacks that were registered with auto-deregistration.
+
+	void unregister(RegistrationReturnType callbackReference):
+		- Unregisters the callback referred to by callbackReference, so it will no longer run when the game polls for GameCube controller input (deletes it from the list of functions to run when the game polls for GameCube controller input). This function takes as input the value which was returned when the function was registered, which is what is used to uniquely identify the function to deregister.
+		  resultVal = OnGCControllerPolled:register(callbackFunc) ==> Registers callbackFunc to run whenever the game polls a GameCube controller for input
+		  OnGCControllerPolled:unregister(resultVal) ==> callbackFunc will no longer run when the game polls a GameCube controller for input
+
+--------------------------------------------------------------------------------------------------------------
+OnWiiInputPolled class:
+
+	RegistrationReturnType register(LuaFunction luaFunction):
+		- Registers the Lua function which was passed into the function to run whenever the game polls for Wii input, and returns a RegistrationReturnType value, which is used to deregister the function when the user doesn't want the function to run anymore.
+		  result = OnWiiInputPolled:register(callbackFunc) ==> Now callbackFunc will be called each time the game polls for Wii input, and the result variable can be used to unregister the function later on.
+
+	void registerWithAutoDeregistration(LuaFunction luaFunction):
+		- Registers the Lua function which was passed into the function to run whenever the game polls for Wii input. This function returns nothing, since it unregisters automatically when the only parts of the script that are still running are other callbacks that were registered with auto deregistration.
+		OnWiiInputPolled:registerWithAutoDeregistration(callbackFunc) ==> Now callbackFunc will be called whenever the game polls for Wii input. This callback will auto-deregister when the only parts of the script that are still running are other callbacks that were registered with auto-deregistration.
+
+	void unregister(RegistrationReturnType callbackReference):
+		- Unregisters the callback referred to by callbackReference, so it will no longer run when the game polls for Wii input (deletes it from the list of functions to run when the game polls for Wii input). This function takes as input the value which was returned when the function was registered, which is what is used to uniquely identify the function to deregister.
+		  resultVal = OnWiiInputPolled:register(callbackFunc) ==> Registers callbackFunc to run whenever the game polls for Wii input.
+		  OnWiiInputPolled:unregister(resultVal) ==> callbackFunc will no longer run when the game polls for Wii input.
+
+-------------------------------------------------------------------------------------------------------------
+OnInstructionHit class:
+
+	RegistrationReturnType register(s64 instructionAddress, LuaFunction luaFunction):
+		- Registers the Lua function which was passed into the function to run whenever the instruction specified by instructionAddress is hit by the game, and returns a RegistrationReturnType value, which is used to deregister the function when the user doesn't want the function to run anymore.
+		  result = OnInstructionHit:register(0X80000ABC, callbackFunc) ==> Now callbackFunc will be called whenever the game hits the instruction at address 0X80000ABC, and the result variable can be used to unregister the function later on.
+
+	void registerWithAutoDeregistration(s64 instructionAddress, LuaFunction luaFunction):
+		- Registers the Lua function which was passed into the function to run whenever the instruction specified by instructionAddress is hit by the game. This function returns nothing, since it unregisters automatically when the only parts of the script that are still running are other callbacks that were registered with auto deregistration.
+		OnInstructionHit:registerWithAutoDeregistration(0X80000ABC, callbackFunc) ==> Now callbackFunc will be called whenever the  game hits the instruction at address 0X80000ABC. This callback will auto-deregister when the only parts of the script that are still running are other callbacks that were registered with auto-deregistration.
+
+	void unregister(s64 instructionAddress, RegistrationReturnType callbackReference):
+		- Unregisters the callback referred to by callbackReference, so it will no longer run when the instruction specified by instructionAddress is hit. This function takes as input the value which was returned when the function was registered, which is what is used to uniquely identify the function to deregister.
+		  resultVal = OnInstructionHit:register(0X80000ABC, callbackFunc) ==> Registers callbackFunc to run whenever the specified instruction is hit.
+		  OnInstructionHit:unregister(0X80000ABC, resultVal) ==> callbackFunc will no longer run when the specified instruction is hit.
+
+---------------------------------------------------------------------------------------------------------------
+OnMemoryAddressReadFrom class:
+
+		RegistrationReturnType register(s64 memoryAddress, LuaFunction luaFunction):
+		- Registers the Lua function which was passed into the function to run whenever the memory address specified by memoryAddress is read by the game, and returns a RegistrationReturnType value, which is used to deregister the function when the user doesn't want the function to run anymore.
+		  result = OnMemoryAddressReadFrom:register(0X80000ABC, callbackFunc) ==> Now callbackFunc will be called whenever the game reads the memory address of 0X80000ABC, and the result variable can be used to unregister the function later on.
+
+	void registerWithAutoDeregistration(s64 memoryAddress, LuaFunction luaFunction):
+		- Registers the Lua function which was passed into the function to run whenever the memory address specified by memoryAddress is read by the game. This function returns nothing, since it unregisters automatically when the only parts of the script that are still running are other callbacks that were registered with auto deregistration.
+		OnMemoryAddressReadFrom:registerWithAutoDeregistration(0X80000ABC, callbackFunc) ==> Now callbackFunc will be called whenever the  game reads the memory address of 0X80000ABC. This callback will auto-deregister when the only parts of the script that are still running are other callbacks that were registered with auto-deregistration.
+
+	void unregister(s64 memoryAddress, RegistrationReturnType callbackReference):
+		- Unregisters the callback referred to by callbackReference, so it will no longer run when the memory address specified by memoryAddress is read from. This function takes as input the value which was returned when the function was registered, which is what is used to uniquely identify the function to deregister.
+		  resultVal = OnMemoryAddressReadFrom:register(0X80000ABC, callbackFunc) ==> Registers callbackFunc to run whenever the specified memory address is read from.
+		  OnMemoryAddressReadFrom:unregister(0X80000ABC, resultVal) ==> callbackFunc will no longer run when the specified memory address is read from.
+
+---------------------------------------------------------------------------------------------------------------
+OnMemoryAddressWrittenTo class:
+
+		RegistrationReturnType register(s64 memoryAddress, LuaFunction luaFunction):
+		- Registers the Lua function which was passed into the function to run whenever the memory address specified by memoryAddress is written to by the game, and returns a RegistrationReturnType value, which is used to deregister the function when the user doesn't want the function to run anymore.
+		  result = OnMemoryAddressWrittenTo:register(0X80000ABC, callbackFunc) ==> Now callbackFunc will be called whenever the game writes to the memory address of 0X80000ABC, and the result variable can be used to unregister the function later on.
+
+	void registerWithAutoDeregistration(s64 memoryAddress, LuaFunction luaFunction):
+		- Registers the Lua function which was passed into the function to run whenever the memory address specified by memoryAddress is written to by the game. This function returns nothing, since it unregisters automatically when the only parts of the script that are still running are other callbacks that were registered with auto deregistration.
+		OnMemoryAddressWrittenTo:registerWithAutoDeregistration(0X80000ABC, callbackFunc) ==> Now callbackFunc will be called whenever the  game writes to the memory address of 0X80000ABC. This callback will auto-deregister when the only parts of the script that are still running are other callbacks that were registered with auto-deregistration.
+
+	void unregister(s64 memoryAddress, RegistrationReturnType callbackReference):
+		- Unregisters the callback referred to by callbackReference, so it will no longer run when the memory address specified by memoryAddress is written to. This function takes as input the value which was returned when the function was registered, which is what is used to uniquely identify the function to deregister.
+		  resultVal = OnMemoryAddressWrittenTo:register(0X80000ABC, callbackFunc) ==> Registers callbackFunc to run whenever the specified memory address is written to.
+		  OnMemoryAddressWrittenTo:unregister(0X80000ABC, resultVal) ==> callbackFunc will no longer run when the specified memory address is written to.
+
+----------------------------------------------------------------------------------------------------------------

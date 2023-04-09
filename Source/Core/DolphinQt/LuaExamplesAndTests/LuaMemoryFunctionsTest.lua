@@ -3,6 +3,10 @@ require ("memory")
 
 funcRef = 0
 testNum = 1
+
+function clearAddress(address)
+	memory:writeTo(address, "s64", 0)
+end
 function readFromAndWriteToTest()
 	resultsTable = {}
 	resultsTable["TOTAL"] = 0
@@ -102,6 +106,7 @@ function readFromAndWriteToTest()
 	failureCount = 0
 	for key, value in pairs(typeTable) do
 		io.write("Test " .. tostring(testNum) .. ":\n")
+		clearAddress(address)
 		memory:writeTo(address, key, value)
 		io.write("\tWrote value of " .. tostring(value) .. " to " .. tostring(address) .. " as type " .. key .. "\n")
 		io.write("\tValue at address " .. tostring(address) .. " as type " .. key .. " is now: " .. tostring(memory:readFrom(address, key)) .. "\n")
@@ -130,6 +135,7 @@ function readAndWriteBytesTest()
 	unsignedBytesTable[baseAddress] = 58
 	unsignedBytesTable[baseAddress + 1] = 180
 	unsignedBytesTable[baseAddress + 2] = 243
+	clearAddress(baseAddress)
 	memory:writeBytes(unsignedBytesTable)
 	outputBytesTable = memory:readUnsignedBytes(baseAddress, 3)
 	io.write("Test: " .. tostring(testNum) .. "\n")
@@ -155,6 +161,7 @@ function readAndWriteBytesTest()
 	signedBytesTable[baseAddress] = 32
 	signedBytesTable[baseAddress + 1] = -43
 	signedBytesTable[baseAddress + 2] = 119
+	clearAddress(baseAddress)
 	memory:writeBytes(signedBytesTable)
 	outputBytesTable = memory:readSignedBytes(baseAddress, 3)
 	io.write("Test " .. tostring(testNum) .. ":\n")
@@ -184,6 +191,7 @@ function stringFunctionsTest()
 	resultsTable["FAIL"] = 0
 	sampleString = "Star Fox"
 	isFailure = false
+	clearAddress(baseAddress)
 	memory:writeString(baseAddress, sampleString)
 	
 	resultString = memory:readNullTerminatedString(baseAddress)
@@ -198,6 +206,7 @@ function stringFunctionsTest()
 	end
 	testNum = testNum + 1
 
+	clearAddress(baseAddress)
 	memory:writeString(baseAddress, sampleString)
 	resultString = memory:readFixedLengthString(baseAddress, 3)
 	io.write("Test: " .. tostring(testNum) .. ":\n")
@@ -232,6 +241,9 @@ function LuaMemoryApiTest()
 	io.write("Total Tests: " .. tostring(testResults["TOTAL"]) .. "\n")
 	io.write("\tTests Passed: " .. tostring(testResults["PASS"]) .. "\n")
 	io.write("\tTests Failed: " .. tostring(testResults["FAIL"]) .. "\n")
+	print("Total Tests: " .. tostring(testResults["TOTAL"]) .. "\n")
+	print("\tTests Passed: " .. tostring(testResults["PASS"]) .. "\n")
+	print("\tTests Failed: " .. tostring(testResults["FAIL"]) .. "\n")
 	io.flush()
 	io.close()
 	OnFrameStart:unregister(funcRef)
