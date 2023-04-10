@@ -220,11 +220,11 @@ class _INTERNAL_add_controller_clear_probability(_INTERNAL_probability_of_alteri
         return
         
 def _INTERNAL_apply_requested_input_alter_functions():
-    currentPortNumber = GameCubeControllerAPI.getCurrentPortNumberOfPoll()
+    currentPortNumber = OnGCControllerPolled.getCurrentPortNumberOfPoll()
     
     if len(_INTERNAL_set_controller_inputs_array[currentPortNumber - 1]) == 0 and len(_INTERNAL_add_controller_inputs_array[currentPortNumber - 1]) == 0 and len(_INTERNAL_probability_controller_change_array[currentPortNumber - 1]) == 0:
         return
-    currentControllerInput = GameCubeControllerAPI.getInputsForPoll()
+    currentControllerInput = OnGCControllerPolled.getInputsForPoll()
     
     for tempButtonSetTable in _INTERNAL_set_controller_inputs_array[currentPortNumber - 1]:
         currentControllerInput = tempButtonSetTable
@@ -236,7 +236,7 @@ def _INTERNAL_apply_requested_input_alter_functions():
     for probabilityEventObject in _INTERNAL_probability_controller_change_array[currentPortNumber - 1]:
         probabilityEventObject.applyProbability(currentControllerInput)
         
-    GameCubeControllerAPI.setInputsForPoll(currentControllerInput)
+    OnGCControllerPolled.setInputsForPoll(currentControllerInput)
     
 OnGCControllerPolled.registerWithAutoDeregistration(_INTERNAL_apply_requested_input_alter_functions)
 

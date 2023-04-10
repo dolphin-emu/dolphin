@@ -97,7 +97,7 @@ def statisticsTests():
     outputFile.write("Tests Failed: " + str(resultsTable["FAIL"]) + "\n")
     outputFile.flush()
     outputFile.close()
-    print("-----------------------\nTotal Tests: " + str(testNum - 1) + "\n\t")
+    print("Total Tests: " + str(testNum - 1) + "\n\t")
     print("Tests Passed: " + str(resultsTable["PASS"]) + "\n\t")
     print("Tests Failed: " + str(resultsTable["FAIL"]) + "\n") 
     OnFrameStart.unregister(funcRef)

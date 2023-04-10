@@ -66,6 +66,9 @@ def PythonBitTests():
     outputFile.write("Total Tests: " + str(testNum - 1) + "\n")
     outputFile.write("\tTests Passed: " + str(resultsTable["PASS"]) + "\n")
     outputFile.write("\tTests Failed: " + str(resultsTable["FAIL"]) + "\n")
+    print("Total Tests: " + str(testNum - 1) + "\n")
+    print("\tTests Passed: " + str(resultsTable["PASS"]) + "\n")
+    print("\tTests Failed: " + str(resultsTable["FAIL"]) + "\n")
 
 
 PythonBitTests()

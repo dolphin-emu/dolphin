@@ -8,13 +8,9 @@
 namespace Scripting::GameCubeControllerApi
 {
 const char* class_name = "GameCubeControllerAPI";
+std::array<Movie::ControllerState, 4> controller_inputs_on_last_frame{};
+
 static std::array all_game_cube_controller_functions_metadata_list = {
-    FunctionMetadata("getCurrentPortNumberOfPoll", "1.0", "getCurrentPortNumberOfPoll()",
-                     GetCurrentPortNumberOfPoll, ArgTypeEnum::LongLong, {}),
-    FunctionMetadata("setInputsForPoll", "1.0", "setInputsForPoll(controllerValuesTable)", SetInputsForPoll,
-                     ArgTypeEnum::VoidType, {ArgTypeEnum::ControllerStateObject}),
-    FunctionMetadata("getInputsForPoll", "1.0", "getInputsForPoll()", GetInputsForPoll,
-                     ArgTypeEnum::ControllerStateObject, {}),
     FunctionMetadata("getInputsForPreviousFrame", "1.0", "getInputsForPreviousFrame(1)",
                      GetInputsForPreviousFrame, ArgTypeEnum::ControllerStateObject, {ArgTypeEnum::LongLong}),
     FunctionMetadata("isGcControllerInPort", "1.0", "isGcControllerInPort(1)", IsGcControllerInPort,
@@ -22,10 +18,7 @@ static std::array all_game_cube_controller_functions_metadata_list = {
     FunctionMetadata("isUsingPort", "1.0", "isUsingPort(1)", IsUsingPort, ArgTypeEnum::Boolean,
                      {ArgTypeEnum::LongLong})};
 
-std::array<bool, 4> overwrite_controller_at_specified_port{};
-std::array<Movie::ControllerState, 4> new_controller_inputs{};
-std::array<Movie::ControllerState, 4> controller_inputs_on_last_frame{};
-int current_controller_number_polled = -1;
+
 
 ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
 {
@@ -44,25 +37,6 @@ FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
   std::unordered_map<std::string, std::string> deprecated_functions_map;
   return GetFunctionForVersion(all_game_cube_controller_functions_metadata_list, api_version, function_name,
                                deprecated_functions_map);
-}
-
-ArgHolder GetCurrentPortNumberOfPoll(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
-{
-  return CreateLongLongArgHolder(current_controller_number_polled + 1);
-}
-
-// NOTE: In SI.cpp, UpdateDevices() is called to update each device, which moves exactly 8 bytes
-// forward for each controller. Also, it moves in order from controllers 1 to 4.
-ArgHolder SetInputsForPoll(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
-{
-  overwrite_controller_at_specified_port[current_controller_number_polled] = true;
-  new_controller_inputs[current_controller_number_polled] = args_list[0].controller_state_val;
-  return CreateVoidTypeArgHolder();
-}
-
-ArgHolder GetInputsForPoll(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
-{
-  return CreateControllerStateArgHolder(new_controller_inputs[current_controller_number_polled]);
 }
 
 ArgHolder GetInputsForPreviousFrame(ScriptContext* current_script, std::vector<ArgHolder>& args_list)

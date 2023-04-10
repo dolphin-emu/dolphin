@@ -1,0 +1,83 @@
+This page documents the behavior and parameters of Lua functions available for the [Dolphin] emulator.
+
+Note that all builtin Lua classes that come with Dolphin use the colon operator to access member functions. For example, to frame advance, you would write emu:frameAdvance() and _NOT__ emu.frameAdvance()
+Lua scripts execute from top to bottom one time, so to run a script on multiple frames, you need to put your code in a loop like this:
+
+require ("emu")
+
+while true do
+	// code that executes once at the start of each frame
+	emu:frameAdvance()
+end
+
+Alternatively, you could register a callback function which runs at the start of each frame like this:
+
+require ("emu")
+
+function callbackFunc()
+	// code that executes once at the start of each frame
+end
+
+funcRef = OnFrameStart:register(callbackFunc) // Store funcRef so that the callback can be unregistered when you want it to stop running at the start of each frame.
+
+__Types and notation__
+* [[optional]]
+** If the string [[optional]] appears in front of a parameter, that means that the parameter is not required, and will default to None if nothing is included.
+* LuaColorString
+** Can be one of the following 2 String formats:
+** A String which has the format "0XRRGGBBAA", where RR, GG, and BB represent the hex values for red, blue and green in the color respectively, and AA is the hex value of the brightness. For example, "0X00FFFFFF" represents yellow, since it has max blue and max green. Note that this string is case-insensitive.
+** A string which the name of a specifically defined color. The following is a list of all currently defined colors (note that each one is case insensitive). Also, each string has their equivalent representation in the hex format described above specified after them: "BLACK" -> "0X000000ff", "BLUE" -> "0X0000ffff", "BROWN" = "0X5E2605ff", "GOLD" -> "0Xcdad00ff", "GOLDEN" -> "0Xcdad00ff", "GRAY" -> "0X919191ff", "GREY" -> "0X919191ff", "GREEN" -> "0X008b00ff", "LIME" -> "0X00ff00ff", "ORANGE" -> "0Xcd8500ff", "PINK" -> "0Xee6aa7ff", "PURPLE" -> "0X8a2be2ff", "RED" -> "0Xff0000ff", "SILVER" -> "0Xc0c0c0ff", "TURQUOISE" -> "0X00ffffff", "WHITE" -> "0Xffffffff", "YELLOW" -> "0Xffff00ff"
+* DataTypeString
+** A String which is used to specify what Data Type a function should use for a read or write. Each of these strings is case insensitive, and the characters ' ', '_', '-' and the empty string can all be substituted freely with each other in each String. The following is a list of valid names for DataTypeString, with  a definition of each data type appearing on the left side of each line, and the names which refer to the same type appearing on the right side of the line. Note that Lua does not support the Unsigned 64 bit integer type (so Signed 64 bit integers should be used instead).
+** Unsigned Byte: "u8", "unsignedByte", "unsigned8"
+** Unsigned 2-Byte Integer Type: "u16", "unsigned16"
+** Unsigned 4-Byte Integer Type: "u32", "unsigned32", "unsignedInt"
+** Signed Byte: "s8", "signedByte", "signed8"
+** Signed 2-Byte Integer Type: "s16", "signed16"
+** Signed 4-Byte Integer Type: "s32", "signed32", "signedInt"
+** Signed 8-Byte Integer Type: "s64", "signed64", "signedLongLong"
+** 4-Byte Floating Point Type: "float"
+** 8-Byte Floating Point Type: "double"
+* LuaFunction
+** A Lua function. Note that these will always refer to a Lua function which takes 0 arguments as input.
+
+%%TAB bit%%
+
+A library for performing standard bitwise operations. To use these functions, the following line __MUST__ be included at the top of your Lua script:
+
+require ("bit")
+
+__bit:bitwise_and__%%%
+
+* s64 bitwise_and(s64 inputArg1, s64 inputArg2)
+
+* Returns bitwise AND of inputArg1 and inputArg2
+
+* bit:bitwise_and(17, 41) ==> Returns 1
+
+__bit:bitwise_or__%%%
+
+* s64 bitwise_or(s64 inputArg1, s64 inputArg2)
+
+* Returns bitwise OR of inputArg1 and inputArg2
+
+* bit:bitwise_or(17, 41) ==> returns 57
+
+__bit:bitwise_not__%%%
+
+* s64 bitwise_not(s64 inputArg)
+
+* Returns the bitwise NOT of inputArg
+
+* bit:bitwise_not(41) ==> Returns -42
+
+__bit:bitwise_xor__%%%
+
+* s64 bitwise_xor(s64 inputArg1, s64 inputArg2)
+
+* Returns the bitwise XOR of inputArg1 and inputArg2
+
+* bit:bitwise_xor(17, 41) ==> Returns 56
+
+
+

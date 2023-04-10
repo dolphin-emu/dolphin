@@ -312,11 +312,11 @@ end
 
 
 function applyRequestedInputAlterFunctions()
-	currentPortNumber = GameCubeControllerAPI:getCurrentPortNumberOfPoll()
+	currentPortNumber = OnGCControllerPolled:getCurrentPortNumberOfPoll()
 	if #gc_controller.set_controller_input_list[currentPortNumber] == 0 and #gc_controller.add_controller_input_list[currentPortNumber] == 0 and #gc_controller.probability_controller_change_input_list[currentPortNumber] == 0 then
 		return
 	end
-	currentControllerInput = GameCubeControllerAPI:getInputsForPoll()
+	currentControllerInput = OnGCControllerPolled:getInputsForPoll()
 	
 	for key, controllerTable in pairs(gc_controller.set_controller_input_list[currentPortNumber]) do
 		currentControllerInput = controllerTable
@@ -331,7 +331,7 @@ function applyRequestedInputAlterFunctions()
 	for key, inputProbabilityEvent in pairs(gc_controller.probability_controller_change_input_list[currentPortNumber]) do
 		currentControllerInput = inputProbabilityEvent:applyProbability(currentControllerInput)
 	end
-	GameCubeControllerAPI:setInputsForPoll(currentControllerInput)
+	OnGCControllerPolled:setInputsForPoll(currentControllerInput)
 end
 
 OnGCControllerPolled:registerWithAutoDeregistration(applyRequestedInputAlterFunctions)

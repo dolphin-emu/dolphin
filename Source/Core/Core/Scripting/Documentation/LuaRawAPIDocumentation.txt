@@ -1,683 +1,117 @@
-When a Lua script is started, it starts execution on the CPU thread at the start of the next frame.
-A script can register frame callbacks, which are functions that are run at the start of each frame.
-It can also register scripts to run when GC input is polled, when Wii input is polled, when instructions are hit, and when memory addresses are read or written to.
-Each function which is registered as a callback must take no arguments.
-Also, callbacks registered for the same event will run in the order in which they were registered each time the event occurs (ex. if 2 functions are registered to run OnFrameStart, they will run in the same order they were registered at the start of each frame).
+This page documents the behavior and parameters of Lua functions available for the [Dolphin] emulator.
 
-A Lua script can also run at the global level (which is where a script starts). Additionally, if EmuAPI:frameAdvance() is called, the script will skip over the remaining global scripts and frame callbacks until the start of the next frame (at which point it resumes where it left off).
+Note that all builtin Lua classes that come with Dolphin use the colon operator to access member functions. For example, to frame advance, you would write emu:frameAdvance() and __NOT__ emu.frameAdvance().
 
-For example, the following Lua script would check the value of memory address 0X80000008 at the start of each frame, and will print out a message if the byte at that location equals 42:
-
--------------------------------------------------------------
-dolphin:importModule("EmuAPI", "1.0")
-dolphin:importModule("MemoryAPI", "1.0")
+Lua scripts execute from top to bottom one time, so to run a script on multiple frames, you need to put your code in a loop like this:
+----
+%%SRC_EMBED lua
+require ("emu")
 
 while true do
-	if MemoryAPI:read_u8(0X80000008) == 42 then
-		print("Byte at 0X80000008 was 42!")
-	end
-	EmuAPI:frameAdvance()
+	// code that executes once at the start of each frame
+	emu:frameAdvance()
 end
--------------------------------------------------------------
+%%END_EMBED
+----
+Alternatively, you could register a callback function which runs at the start of each frame like this:
+----
+%%SRC_EMBED lua
+require ("emu")
 
-The above script could also be re-written using frame callbacks as follows:
-
--------------------------------------------------------------
-dolphin:importModule("EmuAPI", "1.0")
-dolphin:importModule("MemoryAPI", "1.0")
-
-function myCheckMemoryFunction()
-	if MemoryAPI:read_u8(0X80000008) == 42 then
-		print("Byte at 0X80000008 was 42!")
-	end
+function callbackFunc()
+	// code that executes once at the start of each frame
 end
 
-OnFrameStart:register(myCheckMemoryFunction)
-------------------------------------------------------------
+funcRef = OnFrameStart:register(callbackFunc) // Store funcRef so that the callback can be unregistered when you want it to stop running at the start of each frame.
+%%END_EMBED
+----
+__Types and notation__
+* [[optional]]
+** If the string [[optional]] appears in front of a parameter, that means that the parameter is not required, and will default to None if nothing is included.
+* LuaColorString
+** Can be one of the following 2 String formats:
+** A String which has the format "0XRRGGBBAA", where RR, GG, and BB represent the hex values for red, blue and green in the color respectively, and AA is the hex value of the brightness. For example, "0X00FFFFFF" represents yellow, since it has max blue and max green. Note that this string is case-insensitive.
+** A string which the name of a specifically defined color. The following is a list of all currently defined colors (note that each one is case insensitive). Also, each string has their equivalent representation in the hex format described above specified after them: "BLACK" -> "0X000000ff", "BLUE" -> "0X0000ffff", "BROWN" = "0X5E2605ff", "GOLD" -> "0Xcdad00ff", "GOLDEN" -> "0Xcdad00ff", "GRAY" -> "0X919191ff", "GREY" -> "0X919191ff", "GREEN" -> "0X008b00ff", "LIME" -> "0X00ff00ff", "ORANGE" -> "0Xcd8500ff", "PINK" -> "0Xee6aa7ff", "PURPLE" -> "0X8a2be2ff", "RED" -> "0Xff0000ff", "SILVER" -> "0Xc0c0c0ff", "TURQUOISE" -> "0X00ffffff", "WHITE" -> "0Xffffffff", "YELLOW" -> "0Xffff00ff"
+* DataTypeString
+** A String which is used to specify what Data Type a function should use for a read or write. Each of these strings is case insensitive, and the characters ' ', '_', '-' and the empty string can all be substituted freely with each other in each String. The following is a list of valid names for DataTypeString, with  a definition of each data type appearing on the left side of each line, and the names which refer to the same type appearing on the right side of the line. Note that Lua does not support the Unsigned 64 bit integer type (so Signed 64 bit integers should be used instead).
+** Unsigned Byte: "u8", "unsignedByte", "unsigned8"
+** Unsigned 2-Byte Integer Type: "u16", "unsigned16"
+** Unsigned 4-Byte Integer Type: "u32", "unsigned32", "unsignedInt"
+** Signed Byte: "s8", "signedByte", "signed8"
+** Signed 2-Byte Integer Type: "s16", "signed16"
+** Signed 4-Byte Integer Type: "s32", "signed32", "signedInt"
+** Signed 8-Byte Integer Type: "s64", "signed64", "signedLongLong"
+** 4-Byte Floating Point Type: "float"
+** 8-Byte Floating Point Type: "double"
+* LuaFunction
+** A Lua function. Note that these will always refer to a Lua function which takes 0 arguments as input.
 
-All builtin Lua classes are called using the colon operator, like this:
+%%TAB bit%%
 
-EmuAPI:frameAdvance()
+A library for performing standard bitwise operations. To use these functions, the following line __MUST__ be included at the top of your Lua script:
 
-Where EmuAPI is the name of the class, and frameAdvance is the name of the function.
+%%SRC_EMBED lua
+require ("bit")
+%%END_EMBED
 
-The following 7 classes do not need to be imported - they are available at the start of every script, along with all of the functions inside of them:
+__s64 bit:bit_shift_left(s64 startingValue, s64 shiftAmount)__%%%
 
-1. dolphin
-2. OnFrameStart
-3. OnGCControllerPolled
-4. OnWiiInputPolled
-5. OnInstructionHit
-6. OnMemoryAddressReadFrom
-7. OnMemoryAddressWrittenTo
+* Returns the result of performing a bit-shift left on starting value by shiftAmount.
 
-To use any of the other builtin Lua classes that come with Dolphin, they must be imported using the "importModule" function of the dolphin class. The dolphin class also has an "import" function which does the same thing as the "importModule" function. A class is imported like this:
+* bit:bit_shift_left(8, 2) ==> Returns 32
 
-dolphin:importModule("EmuAPI", "1.0.0")
+__s64 bit:bit_shift_right(s64 startingValue, s64 shiftAmount)__%%%
 
-In this case, EmuAPI is the name of the class to import, and 1.0.0 is the version of the class to use.
 
-The following is a list of all functions available in the 1.0 release of each class (the first release of the Scripting API in Dolphin), along with some documentation. Also note that class names are sometimes referred to as apiNames down below, but these are the same thing:
+* Returns the result of performing a bit-shift right on startingValue by shiftAmount.
 
--------------------------------------------------------------------------------------------------------------------------------------------------
-dolphin class:
+* bit:bit_shift_right(8, 1) ==> Returns 4.
 
-	void importModule(String apiName, String versionNumber):
-		- Imports the builtin class referenced by apiName, using the version specified by versionNumber. After this function is called, the functions in the imported module for the specified version can be used normally.
-		  dolphin:importModule("EmuAPI", "1.0.0")
-
-	void import(String apiName, String versionNumber):
-		- Imports the builtin class referenced by apiName, using the version specified by versionNumber. After this function is called, the functions in the imported module for the specified version can be used normally.
-		  dolphin:import("EmuAPI", "1.0.0")
-
-	void shutdown():
-		- Causes the whole script to immediately shut down/terminate.
-		  dolphin:shutdown()
-
---------------------------------------------------------------------------------------------------------------------------------------------------
-BitAPI class:
-
-	s64 bitwise_and(s64 inputArg1, s64 inputArg2):
-		- Returns the result of performing a bitwise AND on inputArg1 and inputArg2.
-		  BitAPI:bitwise_and(17, 41) ==> Returns 1
-
-	s64 bitwise_or(s64 inputArg1, s64 inputArg2):
-		- Returns the result of performing a bitwise OR on inputArg1 and inputArg2
-		  BitAPI:bitwise_or(17, 41) ==> Returns 57
-
-	s64 bitwise_not(s64 inputArg):
-		- Returns the result of performing a bitwise NOT on inputArg
-		  BitAPI:bitwise_not(41) ==> Returns -42
-
-	s64 bitwise_xor(s64 inputArg1, s64 inputArg2):
-		- Returns the result of performing a bitwise XOR on inputArg1 and inputArg2
-		  BitAPI:bitwise_xor(17, 41) ==> Returns 56
-
-	boolean logical_and(s64 inputArg1, s64 inputArg2):
-		- Returns the result of performing a logical AND on inputArg1 and inputArg2
-		  BitAPI:logical_and(true, false) ==> Returns false
+__s64 bit:bitwise_and(s64 inputArg1, s64 inputArg2)__%%%
 
-	boolean logical_or(s64 inputArg1, s64 inputArg2):
-		- Returns the result of performing a logical OR on inputArg1 and inputArg2
-		  BitAPI:logical_or(true, false) ==> Returns false
+* Returns bitwise AND of inputArg1 and inputArg2
 
-	boolean logical_xor(s64 inputArg1, s64 inputArg2):
-		- Returns the result of performing a logical XOR on inputArg1 and inputArg2
-		- BitAPI:logical_xor(true, false) ==> Returns true
+* bit:bitwise_and(17, 41) ==> Returns 1
 
-	boolean logical_not(s64 inputArg):
-		- Returns the result of performing a logical NOT on inputArg
-		  BitAPI:logical_not(true) ==> Returns false
+__s64 bit:bitwise_not(s64 inputArg)__%%%
 
-	s64 bit_shift_left(s64 startingValue, s64 shiftAmount):
-		- Returns the result of performing a bit-shift left on startingValue by shiftAmount
-		  BitAPI:bit_shift_left(8, 2) ==> Returns 32
+* Returns the bitwise NOT of inputArg
 
-	s64 bit_shift_right(s64 startingValue, s64 shiftAmount):
-		- Returns the result of performing a bit-shift right on startingValue by shiftAmount
-		  BitAPI:bit_shift_right(8, 1) ==> Returns 4
+* bit:bitwise_not(41) ==> Returns -42
 
---------------------------------------------------------------------------------------------------------
-EmuAPI class:
+__s64 bit:bitwise_or(s64 inputArg1, s64 inputArg2)__%%%
 
-	void frameAdvance():
-		- Frame advances by 1 frame (pauses execution of script until the next frame, and then resumes execution on the line after the frameAdvance() call at the start of the next frame.
-		  StatisticsAPI:getCurrentFrame() ==> Let's say this returns 155...
-		  EmuAPI:frameAdvance()
-		  StatisticsAPI:getCurrentFrame() ==> ...Then this would return 156, and would execute on the frame after the previous call to StatisticsAPI:getCurrentFrame()
+* Returns bitwise OR of inputArg1 and inputArg2
 
-	void loadState(String stateName):
-		- Loads the save state referenced by stateName
-		  EmuAPI:loadState("myState.sav") ==> Loads the savestate referenced by "myState.sav"
+* bit:bitwise_or(17, 41) ==> returns 57
 
-	void saveState(String stateName):
-		- Saves a savestate to a file with the name stateName
-		  EmuAPI:saveState("myState.sav") ==> Saves a savestate with a filename of "myState.sav"
-
-	void playMovie(String movieName):
-		- Starts playing the movie referenced by movieName
-		  EmuAPI:playMovie("myMovie.dtm") ==> Starts playing the movie file with a filename of "myMovie.dtm"
-
-	void saveMovie(String movieName):
-		- Saves a movie to the file with the name movieName
-		  EmuAPI:saveMovie("myMovie.dtm") ==> Saves a movie with a filename of "myMovie.dtm"
-
----------------------------------------------------------------------------------------------------------------
-GameCubeControllerAPI class:
-
-	This class uses a Lua table to represent the buttons pressed on a GameCube controller. I will refer to this table as being of type "GameCubeControllerStateTable" in the documentation down below. Here is a list of valid values for the table, with keys representing the values to the left of the equals sign (all keys in the table are of type String), and the values on the right being the corresponding values. Also note that if a button has a boolean type as a value, then true means the button is pressed, and false means the button is not pressed. Also note that the names for each button are case-insensitive.
-
-	{
-		"A" = true|false (boolean)
-		"B" = true|false (boolean)
-		"X" = true|false (boolean)
-		"Y" = true|false (boolean)
-		"Z" = true|false (boolean)
-		"L" = true|false (boolean)
-		"R" = true|false (boolean)
-		"Start" = true|false (boolean)
-		"Reset" = true|false (boolean)
-		"dPadUp" = true|false (boolean)
-		"dPadDown" = true|false (boolean)
-		"dPadLeft" = true|false (boolean)
-		"dPadRight" = true|false (boolean)
-		"triggerL" = 0-255 (u8)
-		"triggerR" = 0-255 (u8)
-		"analogStickX" = 0-255 (u8)
-		"analogStickY" = 0-255 (u8)
-		"cStickX" = 0-255 (u8)
-		"cStickY" = 0-255 (u8)
-	}
-
-	s64 getCurrentPortNumberOfPoll():
-		- This function is intended to be called only from inside of an OnGCControllerPolled callback function, and it returns which controller number is currently being polled (will be a number between 1 and 4).
-		  GameCubeControllerAPI:getCurrentPortNumberOfPoll() ==> If only 1 controller is plugged in to slot 1, then this will return 1
-
-	void setInputsForPoll(GameCubeControllerStateTable newControllerValues):
-		- This function is intended to be called only from inside of an OnGCControllerPolledCallback function, and it sets the controller which is being polled to have the same buttons pressed as specified by newControllerValues. Note that if a button is not specified in newControllerValues, then it will be set to its default value, which is false for digital buttons, 0 for the L and R triggers, and 128 for the control and analog sticks.
-		  GameCubeControllerAPI:setInputsForPoll( {B = true, X = false, cStickX = 45, triggerL = 12 } ) ==> If controller 1 is currently being polled, then after this function function finishes, the following table will describe the buttons pressed for controller 1 (which is also what a call to GameCubeControllerAPI:getInputsForPoll() made right after this would return): { A = false, B = true, X = false, Y = false, Z = false, L = false, R = false, Start = false, Reset = false, dPadUp = false, dPadDown = false, dPadLeft = false, dPadRight = false, triggerL = 12, triggerR = 0, analogStickX = 128, analogStickY = 128, cStickX = 45, cStickY = 128 }
-
-	GameCubeControllerStateTable getInputsForPoll():
-		- The function is intended to be called only from inside of an OnGCControllerPolledCallback function, and it gets the buttons pressed on the currently polled controller.
-		  GameCubeControllerAPI:getInputsForPoll() ==> If this was called right after the call to setInputsForPoll described above was made, then it would return the table described in the example call for setInputsForPoll()
-
-	GameCubeControllerStateTable getInputsForPreviousFrame(u8 controllerNumber):
-		- This function returns the inputs that were pressed on the controller referenced by controllerNumber on the previous frame. This function can be called at any point (it doesn't need to be called from a specific callback). Note that controllerNumber must be between 1 and 4.
-		  GameCubeControllerAPI:getInputsForPreviousFrame(1) ==> If the inputs pressed for controller 1 on the last frame were the same as was specified in the setInputsForPoll() example, then the same table would be returned by this function call.
-
-	boolean isGcControllerInPort(u8 controllerNumber):
-		- Returns true if a GameCube controller is plugged into the port specified by controllerNumber, and false otherwise. controllerNumber must be between 1 and 4.
-		  GameCubeControllerAPI:isGcControllerInPort(1) ==> Returns true if a GameCube controller is plugged into player 1's controller slot, and false otherwise.
-
-	boolean isUsingPort(u8 controllerNumber):
-		- Returns true if a controller is plugged into the port specified by controllerNumber, and false otherwise. controllerNumber must be between 1 and 4
-		  GameCubeControllerAPI:isUsingPort(1) ==> Returns true if a controller is plugged into player 1's controller slot, and false otherwise.
-
------------------------------------------------------------------------------------------------------------------------------------------------------------
-GraphicsAPI class:
-
-	This class is used to draw graphics on the screen. These functions will render graphics for the next frame, which means they must be called once per frame to make graphics show up on screen. Also, a call to beginWindow() will open up a new window, and any further calls made to beginWindow() before the window has been closed will create a nested sub-window. The window will be closed off by calling endWindow(). On a given frame, there must be an equal number of calls to beginWindow() and endWindow(). Also, certain items like checkboxes can only be added to windows, and not to the screen directly.
-
-Each function which draws graphics with color takes as input a colorString, which starts with "0X". After this, the next 2 numbers represent the hex value of red, then the next 2 numbers represent the hex value of blue, the next 2 numbers represent the hex value of green, and the last 2 numbers represent the brightness. For example, "0X00FFFFFF" would represent yellow (note that the string MUST appear in quotation marks).
-
-The position of graphics drawn for each function will always refer to an offset relative to the top left corner of the currently open innermost window (which is defined as the last window that was opened with beginWindow() which has not yet been closed with a corresponding call to endWindow(), and the graphics will appear in this window. If no window is open, then the graphics will be drawn directly on the screen/over the game, and the offset will be applied relative to the top-left corner of the screen.
-
-The following example shows how to display a window which contains a rectangle:
-
-dolphin:importModule("GraphicsAPI", "1.0")
-dolphin:importModule("EmuAPI", "1.0")
-
-while true do
-	GraphicsAPI:beginWindow()
-	GraphicsAPI:drawEmptyRectangle(20.0, 100.0, 200.0, 200.0, 3.0, "0XFFFFFFFF")
-	GraphicsAPI:endWindow()
-	EmuAPI:frameAdvance()
-end
-
-Alternatively, the following example shows how to draw a rectangle directly onto the screen:
-
-dolphin:importModule("GraphicsAPI", "1.0")
-dolphin:importModule("EmuAPI", "1.0")
-
-while true do
-	GraphicsAPI:drawEmptyRectangle(20.0, 100.0, 200.0, 200.0, 3.0, "0XFFFFFFFF")
-	EmuAPI:frameAdvance()
-end
-
-DOCUMENTATION:
-
-	void drawLine(float x1, float y1, float x2, float y2, float thickness, String colorString):
-		- Draws a line with a starting position of (x1, y1), an ending position of (x2, y2), the thickness specified by thickness, and the color specified by colorString
-		  GraphicsAPI:drawLine(100.0, 100.0, 200.0, 150.0, 3.0, "0X00FFFFFF")
-
-	void drawEmptyRectangle(float bottomLeftX, float bottomLeftY, float topRightX, float topRightY, float thickness, String lineColorString):
-		- Draws a rectangle with no filling in the middle which has its bottom left corner at position (bottomLeftX, bottomLeftY), its top right corner at position (topRightX, topRightY), a thickness of thickness, and the color specified by lineColorString
-		  GraphicsAPI:drawEmptyRectangle(100.0, 300.0, 200.0, 150.0, 4.0, "0X00FFFFFF")
-
-	void drawFilledRectangle(float bottomLeftX, float bottomLeftY, float topRightX, float topRightY, String fillColorString):
-		- Draws a filled rectangle which has its bottom left corner at position (bottomLeftX, bottomLeftY), its top right corner at position (topRightX, topRightY), and a color specified by fillColorString.
-		  GraphicsAPI:drawFilledRectangle(100.0, 300.0, 200.0, 150.0, "0X00FFFFFF")
-
-	void drawEmptyTriangle(float x1, float y1, float x2, float y2, float x3, float y3, float thickness, String lineColorString):
-		- Draws a triangle with no filling in the middle which is defined by the points (x1, y1), (x2, y2) and (x3, y3). The triangle also has a thickness specified by thickness, and a line color specified by lineColorString
-		  GraphicsAPI:drawEmptyTriangle(30.0, 30.0, 70.0, 70.0, 70.0, 90.0, 4.0, "0X00FFFFFF")
-
-	void drawFilledTriangle(float x1, float y1, float x2, float y2, float x3, float y3, String fillColorString):
-		- Draws a filled triangle which is defined by the points (x1, y1), (x2, y2) and (x3, y3). The triangle also is filled with the color specified by fillColorString
-		GraphicsAPI:drawFilledTriangle(30.0, 30.0, 70.0, 70.0, 70.0, 90.0, "0X00FFFFFF")
-
-	void drawEmptyCircle(float centerX, float centerY, float radius, float thickness, String lineColorString):
-		- Draws a circle with no filling in the middle which has a center of (centerX, centerY), a radius specified by radius, a thickness specified by thickness, and a color specified by lineColorString
-		  GraphicsAPI:drawEmptyCircle(500.0, 500.0, 75.0, 3.0, "0XAAbbCCFF")
-
-	void drawFilledCircle(float centerX, float centerY, float radius, String fillColorString):
-		- Draws a filled circle with a center of (centerX, centerY), a radius specified by radius, and a color specified by fillColorString
-		  GraphicsAPI:drawFilledCircle(500.0, 500.0, 75.0, "0XAAbbCCFF")
-
-	void drawEmptyPolygon(ListOfPoints listOfPoints, float thickness, String lineColorString):
-		- Draws a polygon with no filling in the middle which contains the points contained in listOfPoints, which are all connected together to create a polygon with thickness specified by thickness and a color specified by lineColorString. listOfPoints is a table of tables, where each sub-table contains 2 floats (which represent the X and Y coordinates of a point)
-		  GraphicsAPI:drawEmptyPolygon( { {250.0, 399.0}, {450.0, 150.0}, {650.0, 150.0}, {850.0, 399.0} }, 3.0, "0XFF00FFFF") ==> Draws a trapezoid
-
-	void drawFilledPolygon(ListofPoints listOfPoints, String lineColorString):
-		- Draws a filled polygon which contains the points contained in listOfPoints, which are all connected together to create a polygon with thickness specified by thickness and a color specified by lineColorString. listOfPoints is a table of tables, where each sub-table contains 2 floats (which represent the X and Y coordinates of a point)
-		  GraphicsAPI:drawFilledPolygon( { {250.0, 399.0}, {450.0, 150.0}, {650.0, 150.0}, {850.0, 399.0} }, "0XFF00FFFF") ==> Draws a trapezoid
-
-	void drawText(float x, float y, String textColor, String textContents):
-		- Draws the text on screen referenced by textContents. The text is drawn at position (x, y), and has the color specified by textColor
-		  GraphicsAPI:drawText(40.0, 40.0, "0XFFFFFFFF", "Hello World!") ==> Draws the text "Hello World!" on screen.
-
-	void addCheckbox(String checkboxLabel, s64 uniqueCheckboxId):
-		- Adds a checkbox to the currently opened window with the label specified by checkboxLabel. uniqueCheckboxId is the number which is used to get/set the value of the checkbox later on using the getCheckboxValue() and setCheckboxValue() functions respectively. Note that this will add the checkbox at wherever the screen-cursor is on the screen, which is a marker that starts at the top of a window and increases whenever certain elements are added to it (this differs from shapes drawn on the screen specified in the above functions, which can be placed anywhere on the screen, including overlapping with other elements, by specifying their position). Calling this function when there is no currently open window will cause an error.
-		  GraphicsAPI:addCheckbox("Do you understand?", 42) ==> Adds a checkbox on the currently open window with the text "Do you understand?" next to the checkbox. The checkbox can have it's value get/set using the getCheckboxValue() and setCheckboxValue() functions using its ID of 42 (whatever number the user chooses to pass in to this function gets associated as the identifier for the checkbox).
-
-	boolean getCheckboxValue(s64 uniqueCheckboxId):
-		- Gets the value of the checkbox specified by uniqueCheckboxId (returns true if the checkbox is pressed, and false otherwise).
-		  GraphicsAPI:getCheckboxValue(42) ==> Returns true if checkbox with unique ID of 42 is checked off, and false otherwise.
-
-	void setCheckboxValue(s64 uniqueCheckboxId, boolean newCheckboxValue):
-		- Sets the checkbox specified by uniqueCheckboxId to the value specified by newCheckboxValue (if newCheckboxValue is true, then the checkbox is set to pressed. Otherwise, it's set to not pressed).
-		  GraphicsAPI:setChecboxValue(42, true) ==> After this, the checkbox with unique ID of 42 is checked off.
-
-	void addRadioButtonGroup(s64 uniqueRadioButtonGroupID):
-		- Creates a radio button group with an ID specified by uniqueRadioButtonGroupID. This doesn't add any graphics to the screen - it just creates a group that radio buttons can be added into.
-		  GraphicsAPI:addRadioButtonGroup(42) ==> Creates a radio button group with an ID of 42
-
-	void addRadioButton(String radioButtonLabel, s64 radioButtonGroupId, s64 radioButtonValue):
-		- Adds a radio button to the currently opened window with the label specified by radioButtonLabel. The button is added to the group specified by radioButtonGroupID, and has the value of radioButtonValue. The button is added where the screen-cursor is in the window. If this function is called with no window currently open, it will cause an error.
-		  GraphicsAPI:addRadioButton("Pizza", 42, 1) ==> After this, a radio button will appear on screen with the label "Pizza" next to it. When this button is clicked, then the radio button with a group ID of 42 will have its value set to 1.
-
-	s64 getRadioButtonGroupValue(s64 radioButtonGroupId):
-		- Returns the value of the radio button group referenced by radioButtonGroupID.
-		  GraphicsAPI:getRadioButtonGroupValue(42) ==> If the button in the above example was pressed, then calling this function would return 1, since 1 is the value associated with that particular radio button in the group.
-
-	void setRadioButtonGroupValue(s64 radioButtonGroupId, s64 newRadioButtonValue):
-		- Sets the radio button group specified by radioButtonGroupId to the value specified by newRadioButtonValue
-		  GraphicsAPI:setRadioButtonGroupValue(42, 1) ==> After this, if the radio button specified in the example above was created, then this would make the the radio button with the label "Pizza" be pressed.
-
-	void addTextBox(s64 uniqueTextBoxId, String textBoxLabel):
-		- Adds a text box to the currently opened window with the label specified by textBoxLabel. uniqueTextBoxId is the number which is used to identify the text box, and is used to get/set the value of the text box with the getTextBoxValue() and setTextBoxValue() functions respectively. This text box is added where the screen-cursor is in the window. If this function is called with no window currently open, it will cause an error.
-		  GraphicsAPI:addTextBox(42, "Enter your name:") ==> Displays a text box on screen which has a label next to it that says "Enter our name:",, and has an ID of 42.
-	
-	String getTextBoxValue(s64 uniqueTextBoxId):
-		- Returns the current contents of the text box specified by uniqueTextBoxId
-		  GraphicsAPI:getTextBoxValue(42) ==> returns what is currently typed in the textbox with an ID of 42.
-
-	void setTextBoxValue(s64 uniqueTextBoxId, String newTextBoxContents):
-		- Sets the text box specified by uniqueTextBoxId to have the contents specified by newTextBoxContents.
-		  GraphicsAPI:setTextBoxValue(42, "Hello World!") ==> After this, the text box will contain the words "Hello World!"
-
-	void addButton(String buttonLabel, s64 uniqueButtonId, CallbackFunction callbackFunc, float buttonWidth, float buttonHeight):
-		- Creates/displays a button in the currently opened window which contains the text specified by buttonLabel inside of it. Additionally, uniqueButtonId will uniquely identify the button. buttonWidth will be the width of the button, and buttonHeight will be the height of the button. Lastly, callbackFunc is a Lua function, which is the function that will be called when the button is clicked. Note that the association of a specific uniqueButtonId and a CallbackFunction is permanent, and cannot be changed later on (instead, another button would need to be created). This function outputs the button where the screen cursor is in the window. If no window is currently open when this function is called, then an error occurs.
-		  GraphicsAPI:addButton("Click Me!", 42, onClickFunction, 200.0, 100.0) ==> After this, a button exists which says "Click Me!". If the user clicks this button, it will call the function onClickFunction
-
-	void pressButton(s64 uniqueButtonId):
-		- Calls the callback function associated with the button which has a unique button ID of uniqueButtonId
-		  GraphicsAPI:pressButton(42) ==> If the addButton() call in the example above was run right before this, then this function would cause the onClickFunction to be called.
-
-	void newLine(float verticalSpacing):
-		- Pushes the screen cursor down by the amount specified by verticalSpacing. Only affects checkboxes, radio buttons, text boxes, and buttons.
-		  GraphicsAPI:newLine(15.0) ==> Advances the cursor by 15.0 pixels
-
-	void beginWindow(String windowName):
-		- Creates a new window with the name/label specified by windowName. This window will be the currently opened window until another call to beginWindow() or endWindow() is made. The first call to this function will create a window, and any subsequent calls to beginWindow() made before the window has been closed will create a nested sub-window inside of the currently opened window. There must be an equal number of calls to beginWindow() and endWindow() on each frame.
-		  GraphicsAPI:beginWindow("My Window") ==> Displays a window on screen with the title "My Window"
-
-	void endWindow():
-		- Finalizes/finishes the currently opened window. There must be an equal number of calls to beginWindow() and endWindow() on each frame.
-		  GraphicsAPI:endWindow() ==> After this, the next time addButton is called, it won't add the button to the window which was previously the current window (since that is now done being written to).
-
---------------------------------------------------------------------------------------------------------------------------------------------
-MemoryAPI class:
-
-	u8 read_u8(s64 address):
-		- Returns the unsigned byte stored at the specified address in memory.
-		  MemoryAPI:read_u8(0X800000A8) ==> Returns the byte at address 0X800000A8 as an unsigned byte.
-
-	u16 read_u16(s64 address):
-		- Returns the unsigned short stored at the specified address in memory.
-		  MemoryAPI:read_u16(0X800000A8) ==> Returns the 2 bytes at address 0X800000A8 as an unsigned short.
-
-	u32 read_u32(s64 address):
-		- Returns the unsigned int stored at the specified address in memory.
-		  MemoryAPI:read_u32(0X800000A8) ==> Returns the 4 bytes at address 0X800000A8 as an unsigned int
-
-	u64 read_u64(s64 address):
-		- Since Lua does not support unsigned 64 bit numbers, calling this function results in an error.
-		  MemoryAPI:read_u64(0X800000A8) ==> Causes an exception to be thrown (if you want to read an 8 byte number, use read_s64() instead).
-
-	s8 read_s8(s64 address):
-		- Returns the signed byte stored at the specified address in memory.
-		  MemoryAPI:read_s8(0X800000A8) ==> Returns the byte at address 0X800000A8 as a signed byte.
-
-	s16 read_s16(s64 address):
-		- Returns the signed short stored at the specified address in memory.
-		  MemoryAPI:read_s16(0X800000A8) ==> Returns the 2 bytes at address 0X800000A8 as a signed short.
-
-	s32 read_s32(s64 address):
-		- Returns the signed int stored at the specified address in memory.
-		  MemoryAPI:read_s32(0X800000A8) ==> Returns the 4 bytes at address 0X800000A8 as a signed int.
-
-	s64 read_s64(s64 address):
-		- Returns the signed long long stored at the specified address in memory.
-		  MemoryAPI:read_s64(0X800000A8) ==> Returns the 8 bytes at address 0X800000A8 as a signed long long.
-
-	float read_float(s64 address):
-		- Returns the float stored at the specified address in memory.
-		  MemoryAPI:read_float(0X800000A8) ==> Returns the 4 bytes at address 0X800000A8 as a float.
-
-	double read_double(s64 address):
-		- Returns the double stored at the specified address in memory.
-		  MemoryAPI:read_double(0X800000A8) ==> Returns the 8 bytes at address 0X800000A8 as a double.
-
-	String read_fixed_length_string(s64 address, s64 numChars):
-		- Returns a string which contains a number of characters equal to numChars, starting at the specified address.
-		  MemoryAPI:read_fixed_length_string(0X800000A8, 3) ==> If 0X800000A8 is the starting address for storing the String "Star Fox" in memory, then this function call would return "Sta"
-
-	String read_null_terminated_string(s64 address):
-		- Returns a string which starts with chars at the specified address, and continues until the null terminator character is encountered (which is '\0')
-		  MemoryAPI:read_null_terminated_string(0X800000A8) ==> If 0X800000A8 is the starting address for storing the null-terminated String "Star Fox" in memory, then this function call would return "Star Fox"
-
-	AddressToUnsignedByteTable read_unsigned_bytes(s64 address, s64 numBytes):
-		- Returns a table containing numBytes entries, which represents the bytes read starting at the specified address as unsigned bytes. Note that this table has keys of type s64 (for the addresses), and values of type u8 (to represent the unsigned bytes).
-		  MemoryAPI:read_unsigned_bytes(0X800000A8, 3) ==> Could return { 0X800000A8 = 12, 0X800000A9 = 251, 0X800000AA = 17 }
-	
-	AddressToSignedByteTable read_signed_bytes(s64 address, s64 numBytes):
-		- Returns a table containing numBytes entries, which represents the bytes read starting at the specified address as signed bytes. Note that this table has keys of type s64 (for the addresses) and values of type s8 (to represent the signed bytes).
-		  MemoryAPI:read_signed_bytes(0X800000A8, 3) ==> If memory looks the same as in the example above, then this would return { 0X800000A8 = 12, 0X800000A9 = -5, 0X800000AA = 17 }
-
-	void write_u8(s64 address, u8 new_u8):
-		- Writes the unsigned byte specified by new_u8 to the specified address.
-		  MemoryAPI:write_u8(0X800000A8, 51) ==> Now the byte at 0X800000A8 equals 51
-
-	void write_u16(s64 address, u16 new_u16):
-		- Writes the unsigned short specified by new_u16 to the specified address.
-		  MemoryAPI:write_u16(0X800000A8, 300) ==> Now the 2 bytes starting at 0X800000A8 contain the unsigned short 300
-
-	void write_u32(s64 address, u32 new_u32):
-		- Writes the unsigned int specified by new_u32 to the specified address.
-		  MemoryAPI:write_u32(0X800000A8, 500) ==> Now the 4 bytes starting at 0X800000A8 contain the unsigned int 500
-
-	void write_u64(s64 address, u64 new_u64):
-		- Calling this function throws an error, since Lua doesn't support the u64 type (s64 is the largest type it supports).
-		  MemoryAPI:write_u64(0X800000A8, 75) ==> Throws an error.
-
-	void write_s8(s64 address, s8 new_s8):
-		- Writes the signed byte specified by new_s8 to the specified address.
-		  MemoryAPI:write_s8(0X800000A8, -12) ==> Now the byte at 0X800000A8 equals -12
-
-	void write_s16(s64 address, s16 new_s16):
-		-  Writes the signed short specified by new_s16 to the specified address.
-		   MemoryAPI:write_s16(0X800000A8, 800) ==> Now the 2 bytes starting at 0X800000A8 contain the signed short 800.
-
-	void write_s32(s64 address, s32 new_s32):
-		- Writes the signed int specified by new_s32 to the specified address.
-		  MemoryAPI:write_s32(0X800000A8, 5000) ==> Now the 4 bytes starting at 0X800000A8 contain the signed int 5000
-
-	void write_s64(s64 address, s64 new_s64):
-		- Writes the signed long long specified by new_s64 to the specified address.
-		  MemoryAPI:write_s64(0X800000A8, 7000) ==> Now the 8 bytes starting at 0X800000A8 contain the signed long long 7000
-
-	void write_float(s64 address, float new_float):
-		- Writes the float specified by new_float to the specified address.
-		  MemoryAPI:write_float(0X800000A8, 45.32) ==> Now the 4 bytes starting at 0X800000A8 contain the float 45.32
-
-	void write_double(s64 address, double new_double):
-		- Writes the double specified by new_double to the specified address.
-		  MemoryAPI:write_double(0X800000A8, 300.472) ==> Now the 8 bytes starting at address 0X800000A8 contain the double 300.472
-
-	void write_string(s64 address, String new_string):
-		 - Writes the contents of new_string to the specified address (each char of the string is treated as an unsigned char, which is written out to the address in order starting from the first char of the string). This function will always write a null terminator character after writing the last character in the string, so that the String will always be a valid C-style null-terminated string.
-		  MemoryAPI:write_string(0X800000A8, "Star Fox") ==> After this, if the bytes starting at 0X800000A8 are read back out as unsigned chars, they will read 'S', 't', 'a', 'r', ' ', 'F', 'o', 'x', '\0'
-
-	void write_bytes(AddressToByteMap addressToByteMap):
-		- This function takes as input a table, where the keys of the table are of type s64 (and represent addresses), and the values of the table are s16s (which represent 1 byte. More specifically, they can be any integer number between -128 and 255). The function then writes the specified value to their associated address. Note that if value of the table is negative, it will be written as a signed byte to that spot in memory. Otherwise, it will be written as an unsigned byte to that spot in memory.
-		  MemoryAPI:write_bytes( { 0X800000A8 = -120, 0X800000A9 = 241, 0X800000AA = 42 } ) ==> Now the 3 bytes starting at 0X800000A8 contain the signed byte of -120, the unsigned byte of 241, and the unsigned byte of 42, respectively.
-
-------------------------------------------------------------------------------------------------------------------------------------------------
-RegistersAPI class:
-
-	In the RegistersAPI class, the register is specified in each function using a String (referred to as registerName in the documentation down below). The following is a list of all register names (note that each register string is case-insensitive).
-
-	"R0, "R1", "R2", ... , "R31" - General Purpose Registers R0 - R31 (each is 4 bytes in size).
-	"F0", "F1", "F2", ... , "F31" - Floating Point Registers F0 - F31 (each is 16 bytes in size).
-	"LR" - The LR register, which stores the address to return to when a function finishes (is 4 bytes in length).
-	"PC" - The PC register, which contains the address of the next instruction to execute (is 4 bytes in length).
-	
-	Also note that byteOffset must be a number between 0 and the size of the register in bytes minus 1. Therefore, the full range of possible valid values for byteOffset is 0-15, with 0 representing reading from the start of the register normally with no offset.
-
-	u8 getU8FromRegister(String registerName, u8 byteOffset):
-		- Returns the value in the register specified by registerName as an unsigned byte (using an offset of byteOffset from the start of the register).
-		  RegistersAPI:getU8FromRegister("R28", 2) ==> Returns the 3rd byte of the register R28 as an unsigned byte.
-
-	u16 getU16FromRegister(String registerName, u8 byteOffset):
-		- Returns the value in the register specified by registerName as an unsigned short (using an offset of byteOffset from the start of the register).
-		  RegistersAPI:getU16FromRegister("R5", 0) ==> Returns the first 2 bytes of the register R5 as an unsigned short.
-
-	u32 getU32FromRegister(String registerName, u8 byteOffset):
-		- Returns the value in the register specified by registerName as an unsigned int (using an offset of byteOffset from the start of the register).
-		  RegistersAPI:getU32FromRegister("R2", 0) ==> Returns the contents of R2 as an unsigned int.
-
-	u64 getU64FromRegister(String registerName, u8 byteOffset):
-		- Calling this function throws an error, since Lua's largest data type is s64 (u64 is not supported).
-		  RegistersAPI:getU64FromRegister("F3", 0) ==> Throws an error.
-
-	s8 getS8FromRegister(String registerName, u8 byteOffset):
-		- Returns the value in the register specified by register name as a signed byte (using an offset of byteOffset from the start of the register).
-		  RegistersAPI:getS8FromRegister("R3", 1) ==> Returns the 2nd byte of the register R3 as a signed byte.
-
-	s16 getS16FromRegister(String registerName, u8 byteOffset):
-		- Returns the value in the register specified by register name as a signed short (using an offset of byteOffset from the start of the register).
-		  RegistersAPI:getS16FromRegister("R5", 2) ==> Returns the 3rd and 4th bytes of the register R5 as a signed short.
-
-	s32 getS32FromRegister(String registerName, u8 byteOffset):
-		- Returns the value in the register specified by register name as a signed int (using an offset of byteOffset from the start of the register).
-		  RegistersAPI:getS32FromRegister("R8", 0) ==> Returns the contents of the register R8 as a signed int.
-
-	s64 getS64FromRegister(String registerName, u8 byteOffset):
-		- Returns the value stored in the register specified by register name as a signed long long (using an offset of byteOffset from the start of the register).
-		  RegistersAPI:getS64FromRegister("F3", 8) ==> Returns the 9th - 16th bytes of register R3 as a signed long long.
-
-	float getFloatFromRegister(String registerName, u8 byteOffset):
-		- Returns the value stored in the register specified by register name as a float (using an offset of byteOffset from the start of the register).
-		  RegistersAPI:getFloatFromRegister("F0", 0) ==> Returns the first 4 bytes of the register F0 as a float.
-
-	double getDoubleFromRegister(String registerName, u8 byteOffset):
-		- Returns the value stored in the register specified by register name as a double (using an offset of byteOffset from the start of the register).
-		  RegistersAPI:getDoubleFromRegister("F31", 0) ==> Returns the first 8 bytes of the register F31 as a double.
-
-	UnsignedBytesTable getUnsignedBytesFromRegister(String registerName, u8 numBytesToRead, u8 startingOffset):
-		- Returns a table which represents the contents of the register specified by registerName as a list of unsigned bytes. The table will have numBytesToRead total entries in it, and it will start reading from the register at the offset from the start of the register specified by startingOffset. Note that the keys of the returned table will just be integers which start at 1 and go up in order for each byte read in the register.
-		  RegistersAPI:getUnsignedBytesFromRegister("R3", 2, 2) ==> Could return { 1 = 181, 2 = 31 }, assuming that the 3rd and 4th bytes stored in register R3 as unsigned bytes are 181 and 31 respectively.
-
-	SignedBytesTable getSignedBytesFromRegister(String registerName, u8 numBytesToRead, u8 startingOffset):
-		- Returns a table which represents the contents of the register specified by registerName as a list of signed bytes. The table will have numBytesToRead total entries in it, and it will start reading from the register at the offset from the start of the register specified by startingOffset. Note that the keys of the returned table will just be integers which start at 1 and go up in order for each byte read in the register.
-		RegistersAPI:getSignedBytesFromRegister("R3", 2, 2) ==> Assuming the register looks the same as in the example immediately above this, this function call would return { 1 = -75, 2 = 31 }
-
-	void writeU8ToRegister(String registerName, u8 new_u8, u8 byteOffset):
-		- Writes the unsigned byte referenced by new_u8 to the register specified by registerName (using an offset of byteOffset from the start of the register).
-		  RegistersAPI:writeU8ToRegister("R5", 31, 1) ==> Now the 2nd byte of the register R5 contains 31.
-
-	void writeU16ToRegister(String registerName, u16 new_u16, u8 byteOffset):
-		- Writes the unsigned short referenced by new_u16 to the register specified by registerName (using an offset of byteOffset from the start of the register).
-		  RegistersAPI:writeU16ToRegister("R5", 132, 0) ==> Now the first 2 bytes of the R5 register contain the unsigned short of 132
-
-	void writeU32ToRegister(String registerName, u32 new_u32, u8 byteOffset):
-		- Writes the unsigned int referenced by new_u32 to the register specified by registerName (using an offset of byteOffset from the start of the register).
-		  RegistersAPI:writeU32ToRegister("R7", 4000, 0) ==> Now the R7 register contains the unsigned int of 4000
-
-	void writeU64ToRegister(String registerName, u64 new_u64, u8 byteOffset):
-		- Calling this function throws an error, since Lua doesn't support the u64 data type (s64 is the only 8-byte datatype supported by Lua).
-		  RegistersAPI:writeU64ToRegister("R3", 2000, 0) ==> Throws an error.
-
-	void writeS8ToRegister(String registerName, s8 new_s8, u8 byteOffset):
-		- Writes the signed byte referenced by new_s8 to the register specified by registerName (using an offset of byteOffset from the start of the register).
-		  RegistersAPI:writeS8ToRegister("R2", -5, 0) ==> Now the 1st byte of the R2 register contains the signed byte of -5.
-
-	void writeS16ToRegister(String registerName, s16 new_s16, u8 byteOffset):
-		- Writes the signed short referenced by new_s16 to the register specified by registerName (using an offset of byteOffset from the start of the register).
-		  RegistersAPI:writeS16ToRegister("R9", -100, 0) ==> Now the first 2 bytes of the R9 register contain the signed short of -100
-
-	void writeS32ToRegister(String registerName, s32 new_s32, u8 byteOffset):
-		- Writes the signed int referenced by new_s32 to the register specified by registerName (using an offset of byteOffset from the start of the register).
-		  RegistersAPI:writeS32ToRegister("R15", -9000, 0) ==> Now the R15 register contains the signed int of -9000
-
-	void writeS64ToRegister(String registerName, s64 new_s64, u8 byteOffset):
-		- Writes the signed long long referenced by new_s64 to the register specified by registerName (using an offset of byteOffset from the start of the register).
-		  RegistersAPI:writeS64ToRegister("F8", 35, 8) ==> Now the 9th to 16th bytes of the F8 register contain the signed long long of 35.
-
-	void writeFloatToRegister(String registerName, float new_float, u8 byteOffset):
-		- Writes the float referenced by new_float to the register specified by registerName (using an offset of byteOffset from the start of the register).
-		  RegistersAPI:writeFloatToRegister("F4", 54.63, 0) ==> Now the first 4 bytes of the F4 register contain the float 54.63
-
-	void writeDoubleToRegister(String registerName, double new_double, u8 byteOffset):
-		- Writes the double referenced by new_double to the register specified by registerName (using an offset of byteOffset from the start of the register).
-		  RegistersAPI:writeDoubleToRegister("F13", 112.43, 0) ==> Now the first 8 bytes of the F13 register contain the double 112.43
-
-	void writeBytesToRegister(String registerName, IndexToByteTable indexToByteTable, u8 byteOffset):
-		- Writes the bytes specified by indexToByteTable to the register specified by registerName (using a starting offset of byteOffset from the start of the register). Note that indexToByteTable is expected to be a table whose keys are integers which start with 1, and go up by 1 for each successive byte that should be written to the register. The values of this table are of type s16, since they need to store values between -128 and 255. Also note that all negative values are represented as signed bytes, and all positive values are represented as unsigned bytes.
-		  RegistersAPI:writeBytesToRegister("R9", { 1 = 180, 2 = -97, 3 = 45 }, 1) ==> writes the unsigned byte 180, the signed byte -97, and the unsigned byte of 45 to the Register R9, starting from the 2nd byte of the register (i.e. these bytes are written to the 2nd, 3rd and 4th bytes of the register respectively).
-
----------------------------------------------------------------------------------------------------------------------------------------------------------
-StatisticsAPI class:
-
-	boolean isRecordingInput():
-		- Returns true if a movie is currently recording, and false otherwise.
-		  StatisticsAPI:isRecordingInput()
-
-	boolean isRecordingInputFromSaveState():
-		- Returns true if a movie is currently recording from a save state, and false otherwise.
-		  StatisticsAPI:isRecordingInputFromSaveState()
-
-	boolean isPlayingInput():
-		- Returns true if a movie is playing back, and false otherwise.
-		  StatisticsAPI:isPlayingInput()
-
-	boolean isMovieActive():
-		- Returns true if a movie is active, and false otherwise.
-		  StatisticsAPI:isMovieActive()
-
-	s64 getCurrentFrame():
-		- Returns the current frame number.
-		  StatisticsAPI:getCurrentFrame()
-
-	s64 getMovieLength():
-		- Returns the movie length (in terms of number of frames).
-		  StatisticsAPI:getMovieLength()
-
-	s64 getRerecordCount():
-		- Returns the number of rerecords in the movie.
-		  StatisticsAPI:getRerecordCount()
-
-	s64 getCurrentInputCount():
-		- Returns the current input count for the movie.
-		  StatisticsAPI:getCurrentInputCount()
-
-	s64 getTotalInputCount():
-		- Returns the total input count for the movie.
-		  StatisticsAPI:getTotalInputCount()
-
-	s64 getCurrentLagCount():
-		- Returns the current lag count for the movie.
-		  StatisticsAPI:getCurrentLagCount()
-
-	s64 getTotalLagCount():
-		- Returns the total lag count for the movie.
-		  StatisticsAPI:getTotalLagCount()
-
----------------------------------------------------------------------------------------------------------------
-OnFrameStart class:
-
-	RegistrationReturnType register(LuaFunction luaFunction):
-		- Registers the Lua function which was passed into the function to run on the start of each frame (when Callback_NewField() is called), and returns a RegistrationReturnType value, which is used to deregister the function when the user doesn't want the function to run anymore.
-		  result = OnFrameStart:register(callbackFunc) ==> Now callbackFunc will be called at the start of each frame, and the result variable can be used to unregister the function later on.
-
-	void registerWithAutoDeregistration(LuaFunction luaFunction):
-		- Registers the Lua function which was passed into the function to run on the start of each frame (when Callback_NewFIeld() is called). This function returns nothing, since it unregisters automatically when the only parts of the script that are still running are other callbacks that were registered with auto deregistration.
-		OnFrameStart:registerWithAutoDeregistration(callbackFunc) ==> Now callbackFunc will be called at the start of each frame. This callback will auto-deregister when the only parts of the script that are still running are other callbacks that were registered with auto-deregistration.
-
-	void unregister(RegistrationReturnType callbackReference):
-		- Unregisters the callback referred to by callbackReference, so it will no longer run at the start of each frame (deletes it from the list of functions to run at the start of each frame). This function takes as input the value which was returned when the function was registered, which is what is used to uniquely identify the function to deregister.
-		  resultVal = OnFrameStart:register(callbackFunc) ==> Registers callbackFunc to run at the start of each frame.
-		  OnFrameStart:unregister(resultVal) ==> callbackFunc will no longer run at the start of each frame.
-
----------------------------------------------------------------------------------------------------------------
-OnGCControllerPolled class:
-
-	RegistrationReturnType register(LuaFunction luaFunction):
-		- Registers the Lua function which was passed into the function to run whenever the game polls for GameCube controller input, and returns a RegistrationReturnType value, which is used to deregister the function when the user doesn't want the function to run anymore.
-		  result = OnGCControllerPolled:register(callbackFunc) ==> Now callbackFunc will be called each time the game polls a GameCube controller for input, and the result variable can be used to unregister the function later on.
-
-	void registerWithAutoDeregistration(LuaFunction luaFunction):
-		- Registers the Lua function which was passed into the function to run whenever the game polls for GameCube controller input. This function returns nothing, since it unregisters automatically when the only parts of the script that are still running are other callbacks that were registered with auto deregistration.
-		OnGCControllerPolled:registerWithAutoDeregistration(callbackFunc) ==> Now callbackFunc will be called whenever the game polls for GameCube controller input. This callback will auto-deregister when the only parts of the script that are still running are other callbacks that were registered with auto-deregistration.
-
-	void unregister(RegistrationReturnType callbackReference):
-		- Unregisters the callback referred to by callbackReference, so it will no longer run when the game polls for GameCube controller input (deletes it from the list of functions to run when the game polls for GameCube controller input). This function takes as input the value which was returned when the function was registered, which is what is used to uniquely identify the function to deregister.
-		  resultVal = OnGCControllerPolled:register(callbackFunc) ==> Registers callbackFunc to run whenever the game polls a GameCube controller for input
-		  OnGCControllerPolled:unregister(resultVal) ==> callbackFunc will no longer run when the game polls a GameCube controller for input
-
---------------------------------------------------------------------------------------------------------------
-OnWiiInputPolled class:
-
-	RegistrationReturnType register(LuaFunction luaFunction):
-		- Registers the Lua function which was passed into the function to run whenever the game polls for Wii input, and returns a RegistrationReturnType value, which is used to deregister the function when the user doesn't want the function to run anymore.
-		  result = OnWiiInputPolled:register(callbackFunc) ==> Now callbackFunc will be called each time the game polls for Wii input, and the result variable can be used to unregister the function later on.
-
-	void registerWithAutoDeregistration(LuaFunction luaFunction):
-		- Registers the Lua function which was passed into the function to run whenever the game polls for Wii input. This function returns nothing, since it unregisters automatically when the only parts of the script that are still running are other callbacks that were registered with auto deregistration.
-		OnWiiInputPolled:registerWithAutoDeregistration(callbackFunc) ==> Now callbackFunc will be called whenever the game polls for Wii input. This callback will auto-deregister when the only parts of the script that are still running are other callbacks that were registered with auto-deregistration.
-
-	void unregister(RegistrationReturnType callbackReference):
-		- Unregisters the callback referred to by callbackReference, so it will no longer run when the game polls for Wii input (deletes it from the list of functions to run when the game polls for Wii input). This function takes as input the value which was returned when the function was registered, which is what is used to uniquely identify the function to deregister.
-		  resultVal = OnWiiInputPolled:register(callbackFunc) ==> Registers callbackFunc to run whenever the game polls for Wii input.
-		  OnWiiInputPolled:unregister(resultVal) ==> callbackFunc will no longer run when the game polls for Wii input.
-
--------------------------------------------------------------------------------------------------------------
-OnInstructionHit class:
-
-	RegistrationReturnType register(s64 instructionAddress, LuaFunction luaFunction):
-		- Registers the Lua function which was passed into the function to run whenever the instruction specified by instructionAddress is hit by the game, and returns a RegistrationReturnType value, which is used to deregister the function when the user doesn't want the function to run anymore.
-		  result = OnInstructionHit:register(0X80000ABC, callbackFunc) ==> Now callbackFunc will be called whenever the game hits the instruction at address 0X80000ABC, and the result variable can be used to unregister the function later on.
-
-	void registerWithAutoDeregistration(s64 instructionAddress, LuaFunction luaFunction):
-		- Registers the Lua function which was passed into the function to run whenever the instruction specified by instructionAddress is hit by the game. This function returns nothing, since it unregisters automatically when the only parts of the script that are still running are other callbacks that were registered with auto deregistration.
-		OnInstructionHit:registerWithAutoDeregistration(0X80000ABC, callbackFunc) ==> Now callbackFunc will be called whenever the  game hits the instruction at address 0X80000ABC. This callback will auto-deregister when the only parts of the script that are still running are other callbacks that were registered with auto-deregistration.
-
-	void unregister(s64 instructionAddress, RegistrationReturnType callbackReference):
-		- Unregisters the callback referred to by callbackReference, so it will no longer run when the instruction specified by instructionAddress is hit. This function takes as input the value which was returned when the function was registered, which is what is used to uniquely identify the function to deregister.
-		  resultVal = OnInstructionHit:register(0X80000ABC, callbackFunc) ==> Registers callbackFunc to run whenever the specified instruction is hit.
-		  OnInstructionHit:unregister(0X80000ABC, resultVal) ==> callbackFunc will no longer run when the specified instruction is hit.
-
----------------------------------------------------------------------------------------------------------------
-OnMemoryAddressReadFrom class:
-
-		RegistrationReturnType register(s64 memoryAddress, LuaFunction luaFunction):
-		- Registers the Lua function which was passed into the function to run whenever the memory address specified by memoryAddress is read by the game, and returns a RegistrationReturnType value, which is used to deregister the function when the user doesn't want the function to run anymore.
-		  result = OnMemoryAddressReadFrom:register(0X80000ABC, callbackFunc) ==> Now callbackFunc will be called whenever the game reads the memory address of 0X80000ABC, and the result variable can be used to unregister the function later on.
-
-	void registerWithAutoDeregistration(s64 memoryAddress, LuaFunction luaFunction):
-		- Registers the Lua function which was passed into the function to run whenever the memory address specified by memoryAddress is read by the game. This function returns nothing, since it unregisters automatically when the only parts of the script that are still running are other callbacks that were registered with auto deregistration.
-		OnMemoryAddressReadFrom:registerWithAutoDeregistration(0X80000ABC, callbackFunc) ==> Now callbackFunc will be called whenever the  game reads the memory address of 0X80000ABC. This callback will auto-deregister when the only parts of the script that are still running are other callbacks that were registered with auto-deregistration.
-
-	void unregister(s64 memoryAddress, RegistrationReturnType callbackReference):
-		- Unregisters the callback referred to by callbackReference, so it will no longer run when the memory address specified by memoryAddress is read from. This function takes as input the value which was returned when the function was registered, which is what is used to uniquely identify the function to deregister.
-		  resultVal = OnMemoryAddressReadFrom:register(0X80000ABC, callbackFunc) ==> Registers callbackFunc to run whenever the specified memory address is read from.
-		  OnMemoryAddressReadFrom:unregister(0X80000ABC, resultVal) ==> callbackFunc will no longer run when the specified memory address is read from.
-
----------------------------------------------------------------------------------------------------------------
-OnMemoryAddressWrittenTo class:
-
-		RegistrationReturnType register(s64 memoryAddress, LuaFunction luaFunction):
-		- Registers the Lua function which was passed into the function to run whenever the memory address specified by memoryAddress is written to by the game, and returns a RegistrationReturnType value, which is used to deregister the function when the user doesn't want the function to run anymore.
-		  result = OnMemoryAddressWrittenTo:register(0X80000ABC, callbackFunc) ==> Now callbackFunc will be called whenever the game writes to the memory address of 0X80000ABC, and the result variable can be used to unregister the function later on.
-
-	void registerWithAutoDeregistration(s64 memoryAddress, LuaFunction luaFunction):
-		- Registers the Lua function which was passed into the function to run whenever the memory address specified by memoryAddress is written to by the game. This function returns nothing, since it unregisters automatically when the only parts of the script that are still running are other callbacks that were registered with auto deregistration.
-		OnMemoryAddressWrittenTo:registerWithAutoDeregistration(0X80000ABC, callbackFunc) ==> Now callbackFunc will be called whenever the  game writes to the memory address of 0X80000ABC. This callback will auto-deregister when the only parts of the script that are still running are other callbacks that were registered with auto-deregistration.
-
-	void unregister(s64 memoryAddress, RegistrationReturnType callbackReference):
-		- Unregisters the callback referred to by callbackReference, so it will no longer run when the memory address specified by memoryAddress is written to. This function takes as input the value which was returned when the function was registered, which is what is used to uniquely identify the function to deregister.
-		  resultVal = OnMemoryAddressWrittenTo:register(0X80000ABC, callbackFunc) ==> Registers callbackFunc to run whenever the specified memory address is written to.
-		  OnMemoryAddressWrittenTo:unregister(0X80000ABC, resultVal) ==> callbackFunc will no longer run when the specified memory address is written to.
-
-----------------------------------------------------------------------------------------------------------------
+__s64 bit:bitwise_xor(s64 inputArg1, s64 inputArg2)__%%%
+
+* Returns the bitwise XOR of inputArg1 and inputArg2
+
+* bit:bitwise_xor(17, 41) ==> Returns 56
+
+__boolean bit:logical_and(s64 inputArg1, s64 inputArg2)__%%%
+
+* Returns the logical AND of inputArg1 and inputArg2
+
+* bit:logical_and(true, false) ==> Returns false.
+
+__boolean bit:logical_not(s64 inputArg)__%%%
+
+* Returns the logical NOT of inputArg
+
+* bit:logical_not(true) ==> Returns false.
+
+__boolean bit:logical_or(s64 inputArg1, s64 inputArg2)__%%%
+
+* Returns the logical OR of inputArg1 and inputArg2
+
+* bit:logical_or(true, false) ==> Returns true.
+
+__boolean bit:logical_xor(s64 inputArg1, s64 inputArg2)__%%%
+
+* Returns the logical XOR of inputArg1 and inputArg2
+
+* bit:logical_xor(true, false) ==> Returns true
+%%TAB emu%%

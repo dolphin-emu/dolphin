@@ -61,6 +61,7 @@
 
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
+#include "Core/Scripting/EventCallbackRegistrationAPIs/OnGCControllerPolledCallbackAPI.h"
 #include "Core/Scripting/InternalAPIModules/GameCubeControllerAPI.h"
 #include "Core/Scripting/ScriptUtilities.h"
 #include "Core/Scripting/HelperClasses/GCButtons.h"
@@ -1304,14 +1305,14 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
 
   if (Scripting::ScriptUtilities::IsScriptingCoreInitialized())
   {
-    Scripting::GameCubeControllerApi::current_controller_number_polled = controllerID;
-    Scripting::GameCubeControllerApi::overwrite_controller_at_specified_port[controllerID] = false;
-    memcpy(&Scripting::GameCubeControllerApi::new_controller_inputs[controllerID], &s_temp_input[s_currentByte], sizeof(ControllerState));
+    Scripting::OnGCControllerPolledCallbackAPI::current_controller_number_polled = controllerID;
+    Scripting::OnGCControllerPolledCallbackAPI::overwrite_controller_at_specified_port[controllerID] = false;
+    memcpy(&Scripting::OnGCControllerPolledCallbackAPI::new_controller_inputs[controllerID], &s_temp_input[s_currentByte], sizeof(ControllerState));
     Scripting::ScriptUtilities::RunOnGCInputPolledCallbacks();
-    if (Scripting::GameCubeControllerApi::overwrite_controller_at_specified_port[controllerID])
+    if (Scripting::OnGCControllerPolledCallbackAPI::overwrite_controller_at_specified_port[controllerID])
     {
       memcpy(&s_temp_input[s_currentByte],
-             &Scripting::GameCubeControllerApi::new_controller_inputs[controllerID],
+             &Scripting::OnGCControllerPolledCallbackAPI::new_controller_inputs[controllerID],
              sizeof(ControllerState));
 
     }

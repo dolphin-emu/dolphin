@@ -6,12 +6,26 @@ namespace Scripting::OnGCControllerPolledCallbackAPI
 {
 const char* class_name = "OnGCControllerPolled";
 
+std::array<bool, 4> overwrite_controller_at_specified_port{};
+std::array<Movie::ControllerState, 4> new_controller_inputs{};
+std::array<Movie::ControllerState, 4> controller_inputs_on_last_frame{};
+int current_controller_number_polled = -1;
+
 static std::array all_on_gc_controller_polled_callback_functions_metadata_list = {
     FunctionMetadata("register", "1.0", "register(value)", Register, ArgTypeEnum::RegistrationReturnType, {ArgTypeEnum::RegistrationInputType}),
     FunctionMetadata("registerWithAutoDeregistration", "1.0",
                      "registerWithAutoDeregisteration(value)", RegisterWithAutoDeregistration,
                      ArgTypeEnum::RegistrationWithAutoDeregistrationReturnType, {ArgTypeEnum::RegistrationWithAutoDeregistrationInputType}),
-    FunctionMetadata("unregister", "1.0", "unregister(value)", Unregister, ArgTypeEnum::UnregistrationReturnType, {ArgTypeEnum::UnregistrationInputType})};
+    FunctionMetadata("unregister", "1.0", "unregister(value)", Unregister, ArgTypeEnum::UnregistrationReturnType, {ArgTypeEnum::UnregistrationInputType}),
+
+    FunctionMetadata("isInGCControllerPolledCallback", "1.0", "isInGCControllerPolledCallback()", IsInGCControllerPolledCallback,
+                     ArgTypeEnum::Boolean, {}),
+    FunctionMetadata("getCurrentPortNumberOfPoll", "1.0", "getCurrentPortNumberOfPoll()",
+                     GetCurrentPortNumberOfPoll, ArgTypeEnum::LongLong, {}),
+    FunctionMetadata("setInputsForPoll", "1.0", "setInputsForPoll(controllerValuesTable)",
+                     SetInputsForPoll, ArgTypeEnum::VoidType, {ArgTypeEnum::ControllerStateObject}),
+    FunctionMetadata("getInputsForPoll", "1.0", "getInputsForPoll()", GetInputsForPoll,
+                     ArgTypeEnum::ControllerStateObject, {})};
 
 ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
 {
@@ -54,5 +68,32 @@ ArgHolder Unregister(ScriptContext* current_script, std::vector<ArgHolder>& args
         "currently registered as an OnGCControllerPolled callback!");
   else
     return CreateUnregistrationReturnTypeArgHolder(nullptr);
+}
+
+ArgHolder IsInGCControllerPolledCallback(ScriptContext* current_script,
+                                         std::vector<ArgHolder>& args_list)
+{
+  return CreateBoolArgHolder(current_script->current_script_call_location ==
+                             ScriptCallLocations::FromGCControllerInputPolled);
+}
+
+ArgHolder GetCurrentPortNumberOfPoll(ScriptContext* current_script,
+                                     std::vector<ArgHolder>& args_list)
+{
+  return CreateLongLongArgHolder(current_controller_number_polled + 1);
+}
+
+// NOTE: In SI.cpp, UpdateDevices() is called to update each device, which moves exactly 8 bytes
+// forward for each controller. Also, it moves in order from controllers 1 to 4.
+ArgHolder SetInputsForPoll(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  overwrite_controller_at_specified_port[current_controller_number_polled] = true;
+  new_controller_inputs[current_controller_number_polled] = args_list[0].controller_state_val;
+  return CreateVoidTypeArgHolder();
+}
+
+ArgHolder GetInputsForPoll(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  return CreateControllerStateArgHolder(new_controller_inputs[current_controller_number_polled]);
 }
 }  // namespace Scripting::OnGCControllerPolledCallbackAPI
