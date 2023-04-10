@@ -4,6 +4,7 @@
 #pragma once
 
 #include <array>
+#include <atomic>
 #include <queue>
 #include <string>
 
@@ -26,6 +27,7 @@ public:
   NetKDRequestDevice(EmulationKernel& ios, const std::string& device_name);
   IPCReply HandleNWC24DownloadNowEx(const IOCtlRequest& request);
   NWC24::ErrorCode KDDownload(const u16 entry_index, const std::optional<u8> subtask_id);
+  NWC24::ErrorCode KDCheckMail(u32* _mail_flag, u32* _interval);
   ~NetKDRequestDevice() override;
 
   std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
@@ -61,9 +63,57 @@ private:
 
   void LogError(ErrorType error_type, s32 error_code);
 
-  NWC24::NWC24Config config;
+  void SchedulerTimer()
+  {
+    u32 mail_time_state = 0;
+    u32 download_time_state = 0;
+    Common::SetCurrentThreadName("KD Timer");
+    while (true)
+    {
+      std::unique_lock lg(m_scheduler_lock);
+      if (m_mail_span.load() <= mail_time_state)
+      {
+        m_scheduler_work_queue.EmplaceItem([this] { SchedulerWorker(SchedulerEvent::MAIL); });
+        INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: Dispatching Mail Task from Scheduler");
+        mail_time_state = 0;
+      }
+
+      if (m_download_span.load() <= download_time_state)
+      {
+        INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: Dispatching Download Task from Scheduler");
+        m_scheduler_work_queue.EmplaceItem([this] { SchedulerWorker(SchedulerEvent::DOWNLOAD); });
+        download_time_state = 0;
+      }
+
+      m_scheduler_cond_var.wait_for(lg, std::chrono::minutes{1}, [&] { return m_shutdown; });
+      lg.unlock();
+
+      if (m_shutdown)
+        return;
+
+      mail_time_state++;
+      download_time_state++;
+    }
+  }
+
+  enum class SchedulerEvent
+  {
+    MAIL,
+    DOWNLOAD,
+  };
+
+  void SchedulerWorker(SchedulerEvent event);
+
+  static std::string GetValueFromCGIResponse(const std::string& response, const std::string& key);
+
+  static constexpr std::array<u8, 20> MAIL_CHECK_KEY = {0xce, 0x4c, 0xf2, 0x9a, 0x3d, 0x6b, 0xe1,
+                                                        0xc2, 0x61, 0x91, 0x72, 0xb5, 0xcb, 0x29,
+                                                        0x8c, 0x89, 0x72, 0xd4, 0x50, 0xad};
+
+  NWC24::NWC24Config m_config;
   NWC24::NWC24Dl m_dl_list;
   Common::WorkQueueThread<AsyncTask> m_work_queue;
+  Common::WorkQueueThread<std::function<void()>> m_scheduler_work_queue;
   std::mutex m_async_reply_lock;
   std::mutex m_scheduler_buffer_lock;
   std::queue<AsyncReply> m_async_replies;
@@ -71,5 +121,11 @@ private:
   std::array<u32, 256> m_scheduler_buffer{};
   // TODO: Maybe move away from Common::HttpRequest?
   Common::HttpRequest m_http{std::chrono::minutes{1}};
+  std::atomic<u32> m_download_span = 2;
+  std::atomic<u32> m_mail_span = 1;
+  std::condition_variable m_scheduler_cond_var;
+  std::mutex m_scheduler_lock;
+  std::thread m_scheduler_timer_thread;
+  bool m_shutdown = false;
 };
 }  // namespace IOS::HLE

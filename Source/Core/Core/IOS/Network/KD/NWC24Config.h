@@ -69,6 +69,9 @@ public:
   u32 Checksum() const;
   void SetChecksum(u32 checksum);
 
+  std::string GetMlchkid() const;
+  std::string GetCheckURL() const;
+
   NWC24CreationStage CreationStage() const;
   void SetCreationStage(NWC24CreationStage creation_stage);
 

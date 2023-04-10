@@ -216,4 +216,14 @@ void NWC24Config::SetEmail(const char* email)
   strncpy(m_data.email, email, MAX_EMAIL_LENGTH);
   m_data.email[MAX_EMAIL_LENGTH - 1] = '\0';
 }
+
+std::string NWC24Config::GetMlchkid() const
+{
+  return {m_data.mlchkid};
+}
+
+std::string NWC24Config::GetCheckURL() const
+{
+  return {m_data.http_urls[1]};
+}
 }  // namespace IOS::HLE::NWC24
