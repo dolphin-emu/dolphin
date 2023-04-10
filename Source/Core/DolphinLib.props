@@ -534,7 +534,6 @@
     <ClInclude Include="UICommon\ResourcePack\ResourcePack.h" />
     <ClInclude Include="UICommon\UICommon.h" />
     <ClInclude Include="UICommon\USBUtils.h" />
-    <ClInclude Include="UICommon\VideoUtils.h" />
     <ClInclude Include="UpdaterCommon\UI.h" />
     <ClInclude Include="UpdaterCommon\UpdaterCommon.h" />
     <ClInclude Include="VideoBackends\D3D\D3DBase.h" />
@@ -1160,7 +1159,6 @@
     <ClCompile Include="UICommon\ResourcePack\ResourcePack.cpp" />
     <ClCompile Include="UICommon\UICommon.cpp" />
     <ClCompile Include="UICommon\USBUtils.cpp" />
-    <ClCompile Include="UICommon\VideoUtils.cpp" />
     <ClCompile Include="UpdaterCommon\UpdaterCommon.cpp" />
     <ClCompile Include="VideoBackends\D3D\D3DBase.cpp" />
     <ClCompile Include="VideoBackends\D3D\D3DBoundingBox.cpp" />
