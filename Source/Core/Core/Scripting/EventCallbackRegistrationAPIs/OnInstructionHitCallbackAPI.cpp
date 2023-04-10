@@ -5,6 +5,7 @@
 namespace Scripting::OnInstructionHitCallbackAPI
 {
 const char* class_name = "OnInstructionHit";
+u32 instruction_address_for_current_callback = 0;
 
 static std::array all_on_instruction_hit_callback_functions_metadata_list = {
     FunctionMetadata("register", "1.0", "register(instructionAddress, value)", Register,
@@ -15,7 +16,12 @@ static std::array all_on_instruction_hit_callback_functions_metadata_list = {
                      ArgTypeEnum::RegistrationWithAutoDeregistrationReturnType, {ArgTypeEnum::LongLong, ArgTypeEnum::RegistrationWithAutoDeregistrationInputType}),
     FunctionMetadata("unregister", "1.0", "unregister(instructionAddress, value)", Unregister,
                      ArgTypeEnum::UnregistrationReturnType,
-                     {ArgTypeEnum::LongLong, ArgTypeEnum::UnregistrationInputType})};
+                     {ArgTypeEnum::LongLong, ArgTypeEnum::UnregistrationInputType}),
+    FunctionMetadata("isInInstructionHitCallback", "1.0", "isInInstructionHitCallback()",
+                     IsInInstructionHitCallback, ArgTypeEnum::Boolean, {}),
+    FunctionMetadata("getAddressOfInstructionForCurrentCallback", "1.0",
+                     "getAddressOfInstructionForCurrentCallback()",
+                     GetAddressOfInstructionForCurrentCallback, ArgTypeEnum::U32, {})};
 
 ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
 {
@@ -60,5 +66,22 @@ ArgHolder Unregister(ScriptContext* current_script, std::vector<ArgHolder>& args
         "currently registered as an OnInstructionHit callback!");
   else
     return CreateUnregistrationReturnTypeArgHolder(nullptr);
+}
+
+ArgHolder IsInInstructionHitCallback(ScriptContext* current_script,
+                                     std::vector<ArgHolder>& args_list)
+{
+  return CreateBoolArgHolder(current_script->current_script_call_location ==
+                             ScriptCallLocations::FromInstructionHitCallback);
+}
+
+ArgHolder GetAddressOfInstructionForCurrentCallback(ScriptContext* current_script,
+                                                    std::vector<ArgHolder>& args_list)
+{
+  if (current_script->current_script_call_location != ScriptCallLocations::FromInstructionHitCallback)
+    return CreateErrorStringArgHolder(
+        "User attempted to call OnInstructionHit:getAddressOfInstructionForCurrentCallback() "
+        "outside of an OnInstructionHit callback function!");
+  return CreateU32ArgHolder(instruction_address_for_current_callback);
 }
 }  // namespace Scripting::OnInstructionHitCallbackAPI

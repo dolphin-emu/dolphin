@@ -30,7 +30,7 @@ void LuaScriptContext::ImportModule(const std::string& api_name, const std::stri
   if (this->current_script_call_location == ScriptCallLocations::FromFrameStartCallback)
     current_lua_state_thread = this->frame_callback_lua_thread;
 
-  else if (this->current_script_call_location == ScriptCallLocations::FromInstructionBreakpointCallback)
+  else if (this->current_script_call_location == ScriptCallLocations::FromInstructionHitCallback)
     current_lua_state_thread = this->instruction_address_hit_callback_lua_thread;
 
   else if (this->current_script_call_location == ScriptCallLocations::FromMemoryAddressReadFromCallback)

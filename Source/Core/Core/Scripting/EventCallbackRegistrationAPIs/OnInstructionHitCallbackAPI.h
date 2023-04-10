@@ -8,6 +8,7 @@
 namespace Scripting::OnInstructionHitCallbackAPI
 {
 extern const char* class_name;
+extern u32 instruction_address_for_current_callback;
 
 ClassMetadata GetClassMetadataForVersion(const std::string& api_version);
 ClassMetadata GetAllClassMetadata();
@@ -18,4 +19,8 @@ ArgHolder Register(ScriptContext* current_script, std::vector<ArgHolder>& args_l
 ArgHolder RegisterWithAutoDeregistration(ScriptContext* current_script,
                                          std::vector<ArgHolder>& args_list);
 ArgHolder Unregister(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder IsInInstructionHitCallback(ScriptContext* current_script,
+                                     std::vector<ArgHolder>& args_list);
+ArgHolder GetAddressOfInstructionForCurrentCallback(ScriptContext* current_script,
+                                                    std::vector<ArgHolder>& args_list);
 }  // namespace Scripting::OnInstructionHitCallbackAPI

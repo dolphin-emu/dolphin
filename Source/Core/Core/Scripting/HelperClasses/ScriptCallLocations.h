@@ -8,7 +8,7 @@ enum class ScriptCallLocations
   FromScriptStartup,
   FromFrameStartGlobalScope,
   FromFrameStartCallback,
-  FromInstructionBreakpointCallback,
+  FromInstructionHitCallback,
   FromMemoryAddressReadFromCallback,
   FromMemoryAddressWrittenToCallback,
   FromGCControllerInputPolled,

@@ -8,6 +8,7 @@
 namespace Scripting::OnMemoryAddressReadFromCallbackAPI
 {
 extern const char* class_name;
+extern u32 memory_address_read_from_for_current_callback;
 
 ClassMetadata GetClassMetadataForVersion(const std::string& api_version);
 ClassMetadata GetAllClassMetadata();
@@ -19,5 +20,9 @@ ArgHolder RegisterWithAutoDeregistration(ScriptContext* current_script,
                                          std::vector<ArgHolder>& args_list);
 
 ArgHolder Unregister(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder IsInMemoryAddressReadFromCallback(ScriptContext* current_script,
+                                            std::vector<ArgHolder>& args_list);
+ArgHolder GetMemoryAddressReadFromForCurrentCallback(ScriptContext* current_script,
+                                                    std::vector<ArgHolder>& args_list);
 
 }  // namespace Scripting::OnMemoryAddressReadFromCallbackAPI

@@ -8,6 +8,8 @@
 namespace Scripting::OnMemoryAddressWrittenToCallbackAPI
 {
 extern const char* class_name;
+extern u32 memory_address_written_to_for_current_callback;
+extern s64 value_written_to_memory_address_for_current_callback;
 
 ClassMetadata GetClassMetadataForVersion(const std::string& api_version);
 ClassMetadata GetAllClassMetadata();
@@ -18,5 +20,11 @@ ArgHolder Register(ScriptContext* current_script, std::vector<ArgHolder>& args_l
 ArgHolder RegisterWithAutoDeregistration(ScriptContext* current_script,
                                          std::vector<ArgHolder>& args_list);
 ArgHolder Unregister(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder IsInMemoryAddressWrittenToCallback(ScriptContext* current_script,
+                                             std::vector<ArgHolder>& arg_list);
+ArgHolder GetMemoryAddressWrittenToForCurrentCallback(ScriptContext* current_script,
+                                                      std::vector<ArgHolder>& args_list);
+ArgHolder GetValueWrittenToMemoryAddressForCurrentCallback(ScriptContext* current_script,
+                                                           std::vector<ArgHolder>& args_list);
 
 }  // namespace Scripting::OnMemoryAddressWrittenToCallbackAPI

@@ -34,9 +34,9 @@ bool StartScripts();
 bool RunGlobalCode();
 bool RunOnFrameStartCallbacks();
 void RunOnGCInputPolledCallbacks();
-void RunOnInstructionHitCallbacks(size_t instruction_address);
-void RunOnMemoryAddressReadFromCallbacks(size_t memory_address);
-void RunOnMemoryAddressWrittenToCallbacks(size_t memory_address);
+void RunOnInstructionHitCallbacks(u32 instruction_address);
+void RunOnMemoryAddressReadFromCallbacks(u32 memory_address);
+void RunOnMemoryAddressWrittenToCallbacks(u32 memory_address, s64 new_value);
 void RunOnWiiInputPolledCallbacks();
 void RunButtonCallbacksInQueues();
 

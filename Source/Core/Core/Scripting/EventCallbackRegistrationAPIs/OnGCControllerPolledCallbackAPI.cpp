@@ -80,6 +80,10 @@ ArgHolder IsInGCControllerPolledCallback(ScriptContext* current_script,
 ArgHolder GetCurrentPortNumberOfPoll(ScriptContext* current_script,
                                      std::vector<ArgHolder>& args_list)
 {
+  if (current_script->current_script_call_location != ScriptCallLocations::FromGCControllerInputPolled)
+    return CreateErrorStringArgHolder(
+        "User attempted to call OnGCControllerPolled:getCurrentPortNumberOfPoll() outside of an "
+        "OnGCControllerPolled callback function!");
   return CreateLongLongArgHolder(current_controller_number_polled + 1);
 }
 
@@ -87,6 +91,10 @@ ArgHolder GetCurrentPortNumberOfPoll(ScriptContext* current_script,
 // forward for each controller. Also, it moves in order from controllers 1 to 4.
 ArgHolder SetInputsForPoll(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
+  if (current_script->current_script_call_location != ScriptCallLocations::FromGCControllerInputPolled)
+    return CreateErrorStringArgHolder(
+        "User attempted to call OnGCControllerPolled:setInputsForPoll() outside of an "
+        "OnGCControllerPolled callback function!");
   overwrite_controller_at_specified_port[current_controller_number_polled] = true;
   new_controller_inputs[current_controller_number_polled] = args_list[0].controller_state_val;
   return CreateVoidTypeArgHolder();
@@ -94,6 +102,11 @@ ArgHolder SetInputsForPoll(ScriptContext* current_script, std::vector<ArgHolder>
 
 ArgHolder GetInputsForPoll(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
+  if (current_script->current_script_call_location !=
+      ScriptCallLocations::FromGCControllerInputPolled)
+    return CreateErrorStringArgHolder(
+        "User attempted to call OnGCControllerPolled:getInputsForPoll() outside of an "
+        "OnGCControllerPolled callback function!");
   return CreateControllerStateArgHolder(new_controller_inputs[current_controller_number_polled]);
 }
 }  // namespace Scripting::OnGCControllerPolledCallbackAPI

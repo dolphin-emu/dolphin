@@ -12,7 +12,9 @@ static std::array all_on_frame_start_callback_functions_metadata_list = {
                      RegisterWithAutoDeregistration,
                      ArgTypeEnum::RegistrationWithAutoDeregistrationReturnType, {ArgTypeEnum::RegistrationWithAutoDeregistrationInputType}),
     FunctionMetadata("unregister", "1.0", "unregister(value)", Unregister, ArgTypeEnum::UnregistrationReturnType,
-                     {ArgTypeEnum::UnregistrationInputType})};
+                     {ArgTypeEnum::UnregistrationInputType}),
+    FunctionMetadata("isInFrameStartCallback", "1.0", "isInFrameStartCallback()",
+                     IsInFrameStartCallback, ArgTypeEnum::Boolean, {})};
 
 
 ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
@@ -56,5 +58,11 @@ ArgHolder Unregister(ScriptContext* current_script, std::vector<ArgHolder>& args
         "currently registered as an OnFrameStart callback!");
   else
     return CreateUnregistrationReturnTypeArgHolder(nullptr);
+}
+
+ArgHolder IsInFrameStartCallback(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  return CreateBoolArgHolder(current_script->current_script_call_location ==
+                             ScriptCallLocations::FromFrameStartCallback);
 }
 }

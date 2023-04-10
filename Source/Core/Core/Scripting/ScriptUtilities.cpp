@@ -1,7 +1,12 @@
 #include "Core/Scripting/ScriptUtilities.h"
+
+#include "Core/Scripting/EventCallbackRegistrationAPIs//OnInstructionHitCallbackAPI.h"
+#include "Core/Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressReadFromCallbackAPI.h"
+#include "Core/Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressWrittenToCallbackAPI.h"
 #include "Core/Scripting/InternalAPIModules/GraphicsAPI.h"
 #include "Core/Scripting/LanguageDefinitions/Lua/LuaScriptContext.h"
 #include "Core/Scripting/LanguageDefinitions/Python/PythonScriptContext.h"
+
 
 namespace Scripting::ScriptUtilities {
 
@@ -174,11 +179,13 @@ void RunOnGCInputPolledCallbacks()
   }
 }
 
-void RunOnInstructionHitCallbacks(size_t instruction_address)
+void RunOnInstructionHitCallbacks(u32 instruction_address)
 {
   std::lock_guard<std::mutex> lock(instruction_hit_callback_running_lock);
   if (global_pointer_to_list_of_all_scripts == nullptr)
     return;
+
+  OnInstructionHitCallbackAPI::instruction_address_for_current_callback = instruction_address;
   for (size_t i = 0; i < global_pointer_to_list_of_all_scripts->size(); ++i)
   {
     ScriptContext* current_script = (*global_pointer_to_list_of_all_scripts)[i];
@@ -186,18 +193,21 @@ void RunOnInstructionHitCallbacks(size_t instruction_address)
     if (current_script->is_script_active)
     {
       current_script->current_script_call_location =
-          ScriptCallLocations::FromInstructionBreakpointCallback;
+          ScriptCallLocations::FromInstructionHitCallback;
       current_script->RunOnInstructionReachedCallbacks(instruction_address);
     }
     current_script->script_specific_lock.unlock();
   }
 }
 
-void RunOnMemoryAddressReadFromCallbacks(size_t memory_address)
+void RunOnMemoryAddressReadFromCallbacks(u32 memory_address)
 {
   std::lock_guard<std::mutex> lock(memory_address_read_from_callback_running_lock);
   if (global_pointer_to_list_of_all_scripts == nullptr)
     return;
+
+  OnMemoryAddressReadFromCallbackAPI::memory_address_read_from_for_current_callback =
+      memory_address;
   for (size_t i = 0; i < global_pointer_to_list_of_all_scripts->size(); ++i)
   {
     ScriptContext* current_script = (*global_pointer_to_list_of_all_scripts)[i];
@@ -212,11 +222,16 @@ void RunOnMemoryAddressReadFromCallbacks(size_t memory_address)
   }
 }
 
-void RunOnMemoryAddressWrittenToCallbacks(size_t memory_address)
+void RunOnMemoryAddressWrittenToCallbacks(u32 memory_address, s64 new_value)
 {
   std::lock_guard<std::mutex> lock(memory_address_written_to_callback_running_lock);
   if (global_pointer_to_list_of_all_scripts == nullptr)
     return;
+
+  OnMemoryAddressWrittenToCallbackAPI::memory_address_written_to_for_current_callback =
+      memory_address;
+  OnMemoryAddressWrittenToCallbackAPI::value_written_to_memory_address_for_current_callback =
+      new_value;
   for (size_t i = 0; i < global_pointer_to_list_of_all_scripts->size(); ++i)
   {
     ScriptContext* current_script = (*global_pointer_to_list_of_all_scripts)[i];

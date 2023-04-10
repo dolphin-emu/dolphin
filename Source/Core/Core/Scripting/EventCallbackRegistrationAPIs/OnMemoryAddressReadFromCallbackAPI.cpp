@@ -5,6 +5,7 @@
 namespace Scripting::OnMemoryAddressReadFromCallbackAPI
 {
 const char* class_name = "OnMemoryAddressReadFrom";
+u32 memory_address_read_from_for_current_callback = 0;
 
 static std::array all_on_memory_address_read_from_callback_functions_metadata_list = {
     FunctionMetadata("register", "1.0", "register(memoryAddress, value)", Register,
@@ -15,7 +16,13 @@ static std::array all_on_memory_address_read_from_callback_functions_metadata_li
                      ArgTypeEnum::RegistrationWithAutoDeregistrationReturnType, {ArgTypeEnum::LongLong, ArgTypeEnum::RegistrationWithAutoDeregistrationInputType}),
     FunctionMetadata("unregister", "1.0", "unregister(memoryAddress, value)", Unregister,
                      ArgTypeEnum::UnregistrationReturnType,
-                     {ArgTypeEnum::LongLong, ArgTypeEnum::UnregistrationInputType})};
+                     {ArgTypeEnum::LongLong, ArgTypeEnum::UnregistrationInputType}),
+    FunctionMetadata("isInMemoryAddressReadFromCallback", "1.0",
+                     "isInMemoryAddressReadFromCallback()", IsInMemoryAddressReadFromCallback,
+                     ArgTypeEnum::Boolean, {}),
+    FunctionMetadata("getMemoryAddressReadFromForCurrentCallback", "1.0",
+                     "getMemoryAddressReadFromForCurrentCallback()",
+                     GetMemoryAddressReadFromForCurrentCallback, ArgTypeEnum::U32, {})};
 
 ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
 {
@@ -64,5 +71,23 @@ ArgHolder Unregister(ScriptContext* current_script, std::vector<ArgHolder>& args
   
   else
     return CreateUnregistrationReturnTypeArgHolder(nullptr);
+}
+
+ArgHolder IsInMemoryAddressReadFromCallback(ScriptContext* current_script,
+                                            std::vector<ArgHolder>& args_list)
+{
+  return CreateBoolArgHolder(current_script->current_script_call_location ==
+                             ScriptCallLocations::FromMemoryAddressReadFromCallback);
+
+}
+ArgHolder GetMemoryAddressReadFromForCurrentCallback(ScriptContext* current_script,
+                                                    std::vector<ArgHolder>& args_list)
+{
+  if (current_script->current_script_call_location != ScriptCallLocations::FromMemoryAddressReadFromCallback)
+    return CreateErrorStringArgHolder(
+        "User attempted to call "
+        "OnMemoryAddressReadFrom:getMemoryAddressReadFromForCurrentCallback() outside of an "
+        "OnMemoryAddressReadFrom callback function!");
+  return CreateU32ArgHolder(memory_address_read_from_for_current_callback);
 }
 }  // namespace Scripting::OnMemoryAddressReadFromCallbackAPI
