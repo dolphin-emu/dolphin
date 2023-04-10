@@ -409,7 +409,9 @@ void RegisterWidget::PopulateTable()
 
   // Special registers
   // TB
-  AddRegister(16, 5, RegisterType::tb, "TB", PowerPC::ReadFullTimeBaseValue, nullptr);
+  AddRegister(
+      16, 5, RegisterType::tb, "TB",
+      [this] { return m_system.GetPowerPC().ReadFullTimeBaseValue(); }, nullptr);
 
   // PC
   AddRegister(

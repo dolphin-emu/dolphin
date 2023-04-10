@@ -17,7 +17,8 @@ class QToolBar;
 namespace Core
 {
 class CPUThreadGuard;
-};
+class System;
+};  // namespace Core
 
 class WatchWidget : public QDockWidget
 {
@@ -61,6 +62,8 @@ private:
   void UpdateIcons();
   void LockSelectedWatches();
   void UnlockSelectedWatches();
+
+  Core::System& m_system;
 
   QAction* m_new;
   QAction* m_delete;

@@ -200,8 +200,9 @@ static void ResetAndPausePPC()
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   memory.Write_U32(0x48000000, 0x00000000);  // b 0x0
-  PowerPC::Reset();
-  system.GetPPCState().pc = 0;
+  auto& power_pc = system.GetPowerPC();
+  power_pc.Reset();
+  power_pc.GetPPCState().pc = 0;
 }
 
 static void ReleasePPC()

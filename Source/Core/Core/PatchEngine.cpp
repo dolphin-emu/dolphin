@@ -277,7 +277,7 @@ static void ApplyMemoryPatches(const Core::CPUThreadGuard& guard,
   std::lock_guard lock(s_on_frame_memory_mutex);
   for (std::size_t index : memory_patch_indices)
   {
-    PowerPC::debug_interface.ApplyExistingPatch(guard, index);
+    guard.GetSystem().GetPowerPC().GetDebugInterface().ApplyExistingPatch(guard, index);
   }
 }
 

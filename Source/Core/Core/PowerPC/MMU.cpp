@@ -52,8 +52,8 @@
 
 namespace PowerPC
 {
-MMU::MMU(Core::System& system, Memory::MemoryManager& memory, PowerPC::PowerPCState& ppc_state)
-    : m_system(system), m_memory(memory), m_ppc_state(ppc_state)
+MMU::MMU(Core::System& system, Memory::MemoryManager& memory, PowerPC::PowerPCManager& power_pc)
+    : m_system(system), m_memory(memory), m_power_pc(power_pc), m_ppc_state(power_pc.GetPPCState())
 {
 }
 
@@ -530,10 +530,10 @@ std::optional<ReadResult<u32>> MMU::HostTryReadInstruction(const Core::CPUThread
 
 void MMU::Memcheck(u32 address, u64 var, bool write, size_t size)
 {
-  if (!memchecks.HasAny())
+  if (!m_power_pc.GetMemChecks().HasAny())
     return;
 
-  TMemCheck* mc = memchecks.GetMemCheck(address, size);
+  TMemCheck* mc = m_power_pc.GetMemChecks().GetMemCheck(address, size);
   if (mc == nullptr)
     return;
 
@@ -545,8 +545,8 @@ void MMU::Memcheck(u32 address, u64 var, bool write, size_t size)
 
   mc->num_hits++;
 
-  const bool pause =
-      mc->Action(m_system, &debug_interface, var, address, write, size, m_ppc_state.pc);
+  const bool pause = mc->Action(m_system, &m_power_pc.GetDebugInterface(), var, address, write,
+                                size, m_ppc_state.pc);
   if (!pause)
     return;
 
@@ -892,7 +892,7 @@ std::optional<ReadResult<std::string>> MMU::HostTryReadString(const Core::CPUThr
 
 bool MMU::IsOptimizableRAMAddress(const u32 address) const
 {
-  if (PowerPC::memchecks.HasAny())
+  if (m_power_pc.GetMemChecks().HasAny())
     return false;
 
   if (!m_ppc_state.msr.DR)
@@ -1189,7 +1189,7 @@ void MMU::TouchDCacheLine(u32 address, bool store)
 
 u32 MMU::IsOptimizableMMIOAccess(u32 address, u32 access_size) const
 {
-  if (PowerPC::memchecks.HasAny())
+  if (m_power_pc.GetMemChecks().HasAny())
     return 0;
 
   if (!m_ppc_state.msr.DR)
@@ -1212,7 +1212,7 @@ u32 MMU::IsOptimizableMMIOAccess(u32 address, u32 access_size) const
 
 bool MMU::IsOptimizableGatherPipeWrite(u32 address) const
 {
-  if (PowerPC::memchecks.HasAny())
+  if (m_power_pc.GetMemChecks().HasAny())
     return false;
 
   if (!m_ppc_state.msr.DR)
@@ -1566,7 +1566,7 @@ void MMU::UpdateBATs(BatTable& bat_table, u32 base_spr)
         }
 
         // Fastmem doesn't support memchecks, so disable it for all overlapping virtual pages.
-        if (PowerPC::memchecks.OverlapsMemcheck(virtual_address, BAT_PAGE_SIZE))
+        if (m_power_pc.GetMemChecks().OverlapsMemcheck(virtual_address, BAT_PAGE_SIZE))
           valid_bit &= ~BAT_PHYSICAL_BIT;
 
         // (BEPI | j) == (BEPI & ~BL) | (j & BL).
@@ -1586,7 +1586,7 @@ void MMU::UpdateFakeMMUBat(BatTable& bat_table, u32 start_addr)
     u32 p_address = 0x7E000000 | (i << BAT_INDEX_SHIFT & m_memory.GetFakeVMemMask());
     u32 flags = BAT_MAPPED_BIT | BAT_PHYSICAL_BIT;
 
-    if (PowerPC::memchecks.OverlapsMemcheck(e_address << BAT_INDEX_SHIFT, BAT_PAGE_SIZE))
+    if (m_power_pc.GetMemChecks().OverlapsMemcheck(e_address << BAT_INDEX_SHIFT, BAT_PAGE_SIZE))
       flags &= ~BAT_PHYSICAL_BIT;
 
     bat_table[e_address] = p_address | flags;

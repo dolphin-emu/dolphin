@@ -163,17 +163,19 @@ static void RemoveBreakpoint(BreakpointType type, u32 addr, u32 len)
 {
   if (type == BreakpointType::ExecuteHard || type == BreakpointType::ExecuteSoft)
   {
-    while (PowerPC::breakpoints.IsAddressBreakPoint(addr))
+    auto& breakpoints = Core::System::GetInstance().GetPowerPC().GetBreakPoints();
+    while (breakpoints.IsAddressBreakPoint(addr))
     {
-      PowerPC::breakpoints.Remove(addr);
+      breakpoints.Remove(addr);
       INFO_LOG_FMT(GDB_STUB, "gdb: removed a breakpoint: {:08x} bytes at {:08x}", len, addr);
     }
   }
   else
   {
-    while (PowerPC::memchecks.GetMemCheck(addr, len) != nullptr)
+    auto& memchecks = Core::System::GetInstance().GetPowerPC().GetMemChecks();
+    while (memchecks.GetMemCheck(addr, len) != nullptr)
     {
-      PowerPC::memchecks.Remove(addr);
+      memchecks.Remove(addr);
       INFO_LOG_FMT(GDB_STUB, "gdb: removed a memcheck: {:08x} bytes at {:08x}", len, addr);
     }
   }
@@ -869,7 +871,8 @@ static bool AddBreakpoint(BreakpointType type, u32 addr, u32 len)
 {
   if (type == BreakpointType::ExecuteHard || type == BreakpointType::ExecuteSoft)
   {
-    PowerPC::breakpoints.Add(addr);
+    auto& breakpoints = Core::System::GetInstance().GetPowerPC().GetBreakPoints();
+    breakpoints.Add(addr);
     INFO_LOG_FMT(GDB_STUB, "gdb: added {} breakpoint: {:08x} bytes at {:08x}",
                  static_cast<int>(type), len, addr);
   }
@@ -886,7 +889,8 @@ static bool AddBreakpoint(BreakpointType type, u32 addr, u32 len)
     new_memcheck.break_on_hit = true;
     new_memcheck.log_on_hit = false;
     new_memcheck.is_enabled = true;
-    PowerPC::memchecks.Add(std::move(new_memcheck));
+    auto& memchecks = Core::System::GetInstance().GetPowerPC().GetMemChecks();
+    memchecks.Add(std::move(new_memcheck));
     INFO_LOG_FMT(GDB_STUB, "gdb: added {} memcheck: {:08x} bytes at {:08x}", static_cast<int>(type),
                  len, addr);
   }

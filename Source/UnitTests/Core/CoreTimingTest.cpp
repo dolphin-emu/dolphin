@@ -38,7 +38,7 @@ void CallbackTemplate(Core::System& system, u64 userdata, s64 lateness)
 class ScopeInit final
 {
 public:
-  ScopeInit() : m_profile_path(File::CreateTempDir())
+  explicit ScopeInit(Core::System& system) : m_system(system), m_profile_path(File::CreateTempDir())
   {
     if (!UserDirectoryExists())
     {
@@ -48,8 +48,7 @@ public:
     UICommon::SetUserDirectory(m_profile_path);
     Config::Init();
     SConfig::Init();
-    PowerPC::Init(PowerPC::CPUCore::Interpreter);
-    auto& system = Core::System::GetInstance();
+    system.GetPowerPC().Init(PowerPC::CPUCore::Interpreter);
     auto& core_timing = system.GetCoreTiming();
     core_timing.Init();
   }
@@ -59,10 +58,9 @@ public:
     {
       return;
     }
-    auto& system = Core::System::GetInstance();
-    auto& core_timing = system.GetCoreTiming();
+    auto& core_timing = m_system.GetCoreTiming();
     core_timing.Shutdown();
-    PowerPC::Shutdown();
+    m_system.GetPowerPC().Shutdown();
     SConfig::Shutdown();
     Config::Shutdown();
     Core::UndeclareAsCPUThread();
@@ -71,6 +69,7 @@ public:
   bool UserDirectoryExists() const { return !m_profile_path.empty(); }
 
 private:
+  Core::System& m_system;
   std::string m_profile_path;
 };
 
@@ -92,10 +91,11 @@ static void AdvanceAndCheck(Core::System& system, u32 idx, int downcount, int ex
 
 TEST(CoreTiming, BasicOrder)
 {
-  ScopeInit guard;
+  auto& system = Core::System::GetInstance();
+
+  ScopeInit guard(system);
   ASSERT_TRUE(guard.UserDirectoryExists());
 
-  auto& system = Core::System::GetInstance();
   auto& core_timing = system.GetCoreTiming();
   auto& ppc_state = system.GetPPCState();
 
@@ -147,10 +147,11 @@ TEST(CoreTiming, SharedSlot)
 {
   using namespace SharedSlotTest;
 
-  ScopeInit guard;
+  auto& system = Core::System::GetInstance();
+
+  ScopeInit guard(system);
   ASSERT_TRUE(guard.UserDirectoryExists());
 
-  auto& system = Core::System::GetInstance();
   auto& core_timing = system.GetCoreTiming();
   auto& ppc_state = system.GetPPCState();
 
@@ -181,10 +182,11 @@ TEST(CoreTiming, SharedSlot)
 
 TEST(CoreTiming, PredictableLateness)
 {
-  ScopeInit guard;
+  auto& system = Core::System::GetInstance();
+
+  ScopeInit guard(system);
   ASSERT_TRUE(guard.UserDirectoryExists());
 
-  auto& system = Core::System::GetInstance();
   auto& core_timing = system.GetCoreTiming();
 
   CoreTiming::EventType* cb_a = core_timing.RegisterEvent("callbackA", CallbackTemplate<0>);
@@ -222,10 +224,11 @@ TEST(CoreTiming, ChainScheduling)
 {
   using namespace ChainSchedulingTest;
 
-  ScopeInit guard;
+  auto& system = Core::System::GetInstance();
+
+  ScopeInit guard(system);
   ASSERT_TRUE(guard.UserDirectoryExists());
 
-  auto& system = Core::System::GetInstance();
   auto& core_timing = system.GetCoreTiming();
   auto& ppc_state = system.GetPPCState();
 
@@ -282,10 +285,11 @@ TEST(CoreTiming, ScheduleIntoPast)
 {
   using namespace ScheduleIntoPastTest;
 
-  ScopeInit guard;
+  auto& system = Core::System::GetInstance();
+
+  ScopeInit guard(system);
   ASSERT_TRUE(guard.UserDirectoryExists());
 
-  auto& system = Core::System::GetInstance();
   auto& core_timing = system.GetCoreTiming();
   auto& ppc_state = system.GetPPCState();
 
@@ -325,10 +329,11 @@ TEST(CoreTiming, ScheduleIntoPast)
 
 TEST(CoreTiming, Overclocking)
 {
-  ScopeInit guard;
+  auto& system = Core::System::GetInstance();
+
+  ScopeInit guard(system);
   ASSERT_TRUE(guard.UserDirectoryExists());
 
-  auto& system = Core::System::GetInstance();
   auto& core_timing = system.GetCoreTiming();
   auto& ppc_state = system.GetPPCState();
 

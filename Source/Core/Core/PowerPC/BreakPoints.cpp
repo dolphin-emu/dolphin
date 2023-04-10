@@ -19,6 +19,12 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 
+BreakPoints::BreakPoints(Core::System& system) : m_system(system)
+{
+}
+
+BreakPoints::~BreakPoints() = default;
+
 bool BreakPoints::IsAddressBreakPoint(u32 address) const
 {
   return std::any_of(m_breakpoints.begin(), m_breakpoints.end(),
@@ -107,7 +113,7 @@ void BreakPoints::Add(TBreakPoint bp)
   if (IsAddressBreakPoint(bp.address))
     return;
 
-  Core::System::GetInstance().GetJitInterface().InvalidateICache(bp.address, 4, true);
+  m_system.GetJitInterface().InvalidateICache(bp.address, 4, true);
 
   m_breakpoints.emplace_back(std::move(bp));
 }
@@ -143,7 +149,7 @@ void BreakPoints::Add(u32 address, bool temp, bool break_on_hit, bool log_on_hit
     m_breakpoints.emplace_back(std::move(bp));
   }
 
-  Core::System::GetInstance().GetJitInterface().InvalidateICache(address, 4, true);
+  m_system.GetJitInterface().InvalidateICache(address, 4, true);
 }
 
 bool BreakPoints::ToggleBreakPoint(u32 address)
@@ -167,14 +173,14 @@ void BreakPoints::Remove(u32 address)
     return;
 
   m_breakpoints.erase(iter);
-  Core::System::GetInstance().GetJitInterface().InvalidateICache(address, 4, true);
+  m_system.GetJitInterface().InvalidateICache(address, 4, true);
 }
 
 void BreakPoints::Clear()
 {
   for (const TBreakPoint& bp : m_breakpoints)
   {
-    Core::System::GetInstance().GetJitInterface().InvalidateICache(bp.address, 4, true);
+    m_system.GetJitInterface().InvalidateICache(bp.address, 4, true);
   }
 
   m_breakpoints.clear();
@@ -187,7 +193,7 @@ void BreakPoints::ClearAllTemporary()
   {
     if (bp->is_temporary)
     {
-      Core::System::GetInstance().GetJitInterface().InvalidateICache(bp->address, 4, true);
+      m_system.GetJitInterface().InvalidateICache(bp->address, 4, true);
       bp = m_breakpoints.erase(bp);
     }
     else
@@ -196,6 +202,12 @@ void BreakPoints::ClearAllTemporary()
     }
   }
 }
+
+MemChecks::MemChecks(Core::System& system) : m_system(system)
+{
+}
+
+MemChecks::~MemChecks() = default;
 
 MemChecks::TMemChecksStr MemChecks::GetStrings() const
 {
@@ -280,8 +292,8 @@ void MemChecks::Add(TMemCheck memory_check)
     // If this is the first one, clear the JIT cache so it can switch to
     // watchpoint-compatible code.
     if (!had_any)
-      Core::System::GetInstance().GetJitInterface().ClearCache();
-    Core::System::GetInstance().GetMMU().DBATUpdated();
+      m_system.GetJitInterface().ClearCache();
+    m_system.GetMMU().DBATUpdated();
   });
 }
 
@@ -309,8 +321,8 @@ void MemChecks::Remove(u32 address)
   Core::RunAsCPUThread([&] {
     m_mem_checks.erase(iter);
     if (!HasAny())
-      Core::System::GetInstance().GetJitInterface().ClearCache();
-    Core::System::GetInstance().GetMMU().DBATUpdated();
+      m_system.GetJitInterface().ClearCache();
+    m_system.GetMMU().DBATUpdated();
   });
 }
 
@@ -318,8 +330,8 @@ void MemChecks::Clear()
 {
   Core::RunAsCPUThread([&] {
     m_mem_checks.clear();
-    Core::System::GetInstance().GetJitInterface().ClearCache();
-    Core::System::GetInstance().GetMMU().DBATUpdated();
+    m_system.GetJitInterface().ClearCache();
+    m_system.GetMMU().DBATUpdated();
   });
 }
 

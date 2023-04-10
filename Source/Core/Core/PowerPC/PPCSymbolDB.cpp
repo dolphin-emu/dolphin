@@ -27,7 +27,7 @@
 
 PPCSymbolDB g_symbolDB;
 
-PPCSymbolDB::PPCSymbolDB() : debugger{&PowerPC::debug_interface}
+PPCSymbolDB::PPCSymbolDB() : debugger{&Core::System::GetInstance().GetPowerPC().GetDebugInterface()}
 {
 }
 

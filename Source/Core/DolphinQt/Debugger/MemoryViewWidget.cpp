@@ -170,7 +170,8 @@ private:
   MemoryViewWidget* m_view;
 };
 
-MemoryViewWidget::MemoryViewWidget(QWidget* parent) : QWidget(parent)
+MemoryViewWidget::MemoryViewWidget(QWidget* parent)
+    : QWidget(parent), m_system(Core::System::GetInstance())
 {
   auto* layout = new QHBoxLayout();
   layout->setContentsMargins(0, 0, 0, 0);
@@ -571,7 +572,7 @@ void MemoryViewWidget::UpdateBreakpointTags()
       }
 
       if (m_address_space == AddressSpace::Type::Effective &&
-          PowerPC::memchecks.GetMemCheck(address, GetTypeSize(m_type)) != nullptr)
+          m_system.GetPowerPC().GetMemChecks().GetMemCheck(address, GetTypeSize(m_type)) != nullptr)
       {
         row_breakpoint = true;
         cell->setBackground(Qt::red);
@@ -808,15 +809,17 @@ void MemoryViewWidget::ToggleBreakpoint(u32 addr, bool row)
   const int breaks = row ? (m_bytes_per_row / length) : 1;
   bool overlap = false;
 
+  auto& memchecks = m_system.GetPowerPC().GetMemChecks();
+
   // Row breakpoint should either remove any breakpoint left on the row, or activate all
   // breakpoints.
-  if (row && PowerPC::memchecks.OverlapsMemcheck(addr, m_bytes_per_row))
+  if (row && memchecks.OverlapsMemcheck(addr, m_bytes_per_row))
     overlap = true;
 
   for (int i = 0; i < breaks; i++)
   {
     u32 address = addr + length * i;
-    TMemCheck* check_ptr = PowerPC::memchecks.GetMemCheck(address, length);
+    TMemCheck* check_ptr = memchecks.GetMemCheck(address, length);
 
     if (check_ptr == nullptr && !overlap)
     {
@@ -829,12 +832,12 @@ void MemoryViewWidget::ToggleBreakpoint(u32 addr, bool row)
       check.log_on_hit = m_do_log;
       check.break_on_hit = true;
 
-      PowerPC::memchecks.Add(std::move(check));
+      memchecks.Add(std::move(check));
     }
     else if (check_ptr != nullptr)
     {
       // Using the pointer fixes misaligned breakpoints (0x11 breakpoint in 0x10 aligned view).
-      PowerPC::memchecks.Remove(check_ptr->start_address);
+      memchecks.Remove(check_ptr->start_address);
     }
   }
 

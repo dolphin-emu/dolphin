@@ -514,10 +514,11 @@ void JitArm64::WriteExceptionExit(ARM64Reg dest, bool only_external, bool always
   static_assert(PPCSTATE_OFF(pc) + 4 == PPCSTATE_OFF(npc));
   STP(IndexType::Signed, DISPATCHER_PC, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
 
+  MOVP2R(ARM64Reg::X0, &m_system.GetPowerPC());
   if (only_external)
-    MOVP2R(EncodeRegTo64(DISPATCHER_PC), &PowerPC::CheckExternalExceptions);
+    MOVP2R(EncodeRegTo64(DISPATCHER_PC), &PowerPC::CheckExternalExceptionsFromJIT);
   else
-    MOVP2R(EncodeRegTo64(DISPATCHER_PC), &PowerPC::CheckExceptions);
+    MOVP2R(EncodeRegTo64(DISPATCHER_PC), &PowerPC::CheckExceptionsFromJIT);
   BLR(EncodeRegTo64(DISPATCHER_PC));
 
   LDR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
@@ -742,7 +743,7 @@ void JitArm64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
     // Address of instruction could not be translated
     m_ppc_state.npc = nextPC;
     m_ppc_state.Exceptions |= EXCEPTION_ISI;
-    PowerPC::CheckExceptions();
+    m_system.GetPowerPC().CheckExceptions();
     WARN_LOG_FMT(POWERPC, "ISI exception at {:#010x}", nextPC);
     return;
   }
@@ -1033,8 +1034,8 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         js.firstFPInstructionFound = true;
       }
 
-      if (m_enable_debugging && PowerPC::breakpoints.IsAddressBreakPoint(op.address) &&
-          !cpu.IsStepping())
+      if (m_enable_debugging && !cpu.IsStepping() &&
+          m_system.GetPowerPC().GetBreakPoints().IsAddressBreakPoint(op.address))
       {
         FlushCarry();
         gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
@@ -1045,8 +1046,9 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
         MOVI2R(DISPATCHER_PC, op.address);
         STP(IndexType::Signed, DISPATCHER_PC, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-        MOVP2R(ARM64Reg::X0, &PowerPC::CheckBreakPoints);
-        BLR(ARM64Reg::X0);
+        MOVP2R(ARM64Reg::X0, &m_system.GetPowerPC());
+        MOVP2R(ARM64Reg::X1, &PowerPC::CheckBreakPointsFromJIT);
+        BLR(ARM64Reg::X1);
 
         LDR(IndexType::Unsigned, ARM64Reg::W0, ARM64Reg::X0,
             MOVPage2R(ARM64Reg::X0, cpu.GetStatePtr()));

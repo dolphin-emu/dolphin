@@ -57,13 +57,14 @@ void PresetTimeBaseTicks(Core::System& system, const Core::CPUThreadGuard& guard
 
 void CBoot::RunFunction(Core::System& system, u32 address)
 {
-  auto& ppc_state = system.GetPPCState();
+  auto& power_pc = system.GetPowerPC();
+  auto& ppc_state = power_pc.GetPPCState();
 
   ppc_state.pc = address;
   LR(ppc_state) = 0x00;
 
   while (ppc_state.pc != 0x00)
-    PowerPC::SingleStep();
+    power_pc.SingleStep();
 }
 
 void CBoot::SetupMSR(PowerPC::PowerPCState& ppc_state)

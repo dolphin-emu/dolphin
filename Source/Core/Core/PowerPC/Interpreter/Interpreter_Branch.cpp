@@ -145,6 +145,6 @@ void Interpreter::sc(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
 
   ppc_state.Exceptions |= EXCEPTION_SYSCALL;
-  PowerPC::CheckExceptions();
+  interpreter.m_system.GetPowerPC().CheckExceptions();
   interpreter.m_end_block = true;
 }
