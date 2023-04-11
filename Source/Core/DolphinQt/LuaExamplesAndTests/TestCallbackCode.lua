@@ -3,6 +3,9 @@ require ("emu")
 on_frame_start_ref = -1
 gc_poll_ref = -1
 wii_poll_ref = -1
+mem_addr_written_ref = -1
+mem_addr_read_ref = -1
+instr_hit_ref = -1
 
 function print_callback_statuses()
 	print("\tIn frameStart callback was " .. tostring(OnFrameStart:isInFrameStartCallback()))
@@ -31,9 +34,31 @@ function on_wii_polled()
 	OnWiiInputPolled:unregister(wii_poll_ref)
 end
 
+function on_mem_write()
+	print("Inside of an OnMemoryAddressWrittenTo callback function, with a memory address of " .. tostring(OnMemoryAddressWrittenTo:getMemoryAddressWrittenToForCurrentCallback()) .. ", and a value being written of " .. tostring(OnMemoryAddressWrittenTo:getValueWrittenToMemoryAddressForCurrentCallback()))
+	print_callback_statuses()
+	OnMemoryAddressWrittenTo:unregister(3422572554, mem_addr_written_ref)
+end
+
+function on_mem_read()
+	print("Inside of an OnMemoryAddressReadFrom callback function, with a memory address of " .. tostring(OnMemoryAddressReadFrom:getMemoryAddressReadFromForCurrentCallback()))
+	print_callback_statuses()
+	OnMemoryAddressReadFrom:unregister(3422564352, mem_addr_read_ref)
+end
+
+function on_instr_hit()
+	print("Inside of an OnInstructionHit callback function, with a PC address of " .. tostring(OnInstructionHit:getAddressOfInstructionForCurrentCallback()))
+	print_callback_statuses()
+	OnInstructionHit:unregister(2149867952, instr_hit_ref)
+end
+	
+
 on_frame_start_ref = OnFrameStart:register(on_frame_start)
 gc_poll_ref = OnGCControllerPolled:register(on_gc_cont_polled)
 wii_poll_ref = OnWiiInputPolled:register(on_wii_polled)
+mem_addr_written_ref = OnMemoryAddressWrittenTo:register(3422572554, on_mem_write)
+mem_addr_read_ref = OnMemoryAddressReadFrom:register(3422564352, on_mem_read)
+instr_hit_ref = OnInstructionHit:register(2149867952, on_instr_hit)
 
 print("At script startup...\n")
 print_callback_statuses()

@@ -897,12 +897,14 @@ bool LuaScriptContext::UnregisterOnFrameStartCallbacks(void* callbacks)
 
  void* LuaScriptContext::RegisterOnInstructionReachedCallbacks(u32 address, void* callbacks)
  {
+  this->instructionsBreakpointHolder.AddBreakpoint(address);
   return this->RegisterForMapHelper(address, this->map_of_instruction_address_to_lua_callback_locations, callbacks);
  }
 
  void LuaScriptContext::RegisterOnInstructionReachedWithAutoDeregistrationCallbacks(u32 address,
                                                                                     void* callbacks)
  {
+  this->instructionsBreakpointHolder.AddBreakpoint(address);
   this->RegisterForMapWithAutoDeregistrationHelper(
       address, this->map_of_instruction_address_to_lua_callback_locations, callbacks,
       number_of_instruction_address_callbacks_to_auto_deregister);
@@ -910,17 +912,20 @@ bool LuaScriptContext::UnregisterOnFrameStartCallbacks(void* callbacks)
 
  bool LuaScriptContext::UnregisterOnInstructionReachedCallbacks(u32 address, void* callbacks)
  {
+  this->instructionsBreakpointHolder.RemoveBreakpoint(address);
   return this->UnregisterForMapHelper(address, this->map_of_instruction_address_to_lua_callback_locations, callbacks);
  }
 
  void* LuaScriptContext::RegisterOnMemoryAddressReadFromCallbacks(u32 memory_address, void* callbacks)
  {
+  this->memoryAddressBreakpointsHolder.AddReadBreakpoint(memory_address);
   return this->RegisterForMapHelper(memory_address, this->map_of_memory_address_read_from_to_lua_callback_locations, callbacks);
  }
 
  void LuaScriptContext::RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallbacks(
      u32 memory_address, void* callbacks)
  {
+  this->memoryAddressBreakpointsHolder.AddReadBreakpoint(memory_address);
   this->RegisterForMapWithAutoDeregistrationHelper(
       memory_address, this->map_of_memory_address_read_from_to_lua_callback_locations, callbacks,
       number_of_memory_address_read_callbacks_to_auto_deregister);
@@ -928,18 +933,21 @@ bool LuaScriptContext::UnregisterOnFrameStartCallbacks(void* callbacks)
 
  bool LuaScriptContext::UnregisterOnMemoryAddressReadFromCallbacks(u32 memory_address, void* callbacks)
  {
+  this->memoryAddressBreakpointsHolder.RemoveReadBreakpoint(memory_address);
   return this->UnregisterForMapHelper(memory_address, this->map_of_memory_address_read_from_to_lua_callback_locations, callbacks);
  }
 
  void* LuaScriptContext::RegisterOnMemoryAddressWrittenToCallbacks(u32 memory_address,
                                                                    void* callbacks)
  {
+  this->memoryAddressBreakpointsHolder.AddWriteBreakpoint(memory_address);
   return this->RegisterForMapHelper(memory_address, this->map_of_memory_address_written_to_to_lua_callback_locations, callbacks);
  }
 
  void LuaScriptContext::RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallbacks(
      u32 memory_address, void* callbacks)
  {
+  this->memoryAddressBreakpointsHolder.AddWriteBreakpoint(memory_address);
   this->RegisterForMapWithAutoDeregistrationHelper(
       memory_address, this->map_of_memory_address_written_to_to_lua_callback_locations, callbacks,
       number_of_memory_address_write_callbacks_to_auto_deregister);
@@ -947,6 +955,7 @@ bool LuaScriptContext::UnregisterOnFrameStartCallbacks(void* callbacks)
 
  bool LuaScriptContext::UnregisterOnMemoryAddressWrittenToCallbacks(u32 memory_address, void* callbacks)
  {
+  this->memoryAddressBreakpointsHolder.RemoveWriteBreakpoint(memory_address);
   return this->UnregisterForMapHelper(memory_address, this->map_of_memory_address_written_to_to_lua_callback_locations, callbacks);
  }
 

@@ -31,6 +31,7 @@
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
+#include "Core/Scripting/ScriptUtilities.h"
 #include "Core/System.h"
 
 namespace PowerPC
@@ -634,6 +635,8 @@ void CheckBreakPoints()
 
   if (!bp || !bp->is_enabled || !EvaluateCondition(bp->condition))
     return;
+
+  Scripting::ScriptUtilities::RunOnInstructionHitCallbacks(PowerPC::ppcState.pc);
 
   if (bp->break_on_hit)
   {

@@ -23,6 +23,7 @@
 #include "Core/PowerPC/GDBStub.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/Scripting/ScriptUtilities.h"
 #include "Core/System.h"
 
 #include "VideoCommon/VideoBackendBase.h"
@@ -569,6 +570,11 @@ static void Memcheck(u32 address, u64 var, bool write, size_t size)
   TMemCheck* mc = memchecks.GetMemCheck(address, size);
   if (mc == nullptr)
     return;
+
+  if (write)
+    Scripting::ScriptUtilities::RunOnMemoryAddressWrittenToCallbacks(address, *((s64*)(&var)));
+  else
+    Scripting::ScriptUtilities::RunOnMemoryAddressReadFromCallbacks(address);
 
   if (CPU::IsStepping())
   {
