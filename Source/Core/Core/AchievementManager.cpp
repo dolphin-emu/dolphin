@@ -92,6 +92,20 @@ AchievementManager::ResolveHash(std::array<char, HASH_LENGTH> game_hash)
   return r_type;
 }
 
+AchievementManager::ResponseType AchievementManager::StartRASession()
+{
+  rc_api_start_session_response_t session_data{};
+  std::string username = Config::Get(Config::RA_USERNAME);
+  std::string api_token = Config::Get(Config::RA_API_TOKEN);
+  rc_api_start_session_request_t start_session_request = {
+      .username = username.c_str(), .api_token = api_token.c_str(), .game_id = m_game_id};
+  ResponseType r_type = Request<rc_api_start_session_request_t, rc_api_start_session_response_t>(
+      start_session_request, &session_data, rc_api_init_start_session_request,
+      rc_api_process_start_session_response);
+  rc_api_destroy_start_session_response(&session_data);
+  return r_type;
+}
+
 // Every RetroAchievements API call, with only a partial exception for fetch_image, follows
 // the same design pattern (here, X is the name of the call):
 //   Create a specific rc_api_X_request_t struct and populate with the necessary values

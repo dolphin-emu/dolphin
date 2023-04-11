@@ -43,6 +43,7 @@ private:
 
   ResponseType VerifyCredentials(const std::string& password);
   ResponseType ResolveHash(std::array<char, HASH_LENGTH> game_hash);
+  ResponseType StartRASession();
 
   template <typename RcRequest, typename RcResponse>
   ResponseType Request(RcRequest rc_request, RcResponse* rc_response,
@@ -53,6 +54,7 @@ private:
   bool m_is_runtime_initialized = false;
   unsigned int m_game_id = 0;
   rc_api_login_response_t m_login_data{};
+
 
 
   Common::WorkQueueThread<std::function<void()>> m_queue;
