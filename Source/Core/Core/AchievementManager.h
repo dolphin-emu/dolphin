@@ -22,17 +22,21 @@ public:
   enum class ResponseType
   {
     SUCCESS,
+    MANAGER_NOT_INITIALIZED,
     INVALID_CREDENTIALS,
     CONNECTION_FAILED,
     UNKNOWN_FAILURE
   };
-  using LoginCallback = std::function<void(ResponseType)>;
+  using ResponseCallback = std::function<void(ResponseType)>;
 
   static AchievementManager* GetInstance();
   void Init();
   ResponseType Login(const std::string& password);
-  void LoginAsync(const std::string& password, const LoginCallback& callback);
+  void LoginAsync(const std::string& password, const ResponseCallback& callback);
   bool IsLoggedIn() const;
+  void LoadGameByFilenameAsync(const std::string& iso_path, const ResponseCallback& callback);
+
+  void CloseGame();
   void Logout();
   void Shutdown();
 
@@ -54,11 +58,8 @@ private:
   rc_runtime_t m_runtime{};
   bool m_is_runtime_initialized = false;
   unsigned int m_game_id = 0;
-  rc_api_login_response_t m_login_data{};
-
-
-
   rc_api_fetch_game_data_response_t m_game_data{};
+  bool m_is_game_loaded = false;
 
   Common::WorkQueueThread<std::function<void()>> m_queue;
 };  // class AchievementManager
