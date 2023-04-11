@@ -16,6 +16,9 @@ target_link_libraries(build_pch PUBLIC fmt::fmt)
 # pch.cpp should be compiled with the /Yc command, which creates the precompiled header
 target_compile_options(build_pch PRIVATE /Ycpch.h)
 
+# add PCH to the include directories, this is needed when using clang-cl
+target_include_directories(build_pch PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+
 # /Fp sets the location of the PCH. By forcing it to a fixed location, all modules
 # will share this one PCH. We give it a fixed name so we can depend on it later
 target_compile_options(build_pch PUBLIC /Fp$<TARGET_FILE_DIR:build_pch>/dolphin.pch )
@@ -63,6 +66,9 @@ target_link_libraries(use_pch INTERFACE build_pch)
 # /Yu - Use precompiled header named "pch.h"
 # /FI - Force include "pch.h" at top of every source file
 target_compile_options(use_pch INTERFACE /Yupch.h /FIpch.h)
+
+# add PCH to the include directories, this is needed when using clang-cl
+target_include_directories(use_pch INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
 # For ninja, we need to depend on force_build_pch
 add_dependencies(use_pch force_build_pch)

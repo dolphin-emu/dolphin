@@ -60,7 +60,8 @@ MemArena::MemArena()
   void* const ptr_IsApiSetImplemented = kernelBase.GetSymbolAddress("IsApiSetImplemented");
   if (!ptr_IsApiSetImplemented)
     return;
-  if (!static_cast<PIsApiSetImplemented>(ptr_IsApiSetImplemented)("api-ms-win-core-memory-l1-1-6"))
+  if (!reinterpret_cast<PIsApiSetImplemented>(ptr_IsApiSetImplemented)(
+          "api-ms-win-core-memory-l1-1-6"))
     return;
 
   m_api_ms_win_core_memory_l1_1_6_handle.Open("api-ms-win-core-memory-l1-1-6.dll");
@@ -134,7 +135,7 @@ u8* MemArena::ReserveMemoryRegion(size_t memory_size)
   u8* base;
   if (m_api_ms_win_core_memory_l1_1_6_handle.IsOpen())
   {
-    base = static_cast<u8*>(static_cast<PVirtualAlloc2>(m_address_VirtualAlloc2)(
+    base = static_cast<u8*>(reinterpret_cast<PVirtualAlloc2>(m_address_VirtualAlloc2)(
         nullptr, nullptr, memory_size, MEM_RESERVE | MEM_RESERVE_PLACEHOLDER, PAGE_NOACCESS,
         nullptr, 0));
     if (base)
@@ -309,7 +310,7 @@ void* MemArena::MapInMemoryRegion(s64 offset, size_t size, void* base)
       return nullptr;
     }
 
-    void* rv = static_cast<PMapViewOfFile3>(m_address_MapViewOfFile3)(
+    void* rv = reinterpret_cast<PMapViewOfFile3>(m_address_MapViewOfFile3)(
         m_memory_handle, nullptr, base, offset, size, MEM_REPLACE_PLACEHOLDER, PAGE_READWRITE,
         nullptr, 0);
     if (rv)
@@ -404,8 +405,8 @@ void MemArena::UnmapFromMemoryRegion(void* view, size_t size)
 {
   if (m_api_ms_win_core_memory_l1_1_6_handle.IsOpen())
   {
-    if (static_cast<PUnmapViewOfFileEx>(m_address_UnmapViewOfFileEx)(view,
-                                                                     MEM_PRESERVE_PLACEHOLDER))
+    if (reinterpret_cast<PUnmapViewOfFileEx>(m_address_UnmapViewOfFileEx)(view,
+                                                                          MEM_PRESERVE_PLACEHOLDER))
     {
       if (!JoinRegionsAfterUnmap(view, size))
         PanicAlertFmt("Joining memory region failed.");

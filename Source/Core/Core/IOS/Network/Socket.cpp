@@ -726,7 +726,10 @@ WiiSocket::ConnectingState WiiSocket::GetConnectingState() const
   Common::ScopeGuard guard([&state] { Common::RestoreNetworkErrorState(state); });
 
 #ifdef _WIN32
-  constexpr int (*get_errno)() = &WSAGetLastError;
+  // clang-cl does not consider this constexpr due to WSAGetLastError being a dllimport symbol.
+  // Whether or not a constexpr dllimport symbol is even valid appears to be debatable, due to the
+  // way dlls work. Refer to https://github.com/llvm/llvm-project/issues/50900
+  int (*get_errno)() = &WSAGetLastError;
 #else
   constexpr int (*get_errno)() = []() { return errno; };
 #endif

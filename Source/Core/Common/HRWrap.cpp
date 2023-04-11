@@ -3,6 +3,7 @@
 
 #include "HRWrap.h"
 
+#include <guiddef.h>
 #include <winrt/base.h>
 
 namespace Common

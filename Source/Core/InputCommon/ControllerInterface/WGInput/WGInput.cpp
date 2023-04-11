@@ -7,6 +7,15 @@
 #include <map>
 #include <string_view>
 
+#if defined(_MSC_VER) && defined(__clang__)
+// clang-cl defines __GNUC__, but we don't want that in this case for the later includes.
+// Somewhere here DirectXMath.h gets included multiple times, and that
+// contains many globals. These use __attribute__((weak)) with __GNUC__ defined
+// and __declspec(selectany) otherwise. The latter prevents multiple definition
+// link errors, while the former doesn't.
+#undef __GNUC__
+#endif
+
 // For CoGetApartmentType
 #include <objbase.h>
 #pragma comment(lib, "ole32")

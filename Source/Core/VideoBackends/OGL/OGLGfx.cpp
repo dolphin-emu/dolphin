@@ -284,14 +284,17 @@ void OGLGfx::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
 {
   if (g_ogl_config.bSupportsGLBaseVertex)
   {
-    glDrawElementsBaseVertex(static_cast<const OGLPipeline*>(m_current_pipeline)->GetGLPrimitive(),
-                             num_indices, GL_UNSIGNED_SHORT,
-                             static_cast<u16*>(nullptr) + base_index, base_vertex);
+    glDrawElementsBaseVertex(
+        static_cast<const OGLPipeline*>(m_current_pipeline)->GetGLPrimitive(), num_indices,
+        GL_UNSIGNED_SHORT,
+        reinterpret_cast<void*>(static_cast<std::uintptr_t>(base_index) * sizeof(u16)),
+        base_vertex);
   }
   else
   {
     glDrawElements(static_cast<const OGLPipeline*>(m_current_pipeline)->GetGLPrimitive(),
-                   num_indices, GL_UNSIGNED_SHORT, static_cast<u16*>(nullptr) + base_index);
+                   num_indices, GL_UNSIGNED_SHORT,
+                   reinterpret_cast<void*>(static_cast<std::uintptr_t>(base_index) * sizeof(u16)));
   }
 }
 

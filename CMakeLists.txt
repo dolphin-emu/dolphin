@@ -309,6 +309,45 @@ if(MSVC)
     /w44946 # Reinterpret cast between related types
   )
 
+  if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    # Suppress more warnings for clang-cl
+    add_compile_options(
+      -Wno-clang-cl-pch # definition of macro 'macro' does not match definition in precompiled header
+      # this pops up a lot due to the variable -D usage around the project, just ignore the warning here
+      -Wno-deprecated-copy # definition of implicit copy constructor for 'type' is deprecated because it has a user-declared copy assignment operator
+      -Wno-format # format specifies type 'type1' but the argument has type 'type2'
+      -Wno-implicit-const-int-float-conversion # implicit conversion from 'int' to 'float' changes value from 'value1' to 'value2'
+      -Wno-inconsistent-missing-override # function overrides a member function but is not marked 'override'
+      -Wno-missing-field-initializers # missing field 'symbol' initializer
+      -Wno-switch # enumeration value 'identifier' not handled in switch
+      -Wno-sign-compare # comparison of integers of different signs: 'type1' and 'type2'
+      -Wno-tautological-constant-out-of-range-compare # result of comparison of constant `value` with expression of type 'type' is always false
+      -Wno-unknown-pragmas # unknown pragma ignored
+      -Wno-unknown-warning-option # unknown warning group 'warning', ignored
+      -Wno-unneeded-internal-declaration # function 'symbol' is not needed and will not be emitted
+      -Wno-unused-but-set-variable # variable 'identifier' set but not used
+      -Wno-unused-command-line-argument # argument unused during compilation: 'argument'
+      -Wno-unused-const-variable # unused variable 'identifier'
+      -Wno-unused-function # unused function 'symbol'
+      -Wno-unused-private-field # private field 'symbol' is not used
+      -Wno-unused-variable # unused variable 'identifier'
+    )
+
+    # Disables non-conformant MS compatibility behavior in clang-cl
+    add_compile_options(
+      # clang-cl in MS compatibility mode treats __VA_OPT__ differently match non-conformant MSVC behavior
+      # we want conformant behavior, so we need to disable MS compatibility mode entirely here
+      # refer to https://github.com/llvm/llvm-project/issues/50952 for more info
+      -fno-ms-compatibility
+      # Since MS compatibility mode is not longer set, __STDC__ is defined to 1
+      # But this disallows some non-standard functionality in MSVC headers, so we'll undefine it here to re-allow that functionality
+      -U__STDC__
+      # Disable delayed parsing of template functions, catches issues that sometimes don't propagate due to a template function being unused
+      # On another note: passing this does nothing without -fno-ms-compatibility also passed (although that doesn't really make sense, clang bug?)
+      -fno-delayed-template-parsing
+    )
+  endif()
+
   # All files are encoded as UTF-8
   add_compile_options(/utf-8)
 
@@ -317,9 +356,11 @@ if(MSVC)
   add_compile_options(/external:W0)
   add_compile_options(/external:templates-)
 
-  # Request deterministic builds
-  add_compile_options(/experimental:deterministic)
-  add_link_options(/experimental:deterministic)
+  if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    # Request deterministic builds
+    add_compile_options(/experimental:deterministic)
+    add_link_options(/experimental:deterministic)
+  endif()
 
   # Enable function-level linking
   add_compile_options(/Gy)
