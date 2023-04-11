@@ -2266,8 +2266,7 @@ u16 NetPlayServer::GetPort() const
 std::unordered_set<std::string> NetPlayServer::GetInterfaceSet() const
 {
   std::unordered_set<std::string> result;
-  auto lst = GetInterfaceListInternal();
-  for (auto list_entry : lst)
+  for (const auto& list_entry : GetInterfaceListInternal())
     result.emplace(list_entry.first);
   return result;
 }
