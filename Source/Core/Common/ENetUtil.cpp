@@ -6,7 +6,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 
-namespace ENetUtil
+namespace Common::ENet
 {
 void WakeupThread(ENetHost* host)
 {
@@ -62,4 +62,4 @@ bool SendPacket(ENetPeer* socket, const sf::Packet& packet, u8 channel_id)
 
   return true;
 }
-}  // namespace ENetUtil
+}  // namespace Common::ENet

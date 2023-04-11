@@ -153,7 +153,7 @@ NetPlayServer::NetPlayServer(const u16 port, const bool forward_port, NetPlayUI*
     if (m_server != nullptr)
     {
       m_server->mtu = std::min(m_server->mtu, NetPlay::MAX_ENET_MTU);
-      m_server->intercept = ENetUtil::InterceptCallback;
+      m_server->intercept = Common::ENet::InterceptCallback;
     }
 
     SetupIndex();
@@ -701,7 +701,7 @@ void NetPlayServer::SendAsync(sf::Packet&& packet, const PlayerId pid, const u8 
     std::lock_guard lkq(m_crit.async_queue_write);
     m_async_queue.Push(AsyncQueueEntry{std::move(packet), pid, TargetMode::Only, channel_id});
   }
-  ENetUtil::WakeupThread(m_server);
+  Common::ENet::WakeupThread(m_server);
 }
 
 void NetPlayServer::SendAsyncToClients(sf::Packet&& packet, const PlayerId skip_pid,
@@ -712,7 +712,7 @@ void NetPlayServer::SendAsyncToClients(sf::Packet&& packet, const PlayerId skip_
     m_async_queue.Push(
         AsyncQueueEntry{std::move(packet), skip_pid, TargetMode::AllExcept, channel_id});
   }
-  ENetUtil::WakeupThread(m_server);
+  Common::ENet::WakeupThread(m_server);
 }
 
 void NetPlayServer::SendChunked(sf::Packet&& packet, const PlayerId pid, const std::string& title)
@@ -2183,7 +2183,7 @@ void NetPlayServer::SendToClients(const sf::Packet& packet, const PlayerId skip_
 
 void NetPlayServer::Send(ENetPeer* socket, const sf::Packet& packet, const u8 channel_id)
 {
-  ENetUtil::SendPacket(socket, packet, channel_id);
+  Common::ENet::SendPacket(socket, packet, channel_id);
 }
 
 void NetPlayServer::KickPlayer(PlayerId player)

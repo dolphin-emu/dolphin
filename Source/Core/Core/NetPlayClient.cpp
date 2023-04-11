@@ -168,7 +168,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
     {
       if (Connect())
       {
-        m_client->intercept = ENetUtil::InterceptCallback;
+        m_client->intercept = Common::ENet::InterceptCallback;
         m_thread = std::thread(&NetPlayClient::ThreadFunc, this);
       }
     }
@@ -1522,7 +1522,7 @@ void NetPlayClient::OnGameDigestAbort()
 
 void NetPlayClient::Send(const sf::Packet& packet, const u8 channel_id)
 {
-  ENetUtil::SendPacket(m_server, packet, channel_id);
+  Common::ENet::SendPacket(m_server, packet, channel_id);
 }
 
 void NetPlayClient::DisplayPlayersPing()
@@ -1577,7 +1577,7 @@ void NetPlayClient::SendAsync(sf::Packet&& packet, const u8 channel_id)
     std::lock_guard lkq(m_crit.async_queue_write);
     m_async_queue.Push(AsyncQueueEntry{std::move(packet), channel_id});
   }
-  ENetUtil::WakeupThread(m_client);
+  Common::ENet::WakeupThread(m_client);
 }
 
 // called from ---NETPLAY--- thread
