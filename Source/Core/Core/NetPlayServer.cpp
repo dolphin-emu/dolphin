@@ -20,7 +20,7 @@
 #include <fmt/format.h>
 
 #include "Common/CommonPaths.h"
-#include "Common/ENetUtil.h"
+#include "Common/ENet.h"
 #include "Common/FileUtil.h"
 #include "Common/HttpRequest.h"
 #include "Common/Logging/Log.h"
