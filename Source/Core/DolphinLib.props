@@ -42,7 +42,7 @@
     <ClInclude Include="Common\Debug\Watches.h" />
     <ClInclude Include="Common\DebugInterface.h" />
     <ClInclude Include="Common\DynamicLibrary.h" />
-    <ClInclude Include="Common\ENetUtil.h" />
+    <ClInclude Include="Common\ENet.h" />
     <ClInclude Include="Common\EnumFormatter.h" />
     <ClInclude Include="Common\EnumMap.h" />
     <ClInclude Include="Common\Event.h" />
@@ -753,7 +753,7 @@
     <ClCompile Include="Common\Debug\MemoryPatches.cpp" />
     <ClCompile Include="Common\Debug\Watches.cpp" />
     <ClCompile Include="Common\DynamicLibrary.cpp" />
-    <ClCompile Include="Common\ENetUtil.cpp" />
+    <ClCompile Include="Common\ENet.cpp" />
     <ClCompile Include="Common\FatFsUtil.cpp" />
     <ClCompile Include="Common\FileSearch.cpp" />
     <ClCompile Include="Common\FileUtil.cpp" />

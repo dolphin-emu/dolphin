@@ -41,8 +41,8 @@ add_library(common
   DebugInterface.h
   DynamicLibrary.cpp
   DynamicLibrary.h
-  ENetUtil.cpp
-  ENetUtil.h
+  ENet.cpp
+  ENet.h
   EnumFormatter.h
   EnumMap.h
   Event.h
