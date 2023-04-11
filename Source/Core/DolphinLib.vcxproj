@@ -88,6 +88,8 @@
     <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnMemoryAddressWrittenToCallbackAPI.h" />
     <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnWiiInputPolledCallbackAPI.h" />
     <ClInclude Include="Core\Scripting\HelperClasses\ClassFunctionsResolver.h" />
+    <ClInclude Include="Core\Scripting\HelperClasses\InstructionBreakpointsHolder.h" />
+    <ClInclude Include="Core\Scripting\HelperClasses\MemoryAddressBreakpointsHolder.h" />
     <ClInclude Include="Core\Scripting\HelperClasses\WiiControllerRepresentation.h" />
     <ClInclude Include="Core\Scripting\InternalAPIModules\GraphicsAPI.h" />
     <ClInclude Include="Core\Scripting\InternalAPIModules\ImportAPI.h" />

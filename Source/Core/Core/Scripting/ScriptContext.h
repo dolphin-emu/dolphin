@@ -5,6 +5,8 @@
 #include <mutex>
 #include <vector>
 #include "Common/ThreadSafeQueue.h"
+#include "Core/Scripting/HelperClasses/InstructionBreakpointsHolder.h"
+#include "Core/Scripting/HelperClasses/MemoryAddressBreakpointsHolder.h"
 #include "Core/Scripting/HelperClasses/ScriptCallLocations.h"
 
 namespace Scripting
@@ -36,6 +38,9 @@ public:
   bool called_yielding_function_in_last_frame_callback_script_resume;
   std::mutex script_specific_lock;
 
+  InstructionBreakpointsHolder instructionsBreakpointHolder;
+  MemoryAddressBreakpointsHolder memoryAddressBreakpointsHolder;
+
   ScriptContext(int new_unique_script_identifier, std::string new_script_filename,
                 std::vector<ScriptContext*>* new_pointer_to_vector_containing_all_scripts,
                 std::function<void(const std::string&)>* new_print_callback_for_ui,
@@ -60,9 +65,9 @@ public:
   virtual void RunGlobalScopeCode() = 0;
   virtual void RunOnFrameStartCallbacks() = 0;
   virtual void RunOnGCControllerPolledCallbacks() = 0;
-  virtual void RunOnInstructionReachedCallbacks(size_t current_address) = 0;
-  virtual void RunOnMemoryAddressReadFromCallbacks(size_t current_memory_address) = 0;
-  virtual void RunOnMemoryAddressWrittenToCallbacks(size_t current_memory_address) = 0;
+  virtual void RunOnInstructionReachedCallbacks(u32 current_address) = 0;
+  virtual void RunOnMemoryAddressReadFromCallbacks(u32 current_memory_address) = 0;
+  virtual void RunOnMemoryAddressWrittenToCallbacks(u32 current_memory_address) = 0;
   virtual void RunOnWiiInputPolledCallbacks() = 0;
 
   virtual void* RegisterOnFrameStartCallbacks(void* callbacks) = 0;
@@ -73,17 +78,17 @@ public:
   virtual void RegisterOnGCControllerPolledWithAutoDeregistrationCallbacks(void* callbacks) = 0;
   virtual bool UnregisterOnGCControllerPolledCallbacks(void* callbacks) = 0;
 
-  virtual void* RegisterOnInstructionReachedCallbacks(size_t address, void* callbacks) = 0;
-  virtual void RegisterOnInstructionReachedWithAutoDeregistrationCallbacks(size_t address, void* callbacks) = 0;
-  virtual bool UnregisterOnInstructionReachedCallbacks(size_t address, void* callbacks) = 0;
+  virtual void* RegisterOnInstructionReachedCallbacks(u32 address, void* callbacks) = 0;
+  virtual void RegisterOnInstructionReachedWithAutoDeregistrationCallbacks(u32 address, void* callbacks) = 0;
+  virtual bool UnregisterOnInstructionReachedCallbacks(u32 address, void* callbacks) = 0;
 
-  virtual void* RegisterOnMemoryAddressReadFromCallbacks(size_t memory_address, void* callbacks) = 0;
-  virtual void RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallbacks(size_t memory_address, void* callbacks) = 0;
-  virtual bool UnregisterOnMemoryAddressReadFromCallbacks(size_t memory_address, void* callbacks) = 0;
+  virtual void* RegisterOnMemoryAddressReadFromCallbacks(u32 memory_address, void* callbacks) = 0;
+  virtual void RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallbacks(u32 memory_address, void* callbacks) = 0;
+  virtual bool UnregisterOnMemoryAddressReadFromCallbacks(u32 memory_address, void* callbacks) = 0;
 
-  virtual void* RegisterOnMemoryAddressWrittenToCallbacks(size_t memory_address, void* callbacks) = 0;
-  virtual void RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallbacks(size_t memory_address, void* callbacks) = 0;
-  virtual bool UnregisterOnMemoryAddressWrittenToCallbacks(size_t memory_address, void* callbacks) = 0;
+  virtual void* RegisterOnMemoryAddressWrittenToCallbacks(u32 memory_address, void* callbacks) = 0;
+  virtual void RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallbacks(u32 memory_address, void* callbacks) = 0;
+  virtual bool UnregisterOnMemoryAddressWrittenToCallbacks(u32 memory_address, void* callbacks) = 0;
 
   virtual void* RegisterOnWiiInputPolledCallbacks(void* callbacks) = 0;
   virtual void RegisterOnWiiInputPolledWithAutoDeregistrationCallbacks(void* callbacks) = 0;

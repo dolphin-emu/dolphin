@@ -46,7 +46,7 @@ static PyThreadState* original_python_thread = nullptr;
 static std::string error_buffer_str;
 
 
-int getNumberOfCallbacksInMap(std::unordered_map<size_t, std::vector<PythonScriptContext::IdentifierToCallback>>& input_map)
+int getNumberOfCallbacksInMap(std::unordered_map<u32, std::vector<PythonScriptContext::IdentifierToCallback>>& input_map)
 {
   int return_val = 0;
   for (auto& element : input_map)
@@ -782,7 +782,7 @@ void PythonScriptContext::RunCallbacksForVector(std::vector<PythonScriptContext:
   this->RunEndOfIteraionTasks();
   PyEval_ReleaseThread(main_python_thread);
 }
-void PythonScriptContext::RunCallbacksForMap(std::unordered_map<size_t, std::vector<PythonScriptContext::IdentifierToCallback>>& map_of_callbacks, size_t current_address)
+void PythonScriptContext::RunCallbacksForMap(std::unordered_map<u32, std::vector<PythonScriptContext::IdentifierToCallback>>& map_of_callbacks, u32 current_address)
 {
   if (ShouldCallEndScriptFunction())
   {
@@ -889,8 +889,8 @@ bool PythonScriptContext::UnregisterForVectorHelper(std::vector<PythonScriptCont
   return false;
 }
 
-void* PythonScriptContext::RegisterForMapHelper(size_t address,
-                           std::unordered_map<size_t, std::vector<PythonScriptContext::IdentifierToCallback>>& map_of_callbacks, void* callbacks) // callbacks is of type PyObject* here
+void* PythonScriptContext::RegisterForMapHelper(u32 address,
+                           std::unordered_map<u32, std::vector<PythonScriptContext::IdentifierToCallback>>& map_of_callbacks, void* callbacks) // callbacks is of type PyObject* here
 // return value of function is identifier of the callback (as a size_t, but wrapped as a void* for the generic API)
 {
   size_t return_result = 0;
@@ -913,7 +913,7 @@ void* PythonScriptContext::RegisterForMapHelper(size_t address,
 }
 
 void PythonScriptContext::RegisterForMapWithAutoDeregistrationHelper(
-    size_t address, std::unordered_map<size_t, std::vector<PythonScriptContext::IdentifierToCallback>>& map_of_callbacks, void* callbacks, std::atomic<size_t>& number_of_auto_deregistration_callbacks) // callbacks is of type PyObject* here
+    u32 address, std::unordered_map<u32, std::vector<PythonScriptContext::IdentifierToCallback>>& map_of_callbacks, void* callbacks, std::atomic<size_t>& number_of_auto_deregistration_callbacks) // callbacks is of type PyObject* here
 {
   PyObject* func = *((PyObject**)&callbacks);
   if (func == nullptr || !PyCallable_Check(func))
@@ -931,8 +931,8 @@ void PythonScriptContext::RegisterForMapWithAutoDeregistrationHelper(
   }
 }
 
-bool PythonScriptContext::UnregisterForMapHelper(size_t address,
-                            std::unordered_map<size_t, std::vector<PythonScriptContext::IdentifierToCallback>>& map_of_callbacks,
+bool PythonScriptContext::UnregisterForMapHelper(u32 address,
+                            std::unordered_map<u32, std::vector<PythonScriptContext::IdentifierToCallback>>& map_of_callbacks,
                             void* callback) // In this case, callback is of type size_t, which refers to the identifier associated with the callback to unregister
 // Returns true if attempt to unregister callback suceeded, and false otherwise.
 {
@@ -993,18 +993,18 @@ void PythonScriptContext::RunOnGCControllerPolledCallbacks()
   this->RunCallbacksForVector(this->gc_controller_input_polled_callbacks);
 }
 
-void PythonScriptContext::RunOnInstructionReachedCallbacks(size_t current_address)
+void PythonScriptContext::RunOnInstructionReachedCallbacks(u32 current_address)
 {
   this->RunCallbacksForMap(this->map_of_instruction_address_to_python_callbacks, current_address);
 }
 
-void PythonScriptContext::RunOnMemoryAddressReadFromCallbacks(size_t current_memory_address)
+void PythonScriptContext::RunOnMemoryAddressReadFromCallbacks(u32 current_memory_address)
 {
   this->RunCallbacksForMap(this->map_of_memory_address_read_from_to_python_callbacks,
                           current_memory_address);
 }
 
-void PythonScriptContext::RunOnMemoryAddressWrittenToCallbacks(size_t current_memory_address)
+void PythonScriptContext::RunOnMemoryAddressWrittenToCallbacks(u32 current_memory_address)
 {
   this->RunCallbacksForMap(this->map_of_memory_address_written_to_to_python_callbacks,
                           current_memory_address);
@@ -1049,66 +1049,75 @@ bool PythonScriptContext::UnregisterOnGCControllerPolledCallbacks(void* callback
   return this->UnregisterForVectorHelper(this->gc_controller_input_polled_callbacks, callbacks);
 }
 
-void* PythonScriptContext::RegisterOnInstructionReachedCallbacks(size_t address, void* callbacks)
+void* PythonScriptContext::RegisterOnInstructionReachedCallbacks(u32 address, void* callbacks)
 {
+  this->instructionsBreakpointHolder.AddBreakpoint(address);
   return this->RegisterForMapHelper(
       address, this->map_of_instruction_address_to_python_callbacks, callbacks);
 }
 
 void PythonScriptContext::RegisterOnInstructionReachedWithAutoDeregistrationCallbacks(
-    size_t address, void* callbacks)
+    u32 address, void* callbacks)
 {
+  this->instructionsBreakpointHolder.AddBreakpoint(address);
   this->RegisterForMapWithAutoDeregistrationHelper(
       address, this->map_of_instruction_address_to_python_callbacks, callbacks,
       this->number_of_instruction_address_callbacks_to_auto_deregister);
 }
 
-bool PythonScriptContext::UnregisterOnInstructionReachedCallbacks(size_t address, void* callbacks)
+bool PythonScriptContext::UnregisterOnInstructionReachedCallbacks(u32 address, void* callbacks)
 {
+  this->instructionsBreakpointHolder.RemoveBreakpoint(address);
   return this->UnregisterForMapHelper(address, this->map_of_instruction_address_to_python_callbacks,
                                callbacks);
 }
 
-void* PythonScriptContext::RegisterOnMemoryAddressReadFromCallbacks(size_t memory_address,
+void* PythonScriptContext::RegisterOnMemoryAddressReadFromCallbacks(u32 memory_address,
                                                                     void* callbacks)
 {
+  this->memoryAddressBreakpointsHolder.AddReadBreakpoint(memory_address);
   return this->RegisterForMapHelper(
       memory_address, this->map_of_memory_address_read_from_to_python_callbacks, callbacks);
 }
 
 void PythonScriptContext::RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallbacks(
-    size_t memory_address, void* callbacks)
+    u32 memory_address, void* callbacks)
 {
+  this->memoryAddressBreakpointsHolder.AddReadBreakpoint(memory_address);
   this->RegisterForMapWithAutoDeregistrationHelper(
       memory_address, this->map_of_memory_address_read_from_to_python_callbacks, callbacks,
       this->number_of_memory_address_read_callbacks_to_auto_deregister);
 }
 
-bool PythonScriptContext::UnregisterOnMemoryAddressReadFromCallbacks(size_t memory_address,
+bool PythonScriptContext::UnregisterOnMemoryAddressReadFromCallbacks(u32 memory_address,
                                                                      void* callbacks)
 {
+  this->memoryAddressBreakpointsHolder.RemoveReadBreakpoint(memory_address);
   return this->UnregisterForMapHelper(
       memory_address, this->map_of_memory_address_read_from_to_python_callbacks, callbacks);
 }
 
-void* PythonScriptContext::RegisterOnMemoryAddressWrittenToCallbacks(size_t memory_address,
+void* PythonScriptContext::RegisterOnMemoryAddressWrittenToCallbacks(u32 memory_address,
                                                                      void* callbacks)
 {
+  this->memoryAddressBreakpointsHolder.AddWriteBreakpoint(memory_address);
   return this->RegisterForMapHelper(
       memory_address, this->map_of_memory_address_written_to_to_python_callbacks, callbacks);
 }
 
 void PythonScriptContext::RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallbacks(
-    size_t memory_address, void* callbacks)
+    u32 memory_address, void* callbacks)
 {
+  this->memoryAddressBreakpointsHolder.AddWriteBreakpoint(memory_address);
   this->RegisterForMapWithAutoDeregistrationHelper(
       memory_address, this->map_of_memory_address_written_to_to_python_callbacks, callbacks,
       this->number_of_memory_address_write_callbacks_to_auto_deregister);
 }
 
-bool PythonScriptContext::UnregisterOnMemoryAddressWrittenToCallbacks(size_t memory_address,
+bool PythonScriptContext::UnregisterOnMemoryAddressWrittenToCallbacks(u32 memory_address,
                                                                       void* callbacks)
 {
+  this->memoryAddressBreakpointsHolder.RemoveWriteBreakpoint(memory_address);
   return this->UnregisterForMapHelper(
       memory_address, this->map_of_memory_address_written_to_to_python_callbacks, callbacks);
 }

@@ -30,10 +30,10 @@ public:
   std::vector<IdentifierToCallback> gc_controller_input_polled_callbacks;
   std::vector<IdentifierToCallback> wii_controller_input_polled_callbacks;
 
-  std::unordered_map<size_t, std::vector<IdentifierToCallback>> map_of_instruction_address_to_python_callbacks;
-  std::unordered_map<size_t, std::vector<IdentifierToCallback>>
+  std::unordered_map<u32, std::vector<IdentifierToCallback>> map_of_instruction_address_to_python_callbacks;
+  std::unordered_map<u32, std::vector<IdentifierToCallback>>
       map_of_memory_address_read_from_to_python_callbacks;
-  std::unordered_map<size_t, std::vector<IdentifierToCallback>>
+  std::unordered_map<u32, std::vector<IdentifierToCallback>>
       map_of_memory_address_written_to_to_python_callbacks;
 
   std::unordered_map<long long, IdentifierToCallback> map_of_button_id_to_callback;
@@ -76,6 +76,8 @@ public:
     unref_map(this->map_of_memory_address_read_from_to_python_callbacks);
     unref_map(this->map_of_memory_address_written_to_to_python_callbacks);
     unref_map(this->map_of_button_id_to_callback);
+    this->instructionsBreakpointHolder.ClearAllBreakpoints();
+    this->memoryAddressBreakpointsHolder.ClearAllBreakpoints();
     PyEval_ReleaseThread(main_python_thread);
   }
 
@@ -84,9 +86,9 @@ public:
   virtual void RunGlobalScopeCode();
   virtual void RunOnFrameStartCallbacks();
   virtual void RunOnGCControllerPolledCallbacks();
-  virtual void RunOnInstructionReachedCallbacks(size_t current_address);
-  virtual void RunOnMemoryAddressReadFromCallbacks(size_t current_memory_address);
-  virtual void RunOnMemoryAddressWrittenToCallbacks(size_t current_memory_address);
+  virtual void RunOnInstructionReachedCallbacks(u32 current_address);
+  virtual void RunOnMemoryAddressReadFromCallbacks(u32 current_memory_address);
+  virtual void RunOnMemoryAddressWrittenToCallbacks(u32 current_memory_address);
   virtual void RunOnWiiInputPolledCallbacks();
 
   virtual void* RegisterOnFrameStartCallbacks(void* callbacks);
@@ -97,21 +99,21 @@ public:
   virtual void RegisterOnGCControllerPolledWithAutoDeregistrationCallbacks(void* callbacks);
   virtual bool UnregisterOnGCControllerPolledCallbacks(void* callbacks);
 
-  virtual void* RegisterOnInstructionReachedCallbacks(size_t address, void* callbacks);
-  virtual void RegisterOnInstructionReachedWithAutoDeregistrationCallbacks(size_t address,
+  virtual void* RegisterOnInstructionReachedCallbacks(u32 address, void* callbacks);
+  virtual void RegisterOnInstructionReachedWithAutoDeregistrationCallbacks(u32 address,
                                                                            void* callbacks);
-  virtual bool UnregisterOnInstructionReachedCallbacks(size_t address, void* callbacks);
+  virtual bool UnregisterOnInstructionReachedCallbacks(u32 address, void* callbacks);
 
-  virtual void* RegisterOnMemoryAddressReadFromCallbacks(size_t memory_address, void* callbacks);
-  virtual void RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallbacks(size_t memory_address,
+  virtual void* RegisterOnMemoryAddressReadFromCallbacks(u32 memory_address, void* callbacks);
+  virtual void RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallbacks(u32 memory_address,
                                                                               void* callbacks);
-  virtual bool UnregisterOnMemoryAddressReadFromCallbacks(size_t memory_address, void* callbacks);
+  virtual bool UnregisterOnMemoryAddressReadFromCallbacks(u32 memory_address, void* callbacks);
 
-  virtual void* RegisterOnMemoryAddressWrittenToCallbacks(size_t memory_address, void* callbacks);
+  virtual void* RegisterOnMemoryAddressWrittenToCallbacks(u32 memory_address, void* callbacks);
   virtual void
-  RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallbacks(size_t memory_address,
+  RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallbacks(u32 memory_address,
                                                                   void* callbacks);
-  virtual bool UnregisterOnMemoryAddressWrittenToCallbacks(size_t memory_address, void* callbacks);
+  virtual bool UnregisterOnMemoryAddressWrittenToCallbacks(u32 memory_address, void* callbacks);
 
   virtual void* RegisterOnWiiInputPolledCallbacks(void* callbacks);
   virtual void RegisterOnWiiInputPolledWithAutoDeregistrationCallbacks(void* callbacks);
@@ -133,7 +135,7 @@ private:
     input_vector.clear();
   }
 
-  void unref_map(std::unordered_map<size_t, std::vector<IdentifierToCallback>>& input_map)
+  void unref_map(std::unordered_map<u32, std::vector<IdentifierToCallback>>& input_map)
   {
     for (auto& addr_input_vector_pair : input_map)
       unref_vector(addr_input_vector_pair.second);
@@ -150,8 +152,8 @@ private:
 
   void RunEndOfIteraionTasks();
   void RunCallbacksForVector(std::vector<IdentifierToCallback>& callback_list);
-  void RunCallbacksForMap(std::unordered_map<size_t, std::vector<IdentifierToCallback>>& map_of_callbacks,
-                         size_t current_address);
+  void RunCallbacksForMap(std::unordered_map<u32, std::vector<IdentifierToCallback>>& map_of_callbacks,
+                         u32 current_address);
   void* RegisterForVectorHelper(std::vector<IdentifierToCallback>& callback_list, void* callback);
   void RegisterForVectorWithAutoDeregistrationHelper(
       std::vector<IdentifierToCallback>& callback_list, void* callback,
@@ -161,14 +163,14 @@ private:
 
 
 void* RegisterForMapHelper(
-      size_t address, std::unordered_map<size_t, std::vector<IdentifierToCallback>>& map_of_callbacks,
+      u32 address, std::unordered_map<u32, std::vector<IdentifierToCallback>>& map_of_callbacks,
       void* callbacks);
   void RegisterForMapWithAutoDeregistrationHelper(
-      size_t address, std::unordered_map<size_t, std::vector<IdentifierToCallback>>& map_of_callbacks,
+      u32 address, std::unordered_map<u32, std::vector<IdentifierToCallback>>& map_of_callbacks,
       void* callbacks, std::atomic<size_t>& number_of_auto_deregistration_callbacks);
 
-  bool UnregisterForMapHelper(size_t address,
-                              std::unordered_map<size_t, std::vector<IdentifierToCallback>>& map_of_callbacks,
+  bool UnregisterForMapHelper(u32 address,
+                              std::unordered_map<u32, std::vector<IdentifierToCallback>>& map_of_callbacks,
                               void* callbacks);
 };
 

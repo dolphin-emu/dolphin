@@ -734,7 +734,7 @@ void LuaScriptContext::RunOnGCControllerPolledCallbacks()
 }
 
 
-void LuaScriptContext::RunOnInstructionReachedCallbacks(size_t current_address)
+void LuaScriptContext::RunOnInstructionReachedCallbacks(u32 current_address)
 {
   if (ShouldCallEndScriptFunction())
   {
@@ -751,7 +751,7 @@ void LuaScriptContext::RunOnInstructionReachedCallbacks(size_t current_address)
       index_of_next_callback, called_yield_previously, false);
 }
 
-void LuaScriptContext::RunOnMemoryAddressReadFromCallbacks(size_t current_memory_address)
+void LuaScriptContext::RunOnMemoryAddressReadFromCallbacks(u32 current_memory_address)
 {
   if (ShouldCallEndScriptFunction())
   {
@@ -770,7 +770,7 @@ void LuaScriptContext::RunOnMemoryAddressReadFromCallbacks(size_t current_memory
       index_of_next_callback, called_yield_previously, false);
 }
 
-void LuaScriptContext::RunOnMemoryAddressWrittenToCallbacks(size_t current_memory_address)
+void LuaScriptContext::RunOnMemoryAddressWrittenToCallbacks(u32 current_memory_address)
 {
   if (ShouldCallEndScriptFunction())
   {
@@ -829,7 +829,7 @@ bool LuaScriptContext::UnregisterForVectorHelper(std::vector<int>& input_vector,
   return true;
 }
 
-void* LuaScriptContext::RegisterForMapHelper(size_t address, std::unordered_map<size_t, std::vector<int>>& input_map,
+void* LuaScriptContext::RegisterForMapHelper(u32 address, std::unordered_map<u32, std::vector<int>>& input_map,
                                              void* callbacks)
 {
   int function_reference = *((int*)(&callbacks));
@@ -839,7 +839,7 @@ void* LuaScriptContext::RegisterForMapHelper(size_t address, std::unordered_map<
   return callbacks;
 }
 
- void LuaScriptContext::RegisterForMapWithAutoDeregistrationHelper(size_t address, std::unordered_map<size_t, std::vector<int>>& input_map, void* callbacks, std::atomic<size_t>& number_of_auto_deregistration_callbacks)
+ void LuaScriptContext::RegisterForMapWithAutoDeregistrationHelper(u32 address, std::unordered_map<u32, std::vector<int>>& input_map, void* callbacks, std::atomic<size_t>& number_of_auto_deregistration_callbacks)
 {
   int function_reference = *((int*)(&callbacks));
   if (!input_map.count(address))
@@ -849,7 +849,7 @@ void* LuaScriptContext::RegisterForMapHelper(size_t address, std::unordered_map<
  }
 
 
-bool LuaScriptContext::UnregisterForMapHelper(size_t address, std::unordered_map<size_t, std::vector<int>>& input_map, void* callbacks)
+bool LuaScriptContext::UnregisterForMapHelper(u32 address, std::unordered_map<u32, std::vector<int>>& input_map, void* callbacks)
 {
   int function_reference_to_delete = *((int*)(&callbacks));
   if (!input_map.count(address))
@@ -895,12 +895,12 @@ bool LuaScriptContext::UnregisterOnFrameStartCallbacks(void* callbacks)
   return this->UnregisterForVectorHelper(this->gc_controller_input_polled_callback_locations, callbacks);
  }
 
- void* LuaScriptContext::RegisterOnInstructionReachedCallbacks(size_t address, void* callbacks)
+ void* LuaScriptContext::RegisterOnInstructionReachedCallbacks(u32 address, void* callbacks)
  {
   return this->RegisterForMapHelper(address, this->map_of_instruction_address_to_lua_callback_locations, callbacks);
  }
 
- void LuaScriptContext::RegisterOnInstructionReachedWithAutoDeregistrationCallbacks(size_t address,
+ void LuaScriptContext::RegisterOnInstructionReachedWithAutoDeregistrationCallbacks(u32 address,
                                                                                     void* callbacks)
  {
   this->RegisterForMapWithAutoDeregistrationHelper(
@@ -908,44 +908,44 @@ bool LuaScriptContext::UnregisterOnFrameStartCallbacks(void* callbacks)
       number_of_instruction_address_callbacks_to_auto_deregister);
  }
 
- bool LuaScriptContext::UnregisterOnInstructionReachedCallbacks(size_t address, void* callbacks)
+ bool LuaScriptContext::UnregisterOnInstructionReachedCallbacks(u32 address, void* callbacks)
  {
   return this->UnregisterForMapHelper(address, this->map_of_instruction_address_to_lua_callback_locations, callbacks);
  }
 
- void* LuaScriptContext::RegisterOnMemoryAddressReadFromCallbacks(size_t memory_address, void* callbacks)
+ void* LuaScriptContext::RegisterOnMemoryAddressReadFromCallbacks(u32 memory_address, void* callbacks)
  {
   return this->RegisterForMapHelper(memory_address, this->map_of_memory_address_read_from_to_lua_callback_locations, callbacks);
  }
 
  void LuaScriptContext::RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallbacks(
-     size_t memory_address, void* callbacks)
+     u32 memory_address, void* callbacks)
  {
   this->RegisterForMapWithAutoDeregistrationHelper(
       memory_address, this->map_of_memory_address_read_from_to_lua_callback_locations, callbacks,
       number_of_memory_address_read_callbacks_to_auto_deregister);
  }
 
- bool LuaScriptContext::UnregisterOnMemoryAddressReadFromCallbacks(size_t memory_address, void* callbacks)
+ bool LuaScriptContext::UnregisterOnMemoryAddressReadFromCallbacks(u32 memory_address, void* callbacks)
  {
   return this->UnregisterForMapHelper(memory_address, this->map_of_memory_address_read_from_to_lua_callback_locations, callbacks);
  }
 
- void* LuaScriptContext::RegisterOnMemoryAddressWrittenToCallbacks(size_t memory_address,
+ void* LuaScriptContext::RegisterOnMemoryAddressWrittenToCallbacks(u32 memory_address,
                                                                    void* callbacks)
  {
   return this->RegisterForMapHelper(memory_address, this->map_of_memory_address_written_to_to_lua_callback_locations, callbacks);
  }
 
  void LuaScriptContext::RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallbacks(
-     size_t memory_address, void* callbacks)
+     u32 memory_address, void* callbacks)
  {
   this->RegisterForMapWithAutoDeregistrationHelper(
       memory_address, this->map_of_memory_address_written_to_to_lua_callback_locations, callbacks,
       number_of_memory_address_write_callbacks_to_auto_deregister);
  }
 
- bool LuaScriptContext::UnregisterOnMemoryAddressWrittenToCallbacks(size_t memory_address, void* callbacks)
+ bool LuaScriptContext::UnregisterOnMemoryAddressWrittenToCallbacks(u32 memory_address, void* callbacks)
  {
   return this->UnregisterForMapHelper(memory_address, this->map_of_memory_address_written_to_to_lua_callback_locations, callbacks);
  }

@@ -51,12 +51,12 @@ public:
 
   int index_of_next_frame_callback_to_execute;
 
-  std::unordered_map<size_t, std::vector<int>> map_of_instruction_address_to_lua_callback_locations;
+  std::unordered_map<u32, std::vector<int>> map_of_instruction_address_to_lua_callback_locations;
 
-  std::unordered_map<size_t, std::vector<int>>
+  std::unordered_map<u32, std::vector<int>>
       map_of_memory_address_read_from_to_lua_callback_locations;
 
-  std::unordered_map<size_t, std::vector<int>>
+  std::unordered_map<u32, std::vector<int>>
       map_of_memory_address_written_to_to_lua_callback_locations;
 
   std::unordered_map<long long, int> map_of_button_id_to_callback;
@@ -107,7 +107,7 @@ public:
     return 0;
   }
 
-  int getNumberOfCallbacksInMap(std::unordered_map<size_t, std::vector<int>>& input_map) {
+  int getNumberOfCallbacksInMap(std::unordered_map<u32, std::vector<int>>& input_map) {
     int return_val = 0;
     for (auto& element : input_map)
     {
@@ -199,6 +199,8 @@ public:
     unref_map(this->map_of_memory_address_read_from_to_lua_callback_locations);
     unref_map(this->map_of_memory_address_written_to_to_lua_callback_locations);
     unref_map(this->map_of_button_id_to_callback);
+    this->instructionsBreakpointHolder.ClearAllBreakpoints();
+    this->memoryAddressBreakpointsHolder.ClearAllBreakpoints();
   }
 
   virtual void ImportModule(const std::string& api_name, const std::string& api_version);
@@ -206,9 +208,9 @@ public:
   virtual void RunGlobalScopeCode();
   virtual void RunOnFrameStartCallbacks();
   virtual void RunOnGCControllerPolledCallbacks();
-  virtual void RunOnInstructionReachedCallbacks(size_t current_address);
-  virtual void RunOnMemoryAddressReadFromCallbacks(size_t current_memory_address);
-  virtual void RunOnMemoryAddressWrittenToCallbacks(size_t current_memory_address);
+  virtual void RunOnInstructionReachedCallbacks(u32 current_address);
+  virtual void RunOnMemoryAddressReadFromCallbacks(u32 current_memory_address);
+  virtual void RunOnMemoryAddressWrittenToCallbacks(u32 current_memory_address);
   virtual void RunOnWiiInputPolledCallbacks();
 
   virtual void* RegisterOnFrameStartCallbacks(void* callbacks);
@@ -219,23 +221,23 @@ public:
   virtual void RegisterOnGCControllerPolledWithAutoDeregistrationCallbacks(void* callbacks);
   virtual bool UnregisterOnGCControllerPolledCallbacks(void* callbacks);
 
-  virtual void* RegisterOnInstructionReachedCallbacks(size_t address, void* callbacks);
-  virtual void RegisterOnInstructionReachedWithAutoDeregistrationCallbacks(size_t address, void* callbacks);
-  virtual bool UnregisterOnInstructionReachedCallbacks(size_t address, void* callbacks);
+  virtual void* RegisterOnInstructionReachedCallbacks(u32 address, void* callbacks);
+  virtual void RegisterOnInstructionReachedWithAutoDeregistrationCallbacks(u32 address, void* callbacks);
+  virtual bool UnregisterOnInstructionReachedCallbacks(u32 address, void* callbacks);
 
-  virtual void* RegisterOnMemoryAddressReadFromCallbacks(size_t memory_address,
+  virtual void* RegisterOnMemoryAddressReadFromCallbacks(u32 memory_address,
                                                          void* callbacks);
-  virtual void RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallbacks(size_t memory_address,
+  virtual void RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallbacks(u32 memory_address,
                                                                               void* callbacks);
-  virtual bool UnregisterOnMemoryAddressReadFromCallbacks(size_t memory_address,
+  virtual bool UnregisterOnMemoryAddressReadFromCallbacks(u32 memory_address,
                                                            void* callbacks);
 
-  virtual void* RegisterOnMemoryAddressWrittenToCallbacks(size_t memory_address,
+  virtual void* RegisterOnMemoryAddressWrittenToCallbacks(u32 memory_address,
                                                           void* callbacks);
   virtual void
-  RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallbacks(size_t memory_address,
+  RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallbacks(u32 memory_address,
                                                                   void* callbacks);
-  virtual bool UnregisterOnMemoryAddressWrittenToCallbacks(size_t memory_address,
+  virtual bool UnregisterOnMemoryAddressWrittenToCallbacks(u32 memory_address,
                                                             void* callbacks);
 
   virtual void* RegisterOnWiiInputPolledCallbacks(void* callbacks);
@@ -251,7 +253,7 @@ public:
     input_vector.clear();
     }
 
-    void unref_map(std::unordered_map<size_t, std::vector<int>>& input_map)
+    void unref_map(std::unordered_map<u32, std::vector<int>>& input_map)
     {
     for (auto& addr_func_pair : input_map)
       unref_vector(addr_func_pair.second);
@@ -275,9 +277,9 @@ public:
   void RegisterForVectorWithAutoDeregistrationHelper(std::vector<int>& input_vector, void* callbacks, std::atomic<size_t>& number_of_auto_deregister_callbacks);
   bool UnregisterForVectorHelper(std::vector<int>& input_vector, void* callbacks);
 
-  void* RegisterForMapHelper(size_t address, std::unordered_map<size_t, std::vector<int>>& input_map, void* callbacks);
-  void RegisterForMapWithAutoDeregistrationHelper(size_t address, std::unordered_map<size_t, std::vector<int>>& input_map, void* callbacks, std::atomic<size_t>& number_of_auto_deregistration_callbacks);
-  bool UnregisterForMapHelper(size_t address, std::unordered_map<size_t, std::vector<int>>& input_map, void* callbacks);
+  void* RegisterForMapHelper(u32 address, std::unordered_map<u32, std::vector<int>>& input_map, void* callbacks);
+  void RegisterForMapWithAutoDeregistrationHelper(u32 address, std::unordered_map<u32, std::vector<int>>& input_map, void* callbacks, std::atomic<size_t>& number_of_auto_deregistration_callbacks);
+  bool UnregisterForMapHelper(u32 address, std::unordered_map<u32, std::vector<int>>& input_map, void* callbacks);
   virtual void RegisterButtonCallback(long long button_id, void* callbacks);
   virtual bool IsButtonRegistered(long long button_id);
   virtual void GetButtonCallbackAndAddToQueue(long long button_id);
