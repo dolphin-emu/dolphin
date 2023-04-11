@@ -19,6 +19,12 @@ jobs:
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
+    # Install 7zip
+    - name: Install 7zip
+      run: choco install 7zip
+    # Install Visual Studio Update
+    - name: Install Visual Studio Update
+      run: vs_installershell.exe update --passive --norestart --force --installpath "C:\Program Files\Microsoft Visual Studio\2022\Community"
     # Submoudle
     - name: Checkout Submodles
       run: git submodule update --init --recursive
@@ -29,10 +35,19 @@ jobs:
         vs-version: '16.6.2'
     # Run MSBuild
     - name: Build Solution
-      run: msbuild "D:\a\dolphin-mpn-src\dolphin-src\Source\dolphin-emu.sln" /verbosity:minimal /property:Configuration=Release  /property:Platform=x64
+      run: msbuild "D:\a\dolphin-mpn-src\dolphin-mpn-src\Source\dolphin-emu.sln" /verbosity:minimal /property:Configuration=Release  /property:Platform=x64
     # Upload Artifact
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v2
       with:
         name: DolphinMPN-win32
-        path: D:\a\dolphin-mpn-src\dolphin-mpn-advanced-src\Binary\x64
+        path: D:\a\dolphin-mpn-src\dolphin-mpn-src\Binary\x64
+    # Zip Artifact
+    - name: Zip Artifact
+      run: 7z a D:/DolphinMPN-win32 D:/a/dolphin-mpn-src/dolphin-mpn-src/Binary/x64/*
+    # New Release
+    - name: New Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: D:/DolphinMPN-win32.7z

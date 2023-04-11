@@ -4,8 +4,8 @@
 
 bool mpn_update_discord()
 {
-  if (!Memory::IsInitialized())
-    return false;
+  //if (!Memory::IsInitialized())
+  //  return false;
 
   DiscordRichPresence RichPresence = {};
 

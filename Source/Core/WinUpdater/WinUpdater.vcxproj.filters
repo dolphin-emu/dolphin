@@ -3,8 +3,15 @@
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="WinUI.cpp" />
+    <ClCompile Include="..\UpdaterCommon\UpdaterCommon.cpp" />
+    <ClCompile Include="Platform.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="Updater.exe.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\UpdaterCommon\Platform.h" />
+    <ClInclude Include="..\UpdaterCommon\UI.h" />
+    <ClInclude Include="..\UpdaterCommon\UpdaterCommon.h" />
   </ItemGroup>
 </Project>

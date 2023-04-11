@@ -1,10 +1,14 @@
 #include "Gamestate.h"
+#include "Core/System.h"
 
 mpn_state_t CurrentState;
 
+
 bool mpn_init_state()
 {
-  if (!Memory::IsInitialized())
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  if (!memory.IsInitialized())
     return false;
 
   switch (mpn_read_value(0x00000000, 4))
@@ -120,7 +124,9 @@ bool mpn_update_state()
 {
   if (CurrentState.Scenes == NULL && !mpn_init_state())
     return false;
-  if (!Memory::IsInitialized())
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  if (!memory.IsInitialized())
     return false;
 
   CurrentState.PreviousSceneId = CurrentState.CurrentSceneId;
@@ -186,9 +192,10 @@ void mpn_per_frame()
 uint32_t mpn_read_value(uint32_t Address, uint8_t Size)
 {
   uint32_t Value = 0;
-
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
   for (int8_t i = 0; i < Size; i++)
-    Value += Memory::m_pRAM[Address + i] * pow(256, Size - i - 1);
+    Value += memory.GetRAM()[Address + i] * pow(256, Size - i - 1);
 
   return Value;
 }
