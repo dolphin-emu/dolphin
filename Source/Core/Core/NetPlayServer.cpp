@@ -111,7 +111,7 @@ NetPlayServer::~NetPlayServer()
   }
 
 #ifdef USE_UPNP
-  UPnP::StopPortmapping();
+  Common::UPnP::StopPortmapping();
 #endif
 }
 
@@ -168,7 +168,7 @@ NetPlayServer::NetPlayServer(const u16 port, const bool forward_port, NetPlayUI*
 
 #ifdef USE_UPNP
     if (forward_port)
-      UPnP::TryPortmapping(port);
+      Common::UPnP::TryPortmapping(port);
 #endif
   }
 }
