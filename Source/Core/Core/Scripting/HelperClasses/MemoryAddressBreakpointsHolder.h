@@ -52,7 +52,9 @@ public:
       read_breakpoint_addresses.erase(
           std::find(read_breakpoint_addresses.begin(), read_breakpoint_addresses.end(), addr));
       if (num_copies == 1 && !this->ContainsWriteBreakpoint(addr))
-        Core::QueueHostJob([=]() { PowerPC::memchecks.Remove(addr); }, true);
+        Core::QueueHostJob(
+            [=]() { Core::RunOnCPUThread([=]() { PowerPC::memchecks.Remove(addr); }, true); },
+            true);
     }
   }
 
@@ -66,7 +68,9 @@ public:
       write_breakpoint_addresses.erase(
           std::find(write_breakpoint_addresses.begin(), write_breakpoint_addresses.end(), addr));
       if (num_copies == 1 && !this->ContainsReadBreakpoint(addr))
-        Core::QueueHostJob([=]() { PowerPC::memchecks.Remove(addr); }, true);
+        Core::QueueHostJob(
+            [=]() { Core::RunOnCPUThread([=]() { PowerPC::memchecks.Remove(addr); }, true); },
+            true);
     }
   }
 
