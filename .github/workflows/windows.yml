@@ -28,14 +28,12 @@ jobs:
     # Submoudle
     - name: Checkout Submodles
       run: git submodule update --init --recursive
-    # Setup MSBuild For Later Usage
-    - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v1.0.2
-      with:
-        vs-version: '16.6.2'
-    # Run MSBuild
-    - name: Build Solution
-      run: msbuild "D:\a\dolphin-mpn-src\dolphin-mpn-src\Source\dolphin-emu.sln" /verbosity:minimal /property:Configuration=Release  /property:Platform=x64
+    # Run CMake
+    - name: Run CMake
+      run: mkdir build && cd build && cmake .. -G Ninja -DCPACK_PACKAGE_CONTACT="Mario Party Netplay"
+    # Build Project
+    - name: Run Make
+      run: cd build && ninja -j8
     # Upload Artifact
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v2
