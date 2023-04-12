@@ -131,8 +131,46 @@ void AchievementManager::LoadGameByFilenameAsync(const std::string& iso_path,
 
     const auto fetch_game_data_response = FetchGameData();
     m_is_game_loaded = fetch_game_data_response == ResponseType::SUCCESS;
+
+    // Claim the lock, then queue the fetch unlock data calls, then initialize the unlock map in
+    // ActivateDeactiveAchievements. This allows the calls to process while initializing the
+    // unlock map but then forces them to wait until it's initialized before making modifications to
+    // it.
+    {
+      std::lock_guard lg{m_lock};
+      LoadUnlockData([](ResponseType r_type) {});
+      ActivateDeactivateAchievements();
+    }
+
     callback(fetch_game_data_response);
   });
+}
+
+void AchievementManager::LoadUnlockData(const ResponseCallback& callback)
+{
+  m_queue.EmplaceItem([this, callback] {
+    const auto hardcore_unlock_response = FetchUnlockData(true);
+    if (hardcore_unlock_response != ResponseType::SUCCESS)
+    {
+      callback(hardcore_unlock_response);
+      return;
+    }
+
+    callback(FetchUnlockData(false));
+  });
+}
+
+void AchievementManager::ActivateDeactivateAchievements()
+{
+  bool enabled = Config::Get(Config::RA_ACHIEVEMENTS_ENABLED);
+  bool unofficial = Config::Get(Config::RA_UNOFFICIAL_ENABLED);
+  bool encore = Config::Get(Config::RA_ENCORE_ENABLED);
+  for (u32 ix = 0; ix < m_game_data.num_achievements; ix++)
+  {
+    auto iter =
+        m_unlock_map.insert({m_game_data.achievements[ix].id, UnlockStatus{.game_data_index = ix}});
+    ActivateDeactivateAchievement(iter.first->first, enabled, unofficial, encore);
+  }
 }
 
 void AchievementManager::CloseGame()
@@ -141,6 +179,7 @@ void AchievementManager::CloseGame()
   m_game_id = 0;
   m_queue.Cancel();
   m_unlock_map.clear();
+  ActivateDeactivateAchievements();
 }
 
 void AchievementManager::Logout()

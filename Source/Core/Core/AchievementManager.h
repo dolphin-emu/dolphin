@@ -39,6 +39,8 @@ public:
   bool IsLoggedIn() const;
   void LoadGameByFilenameAsync(const std::string& iso_path, const ResponseCallback& callback);
 
+  void LoadUnlockData(const ResponseCallback& callback);
+  void ActivateDeactivateAchievements();
   void CloseGame();
   void Logout();
   void Shutdown();
