@@ -215,6 +215,39 @@ AchievementManager::ResponseType AchievementManager::FetchGameData()
       rc_api_process_fetch_game_data_response);
 }
 
+AchievementManager::ResponseType AchievementManager::FetchUnlockData(bool hardcore)
+{
+  rc_api_fetch_user_unlocks_response_t unlock_data{};
+  std::string username = Config::Get(Config::RA_USERNAME);
+  std::string api_token = Config::Get(Config::RA_API_TOKEN);
+  rc_api_fetch_user_unlocks_request_t fetch_unlocks_request = {.username = username.c_str(),
+                                                               .api_token = api_token.c_str(),
+                                                               .game_id = m_game_id,
+                                                               .hardcore = hardcore};
+  ResponseType r_type =
+      Request<rc_api_fetch_user_unlocks_request_t, rc_api_fetch_user_unlocks_response_t>(
+          fetch_unlocks_request, &unlock_data, rc_api_init_fetch_user_unlocks_request,
+          rc_api_process_fetch_user_unlocks_response);
+  if (r_type == ResponseType::SUCCESS)
+  {
+    std::lock_guard lg{m_lock};
+    bool enabled = Config::Get(Config::RA_ACHIEVEMENTS_ENABLED);
+    bool unofficial = Config::Get(Config::RA_UNOFFICIAL_ENABLED);
+    bool encore = Config::Get(Config::RA_ENCORE_ENABLED);
+    for (AchievementId ix = 0; ix < unlock_data.num_achievement_ids; ix++)
+    {
+      auto it = m_unlock_map.find(unlock_data.achievement_ids[ix]);
+      if (it == m_unlock_map.end())
+        continue;
+      it->second.remote_unlock_status =
+          hardcore ? UnlockStatus::UnlockType::HARDCORE : UnlockStatus::UnlockType::SOFTCORE;
+      ActivateDeactivateAchievement(unlock_data.achievement_ids[ix], enabled, unofficial, encore);
+    }
+  }
+  rc_api_destroy_fetch_user_unlocks_response(&unlock_data);
+  return r_type;
+}
+
 void AchievementManager::ActivateDeactivateAchievement(AchievementId id, bool enabled,
                                                        bool unofficial, bool encore)
 {

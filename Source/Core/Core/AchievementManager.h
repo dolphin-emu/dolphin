@@ -52,6 +52,7 @@ private:
   ResponseType ResolveHash(std::array<char, HASH_LENGTH> game_hash);
   ResponseType StartRASession();
   ResponseType FetchGameData();
+  ResponseType FetchUnlockData(bool hardcore);
 
   void ActivateDeactivateAchievement(AchievementId id, bool enabled, bool unofficial, bool encore);
 
@@ -80,6 +81,7 @@ private:
   std::unordered_map<AchievementId, UnlockStatus> m_unlock_map;
 
   Common::WorkQueueThread<std::function<void()>> m_queue;
+  std::recursive_mutex m_lock;
 };  // class AchievementManager
 
 #endif  // USE_RETRO_ACHIEVEMENTS
