@@ -13,7 +13,7 @@ class InstructionBreakpointsHolder {
                                              // whether or not its a duplicate
 
       //Only add the breakpoint to PowerPC if it's not in the list of breakpoints yet.
-      if (!this->ContainsBreakpoint(addr))
+      if (this->GetNumCopiesOfBreakpoint(addr) == 1)
       {
         Core::QueueHostJob(
             [=] { PowerPC::breakpoints.Add(addr, false, false, false, std::nullopt); }, true);
