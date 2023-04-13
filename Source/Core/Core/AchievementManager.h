@@ -8,6 +8,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <unordered_map>
 
 #include <rcheevos/include/rc_api_runtime.h>
 #include <rcheevos/include/rc_api_user.h>
@@ -15,6 +16,8 @@
 
 #include "Common/Event.h"
 #include "Common/WorkQueueThread.h"
+
+using AchievementId = u32;
 
 class AchievementManager
 {
@@ -50,6 +53,8 @@ private:
   ResponseType StartRASession();
   ResponseType FetchGameData();
 
+  void ActivateDeactivateAchievement(AchievementId id, bool enabled, bool unofficial, bool encore);
+
   template <typename RcRequest, typename RcResponse>
   ResponseType Request(RcRequest rc_request, RcResponse* rc_response,
                        const std::function<int(rc_api_request_t*, const RcRequest*)>& init_request,
@@ -60,6 +65,19 @@ private:
   unsigned int m_game_id = 0;
   rc_api_fetch_game_data_response_t m_game_data{};
   bool m_is_game_loaded = false;
+
+  struct UnlockStatus
+  {
+    AchievementId game_data_index = 0;
+    enum class UnlockType
+    {
+      LOCKED,
+      SOFTCORE,
+      HARDCORE
+    } remote_unlock_status = UnlockType::LOCKED;
+    int session_unlock_count = 0;
+  };
+  std::unordered_map<AchievementId, UnlockStatus> m_unlock_map;
 
   Common::WorkQueueThread<std::function<void()>> m_queue;
 };  // class AchievementManager

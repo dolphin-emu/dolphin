@@ -14,6 +14,8 @@
 #include "Core/Core.h"
 #include "DiscIO/Volume.h"
 
+static constexpr bool hardcore_mode_enabled = false;
+
 AchievementManager* AchievementManager::GetInstance()
 {
   static AchievementManager s_instance;
@@ -138,6 +140,7 @@ void AchievementManager::CloseGame()
   m_is_game_loaded = false;
   m_game_id = 0;
   m_queue.Cancel();
+  m_unlock_map.clear();
 }
 
 void AchievementManager::Logout()
@@ -210,6 +213,52 @@ AchievementManager::ResponseType AchievementManager::FetchGameData()
   return Request<rc_api_fetch_game_data_request_t, rc_api_fetch_game_data_response_t>(
       fetch_data_request, &m_game_data, rc_api_init_fetch_game_data_request,
       rc_api_process_fetch_game_data_response);
+}
+
+void AchievementManager::ActivateDeactivateAchievement(AchievementId id, bool enabled,
+                                                       bool unofficial, bool encore)
+{
+  auto it = m_unlock_map.find(id);
+  if (it == m_unlock_map.end())
+    return;
+  const UnlockStatus& status = it->second;
+  u32 index = status.game_data_index;
+  bool active = (rc_runtime_get_achievement(&m_runtime, id) != nullptr);
+
+  // Deactivate achievements if game is not loaded
+  bool activate = m_is_game_loaded;
+  // Activate achievements only if achievements are enabled
+  if (activate && !enabled)
+    activate = false;
+  // Deactivate if achievement is unofficial, unless unofficial achievements are enabled
+  if (activate && !unofficial &&
+      m_game_data.achievements[index].category == RC_ACHIEVEMENT_CATEGORY_UNOFFICIAL)
+  {
+    activate = false;
+  }
+  // If encore mode is on, activate/deactivate regardless of current unlock status
+  if (activate && !encore)
+  {
+    // Encore is off, achievement has been unlocked in this session, deactivate
+    activate = (status.session_unlock_count == 0);
+    // Encore is off, achievement has been hardcore unlocked on site, deactivate
+    if (activate && status.remote_unlock_status == UnlockStatus::UnlockType::HARDCORE)
+      activate = false;
+    // Encore is off, hardcore is off, achievement has been softcore unlocked on site, deactivate
+    if (activate && !hardcore_mode_enabled &&
+        status.remote_unlock_status == UnlockStatus::UnlockType::SOFTCORE)
+    {
+      activate = false;
+    }
+  }
+
+  if (!active && activate)
+  {
+    rc_runtime_activate_achievement(&m_runtime, id, m_game_data.achievements[index].definition,
+                                    nullptr, 0);
+  }
+  if (active && !activate)
+    rc_runtime_deactivate_achievement(&m_runtime, id);
 }
 
 // Every RetroAchievements API call, with only a partial exception for fetch_image, follows
