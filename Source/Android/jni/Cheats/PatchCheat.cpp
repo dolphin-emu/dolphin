@@ -124,12 +124,12 @@ Java_org_dolphinemu_dolphinemu_features_cheats_model_PatchCheat_loadCodes(JNIEnv
                                                                           jint revision)
 {
   const std::string game_id = GetJString(env, jGameID);
-  IniFile game_ini_local;
+  Common::IniFile game_ini_local;
 
   // We don't use LoadLocalGameIni() here because user cheat codes that are installed via the UI
   // will always be stored in GS/${GAMEID}.ini
   game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + game_id + ".ini");
-  const IniFile game_ini_default = SConfig::LoadDefaultGameIni(game_id, revision);
+  const Common::IniFile game_ini_default = SConfig::LoadDefaultGameIni(game_id, revision);
 
   std::vector<PatchEngine::Patch> patches;
   PatchEngine::LoadPatchSection("OnFrame", &patches, game_ini_default, game_ini_local);
@@ -154,7 +154,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_features_cheats_model_Patc
   const std::string game_id = GetJString(env, jGameID);
   const std::string ini_path = File::GetUserPath(D_GAMESETTINGS_IDX) + game_id + ".ini";
 
-  IniFile game_ini_local;
+  Common::IniFile game_ini_local;
   game_ini_local.Load(ini_path);
   PatchEngine::SavePatchSection(&game_ini_local, vector);
   game_ini_local.Save(ini_path);

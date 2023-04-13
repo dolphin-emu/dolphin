@@ -299,7 +299,7 @@ void MappingWindow::OnLoadProfilePressed()
 
   const QString profile_path = m_profiles_combo->currentData().toString();
 
-  IniFile ini;
+  Common::IniFile ini;
   ini.Load(profile_path.toStdString());
 
   m_controller->LoadConfig(ini.GetOrCreateSection("Profile"));
@@ -322,7 +322,7 @@ void MappingWindow::OnSaveProfilePressed()
 
   File::CreateFullPath(profile_path);
 
-  IniFile ini;
+  Common::IniFile ini;
 
   m_controller->SaveConfig(ini.GetOrCreateSection("Profile"));
   ini.Save(profile_path);
@@ -542,7 +542,7 @@ void MappingWindow::OnDefaultFieldsPressed()
 void MappingWindow::OnClearFieldsPressed()
 {
   // Loading an empty inifile section clears everything.
-  IniFile::Section sec;
+  Common::IniFile::Section sec;
 
   // Keep the currently selected device.
   const auto default_device = m_controller->GetDefaultDevice();

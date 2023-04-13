@@ -2027,10 +2027,10 @@ bool NetPlayServer::SyncCodes()
   // Find all INI files
   const auto game_id = game->GetGameID();
   const auto revision = game->GetRevision();
-  IniFile globalIni;
+  Common::IniFile globalIni;
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(game_id, revision))
     globalIni.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
-  IniFile localIni;
+  Common::IniFile localIni;
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(game_id, revision))
     localIni.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
 

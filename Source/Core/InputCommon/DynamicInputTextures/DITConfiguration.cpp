@@ -11,6 +11,7 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
+#include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
@@ -86,7 +87,7 @@ Configuration::Configuration(const std::string& json_file)
 
 Configuration::~Configuration() = default;
 
-bool Configuration::GenerateTextures(const IniFile& file,
+bool Configuration::GenerateTextures(const Common::IniFile& file,
                                      const std::vector<std::string>& controller_names) const
 {
   bool any_dirty = false;
@@ -98,7 +99,7 @@ bool Configuration::GenerateTextures(const IniFile& file,
   return any_dirty;
 }
 
-bool Configuration::GenerateTexture(const IniFile& file,
+bool Configuration::GenerateTexture(const Common::IniFile& file,
                                     const std::vector<std::string>& controller_names,
                                     const Data& texture_data) const
 {

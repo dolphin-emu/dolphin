@@ -63,6 +63,6 @@ private:
   const UICommon::GameFile& m_game;
   std::string m_game_id;
 
-  IniFile m_gameini_local;
-  IniFile m_gameini_default;
+  Common::IniFile m_gameini_local;
+  Common::IniFile m_gameini_default;
 };

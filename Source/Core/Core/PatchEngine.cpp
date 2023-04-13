@@ -101,11 +101,9 @@ std::string SerializeLine(const PatchEntry& entry)
 }
 
 void LoadPatchSection(const std::string& section, std::vector<Patch>* patches,
-                      const IniFile& globalIni, const IniFile& localIni)
+                      const Common::IniFile& globalIni, const Common::IniFile& localIni)
 {
-  const IniFile* inis[2] = {&globalIni, &localIni};
-
-  for (const IniFile* ini : inis)
+  for (const auto* ini : {&globalIni, &localIni})
   {
     std::vector<std::string> lines;
     Patch currentPatch;
@@ -151,7 +149,7 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>* patches,
   }
 }
 
-void SavePatchSection(IniFile* local_ini, const std::vector<Patch>& patches)
+void SavePatchSection(Common::IniFile* local_ini, const std::vector<Patch>& patches)
 {
   std::vector<std::string> lines;
   std::vector<std::string> lines_enabled;
@@ -176,7 +174,7 @@ void SavePatchSection(IniFile* local_ini, const std::vector<Patch>& patches)
   local_ini->SetLines("OnFrame", lines);
 }
 
-static void LoadSpeedhacks(const std::string& section, IniFile& ini)
+static void LoadSpeedhacks(const std::string& section, Common::IniFile& ini)
 {
   std::vector<std::string> keys;
   ini.GetKeys(section, &keys);
@@ -210,9 +208,10 @@ int GetSpeedhackCycles(const u32 addr)
 
 void LoadPatches()
 {
-  IniFile merged = SConfig::GetInstance().LoadGameIni();
-  IniFile globalIni = SConfig::GetInstance().LoadDefaultGameIni();
-  IniFile localIni = SConfig::GetInstance().LoadLocalGameIni();
+  const auto& sconfig = SConfig::GetInstance();
+  Common::IniFile merged = sconfig.LoadGameIni();
+  Common::IniFile globalIni = sconfig.LoadDefaultGameIni();
+  Common::IniFile localIni = sconfig.LoadLocalGameIni();
 
   LoadPatchSection("OnFrame", &s_on_frame, globalIni, localIni);
 

@@ -289,7 +289,7 @@ void WatchWidget::OnNewWatch()
 
 void WatchWidget::OnLoad()
 {
-  IniFile ini;
+  Common::IniFile ini;
 
   std::vector<std::string> watches;
 
@@ -317,7 +317,7 @@ void WatchWidget::OnLoad()
 
 void WatchWidget::OnSave()
 {
-  IniFile ini;
+  Common::IniFile ini;
   ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini",
            false);
   ini.SetLines("Watches", m_system.GetPowerPC().GetDebugInterface().SaveWatchesToStrings());
