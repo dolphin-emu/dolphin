@@ -674,6 +674,7 @@ std::shared_ptr<Metal::StateTracker::PerfQueryTracker> Metal::StateTracker::NewP
                                                   m_perf_query_tracker_counter++]];
       tracker->buffer = MRCTransfer(buffer);
       tracker->contents = static_cast<const u64*>([buffer contents]);
+      tracker->query_id = m_state.perf_query_id;
       return tracker;
     }
   }
@@ -682,6 +683,8 @@ std::shared_ptr<Metal::StateTracker::PerfQueryTracker> Metal::StateTracker::NewP
     // Reuse an old one
     std::shared_ptr<PerfQueryTracker> tracker = std::move(m_perf_query_tracker_cache.back());
     m_perf_query_tracker_cache.pop_back();
+    tracker->groups.clear();
+    tracker->query_id = m_state.perf_query_id;
     return tracker;
   }
 }
@@ -689,15 +692,26 @@ std::shared_ptr<Metal::StateTracker::PerfQueryTracker> Metal::StateTracker::NewP
 void Metal::StateTracker::EnablePerfQuery(PerfQueryGroup group, u32 query_id)
 {
   m_state.perf_query_group = group;
+  m_state.perf_query_id = query_id;
   if (!m_current_perf_query || m_current_perf_query->query_id != query_id ||
       m_current_perf_query->groups.size() == PERF_QUERY_BUFFER_SIZE)
   {
     if (m_current_render_encoder)
       EndRenderPass();
-    if (!m_current_perf_query)
-      m_current_perf_query = NewPerfQueryTracker();
-    m_current_perf_query->groups.clear();
-    m_current_perf_query->query_id = query_id;
+    if (m_current_perf_query)
+    {
+      [m_current_render_cmdbuf
+          addCompletedHandler:[backref = m_backref, q = std::move(m_current_perf_query)](id) {
+            std::lock_guard<std::mutex> guard(backref->mtx);
+            if (StateTracker* tracker = backref->state_tracker)
+            {
+              if (PerfQuery* query = static_cast<PerfQuery*>(g_perf_query.get()))
+                query->ReturnResults(q->contents, q->groups.data(), q->groups.size(), q->query_id);
+              tracker->m_perf_query_tracker_cache.emplace_back(std::move(q));
+            }
+          }];
+      m_current_perf_query.reset();
+    }
   }
 }
 
