@@ -42,6 +42,8 @@ public:
   void LoadUnlockData(const ResponseCallback& callback);
   void ActivateDeactivateAchievements();
   void ActivateDeactivateLeaderboards();
+  void ActivateDeactivateRichPresence();
+
   void CloseGame();
   void Logout();
   void Shutdown();

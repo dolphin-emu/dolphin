@@ -17,6 +17,8 @@ const Info<bool> RA_ACHIEVEMENTS_ENABLED{
     {System::Achievements, "Achievements", "AchievementsEnabled"}, false};
 const Info<bool> RA_LEADERBOARDS_ENABLED{
     {System::Achievements, "Achievements", "LeaderboardsEnabled"}, false};
+const Info<bool> RA_RICH_PRESENCE_ENABLED{
+    {System::Achievements, "Achievements", "RichPresenceEnabled"}, false};
 const Info<bool> RA_UNOFFICIAL_ENABLED{{System::Achievements, "Achievements", "UnofficialEnabled"},
                                        false};
 const Info<bool> RA_ENCORE_ENABLED{{System::Achievements, "Achievements", "EncoreEnabled"}, false};

@@ -142,6 +142,7 @@ void AchievementManager::LoadGameByFilenameAsync(const std::string& iso_path,
       ActivateDeactivateAchievements();
     }
     ActivateDeactivateLeaderboards();
+    ActivateDeactivateRichPresence();
 
     callback(fetch_game_data_response);
   });
@@ -191,6 +192,16 @@ void AchievementManager::ActivateDeactivateLeaderboards()
   }
 }
 
+void AchievementManager::ActivateDeactivateRichPresence()
+{
+  rc_runtime_activate_richpresence(
+      &m_runtime,
+      (m_is_game_loaded && Config::Get(Config::RA_RICH_PRESENCE_ENABLED)) ?
+          m_game_data.rich_presence_script :
+          "",
+      nullptr, 0);
+}
+
 void AchievementManager::CloseGame()
 {
   m_is_game_loaded = false;
@@ -199,6 +210,7 @@ void AchievementManager::CloseGame()
   m_unlock_map.clear();
   ActivateDeactivateAchievements();
   ActivateDeactivateLeaderboards();
+  ActivateDeactivateRichPresence();
 }
 
 void AchievementManager::Logout()
