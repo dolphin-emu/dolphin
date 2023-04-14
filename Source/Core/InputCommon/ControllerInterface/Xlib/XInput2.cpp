@@ -166,6 +166,10 @@ KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboar
   name = std::string(pointer_device->name);
   XIFreeDeviceInfo(pointer_device);
 
+  // Tell core X functions which keyboard is "the" keyboard for this
+  // X connection.
+  XISetClientPointer(m_display, None, pointer_deviceid);
+
   {
     unsigned char mask_buf[(XI_LASTEVENT + 7) / 8] = {};
     XISetMask(mask_buf, XI_ButtonPress);
@@ -387,6 +391,10 @@ void KeyboardMouse::UpdateInput()
   // KeyRelease and FocusOut events are sometimes not received.
   // Cycling Alt-Tab and landing on the same window results in a stuck "Alt" key.
   // Unpressed keys are released here.
+  // Because we called XISetClientPointer in the constructor, XQueryKeymap
+  // will return the state of the associated keyboard, even if it isn't the
+  // first master keyboard.  (XInput2 doesn't provide a function to query
+  // keyboard state.)
   std::array<char, 32> keyboard;
   XQueryKeymap(m_display, keyboard.data());
   for (size_t i = 0; i != keyboard.size(); ++i)
