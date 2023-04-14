@@ -23,6 +23,7 @@
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/SignatureDB/SignatureDB.h"
+#include "Core/Scripting/ScriptUtilities.h"
 
 // Analyzes PowerPC code in memory to find functions
 // After running, for each function we will know what functions it calls
@@ -200,7 +201,7 @@ bool PPCAnalyzer::CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b) const
   u64 b_flags = b_info->flags;
 
   // can't reorder around breakpoints
-  if (m_is_debugging_enabled && (PowerPC::breakpoints.IsAddressBreakPoint(a.address) ||
+  if ((m_is_debugging_enabled || Scripting::ScriptUtilities::IsScriptingCoreInitialized()) && (PowerPC::breakpoints.IsAddressBreakPoint(a.address) ||
                                  PowerPC::breakpoints.IsAddressBreakPoint(b.address)))
   {
     return false;

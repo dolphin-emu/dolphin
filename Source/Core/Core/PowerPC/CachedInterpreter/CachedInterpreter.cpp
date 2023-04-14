@@ -13,6 +13,7 @@
 #include "Core/PowerPC/Jit64Common/Jit64Constants.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/Scripting/ScriptUtilities.h"
 #include "Core/System.h"
 
 struct CachedInterpreter::Instruction
@@ -280,7 +281,7 @@ void CachedInterpreter::Jit(u32 address)
     if (!op.skip)
     {
       const bool breakpoint =
-          m_enable_debugging && PowerPC::breakpoints.IsAddressBreakPoint(op.address);
+          (Scripting::ScriptUtilities::IsScriptingCoreInitialized() || m_enable_debugging) && PowerPC::breakpoints.IsAddressBreakPoint(op.address);
       const bool check_fpu = (op.opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound;
       const bool endblock = (op.opinfo->flags & FL_ENDBLOCK) != 0;
       const bool memcheck = (op.opinfo->flags & FL_LOADSTORE) && jo.memcheck;

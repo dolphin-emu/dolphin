@@ -44,6 +44,7 @@
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Profiler.h"
+#include "Core/Scripting/ScriptUtilities.h"
 #include "Core/System.h"
 
 using namespace Gen;
@@ -359,7 +360,7 @@ void Jit64::Init()
 
   // BLR optimization has the same consequences as block linking, as well as
   // depending on the fault handler to be safe in the event of excessive BL.
-  m_enable_blr_optimization = jo.enableBlocklink && m_fastmem_enabled && !m_enable_debugging;
+  m_enable_blr_optimization = jo.enableBlocklink && m_fastmem_enabled && !(m_enable_debugging || Scripting::ScriptUtilities::IsScriptingCoreInitialized());
   m_cleanup_after_stackfault = false;
 
   m_stack = nullptr;
@@ -800,7 +801,7 @@ void Jit64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
 
   std::size_t block_size = m_code_buffer.size();
 
-  if (m_enable_debugging)
+  if (m_enable_debugging || Scripting::ScriptUtilities::IsScriptingCoreInitialized())
   {
     // We can link blocks as long as we are not single stepping
     EnableBlockLink();
@@ -1011,7 +1012,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     js.fastmemLoadStore = nullptr;
     js.fixupExceptionHandler = false;
 
-    if (!m_enable_debugging)
+    if (!(m_enable_debugging || Scripting::ScriptUtilities::IsScriptingCoreInitialized()))
       js.downcountAmount += PatchEngine::GetSpeedhackCycles(js.compilerPC);
 
     if (i == (code_block.m_num_instructions - 1))
@@ -1100,7 +1101,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         js.firstFPInstructionFound = true;
       }
 
-      if (m_enable_debugging && breakpoints.IsAddressBreakPoint(op.address) && !CPU::IsStepping())
+      if ((Scripting::ScriptUtilities::IsScriptingCoreInitialized() || m_enable_debugging) && breakpoints.IsAddressBreakPoint(op.address) && !CPU::IsStepping())
       {
         gpr.Flush();
         fpr.Flush();

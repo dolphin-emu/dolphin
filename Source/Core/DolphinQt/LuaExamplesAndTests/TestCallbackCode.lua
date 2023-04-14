@@ -60,6 +60,8 @@ mem_addr_written_ref = OnMemoryAddressWrittenTo:register(3422572554, on_mem_writ
 mem_addr_read_ref = OnMemoryAddressReadFrom:register(3422564352, on_mem_read)
 instr_hit_ref = OnInstructionHit:register(2149867952, on_instr_hit)
 
+GC_Addr = 2149867952
+Wii_Addr = 2147508776
 print("At script startup...\n")
 print_callback_statuses()
 emu:frameAdvance()

@@ -10,6 +10,7 @@
 #include "Core/HW/CPU.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/Scripting/ScriptUtilities.h"
 #include "Core/System.h"
 
 const u8* JitBase::Dispatch(JitBase& jit)
@@ -79,7 +80,7 @@ bool JitBase::CanMergeNextInstructions(int count) const
   // Be careful: a breakpoint kills flags in between instructions
   for (int i = 1; i <= count; i++)
   {
-    if (m_enable_debugging && PowerPC::breakpoints.IsAddressBreakPoint(js.op[i].address))
+    if ((m_enable_debugging || Scripting::ScriptUtilities::IsScriptingCoreInitialized()) && PowerPC::breakpoints.IsAddressBreakPoint(js.op[i].address))
       return false;
     if (js.op[i].isBranchTarget)
       return false;
