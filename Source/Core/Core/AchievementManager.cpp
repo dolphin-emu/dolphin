@@ -141,6 +141,7 @@ void AchievementManager::LoadGameByFilenameAsync(const std::string& iso_path,
       LoadUnlockData([](ResponseType r_type) {});
       ActivateDeactivateAchievements();
     }
+    ActivateDeactivateLeaderboards();
 
     callback(fetch_game_data_response);
   });
@@ -173,6 +174,23 @@ void AchievementManager::ActivateDeactivateAchievements()
   }
 }
 
+void AchievementManager::ActivateDeactivateLeaderboards()
+{
+  bool leaderboards_enabled = Config::Get(Config::RA_LEADERBOARDS_ENABLED);
+  for (u32 ix = 0; ix < m_game_data.num_leaderboards; ix++)
+  {
+    auto leaderboard = m_game_data.leaderboards[ix];
+    if (m_is_game_loaded && leaderboards_enabled && hardcore_mode_enabled)
+    {
+      rc_runtime_activate_lboard(&m_runtime, leaderboard.id, leaderboard.definition, nullptr, 0);
+    }
+    else
+    {
+      rc_runtime_deactivate_lboard(&m_runtime, m_game_data.leaderboards[ix].id);
+    }
+  }
+}
+
 void AchievementManager::CloseGame()
 {
   m_is_game_loaded = false;
@@ -180,6 +198,7 @@ void AchievementManager::CloseGame()
   m_queue.Cancel();
   m_unlock_map.clear();
   ActivateDeactivateAchievements();
+  ActivateDeactivateLeaderboards();
 }
 
 void AchievementManager::Logout()

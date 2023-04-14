@@ -15,6 +15,8 @@ const Info<std::string> RA_USERNAME{{System::Achievements, "Achievements", "User
 const Info<std::string> RA_API_TOKEN{{System::Achievements, "Achievements", "ApiToken"}, ""};
 const Info<bool> RA_ACHIEVEMENTS_ENABLED{
     {System::Achievements, "Achievements", "AchievementsEnabled"}, false};
+const Info<bool> RA_LEADERBOARDS_ENABLED{
+    {System::Achievements, "Achievements", "LeaderboardsEnabled"}, false};
 const Info<bool> RA_UNOFFICIAL_ENABLED{{System::Achievements, "Achievements", "UnofficialEnabled"},
                                        false};
 const Info<bool> RA_ENCORE_ENABLED{{System::Achievements, "Achievements", "EncoreEnabled"}, false};
