@@ -12,8 +12,7 @@ public:
   {
     this->read_breakpoint_addresses.push_back(addr);  // add this to the list of breakpoints regardless of whether or not it's a duplicate
     bool write_breakpoint_exists = this->ContainsWriteBreakpoint(addr);
-    Core::QueueHostJob(
-        [=] {
+
             TMemCheck check;
 
             check.start_address = addr;
@@ -23,8 +22,6 @@ public:
             check.condition = std::nullopt;
 
             PowerPC::memchecks.Add(std::move(check));
-        },
-        true);
 
   }
 
@@ -34,8 +31,7 @@ public:
 
     bool read_breakpoint_exists = this->ContainsReadBreakpoint(addr);
 
-    Core::QueueHostJob(
-        [=] {
+
             TMemCheck check;
 
             check.start_address = addr;
@@ -44,8 +40,6 @@ public:
             check.is_break_on_write = true;
             check.condition = {};
             PowerPC::memchecks.Add(std::move(check));
-        },
-        true);
 
   }
 
@@ -77,11 +71,7 @@ public:
 
       if (!this->ContainsReadBreakpoint(addr) && !this->ContainsWriteBreakpoint(addr))
       {
-        Core::QueueHostJob(
-            [=] {
-                PowerPC::memchecks.Remove(addr);
-            },
-            true);
+        Core::QueueHostJob([=] { PowerPC::memchecks.Remove(addr); }, true);
       }
     }
   }

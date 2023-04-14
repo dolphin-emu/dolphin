@@ -862,15 +862,11 @@ void Callback_NewField()
 
   if (Scripting::ScriptUtilities::IsScriptingCoreInitialized())
   {
-    Core::QueueHostJob([]() {
-      Core::RunOnCPUThread([]() {
-
         if (!Scripting::ScriptUtilities::StartScripts())
           if (!Scripting::ScriptUtilities::RunOnFrameStartCallbacks())
-              Scripting::ScriptUtilities::RunGlobalCode();
+            Scripting::ScriptUtilities::RunGlobalCode();
+
         Scripting::ScriptUtilities::RunButtonCallbacksInQueues();
-      }, true);
-    });
   }
 
   if (s_frame_step)
