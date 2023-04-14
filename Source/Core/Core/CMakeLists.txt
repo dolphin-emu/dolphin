@@ -498,6 +498,90 @@ add_library(core
   PowerPC/SignatureDB/MEGASignatureDB.h
   PowerPC/SignatureDB/SignatureDB.cpp
   PowerPC/SignatureDB/SignatureDB.h
+  Scripting/EventCallbackRegistrationAPIs/OnFrameStartCallbackAPI.cpp
+  Scripting/EventCallbackRegistrationAPIs/OnFrameStartCallbackAPI.h
+  Scripting/EventCallbackRegistrationAPIs/OnGCControllerPolledCallbackAPI.cpp
+  Scripting/EventCallbackRegistrationAPIs/OnGCControllerPolledCallbackAPI.h
+  Scripting/EventCallbackRegistrationAPIs/OnInstructionHitCallbackAPI.cpp
+  Scripting/EventCallbackRegistrationAPIs/OnInstructionHitCallbackAPI.h
+  Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressReadFromCallbackAPI.cpp
+  Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressReadFromCallbackAPI.h
+  Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressWrittenToCallbackAPI.cpp
+  Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressWrittenToCallbackAPI.h
+  Scripting/EventCallbackRegistrationAPIs/OnWiiInputPolledCallbackAPI.cpp
+  Scripting/EventCallbackRegistrationAPIs/OnWiiInputPolledCallbackAPI.h
+  Scripting/HelperClasses/ArgHolder.cpp
+  Scripting/HelperClasses/ArgHolder.h
+  Scripting/HelperClasses/ArgTypeEnum.h
+  Scripting/HelperClasses/ClassFunctionsResolver.cpp
+  Scripting/HelperClasses/ClassFunctionsResolver.h
+  Scripting/HelperClasses/ClassMetadata.h
+  Scripting/HelperClasses/FunctionMetadata.h
+  Scripting/HelperClasses/GCButtons.cpp
+  Scripting/HelperClasses/GCButtons.h
+  Scripting/HelperClasses/InstructionBreakpointsHolder.h
+  Scripting/HelperClasses/MemoryAddressBreakpointsHolder.h
+  Scripting/HelperClasses/ScriptCallLocations.h
+  Scripting/HelperClasses/VersionComparisonFunctions.cpp
+  Scripting/HelperClasses/VersionComparisonFunctions.h
+  Scripting/HelperClasses/VersionResolver.h
+  Scripting/HelperClasses/WiiControllerRepresentation.cpp
+  Scripting/HelperClasses/WiiControllerRepresentation.h
+  Scripting/InternalAPIModules/BitAPI.cpp
+  Scripting/InternalAPIModules/BitAPI.h
+  Scripting/InternalAPIModules/EmuAPI.cpp
+  Scripting/InternalAPIModules/EmuAPI.h
+  Scripting/InternalAPIModules/GameCubeControllerAPI.cpp
+  Scripting/InternalAPIModules/GameCubeControllerAPI.h
+  Scripting/InternalAPIModules/GraphicsAPI.cpp
+  Scripting/InternalAPIModules/GraphicsAPI.h
+  Scripting/InternalAPIModules/ImportAPI.cpp
+  Scripting/InternalAPIModules/ImportAPI.h
+  Scripting/InternalAPIModules/MemoryAPI.cpp
+  Scripting/InternalAPIModules/MemoryAPI.h
+  Scripting/InternalAPIModules/RegistersAPI.cpp
+  Scripting/InternalAPIModules/RegistersAPI.h
+  Scripting/InternalAPIModules/StatisticsAPI.cpp
+  Scripting/InternalAPIModules/StatisticsAPI.h
+  Scripting/InternalAPIModules/WiiAPI.cpp
+  Scripting/InternalAPIModules/WiiAPI.h
+  Scripting/LanguageDefinitions/DefinedScriptingLanguagesEnum.h
+  Scripting/LanguageDefinitions/Lua/LuaScriptContext.cpp
+  Scripting/LanguageDefinitions/Lua/LuaScriptContext.h
+  Scripting/LanguageDefinitions/Python/ModuleImporters/BitModuleImporter.cpp
+  Scripting/LanguageDefinitions/Python/ModuleImporters/BitModuleImporter.h
+  Scripting/LanguageDefinitions/Python/ModuleImporters/EmuModuleImporter.cpp
+  Scripting/LanguageDefinitions/Python/ModuleImporters/EmuModuleImporter.h
+  Scripting/LanguageDefinitions/Python/ModuleImporters/GameCubeControllerModuleImporter.cpp
+  Scripting/LanguageDefinitions/Python/ModuleImporters/GameCubeControllerModuleImporter.h
+  Scripting/LanguageDefinitions/Python/ModuleImporters/GraphicsModuleImporter.cpp
+  Scripting/LanguageDefinitions/Python/ModuleImporters/GraphicsModuleImporter.h
+  Scripting/LanguageDefinitions/Python/ModuleImporters/ImportModuleImporter.cpp
+  Scripting/LanguageDefinitions/Python/ModuleImporters/ImportModuleImporter.h
+  Scripting/LanguageDefinitions/Python/ModuleImporters/MemoryModuleImporter.cpp
+  Scripting/LanguageDefinitions/Python/ModuleImporters/MemoryModuleImporter.h
+  Scripting/LanguageDefinitions/Python/ModuleImporters/OnFrameStartCallbackModuleImporter.cpp
+  Scripting/LanguageDefinitions/Python/ModuleImporters/OnFrameStartCallbackModuleImporter.h
+  Scripting/LanguageDefinitions/Python/ModuleImporters/OnGCControllerPolledCallbackModuleImporter.cpp
+  Scripting/LanguageDefinitions/Python/ModuleImporters/OnGCControllerPolledCallbackModuleImporter.h
+  Scripting/LanguageDefinitions/Python/ModuleImporters/OnInstructionHitCallbackModuleImporter.cpp
+  Scripting/LanguageDefinitions/Python/ModuleImporters/OnInstructionHitCallbackModuleImporter.h
+  Scripting/LanguageDefinitions/Python/ModuleImporters/OnMemoryAddressReadFromCallbackModuleImporter.cpp
+  Scripting/LanguageDefinitions/Python/ModuleImporters/OnMemoryAddressReadFromCallbackModuleImporter.h
+  Scripting/LanguageDefinitions/Python/ModuleImporters/OnMemoryAddressWrittenToCallbackModuleImporter.h
+  Scripting/LanguageDefinitions/Python/ModuleImporters/OnMemoryAddressWrittenToCallbackModulerImporter.cpp
+  Scripting/LanguageDefinitions/Python/ModuleImporters/OnWiiInputPolledCallbackModuleImporter.cpp
+  Scripting/LanguageDefinitions/Python/ModuleImporters/OnWiiInputPolledCallbackModuleImporter.h
+  Scripting/LanguageDefinitions/Python/ModuleImporters/RegistersModuleImporter.cpp
+  Scripting/LanguageDefinitions/Python/ModuleImporters/RegistersModuleImporter.h
+  Scripting/LanguageDefinitions/Python/ModuleImporters/StatisticsModuleImporter.cpp
+  Scripting/LanguageDefinitions/Python/ModuleImporters/StatisticsModuleImporter.h
+  Scripting/LanguageDefinitions/Python/PythonScriptContext.cpp
+  Scripting/LanguageDefinitions/Python/PythonScriptContext.h
+  Scripting/ScriptContext.cpp
+  Scripting/ScriptContext.h
+  Scripting/ScriptUtilities.cpp
+  Scripting/ScriptUtilities.h
   State.cpp
   State.h
   SyncIdentifier.h
@@ -600,9 +684,11 @@ PUBLIC
   expr
   inputcommon
   Lua
+  imgui
+  implot
   ${MBEDTLS_LIBRARIES}
   pugixml
-  python
+  Python3::Python
   RangeSet::RangeSet
   sfml-network
   sfml-system

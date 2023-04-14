@@ -2,6 +2,7 @@
 #define ARG_HOLDER
 #include <string>
 #include <map>
+#include <vector>
 #include "Common/CommonTypes.h"
 #include "Core/Movie.h"
 #include "Core/Scripting/HelperClasses/ArgTypeEnum.h"

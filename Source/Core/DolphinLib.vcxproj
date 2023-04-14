@@ -79,105 +79,20 @@
   <ItemGroup>
     <Text Include="$(BuildInfoTemplate)" />
   </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Common\ThreadSafeQueue.h" />
-    <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnFrameStartCallbackAPI.h" />
-    <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnGCControllerPolledCallbackAPI.h" />
-    <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnInstructionHitCallbackAPI.h" />
-    <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnMemoryAddressReadFromCallbackAPI.h" />
-    <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnMemoryAddressWrittenToCallbackAPI.h" />
-    <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnWiiInputPolledCallbackAPI.h" />
-    <ClInclude Include="Core\Scripting\HelperClasses\ClassFunctionsResolver.h" />
-    <ClInclude Include="Core\Scripting\HelperClasses\InstructionBreakpointsHolder.h" />
-    <ClInclude Include="Core\Scripting\HelperClasses\MemoryAddressBreakpointsHolder.h" />
-    <ClInclude Include="Core\Scripting\HelperClasses\WiiControllerRepresentation.h" />
-    <ClInclude Include="Core\Scripting\InternalAPIModules\GraphicsAPI.h" />
-    <ClInclude Include="Core\Scripting\InternalAPIModules\ImportAPI.h" />
-    <ClInclude Include="Core\Scripting\InternalAPIModules\WiiAPI.h" />
-    <ClInclude Include="Core\Scripting\LanguageDefinitions\DefinedScriptingLanguagesEnum.h" />
-    <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\BitModuleImporter.h" />
-    <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\EmuModuleImporter.h" />
-    <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\GameCubeControllerModuleImporter.h" />
-    <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\GraphicsModuleImporter.h" />
-    <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\ImportModuleImporter.h" />
-    <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\MemoryModuleImporter.h" />
-    <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\OnFrameStartCallbackModuleImporter.h" />
-    <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\OnGCControllerPolledCallbackModuleImporter.h" />
-    <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\OnInstructionHitCallbackModuleImporter.h" />
-    <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\OnMemoryAddressReadFromCallbackModuleImporter.h" />
-    <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\OnMemoryAddressWrittenToCallbackModuleImporter.h" />
-    <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\OnWiiInputPolledCallbackModuleImporter.h" />
-    <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\RegistersModuleImporter.h" />
-    <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\StatisticsModuleImporter.h" />
-    <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\PythonScriptContext.h" />
-    <ClInclude Include="Core\Scripting\ScriptContext.h" />
-    <ClInclude Include="Core\Scripting\InternalAPIModules\BitAPI.h" />
-    <ClInclude Include="Core\Scripting\HelperClasses\GCButtons.h" />
-    <ClInclude Include="Core\Scripting\InternalAPIModules\EmuAPI.h" />
-    <ClInclude Include="Core\Scripting\InternalAPIModules\MemoryAPI.h" />
-    <ClInclude Include="Core\Scripting\InternalAPIModules\GameCubeControllerAPI.h" />
-    <ClInclude Include="Core\Scripting\InternalAPIModules\RegistersAPI.h" />
-    <ClInclude Include="Core\Scripting\InternalAPIModules\StatisticsAPI.h" />
-    <ClInclude Include="Core\Scripting\HelperClasses\ScriptCallLocations.h" />
-    <ClInclude Include="Core\Scripting\HelperClasses\ClassMetadata.h" />
-    <ClInclude Include="Core\Scripting\HelperClasses\VersionComparisonFunctions.h" />
-    <ClInclude Include="Core\Scripting\HelperClasses\ArgHolder.h" />
-    <ClInclude Include="Core\Scripting\HelperClasses\ArgTypeEnum.h" />
-    <ClInclude Include="Core\Scripting\HelperClasses\FunctionMetadata.h" />
-    <ClInclude Include="Core\Scripting\HelperClasses\VersionResolver.h" />
-    <ClInclude Include="Core\Scripting\LanguageDefinitions\Lua\LuaScriptContext.h" />
-    <ClInclude Include="Core\Scripting\ScriptUtilities.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnFrameStartCallbackAPI.cpp" />
-    <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnGCControllerPolledCallbackAPI.cpp" />
-    <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnInstructionHitCallbackAPI.cpp" />
-    <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnMemoryAddressReadFromCallbackAPI.cpp" />
-    <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnMemoryAddressWrittenToCallbackAPI.cpp" />
-    <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnWiiInputPolledCallbackAPI.cpp" />
-    <ClCompile Include="Core\Scripting\HelperClasses\ClassFunctionsResolver.cpp" />
-    <ClCompile Include="Core\Scripting\HelperClasses\WiiControllerRepresentation.cpp" />
-    <ClCompile Include="Core\Scripting\InternalAPIModules\GraphicsAPI.cpp" />
-    <ClCompile Include="Core\Scripting\InternalAPIModules\ImportAPI.cpp" />
-    <ClCompile Include="Core\Scripting\InternalAPIModules\BitAPI.cpp" />
-    <ClCompile Include="Core\Scripting\InternalAPIModules\EmuAPI.cpp" />
-    <ClCompile Include="Core\Scripting\InternalAPIModules\GameCubeControllerAPI.cpp" />
-    <ClCompile Include="Core\Scripting\HelperClasses\GCButtons.cpp" />
-    <ClCompile Include="Core\Scripting\InternalAPIModules\MemoryAPI.cpp" />
-    <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\OnFrameStartCallbackModuleImporter.cpp" />
-    <ClCompile Include="Core\Scripting\InternalAPIModules\RegistersAPI.cpp" />
-    <ClCompile Include="Core\Scripting\InternalAPIModules\StatisticsAPI.cpp" />
-    <ClCompile Include="Core\Scripting\HelperClasses\VersionComparisonFunctions.cpp" />
-    <ClCompile Include="Core\Scripting\HelperClasses\ArgHolder.cpp" />
-    <ClCompile Include="Core\Scripting\InternalAPIModules\WiiAPI.cpp" />
-    <ClCompile Include="Core\Scripting\LanguageDefinitions\Lua\LuaScriptContext.cpp" />
-    <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\BitModuleImporter.cpp" />
-    <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\EmuModuleImporter.cpp" />
-    <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\GameCubeControllerModuleImporter.cpp" />
-    <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\GraphicsModuleImporter.cpp" />
-    <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\ImportModuleImporter.cpp" />
-    <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\MemoryModuleImporter.cpp" />
-    <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\OnGCControllerPolledCallbackModuleImporter.cpp" />
-    <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\OnInstructionHitCallbackModuleImporter.cpp" />
-    <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\OnMemoryAddressReadFromCallbackModuleImporter.cpp" />
-    <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\OnMemoryAddressWrittenToCallbackModulerImporter.cpp" />
-    <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\OnWiiInputPolledCallbackModuleImporter.cpp" />
-    <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\RegistersModuleImporter.cpp" />
-    <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\StatisticsModuleImporter.cpp" />
-    <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\PythonScriptContext.cpp" />
-    <ClCompile Include="Core\Scripting\ScriptContext.cpp" />
-    <ClCompile Include="Core\Scripting\ScriptUtilities.cpp" />
-  </ItemGroup>
-  <UsingTask TaskName="GetProductVersion" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+  <UsingTask TaskName="GetProductVersion"
+    TaskFactory="CodeTaskFactory"
+    AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
       <Path ParameterType="System.String" Required="true" />
       <ProductVersion ParameterType="System.String" Output="true" />
     </ParameterGroup>
     <Task>
-      <Using Namespace="System.Diagnostics" />
-      <Code Type="Fragment" Language="cs"><![CDATA[
-          ProductVersion = FileVersionInfo.GetVersionInfo(Path).ProductVersion;
-        ]]></Code>
+      <Using Namespace="System.Diagnostics"/>
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+           ProductVersion = FileVersionInfo.GetVersionInfo(Path).ProductVersion;
+        ]]>
+      </Code>
     </Task>
   </UsingTask>
   <Target Name="WriteBuildInfo" AfterTargets="Build" Inputs="$(BuildInfoTemplate)" Outputs="$(BuildInfoOutput)">
@@ -185,6 +100,10 @@
       <Output PropertyName="VCToolsProductVersion" TaskParameter="ProductVersion" />
     </GetProductVersion>
     <Message Text="VCToolsProductVersion $(VCToolsProductVersion)" Importance="High" />
-    <WriteLinesToFile File="$(BuildInfoOutput)" Lines="$([System.IO.File]::ReadAllText($(BuildInfoTemplate)).Replace('${VC_TOOLS_VERSION}', $(VCToolsProductVersion)))" Overwrite="true" />
+    <WriteLinesToFile
+      File="$(BuildInfoOutput)"
+      Lines="$([System.IO.File]::ReadAllText($(BuildInfoTemplate)).Replace('${VC_TOOLS_VERSION}', $(VCToolsProductVersion)))"
+      Overwrite="true"
+    />
   </Target>
 </Project>
