@@ -6,6 +6,7 @@ namespace Scripting::OnInstructionHitCallbackAPI
 {
 const char* class_name = "OnInstructionHit";
 u32 instruction_address_for_current_callback = 0;
+bool in_instruction_hit_breakpoint = false;
 
 static std::array all_on_instruction_hit_callback_functions_metadata_list = {
     FunctionMetadata("register", "1.0", "register(instructionAddress, value)", Register,

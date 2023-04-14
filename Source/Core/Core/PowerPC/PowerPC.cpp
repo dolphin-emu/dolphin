@@ -31,6 +31,9 @@
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
+#include "Core/Scripting/EventCallbackRegistrationAPIs/OnInstructionHitCallbackAPI.h"
+#include "Core/Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressReadFromCallbackAPI.h"
+#include "Core/Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressWrittenToCallbackAPI.h"
 #include "Core/Scripting/ScriptUtilities.h"
 #include "Core/System.h"
 
@@ -636,10 +639,16 @@ void CheckBreakPoints()
   if (!bp || !bp->is_enabled || !EvaluateCondition(bp->condition))
     return;
 
-  Scripting::ScriptUtilities::RunOnInstructionHitCallbacks(PowerPC::ppcState.pc);
 
   if (bp->break_on_hit)
   {
+    if (Scripting::ScriptUtilities::IsScriptingCoreInitialized())
+    {
+      Scripting::OnInstructionHitCallbackAPI::in_instruction_hit_breakpoint = true;
+      Scripting::OnInstructionHitCallbackAPI::instruction_address_for_current_callback =
+          PowerPC::ppcState.pc;
+      Core::QueueHostJob([] { Core::SetState(Core::State::Running); }, true);
+    }
     CPU::Break();
     if (GDBStub::IsActive())
       GDBStub::TakeControl();

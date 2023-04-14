@@ -8,6 +8,7 @@ const char* class_name = "OnMemoryAddressWrittenTo";
 
 u32 memory_address_written_to_for_current_callback = 0;
 s64 value_written_to_memory_address_for_current_callback = -1;
+bool in_memory_address_written_to_breakpoint = false;
 
 static std::array all_on_memory_address_written_to_callback_functions_metadata_list = {
     FunctionMetadata("register", "1.0", "register(memoryAddress, value)", Register,

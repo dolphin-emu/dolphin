@@ -9,6 +9,7 @@ namespace Scripting::OnInstructionHitCallbackAPI
 {
 extern const char* class_name;
 extern u32 instruction_address_for_current_callback;
+extern bool in_instruction_hit_breakpoint;
 
 ClassMetadata GetClassMetadataForVersion(const std::string& api_version);
 ClassMetadata GetAllClassMetadata();

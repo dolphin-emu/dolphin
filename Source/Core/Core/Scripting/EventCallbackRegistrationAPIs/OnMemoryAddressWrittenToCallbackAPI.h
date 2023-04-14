@@ -10,6 +10,7 @@ namespace Scripting::OnMemoryAddressWrittenToCallbackAPI
 extern const char* class_name;
 extern u32 memory_address_written_to_for_current_callback;
 extern s64 value_written_to_memory_address_for_current_callback;
+extern bool in_memory_address_written_to_breakpoint;
 
 ClassMetadata GetClassMetadataForVersion(const std::string& api_version);
 ClassMetadata GetAllClassMetadata();

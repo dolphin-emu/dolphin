@@ -9,6 +9,7 @@ namespace Scripting::OnMemoryAddressReadFromCallbackAPI
 {
 extern const char* class_name;
 extern u32 memory_address_read_from_for_current_callback;
+extern bool in_memory_address_read_from_breakpoint;
 
 ClassMetadata GetClassMetadataForVersion(const std::string& api_version);
 ClassMetadata GetAllClassMetadata();

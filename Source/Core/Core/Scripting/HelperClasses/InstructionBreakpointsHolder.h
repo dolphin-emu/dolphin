@@ -14,7 +14,7 @@ class InstructionBreakpointsHolder {
       //Only add the breakpoint to PowerPC if it's not in the list of breakpoints yet.
       if (this->GetNumCopiesOfBreakpoint(addr) == 1)
       {
-        PowerPC::breakpoints.Add(addr, false, false, false, std::nullopt);
+        PowerPC::breakpoints.Add(addr, false, true, false, std::nullopt);
       }
     }
 

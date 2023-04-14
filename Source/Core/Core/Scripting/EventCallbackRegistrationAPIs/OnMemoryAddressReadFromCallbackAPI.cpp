@@ -6,6 +6,7 @@ namespace Scripting::OnMemoryAddressReadFromCallbackAPI
 {
 const char* class_name = "OnMemoryAddressReadFrom";
 u32 memory_address_read_from_for_current_callback = 0;
+bool in_memory_address_read_from_breakpoint = false;
 
 static std::array all_on_memory_address_read_from_callback_functions_metadata_list = {
     FunctionMetadata("register", "1.0", "register(memoryAddress, value)", Register,

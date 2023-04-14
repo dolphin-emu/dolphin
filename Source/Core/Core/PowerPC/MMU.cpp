@@ -15,6 +15,7 @@
 #include "Common/Logging/Log.h"
 
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/MMIO.h"
@@ -23,6 +24,9 @@
 #include "Core/PowerPC/GDBStub.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/Scripting/EventCallbackRegistrationAPIs/OnInstructionHitCallbackAPI.h"
+#include "Core/Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressReadFromCallbackAPI.h"
+#include "Core/Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressWrittenToCallbackAPI.h"
 #include "Core/Scripting/ScriptUtilities.h"
 #include "Core/System.h"
 
@@ -571,11 +575,25 @@ static void Memcheck(u32 address, u64 var, bool write, size_t size)
   if (mc == nullptr)
     return;
 
-  if (write)
-    Scripting::ScriptUtilities::RunOnMemoryAddressWrittenToCallbacks(address, *((s64*)(&var)));
-  else
-    Scripting::ScriptUtilities::RunOnMemoryAddressReadFromCallbacks(address);
-
+  if (Scripting::ScriptUtilities::IsScriptingCoreInitialized())
+  {
+    if (write)
+    {
+      Scripting::OnMemoryAddressWrittenToCallbackAPI::in_memory_address_written_to_breakpoint =
+          true;
+      Scripting::OnMemoryAddressWrittenToCallbackAPI::
+          memory_address_written_to_for_current_callback = address;
+      Scripting::OnMemoryAddressWrittenToCallbackAPI::
+          value_written_to_memory_address_for_current_callback = *((s64*)(&var));
+    }
+    else
+    {
+      Scripting::OnMemoryAddressReadFromCallbackAPI::in_memory_address_read_from_breakpoint = true;
+      Scripting::OnMemoryAddressReadFromCallbackAPI::memory_address_read_from_for_current_callback =
+          address;
+    }
+    Core::QueueHostJob([] { Core::SetState(Core::State::Running); }, true);
+  }
   if (CPU::IsStepping())
   {
     // Disable when stepping so that resume works.
