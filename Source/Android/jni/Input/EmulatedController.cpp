@@ -91,7 +91,7 @@ Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedContro
   ControllerEmu::EmulatedController* controller = EmulatedControllerFromJava(env, obj);
 
   // Loading an empty IniFile section clears everything.
-  IniFile::Section section;
+  Common::IniFile::Section section;
 
   controller->LoadConfig(&section);
   controller->UpdateReferences(g_controller_interface);
@@ -103,7 +103,7 @@ Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedContro
 {
   ControllerEmu::EmulatedController* controller = EmulatedControllerFromJava(env, obj);
 
-  IniFile ini;
+  Common::IniFile ini;
   ini.Load(GetJString(env, j_path));
 
   controller->LoadConfig(ini.GetOrCreateSection("Profile"));
@@ -118,7 +118,7 @@ Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedContro
 
   File::CreateFullPath(path);
 
-  IniFile ini;
+  Common::IniFile ini;
 
   EmulatedControllerFromJava(env, obj)->SaveConfig(ini.GetOrCreateSection("Profile"));
   ini.Save(path);

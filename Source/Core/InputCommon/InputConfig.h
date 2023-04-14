@@ -11,6 +11,11 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/DynamicInputTextureManager.h"
 
+namespace Common
+{
+class IniFile;
+}
+
 namespace ControllerEmu
 {
 class EmulatedController;
@@ -53,7 +58,7 @@ public:
   void RegisterHotplugCallback();
   void UnregisterHotplugCallback();
 
-  void GenerateControllerTextures(const IniFile& file);
+  void GenerateControllerTextures(const Common::IniFile& file);
 
 private:
   ControllerInterface::HotplugCallbackHandle m_hotplug_callback_handle;

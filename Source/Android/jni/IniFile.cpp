@@ -7,6 +7,8 @@
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
 
+using Common::IniFile;
+
 static IniFile::Section* GetSectionPointer(JNIEnv* env, jobject obj)
 {
   return reinterpret_cast<IniFile::Section*>(

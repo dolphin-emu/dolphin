@@ -337,7 +337,7 @@ void BreakpointWidget::OnEditBreakpoint(u32 address, bool is_instruction_bp)
 
 void BreakpointWidget::OnLoad()
 {
-  IniFile ini;
+  Common::IniFile ini;
   if (!ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini",
                 false))
   {
@@ -367,7 +367,7 @@ void BreakpointWidget::OnLoad()
 
 void BreakpointWidget::OnSave()
 {
-  IniFile ini;
+  Common::IniFile ini;
   ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini",
            false);
   ini.SetLines("BreakPoints", m_system.GetPowerPC().GetBreakPoints().GetStrings());
