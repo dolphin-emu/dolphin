@@ -254,7 +254,8 @@ bool NetPlayClient::Connect()
   // TODO: make this not hang
   ENetEvent netEvent;
   int net;
-  while ((net = enet_host_service(m_client, &netEvent, 5000)) > 0 && netEvent.type == 42)
+  while ((net = enet_host_service(m_client, &netEvent, 5000)) > 0 &&
+         netEvent.type == ENetEventType(42))  // See PR #11381 and ENetUtil::InterceptCallback
   {
     // ignore packets from traversal server
   }

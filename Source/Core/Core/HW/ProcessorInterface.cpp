@@ -24,8 +24,8 @@
 
 namespace ProcessorInterface
 {
-constexpr u32 FLIPPER_REV_A = 0x046500B0;
-constexpr u32 FLIPPER_REV_B = 0x146500B1;
+constexpr u32 FLIPPER_REV_A [[maybe_unused]] = 0x046500B0;
+constexpr u32 FLIPPER_REV_B [[maybe_unused]] = 0x146500B1;
 constexpr u32 FLIPPER_REV_C = 0x246500B1;
 
 ProcessorInterfaceManager::ProcessorInterfaceManager(Core::System& system) : m_system(system)

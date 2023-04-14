@@ -486,7 +486,7 @@ FSTEntry ScanDirectoryTree(std::string directory, bool recursive)
       }
       else if (cur_depth < prev_depth)
       {
-        while (dir_fsts.size() - 1 != cur_depth)
+        while (dir_fsts.size() != static_cast<size_t>(cur_depth) + 1u)
         {
           calc_dir_size(dir_fsts.top());
           dir_fsts.pop();

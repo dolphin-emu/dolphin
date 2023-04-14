@@ -143,7 +143,7 @@ int main(int argc, char* argv[])
   // code, which makes mouse inputs work again.
   // For more information: https://bugs.dolphin-emu.org/issues/12913
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 3, 0))
-  putenv("QT_XCB_NO_XI2=1");
+  setenv("QT_XCB_NO_XI2", "1", true);
 #endif
 #endif
 

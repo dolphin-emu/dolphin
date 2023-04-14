@@ -891,7 +891,7 @@ void MemoryViewWidget::OnContextMenu(const QPoint& pos)
   auto* copy_hex = menu->addAction(tr("Copy Hex"), this, [this, addr] { OnCopyHex(addr); });
   copy_hex->setEnabled(item_has_value);
 
-  auto* copy_value = menu->addAction(tr("Copy Value"), this, [this, item_selected] {
+  auto* copy_value = menu->addAction(tr("Copy Value"), this, [item_selected] {
     QApplication::clipboard()->setText(item_selected->text());
   });
   copy_value->setEnabled(item_has_value);
