@@ -77,7 +77,7 @@ class Values {
 class Option {
   public:
     Option(const OptionParser& p) :
-      _parser(p), _action("store"), _type("string"), _nargs(1), _callback(0) {}
+      _parser(p), _action("store"), _type("string"), _nargs(1), _callback(nullptr) {}
     virtual ~Option() {}
 
     Option& action(const std::string& a);
