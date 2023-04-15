@@ -5,12 +5,14 @@
 
 #include <X11/XKBlib.h>
 
+#include <X11/extensions/XInput2.h>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
 
 #include <fmt/format.h>
 
+#include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 
 #include "Core/Host.h"
@@ -54,6 +56,14 @@
 // more cleanly separate each scroll wheel click, but risks dropping some inputs
 #define SCROLL_AXIS_DECAY 1.1f
 
+namespace
+{
+// We need XInput 2.1 to get raw events on the root window even while another
+// client has a grab.  If we request 2.2 or later, the server will not generate
+// emulated button presses from touch events, so we want exactly 2.1.
+constexpr int XINPUT_MAJOR = 2, XINPUT_MINOR = 1;
+}  // namespace
+
 namespace ciface::XInput2
 {
 // This function will add zero or more KeyboardMouse objects to devices.
@@ -67,13 +77,18 @@ void PopulateDevices(void* const hwnd)
 
   // verify that the XInput extension is available
   if (!XQueryExtension(dpy, "XInputExtension", &xi_opcode, &event, &error))
+  {
+    WARN_LOG_FMT(CONTROLLERINTERFACE, "XInput extension not available (XQueryExtension)");
     return;
+  }
 
-  // verify that the XInput extension is at at least version 2.0
-  int major = 2, minor = 0;
-
-  if (XIQueryVersion(dpy, &major, &minor) != Success)
+  int major = XINPUT_MAJOR, minor = XINPUT_MINOR;
+  if (XIQueryVersion(dpy, &major, &minor) != Success || major < XINPUT_MAJOR ||
+      (major == XINPUT_MAJOR && minor < XINPUT_MINOR))
+  {
+    WARN_LOG_FMT(CONTROLLERINTERFACE, "XInput extension not available (XIQueryVersion)");
     return;
+  }
 
   // register all master devices with Dolphin
 
@@ -159,6 +174,9 @@ KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboar
   // in. So be aware that each KeyboardMouse object actually has its own X11
   // "context."
   m_display = XOpenDisplay(nullptr);
+
+  int major = XINPUT_MAJOR, minor = XINPUT_MINOR;
+  XIQueryVersion(m_display, &major, &minor);
 
   // should always be 1
   int unused;
