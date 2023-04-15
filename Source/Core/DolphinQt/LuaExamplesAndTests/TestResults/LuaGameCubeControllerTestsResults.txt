@@ -1,0 +1,56 @@
+Running setInputs() unit tests:
+
+Test: 1
+	Calling setInput() on controller 1 with just setting A button...
+PASS!
+
+Test: 2
+	Calling setInput() on controller 1 with just setting B button...
+PASS!
+
+Test: 3
+	Calling setInput() on controller 1 with just setting X button...
+PASS!
+
+Test: 4
+	Calling setInput() on controller 1 with just setting Y button...
+PASS!
+
+Test: 5
+	Calling setInput() on controller 1 with just setting Z button...
+PASS!
+
+Test: 6
+	Calling setInput() on controller 1 with just setting L button...
+PASS!
+
+Test: 7
+	Calling setInput() on controller 1 with just setting R button...
+PASS!
+
+Test: 8
+	Calling setInput() on controller 1 with just setting Start button...
+PASS!
+
+Test: 9
+	Calling setInput() on controller 1 with just setting Reset button...
+PASS!
+
+Test: 10
+	Calling setInput() on controller 1 with just setting triggerL to 183...
+PASS!
+
+Test: 11
+	Calling setInput() on controller 1 with just setting triggerR to 112...
+PASS!
+
+Test: 12
+	Calling setInput() on controller 1 with just setting dPadUp...
+PASS!
+
+Test: 13
+	Calling setInput() on controller 1 with just setting dPadDown button...
+FAILURE!
+
+Test: 14
+	Calling setInput() on controller 1 with just setting dPadLeft button...
