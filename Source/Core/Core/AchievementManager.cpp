@@ -429,6 +429,12 @@ void AchievementManager::HandleAchievementTriggeredEvent(const rc_runtime_event_
                                 Config::Get(Config::RA_ENCORE_ENABLED));
 }
 
+void AchievementManager::HandleLeaderboardTriggeredEvent(const rc_runtime_event_t* runtime_event)
+{
+  m_queue.EmplaceItem(
+      [this, runtime_event] { SubmitLeaderboard(runtime_event->id, runtime_event->value); });
+}
+
 // Every RetroAchievements API call, with only a partial exception for fetch_image, follows
 // the same design pattern (here, X is the name of the call):
 //   Create a specific rc_api_X_request_t struct and populate with the necessary values
