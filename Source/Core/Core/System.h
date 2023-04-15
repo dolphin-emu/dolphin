@@ -6,6 +6,8 @@
 #include <memory>
 
 class GeometryShaderManager;
+class Interpreter;
+class JitInterface;
 class PixelShaderManager;
 class SoundStream;
 struct Sram;
@@ -13,8 +15,12 @@ class VertexShaderManager;
 
 namespace AudioInterface
 {
-class AudioInterfaceState;
+class AudioInterfaceManager;
 };
+namespace CPU
+{
+class CPUManager;
+}
 namespace CommandProcessor
 {
 class CommandProcessorManager;
@@ -25,19 +31,16 @@ class CoreTimingManager;
 }
 namespace DSP
 {
-class DSPState;
+class DSPManager;
 }
-namespace DVDInterface
+namespace DVD
 {
-class DVDInterfaceState;
-}
-namespace DVDThread
-{
-class DVDThreadState;
-}
+class DVDInterface;
+class DVDThread;
+}  // namespace DVD
 namespace ExpansionInterface
 {
-class ExpansionInterfaceState;
+class ExpansionInterfaceManager;
 };
 namespace Fifo
 {
@@ -46,6 +49,10 @@ class FifoManager;
 namespace GPFifo
 {
 class GPFifoManager;
+}
+namespace HSP
+{
+class HSPManager;
 }
 namespace IOS::HLE::USB
 {
@@ -57,7 +64,7 @@ class MemoryManager;
 };
 namespace MemoryInterface
 {
-class MemoryInterfaceState;
+class MemoryInterfaceManager;
 };
 namespace PixelEngine
 {
@@ -65,19 +72,21 @@ class PixelEngineManager;
 };
 namespace PowerPC
 {
+class MMU;
+class PowerPCManager;
 struct PowerPCState;
-}
+}  // namespace PowerPC
 namespace ProcessorInterface
 {
 class ProcessorInterfaceManager;
 }
 namespace SerialInterface
 {
-class SerialInterfaceState;
+class SerialInterfaceManager;
 };
 namespace VideoInterface
 {
-class VideoInterfaceState;
+class VideoInterfaceManager;
 };
 
 namespace Core
@@ -114,27 +123,33 @@ public:
   bool IsAudioDumpStarted() const;
   void SetAudioDumpStarted(bool started);
 
-  AudioInterface::AudioInterfaceState& GetAudioInterfaceState() const;
+  AudioInterface::AudioInterfaceManager& GetAudioInterface() const;
+  CPU::CPUManager& GetCPU() const;
   CoreTiming::CoreTimingManager& GetCoreTiming() const;
   CommandProcessor::CommandProcessorManager& GetCommandProcessor() const;
-  DSP::DSPState& GetDSPState() const;
-  DVDInterface::DVDInterfaceState& GetDVDInterfaceState() const;
-  DVDThread::DVDThreadState& GetDVDThreadState() const;
-  ExpansionInterface::ExpansionInterfaceState& GetExpansionInterfaceState() const;
+  DSP::DSPManager& GetDSP() const;
+  DVD::DVDInterface& GetDVDInterface() const;
+  DVD::DVDThread& GetDVDThread() const;
+  ExpansionInterface::ExpansionInterfaceManager& GetExpansionInterface() const;
   Fifo::FifoManager& GetFifo() const;
   GeometryShaderManager& GetGeometryShaderManager() const;
   GPFifo::GPFifoManager& GetGPFifo() const;
+  HSP::HSPManager& GetHSP() const;
+  Interpreter& GetInterpreter() const;
+  JitInterface& GetJitInterface() const;
   IOS::HLE::USB::SkylanderPortal& GetSkylanderPortal() const;
   Memory::MemoryManager& GetMemory() const;
-  MemoryInterface::MemoryInterfaceState& GetMemoryInterfaceState() const;
+  MemoryInterface::MemoryInterfaceManager& GetMemoryInterface() const;
+  PowerPC::MMU& GetMMU() const;
   PixelEngine::PixelEngineManager& GetPixelEngine() const;
   PixelShaderManager& GetPixelShaderManager() const;
+  PowerPC::PowerPCManager& GetPowerPC() const;
   PowerPC::PowerPCState& GetPPCState() const;
   ProcessorInterface::ProcessorInterfaceManager& GetProcessorInterface() const;
-  SerialInterface::SerialInterfaceState& GetSerialInterfaceState() const;
+  SerialInterface::SerialInterfaceManager& GetSerialInterface() const;
   Sram& GetSRAM() const;
   VertexShaderManager& GetVertexShaderManager() const;
-  VideoInterface::VideoInterfaceState& GetVideoInterfaceState() const;
+  VideoInterface::VideoInterfaceManager& GetVideoInterface() const;
 
 private:
   System();

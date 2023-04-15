@@ -18,12 +18,15 @@ class DateTimeSettingViewHolder(
     private val binding: ListItemSettingBinding,
     adapter: SettingsAdapter
 ) : SettingViewHolder(binding.root, adapter) {
-    private var mItem: DateTimeChoiceSetting? = null
+    lateinit var setting: DateTimeChoiceSetting
+
+    override val item: SettingsItem
+        get() = setting
 
     override fun bind(item: SettingsItem) {
-        mItem = item as DateTimeChoiceSetting
-        val inputTime = mItem!!.getSelectedValue(adapter.settings)
-        binding.textSettingName.text = item.getName()
+        setting = item as DateTimeChoiceSetting
+        val inputTime = setting.getSelectedValue()
+        binding.textSettingName.text = item.name
 
         if (!TextUtils.isEmpty(inputTime)) {
             val epochTime = inputTime.substring(2).toLong(16)
@@ -32,21 +35,17 @@ class DateTimeSettingViewHolder(
             val dateFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)
             binding.textSettingDescription.text = dateFormatter.format(zonedTime)
         } else {
-            binding.textSettingDescription.text = item.getDescription()
+            binding.textSettingDescription.text = item.description
         }
-        setStyle(binding.textSettingName, mItem)
+        setStyle(binding.textSettingName, setting)
     }
 
     override fun onClick(clicked: View) {
-        if (!mItem!!.isEditable) {
+        if (!setting.isEditable) {
             showNotRuntimeEditableError()
             return
         }
-        adapter.onDateTimeClick(mItem, bindingAdapterPosition)
-        setStyle(binding.textSettingName, mItem)
-    }
-
-    override fun getItem(): SettingsItem? {
-        return mItem
+        adapter.onDateTimeClick(setting, bindingAdapterPosition)
+        setStyle(binding.textSettingName, setting)
     }
 }

@@ -780,7 +780,7 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
     SetJumpTarget(continue3);
   }
 
-  MOV(64, PPCSTATE(cr.fields[crf]), R(RSCRATCH));
+  MOV(64, PPCSTATE_CR(crf), R(RSCRATCH));
 }
 
 void Jit64::fcmpX(UGeckoInstruction inst)

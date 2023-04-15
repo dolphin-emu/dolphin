@@ -8,6 +8,7 @@
 #include <regex>
 
 #include "Common/Event.h"
+#include "Core/Core.h"
 #include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/HW/CPU.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -122,31 +123,34 @@ InstructionAttributes CodeTrace::GetInstructionAttributes(const TraceOutput& ins
   return tmp_attributes;
 }
 
-TraceOutput CodeTrace::SaveCurrentInstruction() const
+TraceOutput CodeTrace::SaveCurrentInstruction(const Core::CPUThreadGuard& guard) const
 {
-  auto& system = Core::System::GetInstance();
-  auto& ppc_state = system.GetPPCState();
+  auto& system = guard.GetSystem();
+  auto& power_pc = system.GetPowerPC();
+  auto& ppc_state = power_pc.GetPPCState();
+  auto& debug_interface = power_pc.GetDebugInterface();
 
   // Quickly save instruction and memory target for fast logging.
   TraceOutput output;
-  const std::string instr = PowerPC::debug_interface.Disassemble(ppc_state.pc);
+  const std::string instr = debug_interface.Disassemble(&guard, ppc_state.pc);
   output.instruction = instr;
   output.address = ppc_state.pc;
 
   if (IsInstructionLoadStore(output.instruction))
-    output.memory_target = PowerPC::debug_interface.GetMemoryAddressFromInstruction(instr);
+    output.memory_target = debug_interface.GetMemoryAddressFromInstruction(instr);
 
   return output;
 }
 
-AutoStepResults CodeTrace::AutoStepping(bool continue_previous, AutoStop stop_on)
+AutoStepResults CodeTrace::AutoStepping(const Core::CPUThreadGuard& guard, bool continue_previous,
+                                        AutoStop stop_on)
 {
   AutoStepResults results;
 
-  if (!CPU::IsStepping() || m_recording)
+  if (m_recording)
     return results;
 
-  TraceOutput pc_instr = SaveCurrentInstruction();
+  TraceOutput pc_instr = SaveCurrentInstruction(guard);
   const InstructionAttributes instr = GetInstructionAttributes(pc_instr);
 
   // Not an instruction we should start autostepping from (ie branches).
@@ -187,19 +191,19 @@ AutoStepResults CodeTrace::AutoStepping(bool continue_previous, AutoStop stop_on
   else if (stop_on == AutoStop::Changed)
     stop_condition = HitType::ACTIVE;
 
-  CPU::PauseAndLock(true, false);
-  PowerPC::breakpoints.ClearAllTemporary();
+  auto& power_pc = guard.GetSystem().GetPowerPC();
+  power_pc.GetBreakPoints().ClearAllTemporary();
   using clock = std::chrono::steady_clock;
   clock::time_point timeout = clock::now() + std::chrono::seconds(4);
 
-  PowerPC::CoreMode old_mode = PowerPC::GetMode();
-  PowerPC::SetMode(PowerPC::CoreMode::Interpreter);
+  PowerPC::CoreMode old_mode = power_pc.GetMode();
+  power_pc.SetMode(PowerPC::CoreMode::Interpreter);
 
   do
   {
-    PowerPC::SingleStep();
+    power_pc.SingleStep();
 
-    pc_instr = SaveCurrentInstruction();
+    pc_instr = SaveCurrentInstruction(guard);
     hit = TraceLogic(pc_instr);
     results.count += 1;
   } while (clock::now() < timeout && hit < stop_condition &&
@@ -209,8 +213,7 @@ AutoStepResults CodeTrace::AutoStepping(bool continue_previous, AutoStop stop_on
   if (clock::now() >= timeout)
     results.timed_out = true;
 
-  PowerPC::SetMode(old_mode);
-  CPU::PauseAndLock(false, false);
+  power_pc.SetMode(old_mode);
   m_recording = false;
 
   results.reg_tracked = m_reg_autotrack;

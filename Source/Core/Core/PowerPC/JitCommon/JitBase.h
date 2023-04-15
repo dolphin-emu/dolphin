@@ -17,13 +17,22 @@
 #include "Core/PowerPC/JitCommon/JitCache.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 
+namespace Core
+{
+class System;
+}
+namespace PowerPC
+{
+struct PowerPCState;
+}
+
 //#define JIT_LOG_GENERATED_CODE  // Enables logging of generated code
 //#define JIT_LOG_GPR             // Enables logging of the PPC general purpose regs
 //#define JIT_LOG_FPR             // Enables logging of the PPC floating point regs
 
 // Use these to control the instruction selection
 // #define INSTRUCTION_START FallBackToInterpreter(inst); return;
-// #define INSTRUCTION_START PPCTables::CountInstruction(inst);
+// #define INSTRUCTION_START PPCTables::CountInstruction(inst, m_ppc_state.pc);
 #define INSTRUCTION_START
 
 #define FALLBACK_IF(cond)                                                                          \
@@ -53,6 +62,12 @@ protected:
     ConstantFalse,
 #endif
   };
+
+  static constexpr size_t SAFE_STACK_SIZE = 256 * 1024;
+  static constexpr size_t MIN_UNSAFE_STACK_SIZE = 192 * 1024;
+  static constexpr size_t MIN_STACK_SIZE = SAFE_STACK_SIZE + MIN_UNSAFE_STACK_SIZE;
+  static constexpr size_t GUARD_SIZE = 64 * 1024;
+  static constexpr size_t GUARD_OFFSET = SAFE_STACK_SIZE - GUARD_SIZE;
 
   struct JitOptions
   {
@@ -138,7 +153,16 @@ protected:
   bool m_pause_on_panic_enabled = false;
   bool m_accurate_cpu_cache_enabled = false;
 
+  bool m_enable_blr_optimization = false;
+  bool m_cleanup_after_stackfault = false;
+  u8* m_stack_guard = nullptr;
+
   void RefreshConfig();
+
+  void InitBLROptimization();
+  void ProtectStack();
+  void UnprotectStack();
+  void CleanUpAfterStackFault();
 
   bool CanMergeNextInstructions(int count) const;
 
@@ -147,7 +171,11 @@ protected:
   bool ShouldHandleFPExceptionForInstruction(const PPCAnalyst::CodeOp* op);
 
 public:
-  JitBase();
+  explicit JitBase(Core::System& system);
+  JitBase(const JitBase&) = delete;
+  JitBase(JitBase&&) = delete;
+  JitBase& operator=(const JitBase&) = delete;
+  JitBase& operator=(JitBase&&) = delete;
   ~JitBase() override;
 
   bool IsDebuggingEnabled() const { return m_enable_debugging; }
@@ -160,13 +188,17 @@ public:
   virtual const CommonAsmRoutinesBase* GetAsmRoutines() = 0;
 
   virtual bool HandleFault(uintptr_t access_address, SContext* ctx) = 0;
-  virtual bool HandleStackFault() { return false; }
+  bool HandleStackFault();
 
   static constexpr std::size_t code_buffer_size = 32000;
 
   // This should probably be removed from public:
   JitOptions jo{};
   JitState js{};
+
+  Core::System& m_system;
+  PowerPC::PowerPCState& m_ppc_state;
+  PowerPC::MMU& m_mmu;
 };
 
 void JitTrampoline(JitBase& jit, u32 em_address);

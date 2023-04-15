@@ -65,7 +65,7 @@ kiss_fftr_cfg kiss_fftr_alloc(int nfft, int inverse_fft, void *mem,
               sizeof(kiss_fft_cpx) * (nfft * 3 / 2);
 
   if (lenmem == NULL) {
-    st = (kiss_fftr_cfg) new char[memneeded];
+    st = (kiss_fftr_cfg)malloc(memneeded);
   } else {
     if (*lenmem >= memneeded)
       st = (kiss_fftr_cfg)mem;

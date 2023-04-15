@@ -70,12 +70,10 @@ std::string SettingsHandler::GetValue(std::string_view key) const
 
 void SettingsHandler::Decrypt()
 {
-  const u8* str = m_buffer.data();
   while (m_position < m_buffer.size())
   {
     decoded.push_back((u8)(m_buffer[m_position] ^ m_key));
     m_position++;
-    str++;
     m_key = (m_key >> 31) | (m_key << 1);
   }
 

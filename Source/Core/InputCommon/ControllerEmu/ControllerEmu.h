@@ -182,8 +182,8 @@ public:
 
   virtual void LoadDefaults(const ControllerInterface& ciface);
 
-  virtual void LoadConfig(IniFile::Section* sec, const std::string& base = "");
-  virtual void SaveConfig(IniFile::Section* sec, const std::string& base = "");
+  virtual void LoadConfig(Common::IniFile::Section* sec, const std::string& base = "");
+  virtual void SaveConfig(Common::IniFile::Section* sec, const std::string& base = "");
 
   bool IsDefaultDeviceConnected() const;
   const ciface::Core::DeviceQualifier& GetDefaultDevice() const;

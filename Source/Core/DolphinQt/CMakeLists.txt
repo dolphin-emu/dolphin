@@ -339,10 +339,14 @@ add_executable(dolphin-emu
   TAS/StickWidget.h
   TAS/TASCheckBox.cpp
   TAS/TASCheckBox.h
+  TAS/TASControlState.cpp
+  TAS/TASControlState.h
   TAS/TASInputWindow.cpp
   TAS/TASInputWindow.h
   TAS/TASSlider.cpp
   TAS/TASSlider.h
+  TAS/TASSpinBox.cpp
+  TAS/TASSpinBox.h
   TAS/WiiTASInputWindow.cpp
   TAS/WiiTASInputWindow.h
   ToolBar.cpp
@@ -614,18 +618,8 @@ if(APPLE)
 
   if(MACOS_CODE_SIGNING)
     # Code sign make file builds
-    add_custom_command(TARGET dolphin-emu
-      POST_BUILD COMMAND
-      /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY}" --deep --options=runtime --entitlements "${CMAKE_SOURCE_DIR}/Source/Core/DolphinQt/DolphinEmu$<$<CONFIG:Debug>:Debug>.entitlements" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Dolphin.app" || true)
-
-    # Code sign builds for build systems that do have release/debug variants (Xcode)
-    add_custom_command(TARGET dolphin-emu
-      POST_BUILD COMMAND
-      /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY}" --deep --options=runtime --entitlements "${CMAKE_SOURCE_DIR}/Source/Core/DolphinQt/DolphinEmuDebug.entitlements" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}/Dolphin.app" || true)
-
-    add_custom_command(TARGET dolphin-emu
-      POST_BUILD COMMAND
-      /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY}" --deep --options=runtime --entitlements "${CMAKE_SOURCE_DIR}/Source/Core/DolphinQt/DolphinEmu.entitlements" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}/Dolphin.app" || true)
+    add_custom_command(TARGET dolphin-emu POST_BUILD
+      COMMAND /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY}" --deep --options=runtime --entitlements "${CMAKE_SOURCE_DIR}/Source/Core/DolphinQt/DolphinEmu$<$<CONFIG:Debug>:Debug>.entitlements" "$<TARGET_BUNDLE_DIR:dolphin-emu>")
   endif()
 else()
   install(TARGETS dolphin-emu RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
@@ -684,4 +678,9 @@ endif()
 
 if(USE_DISCORD_PRESENCE)
   target_compile_definitions(dolphin-emu PRIVATE -DUSE_DISCORD_PRESENCE)
+endif()
+
+if(USE_RETRO_ACHIEVEMENTS)
+  target_link_libraries(dolphin-emu PRIVATE rcheevos)
+  target_compile_definitions(dolphin-emu PRIVATE -DUSE_RETRO_ACHIEVEMENTS)
 endif()

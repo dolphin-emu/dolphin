@@ -6,12 +6,14 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
+#include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/Scripting/HelperClasses/ArgHolder.h"
 #include "Core/Scripting/HelperClasses/ScriptCallLocations.h"
 #include "Core/Scripting/HelperClasses/ClassMetadata.h"
 #include "Core/Scripting/HelperClasses/ArgTypeEnum.h"
 #include "Core/Scripting/HelperClasses/VersionResolver.h"
+#include "Core/System.h"
 #include <unordered_map>
 
 namespace Scripting::RegistersAPI
@@ -141,15 +143,15 @@ u8* GetAddressForRegister(RegisterObject register_object, u8 offset)
   {
   case RegisterObject::RegisterType::GeneralPurposeRegister:
     register_number = register_object.register_number;
-    address = (reinterpret_cast<u8*>(PowerPC::ppcState.gpr + register_number)) + offset;
+    address = (reinterpret_cast<u8*>(Core::System::GetInstance().GetPowerPC().GetPPCState().gpr + register_number)) + offset;
     return address;
   case RegisterObject::RegisterType::PcRegister:
-    address = (reinterpret_cast<u8*>(&PowerPC::ppcState.pc)) + offset;
+    address = (reinterpret_cast<u8*>(&Core::System::GetInstance().GetPowerPC().GetPPCState().pc)) + offset;
     return address;
   case RegisterObject::RegisterType::ReturnRegister:
-    address = (reinterpret_cast<u8*>(&PowerPC::ppcState.spr[SPR_LR])) + offset;
+    address = (reinterpret_cast<u8*>(&Core::System::GetInstance().GetPowerPC().GetPPCState().spr[SPR_LR])) + offset;
   case RegisterObject::RegisterType::FloatingPointRegister:
-    address = (reinterpret_cast<u8*>(PowerPC::ppcState.ps + register_number)) + offset;
+    address = (reinterpret_cast<u8*>(Core::System::GetInstance().GetPowerPC().GetPPCState().ps + register_number)) + offset;
     return address;
 
   default:

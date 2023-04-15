@@ -29,16 +29,11 @@ InputConfig::~InputConfig() = default;
 
 bool InputConfig::LoadConfig(InputClass type)
 {
-  IniFile inifile;
+  Common::IniFile inifile;
   bool useProfile[MAX_BBMOTES] = {false, false, false, false, false};
   static constexpr std::array<std::string_view, MAX_BBMOTES> num = {"1", "2", "3", "4", "BB"};
   std::string profile[MAX_BBMOTES];
   std::string path;
-
-#if defined(ANDROID)
-  bool use_ir_config = false;
-  std::string ir_values[3];
-#endif
 
   m_dynamic_input_tex_config_manager.Load();
 
@@ -62,8 +57,8 @@ bool InputConfig::LoadConfig(InputClass type)
       break;
     }
 
-    IniFile game_ini = SConfig::GetInstance().LoadGameIni();
-    IniFile::Section* control_section = game_ini.GetOrCreateSection("Controls");
+    Common::IniFile game_ini = SConfig::GetInstance().LoadGameIni();
+    auto* control_section = game_ini.GetOrCreateSection("Controls");
 
     for (int i = 0; i < 4; i++)
     {
@@ -90,18 +85,6 @@ bool InputConfig::LoadConfig(InputClass type)
         }
       }
     }
-#if defined(ANDROID)
-    // For use on android touchscreen IR pointer
-    // Check for IR values
-    if (control_section->Exists("IRTotalYaw") && control_section->Exists("IRTotalPitch") &&
-        control_section->Exists("IRVerticalOffset"))
-    {
-      use_ir_config = true;
-      control_section->Get("IRTotalYaw", &ir_values[0]);
-      control_section->Get("IRTotalPitch", &ir_values[1]);
-      control_section->Get("IRVerticalOffset", &ir_values[2]);
-    }
-#endif
   }
 
   if (inifile.Load(File::GetUserPath(D_CONFIG_IDX) + m_ini_name + ".ini") &&
@@ -112,7 +95,7 @@ bool InputConfig::LoadConfig(InputClass type)
     std::vector<std::string> controller_names;
     for (auto& controller : m_controllers)
     {
-      IniFile::Section config;
+      Common::IniFile::Section config;
       // Load settings from ini
       if (useProfile[n])
       {
@@ -129,15 +112,6 @@ bool InputConfig::LoadConfig(InputClass type)
       {
         config = *inifile.GetOrCreateSection(controller->GetName());
       }
-#if defined(ANDROID)
-      // Only set for wii pads
-      if (type == InputClass::Wii && use_ir_config)
-      {
-        config.Set("IR/Total Yaw", ir_values[0]);
-        config.Set("IR/Total Pitch", ir_values[1]);
-        config.Set("IR/Vertical Offset", ir_values[2]);
-      }
-#endif
       controller->LoadConfig(&config);
       controller->UpdateReferences(g_controller_interface);
       controller_names.push_back(controller->GetName());
@@ -172,7 +146,7 @@ void InputConfig::SaveConfig()
 {
   std::string ini_filename = File::GetUserPath(D_CONFIG_IDX) + m_ini_name + ".ini";
 
-  IniFile inifile;
+  Common::IniFile inifile;
   inifile.Load(ini_filename);
 
   std::vector<std::string> controller_names;
@@ -238,7 +212,7 @@ bool InputConfig::IsControllerControlledByGamepadDevice(int index) const
                controller.name == "Keyboard Mouse"));  // Windows Keyboard/Mouse
 }
 
-void InputConfig::GenerateControllerTextures(const IniFile& file)
+void InputConfig::GenerateControllerTextures(const Common::IniFile& file)
 {
   std::vector<std::string> controller_names;
   for (auto& controller : m_controllers)

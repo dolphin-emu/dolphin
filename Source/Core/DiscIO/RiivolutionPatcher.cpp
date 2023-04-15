@@ -64,7 +64,8 @@ FileDataLoaderHostFS::MakeAbsoluteFromRelative(std::string_view external_relativ
     return std::nullopt;
 #endif
 
-  std::string result = external_relative_path.starts_with('/') ? m_sd_root : m_patch_root;
+  const std::string& root = external_relative_path.starts_with('/') ? m_sd_root : m_patch_root;
+  std::string result = root;
   std::string_view work = external_relative_path;
 
   // Strip away all leading and trailing path separators.
@@ -116,6 +117,33 @@ FileDataLoaderHostFS::MakeAbsoluteFromRelative(std::string_view external_relativ
       // Append path element to result string.
       result += '/';
       result += element;
+
+      // Riivolution assumes a case-insensitive file system, which means it's possible that an XML
+      // file references a 'file.bin' but the actual file is named 'File.bin' or 'FILE.BIN'. To
+      // preserve this behavior, we modify the file path to match any existing file in the file
+      // system, if one exists.
+      if (!::File::Exists(result))
+      {
+        // Drop path element again so we can search in the directory.
+        result.erase(result.size() - element.size(), element.size());
+
+        // Re-attach an element that actually matches the capitalization in the host filesystem.
+        auto possible_files = ::File::ScanDirectoryTree(result, false);
+        bool found = false;
+        for (auto& f : possible_files.children)
+        {
+          if (Common::CaseInsensitiveEquals(element, f.virtualName))
+          {
+            result += f.virtualName;
+            found = true;
+            break;
+          }
+        }
+
+        // If there isn't any file that matches just use the given element.
+        if (!found)
+          result += element;
+      }
     }
 
     // If this was the last path element, we're done.
@@ -320,14 +348,6 @@ static void ApplyPatchToFile(const Patch& patch, const File& file_patch,
                    file_patch.m_fileoffset, file_patch.m_length, file_patch.m_resize);
 }
 
-static bool CaseInsensitiveEquals(std::string_view a, std::string_view b)
-{
-  if (a.size() != b.size())
-    return false;
-  return std::equal(a.begin(), a.end(), b.begin(),
-                    [](char ca, char cb) { return Common::ToLower(ca) == Common::ToLower(cb); });
-}
-
 static FSTBuilderNode* FindFileNodeInFST(std::string_view path, std::vector<FSTBuilderNode>* fst,
                                          bool create_if_not_exists)
 {
@@ -335,7 +355,7 @@ static FSTBuilderNode* FindFileNodeInFST(std::string_view path, std::vector<FSTB
   const bool is_file = path_separator == std::string_view::npos;
   const std::string_view name = is_file ? path : path.substr(0, path_separator);
   const auto it = std::find_if(fst->begin(), fst->end(), [&](const FSTBuilderNode& node) {
-    return CaseInsensitiveEquals(node.m_filename, name);
+    return Common::CaseInsensitiveEquals(node.m_filename, name);
   });
 
   if (it == fst->end())
@@ -377,7 +397,7 @@ static DiscIO::FSTBuilderNode* FindFilenameNodeInFST(std::string_view filename,
       if (result)
         return result;
     }
-    else if (CaseInsensitiveEquals(node.m_filename, filename))
+    else if (Common::CaseInsensitiveEquals(node.m_filename, filename))
     {
       return &node;
     }
@@ -398,7 +418,7 @@ static void ApplyFilePatchToFST(const Patch& patch, const File& file,
     if (node)
       ApplyPatchToFile(patch, file, node);
   }
-  else if (dol_node && CaseInsensitiveEquals(file.m_disc, "main.dol"))
+  else if (dol_node && Common::CaseInsensitiveEquals(file.m_disc, "main.dol"))
   {
     // Special case: If the filename is "main.dol", we want to patch the main executable.
     ApplyPatchToFile(patch, file, dol_node);
@@ -477,30 +497,31 @@ void ApplyPatchesToFiles(const std::vector<Patch>& patches, PatchIndex index,
   }
 }
 
-static bool MemoryMatchesAt(u32 offset, const std::vector<u8>& value)
+static bool MemoryMatchesAt(const Core::CPUThreadGuard& guard, u32 offset,
+                            const std::vector<u8>& value)
 {
   for (u32 i = 0; i < value.size(); ++i)
   {
-    auto result = PowerPC::HostTryReadU8(offset + i);
+    auto result = PowerPC::MMU::HostTryReadU8(guard, offset + i);
     if (!result || result->value != value[i])
       return false;
   }
   return true;
 }
 
-static void ApplyMemoryPatch(u32 offset, const std::vector<u8>& value,
-                             const std::vector<u8>& original)
+static void ApplyMemoryPatch(const Core::CPUThreadGuard& guard, u32 offset,
+                             const std::vector<u8>& value, const std::vector<u8>& original)
 {
   if (value.empty())
     return;
 
-  if (!original.empty() && !MemoryMatchesAt(offset, original))
+  if (!original.empty() && !MemoryMatchesAt(guard, offset, original))
     return;
 
   auto& system = Core::System::GetInstance();
   const u32 size = static_cast<u32>(value.size());
   for (u32 i = 0; i < size; ++i)
-    PowerPC::HostTryWriteU8(value[i], offset + i);
+    PowerPC::MMU::HostTryWriteU8(guard, value[i], offset + i);
   const u32 overlapping_hook_count = HLE::UnpatchRange(system, offset, offset + size);
   if (overlapping_hook_count != 0)
   {
@@ -516,17 +537,18 @@ static std::vector<u8> GetMemoryPatchValue(const Patch& patch, const Memory& mem
   return memory_patch.m_value;
 }
 
-static void ApplyMemoryPatch(const Patch& patch, const Memory& memory_patch)
+static void ApplyMemoryPatch(const Core::CPUThreadGuard& guard, const Patch& patch,
+                             const Memory& memory_patch)
 {
   if (memory_patch.m_offset == 0)
     return;
 
-  ApplyMemoryPatch(memory_patch.m_offset | 0x80000000, GetMemoryPatchValue(patch, memory_patch),
-                   memory_patch.m_original);
+  ApplyMemoryPatch(guard, memory_patch.m_offset | 0x80000000,
+                   GetMemoryPatchValue(patch, memory_patch), memory_patch.m_original);
 }
 
-static void ApplySearchMemoryPatch(const Patch& patch, const Memory& memory_patch, u32 ram_start,
-                                   u32 length)
+static void ApplySearchMemoryPatch(const Core::CPUThreadGuard& guard, const Patch& patch,
+                                   const Memory& memory_patch, u32 ram_start, u32 length)
 {
   if (memory_patch.m_original.empty() || memory_patch.m_align == 0)
     return;
@@ -535,16 +557,16 @@ static void ApplySearchMemoryPatch(const Patch& patch, const Memory& memory_patc
   for (u32 i = 0; i < length - (stride - 1); i += stride)
   {
     const u32 address = ram_start + i;
-    if (MemoryMatchesAt(address, memory_patch.m_original))
+    if (MemoryMatchesAt(guard, address, memory_patch.m_original))
     {
-      ApplyMemoryPatch(address, GetMemoryPatchValue(patch, memory_patch), {});
+      ApplyMemoryPatch(guard, address, GetMemoryPatchValue(patch, memory_patch), {});
       break;
     }
   }
 }
 
-static void ApplyOcarinaMemoryPatch(const Patch& patch, const Memory& memory_patch, u32 ram_start,
-                                    u32 length)
+static void ApplyOcarinaMemoryPatch(const Core::CPUThreadGuard& guard, const Patch& patch,
+                                    const Memory& memory_patch, u32 ram_start, u32 length)
 {
   if (memory_patch.m_offset == 0)
     return;
@@ -557,19 +579,19 @@ static void ApplyOcarinaMemoryPatch(const Patch& patch, const Memory& memory_pat
   {
     // first find the pattern
     const u32 address = ram_start + i;
-    if (MemoryMatchesAt(address, value))
+    if (MemoryMatchesAt(guard, address, value))
     {
       for (; i < length; i += 4)
       {
         // from the pattern find the next blr instruction
         const u32 blr_address = ram_start + i;
-        auto blr = PowerPC::HostTryReadU32(blr_address);
+        auto blr = PowerPC::MMU::HostTryReadU32(guard, blr_address);
         if (blr && blr->value == 0x4e800020)
         {
           // and replace it with a jump to the given offset
           const u32 target = memory_patch.m_offset | 0x80000000;
           const u32 jmp = ((target - blr_address) & 0x03fffffc) | 0x48000000;
-          PowerPC::HostTryWriteU32(jmp, blr_address);
+          PowerPC::MMU::HostTryWriteU32(guard, jmp, blr_address);
           const u32 overlapping_hook_count =
               HLE::UnpatchRange(system, blr_address, blr_address + 4);
           if (overlapping_hook_count != 0)
@@ -584,7 +606,7 @@ static void ApplyOcarinaMemoryPatch(const Patch& patch, const Memory& memory_pat
   }
 }
 
-void ApplyGeneralMemoryPatches(const std::vector<Patch>& patches)
+void ApplyGeneralMemoryPatches(const Core::CPUThreadGuard& guard, const std::vector<Patch>& patches)
 {
   auto& system = Core::System::GetInstance();
   auto& system_memory = system.GetMemory();
@@ -597,14 +619,15 @@ void ApplyGeneralMemoryPatches(const std::vector<Patch>& patches)
         continue;
 
       if (memory.m_search)
-        ApplySearchMemoryPatch(patch, memory, 0x80000000, system_memory.GetRamSize());
+        ApplySearchMemoryPatch(guard, patch, memory, 0x80000000, system_memory.GetRamSize());
       else
-        ApplyMemoryPatch(patch, memory);
+        ApplyMemoryPatch(guard, patch, memory);
     }
   }
 }
 
-void ApplyApploaderMemoryPatches(const std::vector<Patch>& patches, u32 ram_address, u32 ram_length)
+void ApplyApploaderMemoryPatches(const Core::CPUThreadGuard& guard,
+                                 const std::vector<Patch>& patches, u32 ram_address, u32 ram_length)
 {
   for (const auto& patch : patches)
   {
@@ -614,9 +637,9 @@ void ApplyApploaderMemoryPatches(const std::vector<Patch>& patches, u32 ram_addr
         continue;
 
       if (memory.m_ocarina)
-        ApplyOcarinaMemoryPatch(patch, memory, ram_address, ram_length);
+        ApplyOcarinaMemoryPatch(guard, patch, memory, ram_address, ram_length);
       else
-        ApplySearchMemoryPatch(patch, memory, ram_address, ram_length);
+        ApplySearchMemoryPatch(guard, patch, memory, ram_address, ram_length);
     }
   }
 }

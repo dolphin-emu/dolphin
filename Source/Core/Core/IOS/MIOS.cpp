@@ -6,11 +6,13 @@
 #include <cstring>
 #include <utility>
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
+
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -40,13 +42,14 @@ static void ReinitHardware()
   // HACK However, resetting DI will reset the DTK config, which is set by the system menu
   // (and not by MIOS), causing games that use DTK to break.  Perhaps MIOS doesn't actually
   // reset DI fully, in such a way that the DTK config isn't cleared?
-  // DVDInterface::ResetDrive(true);
-  PowerPC::Reset();
+  // system.GetDVDInterface().ResetDrive(true);
+  system.GetPowerPC().Reset();
   Wiimote::ResetAllWiimotes();
   // Note: this is specific to Dolphin and is required because we initialised it in Wii mode.
-  DSP::Reinit(Config::Get(Config::MAIN_DSP_HLE));
-  DSP::GetDSPEmulator()->Initialize(SConfig::GetInstance().bWii,
-                                    Config::Get(Config::MAIN_DSP_THREAD));
+  auto& dsp = system.GetDSP();
+  dsp.Reinit(Config::Get(Config::MAIN_DSP_HLE));
+  dsp.GetDSPEmulator()->Initialize(SConfig::GetInstance().bWii,
+                                   Config::Get(Config::MAIN_DSP_THREAD));
 
   SystemTimers::ChangePPCClock(SystemTimers::Mode::GC);
 }
@@ -57,6 +60,10 @@ bool Load()
 {
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
+
+  ASSERT(Core::IsCPUThread());
+  Core::CPUThreadGuard guard(system);
+
   memory.Write_U32(0x00000000, ADDRESS_INIT_SEMAPHORE);
   memory.Write_U32(0x09142001, 0x3180);
 
@@ -69,31 +76,31 @@ bool Load()
     g_symbolDB.Clear();
     Host_NotifyMapLoaded();
   }
-  if (g_symbolDB.LoadMap(File::GetUserPath(D_MAPS_IDX) + "mios-ipl.map"))
+  if (g_symbolDB.LoadMap(guard, File::GetUserPath(D_MAPS_IDX) + "mios-ipl.map"))
   {
     ::HLE::Clear();
     ::HLE::PatchFunctions(system);
     Host_NotifyMapLoaded();
   }
 
-  auto& ppc_state = system.GetPPCState();
-  const PowerPC::CoreMode core_mode = PowerPC::GetMode();
-  PowerPC::SetMode(PowerPC::CoreMode::Interpreter);
-  ppc_state.msr.Hex = 0;
-  ppc_state.pc = 0x3400;
+  auto& power_pc = system.GetPowerPC();
+  const PowerPC::CoreMode core_mode = power_pc.GetMode();
+  power_pc.SetMode(PowerPC::CoreMode::Interpreter);
+  power_pc.GetPPCState().msr.Hex = 0;
+  power_pc.GetPPCState().pc = 0x3400;
   NOTICE_LOG_FMT(IOS, "Loaded MIOS and bootstrapped PPC.");
 
   // IOS writes 0 to 0x30f8 before bootstrapping the PPC. Once started, the IPL eventually writes
   // 0xdeadbeef there, then waits for it to be cleared by IOS before continuing.
   while (memory.Read_U32(ADDRESS_INIT_SEMAPHORE) != 0xdeadbeef)
-    PowerPC::SingleStep();
-  PowerPC::SetMode(core_mode);
+    power_pc.SingleStep();
+  power_pc.SetMode(core_mode);
 
   memory.Write_U32(0x00000000, ADDRESS_INIT_SEMAPHORE);
   NOTICE_LOG_FMT(IOS, "IPL ready.");
   SConfig::GetInstance().m_is_mios = true;
-  DVDInterface::UpdateRunningGameMetadata();
-  SConfig::OnNewTitleLoad();
+  system.GetDVDInterface().UpdateRunningGameMetadata();
+  SConfig::OnNewTitleLoad(guard);
   return true;
 }
 }  // namespace IOS::HLE::MIOS

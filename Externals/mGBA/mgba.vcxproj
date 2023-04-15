@@ -39,7 +39,6 @@
     <ClCompile Include="mgba\src\core\map-cache.c" />
     <ClCompile Include="mgba\src\core\mem-search.c" />
     <ClCompile Include="mgba\src\core\rewind.c" />
-    <ClCompile Include="mgba\src\core\scripting.c" />
     <ClCompile Include="mgba\src\core\serialize.c" />
     <ClCompile Include="mgba\src\core\sync.c" />
     <ClCompile Include="mgba\src\core\thread.c" />
@@ -61,6 +60,14 @@
     </ClCompile>
     <ClCompile Include="mgba\src\gb\io.c" />
     <ClCompile Include="mgba\src\gb\mbc.c" />
+    <ClCompile Include="mgba\src\gb\mbc\huc-3.c" />
+    <ClCompile Include="mgba\src\gb\mbc\licensed.c" />
+    <ClCompile Include="mgba\src\gb\mbc\mbc.c">
+      <ObjectFileName>$(IntDir)obj2\</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gb\mbc\pocket-cam.c" />
+    <ClCompile Include="mgba\src\gb\mbc\tama5.c" />
+    <ClCompile Include="mgba\src\gb\mbc\unlicensed.c" />
     <ClCompile Include="mgba\src\gb\memory.c" />
     <ClCompile Include="mgba\src\gb\overrides.c" />
     <ClCompile Include="mgba\src\gb\serialize.c">
@@ -140,23 +147,25 @@
     </ClCompile>
     <ClCompile Include="mgba\src\util\circle-buffer.c" />
     <ClCompile Include="mgba\src\util\configuration.c" />
-    <ClCompile Include="mgba\src\util\convolve.c" />
     <ClCompile Include="mgba\src\util\crc32.c" />
-    <ClCompile Include="mgba\src\util\elf-read.c" />
-    <ClCompile Include="mgba\src\util\export.c" />
     <ClCompile Include="mgba\src\util\formatting.c" />
     <ClCompile Include="mgba\src\util\gbk-table.c" />
     <ClCompile Include="mgba\src\util\hash.c" />
+    <ClCompile Include="mgba\src\util\string.c" />
+    <ClCompile Include="mgba\src\util\table.c" />
+    <ClCompile Include="mgba\src\util\vector.c" />
+    <ClCompile Include="mgba\src\util\vfs.c" />
+    <ClCompile Include="mgba\src\util\convolve.c" />
+    <ClCompile Include="mgba\src\util\elf-read.c" />
+    <ClCompile Include="mgba\src\util\export.c" />
     <ClCompile Include="mgba\src\util\patch.c" />
     <ClCompile Include="mgba\src\util\patch-fast.c" />
     <ClCompile Include="mgba\src\util\patch-ips.c" />
     <ClCompile Include="mgba\src\util\patch-ups.c" />
     <ClCompile Include="mgba\src\util\png-io.c" />
     <ClCompile Include="mgba\src\util\ring-fifo.c" />
-    <ClCompile Include="mgba\src\util\string.c" />
-    <ClCompile Include="mgba\src\util\table.c" />
+    <ClCompile Include="mgba\src\util\sfo.c" />
     <ClCompile Include="mgba\src\util\text-codec.c" />
-    <ClCompile Include="mgba\src\util\vfs.c" />
     <ClCompile Include="version.c" />
     <ClCompile Include="mgba\src\util\vfs\vfs-mem.c" />
     <ClCompile Include="mgba\src\util\vfs\vfs-fifo.c" />
@@ -203,6 +212,7 @@
     </ClCompile>
     <ClCompile Include="mgba\src\feature\commandline.c" />
     <ClCompile Include="mgba\src\feature\thread-proxy.c" />
+    <ClCompile Include="mgba\src\feature\updater.c" />
     <ClCompile Include="mgba\src\feature\video-logger.c" />
   </ItemGroup>
   <Import Project="$(ExternalsDir)zlib-ng\exports.props" />

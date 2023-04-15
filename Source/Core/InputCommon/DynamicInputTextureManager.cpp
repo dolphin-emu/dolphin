@@ -39,7 +39,7 @@ void DynamicInputTextureManager::Load()
   }
 }
 
-void DynamicInputTextureManager::GenerateTextures(const IniFile& file,
+void DynamicInputTextureManager::GenerateTextures(const Common::IniFile& file,
                                                   const std::vector<std::string>& controller_names)
 {
   bool any_dirty = false;

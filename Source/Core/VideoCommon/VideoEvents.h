@@ -28,21 +28,21 @@ struct PresentInfo
   };
 
   // The number of (unique) frames since the emulated console booted
-  u64 frame_count;
+  u64 frame_count = 0;
 
   // The number of presents since the video backend was initialized.
   // never goes backwards.
-  u64 present_count;
+  u64 present_count = 0;
 
   // The frame is identical to the previous frame
-  PresentReason reason;
+  PresentReason reason = PresentReason::Immediate;
 
   // The exact emulated time of the when real hardware would have presented this frame
   // FIXME: Immediate should predict the timestamp of this present
-  u64 emulated_timestamp;
+  u64 emulated_timestamp = 0;
 
   // TODO:
-  // u64 intended_present_time;
+  // u64 intended_present_time = 0;
 
   // AfterPresent only: The actual time the frame was presented
   u64 actual_present_time = 0;

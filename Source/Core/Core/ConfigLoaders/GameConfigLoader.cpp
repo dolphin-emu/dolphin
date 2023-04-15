@@ -104,6 +104,7 @@ static const INIToSectionMap& GetINIToSectionMap()
       {"Video_Stereoscopy", {Config::System::GFX, "Stereoscopy"}},
       {"Video_Hacks", {Config::System::GFX, "Hacks"}},
       {"Video", {Config::System::GFX, "GameSpecific"}},
+      {"Controls", {Config::System::GameSettingsOnly, "Controls"}},
   };
   return ini_to_section;
 }
@@ -174,7 +175,7 @@ public:
 
   void Load(Config::Layer* layer) override
   {
-    IniFile ini;
+    Common::IniFile ini;
     if (layer->GetLayer() == Config::LayerType::GlobalGame)
     {
       for (const std::string& filename : GetGameIniFilenames(m_id, m_revision))
@@ -186,7 +187,7 @@ public:
         ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
     }
 
-    const std::list<IniFile::Section>& system_sections = ini.GetSections();
+    const auto& system_sections = ini.GetSections();
 
     for (const auto& section : system_sections)
     {
@@ -233,11 +234,11 @@ private:
             continue;
           }
 
-          IniFile profile_ini;
+          Common::IniFile profile_ini;
           profile_ini.Load(ini_path);
 
-          const IniFile::Section* ini_section = profile_ini.GetOrCreateSection("Profile");
-          const IniFile::Section::SectionMap& section_map = ini_section->GetValues();
+          const auto* ini_section = profile_ini.GetOrCreateSection("Profile");
+          const auto& section_map = ini_section->GetValues();
           for (const auto& value : section_map)
           {
             Config::Location location{std::get<2>(use_data), std::get<1>(use_data) + num,
@@ -249,12 +250,12 @@ private:
     }
   }
 
-  void LoadFromSystemSection(Config::Layer* layer, const IniFile::Section& section) const
+  void LoadFromSystemSection(Config::Layer* layer, const Common::IniFile::Section& section) const
   {
     const std::string section_name = section.GetName();
 
     // Regular key,value pairs
-    const IniFile::Section::SectionMap& section_map = section.GetValues();
+    const auto& section_map = section.GetValues();
 
     for (const auto& value : section_map)
     {
@@ -279,7 +280,7 @@ void INIGameConfigLayerLoader::Save(Config::Layer* layer)
   if (layer->GetLayer() != Config::LayerType::LocalGame)
     return;
 
-  IniFile ini;
+  Common::IniFile ini;
   for (const std::string& file_name : GetGameIniFilenames(m_id, m_revision))
     ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + file_name, true);
 
@@ -297,7 +298,7 @@ void INIGameConfigLayerLoader::Save(Config::Layer* layer)
 
     if (value)
     {
-      IniFile::Section* ini_section = ini.GetOrCreateSection(ini_location.first);
+      auto* ini_section = ini.GetOrCreateSection(ini_location.first);
       ini_section->Set(ini_location.second, *value);
     }
     else

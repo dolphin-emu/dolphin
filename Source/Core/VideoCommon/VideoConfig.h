@@ -271,6 +271,7 @@ struct VideoConfig final
     bool bSupportsPartialMultisampleResolve = false;
     bool bSupportsDynamicVertexLoader = false;
     bool bSupportsVSLinePointExpand = false;
+    bool bSupportsGLLayerInFS = true;
   } backend_info;
 
   // Utility

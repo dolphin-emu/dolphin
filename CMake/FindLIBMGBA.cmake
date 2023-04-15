@@ -1,4 +1,4 @@
-find_path(LIBMGBA_INCLUDE_DIR flags.h PATH_SUFFIXES mgba)
+find_path(LIBMGBA_INCLUDE_DIR mgba/flags.h)
 find_library(LIBMGBA_LIBRARY mgba)
 mark_as_advanced(LIBMGBA_INCLUDE_DIR LIBMGBA_LIBRARY)
 

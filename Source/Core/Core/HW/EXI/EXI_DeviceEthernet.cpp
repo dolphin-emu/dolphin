@@ -27,7 +27,7 @@ namespace ExpansionInterface
 // Multiple parts of this implementation depend on Dolphin
 // being compiled for a little endian host.
 
-CEXIETHERNET::CEXIETHERNET(BBADeviceType type)
+CEXIETHERNET::CEXIETHERNET(Core::System& system, BBADeviceType type) : IEXIDevice(system)
 {
   // Parse MAC address from config, and generate a new one if it doesn't
   // exist or can't be parsed.
@@ -178,7 +178,7 @@ void CEXIETHERNET::ImmWrite(u32 data, u32 size)
       exi_status.interrupt_mask = data;
       break;
     }
-    ExpansionInterface::UpdateInterrupts();
+    m_system.GetExpansionInterface().UpdateInterrupts();
   }
   else
   {
@@ -233,8 +233,7 @@ void CEXIETHERNET::DMAWrite(u32 addr, u32 size)
   if (transfer.region == transfer.MX && transfer.direction == transfer.WRITE &&
       transfer.address == BBA_WRTXFIFOD)
   {
-    auto& system = Core::System::GetInstance();
-    auto& memory = system.GetMemory();
+    auto& memory = m_system.GetMemory();
     DirectFIFOWrite(memory.GetPointer(addr), size);
   }
   else
@@ -248,8 +247,7 @@ void CEXIETHERNET::DMAWrite(u32 addr, u32 size)
 void CEXIETHERNET::DMARead(u32 addr, u32 size)
 {
   DEBUG_LOG_FMT(SP1, "DMA read: {:08x} {:x}", addr, size);
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
+  auto& memory = m_system.GetMemory();
   memory.CopyToEmu(addr, &mBbaMem[transfer.address], size);
   transfer.address += size;
 }
@@ -450,7 +448,7 @@ void CEXIETHERNET::SendFromDirectFIFO()
   const u8* frame = tx_fifo.get();
   const u16 size = Common::BitCastPtr<u16>(&mBbaMem[BBA_TXFIFOCNT]);
   if (m_network_interface->SendFrame(frame, size))
-    PowerPC::debug_interface.NetworkLogger()->LogBBA(frame, size);
+    m_system.GetPowerPC().GetDebugInterface().NetworkLogger()->LogBBA(frame, size);
 }
 
 void CEXIETHERNET::SendFromPacketBuffer()
@@ -468,7 +466,7 @@ void CEXIETHERNET::SendComplete()
     mBbaMem[BBA_IR] |= INT_T;
 
     exi_status.interrupt |= exi_status.TRANSFER;
-    ExpansionInterface::ScheduleUpdateInterrupts(CoreTiming::FromThread::CPU, 0);
+    m_system.GetExpansionInterface().ScheduleUpdateInterrupts(CoreTiming::FromThread::CPU, 0);
   }
 
   mBbaMem[BBA_LTPS] = 0;
@@ -563,7 +561,8 @@ bool CEXIETHERNET::RecvHandlePacket()
   INFO_LOG_FMT(SP1, "{:x} {:x} {:x} {:x}", page_ptr(BBA_BP), page_ptr(BBA_RRP), page_ptr(BBA_RWP),
                page_ptr(BBA_RHBP));
 #endif
-  PowerPC::debug_interface.NetworkLogger()->LogBBA(mRecvBuffer.get(), mRecvBufferLength);
+  m_system.GetPowerPC().GetDebugInterface().NetworkLogger()->LogBBA(mRecvBuffer.get(),
+                                                                    mRecvBufferLength);
   write_ptr = &mBbaMem[page_ptr(BBA_RWP) << 8];
 
   descriptor = (Descriptor*)write_ptr;
@@ -639,7 +638,7 @@ bool CEXIETHERNET::RecvHandlePacket()
     mBbaMem[BBA_IR] |= INT_R;
 
     exi_status.interrupt |= exi_status.TRANSFER;
-    ExpansionInterface::ScheduleUpdateInterrupts(CoreTiming::FromThread::NON_CPU, 0);
+    m_system.GetExpansionInterface().ScheduleUpdateInterrupts(CoreTiming::FromThread::NON_CPU, 0);
   }
   else
   {

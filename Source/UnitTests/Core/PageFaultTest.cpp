@@ -9,6 +9,7 @@
 #include "Core/MemTools.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/JitInterface.h"
+#include "Core/System.h"
 
 // include order is important
 #include <gtest/gtest.h>  // NOLINT
@@ -25,6 +26,8 @@ enum
 class PageFaultFakeJit : public JitBase
 {
 public:
+  explicit PageFaultFakeJit(Core::System& system) : JitBase(system) {}
+
   // CPUCoreBase methods
   void Init() override {}
   void Shutdown() override {}
@@ -72,8 +75,10 @@ TEST(PageFault, PageFault)
   EXPECT_NE(data, nullptr);
   Common::WriteProtectMemory(data, PAGE_GRAN, false);
 
-  PageFaultFakeJit pfjit;
-  JitInterface::SetJit(&pfjit);
+  auto& system = Core::System::GetInstance();
+  auto unique_pfjit = std::make_unique<PageFaultFakeJit>(system);
+  auto& pfjit = *unique_pfjit;
+  system.GetJitInterface().SetJit(std::move(unique_pfjit));
   pfjit.m_data = data;
 
   auto start = std::chrono::high_resolution_clock::now();
@@ -85,7 +90,6 @@ TEST(PageFault, PageFault)
   };
 
   EMM::UninstallExceptionHandler();
-  JitInterface::SetJit(nullptr);
 
   fmt::print("page fault timing:\n");
   fmt::print("start->HandleFault     {} ns\n",
@@ -95,4 +99,6 @@ TEST(PageFault, PageFault)
   fmt::print("HandleFault->end       {} ns\n",
              difference_in_nanoseconds(pfjit.m_post_unprotect_time, end));
   fmt::print("total                  {} ns\n", difference_in_nanoseconds(start, end));
+
+  system.GetJitInterface().SetJit(nullptr);
 }

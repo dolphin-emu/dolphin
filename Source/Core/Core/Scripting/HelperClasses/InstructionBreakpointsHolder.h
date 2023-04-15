@@ -1,5 +1,8 @@
-#include "Core/PowerPC/PowerPC.h"
 #include <vector>
+
+#include "Core/PowerPC/BreakPoints.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 class InstructionBreakpointsHolder {
   public:
@@ -14,7 +17,7 @@ class InstructionBreakpointsHolder {
       //Only add the breakpoint to PowerPC if it's not in the list of breakpoints yet.
       if (this->GetNumCopiesOfBreakpoint(addr) == 1)
       {
-        PowerPC::breakpoints.Add(addr, false, true, false, std::nullopt);
+        Core::System::GetInstance().GetPowerPC().GetBreakPoints().Add(addr, false, true, false, std::nullopt);
       }
     }
 
@@ -28,7 +31,7 @@ class InstructionBreakpointsHolder {
         breakpoint_addresses.erase(std::find(breakpoint_addresses.begin(), breakpoint_addresses.end(), addr));
         if (num_copies == 1)
         {
-          PowerPC::breakpoints.Remove(addr);
+          Core::System::GetInstance().GetPowerPC().GetBreakPoints().Remove(addr);
         }
       }
     }

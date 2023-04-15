@@ -175,7 +175,7 @@ public final class MainPresenter
   {
     Uri uri = result.getData();
 
-    boolean recursive = BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.getBooleanGlobal();
+    boolean recursive = BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.getBoolean();
     String[] childNames = ContentHandler.getChildNames(uri, recursive);
     if (Arrays.stream(childNames).noneMatch((name) -> FileBrowserHelper.GAME_EXTENSIONS.contains(
             FileBrowserHelper.getExtension(name, false))))
@@ -319,7 +319,7 @@ public final class MainPresenter
     SystemUpdateProgressBarDialogFragment progressBarFragment =
             new SystemUpdateProgressBarDialogFragment();
     progressBarFragment
-            .show(activity.getSupportFragmentManager(), "SystemUpdateProgressBarDialogFragment");
+            .show(activity.getSupportFragmentManager(), SystemUpdateProgressBarDialogFragment.TAG);
     progressBarFragment.setCancelable(false);
   }
 

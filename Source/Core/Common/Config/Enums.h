@@ -33,6 +33,8 @@ enum class System
   DualShockUDPClient,
   FreeLook,
   Session,
+  GameSettingsOnly,
+  Achievements,
 };
 
 constexpr std::array<LayerType, 7> SEARCH_ORDER{{

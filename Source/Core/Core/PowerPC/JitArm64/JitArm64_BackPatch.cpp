@@ -16,13 +16,11 @@
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 
-#include "Core/HW/Memmap.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/JitArm64/Jit_Util.h"
 #include "Core/PowerPC/JitArmCommon/BackPatch.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "Core/System.h"
 
 using namespace Arm64Gen;
 
@@ -218,32 +216,48 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
 
       const bool reverse = (flags & BackPatchInfo::FLAG_REVERSE) != 0;
 
+      MOVP2R(ARM64Reg::X2, &m_mmu);
+
       if (access_size == 64)
-        MOVP2R(ARM64Reg::X8, reverse ? &PowerPC::Write_U64_Swap : &PowerPC::Write_U64);
+      {
+        MOVP2R(ARM64Reg::X8,
+               reverse ? &PowerPC::WriteU64SwapFromJitArm64 : &PowerPC::WriteU64FromJitArm64);
+      }
       else if (access_size == 32)
-        MOVP2R(ARM64Reg::X8, reverse ? &PowerPC::Write_U32_Swap : &PowerPC::Write_U32);
+      {
+        MOVP2R(ARM64Reg::X8,
+               reverse ? &PowerPC::WriteU32SwapFromJitArm64 : &PowerPC::WriteU32FromJitArm64);
+      }
       else if (access_size == 16)
-        MOVP2R(ARM64Reg::X8, reverse ? &PowerPC::Write_U16_Swap : &PowerPC::Write_U16);
+      {
+        MOVP2R(ARM64Reg::X8,
+               reverse ? &PowerPC::WriteU16SwapFromJitArm64 : &PowerPC::WriteU16FromJitArm64);
+      }
       else
-        MOVP2R(ARM64Reg::X8, &PowerPC::Write_U8);
+      {
+        MOVP2R(ARM64Reg::X8, &PowerPC::WriteU8FromJitArm64);
+      }
 
       BLR(ARM64Reg::X8);
     }
     else if (flags & BackPatchInfo::FLAG_ZERO_256)
     {
-      MOVP2R(ARM64Reg::X8, &PowerPC::ClearDCacheLine);
+      MOVP2R(ARM64Reg::X1, &m_mmu);
+      MOVP2R(ARM64Reg::X8, &PowerPC::ClearDCacheLineFromJitArm64);
       BLR(ARM64Reg::X8);
     }
     else
     {
+      MOVP2R(ARM64Reg::X1, &m_mmu);
+
       if (access_size == 64)
-        MOVP2R(ARM64Reg::X8, &PowerPC::Read_U64);
+        MOVP2R(ARM64Reg::X8, &PowerPC::ReadU64FromJitArm64);
       else if (access_size == 32)
-        MOVP2R(ARM64Reg::X8, &PowerPC::Read_U32);
+        MOVP2R(ARM64Reg::X8, &PowerPC::ReadU32FromJitArm64);
       else if (access_size == 16)
-        MOVP2R(ARM64Reg::X8, &PowerPC::Read_U16);
+        MOVP2R(ARM64Reg::X8, &PowerPC::ReadU16FromJitArm64);
       else
-        MOVP2R(ARM64Reg::X8, &PowerPC::Read_U8);
+        MOVP2R(ARM64Reg::X8, &PowerPC::ReadU8FromJitArm64);
 
       BLR(ARM64Reg::X8);
     }
@@ -304,22 +318,8 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
   }
 }
 
-bool JitArm64::HandleFastmemFault(uintptr_t access_address, SContext* ctx)
+bool JitArm64::HandleFastmemFault(SContext* ctx)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
-
-  if (!(access_address >= (uintptr_t)memory.GetPhysicalBase() &&
-        access_address < (uintptr_t)memory.GetPhysicalBase() + 0x100010000) &&
-      !(access_address >= (uintptr_t)memory.GetLogicalBase() &&
-        access_address < (uintptr_t)memory.GetLogicalBase() + 0x100010000))
-  {
-    ERROR_LOG_FMT(DYNA_REC,
-                  "Exception handler - access below memory space. PC: {:#018x} {:#018x} < {:#018x}",
-                  ctx->CTX_PC, access_address, (uintptr_t)memory.GetPhysicalBase());
-    return false;
-  }
-
   const u8* pc = reinterpret_cast<const u8*>(ctx->CTX_PC);
   auto slow_handler_iter = m_fault_to_handler.upper_bound(pc);
 

@@ -52,5 +52,5 @@ private:
   static constexpr int MAX_LOG_LINES = 5000;
 
   std::mutex m_log_mutex;
-  FixedSizeQueue<LogEntry, MAX_LOG_LINES> m_log_ring_buffer;
+  Common::FixedSizeQueue<LogEntry, MAX_LOG_LINES> m_log_ring_buffer;
 };

@@ -16,6 +16,10 @@
 
 // Global declarations
 class PointerWrap;
+namespace Core
+{
+class System;
+}
 namespace MMIO
 {
 class Mapping;
@@ -54,7 +58,7 @@ struct LogicalMemoryView
 class MemoryManager
 {
 public:
-  MemoryManager();
+  explicit MemoryManager(Core::System& system);
   MemoryManager(const MemoryManager& other) = delete;
   MemoryManager(MemoryManager&& other) = delete;
   MemoryManager& operator=(const MemoryManager& other) = delete;
@@ -72,6 +76,7 @@ public:
   u32 GetExRamSize() const { return m_exram_size; }
   u32 GetExRamMask() const { return m_exram_mask; }
 
+  bool IsAddressInFastmemArea(const u8* address) const;
   u8* GetPhysicalBase() const { return m_physical_base; }
   u8* GetLogicalBase() const { return m_logical_base; }
   u8* GetPhysicalPageMappingsBase() const { return m_physical_page_mappings_base; }
@@ -146,6 +151,8 @@ private:
   // are used to set up a full GC or Wii memory map in process memory.
   // In 64-bit, this might point to "high memory" (above the 32-bit limit),
   // so be sure to load it into a 64-bit register.
+  u8* m_fastmem_arena = nullptr;
+  size_t m_fastmem_arena_size = 0;
   u8* m_physical_base = nullptr;
   u8* m_logical_base = nullptr;
 
@@ -235,6 +242,8 @@ private:
 
   std::array<void*, PowerPC::BAT_PAGE_COUNT> m_physical_page_mappings{};
   std::array<void*, PowerPC::BAT_PAGE_COUNT> m_logical_page_mappings{};
+
+  Core::System& m_system;
 
   void InitMMIO(bool is_wii);
 };

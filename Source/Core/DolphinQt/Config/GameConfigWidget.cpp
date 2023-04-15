@@ -88,7 +88,7 @@ void GameConfigWidget::CreateWidgets()
   m_enable_mmu = new QCheckBox(tr("Enable MMU"));
   m_enable_fprf = new QCheckBox(tr("Enable FPRF"));
   m_sync_gpu = new QCheckBox(tr("Synchronize GPU thread"));
-  m_enable_fast_disc = new QCheckBox(tr("Speed up Disc Transfer Rate"));
+  m_enable_fast_disc = new QCheckBox(tr("Emulate Disc Speed"));
   m_use_dsp_hle = new QCheckBox(tr("DSP HLE (fast)"));
   m_deterministic_dual_core = new QComboBox;
 
@@ -102,8 +102,9 @@ void GameConfigWidget::CreateWidgets()
                                "games. (ON = Compatible, OFF = Fast)"));
   m_sync_gpu->setToolTip(tr("Synchronizes the GPU and CPU threads to help prevent random freezes "
                             "in Dual core mode. (ON = Compatible, OFF = Fast)"));
-  m_enable_fast_disc->setToolTip(tr("Enable fast disc access. This can cause crashes and other "
-                                    "problems in some games. (ON = Fast, OFF = Compatible)"));
+  m_enable_fast_disc->setToolTip(tr("Enable emulated disc speed. Disabling this can cause crashes "
+                                    "and other problems in some games. "
+                                    "(ON = Compatible, OFF = Unlocked)"));
 
   core_layout->addWidget(m_enable_dual_core, 0, 0);
   core_layout->addWidget(m_enable_mmu, 1, 0);
@@ -221,13 +222,22 @@ void GameConfigWidget::LoadCheckBox(QCheckBox* checkbox, const std::string& sect
                                     const std::string& key)
 {
   bool checked;
+  if (key == "FastDiscSpeed")
+  {
+    if (m_gameini_local.GetOrCreateSection(section)->Get("FastDiscSpeed", &checked))
+      return checkbox->setCheckState(!checked ? Qt::Checked : Qt::Unchecked);
 
-  if (m_gameini_local.GetOrCreateSection(section)->Get(key, &checked))
-    return checkbox->setCheckState(checked ? Qt::Checked : Qt::Unchecked);
+    if (m_gameini_default.GetOrCreateSection(section)->Get("FastDiscSpeed", &checked))
+      return checkbox->setCheckState(!checked ? Qt::Checked : Qt::Unchecked);
+  }
+  else
+  {
+    if (m_gameini_local.GetOrCreateSection(section)->Get(key, &checked))
+      return checkbox->setCheckState(checked ? Qt::Checked : Qt::Unchecked);
 
-  if (m_gameini_default.GetOrCreateSection(section)->Get(key, &checked))
-    return checkbox->setCheckState(checked ? Qt::Checked : Qt::Unchecked);
-
+    if (m_gameini_default.GetOrCreateSection(section)->Get(key, &checked))
+      return checkbox->setCheckState(checked ? Qt::Checked : Qt::Unchecked);
+  }
   checkbox->setCheckState(Qt::PartiallyChecked);
 }
 
@@ -247,6 +257,12 @@ void GameConfigWidget::SaveCheckBox(QCheckBox* checkbox, const std::string& sect
   }
 
   bool checked = checkbox->checkState() == Qt::Checked;
+
+  if (key == "FastDiscSpeed")
+  {
+    m_gameini_local.GetOrCreateSection(section)->Set(key, !checked);
+    return;
+  }
 
   if (m_gameini_default.Exists(section, key))
   {

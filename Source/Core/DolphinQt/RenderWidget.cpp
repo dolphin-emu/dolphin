@@ -488,10 +488,11 @@ void RenderWidget::PassEventToPresenter(const QEvent* event)
     const u32 key = static_cast<u32>(key_event->key() & 0x1FF);
 
     const char* chars = nullptr;
+    QByteArray utf8;
 
     if (is_down)
     {
-      auto utf8 = key_event->text().toUtf8();
+      utf8 = key_event->text().toUtf8();
 
       if (utf8.size())
         chars = utf8.constData();

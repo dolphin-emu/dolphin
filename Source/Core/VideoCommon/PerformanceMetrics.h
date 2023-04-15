@@ -54,9 +54,9 @@ private:
   mutable std::shared_mutex m_time_lock;
 
   u8 m_time_index = 0;
-  std::array<TimePoint, 256> m_real_times;
-  std::array<TimePoint, 256> m_cpu_times;
-  DT m_time_sleeping;
+  std::array<TimePoint, 256> m_real_times{};
+  std::array<TimePoint, 256> m_cpu_times{};
+  DT m_time_sleeping{};
 };
 
 extern PerformanceMetrics g_perf_metrics;

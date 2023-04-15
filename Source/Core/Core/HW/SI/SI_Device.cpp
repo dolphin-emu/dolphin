@@ -55,8 +55,8 @@ std::istream& operator>>(std::istream& stream, SIDevices& device)
   return stream;
 }
 
-ISIDevice::ISIDevice(SIDevices device_type, int device_number)
-    : m_device_number(device_number), m_device_type(device_type)
+ISIDevice::ISIDevice(Core::System& system, SIDevices device_type, int device_number)
+    : m_system(system), m_device_number(device_number), m_device_type(device_type)
 {
 }
 
@@ -169,43 +169,44 @@ bool SIDevice_IsGCController(SIDevices type)
 }
 
 // F A C T O R Y
-std::unique_ptr<ISIDevice> SIDevice_Create(const SIDevices device, const int port_number)
+std::unique_ptr<ISIDevice> SIDevice_Create(Core::System& system, const SIDevices device,
+                                           const int port_number)
 {
   switch (device)
   {
   case SIDEVICE_GC_CONTROLLER:
-    return std::make_unique<CSIDevice_GCController>(device, port_number);
+    return std::make_unique<CSIDevice_GCController>(system, device, port_number);
 
   case SIDEVICE_WIIU_ADAPTER:
-    return std::make_unique<CSIDevice_GCAdapter>(device, port_number);
+    return std::make_unique<CSIDevice_GCAdapter>(system, device, port_number);
 
   case SIDEVICE_DANCEMAT:
-    return std::make_unique<CSIDevice_DanceMat>(device, port_number);
+    return std::make_unique<CSIDevice_DanceMat>(system, device, port_number);
 
   case SIDEVICE_GC_STEERING:
-    return std::make_unique<CSIDevice_GCSteeringWheel>(device, port_number);
+    return std::make_unique<CSIDevice_GCSteeringWheel>(system, device, port_number);
 
   case SIDEVICE_GC_TARUKONGA:
-    return std::make_unique<CSIDevice_TaruKonga>(device, port_number);
+    return std::make_unique<CSIDevice_TaruKonga>(system, device, port_number);
 
   case SIDEVICE_GC_GBA:
-    return std::make_unique<CSIDevice_GBA>(device, port_number);
+    return std::make_unique<CSIDevice_GBA>(system, device, port_number);
 
   case SIDEVICE_GC_GBA_EMULATED:
 #ifdef HAS_LIBMGBA
-    return std::make_unique<CSIDevice_GBAEmu>(device, port_number);
+    return std::make_unique<CSIDevice_GBAEmu>(system, device, port_number);
 #else
     PanicAlertFmtT("Error: This build does not support emulated GBA controllers");
-    return std::make_unique<CSIDevice_Null>(device, port_number);
+    return std::make_unique<CSIDevice_Null>(system, device, port_number);
 #endif
 
   case SIDEVICE_GC_KEYBOARD:
-    return std::make_unique<CSIDevice_Keyboard>(device, port_number);
+    return std::make_unique<CSIDevice_Keyboard>(system, device, port_number);
 
   case SIDEVICE_AM_BASEBOARD:
   case SIDEVICE_NONE:
   default:
-    return std::make_unique<CSIDevice_Null>(device, port_number);
+    return std::make_unique<CSIDevice_Null>(system, device, port_number);
   }
 }
 }  // namespace SerialInterface

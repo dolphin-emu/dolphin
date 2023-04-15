@@ -132,7 +132,7 @@ void GPFifoManager::CheckGatherPipe()
     UpdateGatherPipe();
 
     // Profile where slow FIFO writes are occurring.
-    JitInterface::CompileExceptionCheck(JitInterface::ExceptionType::FIFOWrite);
+    m_system.GetJitInterface().CompileExceptionCheck(JitInterface::ExceptionType::FIFOWrite);
   }
 }
 

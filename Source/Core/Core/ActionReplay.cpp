@@ -169,18 +169,17 @@ void AddCode(ARCode code)
   }
 }
 
-void LoadAndApplyCodes(const IniFile& global_ini, const IniFile& local_ini)
+void LoadAndApplyCodes(const Common::IniFile& global_ini, const Common::IniFile& local_ini)
 {
   ApplyCodes(LoadCodes(global_ini, local_ini));
 }
 
 // Parses the Action Replay section of a game ini file.
-std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_ini)
+std::vector<ARCode> LoadCodes(const Common::IniFile& global_ini, const Common::IniFile& local_ini)
 {
   std::vector<ARCode> codes;
 
-  const IniFile* inis[2] = {&global_ini, &local_ini};
-  for (const IniFile* ini : inis)
+  for (const auto* ini : {&global_ini, &local_ini})
   {
     std::vector<std::string> lines;
     std::vector<std::string> encrypted_lines;
@@ -250,7 +249,7 @@ std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_in
   return codes;
 }
 
-void SaveCodes(IniFile* local_ini, std::span<const ARCode> codes)
+void SaveCodes(Common::IniFile* local_ini, std::span<const ARCode> codes)
 {
   std::vector<std::string> lines;
   std::vector<std::string> enabled_lines;
@@ -358,7 +357,8 @@ bool IsSelfLogging()
 
 // ----------------------
 // Code Functions
-static bool Subtype_RamWriteAndFill(const ARAddr& addr, const u32 data)
+static bool Subtype_RamWriteAndFill(const Core::CPUThreadGuard& guard, const ARAddr& addr,
+                                    const u32 data)
 {
   const u32 new_addr = addr.GCAddress();
 
@@ -374,7 +374,7 @@ static bool Subtype_RamWriteAndFill(const ARAddr& addr, const u32 data)
     const u32 repeat = data >> 8;
     for (u32 i = 0; i <= repeat; ++i)
     {
-      PowerPC::HostWrite_U8(data & 0xFF, new_addr + i);
+      PowerPC::MMU::HostWrite_U8(guard, data & 0xFF, new_addr + i);
       LogInfo("Wrote {:08x} to address {:08x}", data & 0xFF, new_addr + i);
     }
     LogInfo("--------");
@@ -388,7 +388,7 @@ static bool Subtype_RamWriteAndFill(const ARAddr& addr, const u32 data)
     const u32 repeat = data >> 16;
     for (u32 i = 0; i <= repeat; ++i)
     {
-      PowerPC::HostWrite_U16(data & 0xFFFF, new_addr + i * 2);
+      PowerPC::MMU::HostWrite_U16(guard, data & 0xFFFF, new_addr + i * 2);
       LogInfo("Wrote {:08x} to address {:08x}", data & 0xFFFF, new_addr + i * 2);
     }
     LogInfo("--------");
@@ -399,7 +399,7 @@ static bool Subtype_RamWriteAndFill(const ARAddr& addr, const u32 data)
   case DATATYPE_32BIT:  // Dword write
     LogInfo("32-bit Write");
     LogInfo("--------");
-    PowerPC::HostWrite_U32(data, new_addr);
+    PowerPC::MMU::HostWrite_U32(guard, data, new_addr);
     LogInfo("Wrote {:08x} to address {:08x}", data, new_addr);
     LogInfo("--------");
     break;
@@ -415,10 +415,11 @@ static bool Subtype_RamWriteAndFill(const ARAddr& addr, const u32 data)
   return true;
 }
 
-static bool Subtype_WriteToPointer(const ARAddr& addr, const u32 data)
+static bool Subtype_WriteToPointer(const Core::CPUThreadGuard& guard, const ARAddr& addr,
+                                   const u32 data)
 {
   const u32 new_addr = addr.GCAddress();
-  const u32 ptr = PowerPC::HostRead_U32(new_addr);
+  const u32 ptr = PowerPC::MMU::HostRead_U32(guard, new_addr);
 
   LogInfo("Hardware Address: {:08x}", new_addr);
   LogInfo("Size: {:08x}", addr.size);
@@ -434,7 +435,7 @@ static bool Subtype_WriteToPointer(const ARAddr& addr, const u32 data)
     LogInfo("Pointer: {:08x}", ptr);
     LogInfo("Byte: {:08x}", thebyte);
     LogInfo("Offset: {:08x}", offset);
-    PowerPC::HostWrite_U8(thebyte, ptr + offset);
+    PowerPC::MMU::HostWrite_U8(guard, thebyte, ptr + offset);
     LogInfo("Wrote {:08x} to address {:08x}", thebyte, ptr + offset);
     LogInfo("--------");
     break;
@@ -449,7 +450,7 @@ static bool Subtype_WriteToPointer(const ARAddr& addr, const u32 data)
     LogInfo("Pointer: {:08x}", ptr);
     LogInfo("Byte: {:08x}", theshort);
     LogInfo("Offset: {:08x}", offset);
-    PowerPC::HostWrite_U16(theshort, ptr + offset);
+    PowerPC::MMU::HostWrite_U16(guard, theshort, ptr + offset);
     LogInfo("Wrote {:08x} to address {:08x}", theshort, ptr + offset);
     LogInfo("--------");
     break;
@@ -459,7 +460,7 @@ static bool Subtype_WriteToPointer(const ARAddr& addr, const u32 data)
   case DATATYPE_32BIT:
     LogInfo("Write 32-bit to pointer");
     LogInfo("--------");
-    PowerPC::HostWrite_U32(data, ptr);
+    PowerPC::MMU::HostWrite_U32(guard, data, ptr);
     LogInfo("Wrote {:08x} to address {:08x}", data, ptr);
     LogInfo("--------");
     break;
@@ -474,7 +475,7 @@ static bool Subtype_WriteToPointer(const ARAddr& addr, const u32 data)
   return true;
 }
 
-static bool Subtype_AddCode(const ARAddr& addr, const u32 data)
+static bool Subtype_AddCode(const Core::CPUThreadGuard& guard, const ARAddr& addr, const u32 data)
 {
   // Used to increment/decrement a value in memory
   const u32 new_addr = addr.GCAddress();
@@ -487,24 +488,28 @@ static bool Subtype_AddCode(const ARAddr& addr, const u32 data)
   case DATATYPE_8BIT:
     LogInfo("8-bit Add");
     LogInfo("--------");
-    PowerPC::HostWrite_U8(PowerPC::HostRead_U8(new_addr) + data, new_addr);
-    LogInfo("Wrote {:02x} to address {:08x}", PowerPC::HostRead_U8(new_addr), new_addr);
+    PowerPC::MMU::HostWrite_U8(guard, PowerPC::MMU::HostRead_U8(guard, new_addr) + data, new_addr);
+    LogInfo("Wrote {:02x} to address {:08x}", PowerPC::MMU::HostRead_U8(guard, new_addr), new_addr);
     LogInfo("--------");
     break;
 
   case DATATYPE_16BIT:
     LogInfo("16-bit Add");
     LogInfo("--------");
-    PowerPC::HostWrite_U16(PowerPC::HostRead_U16(new_addr) + data, new_addr);
-    LogInfo("Wrote {:04x} to address {:08x}", PowerPC::HostRead_U16(new_addr), new_addr);
+    PowerPC::MMU::HostWrite_U16(guard, PowerPC::MMU::HostRead_U16(guard, new_addr) + data,
+                                new_addr);
+    LogInfo("Wrote {:04x} to address {:08x}", PowerPC::MMU::HostRead_U16(guard, new_addr),
+            new_addr);
     LogInfo("--------");
     break;
 
   case DATATYPE_32BIT:
     LogInfo("32-bit Add");
     LogInfo("--------");
-    PowerPC::HostWrite_U32(PowerPC::HostRead_U32(new_addr) + data, new_addr);
-    LogInfo("Wrote {:08x} to address {:08x}", PowerPC::HostRead_U32(new_addr), new_addr);
+    PowerPC::MMU::HostWrite_U32(guard, PowerPC::MMU::HostRead_U32(guard, new_addr) + data,
+                                new_addr);
+    LogInfo("Wrote {:08x} to address {:08x}", PowerPC::MMU::HostRead_U32(guard, new_addr),
+            new_addr);
     LogInfo("--------");
     break;
 
@@ -513,12 +518,12 @@ static bool Subtype_AddCode(const ARAddr& addr, const u32 data)
     LogInfo("32-bit floating Add");
     LogInfo("--------");
 
-    const u32 read = PowerPC::HostRead_U32(new_addr);
+    const u32 read = PowerPC::MMU::HostRead_U32(guard, new_addr);
     const float read_float = Common::BitCast<float>(read);
     // data contains an (unsigned?) integer value
     const float fread = read_float + static_cast<float>(data);
     const u32 newval = Common::BitCast<u32>(fread);
-    PowerPC::HostWrite_U32(newval, new_addr);
+    PowerPC::MMU::HostWrite_U32(guard, newval, new_addr);
     LogInfo("Old Value {:08x}", read);
     LogInfo("Increment {:08x}", data);
     LogInfo("New value {:08x}", newval);
@@ -550,7 +555,8 @@ static bool Subtype_MasterCodeAndWriteToCCXXXXXX(const ARAddr& addr, const u32 d
 }
 
 // This needs more testing
-static bool ZeroCode_FillAndSlide(const u32 val_last, const ARAddr& addr, const u32 data)
+static bool ZeroCode_FillAndSlide(const Core::CPUThreadGuard& guard, const u32 val_last,
+                                  const ARAddr& addr, const u32 data)
 {
   const u32 new_addr = ARAddr(val_last).GCAddress();
   const u8 size = ARAddr(val_last).size;
@@ -575,7 +581,7 @@ static bool ZeroCode_FillAndSlide(const u32 val_last, const ARAddr& addr, const 
     LogInfo("--------");
     for (int i = 0; i < write_num; ++i)
     {
-      PowerPC::HostWrite_U8(val & 0xFF, curr_addr);
+      PowerPC::MMU::HostWrite_U8(guard, val & 0xFF, curr_addr);
       curr_addr += addr_incr;
       val += val_incr;
       LogInfo("Write {:08x} to address {:08x}", val & 0xFF, curr_addr);
@@ -591,7 +597,7 @@ static bool ZeroCode_FillAndSlide(const u32 val_last, const ARAddr& addr, const 
     LogInfo("--------");
     for (int i = 0; i < write_num; ++i)
     {
-      PowerPC::HostWrite_U16(val & 0xFFFF, curr_addr);
+      PowerPC::MMU::HostWrite_U16(guard, val & 0xFFFF, curr_addr);
       LogInfo("Write {:08x} to address {:08x}", val & 0xFFFF, curr_addr);
       curr_addr += addr_incr * 2;
       val += val_incr;
@@ -606,7 +612,7 @@ static bool ZeroCode_FillAndSlide(const u32 val_last, const ARAddr& addr, const 
     LogInfo("--------");
     for (int i = 0; i < write_num; ++i)
     {
-      PowerPC::HostWrite_U32(val, curr_addr);
+      PowerPC::MMU::HostWrite_U32(guard, val, curr_addr);
       LogInfo("Write {:08x} to address {:08x}", val, curr_addr);
       curr_addr += addr_incr * 4;
       val += val_incr;
@@ -629,7 +635,8 @@ static bool ZeroCode_FillAndSlide(const u32 val_last, const ARAddr& addr, const 
 // kenobi's "memory copy" Z-code. Requires an additional master code
 // on a real AR device. Documented here:
 // https://github.com/dolphin-emu/dolphin/wiki/GameCube-Action-Replay-Code-Types#type-z4-size-3--memory-copy
-static bool ZeroCode_MemoryCopy(const u32 val_last, const ARAddr& addr, const u32 data)
+static bool ZeroCode_MemoryCopy(const Core::CPUThreadGuard& guard, const u32 val_last,
+                                const ARAddr& addr, const u32 data)
 {
   const u32 addr_dest = val_last & ~0x06000000;
   const u32 addr_src = addr.GCAddress();
@@ -646,14 +653,16 @@ static bool ZeroCode_MemoryCopy(const u32 val_last, const ARAddr& addr, const u3
     {  // Memory Copy With Pointers Support
       LogInfo("Memory Copy With Pointers Support");
       LogInfo("--------");
-      const u32 ptr_dest = PowerPC::HostRead_U32(addr_dest);
+      const u32 ptr_dest = PowerPC::MMU::HostRead_U32(guard, addr_dest);
       LogInfo("Resolved Dest Address to: {:08x}", ptr_dest);
-      const u32 ptr_src = PowerPC::HostRead_U32(addr_src);
+      const u32 ptr_src = PowerPC::MMU::HostRead_U32(guard, addr_src);
       LogInfo("Resolved Src Address to: {:08x}", ptr_src);
       for (int i = 0; i < num_bytes; ++i)
       {
-        PowerPC::HostWrite_U8(PowerPC::HostRead_U8(ptr_src + i), ptr_dest + i);
-        LogInfo("Wrote {:08x} to address {:08x}", PowerPC::HostRead_U8(ptr_src + i), ptr_dest + i);
+        PowerPC::MMU::HostWrite_U8(guard, PowerPC::MMU::HostRead_U8(guard, ptr_src + i),
+                                   ptr_dest + i);
+        LogInfo("Wrote {:08x} to address {:08x}", PowerPC::MMU::HostRead_U8(guard, ptr_src + i),
+                ptr_dest + i);
       }
       LogInfo("--------");
     }
@@ -663,8 +672,9 @@ static bool ZeroCode_MemoryCopy(const u32 val_last, const ARAddr& addr, const u3
       LogInfo("--------");
       for (int i = 0; i < num_bytes; ++i)
       {
-        PowerPC::HostWrite_U8(PowerPC::HostRead_U8(addr_src + i), addr_dest + i);
-        LogInfo("Wrote {:08x} to address {:08x}", PowerPC::HostRead_U8(addr_src + i),
+        PowerPC::MMU::HostWrite_U8(guard, PowerPC::MMU::HostRead_U8(guard, addr_src + i),
+                                   addr_dest + i);
+        LogInfo("Wrote {:08x} to address {:08x}", PowerPC::MMU::HostRead_U8(guard, addr_src + i),
                 addr_dest + i);
       }
       LogInfo("--------");
@@ -681,25 +691,25 @@ static bool ZeroCode_MemoryCopy(const u32 val_last, const ARAddr& addr, const u3
   return true;
 }
 
-static bool NormalCode(const ARAddr& addr, const u32 data)
+static bool NormalCode(const Core::CPUThreadGuard& guard, const ARAddr& addr, const u32 data)
 {
   switch (addr.subtype)
   {
   case SUB_RAM_WRITE:  // Ram write (and fill)
     LogInfo("Doing Ram Write And Fill");
-    if (!Subtype_RamWriteAndFill(addr, data))
+    if (!Subtype_RamWriteAndFill(guard, addr, data))
       return false;
     break;
 
   case SUB_WRITE_POINTER:  // Write to pointer
     LogInfo("Doing Write To Pointer");
-    if (!Subtype_WriteToPointer(addr, data))
+    if (!Subtype_WriteToPointer(guard, addr, data))
       return false;
     break;
 
   case SUB_ADD_CODE:  // Increment Value
     LogInfo("Doing Add Code");
-    if (!Subtype_AddCode(addr, data))
+    if (!Subtype_AddCode(guard, addr, data))
       return false;
     break;
 
@@ -759,7 +769,8 @@ static bool CompareValues(const u32 val1, const u32 val2, const int type)
   }
 }
 
-static bool ConditionalCode(const ARAddr& addr, const u32 data, int* const pSkipCount)
+static bool ConditionalCode(const Core::CPUThreadGuard& guard, const ARAddr& addr, const u32 data,
+                            int* const pSkipCount)
 {
   const u32 new_addr = addr.GCAddress();
 
@@ -771,16 +782,16 @@ static bool ConditionalCode(const ARAddr& addr, const u32 data, int* const pSkip
   switch (addr.size)
   {
   case DATATYPE_8BIT:
-    result = CompareValues(PowerPC::HostRead_U8(new_addr), (data & 0xFF), addr.type);
+    result = CompareValues(PowerPC::MMU::HostRead_U8(guard, new_addr), (data & 0xFF), addr.type);
     break;
 
   case DATATYPE_16BIT:
-    result = CompareValues(PowerPC::HostRead_U16(new_addr), (data & 0xFFFF), addr.type);
+    result = CompareValues(PowerPC::MMU::HostRead_U16(guard, new_addr), (data & 0xFFFF), addr.type);
     break;
 
   case DATATYPE_32BIT_FLOAT:
   case DATATYPE_32BIT:
-    result = CompareValues(PowerPC::HostRead_U32(new_addr), data, addr.type);
+    result = CompareValues(PowerPC::MMU::HostRead_U32(guard, new_addr), data, addr.type);
     break;
 
   default:
@@ -819,7 +830,7 @@ static bool ConditionalCode(const ARAddr& addr, const u32 data, int* const pSkip
 }
 
 // NOTE: Lock needed to give mutual exclusion to s_current_code and LogInfo
-static bool RunCodeLocked(const ARCode& arcode)
+static bool RunCodeLocked(const Core::CPUThreadGuard& guard, const ARCode& arcode)
 {
   // The mechanism is different than what the real AR uses, so there may be compatibility problems.
 
@@ -873,7 +884,7 @@ static bool RunCodeLocked(const ARCode& arcode)
     {
       do_fill_and_slide = false;
       LogInfo("Doing Fill And Slide");
-      if (false == ZeroCode_FillAndSlide(val_last, addr, data))
+      if (false == ZeroCode_FillAndSlide(guard, val_last, addr, data))
         return false;
       continue;
     }
@@ -883,7 +894,7 @@ static bool RunCodeLocked(const ARCode& arcode)
     {
       do_memory_copy = false;
       LogInfo("Doing Memory Copy");
-      if (false == ZeroCode_MemoryCopy(val_last, addr, data))
+      if (false == ZeroCode_MemoryCopy(guard, val_last, addr, data))
         return false;
       continue;
     }
@@ -962,13 +973,13 @@ static bool RunCodeLocked(const ARCode& arcode)
     switch (addr.type)
     {
     case 0x00:
-      if (false == NormalCode(addr, data))
+      if (false == NormalCode(guard, addr, data))
         return false;
       break;
 
     default:
       LogInfo("This Normal Code is a Conditional Code");
-      if (false == ConditionalCode(addr, data, &skip_count))
+      if (false == ConditionalCode(guard, addr, data, &skip_count))
         return false;
       break;
     }
@@ -977,7 +988,7 @@ static bool RunCodeLocked(const ARCode& arcode)
   return true;
 }
 
-void RunAllActive()
+void RunAllActive(const Core::CPUThreadGuard& cpu_guard)
 {
   if (!Config::Get(Config::MAIN_ENABLE_CHEATS))
     return;
@@ -987,8 +998,8 @@ void RunAllActive()
   // be contested.
   std::lock_guard guard(s_lock);
   s_active_codes.erase(std::remove_if(s_active_codes.begin(), s_active_codes.end(),
-                                      [](const ARCode& code) {
-                                        bool success = RunCodeLocked(code);
+                                      [&cpu_guard](const ARCode& code) {
+                                        bool success = RunCodeLocked(cpu_guard, code);
                                         LogInfo("\n");
                                         return !success;
                                       }),

@@ -1,5 +1,8 @@
 #include <vector>
+
+#include "Core/PowerPC/BreakPoints.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 class MemoryAddressBreakpointsHolder
 {
@@ -21,7 +24,7 @@ public:
             check.condition = std::nullopt;
             check.break_on_hit = true;
 
-            PowerPC::memchecks.Add(std::move(check));
+            Core::System::GetInstance().GetPowerPC().GetMemChecks().Add(std::move(check));
 
   }
 
@@ -41,7 +44,7 @@ public:
             check.condition = {};
             check.break_on_hit = true;
 
-            PowerPC::memchecks.Add(std::move(check));
+            Core::System::GetInstance().GetPowerPC().GetMemChecks().Add(std::move(check));
 
   }
 
@@ -57,7 +60,7 @@ public:
 
       if (!this->ContainsReadBreakpoint(addr) && !this->ContainsWriteBreakpoint(addr))
       {
-        PowerPC::memchecks.Remove(addr);
+        Core::System::GetInstance().GetPowerPC().GetMemChecks().Remove(addr);
       }
     }
   }
@@ -73,7 +76,7 @@ public:
 
       if (!this->ContainsReadBreakpoint(addr) && !this->ContainsWriteBreakpoint(addr))
       {
-        PowerPC::memchecks.Remove(addr);
+        Core::System::GetInstance().GetPowerPC().GetMemChecks().Remove(addr);
       }
     }
   }

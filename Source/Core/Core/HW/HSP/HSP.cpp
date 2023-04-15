@@ -11,58 +11,59 @@
 
 namespace HSP
 {
-static std::unique_ptr<IHSPDevice> s_device;
+HSPManager::HSPManager() = default;
+HSPManager::~HSPManager() = default;
 
-void Init()
+void HSPManager::Init()
 {
   AddDevice(Config::Get(Config::MAIN_HSP_DEVICE));
 }
 
-void Shutdown()
+void HSPManager::Shutdown()
 {
   RemoveDevice();
 }
 
-u64 Read(u32 address)
+u64 HSPManager::Read(u32 address)
 {
   DEBUG_LOG_FMT(HSP, "HSP read from 0x{:08x}", address);
-  if (s_device)
-    return s_device->Read(address);
+  if (m_device)
+    return m_device->Read(address);
   return 0;
 }
 
-void Write(u32 address, u64 value)
+void HSPManager::Write(u32 address, u64 value)
 {
   DEBUG_LOG_FMT(HSP, "HSP write to 0x{:08x}: 0x{:016x}", address, value);
-  if (s_device)
-    s_device->Write(address, value);
+  if (m_device)
+    m_device->Write(address, value);
 }
 
-void DoState(PointerWrap& p)
+void HSPManager::DoState(PointerWrap& p)
 {
-  HSPDeviceType type = s_device->GetDeviceType();
+  HSPDeviceType type = m_device->GetDeviceType();
   p.Do(type);
 
   // If the type doesn't match, switch to the right device type
-  if (type != s_device->GetDeviceType())
+  if (type != m_device->GetDeviceType())
     AddDevice(type);
 
-  s_device->DoState(p);
+  m_device->DoState(p);
 }
 
-void AddDevice(std::unique_ptr<IHSPDevice> device)
+void HSPManager::AddDevice(std::unique_ptr<IHSPDevice> device)
 {
   // Set the new one
-  s_device = std::move(device);
+  m_device = std::move(device);
 }
 
-void AddDevice(const HSPDeviceType device)
+void HSPManager::AddDevice(const HSPDeviceType device)
 {
   AddDevice(HSPDevice_Create(device));
 }
 
-void RemoveDevice()
+void HSPManager::RemoveDevice()
 {
-  s_device.reset();
+  m_device.reset();
 }
 }  // namespace HSP

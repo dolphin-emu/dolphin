@@ -837,8 +837,7 @@ bool VulkanContext::EnableDebugUtils()
           VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
           VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
           VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT,
-      VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT |
-          VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+      VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
           VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
       DebugUtilsCallback,
       nullptr};
@@ -982,9 +981,11 @@ void VulkanContext::PopulateShaderSubgroupSupport()
 
   // We require basic ops (for gl_SubgroupInvocationID), ballot (for subgroupBallot,
   // subgroupBallotFindLSB), and arithmetic (for subgroupMin/subgroupMax).
-  constexpr VkSubgroupFeatureFlags required_operations = VK_SUBGROUP_FEATURE_BASIC_BIT |
-                                                         VK_SUBGROUP_FEATURE_ARITHMETIC_BIT |
-                                                         VK_SUBGROUP_FEATURE_BALLOT_BIT;
+  // Shuffle is enabled as a workaround until SPIR-V >= 1.5 is enabled with broadcast(uniform)
+  // support.
+  constexpr VkSubgroupFeatureFlags required_operations =
+      VK_SUBGROUP_FEATURE_BASIC_BIT | VK_SUBGROUP_FEATURE_ARITHMETIC_BIT |
+      VK_SUBGROUP_FEATURE_BALLOT_BIT | VK_SUBGROUP_FEATURE_SHUFFLE_BIT;
   m_supports_shader_subgroup_operations =
       (subgroup_properties.supportedOperations & required_operations) == required_operations &&
       subgroup_properties.supportedStages & VK_SHADER_STAGE_FRAGMENT_BIT &&

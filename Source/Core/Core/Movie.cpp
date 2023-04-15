@@ -173,9 +173,10 @@ std::string GetInputDisplay()
     s_wiimotes = {};
     for (int i = 0; i < 4; ++i)
     {
-      if (SerialInterface::GetDeviceType(i) == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
+      auto& si = Core::System::GetInstance().GetSerialInterface();
+      if (si.GetDeviceType(i) == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
         s_controllers[i] = ControllerType::GBA;
-      else if (SerialInterface::GetDeviceType(i) != SerialInterface::SIDEVICE_NONE)
+      else if (si.GetDeviceType(i) != SerialInterface::SIDEVICE_NONE)
         s_controllers[i] = ControllerType::GC;
       else
         s_controllers[i] = ControllerType::None;
@@ -205,7 +206,8 @@ std::string GetRTCDisplay()
 {
   using ExpansionInterface::CEXIIPL;
 
-  const time_t current_time = CEXIIPL::GetEmulatedTime(CEXIIPL::UNIX_EPOCH);
+  const time_t current_time =
+      CEXIIPL::GetEmulatedTime(Core::System::GetInstance(), CEXIIPL::UNIX_EPOCH);
   const tm* const gm_time = gmtime(&current_time);
 
   std::ostringstream format_time;
@@ -497,6 +499,7 @@ void ChangePads()
   if (s_controllers == controllers)
     return;
 
+  auto& si = Core::System::GetInstance().GetSerialInterface();
   for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
   {
     SerialInterface::SIDevices device = SerialInterface::SIDEVICE_NONE;
@@ -518,7 +521,7 @@ void ChangePads()
       }
     }
 
-    SerialInterface::ChangeDevice(device, i);
+    si.ChangeDevice(device, i);
   }
 }
 
@@ -1375,9 +1378,10 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
   if (s_padState.disc)
   {
     Core::RunAsCPUThread([] {
-      if (!DVDInterface::AutoChangeDisc())
+      auto& system = Core::System::GetInstance();
+      if (!system.GetDVDInterface().AutoChangeDisc())
       {
-        CPU::Break();
+        system.GetCPU().Break();
         PanicAlertFmtT("Change the disc to {0}", s_discChange);
       }
     });
@@ -1460,9 +1464,11 @@ void EndPlayInput(bool cont)
   else if (s_playMode != PlayMode::None)
   {
     // We can be called by EmuThread during boot (CPU::State::PowerDown)
-    bool was_running = Core::IsRunningAndStarted() && !CPU::IsStepping();
+    auto& system = Core::System::GetInstance();
+    auto& cpu = system.GetCPU();
+    bool was_running = Core::IsRunningAndStarted() && !cpu.IsStepping();
     if (was_running && Config::Get(Config::MAIN_MOVIE_PAUSE_MOVIE))
-      CPU::Break();
+      cpu.Break();
     s_rerecords = 0;
     s_currentByte = 0;
     s_playMode = PlayMode::None;
@@ -1537,7 +1543,7 @@ void SaveRecording(const std::string& filename)
   if (success && s_bRecordingFromSaveState)
   {
     std::string stateFilename = filename + ".sav";
-    success = File::Copy(File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav", stateFilename);
+    success = File::CopyRegularFile(File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav", stateFilename);
   }
 
   if (success)

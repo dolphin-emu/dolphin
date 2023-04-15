@@ -11,8 +11,8 @@ void RpcMethodReturnsVoid(ULONG toRaise)
 }
 
 struct FOO_CONTEXT_T {};
-typedef FOO_CONTEXT_T* FOO_CONTEXT;
-typedef FOO_CONTEXT* PFOO_CONTEXT;
+using FOO_CONTEXT = FOO_CONTEXT_T*;
+using PFOO_CONTEXT = FOO_CONTEXT*;
 
 void CloseContextHandle(_Inout_ PFOO_CONTEXT)
 {

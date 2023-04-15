@@ -21,6 +21,7 @@
 #include "VideoBackends/Vulkan/VKTexture.h"
 #include "VideoBackends/Vulkan/VKVertexFormat.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
+#include "VideoCommon/Constants.h"
 #include "VideoCommon/VideoCommon.h"
 
 namespace Vulkan
@@ -119,8 +120,8 @@ bool ObjectCache::CreateDescriptorSetLayouts()
   }};
 
   static const std::array<VkDescriptorSetLayoutBinding, 1> standard_sampler_bindings{{
-      {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, static_cast<u32>(NUM_PIXEL_SHADER_SAMPLERS),
-       VK_SHADER_STAGE_FRAGMENT_BIT},
+      {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+       static_cast<u32>(VideoCommon::MAX_PIXEL_SHADER_SAMPLERS), VK_SHADER_STAGE_FRAGMENT_BIT},
   }};
 
   // The dynamic veretex loader's vertex buffer must be last here, for similar reasons

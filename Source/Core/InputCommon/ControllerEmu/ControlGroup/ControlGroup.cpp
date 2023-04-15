@@ -50,14 +50,14 @@ void ControlGroup::AddDeadzoneSetting(SettingValue<double>* value, double maximu
 
 ControlGroup::~ControlGroup() = default;
 
-void ControlGroup::LoadConfig(IniFile::Section* sec, const std::string& defdev,
+void ControlGroup::LoadConfig(Common::IniFile::Section* sec, const std::string& defdev,
                               const std::string& base)
 {
   const std::string group(base + name + "/");
 
   // enabled
   if (default_value != DefaultValue::AlwaysEnabled)
-    sec->Get(group + "Enabled", &enabled, default_value == DefaultValue::Enabled);
+    sec->Get(group + "Enabled", &enabled, default_value != DefaultValue::Disabled);
 
   for (auto& setting : numeric_settings)
     setting->LoadFromIni(*sec, group);
@@ -103,13 +103,13 @@ void ControlGroup::LoadConfig(IniFile::Section* sec, const std::string& defdev,
   }
 }
 
-void ControlGroup::SaveConfig(IniFile::Section* sec, const std::string& defdev,
+void ControlGroup::SaveConfig(Common::IniFile::Section* sec, const std::string& defdev,
                               const std::string& base)
 {
   const std::string group(base + name + "/");
 
   // enabled
-  sec->Set(group + "Enabled", enabled, true);
+  sec->Set(group + "Enabled", enabled, default_value != DefaultValue::Disabled);
 
   for (auto& setting : numeric_settings)
     setting->SaveToIni(*sec, group);

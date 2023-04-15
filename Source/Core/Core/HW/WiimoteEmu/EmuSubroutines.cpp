@@ -601,4 +601,9 @@ ExtensionNumber Wiimote::GetActiveExtensionNumber() const
   return m_active_extension;
 }
 
+bool Wiimote::IsMotionPlusAttached() const
+{
+  return m_is_motion_plus_attached;
+}
+
 }  // namespace WiimoteEmu

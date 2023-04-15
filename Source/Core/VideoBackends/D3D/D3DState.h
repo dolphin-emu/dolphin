@@ -4,6 +4,7 @@
 #pragma once
 
 #include <array>
+#include <bitset>
 #include <cstddef>
 #include <memory>
 #include <mutex>
@@ -12,6 +13,7 @@
 #include "Common/BitField.h"
 #include "Common/CommonTypes.h"
 #include "VideoBackends/D3D/D3DBase.h"
+#include "VideoCommon/Constants.h"
 #include "VideoCommon/RenderState.h"
 
 namespace DX11
@@ -52,7 +54,7 @@ public:
   void SetBlendState(ID3D11BlendState* state)
   {
     if (m_current.blendState != state)
-      m_dirtyFlags |= DirtyFlag_BlendState;
+      m_dirtyFlags.set(DirtyFlag_BlendState);
 
     m_pending.blendState = state;
   }
@@ -60,7 +62,7 @@ public:
   void SetDepthState(ID3D11DepthStencilState* state)
   {
     if (m_current.depthState != state)
-      m_dirtyFlags |= DirtyFlag_DepthState;
+      m_dirtyFlags.set(DirtyFlag_DepthState);
 
     m_pending.depthState = state;
   }
@@ -68,7 +70,7 @@ public:
   void SetRasterizerState(ID3D11RasterizerState* state)
   {
     if (m_current.rasterizerState != state)
-      m_dirtyFlags |= DirtyFlag_RasterizerState;
+      m_dirtyFlags.set(DirtyFlag_RasterizerState);
 
     m_pending.rasterizerState = state;
   }
@@ -76,7 +78,7 @@ public:
   void SetTexture(size_t index, ID3D11ShaderResourceView* texture)
   {
     if (m_current.textures[index] != texture)
-      m_dirtyFlags |= DirtyFlag_Texture0 << index;
+      m_dirtyFlags.set(DirtyFlag_Texture0 + index);
 
     m_pending.textures[index] = texture;
   }
@@ -84,7 +86,7 @@ public:
   void SetSampler(size_t index, ID3D11SamplerState* sampler)
   {
     if (m_current.samplers[index] != sampler)
-      m_dirtyFlags |= DirtyFlag_Sampler0 << index;
+      m_dirtyFlags.set(DirtyFlag_Sampler0 + index);
 
     m_pending.samplers[index] = sampler;
   }
@@ -92,7 +94,7 @@ public:
   void SetPixelConstants(ID3D11Buffer* buffer0, ID3D11Buffer* buffer1 = nullptr)
   {
     if (m_current.pixelConstants[0] != buffer0 || m_current.pixelConstants[1] != buffer1)
-      m_dirtyFlags |= DirtyFlag_PixelConstants;
+      m_dirtyFlags.set(DirtyFlag_PixelConstants);
 
     m_pending.pixelConstants[0] = buffer0;
     m_pending.pixelConstants[1] = buffer1;
@@ -101,7 +103,7 @@ public:
   void SetVertexConstants(ID3D11Buffer* buffer)
   {
     if (m_current.vertexConstants != buffer)
-      m_dirtyFlags |= DirtyFlag_VertexConstants;
+      m_dirtyFlags.set(DirtyFlag_VertexConstants);
 
     m_pending.vertexConstants = buffer;
   }
@@ -109,7 +111,7 @@ public:
   void SetGeometryConstants(ID3D11Buffer* buffer)
   {
     if (m_current.geometryConstants != buffer)
-      m_dirtyFlags |= DirtyFlag_GeometryConstants;
+      m_dirtyFlags.set(DirtyFlag_GeometryConstants);
 
     m_pending.geometryConstants = buffer;
   }
@@ -118,7 +120,7 @@ public:
   {
     if (m_current.vertexBuffer != buffer || m_current.vertexBufferStride != stride ||
         m_current.vertexBufferOffset != offset)
-      m_dirtyFlags |= DirtyFlag_VertexBuffer;
+      m_dirtyFlags.set(DirtyFlag_VertexBuffer);
 
     m_pending.vertexBuffer = buffer;
     m_pending.vertexBufferStride = stride;
@@ -128,7 +130,7 @@ public:
   void SetIndexBuffer(ID3D11Buffer* buffer)
   {
     if (m_current.indexBuffer != buffer)
-      m_dirtyFlags |= DirtyFlag_IndexBuffer;
+      m_dirtyFlags.set(DirtyFlag_IndexBuffer);
 
     m_pending.indexBuffer = buffer;
   }
@@ -136,7 +138,7 @@ public:
   void SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY topology)
   {
     if (m_current.topology != topology)
-      m_dirtyFlags |= DirtyFlag_InputAssembler;
+      m_dirtyFlags.set(DirtyFlag_InputAssembler);
 
     m_pending.topology = topology;
   }
@@ -144,7 +146,7 @@ public:
   void SetInputLayout(ID3D11InputLayout* layout)
   {
     if (m_current.inputLayout != layout)
-      m_dirtyFlags |= DirtyFlag_InputAssembler;
+      m_dirtyFlags.set(DirtyFlag_InputAssembler);
 
     m_pending.inputLayout = layout;
   }
@@ -152,7 +154,7 @@ public:
   void SetPixelShader(ID3D11PixelShader* shader)
   {
     if (m_current.pixelShader != shader)
-      m_dirtyFlags |= DirtyFlag_PixelShader;
+      m_dirtyFlags.set(DirtyFlag_PixelShader);
 
     m_pending.pixelShader = shader;
   }
@@ -168,7 +170,7 @@ public:
   void SetVertexShader(ID3D11VertexShader* shader)
   {
     if (m_current.vertexShader != shader)
-      m_dirtyFlags |= DirtyFlag_VertexShader;
+      m_dirtyFlags.set(DirtyFlag_VertexShader);
 
     m_pending.vertexShader = shader;
   }
@@ -176,7 +178,7 @@ public:
   void SetGeometryShader(ID3D11GeometryShader* shader)
   {
     if (m_current.geometryShader != shader)
-      m_dirtyFlags |= DirtyFlag_GeometryShader;
+      m_dirtyFlags.set(DirtyFlag_GeometryShader);
 
     m_pending.geometryShader = shader;
   }
@@ -184,7 +186,7 @@ public:
   void SetFramebuffer(DXFramebuffer* fb)
   {
     if (m_current.framebuffer != fb)
-      m_dirtyFlags |= DirtyFlag_Framebuffer;
+      m_dirtyFlags.set(DirtyFlag_Framebuffer);
 
     m_pending.framebuffer = fb;
   }
@@ -192,7 +194,7 @@ public:
   void SetOMUAV(ID3D11UnorderedAccessView* uav)
   {
     if (m_current.uav != uav)
-      m_dirtyFlags |= DirtyFlag_Framebuffer;
+      m_dirtyFlags.set(DirtyFlag_Framebuffer);
 
     m_pending.uav = uav;
   }
@@ -200,7 +202,7 @@ public:
   void SetIntegerRTV(bool enable)
   {
     if (m_current.use_integer_rtv != enable)
-      m_dirtyFlags |= DirtyFlag_Framebuffer;
+      m_dirtyFlags.set(DirtyFlag_Framebuffer);
 
     m_pending.use_integer_rtv = enable;
   }
@@ -223,48 +225,33 @@ public:
 private:
   enum DirtyFlags
   {
-    DirtyFlag_Texture0 = 1 << 0,
-    DirtyFlag_Texture1 = 1 << 1,
-    DirtyFlag_Texture2 = 1 << 2,
-    DirtyFlag_Texture3 = 1 << 3,
-    DirtyFlag_Texture4 = 1 << 4,
-    DirtyFlag_Texture5 = 1 << 5,
-    DirtyFlag_Texture6 = 1 << 6,
-    DirtyFlag_Texture7 = 1 << 7,
+    DirtyFlag_Texture0 = 0,
+    DirtyFlag_Sampler0 = DirtyFlag_Texture0 + VideoCommon::MAX_PIXEL_SHADER_SAMPLERS,
+    DirtyFlag_PixelConstants = DirtyFlag_Sampler0 + VideoCommon::MAX_PIXEL_SHADER_SAMPLERS,
+    DirtyFlag_VertexConstants,
+    DirtyFlag_GeometryConstants,
 
-    DirtyFlag_Sampler0 = 1 << 8,
-    DirtyFlag_Sampler1 = 1 << 9,
-    DirtyFlag_Sampler2 = 1 << 10,
-    DirtyFlag_Sampler3 = 1 << 11,
-    DirtyFlag_Sampler4 = 1 << 12,
-    DirtyFlag_Sampler5 = 1 << 13,
-    DirtyFlag_Sampler6 = 1 << 14,
-    DirtyFlag_Sampler7 = 1 << 15,
+    DirtyFlag_VertexBuffer,
+    DirtyFlag_IndexBuffer,
 
-    DirtyFlag_PixelConstants = 1 << 16,
-    DirtyFlag_VertexConstants = 1 << 17,
-    DirtyFlag_GeometryConstants = 1 << 18,
+    DirtyFlag_PixelShader,
+    DirtyFlag_VertexShader,
+    DirtyFlag_GeometryShader,
 
-    DirtyFlag_VertexBuffer = 1 << 19,
-    DirtyFlag_IndexBuffer = 1 << 20,
-
-    DirtyFlag_PixelShader = 1 << 21,
-    DirtyFlag_VertexShader = 1 << 22,
-    DirtyFlag_GeometryShader = 1 << 23,
-
-    DirtyFlag_InputAssembler = 1 << 24,
-    DirtyFlag_BlendState = 1 << 25,
-    DirtyFlag_DepthState = 1 << 26,
-    DirtyFlag_RasterizerState = 1 << 27,
-    DirtyFlag_Framebuffer = 1 << 28
+    DirtyFlag_InputAssembler,
+    DirtyFlag_BlendState,
+    DirtyFlag_DepthState,
+    DirtyFlag_RasterizerState,
+    DirtyFlag_Framebuffer,
+    DirtyFlag_Max
   };
 
-  u32 m_dirtyFlags = ~0u;
+  std::bitset<DirtyFlags::DirtyFlag_Max> m_dirtyFlags;
 
   struct Resources
   {
-    std::array<ID3D11ShaderResourceView*, 8> textures;
-    std::array<ID3D11SamplerState*, 8> samplers;
+    std::array<ID3D11ShaderResourceView*, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS> textures;
+    std::array<ID3D11SamplerState*, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS> samplers;
     std::array<ID3D11Buffer*, 2> pixelConstants;
     ID3D11Buffer* vertexConstants;
     ID3D11Buffer* geometryConstants;

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright (c) Microsoft. All rights reserved.
+    This code is licensed under the MIT License.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF
+    ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+    TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+    PARTICULAR PURPOSE AND NONINFRINGEMENT.
+-->
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+    <Type Name="wistd::_Func_impl&lt;*&gt;">
+        <DisplayString>{_Callee._Object}</DisplayString>
+        <Expand>
+        </Expand>
+    </Type>
+
+    <Type Name="wistd::function&lt;*&gt;">
+        <DisplayString Condition="_Impl == 0">empty</DisplayString>
+        <DisplayString Condition="_Impl != 0">{*_Impl}</DisplayString>
+        <Expand>
+            <ExpandedItem Condition="_Impl != 0">*_Impl</ExpandedItem>
+        </Expand>
+    </Type>
+
+    <Type Name="wistd::unique_ptr&lt;*&gt;">
+        <DisplayString Condition="_Myptr == 0">empty</DisplayString>
+        <DisplayString Condition="_Myptr != 0">{*_Myptr}</DisplayString>
+        <StringView>_Myptr</StringView>
+        <Expand>
+            <Item Name="[pointer]" Condition="_Myptr != 0">_Myptr</Item>
+        </Expand>
+    </Type>
+
+    <Type Name="wistd::unique_ptr&lt;wchar_t[*],*&gt;">
+        <DisplayString Condition="_Myptr == 0">empty</DisplayString>
+        <DisplayString Condition="_Myptr != 0">{_Myptr,su}</DisplayString>
+        <StringView>_Myptr</StringView>
+        <Expand>
+            <Item Name="[pointer]" Condition="_Myptr != 0">_Myptr</Item>
+            <Item Name="[length]" Condition="_Myptr != 0">wcslen(_Myptr)</Item>
+        </Expand>
+    </Type>
+
+    <Type Name="wistd::unique_ptr&lt;char[*],*&gt;">
+        <DisplayString Condition="_Myptr == 0">empty</DisplayString>
+        <DisplayString Condition="_Myptr != 0">{_Myptr,s}</DisplayString>
+        <StringView>_Myptr</StringView>
+        <Expand>
+            <Item Name="[pointer]" Condition="_Myptr != 0">_Myptr</Item>
+            <Item Name="[length]" Condition="_Myptr != 0">strlen(_Myptr)</Item>
+        </Expand>
+    </Type>
+
+    <Type Name="wil::details::shared_storage&lt;*&gt;">
+        <DisplayString Condition="m_ptr == 0">empty</DisplayString>
+        <DisplayString Condition="m_ptr != 0">{*m_ptr}</DisplayString>
+        <StringView>m_ptr</StringView>
+        <Expand>
+            <Item Name="[pointer]" Condition="m_ptr != 0">m_ptr</Item>
+        </Expand>
+    </Type>
+
+    <Type Name="wil::details::unique_storage&lt;wil::details::handle_null_resource_policy&lt;*&gt;&gt;">
+        <DisplayString Condition="m_ptr == 0">empty</DisplayString>
+        <DisplayString Condition="m_ptr != 0">{m_ptr}</DisplayString>
+        <Expand>
+        </Expand>
+    </Type>
+    <Type Name="wil::details::unique_storage&lt;wil::details::handle_invalid_resource_policy&lt;*&gt;&gt;">
+        <DisplayString Condition="m_ptr == 0">empty</DisplayString>
+        <DisplayString Condition="m_ptr != 0">{m_ptr}</DisplayString>
+        <Expand>
+        </Expand>
+    </Type>
+    <Type Name="wil::details::unique_storage&lt;wil::details::resource_policy&lt;*&gt;&gt;">
+        <DisplayString Condition="m_ptr == 0">empty</DisplayString>
+        <DisplayString Condition="m_ptr != 0">{m_ptr}</DisplayString>
+        <StringView>m_ptr</StringView>
+        <Expand>
+        </Expand>
+    </Type>
+    <Type Name="wil::details::unique_storage&lt;wil::details::resource_policy&lt;wchar_t *,*&gt;&gt;">
+        <DisplayString Condition="m_ptr == 0">empty</DisplayString>
+        <DisplayString Condition="m_ptr != 0">{m_ptr,su}</DisplayString>
+        <StringView>m_ptr</StringView>
+        <Expand>
+            <Item Name="[length]" Condition="m_ptr != 0">wcslen(m_ptr)</Item>
+        </Expand>
+    </Type>
+    <Type Name="wil::details::unique_storage&lt;wil::details::resource_policy&lt;char *,*&gt;&gt;">
+        <DisplayString Condition="m_ptr == 0">empty</DisplayString>
+        <DisplayString Condition="m_ptr != 0">{m_ptr,s}</DisplayString>
+        <StringView>m_ptr</StringView>
+        <Expand>
+            <Item Name="[length]" Condition="m_ptr != 0">strlen(m_ptr)</Item>
+        </Expand>
+    </Type>
+
+    <Type Name="wil::com_ptr_t&lt;*&gt;">
+        <DisplayString>{m_ptr}</DisplayString>
+        <Expand>
+            <ExpandedItem>m_ptr</ExpandedItem>
+        </Expand>
+    </Type>
+
+    <Type Name="wil::basic_zstring_view&lt;*&gt;">
+        <Intrinsic Name="size" Expression="_Mysize" />
+        <Intrinsic Name="data" Expression="_Mydata" />
+        <DisplayString>{_Mydata,[_Mysize]}</DisplayString>
+        <Expand>
+            <Item Name="[size]" ExcludeView="simple">size()</Item>
+        </Expand>
+    </Type>
+</AutoVisualizer>

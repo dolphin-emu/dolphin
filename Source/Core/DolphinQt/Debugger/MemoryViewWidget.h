@@ -15,6 +15,12 @@ namespace AddressSpace
 enum class Type;
 }
 
+namespace Core
+{
+class CPUThreadGuard;
+class System;
+}  // namespace Core
+
 class MemoryViewTable;
 
 class MemoryViewWidget final : public QWidget
@@ -75,9 +81,12 @@ private:
   void OnCopyHex(u32 addr);
   void UpdateBreakpointTags();
   void UpdateColumns();
+  void UpdateColumns(const Core::CPUThreadGuard* guard);
   void ScrollbarActionTriggered(int action);
   void ScrollbarSliderReleased();
-  QString ValueToString(u32 address, Type type);
+  QString ValueToString(const Core::CPUThreadGuard& guard, u32 address, Type type);
+
+  Core::System& m_system;
 
   MemoryViewTable* m_table;
   QScrollBar* m_scrollbar;

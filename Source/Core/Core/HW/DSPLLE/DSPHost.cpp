@@ -30,12 +30,12 @@ namespace DSP::Host
 {
 u8 ReadHostMemory(u32 addr)
 {
-  return DSP::ReadARAM(addr);
+  return Core::System::GetInstance().GetDSP().ReadARAM(addr);
 }
 
 void WriteHostMemory(u8 value, u32 addr)
 {
-  DSP::WriteARAM(value, addr);
+  Core::System::GetInstance().GetDSP().WriteARAM(value, addr);
 }
 
 void DMAToDSP(u16* dst, u32 addr, u32 size)
@@ -70,7 +70,7 @@ bool IsWiiHost()
 void InterruptRequest()
 {
   // Fire an interrupt on the PPC ASAP.
-  DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+  Core::System::GetInstance().GetDSP().GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 }
 
 void CodeLoaded(DSPCore& dsp, u32 addr, size_t size)

@@ -214,7 +214,7 @@ enum class BBADeviceType
 class CEXIETHERNET : public IEXIDevice
 {
 public:
-  explicit CEXIETHERNET(BBADeviceType type);
+  CEXIETHERNET(Core::System& system, BBADeviceType type);
   virtual ~CEXIETHERNET();
   void SetCS(int cs) override;
   bool IsPresent() const override;

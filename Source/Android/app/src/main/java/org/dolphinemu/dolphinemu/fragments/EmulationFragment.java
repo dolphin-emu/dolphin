@@ -133,6 +133,10 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
   public void onResume()
   {
     super.onResume();
+
+    if (mInputOverlay != null && NativeLibrary.IsGameMetadataValid())
+      mInputOverlay.refreshControls();
+
     run(activity.isActivityRecreated());
   }
 
@@ -167,7 +171,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
   public void toggleInputOverlayVisibility(Settings settings)
   {
     BooleanSetting.MAIN_SHOW_INPUT_OVERLAY
-            .setBoolean(settings, !BooleanSetting.MAIN_SHOW_INPUT_OVERLAY.getBoolean(settings));
+            .setBoolean(settings, !BooleanSetting.MAIN_SHOW_INPUT_OVERLAY.getBoolean());
 
     if (mInputOverlay != null)
       mInputOverlay.refreshControls();
@@ -185,10 +189,10 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
       mInputOverlay.refreshControls();
   }
 
-  public void refreshOverlayPointer(Settings settings)
+  public void refreshOverlayPointer()
   {
     if (mInputOverlay != null)
-      mInputOverlay.refreshOverlayPointer(settings);
+      mInputOverlay.refreshOverlayPointer();
   }
 
   public void resetInputOverlay()

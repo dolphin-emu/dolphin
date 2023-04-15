@@ -16,6 +16,11 @@ struct MemoryPatch;
 struct Watch;
 }  // namespace Common::Debug
 
+namespace Core
+{
+class CPUThreadGuard;
+}  // namespace Core
+
 namespace Common
 {
 class DebugInterface
@@ -42,24 +47,29 @@ public:
   virtual void ClearWatches() = 0;
 
   // Memory Patches
-  virtual void SetPatch(u32 address, u32 value) = 0;
-  virtual void SetPatch(u32 address, std::vector<u8> value) = 0;
-  virtual void SetFramePatch(u32 address, u32 value) = 0;
-  virtual void SetFramePatch(u32 address, std::vector<u8> value) = 0;
+  virtual void SetPatch(const Core::CPUThreadGuard& guard, u32 address, u32 value) = 0;
+  virtual void SetPatch(const Core::CPUThreadGuard& guard, u32 address, std::vector<u8> value) = 0;
+  virtual void SetFramePatch(const Core::CPUThreadGuard& guard, u32 address, u32 value) = 0;
+  virtual void SetFramePatch(const Core::CPUThreadGuard& guard, u32 address,
+                             std::vector<u8> value) = 0;
   virtual const std::vector<Debug::MemoryPatch>& GetPatches() const = 0;
-  virtual void UnsetPatch(u32 address) = 0;
-  virtual void EnablePatch(std::size_t index) = 0;
-  virtual void DisablePatch(std::size_t index) = 0;
+  virtual void UnsetPatch(const Core::CPUThreadGuard& guard, u32 address) = 0;
+  virtual void EnablePatch(const Core::CPUThreadGuard& guard, std::size_t index) = 0;
+  virtual void DisablePatch(const Core::CPUThreadGuard& guard, std::size_t index) = 0;
   virtual bool HasEnabledPatch(u32 address) const = 0;
-  virtual void RemovePatch(std::size_t index) = 0;
-  virtual void ClearPatches() = 0;
-  virtual void ApplyExistingPatch(std::size_t index) = 0;
+  virtual void RemovePatch(const Core::CPUThreadGuard& guard, std::size_t index) = 0;
+  virtual void ClearPatches(const Core::CPUThreadGuard& guard) = 0;
+  virtual void ApplyExistingPatch(const Core::CPUThreadGuard& guard, std::size_t index) = 0;
 
   // Threads
-  virtual Debug::Threads GetThreads() const = 0;
+  virtual Debug::Threads GetThreads(const Core::CPUThreadGuard& guard) const = 0;
 
-  virtual std::string Disassemble(u32 /*address*/) const { return "NODEBUGGER"; }
-  virtual std::string GetRawMemoryString(int /*memory*/, u32 /*address*/) const
+  virtual std::string Disassemble(const Core::CPUThreadGuard* /*guard*/, u32 /*address*/) const
+  {
+    return "NODEBUGGER";
+  }
+  virtual std::string GetRawMemoryString(const Core::CPUThreadGuard& /*guard*/, int /*memory*/,
+                                         u32 /*address*/) const
   {
     return "NODEBUGGER";
   }
@@ -72,10 +82,20 @@ public:
   virtual void ClearAllMemChecks() {}
   virtual bool IsMemCheck(u32 /*address*/, size_t /*size*/) const { return false; }
   virtual void ToggleMemCheck(u32 /*address*/, bool /*read*/, bool /*write*/, bool /*log*/) {}
-  virtual u32 ReadMemory(u32 /*address*/) const { return 0; }
-  virtual void WriteExtraMemory(int /*memory*/, u32 /*value*/, u32 /*address*/) {}
-  virtual u32 ReadExtraMemory(int /*memory*/, u32 /*address*/) const { return 0; }
-  virtual u32 ReadInstruction(u32 /*address*/) const { return 0; }
+  virtual u32 ReadMemory(const Core::CPUThreadGuard& /*guard*/, u32 /*address*/) const { return 0; }
+  virtual void WriteExtraMemory(const Core::CPUThreadGuard& /*guard*/, int /*memory*/,
+                                u32 /*value*/, u32 /*address*/)
+  {
+  }
+  virtual u32 ReadExtraMemory(const Core::CPUThreadGuard& /*guard*/, int /*memory*/,
+                              u32 /*address*/) const
+  {
+    return 0;
+  }
+  virtual u32 ReadInstruction(const Core::CPUThreadGuard& /*guard*/, u32 /*address*/) const
+  {
+    return 0;
+  }
   virtual std::optional<u32>
   GetMemoryAddressFromInstruction(const std::string& /*instruction*/) const
   {
@@ -85,8 +105,11 @@ public:
   virtual void SetPC(u32 /*address*/) {}
   virtual void Step() {}
   virtual void RunToBreakpoint() {}
-  virtual u32 GetColor(u32 /*address*/) const { return 0xFFFFFFFF; }
+  virtual u32 GetColor(const Core::CPUThreadGuard* /*guard*/, u32 /*address*/) const
+  {
+    return 0xFFFFFFFF;
+  }
   virtual std::string GetDescription(u32 /*address*/) const = 0;
-  virtual void Clear() = 0;
+  virtual void Clear(const Core::CPUThreadGuard& guard) = 0;
 };
 }  // namespace Common

@@ -122,9 +122,9 @@ struct SramSettingsEx
 
 struct Sram
 {
-  Common::BigEndianValue<u32> rtc;
-  SramSettings settings;
-  SramSettingsEx settings_ex;
+  Common::BigEndianValue<u32> rtc{};
+  SramSettings settings{};
+  SramSettingsEx settings_ex{};
   // Allow access to this entire structure as a raw blob
   // Typical union-with-byte-array method can't be used here on GCC
   u8& operator[](size_t offset) { return reinterpret_cast<u8*>(&rtc)[offset]; }

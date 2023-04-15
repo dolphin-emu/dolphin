@@ -577,7 +577,11 @@ void VertexLoaderX64::GenerateVertexLoader()
     RET();
   }
 
-  ASSERT(m_vertex_size == m_src_ofs);
+  ASSERT_MSG(VIDEO, m_vertex_size == m_src_ofs,
+             "Vertex size from vertex loader ({}) does not match expected vertex size ({})!\nVtx "
+             "desc: {:08x} {:08x}\nVtx attr: {:08x} {:08x} {:08x}",
+             m_src_ofs, m_vertex_size, m_VtxDesc.low.Hex, m_VtxDesc.high.Hex, m_VtxAttr.g0.Hex,
+             m_VtxAttr.g1.Hex, m_VtxAttr.g2.Hex);
   m_native_vtx_decl.stride = m_dst_ofs;
 }
 

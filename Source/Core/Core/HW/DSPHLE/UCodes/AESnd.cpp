@@ -16,6 +16,7 @@
 #include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPHLE/MailHandler.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
+#include "Core/System.h"
 
 namespace DSP::HLE
 {
@@ -43,21 +44,21 @@ constexpr u32 VOICE_16_BIT_FLAG = 2;
 
 // These are used in the pre-2020 versions version
 constexpr u32 VOICE_PAUSE_OLD = 0x00000004;
-constexpr u32 VOICE_LOOP_OLD = 0x00000008;    // not used by the DSP
-constexpr u32 VOICE_ONCE_OLD = 0x00000010;    // not used by the DSP
-constexpr u32 VOICE_STREAM_OLD = 0x00000020;  // not used by the DSP
+constexpr u32 VOICE_LOOP_OLD [[maybe_unused]] = 0x00000008;    // not used by the DSP
+constexpr u32 VOICE_ONCE_OLD [[maybe_unused]] = 0x00000010;    // not used by the DSP
+constexpr u32 VOICE_STREAM_OLD [[maybe_unused]] = 0x00000020;  // not used by the DSP
 
 // These were changed in the 2020 version to account for the different flags
 constexpr u32 VOICE_PAUSE_NEW = 0x00000008;
-constexpr u32 VOICE_LOOP_NEW = 0x00000010;    // not used by the DSP
-constexpr u32 VOICE_ONCE_NEW = 0x00000020;    // not used by the DSP
-constexpr u32 VOICE_STREAM_NEW = 0x00000040;  // not used by the DSP
+constexpr u32 VOICE_LOOP_NEW [[maybe_unused]] = 0x00000010;    // not used by the DSP
+constexpr u32 VOICE_ONCE_NEW [[maybe_unused]] = 0x00000020;    // not used by the DSP
+constexpr u32 VOICE_STREAM_NEW [[maybe_unused]] = 0x00000040;  // not used by the DSP
 
 // These did not change between versions
 constexpr u32 VOICE_FINISHED = 0x00100000;
-constexpr u32 VOICE_STOPPED = 0x00200000;  // not used by the DSP
+constexpr u32 VOICE_STOPPED [[maybe_unused]] = 0x00200000;  // not used by the DSP
 constexpr u32 VOICE_RUNNING = 0x40000000;
-constexpr u32 VOICE_USED = 0x80000000;  // not used by the DSP
+constexpr u32 VOICE_USED [[maybe_unused]] = 0x80000000;  // not used by the DSP
 
 // 1<<4 = scale gain by 1/1,    2<<2 = PCM decoding from ARAM, 1<<0 = 8-bit reads
 constexpr u32 ACCELERATOR_FORMAT_8_BIT = 0x0019;
@@ -94,7 +95,7 @@ void AESndUCode::Update()
   // This is dubious in general, since we set the interrupt parameter on m_mail_handler.PushMail
   if (m_mail_handler.HasPending())
   {
-    DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+    Core::System::GetInstance().GetDSP().GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
   }
 }
 
@@ -246,8 +247,14 @@ protected:
     SetPredScale(GetPredScale());
   }
 
-  u8 ReadMemory(u32 address) override { return ReadARAM(address); }
-  void WriteMemory(u32 address, u8 value) override { WriteARAM(value, address); }
+  u8 ReadMemory(u32 address) override
+  {
+    return Core::System::GetInstance().GetDSP().ReadARAM(address);
+  }
+  void WriteMemory(u32 address, u8 value) override
+  {
+    Core::System::GetInstance().GetDSP().WriteARAM(value, address);
+  }
 };
 
 static std::unique_ptr<Accelerator> s_accelerator = std::make_unique<AESndAccelerator>();

@@ -484,12 +484,14 @@ public:
       m_width = WidthSpecifier::Width64Bit;
       if (shift == 64)
         m_shift = 0;
+      m_extend = ExtendSpecifier::UXTX;
     }
     else
     {
       m_width = WidthSpecifier::Width32Bit;
       if (shift == 32)
         m_shift = 0;
+      m_extend = ExtendSpecifier::UXTW;
     }
   }
   ARM64Reg GetReg() const { return m_destReg; }

@@ -20,6 +20,11 @@ class QRadioButton;
 class QShowEvent;
 class QSplitter;
 
+namespace Core
+{
+class CPUThreadGuard;
+}
+
 class MemoryWidget : public QDockWidget
 {
   Q_OBJECT

@@ -103,7 +103,10 @@ private:
       auto key_it = map.find(key);
       if (key_it == map.end())
         continue;
-      key_it->second = line.substr(equals_index + 1);
+      auto val_start = equals_index + 1;
+      auto eol = line.find('\r', val_start);
+      auto val_size = (eol == line.npos) ? line.npos : eol - val_start;
+      key_it->second = line.substr(val_start, val_size);
     }
   }
   Map map;
@@ -194,9 +197,12 @@ static bool VCRuntimeUpdate(const BuildInfo& build_info)
 
   Common::ScopeGuard redist_deleter([&] { File::Delete(redist_path_u8); });
 
-  // The installer also supports /passive and /quiet. We pass neither to allow the user to see and
-  // interact with the installer.
+  // The installer also supports /passive and /quiet. We normally pass neither (the
+  // exception being test automation) to allow the user to see and interact with the installer.
   std::wstring cmdline = redist_path.filename().wstring() + L" /install /norestart";
+  if (UI::IsTestMode())
+    cmdline += L" /passive /quiet";
+
   STARTUPINFOW startup_info{.cb = sizeof(startup_info)};
   PROCESS_INFORMATION process_info;
   if (!CreateProcessW(redist_path.c_str(), cmdline.data(), nullptr, nullptr, TRUE, 0, nullptr,
@@ -213,7 +219,8 @@ static bool VCRuntimeUpdate(const BuildInfo& build_info)
   CloseHandle(process_info.hProcess);
   // NOTE: Some nonzero exit codes can still be considered success (e.g. if installation was
   // bypassed because the same version already installed).
-  return has_exit_code && exit_code == EXIT_SUCCESS;
+  return has_exit_code &&
+         (exit_code == ERROR_SUCCESS || exit_code == ERROR_SUCCESS_REBOOT_REQUIRED);
 }
 
 static BuildVersion CurrentOSVersion()
@@ -241,7 +248,7 @@ static VersionCheckResult OSVersionCheck(const BuildInfo& build_info)
 
 std::optional<BuildInfos> InitBuildInfos(const std::vector<TodoList::UpdateOp>& to_update,
                                          const std::string& install_base_path,
-                                         const std::string& temp_dir, FILE* log_fp)
+                                         const std::string& temp_dir)
 {
   const auto op_it = std::find_if(to_update.cbegin(), to_update.cend(),
                                   [&](const auto& op) { return op.filename == "build_info.txt"; });
@@ -255,7 +262,7 @@ std::optional<BuildInfos> InitBuildInfos(const std::vector<TodoList::UpdateOp>& 
   if (!File::ReadFileToString(build_info_path, build_info_content) ||
       op.new_hash != ComputeHash(build_info_content))
   {
-    fprintf(log_fp, "Failed to read %s\n.", build_info_path.c_str());
+    LogToFile("Failed to read %s\n.", build_info_path.c_str());
     return {};
   }
   BuildInfos build_infos;
@@ -266,7 +273,7 @@ std::optional<BuildInfos> InitBuildInfos(const std::vector<TodoList::UpdateOp>& 
   if (File::ReadFileToString(build_info_path, build_info_content))
   {
     if (op.old_hash != ComputeHash(build_info_content))
-      fprintf(log_fp, "Using modified existing BuildInfo %s.\n", build_info_path.c_str());
+      LogToFile("Using modified existing BuildInfo %s.\n", build_info_path.c_str());
     build_infos.current = Platform::BuildInfo(build_info_content);
   }
   return build_infos;
@@ -287,11 +294,16 @@ bool CheckBuildInfo(const BuildInfos& build_infos)
   // Check if application being launched needs more recent version of VC Redist. If so, download
   // latest updater and execute it.
   auto vc_check = VCRuntimeVersionCheck(build_infos);
-  if (vc_check.status != VersionCheckStatus::NothingToDo)
+  const auto is_test_mode = UI::IsTestMode();
+  if (vc_check.status != VersionCheckStatus::NothingToDo || is_test_mode)
   {
-    // Don't bother checking status of the install itself, just check if we actually see the new
-    // version.
-    VCRuntimeUpdate(build_infos.next);
+    auto update_ok = VCRuntimeUpdate(build_infos.next);
+    if (!update_ok && is_test_mode)
+    {
+      // For now, only check return value when test automation is running.
+      // The vc_redist exe may return other non-zero status that we don't check for, yet.
+      return false;
+    }
     vc_check = VCRuntimeVersionCheck(build_infos);
     if (vc_check.status == VersionCheckStatus::UpdateRequired)
     {
@@ -305,9 +317,9 @@ bool CheckBuildInfo(const BuildInfos& build_infos)
 }
 
 bool VersionCheck(const std::vector<TodoList::UpdateOp>& to_update,
-                  const std::string& install_base_path, const std::string& temp_dir, FILE* log_fp)
+                  const std::string& install_base_path, const std::string& temp_dir)
 {
-  auto build_infos = InitBuildInfos(to_update, install_base_path, temp_dir, log_fp);
+  auto build_infos = InitBuildInfos(to_update, install_base_path, temp_dir);
   // If there's no build info, it means the check should be skipped.
   if (!build_infos.has_value())
   {

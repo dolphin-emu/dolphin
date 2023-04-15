@@ -4,6 +4,7 @@
 #pragma once
 
 #include "VideoCommon/AbstractGfx.h"
+#include "VideoCommon/Constants.h"
 
 class GLContext;
 
@@ -100,7 +101,7 @@ private:
 
   std::unique_ptr<GLContext> m_main_gl_context;
   std::unique_ptr<OGLFramebuffer> m_system_framebuffer;
-  std::array<const OGLTexture*, 8> m_bound_textures{};
+  std::array<const OGLTexture*, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS> m_bound_textures{};
   AbstractTexture* m_bound_image_texture = nullptr;
   RasterizationState m_current_rasterization_state;
   DepthState m_current_depth_state;

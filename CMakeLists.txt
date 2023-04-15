@@ -6,6 +6,10 @@ cmake_minimum_required(VERSION 3.13)
 cmake_policy(SET CMP0079 NEW) # let target_link_libraries() link to a target defined in a different directory
 cmake_policy(SET CMP0080 OLD) # allow using BundleUtilities at configure time
 
+if (POLICY CMP0099)
+  cmake_policy(SET CMP0099 NEW) # Propagate INTERFACE_LINK_OPTIONS from private dependencies, used by MacOS framework builds of SDL
+endif()
+
 # Weird chicken-and-egg problem: We can't check the compiler before the project() call, but we have to set the policies before it.
 # So we do this in two steps: Set the policies if they exist, then error out afterwards if we end up being MSVC and they don't exist.
 if (POLICY CMP0117)
@@ -72,6 +76,7 @@ option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence, show the current gam
 option(USE_MGBA "Enables GBA controllers emulation using libmgba" ON)
 option(ENABLE_AUTOUPDATE "Enables support for automatic updates" ON)
 option(STEAM "Creates a build for Steam" OFF)
+option(USE_RETRO_ACHIEVEMENTS "Enables integration with retroachievements.org" ON)
 
 # Maintainers: if you consider blanket disabling this for your users, please
 # consider the following points:
@@ -326,7 +331,7 @@ if(MSVC)
   # Note: In msbuild build, this gets set by msbuild by default
   add_compile_options(/Zc:inline)
   # Fix various other non-conformant behaviors
-  add_compile_options(/Zc:__cplusplus,enumTypes,externConstexpr,preprocessor,throwingNew)
+  add_compile_options(/Zc:__cplusplus,enumTypes,externConstexpr,preprocessor,templateScope,throwingNew)
   # Enforce strict volatile semantics as per ISO C++
   add_compile_options(/volatile:iso)
 
@@ -502,12 +507,15 @@ if(ENABLE_HEADLESS)
   set(USE_DISCORD_PRESENCE 0)
 endif()
 
-# Set file offset size to 64 bits.
+# Set file offset size to 64 bits. On modern Unixes, this is typically already the case. Exceptions:
 #
-# On modern Unixes, this is typically already the case. The lone exception is
-# glibc, which may default to 32 bits. glibc allows this to be configured
-# by setting _FILE_OFFSET_BITS.
-if(NOT CMAKE_SYSTEM_NAME MATCHES "Windows")
+# glibc may default to 32 bits. This can be configured by setting _FILE_OFFSET_BITS=64.
+#
+# bionic (Android) defaults to 32 bits for 32-bit ABIs. Here too we can use _FILE_OFFSET_BITS=64,
+# but only on API 25 and up. Since we're currently supporting older API levels and 32-bit Android
+# isn't a build configuration we officially support, let's leave this as it is for now.
+# More details: https://android.googlesource.com/platform/bionic/+/master/docs/32-bit-abi.md
+if(NOT ANDROID AND NOT CMAKE_SYSTEM_NAME MATCHES "Windows")
   add_definitions(-D_FILE_OFFSET_BITS=64)
   add_definitions(-D_LARGEFILE_SOURCE)
 endif()
@@ -689,12 +697,15 @@ endif()
 add_subdirectory(Externals/imgui)
 add_subdirectory(Externals/implot)
 add_subdirectory(Externals/glslang)
-add_subdirectory(Externals/spirv_cross)
 add_subdirectory(Externals/Lua)
 find_package (Python3 COMPONENTS Interpreter Development)
 if(NOT Python3_FOUND)
   message(STATUS "Using static cpython from Externals")
   add_subdirectory(Externals/cpython)
+# SPIRV-Cross is used on Windows for GLSL to HLSL conversion for the Direct3D 11 and Direct3D 12
+# video backends, and on Apple devices for the Metal video backend.
+if(WIN32 OR APPLE)
+  add_subdirectory(Externals/spirv_cross)
 endif()
 
 if(ENABLE_VULKAN)
@@ -977,6 +988,10 @@ add_subdirectory(Externals/expr)
 add_subdirectory(Externals/rangeset)
 
 add_subdirectory(Externals/FatFs)
+
+if (USE_RETRO_ACHIEVEMENTS)
+	add_subdirectory(Externals/rcheevos)
+endif()
 
 ########################################
 # Pre-build events: Define configuration variables and write SCM info header

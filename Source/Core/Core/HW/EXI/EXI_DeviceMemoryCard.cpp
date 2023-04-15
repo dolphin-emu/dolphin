@@ -56,11 +56,11 @@ static Common::EnumMap<char, MAX_MEMCARD_SLOT> s_card_short_names{'A', 'B'};
 
 // Takes care of the nasty recovery of the 'this' pointer from card_slot,
 // stored in the userdata parameter of the CoreTiming event.
-void CEXIMemoryCard::EventCompleteFindInstance(u64 userdata,
+void CEXIMemoryCard::EventCompleteFindInstance(Core::System& system, u64 userdata,
                                                std::function<void(CEXIMemoryCard*)> callback)
 {
   Slot card_slot = static_cast<Slot>(userdata);
-  IEXIDevice* self = ExpansionInterface::GetDevice(card_slot);
+  IEXIDevice* self = system.GetExpansionInterface().GetDevice(card_slot);
   if (self != nullptr)
   {
     if (self->m_device_type == EXIDeviceType::MemoryCard ||
@@ -73,12 +73,13 @@ void CEXIMemoryCard::EventCompleteFindInstance(u64 userdata,
 
 void CEXIMemoryCard::CmdDoneCallback(Core::System& system, u64 userdata, s64)
 {
-  EventCompleteFindInstance(userdata, [](CEXIMemoryCard* instance) { instance->CmdDone(); });
+  EventCompleteFindInstance(system, userdata,
+                            [](CEXIMemoryCard* instance) { instance->CmdDone(); });
 }
 
 void CEXIMemoryCard::TransferCompleteCallback(Core::System& system, u64 userdata, s64)
 {
-  EventCompleteFindInstance(userdata,
+  EventCompleteFindInstance(system, userdata,
                             [](CEXIMemoryCard* instance) { instance->TransferComplete(); });
 }
 
@@ -104,9 +105,9 @@ void CEXIMemoryCard::Shutdown()
   s_et_transfer_complete.fill(nullptr);
 }
 
-CEXIMemoryCard::CEXIMemoryCard(const Slot slot, bool gci_folder,
+CEXIMemoryCard::CEXIMemoryCard(Core::System& system, const Slot slot, bool gci_folder,
                                const Memcard::HeaderData& header_data)
-    : m_card_slot(slot)
+    : IEXIDevice(system), m_card_slot(slot)
 {
   ASSERT_MSG(EXPANSIONINTERFACE, IsMemcardSlot(slot), "Trying to create invalid memory card in {}.",
              slot);
@@ -144,7 +145,7 @@ CEXIMemoryCard::CEXIMemoryCard(const Slot slot, bool gci_folder,
   m_memory_card_size = m_memory_card->GetCardId() * SIZE_TO_Mb;
   std::array<u8, 20> header{};
   m_memory_card->Read(0, static_cast<s32>(header.size()), header.data());
-  auto& sram = Core::System::GetInstance().GetSRAM();
+  auto& sram = system.GetSRAM();
   SetCardFlashID(&sram, header.data(), m_card_slot);
 }
 
@@ -235,8 +236,7 @@ void CEXIMemoryCard::SetupRawMemcard(u16 size_mb)
 
 CEXIMemoryCard::~CEXIMemoryCard()
 {
-  auto& system = Core::System::GetInstance();
-  auto& core_timing = system.GetCoreTiming();
+  auto& core_timing = m_system.GetCoreTiming();
   core_timing.RemoveEvent(s_et_cmd_done[m_card_slot]);
   core_timing.RemoveEvent(s_et_transfer_complete[m_card_slot]);
 }
@@ -257,20 +257,20 @@ void CEXIMemoryCard::CmdDone()
   m_status &= ~MC_STATUS_BUSY;
 
   m_interrupt_set = true;
-  ExpansionInterface::UpdateInterrupts();
+  m_system.GetExpansionInterface().UpdateInterrupts();
 }
 
 void CEXIMemoryCard::TransferComplete()
 {
   // Transfer complete, send interrupt
-  ExpansionInterface::GetChannel(ExpansionInterface::SlotToEXIChannel(m_card_slot))
+  m_system.GetExpansionInterface()
+      .GetChannel(ExpansionInterface::SlotToEXIChannel(m_card_slot))
       ->SendTransferComplete();
 }
 
 void CEXIMemoryCard::CmdDoneLater(u64 cycles)
 {
-  auto& system = Core::System::GetInstance();
-  auto& core_timing = system.GetCoreTiming();
+  auto& core_timing = m_system.GetCoreTiming();
   core_timing.RemoveEvent(s_et_cmd_done[m_card_slot]);
   core_timing.ScheduleEvent(cycles, s_et_cmd_done[m_card_slot], static_cast<u64>(m_card_slot));
 }
@@ -523,8 +523,7 @@ void CEXIMemoryCard::DoState(PointerWrap& p)
 // read all at once instead of single byte at a time as done by IEXIDevice::DMARead
 void CEXIMemoryCard::DMARead(u32 addr, u32 size)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
+  auto& memory = m_system.GetMemory();
   m_memory_card->Read(m_address, size, memory.GetPointer(addr));
 
   if ((m_address + size) % Memcard::BLOCK_SIZE == 0)
@@ -533,7 +532,7 @@ void CEXIMemoryCard::DMARead(u32 addr, u32 size)
   }
 
   // Schedule transfer complete later based on read speed
-  system.GetCoreTiming().ScheduleEvent(
+  m_system.GetCoreTiming().ScheduleEvent(
       size * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_READ),
       s_et_transfer_complete[m_card_slot], static_cast<u64>(m_card_slot));
 }
@@ -542,8 +541,7 @@ void CEXIMemoryCard::DMARead(u32 addr, u32 size)
 // write all at once instead of single byte at a time as done by IEXIDevice::DMAWrite
 void CEXIMemoryCard::DMAWrite(u32 addr, u32 size)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
+  auto& memory = m_system.GetMemory();
   m_memory_card->Write(m_address, size, memory.GetPointer(addr));
 
   if (((m_address + size) % Memcard::BLOCK_SIZE) == 0)
@@ -552,7 +550,7 @@ void CEXIMemoryCard::DMAWrite(u32 addr, u32 size)
   }
 
   // Schedule transfer complete later based on write speed
-  system.GetCoreTiming().ScheduleEvent(
+  m_system.GetCoreTiming().ScheduleEvent(
       size * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_WRITE),
       s_et_transfer_complete[m_card_slot], static_cast<u64>(m_card_slot));
 }

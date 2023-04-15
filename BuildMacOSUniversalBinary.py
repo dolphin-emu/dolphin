@@ -76,7 +76,10 @@ DEFAULT_CONFIG = {
     "steam": False,
 
     # Whether our autoupdate functionality is enabled or not.
-    "autoupdate": True
+    "autoupdate": True,
+
+    # The distributor for this build.
+    "distributor": "None"
 }
 
 # Architectures to build for. This is explicity left out of the command line
@@ -135,6 +138,11 @@ def parse_args(conf=DEFAULT_CONFIG):
         help="Enables our autoupdate functionality",
         action=argparse.BooleanOptionalAction,
         default=conf["autoupdate"])
+
+    parser.add_argument(
+        "--distributor",
+        help="Sets the distributor for this build",
+        default=conf["distributor"])
 
     parser.add_argument(
         "--codesign",
@@ -316,6 +324,7 @@ def build(config):
                 + python_to_cmake_bool(config["steam"]),
                 "-DENABLE_AUTOUPDATE="
                 + python_to_cmake_bool(config["autoupdate"]),
+                '-DDISTRIBUTOR=' + config['distributor']
             ],
             env=env, cwd=arch)
 

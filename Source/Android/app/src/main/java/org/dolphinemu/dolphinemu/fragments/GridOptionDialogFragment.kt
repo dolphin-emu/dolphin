@@ -1,5 +1,6 @@
 package org.dolphinemu.dolphinemu.fragments
 
+import android.app.Activity
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -9,7 +10,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
 import android.widget.CompoundButton
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.material.bottomsheet.BottomSheetDialog
+import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.databinding.FragmentGridOptionsBinding
 import org.dolphinemu.dolphinemu.databinding.FragmentGridOptionsTvBinding
 import org.dolphinemu.dolphinemu.features.settings.model.NativeConfig
@@ -43,31 +44,17 @@ class GridOptionDialogFragment : BottomSheetDialogFragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        // Pins fragment to the top of the dialog ensures the dialog is expanded in landscape by default
+        if (!resources.getBoolean(R.bool.hasTouch)) {
+            BottomSheetBehavior.from<View>(view.parent as View).state =
+                BottomSheetBehavior.STATE_EXPANDED
+        }
+
         if (activity is AppCompatActivity) {
             setUpCoverButtons()
             setUpTitleButtons()
-
-            // Pins fragment to the top of the dialog ensures the dialog is expanded in landscape by default
-            BottomSheetBehavior.from<View>(mBindingMobile.gridSheet).state =
-                BottomSheetBehavior.STATE_EXPANDED
-            dialog?.setOnShowListener {
-                val dialog = it as BottomSheetDialog
-                mBindingMobile.gridSheet.let { sheet ->
-                    dialog.behavior.peekHeight = sheet.height
-                }
-            }
         } else {
             setUpCoverButtonsTv()
-
-            // Pins fragment to the top of the dialog ensures the dialog is expanded in landscape by default
-            BottomSheetBehavior.from<View>(mBindingTv.gridSheet).state =
-                BottomSheetBehavior.STATE_EXPANDED
-            dialog?.setOnShowListener {
-                val dialog = it as BottomSheetDialog
-                mBindingTv.gridSheet.let { sheet ->
-                    dialog.behavior.peekHeight = sheet.height
-                }
-            }
         }
     }
 
@@ -78,27 +65,26 @@ class GridOptionDialogFragment : BottomSheetDialogFragment() {
     }
 
     private fun setUpCoverButtons() {
-        mBindingMobile.switchDownloadCovers.isChecked =
-            BooleanSetting.MAIN_USE_GAME_COVERS.booleanGlobal
+        mBindingMobile.switchDownloadCovers.isChecked = BooleanSetting.MAIN_USE_GAME_COVERS.boolean
         mBindingMobile.rootDownloadCovers.setOnClickListener {
             mBindingMobile.switchDownloadCovers.isChecked = !mBindingMobile.switchDownloadCovers.isChecked
         }
         mBindingMobile.switchDownloadCovers.setOnCheckedChangeListener { _: CompoundButton, _: Boolean ->
-            BooleanSetting.MAIN_USE_GAME_COVERS.setBooleanGlobal(
+            BooleanSetting.MAIN_USE_GAME_COVERS.setBoolean(
                 NativeConfig.LAYER_BASE,
                 mBindingMobile.switchDownloadCovers.isChecked
             )
-            mView.reloadGrid()
+            (mView as Activity).recreate()
         }
     }
 
     private fun setUpTitleButtons() {
-        mBindingMobile.switchShowTitles.isChecked = BooleanSetting.MAIN_SHOW_GAME_TITLES.booleanGlobal
+        mBindingMobile.switchShowTitles.isChecked = BooleanSetting.MAIN_SHOW_GAME_TITLES.boolean
         mBindingMobile.rootShowTitles.setOnClickListener {
             mBindingMobile.switchShowTitles.isChecked = !mBindingMobile.switchShowTitles.isChecked
         }
         mBindingMobile.switchShowTitles.setOnCheckedChangeListener { _: CompoundButton, _: Boolean ->
-            BooleanSetting.MAIN_SHOW_GAME_TITLES.setBooleanGlobal(
+            BooleanSetting.MAIN_SHOW_GAME_TITLES.setBoolean(
                 NativeConfig.LAYER_BASE,
                 mBindingMobile.switchShowTitles.isChecked
             )
@@ -109,16 +95,16 @@ class GridOptionDialogFragment : BottomSheetDialogFragment() {
     // TODO: Remove this when leanback is removed
     private fun setUpCoverButtonsTv() {
         mBindingTv.switchDownloadCovers.isChecked =
-            BooleanSetting.MAIN_USE_GAME_COVERS.booleanGlobal
+            BooleanSetting.MAIN_USE_GAME_COVERS.boolean
         mBindingTv.rootDownloadCovers.setOnClickListener {
             mBindingTv.switchDownloadCovers.isChecked = !mBindingTv.switchDownloadCovers.isChecked
         }
         mBindingTv.switchDownloadCovers.setOnCheckedChangeListener { _: CompoundButton, _: Boolean ->
-            BooleanSetting.MAIN_USE_GAME_COVERS.setBooleanGlobal(
+            BooleanSetting.MAIN_USE_GAME_COVERS.setBoolean(
                 NativeConfig.LAYER_BASE,
                 mBindingTv.switchDownloadCovers.isChecked
             )
-            mView.reloadGrid()
+            (mView as Activity).recreate()
         }
     }
 }

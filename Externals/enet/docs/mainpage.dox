@@ -36,7 +36,7 @@ portable, and easily embeddable.
 You can retrieve the source to ENet by downloading it in either .tar.gz form
 or accessing the github distribution directly.
 
-The most recent stable release (1.3.13) can be downloaded <a class="el" href="download/enet-1.3.13.tar.gz">here</a>. 
+The most recent stable release (1.3.17) can be downloaded <a class="el" href="download/enet-1.3.17.tar.gz">here</a>.
 The last release that is protocol compatible with the 1.2 series or earlier (1.2.5) can be downloaded <a class="el" href="download/enet-1.2.5.tar.gz">here</a>. 
 
 You can find the most recent ENet source at <a class="el" href="https://github.com/lsalzman/enet">the github repository</a>.
@@ -53,7 +53,7 @@ The <a class="el" href="http://lists.cubik.org/mailman/listinfo/enet-discuss">en
 /**
 @page IRCChannel IRC Channel
 
-Join the \#enet channel on the <a class="el" href="http://freenode.net">freenode IRC network (irc.freenode.net)</a> for real-time discussion about the ENet library.
+Join the \#enet channel on the <a class="el" href="https://libera.chat">Libera Chat IRC network (irc.libera.chat)</a> for real-time discussion about the ENet library.
 
 */
 

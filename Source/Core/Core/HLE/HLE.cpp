@@ -12,6 +12,7 @@
 
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/GeckoCode.h"
 #include "Core/HLE/HLE_Misc.h"
 #include "Core/HLE/HLE_OS.h"
@@ -152,17 +153,24 @@ void Reload(Core::System& system)
   PatchFunctions(system);
 }
 
-void Execute(u32 current_pc, u32 hook_index)
+void Execute(const Core::CPUThreadGuard& guard, u32 current_pc, u32 hook_index)
 {
   hook_index &= 0xFFFFF;
   if (hook_index > 0 && hook_index < os_patches.size())
   {
-    os_patches[hook_index].function();
+    os_patches[hook_index].function(guard);
   }
   else
   {
     PanicAlertFmt("HLE system tried to call an undefined HLE function {}.", hook_index);
   }
+}
+
+void ExecuteFromJIT(u32 current_pc, u32 hook_index)
+{
+  ASSERT(Core::IsCPUThread());
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
+  Execute(guard, current_pc, hook_index);
 }
 
 u32 GetHookByAddress(u32 address)
@@ -195,7 +203,7 @@ HookFlag GetHookFlagsByIndex(u32 index)
 bool IsEnabled(HookFlag flag)
 {
   return flag != HLE::HookFlag::Debug || Config::Get(Config::MAIN_ENABLE_DEBUGGING) ||
-         PowerPC::GetMode() == PowerPC::CoreMode::Interpreter;
+         Core::System::GetInstance().GetPowerPC().GetMode() == PowerPC::CoreMode::Interpreter;
 }
 
 u32 UnPatch(Core::System& system, std::string_view patch_name)

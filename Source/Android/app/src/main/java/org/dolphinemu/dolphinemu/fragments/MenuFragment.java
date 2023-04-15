@@ -92,7 +92,7 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
   @Override
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState)
   {
-    if (IntSetting.MAIN_INTERFACE_THEME.getIntGlobal() != ThemeHelper.DEFAULT)
+    if (IntSetting.MAIN_INTERFACE_THEME.getInt() != ThemeHelper.DEFAULT)
     {
       @ColorInt int color = new ElevationOverlayProvider(view.getContext()).compositeOverlay(
               MaterialColors.getColor(view, R.attr.colorSurface),
@@ -114,7 +114,7 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
       mBinding.menuSkylanders.setVisibility(View.GONE);
     }
 
-    if (!BooleanSetting.MAIN_EMULATE_SKYLANDER_PORTAL.getBooleanGlobal())
+    if (!BooleanSetting.MAIN_EMULATE_SKYLANDER_PORTAL.getBoolean())
     {
       mBinding.menuSkylanders.setVisibility(View.GONE);
     }
@@ -176,7 +176,7 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
   {
     super.onResume();
 
-    boolean savestatesEnabled = BooleanSetting.MAIN_ENABLE_SAVESTATES.getBooleanGlobal();
+    boolean savestatesEnabled = BooleanSetting.MAIN_ENABLE_SAVESTATES.getBoolean();
     int savestateVisibility = savestatesEnabled ? View.VISIBLE : View.GONE;
     mBinding.menuQuicksave.setVisibility(savestateVisibility);
     mBinding.menuQuickload.setVisibility(savestateVisibility);

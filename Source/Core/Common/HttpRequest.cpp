@@ -33,8 +33,8 @@ public:
   Response Fetch(const std::string& url, Method method, const Headers& headers, const u8* payload,
                  size_t size, AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only);
 
-  static int CurlProgressCallback(Impl* impl, double dlnow, double dltotal, double ulnow,
-                                  double ultotal);
+  static int CurlProgressCallback(Impl* impl, curl_off_t dltotal, curl_off_t dlnow,
+                                  curl_off_t ultotal, curl_off_t ulnow);
   std::string EscapeComponent(const std::string& string);
 
 private:
@@ -95,11 +95,12 @@ HttpRequest::Response HttpRequest::Post(const std::string& url, const std::strin
                        reinterpret_cast<const u8*>(payload.data()), payload.size(), codes);
 }
 
-int HttpRequest::Impl::CurlProgressCallback(Impl* impl, double dlnow, double dltotal, double ulnow,
-                                            double ultotal)
+int HttpRequest::Impl::CurlProgressCallback(Impl* impl, curl_off_t dltotal, curl_off_t dlnow,
+                                            curl_off_t ultotal, curl_off_t ulnow)
 {
   // Abort if callback isn't true
-  return !impl->m_callback(dlnow, dltotal, ulnow, ultotal);
+  return !impl->m_callback(static_cast<s64>(dltotal), static_cast<s64>(dlnow),
+                           static_cast<s64>(ultotal), static_cast<s64>(ulnow));
 }
 
 HttpRequest::Impl::Impl(std::chrono::milliseconds timeout_ms, ProgressCallback callback)
@@ -116,7 +117,7 @@ HttpRequest::Impl::Impl(std::chrono::milliseconds timeout_ms, ProgressCallback c
   if (m_callback)
   {
     curl_easy_setopt(m_curl.get(), CURLOPT_PROGRESSDATA, this);
-    curl_easy_setopt(m_curl.get(), CURLOPT_PROGRESSFUNCTION, CurlProgressCallback);
+    curl_easy_setopt(m_curl.get(), CURLOPT_XFERINFOFUNCTION, CurlProgressCallback);
   }
 
   // Set up error buffer

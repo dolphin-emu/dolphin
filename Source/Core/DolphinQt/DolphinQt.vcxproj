@@ -213,7 +213,9 @@
     <ClCompile Include="TAS\StickWidget.cpp" />
     <ClCompile Include="TAS\TASCheckBox.cpp" />
     <ClCompile Include="TAS\TASInputWindow.cpp" />
+    <ClCompile Include="TAS\TASControlState.cpp" />
     <ClCompile Include="TAS\TASSlider.cpp" />
+    <ClCompile Include="TAS\TASSpinBox.cpp" />
     <ClCompile Include="TAS\WiiTASInputWindow.cpp" />
     <ClCompile Include="ToolBar.cpp" />
     <ClCompile Include="Translation.cpp" />
@@ -248,6 +250,7 @@
     <ClInclude Include="QtUtils\WrapInScrollArea.h" />
     <ClInclude Include="ResourcePackManager.h" />
     <ClInclude Include="Resources.h" />
+    <ClInclude Include="TAS\TASControlState.h" />
     <ClInclude Include="TAS\TASSlider.h" />
     <ClInclude Include="Translation.h" />
     <ClInclude Include="WiiUpdate.h" />
@@ -394,6 +397,7 @@
     <QtMoc Include="TAS\StickWidget.h" />
     <QtMoc Include="TAS\TASCheckBox.h" />
     <QtMoc Include="TAS\TASInputWindow.h" />
+    <QtMoc Include="TAS\TASSpinBox.h" />
     <QtMoc Include="TAS\WiiTASInputWindow.h" />
     <QtMoc Include="ToolBar.h" />
     <QtMoc Include="Updater.h" />
@@ -439,6 +443,7 @@
   <Import Project="$(ExternalsDir)mbedtls\exports.props" />
   <Import Project="$(ExternalsDir)mGBA\exports.props" />
   <Import Project="$(ExternalsDir)picojson\exports.props" />
+  <Import Project="$(ExternalsDir)rcheevos\exports.props" />
   <Import Project="$(ExternalsDir)SFML\exports.props" />
   <Import Project="$(ExternalsDir)soundtouch\exports.props" />
   <Import Project="$(ExternalsDir)zstd\exports.props" />

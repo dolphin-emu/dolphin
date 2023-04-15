@@ -34,6 +34,13 @@ bool DirectoryExists(_In_ PCWSTR path)
             (dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
+bool FileExists(_In_ PCWSTR path)
+{
+  DWORD dwAttrib = GetFileAttributesW(path);
+
+  return (dwAttrib != INVALID_FILE_ATTRIBUTES);
+}
+
 TEST_CASE("FileSystemTests::CreateDirectory", "[filesystem]")
 {
     wchar_t basePath[MAX_PATH];
@@ -78,6 +85,99 @@ TEST_CASE("FileSystemTests::CreateDirectory", "[filesystem]")
     REQUIRE_SUCCEEDED(wil::RemoveDirectoryRecursiveNoThrow(absoluteTestPath3, wil::RemoveDirectoryOptions::KeepRootDirectory));
     REQUIRE(DirectoryExists(absoluteTestPath3));
     REQUIRE_FALSE(DirectoryExists(absoluteTestPath4));
+}
+
+TEST_CASE("FileSystemTests::VerifyRemoveDirectoryRecursiveDoesNotTraverseWithoutAHandle", "[filesystem]")
+{
+    auto CreateRelativePath = [](PCWSTR root, PCWSTR name)
+    {
+        wil::unique_hlocal_string path;
+        REQUIRE_SUCCEEDED(PathAllocCombine(root, name, PATHCCH_ALLOW_LONG_PATHS, &path));
+        return path;
+    };
+
+    wil::unique_cotaskmem_string tempPath;
+    REQUIRE_SUCCEEDED(wil::ExpandEnvironmentStringsW(LR"(%TEMP%)", tempPath));
+    const auto basePath = CreateRelativePath(tempPath.get(), L"FileSystemTests");
+    REQUIRE_SUCCEEDED(wil::CreateDirectoryDeepNoThrow(basePath.get()));
+
+    auto scopeGuard = wil::scope_exit([&]
+    {
+        wil::RemoveDirectoryRecursiveNoThrow(basePath.get());
+    });
+
+    // Try to delete a directory whose handle is already taken.
+    const auto folderToRecurse = CreateRelativePath(basePath.get(), L"folderToRecurse");
+    REQUIRE(::CreateDirectoryW(folderToRecurse.get(), nullptr));
+
+    const auto subfolderWithHandle = CreateRelativePath(folderToRecurse.get(), L"subfolderWithHandle");
+    REQUIRE(::CreateDirectoryW(subfolderWithHandle.get(), nullptr));
+
+    const auto childOfSubfolder = CreateRelativePath(subfolderWithHandle.get(), L"childOfSubfolder");
+    REQUIRE(::CreateDirectoryW(childOfSubfolder.get(), nullptr));
+
+    // Passing a 0 in share flags only allows metadata query on this file by other processes.
+    // This should fail with a sharing violation error when any other action is taken.
+    wil::unique_hfile subFolderHandle(::CreateFileW(subfolderWithHandle.get(), GENERIC_ALL,
+        0, nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr));
+    REQUIRE(subFolderHandle);
+
+    REQUIRE(wil::RemoveDirectoryRecursiveNoThrow(folderToRecurse.get()) == HRESULT_FROM_WIN32(ERROR_SHARING_VIOLATION));
+
+    // Release the handle to allow cleanup.
+    subFolderHandle.reset();
+}
+
+TEST_CASE("FileSystemTests::VerifyRemoveDirectoryRecursiveCanDeleteReadOnlyFiles", "[filesystem]")
+{
+    auto CreateRelativePath = [](PCWSTR root, PCWSTR name)
+    {
+        wil::unique_hlocal_string path;
+        REQUIRE_SUCCEEDED(PathAllocCombine(root, name, PATHCCH_ALLOW_LONG_PATHS, &path));
+        return path;
+    };
+
+    auto CreateReadOnlyFile = [](PCWSTR path)
+    {
+        wil::unique_hfile fileHandle(CreateFileW(path, 0,
+            0, nullptr, CREATE_ALWAYS,
+            FILE_ATTRIBUTE_READONLY, nullptr));
+        REQUIRE(fileHandle);
+    };
+
+    wil::unique_cotaskmem_string tempPath;
+    REQUIRE_SUCCEEDED(wil::ExpandEnvironmentStringsW(LR"(%TEMP%)", tempPath));
+    const auto basePath = CreateRelativePath(tempPath.get(), L"FileSystemTests");
+    REQUIRE_SUCCEEDED(wil::CreateDirectoryDeepNoThrow(basePath.get()));
+
+    auto scopeGuard = wil::scope_exit([&]
+    {
+        wil::RemoveDirectoryRecursiveNoThrow(basePath.get(), wil::RemoveDirectoryOptions::RemoveReadOnly);
+    });
+
+    // Create a reparse point and a target folder that shouldn't get deleted
+    auto folderToDelete = CreateRelativePath(basePath.get(), L"folderToDelete");
+    REQUIRE(::CreateDirectoryW(folderToDelete.get(), nullptr));
+
+    auto topLevelReadOnly = CreateRelativePath(folderToDelete.get(), L"topLevelReadOnly.txt");
+    CreateReadOnlyFile(topLevelReadOnly.get());
+
+    auto subLevel = CreateRelativePath(folderToDelete.get(), L"subLevel");
+    REQUIRE(::CreateDirectoryW(subLevel.get(), nullptr));
+
+    auto subLevelReadOnly = CreateRelativePath(subLevel.get(), L"subLevelReadOnly.txt");
+    CreateReadOnlyFile(subLevelReadOnly.get());
+
+    // Delete will fail without the RemoveReadOnlyFlag
+    REQUIRE_FAILED(wil::RemoveDirectoryRecursiveNoThrow(folderToDelete.get()));
+    REQUIRE_SUCCEEDED(wil::RemoveDirectoryRecursiveNoThrow(folderToDelete.get(), wil::RemoveDirectoryOptions::RemoveReadOnly));
+
+    // Verify all files have been deleted
+    REQUIRE_FALSE(FileExists(subLevelReadOnly.get()));
+    REQUIRE_FALSE(DirectoryExists(subLevel.get()));
+
+    REQUIRE_FALSE(FileExists(topLevelReadOnly.get()));
+    REQUIRE_FALSE(DirectoryExists(folderToDelete.get()));
 }
 
 #ifdef WIL_ENABLE_EXCEPTIONS
@@ -440,7 +540,27 @@ TEST_CASE("FileSystemTests::VerifyGetModuleFileNameW", "[filesystem]")
     REQUIRE(wcscmp(path.get(), path2.get()) == 0);
 
     REQUIRE_FAILED(wil::GetModuleFileNameW((HMODULE)INVALID_HANDLE_VALUE, path));
+
+#ifdef WIL_ENABLE_EXCEPTIONS
+    auto wstringPath = wil::GetModuleFileNameW<std::wstring, 15>(nullptr);
+    REQUIRE(wstringPath.length() == ::wcslen(wstringPath.c_str()));
+#endif
 }
+
+#ifdef WIL_ENABLE_EXCEPTIONS
+wil::unique_cotaskmem_string NativeGetModuleFileNameWrap(HANDLE processHandle, HMODULE moduleHandle)
+{
+    DWORD size = MAX_PATH * 4;
+    auto path = wil::make_cotaskmem_string_nothrow(nullptr, size);
+
+    DWORD copied = processHandle ?
+        ::GetModuleFileNameExW(processHandle, moduleHandle, path.get(), size) :
+        ::GetModuleFileNameW(moduleHandle, path.get(), size);
+    REQUIRE(copied < size);
+
+    return path;
+}
+#endif
 
 TEST_CASE("FileSystemTests::VerifyGetModuleFileNameExW", "[filesystem]")
 {
@@ -455,6 +575,58 @@ TEST_CASE("FileSystemTests::VerifyGetModuleFileNameExW", "[filesystem]")
     REQUIRE(wcscmp(path.get(), path2.get()) == 0);
 
     REQUIRE_FAILED(wil::GetModuleFileNameExW(nullptr, (HMODULE)INVALID_HANDLE_VALUE, path));
+
+#ifdef WIL_ENABLE_EXCEPTIONS
+    auto wstringPath = wil::GetModuleFileNameExW<std::wstring, 15>(nullptr, nullptr);
+    REQUIRE(wstringPath.length() == ::wcslen(wstringPath.c_str()));
+    REQUIRE(wstringPath == NativeGetModuleFileNameWrap(nullptr, nullptr).get());
+
+    wstringPath = wil::GetModuleFileNameExW<std::wstring, 15>(GetCurrentProcess(), nullptr);
+    REQUIRE(wstringPath.length() == ::wcslen(wstringPath.c_str()));
+    REQUIRE(wstringPath == NativeGetModuleFileNameWrap(GetCurrentProcess(), nullptr).get());
+
+    wstringPath = wil::GetModuleFileNameW<std::wstring, 15>(nullptr);
+    REQUIRE(wstringPath.length() == ::wcslen(wstringPath.c_str()));
+    REQUIRE(wstringPath == NativeGetModuleFileNameWrap(nullptr, nullptr).get());
+
+    HMODULE kernel32 = ::GetModuleHandleW(L"kernel32.dll");
+
+    wstringPath = wil::GetModuleFileNameExW<std::wstring, 15>(nullptr, kernel32);
+    REQUIRE(wstringPath.length() == ::wcslen(wstringPath.c_str()));
+    REQUIRE(wstringPath == NativeGetModuleFileNameWrap(nullptr, kernel32).get());
+
+    wstringPath = wil::GetModuleFileNameExW<std::wstring, 15>(GetCurrentProcess(), kernel32);
+    REQUIRE(wstringPath.length() == ::wcslen(wstringPath.c_str()));
+    REQUIRE(wstringPath == NativeGetModuleFileNameWrap(GetCurrentProcess(), kernel32).get());
+
+    wstringPath = wil::GetModuleFileNameW<std::wstring, 15>(kernel32);
+    REQUIRE(wstringPath.length() == ::wcslen(wstringPath.c_str()));
+    REQUIRE(wstringPath == NativeGetModuleFileNameWrap(nullptr, kernel32).get());
+#endif
 }
+
+TEST_CASE("FileSystemTests::QueryFullProcessImageNameW and GetModuleFileNameW", "[filesystem]")
+{
+#ifdef WIL_ENABLE_EXCEPTIONS
+    auto procName = wil::QueryFullProcessImageNameW<std::wstring>();
+    auto moduleName = wil::GetModuleFileNameW<std::wstring>();
+    REQUIRE(procName == moduleName);
+#endif
+}
+
+TEST_CASE("FileSystemTests::QueryFullProcessImageNameW", "[filesystem]")
+{
+    WCHAR fullName[MAX_PATH * 4];
+    DWORD fullNameSize = ARRAYSIZE(fullName);
+    REQUIRE(::QueryFullProcessImageNameW(::GetCurrentProcess(), 0, fullName, &fullNameSize));
+
+    wil::unique_cotaskmem_string path;
+    REQUIRE_SUCCEEDED(wil::QueryFullProcessImageNameW(::GetCurrentProcess(), 0, path));
+    REQUIRE(wcscmp(fullName, path.get()) == 0);
+
+    wil::unique_cotaskmem nativePath;
+    REQUIRE_SUCCEEDED((wil::QueryFullProcessImageNameW<wil::unique_cotaskmem_string, 15>(::GetCurrentProcess(), 0, path)));
+}
+
 
 #endif // WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)

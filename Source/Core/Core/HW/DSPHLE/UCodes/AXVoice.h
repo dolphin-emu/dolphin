@@ -187,8 +187,14 @@ protected:
     }
   }
 
-  u8 ReadMemory(u32 address) override { return ReadARAM(address); }
-  void WriteMemory(u32 address, u8 value) override { WriteARAM(value, address); }
+  u8 ReadMemory(u32 address) override
+  {
+    return Core::System::GetInstance().GetDSP().ReadARAM(address);
+  }
+  void WriteMemory(u32 address, u8 value) override
+  {
+    Core::System::GetInstance().GetDSP().WriteARAM(value, address);
+  }
 };
 
 static std::unique_ptr<Accelerator> s_accelerator = std::make_unique<HLEAccelerator>();

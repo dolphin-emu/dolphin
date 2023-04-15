@@ -20,14 +20,13 @@
 
 using namespace Gen;
 
-Jit64AsmRoutineManager::Jit64AsmRoutineManager(Jit64& jit) : CommonAsmRoutines(jit), m_jit{jit}
+Jit64AsmRoutineManager::Jit64AsmRoutineManager(Jit64& jit) : CommonAsmRoutines(jit)
 {
 }
 
-void Jit64AsmRoutineManager::Init(u8* stack_top)
+void Jit64AsmRoutineManager::Init()
 {
   m_const_pool.Init(AllocChildCodeSpace(4096), 4096);
-  m_stack_top = stack_top;
   Generate();
   WriteProtect();
 }
@@ -46,21 +45,14 @@ void Jit64AsmRoutineManager::Generate()
   // waste a bit of space for a second shadow, but whatever.
   ABI_PushRegistersAndAdjustStack(ABI_ALL_CALLEE_SAVED, 8, /*frame*/ 16);
 
+  auto& ppc_state = m_jit.m_ppc_state;
+
   // Two statically allocated registers.
   // MOV(64, R(RMEM), Imm64((u64)Memory::physical_base));
-  MOV(64, R(RPPCSTATE), Imm64((u64)&PowerPC::ppcState + 0x80));
+  MOV(64, R(RPPCSTATE), Imm64((u64)&ppc_state + 0x80));
 
-  if (m_stack_top)
-  {
-    // Pivot the stack to our custom one.
-    MOV(64, R(RSCRATCH), R(RSP));
-    MOV(64, R(RSP), ImmPtr(m_stack_top - 0x20));
-    MOV(64, MDisp(RSP, 0x18), R(RSCRATCH));
-  }
-  else
-  {
-    MOV(64, PPCSTATE(stored_stack_pointer), R(RSP));
-  }
+  MOV(64, PPCSTATE(stored_stack_pointer), R(RSP));
+
   // something that can't pass the BLR test
   MOV(64, MDisp(RSP, 8), Imm32((u32)-1));
 
@@ -91,10 +83,12 @@ void Jit64AsmRoutineManager::Generate()
 
   dispatcher_no_timing_check = GetCodePtr();
 
+  auto& system = m_jit.m_system;
+
   FixupBranch dbg_exit;
   if (enable_debugging)
   {
-    MOV(64, R(RSCRATCH), ImmPtr(CPU::GetStatePtr()));
+    MOV(64, R(RSCRATCH), ImmPtr(system.GetCPU().GetStatePtr()));
     TEST(32, MatR(RSCRATCH), Imm32(0xFFFFFFFF));
     dbg_exit = J_CC(CC_NZ, true);
   }
@@ -103,7 +97,6 @@ void Jit64AsmRoutineManager::Generate()
 
   dispatcher_no_check = GetCodePtr();
 
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
 
   // The following is a translation of JitBaseBlockCache::Dispatch into assembly.
@@ -200,7 +193,7 @@ void Jit64AsmRoutineManager::Generate()
 
   // Check the state pointer to see if we are exiting
   // Gets checked on at the end of every slice
-  MOV(64, R(RSCRATCH), ImmPtr(CPU::GetStatePtr()));
+  MOV(64, R(RSCRATCH), ImmPtr(system.GetCPU().GetStatePtr()));
   TEST(32, MatR(RSCRATCH), Imm32(0xFFFFFFFF));
   J_CC(CC_Z, outerLoop);
 
@@ -209,12 +202,9 @@ void Jit64AsmRoutineManager::Generate()
   if (enable_debugging)
     SetJumpTarget(dbg_exit);
 
+  // Reset the stack pointer, since the BLR optimization may have pushed things onto the stack
+  // without popping them.
   ResetStack(*this);
-  if (m_stack_top)
-  {
-    ADD(64, R(RSP), Imm8(0x18));
-    POP(RSP);
-  }
 
   ABI_PopRegistersAndAdjustStack(ABI_ALL_CALLEE_SAVED, 8, 16);
   RET();
@@ -226,10 +216,7 @@ void Jit64AsmRoutineManager::Generate()
 
 void Jit64AsmRoutineManager::ResetStack(X64CodeBlock& emitter)
 {
-  if (m_stack_top)
-    emitter.MOV(64, R(RSP), Imm64((u64)m_stack_top - 0x20));
-  else
-    emitter.MOV(64, R(RSP), PPCSTATE(stored_stack_pointer));
+  emitter.MOV(64, R(RSP), PPCSTATE(stored_stack_pointer));
 }
 
 void Jit64AsmRoutineManager::GenerateCommon()

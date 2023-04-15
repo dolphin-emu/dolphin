@@ -11,6 +11,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Matrix.h"
 #include "VideoCommon/ConstantManager.h"
+#include "VideoCommon/NativeVertexFormat.h"
 
 class PointerWrap;
 struct PortableVertexDeclaration;
@@ -34,7 +35,6 @@ public:
   void SetProjectionChanged();
   void SetMaterialColorChanged(int index);
 
-  void SetVertexFormat(u32 components, const PortableVertexDeclaration& format);
   void SetTexMatrixInfoChanged(int index);
   void SetLightingConfigChanged();
 
@@ -48,6 +48,45 @@ public:
 
   VertexShaderConstants constants{};
   bool dirty = false;
+
+  static DOLPHIN_FORCE_INLINE void UpdateValue(bool* dirty, u32* old_value, u32 new_value)
+  {
+    if (*old_value == new_value)
+      return;
+    *old_value = new_value;
+    *dirty = true;
+  }
+
+  static DOLPHIN_FORCE_INLINE void UpdateOffset(bool* dirty, bool include_components,
+                                                u32* old_value, const AttributeFormat& attribute)
+  {
+    if (!attribute.enable)
+      return;
+    u32 new_value = attribute.offset / 4;  // GPU uses uint offsets
+    if (include_components)
+      new_value |= attribute.components << 16;
+    UpdateValue(dirty, old_value, new_value);
+  }
+
+  template <size_t N>
+  static DOLPHIN_FORCE_INLINE void UpdateOffsets(bool* dirty, bool include_components,
+                                                 std::array<u32, N>* old_value,
+                                                 const std::array<AttributeFormat, N>& attribute)
+  {
+    for (size_t i = 0; i < N; i++)
+      UpdateOffset(dirty, include_components, &(*old_value)[i], attribute[i]);
+  }
+
+  DOLPHIN_FORCE_INLINE void SetVertexFormat(u32 components, const PortableVertexDeclaration& format)
+  {
+    UpdateValue(&dirty, &constants.components, components);
+    UpdateValue(&dirty, &constants.vertex_stride, format.stride / 4);
+    UpdateOffset(&dirty, true, &constants.vertex_offset_position, format.position);
+    UpdateOffset(&dirty, false, &constants.vertex_offset_posmtx, format.posmtx);
+    UpdateOffsets(&dirty, true, &constants.vertex_offset_texcoords, format.texcoords);
+    UpdateOffsets(&dirty, false, &constants.vertex_offset_colors, format.colors);
+    UpdateOffsets(&dirty, false, &constants.vertex_offset_normals, format.normals);
+  }
 
 private:
   alignas(16) std::array<float, 16> m_projection_matrix;

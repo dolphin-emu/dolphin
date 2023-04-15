@@ -9,7 +9,10 @@
 
 #include "Common/CommonTypes.h"
 
+namespace Common
+{
 class IniFile;
+}
 
 namespace PatchEngine
 {
@@ -47,8 +50,8 @@ int GetSpeedhackCycles(const u32 addr);
 std::optional<PatchEntry> DeserializeLine(std::string line);
 std::string SerializeLine(const PatchEntry& entry);
 void LoadPatchSection(const std::string& section, std::vector<Patch>* patches,
-                      const IniFile& globalIni, const IniFile& localIni);
-void SavePatchSection(IniFile* local_ini, const std::vector<Patch>& patches);
+                      const Common::IniFile& globalIni, const Common::IniFile& localIni);
+void SavePatchSection(Common::IniFile* local_ini, const std::vector<Patch>& patches);
 void LoadPatches();
 
 void AddMemoryPatch(std::size_t index);

@@ -349,7 +349,7 @@ public final class TvMainActivity extends FragmentActivity
     }
 
     // Create an adapter for this row.
-    ArrayObjectAdapter row = new ArrayObjectAdapter(new GameRowPresenter());
+    ArrayObjectAdapter row = new ArrayObjectAdapter(new GameRowPresenter(this));
     row.addAll(0, gameFiles);
 
     // Keep a reference to the row in case we need to refresh it.

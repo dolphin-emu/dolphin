@@ -31,6 +31,7 @@ public final class InputOverlayDrawableJoystick
   private int mPreviousTouchX, mPreviousTouchY;
   private final int mWidth;
   private final int mHeight;
+  private final int mControllerIndex;
   private Rect mVirtBounds;
   private Rect mOrigBounds;
   private int mOpacity;
@@ -55,7 +56,7 @@ public final class InputOverlayDrawableJoystick
    */
   public InputOverlayDrawableJoystick(Resources res, Bitmap bitmapOuter, Bitmap bitmapInnerDefault,
           Bitmap bitmapInnerPressed, Rect rectOuter, Rect rectInner, int legacyId, int xControl,
-          int yControl)
+          int yControl, int controllerIndex)
   {
     mJoystickLegacyId = legacyId;
     mJoystickXControl = xControl;
@@ -67,6 +68,10 @@ public final class InputOverlayDrawableJoystick
     mBoundsBoxBitmap = new BitmapDrawable(res, bitmapOuter);
     mWidth = bitmapOuter.getWidth();
     mHeight = bitmapOuter.getHeight();
+
+    if (controllerIndex < 0 || controllerIndex >= 4)
+      throw new IllegalArgumentException("controllerIndex must be 0-3");
+    mControllerIndex = controllerIndex;
 
     setBounds(rectOuter);
     mDefaultStateInnerBitmap.setBounds(rectInner);
@@ -97,7 +102,7 @@ public final class InputOverlayDrawableJoystick
 
   public boolean TrackEvent(MotionEvent event)
   {
-    boolean reCenter = BooleanSetting.MAIN_JOYSTICK_REL_CENTER.getBooleanGlobal();
+    boolean reCenter = BooleanSetting.MAIN_JOYSTICK_REL_CENTER.getBoolean();
     int action = event.getActionMasked();
     boolean firstPointer = action != MotionEvent.ACTION_POINTER_DOWN &&
             action != MotionEvent.ACTION_POINTER_UP;
@@ -221,7 +226,8 @@ public final class InputOverlayDrawableJoystick
 
     double angle = Math.atan2(y, x) + Math.PI + Math.PI;
     double radius = Math.hypot(y, x);
-    double maxRadius = InputOverrider.getGateRadiusAtAngle(0, mJoystickXControl, angle);
+    double maxRadius = InputOverrider.getGateRadiusAtAngle(mControllerIndex, mJoystickXControl,
+            angle);
     if (radius > maxRadius)
     {
       y = maxRadius * Math.sin(angle);

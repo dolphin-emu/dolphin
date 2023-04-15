@@ -216,15 +216,15 @@ static u32 fmix32(u32 h)
 static void bmix32(u32& h1, u32& h2, u32& k1, u32& k2, u32& c1, u32& c2)
 {
   k1 *= c1;
-  k1 = Common::RotateLeft(k1, 11);
+  k1 = std::rotl(k1, 11);
   k1 *= c2;
   h1 ^= k1;
   h1 += h2;
 
-  h2 = Common::RotateLeft(h2, 17);
+  h2 = std::rotl(h2, 17);
 
   k2 *= c2;
-  k2 = Common::RotateLeft(k2, 11);
+  k2 = std::rotl(k2, 11);
   k2 *= c1;
   h2 ^= k2;
   h2 += h1;

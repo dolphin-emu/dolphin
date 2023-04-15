@@ -32,6 +32,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/AddressSpace.h"
+#include "Core/System.h"
 #include "DolphinQt/Debugger/MemoryViewWidget.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
@@ -248,12 +249,12 @@ void MemoryWidget::CreateWidgets()
   QMenuBar* menubar = new QMenuBar(sidebar);
   menubar->setNativeMenuBar(false);
 
-  QMenu* menu_import = new QMenu(tr("&Import"));
+  QMenu* menu_import = new QMenu(tr("&Import"), menubar);
   menu_import->addAction(tr("&Load file to current address"), this,
                          &MemoryWidget::OnSetValueFromFile);
   menubar->addMenu(menu_import);
 
-  QMenu* menu_export = new QMenu(tr("&Export"));
+  QMenu* menu_export = new QMenu(tr("&Export"), menubar);
   menu_export->addAction(tr("Dump &MRAM"), this, &MemoryWidget::OnDumpMRAM);
   menu_export->addAction(tr("Dump &ExRAM"), this, &MemoryWidget::OnDumpExRAM);
   menu_export->addAction(tr("Dump &ARAM"), this, &MemoryWidget::OnDumpARAM);
@@ -495,7 +496,9 @@ void MemoryWidget::SetAddress(u32 address)
   {
     AddressSpace::Accessors* accessors =
         AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
-    good = accessors->IsValidAddress(current_addr);
+
+    Core::CPUThreadGuard guard(Core::System::GetInstance());
+    good = accessors->IsValidAddress(guard, current_addr);
   }
 
   if (m_search_address->findText(current_text) == -1 && good)
@@ -651,17 +654,20 @@ void MemoryWidget::OnSetValue()
     return;
   }
 
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
+
   AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
   u32 end_address = target_addr.address + static_cast<u32>(bytes.size()) - 1;
 
-  if (!accessors->IsValidAddress(target_addr.address) || !accessors->IsValidAddress(end_address))
+  if (!accessors->IsValidAddress(guard, target_addr.address) ||
+      !accessors->IsValidAddress(guard, end_address))
   {
     ModalMessageBox::critical(this, tr("Error"), tr("Target address range is invalid."));
     return;
   }
 
   for (const char c : bytes)
-    accessors->WriteU8(target_addr.address++, static_cast<u8>(c));
+    accessors->WriteU8(guard, target_addr.address++, static_cast<u8>(c));
 
   Update();
 }
@@ -710,8 +716,10 @@ void MemoryWidget::OnSetValueFromFile()
 
   AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
 
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
+
   for (u8 b : file_contents)
-    accessors->WriteU8(target_addr.address++, b);
+    accessors->WriteU8(guard, target_addr.address++, b);
 
   Update();
 }
@@ -822,11 +830,15 @@ void MemoryWidget::FindValue(bool next)
     target_addr.address += next ? 1 : -1;
   }
 
-  AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
+  const std::optional<u32> found_addr = [&] {
+    AddressSpace::Accessors* accessors =
+        AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
 
-  const auto found_addr =
-      accessors->Search(target_addr.address, reinterpret_cast<const u8*>(search_for.data()),
-                        static_cast<u32>(search_for.size()), next);
+    Core::CPUThreadGuard guard(Core::System::GetInstance());
+    return accessors->Search(guard, target_addr.address,
+                             reinterpret_cast<const u8*>(search_for.data()),
+                             static_cast<u32>(search_for.size()), next);
+  }();
 
   if (found_addr.has_value())
   {

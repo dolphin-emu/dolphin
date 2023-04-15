@@ -121,7 +121,7 @@ void WFSIDevice::FinalizePatchInstall()
   const std::string current_title_dir = fmt::format("/vol/{}/title/{}/{}", m_device_name,
                                                     m_current_group_id_str, m_current_title_id_str);
   const std::string patch_dir = current_title_dir + "/_patch";
-  File::CopyDir(WFS::NativePath(patch_dir), WFS::NativePath(current_title_dir), true);
+  File::MoveWithOverwrite(WFS::NativePath(patch_dir), WFS::NativePath(current_title_dir));
 }
 
 std::optional<IPCReply> WFSIDevice::IOCtl(const IOCtlRequest& request)

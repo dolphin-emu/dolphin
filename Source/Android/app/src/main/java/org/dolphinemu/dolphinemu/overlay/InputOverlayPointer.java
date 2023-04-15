@@ -32,6 +32,7 @@ public class InputOverlayPointer
 
   private int mMode;
   private boolean mRecenter;
+  private int mControllerIndex;
 
   private boolean doubleTap = false;
   private int mDoubleTapControl;
@@ -47,11 +48,13 @@ public class InputOverlayPointer
     DOUBLE_TAP_OPTIONS.add(NativeLibrary.ButtonType.CLASSIC_BUTTON_A);
   }
 
-  public InputOverlayPointer(Rect surfacePosition, int doubleTapControl, int mode, boolean recenter)
+  public InputOverlayPointer(Rect surfacePosition, int doubleTapControl, int mode, boolean recenter,
+          int controllerIndex)
   {
     mDoubleTapControl = doubleTapControl;
     mMode = mode;
     mRecenter = recenter;
+    mControllerIndex = controllerIndex;
 
     mGameCenterX = (surfacePosition.left + surfacePosition.right) / 2.0f;
     mGameCenterY = (surfacePosition.top + surfacePosition.bottom) / 2.0f;
@@ -105,20 +108,21 @@ public class InputOverlayPointer
         break;
     }
 
-    if (trackId == -1)
+    int eventPointerIndex = event.findPointerIndex(trackId);
+    if (trackId == -1 || eventPointerIndex == -1)
       return;
 
     if (mMode == MODE_FOLLOW)
     {
-      mCurrentX = (event.getX(event.findPointerIndex(trackId)) - mGameCenterX) * mGameWidthHalfInv;
-      mCurrentY = (event.getY(event.findPointerIndex(trackId)) - mGameCenterY) * mGameHeightHalfInv;
+      mCurrentX = (event.getX(eventPointerIndex) - mGameCenterX) * mGameWidthHalfInv;
+      mCurrentY = (event.getY(eventPointerIndex) - mGameCenterY) * mGameHeightHalfInv;
     }
     else if (mMode == MODE_DRAG)
     {
       mCurrentX = mOldX +
-              (event.getX(event.findPointerIndex(trackId)) - mTouchStartX) * mGameWidthHalfInv;
+              (event.getX(eventPointerIndex) - mTouchStartX) * mGameWidthHalfInv;
       mCurrentY = mOldY +
-              (event.getY(event.findPointerIndex(trackId)) - mTouchStartY) * mGameHeightHalfInv;
+              (event.getY(eventPointerIndex) - mTouchStartY) * mGameHeightHalfInv;
     }
   }
 
@@ -128,8 +132,9 @@ public class InputOverlayPointer
     {
       if (doubleTap)
       {
-        InputOverrider.setControlState(0, mDoubleTapControl, 1.0);
-        new Handler().postDelayed(() -> InputOverrider.setControlState(0, mDoubleTapControl, 0.0),
+        InputOverrider.setControlState(mControllerIndex, mDoubleTapControl, 1.0);
+        new Handler().postDelayed(() -> InputOverrider.setControlState(mControllerIndex,
+                        mDoubleTapControl, 0.0),
                 50);
       }
       else

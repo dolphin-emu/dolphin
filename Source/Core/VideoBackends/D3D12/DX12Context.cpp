@@ -334,8 +334,8 @@ bool DXContext::CreateGXRootSignature()
 {
   // GX:
   //  - 3 constant buffers (bindings 0-2), 0/1 visible in PS, 2 visible in VS, 1 visible in GS.
-  //  - 8 textures (visible in PS).
-  //  - 8 samplers (visible in PS).
+  //  - VideoCommon::MAX_PIXEL_SHADER_SAMPLERS textures (visible in PS).
+  //  - VideoCommon::MAX_PIXEL_SHADER_SAMPLERS samplers (visible in PS).
   //  - 1 UAV (visible in PS).
 
   std::array<D3D12_ROOT_PARAMETER, NUM_ROOT_PARAMETERS> params;
@@ -344,10 +344,10 @@ bool DXContext::CreateGXRootSignature()
   SetRootParamCBV(&params[param_count], 0, D3D12_SHADER_VISIBILITY_PIXEL);
   param_count++;
   SetRootParamTable(&params[param_count], &ranges[param_count], D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0,
-                    8, D3D12_SHADER_VISIBILITY_PIXEL);
+                    VideoCommon::MAX_PIXEL_SHADER_SAMPLERS, D3D12_SHADER_VISIBILITY_PIXEL);
   param_count++;
   SetRootParamTable(&params[param_count], &ranges[param_count], D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER,
-                    0, 8, D3D12_SHADER_VISIBILITY_PIXEL);
+                    0, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS, D3D12_SHADER_VISIBILITY_PIXEL);
   param_count++;
   SetRootParamCBV(&params[param_count], 0, D3D12_SHADER_VISIBILITY_VERTEX);
   param_count++;

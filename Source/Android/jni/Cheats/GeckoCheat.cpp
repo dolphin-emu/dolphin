@@ -99,7 +99,7 @@ Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_equalsImpl(JNIEn
   return *GetPointer(env, obj) == *GetPointer(env, other);
 }
 
-JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_trySetImpl(
+JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_setCheatImpl(
     JNIEnv* env, jobject obj, jstring name, jstring creator, jstring notes, jstring code_string)
 {
   Gecko::GeckoCode* code = GetPointer(env, obj);
@@ -146,12 +146,12 @@ Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_loadCodes(JNIEnv
                                                                           jint revision)
 {
   const std::string game_id = GetJString(env, jGameID);
-  IniFile game_ini_local;
+  Common::IniFile game_ini_local;
 
   // We don't use LoadLocalGameIni() here because user cheat codes that are installed via the UI
   // will always be stored in GS/${GAMEID}.ini
   game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + game_id + ".ini");
-  const IniFile game_ini_default = SConfig::LoadDefaultGameIni(game_id, revision);
+  const Common::IniFile game_ini_default = SConfig::LoadDefaultGameIni(game_id, revision);
 
   const std::vector<Gecko::GeckoCode> codes = Gecko::LoadCodes(game_ini_default, game_ini_local);
 
@@ -175,7 +175,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_features_cheats_model_Geck
   const std::string game_id = GetJString(env, jGameID);
   const std::string ini_path = File::GetUserPath(D_GAMESETTINGS_IDX) + game_id + ".ini";
 
-  IniFile game_ini_local;
+  Common::IniFile game_ini_local;
   game_ini_local.Load(ini_path);
   Gecko::SaveCodes(game_ini_local, vector);
   game_ini_local.Save(ini_path);

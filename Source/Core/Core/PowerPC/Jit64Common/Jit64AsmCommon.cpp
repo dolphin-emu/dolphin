@@ -305,7 +305,7 @@ void CommonAsmRoutines::GenMfcr()
     if (i != 0)
       SHL(32, R(dst), Imm8(4));
 
-    MOV(64, R(cr_val), PPCSTATE(cr.fields[i]));
+    MOV(64, R(cr_val), PPCSTATE_CR(i));
 
     // EQ: Bits 31-0 == 0; set flag bit 1
     TEST(32, R(cr_val), R(cr_val));

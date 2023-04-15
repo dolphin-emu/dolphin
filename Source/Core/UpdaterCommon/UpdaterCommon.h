@@ -49,6 +49,7 @@ struct TodoList
   void Log() const;
 };
 
+void LogToFile(const char* fmt, ...);
 std::string HexEncode(const u8* buffer, size_t size);
 Manifest::Hash ComputeHash(const std::string& contents);
 bool RunUpdater(std::vector<std::string> args);

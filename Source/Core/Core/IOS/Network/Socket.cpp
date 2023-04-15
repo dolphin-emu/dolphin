@@ -487,8 +487,8 @@ void WiiSocket::Update(bool read, bool write, bool except)
 
             if (ret >= 0)
             {
-              PowerPC::debug_interface.NetworkLogger()->LogSSLWrite(memory.GetPointer(BufferOut2),
-                                                                    ret, ssl->hostfd);
+              system.GetPowerPC().GetDebugInterface().NetworkLogger()->LogSSLWrite(
+                  memory.GetPointer(BufferOut2), ret, ssl->hostfd);
               // Return bytes written or SSL_ERR_ZERO if none
               WriteReturnValue((ret == 0) ? SSL_ERR_ZERO : ret, BufferIn);
             }
@@ -521,8 +521,8 @@ void WiiSocket::Update(bool read, bool write, bool except)
 
             if (ret >= 0)
             {
-              PowerPC::debug_interface.NetworkLogger()->LogSSLRead(memory.GetPointer(BufferIn2),
-                                                                   ret, ssl->hostfd);
+              system.GetPowerPC().GetDebugInterface().NetworkLogger()->LogSSLRead(
+                  memory.GetPointer(BufferIn2), ret, ssl->hostfd);
               // Return bytes read or SSL_ERR_ZERO if none
               WriteReturnValue((ret == 0) ? SSL_ERR_ZERO : ret, BufferIn);
             }
@@ -595,7 +595,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
           const int ret = sendto(fd, data, BufferInSize, flags, to, tolen);
           ReturnValue = WiiSockMan::GetNetErrorCode(ret, "SO_SENDTO", true);
           if (ret > 0)
-            PowerPC::debug_interface.NetworkLogger()->LogWrite(data, ret, fd, to);
+            system.GetPowerPC().GetDebugInterface().NetworkLogger()->LogWrite(data, ret, fd, to);
 
           INFO_LOG_FMT(IOS_NET,
                        "{} = {} Socket: {:08x}, BufferIn: ({:08x}, {}), BufferIn2: ({:08x}, {}), "
@@ -654,7 +654,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
           ReturnValue =
               WiiSockMan::GetNetErrorCode(ret, BufferOutSize2 ? "SO_RECVFROM" : "SO_RECV", true);
           if (ret > 0)
-            PowerPC::debug_interface.NetworkLogger()->LogRead(data, ret, fd, from);
+            system.GetPowerPC().GetDebugInterface().NetworkLogger()->LogRead(data, ret, fd, from);
 
           INFO_LOG_FMT(IOS_NET,
                        "{}({}, {}) Socket: {:08X}, Flags: {:08X}, "
@@ -865,13 +865,33 @@ s32 WiiSockMan::AddSocket(s32 fd, bool is_rw)
     WiiSocket& sock = WiiSockets[wii_fd];
     sock.SetFd(fd);
     sock.SetWiiFd(wii_fd);
-    PowerPC::debug_interface.NetworkLogger()->OnNewSocket(fd);
+    Core::System::GetInstance().GetPowerPC().GetDebugInterface().NetworkLogger()->OnNewSocket(fd);
 
 #ifdef __APPLE__
     int opt_no_sigpipe = 1;
     if (setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &opt_no_sigpipe, sizeof(opt_no_sigpipe)) < 0)
       ERROR_LOG_FMT(IOS_NET, "Failed to set SO_NOSIGPIPE on socket");
 #endif
+
+    // Wii UDP sockets can use broadcast address by default
+    if (!is_rw)
+    {
+      const auto state = Common::SaveNetworkErrorState();
+      Common::ScopeGuard guard([&state] { Common::RestoreNetworkErrorState(state); });
+
+      int socket_type;
+      socklen_t option_length = sizeof(socket_type);
+      const bool is_udp = getsockopt(fd, SOL_SOCKET, SO_TYPE, reinterpret_cast<char*>(&socket_type),
+                                     &option_length) == 0 &&
+                          socket_type == SOCK_DGRAM;
+      const int opt_broadcast = 1;
+      if (is_udp &&
+          setsockopt(fd, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<const char*>(&opt_broadcast),
+                     sizeof(opt_broadcast)) != 0)
+      {
+        ERROR_LOG_FMT(IOS_NET, "Failed to set SO_BROADCAST on socket");
+      }
+    }
   }
 
   SetLastNetError(wii_fd);

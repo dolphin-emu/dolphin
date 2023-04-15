@@ -4,6 +4,7 @@
 #pragma once
 
 #include <cstddef>
+#include <filesystem>
 #include <fstream>
 #include <string>
 #include <string_view>
@@ -84,6 +85,7 @@ enum
   F_DUALSHOCKUDPCLIENTCONFIG_IDX,
   F_FREELOOKCONFIG_IDX,
   F_GBABIOS_IDX,
+  F_RETROACHIEVEMENTSCONFIG_IDX,
   NUM_PATH_INDICES
 };
 
@@ -108,7 +110,6 @@ class FileInfo final
 public:
   explicit FileInfo(const std::string& path);
   explicit FileInfo(const char* path);
-  explicit FileInfo(int fd);
 
   // Returns true if the path exists
   bool Exists() const;
@@ -120,15 +121,8 @@ public:
   u64 GetSize() const;
 
 private:
-#ifdef ANDROID
-  void AndroidContentInit(const std::string& path);
-#endif
-
-#ifdef _WIN32
-  struct __stat64 m_stat;
-#else
-  struct stat m_stat;
-#endif
+  std::filesystem::file_status m_status;
+  std::uintmax_t m_size;
   bool m_exists;
 };
 
@@ -144,17 +138,19 @@ bool IsFile(const std::string& path);
 // Returns the size of a file (or returns 0 if the path isn't a file that exists)
 u64 GetSize(const std::string& path);
 
-// Overloaded GetSize, accepts file descriptor
-u64 GetSize(const int fd);
-
 // Overloaded GetSize, accepts FILE*
 u64 GetSize(FILE* f);
 
-// Returns true if successful, or path already exists.
+// Creates a single directory. Returns true if successful or if the path already exists.
 bool CreateDir(const std::string& filename);
 
-// Creates the full path of fullPath returns true on success
-bool CreateFullPath(const std::string& fullPath);
+// Creates directories recursively. Returns true if successful or if the path already exists.
+bool CreateDirs(std::string_view filename);
+
+// Creates the full path to the file given in fullPath.
+// That is, for path '/a/b/c.bin', creates folders '/a' and '/a/b'.
+// Returns true if creation is successful or if the path already exists.
+bool CreateFullPath(std::string_view fullPath);
 
 enum class IfAbsentBehavior
 {
@@ -177,8 +173,9 @@ bool Rename(const std::string& srcFilename, const std::string& destFilename);
 // ditto, but syncs the source file and, on Unix, syncs the directories after rename
 bool RenameSync(const std::string& srcFilename, const std::string& destFilename);
 
-// copies file srcFilename to destFilename, returns true on success
-bool Copy(const std::string& srcFilename, const std::string& destFilename);
+// Copies a file at source_path to destination_path, as if by std::filesystem::copy_file().
+// If a file already exists at destination_path it is overwritten. Returns true on success.
+bool CopyRegularFile(std::string_view source_path, std::string_view destination_path);
 
 // creates an empty file filename, returns true on success
 bool CreateEmptyFile(const std::string& filename);
@@ -192,9 +189,17 @@ bool DeleteDirRecursively(const std::string& directory);
 // Returns the current directory
 std::string GetCurrentDir();
 
-// Create directory and copy contents (optionally overwrites existing files)
-bool CopyDir(const std::string& source_path, const std::string& dest_path,
-             bool destructive = false);
+// Copies source_path to dest_path, as if by std::filesystem::copy(). Returns true on success or if
+// the source and destination are already the same (as determined by std::filesystem::equivalent()).
+bool Copy(std::string_view source_path, std::string_view dest_path,
+          bool overwrite_existing = false);
+
+// Moves source_path to dest_path. On success, the source_path will no longer exist, and the
+// dest_path will contain the data previously in source_path. Files in dest_path will be overwritten
+// if they match files in source_path, but files that only exist in dest_path will be kept. No
+// guarantee on the state is given on failure; the move may have completely failed or partially
+// completed.
+bool MoveWithOverwrite(std::string_view source_path, std::string_view dest_path);
 
 // Set the current directory to given directory
 bool SetCurrentDir(const std::string& directory);

@@ -43,24 +43,15 @@ void JitArm64::GenerateAsm()
   ABI_PushRegisters(regs_to_save);
   m_float_emit.ABI_PushRegisters(regs_to_save_fpr, ARM64Reg::X30);
 
-  MOVP2R(PPC_REG, &PowerPC::ppcState);
-
-  // Swap the stack pointer, so we have proper guard pages.
-  ADD(ARM64Reg::X0, ARM64Reg::SP, 0);
-  STR(IndexType::Unsigned, ARM64Reg::X0, ARM64Reg::X1,
-      MOVPage2R(ARM64Reg::X1, &m_saved_stack_pointer));
-  LDR(IndexType::Unsigned, ARM64Reg::X0, ARM64Reg::X1, MOVPage2R(ARM64Reg::X1, &m_stack_pointer));
-  FixupBranch no_fake_stack = CBZ(ARM64Reg::X0);
-  ADD(ARM64Reg::SP, ARM64Reg::X0, 0);
-  SetJumpTarget(no_fake_stack);
-
-  // Push {nullptr; -1} as invalid destination on the stack.
-  MOVI2R(ARM64Reg::X0, 0xFFFFFFFF);
-  STP(IndexType::Pre, ARM64Reg::ZR, ARM64Reg::X0, ARM64Reg::SP, -16);
+  MOVP2R(PPC_REG, &m_ppc_state);
 
   // Store the stack pointer, so we can reset it if the BLR optimization fails.
   ADD(ARM64Reg::X0, ARM64Reg::SP, 0);
   STR(IndexType::Unsigned, ARM64Reg::X0, PPC_REG, PPCSTATE_OFF(stored_stack_pointer));
+
+  // Push {nullptr; -1} as invalid destination on the stack.
+  MOVI2R(ARM64Reg::X0, 0xFFFFFFFF);
+  STP(IndexType::Pre, ARM64Reg::ZR, ARM64Reg::X0, ARM64Reg::SP, -16);
 
   // The PC will be loaded into DISPATCHER_PC after the call to CoreTiming::Advance().
   // Advance() does an exception check so we don't know what PC to use until afterwards.
@@ -76,7 +67,7 @@ void JitArm64::GenerateAsm()
   // dispatcher_no_check:
   //     ExecuteBlock(JitBase::Dispatch());
   // dispatcher:
-  //   } while (PowerPC::ppcState.downcount > 0);
+  //   } while (m_ppc_state.downcount > 0);
   // do_timing:
   //   NPC = PC = DISPATCHER_PC;
   // } while (CPU::GetState() == CPU::State::Running);
@@ -90,11 +81,13 @@ void JitArm64::GenerateAsm()
 
   dispatcher_no_timing_check = GetCodePtr();
 
+  auto& cpu = m_system.GetCPU();
+
   FixupBranch debug_exit;
   if (enable_debugging)
   {
     LDR(IndexType::Unsigned, ARM64Reg::W0, ARM64Reg::X0,
-        MOVPage2R(ARM64Reg::X0, CPU::GetStatePtr()));
+        MOVPage2R(ARM64Reg::X0, cpu.GetStatePtr()));
     debug_exit = CBNZ(ARM64Reg::W0);
   }
 
@@ -102,8 +95,7 @@ void JitArm64::GenerateAsm()
 
   bool assembly_dispatcher = true;
 
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
+  auto& memory = m_system.GetMemory();
 
   if (assembly_dispatcher)
   {
@@ -186,7 +178,7 @@ void JitArm64::GenerateAsm()
 
   // Check the state pointer to see if we are exiting
   // Gets checked on at the end of every slice
-  LDR(IndexType::Unsigned, ARM64Reg::W0, ARM64Reg::X0, MOVPage2R(ARM64Reg::X0, CPU::GetStatePtr()));
+  LDR(IndexType::Unsigned, ARM64Reg::W0, ARM64Reg::X0, MOVPage2R(ARM64Reg::X0, cpu.GetStatePtr()));
   FixupBranch exit = CBNZ(ARM64Reg::W0);
 
   SetJumpTarget(to_start_of_timing_slice);
@@ -204,9 +196,9 @@ void JitArm64::GenerateAsm()
   if (enable_debugging)
     SetJumpTarget(debug_exit);
 
-  // Reset the stack pointer, as the BLR optimization have touched it.
-  LDR(IndexType::Unsigned, ARM64Reg::X0, ARM64Reg::X1,
-      MOVPage2R(ARM64Reg::X1, &m_saved_stack_pointer));
+  // Reset the stack pointer, since the BLR optimization may have pushed things onto the stack
+  // without popping them.
+  LDR(IndexType::Unsigned, ARM64Reg::X0, PPC_REG, PPCSTATE_OFF(stored_stack_pointer));
   ADD(ARM64Reg::SP, ARM64Reg::X0, 0);
 
   m_float_emit.ABI_PopRegisters(regs_to_save_fpr, ARM64Reg::X30);

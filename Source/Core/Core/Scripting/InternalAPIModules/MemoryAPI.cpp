@@ -3,6 +3,7 @@
 #include <fmt/format.h>
 #include <optional>
 
+#include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/System.h"
@@ -68,7 +69,8 @@ ArgHolder ReadU8(ScriptContext* current_script, std::vector<ArgHolder>& args_lis
   long long address = args_list[0].long_long_val;
   if (address < 0)
     return CreateErrorStringArgHolder("address is not allowed to be negative!");
-  std::optional<PowerPC::ReadResult<u8>> read_result = PowerPC::HostTryReadU8(address);
+  std::optional<PowerPC::ReadResult<u8>> read_result =
+      PowerPC::MMU::HostTryReadU8(Core::CPUThreadGuard(Core::System::GetInstance()), address);
     if (!read_result.has_value())
     {
       // return CreateErrorStringArgHolder(fmt::format("Attempt to read u8 from address {} failed!, address))
@@ -82,7 +84,8 @@ ArgHolder ReadU16(ScriptContext* current_script, std::vector<ArgHolder>& args_li
     long long address = args_list[0].long_long_val;
     if (address < 0)
       return CreateErrorStringArgHolder("Address is not allowed to be negative!");
-    std::optional<PowerPC::ReadResult<u16>> read_result = PowerPC::HostTryReadU16(address);
+    std::optional<PowerPC::ReadResult<u16>> read_result =
+        PowerPC::MMU::HostTryReadU16(Core::CPUThreadGuard(Core::System::GetInstance()), address);
     if (!read_result.has_value())
       return CreateErrorStringArgHolder(
           fmt::format("Attempt to read u16 from address {} failed!", address));
@@ -94,7 +97,8 @@ ArgHolder ReadU32(ScriptContext* current_script, std::vector<ArgHolder>& args_li
     long long address = args_list[0].long_long_val;
     if (address < 0)
       return CreateErrorStringArgHolder("Address is not allowd to be negative!");
-    std::optional<PowerPC::ReadResult<u32>> read_result = PowerPC::HostTryReadU32(address);
+    std::optional<PowerPC::ReadResult<u32>> read_result =
+        PowerPC::MMU::HostTryReadU32(Core::CPUThreadGuard(Core::System::GetInstance()), address);
     if (!read_result.has_value())
       return CreateErrorStringArgHolder(
           fmt::format("Attempt to read u32 from address {} failed!", address));
@@ -106,7 +110,8 @@ ArgHolder ReadU64(ScriptContext* current_script, std::vector<ArgHolder>& args_li
     long long address = args_list[0].long_long_val;
     if (address < 0)
       return CreateErrorStringArgHolder("Address is not allowed to be negative!");
-    std::optional<PowerPC::ReadResult<u64>> read_result = PowerPC::HostTryReadU64(address);
+    std::optional<PowerPC::ReadResult<u64>> read_result =
+        PowerPC::MMU::HostTryReadU64(Core::CPUThreadGuard(Core::System::GetInstance()), address);
     if (!read_result.has_value())
       return CreateErrorStringArgHolder(
           fmt::format("Attempt to read u64 from address {} failed!", address));
@@ -118,7 +123,8 @@ ArgHolder ReadS8(ScriptContext* current_script, std::vector<ArgHolder>& args_lis
     long long address = args_list[0].long_long_val;
     if (address < 0)
       return CreateErrorStringArgHolder("Address is not allowed to be negative!");
-    std::optional<PowerPC::ReadResult<u8>> read_result = PowerPC::HostTryReadU8(address);
+    std::optional<PowerPC::ReadResult<u8>> read_result =
+        PowerPC::MMU::HostTryReadU8(Core::CPUThreadGuard(Core::System::GetInstance()), address);
     if (!read_result.has_value())
       return CreateErrorStringArgHolder(
           fmt::format("Attempt to read s8 from address {} failed!", address));
@@ -133,7 +139,8 @@ ArgHolder ReadS16(ScriptContext* current_script, std::vector<ArgHolder>& args_li
     long long address = args_list[0].long_long_val;
     if (address < 0)
       return CreateErrorStringArgHolder("Address is not allowed to be negative!");
-    std::optional<PowerPC::ReadResult<u16>> read_result = PowerPC::HostTryReadU16(address);
+    std::optional<PowerPC::ReadResult<u16>> read_result =
+        PowerPC::MMU::HostTryReadU16(Core::CPUThreadGuard(Core::System::GetInstance()), address);
     if (!read_result.has_value())
       return CreateErrorStringArgHolder(
           fmt::format("Attempt to read s16 from address {} failed!", address));
@@ -148,7 +155,8 @@ ArgHolder ReadS32(ScriptContext* current_script, std::vector<ArgHolder>& args_li
     long long address = args_list[0].long_long_val;
     if (address < 0)
       return CreateErrorStringArgHolder("Address is not allowed to be negative!");
-    std::optional<PowerPC::ReadResult<u32>> read_result = PowerPC::HostTryReadU32(address);
+    std::optional<PowerPC::ReadResult<u32>> read_result =
+        PowerPC::MMU::HostTryReadU32(Core::CPUThreadGuard(Core::System::GetInstance()), address);
     if (!read_result.has_value())
       return CreateErrorStringArgHolder(
           fmt::format("Attempt to read s32 from address {} failed!", address));
@@ -163,7 +171,8 @@ ArgHolder ReadS64(ScriptContext* current_script, std::vector<ArgHolder>& args_li
     long long address = args_list[0].long_long_val;
     if (address < 0)
       return CreateErrorStringArgHolder("Address is not allowed to be negative!");
-    std::optional<PowerPC::ReadResult<u64>> read_result = PowerPC::HostTryReadU64(address);
+    std::optional<PowerPC::ReadResult<u64>> read_result =
+        PowerPC::MMU::HostTryReadU64(Core::CPUThreadGuard(Core::System::GetInstance()), address);
     if (!read_result.has_value())
       return CreateErrorStringArgHolder(fmt::format("Attempt to read s64 from address {} failed!",
                                         address));
@@ -178,7 +187,8 @@ ArgHolder ReadFloat(ScriptContext* current_script, std::vector<ArgHolder>& args_
     long long address = args_list[0].long_long_val;
     if (address < 0)
       return CreateErrorStringArgHolder("Address is not allowed to be negative!");
-    std::optional<PowerPC::ReadResult<u32>> read_result = PowerPC::HostTryReadU32(address);
+    std::optional<PowerPC::ReadResult<u32>> read_result =
+        PowerPC::MMU::HostTryReadU32(Core::CPUThreadGuard(Core::System::GetInstance()), address);
     if (!read_result.has_value())
       return CreateErrorStringArgHolder(
           fmt::format("Attempt to read float from address {} failed!", address));
@@ -193,7 +203,8 @@ ArgHolder ReadDouble(ScriptContext* current_script, std::vector<ArgHolder>& args
     long long address = args_list[0].long_long_val;
     if (address < 0)
       return CreateErrorStringArgHolder("Address is not allowed to be negative!");
-    std::optional<PowerPC::ReadResult<u64>> read_result = PowerPC::HostTryReadU64(address);
+    std::optional<PowerPC::ReadResult<u64>> read_result =
+        PowerPC::MMU::HostTryReadU64(Core::CPUThreadGuard(Core::System::GetInstance()), address);
     if (!read_result.has_value())
       return CreateErrorStringArgHolder(
           fmt::format("Attempt to read double from address {} failed!", address));
@@ -219,7 +230,8 @@ ArgHolder ReadFixedLengthString(ScriptContext* current_script,
     std::string return_string = std::string(string_length, ' ');
     for (long long i = 0; i < string_length; ++i)
     {
-      std::optional<PowerPC::ReadResult<u8>> read_result = PowerPC::HostTryReadU8(address + i);
+      std::optional<PowerPC::ReadResult<u8>> read_result = PowerPC::MMU::HostTryReadU8(
+          Core::CPUThreadGuard(Core::System::GetInstance()), address + i);
       if (!read_result.has_value())
         return CreateErrorStringArgHolder(
             fmt::format("Could not read char at address of {}", address + i));
@@ -241,7 +253,8 @@ ArgHolder ReadNullTerminatedString(ScriptContext* current_script,
     long long offset = 0;
     while (true)
     {
-      std::optional<PowerPC::ReadResult<u8>> read_result = PowerPC::HostTryReadU8(address + offset);
+      std::optional<PowerPC::ReadResult<u8>> read_result = PowerPC::MMU::HostTryReadU8(
+          Core::CPUThreadGuard(Core::System::GetInstance()), address + offset);
       if (!read_result.has_value())
         return CreateErrorStringArgHolder(
             fmt::format("Could not read char at address of {}", address + offset));
@@ -272,7 +285,8 @@ ArgHolder ReadUnsignedBytes(ScriptContext* current_script, std::vector<ArgHolder
 
   for (long long i = 0; i < number_of_bytes; ++i)
   {
-      std::optional<PowerPC::ReadResult<u8>> read_result = PowerPC::HostTryReadU8(address + i);
+      std::optional<PowerPC::ReadResult<u8>> read_result = PowerPC::MMU::HostTryReadU8(
+          Core::CPUThreadGuard(Core::System::GetInstance()), address + i);
       if (!read_result.has_value())
         return CreateErrorStringArgHolder(
             fmt::format("Could not read unsigned byte at address {}", address + i));
@@ -296,7 +310,8 @@ ArgHolder ReadSignedBytes(ScriptContext* current_script, std::vector<ArgHolder>&
 
   for (long long i = 0; i < number_of_bytes; ++i)
   {
-      std::optional<PowerPC::ReadResult<u8>> read_result = PowerPC::HostTryReadU8(address + i);
+      std::optional<PowerPC::ReadResult<u8>> read_result = PowerPC::MMU::HostTryReadU8(
+          Core::CPUThreadGuard(Core::System::GetInstance()), address + i);
       if (!read_result.has_value())
         return CreateErrorStringArgHolder(
             fmt::format("Could not read signed byte at address {}", address + i));
@@ -315,7 +330,8 @@ ArgHolder WriteU8(ScriptContext* current_script, std::vector<ArgHolder>& args_li
   if (address < 0)
       return CreateErrorStringArgHolder("Address is not allowed to be negative!");
   u8 u8_val = args_list[1].u8_val;
-  std::optional<PowerPC::WriteResult> write_result = PowerPC::HostTryWriteU8(u8_val, address);
+  std::optional<PowerPC::WriteResult> write_result = PowerPC::MMU::HostTryWriteU8(
+      Core::CPUThreadGuard(Core::System::GetInstance()), u8_val, address);
   if (!write_result.has_value())
       return CreateErrorStringArgHolder(
           fmt::format("Could not write u8 of {} to address {}", u8_val, address));
@@ -328,7 +344,8 @@ ArgHolder WriteU16(ScriptContext* current_script, std::vector<ArgHolder>& args_l
   if (address < 0)
       return CreateErrorStringArgHolder("Address is not allowed to be negative!");
   u16 u16_val = args_list[1].u16_val;
-  std::optional<PowerPC::WriteResult> write_result = PowerPC::HostTryWriteU16(u16_val, address);
+  std::optional<PowerPC::WriteResult> write_result =
+      PowerPC::MMU::HostTryWriteU16(Core::CPUThreadGuard(Core::System::GetInstance()), u16_val, address);
   if (!write_result.has_value())
       return CreateErrorStringArgHolder(
           fmt::format("Could not write u16 of {} to address {}", u16_val, address));
@@ -341,7 +358,8 @@ ArgHolder WriteU32(ScriptContext* current_script, std::vector<ArgHolder>& args_l
   if (address < 0)
       return CreateErrorStringArgHolder("Address is not allowed to be negative!");
   u32 u32_val = args_list[1].u32_val;
-  std::optional<PowerPC::WriteResult> write_result = PowerPC::HostTryWriteU32(u32_val, address);
+  std::optional<PowerPC::WriteResult> write_result = PowerPC::MMU::HostTryWriteU32(
+      Core::CPUThreadGuard(Core::System::GetInstance()), u32_val, address);
   if (!write_result.has_value())
       return CreateErrorStringArgHolder(
           fmt::format("Could not write u32 of {} to address {}", u32_val, address));
@@ -354,7 +372,8 @@ ArgHolder WriteU64(ScriptContext* current_script, std::vector<ArgHolder>& args_l
   if (address < 0)
       return CreateErrorStringArgHolder("Address is not allowed to be negative!");
   u64 u64_val = args_list[1].u64_val;
-  std::optional<PowerPC::WriteResult> write_result = PowerPC::HostTryWriteU64(u64_val, address);
+  std::optional<PowerPC::WriteResult> write_result = PowerPC::MMU::HostTryWriteU64(
+      Core::CPUThreadGuard(Core::System::GetInstance()), u64_val, address);
   if (!write_result.has_value())
       return CreateErrorStringArgHolder(
           fmt::format("Could not write u64 of {} to address {}", u64_val, address));
@@ -369,7 +388,8 @@ ArgHolder WriteS8(ScriptContext* current_script, std::vector<ArgHolder>& args_li
   s8 s8_val = args_list[1].s8_val;
   u8 u8_val = 0;
   memcpy(&u8_val, &s8_val, sizeof(u8));
-  std::optional<PowerPC::WriteResult> write_result = PowerPC::HostTryWriteU8(u8_val, address);
+  std::optional<PowerPC::WriteResult> write_result = PowerPC::MMU::HostTryWriteU8(
+      Core::CPUThreadGuard(Core::System::GetInstance()), u8_val, address);
   if (!write_result.has_value())
       return CreateErrorStringArgHolder(
           fmt::format("Could not write s8 of {} to address {}", s8_val, address));
@@ -384,7 +404,8 @@ ArgHolder WriteS16(ScriptContext* current_script, std::vector<ArgHolder>& args_l
   s16 s16_val = args_list[1].s16_val;
   u16 u16_val = 0;
   memcpy(&u16_val, &s16_val, sizeof(u16));
-  std::optional<PowerPC::WriteResult> write_result = PowerPC::HostTryWriteU16(u16_val, address);
+  std::optional<PowerPC::WriteResult> write_result = PowerPC::MMU::HostTryWriteU16(
+      Core::CPUThreadGuard(Core::System::GetInstance()), u16_val, address);
   if (!write_result.has_value())
       return CreateErrorStringArgHolder(
           fmt::format("Could not write s16 of {} to address {}", s16_val, address));
@@ -399,7 +420,8 @@ ArgHolder WriteS32(ScriptContext* current_script, std::vector<ArgHolder>& args_l
   s32 s32_val = args_list[1].int_val;
   u32 u32_val = 0;
   memcpy(&u32_val, &s32_val, sizeof(u32));
-  std::optional<PowerPC::WriteResult> write_result = PowerPC::HostTryWriteU32(u32_val, address);
+  std::optional<PowerPC::WriteResult> write_result = PowerPC::MMU::HostTryWriteU32(
+      Core::CPUThreadGuard(Core::System::GetInstance()), u32_val, address);
   if (!write_result.has_value())
       return CreateErrorStringArgHolder(
           fmt::format("Could not write s32 of {} to address {}", s32_val, address));
@@ -414,7 +436,8 @@ ArgHolder WriteS64(ScriptContext* current_script, std::vector<ArgHolder>& args_l
   s64 s64_val = args_list[1].long_long_val;
   u64 u64_val = 0;
   memcpy(&u64_val, &s64_val, sizeof(u64));
-  std::optional<PowerPC::WriteResult> write_result = PowerPC::HostTryWriteU64(u64_val, address);
+  std::optional<PowerPC::WriteResult> write_result = PowerPC::MMU::HostTryWriteU64(
+      Core::CPUThreadGuard(Core::System::GetInstance()), u64_val, address);
   if (!write_result.has_value())
       return CreateErrorStringArgHolder(
           fmt::format("Could not write s64 of {} to address {}", s64_val, address));
@@ -429,7 +452,8 @@ ArgHolder WriteFloat(ScriptContext* current_script, std::vector<ArgHolder>& args
   float float_val = args_list[1].float_val;
   u32 u32_val = 0;
   memcpy(&u32_val, &float_val, sizeof(u32));
-  std::optional<PowerPC::WriteResult> write_result = PowerPC::HostTryWriteU32(u32_val, address);
+  std::optional<PowerPC::WriteResult> write_result = PowerPC::MMU::HostTryWriteU32(
+      Core::CPUThreadGuard(Core::System::GetInstance()), u32_val, address);
   if (!write_result.has_value())
       return CreateErrorStringArgHolder(
           fmt::format("Could not write float of {} to address {}", float_val, address));
@@ -444,7 +468,8 @@ ArgHolder WriteDouble(ScriptContext* current_script, std::vector<ArgHolder>& arg
   double double_val = args_list[1].double_val;
   u64 u64_val = 0;
   memcpy(&u64_val, &double_val, sizeof(u64));
-  std::optional<PowerPC::WriteResult> write_result = PowerPC::HostTryWriteU64(u64_val, address);
+  std::optional<PowerPC::WriteResult> write_result = PowerPC::MMU::HostTryWriteU64(
+      Core::CPUThreadGuard(Core::System::GetInstance()), u64_val, address);
   if (!write_result.has_value())
       return CreateErrorStringArgHolder(
           fmt::format("Could not write double of {} to address {}", double_val, address));
@@ -460,12 +485,15 @@ ArgHolder WriteString(ScriptContext* current_script, std::vector<ArgHolder>& arg
   size_t string_length = input_string.length();
   for (int i = 0; i < string_length; ++i)
   {
-      std::optional<PowerPC::WriteResult> write_result = PowerPC::HostTryWriteU8(input_string[i], address + i);
+      std::optional<PowerPC::WriteResult> write_result = PowerPC::MMU::HostTryWriteU8(
+          Core::CPUThreadGuard(Core::System::GetInstance()), input_string[i], address + i);
       if (!write_result.has_value())
         return CreateErrorStringArgHolder(
             fmt::format("Could not write char of {} to address {}", input_string[i], address + i));
   }
-  std::optional<PowerPC::WriteResult> write_result = PowerPC::HostTryWriteU8('\0', address + static_cast<s32>(string_length));
+  std::optional<PowerPC::WriteResult> write_result =
+      PowerPC::MMU::HostTryWriteU8(Core::CPUThreadGuard(Core::System::GetInstance()), '\0',
+                                   address + static_cast<s32>(string_length));
   if (!write_result.has_value())
       return CreateErrorStringArgHolder(
           fmt::format("Could not write char of {} to address {}",'\0', address + string_length));
@@ -488,7 +516,8 @@ ArgHolder WriteBytes(ScriptContext* current_script, std::vector<ArgHolder>& args
         s8 raw_s8 = static_cast<s8>(raw_value);
         u8 u8_val = 0;
         memcpy(&u8_val, &raw_s8, sizeof(u8));
-        std::optional<PowerPC::WriteResult> write_result = PowerPC::HostTryWriteU8(u8_val, address);
+        std::optional<PowerPC::WriteResult> write_result = PowerPC::MMU::HostTryWriteU8(
+            Core::CPUThreadGuard(Core::System::GetInstance()), u8_val, address);
         if (!write_result.has_value())
           return CreateErrorStringArgHolder(
               fmt::format("Could not write byte of {} to address {}", raw_value, address));
@@ -496,7 +525,8 @@ ArgHolder WriteBytes(ScriptContext* current_script, std::vector<ArgHolder>& args
       else
       {
         u8 u8_val = static_cast<u8>(raw_value);
-        std::optional<PowerPC::WriteResult> write_result = PowerPC::HostTryWriteU8(u8_val, address);
+        std::optional<PowerPC::WriteResult> write_result = PowerPC::MMU::HostTryWriteU8(
+            Core::CPUThreadGuard(Core::System::GetInstance()), u8_val, address);
         if (!write_result.has_value())
           return CreateErrorStringArgHolder(
               fmt::format("Could not write byte of {} to address {}", raw_value, address));

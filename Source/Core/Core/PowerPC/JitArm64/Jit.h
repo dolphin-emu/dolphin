@@ -22,7 +22,11 @@
 class JitArm64 : public JitBase, public Arm64Gen::ARM64CodeBlock, public CommonAsmRoutinesBase
 {
 public:
-  JitArm64();
+  explicit JitArm64(Core::System& system);
+  JitArm64(const JitArm64&) = delete;
+  JitArm64(JitArm64&&) = delete;
+  JitArm64& operator=(const JitArm64&) = delete;
+  JitArm64& operator=(JitArm64&&) = delete;
   ~JitArm64() override;
 
   void Init() override;
@@ -32,8 +36,7 @@ public:
   bool IsInCodeSpace(const u8* ptr) const { return IsInSpace(ptr); }
   bool HandleFault(uintptr_t access_address, SContext* ctx) override;
   void DoBacktrace(uintptr_t access_address, SContext* ctx);
-  bool HandleStackFault() override;
-  bool HandleFastmemFault(uintptr_t access_address, SContext* ctx);
+  bool HandleFastmemFault(SContext* ctx);
 
   void ClearCache() override;
 
@@ -288,8 +291,6 @@ protected:
   void DoDownCount();
   void Cleanup();
   void ResetStack();
-  void AllocStack();
-  void FreeStack();
 
   void ResetFreeMemoryRanges();
 
@@ -347,7 +348,7 @@ protected:
   void Force25BitPrecision(Arm64Gen::ARM64Reg output, Arm64Gen::ARM64Reg input);
 
   // <Fastmem fault location, slowmem handler location>
-  std::map<const u8*, FastmemArea> m_fault_to_handler;
+  std::map<const u8*, FastmemArea> m_fault_to_handler{};
   Arm64GPRCache gpr;
   Arm64FPRCache fpr;
 
@@ -359,15 +360,9 @@ protected:
   bool m_in_far_code = false;
 
   // Backed up when we switch to far code.
-  u8* m_near_code;
-  u8* m_near_code_end;
-  bool m_near_code_write_failed;
-
-  bool m_enable_blr_optimization;
-  bool m_cleanup_after_stackfault = false;
-  u8* m_stack_base = nullptr;
-  u8* m_stack_pointer = nullptr;
-  u8* m_saved_stack_pointer = nullptr;
+  u8* m_near_code = nullptr;
+  u8* m_near_code_end = nullptr;
+  bool m_near_code_write_failed = false;
 
   HyoutaUtilities::RangeSizeSet<u8*> m_free_ranges_near;
   HyoutaUtilities::RangeSizeSet<u8*> m_free_ranges_far;

@@ -14,15 +14,29 @@ namespace HSP
 class IHSPDevice;
 enum class HSPDeviceType : int;
 
-void Init();
-void Shutdown();
+class HSPManager
+{
+public:
+  HSPManager();
+  HSPManager(const HSPManager& other) = delete;
+  HSPManager(HSPManager&& other) = delete;
+  HSPManager& operator=(const HSPManager& other) = delete;
+  HSPManager& operator=(HSPManager&& other) = delete;
+  ~HSPManager();
 
-u64 Read(u32 address);
-void Write(u32 address, u64 value);
+  void Init();
+  void Shutdown();
 
-void DoState(PointerWrap& p);
+  u64 Read(u32 address);
+  void Write(u32 address, u64 value);
 
-void RemoveDevice();
-void AddDevice(std::unique_ptr<IHSPDevice> device);
-void AddDevice(HSPDeviceType device);
+  void DoState(PointerWrap& p);
+
+  void RemoveDevice();
+  void AddDevice(std::unique_ptr<IHSPDevice> device);
+  void AddDevice(HSPDeviceType device);
+
+private:
+  std::unique_ptr<IHSPDevice> m_device;
+};
 }  // namespace HSP

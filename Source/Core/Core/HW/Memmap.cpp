@@ -41,31 +41,33 @@
 
 namespace Memory
 {
-MemoryManager::MemoryManager() = default;
+MemoryManager::MemoryManager(Core::System& system) : m_system(system)
+{
+}
+
 MemoryManager::~MemoryManager() = default;
 
 void MemoryManager::InitMMIO(bool is_wii)
 {
   m_mmio_mapping = std::make_unique<MMIO::Mapping>();
 
-  auto& system = Core::System::GetInstance();
-  system.GetCommandProcessor().RegisterMMIO(system, m_mmio_mapping.get(), 0x0C000000);
-  system.GetPixelEngine().RegisterMMIO(m_mmio_mapping.get(), 0x0C001000);
-  VideoInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0C002000);
-  system.GetProcessorInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C003000);
-  MemoryInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0C004000);
-  DSP::RegisterMMIO(m_mmio_mapping.get(), 0x0C005000);
-  DVDInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0C006000, false);
-  SerialInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0C006400);
-  ExpansionInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0C006800);
-  AudioInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0C006C00);
+  m_system.GetCommandProcessor().RegisterMMIO(m_system, m_mmio_mapping.get(), 0x0C000000);
+  m_system.GetPixelEngine().RegisterMMIO(m_mmio_mapping.get(), 0x0C001000);
+  m_system.GetVideoInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C002000);
+  m_system.GetProcessorInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C003000);
+  m_system.GetMemoryInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C004000);
+  m_system.GetDSP().RegisterMMIO(m_mmio_mapping.get(), 0x0C005000);
+  m_system.GetDVDInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C006000, false);
+  m_system.GetSerialInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C006400);
+  m_system.GetExpansionInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C006800);
+  m_system.GetAudioInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C006C00);
   if (is_wii)
   {
     IOS::RegisterMMIO(m_mmio_mapping.get(), 0x0D000000);
-    DVDInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0D006000, true);
-    SerialInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0D006400);
-    ExpansionInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0D006800);
-    AudioInterface::RegisterMMIO(m_mmio_mapping.get(), 0x0D006C00);
+    m_system.GetDVDInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006000, true);
+    m_system.GetSerialInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006400);
+    m_system.GetExpansionInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006800);
+    m_system.GetAudioInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006C00);
   }
 }
 
@@ -102,7 +104,7 @@ void MemoryManager::Init()
       &m_exram, 0x10000000, GetExRamSize(), PhysicalMemoryRegion::WII_ONLY, 0, false};
 
   const bool wii = SConfig::GetInstance().bWii;
-  const bool mmu = Core::System::GetInstance().IsMMUMode();
+  const bool mmu = m_system.IsMMUMode();
 
   // If MMU is turned off in GameCube mode, turn on fake VMEM hack.
   const bool fake_vmem = !wii && !mmu;
@@ -157,6 +159,11 @@ void MemoryManager::Init()
   m_is_initialized = true;
 }
 
+bool MemoryManager::IsAddressInFastmemArea(const u8* address) const
+{
+  return address >= m_fastmem_arena && address < m_fastmem_arena + m_fastmem_arena_size;
+}
+
 bool MemoryManager::InitFastmemArena()
 {
   // Here we set up memory mappings for fastmem. The basic idea of fastmem is that we reserve 4 GiB
@@ -194,15 +201,15 @@ bool MemoryManager::InitFastmemArena()
   constexpr size_t guard_size = 0x8000'0000;
   constexpr size_t memory_size = ppc_view_size * 2 + guard_size * 3;
 
-  u8* fastmem_arena = m_arena.ReserveMemoryRegion(memory_size);
-  if (!fastmem_arena)
+  m_fastmem_arena = m_arena.ReserveMemoryRegion(memory_size);
+  if (!m_fastmem_arena)
   {
     PanicAlertFmt("Memory::InitFastmemArena(): Failed finding a memory base.");
     return false;
   }
 
-  m_physical_base = fastmem_arena + guard_size;
-  m_logical_base = fastmem_arena + ppc_view_size + guard_size * 2;
+  m_physical_base = m_fastmem_arena + guard_size;
+  m_logical_base = m_fastmem_arena + ppc_view_size + guard_size * 2;
 
   for (const PhysicalMemoryRegion& region : m_physical_regions)
   {
@@ -222,6 +229,7 @@ bool MemoryManager::InitFastmemArena()
   }
 
   m_is_fastmem_arena_initialized = true;
+  m_fastmem_arena_size = memory_size;
   return true;
 }
 
@@ -371,6 +379,8 @@ void MemoryManager::ShutdownFastmemArena()
 
   m_arena.ReleaseMemoryRegion();
 
+  m_fastmem_arena = nullptr;
+  m_fastmem_arena_size = 0;
   m_physical_base = nullptr;
   m_logical_base = nullptr;
 
@@ -482,7 +492,7 @@ u8* MemoryManager::GetPointer(u32 address) const
       return m_exram + (address & GetExRamMask());
   }
 
-  auto& ppc_state = Core::System::GetInstance().GetPPCState();
+  auto& ppc_state = m_system.GetPPCState();
   PanicAlertFmt("Unknown Pointer {:#010x} PC {:#010x} LR {:#010x}", address, ppc_state.pc,
                 LR(ppc_state));
   return nullptr;

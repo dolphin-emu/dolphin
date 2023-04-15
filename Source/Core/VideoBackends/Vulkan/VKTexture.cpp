@@ -780,7 +780,7 @@ std::pair<VkImage, VmaAllocation> VKStagingTexture::CreateLinearImage(StagingTex
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "Linear images are not supported for the staging texture: ");
-    return std::make_pair(VK_NULL_HANDLE, VK_NULL_HANDLE);
+    return std::make_pair<VkImage, VmaAllocation>(VK_NULL_HANDLE, VK_NULL_HANDLE);
   }
 
   VmaAllocationCreateInfo alloc_create_info = {};
@@ -799,7 +799,7 @@ std::pair<VkImage, VmaAllocation> VKStagingTexture::CreateLinearImage(StagingTex
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vmaCreateImage failed: ");
-    return std::make_pair(VK_NULL_HANDLE, VK_NULL_HANDLE);
+    return std::make_pair<VkImage, VmaAllocation>(VK_NULL_HANDLE, VK_NULL_HANDLE);
   }
   return std::make_pair(image, alloc);
 }

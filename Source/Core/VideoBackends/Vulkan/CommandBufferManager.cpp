@@ -11,6 +11,7 @@
 #include "Common/Thread.h"
 
 #include "VideoBackends/Vulkan/VulkanContext.h"
+#include "VideoCommon/Constants.h"
 
 namespace Vulkan
 {
@@ -25,8 +26,7 @@ CommandBufferManager::~CommandBufferManager()
   if (m_use_threaded_submission)
   {
     WaitForWorkerThreadIdle();
-    m_submit_loop->Stop();
-    m_submit_thread.join();
+    m_submit_thread.Shutdown();
   }
 
   DestroyCommandBuffers();
@@ -148,14 +148,17 @@ VkDescriptorPool CommandBufferManager::CreateDescriptorPool(u32 max_descriptor_s
   /*
    * Worst case descriptor counts according to the descriptor layout created in ObjectCache.cpp:
    * UNIFORM_BUFFER_DYNAMIC: 3
-   * COMBINED_IMAGE_SAMPLER: 18
+   * COMBINED_IMAGE_SAMPLER: NUM_UTILITY_PIXEL_SAMPLERS + NUM_COMPUTE_SHADER_SAMPLERS +
+   * VideoCommon::MAX_PIXEL_SHADER_SAMPLERS
    * STORAGE_BUFFER: 2
    * UNIFORM_TEXEL_BUFFER: 3
    * STORAGE_IMAGE: 1
    */
   const std::array<VkDescriptorPoolSize, 5> pool_sizes{{
       {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, max_descriptor_sets * 3},
-      {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, max_descriptor_sets * 18},
+      {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+       max_descriptor_sets * (VideoCommon::MAX_PIXEL_SHADER_SAMPLERS + NUM_COMPUTE_SHADER_SAMPLERS +
+                              NUM_UTILITY_PIXEL_SAMPLERS)},
       {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, max_descriptor_sets * 2},
       {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, max_descriptor_sets * 3},
       {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, max_descriptor_sets * 1},
@@ -217,40 +220,11 @@ VkDescriptorSet CommandBufferManager::AllocateDescriptorSet(VkDescriptorSetLayou
 
 bool CommandBufferManager::CreateSubmitThread()
 {
-  m_submit_loop = std::make_unique<Common::BlockingLoop>();
-  m_submit_thread = std::thread([this]() {
-    Common::SetCurrentThreadName("Vulkan CommandBufferManager SubmitThread");
-
-    m_submit_loop->Run([this]() {
-      PendingCommandBufferSubmit submit;
-      {
-        std::lock_guard<std::mutex> guard(m_pending_submit_lock);
-        if (m_pending_submits.empty())
-        {
-          m_submit_loop->AllowSleep();
-          m_submit_worker_idle = true;
-          m_submit_worker_condvar.notify_all();
-          return;
-        }
-
-        submit = m_pending_submits.front();
-        m_pending_submits.pop_front();
-      }
-
-      SubmitCommandBuffer(submit.command_buffer_index, submit.present_swap_chain,
-                          submit.present_image_index);
-      CmdBufferResources& resources = m_command_buffers[submit.command_buffer_index];
-      resources.waiting_for_submit.store(false, std::memory_order_release);
-
-      {
-        std::lock_guard<std::mutex> guard(m_pending_submit_lock);
-        if (m_pending_submits.empty())
-        {
-          m_submit_worker_idle = true;
-          m_submit_worker_condvar.notify_all();
-        }
-      }
-    });
+  m_submit_thread.Reset("VK submission thread", [this](PendingCommandBufferSubmit submit) {
+    SubmitCommandBuffer(submit.command_buffer_index, submit.present_swap_chain,
+                        submit.present_image_index);
+    CmdBufferResources& resources = m_command_buffers[submit.command_buffer_index];
+    resources.waiting_for_submit.store(false, std::memory_order_release);
   });
 
   return true;
@@ -261,8 +235,7 @@ void CommandBufferManager::WaitForWorkerThreadIdle()
   if (!m_use_threaded_submission)
     return;
 
-  std::unique_lock lock{m_pending_submit_lock};
-  m_submit_worker_condvar.wait(lock, [&] { return m_submit_worker_idle; });
+  m_submit_thread.WaitForCompletion();
 }
 
 void CommandBufferManager::WaitForFenceCounter(u64 fence_counter)
@@ -348,14 +321,7 @@ void CommandBufferManager::SubmitCommandBuffer(bool submit_on_worker_thread,
   {
     resources.waiting_for_submit.store(true, std::memory_order_relaxed);
     // Push to the pending submit queue.
-    {
-      std::lock_guard<std::mutex> guard(m_pending_submit_lock);
-      m_submit_worker_idle = false;
-      m_pending_submits.push_back({present_swap_chain, present_image_index, m_current_cmd_buffer});
-    }
-
-    // Wake up the worker thread for a single iteration.
-    m_submit_loop->Wakeup();
+    m_submit_thread.Push({present_swap_chain, present_image_index, m_current_cmd_buffer});
   }
   else
   {
