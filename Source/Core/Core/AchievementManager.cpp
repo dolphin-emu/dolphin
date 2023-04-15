@@ -409,6 +409,20 @@ void AchievementManager::ActivateDeactivateAchievement(AchievementId id, bool en
     rc_runtime_deactivate_achievement(&m_runtime, id);
 }
 
+RichPresence AchievementManager::GenerateRichPresence()
+{
+  RichPresence rp_buffer;
+  Core::RunAsCPUThread([&] {
+    rc_runtime_get_richpresence(
+        &m_runtime, rp_buffer.data(), RP_SIZE,
+        [](unsigned address, unsigned num_bytes, void* ud) {
+          return static_cast<AchievementManager*>(ud)->MemoryPeeker(address, num_bytes, ud);
+        },
+        this, nullptr);
+  });
+  return rp_buffer;
+}
+
 AchievementManager::ResponseType AchievementManager::AwardAchievement(AchievementId achievement_id)
 {
   std::string username = Config::Get(Config::RA_USERNAME);

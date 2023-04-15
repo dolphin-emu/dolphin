@@ -72,6 +72,7 @@ private:
   ResponseType FetchUnlockData(bool hardcore);
 
   void ActivateDeactivateAchievement(AchievementId id, bool enabled, bool unofficial, bool encore);
+  RichPresence GenerateRichPresence();
 
   ResponseType AwardAchievement(AchievementId achievement_id);
   ResponseType SubmitLeaderboard(AchievementId leaderboard_id, int value);
