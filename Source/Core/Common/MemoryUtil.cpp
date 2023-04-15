@@ -250,7 +250,7 @@ size_t MemPhysical()
   mib[1] = HW_PHYSMEM64;
 #endif
   size_t length = sizeof(size_t);
-  sysctl(mib, 2, &physical_memory, &length, NULL, 0);
+  sysctl(mib, 2, &physical_memory, &length, nullptr, 0);
   return physical_memory;
 #elif defined __HAIKU__
   system_info sysinfo;

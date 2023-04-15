@@ -58,7 +58,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     }
 
     // Relaunch the updater as administrator
-    ShellExecuteW(nullptr, L"runas", path->c_str(), pCmdLine, NULL, SW_SHOW);
+    ShellExecuteW(nullptr, L"runas", path->c_str(), pCmdLine, nullptr, SW_SHOW);
     return 0;
   }
 

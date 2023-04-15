@@ -103,7 +103,7 @@ std::optional<IPCReply> USB_HIDv4::GetDeviceChange(const IOCtlRequest& request)
 IPCReply USB_HIDv4::Shutdown(const IOCtlRequest& request)
 {
   std::lock_guard lk{m_devicechange_hook_address_mutex};
-  if (m_devicechange_hook_request != 0)
+  if (m_devicechange_hook_request != nullptr)
   {
     auto& system = Core::System::GetInstance();
     auto& memory = system.GetMemory();
