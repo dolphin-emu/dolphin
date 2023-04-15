@@ -296,7 +296,7 @@ OGLStagingTexture::OGLStagingTexture(StagingTextureType type, const TextureConfi
 
 OGLStagingTexture::~OGLStagingTexture()
 {
-  if (m_fence != 0)
+  if (m_fence != nullptr)
     glDeleteSync(m_fence);
   if (m_map_pointer)
   {
@@ -418,7 +418,7 @@ void OGLStagingTexture::CopyFromTexture(const AbstractTexture* src,
   // If we support buffer storage, create a fence for synchronization.
   if (UsePersistentStagingBuffers())
   {
-    if (m_fence != 0)
+    if (m_fence != nullptr)
       glDeleteSync(m_fence);
 
     glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
@@ -479,7 +479,7 @@ void OGLStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect,
   // If we support buffer storage, create a fence for synchronization.
   if (UsePersistentStagingBuffers())
   {
-    if (m_fence != 0)
+    if (m_fence != nullptr)
       glDeleteSync(m_fence);
 
     m_fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
@@ -493,7 +493,7 @@ void OGLStagingTexture::Flush()
 {
   // No-op when not using buffer storage, as the transfers happen on Map().
   // m_fence will always be zero in this case.
-  if (m_fence == 0)
+  if (m_fence == nullptr)
   {
     m_needs_flush = false;
     return;
@@ -501,7 +501,7 @@ void OGLStagingTexture::Flush()
 
   glClientWaitSync(m_fence, 0, GL_TIMEOUT_IGNORED);
   glDeleteSync(m_fence);
-  m_fence = 0;
+  m_fence = nullptr;
   m_needs_flush = false;
 }
 
