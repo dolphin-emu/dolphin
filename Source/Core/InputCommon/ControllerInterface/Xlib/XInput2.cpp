@@ -190,8 +190,8 @@ KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboar
 
   {
     unsigned char mask_buf[(XI_LASTEVENT + 7) / 8] = {};
-    XISetMask(mask_buf, XI_ButtonPress);
-    XISetMask(mask_buf, XI_ButtonRelease);
+    XISetMask(mask_buf, XI_RawButtonPress);
+    XISetMask(mask_buf, XI_RawButtonRelease);
     XISetMask(mask_buf, XI_RawMotion);
 
     XIEventMask mask;
@@ -203,9 +203,8 @@ KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboar
 
   {
     unsigned char mask_buf[(XI_LASTEVENT + 7) / 8] = {};
-    XISetMask(mask_buf, XI_KeyPress);
-    XISetMask(mask_buf, XI_KeyRelease);
-    XISetMask(mask_buf, XI_FocusOut);
+    XISetMask(mask_buf, XI_RawKeyPress);
+    XISetMask(mask_buf, XI_RawKeyRelease);
 
     XIEventMask mask;
     mask.mask = mask_buf;
@@ -272,6 +271,25 @@ void KeyboardMouse::UpdateCursor(bool should_center_mouse)
   const auto win_width = std::max(win_attribs.width, 1);
   const auto win_height = std::max(win_attribs.height, 1);
 
+  {
+    XIButtonState button_state;
+    XIModifierState mods;
+    XIGroupState group;
+
+    // Get the absolute position of the mouse pointer and the button state.
+    XIQueryPointer(m_display, pointer_deviceid, m_window, &root, &child, &root_x, &root_y, &win_x,
+                   &win_y, &button_state, &mods, &group);
+
+    // X buttons are 1-indexed, so to get 32 button bits we need a larger type
+    // for the shift.
+    u64 buttons_zero_indexed = 0;
+    std::memcpy(&buttons_zero_indexed, button_state.mask,
+                std::min<size_t>(button_state.mask_len, sizeof(m_state.buttons)));
+    m_state.buttons = buttons_zero_indexed >> 1;
+
+    free(button_state.mask);
+  }
+
   if (should_center_mouse)
   {
     win_x = win_width / 2;
@@ -280,19 +298,6 @@ void KeyboardMouse::UpdateCursor(bool should_center_mouse)
     XIWarpPointer(m_display, pointer_deviceid, None, m_window, 0.0, 0.0, 0, 0, win_x, win_y);
 
     g_controller_interface.SetMouseCenteringRequested(false);
-  }
-  else
-  {
-    // unused-- we're not interested in button presses here, as those are
-    // updated using events
-    XIButtonState button_state;
-    XIModifierState mods;
-    XIGroupState group;
-
-    XIQueryPointer(m_display, pointer_deviceid, m_window, &root, &child, &root_x, &root_y, &win_x,
-                   &win_y, &button_state, &mods, &group);
-
-    free(button_state.mask);
   }
 
   const auto window_scale = g_controller_interface.GetWindowInputScale();
@@ -309,10 +314,10 @@ void KeyboardMouse::UpdateInput()
   // for the axis controls
   float delta_x = 0.0f, delta_y = 0.0f, delta_z = 0.0f;
   double delta_delta;
-  bool mouse_moved = false;
+  bool update_mouse = false, update_keyboard = false;
 
-  // Iterate through the event queue - update the axis controls, mouse
-  // button controls, and keyboard controls.
+  // Iterate through the event queue, processing raw pointer motion events and
+  // noting whether the button or key state has changed.
   XEvent event;
   while (XPending(m_display))
   {
@@ -325,28 +330,21 @@ void KeyboardMouse::UpdateInput()
     if (!XGetEventData(m_display, &event.xcookie))
       continue;
 
-    // only one of these will get used
-    XIDeviceEvent* dev_event = (XIDeviceEvent*)event.xcookie.data;
-    XIRawEvent* raw_event = (XIRawEvent*)event.xcookie.data;
-
     switch (event.xcookie.evtype)
     {
-    case XI_ButtonPress:
-      m_state.buttons |= 1 << (dev_event->detail - 1);
+    case XI_RawButtonPress:
+    case XI_RawButtonRelease:
+      update_mouse = true;
       break;
-    case XI_ButtonRelease:
-      m_state.buttons &= ~(1 << (dev_event->detail - 1));
-      break;
-    case XI_KeyPress:
-      m_state.keyboard[dev_event->detail / 8] |= 1 << (dev_event->detail % 8);
-      break;
-    case XI_KeyRelease:
-      m_state.keyboard[dev_event->detail / 8] &= ~(1 << (dev_event->detail % 8));
+    case XI_RawKeyPress:
+    case XI_RawKeyRelease:
+      update_keyboard = true;
       break;
     case XI_RawMotion:
     {
-      mouse_moved = true;
+      update_mouse = true;
 
+      XIRawEvent* raw_event = (XIRawEvent*)event.xcookie.data;
       float values[4] = {};
       size_t value_idx = 0;
 
@@ -377,10 +375,6 @@ void KeyboardMouse::UpdateInput()
 
       break;
     }
-    case XI_FocusOut:
-      // Clear keyboard state on FocusOut as we will not be receiving KeyRelease events.
-      m_state.keyboard.fill(0);
-      break;
     }
 
     XFreeEventData(m_display, &event.xcookie);
@@ -400,23 +394,13 @@ void KeyboardMouse::UpdateInput()
   m_state.axis.z += delta_z;
   m_state.axis.z /= SCROLL_AXIS_DECAY;
 
-  // Get the absolute position of the mouse pointer
   const bool should_center_mouse =
       g_controller_interface.IsMouseCenteringRequested() && Host_RendererHasFocus();
-  if (mouse_moved || should_center_mouse)
+  if (update_mouse || should_center_mouse)
     UpdateCursor(should_center_mouse);
 
-  // KeyRelease and FocusOut events are sometimes not received.
-  // Cycling Alt-Tab and landing on the same window results in a stuck "Alt" key.
-  // Unpressed keys are released here.
-  // Because we called XISetClientPointer in the constructor, XQueryKeymap
-  // will return the state of the associated keyboard, even if it isn't the
-  // first master keyboard.  (XInput2 doesn't provide a function to query
-  // keyboard state.)
-  std::array<char, 32> keyboard;
-  XQueryKeymap(m_display, keyboard.data());
-  for (size_t i = 0; i != keyboard.size(); ++i)
-    m_state.keyboard[i] &= keyboard[i];
+  if (update_keyboard)
+    XQueryKeymap(m_display, m_state.keyboard.data());
 }
 
 std::string KeyboardMouse::GetName() const
