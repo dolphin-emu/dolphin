@@ -382,6 +382,25 @@ AchievementManager::ResponseType AchievementManager::AwardAchievement(Achievemen
   return r_type;
 }
 
+AchievementManager::ResponseType AchievementManager::SubmitLeaderboard(AchievementId leaderboard_id,
+                                                                       int value)
+{
+  std::string username = Config::Get(Config::RA_USERNAME);
+  std::string api_token = Config::Get(Config::RA_API_TOKEN);
+  rc_api_submit_lboard_entry_request_t submit_request = {.username = username.c_str(),
+                                                         .api_token = api_token.c_str(),
+                                                         .leaderboard_id = leaderboard_id,
+                                                         .score = value,
+                                                         .game_hash = m_game_hash.data()};
+  rc_api_submit_lboard_entry_response_t submit_response = {};
+  ResponseType r_type =
+      Request<rc_api_submit_lboard_entry_request_t, rc_api_submit_lboard_entry_response_t>(
+          submit_request, &submit_response, rc_api_init_submit_lboard_entry_request,
+          rc_api_process_submit_lboard_entry_response);
+  rc_api_destroy_submit_lboard_entry_response(&submit_response);
+  return r_type;
+}
+
 // Every RetroAchievements API call, with only a partial exception for fetch_image, follows
 // the same design pattern (here, X is the name of the call):
 //   Create a specific rc_api_X_request_t struct and populate with the necessary values

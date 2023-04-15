@@ -64,6 +64,7 @@ private:
   void ActivateDeactivateAchievement(AchievementId id, bool enabled, bool unofficial, bool encore);
 
   ResponseType AwardAchievement(AchievementId achievement_id);
+  ResponseType SubmitLeaderboard(AchievementId leaderboard_id, int value);
   template <typename RcRequest, typename RcResponse>
   ResponseType Request(RcRequest rc_request, RcResponse* rc_response,
                        const std::function<int(rc_api_request_t*, const RcRequest*)>& init_request,
