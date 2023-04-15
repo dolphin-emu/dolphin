@@ -8,7 +8,6 @@
 #include <cmath>
 #include <limits>
 #include <type_traits>
-#include <vector>
 
 #include "Common/CommonTypes.h"
 
@@ -187,8 +186,6 @@ private:
 };
 
 }  // namespace MathUtil
-
-float MathFloatVectorSum(const std::vector<float>&);
 
 // Rounds down. 0 -> undefined
 constexpr int IntLog2(u64 val)
