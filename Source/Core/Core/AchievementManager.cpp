@@ -401,6 +401,22 @@ AchievementManager::ResponseType AchievementManager::SubmitLeaderboard(Achieveme
   return r_type;
 }
 
+AchievementManager::ResponseType
+AchievementManager::PingRichPresence(const RichPresence& rich_presence)
+{
+  std::string username = Config::Get(Config::RA_USERNAME);
+  std::string api_token = Config::Get(Config::RA_API_TOKEN);
+  rc_api_ping_request_t ping_request = {.username = username.c_str(),
+                                        .api_token = api_token.c_str(),
+                                        .game_id = m_game_id,
+                                        .rich_presence = rich_presence.data()};
+  rc_api_ping_response_t ping_response = {};
+  ResponseType r_type = Request<rc_api_ping_request_t, rc_api_ping_response_t>(
+      ping_request, &ping_response, rc_api_init_ping_request, rc_api_process_ping_response);
+  rc_api_destroy_ping_response(&ping_response);
+  return r_type;
+}
+
 // Every RetroAchievements API call, with only a partial exception for fetch_image, follows
 // the same design pattern (here, X is the name of the call):
 //   Create a specific rc_api_X_request_t struct and populate with the necessary values
