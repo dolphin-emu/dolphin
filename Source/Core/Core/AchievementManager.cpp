@@ -14,6 +14,7 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/System.h"
 #include "DiscIO/Volume.h"
+#include "VideoCommon/VideoEvents.h"
 
 static constexpr bool hardcore_mode_enabled = false;
 
@@ -203,6 +204,28 @@ void AchievementManager::ActivateDeactivateRichPresence()
           m_game_data.rich_presence_script :
           "",
       nullptr, 0);
+}
+
+void AchievementManager::DoFrame()
+{
+  if (!m_is_game_loaded)
+    return;
+  Core::RunAsCPUThread([&] {
+    rc_runtime_do_frame(
+        &m_runtime,
+        [](const rc_runtime_event_t* runtime_event) {
+          AchievementManager::GetInstance()->AchievementEventHandler(runtime_event);
+        },
+        [](unsigned address, unsigned num_bytes, void* ud) {
+          return static_cast<AchievementManager*>(ud)->MemoryPeeker(address, num_bytes, ud);
+        },
+        this, nullptr);
+  });
+  if (!m_system)
+    return;
+  u64 current_time = m_system->GetCoreTiming().GetTicks();
+  if (current_time - m_last_ping_time > SystemTimers::GetTicksPerSecond() * 120)
+    m_queue.EmplaceItem([this] { PingRichPresence(GenerateRichPresence()); });
 }
 
 u32 AchievementManager::MemoryPeeker(u32 address, u32 num_bytes, void* ud)
