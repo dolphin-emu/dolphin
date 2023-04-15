@@ -130,39 +130,6 @@ void PopulateDevices(void* const hwnd)
   XIFreeDeviceInfo(all_masters);
 }
 
-// Apply the event mask to the device and all its slaves. Only used in the
-// constructor. Remember, each KeyboardMouse has its own copy of the event
-// stream, which is how multiple event masks can "coexist."
-void KeyboardMouse::SelectEventsForDevice(XIEventMask* mask, int deviceid)
-{
-  // Set the event mask for the master device.
-  mask->deviceid = deviceid;
-  XISelectEvents(m_display, DefaultRootWindow(m_display), mask, 1);
-
-  // Query all the master device's slaves and set the same event mask for
-  // those too. There are two reasons we want to do this. For mouse devices,
-  // we want the raw motion events, and only slaves (i.e. physical hardware
-  // devices) emit those. For keyboard devices, selecting slaves avoids
-  // dealing with key focus.
-
-  int num_slaves;
-  XIDeviceInfo* const all_slaves = XIQueryDevice(m_display, XIAllDevices, &num_slaves);
-
-  for (int i = 0; i < num_slaves; i++)
-  {
-    XIDeviceInfo* const slave = &all_slaves[i];
-    if ((slave->use != XISlavePointer && slave->use != XISlaveKeyboard) ||
-        slave->attachment != deviceid)
-    {
-      continue;
-    }
-    mask->deviceid = slave->deviceid;
-    XISelectEvents(m_display, DefaultRootWindow(m_display), mask, 1);
-  }
-
-  XIFreeDeviceInfo(all_slaves);
-}
-
 KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboard,
                              double scroll_increment_)
     : m_window(window), xi_opcode(opcode), pointer_deviceid(pointer), keyboard_deviceid(keyboard),
@@ -198,7 +165,8 @@ KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboar
     mask.mask = mask_buf;
     mask.mask_len = sizeof(mask_buf);
 
-    SelectEventsForDevice(&mask, pointer_deviceid);
+    mask.deviceid = pointer_deviceid;
+    XISelectEvents(m_display, DefaultRootWindow(m_display), &mask, 1);
   }
 
   {
@@ -209,8 +177,8 @@ KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboar
     XIEventMask mask;
     mask.mask = mask_buf;
     mask.mask_len = sizeof(mask_buf);
-
-    SelectEventsForDevice(&mask, keyboard_deviceid);
+    mask.deviceid = keyboard_deviceid;
+    XISelectEvents(m_display, DefaultRootWindow(m_display), &mask, 1);
   }
 
   // Keyboard Keys

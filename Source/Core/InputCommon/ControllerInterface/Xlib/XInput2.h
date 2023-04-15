@@ -108,7 +108,6 @@ private:
   };
 
 private:
-  void SelectEventsForDevice(XIEventMask* mask, int deviceid);
   void UpdateCursor(bool should_center_mouse);
 
 public:
