@@ -185,10 +185,9 @@ private:
   T m_variance{};
 };
 
-}  // namespace MathUtil
-
 // Rounds down. 0 -> undefined
 constexpr int IntLog2(u64 val)
 {
   return 63 - std::countl_zero(val);
 }
+}  // namespace MathUtil

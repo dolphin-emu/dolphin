@@ -60,13 +60,13 @@ void JitArm64::UpdateFPExceptionSummary(ARM64Reg fpscr)
   MOVI2R(WA, FPSCR_VX_ANY);
   TST(WA, fpscr);
   CSET(WA, CCFlags::CC_NEQ);
-  BFI(fpscr, WA, IntLog2(FPSCR_VX), 1);
+  BFI(fpscr, WA, MathUtil::IntLog2(FPSCR_VX), 1);
 
   // fpscr.FEX = ((fpscr >> 22) & (fpscr & FPSCR_ANY_E)) != 0
   AND(WA, fpscr, LogicalImm(FPSCR_ANY_E, 32));
   TST(WA, fpscr, ArithOption(fpscr, ShiftType::LSR, 22));
   CSET(WA, CCFlags::CC_NEQ);
-  BFI(fpscr, WA, IntLog2(FPSCR_FEX), 1);
+  BFI(fpscr, WA, MathUtil::IntLog2(FPSCR_FEX), 1);
 
   gpr.Unlock(WA);
 }

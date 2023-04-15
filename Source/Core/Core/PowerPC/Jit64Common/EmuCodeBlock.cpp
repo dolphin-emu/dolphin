@@ -97,7 +97,7 @@ FixupBranch EmuCodeBlock::BATAddressLookup(X64Reg addr, X64Reg tmp, const void* 
   MOV(64, R(tmp), ImmPtr(bat_table));
   SHR(32, R(addr), Imm8(PowerPC::BAT_INDEX_SHIFT));
   MOV(32, R(addr), MComplex(tmp, addr, SCALE_4, 0));
-  BT(32, R(addr), Imm8(IntLog2(PowerPC::BAT_MAPPED_BIT)));
+  BT(32, R(addr), Imm8(MathUtil::IntLog2(PowerPC::BAT_MAPPED_BIT)));
 
   return J_CC(CC_NC, m_far_code.Enabled());
 }
