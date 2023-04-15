@@ -202,6 +202,19 @@ void AchievementManager::ActivateDeactivateRichPresence()
       nullptr, 0);
 }
 
+void AchievementManager::AchievementEventHandler(const rc_runtime_event_t* runtime_event)
+{
+  switch (runtime_event->type)
+  {
+  case RC_RUNTIME_EVENT_ACHIEVEMENT_TRIGGERED:
+    HandleAchievementTriggeredEvent(runtime_event);
+    break;
+  case RC_RUNTIME_EVENT_LBOARD_TRIGGERED:
+    HandleLeaderboardTriggeredEvent(runtime_event);
+    break;
+  }
+}
+
 void AchievementManager::CloseGame()
 {
   m_is_game_loaded = false;

@@ -48,6 +48,8 @@ public:
   void ActivateDeactivateLeaderboards();
   void ActivateDeactivateRichPresence();
 
+  void AchievementEventHandler(const rc_runtime_event_t* runtime_event);
+
   void CloseGame();
   void Logout();
   void Shutdown();
