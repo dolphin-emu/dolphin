@@ -441,8 +441,7 @@ ControlState KeyboardMouse::Key::GetState() const
   return (m_keyboard[m_keycode / 8] & (1 << (m_keycode % 8))) != 0;
 }
 
-KeyboardMouse::Button::Button(unsigned int index, unsigned int* buttons)
-    : m_buttons(buttons), m_index(index)
+KeyboardMouse::Button::Button(unsigned int index, u32* buttons) : m_buttons(buttons), m_index(index)
 {
   name = fmt::format("Click {}", m_index + 1);
 }
