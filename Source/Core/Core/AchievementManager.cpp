@@ -417,6 +417,18 @@ AchievementManager::PingRichPresence(const RichPresence& rich_presence)
   return r_type;
 }
 
+void AchievementManager::HandleAchievementTriggeredEvent(const rc_runtime_event_t* runtime_event)
+{
+  auto it = m_unlock_map.find(runtime_event->id);
+  if (it == m_unlock_map.end())
+    return;
+  it->second.session_unlock_count++;
+  m_queue.EmplaceItem([this, runtime_event] { AwardAchievement(runtime_event->id); });
+  ActivateDeactivateAchievement(runtime_event->id, Config::Get(Config::RA_ACHIEVEMENTS_ENABLED),
+                                Config::Get(Config::RA_UNOFFICIAL_ENABLED),
+                                Config::Get(Config::RA_ENCORE_ENABLED));
+}
+
 // Every RetroAchievements API call, with only a partial exception for fetch_image, follows
 // the same design pattern (here, X is the name of the call):
 //   Create a specific rc_api_X_request_t struct and populate with the necessary values
