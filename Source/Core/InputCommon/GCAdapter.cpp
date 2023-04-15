@@ -17,14 +17,7 @@
 #include <optional>
 
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wzero-as-null-pointer-constant"
-#endif
 #include <libusb.h>
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
 #elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
 #include <jni.h>
 #endif

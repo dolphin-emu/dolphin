@@ -11,14 +11,7 @@
 #include <string_view>
 #include <utility>
 
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wzero-as-null-pointer-constant"
-#endif
 #include <expr.h>
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
 
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"

@@ -13,14 +13,7 @@
 #include <utility>
 #include <vector>
 
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wzero-as-null-pointer-constant"
-#endif
 #include <libusb.h>
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
 
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
