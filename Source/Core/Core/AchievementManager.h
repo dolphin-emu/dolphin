@@ -22,6 +22,11 @@ using AchievementId = u32;
 constexpr size_t RP_SIZE = 256;
 using RichPresence = std::array<char, RP_SIZE>;
 
+namespace Core
+{
+class System;
+}
+
 class AchievementManager
 {
 public:
@@ -48,6 +53,7 @@ public:
   void ActivateDeactivateLeaderboards();
   void ActivateDeactivateRichPresence();
 
+  u32 MemoryPeeker(u32 address, u32 num_bytes, void* ud);
   void AchievementEventHandler(const rc_runtime_event_t* runtime_event);
 
   void CloseGame();
@@ -80,6 +86,7 @@ private:
                        const std::function<int(RcResponse*, const char*)>& process_response);
 
   rc_runtime_t m_runtime{};
+  Core::System* m_system{};
   bool m_is_runtime_initialized = false;
   std::array<char, HASH_LENGTH> m_game_hash{};
   u32 m_game_id = 0;

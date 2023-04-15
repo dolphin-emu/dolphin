@@ -9,8 +9,10 @@
 
 #include "Common/HttpRequest.h"
 #include "Common/WorkQueueThread.h"
-#include "Config/AchievementSettings.h"
+#include "Core/Config/AchievementSettings.h"
 #include "Core/Core.h"
+#include "Core/PowerPC/MMU.h"
+#include "Core/System.h"
 #include "DiscIO/Volume.h"
 
 static constexpr bool hardcore_mode_enabled = false;
@@ -62,6 +64,7 @@ void AchievementManager::LoadGameByFilenameAsync(const std::string& iso_path,
     callback(AchievementManager::ResponseType::MANAGER_NOT_INITIALIZED);
     return;
   }
+  m_system = &Core::System::GetInstance();
   struct FilereaderState
   {
     int64_t position = 0;
@@ -202,6 +205,34 @@ void AchievementManager::ActivateDeactivateRichPresence()
       nullptr, 0);
 }
 
+u32 AchievementManager::MemoryPeeker(u32 address, u32 num_bytes, void* ud)
+{
+  if (!m_system)
+    return 0u;
+  Core::CPUThreadGuard threadguard(*m_system);
+  switch (num_bytes)
+  {
+  case 1:
+    return m_system->GetMMU()
+        .HostTryReadU8(threadguard, address)
+        .value_or(PowerPC::ReadResult<u8>(false, 0u))
+        .value;
+  case 2:
+    return m_system->GetMMU()
+        .HostTryReadU16(threadguard, address)
+        .value_or(PowerPC::ReadResult<u16>(false, 0u))
+        .value;
+  case 4:
+    return m_system->GetMMU()
+        .HostTryReadU32(threadguard, address)
+        .value_or(PowerPC::ReadResult<u32>(false, 0u))
+        .value;
+  default:
+    ASSERT(false);
+    return 0u;
+  }
+}
+
 void AchievementManager::AchievementEventHandler(const rc_runtime_event_t* runtime_event)
 {
   switch (runtime_event->type)
@@ -221,6 +252,7 @@ void AchievementManager::CloseGame()
   m_game_id = 0;
   m_queue.Cancel();
   m_unlock_map.clear();
+  m_system = nullptr;
   ActivateDeactivateAchievements();
   ActivateDeactivateLeaderboards();
   ActivateDeactivateRichPresence();
