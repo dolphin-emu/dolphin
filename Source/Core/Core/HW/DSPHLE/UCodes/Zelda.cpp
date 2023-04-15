@@ -1394,12 +1394,8 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
   case VPB::SRC_SQUARE_WAVE:
   case VPB::SRC_SQUARE_WAVE_25PCT:
   {
-    u32 shift;
-    if (vpb->samples_source_type == VPB::SRC_SQUARE_WAVE)
-      shift = 1;
-    else
-      shift = 2;
-    u32 mask = (1 << shift) - 1;
+    const u32 shift = (vpb->samples_source_type == VPB::SRC_SQUARE_WAVE ? 1u : 2u);
+    u32 mask = Common::CalcLowMaskFast<u32>(shift);
 
     u32 pos = vpb->current_pos_frac << shift;
     for (s16& sample : *buffer)

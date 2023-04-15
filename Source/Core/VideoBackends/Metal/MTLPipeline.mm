@@ -4,11 +4,12 @@
 #include "VideoBackends/Metal/MTLPipeline.h"
 
 #include "Common/MsgHandler.h"
+#include "Common/BitUtils.h"
 
 static void MarkAsUsed(u32* list, u32 start, u32 length)
 {
   for (u32 i = start; i < start + length; ++i)
-    *list |= 1 << i;
+    Common::SetBit(i, *list);
 }
 
 static void GetArguments(NSArray<MTLArgument*>* arguments, u32* textures, u32* samplers,

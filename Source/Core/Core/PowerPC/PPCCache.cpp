@@ -137,9 +137,9 @@ void Cache::Store(u32 addr)
   if (way == 0xff)
     return;
 
-  if (valid[set] & (1U << way) && modified[set] & (1U << way))
+  if (Common::ExtractBit(way, valid[set]) && Common::ExtractBit(way, modified[set]))
     memory.CopyToEmu((addr & ~0x1f), reinterpret_cast<u8*>(data[set][way].data()), 32);
-  modified[set] &= ~(1U << way);
+  Common::ClearBit(way, modified[set]);
 }
 
 void Cache::FlushAll()
@@ -151,7 +151,7 @@ void Cache::FlushAll()
   {
     for (size_t way = 0; way < CACHE_WAYS; way++)
     {
-      if (valid[set] & (1U << way) && modified[set] & (1U << way))
+      if (Common::ExtractBit(way, valid[set]) && Common::ExtractBit(way, modified[set]))
         memory.CopyToEmu(addrs[set][way], reinterpret_cast<u8*>(data[set][way].data()), 32);
     }
   }
@@ -166,7 +166,7 @@ void Cache::Invalidate(u32 addr)
   if (way == 0xff)
     return;
 
-  if (valid[set] & (1U << way))
+  if (Common::ExtractBit(way, valid[set]))
   {
     if (addrs[set][way] & CACHE_VMEM_BIT)
       lookup_table_vmem[(addrs[set][way] >> 5) & 0xfffff] = 0xff;
@@ -175,8 +175,8 @@ void Cache::Invalidate(u32 addr)
     else
       lookup_table[(addrs[set][way] >> 5) & 0xfffff] = 0xff;
 
-    valid[set] &= ~(1U << way);
-    modified[set] &= ~(1U << way);
+    Common::ClearBit(way, valid[set]);
+    Common::ClearBit(way, modified[set]);
   }
 }
 
@@ -190,9 +190,9 @@ void Cache::Flush(u32 addr)
   if (way == 0xff)
     return;
 
-  if (valid[set] & (1U << way))
+  if (Common::ExtractBit(way, valid[set]))
   {
-    if (modified[set] & (1U << way))
+    if (Common::ExtractBit(way, modified[set]))
       memory.CopyToEmu((addr & ~0x1f), reinterpret_cast<u8*>(data[set][way].data()), 32);
 
     if (addrs[set][way] & CACHE_VMEM_BIT)
@@ -202,8 +202,8 @@ void Cache::Flush(u32 addr)
     else
       lookup_table[(addrs[set][way] >> 5) & 0xfffff] = 0xff;
 
-    valid[set] &= ~(1U << way);
-    modified[set] &= ~(1U << way);
+    Common::ClearBit(way, valid[set]);
+    Common::ClearBit(way, modified[set]);
   }
 }
 
@@ -246,7 +246,7 @@ std::pair<u32, u32> Cache::GetCache(u32 addr, bool locked)
     if (Common::ExtractBit(way, valid[set]))
     {
       // store the cache back to main memory
-      if (modified[set] & (1 << way))
+      if (Common::ExtractBit(way, modified[set]))
         memory.CopyToEmu(addrs[set][way], reinterpret_cast<u8*>(data[set][way].data()), 32);
 
       if (addrs[set][way] & CACHE_VMEM_BIT)
@@ -327,7 +327,7 @@ void Cache::Write(u32 addr, const void* buffer, u32 len, bool locked)
     {
       std::memcpy(reinterpret_cast<u8*>(data[set][way].data()) + offset_in_block, value,
                   len_in_block);
-      modified[set] |= (1 << way);
+      Common::SetBit(way, modified[set]);
     }
     else
     {
@@ -414,7 +414,7 @@ void InstructionCache::Invalidate(u32 addr)
   const u32 set = (addr >> 5) & 0x7f;
   for (size_t way = 0; way < 8; way++)
   {
-    if (valid[set] & (1U << way))
+    if (Common::ExtractBit(way, valid[set]))
     {
       if (addrs[set][way] & CACHE_VMEM_BIT)
         lookup_table_vmem[(addrs[set][way] >> 5) & 0xfffff] = 0xff;

@@ -8,6 +8,7 @@
 #include <mutex>
 
 #include "Common/Assert.h"
+#include "Common/BitUtils.h"
 
 #include "Core/System.h"
 
@@ -542,7 +543,7 @@ void Metal::StateTracker::SetTexture(u32 idx, id<MTLTexture> texture)
   if (m_state.textures[idx] != texture)
   {
     m_state.textures[idx] = texture;
-    m_dirty_textures |= 1 << idx;
+    Common::SetBit(idx, m_dirty_textures);
   }
 }
 
@@ -552,7 +553,7 @@ void Metal::StateTracker::SetSamplerForce(u32 idx, const SamplerState& sampler)
   m_state.sampler_min_lod[idx] = sampler.tm1.min_lod;
   m_state.sampler_max_lod[idx] = sampler.tm1.max_lod;
   m_state.sampler_states[idx] = sampler;
-  m_dirty_samplers |= 1 << idx;
+  Common::SetBit(idx, m_dirty_samplers);
 }
 
 void Metal::StateTracker::SetSampler(u32 idx, const SamplerState& sampler)
@@ -578,7 +579,7 @@ void Metal::StateTracker::UnbindTexture(id<MTLTexture> texture)
     if (m_state.textures[i] == texture)
     {
       m_state.textures[i] = m_dummy_texture;
-      m_dirty_textures |= 1 << i;
+      Common::SetBit(i, m_dirty_textures);
     }
   }
 }
