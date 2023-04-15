@@ -4,6 +4,7 @@
 #pragma once
 
 #ifdef USE_RETRO_ACHIEVEMENTS
+#include <array>
 #include <functional>
 #include <mutex>
 #include <string>
@@ -62,6 +63,7 @@ private:
 
   void ActivateDeactivateAchievement(AchievementId id, bool enabled, bool unofficial, bool encore);
 
+  ResponseType AwardAchievement(AchievementId achievement_id);
   template <typename RcRequest, typename RcResponse>
   ResponseType Request(RcRequest rc_request, RcResponse* rc_response,
                        const std::function<int(rc_api_request_t*, const RcRequest*)>& init_request,
@@ -69,7 +71,8 @@ private:
 
   rc_runtime_t m_runtime{};
   bool m_is_runtime_initialized = false;
-  unsigned int m_game_id = 0;
+  std::array<char, HASH_LENGTH> m_game_hash{};
+  u32 m_game_id = 0;
   rc_api_fetch_game_data_response_t m_game_data{};
   bool m_is_game_loaded = false;
 

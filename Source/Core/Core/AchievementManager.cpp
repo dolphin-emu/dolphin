@@ -5,7 +5,6 @@
 
 #include "Core/AchievementManager.h"
 
-#include <array>
 #include <rcheevos/include/rc_hash.h>
 
 #include "Common/HttpRequest.h"
@@ -113,11 +112,10 @@ void AchievementManager::LoadGameByFilenameAsync(const std::string& iso_path,
           },
       .close = [](void* file_handle) { delete reinterpret_cast<FilereaderState*>(file_handle); }};
   rc_hash_init_custom_filereader(&volume_reader);
-  std::array<char, HASH_LENGTH> game_hash;
-  if (!rc_hash_generate_from_file(game_hash.data(), RC_CONSOLE_GAMECUBE, iso_path.c_str()))
+  if (!rc_hash_generate_from_file(m_game_hash.data(), RC_CONSOLE_GAMECUBE, iso_path.c_str()))
     return;
-  m_queue.EmplaceItem([this, callback, game_hash] {
-    const auto resolve_hash_response = ResolveHash(game_hash);
+  m_queue.EmplaceItem([this, callback] {
+    const auto resolve_hash_response = ResolveHash(this->m_game_hash);
     if (resolve_hash_response != ResponseType::SUCCESS || m_game_id == 0)
     {
       callback(resolve_hash_response);
@@ -364,6 +362,24 @@ void AchievementManager::ActivateDeactivateAchievement(AchievementId id, bool en
   }
   if (active && !activate)
     rc_runtime_deactivate_achievement(&m_runtime, id);
+}
+
+AchievementManager::ResponseType AchievementManager::AwardAchievement(AchievementId achievement_id)
+{
+  std::string username = Config::Get(Config::RA_USERNAME);
+  std::string api_token = Config::Get(Config::RA_API_TOKEN);
+  rc_api_award_achievement_request_t award_request = {.username = username.c_str(),
+                                                      .api_token = api_token.c_str(),
+                                                      .achievement_id = achievement_id,
+                                                      .hardcore = hardcore_mode_enabled,
+                                                      .game_hash = m_game_hash.data()};
+  rc_api_award_achievement_response_t award_response = {};
+  ResponseType r_type =
+      Request<rc_api_award_achievement_request_t, rc_api_award_achievement_response_t>(
+          award_request, &award_response, rc_api_init_award_achievement_request,
+          rc_api_process_award_achievement_response);
+  rc_api_destroy_award_achievement_response(&award_response);
+  return r_type;
 }
 
 // Every RetroAchievements API call, with only a partial exception for fetch_image, follows
