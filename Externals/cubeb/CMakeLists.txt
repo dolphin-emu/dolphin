@@ -352,3 +352,4 @@ if(USE_AUDIOUNIT AND USE_AUDIOUNIT_RUST)
     debug "${PROJECT_SOURCE_DIR}/cubeb/src/cubeb-coreaudio-rs/target/debug/libcubeb_coreaudio.a"
     optimized "${PROJECT_SOURCE_DIR}/cubeb/src/cubeb-coreaudio-rs/target/release/libcubeb_coreaudio.a")
 endif()
+add_library(cubeb::cubeb ALIAS cubeb)
