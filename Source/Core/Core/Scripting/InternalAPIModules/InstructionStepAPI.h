@@ -19,4 +19,6 @@ FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
                                                const std::string& function_name);
 
 ArgHolder SingleStep(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder GetInstructionFromAddress(ScriptContext* current_script,
+                                    std::vector<ArgHolder>& args_list);
 }  // namespace Scripting::InstructionStepAPI

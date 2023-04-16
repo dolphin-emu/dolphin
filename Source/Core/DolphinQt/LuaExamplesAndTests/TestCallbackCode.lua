@@ -40,27 +40,42 @@ end
 function on_mem_write()
 	print("Inside of an OnMemoryAddressWrittenTo callback function, with a memory address of " .. tostring(OnMemoryAddressWrittenTo:getMemoryAddressWrittenToForCurrentCallback()) .. ", and a value being written of " .. tostring(OnMemoryAddressWrittenTo:getValueWrittenToMemoryAddressForCurrentCallback()))
 	print_callback_statuses()
-	print("Current value of PC was: " .. registers:getRegister("PC", "u32"))
+	pc = registers:getRegister("PC", "u32")
+	print("Current value of PC was: " .. tostring(pc))
+	print("Current instruction was: " .. InstructionStepAPI:getInstructionFromAddress(pc))
+
 	InstructionStepAPI:singleStep()
-	print("After stepping, value of PC was: " .. registers:getRegister("PC", "u32"))
+	pc = registers:getRegister("PC", "u32")
+	print("After stepping, value of PC was: " .. tostring(pc))
+	print("Current instruction was: " .. InstructionStepAPI:getInstructionFromAddress(pc))
 	OnMemoryAddressWrittenTo:unregister(3422572554, mem_addr_written_ref)
 end
 
 function on_mem_read()
 	print("Inside of an OnMemoryAddressReadFrom callback function, with a memory address of " .. tostring(OnMemoryAddressReadFrom:getMemoryAddressReadFromForCurrentCallback()))
 	print_callback_statuses()
-	print("Current value of PC was: " .. registers:getRegister("PC", "u32"))
+	pc = registers:getRegister("PC", "u32")
+	print("Current value of PC was: " .. tostring(pc))
+	print("Current instruction was: " .. InstructionStepAPI:getInstructionFromAddress(pc))
+
 	InstructionStepAPI:singleStep()
-	print("After stepping, value of PC was: " .. registers:getRegister("PC", "u32"))
+	pc = registers:getRegister("PC", "u32")
+	print("After stepping, value of PC was: " .. tostring(pc))
+	print("Current instruction was: " .. InstructionStepAPI:getInstructionFromAddress(pc))
 	OnMemoryAddressReadFrom:unregister(3422564352, mem_addr_read_ref)
 end
 
 function on_instr_hit()
 	print("Inside of an OnInstructionHit callback function, with a PC address of " .. tostring(OnInstructionHit:getAddressOfInstructionForCurrentCallback()))
 	print_callback_statuses()
-	print("Current value of PC was: " .. registers:getRegister("PC", "u32"))
+	pc = registers:getRegister("PC", "u32")
+	print("Current value of PC was: " .. tostring(pc))
+	print("Current instruction was: " .. InstructionStepAPI:getInstructionFromAddress(pc))
+
 	InstructionStepAPI:singleStep()
-	print("After stepping, value of PC was: " .. registers:getRegister("PC", "u32"))
+	pc = registers:getRegister("PC", "u32")
+	print("After stepping, value of PC was: " .. tostring(pc))
+	print("Current instruction was: " .. InstructionStepAPI:getInstructionFromAddress(pc))
 	OnInstructionHit:unregister(2149867952, instr_hit_ref)
 end
 	
