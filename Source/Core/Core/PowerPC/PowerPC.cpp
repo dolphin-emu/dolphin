@@ -648,7 +648,6 @@ void PowerPCManager::CheckBreakPoints()
       Scripting::OnInstructionHitCallbackAPI::in_instruction_hit_breakpoint = true;
       Scripting::OnInstructionHitCallbackAPI::instruction_address_for_current_callback =
           m_ppc_state.pc;
-      Core::QueueHostJob(([] { Core::SetState(Core::State::Running); }), true);
     }
     m_system.GetCPU().Break();
     if (GDBStub::IsActive())

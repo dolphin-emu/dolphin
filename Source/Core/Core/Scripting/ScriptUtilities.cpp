@@ -35,33 +35,6 @@ void InitializeScript(int unique_script_identifier, const std::string& script_fi
   if (global_pointer_to_list_of_all_scripts == nullptr)
   {
     global_pointer_to_list_of_all_scripts = new std::vector<ScriptContext*>();
-    Core::AddOnStateChangedCallback([](Core::State state) {
-      if (Scripting::OnInstructionHitCallbackAPI::in_instruction_hit_breakpoint)
-      {
-        Scripting::ScriptUtilities::RunOnInstructionHitCallbacks(
-            Scripting::OnInstructionHitCallbackAPI::instruction_address_for_current_callback);
-        Scripting::OnInstructionHitCallbackAPI::in_instruction_hit_breakpoint = false;
-      }
-
-      if (Scripting::OnMemoryAddressReadFromCallbackAPI::in_memory_address_read_from_breakpoint)
-      {
-        Scripting::ScriptUtilities::RunOnMemoryAddressReadFromCallbacks(
-            Scripting::OnMemoryAddressReadFromCallbackAPI::
-                memory_address_read_from_for_current_callback);
-        Scripting::OnMemoryAddressReadFromCallbackAPI::in_memory_address_read_from_breakpoint =
-            false;
-      }
-
-      if (Scripting::OnMemoryAddressWrittenToCallbackAPI::in_memory_address_written_to_breakpoint)
-      {
-        Scripting::ScriptUtilities::RunOnMemoryAddressWrittenToCallbacks(
-            Scripting::OnMemoryAddressWrittenToCallbackAPI::
-                memory_address_written_to_for_current_callback,
-            Scripting::OnMemoryAddressWrittenToCallbackAPI::
-                value_written_to_memory_address_for_current_callback);
-        Scripting::OnMemoryAddressWrittenToCallbackAPI::in_memory_address_written_to_breakpoint =
-            false;
-      }});
   }
 
   if (language == DefinedScriptingLanguagesEnum::LUA)

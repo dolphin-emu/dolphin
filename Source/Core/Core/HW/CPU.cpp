@@ -14,6 +14,10 @@
 #include "Core/Host.h"
 #include "Core/PowerPC/GDBStub.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/Scripting/EventCallbackRegistrationAPIs/OnInstructionHitCallbackAPI.h"
+#include "Core/Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressReadFromCallbackAPI.h"
+#include "Core/Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressWrittenToCallbackAPI.h"
+#include "Core/Scripting/ScriptUtilities.h"
 #include "Core/System.h"
 #include "VideoCommon/Fifo.h"
 
@@ -71,6 +75,7 @@ void CPUManager::Run()
   PowerPC::RoundingModeUpdated(power_pc.GetPPCState());
 
   std::unique_lock state_lock(m_state_change_lock);
+  bool hit_breakpoint = false;
   while (m_state != State::PowerDown)
   {
     m_state_cpu_cvar.wait(state_lock, [this] { return !m_state_paused_and_locked; });
@@ -103,6 +108,40 @@ void CPUManager::Run()
 
       // Enter a fast runloop
       power_pc.RunLoop();
+
+      hit_breakpoint = false;
+       if (Scripting::OnInstructionHitCallbackAPI::in_instruction_hit_breakpoint)
+      {
+        Scripting::ScriptUtilities::RunOnInstructionHitCallbacks(
+            Scripting::OnInstructionHitCallbackAPI::instruction_address_for_current_callback);
+        Scripting::OnInstructionHitCallbackAPI::in_instruction_hit_breakpoint = false;
+        hit_breakpoint = true;
+      }
+
+      if (Scripting::OnMemoryAddressReadFromCallbackAPI::in_memory_address_read_from_breakpoint)
+      {
+        Scripting::ScriptUtilities::RunOnMemoryAddressReadFromCallbacks(
+            Scripting::OnMemoryAddressReadFromCallbackAPI::
+                memory_address_read_from_for_current_callback);
+        Scripting::OnMemoryAddressReadFromCallbackAPI::in_memory_address_read_from_breakpoint =
+            false;
+        hit_breakpoint = true;
+      }
+
+      if (Scripting::OnMemoryAddressWrittenToCallbackAPI::in_memory_address_written_to_breakpoint)
+      {
+        Scripting::ScriptUtilities::RunOnMemoryAddressWrittenToCallbacks(
+            Scripting::OnMemoryAddressWrittenToCallbackAPI::
+                memory_address_written_to_for_current_callback,
+            Scripting::OnMemoryAddressWrittenToCallbackAPI::
+                value_written_to_memory_address_for_current_callback);
+        Scripting::OnMemoryAddressWrittenToCallbackAPI::in_memory_address_written_to_breakpoint =
+            false;
+        hit_breakpoint = true;
+      }
+
+      if (hit_breakpoint)
+        SetStateLocked(CPU::State::Running);
 
       state_lock.lock();
       m_state_cpu_thread_active = false;
