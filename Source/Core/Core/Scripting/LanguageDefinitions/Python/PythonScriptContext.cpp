@@ -18,6 +18,7 @@
 #include "Core/Scripting/InternalAPIModules/GameCubeControllerAPI.h"
 #include "Core/Scripting/InternalAPIModules/GraphicsAPI.h"
 #include "Core/Scripting/InternalAPIModules/ImportAPI.h"
+#include "Core/Scripting/InternalAPIModules/InstructionStepAPI.h"
 #include "Core/Scripting/InternalAPIModules/MemoryAPI.h"
 #include "Core/Scripting/InternalAPIModules/RegistersAPI.h"
 #include "Core/Scripting/InternalAPIModules/StatisticsAPI.h"
@@ -27,6 +28,7 @@
 #include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/GameCubeControllerModuleImporter.h"
 #include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/GraphicsModuleImporter.h"
 #include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/ImportModuleImporter.h"
+#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/InstructionStepModuleImporter.h"
 #include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/MemoryModuleImporter.h"
 #include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/OnFrameStartCallbackModuleImporter.h"
 #include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/OnGCControllerPolledCallbackModuleImporter.h"
@@ -145,6 +147,7 @@ PythonScriptContext::PythonScriptContext(
     PyImport_AppendInittab(EmuApi::class_name, EmuModuleImporter::PyInit_EmuAPI);
     PyImport_AppendInittab(GameCubeControllerApi::class_name, GameCubeControllerModuleImporter::PyInit_GameCubeControllerAPI);
     PyImport_AppendInittab(GraphicsAPI::class_name, GraphicsModuleImporter::PyInit_GraphicsAPI);
+    PyImport_AppendInittab(InstructionStepAPI::class_name, InstructionStepModuleImporter::PyInit_InstructionStepAPI);
     PyImport_AppendInittab(MemoryApi::class_name, MemoryModuleImporter::PyInit_MemoryAPI);
     PyImport_AppendInittab(RegistersAPI::class_name, RegistersModuleImporter::PyInit_RegistersAPI);
     PyImport_AppendInittab(StatisticsApi::class_name, StatisticsModuleImporter::PyInit_StatisticsAPI);
@@ -179,6 +182,7 @@ PythonScriptContext::PythonScriptContext(
   SetModuleVersion(EmuApi::class_name, std::string("0.0"));
   SetModuleVersion(GameCubeControllerApi::class_name, std::string("0.0"));
   SetModuleVersion(GraphicsAPI::class_name, std::string("0.0"));
+  SetModuleVersion(InstructionStepAPI::class_name, std::string("0.0"));
   SetModuleVersion(MemoryApi::class_name, std::string("0.0"));
   SetModuleVersion(RegistersAPI::class_name, std::string("0.0"));
   SetModuleVersion(StatisticsApi::class_name, std::string("0.0"));
@@ -235,25 +239,34 @@ PyObject* PythonScriptContext::RunFunction(PyObject* self, PyObject* args, std::
   if (class_name == ImportAPI::class_name)
     functionMetadata = ImportAPI::GetFunctionMetadataForVersion(version_number, function_name);
   else if (class_name == OnFrameStartCallbackAPI::class_name)
-    functionMetadata = OnFrameStartCallbackAPI::GetFunctionMetadataForVersion(version_number, function_name);
+    functionMetadata =
+        OnFrameStartCallbackAPI::GetFunctionMetadataForVersion(version_number, function_name);
   else if (class_name == OnGCControllerPolledCallbackAPI::class_name)
-    functionMetadata = OnGCControllerPolledCallbackAPI::GetFunctionMetadataForVersion(version_number, function_name);
+    functionMetadata = OnGCControllerPolledCallbackAPI::GetFunctionMetadataForVersion(
+        version_number, function_name);
   else if (class_name == OnInstructionHitCallbackAPI::class_name)
-    functionMetadata = OnInstructionHitCallbackAPI::GetFunctionMetadataForVersion(version_number, function_name);
+    functionMetadata =
+        OnInstructionHitCallbackAPI::GetFunctionMetadataForVersion(version_number, function_name);
   else if (class_name == OnMemoryAddressReadFromCallbackAPI::class_name)
-    functionMetadata = OnMemoryAddressReadFromCallbackAPI::GetFunctionMetadataForVersion(version_number, function_name);
+    functionMetadata = OnMemoryAddressReadFromCallbackAPI::GetFunctionMetadataForVersion(
+        version_number, function_name);
   else if (class_name == OnMemoryAddressWrittenToCallbackAPI::class_name)
-    functionMetadata = OnMemoryAddressWrittenToCallbackAPI::GetFunctionMetadataForVersion(version_number, function_name);
+    functionMetadata = OnMemoryAddressWrittenToCallbackAPI::GetFunctionMetadataForVersion(
+        version_number, function_name);
   else if (class_name == OnWiiInputPolledCallbackAPI::class_name)
-    functionMetadata = OnWiiInputPolledCallbackAPI::GetFunctionMetadataForVersion(version_number, function_name);
+    functionMetadata =
+        OnWiiInputPolledCallbackAPI::GetFunctionMetadataForVersion(version_number, function_name);
   else if (class_name == BitApi::class_name)
     functionMetadata = BitApi::GetFunctionMetadataForVersion(version_number, function_name);
   else if (class_name == EmuApi::class_name)
     functionMetadata = EmuApi::GetFunctionMetadataForVersion(version_number, function_name);
   else if (class_name == GameCubeControllerApi::class_name)
-    functionMetadata = GameCubeControllerApi::GetFunctionMetadataForVersion(version_number, function_name);
+    functionMetadata =
+        GameCubeControllerApi::GetFunctionMetadataForVersion(version_number, function_name);
   else if (class_name == GraphicsAPI::class_name)
     functionMetadata = GraphicsAPI::GetFunctionMetadataForVersion(version_number, function_name);
+  else if (class_name == InstructionStepAPI::class_name)
+    functionMetadata = InstructionStepAPI::GetFunctionMetadataForVersion(version_number, function_name);
   else if (class_name == MemoryApi::class_name)
     functionMetadata = MemoryApi::GetFunctionMetadataForVersion(version_number, function_name);
   else if (class_name == RegistersAPI::class_name)

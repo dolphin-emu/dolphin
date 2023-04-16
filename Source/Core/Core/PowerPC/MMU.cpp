@@ -558,7 +558,7 @@ void MMU::Memcheck(u32 address, u64 var, bool write, size_t size)
       Scripting::OnMemoryAddressReadFromCallbackAPI::memory_address_read_from_for_current_callback =
           address;
     }
-    Core::QueueHostJob([] { Core::SetState(Core::State::Running); }, true);
+    Core::QueueHostJob(([] { Core::SetState(Core::State::Running); }), true);
   }
 
   if (m_system.GetCPU().IsStepping())

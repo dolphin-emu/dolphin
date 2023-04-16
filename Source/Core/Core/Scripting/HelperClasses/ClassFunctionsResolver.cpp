@@ -12,6 +12,7 @@
 #include "Core/Scripting/InternalAPIModules/GameCubeControllerAPI.h"
 #include "Core/Scripting/InternalAPIModules/GraphicsAPI.h"
 #include "Core/Scripting/InternalAPIModules/ImportAPI.h"
+#include "Core/Scripting/InternalAPIModules/InstructionStepAPI.h"
 #include "Core/Scripting/InternalAPIModules/MemoryAPI.h"
 #include "Core/Scripting/InternalAPIModules/RegistersAPI.h"
 #include "Core/Scripting/InternalAPIModules/StatisticsAPI.h"
@@ -38,6 +39,9 @@ ClassMetadata GetClassMetadataForModule(const std::string& module_name, const st
 
   else if (module_name == Scripting::ImportAPI::class_name)
     return Scripting::ImportAPI::GetClassMetadataForVersion(version_number);
+
+  else if (module_name == Scripting::InstructionStepAPI::class_name)
+    return Scripting::InstructionStepAPI::GetClassMetadataForVersion(version_number);
 
   else if (module_name == Scripting::MemoryApi::class_name)
     return Scripting::MemoryApi::GetClassMetadataForVersion(version_number);
