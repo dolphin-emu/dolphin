@@ -3,6 +3,7 @@
 
 #include "Core/PowerPC/PPCCache.h"
 
+#include <algorithm>
 #include <array>
 
 #include "Common/ChunkFile.h"
@@ -99,9 +100,9 @@ void Cache::Reset()
   valid.fill(0);
   plru.fill(0);
   modified.fill(0);
-  lookup_table.fill(0xFF);
-  lookup_table_ex.fill(0xFF);
-  lookup_table_vmem.fill(0xFF);
+  std::fill(lookup_table.begin(), lookup_table.end(), 0xFF);
+  std::fill(lookup_table_ex.begin(), lookup_table_ex.end(), 0xFF);
+  std::fill(lookup_table_vmem.begin(), lookup_table_vmem.end(), 0xFF);
 }
 
 void InstructionCache::Reset()
@@ -112,8 +113,14 @@ void InstructionCache::Reset()
 
 void Cache::Init()
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   data.fill({});
   addrs.fill({});
+  lookup_table.resize(memory.GetRamSize() >> 5);
+  lookup_table_ex.resize(memory.GetExRamSize() >> 5);
+  lookup_table_vmem.resize(memory.GetFakeVMemSize() >> 5);
   Reset();
 }
 
@@ -160,6 +167,9 @@ void Cache::FlushAll()
 
 void Cache::Invalidate(u32 addr)
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   auto [set, way] = GetCache(addr, true);
 
   if (way == 0xff)
@@ -168,11 +178,11 @@ void Cache::Invalidate(u32 addr)
   if (valid[set] & (1U << way))
   {
     if (addrs[set][way] & CACHE_VMEM_BIT)
-      lookup_table_vmem[(addrs[set][way] >> 5) & 0xfffff] = 0xff;
+      lookup_table_vmem[(addrs[set][way] & memory.GetFakeVMemMask()) >> 5] = 0xff;
     else if (addrs[set][way] & CACHE_EXRAM_BIT)
-      lookup_table_ex[(addrs[set][way] >> 5) & 0x1fffff] = 0xff;
+      lookup_table_ex[(addrs[set][way] & memory.GetExRamMask()) >> 5] = 0xff;
     else
-      lookup_table[(addrs[set][way] >> 5) & 0xfffff] = 0xff;
+      lookup_table[(addrs[set][way] & memory.GetRamMask()) >> 5] = 0xff;
 
     valid[set] &= ~(1U << way);
     modified[set] &= ~(1U << way);
@@ -195,11 +205,11 @@ void Cache::Flush(u32 addr)
       memory.CopyToEmu((addr & ~0x1f), reinterpret_cast<u8*>(data[set][way].data()), 32);
 
     if (addrs[set][way] & CACHE_VMEM_BIT)
-      lookup_table_vmem[(addrs[set][way] >> 5) & 0xfffff] = 0xff;
+      lookup_table_vmem[(addrs[set][way] & memory.GetFakeVMemMask()) >> 5] = 0xff;
     else if (addrs[set][way] & CACHE_EXRAM_BIT)
-      lookup_table_ex[(addrs[set][way] >> 5) & 0x1fffff] = 0xff;
+      lookup_table_ex[(addrs[set][way] & memory.GetExRamMask()) >> 5] = 0xff;
     else
-      lookup_table[(addrs[set][way] >> 5) & 0xfffff] = 0xff;
+      lookup_table[(addrs[set][way] & memory.GetRamMask()) >> 5] = 0xff;
 
     valid[set] &= ~(1U << way);
     modified[set] &= ~(1U << way);
@@ -222,15 +232,15 @@ std::pair<u32, u32> Cache::GetCache(u32 addr, bool locked)
 
   if (addr & CACHE_VMEM_BIT)
   {
-    way = lookup_table_vmem[(addr >> 5) & 0xfffff];
+    way = lookup_table_vmem[(addr & memory.GetFakeVMemMask()) >> 5];
   }
   else if (addr & CACHE_EXRAM_BIT)
   {
-    way = lookup_table_ex[(addr >> 5) & 0x1fffff];
+    way = lookup_table_ex[(addr & memory.GetExRamMask()) >> 5];
   }
   else
   {
-    way = lookup_table[(addr >> 5) & 0xfffff];
+    way = lookup_table[(addr & memory.GetRamMask()) >> 5];
   }
 
   // load to the cache
@@ -249,22 +259,22 @@ std::pair<u32, u32> Cache::GetCache(u32 addr, bool locked)
         memory.CopyToEmu(addrs[set][way], reinterpret_cast<u8*>(data[set][way].data()), 32);
 
       if (addrs[set][way] & CACHE_VMEM_BIT)
-        lookup_table_vmem[(addrs[set][way] >> 5) & 0xfffff] = 0xff;
+        lookup_table_vmem[(addrs[set][way] & memory.GetFakeVMemMask()) >> 5] = 0xff;
       else if (addrs[set][way] & CACHE_EXRAM_BIT)
-        lookup_table_ex[(addrs[set][way] >> 5) & 0x1fffff] = 0xff;
+        lookup_table_ex[(addrs[set][way] & memory.GetExRamMask()) >> 5] = 0xff;
       else
-        lookup_table[(addrs[set][way] >> 5) & 0xfffff] = 0xff;
+        lookup_table[(addrs[set][way] & memory.GetRamMask()) >> 5] = 0xff;
     }
 
     // load
     memory.CopyFromEmu(reinterpret_cast<u8*>(data[set][way].data()), (addr & ~0x1f), 32);
 
     if (addr & CACHE_VMEM_BIT)
-      lookup_table_vmem[(addr >> 5) & 0xfffff] = way;
+      lookup_table_vmem[(addr & memory.GetFakeVMemMask()) >> 5] = way;
     else if (addr & CACHE_EXRAM_BIT)
-      lookup_table_ex[(addr >> 5) & 0x1fffff] = way;
+      lookup_table_ex[(addr & memory.GetExRamMask()) >> 5] = way;
     else
-      lookup_table[(addr >> 5) & 0xfffff] = way;
+      lookup_table[(addr & memory.GetRamMask()) >> 5] = way;
 
     addrs[set][way] = addr;
     valid[set] |= (1 << way);
@@ -341,6 +351,9 @@ void Cache::Write(u32 addr, const void* buffer, u32 len, bool locked)
 
 void Cache::DoState(PointerWrap& p)
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   if (p.IsReadMode())
   {
     // Clear valid parts of the lookup tables (this is done instead of using fill(0xff) to avoid
@@ -352,11 +365,11 @@ void Cache::DoState(PointerWrap& p)
         if ((valid[set] & (1 << way)) != 0)
         {
           if (addrs[set][way] & CACHE_VMEM_BIT)
-            lookup_table_vmem[(addrs[set][way] >> 5) & 0xfffff] = 0xff;
+            lookup_table_vmem[(addrs[set][way] & memory.GetFakeVMemMask()) >> 5] = 0xff;
           else if (addrs[set][way] & CACHE_EXRAM_BIT)
-            lookup_table_ex[(addrs[set][way] >> 5) & 0x1fffff] = 0xff;
+            lookup_table_ex[(addrs[set][way] & memory.GetExRamMask()) >> 5] = 0xff;
           else
-            lookup_table[(addrs[set][way] >> 5) & 0xfffff] = 0xff;
+            lookup_table[(addrs[set][way] & memory.GetRamMask()) >> 5] = 0xff;
         }
       }
     }
@@ -378,11 +391,11 @@ void Cache::DoState(PointerWrap& p)
         if ((valid[set] & (1 << way)) != 0)
         {
           if (addrs[set][way] & CACHE_VMEM_BIT)
-            lookup_table_vmem[(addrs[set][way] >> 5) & 0xfffff] = 0xff;
+            lookup_table_vmem[(addrs[set][way] & memory.GetFakeVMemMask()) >> 5] = 0xff;
           else if (addrs[set][way] & CACHE_EXRAM_BIT)
-            lookup_table_ex[(addrs[set][way] >> 5) & 0x1fffff] = 0xff;
+            lookup_table_ex[(addrs[set][way] & memory.GetExRamMask()) >> 5] = 0xff;
           else
-            lookup_table[(addrs[set][way] >> 5) & 0xfffff] = 0xff;
+            lookup_table[(addrs[set][way] & memory.GetRamMask()) >> 5] = 0xff;
         }
       }
     }
@@ -405,6 +418,7 @@ u32 InstructionCache::ReadInstruction(u32 addr)
 void InstructionCache::Invalidate(u32 addr)
 {
   auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
   auto& ppc_state = system.GetPPCState();
   if (!HID0(ppc_state).ICE || m_disable_icache)
     return;
@@ -416,11 +430,11 @@ void InstructionCache::Invalidate(u32 addr)
     if (valid[set] & (1U << way))
     {
       if (addrs[set][way] & CACHE_VMEM_BIT)
-        lookup_table_vmem[(addrs[set][way] >> 5) & 0xfffff] = 0xff;
+        lookup_table_vmem[(addrs[set][way] & memory.GetFakeVMemMask()) >> 5] = 0xff;
       else if (addrs[set][way] & CACHE_EXRAM_BIT)
-        lookup_table_ex[(addrs[set][way] >> 5) & 0x1fffff] = 0xff;
+        lookup_table_ex[(addrs[set][way] & memory.GetExRamMask()) >> 5] = 0xff;
       else
-        lookup_table[(addrs[set][way] >> 5) & 0xfffff] = 0xff;
+        lookup_table[(addrs[set][way] & memory.GetRamMask()) >> 5] = 0xff;
     }
   }
   valid[set] = 0;
