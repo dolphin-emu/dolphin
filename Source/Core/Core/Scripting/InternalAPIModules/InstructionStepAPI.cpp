@@ -100,16 +100,20 @@ ArgHolder StepOver(ScriptContext* current_script, std::vector<ArgHolder>& args_l
   return CreateVoidTypeArgHolder();
 }
 
-bool IsFunctionCallInstruction(UGeckoInstruction instruction)
+bool IsPotentiallyFunctionCallInstruction(UGeckoInstruction instruction)
 {
-  // TODO: Update this to have the right checks
-  return false;
+  return instruction.LK;
 }
 
 bool IsFunctionReturnInstruction(UGeckoInstruction instruction)
 {
-  // TODO: Update this to have the right checks.
-  return false;
+  if (instruction.hex == 0x4C000064u)
+    return true;
+  const auto& ppc_state = Core::System::GetInstance().GetPPCState();
+  bool counter = (instruction.BO_2 >> 2 & 1) != 0 || (CTR(ppc_state) != 0) != ((instruction.BO_2 >> 1 & 1) != 0);
+  bool condition = instruction.BO_2 >> 4 != 0 || ppc_state.cr.GetBit(instruction.BI_2) == (instruction.BO_2 >> 3 & 1);
+  bool isBclr = instruction.OPCD_7 == 0b010011 && (instruction.hex >> 1 & 0b10000) != 0;
+  return isBclr && counter && condition && !instruction.LK_3;
 }
 
 ArgHolder StepOut(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
@@ -128,13 +132,16 @@ ArgHolder StepOut(ScriptContext* current_script, std::vector<ArgHolder>& args_li
   while (function_call_depth_from_start >= 0 && Movie::GetCurrentFrame() == starting_frame_number)
   {
     UGeckoInstruction current_instruction = PowerPC::MMU::HostRead_Instruction(guard, power_pc.GetPPCState().pc);
-
-    if (IsFunctionCallInstruction(current_instruction))
-      ++function_call_depth_from_start;
-    else if (IsFunctionReturnInstruction(current_instruction))
+    bool potentially_a_function_call = false;
+    u32 pc_before_step = power_pc.GetPPCState().pc;
+    potentially_a_function_call = IsPotentiallyFunctionCallInstruction(current_instruction);
+    if (IsFunctionReturnInstruction(current_instruction))
       --function_call_depth_from_start;
 
     power_pc.SingleStep();
+
+    if (potentially_a_function_call && pc_before_step + 4 != power_pc.GetPPCState().pc)
+      ++function_call_depth_from_start;
   }
 
   power_pc.SetMode(old_mode);
