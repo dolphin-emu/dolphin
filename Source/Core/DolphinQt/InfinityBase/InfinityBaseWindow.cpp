@@ -31,7 +31,7 @@ static QString s_last_figure_path;
 InfinityBaseWindow::InfinityBaseWindow(QWidget* parent) : QWidget(parent)
 {
   setWindowTitle(tr("Infinity Manager"));
-  setObjectName(QString::fromStdString("infinity_manager"));
+  setObjectName(QStringLiteral("infinity_manager"));
   setMinimumSize(QSize(700, 200));
 
   CreateMainWindow();
@@ -71,19 +71,19 @@ void InfinityBaseWindow::CreateMainWindow()
   auto* vbox_group = new QVBoxLayout();
   auto* scroll_area = new QScrollArea();
 
-  AddFigureSlot(vbox_group, QString(tr("Play Set/Power Disc")), 0x01);
+  AddFigureSlot(vbox_group, QString(tr("Play Set/Power Disc")), 0);
   add_line(vbox_group);
-  AddFigureSlot(vbox_group, QString(tr("Player One")), 0x02);
+  AddFigureSlot(vbox_group, QString(tr("Player One")), 1);
   add_line(vbox_group);
-  AddFigureSlot(vbox_group, QString(tr("Player One Ability One")), 0x04);
+  AddFigureSlot(vbox_group, QString(tr("Player One Ability One")), 3);
   add_line(vbox_group);
-  AddFigureSlot(vbox_group, QString(tr("Player One Ability Two")), 0x06);
+  AddFigureSlot(vbox_group, QString(tr("Player One Ability Two")), 5);
   add_line(vbox_group);
-  AddFigureSlot(vbox_group, QString(tr("Player Two")), 0x03);
+  AddFigureSlot(vbox_group, QString(tr("Player Two")), 2);
   add_line(vbox_group);
-  AddFigureSlot(vbox_group, QString(tr("Player Two Ability One")), 0x05);
+  AddFigureSlot(vbox_group, QString(tr("Player Two Ability One")), 4);
   add_line(vbox_group);
-  AddFigureSlot(vbox_group, QString(tr("Player Two Ability Two")), 0x07);
+  AddFigureSlot(vbox_group, QString(tr("Player Two Ability Two")), 6);
 
   m_group_figures->setLayout(vbox_group);
   scroll_area->setWidget(m_group_figures);
@@ -102,16 +102,16 @@ void InfinityBaseWindow::AddFigureSlot(QVBoxLayout* vbox_group, QString name, u8
   auto* clear_btn = new QPushButton(tr("Clear"));
   auto* create_btn = new QPushButton(tr("Create"));
   auto* load_btn = new QPushButton(tr("Load"));
-  m_edit_figures[slot - 1] = new QLineEdit();
-  m_edit_figures[slot - 1]->setEnabled(false);
-  m_edit_figures[slot - 1]->setText(tr("None"));
+  m_edit_figures[slot] = new QLineEdit();
+  m_edit_figures[slot]->setEnabled(false);
+  m_edit_figures[slot]->setText(tr("None"));
 
   connect(clear_btn, &QAbstractButton::clicked, this, [this, slot] { ClearFigure(slot); });
   connect(create_btn, &QAbstractButton::clicked, this, [this, slot] { CreateFigure(slot); });
   connect(load_btn, &QAbstractButton::clicked, this, [this, slot] { LoadFigure(slot); });
 
   hbox_infinity->addWidget(label_skyname);
-  hbox_infinity->addWidget(m_edit_figures[slot - 1]);
+  hbox_infinity->addWidget(m_edit_figures[slot]);
   hbox_infinity->addWidget(clear_btn);
   hbox_infinity->addWidget(create_btn);
   hbox_infinity->addWidget(load_btn);
@@ -122,7 +122,7 @@ void InfinityBaseWindow::AddFigureSlot(QVBoxLayout* vbox_group, QString name, u8
 void InfinityBaseWindow::ClearFigure(u8 slot)
 {
   auto& system = Core::System::GetInstance();
-  m_edit_figures[slot - 1]->setText(tr("None"));
+  m_edit_figures[slot]->setText(tr("None"));
 
   system.GetInfinityBase().RemoveFigure(slot);
 }
@@ -139,7 +139,7 @@ void InfinityBaseWindow::LoadFigure(u8 slot)
 
   s_last_figure_path = QFileInfo(file_path).absolutePath() + QLatin1Char('/');
 
-  m_edit_figures[slot - 1]->setText(QFileInfo(file_path).fileName());
+  m_edit_figures[slot]->setText(QFileInfo(file_path).fileName());
 
   LoadFigurePath(slot, file_path);
 }
@@ -177,8 +177,8 @@ void InfinityBaseWindow::LoadFigurePath(u8 slot, const QString& path)
   auto& system = Core::System::GetInstance();
 
   system.GetInfinityBase().RemoveFigure(slot);
-  m_edit_figures[slot - 1]->setText(QString::fromStdString(
-      system.GetInfinityBase().LoadFigure(file_data.data(), std::move(inf_file), slot)));
+  m_edit_figures[slot]->setText(QString::fromStdString(
+      system.GetInfinityBase().LoadFigure(file_data, std::move(inf_file), slot)));
 }
 
 CreateFigureDialog::CreateFigureDialog(QWidget* parent, u8 slot) : QDialog(parent)
@@ -190,24 +190,22 @@ CreateFigureDialog::CreateFigureDialog(QWidget* parent, u8 slot) : QDialog(paren
 
   auto* combo_figlist = new QComboBox();
   QStringList filterlist;
-  u16 first_entry = 0;
+  u32 first_entry = 0;
   for (const auto& entry : Core::System::GetInstance().GetInfinityBase().GetFigureList())
   {
     const auto figure = entry.second;
     // Only display entry if it is a piece appropriate for the slot
-    if ((slot == 0x01 && (figure.type == IOS::HLE::USB::InfinityFigureType::Playset ||
-                          figure.type == IOS::HLE::USB::InfinityFigureType::Item)) ||
-        ((slot == 0x02 || slot == 0x03) &&
-         figure.type == IOS::HLE::USB::InfinityFigureType::Character) ||
-        ((slot == 0x04 || slot == 0x05 || slot == 0x06 || slot == 0x07) &&
-         (figure.type == IOS::HLE::USB::InfinityFigureType::Ability_A ||
-          figure.type == IOS::HLE::USB::InfinityFigureType::Ability_B)))
+    if ((slot == 0 &&
+         ((figure > 0x1E8480 && figure < 0x2DC6BF) || (figure > 0x3D0900 && figure < 0x4C4B3F))) ||
+        ((slot == 1 || slot == 2) && figure < 0x1E847F) ||
+        ((slot == 3 || slot == 4 || slot == 5 || slot == 6) &&
+         (figure > 0x2DC6C0 && figure < 0x3D08FF)))
     {
-      combo_figlist->addItem(QString::fromStdString(entry.first), QVariant(figure.figure_number));
+      combo_figlist->addItem(QString::fromStdString(entry.first), QVariant(figure));
       filterlist << QString::fromStdString(entry.first);
       if (first_entry == 0)
       {
-        first_entry = figure.figure_number;
+        first_entry = figure;
       }
     }
   }
@@ -253,7 +251,7 @@ CreateFigureDialog::CreateFigureDialog(QWidget* parent, u8 slot) : QDialog(paren
 
   connect(buttons, &QDialogButtonBox::accepted, this, [=, this]() {
     bool ok_char = false;
-    const u16 char_number = edit_num->text().toUShort(&ok_char);
+    const u32 char_number = edit_num->text().toULong(&ok_char);
     if (!ok_char)
     {
       QMessageBox::warning(this, tr("Error converting value"), tr("Character entered is invalid!"),
@@ -265,7 +263,7 @@ CreateFigureDialog::CreateFigureDialog(QWidget* parent, u8 slot) : QDialog(paren
 
     auto& system = Core::System::GetInstance();
     const auto found_fig = system.GetInfinityBase().FindFigure(char_number);
-    if (found_fig != "")
+    if (!found_fig.empty())
     {
       predef_name += QString::fromStdString(std::string(found_fig) + ".bin");
     }
@@ -284,9 +282,11 @@ CreateFigureDialog::CreateFigureDialog(QWidget* parent, u8 slot) : QDialog(paren
 
     if (!system.GetInfinityBase().CreateFigure(m_file_path.toStdString(), char_number))
     {
-      QMessageBox::warning(this, tr("Failed to create Infinity file!"),
-                           tr("Failed to create Infinity file:\n%1").arg(m_file_path),
-                           QMessageBox::Ok);
+      QMessageBox::warning(
+          this, tr("Failed to create Infinity file"),
+          tr("Blank figure creation failed at:\n%1, try again with a different character")
+              .arg(m_file_path),
+          QMessageBox::Ok);
       return;
     }
     s_last_figure_path = QFileInfo(m_file_path).absolutePath() + QLatin1Char('/');

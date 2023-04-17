@@ -139,7 +139,8 @@ bool USBHost::AddNewDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks
         if (whitelist.count({descriptor.idVendor, descriptor.idProduct}) == 0)
           return true;
 
-        auto usb_device = std::make_unique<USB::LibusbDevice>(GetEmulationKernel(), device, descriptor);
+        auto usb_device =
+            std::make_unique<USB::LibusbDevice>(GetEmulationKernel(), device, descriptor);
         CheckAndAddDevice(std::move(usb_device), new_devices, hooks, always_add_hooks);
         return true;
       });
@@ -186,7 +187,8 @@ void USBHost::AddEmulatedDevices(std::set<u64>& new_devices, DeviceChangeHooks& 
 {
   if (Config::Get(Config::MAIN_EMULATE_SKYLANDER_PORTAL) && !NetPlay::IsNetPlayRunning())
   {
-    auto skylanderportal = std::make_unique<USB::SkylanderUSB>(GetEmulationKernel(), "Skylander Portal");
+    auto skylanderportal =
+        std::make_unique<USB::SkylanderUSB>(GetEmulationKernel(), "Skylander Portal");
     CheckAndAddDevice(std::move(skylanderportal), new_devices, hooks, always_add_hooks);
   }
   if (Config::Get(Config::MAIN_EMULATE_INFINITY_BASE) && !NetPlay::IsNetPlayRunning())
