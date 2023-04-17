@@ -22,9 +22,6 @@ jobs:
     # Install 7zip
     - name: Install 7zip
       run: choco install 7zip
-    # Install Visual Studio Update (1/2)
-    - name: Install Visual Studio Update (1/2)
-      run: C%3A%2FProgram%20Files%20(x86)%2FMicrosoft%20Visual%20Studio%2FInstaller%2Fvs_installershell.exe%22 update --passive --norestart --force --installpath %22C%3A%2FProgram%20Files%2FMicrosoft%20Visual%20Studio%2F2022%2FCommunity%22
     # Submoudle"
     - name: Checkout Submodles
       run: git submodule update --init --recursive
