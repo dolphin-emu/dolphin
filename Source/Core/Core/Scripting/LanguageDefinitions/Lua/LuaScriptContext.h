@@ -146,7 +146,7 @@ public:
 
     this->index_of_next_frame_callback_to_execute = 0;
 
-    const std::lock_guard<std::mutex> lock(script_specific_lock);
+    const std::lock_guard<std::recursive_mutex> lock(script_specific_lock);
     current_script_call_location = ScriptCallLocations::FromScriptStartup;
     main_lua_thread = luaL_newstate();
     luaL_openlibs(main_lua_thread);

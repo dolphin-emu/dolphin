@@ -46,6 +46,7 @@
 #include "Core/PowerPC/GDBStub.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/Scripting/InternalAPIModules/InstructionStepAPI.h"
 #include "Core/Scripting/EventCallbackRegistrationAPIs/OnInstructionHitCallbackAPI.h"
 #include "Core/Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressReadFromCallbackAPI.h"
 #include "Core/Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressWrittenToCallbackAPI.h"
@@ -541,7 +542,7 @@ void MMU::Memcheck(u32 address, u64 var, bool write, size_t size)
   if (mc == nullptr)
     return;
 
-  if (Scripting::ScriptUtilities::IsScriptingCoreInitialized())
+  if (Scripting::ScriptUtilities::IsScriptingCoreInitialized() && !Scripting::InstructionStepAPI::IsCurrentlyInBreakpoint())
   {
     if (write)
     {
@@ -570,7 +571,7 @@ void MMU::Memcheck(u32 address, u64 var, bool write, size_t size)
 
   const bool pause = mc->Action(m_system, &m_power_pc.GetDebugInterface(), var, address, write,
                                 size, m_ppc_state.pc);
-  if (!pause)
+  if (!pause || (Scripting::ScriptUtilities::IsScriptingCoreInitialized() && Scripting::InstructionStepAPI::IsCurrentlyInBreakpoint()))
     return;
 
   m_system.GetCPU().Break();

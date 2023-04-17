@@ -121,7 +121,7 @@ PythonScriptContext::PythonScriptContext(
     : ScriptContext(new_unique_script_identifier, new_script_filename,
                     new_pointer_to_list_of_all_scripts, new_print_callback, new_script_end_callback)
 {
-  const std::lock_guard<std::mutex> lock(script_specific_lock);
+  const std::lock_guard<std::recursive_mutex> lock(script_specific_lock);
   error_buffer_str = "";
 
   this->number_of_frame_callbacks_to_auto_deregister = 0;

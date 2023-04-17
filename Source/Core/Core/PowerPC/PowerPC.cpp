@@ -31,6 +31,7 @@
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
+#include "Core/Scripting/InternalAPIModules/InstructionStepAPI.h"
 #include "Core/Scripting/EventCallbackRegistrationAPIs/OnInstructionHitCallbackAPI.h"
 #include "Core/Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressReadFromCallbackAPI.h"
 #include "Core/Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressWrittenToCallbackAPI.h"
@@ -641,7 +642,7 @@ void PowerPCManager::CheckBreakPoints()
     return;
 
 
-  if (bp->break_on_hit)
+  if (bp->break_on_hit && (!Scripting::ScriptUtilities::IsScriptingCoreInitialized() || !Scripting::InstructionStepAPI::IsCurrentlyInBreakpoint()))
   {
     if (Scripting::ScriptUtilities::IsScriptingCoreInitialized())
     {

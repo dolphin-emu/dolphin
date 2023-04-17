@@ -43,7 +43,7 @@ FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
                                function_name, deprecated_functions_map);
 }
 
-bool InBreakpoint()
+bool IsCurrentlyInBreakpoint()
 {
   return OnInstructionHitCallbackAPI::in_instruction_hit_breakpoint ||
          OnMemoryAddressReadFromCallbackAPI::in_memory_address_read_from_breakpoint ||
@@ -61,7 +61,7 @@ ArgHolder CreateNotInBreakpointError(const std::string& function_name)
 
 ArgHolder SingleStep(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
-  if (!InBreakpoint())
+  if (!IsCurrentlyInBreakpoint())
     return CreateNotInBreakpointError("SingleStep()");
   Core::CPUThreadGuard guard(Core::System::GetInstance());
   PowerPC::PowerPCManager& power_pc = Core::System::GetInstance().GetPowerPC();

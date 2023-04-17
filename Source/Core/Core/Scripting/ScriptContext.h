@@ -36,7 +36,7 @@ public:
   bool finished_with_global_code;
   bool called_yielding_function_in_last_global_script_resume;
   bool called_yielding_function_in_last_frame_callback_script_resume;
-  std::mutex script_specific_lock;
+  std::recursive_mutex script_specific_lock;
 
   InstructionBreakpointsHolder instructionsBreakpointHolder;
   MemoryAddressBreakpointsHolder memoryAddressBreakpointsHolder;
