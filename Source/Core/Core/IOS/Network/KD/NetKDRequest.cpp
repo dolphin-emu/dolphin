@@ -161,7 +161,9 @@ NetKDRequestDevice::NetKDRequestDevice(Kernel& ios, const std::string& device_na
 
 NetKDRequestDevice::~NetKDRequestDevice()
 {
-  WiiSockMan::GetInstance().Clean();
+  auto socket_manager = m_ios.GetSocketManager();
+  if (socket_manager)
+    socket_manager->Clean();
 }
 
 void NetKDRequestDevice::Update()
@@ -348,7 +350,7 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
 
   case IOCTL_NWC24_CLEANUP_SOCKET:
     INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_CLEANUP_SOCKET");
-    WiiSockMan::GetInstance().Clean();
+    m_ios.GetSocketManager()->Clean();
     break;
 
   case IOCTL_NWC24_LOCK_SOCKET:  // WiiMenu
@@ -452,7 +454,7 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
     // SOGetInterfaceOpt(0xfffe,0xc001);  // DHCP lease time remaining?
     // SOGetInterfaceOpt(0xfffe,0x1003);  // Error
     // Call /dev/net/ip/top 0x1b (SOCleanup), it closes all sockets
-    WiiSockMan::GetInstance().Clean();
+    m_ios.GetSocketManager()->Clean();
     return_value = IPC_SUCCESS;
     break;
   }
