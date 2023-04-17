@@ -30,6 +30,7 @@ void InitializeScript(int unique_script_identifier, const std::string& script_fi
                  std::function<void(int)>* new_script_end_callback,
                  DefinedScriptingLanguagesEnum language)
 {
+  Core::CPUThreadGuard lock(Core::System::GetInstance());
   initialization_and_destruction_lock.lock();
   global_code_and_frame_callback_running_lock.lock();
   if (global_pointer_to_list_of_all_scripts == nullptr)
@@ -53,6 +54,7 @@ void InitializeScript(int unique_script_identifier, const std::string& script_fi
 
 void StopScript(int unique_script_identifier)
 {
+  Core::CPUThreadGuard lock(Core::System::GetInstance());
   initialization_and_destruction_lock.lock();
   global_code_and_frame_callback_running_lock.lock();
   gc_controller_polled_callback_running_lock.lock();

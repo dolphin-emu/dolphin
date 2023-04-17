@@ -564,7 +564,10 @@ void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
   else
   {
     if (Scripting::ScriptUtilities::IsScriptingCoreInitialized())
+    {
       Scripting::ScriptUtilities::RunOnWiiInputPolledCallbacks();
+      Scripting::ScriptUtilities::RunButtonCallbacksInQueues();
+    }
     // Core buttons:
     if (rpt_builder.HasCore())
     {

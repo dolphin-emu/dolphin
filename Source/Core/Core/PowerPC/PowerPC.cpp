@@ -641,8 +641,7 @@ void PowerPCManager::CheckBreakPoints()
   if (!bp || !bp->is_enabled || !EvaluateCondition(m_system, bp->condition))
     return;
 
-
-  if (bp->break_on_hit && (!Scripting::ScriptUtilities::IsScriptingCoreInitialized() || !Scripting::InstructionStepAPI::IsCurrentlyInBreakpoint()))
+  if (bp->break_on_hit)
   {
     if (Scripting::ScriptUtilities::IsScriptingCoreInitialized())
     {

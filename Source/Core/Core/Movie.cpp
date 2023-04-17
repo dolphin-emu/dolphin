@@ -1413,7 +1413,10 @@ bool PlayWiimote(int wiimote, WiimoteCommon::DataReportBuilder& rpt, int ext,
   }
 
   if (Scripting::ScriptUtilities::IsScriptingCoreInitialized())
+  {
     Scripting::ScriptUtilities::RunOnWiiInputPolledCallbacks();
+    Scripting::ScriptUtilities::RunButtonCallbacksInQueues();
+  }
 
   const u8 size = rpt.GetDataSize();
   const u8 sizeInMovie = s_temp_input[s_currentByte];

@@ -116,6 +116,7 @@ void CPUManager::Run()
             Scripting::OnInstructionHitCallbackAPI::instruction_address_for_current_callback);
         Scripting::OnInstructionHitCallbackAPI::in_instruction_hit_breakpoint = false;
         hit_breakpoint = true;
+        Scripting::ScriptUtilities::RunButtonCallbacksInQueues();
       }
 
       if (Scripting::ScriptUtilities::IsScriptingCoreInitialized() && Scripting::OnMemoryAddressReadFromCallbackAPI::in_memory_address_read_from_breakpoint)
@@ -126,6 +127,7 @@ void CPUManager::Run()
         Scripting::OnMemoryAddressReadFromCallbackAPI::in_memory_address_read_from_breakpoint =
             false;
         hit_breakpoint = true;
+        Scripting::ScriptUtilities::RunButtonCallbacksInQueues();
       }
 
       if (Scripting::ScriptUtilities::IsScriptingCoreInitialized() && Scripting::OnMemoryAddressWrittenToCallbackAPI::in_memory_address_written_to_breakpoint)
@@ -138,6 +140,7 @@ void CPUManager::Run()
         Scripting::OnMemoryAddressWrittenToCallbackAPI::in_memory_address_written_to_breakpoint =
             false;
         hit_breakpoint = true;
+        Scripting::ScriptUtilities::RunButtonCallbacksInQueues();
       }
 
       if (hit_breakpoint)
