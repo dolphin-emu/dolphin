@@ -252,7 +252,6 @@ public:
   };
 
   static s32 GetNetErrorCode(s32 ret, std::string_view caller, bool is_rw);
-  static char* DecodeError(s32 ErrorCode);
 
   static WiiSockMan& GetInstance()
   {
