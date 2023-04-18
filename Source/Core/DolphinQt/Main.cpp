@@ -257,8 +257,6 @@ int main(int argc, char* argv[])
 
     MainWindow win{std::move(boot), static_cast<const char*>(options.get("movie"))};
     Settings::Instance().SetCurrentUserStyle(Settings::Instance().GetCurrentUserStyle());
-    if (options.is_set("debugger"))
-      Settings::Instance().SetDebugModeEnabled(true);
     win.Show();
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
