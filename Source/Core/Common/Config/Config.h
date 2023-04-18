@@ -17,6 +17,23 @@ namespace Config
 {
 using ConfigChangedCallback = std::function<void()>;
 
+enum class ValueType
+{
+  BOOLEAN,
+  INT,
+  U32,
+  FLOAT,
+  S32,
+  STRING,
+  CPU_CORE,
+  DPL2_QUALITY,
+  EXI_DEVICE_TYPE,
+  SI_DEVICES,
+  HSP_DEVICE_TYPE,
+  DISCIO_REGION,
+  SHOW_CURSOR_VALUE_TYPE,
+};
+
 // Layer management
 void AddLayer(std::unique_ptr<ConfigLayerLoader> loader);
 std::shared_ptr<Layer> GetLayer(LayerType layer);

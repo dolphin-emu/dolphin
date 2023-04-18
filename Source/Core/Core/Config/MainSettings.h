@@ -7,6 +7,7 @@
 #include <set>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "Common/Common.h"
 #include "Common/Config/Config.h"
@@ -372,4 +373,7 @@ std::string GetGCIFolderPath(ExpansionInterface::Slot slot, std::optional<DiscIO
 std::string GetGCIFolderPath(std::string configured_folder, ExpansionInterface::Slot slot,
                              std::optional<DiscIO::Region> region);
 bool IsDefaultGCIFolderPathConfigured(ExpansionInterface::Slot slot);
+
+extern std::unordered_map<Config::ValueType, std::vector<const void*>> all_main_settings;
+
 }  // namespace Config
