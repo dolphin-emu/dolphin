@@ -155,7 +155,8 @@ bool GLContextGLX::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
            GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB, None}};
 
       s_glxError = false;
-      m_context = glXCreateContextAttribs(m_display, m_fbconfig, 0, True, &context_attribs[0]);
+      m_context =
+          glXCreateContextAttribs(m_display, m_fbconfig, nullptr, True, &context_attribs[0]);
       XSync(m_display, False);
       if (!m_context || s_glxError)
         continue;
@@ -174,7 +175,8 @@ bool GLContextGLX::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
     std::array<int, 5> context_attribs_legacy = {
         {GLX_CONTEXT_MAJOR_VERSION_ARB, 1, GLX_CONTEXT_MINOR_VERSION_ARB, 0, None}};
     s_glxError = false;
-    m_context = glXCreateContextAttribs(m_display, m_fbconfig, 0, True, &context_attribs_legacy[0]);
+    m_context =
+        glXCreateContextAttribs(m_display, m_fbconfig, nullptr, True, &context_attribs_legacy[0]);
     XSync(m_display, False);
     m_attribs.clear();
     m_attribs.insert(m_attribs.end(), context_attribs_legacy.begin(), context_attribs_legacy.end());
