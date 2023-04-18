@@ -14,6 +14,8 @@
 #include "Core/Core.h"
 #include "DiscIO/Volume.h"
 
+static constexpr bool hardcore_mode_enabled = false;
+
 AchievementManager* AchievementManager::GetInstance()
 {
   static AchievementManager s_instance;
@@ -131,8 +133,75 @@ void AchievementManager::LoadGameByFilenameAsync(const std::string& iso_path,
 
     const auto fetch_game_data_response = FetchGameData();
     m_is_game_loaded = fetch_game_data_response == ResponseType::SUCCESS;
+
+    // Claim the lock, then queue the fetch unlock data calls, then initialize the unlock map in
+    // ActivateDeactiveAchievements. This allows the calls to process while initializing the
+    // unlock map but then forces them to wait until it's initialized before making modifications to
+    // it.
+    {
+      std::lock_guard lg{m_lock};
+      LoadUnlockData([](ResponseType r_type) {});
+      ActivateDeactivateAchievements();
+    }
+    ActivateDeactivateLeaderboards();
+    ActivateDeactivateRichPresence();
+
     callback(fetch_game_data_response);
   });
+}
+
+void AchievementManager::LoadUnlockData(const ResponseCallback& callback)
+{
+  m_queue.EmplaceItem([this, callback] {
+    const auto hardcore_unlock_response = FetchUnlockData(true);
+    if (hardcore_unlock_response != ResponseType::SUCCESS)
+    {
+      callback(hardcore_unlock_response);
+      return;
+    }
+
+    callback(FetchUnlockData(false));
+  });
+}
+
+void AchievementManager::ActivateDeactivateAchievements()
+{
+  bool enabled = Config::Get(Config::RA_ACHIEVEMENTS_ENABLED);
+  bool unofficial = Config::Get(Config::RA_UNOFFICIAL_ENABLED);
+  bool encore = Config::Get(Config::RA_ENCORE_ENABLED);
+  for (u32 ix = 0; ix < m_game_data.num_achievements; ix++)
+  {
+    auto iter =
+        m_unlock_map.insert({m_game_data.achievements[ix].id, UnlockStatus{.game_data_index = ix}});
+    ActivateDeactivateAchievement(iter.first->first, enabled, unofficial, encore);
+  }
+}
+
+void AchievementManager::ActivateDeactivateLeaderboards()
+{
+  bool leaderboards_enabled = Config::Get(Config::RA_LEADERBOARDS_ENABLED);
+  for (u32 ix = 0; ix < m_game_data.num_leaderboards; ix++)
+  {
+    auto leaderboard = m_game_data.leaderboards[ix];
+    if (m_is_game_loaded && leaderboards_enabled && hardcore_mode_enabled)
+    {
+      rc_runtime_activate_lboard(&m_runtime, leaderboard.id, leaderboard.definition, nullptr, 0);
+    }
+    else
+    {
+      rc_runtime_deactivate_lboard(&m_runtime, m_game_data.leaderboards[ix].id);
+    }
+  }
+}
+
+void AchievementManager::ActivateDeactivateRichPresence()
+{
+  rc_runtime_activate_richpresence(
+      &m_runtime,
+      (m_is_game_loaded && Config::Get(Config::RA_RICH_PRESENCE_ENABLED)) ?
+          m_game_data.rich_presence_script :
+          "",
+      nullptr, 0);
 }
 
 void AchievementManager::CloseGame()
@@ -140,6 +209,10 @@ void AchievementManager::CloseGame()
   m_is_game_loaded = false;
   m_game_id = 0;
   m_queue.Cancel();
+  m_unlock_map.clear();
+  ActivateDeactivateAchievements();
+  ActivateDeactivateLeaderboards();
+  ActivateDeactivateRichPresence();
 }
 
 void AchievementManager::Logout()
@@ -212,6 +285,85 @@ AchievementManager::ResponseType AchievementManager::FetchGameData()
   return Request<rc_api_fetch_game_data_request_t, rc_api_fetch_game_data_response_t>(
       fetch_data_request, &m_game_data, rc_api_init_fetch_game_data_request,
       rc_api_process_fetch_game_data_response);
+}
+
+AchievementManager::ResponseType AchievementManager::FetchUnlockData(bool hardcore)
+{
+  rc_api_fetch_user_unlocks_response_t unlock_data{};
+  std::string username = Config::Get(Config::RA_USERNAME);
+  std::string api_token = Config::Get(Config::RA_API_TOKEN);
+  rc_api_fetch_user_unlocks_request_t fetch_unlocks_request = {.username = username.c_str(),
+                                                               .api_token = api_token.c_str(),
+                                                               .game_id = m_game_id,
+                                                               .hardcore = hardcore};
+  ResponseType r_type =
+      Request<rc_api_fetch_user_unlocks_request_t, rc_api_fetch_user_unlocks_response_t>(
+          fetch_unlocks_request, &unlock_data, rc_api_init_fetch_user_unlocks_request,
+          rc_api_process_fetch_user_unlocks_response);
+  if (r_type == ResponseType::SUCCESS)
+  {
+    std::lock_guard lg{m_lock};
+    bool enabled = Config::Get(Config::RA_ACHIEVEMENTS_ENABLED);
+    bool unofficial = Config::Get(Config::RA_UNOFFICIAL_ENABLED);
+    bool encore = Config::Get(Config::RA_ENCORE_ENABLED);
+    for (AchievementId ix = 0; ix < unlock_data.num_achievement_ids; ix++)
+    {
+      auto it = m_unlock_map.find(unlock_data.achievement_ids[ix]);
+      if (it == m_unlock_map.end())
+        continue;
+      it->second.remote_unlock_status =
+          hardcore ? UnlockStatus::UnlockType::HARDCORE : UnlockStatus::UnlockType::SOFTCORE;
+      ActivateDeactivateAchievement(unlock_data.achievement_ids[ix], enabled, unofficial, encore);
+    }
+  }
+  rc_api_destroy_fetch_user_unlocks_response(&unlock_data);
+  return r_type;
+}
+
+void AchievementManager::ActivateDeactivateAchievement(AchievementId id, bool enabled,
+                                                       bool unofficial, bool encore)
+{
+  auto it = m_unlock_map.find(id);
+  if (it == m_unlock_map.end())
+    return;
+  const UnlockStatus& status = it->second;
+  u32 index = status.game_data_index;
+  bool active = (rc_runtime_get_achievement(&m_runtime, id) != nullptr);
+
+  // Deactivate achievements if game is not loaded
+  bool activate = m_is_game_loaded;
+  // Activate achievements only if achievements are enabled
+  if (activate && !enabled)
+    activate = false;
+  // Deactivate if achievement is unofficial, unless unofficial achievements are enabled
+  if (activate && !unofficial &&
+      m_game_data.achievements[index].category == RC_ACHIEVEMENT_CATEGORY_UNOFFICIAL)
+  {
+    activate = false;
+  }
+  // If encore mode is on, activate/deactivate regardless of current unlock status
+  if (activate && !encore)
+  {
+    // Encore is off, achievement has been unlocked in this session, deactivate
+    activate = (status.session_unlock_count == 0);
+    // Encore is off, achievement has been hardcore unlocked on site, deactivate
+    if (activate && status.remote_unlock_status == UnlockStatus::UnlockType::HARDCORE)
+      activate = false;
+    // Encore is off, hardcore is off, achievement has been softcore unlocked on site, deactivate
+    if (activate && !hardcore_mode_enabled &&
+        status.remote_unlock_status == UnlockStatus::UnlockType::SOFTCORE)
+    {
+      activate = false;
+    }
+  }
+
+  if (!active && activate)
+  {
+    rc_runtime_activate_achievement(&m_runtime, id, m_game_data.achievements[index].definition,
+                                    nullptr, 0);
+  }
+  if (active && !activate)
+    rc_runtime_deactivate_achievement(&m_runtime, id);
 }
 
 // Every RetroAchievements API call, with only a partial exception for fetch_image, follows
