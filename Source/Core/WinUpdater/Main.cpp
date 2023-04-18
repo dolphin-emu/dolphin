@@ -31,7 +31,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
   // Test for write permissions
   bool need_admin = false;
 
-  auto path = GetModuleName(hInstance);
+  auto path = Common::GetModuleName(hInstance);
   if (!path)
   {
     UI::Error("Failed to get updater filename.");
