@@ -371,8 +371,8 @@ void Metal::StateTracker::BeginRenderPass(MTLRenderPassDescriptor* descriptor)
   m_current.cull_mode = MTLCullModeNone;
   m_current.perf_query_group = static_cast<PerfQueryGroup>(-1);
   m_flags.NewEncoder();
-  m_dirty_samplers = 0xff;
-  m_dirty_textures = 0xff;
+  m_dirty_samplers = (1 << VideoCommon::MAX_PIXEL_SHADER_SAMPLERS) - 1;
+  m_dirty_textures = (1 << VideoCommon::MAX_PIXEL_SHADER_SAMPLERS) - 1;
   CheckScissor();
   CheckViewport();
   ASSERT_MSG(VIDEO, m_current_render_encoder, "Failed to create render encoder!");
@@ -386,8 +386,8 @@ void Metal::StateTracker::BeginComputePass()
   if (m_manual_buffer_upload)
     [m_current_compute_encoder waitForFence:m_fence];
   m_flags.NewEncoder();
-  m_dirty_samplers = 0xff;
-  m_dirty_textures = 0xff;
+  m_dirty_samplers = (1 << VideoCommon::MAX_PIXEL_SHADER_SAMPLERS) - 1;
+  m_dirty_textures = (1 << VideoCommon::MAX_PIXEL_SHADER_SAMPLERS) - 1;
 }
 
 void Metal::StateTracker::EndRenderPass()
@@ -801,13 +801,13 @@ void Metal::StateTracker::PrepareRender()
     if (m_state.vertices)
       SetVertexBufferNow(0, m_state.vertices, 0);
   }
-  if (u8 dirty = m_dirty_textures & pipe->GetTextures())
+  if (u32 dirty = m_dirty_textures & pipe->GetTextures())
   {
     m_dirty_textures &= ~pipe->GetTextures();
     NSRange range = RangeOfBits(dirty);
     [enc setFragmentTextures:&m_state.textures[range.location] withRange:range];
   }
-  if (u8 dirty = m_dirty_samplers & pipe->GetSamplers())
+  if (u32 dirty = m_dirty_samplers & pipe->GetSamplers())
   {
     m_dirty_samplers &= ~pipe->GetSamplers();
     NSRange range = RangeOfBits(dirty);
