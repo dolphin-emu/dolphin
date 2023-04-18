@@ -270,6 +270,7 @@ private:
     u32 texel_buffer_offset0;
     u32 texel_buffer_offset1;
     PerfQueryGroup perf_query_group = static_cast<PerfQueryGroup>(-1);
+    u32 perf_query_id;
   } m_state;
 
   u32 m_perf_query_tracker_counter = 0;
