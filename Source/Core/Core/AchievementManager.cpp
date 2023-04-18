@@ -67,12 +67,13 @@ void AchievementManager::LoadGameByFilenameAsync(const std::string& iso_path,
     std::unique_ptr<DiscIO::Volume> volume;
   };
   rc_hash_filereader volume_reader{
-      .open =
-          [](const char* path_utf8) {
-            auto state = std::make_unique<FilereaderState>();
-            state->volume = DiscIO::CreateVolume(path_utf8);
-            return reinterpret_cast<void*>(state.release());
-          },
+      .open = [](const char* path_utf8) -> void* {
+        auto state = std::make_unique<FilereaderState>();
+        state->volume = DiscIO::CreateVolume(path_utf8);
+        if (!state->volume)
+          return nullptr;
+        return state.release();
+      },
       .seek =
           [](void* file_handle, int64_t offset, int origin) {
             switch (origin)
@@ -111,7 +112,8 @@ void AchievementManager::LoadGameByFilenameAsync(const std::string& iso_path,
       .close = [](void* file_handle) { delete reinterpret_cast<FilereaderState*>(file_handle); }};
   rc_hash_init_custom_filereader(&volume_reader);
   std::array<char, HASH_LENGTH> game_hash;
-  rc_hash_generate_from_file(game_hash.data(), RC_CONSOLE_GAMECUBE, iso_path.c_str());
+  if (!rc_hash_generate_from_file(game_hash.data(), RC_CONSOLE_GAMECUBE, iso_path.c_str()))
+    return;
   m_queue.EmplaceItem([this, callback, game_hash] {
     const auto resolve_hash_response = ResolveHash(game_hash);
     if (resolve_hash_response != ResponseType::SUCCESS || m_game_id == 0)
