@@ -299,13 +299,13 @@ void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInforma
   }
   else
   {
-    const std::string error = GetLastErrorString();
+    const std::string error = Common::GetLastErrorString();
     CriticalAlertFmtT("Could not start updater process: {0}", error);
   }
 #else
   if (popen(command_line.c_str(), "r") == nullptr)
   {
-    const std::string error = LastStrerrorString();
+    const std::string error = Common::LastStrerrorString();
     CriticalAlertFmtT("Could not start updater process: {0}", error);
   }
 #endif
