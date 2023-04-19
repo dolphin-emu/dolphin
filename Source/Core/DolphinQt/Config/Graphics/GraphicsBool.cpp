@@ -9,7 +9,6 @@
 
 #include "Common/Config/Config.h"
 
-#include "DolphinQt/Config/Graphics/BalloonTip.h"
 #include "DolphinQt/Settings.h"
 
 GraphicsBool::GraphicsBool(const QString& label, const Config::Info<bool>& setting, bool reverse)
