@@ -19,11 +19,16 @@ class FileSystem;
 }
 namespace NWC24
 {
+constexpr size_t MAX_CHUNK_SIZE = 32768;
 constexpr u16 SECTOR_SIZE = 512;
 constexpr u16 VF_LITTLE_ENDIAN = 0xFFFE;
 constexpr u16 VF_BIG_ENDIAN = 0xFEFF;
-ErrorCode OpenVFF(const std::string& path, const std::string& filename,
-                  const std::shared_ptr<FS::FileSystem>& fs, const std::vector<u8>& data);
+ErrorCode DeleteFileFromVFF(const std::string& path, const std::string& filename,
+                            const std::shared_ptr<FS::FileSystem>& fs);
+ErrorCode WriteToVFF(const std::string& path, const std::string& filename,
+                     const std::shared_ptr<FS::FileSystem>& fs, const std::vector<u8>& data);
+ErrorCode ReadFromVFF(const std::string& path, const std::string& filename,
+                  const std::shared_ptr<FS::FileSystem>& fs, std::vector<u8>& out);
 
 #pragma pack(push, 1)
 struct VFFHeader final

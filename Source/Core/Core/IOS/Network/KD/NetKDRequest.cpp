@@ -151,7 +151,8 @@ s32 NWC24MakeUserID(u64* nwc24_id, u32 hollywood_id, u16 id_ctr, HardwareModel h
 }  // Anonymous namespace
 
 NetKDRequestDevice::NetKDRequestDevice(EmulationKernel& ios, const std::string& device_name)
-    : EmulationDevice(ios, device_name), m_config{ios.GetFS()}, m_dl_list{ios.GetFS()}
+    : EmulationDevice(ios, device_name), m_config{ios.GetFS()}, m_dl_list{ios.GetFS()}, m_send_list{
+                                                                                   ios.GetFS()}
 {
   // Enable all NWC24 permissions
   m_scheduler_buffer[1] = Common::swap32(-1);
@@ -167,7 +168,7 @@ NetKDRequestDevice::NetKDRequestDevice(EmulationKernel& ios, const std::string& 
   m_scheduler_work_queue.Reset("WiiConnect24 Scheduler Worker",
                                [](std::function<void()> task) { task(); });
 
-  m_scheduler_timer_thread = std::thread(&NetKDRequestDevice::SchedulerTimer, this);
+  m_scheduler_timer_thread = std::thread([this] { SchedulerTimer(); });
 }
 
 NetKDRequestDevice::~NetKDRequestDevice()
@@ -177,12 +178,11 @@ NetKDRequestDevice::~NetKDRequestDevice()
     socket_manager->Clean();
 
   {
-    std::unique_lock lg(m_scheduler_lock);
+    std::lock_guard lg(m_scheduler_lock);
     if (!m_scheduler_timer_thread.joinable())
       return;
 
-    m_shutdown = true;
-    m_scheduler_cond_var.notify_one();
+    m_shutdown_event.Set();
   }
 
   m_scheduler_timer_thread.join();
@@ -230,7 +230,7 @@ void NetKDRequestDevice::LogError(ErrorType error_type, s32 error_code) {
 
 void NetKDRequestDevice::SchedulerWorker(const SchedulerEvent event)
 {
-  if (event == SchedulerEvent::DOWNLOAD)
+  if (event == SchedulerEvent::Download)
   {
     INFO_LOG_FMT(IOS_WC24, "Preparing to download");
   }
@@ -243,8 +243,10 @@ void NetKDRequestDevice::SchedulerWorker(const SchedulerEvent event)
     u32 mail_flag{};
     u32 interval{};
 
-    // TODO: Implement receive, send and save functions.
+    // TODO: Implement receive and save functions. Also error reporting when get-scheduler-stat gets
+    // merged.
     KDCheckMail(&mail_flag, &interval);
+    KDSendMail();
   }
 }
 
@@ -277,8 +279,6 @@ NWC24::ErrorCode NetKDRequestDevice::KDCheckMail(u32* _mail_flag, u32* _interval
   }
 
   const std::string response_str = {response->begin(), response->end()};
-  INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_CHECK_MAIL_NOW: Response: {}", response_str);
-
   const std::string code = GetValueFromCGIResponse(response_str, "cd");
   if (code != "100")
   {
@@ -306,8 +306,8 @@ NWC24::ErrorCode NetKDRequestDevice::KDCheckMail(u32* _mail_flag, u32* _interval
   std::string our_hash{};
   for (const u8 b : hashed)
   {
-    our_hash += (hex_table[b >> 4]);
-    our_hash += (hex_table[b & 0xF]);
+    our_hash += hex_table[b >> 4];
+    our_hash += hex_table[b & 0xF];
   }
 
   if (our_hash != server_hmac)
@@ -317,12 +317,106 @@ NWC24::ErrorCode NetKDRequestDevice::KDCheckMail(u32* _mail_flag, u32* _interval
   }
 
   // TODO: Parse the response headers and get the interval from there.
-  // TODO: Check mail flag from server and see if it matches the one in wc24recv.ctl
-  *_mail_flag = 1;
+  if (mail_flag != m_send_list.GetMailFlag())
+  {
+    *_mail_flag = 1;
+  }
+
   *_interval = 10;
   m_mail_span = 10;
   m_download_span = 10;
 
+  return NWC24::WC24_OK;
+}
+
+NWC24::ErrorCode NetKDRequestDevice::KDSendMail()
+{
+  m_send_list.ReadSendList();
+  const std::string auth =
+      fmt::format("mlid=w{}\r\npasswd={}", m_config.Id(), m_config.GetPassword());
+  std::vector<Common::HttpRequest::Multiform> multiform = {{"mlid", auth.c_str(), auth.size()}};
+
+  std::vector<u32> mails = m_send_list.GetPopulatedEntries();
+  for (const u32 file_index : mails)
+  {
+    const u32 index = m_send_list.GetIndex(file_index);
+    const u32 mail_size = m_send_list.GetMailSize(file_index);
+    if (mail_size >= MAX_MAIL_SIZE)
+    {
+      WARN_LOG_FMT(IOS_WC24,
+                   "NET_KD_REQ: IOCTL_NWC24_SEND_MAIL_NOW: Mail at index {} was too large to send.",
+                   index);
+      NWC24::ErrorCode res = m_send_list.DeleteMessage(file_index);
+      if (res != NWC24::WC24_OK)
+      {
+        ERROR_LOG_FMT(IOS_WC24, "Failed to delete message at index {}", index);
+      }
+      continue;
+    }
+
+    std::vector<u8> mail_data(mail_size);
+    NWC24::ErrorCode res = NWC24::ReadFromVFF(NWC24::SEND_BOX_PATH, m_send_list.GetMailPath(file_index),
+                                          m_ios.GetFS(), mail_data);
+
+    if (res != NWC24::WC24_OK)
+    {
+      ERROR_LOG_FMT(IOS_WC24, "Reading mail at index {} failed with error code {}.", index,
+                    static_cast<s32>(res));
+      continue;
+    }
+
+    multiform.push_back(
+        {fmt::format("m{}", index), reinterpret_cast<const char*>(mail_data.data())});
+  }
+
+  const Common::HttpRequest::Response response =
+      m_http.PostMultiform(m_config.GetSendURL(), multiform);
+
+  if (!response)
+  {
+    ERROR_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_SEND_MAIL_NOW: Failed to request data at {}.",
+                  m_config.GetSendURL());
+    m_send_list.WriteSendList();
+    return NWC24::WC24_ERR_SERVER;
+  }
+
+  // Now check if any mail failed to save to the server.
+  const std::string response_str = {response->begin(), response->end()};
+  const std::string code = GetValueFromCGIResponse(response_str, "cd");
+  if (code != "100")
+  {
+    ERROR_LOG_FMT(
+        IOS_WC24,
+        "NET_KD_REQ: IOCTL_NWC24_CHECK_MAIL_NOW: Mail server returned non-success code: {}", code);
+    m_send_list.WriteSendList();
+    return NWC24::WC24_ERR_SERVER;
+  }
+
+  // Reverse in order to delete from bottom to top of the send list.
+  std::reverse(mails.begin(), mails.end());
+  for (u32 file_index : mails)
+  {
+    const u32 index = m_send_list.GetIndex(file_index);
+    const std::string value = GetValueFromCGIResponse(response_str, fmt::format("cd{}", index));
+    if (value.empty())
+    {
+      // If not present it is most likely one that we deleted.
+      continue;
+    }
+
+    if (value != "100")
+    {
+      ERROR_LOG_FMT(IOS_WC24, "Mail server failed to save mail at index {}", index);
+    }
+
+    NWC24::ErrorCode res = m_send_list.DeleteMessage(file_index);
+    if (res != NWC24::WC24_OK)
+    {
+      ERROR_LOG_FMT(IOS_WC24, "Failed to delete message at index {}", index);
+    }
+  }
+
+  m_send_list.WriteSendList();
   return NWC24::WC24_OK;
 }
 
@@ -398,8 +492,8 @@ NWC24::ErrorCode NetKDRequestDevice::KDDownload(const u16 entry_index,
     file_data = std::move(temp_buffer);
   }
 
-  NWC24::ErrorCode reply = IOS::HLE::NWC24::OpenVFF(m_dl_list.GetVFFPath(entry_index), content_name,
-                                                    m_ios.GetFS(), file_data);
+  NWC24::ErrorCode reply = IOS::HLE::NWC24::WriteToVFF(m_dl_list.GetVFFPath(entry_index),
+                                                       content_name, m_ios.GetFS(), file_data);
 
   if (reply != NWC24::WC24_OK)
     LogError(ErrorType::KD_Download, reply);

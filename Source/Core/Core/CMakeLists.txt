@@ -376,6 +376,8 @@ add_library(core
   IOS/Network/KD/VFF/VFFUtil.cpp
   IOS/Network/KD/VFF/VFFUtil.h
   IOS/Network/KD/WC24File.h
+  IOS/Network/KD/WC24Send.cpp
+  IOS/Network/KD/WC24Send.h
   IOS/Network/MACUtils.cpp
   IOS/Network/MACUtils.h
   IOS/Network/NCD/Manage.cpp

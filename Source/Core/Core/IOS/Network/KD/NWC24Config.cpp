@@ -217,7 +217,7 @@ void NWC24Config::SetEmail(const char* email)
   m_data.email[MAX_EMAIL_LENGTH - 1] = '\0';
 }
 
-std::string NWC24Config::GetMlchkid() const
+std::string_view NWC24Config::GetMlchkid() const
 {
   return {m_data.mlchkid};
 }
@@ -225,5 +225,15 @@ std::string NWC24Config::GetMlchkid() const
 std::string NWC24Config::GetCheckURL() const
 {
   return {m_data.http_urls[1]};
+}
+
+std::string NWC24Config::GetSendURL() const
+{
+  return {m_data.http_urls[4]};
+}
+
+std::string_view NWC24Config::GetPassword() const
+{
+  return {m_data.paswd};
 }
 }  // namespace IOS::HLE::NWC24

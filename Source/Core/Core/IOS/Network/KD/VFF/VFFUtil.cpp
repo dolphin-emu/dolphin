@@ -21,6 +21,7 @@
 #include "Common/FatFsUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
+#include "Common/StringUtil.h"
 #include "Common/Swap.h"
 
 #include "Core/IOS/Uids.h"
@@ -203,7 +204,6 @@ static ErrorCode WriteFile(const std::string& filename, const std::vector<u8>& t
   size_t offset = 0;
   while (size > 0)
   {
-    constexpr size_t MAX_CHUNK_SIZE = 32768;
     u32 chunk_size = static_cast<u32>(std::min(size, MAX_CHUNK_SIZE));
 
     u32 written_size;
@@ -237,6 +237,36 @@ static ErrorCode WriteFile(const std::string& filename, const std::vector<u8>& t
   return WC24_OK;
 }
 
+static ErrorCode ReadFile(const std::string& filename, std::vector<u8>& out)
+{
+  FIL src{};
+  const auto open_error_code = f_open(&src, filename.c_str(), FA_READ);
+  if (open_error_code != FR_OK)
+  {
+    ERROR_LOG_FMT(IOS_WC24, "Failed to open file {} in VFF", filename);
+    return WC24_ERR_FILE_OPEN;
+  }
+
+  size_t size = out.size();
+  u32 read_size{};
+  const auto read_error_code = f_read(&src, out.data(), size, &read_size);
+  if (read_error_code != FR_OK)
+  {
+    ERROR_LOG_FMT(IOS_WC24, "Failed to read file {} in VFF: {}", filename,
+                  static_cast<u32>(read_error_code));
+    return WC24_ERR_FILE_READ;
+  }
+
+  if (read_size != size)
+  {
+    ERROR_LOG_FMT(IOS_WC24, "Failed to write bytes of file {} to VFF ({} != {})", filename,
+                  read_size, size);
+    return WC24_ERR_FILE_WRITE;
+  }
+
+  return WC24_OK;
+}
+
 namespace
 {
 class VffFatFsCallbacks : public Common::FatFsCallbacks
@@ -258,8 +288,112 @@ public:
 };
 }  // namespace
 
-ErrorCode OpenVFF(const std::string& path, const std::string& filename,
-                  const std::shared_ptr<FS::FileSystem>& fs, const std::vector<u8>& data)
+ErrorCode DeleteFileFromVFF(const std::string& path, const std::string& filename,
+                            const std::shared_ptr<FS::FileSystem>& fs)
+{
+  VffFatFsCallbacks callbacks;
+  ErrorCode return_value;
+  Common::RunInFatFsContext(callbacks, [&]() {
+    auto temp = fs->OpenFile(PID_KD, PID_KD, path, FS::Mode::ReadWrite);
+    if (!temp)
+    {
+      ERROR_LOG_FMT(IOS_WC24, "Failed to open VFF at: {}", path);
+      return_value = WC24_ERR_NOT_FOUND;
+      return;
+    }
+
+    callbacks.m_vff = &*temp;
+
+    FATFS fatfs{};
+    const FRESULT fatfs_mount_error_code = f_mount(&fatfs, "", 0);
+    if (fatfs_mount_error_code != FR_OK)
+    {
+      // The VFF is most likely broken.
+      ERROR_LOG_FMT(IOS_WC24, "Failed to mount VFF at: {}", path);
+      return_value = WC24_ERR_BROKEN;
+      return;
+    }
+
+    const FRESULT vff_mount_error_code = vff_mount(callbacks.m_vff, &fatfs);
+    if (vff_mount_error_code != FR_OK)
+    {
+      // The VFF is most likely broken.
+      ERROR_LOG_FMT(IOS_WC24, "Failed to mount VFF at: {}", path);
+      return_value = WC24_ERR_BROKEN;
+      return;
+    }
+
+    Common::ScopeGuard unmount_guard{[] { f_unmount(""); }};
+
+    const FRESULT unlink_code = f_unlink(filename.c_str());
+    if (unlink_code != FR_OK)
+    {
+      ERROR_LOG_FMT(IOS_WC24, "Failed to delete file {} in VFF at: {} Code: {}", filename, path,
+                    static_cast<u32>(unlink_code));
+      return_value = WC24_ERR_BROKEN;
+      return;
+    }
+
+    return_value = WC24_OK;
+    return;
+  });
+
+  return return_value;
+}
+
+ErrorCode ReadFromVFF(const std::string& path, const std::string& filename,
+                  const std::shared_ptr<FS::FileSystem>& fs, std::vector<u8>& out)
+{
+  VffFatFsCallbacks callbacks;
+  ErrorCode return_value;
+  Common::RunInFatFsContext(callbacks, [&]() {
+    auto temp = fs->OpenFile(PID_KD, PID_KD, path, FS::Mode::ReadWrite);
+    if (!temp)
+    {
+      ERROR_LOG_FMT(IOS_WC24, "Failed to open VFF at: {}", path);
+      return_value = WC24_ERR_NOT_FOUND;
+      return;
+    }
+
+    callbacks.m_vff = &*temp;
+
+    FATFS fatfs{};
+    const FRESULT fatfs_mount_error_code = f_mount(&fatfs, "", 0);
+    if (fatfs_mount_error_code != FR_OK)
+    {
+      // The VFF is most likely broken.
+      ERROR_LOG_FMT(IOS_WC24, "Failed to mount VFF at: {}", path);
+      return_value = WC24_ERR_BROKEN;
+      return;
+    }
+
+    const FRESULT vff_mount_error_code = vff_mount(callbacks.m_vff, &fatfs);
+    if (vff_mount_error_code != FR_OK)
+    {
+      // The VFF is most likely broken.
+      ERROR_LOG_FMT(IOS_WC24, "Failed to mount VFF at: {}", path);
+      return_value = WC24_ERR_BROKEN;
+      return;
+    }
+
+    Common::ScopeGuard unmount_guard{[] { f_unmount(""); }};
+
+    const ErrorCode read_error_code = ReadFile(filename, out);
+    if (read_error_code != WC24_OK)
+    {
+      return_value = read_error_code;
+      return;
+    }
+
+    return_value = WC24_OK;
+    return;
+  });
+
+  return return_value;
+}
+
+ErrorCode WriteToVFF(const std::string& path, const std::string& filename,
+                     const std::shared_ptr<FS::FileSystem>& fs, const std::vector<u8>& data)
 {
   VffFatFsCallbacks callbacks;
   ErrorCode return_value;

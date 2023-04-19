@@ -10,11 +10,13 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/Event.h"
 #include "Common/HttpRequest.h"
 #include "Common/WorkQueueThread.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/Network/KD/NWC24Config.h"
 #include "Core/IOS/Network/KD/NWC24DL.h"
+#include "Core/IOS/Network/KD/WC24Send.h"
 
 namespace IOS::HLE
 {
@@ -28,6 +30,7 @@ public:
   IPCReply HandleNWC24DownloadNowEx(const IOCtlRequest& request);
   NWC24::ErrorCode KDDownload(const u16 entry_index, const std::optional<u8> subtask_id);
   NWC24::ErrorCode KDCheckMail(u32* _mail_flag, u32* _interval);
+  NWC24::ErrorCode KDSendMail();
   ~NetKDRequestDevice() override;
 
   std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
@@ -67,28 +70,27 @@ private:
   {
     u32 mail_time_state = 0;
     u32 download_time_state = 0;
-    Common::SetCurrentThreadName("KD Timer");
+    Common::SetCurrentThreadName("KD Scheduler Timer");
     while (true)
     {
-      std::unique_lock lg(m_scheduler_lock);
-      if (m_mail_span.load() <= mail_time_state)
       {
-        m_scheduler_work_queue.EmplaceItem([this] { SchedulerWorker(SchedulerEvent::MAIL); });
-        INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: Dispatching Mail Task from Scheduler");
-        mail_time_state = 0;
+        std::lock_guard lg(m_scheduler_lock);
+        if (m_mail_span <= mail_time_state)
+        {
+          m_scheduler_work_queue.EmplaceItem([this] { SchedulerWorker(SchedulerEvent::Mail); });
+          INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: Dispatching Mail Task from Scheduler");
+          mail_time_state = 0;
+        }
+
+        if (m_download_span <= download_time_state)
+        {
+          INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: Dispatching Download Task from Scheduler");
+          m_scheduler_work_queue.EmplaceItem([this] { SchedulerWorker(SchedulerEvent::Download); });
+          download_time_state = 0;
+        }
       }
 
-      if (m_download_span.load() <= download_time_state)
-      {
-        INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: Dispatching Download Task from Scheduler");
-        m_scheduler_work_queue.EmplaceItem([this] { SchedulerWorker(SchedulerEvent::DOWNLOAD); });
-        download_time_state = 0;
-      }
-
-      m_scheduler_cond_var.wait_for(lg, std::chrono::minutes{1}, [&] { return m_shutdown; });
-      lg.unlock();
-
-      if (m_shutdown)
+      if (m_shutdown_event.WaitFor(std::chrono::minutes{1}))
         return;
 
       mail_time_state++;
@@ -98,8 +100,8 @@ private:
 
   enum class SchedulerEvent
   {
-    MAIL,
-    DOWNLOAD,
+    Mail,
+    Download,
   };
 
   void SchedulerWorker(SchedulerEvent event);
@@ -110,8 +112,11 @@ private:
                                                         0xc2, 0x61, 0x91, 0x72, 0xb5, 0xcb, 0x29,
                                                         0x8c, 0x89, 0x72, 0xd4, 0x50, 0xad};
 
+  static constexpr u32 MAX_MAIL_SIZE = 208952;
+
   NWC24::NWC24Config m_config;
   NWC24::NWC24Dl m_dl_list;
+  NWC24::WC24SendList m_send_list;
   Common::WorkQueueThread<AsyncTask> m_work_queue;
   Common::WorkQueueThread<std::function<void()>> m_scheduler_work_queue;
   std::mutex m_async_reply_lock;
@@ -119,13 +124,11 @@ private:
   std::queue<AsyncReply> m_async_replies;
   u32 m_error_count = 0;
   std::array<u32, 256> m_scheduler_buffer{};
-  // TODO: Maybe move away from Common::HttpRequest?
   Common::HttpRequest m_http{std::chrono::minutes{1}};
-  std::atomic<u32> m_download_span = 2;
-  std::atomic<u32> m_mail_span = 1;
-  std::condition_variable m_scheduler_cond_var;
+  u32 m_download_span = 2;
+  u32 m_mail_span = 1;
+  Common::Event m_shutdown_event;
   std::mutex m_scheduler_lock;
   std::thread m_scheduler_timer_thread;
-  bool m_shutdown = false;
 };
 }  // namespace IOS::HLE

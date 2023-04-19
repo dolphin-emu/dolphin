@@ -32,7 +32,8 @@ public:
   void FollowRedirects(long max);
   s32 GetLastResponseCode();
   Response Fetch(const std::string& url, Method method, const Headers& headers, const u8* payload,
-                 size_t size, AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only);
+                 size_t size, AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only,
+                 const std::vector<Multiform>& multiform = {});
 
   static int CurlProgressCallback(Impl* impl, curl_off_t dltotal, curl_off_t dlnow,
                                   curl_off_t ultotal, curl_off_t ulnow);
@@ -101,6 +102,14 @@ HttpRequest::Response HttpRequest::Post(const std::string& url, const std::strin
                        reinterpret_cast<const u8*>(payload.data()), payload.size(), codes);
 }
 
+HttpRequest::Response HttpRequest::PostMultiform(const std::string& url,
+                                                 const std::vector<Multiform>& multiform,
+                                                 const Headers& headers, AllowedReturnCodes codes)
+{
+  return m_impl->Fetch(url, Impl::Method::POST, headers, nullptr, 0, codes, multiform);
+}
+
+>>>>>>> 093ec6d78c (Add support for sending mail)
 int HttpRequest::Impl::CurlProgressCallback(Impl* impl, curl_off_t dltotal, curl_off_t dlnow,
                                             curl_off_t ultotal, curl_off_t ulnow)
 {
@@ -192,14 +201,30 @@ static size_t CurlWriteCallback(char* data, size_t size, size_t nmemb, void* use
 
 HttpRequest::Response HttpRequest::Impl::Fetch(const std::string& url, Method method,
                                                const Headers& headers, const u8* payload,
-                                               size_t size, AllowedReturnCodes codes)
+                                               size_t size, AllowedReturnCodes codes,
+                                               const std::vector<Multiform>& multiform)
 {
   curl_easy_setopt(m_curl.get(), CURLOPT_POST, method == Method::POST);
   curl_easy_setopt(m_curl.get(), CURLOPT_URL, url.c_str());
-  if (method == Method::POST)
+  if (method == Method::POST && multiform.empty())
   {
     curl_easy_setopt(m_curl.get(), CURLOPT_POSTFIELDS, payload);
     curl_easy_setopt(m_curl.get(), CURLOPT_POSTFIELDSIZE, size);
+  }
+
+  curl_mime* form = nullptr;
+  Common::ScopeGuard multiform_guard{[&form] { curl_mime_free(form); }};
+  if (!multiform.empty())
+  {
+    form = curl_mime_init(m_curl.get());
+    for (const auto& value : multiform)
+    {
+      curl_mimepart* part = curl_mime_addpart(form);
+      curl_mime_name(part, value.name.c_str());
+      curl_mime_data(part, value.data, value.size);
+    }
+
+    curl_easy_setopt(m_curl.get(), CURLOPT_MIMEPOST, form);
   }
 
   curl_slist* list = nullptr;

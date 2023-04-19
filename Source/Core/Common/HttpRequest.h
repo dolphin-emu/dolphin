@@ -34,6 +34,12 @@ public:
 
   using Response = std::optional<std::vector<u8>>;
   using Headers = std::map<std::string, std::optional<std::string>>;
+  struct Multiform
+  {
+    std::string name;
+    const char* data;
+    size_t size;
+  };
 
   void SetCookies(const std::string& cookies);
   void UseIPv4();
@@ -46,6 +52,10 @@ public:
                 AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only);
   Response Post(const std::string& url, const std::string& payload, const Headers& headers = {},
                 AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only);
+
+  Response PostMultiform(const std::string& url, const std::vector<Multiform>& multiform,
+                         const Headers& headers = {},
+                         AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only);
 
 private:
   class Impl;
