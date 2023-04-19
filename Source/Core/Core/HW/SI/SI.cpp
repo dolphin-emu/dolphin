@@ -509,7 +509,15 @@ void SerialInterfaceManager::ChangeDeviceDeterministic(SIDevices device, int cha
   if (m_channel[channel].has_recent_device_change)
     return;
 
-  if (GetDeviceType(channel) != SIDEVICE_NONE)
+  const SIDevices previous_device = GetDeviceType(channel);
+
+  // We don't need to disconnect devices for 1 second
+  // if we are switching to/from standard controller from/to WiiU adapter.
+  const bool gc_controller_and_adapter_change =
+      (previous_device == SIDEVICE_GC_CONTROLLER || previous_device == SIDEVICE_WIIU_ADAPTER) &&
+      (device == SIDEVICE_GC_CONTROLLER || device == SIDEVICE_WIIU_ADAPTER);
+
+  if (previous_device != SIDEVICE_NONE && !gc_controller_and_adapter_change)
   {
     // Detach the current device before switching to the new one.
     device = SIDEVICE_NONE;
@@ -524,9 +532,12 @@ void SerialInterfaceManager::ChangeDeviceDeterministic(SIDevices device, int cha
   AddDevice(device, channel);
 
   // Prevent additional device changes on this channel for one second.
-  m_channel[channel].has_recent_device_change = true;
-  m_system.GetCoreTiming().ScheduleEvent(SystemTimers::GetTicksPerSecond(),
-                                         m_event_type_change_device, channel);
+  if (!gc_controller_and_adapter_change)
+  {
+    m_channel[channel].has_recent_device_change = true;
+    m_system.GetCoreTiming().ScheduleEvent(SystemTimers::GetTicksPerSecond(),
+                                           m_event_type_change_device, channel);
+  }
 }
 
 void SerialInterfaceManager::UpdateDevices()
