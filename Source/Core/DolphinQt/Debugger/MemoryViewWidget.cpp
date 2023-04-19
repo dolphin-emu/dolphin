@@ -212,11 +212,7 @@ void MemoryViewWidget::UpdateFont()
   // BoundingRect is too unpredictable, a custom one would be needed for each view type. Different
   // fonts have wildly different spacing between two characters and horizontalAdvance includes
   // spacing.
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
   m_font_width = fm.horizontalAdvance(QLatin1Char('0'));
-#else
-  m_font_width = fm.width(QLatin1Char('0'));
-#endif
   m_table->setFont(Settings::Instance().GetDebugFont());
 
   CreateTable();

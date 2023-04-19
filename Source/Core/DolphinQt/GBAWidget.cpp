@@ -514,12 +514,7 @@ void GBAWidget::mouseMoveEvent(QMouseEvent* event)
 {
   if (!m_moving)
     return;
-  auto event_pos =
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-      event->globalPosition().toPoint();
-#else
-      event->globalPos();
-#endif
+  auto event_pos = event->globalPosition().toPoint();
   move(event_pos - m_move_pos - (geometry().topLeft() - pos()));
 }
 

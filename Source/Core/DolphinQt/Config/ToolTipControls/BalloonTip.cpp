@@ -16,12 +16,7 @@
 #include <QPushButton>
 #include <QStyle>
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
 #include <QScreen>
-#else
-#include <QApplication>
-#include <QDesktopWidget>
-#endif
 
 #if defined(__APPLE__)
 #include <QToolTip>
@@ -105,11 +100,7 @@ BalloonTip::BalloonTip(PrivateTag, const QIcon& icon, QString title, QString mes
   message_label->setTextFormat(Qt::RichText);
   message_label->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 
-#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
-  const int limit = QApplication::desktop()->availableGeometry(message_label).width() / 3;
-#else
   const int limit = message_label->screen()->availableGeometry().width() / 3;
-#endif
   message_label->setMaximumWidth(limit);
   message_label->setSizePolicy(QSizePolicy::Policy::MinimumExpanding,
                                QSizePolicy::Policy::MinimumExpanding);
@@ -136,14 +127,11 @@ void BalloonTip::UpdateBoundsAndRedraw(const QPoint& pos, ShowArrow show_arrow)
 {
   m_show_arrow = show_arrow == ShowArrow::Yes;
 
-#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
-  const QRect screen_rect = QApplication::desktop()->screenGeometry(pos);
-#else
   QScreen* screen = QGuiApplication::screenAt(pos);
   if (!screen)
     screen = QGuiApplication::primaryScreen();
   const QRect screen_rect = screen->geometry();
-#endif
+
   QSize sh = sizeHint();
   // The look should resemble the default tooltip style set in Settings::SetCurrentUserStyle()
   const int border = 1;
