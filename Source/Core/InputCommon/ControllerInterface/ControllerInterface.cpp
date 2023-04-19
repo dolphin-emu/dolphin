@@ -34,6 +34,9 @@
 #ifdef CIFACE_USE_DUALSHOCKUDPCLIENT
 #include "InputCommon/ControllerInterface/DualShockUDPClient/DualShockUDPClient.h"
 #endif
+#ifdef CIFACE_USE_STEAMDECK
+#include "InputCommon/ControllerInterface/SteamDeck/SteamDeck.h"
+#endif
 
 ControllerInterface g_controller_interface;
 
@@ -77,6 +80,9 @@ void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
 #endif
 #ifdef CIFACE_USE_DUALSHOCKUDPCLIENT
   m_input_backends.emplace_back(ciface::DualShockUDPClient::CreateInputBackend(this));
+#endif
+#ifdef CIFACE_USE_STEAMDECK
+  m_input_backends.emplace_back(ciface::SteamDeck::CreateInputBackend(this));
 #endif
 
   // Don't allow backends to add devices before the first RefreshDevices() as they will be cleaned
