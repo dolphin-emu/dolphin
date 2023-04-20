@@ -32,23 +32,3 @@ void GraphicsBool::Update()
 {
   Config::SetBaseOrCurrent(m_setting, static_cast<bool>(isChecked() ^ m_reverse));
 }
-
-GraphicsBoolEx::GraphicsBoolEx(const QString& label, const Config::Info<bool>& setting,
-                               bool reverse)
-    : ToolTipRadioButton(label), m_setting(setting), m_reverse(reverse)
-{
-  connect(this, &QCheckBox::toggled, this, &GraphicsBoolEx::Update);
-  setChecked(Config::Get(m_setting) ^ reverse);
-
-  if (Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base)
-  {
-    QFont bf = font();
-    bf.setBold(true);
-    setFont(bf);
-  }
-}
-
-void GraphicsBoolEx::Update()
-{
-  Config::SetBaseOrCurrent(m_setting, static_cast<bool>(isChecked() ^ m_reverse));
-}
