@@ -514,11 +514,11 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Initialize(J
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_InitializeVR(JNIEnv* env, jclass, jobject acitivity, jstring systemname)
 {
-	if (IsVREnabled())
-	{
-		const char* system = GetJString(env, systemname).c_str();
-		InitVROnAndroid(IDCache::GetJavaVM(), acitivity, system, 1, "Dolphin");
-	}
+  if (IsVREnabled())
+  {
+    const char* system = GetJString(env, systemname).c_str();
+    InitVROnAndroid(IDCache::GetJavaVM(), acitivity, system, 1, "Dolphin");
+  }
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ReportStartToAnalytics(JNIEnv*,
