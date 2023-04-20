@@ -25,7 +25,7 @@ jobs:
         platform: mac
     # Setup Packages
     - name: Setup Packages
-      run: brew install qt6 pkgconfig
+      run: brew install qt6 p7zip pkgconfig
     # Use Static ZSTD
     - name: Remove ZSTD
       run: brew uninstall zstd curl php --force --ignore-dependencies
@@ -47,3 +47,12 @@ jobs:
       with:
         name: DolphinMPN-macOS
         path: /Users/runner/work/Dolphin-MPN-src/Dolphin-MPN-src/build/Binaries/
+    # Zip Artifact
+    - name: Zip Artifact
+      run: 7z a D:/DolphinMPN-macOS-intel D:/a/Dolphin-MPN-src/Dolphin-MPN-src/build/Binaries/*
+    # New Release
+    - name: New Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: D:/DolphinMPN-macOS-intel.7z
