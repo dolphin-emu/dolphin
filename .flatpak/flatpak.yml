@@ -4,8 +4,8 @@ runtime: org.kde.Platform
 runtime-version: 5.15
 sdk: org.kde.Sdk
 command: dolphin-emu-wrapper
-rename-desktop-file: dolphin-emu-mpn.desktop
-rename-icon: dolphin-mpn
+rename-desktop-file: dolphin-emu.desktop
+rename-icon: dolphin-emu
 finish-args:
   - --device=all
   # the file picker uses portals but the set
@@ -101,13 +101,12 @@ modules:
       - -DENABLE_ALSA=OFF
       - -DENABLE_SDL=ON
       - -DENABLE_EVDEV=ON
-      - -DDISTRIBUTOR="Mario Party Netplay"
+      - -DDISTRIBUTOR=Mario Party Netplay
+      - -DCPACK_PACKAGE_CONTACT=Mario Party Netplay
     cleanup:
       - /share/man
     post-install:
       - install -D -t ${FLATPAK_DEST}/bin/ dolphin-emu-wrapper
-      - install -Dm644 -t ${FLATPAK_DEST}/share/appdata/ org.DolphinEmu.dolphin-emu.appdata.xml
-      - sed -i -e 's/"2048"/"512"/g' /app/share/icons/hicolor/scalable/apps/dolphin-emu.svg
       - desktop-file-edit --set-key=Exec --set-value='/app/bin/dolphin-emu-wrapper'
         /app/share/applications/dolphin-emu.desktop
     sources:
