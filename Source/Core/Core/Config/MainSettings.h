@@ -147,7 +147,7 @@ extern const Info<bool> MAIN_ALLOW_SD_WRITES;
 extern const Info<bool> MAIN_ENABLE_SAVESTATES;
 extern const Info<DiscIO::Region> MAIN_FALLBACK_REGION;
 extern const Info<bool> MAIN_REAL_WII_REMOTE_REPEAT_REPORTS;
-extern const Info<s32> MAIN_OVERRIDE_BOOT_IOS;
+extern const Info<int> MAIN_OVERRIDE_BOOT_IOS;
 extern const Info<std::string> MAIN_WII_NUS_SHOP_URL;
 
 // Main.DSP
@@ -373,7 +373,5 @@ std::string GetGCIFolderPath(ExpansionInterface::Slot slot, std::optional<DiscIO
 std::string GetGCIFolderPath(std::string configured_folder, ExpansionInterface::Slot slot,
                              std::optional<DiscIO::Region> region);
 bool IsDefaultGCIFolderPathConfigured(ExpansionInterface::Slot slot);
-
-extern std::unordered_map<Config::ValueType, std::vector<const void*>> all_main_settings;
 
 }  // namespace Config
