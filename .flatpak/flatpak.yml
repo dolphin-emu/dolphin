@@ -1,0 +1,132 @@
+app-id: org.DolphinEmu.dolphin-mpn
+branch: stable
+runtime: org.kde.Platform
+runtime-version: 5.15
+sdk: org.kde.Sdk
+command: dolphin-emu-wrapper
+rename-desktop-file: dolphin-emu-mpn.desktop
+rename-icon: dolphin-mpn
+finish-args:
+  - --device=all
+  # the file picker uses portals but the set
+  # game directory feature still needs this
+  - --filesystem=host:ro
+  - --socket=pulseaudio
+  - --env=QT_QPA_PLATFORM=xcb
+  - --socket=x11
+  - --share=network
+  - --share=ipc
+  # along with the bluez module, required for the
+  # emulated bluetooth adapter feature to work.
+  - --allow=bluetooth
+  - --filesystem=xdg-run/app/com.discordapp.Discord:create
+  - --talk-name=org.freedesktop.ScreenSaver
+modules:
+  # needed for the bluetooth passthrough feature to work
+  - name: libusb
+    config-opts:
+      - --disable-static
+    cleanup:
+      - /include
+      - /lib/*.la
+      - /lib/pkgconfig
+    sources:
+      - type: archive
+        url: https://github.com/libusb/libusb/releases/download/v1.0.26/libusb-1.0.26.tar.bz2
+        sha256: 12ce7a61fc9854d1d2a1ffe095f7b5fac19ddba095c259e6067a46500381b5a5
+        x-checker-data:
+          type: anitya
+          project-id: 1749
+          stable-only: true
+          url-template: https://github.com/libusb/libusb/releases/download/v$version/libusb-$version.tar.bz2
+
+  # needed for the emulate bluetooth adapter feature to work
+  - name: bluez
+    config-opts:
+      - --enable-library
+      - --disable-manpages
+      - --disable-udev
+      - --disable-tools
+      - --disable-cups
+      - --disable-monitor
+      - --disable-client
+      - --disable-systemd
+      - --disable-a2dp
+      - --disable-avrcp
+      - --disable-network
+      - --disable-obex
+      - --disable-bap 
+      - --disable-mcp
+      - --with-dbusconfdir=/app/etc
+      - --with-dbussessionbusdir=/app/usr/lib/system-services
+    sources:
+      - type: archive
+        url: https://www.kernel.org/pub/linux/bluetooth/bluez-5.66.tar.xz
+        sha256: 39fea64b590c9492984a0c27a89fc203e1cdc74866086efb8f4698677ab2b574
+        x-checker-data:
+          type: anitya
+          project-id: 10029
+          stable-only: true
+          url-template: https://www.kernel.org/pub/linux/bluetooth/bluez-$version.tar.xz
+
+  # enables motion controls on non-wii controllers (switch, ps4, etc)
+  # requires a udev rule enabling Motion Sensors access
+  - name: libevdev
+    buildsystem: meson
+    config-opts:
+      - -Dtests=disabled
+      - -Ddocumentation=disabled
+    sources:
+      - type: archive
+        url: https://www.freedesktop.org/software/libevdev/libevdev-1.13.0.tar.xz
+        sha256: 9edf2006cc86a5055279647c38ec923d11a821ee4dc2c3033e8d20e8ee237cd9
+        x-checker-data:
+          type: anitya
+          project-id: 20540
+          stable-only: true
+          url-template: https://www.freedesktop.org/software/libevdev/libevdev-$version.tar.xz
+
+  # needed for screensaver inhibition
+  - name: xdg-screensaver-shim
+    buildsystem: meson
+    sources:
+      - type: archive
+        url: https://github.com/Unrud/xdg-screensaver-shim/archive/0.0.2.tar.gz
+        sha256: 0ed2a69fe6ee6cbffd2fe16f85116db737f17fb1e79bfb812d893cf15c728399
+
+  - name: dolphin-mpn
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DENABLE_ALSA=OFF
+      - -DENABLE_SDL=ON
+      - -DENABLE_EVDEV=ON
+      - -DDISTRIBUTOR="Mario Party Netplay"
+    cleanup:
+      - /share/man
+    post-install:
+      - install -D -t ${FLATPAK_DEST}/bin/ dolphin-emu-wrapper
+      - install -Dm644 -t ${FLATPAK_DEST}/share/appdata/ org.DolphinEmu.dolphin-emu.appdata.xml
+      - sed -i -e 's/"2048"/"512"/g' /app/share/icons/hicolor/scalable/apps/dolphin-emu.svg
+      - desktop-file-edit --set-key=Exec --set-value='/app/bin/dolphin-emu-wrapper'
+        /app/share/applications/dolphin-emu.desktop
+    sources:
+      - type: git
+        url: https://github.com/MarioPartyNetplay/Dolphin-MPN-src.git
+
+      # detects whether dolphin is running in a flatpak sandbox
+      # and makes it use xdg directories if it is.
+      # prevents dolphin from attempting to write conf files
+      # in non-writable paths, typically happens when a user
+      # has leftover files from a previous non-flatpak install
+      - type: patch
+        path: detectflatpak.patch
+      - type: script
+        commands:
+          - |
+            for i in {0..9}; do
+              test -S $XDG_RUNTIME_DIR/discord-ipc-$i ||
+                ln -sf {app/com.discordapp.Discord,$XDG_RUNTIME_DIR}/discord-ipc-$i;
+            done
+            dolphin-emu "$@"
+        dest-filename: dolphin-emu-wrapper
