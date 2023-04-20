@@ -160,7 +160,8 @@ static const std::map<System, std::string> system_to_name = {
     {System::DualShockUDPClient, "DualShockUDPClient"},
     {System::FreeLook, "FreeLook"},
     {System::Session, "Session"},
-    {System::GameSettingsOnly, "GameSettingsOnly"}};
+    {System::GameSettingsOnly, "GameSettingsOnly"},
+    {System::Achievements, "Achievements"}};
 
 const std::string& GetSystemName(System system)
 {

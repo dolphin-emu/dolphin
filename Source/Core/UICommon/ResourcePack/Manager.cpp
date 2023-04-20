@@ -17,11 +17,11 @@ namespace
 std::vector<ResourcePack> packs;
 std::string packs_path;
 
-IniFile GetPackConfig()
+Common::IniFile GetPackConfig()
 {
   packs_path = File::GetUserPath(D_RESOURCEPACK_IDX) + "/Packs.ini";
 
-  IniFile file;
+  Common::IniFile file;
   file.Load(packs_path);
 
   return file;
@@ -34,7 +34,7 @@ bool Init()
   const std::vector<std::string> pack_list =
       Common::DoFileSearch({File::GetUserPath(D_RESOURCEPACK_IDX)}, {".zip"});
 
-  IniFile file = GetPackConfig();
+  Common::IniFile file = GetPackConfig();
 
   auto* order = file.GetOrCreateSection("Order");
 
@@ -123,7 +123,7 @@ ResourcePack* Add(const std::string& path, int offset)
   if (!pack.IsValid())
     return nullptr;
 
-  IniFile file = GetPackConfig();
+  Common::IniFile file = GetPackConfig();
 
   auto* order = file.GetOrCreateSection("Order");
 
@@ -150,7 +150,7 @@ bool Remove(ResourcePack& pack)
   if (pack_iterator == packs.end())
     return false;
 
-  IniFile file = GetPackConfig();
+  Common::IniFile file = GetPackConfig();
 
   auto* order = file.GetOrCreateSection("Order");
 
@@ -170,7 +170,7 @@ bool Remove(ResourcePack& pack)
 
 void SetInstalled(const ResourcePack& pack, bool installed)
 {
-  IniFile file = GetPackConfig();
+  Common::IniFile file = GetPackConfig();
 
   auto* install = file.GetOrCreateSection("Installed");
 
@@ -184,7 +184,7 @@ void SetInstalled(const ResourcePack& pack, bool installed)
 
 bool IsInstalled(const ResourcePack& pack)
 {
-  IniFile file = GetPackConfig();
+  Common::IniFile file = GetPackConfig();
 
   auto* install = file.GetOrCreateSection("Installed");
 

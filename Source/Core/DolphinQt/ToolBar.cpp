@@ -154,14 +154,14 @@ void ToolBar::UpdatePausePlayButtonState(const bool playing_state)
 {
   if (playing_state)
   {
-    disconnect(m_pause_play_action, 0, 0, 0);
+    disconnect(m_pause_play_action, nullptr, nullptr, nullptr);
     m_pause_play_action->setText(tr("Pause"));
     m_pause_play_action->setIcon(Resources::GetScaledThemeIcon("pause"));
     connect(m_pause_play_action, &QAction::triggered, this, &ToolBar::PausePressed);
   }
   else
   {
-    disconnect(m_pause_play_action, 0, 0, 0);
+    disconnect(m_pause_play_action, nullptr, nullptr, nullptr);
     m_pause_play_action->setText(tr("Play"));
     m_pause_play_action->setIcon(Resources::GetScaledThemeIcon("play"));
     connect(m_pause_play_action, &QAction::triggered, this, &ToolBar::PlayPressed);

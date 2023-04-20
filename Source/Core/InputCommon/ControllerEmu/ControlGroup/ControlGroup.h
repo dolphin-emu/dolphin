@@ -68,9 +68,9 @@ public:
                DefaultValue default_value = DefaultValue::AlwaysEnabled);
   virtual ~ControlGroup();
 
-  virtual void LoadConfig(IniFile::Section* sec, const std::string& defdev = "",
+  virtual void LoadConfig(Common::IniFile::Section* sec, const std::string& defdev = "",
                           const std::string& base = "");
-  virtual void SaveConfig(IniFile::Section* sec, const std::string& defdev = "",
+  virtual void SaveConfig(Common::IniFile::Section* sec, const std::string& defdev = "",
                           const std::string& base = "");
 
   void SetControlExpression(int index, const std::string& expression);

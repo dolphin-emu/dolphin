@@ -233,7 +233,7 @@ static void DoState(PointerWrap& p)
   HW::DoState(system, p);
   p.DoMarker("HW");
 
-  PowerPC::DoState(p);
+  system.GetPowerPC().DoState(p);
   p.DoMarker("PowerPC");
 
   if (SConfig::GetInstance().bWii)

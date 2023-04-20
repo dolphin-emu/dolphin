@@ -18,7 +18,8 @@ enum class Type;
 namespace Core
 {
 class CPUThreadGuard;
-}
+class System;
+}  // namespace Core
 
 class MemoryViewTable;
 
@@ -84,6 +85,8 @@ private:
   void ScrollbarActionTriggered(int action);
   void ScrollbarSliderReleased();
   QString ValueToString(const Core::CPUThreadGuard& guard, u32 address, Type type);
+
+  Core::System& m_system;
 
   MemoryViewTable* m_table;
   QScrollBar* m_scrollbar;

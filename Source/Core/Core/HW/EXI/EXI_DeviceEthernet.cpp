@@ -448,7 +448,7 @@ void CEXIETHERNET::SendFromDirectFIFO()
   const u8* frame = tx_fifo.get();
   const u16 size = Common::BitCastPtr<u16>(&mBbaMem[BBA_TXFIFOCNT]);
   if (m_network_interface->SendFrame(frame, size))
-    PowerPC::debug_interface.NetworkLogger()->LogBBA(frame, size);
+    m_system.GetPowerPC().GetDebugInterface().NetworkLogger()->LogBBA(frame, size);
 }
 
 void CEXIETHERNET::SendFromPacketBuffer()
@@ -561,7 +561,8 @@ bool CEXIETHERNET::RecvHandlePacket()
   INFO_LOG_FMT(SP1, "{:x} {:x} {:x} {:x}", page_ptr(BBA_BP), page_ptr(BBA_RRP), page_ptr(BBA_RWP),
                page_ptr(BBA_RHBP));
 #endif
-  PowerPC::debug_interface.NetworkLogger()->LogBBA(mRecvBuffer.get(), mRecvBufferLength);
+  m_system.GetPowerPC().GetDebugInterface().NetworkLogger()->LogBBA(mRecvBuffer.get(),
+                                                                    mRecvBufferLength);
   write_ptr = &mBbaMem[page_ptr(BBA_RWP) << 8];
 
   descriptor = (Descriptor*)write_ptr;

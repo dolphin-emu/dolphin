@@ -55,8 +55,8 @@ add_library(common
   DebugInterface.h
   DynamicLibrary.cpp
   DynamicLibrary.h
-  ENetUtil.cpp
-  ENetUtil.h
+  ENet.cpp
+  ENet.h
   EnumFormatter.h
   EnumMap.h
   Event.h
@@ -94,7 +94,6 @@ add_library(common
   Logging/Log.h
   Logging/LogManager.cpp
   Logging/LogManager.h
-  MathUtil.cpp
   MathUtil.h
   Matrix.cpp
   Matrix.h
@@ -313,7 +312,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   target_link_libraries(common PUBLIC dl rt)
 endif()
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+if(WIN32)
   target_sources(common PRIVATE HRWrap.h HRWrap.cpp)
 endif()
 

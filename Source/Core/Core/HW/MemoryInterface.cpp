@@ -61,14 +61,7 @@ MemoryInterfaceManager::~MemoryInterfaceManager() = default;
 void MemoryInterfaceManager::Init()
 {
   static_assert(std::is_trivially_copyable_v<MIMemStruct>);
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wclass-memaccess"
-#endif
-  std::memset(&m_mi_mem, 0, sizeof(MIMemStruct));
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
+  std::memset(static_cast<void*>(&m_mi_mem), 0, sizeof(MIMemStruct));
 }
 
 void MemoryInterfaceManager::Shutdown()

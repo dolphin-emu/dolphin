@@ -10,6 +10,7 @@
 #include "Common/Logging/Log.h"
 #include "Core/PowerPC/Interpreter/ExceptionUtils.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 void Interpreter::Helper_UpdateCR0(PowerPC::PowerPCState& ppc_state, u32 value)
 {
@@ -150,7 +151,7 @@ void Interpreter::twi(Interpreter& interpreter, UGeckoInstruction inst)
       (u32(a) < u32(b) && (TO & 0x02) != 0) || (u32(a) > u32(b) && (TO & 0x01) != 0))
   {
     GenerateProgramException(ppc_state, ProgramExceptionCause::Trap);
-    PowerPC::CheckExceptions();
+    interpreter.m_system.GetPowerPC().CheckExceptions();
     interpreter.m_end_block = true;  // Dunno about this
   }
 }
@@ -381,7 +382,7 @@ void Interpreter::tw(Interpreter& interpreter, UGeckoInstruction inst)
       ((u32(a) < u32(b)) && (TO & 0x02) != 0) || ((u32(a) > u32(b)) && (TO & 0x01) != 0))
   {
     GenerateProgramException(ppc_state, ProgramExceptionCause::Trap);
-    PowerPC::CheckExceptions();
+    interpreter.m_system.GetPowerPC().CheckExceptions();
     interpreter.m_end_block = true;  // Dunno about this
   }
 }

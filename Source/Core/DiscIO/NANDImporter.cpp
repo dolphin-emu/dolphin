@@ -99,7 +99,7 @@ bool NANDImporter::FindSuperblock()
     std::memcpy(superblock.get(), &m_nand[NAND_SUPERBLOCK_START + i * sizeof(NANDSuperblock)],
                 sizeof(NANDSuperblock));
 
-    if (std::memcmp(superblock->magic, "SFFS", 4) != 0)
+    if (std::memcmp(superblock->magic.data(), "SFFS", 4) != 0)
     {
       ERROR_LOG_FMT(DISCIO, "Superblock #{} does not exist", i);
       continue;
@@ -135,6 +135,12 @@ void NANDImporter::ProcessEntry(u16 entry_number, const std::string& parent_path
 {
   while (entry_number != 0xffff)
   {
+    if (entry_number >= m_superblock->fst.size())
+    {
+      ERROR_LOG_FMT(DISCIO, "FST entry number {} out of range", entry_number);
+      return;
+    }
+
     const NANDFSTEntry entry = m_superblock->fst[entry_number];
 
     const std::string path = GetPath(entry, parent_path);
@@ -174,6 +180,12 @@ std::vector<u8> NANDImporter::GetEntryData(const NANDFSTEntry& entry)
   auto block = std::make_unique<u8[]>(NAND_FAT_BLOCK_SIZE);
   while (remaining_bytes > 0)
   {
+    if (sub >= m_superblock->fat.size())
+    {
+      ERROR_LOG_FMT(DISCIO, "FAT block index {} out of range", sub);
+      return {};
+    }
+
     m_aes_ctx->CryptIvZero(&m_nand[NAND_FAT_BLOCK_SIZE * sub], block.get(), NAND_FAT_BLOCK_SIZE);
 
     size_t size = std::min(remaining_bytes, NAND_FAT_BLOCK_SIZE);
@@ -241,7 +253,25 @@ bool NANDImporter::ExtractCertificates()
 
     const std::string pem_file_path = m_nand_root + std::string(certificate.filename);
     const ptrdiff_t certificate_offset = std::distance(content_bytes.begin(), search_result);
-    const u16 certificate_size = Common::swap16(&content_bytes[certificate_offset - 2]);
+    constexpr int min_offset = 2;
+    if (certificate_offset < min_offset)
+    {
+      ERROR_LOG_FMT(
+          DISCIO,
+          "ExtractCertificates: Invalid certificate offset {:#x}, must be between {:#x} and {:#x}",
+          certificate_offset, min_offset, content_bytes.size());
+      return false;
+    }
+    const u16 certificate_size = Common::swap16(&content_bytes[certificate_offset - min_offset]);
+    const size_t available_size = content_bytes.size() - static_cast<size_t>(certificate_offset);
+    if (certificate_size > available_size)
+    {
+      ERROR_LOG_FMT(
+          DISCIO,
+          "ExtractCertificates: Invalid certificate size {:#x}, must be {:#x} bytes or smaller",
+          certificate_size, available_size);
+      return false;
+    }
     INFO_LOG_FMT(DISCIO, "ExtractCertificates: '{}' offset: {:#x} size: {:#x}",
                  certificate.filename, certificate_offset, certificate_size);
 

@@ -314,7 +314,7 @@ void ThreadWidget::Update()
     m_queue_tail->setText(format_hex_from(guard, 0x800000E0));
 
     // Thread group
-    m_threads = PowerPC::debug_interface.GetThreads(guard);
+    m_threads = guard.GetSystem().GetPowerPC().GetDebugInterface().GetThreads(guard);
 
     int i = 0;
     m_thread_table->setRowCount(i);
@@ -458,9 +458,10 @@ void ThreadWidget::UpdateThreadCallstack(const Core::CPUThreadGuard& guard,
     {
       const u32 lr_save = PowerPC::MMU::HostRead_U32(guard, sp + 4);
       m_callstack_table->setItem(i, 2, new QTableWidgetItem(format_hex(lr_save)));
-      m_callstack_table->setItem(i, 3,
-                                 new QTableWidgetItem(QString::fromStdString(
-                                     PowerPC::debug_interface.GetDescription(lr_save))));
+      m_callstack_table->setItem(
+          i, 3,
+          new QTableWidgetItem(QString::fromStdString(
+              guard.GetSystem().GetPowerPC().GetDebugInterface().GetDescription(lr_save))));
     }
     else
     {

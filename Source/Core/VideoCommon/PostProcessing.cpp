@@ -151,7 +151,7 @@ void PostProcessingConfiguration::LoadOptions(const std::string& code)
           if (current_strings)
           {
             std::string key, value;
-            IniFile::ParseLine(line, &key, &value);
+            Common::IniFile::ParseLine(line, &key, &value);
 
             if (!(key.empty() && value.empty()))
               current_strings->m_options.emplace_back(key, value);
@@ -238,7 +238,7 @@ void PostProcessingConfiguration::LoadOptions(const std::string& code)
 
 void PostProcessingConfiguration::LoadOptionsConfiguration()
 {
-  IniFile ini;
+  Common::IniFile ini;
   ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
   std::string section = m_current_shader + "-options";
 
@@ -272,7 +272,7 @@ void PostProcessingConfiguration::LoadOptionsConfiguration()
 
 void PostProcessingConfiguration::SaveOptionsConfiguration()
 {
-  IniFile ini;
+  Common::IniFile ini;
   ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
   std::string section = m_current_shader + "-options";
 

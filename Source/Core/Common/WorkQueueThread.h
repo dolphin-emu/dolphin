@@ -124,7 +124,7 @@ public:
     if (m_idle && !m_cancelling.load())
       return;
 
-    m_wait_cond_var.wait(lg, [&] { return m_idle && m_cancelling.load(); });
+    m_wait_cond_var.wait(lg, [&] { return m_idle && !m_cancelling; });
   }
 
   // If the worker polls IsCanceling(), it can abort its work when Cancelling

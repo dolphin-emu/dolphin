@@ -249,12 +249,12 @@ void MemoryWidget::CreateWidgets()
   QMenuBar* menubar = new QMenuBar(sidebar);
   menubar->setNativeMenuBar(false);
 
-  QMenu* menu_import = new QMenu(tr("&Import"));
+  QMenu* menu_import = new QMenu(tr("&Import"), menubar);
   menu_import->addAction(tr("&Load file to current address"), this,
                          &MemoryWidget::OnSetValueFromFile);
   menubar->addMenu(menu_import);
 
-  QMenu* menu_export = new QMenu(tr("&Export"));
+  QMenu* menu_export = new QMenu(tr("&Export"), menubar);
   menu_export->addAction(tr("Dump &MRAM"), this, &MemoryWidget::OnDumpMRAM);
   menu_export->addAction(tr("Dump &ExRAM"), this, &MemoryWidget::OnDumpExRAM);
   menu_export->addAction(tr("Dump &ARAM"), this, &MemoryWidget::OnDumpARAM);

@@ -32,7 +32,7 @@ void AddAutoBreakpoints()
   {
     Common::Symbol* symbol = g_symbolDB.GetSymbolFromName(bp);
     if (symbol)
-      PowerPC::breakpoints.Add(symbol->address, false);
+      Core::System::GetInstance().GetPowerPC().GetBreakPoints().Add(symbol->address, false);
   }
 #endif
 #endif

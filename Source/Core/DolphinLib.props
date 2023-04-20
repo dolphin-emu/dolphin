@@ -42,7 +42,7 @@
     <ClInclude Include="Common\Debug\Watches.h" />
     <ClInclude Include="Common\DebugInterface.h" />
     <ClInclude Include="Common\DynamicLibrary.h" />
-    <ClInclude Include="Common\ENetUtil.h" />
+    <ClInclude Include="Common\ENet.h" />
     <ClInclude Include="Common\EnumFormatter.h" />
     <ClInclude Include="Common\EnumMap.h" />
     <ClInclude Include="Common\Event.h" />
@@ -161,6 +161,7 @@
     <ClInclude Include="Common\WindowsRegistry.h" />
     <ClInclude Include="Common\WindowSystemInfo.h" />
     <ClInclude Include="Common\WorkQueueThread.h" />
+    <ClInclude Include="Core\AchievementManager.h" />
     <ClInclude Include="Core\ActionReplay.h" />
     <ClInclude Include="Core\ARDecrypt.h" />
     <ClInclude Include="Core\Boot\Boot.h" />
@@ -172,6 +173,7 @@
     <ClInclude Include="Core\CheatGeneration.h" />
     <ClInclude Include="Core\CheatSearch.h" />
     <ClInclude Include="Core\CommonTitles.h" />
+    <ClInclude Include="Core\Config\AchievementSettings.h" />
     <ClInclude Include="Core\Config\DefaultLocale.h" />
     <ClInclude Include="Core\Config\FreeLookSettings.h" />
     <ClInclude Include="Core\Config\GraphicsSettings.h" />
@@ -751,7 +753,7 @@
     <ClCompile Include="Common\Debug\MemoryPatches.cpp" />
     <ClCompile Include="Common\Debug\Watches.cpp" />
     <ClCompile Include="Common\DynamicLibrary.cpp" />
-    <ClCompile Include="Common\ENetUtil.cpp" />
+    <ClCompile Include="Common\ENet.cpp" />
     <ClCompile Include="Common\FatFsUtil.cpp" />
     <ClCompile Include="Common\FileSearch.cpp" />
     <ClCompile Include="Common\FileUtil.cpp" />
@@ -771,7 +773,6 @@
     <ClCompile Include="Common\LdrWatcher.cpp" />
     <ClCompile Include="Common\Logging\ConsoleListenerWin.cpp" />
     <ClCompile Include="Common\Logging\LogManager.cpp" />
-    <ClCompile Include="Common\MathUtil.cpp" />
     <ClCompile Include="Common\Matrix.cpp" />
     <ClCompile Include="Common\MemArenaWin.cpp" />
     <ClCompile Include="Common\MemoryUtil.cpp" />
@@ -795,6 +796,7 @@
     <ClCompile Include="Common\UPnP.cpp" />
     <ClCompile Include="Common\WindowsRegistry.cpp" />
     <ClCompile Include="Common\Version.cpp" />
+    <ClCompile Include="Core\AchievementManager.cpp" />
     <ClCompile Include="Core\ActionReplay.cpp" />
     <ClCompile Include="Core\ARDecrypt.cpp" />
     <ClCompile Include="Core\Boot\Boot_BS2Emu.cpp" />
@@ -805,6 +807,7 @@
     <ClCompile Include="Core\BootManager.cpp" />
     <ClCompile Include="Core\CheatGeneration.cpp" />
     <ClCompile Include="Core\CheatSearch.cpp" />
+    <ClCompile Include="Core\Config\AchievementSettings.cpp" />
     <ClCompile Include="Core\Config\DefaultLocale.cpp" />
     <ClCompile Include="Core\Config\FreeLookSettings.cpp" />
     <ClCompile Include="Core\Config\GraphicsSettings.cpp" />

@@ -27,6 +27,8 @@
 // value_type[value_size]   value;
 //}
 
+namespace Common
+{
 template <typename K, typename V>
 class LinearDiskCacheReader
 {
@@ -163,3 +165,4 @@ private:
   File::IOFile m_file;
   u32 m_num_entries = 0;
 };
+}  // namespace Common

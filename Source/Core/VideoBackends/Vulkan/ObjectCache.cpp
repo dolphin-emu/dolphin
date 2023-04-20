@@ -473,7 +473,7 @@ void ObjectCache::DestroyRenderPassCache()
   m_render_pass_cache.clear();
 }
 
-class PipelineCacheReadCallback : public LinearDiskCacheReader<u32, u8>
+class PipelineCacheReadCallback : public Common::LinearDiskCacheReader<u32, u8>
 {
 public:
   PipelineCacheReadCallback(std::vector<u8>* data) : m_data(data) {}
@@ -488,7 +488,7 @@ private:
   std::vector<u8>* m_data;
 };
 
-class PipelineCacheReadIgnoreCallback : public LinearDiskCacheReader<u32, u8>
+class PipelineCacheReadIgnoreCallback : public Common::LinearDiskCacheReader<u32, u8>
 {
 public:
   void Read(const u32& key, const u8* value, u32 value_size) override {}
@@ -525,7 +525,7 @@ bool ObjectCache::LoadPipelineCache()
   m_pipeline_cache_filename = GetDiskShaderCacheFileName(APIType::Vulkan, "Pipeline", false, true);
 
   std::vector<u8> disk_data;
-  LinearDiskCache<u32, u8> disk_cache;
+  Common::LinearDiskCache<u32, u8> disk_cache;
   PipelineCacheReadCallback read_callback(&disk_data);
   if (disk_cache.OpenAndRead(m_pipeline_cache_filename, read_callback) != 1)
     disk_data.clear();
@@ -651,7 +651,7 @@ void ObjectCache::SavePipelineCache()
   // We write a single key of 1, with the entire pipeline cache data.
   // Not ideal, but our disk cache class does not support just writing a single blob
   // of data without specifying a key.
-  LinearDiskCache<u32, u8> disk_cache;
+  Common::LinearDiskCache<u32, u8> disk_cache;
   PipelineCacheReadIgnoreCallback callback;
   disk_cache.OpenAndRead(m_pipeline_cache_filename, callback);
   disk_cache.Append(1, data.data(), static_cast<u32>(data.size()));

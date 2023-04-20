@@ -17,13 +17,6 @@
 ///
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Last changed  : $Date: 2012-06-13 22:29:53 +0300 (Wed, 13 Jun 2012) $
-// File revision : $Revision: 4 $
-//
-// $Id: FIFOSamplePipe.h 143 2012-06-13 19:29:53Z oparviai $
-//
-////////////////////////////////////////////////////////////////////////////////
-//
 // License :
 //
 //  SoundTouch audio processing library
@@ -58,6 +51,18 @@ namespace soundtouch
 /// Abstract base class for FIFO (first-in-first-out) sample processing classes.
 class FIFOSamplePipe
 {
+protected:
+
+    bool verifyNumberOfChannels(int nChannels) const
+    {
+        if ((nChannels > 0) && (nChannels <= SOUNDTOUCH_MAX_CHANNELS))
+        {
+            return true;
+        }
+        ST_THROW_RT_ERROR("Error: Illegal number of channels");
+        return false;
+    }
+
 public:
     // virtual default destructor
     virtual ~FIFOSamplePipe() {}
@@ -122,7 +127,6 @@ public:
 };
 
 
-
 /// Base-class for sound processing routines working in FIFO principle. With this base 
 /// class it's easy to implement sound processing stages that can be chained together,
 /// so that samples that are fed into beginning of the pipe automatically go through 
@@ -140,19 +144,17 @@ protected:
     /// Sets output pipe.
     void setOutPipe(FIFOSamplePipe *pOutput)
     {
-        assert(output == NULL);
-        assert(pOutput != NULL);
+        assert(output == nullptr);
+        assert(pOutput != nullptr);
         output = pOutput;
     }
-
 
     /// Constructor. Doesn't define output pipe; it has to be set be 
     /// 'setOutPipe' function.
     FIFOProcessor()
     {
-        output = NULL;
+        output = nullptr;
     }
-
 
     /// Constructor. Configures output pipe.
     FIFOProcessor(FIFOSamplePipe *pOutput   ///< Output pipe.
@@ -161,12 +163,10 @@ protected:
         output = pOutput;
     }
 
-
     /// Destructor.
-    virtual ~FIFOProcessor()
+    virtual ~FIFOProcessor() override
     {
     }
-
 
     /// Returns a pointer to the beginning of the output samples. 
     /// This function is provided for accessing the output samples directly. 
@@ -175,7 +175,7 @@ protected:
     /// When using this function to output samples, also remember to 'remove' the
     /// output samples from the buffer by calling the 
     /// 'receiveSamples(numSamples)' function
-    virtual SAMPLETYPE *ptrBegin()
+    virtual SAMPLETYPE *ptrBegin() override
     {
         return output->ptrBegin();
     }
@@ -189,11 +189,10 @@ public:
     /// \return Number of samples returned.
     virtual uint receiveSamples(SAMPLETYPE *outBuffer, ///< Buffer where to copy output samples.
                                 uint maxSamples                    ///< How many samples to receive at max.
-                                )
+                                ) override
     {
         return output->receiveSamples(outBuffer, maxSamples);
     }
-
 
     /// Adjusts book-keeping so that given number of samples are removed from beginning of the 
     /// sample buffer without copying them anywhere. 
@@ -201,32 +200,29 @@ public:
     /// Used to reduce the number of samples in the buffer when accessing the sample buffer directly
     /// with 'ptrBegin' function.
     virtual uint receiveSamples(uint maxSamples   ///< Remove this many samples from the beginning of pipe.
-                                )
+                                ) override
     {
         return output->receiveSamples(maxSamples);
     }
 
-
     /// Returns number of samples currently available.
-    virtual uint numSamples() const
+    virtual uint numSamples() const override
     {
         return output->numSamples();
     }
 
-
     /// Returns nonzero if there aren't any samples available for outputting.
-    virtual int isEmpty() const
+    virtual int isEmpty() const override
     {
         return output->isEmpty();
     }
 
     /// allow trimming (downwards) amount of samples in pipeline.
     /// Returns adjusted amount of samples
-    virtual uint adjustAmountOfSamples(uint numSamples)
+    virtual uint adjustAmountOfSamples(uint numSamples) override
     {
         return output->adjustAmountOfSamples(numSamples);
     }
-
 };
 
 }

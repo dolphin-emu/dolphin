@@ -23,7 +23,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/SHA1.h"
-#include "Common/ENetUtil.h"
+#include "Common/ENet.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -144,6 +144,8 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
       return;
     }
 
+    m_client->mtu = std::min(m_client->mtu, NetPlay::MAX_ENET_MTU);
+
     ENetAddress addr;
     enet_address_set_host(&addr, address.c_str());
     addr.port = port;
@@ -166,7 +168,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
     {
       if (Connect())
       {
-        m_client->intercept = ENetUtil::InterceptCallback;
+        m_client->intercept = Common::ENet::InterceptCallback;
         m_thread = std::thread(&NetPlayClient::ThreadFunc, this);
       }
     }
@@ -252,7 +254,8 @@ bool NetPlayClient::Connect()
   // TODO: make this not hang
   ENetEvent netEvent;
   int net;
-  while ((net = enet_host_service(m_client, &netEvent, 5000)) > 0 && netEvent.type == 42)
+  while ((net = enet_host_service(m_client, &netEvent, 5000)) > 0 &&
+         netEvent.type == ENetEventType(42))  // See PR #11381 and ENetUtil::InterceptCallback
   {
     // ignore packets from traversal server
   }
@@ -1520,7 +1523,7 @@ void NetPlayClient::OnGameDigestAbort()
 
 void NetPlayClient::Send(const sf::Packet& packet, const u8 channel_id)
 {
-  ENetUtil::SendPacket(m_server, packet, channel_id);
+  Common::ENet::SendPacket(m_server, packet, channel_id);
 }
 
 void NetPlayClient::DisplayPlayersPing()
@@ -1575,7 +1578,7 @@ void NetPlayClient::SendAsync(sf::Packet&& packet, const u8 channel_id)
     std::lock_guard lkq(m_crit.async_queue_write);
     m_async_queue.Push(AsyncQueueEntry{std::move(packet), channel_id});
   }
-  ENetUtil::WakeupThread(m_client);
+  Common::ENet::WakeupThread(m_client);
 }
 
 // called from ---NETPLAY--- thread

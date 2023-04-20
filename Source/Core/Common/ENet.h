@@ -9,9 +9,9 @@
 
 #include "Common/CommonTypes.h"
 
-namespace ENetUtil
+namespace Common::ENet
 {
 void WakeupThread(ENetHost* host);
 int ENET_CALLBACK InterceptCallback(ENetHost* host, ENetEvent* event);
 bool SendPacket(ENetPeer* socket, const sf::Packet& packet, u8 channel_id);
-}  // namespace ENetUtil
+}  // namespace Common::ENet

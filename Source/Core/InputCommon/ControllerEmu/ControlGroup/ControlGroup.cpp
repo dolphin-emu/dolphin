@@ -50,7 +50,7 @@ void ControlGroup::AddDeadzoneSetting(SettingValue<double>* value, double maximu
 
 ControlGroup::~ControlGroup() = default;
 
-void ControlGroup::LoadConfig(IniFile::Section* sec, const std::string& defdev,
+void ControlGroup::LoadConfig(Common::IniFile::Section* sec, const std::string& defdev,
                               const std::string& base)
 {
   const std::string group(base + name + "/");
@@ -103,7 +103,7 @@ void ControlGroup::LoadConfig(IniFile::Section* sec, const std::string& defdev,
   }
 }
 
-void ControlGroup::SaveConfig(IniFile::Section* sec, const std::string& defdev,
+void ControlGroup::SaveConfig(Common::IniFile::Section* sec, const std::string& defdev,
                               const std::string& base)
 {
   const std::string group(base + name + "/");

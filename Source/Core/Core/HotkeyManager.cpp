@@ -251,7 +251,7 @@ bool IsPressed(int id, bool held)
 // TODO: Remove this at a future date when we're confident most configs are migrated.
 static void LoadLegacyConfig(ControllerEmu::EmulatedController* controller)
 {
-  IniFile inifile;
+  Common::IniFile inifile;
   if (inifile.Load(File::GetUserPath(D_CONFIG_IDX) + "Hotkeys.ini"))
   {
     if (!inifile.Exists("Hotkeys") && inifile.Exists("Hotkeys1"))

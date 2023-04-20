@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <Import Project="..\..\Source\VSProps\Base.Macros.props" />
+  <Import Project="$(VSPropsDir)Base.Targets.props" />
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{CC99A910-3752-4465-95AA-7DC240D92A99}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <Import Project="$(VSPropsDir)Configuration.StaticLibrary.props" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VSPropsDir)Base.props" />
+    <Import Project="$(VSPropsDir)ClDisableAllWarnings.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemGroup>
+    <ClCompile Include="rcheevos\src\rapi\rc_api_common.c" />
+    <ClCompile Include="rcheevos\src\rapi\rc_api_editor.c" />
+    <ClCompile Include="rcheevos\src\rapi\rc_api_info.c" />
+    <ClCompile Include="rcheevos\src\rapi\rc_api_runtime.c" />
+    <ClCompile Include="rcheevos\src\rapi\rc_api_user.c" />
+    <ClCompile Include="rcheevos\src\rcheevos\alloc.c" />
+    <ClCompile Include="rcheevos\src\rcheevos\compat.c" />
+    <ClCompile Include="rcheevos\src\rcheevos\condition.c" />
+    <ClCompile Include="rcheevos\src\rcheevos\condset.c" />
+    <ClCompile Include="rcheevos\src\rcheevos\consoleinfo.c" />
+    <ClCompile Include="rcheevos\src\rcheevos\format.c" />
+    <ClCompile Include="rcheevos\src\rcheevos\lboard.c" />
+    <ClCompile Include="rcheevos\src\rcheevos\memref.c" />
+    <ClCompile Include="rcheevos\src\rcheevos\operand.c" />
+    <ClCompile Include="rcheevos\src\rcheevos\rc_validate.c" />
+    <ClCompile Include="rcheevos\src\rcheevos\richpresence.c" />
+    <ClCompile Include="rcheevos\src\rcheevos\runtime.c" />
+    <ClCompile Include="rcheevos\src\rcheevos\runtime_progress.c" />
+    <ClCompile Include="rcheevos\src\rcheevos\trigger.c" />
+    <ClCompile Include="rcheevos\src\rcheevos\value.c" />
+    <ClCompile Include="rcheevos\src\rhash\hash.c" />
+    <ClCompile Include="rcheevos\src\rhash\md5.c" />
+    <ClCompile Include="rcheevos\src\rurl\url.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="rcheevos\include\rcheevos.h" />
+    <ClInclude Include="rcheevos\include\rc_api_editor.h" />
+    <ClInclude Include="rcheevos\include\rc_api_info.h" />
+    <ClInclude Include="rcheevos\include\rc_api_request.h" />
+    <ClInclude Include="rcheevos\include\rc_api_runtime.h" />
+    <ClInclude Include="rcheevos\include\rc_api_user.h" />
+    <ClInclude Include="rcheevos\include\rc_consoles.h" />
+    <ClInclude Include="rcheevos\include\rc_error.h" />
+    <ClInclude Include="rcheevos\include\rc_hash.h" />
+    <ClInclude Include="rcheevos\include\rc_runtime.h" />
+    <ClInclude Include="rcheevos\include\rc_runtime_types.h" />
+    <ClInclude Include="rcheevos\include\rc_url.h" />
+    <ClInclude Include="rcheevos\src\rapi\rc_api_common.h" />
+    <ClInclude Include="rcheevos\src\rcheevos\rc_compat.h" />
+    <ClInclude Include="rcheevos\src\rcheevos\rc_internal.h" />
+    <ClInclude Include="rcheevos\src\rcheevos\rc_validate.h" />
+    <ClInclude Include="rcheevos\src\rhash\md5.h" />
+  </ItemGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions>RC_DISABLE_LUA;RCHEEVOS_URL_SSL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)rcheevos\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

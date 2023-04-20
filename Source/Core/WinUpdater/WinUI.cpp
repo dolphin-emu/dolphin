@@ -77,7 +77,7 @@ bool InitWindow()
   if (!window_handle)
     return false;
 
-  if (SUCCEEDED(CoCreateInstance(CLSID_TaskbarList, NULL, CLSCTX_INPROC_SERVER,
+  if (SUCCEEDED(CoCreateInstance(CLSID_TaskbarList, nullptr, CLSCTX_INPROC_SERVER,
                                  IID_PPV_ARGS(taskbar_list.GetAddressOf()))))
   {
     if (FAILED(taskbar_list->HrInit()))
@@ -88,8 +88,8 @@ bool InitWindow()
 
   int y = PADDING_HEIGHT;
 
-  label_handle = CreateWindow(L"STATIC", NULL, WS_VISIBLE | WS_CHILD, 5, y, 500, 25, window_handle,
-                              nullptr, nullptr, 0);
+  label_handle = CreateWindow(L"STATIC", nullptr, WS_VISIBLE | WS_CHILD, 5, y, 500, 25,
+                              window_handle, nullptr, nullptr, 0);
 
   if (!label_handle)
     return false;
@@ -106,7 +106,7 @@ bool InitWindow()
 
   y += GetWindowHeight(label_handle) + PADDING_HEIGHT;
 
-  total_progressbar_handle = CreateWindow(PROGRESS_CLASS, NULL, PROGRESSBAR_FLAGS, 5, y, 470, 25,
+  total_progressbar_handle = CreateWindow(PROGRESS_CLASS, nullptr, PROGRESSBAR_FLAGS, 5, y, 470, 25,
                                           window_handle, nullptr, nullptr, 0);
 
   y += GetWindowHeight(total_progressbar_handle) + PADDING_HEIGHT;
@@ -114,8 +114,8 @@ bool InitWindow()
   if (!total_progressbar_handle)
     return false;
 
-  current_progressbar_handle = CreateWindow(PROGRESS_CLASS, NULL, PROGRESSBAR_FLAGS, 5, y, 470, 25,
-                                            window_handle, nullptr, nullptr, 0);
+  current_progressbar_handle = CreateWindow(PROGRESS_CLASS, nullptr, PROGRESSBAR_FLAGS, 5, y, 470,
+                                            25, window_handle, nullptr, nullptr, 0);
 
   y += GetWindowHeight(current_progressbar_handle) + PADDING_HEIGHT;
 

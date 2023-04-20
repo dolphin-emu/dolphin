@@ -221,7 +221,7 @@ bool DXContext::CreateFence()
     return false;
 
   m_fence_event = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-  ASSERT_MSG(VIDEO, m_fence_event != NULL, "Failed to create fence event");
+  ASSERT_MSG(VIDEO, m_fence_event != nullptr, "Failed to create fence event");
   if (!m_fence_event)
     return false;
 

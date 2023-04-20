@@ -613,7 +613,7 @@ constexpr Tables s_tables = []() consteval
 }
 ();
 
-const GekkoOPInfo* GetOpInfo(UGeckoInstruction inst)
+const GekkoOPInfo* GetOpInfo(UGeckoInstruction inst, u32 pc)
 {
   const GekkoOPInfo* info = &s_tables.all_instructions[s_tables.primary_table[inst.OPCD]];
   if (info->type == OpType::Subtable)
@@ -631,8 +631,7 @@ const GekkoOPInfo* GetOpInfo(UGeckoInstruction inst)
     case 63:
       return &s_tables.all_instructions[s_tables.table63[inst.SUBOP10]];
     default:
-      ASSERT_MSG(POWERPC, 0, "GetOpInfo - invalid subtable op {:08x} @ {:08x}", inst.hex,
-                 PowerPC::ppcState.pc);
+      ASSERT_MSG(POWERPC, 0, "GetOpInfo - invalid subtable op {:08x} @ {:08x}", inst.hex, pc);
       return &s_tables.all_instructions[s_tables.unknown_op_info];
     }
   }
@@ -640,8 +639,7 @@ const GekkoOPInfo* GetOpInfo(UGeckoInstruction inst)
   {
     if (info->type == OpType::Invalid)
     {
-      ASSERT_MSG(POWERPC, 0, "GetOpInfo - invalid op {:08x} @ {:08x}", inst.hex,
-                 PowerPC::ppcState.pc);
+      ASSERT_MSG(POWERPC, 0, "GetOpInfo - invalid op {:08x} @ {:08x}", inst.hex, pc);
       return &s_tables.all_instructions[s_tables.unknown_op_info];
     }
     return info;
@@ -658,21 +656,21 @@ std::vector<u32> rsplocations;
 }
 #endif
 
-const char* GetInstructionName(UGeckoInstruction inst)
+const char* GetInstructionName(UGeckoInstruction inst, u32 pc)
 {
-  const GekkoOPInfo* info = GetOpInfo(inst);
+  const GekkoOPInfo* info = GetOpInfo(inst, pc);
   return info->opname;
 }
 
-bool IsValidInstruction(UGeckoInstruction inst)
+bool IsValidInstruction(UGeckoInstruction inst, u32 pc)
 {
-  const GekkoOPInfo* info = GetOpInfo(inst);
+  const GekkoOPInfo* info = GetOpInfo(inst, pc);
   return info->type != OpType::Invalid && info->type != OpType::Unknown;
 }
 
-void CountInstruction(UGeckoInstruction inst)
+void CountInstruction(UGeckoInstruction inst, u32 pc)
 {
-  const GekkoOPInfo* info = GetOpInfo(inst);
+  const GekkoOPInfo* info = GetOpInfo(inst, pc);
   info->stats->run_count++;
 }
 

@@ -20,6 +20,10 @@
 
 class CPUCoreBase;
 class PointerWrap;
+namespace CoreTiming
+{
+struct EventType;
+}
 
 namespace PowerPC
 {
@@ -234,48 +238,85 @@ static_assert(offsetof(PowerPC::PowerPCState, above_fits_in_first_0x100) <= 0x10
 #endif
 #endif
 
-extern PowerPCState ppcState;
-
-extern BreakPoints breakpoints;
-extern MemChecks memchecks;
-extern PPCDebugInterface debug_interface;
-
 const std::vector<CPUCore>& AvailableCPUCores();
 CPUCore DefaultCPUCore();
 
-void Init(CPUCore cpu_core);
-void Reset();
-void Shutdown();
-void DoState(PointerWrap& p);
-void ScheduleInvalidateCacheThreadSafe(u32 address);
+class PowerPCManager
+{
+public:
+  explicit PowerPCManager(Core::System& system);
+  PowerPCManager(const PowerPCManager& other) = delete;
+  PowerPCManager(PowerPCManager&& other) = delete;
+  PowerPCManager& operator=(const PowerPCManager& other) = delete;
+  PowerPCManager& operator=(PowerPCManager&& other) = delete;
+  ~PowerPCManager();
 
-CoreMode GetMode();
-// [NOT THREADSAFE] CPU Thread or CPU::PauseAndLock or Core::State::Uninitialized
-void SetMode(CoreMode _coreType);
-const char* GetCPUName();
+  void Init(CPUCore cpu_core);
+  void Reset();
+  void Shutdown();
+  void DoState(PointerWrap& p);
+  void ScheduleInvalidateCacheThreadSafe(u32 address);
 
-// Set the current CPU Core to the given implementation until removed.
-// Remove the current injected CPU Core by passing nullptr.
-// While an external CPUCoreBase is injected, GetMode() will return CoreMode::Interpreter.
-// Init() will be called when added and Shutdown() when removed.
-// [Threadsafety: Same as SetMode(), except it cannot be called from inside the CPU
-//  run loop on the CPU Thread - it doesn't make sense for a CPU to remove itself
-//  while it is in State::Running]
-void InjectExternalCPUCore(CPUCoreBase* core);
+  CoreMode GetMode() const;
+  // [NOT THREADSAFE] CPU Thread or CPU::PauseAndLock or Core::State::Uninitialized
+  void SetMode(CoreMode _coreType);
+  const char* GetCPUName() const;
 
-// Stepping requires the CPU Execution lock (CPU::PauseAndLock or CPU Thread)
-// It's not threadsafe otherwise.
-void SingleStep();
-void CheckExceptions();
-void CheckExternalExceptions();
-void CheckBreakPoints();
-void RunLoop();
+  // Set the current CPU Core to the given implementation until removed.
+  // Remove the current injected CPU Core by passing nullptr.
+  // While an external CPUCoreBase is injected, GetMode() will return CoreMode::Interpreter.
+  // Init() will be called when added and Shutdown() when removed.
+  // [Threadsafety: Same as SetMode(), except it cannot be called from inside the CPU
+  //  run loop on the CPU Thread - it doesn't make sense for a CPU to remove itself
+  //  while it is in State::Running]
+  void InjectExternalCPUCore(CPUCoreBase* core);
 
-u64 ReadFullTimeBaseValue();
-void WriteFullTimeBaseValue(u64 value);
+  // Stepping requires the CPU Execution lock (CPU::PauseAndLock or CPU Thread)
+  // It's not threadsafe otherwise.
+  void SingleStep();
+  void CheckExceptions();
+  void CheckExternalExceptions();
+  void CheckBreakPoints();
+  void RunLoop();
+
+  u64 ReadFullTimeBaseValue() const;
+  void WriteFullTimeBaseValue(u64 value);
+
+  PowerPCState& GetPPCState() { return m_ppc_state; }
+  const PowerPCState& GetPPCState() const { return m_ppc_state; }
+  BreakPoints& GetBreakPoints() { return m_breakpoints; }
+  const BreakPoints& GetBreakPoints() const { return m_breakpoints; }
+  MemChecks& GetMemChecks() { return m_memchecks; }
+  const MemChecks& GetMemChecks() const { return m_memchecks; }
+  PPCDebugInterface& GetDebugInterface() { return m_debug_interface; }
+  const PPCDebugInterface& GetDebugInterface() const { return m_debug_interface; }
+
+private:
+  void InitializeCPUCore(CPUCore cpu_core);
+  void ApplyMode();
+  void ResetRegisters();
+
+  PowerPCState m_ppc_state;
+
+  CPUCoreBase* m_cpu_core_base = nullptr;
+  bool m_cpu_core_base_is_injected = false;
+  CoreMode m_mode = CoreMode::Interpreter;
+
+  BreakPoints m_breakpoints;
+  MemChecks m_memchecks;
+  PPCDebugInterface m_debug_interface;
+
+  CoreTiming::EventType* m_invalidate_cache_thread_safe = nullptr;
+
+  Core::System& m_system;
+};
 
 void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst,
                               PowerPCState& ppc_state);
+
+void CheckExceptionsFromJIT(PowerPCManager& power_pc);
+void CheckExternalExceptionsFromJIT(PowerPCManager& power_pc);
+void CheckBreakPointsFromJIT(PowerPCManager& power_pc);
 
 // Easy register access macros.
 #define HID0(ppc_state) ((UReg_HID0&)(ppc_state).spr[SPR_HID0])
@@ -297,6 +338,6 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst,
 #define TL(ppc_state) (ppc_state).spr[SPR_TL]
 #define TU(ppc_state) (ppc_state).spr[SPR_TU]
 
-void RoundingModeUpdated();
+void RoundingModeUpdated(PowerPCState& ppc_state);
 
 }  // namespace PowerPC
