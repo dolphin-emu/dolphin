@@ -1,7 +1,7 @@
 // Copyright 2020 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "DolphinQt/Config/Graphics/BalloonTip.h"
+#include "DolphinQt/Config/ToolTipControls/BalloonTip.h"
 
 #include <memory>
 
