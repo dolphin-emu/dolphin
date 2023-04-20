@@ -31,7 +31,7 @@ jobs:
       run: sudo apt update && sudo apt upgrade && sudo apt install build-essential git cmake ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libevdev-dev libusb-1.0-0-dev libxrandr-dev libxi-dev libpangocairo-1.0-0 qt6-base-private-dev libbluetooth-dev libasound2-dev libpulse-dev libgl1-mesa-dev libudev-dev libsystemd-dev dpkg-dev
     # Run CMake
     - name: Run CMake
-      run: mkdir build && cd build && cmake .. -G Ninja -DLINUX_LOCAL_DEV=true -DCPACK_PACKAGE_CONTACT="Mario Party Netplay"
+      run: mkdir build && cd build && cmake .. -G Ninja -DLINUX_LOCAL_DEV=true -DCPACK_PACKAGE_CONTACT="Mario Party Netplay" -DDISTRIBUTOR="Mario Party Netplay"
     # Build Project
     - name: Run Make
       run: cd build && ninja -j$(nproc)
