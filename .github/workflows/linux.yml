@@ -46,7 +46,7 @@ jobs:
         path: /home/runner/work/Dolphin-MPN-src/Dolphin-MPN-src/build/Binaries/
     # Zip Artifact
     - name: Zip Artifact
-      run: 7z a D:/DolphinMPN-linux D:/a/dolphin-mpn-src/dolphin-mpn-src/build/Binaries/*
+      run: 7z a D:/DolphinMPN-linux D:/a/Dolphin-MPN-src/Dolphin-MPN-src/build/Binaries/*
     # New Release
     - name: New Release
       uses: softprops/action-gh-release@v1
