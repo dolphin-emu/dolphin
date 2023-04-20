@@ -50,8 +50,7 @@ public:
   // Make it easy to convert Info<Enum> into Info<UnderlyingType<Enum>>
   // so that enum settings can still easily work with code that doesn't care about the enum values.
   template <Common::Enumerated Enum>
-  Info(const Info<Enum>& other)
-    requires Common::UnderlyingSameAs<Enum, T>
+  Info(const Info<Enum>& other) requires Common::UnderlyingSameAs<Enum, T>
   {
     *this = other;
   }
@@ -76,8 +75,7 @@ public:
   // Make it easy to convert Info<Enum> into Info<UnderlyingType<Enum>>
   // so that enum settings can still easily work with code that doesn't care about the enum values.
   template <Common::Enumerated Enum>
-  Info<T>& operator=(const Info<Enum>& other)
-    requires Common::UnderlyingSameAs<Enum, T>
+  Info<T>& operator=(const Info<Enum>& other) requires Common::UnderlyingSameAs<Enum, T>
   {
     m_location = other.GetLocation();
     m_default_value = static_cast<T>(other.GetDefaultValue());

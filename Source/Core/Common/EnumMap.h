@@ -38,7 +38,7 @@ public:
 
   template <typename... Ts>
   constexpr EnumMap(Ts... values)
-    requires CountOfTypes<s_size, Ts...> && ConvertibleFromAllOf<V, Ts...>
+      requires CountOfTypes<s_size, Ts...> && ConvertibleFromAllOf<V, Ts...>
       : m_array{static_cast<V>(values)...}
   {
   }
