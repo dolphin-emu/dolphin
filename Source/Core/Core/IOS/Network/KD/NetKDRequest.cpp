@@ -16,6 +16,7 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
+#include "Common/Random.h"
 #include "Common/SettingsHandler.h"
 #include "Common/StringUtil.h"
 
@@ -267,8 +268,10 @@ std::string NetKDRequestDevice::GetValueFromCGIResponse(const std::string& respo
 
 NWC24::ErrorCode NetKDRequestDevice::KDCheckMail(u32* _mail_flag, u32* _interval)
 {
-  // TODO: Proper behaviour is to generate a random number rather than hardcode 0
-  const std::string form_data(fmt::format("mlchkid={}&chlng=0", m_config.GetMlchkid()));
+  u64 random_number{};
+  Common::Random::Generate(&random_number, sizeof(u64));
+  const std::string form_data(
+      fmt::format("mlchkid={}&chlng={}", m_config.GetMlchkid(), random_number));
   const Common::HttpRequest::Response response = m_http.Post(m_config.GetCheckURL(), form_data);
 
   if (!response)
@@ -294,7 +297,7 @@ NWC24::ErrorCode NetKDRequestDevice::KDCheckMail(u32* _mail_flag, u32* _interval
   INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_CHECK_MAIL_NOW: Server HMAC: {}", server_hmac);
 
   const std::string hmac_message =
-      fmt::format("0\nw{}\n{}\n{}", m_config.Id(), mail_flag, interval);
+      fmt::format("{}\nw{}\n{}\n{}", random_number, m_config.Id(), mail_flag, interval);
   std::vector<u8> hashed(20);
   Common::HMAC::HMACWithSHA1(MAIL_CHECK_KEY.data(), sizeof(MAIL_CHECK_KEY),
                              reinterpret_cast<const u8*>(hmac_message.c_str()), hmac_message.size(),
@@ -316,15 +319,17 @@ NWC24::ErrorCode NetKDRequestDevice::KDCheckMail(u32* _mail_flag, u32* _interval
     return NWC24::WC24_ERR_SERVER;
   }
 
-  // TODO: Parse the response headers and get the interval from there.
   if (mail_flag != m_send_list.GetMailFlag())
   {
     *_mail_flag = 1;
   }
 
-  *_interval = 10;
-  m_mail_span = 10;
-  m_download_span = 10;
+  const bool did_parse = TryParse(m_http.GetHeaderValue("X-Wii-Mail-Check-Span"), _interval);
+  if (did_parse)
+  {
+    m_mail_span = *_interval;
+    m_download_span = *_interval;
+  }
 
   return NWC24::WC24_OK;
 }
@@ -355,8 +360,8 @@ NWC24::ErrorCode NetKDRequestDevice::KDSendMail()
     }
 
     std::vector<u8> mail_data(mail_size);
-    NWC24::ErrorCode res = NWC24::ReadFromVFF(NWC24::SEND_BOX_PATH, m_send_list.GetMailPath(file_index),
-                                          m_ios.GetFS(), mail_data);
+    NWC24::ErrorCode res = NWC24::ReadFromVFF(
+        NWC24::SEND_BOX_PATH, m_send_list.GetMailPath(file_index), m_ios.GetFS(), mail_data);
 
     if (res != NWC24::WC24_OK)
     {

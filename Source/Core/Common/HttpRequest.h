@@ -46,6 +46,7 @@ public:
   void FollowRedirects(long max = 1);
   s32 GetLastResponseCode() const;
   std::string EscapeComponent(const std::string& string);
+  std::string GetHeaderValue(const std::string& name) const;
   Response Get(const std::string& url, const Headers& headers = {},
                AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only);
   Response Post(const std::string& url, const std::vector<u8>& payload, const Headers& headers = {},
