@@ -107,6 +107,7 @@ android {
         }
 
         vr {
+            resValue 'string', 'app_name_suffixed', 'Dolphin VR'
             signingConfig signingConfigs.debug
             matchingFallbacks = ['release']
             applicationIdSuffix ".vr"
