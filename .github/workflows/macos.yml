@@ -34,7 +34,7 @@ jobs:
       run: git submodule update --init --recursive
     # Run CMake
     - name: Run CMake
-      run: mkdir -p build && cd build && cmake .. -G Ninja -DCMAKE_CXX_FLAGS="-Xclang -fcolor-diagnostics" -DCMAKE_PREFIX_PATH=$(brew --prefix qt6)
+      run: mkdir -p build && cd build && cmake .. -G Ninja -DCMAKE_CXX_FLAGS="-Xclang -fcolor-diagnostics" -DCMAKE_PREFIX_PATH=$(brew --prefix qt6) -DDISTRIBUTOR="Mario Party Netplay"
     # Build Project
     - name: Run Ninja
       run: cd build && ninja -j4
