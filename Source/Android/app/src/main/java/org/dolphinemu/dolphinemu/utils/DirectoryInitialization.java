@@ -78,6 +78,10 @@ public final class DirectoryInitialization
 
     extractSysDirectory(context);
     NativeLibrary.Initialize();
+    if (VirtualReality.isActive())
+    {
+      NativeLibrary.InitializeVR(NativeLibrary.getEmulationActivity(), Build.MANUFACTURER);
+    }
     NativeLibrary.ReportStartToAnalytics();
 
     areDirectoriesAvailable = true;

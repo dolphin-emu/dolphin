@@ -113,6 +113,11 @@ static jmethodID s_core_device_control_constructor;
 
 namespace IDCache
 {
+JavaVM* GetJavaVM()
+{
+  return s_java_vm;
+}
+
 JNIEnv* GetEnvForThread()
 {
   thread_local static struct OwnedEnv

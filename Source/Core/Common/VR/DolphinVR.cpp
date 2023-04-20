@@ -23,19 +23,8 @@ bool IsVREnabled()
 }
 
 #ifdef ANDROID
-void InitVROnAndroid(void* vm, void* activity, const char* system, int version, const char* name)
+void InitVROnAndroid(void* vm, void* activity, const char* vendor, int version, const char* name)
 {
-  // Get device vendor (uppercase)
-  char vendor[64];
-  sscanf(system, "%[^:]", vendor);
-  for (unsigned int i = 0; i < strlen(vendor); i++)
-  {
-    if ((vendor[i] >= 'a') && (vendor[i] <= 'z'))
-    {
-      vendor[i] = vendor[i] - 'a' + 'A';
-    }
-  }
-
   // Set platform flags
   if (strcmp(vendor, "PICO") == 0)
   {

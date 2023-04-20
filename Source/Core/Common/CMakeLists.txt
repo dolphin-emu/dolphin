@@ -353,9 +353,7 @@ if(MSVC)
 endif()
 
 if(OPENXR)
-	add_definitions(-DOPENXR)
-	add_library(openxr SHARED IMPORTED)
-	set_property(TARGET openxr PROPERTY IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/../../../Externals/openxr/stub/arm64-v8a/libopenxr_loader.so")
+	set_property(TARGET common PROPERTY IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/../../../Externals/openxr/stub/arm64-v8a/libopenxr_loader.so")
 	message("OpenXR enabled")
 endif()
 
