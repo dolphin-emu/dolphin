@@ -24,6 +24,9 @@ jobs:
     # Submoudle
     - name: Checkout Submodles
       run: git submodule update --init --recursive
+    # Install 7zip
+    - name: Install 7zip
+      run: choco install 7zip
     # Setup MSBuild For Later Usage
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1.0.2
@@ -38,3 +41,12 @@ jobs:
       with:
         name: DolphinMPN-win32
         path: D:\a\Dolphin-MPN-src\Dolphin-MPN-src\Binary\x64
+    # Zip Artifact
+    - name: Zip Artifact
+      run: 7z a D:/DolphinMPN-win32 D:/a/dolphin-mpn-src/dolphin-mpn-src/Binary/x64/*
+    # New Release
+    - name: New Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: D:/DolphinMPN-win32.7z
