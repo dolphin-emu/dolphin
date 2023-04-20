@@ -28,7 +28,7 @@ jobs:
       run: git submodule update --init --recursive
     # Setup Packages
     - name: Setup Packages
-      run: sudo apt update && sudo apt upgrade && sudo apt install build-essential git cmake ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libevdev-dev libusb-1.0-0-dev libxrandr-dev libxi-dev libpangocairo-1.0-0 qt6-base-private-dev libbluetooth-dev libasound2-dev libpulse-dev libgl1-mesa-dev libudev-dev libsystemd-dev dpkg-dev
+      run: sudo apt update && sudo apt upgrade && sudo apt install p7zip-full build-essential git cmake ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libevdev-dev libusb-1.0-0-dev libxrandr-dev libxi-dev libpangocairo-1.0-0 qt6-base-private-dev libbluetooth-dev libasound2-dev libpulse-dev libgl1-mesa-dev libudev-dev libsystemd-dev dpkg-dev
     # Run CMake
     - name: Run CMake
       run: mkdir build && cd build && cmake .. -G Ninja -DLINUX_LOCAL_DEV=true -DCPACK_PACKAGE_CONTACT="Mario Party Netplay" -DDISTRIBUTOR="Mario Party Netplay"
@@ -44,3 +44,12 @@ jobs:
       with:
         name: DolphinMPN-Linux
         path: /home/runner/work/Dolphin-MPN-src/Dolphin-MPN-src/build/Binaries/
+    # Zip Artifact
+    - name: Zip Artifact
+      run: 7z a D:/DolphinMPN-linux D:/a/dolphin-mpn-src/dolphin-mpn-src/build/Binaries/*
+    # New Release
+    - name: New Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: D:/DolphinMPN-linux.7z
