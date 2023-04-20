@@ -88,6 +88,6 @@ public class VirtualReality
       launcher.setData(uri);
     }
 
-    context.startActivity(launcher);
+    context.getApplicationContext().startActivity(launcher);
   }
 }
