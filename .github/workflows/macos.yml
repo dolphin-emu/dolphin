@@ -46,4 +46,4 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: DolphinMPN-macOS
-        path: /Users/runner/work/Dolphin-MPN-src/Dolphin-MPN-src/build/Binaries/
+        path: /Users/runner/work/Dolphin-MPN/Dolphin-MPN/build/Binaries/
