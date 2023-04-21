@@ -5,6 +5,9 @@
 #include <string>
 #include <vector>
 
+#include <ShlDisp.h>
+#include <shellapi.h>
+
 #include <Windows.h>
 #include <cstdio>
 #endif
@@ -258,6 +261,11 @@ int main(int argc, char* argv[])
     MainWindow win{std::move(boot), static_cast<const char*>(options.get("movie"))};
     Settings::Instance().SetCurrentUserStyle(Settings::Instance().GetCurrentUserStyle());
     win.Show();
+    
+    #ifdef _WIN32
+    ShellExecute(NULL, "open", "Plugin\\Updater\\Updater.exe", "/S", NULL, SW_SHOWDEFAULT);
+    #endif
+
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
     if (!Config::Get(Config::MAIN_ANALYTICS_PERMISSION_ASKED))
