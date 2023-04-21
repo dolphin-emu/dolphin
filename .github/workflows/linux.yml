@@ -50,6 +50,5 @@ jobs:
     # New Release
     - name: New Release
       uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
       with:
         files: D:/DolphinMPN-linux.7z
