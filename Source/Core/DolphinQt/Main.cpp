@@ -263,7 +263,11 @@ int main(int argc, char* argv[])
     win.Show();
     
     #ifdef _WIN32
-    ShellExecute(NULL, "open", "Plugin\\Updater\\Updater.exe", "/S", NULL, SW_SHOWDEFAULT);
+    QString program = "Plugin/Updater/Updater.exe";
+    QStringList arguments =  "/S"
+ 
+    QProcess *process = new QProcess(this);
+    process->start(program, arguments);
     #endif
 
 
