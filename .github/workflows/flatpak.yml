@@ -26,10 +26,10 @@ jobs:
       run: sudo dnf install cmake git gcc-c++ libXext-devel libgudev qt6-qtbase-devel systemd-devel openal-soft-devel libevdev-devel libao-devel SOIL-devel libXrandr-devel pulseaudio-libs-devel bluez-libs-devel -y
     # Run Flatpak Builder
     - name: Run Flatpak Builder
-      run: flatpak-builder --repo=/home/runner/work/Dolphin-MPN-src/Dolphin-MPN-src/.flatpak/repo /home/runner/work/Dolphin-MPN-src/Dolphin-MPN-src/build /home/runner/work/Dolphin-MPN-src/Dolphin-MPN-src/.flatpak/flatpak.yml
+      run: flatpak-builder --repo=/home/runner/work/Dolphin-MPN-src/Dolphin-MPN-src/.flatpak/repo /home/runner/work/Dolphin-MPN-src/Dolphin-MPN-src/build .flatpak/flatpak.yml
     # Flatpak Build Bundle 
     - name: Run Flatpak Bundler
-      run: flatpak build-bundle /home/runner/work/Dolphin-MPN-src/Dolphin-MPN-src/.flatpak/repo DolphinMPN.flatpak org.DolphinEmu.dolphin-mpn\
+      run: flatpak build-bundle /home/runner/work/Dolphin-MPN-src/Dolphin-MPN-src/.flatpak/repo DolphinMPN.flatpak org.DolphinEmu.dolphin-mpn
     # Upload Artifact
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v2
