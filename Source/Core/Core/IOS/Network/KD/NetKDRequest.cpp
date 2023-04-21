@@ -506,6 +506,28 @@ NWC24::ErrorCode NetKDRequestDevice::KDDownload(const u16 entry_index,
   return reply;
 }
 
+IPCReply NetKDRequestDevice::HandleNWC24SendMailNow(const IOCtlRequest& request)
+{
+  const NWC24::ErrorCode reply = KDSendMail();
+  WriteReturnValue(reply, request.buffer_out);
+  return IPCReply(IPC_SUCCESS);
+}
+
+IPCReply NetKDRequestDevice::HandleNWC24CheckMailNow(const IOCtlRequest& request)
+{
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
+  u32 mail_flag{};
+  u32 interval{};
+  const NWC24::ErrorCode reply = KDCheckMail(&mail_flag, &interval);
+
+  WriteReturnValue(reply, request.buffer_out);
+  memory.Write_U32(mail_flag, request.buffer_out + 4);
+  memory.Write_U32(interval, request.buffer_out + 8);
+  return IPCReply(IPC_SUCCESS);
+}
+
 IPCReply NetKDRequestDevice::HandleNWC24DownloadNowEx(const IOCtlRequest& request)
 {
   m_dl_list.ReadDlList();
@@ -722,6 +744,12 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
   case IOCTL_NWC24_SAVE_MAIL_NOW:
     INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_SAVE_MAIL_NOW - NI");
     break;
+
+  case IOCTL_NWC24_SEND_MAIL_NOW:
+    return LaunchAsyncTask(&NetKDRequestDevice::HandleNWC24SendMailNow, request);
+
+  case IOCTL_NWC24_CHECK_MAIL_NOW:
+    return LaunchAsyncTask(&NetKDRequestDevice::HandleNWC24CheckMailNow, request);
 
   case IOCTL_NWC24_DOWNLOAD_NOW_EX:
     return LaunchAsyncTask(&NetKDRequestDevice::HandleNWC24DownloadNowEx, request);

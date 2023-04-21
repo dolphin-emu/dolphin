@@ -28,6 +28,8 @@ class NetKDRequestDevice : public EmulationDevice
 public:
   NetKDRequestDevice(EmulationKernel& ios, const std::string& device_name);
   IPCReply HandleNWC24DownloadNowEx(const IOCtlRequest& request);
+  IPCReply HandleNWC24SendMailNow(const IOCtlRequest &request);
+  IPCReply HandleNWC24CheckMailNow(const IOCtlRequest &request);
   NWC24::ErrorCode KDDownload(const u16 entry_index, const std::optional<u8> subtask_id);
   NWC24::ErrorCode KDCheckMail(u32* _mail_flag, u32* _interval);
   NWC24::ErrorCode KDSendMail();
