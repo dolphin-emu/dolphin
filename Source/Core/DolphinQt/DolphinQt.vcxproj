@@ -450,6 +450,7 @@
     <DataUserFiles Include="$(DolphinRootDir)Data\**\User\**\*.*" />
     <DataTxtFiles Include="$(DolphinRootDir)Data\license.txt" />
     <DataTxtFiles Include="$(DolphinRootDir)Data\portable.txt" />
+    <DataTxtFiles Include="$(DolphinRootDir)Data\UpdateEmulator.bat" />
     <BinaryFiles Include="$(TargetPath)" />
     <AllInputFiles Include="@(DataSysFiles);@(DataUserFiles);@(DataTxtFiles);@(BinaryFiles)" />
   </ItemGroup>
