@@ -263,7 +263,7 @@ int main(int argc, char* argv[])
     
     #ifdef _WIN32
     QString program = "Plugin/Updater/Updater.exe";
-    QStringList arguments =  "/S"
+    QStringList arguments =  "/S";
  
     QProcess *process = new QProcess(this);
     process->start(program, arguments);
