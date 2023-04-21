@@ -5,9 +5,6 @@
 #include <string>
 #include <vector>
 
-#include <ShlDisp.h>
-#include <shellapi.h>
-
 #include <Windows.h>
 #include <cstdio>
 #endif
@@ -20,7 +17,9 @@
 #include <QAbstractEventDispatcher>
 #include <QApplication>
 #include <QObject>
+#include <QProcess>
 #include <QPushButton>
+#include <QString>
 #include <QWidget>
 
 #include "Common/Config/Config.h"
