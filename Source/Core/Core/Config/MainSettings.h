@@ -311,6 +311,12 @@ extern const Info<bool> MAIN_MOVIE_SHOW_RERECORD;
 // Main.Input
 
 extern const Info<bool> MAIN_INPUT_BACKGROUND_INPUT;
+extern const Info<double> MAIN_MOUSE_CURSOR_SCALE_HORIZONTAL;
+extern const Info<double> MAIN_MOUSE_CURSOR_SCALE_VERTICAL;
+extern const Info<bool> MAIN_MOUSE_RECENTER_ON_BOOT;
+extern const Info<bool> MAIN_MOUSE_STICK_GATE_ENABLED;
+extern const Info<int> MAIN_MOUSE_STICK_GATE_RADIUS;
+extern const Info<double> MAIN_MOUSE_STICK_GATE_SNAPPING_DISTANCE;
 
 // Main.Debug
 

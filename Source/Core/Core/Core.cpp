@@ -81,6 +81,7 @@
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/ControllerInterface/OctagonalMouseGate.h"
 #include "InputCommon/GCAdapter.h"
 
 #include "VideoCommon/AsyncRequests.h"
@@ -641,6 +642,9 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   }
 
   UpdateTitle();
+
+  if (Config::Get(Config::MAIN_MOUSE_RECENTER_ON_BOOT))
+    g_controller_interface.SetMouseCenteringRequested(true);
 
   // ENTER THE VIDEO THREAD LOOP
   if (system.IsDualCoreMode())

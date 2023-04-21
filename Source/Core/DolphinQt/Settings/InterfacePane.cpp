@@ -22,7 +22,9 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/UISettings.h"
 
+#include "DolphinQt/Config/MouseSettingsWindow.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 
@@ -194,6 +196,8 @@ void InterfacePane::CreateInGame()
   m_checkbox_lock_mouse->setToolTip(tr("Will lock the Mouse Cursor to the Render Widget as long as "
                                        "it has focus. You can set a hotkey to unlock it."));
 
+  m_button_advanced_mouse_settings = new NonDefaultQPushButton(tr("Advanced Mouse Settings"));
+
   mouse_groupbox->setLayout(m_vboxlayout_hide_mouse);
   groupbox_layout->addWidget(m_checkbox_top_window);
   groupbox_layout->addWidget(m_checkbox_confirm_on_stop);
@@ -207,6 +211,7 @@ void InterfacePane::CreateInGame()
 #else
   m_checkbox_lock_mouse->hide();
 #endif
+  groupbox_layout->addWidget(m_button_advanced_mouse_settings);
 }
 
 void InterfacePane::ConnectLayout()
@@ -239,6 +244,8 @@ void InterfacePane::ConnectLayout()
   connect(m_checkbox_lock_mouse, &QCheckBox::toggled, &Settings::Instance(),
           &Settings::SetLockCursor);
   connect(m_checkbox_use_userstyle, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
+  connect(m_button_advanced_mouse_settings, &QPushButton::clicked, this,
+          &InterfacePane::OpenAdvancedMouseSettings);
 }
 
 void InterfacePane::LoadConfig()
@@ -349,4 +356,12 @@ void InterfacePane::OnCursorVisibleNever()
 void InterfacePane::OnCursorVisibleAlways()
 {
   Settings::Instance().SetCursorVisibility(Config::ShowCursor::Constantly);
+}
+
+void InterfacePane::OpenAdvancedMouseSettings()
+{
+  MouseSettingsWindow* window = new MouseSettingsWindow(this);
+  window->setAttribute(Qt::WA_DeleteOnClose, true);
+  window->setWindowModality(Qt::WindowModality::WindowModal);
+  window->show();
 }

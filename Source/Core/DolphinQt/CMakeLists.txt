@@ -77,6 +77,8 @@ add_executable(dolphin-emu
   Config/Graphics/GraphicsBool.h
   Config/Graphics/GraphicsChoice.cpp
   Config/Graphics/GraphicsChoice.h
+  Config/Graphics/GraphicsDouble.cpp
+  Config/Graphics/GraphicsDouble.h
   Config/Graphics/GraphicsInteger.cpp
   Config/Graphics/GraphicsInteger.h
   Config/Graphics/GraphicsRadio.cpp
@@ -159,6 +161,8 @@ add_executable(dolphin-emu
   Config/Mapping/WiimoteEmuMotionControl.h
   Config/Mapping/WiimoteEmuMotionControlIMU.cpp
   Config/Mapping/WiimoteEmuMotionControlIMU.h
+  Config/MouseSettingsWindow.cpp
+  Config/MouseSettingsWindow.h
   Config/NewPatchDialog.cpp
   Config/NewPatchDialog.h
   Config/PatchesWidget.cpp
@@ -173,6 +177,8 @@ add_executable(dolphin-emu
   Config/ToolTipControls/ToolTipCheckBox.h
   Config/ToolTipControls/ToolTipComboBox.cpp
   Config/ToolTipControls/ToolTipComboBox.h
+  Config/ToolTipControls/ToolTipDoubleSpinBox.cpp
+  Config/ToolTipControls/ToolTipDoubleSpinBox.h
   Config/ToolTipControls/ToolTipRadioButton.cpp
   Config/ToolTipControls/ToolTipRadioButton.h
   Config/ToolTipControls/ToolTipSlider.cpp

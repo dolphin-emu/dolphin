@@ -473,6 +473,16 @@ const Info<bool> MAIN_MOVIE_SHOW_RERECORD{{System::Main, "Movie", "ShowRerecord"
 // Main.Input
 
 const Info<bool> MAIN_INPUT_BACKGROUND_INPUT{{System::Main, "Input", "BackgroundInput"}, false};
+const Info<double> MAIN_MOUSE_CURSOR_SCALE_HORIZONTAL{
+    {System::Main, "Input", "MouseScaleHorizontal"}, 1.0};
+const Info<double> MAIN_MOUSE_CURSOR_SCALE_VERTICAL{{System::Main, "Input", "MouseScaleVertical"},
+                                                    1.0};
+const Info<bool> MAIN_MOUSE_RECENTER_ON_BOOT{{System::Main, "Input", "MouseRecenterOnBoot"}, false};
+const Info<bool> MAIN_MOUSE_STICK_GATE_ENABLED{{System::Main, "Input", "MouseStickGateEnabled"},
+                                               false};
+const Info<int> MAIN_MOUSE_STICK_GATE_RADIUS{{System::Main, "Input", "MouseStickGateRadius"}, 100};
+const Info<double> MAIN_MOUSE_STICK_GATE_SNAPPING_DISTANCE{
+    {System::Main, "Input", "MouseStickGateSnappingDistance"}, 0.0};
 
 // Main.Debug
 

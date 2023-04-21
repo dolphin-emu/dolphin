@@ -72,6 +72,7 @@
     <ClCompile Include="Config\Graphics\GeneralWidget.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsBool.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsChoice.cpp" />
+    <ClCompile Include="Config\Graphics\GraphicsDouble.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsInteger.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsRadio.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsSlider.cpp" />
@@ -113,6 +114,7 @@
     <ClCompile Include="Config\Mapping\WiimoteEmuGeneral.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuMotionControl.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuMotionControlIMU.cpp" />
+    <ClCompile Include="Config\MouseSettingsWindow.cpp" />
     <ClCompile Include="Config\NewPatchDialog.cpp" />
     <ClCompile Include="Config\PatchesWidget.cpp" />
     <ClCompile Include="Config\PropertiesDialog.cpp" />
@@ -120,6 +122,7 @@
     <ClCompile Include="Config\ToolTipControls\BalloonTip.cpp" />
     <ClCompile Include="Config\ToolTipControls\ToolTipCheckBox.cpp" />
     <ClCompile Include="Config\ToolTipControls\ToolTipComboBox.cpp" />
+    <ClCompile Include="Config\ToolTipControls\ToolTipDoubleSpinBox.cpp" />
     <ClCompile Include="Config\ToolTipControls\ToolTipRadioButton.cpp" />
     <ClCompile Include="Config\ToolTipControls\ToolTipSlider.cpp" />
     <ClCompile Include="Config\ToolTipControls\ToolTipSpinBox.cpp" />
@@ -272,6 +275,7 @@
     <QtMoc Include="Config\Graphics\GeneralWidget.h" />
     <QtMoc Include="Config\Graphics\GraphicsBool.h" />
     <QtMoc Include="Config\Graphics\GraphicsChoice.h" />
+    <QtMoc Include="Config\Graphics\GraphicsDouble.h" />
     <QtMoc Include="Config\Graphics\GraphicsInteger.h" />
     <QtMoc Include="Config\Graphics\GraphicsRadio.h" />
     <QtMoc Include="Config\Graphics\GraphicsSlider.h" />
@@ -311,11 +315,13 @@
     <QtMoc Include="Config\Mapping\WiimoteEmuGeneral.h" />
     <QtMoc Include="Config\Mapping\WiimoteEmuMotionControl.h" />
     <QtMoc Include="Config\Mapping\WiimoteEmuMotionControlIMU.h" />
+    <QtMoc Include="Config\MouseSettingsWindow.h" />
     <QtMoc Include="Config\PropertiesDialog.h" />
     <QtMoc Include="Config\SettingsWindow.h" />
     <QtMoc Include="Config\ToolTipControls\BalloonTip.h" />
     <ClInclude Include="Config\ToolTipControls\ToolTipCheckBox.h" />
     <ClInclude Include="Config\ToolTipControls\ToolTipComboBox.h" />
+    <ClInclude Include="Config\ToolTipControls\ToolTipDoubleSpinBox.h" />
     <ClInclude Include="Config\ToolTipControls\ToolTipRadioButton.h" />
     <ClInclude Include="Config\ToolTipControls\ToolTipSlider.h" />
     <ClInclude Include="Config\ToolTipControls\ToolTipSpinBox.h" />
