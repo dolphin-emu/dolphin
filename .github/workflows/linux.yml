@@ -44,12 +44,3 @@ jobs:
       with:
         name: DolphinMPN-Linux
         path: /home/runner/work/Dolphin-MPN-src/Dolphin-MPN-src/build/Binaries/
-    # Zip Artifact
-    - name: Zip Artifact
-      run: 7z a /home/runner/DolphinMPN-linux /home/runner/work/Dolphin-MPN-src/Dolphin-MPN-src/build/Binaries/*
-    # New Release
-    - name: New Release
-      if: ${{ startsWith(github.ref, 'refs/tags/') }}
-      uses: ncipollo/release-action@v1.12.0
-      with:
-        artifacts: /home/runner/DolphinMPN-linux.7z
