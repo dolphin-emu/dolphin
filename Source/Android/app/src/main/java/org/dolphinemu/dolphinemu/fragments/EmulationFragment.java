@@ -4,6 +4,7 @@ package org.dolphinemu.dolphinemu.fragments;
 
 import android.content.Context;
 import android.graphics.Rect;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.SurfaceHolder;
@@ -23,6 +24,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.overlay.InputOverlay;
 import org.dolphinemu.dolphinemu.utils.Log;
+import org.dolphinemu.dolphinemu.utils.VirtualReality;
 
 import java.io.File;
 
@@ -206,6 +208,10 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
   {
     // We purposely don't do anything here.
     // All work is done in surfaceChanged, which we are guaranteed to get even for surface creation.
+    if (VirtualReality.isActive())
+    {
+      NativeLibrary.InitializeVR(NativeLibrary.getEmulationActivity(), Build.MANUFACTURER);
+    }
   }
 
   @Override

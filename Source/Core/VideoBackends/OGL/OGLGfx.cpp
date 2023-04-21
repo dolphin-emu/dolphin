@@ -438,17 +438,17 @@ void OGLGfx::PresentBackbuffer()
   // Swap the back and front buffers, presenting the image.
   if (IsVREnabled())
   {
-    if (m_frame_started)
+    if (m_vr_frame_started)
     {
       PostVRFrameRender();
       FinishVRRender();
-      m_frame_started = false;
+      m_vr_frame_started = false;
     }
 
     if (StartVRRender())
     {
       PreVRFrameRender(0);
-      m_frame_started = true;
+      m_vr_frame_started = true;
     }
   }
   else
@@ -494,7 +494,7 @@ void OGLGfx::CheckForSurfaceChange()
   {
     if (!m_vr_initialized)
     {
-      EnterVR(true);
+      EnterVR(false);
       m_vr_initialized = true;
     }
 

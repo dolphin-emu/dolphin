@@ -110,7 +110,7 @@ private:
   u32 m_shared_draw_framebuffer = 0;
   float m_backbuffer_scale;
 
-  bool m_frame_started;
+  bool m_vr_frame_started;
   bool m_vr_initialized;
 };
 
