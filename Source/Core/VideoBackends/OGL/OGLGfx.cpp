@@ -5,8 +5,8 @@
 
 #include "Common/GL/GLContext.h"
 #include "Common/GL/GLExtensions/GLExtensions.h"
-#include "Common/VR/DolphinVR.h"
 #include "Common/Logging/LogManager.h"
+#include "Common/VR/DolphinVR.h"
 
 #include "Core/Config/GraphicsSettings.h"
 

@@ -13,7 +13,6 @@
 #include <string>
 #include <thread>
 #include <utility>
-#include <Common/VR/DolphinVR.h>
 
 #include "Common/AndroidAnalytics.h"
 #include "Common/Assert.h"
@@ -28,6 +27,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/ScopeGuard.h"
 #include "Common/Version.h"
+#include "Common/VR/DolphinVR.h"
 #include "Common/WindowSystemInfo.h"
 
 #include "Core/Boot/Boot.h"
@@ -512,7 +512,10 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Initialize(J
   UICommon::InitControllers(WindowSystemInfo(WindowSystemType::Android, nullptr, nullptr, nullptr));
 }
 
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_InitializeVR(JNIEnv* env, jclass, jobject activity, jstring systemname)
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_InitializeVR(JNIEnv* env,
+                                                                                 jclass,
+                                                                                 jobject activity,
+                                                                                 jstring systemname)
 {
   if (IsVREnabled())
   {
