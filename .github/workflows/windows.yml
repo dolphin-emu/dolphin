@@ -46,6 +46,6 @@ jobs:
       run: 7z a D:/DolphinMPN-win32 D:/a/dolphin-mpn-src/dolphin-mpn-src/Binary/x64/*
     # New Release
     - name: New Release
-      uses: softprops/action-gh-release@v1
+      uses: ncipollo/release-action@v1.12.0
       with:
-        files: D:/DolphinMPN-win32.7z
+        artifacts: D:/DolphinMPN-win32.7z
