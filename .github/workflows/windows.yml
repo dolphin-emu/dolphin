@@ -39,6 +39,3 @@ jobs:
       with:
         name: DolphinMPN-win32
         path: D:\a\Dolphin-MPN-src\Dolphin-MPN-src\Binary\x64
-    # Zip Artifact
-    - name: Zip Artifact
-      run: 7z a D:/DolphinMPN-win32 D:/a/dolphin-mpn-src/dolphin-mpn-src/Binary/x64/*
