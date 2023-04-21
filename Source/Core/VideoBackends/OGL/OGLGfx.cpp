@@ -494,7 +494,7 @@ void OGLGfx::CheckForSurfaceChange()
   {
     if (!m_vr_initialized)
     {
-      EnterVR(false);
+      EnterVR(true);
       m_vr_initialized = true;
     }
 
