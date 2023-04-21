@@ -23,7 +23,7 @@ bool mpn_update_discord()
     {
       DiscordRichPresence discord_presence = {};
       snprintf(Details, sizeof(Details), "Players: %/4 Turn: %d/%d",
-               (discord_presence.partySize,
+               discord_presence.partySize,
                mpn_read_value(CurrentState.Addresses->CurrentTurn, 1),
                mpn_read_value(CurrentState.Addresses->TotalTurns, 1));
 
