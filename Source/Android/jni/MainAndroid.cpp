@@ -512,12 +512,13 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Initialize(J
   UICommon::InitControllers(WindowSystemInfo(WindowSystemType::Android, nullptr, nullptr, nullptr));
 }
 
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_InitializeVR(JNIEnv* env, jclass, jobject acitivity, jstring systemname)
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_InitializeVR(JNIEnv* env, jclass, jobject activity, jstring systemname)
 {
   if (IsVREnabled())
   {
+    jobject obj = env->NewGlobalRef(activity);
     const char* system = GetJString(env, systemname).c_str();
-    InitVROnAndroid(IDCache::GetJavaVM(), acitivity, system, 1, "Dolphin");
+    InitVROnAndroid(IDCache::GetJavaVM(), obj, system, 1, "Dolphin");
   }
 }
 

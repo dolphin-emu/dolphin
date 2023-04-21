@@ -18,28 +18,6 @@ public class VirtualReality
 {
   private static final String VR_PACKAGE = "org.dolphinemu.dolphinemu.vr";
 
-  static
-  {
-    if (isActive())
-    {
-      String manufacturer = Build.MANUFACTURER.toLowerCase(Locale.ROOT);
-      // rename oculus to meta as this will probably happen in the future anyway
-      if (manufacturer.contains("oculus"))
-        manufacturer = "meta";
-
-      //Load manufacturer specific loader
-      try
-      {
-        System.loadLibrary("openxr_" + manufacturer);
-      }
-      catch (UnsatisfiedLinkError e)
-      {
-        Log.error("Unsupported VR device: " + manufacturer);
-        System.exit(0);
-      }
-    }
-  }
-
   public static boolean isActive()
   {
     return BuildConfig.BUILD_TYPE.equals("vr");
@@ -61,6 +39,28 @@ public class VirtualReality
   public static boolean isLegacyPath(String filePath)
   {
     return filePath.startsWith("/");
+  }
+
+  public static void linkLoader()
+  {
+    if (isActive())
+    {
+      String manufacturer = Build.MANUFACTURER.toLowerCase(Locale.ROOT);
+      // rename oculus to meta as this will probably happen in the future anyway
+      if (manufacturer.contains("oculus"))
+        manufacturer = "meta";
+
+      //Load manufacturer specific loader
+      try
+      {
+        System.loadLibrary("openxr_" + manufacturer);
+      }
+      catch (UnsatisfiedLinkError e)
+      {
+        Log.error("Unsupported VR device: " + manufacturer);
+        System.exit(0);
+      }
+    }
   }
 
   public static void openIntent(Context context, String[] filePaths)
