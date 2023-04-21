@@ -88,7 +88,7 @@ bool StartVRRender()
 
   if (VR_InitFrame(VR_GetEngine()))
   {
-    VR_SetConfigFloat(VR_CONFIG_CANVAS_DISTANCE, 12.0f);
+    VR_SetConfigFloat(VR_CONFIG_CANVAS_DISTANCE, 6.0f);
     VR_SetConfigFloat(VR_CONFIG_CANVAS_ASPECT, 1.0f);
     VR_SetConfig(VR_CONFIG_MODE, VR_MODE_MONO_SCREEN);
     return true;
