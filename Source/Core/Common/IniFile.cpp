@@ -15,6 +15,8 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
+namespace Common
+{
 void IniFile::ParseLine(std::string_view line, std::string* keyOut, std::string* valueOut)
 {
   if (line.empty() || line.front() == '#')
@@ -369,3 +371,4 @@ bool IniFile::Save(const std::string& filename)
     return 0;
    }
  */
+}  // namespace Common

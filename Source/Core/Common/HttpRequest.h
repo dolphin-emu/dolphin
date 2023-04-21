@@ -25,8 +25,7 @@ public:
   };
 
   // Return false to abort the request
-  using ProgressCallback =
-      std::function<bool(double dlnow, double dltotal, double ulnow, double ultotal)>;
+  using ProgressCallback = std::function<bool(s64 dltotal, s64 dlnow, s64 ultotal, s64 ulnow)>;
 
   explicit HttpRequest(std::chrono::milliseconds timeout_ms = std::chrono::milliseconds{3000},
                        ProgressCallback callback = nullptr);

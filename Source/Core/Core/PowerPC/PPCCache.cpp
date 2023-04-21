@@ -392,19 +392,21 @@ void Cache::DoState(PointerWrap& p)
 u32 InstructionCache::ReadInstruction(u32 addr)
 {
   auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
+  auto& ppc_state = system.GetPPCState();
 
-  if (!HID0(PowerPC::ppcState).ICE || m_disable_icache)  // instruction cache is disabled
-    return memory.Read_U32(addr);
+  if (!HID0(ppc_state).ICE || m_disable_icache)  // instruction cache is disabled
+    return system.GetMemory().Read_U32(addr);
 
   u32 value;
-  Read(addr, &value, sizeof(value), HID0(PowerPC::ppcState).ILOCK);
+  Read(addr, &value, sizeof(value), HID0(ppc_state).ILOCK);
   return Common::swap32(value);
 }
 
 void InstructionCache::Invalidate(u32 addr)
 {
-  if (!HID0(PowerPC::ppcState).ICE || m_disable_icache)
+  auto& system = Core::System::GetInstance();
+  auto& ppc_state = system.GetPPCState();
+  if (!HID0(ppc_state).ICE || m_disable_icache)
     return;
 
   // Invalidates the whole set
@@ -424,7 +426,7 @@ void InstructionCache::Invalidate(u32 addr)
   valid[set] = 0;
   modified[set] = 0;
 
-  Core::System::GetInstance().GetJitInterface().InvalidateICacheLine(addr);
+  system.GetJitInterface().InvalidateICacheLine(addr);
 }
 
 void InstructionCache::RefreshConfig()

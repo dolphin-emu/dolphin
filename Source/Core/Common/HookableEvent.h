@@ -69,7 +69,7 @@ private:
 
   struct Storage
   {
-    std::mutex m_mutex;
+    std::recursive_mutex m_mutex;
     std::vector<HookImpl*> m_listeners;
   };
 

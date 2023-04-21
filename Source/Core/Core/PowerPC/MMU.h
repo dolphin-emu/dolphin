@@ -23,6 +23,7 @@ class MemoryManager;
 
 namespace PowerPC
 {
+class PowerPCManager;
 struct PowerPCState;
 
 enum class RequestedAddressSpace
@@ -108,7 +109,7 @@ enum class XCheckTLBFlag
 class MMU
 {
 public:
-  MMU(Core::System& system, Memory::MemoryManager& memory, PowerPC::PowerPCState& ppc_state);
+  MMU(Core::System& system, Memory::MemoryManager& memory, PowerPC::PowerPCManager& power_pc);
   MMU(const MMU& other) = delete;
   MMU(MMU&& other) = delete;
   MMU& operator=(const MMU& other) = delete;
@@ -318,6 +319,7 @@ private:
 
   Core::System& m_system;
   Memory::MemoryManager& m_memory;
+  PowerPC::PowerPCManager& m_power_pc;
   PowerPC::PowerPCState& m_ppc_state;
 
   BatTable m_ibat_table;

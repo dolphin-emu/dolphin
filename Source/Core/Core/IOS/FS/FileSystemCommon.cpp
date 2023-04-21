@@ -3,6 +3,8 @@
 
 #include "Core/IOS/FS/FileSystem.h"
 
+#include <algorithm>
+
 #include "Common/Assert.h"
 #include "Common/FileUtil.h"
 #include "Core/IOS/Device.h"
@@ -19,6 +21,12 @@ bool IsValidNonRootPath(std::string_view path)
 {
   return path.length() > 1 && path.length() <= MaxPathLength && path[0] == '/' &&
          path.back() != '/';
+}
+
+bool IsValidFilename(std::string_view filename)
+{
+  return filename.length() <= MaxFilenameLength &&
+         !std::any_of(filename.begin(), filename.end(), [](char c) { return c == '/'; });
 }
 
 SplitPathResult SplitPathAndBasename(std::string_view path)

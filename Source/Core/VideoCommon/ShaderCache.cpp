@@ -228,11 +228,11 @@ static void UnserializePipelineUid(const SerializedUidType& uid, UidType& real_u
 template <ShaderStage stage, typename K, typename T>
 void ShaderCache::LoadShaderCache(T& cache, APIType api_type, const char* type, bool include_gameid)
 {
-  class CacheReader : public LinearDiskCacheReader<K, u8>
+  class CacheReader : public Common::LinearDiskCacheReader<K, u8>
   {
   public:
     CacheReader(T& cache_) : cache(cache_) {}
-    void Read(const K& key, const u8* value, u32 value_size)
+    void Read(const K& key, const u8* value, u32 value_size) override
     {
       auto shader = g_gfx->CreateShaderFromBinary(stage, value, value_size);
       if (shader)
@@ -276,15 +276,15 @@ void ShaderCache::ClearShaderCache(T& cache)
 }
 
 template <typename KeyType, typename DiskKeyType, typename T>
-void ShaderCache::LoadPipelineCache(T& cache, LinearDiskCache<DiskKeyType, u8>& disk_cache,
+void ShaderCache::LoadPipelineCache(T& cache, Common::LinearDiskCache<DiskKeyType, u8>& disk_cache,
                                     APIType api_type, const char* type, bool include_gameid)
 {
-  class CacheReader : public LinearDiskCacheReader<DiskKeyType, u8>
+  class CacheReader : public Common::LinearDiskCacheReader<DiskKeyType, u8>
   {
   public:
     CacheReader(ShaderCache* this_ptr_, T& cache_) : this_ptr(this_ptr_), cache(cache_) {}
     bool AnyFailed() const { return failed; }
-    void Read(const DiskKeyType& key, const u8* value, u32 value_size)
+    void Read(const DiskKeyType& key, const u8* value, u32 value_size) override
     {
       KeyType real_uid;
       UnserializePipelineUid(key, real_uid);
@@ -608,14 +608,10 @@ AbstractPipelineConfig ShaderCache::GetGXPipelineConfig(
 static GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
 {
   GXPipelineUid out;
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wclass-memaccess"
-#endif
-  memcpy(&out, &in, sizeof(out));  // copy padding
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
+  // TODO: static_assert(std::is_trivially_copyable_v<GXPipelineUid>);
+  // GXPipelineUid is not trivially copyable because RasterizationState and BlendingState aren't
+  // either, but we can pretend it is for now. This will be improved after PR #10848 is finished.
+  memcpy(static_cast<void*>(&out), static_cast<const void*>(&in), sizeof(out));  // copy padding
   pixel_shader_uid_data* ps = out.ps_uid.GetUidData();
   BlendingState& blend = out.blending_state;
 
@@ -785,14 +781,10 @@ ShaderCache::GetGXPipelineConfig(const GXPipelineUid& config_in)
 static GXUberPipelineUid ApplyDriverBugs(const GXUberPipelineUid& in)
 {
   GXUberPipelineUid out;
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wclass-memaccess"
-#endif
-  memcpy(&out, &in, sizeof(out));  // Copy padding
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
+  // TODO: static_assert(std::is_trivially_copyable_v<GXUberPipelineUid>);
+  // GXUberPipelineUid is not trivially copyable because RasterizationState and BlendingState aren't
+  // either, but we can pretend it is for now. This will be improved after PR #10848 is finished.
+  memcpy(static_cast<void*>(&out), static_cast<const void*>(&in), sizeof(out));  // Copy padding
   if (g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader)
     out.vertex_format = nullptr;
 

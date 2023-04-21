@@ -593,7 +593,7 @@ void Jit64::WriteRfiExitDestInRSCRATCH()
   MOV(32, PPCSTATE(npc), R(RSCRATCH));
   Cleanup();
   ABI_PushRegistersAndAdjustStack({}, 0);
-  ABI_CallFunction(PowerPC::CheckExceptions);
+  ABI_CallFunctionP(PowerPC::CheckExceptionsFromJIT, &m_system.GetPowerPC());
   ABI_PopRegistersAndAdjustStack({}, 0);
   SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
   JMP(asm_routines.dispatcher, true);
@@ -614,7 +614,7 @@ void Jit64::WriteExceptionExit()
   MOV(32, R(RSCRATCH), PPCSTATE(pc));
   MOV(32, PPCSTATE(npc), R(RSCRATCH));
   ABI_PushRegistersAndAdjustStack({}, 0);
-  ABI_CallFunction(PowerPC::CheckExceptions);
+  ABI_CallFunctionP(PowerPC::CheckExceptionsFromJIT, &m_system.GetPowerPC());
   ABI_PopRegistersAndAdjustStack({}, 0);
   SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
   JMP(asm_routines.dispatcher, true);
@@ -626,7 +626,7 @@ void Jit64::WriteExternalExceptionExit()
   MOV(32, R(RSCRATCH), PPCSTATE(pc));
   MOV(32, PPCSTATE(npc), R(RSCRATCH));
   ABI_PushRegistersAndAdjustStack({}, 0);
-  ABI_CallFunction(PowerPC::CheckExternalExceptions);
+  ABI_CallFunctionP(PowerPC::CheckExternalExceptionsFromJIT, &m_system.GetPowerPC());
   ABI_PopRegistersAndAdjustStack({}, 0);
   SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
   JMP(asm_routines.dispatcher, true);
@@ -740,7 +740,7 @@ void Jit64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
     // Address of instruction could not be translated
     m_ppc_state.npc = nextPC;
     m_ppc_state.Exceptions |= EXCEPTION_ISI;
-    PowerPC::CheckExceptions();
+    m_system.GetPowerPC().CheckExceptions();
     WARN_LOG_FMT(POWERPC, "ISI exception at {:#010x}", nextPC);
     return;
   }
@@ -1006,14 +1006,16 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       }
 
       auto& cpu = m_system.GetCPU();
-      if (m_enable_debugging && breakpoints.IsAddressBreakPoint(op.address) && !cpu.IsStepping())
+      auto& power_pc = m_system.GetPowerPC();
+      if (m_enable_debugging && power_pc.GetBreakPoints().IsAddressBreakPoint(op.address) &&
+          !cpu.IsStepping())
       {
         gpr.Flush();
         fpr.Flush();
 
         MOV(32, PPCSTATE(pc), Imm32(op.address));
         ABI_PushRegistersAndAdjustStack({}, 0);
-        ABI_CallFunction(PowerPC::CheckBreakPoints);
+        ABI_CallFunctionP(PowerPC::CheckBreakPointsFromJIT, &power_pc);
         ABI_PopRegistersAndAdjustStack({}, 0);
         MOV(64, R(RSCRATCH), ImmPtr(cpu.GetStatePtr()));
         TEST(32, MatR(RSCRATCH), Imm32(0xFFFFFFFF));

@@ -73,6 +73,7 @@ class PixelEngineManager;
 namespace PowerPC
 {
 class MMU;
+class PowerPCManager;
 struct PowerPCState;
 }  // namespace PowerPC
 namespace ProcessorInterface
@@ -142,6 +143,7 @@ public:
   PowerPC::MMU& GetMMU() const;
   PixelEngine::PixelEngineManager& GetPixelEngine() const;
   PixelShaderManager& GetPixelShaderManager() const;
+  PowerPC::PowerPCManager& GetPowerPC() const;
   PowerPC::PowerPCState& GetPPCState() const;
   ProcessorInterface::ProcessorInterfaceManager& GetProcessorInterface() const;
   SerialInterface::SerialInterfaceManager& GetSerialInterface() const;

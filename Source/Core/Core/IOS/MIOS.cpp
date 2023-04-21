@@ -43,7 +43,7 @@ static void ReinitHardware()
   // (and not by MIOS), causing games that use DTK to break.  Perhaps MIOS doesn't actually
   // reset DI fully, in such a way that the DTK config isn't cleared?
   // system.GetDVDInterface().ResetDrive(true);
-  PowerPC::Reset();
+  system.GetPowerPC().Reset();
   Wiimote::ResetAllWiimotes();
   // Note: this is specific to Dolphin and is required because we initialised it in Wii mode.
   auto& dsp = system.GetDSP();
@@ -83,18 +83,18 @@ bool Load()
     Host_NotifyMapLoaded();
   }
 
-  auto& ppc_state = system.GetPPCState();
-  const PowerPC::CoreMode core_mode = PowerPC::GetMode();
-  PowerPC::SetMode(PowerPC::CoreMode::Interpreter);
-  ppc_state.msr.Hex = 0;
-  ppc_state.pc = 0x3400;
+  auto& power_pc = system.GetPowerPC();
+  const PowerPC::CoreMode core_mode = power_pc.GetMode();
+  power_pc.SetMode(PowerPC::CoreMode::Interpreter);
+  power_pc.GetPPCState().msr.Hex = 0;
+  power_pc.GetPPCState().pc = 0x3400;
   NOTICE_LOG_FMT(IOS, "Loaded MIOS and bootstrapped PPC.");
 
   // IOS writes 0 to 0x30f8 before bootstrapping the PPC. Once started, the IPL eventually writes
   // 0xdeadbeef there, then waits for it to be cleared by IOS before continuing.
   while (memory.Read_U32(ADDRESS_INIT_SEMAPHORE) != 0xdeadbeef)
-    PowerPC::SingleStep();
-  PowerPC::SetMode(core_mode);
+    power_pc.SingleStep();
+  power_pc.SetMode(core_mode);
 
   memory.Write_U32(0x00000000, ADDRESS_INIT_SEMAPHORE);
   NOTICE_LOG_FMT(IOS, "IPL ready.");

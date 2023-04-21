@@ -114,7 +114,7 @@ bool AnalyzeFunction(const Core::CPUThreadGuard& guard, u32 startAddr, Common::S
     }
     const PowerPC::TryReadInstResult read_result = mmu.TryReadInstruction(addr);
     const UGeckoInstruction instr = read_result.hex;
-    if (read_result.valid && PPCTables::IsValidInstruction(instr))
+    if (read_result.valid && PPCTables::IsValidInstruction(instr, addr))
     {
       // BLR or RFI
       // 4e800021 is blrl, not the end of a function
@@ -209,10 +209,11 @@ bool PPCAnalyzer::CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b) const
   u64 b_flags = b_info->flags;
 
   // can't reorder around breakpoints
-  if (m_is_debugging_enabled && (PowerPC::breakpoints.IsAddressBreakPoint(a.address) ||
-                                 PowerPC::breakpoints.IsAddressBreakPoint(b.address)))
+  if (m_is_debugging_enabled)
   {
-    return false;
+    auto& breakpoints = Core::System::GetInstance().GetPowerPC().GetBreakPoints();
+    if (breakpoints.IsAddressBreakPoint(a.address) || breakpoints.IsAddressBreakPoint(b.address))
+      return false;
   }
   // Any instruction which can raise an interrupt is *not* a possible swap candidate:
   // see [1] for an example of a crash caused by this error.
@@ -274,7 +275,7 @@ static void FindFunctionsFromBranches(const Core::CPUThreadGuard& guard, u32 sta
     const PowerPC::TryReadInstResult read_result = mmu.TryReadInstruction(addr);
     const UGeckoInstruction instr = read_result.hex;
 
-    if (read_result.valid && PPCTables::IsValidInstruction(instr))
+    if (read_result.valid && PPCTables::IsValidInstruction(instr, addr))
     {
       switch (instr.OPCD)
       {
@@ -323,7 +324,7 @@ static void FindFunctionsFromHandlers(const Core::CPUThreadGuard& guard, PPCSymb
   for (const auto& entry : handlers)
   {
     const PowerPC::TryReadInstResult read_result = mmu.TryReadInstruction(entry.first);
-    if (read_result.valid && PPCTables::IsValidInstruction(read_result.hex))
+    if (read_result.valid && PPCTables::IsValidInstruction(read_result.hex, entry.first))
     {
       // Check if this function is already mapped
       Common::Symbol* f = func_db->AddFunction(guard, entry.first);
@@ -357,7 +358,7 @@ static void FindFunctionsAfterReturnInstruction(const Core::CPUThreadGuard& guar
         location += 4;
         read_result = mmu.TryReadInstruction(location);
       }
-      if (read_result.valid && PPCTables::IsValidInstruction(read_result.hex))
+      if (read_result.valid && PPCTables::IsValidInstruction(read_result.hex, location))
       {
         // check if this function is already mapped
         Common::Symbol* f = func_db->AddFunction(guard, location);
@@ -778,7 +779,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
     num_inst++;
 
     const UGeckoInstruction inst = result.hex;
-    const GekkoOPInfo* opinfo = PPCTables::GetOpInfo(inst);
+    const GekkoOPInfo* opinfo = PPCTables::GetOpInfo(inst, address);
     code[i] = {};
     code[i].opinfo = opinfo;
     code[i].address = address;

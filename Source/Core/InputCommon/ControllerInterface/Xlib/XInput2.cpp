@@ -3,10 +3,8 @@
 
 #include "InputCommon/ControllerInterface/Xlib/XInput2.h"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wregister"
 #include <X11/XKBlib.h>
-#pragma GCC diagnostic pop
+
 #include <cmath>
 #include <cstdlib>
 #include <cstring>

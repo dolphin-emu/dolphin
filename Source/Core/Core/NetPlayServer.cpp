@@ -20,7 +20,7 @@
 #include <fmt/format.h>
 
 #include "Common/CommonPaths.h"
-#include "Common/ENetUtil.h"
+#include "Common/ENet.h"
 #include "Common/FileUtil.h"
 #include "Common/HttpRequest.h"
 #include "Common/Logging/Log.h"
@@ -111,7 +111,7 @@ NetPlayServer::~NetPlayServer()
   }
 
 #ifdef USE_UPNP
-  UPnP::StopPortmapping();
+  Common::UPnP::StopPortmapping();
 #endif
 }
 
@@ -153,7 +153,7 @@ NetPlayServer::NetPlayServer(const u16 port, const bool forward_port, NetPlayUI*
     if (m_server != nullptr)
     {
       m_server->mtu = std::min(m_server->mtu, NetPlay::MAX_ENET_MTU);
-      m_server->intercept = ENetUtil::InterceptCallback;
+      m_server->intercept = Common::ENet::InterceptCallback;
     }
 
     SetupIndex();
@@ -168,7 +168,7 @@ NetPlayServer::NetPlayServer(const u16 port, const bool forward_port, NetPlayUI*
 
 #ifdef USE_UPNP
     if (forward_port)
-      UPnP::TryPortmapping(port);
+      Common::UPnP::TryPortmapping(port);
 #endif
   }
 }
@@ -701,7 +701,7 @@ void NetPlayServer::SendAsync(sf::Packet&& packet, const PlayerId pid, const u8 
     std::lock_guard lkq(m_crit.async_queue_write);
     m_async_queue.Push(AsyncQueueEntry{std::move(packet), pid, TargetMode::Only, channel_id});
   }
-  ENetUtil::WakeupThread(m_server);
+  Common::ENet::WakeupThread(m_server);
 }
 
 void NetPlayServer::SendAsyncToClients(sf::Packet&& packet, const PlayerId skip_pid,
@@ -712,7 +712,7 @@ void NetPlayServer::SendAsyncToClients(sf::Packet&& packet, const PlayerId skip_
     m_async_queue.Push(
         AsyncQueueEntry{std::move(packet), skip_pid, TargetMode::AllExcept, channel_id});
   }
-  ENetUtil::WakeupThread(m_server);
+  Common::ENet::WakeupThread(m_server);
 }
 
 void NetPlayServer::SendChunked(sf::Packet&& packet, const PlayerId pid, const std::string& title)
@@ -2027,10 +2027,10 @@ bool NetPlayServer::SyncCodes()
   // Find all INI files
   const auto game_id = game->GetGameID();
   const auto revision = game->GetRevision();
-  IniFile globalIni;
+  Common::IniFile globalIni;
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(game_id, revision))
     globalIni.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
-  IniFile localIni;
+  Common::IniFile localIni;
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(game_id, revision))
     localIni.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
 
@@ -2183,7 +2183,7 @@ void NetPlayServer::SendToClients(const sf::Packet& packet, const PlayerId skip_
 
 void NetPlayServer::Send(ENetPeer* socket, const sf::Packet& packet, const u8 channel_id)
 {
-  ENetUtil::SendPacket(socket, packet, channel_id);
+  Common::ENet::SendPacket(socket, packet, channel_id);
 }
 
 void NetPlayServer::KickPlayer(PlayerId player)
@@ -2266,8 +2266,7 @@ u16 NetPlayServer::GetPort() const
 std::unordered_set<std::string> NetPlayServer::GetInterfaceSet() const
 {
   std::unordered_set<std::string> result;
-  auto lst = GetInterfaceListInternal();
-  for (auto list_entry : lst)
+  for (const auto& list_entry : GetInterfaceListInternal())
     result.emplace(list_entry.first);
   return result;
 }

@@ -1223,7 +1223,7 @@ void Jit64::MultiplyImmediate(u32 imm, int a, int d, bool overflow)
     // power of 2; just a shift
     if (MathUtil::IsPow2(imm))
     {
-      u32 shift = IntLog2(imm);
+      u32 shift = MathUtil::IntLog2(imm);
       // use LEA if it saves an op
       if (d != a && shift <= 3 && shift >= 1 && Ra.IsSimpleReg())
       {
@@ -1731,7 +1731,7 @@ void Jit64::divwx(UGeckoInstruction inst)
       TEST(32, R(dividend), R(dividend));
       LEA(32, sum, MDisp(dividend, abs_val - 1));
       CMOVcc(32, Rd, R(src), cond);
-      SAR(32, Rd, Imm8(IntLog2(abs_val)));
+      SAR(32, Rd, Imm8(MathUtil::IntLog2(abs_val)));
 
       if (divisor < 0)
         NEG(32, Rd);

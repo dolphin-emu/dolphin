@@ -214,7 +214,7 @@ bool CachedInterpreter::CheckFPU(CachedInterpreter& cached_interpreter, u32 data
   if (!ppc_state.msr.FP)
   {
     ppc_state.Exceptions |= EXCEPTION_FPU_UNAVAILABLE;
-    PowerPC::CheckExceptions();
+    cached_interpreter.m_system.GetPowerPC().CheckExceptions();
     ppc_state.downcount -= data;
     return true;
   }
@@ -226,7 +226,7 @@ bool CachedInterpreter::CheckDSI(CachedInterpreter& cached_interpreter, u32 data
   auto& ppc_state = cached_interpreter.m_ppc_state;
   if (ppc_state.Exceptions & EXCEPTION_DSI)
   {
-    PowerPC::CheckExceptions();
+    cached_interpreter.m_system.GetPowerPC().CheckExceptions();
     ppc_state.downcount -= data;
     return true;
   }
@@ -238,7 +238,7 @@ bool CachedInterpreter::CheckProgramException(CachedInterpreter& cached_interpre
   auto& ppc_state = cached_interpreter.m_ppc_state;
   if (ppc_state.Exceptions & EXCEPTION_PROGRAM)
   {
-    PowerPC::CheckExceptions();
+    cached_interpreter.m_system.GetPowerPC().CheckExceptions();
     ppc_state.downcount -= data;
     return true;
   }
@@ -247,7 +247,7 @@ bool CachedInterpreter::CheckProgramException(CachedInterpreter& cached_interpre
 
 bool CachedInterpreter::CheckBreakpoint(CachedInterpreter& cached_interpreter, u32 data)
 {
-  PowerPC::CheckBreakPoints();
+  cached_interpreter.m_system.GetPowerPC().CheckBreakPoints();
   if (cached_interpreter.m_system.GetCPU().GetState() != CPU::State::Running)
   {
     cached_interpreter.m_ppc_state.downcount -= data;
@@ -295,7 +295,7 @@ void CachedInterpreter::Jit(u32 address)
     // Address of instruction could not be translated
     m_ppc_state.npc = nextPC;
     m_ppc_state.Exceptions |= EXCEPTION_ISI;
-    PowerPC::CheckExceptions();
+    m_system.GetPowerPC().CheckExceptions();
     WARN_LOG_FMT(POWERPC, "ISI exception at {:#010x}", nextPC);
     return;
   }
@@ -329,7 +329,8 @@ void CachedInterpreter::Jit(u32 address)
     if (!op.skip)
     {
       const bool breakpoint =
-          m_enable_debugging && PowerPC::breakpoints.IsAddressBreakPoint(op.address);
+          m_enable_debugging &&
+          m_system.GetPowerPC().GetBreakPoints().IsAddressBreakPoint(op.address);
       const bool check_fpu = (op.opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound;
       const bool endblock = (op.opinfo->flags & FL_ENDBLOCK) != 0;
       const bool memcheck = (op.opinfo->flags & FL_LOADSTORE) && jo.memcheck;

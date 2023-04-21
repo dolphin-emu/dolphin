@@ -169,18 +169,17 @@ void AddCode(ARCode code)
   }
 }
 
-void LoadAndApplyCodes(const IniFile& global_ini, const IniFile& local_ini)
+void LoadAndApplyCodes(const Common::IniFile& global_ini, const Common::IniFile& local_ini)
 {
   ApplyCodes(LoadCodes(global_ini, local_ini));
 }
 
 // Parses the Action Replay section of a game ini file.
-std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_ini)
+std::vector<ARCode> LoadCodes(const Common::IniFile& global_ini, const Common::IniFile& local_ini)
 {
   std::vector<ARCode> codes;
 
-  const IniFile* inis[2] = {&global_ini, &local_ini};
-  for (const IniFile* ini : inis)
+  for (const auto* ini : {&global_ini, &local_ini})
   {
     std::vector<std::string> lines;
     std::vector<std::string> encrypted_lines;
@@ -250,7 +249,7 @@ std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_in
   return codes;
 }
 
-void SaveCodes(IniFile* local_ini, std::span<const ARCode> codes)
+void SaveCodes(Common::IniFile* local_ini, std::span<const ARCode> codes)
 {
   std::vector<std::string> lines;
   std::vector<std::string> enabled_lines;

@@ -198,7 +198,7 @@ void Jit64::UpdateFPExceptionSummary(X64Reg fpscr, X64Reg tmp1, X64Reg tmp2)
   // fpscr.VX = (fpscr & FPSCR_VX_ANY) != 0
   TEST(32, R(fpscr), Imm32(FPSCR_VX_ANY));
   SETcc(CC_NZ, R(tmp1));
-  SHL(32, R(tmp1), Imm8(IntLog2(FPSCR_VX)));
+  SHL(32, R(tmp1), Imm8(MathUtil::IntLog2(FPSCR_VX)));
   AND(32, R(fpscr), Imm32(~(FPSCR_VX | FPSCR_FEX)));
   OR(32, R(fpscr), R(tmp1));
 
@@ -212,7 +212,7 @@ void Jit64::UpdateFPExceptionSummary(X64Reg fpscr, X64Reg tmp1, X64Reg tmp2)
   // the TEST, and we can't use XOR right after the TEST since that would overwrite flags. However,
   // there is no false dependency, since SETcc depends on TEST's flags and TEST depends on tmp1.
   SETcc(CC_NZ, R(tmp1));
-  SHL(32, R(tmp1), Imm8(IntLog2(FPSCR_FEX)));
+  SHL(32, R(tmp1), Imm8(MathUtil::IntLog2(FPSCR_FEX)));
   OR(32, R(fpscr), R(tmp1));
 }
 

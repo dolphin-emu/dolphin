@@ -13,6 +13,8 @@
 #define strerror_r(err, buf, len) strerror_s(buf, len, err)
 #endif
 
+namespace Common
+{
 constexpr size_t BUFFER_SIZE = 256;
 
 // Wrapper function to get last strerror(errno) string.
@@ -73,3 +75,4 @@ std::optional<std::wstring> GetModuleName(void* hInstance)
   return name;
 }
 #endif
+}  // namespace Common

@@ -58,7 +58,7 @@ void LogToFile(const char* fmt, ...)
   va_end(args);
 }
 
-bool ProgressCallback(double total, double now, double, double)
+bool ProgressCallback(s64 total, s64 now, s64, s64)
 {
   UI::SetCurrentProgress(static_cast<int>(now), static_cast<int>(total));
   return true;
@@ -373,7 +373,7 @@ bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
                  const std::string& install_base_path, const std::string& temp_path)
 {
 #ifdef _WIN32
-  const auto self_path = std::filesystem::path(GetModuleName(nullptr).value());
+  const auto self_path = std::filesystem::path(Common::GetModuleName(nullptr).value());
   const auto self_filename = self_path.filename();
 #endif
 

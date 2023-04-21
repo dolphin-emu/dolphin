@@ -7,7 +7,7 @@
 
 #include <QString>
 
-#include "DolphinQt/Config/Graphics/BalloonTip.h"
+#include "DolphinQt/Config/ToolTipControls/BalloonTip.h"
 
 constexpr int TOOLTIP_DELAY = 300;
 

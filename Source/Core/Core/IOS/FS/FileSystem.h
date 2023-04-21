@@ -134,10 +134,13 @@ struct FileStatus
 constexpr size_t MaxPathDepth = 8;
 /// The maximum number of characters a path can have.
 constexpr size_t MaxPathLength = 64;
+/// The maximum number of characters a filename can have.
+constexpr size_t MaxFilenameLength = 12;
 
 /// Returns whether a Wii path is valid.
 bool IsValidPath(std::string_view path);
 bool IsValidNonRootPath(std::string_view path);
+bool IsValidFilename(std::string_view filename);
 
 struct SplitPathResult
 {

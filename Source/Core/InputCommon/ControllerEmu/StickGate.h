@@ -117,8 +117,8 @@ protected:
   virtual Control* GetModifierInput() const;
 
 private:
-  void LoadConfig(IniFile::Section*, const std::string&, const std::string&) override;
-  void SaveConfig(IniFile::Section*, const std::string&, const std::string&) override;
+  void LoadConfig(Common::IniFile::Section*, const std::string&, const std::string&) override;
+  void SaveConfig(Common::IniFile::Section*, const std::string&, const std::string&) override;
 
   CalibrationData m_calibration;
   SettingValue<double> m_deadzone_setting;

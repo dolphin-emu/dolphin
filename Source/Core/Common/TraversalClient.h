@@ -11,6 +11,7 @@
 #include <enet/enet.h>
 
 #include "Common/CommonTypes.h"
+#include "Common/ENet.h"
 #include "Common/Thread.h"
 #include "Common/TraversalProto.h"
 
@@ -91,7 +92,7 @@ private:
 };
 extern std::unique_ptr<TraversalClient> g_TraversalClient;
 // the NetHost connected to the TraversalClient.
-extern std::unique_ptr<ENetHost> g_MainNetHost;
+extern Common::ENet::ENetHostPtr g_MainNetHost;
 // Create g_TraversalClient and g_MainNetHost if necessary.
 bool EnsureTraversalClient(const std::string& server, u16 server_port, u16 listen_port = 0);
 void ReleaseTraversalClient();

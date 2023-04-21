@@ -78,7 +78,7 @@ void ProfileCycler::UpdateToProfile(const std::string& profile_filename,
   std::string base;
   SplitPath(profile_filename, nullptr, &base, nullptr);
 
-  IniFile ini_file;
+  Common::IniFile ini_file;
   if (ini_file.Load(profile_filename))
   {
     Core::DisplayMessage("Loading input profile '" + base + "' for device '" +
@@ -180,8 +180,8 @@ void ProfileCycler::CycleProfileForGame(CycleDirection cycle_direction,
 
 std::string ProfileCycler::GetWiimoteInputProfilesForGame(int controller_index)
 {
-  IniFile game_ini = SConfig::GetInstance().LoadGameIni();
-  const IniFile::Section* const control_section = game_ini.GetOrCreateSection("Controls");
+  Common::IniFile game_ini = SConfig::GetInstance().LoadGameIni();
+  const auto* const control_section = game_ini.GetOrCreateSection("Controls");
 
   std::string result;
   control_section->Get(fmt::format("WiimoteProfile{}", controller_index + 1), &result);

@@ -204,6 +204,8 @@ void InterfacePane::CreateInGame()
   groupbox_layout->addWidget(mouse_groupbox);
 #ifdef _WIN32
   groupbox_layout->addWidget(m_checkbox_lock_mouse);
+#else
+  m_checkbox_lock_mouse->hide();
 #endif
 }
 
