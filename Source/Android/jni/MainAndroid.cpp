@@ -26,8 +26,8 @@
 #include "Common/Logging/LogManager.h"
 #include "Common/MsgHandler.h"
 #include "Common/ScopeGuard.h"
-#include "Common/Version.h"
 #include "Common/VR/DolphinVR.h"
+#include "Common/Version.h"
 #include "Common/WindowSystemInfo.h"
 
 #include "Core/Boot/Boot.h"
