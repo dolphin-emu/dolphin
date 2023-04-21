@@ -3092,7 +3092,7 @@ void ARM64FloatEmitter::FMOV(ARM64Reg Rd, uint8_t imm8)
 // Vector
 void ARM64FloatEmitter::ADD(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
-  EmitThreeSame(0, IntLog2(size) - 3, 0b10000, Rd, Rn, Rm);
+  EmitThreeSame(0, MathUtil::IntLog2(size) - 3, 0b10000, Rd, Rn, Rm);
 }
 void ARM64FloatEmitter::AND(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {

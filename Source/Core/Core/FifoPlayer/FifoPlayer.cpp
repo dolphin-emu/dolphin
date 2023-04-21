@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cstring>
 #include <mutex>
+#include <type_traits>
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
@@ -101,14 +102,9 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
         part_start = offset;
         // Copy cpmem now, because end_of_primitives isn't triggered until the first opcode after
         // primitive data, and the first opcode might update cpmem
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wclass-memaccess"
-#endif
-        std::memcpy(&cpmem, &analyzer.m_cpmem, sizeof(CPState));
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
+        static_assert(std::is_trivially_copyable_v<CPState>);
+        std::memcpy(static_cast<void*>(&cpmem), static_cast<const void*>(&analyzer.m_cpmem),
+                    sizeof(CPState));
       }
       if (analyzer.m_end_of_primitives)
       {

@@ -267,21 +267,22 @@ std::optional<Expression> Expression::TryParse(std::string_view text)
   return Expression{text, std::move(ex), std::move(vars)};
 }
 
-double Expression::Evaluate() const
+double Expression::Evaluate(Core::System& system) const
 {
-  SynchronizeBindings(SynchronizeDirection::From);
+  SynchronizeBindings(system, SynchronizeDirection::From);
 
   double result = expr_eval(m_expr.get());
 
-  SynchronizeBindings(SynchronizeDirection::To);
+  SynchronizeBindings(system, SynchronizeDirection::To);
 
   Reporting(result);
 
   return result;
 }
 
-void Expression::SynchronizeBindings(SynchronizeDirection dir) const
+void Expression::SynchronizeBindings(Core::System& system, SynchronizeDirection dir) const
 {
+  auto& ppc_state = system.GetPPCState();
   auto bind = m_binds.begin();
   for (auto* v = m_vars->head; v != nullptr; v = v->next, ++bind)
   {
@@ -293,25 +294,25 @@ void Expression::SynchronizeBindings(SynchronizeDirection dir) const
       break;
     case VarBindingType::GPR:
       if (dir == SynchronizeDirection::From)
-        v->value = static_cast<double>(PowerPC::ppcState.gpr[bind->index]);
+        v->value = static_cast<double>(ppc_state.gpr[bind->index]);
       else
-        PowerPC::ppcState.gpr[bind->index] = static_cast<u32>(static_cast<s64>(v->value));
+        ppc_state.gpr[bind->index] = static_cast<u32>(static_cast<s64>(v->value));
       break;
     case VarBindingType::FPR:
       if (dir == SynchronizeDirection::From)
-        v->value = PowerPC::ppcState.ps[bind->index].PS0AsDouble();
+        v->value = ppc_state.ps[bind->index].PS0AsDouble();
       else
-        PowerPC::ppcState.ps[bind->index].SetPS0(v->value);
+        ppc_state.ps[bind->index].SetPS0(v->value);
       break;
     case VarBindingType::SPR:
       if (dir == SynchronizeDirection::From)
-        v->value = static_cast<double>(PowerPC::ppcState.spr[bind->index]);
+        v->value = static_cast<double>(ppc_state.spr[bind->index]);
       else
-        PowerPC::ppcState.spr[bind->index] = static_cast<u32>(static_cast<s64>(v->value));
+        ppc_state.spr[bind->index] = static_cast<u32>(static_cast<s64>(v->value));
       break;
     case VarBindingType::PCtr:
       if (dir == SynchronizeDirection::From)
-        v->value = static_cast<double>(PowerPC::ppcState.pc);
+        v->value = static_cast<double>(ppc_state.pc);
       break;
     }
   }

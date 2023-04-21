@@ -47,7 +47,8 @@ HostDisassemblerLLVM::HostDisassemblerLLVM(const std::string& host_disasm, int i
   LLVMInitializeAllTargetMCs();
   LLVMInitializeAllDisassemblers();
 
-  m_llvm_context = LLVMCreateDisasmCPU(host_disasm.c_str(), cpu.c_str(), nullptr, 0, 0, nullptr);
+  m_llvm_context =
+      LLVMCreateDisasmCPU(host_disasm.c_str(), cpu.c_str(), nullptr, 0, nullptr, nullptr);
 
   // Couldn't create llvm context
   if (!m_llvm_context)

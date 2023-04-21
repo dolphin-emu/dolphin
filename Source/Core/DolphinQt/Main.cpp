@@ -143,7 +143,7 @@ int main(int argc, char* argv[])
   // code, which makes mouse inputs work again.
   // For more information: https://bugs.dolphin-emu.org/issues/12913
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 3, 0))
-  putenv("QT_XCB_NO_XI2=1");
+  setenv("QT_XCB_NO_XI2", "1", true);
 #endif
 #endif
 
@@ -257,8 +257,6 @@ int main(int argc, char* argv[])
 
     MainWindow win{std::move(boot), static_cast<const char*>(options.get("movie"))};
     Settings::Instance().SetCurrentUserStyle(Settings::Instance().GetCurrentUserStyle());
-    if (options.is_set("debugger"))
-      Settings::Instance().SetDebugModeEnabled(true);
     win.Show();
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS

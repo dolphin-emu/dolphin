@@ -487,8 +487,9 @@ void CodeDiffDialog::OnSetBLR()
     return;
 
   {
-    Core::CPUThreadGuard guard(Core::System::GetInstance());
-    PowerPC::debug_interface.SetPatch(guard, symbol->address, 0x4E800020);
+    auto& system = Core::System::GetInstance();
+    Core::CPUThreadGuard guard(system);
+    system.GetPowerPC().GetDebugInterface().SetPatch(guard, symbol->address, 0x4E800020);
   }
 
   int row = item->row();

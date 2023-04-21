@@ -63,7 +63,10 @@ int SSLSendWithoutSNI(void* ctx, const unsigned char* buf, size_t len)
 
   // Log raw SSL packets if we don't dump unencrypted SSL writes
   if (!Config::Get(Config::MAIN_NETWORK_SSL_DUMP_WRITE) && ret > 0)
-    PowerPC::debug_interface.NetworkLogger()->LogWrite(buf, ret, *fd, nullptr);
+  {
+    Core::System::GetInstance().GetPowerPC().GetDebugInterface().NetworkLogger()->LogWrite(
+        buf, ret, *fd, nullptr);
+  }
 
   return ret;
 }
@@ -76,7 +79,10 @@ int SSLRecv(void* ctx, unsigned char* buf, size_t len)
 
   // Log raw SSL packets if we don't dump unencrypted SSL reads
   if (!Config::Get(Config::MAIN_NETWORK_SSL_DUMP_READ) && ret > 0)
-    PowerPC::debug_interface.NetworkLogger()->LogRead(buf, ret, *fd, nullptr);
+  {
+    Core::System::GetInstance().GetPowerPC().GetDebugInterface().NetworkLogger()->LogRead(
+        buf, ret, *fd, nullptr);
+  }
 
   return ret;
 }

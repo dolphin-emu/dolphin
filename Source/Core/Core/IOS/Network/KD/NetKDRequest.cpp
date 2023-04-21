@@ -233,6 +233,7 @@ NWC24::ErrorCode NetKDRequestDevice::KDDownload(const u16 entry_index,
 
 IPCReply NetKDRequestDevice::HandleNWC24DownloadNowEx(const IOCtlRequest& request)
 {
+  m_dl_list.ReadDlList();
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   const u32 flags = memory.Read_U32(request.buffer_in);

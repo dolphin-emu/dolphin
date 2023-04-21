@@ -38,11 +38,12 @@ namespace Core
 struct System::Impl
 {
   explicit Impl(System& system)
-      : m_audio_interface(system), m_core_timing(system), m_dsp(system), m_dvd_interface(system),
-        m_dvd_thread(system), m_expansion_interface(system), m_gp_fifo(system), m_memory(system),
-        m_ppc_state(PowerPC::ppcState), m_mmu(system, m_memory, m_ppc_state),
-        m_processor_interface(system), m_serial_interface(system), m_video_interface(system),
-        m_interpreter(system, m_ppc_state, m_mmu), m_jit_interface(system)
+      : m_audio_interface(system), m_core_timing(system), m_cpu(system), m_dsp(system),
+        m_dvd_interface(system), m_dvd_thread(system), m_expansion_interface(system),
+        m_gp_fifo(system), m_memory(system), m_power_pc(system),
+        m_mmu(system, m_memory, m_power_pc), m_processor_interface(system),
+        m_serial_interface(system), m_video_interface(system),
+        m_interpreter(system, m_power_pc.GetPPCState(), m_mmu), m_jit_interface(system)
   {
   }
 
@@ -67,7 +68,7 @@ struct System::Impl
   MemoryInterface::MemoryInterfaceManager m_memory_interface;
   PixelEngine::PixelEngineManager m_pixel_engine;
   PixelShaderManager m_pixel_shader_manager;
-  PowerPC::PowerPCState& m_ppc_state;
+  PowerPC::PowerPCManager m_power_pc;
   PowerPC::MMU m_mmu;
   ProcessorInterface::ProcessorInterfaceManager m_processor_interface;
   SerialInterface::SerialInterfaceManager m_serial_interface;
@@ -221,9 +222,14 @@ PixelShaderManager& System::GetPixelShaderManager() const
   return m_impl->m_pixel_shader_manager;
 }
 
+PowerPC::PowerPCManager& System::GetPowerPC() const
+{
+  return m_impl->m_power_pc;
+}
+
 PowerPC::PowerPCState& System::GetPPCState() const
 {
-  return m_impl->m_ppc_state;
+  return m_impl->m_power_pc.GetPPCState();
 }
 
 ProcessorInterface::ProcessorInterfaceManager& System::GetProcessorInterface() const

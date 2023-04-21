@@ -38,6 +38,7 @@
 #include "Common/Timer.h"
 #include "Common/Version.h"
 
+#include "Core/AchievementManager.h"
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/Config/MainSettings.h"
@@ -283,6 +284,10 @@ void Stop()  // - Hammertime!
   if (GetState() == State::Stopping || GetState() == State::Uninitialized)
     return;
 
+#ifdef USE_RETRO_ACHIEVEMENTS
+  AchievementManager::GetInstance()->CloseGame();
+#endif  // USE_RETRO_ACHIEVEMENTS
+
   s_is_stopping = true;
 
   CallOnStateChangedCallbacks(State::Stopping);
@@ -435,7 +440,8 @@ static void FifoPlayerThread(const std::optional<std::string>& savestate_path,
 {
   DeclareAsCPUThread();
 
-  if (Core::System::GetInstance().IsDualCoreMode())
+  auto& system = Core::System::GetInstance();
+  if (system.IsDualCoreMode())
     Common::SetCurrentThreadName("FIFO player thread");
   else
     Common::SetCurrentThreadName("FIFO-GPU thread");
@@ -443,15 +449,14 @@ static void FifoPlayerThread(const std::optional<std::string>& savestate_path,
   // Enter CPU run loop. When we leave it - we are done.
   if (auto cpu_core = FifoPlayer::GetInstance().GetCPUCore())
   {
-    PowerPC::InjectExternalCPUCore(cpu_core.get());
+    system.GetPowerPC().InjectExternalCPUCore(cpu_core.get());
     s_is_started = true;
 
     CPUSetInitialExecutionState();
-    auto& system = Core::System::GetInstance();
     system.GetCPU().Run();
 
     s_is_started = false;
-    PowerPC::InjectExternalCPUCore(nullptr);
+    system.GetPowerPC().InjectExternalCPUCore(nullptr);
     FifoPlayer::GetInstance().Close();
   }
   else
@@ -552,7 +557,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     HLE::Clear();
 
     CPUThreadGuard guard(system);
-    PowerPC::debug_interface.Clear(guard);
+    system.GetPowerPC().GetDebugInterface().Clear(guard);
   }};
 
   VideoBackendBase::PopulateBackendInfo();
@@ -590,7 +595,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   system.GetCPU().Break();
 
   // Load GCM/DOL/ELF whatever ... we boot with the interpreter core
-  PowerPC::SetMode(PowerPC::CoreMode::Interpreter);
+  system.GetPowerPC().SetMode(PowerPC::CoreMode::Interpreter);
 
   // Determine the CPU thread function
   void (*cpuThreadFunc)(const std::optional<std::string>& savestate_path, bool delete_savestate);
@@ -628,11 +633,11 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   // Setup our core
   if (Config::Get(Config::MAIN_CPU_CORE) != PowerPC::CPUCore::Interpreter)
   {
-    PowerPC::SetMode(PowerPC::CoreMode::JIT);
+    system.GetPowerPC().SetMode(PowerPC::CoreMode::JIT);
   }
   else
   {
-    PowerPC::SetMode(PowerPC::CoreMode::Interpreter);
+    system.GetPowerPC().SetMode(PowerPC::CoreMode::Interpreter);
   }
 
   UpdateTitle();
@@ -901,7 +906,7 @@ void UpdateTitle()
 {
   // Settings are shown the same for both extended and summary info
   const std::string SSettings = fmt::format(
-      "{} {} | {} | {}", PowerPC::GetCPUName(),
+      "{} {} | {} | {}", Core::System::GetInstance().GetPowerPC().GetCPUName(),
       Core::System::GetInstance().IsDualCoreMode() ? "DC" : "SC", g_video_backend->GetDisplayName(),
       Config::Get(Config::MAIN_DSP_HLE) ? "HLE" : "LLE");
 

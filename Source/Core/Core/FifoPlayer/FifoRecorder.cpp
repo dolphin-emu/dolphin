@@ -268,9 +268,7 @@ void FifoRecorder::StartRecording(s32 numFrames, CallbackFunc finishedCb)
           RecordInitialVideoMemory();
         }
 
-        auto& system = Core::System::GetInstance();
-        auto& command_processor = system.GetCommandProcessor();
-        const auto& fifo = command_processor.GetFifo();
+        const auto& fifo = Core::System::GetInstance().GetCommandProcessor().GetFifo();
         EndFrame(fifo.CPBase.load(std::memory_order_relaxed),
                  fifo.CPEnd.load(std::memory_order_relaxed));
       },

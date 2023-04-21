@@ -465,9 +465,9 @@ void Settings::SetDebugModeEnabled(bool enabled)
   {
     Config::SetBaseOrCurrent(Config::MAIN_ENABLE_DEBUGGING, enabled);
     emit DebugModeToggled(enabled);
+    if (enabled)
+      SetCodeVisible(true);
   }
-  if (enabled)
-    SetCodeVisible(true);
 }
 
 bool Settings::IsDebugModeEnabled() const

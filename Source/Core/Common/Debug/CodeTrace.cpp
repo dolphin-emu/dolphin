@@ -126,16 +126,18 @@ InstructionAttributes CodeTrace::GetInstructionAttributes(const TraceOutput& ins
 TraceOutput CodeTrace::SaveCurrentInstruction(const Core::CPUThreadGuard& guard) const
 {
   auto& system = guard.GetSystem();
-  auto& ppc_state = system.GetPPCState();
+  auto& power_pc = system.GetPowerPC();
+  auto& ppc_state = power_pc.GetPPCState();
+  auto& debug_interface = power_pc.GetDebugInterface();
 
   // Quickly save instruction and memory target for fast logging.
   TraceOutput output;
-  const std::string instr = PowerPC::debug_interface.Disassemble(&guard, ppc_state.pc);
+  const std::string instr = debug_interface.Disassemble(&guard, ppc_state.pc);
   output.instruction = instr;
   output.address = ppc_state.pc;
 
   if (IsInstructionLoadStore(output.instruction))
-    output.memory_target = PowerPC::debug_interface.GetMemoryAddressFromInstruction(instr);
+    output.memory_target = debug_interface.GetMemoryAddressFromInstruction(instr);
 
   return output;
 }
@@ -189,16 +191,17 @@ AutoStepResults CodeTrace::AutoStepping(const Core::CPUThreadGuard& guard, bool 
   else if (stop_on == AutoStop::Changed)
     stop_condition = HitType::ACTIVE;
 
-  PowerPC::breakpoints.ClearAllTemporary();
+  auto& power_pc = guard.GetSystem().GetPowerPC();
+  power_pc.GetBreakPoints().ClearAllTemporary();
   using clock = std::chrono::steady_clock;
   clock::time_point timeout = clock::now() + std::chrono::seconds(4);
 
-  PowerPC::CoreMode old_mode = PowerPC::GetMode();
-  PowerPC::SetMode(PowerPC::CoreMode::Interpreter);
+  PowerPC::CoreMode old_mode = power_pc.GetMode();
+  power_pc.SetMode(PowerPC::CoreMode::Interpreter);
 
   do
   {
-    PowerPC::SingleStep();
+    power_pc.SingleStep();
 
     pc_instr = SaveCurrentInstruction(guard);
     hit = TraceLogic(pc_instr);
@@ -210,7 +213,7 @@ AutoStepResults CodeTrace::AutoStepping(const Core::CPUThreadGuard& guard, bool 
   if (clock::now() >= timeout)
     results.timed_out = true;
 
-  PowerPC::SetMode(old_mode);
+  power_pc.SetMode(old_mode);
   m_recording = false;
 
   results.reg_tracked = m_reg_autotrack;

@@ -42,7 +42,7 @@ static QPixmap PixmapFromHICON(HICON icon)
   const int h = iconinfo.yHotspot * 2;
   BITMAPINFO bitmapInfo = GetBMI(w, h, false);
   DWORD* bits;
-  HBITMAP winBitmap = CreateDIBSection(hdc, &bitmapInfo, DIB_RGB_COLORS, (VOID**)&bits, NULL, 0);
+  HBITMAP winBitmap = CreateDIBSection(hdc, &bitmapInfo, DIB_RGB_COLORS, (VOID**)&bits, nullptr, 0);
   HGDIOBJ oldhdc = reinterpret_cast<HBITMAP>(SelectObject(hdc, winBitmap));
   DrawIconEx(hdc, 0, 0, icon, iconinfo.xHotspot * 2, iconinfo.yHotspot * 2, 0, 0, DI_NORMAL);
 

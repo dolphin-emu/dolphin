@@ -384,7 +384,8 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& 
     if (size > 0)
     {
       // only if contain data
-      if (static_cast<int>(this_seq - ref->ack_num) >= 0 && data.size() >= size)
+      if (static_cast<int>(this_seq - ref->ack_num) >= 0 &&
+          data.size() >= static_cast<size_t>(size))
       {
         ref->tcp_socket.send(data.data(), size);
         ref->ack_num += size;

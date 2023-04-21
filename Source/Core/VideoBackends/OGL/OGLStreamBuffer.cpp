@@ -25,7 +25,7 @@ static u32 GenBuffer()
 
 StreamBuffer::StreamBuffer(u32 type, u32 size)
     : m_buffer(GenBuffer()), m_buffertype(type), m_size(MathUtil::NextPowerOf2(size)),
-      m_bit_per_slot(IntLog2(MathUtil::NextPowerOf2(size) / SYNC_POINTS))
+      m_bit_per_slot(MathUtil::IntLog2(MathUtil::NextPowerOf2(size) / SYNC_POINTS))
 {
   m_iterator = 0;
   m_used_iterator = 0;

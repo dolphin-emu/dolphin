@@ -163,14 +163,13 @@ JitInterface::GetHostCode(u32 address) const
     return GetHostCodeError::NoJitActive;
   }
 
-  JitBlock* block =
-      m_jit->GetBlockCache()->GetBlockFromStartAddress(address, PowerPC::ppcState.msr.Hex);
+  auto& ppc_state = m_system.GetPPCState();
+  JitBlock* block = m_jit->GetBlockCache()->GetBlockFromStartAddress(address, ppc_state.msr.Hex);
   if (!block)
   {
     for (int i = 0; i < 500; i++)
     {
-      block = m_jit->GetBlockCache()->GetBlockFromStartAddress(address - 4 * i,
-                                                               PowerPC::ppcState.msr.Hex);
+      block = m_jit->GetBlockCache()->GetBlockFromStartAddress(address - 4 * i, ppc_state.msr.Hex);
       if (block)
         break;
     }
@@ -257,12 +256,12 @@ void JitInterface::InvalidateICacheLines(u32 address, u32 count)
     InvalidateICache(address & ~0x1f, 32 * count, false);
 }
 
-void JitInterface::InvalidateICacheLineFromJIT(u32 address, u32 dummy, JitInterface& jit_interface)
+void JitInterface::InvalidateICacheLineFromJIT(JitInterface& jit_interface, u32 address)
 {
   jit_interface.InvalidateICacheLine(address);
 }
 
-void JitInterface::InvalidateICacheLinesFromJIT(u32 address, u32 count, JitInterface& jit_interface)
+void JitInterface::InvalidateICacheLinesFromJIT(JitInterface& jit_interface, u32 address, u32 count)
 {
   jit_interface.InvalidateICacheLines(address, count);
 }
@@ -287,25 +286,26 @@ void JitInterface::CompileExceptionCheck(ExceptionType type)
     break;
   }
 
-  if (PowerPC::ppcState.pc != 0 &&
-      (exception_addresses->find(PowerPC::ppcState.pc)) == (exception_addresses->end()))
+  auto& ppc_state = m_system.GetPPCState();
+  if (ppc_state.pc != 0 &&
+      (exception_addresses->find(ppc_state.pc)) == (exception_addresses->end()))
   {
     if (type == ExceptionType::FIFOWrite)
     {
       ASSERT(Core::IsCPUThread());
-      Core::CPUThreadGuard guard(Core::System::GetInstance());
+      Core::CPUThreadGuard guard(m_system);
 
       // Check in case the code has been replaced since: do we need to do this?
       const OpType optype =
-          PPCTables::GetOpInfo(PowerPC::MMU::HostRead_U32(guard, PowerPC::ppcState.pc))->type;
+          PPCTables::GetOpInfo(PowerPC::MMU::HostRead_U32(guard, ppc_state.pc), ppc_state.pc)->type;
       if (optype != OpType::Store && optype != OpType::StoreFP && optype != OpType::StorePS)
         return;
     }
-    exception_addresses->insert(PowerPC::ppcState.pc);
+    exception_addresses->insert(ppc_state.pc);
 
     // Invalidate the JIT block so that it gets recompiled with the external exception check
     // included.
-    m_jit->GetBlockCache()->InvalidateICache(PowerPC::ppcState.pc, 4, true);
+    m_jit->GetBlockCache()->InvalidateICache(ppc_state.pc, 4, true);
   }
 }
 

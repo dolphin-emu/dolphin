@@ -18,7 +18,8 @@ class QShowEvent;
 namespace Core
 {
 class CPUThreadGuard;
-};
+class System;
+}  // namespace Core
 
 struct CodeViewBranch;
 class BranchDisplayDelegate;
@@ -97,6 +98,8 @@ private:
   void OnRestoreInstruction();
 
   void CalculateBranchIndentation();
+
+  Core::System& m_system;
 
   bool m_updating = false;
 

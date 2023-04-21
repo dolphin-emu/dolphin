@@ -303,8 +303,8 @@ void CoreTimingManager::MoveEvents()
 
 void CoreTimingManager::Advance()
 {
-  auto& system = m_system;
-  auto& ppc_state = m_system.GetPPCState();
+  auto& power_pc = m_system.GetPowerPC();
+  auto& ppc_state = power_pc.GetPPCState();
 
   MoveEvents();
 
@@ -323,7 +323,7 @@ void CoreTimingManager::Advance()
     m_event_queue.pop_back();
 
     Throttle(evt.time);
-    evt.type->callback(system, evt.userdata, m_globals.global_timer - evt.time);
+    evt.type->callback(m_system, evt.userdata, m_globals.global_timer - evt.time);
   }
 
   m_is_global_timer_sane = false;
@@ -341,7 +341,7 @@ void CoreTimingManager::Advance()
   // It's important to do this after processing events otherwise any exceptions will be delayed
   // until the next slice:
   //        Pokemon Box refuses to boot if the first exception from the audio DMA is received late
-  PowerPC::CheckExternalExceptions();
+  power_pc.CheckExternalExceptions();
 }
 
 void CoreTimingManager::Throttle(const s64 target_cycle)

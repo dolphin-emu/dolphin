@@ -353,7 +353,7 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   }
   else
   {
-    IniFile ini;
+    Common::IniFile ini;
     ini.Load(File::GetUserPath(D_CONFIG_IDX) + "WiimoteNew.ini");
     const std::string section_name = "Wiimote" + std::to_string(num + 1);
 
