@@ -8,8 +8,8 @@ goto :Exit
 
 :Start
 TASKKILL /IM "Dolphin-MPN.exe" /F
-"Updater/wget.exe" https://github.com/MarioPartyNetplay/Dolphin-Mpn/archive/refs/heads/win32.zip
-"Updater/7z.exe" x win32.zip
+"Updater/wget.exe" https://github.com/MarioPartyNetplay/Dolphin-MPN-src/releases/latest/download/DolphinMPN-win32.7z
+"Updater/7z.exe" x DolphinMPN-win32.7z
 cd User\
 move Config ..\
 move GameSettings ..\
