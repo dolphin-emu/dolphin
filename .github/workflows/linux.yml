@@ -46,9 +46,9 @@ jobs:
         path: /home/runner/work/Dolphin-MPN-src/Dolphin-MPN-src/build/Binaries/
     # Zip Artifact
     - name: Zip Artifact
-      run: 7z a D:/DolphinMPN-linux D:/a/Dolphin-MPN-src/Dolphin-MPN-src/build/Binaries/*
+      run: 7z a /home/runner/DolphinMPN-linux /home/runner/work/Dolphin-MPN-src/Dolphin-MPN-src/build/Binaries/*
     # New Release
     - name: New Release
       uses: ncipollo/release-action@v1.12.0
       with:
-        artifacts: D:/DolphinMPN-linux.7z
+        artifacts: /home/runner/DolphinMPN-linux.7z
