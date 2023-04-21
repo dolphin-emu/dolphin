@@ -86,6 +86,7 @@
     <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\InstructionStepModuleImporter.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Core\Scripting\InternalAPIModules\ConfigAPI.cpp" />
     <ClCompile Include="Core\Scripting\InternalAPIModules\InstructionStepAPI.cpp" />
     <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\InstructionStepModuleImporter.cpp" />
   </ItemGroup>

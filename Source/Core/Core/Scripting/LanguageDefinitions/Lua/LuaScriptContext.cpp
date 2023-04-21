@@ -407,6 +407,12 @@ void LuaScriptContext::ImportModule(const std::string& api_name, const std::stri
       returnValue =
           (localFunctionMetadata->function_pointer)(corresponding_script_context, arguments);
 
+      if (!returnValue.contains_value)
+      {
+        lua_pushnil(lua_state);
+        return 1;
+      }
+
       switch (returnValue.argument_type)
       {
       case ArgTypeEnum::YieldType:

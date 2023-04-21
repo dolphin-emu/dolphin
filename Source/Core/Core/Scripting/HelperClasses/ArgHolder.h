@@ -14,6 +14,7 @@ namespace Scripting
 struct ArgHolder
 {
   ArgTypeEnum argument_type;
+  bool contains_value;
 
   // The below lines should all ideally be in a union. However, C++ won't let vectors be included in
   // unions without complicated shenanigans, and the extra variables only add about 100 bytes, so it
@@ -72,5 +73,7 @@ ArgHolder CreateRegistrationReturnTypeArgHolder(void* new_val);
 ArgHolder CreateRegistrationWithAutoDeregistrationReturnTypeArgHolder();
 ArgHolder CreateUnregistrationReturnTypeArgHolder(void* new_val);
 ArgHolder CreateShutdownTypeArgHolder();
+
+ArgHolder CreateEmptyOptionalArgument();
 }  // namespace Scripting
 #endif

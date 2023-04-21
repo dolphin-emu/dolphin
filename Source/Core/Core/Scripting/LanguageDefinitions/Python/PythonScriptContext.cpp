@@ -561,6 +561,12 @@ PyObject* PythonScriptContext::RunFunction(PyObject* self, PyObject* args, std::
   
   ArgHolder return_value = (*functionMetadata.function_pointer)(this_pointer, arguments_list);
 
+  if (!return_value.contains_value)
+  {
+    Py_INCREF(Py_None);
+    return Py_None;
+  }
+
   switch (return_value.argument_type)
   {
   case ArgTypeEnum::VoidType:
