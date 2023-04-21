@@ -447,10 +447,10 @@
   <!--Copy Exe, Data directory and DLLs which should be located in the executable directory-->
   <ItemGroup>
     <DataSysFiles Include="$(DolphinRootDir)Data\**\Sys\**\*.*" />
+    <DataUserFiles Include="$(DolphinRootDir)Data\**\Updater\**\*.*" />
     <DataUserFiles Include="$(DolphinRootDir)Data\**\User\**\*.*" />
     <DataTxtFiles Include="$(DolphinRootDir)Data\license.txt" />
     <DataTxtFiles Include="$(DolphinRootDir)Data\portable.txt" />
-    <DataTxtFiles Include="$(DolphinRootDir)Data\UpdateEmulator.bat" />
     <BinaryFiles Include="$(TargetPath)" />
     <AllInputFiles Include="@(DataSysFiles);@(DataUserFiles);@(DataTxtFiles);@(BinaryFiles)" />
   </ItemGroup>
