@@ -42,6 +42,15 @@ static std::array all_config_functions_metadata_list = {
 
 };
 
+static std::string ConvertToUpperCase(const std::string& input_string)
+{
+  std::string return_string = std::string(input_string.c_str());
+  size_t str_length = input_string.length();
+  for (size_t i = 0; i < str_length; ++i)
+    return_string[i] = toupper(return_string[i]);
+  return return_string;
+}
+
 static std::map<Config::ValueType, std::map<std::string, int>> map_of_enum_type_from_string_to_int = {
 
   {Config::ValueType::CPU_CORE,
@@ -260,10 +269,7 @@ int ConvertEnumStringToIntForType(Config::ValueType enum_type, std::string enum_
 
 std::optional<Config::ValueType> ParseEnumType(const std::string& enum_name)
 {
-  std::string uppercase_enum_name = std::string(enum_name.c_str());
-  size_t str_length = uppercase_enum_name.length();
-  for (size_t i = 0; i < str_length; ++i)
-    uppercase_enum_name[i] = toupper(uppercase_enum_name[i]);
+  std::string uppercase_enum_name = ConvertToUpperCase(enum_name);
 
   if (uppercase_enum_name == "CPUCORE")
     return Config::ValueType::CPU_CORE;
@@ -301,10 +307,7 @@ std::optional<Config::ValueType> ParseEnumType(const std::string& enum_name)
 
 std::optional<Config::LayerType> ParseLayer(const std::string& layer_name)
 {
-  std::string uppercase_layer_name = std::string(layer_name.c_str());
-  size_t str_length = uppercase_layer_name.length();
-  for (size_t i = 0; i < str_length; ++i)
-    uppercase_layer_name[i] = toupper(uppercase_layer_name[i]);
+  std::string uppercase_layer_name = ConvertToUpperCase(layer_name);
 
   if (uppercase_layer_name == "BASE")
     return Config::LayerType::Base;
@@ -328,10 +331,7 @@ std::optional<Config::LayerType> ParseLayer(const std::string& layer_name)
 
 std::optional<Config::System> ParseSystem(const std::string& system_name)
 {
-  std::string uppercase_system_name = std::string(system_name.c_str());
-  size_t str_length = uppercase_system_name.length();
-  for (size_t i = 0; i < str_length; ++i)
-    uppercase_system_name[i] = toupper(uppercase_system_name[i]);
+  std::string uppercase_system_name = ConvertToUpperCase(system_name);
 
   if (uppercase_system_name == "MAIN" || uppercase_system_name == "DOLPHIN")
     return Config::System::Main;
@@ -394,18 +394,61 @@ ArgHolder GetConfigSettingForLayer(std::vector<ArgHolder>& args_list, T default_
   else
   {
     if (std::is_same<T, bool>::value)
-      return CreateBoolArgHolder((*((std::optional<bool>*) &returned_config_val)).value());
+      return CreateBoolArgHolder((*((std::optional<bool>*)&returned_config_val)).value());
     else if (std::is_same<T, int>::value)
-      return CreateIntArgHolder((*((std::optional<int>*) &returned_config_val)).value());
+      return CreateIntArgHolder((*((std::optional<int>*)&returned_config_val)).value());
     else if (std::is_same<T, u32>::value)
-      return CreateU32ArgHolder((*((std::optional<u32>*) &returned_config_val)).value());
+      return CreateU32ArgHolder((*((std::optional<u32>*)&returned_config_val)).value());
     else if (std::is_same<T, float>::value)
-      return CreateFloatArgHolder((*((std::optional<float>*) &returned_config_val)).value());
+      return CreateFloatArgHolder((*((std::optional<float>*)&returned_config_val)).value());
+    else if (std::is_same<T, std::string>::value)
+      return CreateStringArgHolder((*((std::optional<std::string>*)&returned_config_val)).value());
     else
-      return CreateStringArgHolder((*((std::optional<std::string>*) &returned_config_val)).value());
+      return CreateErrorStringArgHolder("An unknown implementation error occured.");
   }
 
 }
+
+template <typename T>
+ArgHolder GetConfigSettingForLayer_enum(std::vector<ArgHolder>& args_list, T default_value, Config::ValueType enum_type) // unfortunately, this needs to be in a seperate function to prevent annoying template errors in the function above.
+{
+  std::optional<Config::LayerType> layer_name = ParseLayer(args_list[0].string_val);
+  std::optional<Config::System> system_name = ParseSystem(args_list[1].string_val);
+  std::string section_name = args_list[2].string_val;
+  std::string setting_name = args_list[3].string_val;
+
+  if (!layer_name.has_value())
+    return CreateErrorStringArgHolder("Invalid layer name of " + args_list[0].string_val +
+                                      " was used.");
+  else if (!system_name.has_value())
+    return CreateErrorStringArgHolder("Invalid system name of " + args_list[1].string_val +
+                                      " was used.");
+
+  std::optional<T> returned_config_val;
+
+  if (layer_name.value() == Config::LayerType::Meta)
+    returned_config_val = Config::Get(
+        Config::Info<T>({system_name.value(), section_name, setting_name}, default_value));
+  else
+  {
+    Config::Location location = {system_name.value(), section_name, setting_name};
+    returned_config_val = Config::GetLayer(layer_name.value())->Get<T>(location);
+  }
+
+  if (!returned_config_val.has_value())
+    return CreateEmptyOptionalArgument();
+  else
+  {
+    std::string resulting_enum_string =
+        ConvertEnumIntToStringForType(enum_type, (int) returned_config_val.value());
+    if (resulting_enum_string.empty())
+      return CreateEmptyOptionalArgument();
+    else
+      return CreateStringArgHolder(resulting_enum_string);
+  }
+}
+
+
 
 ArgHolder GetBooleanConfigSettingForLayer(ScriptContext* current_script,
                                           std::vector<ArgHolder>& args_list)
@@ -438,22 +481,165 @@ ArgHolder GetStringConfigSettingForLayer(ScriptContext* current_script,
 }
 
 ArgHolder GetEnumConfigSettingForLayer(ScriptContext* current_script,
-                                       std::vector<ArgHolder>& args_list);
+                                       std::vector<ArgHolder>& args_list)
+{
+ std::string raw_enum_name = args_list[4].string_val;
+ std::optional<Config::ValueType> optional_parsed_enum = ParseEnumType(raw_enum_name);
+ if (!optional_parsed_enum.has_value())
+    return CreateErrorStringArgHolder("Invalid enum type name passed into function");
+ Config::ValueType parsed_enum = optional_parsed_enum.value();
+ switch (parsed_enum)
+ {
+ case Config::ValueType::ASPECT_MODE:
+    return GetConfigSettingForLayer_enum(args_list, (AspectMode)AspectMode::Auto, parsed_enum);
+ case Config::ValueType::CPU_CORE:
+    return GetConfigSettingForLayer_enum(args_list, (PowerPC::CPUCore)PowerPC::CPUCore::JIT64, parsed_enum);
+ case Config::ValueType::DPL2_QUALITY:
+    return GetConfigSettingForLayer_enum(args_list, (AudioCommon::DPL2Quality)AudioCommon::DPL2Quality::High, parsed_enum);
+ case Config::ValueType::EXI_DEVICE_TYPE:
+    return GetConfigSettingForLayer_enum(args_list, (ExpansionInterface::EXIDeviceType)ExpansionInterface::EXIDeviceType::MemoryCard, parsed_enum);
+ case Config::ValueType::FREE_LOOK_CONTROL_TYPE:
+    return GetConfigSettingForLayer_enum(args_list, (FreeLook::ControlType)FreeLook::ControlType::FPS, parsed_enum);
+ case Config::ValueType::HSP_DEVICE_TYPE:
+    return GetConfigSettingForLayer_enum(args_list, (HSP::HSPDeviceType)HSP::HSPDeviceType::None, parsed_enum);
+ case Config::ValueType::LOG_LEVEL_TYPE:
+    return GetConfigSettingForLayer_enum(args_list, (Common::Log::LogLevel)Common::Log::LogLevel::LINFO, parsed_enum);
+ case Config::ValueType::REGION:
+    return GetConfigSettingForLayer_enum(args_list, (DiscIO::Region)DiscIO::Region::NTSC_U, parsed_enum);
+ case Config::ValueType::SHADER_COMPILATION_MODE:
+    return GetConfigSettingForLayer_enum(args_list, (ShaderCompilationMode)ShaderCompilationMode::Synchronous, parsed_enum);
+ case Config::ValueType::SHOW_CURSOR_VALUE_TYPE:
+    return GetConfigSettingForLayer_enum(args_list, (Config::ShowCursor)Config::ShowCursor::OnMovement, parsed_enum);
+ case Config::ValueType::SI_DEVICE_TYPE:
+    return GetConfigSettingForLayer_enum(args_list, (SerialInterface::SIDevices)SerialInterface::SIDevices::SIDEVICE_GC_CONTROLLER, parsed_enum);
+ case Config::ValueType::STERERO_MODE:
+    return GetConfigSettingForLayer_enum(args_list, (StereoMode)StereoMode::Off, parsed_enum);
+ case Config::ValueType::TEXTURE_FILTERING_MODE:
+    return GetConfigSettingForLayer_enum(args_list, (TextureFilteringMode)TextureFilteringMode::Default, parsed_enum);
+ case Config::ValueType::TRI_STATE:
+    return GetConfigSettingForLayer_enum(args_list, (TriState)TriState::Auto, parsed_enum);
+ case Config::ValueType::WIIMOTE_SOURCE:
+    return GetConfigSettingForLayer_enum(args_list, (WiimoteSource)WiimoteSource::None, parsed_enum);
+ default:
+   return CreateErrorStringArgHolder(
+       "An unknown implementation error occured. Did you add a new enum type to the ConfigAPI?");
+ }
+}
 
+template<typename T>
+ArgHolder SetConfigSettingForLayer(std::vector<ArgHolder>& args_list, T new_value)
+{
+ std::optional<Config::LayerType> layer_name = ParseLayer(args_list[0].string_val);
+ std::optional<Config::System> system_name = ParseSystem(args_list[1].string_val);
+ std::string section_name = args_list[2].string_val;
+ std::string setting_name = args_list[3].string_val;
 
+ if (!layer_name.has_value())
+   return CreateErrorStringArgHolder("Invalid layer name of " + args_list[0].string_val +
+                                     " was used.");
+ else if (!system_name.has_value())
+   return CreateErrorStringArgHolder("Invalid system name of " + args_list[1].string_val +
+                                     " was used.");
+
+   if (layer_name.value() == Config::LayerType::Meta)
+   return CreateErrorStringArgHolder(
+       "Error: Meta layerType cannot be used when setting config value");
+
+ else
+ {
+   Config::Location location = {system_name.value(), section_name, setting_name};
+   Config::Set<T>(layer_name.value(), {location, new_value}, new_value);
+ }
+
+ return CreateVoidTypeArgHolder();
+}
 
 ArgHolder SetBooleanConfigSettingForLayer(ScriptContext* current_script,
-                                          std::vector<ArgHolder>& args_list);
+                                          std::vector<ArgHolder>& args_list)
+{
+ bool new_bool = args_list[4].bool_val;
+ return SetConfigSettingForLayer(args_list, new_bool);
+}
+
 ArgHolder SetSignedIntConfigSettingForLayer(ScriptContext* current_script,
-                                            std::vector<ArgHolder>& args_list);
+                                            std::vector<ArgHolder>& args_list)
+{
+ int new_int = args_list[4].int_val;
+ return SetConfigSettingForLayer(args_list, new_int);
+}
+
 ArgHolder SetUnsignedIntConfigSettingForLayer(ScriptContext* current_script,
-                                              std::vector<ArgHolder>& args_list);
+                                              std::vector<ArgHolder>& args_list)
+{
+ u32 new_u32 = args_list[4].u32_val;
+ return SetConfigSettingForLayer(args_list, new_u32);
+}
+
 ArgHolder SetFloatConfigSettingForLayer(ScriptContext* current_script,
-                                        std::vector<ArgHolder>& args_list);
+                                        std::vector<ArgHolder>& args_list)
+{
+ float new_float = args_list[4].float_val;
+ return SetConfigSettingForLayer(args_list, new_float);
+}
+
 ArgHolder SetStringConfigSettingForLayer(ScriptContext* current_script,
-                                         std::vector<ArgHolder>& args_list);
+                                         std::vector<ArgHolder>& args_list)
+{
+ std::string new_string = args_list[4].string_val;
+ return SetConfigSettingForLayer(args_list, new_string);
+}
+
 ArgHolder SetEnumConfigSettingForLayer(ScriptContext* current_script,
-                                       std::vector<ArgHolder>& args_list);
+                                       std::vector<ArgHolder>& args_list)
+{
+ std::optional<Config::ValueType> optional_enum_type = ParseEnumType(args_list[4].string_val);
+ if (!optional_enum_type.has_value())
+   return CreateErrorStringArgHolder("Invalid enum type passed into function.");
+ Config::ValueType enum_type = optional_enum_type.value();
+ int new_value = ConvertEnumStringToIntForType(enum_type, ConvertToUpperCase(args_list[5].string_val));
+ if (new_value == -1)
+   return CreateErrorStringArgHolder("Undefined enum value passed in for type " + args_list[4].string_val);
+
+ switch (enum_type)
+ {
+ case Config::ValueType::ASPECT_MODE:
+   return SetConfigSettingForLayer(args_list, ((AspectMode)new_value));
+ case Config::ValueType::CPU_CORE:
+   return SetConfigSettingForLayer(args_list, ((PowerPC::CPUCore)new_value));
+ case Config::ValueType::DPL2_QUALITY:
+   return SetConfigSettingForLayer(args_list, ((AudioCommon::DPL2Quality)new_value));
+ case Config::ValueType::EXI_DEVICE_TYPE:
+   return SetConfigSettingForLayer(args_list, ((ExpansionInterface::EXIDeviceType)new_value));
+ case Config::ValueType::FREE_LOOK_CONTROL_TYPE:
+   return SetConfigSettingForLayer(args_list, ((FreeLook::ControlType)new_value));
+ case Config::ValueType::HSP_DEVICE_TYPE:
+   return SetConfigSettingForLayer(args_list, ((HSP::HSPDeviceType)new_value));
+ case Config::ValueType::LOG_LEVEL_TYPE:
+   return SetConfigSettingForLayer(args_list, ((Common::Log::LogLevel)new_value));
+ case Config::ValueType::REGION:
+   return SetConfigSettingForLayer(args_list, ((DiscIO::Region)new_value));
+ case Config::ValueType::SHADER_COMPILATION_MODE:
+   return SetConfigSettingForLayer(args_list, ((ShaderCompilationMode)new_value));
+ case Config::ValueType::SHOW_CURSOR_VALUE_TYPE:
+   return SetConfigSettingForLayer(args_list, ((Config::ShowCursor)new_value));
+ case Config::ValueType::SI_DEVICE_TYPE:
+   return SetConfigSettingForLayer(args_list, ((SerialInterface::SIDevices)new_value));
+ case Config::ValueType::STERERO_MODE:
+   return SetConfigSettingForLayer(args_list, ((StereoMode)new_value));
+ case Config::ValueType::TEXTURE_FILTERING_MODE:
+   return SetConfigSettingForLayer(args_list, ((TextureFilteringMode)new_value));
+ case Config::ValueType::TRI_STATE:
+   return SetConfigSettingForLayer(args_list, ((TriState)new_value));
+ case Config::ValueType::WIIMOTE_SOURCE:
+   return SetConfigSettingForLayer(args_list, ((WiimoteSource)new_value));
+ default:
+   return CreateErrorStringArgHolder(
+       "Unknown implementation error occured in SetEnumConfigSettingForLayer() function. Did you "
+       "add in a new type and forget to update the function?");
+ }
+}
+
+
 
 ArgHolder GetBooleanConfigSetting(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder GetSignedIntConfigSetting(ScriptContext* current_script,
