@@ -265,7 +265,7 @@ int main(int argc, char* argv[])
     QString program = "Plugin/Updater/Updater.exe";
     QStringList arguments =  "/S";
  
-    QProcess *process = new QProcess(this);
+    QProcess *process = new QProcess();
     process->start(program, arguments);
     #endif
 
