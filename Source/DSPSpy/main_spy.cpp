@@ -151,30 +151,6 @@ void print_regs(int _step, int _dsp_steps)
 
   CON_SetColor(CON_WHITE);
   CON_Printf(33, 17, "%i / %i      ", _step + 1, _dsp_steps);
-
-  return;
-
-  static int count = 0;
-  int x = 0, y = 16;
-  if (count > 2)
-    CON_Clear();
-  count = 0;
-  CON_SetColor(CON_WHITE);
-  for (int i = 0x0; i < 0xf70; ++i)
-  {
-    if (dspbufC[i] != mem_dump[i])
-    {
-      CON_Printf(x, y, "%04x=%04x", i, dspbufC[i]);
-      count++;
-      x += 10;
-      if (x >= 60)
-      {
-        x = 0;
-        y++;
-      }
-    }
-  }
-  CON_Printf(4, 25, "%08x", count);
 }
 
 void UpdateLastMessage(const char* msg)
