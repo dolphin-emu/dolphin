@@ -53,7 +53,7 @@ jobs:
     # Use Static ZSTD
     - name: Remove ZSTD
       if: matrix.os == 'macos-latest'
-      run: brew uninstall zstd curl php --foubunturce --ignore-dependencies
+      run: brew uninstall zstd curl php --force --ignore-dependencies
     # Run CMake
     - name: Run CMake
       if: matrix.os == 'macos-latest'
