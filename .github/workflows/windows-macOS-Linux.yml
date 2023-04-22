@@ -106,7 +106,7 @@ jobs:
     # Zip Artifact
     - name: Zip Artifact
       if: matrix.os == 'ubuntu-latest'
-      run: 7z a -tzip /home/runner/DolphinMPN-linux /home/runner/work/Dolphin-MPN-src/Dolphin-MPN-src/build/Binaries/*
+      run: 7z a -tzip /home/runner/DolphinMPN-linux /home/runner/work/Dolphin-MPN/Dolphin-MPN/build/Binaries/*
     # New Release
     - name: New Release
       if: ${{ startsWith(github.ref, 'refs/tags/') }} && matrix.os == 'ubuntu-latest'
@@ -116,7 +116,7 @@ jobs:
     # Zip Artifact
     - name: Zip Artifact
       if: matrix.os == 'macos-latest'
-      run: 7z a -tzip /Users/runner/DolphinMPN-macOS-intel /Users/runner/work/Dolphin-MPN-src/Dolphin-MPN-src/build/Binaries/*
+      run: 7z a -tzip /Users/runner/DolphinMPN-macOS-intel /Users/runner/work/Dolphin-MPN/Dolphin-MPN/build/Binaries/*
     # New Release
     - name: New Release
       if: ${{ startsWith(github.ref, 'refs/tags/') }} && matrix.os == 'macos-latest'
@@ -126,7 +126,7 @@ jobs:
     # Zip Artifact
     - name: Zip Artifact
       if: ${{ startsWith(github.ref, 'refs/tags/') }} && matrix.os == 'windows-latest'
-      run: 7z a -tzip D:/DolphinMPN-win32 D:/a/dolphin-mpn-src/dolphin-mpn-src/Binary/x64/*
+      run: 7z a -tzip D:/DolphinMPN-win32 D:/a/Dolphin-MPN/Dolphin-MPN/Binary/x64/*
     # New Release
     - name: New Release
       if: ${{ startsWith(github.ref, 'refs/tags/') }} && matrix.os == 'windows-latest'
