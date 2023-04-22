@@ -34,7 +34,7 @@
 #include <sdcard/wiisd_io.h>
 #include <wiiuse/wpad.h>
 #else
-#include <sdcard/gcsd.h> 
+#include <sdcard/gcsd.h>
 #endif
 
 #include "ConsoleHelper.h"
