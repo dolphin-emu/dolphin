@@ -22,24 +22,35 @@ namespace Scripting::ConfigAPI
 
 const char* class_name = "ConfigAPI";
 static std::array all_config_functions_metadata_list = {
+
     FunctionMetadata("getLayerNames_mostGlobalFirst", "1.0", "getLayerNames_mostGlobalFirst()", GetLayerNames_MostGlobalFirst, ArgTypeEnum::String, {}),
     FunctionMetadata("getListOfSystems", "1.0", "getListOfSystems()", GetListOfSystems, ArgTypeEnum::String, {}),
     FunctionMetadata("getConfigEnumTypes", "1.0", "getConfigEnumTypes()", GetConfigEnumTypes, ArgTypeEnum::String, {}),
     FunctionMetadata("getListOfValidValuesForEnumType", "1.0", "getListOfValidValuesForEnumType", GetListOfValidValuesForEnumType, ArgTypeEnum::String, {ArgTypeEnum::String}),
-    FunctionMetadata("getAllSettings", "1.0", "getAllSettings()", GetAllSettings, ArgTypeEnum::String, {}),
-
 
     FunctionMetadata("getBooleanConfigSettingForLayer", "1.0", "getBooleanConfigSettingForLayer(\"GlobalGame\", \"Main\", \"Interface\", \"debugModeEnabled\")", GetBooleanConfigSettingForLayer, ArgTypeEnum::Boolean, {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String}),
     FunctionMetadata("getSignedIntConfigSettingForLayer", "1.0", "getSignedIntConfigSettingForLayer(\"GlobalGame\", \"Main\", \"Core\", \"TimingVariance\")", GetSignedIntConfigSettingForLayer, ArgTypeEnum::Integer, {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String}),
     FunctionMetadata("getUnsignedIntConfigSettingForLayer", "1.0", "getUnsignedIntConfigSettingForLayer(\"GlobalGame\", \"Main\", \"Core\", \"MEM1Size\")", GetUnsignedIntConfigSettingForLayer, ArgTypeEnum::U32, {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String}),
     FunctionMetadata("getFloatConfigSettingForLayer", "1.0", "getFloatConfigSettingForLayer(\"GlobalGame\", \"Main\", \"Core\", \"EmulationSpeed\")", GetFloatConfigSettingForLayer, ArgTypeEnum::Float, {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String}),
     FunctionMetadata("getStringConfigSettingForLayer", "1.0", "getStringConfigSettingForLayer(\"GlobalGame\", \"Main\", \"Core\", \"MemcardAPath\")", GetStringConfigSettingForLayer, ArgTypeEnum::String, {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String}),
-    FunctionMetadata("getEnumConfigSettingForLayer", "1.0", "getEnumConfigSettingForLayer(\"GlobalGame\", \"Main\", \"Core\", \"SlotA\", \"ExiDeviceType\")", GetEnumConfigSettingForLayer, ArgTypeEnum::String, {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String}),
+    FunctionMetadata("getEnumConfigSettingForLayer", "1.0", "getEnumConfigSettingForLayer(\"GlobalGame\", \"Main\", \"Core\", \"SlotA\", \"EXIDeviceType\")", GetEnumConfigSettingForLayer, ArgTypeEnum::String, {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String}),
+
+    FunctionMetadata("setBooleanConfigSettingForLayer", "1.0", "setBooleanConfigSettingForLayer(\"GlobalGame\", \"Main\", \"Interface\", " "\"debugModeEnabled\", true)", SetBooleanConfigSettingForLayer, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::Boolean}),
+    FunctionMetadata("setSignedIntConfigSettingForLayer", "1.0", "setSignedIntConfigSettingForLayer(\"GlobalGame\", \"Main\", \"Core\", \"TimingVariance\", 30)", SetSignedIntConfigSettingForLayer, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::Integer}),
+    FunctionMetadata("setUnsignedIntConfigSettingForLayer", "1.0", "setUnsignedIntConfigSettingForLayer(\"GlobalGame\", \"Main\", \"Core\", \"MEM1Size\", 500)", SetUnsignedIntConfigSettingForLayer, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::U32}),
+    FunctionMetadata("setFloatConfigSettingForLayer", "1.0", "setFloatConfigSettingForLayer(\"GlobalGame\", \"Main\", \"Core\", \"EmulationSpeed\", 3.4)", SetFloatConfigSettingForLayer, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::Float}),
+    FunctionMetadata("setStringConfigSettingForLayer", "1.0", "setStringConfigSettingForLayer(\"GlobalGame\", \"Main\", \"Core\", \"MemcardAPath\", \"MyFolder/subDirectory/memcardFolder\")", SetStringConfigSettingForLayer, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String}),
+    FunctionMetadata("setEnumConfigSettingForLayer", "1.0", "setEnumConfigSettingForLayer(\"GlobalGame\", \"Main\", \"Core\", \"SlotA\", " "\"EXIDeviceType\", \"MemoryCard\")", SetEnumConfigSettingForLayer, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String}),
 
 
+    FunctionMetadata("getBooleanConfigSetting", "1.0", "getBooleanConfigSetting(\"Main\", \"Interface\", " "\"debugModeEnabled\")", GetBooleanConfigSetting, ArgTypeEnum::Boolean, {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String}),
+    FunctionMetadata("getSignedIntConfigSetting", "1.0", "getSignedIntConfigSetting(\"Main\", \"Core\", \"TimingVariance\")", GetSignedIntConfigSetting, ArgTypeEnum::Integer, {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String}),
+    FunctionMetadata("getUnsignedIntConfigSetting", "1.0", "getUnsignedIntConfigSetting(\"Main\", \"Core\", \"MEM1Size\")", GetUnsignedIntConfigSetting, ArgTypeEnum::U32, {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String}),
+    FunctionMetadata("getFloatConfigSetting", "1.0", "getFloatConfigSetting(\"Main\", \"Core\", \"EmulationSpeed\")", GetFloatConfigSetting, ArgTypeEnum::Float, {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String}),
+    FunctionMetadata("getStringConfigSetting", "1.0", "getStringConfigSetting(\"Main\", \"Core\", \"MemcardAPath\")", GetStringConfigSetting, ArgTypeEnum::String, {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String}),
+    FunctionMetadata("getEnumConfigSetting", "1.0", "getEnumConfigSetting(\"Main\", \"Core\", \"SlotA\", " "\"EXIDeviceType\")", GetEnumConfigSetting, ArgTypeEnum::String, {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String}),
 
-
-
+    FunctionMetadata("saveSettings()", "1.0", "saveSettings()", SaveConfigSettings, ArgTypeEnum::VoidType, {})
 };
 
 static std::string ConvertToUpperCase(const std::string& input_string)
@@ -240,14 +251,6 @@ FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version, c
   return GetFunctionForVersion(all_config_functions_metadata_list, api_version, function_name, deprecated_functions_map);
 }
 
-ArgHolder GetLayerNames_MostGlobalFirst(ScriptContext* current_script,
-                                        std::vector<ArgHolder>& args_list);
-ArgHolder GetListOfSystems(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
-ArgHolder GetConfigEnumTypes(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
-ArgHolder GetListOfValidValuesForEnumType(ScriptContext* current_script,
-                                          std::vector<ArgHolder>& args_list);
-ArgHolder GetAllSettings(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
-
 
 std::string ConvertEnumIntToStringForType(Config::ValueType enum_type, int enum_val)
 {
@@ -361,6 +364,47 @@ std::optional<Config::System> ParseSystem(const std::string& system_name)
     return Config::System::Achievements;
   else
     return {};
+}
+
+ArgHolder GetLayerNames_MostGlobalFirst(ScriptContext* current_script,
+                                        std::vector<ArgHolder>& args_list)
+{
+  return CreateStringArgHolder(
+      "Base, CommandLine, GlobalGame, LocalGame, Movie, Netplay, CurrentRun");
+}
+
+ArgHolder GetListOfSystems(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  return CreateStringArgHolder(
+      "Main, Sysconf, GCPad, WiiPad, GCKeyboard, GFX, Logger, Debugger, DualShockUDPClient, "
+      "FreeLook, Session, GameSettingsOnly, Achievements");
+}
+
+ArgHolder GetConfigEnumTypes(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  return CreateStringArgHolder(
+      "CPUCore, DPL2Quality, EXIDeviceType, SIDeviceType, HSPDeviceType, Region, ShowCursor, "
+      "LogLevel, FreeLookControl, AspectMode, ShaderCompilationMode, TriState, "
+      "TextureFilteringMode, StereoMode, WiimoteSource");
+}
+
+ArgHolder GetListOfValidValuesForEnumType(ScriptContext* current_script,
+                                          std::vector<ArgHolder>& args_list)
+{
+  std::optional<Config::ValueType> enum_type = ParseEnumType(args_list[0].string_val);
+  if (!enum_type.has_value())
+    return CreateErrorStringArgHolder("Unknown enum type passed into function.");
+  std::string result_string = "";
+  bool first_time_in_loop = true;
+  for (auto& it : map_of_enum_type_from_string_to_int[enum_type.value()])
+  {
+    if (!first_time_in_loop)
+      result_string += ", ";
+    else
+      first_time_in_loop = false;
+    result_string += it.first;
+  }
+  return CreateStringArgHolder(result_string);
 }
 
 template <typename T>
@@ -639,18 +683,144 @@ ArgHolder SetEnumConfigSettingForLayer(ScriptContext* current_script,
  }
 }
 
+template<typename T>
+ArgHolder GetConfigSetting(std::vector<ArgHolder>& args_list, T default_value)
+{
+ std::optional<Config::System> system_name = ParseSystem(args_list[0].string_val);
+ std::string section_name = args_list[1].string_val;
+ std::string setting_name = args_list[2].string_val;
+
+ if (!system_name.has_value())
+   return CreateErrorStringArgHolder("Invalid system name of " + args_list[0].string_val +
+                                     " was used.");
+
+  Config::Info<T> info = Config::Info<T>({system_name.value(), section_name, setting_name}, default_value);
+  Config::LayerType layer = Config::GetActiveLayerForConfig(info);
+  std::optional<T> returned_config_val = Config::Get(layer, info);
+
+  if (!returned_config_val.has_value())
+    return CreateEmptyOptionalArgument();
+  else
+  {
+    if (std::is_same<T, bool>::value)
+      return CreateBoolArgHolder((*((std::optional<bool>*)&returned_config_val)).value());
+    else if (std::is_same<T, int>::value)
+      return CreateIntArgHolder((*((std::optional<int>*)&returned_config_val)).value());
+    else if (std::is_same<T, u32>::value)
+      return CreateU32ArgHolder((*((std::optional<u32>*)&returned_config_val)).value());
+    else if (std::is_same<T, float>::value)
+      return CreateFloatArgHolder((*((std::optional<float>*)&returned_config_val)).value());
+    else if (std::is_same<T, std::string>::value)
+      return CreateStringArgHolder((*((std::optional<std::string>*)&returned_config_val)).value());
+    else
+      return CreateErrorStringArgHolder("An unknown implementation error occured.");
+  }
+}
 
 
-ArgHolder GetBooleanConfigSetting(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+template <typename T>
+ArgHolder GetConfigSetting_enum(std::vector<ArgHolder>& args_list, T default_value, Config::ValueType enum_type)  // unfortunately, this needs to be in a seperate function to prevent annoying template errors in the function above.
+{
+  std::optional<Config::System> system_name = ParseSystem(args_list[0].string_val);
+  std::string section_name = args_list[1].string_val;
+  std::string setting_name = args_list[2].string_val;
+
+  if (!system_name.has_value())
+    return CreateErrorStringArgHolder("Invalid system name of " + args_list[0].string_val + " was used.");
+
+  Config::Info<T> info = Config::Info<T>({system_name.value(), section_name, setting_name}, default_value);
+  Config::LayerType layer = Config::GetActiveLayerForConfig(info);
+  std::optional<T> returned_config_val = Config::Get(layer, info);
+
+  if (!returned_config_val.has_value())
+    return CreateEmptyOptionalArgument();
+  else
+  {
+    std::string resulting_enum_string =
+        ConvertEnumIntToStringForType(enum_type, (int)returned_config_val.value());
+    if (resulting_enum_string.empty())
+      return CreateEmptyOptionalArgument();
+    else
+      return CreateStringArgHolder(resulting_enum_string);
+  }
+}
+
+ArgHolder GetBooleanConfigSetting(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  return GetConfigSetting(args_list, (bool)false);
+
+}
+
 ArgHolder GetSignedIntConfigSetting(ScriptContext* current_script,
-                                    std::vector<ArgHolder>& args_list);
+                                    std::vector<ArgHolder>& args_list)
+{
+  return GetConfigSetting(args_list, (int)0);
+}
+
 ArgHolder GetUnsignedIntConfigSetting(ScriptContext* current_script,
-                                      std::vector<ArgHolder>& args_list);
-ArgHolder GetFloatConfigSetting(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
-ArgHolder GetStringConfigSetting(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
-ArgHolder GetEnumConfigSetting(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+                                      std::vector<ArgHolder>& args_list)
+{
+  return GetConfigSetting(args_list, (u32)0);
+}
 
-ArgHolder SaveConfigSettings(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder GetFloatConfigSetting(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  return GetConfigSetting(args_list, (float)0.0f);
+}
 
+ArgHolder GetStringConfigSetting(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  return GetConfigSetting(args_list, std::string());
+}
+
+ArgHolder GetEnumConfigSetting(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  std::string raw_enum_name = args_list[3].string_val;
+  std::optional<Config::ValueType> optional_parsed_enum = ParseEnumType(raw_enum_name);
+  if (!optional_parsed_enum.has_value())
+    return CreateErrorStringArgHolder("Invalid enum type name passed into function");
+  Config::ValueType parsed_enum = optional_parsed_enum.value();
+  switch (parsed_enum)
+  {
+  case Config::ValueType::ASPECT_MODE:
+    return GetConfigSetting_enum(args_list, (AspectMode)AspectMode::Auto, parsed_enum);
+  case Config::ValueType::CPU_CORE:
+    return GetConfigSetting_enum(args_list, (PowerPC::CPUCore)PowerPC::CPUCore::JIT64, parsed_enum);
+  case Config::ValueType::DPL2_QUALITY:
+    return GetConfigSetting_enum(args_list, (AudioCommon::DPL2Quality)AudioCommon::DPL2Quality::High, parsed_enum);
+  case Config::ValueType::EXI_DEVICE_TYPE:
+    return GetConfigSetting_enum(args_list, (ExpansionInterface::EXIDeviceType)ExpansionInterface::EXIDeviceType::MemoryCard, parsed_enum);
+  case Config::ValueType::FREE_LOOK_CONTROL_TYPE:
+    return GetConfigSetting_enum(args_list, (FreeLook::ControlType)FreeLook::ControlType::FPS, parsed_enum);
+  case Config::ValueType::HSP_DEVICE_TYPE:
+    return GetConfigSetting_enum(args_list, (HSP::HSPDeviceType)HSP::HSPDeviceType::None, parsed_enum);
+  case Config::ValueType::LOG_LEVEL_TYPE:
+    return GetConfigSetting_enum(args_list, (Common::Log::LogLevel)Common::Log::LogLevel::LINFO, parsed_enum);
+  case Config::ValueType::REGION:
+    return GetConfigSetting_enum(args_list, (DiscIO::Region)DiscIO::Region::NTSC_U, parsed_enum);
+  case Config::ValueType::SHADER_COMPILATION_MODE:
+    return GetConfigSetting_enum(args_list, (ShaderCompilationMode)ShaderCompilationMode::Synchronous, parsed_enum);
+  case Config::ValueType::SHOW_CURSOR_VALUE_TYPE:
+    return GetConfigSetting_enum(args_list, (Config::ShowCursor)Config::ShowCursor::OnMovement, parsed_enum);
+  case Config::ValueType::SI_DEVICE_TYPE:
+    return GetConfigSetting_enum(args_list, (SerialInterface::SIDevices)SerialInterface::SIDevices::SIDEVICE_GC_CONTROLLER, parsed_enum);
+  case Config::ValueType::STERERO_MODE:
+    return GetConfigSetting_enum(args_list, (StereoMode)StereoMode::Off, parsed_enum);
+  case Config::ValueType::TEXTURE_FILTERING_MODE:
+    return GetConfigSetting_enum(args_list, (TextureFilteringMode)TextureFilteringMode::Default, parsed_enum);
+  case Config::ValueType::TRI_STATE:
+    return GetConfigSetting_enum(args_list, (TriState)TriState::Auto, parsed_enum);
+  case Config::ValueType::WIIMOTE_SOURCE:
+    return GetConfigSetting_enum(args_list, (WiimoteSource)WiimoteSource::None, parsed_enum);
+  default:
+    return CreateErrorStringArgHolder("An unknown implementation error occured. Did you add a new enum type to the ConfigAPI?");
+  }
+}
+
+ArgHolder SaveConfigSettings(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+ Config::Save();
+ return CreateVoidTypeArgHolder();
+}
 
 }  // namespace Scripting::ConfigAPI

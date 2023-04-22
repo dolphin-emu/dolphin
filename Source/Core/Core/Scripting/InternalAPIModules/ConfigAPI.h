@@ -19,7 +19,6 @@ ArgHolder GetLayerNames_MostGlobalFirst(ScriptContext* current_script, std::vect
 ArgHolder GetListOfSystems(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder GetConfigEnumTypes(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder GetListOfValidValuesForEnumType(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
-ArgHolder GetAllSettings(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 
 ArgHolder GetBooleanConfigSettingForLayer(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder GetSignedIntConfigSettingForLayer(ScriptContext* current_script, std::vector<ArgHolder>& args_list);

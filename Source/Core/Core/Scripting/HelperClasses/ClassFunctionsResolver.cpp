@@ -8,6 +8,7 @@
 #include "Core/Scripting/EventCallbackRegistrationAPIs/OnWiiInputPolledCallbackAPI.h"
 
 #include "Core/Scripting/InternalAPIModules/BitAPI.h"
+#include "Core/Scripting/InternalAPIModules/ConfigAPI.h"
 #include "Core/Scripting/InternalAPIModules/EmuAPI.h"
 #include "Core/Scripting/InternalAPIModules/GameCubeControllerAPI.h"
 #include "Core/Scripting/InternalAPIModules/GraphicsAPI.h"
@@ -27,6 +28,9 @@ ClassMetadata GetClassMetadataForModule(const std::string& module_name, const st
 
   if (module_name == Scripting::BitApi::class_name)
     return Scripting::BitApi::GetClassMetadataForVersion(version_number);
+
+  else if (module_name == Scripting::ConfigAPI::class_name)
+    return Scripting::ConfigAPI::GetClassMetadataForVersion(version_number);
 
   else if (module_name == Scripting::EmuApi::class_name)
     return Scripting::EmuApi::GetClassMetadataForVersion(version_number);
