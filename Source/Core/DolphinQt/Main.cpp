@@ -260,14 +260,7 @@ int main(int argc, char* argv[])
     MainWindow win{std::move(boot), static_cast<const char*>(options.get("movie"))};
     Settings::Instance().SetCurrentUserStyle(Settings::Instance().GetCurrentUserStyle());
     win.Show();
-    
-    #ifdef _WIN32
-    QString program = "Plugin/Updater/Updater.exe";
-    QStringList arguments =  "/S";
- 
-    QProcess *process = new QProcess();
-    process->start(program, arguments);
-    #endif
+
 
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
