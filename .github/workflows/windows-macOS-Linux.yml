@@ -98,7 +98,7 @@ jobs:
         path: /Users/runner/work/Dolphin-MPN/Dolphin-MPN/build/Binaries/
     # Upload Artifact
     - name: Upload Build Artifact
-      if: matrix.os == 'linux-latest'
+      if: matrix.os == 'ubuntu-latest'
       uses: actions/upload-artifact@v2
       with:
         name: DolphinMPN-Linux
