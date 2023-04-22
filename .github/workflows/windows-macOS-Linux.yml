@@ -105,31 +105,31 @@ jobs:
         path: /home/runner/work/Dolphin-MPN/Dolphin-MPN/build/Binaries/
     # Zip Artifact
     - name: Zip Artifact
-      if: matrix.os == 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-latest' && startsWith(github.ref, 'refs/tags/')
       run: 7z a -tzip /home/runner/DolphinMPN-linux /home/runner/work/Dolphin-MPN/Dolphin-MPN/build/Binaries/*
     # New Release
     - name: New Release
-      if: ${{ startsWith(github.ref, 'refs/tags/') }} && matrix.os == 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-latest' && startsWith(github.ref, 'refs/tags/')
       uses: ncipollo/release-action@v1.12.0
       with:
         artifacts: /home/runner/DolphinMPN-linux.7z
     # Zip Artifact
     - name: Zip Artifact
-      if: matrix.os == 'macos-latest'
+      if: matrix.os == 'macos-latest' && startsWith(github.ref, 'refs/tags/')
       run: 7z a -tzip /Users/runner/DolphinMPN-macOS-intel /Users/runner/work/Dolphin-MPN/Dolphin-MPN/build/Binaries/*
     # New Release
     - name: New Release
-      if: ${{ startsWith(github.ref, 'refs/tags/') }} && matrix.os == 'macos-latest'
+      if: matrix.os == 'macos-latest' && startsWith(github.ref, 'refs/tags/')
       uses: ncipollo/release-action@v1.12.0
       with:
         artifacts: /Users/runner/DolphinMPN-macOS-intel.7z
     # Zip Artifact
     - name: Zip Artifact
-      if: ${{ startsWith(github.ref, 'refs/tags/') }} && matrix.os == 'windows-latest'
+      if: matrix.os == 'windows-latest' && startsWith(github.ref, 'refs/tags/')
       run: 7z a -tzip D:/DolphinMPN-win32 D:/a/Dolphin-MPN/Dolphin-MPN/Binary/x64/*
     # New Release
     - name: New Release
-      if: ${{ startsWith(github.ref, 'refs/tags/') }} && matrix.os == 'windows-latest'
+      if: matrix.os == 'windows-latest' && startsWith(github.ref, 'refs/tags/')
       uses: ncipollo/release-action@v1.12.0
       with:
         artifacts: D:/DolphinMPN-win32.7z
