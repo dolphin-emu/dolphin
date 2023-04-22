@@ -38,9 +38,6 @@ jobs:
     # Build Project
     - name: Run Ninja
       run: cd build && ninja -j4
-    # Configure Dolphin
-    - name: Configure Dolphin
-      run: cd build && mkdir Binaries/OUT/ && cp -r Binaries/Dolphin.app Binaries/OUT/ && cp -r ../Data/Sys/ Binaries/OUT/Dolphin.app/Contents/Resources && cp -r ../Data/User/ Binaries/OUT/Dolphin.app/Contents/Resources && touch Binaries/OUT/portable.txt
     # Upload Artifact
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v2
