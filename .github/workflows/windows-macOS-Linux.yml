@@ -46,14 +46,14 @@ jobs:
         platform: mac
     # Setup CMake
     - name: Setup CMake
-      if: matrix.os == 'linux-latest'
+      if: matrix.os == 'ubuntu-latest'
       uses: Symbitic/install-cmake@v0.1.1
       with:
         platform: linux
     # Use Static ZSTD
     - name: Remove ZSTD
       if: matrix.os == 'macos-latest'
-      run: brew uninstall zstd curl php --force --ignore-dependencies
+      run: brew uninstall zstd curl php --foubunturce --ignore-dependencies
     # Run CMake
     - name: Run CMake
       if: matrix.os == 'macos-latest'
@@ -68,19 +68,19 @@ jobs:
       run: msbuild "D:\a\Dolphin-MPN\Dolphin-MPN\Source\dolphin-emu.sln" /verbosity:minimal /property:Configuration=Release  /property:Platform=x64
     # Setup Packages
     - name: Setup Packages
-      if: matrix.os == 'linux-latest'
+      if: matrix.os == 'ubuntu-latest'
       run: sudo apt update && sudo apt upgrade && sudo apt install p7zip-full build-essential git cmake ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libevdev-dev libusb-1.0-0-dev libxrandr-dev libxi-dev libpangocairo-1.0-0 qt6-base-private-dev libbluetooth-dev libasound2-dev libpulse-dev libgl1-mesa-dev libudev-dev libsystemd-dev dpkg-dev
     # Run CMake
     - name: Run CMake
-      if: matrix.os == 'linux-latest'
+      if: matrix.os == 'ubuntu-latest'
       run: mkdir build && cd build && cmake .. -G Ninja -DLINUX_LOCAL_DEV=true -DCPACK_PACKAGE_CONTACT="Mario Party Netplay" -DDISTRIBUTOR="Mario Party Netplay"
     # Build Project
     - name: Run Make
-      if: matrix.os == 'linux-latest'
+      if: matrix.os == 'ubuntu-latest'
       run: cd build && ninja -j$(nproc)
     # Configure Dolphin
     - name: Configure Dolphin
-      if: matrix.os == 'linux-latest'
+      if: matrix.os == 'ubuntu-latest'
       run: cd build && cp -r ../Data/Sys/ Binaries/ && cp -r ../Data/User/ Binaries/ && cp -r ../Data/dolphin-emu.png Binaries/ && touch Binaries/portable.txt
     # Upload Artifact
     - name: Upload Build Artifact
