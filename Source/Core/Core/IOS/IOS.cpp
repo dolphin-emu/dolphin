@@ -544,7 +544,6 @@ void Kernel::AddCoreDevices()
   std::lock_guard lock(m_device_map_mutex);
   AddDevice(std::make_unique<FSDevice>(*this, "/dev/fs"));
   AddDevice(std::make_unique<ESDevice>(*this, "/dev/es"));
-  AddDevice(std::make_unique<DolphinDevice>(*this, "/dev/dolphin"));
 }
 
 void Kernel::AddStaticDevices()
@@ -552,6 +551,9 @@ void Kernel::AddStaticDevices()
   std::lock_guard lock(m_device_map_mutex);
 
   const Feature features = GetFeatures(GetVersion());
+
+  // Dolphin-specific device for letting homebrew access and alter emulator state.
+  AddDevice(std::make_unique<DolphinDevice>(*this, "/dev/dolphin"));
 
   // OH1 (Bluetooth)
   AddDevice(std::make_unique<DeviceStub>(*this, "/dev/usb/oh1"));
