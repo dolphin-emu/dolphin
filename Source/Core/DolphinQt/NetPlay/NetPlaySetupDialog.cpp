@@ -446,7 +446,7 @@ void NetPlaySetupDialog::RefreshBrowser()
     filters["name"] = m_edit_name->text().toStdString();
 
   if (true)
-    filters["version"] = "MPN";
+    filters["version"] = Common::GetScmDescStr();
 
   if (!m_radio_all->isChecked())
     filters["password"] = std::to_string(m_radio_private->isChecked());
@@ -528,7 +528,7 @@ void NetPlaySetupDialog::UpdateListBrowser()
     auto* game_id = new QTableWidgetItem(QString::fromStdString(entry.game_id));
     auto* player_count = new QTableWidgetItem(QStringLiteral("%1").arg(entry.player_count));
 
-    const bool enabled = Common::GetScmDescStr() == "MPN";
+    const bool enabled = Common::GetScmDescStr() == entry.version;
 
     for (const auto& item : {name, game_id, player_count, in_game})
       item->setFlags(enabled ? Qt::ItemIsEnabled | Qt::ItemIsSelectable : Qt::NoItemFlags);
