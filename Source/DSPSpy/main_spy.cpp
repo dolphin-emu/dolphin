@@ -294,16 +294,25 @@ void handle_dsp_mail(void)
       // Not really sure why this is important - I guess just to try to keep tests predictable.
       u16* tmpBuf = (u16*)MEM_VIRTUAL_TO_PHYSICAL(mem_dump);
 
-      while (real_dsp.CheckMailTo()) {}
+      while (real_dsp.CheckMailTo())
+      {
+      }
       real_dsp.SendMailTo((u32)tmpBuf);
-      while (real_dsp.CheckMailTo()) {}
+      while (real_dsp.CheckMailTo())
+      {
+      }
     }
     else if (mail == 0x8888beef)
     {
-      // Provide register base to DSP (if using dsp_base.inc, it will DMA them to the correct place.)
-      while (real_dsp.CheckMailTo()) {}
+      // Provide register base to DSP (if using dsp_base.inc, it will DMA them to the correct
+      // place.)
+      while (real_dsp.CheckMailTo())
+      {
+      }
       real_dsp.SendMailTo((u32)dspbufP);
-      while (real_dsp.CheckMailTo()) {}
+      while (real_dsp.CheckMailTo())
+      {
+      }
     }
     else if (mail == 0x8888feeb)
     {
@@ -314,9 +323,13 @@ void handle_dsp_mail(void)
 
       dsp_steps++;
 
-      while (real_dsp.CheckMailTo()) {}
+      while (real_dsp.CheckMailTo())
+      {
+      }
       real_dsp.SendMailTo(0x8000dead);
-      while (real_dsp.CheckMailTo()) {}
+      while (real_dsp.CheckMailTo())
+      {
+      }
     }
     else if (mail == 0x80050000)
     {
@@ -327,16 +340,24 @@ void handle_dsp_mail(void)
     else if (mail == 0x8888c0de)
     {
       // DSP has copied irom to its DRAM...send address so it can DMA it back.
-      while (real_dsp.CheckMailTo()) {}
+      while (real_dsp.CheckMailTo())
+      {
+      }
       real_dsp.SendMailTo((u32)dspbufP);
-      while (real_dsp.CheckMailTo()) {}
+      while (real_dsp.CheckMailTo())
+      {
+      }
     }
     else if (mail == 0x8888da7a)
     {
       // DSP has copied coef to its DRAM...send address so it can DMA it back. 
-      while (real_dsp.CheckMailTo()) {}
+      while (real_dsp.CheckMailTo())
+      {
+      }
       real_dsp.SendMailTo((u32)&dspbufP[0x1000]);
-      while (real_dsp.CheckMailTo()) {}
+      while (real_dsp.CheckMailTo())
+      {
+      }
 
       // Now we can do something useful with the buffer :)
       DumpDSP_ROMs(dspbufP, &dspbufP[0x1000]);
@@ -535,7 +556,8 @@ int main()
     CON_Printf(4, 19, "+/- (GC:'L'/'R') to move");
     CON_Printf(4, 20, "A (GC:'A') to edit register; B (GC:'B') to start over");
     CON_Printf(4, 21, "1 (GC:'Z') to move next microcode");
-    CON_Printf(4, 22, "2 (GC:'X') dump results to SD; UP (GC:'Y') dump results to SD (SINGLE FILE)");
+    CON_Printf(4, 22,
+               "2 (GC:'X') dump results to SD; UP (GC:'Y') dump results to SD (SINGLE FILE)");
     CON_Printf(4, 23, "Home (GC:'START') to exit");
 #else
     CON_Printf(2, 18, "Controls:");
@@ -567,7 +589,8 @@ int main()
     if (PAD_ButtonsDown(0) & PAD_BUTTON_B)
 #endif
     {
-      dsp_steps = 0;  // Let's not add the new steps after the original ones. That was just annoying.
+      dsp_steps =
+          0;  // Let's not add the new steps after the original ones. That was just annoying.
 
       DCInvalidateRange(dspbufC, 0x2000);
       DCFlushRange(dspbufC, 0x2000);
@@ -634,7 +657,8 @@ int main()
       dump_all_ucodes(false);
     }
 
-    // Dump all results into 1 file (skip file per ucode part) = FAST because of LIBFAT filecreate bug.
+    // Dump all results into 1 file (skip file per ucode part) = FAST because of LIBFAT filecreate
+    // bug.
     if ((WPAD_ButtonsDown(0) & WPAD_BUTTON_UP) || (PAD_ButtonsDown(0) & PAD_BUTTON_Y))
     {
       dump_all_ucodes(true);
