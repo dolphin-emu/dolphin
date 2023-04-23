@@ -1,4 +1,4 @@
-gi#include "Discord.h"
+#include "Discord.h"
 #include "UICommon/DiscordPresence.h"
 #include "Core/Config/NetplaySettings.h"
 
