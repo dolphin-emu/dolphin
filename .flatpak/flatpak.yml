@@ -118,8 +118,6 @@ modules:
       # prevents dolphin from attempting to write conf files
       # in non-writable paths, typically happens when a user
       # has leftover files from a previous non-flatpak install
-      - type: patch
-        path: detectflatpak.patch
       - type: script
         commands:
           - |
