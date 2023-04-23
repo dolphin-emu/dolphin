@@ -18,10 +18,10 @@ class PointerWrap;
 namespace IOS::HLE
 {
 // The front SD slot
-class SDIOSlot0Device : public Device
+class SDIOSlot0Device : public EmulationDevice
 {
 public:
-  SDIOSlot0Device(Kernel& ios, const std::string& device_name);
+  SDIOSlot0Device(EmulationKernel& ios, const std::string& device_name);
   ~SDIOSlot0Device() override;
 
   void DoState(PointerWrap& p) override;

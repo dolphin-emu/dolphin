@@ -21,10 +21,10 @@ constexpr const char DL_CNT_PATH[] = "/" WII_WC24CONF_DIR "/dlcnt.bin";
 // KD is the IOS module responsible for implementing WiiConnect24 functionality.
 // It can perform HTTPS downloads, send and receive mail via SMTP, and execute a
 // JavaScript-like language while the Wii is in standby mode.
-class NetKDRequestDevice : public Device
+class NetKDRequestDevice : public EmulationDevice
 {
 public:
-  NetKDRequestDevice(Kernel& ios, const std::string& device_name);
+  NetKDRequestDevice(EmulationKernel& ios, const std::string& device_name);
   IPCReply HandleNWC24DownloadNowEx(const IOCtlRequest& request);
   NWC24::ErrorCode KDDownload(const u16 entry_index, const std::optional<u8> subtask_id);
   ~NetKDRequestDevice() override;

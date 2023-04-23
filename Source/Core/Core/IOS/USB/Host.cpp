@@ -29,7 +29,8 @@
 
 namespace IOS::HLE
 {
-USBHost::USBHost(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
+USBHost::USBHost(EmulationKernel& ios, const std::string& device_name)
+    : EmulationDevice(ios, device_name)
 {
 }
 
@@ -137,7 +138,8 @@ bool USBHost::AddNewDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks
         if (whitelist.count({descriptor.idVendor, descriptor.idProduct}) == 0)
           return true;
 
-        auto usb_device = std::make_unique<USB::LibusbDevice>(m_ios, device, descriptor);
+        auto usb_device =
+            std::make_unique<USB::LibusbDevice>(GetEmulationKernel(), device, descriptor);
         if (!ShouldAddDevice(*usb_device))
           return true;
 
@@ -190,7 +192,8 @@ void USBHost::AddEmulatedDevices(std::set<u64>& new_devices, DeviceChangeHooks& 
 {
   if (Config::Get(Config::MAIN_EMULATE_SKYLANDER_PORTAL) && !NetPlay::IsNetPlayRunning())
   {
-    auto skylanderportal = std::make_unique<USB::SkylanderUSB>(m_ios, "Skylander Portal");
+    auto skylanderportal =
+        std::make_unique<USB::SkylanderUSB>(GetEmulationKernel(), "Skylander Portal");
     if (ShouldAddDevice(*skylanderportal))
     {
       const u64 skyid = skylanderportal->GetId();

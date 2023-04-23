@@ -119,24 +119,11 @@ public:
   explicit Kernel(IOSC::ConsoleType console_type = IOSC::ConsoleType::Retail);
   virtual ~Kernel();
 
-  void DoState(PointerWrap& p);
-  void HandleIPCEvent(u64 userdata);
-  void UpdateIPC();
-  void UpdateDevices();
-  void UpdateWantDeterminism(bool new_want_determinism);
-
   // These are *always* part of the IOS kernel and always available.
   // They are also the only available resource managers even before loading any module.
   std::shared_ptr<FS::FileSystem> GetFS();
   std::shared_ptr<FSDevice> GetFSDevice();
   std::shared_ptr<ESDevice> GetES();
-
-  // This is only available on an EmulationKernel if the IOS features require it.
-  std::shared_ptr<WiiSockMan> GetSocketManager();
-
-  void EnqueueIPCRequest(u32 address);
-  void EnqueueIPCReply(const Request& request, s32 return_value, s64 cycles_in_future = 0,
-                       CoreTiming::FromThread from = CoreTiming::FromThread::CPU);
 
   void SetUidForPPC(u32 uid);
   u32 GetUidForPPC() const;
@@ -154,15 +141,9 @@ public:
 protected:
   explicit Kernel(u64 title_id);
 
-  void ExecuteIPCCommand(u32 address);
-  std::optional<IPCReply> HandleIPCCommand(const Request& request);
-
   void AddDevice(std::unique_ptr<Device> device);
   void AddCoreDevices();
-  void AddStaticDevices();
   std::shared_ptr<Device> GetDeviceByName(std::string_view device_name);
-  s32 GetFreeDeviceID();
-  std::optional<IPCReply> OpenDevice(OpenRequest& request);
 
   bool m_is_responsible_for_nand_root = false;
   u64 m_title_id = 0;
@@ -187,15 +168,40 @@ protected:
 };
 
 // HLE for an IOS tied to emulation: base kernel which may have additional modules loaded.
-class EmulationKernel : public Kernel
+class EmulationKernel final : public Kernel
 {
 public:
-  explicit EmulationKernel(u64 ios_title_id);
+  EmulationKernel(Core::System& system, u64 ios_title_id);
   ~EmulationKernel();
 
   // Get a resource manager by name.
   // This only works for devices which are part of the device map.
   std::shared_ptr<Device> GetDeviceByName(std::string_view device_name);
+
+  void DoState(PointerWrap& p);
+  void UpdateDevices();
+  void UpdateWantDeterminism(bool new_want_determinism);
+
+  std::shared_ptr<WiiSockMan> GetSocketManager();
+
+  void HandleIPCEvent(u64 userdata);
+  void UpdateIPC();
+
+  void EnqueueIPCRequest(u32 address);
+  void EnqueueIPCReply(const Request& request, s32 return_value, s64 cycles_in_future = 0,
+                       CoreTiming::FromThread from = CoreTiming::FromThread::CPU);
+
+  Core::System& GetSystem() const { return m_system; }
+
+private:
+  Core::System& m_system;
+
+  void ExecuteIPCCommand(u32 address);
+  std::optional<IPCReply> HandleIPCCommand(const Request& request);
+
+  void AddStaticDevices();
+  s32 GetFreeDeviceID();
+  std::optional<IPCReply> OpenDevice(OpenRequest& request);
 };
 
 // Used for controlling and accessing an IOS instance that is tied to emulation.

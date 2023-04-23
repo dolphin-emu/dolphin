@@ -147,8 +147,8 @@ s32 NWC24MakeUserID(u64* nwc24_id, u32 hollywood_id, u16 id_ctr, HardwareModel h
 }
 }  // Anonymous namespace
 
-NetKDRequestDevice::NetKDRequestDevice(Kernel& ios, const std::string& device_name)
-    : Device(ios, device_name), config{ios.GetFS()}, m_dl_list{ios.GetFS()}
+NetKDRequestDevice::NetKDRequestDevice(EmulationKernel& ios, const std::string& device_name)
+    : EmulationDevice(ios, device_name), config{ios.GetFS()}, m_dl_list{ios.GetFS()}
 {
   m_work_queue.Reset("WiiConnect24 Worker", [this](AsyncTask task) {
     const IPCReply reply = task.handler();
@@ -161,7 +161,7 @@ NetKDRequestDevice::NetKDRequestDevice(Kernel& ios, const std::string& device_na
 
 NetKDRequestDevice::~NetKDRequestDevice()
 {
-  auto socket_manager = m_ios.GetSocketManager();
+  auto socket_manager = GetEmulationKernel().GetSocketManager();
   if (socket_manager)
     socket_manager->Clean();
 }
@@ -173,7 +173,7 @@ void NetKDRequestDevice::Update()
     while (!m_async_replies.empty())
     {
       const auto& reply = m_async_replies.front();
-      GetIOS()->EnqueueIPCReply(reply.request, reply.return_value);
+      GetEmulationKernel().EnqueueIPCReply(reply.request, reply.return_value);
       m_async_replies.pop();
     }
   }
@@ -236,7 +236,7 @@ NWC24::ErrorCode NetKDRequestDevice::KDDownload(const u16 entry_index,
 IPCReply NetKDRequestDevice::HandleNWC24DownloadNowEx(const IOCtlRequest& request)
 {
   m_dl_list.ReadDlList();
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
   const u32 flags = memory.Read_U32(request.buffer_in);
   // Nintendo converts the entry ID between a u32 and u16
@@ -321,7 +321,7 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
     IOCTL_NWC24_REQUEST_SHUTDOWN = 0x28,
   };
 
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
   s32 return_value = 0;
   switch (request.request)
@@ -350,7 +350,7 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
 
   case IOCTL_NWC24_CLEANUP_SOCKET:
     INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_CLEANUP_SOCKET");
-    m_ios.GetSocketManager()->Clean();
+    GetEmulationKernel().GetSocketManager()->Clean();
     break;
 
   case IOCTL_NWC24_LOCK_SOCKET:  // WiiMenu
@@ -454,7 +454,7 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
     // SOGetInterfaceOpt(0xfffe,0xc001);  // DHCP lease time remaining?
     // SOGetInterfaceOpt(0xfffe,0x1003);  // Error
     // Call /dev/net/ip/top 0x1b (SOCleanup), it closes all sockets
-    m_ios.GetSocketManager()->Clean();
+    GetEmulationKernel().GetSocketManager()->Clean();
     return_value = IPC_SUCCESS;
     break;
   }

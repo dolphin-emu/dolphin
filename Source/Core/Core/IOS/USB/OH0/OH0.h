@@ -33,7 +33,7 @@ struct DeviceInfo
 class OH0 final : public USBHost
 {
 public:
-  OH0(Kernel& ios, const std::string& device_name);
+  OH0(EmulationKernel& ios, const std::string& device_name);
   ~OH0() override;
 
   std::optional<IPCReply> Open(const OpenRequest& request) override;
