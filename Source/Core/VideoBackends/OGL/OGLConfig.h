@@ -22,6 +22,14 @@ enum GlslVersion
   GlslEs310,  // GLES 3.1
   GlslEs320,  // GLES 3.2
 };
+
+enum class EsPointSizeType
+{
+  PointSizeNone,
+  PointSizeOes,
+  PointSizeExt,
+};
+
 enum class EsTexbufType
 {
   TexbufNone,
@@ -35,6 +43,13 @@ enum class EsFbFetchType
   FbFetchNone,
   FbFetchExt,
   FbFetchArm,
+};
+
+enum class MultisampleTexStorageType
+{
+  TexStorageNone,
+  TexStorageCore,
+  TexStorageOes,
 };
 
 // ogl-only config, so not in VideoConfig.h
@@ -51,11 +66,10 @@ struct VideoConfig
   bool bSupportsAEP;
   bool bSupportsDebug;
   bool bSupportsCopySubImage;
-  u8 SupportedESPointSize;
+  EsPointSizeType SupportedESPointSize;
   EsTexbufType SupportedESTextureBuffer;
   bool bSupportsTextureStorage;
-  bool bSupports2DTextureStorageMultisample;
-  bool bSupports3DTextureStorageMultisample;
+  MultisampleTexStorageType SupportedMultisampleTexStorage;
   bool bSupportsConservativeDepth;
   bool bSupportsImageLoadStore;
   bool bSupportsAniso;

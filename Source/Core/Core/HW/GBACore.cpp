@@ -305,7 +305,7 @@ CoreInfo Core::GetCoreInfo() const
   info.has_rom = !m_rom_path.empty();
   info.has_ereader =
       info.is_gba && static_cast<::GBA*>(m_core->board)->memory.hw.devices & HW_EREADER;
-  m_core->desiredVideoDimensions(m_core, &info.width, &info.height);
+  m_core->currentVideoSize(m_core, &info.width, &info.height);
   info.game_title = m_game_title;
   return info;
 }
@@ -392,7 +392,7 @@ void Core::SetSIODriver()
 void Core::SetVideoBuffer()
 {
   u32 width, height;
-  m_core->desiredVideoDimensions(m_core, &width, &height);
+  m_core->currentVideoSize(m_core, &width, &height);
   m_video_buffer.resize(width * height);
   m_core->setVideoBuffer(m_core, m_video_buffer.data(), width);
   if (auto host = m_host.lock())

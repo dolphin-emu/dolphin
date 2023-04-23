@@ -130,12 +130,18 @@ OGLTexture::OGLTexture(const TextureConfig& tex_config, std::string_view name)
   GLenum gl_internal_format = GetGLInternalFormatForTextureFormat(m_config.format, true);
   if (tex_config.IsMultisampled())
   {
-    if (g_ogl_config.bSupportsTextureStorage)
+    ASSERT(g_ogl_config.bSupportsMSAA);
+    if (g_ogl_config.SupportedMultisampleTexStorage != MultisampleTexStorageType::TexStorageNone)
+    {
       glTexStorage3DMultisample(target, tex_config.samples, gl_internal_format, m_config.width,
                                 m_config.height, m_config.layers, GL_FALSE);
+    }
     else
+    {
+      ASSERT(!g_ogl_config.bIsES);
       glTexImage3DMultisample(target, tex_config.samples, gl_internal_format, m_config.width,
                               m_config.height, m_config.layers, GL_FALSE);
+    }
   }
   else if (g_ogl_config.bSupportsTextureStorage)
   {

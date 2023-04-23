@@ -308,6 +308,7 @@ Kernel::~Kernel()
   {
     std::lock_guard lock(m_device_map_mutex);
     m_device_map.clear();
+    m_socket_manager.reset();
   }
 
   if (m_is_responsible_for_nand_root)
@@ -361,6 +362,11 @@ std::shared_ptr<FSDevice> Kernel::GetFSDevice()
 std::shared_ptr<ESDevice> Kernel::GetES()
 {
   return std::static_pointer_cast<ESDevice>(m_device_map.at("/dev/es"));
+}
+
+std::shared_ptr<WiiSockMan> Kernel::GetSocketManager()
+{
+  return m_socket_manager;
 }
 
 // Since we don't have actual processes, we keep track of only the PPC's UID/GID.
@@ -562,6 +568,11 @@ void Kernel::AddStaticDevices()
   AddDevice(std::make_unique<DeviceStub>(*this, "/dev/sdio/slot1"));
 
   // Network modules
+  if (HasFeature(features, Feature::KD) || HasFeature(features, Feature::SO) ||
+      HasFeature(features, Feature::SSL))
+  {
+    m_socket_manager = std::make_shared<IOS::HLE::WiiSockMan>();
+  }
   if (HasFeature(features, Feature::KD))
   {
     AddDevice(std::make_unique<NetKDRequestDevice>(*this, "/dev/net/kd/request"));
@@ -825,7 +836,8 @@ void Kernel::UpdateDevices()
 
 void Kernel::UpdateWantDeterminism(const bool new_want_determinism)
 {
-  WiiSockMan::GetInstance().UpdateWantDeterminism(new_want_determinism);
+  if (m_socket_manager)
+    m_socket_manager->UpdateWantDeterminism(new_want_determinism);
   for (const auto& device : m_device_map)
     device.second->UpdateWantDeterminism(new_want_determinism);
 }
@@ -845,6 +857,9 @@ void Kernel::DoState(PointerWrap& p)
 
   if (m_title_id == Titles::MIOS)
     return;
+
+  if (m_socket_manager)
+    m_socket_manager->DoState(p);
 
   for (const auto& entry : m_device_map)
     entry.second->DoState(p);

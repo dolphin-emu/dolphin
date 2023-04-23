@@ -35,6 +35,7 @@ class FileSystem;
 class Device;
 class ESDevice;
 class FSDevice;
+class WiiSockMan;
 
 struct Request;
 struct OpenRequest;
@@ -130,6 +131,9 @@ public:
   std::shared_ptr<FSDevice> GetFSDevice();
   std::shared_ptr<ESDevice> GetES();
 
+  // This is only available on an EmulationKernel if the IOS features require it.
+  std::shared_ptr<WiiSockMan> GetSocketManager();
+
   void EnqueueIPCRequest(u32 address);
   void EnqueueIPCReply(const Request& request, s32 return_value, s64 cycles_in_future = 0,
                        CoreTiming::FromThread from = CoreTiming::FromThread::CPU);
@@ -179,6 +183,7 @@ protected:
 
   IOSC m_iosc;
   std::shared_ptr<FS::FileSystem> m_fs;
+  std::shared_ptr<WiiSockMan> m_socket_manager;
 };
 
 // HLE for an IOS tied to emulation: base kernel which may have additional modules loaded.

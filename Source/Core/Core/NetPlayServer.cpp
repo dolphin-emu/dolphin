@@ -1721,7 +1721,15 @@ std::optional<SaveSyncInfo> NetPlayServer::CollectSaveSyncInfo()
       for (const u64 title : ios.GetES()->GetInstalledTitles())
       {
         auto save = WiiSave::MakeNandStorage(sync_info.configured_fs.get(), title);
-        sync_info.wii_saves.emplace_back(title, std::move(save));
+        if (save && save->ReadHeader().has_value() && save->ReadBkHeader().has_value() &&
+            save->ReadFiles().has_value())
+        {
+          sync_info.wii_saves.emplace_back(title, std::move(save));
+        }
+        else
+        {
+          INFO_LOG_FMT(NETPLAY, "Skipping Wii save of title {:016x}.", title);
+        }
       }
     }
     else if (sync_info.game->GetPlatform() == DiscIO::Platform::WiiDisc ||
