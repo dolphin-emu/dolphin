@@ -285,8 +285,6 @@ add_executable(dolphin-emu
   QtUtils/UTF8CodePointCountValidator.h
   QtUtils/WindowActivationEventFilter.cpp
   QtUtils/WindowActivationEventFilter.h
-  QtUtils/WinIconHelper.cpp
-  QtUtils/WinIconHelper.h
   QtUtils/WrapInScrollArea.cpp
   QtUtils/WrapInScrollArea.h
   RenderWidget.cpp

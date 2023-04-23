@@ -583,7 +583,7 @@ void MemoryViewWidget::UpdateBreakpointTags()
     {
       m_table->item(i, 0)->setData(
           Qt::DecorationRole,
-          Resources::GetScaledThemeIcon("debugger_breakpoint")
+          Resources::GetThemeIcon("debugger_breakpoint")
               .pixmap(QSize(m_table->rowHeight(0) - 3, m_table->rowHeight(0) - 3)));
     }
     else
