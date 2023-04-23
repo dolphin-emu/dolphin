@@ -85,6 +85,10 @@ static s32 TranslateErrorCode(s32 native_error, bool is_rw)
   }
 }
 
+WiiSockMan::WiiSockMan() = default;
+
+WiiSockMan::~WiiSockMan() = default;
+
 // Don't use string! (see https://github.com/dolphin-emu/dolphin/pull/3143)
 s32 WiiSockMan::GetNetErrorCode(s32 ret, std::string_view caller, bool is_rw)
 {
@@ -96,7 +100,7 @@ s32 WiiSockMan::GetNetErrorCode(s32 ret, std::string_view caller, bool is_rw)
 
   if (ret >= 0)
   {
-    WiiSockMan::GetInstance().SetLastNetError(ret);
+    SetLastNetError(ret);
     return ret;
   }
 
@@ -104,7 +108,7 @@ s32 WiiSockMan::GetNetErrorCode(s32 ret, std::string_view caller, bool is_rw)
                 Common::DecodeNetworkError(error_code), ret);
 
   const s32 return_value = TranslateErrorCode(error_code, is_rw);
-  WiiSockMan::GetInstance().SetLastNetError(return_value);
+  SetLastNetError(return_value);
 
   return return_value;
 }
@@ -158,7 +162,7 @@ s32 WiiSocket::Shutdown(u32 how)
 
   // Adjust pending operations
   // Values based on https://dolp.in/pr8758 hwtest
-  const s32 ret = WiiSockMan::GetNetErrorCode(shutdown(fd, how), "SO_SHUTDOWN", false);
+  const s32 ret = m_socket_manager.GetNetErrorCode(shutdown(fd, how), "SO_SHUTDOWN", false);
   const bool shut_read = how == 0 || how == 2;
   const bool shut_write = how == 1 || how == 2;
   for (auto& op : pending_sockops)
@@ -198,11 +202,11 @@ s32 WiiSocket::CloseFd()
   if (fd >= 0)
   {
     s32 ret = closesocket(fd);
-    ReturnValue = WiiSockMan::GetNetErrorCode(ret, "CloseFd", false);
+    ReturnValue = m_socket_manager.GetNetErrorCode(ret, "CloseFd", false);
   }
   else
   {
-    ReturnValue = WiiSockMan::GetNetErrorCode(EITHER(WSAENOTSOCK, EBADF), "CloseFd", false);
+    ReturnValue = m_socket_manager.GetNetErrorCode(EITHER(WSAENOTSOCK, EBADF), "CloseFd", false);
   }
   fd = -1;
 
@@ -273,7 +277,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
         WiiSockMan::ToNativeAddrIn(addr, &local_name);
 
         int ret = bind(fd, (sockaddr*)&local_name, sizeof(local_name));
-        ReturnValue = WiiSockMan::GetNetErrorCode(ret, "SO_BIND", false);
+        ReturnValue = m_socket_manager.GetNetErrorCode(ret, "SO_BIND", false);
 
         INFO_LOG_FMT(IOS_NET, "IOCTL_SO_BIND ({:08X}, {}:{}) = {}", wii_fd,
                      inet_ntoa(local_name.sin_addr), Common::swap16(local_name.sin_port), ret);
@@ -286,7 +290,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
         WiiSockMan::ToNativeAddrIn(addr, &local_name);
 
         int ret = connect(fd, (sockaddr*)&local_name, sizeof(local_name));
-        ReturnValue = WiiSockMan::GetNetErrorCode(ret, "SO_CONNECT", false);
+        ReturnValue = m_socket_manager.GetNetErrorCode(ret, "SO_CONNECT", false);
         UpdateConnectingState(ReturnValue);
 
         INFO_LOG_FMT(IOS_NET, "IOCTL_SO_CONNECT ({:08x}, {}:{}) = {}", wii_fd,
@@ -312,7 +316,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
           ret = static_cast<s32>(accept(fd, nullptr, nullptr));
         }
 
-        ReturnValue = WiiSockMan::GetInstance().AddSocket(ret, true);
+        ReturnValue = m_socket_manager.AddSocket(ret, true);
 
         ioctl.Log("IOCTL_SO_ACCEPT", Common::Log::LogType::IOS_NET);
         break;
@@ -593,7 +597,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
           auto* to = has_destaddr ? reinterpret_cast<sockaddr*>(&local_name) : nullptr;
           socklen_t tolen = has_destaddr ? sizeof(sockaddr) : 0;
           const int ret = sendto(fd, data, BufferInSize, flags, to, tolen);
-          ReturnValue = WiiSockMan::GetNetErrorCode(ret, "SO_SENDTO", true);
+          ReturnValue = m_socket_manager.GetNetErrorCode(ret, "SO_SENDTO", true);
           if (ret > 0)
             system.GetPowerPC().GetDebugInterface().NetworkLogger()->LogWrite(data, ret, fd, to);
 
@@ -651,8 +655,8 @@ void WiiSocket::Update(bool read, bool write, bool except)
           auto* from = BufferOutSize2 ? reinterpret_cast<sockaddr*>(&local_name) : nullptr;
           socklen_t* fromlen = BufferOutSize2 ? &addrlen : nullptr;
           const int ret = recvfrom(fd, data, data_len, flags, from, fromlen);
-          ReturnValue =
-              WiiSockMan::GetNetErrorCode(ret, BufferOutSize2 ? "SO_RECVFROM" : "SO_RECV", true);
+          ReturnValue = m_socket_manager.GetNetErrorCode(
+              ret, BufferOutSize2 ? "SO_RECVFROM" : "SO_RECV", true);
           if (ret > 0)
             system.GetPowerPC().GetDebugInterface().NetworkLogger()->LogRead(data, ret, fd, from);
 
@@ -862,7 +866,7 @@ s32 WiiSockMan::AddSocket(s32 fd, bool is_rw)
   }
   else
   {
-    WiiSocket& sock = WiiSockets[wii_fd];
+    WiiSocket& sock = WiiSockets.emplace(wii_fd, *this).first->second;
     sock.SetFd(fd);
     sock.SetWiiFd(wii_fd);
     Core::System::GetInstance().GetPowerPC().GetDebugInterface().NetworkLogger()->OnNewSocket(fd);
