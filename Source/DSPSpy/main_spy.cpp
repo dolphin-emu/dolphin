@@ -350,7 +350,7 @@ void handle_dsp_mail(void)
     }
     else if (mail == 0x8888da7a)
     {
-      // DSP has copied coef to its DRAM...send address so it can DMA it back. 
+      // DSP has copied coef to its DRAM...send address so it can DMA it back.
       while (real_dsp.CheckMailTo())
       {
       }
