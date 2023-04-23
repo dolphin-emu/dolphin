@@ -150,23 +150,25 @@
     <ClCompile Include="mgba\src\util\crc32.c" />
     <ClCompile Include="mgba\src\util\formatting.c" />
     <ClCompile Include="mgba\src\util\gbk-table.c" />
+    <ClCompile Include="mgba\src\util\geometry.c" />
     <ClCompile Include="mgba\src\util\hash.c" />
+    <ClCompile Include="mgba\src\util\image.c" />
     <ClCompile Include="mgba\src\util\string.c" />
     <ClCompile Include="mgba\src\util\table.c" />
     <ClCompile Include="mgba\src\util\vector.c" />
     <ClCompile Include="mgba\src\util\vfs.c" />
     <ClCompile Include="mgba\src\util\convolve.c" />
     <ClCompile Include="mgba\src\util\elf-read.c" />
-    <ClCompile Include="mgba\src\util\export.c" />
     <ClCompile Include="mgba\src\util\patch.c" />
     <ClCompile Include="mgba\src\util\patch-fast.c" />
     <ClCompile Include="mgba\src\util\patch-ips.c" />
     <ClCompile Include="mgba\src\util\patch-ups.c" />
-    <ClCompile Include="mgba\src\util\png-io.c" />
     <ClCompile Include="mgba\src\util\ring-fifo.c" />
     <ClCompile Include="mgba\src\util\sfo.c" />
     <ClCompile Include="mgba\src\util\text-codec.c" />
     <ClCompile Include="version.c" />
+    <ClCompile Include="mgba\src\util\image\export.c" />
+    <ClCompile Include="mgba\src\util\image\png-io.c" />
     <ClCompile Include="mgba\src\util\vfs\vfs-mem.c" />
     <ClCompile Include="mgba\src\util\vfs\vfs-fifo.c" />
     <ClCompile Include="mgba\src\util\vfs\vfs-fd.c" />
@@ -214,6 +216,7 @@
     <ClCompile Include="mgba\src\feature\thread-proxy.c" />
     <ClCompile Include="mgba\src\feature\updater.c" />
     <ClCompile Include="mgba\src\feature\video-logger.c" />
+    <ClCompile Include="mgba\src\feature\video-backend.c" />
   </ItemGroup>
   <Import Project="$(ExternalsDir)zlib-ng\exports.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
