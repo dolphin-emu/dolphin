@@ -1,6 +1,8 @@
 #include "Discord.h"
 #include "UICommon/DiscordPresence.h"
 #include "Core/Config/NetplaySettings.h"
+#include "Core/Core.h"
+#include "Core/IOS/DolphinDevice.h"
 
 bool mpn_update_discord()
 {
@@ -21,39 +23,20 @@ bool mpn_update_discord()
 
     if (CurrentState.Boards && CurrentState.Board)
     {
-      if (RichPresence.partySize > 0)
-      {
-        snprintf(Details, sizeof(Details), "Players: %d/4 Turn: %d/%d", RichPresence.partySize,
-                 mpn_read_value(CurrentState.Addresses->CurrentTurn, 1),
-                 mpn_read_value(CurrentState.Addresses->TotalTurns, 1));
+      DiscordRichPresence discord_presence = {};
+      
+      snprintf(Details, sizeof(Details), "Players: 1/4 Turn: %d/%d",
+               mpn_read_value(CurrentState.Addresses->CurrentTurn, 1),
+               mpn_read_value(CurrentState.Addresses->TotalTurns, 1));
 
-        RichPresence.smallImageKey = CurrentState.Board->Icon.c_str();
-        RichPresence.smallImageText = CurrentState.Board->Name.c_str();
-      }
-      else
-      {
-        snprintf(Details, sizeof(Details), "Players: 1/4 Turn: %d/%d",
-                 mpn_read_value(CurrentState.Addresses->CurrentTurn, 1),
-                 mpn_read_value(CurrentState.Addresses->TotalTurns, 1));
-
-        RichPresence.smallImageKey = CurrentState.Board->Icon.c_str();
-        RichPresence.smallImageText = CurrentState.Board->Name.c_str();
-      }
+      RichPresence.smallImageKey = CurrentState.Board->Icon.c_str();
+      RichPresence.smallImageText = CurrentState.Board->Name.c_str();
     }
     else
     {
-      if (RichPresence.partySize > 0)
-      {
-        snprintf(Details, sizeof(Details), "Players: %d/4", RichPresence.partySize);
-        RichPresence.smallImageKey = "";
-        RichPresence.smallImageText = "";
-      }
-      else
-      {
-        snprintf(Details, sizeof(Details), "Players: 1/4");
-        RichPresence.smallImageKey = "";
-        RichPresence.smallImageText = "";
-      }
+      snprintf(Details, sizeof(Details), "Players: 1/4");
+      RichPresence.smallImageKey = "";
+      RichPresence.smallImageText = "";
     }
     RichPresence.details = Details;
   }

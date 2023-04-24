@@ -409,7 +409,7 @@ void NetPlayDialog::ConnectWidgets()
         Settings::Instance().GetNetPlayClient()->RequestStopGame();
       }
       if (state == Core::State::Uninitialized)
-        DisplayMessage(tr("Stopped game"), "red");
+        DisplayMessage(tr("Stopped game, Please wait for everyone to close the game before relaunching!"), "red");
     }
   });
 
