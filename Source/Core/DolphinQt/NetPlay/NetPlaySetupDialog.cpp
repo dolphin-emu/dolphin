@@ -320,7 +320,7 @@ void NetPlaySetupDialog::SaveSettings()
 #endif
 
   Config::SetBaseOrCurrent(Config::NETPLAY_INDEX_REGION, "NA");
-  Config::SetBaseOrCurrent(Config::NETPLAY_INDEX_NAME, m_host_server_name->text().toStdString());
+  Config::SetBaseOrCurrent(Config::NETPLAY_INDEX_NAME, m_nickname_edit->text().toStdString());
   Config::SetBaseOrCurrent(Config::NETPLAY_INDEX_PASSWORD, "");
 
 
