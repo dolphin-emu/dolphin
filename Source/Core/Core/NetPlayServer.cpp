@@ -98,15 +98,15 @@ NetPlayServer::~NetPlayServer()
     m_thread.join();
     enet_host_destroy(m_server);
 
-    if (g_MainNetHost.get() == m_server)
+    if (Common::g_MainNetHost.get() == m_server)
     {
-      g_MainNetHost.release();
+      Common::g_MainNetHost.release();
     }
 
     if (m_traversal_client)
     {
-      g_TraversalClient->m_Client = nullptr;
-      ReleaseTraversalClient();
+      Common::g_TraversalClient->m_Client = nullptr;
+      Common::ReleaseTraversalClient();
     }
   }
 
@@ -132,17 +132,19 @@ NetPlayServer::NetPlayServer(const u16 port, const bool forward_port, NetPlayUI*
 
   if (traversal_config.use_traversal)
   {
-    if (!EnsureTraversalClient(traversal_config.traversal_host, traversal_config.traversal_port,
-                               port))
+    if (!Common::EnsureTraversalClient(traversal_config.traversal_host,
+                                       traversal_config.traversal_port, port))
+    {
       return;
+    }
 
-    g_TraversalClient->m_Client = this;
-    m_traversal_client = g_TraversalClient.get();
+    Common::g_TraversalClient->m_Client = this;
+    m_traversal_client = Common::g_TraversalClient.get();
 
-    m_server = g_MainNetHost.get();
+    m_server = Common::g_MainNetHost.get();
 
-    if (g_TraversalClient->HasFailed())
-      g_TraversalClient->ReconnectToServer();
+    if (Common::g_TraversalClient->HasFailed())
+      Common::g_TraversalClient->ReconnectToServer();
   }
   else
   {
@@ -211,7 +213,7 @@ void NetPlayServer::SetupIndex()
     if (!m_traversal_client->IsConnected())
       return;
 
-    session.server_id = std::string(g_TraversalClient->GetHostID().data(), 8);
+    session.server_id = std::string(Common::g_TraversalClient->GetHostID().data(), 8);
   }
   else
   {
@@ -1248,15 +1250,15 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
 void NetPlayServer::OnTraversalStateChanged()
 {
-  const TraversalClient::State state = m_traversal_client->GetState();
+  const Common::TraversalClient::State state = m_traversal_client->GetState();
 
-  if (g_TraversalClient->GetHostID()[0] != '\0')
+  if (Common::g_TraversalClient->GetHostID()[0] != '\0')
     SetupIndex();
 
   if (!m_dialog)
     return;
 
-  if (state == TraversalClient::State::Failure)
+  if (state == Common::TraversalClient::State::Failure)
     m_dialog->OnTraversalError(m_traversal_client->GetFailureReason());
 
   m_dialog->OnTraversalStateChanged(state);

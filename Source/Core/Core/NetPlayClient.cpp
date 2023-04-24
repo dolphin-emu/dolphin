@@ -110,9 +110,9 @@ NetPlayClient::~NetPlayClient()
     Disconnect();
   }
 
-  if (g_MainNetHost.get() == m_client)
+  if (Common::g_MainNetHost.get() == m_client)
   {
-    g_MainNetHost.release();
+    Common::g_MainNetHost.release();
   }
   if (m_client)
   {
@@ -122,7 +122,7 @@ NetPlayClient::~NetPlayClient()
 
   if (m_traversal_client)
   {
-    ReleaseTraversalClient();
+    Common::ReleaseTraversalClient();
   }
 }
 
@@ -186,11 +186,14 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
       return;
     }
 
-    if (!EnsureTraversalClient(traversal_config.traversal_host, traversal_config.traversal_port))
+    if (!Common::EnsureTraversalClient(traversal_config.traversal_host,
+                                       traversal_config.traversal_port))
+    {
       return;
-    m_client = g_MainNetHost.get();
+    }
+    m_client = Common::g_MainNetHost.get();
 
-    m_traversal_client = g_TraversalClient.get();
+    m_traversal_client = Common::g_TraversalClient.get();
 
     // If we were disconnected in the background, reconnect.
     if (m_traversal_client->HasFailed())
@@ -1936,16 +1939,16 @@ void NetPlayClient::ClearBuffers()
 // called from ---NETPLAY--- thread
 void NetPlayClient::OnTraversalStateChanged()
 {
-  const TraversalClient::State state = m_traversal_client->GetState();
+  const Common::TraversalClient::State state = m_traversal_client->GetState();
 
   if (m_connection_state == ConnectionState::WaitingForTraversalClientConnection &&
-      state == TraversalClient::State::Connected)
+      state == Common::TraversalClient::State::Connected)
   {
     m_connection_state = ConnectionState::WaitingForTraversalClientConnectReady;
     m_traversal_client->ConnectToClient(m_host_spec);
   }
   else if (m_connection_state != ConnectionState::Failure &&
-           state == TraversalClient::State::Failure)
+           state == Common::TraversalClient::State::Failure)
   {
     Disconnect();
     m_dialog->OnTraversalError(m_traversal_client->GetFailureReason());
