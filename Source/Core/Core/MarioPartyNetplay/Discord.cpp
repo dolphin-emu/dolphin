@@ -15,24 +15,22 @@ bool mpn_update_discord()
   if (CurrentState.Scenes != NULL && CurrentState.Scene != NULL)
     RichPresence.state = CurrentState.Scene->Name.c_str();
 
-  DiscordRichPresence discord_presence = {};
-
   if (CurrentState.Addresses != NULL)
   {
     char Details[128] = "";
 
     if (CurrentState.Boards && CurrentState.Board)
     {
-      if (discord_presence.partySize > 0)
+      if (RichPresence.partySize > 0)
       {
-        snprintf(Details, sizeof(Details), "Players: %d/4 Turn: %d/%d", discord_presence.partySize,
+        snprintf(Details, sizeof(Details), "Players: %d/4 Turn: %d/%d", RichPresence.partySize,
                  mpn_read_value(CurrentState.Addresses->CurrentTurn, 1),
                  mpn_read_value(CurrentState.Addresses->TotalTurns, 1));
 
         RichPresence.smallImageKey = CurrentState.Board->Icon.c_str();
         RichPresence.smallImageText = CurrentState.Board->Name.c_str();
       }
-      else if (discord_presence.partySize = 0)
+      else
       {
         snprintf(Details, sizeof(Details), "Players: 1/4 Turn: %d/%d",
                  mpn_read_value(CurrentState.Addresses->CurrentTurn, 1),
@@ -44,20 +42,20 @@ bool mpn_update_discord()
     }
     else
     {
-      if (discord_presence.partySize > 0)
+      if (RichPresence.partySize > 0)
       {
-        snprintf(Details, sizeof(Details), "Players: %d/4", discord_presence.partySize);
+        snprintf(Details, sizeof(Details), "Players: %d/4", RichPresence.partySize);
         RichPresence.smallImageKey = "";
         RichPresence.smallImageText = "";
       }
-      else if (discord_presence.partySize = 0)
+      else
       {
         snprintf(Details, sizeof(Details), "Players: 1/4");
         RichPresence.smallImageKey = "";
         RichPresence.smallImageText = "";
       }
-      RichPresence.details = Details;
     }
+    RichPresence.details = Details;
   }
 
   RichPresence.startTimestamp = std::time(nullptr);
