@@ -10,7 +10,7 @@ finish-args:
   - --device=all # need for controllers
   # the file picker uses portals but the set
   # game directory feature still needs this
-  - --filesystem=host:r
+  - --filesystem=host:ro
   - --socket=pulseaudio
   - --env=QT_QPA_PLATFORM=xcb
   - --socket=x11
@@ -101,15 +101,15 @@ modules:
       - -DENABLE_ALSA=OFF
       - -DENABLE_SDL=ON
       - -DENABLE_EVDEV=ON
-      - -DLINUX_LOCAL_DEV=0
       - -DDISTRIBUTOR=Mario Party Netplay
       - -DCPACK_PACKAGE_CONTACT=Mario Party Netplay
     cleanup:
       - /share/man
     post-install:
       - install -D -t ${FLATPAK_DEST}/bin/ dolphin-emu-wrapper
-      - install -D ${FLATPAK_DEST}/share/dolphin-emu/user/*  ${FLATPAK_DEST}/share/dolphin-mpn/
       - desktop-file-edit --set-key=Exec --set-value='/app/bin/dolphin-emu-wrapper'
+        /app/share/applications/dolphin-emu.desktop
+      - desktop-file-edit --set-key=Name --set-value='Dolphin MPN'
         /app/share/applications/dolphin-emu.desktop
     sources:
       - type: git
