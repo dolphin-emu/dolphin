@@ -1005,10 +1005,10 @@ bool MainWindow::RequestStopNetplay()
     auto confirm = ModalMessageBox::question(
         confirm_parent, tr("Quitter!"),
         m_stop_requested ? tr("A user closed down their game from the netplay lobby. "
-                              "This could the Netplay session has ended due to someone ragequitting! "
+                              "This means the Netplay session has ended! "
                               "Do you want to stop the current emulation?") :
                            tr("A user closed down their game from the netplay lobby. "
-                              "This could the Netplay session has ended due to someone ragequitting"
+                              "This means the Netplay session has ended! "
                               "Do you want to stop the current emulation?"),
         QMessageBox::Yes | QMessageBox::No, QMessageBox::NoButton, Qt::ApplicationModal);
 
