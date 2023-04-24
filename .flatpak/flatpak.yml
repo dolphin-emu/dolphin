@@ -108,8 +108,7 @@ modules:
       - /share/man
     post-install:
       - install -D -t ${FLATPAK_DEST}/bin/ dolphin-emu-wrapper
-      - install -D ${FLATPAK_DEST}/share/dolphin-emu/user/  ${FLATPAK_DEST}/bin/user
-      - install -D ${FLATPAK_DEST}/share/dolphin-emu/sys/  ${FLATPAK_DEST}/bin/sys
+      - install -D ${FLATPAK_DEST}/share/dolphin-emu/user/*  ${FLATPAK_DEST}/share/dolphin-mpn/
       - desktop-file-edit --set-key=Exec --set-value='/app/bin/dolphin-emu-wrapper'
         /app/share/applications/dolphin-emu.desktop
     sources:
@@ -128,6 +127,5 @@ modules:
               test -S $XDG_RUNTIME_DIR/discord-ipc-$i ||
                 ln -sf {app/com.discordapp.Discord,$XDG_RUNTIME_DIR}/discord-ipc-$i;
             done
-            touch portable.txt
             dolphin-emu "$@"
         dest-filename: dolphin-emu-wrapper
