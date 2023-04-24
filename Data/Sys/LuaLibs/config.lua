@@ -14,6 +14,10 @@ function ConfigClass:getLayerNames_mostGlobalFirst()
 	return ConfigAPI:getLayerNames_mostGlobalFirst()
 end
 
+function ConfigClass:doesLayerExist(layerName)
+	return ConfigAPI:doesLayerExist(layerName)
+end
+
 function ConfigClass:getListOfSystems()
 	return ConfigAPI:getListOfSystems()
 end
@@ -59,7 +63,7 @@ function ParseConfigType(settingType)
 	returnTypeString = internalResolutionTable[typeString]
 	
 	if returnTypeString ~= nil then
-		return SettingsType[returnTypeString]
+		return SettingTypes[returnTypeString]
 	else
 		return SettingTypes.UNKNOWN
 	end
@@ -74,7 +78,7 @@ get_config_setting_for_layer_table = {
 }
 
 function ConfigClass:getConfigSettingForLayer(settingType, layerName, systemName, sectionName, settingName)
-	parsedType = ParseType(settingType)
+	parsedType = ParseConfigType(settingType)
 	function_to_call = get_config_setting_for_layer_table[parsedType]
 	if function_to_call ~= nil then
 		return function_to_call(layerName, systemName, sectionName, settingName)
@@ -92,7 +96,7 @@ set_config_setting_for_layer_table = {
 }
 
 function ConfigClass:setConfigSettingForLayer(settingType, layerName, systemName, sectionName, settingName, newValue)
-	parsedType = ParseType(settingType)
+	parsedType = ParseConfigType(settingType)
 	function_to_call = set_config_setting_for_layer_table[parsedType]
 	if function_to_call ~= nil then
 		return function_to_call(layerName, systemName, sectionName, settingName, newValue)
@@ -110,7 +114,7 @@ get_config_setting_table = {
 }
 
 function ConfigClass:getConfigSetting(settingType, systemName, sectionName, settingName)
-	parsedType = ParseType(settingType)
+	parsedType = ParseConfigType(settingType)
 	function_to_call = get_config_setting_table[parsedType]
 	if function_to_call ~= nil then
 		return function_to_call(systemName, sectionName, settingName)

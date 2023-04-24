@@ -10,6 +10,7 @@ namespace Scripting::Python::ConfigModuleImporter
 static std::string config_class_name = ConfigAPI::class_name;
 
 static const char* get_layer_names_most_global_first_function_name = "getLayerNames_mostGlobalFirst";
+static const char* does_layer_exist_function_name = "doesLayerExist";
 static const char* get_list_of_systems_function_name = "getListOfSystems";
 static const char* get_config_enum_types_function_name = "getConfigEnumTypes";
 static const char* get_list_of_valid_values_for_enum_type_function_name = "getListOfValidValuesForEnumType";
@@ -41,6 +42,11 @@ static const char* save_settings_function_name = "saveSettings";
 static PyObject* python_get_layer_names_most_global_first(PyObject* self, PyObject* args)
 {
   return PythonScriptContext::RunFunction(self, args, config_class_name, get_layer_names_most_global_first_function_name);
+}
+
+static PyObject* python_does_layer_exist(PyObject* self, PyObject* args)
+{
+  return PythonScriptContext::RunFunction(self, args, config_class_name, does_layer_exist_function_name);
 }
 
 static PyObject* python_get_list_of_systems(PyObject* self, PyObject* args)
@@ -160,6 +166,7 @@ static PyObject* python_save_settings(PyObject* self, PyObject* args)
 
 static PyMethodDef config_api_methods[] = {
     {get_layer_names_most_global_first_function_name, python_get_layer_names_most_global_first, METH_VARARGS, nullptr},
+    {does_layer_exist_function_name, python_does_layer_exist, METH_VARARGS, nullptr},
     {get_list_of_systems_function_name, python_get_list_of_systems, METH_VARARGS, nullptr},
     {get_config_enum_types_function_name, python_get_config_enum_types, METH_VARARGS, nullptr},
     {get_list_of_valid_values_for_enum_type_function_name, python_get_list_of_valid_values_for_enum_type, METH_VARARGS, nullptr},

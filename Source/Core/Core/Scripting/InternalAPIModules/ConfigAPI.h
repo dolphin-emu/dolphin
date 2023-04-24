@@ -16,6 +16,7 @@ FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
                                                const std::string& function_name);
 
 ArgHolder GetLayerNames_MostGlobalFirst(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder DoesLayerExist(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder GetListOfSystems(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder GetConfigEnumTypes(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder GetListOfValidValuesForEnumType(ScriptContext* current_script, std::vector<ArgHolder>& args_list);

@@ -1,0 +1,22 @@
+Testing writing to each layer...
+Test 0:
+Testing writing to layer Movie for System - Main, Section - Interface, SettingName - debugModeEnabled
+Layer Movie did not exist - skipping test...
+Test 1:
+Testing writing to layer Base for System - Main, Section - Interface, SettingName - debugModeEnabled
+Test passed!
+Test 2:
+Testing writing to layer GlobalGame for System - Main, Section - Interface, SettingName - debugModeEnabled
+Test passed!
+Test 3:
+Testing writing to layer Netplay for System - Main, Section - Interface, SettingName - debugModeEnabled
+Layer Netplay did not exist - skipping test...
+Test 4:
+Testing writing to layer LocalGame for System - Main, Section - Interface, SettingName - debugModeEnabled
+Test passed!
+Test 5:
+Testing writing to layer CommandLine for System - Main, Section - Interface, SettingName - debugModeEnabled
+Test passed!
+Test 6:
+Testing writing to layer CurrentRun for System - Main, Section - Interface, SettingName - debugModeEnabled
+Test passed!

@@ -24,6 +24,7 @@ const char* class_name = "ConfigAPI";
 static std::array all_config_functions_metadata_list = {
 
     FunctionMetadata("getLayerNames_mostGlobalFirst", "1.0", "getLayerNames_mostGlobalFirst()", GetLayerNames_MostGlobalFirst, ArgTypeEnum::String, {}),
+    FunctionMetadata("doesLayerExist", "1.0", "doesLayerExist(\"Movie\")", DoesLayerExist, ArgTypeEnum::Boolean, {ArgTypeEnum::String}),
     FunctionMetadata("getListOfSystems", "1.0", "getListOfSystems()", GetListOfSystems, ArgTypeEnum::String, {}),
     FunctionMetadata("getConfigEnumTypes", "1.0", "getConfigEnumTypes()", GetConfigEnumTypes, ArgTypeEnum::String, {}),
     FunctionMetadata("getListOfValidValuesForEnumType", "1.0", "getListOfValidValuesForEnumType", GetListOfValidValuesForEnumType, ArgTypeEnum::String, {ArgTypeEnum::String}),
@@ -50,7 +51,7 @@ static std::array all_config_functions_metadata_list = {
     FunctionMetadata("getStringConfigSetting", "1.0", "getStringConfigSetting(\"Main\", \"Core\", \"MemcardAPath\")", GetStringConfigSetting, ArgTypeEnum::String, {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String}),
     FunctionMetadata("getEnumConfigSetting", "1.0", "getEnumConfigSetting(\"Main\", \"Core\", \"SlotA\", " "\"EXIDeviceType\")", GetEnumConfigSetting, ArgTypeEnum::String, {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String}),
 
-    FunctionMetadata("saveSettings()", "1.0", "saveSettings()", SaveConfigSettings, ArgTypeEnum::VoidType, {})
+    FunctionMetadata("saveSettings", "1.0", "saveSettings()", SaveConfigSettings, ArgTypeEnum::VoidType, {})
 };
 
 static std::string ConvertToUpperCase(const std::string& input_string)
@@ -373,6 +374,15 @@ ArgHolder GetLayerNames_MostGlobalFirst(ScriptContext* current_script,
       "Base, CommandLine, GlobalGame, LocalGame, Movie, Netplay, CurrentRun");
 }
 
+ArgHolder DoesLayerExist(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  std::optional<Config::LayerType> layer_name = ParseLayer(args_list[0].string_val);
+  if (!layer_name.has_value())
+    return CreateErrorStringArgHolder("Invalid layer name passed into function.");
+  return CreateBoolArgHolder(Config::GetLayer(layer_name.value()) != nullptr);
+}
+
+
 ArgHolder GetListOfSystems(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   return CreateStringArgHolder(
@@ -418,6 +428,11 @@ ArgHolder GetConfigSettingForLayer(std::vector<ArgHolder>& args_list, T default_
   if (!layer_name.has_value())
     return CreateErrorStringArgHolder("Invalid layer name of " + args_list[0].string_val +
                                       " was used.");
+
+  else if (Config::GetLayer(layer_name.value()) == nullptr)
+    return CreateErrorStringArgHolder("Attempted to get a layer which was not created/active of " +
+                                      args_list[0].string_val);
+
   else if (!system_name.has_value())
     return CreateErrorStringArgHolder("Invalid system name of " + args_list[1].string_val +
                                       " was used.");
@@ -464,6 +479,10 @@ ArgHolder GetConfigSettingForLayer_enum(std::vector<ArgHolder>& args_list, T def
   if (!layer_name.has_value())
     return CreateErrorStringArgHolder("Invalid layer name of " + args_list[0].string_val +
                                       " was used.");
+  else if (Config::GetLayer(layer_name.value()) == nullptr)
+    return CreateErrorStringArgHolder("Attempted to get a layer which was not created/active of " +
+                                      args_list[0].string_val);
+
   else if (!system_name.has_value())
     return CreateErrorStringArgHolder("Invalid system name of " + args_list[1].string_val +
                                       " was used.");
@@ -581,6 +600,10 @@ ArgHolder SetConfigSettingForLayer(std::vector<ArgHolder>& args_list, T new_valu
  if (!layer_name.has_value())
    return CreateErrorStringArgHolder("Invalid layer name of " + args_list[0].string_val +
                                      " was used.");
+
+ else if (Config::GetLayer(layer_name.value()) == nullptr)
+   return CreateErrorStringArgHolder("Attempted to get a layer which was not created/active of " +
+                                     args_list[0].string_val);
  else if (!system_name.has_value())
    return CreateErrorStringArgHolder("Invalid system name of " + args_list[1].string_val +
                                      " was used.");
