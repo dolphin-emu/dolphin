@@ -546,8 +546,8 @@ msgstr ""
 msgid "&Pause"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:308
-msgid "&Local Play"
+#: Source/Core/DolphinQt/MenuBar.cpp:299
+msgid "&Play"
 msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:399
@@ -4851,8 +4851,8 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Settings/BroadbandAdapterSettingsDialog.cpp:65
 msgid ""
-"For setup instructions, <a href=\"https://www.teamxlink.co.uk/wiki/Dolphin"
-"\">refer to this page</a>."
+"For setup instructions, <a href=\"https://www.teamxlink.co.uk/wiki/"
+"Dolphin\">refer to this page</a>."
 msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:60
