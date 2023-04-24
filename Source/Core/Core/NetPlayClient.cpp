@@ -179,7 +179,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
   }
   else
   {
-    if (address.size() > NETPLAY_CODE_SIZE)
+    if (address.size() > Common::NETPLAY_CODE_SIZE)
     {
       m_dialog->OnConnectionError(
           _trans("The host code is too long.\nPlease recheck that you have the correct code."));
@@ -1967,19 +1967,19 @@ void NetPlayClient::OnConnectReady(ENetAddress addr)
 }
 
 // called from ---NETPLAY--- thread
-void NetPlayClient::OnConnectFailed(TraversalConnectFailedReason reason)
+void NetPlayClient::OnConnectFailed(Common::TraversalConnectFailedReason reason)
 {
   m_connecting = false;
   m_connection_state = ConnectionState::Failure;
   switch (reason)
   {
-  case TraversalConnectFailedReason::ClientDidntRespond:
+  case Common::TraversalConnectFailedReason::ClientDidntRespond:
     PanicAlertFmtT("Traversal server timed out connecting to the host");
     break;
-  case TraversalConnectFailedReason::ClientFailure:
+  case Common::TraversalConnectFailedReason::ClientFailure:
     PanicAlertFmtT("Server rejected traversal attempt");
     break;
-  case TraversalConnectFailedReason::NoSuchClient:
+  case Common::TraversalConnectFailedReason::NoSuchClient:
     PanicAlertFmtT("Invalid host");
     break;
   default:

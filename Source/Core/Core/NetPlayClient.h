@@ -147,7 +147,7 @@ public:
 
   void OnTraversalStateChanged() override;
   void OnConnectReady(ENetAddress addr) override;
-  void OnConnectFailed(TraversalConnectFailedReason reason) override;
+  void OnConnectFailed(Common::TraversalConnectFailedReason reason) override;
 
   bool IsFirstInGamePad(int ingame_pad) const;
   int NumLocalPads() const;
