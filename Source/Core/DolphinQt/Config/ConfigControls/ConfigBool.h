@@ -11,11 +11,11 @@ template <typename T>
 class Info;
 }
 
-class GraphicsBool : public ToolTipCheckBox
+class ConfigBool : public ToolTipCheckBox
 {
   Q_OBJECT
 public:
-  GraphicsBool(const QString& label, const Config::Info<bool>& setting, bool reverse = false);
+  ConfigBool(const QString& label, const Config::Info<bool>& setting, bool reverse = false);
 
 private:
   void Update();

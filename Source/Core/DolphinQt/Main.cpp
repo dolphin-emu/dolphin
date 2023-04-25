@@ -151,15 +151,6 @@ int main(int argc, char* argv[])
   const optparse::Values& options = CommandLineParse::ParseArguments(parser.get(), argc, argv);
   const std::vector<std::string> args = parser->args();
 
-  // setHighDpiScaleFactorRoundingPolicy was added in 5.14, but default behavior changed in 6.0
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
-  // Set to the previous default behavior
-  QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::Round);
-#else
-  QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-  QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
-#endif
-
   QCoreApplication::setOrganizationName(QStringLiteral("Dolphin Emulator"));
   QCoreApplication::setOrganizationDomain(QStringLiteral("dolphin-emu.org"));
   QCoreApplication::setApplicationName(QStringLiteral("dolphin-emu"));

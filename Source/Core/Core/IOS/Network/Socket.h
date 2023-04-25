@@ -174,10 +174,12 @@ struct WiiSockAddrIn
 };
 #pragma pack(pop)
 
+class WiiSockMan;
+
 class WiiSocket
 {
 public:
-  WiiSocket() = default;
+  explicit WiiSocket(WiiSockMan& socket_manager) : m_socket_manager(socket_manager) {}
   WiiSocket(const WiiSocket&) = delete;
   WiiSocket(WiiSocket&&) = default;
   ~WiiSocket();
@@ -225,6 +227,8 @@ private:
   bool IsValid() const { return fd >= 0; }
   bool IsTCP() const;
 
+  WiiSockMan& m_socket_manager;
+
   s32 fd = -1;
   s32 wii_fd = -1;
   bool nonBlock = false;
@@ -251,14 +255,15 @@ public:
     s64 timeout = 0;
   };
 
-  static s32 GetNetErrorCode(s32 ret, std::string_view caller, bool is_rw);
-  static char* DecodeError(s32 ErrorCode);
+  WiiSockMan();
+  WiiSockMan(const WiiSockMan&) = delete;
+  WiiSockMan& operator=(const WiiSockMan&) = delete;
+  WiiSockMan(WiiSockMan&&) = delete;
+  WiiSockMan& operator=(WiiSockMan&&) = delete;
+  ~WiiSockMan();
 
-  static WiiSockMan& GetInstance()
-  {
-    static WiiSockMan instance;  // Guaranteed to be destroyed.
-    return instance;             // Instantiated on first use.
-  }
+  s32 GetNetErrorCode(s32 ret, std::string_view caller, bool is_rw);
+
   void Update();
   static void ToNativeAddrIn(const u8* from, sockaddr_in* to);
   static void ToWiiAddrIn(const sockaddr_in& from, u8* to,
@@ -296,12 +301,6 @@ public:
   void UpdateWantDeterminism(bool want);
 
 private:
-  WiiSockMan() = default;
-  WiiSockMan(const WiiSockMan&) = delete;
-  WiiSockMan& operator=(const WiiSockMan&) = delete;
-  WiiSockMan(WiiSockMan&&) = delete;
-  WiiSockMan& operator=(WiiSockMan&&) = delete;
-
   void UpdatePollCommands();
 
   std::unordered_map<s32, WiiSocket> WiiSockets;
