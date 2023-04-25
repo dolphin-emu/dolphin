@@ -1,22 +1,104 @@
-Testing writing to each layer...
-Test 0:
-Testing writing to layer Movie for System - Main, Section - Interface, SettingName - debugModeEnabled
-Layer Movie did not exist - skipping test...
 Test 1:
+Testing calling the getLayerNames_mostGlobalFirst() function. Should have a return value of: Base, CommandLine, GlobalGame, LocalGame, Movie, Netplay, CurrentRun
+Actual value equaled the expected value...  Test passed!
+
+
+Test 2:
+Testing calling the getListOfSystems() function. Should have a return value of: Main, Sysconf, GCPad, WiiPad, GCKeyboard, GFX, Logger, Debugger, DualShockUDPClient, FreeLook, Session, GameSettingsOnly, Achievements
+Actual value equaled the expected value... Test passed!
+
+
+Test 3:
+Testing calling the getConfigEnumTypes() function. Should have a return value of: CPUCore, DPL2Quality, EXIDeviceType, SIDeviceType, HSPDeviceType, Region, ShowCursor, LogLevel, FreeLookControl, AspectMode, ShaderCompilationMode, TriState, TextureFilteringMode, StereoMode, WiimoteSource
+Actual value equaled the expected value... Test passed!
+
+
+Test 4:
+Testing CPUCore enum type range. Expected list of values returned is: CACHEDINTERPRETER, INTERPRETER, JIT64, JITARM64
+Actual value equaled the expected value... Test passed!
+Test 5:
+Testing DPL2Quality enum type range. Expected list of values returned is: HIGH, HIGHEST, LOW, LOWEST
+Actual value equaled the expected value... Test passed!
+Test 6:
+Testing EXIDeviceType enum type range. Expected list of values returned is: AD16, AGP, AMBASEBOARD, DUMMY, ETHERNET, ETHERNETBUILTIN, ETHERNETTAPSERVER, ETHERNETXLINK, GECKO, MASKROM, MEMORYCARD, MEMORYCARDFOLDER, MICROPHONE, NONE
+Actual value equaled the expected value... Test passed!
+Test 7:
+Testing SIDeviceType enum type range. Expected list of values returned is: AM_BASEBOARD, DANCEMAT, GC_CONTROLLER, GC_GBA, GC_GBA_EMULATED, GC_KEYBOARD, GC_STEERING, GC_TARUKONGA, N64_CONTROLLER, N64_KEYBOARD, N64_MIC, N64_MOUSE, NONE, WIIU_ADAPTER
+Actual value equaled the expected value... Test passed!
+Test 8:
+Testing HSPDeviceType enum type range. Expected list of values returned is: ARAMEXPANSION, NONE
+Actual value equaled the expected value... Test passed!
+Test 9:
+Testing Region enum type range. Expected list of values returned is: NTSC_J, NTSC_K, NTSC_U, PAL, UNKNOWN
+Actual value equaled the expected value... Test passed!
+Test 10:
+Testing ShowCursor enum type range. Expected list of values returned is: CONSTANTLY, NEVER, ONMOVEMENT
+Actual value equaled the expected value... Test passed!
+Test 11:
+Testing LogLevel enum type range. Expected list of values returned is: LDEBUG, LERROR, LINFO, LNOTICE, LWARNING
+Actual value equaled the expected value... Test passed!
+Test 12:
+Testing FreeLookControl enum type range. Expected list of values returned is: FPS, ORBITAL, SIXAXIS
+Actual value equaled the expected value... Test passed!
+Test 13:
+Testing AspectMode enum type range. Expected list of values returned is: ANALOG, ANALOGWIDE, AUTO, STRETCH
+Actual value equaled the expected value... Test passed!
+Test 14:
+Testing ShaderCompilationMode enum type range. Expected list of values returned is: ASYNCHRONOUSSKIPRENDERING, ASYNCHRONOUSUBERSHADERS, SYNCHRONOUS, SYNCHRONOUSUBERSHADERS
+Actual value equaled the expected value... Test passed!
+Test 15:
+Testing TriState enum type range. Expected list of values returned is: AUTO, OFF, ON
+Actual value equaled the expected value... Test passed!
+Test 16:
+Testing TextureFilteringMode enum type range. Expected list of values returned is: DEFAULT, LINEAR, NEAREST
+Actual value equaled the expected value... Test passed!
+Test 17:
+Testing StereoMode enum type range. Expected list of values returned is: ANAGLYPH, OFF, PASSIVE, QUADBUFFER, SBS, TAB
+Actual value equaled the expected value... Test passed!
+Test 18:
+Testing WiimoteSource enum type range. Expected list of values returned is: EMULATED, NONE, REAL
+Actual value equaled the expected value... Test passed!
+
+
+Testing writing to each layer...
+Test 19:
 Testing writing to layer Base for System - Main, Section - Interface, SettingName - debugModeEnabled
 Test passed!
-Test 2:
-Testing writing to layer GlobalGame for System - Main, Section - Interface, SettingName - debugModeEnabled
-Test passed!
-Test 3:
-Testing writing to layer Netplay for System - Main, Section - Interface, SettingName - debugModeEnabled
-Layer Netplay did not exist - skipping test...
-Test 4:
-Testing writing to layer LocalGame for System - Main, Section - Interface, SettingName - debugModeEnabled
-Test passed!
-Test 5:
+
+
+Test 20:
 Testing writing to layer CommandLine for System - Main, Section - Interface, SettingName - debugModeEnabled
 Test passed!
-Test 6:
+
+
+Test 21:
+Testing writing to layer GlobalGame for System - Main, Section - Interface, SettingName - debugModeEnabled
+Test passed!
+
+
+Test 22:
+Testing writing to layer LocalGame for System - Main, Section - Interface, SettingName - debugModeEnabled
+Test passed!
+
+
+Test 23:
+Testing writing to layer Movie for System - Main, Section - Interface, SettingName - debugModeEnabled
+Layer Movie did not exist - skipping test...
+
+
+Test 24:
+Testing writing to layer Netplay for System - Main, Section - Interface, SettingName - debugModeEnabled
+Layer Netplay did not exist - skipping test...
+
+
+Test 25:
 Testing writing to layer CurrentRun for System - Main, Section - Interface, SettingName - debugModeEnabled
 Test passed!
+
+
+Results:
+
+	Tests Passed: 23
+	Tests Failed: 0
+	Tests Skipped: 2
+Total Tests: 25
