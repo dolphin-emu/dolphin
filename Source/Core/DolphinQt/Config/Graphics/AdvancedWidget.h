@@ -6,7 +6,7 @@
 #include "DolphinQt/Config/Graphics/GraphicsWidget.h"
 
 class ConfigBool;
-class GraphicsChoice;
+class ConfigChoice;
 class GraphicsInteger;
 class GraphicsWindow;
 class QCheckBox;

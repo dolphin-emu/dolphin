@@ -15,7 +15,7 @@
 #include "Core/ConfigManager.h"
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
-#include "DolphinQt/Config/Graphics/GraphicsChoice.h"
+#include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
 #include "DolphinQt/Config/Graphics/GraphicsRadio.h"
 #include "DolphinQt/Config/Graphics/GraphicsSlider.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
@@ -82,7 +82,7 @@ void EnhancementsWidget::CreateWidgets()
                                        QString::number(static_cast<int>(EFB_HEIGHT) * scale)));
   }
 
-  m_ir_combo = new GraphicsChoice(resolution_options, Config::GFX_EFB_SCALE);
+  m_ir_combo = new ConfigChoice(resolution_options, Config::GFX_EFB_SCALE);
   m_ir_combo->setMaxVisibleItems(visible_resolution_option_count);
 
   m_aa_combo = new ToolTipComboBox();
@@ -157,9 +157,9 @@ void EnhancementsWidget::CreateWidgets()
   auto* stereoscopy_layout = new QGridLayout();
   stereoscopy_box->setLayout(stereoscopy_layout);
 
-  m_3d_mode = new GraphicsChoice({tr("Off"), tr("Side-by-Side"), tr("Top-and-Bottom"),
-                                  tr("Anaglyph"), tr("HDMI 3D"), tr("Passive")},
-                                 Config::GFX_STEREO_MODE);
+  m_3d_mode = new ConfigChoice({tr("Off"), tr("Side-by-Side"), tr("Top-and-Bottom"), tr("Anaglyph"),
+                                tr("HDMI 3D"), tr("Passive")},
+                               Config::GFX_STEREO_MODE);
   m_3d_depth = new GraphicsSlider(0, Config::GFX_STEREO_DEPTH_MAXIMUM, Config::GFX_STEREO_DEPTH);
   m_3d_convergence = new GraphicsSlider(0, Config::GFX_STEREO_CONVERGENCE_MAXIMUM,
                                         Config::GFX_STEREO_CONVERGENCE, 100);

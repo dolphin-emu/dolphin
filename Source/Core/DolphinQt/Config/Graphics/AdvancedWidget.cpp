@@ -16,7 +16,7 @@
 #include "Core/Core.h"
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
-#include "DolphinQt/Config/Graphics/GraphicsChoice.h"
+#include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
 #include "DolphinQt/Config/Graphics/GraphicsInteger.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"

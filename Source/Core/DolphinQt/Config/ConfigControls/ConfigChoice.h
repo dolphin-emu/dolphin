@@ -7,11 +7,11 @@
 
 #include "Common/Config/Config.h"
 
-class GraphicsChoice : public ToolTipComboBox
+class ConfigChoice : public ToolTipComboBox
 {
   Q_OBJECT
 public:
-  GraphicsChoice(const QStringList& options, const Config::Info<int>& setting);
+  ConfigChoice(const QStringList& options, const Config::Info<int>& setting);
 
 private:
   void Update(int choice);
