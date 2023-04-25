@@ -19,6 +19,7 @@
 #include <QPainter>
 #include <QResizeEvent>
 #include <QScrollBar>
+#include <QStyleHints>
 #include <QStyledItemDelegate>
 #include <QTableWidgetItem>
 #include <QWheelEvent>
@@ -160,6 +161,11 @@ CodeViewWidget::CodeViewWidget() : m_system(Core::System::GetInstance())
   setItemDelegateForColumn(CODE_VIEW_COLUMN_BRANCH_ARROWS, new BranchDisplayDelegate(this));
 
   FontBasedSizing();
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+  connect(QGuiApplication::styleHints(), &QStyleHints::colorSchemeChanged, this,
+          [this](Qt::ColorScheme colorScheme) { OnSelectionChanged(); });
+#endif
 
   connect(this, &CodeViewWidget::customContextMenuRequested, this, &CodeViewWidget::OnContextMenu);
   connect(this, &CodeViewWidget::itemSelectionChanged, this, &CodeViewWidget::OnSelectionChanged);
