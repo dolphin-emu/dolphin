@@ -229,6 +229,12 @@ void SetControlState(int controller_index, ControlID control, double state)
   input_state.overriding = true;
 }
 
+
+void SetControlState(int controller_index, int control, double state)
+{
+  SetControlState(controller_index, (ControlID)control, state);
+}
+
 void ClearControlState(int controller_index, ControlID control)
 {
   InputState& input_state = s_state_arrays[controller_index][control];

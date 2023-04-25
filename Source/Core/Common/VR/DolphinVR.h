@@ -1,5 +1,8 @@
 #pragma once
 
+// controller mapping
+void SetVRCallbacks(void (*callback)(int controller_index, int control, double state));
+
 // VR app flow integration
 bool IsVREnabled();
 #ifdef ANDROID

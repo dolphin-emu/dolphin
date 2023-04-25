@@ -455,6 +455,10 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
   {
     super.onDestroy();
     mSettings.close();
+    if (VirtualReality.isActive())
+    {
+      System.exit(0);
+    }
   }
 
   @Override

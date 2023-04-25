@@ -82,6 +82,7 @@ void UnregisterGameCubeInputOverrider(int controller_index);
 void UnregisterWiiInputOverrider(int controller_index);
 
 void SetControlState(int controller_index, ControlID control, double state);
+void SetControlState(int controller_index, int control, double state);
 void ClearControlState(int controller_index, ControlID control);
 
 // Angle is in radians and should be non-negative
