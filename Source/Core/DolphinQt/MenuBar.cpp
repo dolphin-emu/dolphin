@@ -191,7 +191,11 @@ void MenuBar::OnDebugModeToggled(bool enabled)
 void MenuBar::AddFileMenu()
 {
   QMenu* file_menu = addMenu(tr("&File"));
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
+  m_open_action = file_menu->addAction(tr("&Open..."), QKeySequence::Open, this, &MenuBar::Open);
+#else
   m_open_action = file_menu->addAction(tr("&Open..."), this, &MenuBar::Open, QKeySequence::Open);
+#endif
 
   file_menu->addSeparator();
 
@@ -501,14 +505,23 @@ void MenuBar::AddViewMenu()
   connect(&Settings::Instance(), &Settings::GameListRefreshStarted, purge_action,
           [purge_action] { purge_action->setEnabled(true); });
   view_menu->addSeparator();
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
+  view_menu->addAction(tr("Search"), QKeySequence::Find, this, &MenuBar::ShowSearch);
+#else
   view_menu->addAction(tr("Search"), this, &MenuBar::ShowSearch, QKeySequence::Find);
+#endif
 }
 
 void MenuBar::AddOptionsMenu()
 {
   QMenu* options_menu = addMenu(tr("&Options"));
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
+  options_menu->addAction(tr("Co&nfiguration"), QKeySequence::Preferences, this,
+                          &MenuBar::Configure);
+#else
   options_menu->addAction(tr("Co&nfiguration"), this, &MenuBar::Configure,
                           QKeySequence::Preferences);
+#endif
   options_menu->addSeparator();
   options_menu->addAction(tr("&Graphics Settings"), this, &MenuBar::ConfigureGraphics);
   options_menu->addAction(tr("&Audio Settings"), this, &MenuBar::ConfigureAudio);
