@@ -65,7 +65,7 @@
 
 namespace
 {
-QString InetAddressToString(const TraversalInetAddress& addr)
+QString InetAddressToString(const Common::TraversalInetAddress& addr)
 {
   QString ip;
 
@@ -321,7 +321,7 @@ void NetPlayDialog::ConnectWidgets()
           &NetPlayDialog::UpdateGUI);
   connect(m_hostcode_action_button, &QPushButton::clicked, [this] {
     if (m_is_copy_button_retry)
-      g_TraversalClient->ReconnectToServer();
+      Common::g_TraversalClient->ReconnectToServer();
     else
       QApplication::clipboard()->setText(m_hostcode_label->text());
   });
@@ -581,9 +581,9 @@ void NetPlayDialog::UpdateDiscordPresence()
 
   if (IsHosting())
   {
-    if (g_TraversalClient)
+    if (Common::g_TraversalClient)
     {
-      const auto host_id = g_TraversalClient->GetHostID();
+      const auto host_id = Common::g_TraversalClient->GetHostID();
       if (host_id[0] == '\0')
         return use_default();
 
@@ -706,26 +706,27 @@ void NetPlayDialog::UpdateGUI()
   }
   else if (m_use_traversal)
   {
-    switch (g_TraversalClient->GetState())
+    switch (Common::g_TraversalClient->GetState())
     {
-    case TraversalClient::State::Connecting:
+    case Common::TraversalClient::State::Connecting:
       m_hostcode_label->setText(tr("Connecting"));
       m_hostcode_action_button->setEnabled(false);
       m_hostcode_action_button->setText(tr("..."));
       break;
-    case TraversalClient::State::Connected:
+    case Common::TraversalClient::State::Connected:
     {
       if (m_room_box->currentIndex() == 0)
       {
         // Display Room ID.
-        const auto host_id = g_TraversalClient->GetHostID();
+        const auto host_id = Common::g_TraversalClient->GetHostID();
         m_hostcode_label->setText(
             QString::fromStdString(std::string(host_id.begin(), host_id.end())));
       }
       else
       {
         // Externally mapped IP and port are known when using the traversal server.
-        m_hostcode_label->setText(InetAddressToString(g_TraversalClient->GetExternalAddress()));
+        m_hostcode_label->setText(
+            InetAddressToString(Common::g_TraversalClient->GetExternalAddress()));
       }
 
       m_hostcode_action_button->setEnabled(true);
@@ -733,7 +734,7 @@ void NetPlayDialog::UpdateGUI()
       m_is_copy_button_retry = false;
       break;
     }
-    case TraversalClient::State::Failure:
+    case Common::TraversalClient::State::Failure:
       m_hostcode_label->setText(tr("Error"));
       m_hostcode_action_button->setText(tr("Retry"));
       m_hostcode_action_button->setEnabled(true);
@@ -981,35 +982,35 @@ void NetPlayDialog::OnConnectionError(const std::string& message)
   });
 }
 
-void NetPlayDialog::OnTraversalError(TraversalClient::FailureReason error)
+void NetPlayDialog::OnTraversalError(Common::TraversalClient::FailureReason error)
 {
   QueueOnObject(this, [this, error] {
     switch (error)
     {
-    case TraversalClient::FailureReason::BadHost:
+    case Common::TraversalClient::FailureReason::BadHost:
       ModalMessageBox::critical(this, tr("Traversal Error"), tr("Couldn't look up central server"));
       QDialog::reject();
       break;
-    case TraversalClient::FailureReason::VersionTooOld:
+    case Common::TraversalClient::FailureReason::VersionTooOld:
       ModalMessageBox::critical(this, tr("Traversal Error"),
                                 tr("Dolphin is too old for traversal server"));
       QDialog::reject();
       break;
-    case TraversalClient::FailureReason::ServerForgotAboutUs:
-    case TraversalClient::FailureReason::SocketSendError:
-    case TraversalClient::FailureReason::ResendTimeout:
+    case Common::TraversalClient::FailureReason::ServerForgotAboutUs:
+    case Common::TraversalClient::FailureReason::SocketSendError:
+    case Common::TraversalClient::FailureReason::ResendTimeout:
       UpdateGUI();
       break;
     }
   });
 }
 
-void NetPlayDialog::OnTraversalStateChanged(TraversalClient::State state)
+void NetPlayDialog::OnTraversalStateChanged(Common::TraversalClient::State state)
 {
   switch (state)
   {
-  case TraversalClient::State::Connected:
-  case TraversalClient::State::Failure:
+  case Common::TraversalClient::State::Connected:
+  case Common::TraversalClient::State::Failure:
     UpdateDiscordPresence();
     break;
   default:
