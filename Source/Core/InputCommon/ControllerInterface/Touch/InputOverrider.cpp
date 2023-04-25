@@ -229,7 +229,6 @@ void SetControlState(int controller_index, ControlID control, double state)
   input_state.overriding = true;
 }
 
-
 void SetControlState(int controller_index, int control, double state)
 {
   SetControlState(controller_index, (ControlID)control, state);
