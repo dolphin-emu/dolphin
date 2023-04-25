@@ -239,6 +239,16 @@ void NetworkWidget::Update()
   if (!isVisible())
     return;
 
+  if (Core::GetState() != Core::State::Paused)
+  {
+    m_socket_table->setDisabled(true);
+    m_ssl_table->setDisabled(true);
+    return;
+  }
+
+  m_socket_table->setDisabled(false);
+  m_ssl_table->setDisabled(false);
+
   // needed because there's a race condition on the IOS instance otherwise
   Core::CPUThreadGuard guard(Core::System::GetInstance());
 
