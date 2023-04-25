@@ -6,7 +6,7 @@
 #include <array>
 #include "DolphinQt/Config/Graphics/GraphicsWidget.h"
 
-class GraphicsBool;
+class ConfigBool;
 class GraphicsChoice;
 class GraphicsRadioInt;
 class GraphicsWindow;
@@ -45,16 +45,16 @@ private:
   ToolTipComboBox* m_backend_combo;
   ToolTipComboBox* m_adapter_combo;
   GraphicsChoice* m_aspect_combo;
-  GraphicsBool* m_enable_vsync;
-  GraphicsBool* m_enable_fullscreen;
+  ConfigBool* m_enable_vsync;
+  ConfigBool* m_enable_fullscreen;
 
   // Options
-  GraphicsBool* m_show_ping;
-  GraphicsBool* m_autoadjust_window_size;
-  GraphicsBool* m_show_messages;
-  GraphicsBool* m_render_main_window;
+  ConfigBool* m_show_ping;
+  ConfigBool* m_autoadjust_window_size;
+  ConfigBool* m_show_messages;
+  ConfigBool* m_render_main_window;
   std::array<GraphicsRadioInt*, 4> m_shader_compilation_mode{};
-  GraphicsBool* m_wait_for_shaders;
+  ConfigBool* m_wait_for_shaders;
 
   X11Utils::XRRConfiguration* m_xrr_config;
 };

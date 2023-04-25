@@ -496,8 +496,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
       WII_SSL* ssl = &_SSL[sslID];
       mbedtls_ssl_setup(&ssl->ctx, &ssl->config);
       ssl->sockfd = memory.Read_U32(BufferOut2);
-      WiiSockMan& sm = WiiSockMan::GetInstance();
-      ssl->hostfd = sm.GetHostSocket(ssl->sockfd);
+      ssl->hostfd = m_ios.GetSocketManager()->GetHostSocket(ssl->sockfd);
       INFO_LOG_FMT(IOS_SSL, "IOCTLV_NET_SSL_CONNECT socket = {}", ssl->sockfd);
       mbedtls_ssl_set_bio(&ssl->ctx, ssl, SSLSendWithoutSNI, SSLRecv, nullptr);
       WriteReturnValue(SSL_OK, BufferIn);
@@ -520,8 +519,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
     int sslID = memory.Read_U32(BufferOut) - 1;
     if (IsSSLIDValid(sslID))
     {
-      WiiSockMan& sm = WiiSockMan::GetInstance();
-      sm.DoSock(_SSL[sslID].sockfd, request, IOCTLV_NET_SSL_DOHANDSHAKE);
+      m_ios.GetSocketManager()->DoSock(_SSL[sslID].sockfd, request, IOCTLV_NET_SSL_DOHANDSHAKE);
       return std::nullopt;
     }
     else
@@ -535,8 +533,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
     const int sslID = memory.Read_U32(BufferOut) - 1;
     if (IsSSLIDValid(sslID))
     {
-      WiiSockMan& sm = WiiSockMan::GetInstance();
-      sm.DoSock(_SSL[sslID].sockfd, request, IOCTLV_NET_SSL_WRITE);
+      m_ios.GetSocketManager()->DoSock(_SSL[sslID].sockfd, request, IOCTLV_NET_SSL_WRITE);
       return std::nullopt;
     }
     else
@@ -559,8 +556,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
     int sslID = memory.Read_U32(BufferOut) - 1;
     if (IsSSLIDValid(sslID))
     {
-      WiiSockMan& sm = WiiSockMan::GetInstance();
-      sm.DoSock(_SSL[sslID].sockfd, request, IOCTLV_NET_SSL_READ);
+      m_ios.GetSocketManager()->DoSock(_SSL[sslID].sockfd, request, IOCTLV_NET_SSL_READ);
       return std::nullopt;
     }
     else

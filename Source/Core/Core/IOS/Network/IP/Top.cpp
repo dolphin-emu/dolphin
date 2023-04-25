@@ -77,7 +77,6 @@ NetIPTopDevice::NetIPTopDevice(Kernel& ios, const std::string& device_name)
 void NetIPTopDevice::DoState(PointerWrap& p)
 {
   Device::DoState(p);
-  WiiSockMan::GetInstance().DoState(p);
 }
 
 static int inet_pton(const char* src, unsigned char* dst)
@@ -371,7 +370,7 @@ void NetIPTopDevice::Update()
       m_async_replies.pop();
     }
   }
-  WiiSockMan::GetInstance().Update();
+  m_ios.GetSocketManager()->Update();
 }
 
 IPCReply NetIPTopDevice::HandleInitInterfaceRequest(const IOCtlRequest& request)
@@ -389,8 +388,7 @@ IPCReply NetIPTopDevice::HandleSocketRequest(const IOCtlRequest& request)
   const u32 type = memory.Read_U32(request.buffer_in + 4);
   const u32 prot = memory.Read_U32(request.buffer_in + 8);
 
-  WiiSockMan& sm = WiiSockMan::GetInstance();
-  const s32 return_value = sm.NewSocket(af, type, prot);
+  const s32 return_value = m_ios.GetSocketManager()->NewSocket(af, type, prot);
   INFO_LOG_FMT(IOS_NET,
                "IOCTL_SO_SOCKET "
                "Socket: {:08x} ({},{},{}), BufferIn: ({:08x}, {}), BufferOut: ({:08x}, {})",
@@ -407,8 +405,7 @@ IPCReply NetIPTopDevice::HandleICMPSocketRequest(const IOCtlRequest& request)
 
   const u32 pf = memory.Read_U32(request.buffer_in);
 
-  WiiSockMan& sm = WiiSockMan::GetInstance();
-  const s32 return_value = sm.NewSocket(pf, SOCK_RAW, IPPROTO_ICMP);
+  const s32 return_value = m_ios.GetSocketManager()->NewSocket(pf, SOCK_RAW, IPPROTO_ICMP);
   INFO_LOG_FMT(IOS_NET, "IOCTL_SO_ICMPSOCKET({:x}) {}", pf, return_value);
   return IPCReply(return_value);
 }
@@ -419,8 +416,7 @@ IPCReply NetIPTopDevice::HandleCloseRequest(const IOCtlRequest& request)
   auto& memory = system.GetMemory();
 
   const u32 fd = memory.Read_U32(request.buffer_in);
-  WiiSockMan& sm = WiiSockMan::GetInstance();
-  const s32 return_value = sm.DeleteSocket(fd);
+  const s32 return_value = m_ios.GetSocketManager()->DeleteSocket(fd);
   const char* const close_fn =
       request.request == IOCTL_SO_ICMPCLOSE ? "IOCTL_SO_ICMPCLOSE" : "IOCTL_SO_CLOSE";
 
@@ -435,8 +431,7 @@ std::optional<IPCReply> NetIPTopDevice::HandleDoSockRequest(const IOCtlRequest& 
   auto& memory = system.GetMemory();
 
   const u32 fd = memory.Read_U32(request.buffer_in);
-  WiiSockMan& sm = WiiSockMan::GetInstance();
-  sm.DoSock(fd, request, static_cast<NET_IOCTL>(request.request));
+  m_ios.GetSocketManager()->DoSock(fd, request, static_cast<NET_IOCTL>(request.request));
   return std::nullopt;
 }
 
@@ -454,8 +449,7 @@ IPCReply NetIPTopDevice::HandleShutdownRequest(const IOCtlRequest& request)
 
   const u32 fd = memory.Read_U32(request.buffer_in);
   const u32 how = memory.Read_U32(request.buffer_in + 4);
-  WiiSockMan& sm = WiiSockMan::GetInstance();
-  const s32 return_value = sm.ShutdownSocket(fd, how);
+  const s32 return_value = m_ios.GetSocketManager()->ShutdownSocket(fd, how);
 
   INFO_LOG_FMT(IOS_NET, "IOCTL_SO_SHUTDOWN(fd={}, how={}) = {}", fd, how, return_value);
   return IPCReply(return_value);
@@ -468,10 +462,11 @@ IPCReply NetIPTopDevice::HandleListenRequest(const IOCtlRequest& request)
 
   u32 fd = memory.Read_U32(request.buffer_in);
   u32 BACKLOG = memory.Read_U32(request.buffer_in + 0x04);
-  u32 ret = listen(WiiSockMan::GetInstance().GetHostSocket(fd), BACKLOG);
+  auto socket_manager = m_ios.GetSocketManager();
+  u32 ret = listen(socket_manager->GetHostSocket(fd), BACKLOG);
 
   request.Log(GetDeviceName(), Common::Log::LogType::IOS_WC24);
-  return IPCReply(WiiSockMan::GetNetErrorCode(ret, "SO_LISTEN", false));
+  return IPCReply(socket_manager->GetNetErrorCode(ret, "SO_LISTEN", false));
 }
 
 IPCReply NetIPTopDevice::HandleGetSockOptRequest(const IOCtlRequest& request)
@@ -492,16 +487,17 @@ IPCReply NetIPTopDevice::HandleGetSockOptRequest(const IOCtlRequest& request)
   u8 optval[20];
   u32 optlen = 4;
 
-  int ret = getsockopt(WiiSockMan::GetInstance().GetHostSocket(fd), nat_level, nat_optname,
-                       (char*)&optval, (socklen_t*)&optlen);
-  const s32 return_value = WiiSockMan::GetNetErrorCode(ret, "SO_GETSOCKOPT", false);
+  auto socket_manager = m_ios.GetSocketManager();
+  int ret = getsockopt(socket_manager->GetHostSocket(fd), nat_level, nat_optname, (char*)&optval,
+                       (socklen_t*)&optlen);
+  const s32 return_value = socket_manager->GetNetErrorCode(ret, "SO_GETSOCKOPT", false);
 
   memory.Write_U32(optlen, request.buffer_out + 0xC);
   memory.CopyToEmu(request.buffer_out + 0x10, optval, optlen);
 
   if (optname == SO_ERROR)
   {
-    s32 last_error = WiiSockMan::GetInstance().GetLastNetError();
+    s32 last_error = socket_manager->GetLastNetError();
 
     memory.Write_U32(sizeof(s32), request.buffer_out + 0xC);
     memory.Write_U32(last_error, request.buffer_out + 0x10);
@@ -543,9 +539,10 @@ IPCReply NetIPTopDevice::HandleSetSockOptRequest(const IOCtlRequest& request)
   const int nat_level = MapWiiSockOptLevelToNative(level);
   const int nat_optname = MapWiiSockOptNameToNative(optname);
 
-  const int ret = setsockopt(WiiSockMan::GetInstance().GetHostSocket(fd), nat_level, nat_optname,
+  auto socket_manager = m_ios.GetSocketManager();
+  const int ret = setsockopt(socket_manager->GetHostSocket(fd), nat_level, nat_optname,
                              reinterpret_cast<char*>(optval), optlen);
-  return IPCReply(WiiSockMan::GetNetErrorCode(ret, "SO_SETSOCKOPT", false));
+  return IPCReply(socket_manager->GetNetErrorCode(ret, "SO_SETSOCKOPT", false));
 }
 
 IPCReply NetIPTopDevice::HandleGetSockNameRequest(const IOCtlRequest& request)
@@ -559,7 +556,7 @@ IPCReply NetIPTopDevice::HandleGetSockNameRequest(const IOCtlRequest& request)
 
   sockaddr sa;
   socklen_t sa_len = sizeof(sa);
-  const int ret = getsockname(WiiSockMan::GetInstance().GetHostSocket(fd), &sa, &sa_len);
+  const int ret = getsockname(m_ios.GetSocketManager()->GetHostSocket(fd), &sa, &sa_len);
 
   if (request.buffer_out_size < 2 + sizeof(sa.sa_data))
     WARN_LOG_FMT(IOS_NET, "IOCTL_SO_GETSOCKNAME output buffer is too small. Truncating");
@@ -586,7 +583,7 @@ IPCReply NetIPTopDevice::HandleGetPeerNameRequest(const IOCtlRequest& request)
 
   sockaddr sa;
   socklen_t sa_len = sizeof(sa);
-  const int ret = getpeername(WiiSockMan::GetInstance().GetHostSocket(fd), &sa, &sa_len);
+  const int ret = getpeername(m_ios.GetSocketManager()->GetHostSocket(fd), &sa, &sa_len);
 
   if (request.buffer_out_size < 2 + sizeof(sa.sa_data))
     WARN_LOG_FMT(IOS_NET, "IOCTL_SO_GETPEERNAME output buffer is too small. Truncating");
@@ -677,7 +674,7 @@ IPCReply NetIPTopDevice::HandleInetNToPRequest(const IOCtlRequest& request)
 
 std::optional<IPCReply> NetIPTopDevice::HandlePollRequest(const IOCtlRequest& request)
 {
-  WiiSockMan& sm = WiiSockMan::GetInstance();
+  auto sm = m_ios.GetSocketManager();
 
   if (!request.buffer_in || !request.buffer_out)
     return IPCReply(-SO_EINVAL);
@@ -700,7 +697,7 @@ std::optional<IPCReply> NetIPTopDevice::HandlePollRequest(const IOCtlRequest& re
   for (u32 i = 0; i < nfds; ++i)
   {
     const s32 wii_fd = memory.Read_U32(request.buffer_out + 0xc * i);
-    ufds[i].fd = sm.GetHostSocket(wii_fd);                                 // fd
+    ufds[i].fd = sm->GetHostSocket(wii_fd);                                // fd
     const int events = memory.Read_U32(request.buffer_out + 0xc * i + 4);  // events
     ufds[i].revents = 0;
 
@@ -717,7 +714,7 @@ std::optional<IPCReply> NetIPTopDevice::HandlePollRequest(const IOCtlRequest& re
   }
 
   // Prevents blocking emulation on a blocking poll
-  sm.AddPollCommand({request.address, request.buffer_out, std::move(ufds), timeout});
+  sm->AddPollCommand({request.address, request.buffer_out, std::move(ufds), timeout});
   return std::nullopt;
 }
 
@@ -1014,8 +1011,7 @@ std::optional<IPCReply> NetIPTopDevice::HandleSendToRequest(const IOCtlVRequest&
   auto& memory = system.GetMemory();
 
   u32 fd = memory.Read_U32(request.in_vectors[1].address);
-  WiiSockMan& sm = WiiSockMan::GetInstance();
-  sm.DoSock(fd, request, IOCTLV_SO_SENDTO);
+  m_ios.GetSocketManager()->DoSock(fd, request, IOCTLV_SO_SENDTO);
   return std::nullopt;
 }
 
@@ -1025,8 +1021,7 @@ std::optional<IPCReply> NetIPTopDevice::HandleRecvFromRequest(const IOCtlVReques
   auto& memory = system.GetMemory();
 
   u32 fd = memory.Read_U32(request.in_vectors[0].address);
-  WiiSockMan& sm = WiiSockMan::GetInstance();
-  sm.DoSock(fd, request, IOCTLV_SO_RECVFROM);
+  m_ios.GetSocketManager()->DoSock(fd, request, IOCTLV_SO_RECVFROM);
   return std::nullopt;
 }
 
@@ -1181,11 +1176,12 @@ IPCReply NetIPTopDevice::HandleICMPPingRequest(const IOCtlVRequest& request)
     icmp_length = 22;
   }
 
-  int ret = icmp_echo_req(WiiSockMan::GetInstance().GetHostSocket(fd), &addr, data, icmp_length);
+  auto socket_manager = m_ios.GetSocketManager();
+  int ret = icmp_echo_req(socket_manager->GetHostSocket(fd), &addr, data, icmp_length);
   if (ret == icmp_length)
   {
-    ret = icmp_echo_rep(WiiSockMan::GetInstance().GetHostSocket(fd), &addr,
-                        static_cast<u32>(timeout), icmp_length);
+    ret = icmp_echo_rep(socket_manager->GetHostSocket(fd), &addr, static_cast<u32>(timeout),
+                        icmp_length);
   }
 
   // TODO proper error codes

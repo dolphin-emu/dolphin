@@ -3,14 +3,21 @@
 //
 #pragma once
 
-#include <enet/enet.h>
+#include <memory>
 
 #include <SFML/Network/Packet.hpp>
+#include <enet/enet.h>
 
 #include "Common/CommonTypes.h"
 
 namespace Common::ENet
 {
+struct ENetHostDeleter
+{
+  void operator()(ENetHost* host) const noexcept { enet_host_destroy(host); }
+};
+using ENetHostPtr = std::unique_ptr<ENetHost, ENetHostDeleter>;
+
 void WakeupThread(ENetHost* host);
 int ENET_CALLBACK InterceptCallback(ENetHost* host, ENetEvent* event);
 bool SendPacket(ENetPeer* socket, const sf::Packet& packet, u8 channel_id);

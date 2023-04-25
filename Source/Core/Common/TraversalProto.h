@@ -6,6 +6,8 @@
 #include <cstddef>
 #include "Common/CommonTypes.h"
 
+namespace Common
+{
 constexpr size_t NETPLAY_CODE_SIZE = 8;
 using TraversalHostId = std::array<char, NETPLAY_CODE_SIZE>;
 using TraversalRequestId = u64;
@@ -92,3 +94,4 @@ struct TraversalPacket
   };
 };
 #pragma pack(pop)
+}  // namespace Common

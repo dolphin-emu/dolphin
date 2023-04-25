@@ -8,7 +8,7 @@
 #include <QTableWidget>
 
 #include "Common/CommonTypes.h"
-#include "Common/Debug/CodeTrace.h"
+#include "Core/Debugger/CodeTrace.h"
 
 class QKeyEvent;
 class QMouseEvent;
