@@ -36,7 +36,6 @@
     <ClInclude Include="Common\Crypto\bn.h" />
     <ClInclude Include="Common\Crypto\ec.h" />
     <ClInclude Include="Common\Crypto\SHA1.h" />
-    <ClInclude Include="Common\Debug\CodeTrace.h" />
     <ClInclude Include="Common\Debug\MemoryPatches.h" />
     <ClInclude Include="Common\Debug\Threads.h" />
     <ClInclude Include="Common\Debug\Watches.h" />
@@ -191,6 +190,7 @@
     <ClInclude Include="Core\ConfigManager.h" />
     <ClInclude Include="Core\Core.h" />
     <ClInclude Include="Core\CoreTiming.h" />
+    <ClInclude Include="Core\Debugger\CodeTrace.h" />
     <ClInclude Include="Core\Debugger\Debugger_SymbolMap.h" />
     <ClInclude Include="Core\Debugger\Dump.h" />
     <ClInclude Include="Core\Debugger\GCELF.h" />
@@ -749,7 +749,6 @@
     <ClCompile Include="Common\Crypto\bn.cpp" />
     <ClCompile Include="Common\Crypto\ec.cpp" />
     <ClCompile Include="Common\Crypto\SHA1.cpp" />
-    <ClCompile Include="Common\Debug\CodeTrace.cpp" />
     <ClCompile Include="Common\Debug\MemoryPatches.cpp" />
     <ClCompile Include="Common\Debug\Watches.cpp" />
     <ClCompile Include="Common\DynamicLibrary.cpp" />
@@ -825,6 +824,7 @@
     <ClCompile Include="Core\ConfigManager.cpp" />
     <ClCompile Include="Core\Core.cpp" />
     <ClCompile Include="Core\CoreTiming.cpp" />
+    <ClCompile Include="Core\Debugger\CodeTrace.cpp" />
     <ClCompile Include="Core\Debugger\Debugger_SymbolMap.cpp" />
     <ClCompile Include="Core\Debugger\Dump.cpp" />
     <ClCompile Include="Core\Debugger\OSThread.cpp" />
