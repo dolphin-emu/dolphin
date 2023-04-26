@@ -47,6 +47,16 @@ public final class StartupHandler
         return;
       }
 
+      // Restore settings from the main app into VR app dir.
+      if (VirtualReality.isActive())
+      {
+        Bundle extras = parent.getIntent().getExtras();
+        if (extras != null)
+        {
+          VirtualReality.restoreConfig(extras);
+        }
+      }
+
       // Start the emulation activity, send the ISO passed in and finish the main activity
       EmulationActivity.launch(parent, gamesToLaunch, false);
       parent.finish();

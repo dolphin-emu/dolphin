@@ -8,10 +8,14 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 
 import org.dolphinemu.dolphinemu.BuildConfig;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Locale;
 
 public class VirtualReality
@@ -88,6 +92,51 @@ public class VirtualReality
       launcher.setData(uri);
     }
 
+    serializeConfigs(launcher);
     context.getApplicationContext().startActivity(launcher);
+  }
+
+  public static void restoreConfig(Bundle extras)
+  {
+    File root = new File(DirectoryInitialization.getUserDirectory() + "/Config/");
+    for (File file : root.listFiles())
+    {
+      if (file.isDirectory())
+        continue;
+
+      try
+      {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+          byte[] bytes = extras.getByteArray(file.getName());
+          if (bytes != null)
+            Files.write(file.toPath(), bytes);
+        }
+      }
+      catch (IOException e)
+      {
+        e.printStackTrace();
+      }
+    }
+  }
+
+  private static void serializeConfigs(Intent intent)
+  {
+    File root = new File(DirectoryInitialization.getUserDirectory() + "/Config/");
+    for (File file : root.listFiles())
+    {
+      if (file.isDirectory())
+        continue;
+
+      try
+      {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+          intent.putExtra(file.getName(), Files.readAllBytes(file.toPath()));
+        }
+      }
+      catch (IOException e)
+      {
+        e.printStackTrace();
+      }
+    }
   }
 }
