@@ -16,16 +16,11 @@ class QTabWidget;
 class QDialogButtonBox;
 class SoftwareRendererWidget;
 
-namespace X11Utils
-{
-class XRRConfiguration;
-}
-
 class GraphicsWindow final : public QDialog
 {
   Q_OBJECT
 public:
-  explicit GraphicsWindow(X11Utils::XRRConfiguration* xrr_config, MainWindow* parent);
+  explicit GraphicsWindow(MainWindow* parent);
 
 signals:
   void BackendChanged(const QString& backend);
@@ -33,6 +28,4 @@ signals:
 private:
   void CreateMainLayout();
   void OnBackendChanged(const QString& backend);
-
-  X11Utils::XRRConfiguration* m_xrr_config;
 };
