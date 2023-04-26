@@ -3,6 +3,7 @@
 
 #include "DolphinQt/Config/GeckoCodeWidget.h"
 
+#include <algorithm>
 #include <utility>
 
 #include <QCursor>
@@ -257,6 +258,8 @@ void GeckoCodeWidget::OnContextMenuRequested()
   QMenu menu;
 
   menu.addAction(tr("Sort Alphabetically"), this, &GeckoCodeWidget::SortAlphabetically);
+  menu.addAction(tr("Show Enabled Codes First"), this, &GeckoCodeWidget::SortEnabledCodesFirst);
+  menu.addAction(tr("Show Disabled Codes First"), this, &GeckoCodeWidget::SortDisabledCodesFirst);
 
   menu.exec(QCursor::pos());
 }
@@ -265,6 +268,26 @@ void GeckoCodeWidget::SortAlphabetically()
 {
   m_code_list->sortItems();
   OnListReordered();
+}
+
+void GeckoCodeWidget::SortEnabledCodesFirst()
+{
+  std::stable_sort(m_gecko_codes.begin(), m_gecko_codes.end(), [](const auto& a, const auto& b) {
+    return a.enabled && a.enabled != b.enabled;
+  });
+
+  UpdateList();
+  SaveCodes();
+}
+
+void GeckoCodeWidget::SortDisabledCodesFirst()
+{
+  std::stable_sort(m_gecko_codes.begin(), m_gecko_codes.end(), [](const auto& a, const auto& b) {
+    return !a.enabled && a.enabled != b.enabled;
+  });
+
+  UpdateList();
+  SaveCodes();
 }
 
 void GeckoCodeWidget::OnListReordered()
