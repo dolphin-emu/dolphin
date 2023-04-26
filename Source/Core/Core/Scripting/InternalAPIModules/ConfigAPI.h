@@ -35,6 +35,13 @@ ArgHolder SetFloatConfigSettingForLayer(ScriptContext* current_script, std::vect
 ArgHolder SetStringConfigSettingForLayer(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder SetEnumConfigSettingForLayer(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 
+ArgHolder DeleteBooleanConfigSettingFromLayer(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder DeleteSignedIntConfigSettingFromLayer(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder DeleteUnsignedIntConfigSettingFromLayer(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder DeleteFloatConfigSettingFromLayer(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder DeleteStringConfigSettingFromLayer(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder DeleteEnumConfigSettingFromLayer(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+
 ArgHolder GetBooleanConfigSetting(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder GetSignedIntConfigSetting(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder GetUnsignedIntConfigSetting(ScriptContext* current_script, std::vector<ArgHolder>& args_list);

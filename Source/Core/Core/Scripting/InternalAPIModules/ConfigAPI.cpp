@@ -43,6 +43,12 @@ static std::array all_config_functions_metadata_list = {
     FunctionMetadata("setStringConfigSettingForLayer", "1.0", "setStringConfigSettingForLayer(\"GlobalGame\", \"Main\", \"Core\", \"MemcardAPath\", \"MyFolder/subDirectory/memcardFolder\")", SetStringConfigSettingForLayer, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String}),
     FunctionMetadata("setEnumConfigSettingForLayer", "1.0", "setEnumConfigSettingForLayer(\"GlobalGame\", \"Main\", \"Core\", \"SlotA\", " "\"EXIDeviceType\", \"MemoryCard\")", SetEnumConfigSettingForLayer, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String}),
 
+    FunctionMetadata("deleteBooleanConfigSettingFromLayer", "1.0", "deleteBooleanConfigSettingFromLayer(\"GlobalGame\", \"Main\", \"Interface\", " "\"debugModeEnabled\")", DeleteBooleanConfigSettingFromLayer, ArgTypeEnum::Boolean,{ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String}),
+    FunctionMetadata("deleteSignedIntConfigSettingFromLayer", "1.0", "deleteSignedIntConfigSettingFromLayer(\"GlobalGame\", \"Main\", \"Core\", " "\"TimingVariance\")", DeleteSignedIntConfigSettingFromLayer, ArgTypeEnum::Boolean, {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String}),
+    FunctionMetadata("deleteUnsignedIntConfigSettingFromLayer", "1.0", "deleteUnsignedIntConfigSettingFromLayer(\"GlobalGame\", \"Main\", \"Core\", " "\"MEM1Size\")", DeleteUnsignedIntConfigSettingFromLayer, ArgTypeEnum::Boolean, {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String}),
+    FunctionMetadata("deleteFloatConfigSettingFromLayer", "1.0", "deleteFloatConfigSettingFromLayer(\"GlobalGame\", \"Main\", \"Core\", " "\"EmulationSpeed\")", DeleteFloatConfigSettingFromLayer, ArgTypeEnum::Boolean, {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String}),
+    FunctionMetadata("deleteStringConfigSettingFromLayer", "1.0", "deleteStringConfigSettingFromLayer(\"GlobalGame\", \"Main\", \"Core\", " "\"MemcardAPath\")", DeleteStringConfigSettingFromLayer, ArgTypeEnum::Boolean, {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String}),
+    FunctionMetadata("deleteEnumConfigSettingFromLayer", "1.0", "deleteEnumConfigSettingForLayer(\"GlobalGame\", \"Main\", \"Core\", \"SlotA\", ""\"EXIDeviceType\")", SetEnumConfigSettingForLayer, ArgTypeEnum::Boolean, {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String}),
 
     FunctionMetadata("getBooleanConfigSetting", "1.0", "getBooleanConfigSetting(\"Main\", \"Interface\", " "\"debugModeEnabled\")", GetBooleanConfigSetting, ArgTypeEnum::Boolean, {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String}),
     FunctionMetadata("getSignedIntConfigSetting", "1.0", "getSignedIntConfigSetting(\"Main\", \"Core\", \"TimingVariance\")", GetSignedIntConfigSetting, ArgTypeEnum::Integer, {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String}),
@@ -702,6 +708,112 @@ ArgHolder SetEnumConfigSettingForLayer(ScriptContext* current_script,
  default:
    return CreateErrorStringArgHolder(
        "Unknown implementation error occured in SetEnumConfigSettingForLayer() function. Did you "
+       "add in a new type and forget to update the function?");
+ }
+}
+
+template<typename T>
+ArgHolder DeleteConfigSettingFromLayer(std::vector<ArgHolder>& args_list, T default_value)
+{
+ std::optional<Config::LayerType> layer_name = ParseLayer(args_list[0].string_val);
+ std::optional<Config::System> system_name = ParseSystem(args_list[1].string_val);
+ std::string section_name = args_list[2].string_val;
+ std::string setting_name = args_list[3].string_val;
+
+ if (!layer_name.has_value())
+   return CreateErrorStringArgHolder("Invalid layer name of " + args_list[0].string_val +
+                                     " was used.");
+
+ else if (Config::GetLayer(layer_name.value()) == nullptr)
+   return CreateErrorStringArgHolder("Attempted to get a layer which was not created/active of " +
+                                     args_list[0].string_val);
+ else if (!system_name.has_value())
+   return CreateErrorStringArgHolder("Invalid system name of " + args_list[1].string_val +
+                                     " was used.");
+
+ if (layer_name.value() == Config::LayerType::Meta)
+   return CreateErrorStringArgHolder(
+       "Error: Meta layerType cannot be used when deleting config value");
+
+ bool return_value = Config::GetLayer(layer_name.value())->DeleteKey({system_name.value(), section_name, setting_name});
+ if (return_value)
+   Config::OnConfigChanged();
+ return CreateBoolArgHolder(return_value);
+}
+
+ArgHolder DeleteBooleanConfigSettingFromLayer(ScriptContext* current_script,
+                                              std::vector<ArgHolder>& args_list)
+{
+ return DeleteConfigSettingFromLayer(args_list, (bool)false);
+}
+
+ArgHolder DeleteSignedIntConfigSettingFromLayer(ScriptContext* current_script,
+                                                std::vector<ArgHolder>& args_list)
+{
+ return DeleteConfigSettingFromLayer(args_list, (int)0);
+}
+
+ArgHolder DeleteUnsignedIntConfigSettingFromLayer(ScriptContext* current_script,
+                                                  std::vector<ArgHolder>& args_list)
+{
+ return DeleteConfigSettingFromLayer(args_list, (u32)0);
+}
+
+ArgHolder DeleteFloatConfigSettingFromLayer(ScriptContext* current_script,
+                                           std::vector<ArgHolder>& args_list)
+{
+ return DeleteConfigSettingFromLayer(args_list, (float)0.0f);
+}
+
+ArgHolder DeleteStringConfigSettingFromLayer(ScriptContext* current_script,
+                                             std::vector<ArgHolder>& args_list)
+{
+ return DeleteConfigSettingFromLayer(args_list, std::string(""));
+}
+
+ArgHolder DeleteEnumConfigSettingFromLayer(ScriptContext* current_script,
+                                           std::vector<ArgHolder>& args_list)
+{
+ std::optional<Config::ValueType> optional_enum_type = ParseEnumType(args_list[4].string_val);
+ if (!optional_enum_type.has_value())
+   return CreateErrorStringArgHolder("Invalid enum type passed into function.");
+ Config::ValueType enum_type = optional_enum_type.value();
+
+ switch (enum_type)
+ {
+ case Config::ValueType::ASPECT_MODE:
+   return DeleteConfigSettingFromLayer(args_list, ((AspectMode)0));
+ case Config::ValueType::CPU_CORE:
+   return DeleteConfigSettingFromLayer(args_list, ((PowerPC::CPUCore)0));
+ case Config::ValueType::DPL2_QUALITY:
+   return DeleteConfigSettingFromLayer(args_list, ((AudioCommon::DPL2Quality)0));
+ case Config::ValueType::EXI_DEVICE_TYPE:
+   return DeleteConfigSettingFromLayer(args_list, ((ExpansionInterface::EXIDeviceType)0));
+ case Config::ValueType::FREE_LOOK_CONTROL_TYPE:
+   return DeleteConfigSettingFromLayer(args_list, ((FreeLook::ControlType)0));
+ case Config::ValueType::HSP_DEVICE_TYPE:
+   return DeleteConfigSettingFromLayer(args_list, ((HSP::HSPDeviceType)0));
+ case Config::ValueType::LOG_LEVEL_TYPE:
+   return DeleteConfigSettingFromLayer(args_list, ((Common::Log::LogLevel)0));
+ case Config::ValueType::REGION:
+   return DeleteConfigSettingFromLayer(args_list, ((DiscIO::Region)0));
+ case Config::ValueType::SHADER_COMPILATION_MODE:
+   return DeleteConfigSettingFromLayer(args_list, ((ShaderCompilationMode)0));
+ case Config::ValueType::SHOW_CURSOR_VALUE_TYPE:
+   return DeleteConfigSettingFromLayer(args_list, ((Config::ShowCursor)0));
+ case Config::ValueType::SI_DEVICE_TYPE:
+   return DeleteConfigSettingFromLayer(args_list, ((SerialInterface::SIDevices)0));
+ case Config::ValueType::STERERO_MODE:
+   return DeleteConfigSettingFromLayer(args_list, ((StereoMode)0));
+ case Config::ValueType::TEXTURE_FILTERING_MODE:
+   return DeleteConfigSettingFromLayer(args_list, ((TextureFilteringMode)0));
+ case Config::ValueType::TRI_STATE:
+   return DeleteConfigSettingFromLayer(args_list, ((TriState)0));
+ case Config::ValueType::WIIMOTE_SOURCE:
+   return DeleteConfigSettingFromLayer(args_list, ((WiimoteSource)0));
+ default:
+   return CreateErrorStringArgHolder(
+       "Unknown implementation error occured in DeleteEnumConfigSettingFromLayer() function. Did you "
        "add in a new type and forget to update the function?");
  }
 }
