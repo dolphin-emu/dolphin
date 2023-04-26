@@ -7,7 +7,7 @@
 #include "DolphinQt/Config/Graphics/GraphicsWidget.h"
 
 class ConfigBool;
-class GraphicsChoice;
+class ConfigChoice;
 class GraphicsRadioInt;
 class GraphicsWindow;
 class QCheckBox;
@@ -44,7 +44,7 @@ private:
   QGridLayout* m_video_layout;
   ToolTipComboBox* m_backend_combo;
   ToolTipComboBox* m_adapter_combo;
-  GraphicsChoice* m_aspect_combo;
+  ConfigChoice* m_aspect_combo;
   ConfigBool* m_enable_vsync;
   ConfigBool* m_enable_fullscreen;
 

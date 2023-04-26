@@ -1,7 +1,7 @@
 // Copyright 2017 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "DolphinQt/Config/Graphics/GraphicsChoice.h"
+#include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
 
 #include <QSignalBlocker>
 
@@ -9,11 +9,11 @@
 
 #include "DolphinQt/Settings.h"
 
-GraphicsChoice::GraphicsChoice(const QStringList& options, const Config::Info<int>& setting)
+ConfigChoice::ConfigChoice(const QStringList& options, const Config::Info<int>& setting)
     : m_setting(setting)
 {
   addItems(options);
-  connect(this, qOverload<int>(&QComboBox::currentIndexChanged), this, &GraphicsChoice::Update);
+  connect(this, qOverload<int>(&QComboBox::currentIndexChanged), this, &ConfigChoice::Update);
   setCurrentIndex(Config::Get(m_setting));
 
   connect(&Settings::Instance(), &Settings::ConfigChanged, this, [this] {
@@ -26,7 +26,7 @@ GraphicsChoice::GraphicsChoice(const QStringList& options, const Config::Info<in
   });
 }
 
-void GraphicsChoice::Update(int choice)
+void ConfigChoice::Update(int choice)
 {
   Config::SetBaseOrCurrent(m_setting, choice);
 }

@@ -8,7 +8,7 @@
 #include "DolphinQt/Config/Graphics/GraphicsWidget.h"
 
 class ConfigBool;
-class GraphicsChoice;
+class ConfigChoice;
 class GraphicsSlider;
 class GraphicsWindow;
 class QCheckBox;
@@ -34,7 +34,7 @@ private:
   void LoadPPShaders();
 
   // Enhancements
-  GraphicsChoice* m_ir_combo;
+  ConfigChoice* m_ir_combo;
   ToolTipComboBox* m_aa_combo;
   ToolTipComboBox* m_texture_filtering_combo;
   ToolTipComboBox* m_pp_effect;
@@ -48,7 +48,7 @@ private:
   ConfigBool* m_arbitrary_mipmap_detection;
 
   // Stereoscopy
-  GraphicsChoice* m_3d_mode;
+  ConfigChoice* m_3d_mode;
   GraphicsSlider* m_3d_depth;
   GraphicsSlider* m_3d_convergence;
   ConfigBool* m_3d_swap_eyes;

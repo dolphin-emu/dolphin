@@ -13,7 +13,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
-#include "DolphinQt/Config/Graphics/GraphicsChoice.h"
+#include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
@@ -37,8 +37,8 @@ void FreeLookWidget::CreateLayout()
          "leave this unchecked.</dolphin_emphasis>"));
   m_freelook_controller_configure_button = new NonDefaultQPushButton(tr("Configure Controller"));
 
-  m_freelook_control_type = new GraphicsChoice({tr("Six Axis"), tr("First Person"), tr("Orbital")},
-                                               Config::FL1_CONTROL_TYPE);
+  m_freelook_control_type = new ConfigChoice({tr("Six Axis"), tr("First Person"), tr("Orbital")},
+                                             Config::FL1_CONTROL_TYPE);
   m_freelook_control_type->SetTitle(tr("Free Look Control Type"));
   m_freelook_control_type->SetDescription(tr(
       "Changes the in-game camera type during Free Look.<br><br>"

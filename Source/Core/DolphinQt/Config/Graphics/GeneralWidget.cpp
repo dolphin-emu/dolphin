@@ -19,7 +19,7 @@
 #include "Core/Core.h"
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
-#include "DolphinQt/Config/Graphics/GraphicsChoice.h"
+#include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
 #include "DolphinQt/Config/Graphics/GraphicsRadio.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipComboBox.h"
@@ -57,8 +57,8 @@ void GeneralWidget::CreateWidgets()
 
   m_backend_combo = new ToolTipComboBox();
   m_aspect_combo =
-      new GraphicsChoice({tr("Auto"), tr("Force 16:9"), tr("Force 4:3"), tr("Stretch to Window")},
-                         Config::GFX_ASPECT_RATIO);
+      new ConfigChoice({tr("Auto"), tr("Force 16:9"), tr("Force 4:3"), tr("Stretch to Window")},
+                       Config::GFX_ASPECT_RATIO);
   m_adapter_combo = new ToolTipComboBox;
   m_enable_vsync = new ConfigBool(tr("V-Sync"), Config::GFX_VSYNC);
   m_enable_fullscreen = new ConfigBool(tr("Start in Fullscreen"), Config::MAIN_FULLSCREEN);
