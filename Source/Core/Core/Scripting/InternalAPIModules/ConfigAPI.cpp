@@ -829,27 +829,34 @@ ArgHolder GetConfigSetting(std::vector<ArgHolder>& args_list, T default_value)
    return CreateErrorStringArgHolder("Invalid system name of " + args_list[0].string_val +
                                      " was used.");
 
-  Config::Info<T> info = Config::Info<T>({system_name.value(), section_name, setting_name}, default_value);
-  Config::LayerType layer = Config::GetActiveLayerForConfig(info);
-  std::optional<T> returned_config_val = Config::Get(layer, info);
+ Config::Location location = {system_name.value(), section_name, setting_name};
 
-  if (!returned_config_val.has_value())
-    return CreateEmptyOptionalArgument();
-  else
+ std::optional<T> returned_config_val = {};
+  for (auto& layerType : Config::SEARCH_ORDER)
   {
-    if (std::is_same<T, bool>::value)
-      return CreateBoolArgHolder((*((std::optional<bool>*)&returned_config_val)).value());
-    else if (std::is_same<T, int>::value)
-      return CreateIntArgHolder((*((std::optional<int>*)&returned_config_val)).value());
-    else if (std::is_same<T, u32>::value)
-      return CreateU32ArgHolder((*((std::optional<u32>*)&returned_config_val)).value());
-    else if (std::is_same<T, float>::value)
-      return CreateFloatArgHolder((*((std::optional<float>*)&returned_config_val)).value());
-    else if (std::is_same<T, std::string>::value)
-      return CreateStringArgHolder((*((std::optional<std::string>*)&returned_config_val)).value());
-    else
-      return CreateErrorStringArgHolder("An unknown implementation error occured.");
+   std::shared_ptr<Config::Layer> layer_ptr = Config::GetLayer(layerType);
+   if (layer_ptr != nullptr)
+   {
+      returned_config_val = layer_ptr->Get<T>(location);
+      if (returned_config_val.has_value())
+      {
+        if (std::is_same<T, bool>::value)
+          return CreateBoolArgHolder((*((std::optional<bool>*)&returned_config_val)).value());
+        else if (std::is_same<T, int>::value)
+          return CreateIntArgHolder((*((std::optional<int>*)&returned_config_val)).value());
+        else if (std::is_same<T, u32>::value)
+          return CreateU32ArgHolder((*((std::optional<u32>*)&returned_config_val)).value());
+        else if (std::is_same<T, float>::value)
+          return CreateFloatArgHolder((*((std::optional<float>*)&returned_config_val)).value());
+        else if (std::is_same<T, std::string>::value)
+          return CreateStringArgHolder(
+              (*((std::optional<std::string>*)&returned_config_val)).value());
+        else
+          return CreateErrorStringArgHolder("An unknown implementation error occured.");
+      }
+   }
   }
+    return CreateEmptyOptionalArgument();
 }
 
 
@@ -863,21 +870,28 @@ ArgHolder GetConfigSetting_enum(std::vector<ArgHolder>& args_list, T default_val
   if (!system_name.has_value())
     return CreateErrorStringArgHolder("Invalid system name of " + args_list[0].string_val + " was used.");
 
-  Config::Info<T> info = Config::Info<T>({system_name.value(), section_name, setting_name}, default_value);
-  Config::LayerType layer = Config::GetActiveLayerForConfig(info);
-  std::optional<T> returned_config_val = Config::Get(layer, info);
+  Config::Location location = {system_name.value(), section_name, setting_name};
 
-  if (!returned_config_val.has_value())
-    return CreateEmptyOptionalArgument();
-  else
+  std::optional<T> returned_config_val = {};
+
+  for (auto& layerType : Config::SEARCH_ORDER)
   {
-    std::string resulting_enum_string =
-        ConvertEnumIntToStringForType(enum_type, (int)returned_config_val.value());
-    if (resulting_enum_string.empty())
-      return CreateEmptyOptionalArgument();
-    else
-      return CreateStringArgHolder(resulting_enum_string);
+    std::shared_ptr<Config::Layer> layer_ptr = Config::GetLayer(layerType);
+    if (layer_ptr != nullptr)
+    {
+      returned_config_val = layer_ptr->Get<T>(location);
+      if (returned_config_val.has_value())
+      {
+        std::string resulting_enum_string =
+            ConvertEnumIntToStringForType(enum_type, (int)returned_config_val.value());
+        if (resulting_enum_string.empty())
+          return CreateEmptyOptionalArgument();
+        else
+          return CreateStringArgHolder(resulting_enum_string);
+      }
+    }
   }
+  return CreateEmptyOptionalArgument();
 }
 
 ArgHolder GetBooleanConfigSetting(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
