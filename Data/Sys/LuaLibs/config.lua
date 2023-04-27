@@ -105,6 +105,25 @@ function ConfigClass:setConfigSettingForLayer(settingType, layerName, systemName
 	end
 end
 
+
+delete_config_setting_from_layer_table = {
+	[SettingTypes.BOOLEAN] = function(layerName, systemName, sectionName, settingName) return ConfigAPI:deleteBooleanConfigSettingFromLayer(layerName, systemName, sectionName, settingName) end,
+	[SettingTypes.S32] = function(layerName, systemName, sectionName, settingName) return ConfigAPI:deleteSignedIntConfigSettingFromLayer(layerName, systemName, sectionName, settingName) end,
+	[SettingTypes.U32] = function(layerName, systemName, sectionName, settingName) return ConfigAPI:deleteUnsignedIntConfigSettingFromLayer(layerName, systemName, sectionName, settingName) end,
+	[SettingTypes.FLOAT] = function(layerName, systemName, sectionName, settingName) return ConfigAPI:deleteFloatConfigSettingFromLayer(layerName, systemName, sectionName, settingName) end,
+	[SettingTypes.STRING] = function(layerName, systemName, sectionName, settingName) return ConfigAPI:deleteStringConfigSettingFromLayer(layerName, systemName, sectionName, settingName) end
+}
+
+function ConfigClass:deleteConfigSettingFromLayer(settingType, layerName, systemName, sectionName, settingName)
+	parsedType = ParseConfigType(settingType)
+	function_to_call = delete_config_setting_from_layer_table[parsedType]
+	if function_to_call ~= nil then
+		return function_to_call(layerName, systemName, sectionName, settingName)
+	else
+		return ConfigAPI:deleteEnumConfigSettingFromLayer(layerName, systemName, sectionName, settingName, settingType)
+	end
+end
+
 get_config_setting_table = {
 [SettingTypes.BOOLEAN] = function (systemName, sectionName, settingName) return ConfigAPI:getBooleanConfigSetting(systemName, sectionName, settingName) end,
 [SettingTypes.S32] = function (systemName, sectionName, settingName) return ConfigAPI:getSignedIntConfigSetting(systemName, sectionName, settingName) end,
