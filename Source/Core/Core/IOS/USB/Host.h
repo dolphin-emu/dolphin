@@ -26,10 +26,10 @@ class PointerWrap;
 namespace IOS::HLE
 {
 // Common base class for USB host devices (such as /dev/usb/oh0 and /dev/usb/ven).
-class USBHost : public Device
+class USBHost : public EmulationDevice
 {
 public:
-  USBHost(Kernel& ios, const std::string& device_name);
+  USBHost(EmulationKernel& ios, const std::string& device_name);
   virtual ~USBHost();
 
   std::optional<IPCReply> Open(const OpenRequest& request) override;

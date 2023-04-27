@@ -471,7 +471,7 @@ const std::map<const std::pair<const u16, const u16>, const char*> list_skylande
     {{3503, 0x0000}, "Kaos Trophy"},
 };
 
-SkylanderUSB::SkylanderUSB(Kernel& ios, const std::string& device_name) : m_ios(ios)
+SkylanderUSB::SkylanderUSB(EmulationKernel& ios, const std::string& device_name) : m_ios(ios)
 {
   m_vid = 0x1430;
   m_pid = 0x150;
@@ -600,7 +600,7 @@ int SkylanderUSB::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
   else
   {
     // Skylander Portal Requests
-    auto& system = Core::System::GetInstance();
+    auto& system = m_ios.GetSystem();
     auto& memory = system.GetMemory();
     u8* buf = memory.GetPointerForRange(cmd->data_address, cmd->length);
     if (cmd->length == 0 || buf == nullptr)
@@ -892,7 +892,7 @@ int SkylanderUSB::SubmitTransfer(std::unique_ptr<IntrMessage> cmd)
   DEBUG_LOG_FMT(IOS_USB, "[{:04x}:{:04x} {}] Interrupt: length={} endpoint={}", m_vid, m_pid,
                 m_active_interface, cmd->length, cmd->endpoint);
 
-  auto& system = Core::System::GetInstance();
+  auto& system = m_ios.GetSystem();
   auto& memory = system.GetMemory();
   u8* buf = memory.GetPointerForRange(cmd->data_address, cmd->length);
   if (cmd->length == 0 || buf == nullptr)

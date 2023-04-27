@@ -25,7 +25,7 @@ USB_VEN::~USB_VEN()
 
 std::optional<IPCReply> USB_VEN::IOCtl(const IOCtlRequest& request)
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
   request.Log(GetDeviceName(), Common::Log::LogType::IOS_USB);
@@ -53,7 +53,7 @@ std::optional<IPCReply> USB_VEN::IOCtl(const IOCtlRequest& request)
     return HandleDeviceIOCtl(request,
                              [&](USBV5Device& device) { return CancelEndpoint(device, request); });
   default:
-    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_USB,
+    request.DumpUnknown(GetSystem(), GetDeviceName(), Common::Log::LogType::IOS_USB,
                         Common::Log::LogLevel::LERROR);
     return IPCReply(IPC_SUCCESS);
   }
@@ -100,13 +100,16 @@ s32 USB_VEN::SubmitTransfer(USB::Device& device, const IOCtlVRequest& ioctlv)
   switch (ioctlv.request)
   {
   case USB::IOCTLV_USBV5_CTRLMSG:
-    return device.SubmitTransfer(std::make_unique<USB::V5CtrlMessage>(m_ios, ioctlv));
+    return device.SubmitTransfer(
+        std::make_unique<USB::V5CtrlMessage>(GetEmulationKernel(), ioctlv));
   case USB::IOCTLV_USBV5_INTRMSG:
-    return device.SubmitTransfer(std::make_unique<USB::V5IntrMessage>(m_ios, ioctlv));
+    return device.SubmitTransfer(
+        std::make_unique<USB::V5IntrMessage>(GetEmulationKernel(), ioctlv));
   case USB::IOCTLV_USBV5_BULKMSG:
-    return device.SubmitTransfer(std::make_unique<USB::V5BulkMessage>(m_ios, ioctlv));
+    return device.SubmitTransfer(
+        std::make_unique<USB::V5BulkMessage>(GetEmulationKernel(), ioctlv));
   case USB::IOCTLV_USBV5_ISOMSG:
-    return device.SubmitTransfer(std::make_unique<USB::V5IsoMessage>(m_ios, ioctlv));
+    return device.SubmitTransfer(std::make_unique<USB::V5IsoMessage>(GetEmulationKernel(), ioctlv));
   default:
     return IPC_EINVAL;
   }
@@ -114,7 +117,7 @@ s32 USB_VEN::SubmitTransfer(USB::Device& device, const IOCtlVRequest& ioctlv)
 
 IPCReply USB_VEN::CancelEndpoint(USBV5Device& device, const IOCtlRequest& request)
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
   const u8 endpoint = memory.Read_U8(request.buffer_in + 8);
@@ -129,7 +132,7 @@ IPCReply USB_VEN::GetDeviceInfo(USBV5Device& device, const IOCtlRequest& request
   if (request.buffer_out == 0 || request.buffer_out_size != 0xc0)
     return IPCReply(IPC_EINVAL);
 
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
   const std::shared_ptr<USB::Device> host_device = GetDeviceById(device.host_id);

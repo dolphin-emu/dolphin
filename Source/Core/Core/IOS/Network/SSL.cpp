@@ -88,7 +88,8 @@ int SSLRecv(void* ctx, unsigned char* buf, size_t len)
 }
 }  // namespace
 
-NetSSLDevice::NetSSLDevice(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
+NetSSLDevice::NetSSLDevice(EmulationKernel& ios, const std::string& device_name)
+    : EmulationDevice(ios, device_name)
 {
   for (WII_SSL& ssl : _SSL)
   {
@@ -496,7 +497,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
       WII_SSL* ssl = &_SSL[sslID];
       mbedtls_ssl_setup(&ssl->ctx, &ssl->config);
       ssl->sockfd = memory.Read_U32(BufferOut2);
-      ssl->hostfd = m_ios.GetSocketManager()->GetHostSocket(ssl->sockfd);
+      ssl->hostfd = GetEmulationKernel().GetSocketManager()->GetHostSocket(ssl->sockfd);
       INFO_LOG_FMT(IOS_SSL, "IOCTLV_NET_SSL_CONNECT socket = {}", ssl->sockfd);
       mbedtls_ssl_set_bio(&ssl->ctx, ssl, SSLSendWithoutSNI, SSLRecv, nullptr);
       WriteReturnValue(SSL_OK, BufferIn);
@@ -519,7 +520,8 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
     int sslID = memory.Read_U32(BufferOut) - 1;
     if (IsSSLIDValid(sslID))
     {
-      m_ios.GetSocketManager()->DoSock(_SSL[sslID].sockfd, request, IOCTLV_NET_SSL_DOHANDSHAKE);
+      GetEmulationKernel().GetSocketManager()->DoSock(_SSL[sslID].sockfd, request,
+                                                      IOCTLV_NET_SSL_DOHANDSHAKE);
       return std::nullopt;
     }
     else
@@ -533,7 +535,8 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
     const int sslID = memory.Read_U32(BufferOut) - 1;
     if (IsSSLIDValid(sslID))
     {
-      m_ios.GetSocketManager()->DoSock(_SSL[sslID].sockfd, request, IOCTLV_NET_SSL_WRITE);
+      GetEmulationKernel().GetSocketManager()->DoSock(_SSL[sslID].sockfd, request,
+                                                      IOCTLV_NET_SSL_WRITE);
       return std::nullopt;
     }
     else
@@ -556,7 +559,8 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
     int sslID = memory.Read_U32(BufferOut) - 1;
     if (IsSSLIDValid(sslID))
     {
-      m_ios.GetSocketManager()->DoSock(_SSL[sslID].sockfd, request, IOCTLV_NET_SSL_READ);
+      GetEmulationKernel().GetSocketManager()->DoSock(_SSL[sslID].sockfd, request,
+                                                      IOCTLV_NET_SSL_READ);
       return std::nullopt;
     }
     else
@@ -615,7 +619,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
     break;
   }
   default:
-    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_SSL);
+    request.DumpUnknown(system, GetDeviceName(), Common::Log::LogType::IOS_SSL);
   }
 
   // SSL return codes are written to BufferIn

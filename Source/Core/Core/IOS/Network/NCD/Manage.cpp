@@ -15,8 +15,8 @@
 
 namespace IOS::HLE
 {
-NetNCDManageDevice::NetNCDManageDevice(Kernel& ios, const std::string& device_name)
-    : Device(ios, device_name)
+NetNCDManageDevice::NetNCDManageDevice(EmulationKernel& ios, const std::string& device_name)
+    : EmulationDevice(ios, device_name)
 {
   config.ReadConfig(ios.GetFS().get());
 }
@@ -33,7 +33,7 @@ std::optional<IPCReply> NetNCDManageDevice::IOCtlV(const IOCtlVRequest& request)
   u32 common_result = 0;
   u32 common_vector = 0;
 
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
   switch (request.request)
