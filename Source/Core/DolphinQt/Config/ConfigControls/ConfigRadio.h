@@ -7,11 +7,11 @@
 
 #include "Common/Config/Config.h"
 
-class GraphicsRadioInt : public ToolTipRadioButton
+class ConfigRadioInt : public ToolTipRadioButton
 {
   Q_OBJECT
 public:
-  GraphicsRadioInt(const QString& label, const Config::Info<int>& setting, int value);
+  ConfigRadioInt(const QString& label, const Config::Info<int>& setting, int value);
 
 private:
   void Update();

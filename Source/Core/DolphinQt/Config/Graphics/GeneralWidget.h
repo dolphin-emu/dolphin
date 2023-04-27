@@ -8,7 +8,7 @@
 
 class ConfigBool;
 class ConfigChoice;
-class GraphicsRadioInt;
+class ConfigRadioInt;
 class GraphicsWindow;
 class QCheckBox;
 class QComboBox;
@@ -48,6 +48,6 @@ private:
   ConfigBool* m_autoadjust_window_size;
   ConfigBool* m_show_messages;
   ConfigBool* m_render_main_window;
-  std::array<GraphicsRadioInt*, 4> m_shader_compilation_mode{};
+  std::array<ConfigRadioInt*, 4> m_shader_compilation_mode{};
   ConfigBool* m_wait_for_shaders;
 };
