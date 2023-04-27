@@ -61,6 +61,10 @@ public final class StartupHandler
       EmulationActivity.launch(parent, gamesToLaunch, false);
       parent.finish();
     }
+    else if (VirtualReality.isActive())
+    {
+      parent.finish();
+    }
   }
 
   private static String[] getGamesFromIntent(Intent intent)
