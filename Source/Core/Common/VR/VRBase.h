@@ -28,7 +28,7 @@ void GLCheckErrors(const char* file, int line);
 #define GL(func) func;
 #endif
 
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(ANDROID)
 static void OXR_CheckErrors(XrInstance instance, XrResult result, const char* function,
                             bool failOnError)
 {
