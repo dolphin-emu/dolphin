@@ -29,6 +29,13 @@ static const char* set_float_config_setting_for_layer_function_name = "setFloatC
 static const char* set_string_config_setting_for_layer_function_name = "setStringConfigSettingForLayer";
 static const char* set_enum_config_setting_for_layer_function_name = "setEnumConfigSettingForLayer";
 
+static const char* delete_boolean_config_setting_from_layer_function_name = "deleteBooleanConfigSettingFromLayer";
+static const char* delete_signed_int_config_setting_from_layer_function_name = "deleteSignedIntConfigSettingFromLayer";
+static const char* delete_unsigned_int_config_setting_from_layer_function_name = "deleteUnsignedIntConfigSettingFromLayer";
+static const char* delete_float_config_setting_from_layer_function_name = "deleteFloatConfigSettingFromLayer";
+static const char* delete_string_config_setting_from_layer_function_name = "deleteStringConfigSettingFromLayer";
+static const char* delete_enum_config_setting_from_layer_function_name = "deleteEnumConfigSettingFromLayer";
+
 static const char* get_boolean_config_setting_function_name = "getBooleanConfigSetting";
 static const char* get_signed_int_config_setting_function_name = "getSignedIntConfigSetting";
 static const char* get_unsigned_int_config_setting_function_name = "getUnsignedIntConfigSetting";
@@ -127,6 +134,43 @@ static PyObject* python_set_enum_config_setting_for_layer(PyObject* self, PyObje
 }
 
 
+static PyObject* python_delete_boolean_config_setting_from_layer(PyObject* self, PyObject* args)
+{
+  return PythonScriptContext::RunFunction(self, args, config_class_name,
+                                          delete_boolean_config_setting_from_layer_function_name);
+}
+
+static PyObject* python_delete_signed_int_config_setting_from_layer(PyObject* self, PyObject* args)
+{
+  return PythonScriptContext::RunFunction(self, args, config_class_name,
+                                          delete_signed_int_config_setting_from_layer_function_name);
+}
+
+static PyObject* python_delete_unsigned_int_config_setting_from_layer(PyObject* self, PyObject* args)
+{
+  return PythonScriptContext::RunFunction(self, args, config_class_name,
+                                          delete_unsigned_int_config_setting_from_layer_function_name);
+}
+
+static PyObject* python_delete_float_config_setting_from_layer(PyObject* self, PyObject* args)
+{
+  return PythonScriptContext::RunFunction(self, args, config_class_name,
+                                          delete_float_config_setting_from_layer_function_name);
+}
+
+static PyObject* python_delete_string_config_setting_from_layer(PyObject* self, PyObject* args)
+{
+  return PythonScriptContext::RunFunction(self, args, config_class_name,
+                                          delete_string_config_setting_from_layer_function_name);
+}
+
+static PyObject* python_delete_enum_config_setting_from_layer(PyObject* self, PyObject* args)
+{
+  return PythonScriptContext::RunFunction(self, args, config_class_name,
+                                          delete_enum_config_setting_from_layer_function_name);
+}
+
+
 static PyObject* python_get_boolean_config_setting(PyObject* self, PyObject* args)
 {
   return PythonScriptContext::RunFunction(self, args, config_class_name, get_boolean_config_setting_function_name);
@@ -182,6 +226,12 @@ static PyMethodDef config_api_methods[] = {
     {set_float_config_setting_for_layer_function_name, python_set_float_config_setting_for_layer, METH_VARARGS, nullptr},
     {set_string_config_setting_for_layer_function_name, python_set_string_config_setting_for_layer, METH_VARARGS, nullptr},
     {set_enum_config_setting_for_layer_function_name, python_set_enum_config_setting_for_layer, METH_VARARGS, nullptr},
+    {delete_boolean_config_setting_from_layer_function_name, python_delete_boolean_config_setting_from_layer, METH_VARARGS, nullptr},
+    {delete_signed_int_config_setting_from_layer_function_name, python_delete_signed_int_config_setting_from_layer, METH_VARARGS, nullptr},
+    {delete_unsigned_int_config_setting_from_layer_function_name, python_delete_unsigned_int_config_setting_from_layer, METH_VARARGS, nullptr},
+    {delete_float_config_setting_from_layer_function_name, python_delete_float_config_setting_from_layer, METH_VARARGS, nullptr},
+    {delete_string_config_setting_from_layer_function_name, python_delete_string_config_setting_from_layer, METH_VARARGS, nullptr},
+    {delete_enum_config_setting_from_layer_function_name, python_delete_enum_config_setting_from_layer, METH_VARARGS, nullptr},
     {get_boolean_config_setting_function_name, python_get_boolean_config_setting, METH_VARARGS, nullptr},
     {get_signed_int_config_setting_function_name, python_get_signed_int_config_setting, METH_VARARGS, nullptr},
     {get_unsigned_int_config_setting_function_name, python_get_unsigned_int_config_setting, METH_VARARGS, nullptr},

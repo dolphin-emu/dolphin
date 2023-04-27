@@ -122,8 +122,12 @@ function testGetAndSetForEachLayer()
 			testsSkipped = testsSkipped + 1
 		else
 			originalVal = config:getConfigSettingForLayer("bool", value, "MAIN", "Interface", "debugModeEnabled")
-			config:setConfigSettingForLayer("bool", value, "MAIN", "Interface", "debugModeEnabled", not originalVal)
-			if config:getConfigSettingForLayer("bool", value, "MAIN", "Interface", "debugModeEnabled") == not originalVal then
+			valueToSet = originalVal
+            if originalVal == nil then
+                valueToSet = true
+			end
+			config:setConfigSettingForLayer("bool", value, "MAIN", "Interface", "debugModeEnabled", not valueToSet)
+			if config:getConfigSettingForLayer("bool", value, "MAIN", "Interface", "debugModeEnabled") == not valueToSet then
 				io.write("PASS!\n\n")
 				testsPassed = testsPassed + 1
 				if originalVal ~= nil then

@@ -1,0 +1,1560 @@
+Testing calling the getLayerNames_mostGlobalFirst() function...
+
+Test 1:
+	Actual value equaled the expected return value of: 'Base, CommandLine, GlobalGame, LocalGame, Movie, Netplay, CurrentRun'...
+PASS!
+
+
+----------------------------------------------------------------------------------------------------
+Testing calling the getListOfSystems() function...
+
+Test 2:
+	Actual value equaled the expected return value of: 'Main, Sysconf, GCPad, WiiPad, GCKeyboard, GFX, Logger, Debugger, DualShockUDPClient, FreeLook, Session, GameSettingsOnly, Achievements'...
+PASS!
+
+
+----------------------------------------------------------------------------------------------------
+Testing calling the getConfigEnumTypes() function...
+
+Test 3:
+	Actual value equaled the expected return value of: 'CPUCore, DPL2Quality, EXIDeviceType, SIDeviceType, HSPDeviceType, Region, ShowCursor, LogLevel, FreeLookControl, AspectMode, ShaderCompilationMode, TriState, TextureFilteringMode, StereoMode, WiimoteSource'...
+PASS!
+
+
+----------------------------------------------------------------------------------------------------
+Testing getting list of valid values for each enum type()...
+
+Test 4:
+	Testing CPUCore enum type range...
+	Actual value equaled the expected return value of: 'CACHEDINTERPRETER, INTERPRETER, JIT64, JITARM64'...
+PASS!
+
+Test 5:
+	Testing DPL2Quality enum type range...
+	Actual value equaled the expected return value of: 'HIGH, HIGHEST, LOW, LOWEST'...
+PASS!
+
+Test 6:
+	Testing EXIDeviceType enum type range...
+	Actual value equaled the expected return value of: 'AD16, AGP, AMBASEBOARD, DUMMY, ETHERNET, ETHERNETBUILTIN, ETHERNETTAPSERVER, ETHERNETXLINK, GECKO, MASKROM, MEMORYCARD, MEMORYCARDFOLDER, MICROPHONE, NONE'...
+PASS!
+
+Test 7:
+	Testing SIDeviceType enum type range...
+	Actual value equaled the expected return value of: 'AM_BASEBOARD, DANCEMAT, GC_CONTROLLER, GC_GBA, GC_GBA_EMULATED, GC_KEYBOARD, GC_STEERING, GC_TARUKONGA, N64_CONTROLLER, N64_KEYBOARD, N64_MIC, N64_MOUSE, NONE, WIIU_ADAPTER'...
+PASS!
+
+Test 8:
+	Testing HSPDeviceType enum type range...
+	Actual value equaled the expected return value of: 'ARAMEXPANSION, NONE'...
+PASS!
+
+Test 9:
+	Testing Region enum type range...
+	Actual value equaled the expected return value of: 'NTSC_J, NTSC_K, NTSC_U, PAL, UNKNOWN'...
+PASS!
+
+Test 10:
+	Testing ShowCursor enum type range...
+	Actual value equaled the expected return value of: 'CONSTANTLY, NEVER, ONMOVEMENT'...
+PASS!
+
+Test 11:
+	Testing LogLevel enum type range...
+	Actual value equaled the expected return value of: 'LDEBUG, LERROR, LINFO, LNOTICE, LWARNING'...
+PASS!
+
+Test 12:
+	Testing FreeLookControl enum type range...
+	Actual value equaled the expected return value of: 'FPS, ORBITAL, SIXAXIS'...
+PASS!
+
+Test 13:
+	Testing AspectMode enum type range...
+	Actual value equaled the expected return value of: 'ANALOG, ANALOGWIDE, AUTO, STRETCH'...
+PASS!
+
+Test 14:
+	Testing ShaderCompilationMode enum type range...
+	Actual value equaled the expected return value of: 'ASYNCHRONOUSSKIPRENDERING, ASYNCHRONOUSUBERSHADERS, SYNCHRONOUS, SYNCHRONOUSUBERSHADERS'...
+PASS!
+
+Test 15:
+	Testing TriState enum type range...
+	Actual value equaled the expected return value of: 'AUTO, OFF, ON'...
+PASS!
+
+Test 16:
+	Testing TextureFilteringMode enum type range...
+	Actual value equaled the expected return value of: 'DEFAULT, LINEAR, NEAREST'...
+PASS!
+
+Test 17:
+	Testing StereoMode enum type range...
+	Actual value equaled the expected return value of: 'ANAGLYPH, OFF, PASSIVE, QUADBUFFER, SBS, TAB'...
+PASS!
+
+Test 18:
+	Testing WiimoteSource enum type range...
+	Actual value equaled the expected return value of: 'EMULATED, NONE, REAL'...
+PASS!
+
+
+----------------------------------------------------------------------------------------------------
+Testing writing to each layer...
+
+Test 19:
+	Testing writing to layer Base for System - Main, Section - Interface, SettingName - debugModeEnabled
+PASS!
+
+Test 20:
+	Testing writing to layer CommandLine for System - Main, Section - Interface, SettingName - debugModeEnabled
+PASS!
+
+Test 21:
+	Testing writing to layer GlobalGame for System - Main, Section - Interface, SettingName - debugModeEnabled
+PASS!
+
+Test 22:
+	Testing writing to layer LocalGame for System - Main, Section - Interface, SettingName - debugModeEnabled
+PASS!
+
+Test 23:
+	Testing writing to layer Movie for System - Main, Section - Interface, SettingName - debugModeEnabled
+	Layer Movie did not exist
+SKIP
+
+Test 24:
+	Testing writing to layer Netplay for System - Main, Section - Interface, SettingName - debugModeEnabled
+	Layer Netplay did not exist
+SKIP
+
+Test 25:
+	Testing writing to layer CurrentRun for System - Main, Section - Interface, SettingName - debugModeEnabled
+PASS!
+
+
+----------------------------------------------------------------------------------------------------
+Testing that precedence of layers works correctly...
+
+Test 26:
+	Testing writing integer value to CurrentRun and: to Base, and making sure that value from CurrentRun is the one that was used...
+PASS!
+
+
+----------------------------------------------------------------------------------------------------
+Testing that all systems can be written to...
+
+Test 27:
+	Testing writing to system MAIN in section Interface with a variable debugModeEnabled of type boolean and a value of True, and making sure it has the same value when read back out at the same layer...
+	Value written of True and value read of True were equal.
+PASS!
+
+Test 28:
+	Testing writing to system MAIN in section Interface with a variable debugModeEnabled of type boolean and a value of True, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of True and value read of True were equal.
+PASS!
+
+Test 29:
+	Testing writing to system SYSCONF in section IPL with a variable SADR of type u32 and a value of 2, and making sure it has the same value when read back out at the same layer...
+	Value written of 2 and value read of 2 were equal.
+PASS!
+
+Test 30:
+	Testing writing to system SYSCONF in section IPL with a variable SADR of type u32 and a value of 2, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of 2 and value read of 2 were equal.
+PASS!
+
+Test 31:
+	Testing writing to system GCPad in section Buttons with a variable A of type boolean and a value of True, and making sure it has the same value when read back out at the same layer...
+	Value written of True and value read of True were equal.
+PASS!
+
+Test 32:
+	Testing writing to system GCPad in section Buttons with a variable A of type boolean and a value of True, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of True and value read of True were equal.
+PASS!
+
+Test 33:
+	Testing writing to system WiiPad in section Buttons with a variable B of type boolean and a value of False, and making sure it has the same value when read back out at the same layer...
+	Value written of False and value read of False were equal.
+PASS!
+
+Test 34:
+	Testing writing to system WiiPad in section Buttons with a variable B of type boolean and a value of False, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of False and value read of False were equal.
+PASS!
+
+Test 35:
+	Testing writing to system GCKeyboard in section Keys with a variable Enter of type boolean and a value of True, and making sure it has the same value when read back out at the same layer...
+	Value written of True and value read of True were equal.
+PASS!
+
+Test 36:
+	Testing writing to system GCKeyboard in section Keys with a variable Enter of type boolean and a value of True, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of True and value read of True were equal.
+PASS!
+
+Test 37:
+	Testing writing to system GFX in section Settings with a variable ShaderCompilerThreads of type s32 and a value of 5, and making sure it has the same value when read back out at the same layer...
+	Value written of 5 and value read of 5 were equal.
+PASS!
+
+Test 38:
+	Testing writing to system GFX in section Settings with a variable ShaderCompilerThreads of type s32 and a value of 5, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of 5 and value read of 5 were equal.
+PASS!
+
+Test 39:
+	Testing writing to system Logger in section Options with a variable WriteToConsole of type boolean and a value of False, and making sure it has the same value when read back out at the same layer...
+	Value written of False and value read of False were equal.
+PASS!
+
+Test 40:
+	Testing writing to system Logger in section Options with a variable WriteToConsole of type boolean and a value of False, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of False and value read of False were equal.
+PASS!
+
+Test 41:
+	Testing writing to system Debugger in section Settings with a variable enabledTracing of type boolean and a value of True, and making sure it has the same value when read back out at the same layer...
+	Value written of True and value read of True were equal.
+PASS!
+
+Test 42:
+	Testing writing to system Debugger in section Settings with a variable enabledTracing of type boolean and a value of True, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of True and value read of True were equal.
+PASS!
+
+Test 43:
+	Testing writing to system DualShockUDPClient in section Server with a variable IPAddress of type string and a value of customIP, and making sure it has the same value when read back out at the same layer...
+	Value written of customIP and value read of customIP were equal.
+PASS!
+
+Test 44:
+	Testing writing to system DualShockUDPClient in section Server with a variable IPAddress of type string and a value of customIP, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of customIP and value read of customIP were equal.
+PASS!
+
+Test 45:
+	Testing writing to system FreeLook in section General with a variable Enabled of type boolean and a value of True, and making sure it has the same value when read back out at the same layer...
+	Value written of True and value read of True were equal.
+PASS!
+
+Test 46:
+	Testing writing to system FreeLook in section General with a variable Enabled of type boolean and a value of True, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of True and value read of True were equal.
+PASS!
+
+Test 47:
+	Testing writing to system Session in section Core with a variable LoadIPLDump of type boolean and a value of False, and making sure it has the same value when read back out at the same layer...
+	Value written of False and value read of False were equal.
+PASS!
+
+Test 48:
+	Testing writing to system Session in section Core with a variable LoadIPLDump of type boolean and a value of False, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of False and value read of False were equal.
+PASS!
+
+Test 49:
+	Testing writing to system GameSettingsOnly in section General with a variable useBackgroundInputs of type boolean and a value of True, and making sure it has the same value when read back out at the same layer...
+	Value written of True and value read of True were equal.
+PASS!
+
+Test 50:
+	Testing writing to system GameSettingsOnly in section General with a variable useBackgroundInputs of type boolean and a value of True, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of True and value read of True were equal.
+PASS!
+
+Test 51:
+	Testing writing to system Achievements in section Achievements with a variable Enabled of type boolean and a value of True, and making sure it has the same value when read back out at the same layer...
+	Value written of True and value read of True were equal.
+PASS!
+
+Test 52:
+	Testing writing to system Achievements in section Achievements with a variable Enabled of type boolean and a value of True, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of True and value read of True were equal.
+PASS!
+
+
+----------------------------------------------------------------------------------------------------
+Testing that all non-enum types can have their get/set methods called...
+
+Test 53:
+	Testing writing to system MAIN in section Interface with a variable debugModeEnabled of type boolean and a value of True, and making sure it has the same value when read back out at the same layer...
+	Value written of True and value read of True were equal.
+PASS!
+
+Test 54:
+	Testing writing to system MAIN in section Interface with a variable debugModeEnabled of type boolean and a value of True, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of True and value read of True were equal.
+PASS!
+
+Test 55:
+	Testing writing to system MAIN in section Core with a variable TimingVariance of type s32 and a value of 312, and making sure it has the same value when read back out at the same layer...
+	Value written of 312 and value read of 312 were equal.
+PASS!
+
+Test 56:
+	Testing writing to system MAIN in section Core with a variable TimingVariance of type s32 and a value of 312, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of 312 and value read of 312 were equal.
+PASS!
+
+Test 57:
+	Testing writing to system MAIN in section Core with a variable MEM1Size of type u32 and a value of 564, and making sure it has the same value when read back out at the same layer...
+	Value written of 564 and value read of 564 were equal.
+PASS!
+
+Test 58:
+	Testing writing to system MAIN in section Core with a variable MEM1Size of type u32 and a value of 564, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of 564 and value read of 564 were equal.
+PASS!
+
+Test 59:
+	Testing writing to system MAIN in section Core with a variable EmulationSpeed of type float and a value of 54.25, and making sure it has the same value when read back out at the same layer...
+	Value written of 54.25 and value read of 54.25 were equal.
+PASS!
+
+Test 60:
+	Testing writing to system MAIN in section Core with a variable EmulationSpeed of type float and a value of 54.25, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of 54.25 and value read of 54.25 were equal.
+PASS!
+
+Test 61:
+	Testing writing to system MAIN in section Core with a variable GFXBackend of type string and a value of newBackendName, and making sure it has the same value when read back out at the same layer...
+	Value written of newBackendName and value read of newBackendName were equal.
+PASS!
+
+Test 62:
+	Testing writing to system MAIN in section Core with a variable GFXBackend of type string and a value of newBackendName, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of newBackendName and value read of newBackendName were equal.
+PASS!
+
+
+----------------------------------------------------------------------------------------------------
+Testing that all enum types can have their get/set methods called, and that all enum value types can be written to a config setting of each enum type...
+
+Testing enum type of CPUCore
+Test 63:
+	Testing writing to system MAIN in section Core with a variable CPUCore of type CPUCore and a value of CACHEDINTERPRETER, and making sure it has the same value when read back out at the same layer...
+	Value written of CACHEDINTERPRETER and value read of CACHEDINTERPRETER were equal.
+PASS!
+
+Test 64:
+	Testing writing to system MAIN in section Core with a variable CPUCore of type CPUCore and a value of CACHEDINTERPRETER, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of CACHEDINTERPRETER and value read of CACHEDINTERPRETER were equal.
+PASS!
+
+Test 65:
+	Testing writing to system MAIN in section Core with a variable CPUCore of type CPUCore and a value of INTERPRETER, and making sure it has the same value when read back out at the same layer...
+	Value written of INTERPRETER and value read of INTERPRETER were equal.
+PASS!
+
+Test 66:
+	Testing writing to system MAIN in section Core with a variable CPUCore of type CPUCore and a value of INTERPRETER, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of INTERPRETER and value read of INTERPRETER were equal.
+PASS!
+
+Test 67:
+	Testing writing to system MAIN in section Core with a variable CPUCore of type CPUCore and a value of JIT64, and making sure it has the same value when read back out at the same layer...
+	Value written of JIT64 and value read of JIT64 were equal.
+PASS!
+
+Test 68:
+	Testing writing to system MAIN in section Core with a variable CPUCore of type CPUCore and a value of JIT64, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of JIT64 and value read of JIT64 were equal.
+PASS!
+
+Test 69:
+	Testing writing to system MAIN in section Core with a variable CPUCore of type CPUCore and a value of JITARM64, and making sure it has the same value when read back out at the same layer...
+	Value written of JITARM64 and value read of JITARM64 were equal.
+PASS!
+
+Test 70:
+	Testing writing to system MAIN in section Core with a variable CPUCore of type CPUCore and a value of JITARM64, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of JITARM64 and value read of JITARM64 were equal.
+PASS!
+
+Testing enum type of DPL2Quality
+Test 71:
+	Testing writing to system MAIN in section Core with a variable DPL2Decoder of type DPL2Quality and a value of HIGH, and making sure it has the same value when read back out at the same layer...
+	Value written of HIGH and value read of HIGH were equal.
+PASS!
+
+Test 72:
+	Testing writing to system MAIN in section Core with a variable DPL2Decoder of type DPL2Quality and a value of HIGH, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of HIGH and value read of HIGH were equal.
+PASS!
+
+Test 73:
+	Testing writing to system MAIN in section Core with a variable DPL2Decoder of type DPL2Quality and a value of HIGHEST, and making sure it has the same value when read back out at the same layer...
+	Value written of HIGHEST and value read of HIGHEST were equal.
+PASS!
+
+Test 74:
+	Testing writing to system MAIN in section Core with a variable DPL2Decoder of type DPL2Quality and a value of HIGHEST, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of HIGHEST and value read of HIGHEST were equal.
+PASS!
+
+Test 75:
+	Testing writing to system MAIN in section Core with a variable DPL2Decoder of type DPL2Quality and a value of LOW, and making sure it has the same value when read back out at the same layer...
+	Value written of LOW and value read of LOW were equal.
+PASS!
+
+Test 76:
+	Testing writing to system MAIN in section Core with a variable DPL2Decoder of type DPL2Quality and a value of LOW, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of LOW and value read of LOW were equal.
+PASS!
+
+Test 77:
+	Testing writing to system MAIN in section Core with a variable DPL2Decoder of type DPL2Quality and a value of LOWEST, and making sure it has the same value when read back out at the same layer...
+	Value written of LOWEST and value read of LOWEST were equal.
+PASS!
+
+Test 78:
+	Testing writing to system MAIN in section Core with a variable DPL2Decoder of type DPL2Quality and a value of LOWEST, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of LOWEST and value read of LOWEST were equal.
+PASS!
+
+Testing enum type of EXIDeviceType
+Test 79:
+	Testing writing to system MAIN in section Core with a variable SlotA of type EXIDeviceType and a value of AD16, and making sure it has the same value when read back out at the same layer...
+	Value written of AD16 and value read of AD16 were equal.
+PASS!
+
+Test 80:
+	Testing writing to system MAIN in section Core with a variable SlotA of type EXIDeviceType and a value of AD16, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of AD16 and value read of AD16 were equal.
+PASS!
+
+Test 81:
+	Testing writing to system MAIN in section Core with a variable SlotA of type EXIDeviceType and a value of AGP, and making sure it has the same value when read back out at the same layer...
+	Value written of AGP and value read of AGP were equal.
+PASS!
+
+Test 82:
+	Testing writing to system MAIN in section Core with a variable SlotA of type EXIDeviceType and a value of AGP, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of AGP and value read of AGP were equal.
+PASS!
+
+Test 83:
+	Testing writing to system MAIN in section Core with a variable SlotA of type EXIDeviceType and a value of AMBASEBOARD, and making sure it has the same value when read back out at the same layer...
+	Value written of AMBASEBOARD and value read of AMBASEBOARD were equal.
+PASS!
+
+Test 84:
+	Testing writing to system MAIN in section Core with a variable SlotA of type EXIDeviceType and a value of AMBASEBOARD, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of AMBASEBOARD and value read of AMBASEBOARD were equal.
+PASS!
+
+Test 85:
+	Testing writing to system MAIN in section Core with a variable SlotA of type EXIDeviceType and a value of DUMMY, and making sure it has the same value when read back out at the same layer...
+	Value written of DUMMY and value read of DUMMY were equal.
+PASS!
+
+Test 86:
+	Testing writing to system MAIN in section Core with a variable SlotA of type EXIDeviceType and a value of DUMMY, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of DUMMY and value read of DUMMY were equal.
+PASS!
+
+Test 87:
+	Testing writing to system MAIN in section Core with a variable SlotA of type EXIDeviceType and a value of ETHERNET, and making sure it has the same value when read back out at the same layer...
+	Value written of ETHERNET and value read of ETHERNET were equal.
+PASS!
+
+Test 88:
+	Testing writing to system MAIN in section Core with a variable SlotA of type EXIDeviceType and a value of ETHERNET, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of ETHERNET and value read of ETHERNET were equal.
+PASS!
+
+Test 89:
+	Testing writing to system MAIN in section Core with a variable SlotA of type EXIDeviceType and a value of ETHERNETBUILTIN, and making sure it has the same value when read back out at the same layer...
+	Value written of ETHERNETBUILTIN and value read of ETHERNETBUILTIN were equal.
+PASS!
+
+Test 90:
+	Testing writing to system MAIN in section Core with a variable SlotA of type EXIDeviceType and a value of ETHERNETBUILTIN, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of ETHERNETBUILTIN and value read of ETHERNETBUILTIN were equal.
+PASS!
+
+Test 91:
+	Testing writing to system MAIN in section Core with a variable SlotA of type EXIDeviceType and a value of ETHERNETTAPSERVER, and making sure it has the same value when read back out at the same layer...
+	Value written of ETHERNETTAPSERVER and value read of ETHERNETTAPSERVER were equal.
+PASS!
+
+Test 92:
+	Testing writing to system MAIN in section Core with a variable SlotA of type EXIDeviceType and a value of ETHERNETTAPSERVER, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of ETHERNETTAPSERVER and value read of ETHERNETTAPSERVER were equal.
+PASS!
+
+Test 93:
+	Testing writing to system MAIN in section Core with a variable SlotA of type EXIDeviceType and a value of ETHERNETXLINK, and making sure it has the same value when read back out at the same layer...
+	Value written of ETHERNETXLINK and value read of ETHERNETXLINK were equal.
+PASS!
+
+Test 94:
+	Testing writing to system MAIN in section Core with a variable SlotA of type EXIDeviceType and a value of ETHERNETXLINK, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of ETHERNETXLINK and value read of ETHERNETXLINK were equal.
+PASS!
+
+Test 95:
+	Testing writing to system MAIN in section Core with a variable SlotA of type EXIDeviceType and a value of GECKO, and making sure it has the same value when read back out at the same layer...
+	Value written of GECKO and value read of GECKO were equal.
+PASS!
+
+Test 96:
+	Testing writing to system MAIN in section Core with a variable SlotA of type EXIDeviceType and a value of GECKO, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of GECKO and value read of GECKO were equal.
+PASS!
+
+Test 97:
+	Testing writing to system MAIN in section Core with a variable SlotA of type EXIDeviceType and a value of MASKROM, and making sure it has the same value when read back out at the same layer...
+	Value written of MASKROM and value read of MASKROM were equal.
+PASS!
+
+Test 98:
+	Testing writing to system MAIN in section Core with a variable SlotA of type EXIDeviceType and a value of MASKROM, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of MASKROM and value read of MASKROM were equal.
+PASS!
+
+Test 99:
+	Testing writing to system MAIN in section Core with a variable SlotA of type EXIDeviceType and a value of MEMORYCARD, and making sure it has the same value when read back out at the same layer...
+	Value written of MEMORYCARD and value read of MEMORYCARD were equal.
+PASS!
+
+Test 100:
+	Testing writing to system MAIN in section Core with a variable SlotA of type EXIDeviceType and a value of MEMORYCARD, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of MEMORYCARD and value read of MEMORYCARD were equal.
+PASS!
+
+Test 101:
+	Testing writing to system MAIN in section Core with a variable SlotA of type EXIDeviceType and a value of MEMORYCARDFOLDER, and making sure it has the same value when read back out at the same layer...
+	Value written of MEMORYCARDFOLDER and value read of MEMORYCARDFOLDER were equal.
+PASS!
+
+Test 102:
+	Testing writing to system MAIN in section Core with a variable SlotA of type EXIDeviceType and a value of MEMORYCARDFOLDER, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of MEMORYCARDFOLDER and value read of MEMORYCARDFOLDER were equal.
+PASS!
+
+Test 103:
+	Testing writing to system MAIN in section Core with a variable SlotA of type EXIDeviceType and a value of MICROPHONE, and making sure it has the same value when read back out at the same layer...
+	Value written of MICROPHONE and value read of MICROPHONE were equal.
+PASS!
+
+Test 104:
+	Testing writing to system MAIN in section Core with a variable SlotA of type EXIDeviceType and a value of MICROPHONE, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of MICROPHONE and value read of MICROPHONE were equal.
+PASS!
+
+Test 105:
+	Testing writing to system MAIN in section Core with a variable SlotA of type EXIDeviceType and a value of NONE, and making sure it has the same value when read back out at the same layer...
+	Value written of NONE and value read of NONE were equal.
+PASS!
+
+Test 106:
+	Testing writing to system MAIN in section Core with a variable SlotA of type EXIDeviceType and a value of NONE, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of NONE and value read of NONE were equal.
+PASS!
+
+Testing enum type of SIDeviceType
+Test 107:
+	Testing writing to system MAIN in section Core with a variable SIDevice0 of type SIDeviceType and a value of AM_BASEBOARD, and making sure it has the same value when read back out at the same layer...
+	Value written of AM_BASEBOARD and value read of AM_BASEBOARD were equal.
+PASS!
+
+Test 108:
+	Testing writing to system MAIN in section Core with a variable SIDevice0 of type SIDeviceType and a value of AM_BASEBOARD, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of AM_BASEBOARD and value read of AM_BASEBOARD were equal.
+PASS!
+
+Test 109:
+	Testing writing to system MAIN in section Core with a variable SIDevice0 of type SIDeviceType and a value of DANCEMAT, and making sure it has the same value when read back out at the same layer...
+	Value written of DANCEMAT and value read of DANCEMAT were equal.
+PASS!
+
+Test 110:
+	Testing writing to system MAIN in section Core with a variable SIDevice0 of type SIDeviceType and a value of DANCEMAT, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of DANCEMAT and value read of DANCEMAT were equal.
+PASS!
+
+Test 111:
+	Testing writing to system MAIN in section Core with a variable SIDevice0 of type SIDeviceType and a value of GC_CONTROLLER, and making sure it has the same value when read back out at the same layer...
+	Value written of GC_CONTROLLER and value read of GC_CONTROLLER were equal.
+PASS!
+
+Test 112:
+	Testing writing to system MAIN in section Core with a variable SIDevice0 of type SIDeviceType and a value of GC_CONTROLLER, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of GC_CONTROLLER and value read of GC_CONTROLLER were equal.
+PASS!
+
+Test 113:
+	Testing writing to system MAIN in section Core with a variable SIDevice0 of type SIDeviceType and a value of GC_GBA, and making sure it has the same value when read back out at the same layer...
+	Value written of GC_GBA and value read of GC_GBA were equal.
+PASS!
+
+Test 114:
+	Testing writing to system MAIN in section Core with a variable SIDevice0 of type SIDeviceType and a value of GC_GBA, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of GC_GBA and value read of GC_GBA were equal.
+PASS!
+
+Test 115:
+	Testing writing to system MAIN in section Core with a variable SIDevice0 of type SIDeviceType and a value of GC_GBA_EMULATED, and making sure it has the same value when read back out at the same layer...
+	Value written of GC_GBA_EMULATED and value read of GC_GBA_EMULATED were equal.
+PASS!
+
+Test 116:
+	Testing writing to system MAIN in section Core with a variable SIDevice0 of type SIDeviceType and a value of GC_GBA_EMULATED, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of GC_GBA_EMULATED and value read of GC_GBA_EMULATED were equal.
+PASS!
+
+Test 117:
+	Testing writing to system MAIN in section Core with a variable SIDevice0 of type SIDeviceType and a value of GC_KEYBOARD, and making sure it has the same value when read back out at the same layer...
+	Value written of GC_KEYBOARD and value read of GC_KEYBOARD were equal.
+PASS!
+
+Test 118:
+	Testing writing to system MAIN in section Core with a variable SIDevice0 of type SIDeviceType and a value of GC_KEYBOARD, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of GC_KEYBOARD and value read of GC_KEYBOARD were equal.
+PASS!
+
+Test 119:
+	Testing writing to system MAIN in section Core with a variable SIDevice0 of type SIDeviceType and a value of GC_STEERING, and making sure it has the same value when read back out at the same layer...
+	Value written of GC_STEERING and value read of GC_STEERING were equal.
+PASS!
+
+Test 120:
+	Testing writing to system MAIN in section Core with a variable SIDevice0 of type SIDeviceType and a value of GC_STEERING, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of GC_STEERING and value read of GC_STEERING were equal.
+PASS!
+
+Test 121:
+	Testing writing to system MAIN in section Core with a variable SIDevice0 of type SIDeviceType and a value of GC_TARUKONGA, and making sure it has the same value when read back out at the same layer...
+	Value written of GC_TARUKONGA and value read of GC_TARUKONGA were equal.
+PASS!
+
+Test 122:
+	Testing writing to system MAIN in section Core with a variable SIDevice0 of type SIDeviceType and a value of GC_TARUKONGA, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of GC_TARUKONGA and value read of GC_TARUKONGA were equal.
+PASS!
+
+Test 123:
+	Testing writing to system MAIN in section Core with a variable SIDevice0 of type SIDeviceType and a value of N64_CONTROLLER, and making sure it has the same value when read back out at the same layer...
+	Value written of N64_CONTROLLER and value read of N64_CONTROLLER were equal.
+PASS!
+
+Test 124:
+	Testing writing to system MAIN in section Core with a variable SIDevice0 of type SIDeviceType and a value of N64_CONTROLLER, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of N64_CONTROLLER and value read of N64_CONTROLLER were equal.
+PASS!
+
+Test 125:
+	Testing writing to system MAIN in section Core with a variable SIDevice0 of type SIDeviceType and a value of N64_KEYBOARD, and making sure it has the same value when read back out at the same layer...
+	Value written of N64_KEYBOARD and value read of N64_KEYBOARD were equal.
+PASS!
+
+Test 126:
+	Testing writing to system MAIN in section Core with a variable SIDevice0 of type SIDeviceType and a value of N64_KEYBOARD, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of N64_KEYBOARD and value read of N64_KEYBOARD were equal.
+PASS!
+
+Test 127:
+	Testing writing to system MAIN in section Core with a variable SIDevice0 of type SIDeviceType and a value of N64_MIC, and making sure it has the same value when read back out at the same layer...
+	Value written of N64_MIC and value read of N64_MIC were equal.
+PASS!
+
+Test 128:
+	Testing writing to system MAIN in section Core with a variable SIDevice0 of type SIDeviceType and a value of N64_MIC, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of N64_MIC and value read of N64_MIC were equal.
+PASS!
+
+Test 129:
+	Testing writing to system MAIN in section Core with a variable SIDevice0 of type SIDeviceType and a value of N64_MOUSE, and making sure it has the same value when read back out at the same layer...
+	Value written of N64_MOUSE and value read of N64_MOUSE were equal.
+PASS!
+
+Test 130:
+	Testing writing to system MAIN in section Core with a variable SIDevice0 of type SIDeviceType and a value of N64_MOUSE, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of N64_MOUSE and value read of N64_MOUSE were equal.
+PASS!
+
+Test 131:
+	Testing writing to system MAIN in section Core with a variable SIDevice0 of type SIDeviceType and a value of NONE, and making sure it has the same value when read back out at the same layer...
+	Value written of NONE and value read of NONE were equal.
+PASS!
+
+Test 132:
+	Testing writing to system MAIN in section Core with a variable SIDevice0 of type SIDeviceType and a value of NONE, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of NONE and value read of NONE were equal.
+PASS!
+
+Test 133:
+	Testing writing to system MAIN in section Core with a variable SIDevice0 of type SIDeviceType and a value of WIIU_ADAPTER, and making sure it has the same value when read back out at the same layer...
+	Value written of WIIU_ADAPTER and value read of WIIU_ADAPTER were equal.
+PASS!
+
+Test 134:
+	Testing writing to system MAIN in section Core with a variable SIDevice0 of type SIDeviceType and a value of WIIU_ADAPTER, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of WIIU_ADAPTER and value read of WIIU_ADAPTER were equal.
+PASS!
+
+Testing enum type of HSPDeviceType
+Test 135:
+	Testing writing to system MAIN in section Core with a variable HSPDevice of type HSPDeviceType and a value of ARAMEXPANSION, and making sure it has the same value when read back out at the same layer...
+	Value written of ARAMEXPANSION and value read of ARAMEXPANSION were equal.
+PASS!
+
+Test 136:
+	Testing writing to system MAIN in section Core with a variable HSPDevice of type HSPDeviceType and a value of ARAMEXPANSION, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of ARAMEXPANSION and value read of ARAMEXPANSION were equal.
+PASS!
+
+Test 137:
+	Testing writing to system MAIN in section Core with a variable HSPDevice of type HSPDeviceType and a value of NONE, and making sure it has the same value when read back out at the same layer...
+	Value written of NONE and value read of NONE were equal.
+PASS!
+
+Test 138:
+	Testing writing to system MAIN in section Core with a variable HSPDevice of type HSPDeviceType and a value of NONE, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of NONE and value read of NONE were equal.
+PASS!
+
+Testing enum type of Region
+Test 139:
+	Testing writing to system MAIN in section Core with a variable FallbackRegion of type Region and a value of NTSC_J, and making sure it has the same value when read back out at the same layer...
+	Value written of NTSC_J and value read of NTSC_J were equal.
+PASS!
+
+Test 140:
+	Testing writing to system MAIN in section Core with a variable FallbackRegion of type Region and a value of NTSC_J, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of NTSC_J and value read of NTSC_J were equal.
+PASS!
+
+Test 141:
+	Testing writing to system MAIN in section Core with a variable FallbackRegion of type Region and a value of NTSC_K, and making sure it has the same value when read back out at the same layer...
+	Value written of NTSC_K and value read of NTSC_K were equal.
+PASS!
+
+Test 142:
+	Testing writing to system MAIN in section Core with a variable FallbackRegion of type Region and a value of NTSC_K, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of NTSC_K and value read of NTSC_K were equal.
+PASS!
+
+Test 143:
+	Testing writing to system MAIN in section Core with a variable FallbackRegion of type Region and a value of NTSC_U, and making sure it has the same value when read back out at the same layer...
+	Value written of NTSC_U and value read of NTSC_U were equal.
+PASS!
+
+Test 144:
+	Testing writing to system MAIN in section Core with a variable FallbackRegion of type Region and a value of NTSC_U, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of NTSC_U and value read of NTSC_U were equal.
+PASS!
+
+Test 145:
+	Testing writing to system MAIN in section Core with a variable FallbackRegion of type Region and a value of PAL, and making sure it has the same value when read back out at the same layer...
+	Value written of PAL and value read of PAL were equal.
+PASS!
+
+Test 146:
+	Testing writing to system MAIN in section Core with a variable FallbackRegion of type Region and a value of PAL, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of PAL and value read of PAL were equal.
+PASS!
+
+Test 147:
+	Testing writing to system MAIN in section Core with a variable FallbackRegion of type Region and a value of UNKNOWN, and making sure it has the same value when read back out at the same layer...
+	Value written of UNKNOWN and value read of UNKNOWN were equal.
+PASS!
+
+Test 148:
+	Testing writing to system MAIN in section Core with a variable FallbackRegion of type Region and a value of UNKNOWN, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of UNKNOWN and value read of UNKNOWN were equal.
+PASS!
+
+Testing enum type of ShowCursor
+Test 149:
+	Testing writing to system MAIN in section Interface with a variable CursorVisibility of type ShowCursor and a value of CONSTANTLY, and making sure it has the same value when read back out at the same layer...
+	Value written of CONSTANTLY and value read of CONSTANTLY were equal.
+PASS!
+
+Test 150:
+	Testing writing to system MAIN in section Interface with a variable CursorVisibility of type ShowCursor and a value of CONSTANTLY, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of CONSTANTLY and value read of CONSTANTLY were equal.
+PASS!
+
+Test 151:
+	Testing writing to system MAIN in section Interface with a variable CursorVisibility of type ShowCursor and a value of NEVER, and making sure it has the same value when read back out at the same layer...
+	Value written of NEVER and value read of NEVER were equal.
+PASS!
+
+Test 152:
+	Testing writing to system MAIN in section Interface with a variable CursorVisibility of type ShowCursor and a value of NEVER, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of NEVER and value read of NEVER were equal.
+PASS!
+
+Test 153:
+	Testing writing to system MAIN in section Interface with a variable CursorVisibility of type ShowCursor and a value of ONMOVEMENT, and making sure it has the same value when read back out at the same layer...
+	Value written of ONMOVEMENT and value read of ONMOVEMENT were equal.
+PASS!
+
+Test 154:
+	Testing writing to system MAIN in section Interface with a variable CursorVisibility of type ShowCursor and a value of ONMOVEMENT, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of ONMOVEMENT and value read of ONMOVEMENT were equal.
+PASS!
+
+Testing enum type of LogLevel
+Test 155:
+	Testing writing to system LOGGER in section Options with a variable Verbosity of type LogLevel and a value of LDEBUG, and making sure it has the same value when read back out at the same layer...
+	Value written of LDEBUG and value read of LDEBUG were equal.
+PASS!
+
+Test 156:
+	Testing writing to system LOGGER in section Options with a variable Verbosity of type LogLevel and a value of LDEBUG, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of LDEBUG and value read of LDEBUG were equal.
+PASS!
+
+Test 157:
+	Testing writing to system LOGGER in section Options with a variable Verbosity of type LogLevel and a value of LERROR, and making sure it has the same value when read back out at the same layer...
+	Value written of LERROR and value read of LERROR were equal.
+PASS!
+
+Test 158:
+	Testing writing to system LOGGER in section Options with a variable Verbosity of type LogLevel and a value of LERROR, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of LERROR and value read of LERROR were equal.
+PASS!
+
+Test 159:
+	Testing writing to system LOGGER in section Options with a variable Verbosity of type LogLevel and a value of LINFO, and making sure it has the same value when read back out at the same layer...
+	Value written of LINFO and value read of LINFO were equal.
+PASS!
+
+Test 160:
+	Testing writing to system LOGGER in section Options with a variable Verbosity of type LogLevel and a value of LINFO, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of LINFO and value read of LINFO were equal.
+PASS!
+
+Test 161:
+	Testing writing to system LOGGER in section Options with a variable Verbosity of type LogLevel and a value of LNOTICE, and making sure it has the same value when read back out at the same layer...
+	Value written of LNOTICE and value read of LNOTICE were equal.
+PASS!
+
+Test 162:
+	Testing writing to system LOGGER in section Options with a variable Verbosity of type LogLevel and a value of LNOTICE, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of LNOTICE and value read of LNOTICE were equal.
+PASS!
+
+Test 163:
+	Testing writing to system LOGGER in section Options with a variable Verbosity of type LogLevel and a value of LWARNING, and making sure it has the same value when read back out at the same layer...
+	Value written of LWARNING and value read of LWARNING were equal.
+PASS!
+
+Test 164:
+	Testing writing to system LOGGER in section Options with a variable Verbosity of type LogLevel and a value of LWARNING, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of LWARNING and value read of LWARNING were equal.
+PASS!
+
+Testing enum type of FreeLookControl
+Test 165:
+	Testing writing to system FreeLook in section Camera1 with a variable ControlType of type FreeLookControl and a value of FPS, and making sure it has the same value when read back out at the same layer...
+	Value written of FPS and value read of FPS were equal.
+PASS!
+
+Test 166:
+	Testing writing to system FreeLook in section Camera1 with a variable ControlType of type FreeLookControl and a value of FPS, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of FPS and value read of FPS were equal.
+PASS!
+
+Test 167:
+	Testing writing to system FreeLook in section Camera1 with a variable ControlType of type FreeLookControl and a value of ORBITAL, and making sure it has the same value when read back out at the same layer...
+	Value written of ORBITAL and value read of ORBITAL were equal.
+PASS!
+
+Test 168:
+	Testing writing to system FreeLook in section Camera1 with a variable ControlType of type FreeLookControl and a value of ORBITAL, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of ORBITAL and value read of ORBITAL were equal.
+PASS!
+
+Test 169:
+	Testing writing to system FreeLook in section Camera1 with a variable ControlType of type FreeLookControl and a value of SIXAXIS, and making sure it has the same value when read back out at the same layer...
+	Value written of SIXAXIS and value read of SIXAXIS were equal.
+PASS!
+
+Test 170:
+	Testing writing to system FreeLook in section Camera1 with a variable ControlType of type FreeLookControl and a value of SIXAXIS, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of SIXAXIS and value read of SIXAXIS were equal.
+PASS!
+
+Testing enum type of AspectMode
+Test 171:
+	Testing writing to system GFX in section Settings with a variable AspectRatio of type AspectMode and a value of ANALOG, and making sure it has the same value when read back out at the same layer...
+	Value written of ANALOG and value read of ANALOG were equal.
+PASS!
+
+Test 172:
+	Testing writing to system GFX in section Settings with a variable AspectRatio of type AspectMode and a value of ANALOG, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of ANALOG and value read of ANALOG were equal.
+PASS!
+
+Test 173:
+	Testing writing to system GFX in section Settings with a variable AspectRatio of type AspectMode and a value of ANALOGWIDE, and making sure it has the same value when read back out at the same layer...
+	Value written of ANALOGWIDE and value read of ANALOGWIDE were equal.
+PASS!
+
+Test 174:
+	Testing writing to system GFX in section Settings with a variable AspectRatio of type AspectMode and a value of ANALOGWIDE, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of ANALOGWIDE and value read of ANALOGWIDE were equal.
+PASS!
+
+Test 175:
+	Testing writing to system GFX in section Settings with a variable AspectRatio of type AspectMode and a value of AUTO, and making sure it has the same value when read back out at the same layer...
+	Value written of AUTO and value read of AUTO were equal.
+PASS!
+
+Test 176:
+	Testing writing to system GFX in section Settings with a variable AspectRatio of type AspectMode and a value of AUTO, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of AUTO and value read of AUTO were equal.
+PASS!
+
+Test 177:
+	Testing writing to system GFX in section Settings with a variable AspectRatio of type AspectMode and a value of STRETCH, and making sure it has the same value when read back out at the same layer...
+	Value written of STRETCH and value read of STRETCH were equal.
+PASS!
+
+Test 178:
+	Testing writing to system GFX in section Settings with a variable AspectRatio of type AspectMode and a value of STRETCH, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of STRETCH and value read of STRETCH were equal.
+PASS!
+
+Testing enum type of ShaderCompilationMode
+Test 179:
+	Testing writing to system GFX in section Settings with a variable ShaderCompilationMode of type ShaderCompilationMode and a value of ASYNCHRONOUSSKIPRENDERING, and making sure it has the same value when read back out at the same layer...
+	Value written of ASYNCHRONOUSSKIPRENDERING and value read of ASYNCHRONOUSSKIPRENDERING were equal.
+PASS!
+
+Test 180:
+	Testing writing to system GFX in section Settings with a variable ShaderCompilationMode of type ShaderCompilationMode and a value of ASYNCHRONOUSSKIPRENDERING, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of ASYNCHRONOUSSKIPRENDERING and value read of ASYNCHRONOUSSKIPRENDERING were equal.
+PASS!
+
+Test 181:
+	Testing writing to system GFX in section Settings with a variable ShaderCompilationMode of type ShaderCompilationMode and a value of ASYNCHRONOUSUBERSHADERS, and making sure it has the same value when read back out at the same layer...
+	Value written of ASYNCHRONOUSUBERSHADERS and value read of ASYNCHRONOUSUBERSHADERS were equal.
+PASS!
+
+Test 182:
+	Testing writing to system GFX in section Settings with a variable ShaderCompilationMode of type ShaderCompilationMode and a value of ASYNCHRONOUSUBERSHADERS, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of ASYNCHRONOUSUBERSHADERS and value read of ASYNCHRONOUSUBERSHADERS were equal.
+PASS!
+
+Test 183:
+	Testing writing to system GFX in section Settings with a variable ShaderCompilationMode of type ShaderCompilationMode and a value of SYNCHRONOUS, and making sure it has the same value when read back out at the same layer...
+	Value written of SYNCHRONOUS and value read of SYNCHRONOUS were equal.
+PASS!
+
+Test 184:
+	Testing writing to system GFX in section Settings with a variable ShaderCompilationMode of type ShaderCompilationMode and a value of SYNCHRONOUS, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of SYNCHRONOUS and value read of SYNCHRONOUS were equal.
+PASS!
+
+Test 185:
+	Testing writing to system GFX in section Settings with a variable ShaderCompilationMode of type ShaderCompilationMode and a value of SYNCHRONOUSUBERSHADERS, and making sure it has the same value when read back out at the same layer...
+	Value written of SYNCHRONOUSUBERSHADERS and value read of SYNCHRONOUSUBERSHADERS were equal.
+PASS!
+
+Test 186:
+	Testing writing to system GFX in section Settings with a variable ShaderCompilationMode of type ShaderCompilationMode and a value of SYNCHRONOUSUBERSHADERS, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of SYNCHRONOUSUBERSHADERS and value read of SYNCHRONOUSUBERSHADERS were equal.
+PASS!
+
+Testing enum type of TriState
+Test 187:
+	Testing writing to system GFX in section Settings with a variable ManuallyUploadeBuffers of type TriState and a value of AUTO, and making sure it has the same value when read back out at the same layer...
+	Value written of AUTO and value read of AUTO were equal.
+PASS!
+
+Test 188:
+	Testing writing to system GFX in section Settings with a variable ManuallyUploadeBuffers of type TriState and a value of AUTO, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of AUTO and value read of AUTO were equal.
+PASS!
+
+Test 189:
+	Testing writing to system GFX in section Settings with a variable ManuallyUploadeBuffers of type TriState and a value of OFF, and making sure it has the same value when read back out at the same layer...
+	Value written of OFF and value read of OFF were equal.
+PASS!
+
+Test 190:
+	Testing writing to system GFX in section Settings with a variable ManuallyUploadeBuffers of type TriState and a value of OFF, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of OFF and value read of OFF were equal.
+PASS!
+
+Test 191:
+	Testing writing to system GFX in section Settings with a variable ManuallyUploadeBuffers of type TriState and a value of ON, and making sure it has the same value when read back out at the same layer...
+	Value written of ON and value read of ON were equal.
+PASS!
+
+Test 192:
+	Testing writing to system GFX in section Settings with a variable ManuallyUploadeBuffers of type TriState and a value of ON, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of ON and value read of ON were equal.
+PASS!
+
+Testing enum type of TextureFilteringMode
+Test 193:
+	Testing writing to system GFX in section Enhancements with a variable ForceTextureFiltering of type TextureFilteringMode and a value of DEFAULT, and making sure it has the same value when read back out at the same layer...
+	Value written of DEFAULT and value read of DEFAULT were equal.
+PASS!
+
+Test 194:
+	Testing writing to system GFX in section Enhancements with a variable ForceTextureFiltering of type TextureFilteringMode and a value of DEFAULT, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of DEFAULT and value read of DEFAULT were equal.
+PASS!
+
+Test 195:
+	Testing writing to system GFX in section Enhancements with a variable ForceTextureFiltering of type TextureFilteringMode and a value of LINEAR, and making sure it has the same value when read back out at the same layer...
+	Value written of LINEAR and value read of LINEAR were equal.
+PASS!
+
+Test 196:
+	Testing writing to system GFX in section Enhancements with a variable ForceTextureFiltering of type TextureFilteringMode and a value of LINEAR, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of LINEAR and value read of LINEAR were equal.
+PASS!
+
+Test 197:
+	Testing writing to system GFX in section Enhancements with a variable ForceTextureFiltering of type TextureFilteringMode and a value of NEAREST, and making sure it has the same value when read back out at the same layer...
+	Value written of NEAREST and value read of NEAREST were equal.
+PASS!
+
+Test 198:
+	Testing writing to system GFX in section Enhancements with a variable ForceTextureFiltering of type TextureFilteringMode and a value of NEAREST, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of NEAREST and value read of NEAREST were equal.
+PASS!
+
+Testing enum type of StereoMode
+Test 199:
+	Testing writing to system GFX in section Stereoscopy with a variable StereoMode of type StereoMode and a value of ANAGLYPH, and making sure it has the same value when read back out at the same layer...
+	Value written of ANAGLYPH and value read of ANAGLYPH were equal.
+PASS!
+
+Test 200:
+	Testing writing to system GFX in section Stereoscopy with a variable StereoMode of type StereoMode and a value of ANAGLYPH, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of ANAGLYPH and value read of ANAGLYPH were equal.
+PASS!
+
+Test 201:
+	Testing writing to system GFX in section Stereoscopy with a variable StereoMode of type StereoMode and a value of OFF, and making sure it has the same value when read back out at the same layer...
+	Value written of OFF and value read of OFF were equal.
+PASS!
+
+Test 202:
+	Testing writing to system GFX in section Stereoscopy with a variable StereoMode of type StereoMode and a value of OFF, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of OFF and value read of OFF were equal.
+PASS!
+
+Test 203:
+	Testing writing to system GFX in section Stereoscopy with a variable StereoMode of type StereoMode and a value of PASSIVE, and making sure it has the same value when read back out at the same layer...
+	Value written of PASSIVE and value read of PASSIVE were equal.
+PASS!
+
+Test 204:
+	Testing writing to system GFX in section Stereoscopy with a variable StereoMode of type StereoMode and a value of PASSIVE, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of PASSIVE and value read of PASSIVE were equal.
+PASS!
+
+Test 205:
+	Testing writing to system GFX in section Stereoscopy with a variable StereoMode of type StereoMode and a value of QUADBUFFER, and making sure it has the same value when read back out at the same layer...
+	Value written of QUADBUFFER and value read of QUADBUFFER were equal.
+PASS!
+
+Test 206:
+	Testing writing to system GFX in section Stereoscopy with a variable StereoMode of type StereoMode and a value of QUADBUFFER, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of QUADBUFFER and value read of QUADBUFFER were equal.
+PASS!
+
+Test 207:
+	Testing writing to system GFX in section Stereoscopy with a variable StereoMode of type StereoMode and a value of SBS, and making sure it has the same value when read back out at the same layer...
+	Value written of SBS and value read of SBS were equal.
+PASS!
+
+Test 208:
+	Testing writing to system GFX in section Stereoscopy with a variable StereoMode of type StereoMode and a value of SBS, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of SBS and value read of SBS were equal.
+PASS!
+
+Test 209:
+	Testing writing to system GFX in section Stereoscopy with a variable StereoMode of type StereoMode and a value of TAB, and making sure it has the same value when read back out at the same layer...
+	Value written of TAB and value read of TAB were equal.
+PASS!
+
+Test 210:
+	Testing writing to system GFX in section Stereoscopy with a variable StereoMode of type StereoMode and a value of TAB, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of TAB and value read of TAB were equal.
+PASS!
+
+Testing enum type of WiimoteSource
+Test 211:
+	Testing writing to system WiiPad in section Wiimote1 with a variable Source of type WiimoteSource and a value of EMULATED, and making sure it has the same value when read back out at the same layer...
+	Value written of EMULATED and value read of EMULATED were equal.
+PASS!
+
+Test 212:
+	Testing writing to system WiiPad in section Wiimote1 with a variable Source of type WiimoteSource and a value of EMULATED, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of EMULATED and value read of EMULATED were equal.
+PASS!
+
+Test 213:
+	Testing writing to system WiiPad in section Wiimote1 with a variable Source of type WiimoteSource and a value of NONE, and making sure it has the same value when read back out at the same layer...
+	Value written of NONE and value read of NONE were equal.
+PASS!
+
+Test 214:
+	Testing writing to system WiiPad in section Wiimote1 with a variable Source of type WiimoteSource and a value of NONE, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of NONE and value read of NONE were equal.
+PASS!
+
+Test 215:
+	Testing writing to system WiiPad in section Wiimote1 with a variable Source of type WiimoteSource and a value of REAL, and making sure it has the same value when read back out at the same layer...
+	Value written of REAL and value read of REAL were equal.
+PASS!
+
+Test 216:
+	Testing writing to system WiiPad in section Wiimote1 with a variable Source of type WiimoteSource and a value of REAL, and making sure it has the same value when the absolute value of the setting is read out (when calling getConfigSetting() without specifying a layer)...
+	Value written of REAL and value read of REAL were equal.
+PASS!
+
+
+----------------------------------------------------------------------------------------------------
+Testing that all non-enum types can have delete called on them...
+
+Test 217:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Interface, settingName of NON_EXISTANT_SETTING12, settingType of boolean, and value to be written of True
+	Delete succeeded.
+PASS!
+
+Test 218:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING12, settingType of s32, and value to be written of 312
+	Delete succeeded.
+PASS!
+
+Test 219:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING12, settingType of u32, and value to be written of 564
+	Delete succeeded.
+PASS!
+
+Test 220:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING12, settingType of float, and value to be written of 54.25
+	Delete succeeded.
+PASS!
+
+Test 221:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING12, settingType of string, and value to be written of newBackendName
+	Delete succeeded.
+PASS!
+
+
+----------------------------------------------------------------------------------------------------
+Testing that all enum types can have delete called on them...
+
+Testing enum type of CPUCore
+Test 222:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of CPUCore, and value to be written of CACHEDINTERPRETER
+	Delete succeeded.
+PASS!
+
+Test 223:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of CPUCore, and value to be written of INTERPRETER
+	Delete succeeded.
+PASS!
+
+Test 224:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of CPUCore, and value to be written of JIT64
+	Delete succeeded.
+PASS!
+
+Test 225:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of CPUCore, and value to be written of JITARM64
+	Delete succeeded.
+PASS!
+
+Testing enum type of DPL2Quality
+Test 226:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of DPL2Quality, and value to be written of HIGH
+	Delete succeeded.
+PASS!
+
+Test 227:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of DPL2Quality, and value to be written of HIGHEST
+	Delete succeeded.
+PASS!
+
+Test 228:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of DPL2Quality, and value to be written of LOW
+	Delete succeeded.
+PASS!
+
+Test 229:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of DPL2Quality, and value to be written of LOWEST
+	Delete succeeded.
+PASS!
+
+Testing enum type of EXIDeviceType
+Test 230:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of EXIDeviceType, and value to be written of AD16
+	Delete succeeded.
+PASS!
+
+Test 231:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of EXIDeviceType, and value to be written of AGP
+	Delete succeeded.
+PASS!
+
+Test 232:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of EXIDeviceType, and value to be written of AMBASEBOARD
+	Delete succeeded.
+PASS!
+
+Test 233:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of EXIDeviceType, and value to be written of DUMMY
+	Delete succeeded.
+PASS!
+
+Test 234:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of EXIDeviceType, and value to be written of ETHERNET
+	Delete succeeded.
+PASS!
+
+Test 235:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of EXIDeviceType, and value to be written of ETHERNETBUILTIN
+	Delete succeeded.
+PASS!
+
+Test 236:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of EXIDeviceType, and value to be written of ETHERNETTAPSERVER
+	Delete succeeded.
+PASS!
+
+Test 237:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of EXIDeviceType, and value to be written of ETHERNETXLINK
+	Delete succeeded.
+PASS!
+
+Test 238:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of EXIDeviceType, and value to be written of GECKO
+	Delete succeeded.
+PASS!
+
+Test 239:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of EXIDeviceType, and value to be written of MASKROM
+	Delete succeeded.
+PASS!
+
+Test 240:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of EXIDeviceType, and value to be written of MEMORYCARD
+	Delete succeeded.
+PASS!
+
+Test 241:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of EXIDeviceType, and value to be written of MEMORYCARDFOLDER
+	Delete succeeded.
+PASS!
+
+Test 242:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of EXIDeviceType, and value to be written of MICROPHONE
+	Delete succeeded.
+PASS!
+
+Test 243:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of EXIDeviceType, and value to be written of NONE
+	Delete succeeded.
+PASS!
+
+Testing enum type of SIDeviceType
+Test 244:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of SIDeviceType, and value to be written of AM_BASEBOARD
+	Delete succeeded.
+PASS!
+
+Test 245:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of SIDeviceType, and value to be written of DANCEMAT
+	Delete succeeded.
+PASS!
+
+Test 246:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of SIDeviceType, and value to be written of GC_CONTROLLER
+	Delete succeeded.
+PASS!
+
+Test 247:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of SIDeviceType, and value to be written of GC_GBA
+	Delete succeeded.
+PASS!
+
+Test 248:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of SIDeviceType, and value to be written of GC_GBA_EMULATED
+	Delete succeeded.
+PASS!
+
+Test 249:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of SIDeviceType, and value to be written of GC_KEYBOARD
+	Delete succeeded.
+PASS!
+
+Test 250:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of SIDeviceType, and value to be written of GC_STEERING
+	Delete succeeded.
+PASS!
+
+Test 251:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of SIDeviceType, and value to be written of GC_TARUKONGA
+	Delete succeeded.
+PASS!
+
+Test 252:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of SIDeviceType, and value to be written of N64_CONTROLLER
+	Delete succeeded.
+PASS!
+
+Test 253:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of SIDeviceType, and value to be written of N64_KEYBOARD
+	Delete succeeded.
+PASS!
+
+Test 254:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of SIDeviceType, and value to be written of N64_MIC
+	Delete succeeded.
+PASS!
+
+Test 255:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of SIDeviceType, and value to be written of N64_MOUSE
+	Delete succeeded.
+PASS!
+
+Test 256:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of SIDeviceType, and value to be written of NONE
+	Delete succeeded.
+PASS!
+
+Test 257:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of SIDeviceType, and value to be written of WIIU_ADAPTER
+	Delete succeeded.
+PASS!
+
+Testing enum type of HSPDeviceType
+Test 258:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of HSPDeviceType, and value to be written of ARAMEXPANSION
+	Delete succeeded.
+PASS!
+
+Test 259:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of HSPDeviceType, and value to be written of NONE
+	Delete succeeded.
+PASS!
+
+Testing enum type of Region
+Test 260:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of Region, and value to be written of NTSC_J
+	Delete succeeded.
+PASS!
+
+Test 261:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of Region, and value to be written of NTSC_K
+	Delete succeeded.
+PASS!
+
+Test 262:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of Region, and value to be written of NTSC_U
+	Delete succeeded.
+PASS!
+
+Test 263:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of Region, and value to be written of PAL
+	Delete succeeded.
+PASS!
+
+Test 264:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of Region, and value to be written of UNKNOWN
+	Delete succeeded.
+PASS!
+
+Testing enum type of ShowCursor
+Test 265:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of ShowCursor, and value to be written of CONSTANTLY
+	Delete succeeded.
+PASS!
+
+Test 266:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of ShowCursor, and value to be written of NEVER
+	Delete succeeded.
+PASS!
+
+Test 267:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of ShowCursor, and value to be written of ONMOVEMENT
+	Delete succeeded.
+PASS!
+
+Testing enum type of LogLevel
+Test 268:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of LogLevel, and value to be written of LDEBUG
+	Delete succeeded.
+PASS!
+
+Test 269:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of LogLevel, and value to be written of LERROR
+	Delete succeeded.
+PASS!
+
+Test 270:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of LogLevel, and value to be written of LINFO
+	Delete succeeded.
+PASS!
+
+Test 271:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of LogLevel, and value to be written of LNOTICE
+	Delete succeeded.
+PASS!
+
+Test 272:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of LogLevel, and value to be written of LWARNING
+	Delete succeeded.
+PASS!
+
+Testing enum type of FreeLookControl
+Test 273:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of FreeLookControl, and value to be written of FPS
+	Delete succeeded.
+PASS!
+
+Test 274:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of FreeLookControl, and value to be written of ORBITAL
+	Delete succeeded.
+PASS!
+
+Test 275:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of FreeLookControl, and value to be written of SIXAXIS
+	Delete succeeded.
+PASS!
+
+Testing enum type of AspectMode
+Test 276:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of AspectMode, and value to be written of ANALOG
+	Delete succeeded.
+PASS!
+
+Test 277:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of AspectMode, and value to be written of ANALOGWIDE
+	Delete succeeded.
+PASS!
+
+Test 278:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of AspectMode, and value to be written of AUTO
+	Delete succeeded.
+PASS!
+
+Test 279:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of AspectMode, and value to be written of STRETCH
+	Delete succeeded.
+PASS!
+
+Testing enum type of ShaderCompilationMode
+Test 280:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of ShaderCompilationMode, and value to be written of ASYNCHRONOUSSKIPRENDERING
+	Delete succeeded.
+PASS!
+
+Test 281:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of ShaderCompilationMode, and value to be written of ASYNCHRONOUSUBERSHADERS
+	Delete succeeded.
+PASS!
+
+Test 282:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of ShaderCompilationMode, and value to be written of SYNCHRONOUS
+	Delete succeeded.
+PASS!
+
+Test 283:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of ShaderCompilationMode, and value to be written of SYNCHRONOUSUBERSHADERS
+	Delete succeeded.
+PASS!
+
+Testing enum type of TriState
+Test 284:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of TriState, and value to be written of AUTO
+	Delete succeeded.
+PASS!
+
+Test 285:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of TriState, and value to be written of OFF
+	Delete succeeded.
+PASS!
+
+Test 286:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of TriState, and value to be written of ON
+	Delete succeeded.
+PASS!
+
+Testing enum type of TextureFilteringMode
+Test 287:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of TextureFilteringMode, and value to be written of DEFAULT
+	Delete succeeded.
+PASS!
+
+Test 288:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of TextureFilteringMode, and value to be written of LINEAR
+	Delete succeeded.
+PASS!
+
+Test 289:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of TextureFilteringMode, and value to be written of NEAREST
+	Delete succeeded.
+PASS!
+
+Testing enum type of StereoMode
+Test 290:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of StereoMode, and value to be written of ANAGLYPH
+	Delete succeeded.
+PASS!
+
+Test 291:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of StereoMode, and value to be written of OFF
+	Delete succeeded.
+PASS!
+
+Test 292:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of StereoMode, and value to be written of PASSIVE
+	Delete succeeded.
+PASS!
+
+Test 293:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of StereoMode, and value to be written of QUADBUFFER
+	Delete succeeded.
+PASS!
+
+Test 294:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of StereoMode, and value to be written of SBS
+	Delete succeeded.
+PASS!
+
+Test 295:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of StereoMode, and value to be written of TAB
+	Delete succeeded.
+PASS!
+
+Testing enum type of WiimoteSource
+Test 296:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of WiimoteSource, and value to be written of EMULATED
+	Delete succeeded.
+PASS!
+
+Test 297:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of WiimoteSource, and value to be written of NONE
+	Delete succeeded.
+PASS!
+
+Test 298:
+	Testing creating a new setting and deleting it.	Test case has system of MAIN, section name of Core, settingName of NON_EXISTANT_SETTING45, settingType of WiimoteSource, and value to be written of REAL
+	Delete succeeded.
+PASS!
+
+
+----------------------------------------------------------------------------------------------------
+
+Total Tests: 298
+	Tests Passed: 296
+	Tests Failed: 0
+	Tests Skipped: 2
