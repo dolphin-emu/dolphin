@@ -15,13 +15,9 @@
 #endif
 
 #elif defined(_WIN32)
-#include "Common/CommonWindows.h"
+#include <Windows.h>
 #if defined(WINAPI_FAMILY) && defined(WINAPI_FAMILY_PARTITION)
 #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP) && WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP
-#if defined(_M_IX86) || defined(_M_X64)
-#include "Common/GPU/OpenGL/GLCommon.h"
-#define XR_USE_GRAPHICS_API_OPENGL 1
-#endif
 #define XR_USE_PLATFORM_WIN32 1
 #endif
 #endif

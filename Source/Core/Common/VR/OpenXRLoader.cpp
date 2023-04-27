@@ -1,7 +1,4 @@
 #include "Common/VR/OpenXRLoader.h"
-#ifdef _WIN32
-#include "Common/CommonWindows.h"
-#endif
 
 #ifdef XR_NO_PROTOTYPES
 
