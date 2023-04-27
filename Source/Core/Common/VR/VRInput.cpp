@@ -391,7 +391,6 @@ void IN_VRInit(engine_t* engine)
     // Get Count
     uint32_t countOutput = 0;
     OXR(xrEnumerateBoundSourcesForAction(engine->appState.Session, &e, 0, &countOutput, NULL));
-    ALOGV("xrEnumerateBoundSourcesForAction action=%ld count=%u", (long)e.action, countOutput);
 
     if (countOutput < 32)
     {
