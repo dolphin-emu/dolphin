@@ -53,7 +53,7 @@ public final class StartupHandler
         Bundle extras = parent.getIntent().getExtras();
         if (extras != null)
         {
-          VirtualReality.restoreConfig(extras);
+          VirtualReality.restoreConfig(parent, extras);
         }
       }
 

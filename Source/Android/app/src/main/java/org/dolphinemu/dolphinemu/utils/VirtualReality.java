@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Locale;
 
 public class VirtualReality
@@ -96,13 +97,15 @@ public class VirtualReality
     context.getApplicationContext().startActivity(launcher);
   }
 
-  public static void restoreConfig(Bundle extras)
+  public static void restoreConfig(Context context, Bundle extras)
   {
-    File root = new File(DirectoryInitialization.getUserDirectory() + "/Config/");
-    for (File file : root.listFiles())
+    File root = DirectoryInitialization.getUserDirectoryPath(context);
+    File config = new File(root, "/Config/");
+    config.mkdirs();
+
+    for (String filename : extras.getStringArrayList("ConfigFiles"))
     {
-      if (file.isDirectory())
-        continue;
+      File file = new File(config, filename);
 
       try
       {
@@ -122,6 +125,7 @@ public class VirtualReality
 
   private static void serializeConfigs(Intent intent)
   {
+    ArrayList<String> files = new ArrayList<>();
     File root = new File(DirectoryInitialization.getUserDirectory() + "/Config/");
     for (File file : root.listFiles())
     {
@@ -133,6 +137,7 @@ public class VirtualReality
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
         {
           intent.putExtra(file.getName(), Files.readAllBytes(file.toPath()));
+          files.add(file.getName());
         }
       }
       catch (IOException e)
@@ -140,5 +145,6 @@ public class VirtualReality
         e.printStackTrace();
       }
     }
+    intent.putStringArrayListExtra("ConfigFiles", files);
   }
 }
