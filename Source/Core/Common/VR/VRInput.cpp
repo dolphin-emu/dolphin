@@ -179,12 +179,12 @@ XrActionSet CreateActionSet(int priority, const char* name, const char* localize
   asci.priority = priority;
   strcpy(asci.actionSetName, name);
   strcpy(asci.localizedActionSetName, localizedName);
-  XrActionSet actionSet = XR_NULL_HANDLE;
-  OXR(xrCreateActionSet(VR_GetEngine()->appState.Instance, &asci, &actionSet));
-  return actionSet;
+  XrActionSet output = XR_NULL_HANDLE;
+  OXR(xrCreateActionSet(VR_GetEngine()->appState.Instance, &asci, &output));
+  return output;
 }
 
-XrAction CreateAction(XrActionSet actionSet, XrActionType type, const char* actionName,
+XrAction CreateAction(XrActionSet outputSet, XrActionType type, const char* actionName,
                       const char* localizedName, int countSubactionPaths, XrPath* subactionPaths)
 {
   XrActionCreateInfo aci = {};
@@ -199,7 +199,7 @@ XrAction CreateAction(XrActionSet actionSet, XrActionType type, const char* acti
   strcpy(aci.actionName, actionName);
   strcpy(aci.localizedActionName, localizedName ? localizedName : actionName);
   XrAction action = XR_NULL_HANDLE;
-  OXR(xrCreateAction(actionSet, &aci, &action));
+  OXR(xrCreateAction(outputSet, &aci, &action));
   return action;
 }
 
