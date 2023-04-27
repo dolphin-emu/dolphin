@@ -4,6 +4,7 @@
 #include "VideoCommon/Present.h"
 
 #include "Common/ChunkFile.h"
+#include "Common/VR/DolphinVR.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/Host.h"
 #include "Core/System.h"
@@ -246,13 +247,17 @@ float Presenter::CalculateDrawAspectRatio() const
 {
   const auto aspect_mode = g_ActiveConfig.aspect_mode;
 
+  if (IsVREnabled())
+  {
+    return 16.0f / 9.0f;
+  }
+
   // If stretch is enabled, we prefer the aspect ratio of the window.
   if (aspect_mode == AspectMode::Stretch)
     return (static_cast<float>(m_backbuffer_width) / static_cast<float>(m_backbuffer_height));
 
   auto& vi = Core::System::GetInstance().GetVideoInterface();
   const float aspect_ratio = vi.GetAspectRatio();
-
   if (aspect_mode == AspectMode::AnalogWide ||
       (aspect_mode == AspectMode::Auto && g_widescreen->IsGameWidescreen()))
   {

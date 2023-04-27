@@ -524,6 +524,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_InitializeVR
     const char* system = GetJString(env, systemname).c_str();
     InitVROnAndroid(IDCache::GetJavaVM(), obj, system, 1, "Dolphin");
     SetVRCallbacks(ciface::Touch::SetControlState);
+    ciface::Touch::RegisterGameCubeInputOverrider(0);
     ciface::Touch::RegisterWiiInputOverrider(0);
   }
 }

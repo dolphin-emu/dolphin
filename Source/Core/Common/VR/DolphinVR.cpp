@@ -52,28 +52,6 @@ enum ControlID
   NUNCHUK_Z_BUTTON = 32,
   NUNCHUK_STICK_X = 33,
   NUNCHUK_STICK_Y = 34,
-
-  CLASSIC_A_BUTTON = 35,
-  CLASSIC_B_BUTTON = 36,
-  CLASSIC_X_BUTTON = 37,
-  CLASSIC_Y_BUTTON = 38,
-  CLASSIC_ZL_BUTTON = 39,
-  CLASSIC_ZR_BUTTON = 40,
-  CLASSIC_PLUS_BUTTON = 41,
-  CLASSIC_MINUS_BUTTON = 42,
-  CLASSIC_HOME_BUTTON = 43,
-  CLASSIC_DPAD_UP = 44,
-  CLASSIC_DPAD_DOWN = 45,
-  CLASSIC_DPAD_LEFT = 46,
-  CLASSIC_DPAD_RIGHT = 47,
-  CLASSIC_L_DIGITAL = 48,
-  CLASSIC_R_DIGITAL = 49,
-  CLASSIC_L_ANALOG = 50,
-  CLASSIC_R_ANALOG = 51,
-  CLASSIC_LEFT_STICK_X = 52,
-  CLASSIC_LEFT_STICK_Y = 53,
-  CLASSIC_RIGHT_STICK_X = 54,
-  CLASSIC_RIGHT_STICK_Y = 55,
 };
 
 static void (*SetControlState)(int controller_index, int control, double state);
@@ -85,7 +63,33 @@ void SetVRCallbacks(void (*callback)(int controller_index, int control, double s
 
 void UpdateVRInput()
 {
+  // Get controllers state
+  XrPosef pose = IN_VRGetPose(1);
   int leftController = IN_VRGetButtonState(0);
+  int rightController = IN_VRGetButtonState(1);
+  XrVector3f angles = XrQuaternionf_ToEulerAngles(pose.orientation);
+  float x = -tan(ToRadians(angles.y - VR_GetConfigFloat(VR_CONFIG_MENU_YAW)));
+  float y = -tan(ToRadians(angles.x)) * VR_GetConfigFloat(VR_CONFIG_CANVAS_ASPECT);
+
+  // Left controller to GCPad
+  SetControlState(0, GCPAD_X_BUTTON, leftController & xrButton_Trigger ? 1 : 0);
+  SetControlState(0, GCPAD_Y_BUTTON, leftController & xrButton_GripTrigger ? 1 : 0);
+  SetControlState(0, GCPAD_L_DIGITAL, leftController & xrButton_X ? 1 : 0);
+  SetControlState(0, GCPAD_R_DIGITAL, leftController & xrButton_Y ? 1 : 0);
+  SetControlState(0, GCPAD_MAIN_STICK_X, IN_VRGetJoystickState(0).x);
+  SetControlState(0, GCPAD_MAIN_STICK_Y, IN_VRGetJoystickState(0).y);
+
+  // Right controller to GCPad
+  SetControlState(0, GCPAD_A_BUTTON, rightController & xrButton_Trigger ? 1 : 0);
+  SetControlState(0, GCPAD_B_BUTTON, rightController & xrButton_GripTrigger ? 1 : 0);
+  SetControlState(0, GCPAD_Z_BUTTON, rightController & xrButton_A ? 1 : 0);
+  SetControlState(0, GCPAD_DPAD_UP, rightController & xrButton_Up ? 1 : 0);
+  SetControlState(0, GCPAD_DPAD_DOWN, rightController & xrButton_Down ? 1 : 0);
+  SetControlState(0, GCPAD_DPAD_LEFT, rightController & xrButton_Left ? 1 : 0);
+  SetControlState(0, GCPAD_DPAD_RIGHT, rightController & xrButton_Right ? 1 : 0);
+  SetControlState(0, GCPAD_START_BUTTON, rightController & xrButton_RThumb ? 1 : 0);
+
+  // Left controller to WiiMote + Nunchuk
   SetControlState(0, WIIMOTE_PLUS_BUTTON, leftController & xrButton_X ? 1 : 0);
   SetControlState(0, WIIMOTE_MINUS_BUTTON, leftController & xrButton_Y ? 1 : 0);
   SetControlState(0, WIIMOTE_HOME_BUTTON, leftController & xrButton_Back ? 1 : 0);
@@ -94,7 +98,7 @@ void UpdateVRInput()
   SetControlState(0, NUNCHUK_STICK_X, IN_VRGetJoystickState(0).x);
   SetControlState(0, NUNCHUK_STICK_Y, IN_VRGetJoystickState(0).y);
 
-  int rightController = IN_VRGetButtonState(1);
+  // Right controller to WiiMote
   SetControlState(0, WIIMOTE_A_BUTTON, rightController & xrButton_Trigger ? 1 : 0);
   SetControlState(0, WIIMOTE_B_BUTTON, rightController & xrButton_GripTrigger ? 1 : 0);
   SetControlState(0, WIIMOTE_ONE_BUTTON, rightController & xrButton_A ? 1 : 0);
@@ -103,11 +107,6 @@ void UpdateVRInput()
   SetControlState(0, WIIMOTE_DPAD_DOWN, rightController & xrButton_Down ? 1 : 0);
   SetControlState(0, WIIMOTE_DPAD_LEFT, rightController & xrButton_Left ? 1 : 0);
   SetControlState(0, WIIMOTE_DPAD_RIGHT, rightController & xrButton_Right ? 1 : 0);
-
-  XrPosef pose = IN_VRGetPose(1);
-  XrVector3f angles = XrQuaternionf_ToEulerAngles(pose.orientation);
-  float x = -tan(ToRadians(angles.y - VR_GetConfigFloat(VR_CONFIG_MENU_YAW)));
-  float y = -tan(ToRadians(angles.x)) * VR_GetConfigFloat(VR_CONFIG_CANVAS_ASPECT);
   SetControlState(0, WIIMOTE_IR_X, x);
   SetControlState(0, WIIMOTE_IR_Y, y);
 }
@@ -195,8 +194,8 @@ bool StartVRRender()
 
   if (VR_InitFrame(VR_GetEngine()))
   {
-    VR_SetConfigFloat(VR_CONFIG_CANVAS_DISTANCE, 6.0f);
-    VR_SetConfigFloat(VR_CONFIG_CANVAS_ASPECT, 1.0f);
+    VR_SetConfigFloat(VR_CONFIG_CANVAS_DISTANCE, 0.0f);
+    VR_SetConfigFloat(VR_CONFIG_CANVAS_ASPECT, 16.0f / 9.0f);
     VR_SetConfig(VR_CONFIG_MODE, VR_MODE_MONO_SCREEN);
     UpdateVRInput();
     return true;

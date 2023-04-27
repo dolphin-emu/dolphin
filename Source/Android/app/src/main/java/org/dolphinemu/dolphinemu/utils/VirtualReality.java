@@ -106,7 +106,8 @@ public class VirtualReality
 
       try
       {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
+        {
           byte[] bytes = extras.getByteArray(file.getName());
           if (bytes != null)
             Files.write(file.toPath(), bytes);
@@ -129,7 +130,8 @@ public class VirtualReality
 
       try
       {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
+        {
           intent.putExtra(file.getName(), Files.readAllBytes(file.toPath()));
         }
       }
