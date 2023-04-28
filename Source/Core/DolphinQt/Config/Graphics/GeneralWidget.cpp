@@ -26,13 +26,10 @@
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings.h"
 
-#include "UICommon/VideoUtils.h"
-
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
-GeneralWidget::GeneralWidget(X11Utils::XRRConfiguration* xrr_config, GraphicsWindow* parent)
-    : m_xrr_config(xrr_config)
+GeneralWidget::GeneralWidget(GraphicsWindow* parent)
 {
   CreateWidgets();
   LoadSettings();

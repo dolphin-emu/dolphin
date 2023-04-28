@@ -1282,10 +1282,8 @@ void MainWindow::ShowGraphicsWindow()
               "display", windowHandle())),
           winId());
     }
-    m_graphics_window = new GraphicsWindow(m_xrr_config.get(), this);
-#else
-    m_graphics_window = new GraphicsWindow(nullptr, this);
 #endif
+    m_graphics_window = new GraphicsWindow(this);
     InstallHotkeyFilter(m_graphics_window);
   }
 

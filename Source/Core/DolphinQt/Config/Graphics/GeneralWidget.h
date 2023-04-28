@@ -16,16 +16,11 @@ class QRadioButton;
 class QGridLayout;
 class ToolTipComboBox;
 
-namespace X11Utils
-{
-class XRRConfiguration;
-}
-
 class GeneralWidget final : public GraphicsWidget
 {
   Q_OBJECT
 public:
-  explicit GeneralWidget(X11Utils::XRRConfiguration* xrr_config, GraphicsWindow* parent);
+  explicit GeneralWidget(GraphicsWindow* parent);
 signals:
   void BackendChanged(const QString& backend);
 
@@ -55,6 +50,4 @@ private:
   ConfigBool* m_render_main_window;
   std::array<GraphicsRadioInt*, 4> m_shader_compilation_mode{};
   ConfigBool* m_wait_for_shaders;
-
-  X11Utils::XRRConfiguration* m_xrr_config;
 };

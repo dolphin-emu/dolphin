@@ -24,8 +24,7 @@
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
-GraphicsWindow::GraphicsWindow(X11Utils::XRRConfiguration* xrr_config, MainWindow* parent)
-    : QDialog(parent), m_xrr_config(xrr_config)
+GraphicsWindow::GraphicsWindow(MainWindow* parent) : QDialog(parent)
 {
   CreateMainLayout();
 
@@ -46,7 +45,7 @@ void GraphicsWindow::CreateMainLayout()
   main_layout->addWidget(tab_widget);
   main_layout->addWidget(button_box);
 
-  auto* const general_widget = new GeneralWidget(m_xrr_config, this);
+  auto* const general_widget = new GeneralWidget(this);
   auto* const enhancements_widget = new EnhancementsWidget(this);
   auto* const hacks_widget = new HacksWidget(this);
   auto* const advanced_widget = new AdvancedWidget(this);
