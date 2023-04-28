@@ -20,7 +20,7 @@
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
-#include "DolphinQt/Config/Graphics/GraphicsRadio.h"
+#include "DolphinQt/Config/ConfigControls/ConfigRadio.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipComboBox.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
@@ -110,8 +110,8 @@ void GeneralWidget::CreateWidgets()
   }};
   for (size_t i = 0; i < modes.size(); i++)
   {
-    m_shader_compilation_mode[i] = new GraphicsRadioInt(
-        tr(modes[i]), Config::GFX_SHADER_COMPILATION_MODE, static_cast<int>(i));
+    m_shader_compilation_mode[i] =
+        new ConfigRadioInt(tr(modes[i]), Config::GFX_SHADER_COMPILATION_MODE, static_cast<int>(i));
     shader_compilation_layout->addWidget(m_shader_compilation_mode[i], static_cast<int>(i / 2),
                                          static_cast<int>(i % 2));
   }
