@@ -399,7 +399,7 @@ void VR_FinishFrame(engine_t* engine)
     // Flat screen pose
     float distance = VR_GetConfigFloat(VR_CONFIG_CANVAS_DISTANCE);
     float menuPitch = ToRadians(VR_GetConfigFloat(VR_CONFIG_MENU_PITCH));
-    float menuYaw = ToRadians(VR_GetConfigFloat(VR_CONFIG_MENU_YAW) - 30);
+    float menuYaw = ToRadians(VR_GetConfigFloat(VR_CONFIG_MENU_YAW));
     XrVector3f pos = {invViewTransform[0].position.x - sinf(menuYaw) * distance,
                       invViewTransform[0].position.y,
                       invViewTransform[0].position.z - cosf(menuYaw) * distance};
