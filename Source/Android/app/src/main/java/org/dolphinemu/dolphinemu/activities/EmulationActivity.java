@@ -427,6 +427,10 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
   protected void onPause()
   {
     super.onPause();
+    if (VirtualReality.isActive())
+    {
+      System.exit(0);
+    }
   }
 
   @Override
