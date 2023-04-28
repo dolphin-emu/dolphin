@@ -339,7 +339,7 @@ NWC24::ErrorCode NetKDRequestDevice::KDSendMail()
   m_send_list.ReadSendList();
   const std::string auth =
       fmt::format("mlid=w{}\r\npasswd={}", m_config.Id(), m_config.GetPassword());
-  std::vector<Common::HttpRequest::Multiform> multiform = {{"mlid", auth.c_str(), auth.size()}};
+  std::vector<Common::HttpRequest::Multiform> multiform = {{"mlid", auth, auth.size()}};
 
   std::vector<u32> mails = m_send_list.GetPopulatedEntries();
   for (const u32 file_index : mails)
@@ -370,8 +370,10 @@ NWC24::ErrorCode NetKDRequestDevice::KDSendMail()
       continue;
     }
 
+    const std::string mail_str = {mail_data.begin(), mail_data.end()};
+
     multiform.push_back(
-        {fmt::format("m{}", index), reinterpret_cast<const char*>(mail_data.data())});
+        {fmt::format("m{}", index), mail_str, mail_data.size()});
   }
 
   const Common::HttpRequest::Response response =

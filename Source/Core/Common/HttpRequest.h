@@ -37,7 +37,7 @@ public:
   struct Multiform
   {
     std::string name;
-    const char* data;
+    std::string data;
     size_t size;
   };
 

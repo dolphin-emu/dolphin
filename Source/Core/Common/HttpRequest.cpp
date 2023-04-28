@@ -254,7 +254,7 @@ HttpRequest::Response HttpRequest::Impl::Fetch(const std::string& url, Method me
     {
       curl_mimepart* part = curl_mime_addpart(form);
       curl_mime_name(part, value.name.c_str());
-      curl_mime_data(part, value.data, value.size);
+      curl_mime_data(part, value.data.c_str(), value.size);
     }
 
     curl_easy_setopt(m_curl.get(), CURLOPT_MIMEPOST, form);
