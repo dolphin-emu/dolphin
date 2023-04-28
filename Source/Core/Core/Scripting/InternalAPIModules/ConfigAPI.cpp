@@ -333,8 +333,6 @@ std::optional<Config::LayerType> ParseLayer(const std::string& layer_name)
     return Config::LayerType::Netplay;
   else if (uppercase_layer_name == "CURRENTRUN")
     return Config::LayerType::CurrentRun;
-  else if (uppercase_layer_name == "META")
-    return Config::LayerType::Meta;
   else
     return {};
 }
@@ -445,14 +443,8 @@ ArgHolder GetConfigSettingForLayer(std::vector<ArgHolder>& args_list, T default_
 
   std::optional<T> returned_config_val;
 
-  if (layer_name.value() == Config::LayerType::Meta)
-    returned_config_val = Config::Get(
-        Config::Info<T>({system_name.value(), section_name, setting_name}, default_value));
-  else
-  {
-    Config::Location location = {system_name.value(), section_name, setting_name};
-    returned_config_val = Config::GetLayer(layer_name.value())->Get<T>(location);
-  }
+  Config::Location location = {system_name.value(), section_name, setting_name};
+  returned_config_val = Config::GetLayer(layer_name.value())->Get<T>(location);
 
   if (!returned_config_val.has_value())
     return CreateEmptyOptionalArgument();
@@ -495,14 +487,8 @@ ArgHolder GetConfigSettingForLayer_enum(std::vector<ArgHolder>& args_list, T def
 
   std::optional<T> returned_config_val;
 
-  if (layer_name.value() == Config::LayerType::Meta)
-    returned_config_val = Config::Get(
-        Config::Info<T>({system_name.value(), section_name, setting_name}, default_value));
-  else
-  {
-    Config::Location location = {system_name.value(), section_name, setting_name};
-    returned_config_val = Config::GetLayer(layer_name.value())->Get<T>(location);
-  }
+  Config::Location location = {system_name.value(), section_name, setting_name};
+  returned_config_val = Config::GetLayer(layer_name.value())->Get<T>(location);
 
   if (!returned_config_val.has_value())
     return CreateEmptyOptionalArgument();
@@ -613,10 +599,6 @@ ArgHolder SetConfigSettingForLayer(std::vector<ArgHolder>& args_list, T new_valu
  else if (!system_name.has_value())
    return CreateErrorStringArgHolder("Invalid system name of " + args_list[1].string_val +
                                      " was used.");
-
-   if (layer_name.value() == Config::LayerType::Meta)
-   return CreateErrorStringArgHolder(
-       "Error: Meta layerType cannot be used when setting config value");
 
  else
  {
@@ -730,10 +712,6 @@ ArgHolder DeleteConfigSettingFromLayer(std::vector<ArgHolder>& args_list, T defa
  else if (!system_name.has_value())
    return CreateErrorStringArgHolder("Invalid system name of " + args_list[1].string_val +
                                      " was used.");
-
- if (layer_name.value() == Config::LayerType::Meta)
-   return CreateErrorStringArgHolder(
-       "Error: Meta layerType cannot be used when deleting config value");
 
  bool return_value = Config::GetLayer(layer_name.value())->DeleteKey({system_name.value(), section_name, setting_name});
  if (return_value)

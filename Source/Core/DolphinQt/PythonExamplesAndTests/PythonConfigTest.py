@@ -151,7 +151,7 @@ def testPrecedence():
     localValue = 54
     baseValue = 35
     outputFile.write("Test " + str(testsRun + 1) + ":\n")
-    outputFile.write("\tTesting writing integer value to CurrentRun and: to Base, and making sure that value from CurrentRun is the one that was used...\n")
+    outputFile.write("\tTesting writing integer value to CurrentRun and to Base, and making sure that value from CurrentRun is the one that was used...\n")
     config.setConfigSettingForLayer("s32", "CurrentRun", "MAIN", "Interface", "testingDebugValue", localValue)
     config.setConfigSettingForLayer("s32", "Base", "MAIN", "Interface", "testingDebugValue", baseValue)
     actualValue = config.getConfigSetting("s32", "MAIN", "Interface", "testingDebugValue")
@@ -262,22 +262,22 @@ def performInnerTestCaseForDelete(exampleValue):
     if config.getConfigSetting(settingType, systemName, sectionName, settingName) is not None:
         print("Value existed before start in delete function?!?!?")
         print(str(config.getConfigSetting(settingType, systemName, sectionName, settingName)))
-        outputFile.write("Value existed before start in delete function?!?!?")
+        outputFile.write("Value existed before start in delete function?!?!?\n")
     outputFile.write("Test " + str(testsRun + 1) + ":\n")
     testsRun = testsRun + 1
     outputFile.write("\tTesting creating a new setting and deleting it.")
     outputFile.write("\tTest case has system of " + systemName + ", section name of " + sectionName + ", settingName of " + settingName + ", settingType of " + settingType + ", and value to be written of " + str(valueToBeWritten) + "\n")
     config.setConfigSettingForLayer(settingType, layerName, systemName, sectionName, settingName, valueToBeWritten)
-    if config.getConfigSettingForLayer(settingType, layerName, systemName, sectionName, settingName) is None or config.getConfigSetting(settingType, systemName, sectionName, settingName)  is None:
+    if config.getConfigSettingForLayer(settingType, layerName, systemName, sectionName, settingName) is None or config.getConfigSetting(settingType, systemName, sectionName, settingName) is None:
         outputFile.write("\tFailed to create setting...\nFAILURE!\n\n")
         testsFailed = testsFailed + 1
         return
     retVal = config.deleteConfigSettingFromLayer(settingType, layerName, systemName, sectionName, settingName)
     if not retVal:
-        outputFile.write("\tDelete def did not return True - indicating that delete attempt failed...\nFAILURE!\n\n")
+        outputFile.write("\tDelete function did not return True - indicating that delete attempt failed...\nFAILURE!\n\n")
         testsFailed = testsFailed + 1
         return
-    if config.getConfigSettingForLayer(settingType, layerName, systemName, sectionName, settingName) is not None or config.getConfigSetting(settingType, systemName, sectionName, settingName)  is not None:
+    if config.getConfigSettingForLayer(settingType, layerName, systemName, sectionName, settingName) is not None or config.getConfigSetting(settingType, systemName, sectionName, settingName) is not None:
         outputFile.write("\tError: Setting still exists in layer after calling delete function!\nFAILURE\n\n")
         testsFailed = testsFailed + 1
         return
