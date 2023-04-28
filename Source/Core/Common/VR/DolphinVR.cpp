@@ -74,10 +74,22 @@ void UpdateVRInput()
   // Left controller to GCPad
   SetControlState(0, GCPAD_X_BUTTON, leftController & xrButton_Trigger ? 1 : 0);
   SetControlState(0, GCPAD_Y_BUTTON, leftController & xrButton_GripTrigger ? 1 : 0);
+  SetControlState(0, GCPAD_L_ANALOG, leftController & xrButton_X ? 1 : 0);
+  SetControlState(0, GCPAD_R_ANALOG, leftController & xrButton_Y ? 1 : 0);
   SetControlState(0, GCPAD_L_DIGITAL, leftController & xrButton_X ? 1 : 0);
   SetControlState(0, GCPAD_R_DIGITAL, leftController & xrButton_Y ? 1 : 0);
-  SetControlState(0, GCPAD_MAIN_STICK_X, IN_VRGetJoystickState(0).x);
-  SetControlState(0, GCPAD_MAIN_STICK_Y, IN_VRGetJoystickState(0).y);
+
+  // Left controller stick tn GCPad
+  if (rightController & xrButton_B)
+  {
+    SetControlState(0, GCPAD_C_STICK_X, IN_VRGetJoystickState(0).x);
+    SetControlState(0, GCPAD_C_STICK_Y, IN_VRGetJoystickState(0).y);
+  }
+  else
+  {
+    SetControlState(0, GCPAD_MAIN_STICK_X, IN_VRGetJoystickState(0).x);
+    SetControlState(0, GCPAD_MAIN_STICK_Y, IN_VRGetJoystickState(0).y);
+  }
 
   // Right controller to GCPad
   SetControlState(0, GCPAD_A_BUTTON, rightController & xrButton_Trigger ? 1 : 0);

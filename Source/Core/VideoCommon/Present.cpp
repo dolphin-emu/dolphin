@@ -245,11 +245,10 @@ Presenter::ConvertStereoRectangle(const MathUtil::Rectangle<int>& rc) const
 
 float Presenter::CalculateDrawAspectRatio() const
 {
-  const auto aspect_mode = g_ActiveConfig.aspect_mode;
-
+  auto aspect_mode = g_ActiveConfig.aspect_mode;
   if (IsVREnabled())
   {
-    return 16.0f / 9.0f;
+    aspect_mode = AspectMode::AnalogWide;
   }
 
   // If stretch is enabled, we prefer the aspect ratio of the window.
@@ -258,6 +257,7 @@ float Presenter::CalculateDrawAspectRatio() const
 
   auto& vi = Core::System::GetInstance().GetVideoInterface();
   const float aspect_ratio = vi.GetAspectRatio();
+
   if (aspect_mode == AspectMode::AnalogWide ||
       (aspect_mode == AspectMode::Auto && g_widescreen->IsGameWidescreen()))
   {
