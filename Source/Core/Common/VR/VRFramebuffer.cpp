@@ -449,6 +449,7 @@ void ovrApp_HandleSessionStateChanges(ovrApp* app, XrSessionState state)
     XrResult result;
     OXR(result = xrBeginSession(app->Session, &sessionBeginInfo));
     app->SessionActive = (result == XR_SUCCESS);
+    ALOGV("OpenXR session active = %d", app->SessionActive);
 
 #ifdef ANDROID
     if (app->SessionActive && VR_GetPlatformFlag(VR_PLATFORM_EXTENSION_PERFORMANCE))

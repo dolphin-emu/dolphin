@@ -153,7 +153,7 @@ void InitVROnAndroid(void* vm, void* activity, const char* vendor, int version, 
   {
     VR_SetPlatformFLag(VR_PLATFORM_CONTROLLER_QUEST, true);
     VR_SetPlatformFLag(VR_PLATFORM_EXTENSION_FOVEATION, false);
-    VR_SetPlatformFLag(VR_PLATFORM_EXTENSION_PERFORMANCE, false);
+    VR_SetPlatformFLag(VR_PLATFORM_EXTENSION_PERFORMANCE, true);
   }
 
   // Init VR
@@ -161,6 +161,7 @@ void InitVROnAndroid(void* vm, void* activity, const char* vendor, int version, 
   java.Vm = (JavaVM*)vm;
   java.ActivityObject = (jobject)activity;
   VR_Init(&java, name, version);
+  ALOGE("OpenXR - VR_Init called");
 }
 #endif
 
@@ -171,8 +172,10 @@ void EnterVR(bool firstStart)
     engine_t* engine = VR_GetEngine();
     VR_EnterVR(engine);
     IN_VRInit(engine);
+    ALOGE("OpenXR - EnterVR called");
   }
   VR_SetConfig(VR_CONFIG_VIEWPORT_VALID, false);
+  ALOGE("OpenXR - Viewport invalidated");
 }
 
 void GetVRResolutionPerEye(int* width, int* height)

@@ -438,6 +438,12 @@ void OGLGfx::PresentBackbuffer()
   // Swap the back and front buffers, presenting the image.
   if (IsVREnabled())
   {
+    if (!m_vr_initialized)
+    {
+      EnterVR(true);
+      m_vr_initialized = true;
+    }
+
     if (m_vr_frame_started)
     {
       PostVRFrameRender();
@@ -489,20 +495,6 @@ void OGLGfx::CheckForSurfaceChange()
 
   u32 width = m_main_gl_context->GetBackBufferWidth();
   u32 height = m_main_gl_context->GetBackBufferHeight();
-
-  if (IsVREnabled())
-  {
-    if (!m_vr_initialized)
-    {
-      EnterVR(true);
-      m_vr_initialized = true;
-    }
-
-    int w, h;
-    GetVRResolutionPerEye(&w, &h);
-    width = w;
-    height = h;
-  }
 
   // With a surface change, the window likely has new dimensions.
   g_presenter->SetBackbuffer(width, height);
