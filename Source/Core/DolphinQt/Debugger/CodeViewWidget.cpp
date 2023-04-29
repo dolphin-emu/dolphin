@@ -379,8 +379,7 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
 
     if (debug_interface.IsBreakpoint(addr))
     {
-      auto icon =
-          Resources::GetScaledThemeIcon("debugger_breakpoint").pixmap(QSize(rowh - 2, rowh - 2));
+      auto icon = Resources::GetThemeIcon("debugger_breakpoint").pixmap(QSize(rowh - 2, rowh - 2));
       if (!m_system.GetPowerPC().GetBreakPoints().IsBreakPointEnable(addr))
       {
         QPixmap disabled_icon(icon.size());

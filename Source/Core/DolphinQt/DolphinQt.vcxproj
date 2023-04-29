@@ -183,7 +183,6 @@
     <ClCompile Include="QtUtils\PartiallyClosableTabWidget.cpp" />
     <ClCompile Include="QtUtils\UTF8CodePointCountValidator.cpp" />
     <ClCompile Include="QtUtils\WindowActivationEventFilter.cpp" />
-    <ClCompile Include="QtUtils\WinIconHelper.cpp" />
     <ClCompile Include="QtUtils\WrapInScrollArea.cpp" />
     <ClCompile Include="RenderWidget.cpp" />
     <ClCompile Include="ResourcePackManager.cpp" />
@@ -240,7 +239,6 @@
     <ClInclude Include="QtUtils\QueueOnObject.h" />
     <ClInclude Include="QtUtils\RunOnObject.h" />
     <ClInclude Include="QtUtils\SignalBlocking.h" />
-    <ClInclude Include="QtUtils\WinIconHelper.h" />
     <ClInclude Include="QtUtils\WrapInScrollArea.h" />
     <ClInclude Include="ResourcePackManager.h" />
     <ClInclude Include="Resources.h" />

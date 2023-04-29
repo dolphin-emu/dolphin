@@ -3,51 +3,56 @@
 
 #include "DolphinQt/Resources.h"
 
-#include <QGuiApplication>
+#include <QFileInfo>
 #include <QIcon>
+#include <QImageReader>
 #include <QPixmap>
-#include <QScreen>
 
+#include "Common/Assert.h"
 #include "Common/FileUtil.h"
 
 #include "Core/Config/MainSettings.h"
 
 #include "DolphinQt/Settings.h"
 
-#ifdef _WIN32
-#include "DolphinQt/QtUtils/WinIconHelper.h"
-#endif
+bool Resources::m_svg_supported;
+QList<QIcon> Resources::m_platforms;
+QList<QIcon> Resources::m_countries;
+QList<QIcon> Resources::m_misc;
 
-QList<QPixmap> Resources::m_platforms;
-QList<QPixmap> Resources::m_countries;
-QList<QPixmap> Resources::m_misc;
-
-QIcon Resources::GetIcon(std::string_view name, const QString& dir)
+QIcon Resources::LoadNamedIcon(std::string_view name, const QString& dir)
 {
-  QString name_owned = QString::fromLatin1(name.data(), static_cast<int>(name.size()));
-  QString base_path = dir + QLatin1Char{'/'} + name_owned;
+  const QString base_path = dir + QLatin1Char{'/'} + QString::fromLatin1(name);
+  const QString svg_path = base_path + QStringLiteral(".svg");
 
-  const auto dpr = QGuiApplication::primaryScreen()->devicePixelRatio();
+  // Prefer svg
+  if (m_svg_supported && QFileInfo(svg_path).exists())
+    return QIcon(svg_path);
 
-  QIcon icon(base_path.append(QStringLiteral(".png")));
+  QIcon icon;
 
-  if (dpr > 2)
-  {
-    QPixmap pixmap(base_path.append(QStringLiteral("@4x.png")));
+  auto load_png = [&](int scale) {
+    QString suffix = QStringLiteral(".png");
+    if (scale > 1)
+      suffix = QString::fromLatin1("@%1x.png").arg(scale);
+
+    QPixmap pixmap(base_path + suffix);
     if (!pixmap.isNull())
     {
-      pixmap.setDevicePixelRatio(4.0);
+      pixmap.setDevicePixelRatio(scale);
       icon.addPixmap(pixmap);
     }
-  }
+  };
+
+  // Since we are caching the files, we need to try and load all known sizes up-front.
+  // Otherwise, a dynamic change of devicePixelRatio could result in use of non-ideal image from
+  // cache while a better one exists on disk.
+  for (auto scale : {1, 2, 4})
+    load_png(scale);
+
+  ASSERT(icon.availableSizes().size() > 0);
 
   return icon;
-}
-
-QPixmap Resources::GetPixmap(std::string_view name, const QString& dir)
-{
-  const auto icon = GetIcon(name, dir);
-  return icon.pixmap(icon.availableSizes()[0]);
 }
 
 static QString GetCurrentThemeDir()
@@ -60,27 +65,24 @@ static QString GetResourcesDir()
   return QString::fromStdString(File::GetSysDirectory() + "Resources");
 }
 
-QIcon Resources::GetScaledIcon(std::string_view name)
+QIcon Resources::GetResourceIcon(std::string_view name)
 {
-  return GetIcon(name, GetResourcesDir());
+  return LoadNamedIcon(name, GetResourcesDir());
 }
 
-QIcon Resources::GetScaledThemeIcon(std::string_view name)
+QIcon Resources::GetThemeIcon(std::string_view name)
 {
-  return GetIcon(name, GetCurrentThemeDir());
-}
-
-QPixmap Resources::GetScaledPixmap(std::string_view name)
-{
-  return GetPixmap(name, GetResourcesDir());
+  return LoadNamedIcon(name, GetCurrentThemeDir());
 }
 
 void Resources::Init()
 {
+  m_svg_supported = QImageReader::supportedImageFormats().contains("svg");
+
   for (std::string_view platform :
        {"Platform_Gamecube", "Platform_Wii", "Platform_Wad", "Platform_File"})
   {
-    m_platforms.append(GetScaledPixmap(platform));
+    m_platforms.append(GetResourceIcon(platform));
   }
 
   for (std::string_view country :
@@ -88,39 +90,29 @@ void Resources::Init()
         "Flag_Italy", "Flag_Korea", "Flag_Netherlands", "Flag_Russia", "Flag_Spain", "Flag_Taiwan",
         "Flag_International", "Flag_Unknown"})
   {
-    m_countries.append(GetScaledPixmap(country));
+    m_countries.append(GetResourceIcon(country));
   }
 
-  m_misc.append(GetScaledPixmap("nobanner"));
-  m_misc.append(GetScaledPixmap("dolphin_logo"));
-  m_misc.append(GetScaledPixmap("Dolphin"));
+  m_misc.append(GetResourceIcon("nobanner"));
+  m_misc.append(GetResourceIcon("dolphin_logo"));
 }
 
-QPixmap Resources::GetPlatform(DiscIO::Platform platform)
+QIcon Resources::GetPlatform(DiscIO::Platform platform)
 {
   return m_platforms[static_cast<int>(platform)];
 }
 
-QPixmap Resources::GetCountry(DiscIO::Country country)
+QIcon Resources::GetCountry(DiscIO::Country country)
 {
   return m_countries[static_cast<int>(country)];
 }
 
-QPixmap Resources::GetMisc(MiscID id)
+QIcon Resources::GetMisc(MiscID id)
 {
   return m_misc[static_cast<int>(id)];
 }
 
 QIcon Resources::GetAppIcon()
 {
-  QIcon icon;
-
-#ifdef _WIN32
-  icon = WinIconHelper::GetNativeIcon();
-#else
-  icon.addPixmap(GetScaledPixmap("dolphin_logo"));
-  icon.addPixmap(GetScaledPixmap("Dolphin"));
-#endif
-
-  return icon;
+  return GetMisc(MiscID::Logo);
 }
