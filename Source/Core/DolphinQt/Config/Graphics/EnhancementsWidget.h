@@ -9,7 +9,7 @@
 
 class ConfigBool;
 class ConfigChoice;
-class GraphicsSlider;
+class ConfigSlider;
 class GraphicsWindow;
 class QCheckBox;
 class QComboBox;
@@ -49,8 +49,8 @@ private:
 
   // Stereoscopy
   ConfigChoice* m_3d_mode;
-  GraphicsSlider* m_3d_depth;
-  GraphicsSlider* m_3d_convergence;
+  ConfigSlider* m_3d_depth;
+  ConfigSlider* m_3d_convergence;
   ConfigBool* m_3d_swap_eyes;
 
   int m_msaa_modes;
