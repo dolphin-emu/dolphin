@@ -1,7 +1,7 @@
 // Copyright 2017 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "DolphinQt/Config/Graphics/GraphicsSlider.h"
+#include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
 
 #include <QSignalBlocker>
 
@@ -9,7 +9,7 @@
 
 #include "DolphinQt/Settings.h"
 
-GraphicsSlider::GraphicsSlider(int minimum, int maximum, const Config::Info<int>& setting, int tick)
+ConfigSlider::ConfigSlider(int minimum, int maximum, const Config::Info<int>& setting, int tick)
     : ToolTipSlider(Qt::Horizontal), m_setting(setting)
 {
   setMinimum(minimum);
@@ -18,7 +18,7 @@ GraphicsSlider::GraphicsSlider(int minimum, int maximum, const Config::Info<int>
 
   setValue(Config::Get(setting));
 
-  connect(this, &GraphicsSlider::valueChanged, this, &GraphicsSlider::Update);
+  connect(this, &ConfigSlider::valueChanged, this, &ConfigSlider::Update);
 
   connect(&Settings::Instance(), &Settings::ConfigChanged, this, [this] {
     QFont bf = font();
@@ -30,7 +30,7 @@ GraphicsSlider::GraphicsSlider(int minimum, int maximum, const Config::Info<int>
   });
 }
 
-void GraphicsSlider::Update(int value)
+void ConfigSlider::Update(int value)
 {
   Config::SetBaseOrCurrent(m_setting, value);
 }

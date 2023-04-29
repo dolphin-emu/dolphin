@@ -41,6 +41,8 @@ add_executable(dolphin-emu
   Config/ConfigControls/ConfigChoice.h
   Config/ConfigControls/ConfigRadio.cpp
   Config/ConfigControls/ConfigRadio.h
+  Config/ConfigControls/ConfigSlider.cpp
+  Config/ConfigControls/ConfigSlider.h
   Config/ControllerInterface/ControllerInterfaceWindow.cpp
   Config/ControllerInterface/ControllerInterfaceWindow.h
   Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp
@@ -75,8 +77,6 @@ add_executable(dolphin-emu
   Config/Graphics/GeneralWidget.h
   Config/Graphics/GraphicsInteger.cpp
   Config/Graphics/GraphicsInteger.h
-  Config/Graphics/GraphicsSlider.cpp
-  Config/Graphics/GraphicsSlider.h
   Config/Graphics/GraphicsWidget.h
   Config/Graphics/GraphicsWindow.cpp
   Config/Graphics/GraphicsWindow.h
