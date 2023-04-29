@@ -28,6 +28,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/DolphinAnalytics.h"
+#include "Core/Scripting/ScriptUtilities.h"
 
 #include "DolphinQt/Host.h"
 #include "DolphinQt/MainWindow.h"
@@ -110,6 +111,9 @@ static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no
 #ifdef _WIN32
 #define main app_main
 #endif
+
+static std::function<void(const std::string&)> script_print_function = [](const std::string& val) {};
+static std::function<void(int)> script_end_function = [](int identifier){};
 
 int main(int argc, char* argv[])
 {
@@ -195,6 +199,19 @@ int main(int argc, char* argv[])
   if (options.is_set("save_state"))
   {
     save_state_path = static_cast<const char*>(options.get("save_state"));
+  }
+
+  std::optional<std::string> starting_script_path;
+  if (options.is_set("script"))
+  {
+    starting_script_path = static_cast<const char*>(options.get("script"));
+    if (starting_script_path.has_value())
+    {
+      DefinedScriptingLanguagesEnum script_language = DefinedScriptingLanguagesEnum::LUA;
+      if (starting_script_path.value().ends_with(".py"))
+        script_language = DefinedScriptingLanguagesEnum::PYTHON;
+      Scripting::ScriptUtilities::InitializeScript(-1, starting_script_path.value(), &script_print_function, &script_end_function, script_language);
+    }
   }
 
   std::unique_ptr<BootParameters> boot;

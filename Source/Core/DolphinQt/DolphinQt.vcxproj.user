@@ -5,4 +5,7 @@
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <ShowAllFiles>true</ShowAllFiles>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LocalDebuggerCommandArguments>--script "C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Source/Core/DolphinQt/LuaExamplesAndTests/LuaBitFunctionsTest.lua"</LocalDebuggerCommandArguments>
+  </PropertyGroup>
 </Project>

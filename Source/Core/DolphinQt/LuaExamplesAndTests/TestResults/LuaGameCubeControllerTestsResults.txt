@@ -30,27 +30,3 @@ PASS!
 
 Test: 8
 	Calling setInput() on controller 1 with just setting Start button...
-PASS!
-
-Test: 9
-	Calling setInput() on controller 1 with just setting Reset button...
-PASS!
-
-Test: 10
-	Calling setInput() on controller 1 with just setting triggerL to 183...
-PASS!
-
-Test: 11
-	Calling setInput() on controller 1 with just setting triggerR to 112...
-PASS!
-
-Test: 12
-	Calling setInput() on controller 1 with just setting dPadUp...
-PASS!
-
-Test: 13
-	Calling setInput() on controller 1 with just setting dPadDown button...
-FAILURE!
-
-Test: 14
-	Calling setInput() on controller 1 with just setting dPadLeft button...

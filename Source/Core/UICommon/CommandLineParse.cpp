@@ -102,6 +102,11 @@ std::unique_ptr<optparse::OptionParser> CreateParser(ParserOptions options)
       .metavar("<file>")
       .type("string")
       .help("Load the initial save state");
+  parser->add_option("-x", "--script")
+      .action("store")
+      .metavar("<file>")
+      .type("string")
+      .help("Loads/Starts the specified script");
 
   if (options == ParserOptions::IncludeGUIOptions)
   {
