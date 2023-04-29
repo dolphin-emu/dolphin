@@ -384,6 +384,8 @@ AchievementManager::ResponseType AchievementManager::Request(
   rc_api_request_t api_request;
   Common::HttpRequest http_request;
   init_request(&api_request, &rc_request);
+  if (!api_request.post_data)
+    return ResponseType::INVALID_REQUEST;
   auto http_response = http_request.Post(api_request.url, api_request.post_data);
   rc_api_destroy_request(&api_request);
   if (http_response.has_value() && http_response->size() > 0)
