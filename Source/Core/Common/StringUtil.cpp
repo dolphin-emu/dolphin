@@ -547,7 +547,7 @@ std::string CodeTo(const char* tocode, const char* fromcode, std::basic_string_v
     while (src_bytes != 0)
     {
       size_t const iconv_result =
-#if defined(__OpenBSD__) || defined(__NetBSD__)
+#if defined(__NetBSD__)
           iconv(conv_desc, reinterpret_cast<const char**>(&src_buffer), &src_bytes, &dst_buffer,
                 &dst_bytes);
 #else
