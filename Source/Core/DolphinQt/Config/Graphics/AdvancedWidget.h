@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "DolphinQt/Config/Graphics/GraphicsWidget.h"
+#include <QWidget>
 
 class ConfigBool;
 class ConfigChoice;
@@ -14,15 +14,15 @@ class QComboBox;
 class QSpinBox;
 class ToolTipCheckBox;
 
-class AdvancedWidget final : public GraphicsWidget
+class AdvancedWidget final : public QWidget
 {
   Q_OBJECT
 public:
   explicit AdvancedWidget(GraphicsWindow* parent);
 
 private:
-  void LoadSettings() override;
-  void SaveSettings() override;
+  void LoadSettings();
+  void SaveSettings();
 
   void CreateWidgets();
   void ConnectWidgets();
