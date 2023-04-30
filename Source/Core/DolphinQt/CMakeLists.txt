@@ -234,6 +234,8 @@ add_executable(dolphin-emu
   Host.h
   HotkeyScheduler.cpp
   HotkeyScheduler.h
+  InfinityBase/InfinityBaseWindow.cpp
+  InfinityBase/InfinityBaseWindow.h
   Main.cpp
   MainWindow.cpp
   MainWindow.h

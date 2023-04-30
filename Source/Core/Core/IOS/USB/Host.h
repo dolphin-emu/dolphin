@@ -83,6 +83,8 @@ private:
   void DispatchHooks(const DeviceChangeHooks& hooks);
   void AddEmulatedDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks,
                           bool always_add_hooks);
+  void CheckAndAddDevice(std::unique_ptr<USB::Device> device, std::set<u64>& new_devices,
+                         DeviceChangeHooks& hooks, bool always_add_hooks);
 
   bool m_has_initialised = false;
   LibusbUtils::Context m_context;
