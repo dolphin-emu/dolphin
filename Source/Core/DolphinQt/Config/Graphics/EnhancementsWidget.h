@@ -5,7 +5,7 @@
 
 #include <array>
 
-#include "DolphinQt/Config/Graphics/GraphicsWidget.h"
+#include <QWidget>
 
 class ConfigBool;
 class ConfigChoice;
@@ -17,15 +17,15 @@ class QPushButton;
 class QSlider;
 class ToolTipComboBox;
 
-class EnhancementsWidget final : public GraphicsWidget
+class EnhancementsWidget final : public QWidget
 {
   Q_OBJECT
 public:
   explicit EnhancementsWidget(GraphicsWindow* parent);
 
 private:
-  void LoadSettings() override;
-  void SaveSettings() override;
+  void LoadSettings();
+  void SaveSettings();
 
   void CreateWidgets();
   void ConnectWidgets();

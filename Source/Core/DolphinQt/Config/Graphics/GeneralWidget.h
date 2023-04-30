@@ -4,7 +4,8 @@
 #pragma once
 
 #include <array>
-#include "DolphinQt/Config/Graphics/GraphicsWidget.h"
+
+#include <QWidget>
 
 class ConfigBool;
 class ConfigChoice;
@@ -16,7 +17,7 @@ class QRadioButton;
 class QGridLayout;
 class ToolTipComboBox;
 
-class GeneralWidget final : public GraphicsWidget
+class GeneralWidget final : public QWidget
 {
   Q_OBJECT
 public:
@@ -25,8 +26,8 @@ signals:
   void BackendChanged(const QString& backend);
 
 private:
-  void LoadSettings() override;
-  void SaveSettings() override;
+  void LoadSettings();
+  void SaveSettings();
 
   void CreateWidgets();
   void ConnectWidgets();

@@ -3,22 +3,22 @@
 
 #pragma once
 
-#include "DolphinQt/Config/Graphics/GraphicsWidget.h"
+#include <QWidget>
 
 class ConfigBool;
 class GraphicsWindow;
 class QLabel;
 class ToolTipSlider;
 
-class HacksWidget final : public GraphicsWidget
+class HacksWidget final : public QWidget
 {
   Q_OBJECT
 public:
   explicit HacksWidget(GraphicsWindow* parent);
 
 private:
-  void LoadSettings() override;
-  void SaveSettings() override;
+  void LoadSettings();
+  void SaveSettings();
 
   void OnBackendChanged(const QString& backend_name);
 
