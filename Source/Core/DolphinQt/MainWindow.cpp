@@ -263,7 +263,8 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
       std::optional<std::string> savestate_path;
       if (Movie::PlayInput(movie_path, &savestate_path))
       {
-        m_pending_boot->boot_session_data.SetSavestateData(std::move(savestate_path),
+        if (!m_pending_boot->boot_session_data.GetSavestatePath().has_value())
+            m_pending_boot->boot_session_data.SetSavestateData(std::move(savestate_path),
                                                            DeleteSavestateAfterBoot::No);
         emit RecordingStatusChanged(true);
       }
