@@ -12,7 +12,7 @@ def mainLoop():
     global pathToEarlySaveState
     returnResult = -1
     while True:
-        subprocessReturnClass = subprocess.run(["C:/Users/Lobster/OneDrive/Desktop/lobsterZeldaDolphin/Binary/x64/Dolphin.exe",  pathToGame , "--movie", pathToMovieFile, "--save_state", pathToEarlySaveState])
+        subprocessReturnClass = subprocess.run(["C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Binary/x64/Dolphin.exe",  pathToGame , "--movie", pathToMovieFile, "--save_state", pathToEarlySaveState])
         returnResult = subprocessReturnClass.returncode
         if returnResult == 0:
             print("Program aborted by the user. It'll continue where it left off if you don't delete the continueFile.txt file\n")

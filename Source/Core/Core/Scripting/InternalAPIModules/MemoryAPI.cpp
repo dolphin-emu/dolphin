@@ -1,6 +1,7 @@
 #include "Core/Scripting/InternalAPIModules/MemoryAPI.h"
 
 #include <fmt/format.h>
+#include <fstream>
 #include <optional>
 
 #include "Core/Core.h"
@@ -42,7 +43,8 @@ static std::array all_memory_functions_metadata_list = {
   FunctionMetadata("write_float", "1.0", "write_float(0X80003421, 85.64)", WriteFloat, ArgTypeEnum::VoidType, {ArgTypeEnum::LongLong, ArgTypeEnum::Float}),
   FunctionMetadata("write_double", "1.0", "write_double(0X80003421, 143.51)", WriteDouble, ArgTypeEnum::VoidType, {ArgTypeEnum::LongLong, ArgTypeEnum::Double}),
   FunctionMetadata("write_string", "1.0", "write_string(0X80003421, \"Hello World!\")", WriteString, ArgTypeEnum::VoidType, {ArgTypeEnum::LongLong, ArgTypeEnum::String}),
-  FunctionMetadata("write_bytes", "1.0", "write_bytes(addressToValueMap)", WriteBytes, ArgTypeEnum::VoidType, {ArgTypeEnum::AddressToByteMap}),
+  FunctionMetadata("write_bytes", "1.0", "write_bytes(addressToValueMap)", WriteBytes,ArgTypeEnum::VoidType, {ArgTypeEnum::AddressToByteMap}),
+  FunctionMetadata("WriteAllMemoryAsUnsignedBytesToFile", "1.0", "ReadAllMemoryAsUnsignedBytes(myFileName)", WriteAllMemoryAsUnsignedBytesToFile, ArgTypeEnum::VoidType, {ArgTypeEnum::String})
 };
 
 ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
@@ -532,6 +534,34 @@ ArgHolder WriteBytes(ScriptContext* current_script, std::vector<ArgHolder>& args
               fmt::format("Could not write byte of {} to address {}", raw_value, address));
       }
   }
+  return CreateVoidTypeArgHolder();
+}
+
+ArgHolder WriteAllMemoryAsUnsignedBytesToFile(ScriptContext* current_script,
+                                       std::vector<ArgHolder>& args_list)
+{
+  std::ofstream output_stream(args_list[0].string_val.c_str(), std::ios::trunc | std::ios::binary);
+  Memory::MemoryManager& memory = Core::System::GetInstance().GetMemory();
+  u8* ram = memory.getRAM_scriptHelper();
+  if (ram != nullptr)
+    output_stream.write((char*)ram, memory.GetRamSize());
+  
+
+  u8* l1_cache = memory.getL1Cache_scriptHelper();
+  if (l1_cache != nullptr)
+      output_stream.write((char*)l1_cache, memory.GetL1CacheSize());
+
+  u8* fake_vmem = memory.getFakeVMEM_scriptHelper();
+  if (fake_vmem != nullptr)
+      output_stream.write((char*)fake_vmem, memory.GetFakeVMemSize());
+
+  u8* ex_ram = memory.getEXRAM_scriptHelper();
+  if (ex_ram != nullptr)
+      output_stream.write((char*)ex_ram, memory.GetExRamSize());
+
+  output_stream.flush();
+  output_stream.close();
+
   return CreateVoidTypeArgHolder();
 }
 

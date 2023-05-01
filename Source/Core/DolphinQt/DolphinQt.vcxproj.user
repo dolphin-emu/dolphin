@@ -6,6 +6,7 @@
     <ShowAllFiles>true</ShowAllFiles>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LocalDebuggerCommandArguments>"C:/Users/skyle/OneDrive/Desktop/Dolphin_Games/Star Fox Adventures (USA) (v1.00).iso"  --save_state "C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Source/Core/DolphinQt/DesyncCauseFinderScript/earlySaveState.sav" --movie "C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Source/Core/DolphinQt/DesyncCauseFinderScript/movieName.dtm"</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>
+    </LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>

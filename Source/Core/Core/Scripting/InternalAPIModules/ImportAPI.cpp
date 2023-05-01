@@ -20,7 +20,8 @@ static std::array all_import_functions_metadata_list = {
                      ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::String}),
     FunctionMetadata("import", "1.0", "import(apiName, versionNumber)", ImportAlt,
                      ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::String}),
-    FunctionMetadata("shutdown", "1.0", "shutdown()", Shutdown, ArgTypeEnum::ShutdownType, {})};
+    FunctionMetadata("shutdownScript", "1.0", "shutdownScript()", ShutdownScript, ArgTypeEnum::ShutdownType, {}),
+    FunctionMetadata("exitDolphin", "1.0", "exitDolphin(0)", ExitDolphin, ArgTypeEnum::VoidType, {ArgTypeEnum::Integer})};
 
 
  ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
@@ -57,10 +58,16 @@ ArgHolder ImportAlt(ScriptContext* current_script, std::vector<ArgHolder>& args_
   return ImportCommon(current_script, args_list[0].string_val, args_list[1].string_val);
 }
 
-ArgHolder Shutdown(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder ShutdownScript(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   current_script->ShutdownScript();
   return CreateShutdownTypeArgHolder();
+}
+
+ArgHolder ExitDolphin(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  int exit_code = args_list[0].int_val;
+  quick_exit(exit_code);
 }
 
 }  // namespace Scripting::ImportAPI

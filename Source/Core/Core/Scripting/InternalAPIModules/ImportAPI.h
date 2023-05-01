@@ -20,6 +20,7 @@ ArgHolder ImportCommon(ScriptContext* current_script, std::string api_name,
 ArgHolder ImportModule(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 
 ArgHolder ImportAlt(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
-ArgHolder Shutdown(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder ShutdownScript(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder ExitDolphin(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 
 }  // namespace Scripting::ImportAPI

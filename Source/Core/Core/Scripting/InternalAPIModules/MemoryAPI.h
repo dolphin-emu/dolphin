@@ -45,6 +45,8 @@ ArgHolder WriteFloat(ScriptContext* current_script, std::vector<ArgHolder>& args
 ArgHolder WriteDouble(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder WriteString(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder WriteBytes(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder WriteAllMemoryAsUnsignedBytesToFile(ScriptContext* current_script,
+                                       std::vector<ArgHolder>& args_list);
 
 }  // namespace Scripting::MemoryApi
 
