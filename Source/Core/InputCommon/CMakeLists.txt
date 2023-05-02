@@ -145,6 +145,8 @@ elseif(ANDROID)
     ControllerInterface/Android/Android.h
     ControllerInterface/Touch/InputOverrider.cpp
     ControllerInterface/Touch/InputOverrider.h
+    ControllerInterface/VR/OpenXR.cpp
+    ControllerInterface/VR/OpenXR.h
   )
   target_link_libraries(inputcommon PRIVATE
     androidcommon
@@ -192,3 +194,5 @@ if(MSVC)
   # Add precompiled header
   target_link_libraries(inputcommon PRIVATE use_pch)
 endif()
+
+include_directories(../../../Externals/openxr)

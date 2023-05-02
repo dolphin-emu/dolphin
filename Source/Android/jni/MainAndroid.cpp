@@ -53,7 +53,7 @@
 #include "DiscIO/ScrubbedBlob.h"
 #include "DiscIO/Volume.h"
 
-#include "InputCommon/ControllerInterface/Touch/InputOverrider.h"
+#include "InputCommon/ControllerInterface/VR/OpenXR.h"
 #include "InputCommon/GCAdapter.h"
 
 #include "UICommon/GameFile.h"
@@ -523,9 +523,8 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_InitializeVR
     jobject obj = env->NewGlobalRef(activity);
     const char* system = GetJString(env, systemname).c_str();
     InitVROnAndroid(IDCache::GetJavaVM(), obj, system, 1, "Dolphin");
-    SetVRCallbacks(ciface::Touch::SetControlState);
-    ciface::Touch::RegisterGameCubeInputOverrider(0);
-    ciface::Touch::RegisterWiiInputOverrider(0);
+    SetVRCallbacks(ciface::VR::UpdateInput);
+    ciface::VR::RegisterInputOverrider(0);
   }
 }
 

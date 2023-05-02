@@ -1,8 +1,5 @@
 #pragma once
 
-// controller mapping
-void SetVRCallbacks(void (*callback)(int controller_index, int control, double state));
-
 // VR app flow integration
 bool IsVREnabled();
 #ifdef ANDROID
@@ -10,6 +7,7 @@ void InitVROnAndroid(void* vm, void* activity, const char* vendor, int version, 
 #endif
 void EnterVR(bool firstStart);
 void GetVRResolutionPerEye(int* width, int* height);
+void SetVRCallbacks(void (*callback)(int controller_index));
 
 // VR rendering integration
 void BindVRFramebuffer();
