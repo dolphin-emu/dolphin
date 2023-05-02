@@ -232,6 +232,16 @@ std::string NWC24Config::GetSendURL() const
   return {m_data.http_urls[4]};
 }
 
+std::string NWC24Config::GetDeleteURL() const
+{
+  return {m_data.http_urls[3]};
+}
+
+std::string NWC24Config::GetReceiveURL() const
+{
+  return {m_data.http_urls[2]};
+}
+
 std::string_view NWC24Config::GetPassword() const
 {
   return {m_data.paswd};

@@ -152,8 +152,8 @@ s32 NWC24MakeUserID(u64* nwc24_id, u32 hollywood_id, u16 id_ctr, HardwareModel h
 }  // Anonymous namespace
 
 NetKDRequestDevice::NetKDRequestDevice(EmulationKernel& ios, const std::string& device_name)
-    : EmulationDevice(ios, device_name), m_config{ios.GetFS()}, m_dl_list{ios.GetFS()}, m_send_list{
-                                                                                   ios.GetFS()}
+    : EmulationDevice(ios, device_name), m_config{ios.GetFS()}, m_dl_list{ios.GetFS()},
+      m_send_list{ios.GetFS()}
 {
   // Enable all NWC24 permissions
   m_scheduler_buffer[1] = Common::swap32(-1);
@@ -202,22 +202,35 @@ void NetKDRequestDevice::Update()
   }
 }
 
-
-void NetKDRequestDevice::LogError(ErrorType error_type, s32 error_code) {
+void NetKDRequestDevice::LogError(ErrorType error_type, s32 error_code)
+{
   s32 new_code{};
-  switch (error_type) {
-    case ErrorType::Account:
-      new_code = -(101200 - error_code);
-      break;
-    case ErrorType::Client:
-      new_code = -(107300 - error_code);
-      break;
-    case ErrorType::KD_Download:
-      new_code = -(107200 - error_code);
-      break;
-    case ErrorType::Server:
-      new_code = -(117000 + error_code);
-      break;
+  switch (error_type)
+  {
+  case ErrorType::Account:
+    new_code = -(101200 - error_code);
+    break;
+  case ErrorType::Client:
+    new_code = -(107300 - error_code);
+    break;
+  case ErrorType::KD_Download:
+    new_code = -(107200 - error_code);
+    break;
+  case ErrorType::Server:
+    new_code = -(117000 + error_code);
+    break;
+  case ErrorType::SendMail:
+    new_code = -(105000 - error_code);
+    break;
+  case ErrorType::CheckMail:
+    new_code = -(102200 - error_code);
+    break;
+  case ErrorType::ReceiveMail:
+    new_code = -(100300 - error_code);
+    break;
+  case ErrorType::CGI:
+    new_code = -(error_code + 110000);
+    break;
   }
 
   std::lock_guard lg(m_scheduler_buffer_lock);
@@ -244,10 +257,26 @@ void NetKDRequestDevice::SchedulerWorker(const SchedulerEvent event)
     u32 mail_flag{};
     u32 interval{};
 
-    // TODO: Implement receive and save functions. Also error reporting when get-scheduler-stat gets
-    // merged.
-    KDCheckMail(&mail_flag, &interval);
-    KDSendMail();
+    // TODO: Implement receive and save functions.
+    NWC24::ErrorCode code = KDCheckMail(&mail_flag, &interval);
+    if (code != NWC24::WC24_OK)
+    {
+      LogError(ErrorType::CheckMail, code);
+    }
+    else if (mail_flag == 1)
+    {
+      code = KDReceiveMail();
+      if (code != NWC24::WC24_OK)
+      {
+        LogError(ErrorType::ReceiveMail, code);
+      }
+    }
+
+    code = KDSendMail();
+    if (code != NWC24::WC24_OK)
+    {
+      LogError(ErrorType::SendMail, code);
+    }
   }
 }
 
@@ -331,6 +360,7 @@ NWC24::ErrorCode NetKDRequestDevice::KDCheckMail(u32* _mail_flag, u32* _interval
     m_download_span = *_interval;
   }
 
+  m_scheduler_buffer[11] = Common::swap32(Common::swap32(m_scheduler_buffer[11]) + 1);
   return NWC24::WC24_OK;
 }
 
@@ -351,6 +381,7 @@ NWC24::ErrorCode NetKDRequestDevice::KDSendMail()
       WARN_LOG_FMT(IOS_WC24,
                    "NET_KD_REQ: IOCTL_NWC24_SEND_MAIL_NOW: Mail at index {} was too large to send.",
                    index);
+      LogError(ErrorType::SendMail, NWC24::WC24_MSG_TOO_BIG);
       NWC24::ErrorCode res = m_send_list.DeleteMessage(file_index);
       if (res != NWC24::WC24_OK)
       {
@@ -367,13 +398,13 @@ NWC24::ErrorCode NetKDRequestDevice::KDSendMail()
     {
       ERROR_LOG_FMT(IOS_WC24, "Reading mail at index {} failed with error code {}.", index,
                     static_cast<s32>(res));
+      LogError(ErrorType::SendMail, NWC24::WC24_MSG_DAMAGED);
       continue;
     }
 
     const std::string mail_str = {mail_data.begin(), mail_data.end()};
 
-    multiform.push_back(
-        {fmt::format("m{}", index), mail_str, mail_data.size()});
+    multiform.push_back({fmt::format("m{}", index), mail_str, mail_data.size()});
   }
 
   const Common::HttpRequest::Response response =
@@ -411,9 +442,18 @@ NWC24::ErrorCode NetKDRequestDevice::KDSendMail()
       continue;
     }
 
-    if (value != "100")
+    s32 cgi_code{};
+    const bool did_parse = TryParse(value, &cgi_code);
+    if (!did_parse)
+    {
+      ERROR_LOG_FMT(IOS_WC24, "Mail server returned invalid CGI response code.");
+      break;
+    }
+
+    if (cgi_code != 100)
     {
       ERROR_LOG_FMT(IOS_WC24, "Mail server failed to save mail at index {}", index);
+      LogError(ErrorType::CGI, cgi_code);
     }
 
     NWC24::ErrorCode res = m_send_list.DeleteMessage(file_index);
@@ -423,7 +463,64 @@ NWC24::ErrorCode NetKDRequestDevice::KDSendMail()
     }
   }
 
+  m_scheduler_buffer[14] = Common::swap32(Common::swap32(m_scheduler_buffer[14]) + 1);
   m_send_list.WriteSendList();
+  return NWC24::WC24_OK;
+}
+
+NWC24::ErrorCode NetKDRequestDevice::KDReceiveMail()
+{
+  std::string form_data = fmt::format("mlid=w{}&passwd={}&maxsize={}", m_config.Id(),
+                                      m_config.GetPassword(), MAX_MAIL_RECEIVE_SIZE);
+  const Common::HttpRequest::Response response = m_http.Post(m_config.GetReceiveURL(), form_data);
+
+  if (!response)
+  {
+    ERROR_LOG_FMT(IOS_WC24,
+                  "NET_KD_REQ: IOCTL_NWC24_RECEIVE_MAIL_NOW: Failed to request data at {}.",
+                  m_config.GetCheckURL());
+    return NWC24::WC24_ERR_SERVER;
+  }
+
+  const std::string response_str = {response->begin(), response->end()};
+  const std::string code = GetValueFromCGIResponse(response_str, "cd");
+  if (code != "100")
+  {
+    ERROR_LOG_FMT(
+        IOS_WC24,
+        "NET_KD_REQ: IOCTL_NWC24_RECEIVE_MAIL_NOW: Mail server returned non-success code: {}",
+        code);
+    return NWC24::WC24_ERR_SERVER;
+  }
+
+  const std::string str_mail_num = GetValueFromCGIResponse(response_str, "mailnum");
+  s32 mail_num{};
+  const bool did_parse = TryParse(str_mail_num, &mail_num);
+  if (!did_parse)
+  {
+    ERROR_LOG_FMT(
+        IOS_WC24,
+        "NET_KD_REQ: IOCTL_NWC24_RECEIVE_MAIL_NOW: Mail server returned invalid number of mails.");
+    return NWC24::WC24_ERR_SERVER;
+  }
+
+  // Receive only saves the mail to FS. The SaveMailNow IOCTL is called to save to mailbox.
+  constexpr FS::Modes public_modes{FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite};
+  const auto file = m_ios.GetFS()->CreateAndOpenFile(PID_KD, PID_KD, TEMP_MAIL_PATH, public_modes);
+  if (!file || !file->Write(response->data(), response->size()))
+  {
+    ERROR_LOG_FMT(IOS_WC24,
+                  "NET_KD_REQ: IOCTL_NWC24_RECEIVE_MAIL_NOW: Failed to write temporary mail file.");
+    return NWC24::WC24_ERR_FILE_WRITE;
+  }
+
+  // Now delete from the server.
+  form_data =
+      fmt::format("mlid=w{}&passwd={}&delnum={}", m_config.Id(), m_config.GetPassword(), mail_num);
+  m_http.Post(m_config.GetDeleteURL(), form_data);
+
+  m_scheduler_buffer[7] = Common::swap32(Common::swap32(m_scheduler_buffer[7]) + mail_num);
+  m_scheduler_buffer[12] = Common::swap32(Common::swap32(m_scheduler_buffer[14]) + 1);
   return NWC24::WC24_OK;
 }
 
@@ -517,7 +614,7 @@ IPCReply NetKDRequestDevice::HandleNWC24SendMailNow(const IOCtlRequest& request)
 
 IPCReply NetKDRequestDevice::HandleNWC24CheckMailNow(const IOCtlRequest& request)
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
   u32 mail_flag{};

@@ -28,11 +28,12 @@ class NetKDRequestDevice : public EmulationDevice
 public:
   NetKDRequestDevice(EmulationKernel& ios, const std::string& device_name);
   IPCReply HandleNWC24DownloadNowEx(const IOCtlRequest& request);
-  IPCReply HandleNWC24SendMailNow(const IOCtlRequest &request);
-  IPCReply HandleNWC24CheckMailNow(const IOCtlRequest &request);
+  IPCReply HandleNWC24SendMailNow(const IOCtlRequest& request);
+  IPCReply HandleNWC24CheckMailNow(const IOCtlRequest& request);
   NWC24::ErrorCode KDDownload(const u16 entry_index, const std::optional<u8> subtask_id);
   NWC24::ErrorCode KDCheckMail(u32* _mail_flag, u32* _interval);
   NWC24::ErrorCode KDSendMail();
+  NWC24::ErrorCode KDReceiveMail();
   ~NetKDRequestDevice() override;
 
   std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
@@ -64,6 +65,10 @@ private:
     KD_Download,
     Client,
     Server,
+    CheckMail,
+    SendMail,
+    ReceiveMail,
+    CGI
   };
 
   void LogError(ErrorType error_type, s32 error_code);
@@ -115,6 +120,8 @@ private:
                                                         0x8c, 0x89, 0x72, 0xd4, 0x50, 0xad};
 
   static constexpr u32 MAX_MAIL_SIZE = 208952;
+  static constexpr u32 MAX_MAIL_RECEIVE_SIZE = 1578040;
+  static constexpr char TEMP_MAIL_PATH[] = "/" WII_WC24CONF_DIR "/mbox/recvtmp.msg";
 
   NWC24::NWC24Config m_config;
   NWC24::NWC24Dl m_dl_list;
