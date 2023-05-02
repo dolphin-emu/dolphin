@@ -67,12 +67,9 @@ void PPCSymbolDB::AddKnownSymbol(const Core::CPUThreadGuard& guard, u32 startAdd
   else
   {
     // new symbol. run analyze.
-    Common::Symbol tf;
-    tf.Rename(name);
-    tf.type = type;
-    tf.address = startAddr;
-
-    auto& new_symbol = m_functions.emplace(startAddr, std::move(tf)).first->second;
+    auto& new_symbol = m_functions.emplace(startAddr, name).first->second;
+    new_symbol.type = type;
+    new_symbol.address = startAddr;
 
     if (new_symbol.type == Common::Symbol::Type::Function)
     {
