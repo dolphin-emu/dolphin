@@ -28,7 +28,8 @@ bool IsVREnabled()
 }
 
 #ifdef ANDROID
-void InitVROnAndroid(JavaVM* vm, JNIEnv* env, jobject obj, const char* vendor, int version, const char* name)
+void InitVROnAndroid(JavaVM* vm, JNIEnv* env, jobject obj, const char* vendor, int version,
+                     const char* name)
 {
   // Set platform flags
   if (strcmp(vendor, "Pico") == 0)

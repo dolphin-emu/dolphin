@@ -25,8 +25,8 @@ enum class xrButton
   // button on Left Quest Controller
   Back = 0x00200000,  //< Back button on the Go Controller (only set when
   // a short press comes up)
-  Grip = 0x04000000,  //< grip trigger engaged
-  Trigger = 0x20000000       //< Index Trigger engaged
+  Grip = 0x04000000,    //< grip trigger engaged
+  Trigger = 0x20000000  //< Index Trigger engaged
 };
 
 void IN_VRInit(engine_t* engine);
