@@ -209,7 +209,7 @@ void Jit64AsmRoutineManager::Generate()
   ABI_PopRegistersAndAdjustStack(ABI_ALL_CALLEE_SAVED, 8, 16);
   RET();
 
-  JitRegister::Register(enter_code, GetCodePtr(), "JIT_Loop");
+  Common::JitRegister::Register(enter_code, GetCodePtr(), "JIT_Loop");
 
   GenerateCommon();
 }

@@ -40,14 +40,14 @@ JitBaseBlockCache::~JitBaseBlockCache() = default;
 
 void JitBaseBlockCache::Init()
 {
-  JitRegister::Init(Config::Get(Config::MAIN_PERF_MAP_DIR));
+  Common::JitRegister::Init(Config::Get(Config::MAIN_PERF_MAP_DIR));
 
   Clear();
 }
 
 void JitBaseBlockCache::Shutdown()
 {
-  JitRegister::Shutdown();
+  Common::JitRegister::Shutdown();
 }
 
 // This clears the JIT cache. It's called from JitCache.cpp when the JIT cache
@@ -129,16 +129,16 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link,
   }
 
   Common::Symbol* symbol = nullptr;
-  if (JitRegister::IsEnabled() &&
+  if (Common::JitRegister::IsEnabled() &&
       (symbol = g_symbolDB.GetSymbolFromAddr(block.effectiveAddress)) != nullptr)
   {
-    JitRegister::Register(block.checkedEntry, block.codeSize, "JIT_PPC_{}_{:08x}",
-                          symbol->function_name.c_str(), block.physicalAddress);
+    Common::JitRegister::Register(block.checkedEntry, block.codeSize, "JIT_PPC_{}_{:08x}",
+                                  symbol->function_name.c_str(), block.physicalAddress);
   }
   else
   {
-    JitRegister::Register(block.checkedEntry, block.codeSize, "JIT_PPC_{:08x}",
-                          block.physicalAddress);
+    Common::JitRegister::Register(block.checkedEntry, block.codeSize, "JIT_PPC_{:08x}",
+                                  block.physicalAddress);
   }
 }
 
