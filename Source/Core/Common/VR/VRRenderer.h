@@ -1,7 +1,10 @@
+// Copyright 2016 Dolphin Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 #pragma once
 
-#include "VRFramebuffer.h"
-#include "VRMath.h"
+#include "Common/VR/VRFramebuffer.h"
+#include "Common/VR/VRMath.h"
 
 enum VRConfig
 {

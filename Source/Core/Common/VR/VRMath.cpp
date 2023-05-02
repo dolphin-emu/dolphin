@@ -1,9 +1,12 @@
+// Copyright 2016 Dolphin Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 #define _USE_MATH_DEFINES
 
 #include <cmath>
 #include <cstring>
 
-#include "VRMath.h"
+#include "Common/VR/VRMath.h"
 
 float ToDegrees(float rad)
 {

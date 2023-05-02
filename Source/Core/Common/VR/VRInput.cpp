@@ -1,4 +1,7 @@
-#include "VRInput.h"
+// Copyright 2016 Dolphin Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "Common/VR/VRInput.h"
 #include <cstring>
 
 // OpenXR
@@ -460,48 +463,48 @@ void IN_VRInputFrame(engine_t* engine)
   // button mapping
   lButtons = 0;
   if (GetActionStateBoolean(menuAction).currentState)
-    lButtons |= xrButton_Enter;
+    lButtons |= (int)xrButton::Enter;
   if (GetActionStateBoolean(buttonXAction).currentState)
-    lButtons |= xrButton_X;
+    lButtons |= (int)xrButton::X;
   if (GetActionStateBoolean(buttonYAction).currentState)
-    lButtons |= xrButton_Y;
+    lButtons |= (int)xrButton::Y;
   if (GetActionStateBoolean(indexLeftAction).currentState)
-    lButtons |= xrButton_Trigger;
+    lButtons |= (int)xrButton::Trigger;
   if (GetActionStateFloat(gripLeftAction).currentState > 0.5f)
-    lButtons |= xrButton_GripTrigger;
+    lButtons |= (int)xrButton::Grip;
   if (GetActionStateBoolean(thumbLeftClickAction).currentState)
-    lButtons |= xrButton_LThumb;
+    lButtons |= (int)xrButton::LThumb;
   rButtons = 0;
   if (GetActionStateBoolean(buttonAAction).currentState)
-    rButtons |= xrButton_A;
+    rButtons |= (int)xrButton::A;
   if (GetActionStateBoolean(buttonBAction).currentState)
-    rButtons |= xrButton_B;
+    rButtons |= (int)xrButton::B;
   if (GetActionStateBoolean(indexRightAction).currentState)
-    rButtons |= xrButton_Trigger;
+    rButtons |= (int)xrButton::Trigger;
   if (GetActionStateFloat(gripRightAction).currentState > 0.5f)
-    rButtons |= xrButton_GripTrigger;
+    rButtons |= (int)xrButton::Grip;
   if (GetActionStateBoolean(thumbRightClickAction).currentState)
-    rButtons |= xrButton_RThumb;
+    rButtons |= (int)xrButton::RThumb;
 
   // thumbstick
   moveJoystickState[0] = GetActionStateVector2(moveOnLeftJoystickAction);
   moveJoystickState[1] = GetActionStateVector2(moveOnRightJoystickAction);
   if (moveJoystickState[0].currentState.x > 0.5)
-    lButtons |= xrButton_Right;
+    lButtons |= (int)xrButton::Right;
   if (moveJoystickState[0].currentState.x < -0.5)
-    lButtons |= xrButton_Left;
+    lButtons |= (int)xrButton::Left;
   if (moveJoystickState[0].currentState.y > 0.5)
-    lButtons |= xrButton_Up;
+    lButtons |= (int)xrButton::Up;
   if (moveJoystickState[0].currentState.y < -0.5)
-    lButtons |= xrButton_Down;
+    lButtons |= (int)xrButton::Down;
   if (moveJoystickState[1].currentState.x > 0.5)
-    rButtons |= xrButton_Right;
+    rButtons |= (int)xrButton::Right;
   if (moveJoystickState[1].currentState.x < -0.5)
-    rButtons |= xrButton_Left;
+    rButtons |= (int)xrButton::Left;
   if (moveJoystickState[1].currentState.y > 0.5)
-    rButtons |= xrButton_Up;
+    rButtons |= (int)xrButton::Up;
   if (moveJoystickState[1].currentState.y < -0.5)
-    rButtons |= xrButton_Down;
+    rButtons |= (int)xrButton::Down;
 
   lastframetime = in_vrEventTime;
   in_vrEventTime = milliseconds();

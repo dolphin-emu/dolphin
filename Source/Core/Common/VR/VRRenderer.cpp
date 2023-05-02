@@ -1,10 +1,13 @@
+// Copyright 2016 Dolphin Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 #define _USE_MATH_DEFINES
 #include <cmath>
 
-#include "OpenXRLoader.h"
-#include "VRBase.h"
-#include "VRInput.h"
-#include "VRRenderer.h"
+#include "Common/VR/OpenXRLoader.h"
+#include "Common/VR/VRBase.h"
+#include "Common/VR/VRInput.h"
+#include "Common/VR/VRRenderer.h"
 
 #include <cstdlib>
 #include <cstring>

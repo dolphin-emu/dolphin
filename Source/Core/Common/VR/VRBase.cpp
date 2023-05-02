@@ -1,4 +1,7 @@
-#include "VRBase.h"
+// Copyright 2016 Dolphin Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "Common/VR/VRBase.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -32,7 +35,7 @@ void VR_Init(void* system, const char* name, int version)
                         (PFN_xrVoidFunction*)&xrInitializeLoaderKHR);
   if (xrInitializeLoaderKHR != NULL)
   {
-    ovrJava* java = (ovrJava*)system;
+    vrJava* java = (vrJava*)system;
     XrLoaderInitInfoAndroidKHR loaderInitializeInfo;
     memset(&loaderInitializeInfo, 0, sizeof(loaderInitializeInfo));
     loaderInitializeInfo.type = XR_TYPE_LOADER_INIT_INFO_ANDROID_KHR;
@@ -92,7 +95,7 @@ void VR_Init(void* system, const char* name, int version)
       XR_TYPE_INSTANCE_CREATE_INFO_ANDROID_KHR};
   if (VR_GetPlatformFlag(VR_PLATFORM_EXTENSION_INSTANCE))
   {
-    ovrJava* java = (ovrJava*)system;
+    vrJava* java = (vrJava*)system;
     instanceCreateInfoAndroid.applicationVM = java->Vm;
     instanceCreateInfoAndroid.applicationActivity = java->ActivityObject;
     instanceCreateInfo.next = (XrBaseInStructure*)&instanceCreateInfoAndroid;

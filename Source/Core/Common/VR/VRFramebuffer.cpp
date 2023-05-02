@@ -1,4 +1,7 @@
-#include "VRFramebuffer.h"
+// Copyright 2016 Dolphin Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "Common/VR/VRFramebuffer.h"
 
 #if XR_USE_GRAPHICS_API_OPENGL_ES
 

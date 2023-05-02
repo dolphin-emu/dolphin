@@ -1,6 +1,9 @@
+// Copyright 2016 Dolphin Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 #pragma once
 
-#include "VRBase.h"
+#include "Common/VR/VRBase.h"
 
 void ovrApp_Clear(ovrApp* app);
 void ovrApp_Destroy(ovrApp* app);

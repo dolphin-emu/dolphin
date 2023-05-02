@@ -1,3 +1,6 @@
+// Copyright 2016 Dolphin Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 #include <cstring>
 
 #include "Common/VR/DolphinVR.h"
@@ -25,7 +28,7 @@ bool IsVREnabled()
 }
 
 #ifdef ANDROID
-void InitVROnAndroid(void* vm, void* activity, const char* vendor, int version, const char* name)
+void InitVROnAndroid(JavaVM* vm, JNIEnv* env, jobject obj, const char* vendor, int version, const char* name)
 {
   // Set platform flags
   if (strcmp(vendor, "Pico") == 0)
@@ -41,9 +44,9 @@ void InitVROnAndroid(void* vm, void* activity, const char* vendor, int version, 
   }
 
   // Init VR
-  ovrJava java;
-  java.Vm = (JavaVM*)vm;
-  java.ActivityObject = (jobject)activity;
+  vrJava java;
+  java.Vm = vm;
+  java.ActivityObject = env->NewGlobalRef(obj);
   VR_Init(&java, name, version);
   ALOGE("OpenXR - VR_Init called");
 }

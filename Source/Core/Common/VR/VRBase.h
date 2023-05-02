@@ -1,3 +1,6 @@
+// Copyright 2016 Dolphin Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 #pragma once
 
 #ifdef ANDROID
@@ -124,7 +127,7 @@ typedef struct
   JavaVM* Vm;
   jobject ActivityObject;
   JNIEnv* Env;
-} ovrJava;
+} vrJava;
 #endif
 
 typedef struct
