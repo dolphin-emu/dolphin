@@ -44,8 +44,8 @@ Common::Symbol* PPCSymbolDB::AddFunction(const Core::CPUThreadGuard& guard, u32 
   if (!PPCAnalyst::AnalyzeFunction(guard, start_addr, symbol))
     return nullptr;
 
-  m_functions[start_addr] = std::move(symbol);
-  Common::Symbol* ptr = &m_functions[start_addr];
+  const auto insert = m_functions.emplace(start_addr, std::move(symbol));
+  Common::Symbol* ptr = &insert.first->second;
   ptr->type = Common::Symbol::Type::Function;
   m_checksum_to_function[ptr->hash].insert(ptr);
   return ptr;
@@ -71,23 +71,25 @@ void PPCSymbolDB::AddKnownSymbol(const Core::CPUThreadGuard& guard, u32 startAdd
     tf.Rename(name);
     tf.type = type;
     tf.address = startAddr;
-    if (tf.type == Common::Symbol::Type::Function)
+
+    auto& new_symbol = m_functions.emplace(startAddr, std::move(tf)).first->second;
+
+    if (new_symbol.type == Common::Symbol::Type::Function)
     {
-      PPCAnalyst::AnalyzeFunction(guard, startAddr, tf, size);
+      PPCAnalyst::AnalyzeFunction(guard, startAddr, new_symbol, size);
       // Do not truncate symbol when a size is expected
-      if (size != 0 && tf.size != size)
+      if (size != 0 && new_symbol.size != size)
       {
         WARN_LOG_FMT(SYMBOLS, "Analysed symbol ({}) size mismatch, {} expected but {} computed",
-                     name, size, tf.size);
-        tf.size = size;
+                     name, size, new_symbol.size);
+        new_symbol.size = size;
       }
-      m_checksum_to_function[tf.hash].insert(&m_functions[startAddr]);
+      m_checksum_to_function[new_symbol.hash].insert(&new_symbol);
     }
     else
     {
-      tf.size = size;
+      new_symbol.size = size;
     }
-    m_functions[startAddr] = tf;
   }
 }
 
