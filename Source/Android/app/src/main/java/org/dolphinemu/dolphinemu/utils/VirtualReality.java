@@ -55,7 +55,7 @@ public class VirtualReality
       if (manufacturer.contains("oculus"))
         manufacturer = "meta";
 
-      //Load manufacturer specific loader
+      // Load manufacturer specific loader
       try
       {
         System.loadLibrary("openxr_" + manufacturer);
