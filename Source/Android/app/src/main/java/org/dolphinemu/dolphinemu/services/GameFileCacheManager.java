@@ -2,8 +2,6 @@
 
 package org.dolphinemu.dolphinemu.services;
 
-import android.content.Context;
-
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
@@ -42,7 +40,7 @@ public final class GameFileCacheManager
     return sGameFiles;
   }
 
-  public static List<GameFile> getGameFilesForPlatform(Context context, Platform platform)
+  public static List<GameFile> getGameFilesForPlatform(Platform platform)
   {
     GameFile[] allGames = sGameFiles.getValue();
     ArrayList<GameFile> platformGames = new ArrayList<>();

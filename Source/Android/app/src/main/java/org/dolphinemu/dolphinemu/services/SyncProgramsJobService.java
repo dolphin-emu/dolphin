@@ -112,7 +112,7 @@ public class SyncProgramsJobService extends JobService
 
     private void getGamesByPlatform(Platform platform)
     {
-      updatePrograms = GameFileCacheManager.getGameFilesForPlatform(context, platform);
+      updatePrograms = GameFileCacheManager.getGameFilesForPlatform(platform);
     }
 
     private void syncPrograms(long channelId)
