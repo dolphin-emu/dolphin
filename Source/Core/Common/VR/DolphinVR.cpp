@@ -28,8 +28,7 @@ bool IsVREnabled()
 }
 
 #ifdef ANDROID
-void InitVROnAndroid(JavaVM* vm, JNIEnv* env, jobject obj, const char* vendor, int version,
-                     const char* name)
+void InitVROnAndroid(JNIEnv* env, jobject obj, const char* vendor, int version, const char* name)
 {
   // Set platform flags
   if (strcmp(vendor, "Pico") == 0)
@@ -44,12 +43,16 @@ void InitVROnAndroid(JavaVM* vm, JNIEnv* env, jobject obj, const char* vendor, i
     VR_SetPlatformFLag(VR_PLATFORM_EXTENSION_PERFORMANCE, true);
   }
 
+  // Get Java VM
+  JavaVM* vm;
+  env->GetJavaVM(&vm);
+
   // Init VR
   vrJava java;
   java.Vm = vm;
   java.ActivityObject = env->NewGlobalRef(obj);
   VR_Init(&java, name, version);
-  ALOGE("OpenXR - VR_Init called");
+  ALOGV("OpenXR - VR_Init called");
 }
 #endif
 
@@ -60,10 +63,10 @@ void EnterVR(bool firstStart)
     engine_t* engine = VR_GetEngine();
     VR_EnterVR(engine);
     IN_VRInit(engine);
-    ALOGE("OpenXR - EnterVR called");
+    ALOGV("OpenXR - EnterVR called");
   }
   VR_SetConfig(VR_CONFIG_VIEWPORT_VALID, false);
-  ALOGE("OpenXR - Viewport invalidated");
+  ALOGV("OpenXR - Viewport invalidated");
 }
 
 void GetVRResolutionPerEye(int* width, int* height)

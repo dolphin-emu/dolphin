@@ -169,4 +169,7 @@
 
     </application>
 
+    <queries>
+        <package android:name="org.dolphinemu.dolphinemu.vr" />
+    </queries>
 </manifest>

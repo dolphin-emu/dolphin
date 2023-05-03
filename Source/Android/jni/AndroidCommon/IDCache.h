@@ -7,8 +7,6 @@
 
 namespace IDCache
 {
-JavaVM* GetJavaVM();
-
 JNIEnv* GetEnvForThread();
 
 jclass GetStringClass();

@@ -87,7 +87,6 @@ public class VirtualReality
       {
         uri = Uri.parse(filePaths[0]);
       }
-      launcher.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
       launcher.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
       launcher.setAction(Intent.ACTION_GET_CONTENT);
       launcher.setData(uri);

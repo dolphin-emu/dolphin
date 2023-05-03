@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 
@@ -40,7 +41,7 @@ public final class StartupHandler
     if (gamesToLaunch != null && gamesToLaunch.length > 0)
     {
       // Open permission dialog, the game will be opened on the next attempt
-      if (!PermissionsHandler.hasWriteAccess(parent))
+      if ((Build.VERSION.SDK_INT <= 29) && !PermissionsHandler.hasWriteAccess(parent))
       {
         PermissionsHandler.requestWritePermission(parent);
         parent.finish();
