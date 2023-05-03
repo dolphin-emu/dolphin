@@ -110,7 +110,7 @@ void CommonAsmRoutines::GenConvertDoubleToSingle()
   OR(32, R(RSCRATCH), R(RSCRATCH2));
   RET();
 
-  JitRegister::Register(start, GetCodePtr(), "JIT_cdts");
+  Common::JitRegister::Register(start, GetCodePtr(), "JIT_cdts");
 }
 
 void CommonAsmRoutines::GenFrsqrte()
@@ -213,7 +213,7 @@ void CommonAsmRoutines::GenFrsqrte()
   ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
   RET();
 
-  JitRegister::Register(start, GetCodePtr(), "JIT_Frsqrte");
+  Common::JitRegister::Register(start, GetCodePtr(), "JIT_Frsqrte");
 }
 
 void CommonAsmRoutines::GenFres()
@@ -284,7 +284,7 @@ void CommonAsmRoutines::GenFres()
   ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
   RET();
 
-  JitRegister::Register(start, GetCodePtr(), "JIT_Fres");
+  Common::JitRegister::Register(start, GetCodePtr(), "JIT_Fres");
 }
 
 void CommonAsmRoutines::GenMfcr()
@@ -325,7 +325,7 @@ void CommonAsmRoutines::GenMfcr()
   }
   RET();
 
-  JitRegister::Register(start, GetCodePtr(), "JIT_Mfcr");
+  Common::JitRegister::Register(start, GetCodePtr(), "JIT_Mfcr");
 }
 
 // Safe + Fast Quantizers, originally from JITIL by magumagu
@@ -369,8 +369,8 @@ const u8* CommonAsmRoutines::GenQuantizedStoreRuntime(bool single, EQuantizeType
   const u8* load = AlignCode4();
   GenQuantizedStore(single, type, -1);
   RET();
-  JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedStore_{}_{}", static_cast<u32>(type),
-                        single);
+  Common::JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedStore_{}_{}",
+                                static_cast<u32>(type), single);
 
   return load;
 }
@@ -401,8 +401,8 @@ const u8* CommonAsmRoutines::GenQuantizedLoadRuntime(bool single, EQuantizeType 
   const u8* load = AlignCode4();
   GenQuantizedLoad(single, type, -1);
   RET();
-  JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedLoad_{}_{}", static_cast<u32>(type),
-                        single);
+  Common::JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedLoad_{}_{}",
+                                static_cast<u32>(type), single);
 
   return load;
 }

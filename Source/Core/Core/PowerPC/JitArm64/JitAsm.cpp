@@ -205,7 +205,7 @@ void JitArm64::GenerateAsm()
   ABI_PopRegisters(regs_to_save);
   RET(ARM64Reg::X30);
 
-  JitRegister::Register(enter_code, GetCodePtr(), "JIT_Dispatcher");
+  Common::JitRegister::Register(enter_code, GetCodePtr(), "JIT_Dispatcher");
 
   GenerateCommonAsm();
 
@@ -216,25 +216,25 @@ void JitArm64::GenerateCommonAsm()
 {
   GetAsmRoutines()->fres = GetCodePtr();
   GenerateFres();
-  JitRegister::Register(GetAsmRoutines()->fres, GetCodePtr(), "JIT_fres");
+  Common::JitRegister::Register(GetAsmRoutines()->fres, GetCodePtr(), "JIT_fres");
 
   GetAsmRoutines()->frsqrte = GetCodePtr();
   GenerateFrsqrte();
-  JitRegister::Register(GetAsmRoutines()->frsqrte, GetCodePtr(), "JIT_frsqrte");
+  Common::JitRegister::Register(GetAsmRoutines()->frsqrte, GetCodePtr(), "JIT_frsqrte");
 
   GetAsmRoutines()->cdts = GetCodePtr();
   GenerateConvertDoubleToSingle();
-  JitRegister::Register(GetAsmRoutines()->cdts, GetCodePtr(), "JIT_cdts");
+  Common::JitRegister::Register(GetAsmRoutines()->cdts, GetCodePtr(), "JIT_cdts");
 
   GetAsmRoutines()->cstd = GetCodePtr();
   GenerateConvertSingleToDouble();
-  JitRegister::Register(GetAsmRoutines()->cstd, GetCodePtr(), "JIT_cstd");
+  Common::JitRegister::Register(GetAsmRoutines()->cstd, GetCodePtr(), "JIT_cstd");
 
   GetAsmRoutines()->fprf_single = GetCodePtr();
   GenerateFPRF(true);
   GetAsmRoutines()->fprf_double = GetCodePtr();
   GenerateFPRF(false);
-  JitRegister::Register(GetAsmRoutines()->fprf_single, GetCodePtr(), "JIT_FPRF");
+  Common::JitRegister::Register(GetAsmRoutines()->fprf_single, GetCodePtr(), "JIT_FPRF");
 
   GenerateQuantizedLoads();
   GenerateQuantizedStores();
@@ -677,7 +677,7 @@ void JitArm64::GenerateQuantizedLoads()
     RET(ARM64Reg::X30);
   }
 
-  JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedLoad");
+  Common::JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedLoad");
 
   paired_load_quantized = reinterpret_cast<const u8**>(AlignCode16());
   ReserveCodeSpace(8 * sizeof(u8*));
@@ -896,7 +896,7 @@ void JitArm64::GenerateQuantizedStores()
     RET(ARM64Reg::X30);
   }
 
-  JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedStore");
+  Common::JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedStore");
 
   paired_store_quantized = reinterpret_cast<const u8**>(AlignCode16());
   ReserveCodeSpace(8 * sizeof(u8*));
