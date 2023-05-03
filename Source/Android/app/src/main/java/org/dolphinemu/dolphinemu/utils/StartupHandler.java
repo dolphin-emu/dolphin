@@ -40,8 +40,8 @@ public final class StartupHandler
     String[] gamesToLaunch = getGamesFromIntent(parent.getIntent());
     if (gamesToLaunch != null && gamesToLaunch.length > 0)
     {
-      // Open permission dialog, the game will be opened on the next attempt
-      if ((Build.VERSION.SDK_INT <= 29) && !PermissionsHandler.hasWriteAccess(parent))
+      // If legacy path then ensure permissions are granted, the game will open on the next attempt
+      if (gamesToLaunch[0].startsWith("/") && !PermissionsHandler.hasWriteAccess(parent))
       {
         PermissionsHandler.requestWritePermission(parent);
         parent.finish();
