@@ -32,6 +32,7 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/MachineContext.h"
 #include "Core/PatchEngine.h"
+#include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/FarCodeCache.h"

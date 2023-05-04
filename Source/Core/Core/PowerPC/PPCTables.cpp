@@ -19,7 +19,6 @@
 #include "Common/StringUtil.h"
 #include "Common/TypeUtils.h"
 
-#include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/PowerPC.h"
 
 namespace PPCTables
