@@ -5,6 +5,7 @@
 
 #include "Common/VR/API.h"
 #include "Common/VR/Input.h"
+#include "Common/VR/Math.h"
 #include "Common/VR/VRBase.h"
 #include "Common/VR/VRRenderer.h"
 
@@ -121,7 +122,7 @@ bool StartRender()
     int l = s_module_input->GetButtonState(0);
     int r = s_module_input->GetButtonState(1);
 	auto joystick = s_module_input->GetJoystickState(0);
-    auto angles = XrQuaternionf_ToEulerAngles(pose.orientation);
+    auto angles = EulerAngles(pose.orientation);
     float x = -tan(ToRadians(angles.y - VR_GetConfigFloat(VR_CONFIG_MENU_YAW)));
     float y = -tan(ToRadians(angles.x)) * VR_GetConfigFloat(VR_CONFIG_CANVAS_ASPECT);
     UpdateInput(0, l, r, x, y, joystick.x, joystick.y);

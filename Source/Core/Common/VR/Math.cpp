@@ -1,13 +1,13 @@
 // Copyright 2016 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#define _USE_MATH_DEFINES
-
 #include <cmath>
 #include <cstring>
 
-#include "Common/VR/VRMath.h"
+#include "Common/VR/Math.h"
 
+namespace Common::VR
+{
 float ToDegrees(float rad)
 {
   return (float)(rad / M_PI * 180.0f);
@@ -18,54 +18,6 @@ float ToRadians(float deg)
   return (float)(deg * M_PI / 180.0f);
 }
 
-bool IsMatrixIdentity(float* matrix)
-{
-  for (int i = 0; i < 4; i++)
-  {
-    for (int j = 0; j < 4; j++)
-    {
-      float value = matrix[i * 4 + j];
-
-      // Other number than zero on non-diagonale
-      if ((i != j) && (fabs(value) > EPSILON))
-        return false;
-      // Other number than one on diagonale
-      if ((i == j) && (fabs(value - 1.0f) > EPSILON))
-        return false;
-    }
-  }
-  return true;
-}
-
-/*
-================================================================================
-
-XrPosef
-
-================================================================================
-*/
-
-XrPosef XrPosef_Identity()
-{
-  XrPosef r;
-  r.orientation.x = 0;
-  r.orientation.y = 0;
-  r.orientation.z = 0;
-  r.orientation.w = 1;
-  r.position.x = 0;
-  r.position.y = 0;
-  r.position.z = 0;
-  return r;
-}
-
-XrPosef XrPosef_Inverse(const XrPosef a)
-{
-  XrPosef b;
-  b.orientation = XrQuaternionf_Inverse(a.orientation);
-  b.position = XrQuaternionf_Rotate(b.orientation, XrVector3f_ScalarMultiply(a.position, -1.0f));
-  return b;
-}
-
 /*
 ================================================================================
 
@@ -74,10 +26,10 @@ XrQuaternionf
 ================================================================================
 */
 
-XrQuaternionf XrQuaternionf_CreateFromVectorAngle(const XrVector3f axis, const float angle)
+XrQuaternionf CreateFromVectorAngle(const XrVector3f axis, const float angle)
 {
   XrQuaternionf r;
-  if (XrVector3f_LengthSquared(axis) == 0.0f)
+  if (LengthSquared(axis) == 0.0f)
   {
     r.x = 0;
     r.y = 0;
@@ -86,7 +38,7 @@ XrQuaternionf XrQuaternionf_CreateFromVectorAngle(const XrVector3f axis, const f
     return r;
   }
 
-  XrVector3f unitAxis = XrVector3f_Normalized(axis);
+  XrVector3f unitAxis = Normalized(axis);
   float sinHalfAngle = sinf(angle * 0.5f);
 
   r.w = cosf(angle * 0.5f);
@@ -96,17 +48,7 @@ XrQuaternionf XrQuaternionf_CreateFromVectorAngle(const XrVector3f axis, const f
   return r;
 }
 
-XrQuaternionf XrQuaternionf_Inverse(const XrQuaternionf q)
-{
-  XrQuaternionf r;
-  r.x = -q.x;
-  r.y = -q.y;
-  r.z = -q.z;
-  r.w = q.w;
-  return r;
-}
-
-XrQuaternionf XrQuaternionf_Multiply(const XrQuaternionf a, const XrQuaternionf b)
+XrQuaternionf Multiply(const XrQuaternionf a, const XrQuaternionf b)
 {
   XrQuaternionf c;
   c.x = a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y;
@@ -116,44 +58,31 @@ XrQuaternionf XrQuaternionf_Multiply(const XrQuaternionf a, const XrQuaternionf 
   return c;
 }
 
-XrVector3f XrQuaternionf_Rotate(const XrQuaternionf a, const XrVector3f v)
-{
-  XrVector3f r;
-  XrQuaternionf q = {v.x, v.y, v.z, 0.0f};
-  XrQuaternionf aq = XrQuaternionf_Multiply(a, q);
-  XrQuaternionf aInv = XrQuaternionf_Inverse(a);
-  XrQuaternionf aqaInv = XrQuaternionf_Multiply(aq, aInv);
-  r.x = aqaInv.x;
-  r.y = aqaInv.y;
-  r.z = aqaInv.z;
-  return r;
-}
-
-XrVector3f XrQuaternionf_ToEulerAngles(const XrQuaternionf q)
+XrVector3f EulerAngles(const XrQuaternionf q)
 {
   float M[16];
-  XrQuaternionf_ToMatrix4f(&q, M);
+  ToMatrix4f(&q, M);
 
   XrVector4f v1 = {0, 0, -1, 0};
   XrVector4f v2 = {1, 0, 0, 0};
   XrVector4f v3 = {0, 1, 0, 0};
 
-  XrVector4f forwardInVRSpace = XrVector4f_MultiplyMatrix4f(M, &v1);
-  XrVector4f rightInVRSpace = XrVector4f_MultiplyMatrix4f(M, &v2);
-  XrVector4f upInVRSpace = XrVector4f_MultiplyMatrix4f(M, &v3);
+  XrVector4f forwardInVRSpace = MultiplyMatrix4f(M, &v1);
+  XrVector4f rightInVRSpace = MultiplyMatrix4f(M, &v2);
+  XrVector4f upInVRSpace = MultiplyMatrix4f(M, &v3);
 
   XrVector3f forward = {-forwardInVRSpace.z, -forwardInVRSpace.x, forwardInVRSpace.y};
   XrVector3f right = {-rightInVRSpace.z, -rightInVRSpace.x, rightInVRSpace.y};
   XrVector3f up = {-upInVRSpace.z, -upInVRSpace.x, upInVRSpace.y};
 
-  XrVector3f forwardNormal = XrVector3f_Normalized(forward);
-  XrVector3f rightNormal = XrVector3f_Normalized(right);
-  XrVector3f upNormal = XrVector3f_Normalized(up);
+  XrVector3f forwardNormal = Normalized(forward);
+  XrVector3f rightNormal = Normalized(right);
+  XrVector3f upNormal = Normalized(up);
 
-  return XrVector3f_GetAnglesFromVectors(forwardNormal, rightNormal, upNormal);
+  return GetAnglesFromVectors(forwardNormal, rightNormal, upNormal);
 }
 
-void XrQuaternionf_ToMatrix4f(const XrQuaternionf* q, float* matrix)
+void ToMatrix4f(const XrQuaternionf* q, float* m)
 {
   const float ww = q->w * q->w;
   const float xx = q->x * q->x;
@@ -181,7 +110,7 @@ void XrQuaternionf_ToMatrix4f(const XrQuaternionf* q, float* matrix)
   M[3][2] = 0;
   M[3][3] = 1;
 
-  memcpy(matrix, &M, sizeof(float) * 16);
+  memcpy(m, &M, sizeof(float) * 16);
 }
 
 /*
@@ -192,13 +121,13 @@ XrVector3f, XrVector4f
 ================================================================================
 */
 
-float XrVector3f_LengthSquared(const XrVector3f v)
+float LengthSquared(const XrVector3f v)
 {
   return v.x * v.x + v.y * v.y + v.z * v.z;
   ;
 }
 
-XrVector3f XrVector3f_GetAnglesFromVectors(XrVector3f forward, XrVector3f right, XrVector3f up)
+XrVector3f GetAnglesFromVectors(XrVector3f forward, XrVector3f right, XrVector3f up)
 {
   float sp = -forward.z;
 
@@ -246,13 +175,13 @@ XrVector3f XrVector3f_GetAnglesFromVectors(XrVector3f forward, XrVector3f right,
   return angles;
 }
 
-XrVector3f XrVector3f_Normalized(const XrVector3f v)
+XrVector3f Normalized(const XrVector3f v)
 {
-  float rcpLen = 1.0f / sqrtf(XrVector3f_LengthSquared(v));
-  return XrVector3f_ScalarMultiply(v, rcpLen);
+  float rcpLen = 1.0f / sqrtf(LengthSquared(v));
+  return ScalarMultiply(v, rcpLen);
 }
 
-XrVector3f XrVector3f_ScalarMultiply(const XrVector3f v, float scale)
+XrVector3f ScalarMultiply(const XrVector3f v, float scale)
 {
   XrVector3f u;
   u.x = v.x * scale;
@@ -261,7 +190,7 @@ XrVector3f XrVector3f_ScalarMultiply(const XrVector3f v, float scale)
   return u;
 }
 
-XrVector4f XrVector4f_MultiplyMatrix4f(const float* m, const XrVector4f* v)
+XrVector4f MultiplyMatrix4f(const float* m, const XrVector4f* v)
 {
   float M[4][4];
   memcpy(&M, m, sizeof(float) * 16);
@@ -272,4 +201,5 @@ XrVector4f XrVector4f_MultiplyMatrix4f(const float* m, const XrVector4f* v)
   out.z = M[2][0] * v->x + M[2][1] * v->y + M[2][2] * v->z + M[2][3] * v->w;
   out.w = M[3][0] * v->x + M[3][1] * v->y + M[3][2] * v->z + M[3][3] * v->w;
   return out;
+}
 }

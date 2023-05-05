@@ -4,7 +4,6 @@
 #pragma once
 
 #include "Common/VR/VRFramebuffer.h"
-#include "Common/VR/VRMath.h"
 
 enum VRConfig
 {

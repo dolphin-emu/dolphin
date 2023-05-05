@@ -40,14 +40,14 @@ add_library(common
   VR/API.h
   VR/Input.cpp
   VR/Input.h
+  VR/Math.cpp
+  VR/Math.h
   VR/OpenXRLoader.cpp
   VR/OpenXRLoader.h
   VR/VRBase.cpp
   VR/VRBase.h
   VR/VRFramebuffer.cpp
   VR/VRFramebuffer.h
-  VR/VRMath.cpp
-  VR/VRMath.h
   VR/VRRenderer.cpp
   VR/VRRenderer.h
   DebugInterface.h

@@ -4,6 +4,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
+#include "Common/VR/Math.h"
 #include "Common/VR/OpenXRLoader.h"
 #include "Common/VR/VRBase.h"
 #include "Common/VR/VRRenderer.h"
@@ -137,11 +138,11 @@ void VR_Recenter(engine_t* engine)
     loc.type = XR_TYPE_SPACE_LOCATION;
     OXR(xrLocateSpace(engine->appState.HeadSpace, engine->appState.current_space,
                       engine->predicted_display_time, &loc));
-    hmdorientation = XrQuaternionf_ToEulerAngles(loc.pose.orientation);
+    hmdorientation = Common::VR::EulerAngles(loc.pose.orientation);
     float yaw = hmdorientation.y;
 
     VR_SetConfigFloat(VR_CONFIG_RECENTER_YAW, VR_GetConfigFloat(VR_CONFIG_RECENTER_YAW) + yaw);
-    float recenterYaw = ToRadians(VR_GetConfigFloat(VR_CONFIG_RECENTER_YAW));
+    float recenterYaw = Common::VR::ToRadians(VR_GetConfigFloat(VR_CONFIG_RECENTER_YAW));
     spaceInfo.poseInReferenceSpace.orientation.x = 0;
     spaceInfo.poseInReferenceSpace.orientation.y = sinf(recenterYaw / 2);
     spaceInfo.poseInReferenceSpace.orientation.z = 0;
@@ -313,7 +314,7 @@ bool VR_InitFrame(engine_t* engine)
     invViewTransform[eye] = projections[eye].pose;
   }
 
-  hmdorientation = XrQuaternionf_ToEulerAngles(invViewTransform[0].orientation);
+  hmdorientation = Common::VR::EulerAngles(invViewTransform[0].orientation);
   engine->appState.LayerCount = 0;
   memset(engine->appState.Layers, 0, sizeof(ovrCompositorLayer_Union) * ovrMaxLayerCount);
   return true;
@@ -397,13 +398,13 @@ void VR_FinishFrame(engine_t* engine)
   {
     // Flat screen pose
     float distance = VR_GetConfigFloat(VR_CONFIG_CANVAS_DISTANCE);
-    float menuPitch = ToRadians(VR_GetConfigFloat(VR_CONFIG_MENU_PITCH));
-    float menuYaw = ToRadians(VR_GetConfigFloat(VR_CONFIG_MENU_YAW));
+    float menuPitch = Common::VR::ToRadians(VR_GetConfigFloat(VR_CONFIG_MENU_PITCH));
+    float menuYaw = Common::VR::ToRadians(VR_GetConfigFloat(VR_CONFIG_MENU_YAW));
     XrVector3f pos = {invViewTransform[0].position.x - sinf(menuYaw) * distance,
                       invViewTransform[0].position.y,
                       invViewTransform[0].position.z - cosf(menuYaw) * distance};
-    XrQuaternionf pitch = XrQuaternionf_CreateFromVectorAngle({1, 0, 0}, -menuPitch);
-    XrQuaternionf yaw = XrQuaternionf_CreateFromVectorAngle({0, 1, 0}, menuYaw);
+    XrQuaternionf pitch = Common::VR::CreateFromVectorAngle({1, 0, 0}, -menuPitch);
+    XrQuaternionf yaw = Common::VR::CreateFromVectorAngle({0, 1, 0}, menuYaw);
 
     // Setup the cylinder layer
     ovrFramebuffer* frameBuffer = &engine->appState.Renderer.FrameBuffer[0];
@@ -418,7 +419,7 @@ void VR_FinishFrame(engine_t* engine)
     cylinder_layer.subImage.imageRect.extent.height = frameBuffer->ColorSwapChain.Height;
     cylinder_layer.subImage.swapchain = frameBuffer->ColorSwapChain.Handle;
     cylinder_layer.subImage.imageArrayIndex = 0;
-    cylinder_layer.pose.orientation = XrQuaternionf_Multiply(pitch, yaw);
+    cylinder_layer.pose.orientation = Common::VR::Multiply(pitch, yaw);
     cylinder_layer.pose.position = pos;
     cylinder_layer.radius = 6.0f;
     cylinder_layer.centralAngle = (float)(M_PI * 0.5);
