@@ -17,7 +17,7 @@ void Input::Init(engine_t* engine)
     return;
 
   // Actions
-  action_set = CreateActionSet(engine->appState.instance, "running_action_set", "Actionset");
+  action_set = CreateActionSet(engine->app_state.instance, "running_action_set", "Actionset");
   index_left = CreateAction(action_set, XR_ACTION_TYPE_BOOLEAN_INPUT, "index_left", "Index left", 0,
                             NULL);
   index_right = CreateAction(action_set, XR_ACTION_TYPE_BOOLEAN_INPUT, "index_right", "Index right",
@@ -49,8 +49,8 @@ void Input::Init(engine_t* engine)
                                         "vibrate_right_feedback", "Vibrate Right Controller", 0,
                                         NULL);
 
-  OXR(xrStringToPath(engine->appState.instance, "/user/hand/left", &left_hand_path));
-  OXR(xrStringToPath(engine->appState.instance, "/user/hand/right", &right_hand_path));
+  OXR(xrStringToPath(engine->app_state.instance, "/user/hand/left", &left_hand_path));
+  OXR(xrStringToPath(engine->app_state.instance, "/user/hand/right", &right_hand_path));
     hand_pose_left = CreateAction(action_set, XR_ACTION_TYPE_POSE_INPUT, "hand_pose_left",
                                   NULL, 1, &left_hand_path);
     hand_pose_right = CreateAction(action_set, XR_ACTION_TYPE_POSE_INPUT,
@@ -59,17 +59,17 @@ void Input::Init(engine_t* engine)
   XrPath interactionProfilePath = XR_NULL_PATH;
   if (VR_GetPlatformFlag(VR_PLATFORM_CONTROLLER_QUEST))
   {
-    OXR(xrStringToPath(engine->appState.instance, "/interaction_profiles/oculus/touch_controller",
+    OXR(xrStringToPath(engine->app_state.instance, "/interaction_profiles/oculus/touch_controller",
                        &interactionProfilePath));
   }
   else if (VR_GetPlatformFlag(VR_PLATFORM_CONTROLLER_PICO))
   {
-    OXR(xrStringToPath(engine->appState.instance, "/interaction_profiles/pico/neo3_controller",
+    OXR(xrStringToPath(engine->app_state.instance, "/interaction_profiles/pico/neo3_controller",
                        &interactionProfilePath));
   }
 
   // Map bindings
-  XrInstance instance = engine->appState.instance;
+  XrInstance instance = engine->app_state.instance;
   XrActionSuggestedBinding bindings[32];  // large enough for all profiles
   int curr = 0;
 
@@ -107,7 +107,7 @@ void Input::Init(engine_t* engine)
   suggested_bindings.interactionProfile = interactionProfilePath;
   suggested_bindings.suggestedBindings = bindings;
   suggested_bindings.countSuggestedBindings = curr;
-  OXR(xrSuggestInteractionProfileBindings(engine->appState.instance, &suggested_bindings));
+  OXR(xrSuggestInteractionProfileBindings(engine->app_state.instance, &suggested_bindings));
 
   // Attach actions
   XrSessionActionSetsAttachInfo attach_info = {};
@@ -115,7 +115,7 @@ void Input::Init(engine_t* engine)
   attach_info.next = NULL;
   attach_info.countActionSets = 1;
   attach_info.actionSets = &action_set;
-  OXR(xrAttachSessionActionSets(engine->appState.Session, &attach_info));
+  OXR(xrAttachSessionActionSets(engine->app_state.session, &attach_info));
 
   // Enumerate actions
   char string_buffer[256];
@@ -146,11 +146,11 @@ void Input::Init(engine_t* engine)
 
     // Get Count
     uint32_t count_output = 0;
-    OXR(xrEnumerateBoundSourcesForAction(engine->appState.Session, &e, 0, &count_output, NULL));
+    OXR(xrEnumerateBoundSourcesForAction(engine->app_state.session, &e, 0, &count_output, NULL));
 
     if (count_output < 32)
     {
-      OXR(xrEnumerateBoundSourcesForAction(engine->appState.Session, &e, 32, &count_output,
+      OXR(xrEnumerateBoundSourcesForAction(engine->app_state.session, &e, 32, &count_output,
                                            action_paths_buffer));
       for (uint32_t a = 0; a < count_output; ++a)
       {
@@ -163,15 +163,15 @@ void Input::Init(engine_t* engine)
                                     XR_INPUT_SOURCE_LOCALIZED_NAME_COMPONENT_BIT;
 
         uint32_t str_count = 0u;
-        OXR(xrGetInputSourceLocalizedName(engine->appState.Session, &name_info, 0, &str_count,
+        OXR(xrGetInputSourceLocalizedName(engine->app_state.session, &name_info, 0, &str_count,
                                           NULL));
         if (str_count < 256)
         {
-          OXR(xrGetInputSourceLocalizedName(engine->appState.Session, &name_info, 256, &str_count,
+          OXR(xrGetInputSourceLocalizedName(engine->app_state.session, &name_info, 256, &str_count,
                                             string_buffer));
           char path_str[256];
           uint32_t str_len = 0;
-          OXR(xrPathToString(engine->appState.instance, action_paths_buffer[a],
+          OXR(xrPathToString(engine->app_state.instance, action_paths_buffer[a],
                              (uint32_t)sizeof(path_str), &str_len, path_str));
           ALOGV("  -> path = %lld `%s` -> `%s`", (long long)action_paths_buffer[a], path_str,
                 string_buffer);
@@ -217,7 +217,7 @@ void Input::Update(engine_t* engine)
   sync_info.next = NULL;
   sync_info.countActiveActionSets = 1;
   sync_info.activeActionSets = &activeActionSet;
-  OXR(xrSyncActions(engine->appState.Session, &sync_info));
+  OXR(xrSyncActions(engine->app_state.session, &sync_info));
 
   // query input action states
   XrActionStateGetInfo get_info = {};
@@ -225,7 +225,7 @@ void Input::Update(engine_t* engine)
   get_info.next = NULL;
   get_info.subactionPath = XR_NULL_PATH;
 
-  XrSession session = engine->appState.Session;
+  XrSession session = engine->app_state.session;
   ProcessHaptics(session);
 
   if (left_controller_space == XR_NULL_HANDLE)
@@ -289,7 +289,7 @@ void Input::Update(engine_t* engine)
     controller_pose[i] = {};
     controller_pose[i].type = XR_TYPE_SPACE_LOCATION;
     XrSpace aim_space[] = {left_controller_space, right_controller_space};
-    xrLocateSpace(aim_space[i], engine->appState.current_space,
+    xrLocateSpace(aim_space[i], engine->app_state.current_space,
                   (XrTime)(engine->predicted_display_time), &controller_pose[i]);
   }
 }

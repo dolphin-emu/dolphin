@@ -56,84 +56,85 @@ static void OXR_CheckErrors(XrInstance instance, XrResult result, const char* fu
 
 enum
 {
-  ovrMaxLayerCount = 2
+  MaxLayerCount = 2
 };
 enum
 {
-  ovrMaxNumEyes = 2
+  MaxNumEyes = 2
 };
 
 typedef union
 {
-  XrCompositionLayerProjection Projection;
-  XrCompositionLayerCylinderKHR Cylinder;
-} ovrCompositorLayer_Union;
+  XrCompositionLayerProjection projection;
+  XrCompositionLayerCylinderKHR cylinder;
+} CompositorLayer;
 
 typedef struct
 {
-  XrSwapchain Handle;
-  uint32_t Width;
-  uint32_t Height;
-} ovrSwapChain;
+  XrSwapchain handle;
+  uint32_t width;
+  uint32_t height;
+} SwapChain;
 
 typedef struct
 {
-  int Width;
-  int Height;
-  uint32_t TextureSwapChainLength;
-  uint32_t TextureSwapChainIndex;
-  ovrSwapChain ColorSwapChain;
-  void* ColorSwapChainImage;
-  unsigned int* GLDepthBuffers;
-  unsigned int* GLFrameBuffers;
+  int width;
+  int height;
+  bool acquired;
 
-  bool Acquired;
-} ovrFramebuffer;
+  uint32_t swapchain_index;
+  uint32_t swapchain_length;
+  SwapChain swapchain_color;
+  void* swapchain_image;
 
-typedef struct
-{
-  bool Multiview;
-  ovrFramebuffer FrameBuffer[ovrMaxNumEyes];
-} ovrRenderer;
+  unsigned int* gl_depth_buffers;
+  unsigned int* gl_frame_buffers;
+} Framebuffer;
 
 typedef struct
 {
-  int Focused;
+  bool multiview;
+  Framebuffer framebuffer[MaxNumEyes];
+} Renderer;
+
+typedef struct
+{
 
   XrInstance instance;
-  XrSession Session;
-  XrViewConfigurationProperties ViewportConfig;
-  XrViewConfigurationView ViewConfigurationView[ovrMaxNumEyes];
-  XrSystemId SystemId;
-  XrSpace HeadSpace;
-  XrSpace StageSpace;
-  XrSpace FakeSpace;
+  XrSession session;
+  bool session_active;
+  bool session_focused;
+  XrSystemId system_id;
+
   XrSpace current_space;
-  int SessionActive;
+  XrSpace fake_space;
+  XrSpace head_space;
+  XrSpace stage_space;
 
-  int SwapInterval;
-  // These threads will be marked as performance threads.
-  int MainThreadTid;
-  int RenderThreadTid;
-  ovrCompositorLayer_Union Layers[ovrMaxLayerCount];
-  int LayerCount;
+  int layer_count;
+  int main_thread_id;
+  int render_thread_id;
+  int swap_interval;
+  CompositorLayer layers[MaxLayerCount];
+  XrViewConfigurationProperties viewport_config;
+  XrViewConfigurationView view_config[MaxNumEyes];
 
-  ovrRenderer Renderer;
-} ovrApp;
+  Renderer renderer;
+} App;
 
 #ifdef ANDROID
 typedef struct
 {
-  JavaVM* vm;
   jobject activity;
-  JNIEnv* Env;
+  JNIEnv* env;
+  JavaVM* vm;
 } vrJava;
 #endif
 
 typedef struct
 {
-  uint64_t frameIndex;
-  ovrApp appState;
+  App app_state;
+  uint64_t frame_index;
   XrTime predicted_display_time;
 } engine_t;
 
@@ -156,7 +157,3 @@ void VR_LeaveVR(engine_t* engine);
 engine_t* VR_GetEngine(void);
 bool VR_GetPlatformFlag(VRPlatformFlag flag);
 void VR_SetPlatformFLag(VRPlatformFlag flag, bool value);
-
-void ovrApp_Clear(ovrApp* app);
-void ovrApp_Destroy(ovrApp* app);
-int ovrApp_HandleXrEvents(ovrApp* app);

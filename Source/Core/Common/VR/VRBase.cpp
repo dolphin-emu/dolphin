@@ -1,6 +1,7 @@
 // Copyright 2016 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Common/VR/Display.h"
 #include "Common/VR/VRBase.h"
 
 #include <assert.h>
@@ -27,7 +28,7 @@ void VR_Init(void* system, const char* name, int version)
     return;
   }
 
-  ovrApp_Clear(&vr_engine.appState);
+  Common::VR::AppClear(&vr_engine.app_state);
 
 #ifdef ANDROID
   PFN_xrInitializeLoaderKHR xrInitializeLoaderKHR;
@@ -103,19 +104,19 @@ void VR_Init(void* system, const char* name, int version)
 #endif
 
   XrResult initResult;
-  OXR(initResult = xrCreateInstance(&instanceCreateInfo, &vr_engine.appState.instance));
+  OXR(initResult = xrCreateInstance(&instanceCreateInfo, &vr_engine.app_state.instance));
   if (initResult != XR_SUCCESS)
   {
     ALOGE("Failed to create XR instance: %d.", initResult);
     exit(1);
   }
 
-  XRLoadInstanceFunctions(vr_engine.appState.instance);
+  XRLoadInstanceFunctions(vr_engine.app_state.instance);
 
   XrInstanceProperties instanceInfo;
   instanceInfo.type = XR_TYPE_INSTANCE_PROPERTIES;
   instanceInfo.next = NULL;
-  OXR(xrGetInstanceProperties(vr_engine.appState.instance, &instanceInfo));
+  OXR(xrGetInstanceProperties(vr_engine.app_state.instance, &instanceInfo));
   ALOGV("Runtime %s: Version : %u.%u.%u", instanceInfo.runtimeName,
         XR_VERSION_MAJOR(instanceInfo.runtimeVersion),
         XR_VERSION_MINOR(instanceInfo.runtimeVersion),
@@ -128,7 +129,7 @@ void VR_Init(void* system, const char* name, int version)
   systemGetInfo.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
 
   XrSystemId systemId;
-  OXR(initResult = xrGetSystem(vr_engine.appState.instance, &systemGetInfo, &systemId));
+  OXR(initResult = xrGetSystem(vr_engine.app_state.instance, &systemGetInfo, &systemId));
   if (initResult != XR_SUCCESS)
   {
     ALOGE("Failed to get system.");
@@ -138,19 +139,19 @@ void VR_Init(void* system, const char* name, int version)
   // Get the graphics requirements.
 #ifdef XR_USE_GRAPHICS_API_OPENGL_ES
   PFN_xrGetOpenGLESGraphicsRequirementsKHR pfnGetOpenGLESGraphicsRequirementsKHR = NULL;
-  OXR(xrGetInstanceProcAddr(vr_engine.appState.instance, "xrGetOpenGLESGraphicsRequirementsKHR",
+  OXR(xrGetInstanceProcAddr(vr_engine.app_state.instance, "xrGetOpenGLESGraphicsRequirementsKHR",
                             (PFN_xrVoidFunction*)(&pfnGetOpenGLESGraphicsRequirementsKHR)));
 
   XrGraphicsRequirementsOpenGLESKHR graphicsRequirements = {};
   graphicsRequirements.type = XR_TYPE_GRAPHICS_REQUIREMENTS_OPENGL_ES_KHR;
-  OXR(pfnGetOpenGLESGraphicsRequirementsKHR(vr_engine.appState.instance, systemId,
+  OXR(pfnGetOpenGLESGraphicsRequirementsKHR(vr_engine.app_state.instance, systemId,
                                             &graphicsRequirements));
 #endif
 
 #ifdef ANDROID
-  vr_engine.appState.MainThreadTid = gettid();
+  vr_engine.app_state.main_thread_id = gettid();
 #endif
-  vr_engine.appState.SystemId = systemId;
+  vr_engine.app_state.system_id = systemId;
   vr_initialized = 1;
 }
 
@@ -158,14 +159,14 @@ void VR_Destroy(engine_t* engine)
 {
   if (engine == &vr_engine)
   {
-    xrDestroyInstance(engine->appState.instance);
-    ovrApp_Destroy(&engine->appState);
+    xrDestroyInstance(engine->app_state.instance);
+    Common::VR::AppDestroy(&engine->app_state);
   }
 }
 
 void VR_EnterVR(engine_t* engine)
 {
-  if (engine->appState.Session)
+  if (engine->app_state.session)
   {
     ALOGE("VR_EnterVR called with existing session");
     return;
@@ -191,11 +192,11 @@ void VR_EnterVR(engine_t* engine)
 #endif
   sessionCreateInfo.type = XR_TYPE_SESSION_CREATE_INFO;
   sessionCreateInfo.createFlags = 0;
-  sessionCreateInfo.systemId = engine->appState.SystemId;
+  sessionCreateInfo.systemId = engine->app_state.system_id;
 
   XrResult initResult;
-  OXR(initResult = xrCreateSession(engine->appState.instance, &sessionCreateInfo,
-                                   &engine->appState.Session));
+  OXR(initResult = xrCreateSession(engine->app_state.instance, &sessionCreateInfo,
+                                   &engine->app_state.session));
   if (initResult != XR_SUCCESS)
   {
     ALOGE("Failed to create XR session: %d.", initResult);
@@ -207,24 +208,24 @@ void VR_EnterVR(engine_t* engine)
   spaceCreateInfo.type = XR_TYPE_REFERENCE_SPACE_CREATE_INFO;
   spaceCreateInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_VIEW;
   spaceCreateInfo.poseInReferenceSpace.orientation.w = 1.0f;
-  OXR(xrCreateReferenceSpace(engine->appState.Session, &spaceCreateInfo,
-                             &engine->appState.HeadSpace));
+  OXR(xrCreateReferenceSpace(engine->app_state.session, &spaceCreateInfo,
+                             &engine->app_state.head_space));
 }
 
 void VR_LeaveVR(engine_t* engine)
 {
-  if (engine->appState.Session)
+  if (engine->app_state.session)
   {
-    OXR(xrDestroySpace(engine->appState.HeadSpace));
+    OXR(xrDestroySpace(engine->app_state.head_space));
     // StageSpace is optional.
-    if (engine->appState.StageSpace != XR_NULL_HANDLE)
+    if (engine->app_state.stage_space != XR_NULL_HANDLE)
     {
-      OXR(xrDestroySpace(engine->appState.StageSpace));
+      OXR(xrDestroySpace(engine->app_state.stage_space));
     }
-    OXR(xrDestroySpace(engine->appState.FakeSpace));
-    engine->appState.current_space = XR_NULL_HANDLE;
-    OXR(xrDestroySession(engine->appState.Session));
-    engine->appState.Session = XR_NULL_HANDLE;
+    OXR(xrDestroySpace(engine->app_state.fake_space));
+    engine->app_state.current_space = XR_NULL_HANDLE;
+    OXR(xrDestroySession(engine->app_state.session));
+    engine->app_state.session = XR_NULL_HANDLE;
   }
 }
 

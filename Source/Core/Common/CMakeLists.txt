@@ -38,6 +38,8 @@ add_library(common
   Debug/Watches.h
   VR/API.cpp
   VR/API.h
+  VR/Display.cpp
+  VR/Display.h
   VR/Input.cpp
   VR/Input.h
   VR/Math.cpp
@@ -46,8 +48,6 @@ add_library(common
   VR/OpenXRLoader.h
   VR/VRBase.cpp
   VR/VRBase.h
-  VR/VRFramebuffer.cpp
-  VR/VRFramebuffer.h
   VR/VRRenderer.cpp
   VR/VRRenderer.h
   DebugInterface.h

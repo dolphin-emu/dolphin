@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "Common/VR/VRFramebuffer.h"
+#include "Common/VR/Display.h"
 
 enum VRConfig
 {

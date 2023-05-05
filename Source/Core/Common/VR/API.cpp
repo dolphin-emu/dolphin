@@ -64,7 +64,7 @@ void InitOnAndroid(JNIEnv* env, jobject obj, const char* vendor, int version, co
 
 void GetResolutionPerEye(int* width, int* height)
 {
-  if (VR_GetEngine()->appState.instance)
+  if (VR_GetEngine()->app_state.instance)
   {
     VR_GetResolution(VR_GetEngine(), width, height);
   }
