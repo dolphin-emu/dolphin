@@ -4,15 +4,17 @@
 #include <cstring>
 
 #include "Common/VR/API.h"
+#include "Common/VR/Base.h"
 #include "Common/VR/Input.h"
 #include "Common/VR/Math.h"
 #include "Common/VR/Renderer.h"
-#include "Common/VR/VRBase.h"
 
 namespace Common::VR
 {
-Common::VR::Input* s_module_input = NULL;
-Common::VR::Renderer* s_module_renderer = NULL;
+Base* s_module_base = NULL;
+Input* s_module_input = NULL;
+Renderer* s_module_renderer = NULL;
+bool s_platform_flags[PLATFORM_MAX];
 
 static void (*UpdateInput)(int id, int l, int r, float x, float y, float jx, float jy);
 
@@ -39,15 +41,20 @@ void InitOnAndroid(JNIEnv* env, jobject obj, const char* vendor, int version, co
   // Set platform flags
   if (strcmp(vendor, "Pico") == 0)
   {
-    VR_SetPlatformFLag(VR_PLATFORM_CONTROLLER_PICO, true);
-    VR_SetPlatformFLag(VR_PLATFORM_EXTENSION_INSTANCE, true);
+    s_platform_flags[PLATFORM_CONTROLLER_PICO] = true;
+    s_platform_flags[PLATFORM_EXTENSION_INSTANCE] = true;
   }
   else if ((strcmp(vendor, "Meta") == 0) || (strcmp(vendor, "Oculus") == 0))
   {
-    VR_SetPlatformFLag(VR_PLATFORM_CONTROLLER_QUEST, true);
-    VR_SetPlatformFLag(VR_PLATFORM_EXTENSION_FOVEATION, false);
-    VR_SetPlatformFLag(VR_PLATFORM_EXTENSION_PERFORMANCE, true);
+    s_platform_flags[PLATFORM_CONTROLLER_QUEST] = true;
+    s_platform_flags[PLATFORM_EXTENSION_FOVEATION] = false;
+    s_platform_flags[PLATFORM_EXTENSION_PERFORMANCE] = true;
   }
+
+  // Allocate modules
+  s_module_base = new Base();
+  s_module_input = new Input();
+  s_module_renderer = new Renderer();
 
   // Get Java VM
   JavaVM* vm;
@@ -57,20 +64,22 @@ void InitOnAndroid(JNIEnv* env, jobject obj, const char* vendor, int version, co
   vrJava java;
   java.vm = vm;
   java.activity = env->NewGlobalRef(obj);
-  VR_Init(&java, name, version);
-  ALOGV("OpenXR - VR_Init called");
-
-  // Allocate modules
-  s_module_input = new Input();
-  s_module_renderer = new Renderer();
+  s_module_base->Init(&java, name, version);
+  ALOGV("OpenXR - Init called");
 }
 #endif
 
+bool GetPlatformFlag(PlatformFlag flag)
+{
+  return s_platform_flags[flag];
+}
+
 void GetResolutionPerEye(int* width, int* height)
 {
-  if (VR_GetEngine()->app_state.instance)
+  auto engine = s_module_base->GetEngine();
+  if (engine->app_state.instance)
   {
-    s_module_renderer->GetResolution(VR_GetEngine(), width, height);
+    s_module_renderer->GetResolution(engine, width, height);
   }
 }
 
@@ -83,8 +92,8 @@ void Start(bool firstStart)
 {
   if (firstStart)
   {
-    engine_t* engine = VR_GetEngine();
-    VR_EnterVR(engine);
+    auto engine = s_module_base->GetEngine();
+	s_module_base->EnterVR(engine);
     s_module_input->Init(engine);
     ALOGV("OpenXR - EnterVR called");
   }
@@ -102,18 +111,19 @@ VR rendering integration
 
 void BindFramebuffer()
 {
-  s_module_renderer->BindFramebuffer(VR_GetEngine());
+  s_module_renderer->BindFramebuffer(s_module_base->GetEngine());
 }
 
 bool StartRender()
 {
+  auto engine = s_module_base->GetEngine();
   if (!s_module_renderer->GetConfigInt(CONFIG_VIEWPORT_VALID))
   {
-    s_module_renderer->Init(VR_GetEngine(), false);
+    s_module_renderer->Init(engine, false);
     s_module_renderer->SetConfigInt(CONFIG_VIEWPORT_VALID, true);
   }
 
-  if (s_module_renderer->InitFrame(VR_GetEngine()))
+  if (s_module_renderer->InitFrame(engine))
   {
     // Set render canvas
     s_module_renderer->SetConfigFloat(CONFIG_CANVAS_DISTANCE, 4.0f);
@@ -121,7 +131,7 @@ bool StartRender()
     s_module_renderer->SetConfigInt(CONFIG_MODE, RENDER_MODE_MONO_SCREEN);
 
     // Update controllers
-    s_module_input->Update(VR_GetEngine());
+    s_module_input->Update(engine);
     auto pose = s_module_input->GetPose(1);
     int l = s_module_input->GetButtonState(0);
     int r = s_module_input->GetButtonState(1);
@@ -137,17 +147,17 @@ bool StartRender()
 
 void FinishRender()
 {
-  s_module_renderer->FinishFrame(VR_GetEngine());
+  s_module_renderer->FinishFrame(s_module_base->GetEngine());
 }
 
 void PreFrameRender(int fbo_index)
 {
-  s_module_renderer->BeginFrame(VR_GetEngine(), fbo_index);
+  s_module_renderer->BeginFrame(s_module_base->GetEngine(), fbo_index);
 }
 
 void PostFrameRender()
 {
-  s_module_renderer->EndFrame(VR_GetEngine());
+  s_module_renderer->EndFrame(s_module_base->GetEngine());
 }
 
 int GetFBOIndex()

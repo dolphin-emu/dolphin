@@ -1,6 +1,7 @@
 // Copyright 2016 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Common/VR/API.h"
 #include "Common/VR/Display.h"
 
 #if XR_USE_GRAPHICS_API_OPENGL_ES
@@ -128,7 +129,7 @@ bool FramebufferCreateGLES(XrSession session, Framebuffer* frameBuffer, int widt
   swapchain_info.arraySize = multiview ? 2 : 1;
 
 #ifdef ANDROID
-  if (VR_GetPlatformFlag(VR_PLATFORM_EXTENSION_FOVEATION))
+  if (GetPlatformFlag(PLATFORM_EXTENSION_FOVEATION))
   {
     XrSwapchainCreateInfoFoveationFB swapchain_foveation_info;
     memset(&swapchain_foveation_info, 0, sizeof(swapchain_foveation_info));
@@ -310,7 +311,7 @@ ovrRenderer
 ================================================================================
 */
 
-void RendererClear(Renderer* renderer)
+void DisplayClear(Display* renderer)
 {
   for (int i = 0; i < MaxNumEyes; i++)
   {
@@ -318,30 +319,30 @@ void RendererClear(Renderer* renderer)
   }
 }
 
-void RendererCreate(XrSession session, Renderer* renderer, int width, int height, bool multiview)
+void DisplayCreate(XrSession session, Display* display, int width, int height, bool multiview)
 {
-  renderer->multiview = multiview;
-  int instances = renderer->multiview ? 1 : MaxNumEyes;
+  display->multiview = multiview;
+  int instances = display->multiview ? 1 : MaxNumEyes;
   for (int i = 0; i < instances; i++)
   {
 #if XR_USE_GRAPHICS_API_OPENGL_ES
-	  FramebufferCreateGLES(session, &renderer->framebuffer[i], width, height, multiview);
+	  FramebufferCreateGLES(session, &display->framebuffer[i], width, height, multiview);
 #elif XR_USE_GRAPHICS_API_OPENGL
     // TODO
 #endif
   }
 }
 
-void RendererDestroy(Renderer* renderer)
+void DisplayDestroy(Display* display)
 {
-  int instances = renderer->multiview ? 1 : MaxNumEyes;
+  int instances = display->multiview ? 1 : MaxNumEyes;
   for (int i = 0; i < instances; i++)
   {
-	  FramebufferDestroy(&renderer->framebuffer[i]);
+    FramebufferDestroy(&display->framebuffer[i]);
   }
 }
 
-void RendererMouseCursor(int x, int y, int sx, int sy)
+void DisplayMouseCursor(int x, int y, int sx, int sy)
 {
 #if XR_USE_GRAPHICS_API_OPENGL_ES || XR_USE_GRAPHICS_API_OPENGL
   GL(glEnable(GL_SCISSOR_TEST));
@@ -354,8 +355,8 @@ void RendererMouseCursor(int x, int y, int sx, int sy)
 }
 
 #ifdef ANDROID
-void RendererSetFoveation(XrInstance* instance, XrSession* session, Renderer* renderer,
-                          XrFoveationLevelFB level, float offset, XrFoveationDynamicFB dynamic)
+void DisplaySetFoveation(XrInstance* instance, XrSession* session, Display* display,
+                         XrFoveationLevelFB level, float offset, XrFoveationDynamicFB dynamic)
 {
   PFN_xrCreateFoveationProfileFB pfnCreateFoveationProfileFB;
   OXR(xrGetInstanceProcAddr(*instance, "xrCreateFoveationProfileFB",
@@ -369,7 +370,7 @@ void RendererSetFoveation(XrInstance* instance, XrSession* session, Renderer* re
   OXR(xrGetInstanceProcAddr(*instance, "xrUpdateSwapchainFB",
                             (PFN_xrVoidFunction*)(&pfnUpdateSwapchainFB)));
 
-  int instances = renderer->multiview ? 1 : MaxNumEyes;
+  int instances = display->multiview ? 1 : MaxNumEyes;
   for (int eye = 0; eye < instances; eye++)
   {
     XrFoveationLevelProfileCreateInfoFB level_profile_info;
@@ -392,7 +393,7 @@ void RendererSetFoveation(XrInstance* instance, XrSession* session, Renderer* re
     foveation_update_state.type = XR_TYPE_SWAPCHAIN_STATE_FOVEATION_FB;
     foveation_update_state.profile = foveation_profile;
 
-    pfnUpdateSwapchainFB(renderer->framebuffer[eye].swapchain_color.handle,
+    pfnUpdateSwapchainFB(display->framebuffer[eye].swapchain_color.handle,
                          (XrSwapchainStateBaseHeaderFB*)(&foveation_update_state));
 
     pfnDestroyFoveationProfileFB(foveation_profile);
@@ -427,7 +428,7 @@ void AppClear(App* app)
   app->main_thread_id = 0;
   app->render_thread_id = 0;
 
-	RendererClear(&app->renderer);
+	DisplayClear(&app->renderer);
 }
 
 void AppDestroy(App* app)
@@ -453,7 +454,7 @@ void AppHandleSessionStateChanges(App* app, XrSessionState state)
     ALOGV("OpenXR session active = %d", app->session_active);
 
 #ifdef ANDROID
-    if (app->session_active && VR_GetPlatformFlag(VR_PLATFORM_EXTENSION_PERFORMANCE))
+    if (app->session_active && GetPlatformFlag(PLATFORM_EXTENSION_PERFORMANCE))
     {
       XrPerfSettingsLevelEXT cpu_performance_level = XR_PERF_SETTINGS_LEVEL_PERFORMANCE_MAX_EXT;
       XrPerfSettingsLevelEXT gpu_performance_level = XR_PERF_SETTINGS_LEVEL_PERFORMANCE_MAX_EXT;

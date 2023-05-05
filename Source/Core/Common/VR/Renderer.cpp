@@ -4,10 +4,11 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
+#include "Common/VR/API.h"
+#include "Common/VR/Base.h"
 #include "Common/VR/Math.h"
 #include "Common/VR/OpenXRLoader.h"
 #include "Common/VR/Renderer.h"
-#include "Common/VR/VRBase.h"
 
 #include <cstdlib>
 #include <cstring>
@@ -143,16 +144,16 @@ void Renderer::Init(engine_t* engine, bool multiview)
 
   projections = (XrView*)(malloc(MaxNumEyes * sizeof(XrView)));
 
-  RendererCreate(engine->app_state.session, &engine->app_state.renderer,
-                 engine->app_state.view_config[0].recommendedImageRectWidth,
-                 engine->app_state.view_config[0].recommendedImageRectHeight,
-                 multiview);
+	DisplayCreate(engine->app_state.session, &engine->app_state.renderer,
+	              engine->app_state.view_config[0].recommendedImageRectWidth,
+	              engine->app_state.view_config[0].recommendedImageRectHeight,
+	              multiview);
 #ifdef ANDROID
-  if (VR_GetPlatformFlag(VR_PLATFORM_EXTENSION_FOVEATION))
+  if (GetPlatformFlag(PLATFORM_EXTENSION_FOVEATION))
   {
-    RendererSetFoveation(&engine->app_state.instance, &engine->app_state.session,
-                         &engine->app_state.renderer, XR_FOVEATION_LEVEL_HIGH_TOP_FB, 0,
-                         XR_FOVEATION_DYNAMIC_LEVEL_ENABLED_FB);
+	  DisplaySetFoveation(&engine->app_state.instance, &engine->app_state.session,
+	                      &engine->app_state.renderer, XR_FOVEATION_LEVEL_HIGH_TOP_FB, 0,
+	                      XR_FOVEATION_DYNAMIC_LEVEL_ENABLED_FB);
   }
 #endif
   initialized = true;
@@ -160,7 +161,7 @@ void Renderer::Init(engine_t* engine, bool multiview)
 
 void Renderer::Destroy(engine_t* engine)
 {
-  RendererDestroy(&engine->app_state.renderer);
+	DisplayDestroy(&engine->app_state.renderer);
   free(projections);
   initialized = false;
 }
@@ -250,7 +251,7 @@ void Renderer::EndFrame(engine_t* engine)
     int y = config_int[CONFIG_MOUSE_Y];
     int sx = config_int[CONFIG_MOUSE_SIZE];
     int sy = (int)((float)sx * config_float[CONFIG_CANVAS_ASPECT]);
-    RendererMouseCursor(x, y, sx, sy);
+	  DisplayMouseCursor(x, y, sx, sy);
   }
 
   FramebufferRelease(&engine->app_state.renderer.framebuffer[fbo_index]);
@@ -462,7 +463,7 @@ void Renderer::Recenter(engine_t* engine)
   // Create a default stage space to use if SPACE_TYPE_STAGE is not
   // supported, or calls to xrGetReferenceSpaceBoundsRect fail.
   space_info.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_LOCAL;
-  if (VR_GetPlatformFlag(VR_PLATFORM_TRACKING_FLOOR))
+  if (GetPlatformFlag(PLATFORM_TRACKING_FLOOR))
   {
     space_info.poseInReferenceSpace.position.y = -1.6750f;
   }
@@ -478,7 +479,7 @@ void Renderer::Recenter(engine_t* engine)
     OXR(xrCreateReferenceSpace(engine->app_state.session, &space_info,
                                &engine->app_state.stage_space));
     ALOGV("Created stage space");
-    if (VR_GetPlatformFlag(VR_PLATFORM_TRACKING_FLOOR))
+    if (GetPlatformFlag(PLATFORM_TRACKING_FLOOR))
     {
       engine->app_state.current_space = engine->app_state.stage_space;
     }

@@ -57,12 +57,12 @@ void Input::Init(engine_t* engine)
                                    "hand_pose_right", NULL, 1, &right_hand_path);
 
   XrPath interactionProfilePath = XR_NULL_PATH;
-  if (VR_GetPlatformFlag(VR_PLATFORM_CONTROLLER_QUEST))
+  if (GetPlatformFlag(PLATFORM_CONTROLLER_QUEST))
   {
     OXR(xrStringToPath(engine->app_state.instance, "/interaction_profiles/oculus/touch_controller",
                        &interactionProfilePath));
   }
-  else if (VR_GetPlatformFlag(VR_PLATFORM_CONTROLLER_PICO))
+  else if (GetPlatformFlag(PLATFORM_CONTROLLER_PICO))
   {
     OXR(xrStringToPath(engine->app_state.instance, "/interaction_profiles/pico/neo3_controller",
                        &interactionProfilePath));
@@ -73,13 +73,13 @@ void Input::Init(engine_t* engine)
   XrActionSuggestedBinding bindings[32];  // large enough for all profiles
   int curr = 0;
 
-  if (VR_GetPlatformFlag(VR_PLATFORM_CONTROLLER_QUEST))
+  if (GetPlatformFlag(PLATFORM_CONTROLLER_QUEST))
   {
     bindings[curr++] = GetBinding(instance, index_left, "/user/hand/left/input/trigger");
     bindings[curr++] = GetBinding(instance, index_right, "/user/hand/right/input/trigger");
     bindings[curr++] = GetBinding(instance, menu, "/user/hand/left/input/menu/click");
   }
-  else if (VR_GetPlatformFlag(VR_PLATFORM_CONTROLLER_PICO))
+  else if (GetPlatformFlag(PLATFORM_CONTROLLER_PICO))
   {
     bindings[curr++] = GetBinding(instance, index_left, "/user/hand/left/input/trigger/click");
     bindings[curr++] = GetBinding(instance, index_right, "/user/hand/right/input/trigger/click");

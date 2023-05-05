@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "Common/VR/VRBase.h"
+#include "Common/VR/Base.h"
 
 namespace Common::VR
 {
@@ -15,11 +15,11 @@ namespace Common::VR
   void FramebufferRelease(Framebuffer* framebuffer);
   void FramebufferSetCurrent(Framebuffer* framebuffer);
 
-  void RendererCreate(XrSession session, Renderer* renderer, int width, int height, bool multiview);
-  void RendererDestroy(Renderer* renderer);
-  void RendererMouseCursor(int x, int y, int sx, int sy);
+  void DisplayCreate(XrSession session, Display* display, int width, int height, bool multiview);
+  void DisplayDestroy(Display* display);
+  void DisplayMouseCursor(int x, int y, int sx, int sy);
 #ifdef ANDROID
-  void RendererSetFoveation(XrInstance* instance, XrSession* session, Renderer* renderer,
-                            XrFoveationLevelFB level, float offset, XrFoveationDynamicFB dynamic);
+  void DisplaySetFoveation(XrInstance* instance, XrSession* session, Display* display,
+                           XrFoveationLevelFB level, float offset, XrFoveationDynamicFB dynamic);
 #endif
 }

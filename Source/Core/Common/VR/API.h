@@ -31,11 +31,23 @@ namespace Common::VR
     Trigger = 0x20000000  //< Index Trigger engaged
   };
 
+  enum PlatformFlag
+  {
+    PLATFORM_CONTROLLER_PICO,
+    PLATFORM_CONTROLLER_QUEST,
+    PLATFORM_EXTENSION_FOVEATION,
+    PLATFORM_EXTENSION_INSTANCE,
+    PLATFORM_EXTENSION_PERFORMANCE,
+    PLATFORM_TRACKING_FLOOR,
+    PLATFORM_MAX
+  };
+
   // VR app flow integration
   bool IsEnabled();
 #ifdef ANDROID
   void InitOnAndroid(JNIEnv* env, jobject obj, const char* vendor, int version, const char* name);
 #endif
+  bool GetPlatformFlag(PlatformFlag flag);
   void GetResolutionPerEye(int* width, int* height);
   void SetCallback(void (*callback)(int id, int l, int r, float x, float y, float jx, float jy));
   void Start(bool firstStart);
