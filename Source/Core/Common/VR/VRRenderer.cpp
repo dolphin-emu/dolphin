@@ -50,13 +50,13 @@ void VR_GetResolution(engine_t* engine, int* pWidth, int* pHeight)
   {
     // Enumerate the viewport configurations.
     uint32_t viewportConfigTypeCount = 0;
-    OXR(xrEnumerateViewConfigurations(engine->appState.Instance, engine->appState.SystemId, 0,
+    OXR(xrEnumerateViewConfigurations(engine->appState.instance, engine->appState.SystemId, 0,
                                       &viewportConfigTypeCount, NULL));
 
     XrViewConfigurationType* viewportConfigurationTypes =
         (XrViewConfigurationType*)malloc(viewportConfigTypeCount * sizeof(XrViewConfigurationType));
 
-    OXR(xrEnumerateViewConfigurations(engine->appState.Instance, engine->appState.SystemId,
+    OXR(xrEnumerateViewConfigurations(engine->appState.instance, engine->appState.SystemId,
                                       viewportConfigTypeCount, &viewportConfigTypeCount,
                                       viewportConfigurationTypes));
 
@@ -71,13 +71,13 @@ void VR_GetResolution(engine_t* engine, int* pWidth, int* pHeight)
 
       XrViewConfigurationProperties viewportConfig;
       viewportConfig.type = XR_TYPE_VIEW_CONFIGURATION_PROPERTIES;
-      OXR(xrGetViewConfigurationProperties(engine->appState.Instance, engine->appState.SystemId,
+      OXR(xrGetViewConfigurationProperties(engine->appState.instance, engine->appState.SystemId,
                                            viewportConfigType, &viewportConfig));
       ALOGV("FovMutable=%s ConfigurationType %d", viewportConfig.fovMutable ? "true" : "false",
             viewportConfig.viewConfigurationType);
 
       uint32_t viewCount;
-      OXR(xrEnumerateViewConfigurationViews(engine->appState.Instance, engine->appState.SystemId,
+      OXR(xrEnumerateViewConfigurationViews(engine->appState.instance, engine->appState.SystemId,
                                             viewportConfigType, 0, &viewCount, NULL));
 
       if (viewCount > 0)
@@ -91,7 +91,7 @@ void VR_GetResolution(engine_t* engine, int* pWidth, int* pHeight)
           elements[e].next = NULL;
         }
 
-        OXR(xrEnumerateViewConfigurationViews(engine->appState.Instance, engine->appState.SystemId,
+        OXR(xrEnumerateViewConfigurationViews(engine->appState.instance, engine->appState.SystemId,
                                               viewportConfigType, viewCount, &viewCount, elements));
 
         // Cache the view config properties for the selected config type.
@@ -200,7 +200,7 @@ void VR_InitRenderer(engine_t* engine, bool multiview)
 
   // Get the viewport configuration info for the chosen viewport configuration type.
   engine->appState.ViewportConfig.type = XR_TYPE_VIEW_CONFIGURATION_PROPERTIES;
-  OXR(xrGetViewConfigurationProperties(engine->appState.Instance, engine->appState.SystemId,
+  OXR(xrGetViewConfigurationProperties(engine->appState.instance, engine->appState.SystemId,
                                        XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO,
                                        &engine->appState.ViewportConfig));
 
@@ -234,7 +234,7 @@ void VR_InitRenderer(engine_t* engine, bool multiview)
 #ifdef ANDROID
   if (VR_GetPlatformFlag(VR_PLATFORM_EXTENSION_FOVEATION))
   {
-    ovrRenderer_SetFoveation(&engine->appState.Instance, &engine->appState.Session,
+    ovrRenderer_SetFoveation(&engine->appState.instance, &engine->appState.Session,
                              &engine->appState.Renderer, XR_FOVEATION_LEVEL_HIGH_TOP_FB, 0,
                              XR_FOVEATION_DYNAMIC_LEVEL_ENABLED_FB);
   }

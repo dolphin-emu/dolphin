@@ -1,6 +1,7 @@
 // Copyright 2016 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Common/VR/API.h"
 #include "Common/VR/Input.h"
 #include <cstring>
 
@@ -16,7 +17,7 @@ void Input::Init(engine_t* engine)
     return;
 
   // Actions
-  action_set = CreateActionSet(engine->appState.Instance, "running_action_set", "Actionset");
+  action_set = CreateActionSet(engine->appState.instance, "running_action_set", "Actionset");
   index_left = CreateAction(action_set, XR_ACTION_TYPE_BOOLEAN_INPUT, "index_left", "Index left", 0,
                             NULL);
   index_right = CreateAction(action_set, XR_ACTION_TYPE_BOOLEAN_INPUT, "index_right", "Index right",
@@ -48,8 +49,8 @@ void Input::Init(engine_t* engine)
                                         "vibrate_right_feedback", "Vibrate Right Controller", 0,
                                         NULL);
 
-  OXR(xrStringToPath(engine->appState.Instance, "/user/hand/left", &left_hand_path));
-  OXR(xrStringToPath(engine->appState.Instance, "/user/hand/right", &right_hand_path));
+  OXR(xrStringToPath(engine->appState.instance, "/user/hand/left", &left_hand_path));
+  OXR(xrStringToPath(engine->appState.instance, "/user/hand/right", &right_hand_path));
     hand_pose_left = CreateAction(action_set, XR_ACTION_TYPE_POSE_INPUT, "hand_pose_left",
                                   NULL, 1, &left_hand_path);
     hand_pose_right = CreateAction(action_set, XR_ACTION_TYPE_POSE_INPUT,
@@ -58,17 +59,17 @@ void Input::Init(engine_t* engine)
   XrPath interactionProfilePath = XR_NULL_PATH;
   if (VR_GetPlatformFlag(VR_PLATFORM_CONTROLLER_QUEST))
   {
-    OXR(xrStringToPath(engine->appState.Instance, "/interaction_profiles/oculus/touch_controller",
+    OXR(xrStringToPath(engine->appState.instance, "/interaction_profiles/oculus/touch_controller",
                        &interactionProfilePath));
   }
   else if (VR_GetPlatformFlag(VR_PLATFORM_CONTROLLER_PICO))
   {
-    OXR(xrStringToPath(engine->appState.Instance, "/interaction_profiles/pico/neo3_controller",
+    OXR(xrStringToPath(engine->appState.instance, "/interaction_profiles/pico/neo3_controller",
                        &interactionProfilePath));
   }
 
   // Map bindings
-  XrInstance instance = engine->appState.Instance;
+  XrInstance instance = engine->appState.instance;
   XrActionSuggestedBinding bindings[32];  // large enough for all profiles
   int curr = 0;
 
@@ -106,7 +107,7 @@ void Input::Init(engine_t* engine)
   suggested_bindings.interactionProfile = interactionProfilePath;
   suggested_bindings.suggestedBindings = bindings;
   suggested_bindings.countSuggestedBindings = curr;
-  OXR(xrSuggestInteractionProfileBindings(engine->appState.Instance, &suggested_bindings));
+  OXR(xrSuggestInteractionProfileBindings(engine->appState.instance, &suggested_bindings));
 
   // Attach actions
   XrSessionActionSetsAttachInfo attach_info = {};
@@ -170,7 +171,7 @@ void Input::Init(engine_t* engine)
                                             string_buffer));
           char path_str[256];
           uint32_t str_len = 0;
-          OXR(xrPathToString(engine->appState.Instance, action_paths_buffer[a],
+          OXR(xrPathToString(engine->appState.instance, action_paths_buffer[a],
                              (uint32_t)sizeof(path_str), &str_len, path_str));
           ALOGV("  -> path = %lld `%s` -> `%s`", (long long)action_paths_buffer[a], path_str,
                 string_buffer);
@@ -181,9 +182,9 @@ void Input::Init(engine_t* engine)
   input_initialized = true;
 }
 
-uint32_t Input::GetButtonState(int controller_index)
+uint32_t Input::GetButtonState(int controller)
 {
-  switch (controller_index)
+  switch (controller)
   {
   case 0:
     return buttons_left;
@@ -194,14 +195,14 @@ uint32_t Input::GetButtonState(int controller_index)
   }
 }
 
-XrVector2f Input::GetJoystickState(int controller_index)
+XrVector2f Input::GetJoystickState(int controller)
 {
-  return move_joystick_state[controller_index].currentState;
+  return move_joystick_state[controller].currentState;
 }
 
-XrPosef Input::GetPose(int controller_index)
+XrPosef Input::GetPose(int controller)
 {
-  return controller_pose[controller_index].pose;
+  return controller_pose[controller].pose;
 }
 
 void Input::Update(engine_t* engine)

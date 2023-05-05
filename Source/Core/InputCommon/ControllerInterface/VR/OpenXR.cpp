@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Common/VR/Input.h"
+#include "Common/VR/API.h"
 
 #include "InputCommon/ControllerInterface/Touch/InputOverrider.h"
 #include "InputCommon/ControllerInterface/VR/OpenXR.h"

@@ -414,9 +414,9 @@ void OGLGfx::BindBackbuffer(const ClearColor& clear_color)
   CheckForSurfaceResize();
   SetAndClearFramebuffer(m_system_framebuffer.get(), clear_color);
 
-  if (IsVREnabled())
+  if (Common::VR::IsEnabled())
   {
-    BindVRFramebuffer();
+    Common::VR::BindFramebuffer();
   }
 }
 
@@ -436,24 +436,24 @@ void OGLGfx::PresentBackbuffer()
   }
 
   // Swap the back and front buffers, presenting the image.
-  if (IsVREnabled())
+  if (Common::VR::IsEnabled())
   {
     if (!m_vr_initialized)
     {
-      EnterVR(true);
+      Common::VR::Start(true);
       m_vr_initialized = true;
     }
 
     if (m_vr_frame_started)
     {
-      PostVRFrameRender();
-      FinishVRRender();
+      Common::VR::PostFrameRender();
+      Common::VR::FinishRender();
       m_vr_frame_started = false;
     }
 
-    if (StartVRRender())
+    if (Common::VR::StartRender())
     {
-      PreVRFrameRender(0);
+      Common::VR::PreFrameRender(0);
       m_vr_frame_started = true;
     }
   }

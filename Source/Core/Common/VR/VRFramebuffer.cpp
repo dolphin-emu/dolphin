@@ -413,7 +413,7 @@ ovrApp
 void ovrApp_Clear(ovrApp* app)
 {
   app->Focused = false;
-  app->Instance = XR_NULL_HANDLE;
+  app->instance = XR_NULL_HANDLE;
   app->Session = XR_NULL_HANDLE;
   memset(&app->ViewportConfig, 0, sizeof(XrViewConfigurationProperties));
   memset(&app->ViewConfigurationView, 0, ovrMaxNumEyes * sizeof(XrViewConfigurationView));
@@ -461,7 +461,7 @@ void ovrApp_HandleSessionStateChanges(ovrApp* app, XrSessionState state)
       XrPerfSettingsLevelEXT gpuPerfLevel = XR_PERF_SETTINGS_LEVEL_PERFORMANCE_MAX_EXT;
 
       PFN_xrPerfSettingsSetPerformanceLevelEXT pfnPerfSettingsSetPerformanceLevelEXT = NULL;
-      OXR(xrGetInstanceProcAddr(app->Instance, "xrPerfSettingsSetPerformanceLevelEXT",
+      OXR(xrGetInstanceProcAddr(app->instance, "xrPerfSettingsSetPerformanceLevelEXT",
                                 (PFN_xrVoidFunction*)(&pfnPerfSettingsSetPerformanceLevelEXT)));
 
       OXR(pfnPerfSettingsSetPerformanceLevelEXT(app->Session, XR_PERF_SETTINGS_DOMAIN_CPU_EXT,
@@ -470,7 +470,7 @@ void ovrApp_HandleSessionStateChanges(ovrApp* app, XrSessionState state)
                                                 gpuPerfLevel));
 
       PFN_xrSetAndroidApplicationThreadKHR pfnSetAndroidApplicationThreadKHR = NULL;
-      OXR(xrGetInstanceProcAddr(app->Instance, "xrSetAndroidApplicationThreadKHR",
+      OXR(xrGetInstanceProcAddr(app->instance, "xrSetAndroidApplicationThreadKHR",
                                 (PFN_xrVoidFunction*)(&pfnSetAndroidApplicationThreadKHR)));
 
       OXR(pfnSetAndroidApplicationThreadKHR(
@@ -501,7 +501,7 @@ int ovrApp_HandleXrEvents(ovrApp* app)
     baseEventHeader->type = XR_TYPE_EVENT_DATA_BUFFER;
     baseEventHeader->next = NULL;
     XrResult r;
-    OXR(r = xrPollEvent(app->Instance, &eventDataBuffer));
+    OXR(r = xrPollEvent(app->instance, &eventDataBuffer));
     if (r != XR_SUCCESS)
     {
       break;

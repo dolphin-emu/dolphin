@@ -246,7 +246,7 @@ Presenter::ConvertStereoRectangle(const MathUtil::Rectangle<int>& rc) const
 float Presenter::CalculateDrawAspectRatio() const
 {
   auto aspect_mode = g_ActiveConfig.aspect_mode;
-  if (IsVREnabled())
+  if (Common::VR::IsEnabled())
   {
     aspect_mode = AspectMode::AnalogWide;
   }

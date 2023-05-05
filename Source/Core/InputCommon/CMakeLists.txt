@@ -194,5 +194,3 @@ if(MSVC)
   # Add precompiled header
   target_link_libraries(inputcommon PRIVATE use_pch)
 endif()
-
-include_directories(../../../Externals/openxr)

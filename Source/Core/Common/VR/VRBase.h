@@ -100,7 +100,7 @@ typedef struct
 {
   int Focused;
 
-  XrInstance Instance;
+  XrInstance instance;
   XrSession Session;
   XrViewConfigurationProperties ViewportConfig;
   XrViewConfigurationView ViewConfigurationView[ovrMaxNumEyes];
@@ -124,8 +124,8 @@ typedef struct
 #ifdef ANDROID
 typedef struct
 {
-  JavaVM* Vm;
-  jobject ActivityObject;
+  JavaVM* vm;
+  jobject activity;
   JNIEnv* Env;
 } vrJava;
 #endif

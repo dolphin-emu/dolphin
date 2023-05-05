@@ -40,8 +40,8 @@ void VR_Init(void* system, const char* name, int version)
     memset(&loaderInitializeInfo, 0, sizeof(loaderInitializeInfo));
     loaderInitializeInfo.type = XR_TYPE_LOADER_INIT_INFO_ANDROID_KHR;
     loaderInitializeInfo.next = NULL;
-    loaderInitializeInfo.applicationVM = java->Vm;
-    loaderInitializeInfo.applicationContext = java->ActivityObject;
+    loaderInitializeInfo.applicationVM = java->vm;
+    loaderInitializeInfo.applicationContext = java->activity;
     xrInitializeLoaderKHR((XrLoaderInitInfoBaseHeaderKHR*)&loaderInitializeInfo);
   }
 #endif
@@ -96,26 +96,26 @@ void VR_Init(void* system, const char* name, int version)
   if (VR_GetPlatformFlag(VR_PLATFORM_EXTENSION_INSTANCE))
   {
     vrJava* java = (vrJava*)system;
-    instanceCreateInfoAndroid.applicationVM = java->Vm;
-    instanceCreateInfoAndroid.applicationActivity = java->ActivityObject;
+    instanceCreateInfoAndroid.applicationVM = java->vm;
+    instanceCreateInfoAndroid.applicationActivity = java->activity;
     instanceCreateInfo.next = (XrBaseInStructure*)&instanceCreateInfoAndroid;
   }
 #endif
 
   XrResult initResult;
-  OXR(initResult = xrCreateInstance(&instanceCreateInfo, &vr_engine.appState.Instance));
+  OXR(initResult = xrCreateInstance(&instanceCreateInfo, &vr_engine.appState.instance));
   if (initResult != XR_SUCCESS)
   {
     ALOGE("Failed to create XR instance: %d.", initResult);
     exit(1);
   }
 
-  XRLoadInstanceFunctions(vr_engine.appState.Instance);
+  XRLoadInstanceFunctions(vr_engine.appState.instance);
 
   XrInstanceProperties instanceInfo;
   instanceInfo.type = XR_TYPE_INSTANCE_PROPERTIES;
   instanceInfo.next = NULL;
-  OXR(xrGetInstanceProperties(vr_engine.appState.Instance, &instanceInfo));
+  OXR(xrGetInstanceProperties(vr_engine.appState.instance, &instanceInfo));
   ALOGV("Runtime %s: Version : %u.%u.%u", instanceInfo.runtimeName,
         XR_VERSION_MAJOR(instanceInfo.runtimeVersion),
         XR_VERSION_MINOR(instanceInfo.runtimeVersion),
@@ -128,7 +128,7 @@ void VR_Init(void* system, const char* name, int version)
   systemGetInfo.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
 
   XrSystemId systemId;
-  OXR(initResult = xrGetSystem(vr_engine.appState.Instance, &systemGetInfo, &systemId));
+  OXR(initResult = xrGetSystem(vr_engine.appState.instance, &systemGetInfo, &systemId));
   if (initResult != XR_SUCCESS)
   {
     ALOGE("Failed to get system.");
@@ -138,12 +138,12 @@ void VR_Init(void* system, const char* name, int version)
   // Get the graphics requirements.
 #ifdef XR_USE_GRAPHICS_API_OPENGL_ES
   PFN_xrGetOpenGLESGraphicsRequirementsKHR pfnGetOpenGLESGraphicsRequirementsKHR = NULL;
-  OXR(xrGetInstanceProcAddr(vr_engine.appState.Instance, "xrGetOpenGLESGraphicsRequirementsKHR",
+  OXR(xrGetInstanceProcAddr(vr_engine.appState.instance, "xrGetOpenGLESGraphicsRequirementsKHR",
                             (PFN_xrVoidFunction*)(&pfnGetOpenGLESGraphicsRequirementsKHR)));
 
   XrGraphicsRequirementsOpenGLESKHR graphicsRequirements = {};
   graphicsRequirements.type = XR_TYPE_GRAPHICS_REQUIREMENTS_OPENGL_ES_KHR;
-  OXR(pfnGetOpenGLESGraphicsRequirementsKHR(vr_engine.appState.Instance, systemId,
+  OXR(pfnGetOpenGLESGraphicsRequirementsKHR(vr_engine.appState.instance, systemId,
                                             &graphicsRequirements));
 #endif
 
@@ -158,7 +158,7 @@ void VR_Destroy(engine_t* engine)
 {
   if (engine == &vr_engine)
   {
-    xrDestroyInstance(engine->appState.Instance);
+    xrDestroyInstance(engine->appState.instance);
     ovrApp_Destroy(&engine->appState);
   }
 }
@@ -194,7 +194,7 @@ void VR_EnterVR(engine_t* engine)
   sessionCreateInfo.systemId = engine->appState.SystemId;
 
   XrResult initResult;
-  OXR(initResult = xrCreateSession(engine->appState.Instance, &sessionCreateInfo,
+  OXR(initResult = xrCreateSession(engine->appState.instance, &sessionCreateInfo,
                                    &engine->appState.Session));
   if (initResult != XR_SUCCESS)
   {

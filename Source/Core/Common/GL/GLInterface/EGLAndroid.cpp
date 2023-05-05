@@ -18,10 +18,10 @@ EGLNativeWindowType GLContextEGLAndroid::GetEGLNativeWindow(EGLConfig config)
   ANativeWindow_setBuffersGeometry(static_cast<ANativeWindow*>(m_wsi.render_surface), 0, 0, format);
   m_backbuffer_width = ANativeWindow_getWidth(static_cast<ANativeWindow*>(m_wsi.render_surface));
   m_backbuffer_height = ANativeWindow_getHeight(static_cast<ANativeWindow*>(m_wsi.render_surface));
-  if (IsVREnabled())
+  if (Common::VR::IsEnabled())
   {
     int w, h;
-    GetVRResolutionPerEye(&w, &h);
+    Common::VR::GetResolutionPerEye(&w, &h);
     m_backbuffer_width = w;
     m_backbuffer_height = h;
   }

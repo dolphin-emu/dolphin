@@ -8,6 +8,8 @@
 #include "Common/VR/VRBase.h"
 #include "Common/VR/VRRenderer.h"
 
+namespace Common::VR
+{
 Common::VR::Input* s_module_input = NULL;
 
 static void (*UpdateInput)(int id, int l, int r, float x, float y, float jx, float jy);
@@ -20,7 +22,7 @@ VR app flow integration
 ================================================================================
 */
 
-bool IsVREnabled()
+bool IsEnabled()
 {
 #ifdef OPENXR
   return true;
@@ -30,7 +32,7 @@ bool IsVREnabled()
 }
 
 #ifdef ANDROID
-void InitVROnAndroid(JNIEnv* env, jobject obj, const char* vendor, int version, const char* name)
+void InitOnAndroid(JNIEnv* env, jobject obj, const char* vendor, int version, const char* name)
 {
   // Set platform flags
   if (strcmp(vendor, "Pico") == 0)
@@ -51,15 +53,28 @@ void InitVROnAndroid(JNIEnv* env, jobject obj, const char* vendor, int version, 
 
   // Init VR
   vrJava java;
-  java.Vm = vm;
-  java.ActivityObject = env->NewGlobalRef(obj);
+  java.vm = vm;
+  java.activity = env->NewGlobalRef(obj);
   VR_Init(&java, name, version);
   s_module_input = new Common::VR::Input();
   ALOGV("OpenXR - VR_Init called");
 }
 #endif
 
-void EnterVR(bool firstStart)
+void GetResolutionPerEye(int* width, int* height)
+{
+  if (VR_GetEngine()->appState.instance)
+  {
+    VR_GetResolution(VR_GetEngine(), width, height);
+  }
+}
+
+void SetCallback(void (*callback)(int id, int l, int r, float x, float y, float jx, float jy))
+{
+  UpdateInput = callback;
+}
+
+void Start(bool firstStart)
 {
   if (firstStart)
   {
@@ -72,19 +87,6 @@ void EnterVR(bool firstStart)
   ALOGV("OpenXR - Viewport invalidated");
 }
 
-void GetVRResolutionPerEye(int* width, int* height)
-{
-  if (VR_GetEngine()->appState.Instance)
-  {
-    VR_GetResolution(VR_GetEngine(), width, height);
-  }
-}
-
-void SetVRCallback(void (*callback)(int id, int l, int r, float x, float y, float jx, float jy))
-{
-  UpdateInput = callback;
-}
-
 /*
 ================================================================================
 
@@ -93,12 +95,12 @@ VR rendering integration
 ================================================================================
 */
 
-void BindVRFramebuffer()
+void BindFramebuffer()
 {
   VR_BindFramebuffer(VR_GetEngine());
 }
 
-bool StartVRRender()
+bool StartRender()
 {
   if (!VR_GetConfig(VR_CONFIG_VIEWPORT_VALID))
   {
@@ -128,22 +130,23 @@ bool StartVRRender()
   return false;
 }
 
-void FinishVRRender()
+void FinishRender()
 {
   VR_FinishFrame(VR_GetEngine());
 }
 
-void PreVRFrameRender(int fboIndex)
+void PreFrameRender(int fbo_index)
 {
-  VR_BeginFrame(VR_GetEngine(), fboIndex);
+  VR_BeginFrame(VR_GetEngine(), fbo_index);
 }
 
-void PostVRFrameRender()
+void PostFrameRender()
 {
   VR_EndFrame(VR_GetEngine());
 }
 
-int GetVRFBOIndex()
+int GetFBOIndex()
 {
   return VR_GetConfig(VR_CONFIG_CURRENT_FBO);
+}
 }

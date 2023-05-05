@@ -518,10 +518,10 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_InitializeVR
                                                                                  jobject activity,
                                                                                  jstring systemname)
 {
-  if (IsVREnabled())
+  if (Common::VR::IsEnabled())
   {
-    InitVROnAndroid(env, activity, GetJString(env, systemname).c_str(), 1, "Dolphin");
-    SetVRCallback(ciface::VR::UpdateInput);
+    Common::VR::InitOnAndroid(env, activity, GetJString(env, systemname).c_str(), 1, "Dolphin");
+	Common::VR::SetCallback(ciface::VR::UpdateInput);
     ciface::VR::RegisterInputOverrider(0);
   }
 }
