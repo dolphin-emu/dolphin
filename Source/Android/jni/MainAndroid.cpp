@@ -26,7 +26,7 @@
 #include "Common/Logging/LogManager.h"
 #include "Common/MsgHandler.h"
 #include "Common/ScopeGuard.h"
-#include "Common/VR/DolphinVR.h"
+#include "Common/VR/API.h"
 #include "Common/Version.h"
 #include "Common/WindowSystemInfo.h"
 
@@ -521,7 +521,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_InitializeVR
   if (IsVREnabled())
   {
     InitVROnAndroid(env, activity, GetJString(env, systemname).c_str(), 1, "Dolphin");
-    SetVRCallbacks(ciface::VR::UpdateInput);
+    SetVRCallback(ciface::VR::UpdateInput);
     ciface::VR::RegisterInputOverrider(0);
   }
 }

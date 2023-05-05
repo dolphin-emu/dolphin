@@ -421,7 +421,7 @@ void ovrApp_Clear(ovrApp* app)
   app->HeadSpace = XR_NULL_HANDLE;
   app->StageSpace = XR_NULL_HANDLE;
   app->FakeSpace = XR_NULL_HANDLE;
-  app->CurrentSpace = XR_NULL_HANDLE;
+  app->current_space = XR_NULL_HANDLE;
   app->SessionActive = false;
   app->SwapInterval = 1;
   memset(app->Layers, 0, sizeof(ovrCompositorLayer_Union) * ovrMaxLayerCount);

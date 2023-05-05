@@ -9,5 +9,5 @@ namespace ciface::VR
 void RegisterInputOverrider(int controller_index);
 void UnregisterInputOverrider(int controller_index);
 
-void UpdateInput(int controller_index);
+void UpdateInput(int id, int l, int r, float x, float y, float jx, float jy);
 }  // namespace ciface::VR

@@ -14,7 +14,7 @@ void InitVROnAndroid(JNIEnv* env, jobject obj, const char* vendor, int version, 
 #endif
 void EnterVR(bool firstStart);
 void GetVRResolutionPerEye(int* width, int* height);
-void SetVRCallbacks(void (*callback)(int controller_index));
+void SetVRCallback(void (*callback)(int id, int l, int r, float x, float y, float jx, float jy));
 
 // VR rendering integration
 void BindVRFramebuffer();

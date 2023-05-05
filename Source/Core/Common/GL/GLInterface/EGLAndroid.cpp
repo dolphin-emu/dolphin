@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/GL/GLInterface/EGLAndroid.h"
-#include "Common/VR/DolphinVR.h"
+#include "Common/VR/API.h"
 
 #include <android/native_window.h>
 

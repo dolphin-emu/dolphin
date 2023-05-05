@@ -222,7 +222,7 @@ void VR_LeaveVR(engine_t* engine)
       OXR(xrDestroySpace(engine->appState.StageSpace));
     }
     OXR(xrDestroySpace(engine->appState.FakeSpace));
-    engine->appState.CurrentSpace = XR_NULL_HANDLE;
+    engine->appState.current_space = XR_NULL_HANDLE;
     OXR(xrDestroySession(engine->appState.Session));
     engine->appState.Session = XR_NULL_HANDLE;
   }

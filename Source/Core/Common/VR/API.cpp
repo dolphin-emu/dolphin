@@ -3,12 +3,14 @@
 
 #include <cstring>
 
-#include "Common/VR/DolphinVR.h"
+#include "Common/VR/API.h"
+#include "Common/VR/Input.h"
 #include "Common/VR/VRBase.h"
-#include "Common/VR/VRInput.h"
 #include "Common/VR/VRRenderer.h"
 
-static void (*UpdateInput)(int controller_index);
+Common::VR::Input* s_module_input = NULL;
+
+static void (*UpdateInput)(int id, int l, int r, float x, float y, float jx, float jy);
 
 /*
 ================================================================================
@@ -52,6 +54,7 @@ void InitVROnAndroid(JNIEnv* env, jobject obj, const char* vendor, int version, 
   java.Vm = vm;
   java.ActivityObject = env->NewGlobalRef(obj);
   VR_Init(&java, name, version);
+  s_module_input = new Common::VR::Input();
   ALOGV("OpenXR - VR_Init called");
 }
 #endif
@@ -62,7 +65,7 @@ void EnterVR(bool firstStart)
   {
     engine_t* engine = VR_GetEngine();
     VR_EnterVR(engine);
-    IN_VRInit(engine);
+    s_module_input->Init(engine);
     ALOGV("OpenXR - EnterVR called");
   }
   VR_SetConfig(VR_CONFIG_VIEWPORT_VALID, false);
@@ -77,7 +80,7 @@ void GetVRResolutionPerEye(int* width, int* height)
   }
 }
 
-void SetVRCallbacks(void (*callback)(int controller_index))
+void SetVRCallback(void (*callback)(int id, int l, int r, float x, float y, float jx, float jy))
 {
   UpdateInput = callback;
 }
@@ -105,10 +108,21 @@ bool StartVRRender()
 
   if (VR_InitFrame(VR_GetEngine()))
   {
+    // Set render canvas
     VR_SetConfigFloat(VR_CONFIG_CANVAS_DISTANCE, 4.0f);
     VR_SetConfigFloat(VR_CONFIG_CANVAS_ASPECT, 16.0f / 9.0f / 2.0f);
     VR_SetConfig(VR_CONFIG_MODE, VR_MODE_MONO_SCREEN);
-    UpdateInput(0);
+
+    // Update controllers
+    s_module_input->Update(VR_GetEngine());
+    auto pose = s_module_input->GetPose(1);
+    int l = s_module_input->GetButtonState(0);
+    int r = s_module_input->GetButtonState(1);
+	auto joystick = s_module_input->GetJoystickState(0);
+    auto angles = XrQuaternionf_ToEulerAngles(pose.orientation);
+    float x = -tan(ToRadians(angles.y - VR_GetConfigFloat(VR_CONFIG_MENU_YAW)));
+    float y = -tan(ToRadians(angles.x)) * VR_GetConfigFloat(VR_CONFIG_CANVAS_ASPECT);
+    UpdateInput(0, l, r, x, y, joystick.x, joystick.y);
     return true;
   }
   return false;

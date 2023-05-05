@@ -36,16 +36,16 @@ add_library(common
   Debug/Threads.h
   Debug/Watches.cpp
   Debug/Watches.h
-  VR/DolphinVR.cpp
-  VR/DolphinVR.h
+  VR/API.cpp
+  VR/API.h
+  VR/Input.cpp
+  VR/Input.h
   VR/OpenXRLoader.cpp
   VR/OpenXRLoader.h
   VR/VRBase.cpp
   VR/VRBase.h
   VR/VRFramebuffer.cpp
   VR/VRFramebuffer.h
-  VR/VRInput.cpp
-  VR/VRInput.h
   VR/VRMath.cpp
   VR/VRMath.h
   VR/VRRenderer.cpp

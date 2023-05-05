@@ -108,7 +108,7 @@ typedef struct
   XrSpace HeadSpace;
   XrSpace StageSpace;
   XrSpace FakeSpace;
-  XrSpace CurrentSpace;
+  XrSpace current_space;
   int SessionActive;
 
   int SwapInterval;
@@ -134,7 +134,7 @@ typedef struct
 {
   uint64_t frameIndex;
   ovrApp appState;
-  XrTime predictedDisplayTime;
+  XrTime predicted_display_time;
 } engine_t;
 
 enum VRPlatformFlag

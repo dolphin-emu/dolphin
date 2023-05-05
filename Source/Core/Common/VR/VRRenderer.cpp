@@ -6,7 +6,6 @@
 
 #include "Common/VR/OpenXRLoader.h"
 #include "Common/VR/VRBase.h"
-#include "Common/VR/VRInput.h"
 #include "Common/VR/VRRenderer.h"
 
 #include <cstdlib>
@@ -36,7 +35,7 @@ void VR_UpdateStageBounds(ovrApp* pappState)
     stageBounds.width = 1.0f;
     stageBounds.height = 1.0f;
 
-    pappState->CurrentSpace = pappState->FakeSpace;
+    pappState->current_space = pappState->FakeSpace;
   }
 
   ALOGV("Stage bounds: width = %f, depth %f", stageBounds.width, stageBounds.height);
@@ -132,12 +131,12 @@ void VR_Recenter(engine_t* engine)
   XrReferenceSpaceCreateInfo spaceInfo = {};
   spaceInfo.type = XR_TYPE_REFERENCE_SPACE_CREATE_INFO;
   spaceInfo.poseInReferenceSpace.orientation.w = 1.0f;
-  if (engine->appState.CurrentSpace != XR_NULL_HANDLE)
+  if (engine->appState.current_space != XR_NULL_HANDLE)
   {
     XrSpaceLocation loc = {};
     loc.type = XR_TYPE_SPACE_LOCATION;
-    OXR(xrLocateSpace(engine->appState.HeadSpace, engine->appState.CurrentSpace,
-                      engine->predictedDisplayTime, &loc));
+    OXR(xrLocateSpace(engine->appState.HeadSpace, engine->appState.current_space,
+                      engine->predicted_display_time, &loc));
     hmdorientation = XrQuaternionf_ToEulerAngles(loc.pose.orientation);
     float yaw = hmdorientation.y;
 
@@ -168,7 +167,7 @@ void VR_Recenter(engine_t* engine)
   }
   OXR(xrCreateReferenceSpace(engine->appState.Session, &spaceInfo, &engine->appState.FakeSpace));
   ALOGV("Created fake stage space from local space with offset");
-  engine->appState.CurrentSpace = engine->appState.FakeSpace;
+  engine->appState.current_space = engine->appState.FakeSpace;
 
   if (stageSupported)
   {
@@ -178,7 +177,7 @@ void VR_Recenter(engine_t* engine)
     ALOGV("Created stage space");
     if (VR_GetPlatformFlag(VR_PLATFORM_TRACKING_FLOOR))
     {
-      engine->appState.CurrentSpace = engine->appState.StageSpace;
+      engine->appState.current_space = engine->appState.StageSpace;
     }
   }
 
@@ -221,7 +220,7 @@ void VR_InitRenderer(engine_t* engine, bool multiview)
 
   free(referenceSpaces);
 
-  if (engine->appState.CurrentSpace == XR_NULL_HANDLE)
+  if (engine->appState.current_space == XR_NULL_HANDLE)
   {
     VR_Recenter(engine);
   }
@@ -278,7 +277,7 @@ bool VR_InitFrame(engine_t* engine)
   frameState.next = NULL;
 
   OXR(xrWaitFrame(engine->appState.Session, &waitFrameInfo, &frameState));
-  engine->predictedDisplayTime = frameState.predictedDisplayTime;
+  engine->predicted_display_time = frameState.predictedDisplayTime;
 
   // Get the HMD pose, predicted for the middle of the time period during which
   // the new eye images will be displayed. The number of frames predicted ahead
@@ -293,7 +292,7 @@ bool VR_InitFrame(engine_t* engine)
   projectionInfo.type = XR_TYPE_VIEW_LOCATE_INFO;
   projectionInfo.viewConfigurationType = engine->appState.ViewportConfig.viewConfigurationType;
   projectionInfo.displayTime = frameState.predictedDisplayTime;
-  projectionInfo.space = engine->appState.CurrentSpace;
+  projectionInfo.space = engine->appState.current_space;
 
   XrViewState viewState = {XR_TYPE_VIEW_STATE, NULL};
 
@@ -314,10 +313,7 @@ bool VR_InitFrame(engine_t* engine)
     invViewTransform[eye] = projections[eye].pose;
   }
 
-  // Update HMD and controllers
   hmdorientation = XrQuaternionf_ToEulerAngles(invViewTransform[0].orientation);
-  IN_VRInputFrame(engine);
-
   engine->appState.LayerCount = 0;
   memset(engine->appState.Layers, 0, sizeof(ovrCompositorLayer_Union) * ovrMaxLayerCount);
   return true;
@@ -391,7 +387,7 @@ void VR_FinishFrame(engine_t* engine)
     projection_layer.type = XR_TYPE_COMPOSITION_LAYER_PROJECTION;
     projection_layer.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
     projection_layer.layerFlags |= XR_COMPOSITION_LAYER_CORRECT_CHROMATIC_ABERRATION_BIT;
-    projection_layer.space = engine->appState.CurrentSpace;
+    projection_layer.space = engine->appState.current_space;
     projection_layer.viewCount = ovrMaxNumEyes;
     projection_layer.views = projection_layer_elements;
 
@@ -414,7 +410,7 @@ void VR_FinishFrame(engine_t* engine)
     XrCompositionLayerCylinderKHR cylinder_layer = {};
     cylinder_layer.type = XR_TYPE_COMPOSITION_LAYER_CYLINDER_KHR;
     cylinder_layer.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
-    cylinder_layer.space = engine->appState.CurrentSpace;
+    cylinder_layer.space = engine->appState.current_space;
     memset(&cylinder_layer.subImage, 0, sizeof(XrSwapchainSubImage));
     cylinder_layer.subImage.imageRect.offset.x = 0;
     cylinder_layer.subImage.imageRect.offset.y = 0;
