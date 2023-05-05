@@ -159,8 +159,8 @@
     <ClInclude Include="Common\Version.h" />
     <ClInclude Include="Common\VR\API.h" />
     <ClInclude Include="Common\VR\Base.h" />
+    <ClInclude Include="Common\VR\Controllers.h" />
     <ClInclude Include="Common\VR\Display.h" />
-    <ClInclude Include="Common\VR\Input.h" />
     <ClInclude Include="Common\VR\Math.h" />
     <ClInclude Include="Common\VR\OpenXRLoader.h" />
     <ClInclude Include="Common\VR\Renderer.h" />
@@ -802,8 +802,8 @@
     <ClCompile Include="Common\UPnP.cpp" />
     <ClCompile Include="Common\VR\API.cpp" />
     <ClCompile Include="Common\VR\Base.cpp" />
+    <ClCompile Include="Common\VR\Controllers.cpp" />
     <ClCompile Include="Common\VR\Display.cpp" />
-    <ClCompile Include="Common\VR\Input.cpp" />
     <ClCompile Include="Common\VR\Math.cpp" />
     <ClCompile Include="Common\VR\OpenXRLoader.cpp" />
     <ClCompile Include="Common\VR\Renderer.cpp" />
