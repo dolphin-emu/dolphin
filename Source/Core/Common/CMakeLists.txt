@@ -46,10 +46,10 @@ add_library(common
   VR/Math.h
   VR/OpenXRLoader.cpp
   VR/OpenXRLoader.h
+  VR/Renderer.cpp
+  VR/Renderer.h
   VR/VRBase.cpp
   VR/VRBase.h
-  VR/VRRenderer.cpp
-  VR/VRRenderer.h
   DebugInterface.h
   DynamicLibrary.cpp
   DynamicLibrary.h
