@@ -427,7 +427,9 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
   protected void onPause()
   {
     super.onPause();
-    if (VirtualReality.isActive())
+
+    // Workaround for a random ANR bug (so the headset doesn't freeze)
+    if (VirtualReality.isActive() && !VirtualReality.isInitialized())
     {
       System.exit(0);
     }

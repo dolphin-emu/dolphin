@@ -208,10 +208,6 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
   {
     // We purposely don't do anything here.
     // All work is done in surfaceChanged, which we are guaranteed to get even for surface creation.
-    if (VirtualReality.isActive())
-    {
-      NativeLibrary.InitializeVR(NativeLibrary.getEmulationActivity(), Build.MANUFACTURER);
-    }
   }
 
   @Override
@@ -222,6 +218,13 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
     if (mRunWhenSurfaceIsValid)
     {
       runWithValidSurface();
+    }
+
+    // Initialize or update OpenXR flow.
+    if (VirtualReality.isActive())
+    {
+      NativeLibrary.InitializeVR(NativeLibrary.getEmulationActivity(), Build.MANUFACTURER);
+      VirtualReality.setInitialized();
     }
   }
 

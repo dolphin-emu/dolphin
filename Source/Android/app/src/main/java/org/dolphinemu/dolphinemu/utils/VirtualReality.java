@@ -11,6 +11,7 @@ import android.os.Build;
 import android.os.Bundle;
 
 import org.dolphinemu.dolphinemu.BuildConfig;
+import org.dolphinemu.dolphinemu.NativeLibrary;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -22,6 +23,10 @@ import java.util.Locale;
 public class VirtualReality
 {
   private static final String VR_PACKAGE = "org.dolphinemu.dolphinemu.vr";
+
+  private static boolean isInitialized = false;
+
+  private static boolean isRestored = false;
 
   public static boolean isActive()
   {
@@ -71,6 +76,7 @@ public class VirtualReality
   public static void openIntent(Context context, String[] filePaths)
   {
     Intent launcher = context.getPackageManager().getLaunchIntentForPackage(VR_PACKAGE);
+    launcher.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
 
     if (VirtualReality.isLegacyPath(filePaths[0]))
     {
@@ -96,8 +102,26 @@ public class VirtualReality
     context.getApplicationContext().startActivity(launcher);
   }
 
+  public static boolean isInitialized()
+  {
+    return isInitialized;
+  }
+
+  public static void setInitialized()
+  {
+    isInitialized = true;
+  }
+
   public static void restoreConfig(Context context, Bundle extras)
   {
+    // Do not allow opening a second instance over
+    if (isRestored)
+    {
+      isRestored = false;
+      NativeLibrary.finishEmulationActivity();
+      return;
+    }
+
     File root = DirectoryInitialization.getUserDirectoryPath(context);
     File config = new File(root, "/Config/");
     config.mkdirs();
@@ -120,6 +144,7 @@ public class VirtualReality
         e.printStackTrace();
       }
     }
+    isRestored = true;
   }
 
   private static void serializeConfigs(Intent intent)

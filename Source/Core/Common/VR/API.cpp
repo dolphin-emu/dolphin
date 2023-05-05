@@ -38,6 +38,13 @@ bool IsEnabled()
 #ifdef ANDROID
 void InitOnAndroid(JNIEnv* env, jobject obj, const char* vendor, int version, const char* name)
 {
+  // Do not allow second initialization
+  if (s_platform_flags[PLATFORM_STATUS_INITIALIZED])
+  {
+    s_module_renderer->SetConfigInt(ConfigInt::CONFIG_VIEWPORT_VALID, false);
+    return;
+  }
+
   // Set platform flags
   if (strcmp(vendor, "Pico") == 0)
   {
@@ -55,6 +62,7 @@ void InitOnAndroid(JNIEnv* env, jobject obj, const char* vendor, int version, co
   s_module_base = new Base();
   s_module_input = new Input();
   s_module_renderer = new Renderer();
+  s_platform_flags[PLATFORM_STATUS_INITIALIZED] = true;
 
   // Get Java VM
   JavaVM* vm;
