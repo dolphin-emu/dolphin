@@ -7,79 +7,80 @@
 
 namespace Common::VR
 {
-  enum ConfigFloat
-  {
-    // 2D canvas positioning
-    CONFIG_CANVAS_DISTANCE,
-    CONFIG_MENU_PITCH,
-    CONFIG_MENU_YAW,
-    CONFIG_RECENTER_YAW,
-    CONFIG_CANVAS_ASPECT,
+enum ConfigFloat
+{
+  // 2D canvas positioning
+  CONFIG_CANVAS_DISTANCE,
+  CONFIG_MENU_PITCH,
+  CONFIG_MENU_YAW,
+  CONFIG_RECENTER_YAW,
+  CONFIG_CANVAS_ASPECT,
 
-    CONFIG_FLOAT_MAX
-  };
+  CONFIG_FLOAT_MAX
+};
 
-  enum ConfigInt
-  {
-    // switching between 2D and 3D
-    CONFIG_MODE,
-    // mouse cursor
-    CONFIG_MOUSE_SIZE,
-    CONFIG_MOUSE_X,
-    CONFIG_MOUSE_Y,
-    // viewport setup
-    CONFIG_VIEWPORT_WIDTH,
-    CONFIG_VIEWPORT_HEIGHT,
-    CONFIG_VIEWPORT_VALID,
-    // render status
-    CONFIG_CURRENT_FBO,
+enum ConfigInt
+{
+  // switching between 2D and 3D
+  CONFIG_MODE,
+  // mouse cursor
+  CONFIG_MOUSE_SIZE,
+  CONFIG_MOUSE_X,
+  CONFIG_MOUSE_Y,
+  // viewport setup
+  CONFIG_VIEWPORT_WIDTH,
+  CONFIG_VIEWPORT_HEIGHT,
+  CONFIG_VIEWPORT_VALID,
+  // render status
+  CONFIG_CURRENT_FBO,
 
-    // end
-    CONFIG_INT_MAX
-  };
+  // end
+  CONFIG_INT_MAX
+};
 
-  enum RenderMode
-  {
-    RENDER_MODE_MONO_SCREEN,
-    RENDER_MODE_STEREO_SCREEN,
-    RENDER_MODE_MONO_6DOF,
-    RENDER_MODE_STEREO_6DOF
-  };
+enum RenderMode
+{
+  RENDER_MODE_MONO_SCREEN,
+  RENDER_MODE_STEREO_SCREEN,
+  RENDER_MODE_MONO_6DOF,
+  RENDER_MODE_STEREO_6DOF
+};
 
-  class Renderer
-  {
-    public:
-      void GetResolution(engine_t* engine, int* pWidth, int* pHeight);
-      void Init(engine_t* engine, bool multiview);
-      void Destroy(engine_t* engine);
+class Renderer
+{
+public:
+  void GetResolution(engine_t* engine, int* pWidth, int* pHeight);
+  void Init(engine_t* engine, bool multiview);
+  void Destroy(engine_t* engine);
 
-      bool InitFrame(engine_t* engine);
-      void BeginFrame(engine_t* engine, int fboIndex);
-      void EndFrame(engine_t* engine);
-      void FinishFrame(engine_t* engine);
+  bool InitFrame(engine_t* engine);
+  void BeginFrame(engine_t* engine, int fboIndex);
+  void EndFrame(engine_t* engine);
+  void FinishFrame(engine_t* engine);
 
-      float GetConfigFloat(ConfigFloat config);
-      void SetConfigFloat(ConfigFloat config, float value);
-      int GetConfigInt(ConfigInt config);
-      void SetConfigInt(ConfigInt config, int value);
+  float GetConfigFloat(ConfigFloat config);
+  void SetConfigFloat(ConfigFloat config, float value);
+  int GetConfigInt(ConfigInt config);
+  void SetConfigInt(ConfigInt config, int value);
 
-      void BindFramebuffer(engine_t* engine);
-      XrView GetView(int eye);
-      XrVector3f GetHMDAngles();
-    private:
-	  void Recenter(engine_t* engine);
-      void UpdateStageBounds(engine_t* engine);
+  void BindFramebuffer(engine_t* engine);
+  XrView GetView(int eye);
+  XrVector3f GetHMDAngles();
 
-    private:
-      bool initialized = false;
-      bool stage_supported = false;
-	  float config_float[CONFIG_FLOAT_MAX] = {};
-      int config_int[CONFIG_INT_MAX] = {};
+private:
+  void Recenter(engine_t* engine);
+  void UpdateStageBounds(engine_t* engine);
 
-      XrFovf fov;
-      XrView* projections;
-      XrPosef inverted_view_pose[2];
-      XrVector3f hmd_orientation;
-      XrFrameState frame_state = {};
-  };
-}
+private:
+  bool initialized = false;
+  bool stage_supported = false;
+  float config_float[CONFIG_FLOAT_MAX] = {};
+  int config_int[CONFIG_INT_MAX] = {};
+
+  XrFovf fov;
+  XrView* projections;
+  XrPosef inverted_view_pose[2];
+  XrVector3f hmd_orientation;
+  XrFrameState frame_state = {};
+};
+}  // namespace Common::VR

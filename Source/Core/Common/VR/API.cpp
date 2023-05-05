@@ -93,7 +93,7 @@ void Start(bool firstStart)
   if (firstStart)
   {
     auto engine = s_module_base->GetEngine();
-	s_module_base->EnterVR(engine);
+    s_module_base->EnterVR(engine);
     s_module_input->Init(engine);
     ALOGV("OpenXR - EnterVR called");
   }
@@ -164,4 +164,4 @@ int GetFBOIndex()
 {
   return s_module_renderer->GetConfigInt(CONFIG_CURRENT_FBO);
 }
-}
+}  // namespace Common::VR

@@ -202,4 +202,4 @@ XrVector4f MultiplyMatrix4f(const float* m, const XrVector4f* v)
   out.w = M[3][0] * v->x + M[3][1] * v->y + M[3][2] * v->z + M[3][3] * v->w;
   return out;
 }
-}
+}  // namespace Common::VR

@@ -66,11 +66,8 @@ void Renderer::GetResolution(engine_t* engine, int* pWidth, int* pHeight)
         }
 
         OXR(xrEnumerateViewConfigurationViews(engine->app_state.instance,
-                                              engine->app_state.system_id,
-                                              viewport_config_type,
-                                              view_count,
-                                              &view_count,
-                                              elements));
+                                              engine->app_state.system_id, viewport_config_type,
+                                              view_count, &view_count, elements));
 
         // Cache the view config properties for the selected config type.
         if (viewport_config_type == XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO)
@@ -107,7 +104,7 @@ void Renderer::Init(engine_t* engine, bool multiview)
 {
   if (initialized)
   {
-      Destroy(engine);
+    Destroy(engine);
   }
 
   int eyeW, eyeH;
@@ -144,16 +141,15 @@ void Renderer::Init(engine_t* engine, bool multiview)
 
   projections = (XrView*)(malloc(MaxNumEyes * sizeof(XrView)));
 
-	DisplayCreate(engine->app_state.session, &engine->app_state.renderer,
-	              engine->app_state.view_config[0].recommendedImageRectWidth,
-	              engine->app_state.view_config[0].recommendedImageRectHeight,
-	              multiview);
+  DisplayCreate(engine->app_state.session, &engine->app_state.renderer,
+                engine->app_state.view_config[0].recommendedImageRectWidth,
+                engine->app_state.view_config[0].recommendedImageRectHeight, multiview);
 #ifdef ANDROID
   if (GetPlatformFlag(PLATFORM_EXTENSION_FOVEATION))
   {
-	  DisplaySetFoveation(&engine->app_state.instance, &engine->app_state.session,
-	                      &engine->app_state.renderer, XR_FOVEATION_LEVEL_HIGH_TOP_FB, 0,
-	                      XR_FOVEATION_DYNAMIC_LEVEL_ENABLED_FB);
+    DisplaySetFoveation(&engine->app_state.instance, &engine->app_state.session,
+                        &engine->app_state.renderer, XR_FOVEATION_LEVEL_HIGH_TOP_FB, 0,
+                        XR_FOVEATION_DYNAMIC_LEVEL_ENABLED_FB);
   }
 #endif
   initialized = true;
@@ -161,7 +157,7 @@ void Renderer::Init(engine_t* engine, bool multiview)
 
 void Renderer::Destroy(engine_t* engine)
 {
-	DisplayDestroy(&engine->app_state.renderer);
+  DisplayDestroy(&engine->app_state.renderer);
   free(projections);
   initialized = false;
 }
@@ -222,7 +218,7 @@ bool Renderer::InitFrame(engine_t* engine)
     fov.angleRight += projections[eye].fov.angleRight / 2.0f;
     fov.angleUp += projections[eye].fov.angleUp / 2.0f;
     fov.angleDown += projections[eye].fov.angleDown / 2.0f;
-	inverted_view_pose[eye] = projections[eye].pose;
+    inverted_view_pose[eye] = projections[eye].pose;
   }
 
   hmd_orientation = EulerAngles(inverted_view_pose[0].orientation);
@@ -251,7 +247,7 @@ void Renderer::EndFrame(engine_t* engine)
     int y = config_int[CONFIG_MOUSE_Y];
     int sx = config_int[CONFIG_MOUSE_SIZE];
     int sy = (int)((float)sx * config_float[CONFIG_CANVAS_ASPECT]);
-	  DisplayMouseCursor(x, y, sx, sy);
+    DisplayMouseCursor(x, y, sx, sy);
   }
 
   FramebufferRelease(&engine->app_state.renderer.framebuffer[fbo_index]);
@@ -385,7 +381,7 @@ void Renderer::FinishFrame(engine_t* engine)
   {
     Framebuffer* framebuffer = &engine->app_state.renderer.framebuffer[instances];
     framebuffer->swapchain_index++;
-	  framebuffer->swapchain_index %= framebuffer->swapchain_length;
+    framebuffer->swapchain_index %= framebuffer->swapchain_length;
   }
 }
 
@@ -496,8 +492,7 @@ void Renderer::UpdateStageBounds(engine_t* engine)
 
   XrResult result;
   OXR(result = xrGetReferenceSpaceBoundsRect(engine->app_state.session,
-                                             XR_REFERENCE_SPACE_TYPE_STAGE,
-                                             &stage_bounds));
+                                             XR_REFERENCE_SPACE_TYPE_STAGE, &stage_bounds));
   if (result != XR_SUCCESS)
   {
     ALOGV("Stage bounds query failed: using small defaults");
@@ -509,4 +504,4 @@ void Renderer::UpdateStageBounds(engine_t* engine)
 
   ALOGV("Stage bounds: width = %f, depth %f", stage_bounds.width, stage_bounds.height);
 }
-}
+}  // namespace Common::VR

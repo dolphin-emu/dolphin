@@ -1,8 +1,8 @@
 // Copyright 2016 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "Common/VR/API.h"
 #include "Common/VR/Base.h"
+#include "Common/VR/API.h"
 #include "Common/VR/Display.h"
 
 #include <assert.h>
@@ -91,8 +91,7 @@ void Base::Init(void* system, const char* name, int version)
   instance_info.enabledExtensionNames = extensions.data();
 
 #ifdef ANDROID
-  XrInstanceCreateInfoAndroidKHR instance_info_android = {
-      XR_TYPE_INSTANCE_CREATE_INFO_ANDROID_KHR};
+  XrInstanceCreateInfoAndroidKHR instance_info_android = {XR_TYPE_INSTANCE_CREATE_INFO_ANDROID_KHR};
   if (GetPlatformFlag(PLATFORM_EXTENSION_INSTANCE))
   {
     vrJava* java = (vrJava*)system;
@@ -160,7 +159,7 @@ void Base::Destroy(engine_t* engine)
   {
     xrDestroyInstance(engine->app_state.instance);
     Common::VR::AppDestroy(&engine->app_state);
-	vr_initialized = false;
+    vr_initialized = false;
   }
 }
 
@@ -195,8 +194,8 @@ void Base::EnterVR(engine_t* engine)
   session_info.systemId = engine->app_state.system_id;
 
   XrResult result;
-  OXR(result = xrCreateSession(engine->app_state.instance, &session_info,
-                               &engine->app_state.session));
+  OXR(result =
+          xrCreateSession(engine->app_state.instance, &session_info, &engine->app_state.session));
   if (result != XR_SUCCESS)
   {
     ALOGE("Failed to create XR session: %d.", result);
@@ -233,4 +232,4 @@ engine_t* Base::GetEngine()
 {
   return &vr_engine;
 }
-}
+}  // namespace Common::VR

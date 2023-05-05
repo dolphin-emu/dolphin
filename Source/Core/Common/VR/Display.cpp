@@ -1,8 +1,8 @@
 // Copyright 2016 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "Common/VR/API.h"
 #include "Common/VR/Display.h"
+#include "Common/VR/API.h"
 
 #if XR_USE_GRAPHICS_API_OPENGL_ES
 
@@ -134,7 +134,7 @@ bool FramebufferCreateGLES(XrSession session, Framebuffer* frameBuffer, int widt
     XrSwapchainCreateInfoFoveationFB swapchain_foveation_info;
     memset(&swapchain_foveation_info, 0, sizeof(swapchain_foveation_info));
     swapchain_foveation_info.type = XR_TYPE_SWAPCHAIN_CREATE_INFO_FOVEATION_FB;
-	swapchain_info.next = &swapchain_foveation_info;
+    swapchain_info.next = &swapchain_foveation_info;
   }
 #endif
 
@@ -158,8 +158,7 @@ bool FramebufferCreateGLES(XrSession session, Framebuffer* frameBuffer, int widt
     swapchain[i].type = XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_ES_KHR;
     swapchain[i].next = NULL;
   }
-  OXR(xrEnumerateSwapchainImages(frameBuffer->swapchain_color.handle,
-                                 frameBuffer->swapchain_length,
+  OXR(xrEnumerateSwapchainImages(frameBuffer->swapchain_color.handle, frameBuffer->swapchain_length,
                                  &frameBuffer->swapchain_length,
                                  (XrSwapchainImageBaseHeader*)frameBuffer->swapchain_image));
 
@@ -315,7 +314,7 @@ void DisplayClear(Display* renderer)
 {
   for (int i = 0; i < MaxNumEyes; i++)
   {
-	  FramebufferClear(&renderer->framebuffer[i]);
+    FramebufferClear(&renderer->framebuffer[i]);
   }
 }
 
@@ -326,7 +325,7 @@ void DisplayCreate(XrSession session, Display* display, int width, int height, b
   for (int i = 0; i < instances; i++)
   {
 #if XR_USE_GRAPHICS_API_OPENGL_ES
-	  FramebufferCreateGLES(session, &display->framebuffer[i], width, height, multiview);
+    FramebufferCreateGLES(session, &display->framebuffer[i], width, height, multiview);
 #elif XR_USE_GRAPHICS_API_OPENGL
     // TODO
 #endif
@@ -428,12 +427,12 @@ void AppClear(App* app)
   app->main_thread_id = 0;
   app->render_thread_id = 0;
 
-	DisplayClear(&app->renderer);
+  DisplayClear(&app->renderer);
 }
 
 void AppDestroy(App* app)
 {
-	AppClear(app);
+  AppClear(app);
 }
 
 void AppHandleSessionStateChanges(App* app, XrSessionState state)
@@ -473,7 +472,7 @@ void AppHandleSessionStateChanges(App* app, XrSessionState state)
                                 (PFN_xrVoidFunction*)(&pfnSetAndroidApplicationThreadKHR)));
 
       OXR(pfnSetAndroidApplicationThreadKHR(
-		      app->session, XR_ANDROID_THREAD_TYPE_APPLICATION_MAIN_KHR, app->main_thread_id));
+          app->session, XR_ANDROID_THREAD_TYPE_APPLICATION_MAIN_KHR, app->main_thread_id));
       OXR(pfnSetAndroidApplicationThreadKHR(app->session, XR_ANDROID_THREAD_TYPE_RENDERER_MAIN_KHR,
                                             app->render_thread_id));
     }
@@ -545,7 +544,7 @@ bool HandleXrEvents(App* app)
         break;
       case XR_SESSION_STATE_READY:
       case XR_SESSION_STATE_STOPPING:
-	      AppHandleSessionStateChanges(app, session_state_changed_event->state);
+        AppHandleSessionStateChanges(app, session_state_changed_event->state);
         break;
       default:
         break;
@@ -559,4 +558,4 @@ bool HandleXrEvents(App* app)
   }
   return recenter;
 }
-}
+}  // namespace Common::VR

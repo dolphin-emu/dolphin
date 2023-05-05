@@ -1,9 +1,9 @@
 // Copyright 2016 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "Common/VR/API.h"
 #include "Common/VR/Input.h"
 #include <cstring>
+#include "Common/VR/API.h"
 
 #if !defined(_WIN32)
 #include <sys/time.h>
@@ -18,23 +18,23 @@ void Input::Init(engine_t* engine)
 
   // Actions
   action_set = CreateActionSet(engine->app_state.instance, "running_action_set", "Actionset");
-  index_left = CreateAction(action_set, XR_ACTION_TYPE_BOOLEAN_INPUT, "index_left", "Index left", 0,
-                            NULL);
-  index_right = CreateAction(action_set, XR_ACTION_TYPE_BOOLEAN_INPUT, "index_right", "Index right",
-                             0, NULL);
+  index_left =
+      CreateAction(action_set, XR_ACTION_TYPE_BOOLEAN_INPUT, "index_left", "Index left", 0, NULL);
+  index_right =
+      CreateAction(action_set, XR_ACTION_TYPE_BOOLEAN_INPUT, "index_right", "Index right", 0, NULL);
   menu = CreateAction(action_set, XR_ACTION_TYPE_BOOLEAN_INPUT, "menu_action", "Menu", 0, NULL);
-  button_a = CreateAction(action_set, XR_ACTION_TYPE_BOOLEAN_INPUT, "button_a", "Button A", 0,
-                          NULL);
-  button_b = CreateAction(action_set, XR_ACTION_TYPE_BOOLEAN_INPUT, "button_b", "Button B", 0,
-                          NULL);
-  button_x = CreateAction(action_set, XR_ACTION_TYPE_BOOLEAN_INPUT, "button_x", "Button X", 0,
-                          NULL);
-  button_y = CreateAction(action_set, XR_ACTION_TYPE_BOOLEAN_INPUT, "button_y", "Button Y", 0,
-                          NULL);
-  grip_left = CreateAction(action_set, XR_ACTION_TYPE_FLOAT_INPUT, "grip_left", "Grip left", 0,
-                           NULL);
-  grip_right = CreateAction(action_set, XR_ACTION_TYPE_FLOAT_INPUT, "grip_right", "Grip right", 0,
-                            NULL);
+  button_a =
+      CreateAction(action_set, XR_ACTION_TYPE_BOOLEAN_INPUT, "button_a", "Button A", 0, NULL);
+  button_b =
+      CreateAction(action_set, XR_ACTION_TYPE_BOOLEAN_INPUT, "button_b", "Button B", 0, NULL);
+  button_x =
+      CreateAction(action_set, XR_ACTION_TYPE_BOOLEAN_INPUT, "button_x", "Button X", 0, NULL);
+  button_y =
+      CreateAction(action_set, XR_ACTION_TYPE_BOOLEAN_INPUT, "button_y", "Button Y", 0, NULL);
+  grip_left =
+      CreateAction(action_set, XR_ACTION_TYPE_FLOAT_INPUT, "grip_left", "Grip left", 0, NULL);
+  grip_right =
+      CreateAction(action_set, XR_ACTION_TYPE_FLOAT_INPUT, "grip_right", "Grip right", 0, NULL);
   joystick_left = CreateAction(action_set, XR_ACTION_TYPE_VECTOR2F_INPUT, "move_on_left_joy",
                                "Move on left Joy", 0, NULL);
   joystick_right = CreateAction(action_set, XR_ACTION_TYPE_VECTOR2F_INPUT, "move_on_right_joy",
@@ -45,16 +45,16 @@ void Input::Init(engine_t* engine)
                              "Thumbstick right", 0, NULL);
   vibrate_left_feedback = CreateAction(action_set, XR_ACTION_TYPE_VIBRATION_OUTPUT,
                                        "vibrate_left_feedback", "Vibrate Left Controller", 0, NULL);
-  vibrate_right_feedback = CreateAction(action_set, XR_ACTION_TYPE_VIBRATION_OUTPUT,
-                                        "vibrate_right_feedback", "Vibrate Right Controller", 0,
-                                        NULL);
+  vibrate_right_feedback =
+      CreateAction(action_set, XR_ACTION_TYPE_VIBRATION_OUTPUT, "vibrate_right_feedback",
+                   "Vibrate Right Controller", 0, NULL);
 
   OXR(xrStringToPath(engine->app_state.instance, "/user/hand/left", &left_hand_path));
   OXR(xrStringToPath(engine->app_state.instance, "/user/hand/right", &right_hand_path));
-    hand_pose_left = CreateAction(action_set, XR_ACTION_TYPE_POSE_INPUT, "hand_pose_left",
-                                  NULL, 1, &left_hand_path);
-    hand_pose_right = CreateAction(action_set, XR_ACTION_TYPE_POSE_INPUT,
-                                   "hand_pose_right", NULL, 1, &right_hand_path);
+  hand_pose_left = CreateAction(action_set, XR_ACTION_TYPE_POSE_INPUT, "hand_pose_left", NULL, 1,
+                                &left_hand_path);
+  hand_pose_right = CreateAction(action_set, XR_ACTION_TYPE_POSE_INPUT, "hand_pose_right", NULL, 1,
+                                 &right_hand_path);
 
   XrPath interactionProfilePath = XR_NULL_PATH;
   if (GetPlatformFlag(PLATFORM_CONTROLLER_QUEST))
@@ -230,58 +230,58 @@ void Input::Update(engine_t* engine)
 
   if (left_controller_space == XR_NULL_HANDLE)
   {
-      left_controller_space = CreateActionSpace(session, hand_pose_left, left_hand_path);
+    left_controller_space = CreateActionSpace(session, hand_pose_left, left_hand_path);
   }
   if (right_controller_space == XR_NULL_HANDLE)
   {
-      right_controller_space = CreateActionSpace(session, hand_pose_right, right_hand_path);
+    right_controller_space = CreateActionSpace(session, hand_pose_right, right_hand_path);
   }
 
   // button mapping
   buttons_left = 0;
   if (GetActionStateBoolean(session, menu).currentState)
-	  buttons_left |= (int)Button::Enter;
+    buttons_left |= (int)Button::Enter;
   if (GetActionStateBoolean(session, button_x).currentState)
-	  buttons_left |= (int)Button::X;
+    buttons_left |= (int)Button::X;
   if (GetActionStateBoolean(session, button_y).currentState)
-	  buttons_left |= (int)Button::Y;
+    buttons_left |= (int)Button::Y;
   if (GetActionStateBoolean(session, index_left).currentState)
-	  buttons_left |= (int)Button::Trigger;
+    buttons_left |= (int)Button::Trigger;
   if (GetActionStateFloat(session, grip_left).currentState > 0.5f)
-	  buttons_left |= (int)Button::Grip;
+    buttons_left |= (int)Button::Grip;
   if (GetActionStateBoolean(session, thumb_left).currentState)
-	  buttons_left |= (int)Button::LThumb;
-	buttons_right = 0;
+    buttons_left |= (int)Button::LThumb;
+  buttons_right = 0;
   if (GetActionStateBoolean(session, button_a).currentState)
-	  buttons_right |= (int)Button::A;
+    buttons_right |= (int)Button::A;
   if (GetActionStateBoolean(session, button_b).currentState)
-	  buttons_right |= (int)Button::B;
+    buttons_right |= (int)Button::B;
   if (GetActionStateBoolean(session, index_right).currentState)
-	  buttons_right |= (int)Button::Trigger;
+    buttons_right |= (int)Button::Trigger;
   if (GetActionStateFloat(session, grip_right).currentState > 0.5f)
-	  buttons_right |= (int)Button::Grip;
+    buttons_right |= (int)Button::Grip;
   if (GetActionStateBoolean(session, thumb_right).currentState)
-	  buttons_right |= (int)Button::RThumb;
+    buttons_right |= (int)Button::RThumb;
 
   // thumbstick
   move_joystick_state[0] = GetActionStateVector2(session, joystick_left);
   move_joystick_state[1] = GetActionStateVector2(session, joystick_right);
   if (move_joystick_state[0].currentState.x > 0.5)
-	  buttons_left |= (int)Button::Right;
+    buttons_left |= (int)Button::Right;
   if (move_joystick_state[0].currentState.x < -0.5)
-	  buttons_left |= (int)Button::Left;
+    buttons_left |= (int)Button::Left;
   if (move_joystick_state[0].currentState.y > 0.5)
-	  buttons_left |= (int)Button::Up;
+    buttons_left |= (int)Button::Up;
   if (move_joystick_state[0].currentState.y < -0.5)
-	  buttons_left |= (int)Button::Down;
+    buttons_left |= (int)Button::Down;
   if (move_joystick_state[1].currentState.x > 0.5)
-	  buttons_right |= (int)Button::Right;
+    buttons_right |= (int)Button::Right;
   if (move_joystick_state[1].currentState.x < -0.5)
-	  buttons_right |= (int)Button::Left;
+    buttons_right |= (int)Button::Left;
   if (move_joystick_state[1].currentState.y > 0.5)
-	  buttons_right |= (int)Button::Up;
+    buttons_right |= (int)Button::Up;
   if (move_joystick_state[1].currentState.y < -0.5)
-	  buttons_right |= (int)Button::Down;
+    buttons_right |= (int)Button::Down;
 
   // pose
   for (int i = 0; i < 2; i++)
@@ -313,9 +313,9 @@ void Input::Vibrate(int duration, int chan, float intensity)
   }
 }
 
-XrAction Input::CreateAction(XrActionSet output_set, XrActionType type, const char *actionName,
-                             const char *description, int count_subaction_path,
-                             XrPath *subaction_path)
+XrAction Input::CreateAction(XrActionSet output_set, XrActionType type, const char* actionName,
+                             const char* description, int count_subaction_path,
+                             XrPath* subaction_path)
 {
   XrActionCreateInfo action_info = {};
   action_info.type = XR_TYPE_ACTION_CREATE_INFO;
@@ -333,7 +333,7 @@ XrAction Input::CreateAction(XrActionSet output_set, XrActionType type, const ch
   return output;
 }
 
-XrActionSet Input::CreateActionSet(XrInstance instance, const char *name, const char *description)
+XrActionSet Input::CreateActionSet(XrInstance instance, const char* name, const char* description)
 {
   XrActionSetCreateInfo action_set_info = {};
   action_set_info.type = XR_TYPE_ACTION_SET_CREATE_INFO;
@@ -487,4 +487,4 @@ XrTime Input::ToXrTime(const double time_in_seconds)
 {
   return (XrTime)(time_in_seconds * 1e9);
 }
-}
+}  // namespace Common::VR
