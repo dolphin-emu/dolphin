@@ -105,7 +105,7 @@ void Base::Init(void* system, const char* name, int version)
   OXR(result = xrCreateInstance(&instance_info, &m_engine.app_state.instance));
   if (result != XR_SUCCESS)
   {
-    ERROR_LOG_FMT(VR, "Failed to create XR instance: {}", result);
+    ERROR_LOG_FMT(VR, "Failed to create XR instance: {}", (int)result);
     exit(1);
   }
 
@@ -198,7 +198,7 @@ void Base::EnterVR(engine_t* engine)
           xrCreateSession(engine->app_state.instance, &session_info, &engine->app_state.session));
   if (result != XR_SUCCESS)
   {
-    ERROR_LOG_FMT(VR, "Failed to create XR session: {}", result);
+    ERROR_LOG_FMT(VR, "Failed to create XR session: {}", (int)result);
     exit(1);
   }
 
