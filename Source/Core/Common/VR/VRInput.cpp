@@ -18,8 +18,8 @@ void Input::Init(engine_t* engine)
 
   // Actions
   m_action_set = CreateActionSet(engine->app_state.instance, "running_action_set", "Actionset");
-  m_index_left = CreateAction(m_action_set, XR_ACTION_TYPE_BOOLEAN_INPUT, "index_left",
-                              "Index left", 0, NULL);
+  m_index_left =
+      CreateAction(m_action_set, XR_ACTION_TYPE_BOOLEAN_INPUT, "index_left", "Index left", 0, NULL);
   m_index_right = CreateAction(m_action_set, XR_ACTION_TYPE_BOOLEAN_INPUT, "index_right",
                                "Index right", 0, NULL);
   m_menu = CreateAction(m_action_set, XR_ACTION_TYPE_BOOLEAN_INPUT, "menu_action", "Menu", 0, NULL);
@@ -43,9 +43,9 @@ void Input::Init(engine_t* engine)
                               "Thumbstick left", 0, NULL);
   m_thumb_right = CreateAction(m_action_set, XR_ACTION_TYPE_BOOLEAN_INPUT, "thumbstick_right",
                                "Thumbstick right", 0, NULL);
-  m_vibrate_left_feedback = CreateAction(m_action_set, XR_ACTION_TYPE_VIBRATION_OUTPUT,
-                                         "vibrate_left_feedback", "Vibrate Left Controller", 0,
-                                         NULL);
+  m_vibrate_left_feedback =
+      CreateAction(m_action_set, XR_ACTION_TYPE_VIBRATION_OUTPUT, "vibrate_left_feedback",
+                   "Vibrate Left Controller", 0, NULL);
   m_vibrate_right_feedback =
       CreateAction(m_action_set, XR_ACTION_TYPE_VIBRATION_OUTPUT, "vibrate_right_feedback",
                    "Vibrate Right Controller", 0, NULL);
@@ -98,8 +98,8 @@ void Input::Init(engine_t* engine)
   bindings[curr++] = GetBinding(instance, m_thumb_left, "/user/hand/left/input/thumbstick/click");
   bindings[curr++] = GetBinding(instance, m_thumb_right, "/user/hand/right/input/thumbstick/click");
   bindings[curr++] = GetBinding(instance, m_vibrate_left_feedback, "/user/hand/left/output/haptic");
-  bindings[curr++] = GetBinding(instance, m_vibrate_right_feedback,
-                                "/user/hand/right/output/haptic");
+  bindings[curr++] =
+      GetBinding(instance, m_vibrate_right_feedback, "/user/hand/right/output/haptic");
   bindings[curr++] = GetBinding(instance, m_hand_pose_left, "/user/hand/left/input/aim/pose");
   bindings[curr++] = GetBinding(instance, m_hand_pose_right, "/user/hand/right/input/aim/pose");
 
