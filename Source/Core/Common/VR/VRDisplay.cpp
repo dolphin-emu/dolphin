@@ -217,7 +217,7 @@ bool FramebufferCreateGLES(XrSession session, Framebuffer* frameBuffer, int widt
     GL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0));
     if (renderFramebufferStatus != GL_FRAMEBUFFER_COMPLETE)
     {
-      ERROR_LOG_FMT(VR, "Incomplete frame buffer object: {:x}", renderFramebufferStatus);
+      ERROR_LOG_FMT(VR, "Incomplete frame buffer object: {}", renderFramebufferStatus);
       return false;
     }
   }

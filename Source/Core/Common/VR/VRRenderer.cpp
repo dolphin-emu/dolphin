@@ -40,7 +40,7 @@ void Renderer::GetResolution(engine_t* engine, int* pWidth, int* pHeight)
     {
       const XrViewConfigurationType viewport_config_type = viewport_configs[i];
 
-      NOTICE_LOG_FMT(VR, "Viewport configuration type {:x}", viewport_config_type);
+      NOTICE_LOG_FMT(VR, "Viewport configuration type {}", viewport_config_type);
 
       XrViewConfigurationProperties viewport_config;
       viewport_config.type = XR_TYPE_VIEW_CONFIGURATION_PROPERTIES;
