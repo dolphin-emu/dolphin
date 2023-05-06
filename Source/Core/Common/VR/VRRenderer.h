@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "Common/VR/Display.h"
+#include "Common/VR/VRDisplay.h"
 
 namespace Common::VR
 {

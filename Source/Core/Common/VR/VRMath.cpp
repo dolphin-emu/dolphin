@@ -5,7 +5,7 @@
 #include <cmath>
 #include <cstring>
 
-#include "Common/VR/Math.h"
+#include "Common/VR/VRMath.h"
 
 namespace Common::VR
 {

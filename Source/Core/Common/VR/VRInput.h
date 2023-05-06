@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include "Common/VR/Base.h"
+#include "Common/VR/VRBase.h"
 
 namespace Common::VR
 {
-class Controllers
+class Input
 {
 public:
   void Init(engine_t* engine);

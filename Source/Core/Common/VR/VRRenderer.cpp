@@ -4,11 +4,11 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
-#include "Common/VR/API.h"
-#include "Common/VR/Base.h"
-#include "Common/VR/Math.h"
+#include "Common/VR/DolphinVR.h"
 #include "Common/VR/OpenXRLoader.h"
-#include "Common/VR/Renderer.h"
+#include "Common/VR/VRBase.h"
+#include "Common/VR/VRMath.h"
+#include "Common/VR/VRRenderer.h"
 
 #include <cstdlib>
 #include <cstring>

@@ -1,9 +1,9 @@
 // Copyright 2016 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "Common/VR/Controllers.h"
+#include "Common/VR/VRInput.h"
 #include <cstring>
-#include "Common/VR/API.h"
+#include "Common/VR/DolphinVR.h"
 
 #if !defined(_WIN32)
 #include <sys/time.h>
@@ -11,7 +11,7 @@
 
 namespace Common::VR
 {
-void Controllers::Init(engine_t* engine)
+void Input::Init(engine_t* engine)
 {
   if (input_initialized)
     return;
@@ -182,7 +182,7 @@ void Controllers::Init(engine_t* engine)
   input_initialized = true;
 }
 
-uint32_t Controllers::GetButtonState(int controller)
+uint32_t Input::GetButtonState(int controller)
 {
   switch (controller)
   {
@@ -195,17 +195,17 @@ uint32_t Controllers::GetButtonState(int controller)
   }
 }
 
-XrVector2f Controllers::GetJoystickState(int controller)
+XrVector2f Input::GetJoystickState(int controller)
 {
   return move_joystick_state[controller].currentState;
 }
 
-XrPosef Controllers::GetPose(int controller)
+XrPosef Input::GetPose(int controller)
 {
   return controller_pose[controller].pose;
 }
 
-void Controllers::Update(engine_t* engine)
+void Input::Update(engine_t* engine)
 {
   // sync action data
   XrActiveActionSet activeActionSet = {};
@@ -294,7 +294,7 @@ void Controllers::Update(engine_t* engine)
   }
 }
 
-void Controllers::Vibrate(int duration, int chan, float intensity)
+void Input::Vibrate(int duration, int chan, float intensity)
 {
   for (int i = 0; i < 2; ++i)
   {
@@ -313,9 +313,8 @@ void Controllers::Vibrate(int duration, int chan, float intensity)
   }
 }
 
-XrAction Controllers::CreateAction(XrActionSet output_set, XrActionType type, const char* name,
-                                   const char* desc, int count_subaction_path,
-                                   XrPath* subaction_path)
+XrAction Input::CreateAction(XrActionSet output_set, XrActionType type, const char* name,
+                             const char* desc, int count_subaction_path, XrPath* subaction_path)
 {
   XrActionCreateInfo action_info = {};
   action_info.type = XR_TYPE_ACTION_CREATE_INFO;
@@ -333,7 +332,7 @@ XrAction Controllers::CreateAction(XrActionSet output_set, XrActionType type, co
   return output;
 }
 
-XrActionSet Controllers::CreateActionSet(XrInstance instance, const char* name, const char* desc)
+XrActionSet Input::CreateActionSet(XrInstance instance, const char* name, const char* desc)
 {
   XrActionSetCreateInfo action_set_info = {};
   action_set_info.type = XR_TYPE_ACTION_SET_CREATE_INFO;
@@ -346,7 +345,7 @@ XrActionSet Controllers::CreateActionSet(XrInstance instance, const char* name, 
   return output;
 }
 
-XrSpace Controllers::CreateActionSpace(XrSession session, XrAction action, XrPath subaction_path)
+XrSpace Input::CreateActionSpace(XrSession session, XrAction action, XrPath subaction_path)
 {
   XrActionSpaceCreateInfo action_space_info = {};
   action_space_info.type = XR_TYPE_ACTION_SPACE_CREATE_INFO;
@@ -358,7 +357,7 @@ XrSpace Controllers::CreateActionSpace(XrSession session, XrAction action, XrPat
   return output;
 }
 
-XrActionStateBoolean Controllers::GetActionStateBoolean(XrSession session, XrAction action)
+XrActionStateBoolean Input::GetActionStateBoolean(XrSession session, XrAction action)
 {
   XrActionStateGetInfo get_info = {};
   get_info.type = XR_TYPE_ACTION_STATE_GET_INFO;
@@ -371,7 +370,7 @@ XrActionStateBoolean Controllers::GetActionStateBoolean(XrSession session, XrAct
   return state;
 }
 
-XrActionStateFloat Controllers::GetActionStateFloat(XrSession session, XrAction action)
+XrActionStateFloat Input::GetActionStateFloat(XrSession session, XrAction action)
 {
   XrActionStateGetInfo get_info = {};
   get_info.type = XR_TYPE_ACTION_STATE_GET_INFO;
@@ -384,7 +383,7 @@ XrActionStateFloat Controllers::GetActionStateFloat(XrSession session, XrAction 
   return state;
 }
 
-XrActionStateVector2f Controllers::GetActionStateVector2(XrSession session, XrAction action)
+XrActionStateVector2f Input::GetActionStateVector2(XrSession session, XrAction action)
 {
   XrActionStateGetInfo get_info = {};
   get_info.type = XR_TYPE_ACTION_STATE_GET_INFO;
@@ -397,8 +396,7 @@ XrActionStateVector2f Controllers::GetActionStateVector2(XrSession session, XrAc
   return state;
 }
 
-XrActionSuggestedBinding Controllers::GetBinding(XrInstance instance, XrAction action,
-                                                 const char* name)
+XrActionSuggestedBinding Input::GetBinding(XrInstance instance, XrAction action, const char* name)
 {
   XrPath bindingPath;
   OXR(xrStringToPath(instance, name, &bindingPath));
@@ -409,7 +407,7 @@ XrActionSuggestedBinding Controllers::GetBinding(XrInstance instance, XrAction a
   return output;
 }
 
-int Controllers::GetMilliseconds()
+int Input::GetMilliseconds()
 {
 #if !defined(_WIN32)
   struct timeval tp;
@@ -437,7 +435,7 @@ int Controllers::GetMilliseconds()
 #endif
 }
 
-void Controllers::ProcessHaptics(XrSession session)
+void Input::ProcessHaptics(XrSession session)
 {
   static float last_frame_timestamp = 0.0f;
   float timestamp = (float)(GetMilliseconds());
@@ -484,7 +482,7 @@ void Controllers::ProcessHaptics(XrSession session)
   }
 }
 
-XrTime Controllers::ToXrTime(const double time_in_seconds)
+XrTime Input::ToXrTime(const double time_in_seconds)
 {
   return (XrTime)(time_in_seconds * 1e9);
 }

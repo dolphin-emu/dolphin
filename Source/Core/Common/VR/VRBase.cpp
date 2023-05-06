@@ -1,9 +1,9 @@
 // Copyright 2016 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "Common/VR/Base.h"
-#include "Common/VR/API.h"
-#include "Common/VR/Display.h"
+#include "Common/VR/VRBase.h"
+#include "Common/VR/DolphinVR.h"
+#include "Common/VR/VRDisplay.h"
 
 #include <assert.h>
 #include <stdio.h>

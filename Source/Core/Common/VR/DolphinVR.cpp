@@ -3,16 +3,16 @@
 
 #include <cstring>
 
-#include "Common/VR/API.h"
-#include "Common/VR/Base.h"
-#include "Common/VR/Controllers.h"
-#include "Common/VR/Math.h"
-#include "Common/VR/Renderer.h"
+#include "Common/VR/DolphinVR.h"
+#include "Common/VR/VRBase.h"
+#include "Common/VR/VRInput.h"
+#include "Common/VR/VRMath.h"
+#include "Common/VR/VRRenderer.h"
 
 namespace Common::VR
 {
 Base* s_module_base = NULL;
-Controllers* s_module_controllers = NULL;
+Input* s_module_input = NULL;
 Renderer* s_module_renderer = NULL;
 bool s_platform_flags[PLATFORM_MAX];
 
@@ -60,7 +60,7 @@ void InitOnAndroid(JNIEnv* env, jobject obj, const char* vendor, int version, co
 
   // Allocate modules
   s_module_base = new Base();
-  s_module_controllers = new Controllers();
+  s_module_input = new Input();
   s_module_renderer = new Renderer();
   s_platform_flags[PLATFORM_STATUS_INITIALIZED] = true;
 
@@ -102,7 +102,7 @@ void Start(bool firstStart)
   {
     auto engine = s_module_base->GetEngine();
     s_module_base->EnterVR(engine);
-    s_module_controllers->Init(engine);
+    s_module_input->Init(engine);
     ALOGV("OpenXR - EnterVR called");
   }
   s_module_renderer->SetConfigInt(CONFIG_VIEWPORT_VALID, false);
@@ -139,11 +139,11 @@ bool StartRender()
     s_module_renderer->SetConfigInt(CONFIG_MODE, RENDER_MODE_MONO_SCREEN);
 
     // Update controllers
-    s_module_controllers->Update(engine);
-    auto pose = s_module_controllers->GetPose(1);
-    int l = s_module_controllers->GetButtonState(0);
-    int r = s_module_controllers->GetButtonState(1);
-    auto joystick = s_module_controllers->GetJoystickState(0);
+    s_module_input->Update(engine);
+    auto pose = s_module_input->GetPose(1);
+    int l = s_module_input->GetButtonState(0);
+    int r = s_module_input->GetButtonState(1);
+    auto joystick = s_module_input->GetJoystickState(0);
     auto angles = EulerAngles(pose.orientation);
     float x = -tan(ToRadians(angles.y - s_module_renderer->GetConfigFloat(CONFIG_MENU_YAW)));
     float y = -tan(ToRadians(angles.x)) * s_module_renderer->GetConfigFloat(CONFIG_CANVAS_ASPECT);
