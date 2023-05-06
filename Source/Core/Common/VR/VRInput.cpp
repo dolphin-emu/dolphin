@@ -175,8 +175,8 @@ void Input::Init(engine_t* engine)
           uint32_t str_len = 0;
           OXR(xrPathToString(engine->app_state.instance, action_paths_buffer[a],
                              (uint32_t)sizeof(path_str), &str_len, path_str));
-          ALOGV("  -> path = %lld `%s` -> `%s`", (long long)action_paths_buffer[a], path_str,
-                string_buffer);
+          NOTICE_LOG_FMT(VR, " -> path = {:x}, mapped {} -> {}", action_paths_buffer[a], path_str,
+                         string_buffer);
         }
       }
     }

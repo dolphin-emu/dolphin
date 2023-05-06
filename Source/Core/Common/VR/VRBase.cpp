@@ -105,7 +105,7 @@ void Base::Init(void* system, const char* name, int version)
   OXR(result = xrCreateInstance(&instance_info, &m_engine.app_state.instance));
   if (result != XR_SUCCESS)
   {
-    ALOGE("Failed to create XR instance: %d.", result);
+    ERROR_LOG_FMT(VR, "Failed to create XR instance: {:x}", result);
     exit(1);
   }
 
@@ -115,10 +115,10 @@ void Base::Init(void* system, const char* name, int version)
   instance_properties.type = XR_TYPE_INSTANCE_PROPERTIES;
   instance_properties.next = NULL;
   OXR(xrGetInstanceProperties(m_engine.app_state.instance, &instance_properties));
-  ALOGV("Runtime %s: Version : %u.%u.%u", instance_properties.runtimeName,
-        XR_VERSION_MAJOR(instance_properties.runtimeVersion),
-        XR_VERSION_MINOR(instance_properties.runtimeVersion),
-        XR_VERSION_PATCH(instance_properties.runtimeVersion));
+  NOTICE_LOG_FMT(VR, "Runtime {}: Version : {}.{}.{}", instance_properties.runtimeName,
+                 XR_VERSION_MAJOR(instance_properties.runtimeVersion),
+                 XR_VERSION_MINOR(instance_properties.runtimeVersion),
+                 XR_VERSION_PATCH(instance_properties.runtimeVersion));
 
   XrSystemGetInfo system_info;
   memset(&system_info, 0, sizeof(system_info));
@@ -130,7 +130,7 @@ void Base::Init(void* system, const char* name, int version)
   OXR(result = xrGetSystem(m_engine.app_state.instance, &system_info, &system_id));
   if (result != XR_SUCCESS)
   {
-    ALOGE("Failed to get system.");
+    ERROR_LOG_FMT(VR, "Failed to get system");
     exit(1);
   }
 
@@ -167,7 +167,7 @@ void Base::EnterVR(engine_t* engine)
 {
   if (engine->app_state.session)
   {
-    ALOGE("EnterVR called with existing session");
+    ERROR_LOG_FMT(VR, "EnterVR called with existing session");
     return;
   }
 
@@ -198,7 +198,7 @@ void Base::EnterVR(engine_t* engine)
           xrCreateSession(engine->app_state.instance, &session_info, &engine->app_state.session));
   if (result != XR_SUCCESS)
   {
-    ALOGE("Failed to create XR session: %d.", result);
+    ERROR_LOG_FMT(VR, "Failed to create XR session: {:x}", result);
     exit(1);
   }
 

@@ -64,7 +64,7 @@ void GLCheckErrors(const char* file, int line)
     {
       break;
     }
-    ALOGE("GL error on line %s:%d %s", file, line, GlErrorString(error));
+    ERROR_LOG_FMT(VR, "GL error on line {}:{} {}", file, line, GlErrorString(error));
   }
 }
 
@@ -106,7 +106,7 @@ bool FramebufferCreateGLES(XrSession session, Framebuffer* frameBuffer, int widt
 
   if (strstr((const char*)glGetString(GL_EXTENSIONS), "GL_OVR_multiview2") == nullptr)
   {
-    ALOGE("OpenGL implementation does not support GL_OVR_multiview2 extension.\n");
+    ERROR_LOG_FMT(VR, "OpenGL implementation does not support GL_OVR_multiview2 extension");
   }
 
   typedef void (*PFNGLFRAMEBUFFERTEXTUREMULTIVIEWOVR)(GLenum, GLenum, GLuint, GLint, GLint,
@@ -116,7 +116,7 @@ bool FramebufferCreateGLES(XrSession session, Framebuffer* frameBuffer, int widt
       (PFNGLFRAMEBUFFERTEXTUREMULTIVIEWOVR)eglGetProcAddress("glFramebufferTextureMultiviewOVR");
   if (!glFramebufferTextureMultiviewOVR)
   {
-    ALOGE("Can not get proc address for glFramebufferTextureMultiviewOVR.\n");
+    ERROR_LOG_FMT(VR, "Can not get proc address for glFramebufferTextureMultiviewOVR");
   }
   XrSwapchainCreateInfo swapchain_info;
   memset(&swapchain_info, 0, sizeof(swapchain_info));
@@ -217,7 +217,7 @@ bool FramebufferCreateGLES(XrSession session, Framebuffer* frameBuffer, int widt
     GL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0));
     if (renderFramebufferStatus != GL_FRAMEBUFFER_COMPLETE)
     {
-      ALOGE("Incomplete frame buffer object: %d", renderFramebufferStatus);
+      ERROR_LOG_FMT(VR, "Incomplete frame buffer object: {:x}", renderFramebufferStatus);
       return false;
     }
   }
@@ -265,9 +265,8 @@ void FramebufferAcquire(Framebuffer* framebuffer)
   {
     res = xrWaitSwapchainImage(framebuffer->swapchain_color.handle, &wait_info);
     i++;
-    ALOGV(" Retry xrWaitSwapchainImage %d times due to XR_TIMEOUT_EXPIRED (duration %f micro "
-          "seconds)",
-          i, wait_info.timeout * (1E-9));
+    DEBUG_LOG_FMT(VR, "Retry xrWaitSwapchainImage {} times due XR_TIMEOUT_EXPIRED (duration {} ms",
+                  i, wait_info.timeout * (1E-9));
   }
 
   framebuffer->acquired = res == XR_SUCCESS;
@@ -450,7 +449,7 @@ void AppHandleSessionStateChanges(App* app, XrSessionState state)
     XrResult result;
     OXR(result = xrBeginSession(app->session, &session_begin_info));
     app->session_active = (result == XR_SUCCESS);
-    ALOGV("OpenXR session active = %d", app->session_active);
+    DEBUG_LOG_FMT(VR, "Session active = {}", app->session_active);
 
 #ifdef ANDROID
     if (app->session_active && GetPlatformFlag(PLATFORM_EXTENSION_PERFORMANCE))
@@ -508,18 +507,18 @@ bool HandleXrEvents(App* app)
     switch (base_event_handler->type)
     {
     case XR_TYPE_EVENT_DATA_EVENTS_LOST:
-      ALOGV("xrPollEvent: received XR_TYPE_EVENT_DATA_EVENTS_LOST event");
+      DEBUG_LOG_FMT(VR, "xrPollEvent: received XR_TYPE_EVENT_DATA_EVENTS_LOST");
       break;
     case XR_TYPE_EVENT_DATA_INSTANCE_LOSS_PENDING:
     {
       const XrEventDataInstanceLossPending* instance_loss_pending_event =
           (XrEventDataInstanceLossPending*)(base_event_handler);
-      ALOGV("xrPollEvent: received XR_TYPE_EVENT_DATA_INSTANCE_LOSS_PENDING event: time %f",
+      DEBUG_LOG_FMT(VR, "xrPollEvent: received XR_TYPE_EVENT_DATA_INSTANCE_LOSS_PENDING: time {}",
             FromXrTime(instance_loss_pending_event->lossTime));
     }
     break;
     case XR_TYPE_EVENT_DATA_INTERACTION_PROFILE_CHANGED:
-      ALOGV("xrPollEvent: received XR_TYPE_EVENT_DATA_INTERACTION_PROFILE_CHANGED event");
+      DEBUG_LOG_FMT(VR, "xrPollEvent: received XR_TYPE_EVENT_DATA_INTERACTION_PROFILE_CHANGED");
       break;
     case XR_TYPE_EVENT_DATA_PERF_SETTINGS_EXT:
     {
@@ -552,7 +551,7 @@ bool HandleXrEvents(App* app)
     }
     break;
     default:
-      ALOGV("xrPollEvent: Unknown event");
+      DEBUG_LOG_FMT(VR, "xrPollEvent: Unknown event");
       break;
     }
   }

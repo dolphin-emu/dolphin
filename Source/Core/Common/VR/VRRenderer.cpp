@@ -34,21 +34,18 @@ void Renderer::GetResolution(engine_t* engine, int* pWidth, int* pHeight)
                                       viewport_config_count, &viewport_config_count,
                                       viewport_configs));
 
-    ALOGV("Available Viewport Configuration Types: %d", viewport_config_count);
+    NOTICE_LOG_FMT(VR, "Available Viewport Configuration Types: {}", viewport_config_count);
 
     for (uint32_t i = 0; i < viewport_config_count; i++)
     {
       const XrViewConfigurationType viewport_config_type = viewport_configs[i];
 
-      ALOGV("Viewport configuration type %d : %s", viewport_config_type,
-            viewport_config_type == XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO ? "Selected" : "");
+      NOTICE_LOG_FMT(VR, "Viewport configuration type {:x}", viewport_config_type);
 
       XrViewConfigurationProperties viewport_config;
       viewport_config.type = XR_TYPE_VIEW_CONFIGURATION_PROPERTIES;
       OXR(xrGetViewConfigurationProperties(engine->app_state.instance, engine->app_state.system_id,
                                            viewport_config_type, &viewport_config));
-      ALOGV("FovMutable=%s ConfigurationType %d", viewport_config.fovMutable ? "true" : "false",
-            viewport_config.viewConfigurationType);
 
       uint32_t view_count;
       OXR(xrEnumerateViewConfigurationViews(engine->app_state.instance, engine->app_state.system_id,
@@ -83,7 +80,7 @@ void Renderer::GetResolution(engine_t* engine, int* pWidth, int* pHeight)
       }
       else
       {
-        ALOGE("Empty viewport configuration type: %d", view_count);
+        ERROR_LOG_FMT(VR, "Empty viewport configuration");
       }
     }
 
@@ -465,7 +462,7 @@ void Renderer::Recenter(engine_t* engine)
   }
   OXR(xrCreateReferenceSpace(engine->app_state.session, &space_info,
                              &engine->app_state.fake_space));
-  ALOGV("Created fake stage space from local space with offset");
+  NOTICE_LOG_FMT(VR, "Created fake stage space from local space with offset");
   engine->app_state.current_space = engine->app_state.fake_space;
 
   if (m_stage_supported)
@@ -474,7 +471,7 @@ void Renderer::Recenter(engine_t* engine)
     space_info.poseInReferenceSpace.position.y = 0.0;
     OXR(xrCreateReferenceSpace(engine->app_state.session, &space_info,
                                &engine->app_state.stage_space));
-    ALOGV("Created stage space");
+    NOTICE_LOG_FMT(VR, "Created stage space");
     if (GetPlatformFlag(PLATFORM_TRACKING_FLOOR))
     {
       engine->app_state.current_space = engine->app_state.stage_space;
@@ -495,13 +492,10 @@ void Renderer::UpdateStageBounds(engine_t* engine)
                                              XR_REFERENCE_SPACE_TYPE_STAGE, &stage_bounds));
   if (result != XR_SUCCESS)
   {
-    ALOGV("Stage bounds query failed: using small defaults");
     stage_bounds.width = 1.0f;
     stage_bounds.height = 1.0f;
 
     engine->app_state.current_space = engine->app_state.fake_space;
   }
-
-  ALOGV("Stage bounds: width = %f, depth %f", stage_bounds.width, stage_bounds.height);
 }
 }  // namespace Common::VR

@@ -16,6 +16,17 @@ Input* s_module_input = NULL;
 Renderer* s_module_renderer = NULL;
 bool s_platform_flags[PLATFORM_MAX];
 
+void OXR_CheckErrors(XrResult result, const char* function)
+{
+  if (XR_FAILED(result))
+  {
+    char errorBuffer[XR_MAX_RESULT_STRING_SIZE];
+    xrResultToString(s_module_base->GetEngine()->app_state.instance, result, errorBuffer);
+    ERROR_LOG_FMT(VR, "error: {} {}", function, errorBuffer);
+  }
+}
+
+
 static void (*UpdateInput)(int id, int l, int r, float x, float y, float jx, float jy);
 
 /*
@@ -73,7 +84,7 @@ void InitOnAndroid(JNIEnv* env, jobject obj, const char* vendor, int version, co
   java.vm = vm;
   java.activity = env->NewGlobalRef(obj);
   s_module_base->Init(&java, name, version);
-  ALOGV("OpenXR - Init called");
+  DEBUG_LOG_FMT(VR, "Init called");
 }
 #endif
 
@@ -103,10 +114,10 @@ void Start(bool firstStart)
     auto engine = s_module_base->GetEngine();
     s_module_base->EnterVR(engine);
     s_module_input->Init(engine);
-    ALOGV("OpenXR - EnterVR called");
+    DEBUG_LOG_FMT(VR, "EnterVR called");
   }
   s_module_renderer->SetConfigInt(CONFIG_VIEWPORT_VALID, false);
-  ALOGV("OpenXR - Viewport invalidated");
+  DEBUG_LOG_FMT(VR, "Viewport invalidated");
 }
 
 /*

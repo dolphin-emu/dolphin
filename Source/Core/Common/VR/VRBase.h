@@ -3,16 +3,7 @@
 
 #pragma once
 
-#ifdef ANDROID
-#include <android/log.h>
-#define ALOGE(...) __android_log_print(ANDROID_LOG_ERROR, "OpenXR", __VA_ARGS__);
-#define ALOGV(...) __android_log_print(ANDROID_LOG_VERBOSE, "OpenXR", __VA_ARGS__);
-#else
-#include <cstdio>
-#define ALOGE(...) printf(__VA_ARGS__)
-#define ALOGV(...) printf(__VA_ARGS__)
-#endif
-
+#include "Common/Logging/Log.h"
 #include "Common/VR/OpenXRLoader.h"
 
 #define _USE_MATH_DEFINES
@@ -32,24 +23,8 @@ void GLCheckErrors(const char* file, int line);
 #endif
 
 #if defined(_DEBUG) && defined(ANDROID)
-static void OXR_CheckErrors(XrInstance instance, XrResult result, const char* function,
-                            bool failOnError)
-{
-  if (XR_FAILED(result))
-  {
-    char errorBuffer[XR_MAX_RESULT_STRING_SIZE];
-    xrResultToString(instance, result, errorBuffer);
-    if (failOnError)
-    {
-      ALOGE("OpenXR error: %s: %s\n", function, errorBuffer);
-    }
-    else
-    {
-      ALOGV("OpenXR error: %s: %s\n", function, errorBuffer);
-    }
-  }
-}
-#define OXR(func) OXR_CheckErrors(VR_GetEngine()->appState.Instance, func, #func, true);
+void OXR_CheckErrors(XrResult result, const char* function)
+#define OXR(func) OXR_CheckErrors(func, #func);
 #else
 #define OXR(func) func;
 #endif
