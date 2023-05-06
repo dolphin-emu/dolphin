@@ -1,4 +1,4 @@
-// Copyright 2016 Dolphin Emulator Project
+// Copyright 2023 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/VR/VRDisplay.h"
