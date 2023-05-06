@@ -19,7 +19,7 @@ namespace Common::VR
 {
 void Base::Init(void* system, const char* name, int version)
 {
-  if (vr_initialized)
+  if (m_initialized)
     return;
 
   if (!XRLoad())
@@ -27,7 +27,7 @@ void Base::Init(void* system, const char* name, int version)
     return;
   }
 
-  AppClear(&vr_engine.app_state);
+  AppClear(&m_engine.app_state);
 
 #ifdef ANDROID
   PFN_xrInitializeLoaderKHR xrInitializeLoaderKHR;
@@ -102,19 +102,19 @@ void Base::Init(void* system, const char* name, int version)
 #endif
 
   XrResult result;
-  OXR(result = xrCreateInstance(&instance_info, &vr_engine.app_state.instance));
+  OXR(result = xrCreateInstance(&instance_info, &m_engine.app_state.instance));
   if (result != XR_SUCCESS)
   {
     ALOGE("Failed to create XR instance: %d.", result);
     exit(1);
   }
 
-  XRLoadInstanceFunctions(vr_engine.app_state.instance);
+  XRLoadInstanceFunctions(m_engine.app_state.instance);
 
   XrInstanceProperties instance_properties;
   instance_properties.type = XR_TYPE_INSTANCE_PROPERTIES;
   instance_properties.next = NULL;
-  OXR(xrGetInstanceProperties(vr_engine.app_state.instance, &instance_properties));
+  OXR(xrGetInstanceProperties(m_engine.app_state.instance, &instance_properties));
   ALOGV("Runtime %s: Version : %u.%u.%u", instance_properties.runtimeName,
         XR_VERSION_MAJOR(instance_properties.runtimeVersion),
         XR_VERSION_MINOR(instance_properties.runtimeVersion),
@@ -127,7 +127,7 @@ void Base::Init(void* system, const char* name, int version)
   system_info.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
 
   XrSystemId system_id;
-  OXR(result = xrGetSystem(vr_engine.app_state.instance, &system_info, &system_id));
+  OXR(result = xrGetSystem(m_engine.app_state.instance, &system_info, &system_id));
   if (result != XR_SUCCESS)
   {
     ALOGE("Failed to get system.");
@@ -137,29 +137,29 @@ void Base::Init(void* system, const char* name, int version)
   // Get the graphics requirements.
 #ifdef XR_USE_GRAPHICS_API_OPENGL_ES
   PFN_xrGetOpenGLESGraphicsRequirementsKHR pfnGetOpenGLESGraphicsRequirementsKHR = NULL;
-  OXR(xrGetInstanceProcAddr(vr_engine.app_state.instance, "xrGetOpenGLESGraphicsRequirementsKHR",
+  OXR(xrGetInstanceProcAddr(m_engine.app_state.instance, "xrGetOpenGLESGraphicsRequirementsKHR",
                             (PFN_xrVoidFunction*)(&pfnGetOpenGLESGraphicsRequirementsKHR)));
 
   XrGraphicsRequirementsOpenGLESKHR graphics_requirements = {};
   graphics_requirements.type = XR_TYPE_GRAPHICS_REQUIREMENTS_OPENGL_ES_KHR;
-  OXR(pfnGetOpenGLESGraphicsRequirementsKHR(vr_engine.app_state.instance, system_id,
+  OXR(pfnGetOpenGLESGraphicsRequirementsKHR(m_engine.app_state.instance, system_id,
                                             &graphics_requirements));
 #endif
 
 #ifdef ANDROID
-  vr_engine.app_state.main_thread_id = gettid();
+  m_engine.app_state.main_thread_id = gettid();
 #endif
-  vr_engine.app_state.system_id = system_id;
-  vr_initialized = true;
+  m_engine.app_state.system_id = system_id;
+  m_initialized = true;
 }
 
 void Base::Destroy(engine_t* engine)
 {
-  if (engine == &vr_engine)
+  if (engine == &m_engine)
   {
     xrDestroyInstance(engine->app_state.instance);
     Common::VR::AppDestroy(&engine->app_state);
-    vr_initialized = false;
+    m_initialized = false;
   }
 }
 
@@ -230,6 +230,6 @@ void Base::LeaveVR(engine_t* engine)
 
 engine_t* Base::GetEngine()
 {
-  return &vr_engine;
+  return &m_engine;
 }
 }  // namespace Common::VR

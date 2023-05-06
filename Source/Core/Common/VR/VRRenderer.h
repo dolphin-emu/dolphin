@@ -72,15 +72,15 @@ private:
   void UpdateStageBounds(engine_t* engine);
 
 private:
-  bool initialized = false;
-  bool stage_supported = false;
-  float config_float[CONFIG_FLOAT_MAX] = {};
-  int config_int[CONFIG_INT_MAX] = {};
+  bool m_initialized = false;
+  bool m_stage_supported = false;
+  float m_config_float[CONFIG_FLOAT_MAX] = {};
+  int m_config_int[CONFIG_INT_MAX] = {};
 
-  XrFovf fov;
-  XrView* projections;
-  XrPosef inverted_view_pose[2];
-  XrVector3f hmd_orientation;
-  XrFrameState frame_state = {};
+  XrFovf m_fov;
+  XrView* m_projections;
+  XrPosef m_inverted_view_pose[2];
+  XrVector3f m_hmd_orientation;
+  XrFrameState m_frame_state = {};
 };
 }  // namespace Common::VR

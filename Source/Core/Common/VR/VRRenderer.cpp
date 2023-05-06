@@ -102,7 +102,7 @@ void Renderer::GetResolution(engine_t* engine, int* pWidth, int* pHeight)
 
 void Renderer::Init(engine_t* engine, bool multiview)
 {
-  if (initialized)
+  if (m_initialized)
   {
     Destroy(engine);
   }
@@ -127,7 +127,7 @@ void Renderer::Init(engine_t* engine, bool multiview)
   {
     if (spaces[i] == XR_REFERENCE_SPACE_TYPE_STAGE)
     {
-      stage_supported = true;
+      m_stage_supported = true;
       break;
     }
   }
@@ -139,7 +139,7 @@ void Renderer::Init(engine_t* engine, bool multiview)
     Recenter(engine);
   }
 
-  projections = (XrView*)(malloc(MaxNumEyes * sizeof(XrView)));
+  m_projections = (XrView*)(malloc(MaxNumEyes * sizeof(XrView)));
 
   DisplayCreate(engine->app_state.session, &engine->app_state.renderer,
                 engine->app_state.view_config[0].recommendedImageRectWidth,
@@ -152,14 +152,14 @@ void Renderer::Init(engine_t* engine, bool multiview)
                         XR_FOVEATION_DYNAMIC_LEVEL_ENABLED_FB);
   }
 #endif
-  initialized = true;
+  m_initialized = true;
 }
 
 void Renderer::Destroy(engine_t* engine)
 {
   DisplayDestroy(&engine->app_state.renderer);
-  free(projections);
-  initialized = false;
+  free(m_projections);
+  m_initialized = false;
 }
 
 bool Renderer::InitFrame(engine_t* engine)
@@ -181,11 +181,11 @@ bool Renderer::InitFrame(engine_t* engine)
   wait_frame_info.type = XR_TYPE_FRAME_WAIT_INFO;
   wait_frame_info.next = NULL;
 
-  frame_state.type = XR_TYPE_FRAME_STATE;
-  frame_state.next = NULL;
+  m_frame_state.type = XR_TYPE_FRAME_STATE;
+  m_frame_state.next = NULL;
 
-  OXR(xrWaitFrame(engine->app_state.session, &wait_frame_info, &frame_state));
-  engine->predicted_display_time = frame_state.predictedDisplayTime;
+  OXR(xrWaitFrame(engine->app_state.session, &wait_frame_info, &m_frame_state));
+  engine->predicted_display_time = m_frame_state.predictedDisplayTime;
 
   // Get the HMD pose, predicted for the middle of the time period during which
   // the new eye images will be displayed. The number of frames predicted ahead
@@ -199,7 +199,7 @@ bool Renderer::InitFrame(engine_t* engine)
   XrViewLocateInfo projection_info = {};
   projection_info.type = XR_TYPE_VIEW_LOCATE_INFO;
   projection_info.viewConfigurationType = engine->app_state.viewport_config.viewConfigurationType;
-  projection_info.displayTime = frame_state.predictedDisplayTime;
+  projection_info.displayTime = m_frame_state.predictedDisplayTime;
   projection_info.space = engine->app_state.current_space;
 
   XrViewState view_state = {XR_TYPE_VIEW_STATE, NULL};
@@ -208,20 +208,20 @@ bool Renderer::InitFrame(engine_t* engine)
   uint32_t projection_count = projection_capacity;
 
   OXR(xrLocateViews(engine->app_state.session, &projection_info, &view_state, projection_capacity,
-                    &projection_count, projections));
+                    &projection_count, m_projections));
   //
 
-  fov = {};
+  m_fov = {};
   for (int eye = 0; eye < MaxNumEyes; eye++)
   {
-    fov.angleLeft += projections[eye].fov.angleLeft / 2.0f;
-    fov.angleRight += projections[eye].fov.angleRight / 2.0f;
-    fov.angleUp += projections[eye].fov.angleUp / 2.0f;
-    fov.angleDown += projections[eye].fov.angleDown / 2.0f;
-    inverted_view_pose[eye] = projections[eye].pose;
+    m_fov.angleLeft += m_projections[eye].fov.angleLeft / 2.0f;
+    m_fov.angleRight += m_projections[eye].fov.angleRight / 2.0f;
+    m_fov.angleUp += m_projections[eye].fov.angleUp / 2.0f;
+    m_fov.angleDown += m_projections[eye].fov.angleDown / 2.0f;
+    m_inverted_view_pose[eye] = m_projections[eye].pose;
   }
 
-  hmd_orientation = EulerAngles(inverted_view_pose[0].orientation);
+  m_hmd_orientation = EulerAngles(m_inverted_view_pose[0].orientation);
   engine->app_state.layer_count = 0;
   memset(engine->app_state.layers, 0, sizeof(CompositorLayer) * MaxLayerCount);
   return true;
@@ -229,24 +229,24 @@ bool Renderer::InitFrame(engine_t* engine)
 
 void Renderer::BeginFrame(engine_t* engine, int fboIndex)
 {
-  config_int[CONFIG_CURRENT_FBO] = fboIndex;
+  m_config_int[CONFIG_CURRENT_FBO] = fboIndex;
   FramebufferAcquire(&engine->app_state.renderer.framebuffer[fboIndex]);
 }
 
 void Renderer::EndFrame(engine_t* engine)
 {
-  int fbo_index = config_int[CONFIG_CURRENT_FBO];
+  int fbo_index = m_config_int[CONFIG_CURRENT_FBO];
   BindFramebuffer(engine);
 
   // Show mouse cursor
-  int mode = config_int[CONFIG_MODE];
+  int mode = m_config_int[CONFIG_MODE];
   bool screen_mode = (mode == RENDER_MODE_MONO_SCREEN) || (mode == RENDER_MODE_STEREO_SCREEN);
-  if (screen_mode && (config_int[CONFIG_MOUSE_SIZE] > 0))
+  if (screen_mode && (m_config_int[CONFIG_MOUSE_SIZE] > 0))
   {
-    int x = config_int[CONFIG_MOUSE_X];
-    int y = config_int[CONFIG_MOUSE_Y];
-    int sx = config_int[CONFIG_MOUSE_SIZE];
-    int sy = (int)((float)sx * config_float[CONFIG_CANVAS_ASPECT]);
+    int x = m_config_int[CONFIG_MOUSE_X];
+    int y = m_config_int[CONFIG_MOUSE_Y];
+    int sx = m_config_int[CONFIG_MOUSE_SIZE];
+    int sy = (int)((float)sx * m_config_float[CONFIG_CANVAS_ASPECT]);
     DisplayMouseCursor(x, y, sx, sy);
   }
 
@@ -255,30 +255,30 @@ void Renderer::EndFrame(engine_t* engine)
 
 void Renderer::FinishFrame(engine_t* engine)
 {
-  int mode = config_int[CONFIG_MODE];
+  int mode = m_config_int[CONFIG_MODE];
   XrCompositionLayerProjectionView projection_layer_elements[2] = {};
   if ((mode == RENDER_MODE_MONO_6DOF) || (mode == RENDER_MODE_STEREO_6DOF))
   {
-    SetConfigFloat(CONFIG_MENU_YAW, hmd_orientation.y);
+    SetConfigFloat(CONFIG_MENU_YAW, m_hmd_orientation.y);
 
     for (int eye = 0; eye < MaxNumEyes; eye++)
     {
       int image_layer = engine->app_state.renderer.multiview ? eye : 0;
       Framebuffer* framebuffer = &engine->app_state.renderer.framebuffer[0];
-      XrPosef pose = inverted_view_pose[0];
+      XrPosef pose = m_inverted_view_pose[0];
       if (mode != RENDER_MODE_MONO_6DOF)
       {
         if (!engine->app_state.renderer.multiview)
         {
           framebuffer = &engine->app_state.renderer.framebuffer[eye];
         }
-        pose = inverted_view_pose[eye];
+        pose = m_inverted_view_pose[eye];
       }
 
       memset(&projection_layer_elements[eye], 0, sizeof(XrCompositionLayerProjectionView));
       projection_layer_elements[eye].type = XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW;
       projection_layer_elements[eye].pose = pose;
-      projection_layer_elements[eye].fov = fov;
+      projection_layer_elements[eye].fov = m_fov;
 
       memset(&projection_layer_elements[eye].subImage, 0, sizeof(XrSwapchainSubImage));
       projection_layer_elements[eye].subImage.swapchain = framebuffer->swapchain_color.handle;
@@ -307,9 +307,9 @@ void Renderer::FinishFrame(engine_t* engine)
     float distance = GetConfigFloat(CONFIG_CANVAS_DISTANCE);
     float menu_pitch = ToRadians(GetConfigFloat(CONFIG_MENU_PITCH));
     float menu_yaw = ToRadians(GetConfigFloat(CONFIG_MENU_YAW));
-    XrVector3f pos = {inverted_view_pose[0].position.x - sinf(menu_yaw) * distance,
-                      inverted_view_pose[0].position.y,
-                      inverted_view_pose[0].position.z - cosf(menu_yaw) * distance};
+    XrVector3f pos = {m_inverted_view_pose[0].position.x - sinf(menu_yaw) * distance,
+                      m_inverted_view_pose[0].position.y,
+                      m_inverted_view_pose[0].position.z - cosf(menu_yaw) * distance};
     XrQuaternionf pitch = CreateFromVectorAngle({1, 0, 0}, -menu_pitch);
     XrQuaternionf yaw = CreateFromVectorAngle({0, 1, 0}, menu_yaw);
 
@@ -370,7 +370,7 @@ void Renderer::FinishFrame(engine_t* engine)
 
   XrFrameEndInfo end_frame_info = {};
   end_frame_info.type = XR_TYPE_FRAME_END_INFO;
-  end_frame_info.displayTime = frame_state.predictedDisplayTime;
+  end_frame_info.displayTime = m_frame_state.predictedDisplayTime;
   end_frame_info.environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
   end_frame_info.layerCount = engine->app_state.layer_count;
   end_frame_info.layers = layers;
@@ -387,27 +387,27 @@ void Renderer::FinishFrame(engine_t* engine)
 
 float Renderer::GetConfigFloat(ConfigFloat config)
 {
-  return config_float[config];
+  return m_config_float[config];
 }
 
 void Renderer::SetConfigFloat(ConfigFloat config, float value)
 {
-  config_float[config] = value;
+  m_config_float[config] = value;
 }
 
 int Renderer::GetConfigInt(ConfigInt config)
 {
-  return config_int[config];
+  return m_config_int[config];
 }
 
 void Renderer::SetConfigInt(ConfigInt config, int value)
 {
-  config_int[config] = value;
+  m_config_int[config] = value;
 }
 
 void Renderer::BindFramebuffer(engine_t* engine)
 {
-  if (!initialized)
+  if (!m_initialized)
     return;
   int fbo_index = GetConfigInt(CONFIG_CURRENT_FBO);
   FramebufferSetCurrent(&engine->app_state.renderer.framebuffer[fbo_index]);
@@ -415,12 +415,12 @@ void Renderer::BindFramebuffer(engine_t* engine)
 
 XrView Renderer::GetView(int eye)
 {
-  return projections[eye];
+  return m_projections[eye];
 }
 
 XrVector3f Renderer::GetHMDAngles()
 {
-  return hmd_orientation;
+  return m_hmd_orientation;
 }
 
 void Renderer::Recenter(engine_t* engine)
@@ -435,8 +435,8 @@ void Renderer::Recenter(engine_t* engine)
     loc.type = XR_TYPE_SPACE_LOCATION;
     OXR(xrLocateSpace(engine->app_state.head_space, engine->app_state.current_space,
                       engine->predicted_display_time, &loc));
-    hmd_orientation = EulerAngles(loc.pose.orientation);
-    float yaw = hmd_orientation.y;
+    m_hmd_orientation = EulerAngles(loc.pose.orientation);
+    float yaw = m_hmd_orientation.y;
 
     SetConfigFloat(CONFIG_RECENTER_YAW, GetConfigFloat(CONFIG_RECENTER_YAW) + yaw);
     float renceter_yaw = ToRadians(GetConfigFloat(CONFIG_RECENTER_YAW));
@@ -468,7 +468,7 @@ void Renderer::Recenter(engine_t* engine)
   ALOGV("Created fake stage space from local space with offset");
   engine->app_state.current_space = engine->app_state.fake_space;
 
-  if (stage_supported)
+  if (m_stage_supported)
   {
     space_info.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_STAGE;
     space_info.poseInReferenceSpace.position.y = 0.0;
@@ -482,7 +482,7 @@ void Renderer::Recenter(engine_t* engine)
   }
 
   // Update menu orientation
-  SetConfigFloat(CONFIG_MENU_PITCH, hmd_orientation.x);
+  SetConfigFloat(CONFIG_MENU_PITCH, m_hmd_orientation.x);
   SetConfigFloat(CONFIG_MENU_YAW, 0.0f);
 }
 

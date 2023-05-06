@@ -149,7 +149,7 @@ public:
   engine_t* GetEngine();
 
 private:
-  engine_t vr_engine;
-  bool vr_initialized = false;
+  engine_t m_engine;
+  bool m_initialized = false;
 };
 }  // namespace Common::VR
