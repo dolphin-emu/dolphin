@@ -26,7 +26,6 @@ void OXR_CheckErrors(XrResult result, const char* function)
   }
 }
 
-
 static void (*UpdateInput)(int id, int l, int r, float x, float y, float jx, float jy);
 
 /*

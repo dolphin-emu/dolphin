@@ -514,7 +514,7 @@ bool HandleXrEvents(App* app)
       const XrEventDataInstanceLossPending* instance_loss_pending_event =
           (XrEventDataInstanceLossPending*)(base_event_handler);
       DEBUG_LOG_FMT(VR, "xrPollEvent: received XR_TYPE_EVENT_DATA_INSTANCE_LOSS_PENDING: time {}",
-            FromXrTime(instance_loss_pending_event->lossTime));
+                    FromXrTime(instance_loss_pending_event->lossTime));
     }
     break;
     case XR_TYPE_EVENT_DATA_INTERACTION_PROFILE_CHANGED:
