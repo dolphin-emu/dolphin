@@ -37,7 +37,6 @@ jclass s_input_device_class;
 jmethodID s_input_device_get_device_ids;
 jmethodID s_input_device_get_device;
 jmethodID s_input_device_get_controller_number;
-jmethodID s_input_device_get_id;
 jmethodID s_input_device_get_motion_ranges;
 jmethodID s_input_device_get_name;
 jmethodID s_input_device_get_sources;
@@ -50,7 +49,7 @@ jmethodID s_motion_range_get_min;
 jmethodID s_motion_range_get_source;
 
 jclass s_input_event_class;
-jmethodID s_input_event_get_device;
+jmethodID s_input_event_get_device_id;
 
 jclass s_key_event_class;
 jmethodID s_key_event_get_action;
@@ -798,7 +797,6 @@ void Init()
       env->GetStaticMethodID(s_input_device_class, "getDevice", "(I)Landroid/view/InputDevice;");
   s_input_device_get_controller_number =
       env->GetMethodID(s_input_device_class, "getControllerNumber", "()I");
-  s_input_device_get_id = env->GetMethodID(s_input_device_class, "getId", "()I");
   s_input_device_get_motion_ranges =
       env->GetMethodID(s_input_device_class, "getMotionRanges", "()Ljava/util/List;");
   s_input_device_get_name =
@@ -817,8 +815,7 @@ void Init()
 
   const jclass input_event_class = env->FindClass("android/view/InputEvent");
   s_input_event_class = reinterpret_cast<jclass>(env->NewGlobalRef(input_event_class));
-  s_input_event_get_device =
-      env->GetMethodID(s_input_event_class, "getDevice", "()Landroid/view/InputDevice;");
+  s_input_event_get_device_id = env->GetMethodID(s_input_event_class, "getDeviceId", "()I");
 
   const jclass key_event_class = env->FindClass("android/view/KeyEvent");
   s_key_event_class = reinterpret_cast<jclass>(env->NewGlobalRef(key_event_class));
@@ -990,9 +987,7 @@ Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatch
     return JNI_FALSE;
   }
 
-  const jobject input_device = env->CallObjectMethod(key_event, s_input_event_get_device);
-  const jint device_id = env->CallIntMethod(input_device, s_input_device_get_id);
-  env->DeleteLocalRef(input_device);
+  const jint device_id = env->CallIntMethod(key_event, s_input_event_get_device_id);
   const std::shared_ptr<ciface::Core::Device> device = FindDevice(device_id);
   if (!device)
     return JNI_FALSE;
@@ -1022,9 +1017,7 @@ JNIEXPORT jboolean JNICALL
 Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatchGenericMotionEvent(
     JNIEnv* env, jclass, jobject motion_event)
 {
-  const jobject input_device = env->CallObjectMethod(motion_event, s_input_event_get_device);
-  const jint device_id = env->CallIntMethod(input_device, s_input_device_get_id);
-  env->DeleteLocalRef(input_device);
+  const jint device_id = env->CallIntMethod(motion_event, s_input_event_get_device_id);
   const std::shared_ptr<ciface::Core::Device> device = FindDevice(device_id);
   if (!device)
     return JNI_FALSE;
