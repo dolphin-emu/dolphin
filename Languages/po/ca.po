@@ -1,8 +1,9 @@
-# Translation of dolphin-emu.pot to LANGUAGE
+# Translation of dolphin-emu.pot to Catalan
 # Copyright (C) 2003-2013
 # This file is distributed under the same license as the Dolphin Emulator package.
 #
 # Translators:
+# Vicent Anton <vicent.anton.perez@gmail.com>, 2023
 # Gerard Nesta <gerardnll@gmail.com>, 2021
 # Jordi Coma, 2011
 # Jordi Coma <jordicoma22@gmail.com>, 2011
@@ -17,7 +18,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-05-02 20:11+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
-"Last-Translator: Puniasterus <puniasterus@gmail.com>, 2013-2016,2021-2023\n"
+"Last-Translator: Vicent Anton <vicent.anton.perez@gmail.com>, 2023\n"
 "Language-Team: Catalan (http://app.transifex.com/delroth/dolphin-emu/"
 "language/ca/)\n"
 "Language: ca\n"
@@ -232,7 +233,7 @@ msgstr "%1% (velocitat normal)"
 #. i18n: One of the options shown below "Run until (ignoring breakpoints)"
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:633
 msgid "%1's value is changed"
-msgstr ""
+msgstr "El valor de %1 ha sigut canviat"
 
 #. i18n: One of the options shown below "Run until (ignoring breakpoints)"
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:627
@@ -242,7 +243,7 @@ msgstr ""
 #. i18n: One of the options shown below "Run until (ignoring breakpoints)"
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:630
 msgid "%1's value is used"
-msgstr ""
+msgstr "El valor de %1 està utilitzat"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:171
 msgid "%1, %2, %3, %4"
@@ -273,23 +274,23 @@ msgstr "%1x Nativa (%2x%3)"
 #, c-format
 msgctxt ""
 msgid "%n address(es) could not be accessed in emulated memory."
-msgstr ""
+msgstr "No s'ha pogut accedir a la memòria emulada a %n adresses"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:306
 #, c-format
 msgctxt ""
 msgid "%n address(es) remain."
-msgstr ""
+msgstr "queden %n adresses"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:305
 #, c-format
 msgctxt ""
 msgid "%n address(es) were removed."
-msgstr ""
+msgstr "s'han eliminat %n adresses"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:272
 msgid "& And"
-msgstr ""
+msgstr "& I"
 
 #: Source/Core/DolphinQt/GBAWidget.cpp:432
 msgid "&1x"
@@ -313,16 +314,16 @@ msgstr "&Sobre"
 
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:360
 msgid "&Add Memory Breakpoint"
-msgstr ""
+msgstr "&Add Punt d'Interrupció de Memòria"
 
 #: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:57
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:82
 msgid "&Add New Code..."
-msgstr ""
+msgstr "&Afegir Codi Nou..."
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:593
 msgid "&Add function"
-msgstr ""
+msgstr "&Afegir funció"
 
 #: Source/Core/DolphinQt/Config/PatchesWidget.cpp:43
 msgid "&Add..."
@@ -350,13 +351,11 @@ msgstr "&Punts d'interrupció"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:587
 msgid "&Bug Tracker"
-msgstr ""
+msgstr "&Rastrejador d'Errors"
 
 #: Source/Core/DolphinQt/WiiUpdate.cpp:104
 msgid "&Cancel"
-msgstr ""
-" \n"
-"&Cancel·lar"
+msgstr "&Cancel·lar"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:223
 msgid "&Cheats Manager"
@@ -364,11 +363,11 @@ msgstr "&Gestor de trucs"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:597
 msgid "&Check for Updates..."
-msgstr ""
+msgstr "&Buscar actualitzacions disponibles..."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:970
 msgid "&Clear Symbols"
-msgstr ""
+msgstr "&Borrar símbols"
 
 #: Source/Core/DolphinQt/Config/PatchesWidget.cpp:162
 msgid "&Clone..."
@@ -380,7 +379,7 @@ msgstr "&Codi"
 
 #: Source/Core/DolphinQt/GBAWidget.cpp:386
 msgid "&Connected"
-msgstr ""
+msgstr "&Connectat"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:532
 msgid "&Controller Settings"
@@ -388,28 +387,28 @@ msgstr "&Configuració del controlador"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:569
 msgid "&Copy address"
-msgstr ""
+msgstr "&Copiar adressa"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:136
 msgid "&Create..."
-msgstr ""
+msgstr "&Crea"
 
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:457
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:112
 msgid "&Delete"
-msgstr ""
+msgstr "&Borra"
 
 #. i18n: This kind of "watch" is used for watching emulated memory.
 #. It's not related to timekeeping devices.
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:359
 msgid "&Delete Watch"
-msgstr ""
+msgstr "&Borrar Rellotge"
 
 #. i18n: This kind of "watch" is used for watching emulated memory.
 #. It's not related to timekeeping devices.
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:338
 msgid "&Delete Watches"
-msgstr ""
+msgstr "&Borrar Rellotges"
 
 #: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:58
 #: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:156
@@ -459,19 +458,19 @@ msgstr "Avança un &fotograma"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:534
 msgid "&Free Look Settings"
-msgstr ""
+msgstr "&Configuració de càmera lliure"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:972
 msgid "&Generate Symbols From"
-msgstr ""
+msgstr "&Genera símbols Des de"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:583
 msgid "&GitHub Repository"
-msgstr "&Repositori GitHub"
+msgstr "&Repositori del GitHub"
 
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:455
 msgid "&Go to start of function"
-msgstr ""
+msgstr "&Ves a l'inici de la funció"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:529
 msgid "&Graphics Settings"
@@ -3133,7 +3132,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:183
 msgid "Detached"
-msgstr ""
+msgstr "Desconnectat"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:243
 msgid "Detect"
@@ -3141,7 +3140,7 @@ msgstr "Detectar"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1281
 msgid "Detecting RSO Modules"
-msgstr ""
+msgstr "Detectant mòduls RSO"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:115
 msgid "Deterministic dual core:"
@@ -3158,7 +3157,7 @@ msgstr "Dispositiu"
 #. i18n: PID means Product ID (in the context of a USB device), not Process ID
 #: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:102
 msgid "Device PID (e.g., 0305)"
-msgstr ""
+msgstr "PID del dispositiu (p.ex., 0305)"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:93
 msgid "Device Settings"
@@ -3167,7 +3166,7 @@ msgstr "Configuració del dispositiu"
 #. i18n: VID means Vendor ID (in the context of a USB device)
 #: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:100
 msgid "Device VID (e.g., 057e)"
-msgstr ""
+msgstr "VID del dispositiu (e.g., 057e) "
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:129
 msgid "Device:"
@@ -12147,30 +12146,32 @@ msgstr ""
 
 #: Source/Core/Core/NetPlayServer.cpp:1226
 msgid "{0} failed to synchronize codes."
-msgstr ""
+msgstr "{0} no s'han pogut sincronitzar els codes"
 
 #: Source/Core/Core/NetPlayServer.cpp:1168
 msgid "{0} failed to synchronize."
-msgstr ""
+msgstr "{0} no s'ha pogut sincronitzar."
 
 #: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:209
 msgid ""
 "{0} is not a directory, failed to move to *.original.\n"
 " Verify your write permissions or move the file outside of Dolphin"
 msgstr ""
+"{0} no és un directori, error al moure a *.original.\n"
+" Verifica els teus permissos d'escritura o mou l'arxiu fora de Dolphin"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:260
 #: Source/Core/DiscIO/WIABlob.cpp:1697
 msgid "{0} of {1} blocks. Compression ratio {2}%"
-msgstr ""
+msgstr "{0} de {1} blocs. Ratio de conversió {2}%"
 
 #: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:200
 msgid "{0} was not a directory, moved to *.original"
-msgstr ""
+msgstr "{0} no és un directori, mogut a *.original"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:275
 msgid "| Or"
-msgstr ""
+msgstr "| O"
 
 #. i18n: This message uses curly quotes in English. If you want to use curly quotes
 #. in your translation, please use the type of curly quotes that's appropriate for
@@ -12181,6 +12182,8 @@ msgid ""
 "© 2003-2015+ Dolphin Team. “GameCube” and “Wii” are trademarks of Nintendo. "
 "Dolphin is not affiliated with Nintendo in any way."
 msgstr ""
+"© 2003-2015+ Equip Dolphin. “GameCube” i “Wii” son marques registrades de Nintendo. "
+"Dolphin no està afiliat amb Nintendo de ninguna manera."
 
 #. i18n: The symbol/abbreviation for degrees (unit of angular measure).
 #. i18n: The degrees symbol.
@@ -12194,17 +12197,17 @@ msgstr ""
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUCursor.cpp:37
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:30
 msgid "°"
-msgstr ""
+msgstr "°"
 
 #. i18n: "°/s" is the symbol for degrees (angular measurement) divided by seconds.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:39
 msgid "°/s"
-msgstr ""
+msgstr "°/s"
 
 #: Source/Core/DolphinQt/DiscordJoinRequestDialog.cpp:53
 msgid "✔ Invite"
-msgstr ""
+msgstr "✔ Convida"
 
 #: Source/Core/DolphinQt/DiscordJoinRequestDialog.cpp:54
 msgid "✖ Decline"
-msgstr ""
+msgstr "✖ Rebutja"
