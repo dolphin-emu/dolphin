@@ -35,7 +35,7 @@ static const char* write_double_function_name = "write_double";
 static const char* write_string_function_name = "write_string";
 static const char* write_bytes_function_name = "write_bytes";
 
-static const char* write_all_memory_as_unsigned_bytes_to_file_function_name = "WriteAllMemoryAsUnsignedBytesToFile";
+static const char* write_all_memory_as_unsigned_bytes_to_file_function_name = "writeAllMemoryAsUnsignedBytesToFile";
 
 static PyObject* python_read_u8(PyObject* self, PyObject* args)
 {

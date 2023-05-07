@@ -1,3 +1,3 @@
-Game_Name:C:/Users/skyle/OneDrive/Desktop/Dolphin_Games/Star Fox Adventures (USA) (v1.00).iso
-Movie_Name:C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Source/Core/DolphinQt/DesyncCauseFinderScript/movieName.dtm
-Early_Save_State_Name:C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Source/Core/DolphinQt/DesyncCauseFinderScript/earlySaveState.sav
+Game_Name:
+Movie_Name:
+Early_Save_State_Name:

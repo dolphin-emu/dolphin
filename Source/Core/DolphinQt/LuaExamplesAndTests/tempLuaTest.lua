@@ -1,14 +1,15 @@
 dolphin:importModule("EmuAPI", "1.0")
 dolphin:importModule("MemoryAPI", "1.0")
-var1 = 0
-funcRef = -1
+dolphin:importModule("StatisticsAPI", "1.0")
 
-function mainLoop()
- if var1 >= 20 then
-	x = MemoryAPI:WriteAllMemoryAsUnsignedBytesToFile("tempFile.txt")
-	OnFrameStart:unregister(funcRef)
-end
-var1 = var1 + 1
+function mainFunc()
+	while true do
+	if (StatisticsAPI:getCurrentFrame() == 1100) then
+		EmuAPI:saveState("newEarlySaveState.sav")
+		return
+	end
+	EmuAPI:frameAdvance()
+	end
 end
 
-funcRef = OnFrameStart:register(mainLoop)
+mainFunc()

@@ -112,7 +112,9 @@ static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no
 #define main app_main
 #endif
 
-static std::function<void(const std::string&)> script_print_function = [](const std::string& val) {};
+static std::function<void(const std::string&)> script_print_function = [](const std::string& val) {
+  ::OutputDebugStringW(UTF8ToWString(val).c_str());
+};
 static std::function<void(int)> script_end_function = [](int identifier){};
 
 int main(int argc, char* argv[])

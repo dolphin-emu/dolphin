@@ -44,7 +44,7 @@ static std::array all_memory_functions_metadata_list = {
   FunctionMetadata("write_double", "1.0", "write_double(0X80003421, 143.51)", WriteDouble, ArgTypeEnum::VoidType, {ArgTypeEnum::LongLong, ArgTypeEnum::Double}),
   FunctionMetadata("write_string", "1.0", "write_string(0X80003421, \"Hello World!\")", WriteString, ArgTypeEnum::VoidType, {ArgTypeEnum::LongLong, ArgTypeEnum::String}),
   FunctionMetadata("write_bytes", "1.0", "write_bytes(addressToValueMap)", WriteBytes,ArgTypeEnum::VoidType, {ArgTypeEnum::AddressToByteMap}),
-  FunctionMetadata("WriteAllMemoryAsUnsignedBytesToFile", "1.0", "ReadAllMemoryAsUnsignedBytes(myFileName)", WriteAllMemoryAsUnsignedBytesToFile, ArgTypeEnum::VoidType, {ArgTypeEnum::String})
+  FunctionMetadata("writeAllMemoryAsUnsignedBytesToFile", "1.0", "ReadAllMemoryAsUnsignedBytes(myFileName)", WriteAllMemoryAsUnsignedBytesToFile, ArgTypeEnum::VoidType, {ArgTypeEnum::String})
 };
 
 ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
