@@ -48,6 +48,10 @@ The following is a list of all functions available in the 1.0 release of each cl
 -------------------------------------------------------------------------------------------------------------------------------------------------
 dolphin class:
 
+	void exitDolphin(Integer exitCode):
+		- Causes the whole Dolphin application to immediately exit with the specified exitCode.
+		  dolphin.exitDolphin(1) ==> The whole Dolphin application immediately terminates with an exit code of 1. Note that this skips all destructors or shutdown functions that normally happen when you quit Dolphin.
+
 	void importModule(String apiName, String versionNumber):
 		- Imports the builtin class referenced by apiName, using the version specified by versionNumber. After this function is called, the functions in the imported module for the specified version can be used normally.
 		  dolphin.importModule("EmuAPI", "1.0.0")
@@ -56,9 +60,10 @@ dolphin class:
 		- Imports the builtin class referenced by apiName, using the version specified by versionNumber. After this function is called, the functions in the imported module for the specified version can be used normally.
 		  dolphin.import("EmuAPI", "1.0.0")
 
-	void shutdown():
+	void shutdownScript():
 		- Causes the whole script to immediately shut down/terminate.
-		  dolphin.shutdown()
+		  dolphin.shutdownScript()
+
 
 --------------------------------------------------------------------------------------------------------------------------------------------------
 BitAPI class:
@@ -104,6 +109,145 @@ BitAPI class:
 		  BitAPI.bit_shift_right(8, 1) ==> Returns 4
 
 --------------------------------------------------------------------------------------------------------
+ConfigAPI class:
+
+The Configuration settings for Dolphin consist of several "layers" of settings, where more local settings can override the more global settings. Each configuration setting has a system name, a section name, and a setting name, along with the data type/value that they store. The list of layers and system names is fixed, and cannot be altered by this API (The full list of layer names and system names can be retrieved by calling the getLayerNames_mostGlobalFirst() and getListOfSystems() functions respectively). However, this API can add new settings to a given layer + system by using the setXConfigSettingForLayer() functions.
+
+Settings can store a value of type boolean, unsigned int, signed int, float, String. Additionally, there are certain settings which have an enum type for their value. In this case, the user passes in a String representing the name of the Enum's type, and another String which represents the value of the enum (the getConfigEnumTypes() and getListOfValidValuesForEnumType() functions return a list of all the enum type names and the list of Strings associated with a given enum respectively).
+
+Note that the get/set methods for configs are not case-sensitive, except when adding a new setting to a layer (in which case the setting name will get initialized with whatever capitalization was in the string you passed into the function). Otherwise, the program figures out which setting matches the user's request ignoring case for each field, and proceeds accordingly.
+
+In order of most-to-least global, here are all the layers: "Base, CommandLine, GlobalGame, LocalGame, Movie, Netplay, CurrentRun"
+Here is a list of all the Systems: "Main, Sysconf, GCPad, WiiPad, GCKeyboard, GFX, Logger, Debugger, DualShockUDPClient, FreeLook, Session, GameSettingsOnly, Achievements".
+Lastly, here is a list of all the enum type names: "CPUCore, DPL2Quality, EXIDeviceType, SIDeviceType, HSPDeviceType, Region, ShowCursor, LogLevel, FreeLookControl, AspectMode, ShaderCompilationMode, TriState, TextureFilteringMode, StereoMode, WiimoteSource"
+
+
+	
+	String getLayerNames_mostGlobalFirst() CONST:
+		- Returns a list of all valid layer names as a String (always returns the same value - regardless of which layers are actually being used).
+		  ConfigAPI.getLayerNames_mostGlobalFirst() ==> Will always return "Base, CommandLine, GlobalGame, LocalGame, Movie, Netplay, CurrentRun"
+
+	boolean doesLayerExist(String layerName):
+		- Returns true if the specified layer exists, and false otherwise.
+		  ConfigAPI.doesLayerExist("Netplay") ==> Will return false unless Netplay mode is turned on, since that's what creates the Netplay layer.
+
+
+	String getListOfSystems() CONST:
+		- Returns a list of all valid system names as a String (always returns the same value)
+		  ConfigAPI.getListOfSystems() ==> Will always return "Main, Sysconf, GCPad, WiiPad, GCKeyboard, GFX, Logger, Debugger, DualShockUDPClient, FreeLook, Session, GameSettingsOnly, Achievements"
+
+	String getConfigEnumTypes() CONST:
+		- Returns a list of all valid enum type names as a String (always returns the same value)
+		  ConfigAPI.getConfigEnumTypes() ==> Will always return "CPUCore, DPL2Quality, EXIDeviceType, SIDeviceType, HSPDeviceType, Region, ShowCursor, LogLevel, FreeLookControl, AspectMode, ShaderCompilationMode, TriState, TextureFilteringMode, StereoMode, WiimoteSource"
+
+	String getListOfValidValuesForEnumType(String enumType):
+		- Returns a list of all valid values for the enum type in alphabetical order as a String.
+		  ConfigAPI.getListOfValidValuesForEnumType("TriState") ==> Returns "AUTO, OFF, ON"
+
+		boolean deleteBooleanConfigSettingFromLayer(String layerName, String systemName, String sectionName, String settingName):
+		- Attempts to delete the boolean setting in the specified layer. Returns true if the setting was succesfully deleted from the layer, and false otherwise.
+		  ConfigAPI.deleteBooleanConfigSettingFromLayer("Base", "Main", "Interface", "debugModeEnabled")
+
+	boolean deleteEnumConfigSettingFromLayer(String layerName, String systemName, String sectionName, String settingName, String enumTypeName):
+		- Attempts to delete the enum-type config setting in the specified layer, for the specified enum type. Returns true if the setting was succesfully deleted from the layer, and false otherwise.
+		  ConfigAPI.deleteEnumConfigSettingFromLayer("GlobalGame", "Main", Core", "SlotA", "EXIDeviceType")
+
+	boolean deleteFloatConfigSettingFromLayer(String layerName, String systemName, String sectionName, String settingName):
+		- Attempts to delete the float config setting in the specified layer. Returns true if the setting was succesfully deleted from the layer, and false otherwise.
+		  ConfigAPI.deleteFloatConfigSettingFromLayer("GlobalGame", "Main", "Core", "EmulationSpeed")
+
+	boolean deleteSignedIntConfigSettingFromLayer(String layerName, String systemName, String sectionName, String settingName):
+		- Attempts to delete the signed int config setting in the specified layer. Returns true if the setting was succesfully deleted from the layer, and false otherwise.
+		  ConfigAPI.deleteSignedIntConfigSettingFromLayer("GlobalGame", "Main", "Core", "TimingVariance")
+
+	boolean deleteStringConfigSettingFromLayer(String layerName, String systemName, String sectionName, String settingName):
+		- Attempts to delete the string config setting in the specified layer. Returns true if the setting was succesfully deleted from the layer, and false otherwise.
+		  ConfigAPI.deleteStringConfigSettingFromLayer("GlobalGame", "Main", "Core", "MemcardAPath")
+
+	boolean deleteUnsignedIntConfigSettingFromLayer(String layerName, String systemName, String sectionName, String settingName):
+		- Attempts to delete the unsigned int config setting in the specified layer. Returns true if the setting was succesfully deleted from the layer, and false otherwise.
+		  ConfigAPI.deleteUnsignedIntConfigSettingFromLayer("GlobalGame", "Main", "Core", "MEM1Size")
+
+	boolean getBooleanConfigSettingForLayer(String layerName, String systemName, String sectionName, String settingName):
+		- Returns the boolean value of the specified setting in the specified layer. If the layer does not contain that boolean setting, then None is returned.
+		  ConfigAPI.getBooleanConfigSettingForLayer("Base", "Main", "Interface", "debugModeEnabled") ==> Could return false.
+
+	String getEnumConfigSettingForLayer(String layerName, String systemName, String sectionName, String settingName, String enumTypeName):
+		- Returns the String which represents the value of the specified setting in the specified layer (which is assumed to have the type specified by enumTypeName). If the layer does not contain that enum setting, then None is returned.
+		  ConfigAPI.getEnumConfigSettingForLayer("GlobalGame", "Main", "Core", "SlotA", "EXIDeviceType") ==> Could return "MEMORYCARD"
+
+	float getFloatConfigSettingForLayer(String layerName, String systemName, String sectionName, String settingName):
+		- Returns the float which represents the value of the specified setting in the specified layer. If the layer does not contain that float setting, then None is returned.
+		  ConfigAPI.getFloatConfigSettingForLayer("GlobalGame", "Main", "Core", "EmulationSpeed") ==> Could return 2.0
+
+	Integer getSignedIntConfigSettingForLayer(String layerName, String systemName, String sectionName, String settingName):
+		- Returns the signed int which represents the value of the specified setting in the specified layer. If the layer does not contain that signed int setting, then None is returned.
+		  ConfigAPI.getSignedIntConfigSettingForLayer("GlobalGame", "Main", "Core", "TimingVariance") ==> Could return 0
+
+	String getStringConfigSettingForLayer(String layerName, String systemName, String sectionName, String settingName):
+		- Returns the String which represents the value of the specified setting in the specified layer. If the layer does not contain that String setting, then None is returned.
+		  ConfigAPI.getStringConfigSettingForLayer("GlobalGame", "Main", "Core", "MemcardAPath") ==> Could return "dolphin/memory/memcardA"
+
+	u32 getUnsignedIntConfigSettingForLayer(String layerName, String systemName, String sectionName, String settingName):
+		- Returns the unsigned int which represents the value of the specified setting in the specified layer. If the layer does not contain that unsigned int setting, then None is returned.
+		  ConfigAPI.getUnsignedIntConfigSettingForLayer("GlobalGame", "Main", "Core", "MEM1Size") ==> Could return 512456
+
+
+	boolean getBooleanConfigSetting(String systemName, String sectionName, String settingName):
+		- Returns the actual boolean value of the specified setting in Dolphin. If the boolean setting wasn't found in any layer, then None is returned.
+		  ConfigAPI.getBooleanConfigSetting("Main", "Interface", "debugModeEnabled") ==> Could return false.
+
+	String getEnumConfigSetting(String systemName, String sectionName, String settingName, String enumTypeName):
+		- Returns the String which represents the actual value of the specified setting in Dolphin (which is assumed to have the type specified by enumTypeName). If no layer contains that enum setting, then None is returned.
+		  ConfigAPI.getEnumConfigSetting("Main", "Core", "SlotA", "EXIDeviceType") ==> Could return "MEMORYCARD"
+
+	float getFloatConfigSetting(String systemName, String sectionName, String settingName):
+		- Returns the actual float value of the specified setting in Dolphin. If the float setting wasn't found in any layer, then None is returned.
+		  ConfigAPI.getFloatConfigSetting("Main", "Core", "EmulationSpeed") ==> Could return 2.0
+
+	Integer getSignedIntConfigSetting(String systemName, String sectionName, String settingName):
+		- Returns the actual signed int value of the specified setting in Dolphin. If the signed int setting wasn't found in any layer, then None is returned.
+		  ConfigAPI.getSignedIntConfigSetting("Main", "Core", "TimingVariance") ==> Could return 0
+
+	String getStringConfigSetting(String systemName, String sectionName, String settingName):
+		- Returns the actual String value of the specified setting in Dolphin. If the String setting wasn't found in any layer, then None is returned.
+		  ConfigAPI.getStringConfigSetting("Main", "Core", "MemcardAPath") ==> Could return "dolphin/memory/memcardA"
+
+	u32 getUnsignedIntConfigSetting(String systemName, String sectionName, String settingName):
+		- Returns the actual unsigned int value of the specified setting in Dolphin. If the unsigned int setting wasn't found in any layer, then None is returned.
+		  ConfigAPI.getUnsignedIntConfigSetting("GlobalGame", "Main", "Core", "MEM1Size") ==> Could return 512456
+
+
+	void setBooleanConfigSettingForLayer(String layerName, String systemName, String sectionName, String settingName, boolean newValue):
+		- Sets the specified boolean setting in the specified layer to newValue. If the layer does not contain that boolean setting, then it is created.
+		  ConfigAPI.setBooleanConfigSettingForLayer("Base", "Main", "Interface", "debugModeEnabled", true)
+
+	void setEnumConfigSettingForLayer(String layerName, String systemName, String sectionName, String settingName, String enumTypeName, String enumValue):
+		- Sets the specified enum setting (of type enumTypeName) in the specified layer to the value specified by enumValue. If the layer does not contain that enum setting, then it is created.
+		  ConfigAPI.setEnumConfigSettingForLayer("GlobalGame", "Main", "Core", "SlotA", "EXIDeviceType", "MEMORYCARD")
+
+	void setFloatConfigSettingForLayer(String layerName, String systemName, String sectionName, String settingName, float newValue):
+		- Sets the specified float setting in the specified layer to newValue. If the layer does not contain that float setting, then it is created.
+		  ConfigAPI.setFloatConfigSettingForLayer("GlobalGame", "Main", "Core", "EmulationSpeed", 2.0)
+
+	void setSignedIntConfigSettingForLayer(String layerName, String systemName, String sectionName, String settingName, Integer newValue):
+		- Sets the specified signed int setting in the specified layer to newValue. If the layer does not contain that signed int setting, then it is created.
+		  ConfigAPI.setSignedIntConfigSettingForLayer("GlobalGame", "Main", "Core", "TimingVariance", 0)
+
+	void setStringConfigSettingForLayer(String layerName, String systemName, String sectionName, String settingName, String newValue):
+		- Sets the specified String setting in the specified layer to newValue. If the layer does not contain that String setting, then it is created.
+		  ConfigAPI.setStringConfigSettingForLayer("GlobalGame", "Main", "Core", "MemcardAPath", "dolphin/memory/memcardA")
+
+	void setUnsignedIntConfigSettingForLayer(String layerName, String systemName, String sectionName, String settingName, u32 newValue):
+		- Sets the specified unsigned int setting in the specified layer to newValue. If the layer does not contain that unsigned int setting, then it is created.
+		  ConfigAPI.setUnsignedIntConfigSettingForLayer("GlobalGame", "Main", "Core", "MEM1Size", 512456)
+
+	void saveSettings():
+		- Makes sure that the settings were saved to config files for the next session of Dolphin. Most settings are saved to config files as soon as they're updated, so this function might not really do anything.
+		  ConfigAPI.saveSettings()
+
+--------------------------------------------------------------------------------------------------------
+
 EmuAPI class:
 
 	void frameAdvance():
@@ -310,6 +454,35 @@ DOCUMENTATION:
 		- Finalizes/finishes the currently opened window. There must be an equal number of calls to beginWindow() and endWindow() on each frame.
 		  GraphicsAPI.endWindow() ==> After this, the next time addButton is called, it won't add the button to the window which was previously the current window (since that is now done being written to).
 
+--------------------------------------------------------------------------------------------------------------------------------------------
+InstructionStepAPI class:
+
+Calling any of the functions below will throw an exception if it's not called from an OnInstructionHit callback, an OnMemoryAddressReadFrom callback, or an OnMemoryAddressWrittenTo callback. The lone exception to this is the getInstructionFromAddress() function, which can be called from anywhere).
+
+	String getInstructionFromAddress(u32 addressVal):
+		- Returns a human-readable String representation of the instruction at the address specified by addressVal.
+		  InstructionStepAPI.getInstructionFromAddress(0X84445578) ==> Returns a representation of the instruction at address 0X84445578. Ex. "addi	sp, sp, 8"
+
+	void setPC(u32 newValue):
+		- Sets PC to the value specified by newValue
+		  InstructionStepAPI.setPC(0X80000064) ==> Now PC equals 0X80000064.
+
+	void singleStep():
+		- Steps through the next instruction.
+		  InstructionStepAPI.singleStep() ==> Now the next instruction was executed.
+
+	void skip():
+		- Sets PC to 4 more than its current value (which in effect skipps over the next instruction that would normally execute).
+		  InstructionStepAPI.skip() ==> If PC was 0X80000000 before this function call, then it would now be 0X80000004.
+
+	void stepOut():
+		- Steps through instructions one at a time until the game returns from the current function its in, or the next frame starts (as defined by when the OnFrameStart callbacks start running).
+		  InstructionStepAPI.stepOut() ==> Steps through instructions until a return-from-function instruction is executed. (function ends after executing the return instruction).
+
+	void stepOver():
+		- Steps through instructions one at a time until we hit the instruction which was right after the instruction that PC was pointing to when this functionw as called (or when the next frame starts, as defined by when the OnFrameStart callbacks start running).
+		  InstructionStepAPI.stepOver() ==> If PC was 0X80000000 when this function was called, then PC will be 0X80000004 when this function returns (even if a function call occured at 0X80000000).
+		
 --------------------------------------------------------------------------------------------------------------------------------------------
 MemoryAPI class:
 

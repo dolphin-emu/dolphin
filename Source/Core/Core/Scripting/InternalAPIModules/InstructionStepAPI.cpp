@@ -24,7 +24,7 @@ static std::array all_instruction_step_functions_metadata_list = {
     FunctionMetadata("stepOver", "1.0", "stepOver()", StepOver, ArgTypeEnum::VoidType, {}),
     FunctionMetadata("stepOut", "1.0", "stepOut()", StepOut, ArgTypeEnum::VoidType, {}),
     FunctionMetadata("skip", "1.0", "skip()", Skip, ArgTypeEnum::VoidType, {}),
-    FunctionMetadata("setPC", "1.0", "setPC()", SetPC, ArgTypeEnum::VoidType, {ArgTypeEnum::U32}),
+    FunctionMetadata("setPC", "1.0", "setPC(0X80000045)", SetPC, ArgTypeEnum::VoidType, {ArgTypeEnum::U32}),
     FunctionMetadata("getInstructionFromAddress", "1.0", "getInstructionFromAddress(0X80000032)",
                      GetInstructionFromAddress, ArgTypeEnum::String, {ArgTypeEnum::U32})};
 

@@ -27,7 +27,7 @@ static std::array all_config_functions_metadata_list = {
     FunctionMetadata("doesLayerExist", "1.0", "doesLayerExist(\"Movie\")", DoesLayerExist, ArgTypeEnum::Boolean, {ArgTypeEnum::String}),
     FunctionMetadata("getListOfSystems", "1.0", "getListOfSystems()", GetListOfSystems, ArgTypeEnum::String, {}),
     FunctionMetadata("getConfigEnumTypes", "1.0", "getConfigEnumTypes()", GetConfigEnumTypes, ArgTypeEnum::String, {}),
-    FunctionMetadata("getListOfValidValuesForEnumType", "1.0", "getListOfValidValuesForEnumType", GetListOfValidValuesForEnumType, ArgTypeEnum::String, {ArgTypeEnum::String}),
+    FunctionMetadata("getListOfValidValuesForEnumType", "1.0", "getListOfValidValuesForEnumType(\"EXIDeviceType\")", GetListOfValidValuesForEnumType, ArgTypeEnum::String, {ArgTypeEnum::String}),
 
     FunctionMetadata("getBooleanConfigSettingForLayer", "1.0", "getBooleanConfigSettingForLayer(\"GlobalGame\", \"Main\", \"Interface\", \"debugModeEnabled\")", GetBooleanConfigSettingForLayer, ArgTypeEnum::Boolean, {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String}),
     FunctionMetadata("getSignedIntConfigSettingForLayer", "1.0", "getSignedIntConfigSettingForLayer(\"GlobalGame\", \"Main\", \"Core\", \"TimingVariance\")", GetSignedIntConfigSettingForLayer, ArgTypeEnum::Integer, {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String}),
