@@ -816,16 +816,19 @@ void Init()
   const jclass input_event_class = env->FindClass("android/view/InputEvent");
   s_input_event_class = reinterpret_cast<jclass>(env->NewGlobalRef(input_event_class));
   s_input_event_get_device_id = env->GetMethodID(s_input_event_class, "getDeviceId", "()I");
+  env->DeleteLocalRef(input_event_class);
 
   const jclass key_event_class = env->FindClass("android/view/KeyEvent");
   s_key_event_class = reinterpret_cast<jclass>(env->NewGlobalRef(key_event_class));
   s_key_event_get_action = env->GetMethodID(s_key_event_class, "getAction", "()I");
   s_key_event_get_keycode = env->GetMethodID(s_key_event_class, "getKeyCode", "()I");
+  env->DeleteLocalRef(key_event_class);
 
   const jclass motion_event_class = env->FindClass("android/view/MotionEvent");
   s_motion_event_class = reinterpret_cast<jclass>(env->NewGlobalRef(motion_event_class));
   s_motion_event_get_axis_value = env->GetMethodID(s_motion_event_class, "getAxisValue", "(I)F");
   s_motion_event_get_source = env->GetMethodID(s_motion_event_class, "getSource", "()I");
+  env->DeleteLocalRef(motion_event_class);
 
   const jclass controller_interface_class =
       env->FindClass("org/dolphinemu/dolphinemu/features/input/model/ControllerInterface");
@@ -844,6 +847,7 @@ void Init()
       "()Lorg/dolphinemu/dolphinemu/features/input/model/DolphinVibratorManager;");
   s_controller_interface_vibrate =
       env->GetStaticMethodID(s_controller_interface_class, "vibrate", "(Landroid/os/Vibrator;)V");
+  env->DeleteLocalRef(controller_interface_class);
 
   const jclass sensor_event_listener_class =
       env->FindClass("org/dolphinemu/dolphinemu/features/input/model/DolphinSensorEventListener");
@@ -861,6 +865,7 @@ void Init()
       env->GetMethodID(s_sensor_event_listener_class, "getAxisNames", "()[Ljava/lang/String;");
   s_sensor_event_listener_get_negative_axes =
       env->GetMethodID(s_sensor_event_listener_class, "getNegativeAxes", "()[Z");
+  env->DeleteLocalRef(sensor_event_listener_class);
 
   const jclass dolphin_vibrator_manager_class =
       env->FindClass("org/dolphinemu/dolphinemu/features/input/model/DolphinVibratorManager");
@@ -870,6 +875,7 @@ void Init()
       env->GetMethodID(s_dolphin_vibrator_manager_class, "getVibrator", "(I)Landroid/os/Vibrator;");
   s_dolphin_vibrator_manager_get_vibrator_ids =
       env->GetMethodID(s_dolphin_vibrator_manager_class, "getVibratorIds", "()[I");
+  env->DeleteLocalRef(dolphin_vibrator_manager_class);
 
   jintArray keycodes_array = CreateKeyCodesArray(env);
   s_keycodes_array = reinterpret_cast<jintArray>(env->NewGlobalRef(keycodes_array));
