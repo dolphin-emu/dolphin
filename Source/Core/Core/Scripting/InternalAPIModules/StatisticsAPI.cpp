@@ -2,6 +2,7 @@
 
 #include <fmt/format.h>
 #include <memory>
+#include "Core/HW/Memmap.h"
 #include "Core/Scripting/HelperClasses/ArgTypeEnum.h"
 #include "Core/Scripting/HelperClasses/FunctionMetadata.h"
 #include "Core/Scripting/HelperClasses/VersionResolver.h"
@@ -21,7 +22,11 @@ static std::array all_statistics_functions_metadata_list = {
   FunctionMetadata("getCurrentInputCount", "1.0", "getCurrentInputCount()", GetCurrentInputCount, ArgTypeEnum::LongLong, {}),
   FunctionMetadata("getTotalInputCount", "1.0", "getTotalInputCount()", GetTotalInputCount, ArgTypeEnum::LongLong, {}),
   FunctionMetadata("getCurrentLagCount", "1.0", "getCurrentlagCount()", GetCurrentLagCount, ArgTypeEnum::LongLong, {}),
-  FunctionMetadata("getTotalLagCount", "1.0", "getTotalLagCount()", GetTotalLagCount, ArgTypeEnum::LongLong, {})
+  FunctionMetadata("getTotalLagCount", "1.0", "getTotalLagCount()", GetTotalLagCount, ArgTypeEnum::LongLong, {}),
+  FunctionMetadata("getRAMSize", "1.0", "getRAMSize()", GetRAMSize, ArgTypeEnum::U32, {}),
+  FunctionMetadata("getL1CacheSize", "1.0", "getL1CacheSize()", GetL1CacheSize, ArgTypeEnum::U32, {}),
+  FunctionMetadata("getFakeVMemSize", "1.0", "getFakeVMemSize()", GetFakeVMemSize, ArgTypeEnum::U32, {}),
+  FunctionMetadata("getExRAMSize", "1.0", "getExRAMSize()", GetExRAMSize, ArgTypeEnum::U32, {})
 };
 
  ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
@@ -97,6 +102,26 @@ ArgHolder GetCurrentLagCount(ScriptContext* current_script, std::vector<ArgHolde
 ArgHolder GetTotalLagCount(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   return CreateLongLongArgHolder(Movie::GetTotalLagCount());
+}
+
+ArgHolder GetRAMSize(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  return CreateU32ArgHolder(Core::System::GetInstance().GetMemory().getRAM_scriptHelper() != nullptr ? Core::System::GetInstance().GetMemory().GetRamSizeReal() : 0);
+}
+
+ArgHolder GetL1CacheSize(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  return CreateU32ArgHolder(Core::System::GetInstance().GetMemory().getL1Cache_scriptHelper() != nullptr ? Core::System::GetInstance().GetMemory().GetL1CacheSize() : 0);
+}
+
+ArgHolder GetFakeVMemSize(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  return CreateU32ArgHolder(Core::System::GetInstance().GetMemory().getFakeVMEM_scriptHelper() != nullptr ? Core::System::GetInstance().GetMemory().GetFakeVMemSize() : 0);
+}
+
+ArgHolder GetExRAMSize(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+{
+  return CreateU32ArgHolder(Core::System::GetInstance().GetMemory().getEXRAM_scriptHelper() != nullptr ? Core::System::GetInstance().GetMemory().GetExRamSizeReal() : 0);
 }
 
 }  // namespace Scripting::StatisticsApi

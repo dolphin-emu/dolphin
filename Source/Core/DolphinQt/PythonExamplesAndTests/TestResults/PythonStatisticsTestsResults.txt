@@ -1,7 +1,7 @@
 Test 1:
 	Testing that statistics.getCurrentFrame() after frame advancing 10 frames is 10 more than its original value...
-	1495 + 10 == 1505
-PASS!
+	0 + 10 != 9
+FAILURE!
 
 Test 2:
 	Testing statistics.isRecordingInput() function...
@@ -35,7 +35,7 @@ PASS!
 
 Test 8:
 	Testing statistics.getCurrentInputCount() function...
-	statistics.getCurrentInputCount() = 12036
+	statistics.getCurrentInputCount() = 72
 PASS!
 
 Test 9:
@@ -45,7 +45,7 @@ PASS!
 
 Test 10:
 	Testing statistics.getCurrentLagCount() function...
-	statistics.getCurrentLagCount() = 1
+	statistics.getCurrentLagCount() = 0
 PASS!
 
 Test 11:
@@ -63,7 +63,27 @@ Test 13:
 	gc_controller.isUsingPort(1) = True
 PASS!
 
+Test 14:
+	Testing gc_controller.getRAMSize() function...
+	gc_controller.getRAMSize() = 25165824
+PASS!
+
+Test 15:
+	Testing gc_controller.getL1CacheSize() function...
+	gc_controller.getL1CacheSize() = 262144
+PASS!
+
+Test 16:
+	Testing gc_controller.getFakeVMemSize() function...
+	gc_controller.getFakeVMemSize() = 0
+PASS!
+
+Test 17:
+	Testing gc_controller.getExRAMSize() function...
+	gc_controller.getExRAMSize() = 67108864
+PASS!
+
 -----------------------
-Total Tests: 13
-	Tests Passed: 13
-	Tests Failed: 0
+Total Tests: 17
+	Tests Passed: 16
+	Tests Failed: 1

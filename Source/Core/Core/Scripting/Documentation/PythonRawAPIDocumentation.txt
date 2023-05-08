@@ -729,6 +729,22 @@ StatisticsAPI class:
 		- Returns the total lag count for the movie.
 		  StatisticsAPI.getTotalLagCount()
 
+	u32 getRAMSize():
+		- Returns the actual number of bytes that the game is using for RAM.
+		  StatisticsAPI.getRAMSize() ==> Returns 25165824
+
+	u32 getL1CacheSize():
+		- Returns the size of the L1 cache.
+		  StatisticsAPI.getL1CacheSize() ==> Returns 262144
+
+	u32 getFakeVMemSize():
+		- Returns the number of bytes allocated for FakeVMem for the game, or 0 if FakeVMem isn't used by the game.
+		  StatisticsAPI.getFakeVMemSize() ==> Usually returns 0
+
+	u32 getExRAMSize():
+		- Returns the number of bytes that the game is using for ExRAM, or 0 if ExRAM isn't used by the game.
+		  StatisticsAPI.getExRAMSize() ==> Usually returns 67108864 for Wii games, and 0 for GameCube games.
+
 ---------------------------------------------------------------------------------------------------------------
 OnFrameStart class:
 

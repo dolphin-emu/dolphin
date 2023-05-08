@@ -34,3 +34,16 @@ def getCurrentLagCount():
     
 def getTotalLagCount():
     return StatisticsAPI.getTotalLagCount()
+
+def getRAMSize():
+    return StatisticsAPI.getRAMSize()
+
+def getL1CacheSize():
+    return StatisticsAPI.getL1CacheSize()
+
+def getFakeVMemSize():
+    return StatisticsAPI.getFakeVMemSize()
+
+def getExRAMSize():
+    return StatisticsAPI.getExRAMSize()
+

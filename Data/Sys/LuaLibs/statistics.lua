@@ -53,3 +53,19 @@ end
 function StatisticsClass:getTotalLagCount()
 	return StatisticsAPI:getTotalLagCount()
 end
+
+function StatisticsClass:getRAMSize()
+	return StatisticsAPI:getRAMSize()
+end
+
+function StatisticsClass:getL1CacheSize()
+	return StatisticsAPI:getL1CacheSize()
+end
+
+function StatisticsClass:getFakeVMemSize()
+	return StatisticsAPI:getFakeVMemSize()
+end
+
+function StatisticsClass:getExRAMSize()
+	return StatisticsAPI:getExRAMSize()
+end

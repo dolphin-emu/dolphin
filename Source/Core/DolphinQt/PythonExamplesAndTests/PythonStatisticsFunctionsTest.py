@@ -38,7 +38,10 @@ def statisticsGeneralUnitTests():
     singleStatisticTest("getTotalLagCount()", dolphin_statistics.getTotalLagCount())
     singleStatisticTest("isGcControllerInPort(1)", gc_controller.isGcControllerInPort(1))
     singleStatisticTest("isUsingPort(1)", gc_controller.isUsingPort(1))
-
+    singleStatisticTest("getRAMSize()", dolphin_statistics.getRAMSize())
+    singleStatisticTest("getL1CacheSize()", dolphin_statistics.getL1CacheSize())
+    singleStatisticTest("getFakeVMemSize()", dolphin_statistics.getFakeVMemSize())
+    singleStatisticTest("getExRAMSize()", dolphin_statistics.getExRAMSize())
 
 
 startingFrameCounter = 0

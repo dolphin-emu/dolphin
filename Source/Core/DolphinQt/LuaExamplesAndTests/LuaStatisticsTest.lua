@@ -34,6 +34,10 @@ function statisticsGeneralUnitTests()
 	singleStatisticTest("getTotalLagCount()", statistics:getTotalLagCount())
 	singleStatisticTest("isGcControllerInPort(1)", gc_controller:isGcControllerInPort(1))
 	singleStatisticTest("isUsingPort(1)", gc_controller:isUsingPort(1))
+	singleStatisticTest("getRAMSize()", statistics:getRAMSize())
+	singleStatisticTest("getL1CacheSize()", statistics:getL1CacheSize())
+	singleStatisticTest("getFakeVMemSize()", statistics:getFakeVMemSize())
+	singleStatisticTest("getExRAMSize()", statistics:getExRAMSize())
 end
 
 file = io.open("LuaExamplesAndTests/TestResults/LuaStatisticsTestsResults.txt", "w")

@@ -18,6 +18,10 @@ static const char* get_current_input_count_function_name = "getCurrentInputCount
 static const char* get_total_input_count_function_name = "getTotalInputCount";
 static const char* get_current_lag_count_function_name = "getCurrentLagCount";
 static const char* get_total_lag_count_function_name = "getTotalLagCount";
+static const char* get_ram_size_function_name = "getRAMSize";
+static const char* get_l1_cache_size_function_name = "getL1CacheSize";
+static const char* get_fake_vmem_size_function_name = "getFakeVMemSize";
+static const char* get_ex_ram_size_function_name = "getExRAMSize";
 
 static PyObject* python_is_recording_input(PyObject* self, PyObject* args)
 {
@@ -85,6 +89,31 @@ static PyObject* python_get_total_lag_count(PyObject* self, PyObject* args)
                                           get_total_lag_count_function_name);
 }
 
+static PyObject* python_get_ram_size(PyObject* self, PyObject* args)
+{
+  return PythonScriptContext::RunFunction(self, args, statistics_class_name,
+                                          get_ram_size_function_name);
+}
+
+static PyObject* python_get_l1_cache_size(PyObject* self, PyObject* args)
+{
+  return PythonScriptContext::RunFunction(self, args, statistics_class_name,
+                                          get_l1_cache_size_function_name);
+}
+
+static PyObject* python_get_fake_vmem_size(PyObject* self, PyObject* args)
+{
+  return PythonScriptContext::RunFunction(self, args, statistics_class_name,
+                                          get_fake_vmem_size_function_name);
+}
+
+static PyObject* python_get_ex_ram_size(PyObject* self, PyObject* args)
+{
+  return PythonScriptContext::RunFunction(self, args, statistics_class_name,
+                                          get_ex_ram_size_function_name);
+}
+
+
 static PyMethodDef statistics_api_methods[] = {
     {is_recording_input_function_name, python_is_recording_input, METH_VARARGS, nullptr},
     {is_recording_input_from_save_state_function_name, python_is_recording_input_from_save_state, METH_VARARGS, nullptr},
@@ -97,6 +126,10 @@ static PyMethodDef statistics_api_methods[] = {
     {get_total_input_count_function_name, python_get_total_input_count, METH_VARARGS, nullptr},
     {get_current_lag_count_function_name, python_get_current_lag_count, METH_VARARGS, nullptr},
     {get_total_lag_count_function_name, python_get_total_lag_count, METH_VARARGS, nullptr},
+    {get_ram_size_function_name, python_get_ram_size, METH_VARARGS, nullptr},
+    {get_l1_cache_size_function_name, python_get_l1_cache_size, METH_VARARGS, nullptr},
+    {get_fake_vmem_size_function_name, python_get_fake_vmem_size, METH_VARARGS, nullptr},
+    {get_ex_ram_size_function_name, python_get_ex_ram_size, METH_VARARGS, nullptr},
     {nullptr, nullptr, 0, nullptr}};
 
 static struct PyModuleDef StatisticsAPImodule = {
