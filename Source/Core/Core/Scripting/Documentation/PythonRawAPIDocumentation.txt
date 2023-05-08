@@ -64,7 +64,6 @@ dolphin class:
 		- Causes the whole script to immediately shut down/terminate.
 		  dolphin.shutdownScript()
 
-
 --------------------------------------------------------------------------------------------------------------------------------------------------
 BitAPI class:
 
@@ -273,7 +272,7 @@ EmuAPI class:
 ---------------------------------------------------------------------------------------------------------------
 GameCubeControllerAPI class:
 
-	This class uses a Python dictionary to represent the buttons pressed on a GameCube controller. I will refer to this dictionary as being of type "GameCubeControllerStateDictionary" in the documentation down below. Here is a list of valid values for the dictionary, with keys representing the values to the left of the colon on each line (all keys in the dictionary are of type String), and the values on the right being the corresponding values. Also note that if a button has a boolean type as a value, then true means the button is pressed, and false means the button is not pressed. Also note that the names for each button are case-insensitive.
+	This class and the OnGCControllerPolled class use a Python dictionary to represent the buttons pressed on a GameCube controller. I will refer to this dictionary as being of type "GameCubeControllerStateDictionary" in the documentation down below. Here is a list of valid values for the dictionary, with keys representing the values to the left of the colon on each line (all keys in the dictionary are of type String), and the values on the right being the corresponding values. Also note that if a button has a boolean type as a value, then true means the button is pressed, and false means the button is not pressed. Also note that the names for each button are case-insensitive.
 
 	{
 		"A": True|False (boolean),
@@ -297,17 +296,6 @@ GameCubeControllerAPI class:
 		"cStickY": 0-255 (u8)
 	}
 
-	s64 getCurrentPortNumberOfPoll():
-		- This function is intended to be called only from inside of an OnGCControllerPolled callback function, and it returns which controller number is currently being polled (will be a number between 1 and 4).
-		  GameCubeControllerAPI.getCurrentPortNumberOfPoll() ==> If only 1 controller is plugged in to slot 1, then this will return 1
-
-	void setInputsForPoll(GameCubeControllerStateDictionary newControllerValues):
-		- This function is intended to be called only from inside of an OnGCControllerPolledCallback function, and it sets the controller which is being polled to have the same buttons pressed as specified by newControllerValues. Note that if a button is not specified in newControllerValues, then it will be set to its default value, which is false for digital buttons, 0 for the L and R triggers, and 128 for the control and analog sticks.
-		  GameCubeControllerAPI.setInputsForPoll( { "B": True, "X": False, "cStickX": 45, "triggerL": 12 } ) ==> If controller 1 is currently being polled, then after this function function finishes, the following dictionary will describe the buttons pressed for controller 1 (which is also what a call to GameCubeControllerAPI.getInputsForPoll() made right after this would return): { "A": False, "B": True, "X": False, "Y": False, "Z": False, "L": False, "R": False, "Start": False, "Reset": False, "dPadUp": False, "dPadDown": False, "dPadLeft": False, "dPadRight": False, "triggerL": 12, "triggerR": 0, "analogStickX": 128, "analogStickY": 128, "cStickX": 45, "cStickY": 128 }
-
-	GameCubeControllerStateDictionary getInputsForPoll():
-		- The function is intended to be called only from inside of an OnGCControllerPolledCallback function, and it gets the buttons pressed on the currently polled controller.
-		  GameCubeControllerAPI.getInputsForPoll() ==> If this was called right after the call to setInputsForPoll described above was made, then it would return the dictionary described in the example call for setInputsForPoll()
 
 	GameCubeControllerStateDictionary getInputsForPreviousFrame(u8 controllerNumber):
 		- This function returns the inputs that were pressed on the controller referenced by controllerNumber on the previous frame. This function can be called at any point (it doesn't need to be called from a specific callback). Note that controllerNumber must be between 1 and 4.
@@ -757,6 +745,9 @@ OnFrameStart class:
 		  resultVal = OnFrameStart.register(callbackFunc) ==> Registers callbackFunc to run at the start of each frame.
 		  OnFrameStart.unregister(resultVal) ==> callbackFunc will no longer run at the start of each frame.
 
+	boolean isInFrameStartCallback():
+		- Returns true if called from inside of an OnFrameStart callback function, and false otherwise.
+		  OnFrameStart.isInFrameStartCallback()
 ---------------------------------------------------------------------------------------------------------------
 OnGCControllerPolled class:
 
@@ -772,6 +763,22 @@ OnGCControllerPolled class:
 		- Unregisters the callback referred to by callbackReference, so it will no longer run when the game polls for GameCube controller input (deletes it from the list of functions to run when the game polls for GameCube controller input). This function takes as input the value which was returned when the function was registered, which is what is used to uniquely identify the function to deregister.
 		  resultVal = OnGCControllerPolled.register(callbackFunc) ==> Registers callbackFunc to run whenever the game polls a GameCube controller for input
 		  OnGCControllerPolled.unregister(resultVal) ==> callbackFunc will no longer run when the game polls a GameCube controller for input
+
+	boolean isInGCControllerPolledCallback():
+			- Returns true if called from inside of an OnGCControllerPolled callback function, and false otherwise.
+			  OnGCControllerPolled.isInGCControllerPolledCallback()
+
+	s64 getCurrentPortNumberOfPoll():
+		- This function can only be called only from inside of an OnGCControllerPolled callback function, and it returns which controller number is currently being polled (will be a number between 1 and 4).
+		  GameCubeControllerAPI.getCurrentPortNumberOfPoll() ==> If only 1 controller is plugged in to slot 1, then this will return 1
+
+	void setInputsForPoll(GameCubeControllerStateDictionary newControllerValues):
+		- This can only be called only from inside of an OnGCControllerPolledCallback function, and it sets the controller which is being polled to have the same buttons pressed as specified by newControllerValues. Note that if a button is not specified in newControllerValues, then it will be set to its default value, which is false for digital buttons, 0 for the L and R triggers, and 128 for the control and analog sticks.
+		  GameCubeControllerAPI.setInputsForPoll( { "B": True, "X": False, "cStickX": 45, "triggerL": 12 } ) ==> If controller 1 is currently being polled, then after this function function finishes, the following dictionary will describe the buttons pressed for controller 1 (which is also what a call to GameCubeControllerAPI.getInputsForPoll() made right after this would return): { "A": False, "B": True, "X": False, "Y": False, "Z": False, "L": False, "R": False, "Start": False, "Reset": False, "dPadUp": False, "dPadDown": False, "dPadLeft": False, "dPadRight": False, "triggerL": 12, "triggerR": 0, "analogStickX": 128, "analogStickY": 128, "cStickX": 45, "cStickY": 128 }
+
+	GameCubeControllerStateDictionary getInputsForPoll():
+		- The function can only be called from inside of an OnGCControllerPolledCallback function, and it gets the buttons pressed on the currently polled controller.
+		  GameCubeControllerAPI.getInputsForPoll() ==> If this was called right after the call to setInputsForPoll described above was made, then it would return the dictionary described in the example call for setInputsForPoll()
 
 --------------------------------------------------------------------------------------------------------------
 OnWiiInputPolled class:
@@ -789,6 +796,10 @@ OnWiiInputPolled class:
 		  resultVal = OnWiiInputPolled.register(callbackFunc) ==> Registers callbackFunc to run whenever the game polls for Wii input.
 		  OnWiiInputPolled.unregister(resultVal) ==> callbackFunc will no longer run when the game polls for Wii input.
 
+	boolean isInWiiInputPolledCallback():
+		- Returns true if called from inside of an OnWiiInputPolled callback function, and false otherwise.
+		  OnWiiInputPolled.isInWiiInputPolledCallback()
+
 -------------------------------------------------------------------------------------------------------------
 OnInstructionHit class:
 
@@ -804,6 +815,14 @@ OnInstructionHit class:
 		- Unregisters the callback referred to by callbackReference, so it will no longer run when the instruction specified by instructionAddress is hit. This function takes as input the value which was returned when the function was registered, which is what is used to uniquely identify the function to deregister.
 		  resultVal = OnInstructionHit.register(0X80000ABC, callbackFunc) ==> Registers callbackFunc to run whenever the specified instruction is hit.
 		  OnInstructionHit.unregister(0X80000ABC, resultVal) ==> callbackFunc will no longer run when the specified instruction is hit.
+
+	boolean isInInstructionHitCallback():
+		- Returns true if called from inside of an OnInstructionHit callback function, and false otherwise.
+		  OnInstructionHit.isInInstructionHitCallback()
+
+	u32 getAddressOfInstructionForCurrentCallback():
+		- Returns the address of the instruction which triggered the current OnInstructionHit callback to be triggered. This function will throw an error if called from outside of an OnInstructionHit callback.
+		  OnInstructionHit.getAddressOfInstructionForCurrentCallback() ==> Could return 0X80000064
 
 ---------------------------------------------------------------------------------------------------------------
 OnMemoryAddressReadFrom class:
@@ -821,6 +840,14 @@ OnMemoryAddressReadFrom class:
 		  resultVal = OnMemoryAddressReadFrom.register(0X80000ABC, callbackFunc) ==> Registers callbackFunc to run whenever the specified memory address is read from.
 		  OnMemoryAddressReadFrom.unregister(0X80000ABC, resultVal) ==> callbackFunc will no longer run when the specified memory address is read from.
 
+	boolean isInMemoryAddressReadFromCallback():
+		- Returns true if called from inside of an OnMemoryAddressReadFrom callback, and false otherwise.
+		  OnMemoryAddressReadFrom.isInMemoryAddressReadFromCallback()
+
+	u32 getMemoryAddressReadFromForCurrentCallback():
+		- Returns the memory address that was read from to trigger the current OnMemoryAddressReadFrom callback to execute. This function will throw an error if called from outside of an OnMemoryAddressReadFrom callback function.
+		  OnMemoryAddressReadFrom.getMemoryAddressReadFromForCurrentCallback() ==> Could return 0X85555580
+
 ---------------------------------------------------------------------------------------------------------------
 OnMemoryAddressWrittenTo class:
 
@@ -836,5 +863,17 @@ OnMemoryAddressWrittenTo class:
 		- Unregisters the callback referred to by callbackReference, so it will no longer run when the memory address specified by memoryAddress is written to. This function takes as input the value which was returned when the function was registered, which is what is used to uniquely identify the function to deregister.
 		  resultVal = OnMemoryAddressWrittenTo.register(0X80000ABC, callbackFunc) ==> Registers callbackFunc to run whenever the specified memory address is written to.
 		  OnMemoryAddressWrittenTo.unregister(0X80000ABC, resultVal) ==> callbackFunc will no longer run when the specified memory address is written to.
+
+	boolean isInMemoryAddressWrittenToCallback():
+		- Returns true if called from inside of an OnMemoryAddressWrittenTo callback function, and false otherwise.
+		  OnMemoryAddressWrittenTo.isInMemoryAddressWrittenToCallback()
+
+	u32 getMemoryAddressWrittenToForCurrentCallback():
+		- Returns the memory address that was written to to trigger the current OnMemoryAddressWrittenTo callback function to execute. This function will throw an error if called from outside of an OnMemoryAddressWrittenTo callback function.
+		  OnMemoryAddressWrittenTo.getMemoryAddressWrittenToForCurrentCallback() ==> Could return 0X8000042
+
+	s64 getValueWrittenToMemoryAddressForCurrentCallback():
+		- Returns the value that was written to the address in the current OnMemoryAddressWrittenTo callback function. This function will throw an error if called from outside of an OnMemoryAddressWrittenTo callback function.
+		  OnMemoryAddressWrittenTo.getValueWrittenToMemoryAddressForCurrentCallback() ==> Could return 85
 
 ----------------------------------------------------------------------------------------------------------------
