@@ -24,6 +24,6 @@ ArgHolder Unregister(ScriptContext* current_script, std::vector<ArgHolder>& args
 ArgHolder IsInMemoryAddressReadFromCallback(ScriptContext* current_script,
                                             std::vector<ArgHolder>& args_list);
 ArgHolder GetMemoryAddressReadFromForCurrentCallback(ScriptContext* current_script,
-                                                    std::vector<ArgHolder>& args_list);
+                                                     std::vector<ArgHolder>& args_list);
 
 }  // namespace Scripting::OnMemoryAddressReadFromCallbackAPI

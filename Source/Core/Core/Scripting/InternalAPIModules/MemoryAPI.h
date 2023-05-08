@@ -4,8 +4,8 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Core/Scripting/HelperClasses/ClassMetadata.h"
 #include "Core/Scripting/HelperClasses/ArgHolder.h"
+#include "Core/Scripting/HelperClasses/ClassMetadata.h"
 #include "Core/Scripting/ScriptContext.h"
 
 namespace Scripting::MemoryApi
@@ -46,7 +46,6 @@ ArgHolder WriteDouble(ScriptContext* current_script, std::vector<ArgHolder>& arg
 ArgHolder WriteString(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder WriteBytes(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder WriteAllMemoryAsUnsignedBytesToFile(ScriptContext* current_script,
-                                       std::vector<ArgHolder>& args_list);
+                                              std::vector<ArgHolder>& args_list);
 
 }  // namespace Scripting::MemoryApi
-

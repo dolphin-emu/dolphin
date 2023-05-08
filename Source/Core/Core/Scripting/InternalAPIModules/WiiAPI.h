@@ -1,13 +1,13 @@
 #pragma once
 #include <string>
 #include <vector>
+#include "Core/HW/Wiimote.h"
+#include "Core/HW/WiimoteCommon/DataReport.h"
+#include "Core/HW/WiimoteCommon/WiimoteReport.h"
 #include "Core/Scripting/HelperClasses/ArgHolder.h"
 #include "Core/Scripting/HelperClasses/ArgTypeEnum.h"
 #include "Core/Scripting/HelperClasses/ClassMetadata.h"
 #include "Core/Scripting/HelperClasses/FunctionMetadata.h"
-#include "Core/HW/Wiimote.h"
-#include "Core/HW/WiimoteCommon/DataReport.h"
-#include "Core/HW/WiimoteCommon/WiimoteReport.h"
 
 namespace Scripting::WiiAPI
 {
@@ -20,7 +20,8 @@ extern int current_controller_number_polled;
 
 ClassMetadata GetWiiApiClassData(const std::string& api_version);
 
-ArgHolder GetCurrentPortNumberOfPoll(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder GetCurrentPortNumberOfPoll(ScriptContext* current_script, std::vector<ArgHolder>&
+args_list);
 
 ArgHolder GetInputsForWiimotePoll(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder SetInputsForWiimotePoll(ScriptContext* current_script, std::vector<ArgHolder>& args_list);

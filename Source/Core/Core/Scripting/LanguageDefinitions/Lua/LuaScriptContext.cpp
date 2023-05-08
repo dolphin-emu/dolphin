@@ -2,7 +2,8 @@
 
 namespace Scripting::Lua
 {
-const char* THIS_VARIABLE_NAME = "THIS__Internal984Z234";  // Making this something unlikely to overlap with a user-defined global.
+const char* THIS_VARIABLE_NAME = "THIS__Internal984Z234";  // Making this something unlikely to
+                                                           // overlap with a user-defined global.
 int x = 0;
 
 class UserdataClass
@@ -11,12 +12,12 @@ public:
   inline UserdataClass(){};
 };
 
- UserdataClass* GetNewUserdataInstance()
+UserdataClass* GetNewUserdataInstance()
 {
   return std::make_unique<UserdataClass>(UserdataClass()).get();
 }
 
-    static std::string GetMagnitudeOutOfBoundsErrorMessage(const std::string& class_name,
+static std::string GetMagnitudeOutOfBoundsErrorMessage(const std::string& class_name,
                                                        const std::string& func_name,
                                                        const std::string& button_name)
 {
@@ -33,10 +34,12 @@ void LuaScriptContext::ImportModule(const std::string& api_name, const std::stri
   else if (this->current_script_call_location == ScriptCallLocations::FromInstructionHitCallback)
     current_lua_state_thread = this->instruction_address_hit_callback_lua_thread;
 
-  else if (this->current_script_call_location == ScriptCallLocations::FromMemoryAddressReadFromCallback)
+  else if (this->current_script_call_location ==
+           ScriptCallLocations::FromMemoryAddressReadFromCallback)
     current_lua_state_thread = this->memory_address_read_from_callback_lua_thread;
 
-  else if (this->current_script_call_location == ScriptCallLocations::FromMemoryAddressWrittenToCallback)
+  else if (this->current_script_call_location ==
+           ScriptCallLocations::FromMemoryAddressWrittenToCallback)
     current_lua_state_thread = this->memory_address_written_to_callback_lua_thread;
 
   else if (this->current_script_call_location == ScriptCallLocations::FromGCControllerInputPolled)
@@ -45,7 +48,8 @@ void LuaScriptContext::ImportModule(const std::string& api_name, const std::stri
   else if (this->current_script_call_location == ScriptCallLocations::FromWiiInputPolled)
     current_lua_state_thread = this->wii_input_polled_callback_lua_thread;
 
-  UserdataClass** userdata_ptr_ptr = (UserdataClass**)lua_newuserdata(current_lua_state_thread, sizeof(UserdataClass*));
+  UserdataClass** userdata_ptr_ptr =
+      (UserdataClass**)lua_newuserdata(current_lua_state_thread, sizeof(UserdataClass*));
   *userdata_ptr_ptr = GetNewUserdataInstance();
 
   luaL_newmetatable(
@@ -115,8 +119,7 @@ void LuaScriptContext::ImportModule(const std::string& api_name, const std::stri
         switch (arg_type)
         {
         case ArgTypeEnum::Boolean:
-          arguments.push_back(
-              CreateBoolArgHolder(lua_toboolean(lua_state, next_index_in_args)));
+          arguments.push_back(CreateBoolArgHolder(lua_toboolean(lua_state, next_index_in_args)));
           break;
         case ArgTypeEnum::U8:
           arguments.push_back(CreateU8ArgHolder(luaL_checkinteger(lua_state, next_index_in_args)));
@@ -164,17 +167,21 @@ void LuaScriptContext::ImportModule(const std::string& api_name, const std::stri
         case ArgTypeEnum::RegistrationInputType:
           lua_pushvalue(lua_state, next_index_in_args);
           function_reference = luaL_ref(lua_state, LUA_REGISTRYINDEX);
-          arguments.push_back(CreateRegistrationInputTypeArgHolder(*((void**)(&function_reference))));
+          arguments.push_back(
+              CreateRegistrationInputTypeArgHolder(*((void**)(&function_reference))));
           break;
         case ArgTypeEnum::RegistrationWithAutoDeregistrationInputType:
           lua_pushvalue(lua_state, next_index_in_args);
           function_reference = luaL_ref(lua_state, LUA_REGISTRYINDEX);
-          arguments.push_back(
-              CreateRegistrationWithAutoDeregistrationInputTypeArgHolder(*((void**)(&function_reference))));
+          arguments.push_back(CreateRegistrationWithAutoDeregistrationInputTypeArgHolder(
+              *((void**)(&function_reference))));
           break;
         case ArgTypeEnum::RegistrationForButtonCallbackInputType:
           if (!corresponding_script_context->IsButtonRegistered(
-                  arguments[arguments.size() - 1].long_long_val)) // this is a terrible hack - but it works to prevent a button callback from being added to Lua's stack once every frame.
+                  arguments[arguments.size() - 1]
+                      .long_long_val))  // this is a terrible hack - but it works to prevent a
+                                        // button callback from being added to Lua's stack once
+                                        // every frame.
           {
             lua_pushvalue(lua_state, next_index_in_args);
             function_reference = luaL_ref(lua_state, LUA_REGISTRYINDEX);
@@ -183,12 +190,14 @@ void LuaScriptContext::ImportModule(const std::string& api_name, const std::stri
           {
             function_reference = -1;
           }
-            arguments.push_back(CreateRegistrationForButtonCallbackInputTypeArgHolder(*((void**)(&function_reference))));
+          arguments.push_back(CreateRegistrationForButtonCallbackInputTypeArgHolder(
+              *((void**)(&function_reference))));
           break;
         case ArgTypeEnum::UnregistrationInputType:
           function_reference = lua_tointeger(lua_state, next_index_in_args);
           luaL_unref(lua_state, LUA_REGISTRYINDEX, function_reference);
-          arguments.push_back(CreateUnregistrationInputTypeArgHolder(*((void**)(&function_reference))));
+          arguments.push_back(
+              CreateUnregistrationInputTypeArgHolder(*((void**)(&function_reference))));
           break;
         case ArgTypeEnum::AddressToByteMap:
           address_to_byte_map = std::map<long long, s16>();
@@ -376,7 +385,7 @@ void LuaScriptContext::ImportModule(const std::string& api_name, const std::stri
           arguments.push_back(CreateControllerStateArgHolder(controller_state_arg));
           break;
 
-          case ArgTypeEnum::ListOfPoints:
+        case ArgTypeEnum::ListOfPoints:
           list_of_points = std::vector<ImVec2>();
           lua_pushnil(lua_state);
           while (lua_next(lua_state, next_index_in_args) != 0)
@@ -640,14 +649,18 @@ void LuaScriptContext::StartScript()
       is_script_active = false;
     }
   }
-
 }
-void LuaScriptContext::GenericRunCallbacksHelperFunction(lua_State*& current_lua_state, std::vector<int>& vector_of_callbacks, int& index_of_next_callback_to_run, bool& yielded_on_last_callback_call, bool yields_are_allowed)
+void LuaScriptContext::GenericRunCallbacksHelperFunction(lua_State*& current_lua_state,
+                                                         std::vector<int>& vector_of_callbacks,
+                                                         int& index_of_next_callback_to_run,
+                                                         bool& yielded_on_last_callback_call,
+                                                         bool yields_are_allowed)
 {
   int ret_val = 0;
   if (!yields_are_allowed)
     index_of_next_callback_to_run = 0;
-  else if (index_of_next_callback_to_run < 0 || index_of_next_callback_to_run >= vector_of_callbacks.size())
+  else if (index_of_next_callback_to_run < 0 ||
+           index_of_next_callback_to_run >= vector_of_callbacks.size())
     index_of_next_callback_to_run = 0;
 
   for (index_of_next_callback_to_run; index_of_next_callback_to_run < vector_of_callbacks.size();
@@ -661,7 +674,8 @@ void LuaScriptContext::GenericRunCallbacksHelperFunction(lua_State*& current_lua
     else
     {
       yielded_on_last_callback_call = false;
-      lua_rawgeti(current_lua_state, LUA_REGISTRYINDEX, vector_of_callbacks[index_of_next_callback_to_run]);
+      lua_rawgeti(current_lua_state, LUA_REGISTRYINDEX,
+                  vector_of_callbacks[index_of_next_callback_to_run]);
       ret_val = lua_resume(current_lua_state, nullptr, 0, &x);
     }
 
@@ -700,7 +714,7 @@ void LuaScriptContext::RunGlobalScopeCode()
   else
   {
     called_yielding_function_in_last_global_script_resume = false;
-    if (ret_val == LUA_OK) 
+    if (ret_val == LUA_OK)
       this->finished_with_global_code = true;
     else
     {
@@ -739,7 +753,6 @@ void LuaScriptContext::RunOnGCControllerPolledCallbacks()
                                           index_of_next_callback, called_yield_previously, false);
 }
 
-
 void LuaScriptContext::RunOnInstructionReachedCallbacks(u32 current_address)
 {
   if (ShouldCallEndScriptFunction())
@@ -749,7 +762,8 @@ void LuaScriptContext::RunOnInstructionReachedCallbacks(u32 current_address)
 
   int index_of_next_callback = 0;
   bool called_yield_previously = false;
-  if (this->map_of_instruction_address_to_lua_callback_locations.size() == 0 || this->map_of_instruction_address_to_lua_callback_locations.count(current_address) == 0)
+  if (this->map_of_instruction_address_to_lua_callback_locations.size() == 0 ||
+      this->map_of_instruction_address_to_lua_callback_locations.count(current_address) == 0)
     return;
   this->GenericRunCallbacksHelperFunction(
       this->instruction_address_hit_callback_lua_thread,
@@ -817,8 +831,8 @@ void* LuaScriptContext::RegisterForVectorHelper(std::vector<int>& input_vector, 
 }
 
 void LuaScriptContext::RegisterForVectorWithAutoDeregistrationHelper(
-  std::vector<int>& input_vector, void* callbacks,
-  std::atomic<size_t>& number_of_auto_deregister_callbacks)
+    std::vector<int>& input_vector, void* callbacks,
+    std::atomic<size_t>& number_of_auto_deregister_callbacks)
 {
   int function_reference = *((int*)(&callbacks));
   input_vector.push_back(function_reference);
@@ -828,162 +842,181 @@ void LuaScriptContext::RegisterForVectorWithAutoDeregistrationHelper(
 bool LuaScriptContext::UnregisterForVectorHelper(std::vector<int>& input_vector, void* callbacks)
 {
   int function_reference_to_delete = *((int*)(&callbacks));
-  if (std::find(input_vector.begin(), input_vector.end(), function_reference_to_delete) == input_vector.end())
+  if (std::find(input_vector.begin(), input_vector.end(), function_reference_to_delete) ==
+      input_vector.end())
     return false;
 
-  input_vector.erase((std::find(input_vector.begin(), input_vector.end(), function_reference_to_delete)));
+  input_vector.erase(
+      (std::find(input_vector.begin(), input_vector.end(), function_reference_to_delete)));
   return true;
 }
 
-void* LuaScriptContext::RegisterForMapHelper(u32 address, std::unordered_map<u32, std::vector<int>>& input_map,
+void* LuaScriptContext::RegisterForMapHelper(u32 address,
+                                             std::unordered_map<u32, std::vector<int>>& input_map,
                                              void* callbacks)
 {
   int function_reference = *((int*)(&callbacks));
   if (!input_map.count(address))
-   input_map[address] = std::vector<int>();
+    input_map[address] = std::vector<int>();
   input_map[address].push_back(function_reference);
   return callbacks;
 }
 
- void LuaScriptContext::RegisterForMapWithAutoDeregistrationHelper(u32 address, std::unordered_map<u32, std::vector<int>>& input_map, void* callbacks, std::atomic<size_t>& number_of_auto_deregistration_callbacks)
+void LuaScriptContext::RegisterForMapWithAutoDeregistrationHelper(
+    u32 address, std::unordered_map<u32, std::vector<int>>& input_map, void* callbacks,
+    std::atomic<size_t>& number_of_auto_deregistration_callbacks)
 {
   int function_reference = *((int*)(&callbacks));
   if (!input_map.count(address))
-   input_map[address] = std::vector<int>();
+    input_map[address] = std::vector<int>();
   input_map[address].push_back(function_reference);
   number_of_auto_deregistration_callbacks++;
- }
+}
 
-
-bool LuaScriptContext::UnregisterForMapHelper(u32 address, std::unordered_map<u32, std::vector<int>>& input_map, void* callbacks)
+bool LuaScriptContext::UnregisterForMapHelper(u32 address,
+                                              std::unordered_map<u32, std::vector<int>>& input_map,
+                                              void* callbacks)
 {
   int function_reference_to_delete = *((int*)(&callbacks));
   if (!input_map.count(address))
-   return false;
+    return false;
 
-  if (std::find(input_map[address].begin(), input_map[address].end(), function_reference_to_delete) ==
-      input_map[address].end())
-   return false;
+  if (std::find(input_map[address].begin(), input_map[address].end(),
+                function_reference_to_delete) == input_map[address].end())
+    return false;
 
   input_map[address].erase((std::find(input_map[address].begin(), input_map[address].end(),
                                       function_reference_to_delete)));
   return true;
 }
 
- void* LuaScriptContext::RegisterOnFrameStartCallbacks(void* callbacks)
+void* LuaScriptContext::RegisterOnFrameStartCallbacks(void* callbacks)
 {
   return this->RegisterForVectorHelper(this->frame_callback_locations, callbacks);
- }
+}
 
- void LuaScriptContext::RegisterOnFrameStartWithAutoDeregistrationCallbacks(void* callbacks)
- {
-  this->RegisterForVectorWithAutoDeregistrationHelper(this->frame_callback_locations, callbacks, number_of_frame_callbacks_to_auto_deregister);
- }
+void LuaScriptContext::RegisterOnFrameStartWithAutoDeregistrationCallbacks(void* callbacks)
+{
+  this->RegisterForVectorWithAutoDeregistrationHelper(this->frame_callback_locations, callbacks,
+                                                      number_of_frame_callbacks_to_auto_deregister);
+}
 
 bool LuaScriptContext::UnregisterOnFrameStartCallbacks(void* callbacks)
 {
   return this->UnregisterForVectorHelper(this->frame_callback_locations, callbacks);
 }
 
- void* LuaScriptContext::RegisterOnGCCControllerPolledCallbacks(void* callbacks)
+void* LuaScriptContext::RegisterOnGCCControllerPolledCallbacks(void* callbacks)
 {
-  return this->RegisterForVectorHelper(this->gc_controller_input_polled_callback_locations, callbacks);
- }
+  return this->RegisterForVectorHelper(this->gc_controller_input_polled_callback_locations,
+                                       callbacks);
+}
 
- void LuaScriptContext::RegisterOnGCControllerPolledWithAutoDeregistrationCallbacks(void* callbacks)
- {
+void LuaScriptContext::RegisterOnGCControllerPolledWithAutoDeregistrationCallbacks(void* callbacks)
+{
   return this->RegisterForVectorWithAutoDeregistrationHelper(
       this->gc_controller_input_polled_callback_locations, callbacks,
       number_of_gc_controller_input_callbacks_to_auto_deregister);
- }
- bool LuaScriptContext::UnregisterOnGCControllerPolledCallbacks(void* callbacks)
- {
-  return this->UnregisterForVectorHelper(this->gc_controller_input_polled_callback_locations, callbacks);
- }
+}
+bool LuaScriptContext::UnregisterOnGCControllerPolledCallbacks(void* callbacks)
+{
+  return this->UnregisterForVectorHelper(this->gc_controller_input_polled_callback_locations,
+                                         callbacks);
+}
 
- void* LuaScriptContext::RegisterOnInstructionReachedCallbacks(u32 address, void* callbacks)
- {
+void* LuaScriptContext::RegisterOnInstructionReachedCallbacks(u32 address, void* callbacks)
+{
   this->instructionsBreakpointHolder.AddBreakpoint(address);
-  return this->RegisterForMapHelper(address, this->map_of_instruction_address_to_lua_callback_locations, callbacks);
- }
+  return this->RegisterForMapHelper(
+      address, this->map_of_instruction_address_to_lua_callback_locations, callbacks);
+}
 
- void LuaScriptContext::RegisterOnInstructionReachedWithAutoDeregistrationCallbacks(u32 address,
-                                                                                    void* callbacks)
- {
+void LuaScriptContext::RegisterOnInstructionReachedWithAutoDeregistrationCallbacks(u32 address,
+                                                                                   void* callbacks)
+{
   this->instructionsBreakpointHolder.AddBreakpoint(address);
   this->RegisterForMapWithAutoDeregistrationHelper(
       address, this->map_of_instruction_address_to_lua_callback_locations, callbacks,
       number_of_instruction_address_callbacks_to_auto_deregister);
- }
+}
 
- bool LuaScriptContext::UnregisterOnInstructionReachedCallbacks(u32 address, void* callbacks)
- {
+bool LuaScriptContext::UnregisterOnInstructionReachedCallbacks(u32 address, void* callbacks)
+{
   this->instructionsBreakpointHolder.RemoveBreakpoint(address);
-  return this->UnregisterForMapHelper(address, this->map_of_instruction_address_to_lua_callback_locations, callbacks);
- }
+  return this->UnregisterForMapHelper(
+      address, this->map_of_instruction_address_to_lua_callback_locations, callbacks);
+}
 
- void* LuaScriptContext::RegisterOnMemoryAddressReadFromCallbacks(u32 memory_address, void* callbacks)
- {
+void* LuaScriptContext::RegisterOnMemoryAddressReadFromCallbacks(u32 memory_address,
+                                                                 void* callbacks)
+{
   this->memoryAddressBreakpointsHolder.AddReadBreakpoint(memory_address);
-  return this->RegisterForMapHelper(memory_address, this->map_of_memory_address_read_from_to_lua_callback_locations, callbacks);
- }
+  return this->RegisterForMapHelper(
+      memory_address, this->map_of_memory_address_read_from_to_lua_callback_locations, callbacks);
+}
 
- void LuaScriptContext::RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallbacks(
-     u32 memory_address, void* callbacks)
- {
+void LuaScriptContext::RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallbacks(
+    u32 memory_address, void* callbacks)
+{
   this->memoryAddressBreakpointsHolder.AddReadBreakpoint(memory_address);
   this->RegisterForMapWithAutoDeregistrationHelper(
       memory_address, this->map_of_memory_address_read_from_to_lua_callback_locations, callbacks,
       number_of_memory_address_read_callbacks_to_auto_deregister);
- }
+}
 
- bool LuaScriptContext::UnregisterOnMemoryAddressReadFromCallbacks(u32 memory_address, void* callbacks)
- {
+bool LuaScriptContext::UnregisterOnMemoryAddressReadFromCallbacks(u32 memory_address,
+                                                                  void* callbacks)
+{
   this->memoryAddressBreakpointsHolder.RemoveReadBreakpoint(memory_address);
-  return this->UnregisterForMapHelper(memory_address, this->map_of_memory_address_read_from_to_lua_callback_locations, callbacks);
- }
+  return this->UnregisterForMapHelper(
+      memory_address, this->map_of_memory_address_read_from_to_lua_callback_locations, callbacks);
+}
 
- void* LuaScriptContext::RegisterOnMemoryAddressWrittenToCallbacks(u32 memory_address,
-                                                                   void* callbacks)
- {
+void* LuaScriptContext::RegisterOnMemoryAddressWrittenToCallbacks(u32 memory_address,
+                                                                  void* callbacks)
+{
   this->memoryAddressBreakpointsHolder.AddWriteBreakpoint(memory_address);
-  return this->RegisterForMapHelper(memory_address, this->map_of_memory_address_written_to_to_lua_callback_locations, callbacks);
- }
+  return this->RegisterForMapHelper(
+      memory_address, this->map_of_memory_address_written_to_to_lua_callback_locations, callbacks);
+}
 
- void LuaScriptContext::RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallbacks(
-     u32 memory_address, void* callbacks)
- {
+void LuaScriptContext::RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallbacks(
+    u32 memory_address, void* callbacks)
+{
   this->memoryAddressBreakpointsHolder.AddWriteBreakpoint(memory_address);
   this->RegisterForMapWithAutoDeregistrationHelper(
       memory_address, this->map_of_memory_address_written_to_to_lua_callback_locations, callbacks,
       number_of_memory_address_write_callbacks_to_auto_deregister);
- }
+}
 
- bool LuaScriptContext::UnregisterOnMemoryAddressWrittenToCallbacks(u32 memory_address, void* callbacks)
- {
+bool LuaScriptContext::UnregisterOnMemoryAddressWrittenToCallbacks(u32 memory_address,
+                                                                   void* callbacks)
+{
   this->memoryAddressBreakpointsHolder.RemoveWriteBreakpoint(memory_address);
-  return this->UnregisterForMapHelper(memory_address, this->map_of_memory_address_written_to_to_lua_callback_locations, callbacks);
- }
+  return this->UnregisterForMapHelper(
+      memory_address, this->map_of_memory_address_written_to_to_lua_callback_locations, callbacks);
+}
 
- void* LuaScriptContext::RegisterOnWiiInputPolledCallbacks(void* callbacks)
- {
-  return this->RegisterForVectorHelper(this->wii_controller_input_polled_callback_locations, callbacks);
- }
+void* LuaScriptContext::RegisterOnWiiInputPolledCallbacks(void* callbacks)
+{
+  return this->RegisterForVectorHelper(this->wii_controller_input_polled_callback_locations,
+                                       callbacks);
+}
 
- void LuaScriptContext::RegisterOnWiiInputPolledWithAutoDeregistrationCallbacks(void* callbacks)
- {
+void LuaScriptContext::RegisterOnWiiInputPolledWithAutoDeregistrationCallbacks(void* callbacks)
+{
   this->RegisterForVectorWithAutoDeregistrationHelper(
       this->wii_controller_input_polled_callback_locations, callbacks,
       number_of_wii_input_callbacks_to_auto_deregister);
- }
- bool LuaScriptContext::UnregisterOnWiiInputPolledCallbacks(void* callbacks)
- {
-  return this->UnregisterForVectorHelper(this->wii_controller_input_polled_callback_locations, callbacks);
- }
-
+}
+bool LuaScriptContext::UnregisterOnWiiInputPolledCallbacks(void* callbacks)
+{
+  return this->UnregisterForVectorHelper(this->wii_controller_input_polled_callback_locations,
+                                         callbacks);
+}
 
 void LuaScriptContext::RegisterButtonCallback(long long button_id, void* callbacks)
- {
+{
   int function_reference = *((int*)(&callbacks));
   if (function_reference >= 0)
     map_of_button_id_to_callback[button_id] = function_reference;
@@ -994,26 +1027,24 @@ bool LuaScriptContext::IsButtonRegistered(long long button_id)
   return map_of_button_id_to_callback.count(button_id) > 0;
 }
 
- void LuaScriptContext::GetButtonCallbackAndAddToQueue(long long button_id)
+void LuaScriptContext::GetButtonCallbackAndAddToQueue(long long button_id)
 {
   int callback = map_of_button_id_to_callback[button_id];
   button_callbacks_to_run.push(callback);
 }
 
-
- void LuaScriptContext::RunButtonCallbacksInQueue()
- {
+void LuaScriptContext::RunButtonCallbacksInQueue()
+{
   bool yielded_on_last_call = false;
   int next_index = 0;
   std::vector<int> vector_of_functions_to_run;
   while (!button_callbacks_to_run.IsEmpty())
   {
-   int function_reference = button_callbacks_to_run.pop();
-   vector_of_functions_to_run.push_back(function_reference);
-
+    int function_reference = button_callbacks_to_run.pop();
+    vector_of_functions_to_run.push_back(function_reference);
   }
-  this->GenericRunCallbacksHelperFunction(button_callback_thread, vector_of_functions_to_run, next_index,
-                                          yielded_on_last_call, true);
- }
+  this->GenericRunCallbacksHelperFunction(button_callback_thread, vector_of_functions_to_run,
+                                          next_index, yielded_on_last_call, true);
+}
 
- }  // namespace Scripting
+}  // namespace Scripting::Lua

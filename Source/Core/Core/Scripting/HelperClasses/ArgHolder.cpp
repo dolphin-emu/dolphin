@@ -265,7 +265,8 @@ ArgHolder CreateShutdownTypeArgHolder()
 ArgHolder CreateEmptyOptionalArgument()
 {
   ArgHolder return_val = {};
-  return_val.contains_value = false; // We always check if the ArgHolder contains a value before looking at anything else.
+  return_val.contains_value =
+      false;  // We always check if the ArgHolder contains a value before looking at anything else.
   return return_val;
 }
 

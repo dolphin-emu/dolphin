@@ -2,11 +2,11 @@
 #pragma once
 #include <string>
 
-#include "Core/Movie.h"
-#include "Core/Scripting/HelperClasses/ClassMetadata.h"
-#include "Core/Scripting/HelperClasses/ArgHolder.h"
-#include "Core/Scripting/ScriptContext.h"
 #include <vector>
+#include "Core/Movie.h"
+#include "Core/Scripting/HelperClasses/ArgHolder.h"
+#include "Core/Scripting/HelperClasses/ClassMetadata.h"
+#include "Core/Scripting/ScriptContext.h"
 
 namespace Scripting::StatisticsApi
 {
@@ -18,7 +18,8 @@ FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
                                                const std::string& function_name);
 
 ArgHolder IsRecordingInput(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
-ArgHolder IsRecordingInputFromSaveState(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder IsRecordingInputFromSaveState(ScriptContext* current_script,
+                                        std::vector<ArgHolder>& args_list);
 ArgHolder IsPlayingInput(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder IsMovieActive(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 

@@ -1,6 +1,6 @@
+#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/EmuModuleImporter.h"
 #include "Core/Scripting/HelperClasses/FunctionMetadata.h"
 #include "Core/Scripting/InternalAPIModules/EmuAPI.h"
-#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/EmuModuleImporter.h"
 
 #include <vector>
 #include "Core/Scripting/LanguageDefinitions/Python/PythonScriptContext.h"
@@ -59,4 +59,4 @@ PyMODINIT_FUNC PyInit_EmuAPI()
   return PyModule_Create(&EmuAPImodule);
 }
 
-}  // namespace Scripting::Python::BitModuleImporter
+}  // namespace Scripting::Python::EmuModuleImporter

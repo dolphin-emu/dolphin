@@ -1,6 +1,6 @@
 #pragma once
-#include "string.h"
 #include <vector>
+#include "string.h"
 
 enum class GcButtonName
 {

@@ -5,52 +5,95 @@
 #include <memory>
 #include <string>
 
+#include <unordered_map>
 #include "Common/CommonTypes.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/Scripting/HelperClasses/ArgHolder.h"
-#include "Core/Scripting/HelperClasses/ScriptCallLocations.h"
-#include "Core/Scripting/HelperClasses/ClassMetadata.h"
 #include "Core/Scripting/HelperClasses/ArgTypeEnum.h"
+#include "Core/Scripting/HelperClasses/ClassMetadata.h"
+#include "Core/Scripting/HelperClasses/ScriptCallLocations.h"
 #include "Core/Scripting/HelperClasses/VersionResolver.h"
 #include "Core/System.h"
-#include <unordered_map>
 
 namespace Scripting::RegistersAPI
 {
 const char* class_name = "RegistersAPI";
 
 static std::array all_registers_functions_metadata_list = {
-  FunctionMetadata("getU8FromRegister", "1.0", "getU8FromRegister(\"R5\", 3)", GetU8FromRegister, ArgTypeEnum::U8, {ArgTypeEnum::String, ArgTypeEnum::U8}),
-  FunctionMetadata("getU16FromRegister", "1.0", "getU16FromRegister(\"R5\", 2)", GetU16FromRegister, ArgTypeEnum::U16, {ArgTypeEnum::String, ArgTypeEnum::U8}),
-  FunctionMetadata("getU32FromRegister", "1.0", "getU32FromRegister(\"R5\", 0)", GetU32FromRegister, ArgTypeEnum::U32, {ArgTypeEnum::String, ArgTypeEnum::U8}),
-  FunctionMetadata("getU64FromRegister", "1.0", "getU64FromRegister(\"F5\", 0)", GetU64FromRegister, ArgTypeEnum::U64, {ArgTypeEnum::String, ArgTypeEnum::U8}),
-  FunctionMetadata("getS8FromRegister", "1.0", "getS8FromRegister(\"R5\", 3)", GetS8FromRegister, ArgTypeEnum::S8, {ArgTypeEnum::String, ArgTypeEnum::U8}),
-  FunctionMetadata("getS16FromRegister", "1.0", "getS16FromRegister(\"R5\", 2)", GetS16FromRegister, ArgTypeEnum::S16, {ArgTypeEnum::String, ArgTypeEnum::U8}),
-  FunctionMetadata("getS32FromRegister", "1.0", "getS32FromRegister(\"R5\", 0)", GetS32FromRegister, ArgTypeEnum::Integer, {ArgTypeEnum::String, ArgTypeEnum::U8}),
-  FunctionMetadata("getS64FromRegister", "1.0", "getS64FromRegister(\"F5\", 0)", GetS64FromRegister, ArgTypeEnum::LongLong, {ArgTypeEnum::String, ArgTypeEnum::U8}),
-  FunctionMetadata("getFloatFromRegister", "1.0", "getFloatFromRegister(\"F5\", 4)", GetFloatFromRegister, ArgTypeEnum::Float, {ArgTypeEnum::String, ArgTypeEnum::U8}),
-  FunctionMetadata("getDoubleFromRegister", "1.0", "getDoubleFromRegister(\"F5\", 0)", GetDoubleFromRegister, ArgTypeEnum::Double, {ArgTypeEnum::String, ArgTypeEnum::U8}),
-  FunctionMetadata("getUnsignedBytesFromRegister", "1.0", "getUnsignedBytesFromRegister(\"R5\", 3, 1)", GetUnsignedBytesFromRegister, ArgTypeEnum::AddressToUnsignedByteMap, {ArgTypeEnum::String, ArgTypeEnum::U8, ArgTypeEnum::U8}),
-  FunctionMetadata("getSignedBytesFromRegister", "1.0", "getSignedBytesFromRegister(\"R5\", 3, 1)", GetSignedBytesFromRegister, ArgTypeEnum::AddressToSignedByteMap, {ArgTypeEnum::String, ArgTypeEnum::U8, ArgTypeEnum::U8}),
+    FunctionMetadata("getU8FromRegister", "1.0", "getU8FromRegister(\"R5\", 3)", GetU8FromRegister,
+                     ArgTypeEnum::U8, {ArgTypeEnum::String, ArgTypeEnum::U8}),
+    FunctionMetadata("getU16FromRegister", "1.0", "getU16FromRegister(\"R5\", 2)",
+                     GetU16FromRegister, ArgTypeEnum::U16, {ArgTypeEnum::String, ArgTypeEnum::U8}),
+    FunctionMetadata("getU32FromRegister", "1.0", "getU32FromRegister(\"R5\", 0)",
+                     GetU32FromRegister, ArgTypeEnum::U32, {ArgTypeEnum::String, ArgTypeEnum::U8}),
+    FunctionMetadata("getU64FromRegister", "1.0", "getU64FromRegister(\"F5\", 0)",
+                     GetU64FromRegister, ArgTypeEnum::U64, {ArgTypeEnum::String, ArgTypeEnum::U8}),
+    FunctionMetadata("getS8FromRegister", "1.0", "getS8FromRegister(\"R5\", 3)", GetS8FromRegister,
+                     ArgTypeEnum::S8, {ArgTypeEnum::String, ArgTypeEnum::U8}),
+    FunctionMetadata("getS16FromRegister", "1.0", "getS16FromRegister(\"R5\", 2)",
+                     GetS16FromRegister, ArgTypeEnum::S16, {ArgTypeEnum::String, ArgTypeEnum::U8}),
+    FunctionMetadata("getS32FromRegister", "1.0", "getS32FromRegister(\"R5\", 0)",
+                     GetS32FromRegister, ArgTypeEnum::Integer,
+                     {ArgTypeEnum::String, ArgTypeEnum::U8}),
+    FunctionMetadata("getS64FromRegister", "1.0", "getS64FromRegister(\"F5\", 0)",
+                     GetS64FromRegister, ArgTypeEnum::LongLong,
+                     {ArgTypeEnum::String, ArgTypeEnum::U8}),
+    FunctionMetadata("getFloatFromRegister", "1.0", "getFloatFromRegister(\"F5\", 4)",
+                     GetFloatFromRegister, ArgTypeEnum::Float,
+                     {ArgTypeEnum::String, ArgTypeEnum::U8}),
+    FunctionMetadata("getDoubleFromRegister", "1.0", "getDoubleFromRegister(\"F5\", 0)",
+                     GetDoubleFromRegister, ArgTypeEnum::Double,
+                     {ArgTypeEnum::String, ArgTypeEnum::U8}),
+    FunctionMetadata("getUnsignedBytesFromRegister", "1.0",
+                     "getUnsignedBytesFromRegister(\"R5\", 3, 1)", GetUnsignedBytesFromRegister,
+                     ArgTypeEnum::AddressToUnsignedByteMap,
+                     {ArgTypeEnum::String, ArgTypeEnum::U8, ArgTypeEnum::U8}),
+    FunctionMetadata("getSignedBytesFromRegister", "1.0",
+                     "getSignedBytesFromRegister(\"R5\", 3, 1)", GetSignedBytesFromRegister,
+                     ArgTypeEnum::AddressToSignedByteMap,
+                     {ArgTypeEnum::String, ArgTypeEnum::U8, ArgTypeEnum::U8}),
 
-  FunctionMetadata("writeU8ToRegister", "1.0", "writeU8ToRegister(\"R5\", 41, 3)", WriteU8ToRegister, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::U8, ArgTypeEnum::U8}),
-  FunctionMetadata("writeU16ToRegister", "1.0", "writeU16ToRegister(\"R5\", 410, 2)", WriteU16ToRegister, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::U16, ArgTypeEnum::U8}),
-  FunctionMetadata("writeU32ToRegister", "1.0", "writeU32ToRegister(\"R5\", 500300, 0)", WriteU32ToRegister, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::U32, ArgTypeEnum::U8}),
-  FunctionMetadata("writeU64ToRegister", "1.0", "writeU64ToRegister(\"F5\", 700000, 0)", WriteU64ToRegister, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::U64, ArgTypeEnum::U8}),
-  FunctionMetadata("writeS8ToRegister", "1.0", "writeS8ToRegister(\"R5\", -41, 3)", WriteS8ToRegister, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::S8, ArgTypeEnum::U8}),
-  FunctionMetadata("writeS16ToRegister", "1.0", "writeS16ToRegister(\"R5\", -9850, 2)", WriteS16ToRegister, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::S16, ArgTypeEnum::U8}),
-  FunctionMetadata("writeS32ToRegister", "1.0", "writeS32ToRegister(\"R5\", -800567, 0)", WriteS32ToRegister, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::Integer, ArgTypeEnum::U8}),
-  FunctionMetadata("writeS64ToRegister", "1.0", "writeS64ToRegister(\"F5\", -1123456, 0)", WriteS64ToRegister, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::LongLong, ArgTypeEnum::U8}),
-  FunctionMetadata("writeFloatToRegister", "1.0", "writeFloatToRegister(\"F5\", 41.23, 4)", WriteFloatToRegister, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::Float, ArgTypeEnum::U8}),
-  FunctionMetadata("writeDoubleToRegister", "1.0", "writeDoubleToRegister(\"R5\", 78.32, 0)", WriteDoubleToRegister, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::Double, ArgTypeEnum::U8}),
-  FunctionMetadata("writeBytesToRegister", "1.0", "writeBytesToRegister(\"R5\", indexToByteMap, 1)", WriteBytesToRegister, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::AddressToByteMap, ArgTypeEnum::U8})
-};
+    FunctionMetadata("writeU8ToRegister", "1.0", "writeU8ToRegister(\"R5\", 41, 3)",
+                     WriteU8ToRegister, ArgTypeEnum::VoidType,
+                     {ArgTypeEnum::String, ArgTypeEnum::U8, ArgTypeEnum::U8}),
+    FunctionMetadata("writeU16ToRegister", "1.0", "writeU16ToRegister(\"R5\", 410, 2)",
+                     WriteU16ToRegister, ArgTypeEnum::VoidType,
+                     {ArgTypeEnum::String, ArgTypeEnum::U16, ArgTypeEnum::U8}),
+    FunctionMetadata("writeU32ToRegister", "1.0", "writeU32ToRegister(\"R5\", 500300, 0)",
+                     WriteU32ToRegister, ArgTypeEnum::VoidType,
+                     {ArgTypeEnum::String, ArgTypeEnum::U32, ArgTypeEnum::U8}),
+    FunctionMetadata("writeU64ToRegister", "1.0", "writeU64ToRegister(\"F5\", 700000, 0)",
+                     WriteU64ToRegister, ArgTypeEnum::VoidType,
+                     {ArgTypeEnum::String, ArgTypeEnum::U64, ArgTypeEnum::U8}),
+    FunctionMetadata("writeS8ToRegister", "1.0", "writeS8ToRegister(\"R5\", -41, 3)",
+                     WriteS8ToRegister, ArgTypeEnum::VoidType,
+                     {ArgTypeEnum::String, ArgTypeEnum::S8, ArgTypeEnum::U8}),
+    FunctionMetadata("writeS16ToRegister", "1.0", "writeS16ToRegister(\"R5\", -9850, 2)",
+                     WriteS16ToRegister, ArgTypeEnum::VoidType,
+                     {ArgTypeEnum::String, ArgTypeEnum::S16, ArgTypeEnum::U8}),
+    FunctionMetadata("writeS32ToRegister", "1.0", "writeS32ToRegister(\"R5\", -800567, 0)",
+                     WriteS32ToRegister, ArgTypeEnum::VoidType,
+                     {ArgTypeEnum::String, ArgTypeEnum::Integer, ArgTypeEnum::U8}),
+    FunctionMetadata("writeS64ToRegister", "1.0", "writeS64ToRegister(\"F5\", -1123456, 0)",
+                     WriteS64ToRegister, ArgTypeEnum::VoidType,
+                     {ArgTypeEnum::String, ArgTypeEnum::LongLong, ArgTypeEnum::U8}),
+    FunctionMetadata("writeFloatToRegister", "1.0", "writeFloatToRegister(\"F5\", 41.23, 4)",
+                     WriteFloatToRegister, ArgTypeEnum::VoidType,
+                     {ArgTypeEnum::String, ArgTypeEnum::Float, ArgTypeEnum::U8}),
+    FunctionMetadata("writeDoubleToRegister", "1.0", "writeDoubleToRegister(\"R5\", 78.32, 0)",
+                     WriteDoubleToRegister, ArgTypeEnum::VoidType,
+                     {ArgTypeEnum::String, ArgTypeEnum::Double, ArgTypeEnum::U8}),
+    FunctionMetadata("writeBytesToRegister", "1.0",
+                     "writeBytesToRegister(\"R5\", indexToByteMap, 1)", WriteBytesToRegister,
+                     ArgTypeEnum::VoidType,
+                     {ArgTypeEnum::String, ArgTypeEnum::AddressToByteMap, ArgTypeEnum::U8})};
 
- ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
+ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
 {
   std::unordered_map<std::string, std::string> deprecated_functions_map;
-  return {class_name, GetLatestFunctionsForVersion(all_registers_functions_metadata_list, api_version, deprecated_functions_map)};
+  return {class_name, GetLatestFunctionsForVersion(all_registers_functions_metadata_list,
+                                                   api_version, deprecated_functions_map)};
 }
 
 ClassMetadata GetAllClassMetadata()
@@ -58,7 +101,7 @@ ClassMetadata GetAllClassMetadata()
   return {class_name, GetAllFunctions(all_registers_functions_metadata_list)};
 }
 
- FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
+FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
                                                const std::string& function_name)
 {
   std::unordered_map<std::string, std::string> deprecated_functions_map;
@@ -143,15 +186,22 @@ u8* GetAddressForRegister(RegisterObject register_object, u8 offset)
   {
   case RegisterObject::RegisterType::GeneralPurposeRegister:
     register_number = register_object.register_number;
-    address = (reinterpret_cast<u8*>(Core::System::GetInstance().GetPowerPC().GetPPCState().gpr + register_number)) + offset;
+    address = (reinterpret_cast<u8*>(Core::System::GetInstance().GetPowerPC().GetPPCState().gpr +
+                                     register_number)) +
+              offset;
     return address;
   case RegisterObject::RegisterType::PcRegister:
-    address = (reinterpret_cast<u8*>(&Core::System::GetInstance().GetPowerPC().GetPPCState().pc)) + offset;
+    address = (reinterpret_cast<u8*>(&Core::System::GetInstance().GetPowerPC().GetPPCState().pc)) +
+              offset;
     return address;
   case RegisterObject::RegisterType::ReturnRegister:
-    address = (reinterpret_cast<u8*>(&Core::System::GetInstance().GetPowerPC().GetPPCState().spr[SPR_LR])) + offset;
+    address = (reinterpret_cast<u8*>(
+                  &Core::System::GetInstance().GetPowerPC().GetPPCState().spr[SPR_LR])) +
+              offset;
   case RegisterObject::RegisterType::FloatingPointRegister:
-    address = (reinterpret_cast<u8*>(Core::System::GetInstance().GetPowerPC().GetPPCState().ps + register_number)) + offset;
+    address = (reinterpret_cast<u8*>(Core::System::GetInstance().GetPowerPC().GetPPCState().ps +
+                                     register_number)) +
+              offset;
     return address;
 
   default:
@@ -167,8 +217,7 @@ ArgHolder ReturnInvalidRegisterNameArgHolder(const std::string& register_name)
                   register_name));
 }
 
-bool IsOperationOutOfBounds(RegisterObject register_val, u8 offset,
-                            u8 return_value_size)
+bool IsOperationOutOfBounds(RegisterObject register_val, u8 offset, u8 return_value_size)
 {
   u8 register_size_in_bytes = 4;
   if (register_val.register_type == RegisterObject::RegisterType::FloatingPointRegister)
@@ -202,7 +251,7 @@ ArgHolder GetU8FromRegister(ScriptContext* current_script, std::vector<ArgHolder
     return ReturnInvalidRegisterNameArgHolder(register_string);
   if (IsOperationOutOfBounds(register_val, offset, 1))
     return ReturnOperationOutOfBoundsError("read", "u8", register_string, offset);
- 
+
   u8* address_pointer = GetAddressForRegister(register_val, offset);
   if (address_pointer == nullptr)
     return ReturnInvalidRegisterNameArgHolder(register_string);
@@ -393,10 +442,10 @@ ArgHolder GetUnsignedBytesFromRegister(ScriptContext* current_script,
   if (IsRegisterObjectUndefined(register_val))
     return ReturnInvalidRegisterNameArgHolder(register_string);
   if (IsOperationOutOfBounds(register_val, offset, num_bytes_to_read))
-    return CreateErrorStringArgHolder(
-        fmt::format("Attempt to read {} UnsignedBytes from register {} with a starting offset of {} "
-                    "failed. Attempted to read past the end of the register!",
-                    num_bytes_to_read, register_string, offset));
+    return CreateErrorStringArgHolder(fmt::format(
+        "Attempt to read {} UnsignedBytes from register {} with a starting offset of {} "
+        "failed. Attempted to read past the end of the register!",
+        num_bytes_to_read, register_string, offset));
 
   u8* address_pointer = GetAddressForRegister(register_val, offset);
   if (address_pointer == nullptr)
@@ -414,7 +463,7 @@ ArgHolder GetUnsignedBytesFromRegister(ScriptContext* current_script,
 }
 
 ArgHolder GetSignedBytesFromRegister(ScriptContext* current_script,
-                                       std::vector<ArgHolder>& args_list)
+                                     std::vector<ArgHolder>& args_list)
 {
   const std::string register_string = args_list[0].string_val;
   u8 num_bytes_to_read = args_list[1].u8_val;
@@ -424,10 +473,10 @@ ArgHolder GetSignedBytesFromRegister(ScriptContext* current_script,
   if (IsRegisterObjectUndefined(register_val))
     return ReturnInvalidRegisterNameArgHolder(register_string);
   if (IsOperationOutOfBounds(register_val, offset, num_bytes_to_read))
-    return CreateErrorStringArgHolder(fmt::format(
-        "Attempt to read {} SignedBytes from register {} with a starting offset of {} "
-        "failed. Attempted to read past the end of the register!",
-        num_bytes_to_read, register_string, offset));
+    return CreateErrorStringArgHolder(
+        fmt::format("Attempt to read {} SignedBytes from register {} with a starting offset of {} "
+                    "failed. Attempted to read past the end of the register!",
+                    num_bytes_to_read, register_string, offset));
 
   u8* address_pointer = GetAddressForRegister(register_val, offset);
   if (address_pointer == nullptr)
@@ -666,8 +715,10 @@ ArgHolder WriteBytesToRegister(ScriptContext* current_script, std::vector<ArgHol
     s16 curr_byte = it.second;
     if (curr_byte < -128 || curr_byte > 255)
       return CreateErrorStringArgHolder(
-          fmt::format("Byte at offset of {} from start of register {} was outside the valid range of what can be represented by 1 byte "
-          "(it was outside the range of -128 to 255)", i + offset, register_string));
+          fmt::format("Byte at offset of {} from start of register {} was outside the valid range "
+                      "of what can be represented by 1 byte "
+                      "(it was outside the range of -128 to 255)",
+                      i + offset, register_string));
 
     if (curr_byte < 0)
     {

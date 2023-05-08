@@ -10,11 +10,13 @@ bool in_instruction_hit_breakpoint = false;
 
 static std::array all_on_instruction_hit_callback_functions_metadata_list = {
     FunctionMetadata("register", "1.0", "register(instructionAddress, value)", Register,
-                     ArgTypeEnum::RegistrationReturnType, {ArgTypeEnum::U32, ArgTypeEnum::RegistrationInputType}),
+                     ArgTypeEnum::RegistrationReturnType,
+                     {ArgTypeEnum::U32, ArgTypeEnum::RegistrationInputType}),
     FunctionMetadata("registerWithAutoDeregistration", "1.0",
                      "registerWithAutoDeregistration(instructionAddress, value)",
                      RegisterWithAutoDeregistration,
-                     ArgTypeEnum::RegistrationWithAutoDeregistrationReturnType, {ArgTypeEnum::U32, ArgTypeEnum::RegistrationWithAutoDeregistrationInputType}),
+                     ArgTypeEnum::RegistrationWithAutoDeregistrationReturnType,
+                     {ArgTypeEnum::U32, ArgTypeEnum::RegistrationWithAutoDeregistrationInputType}),
     FunctionMetadata("unregister", "1.0", "unregister(instructionAddress, value)", Unregister,
                      ArgTypeEnum::UnregistrationReturnType,
                      {ArgTypeEnum::U32, ArgTypeEnum::UnregistrationInputType}),
@@ -27,7 +29,9 @@ static std::array all_on_instruction_hit_callback_functions_metadata_list = {
 ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
 {
   std::unordered_map<std::string, std::string> deprecated_functions_map;
-  return {class_name, GetLatestFunctionsForVersion(all_on_instruction_hit_callback_functions_metadata_list, api_version, deprecated_functions_map)};
+  return {class_name,
+          GetLatestFunctionsForVersion(all_on_instruction_hit_callback_functions_metadata_list,
+                                       api_version, deprecated_functions_map)};
 }
 
 ClassMetadata GetAllClassMetadata()
@@ -39,14 +43,15 @@ FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
                                                const std::string& function_name)
 {
   std::unordered_map<std::string, std::string> deprecated_functions_map;
-  return GetFunctionForVersion(all_on_instruction_hit_callback_functions_metadata_list, api_version, function_name,
-                               deprecated_functions_map);
+  return GetFunctionForVersion(all_on_instruction_hit_callback_functions_metadata_list, api_version,
+                               function_name, deprecated_functions_map);
 }
 
 ArgHolder Register(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   return CreateRegistrationReturnTypeArgHolder(
-      current_script->RegisterOnInstructionReachedCallbacks(args_list[0].u32_val, args_list[1].void_pointer_val));
+      current_script->RegisterOnInstructionReachedCallbacks(args_list[0].u32_val,
+                                                            args_list[1].void_pointer_val));
 }
 
 ArgHolder RegisterWithAutoDeregistration(ScriptContext* current_script,
@@ -79,7 +84,8 @@ ArgHolder IsInInstructionHitCallback(ScriptContext* current_script,
 ArgHolder GetAddressOfInstructionForCurrentCallback(ScriptContext* current_script,
                                                     std::vector<ArgHolder>& args_list)
 {
-  if (current_script->current_script_call_location != ScriptCallLocations::FromInstructionHitCallback)
+  if (current_script->current_script_call_location !=
+      ScriptCallLocations::FromInstructionHitCallback)
     return CreateErrorStringArgHolder(
         "User attempted to call OnInstructionHit:getAddressOfInstructionForCurrentCallback() "
         "outside of an OnInstructionHit callback function!");

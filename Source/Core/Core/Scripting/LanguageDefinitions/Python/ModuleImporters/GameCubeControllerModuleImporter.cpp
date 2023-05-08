@@ -11,7 +11,6 @@ static const char* get_inputs_for_previous_frame_function_name = "getInputsForPr
 static const char* is_gc_controller_in_port_function_name = "isGcControllerInPort";
 static const char* is_using_port_function_name = "isUsingPort";
 
-
 static PyObject* python_get_inputs_for_previous_frame(PyObject* self, PyObject* args)
 {
   return PythonScriptContext::RunFunction(self, args, game_cube_controller_class_name,

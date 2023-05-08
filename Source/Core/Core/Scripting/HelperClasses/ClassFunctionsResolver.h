@@ -4,5 +4,6 @@
 
 namespace Scripting
 {
-ClassMetadata GetClassMetadataForModule(const std::string& module_name, const std::string& version_number);
+ClassMetadata GetClassMetadataForModule(const std::string& module_name,
+                                        const std::string& version_number);
 }

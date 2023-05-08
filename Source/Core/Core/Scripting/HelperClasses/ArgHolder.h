@@ -1,12 +1,12 @@
 #ifndef ARG_HOLDER
 #define ARG_HOLDER
-#include <string>
+#include <imgui.h>
 #include <map>
+#include <string>
 #include <vector>
 #include "Common/CommonTypes.h"
 #include "Core/Movie.h"
 #include "Core/Scripting/HelperClasses/ArgTypeEnum.h"
-#include <imgui.h>
 
 namespace Scripting
 {
@@ -55,8 +55,10 @@ ArgHolder CreateDoubleArgHolder(double new_double_val);
 ArgHolder CreateStringArgHolder(const std::string& new_string_val);
 ArgHolder CreateVoidPointerArgHolder(void* new_void_pointer_val);
 
-ArgHolder CreateAddressToUnsignedByteMapArgHolder(const std::map<long long, u8>& new_address_to_unsigned_byte_map);
-ArgHolder CreateAddressToSignedByteMapArgHolder(const std::map<long long, s8>& new_address_to_signed_byte_map);
+ArgHolder CreateAddressToUnsignedByteMapArgHolder(
+    const std::map<long long, u8>& new_address_to_unsigned_byte_map);
+ArgHolder CreateAddressToSignedByteMapArgHolder(
+    const std::map<long long, s8>& new_address_to_signed_byte_map);
 ArgHolder CreateAddressToByteMapArgHolder(const std::map<long long, s16>& new_address_to_byte_map);
 
 ArgHolder CreateControllerStateArgHolder(const Movie::ControllerState& new_controller_state_val);

@@ -18,8 +18,8 @@ static std::array all_wii_controller_functions_metadata_list = {
     FunctionMetadata("getInputsForWiimotePoll", "1.0", "getInputsForWiimotePoll()",
                      GetInputsForWiimotePoll, ArgTypeEnum::WiimoteStateObject, {}),
     FunctionMetadata("setInputsForWiimotePoll", "1.0", "setInputsForWiimotePoll(wiimoteObj)",
-                     SetInputsForWiimotePoll, ArgTypeEnum::VoidType, {ArgTypeEnum::WiimoteStateObject}),
-    FunctionMetadata("getInputsForNunchuckPoll", )};
+                     SetInputsForWiimotePoll, ArgTypeEnum::VoidType,
+{ArgTypeEnum::WiimoteStateObject}), FunctionMetadata("getInputsForNunchuckPoll", )};
 
  ClassMetadata GetWiiApiClassData(const std::string& api_version)
 {
@@ -38,11 +38,13 @@ ArgHolder GetCurrentPortNumberOfPoll(ScriptContext* current_script,
 ArgHolder GetInputsForWiimotePoll(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder SetInputsForWiimotePoll(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 
-ArgHolder GetInputsForNunchuckPoll(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
-ArgHolder SetInputsForNunchuckPoll(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder GetInputsForNunchuckPoll(ScriptContext* current_script, std::vector<ArgHolder>&
+args_list); ArgHolder SetInputsForNunchuckPoll(ScriptContext* current_script,
+std::vector<ArgHolder>& args_list);
 
-ArgHolder GetInputsForClassicControllerPoll(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
-ArgHolder SetInputsForClassicControllerPoll(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder GetInputsForClassicControllerPoll(ScriptContext* current_script, std::vector<ArgHolder>&
+args_list); ArgHolder SetInputsForClassicControllerPoll(ScriptContext* current_script,
+std::vector<ArgHolder>& args_list);
 
 
 ArgHolder GetInputsForWiimoteOnPreviousFrame(ScriptContext* current_script,

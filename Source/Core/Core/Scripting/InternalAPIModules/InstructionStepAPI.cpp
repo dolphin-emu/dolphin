@@ -1,7 +1,6 @@
 #include "Core/Scripting/InternalAPIModules/InstructionStepAPI.h"
 
 #include <fmt/format.h>
-#include "common/GekkoDisassembler.h"
 #include "Core/Core.h"
 #include "Core/HW/CPU.h"
 #include "Core/Movie.h"
@@ -14,6 +13,7 @@
 #include "Core/Scripting/HelperClasses/FunctionMetadata.h"
 #include "Core/Scripting/HelperClasses/VersionResolver.h"
 #include "Core/System.h"
+#include "common/GekkoDisassembler.h"
 
 namespace Scripting::InstructionStepAPI
 {
@@ -24,7 +24,8 @@ static std::array all_instruction_step_functions_metadata_list = {
     FunctionMetadata("stepOver", "1.0", "stepOver()", StepOver, ArgTypeEnum::VoidType, {}),
     FunctionMetadata("stepOut", "1.0", "stepOut()", StepOut, ArgTypeEnum::VoidType, {}),
     FunctionMetadata("skip", "1.0", "skip()", Skip, ArgTypeEnum::VoidType, {}),
-    FunctionMetadata("setPC", "1.0", "setPC(0X80000045)", SetPC, ArgTypeEnum::VoidType, {ArgTypeEnum::U32}),
+    FunctionMetadata("setPC", "1.0", "setPC(0X80000045)", SetPC, ArgTypeEnum::VoidType,
+                     {ArgTypeEnum::U32}),
     FunctionMetadata("getInstructionFromAddress", "1.0", "getInstructionFromAddress(0X80000032)",
                      GetInstructionFromAddress, ArgTypeEnum::String, {ArgTypeEnum::U32})};
 
@@ -92,8 +93,10 @@ ArgHolder StepOver(ScriptContext* current_script, std::vector<ArgHolder>& args_l
   PowerPC::CoreMode old_mode = power_pc.GetMode();
   power_pc.SetMode(PowerPC::CoreMode::Interpreter);
 
-  // Step until we hit the instruction after the one we started on, or until we hit the next frame (whichever one happens first)
-  while (power_pc.GetPPCState().pc != pc_value_to_end_on && Movie::GetCurrentFrame() == starting_frame_number)
+  // Step until we hit the instruction after the one we started on, or until we hit the next frame
+  // (whichever one happens first)
+  while (power_pc.GetPPCState().pc != pc_value_to_end_on &&
+         Movie::GetCurrentFrame() == starting_frame_number)
     power_pc.SingleStep();
 
   power_pc.SetMode(old_mode);
@@ -110,8 +113,10 @@ bool IsFunctionReturnInstruction(UGeckoInstruction instruction)
   if (instruction.hex == 0x4C000064u)
     return true;
   const auto& ppc_state = Core::System::GetInstance().GetPPCState();
-  bool counter = (instruction.BO_2 >> 2 & 1) != 0 || (CTR(ppc_state) != 0) != ((instruction.BO_2 >> 1 & 1) != 0);
-  bool condition = instruction.BO_2 >> 4 != 0 || ppc_state.cr.GetBit(instruction.BI_2) == (instruction.BO_2 >> 3 & 1);
+  bool counter = (instruction.BO_2 >> 2 & 1) != 0 ||
+                 (CTR(ppc_state) != 0) != ((instruction.BO_2 >> 1 & 1) != 0);
+  bool condition = instruction.BO_2 >> 4 != 0 ||
+                   ppc_state.cr.GetBit(instruction.BI_2) == (instruction.BO_2 >> 3 & 1);
   bool isBclr = instruction.OPCD_7 == 0b010011 && (instruction.hex >> 1 & 0b10000) != 0;
   return isBclr && counter && condition && !instruction.LK_3;
 }
@@ -131,7 +136,8 @@ ArgHolder StepOut(ScriptContext* current_script, std::vector<ArgHolder>& args_li
 
   while (function_call_depth_from_start >= 0 && Movie::GetCurrentFrame() == starting_frame_number)
   {
-    UGeckoInstruction current_instruction = PowerPC::MMU::HostRead_Instruction(guard, power_pc.GetPPCState().pc);
+    UGeckoInstruction current_instruction =
+        PowerPC::MMU::HostRead_Instruction(guard, power_pc.GetPPCState().pc);
     bool potentially_a_function_call = false;
     u32 pc_before_step = power_pc.GetPPCState().pc;
     potentially_a_function_call = IsPotentiallyFunctionCallInstruction(current_instruction);
@@ -154,7 +160,8 @@ ArgHolder Skip(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
     return CreateNotInBreakpointError("Skip()");
 
   Core::CPUThreadGuard guard(Core::System::GetInstance());
-  Core::System::GetInstance().GetPowerPC().GetPPCState().pc = Core::System::GetInstance().GetPowerPC().GetPPCState().pc + 4;
+  Core::System::GetInstance().GetPowerPC().GetPPCState().pc =
+      Core::System::GetInstance().GetPowerPC().GetPPCState().pc + 4;
 
   return CreateVoidTypeArgHolder();
 }
@@ -171,7 +178,8 @@ ArgHolder SetPC(ScriptContext* current_script, std::vector<ArgHolder>& args_list
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder GetInstructionFromAddress(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder GetInstructionFromAddress(ScriptContext* current_script,
+                                    std::vector<ArgHolder>& args_list)
 {
   u32 instruction_addr = args_list[0].u32_val;
   Core::CPUThreadGuard guard(Core::System::GetInstance());

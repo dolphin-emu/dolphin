@@ -4,54 +4,54 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 
-class InstructionBreakpointsHolder {
-  public:
-    InstructionBreakpointsHolder() {}
-   inline ~InstructionBreakpointsHolder() { ClearAllBreakpoints(); }
+class InstructionBreakpointsHolder
+{
+public:
+  InstructionBreakpointsHolder() {}
+  inline ~InstructionBreakpointsHolder() { ClearAllBreakpoints(); }
 
-    void AddBreakpoint(u32 addr)
+  void AddBreakpoint(u32 addr)
+  {
+    breakpoint_addresses.push_back(addr);  // add this to the list of breakpoints regardless of
+                                           // whether or not its a duplicate
+
+    // Only add the breakpoint to PowerPC if it's not in the list of breakpoints yet.
+    if (this->GetNumCopiesOfBreakpoint(addr) == 1)
     {
-      breakpoint_addresses.push_back(addr);  // add this to the list of breakpoints regardless of
-                                             // whether or not its a duplicate
+      Core::System::GetInstance().GetPowerPC().GetBreakPoints().Add(addr, false, true, false,
+                                                                    std::nullopt);
+    }
+  }
 
-      //Only add the breakpoint to PowerPC if it's not in the list of breakpoints yet.
-      if (this->GetNumCopiesOfBreakpoint(addr) == 1)
+  void RemoveBreakpoint(u32 addr)
+  {
+    size_t num_copies = this->GetNumCopiesOfBreakpoint(addr);
+    if (num_copies == 0)
+      return;
+    else
+    {
+      breakpoint_addresses.erase(
+          std::find(breakpoint_addresses.begin(), breakpoint_addresses.end(), addr));
+      if (num_copies == 1)
       {
-        Core::System::GetInstance().GetPowerPC().GetBreakPoints().Add(addr, false, true, false, std::nullopt);
+        Core::System::GetInstance().GetPowerPC().GetBreakPoints().Remove(addr);
       }
     }
+  }
 
-    void RemoveBreakpoint(u32 addr)
-    {
-      size_t num_copies = this->GetNumCopiesOfBreakpoint(addr);
-      if (num_copies == 0)
-        return;
-      else
-      {
-        breakpoint_addresses.erase(std::find(breakpoint_addresses.begin(), breakpoint_addresses.end(), addr));
-        if (num_copies == 1)
-        {
-          Core::System::GetInstance().GetPowerPC().GetBreakPoints().Remove(addr);
-        }
-      }
-    }
+  void ClearAllBreakpoints()
+  {
+    while (breakpoint_addresses.size() > 0)
+      this->RemoveBreakpoint(breakpoint_addresses[0]);
+  }
 
-      void ClearAllBreakpoints()
-      {
-        while (breakpoint_addresses.size() > 0)
-          this->RemoveBreakpoint(breakpoint_addresses[0]);
-      }
+  bool ContainsBreakpoint(u32 addr) { return this->GetNumCopiesOfBreakpoint(addr) > 0; }
 
-      bool ContainsBreakpoint(u32 addr)
-      {
-        return this->GetNumCopiesOfBreakpoint(addr) > 0;
-      }
+private:
+  size_t GetNumCopiesOfBreakpoint(u32 addr)
+  {
+    return std::count(breakpoint_addresses.begin(), breakpoint_addresses.end(), addr);
+  }
 
-    private:
-      size_t GetNumCopiesOfBreakpoint(u32 addr)
-      {
-        return std::count(breakpoint_addresses.begin(), breakpoint_addresses.end(), addr);
-      }
-
-      std::vector<u32> breakpoint_addresses;
+  std::vector<u32> breakpoint_addresses;
 };

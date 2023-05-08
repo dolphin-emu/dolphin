@@ -2,8 +2,8 @@
 #include <string>
 #include <vector>
 
-#include "Core/Scripting/HelperClasses/ClassMetadata.h"
 #include "Core/Scripting/HelperClasses/ArgHolder.h"
+#include "Core/Scripting/HelperClasses/ClassMetadata.h"
 #include "Core/Scripting/ScriptContext.h"
 
 namespace Scripting::RegistersAPI
@@ -44,4 +44,3 @@ ArgHolder WriteDoubleToRegister(ScriptContext* current_script, std::vector<ArgHo
 ArgHolder WriteBytesToRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 
 }  // namespace Scripting::RegistersAPI
-

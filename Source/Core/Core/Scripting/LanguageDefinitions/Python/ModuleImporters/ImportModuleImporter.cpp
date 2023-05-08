@@ -13,7 +13,8 @@ static const char* exit_dolphin_function_name = "exitDolphin";
 
 static PyObject* python_import_module(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, import_class_name, import_module_function_name);
+  return PythonScriptContext::RunFunction(self, args, import_class_name,
+                                          import_module_function_name);
 }
 
 static PyObject* python_import(PyObject* self, PyObject* args)
@@ -23,12 +24,14 @@ static PyObject* python_import(PyObject* self, PyObject* args)
 
 static PyObject* python_shutdown_script(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, import_class_name, shutdown_script_function_name);
+  return PythonScriptContext::RunFunction(self, args, import_class_name,
+                                          shutdown_script_function_name);
 }
 
 static PyObject* python_exit_dolphin(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, import_class_name, exit_dolphin_function_name);
+  return PythonScriptContext::RunFunction(self, args, import_class_name,
+                                          exit_dolphin_function_name);
 }
 
 static PyMethodDef import_api_methods[] = {
@@ -44,7 +47,6 @@ static struct PyModuleDef ImportAPImodule = {
     sizeof(std::string), /* size of per-interpreter state of the module, or -1 if the module keeps
                             state in global variables. */
     import_api_methods};
-
 
 PyMODINIT_FUNC PyInit_ImportAPI()
 {

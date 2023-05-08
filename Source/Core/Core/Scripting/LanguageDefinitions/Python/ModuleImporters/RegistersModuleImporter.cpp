@@ -106,57 +106,68 @@ static PyObject* python_get_signed_bytes_from_register(PyObject* self, PyObject*
 
 static PyObject* python_write_u8_to_register(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, registers_class_name, write_u8_to_register_function_name);
+  return PythonScriptContext::RunFunction(self, args, registers_class_name,
+                                          write_u8_to_register_function_name);
 }
 
 static PyObject* python_write_u16_to_register(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, registers_class_name, write_u16_to_register_function_name);
+  return PythonScriptContext::RunFunction(self, args, registers_class_name,
+                                          write_u16_to_register_function_name);
 }
 
 static PyObject* python_write_u32_to_register(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, registers_class_name, write_u32_to_register_function_name);
+  return PythonScriptContext::RunFunction(self, args, registers_class_name,
+                                          write_u32_to_register_function_name);
 }
 
 static PyObject* python_write_u64_to_register(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, registers_class_name, write_u64_to_register_function_name);
+  return PythonScriptContext::RunFunction(self, args, registers_class_name,
+                                          write_u64_to_register_function_name);
 }
 
 static PyObject* python_write_s8_to_register(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, registers_class_name, write_s8_to_register_function_name);
+  return PythonScriptContext::RunFunction(self, args, registers_class_name,
+                                          write_s8_to_register_function_name);
 }
 
 static PyObject* python_write_s16_to_register(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, registers_class_name, write_s16_to_register_function_name);
+  return PythonScriptContext::RunFunction(self, args, registers_class_name,
+                                          write_s16_to_register_function_name);
 }
 
 static PyObject* python_write_s32_to_register(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, registers_class_name, write_s32_to_register_function_name);
+  return PythonScriptContext::RunFunction(self, args, registers_class_name,
+                                          write_s32_to_register_function_name);
 }
 
 static PyObject* python_write_s64_to_register(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, registers_class_name, write_s64_to_register_function_name);
+  return PythonScriptContext::RunFunction(self, args, registers_class_name,
+                                          write_s64_to_register_function_name);
 }
 
 static PyObject* python_write_float_to_register(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, registers_class_name, write_float_to_register_function_name);
+  return PythonScriptContext::RunFunction(self, args, registers_class_name,
+                                          write_float_to_register_function_name);
 }
 
 static PyObject* python_write_double_to_register(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, registers_class_name, write_double_to_register_function_name);
+  return PythonScriptContext::RunFunction(self, args, registers_class_name,
+                                          write_double_to_register_function_name);
 }
 
 static PyObject* python_write_bytes_to_register(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, registers_class_name, write_bytes_to_register_function_name);
+  return PythonScriptContext::RunFunction(self, args, registers_class_name,
+                                          write_bytes_to_register_function_name);
 }
 
 static PyMethodDef registers_api_methods[] = {
@@ -169,9 +180,12 @@ static PyMethodDef registers_api_methods[] = {
     {get_s32_from_register_function_name, python_get_s32_from_register, METH_VARARGS, nullptr},
     {get_s64_from_register_function_name, python_get_s64_from_register, METH_VARARGS, nullptr},
     {get_float_from_register_function_name, python_get_float_from_register, METH_VARARGS, nullptr},
-    {get_double_from_register_function_name, python_get_double_from_register, METH_VARARGS, nullptr},
-    {get_unsigned_bytes_from_register_function_name, python_get_unsigned_bytes_from_register, METH_VARARGS, nullptr},
-    {get_signed_bytes_from_register_function_name, python_get_signed_bytes_from_register, METH_VARARGS, nullptr},
+    {get_double_from_register_function_name, python_get_double_from_register, METH_VARARGS,
+     nullptr},
+    {get_unsigned_bytes_from_register_function_name, python_get_unsigned_bytes_from_register,
+     METH_VARARGS, nullptr},
+    {get_signed_bytes_from_register_function_name, python_get_signed_bytes_from_register,
+     METH_VARARGS, nullptr},
 
     {write_u8_to_register_function_name, python_write_u8_to_register, METH_VARARGS, nullptr},
     {write_u16_to_register_function_name, python_write_u16_to_register, METH_VARARGS, nullptr},
@@ -182,7 +196,8 @@ static PyMethodDef registers_api_methods[] = {
     {write_s32_to_register_function_name, python_write_s32_to_register, METH_VARARGS, nullptr},
     {write_s64_to_register_function_name, python_write_s64_to_register, METH_VARARGS, nullptr},
     {write_float_to_register_function_name, python_write_float_to_register, METH_VARARGS, nullptr},
-    {write_double_to_register_function_name, python_write_double_to_register, METH_VARARGS, nullptr},
+    {write_double_to_register_function_name, python_write_double_to_register, METH_VARARGS,
+     nullptr},
     {write_bytes_to_register_function_name, python_write_bytes_to_register, METH_VARARGS, nullptr},
     {nullptr, nullptr, 0, nullptr}};
 
@@ -197,8 +212,5 @@ PyMODINIT_FUNC PyInit_RegistersAPI()
 {
   return PyModule_Create(&RegistersAPImodule);
 }
-
-
-
 
 }  // namespace Scripting::Python::RegistersModuleImporter

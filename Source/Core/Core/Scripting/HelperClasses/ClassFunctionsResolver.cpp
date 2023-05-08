@@ -21,7 +21,8 @@
 namespace Scripting
 {
 
-ClassMetadata GetClassMetadataForModule(const std::string& module_name, const std::string& version_number)
+ClassMetadata GetClassMetadataForModule(const std::string& module_name,
+                                        const std::string& version_number)
 {
   if (module_name.empty() || version_number.empty())
     return {};
@@ -60,12 +61,10 @@ ClassMetadata GetClassMetadataForModule(const std::string& module_name, const st
     return Scripting::OnFrameStartCallbackAPI::GetClassMetadataForVersion(version_number);
 
   else if (module_name == Scripting::OnGCControllerPolledCallbackAPI::class_name)
-    return Scripting::OnGCControllerPolledCallbackAPI::GetClassMetadataForVersion(
-        version_number);
+    return Scripting::OnGCControllerPolledCallbackAPI::GetClassMetadataForVersion(version_number);
 
   else if (module_name == Scripting::OnInstructionHitCallbackAPI::class_name)
-    return Scripting::OnInstructionHitCallbackAPI::GetClassMetadataForVersion(
-        version_number);
+    return Scripting::OnInstructionHitCallbackAPI::GetClassMetadataForVersion(version_number);
 
   else if (module_name == Scripting::OnMemoryAddressReadFromCallbackAPI::class_name)
     return Scripting::OnMemoryAddressReadFromCallbackAPI::GetClassMetadataForVersion(
@@ -76,12 +75,10 @@ ClassMetadata GetClassMetadataForModule(const std::string& module_name, const st
         version_number);
 
   else if (module_name == Scripting::OnWiiInputPolledCallbackAPI::class_name)
-    return Scripting::OnWiiInputPolledCallbackAPI::GetClassMetadataForVersion(
-        version_number);
+    return Scripting::OnWiiInputPolledCallbackAPI::GetClassMetadataForVersion(version_number);
 
   else
     return {};
-
 }
 
-}
+}  // namespace Scripting

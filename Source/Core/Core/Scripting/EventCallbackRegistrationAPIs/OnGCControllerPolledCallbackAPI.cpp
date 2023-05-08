@@ -12,14 +12,17 @@ std::array<Movie::ControllerState, 4> controller_inputs_on_last_frame{};
 int current_controller_number_polled = -1;
 
 static std::array all_on_gc_controller_polled_callback_functions_metadata_list = {
-    FunctionMetadata("register", "1.0", "register(value)", Register, ArgTypeEnum::RegistrationReturnType, {ArgTypeEnum::RegistrationInputType}),
+    FunctionMetadata("register", "1.0", "register(value)", Register,
+                     ArgTypeEnum::RegistrationReturnType, {ArgTypeEnum::RegistrationInputType}),
     FunctionMetadata("registerWithAutoDeregistration", "1.0",
                      "registerWithAutoDeregisteration(value)", RegisterWithAutoDeregistration,
-                     ArgTypeEnum::RegistrationWithAutoDeregistrationReturnType, {ArgTypeEnum::RegistrationWithAutoDeregistrationInputType}),
-    FunctionMetadata("unregister", "1.0", "unregister(value)", Unregister, ArgTypeEnum::UnregistrationReturnType, {ArgTypeEnum::UnregistrationInputType}),
+                     ArgTypeEnum::RegistrationWithAutoDeregistrationReturnType,
+                     {ArgTypeEnum::RegistrationWithAutoDeregistrationInputType}),
+    FunctionMetadata("unregister", "1.0", "unregister(value)", Unregister,
+                     ArgTypeEnum::UnregistrationReturnType, {ArgTypeEnum::UnregistrationInputType}),
 
-    FunctionMetadata("isInGCControllerPolledCallback", "1.0", "isInGCControllerPolledCallback()", IsInGCControllerPolledCallback,
-                     ArgTypeEnum::Boolean, {}),
+    FunctionMetadata("isInGCControllerPolledCallback", "1.0", "isInGCControllerPolledCallback()",
+                     IsInGCControllerPolledCallback, ArgTypeEnum::Boolean, {}),
     FunctionMetadata("getCurrentPortNumberOfPoll", "1.0", "getCurrentPortNumberOfPoll()",
                      GetCurrentPortNumberOfPoll, ArgTypeEnum::LongLong, {}),
     FunctionMetadata("setInputsForPoll", "1.0", "setInputsForPoll(controllerValuesTable)",
@@ -30,20 +33,23 @@ static std::array all_on_gc_controller_polled_callback_functions_metadata_list =
 ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
 {
   std::unordered_map<std::string, std::string> deprecated_functions_map;
-  return {class_name, GetLatestFunctionsForVersion(all_on_gc_controller_polled_callback_functions_metadata_list, api_version, deprecated_functions_map)};
+  return {class_name,
+          GetLatestFunctionsForVersion(all_on_gc_controller_polled_callback_functions_metadata_list,
+                                       api_version, deprecated_functions_map)};
 }
 
 ClassMetadata GetAllClassMetadata()
 {
-  return {class_name, GetAllFunctions(all_on_gc_controller_polled_callback_functions_metadata_list)};
+  return {class_name,
+          GetAllFunctions(all_on_gc_controller_polled_callback_functions_metadata_list)};
 }
 
- FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
+FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
                                                const std::string& function_name)
 {
   std::unordered_map<std::string, std::string> deprecated_functions_map;
-  return GetFunctionForVersion(all_on_gc_controller_polled_callback_functions_metadata_list, api_version, function_name,
-                               deprecated_functions_map);
+  return GetFunctionForVersion(all_on_gc_controller_polled_callback_functions_metadata_list,
+                               api_version, function_name, deprecated_functions_map);
 }
 
 ArgHolder Register(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
@@ -55,13 +61,15 @@ ArgHolder Register(ScriptContext* current_script, std::vector<ArgHolder>& args_l
 ArgHolder RegisterWithAutoDeregistration(ScriptContext* current_script,
                                          std::vector<ArgHolder>& args_list)
 {
-  current_script->RegisterOnGCControllerPolledWithAutoDeregistrationCallbacks(args_list[0].void_pointer_val);
+  current_script->RegisterOnGCControllerPolledWithAutoDeregistrationCallbacks(
+      args_list[0].void_pointer_val);
   return CreateRegistrationWithAutoDeregistrationReturnTypeArgHolder();
 }
 
 ArgHolder Unregister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
-  bool return_value = current_script->UnregisterOnGCControllerPolledCallbacks(args_list[0].void_pointer_val);
+  bool return_value =
+      current_script->UnregisterOnGCControllerPolledCallbacks(args_list[0].void_pointer_val);
   if (!return_value)
     return CreateErrorStringArgHolder(
         "Argument passed into OnGCControllerPolled:unregister() was not a reference to a function "
@@ -80,7 +88,8 @@ ArgHolder IsInGCControllerPolledCallback(ScriptContext* current_script,
 ArgHolder GetCurrentPortNumberOfPoll(ScriptContext* current_script,
                                      std::vector<ArgHolder>& args_list)
 {
-  if (current_script->current_script_call_location != ScriptCallLocations::FromGCControllerInputPolled)
+  if (current_script->current_script_call_location !=
+      ScriptCallLocations::FromGCControllerInputPolled)
     return CreateErrorStringArgHolder(
         "User attempted to call OnGCControllerPolled:getCurrentPortNumberOfPoll() outside of an "
         "OnGCControllerPolled callback function!");
@@ -91,7 +100,8 @@ ArgHolder GetCurrentPortNumberOfPoll(ScriptContext* current_script,
 // forward for each controller. Also, it moves in order from controllers 1 to 4.
 ArgHolder SetInputsForPoll(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
-  if (current_script->current_script_call_location != ScriptCallLocations::FromGCControllerInputPolled)
+  if (current_script->current_script_call_location !=
+      ScriptCallLocations::FromGCControllerInputPolled)
     return CreateErrorStringArgHolder(
         "User attempted to call OnGCControllerPolled:setInputsForPoll() outside of an "
         "OnGCControllerPolled callback function!");

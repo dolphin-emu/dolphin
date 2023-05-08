@@ -1,9 +1,9 @@
 #pragma once
 #include <string>
 
-#include "Core/Scripting/ScriptContext.h"
 #include "Core/Scripting/HelperClasses/ArgHolder.h"
 #include "Core/Scripting/HelperClasses/ClassMetadata.h"
+#include "Core/Scripting/ScriptContext.h"
 
 namespace Scripting::ImportAPI
 {
@@ -15,7 +15,7 @@ FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
                                                const std::string& function_name);
 
 ArgHolder ImportCommon(ScriptContext* current_script, std::string api_name,
-                        std::string version_number);
+                       std::string version_number);
 
 ArgHolder ImportModule(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 

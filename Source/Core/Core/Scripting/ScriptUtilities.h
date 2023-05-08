@@ -1,9 +1,9 @@
 #ifndef SCRIPTING_UTILITIES
 #define SCRIPTING_UTILITIES
 
-#include <string>
 #include <functional>
 #include <mutex>
+#include <string>
 #include <vector>
 #include "Core/Scripting/LanguageDefinitions/DefinedScriptingLanguagesEnum.h"
 #include "Core/Scripting/ScriptContext.h"
@@ -23,10 +23,10 @@ extern std::mutex graphics_callback_running_lock;
 
 bool IsScriptingCoreInitialized();
 
-void InitializeScript(int unique_script_identifier, const std::string& script_location, 
-                 std::function<void(const std::string&)>* new_print_callback,
-                 std::function<void(int)>* new_script_end_callback,
-                 DefinedScriptingLanguagesEnum language);
+void InitializeScript(int unique_script_identifier, const std::string& script_location,
+                      std::function<void(const std::string&)>* new_print_callback,
+                      std::function<void(int)>* new_script_end_callback,
+                      DefinedScriptingLanguagesEnum language);
 
 void StopScript(int unique_script_identifier);
 

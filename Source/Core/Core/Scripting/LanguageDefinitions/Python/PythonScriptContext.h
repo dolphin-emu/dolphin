@@ -30,7 +30,8 @@ public:
   std::vector<IdentifierToCallback> gc_controller_input_polled_callbacks;
   std::vector<IdentifierToCallback> wii_controller_input_polled_callbacks;
 
-  std::unordered_map<u32, std::vector<IdentifierToCallback>> map_of_instruction_address_to_python_callbacks;
+  std::unordered_map<u32, std::vector<IdentifierToCallback>>
+      map_of_instruction_address_to_python_callbacks;
   std::unordered_map<u32, std::vector<IdentifierToCallback>>
       map_of_memory_address_read_from_to_python_callbacks;
   std::unordered_map<u32, std::vector<IdentifierToCallback>>
@@ -39,7 +40,6 @@ public:
   std::unordered_map<long long, IdentifierToCallback> map_of_button_id_to_callback;
 
   ThreadSafeQueue<IdentifierToCallback*> button_callbacks_to_run;
-
 
   std::atomic<size_t> number_of_frame_callbacks_to_auto_deregister;
   std::atomic<size_t> number_of_gc_controller_input_callbacks_to_auto_deregister;
@@ -64,7 +64,8 @@ public:
                       std::function<void(const std::string&)>* new_print_callback,
                       std::function<void(int)>* new_script_end_callback);
 
-  static PyObject* RunFunction(PyObject* self, PyObject* args, std::string class_name, std::string function_name);
+  static PyObject* RunFunction(PyObject* self, PyObject* args, std::string class_name,
+                               std::string function_name);
 
   virtual ~PythonScriptContext()
   {
@@ -110,9 +111,8 @@ public:
   virtual bool UnregisterOnMemoryAddressReadFromCallbacks(u32 memory_address, void* callbacks);
 
   virtual void* RegisterOnMemoryAddressWrittenToCallbacks(u32 memory_address, void* callbacks);
-  virtual void
-  RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallbacks(u32 memory_address,
-                                                                  void* callbacks);
+  virtual void RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallbacks(u32 memory_address,
+                                                                               void* callbacks);
   virtual bool UnregisterOnMemoryAddressWrittenToCallbacks(u32 memory_address, void* callbacks);
 
   virtual void* RegisterOnWiiInputPolledCallbacks(void* callbacks);
@@ -149,29 +149,28 @@ private:
     input_map.clear();
   }
 
-
   void RunEndOfIteraionTasks();
   void RunCallbacksForVector(std::vector<IdentifierToCallback>& callback_list);
-  void RunCallbacksForMap(std::unordered_map<u32, std::vector<IdentifierToCallback>>& map_of_callbacks,
-                         u32 current_address);
+  void
+  RunCallbacksForMap(std::unordered_map<u32, std::vector<IdentifierToCallback>>& map_of_callbacks,
+                     u32 current_address);
   void* RegisterForVectorHelper(std::vector<IdentifierToCallback>& callback_list, void* callback);
   void RegisterForVectorWithAutoDeregistrationHelper(
       std::vector<IdentifierToCallback>& callback_list, void* callback,
       std::atomic<size_t>& number_of_callbacks_to_auto_deregister);
   bool UnregisterForVectorHelper(std::vector<IdentifierToCallback>& callback_list, void* callback);
 
-
-
-void* RegisterForMapHelper(
-      u32 address, std::unordered_map<u32, std::vector<IdentifierToCallback>>& map_of_callbacks,
-      void* callbacks);
+  void*
+  RegisterForMapHelper(u32 address,
+                       std::unordered_map<u32, std::vector<IdentifierToCallback>>& map_of_callbacks,
+                       void* callbacks);
   void RegisterForMapWithAutoDeregistrationHelper(
       u32 address, std::unordered_map<u32, std::vector<IdentifierToCallback>>& map_of_callbacks,
       void* callbacks, std::atomic<size_t>& number_of_auto_deregistration_callbacks);
 
-  bool UnregisterForMapHelper(u32 address,
-                              std::unordered_map<u32, std::vector<IdentifierToCallback>>& map_of_callbacks,
-                              void* callbacks);
+  bool UnregisterForMapHelper(
+      u32 address, std::unordered_map<u32, std::vector<IdentifierToCallback>>& map_of_callbacks,
+      void* callbacks);
 };
 
 }  // namespace Scripting::Python

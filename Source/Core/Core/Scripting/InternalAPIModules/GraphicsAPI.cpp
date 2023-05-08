@@ -1,13 +1,13 @@
 #include "Core/Scripting/InternalAPIModules/GraphicsAPI.h"
 
+#include <atomic>
 #include <cstdlib>
 #include <deque>
 #include <imgui.h>
 #include <imgui_stdlib.h>
 #include <implot.h>
-#include <string>
 #include <stack>
-#include <atomic>
+#include <string>
 
 #include "Core/Scripting/HelperClasses/VersionResolver.h"
 #include "Core/Scripting/ScriptUtilities.h"
@@ -79,35 +79,52 @@ static std::array all_graphics_functions_metadata_list = {
                      DrawFilledPolygon, ArgTypeEnum::VoidType,
                      {ArgTypeEnum::ListOfPoints, ArgTypeEnum::String}),
 
-    FunctionMetadata("drawText", "1.0", "drawText(30.0, 45.0, colorString, \"Hello World!\")",
-                     DrawText, ArgTypeEnum::VoidType,
-                     {ArgTypeEnum::Float, ArgTypeEnum::Float, ArgTypeEnum::String, ArgTypeEnum::String}),
+    FunctionMetadata(
+        "drawText", "1.0", "drawText(30.0, 45.0, colorString, \"Hello World!\")", DrawText,
+        ArgTypeEnum::VoidType,
+        {ArgTypeEnum::Float, ArgTypeEnum::Float, ArgTypeEnum::String, ArgTypeEnum::String}),
 
-  FunctionMetadata("addCheckbox", "1.0", "addCheckbox(checkboxLabel, 42)", AddCheckbox,
+    FunctionMetadata("addCheckbox", "1.0", "addCheckbox(checkboxLabel, 42)", AddCheckbox,
                      ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::LongLong}),
-  FunctionMetadata("getCheckboxValue", "1.0", "getCheckboxValue(42)", GetCheckboxValue,
+    FunctionMetadata("getCheckboxValue", "1.0", "getCheckboxValue(42)", GetCheckboxValue,
                      ArgTypeEnum::Boolean, {ArgTypeEnum::LongLong}),
-  FunctionMetadata("setCheckboxValue", "1.0", "setCheckboxValue(42, true)", SetCheckboxValue,
+    FunctionMetadata("setCheckboxValue", "1.0", "setCheckboxValue(42, true)", SetCheckboxValue,
                      ArgTypeEnum::VoidType, {ArgTypeEnum::LongLong, ArgTypeEnum::Boolean}),
 
-  FunctionMetadata("addRadioButtonGroup", "1.0", "addRadioButtonGroup(42)", AddRadioButtonGroup,
+    FunctionMetadata("addRadioButtonGroup", "1.0", "addRadioButtonGroup(42)", AddRadioButtonGroup,
                      ArgTypeEnum::VoidType, {ArgTypeEnum::LongLong}),
-  FunctionMetadata("addRadioButton", "1.0", "addRadioButton(\"apples\", 42, 0)", AddRadioButton, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),
-  FunctionMetadata("getRadioButtonGroupValue", "1.0", "getRadioButtonGroupValue((42)", GetRadioButtonGroupValue, ArgTypeEnum::LongLong, {ArgTypeEnum::LongLong}),
-  FunctionMetadata("setRadioButtonGroupValue", "1.0", "setRadioButtonGroupValue(42, 1)", SetRadioButtonGroupValue, ArgTypeEnum::VoidType, {ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),
+    FunctionMetadata("addRadioButton", "1.0", "addRadioButton(\"apples\", 42, 0)", AddRadioButton,
+                     ArgTypeEnum::VoidType,
+                     {ArgTypeEnum::String, ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),
+    FunctionMetadata("getRadioButtonGroupValue", "1.0", "getRadioButtonGroupValue((42)",
+                     GetRadioButtonGroupValue, ArgTypeEnum::LongLong, {ArgTypeEnum::LongLong}),
+    FunctionMetadata("setRadioButtonGroupValue", "1.0", "setRadioButtonGroupValue(42, 1)",
+                     SetRadioButtonGroupValue, ArgTypeEnum::VoidType,
+                     {ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),
 
-  FunctionMetadata("addTextBox", "1.0", "addTextBox(42, \"Textbox Label\")", AddTextBox, ArgTypeEnum::VoidType, {ArgTypeEnum::LongLong, ArgTypeEnum::String}),
-  FunctionMetadata("getTextBoxValue", "1.0", "getTextBoxValue(42)", GetTextBoxValue, ArgTypeEnum::String, {ArgTypeEnum::LongLong}),
-  FunctionMetadata("setTextBoxValue", "1.0", "setTextBoxValue(42, \"Hello World!\")", SetTextBoxValue, ArgTypeEnum::VoidType, {ArgTypeEnum::LongLong, ArgTypeEnum::String}),
+    FunctionMetadata("addTextBox", "1.0", "addTextBox(42, \"Textbox Label\")", AddTextBox,
+                     ArgTypeEnum::VoidType, {ArgTypeEnum::LongLong, ArgTypeEnum::String}),
+    FunctionMetadata("getTextBoxValue", "1.0", "getTextBoxValue(42)", GetTextBoxValue,
+                     ArgTypeEnum::String, {ArgTypeEnum::LongLong}),
+    FunctionMetadata("setTextBoxValue", "1.0", "setTextBoxValue(42, \"Hello World!\")",
+                     SetTextBoxValue, ArgTypeEnum::VoidType,
+                     {ArgTypeEnum::LongLong, ArgTypeEnum::String}),
 
-  FunctionMetadata("addButton", "1.0", "addButton(\"Button Label\", 42, callbackFunc, 100.0, 45.0)", AddButton, ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::LongLong, ArgTypeEnum::RegistrationForButtonCallbackInputType, ArgTypeEnum::Float, ArgTypeEnum::Float}),
-  FunctionMetadata("pressButton", "1.0", "pressButton(42)", PressButton, ArgTypeEnum::VoidType, {ArgTypeEnum::LongLong}),
+    FunctionMetadata("addButton", "1.0",
+                     "addButton(\"Button Label\", 42, callbackFunc, 100.0, 45.0)", AddButton,
+                     ArgTypeEnum::VoidType,
+                     {ArgTypeEnum::String, ArgTypeEnum::LongLong,
+                      ArgTypeEnum::RegistrationForButtonCallbackInputType, ArgTypeEnum::Float,
+                      ArgTypeEnum::Float}),
+    FunctionMetadata("pressButton", "1.0", "pressButton(42)", PressButton, ArgTypeEnum::VoidType,
+                     {ArgTypeEnum::LongLong}),
 
-  FunctionMetadata("newLine", "1.0", "newLine(10.0)", NewLine, ArgTypeEnum::VoidType, {ArgTypeEnum::Float}),
+    FunctionMetadata("newLine", "1.0", "newLine(10.0)", NewLine, ArgTypeEnum::VoidType,
+                     {ArgTypeEnum::Float}),
 
-  FunctionMetadata("beginWindow", "1.0", "beginWindow(windowName)", BeginWindow, ArgTypeEnum::VoidType,
-                     {ArgTypeEnum::String}),
-  FunctionMetadata("endWindow", "1.0", "endWindow()", EndWindow, ArgTypeEnum::VoidType, {})};
+    FunctionMetadata("beginWindow", "1.0", "beginWindow(windowName)", BeginWindow,
+                     ArgTypeEnum::VoidType, {ArgTypeEnum::String}),
+    FunctionMetadata("endWindow", "1.0", "endWindow()", EndWindow, ArgTypeEnum::VoidType, {})};
 
 u32 ParseColor(const char* color_string)
 {
@@ -188,7 +205,7 @@ u32 ParseColor(const char* color_string)
 
     return ImGui::GetColorU32(ImVec4(red_float, green_float, blue_float, brightness_float));
   }
-    return 0x000000ff;
+  return 0x000000ff;
 }
 
 ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
@@ -198,7 +215,7 @@ ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
                                                    api_version, deprecated_functions_map)};
 }
 
- ClassMetadata GetAllClassMetadata()
+ClassMetadata GetAllClassMetadata()
 {
   return {class_name, GetAllFunctions(all_graphics_functions_metadata_list)};
 }
@@ -231,7 +248,9 @@ ArgHolder DrawLine(ScriptContext* current_script, std::vector<ArgHolder>& args_l
   }
 
   ImVec2 window_edge = ImGui::GetCursorScreenPos();
-  draw_list->AddLine({window_edge.x + x_coord_1, window_edge.y + y_coord_1}, {window_edge.x + x_coord_2, window_edge.y + y_coord_2}, ParseColor(color.c_str()), thickness);
+  draw_list->AddLine({window_edge.x + x_coord_1, window_edge.y + y_coord_1},
+                     {window_edge.x + x_coord_2, window_edge.y + y_coord_2},
+                     ParseColor(color.c_str()), thickness);
 
   return CreateVoidTypeArgHolder();
 }
@@ -256,8 +275,10 @@ ArgHolder DrawEmptyRectangle(ScriptContext* current_script, std::vector<ArgHolde
   }
 
   ImVec2 window_edge = ImGui::GetCursorScreenPos();
-  draw_list->AddRect({window_edge.x +  bottom_left_x, window_edge.y + bottom_left_y}, {window_edge.x + top_right_x, window_edge.y + top_right_y}, ParseColor(outline_color.c_str()), 0.0, 0, thickness);
- 
+  draw_list->AddRect({window_edge.x + bottom_left_x, window_edge.y + bottom_left_y},
+                     {window_edge.x + top_right_x, window_edge.y + top_right_y},
+                     ParseColor(outline_color.c_str()), 0.0, 0, thickness);
+
   return CreateVoidTypeArgHolder();
 }
 
@@ -280,8 +301,10 @@ ArgHolder DrawFilledRectangle(ScriptContext* current_script, std::vector<ArgHold
   }
 
   ImVec2 window_edge = ImGui::GetCursorScreenPos();
-  draw_list->AddRectFilled({window_edge.x + bottom_left_x, window_edge.y + bottom_left_y}, {window_edge.x + top_right_x, window_edge.y + top_right_y}, ParseColor(fill_color.c_str()), 0.0, 0);
- 
+  draw_list->AddRectFilled({window_edge.x + bottom_left_x, window_edge.y + bottom_left_y},
+                           {window_edge.x + top_right_x, window_edge.y + top_right_y},
+                           ParseColor(fill_color.c_str()), 0.0, 0);
+
   return CreateVoidTypeArgHolder();
 }
 
@@ -297,7 +320,7 @@ ArgHolder DrawEmptyTriangle(ScriptContext* current_script, std::vector<ArgHolder
   std::string color = args_list[7].string_val;
   ImDrawList* draw_list = nullptr;
 
-    if (!window_is_open)
+  if (!window_is_open)
     draw_list = ImGui::GetForegroundDrawList();
   else
   {
@@ -307,7 +330,9 @@ ArgHolder DrawEmptyTriangle(ScriptContext* current_script, std::vector<ArgHolder
   }
 
   ImVec2 window_edge = ImGui::GetCursorScreenPos();
-  draw_list->AddTriangle({window_edge.x + x1, window_edge.y + y1}, {window_edge.x + x2, window_edge.y + y2}, {window_edge.x + x3, window_edge.y + y3}, ParseColor(color.c_str()), thickness);
+  draw_list->AddTriangle(
+      {window_edge.x + x1, window_edge.y + y1}, {window_edge.x + x2, window_edge.y + y2},
+      {window_edge.x + x3, window_edge.y + y3}, ParseColor(color.c_str()), thickness);
 
   return CreateVoidTypeArgHolder();
 }
@@ -333,7 +358,9 @@ ArgHolder DrawFilledTriangle(ScriptContext* current_script, std::vector<ArgHolde
   }
 
   ImVec2 window_edge = ImGui::GetCursorScreenPos();
-  draw_list->AddTriangleFilled({window_edge.x + x1, window_edge.y + y1}, {window_edge.x + x2, window_edge.y + y2}, {window_edge.x + x3, window_edge.y + y3}, ParseColor(fill_color.c_str()));
+  draw_list->AddTriangleFilled(
+      {window_edge.x + x1, window_edge.y + y1}, {window_edge.x + x2, window_edge.y + y2},
+      {window_edge.x + x3, window_edge.y + y3}, ParseColor(fill_color.c_str()));
 
   return CreateVoidTypeArgHolder();
 }
@@ -357,7 +384,8 @@ ArgHolder DrawEmptyCircle(ScriptContext* current_script, std::vector<ArgHolder>&
   }
 
   ImVec2 window_edge = ImGui::GetCursorScreenPos();
-  draw_list->AddCircle({window_edge.x + centerX, window_edge.y + centerY}, radius, ParseColor(outline_color.c_str()), 0, thickness);
+  draw_list->AddCircle({window_edge.x + centerX, window_edge.y + centerY}, radius,
+                       ParseColor(outline_color.c_str()), 0, thickness);
 
   return CreateVoidTypeArgHolder();
 }
@@ -380,7 +408,8 @@ ArgHolder DrawFilledCircle(ScriptContext* current_script, std::vector<ArgHolder>
   }
 
   ImVec2 window_edge = ImGui::GetCursorScreenPos();
-  draw_list->AddCircleFilled({window_edge.x + centerX, window_edge.y + centerY}, radius, ParseColor(fill_color.c_str()), 0);
+  draw_list->AddCircleFilled({window_edge.x + centerX, window_edge.y + centerY}, radius,
+                             ParseColor(fill_color.c_str()), 0);
 
   return CreateVoidTypeArgHolder();
 }
@@ -399,8 +428,8 @@ ArgHolder DrawEmptyArc(ScriptContext* current_script, std::vector<ArgHolder>& ar
   long long num_sides = args_list[6].long_long_val;
 
   ImGui::GetForegroundDrawList()->AddBezierCubic({x1, y1}, {x2, y2}, {x3, y3},
-                                                     {x4, y4} , ParseColor("yellow"), 5.0, num_sides);
-  return CreateVoidTypeArgHolder();
+                                                     {x4, y4} , ParseColor("yellow"), 5.0,
+num_sides); return CreateVoidTypeArgHolder();
 }
 */
 
@@ -426,20 +455,18 @@ ArgHolder DrawEmptyPolygon(ScriptContext* current_script, std::vector<ArgHolder>
     draw_list = ImGui::GetWindowDrawList();
   }
 
-    draw_list->AddPolyline(&list_of_points[0], (int)list_of_points.size(),
-                                              ParseColor(line_color.c_str()), ImDrawFlags_Closed,
-                                              thickness);
+  draw_list->AddPolyline(&list_of_points[0], (int)list_of_points.size(),
+                         ParseColor(line_color.c_str()), ImDrawFlags_Closed, thickness);
 
   return CreateVoidTypeArgHolder();
 }
-
 
 ArgHolder DrawFilledPolygon(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   std::vector<ImVec2> list_of_points = args_list[0].list_of_points;
   std::string line_color = args_list[1].string_val;
 
-  ImVec2 window_edge = ImGui::GetCursorScreenPos(); 
+  ImVec2 window_edge = ImGui::GetCursorScreenPos();
   for (int i = 0; i < list_of_points.size(); ++i)
   {
     list_of_points[i] = {list_of_points[i].x + window_edge.x, list_of_points[i].y + window_edge.y};
@@ -455,7 +482,8 @@ ArgHolder DrawFilledPolygon(ScriptContext* current_script, std::vector<ArgHolder
     draw_list = ImGui::GetWindowDrawList();
   }
 
-  draw_list->AddConvexPolyFilled(&list_of_points[0], (int)list_of_points.size(), ParseColor(line_color.c_str()));
+  draw_list->AddConvexPolyFilled(&list_of_points[0], (int)list_of_points.size(),
+                                 ParseColor(line_color.c_str()));
 
   return CreateVoidTypeArgHolder();
 }
@@ -478,7 +506,8 @@ ArgHolder DrawText(ScriptContext* current_script, std::vector<ArgHolder>& args_l
   }
 
   ImVec2 window_edge = ImGui::GetCursorScreenPos();
-  draw_list->AddText({window_edge.x + x, window_edge.y + y}, ParseColor(color_string.c_str()), display_text.c_str(), nullptr);
+  draw_list->AddText({window_edge.x + x, window_edge.y + y}, ParseColor(color_string.c_str()),
+                     display_text.c_str(), nullptr);
 
   return CreateVoidTypeArgHolder();
 }
@@ -494,7 +523,7 @@ ArgHolder AddCheckbox(ScriptContext* current_script, std::vector<ArgHolder>& arg
         "Must have window open (using GraphicsAPI:beginWindow(\"winName\") before you can add a "
         "checkbox!");
   }
-  else 
+  else
   {
     if (id_to_checkbox_map.count(id) == 0)
     {
@@ -512,8 +541,10 @@ ArgHolder GetCheckboxValue(ScriptContext* current_script, std::vector<ArgHolder>
 {
   long long checkbox_id = args_list[0].long_long_val;
   if (id_to_checkbox_map.count(checkbox_id) == 0)
-    return CreateErrorStringArgHolder(fmt::format(
-        "Attempted to get the value of an undefined checkbox with an index of {}. User must call addCheckbox() before they can get the checkbox's value!", checkbox_id));
+    return CreateErrorStringArgHolder(
+        fmt::format("Attempted to get the value of an undefined checkbox with an index of {}. User "
+                    "must call addCheckbox() before they can get the checkbox's value!",
+                    checkbox_id));
 
   return CreateBoolArgHolder(*(id_to_checkbox_map[checkbox_id]));
 }
@@ -585,7 +616,8 @@ ArgHolder GetRadioButtonGroupValue(ScriptContext* current_script, std::vector<Ar
   if (id_to_radio_group_map.count(radio_group_id) == 0)
     return CreateErrorStringArgHolder(fmt::format(
         "Attempted to get the value of an undefined radio group with an ID of {}. User must call "
-        "addRadioButtonGroup() before they can get the radio button's value!", radio_group_id));
+        "addRadioButtonGroup() before they can get the radio button's value!",
+        radio_group_id));
   return CreateLongLongArgHolder(*(id_to_radio_group_map[radio_group_id]));
 }
 
@@ -597,7 +629,8 @@ ArgHolder SetRadioButtonGroupValue(ScriptContext* current_script, std::vector<Ar
     return CreateErrorStringArgHolder(
         fmt::format("Attempted to set the value of a radio group with an ID of {} before creating "
                     "it. User must call addRadioButtonGroup() before they can set the value of a "
-                    "radio button group!", radio_group_id));
+                    "radio button group!",
+                    radio_group_id));
   *(id_to_radio_group_map[radio_group_id]) = new_int_value;
   return CreateVoidTypeArgHolder();
 }
@@ -607,7 +640,7 @@ ArgHolder AddTextBox(ScriptContext* current_script, std::vector<ArgHolder>& args
   long long text_box_id = args_list[0].long_long_val;
   std::string text_box_name = args_list[1].string_val;
 
-   if (!window_is_open)
+  if (!window_is_open)
   {
     return CreateErrorStringArgHolder(
         "Must have window open (using GraphicsAPI:beginWindow(\"winName\") before you can add a "
@@ -615,7 +648,7 @@ ArgHolder AddTextBox(ScriptContext* current_script, std::vector<ArgHolder>& args
   }
   else
   {
-   if (id_to_text_box_map.count(text_box_id) == 0)
+    if (id_to_text_box_map.count(text_box_id) == 0)
     {
       all_text_boxes.push_back("");
       id_to_text_box_map[text_box_id] = &(all_text_boxes[all_text_boxes.size() - 1]);
@@ -643,8 +676,9 @@ ArgHolder SetTextBoxValue(ScriptContext* current_script, std::vector<ArgHolder>&
   long long text_box_id = args_list[0].long_long_val;
   std::string new_string_value = args_list[1].string_val;
   if (id_to_text_box_map.count(text_box_id) == 0)
-    return CreateErrorStringArgHolder("Attempted to set the value of a text box which had not been created. User "
-                    "must call addTextBox() to create a text box before they can set its value!");
+    return CreateErrorStringArgHolder(
+        "Attempted to set the value of a text box which had not been created. User "
+        "must call addTextBox() to create a text box before they can set its value!");
   *(id_to_text_box_map[text_box_id]) = new_string_value;
   return CreateVoidTypeArgHolder();
 }
@@ -668,7 +702,7 @@ ArgHolder AddButton(ScriptContext* current_script, std::vector<ArgHolder>& args_
     current_script->RegisterButtonCallback(button_id, function_callback);
     if (ImGui::Button(button_label.c_str(), {button_width, button_height}))
     {  // true when button was pressed, and false otherwise
-     current_script->GetButtonCallbackAndAddToQueue(button_id);
+      current_script->GetButtonCallbackAndAddToQueue(button_id);
     }
   }
   return CreateVoidTypeArgHolder();
@@ -684,15 +718,14 @@ ArgHolder PressButton(ScriptContext* current_script, std::vector<ArgHolder>& arg
   }
 
   if (!current_script->IsButtonRegistered(button_id))
-    return CreateErrorStringArgHolder(
-        fmt::format("Attempted to press undefined button of {}. User must call "
-                    "GraphicsAPI:registerButtonCallback() before they can call GraphicsAPI:pressButton()",
-                    button_id));
+    return CreateErrorStringArgHolder(fmt::format(
+        "Attempted to press undefined button of {}. User must call "
+        "GraphicsAPI:registerButtonCallback() before they can call GraphicsAPI:pressButton()",
+        button_id));
 
   current_script->GetButtonCallbackAndAddToQueue(button_id);
 
   return CreateVoidTypeArgHolder();
-
 }
 
 ArgHolder NewLine(ScriptContext* current_script, std::vector<ArgHolder>& args_list)

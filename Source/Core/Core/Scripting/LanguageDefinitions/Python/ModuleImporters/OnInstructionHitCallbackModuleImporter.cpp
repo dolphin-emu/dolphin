@@ -23,7 +23,7 @@ static PyObject* python_on_instruction_hit_register(PyObject* self, PyObject* ar
 }
 
 static PyObject* python_on_instruction_hit_register_with_auto_deregistration(PyObject* self,
-                                                                                  PyObject* args)
+                                                                             PyObject* args)
 {
   return PythonScriptContext::RunFunction(
       self, args, on_instruction_hit_class_name,
@@ -51,14 +51,16 @@ static PyObject* python_get_address_of_instruction_for_current_callback(PyObject
 }
 
 static PyMethodDef on_instruction_hit_api_methods[] = {
-    {on_instruction_hit_register_function_name, python_on_instruction_hit_register,
-     METH_VARARGS, nullptr},
+    {on_instruction_hit_register_function_name, python_on_instruction_hit_register, METH_VARARGS,
+     nullptr},
     {on_instruction_hit_register_with_auto_deregistration_function_name,
      python_on_instruction_hit_register_with_auto_deregistration, METH_VARARGS, nullptr},
     {on_instruction_hit_unregister_function_name, python_on_instruction_hit_unregister,
      METH_VARARGS, nullptr},
-    {is_in_instruction_hit_callback_function_name, python_is_in_instruction_hit_callback, METH_VARARGS, nullptr},
-    {get_address_of_instruction_for_current_callback_function_name, python_get_address_of_instruction_for_current_callback, METH_VARARGS, nullptr},
+    {is_in_instruction_hit_callback_function_name, python_is_in_instruction_hit_callback,
+     METH_VARARGS, nullptr},
+    {get_address_of_instruction_for_current_callback_function_name,
+     python_get_address_of_instruction_for_current_callback, METH_VARARGS, nullptr},
     {nullptr, nullptr, 0, nullptr}};
 
 static struct PyModuleDef OnInstructionHitmodule = {
@@ -72,4 +74,4 @@ PyMODINIT_FUNC PyInit_OnInstructionHit()
 {
   return PyModule_Create(&OnInstructionHitmodule);
 }
-}  // namespace Scripting::Python::OnGCControllerPolledCallbackModuleImporter
+}  // namespace Scripting::Python::OnInstructionHitCallbackModuleImporter

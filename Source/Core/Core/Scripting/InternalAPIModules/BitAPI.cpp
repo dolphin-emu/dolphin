@@ -11,47 +11,47 @@ namespace Scripting::BitApi
 
 const char* class_name = "BitAPI";
 static std::array all_bit_functions_metadata_list = {
-      FunctionMetadata("bitwise_and", "1.0", "bitwise_and(17, 81)", BitwiseAnd, ArgTypeEnum::LongLong,
+    FunctionMetadata("bitwise_and", "1.0", "bitwise_and(17, 81)", BitwiseAnd, ArgTypeEnum::LongLong,
                      {ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),
-      FunctionMetadata("bitwise_or", "1.0", "bitwise_or(19, 31)", BitwiseOr, ArgTypeEnum::LongLong,
+    FunctionMetadata("bitwise_or", "1.0", "bitwise_or(19, 31)", BitwiseOr, ArgTypeEnum::LongLong,
                      {ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),
-      FunctionMetadata("bitwise_not", "1.0", "bitwise_not(41)", BitwiseNot, ArgTypeEnum::LongLong,
+    FunctionMetadata("bitwise_not", "1.0", "bitwise_not(41)", BitwiseNot, ArgTypeEnum::LongLong,
                      {ArgTypeEnum::LongLong}),
-      FunctionMetadata("bitwise_xor", "1.0", "bitwise_xor(21, 40)", BitwiseXor, ArgTypeEnum::LongLong,
+    FunctionMetadata("bitwise_xor", "1.0", "bitwise_xor(21, 40)", BitwiseXor, ArgTypeEnum::LongLong,
                      {ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),
-      FunctionMetadata("logical_and", "1.0", "logical_and(true, false)", LogicalAnd, ArgTypeEnum::Boolean,
-                     {ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),
-      FunctionMetadata("logical_or", "1.0", "logical_or(true, false)", LogicalOr, ArgTypeEnum::Boolean,
-                     {ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),
-      FunctionMetadata("logical_xor", "1.0", "logical_xor(true, false)", LogicalXor, ArgTypeEnum::Boolean,
-                     {ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),
-      FunctionMetadata("logical_not", "1.0", "logical_not(true)", LogicalNot, ArgTypeEnum::Boolean,
-                       {ArgTypeEnum::LongLong}),
-      FunctionMetadata("bit_shift_left", "1.0", "bit_shift_left(3, 6)", BitShiftLeft, ArgTypeEnum::LongLong,
-                     {ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),
-      FunctionMetadata("bit_shift_right", "1.0", "bit_shift_right(100, 2)", BitShiftRight, ArgTypeEnum::LongLong,
-                     {ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),
+    FunctionMetadata("logical_and", "1.0", "logical_and(true, false)", LogicalAnd,
+                     ArgTypeEnum::Boolean, {ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),
+    FunctionMetadata("logical_or", "1.0", "logical_or(true, false)", LogicalOr,
+                     ArgTypeEnum::Boolean, {ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),
+    FunctionMetadata("logical_xor", "1.0", "logical_xor(true, false)", LogicalXor,
+                     ArgTypeEnum::Boolean, {ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),
+    FunctionMetadata("logical_not", "1.0", "logical_not(true)", LogicalNot, ArgTypeEnum::Boolean,
+                     {ArgTypeEnum::LongLong}),
+    FunctionMetadata("bit_shift_left", "1.0", "bit_shift_left(3, 6)", BitShiftLeft,
+                     ArgTypeEnum::LongLong, {ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),
+    FunctionMetadata("bit_shift_right", "1.0", "bit_shift_right(100, 2)", BitShiftRight,
+                     ArgTypeEnum::LongLong, {ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),
 };
 
- ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
+ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
 {
   std::unordered_map<std::string, std::string> deprecated_functions_map;
-  return {class_name, GetLatestFunctionsForVersion(all_bit_functions_metadata_list, api_version, deprecated_functions_map)};
+  return {class_name, GetLatestFunctionsForVersion(all_bit_functions_metadata_list, api_version,
+                                                   deprecated_functions_map)};
 }
 
- ClassMetadata GetAllClassMetadata()
+ClassMetadata GetAllClassMetadata()
 {
   return {class_name, GetAllFunctions(all_bit_functions_metadata_list)};
 }
 
- FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
-                                       const std::string& function_name)
+FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
+                                               const std::string& function_name)
 {
   std::unordered_map<std::string, std::string> deprecated_functions_map;
   return GetFunctionForVersion(all_bit_functions_metadata_list, api_version, function_name,
                                deprecated_functions_map);
- }
-
+}
 
 ArgHolder BitwiseAnd(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {

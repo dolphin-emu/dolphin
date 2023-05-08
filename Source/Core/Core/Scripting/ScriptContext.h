@@ -1,8 +1,8 @@
 #ifndef SCRIPT_CONTEXT
 #define SCRIPT_CONTEXT
-#include <string>
 #include <functional>
 #include <mutex>
+#include <string>
 #include <vector>
 #include "Common/ThreadSafeQueue.h"
 #include "Core/Scripting/HelperClasses/InstructionBreakpointsHolder.h"
@@ -24,10 +24,9 @@ extern void SetScriptEndCallback(std::function<void(int)>* new_script_end_callba
 extern std::function<void(const std::string&)>* GetPrintCallback();
 extern std::function<void(int)>* GetScriptEndCallback();
 
-  class ScriptContext
-  {
+class ScriptContext
+{
 public:
-
   int unique_script_identifier;
   std::string script_filename;
   ScriptCallLocations current_script_call_location;
@@ -79,15 +78,18 @@ public:
   virtual bool UnregisterOnGCControllerPolledCallbacks(void* callbacks) = 0;
 
   virtual void* RegisterOnInstructionReachedCallbacks(u32 address, void* callbacks) = 0;
-  virtual void RegisterOnInstructionReachedWithAutoDeregistrationCallbacks(u32 address, void* callbacks) = 0;
+  virtual void RegisterOnInstructionReachedWithAutoDeregistrationCallbacks(u32 address,
+                                                                           void* callbacks) = 0;
   virtual bool UnregisterOnInstructionReachedCallbacks(u32 address, void* callbacks) = 0;
 
   virtual void* RegisterOnMemoryAddressReadFromCallbacks(u32 memory_address, void* callbacks) = 0;
-  virtual void RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallbacks(u32 memory_address, void* callbacks) = 0;
+  virtual void RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallbacks(u32 memory_address,
+                                                                              void* callbacks) = 0;
   virtual bool UnregisterOnMemoryAddressReadFromCallbacks(u32 memory_address, void* callbacks) = 0;
 
   virtual void* RegisterOnMemoryAddressWrittenToCallbacks(u32 memory_address, void* callbacks) = 0;
-  virtual void RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallbacks(u32 memory_address, void* callbacks) = 0;
+  virtual void RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallbacks(u32 memory_address,
+                                                                               void* callbacks) = 0;
   virtual bool UnregisterOnMemoryAddressWrittenToCallbacks(u32 memory_address, void* callbacks) = 0;
 
   virtual void* RegisterOnWiiInputPolledCallbacks(void* callbacks) = 0;
@@ -104,11 +106,11 @@ public:
     this->is_script_active = false;
     (*GetScriptEndCallback())(this->unique_script_identifier);
   }
-  };
+};
 
-  extern ThreadSafeQueue<ScriptContext*> queue_of_scripts_waiting_to_start;
-  extern void AddScriptToQueueOfScriptsWaitingToStart(ScriptContext*);
-  extern ScriptContext* RemoveNextScriptToStartFromQueue();
+extern ThreadSafeQueue<ScriptContext*> queue_of_scripts_waiting_to_start;
+extern void AddScriptToQueueOfScriptsWaitingToStart(ScriptContext*);
+extern ScriptContext* RemoveNextScriptToStartFromQueue();
 
-  }  // namespace Scripting
+}  // namespace Scripting
 #endif

@@ -66,9 +66,9 @@ static PyObject* python_bit_shift_left(PyObject* self, PyObject* args)
 
 static PyObject* python_bit_shift_right(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, bit_class_name, bit_shift_right_function_name);
+  return PythonScriptContext::RunFunction(self, args, bit_class_name,
+                                          bit_shift_right_function_name);
 }
-
 
 static PyMethodDef bit_api_methods[] = {
     {bitwise_and_function_name, python_bitwise_and, METH_VARARGS, nullptr},
@@ -81,15 +81,14 @@ static PyMethodDef bit_api_methods[] = {
     {logical_not_function_name, python_logical_not, METH_VARARGS, nullptr},
     {bit_shift_left_function_name, python_bit_shift_left, METH_VARARGS, nullptr},
     {bit_shift_right_function_name, python_bit_shift_right, METH_VARARGS, nullptr},
-    {nullptr, nullptr, 0, nullptr}
-};
+    {nullptr, nullptr, 0, nullptr}};
 
 static struct PyModuleDef BitAPImodule = {
     PyModuleDef_HEAD_INIT, bit_class_name.c_str(), /* name of module */
-    "BitAPI Module",                                            /* module documentation, may be NULL */
-    sizeof(std::string),                                      /* size of per-interpreter state of the module, or -1 if the module keeps state in global variables. */
-    bit_api_methods
-};
+    "BitAPI Module",                               /* module documentation, may be NULL */
+    sizeof(std::string), /* size of per-interpreter state of the module, or -1 if the module keeps
+                            state in global variables. */
+    bit_api_methods};
 
 PyMODINIT_FUNC PyInit_BitAPI()
 {

@@ -8,7 +8,8 @@ namespace Scripting::Python::StatisticsModuleImporter
 static std::string statistics_class_name = StatisticsApi::class_name;
 
 static const char* is_recording_input_function_name = "isRecordingInput";
-static const char* is_recording_input_from_save_state_function_name = "isRecordingInputFromSaveState";
+static const char* is_recording_input_from_save_state_function_name =
+    "isRecordingInputFromSaveState";
 static const char* is_playing_input_function_name = "isPlayingInput";
 static const char* is_movie_active_function_name = "isMovieActive";
 static const char* get_current_frame_function_name = "getCurrentFrame";
@@ -113,10 +114,10 @@ static PyObject* python_get_ex_ram_size(PyObject* self, PyObject* args)
                                           get_ex_ram_size_function_name);
 }
 
-
 static PyMethodDef statistics_api_methods[] = {
     {is_recording_input_function_name, python_is_recording_input, METH_VARARGS, nullptr},
-    {is_recording_input_from_save_state_function_name, python_is_recording_input_from_save_state, METH_VARARGS, nullptr},
+    {is_recording_input_from_save_state_function_name, python_is_recording_input_from_save_state,
+     METH_VARARGS, nullptr},
     {is_playing_input_function_name, python_is_playing_input, METH_VARARGS, nullptr},
     {is_movie_active_function_name, python_is_movie_active, METH_VARARGS, nullptr},
     {get_current_frame_function_name, python_get_current_frame, METH_VARARGS, nullptr},
@@ -134,7 +135,7 @@ static PyMethodDef statistics_api_methods[] = {
 
 static struct PyModuleDef StatisticsAPImodule = {
     PyModuleDef_HEAD_INIT, statistics_class_name.c_str(), /* name of module */
-    "Statistics Module",                               /* module documentation, may be NULL */
+    "Statistics Module",                                  /* module documentation, may be NULL */
     sizeof(std::string), /* size of per-interpreter state of the module, or -1 if the module keeps
                             state in global variables. */
     statistics_api_methods};
@@ -144,4 +145,4 @@ PyMODINIT_FUNC PyInit_StatisticsAPI()
   return PyModule_Create(&StatisticsAPImodule);
 }
 
-}
+}  // namespace Scripting::Python::StatisticsModuleImporter

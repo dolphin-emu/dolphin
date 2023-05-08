@@ -28,7 +28,7 @@ WiimoteButtonsEnum ParseWiimoteButton(const char* button_name)
   if (button_name == nullptr || button_name[0] == '\0')
     return WiimoteButtonsEnum::Unknown;
 
-  if (button_name[1] == '\0') // Case where String is 1 character long
+  if (button_name[1] == '\0')  // Case where String is 1 character long
   {
     switch (button_name[0])
     {
@@ -125,7 +125,6 @@ AccelerationEnum ParseAccelerationInput(const char* input_name)
   }
 }
 
-
 const char* ConvertAccelerationInputToString(AccelerationEnum input)
 {
   switch (input)
@@ -191,7 +190,6 @@ NunchuckButtonsEnum ParseNunchuckButton(const char* button_name)
     return NunchuckButtonsEnum::Acceleration;
   else
     return NunchuckButtonsEnum::Unknown;
-
 }
 
 const char* ConvertNunchuckButtonToString(NunchuckButtonsEnum button)

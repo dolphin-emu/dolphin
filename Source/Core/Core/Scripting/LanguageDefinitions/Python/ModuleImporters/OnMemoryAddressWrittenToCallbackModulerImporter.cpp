@@ -27,7 +27,8 @@ static PyObject* python_on_memory_address_written_to_register(PyObject* self, Py
 }
 
 static PyObject*
-python_on_memory_address_written_to_register_with_auto_deregistration(PyObject* self, PyObject* args)
+python_on_memory_address_written_to_register_with_auto_deregistration(PyObject* self,
+                                                                      PyObject* args)
 {
   return PythonScriptContext::RunFunction(
       self, args, on_memory_address_written_to_class_name,
@@ -55,7 +56,7 @@ static PyObject* python_get_memory_address_written_to_for_current_callback(PyObj
 }
 
 static PyObject* python_get_value_written_to_memory_address_for_current_callback(PyObject* self,
-                                                                                PyObject* args)
+                                                                                 PyObject* args)
 {
   return PythonScriptContext::RunFunction(
       self, args, on_memory_address_written_to_class_name,
@@ -69,9 +70,12 @@ static PyMethodDef on_memory_address_written_to_api_methods[] = {
      python_on_memory_address_written_to_register_with_auto_deregistration, METH_VARARGS, nullptr},
     {on_memory_address_written_to_unregister_function_name,
      python_on_memory_address_written_to_unregister, METH_VARARGS, nullptr},
-    {is_in_memory_address_written_to_callback_function_name, python_is_in_memory_address_written_to_callback, METH_VARARGS, nullptr},
-    {get_memory_address_written_to_for_current_callback_function_name, python_get_memory_address_written_to_for_current_callback, METH_VARARGS, nullptr},
-    {get_value_written_to_memory_address_for_current_callback_function_name, python_get_value_written_to_memory_address_for_current_callback, METH_VARARGS, nullptr},
+    {is_in_memory_address_written_to_callback_function_name,
+     python_is_in_memory_address_written_to_callback, METH_VARARGS, nullptr},
+    {get_memory_address_written_to_for_current_callback_function_name,
+     python_get_memory_address_written_to_for_current_callback, METH_VARARGS, nullptr},
+    {get_value_written_to_memory_address_for_current_callback_function_name,
+     python_get_value_written_to_memory_address_for_current_callback, METH_VARARGS, nullptr},
     {nullptr, nullptr, 0, nullptr}};
 
 static struct PyModuleDef OnMemoryAddressWrittenTomodule = {

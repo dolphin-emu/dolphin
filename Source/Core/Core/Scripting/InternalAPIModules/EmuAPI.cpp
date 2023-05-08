@@ -5,26 +5,28 @@
 #include <memory>
 #include <optional>
 #include "Core/Core.h"
-#include "Core/Scripting/HelperClasses/FunctionMetadata.h"
-#include "Core/Scripting/HelperClasses/ClassMetadata.h"
 #include "Core/Movie.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "Core/State.h"
+#include "Core/Scripting/HelperClasses/ClassMetadata.h"
+#include "Core/Scripting/HelperClasses/FunctionMetadata.h"
 #include "Core/Scripting/HelperClasses/VersionResolver.h"
-
+#include "Core/State.h"
 
 namespace Scripting::EmuApi
 {
 
 const char* class_name = "EmuAPI";
 static std::array all_emu_functions_metadata_list = {
-  FunctionMetadata("frameAdvance", "1.0", "frameAdvance()", EmuFrameAdvance, ArgTypeEnum::YieldType, {}),
-  FunctionMetadata("loadState", "1.0", "loadState(\"savestateFilename.sav\")", EmuLoadState, ArgTypeEnum::VoidType, {ArgTypeEnum::String}),
-  FunctionMetadata("saveState", "1.0", "saveState(\"savestateFilename.sav\")", EmuSaveState, ArgTypeEnum::VoidType, {ArgTypeEnum::String}),
-  FunctionMetadata("playMovie", "1.0", "playMovie(\"movieFilename.dtm\")", EmuPlayMovie, ArgTypeEnum::VoidType, {ArgTypeEnum::String}),
-  FunctionMetadata("saveMovie", "1.0", "saveMovie(\"movieFilename.dtm\")", EmuSaveMovie, ArgTypeEnum::VoidType, {ArgTypeEnum::String})
-};
-
+    FunctionMetadata("frameAdvance", "1.0", "frameAdvance()", EmuFrameAdvance,
+                     ArgTypeEnum::YieldType, {}),
+    FunctionMetadata("loadState", "1.0", "loadState(\"savestateFilename.sav\")", EmuLoadState,
+                     ArgTypeEnum::VoidType, {ArgTypeEnum::String}),
+    FunctionMetadata("saveState", "1.0", "saveState(\"savestateFilename.sav\")", EmuSaveState,
+                     ArgTypeEnum::VoidType, {ArgTypeEnum::String}),
+    FunctionMetadata("playMovie", "1.0", "playMovie(\"movieFilename.dtm\")", EmuPlayMovie,
+                     ArgTypeEnum::VoidType, {ArgTypeEnum::String}),
+    FunctionMetadata("saveMovie", "1.0", "saveMovie(\"movieFilename.dtm\")", EmuSaveMovie,
+                     ArgTypeEnum::VoidType, {ArgTypeEnum::String})};
 
 static std::string load_state_name;
 static std::string save_state_name;
@@ -33,17 +35,17 @@ static std::string play_movie_name;
 static std::optional<std::string> blank_string;
 static std::string save_movie_name;
 
- ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
+ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
 {
   std::unordered_map<std::string, std::string> deprecated_functions_map;
-  return {class_name, GetLatestFunctionsForVersion(all_emu_functions_metadata_list, api_version, deprecated_functions_map)};
+  return {class_name, GetLatestFunctionsForVersion(all_emu_functions_metadata_list, api_version,
+                                                   deprecated_functions_map)};
 }
 
- ClassMetadata GetAllClassMetadata()
+ClassMetadata GetAllClassMetadata()
 {
   return {class_name, GetAllFunctions(all_emu_functions_metadata_list)};
 }
-
 
 FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
                                                const std::string& function_name)
@@ -69,7 +71,8 @@ ArgHolder EmuLoadState(ScriptContext* current_script, std::vector<ArgHolder>& ar
 {
   load_state_name = args_list[0].string_val;
   if (!CheckIfFileExists(load_state_name))
-    return CreateErrorStringArgHolder(fmt::format("could not find savestate with filename of {}", load_state_name).c_str());
+    return CreateErrorStringArgHolder(
+        fmt::format("could not find savestate with filename of {}", load_state_name).c_str());
   State::LoadAs(load_state_name);
   return CreateVoidTypeArgHolder();
 }
@@ -85,7 +88,8 @@ ArgHolder EmuPlayMovie(ScriptContext* current_script, std::vector<ArgHolder>& ar
 {
   play_movie_name = args_list[0].string_val;
   if (!CheckIfFileExists(play_movie_name))
-    return CreateErrorStringArgHolder(fmt::format("could not find a movie with filename of {}", play_movie_name).c_str());
+    return CreateErrorStringArgHolder(
+        fmt::format("could not find a movie with filename of {}", play_movie_name).c_str());
   Movie::EndPlayInput(false);
   Movie::PlayInput(play_movie_name, &blank_string);
 
@@ -99,4 +103,4 @@ ArgHolder EmuSaveMovie(ScriptContext* current_script, std::vector<ArgHolder>& ar
   return CreateVoidTypeArgHolder();
 }
 
-}  // namespace Scripting::EmuAPI
+}  // namespace Scripting::EmuApi

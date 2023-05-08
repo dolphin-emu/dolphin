@@ -7,11 +7,11 @@
 
 #include "Core/HW/GCPad.h"
 #include "Core/Movie.h"
-#include "InputCommon/GCPadStatus.h"
-#include "InputCommon/InputConfig.h"
-#include "Core/Scripting/ScriptContext.h"
 #include "Core/Scripting/HelperClasses/ArgHolder.h"
 #include "Core/Scripting/HelperClasses/ClassMetadata.h"
+#include "Core/Scripting/ScriptContext.h"
+#include "InputCommon/GCPadStatus.h"
+#include "InputCommon/InputConfig.h"
 
 namespace Scripting::GameCubeControllerApi
 {
@@ -29,4 +29,4 @@ ArgHolder GetInputsForPreviousFrame(ScriptContext* current_script,
 ArgHolder IsGcControllerInPort(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder IsUsingPort(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 
-}  // namespace Scripting::GameCubeControllerAPI
+}  // namespace Scripting::GameCubeControllerApi

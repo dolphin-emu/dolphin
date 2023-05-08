@@ -7,8 +7,8 @@
 #include "Core/Scripting/LanguageDefinitions/Lua/LuaScriptContext.h"
 #include "Core/Scripting/LanguageDefinitions/Python/PythonScriptContext.h"
 
-
-namespace Scripting::ScriptUtilities {
+namespace Scripting::ScriptUtilities
+{
 
 std::vector<ScriptContext*>* global_pointer_to_list_of_all_scripts = nullptr;
 std::mutex initialization_and_destruction_lock;
@@ -25,10 +25,10 @@ bool IsScriptingCoreInitialized()
   return global_pointer_to_list_of_all_scripts != nullptr;
 }
 
-void InitializeScript(int unique_script_identifier, const std::string& script_filename, 
-                 std::function<void(const std::string&)>* new_print_callback,
-                 std::function<void(int)>* new_script_end_callback,
-                 DefinedScriptingLanguagesEnum language)
+void InitializeScript(int unique_script_identifier, const std::string& script_filename,
+                      std::function<void(const std::string&)>* new_print_callback,
+                      std::function<void(int)>* new_script_end_callback,
+                      DefinedScriptingLanguagesEnum language)
 {
   Core::CPUThreadGuard lock(Core::System::GetInstance());
   initialization_and_destruction_lock.lock();
@@ -40,7 +40,9 @@ void InitializeScript(int unique_script_identifier, const std::string& script_fi
 
   if (language == DefinedScriptingLanguagesEnum::LUA)
   {
-    global_pointer_to_list_of_all_scripts->push_back(new Scripting::Lua::LuaScriptContext(unique_script_identifier, script_filename, global_pointer_to_list_of_all_scripts, new_print_callback, new_script_end_callback));
+    global_pointer_to_list_of_all_scripts->push_back(new Scripting::Lua::LuaScriptContext(
+        unique_script_identifier, script_filename, global_pointer_to_list_of_all_scripts,
+        new_print_callback, new_script_end_callback));
   }
   else if (language == DefinedScriptingLanguagesEnum::PYTHON)
   {
@@ -98,7 +100,9 @@ bool StartScripts()
   std::lock_guard<std::mutex> lock(initialization_and_destruction_lock);
   std::lock_guard<std::mutex> second_lock(global_code_and_frame_callback_running_lock);
   bool return_value = false;
-  if (global_pointer_to_list_of_all_scripts == nullptr || global_pointer_to_list_of_all_scripts->size() == 0 || Scripting::queue_of_scripts_waiting_to_start.IsEmpty())
+  if (global_pointer_to_list_of_all_scripts == nullptr ||
+      global_pointer_to_list_of_all_scripts->size() == 0 ||
+      Scripting::queue_of_scripts_waiting_to_start.IsEmpty())
     return false;
   while (!queue_of_scripts_waiting_to_start.IsEmpty())
   {
@@ -176,7 +180,8 @@ void RunOnGCInputPolledCallbacks()
     current_script->script_specific_lock.lock();
     if (current_script->is_script_active)
     {
-      current_script->current_script_call_location = ScriptCallLocations::FromGCControllerInputPolled;
+      current_script->current_script_call_location =
+          ScriptCallLocations::FromGCControllerInputPolled;
       current_script->RunOnGCControllerPolledCallbacks();
     }
     current_script->script_specific_lock.unlock();
@@ -286,4 +291,4 @@ void RunButtonCallbacksInQueues()
   }
 }
 
-}
+}  // namespace Scripting::ScriptUtilities

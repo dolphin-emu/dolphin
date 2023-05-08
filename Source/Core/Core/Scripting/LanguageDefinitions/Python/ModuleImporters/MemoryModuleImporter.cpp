@@ -35,7 +35,8 @@ static const char* write_double_function_name = "write_double";
 static const char* write_string_function_name = "write_string";
 static const char* write_bytes_function_name = "write_bytes";
 
-static const char* write_all_memory_as_unsigned_bytes_to_file_function_name = "writeAllMemoryAsUnsignedBytesToFile";
+static const char* write_all_memory_as_unsigned_bytes_to_file_function_name =
+    "writeAllMemoryAsUnsignedBytesToFile";
 
 static PyObject* python_read_u8(PyObject* self, PyObject* args)
 {
@@ -89,25 +90,27 @@ static PyObject* python_read_double(PyObject* self, PyObject* args)
 
 static PyObject* python_read_fixed_length_string(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, memory_class_name, read_fixed_length_string_function_name);
+  return PythonScriptContext::RunFunction(self, args, memory_class_name,
+                                          read_fixed_length_string_function_name);
 }
 
 static PyObject* python_read_null_terminated_string(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, memory_class_name, read_null_terminated_string_function_name);
+  return PythonScriptContext::RunFunction(self, args, memory_class_name,
+                                          read_null_terminated_string_function_name);
 }
 
 static PyObject* python_read_unsigned_bytes(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, memory_class_name, read_unsigned_bytes_function_name);
+  return PythonScriptContext::RunFunction(self, args, memory_class_name,
+                                          read_unsigned_bytes_function_name);
 }
 
 static PyObject* python_read_signed_bytes(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, memory_class_name, read_signed_bytes_function_name);
+  return PythonScriptContext::RunFunction(self, args, memory_class_name,
+                                          read_signed_bytes_function_name);
 }
-
-
 
 static PyObject* python_write_u8(PyObject* self, PyObject* args)
 {
@@ -156,12 +159,14 @@ static PyObject* python_write_float(PyObject* self, PyObject* args)
 
 static PyObject* python_write_double(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, memory_class_name, write_double_function_name);
+  return PythonScriptContext::RunFunction(self, args, memory_class_name,
+                                          write_double_function_name);
 }
 
 static PyObject* python_write_string(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, memory_class_name, write_string_function_name);
+  return PythonScriptContext::RunFunction(self, args, memory_class_name,
+                                          write_string_function_name);
 }
 
 static PyObject* python_write_bytes(PyObject* self, PyObject* args)
@@ -169,12 +174,11 @@ static PyObject* python_write_bytes(PyObject* self, PyObject* args)
   return PythonScriptContext::RunFunction(self, args, memory_class_name, write_bytes_function_name);
 }
 
-
 static PyObject* python_write_all_memory_as_unsigned_bytes_to_file(PyObject* self, PyObject* args)
 {
-  return PythonScriptContext::RunFunction(self, args, memory_class_name, write_all_memory_as_unsigned_bytes_to_file_function_name);
+  return PythonScriptContext::RunFunction(self, args, memory_class_name,
+                                          write_all_memory_as_unsigned_bytes_to_file_function_name);
 }
-
 
 static PyMethodDef memory_api_methods[] = {
     {read_u8_function_name, python_read_u8, METH_VARARGS, nullptr},
@@ -187,8 +191,10 @@ static PyMethodDef memory_api_methods[] = {
     {read_s64_function_name, python_read_s64, METH_VARARGS, nullptr},
     {read_float_function_name, python_read_float, METH_VARARGS, nullptr},
     {read_double_function_name, python_read_double, METH_VARARGS, nullptr},
-    {read_null_terminated_string_function_name, python_read_null_terminated_string, METH_VARARGS, nullptr},
-    {read_fixed_length_string_function_name, python_read_fixed_length_string, METH_VARARGS, nullptr},
+    {read_null_terminated_string_function_name, python_read_null_terminated_string, METH_VARARGS,
+     nullptr},
+    {read_fixed_length_string_function_name, python_read_fixed_length_string, METH_VARARGS,
+     nullptr},
     {read_unsigned_bytes_function_name, python_read_unsigned_bytes, METH_VARARGS, nullptr},
     {read_signed_bytes_function_name, python_read_signed_bytes, METH_VARARGS, nullptr},
 
@@ -205,10 +211,10 @@ static PyMethodDef memory_api_methods[] = {
     {write_string_function_name, python_write_string, METH_VARARGS, nullptr},
     {write_bytes_function_name, python_write_bytes, METH_VARARGS, nullptr},
 
-    {write_all_memory_as_unsigned_bytes_to_file_function_name, python_write_all_memory_as_unsigned_bytes_to_file, METH_VARARGS, nullptr},
+    {write_all_memory_as_unsigned_bytes_to_file_function_name,
+     python_write_all_memory_as_unsigned_bytes_to_file, METH_VARARGS, nullptr},
 
     {nullptr, nullptr, 0, nullptr}};
-
 
 static struct PyModuleDef MemoryAPImodule = {
     PyModuleDef_HEAD_INIT, memory_class_name.c_str(), /* name of module */
@@ -217,11 +223,9 @@ static struct PyModuleDef MemoryAPImodule = {
                             state in global variables. */
     memory_api_methods};
 
-
 PyMODINIT_FUNC PyInit_MemoryAPI()
 {
   return PyModule_Create(&MemoryAPImodule);
 }
 
-
-}
+}  // namespace Scripting::Python::MemoryModuleImporter

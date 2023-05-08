@@ -12,27 +12,40 @@ namespace Scripting::StatisticsApi
 const char* class_name = "StatisticsAPI";
 
 static std::array all_statistics_functions_metadata_list = {
-  FunctionMetadata("isRecordingInput", "1.0", "isRecordingInput()", IsRecordingInput, ArgTypeEnum::Boolean, {}),
-  FunctionMetadata("isRecordingInputFromSaveState", "1.0", "isRecordingInputFromSaveState()", IsRecordingInputFromSaveState, ArgTypeEnum::Boolean, {}),
-  FunctionMetadata("isPlayingInput", "1.0", "isPlayingInput()", IsPlayingInput, ArgTypeEnum::Boolean, {}),
-  FunctionMetadata("isMovieActive", "1.0", "isMovieActive()", IsMovieActive, ArgTypeEnum::Boolean, {}),
-  FunctionMetadata("getCurrentFrame", "1.0", "getCurrentFrame()", GetCurrentFrame, ArgTypeEnum::LongLong, {}),
-  FunctionMetadata("getMovieLength", "1.0", "getMovieLength()", GetMovieLength, ArgTypeEnum::LongLong, {}),
-  FunctionMetadata("getRerecordCount", "1.0", "getRerecordCount()", GetRerecordCount, ArgTypeEnum::LongLong, {}),
-  FunctionMetadata("getCurrentInputCount", "1.0", "getCurrentInputCount()", GetCurrentInputCount, ArgTypeEnum::LongLong, {}),
-  FunctionMetadata("getTotalInputCount", "1.0", "getTotalInputCount()", GetTotalInputCount, ArgTypeEnum::LongLong, {}),
-  FunctionMetadata("getCurrentLagCount", "1.0", "getCurrentlagCount()", GetCurrentLagCount, ArgTypeEnum::LongLong, {}),
-  FunctionMetadata("getTotalLagCount", "1.0", "getTotalLagCount()", GetTotalLagCount, ArgTypeEnum::LongLong, {}),
-  FunctionMetadata("getRAMSize", "1.0", "getRAMSize()", GetRAMSize, ArgTypeEnum::U32, {}),
-  FunctionMetadata("getL1CacheSize", "1.0", "getL1CacheSize()", GetL1CacheSize, ArgTypeEnum::U32, {}),
-  FunctionMetadata("getFakeVMemSize", "1.0", "getFakeVMemSize()", GetFakeVMemSize, ArgTypeEnum::U32, {}),
-  FunctionMetadata("getExRAMSize", "1.0", "getExRAMSize()", GetExRAMSize, ArgTypeEnum::U32, {})
-};
+    FunctionMetadata("isRecordingInput", "1.0", "isRecordingInput()", IsRecordingInput,
+                     ArgTypeEnum::Boolean, {}),
+    FunctionMetadata("isRecordingInputFromSaveState", "1.0", "isRecordingInputFromSaveState()",
+                     IsRecordingInputFromSaveState, ArgTypeEnum::Boolean, {}),
+    FunctionMetadata("isPlayingInput", "1.0", "isPlayingInput()", IsPlayingInput,
+                     ArgTypeEnum::Boolean, {}),
+    FunctionMetadata("isMovieActive", "1.0", "isMovieActive()", IsMovieActive, ArgTypeEnum::Boolean,
+                     {}),
+    FunctionMetadata("getCurrentFrame", "1.0", "getCurrentFrame()", GetCurrentFrame,
+                     ArgTypeEnum::LongLong, {}),
+    FunctionMetadata("getMovieLength", "1.0", "getMovieLength()", GetMovieLength,
+                     ArgTypeEnum::LongLong, {}),
+    FunctionMetadata("getRerecordCount", "1.0", "getRerecordCount()", GetRerecordCount,
+                     ArgTypeEnum::LongLong, {}),
+    FunctionMetadata("getCurrentInputCount", "1.0", "getCurrentInputCount()", GetCurrentInputCount,
+                     ArgTypeEnum::LongLong, {}),
+    FunctionMetadata("getTotalInputCount", "1.0", "getTotalInputCount()", GetTotalInputCount,
+                     ArgTypeEnum::LongLong, {}),
+    FunctionMetadata("getCurrentLagCount", "1.0", "getCurrentlagCount()", GetCurrentLagCount,
+                     ArgTypeEnum::LongLong, {}),
+    FunctionMetadata("getTotalLagCount", "1.0", "getTotalLagCount()", GetTotalLagCount,
+                     ArgTypeEnum::LongLong, {}),
+    FunctionMetadata("getRAMSize", "1.0", "getRAMSize()", GetRAMSize, ArgTypeEnum::U32, {}),
+    FunctionMetadata("getL1CacheSize", "1.0", "getL1CacheSize()", GetL1CacheSize, ArgTypeEnum::U32,
+                     {}),
+    FunctionMetadata("getFakeVMemSize", "1.0", "getFakeVMemSize()", GetFakeVMemSize,
+                     ArgTypeEnum::U32, {}),
+    FunctionMetadata("getExRAMSize", "1.0", "getExRAMSize()", GetExRAMSize, ArgTypeEnum::U32, {})};
 
- ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
+ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
 {
   std::unordered_map<std::string, std::string> deprecated_functions_map;
-  return {class_name, GetLatestFunctionsForVersion(all_statistics_functions_metadata_list, api_version, deprecated_functions_map)};
+  return {class_name, GetLatestFunctionsForVersion(all_statistics_functions_metadata_list,
+                                                   api_version, deprecated_functions_map)};
 }
 
 ClassMetadata GetAllClassMetadata()
@@ -106,22 +119,34 @@ ArgHolder GetTotalLagCount(ScriptContext* current_script, std::vector<ArgHolder>
 
 ArgHolder GetRAMSize(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
-  return CreateU32ArgHolder(Core::System::GetInstance().GetMemory().getRAM_scriptHelper() != nullptr ? Core::System::GetInstance().GetMemory().GetRamSizeReal() : 0);
+  return CreateU32ArgHolder(Core::System::GetInstance().GetMemory().getRAM_scriptHelper() !=
+                                    nullptr ?
+                                Core::System::GetInstance().GetMemory().GetRamSizeReal() :
+                                0);
 }
 
 ArgHolder GetL1CacheSize(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
-  return CreateU32ArgHolder(Core::System::GetInstance().GetMemory().getL1Cache_scriptHelper() != nullptr ? Core::System::GetInstance().GetMemory().GetL1CacheSize() : 0);
+  return CreateU32ArgHolder(Core::System::GetInstance().GetMemory().getL1Cache_scriptHelper() !=
+                                    nullptr ?
+                                Core::System::GetInstance().GetMemory().GetL1CacheSize() :
+                                0);
 }
 
 ArgHolder GetFakeVMemSize(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
-  return CreateU32ArgHolder(Core::System::GetInstance().GetMemory().getFakeVMEM_scriptHelper() != nullptr ? Core::System::GetInstance().GetMemory().GetFakeVMemSize() : 0);
+  return CreateU32ArgHolder(Core::System::GetInstance().GetMemory().getFakeVMEM_scriptHelper() !=
+                                    nullptr ?
+                                Core::System::GetInstance().GetMemory().GetFakeVMemSize() :
+                                0);
 }
 
 ArgHolder GetExRAMSize(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
-  return CreateU32ArgHolder(Core::System::GetInstance().GetMemory().getEXRAM_scriptHelper() != nullptr ? Core::System::GetInstance().GetMemory().GetExRamSizeReal() : 0);
+  return CreateU32ArgHolder(Core::System::GetInstance().GetMemory().getEXRAM_scriptHelper() !=
+                                    nullptr ?
+                                Core::System::GetInstance().GetMemory().GetExRamSizeReal() :
+                                0);
 }
 
 }  // namespace Scripting::StatisticsApi

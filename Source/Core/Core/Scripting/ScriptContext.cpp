@@ -7,8 +7,8 @@ bool set_print_callback = false;
 bool set_script_end_callback = false;
 std::function<void(const std::string&)>* print_callback = nullptr;
 std::function<void(int)>* script_end_callback = nullptr;
-ThreadSafeQueue<ScriptContext*> queue_of_scripts_waiting_to_start = ThreadSafeQueue<ScriptContext*>();
-
+ThreadSafeQueue<ScriptContext*> queue_of_scripts_waiting_to_start =
+    ThreadSafeQueue<ScriptContext*>();
 
 bool IsPrintCallbackSet()
 {
@@ -59,4 +59,4 @@ ScriptContext* RemoveNextScriptToStartFromQueue()
 {
   return queue_of_scripts_waiting_to_start.pop();
 }
-}
+}  // namespace Scripting

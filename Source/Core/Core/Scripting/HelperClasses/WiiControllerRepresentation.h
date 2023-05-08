@@ -28,7 +28,6 @@ struct IRRepresentation
 };
 */
 
-
 enum class IREnum
 {
   X,

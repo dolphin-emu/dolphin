@@ -21,4 +21,4 @@ ArgHolder EmuSaveState(ScriptContext* current_script, std::vector<ArgHolder>& ar
 ArgHolder EmuPlayMovie(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 ArgHolder EmuSaveMovie(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
 
-}  // namespace Scripting::EmuAPI
+}  // namespace Scripting::EmuApi
