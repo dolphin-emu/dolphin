@@ -153,28 +153,16 @@ int main(int argc, char* argv[])
 #endif
 #endif
 
-  auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::IncludeGUIOptions);
-  const optparse::Values& options = CommandLineParse::ParseArguments(parser.get(), argc, argv);
-  const std::vector<std::string> args = parser->args();
-
-  // setHighDpiScaleFactorRoundingPolicy was added in 5.14, but default behavior changed in 6.0
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
-  // Set to the previous default behavior
-  QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::Round);
-#else
-  QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-  QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
-#endif
-
   QCoreApplication::setOrganizationName(QStringLiteral("Dolphin Emulator"));
   QCoreApplication::setOrganizationDomain(QStringLiteral("dolphin-emu.org"));
   QCoreApplication::setApplicationName(QStringLiteral("dolphin-emu"));
 
-#ifdef _WIN32
-  QApplication app(__argc, __argv);
-#else
+  // QApplication will parse arguments and remove any it recognizes as targeting Qt
   QApplication app(argc, argv);
-#endif
+
+  auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::IncludeGUIOptions);
+  const optparse::Values& options = CommandLineParse::ParseArguments(parser.get(), argc, argv);
+  const std::vector<std::string> args = parser->args();
 
 #ifdef _WIN32
   FreeConsole();
@@ -276,8 +264,6 @@ int main(int argc, char* argv[])
 
     MainWindow win{std::move(boot), static_cast<const char*>(options.get("movie"))};
     Settings::Instance().SetCurrentUserStyle(Settings::Instance().GetCurrentUserStyle());
-    if (options.is_set("debugger"))
-      Settings::Instance().SetDebugModeEnabled(true);
     win.Show();
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS

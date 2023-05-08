@@ -41,7 +41,8 @@ namespace IOS::HLE
 {
 CoreTiming::EventType* DIDevice::s_finish_executing_di_command;
 
-DIDevice::DIDevice(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
+DIDevice::DIDevice(EmulationKernel& ios, const std::string& device_name)
+    : EmulationDevice(ios, device_name)
 {
 }
 
@@ -70,7 +71,7 @@ std::optional<IPCReply> DIDevice::IOCtl(const IOCtlRequest& request)
   // asynchronously. The rest are also treated as async to match this.  Only one command can be
   // executed at a time, so commands are queued until DVDInterface is ready to handle them.
 
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
   const u8 command = memory.Read_U8(request.buffer_in);
   if (request.request != command)
@@ -105,12 +106,13 @@ void DIDevice::ProcessQueuedIOCtl()
   m_executing_command = {m_commands_to_execute.front()};
   m_commands_to_execute.pop_front();
 
-  IOCtlRequest request{m_executing_command->m_request_address};
+  auto& system = GetSystem();
+  IOCtlRequest request{system, m_executing_command->m_request_address};
   auto finished = StartIOCtl(request);
   if (finished)
   {
-    Core::System::GetInstance().GetCoreTiming().ScheduleEvent(
-        IPC_OVERHEAD_TICKS, s_finish_executing_di_command, static_cast<u64>(finished.value()));
+    system.GetCoreTiming().ScheduleEvent(IPC_OVERHEAD_TICKS, s_finish_executing_di_command,
+                                         static_cast<u64>(finished.value()));
     return;
   }
 }
@@ -124,7 +126,7 @@ std::optional<DIDevice::DIResult> DIDevice::WriteIfFits(const IOCtlRequest& requ
   }
   else
   {
-    auto& system = Core::System::GetInstance();
+    auto& system = GetSystem();
     auto& memory = system.GetMemory();
     memory.Write_U32(value, request.buffer_out);
     return DIResult::Success;
@@ -150,7 +152,7 @@ std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& reque
     return DIResult::SecurityError;
   }
 
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
   auto* mmio = memory.GetMMIOMapping();
 
@@ -561,7 +563,7 @@ std::optional<DIDevice::DIResult> DIDevice::StartDMATransfer(u32 command_length,
     return DIResult::BadArgument;
   }
 
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto* mmio = system.GetMemory().GetMMIOMapping();
   mmio->Write<u32>(ADDRESS_DIMAR, request.buffer_out);
   m_last_length = command_length;
@@ -585,7 +587,8 @@ std::optional<DIDevice::DIResult> DIDevice::StartImmediateTransfer(const IOCtlRe
 
   m_executing_command->m_copy_diimmbuf = write_to_buf;
 
-  Core::System::GetInstance().GetDVDInterface().ExecuteCommand(DVD::ReplyType::IOS);
+  auto& system = GetSystem();
+  system.GetDVDInterface().ExecuteCommand(DVD::ReplyType::IOS);
   // Reply will be posted when done by FinishIOCtl.
   return {};
 }
@@ -649,15 +652,15 @@ void DIDevice::FinishDICommand(DIResult result)
     return;
   }
 
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
   auto* mmio = memory.GetMMIOMapping();
 
-  IOCtlRequest request{m_executing_command->m_request_address};
+  IOCtlRequest request{system, m_executing_command->m_request_address};
   if (m_executing_command->m_copy_diimmbuf)
     memory.Write_U32(mmio->Read<u32>(ADDRESS_DIIMMBUF), request.buffer_out);
 
-  m_ios.EnqueueIPCReply(request, static_cast<s32>(result));
+  GetEmulationKernel().EnqueueIPCReply(request, static_cast<s32>(result));
 
   m_executing_command.reset();
 
@@ -683,7 +686,7 @@ std::optional<IPCReply> DIDevice::IOCtlV(const IOCtlVRequest& request)
     return IPCReply{static_cast<s32>(DIResult::BadArgument)};
   }
 
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
   const u8 command = memory.Read_U8(request.in_vectors[0].address);
@@ -742,17 +745,17 @@ std::optional<IPCReply> DIDevice::IOCtlV(const IOCtlVRequest& request)
   case DIIoctl::DVDLowGetNoDiscOpenPartitionParams:
     ERROR_LOG_FMT(IOS_DI, "DVDLowGetNoDiscOpenPartitionParams - dummied out");
     DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DIFFERENT_PARTITION_COMMAND);
-    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_DI);
+    request.DumpUnknown(system, GetDeviceName(), Common::Log::LogType::IOS_DI);
     break;
   case DIIoctl::DVDLowNoDiscOpenPartition:
     ERROR_LOG_FMT(IOS_DI, "DVDLowNoDiscOpenPartition - dummied out");
     DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DIFFERENT_PARTITION_COMMAND);
-    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_DI);
+    request.DumpUnknown(system, GetDeviceName(), Common::Log::LogType::IOS_DI);
     break;
   case DIIoctl::DVDLowGetNoDiscBufferSizes:
     ERROR_LOG_FMT(IOS_DI, "DVDLowGetNoDiscBufferSizes - dummied out");
     DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DIFFERENT_PARTITION_COMMAND);
-    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_DI);
+    request.DumpUnknown(system, GetDeviceName(), Common::Log::LogType::IOS_DI);
     break;
   case DIIoctl::DVDLowOpenPartitionWithTmdAndTicket:
     ERROR_LOG_FMT(IOS_DI, "DVDLowOpenPartitionWithTmdAndTicket - not implemented");
@@ -764,7 +767,7 @@ std::optional<IPCReply> DIDevice::IOCtlV(const IOCtlVRequest& request)
     break;
   default:
     ERROR_LOG_FMT(IOS_DI, "Unknown ioctlv {:#04x}", request.request);
-    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_DI);
+    request.DumpUnknown(system, GetDeviceName(), Common::Log::LogType::IOS_DI);
   }
   return IPCReply{static_cast<s32>(return_value)};
 }
@@ -804,7 +807,7 @@ void DIDevice::ResetDIRegisters()
 {
   // Clear transfer complete and error interrupts (normally r/z, but here we just directly write
   // zero)
-  auto& di = Core::System::GetInstance().GetDVDInterface();
+  auto& di = GetSystem().GetDVDInterface();
   di.ClearInterrupt(DVD::DIInterruptType::TCINT);
   di.ClearInterrupt(DVD::DIInterruptType::DEINT);
   // Enable transfer complete and error interrupts, and disable cover interrupt

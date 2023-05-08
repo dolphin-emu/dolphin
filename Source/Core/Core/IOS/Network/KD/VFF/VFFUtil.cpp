@@ -267,7 +267,7 @@ ErrorCode OpenVFF(const std::string& path, const std::string& filename,
     if (!temp)
     {
       ERROR_LOG_FMT(IOS_WC24, "Failed to open VFF at: {}", path);
-      return_value = WC24_ERR_NOT_FOUND;
+      return_value = WC24_ERR_FILE_OPEN;
       return;
     }
 
@@ -281,7 +281,7 @@ ErrorCode OpenVFF(const std::string& path, const std::string& filename,
     {
       // The VFF is most likely broken.
       ERROR_LOG_FMT(IOS_WC24, "Failed to mount VFF at: {}", path);
-      return_value = WC24_ERR_BROKEN;
+      return_value = WC24_ERR_FILE_READ;
       return;
     }
 
@@ -290,7 +290,7 @@ ErrorCode OpenVFF(const std::string& path, const std::string& filename,
     {
       // The VFF is most likely broken.
       ERROR_LOG_FMT(IOS_WC24, "Failed to mount VFF at: {}", path);
-      return_value = WC24_ERR_BROKEN;
+      return_value = WC24_ERR_FILE_READ;
       return;
     }
 

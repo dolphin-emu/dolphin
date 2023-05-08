@@ -11,11 +11,11 @@ template <typename T>
 class Info;
 }
 
-class GraphicsInteger : public ToolTipSpinBox
+class ConfigInteger : public ToolTipSpinBox
 {
   Q_OBJECT
 public:
-  GraphicsInteger(int minimum, int maximum, const Config::Info<int>& setting, int step = 1);
+  ConfigInteger(int minimum, int maximum, const Config::Info<int>& setting, int step = 1);
   void Update(int value);
 
 private:

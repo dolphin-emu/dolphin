@@ -130,12 +130,18 @@ OGLTexture::OGLTexture(const TextureConfig& tex_config, std::string_view name)
   GLenum gl_internal_format = GetGLInternalFormatForTextureFormat(m_config.format, true);
   if (tex_config.IsMultisampled())
   {
-    if (g_ogl_config.bSupportsTextureStorage)
+    ASSERT(g_ogl_config.bSupportsMSAA);
+    if (g_ogl_config.SupportedMultisampleTexStorage != MultisampleTexStorageType::TexStorageNone)
+    {
       glTexStorage3DMultisample(target, tex_config.samples, gl_internal_format, m_config.width,
                                 m_config.height, m_config.layers, GL_FALSE);
+    }
     else
+    {
+      ASSERT(!g_ogl_config.bIsES);
       glTexImage3DMultisample(target, tex_config.samples, gl_internal_format, m_config.width,
                               m_config.height, m_config.layers, GL_FALSE);
+    }
   }
   else if (g_ogl_config.bSupportsTextureStorage)
   {
@@ -296,7 +302,7 @@ OGLStagingTexture::OGLStagingTexture(StagingTextureType type, const TextureConfi
 
 OGLStagingTexture::~OGLStagingTexture()
 {
-  if (m_fence != 0)
+  if (m_fence != nullptr)
     glDeleteSync(m_fence);
   if (m_map_pointer)
   {
@@ -418,7 +424,7 @@ void OGLStagingTexture::CopyFromTexture(const AbstractTexture* src,
   // If we support buffer storage, create a fence for synchronization.
   if (UsePersistentStagingBuffers())
   {
-    if (m_fence != 0)
+    if (m_fence != nullptr)
       glDeleteSync(m_fence);
 
     glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
@@ -479,7 +485,7 @@ void OGLStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect,
   // If we support buffer storage, create a fence for synchronization.
   if (UsePersistentStagingBuffers())
   {
-    if (m_fence != 0)
+    if (m_fence != nullptr)
       glDeleteSync(m_fence);
 
     m_fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
@@ -493,7 +499,7 @@ void OGLStagingTexture::Flush()
 {
   // No-op when not using buffer storage, as the transfers happen on Map().
   // m_fence will always be zero in this case.
-  if (m_fence == 0)
+  if (m_fence == nullptr)
   {
     m_needs_flush = false;
     return;
@@ -501,7 +507,7 @@ void OGLStagingTexture::Flush()
 
   glClientWaitSync(m_fence, 0, GL_TIMEOUT_IGNORED);
   glDeleteSync(m_fence);
-  m_fence = 0;
+  m_fence = nullptr;
   m_needs_flush = false;
 }
 

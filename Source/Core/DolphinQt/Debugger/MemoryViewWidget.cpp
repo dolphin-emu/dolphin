@@ -212,11 +212,7 @@ void MemoryViewWidget::UpdateFont()
   // BoundingRect is too unpredictable, a custom one would be needed for each view type. Different
   // fonts have wildly different spacing between two characters and horizontalAdvance includes
   // spacing.
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
   m_font_width = fm.horizontalAdvance(QLatin1Char('0'));
-#else
-  m_font_width = fm.width(QLatin1Char('0'));
-#endif
   m_table->setFont(Settings::Instance().GetDebugFont());
 
   CreateTable();
@@ -587,7 +583,7 @@ void MemoryViewWidget::UpdateBreakpointTags()
     {
       m_table->item(i, 0)->setData(
           Qt::DecorationRole,
-          Resources::GetScaledThemeIcon("debugger_breakpoint")
+          Resources::GetThemeIcon("debugger_breakpoint")
               .pixmap(QSize(m_table->rowHeight(0) - 3, m_table->rowHeight(0) - 3)));
     }
     else

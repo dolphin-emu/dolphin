@@ -30,6 +30,7 @@ class GBATASInputWindow;
 class GCTASInputWindow;
 class GraphicsWindow;
 class HotkeyScheduler;
+class InfinityBaseWindow;
 class JITWidget;
 class LogConfigWidget;
 class LogWidget;
@@ -162,6 +163,7 @@ private:
   void ShowNetPlayBrowser();
   void ShowFIFOPlayer();
   void ShowSkylanderPortal();
+  void ShowInfinityBase();
   void ShowMemcardManager();
   void ShowScriptManager();
   void ShowResourcePackManager();
@@ -227,6 +229,7 @@ private:
   GraphicsWindow* m_graphics_window = nullptr;
   FIFOPlayerWindow* m_fifo_window = nullptr;
   SkylanderPortalWindow* m_skylander_window = nullptr;
+  InfinityBaseWindow* m_infinity_window = nullptr;
   MappingWindow* m_hotkey_window = nullptr;
   FreeLookWindow* m_freelook_window = nullptr;
 

@@ -31,10 +31,10 @@ private:
   std::vector<u8> m_whole_file;
 };
 
-class WFSIDevice : public Device
+class WFSIDevice : public EmulationDevice
 {
 public:
-  WFSIDevice(Kernel& ios, const std::string& device_name);
+  WFSIDevice(EmulationKernel& ios, const std::string& device_name);
 
   std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
 

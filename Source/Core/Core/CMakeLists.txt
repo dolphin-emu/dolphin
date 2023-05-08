@@ -59,6 +59,8 @@ add_library(core
   Core.h
   CoreTiming.cpp
   CoreTiming.h
+  Debugger/CodeTrace.cpp
+  Debugger/CodeTrace.h
   Debugger/Debugger_SymbolMap.cpp
   Debugger/Debugger_SymbolMap.h
   Debugger/Dump.cpp
@@ -403,6 +405,8 @@ add_library(core
   IOS/USB/Bluetooth/WiimoteHIDAttr.h
   IOS/USB/Common.cpp
   IOS/USB/Common.h
+  IOS/USB/Emulated/Infinity.cpp
+  IOS/USB/Emulated/Infinity.h
   IOS/USB/Emulated/Skylander.cpp
   IOS/USB/Emulated/Skylander.h
   IOS/USB/Host.cpp

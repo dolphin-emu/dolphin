@@ -347,7 +347,7 @@ FixupBranch JitArm64::BATAddressLookup(ARM64Reg addr_out, ARM64Reg addr_in, ARM6
   MOVP2R(tmp, bat_table);
   LSR(addr_out, addr_in, PowerPC::BAT_INDEX_SHIFT);
   LDR(addr_out, tmp, ArithOption(addr_out, true));
-  FixupBranch pass = TBNZ(addr_out, IntLog2(PowerPC::BAT_MAPPED_BIT));
+  FixupBranch pass = TBNZ(addr_out, MathUtil::IntLog2(PowerPC::BAT_MAPPED_BIT));
   FixupBranch fail = B();
   SetJumpTarget(pass);
   return fail;
@@ -361,7 +361,7 @@ FixupBranch JitArm64::CheckIfSafeAddress(Arm64Gen::ARM64Reg addr, Arm64Gen::ARM6
   MOVP2R(tmp2, m_mmu.GetDBATTable().data());
   LSR(tmp1, addr, PowerPC::BAT_INDEX_SHIFT);
   LDR(tmp1, tmp2, ArithOption(tmp1, true));
-  FixupBranch pass = TBNZ(tmp1, IntLog2(PowerPC::BAT_PHYSICAL_BIT));
+  FixupBranch pass = TBNZ(tmp1, MathUtil::IntLog2(PowerPC::BAT_PHYSICAL_BIT));
   FixupBranch fail = B();
   SetJumpTarget(pass);
   return fail;

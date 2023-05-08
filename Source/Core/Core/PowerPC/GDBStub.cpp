@@ -1052,7 +1052,7 @@ void InitLocal(const char* socket)
   addr.sun_family = AF_UNIX;
   strcpy(addr.sun_path, socket);
 
-  InitGeneric(PF_LOCAL, (const sockaddr*)&addr, sizeof(addr), NULL, NULL);
+  InitGeneric(PF_LOCAL, (const sockaddr*)&addr, sizeof(addr), nullptr, nullptr);
 }
 #endif
 

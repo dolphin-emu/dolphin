@@ -14,10 +14,10 @@ class PointerWrap;
 namespace IOS::HLE
 {
 class OH0;
-class OH0Device final : public Device
+class OH0Device final : public EmulationDevice
 {
 public:
-  OH0Device(Kernel& ios, const std::string& device_name);
+  OH0Device(EmulationKernel& ios, const std::string& device_name);
 
   std::optional<IPCReply> Open(const OpenRequest& request) override;
   std::optional<IPCReply> Close(u32 fd) override;

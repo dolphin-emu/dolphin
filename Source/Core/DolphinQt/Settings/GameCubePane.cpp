@@ -410,7 +410,7 @@ void GameCubePane::BrowseMemcard(ExpansionInterface::Slot slot)
   const QString filename = DolphinFileDialog::getSaveFileName(
       this, tr("Choose a file to open or create"),
       QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)),
-      tr("GameCube Memory Cards (*.raw *.gcp)"), 0, QFileDialog::DontConfirmOverwrite);
+      tr("GameCube Memory Cards (*.raw *.gcp)"), nullptr, QFileDialog::DontConfirmOverwrite);
 
   if (!filename.isEmpty())
     SetMemcard(slot, filename);
@@ -618,7 +618,7 @@ void GameCubePane::BrowseAGPRom(ExpansionInterface::Slot slot)
 
   QString filename = DolphinFileDialog::getSaveFileName(
       this, tr("Choose a file to open"), QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)),
-      tr("Game Boy Advance Carts (*.gba)"), 0, QFileDialog::DontConfirmOverwrite);
+      tr("Game Boy Advance Carts (*.gba)"), nullptr, QFileDialog::DontConfirmOverwrite);
 
   if (!filename.isEmpty())
     SetAGPRom(slot, filename);

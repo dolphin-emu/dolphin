@@ -36,7 +36,6 @@
     <ClInclude Include="Common\Crypto\bn.h" />
     <ClInclude Include="Common\Crypto\ec.h" />
     <ClInclude Include="Common\Crypto\SHA1.h" />
-    <ClInclude Include="Common\Debug\CodeTrace.h" />
     <ClInclude Include="Common\Debug\MemoryPatches.h" />
     <ClInclude Include="Common\Debug\Threads.h" />
     <ClInclude Include="Common\Debug\Watches.h" />
@@ -192,6 +191,7 @@
     <ClInclude Include="Core\ConfigManager.h" />
     <ClInclude Include="Core\Core.h" />
     <ClInclude Include="Core\CoreTiming.h" />
+    <ClInclude Include="Core\Debugger\CodeTrace.h" />
     <ClInclude Include="Core\Debugger\Debugger_SymbolMap.h" />
     <ClInclude Include="Core\Debugger\Dump.h" />
     <ClInclude Include="Core\Debugger\GCELF.h" />
@@ -378,6 +378,7 @@
     <ClInclude Include="Core\IOS\USB\Bluetooth\WiimoteDevice.h" />
     <ClInclude Include="Core\IOS\USB\Bluetooth\WiimoteHIDAttr.h" />
     <ClInclude Include="Core\IOS\USB\Common.h" />
+    <ClInclude Include="Core\IOS\USB\Emulated\Infinity.h" />
     <ClInclude Include="Core\IOS\USB\Emulated\Skylander.h" />
     <ClInclude Include="Core\IOS\USB\Host.h" />
     <ClInclude Include="Core\IOS\USB\LibusbDevice.h" />
@@ -796,7 +797,6 @@
     <ClCompile Include="Common\Crypto\bn.cpp" />
     <ClCompile Include="Common\Crypto\ec.cpp" />
     <ClCompile Include="Common\Crypto\SHA1.cpp" />
-    <ClCompile Include="Common\Debug\CodeTrace.cpp" />
     <ClCompile Include="Common\Debug\MemoryPatches.cpp" />
     <ClCompile Include="Common\Debug\Watches.cpp" />
     <ClCompile Include="Common\DynamicLibrary.cpp" />
@@ -820,7 +820,6 @@
     <ClCompile Include="Common\LdrWatcher.cpp" />
     <ClCompile Include="Common\Logging\ConsoleListenerWin.cpp" />
     <ClCompile Include="Common\Logging\LogManager.cpp" />
-    <ClCompile Include="Common\MathUtil.cpp" />
     <ClCompile Include="Common\Matrix.cpp" />
     <ClCompile Include="Common\MemArenaWin.cpp" />
     <ClCompile Include="Common\MemoryUtil.cpp" />
@@ -873,6 +872,7 @@
     <ClCompile Include="Core\ConfigManager.cpp" />
     <ClCompile Include="Core\Core.cpp" />
     <ClCompile Include="Core\CoreTiming.cpp" />
+    <ClCompile Include="Core\Debugger\CodeTrace.cpp" />
     <ClCompile Include="Core\Debugger\Debugger_SymbolMap.cpp" />
     <ClCompile Include="Core\Debugger\Dump.cpp" />
     <ClCompile Include="Core\Debugger\OSThread.cpp" />
@@ -1053,6 +1053,7 @@
     <ClCompile Include="Core\IOS\USB\Bluetooth\WiimoteDevice.cpp" />
     <ClCompile Include="Core\IOS\USB\Bluetooth\WiimoteHIDAttr.cpp" />
     <ClCompile Include="Core\IOS\USB\Common.cpp" />
+    <ClCompile Include="Core\IOS\USB\Emulated\Infinity.cpp" />
     <ClCompile Include="Core\IOS\USB\Emulated\Skylander.cpp" />
     <ClCompile Include="Core\IOS\USB\Host.cpp" />
     <ClCompile Include="Core\IOS\USB\LibusbDevice.cpp" />

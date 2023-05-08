@@ -544,7 +544,7 @@ void JitArm64::WriteConditionalExceptionExit(int exception, ARM64Reg temp_gpr, A
                                              u64 increment_sp_on_exit)
 {
   LDR(IndexType::Unsigned, temp_gpr, PPC_REG, PPCSTATE_OFF(Exceptions));
-  FixupBranch no_exception = TBZ(temp_gpr, IntLog2(exception));
+  FixupBranch no_exception = TBZ(temp_gpr, MathUtil::IntLog2(exception));
 
   const bool switch_to_far_code = !IsInFarCode();
 
@@ -938,7 +938,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
       // Inline exception check
       LDR(IndexType::Unsigned, ARM64Reg::W30, PPC_REG, PPCSTATE_OFF(Exceptions));
-      FixupBranch no_ext_exception = TBZ(ARM64Reg::W30, IntLog2(EXCEPTION_EXTERNAL_INT));
+      FixupBranch no_ext_exception = TBZ(ARM64Reg::W30, MathUtil::IntLog2(EXCEPTION_EXTERNAL_INT));
       FixupBranch exception = B();
       SwitchToFarCode();
       const u8* done_here = GetCodePtr();
@@ -974,7 +974,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       ARM64Reg XA = EncodeRegTo64(WA);
 
       LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
-      FixupBranch no_ext_exception = TBZ(WA, IntLog2(EXCEPTION_EXTERNAL_INT));
+      FixupBranch no_ext_exception = TBZ(WA, MathUtil::IntLog2(EXCEPTION_EXTERNAL_INT));
       FixupBranch exception = B();
       SwitchToFarCode();
       const u8* done_here = GetCodePtr();

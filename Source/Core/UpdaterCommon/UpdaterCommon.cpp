@@ -373,7 +373,7 @@ bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
                  const std::string& install_base_path, const std::string& temp_path)
 {
 #ifdef _WIN32
-  const auto self_path = std::filesystem::path(GetModuleName(nullptr).value());
+  const auto self_path = std::filesystem::path(Common::GetModuleName(nullptr).value());
   const auto self_filename = self_path.filename();
 #endif
 

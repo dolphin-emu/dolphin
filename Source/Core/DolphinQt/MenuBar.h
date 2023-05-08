@@ -91,6 +91,7 @@ signals:
   void ShowScriptManager();
   void ShowResourcePackManager();
   void ShowSkylanderPortal();
+  void ShowInfinityBase();
   void ConnectWiiRemote(int id);
 
   // Options

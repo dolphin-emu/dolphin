@@ -45,7 +45,8 @@ bool CEXIETHERNET::TAPServerNetworkInterface::Activate()
 
   if (connect(fd, reinterpret_cast<sockaddr*>(&sun), sizeof(sun)) == -1)
   {
-    ERROR_LOG_FMT(SP1, "Couldn't connect socket ({}), unable to init BBA", LastStrerrorString());
+    ERROR_LOG_FMT(SP1, "Couldn't connect socket ({}), unable to init BBA",
+                  Common::LastStrerrorString());
     close(fd);
     fd = -1;
     return false;
@@ -99,14 +100,14 @@ void CEXIETHERNET::TAPServerNetworkInterface::ReadThreadHandler()
     u16 size;
     if (read(fd, &size, 2) != 2)
     {
-      ERROR_LOG_FMT(SP1, "Failed to read size field from BBA: {}", LastStrerrorString());
+      ERROR_LOG_FMT(SP1, "Failed to read size field from BBA: {}", Common::LastStrerrorString());
     }
     else
     {
       int read_bytes = read(fd, m_eth_ref->mRecvBuffer.get(), size);
       if (read_bytes < 0)
       {
-        ERROR_LOG_FMT(SP1, "Failed to read packet data from BBA: {}", LastStrerrorString());
+        ERROR_LOG_FMT(SP1, "Failed to read packet data from BBA: {}", Common::LastStrerrorString());
       }
       else if (readEnabled.IsSet())
       {
