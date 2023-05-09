@@ -6,6 +6,7 @@
 #include <array>
 
 #include "AndroidCommon/AndroidCommon.h"
+#include "AndroidCommon/IDCache.h"
 #include "Core/IOS/USB/Emulated/Infinity.h"
 #include "Core/System.h"
 
@@ -19,9 +20,6 @@ Java_org_dolphinemu_dolphinemu_features_infinitybase_InfinityConfig_getFigureMap
 
   jobject hash_map_obj = env->NewObject(IDCache::GetHashMapClass(), IDCache::GetHashMapInit(),
                                         system.GetInfinityBase().GetFigureList().size());
-
-  jmethodID hash_map_put = env->GetMethodID(
-      hash_map_class, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
 
   jclass long_class = env->FindClass("java/lang/Long");
   jmethodID long_init = env->GetMethodID(long_class, "<init>", "(J)V");
@@ -46,9 +44,6 @@ Java_org_dolphinemu_dolphinemu_features_infinitybase_InfinityConfig_getInverseFi
 
   jobject hash_map_obj = env->NewObject(IDCache::GetHashMapClass(), IDCache::GetHashMapInit(),
                                         system.GetInfinityBase().GetFigureList().size());
-
-  jmethodID hash_map_put = env->GetMethodID(
-      hash_map_class, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
 
   jclass long_class = env->FindClass("java/lang/Long");
   jmethodID long_init = env->GetMethodID(long_class, "<init>", "(J)V");

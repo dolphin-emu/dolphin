@@ -6,6 +6,7 @@
 #include <array>
 
 #include "AndroidCommon/AndroidCommon.h"
+#include "AndroidCommon/IDCache.h"
 #include "Core/IOS/USB/Emulated/Skylander.h"
 #include "Core/System.h"
 
@@ -15,12 +16,8 @@ JNIEXPORT jobject JNICALL
 Java_org_dolphinemu_dolphinemu_features_skylanders_SkylanderConfig_getSkylanderMap(JNIEnv* env,
                                                                                    jclass clazz)
 {
-  jclass hash_map_class = env->FindClass("java/util/HashMap");
-  jmethodID hash_map_init = env->GetMethodID(hash_map_class, "<init>", "(I)V");
-  jobject hash_map_obj = env->NewObject(hash_map_class, hash_map_init,
+  jobject hash_map_obj = env->NewObject(IDCache::GetHashMapClass(), IDCache::GetHashMapInit(),
                                         static_cast<u16>(IOS::HLE::USB::list_skylanders.size()));
-  jmethodID hash_map_put = env->GetMethodID(
-      hash_map_class, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
 
   jclass skylander_class =
       env->FindClass("org/dolphinemu/dolphinemu/features/skylanders/model/SkylanderPair");
@@ -32,7 +29,8 @@ Java_org_dolphinemu_dolphinemu_features_skylanders_SkylanderConfig_getSkylanderM
     const std::string& name = it.second;
     jobject skylander_obj =
         env->NewObject(skylander_class, skylander_init, it.first.first, it.first.second);
-    env->CallObjectMethod(hash_map_obj, hash_map_put, skylander_obj, ToJString(env, name));
+    env->CallObjectMethod(hash_map_obj, IDCache::GetHashMapPut(), skylander_obj,
+                          ToJString(env, name));
     env->DeleteLocalRef(skylander_obj);
   }
 
@@ -43,12 +41,8 @@ JNIEXPORT jobject JNICALL
 Java_org_dolphinemu_dolphinemu_features_skylanders_SkylanderConfig_getInverseSkylanderMap(
     JNIEnv* env, jclass clazz)
 {
-  jclass hash_map_class = env->FindClass("java/util/HashMap");
-  jmethodID hash_map_init = env->GetMethodID(hash_map_class, "<init>", "(I)V");
-  jobject hash_map_obj = env->NewObject(hash_map_class, hash_map_init,
+  jobject hash_map_obj = env->NewObject(IDCache::GetHashMapClass(), IDCache::GetHashMapInit(),
                                         static_cast<u16>(IOS::HLE::USB::list_skylanders.size()));
-  jmethodID hash_map_put = env->GetMethodID(
-      hash_map_class, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
 
   jclass skylander_class =
       env->FindClass("org/dolphinemu/dolphinemu/features/skylanders/model/SkylanderPair");
@@ -60,7 +54,8 @@ Java_org_dolphinemu_dolphinemu_features_skylanders_SkylanderConfig_getInverseSky
     const std::string& name = it.second;
     jobject skylander_obj =
         env->NewObject(skylander_class, skylander_init, it.first.first, it.first.second);
-    env->CallObjectMethod(hash_map_obj, hash_map_put, ToJString(env, name), skylander_obj);
+    env->CallObjectMethod(hash_map_obj, IDCache::GetHashMapPut(), ToJString(env, name),
+                          skylander_obj);
     env->DeleteLocalRef(skylander_obj);
   }
 
