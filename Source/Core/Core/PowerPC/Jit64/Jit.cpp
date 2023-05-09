@@ -278,7 +278,9 @@ void Jit64::Init()
 
   // BLR optimization has the same consequences as block linking, as well as
   // depending on the fault handler to be safe in the event of excessive BL.
-  m_enable_blr_optimization = jo.enableBlocklink && m_fastmem_enabled && !(m_enable_debugging || Scripting::ScriptUtilities::IsScriptingCoreInitialized());
+  m_enable_blr_optimization =
+      jo.enableBlocklink && m_fastmem_enabled &&
+      !(m_enable_debugging || Scripting::ScriptUtilities::IsScriptingCoreInitialized());
   m_cleanup_after_stackfault = false;
   m_stack_guard = nullptr;
 
@@ -1010,11 +1012,10 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         js.firstFPInstructionFound = true;
       }
 
-
       auto& cpu = m_system.GetCPU();
       auto& power_pc = m_system.GetPowerPC();
-      if ((Scripting::ScriptUtilities::IsScriptingCoreInitialized() || m_enable_debugging) && power_pc.GetBreakPoints().IsAddressBreakPoint(op.address) &&
-          !cpu.IsStepping())
+      if ((Scripting::ScriptUtilities::IsScriptingCoreInitialized() || m_enable_debugging) &&
+          power_pc.GetBreakPoints().IsAddressBreakPoint(op.address) && !cpu.IsStepping())
       {
         gpr.Flush();
         fpr.Flush();

@@ -329,7 +329,8 @@ void CachedInterpreter::Jit(u32 address)
 
     if (!op.skip)
     {
-      const bool breakpoint = (Scripting::ScriptUtilities::IsScriptingCoreInitialized() || m_enable_debugging) &&
+      const bool breakpoint =
+          (Scripting::ScriptUtilities::IsScriptingCoreInitialized() || m_enable_debugging) &&
           m_system.GetPowerPC().GetBreakPoints().IsAddressBreakPoint(op.address);
       const bool check_fpu = (op.opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound;
       const bool endblock = (op.opinfo->flags & FL_ENDBLOCK) != 0;

@@ -88,8 +88,9 @@ public:
   u8* GetL1Cache() { return m_l1_cache; }
   u8*& GetFakeVMEM() { return m_fake_vmem; }
 
-  // These are temporary functions which are only used once in the ReadAllMemoryAsUnsignedBytes() function in MemoryAPI.cpp.
-  // These will be replaced with their respective calls from the above 4 functions once they stop returning their address.
+  // These are temporary functions which are only used once in the ReadAllMemoryAsUnsignedBytes()
+  // function in MemoryAPI.cpp. These will be replaced with their respective calls from the above 4
+  // functions once they stop returning their address.
   u8* getRAM_scriptHelper() { return m_ram; }
   u8* getEXRAM_scriptHelper() { return m_exram; }
   u8* getL1Cache_scriptHelper() { return m_l1_cache; }

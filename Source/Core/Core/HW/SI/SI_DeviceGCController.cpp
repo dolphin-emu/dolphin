@@ -16,10 +16,10 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/SystemTimers.h"
-#include "Core/Scripting/EventCallbackRegistrationAPIs/OnGCControllerPolledCallbackAPI.h"
-#include "Core/Scripting/ScriptUtilities.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
+#include "Core/Scripting/EventCallbackRegistrationAPIs/OnGCControllerPolledCallbackAPI.h"
+#include "Core/Scripting/ScriptUtilities.h"
 #include "Core/System.h"
 #include "InputCommon/GCPadStatus.h"
 
@@ -279,17 +279,21 @@ GCPadStatus CSIDevice_GCController::GetPadStatus()
 
     if (Scripting::ScriptUtilities::IsScriptingCoreInitialized() && !Movie::IsPlayingInput())
     {
-      Scripting::OnGCControllerPolledCallbackAPI::current_controller_number_polled = m_device_number;
+      Scripting::OnGCControllerPolledCallbackAPI::current_controller_number_polled =
+          m_device_number;
       Movie::ControllerState temp_controller_state;
       CopyGCPadStatusToControllerState(pad_status, temp_controller_state);
       memcpy(&Scripting::OnGCControllerPolledCallbackAPI::new_controller_inputs[m_device_number],
              &temp_controller_state, sizeof(Movie::ControllerState));
-      Scripting::OnGCControllerPolledCallbackAPI::overwrite_controller_at_specified_port[m_device_number] = false;
+      Scripting::OnGCControllerPolledCallbackAPI::overwrite_controller_at_specified_port
+          [m_device_number] = false;
       Scripting::ScriptUtilities::RunOnGCInputPolledCallbacks();
-      if (Scripting::OnGCControllerPolledCallbackAPI::overwrite_controller_at_specified_port[m_device_number])
+      if (Scripting::OnGCControllerPolledCallbackAPI::overwrite_controller_at_specified_port
+              [m_device_number])
       {
         memset(&pad_status, 0, sizeof(GCPadStatus));
-        temp_controller_state = Scripting::OnGCControllerPolledCallbackAPI::new_controller_inputs[m_device_number];
+        temp_controller_state =
+            Scripting::OnGCControllerPolledCallbackAPI::new_controller_inputs[m_device_number];
         pad_status.isConnected = temp_controller_state.is_connected;
         pad_status.button |= PAD_USE_ORIGIN;
         CopyControllerStateToGCPadStatus(temp_controller_state, pad_status);

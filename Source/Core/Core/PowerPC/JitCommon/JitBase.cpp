@@ -115,7 +115,9 @@ void JitBase::RefreshConfig()
 
 void JitBase::InitBLROptimization()
 {
-  m_enable_blr_optimization = jo.enableBlocklink && m_fastmem_enabled && !(m_enable_debugging || Scripting::ScriptUtilities::IsScriptingCoreInitialized());
+  m_enable_blr_optimization =
+      jo.enableBlocklink && m_fastmem_enabled &&
+      !(m_enable_debugging || Scripting::ScriptUtilities::IsScriptingCoreInitialized());
   m_cleanup_after_stackfault = false;
 }
 

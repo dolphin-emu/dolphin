@@ -78,7 +78,8 @@ void ScriptWindow::CreateMainLayout()
 void ScriptWindow::ConnectWidgets()
 {
   connect(m_load_script_button, &QPushButton::clicked, this, &ScriptWindow::LoadScriptFunction);
-  connect(m_play_or_stop_script_button, &QPushButton::clicked, this, &ScriptWindow::PlayOrStopScriptFunction);
+  connect(m_play_or_stop_script_button, &QPushButton::clicked, this,
+          &ScriptWindow::PlayOrStopScriptFunction);
   connect(script_name_list_widget_ptr, &QListWidget::itemSelectionChanged, this,
           &ScriptWindow::UpdateButtonText);
 }
@@ -90,7 +91,10 @@ void ScriptWindow::LoadScriptFunction()
   QString path = DolphinFileDialog::getOpenFileName(
       this, tr("Select a File"),
       settings.value(QStringLiteral("scriptwindow/lastdir"), QString{}).toString(),
-      QStringLiteral("%1 (*.lua *.txt *.py);;%3 (*)").arg(tr("All Lua/txt files")).arg(tr("All Python files")).arg(tr("All Files")));
+      QStringLiteral("%1 (*.lua *.txt *.py);;%3 (*)")
+          .arg(tr("All Lua/txt files"))
+          .arg(tr("All Python files"))
+          .arg(tr("All Files")));
 
   if (!path.isEmpty())
   {
@@ -126,10 +130,9 @@ void ScriptWindow::PlayScriptFunction()
         current_row, current_script_name, &callback_print_function,
         &finished_script_callback_function, DefinedScriptingLanguagesEnum::PYTHON);
   else
-  Scripting::ScriptUtilities::InitializeScript(current_row, current_script_name, &callback_print_function,
-                                          &finished_script_callback_function,
-                                          DefinedScriptingLanguagesEnum::LUA);
-
+    Scripting::ScriptUtilities::InitializeScript(
+        current_row, current_script_name, &callback_print_function,
+        &finished_script_callback_function, DefinedScriptingLanguagesEnum::LUA);
 
   row_num_to_is_running[current_row] = true;
 }

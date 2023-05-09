@@ -5,8 +5,8 @@
 #include <string>
 #include <vector>
 
-#include "Core/Scripting/ScriptUtilities.h"
 #include "Common/ThreadSafeQueue.h"
+#include "Core/Scripting/ScriptUtilities.h"
 
 class QDialogButtonBox;
 class QListWidget;

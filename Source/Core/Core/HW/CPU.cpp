@@ -110,7 +110,8 @@ void CPUManager::Run()
       power_pc.RunLoop();
 
       hit_breakpoint = false;
-       if (Scripting::ScriptUtilities::IsScriptingCoreInitialized() && Scripting::OnInstructionHitCallbackAPI::in_instruction_hit_breakpoint)
+      if (Scripting::ScriptUtilities::IsScriptingCoreInitialized() &&
+          Scripting::OnInstructionHitCallbackAPI::in_instruction_hit_breakpoint)
       {
         Scripting::ScriptUtilities::RunOnInstructionHitCallbacks(
             Scripting::OnInstructionHitCallbackAPI::instruction_address_for_current_callback);
@@ -119,7 +120,8 @@ void CPUManager::Run()
         Scripting::ScriptUtilities::RunButtonCallbacksInQueues();
       }
 
-      if (Scripting::ScriptUtilities::IsScriptingCoreInitialized() && Scripting::OnMemoryAddressReadFromCallbackAPI::in_memory_address_read_from_breakpoint)
+      if (Scripting::ScriptUtilities::IsScriptingCoreInitialized() &&
+          Scripting::OnMemoryAddressReadFromCallbackAPI::in_memory_address_read_from_breakpoint)
       {
         Scripting::ScriptUtilities::RunOnMemoryAddressReadFromCallbacks(
             Scripting::OnMemoryAddressReadFromCallbackAPI::
@@ -130,7 +132,8 @@ void CPUManager::Run()
         Scripting::ScriptUtilities::RunButtonCallbacksInQueues();
       }
 
-      if (Scripting::ScriptUtilities::IsScriptingCoreInitialized() && Scripting::OnMemoryAddressWrittenToCallbackAPI::in_memory_address_written_to_breakpoint)
+      if (Scripting::ScriptUtilities::IsScriptingCoreInitialized() &&
+          Scripting::OnMemoryAddressWrittenToCallbackAPI::in_memory_address_written_to_breakpoint)
       {
         Scripting::ScriptUtilities::RunOnMemoryAddressWrittenToCallbacks(
             Scripting::OnMemoryAddressWrittenToCallbackAPI::

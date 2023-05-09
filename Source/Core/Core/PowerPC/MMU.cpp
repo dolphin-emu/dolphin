@@ -549,23 +549,22 @@ void MMU::Memcheck(u32 address, u64 var, bool write, size_t size)
 
   if (Scripting::ScriptUtilities::IsScriptingCoreInitialized())
   {
-      if (write)
-      {
-        Scripting::OnMemoryAddressWrittenToCallbackAPI::in_memory_address_written_to_breakpoint =
-            true;
-        Scripting::OnMemoryAddressWrittenToCallbackAPI::
-            memory_address_written_to_for_current_callback = address;
-        Scripting::OnMemoryAddressWrittenToCallbackAPI::
-            value_written_to_memory_address_for_current_callback = *((s64*)(&var));
-      }
-      else
-      {
-        Scripting::OnMemoryAddressReadFromCallbackAPI::in_memory_address_read_from_breakpoint =
-            true;
-        Scripting::OnMemoryAddressReadFromCallbackAPI::
-            memory_address_read_from_for_current_callback = address;
-      }
- }
+    if (write)
+    {
+      Scripting::OnMemoryAddressWrittenToCallbackAPI::in_memory_address_written_to_breakpoint =
+          true;
+      Scripting::OnMemoryAddressWrittenToCallbackAPI::
+          memory_address_written_to_for_current_callback = address;
+      Scripting::OnMemoryAddressWrittenToCallbackAPI::
+          value_written_to_memory_address_for_current_callback = *((s64*)(&var));
+    }
+    else
+    {
+      Scripting::OnMemoryAddressReadFromCallbackAPI::in_memory_address_read_from_breakpoint = true;
+      Scripting::OnMemoryAddressReadFromCallbackAPI::memory_address_read_from_for_current_callback =
+          address;
+    }
+  }
 
   mc->num_hits++;
 

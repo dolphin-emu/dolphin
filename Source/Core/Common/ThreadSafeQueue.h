@@ -29,7 +29,6 @@ class ThreadSafeQueue
 public:
   // Using a Michael & Scott queue to make the queue threadsafe
 
-
   ThreadSafeQueue()
   {
     head_lock = new std::mutex();
@@ -83,10 +82,7 @@ public:
     return returnVal;
   }
 
-  bool IsEmpty()
-  {
-    return head_pointer->next_pointer == nullptr;
-  }
+  bool IsEmpty() { return head_pointer->next_pointer == nullptr; }
 
   std::mutex* head_lock;
   std::mutex* tail_lock;
