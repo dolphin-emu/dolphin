@@ -23,8 +23,9 @@ class System;
 }
 namespace PowerPC
 {
+class MMU;
 struct PowerPCState;
-}
+}  // namespace PowerPC
 
 //#define JIT_LOG_GENERATED_CODE  // Enables logging of generated code
 //#define JIT_LOG_GPR             // Enables logging of the PPC general purpose regs
