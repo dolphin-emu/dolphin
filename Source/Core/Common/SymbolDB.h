@@ -37,6 +37,9 @@ struct Symbol
     Data,
   };
 
+  Symbol() = default;
+  explicit Symbol(const std::string& name) { Rename(name); }
+
   void Rename(const std::string& symbol_name);
 
   std::string name;
