@@ -247,7 +247,7 @@ static ErrorCode ReadFile(const std::string& filename, std::vector<u8>& out)
     return WC24_ERR_FILE_OPEN;
   }
 
-  size_t size = out.size();
+  u32 size = out.size();
   u32 read_size{};
   const auto read_error_code = f_read(&src, out.data(), size, &read_size);
   if (read_error_code != FR_OK)
@@ -342,7 +342,7 @@ ErrorCode DeleteFileFromVFF(const std::string& path, const std::string& filename
 }
 
 ErrorCode ReadFromVFF(const std::string& path, const std::string& filename,
-                  const std::shared_ptr<FS::FileSystem>& fs, std::vector<u8>& out)
+                      const std::shared_ptr<FS::FileSystem>& fs, std::vector<u8>& out)
 {
   VffFatFsCallbacks callbacks;
   ErrorCode return_value;

@@ -373,11 +373,17 @@ add_library(core
   IOS/Network/KD/NWC24Config.h
   IOS/Network/KD/NWC24DL.cpp
   IOS/Network/KD/NWC24DL.h
+  IOS/Network/KD/Mail/MailParser.cpp
+  IOS/Network/KD/Mail/MailParser.h
+  IOS/Network/KD/Mail/WC24FriendList.cpp
+  IOS/Network/KD/Mail/WC24FriendList.h
+  IOS/Network/KD/Mail/WC24Receive.cpp
+  IOS/Network/KD/Mail/WC24Receive.h
+  IOS/Network/KD/Mail/WC24Send.cpp
+  IOS/Network/KD/Mail/WC24Send.h
   IOS/Network/KD/VFF/VFFUtil.cpp
   IOS/Network/KD/VFF/VFFUtil.h
   IOS/Network/KD/WC24File.h
-  IOS/Network/KD/WC24Send.cpp
-  IOS/Network/KD/WC24Send.h
   IOS/Network/MACUtils.cpp
   IOS/Network/MACUtils.h
   IOS/Network/NCD/Manage.cpp
@@ -622,6 +628,7 @@ PUBLIC
 PRIVATE
   cubeb::cubeb
   FatFs
+  MultipartParser
   fmt::fmt
   LZO::LZO
   ZLIB::ZLIB

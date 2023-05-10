@@ -313,4 +313,5 @@ std::string GetEscapedHtml(std::string html);
 void ToLower(std::string* str);
 void ToUpper(std::string* str);
 bool CaseInsensitiveEquals(std::string_view a, std::string_view b);
+std::string ByteToString(std::vector<u8>& bytes);
 }  // namespace Common

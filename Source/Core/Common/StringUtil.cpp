@@ -693,4 +693,17 @@ bool CaseInsensitiveEquals(std::string_view a, std::string_view b)
   return std::equal(a.begin(), a.end(), b.begin(),
                     [](char ca, char cb) { return Common::ToLower(ca) == Common::ToLower(cb); });
 }
+
+std::string ByteToString(std::vector<u8>& bytes)
+{
+  static constexpr char hex_table[] = "0123456789abcdef";
+  std::string str{};
+  for (const u8 b : bytes)
+  {
+    str += hex_table[b >> 4];
+    str += hex_table[b & 0xF];
+  }
+
+  return str;
+}
 }  // namespace Common

@@ -81,7 +81,6 @@ std::string HttpRequest::EscapeComponent(const std::string& string)
   return m_impl->EscapeComponent(string);
 }
 
-
 s32 HttpRequest::GetLastResponseCode() const
 {
   return m_impl->GetLastResponseCode();

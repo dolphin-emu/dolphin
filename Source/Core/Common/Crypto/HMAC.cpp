@@ -3,8 +3,8 @@
 
 #include <mbedtls/hmac_drbg.h>
 
-#include "Common/ScopeGuard.h"
 #include "Common/Crypto/HMAC.h"
+#include "Common/ScopeGuard.h"
 
 namespace Common::HMAC
 {

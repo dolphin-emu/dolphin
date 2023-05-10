@@ -14,9 +14,11 @@
 #include "Common/HttpRequest.h"
 #include "Common/WorkQueueThread.h"
 #include "Core/IOS/Device.h"
+#include "Core/IOS/Network/KD/Mail/WC24FriendList.h"
+#include "Core/IOS/Network/KD/Mail/WC24Receive.h"
+#include "Core/IOS/Network/KD/Mail/WC24Send.h"
 #include "Core/IOS/Network/KD/NWC24Config.h"
 #include "Core/IOS/Network/KD/NWC24DL.h"
-#include "Core/IOS/Network/KD/WC24Send.h"
 
 namespace IOS::HLE
 {
@@ -34,6 +36,7 @@ public:
   NWC24::ErrorCode KDCheckMail(u32* _mail_flag, u32* _interval);
   NWC24::ErrorCode KDSendMail();
   NWC24::ErrorCode KDReceiveMail();
+  NWC24::ErrorCode KDSaveMail();
   ~NetKDRequestDevice() override;
 
   std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
@@ -126,6 +129,8 @@ private:
   NWC24::NWC24Config m_config;
   NWC24::NWC24Dl m_dl_list;
   NWC24::WC24SendList m_send_list;
+  NWC24::WC24ReceiveList m_receive_list;
+  NWC24::WC24FriendList m_friend_list;
   Common::WorkQueueThread<AsyncTask> m_work_queue;
   Common::WorkQueueThread<std::function<void()>> m_scheduler_work_queue;
   std::mutex m_async_reply_lock;

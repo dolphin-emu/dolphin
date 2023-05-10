@@ -1,0 +1,1 @@
+// Make CMake able to determine this is a C++ lib

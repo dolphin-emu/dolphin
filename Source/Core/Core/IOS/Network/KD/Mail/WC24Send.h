@@ -37,7 +37,7 @@ public:
   u32 GetIndex(const u32 index) const;
 
 private:
-  static constexpr u32 SEND_LIST_MAGIC = 0x57635466;  // WcDl
+  static constexpr u32 SEND_LIST_MAGIC = 0x57635466;  // WcTf
   static constexpr u32 MAX_ENTRIES = 127;
 
 #pragma pack(push, 1)
@@ -47,11 +47,13 @@ private:
     u32 version;  // 4 in Wii Menu 4.x
     u32 number_of_mail;
     u32 total_entries;
-    u32 unk1;
+    u32 total_size_of_messages;
     u32 filesize;
     u32 next_index;
     u32 next_index_offset;
-    u8 unk2[56];
+    u32 unk2;
+    u32 vff_free_space;
+    u8 unk3[48];
     char mail_flag[40];
   };
 

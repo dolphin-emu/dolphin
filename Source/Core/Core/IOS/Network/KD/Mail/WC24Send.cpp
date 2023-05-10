@@ -1,7 +1,7 @@
 // Copyright 2023 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "Core/IOS/Network/KD/WC24Send.h"
+#include "Core/IOS/Network/KD/Mail/WC24Send.h"
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/Network/KD/VFF/VFFUtil.h"
 #include "Core/IOS/Uids.h"
@@ -105,8 +105,9 @@ u32 WC24SendList::GetIndex(const u32 index) const
 
 NWC24::ErrorCode WC24SendList::DeleteMessage(const u32 index)
 {
-  const NWC24::ErrorCode return_code =
-      NWC24::DeleteFileFromVFF(SEND_BOX_PATH, GetMailPath(index), m_fs);
+  // Deleting is broken for the time being.
+  // const NWC24::ErrorCode return_code =
+  //    NWC24::DeleteFileFromVFF(SEND_BOX_PATH, GetMailPath(index), m_fs);
   m_data.header.number_of_mail = Common::swap32(Common::swap32(m_data.header.number_of_mail) - 1);
   m_data.header.next_index_offset = Common::swap32(128 + (index * 128));
   m_data.header.next_index = Common::swap32(Common::swap32(m_data.header.next_index) - 1);
@@ -114,6 +115,6 @@ NWC24::ErrorCode WC24SendList::DeleteMessage(const u32 index)
   m_data.entries[index].mail_size = 0;
   m_data.entries[index].unk1 = 0;
   std::memset(m_data.entries[index]._, 0, 116);
-  return return_code;
+  return WC24_OK;
 }
 }  // namespace IOS::HLE::NWC24
