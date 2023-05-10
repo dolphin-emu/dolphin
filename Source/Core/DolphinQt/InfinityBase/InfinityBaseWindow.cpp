@@ -139,8 +139,6 @@ void InfinityBaseWindow::LoadFigure(u8 slot)
 
   s_last_figure_path = QFileInfo(file_path).absolutePath() + QLatin1Char('/');
 
-  m_edit_figures[slot]->setText(QFileInfo(file_path).fileName());
-
   LoadFigurePath(slot, file_path);
 }
 
