@@ -113,13 +113,9 @@ private:
   void* m_address_VirtualAlloc2 = nullptr;
   void* m_address_MapViewOfFile3 = nullptr;
 #else
-#ifdef ANDROID
-  int fd;
-#else
-  int m_shm_fd;
-  void* m_reserved_region;
-  std::size_t m_reserved_region_size;
-#endif
+  int m_shm_fd = 0;
+  void* m_reserved_region = nullptr;
+  std::size_t m_reserved_region_size = 0;
 #endif
 };
 
