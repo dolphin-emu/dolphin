@@ -83,9 +83,9 @@
     <ClInclude Include="Python\Modules\controllermodule.h">
       <Filter>Python\Modules</Filter>
     </ClInclude>
-    <ClCompile Include="Python\Modules\registersmodule.h">
+    <ClInclude Include="Python\Modules\registersmodule.h">
       <Filter>Python\Modules</Filter>
-    </ClCompile>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Python">
