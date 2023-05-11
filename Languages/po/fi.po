@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-02 20:11+0200\n"
+"POT-Creation-Date: 2023-05-11 23:02+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Aleksi, 2023\n"
 "Language-Team: Finnish (http://app.transifex.com/delroth/dolphin-emu/"
@@ -311,8 +311,8 @@ msgstr "&Tietoa"
 msgid "&Add Memory Breakpoint"
 msgstr "&Lisää muistin keskeytyskohta"
 
-#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:57
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:82
+#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:58
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:83
 msgid "&Add New Code..."
 msgstr "&Lisää uusi koodi..."
 
@@ -405,9 +405,9 @@ msgstr "&Poista vahti"
 msgid "&Delete Watches"
 msgstr "&Poista vahdit"
 
-#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:58
-#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:156
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:83
+#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:59
+#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:179
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:84
 msgid "&Edit Code..."
 msgstr "&Muokkaa koodia..."
 
@@ -598,8 +598,8 @@ msgstr "&Rekisterit"
 msgid "&Remove"
 msgstr "&Poista"
 
-#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:59
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:84
+#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:60
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:85
 msgid "&Remove Code"
 msgstr "&Poista koodi"
 
@@ -988,7 +988,7 @@ msgstr ""
 msgid "A disc is already about to be inserted."
 msgstr "Levyä ollaan jo laittamassa."
 
-#: Source/Core/DolphinQt/Main.cpp:226
+#: Source/Core/DolphinQt/Main.cpp:235
 msgid "A save state cannot be loaded without specifying a game to launch."
 msgstr "Tilantallennusta ei voi ladata määräämättä peliä, joka käynnistetään."
 
@@ -1454,7 +1454,7 @@ msgstr "Kaikkien pelaajien tallennustiedostot synkronoitu."
 msgid "Allow Mismatched Region Settings"
 msgstr "Salli sopimattomat alueasetukset"
 
-#: Source/Core/DolphinQt/Main.cpp:257
+#: Source/Core/DolphinQt/Main.cpp:266
 msgid "Allow Usage Statistics Reporting"
 msgstr "Salli käyttötilastojen raportointi"
 
@@ -1807,7 +1807,7 @@ msgstr "Perusasetukset"
 msgid "Bass"
 msgstr "Basso"
 
-#: Source/Core/DolphinQt/Main.cpp:233
+#: Source/Core/DolphinQt/Main.cpp:242
 msgid "Batch mode cannot be used without specifying a game to launch."
 msgstr "Sarjatilaa ei voi käyttää määräämättä peliä, joka käynnistetään."
 
@@ -2368,7 +2368,7 @@ msgstr "Tyhjennä välimuisti"
 msgid "Clock Override"
 msgstr "Kellotaajuuden korvaus"
 
-#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:156
+#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:179
 msgid "Clone and &Edit Code..."
 msgstr "Kloonaa ja &muokkaa koodia..."
 
@@ -3006,7 +3006,7 @@ msgstr ""
 "jätä tämä valitsematta.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:82
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:108
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:109
 msgid "Creator:"
 msgstr "Tekijä:"
 
@@ -3327,7 +3327,7 @@ msgstr "Syvyys:"
 msgid "Description"
 msgstr "Kuvaus"
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:109
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:110
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:158
 msgid "Description:"
 msgstr "Kuvaus:"
@@ -3531,7 +3531,7 @@ msgstr "Etäisyys"
 msgid "Distance of travel from neutral position."
 msgstr "Matkaetäisyys neutraalipaikasta."
 
-#: Source/Core/DolphinQt/Main.cpp:259
+#: Source/Core/DolphinQt/Main.cpp:268
 msgid "Do you authorize Dolphin to report information to Dolphin's developers?"
 msgstr "Sallitko Dolphinin lähettävän tietoja Dolphinin kehittäjille?"
 
@@ -3696,11 +3696,11 @@ msgstr "64-bittinen liukuluku"
 msgid "Down"
 msgstr "Alas"
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:85
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:86
 msgid "Download Codes"
 msgstr "Lataa koodeja"
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:87
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:88
 msgid "Download Codes from the WiiRD Database"
 msgstr "Lataa koodeja WiiRD -tietokannasta"
 
@@ -3708,11 +3708,11 @@ msgstr "Lataa koodeja WiiRD -tietokannasta"
 msgid "Download Game Covers from GameTDB.com for Use in Grid Mode"
 msgstr "Lataa kansikuvia GameTDB.comista ruudukkonäkymään"
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:347
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:370
 msgid "Download complete"
 msgstr "Lataus valmis"
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:348
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:371
 msgid "Downloaded %1 codes. (added %2)"
 msgstr "Ladattu %1 koodia. (lisätty %2)"
 
@@ -4270,8 +4270,8 @@ msgstr "Syötä RSO-moduulin osoite:"
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:261
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:384
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:265
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:320
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:326
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:343
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:349
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:46
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:521
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:255
@@ -4299,8 +4299,8 @@ msgstr "Syötä RSO-moduulin osoite:"
 #: Source/Core/DolphinQt/GBAWidget.cpp:576
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:346
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:376
-#: Source/Core/DolphinQt/Main.cpp:209 Source/Core/DolphinQt/Main.cpp:225
-#: Source/Core/DolphinQt/Main.cpp:232 Source/Core/DolphinQt/MainWindow.cpp:294
+#: Source/Core/DolphinQt/Main.cpp:218 Source/Core/DolphinQt/Main.cpp:234
+#: Source/Core/DolphinQt/Main.cpp:241 Source/Core/DolphinQt/MainWindow.cpp:294
 #: Source/Core/DolphinQt/MainWindow.cpp:302
 #: Source/Core/DolphinQt/MainWindow.cpp:1093
 #: Source/Core/DolphinQt/MainWindow.cpp:1479
@@ -4767,7 +4767,7 @@ msgstr "Valitun tiedoston poisto epäonnistui."
 msgid "Failed to detach kernel driver for BT passthrough: {0}"
 msgstr "Bluetooth-läpipääsyn ydinohjaimen irrottaminen epäonnistui: {0}"
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:320
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:343
 msgid "Failed to download codes."
 msgstr "Koodien lataaminen epäonnistui."
 
@@ -4859,7 +4859,7 @@ msgstr ""
 "Varmista, että grafiikkasuorittimesi tukee vähintään D3D 10.0:aa\n"
 "{0}"
 
-#: Source/Core/VideoCommon/VideoBackendBase.cpp:370
+#: Source/Core/VideoCommon/VideoBackendBase.cpp:373
 msgid "Failed to initialize renderer classes"
 msgstr "Hahmonninluokkien alustus epäonnistui"
 
@@ -5225,7 +5225,7 @@ msgstr "Tiedostokoko"
 msgid "File Size:"
 msgstr "Tiedostokoko:"
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:326
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:349
 msgid "File contained no codes."
 msgstr "Tiedostossa ei ollut koodeja."
 
@@ -6271,7 +6271,7 @@ msgstr ""
 msgid "Identity Generation"
 msgstr "Identiteetin luonti"
 
-#: Source/Core/DolphinQt/Main.cpp:261
+#: Source/Core/DolphinQt/Main.cpp:270
 msgid ""
 "If authorized, Dolphin can collect data on its performance, feature usage, "
 "and configuration, as well as data on your system's hardware and operating "
@@ -6749,7 +6749,7 @@ msgstr "Virheellinen hakumerkkijono (numeroksi muunto epäonnistui)"
 msgid "Invalid search string (only even string lengths supported)"
 msgstr "Virheellinen hakumerkkijono (vain parillisia pituuksia tuetaan)"
 
-#: Source/Core/DolphinQt/Main.cpp:209
+#: Source/Core/DolphinQt/Main.cpp:218
 msgid "Invalid title ID."
 msgstr "Virheellinen julkaisutunniste."
 
@@ -6839,8 +6839,8 @@ msgstr "JIT-rekisterivälimuisti pois"
 msgid "JIT SystemRegisters Off"
 msgstr "JIT-järjestelmärekisterit pois"
 
-#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:789
-#: Source/Core/Core/PowerPC/JitArm64/Jit.cpp:792
+#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:790
+#: Source/Core/Core/PowerPC/JitArm64/Jit.cpp:793
 msgid ""
 "JIT failed to find code space after a cache clear. This should never happen. "
 "Please report this incident on the bug tracker. Dolphin will now exit."
@@ -7649,7 +7649,7 @@ msgid "Name of your session shown in the server browser"
 msgstr "Istunnon nimi, joka näkyy palvelinselaimessa"
 
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:87
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:107
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:108
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:121
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:156
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:163
@@ -9864,9 +9864,19 @@ msgstr "Näytä peli Discordissa"
 msgid "Show Debugging UI"
 msgstr "Näytä virheenjäljityskäyttöliittymä"
 
+#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:118
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:262
+msgid "Show Disabled Codes First"
+msgstr ""
+
 #: Source/Core/DolphinQt/MenuBar.cpp:668
 msgid "Show ELF/DOL"
 msgstr "Näytä ELF/DOL"
+
+#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:117
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:261
+msgid "Show Enabled Codes First"
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:53
 msgid "Show FPS"
@@ -10315,8 +10325,8 @@ msgstr ""
 "Jotkin syötetyistä arvoista ovat virheellisiä.\n"
 "Tarkista korostetut arvot."
 
-#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:115
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:259
+#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:116
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:260
 msgid "Sort Alphabetically"
 msgstr "Järjestä aakkosjärjestykseen"
 
@@ -11422,7 +11432,7 @@ msgstr ""
 "saattaa puuttua, ja peli voi kaatua. Yleensä tämä ongelma esiintyy "
 "laittomissa kopioissa peleistä."
 
-#: Source/Core/VideoCommon/VideoBackendBase.cpp:191
+#: Source/Core/VideoCommon/VideoBackendBase.cpp:194
 msgid ""
 "This game requires bounding box emulation to run properly but your graphics "
 "card or its drivers do not support it. As a result you will experience bugs "

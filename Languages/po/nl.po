@@ -28,9 +28,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-02 20:11+0200\n"
+"POT-Creation-Date: 2023-05-11 23:02+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
-"Last-Translator: Philip Goto <philip.goto@gmail.com>, 2023\n"
+"Last-Translator: Mike van der Kuijl <kuijlmike@gmail.com>, 2020-2023\n"
 "Language-Team: Dutch (http://app.transifex.com/delroth/dolphin-emu/language/"
 "nl/)\n"
 "Language: nl\n"
@@ -328,8 +328,8 @@ msgstr "&Over"
 msgid "&Add Memory Breakpoint"
 msgstr "&Voeg Geheugen Breekpunt Toe"
 
-#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:57
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:82
+#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:58
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:83
 msgid "&Add New Code..."
 msgstr "&Nieuwe Code Toevoegen..."
 
@@ -371,7 +371,7 @@ msgstr "&Annuleren"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:223
 msgid "&Cheats Manager"
-msgstr "&Cheats-beheer"
+msgstr "&Cheats Beheer"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:597
 msgid "&Check for Updates..."
@@ -422,9 +422,9 @@ msgstr "&Verwijder Watchvenster"
 msgid "&Delete Watches"
 msgstr "&Verwijder Watches"
 
-#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:58
-#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:156
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:83
+#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:59
+#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:179
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:84
 msgid "&Edit Code..."
 msgstr "Code &bewerken…"
 
@@ -514,7 +514,7 @@ msgstr "&Importeren…"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:229
 msgid "&Infinity Base"
-msgstr ""
+msgstr "&Infinity Base"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:595
 msgid "&Insert blr"
@@ -615,8 +615,8 @@ msgstr "&Registers"
 msgid "&Remove"
 msgstr "&Verwijderen"
 
-#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:59
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:84
+#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:60
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:85
 msgid "&Remove Code"
 msgstr "&Code verwijderen"
 
@@ -631,7 +631,7 @@ msgstr "&Resetten"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:220
 msgid "&Resource Pack Manager"
-msgstr "&Resource-pack-beheer"
+msgstr "&Resource Pack Beheer"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:979
 msgid "&Save Symbol Map"
@@ -643,7 +643,7 @@ msgstr "&Scan e-Reader Kaart(en)..."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:228
 msgid "&Skylanders Portal"
-msgstr "&Skylanders-portal"
+msgstr "&Skylanders Portaal"
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:175
 msgid "&Speed Limit:"
@@ -1005,7 +1005,7 @@ msgstr ""
 msgid "A disc is already about to be inserted."
 msgstr "Er ligt al een schijf in de lade."
 
-#: Source/Core/DolphinQt/Main.cpp:226
+#: Source/Core/DolphinQt/Main.cpp:235
 msgid "A save state cannot be loaded without specifying a game to launch."
 msgstr ""
 "Een save state kan niet worden gebruikt zonder een spel te specificeren. "
@@ -1198,11 +1198,11 @@ msgstr "Actief"
 
 #: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:70
 msgid "Active Infinity Figures:"
-msgstr ""
+msgstr "Actieve Infinity Figuren:"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:79
 msgid "Active Portal Skylanders:"
-msgstr "Actieve Skylanders Portals:"
+msgstr "Actieve Skylanders Portalen:"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:161
 msgid "Active thread queue"
@@ -1468,7 +1468,7 @@ msgstr "Saves van alle spelers gesynchroniseerd."
 msgid "Allow Mismatched Region Settings"
 msgstr "Niet-overeenkomende regio-instellingen toestaan"
 
-#: Source/Core/DolphinQt/Main.cpp:257
+#: Source/Core/DolphinQt/Main.cpp:266
 msgid "Allow Usage Statistics Reporting"
 msgstr "Rapportage van gebruiksstatistieken toestaan"
 
@@ -1820,7 +1820,7 @@ msgstr "Basisinstellingen"
 msgid "Bass"
 msgstr "Bass"
 
-#: Source/Core/DolphinQt/Main.cpp:233
+#: Source/Core/DolphinQt/Main.cpp:242
 msgid "Batch mode cannot be used without specifying a game to launch."
 msgstr "Batch modus kan niet worden gebruikt zonder een spel te specificeren. "
 
@@ -1857,6 +1857,8 @@ msgid ""
 "Blank figure creation failed at:\n"
 "%1, try again with a different character"
 msgstr ""
+"Het aanmaken van een leeg figuur is mislukt op:\n"
+"%1, probeer opnieuw met een ander karakter"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:992
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:231
@@ -2276,7 +2278,7 @@ msgstr "Kanaal Partitie (%1)"
 
 #: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:257
 msgid "Character entered is invalid!"
-msgstr ""
+msgstr "Ingevoerde karakter is ongeldig!"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:264
 msgid "Chat"
@@ -2378,7 +2380,7 @@ msgstr "Cache legen"
 msgid "Clock Override"
 msgstr "Klok Overschrijven"
 
-#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:156
+#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:179
 msgid "Clone and &Edit Code..."
 msgstr "Clone en &Wijzig Code..."
 
@@ -2981,7 +2983,7 @@ msgstr "Creëer"
 
 #: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:276
 msgid "Create Infinity File"
-msgstr ""
+msgstr "Maak Infinity Bestand aan"
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:62
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:74
@@ -3015,7 +3017,7 @@ msgstr ""
 "<br><br><dolphin_emphasis>In geval van twijfel leeg laten.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:82
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:108
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:109
 msgid "Creator:"
 msgstr "Maker:"
 
@@ -3334,7 +3336,7 @@ msgstr "Diepte:"
 msgid "Description"
 msgstr "Beschrijving"
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:109
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:110
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:158
 msgid "Description:"
 msgstr "Beschrijving:"
@@ -3536,7 +3538,7 @@ msgstr "Afstand"
 msgid "Distance of travel from neutral position."
 msgstr "Reisafstand vanaf neutrale positie."
 
-#: Source/Core/DolphinQt/Main.cpp:259
+#: Source/Core/DolphinQt/Main.cpp:268
 msgid "Do you authorize Dolphin to report information to Dolphin's developers?"
 msgstr ""
 "Machtigt u Dolphin om informatie te rapporteren aan de ontwikkelaars van "
@@ -3704,11 +3706,11 @@ msgstr "Double"
 msgid "Down"
 msgstr "Omlaag"
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:85
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:86
 msgid "Download Codes"
 msgstr "Download Codes"
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:87
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:88
 msgid "Download Codes from the WiiRD Database"
 msgstr "Download Codes van de WiiRD-Database"
 
@@ -3716,11 +3718,11 @@ msgstr "Download Codes van de WiiRD-Database"
 msgid "Download Game Covers from GameTDB.com for Use in Grid Mode"
 msgstr "Download Game Covers van GameTDB.com voor gebruik in Grid-modus"
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:347
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:370
 msgid "Download complete"
 msgstr "Download voltooid"
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:348
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:371
 msgid "Downloaded %1 codes. (added %2)"
 msgstr "%1 codes gedownload. (%2 toegevoegd)"
 
@@ -3954,11 +3956,11 @@ msgstr "Emuleer Disc Snelheid"
 
 #: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:56
 msgid "Emulate Infinity Base"
-msgstr ""
+msgstr "Emuleer Infinity Base"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:65
 msgid "Emulate Skylander Portal"
-msgstr "Emuleer Skylander Portal"
+msgstr "Emuleer Skylander Portaal"
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:110
 msgid "Emulate the Wii's Bluetooth adapter"
@@ -3974,7 +3976,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/MenuBar.cpp:227
 msgid "Emulated USB Devices"
-msgstr ""
+msgstr "Geëmuleerde USB Apparaten"
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:141
 msgid "Emulated Wii Remote"
@@ -4087,6 +4089,9 @@ msgid ""
 "Enable emulated disc speed. Disabling this can cause crashes and other "
 "problems in some games. (ON = Compatible, OFF = Unlocked)"
 msgstr ""
+"Schakel geëmuleerde schijfsnelheid in. Het uitschakelen hiervan kan in "
+"sommige spellen crashes en andere problemen veroorzaken. (AAN = Compatibel, "
+"UIT = Ontgrendeld)"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:97
 msgid ""
@@ -4271,8 +4276,8 @@ msgstr "Voer adres van de RSO-module in:"
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:261
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:384
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:265
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:320
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:326
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:343
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:349
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:46
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:521
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:255
@@ -4300,8 +4305,8 @@ msgstr "Voer adres van de RSO-module in:"
 #: Source/Core/DolphinQt/GBAWidget.cpp:576
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:346
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:376
-#: Source/Core/DolphinQt/Main.cpp:209 Source/Core/DolphinQt/Main.cpp:225
-#: Source/Core/DolphinQt/Main.cpp:232 Source/Core/DolphinQt/MainWindow.cpp:294
+#: Source/Core/DolphinQt/Main.cpp:218 Source/Core/DolphinQt/Main.cpp:234
+#: Source/Core/DolphinQt/Main.cpp:241 Source/Core/DolphinQt/MainWindow.cpp:294
 #: Source/Core/DolphinQt/MainWindow.cpp:302
 #: Source/Core/DolphinQt/MainWindow.cpp:1093
 #: Source/Core/DolphinQt/MainWindow.cpp:1479
@@ -4736,7 +4741,7 @@ msgstr "Kon DXGI factory niet maken"
 
 #: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:286
 msgid "Failed to create Infinity file"
-msgstr ""
+msgstr "Maken van Infinity bestand mislukt"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:234
 msgid "Failed to create Skylander file!"
@@ -4770,7 +4775,7 @@ msgstr "Kon het geselecteerde bestand niet verwijderen."
 msgid "Failed to detach kernel driver for BT passthrough: {0}"
 msgstr "Kon kernel driver voor BT passthrough niet ontkoppelen: {0}"
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:320
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:343
 msgid "Failed to download codes."
 msgstr "Kon codes niet downloaden."
 
@@ -4860,7 +4865,7 @@ msgstr ""
 "Zorg ervoor dat uw videokaart ten minste D3D 10.0 ondersteunt.\n"
 "{0}"
 
-#: Source/Core/VideoCommon/VideoBackendBase.cpp:370
+#: Source/Core/VideoCommon/VideoBackendBase.cpp:373
 msgid "Failed to initialize renderer classes"
 msgstr "Initialiseren renderer classes mislukt"
 
@@ -4958,13 +4963,15 @@ msgstr "Kon server niet openen"
 
 #: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:162
 msgid "Failed to open the Infinity file!"
-msgstr ""
+msgstr "Openen van Infinity bestand mislukt!"
 
 #: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:163
 msgid ""
 "Failed to open the Infinity file(%1)!\n"
 "File may already be in use on the base."
 msgstr ""
+"Openen van Infinity bestand mislukt(%1)!\n"
+"Bestand is mogelijk al in gebruik op de base."
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:292
 msgid "Failed to open the Skylander file!"
@@ -5022,13 +5029,15 @@ msgstr "Lezen van geselecteerde save bestand(en) van geheugenkaart mislukt."
 
 #: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:171
 msgid "Failed to read the Infinity file!"
-msgstr ""
+msgstr "Lezen van infinity bestand mislukt!"
 
 #: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:172
 msgid ""
 "Failed to read the Infinity file(%1)!\n"
 "File was too small."
 msgstr ""
+"Lezen van Infinity bestand mislukt(%1)!\n"
+"Het bestand was te klein."
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:302
 msgid "Failed to read the Skylander file!"
@@ -5182,7 +5191,7 @@ msgstr "Gezichtsveld"
 
 #: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:230
 msgid "Figure Number:"
-msgstr ""
+msgstr "Figuur Nummer:"
 
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:46
 msgid "File Details"
@@ -5223,7 +5232,7 @@ msgstr "Bestandsgrootte"
 msgid "File Size:"
 msgstr "Bestandsgrootte:"
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:326
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:349
 msgid "File contained no codes."
 msgstr "Bestand bevat geen codes."
 
@@ -6265,7 +6274,7 @@ msgstr ""
 msgid "Identity Generation"
 msgstr "Identiteitsgeneratie"
 
-#: Source/Core/DolphinQt/Main.cpp:261
+#: Source/Core/DolphinQt/Main.cpp:270
 msgid ""
 "If authorized, Dolphin can collect data on its performance, feature usage, "
 "and configuration, as well as data on your system's hardware and operating "
@@ -6487,15 +6496,15 @@ msgstr "Incrementele Rotatie (rad/sec)"
 
 #: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:186
 msgid "Infinity Figure Creator"
-msgstr ""
+msgstr "Infinity Figuur Maker"
 
 #: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:33
 msgid "Infinity Manager"
-msgstr ""
+msgstr "Infinity Beheer"
 
 #: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:277
 msgid "Infinity Object (*.bin);;"
-msgstr ""
+msgstr "Infinity Object (*.bin);;"
 
 #. i18n: Refers to a setting controling the influence of accelerometer data.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUCursor.cpp:48
@@ -6741,7 +6750,7 @@ msgid "Invalid search string (only even string lengths supported)"
 msgstr ""
 "Ongeldige zoekopdracht (alleen gelijke string lengtes zijn ondersteund)"
 
-#: Source/Core/DolphinQt/Main.cpp:209
+#: Source/Core/DolphinQt/Main.cpp:218
 msgid "Invalid title ID."
 msgstr "Ongeldige titel-ID."
 
@@ -6831,8 +6840,8 @@ msgstr "JIT-registercache uitgeschakld"
 msgid "JIT SystemRegisters Off"
 msgstr "JIT SysteemRegisters Uit"
 
-#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:789
-#: Source/Core/Core/PowerPC/JitArm64/Jit.cpp:792
+#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:790
+#: Source/Core/Core/PowerPC/JitArm64/Jit.cpp:793
 msgid ""
 "JIT failed to find code space after a cache clear. This should never happen. "
 "Please report this incident on the bug tracker. Dolphin will now exit."
@@ -7080,7 +7089,7 @@ msgstr "Laad Aangepaste Textures"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:239
 msgid "Load GameCube Main Menu"
-msgstr "GameCube-hoofdmenu laden"
+msgstr "GameCube Hoofdmenu Laden"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:145
 msgid "Load Host's Save Data Only"
@@ -7410,7 +7419,7 @@ msgstr "Geheugenkaart"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:248
 msgid "Memory Card Manager"
-msgstr "Geheugenkaartbeheer"
+msgstr "Geheugenkaart Beheer"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:108
 msgid "Memory Card Path:"
@@ -7632,7 +7641,7 @@ msgid "Name of your session shown in the server browser"
 msgstr "Naam van uw sessie zoals weergegeven in de server browser"
 
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:87
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:107
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:108
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:121
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:156
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:163
@@ -8361,7 +8370,7 @@ msgstr "Speel Opname"
 
 #: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:74
 msgid "Play Set/Power Disc"
-msgstr ""
+msgstr "Play Set/Power Disc"
 
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:120
 msgid "Playback Options"
@@ -8373,27 +8382,27 @@ msgstr "Speler"
 
 #: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:76
 msgid "Player One"
-msgstr ""
+msgstr "Speler Een"
 
 #: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:78
 msgid "Player One Ability One"
-msgstr ""
+msgstr "Speler Een Vaardigheid Een"
 
 #: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:80
 msgid "Player One Ability Two"
-msgstr ""
+msgstr "Speler Een Vaardigheid Twee"
 
 #: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:82
 msgid "Player Two"
-msgstr ""
+msgstr "Tweede Speler"
 
 #: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:84
 msgid "Player Two Ability One"
-msgstr ""
+msgstr "Speler Twee Vaardigheid Een"
 
 #: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:86
 msgid "Player Two Ability Two"
-msgstr ""
+msgstr "Speler Twee Vaardigheid Twee"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:224
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:287
@@ -8937,11 +8946,11 @@ msgstr "Reset alle opgeslagen Wii-afstandsbediening koppelingen"
 
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:25
 msgid "Resource Pack Manager"
-msgstr "Resourcepakket Beheer"
+msgstr "Resource Pack Beheer"
 
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:222
 msgid "Resource Pack Path:"
-msgstr "Pad naar resource-pakket:"
+msgstr "Pad naar Resource Pack:"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:321
 msgid "Restart Required"
@@ -9424,7 +9433,7 @@ msgstr "Selecteer Export Map"
 
 #: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:133
 msgid "Select Figure File"
-msgstr ""
+msgstr "Selecteer Figuur Bestand"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:653
 msgid "Select GBA BIOS"
@@ -9448,7 +9457,7 @@ msgstr "Selecteer Laad Pad"
 
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:93
 msgid "Select Resource Pack Path"
-msgstr "Selecteer Resourcepakket Pad"
+msgstr "Selecteer Resource Pack Pad"
 
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:120
 msgid "Select Riivolution XML file"
@@ -9849,9 +9858,19 @@ msgstr "Huidig spel op Discord tonen"
 msgid "Show Debugging UI"
 msgstr "Foutopsporingsinterface tonen"
 
+#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:118
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:262
+msgid "Show Disabled Codes First"
+msgstr ""
+
 #: Source/Core/DolphinQt/MenuBar.cpp:668
 msgid "Show ELF/DOL"
 msgstr "ELF/DOL tonen"
+
+#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:117
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:261
+msgid "Show Enabled Codes First"
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:53
 msgid "Show FPS"
@@ -10209,6 +10228,11 @@ msgid ""
 "issues.</dolphin_emphasis> <br><br><dolphin_emphasis>If unsure, leave this "
 "unchecked.</dolphin_emphasis>"
 msgstr ""
+"Slaat Vertical Blank Interrupts over wanneer lag wordt gedetecteerd, "
+"waardoor een soepele audioweergave mogelijk is wanneer de emulatiesnelheid "
+"niet 100% is. <br><br><dolphin_emphasis>WAARSCHUWING: Kan haperingen en "
+"compatibiliteitsproblemen veroorzaken.<br><br><dolphin_emphasis>In geval van "
+"twijfel leeg laten.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:258
 msgid ""
@@ -10293,8 +10317,8 @@ msgstr ""
 "Sommige waarden die u heeft opgegeven zijn ongeldig.\n"
 "Controleer de gemarkeerde waarden."
 
-#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:115
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:259
+#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:116
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:260
 msgid "Sort Alphabetically"
 msgstr "Sorteer Alfabetisch"
 
@@ -10942,6 +10966,9 @@ msgid ""
 "\n"
 "Please select another destination path for \"%1\""
 msgstr ""
+"Het bestemmingsbestand kan niet hetzelfde zijn als het bronbestand\n"
+"\n"
+"Selecteer een ander bestemmingspad voor \"%1\""
 
 #: Source/Core/Core/Movie.cpp:404
 msgid ""
@@ -11414,7 +11441,7 @@ msgstr ""
 "werken. Dit probleem komt over het algemeen alleen in illegale kopieën van "
 "spellen voor."
 
-#: Source/Core/VideoCommon/VideoBackendBase.cpp:191
+#: Source/Core/VideoCommon/VideoBackendBase.cpp:194
 msgid ""
 "This game requires bounding box emulation to run properly but your graphics "
 "card or its drivers do not support it. As a result you will experience bugs "
@@ -12012,7 +12039,7 @@ msgstr "Onbekend(%1 %2).sky"
 
 #: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:272
 msgid "Unknown(%1).bin"
-msgstr ""
+msgstr "Onbekend(%1).bin"
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:163
 msgid "Unlimited"

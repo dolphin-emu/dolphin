@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-02 20:11+0200\n"
+"POT-Creation-Date: 2023-05-11 23:02+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Evin, 2016,2023\n"
 "Language-Team: Hungarian (http://app.transifex.com/delroth/dolphin-emu/"
@@ -296,8 +296,8 @@ msgstr "&Névjegy"
 msgid "&Add Memory Breakpoint"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:57
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:82
+#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:58
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:83
 msgid "&Add New Code..."
 msgstr ""
 
@@ -390,9 +390,9 @@ msgstr ""
 msgid "&Delete Watches"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:58
-#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:156
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:83
+#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:59
+#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:179
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:84
 msgid "&Edit Code..."
 msgstr ""
 
@@ -583,8 +583,8 @@ msgstr "&Regiszterek"
 msgid "&Remove"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:59
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:84
+#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:60
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:85
 msgid "&Remove Code"
 msgstr ""
 
@@ -962,7 +962,7 @@ msgstr ""
 msgid "A disc is already about to be inserted."
 msgstr "Egy lemez már behelyezés alatt."
 
-#: Source/Core/DolphinQt/Main.cpp:226
+#: Source/Core/DolphinQt/Main.cpp:235
 msgid "A save state cannot be loaded without specifying a game to launch."
 msgstr ""
 
@@ -1363,7 +1363,7 @@ msgstr ""
 msgid "Allow Mismatched Region Settings"
 msgstr ""
 
-#: Source/Core/DolphinQt/Main.cpp:257
+#: Source/Core/DolphinQt/Main.cpp:266
 msgid "Allow Usage Statistics Reporting"
 msgstr ""
 
@@ -1700,7 +1700,7 @@ msgstr "Alapok beállítása"
 msgid "Bass"
 msgstr "Basszus"
 
-#: Source/Core/DolphinQt/Main.cpp:233
+#: Source/Core/DolphinQt/Main.cpp:242
 msgid "Batch mode cannot be used without specifying a game to launch."
 msgstr ""
 
@@ -2227,7 +2227,7 @@ msgstr ""
 msgid "Clock Override"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:156
+#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:179
 msgid "Clone and &Edit Code..."
 msgstr ""
 
@@ -2802,7 +2802,7 @@ msgid ""
 msgstr ""
 
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:82
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:108
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:109
 msgid "Creator:"
 msgstr ""
 
@@ -3102,7 +3102,7 @@ msgstr "Mélység:"
 msgid "Description"
 msgstr "Leírás"
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:109
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:110
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:158
 msgid "Description:"
 msgstr "Leírás:"
@@ -3281,7 +3281,7 @@ msgstr ""
 msgid "Distance of travel from neutral position."
 msgstr ""
 
-#: Source/Core/DolphinQt/Main.cpp:259
+#: Source/Core/DolphinQt/Main.cpp:268
 msgid "Do you authorize Dolphin to report information to Dolphin's developers?"
 msgstr ""
 
@@ -3432,11 +3432,11 @@ msgstr ""
 msgid "Down"
 msgstr "Le"
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:85
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:86
 msgid "Download Codes"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:87
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:88
 msgid "Download Codes from the WiiRD Database"
 msgstr ""
 
@@ -3444,11 +3444,11 @@ msgstr ""
 msgid "Download Game Covers from GameTDB.com for Use in Grid Mode"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:347
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:370
 msgid "Download complete"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:348
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:371
 msgid "Downloaded %1 codes. (added %2)"
 msgstr ""
 
@@ -3942,8 +3942,8 @@ msgstr ""
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:261
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:384
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:265
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:320
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:326
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:343
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:349
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:46
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:521
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:255
@@ -3971,8 +3971,8 @@ msgstr ""
 #: Source/Core/DolphinQt/GBAWidget.cpp:576
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:346
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:376
-#: Source/Core/DolphinQt/Main.cpp:209 Source/Core/DolphinQt/Main.cpp:225
-#: Source/Core/DolphinQt/Main.cpp:232 Source/Core/DolphinQt/MainWindow.cpp:294
+#: Source/Core/DolphinQt/Main.cpp:218 Source/Core/DolphinQt/Main.cpp:234
+#: Source/Core/DolphinQt/Main.cpp:241 Source/Core/DolphinQt/MainWindow.cpp:294
 #: Source/Core/DolphinQt/MainWindow.cpp:302
 #: Source/Core/DolphinQt/MainWindow.cpp:1093
 #: Source/Core/DolphinQt/MainWindow.cpp:1479
@@ -4410,7 +4410,7 @@ msgstr ""
 msgid "Failed to detach kernel driver for BT passthrough: {0}"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:320
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:343
 msgid "Failed to download codes."
 msgstr "Kódok letöltése sikertelen."
 
@@ -4487,7 +4487,7 @@ msgid ""
 "{0}"
 msgstr ""
 
-#: Source/Core/VideoCommon/VideoBackendBase.cpp:370
+#: Source/Core/VideoCommon/VideoBackendBase.cpp:373
 msgid "Failed to initialize renderer classes"
 msgstr ""
 
@@ -4830,7 +4830,7 @@ msgstr "Fájlméret"
 msgid "File Size:"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:326
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:349
 msgid "File contained no codes."
 msgstr "A fájl nem tartalmazott kódokat."
 
@@ -5777,7 +5777,7 @@ msgstr ""
 msgid "Identity Generation"
 msgstr ""
 
-#: Source/Core/DolphinQt/Main.cpp:261
+#: Source/Core/DolphinQt/Main.cpp:270
 msgid ""
 "If authorized, Dolphin can collect data on its performance, feature usage, "
 "and configuration, as well as data on your system's hardware and operating "
@@ -6200,7 +6200,7 @@ msgid "Invalid search string (only even string lengths supported)"
 msgstr ""
 "Érvénytelen keresési karakterlánc (csak azonos karakterlánchossz támogatott)"
 
-#: Source/Core/DolphinQt/Main.cpp:209
+#: Source/Core/DolphinQt/Main.cpp:218
 msgid "Invalid title ID."
 msgstr ""
 
@@ -6290,8 +6290,8 @@ msgstr ""
 msgid "JIT SystemRegisters Off"
 msgstr ""
 
-#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:789
-#: Source/Core/Core/PowerPC/JitArm64/Jit.cpp:792
+#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:790
+#: Source/Core/Core/PowerPC/JitArm64/Jit.cpp:793
 msgid ""
 "JIT failed to find code space after a cache clear. This should never happen. "
 "Please report this incident on the bug tracker. Dolphin will now exit."
@@ -7050,7 +7050,7 @@ msgid "Name of your session shown in the server browser"
 msgstr ""
 
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:87
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:107
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:108
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:121
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:156
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:163
@@ -9162,9 +9162,19 @@ msgstr ""
 msgid "Show Debugging UI"
 msgstr ""
 
+#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:118
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:262
+msgid "Show Disabled Codes First"
+msgstr ""
+
 #: Source/Core/DolphinQt/MenuBar.cpp:668
 msgid "Show ELF/DOL"
 msgstr "ELF/DOL megjelenítése"
+
+#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:117
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:261
+msgid "Show Enabled Codes First"
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:53
 msgid "Show FPS"
@@ -9570,8 +9580,8 @@ msgid ""
 "Please check the highlighted values."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:115
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:259
+#: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:116
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:260
 msgid "Sort Alphabetically"
 msgstr ""
 
@@ -10556,7 +10566,7 @@ msgid ""
 "This problem generally only exists in illegal copies of games."
 msgstr ""
 
-#: Source/Core/VideoCommon/VideoBackendBase.cpp:191
+#: Source/Core/VideoCommon/VideoBackendBase.cpp:194
 msgid ""
 "This game requires bounding box emulation to run properly but your graphics "
 "card or its drivers do not support it. As a result you will experience bugs "
