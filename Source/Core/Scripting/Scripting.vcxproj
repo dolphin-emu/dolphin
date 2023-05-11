@@ -44,7 +44,7 @@
     <ClInclude Include="Python\Modules\guimodule.h" />
     <ClInclude Include="Python\Modules\memorymodule.h" />
     <ClInclude Include="Python\Modules\savestatemodule.h" />
-    <ClCompile Include="Python\Modules\registersmodule.h" />
+    <ClInclude Include="Python\Modules\registersmodule.h" />
     <ClInclude Include="Python\PyScriptingBackend.h" />
     <ClInclude Include="Python\Utils\as_py_func.h" />
     <ClInclude Include="Python\Utils\convert.h" />
