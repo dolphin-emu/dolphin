@@ -252,7 +252,7 @@ IPCReply ESDevice::GetTitleId(const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-static bool UpdateUIDAndGID(Kernel& kernel, const ES::TMDReader& tmd)
+static bool UpdateUIDAndGID(EmulationKernel& kernel, const ES::TMDReader& tmd)
 {
   ES::UIDSys uid_sys{kernel.GetFSCore()};
   const u64 title_id = tmd.GetTitleId();
@@ -267,7 +267,7 @@ static bool UpdateUIDAndGID(Kernel& kernel, const ES::TMDReader& tmd)
   return true;
 }
 
-static ReturnCode CheckIsAllowedToSetUID(Kernel& kernel, const u32 caller_uid,
+static ReturnCode CheckIsAllowedToSetUID(EmulationKernel& kernel, const u32 caller_uid,
                                          const ES::TMDReader& active_tmd)
 {
   ES::UIDSys uid_map{kernel.GetFSCore()};

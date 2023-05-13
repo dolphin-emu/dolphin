@@ -309,12 +309,6 @@ Kernel::Kernel(IOSC::ConsoleType console_type) : m_iosc(console_type)
 
 Kernel::~Kernel()
 {
-  {
-    std::lock_guard lock(m_device_map_mutex);
-    m_device_map.clear();
-    m_socket_manager.reset();
-  }
-
   if (m_is_responsible_for_nand_root)
     Core::ShutdownWiiRoot();
 }
@@ -351,6 +345,10 @@ EmulationKernel::EmulationKernel(Core::System& system, u64 title_id)
 EmulationKernel::~EmulationKernel()
 {
   Core::System::GetInstance().GetCoreTiming().RemoveAllEvents(s_event_enqueue);
+
+  std::lock_guard lock(m_device_map_mutex);
+  m_device_map.clear();
+  m_socket_manager.reset();
 }
 
 // The title ID is a u64 where the first 32 bits are used for the title type.
@@ -393,22 +391,22 @@ std::shared_ptr<WiiSockMan> EmulationKernel::GetSocketManager()
 
 // Since we don't have actual processes, we keep track of only the PPC's UID/GID.
 // These functions roughly correspond to syscalls 0x2b, 0x2c, 0x2d, 0x2e (though only for the PPC).
-void Kernel::SetUidForPPC(u32 uid)
+void EmulationKernel::SetUidForPPC(u32 uid)
 {
   m_ppc_uid = uid;
 }
 
-u32 Kernel::GetUidForPPC() const
+u32 EmulationKernel::GetUidForPPC() const
 {
   return m_ppc_uid;
 }
 
-void Kernel::SetGidForPPC(u16 gid)
+void EmulationKernel::SetGidForPPC(u16 gid)
 {
   m_ppc_gid = gid;
 }
 
-u16 Kernel::GetGidForPPC() const
+u16 EmulationKernel::GetGidForPPC() const
 {
   return m_ppc_gid;
 }
@@ -432,7 +430,7 @@ static std::vector<u8> ReadBootContent(FSCore& fs, const std::string& path, size
 
 // This corresponds to syscall 0x41, which loads a binary from the NAND and bootstraps the PPC.
 // Unlike 0x42, IOS will set up some constants in memory before booting the PPC.
-bool Kernel::BootstrapPPC(Core::System& system, const std::string& boot_content_path)
+bool EmulationKernel::BootstrapPPC(Core::System& system, const std::string& boot_content_path)
 {
   // Seeking and processing overhead is ignored as most time is spent reading from the NAND.
   u64 ticks = 0;
@@ -506,8 +504,8 @@ static constexpr SystemTimers::TimeBaseTick GetIOSBootTicks(u32 version)
 // Passing a boot content path is optional because we do not require IOSes
 // to be installed at the moment. If one is passed, the boot binary must exist
 // on the NAND, or the call will fail like on a Wii.
-bool Kernel::BootIOS(Core::System& system, const u64 ios_title_id, HangPPC hang_ppc,
-                     const std::string& boot_content_path)
+bool EmulationKernel::BootIOS(Core::System& system, const u64 ios_title_id, HangPPC hang_ppc,
+                              const std::string& boot_content_path)
 {
   // IOS suspends regular PPC<->ARM IPC before loading a new IOS.
   // IPC is not resumed if the boot fails for any reason.
@@ -543,7 +541,7 @@ bool Kernel::BootIOS(Core::System& system, const u64 ios_title_id, HangPPC hang_
   return true;
 }
 
-void Kernel::InitIPC()
+void EmulationKernel::InitIPC()
 {
   if (!Core::IsRunning())
     return;
@@ -552,7 +550,7 @@ void Kernel::InitIPC()
   GenerateAck(0);
 }
 
-void Kernel::AddDevice(std::unique_ptr<Device> device)
+void EmulationKernel::AddDevice(std::unique_ptr<Device> device)
 {
   ASSERT(device->GetDeviceType() == Device::DeviceType::Static);
   m_device_map.insert_or_assign(device->GetDeviceName(), std::move(device));
@@ -648,16 +646,11 @@ s32 EmulationKernel::GetFreeDeviceID()
   return -1;
 }
 
-std::shared_ptr<Device> Kernel::GetDeviceByName(std::string_view device_name)
+std::shared_ptr<Device> EmulationKernel::GetDeviceByName(std::string_view device_name)
 {
   std::lock_guard lock(m_device_map_mutex);
   const auto iterator = m_device_map.find(device_name);
   return iterator != m_device_map.end() ? iterator->second : nullptr;
-}
-
-std::shared_ptr<Device> EmulationKernel::GetDeviceByName(std::string_view device_name)
-{
-  return Kernel::GetDeviceByName(device_name);
 }
 
 // Returns the FD for the newly opened device (on success) or an error code.
