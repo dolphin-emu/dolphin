@@ -35,6 +35,7 @@ class FileSystem;
 class Device;
 class ESCore;
 class ESDevice;
+class FSCore;
 class FSDevice;
 class WiiSockMan;
 
@@ -123,7 +124,7 @@ public:
   // These are *always* part of the IOS kernel and always available.
   // They are also the only available resource managers even before loading any module.
   std::shared_ptr<FS::FileSystem> GetFS();
-  std::shared_ptr<FSDevice> GetFSDevice();
+  FSCore& GetFSCore();
   ESCore& GetESCore();
 
   void SetUidForPPC(u32 uid);
@@ -145,6 +146,7 @@ protected:
   void AddDevice(std::unique_ptr<Device> device);
   std::shared_ptr<Device> GetDeviceByName(std::string_view device_name);
 
+  std::unique_ptr<FSCore> m_fs_core;
   std::unique_ptr<ESCore> m_es_core;
 
   bool m_is_responsible_for_nand_root = false;
@@ -180,6 +182,7 @@ public:
   // This only works for devices which are part of the device map.
   std::shared_ptr<Device> GetDeviceByName(std::string_view device_name);
 
+  std::shared_ptr<FSDevice> GetFSDevice();
   std::shared_ptr<ESDevice> GetESDevice();
 
   void DoState(PointerWrap& p);

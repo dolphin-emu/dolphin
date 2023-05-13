@@ -554,17 +554,16 @@ struct SharedContentMap::Entry
 };
 
 constexpr char CONTENT_MAP_PATH[] = "/shared1/content.map";
-SharedContentMap::SharedContentMap(std::shared_ptr<HLE::FSDevice> fs)
-    : m_fs_device{fs}, m_fs{fs->GetFS()}
+SharedContentMap::SharedContentMap(HLE::FSCore& fs_core) : m_fs_core{fs_core}, m_fs{fs_core.GetFS()}
 {
   static_assert(sizeof(Entry) == 28, "SharedContentMap::Entry has the wrong size");
 
   Entry entry;
   const auto fd =
-      fs->Open(PID_KERNEL, PID_KERNEL, CONTENT_MAP_PATH, HLE::FS::Mode::Read, {}, &m_ticks);
+      fs_core.Open(PID_KERNEL, PID_KERNEL, CONTENT_MAP_PATH, HLE::FS::Mode::Read, {}, &m_ticks);
   if (fd.Get() < 0)
     return;
-  while (fs->Read(fd.Get(), &entry, 1, &m_ticks) == sizeof(entry))
+  while (fs_core.Read(fd.Get(), &entry, 1, &m_ticks) == sizeof(entry))
   {
     m_entries.push_back(entry);
     m_last_id++;
@@ -637,7 +636,7 @@ bool SharedContentMap::WriteEntries() const
          HLE::FS::ResultCode::Success;
 }
 
-static std::pair<u32, u64> ReadUidSysEntry(HLE::FSDevice& fs, u64 fd, u64* ticks)
+static std::pair<u32, u64> ReadUidSysEntry(HLE::FSCore& fs, u64 fd, u64* ticks)
 {
   u64 title_id = 0;
   if (fs.Read(fd, &title_id, 1, ticks) != sizeof(title_id))
@@ -651,15 +650,15 @@ static std::pair<u32, u64> ReadUidSysEntry(HLE::FSDevice& fs, u64 fd, u64* ticks
 }
 
 constexpr char UID_MAP_PATH[] = "/sys/uid.sys";
-UIDSys::UIDSys(std::shared_ptr<HLE::FSDevice> fs) : m_fs_device{fs}, m_fs{fs->GetFS()}
+UIDSys::UIDSys(HLE::FSCore& fs_core) : m_fs_core{fs_core}, m_fs{fs_core.GetFS()}
 {
   if (const auto fd =
-          fs->Open(PID_KERNEL, PID_KERNEL, UID_MAP_PATH, HLE::FS::Mode::Read, {}, &m_ticks);
+          fs_core.Open(PID_KERNEL, PID_KERNEL, UID_MAP_PATH, HLE::FS::Mode::Read, {}, &m_ticks);
       fd.Get() >= 0)
   {
     while (true)
     {
-      std::pair<u32, u64> entry = ReadUidSysEntry(*fs, fd.Get(), &m_ticks);
+      std::pair<u32, u64> entry = ReadUidSysEntry(fs_core, fd.Get(), &m_ticks);
       if (!entry.first && !entry.second)
         break;
 

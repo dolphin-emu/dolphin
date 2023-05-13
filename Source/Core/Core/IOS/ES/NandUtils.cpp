@@ -25,7 +25,7 @@
 
 namespace IOS::HLE
 {
-static ES::TMDReader FindTMD(FSDevice& fs, const std::string& tmd_path, Ticks ticks)
+static ES::TMDReader FindTMD(FSCore& fs, const std::string& tmd_path, Ticks ticks)
 {
   const auto fd = fs.Open(PID_KERNEL, PID_KERNEL, tmd_path, FS::Mode::Read, {}, ticks);
   if (fd.Get() < 0)
@@ -40,13 +40,13 @@ static ES::TMDReader FindTMD(FSDevice& fs, const std::string& tmd_path, Ticks ti
 
 ES::TMDReader ESCore::FindImportTMD(u64 title_id, Ticks ticks) const
 {
-  return FindTMD(*m_ios.GetFSDevice(), Common::GetImportTitlePath(title_id) + "/content/title.tmd",
+  return FindTMD(m_ios.GetFSCore(), Common::GetImportTitlePath(title_id) + "/content/title.tmd",
                  ticks);
 }
 
 ES::TMDReader ESCore::FindInstalledTMD(u64 title_id, Ticks ticks) const
 {
-  return FindTMD(*m_ios.GetFSDevice(), Common::GetTMDFileName(title_id), ticks);
+  return FindTMD(m_ios.GetFSCore(), Common::GetTMDFileName(title_id), ticks);
 }
 
 ES::TicketReader ESCore::FindSignedTicket(u64 title_id, std::optional<u8> desired_version) const
@@ -228,7 +228,7 @@ u32 ESCore::GetSharedContentsCount() const
 
 std::vector<std::array<u8, 20>> ESCore::GetSharedContents() const
 {
-  const ES::SharedContentMap map{m_ios.GetFSDevice()};
+  const ES::SharedContentMap map{m_ios.GetFSCore()};
   return map.GetHashes();
 }
 
@@ -278,7 +278,7 @@ bool ESCore::CreateTitleDirectories(u64 title_id, u16 group_id) const
     return false;
   }
 
-  ES::UIDSys uid_sys{m_ios.GetFSDevice()};
+  ES::UIDSys uid_sys{m_ios.GetFSCore()};
   const u32 uid = uid_sys.GetOrInsertUIDForTitle(title_id);
   if (fs->SetMetadata(0, data_dir, uid, group_id, 0, data_dir_modes) != FS::ResultCode::Success)
   {
@@ -397,7 +397,7 @@ std::string ESCore::GetContentPath(const u64 title_id, const ES::Content& conten
 {
   if (content.IsShared())
   {
-    ES::SharedContentMap content_map{m_ios.GetFSDevice()};
+    ES::SharedContentMap content_map{m_ios.GetFSCore()};
     ticks.Add(content_map.GetTicks());
     return content_map.GetFilenameFromSHA1(content.sha1).value_or("");
   }
@@ -406,7 +406,7 @@ std::string ESCore::GetContentPath(const u64 title_id, const ES::Content& conten
 
 s32 ESDevice::WriteSystemFile(const std::string& path, const std::vector<u8>& data, Ticks ticks)
 {
-  auto& fs = *GetEmulationKernel().GetFSDevice();
+  auto& fs = GetEmulationKernel().GetFSCore();
   const std::string tmp_path = "/tmp/" + PathToFileName(path);
 
   auto result = fs.CreateFile(PID_KERNEL, PID_KERNEL, tmp_path, {},

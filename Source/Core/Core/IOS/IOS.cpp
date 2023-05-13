@@ -303,7 +303,7 @@ Kernel::Kernel(IOSC::ConsoleType console_type) : m_iosc(console_type)
   m_fs = FS::MakeFileSystem(IOS::HLE::FS::Location::Session, Core::GetActiveNandRedirects());
   ASSERT(m_fs);
 
-  AddDevice(std::make_unique<FSDevice>(*this, "/dev/fs"));
+  m_fs_core = std::make_unique<FSCore>(*this);
   m_es_core = std::make_unique<ESCore>(*this);
 }
 
@@ -340,7 +340,8 @@ EmulationKernel::EmulationKernel(Core::System& system, u64 title_id)
   m_fs = FS::MakeFileSystem(IOS::HLE::FS::Location::Session, Core::GetActiveNandRedirects());
   ASSERT(m_fs);
 
-  AddDevice(std::make_unique<FSDevice>(*this, "/dev/fs"));
+  m_fs_core = std::make_unique<FSCore>(*this);
+  AddDevice(std::make_unique<FSDevice>(*this, *m_fs_core, "/dev/fs"));
   m_es_core = std::make_unique<ESCore>(*this);
   AddDevice(std::make_unique<ESDevice>(*this, *m_es_core, "/dev/es"));
 
@@ -365,7 +366,12 @@ std::shared_ptr<FS::FileSystem> Kernel::GetFS()
   return m_fs;
 }
 
-std::shared_ptr<FSDevice> Kernel::GetFSDevice()
+FSCore& Kernel::GetFSCore()
+{
+  return *m_fs_core;
+}
+
+std::shared_ptr<FSDevice> EmulationKernel::GetFSDevice()
 {
   return std::static_pointer_cast<FSDevice>(m_device_map.at("/dev/fs"));
 }
@@ -407,19 +413,19 @@ u16 Kernel::GetGidForPPC() const
   return m_ppc_gid;
 }
 
-static std::vector<u8> ReadBootContent(FSDevice* fs, const std::string& path, size_t max_size,
+static std::vector<u8> ReadBootContent(FSCore& fs, const std::string& path, size_t max_size,
                                        Ticks ticks = {})
 {
-  const auto fd = fs->Open(0, 0, path, FS::Mode::Read, {}, ticks);
+  const auto fd = fs.Open(0, 0, path, FS::Mode::Read, {}, ticks);
   if (fd.Get() < 0)
     return {};
 
-  const size_t file_size = fs->GetFileStatus(fd.Get(), ticks)->size;
+  const size_t file_size = fs.GetFileStatus(fd.Get(), ticks)->size;
   if (max_size != 0 && file_size > max_size)
     return {};
 
   std::vector<u8> buffer(file_size);
-  if (!fs->Read(fd.Get(), buffer.data(), buffer.size(), ticks))
+  if (!fs.Read(fd.Get(), buffer.data(), buffer.size(), ticks))
     return {};
   return buffer;
 }
@@ -431,7 +437,7 @@ bool Kernel::BootstrapPPC(Core::System& system, const std::string& boot_content_
   // Seeking and processing overhead is ignored as most time is spent reading from the NAND.
   u64 ticks = 0;
 
-  const DolReader dol{ReadBootContent(GetFSDevice().get(), boot_content_path, 0, &ticks)};
+  const DolReader dol{ReadBootContent(GetFSCore(), boot_content_path, 0, &ticks)};
 
   if (!dol.IsValid())
     return false;
@@ -512,7 +518,7 @@ bool Kernel::BootIOS(Core::System& system, const u64 ios_title_id, HangPPC hang_
     // Load the ARM binary to memory (if possible).
     // Because we do not actually emulate the Starlet, only load the sections that are in MEM1.
 
-    ARMBinary binary{ReadBootContent(GetFSDevice().get(), boot_content_path, 0xB00000)};
+    ARMBinary binary{ReadBootContent(GetFSCore(), boot_content_path, 0xB00000)};
     if (!binary.IsValid())
       return false;
 

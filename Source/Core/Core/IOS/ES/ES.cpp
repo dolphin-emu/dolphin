@@ -254,7 +254,7 @@ IPCReply ESDevice::GetTitleId(const IOCtlVRequest& request)
 
 static bool UpdateUIDAndGID(Kernel& kernel, const ES::TMDReader& tmd)
 {
-  ES::UIDSys uid_sys{kernel.GetFSDevice()};
+  ES::UIDSys uid_sys{kernel.GetFSCore()};
   const u64 title_id = tmd.GetTitleId();
   const u32 uid = uid_sys.GetOrInsertUIDForTitle(title_id);
   if (uid == 0)
@@ -270,7 +270,7 @@ static bool UpdateUIDAndGID(Kernel& kernel, const ES::TMDReader& tmd)
 static ReturnCode CheckIsAllowedToSetUID(Kernel& kernel, const u32 caller_uid,
                                          const ES::TMDReader& active_tmd)
 {
-  ES::UIDSys uid_map{kernel.GetFSDevice()};
+  ES::UIDSys uid_map{kernel.GetFSCore()};
   const u32 system_menu_uid = uid_map.GetOrInsertUIDForTitle(Titles::SYSTEM_MENU);
   if (!system_menu_uid)
     return ES_SHORT_READ;
@@ -388,7 +388,7 @@ bool ESDevice::LaunchIOS(u64 ios_title_id, HangPPC hang_ppc)
 
 s32 ESDevice::WriteLaunchFile(const ES::TMDReader& tmd, Ticks ticks)
 {
-  GetEmulationKernel().GetFSDevice()->DeleteFile(PID_KERNEL, PID_KERNEL, SPACE_FILE_PATH, ticks);
+  GetEmulationKernel().GetFSCore().DeleteFile(PID_KERNEL, PID_KERNEL, SPACE_FILE_PATH, ticks);
 
   std::vector<u8> launch_data(sizeof(u64) + sizeof(ES::TicketView));
   const u64 title_id = tmd.GetTitleId();
@@ -432,7 +432,7 @@ bool ESDevice::LaunchPPCTitle(u64 title_id)
   // To keep track of the PPC title launch, a temporary launch file (LAUNCH_FILE_PATH) is used
   // to store the title ID of the title to launch and its TMD.
   // The launch file not existing means an IOS reload is required.
-  if (const auto launch_file_fd = GetEmulationKernel().GetFSDevice()->Open(
+  if (const auto launch_file_fd = GetEmulationKernel().GetFSCore().Open(
           PID_KERNEL, PID_KERNEL, LAUNCH_FILE_PATH, FS::Mode::Read, {}, &ticks);
       launch_file_fd.Get() < 0)
   {
@@ -452,7 +452,7 @@ bool ESDevice::LaunchPPCTitle(u64 title_id)
 
   // Otherwise, assume that the PPC title can now be launched directly.
   // Unlike IOS, we won't bother checking the title ID in the launch file. (It's not useful.)
-  GetEmulationKernel().GetFSDevice()->DeleteFile(PID_KERNEL, PID_KERNEL, LAUNCH_FILE_PATH, &ticks);
+  GetEmulationKernel().GetFSCore().DeleteFile(PID_KERNEL, PID_KERNEL, LAUNCH_FILE_PATH, &ticks);
   WriteSystemFile(SPACE_FILE_PATH, std::vector<u8>(SPACE_FILE_SIZE), &ticks);
 
   m_core.m_title_context.Update(tmd, ticket, DiscIO::Platform::WiiWAD);

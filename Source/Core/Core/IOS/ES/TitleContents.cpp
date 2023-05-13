@@ -29,7 +29,7 @@ s32 ESCore::OpenContent(const ES::TMDReader& tmd, u16 content_index, u32 uid, Ti
       continue;
 
     const std::string path = GetContentPath(title_id, content, ticks);
-    auto fd = m_ios.GetFSDevice()->Open(PID_KERNEL, PID_KERNEL, path, FS::Mode::Read, {}, ticks);
+    auto fd = m_ios.GetFSCore().Open(PID_KERNEL, PID_KERNEL, path, FS::Mode::Read, {}, ticks);
     if (fd.Get() < 0)
       return fd.Get();
 
@@ -84,7 +84,7 @@ IPCReply ESDevice::OpenActiveTitleContent(u32 caller_uid, const IOCtlVRequest& r
     if (!m_core.m_title_context.active)
       return ES_EINVAL;
 
-    ES::UIDSys uid_map{GetEmulationKernel().GetFSDevice()};
+    ES::UIDSys uid_map{GetEmulationKernel().GetFSCore()};
     const u32 uid = uid_map.GetOrInsertUIDForTitle(m_core.m_title_context.tmd.GetTitleId());
     ticks.Add(uid_map.GetTicks());
     if (caller_uid != 0 && caller_uid != uid)
@@ -105,7 +105,7 @@ s32 ESCore::ReadContent(u32 cfd, u8* buffer, u32 size, u32 uid, Ticks ticks)
   if (!entry.m_opened)
     return IPC_EINVAL;
 
-  return m_ios.GetFSDevice()->Read(entry.m_fd, buffer, size, {}, ticks);
+  return m_ios.GetFSCore().Read(entry.m_fd, buffer, size, {}, ticks);
 }
 
 IPCReply ESDevice::ReadContent(u32 uid, const IOCtlVRequest& request)
@@ -137,7 +137,7 @@ s32 ESCore::CloseContent(u32 cfd, u32 uid, Ticks ticks)
   if (!entry.m_opened)
     return IPC_EINVAL;
 
-  m_ios.GetFSDevice()->Close(entry.m_fd, ticks);
+  m_ios.GetFSCore().Close(entry.m_fd, ticks);
   entry = {};
   INFO_LOG_FMT(IOS_ES, "CloseContent: CFD {}", cfd);
   return IPC_SUCCESS;
@@ -167,7 +167,7 @@ s32 ESCore::SeekContent(u32 cfd, u32 offset, SeekMode mode, u32 uid, Ticks ticks
   if (!entry.m_opened)
     return IPC_EINVAL;
 
-  return m_ios.GetFSDevice()->Seek(entry.m_fd, offset, static_cast<FS::SeekMode>(mode), ticks);
+  return m_ios.GetFSCore().Seek(entry.m_fd, offset, static_cast<FS::SeekMode>(mode), ticks);
 }
 
 IPCReply ESDevice::SeekContent(u32 uid, const IOCtlVRequest& request)
