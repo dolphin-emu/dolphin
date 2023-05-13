@@ -300,7 +300,11 @@ Kernel::Kernel(IOSC::ConsoleType console_type) : m_iosc(console_type)
   if (m_is_responsible_for_nand_root)
     Core::InitializeWiiRoot(false);
 
-  AddCoreDevices();
+  m_fs = FS::MakeFileSystem(IOS::HLE::FS::Location::Session, Core::GetActiveNandRedirects());
+  ASSERT(m_fs);
+
+  AddDevice(std::make_unique<FSDevice>(*this, "/dev/fs"));
+  m_es_core = std::make_unique<ESCore>(*this);
 }
 
 Kernel::~Kernel()
@@ -333,7 +337,13 @@ EmulationKernel::EmulationKernel(Core::System& system, u64 title_id)
     return;
   }
 
-  AddCoreDevices();
+  m_fs = FS::MakeFileSystem(IOS::HLE::FS::Location::Session, Core::GetActiveNandRedirects());
+  ASSERT(m_fs);
+
+  AddDevice(std::make_unique<FSDevice>(*this, "/dev/fs"));
+  m_es_core = std::make_unique<ESCore>(*this);
+  AddDevice(std::make_unique<ESDevice>(*this, *m_es_core, "/dev/es"));
+
   AddStaticDevices();
 }
 
@@ -360,7 +370,12 @@ std::shared_ptr<FSDevice> Kernel::GetFSDevice()
   return std::static_pointer_cast<FSDevice>(m_device_map.at("/dev/fs"));
 }
 
-std::shared_ptr<ESDevice> Kernel::GetES()
+ESCore& Kernel::GetESCore()
+{
+  return *m_es_core;
+}
+
+std::shared_ptr<ESDevice> EmulationKernel::GetESDevice()
 {
   return std::static_pointer_cast<ESDevice>(m_device_map.at("/dev/es"));
 }
@@ -535,16 +550,6 @@ void Kernel::AddDevice(std::unique_ptr<Device> device)
 {
   ASSERT(device->GetDeviceType() == Device::DeviceType::Static);
   m_device_map.insert_or_assign(device->GetDeviceName(), std::move(device));
-}
-
-void Kernel::AddCoreDevices()
-{
-  m_fs = FS::MakeFileSystem(IOS::HLE::FS::Location::Session, Core::GetActiveNandRedirects());
-  ASSERT(m_fs);
-
-  std::lock_guard lock(m_device_map_mutex);
-  AddDevice(std::make_unique<FSDevice>(*this, "/dev/fs"));
-  AddDevice(std::make_unique<ESDevice>(*this, "/dev/es"));
 }
 
 void EmulationKernel::AddStaticDevices()

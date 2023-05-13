@@ -33,6 +33,7 @@ class FileSystem;
 }
 
 class Device;
+class ESCore;
 class ESDevice;
 class FSDevice;
 class WiiSockMan;
@@ -123,7 +124,7 @@ public:
   // They are also the only available resource managers even before loading any module.
   std::shared_ptr<FS::FileSystem> GetFS();
   std::shared_ptr<FSDevice> GetFSDevice();
-  std::shared_ptr<ESDevice> GetES();
+  ESCore& GetESCore();
 
   void SetUidForPPC(u32 uid);
   u32 GetUidForPPC() const;
@@ -142,8 +143,9 @@ protected:
   explicit Kernel(u64 title_id);
 
   void AddDevice(std::unique_ptr<Device> device);
-  void AddCoreDevices();
   std::shared_ptr<Device> GetDeviceByName(std::string_view device_name);
+
+  std::unique_ptr<ESCore> m_es_core;
 
   bool m_is_responsible_for_nand_root = false;
   u64 m_title_id = 0;
@@ -177,6 +179,8 @@ public:
   // Get a resource manager by name.
   // This only works for devices which are part of the device map.
   std::shared_ptr<Device> GetDeviceByName(std::string_view device_name);
+
+  std::shared_ptr<ESDevice> GetESDevice();
 
   void DoState(PointerWrap& p);
   void UpdateDevices();
