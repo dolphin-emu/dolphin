@@ -1,6 +1,6 @@
 enable_testing()
 add_custom_target(unittests)
-add_custom_command(TARGET unittests POST_BUILD COMMAND ${CMAKE_CTEST_COMMAND})
+add_custom_command(TARGET unittests POST_BUILD COMMAND ${CMAKE_CTEST_COMMAND} "--output-on-failure")
 
 string(APPEND CMAKE_RUNTIME_OUTPUT_DIRECTORY "/Tests")
 
