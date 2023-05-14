@@ -71,7 +71,7 @@ ArgHolder ShutdownScript(ScriptContext* current_script, std::vector<ArgHolder>& 
 ArgHolder ExitDolphin(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   int exit_code = args_list[0].int_val;
-  quick_exit(exit_code);
+  std::quick_exit(exit_code);
 }
 
 }  // namespace Scripting::ImportAPI

@@ -9,8 +9,8 @@ namespace Scripting
 class FunctionMetadata
 {
 public:
-
-  FunctionMetadata() {
+  FunctionMetadata()
+  {
     this->function_name = "";
     this->function_version = "";
     this->example_function_call = "";
@@ -19,9 +19,8 @@ public:
     arguments_list = std::vector<ArgTypeEnum>();
   }
 
-
-  FunctionMetadata(const char* new_func_name,const char* new_func_version,
-                  const char* new_example_function_call,
+  FunctionMetadata(const char* new_func_name, const char* new_func_version,
+                   const char* new_example_function_call,
                    ArgHolder (*new_function_ptr)(ScriptContext*, std::vector<ArgHolder>&),
                    ArgTypeEnum new_return_type, std::vector<ArgTypeEnum> new_arguments_list)
   {
