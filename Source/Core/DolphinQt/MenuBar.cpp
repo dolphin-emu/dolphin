@@ -1011,7 +1011,7 @@ void MenuBar::UpdateToolsMenu(bool emulation_started)
   if (!emulation_started)
   {
     IOS::HLE::Kernel ios;
-    const auto tmd = ios.GetES()->FindInstalledTMD(Titles::SYSTEM_MENU);
+    const auto tmd = ios.GetESCore().FindInstalledTMD(Titles::SYSTEM_MENU);
 
     const QString sysmenu_version =
         tmd.IsValid() ? QString::fromStdString(

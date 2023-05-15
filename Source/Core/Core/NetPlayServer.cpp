@@ -1720,7 +1720,7 @@ std::optional<SaveSyncInfo> NetPlayServer::CollectSaveSyncInfo()
     if (m_settings.savedata_sync_all_wii)
     {
       IOS::HLE::Kernel ios;
-      for (const u64 title : ios.GetES()->GetInstalledTitles())
+      for (const u64 title : ios.GetESCore().GetInstalledTitles())
       {
         auto save = WiiSave::MakeNandStorage(sync_info.configured_fs.get(), title);
         if (save && save->ReadHeader().has_value() && save->ReadBkHeader().has_value() &&
