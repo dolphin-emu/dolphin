@@ -7,7 +7,6 @@
 #include <deque>
 #include <map>
 #include <memory>
-#include <mutex>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -198,7 +197,6 @@ private:
 
   static constexpr u8 IPC_MAX_FDS = 0x18;
   std::map<std::string, std::shared_ptr<Device>, std::less<>> m_device_map;
-  std::mutex m_device_map_mutex;
   // TODO: make this fdmap per process.
   std::array<std::shared_ptr<Device>, IPC_MAX_FDS> m_fdmap;
 

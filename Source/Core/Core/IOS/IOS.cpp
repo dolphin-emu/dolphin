@@ -8,7 +8,6 @@
 #include <deque>
 #include <map>
 #include <memory>
-#include <mutex>
 #include <string>
 #include <utility>
 
@@ -346,7 +345,6 @@ EmulationKernel::~EmulationKernel()
 {
   Core::System::GetInstance().GetCoreTiming().RemoveAllEvents(s_event_enqueue);
 
-  std::lock_guard lock(m_device_map_mutex);
   m_device_map.clear();
   m_socket_manager.reset();
 }
@@ -558,8 +556,6 @@ void EmulationKernel::AddDevice(std::unique_ptr<Device> device)
 
 void EmulationKernel::AddStaticDevices()
 {
-  std::lock_guard lock(m_device_map_mutex);
-
   const Feature features = GetFeatures(GetVersion());
 
   // Dolphin-specific device for letting homebrew access and alter emulator state.
@@ -648,7 +644,6 @@ s32 EmulationKernel::GetFreeDeviceID()
 
 std::shared_ptr<Device> EmulationKernel::GetDeviceByName(std::string_view device_name)
 {
-  std::lock_guard lock(m_device_map_mutex);
   const auto iterator = m_device_map.find(device_name);
   return iterator != m_device_map.end() ? iterator->second : nullptr;
 }
