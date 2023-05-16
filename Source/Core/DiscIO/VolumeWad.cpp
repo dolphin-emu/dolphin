@@ -256,7 +256,7 @@ std::string VolumeWAD::GetMakerID(const Partition& partition) const
     return "00";
 
   // Some weird channels use 0x0000 in place of the MakerID, so we need a check here
-  if (!IsPrintableCharacter(temp[0]) || !IsPrintableCharacter(temp[1]))
+  if (!Common::IsPrintableCharacter(temp[0]) || !Common::IsPrintableCharacter(temp[1]))
     return "00";
 
   return DecodeString(temp);

@@ -87,7 +87,7 @@ void V4GetUSStringMessage::OnTransferComplete(s32 return_value) const
   auto& memory = system.GetMemory();
 
   std::string message = memory.GetString(data_address);
-  std::replace_if(message.begin(), message.end(), std::not_fn(IsPrintableCharacter), '?');
+  std::replace_if(message.begin(), message.end(), std::not_fn(Common::IsPrintableCharacter), '?');
   memory.CopyToEmu(data_address, message.c_str(), message.size());
   TransferCommand::OnTransferComplete(return_value);
 }
