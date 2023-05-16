@@ -675,6 +675,8 @@ std::vector<std::string> CommandLineToUtf8Argv(const wchar_t* command_line)
 }
 #endif
 
+namespace Common
+{
 std::string GetEscapedHtml(std::string html)
 {
   static constexpr std::array<std::array<const char*, 2>, 5> replacements{{
@@ -693,8 +695,6 @@ std::string GetEscapedHtml(std::string html)
   return html;
 }
 
-namespace Common
-{
 void ToLower(std::string* str)
 {
   std::transform(str->begin(), str->end(), str->begin(), [](char c) { return Common::ToLower(c); });

@@ -234,8 +234,6 @@ std::string ThousandSeparate(I value, int spaces = 0)
 std::vector<std::string> CommandLineToUtf8Argv(const wchar_t* command_line);
 #endif
 
-std::string GetEscapedHtml(std::string html);
-
 namespace Common
 {
 /// Returns whether a character is printable, i.e. whether 0x20 <= c <= 0x7e is true.
@@ -263,6 +261,8 @@ inline char ToUpper(char ch)
 {
   return std::toupper(ch, std::locale::classic());
 }
+
+std::string GetEscapedHtml(std::string html);
 
 void ToLower(std::string* str);
 void ToUpper(std::string* str);
