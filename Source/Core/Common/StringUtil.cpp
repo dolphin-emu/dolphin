@@ -656,6 +656,8 @@ std::string PathToString(const std::filesystem::path& path)
 #endif
 }
 
+namespace Common
+{
 #ifdef _WIN32
 std::vector<std::string> CommandLineToUtf8Argv(const wchar_t* command_line)
 {
@@ -675,8 +677,6 @@ std::vector<std::string> CommandLineToUtf8Argv(const wchar_t* command_line)
 }
 #endif
 
-namespace Common
-{
 std::string GetEscapedHtml(std::string html)
 {
   static constexpr std::array<std::array<const char*, 2>, 5> replacements{{

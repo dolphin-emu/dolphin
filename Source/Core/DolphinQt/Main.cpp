@@ -306,7 +306,7 @@ int main(int argc, char* argv[])
 #ifdef _WIN32
 int WINAPI wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int)
 {
-  std::vector<std::string> args = CommandLineToUtf8Argv(GetCommandLineW());
+  std::vector<std::string> args = Common::CommandLineToUtf8Argv(GetCommandLineW());
   const int argc = static_cast<int>(args.size());
   std::vector<char*> argv(args.size());
   for (size_t i = 0; i < args.size(); ++i)
