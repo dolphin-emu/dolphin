@@ -211,25 +211,6 @@ inline std::string UTF8ToTStr(std::string_view str)
 std::filesystem::path StringToPath(std::string_view path);
 std::string PathToString(const std::filesystem::path& path);
 
-// Thousand separator. Turns 12345678 into 12,345,678
-template <typename I>
-std::string ThousandSeparate(I value, int spaces = 0)
-{
-#ifdef _WIN32
-  std::wostringstream stream;
-#else
-  std::ostringstream stream;
-#endif
-
-  stream << std::setw(spaces) << value;
-
-#ifdef _WIN32
-  return WStringToUTF8(stream.str());
-#else
-  return stream.str();
-#endif
-}
-
 namespace Common
 {
 /// Returns whether a character is printable, i.e. whether 0x20 <= c <= 0x7e is true.
@@ -256,6 +237,25 @@ inline char ToLower(char ch)
 inline char ToUpper(char ch)
 {
   return std::toupper(ch, std::locale::classic());
+}
+
+// Thousand separator. Turns 12345678 into 12,345,678
+template <typename I>
+std::string ThousandSeparate(I value, int spaces = 0)
+{
+#ifdef _WIN32
+  std::wostringstream stream;
+#else
+  std::ostringstream stream;
+#endif
+
+  stream << std::setw(spaces) << value;
+
+#ifdef _WIN32
+  return WStringToUTF8(stream.str());
+#else
+  return stream.str();
+#endif
 }
 
 #ifdef _WIN32
