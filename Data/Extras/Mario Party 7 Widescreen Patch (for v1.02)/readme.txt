@@ -1,0 +1,1 @@
+Drag a Mario Party 7 (USA) (v1.02) ISO onto the .BAT file to patch it.

@@ -1,0 +1,1 @@
+Drag and Drop a NTSC-U Mario Party 8 ISO or WBFS onto Mario Party 8 Widescreen Patcher.bat to produce an ISO

@@ -1,0 +1,1 @@
+Drag a Mario Party 6 (USA) ISO onto the .BAT file to patch it.

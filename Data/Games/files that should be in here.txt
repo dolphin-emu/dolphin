@@ -1,0 +1,36 @@
+You don't have to have them all, but be sure the ones you DO
+have are the correct region (USA) and version number (latest). 
+
+You can use Dolphin's "Generate MD5 Checksum" option to confirm
+your ROM is valid. If the number it generates matches this document,
+it is correct (if you can confirm the first few numbers match you're probably fine).
+
+=====================================================================================
+	Main ROMS:
+=====================================================================================
+Mario Party 4 (USA) (v1.01).iso
+01de13ad52f1554975e7f316370ba086
+
+Mario Party 5 (USA).iso
+6b3699ee1f18447c4b2fabb3dd2ebf39
+
+Mario Party 6 (USA).iso
+010dece78287bcb8cafdeb15f035127a
+
+Mario Party 7 (USA).iso
+bd367c67fca5d93e581a43d1f61f4514
+
+Mario Party 8 (USA) (v1.02).iso
+944c3f7db81170c9d86fc73dab1da24b
+
+Mario Party 9 (USA) (En,Fr,Es).iso
+a9aa140b48e67ccdba9c7c9afc9884bc
+
+Mario Party 2 (USA) (N64) (Virtual Console).wad
+91837da646f7509910d2472ad81f9c8b
+
+=====================================================================================
+	Modded ROMs:
+=====================================================================================
+Mario Party 5 With Shops.iso
+01d327cf53e1477a04dc6c52a154949a

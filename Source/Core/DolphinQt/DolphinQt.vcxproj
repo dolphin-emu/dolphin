@@ -446,6 +446,8 @@
   <ImportGroup Label="ExtensionTargets" />
   <!--Copy Exe, Data directory and DLLs which should be located in the executable directory-->
   <ItemGroup>
+    <DataSysFiles Include="$(DolphinRootDir)Data\**\Extras\**\*.*" />
+    <DataSysFiles Include="$(DolphinRootDir)Data\**\Games\**\*.*" />
     <DataSysFiles Include="$(DolphinRootDir)Data\**\Sys\**\*.*" />
     <DataUserFiles Include="$(DolphinRootDir)Data\**\Updater\**\*.*" />
     <DataUserFiles Include="$(DolphinRootDir)Data\**\User\**\*.*" />
