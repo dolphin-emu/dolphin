@@ -70,7 +70,7 @@ set (VCDCOM_SRC
   "src/unique_ptr.h"
   "src/varint_bigendian.h"
   "src/vcdiff_defs.h"
-  "src/zlib/zlib.h"
+  "src/zlib/zlib_old.h"
   "src/zlib/zconf.h"
   "src/zlib/adler32.c"
   "src/addrcache.cc"
@@ -128,11 +128,16 @@ if (BUILD_STATIC_LIBS)
   add_library (vcdcom ALIAS vcdcom_STATIC)
   add_library (vcddec ALIAS vcddec_STATIC)
   add_library (vcdenc ALIAS vcdenc_STATIC)
+  target_compile_options(vcdcom_STATIC PRIVATE -w)
+  target_compile_options(vcddec_STATIC PRIVATE -w)
+  target_compile_options(vcdenc_STATIC PRIVATE -w)
 else ()
   add_library (vcdcom ALIAS vcdcom_SHARED)
   add_library (vcddec ALIAS vcddec_SHARED)
   add_library (vcdenc ALIAS vcdenc_SHARED)
 endif()
+
+
 
 if (vcdiff_build_exec)
   add_executable (vcdiff "src/vcdiff_main.cc")

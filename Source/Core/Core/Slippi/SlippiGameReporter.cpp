@@ -116,7 +116,8 @@ void SlippiGameReporter::ReportThreadHandler()
 
       if (res != 0)
       {
-        ERROR_LOG(SLIPPI_ONLINE, "[GameReport] Got error executing request. Err code: %d", res);
+        ERROR_LOG_FMT(SLIPPI_ONLINE, "[GameReport] Got error executing request. Err code : {}",
+                      static_cast<u8>(res));
       }
 
       gameIndex++;

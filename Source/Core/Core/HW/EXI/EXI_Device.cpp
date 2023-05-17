@@ -165,7 +165,7 @@ std::unique_ptr<IEXIDevice> EXIDevice_Create(Core::System& system, const EXIDevi
     break;
 
   case EXIDeviceType::Slippi:
-    result = std::make_unique<CEXISlippi>();
+    result = std::make_unique<CEXISlippi>(system);
     break;
 
   case EXIDeviceType::AMBaseboard:

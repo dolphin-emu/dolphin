@@ -530,6 +530,8 @@ add_library(core
   Slippi/SlippiSpectate.h
   Slippi/SlippiUser.cpp
   Slippi/SlippiUser.h
+  Slippi/SlippiGame.cpp
+  Slippi/SlippiGame.h
   Slippi/SlippiGameReporter.cpp
   Slippi/SlippiGameReporter.h
   Slippi/SlippiDirectCodes.cpp
@@ -644,11 +646,9 @@ PUBLIC
   videoogl
   videosoftware
   semver
-  SlippiLib
   vcdcom
   vcddec
   vcdenc
-  z
 
 PRIVATE
   FatFs

@@ -1,12 +1,13 @@
 #pragma once
 
-#include <SlippiGame.h>
 #include <limits.h>
 #include <nlohmann/json.hpp>
 #include <queue>
 #include <string>
 
 #include <Common/CommonTypes.h>
+
+#include "SlippiGame.h"
 
 using json = nlohmann::json;
 

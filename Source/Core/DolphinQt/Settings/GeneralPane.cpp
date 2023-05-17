@@ -211,11 +211,13 @@ void GeneralPane::CreateAnalytics()
 
 void GeneralPane::LoadConfig()
 {
-  m_checkbox_dualcore->setChecked(SConfig::GetInstance().bCPUThread);
-  m_checkbox_cheats->setChecked(Settings::Instance().GetCheatsEnabled());
-  m_checkbox_default_boot_iso->setChecked(SConfig::GetInstance().bBootDefaultISO);
-  m_checkbox_override_region_settings->setChecked(SConfig::GetInstance().bOverrideRegionSettings);
-  m_checkbox_auto_disc_change->setChecked(Config::Get(Config::MAIN_AUTO_DISC_CHANGE));
+  const QSignalBlocker blocker(this);
+  SignalBlocking(m_checkbox_dualcore)->setChecked(Config::Get(Config::MAIN_CPU_THREAD));
+  SignalBlocking(m_checkbox_cheats)->setChecked(Settings::Instance().GetCheatsEnabled());
+  SignalBlocking(m_checkbox_override_region_settings)
+      ->setChecked(Config::Get(Config::MAIN_OVERRIDE_REGION_SETTINGS));
+  SignalBlocking(m_checkbox_auto_disc_change)
+      ->setChecked(Config::Get(Config::MAIN_AUTO_DISC_CHANGE));
 #ifdef USE_DISCORD_PRESENCE
   SignalBlocking(m_checkbox_discord_presence)
       ->setChecked(Config::Get(Config::MAIN_USE_DISCORD_PRESENCE));
@@ -278,14 +280,10 @@ void GeneralPane::OnSaveConfig()
 #endif
   Config::SetBaseOrCurrent(Config::MAIN_CPU_THREAD, m_checkbox_dualcore->isChecked());
   Settings::Instance().SetCheatsEnabled(m_checkbox_cheats->isChecked());
-  settings.bBootDefaultISO = m_checkbox_default_boot_iso->isChecked();
-  settings.bOverrideRegionSettings = m_checkbox_override_region_settings->isChecked();
   Config::SetBaseOrCurrent(Config::MAIN_OVERRIDE_REGION_SETTINGS,
                            m_checkbox_override_region_settings->isChecked());
   Config::SetBase(Config::MAIN_AUTO_DISC_CHANGE, m_checkbox_auto_disc_change->isChecked());
   Config::SetBaseOrCurrent(Config::MAIN_ENABLE_CHEATS, m_checkbox_cheats->isChecked());
-  if (!IsOnline())
-    settings.m_EmulationSpeed = m_combobox_speedlimit->currentIndex() * 0.1f;
   Settings::Instance().SetFallbackRegion(
       UpdateFallbackRegionFromIndex(m_combobox_fallback_region->currentIndex()));
 

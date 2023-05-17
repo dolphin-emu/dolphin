@@ -13,6 +13,7 @@
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
+#include "Slippi/SlippiConfig.h"
 
 class IniFile;
 
@@ -39,6 +40,9 @@ struct BootParameters;
 
 struct SConfig
 {
+  // Melee Version
+  Melee::Version m_melee_version;
+
   // Settings
   bool bAutomaticStart = false;
   bool bBootToPause = false;
@@ -51,8 +55,10 @@ struct SConfig
   bool bWii = false;
   bool m_is_mios = false;
 
-  // SLIPPITODO: MOVE THESE
+  // SLIPPITODO: MOVE SOME OF THESE TO Config/Config.h
   // enable Slippi Networking output
+  bool m_OCEnable = true;
+  float m_OCFactor = 1.0f;
   bool m_enableSpectator = true;
   int m_spectatorPort = 51441;
   std::string m_strSlippiInput = "";

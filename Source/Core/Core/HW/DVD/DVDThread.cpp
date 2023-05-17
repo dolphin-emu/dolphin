@@ -374,11 +374,12 @@ void DVDThread::ReadFile(std::string& fileName, std::vector<u8>& buf)
   }
   else
   {
-    INFO_LOG_FMT(SLIPPI, "Failed to open file: %s", fileName.c_str());
+    INFO_LOG_FMT(SLIPPI, "Failed to open file: {}", fileName.c_str());
   }
 }
 
-std::string DVDThread::GetFileName(const DiscIO::Partition &partition, u64 offset) {
+std::string DVDThread::GetFileName(const DiscIO::Partition& partition, u64 offset)
+{
   return m_disc->GetFileSystem(partition)->FindFileInfo(offset)->GetName();
 }
 }  // namespace DVD

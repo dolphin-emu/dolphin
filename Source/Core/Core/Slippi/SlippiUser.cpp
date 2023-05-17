@@ -58,7 +58,7 @@ static void RunSystemCommand(const std::string& command)
 static size_t receive(char* ptr, size_t size, size_t nmemb, void* rcvBuf)
 {
   size_t len = size * nmemb;
-  INFO_LOG(SLIPPI_ONLINE, "[User] Received data: %d", len);
+  INFO_LOG_FMT(SLIPPI_ONLINE, "[User] Received data: {}", len);
 
   std::string* buf = (std::string*)rcvBuf;
 
@@ -106,7 +106,7 @@ bool SlippiUser::AttemptLogin()
 {
   std::string user_file_path = getUserFilePath();
 
-  // INFO_LOG(SLIPPI_ONLINE, "Looking for file at: %s", user_file_path.c_str());
+  // INFO_LOG_FMT(SLIPPI_ONLINE, "Looking for file at: {}", user_file_path);
 
   {
     // Put the filename here in its own scope because we don't really need it elsewhere
@@ -116,14 +116,15 @@ bool SlippiUser::AttemptLogin()
       // If both files exist we just log they exist and take no further action
       if (File::Exists(user_file_path))
       {
-        INFO_LOG(SLIPPI_ONLINE, "Found both .json.txt and .json file for user data. Using .json "
-                                "and ignoring the .json.txt");
+        INFO_LOG_FMT(SLIPPI_ONLINE,
+                     "Found both .json.txt and .json file for user data. Using .json "
+                     "and ignoring the .json.txt");
       }
       // If only the .txt file exists move the contents to a json file and log if it fails
       else if (!File::Rename(user_file_path_txt, user_file_path))
       {
-        WARN_LOG(SLIPPI_ONLINE, "Could not move file %s to %s", user_file_path_txt.c_str(),
-                 user_file_path.c_str());
+        WARN_LOG_FMT(SLIPPI_ONLINE, "Could not move file {} to {}", user_file_path_txt,
+                     user_file_path);
       }
     }
   }
@@ -138,8 +139,7 @@ bool SlippiUser::AttemptLogin()
   if (m_is_logged_in)
   {
     overwriteFromServer();
-    WARN_LOG(SLIPPI_ONLINE, "Found user %s (%s)", m_user_info.display_name.c_str(),
-             m_user_info.uid.c_str());
+    WARN_LOG_FMT(SLIPPI_ONLINE, "Found user {} ({})", m_user_info.display_name, m_user_info.uid);
   }
 
   return m_is_logged_in;
@@ -158,14 +158,14 @@ void SlippiUser::OpenLogInPage()
 #endif
 
 #ifndef __APPLE__
-  char* escaped_path = curl_easy_escape(nullptr, path.c_str(), (int)path.length());
+  char* escaped_path = curl_easy_escape(nullptr, path.c_str(), static_cast<int>(path.length()));
   path = std::string(escaped_path);
   curl_free(escaped_path);
 #endif
 
   std::string full_url = url + "?path=" + path;
 
-  INFO_LOG(SLIPPI_ONLINE, "[User] Login at path: %s", full_url.c_str());
+  INFO_LOG_FMT(SLIPPI_ONLINE, "[User] Login at path: {}", full_url);
 
 #ifdef _WIN32
   std::string command = "explorer \"" + full_url + "\"";
@@ -181,23 +181,24 @@ void SlippiUser::OpenLogInPage()
 void SlippiUser::UpdateApp()
 {
 #if defined(__APPLE__) || defined(_WIN32)
-  CriticalAlertT("Dolphin auto updates are not available on standalone builds. Migrate to "
-                 "the Slippi Launcher at your earliest convenience");
+  CriticalAlertFmtT("Dolphin auto updates are not available on standalone builds. Migrate to "
+                    "the Slippi Launcher at your earliest convenience");
   return;
 #else
   const char* appimage_path = getenv("APPIMAGE");
   const char* appmount_path = getenv("APPDIR");
   if (!appimage_path)
   {
-    CriticalAlertT("Automatic updates are not available for non-AppImage Linux builds.");
+    CriticalAlertFmtT("Automatic updates are not available for non-AppImage Linux builds.");
     return;
   }
   std::string path(appimage_path);
   std::string mount_path(appmount_path);
   std::string command = mount_path + "/usr/bin/appimageupdatetool " + path;
-  WARN_LOG(SLIPPI, "Executing app update command: %s", command.c_str());
+  WARN_LOG_FMT(SLIPPI, "Executing app update command: {}", command);
   RunSystemCommand(command);
-  CriticalAlertT("Dolphin failed to update, please head over to the Slippi Discord for support.");
+  CriticalAlertFmtT(
+      "Dolphin failed to update, please head over to the Slippi Discord for support.");
   return;
 #endif
 }
@@ -317,7 +318,8 @@ void SlippiUser::overwriteFromServer()
 
   if (res != 0)
   {
-    ERROR_LOG(SLIPPI, "[User] Error fetching user info from server, code: %d", res);
+    ERROR_LOG_FMT(SLIPPI, "[User] Error fetching user info from server, code: {}",
+                  static_cast<u8>(res));
     return;
   }
 
@@ -325,7 +327,7 @@ void SlippiUser::overwriteFromServer()
   curl_easy_getinfo(m_curl, CURLINFO_RESPONSE_CODE, &response_code);
   if (response_code != 200)
   {
-    ERROR_LOG(SLIPPI, "[User] Server responded with non-success status: %d", response_code);
+    ERROR_LOG_FMT(SLIPPI, "[User] Server responded with non-success status: {}", response_code);
     return;
   }
 

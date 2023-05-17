@@ -189,7 +189,7 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
 
     // Install bootloader gct
     for (size_t i = 0; i < bootloaderData.length(); ++i)
-      PowerPC::HostWrite_U8(bootloaderData[i], static_cast<u32>(codelist_base_address + i));
+      PowerPC::HostWrite_U8(guard, bootloaderData[i], static_cast<u32>(codelist_base_address + i));
   }
   else
   {
@@ -223,8 +223,8 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
 
       for (const GeckoCode::Code& code : active_code.codes)
       {
-        PowerPC::HostWrite_U32(code.address, next_address);
-        PowerPC::HostWrite_U32(code.data, next_address + 4);
+        PowerPC::HostWrite_U32(guard, code.address, next_address);
+        PowerPC::HostWrite_U32(guard, code.data, next_address + 4);
         next_address += CODE_SIZE;
       }
     }
@@ -233,16 +233,13 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
                  end_address - start_address);
 
     // Stop code. Tells the handler that this is the end of the list.
-    PowerPC::HostWrite_U32(0xF0000000, next_address);
-    PowerPC::HostWrite_U32(0x00000000, next_address + 4);
+    PowerPC::HostWrite_U32(guard, 0xF0000000, next_address);
+    PowerPC::HostWrite_U32(guard, 0x00000000, next_address + 4);
+    WARN_LOG_FMT(ACTIONREPLAY, "GeckoCodes: Using {} of {} bytes", next_address - start_address,
+                 end_address - start_address);
   }
 
-  WARN_LOG_FMT(ACTIONREPLAY, "GeckoCodes: Using {} of {} bytes", next_address - start_address,
-               end_address - start_address);
-
-  // Stop code. Tells the handler that this is the end of the list.
-  PowerPC::HostWrite_U32(guard, 0xF0000000, next_address);
-  PowerPC::HostWrite_U32(guard, 0x00000000, next_address + 4);
+  // Write 0 to trampoline address, not sure why this is necessary
   PowerPC::HostWrite_U32(guard, 0, HLE_TRAMPOLINE_ADDRESS);
 
   // Turn on codes

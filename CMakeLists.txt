@@ -699,8 +699,6 @@ endif()
 add_subdirectory(Externals/imgui)
 add_subdirectory(Externals/implot)
 add_subdirectory(Externals/glslang)
-add_subdirectory(Externals/SlippiLib)
-include_directories(Externals/SlippiLib)
 include_directories(Externals/nlohmann)
 add_subdirectory(Externals/semver)
 include_directories(Externals/semver/include)
@@ -794,6 +792,8 @@ else()
 endif()
 
 add_subdirectory(Externals/zlib-ng)
+
+find_package(ZLIB REQUIRED)
 
 pkg_check_modules(MINIZIP minizip>=3.0.0)
 if(MINIZIP_FOUND)

@@ -92,7 +92,8 @@ void SlippiPane::CreateLayout()
           [](int index) {
             SConfig::GetInstance().m_slippiEnableQuickChat = static_cast<Slippi::Chat>(index);
           });
-  netplay_quick_chat_combo->setCurrentIndex(SConfig::GetInstance().m_slippiEnableQuickChat);
+  netplay_quick_chat_combo->setCurrentIndex(
+      static_cast<u32>(SConfig::GetInstance().m_slippiEnableQuickChat));
 
   online_settings_layout->addRow(tr("Quick Chat:"), netplay_quick_chat_combo);
 

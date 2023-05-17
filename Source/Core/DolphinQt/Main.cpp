@@ -27,8 +27,8 @@
 #include "Core/Boot/Boot.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
-#include "Core/Slippi/SlippiSpectate.h"
 #include "Core/DolphinAnalytics.h"
+#include "Core/Slippi/SlippiSpectate.h"
 
 #include "DolphinQt/Host.h"
 #include "DolphinQt/MainWindow.h"
@@ -261,10 +261,12 @@ int main(int argc, char* argv[])
   else
   {
 #ifndef IS_PLAYBACK
-    if (Settings::Instance().IsBootDefaultISO() && !Settings::Instance().GetDefaultGame().isEmpty())
+    if (!Config::Get(Config::MAIN_DEFAULT_ISO).empty() &&
+        !Settings::Instance().GetDefaultGame().isEmpty())
     {
-      boot = BootParameters::GenerateFromFile(Settings::Instance().GetDefaultGame().toStdString(),
-                                              save_state_path);
+      boot = BootParameters::GenerateFromFile(
+          Settings::Instance().GetDefaultGame().toStdString(),
+          BootSessionData(save_state_path, DeleteSavestateAfterBoot::No));
     }
 #endif
 

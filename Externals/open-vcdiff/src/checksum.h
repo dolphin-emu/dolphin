@@ -19,7 +19,7 @@
 #define OPEN_VCDIFF_CHECKSUM_H_
 
 #include "config.h"
-#include "zlib/zlib.h"
+#include "zlib/zlib_old.h"
 
 #ifdef __MINGW32__
 #include <stddef.h>
@@ -33,7 +33,7 @@ const VCDChecksum kNoPartialChecksum = 0;
 
 inline VCDChecksum ComputeAdler32(const char* buffer,
                                   size_t size) {
-  return adler32(kNoPartialChecksum,
+  return adler32_old(kNoPartialChecksum,
                  reinterpret_cast<const Bytef*>(buffer),
                  static_cast<uInt>(size));
 }
@@ -41,7 +41,7 @@ inline VCDChecksum ComputeAdler32(const char* buffer,
 inline VCDChecksum UpdateAdler32(VCDChecksum partial_checksum,
                                  const char* buffer,
                                  size_t size) {
-  return adler32(partial_checksum,
+  return adler32_old(partial_checksum,
                  reinterpret_cast<const Bytef*>(buffer),
                  static_cast<uInt>(size));
 }

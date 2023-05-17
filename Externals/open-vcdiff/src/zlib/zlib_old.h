@@ -28,6 +28,8 @@
   (zlib format), rfc1951.txt (deflate format) and rfc1952.txt (gzip format).
 */
 
+#pragma once
+
 #ifndef ZLIB_H
 #define ZLIB_H
 
@@ -1260,7 +1262,7 @@ ZEXTERN void ZEXPORT gzclearerr OF((gzFile file));
    compression library.
 */
 
-ZEXTERN uLong ZEXPORT adler32 OF((uLong adler, const Bytef *buf, uInt len));
+ZEXTERN uLong ZEXPORT adler32_old OF((uLong adler, const Bytef *buf, uInt len));
 /*
      Update a running Adler-32 checksum with the bytes buf[0..len-1] and
    return the updated checksum. If buf is NULL, this function returns
@@ -1289,7 +1291,7 @@ ZEXTERN void ZEXPORT adler32_range OF((uLong* min, uLong* max));
    software.  
 */
 
-ZEXTERN uLong ZEXPORT adler32_combine OF((uLong adler1, uLong adler2,
+ZEXTERN uLong ZEXPORT adler32_combine_old OF((uLong adler1, uLong adler2,
                                           z_off_t len2));
 /*
      Combine two Adler-32 checksums into one.  For two sequences of bytes, seq1

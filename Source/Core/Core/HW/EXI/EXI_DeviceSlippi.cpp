@@ -8,7 +8,6 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
-
 #include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
 #include "Common/MsgHandler.h"
@@ -16,6 +15,7 @@
 #include "Common/Thread.h"
 #include "Common/Version.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -32,14 +32,15 @@
 #include "Core/Slippi/SlippiPremadeText.h"
 #include "Core/Slippi/SlippiReplayComm.h"
 #include "Core/State.h"
+#include "Core/System.h"
 #include "VideoCommon/OnScreenDisplay.h"
 
 #define FRAME_INTERVAL 900
 #define SLEEP_TIME_MS 8
 #define WRITE_FILE_SLEEP_TIME_MS 85
 
-//#define LOCAL_TESTING
-//#define CREATE_DIFF_FILES
+// #define LOCAL_TESTING
+// #define CREATE_DIFF_FILES
 extern std::unique_ptr<SlippiPlaybackStatus> g_playbackStatus;
 extern std::unique_ptr<SlippiReplayComm> g_replayComm;
 extern bool g_needInputForFrame;
@@ -112,9 +113,9 @@ std::string ConvertConnectCodeForGame(const std::string& input)
   return connectCode;
 }
 
-CEXISlippi::CEXISlippi()
+CEXISlippi::CEXISlippi(Core::System& system) : IEXIDevice(system)
 {
-  INFO_LOG(SLIPPI, "EXI SLIPPI Constructor called.");
+  INFO_LOG_FMT(SLIPPI, "EXI SLIPPI Constructor called.");
 
   user = std::make_unique<SlippiUser>();
   g_playbackStatus = std::make_unique<SlippiPlaybackStatus>();
@@ -125,7 +126,7 @@ CEXISlippi::CEXISlippi()
   directCodes = std::make_unique<SlippiDirectCodes>("direct-codes.json");
   teamsCodes = std::make_unique<SlippiDirectCodes>("teams-codes.json");
 
-  generator = std::default_random_engine(Common::Timer::GetTimeMs());
+  generator = std::default_random_engine(Common::Timer::NowMs());
 
   // Loggers will check 5 bytes, make sure we own that memory
   m_read_queue.reserve(5);
@@ -405,7 +406,7 @@ void CEXISlippi::writeToFileAsync(u8* payload, u32 length, std::string fileOptio
 
   if (fileOption == "create" && !writeThreadRunning)
   {
-    WARN_LOG(SLIPPI, "Creating file write thread...");
+    WARN_LOG_FMT(SLIPPI, "Creating file write thread...");
     writeThreadRunning = true;
     m_fileWriteThread = std::thread(&CEXISlippi::FileWriteThread, this);
   }
@@ -446,7 +447,7 @@ void CEXISlippi::writeToFile(std::unique_ptr<WriteMessage> msg)
 {
   if (!msg)
   {
-    ERROR_LOG(SLIPPI, "Unexpected error: write message is falsy.");
+    ERROR_LOG_FMT(SLIPPI, "Unexpected error: write message is falsy.");
     return;
   }
 
@@ -518,7 +519,7 @@ void CEXISlippi::writeToFile(std::unique_ptr<WriteMessage> msg)
   bool result = m_file.WriteBytes(&dataToWrite[0], dataToWrite.size());
   if (!result)
   {
-    ERROR_LOG(EXPANSIONINTERFACE, "Failed to write data to file.");
+    ERROR_LOG_FMT(EXPANSIONINTERFACE, "Failed to write data to file.");
   }
 
   // If file should be closed, close it
@@ -526,7 +527,7 @@ void CEXISlippi::writeToFile(std::unique_ptr<WriteMessage> msg)
   {
     // Write the number of bytes for the raw output
     std::vector<u8> sizeBytes = uint32ToVector(writtenByteCount);
-    m_file.Seek(11, 0);
+    m_file.Seek(11, File::SeekOrigin::Begin);
     m_file.WriteBytes(&sizeBytes[0], sizeBytes.size());
 
     // Close file
@@ -579,22 +580,22 @@ void CEXISlippi::createNewFile()
   }
 
   std::string filepath = dirpath + DIR_SEP + generateFileName();
-  INFO_LOG(SLIPPI, "EXI_DeviceSlippi.cpp: Creating new replay file %s", filepath.c_str());
+  INFO_LOG_FMT(SLIPPI, "EXI_DeviceSlippi.cpp: Creating new replay file {}", filepath.c_str());
 
 #ifdef _WIN32
-  m_file = File::IOFile(filepath, "wb", _SH_DENYWR);
+  m_file = File::IOFile(filepath, "wb", File::SharedAccess::Read);
 #else
   m_file = File::IOFile(filepath, "wb");
 #endif
 
   if (!m_file)
   {
-    PanicAlertFmtT("Could not create .slp replay file [%s].\n\n"
-                "The replay folder's path might be invalid, or you might "
-                "not have permission to write to it.\n\n"
-                "You can change the replay folder in Config > Slippi > "
-                "Slippi Replay Settings.",
-                filepath.c_str());
+    PanicAlertFmtT("Could not create .slp replay file [{0}].\n\n"
+                   "The replay folder's path might be invalid, or you might "
+                   "not have permission to write to it.\n\n"
+                   "You can change the replay folder in Config > Slippi > "
+                   "Slippi Replay Settings.",
+                   filepath);
   }
 }
 
@@ -1152,7 +1153,7 @@ void CEXISlippi::prepareGeckoList()
   }
 
   std::vector<u8> source = settings->geckoCodes;
-  INFO_LOG(SLIPPI, "Booting codes with source size: %d", source.size());
+  INFO_LOG_FMT(SLIPPI, "Booting codes with source size: {}", source.size());
 
   int idx = 0;
   while (idx < source.size())
@@ -1192,8 +1193,8 @@ void CEXISlippi::prepareGeckoList()
     if (deny_list.count(address))
       continue;
 
-    INFO_LOG(SLIPPI, "Codetype [%x] Inserting section: %d - %d (%x, %d)", codeType,
-             idx - codeOffset, idx, address, codeOffset);
+    INFO_LOG_FMT(SLIPPI, "Codetype [{:x}] Inserting section: {} - {} ({:x}, {})", codeType,
+                 idx - codeOffset, idx, address, codeOffset);
 
     // If not blacklisted, add code to return vector
     geckoList.insert(geckoList.end(), source.begin() + (idx - codeOffset), source.begin() + idx);
@@ -1226,7 +1227,7 @@ void CEXISlippi::prepareCharacterFrameData(Slippi::FrameData* frame, u8 port, u8
   // << data.animation
   // << "\n";
 
-  // WARN_LOG(EXPANSIONINTERFACE, "[Frame %d] [Player %d] Positions: %f | %f", frameIndex, port,
+  // WARN_LOG_FMT(EXPANSIONINTERFACE, "[Frame {}] [Player {}] Positions: %f | %f", frameIndex, port,
   // data.locationX, data.locationY);
 
   // Add all of the inputs in order
@@ -1288,7 +1289,7 @@ void CEXISlippi::prepareFrameData(u8* payload)
   auto watchSettings = g_replayComm->current;
   if (frameIndex > watchSettings.endFrame)
   {
-    INFO_LOG(SLIPPI, "Killing game because we are past endFrame");
+    INFO_LOG_FMT(SLIPPI, "Killing game because we are past endFrame");
     m_read_queue.push_back(FRAME_RESP_TERMINATE);
     return;
   }
@@ -1506,12 +1507,12 @@ void CEXISlippi::prepareIsFileReady()
   {
     // Do not start if replay file doesn't exist
     // TODO: maybe display error message?
-    INFO_LOG(SLIPPI, "EXI_DeviceSlippi.cpp: Replay file does not exist?");
+    INFO_LOG_FMT(SLIPPI, "EXI_DeviceSlippi.cpp: Replay file does not exist?");
     m_read_queue.push_back(0);
     return;
   }
 
-  INFO_LOG(SLIPPI, "EXI_DeviceSlippi.cpp: Replay file loaded successfully!?");
+  INFO_LOG_FMT(SLIPPI, "EXI_DeviceSlippi.cpp: Replay file loaded successfully!?");
 
   // Clear playback control related vars
   g_playbackStatus->resetPlayback();
@@ -1735,11 +1736,12 @@ bool CEXISlippi::shouldAdvanceOnlineFrame(s32 frame)
     }
 
     auto dynamicEmulationSpeed = 1.0f + deviation;
-    SConfig::GetInstance().m_EmulationSpeed = dynamicEmulationSpeed;
-    // SConfig::GetInstance().m_EmulationSpeed = 0.97f; // used for testing
+    Config::SetCurrent(Config::MAIN_EMULATION_SPEED, dynamicEmulationSpeed);
+    // SConfig::GetInstance().m_EmulationSpeed = dynamicEmulationSpeed;
+    //  SConfig::GetInstance().m_EmulationSpeed = 0.97f; // used for testing
 
-    INFO_LOG(SLIPPI_ONLINE, "[Frame %d] Offset for advance is: %d us. New speed: %.2f%%", frame,
-             offsetUs, dynamicEmulationSpeed * 100.0f);
+    INFO_LOG_FMT(SLIPPI_ONLINE, "[Frame {}] Offset for advance is: {} us. New speed: {.4}%", frame,
+                 offsetUs, dynamicEmulationSpeed * 100.0f);
 
     s32 frameTime = 16683;
     s32 t1 = 10000;
@@ -1869,7 +1871,7 @@ void CEXISlippi::prepareOpponentInputs(s32 frame, bool shouldSkip)
       latestFrame = frame;
     latestFrameRead[i] = latestFrame;
     appendWordToBuffer(&m_read_queue, static_cast<u32>(latestFrame));
-    // INFO_LOG(SLIPPI_ONLINE, "Sending frame num %d for pIdx %d (offset: %d)", latestFrame, i,
+    // INFO_LOG_FMT(SLIPPI_ONLINE, "Sending frame num {} for pIdx {} (offset: {})", latestFrame, i,
     // offset[i]);
   }
   // Send the current frame for any unused player slots.
@@ -1900,7 +1902,7 @@ void CEXISlippi::prepareOpponentInputs(s32 frame, bool shouldSkip)
     m_read_queue.insert(m_read_queue.end(), tx.begin(), tx.end());
   }
 
-  // ERROR_LOG(SLIPPI_ONLINE, "EXI: [%d] %X %X %X %X %X %X %X %X", latestFrame, m_read_queue[5],
+  // ERROR_LOG_FMT(SLIPPI_ONLINE, "EXI: [{}] %X %X %X %X %X %X %X %X", latestFrame, m_read_queue[5],
   // m_read_queue[6], m_read_queue[7], m_read_queue[8], m_read_queue[9], m_read_queue[10],
   // m_read_queue[11], m_read_queue[12]);
 }
@@ -1939,8 +1941,8 @@ void CEXISlippi::handleCaptureSavestate(u8* payload)
   ss->Capture();
   activeSavestates[frame] = std::move(ss);
 
-  // u32 timeDiff = (u32)(Common::Timer::GetTimeUs() - startTime);
-  // INFO_LOG(SLIPPI_ONLINE, "SLIPPI ONLINE: Captured savestate for frame %d in: %f ms", frame,
+  // u32 timeDiff = (u32)(Common::Timer::NowUs() - startTime);
+  // INFO_LOG_FMT(SLIPPI_ONLINE, "SLIPPI ONLINE: Captured savestate for frame {} in: %f ms", frame,
   //          ((double)timeDiff) / 1000);
 }
 
@@ -1980,8 +1982,8 @@ void CEXISlippi::handleLoadSavestate(u8* payload)
 
   activeSavestates.clear();
 
-  // u32 timeDiff = (u32)(Common::Timer::GetTimeUs() - startTime);
-  // INFO_LOG(SLIPPI_ONLINE, "SLIPPI ONLINE: Loaded savestate for frame %d in: %f ms", frame,
+  // u32 timeDiff = (u32)(Common::Timer::NowUs() - startTime);
+  // INFO_LOG_FMT(SLIPPI_ONLINE, "SLIPPI ONLINE: Loaded savestate for frame {} in: %f ms", frame,
   //          ((double)timeDiff) / 1000);
 }
 
@@ -2070,7 +2072,7 @@ bool CEXISlippi::doesTagMatchInput(u8* input, u8 inputLen, std::string tag)
   bool isMatch = true;
   for (int i = 0; i < inputLen; i++)
   {
-    // ERROR_LOG(SLIPPI_ONLINE, "Entered: %X%X. History: %X%X", input[i * 3], input[i * 3 + 1],
+    // ERROR_LOG_FMT(SLIPPI_ONLINE, "Entered: %X%X. History: %X%X", input[i * 3], input[i * 3 + 1],
     // (u8)jisTag[i * 2], (u8)jisTag[i * 2 + 1]);
     if (input[i * 3] != (u8)jisTag[i * 2] || input[i * 3 + 1] != (u8)jisTag[i * 2 + 1])
     {
@@ -2421,7 +2423,7 @@ void CEXISlippi::prepareOnlineMatchState()
     // Check if someone is picking dumb characters in non-direct
     auto localCharOk = lps.characterId < 26;
     auto remoteCharOk = true;
-    INFO_LOG(SLIPPI_ONLINE, "remotePlayerCount: %d", remotePlayerCount);
+    INFO_LOG_FMT(SLIPPI_ONLINE, "remotePlayerCount: {}", remotePlayerCount);
     for (int i = 0; i < remotePlayerCount; i++)
     {
       if (rps[i].characterId >= 26)
@@ -2497,7 +2499,7 @@ void CEXISlippi::prepareOnlineMatchState()
 
     // Set rng offset
     rngOffset = isDecider ? lps.rngOffset : rps[0].rngOffset;
-    INFO_LOG(SLIPPI_ONLINE, "Rng Offset: 0x%x", rngOffset);
+    INFO_LOG_FMT(SLIPPI_ONLINE, "Rng Offset: {:#x}", rngOffset);
 
     // Check if everyone is the same color
     auto color = orderedSelections[0].teamId;
@@ -2726,8 +2728,8 @@ void CEXISlippi::setMatchSelections(u8* payload)
     s.stageId = getRandomStage();
   }
 
-  INFO_LOG(SLIPPI, "LPS set char: %d, iSS: %d, %d, stage: %d, team: %d", s.isCharacterSelected,
-           stageSelectOption, s.isStageSelected, s.stageId, s.teamId);
+  INFO_LOG_FMT(SLIPPI, "LPS set char: {}, iSS: {}, {}, stage: {}, team: {}", s.isCharacterSelected,
+               stageSelectOption, s.isStageSelected, s.stageId, s.teamId);
 
   s.rngOffset = generator() % 0xFFFF;
 
@@ -2749,7 +2751,7 @@ void CEXISlippi::prepareFileLength(u8* payload)
   std::string contents;
   u32 size = gameFileLoader->LoadFile(fileName, contents);
 
-  INFO_LOG(SLIPPI, "Getting file size for: %s -> %d", fileName.c_str(), size);
+  INFO_LOG_FMT(SLIPPI, "Getting file size for: {} -> {}", fileName.c_str(), size);
 
   // Write size to output
   appendWordToBuffer(&m_read_queue, size);
@@ -2765,7 +2767,7 @@ void CEXISlippi::prepareFileLoad(u8* payload)
   u32 size = gameFileLoader->LoadFile(fileName, contents);
   std::vector<u8> buf(contents.begin(), contents.end());
 
-  INFO_LOG(SLIPPI, "Writing file contents: %s -> %d", fileName.c_str(), size);
+  INFO_LOG_FMT(SLIPPI, "Writing file contents: {} -> {}", fileName.c_str(), size);
 
   // Write the contents to output
   m_read_queue.insert(m_read_queue.end(), buf.begin(), buf.end());
@@ -2777,7 +2779,7 @@ void CEXISlippi::prepareGctLength()
 
   u32 size = Gecko::GetGctLength();
 
-  INFO_LOG(SLIPPI, "Getting gct size: %d", size);
+  INFO_LOG_FMT(SLIPPI, "Getting gct size: {}", size);
 
   // Write size to output
   appendWordToBuffer(&m_read_queue, size);
@@ -2792,7 +2794,7 @@ void CEXISlippi::prepareGctLoad(u8* payload)
   // This is the address where the codes will be written to
   auto address = Common::swap32(&payload[0]);
 
-  INFO_LOG(SLIPPI, "Preparing to write gecko codes at: 0x%X", address);
+  INFO_LOG_FMT(SLIPPI, "Preparing to write gecko codes at: {:#x}", address);
 
   m_read_queue.insert(m_read_queue.end(), gct.begin(), gct.end());
 }
@@ -2883,7 +2885,7 @@ void CEXISlippi::handleChatMessage(u8* payload)
     return;
 
   int messageId = payload[0];
-  INFO_LOG(SLIPPI, "SLIPPI CHAT INPUT: 0x%x", messageId);
+  INFO_LOG_FMT(SLIPPI, "SLIPPI CHAT INPUT: {:#x}", messageId);
 
 #ifdef LOCAL_TESTING
   localChatMessageId = 11;
@@ -2902,15 +2904,16 @@ void CEXISlippi::handleChatMessage(u8* payload)
 
 void CEXISlippi::logMessageFromGame(u8* payload)
 {
+  // The first byte indicates whether to log the time or not
   if (payload[0] == 0)
   {
-    // The first byte indicates whether to log the time or not
-    GENERIC_LOG(Common::Log::SLIPPI, (Common::Log::LOG_LEVELS)payload[1], "%s", (char*)&payload[2]);
+    GENERIC_LOG_FMT(Common::Log::LogType::SLIPPI, (Common::Log::LogLevel)payload[1], "{}",
+                    (char*)&payload[2]);
   }
   else
   {
-    GENERIC_LOG(Common::Log::SLIPPI, (Common::Log::LOG_LEVELS)payload[1], "%s: %llu",
-                (char*)&payload[2], Common::Timer::GetTimeUs());
+    GENERIC_LOG_FMT(Common::Log::LogType::SLIPPI, (Common::Log::LogLevel)payload[1], "{}: {}",
+                    (char*)&payload[2], Common::Timer::NowUs());
   }
 }
 
@@ -2944,7 +2947,7 @@ void CEXISlippi::prepareOnlineStatus()
   {
     // Check if we have the latest version, and if not, indicate we need to update
     version::Semver200_version latestVersion(userInfo.latest_version);
-    version::Semver200_version currentVersion(Common::scm_slippi_semver_str);
+    version::Semver200_version currentVersion(Common::GetSemVerStr());
 
     appState = latestVersion > currentVersion ? 2 : 1;
   }
@@ -2976,7 +2979,7 @@ void doConnectionCleanup(std::unique_ptr<SlippiMatchmaking> mm,
 
 void CEXISlippi::handleConnectionCleanup()
 {
-  ERROR_LOG(SLIPPI_ONLINE, "Connection cleanup started...");
+  ERROR_LOG_FMT(SLIPPI_ONLINE, "Connection cleanup started...");
 
   // Handle destructors in a separate thread to not block the main thread
   std::thread cleanup(doConnectionCleanup, std::move(matchmaking), std::move(slippi_netplay));
@@ -3004,7 +3007,7 @@ void CEXISlippi::handleConnectionCleanup()
   isLocalConnected = false;
 #endif
 
-  ERROR_LOG(SLIPPI_ONLINE, "Connection cleanup completed...");
+  ERROR_LOG_FMT(SLIPPI_ONLINE, "Connection cleanup completed...");
 }
 
 void CEXISlippi::prepareNewSeed()
@@ -3022,7 +3025,7 @@ void CEXISlippi::handleReportGame(u8* payload)
   SlippiGameReporter::GameReport r;
   r.duration_frames = Common::swap32(&payload[0]);
 
-  // ERROR_LOG(SLIPPI_ONLINE, "Frames: %d", r.duration_frames);
+  // ERROR_LOG_FMT(SLIPPI_ONLINE, "Frames: {}", r.duration_frames);
 
   for (auto i = 0; i < 2; ++i)
   {
@@ -3033,7 +3036,8 @@ void CEXISlippi::handleReportGame(u8* payload)
     auto swappedDamageDone = Common::swap32(&payload[6 + offset]);
     p.damage_done = *(float*)&swappedDamageDone;
 
-    // ERROR_LOG(SLIPPI_ONLINE, "Stocks: %d, DamageDone: %f", p.stocks_remaining, p.damage_done);
+    // ERROR_LOG_FMT(SLIPPI_ONLINE, "Stocks: {}, DamageDone: %f", p.stocks_remaining,
+    // p.damage_done);
 
     r.players.push_back(p);
   }
@@ -3058,14 +3062,19 @@ void CEXISlippi::prepareDelayResponse()
 
 void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
 {
-  u8* memPtr = Memory::GetPointer(_uAddr);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  u8* memPtr = memory.GetPointer(_uAddr);
 
   u32 bufLoc = 0;
 
   if (memPtr == nullptr)
   {
-    NOTICE_LOG(SLIPPI, "DMA Write was passed an invalid address: %x", _uAddr);
-    Dolphin_Debugger::PrintCallstack(Common::Log::SLIPPI, Common::Log::LNOTICE);
+    ASSERT(Core::IsCPUThread());
+    Core::CPUThreadGuard guard(system);
+    NOTICE_LOG_FMT(SLIPPI, "DMA Write was passed an invalid address: {:x}", _uAddr);
+    Dolphin_Debugger::PrintCallstack(system, guard, Common::Log::LogType::SLIPPI,
+                                     Common::Log::LogLevel::LNOTICE);
     m_read_queue.clear();
     return;
   }
@@ -3089,10 +3098,10 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
     g_needInputForFrame = true;
   }
 
-  INFO_LOG(EXPANSIONINTERFACE,
-           "EXI SLIPPI DMAWrite: addr: 0x%08x size: %d, bufLoc:[%02x %02x %02x %02x %02x]", _uAddr,
-           _uSize, memPtr[bufLoc], memPtr[bufLoc + 1], memPtr[bufLoc + 2], memPtr[bufLoc + 3],
-           memPtr[bufLoc + 4]);
+  INFO_LOG_FMT(EXPANSIONINTERFACE,
+               "EXI SLIPPI DMAWrite: addr: {:#x} size: {}, bufLoc:[{} {} {} {} {}]", _uAddr, _uSize,
+               memPtr[bufLoc], memPtr[bufLoc + 1], memPtr[bufLoc + 2], memPtr[bufLoc + 3],
+               memPtr[bufLoc + 4]);
 
   while (bufLoc < _uSize)
   {
@@ -3100,7 +3109,7 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
     if (!payloadSizes.count(byte))
     {
       // This should never happen. Do something else if it does?
-      WARN_LOG(EXPANSIONINTERFACE, "EXI SLIPPI: Invalid command byte: 0x%x", byte);
+      WARN_LOG_FMT(EXPANSIONINTERFACE, "EXI SLIPPI: Invalid command byte: {:#x}", byte);
       return;
     }
 
@@ -3217,19 +3226,21 @@ void CEXISlippi::DMARead(u32 addr, u32 size)
 {
   if (m_read_queue.empty())
   {
-    ERROR_LOG(SLIPPI, "EXI SLIPPI DMARead: Empty");
+    ERROR_LOG_FMT(SLIPPI, "EXI SLIPPI DMARead: Empty");
     return;
   }
 
   m_read_queue.resize(size, 0);  // Resize response array to make sure it's all full/allocated
 
   auto queueAddr = &m_read_queue[0];
-  INFO_LOG(EXPANSIONINTERFACE,
-           "EXI SLIPPI DMARead: addr: 0x%08x size: %d, startResp: [%02x %02x %02x %02x %02x]", addr,
-           size, queueAddr[0], queueAddr[1], queueAddr[2], queueAddr[3], queueAddr[4]);
+  INFO_LOG_FMT(EXPANSIONINTERFACE,
+               "EXI SLIPPI DMARead: addr: {:#x} size: {}, startResp: [{} {} {} {} {}]", addr, size,
+               queueAddr[0], queueAddr[1], queueAddr[2], queueAddr[3], queueAddr[4]);
 
   // Copy buffer data to memory
-  Memory::CopyToEmu(addr, queueAddr, size);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  memory.CopyToEmu(addr, queueAddr, size);
 }
 
 bool CEXISlippi::IsPresent() const

@@ -31,8 +31,8 @@ static inline void trim(std::string& s)
 
 SlippiReplayComm::SlippiReplayComm()
 {
-  INFO_LOG(EXPANSIONINTERFACE, "SlippiReplayComm: Using playback config path: %s",
-           SConfig::GetInstance().m_strSlippiInput.c_str());
+  INFO_LOG_FMT(EXPANSIONINTERFACE, "SlippiReplayComm: Using playback config path: {}",
+               SConfig::GetInstance().m_strSlippiInput.c_str());
   configFilePath = SConfig::GetInstance().m_strSlippiInput.c_str();
 }
 
@@ -96,7 +96,7 @@ void SlippiReplayComm::nextReplay()
 std::unique_ptr<Slippi::SlippiGame> SlippiReplayComm::loadGame()
 {
   auto replayFilePath = getReplayPath();
-  INFO_LOG(EXPANSIONINTERFACE, "Attempting to load replay file %s", replayFilePath.c_str());
+  INFO_LOG_FMT(EXPANSIONINTERFACE, "Attempting to load replay file {}", replayFilePath.c_str());
   auto result = Slippi::SlippiGame::FromFile(replayFilePath);
   if (result)
   {
@@ -147,7 +147,7 @@ void SlippiReplayComm::loadFile()
     return;
   }
 
-  WARN_LOG(EXPANSIONINTERFACE, "File change detected in comm file: %s", configFilePath.c_str());
+  WARN_LOG_FMT(EXPANSIONINTERFACE, "File change detected in comm file: {}", configFilePath.c_str());
   configLastLoadModTime = modTime;
 
   // TODO: Maybe load file in a more intelligent way to save
@@ -179,7 +179,7 @@ void SlippiReplayComm::loadFile()
     }
     else
     {
-      WARN_LOG(EXPANSIONINTERFACE, "Comm file load error detected. Check file format");
+      WARN_LOG_FMT(EXPANSIONINTERFACE, "Comm file load error detected. Check file format");
 
       // Reset in the case of read error. this fixes a race condition where file mod time changes
       // but the file is not readable yet?

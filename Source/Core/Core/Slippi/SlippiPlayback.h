@@ -5,12 +5,12 @@
 #include <unordered_map>
 #include <vector>
 
-#include <SlippiLib/SlippiGame.h>
 #include <open-vcdiff/src/google/vcdecoder.h>
 #include <open-vcdiff/src/google/vcencoder.h>
 
 #include "../../Common/CommonTypes.h"
 #include "Core/ConfigManager.h"
+#include "SlippiGame.h"
 
 class SlippiPlaybackStatus
 {

@@ -41,12 +41,6 @@ IOFile::IOFile(const std::string& filename, const char openmode[], SharedAccess 
   Open(filename, openmode, sh);
 }
 
-IOFile::IOFile(const std::string& filename, const char openmode[], int shflag)
-  : m_file(nullptr), m_good(true)
-{
-  OpenShared(filename, openmode, shflag);
-}
-
 IOFile::~IOFile()
 {
   Close();
@@ -95,19 +89,6 @@ bool IOFile::Open(const std::string& filename, const char openmode[],
   m_good = m_file != nullptr;
 #endif
 
-  return m_good;
-}
-
-bool IOFile::OpenShared(const std::string& filename, const char openmode[], int shflag)
-{
-  Close();
-#ifdef _WIN32
-  m_file = _fsopen(filename.c_str(), openmode, shflag);
-#else
-  m_file = fopen(filename.c_str(), openmode);
-#endif
-
-  m_good = IsOpen();
   return m_good;
 }
 

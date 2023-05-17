@@ -1,12 +1,13 @@
 #include "SlippiGameFileLoader.h"
 
-#include "Common/File.h"
 #include "Common/FileUtil.h"
+#include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Core/Boot/Boot.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/DVD/DVDThread.h"
+#include "Core/System.h"
 
 std::string getFilePath(std::string fileName)
 {
@@ -36,7 +37,7 @@ u32 SlippiGameFileLoader::LoadFile(std::string fileName, std::string& data)
     return (u32)data.size();
   }
 
-  INFO_LOG(SLIPPI, "Loading file: %s", fileName.c_str());
+  INFO_LOG_FMT(SLIPPI, "Loading file: {}", fileName.c_str());
 
   std::string gameFilePath = getFilePath(fileName);
   if (gameFilePath.empty())
@@ -55,14 +56,14 @@ u32 SlippiGameFileLoader::LoadFile(std::string fileName, std::string& data)
       Core::GetState() == Core::State::Running)
   {
     std::vector<u8> buf;
-    INFO_LOG(SLIPPI, "Will process diff");
-    DVDThread::ReadFile(fileName, buf);
+    INFO_LOG_FMT(SLIPPI, "Will process diff");
+    Core::System::GetInstance().GetDVDThread().ReadFile(fileName, buf);
     std::string diffContents = fileContents;
     decoder.Decode((char*)buf.data(), buf.size(), diffContents, &fileContents);
   }
 
   fileCache[fileName] = fileContents;
   data = fileCache[fileName];
-  INFO_LOG(SLIPPI, "File size: %d", (u32)data.size());
+  INFO_LOG_FMT(SLIPPI, "File size: {}", (u32)data.size());
   return (u32)data.size();
 }

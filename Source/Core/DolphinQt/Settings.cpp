@@ -715,11 +715,6 @@ void Settings::SetSlippiSeekbarEnabled(bool enabled)
   SConfig::GetInstance().m_slippiEnableSeek = enabled;
 }
 
-bool Settings::IsBootDefaultISO() const
-{
-  return SConfig::GetInstance().bBootDefaultISO;
-}
-
 bool Settings::IsSDCardInserted() const
 {
   return Config::Get(Config::MAIN_WII_SD_CARD);

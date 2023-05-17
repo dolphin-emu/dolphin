@@ -36,10 +36,9 @@ SlippiMatchmaking::SlippiMatchmaking(SlippiUser* user)
   m_client = nullptr;
   m_server = nullptr;
 
-  MM_HOST =
-      Common::scm_slippi_semver_str.find("dev") == std::string::npos ? MM_HOST_PROD : MM_HOST_DEV;
+  MM_HOST = Common::GetSemVerStr().find("dev") == std::string::npos ? MM_HOST_PROD : MM_HOST_DEV;
 
-  generator = std::default_random_engine(Common::Timer::GetTimeMs());
+  generator = std::default_random_engine(Common::Timer::NowMs());
 }
 
 SlippiMatchmaking::~SlippiMatchmaking()
@@ -367,7 +366,7 @@ void SlippiMatchmaking::startMatchmaking()
 
   if (SConfig::GetInstance().m_slippiForceLanIp)
   {
-    WARN_LOG(SLIPPI_ONLINE, "[Matchmaking] Overwriting LAN IP sent with configured address");
+    WARN_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Overwriting LAN IP sent with configured address");
     sprintf(lan_addr, "%s:%d", SConfig::GetInstance().m_slippiLanIp.c_str(), m_hostPort);
   }
 
@@ -382,7 +381,7 @@ void SlippiMatchmaking::startMatchmaking()
   request["type"] = MmMessageType::CREATE_TICKET;
   request["user"] = {{"uid", userInfo.uid}, {"playKey", userInfo.play_key}};
   request["search"] = {{"mode", m_searchSettings.mode}, {"connectCode", connectCodeBuf}};
-  request["appVersion"] = Common::scm_slippi_semver_str;
+  request["appVersion"] = Common::GetSemVerStr();
   request["ipAddressLan"] = lan_addr;
   sendMessage(request);
 

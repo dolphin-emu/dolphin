@@ -34,7 +34,6 @@ class IOFile
 public:
   IOFile();
   IOFile(std::FILE* file);
-  IOFile(const std::string& filename, const char openmode[]);
   IOFile(const std::string& filename, const char openmode[],
          SharedAccess sh = SharedAccess::Default);
 
@@ -47,8 +46,6 @@ public:
   IOFile& operator=(IOFile&& other) noexcept;
 
   void Swap(IOFile& other) noexcept;
-
-  bool Open(const std::string& filename, const char openmode[]);
 
   bool Open(const std::string& filename, const char openmode[],
             SharedAccess sh = SharedAccess::Default);

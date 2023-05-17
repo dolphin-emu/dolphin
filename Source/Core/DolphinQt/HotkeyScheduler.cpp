@@ -28,9 +28,9 @@
 #include "Core/HotkeyManager.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTBase.h"
+#include "Core/IOS/USB/Bluetooth/BTReal.h"
 #include "Core/Slippi/SlippiNetplay.h"
 #include "Core/Slippi/SlippiPlayback.h"
-#include "Core/IOS/USB/Bluetooth/BTReal.h"
 #include "Core/State.h"
 #include "Core/System.h"
 #include "Core/WiiUtils.h"
@@ -560,7 +560,7 @@ void HotkeyScheduler::Run()
     // Slippi Playback
     if (IsHotkey(HK_SLIPPI_JUMP_BACK))
     {
-      INFO_LOG(SLIPPI, "jump back");
+      INFO_LOG_FMT(SLIPPI, "jump back");
       if (g_playbackStatus->targetFrameNum == INT_MAX)
       {
         g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame - 1200;
@@ -570,7 +570,7 @@ void HotkeyScheduler::Run()
 
     if (IsHotkey(HK_SLIPPI_STEP_BACK))
     {
-      INFO_LOG(SLIPPI, "step back");
+      INFO_LOG_FMT(SLIPPI, "step back");
       if (g_playbackStatus->targetFrameNum == INT_MAX)
       {
         g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame - 300;
@@ -580,7 +580,7 @@ void HotkeyScheduler::Run()
 
     if (IsHotkey(HK_SLIPPI_STEP_FORWARD))
     {
-      INFO_LOG(SLIPPI, "step forward");
+      INFO_LOG_FMT(SLIPPI, "step forward");
       if (g_playbackStatus->targetFrameNum == INT_MAX)
       {
         g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame + 300;
@@ -590,7 +590,7 @@ void HotkeyScheduler::Run()
 
     if (IsHotkey(HK_SLIPPI_JUMP_FORWARD))
     {
-      INFO_LOG(SLIPPI, "jump forward");
+      INFO_LOG_FMT(SLIPPI, "jump forward");
       if (g_playbackStatus->targetFrameNum == INT_MAX)
       {
         g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame + 1200;

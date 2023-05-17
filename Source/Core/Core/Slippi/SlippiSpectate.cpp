@@ -253,7 +253,7 @@ void SlippiSpectateServer::handleMessage(u8* buffer, u32 length, u16 peer_id)
       json reply;
       reply["type"] = "connect_reply";
       reply["nick"] = "Slippi Online";
-      reply["version"] = Common::scm_slippi_semver_str;
+      reply["version"] = Common::GetSemVerStr();
       reply["cursor"] = sent_cursor;
 
       std::string packet_buffer = reply.dump();
@@ -273,7 +273,7 @@ void SlippiSpectateServer::SlippicommSocketThread(void)
 {
   if (enet_initialize() != 0)
   {
-    WARN_LOG(SLIPPI, "An error occurred while initializing spectator server.");
+    WARN_LOG_FMT(SLIPPI, "An error occurred while initializing spectator server.");
     return;
   }
 
@@ -297,7 +297,7 @@ void SlippiSpectateServer::SlippicommSocketThread(void)
 
   if (server == nullptr)
   {
-    WARN_LOG(SLIPPI, "Could not create spectator server");
+    WARN_LOG_FMT(SLIPPI, "Could not create spectator server");
     enet_deinitialize();
     return;
   }
@@ -332,8 +332,8 @@ void SlippiSpectateServer::SlippicommSocketThread(void)
       {
       case ENET_EVENT_TYPE_CONNECT:
       {
-        INFO_LOG(SLIPPI, "A new spectator connected from %x:%u.\n", event.peer->address.host,
-                 event.peer->address.port);
+        INFO_LOG_FMT(SLIPPI, "A new spectator connected from {:x}:{}.\n", event.peer->address.host,
+                     event.peer->address.port);
 
         std::shared_ptr<SlippiSocket> newSlippiSocket(new SlippiSocket());
         newSlippiSocket->m_peer = event.peer;
@@ -351,8 +351,8 @@ void SlippiSpectateServer::SlippicommSocketThread(void)
       }
       case ENET_EVENT_TYPE_DISCONNECT:
       {
-        INFO_LOG(SLIPPI, "A spectator disconnected from %x:%u.\n", event.peer->address.host,
-                 event.peer->address.port);
+        INFO_LOG_FMT(SLIPPI, "A spectator disconnected from {:x}:{}.\n", event.peer->address.host,
+                     event.peer->address.port);
 
         // Delete the item in the m_sockets map
         m_sockets.erase(event.peer->incomingPeerID);
@@ -362,7 +362,7 @@ void SlippiSpectateServer::SlippicommSocketThread(void)
       }
       default:
       {
-        INFO_LOG(SLIPPI, "Spectator sent an unknown ENet event type");
+        INFO_LOG_FMT(SLIPPI, "Spectator sent an unknown ENet event type");
         break;
       }
       }

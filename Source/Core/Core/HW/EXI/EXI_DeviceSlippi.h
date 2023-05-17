@@ -4,12 +4,11 @@
 
 #pragma once
 
-#include <SlippiGame.h>
-
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
 #include "Common/FileUtil.h"
+#include "Common/IOFile.h"
 #include "Core/Slippi/SlippiDirectCodes.h"
+#include "Core/Slippi/SlippiGame.h"
 #include "Core/Slippi/SlippiGameFileLoader.h"
 #include "Core/Slippi/SlippiGameReporter.h"
 #include "Core/Slippi/SlippiMatchmaking.h"
@@ -31,7 +30,7 @@ namespace ExpansionInterface
 class CEXISlippi : public IEXIDevice
 {
 public:
-  CEXISlippi();
+  CEXISlippi(Core::System& system);
   virtual ~CEXISlippi();
 
   void DMAWrite(u32 _uAddr, u32 _uSize) override;

@@ -7,7 +7,9 @@
 
 #include <enet/enet.h>
 #include "Common/SPSCQueue.h"
+#pragma warning(push, 0)
 #include "nlohmann/json.hpp"
+#pragma warning(pop)
 using json = nlohmann::json;
 
 // Sockets in windows are unsigned
