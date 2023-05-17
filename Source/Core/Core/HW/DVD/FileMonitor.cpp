@@ -77,7 +77,7 @@ void FileLogger::Log(const DiscIO::Volume& volume, const DiscIO::Partition& part
   if (m_previous_partition == partition && m_previous_file_offset == file_offset)
     return;
 
-  const std::string size_string = ThousandSeparate(file_info->GetSize() / 1000, 7);
+  const std::string size_string = Common::ThousandSeparate(file_info->GetSize() / 1000, 7);
   const std::string path = file_info->GetPath();
   const std::string log_string = fmt::format("{} kB {}", size_string, path);
   if (IsSoundFile(path))

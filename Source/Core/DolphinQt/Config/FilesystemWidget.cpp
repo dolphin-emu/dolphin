@@ -168,7 +168,7 @@ void FilesystemWidget::PopulateDirectory(int partition_id, QStandardItem* root,
     for (u32 i = 0; i < 4; i++)
     {
       char c = static_cast<char>(title_id.value() >> 8 * (3 - i));
-      if (IsPrintableCharacter(c))
+      if (Common::IsPrintableCharacter(c))
         text += QLatin1Char(c);
       else
         text += QLatin1Char('.');
