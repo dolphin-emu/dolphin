@@ -54,8 +54,7 @@ void Metal::BoundingBox::Write(u32 index, const std::vector<BBoxType>& values)
   {
     @autoreleasepool
     {
-      StateTracker::Map map = g_state_tracker->Allocate(StateTracker::UploadBuffer::Other, size,
-                                                        StateTracker::AlignMask::Other);
+      StateTracker::Map map = g_state_tracker->AllocateForTextureUpload(size);
       memcpy(map.cpu_buffer, values.data(), size);
       g_state_tracker->EndRenderPass();
       id<MTLBlitCommandEncoder> upload = [g_state_tracker->GetRenderCmdBuf() blitCommandEncoder];
