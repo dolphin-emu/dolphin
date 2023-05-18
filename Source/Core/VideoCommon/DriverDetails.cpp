@@ -217,4 +217,15 @@ bool HasBug(Bug bug)
     return false;
   return it->second.m_hasbug;
 }
+
+void OverrideBug(Bug bug, bool new_value)
+{
+  const auto [it, added] = m_bugs.try_emplace(
+      bug, BugInfo{m_api, m_os, m_vendor, m_driver, m_family, bug, -1, -1, false});
+  if (it->second.m_hasbug != new_value)
+  {
+    // TODO: Report to DolphinAnalytics?
+    it->second.m_hasbug = new_value;
+  }
+}
 }  // namespace DriverDetails
