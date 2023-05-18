@@ -299,14 +299,23 @@ enum Bug
 
   // BUG: Accessing gl_SubgroupInvocationID causes the Metal shader compiler to crash.
   //      Affected devices: AMD (older macOS)
-  // BUG: gl_HelperInvocation always returns true, even for non-helper invocations
-  //      Affected devices: AMD (newer macOS)
+  // Started version: ???
+  // Ended version: ???
+  // (Workaround currently disabled, will put it back when someone hits the issue and we can
+  //  find out what devices and OSes it actually affects)
+
   // BUG: Using subgroupMax in a shader that can discard results in garbage data
   //      (For some reason, this only happens at 4x+ IR on Metal, but 2x+ IR on MoltenVK)
   //      Affected devices: Intel (macOS)
   // Started version: -1
   // Ended version: -1
-  BUG_BROKEN_SUBGROUP_OPS,
+  BUG_BROKEN_SUBGROUP_OPS_WITH_DISCARD,
+
+  // BUG: gl_HelperInvocation is actually !gl_HelperInvocation
+  //      Affected devices: AMD (macOS)
+  // Started version: -1
+  // Ended version: -1
+  BUG_INVERTED_IS_HELPER,
 
   // BUG: Multi-threaded shader pre-compilation sometimes crashes
   // Used primarily in Videoconfig.cpp's GetNumAutoShaderPreCompilerThreads()

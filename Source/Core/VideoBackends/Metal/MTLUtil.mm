@@ -245,8 +245,6 @@ void Metal::Util::PopulateBackendInfoFeatures(VideoConfig* config, id<MTLDevice>
         [device supportsFamily:MTLGPUFamilyMac2] || [device supportsFamily:MTLGPUFamilyApple6];
     config->backend_info.bSupportsFramebufferFetch = [device supportsFamily:MTLGPUFamilyApple1];
   }
-  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_SUBGROUP_OPS))
-    g_features.subgroup_ops = false;
 #if TARGET_OS_OSX
   if (@available(macOS 11, *))
     if (vendor == DriverDetails::VENDOR_INTEL)
@@ -434,6 +432,13 @@ std::optional<std::string> Metal::Util::TranslateShaderToMSL(ShaderStage stage,
   full_source.append(header);
   if (Metal::g_features.subgroup_ops)
     full_source.append(SUBGROUP_HELPER_HEADER);
+  if (DriverDetails::HasBug(DriverDetails::BUG_INVERTED_IS_HELPER))
+  {
+    full_source.append("#define gl_HelperInvocation !gl_HelperInvocation "
+                       "// Work around broken AMD Metal driver\n");
+  }
+  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_SUBGROUP_OPS_WITH_DISCARD))
+    full_source.append("#define BROKEN_SUBGROUP_WITH_DISCARD 1\n");
   full_source.append(source);
 
   std::optional<SPIRV::CodeVector> code;
