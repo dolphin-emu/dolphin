@@ -440,16 +440,16 @@ std::optional<std::string> Metal::Util::TranslateShaderToMSL(ShaderStage stage,
   switch (stage)
   {
   case ShaderStage::Vertex:
-    code = SPIRV::CompileVertexShader(full_source, APIType::Metal, glslang::EShTargetSpv_1_3);
+    code = SPIRV::CompileVertexShader(full_source, APIType::Metal, glslang::EShTargetSpv_1_5);
     break;
   case ShaderStage::Geometry:
     PanicAlertFmt("Tried to compile geometry shader for Metal, but Metal doesn't support them!");
     break;
   case ShaderStage::Pixel:
-    code = SPIRV::CompileFragmentShader(full_source, APIType::Metal, glslang::EShTargetSpv_1_3);
+    code = SPIRV::CompileFragmentShader(full_source, APIType::Metal, glslang::EShTargetSpv_1_5);
     break;
   case ShaderStage::Compute:
-    code = SPIRV::CompileComputeShader(full_source, APIType::Metal, glslang::EShTargetSpv_1_3);
+    code = SPIRV::CompileComputeShader(full_source, APIType::Metal, glslang::EShTargetSpv_1_5);
     break;
   }
   if (!code.has_value())
