@@ -61,4 +61,5 @@
 	url = https://github.com/RetroAchievements/rcheevos.git
 [submodule "Externals/cpython/cpython"]
 	path = Externals/cpython/cpython
-	url = https://github.com/python/cpython.git
+	branch = 3.11
+	url = https://github.com/python/cpython
