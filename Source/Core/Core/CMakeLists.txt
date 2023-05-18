@@ -686,6 +686,7 @@ target_link_libraries(core
 PUBLIC
   audiocommon
   common
+  cpython
   cubeb
   discio
   enet
@@ -696,7 +697,6 @@ PUBLIC
   implot
   ${MBEDTLS_LIBRARIES}
   pugixml
-  Python3::Python
   RangeSet::RangeSet
   sfml-network
   sfml-system

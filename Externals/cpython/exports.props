@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ExternalsDir)cpython\cpython;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)cpython\cpython.vcxproj">
+      <Project>{89cc8f65-ce8f-4421-80b1-3c11e7d28da5}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>
