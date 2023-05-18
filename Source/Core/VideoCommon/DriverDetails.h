@@ -350,4 +350,7 @@ void Init(API api, Vendor vendor, Driver driver, const double version, const Fam
 // Once Vendor and driver version is set, this will return if it has the applicable bug passed to
 // it.
 bool HasBug(Bug bug);
+
+// Overrides the current state of a bug
+void OverrideBug(Bug bug, bool new_value);
 }  // namespace DriverDetails
