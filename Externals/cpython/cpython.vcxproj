@@ -73,7 +73,9 @@
     </ImportGroup>
 
   <PropertyGroup Label="UserMacros" />
-
+  <ItemGroup>
+      <ClInclude Include="cpython/Include/Python.h" />
+</ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
