@@ -144,10 +144,10 @@ constexpr std::array<Jit64OpTemplate, 13> s_table19{{
     {417, &Jit64::crXXX},   // crorc
     {193, &Jit64::crXXX},   // crxor
 
-    {150, &Jit64::DoNothing},  // isync
-    {0, &Jit64::mcrf},         // mcrf
+    {150, &Jit64::FallBackToInterpreter},  // isync
+    {0, &Jit64::mcrf},                     // mcrf
 
-    {50, &Jit64::rfi},  // rfi
+    {50, &Jit64::FallBackToInterpreter},  // rfi
 }};
 
 constexpr std::array<Jit64OpTemplate, 107> s_table31{{
@@ -270,7 +270,7 @@ constexpr std::array<Jit64OpTemplate, 107> s_table31{{
     {19, &Jit64::mfcr},                    // mfcr
     {83, &Jit64::mfmsr},                   // mfmsr
     {144, &Jit64::mtcrf},                  // mtcrf
-    {146, &Jit64::mtmsr},                  // mtmsr
+    {146, &Jit64::FallBackToInterpreter},  // mtmsr
     {210, &Jit64::FallBackToInterpreter},  // mtsr
     {242, &Jit64::FallBackToInterpreter},  // mtsrin
     {339, &Jit64::mfspr},                  // mfspr

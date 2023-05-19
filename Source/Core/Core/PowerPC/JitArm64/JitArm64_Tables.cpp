@@ -144,10 +144,10 @@ constexpr std::array<JitArm64OpTemplate, 13> s_table19{{
     {417, &JitArm64::crXXX},   // crorc
     {193, &JitArm64::crXXX},   // crxor
 
-    {150, &JitArm64::DoNothing},  // isync
-    {0, &JitArm64::mcrf},         // mcrf
+    {150, &JitArm64::FallBackToInterpreter},  // isync
+    {0, &JitArm64::mcrf},                     // mcrf
 
-    {50, &JitArm64::rfi},  // rfi
+    {50, &JitArm64::FallBackToInterpreter},  // rfi
 }};
 
 constexpr std::array<JitArm64OpTemplate, 107> s_table31{{
@@ -267,18 +267,18 @@ constexpr std::array<JitArm64OpTemplate, 107> s_table31{{
     {759, &JitArm64::stfXX},  // stfdux
     {983, &JitArm64::stfXX},  // stfiwx
 
-    {19, &JitArm64::mfcr},     // mfcr
-    {83, &JitArm64::mfmsr},    // mfmsr
-    {144, &JitArm64::mtcrf},   // mtcrf
-    {146, &JitArm64::mtmsr},   // mtmsr
-    {210, &JitArm64::mtsr},    // mtsr
-    {242, &JitArm64::mtsrin},  // mtsrin
-    {339, &JitArm64::mfspr},   // mfspr
-    {467, &JitArm64::mtspr},   // mtspr
-    {371, &JitArm64::mftb},    // mftb
-    {512, &JitArm64::mcrxr},   // mcrxr
-    {595, &JitArm64::mfsr},    // mfsr
-    {659, &JitArm64::mfsrin},  // mfsrin
+    {19, &JitArm64::mfcr},                    // mfcr
+    {83, &JitArm64::mfmsr},                   // mfmsr
+    {144, &JitArm64::mtcrf},                  // mtcrf
+    {146, &JitArm64::FallBackToInterpreter},  // mtmsr
+    {210, &JitArm64::mtsr},                   // mtsr
+    {242, &JitArm64::mtsrin},                 // mtsrin
+    {339, &JitArm64::mfspr},                  // mfspr
+    {467, &JitArm64::mtspr},                  // mtspr
+    {371, &JitArm64::mftb},                   // mftb
+    {512, &JitArm64::mcrxr},                  // mcrxr
+    {595, &JitArm64::mfsr},                   // mfsr
+    {659, &JitArm64::mfsrin},                 // mfsrin
 
     {4, &JitArm64::twx},                      // tw
     {598, &JitArm64::DoNothing},              // sync
