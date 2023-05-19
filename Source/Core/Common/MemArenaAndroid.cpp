@@ -10,6 +10,8 @@
 #include <set>
 #include <string>
 
+#include <fmt/format.h>
+
 #include <dlfcn.h>
 #include <fcntl.h>
 #include <linux/ashmem.h>
@@ -62,9 +64,10 @@ static int AshmemCreateFileMapping(const char* name, size_t size)
 MemArena::MemArena() = default;
 MemArena::~MemArena() = default;
 
-void MemArena::GrabSHMSegment(size_t size)
+void MemArena::GrabSHMSegment(size_t size, std::string_view base_name)
 {
-  m_shm_fd = AshmemCreateFileMapping(("dolphin-emu." + std::to_string(getpid())).c_str(), size);
+  const std::string name = fmt::format("{}.{}", base_name, getpid());
+  m_shm_fd = AshmemCreateFileMapping(name.c_str(), size);
   if (m_shm_fd < 0)
     NOTICE_LOG_FMT(MEMMAP, "Ashmem allocation failed");
 }

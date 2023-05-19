@@ -4,6 +4,7 @@
 #pragma once
 
 #include <cstddef>
+#include <string_view>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -34,8 +35,10 @@ public:
   /// CreateView() and ReleaseView(). Used to make a mappable region for emulated memory.
   ///
   /// @param size The amount of bytes that should be allocated in this region.
+  /// @param base_name A base name for the shared memory region, if applicable for this platform.
+  /// Will be extended with the process ID.
   ///
-  void GrabSHMSegment(size_t size);
+  void GrabSHMSegment(size_t size, std::string_view base_name);
 
   ///
   /// Release the memory segment previously allocated with GrabSHMSegment().

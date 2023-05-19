@@ -10,6 +10,8 @@
 #include <set>
 #include <string>
 
+#include <fmt/format.h>
+
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <unistd.h>
@@ -25,9 +27,9 @@ namespace Common
 MemArena::MemArena() = default;
 MemArena::~MemArena() = default;
 
-void MemArena::GrabSHMSegment(size_t size)
+void MemArena::GrabSHMSegment(size_t size, std::string_view base_name)
 {
-  const std::string file_name = "/dolphin-emu." + std::to_string(getpid());
+  const std::string file_name = fmt::format("/{}.{}", base_name, getpid());
   m_shm_fd = shm_open(file_name.c_str(), O_RDWR | O_CREAT | O_EXCL, 0600);
   if (m_shm_fd == -1)
   {
