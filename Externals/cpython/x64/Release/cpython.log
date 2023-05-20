@@ -1,2 +1,0 @@
-﻿  Python.h
-LINK : fatal error LNK1104: cannot open file 'python311.lib'
