@@ -5,14 +5,16 @@
 
 #include "Core/AchievementManager.h"
 
-#include <array>
 #include <rcheevos/include/rc_hash.h>
 
 #include "Common/HttpRequest.h"
 #include "Common/WorkQueueThread.h"
-#include "Config/AchievementSettings.h"
+#include "Core/Config/AchievementSettings.h"
 #include "Core/Core.h"
+#include "Core/PowerPC/MMU.h"
+#include "Core/System.h"
 #include "DiscIO/Volume.h"
+#include "VideoCommon/VideoEvents.h"
 
 static constexpr bool hardcore_mode_enabled = false;
 
@@ -63,6 +65,7 @@ void AchievementManager::LoadGameByFilenameAsync(const std::string& iso_path,
     callback(AchievementManager::ResponseType::MANAGER_NOT_INITIALIZED);
     return;
   }
+  m_system = &Core::System::GetInstance();
   struct FilereaderState
   {
     int64_t position = 0;
@@ -113,11 +116,10 @@ void AchievementManager::LoadGameByFilenameAsync(const std::string& iso_path,
           },
       .close = [](void* file_handle) { delete reinterpret_cast<FilereaderState*>(file_handle); }};
   rc_hash_init_custom_filereader(&volume_reader);
-  std::array<char, HASH_LENGTH> game_hash;
-  if (!rc_hash_generate_from_file(game_hash.data(), RC_CONSOLE_GAMECUBE, iso_path.c_str()))
+  if (!rc_hash_generate_from_file(m_game_hash.data(), RC_CONSOLE_GAMECUBE, iso_path.c_str()))
     return;
-  m_queue.EmplaceItem([this, callback, game_hash] {
-    const auto resolve_hash_response = ResolveHash(game_hash);
+  m_queue.EmplaceItem([this, callback] {
+    const auto resolve_hash_response = ResolveHash(this->m_game_hash);
     if (resolve_hash_response != ResponseType::SUCCESS || m_game_id == 0)
     {
       callback(resolve_hash_response);
@@ -204,12 +206,76 @@ void AchievementManager::ActivateDeactivateRichPresence()
       nullptr, 0);
 }
 
+void AchievementManager::DoFrame()
+{
+  if (!m_is_game_loaded)
+    return;
+  Core::RunAsCPUThread([&] {
+    rc_runtime_do_frame(
+        &m_runtime,
+        [](const rc_runtime_event_t* runtime_event) {
+          AchievementManager::GetInstance()->AchievementEventHandler(runtime_event);
+        },
+        [](unsigned address, unsigned num_bytes, void* ud) {
+          return static_cast<AchievementManager*>(ud)->MemoryPeeker(address, num_bytes, ud);
+        },
+        this, nullptr);
+  });
+  if (!m_system)
+    return;
+  u64 current_time = m_system->GetCoreTiming().GetTicks();
+  if (current_time - m_last_ping_time > SystemTimers::GetTicksPerSecond() * 120)
+    m_queue.EmplaceItem([this] { PingRichPresence(GenerateRichPresence()); });
+}
+
+u32 AchievementManager::MemoryPeeker(u32 address, u32 num_bytes, void* ud)
+{
+  if (!m_system)
+    return 0u;
+  Core::CPUThreadGuard threadguard(*m_system);
+  switch (num_bytes)
+  {
+  case 1:
+    return m_system->GetMMU()
+        .HostTryReadU8(threadguard, address)
+        .value_or(PowerPC::ReadResult<u8>(false, 0u))
+        .value;
+  case 2:
+    return m_system->GetMMU()
+        .HostTryReadU16(threadguard, address)
+        .value_or(PowerPC::ReadResult<u16>(false, 0u))
+        .value;
+  case 4:
+    return m_system->GetMMU()
+        .HostTryReadU32(threadguard, address)
+        .value_or(PowerPC::ReadResult<u32>(false, 0u))
+        .value;
+  default:
+    ASSERT(false);
+    return 0u;
+  }
+}
+
+void AchievementManager::AchievementEventHandler(const rc_runtime_event_t* runtime_event)
+{
+  switch (runtime_event->type)
+  {
+  case RC_RUNTIME_EVENT_ACHIEVEMENT_TRIGGERED:
+    HandleAchievementTriggeredEvent(runtime_event);
+    break;
+  case RC_RUNTIME_EVENT_LBOARD_TRIGGERED:
+    HandleLeaderboardTriggeredEvent(runtime_event);
+    break;
+  }
+}
+
 void AchievementManager::CloseGame()
 {
   m_is_game_loaded = false;
   m_game_id = 0;
   m_queue.Cancel();
   m_unlock_map.clear();
+  m_system = nullptr;
   ActivateDeactivateAchievements();
   ActivateDeactivateLeaderboards();
   ActivateDeactivateRichPresence();
@@ -364,6 +430,91 @@ void AchievementManager::ActivateDeactivateAchievement(AchievementId id, bool en
   }
   if (active && !activate)
     rc_runtime_deactivate_achievement(&m_runtime, id);
+}
+
+RichPresence AchievementManager::GenerateRichPresence()
+{
+  RichPresence rp_buffer;
+  Core::RunAsCPUThread([&] {
+    rc_runtime_get_richpresence(
+        &m_runtime, rp_buffer.data(), RP_SIZE,
+        [](unsigned address, unsigned num_bytes, void* ud) {
+          return static_cast<AchievementManager*>(ud)->MemoryPeeker(address, num_bytes, ud);
+        },
+        this, nullptr);
+  });
+  return rp_buffer;
+}
+
+AchievementManager::ResponseType AchievementManager::AwardAchievement(AchievementId achievement_id)
+{
+  std::string username = Config::Get(Config::RA_USERNAME);
+  std::string api_token = Config::Get(Config::RA_API_TOKEN);
+  rc_api_award_achievement_request_t award_request = {.username = username.c_str(),
+                                                      .api_token = api_token.c_str(),
+                                                      .achievement_id = achievement_id,
+                                                      .hardcore = hardcore_mode_enabled,
+                                                      .game_hash = m_game_hash.data()};
+  rc_api_award_achievement_response_t award_response = {};
+  ResponseType r_type =
+      Request<rc_api_award_achievement_request_t, rc_api_award_achievement_response_t>(
+          award_request, &award_response, rc_api_init_award_achievement_request,
+          rc_api_process_award_achievement_response);
+  rc_api_destroy_award_achievement_response(&award_response);
+  return r_type;
+}
+
+AchievementManager::ResponseType AchievementManager::SubmitLeaderboard(AchievementId leaderboard_id,
+                                                                       int value)
+{
+  std::string username = Config::Get(Config::RA_USERNAME);
+  std::string api_token = Config::Get(Config::RA_API_TOKEN);
+  rc_api_submit_lboard_entry_request_t submit_request = {.username = username.c_str(),
+                                                         .api_token = api_token.c_str(),
+                                                         .leaderboard_id = leaderboard_id,
+                                                         .score = value,
+                                                         .game_hash = m_game_hash.data()};
+  rc_api_submit_lboard_entry_response_t submit_response = {};
+  ResponseType r_type =
+      Request<rc_api_submit_lboard_entry_request_t, rc_api_submit_lboard_entry_response_t>(
+          submit_request, &submit_response, rc_api_init_submit_lboard_entry_request,
+          rc_api_process_submit_lboard_entry_response);
+  rc_api_destroy_submit_lboard_entry_response(&submit_response);
+  return r_type;
+}
+
+AchievementManager::ResponseType
+AchievementManager::PingRichPresence(const RichPresence& rich_presence)
+{
+  std::string username = Config::Get(Config::RA_USERNAME);
+  std::string api_token = Config::Get(Config::RA_API_TOKEN);
+  rc_api_ping_request_t ping_request = {.username = username.c_str(),
+                                        .api_token = api_token.c_str(),
+                                        .game_id = m_game_id,
+                                        .rich_presence = rich_presence.data()};
+  rc_api_ping_response_t ping_response = {};
+  ResponseType r_type = Request<rc_api_ping_request_t, rc_api_ping_response_t>(
+      ping_request, &ping_response, rc_api_init_ping_request, rc_api_process_ping_response);
+  rc_api_destroy_ping_response(&ping_response);
+  return r_type;
+}
+
+void AchievementManager::HandleAchievementTriggeredEvent(const rc_runtime_event_t* runtime_event)
+{
+  auto it = m_unlock_map.find(runtime_event->id);
+  if (it == m_unlock_map.end())
+    return;
+  it->second.session_unlock_count++;
+  m_queue.EmplaceItem([this, runtime_event] { AwardAchievement(runtime_event->id); });
+  ActivateDeactivateAchievement(runtime_event->id, Config::Get(Config::RA_ACHIEVEMENTS_ENABLED),
+                                Config::Get(Config::RA_UNOFFICIAL_ENABLED),
+                                Config::Get(Config::RA_ENCORE_ENABLED));
+}
+
+void AchievementManager::HandleLeaderboardTriggeredEvent(const rc_runtime_event_t* runtime_event)
+{
+  m_queue.EmplaceItem(
+      [this, runtime_event] { SubmitLeaderboard(runtime_event->id, runtime_event->value); });
 }
 
 // Every RetroAchievements API call, with only a partial exception for fetch_image, follows

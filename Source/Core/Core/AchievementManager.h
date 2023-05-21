@@ -4,6 +4,7 @@
 #pragma once
 
 #ifdef USE_RETRO_ACHIEVEMENTS
+#include <array>
 #include <functional>
 #include <mutex>
 #include <string>
@@ -18,6 +19,13 @@
 #include "Common/WorkQueueThread.h"
 
 using AchievementId = u32;
+constexpr size_t RP_SIZE = 256;
+using RichPresence = std::array<char, RP_SIZE>;
+
+namespace Core
+{
+class System;
+}
 
 class AchievementManager
 {
@@ -45,6 +53,10 @@ public:
   void ActivateDeactivateLeaderboards();
   void ActivateDeactivateRichPresence();
 
+  void DoFrame();
+  u32 MemoryPeeker(u32 address, u32 num_bytes, void* ud);
+  void AchievementEventHandler(const rc_runtime_event_t* runtime_event);
+
   void CloseGame();
   void Logout();
   void Shutdown();
@@ -61,6 +73,14 @@ private:
   ResponseType FetchUnlockData(bool hardcore);
 
   void ActivateDeactivateAchievement(AchievementId id, bool enabled, bool unofficial, bool encore);
+  RichPresence GenerateRichPresence();
+
+  ResponseType AwardAchievement(AchievementId achievement_id);
+  ResponseType SubmitLeaderboard(AchievementId leaderboard_id, int value);
+  ResponseType PingRichPresence(const RichPresence& rich_presence);
+
+  void HandleAchievementTriggeredEvent(const rc_runtime_event_t* runtime_event);
+  void HandleLeaderboardTriggeredEvent(const rc_runtime_event_t* runtime_event);
 
   template <typename RcRequest, typename RcResponse>
   ResponseType Request(RcRequest rc_request, RcResponse* rc_response,
@@ -68,10 +88,13 @@ private:
                        const std::function<int(RcResponse*, const char*)>& process_response);
 
   rc_runtime_t m_runtime{};
+  Core::System* m_system{};
   bool m_is_runtime_initialized = false;
-  unsigned int m_game_id = 0;
+  std::array<char, HASH_LENGTH> m_game_hash{};
+  u32 m_game_id = 0;
   rc_api_fetch_game_data_response_t m_game_data{};
   bool m_is_game_loaded = false;
+  u64 m_last_ping_time = 0;
 
   struct UnlockStatus
   {
