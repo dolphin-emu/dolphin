@@ -20,6 +20,10 @@
 
 using namespace Gen;
 
+// These need to be next of each other so that the assembly
+// code can compare them easily.
+static_assert(offsetof(JitBlockData, effectiveAddress) + 4 == offsetof(JitBlockData, msrBits));
+
 Jit64AsmRoutineManager::Jit64AsmRoutineManager(Jit64& jit) : CommonAsmRoutines(jit)
 {
 }
@@ -103,35 +107,58 @@ void Jit64AsmRoutineManager::Generate()
   const bool assembly_dispatcher = true;
   if (assembly_dispatcher)
   {
-    // Fast block number lookup.
-    // ((PC >> 2) & mask) * sizeof(JitBlock*) = (PC & (mask << 2)) * 2
-    MOV(32, R(RSCRATCH), PPCSTATE(pc));
-    // Keep a copy for later.
-    MOV(32, R(RSCRATCH_EXTRA), R(RSCRATCH));
-    u64 icache = reinterpret_cast<u64>(m_jit.GetBlockCache()->GetFastBlockMap());
-    AND(32, R(RSCRATCH), Imm32(JitBaseBlockCache::FAST_BLOCK_MAP_MASK << 2));
-    if (icache <= INT_MAX)
+    if (m_jit.GetBlockCache()->GetFastBlockMap())
     {
-      MOV(64, R(RSCRATCH), MScaled(RSCRATCH, SCALE_2, static_cast<s32>(icache)));
+      u64 icache = reinterpret_cast<u64>(m_jit.GetBlockCache()->GetFastBlockMap());
+      MOV(32, R(RSCRATCH), PPCSTATE(pc));
+
+      MOV(64, R(RSCRATCH2), Imm64(icache));
+      // Each 4-byte offset of the PC register corresponds to a 8-byte offset
+      // in the lookup table due to host pointers being 8-bytes long.
+      MOV(64, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_2, 0));
     }
     else
     {
-      MOV(64, R(RSCRATCH2), Imm64(icache));
-      MOV(64, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_2, 0));
+      // Fast block number lookup.
+      // ((PC >> 2) & mask) * sizeof(JitBlock*) = (PC & (mask << 2)) * 2
+      MOV(32, R(RSCRATCH), PPCSTATE(pc));
+      // Keep a copy for later.
+      MOV(32, R(RSCRATCH_EXTRA), R(RSCRATCH));
+      u64 icache = reinterpret_cast<u64>(m_jit.GetBlockCache()->GetFastBlockMapFallback());
+      AND(32, R(RSCRATCH), Imm32(JitBaseBlockCache::FAST_BLOCK_MAP_FALLBACK_MASK << 2));
+      if (icache <= INT_MAX)
+      {
+        MOV(64, R(RSCRATCH), MScaled(RSCRATCH, SCALE_2, static_cast<s32>(icache)));
+      }
+      else
+      {
+        MOV(64, R(RSCRATCH2), Imm64(icache));
+        MOV(64, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_2, 0));
+      }
     }
 
     // Check if we found a block.
     TEST(64, R(RSCRATCH), R(RSCRATCH));
     FixupBranch not_found = J_CC(CC_Z);
 
-    // Check both block.effectiveAddress and block.msrBits.
+    // Check block.msrBits.
     MOV(32, R(RSCRATCH2), PPCSTATE(msr));
     AND(32, R(RSCRATCH2), Imm32(JitBaseBlockCache::JIT_CACHE_MSR_MASK));
-    SHL(64, R(RSCRATCH2), Imm8(32));
-    // RSCRATCH_EXTRA still has the PC.
-    OR(64, R(RSCRATCH2), R(RSCRATCH_EXTRA));
-    CMP(64, R(RSCRATCH2),
-        MDisp(RSCRATCH, static_cast<s32>(offsetof(JitBlockData, effectiveAddress))));
+
+    if (m_jit.GetBlockCache()->GetFastBlockMap())
+    {
+      CMP(32, R(RSCRATCH2), MDisp(RSCRATCH, static_cast<s32>(offsetof(JitBlockData, msrBits))));
+    }
+    else
+    {
+      // Also check the block.effectiveAddress
+      SHL(64, R(RSCRATCH2), Imm8(32));
+      // RSCRATCH_EXTRA still has the PC.
+      OR(64, R(RSCRATCH2), R(RSCRATCH_EXTRA));
+      CMP(64, R(RSCRATCH2),
+          MDisp(RSCRATCH, static_cast<s32>(offsetof(JitBlockData, effectiveAddress))));
+    }
+
     FixupBranch state_mismatch = J_CC(CC_NE);
 
     // Success; branch to the block we found.

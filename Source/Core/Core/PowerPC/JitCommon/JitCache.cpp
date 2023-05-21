@@ -42,12 +42,21 @@ void JitBaseBlockCache::Init()
 {
   Common::JitRegister::Init(Config::Get(Config::MAIN_PERF_MAP_DIR));
 
+  m_block_map_arena.GrabSHMSegment(FAST_BLOCK_MAP_SIZE, "dolphin-emu-jitblock");
+
   Clear();
 }
 
 void JitBaseBlockCache::Shutdown()
 {
   Common::JitRegister::Shutdown();
+
+  if (m_fast_block_map)
+  {
+    m_block_map_arena.ReleaseView(m_fast_block_map, FAST_BLOCK_MAP_SIZE);
+  }
+
+  m_block_map_arena.ReleaseSHMSegment();
 }
 
 // This clears the JIT cache. It's called from JitCache.cpp when the JIT cache
@@ -70,7 +79,24 @@ void JitBaseBlockCache::Clear()
 
   valid_block.ClearAll();
 
-  fast_block_map.fill(nullptr);
+  if (m_fast_block_map)
+  {
+    m_block_map_arena.ReleaseView(m_fast_block_map, FAST_BLOCK_MAP_SIZE);
+    m_block_map_arena.ReleaseSHMSegment();
+    m_block_map_arena.GrabSHMSegment(FAST_BLOCK_MAP_SIZE, "dolphin-emu-jitblock");
+  }
+
+  m_fast_block_map =
+      reinterpret_cast<JitBlock**>(m_block_map_arena.CreateView(0, FAST_BLOCK_MAP_SIZE));
+
+  if (m_fast_block_map)
+  {
+    m_fast_block_map_ptr = m_fast_block_map;
+  }
+  else
+  {
+    m_fast_block_map_ptr = m_fast_block_map_fallback.data();
+  }
 }
 
 void JitBaseBlockCache::Reset()
@@ -81,7 +107,12 @@ void JitBaseBlockCache::Reset()
 
 JitBlock** JitBaseBlockCache::GetFastBlockMap()
 {
-  return fast_block_map.data();
+  return m_fast_block_map;
+}
+
+JitBlock** JitBaseBlockCache::GetFastBlockMapFallback()
+{
+  return m_fast_block_map_fallback.data();
 }
 
 void JitBaseBlockCache::RunOnBlocks(std::function<void(const JitBlock&)> f)
@@ -106,7 +137,7 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link,
                                       const std::set<u32>& physical_addresses)
 {
   size_t index = FastLookupIndexForAddress(block.effectiveAddress);
-  fast_block_map[index] = &block;
+  m_fast_block_map_ptr[index] = &block;
   block.fast_block_map_index = index;
 
   block.physical_addresses = physical_addresses;
@@ -169,7 +200,7 @@ JitBlock* JitBaseBlockCache::GetBlockFromStartAddress(u32 addr, u32 msr)
 const u8* JitBaseBlockCache::Dispatch()
 {
   const auto& ppc_state = m_jit.m_ppc_state;
-  JitBlock* block = fast_block_map[FastLookupIndexForAddress(ppc_state.pc)];
+  JitBlock* block = m_fast_block_map_ptr[FastLookupIndexForAddress(ppc_state.pc)];
 
   if (!block || block->effectiveAddress != ppc_state.pc ||
       block->msrBits != (ppc_state.msr.Hex & JIT_CACHE_MSR_MASK))
@@ -390,8 +421,8 @@ void JitBaseBlockCache::UnlinkBlock(const JitBlock& block)
 
 void JitBaseBlockCache::DestroyBlock(JitBlock& block)
 {
-  if (fast_block_map[block.fast_block_map_index] == &block)
-    fast_block_map[block.fast_block_map_index] = nullptr;
+  if (m_fast_block_map_ptr[block.fast_block_map_index] == &block)
+    m_fast_block_map_ptr[block.fast_block_map_index] = nullptr;
 
   UnlinkBlock(block);
 
@@ -418,12 +449,12 @@ JitBlock* JitBaseBlockCache::MoveBlockIntoFastCache(u32 addr, u32 msr)
     return nullptr;
 
   // Drop old fast block map entry
-  if (fast_block_map[block->fast_block_map_index] == block)
-    fast_block_map[block->fast_block_map_index] = nullptr;
+  if (m_fast_block_map_ptr[block->fast_block_map_index] == block)
+    m_fast_block_map_ptr[block->fast_block_map_index] = nullptr;
 
   // And create a new one
   size_t index = FastLookupIndexForAddress(addr);
-  fast_block_map[index] = block;
+  m_fast_block_map_ptr[index] = block;
   block->fast_block_map_index = index;
 
   return block;
@@ -431,5 +462,12 @@ JitBlock* JitBaseBlockCache::MoveBlockIntoFastCache(u32 addr, u32 msr)
 
 size_t JitBaseBlockCache::FastLookupIndexForAddress(u32 address)
 {
-  return (address >> 2) & FAST_BLOCK_MAP_MASK;
+  if (m_fast_block_map)
+  {
+    return address >> 2;
+  }
+  else
+  {
+    return (address >> 2) & FAST_BLOCK_MAP_FALLBACK_MASK;
+  }
 }
