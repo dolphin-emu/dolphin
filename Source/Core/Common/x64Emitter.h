@@ -440,13 +440,19 @@ public:
   void PUSHF();
   void POPF();
 
+  enum class Jump
+  {
+    Short,
+    Near,
+  };
+
   // Flow control
   void RET();
   void RET_FAST();
   void UD2();
-  FixupBranch J(bool force5bytes = false);
+  FixupBranch J(Jump jump = Jump::Short);
 
-  void JMP(const u8* addr, bool force5Bytes = false);
+  void JMP(const u8* addr, Jump jump = Jump::Short);
   void JMPptr(const OpArg& arg);
   void JMPself();  // infinite loop!
 #ifdef CALL
@@ -456,7 +462,7 @@ public:
   FixupBranch CALL();
   void CALLptr(OpArg arg);
 
-  FixupBranch J_CC(CCFlags conditionCode, bool force5bytes = false);
+  FixupBranch J_CC(CCFlags conditionCode, Jump jump = Jump::Short);
   void J_CC(CCFlags conditionCode, const u8* addr);
 
   void SetJumpTarget(const FixupBranch& branch);

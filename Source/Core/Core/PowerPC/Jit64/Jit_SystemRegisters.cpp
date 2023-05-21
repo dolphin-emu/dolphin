@@ -167,19 +167,19 @@ FixupBranch Jit64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
   {
   case PowerPC::CR_SO_BIT:  // check bit 59 set
     BT(64, CROffset(field), Imm8(PowerPC::CR_EMU_SO_BIT));
-    return J_CC(jump_if_set ? CC_C : CC_NC, true);
+    return J_CC(jump_if_set ? CC_C : CC_NC, Jump::Near);
 
   case PowerPC::CR_EQ_BIT:  // check bits 31-0 == 0
     CMP(32, CROffset(field), Imm8(0));
-    return J_CC(jump_if_set ? CC_Z : CC_NZ, true);
+    return J_CC(jump_if_set ? CC_Z : CC_NZ, Jump::Near);
 
   case PowerPC::CR_GT_BIT:  // check val > 0
     CMP(64, CROffset(field), Imm8(0));
-    return J_CC(jump_if_set ? CC_G : CC_LE, true);
+    return J_CC(jump_if_set ? CC_G : CC_LE, Jump::Near);
 
   case PowerPC::CR_LT_BIT:  // check bit 62 set
     BT(64, CROffset(field), Imm8(PowerPC::CR_EMU_LT_BIT));
-    return J_CC(jump_if_set ? CC_C : CC_NC, true);
+    return J_CC(jump_if_set ? CC_C : CC_NC, Jump::Near);
 
   default:
     ASSERT_MSG(DYNA_REC, false, "Invalid CR bit");
@@ -450,16 +450,16 @@ void Jit64::mtmsr(UGeckoInstruction inst)
   // external exceptions when going out of mtmsr in order to execute delayed
   // interrupts as soon as possible.
   TEST(32, PPCSTATE(msr), Imm32(0x8000));
-  FixupBranch eeDisabled = J_CC(CC_Z, true);
+  FixupBranch eeDisabled = J_CC(CC_Z, Jump::Near);
 
   TEST(32, PPCSTATE(Exceptions),
        Imm32(EXCEPTION_EXTERNAL_INT | EXCEPTION_PERFORMANCE_MONITOR | EXCEPTION_DECREMENTER));
-  FixupBranch noExceptionsPending = J_CC(CC_Z, true);
+  FixupBranch noExceptionsPending = J_CC(CC_Z, Jump::Near);
 
   // Check if a CP interrupt is waiting and keep the GPU emulation in sync (issue 4336)
   MOV(64, R(RSCRATCH), ImmPtr(&m_system.GetProcessorInterface().m_interrupt_cause));
   TEST(32, MatR(RSCRATCH), Imm32(ProcessorInterface::INT_CAUSE_CP));
-  FixupBranch cpInt = J_CC(CC_NZ, true);
+  FixupBranch cpInt = J_CC(CC_NZ, Jump::Near);
 
   MOV(32, PPCSTATE(pc), Imm32(js.compilerPC + 4));
   WriteExternalExceptionExit();

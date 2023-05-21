@@ -64,7 +64,10 @@ void Jit64AsmRoutineManager::Generate()
   ABI_PushRegistersAndAdjustStack({}, 0);
   ABI_CallFunction(CoreTiming::GlobalAdvance);
   ABI_PopRegistersAndAdjustStack({}, 0);
-  FixupBranch skipToRealDispatch = J(enable_debugging);  // skip the sync and compare first time
+
+  // skip the sync and compare first time
+  FixupBranch skipToRealDispatch = J(enable_debugging ? Jump::Near : Jump::Short);
+
   dispatcher_mispredicted_blr = GetCodePtr();
   AND(32, PPCSTATE(pc), Imm32(0xFFFFFFFC));
 
@@ -83,7 +86,7 @@ void Jit64AsmRoutineManager::Generate()
 
   // Expected result of SUB(32, PPCSTATE(downcount), Imm32(block_cycles)) is in RFLAGS.
   // Branch if downcount is <= 0 (signed).
-  FixupBranch bail = J_CC(CC_LE, true);
+  FixupBranch bail = J_CC(CC_LE, Jump::Near);
 
   dispatcher_no_timing_check = GetCodePtr();
 
@@ -94,7 +97,7 @@ void Jit64AsmRoutineManager::Generate()
   {
     MOV(64, R(RSCRATCH), ImmPtr(system.GetCPU().GetStatePtr()));
     TEST(32, MatR(RSCRATCH), Imm32(0xFFFFFFFF));
-    dbg_exit = J_CC(CC_NZ, true);
+    dbg_exit = J_CC(CC_NZ, Jump::Near);
   }
 
   SetJumpTarget(skipToRealDispatch);
@@ -209,7 +212,7 @@ void Jit64AsmRoutineManager::Generate()
   ABI_CallFunction(JitTrampoline);
   ABI_PopRegistersAndAdjustStack({}, 0);
 
-  JMP(dispatcher_no_check, true);
+  JMP(dispatcher_no_check, Jump::Near);
 
   SetJumpTarget(bail);
   do_timing = GetCodePtr();

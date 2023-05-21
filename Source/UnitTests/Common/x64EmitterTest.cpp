@@ -292,7 +292,7 @@ TEST_F(x64EmitterTest, JMP)
                     "jmp .-8");
 
   emitter->NOP(6);
-  emitter->JMP(code_buffer, true);
+  emitter->JMP(code_buffer, XEmitter::Jump::Near);
   ExpectDisassembly("multibyte nop "
                     "jmp .-11");
 }
