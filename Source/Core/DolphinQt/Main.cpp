@@ -38,8 +38,14 @@
 #include "DolphinQt/Translation.h"
 #include "DolphinQt/Updater.h"
 
+#include "SteamHelperCommon/InitResult.h"
+
 #include "UICommon/CommandLineParse.h"
 #include "UICommon/UICommon.h"
+
+#ifdef STEAM
+#include "UICommon/Steam/Steam.h"
+#endif
 
 static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no,
                               Common::MsgType style)
@@ -183,6 +189,22 @@ int main(int argc, char* argv[])
   // Hook up translations
   Translation::Initialize();
 
+#ifdef STEAM
+  Steam::InitResult steam_init_result = Steam::Init();
+  if (steam_init_result != Steam::InitResult::Success)
+  {
+    Steam::Shutdown();
+
+    // Only show a panic alert if we're not being relaunched by Steam.
+    if (steam_init_result == Steam::InitResult::Failure)
+    {
+      PanicAlertFmtT("Failed to initialize Steam helper");
+    }
+
+    return 1;
+  }
+#endif
+
   // Whenever the event loop is about to go to sleep, dispatch the jobs
   // queued in the Core first.
   QObject::connect(QAbstractEventDispatcher::instance(), &QAbstractEventDispatcher::aboutToBlock,
@@ -297,6 +319,9 @@ int main(int argc, char* argv[])
   }
 
   Core::Shutdown();
+#ifdef STEAM
+  Steam::Shutdown();
+#endif
   UICommon::Shutdown();
   Host::GetInstance()->deleteLater();
 
