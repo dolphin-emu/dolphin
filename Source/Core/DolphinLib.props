@@ -522,6 +522,10 @@
     <ClInclude Include="InputCommon\InputConfig.h" />
     <ClInclude Include="InputCommon\InputProfile.h" />
     <ClInclude Include="InputCommon\KeyboardStatus.h" />
+    <ClInclude Include="SteamHelperCommon\Constants.h" />
+    <ClInclude Include="SteamHelperCommon\IpcConnection.h" />
+    <ClInclude Include="SteamHelperCommon\MessageType.h" />
+    <ClInclude Include="SteamHelperCommon\PipeEnd.h" />
     <ClInclude Include="UICommon\AutoUpdate.h" />
     <ClInclude Include="UICommon\CommandLineParse.h" />
     <ClInclude Include="UICommon\Disassembler.h" />
@@ -532,6 +536,8 @@
     <ClInclude Include="UICommon\ResourcePack\Manager.h" />
     <ClInclude Include="UICommon\ResourcePack\Manifest.h" />
     <ClInclude Include="UICommon\ResourcePack\ResourcePack.h" />
+    <ClInclude Include="UICommon\Steam\HelperClient.h" />
+    <ClInclude Include="UICommon\Steam\Steam.h" />
     <ClInclude Include="UICommon\UICommon.h" />
     <ClInclude Include="UICommon\USBUtils.h" />
     <ClInclude Include="UICommon\VideoUtils.h" />
@@ -1143,6 +1149,9 @@
     <ClCompile Include="InputCommon\ImageOperations.cpp" />
     <ClCompile Include="InputCommon\InputConfig.cpp" />
     <ClCompile Include="InputCommon\InputProfile.cpp" />
+    <ClCompile Include="SteamHelperCommon\IpcConnection.cpp" />
+    <ClCompile Include="SteamHelperCommon\PipeEnd.cpp" />
+    <ClCompile Include="SteamHelperCommon\PipeEnd_Windows.cpp" />
     <ClCompile Include="UICommon\AutoUpdate.cpp" />
     <ClCompile Include="UICommon\CommandLineParse.cpp" />
     <ClCompile Include="UICommon\Disassembler.cpp" />
@@ -1153,6 +1162,8 @@
     <ClCompile Include="UICommon\ResourcePack\Manager.cpp" />
     <ClCompile Include="UICommon\ResourcePack\Manifest.cpp" />
     <ClCompile Include="UICommon\ResourcePack\ResourcePack.cpp" />
+    <ClCompile Include="UICommon\Steam\HelperClient.cpp" />
+    <ClCompile Include="UICommon\Steam\Steam.cpp" />
     <ClCompile Include="UICommon\UICommon.cpp" />
     <ClCompile Include="UICommon\USBUtils.cpp" />
     <ClCompile Include="UICommon\VideoUtils.cpp" />

@@ -69,6 +69,17 @@ if(USE_DISCORD_PRESENCE)
   target_link_libraries(uicommon PRIVATE discord-rpc)
 endif()
 
+if(STEAM)
+  target_link_libraries(uicommon PRIVATE SteamHelperCommon)
+
+  target_sources(uicommon PRIVATE
+    Steam/HelperClient.cpp
+    Steam/HelperClient.h
+    Steam/Steam.cpp
+    Steam/Steam.h
+  )
+endif()
+
 if(MSVC)
   # Add precompiled header
   target_link_libraries(uicommon PRIVATE use_pch)
