@@ -985,6 +985,9 @@ endif()
 
 if(STEAM)
   add_definitions(-DSTEAM)
+
+  set(SteamworksSDK_DIR Externals/SteamworksSDK)
+  find_package(SteamworksSDK REQUIRED)
 endif()
 
 if (WIN32)
