@@ -1,6 +1,9 @@
 add_library(SteamHelperCommon
+  Constants.h
+  InitResult.h
   IpcConnection.h
   IpcConnection.cpp
+  MessageType.h
   PipeEnd.h
   PipeEnd.cpp
 )

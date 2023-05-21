@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <Import Project="..\..\VSProps\Base.Macros.props" />
+  <Import Project="$(VSPropsDir)Base.Targets.props" />
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{98FDAD4E-3E17-48C2-A876-513ABDE7EAFA}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <Import Project="$(VSPropsDir)Configuration.Application.props" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VSPropsDir)Base.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <TargetName>SteamHelper</TargetName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ClInclude Include="..\SteamHelperCommon\Constants.h" />
+    <ClInclude Include="..\SteamHelperCommon\IpcConnection.h" />
+    <ClInclude Include="..\SteamHelperCommon\MessageType.h" />
+    <ClInclude Include="..\SteamHelperCommon\PipeEnd.h" />
+    <ClInclude Include="HelperServer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\SteamHelperCommon\IpcConnection.cpp" />
+    <ClCompile Include="..\SteamHelperCommon\PipeEnd.cpp" />
+    <ClCompile Include="..\SteamHelperCommon\PipeEnd_Windows.cpp" />
+    <ClCompile Include="HelperServer.cpp" />
+    <ClCompile Include="Main.cpp" />
+  </ItemGroup>
+  <Import Project="$(ExternalsDir)SFML\exports.props" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+    <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+
+      <AdditionalIncludeDirectories>$(CoreDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)SteamworksSDK\public;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <!-- Even though we don't use it, we need to link to Windows Sockets 2 because some SFML code references it -->
+      <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+
+      <!-- Steamworks SDK -->
+      <AdditionalLibraryDirectories>$(ExternalsDir)SteamworksSDK\redistributable_bin\win64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>steam_api64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <!--Copy the .exe to binary output folder-->
+  <ItemGroup>
+    <SourceFiles Include="$(TargetPath)" />
+    <SourceFiles Include="$(ExternalsDir)SteamworksSDK\redistributable_bin\win64\steam_api64.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="SteamHelper.exe.manifest" />
+  </ItemGroup>
+  <Target Name="AfterBuild" Inputs="@(SourceFiles)" Outputs="@(SourceFiles -> '$(BinaryOutputDir)%(Filename)%(Extension)')">
+    <Message Text="Copy: @(SourceFiles) -&gt; $(BinaryOutputDir)" Importance="High" />
+    <Copy SourceFiles="@(SourceFiles)" DestinationFolder="$(BinaryOutputDir)" />
+  </Target>
+</Project>

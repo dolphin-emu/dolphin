@@ -33,4 +33,5 @@ endif()
 
 if (STEAM)
   add_subdirectory(SteamHelperCommon)
+  add_subdirectory(SteamHelper)
 endif()

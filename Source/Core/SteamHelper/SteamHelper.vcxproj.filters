@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ItemGroup>
+    <ClCompile Include="HelperServer.cpp" />
+    <ClCompile Include="Main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="SteamHelper.exe.manifest" />
+  </ItemGroup>
+</Project>
