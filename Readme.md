@@ -39,9 +39,10 @@ Dolphin can only be installed on devices that satisfy the above requirements. At
 ## Building for Windows
 
 Use the solution file `Source/dolphin-emu.sln` to build Dolphin on Windows.
-Visual Studio 2022 17.2.3 or later is a hard requirement. Other compilers might be
-able to build Dolphin on Windows but have not been tested and are not
-recommended to be used. Git and Windows 11 SDK must be installed when building.
+Dolphin targets the latest MSVC shipped with Visual Studio or Build Tools.
+Other compilers might be able to build Dolphin on Windows but have not been
+tested and are not recommended to be used. Git and latest Windows SDK must be
+installed when building.
 
 Make sure to pull submodules before building:
 ```sh
