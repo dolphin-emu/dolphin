@@ -41,6 +41,16 @@ public:
   };
   using ResponseCallback = std::function<void(ResponseType)>;
 
+  struct PointSpread
+  {
+    u32 total_count;
+    u32 total_points;
+    u32 hard_unlocks;
+    u32 hard_points;
+    u32 soft_unlocks;
+    u32 soft_points;
+  };
+
   static AchievementManager* GetInstance();
   void Init();
   ResponseType Login(const std::string& password);
@@ -84,6 +94,8 @@ private:
   void HandleLeaderboardCanceledEvent(const rc_runtime_event_t* runtime_event);
   void HandleLeaderboardTriggeredEvent(const rc_runtime_event_t* runtime_event);
 
+  PointSpread TallyScore() const;
+
   template <typename RcRequest, typename RcResponse>
   ResponseType Request(RcRequest rc_request, RcResponse* rc_response,
                        const std::function<int(rc_api_request_t*, const RcRequest*)>& init_request,
@@ -107,7 +119,8 @@ private:
       SOFTCORE,
       HARDCORE
     } remote_unlock_status = UnlockType::LOCKED;
-    int session_unlock_count = 0;
+    u32 session_unlock_count = 0;
+    u32 points = 0;
   };
   std::unordered_map<AchievementId, UnlockStatus> m_unlock_map;
 

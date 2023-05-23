@@ -185,8 +185,11 @@ void AchievementManager::ActivateDeactivateAchievements()
   bool encore = Config::Get(Config::RA_ENCORE_ENABLED);
   for (u32 ix = 0; ix < m_game_data.num_achievements; ix++)
   {
-    auto iter =
-        m_unlock_map.insert({m_game_data.achievements[ix].id, UnlockStatus{.game_data_index = ix}});
+    u32 points = (m_game_data.achievements[ix].category == RC_ACHIEVEMENT_CATEGORY_UNOFFICIAL) ?
+                     0 :
+                     m_game_data.achievements[ix].points;
+    auto iter = m_unlock_map.insert(
+        {m_game_data.achievements[ix].id, UnlockStatus{.game_data_index = ix, .points = points}});
     ActivateDeactivateAchievement(iter.first->first, enabled, unofficial, encore);
   }
 }
@@ -571,6 +574,30 @@ void AchievementManager::HandleLeaderboardTriggeredEvent(const rc_runtime_event_
       break;
     }
   }
+}
+
+AchievementManager::PointSpread AchievementManager::TallyScore() const
+{
+  PointSpread spread{};
+  for (const auto& entry : m_unlock_map)
+  {
+    u32 points = entry.second.points;
+    spread.total_count++;
+    spread.total_points += points;
+    if (entry.second.remote_unlock_status == UnlockStatus::UnlockType::HARDCORE ||
+        (hardcore_mode_enabled && entry.second.session_unlock_count > 0))
+    {
+      spread.hard_unlocks++;
+      spread.hard_points += points;
+    }
+    else if (entry.second.remote_unlock_status == UnlockStatus::UnlockType::SOFTCORE ||
+        entry.second.session_unlock_count > 0)
+    {
+      spread.soft_unlocks++;
+      spread.soft_points += points;
+    }
+  }
+  return spread;
 }
 
 // Every RetroAchievements API call, with only a partial exception for fetch_image, follows
