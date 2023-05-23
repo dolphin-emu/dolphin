@@ -25,9 +25,9 @@
 
 namespace Discord
 {
+#ifdef USE_DISCORD_PRESENCE
 static bool s_using_custom_client = false;
 
-#ifdef USE_DISCORD_PRESENCE
 namespace
 {
 Handler* event_handler = nullptr;
