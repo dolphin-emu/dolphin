@@ -66,6 +66,8 @@ void JitArm64::Init()
   code_block.m_gpa = &js.gpa;
   code_block.m_fpa = &js.fpa;
 
+  InitBLROptimization();
+
   GenerateAsm();
 
   ResetFreeMemoryRanges();
