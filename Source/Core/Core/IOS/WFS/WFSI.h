@@ -51,7 +51,6 @@ private:
   std::string m_device_name;
 
   std::unique_ptr<Common::AES::Context> m_aes_ctx{};
-  u8 m_aes_key[0x10] = {};
   u8 m_aes_iv[0x10] = {};
 
   ES::TMDReader m_tmd;
