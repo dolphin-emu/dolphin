@@ -146,7 +146,7 @@ void JitArm64::GenerateAsm()
       ORR(pc_masked, ARM64Reg::WZR,
           LogicalImm(JitBaseBlockCache::FAST_BLOCK_MAP_FALLBACK_MASK << 3, 32));
       AND(pc_masked, pc_masked, DISPATCHER_PC, ArithOption(DISPATCHER_PC, ShiftType::LSL, 1));
-      MOVP2R(cache_base, GetBlockCache()->GetFastBlockMap());
+      MOVP2R(cache_base, GetBlockCache()->GetFastBlockMapFallback());
       LDR(block, cache_base, EncodeRegTo64(pc_masked));
       FixupBranch not_found = CBZ(block);
 
