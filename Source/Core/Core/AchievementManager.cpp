@@ -5,6 +5,8 @@
 
 #include "Core/AchievementManager.h"
 
+#include <fmt/format.h>
+
 #include <rcheevos/include/rc_hash.h>
 
 #include "Common/HttpRequest.h"
@@ -14,6 +16,7 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/System.h"
 #include "DiscIO/Volume.h"
+#include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoEvents.h"
 
 static constexpr bool hardcore_mode_enabled = false;
@@ -506,6 +509,11 @@ void AchievementManager::HandleAchievementTriggeredEvent(const rc_runtime_event_
     return;
   it->second.session_unlock_count++;
   m_queue.EmplaceItem([this, runtime_event] { AwardAchievement(runtime_event->id); });
+  AchievementId game_data_index = it->second.game_data_index;
+  OSD::AddMessage(fmt::format("Unlocked: {} ({})", m_game_data.achievements[game_data_index].title,
+                              m_game_data.achievements[game_data_index].points),
+                  OSD::Duration::VERY_LONG,
+                  (hardcore_mode_enabled) ? OSD::Color::YELLOW : OSD::Color::CYAN);
   ActivateDeactivateAchievement(runtime_event->id, Config::Get(Config::RA_ACHIEVEMENTS_ENABLED),
                                 Config::Get(Config::RA_UNOFFICIAL_ENABLED),
                                 Config::Get(Config::RA_ENCORE_ENABLED));
