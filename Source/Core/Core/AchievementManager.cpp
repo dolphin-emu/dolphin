@@ -340,6 +340,7 @@ AchievementManager::ResponseType AchievementManager::VerifyCredentials(const std
       .username = username.c_str(), .api_token = api_token.c_str(), .password = password.c_str()};
   ResponseType r_type = Request<rc_api_login_request_t, rc_api_login_response_t>(
       login_request, &login_data, rc_api_init_login_request, rc_api_process_login_response);
+  m_display_name = login_data.display_name;
   if (r_type == ResponseType::SUCCESS)
     Config::SetBaseOrCurrent(Config::RA_API_TOKEN, login_data.api_token);
   rc_api_destroy_login_response(&login_data);
@@ -546,6 +547,19 @@ void AchievementManager::HandleAchievementTriggeredEvent(const rc_runtime_event_
                               m_game_data.achievements[game_data_index].points),
                   OSD::Duration::VERY_LONG,
                   (hardcore_mode_enabled) ? OSD::Color::YELLOW : OSD::Color::CYAN);
+  PointSpread spread = TallyScore();
+  if (spread.hard_points == spread.total_points)
+  {
+    OSD::AddMessage(
+        fmt::format("Congratulations! {} has mastered {}", m_display_name, m_game_data.title),
+        OSD::Duration::VERY_LONG, OSD::Color::YELLOW);
+  }
+  else if (spread.hard_points + spread.soft_points == spread.total_points)
+  {
+    OSD::AddMessage(
+        fmt::format("Congratulations! {} has completed {}", m_display_name, m_game_data.title),
+        OSD::Duration::VERY_LONG, OSD::Color::CYAN);
+  }
   ActivateDeactivateAchievement(runtime_event->id, Config::Get(Config::RA_ACHIEVEMENTS_ENABLED),
                                 Config::Get(Config::RA_UNOFFICIAL_ENABLED),
                                 Config::Get(Config::RA_ENCORE_ENABLED));
