@@ -156,6 +156,23 @@ void AchievementManager::LoadGameByFilenameAsync(const std::string& iso_path,
       std::lock_guard lg{m_lock};
       LoadUnlockData([](ResponseType r_type) {});
       ActivateDeactivateAchievements();
+      PointSpread spread = TallyScore();
+      if (hardcore_mode_enabled)
+      {
+        OSD::AddMessage(fmt::format("You have {}/{} achievements worth {}/{} points",
+                                    spread.hard_unlocks, spread.total_count, spread.hard_points,
+                                    spread.total_points),
+                        OSD::Duration::VERY_LONG, OSD::Color::YELLOW);
+        OSD::AddMessage("Hardcore mode is ON", OSD::Duration::VERY_LONG, OSD::Color::YELLOW);
+      }
+      else
+      {
+        OSD::AddMessage(fmt::format("You have {}/{} achievements worth {}/{} points",
+                                    spread.hard_unlocks + spread.soft_unlocks, spread.total_count,
+                                    spread.hard_points + spread.soft_points, spread.total_points),
+                        OSD::Duration::VERY_LONG, OSD::Color::CYAN);
+        OSD::AddMessage("Hardcore mode is OFF", OSD::Duration::VERY_LONG, OSD::Color::CYAN);
+      }
     }
     ActivateDeactivateLeaderboards();
     ActivateDeactivateRichPresence();
@@ -591,7 +608,7 @@ AchievementManager::PointSpread AchievementManager::TallyScore() const
       spread.hard_points += points;
     }
     else if (entry.second.remote_unlock_status == UnlockStatus::UnlockType::SOFTCORE ||
-        entry.second.session_unlock_count > 0)
+             entry.second.session_unlock_count > 0)
     {
       spread.soft_unlocks++;
       spread.soft_points += points;
