@@ -276,6 +276,8 @@ void Jit64::Init()
   m_const_pool.Init(AllocChildCodeSpace(constpool_size), constpool_size);
   ResetCodePtr();
 
+  InitBLROptimization();
+
   m_stack_guard = nullptr;
 
   blocks.Init();
