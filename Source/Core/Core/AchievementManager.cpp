@@ -266,6 +266,9 @@ void AchievementManager::AchievementEventHandler(const rc_runtime_event_t* runti
   case RC_RUNTIME_EVENT_ACHIEVEMENT_TRIGGERED:
     HandleAchievementTriggeredEvent(runtime_event);
     break;
+  case RC_RUNTIME_EVENT_LBOARD_STARTED:
+    HandleLeaderboardStartedEvent(runtime_event);
+    break;
   case RC_RUNTIME_EVENT_LBOARD_TRIGGERED:
     HandleLeaderboardTriggeredEvent(runtime_event);
     break;
@@ -517,6 +520,19 @@ void AchievementManager::HandleAchievementTriggeredEvent(const rc_runtime_event_
   ActivateDeactivateAchievement(runtime_event->id, Config::Get(Config::RA_ACHIEVEMENTS_ENABLED),
                                 Config::Get(Config::RA_UNOFFICIAL_ENABLED),
                                 Config::Get(Config::RA_ENCORE_ENABLED));
+}
+
+void AchievementManager::HandleLeaderboardStartedEvent(const rc_runtime_event_t* runtime_event)
+{
+  for (u32 ix = 0; ix < m_game_data.num_leaderboards; ix++)
+  {
+    if (m_game_data.leaderboards[ix].id == runtime_event->id)
+    {
+      OSD::AddMessage(fmt::format("Attempting leaderboard: {}", m_game_data.leaderboards[ix].title),
+                      OSD::Duration::VERY_LONG, OSD::Color::GREEN);
+      break;
+    }
+  }
 }
 
 void AchievementManager::HandleLeaderboardTriggeredEvent(const rc_runtime_event_t* runtime_event)
