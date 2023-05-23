@@ -523,6 +523,16 @@ void AchievementManager::HandleLeaderboardTriggeredEvent(const rc_runtime_event_
 {
   m_queue.EmplaceItem(
       [this, runtime_event] { SubmitLeaderboard(runtime_event->id, runtime_event->value); });
+  for (u32 ix = 0; ix < m_game_data.num_leaderboards; ix++)
+  {
+    if (m_game_data.leaderboards[ix].id == runtime_event->id)
+    {
+      OSD::AddMessage(fmt::format("Scored {} on leaderboard: {}", runtime_event->value,
+                                  m_game_data.leaderboards[ix].title),
+                      OSD::Duration::VERY_LONG, OSD::Color::YELLOW);
+      break;
+    }
+  }
 }
 
 // Every RetroAchievements API call, with only a partial exception for fetch_image, follows
