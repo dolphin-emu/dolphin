@@ -126,6 +126,8 @@ void AchievementManager::LoadGameByFilenameAsync(const std::string& iso_path,
     if (resolve_hash_response != ResponseType::SUCCESS || m_game_id == 0)
     {
       callback(resolve_hash_response);
+      OSD::AddMessage("No RetroAchievements data found for this game.", OSD::Duration::VERY_LONG,
+                      OSD::Color::RED);
       return;
     }
 
@@ -133,11 +135,18 @@ void AchievementManager::LoadGameByFilenameAsync(const std::string& iso_path,
     if (start_session_response != ResponseType::SUCCESS)
     {
       callback(start_session_response);
+      OSD::AddMessage("Failed to connect to RetroAchievements server.", OSD::Duration::VERY_LONG,
+                      OSD::Color::RED);
       return;
     }
 
     const auto fetch_game_data_response = FetchGameData();
     m_is_game_loaded = fetch_game_data_response == ResponseType::SUCCESS;
+    if (!m_is_game_loaded)
+    {
+      OSD::AddMessage("Unable to retrieve data from RetroAchievements server.",
+                      OSD::Duration::VERY_LONG, OSD::Color::RED);
+    }
 
     // Claim the lock, then queue the fetch unlock data calls, then initialize the unlock map in
     // ActivateDeactiveAchievements. This allows the calls to process while initializing the
