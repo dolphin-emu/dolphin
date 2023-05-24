@@ -275,7 +275,7 @@ void KeyboardMouse::UpdateCursor(bool should_center_mouse)
   m_state.cursor.y = (win_y / win_height * 2 - 1) * window_scale.y;
 }
 
-void KeyboardMouse::UpdateInput()
+Core::DeviceRemoval KeyboardMouse::UpdateInput()
 {
   XFlush(m_display);
 
@@ -369,6 +369,8 @@ void KeyboardMouse::UpdateInput()
 
   if (update_keyboard)
     XQueryKeymap(m_display, m_state.keyboard.data());
+
+  return Core::DeviceRemoval::Keep;
 }
 
 std::string KeyboardMouse::GetName() const

@@ -86,7 +86,7 @@ PipeDevice::~PipeDevice()
   close(m_fd);
 }
 
-void PipeDevice::UpdateInput()
+Core::DeviceRemoval PipeDevice::UpdateInput()
 {
   // Read any pending characters off the pipe. If we hit a newline,
   // then dequeue a command off the front of m_buf and parse it.
@@ -105,6 +105,7 @@ void PipeDevice::UpdateInput()
     m_buf.erase(0, newline + 1);
     newline = m_buf.find("\n");
   }
+  return Core::DeviceRemoval::Keep;
 }
 
 void PipeDevice::AddAxis(const std::string& name, double value)

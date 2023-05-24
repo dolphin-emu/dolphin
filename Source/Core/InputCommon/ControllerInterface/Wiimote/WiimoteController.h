@@ -35,7 +35,7 @@ public:
   std::string GetSource() const override;
   int GetSortPriority() const override;
 
-  void UpdateInput() override;
+  Core::DeviceRemoval UpdateInput() override;
 
 private:
   using Clock = std::chrono::steady_clock;
