@@ -128,7 +128,8 @@ Android dev environment set up, see [AndroidSetup.md](AndroidSetup.md).
 
 Make sure to pull submodules before building:
 ```sh
-git submodule update --init
+sudo apt install libfmt-dev
+git submodule update --init --recursive
 ```
 
 If using Android Studio, import the Gradle project located in `./Source/Android`.
