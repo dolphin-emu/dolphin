@@ -1063,7 +1063,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
       case ButtonType.CLASSIC_TRIGGER_R:
       case ButtonType.CLASSIC_BUTTON_ZL:
       case ButtonType.CLASSIC_BUTTON_ZR:
-        scale = 0.25f;
+        scale = 0.22f;
         break;
       default:
         scale = 0.125f;
