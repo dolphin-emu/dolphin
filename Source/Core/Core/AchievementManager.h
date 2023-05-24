@@ -81,6 +81,7 @@ private:
 
   void HandleAchievementTriggeredEvent(const rc_runtime_event_t* runtime_event);
   void HandleLeaderboardStartedEvent(const rc_runtime_event_t* runtime_event);
+  void HandleLeaderboardCanceledEvent(const rc_runtime_event_t* runtime_event);
   void HandleLeaderboardTriggeredEvent(const rc_runtime_event_t* runtime_event);
 
   template <typename RcRequest, typename RcResponse>

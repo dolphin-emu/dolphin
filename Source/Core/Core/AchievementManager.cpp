@@ -535,6 +535,19 @@ void AchievementManager::HandleLeaderboardStartedEvent(const rc_runtime_event_t*
   }
 }
 
+void AchievementManager::HandleLeaderboardCanceledEvent(const rc_runtime_event_t* runtime_event)
+{
+  for (u32 ix = 0; ix < m_game_data.num_leaderboards; ix++)
+  {
+    if (m_game_data.leaderboards[ix].id == runtime_event->id)
+    {
+      OSD::AddMessage(fmt::format("Failed leaderboard: {}", m_game_data.leaderboards[ix].title),
+                      OSD::Duration::VERY_LONG, OSD::Color::RED);
+      break;
+    }
+  }
+}
+
 void AchievementManager::HandleLeaderboardTriggeredEvent(const rc_runtime_event_t* runtime_event)
 {
   m_queue.EmplaceItem(
