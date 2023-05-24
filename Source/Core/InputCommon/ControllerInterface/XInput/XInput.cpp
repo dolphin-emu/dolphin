@@ -264,7 +264,7 @@ std::string Device::GetSource() const
   return "XInput";
 }
 
-void Device::UpdateInput()
+bool Device::UpdateInput()
 {
   PXInputGetState(m_index, &m_state_in);
 
@@ -286,6 +286,8 @@ void Device::UpdateInput()
       break;
     }
   }
+
+  return true;
 }
 
 void Device::UpdateMotors()

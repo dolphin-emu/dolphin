@@ -12,6 +12,7 @@
 
 #include <fmt/format.h>
 
+#include "Common/Assert.h"
 #include "Common/MathUtil.h"
 #include "Common/Thread.h"
 
@@ -52,6 +53,13 @@ private:
   const std::string m_name;
   const std::pair<Device::Input*, Device::Input*> m_inputs;
 };
+
+Device::Device()
+{
+  static std::atomic<int> device_handle_count = 0;
+  m_handle = device_handle_count.fetch_add(1);
+  ASSERT_MSG(CONTROLLERINTERFACE, m_handle != -1, "Run out of device handles");
+}
 
 Device::~Device()
 {

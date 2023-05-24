@@ -489,7 +489,7 @@ private:
 
   std::string GetSource() const override { return std::string(SOURCE_NAME); }
 
-  void UpdateInput() override
+  bool UpdateInput() override
   {
     // IRawGameController:
     static_assert(sizeof(bool) == sizeof(ButtonValueType));
@@ -526,6 +526,8 @@ private:
     // IGameControllerBatteryInfo:
     if (!UpdateBatteryLevel())
       DEBUG_LOG_FMT(CONTROLLERINTERFACE, "WGInput: UpdateBatteryLevel failed.");
+
+    return true;
   }
 
   void UpdateMotors()

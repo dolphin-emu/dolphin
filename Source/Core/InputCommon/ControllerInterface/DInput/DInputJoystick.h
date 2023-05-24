@@ -57,7 +57,7 @@ private:
   };
 
 public:
-  void UpdateInput() override;
+  bool UpdateInput() override;
 
   Joystick(const LPDIRECTINPUTDEVICE8 device);
   ~Joystick();

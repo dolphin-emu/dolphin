@@ -45,6 +45,8 @@ ControllerInterface g_controller_interface;
 // will never interfere with game threads.
 static thread_local ciface::InputChannel tls_input_channel = ciface::InputChannel::Host;
 
+static thread_local bool tls_is_updating_devices = false;
+
 void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
 {
   if (m_is_init)
@@ -265,11 +267,23 @@ void ControllerInterface::ClearDevices()
   InvokeDevicesChangedCallbacks();
 }
 
+std::shared_ptr<ciface::Core::Device> ControllerInterface::GetDeviceFromHandle(int handle) const
+{
+  std::lock_guard lk(m_devices_mutex);
+  const auto device = std::find_if(m_devices.begin(), m_devices.end(),
+                                   [&handle](const auto& d) { return d->GetHandle() == handle; });
+  return *device;
+}
+
 bool ControllerInterface::AddDevice(std::shared_ptr<ciface::Core::Device> device)
 {
   // If we are shutdown (or in process of shutting down) ignore this request:
   if (!m_is_init)
     return false;
+
+  ASSERT_MSG(CONTROLLERINTERFACE, !tls_is_updating_devices,
+             "Devices shouldn't be added within input update calls, there is a risk of deadlock "
+             "if another thread was already here");
 
   std::lock_guard lk_population(m_devices_population_mutex);
 
@@ -328,6 +342,10 @@ void ControllerInterface::RemoveDevice(std::function<bool(const ciface::Core::De
   if (!m_is_init)
     return;
 
+  ASSERT_MSG(CONTROLLERINTERFACE, !tls_is_updating_devices,
+             "Devices shouldn't be removed within input update calls, there is a risk of deadlock "
+             "if another thread was already here");
+
   std::lock_guard lk_population(m_devices_population_mutex);
 
   bool any_removed;
@@ -358,29 +376,53 @@ void ControllerInterface::UpdateInput()
   if (!m_is_init)
     return;
 
-  // TODO: if we are an emulation input channel, we should probably always lock
-  // Prefer outdated values over blocking UI or CPU thread (avoids short but noticeable frame drop)
+  std::vector<int> device_handles_to_remove;
 
-  // Lock this first to avoid deadlock with m_devices_mutex in certain cases (such as a Wii Remote
-  // getting disconnected)
-  if (!m_devices_population_mutex.try_lock())
-    return;
-
-  std::lock_guard population_lock(m_devices_population_mutex, std::adopt_lock);
-
-  if (!m_devices_mutex.try_lock())
-    return;
-
-  std::lock_guard lk(m_devices_mutex, std::adopt_lock);
-
-  for (auto& backend : m_input_backends)
-    backend->UpdateInput();
-
-  for (const auto& d : m_devices)
   {
-    // Theoretically we could avoid updating input on devices that don't have any references to
-    // them, but in practice a few devices types could break in different ways, so we don't
-    d->UpdateInput();
+    // TODO: if we are an emulation input channel, we should probably always lock.
+    // Prefer outdated values over blocking UI or CPU thread (this avoids short but noticeable frame
+    // drops)
+    if (!m_devices_mutex.try_lock())
+      return;
+
+    std::lock_guard lk_devices(m_devices_mutex, std::adopt_lock);
+
+    tls_is_updating_devices = true;
+
+    std::vector<const ciface::Core::Device*> devices_to_remove;
+
+    for (auto& backend : m_input_backends)
+      backend->UpdateInput(devices_to_remove);
+
+    for (const auto& d : m_devices)
+    {
+      // Theoretically we could avoid updating input on devices that don't have any references to
+      // them, but in practice a few devices types could break in different ways, so we don't
+      if (!d->UpdateInput())
+        devices_to_remove.push_back(d.get());
+    }
+
+    // Add the devices to remove while we still have the "m_devices_mutex" locked.
+    // This guarantees that:
+    // -We won't try to lock "m_devices_population_mutex" while it was already locked and waiting
+    //  for "m_devices_mutex", which would result in dead lock.
+    // -We don't keep shared ptrs on devices and thus unwillingly keep them alive even if somebody
+    //  is currently trying to remove them (and needs them destroyed on the spot).
+    // -If somebody else destroyed them in the meantime, we'll know which ones have been destroyed.
+    for (const auto& d : devices_to_remove)
+    {
+      device_handles_to_remove.push_back(d->GetHandle());
+    }
+
+    tls_is_updating_devices = false;
+  }
+
+  if (device_handles_to_remove.size() > 0)
+  {
+    RemoveDevice([&](const ciface::Core::Device* device) {
+      return std::find(std::begin(device_handles_to_remove), std::end(device_handles_to_remove),
+                       device->GetHandle()) != std::end(device_handles_to_remove);
+    });
   }
 }
 

@@ -18,6 +18,11 @@
 #include <Windows.h>
 #endif
 
+namespace ciface::Core
+{
+class Device;
+}
+
 namespace ciface::SDL
 {
 static std::string GetJoystickName(int index)
@@ -35,7 +40,7 @@ public:
   InputBackend(ControllerInterface* controller_interface);
   ~InputBackend();
   void PopulateDevices() override;
-  void UpdateInput() override;
+  void UpdateInput(std::vector<const ciface::Core::Device*>& devices_to_remove) override;
 
 private:
   void OpenAndAddDevice(int index);
@@ -658,7 +663,7 @@ void Joystick::Motor::SetState(ControlState state)
 }
 #endif
 
-void InputBackend::UpdateInput()
+void InputBackend::UpdateInput(std::vector<const ciface::Core::Device*>& devices_to_remove)
 {
   SDL_JoystickUpdate();
 }

@@ -221,7 +221,7 @@ bool Joystick::IsValid() const
   return SUCCEEDED(m_device->Acquire());
 }
 
-void Joystick::UpdateInput()
+bool Joystick::UpdateInput()
 {
   HRESULT hr = 0;
 
@@ -260,6 +260,8 @@ void Joystick::UpdateInput()
   // try reacquire if input lost
   if (DIERR_INPUTLOST == hr || DIERR_NOTACQUIRED == hr)
     m_device->Acquire();
+
+  return true;
 }
 
 // get name

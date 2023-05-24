@@ -111,6 +111,7 @@ public:
     Output* ToOutput() override { return this; }
   };
 
+  Device();
   virtual ~Device();
 
   int GetId() const { return m_id; }
@@ -118,11 +119,14 @@ public:
   virtual std::string GetName() const = 0;
   virtual std::string GetSource() const = 0;
   std::string GetQualifiedName() const;
-  virtual void UpdateInput() {}
+  // Return false to remove the device
+  virtual bool UpdateInput() { return true; }
 
   // May be overridden to implement hotplug removal.
   // Currently handled on a per-backend basis but this could change.
   virtual bool IsValid() const { return true; }
+
+  int GetHandle() const { return m_handle; }
 
   // Returns true whether this device is "virtual/emulated", not linked
   // to any actual physical device. Mostly used by keyboard and mouse devices,
@@ -178,6 +182,7 @@ private:
   int m_id = 0;
   std::vector<Input*> m_inputs;
   std::vector<Output*> m_outputs;
+  int m_handle;
 };
 
 //

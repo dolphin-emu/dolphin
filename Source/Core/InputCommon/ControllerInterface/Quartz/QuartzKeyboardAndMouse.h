@@ -62,7 +62,7 @@ private:
   };
 
 public:
-  void UpdateInput() override;
+  bool UpdateInput() override;
 
   explicit KeyboardAndMouse(void* view);
   ~KeyboardAndMouse() override;

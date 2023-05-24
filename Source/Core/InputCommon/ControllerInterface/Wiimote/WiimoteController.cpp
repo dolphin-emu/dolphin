@@ -1395,14 +1395,10 @@ void Device::UpdateRumble()
   QueueReport(OutputReportRumble{});
 }
 
-void Device::UpdateInput()
+bool Device::UpdateInput()
 {
   if (!m_wiimote->IsConnected())
-  {
-    g_controller_interface.RemoveDevice(
-        [this](const Core::Device* device) { return device == this; });
-    return;
-  }
+    return false;
 
   UpdateRumble();
   RunTasks();
@@ -1413,6 +1409,8 @@ void Device::UpdateInput()
     ProcessInputReport(report);
     RunTasks();
   }
+
+  return true;
 }
 
 void Device::MotionPlusState::ProcessData(const WiimoteEmu::MotionPlus::DataFormat& data)

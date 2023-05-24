@@ -72,7 +72,7 @@ private:
   };
 
 public:
-  void UpdateInput() override;
+  bool UpdateInput() override;
   bool IsValid() const override;
 
   evdevDevice(InputBackend* input_backend);

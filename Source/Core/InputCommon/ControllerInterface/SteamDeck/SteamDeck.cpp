@@ -113,7 +113,7 @@ public:
   Device(hid_device* device);
   std::string GetName() const final override;
   std::string GetSource() const final override;
-  void UpdateInput() override;
+  bool UpdateInput() override;
 
 private:
   hid_device* m_device;
@@ -278,7 +278,7 @@ std::string Device::GetSource() const
   return std::string(STEAMDECK_SOURCE_NAME);
 }
 
-void Device::UpdateInput()
+bool Device::UpdateInput()
 {
   DeckInputReport rpt;
   bool got_anything = false;
@@ -289,16 +289,18 @@ void Device::UpdateInput()
   }
   // In case there were no reports available to be read, bail early.
   if (!got_anything)
-    return;
+    return true;
 
   if (rpt.major_ver != 0x01 || rpt.minor_ver != 0x00 || rpt.report_type != 0x09 ||
       rpt.report_sz != sizeof(rpt))
   {
     ERROR_LOG_FMT(CONTROLLERINTERFACE, "Steam Deck bad report");
-    return;
+    return true;
   }
 
   m_latest_input = rpt;
+
+  return true;
 }
 
 }  // namespace ciface::SteamDeck
