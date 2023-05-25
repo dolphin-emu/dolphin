@@ -125,6 +125,8 @@ add_executable(dolphin-emu
   Config/Mapping/HotkeyStatesOther.h
   Config/Mapping/HotkeyTAS.cpp
   Config/Mapping/HotkeyTAS.h
+  Config/Mapping/HotkeyUSBEmu.cpp
+  Config/Mapping/HotkeyUSBEmu.h
   Config/Mapping/HotkeyWii.cpp
   Config/Mapping/HotkeyWii.h
   Config/Mapping/IOWindow.cpp

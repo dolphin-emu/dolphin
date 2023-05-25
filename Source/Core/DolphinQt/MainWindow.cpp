@@ -642,6 +642,11 @@ void MainWindow::ConnectHotkeys()
           &CodeWidget::ToggleBreakpoint);
   connect(m_hotkey_scheduler, &HotkeyScheduler::AddBreakpoint, m_code_widget,
           &CodeWidget::AddBreakpoint);
+
+  connect(m_hotkey_scheduler, &HotkeyScheduler::SkylandersPortalHotkey, this,
+          &MainWindow::ShowSkylanderPortal);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::InfinityBaseHotkey, this,
+          &MainWindow::ShowInfinityBase);
 }
 
 void MainWindow::ConnectToolBar()
