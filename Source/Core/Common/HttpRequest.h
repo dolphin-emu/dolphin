@@ -38,6 +38,7 @@ public:
   void SetCookies(const std::string& cookies);
   void UseIPv4();
   void FollowRedirects(long max = 1);
+  s32 GetLastResponseCode() const;
   std::string EscapeComponent(const std::string& string);
   Response Get(const std::string& url, const Headers& headers = {},
                AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only);

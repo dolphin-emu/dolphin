@@ -15,6 +15,8 @@
 #include "Common/Thread.h"
 #include "Common/TraversalProto.h"
 
+namespace Common
+{
 class TraversalClientClient
 {
 public:
@@ -90,9 +92,12 @@ private:
   u16 m_port;
   u32 m_PingTime = 0;
 };
+
 extern std::unique_ptr<TraversalClient> g_TraversalClient;
 // the NetHost connected to the TraversalClient.
-extern Common::ENet::ENetHostPtr g_MainNetHost;
+extern ENet::ENetHostPtr g_MainNetHost;
+
 // Create g_TraversalClient and g_MainNetHost if necessary.
 bool EnsureTraversalClient(const std::string& server, u16 server_port, u16 listen_port = 0);
 void ReleaseTraversalClient();
+}  // namespace Common

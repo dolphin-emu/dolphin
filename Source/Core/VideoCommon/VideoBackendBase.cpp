@@ -20,6 +20,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/DolphinAnalytics.h"
 #include "Core/System.h"
 
 // TODO: ugly
@@ -171,6 +172,8 @@ u32 VideoBackendBase::Video_GetQueryResult(PerfQueryType type)
 
 u16 VideoBackendBase::Video_GetBoundingBox(int index)
 {
+  DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::READS_BOUNDING_BOX);
+
   if (!g_ActiveConfig.bBBoxEnable)
   {
     static bool warn_once = true;

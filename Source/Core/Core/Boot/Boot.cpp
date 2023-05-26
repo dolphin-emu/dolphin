@@ -690,8 +690,8 @@ void UpdateStateFlags(std::function<void(StateFlags*)> update_function)
 
 void CreateSystemMenuTitleDirs()
 {
-  const auto es = IOS::HLE::GetIOS()->GetES();
-  es->CreateTitleDirectories(Titles::SYSTEM_MENU, IOS::SYSMENU_GID);
+  const auto& es = IOS::HLE::GetIOS()->GetESCore();
+  es.CreateTitleDirectories(Titles::SYSTEM_MENU, IOS::SYSMENU_GID);
 }
 
 void AddRiivolutionPatches(BootParameters* boot_params,

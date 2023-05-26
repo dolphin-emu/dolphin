@@ -43,7 +43,7 @@ std::string GetExpressionForControl(const std::string& control_name,
   {
     // If our expression contains any non-alpha characters
     // we should quote it
-    if (!std::all_of(expr.begin(), expr.end(), IsAlpha))
+    if (!std::all_of(expr.begin(), expr.end(), Common::IsAlpha))
       expr = fmt::format("`{}`", expr);
   }
 

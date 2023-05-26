@@ -12,6 +12,8 @@
 #include "Common/Random.h"
 #include "Core/NetPlayProto.h"
 
+namespace Common
+{
 TraversalClient::TraversalClient(ENetHost* netHost, const std::string& server, const u16 port)
     : m_NetHost(netHost), m_Server(server), m_port(port)
 {
@@ -304,7 +306,7 @@ int ENET_CALLBACK TraversalClient::InterceptCallback(ENetHost* host, ENetEvent* 
 }
 
 std::unique_ptr<TraversalClient> g_TraversalClient;
-Common::ENet::ENetHostPtr g_MainNetHost;
+ENet::ENetHostPtr g_MainNetHost;
 
 // The settings at the previous TraversalClient reset - notably, we
 // need to know not just what port it's on, but whether it was
@@ -348,3 +350,4 @@ void ReleaseTraversalClient()
   g_TraversalClient.reset();
   g_MainNetHost.reset();
 }
+}  // namespace Common

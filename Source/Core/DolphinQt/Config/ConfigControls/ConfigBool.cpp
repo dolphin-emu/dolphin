@@ -1,7 +1,7 @@
 // Copyright 2017 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "DolphinQt/Config/Graphics/GraphicsBool.h"
+#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 
 #include <QEvent>
 #include <QFont>
@@ -11,10 +11,10 @@
 
 #include "DolphinQt/Settings.h"
 
-GraphicsBool::GraphicsBool(const QString& label, const Config::Info<bool>& setting, bool reverse)
+ConfigBool::ConfigBool(const QString& label, const Config::Info<bool>& setting, bool reverse)
     : ToolTipCheckBox(label), m_setting(setting), m_reverse(reverse)
 {
-  connect(this, &QCheckBox::toggled, this, &GraphicsBool::Update);
+  connect(this, &QCheckBox::toggled, this, &ConfigBool::Update);
   setChecked(Config::Get(m_setting) ^ reverse);
 
   connect(&Settings::Instance(), &Settings::ConfigChanged, this, [this] {
@@ -27,7 +27,7 @@ GraphicsBool::GraphicsBool(const QString& label, const Config::Info<bool>& setti
   });
 }
 
-void GraphicsBool::Update()
+void ConfigBool::Update()
 {
   Config::SetBaseOrCurrent(m_setting, static_cast<bool>(isChecked() ^ m_reverse));
 }

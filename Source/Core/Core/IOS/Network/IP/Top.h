@@ -63,10 +63,10 @@ enum NET_IOCTL
   IOCTL_SO_ICMPCLOSE
 };
 
-class NetIPTopDevice : public Device
+class NetIPTopDevice : public EmulationDevice
 {
 public:
-  NetIPTopDevice(Kernel& ios, const std::string& device_name);
+  NetIPTopDevice(EmulationKernel& ios, const std::string& device_name);
 
   void DoState(PointerWrap& p) override;
   std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;

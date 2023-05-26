@@ -30,6 +30,7 @@ public:
   void SetCookies(const std::string& cookies);
   void UseIPv4();
   void FollowRedirects(long max);
+  s32 GetLastResponseCode();
   Response Fetch(const std::string& url, Method method, const Headers& headers, const u8* payload,
                  size_t size, AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only);
 
@@ -74,6 +75,11 @@ void HttpRequest::FollowRedirects(long max)
 std::string HttpRequest::EscapeComponent(const std::string& string)
 {
   return m_impl->EscapeComponent(string);
+}
+
+s32 HttpRequest::GetLastResponseCode() const
+{
+  return m_impl->GetLastResponseCode();
 }
 
 HttpRequest::Response HttpRequest::Get(const std::string& url, const Headers& headers,
@@ -142,6 +148,13 @@ HttpRequest::Impl::Impl(std::chrono::milliseconds timeout_ms, ProgressCallback c
 bool HttpRequest::Impl::IsValid() const
 {
   return m_curl != nullptr;
+}
+
+s32 HttpRequest::Impl::GetLastResponseCode()
+{
+  s32 response_code{};
+  curl_easy_getinfo(m_curl.get(), CURLINFO_RESPONSE_CODE, &response_code);
+  return response_code;
 }
 
 void HttpRequest::Impl::SetCookies(const std::string& cookies)

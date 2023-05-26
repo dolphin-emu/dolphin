@@ -260,7 +260,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
     IPCCommandType ct = it->request.command;
     if (!it->is_ssl && ct == IPC_CMD_IOCTL)
     {
-      IOCtlRequest ioctl{it->request.address};
+      IOCtlRequest ioctl{system, it->request.address};
       switch (it->net_type)
       {
       case IOCTL_SO_FCNTL:
@@ -351,7 +351,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
     }
     else if (ct == IPC_CMD_IOCTLV)
     {
-      IOCtlVRequest ioctlv{it->request.address};
+      IOCtlVRequest ioctlv{system, it->request.address};
       u32 BufferIn = 0, BufferIn2 = 0;
       u32 BufferInSize = 0, BufferInSize2 = 0;
       u32 BufferOut = 0, BufferOut2 = 0;
@@ -1042,8 +1042,8 @@ void WiiSockMan::UpdatePollCommands()
   pending_polls.erase(
       std::remove_if(
           pending_polls.begin(), pending_polls.end(),
-          [&memory, this](PollCommand& pcmd) {
-            const auto request = Request(pcmd.request_addr);
+          [&system, &memory, this](PollCommand& pcmd) {
+            const auto request = Request(system, pcmd.request_addr);
             auto& pfds = pcmd.wii_fds;
             int ret = 0;
 

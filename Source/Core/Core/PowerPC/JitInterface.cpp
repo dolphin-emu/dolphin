@@ -59,22 +59,20 @@ void JitInterface::DoState(PointerWrap& p)
 
 CPUCoreBase* JitInterface::InitJitCore(PowerPC::CPUCore core)
 {
-  auto& system = Core::System::GetInstance();
-
   switch (core)
   {
 #if _M_X86
   case PowerPC::CPUCore::JIT64:
-    m_jit = std::make_unique<Jit64>(system);
+    m_jit = std::make_unique<Jit64>(m_system);
     break;
 #endif
 #if _M_ARM_64
   case PowerPC::CPUCore::JITARM64:
-    m_jit = std::make_unique<JitArm64>(system);
+    m_jit = std::make_unique<JitArm64>(m_system);
     break;
 #endif
   case PowerPC::CPUCore::CachedInterpreter:
-    m_jit = std::make_unique<CachedInterpreter>(system);
+    m_jit = std::make_unique<CachedInterpreter>(m_system);
     break;
 
   default:

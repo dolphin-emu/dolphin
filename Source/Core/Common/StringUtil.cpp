@@ -77,7 +77,7 @@ std::string HexDump(const u8* data, size_t size)
       if (row_start + i < size)
       {
         char c = static_cast<char>(data[row_start + i]);
-        out += IsPrintableCharacter(c) ? c : '.';
+        out += Common::IsPrintableCharacter(c) ? c : '.';
       }
     }
     out += "\n";
@@ -547,7 +547,7 @@ std::string CodeTo(const char* tocode, const char* fromcode, std::basic_string_v
     while (src_bytes != 0)
     {
       size_t const iconv_result =
-#if defined(__OpenBSD__) || defined(__NetBSD__)
+#if defined(__NetBSD__)
           iconv(conv_desc, reinterpret_cast<const char**>(&src_buffer), &src_bytes, &dst_buffer,
                 &dst_bytes);
 #else
@@ -656,6 +656,8 @@ std::string PathToString(const std::filesystem::path& path)
 #endif
 }
 
+namespace Common
+{
 #ifdef _WIN32
 std::vector<std::string> CommandLineToUtf8Argv(const wchar_t* command_line)
 {
@@ -693,8 +695,6 @@ std::string GetEscapedHtml(std::string html)
   return html;
 }
 
-namespace Common
-{
 void ToLower(std::string* str)
 {
   std::transform(str->begin(), str->end(), str->begin(), [](char c) { return Common::ToLower(c); });
