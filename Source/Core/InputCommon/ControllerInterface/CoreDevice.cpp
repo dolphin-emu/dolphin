@@ -12,6 +12,7 @@
 
 #include <fmt/format.h>
 
+#include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 #include "Common/Thread.h"
 
@@ -426,12 +427,17 @@ auto DeviceContainer::DetectInput(const std::vector<std::string>& device_strings
 
     Common::SleepCurrentThread(10);
 
+    INFO_LOG_FMT(CONTROLLERINTERFACE, "Updating input states!");
+
     for (auto& device_state : device_states)
     {
       for (std::size_t i = 0; i != device_state.input_states.size(); ++i)
       {
         auto& input_state = device_state.input_states[i];
         input_state.Update();
+
+        INFO_LOG_FMT(CONTROLLERINTERFACE, "Input state {} {} {} {}", input_state.input->GetName(),
+                     input_state.initial_state, input_state.last_state, input_state.is_ready);
 
         if (input_state.IsPressed())
         {
@@ -450,6 +456,7 @@ auto DeviceContainer::DetectInput(const std::vector<std::string>& device_strings
 
           // We found an input. Add it to our detections.
           detections.emplace_back(std::move(new_detection));
+          INFO_LOG_FMT(CONTROLLERINTERFACE, "Added input {}", input_state.input->GetName());
         }
       }
     }

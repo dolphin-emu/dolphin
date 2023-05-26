@@ -8,6 +8,7 @@
 
 #include <jni.h>
 
+#include "Common/Logging/Log.h"
 #include "Core/FreeLookManager.h"
 #include "Core/HW/GBAPad.h"
 #include "Core/HW/GCKeyboard.h"
@@ -47,7 +48,15 @@ Java_org_dolphinemu_dolphinemu_features_input_model_MappingCommon_detectInput(
       g_controller_interface.DetectInput(device_strings, INPUT_DETECT_INITIAL_TIME,
                                          INPUT_DETECT_CONFIRMATION_TIME, INPUT_DETECT_MAXIMUM_TIME);
 
+  INFO_LOG_FMT(CONTROLLERINTERFACE, "Inputs before removing spurious trigger combinations:");
+  for (auto& detection : detections)
+    INFO_LOG_FMT(CONTROLLERINTERFACE, "{}", detection.input->GetName());
+
   ciface::MappingCommon::RemoveSpuriousTriggerCombinations(&detections);
+
+  INFO_LOG_FMT(CONTROLLERINTERFACE, "Inputs after removing spurious trigger combinations:");
+  for (auto& detection : detections)
+    INFO_LOG_FMT(CONTROLLERINTERFACE, "{}", detection.input->GetName());
 
   return ToJString(env, ciface::MappingCommon::BuildExpression(detections, default_device,
                                                                ciface::MappingCommon::Quote::On));

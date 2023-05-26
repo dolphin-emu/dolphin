@@ -1012,8 +1012,8 @@ Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatch
   casted_input->SetState(state);
   const Clock::time_point last_polled = casted_input->GetLastPolled();
 
-  DEBUG_LOG_FMT(CONTROLLERINTERFACE, "Set {} of {} to {}", input_name, device->GetQualifiedName(),
-                state);
+  INFO_LOG_FMT(CONTROLLERINTERFACE, "Set {} of {} to {}", input_name, device->GetQualifiedName(),
+               state);
 
   return last_polled >= Clock::now() - ACTIVE_INPUT_TIMEOUT;
 }
@@ -1056,8 +1056,8 @@ Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatch
       casted_input->SetState(value);
       last_polled = std::max(last_polled, casted_input->GetLastPolled());
 
-      DEBUG_LOG_FMT(CONTROLLERINTERFACE, "Set {} of {} to {}", input_name,
-                    device->GetQualifiedName(), value);
+      INFO_LOG_FMT(CONTROLLERINTERFACE, "Set {} of {} to {}", input_name,
+                   device->GetQualifiedName(), value);
     }
   }
 
