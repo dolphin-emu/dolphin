@@ -391,11 +391,11 @@ void Cache::DoState(PointerWrap& p)
         if ((valid[set] & (1 << way)) != 0)
         {
           if (addrs[set][way] & CACHE_VMEM_BIT)
-            lookup_table_vmem[(addrs[set][way] & memory.GetFakeVMemMask()) >> 5] = 0xff;
+            lookup_table_vmem[(addrs[set][way] & memory.GetFakeVMemMask()) >> 5] = way;
           else if (addrs[set][way] & CACHE_EXRAM_BIT)
-            lookup_table_ex[(addrs[set][way] & memory.GetExRamMask()) >> 5] = 0xff;
+            lookup_table_ex[(addrs[set][way] & memory.GetExRamMask()) >> 5] = way;
           else
-            lookup_table[(addrs[set][way] & memory.GetRamMask()) >> 5] = 0xff;
+            lookup_table[(addrs[set][way] & memory.GetRamMask()) >> 5] = way;
         }
       }
     }

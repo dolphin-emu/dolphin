@@ -280,7 +280,7 @@ public:
 class SharedContentMap final
 {
 public:
-  explicit SharedContentMap(std::shared_ptr<HLE::FSDevice> fs);
+  explicit SharedContentMap(HLE::FSCore& fs_core);
   ~SharedContentMap();
 
   std::optional<std::string> GetFilenameFromSHA1(const std::array<u8, 20>& sha1) const;
@@ -296,7 +296,7 @@ private:
   struct Entry;
   u32 m_last_id = 0;
   std::vector<Entry> m_entries;
-  std::shared_ptr<HLE::FSDevice> m_fs_device;
+  HLE::FSCore& m_fs_core;
   std::shared_ptr<HLE::FS::FileSystem> m_fs;
   u64 m_ticks = 0;
 };
@@ -304,7 +304,7 @@ private:
 class UIDSys final
 {
 public:
-  explicit UIDSys(std::shared_ptr<HLE::FSDevice> fs);
+  explicit UIDSys(HLE::FSCore& fs_core);
 
   u32 GetUIDFromTitle(u64 title_id) const;
   u32 GetOrInsertUIDForTitle(u64 title_id);
@@ -313,7 +313,7 @@ public:
   u64 GetTicks() const { return m_ticks; }
 
 private:
-  std::shared_ptr<HLE::FSDevice> m_fs_device;
+  HLE::FSCore& m_fs_core;
   std::shared_ptr<HLE::FS::FileSystem> m_fs;
   std::map<u32, u64> m_entries;
   u64 m_ticks = 0;

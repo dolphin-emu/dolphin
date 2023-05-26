@@ -134,10 +134,6 @@ void PowerPCManager::DoState(PointerWrap& p)
       INFO_LOG_FMT(POWERPC, "Flushing data cache");
       m_ppc_state.dCache.FlushAll();
     }
-    else
-    {
-      m_ppc_state.dCache.Reset();
-    }
 
     RoundingModeUpdated(m_ppc_state);
 

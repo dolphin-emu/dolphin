@@ -31,7 +31,7 @@ namespace NetPlay
 class NetPlayUI;
 struct SaveSyncInfo;
 
-class NetPlayServer : public TraversalClientClient
+class NetPlayServer : public Common::TraversalClientClient
 {
 public:
   void ThreadFunc();
@@ -143,7 +143,7 @@ private:
 
   void OnTraversalStateChanged() override;
   void OnConnectReady(ENetAddress) override {}
-  void OnConnectFailed(TraversalConnectFailedReason) override {}
+  void OnConnectFailed(Common::TraversalConnectFailedReason) override {}
   void UpdatePadMapping();
   void UpdateGBAConfig();
   void UpdateWiimoteMapping();
@@ -210,7 +210,7 @@ private:
   bool m_abort_chunked_data = false;
 
   ENetHost* m_server = nullptr;
-  TraversalClient* m_traversal_client = nullptr;
+  Common::TraversalClient* m_traversal_client = nullptr;
   NetPlayUI* m_dialog = nullptr;
   NetPlayIndex m_index;
 };

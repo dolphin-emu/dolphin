@@ -67,8 +67,8 @@ public:
   void OnDesync(u32 frame, const std::string& player) override;
   void OnConnectionLost() override;
   void OnConnectionError(const std::string& message) override;
-  void OnTraversalError(TraversalClient::FailureReason error) override;
-  void OnTraversalStateChanged(TraversalClient::State state) override;
+  void OnTraversalError(Common::TraversalClient::FailureReason error) override;
+  void OnTraversalStateChanged(Common::TraversalClient::State state) override;
   void OnGameStartAborted() override;
   void OnGolferChanged(bool is_golfer, const std::string& golfer_name) override;
 

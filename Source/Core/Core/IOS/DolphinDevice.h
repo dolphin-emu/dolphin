@@ -8,10 +8,10 @@
 
 namespace IOS::HLE
 {
-class DolphinDevice final : public Device
+class DolphinDevice final : public EmulationDevice
 {
 public:
-  DolphinDevice(Kernel& ios, const std::string& device_name);
+  DolphinDevice(EmulationKernel& ios, const std::string& device_name);
   std::optional<IPCReply> IOCtlV(const IOCtlVRequest& request) override;
 
 private:

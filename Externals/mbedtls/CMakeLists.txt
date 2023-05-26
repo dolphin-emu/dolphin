@@ -48,7 +48,8 @@ option(ENABLE_ZLIB_SUPPORT "Build mbed TLS with zlib library." OFF)
 option(ENABLE_PROGRAMS "Build mbed TLS programs." OFF)
 
 option(UNSAFE_BUILD "Allow unsafe builds. These builds ARE NOT SECURE." OFF)
-option(MBEDTLS_FATAL_WARNINGS "Compiler warnings treated as errors" ON)
+# Dolphin: werror makes updating compilers painful
+option(MBEDTLS_FATAL_WARNINGS "Compiler warnings treated as errors" OFF)
 
 string(REGEX MATCH "Clang" CMAKE_COMPILER_IS_CLANG "${CMAKE_C_COMPILER_ID}")
 string(REGEX MATCH "GNU" CMAKE_COMPILER_IS_GNU "${CMAKE_C_COMPILER_ID}")
@@ -233,8 +234,7 @@ endif(CMAKE_COMPILER_IS_MSVC)
 
 if(MBEDTLS_FATAL_WARNINGS)
     if(CMAKE_COMPILER_IS_MSVC)
-        # Dolphin/MSVC: we want to disable all warnings for externals
-        #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
     endif(CMAKE_COMPILER_IS_MSVC)
 
     if(CMAKE_COMPILER_IS_CLANG OR CMAKE_COMPILER_IS_GNU)

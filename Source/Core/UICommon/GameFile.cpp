@@ -246,49 +246,8 @@ void GameFile::DownloadDefaultCover()
   if (File::Exists(png_path))
     return;
 
-  std::string region_code;
-  switch (m_region)
-  {
-  case DiscIO::Region::NTSC_J:
-    region_code = "JA";
-    break;
-  case DiscIO::Region::NTSC_U:
-    region_code = "US";
-    break;
-  case DiscIO::Region::NTSC_K:
-    region_code = "KO";
-    break;
-  case DiscIO::Region::PAL:
-  {
-    const auto user_lang = SConfig::GetInstance().GetCurrentLanguage(DiscIO::IsWii(GetPlatform()));
-    switch (user_lang)
-    {
-    case DiscIO::Language::German:
-      region_code = "DE";
-      break;
-    case DiscIO::Language::French:
-      region_code = "FR";
-      break;
-    case DiscIO::Language::Spanish:
-      region_code = "ES";
-      break;
-    case DiscIO::Language::Italian:
-      region_code = "IT";
-      break;
-    case DiscIO::Language::Dutch:
-      region_code = "NL";
-      break;
-    case DiscIO::Language::English:
-    default:
-      region_code = "EN";
-      break;
-    }
-    break;
-  }
-  case DiscIO::Region::Unknown:
-    region_code = "EN";
-    break;
-  }
+  const std::string region_code =
+      SConfig::GetInstance().GetGameTDBImageRegionCode(DiscIO::IsWii(GetPlatform()), m_region);
 
   Common::HttpRequest request;
   static constexpr char cover_url[] = "https://art.gametdb.com/wii/cover/{}/{}.png";

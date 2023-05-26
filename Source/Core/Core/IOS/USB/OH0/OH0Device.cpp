@@ -35,7 +35,8 @@ static void GetVidPidFromDevicePath(const std::string& device_path, u16& vid, u1
   ss >> pid;
 }
 
-OH0Device::OH0Device(Kernel& ios, const std::string& name) : Device(ios, name, DeviceType::OH0)
+OH0Device::OH0Device(EmulationKernel& ios, const std::string& name)
+    : EmulationDevice(ios, name, DeviceType::OH0)
 {
   if (!name.empty())
     GetVidPidFromDevicePath(name, m_vid, m_pid);
@@ -43,7 +44,7 @@ OH0Device::OH0Device(Kernel& ios, const std::string& name) : Device(ios, name, D
 
 void OH0Device::DoState(PointerWrap& p)
 {
-  m_oh0 = std::static_pointer_cast<OH0>(GetIOS()->GetDeviceByName("/dev/usb/oh0"));
+  m_oh0 = std::static_pointer_cast<OH0>(GetEmulationKernel().GetDeviceByName("/dev/usb/oh0"));
   Device::DoState(p);
   p.Do(m_vid);
   p.Do(m_pid);
@@ -55,7 +56,7 @@ std::optional<IPCReply> OH0Device::Open(const OpenRequest& request)
   if (m_vid == 0 && m_pid == 0)
     return IPCReply(IPC_ENOENT);
 
-  m_oh0 = std::static_pointer_cast<OH0>(GetIOS()->GetDeviceByName("/dev/usb/oh0"));
+  m_oh0 = std::static_pointer_cast<OH0>(GetEmulationKernel().GetDeviceByName("/dev/usb/oh0"));
 
   ReturnCode return_code;
   std::tie(return_code, m_device_id) = m_oh0->DeviceOpen(m_vid, m_pid);
