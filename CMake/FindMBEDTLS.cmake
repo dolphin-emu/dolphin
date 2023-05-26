@@ -1,8 +1,8 @@
-find_path(MBEDTLS_INCLUDE_DIR mbedtls/ssl.h)
+find_path(MBEDTLS_INCLUDE_DIR mbedtls/ssl.h PATH_SUFFIXES mbedtls2)
 
-find_library(MBEDTLS_LIBRARY mbedtls)
-find_library(MBEDX509_LIBRARY mbedx509)
-find_library(MBEDCRYPTO_LIBRARY mbedcrypto)
+find_library(MBEDTLS_LIBRARY mbedtls PATH_SUFFIXES mbedtls2)
+find_library(MBEDX509_LIBRARY mbedx509 PATH_SUFFIXES mbedtls2)
+find_library(MBEDCRYPTO_LIBRARY mbedcrypto PATH_SUFFIXES mbedtls2)
 
 set(MBEDTLS_INCLUDE_DIRS ${MBEDTLS_INCLUDE_DIR})
 set(MBEDTLS_LIBRARIES ${MBEDTLS_LIBRARY} ${MBEDX509_LIBRARY} ${MBEDCRYPTO_LIBRARY})
