@@ -50,6 +50,7 @@
     <ClCompile Include="CheatSearchFactoryWidget.cpp" />
     <ClCompile Include="CheatSearchWidget.cpp" />
     <ClCompile Include="CheatsManager.cpp" />
+    <ClCompile Include="Achievements\AchievementsWindow.cpp" />
     <ClCompile Include="Config\ARCodeWidget.cpp" />
     <ClCompile Include="Config\CheatCodeEditor.cpp" />
     <ClCompile Include="Config\CheatWarningWidget.cpp" />
@@ -252,6 +253,7 @@
     <QtMoc Include="CheatSearchFactoryWidget.h" />
     <QtMoc Include="CheatSearchWidget.h" />
     <QtMoc Include="CheatsManager.h" />
+    <QtMoc Include="Achievements\AchievementsWindow.h" />
     <QtMoc Include="Config\ARCodeWidget.h" />
     <QtMoc Include="Config\CheatWarningWidget.h" />
     <QtMoc Include="Config\CommonControllersWidget.h" />

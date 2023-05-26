@@ -27,6 +27,8 @@ add_executable(dolphin-emu
   CheatSearchWidget.h
   CheatsManager.cpp
   CheatsManager.h
+  Achievements/AchievementsWindow.cpp
+  Achievements/AchievementsWindow.h
   Config/ARCodeWidget.cpp
   Config/ARCodeWidget.h
   Config/CheatCodeEditor.cpp

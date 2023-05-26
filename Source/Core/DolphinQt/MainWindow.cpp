@@ -72,6 +72,7 @@
 #include "DiscIO/RiivolutionPatcher.h"
 
 #include "DolphinQt/AboutDialog.h"
+#include "DolphinQt/Achievements/AchievementsWindow.h"
 #include "DolphinQt/CheatsManager.h"
 #include "DolphinQt/Config/ControllersWindow.h"
 #include "DolphinQt/Config/FreeLookWindow.h"
@@ -543,6 +544,10 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::ShowSkylanderPortal, this, &MainWindow::ShowSkylanderPortal);
   connect(m_menu_bar, &MenuBar::ShowInfinityBase, this, &MainWindow::ShowInfinityBase);
   connect(m_menu_bar, &MenuBar::ConnectWiiRemote, this, &MainWindow::OnConnectWiiRemote);
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+  connect(m_menu_bar, &MenuBar::ShowAchievementsWindow, this, &MainWindow::ShowAchievementsWindow);
+#endif  // USE_RETRO_ACHIEVEMENTS
 
   // Movie
   connect(m_menu_bar, &MenuBar::PlayRecording, this, &MainWindow::OnPlayRecording);
@@ -1891,6 +1896,20 @@ void MainWindow::OnConnectWiiRemote(int id)
     }
   });
 }
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+void MainWindow::ShowAchievementsWindow()
+{
+  if (!m_achievements_window)
+  {
+    m_achievements_window = new AchievementsWindow(this);
+  }
+
+  m_achievements_window->show();
+  m_achievements_window->raise();
+  m_achievements_window->activateWindow();
+}
+#endif  // USE_RETRO_ACHIEVEMENTS
 
 void MainWindow::ShowMemcardManager()
 {
