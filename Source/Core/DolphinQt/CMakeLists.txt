@@ -402,8 +402,8 @@ if (MSVC)
   target_compile_definitions(dolphin-mpn PRIVATE _SILENCE_CXX23_ALIGNED_STORAGE_DEPRECATION_WARNING)
 
   # Qt6 requires RTTI
-  remove_cxx_flag_from_target(dolphin-emu "/GR-")
-  target_compile_options(dolphin-emu PRIVATE "/GR")
+  remove_cxx_flag_from_target(dolphin-mpn "/GR-")
+  target_compile_options(dolphin-mpn PRIVATE "/GR")
 endif()
 
 if(WIN32)
@@ -546,11 +546,11 @@ if(APPLE)
 
   # Copy Qt plugins into the bundle
   get_target_property(qtcocoa_location Qt6::QCocoaIntegrationPlugin LOCATION)
-  target_sources(dolphin-emu PRIVATE "${qtcocoa_location}")
+  target_sources(dolphin-mpn PRIVATE "${qtcocoa_location}")
   set_source_files_properties("${qtcocoa_location}" PROPERTIES MACOSX_PACKAGE_LOCATION MacOS/platforms)
 
   get_target_property(qtmacstyle_location Qt6::QMacStylePlugin LOCATION)
-  target_sources(dolphin-emu PRIVATE "${qtmacstyle_location}")
+  target_sources(dolphin-mpn PRIVATE "${qtmacstyle_location}")
   set_source_files_properties("${qtmacstyle_location}" PROPERTIES MACOSX_PACKAGE_LOCATION MacOS/styles)
 
   # Copy resources into the bundle
