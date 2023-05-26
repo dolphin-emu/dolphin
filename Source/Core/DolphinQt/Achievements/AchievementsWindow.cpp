@@ -4,9 +4,11 @@
 #ifdef USE_RETRO_ACHIEVEMENTS
 #include "DolphinQt/Achievements/AchievementsWindow.h"
 
-#include <QVBoxLayout>
 #include <QDialogButtonBox>
+#include <QTabWidget>
+#include <QVBoxLayout>
 
+#include "DolphinQt/Achievements/AchievementSettingsWidget.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 
 AchievementsWindow::AchievementsWindow(QWidget* parent) : QDialog(parent)
@@ -28,8 +30,14 @@ void AchievementsWindow::CreateMainLayout()
 {
   auto* layout = new QVBoxLayout();
 
+  m_tab_widget = new QTabWidget();
+  m_tab_widget->addTab(
+      GetWrappedWidget(new AchievementSettingsWidget(m_tab_widget, this), this, 125, 100),
+      tr("Settings"));
+
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Close);
 
+  layout->addWidget(m_tab_widget);
   layout->addWidget(m_button_box);
 
   WrapInScrollArea(this, layout);
