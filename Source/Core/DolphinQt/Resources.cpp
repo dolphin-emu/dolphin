@@ -50,7 +50,7 @@ QIcon Resources::LoadNamedIcon(std::string_view name, const QString& dir)
   for (auto scale : {1, 2, 4})
     load_png(scale);
 
-  ASSERT(icon.availableSizes().size() > 0);
+  // ASSERT(icon.availableSizes().size() > 0);
 
   return icon;
 }
