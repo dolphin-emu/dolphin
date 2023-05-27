@@ -118,9 +118,12 @@ void ToolBar::MakeActions()
 
   addSeparator();
 
-  m_pause_play_action = addAction(tr("Play"), this, &ToolBar::PlayPressed);
-
+  m_pause_play_action = addAction(tr("Local Play"), this, &ToolBar::PlayPressed);
+  m_start_netplay_action = addAction(tr("Online Play"), this, &ToolBar::StartNetPlayPressed);
   m_stop_action = addAction(tr("Stop"), this, &ToolBar::StopPressed);
+
+  addSeparator();
+
   m_fullscreen_action = addAction(tr("FullScr"), this, &ToolBar::FullScreenPressed);
   m_screenshot_action = addAction(tr("ScrShot"), this, &ToolBar::ScreenShotPressed);
 
