@@ -165,7 +165,7 @@ void ToolBar::UpdatePausePlayButtonState(const bool playing_state)
   else
   {
     disconnect(m_pause_play_action, nullptr, nullptr, nullptr);
-    m_pause_play_action->setText(tr("Play"));
+    m_pause_play_action->setText(tr("Local Play"));
     m_pause_play_action->setIcon(Resources::GetThemeIcon("play"));
     connect(m_pause_play_action, &QAction::triggered, this, &ToolBar::PlayPressed);
   }
@@ -196,4 +196,5 @@ void ToolBar::UpdateIcons()
   m_config_action->setIcon(Resources::GetThemeIcon("config"));
   m_controllers_action->setIcon(Resources::GetThemeIcon("classic"));
   m_graphics_action->setIcon(Resources::GetThemeIcon("graphics"));
+  m_start_netplay_action->setIcon(Resources::GetScaledThemeIcon("wifi"));
 }
