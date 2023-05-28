@@ -483,6 +483,13 @@ void HotkeyScheduler::Run()
         ShowEmulationSpeed();
       }
 
+      // USB Device Emulation
+      if (IsHotkey(HK_SKYLANDERS_PORTAL))
+        emit SkylandersPortalHotkey();
+
+      if (IsHotkey(HK_INFINITY_BASE))
+        emit InfinityBaseHotkey();
+
       // Slot Saving / Loading
       if (IsHotkey(HK_SAVE_STATE_SLOT_SELECTED))
         emit StateSaveSlotHotkey();

@@ -99,6 +99,7 @@
     <ClCompile Include="Config\Mapping\HotkeyStates.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyStatesOther.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyTAS.cpp" />
+    <ClCompile Include="Config\Mapping\HotkeyUSBEmu.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyWii.cpp" />
     <ClCompile Include="Config\Mapping\IOWindow.cpp" />
     <ClCompile Include="Config\Mapping\MappingButton.cpp" />
@@ -298,6 +299,7 @@
     <QtMoc Include="Config\Mapping\HotkeyStates.h" />
     <QtMoc Include="Config\Mapping\HotkeyStatesOther.h" />
     <QtMoc Include="Config\Mapping\HotkeyTAS.h" />
+    <QtMoc Include="Config\Mapping\HotkeyUSBEmu.h" />
     <QtMoc Include="Config\Mapping\HotkeyWii.h" />
     <QtMoc Include="Config\Mapping\IOWindow.h" />
     <QtMoc Include="Config\Mapping\MappingButton.h" />
