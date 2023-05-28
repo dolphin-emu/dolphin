@@ -38,7 +38,11 @@ import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.databinding.ActivityEmulationBinding;
 import org.dolphinemu.dolphinemu.databinding.DialogInputAdjustBinding;
-import org.dolphinemu.dolphinemu.databinding.DialogSkylandersManagerBinding;
+import org.dolphinemu.dolphinemu.databinding.DialogNfcFiguresManagerBinding;
+import org.dolphinemu.dolphinemu.features.infinitybase.InfinityConfig;
+import org.dolphinemu.dolphinemu.features.infinitybase.model.Figure;
+import org.dolphinemu.dolphinemu.features.infinitybase.ui.FigureSlot;
+import org.dolphinemu.dolphinemu.features.infinitybase.ui.FigureSlotAdapter;
 import org.dolphinemu.dolphinemu.features.input.model.ControllerInterface;
 import org.dolphinemu.dolphinemu.features.input.model.DolphinSensorEventListener;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
@@ -78,6 +82,8 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
   public static final int REQUEST_CHANGE_DISC = 1;
   public static final int REQUEST_SKYLANDER_FILE = 2;
   public static final int REQUEST_CREATE_SKYLANDER = 3;
+  public static final int REQUEST_INFINITY_FIGURE_FILE = 4;
+  public static final int REQUEST_CREATE_INFINITY_FIGURE = 5;
 
   private EmulationFragment mEmulationFragment;
 
@@ -107,6 +113,10 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
   public static final String EXTRA_SKYLANDER_ID = "SkylanderId";
   public static final String EXTRA_SKYLANDER_VAR = "SkylanderVar";
   public static final String EXTRA_SKYLANDER_NAME = "SkylanderName";
+  public static final String EXTRA_INFINITY_POSITION = "FigurePosition";
+  public static final String EXTRA_INFINITY_LIST_POSITION = "FigureListPosition";
+  public static final String EXTRA_INFINITY_NUM = "FigureNum";
+  public static final String EXTRA_INFINITY_NAME = "FigureName";
 
   @Retention(SOURCE)
   @IntDef(
@@ -121,7 +131,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
                   MENU_ACTION_RESET_OVERLAY, MENU_SET_IR_RECENTER, MENU_SET_IR_MODE,
                   MENU_ACTION_CHOOSE_DOUBLETAP, MENU_ACTION_PAUSE_EMULATION,
                   MENU_ACTION_UNPAUSE_EMULATION, MENU_ACTION_OVERLAY_CONTROLS, MENU_ACTION_SETTINGS,
-                  MENU_ACTION_SKYLANDERS})
+                  MENU_ACTION_SKYLANDERS, MENU_ACTION_INFINITY_BASE})
   public @interface MenuAction
   {
   }
@@ -160,14 +170,20 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
   public static final int MENU_ACTION_OVERLAY_CONTROLS = 34;
   public static final int MENU_ACTION_SETTINGS = 35;
   public static final int MENU_ACTION_SKYLANDERS = 36;
+  public static final int MENU_ACTION_INFINITY_BASE = 37;
 
   private Skylander mSkylanderData = new Skylander(-1, -1, "Slot");
+  private Figure mInfinityFigureData = new Figure(-1, "Position");
 
   private int mSkylanderSlot = -1;
+  private int mInfinityPosition = -1;
+  private int mInfinityListPosition = -1;
 
-  private DialogSkylandersManagerBinding mSkylandersBinding;
+  private DialogNfcFiguresManagerBinding mSkylandersBinding;
+  private DialogNfcFiguresManagerBinding mInfinityBinding;
 
   private static List<SkylanderSlot> sSkylanderSlots = new ArrayList<>();
+  private static List<FigureSlot> sInfinityFigures = new ArrayList<>();
 
   private static final SparseIntArray buttonsActionsMap = new SparseIntArray();
 
@@ -348,6 +364,17 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
         sSkylanderSlots.add(new SkylanderSlot(getString(R.string.skylander_slot, i + 1), i));
       }
     }
+
+    if (sInfinityFigures.isEmpty())
+    {
+      sInfinityFigures.add(new FigureSlot(getString(R.string.infinity_hexagon_label), 0));
+      sInfinityFigures.add(new FigureSlot(getString(R.string.infinity_p1_label), 1));
+      sInfinityFigures.add(new FigureSlot(getString(R.string.infinity_p1a1_label), 3));
+      sInfinityFigures.add(new FigureSlot(getString(R.string.infinity_p1a2_label), 5));
+      sInfinityFigures.add(new FigureSlot(getString(R.string.infinity_p2_label), 2));
+      sInfinityFigures.add(new FigureSlot(getString(R.string.infinity_p2a1_label), 4));
+      sInfinityFigures.add(new FigureSlot(getString(R.string.infinity_p2a2_label), 6));
+    }
   }
 
   @Override
@@ -364,6 +391,10 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
     outState.putInt(EXTRA_SKYLANDER_ID, mSkylanderData.getId());
     outState.putInt(EXTRA_SKYLANDER_VAR, mSkylanderData.getVariant());
     outState.putString(EXTRA_SKYLANDER_NAME, mSkylanderData.getName());
+    outState.putInt(EXTRA_INFINITY_POSITION, mInfinityPosition);
+    outState.putInt(EXTRA_INFINITY_LIST_POSITION, mInfinityListPosition);
+    outState.putLong(EXTRA_INFINITY_NUM, mInfinityFigureData.getNumber());
+    outState.putString(EXTRA_INFINITY_NAME, mInfinityFigureData.getName());
     super.onSaveInstanceState(outState);
   }
 
@@ -376,6 +407,10 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
     mSkylanderData = new Skylander(savedInstanceState.getInt(EXTRA_SKYLANDER_ID),
             savedInstanceState.getInt(EXTRA_SKYLANDER_VAR),
             savedInstanceState.getString(EXTRA_SKYLANDER_NAME));
+    mInfinityPosition = savedInstanceState.getInt(EXTRA_INFINITY_POSITION);
+    mInfinityListPosition = savedInstanceState.getInt(EXTRA_INFINITY_LIST_POSITION);
+    mInfinityFigureData = new Figure(savedInstanceState.getLong(EXTRA_INFINITY_NUM),
+            savedInstanceState.getString(EXTRA_INFINITY_NAME));
   }
 
   @Override
@@ -486,7 +521,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
         clearSkylander(mSkylanderSlot);
         sSkylanderSlots.get(mSkylanderSlot).setPortalSlot(slot.first);
         sSkylanderSlots.get(mSkylanderSlot).setLabel(slot.second);
-        mSkylandersBinding.skylandersManager.getAdapter().notifyItemChanged(mSkylanderSlot);
+        mSkylandersBinding.figureManager.getAdapter().notifyItemChanged(mSkylanderSlot);
         mSkylanderSlot = -1;
         mSkylanderData = Skylander.BLANK_SKYLANDER;
       }
@@ -500,9 +535,46 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
           clearSkylander(mSkylanderSlot);
           sSkylanderSlots.get(mSkylanderSlot).setPortalSlot(slot.first);
           sSkylanderSlots.get(mSkylanderSlot).setLabel(slot.second);
-          mSkylandersBinding.skylandersManager.getAdapter().notifyItemChanged(mSkylanderSlot);
+          mSkylandersBinding.figureManager.getAdapter().notifyItemChanged(mSkylanderSlot);
           mSkylanderSlot = -1;
           mSkylanderData = Skylander.BLANK_SKYLANDER;
+        }
+      }
+      else if (requestCode == REQUEST_INFINITY_FIGURE_FILE)
+      {
+        String label = InfinityConfig.loadFigure(mInfinityPosition, result.getData().toString());
+        if (label != null && !label.equals("Unknown Figure"))
+        {
+          clearInfinityFigure(mInfinityListPosition);
+          sInfinityFigures.get(mInfinityListPosition).setLabel(label);
+          mInfinityBinding.figureManager.getAdapter().notifyItemChanged(mInfinityListPosition);
+          mInfinityPosition = -1;
+          mInfinityListPosition = -1;
+          mInfinityFigureData = Figure.BLANK_FIGURE;
+        }
+        else
+        {
+          new MaterialAlertDialogBuilder(this)
+                  .setTitle(R.string.incompatible_figure_selected)
+                  .setMessage(R.string.select_compatible_figure)
+                  .setPositiveButton(R.string.ok, null)
+                  .show();
+        }
+      }
+      else if (requestCode == REQUEST_CREATE_INFINITY_FIGURE)
+      {
+        if (!(mInfinityFigureData.getNumber() == -1))
+        {
+          String label =
+                  InfinityConfig.createFigure(mInfinityFigureData.getNumber(),
+                          result.getData().toString(),
+                          mInfinityPosition);
+          clearInfinityFigure(mInfinityListPosition);
+          sInfinityFigures.get(mInfinityListPosition).setLabel(label);
+          mInfinityBinding.figureManager.getAdapter().notifyItemChanged(mInfinityListPosition);
+          mInfinityPosition = -1;
+          mInfinityListPosition = -1;
+          mInfinityFigureData = Figure.BLANK_FIGURE;
         }
       }
     }
@@ -775,6 +847,10 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
         showSkylanderPortalSettings();
         break;
 
+      case MENU_ACTION_INFINITY_BASE:
+        showInfinityBaseSettings();
+        break;
+
       case MENU_ACTION_EXIT:
         mEmulationFragment.stopEmulation();
         break;
@@ -1036,15 +1112,30 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
   private void showSkylanderPortalSettings()
   {
     mSkylandersBinding =
-            DialogSkylandersManagerBinding.inflate(getLayoutInflater());
-    mSkylandersBinding.skylandersManager.setLayoutManager(new LinearLayoutManager(this));
+            DialogNfcFiguresManagerBinding.inflate(getLayoutInflater());
+    mSkylandersBinding.figureManager.setLayoutManager(new LinearLayoutManager(this));
 
-    mSkylandersBinding.skylandersManager.setAdapter(
+    mSkylandersBinding.figureManager.setAdapter(
             new SkylanderSlotAdapter(sSkylanderSlots, this));
 
     new MaterialAlertDialogBuilder(this)
             .setTitle(R.string.skylanders_manager)
             .setView(mSkylandersBinding.getRoot())
+            .show();
+  }
+
+  private void showInfinityBaseSettings()
+  {
+    mInfinityBinding =
+            DialogNfcFiguresManagerBinding.inflate(getLayoutInflater());
+    mInfinityBinding.figureManager.setLayoutManager(new LinearLayoutManager(this));
+
+    mInfinityBinding.figureManager.setAdapter(
+            new FigureSlotAdapter(sInfinityFigures, this));
+
+    new MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.infinity_manager)
+            .setView(mInfinityBinding.getRoot())
             .show();
   }
 
@@ -1057,7 +1148,43 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
   public void clearSkylander(int slot)
   {
     sSkylanderSlots.get(slot).setLabel(getString(R.string.skylander_slot, slot + 1));
-    mSkylandersBinding.skylandersManager.getAdapter().notifyItemChanged(slot);
+    mSkylandersBinding.figureManager.getAdapter().notifyItemChanged(slot);
+  }
+
+  public void setInfinityFigureData(Long num, String name, int position, int listPosition)
+  {
+    mInfinityFigureData = new Figure(num, name);
+    mInfinityPosition = position;
+    mInfinityListPosition = listPosition;
+  }
+
+  public void clearInfinityFigure(int position)
+  {
+    switch (position)
+    {
+      case 0:
+        sInfinityFigures.get(position).setLabel(getString(R.string.infinity_hexagon_label));
+        break;
+      case 1:
+        sInfinityFigures.get(position).setLabel(getString(R.string.infinity_p1_label));
+        break;
+      case 2:
+        sInfinityFigures.get(position).setLabel(getString(R.string.infinity_p1a1_label));
+        break;
+      case 3:
+        sInfinityFigures.get(position).setLabel(getString(R.string.infinity_p1a2_label));
+        break;
+      case 4:
+        sInfinityFigures.get(position).setLabel(getString(R.string.infinity_p2_label));
+        break;
+      case 5:
+        sInfinityFigures.get(position).setLabel(getString(R.string.infinity_p2a1_label));
+        break;
+      case 6:
+        sInfinityFigures.get(position).setLabel(getString(R.string.infinity_p2a2_label));
+        break;
+    }
+    mInfinityBinding.figureManager.getAdapter().notifyItemChanged(position);
   }
 
   private void resetOverlay()
