@@ -41,6 +41,16 @@ public:
   };
   using ResponseCallback = std::function<void(ResponseType)>;
 
+  struct PointSpread
+  {
+    u32 total_count;
+    u32 total_points;
+    u32 hard_unlocks;
+    u32 hard_points;
+    u32 soft_unlocks;
+    u32 soft_points;
+  };
+
   static AchievementManager* GetInstance();
   void Init();
   ResponseType Login(const std::string& password);
@@ -80,7 +90,11 @@ private:
   ResponseType PingRichPresence(const RichPresence& rich_presence);
 
   void HandleAchievementTriggeredEvent(const rc_runtime_event_t* runtime_event);
+  void HandleLeaderboardStartedEvent(const rc_runtime_event_t* runtime_event);
+  void HandleLeaderboardCanceledEvent(const rc_runtime_event_t* runtime_event);
   void HandleLeaderboardTriggeredEvent(const rc_runtime_event_t* runtime_event);
+
+  PointSpread TallyScore() const;
 
   template <typename RcRequest, typename RcResponse>
   ResponseType Request(RcRequest rc_request, RcResponse* rc_response,
@@ -90,6 +104,7 @@ private:
   rc_runtime_t m_runtime{};
   Core::System* m_system{};
   bool m_is_runtime_initialized = false;
+  std::string m_display_name;
   std::array<char, HASH_LENGTH> m_game_hash{};
   u32 m_game_id = 0;
   rc_api_fetch_game_data_response_t m_game_data{};
@@ -105,7 +120,8 @@ private:
       SOFTCORE,
       HARDCORE
     } remote_unlock_status = UnlockType::LOCKED;
-    int session_unlock_count = 0;
+    u32 session_unlock_count = 0;
+    u32 points = 0;
   };
   std::unordered_map<AchievementId, UnlockStatus> m_unlock_map;
 

@@ -5,6 +5,8 @@
 
 #include "Core/AchievementManager.h"
 
+#include <fmt/format.h>
+
 #include <rcheevos/include/rc_hash.h>
 
 #include "Common/HttpRequest.h"
@@ -14,6 +16,7 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/System.h"
 #include "DiscIO/Volume.h"
+#include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoEvents.h"
 
 static constexpr bool hardcore_mode_enabled = false;
@@ -123,6 +126,8 @@ void AchievementManager::LoadGameByFilenameAsync(const std::string& iso_path,
     if (resolve_hash_response != ResponseType::SUCCESS || m_game_id == 0)
     {
       callback(resolve_hash_response);
+      OSD::AddMessage("No RetroAchievements data found for this game.", OSD::Duration::VERY_LONG,
+                      OSD::Color::RED);
       return;
     }
 
@@ -130,11 +135,18 @@ void AchievementManager::LoadGameByFilenameAsync(const std::string& iso_path,
     if (start_session_response != ResponseType::SUCCESS)
     {
       callback(start_session_response);
+      OSD::AddMessage("Failed to connect to RetroAchievements server.", OSD::Duration::VERY_LONG,
+                      OSD::Color::RED);
       return;
     }
 
     const auto fetch_game_data_response = FetchGameData();
     m_is_game_loaded = fetch_game_data_response == ResponseType::SUCCESS;
+    if (!m_is_game_loaded)
+    {
+      OSD::AddMessage("Unable to retrieve data from RetroAchievements server.",
+                      OSD::Duration::VERY_LONG, OSD::Color::RED);
+    }
 
     // Claim the lock, then queue the fetch unlock data calls, then initialize the unlock map in
     // ActivateDeactiveAchievements. This allows the calls to process while initializing the
@@ -144,6 +156,23 @@ void AchievementManager::LoadGameByFilenameAsync(const std::string& iso_path,
       std::lock_guard lg{m_lock};
       LoadUnlockData([](ResponseType r_type) {});
       ActivateDeactivateAchievements();
+      PointSpread spread = TallyScore();
+      if (hardcore_mode_enabled)
+      {
+        OSD::AddMessage(fmt::format("You have {}/{} achievements worth {}/{} points",
+                                    spread.hard_unlocks, spread.total_count, spread.hard_points,
+                                    spread.total_points),
+                        OSD::Duration::VERY_LONG, OSD::Color::YELLOW);
+        OSD::AddMessage("Hardcore mode is ON", OSD::Duration::VERY_LONG, OSD::Color::YELLOW);
+      }
+      else
+      {
+        OSD::AddMessage(fmt::format("You have {}/{} achievements worth {}/{} points",
+                                    spread.hard_unlocks + spread.soft_unlocks, spread.total_count,
+                                    spread.hard_points + spread.soft_points, spread.total_points),
+                        OSD::Duration::VERY_LONG, OSD::Color::CYAN);
+        OSD::AddMessage("Hardcore mode is OFF", OSD::Duration::VERY_LONG, OSD::Color::CYAN);
+      }
     }
     ActivateDeactivateLeaderboards();
     ActivateDeactivateRichPresence();
@@ -173,8 +202,11 @@ void AchievementManager::ActivateDeactivateAchievements()
   bool encore = Config::Get(Config::RA_ENCORE_ENABLED);
   for (u32 ix = 0; ix < m_game_data.num_achievements; ix++)
   {
-    auto iter =
-        m_unlock_map.insert({m_game_data.achievements[ix].id, UnlockStatus{.game_data_index = ix}});
+    u32 points = (m_game_data.achievements[ix].category == RC_ACHIEVEMENT_CATEGORY_UNOFFICIAL) ?
+                     0 :
+                     m_game_data.achievements[ix].points;
+    auto iter = m_unlock_map.insert(
+        {m_game_data.achievements[ix].id, UnlockStatus{.game_data_index = ix, .points = points}});
     ActivateDeactivateAchievement(iter.first->first, enabled, unofficial, encore);
   }
 }
@@ -263,6 +295,9 @@ void AchievementManager::AchievementEventHandler(const rc_runtime_event_t* runti
   case RC_RUNTIME_EVENT_ACHIEVEMENT_TRIGGERED:
     HandleAchievementTriggeredEvent(runtime_event);
     break;
+  case RC_RUNTIME_EVENT_LBOARD_STARTED:
+    HandleLeaderboardStartedEvent(runtime_event);
+    break;
   case RC_RUNTIME_EVENT_LBOARD_TRIGGERED:
     HandleLeaderboardTriggeredEvent(runtime_event);
     break;
@@ -305,6 +340,7 @@ AchievementManager::ResponseType AchievementManager::VerifyCredentials(const std
       .username = username.c_str(), .api_token = api_token.c_str(), .password = password.c_str()};
   ResponseType r_type = Request<rc_api_login_request_t, rc_api_login_response_t>(
       login_request, &login_data, rc_api_init_login_request, rc_api_process_login_response);
+  m_display_name = login_data.display_name;
   if (r_type == ResponseType::SUCCESS)
     Config::SetBaseOrCurrent(Config::RA_API_TOKEN, login_data.api_token);
   rc_api_destroy_login_response(&login_data);
@@ -506,15 +542,93 @@ void AchievementManager::HandleAchievementTriggeredEvent(const rc_runtime_event_
     return;
   it->second.session_unlock_count++;
   m_queue.EmplaceItem([this, runtime_event] { AwardAchievement(runtime_event->id); });
+  AchievementId game_data_index = it->second.game_data_index;
+  OSD::AddMessage(fmt::format("Unlocked: {} ({})", m_game_data.achievements[game_data_index].title,
+                              m_game_data.achievements[game_data_index].points),
+                  OSD::Duration::VERY_LONG,
+                  (hardcore_mode_enabled) ? OSD::Color::YELLOW : OSD::Color::CYAN);
+  PointSpread spread = TallyScore();
+  if (spread.hard_points == spread.total_points)
+  {
+    OSD::AddMessage(
+        fmt::format("Congratulations! {} has mastered {}", m_display_name, m_game_data.title),
+        OSD::Duration::VERY_LONG, OSD::Color::YELLOW);
+  }
+  else if (spread.hard_points + spread.soft_points == spread.total_points)
+  {
+    OSD::AddMessage(
+        fmt::format("Congratulations! {} has completed {}", m_display_name, m_game_data.title),
+        OSD::Duration::VERY_LONG, OSD::Color::CYAN);
+  }
   ActivateDeactivateAchievement(runtime_event->id, Config::Get(Config::RA_ACHIEVEMENTS_ENABLED),
                                 Config::Get(Config::RA_UNOFFICIAL_ENABLED),
                                 Config::Get(Config::RA_ENCORE_ENABLED));
+}
+
+void AchievementManager::HandleLeaderboardStartedEvent(const rc_runtime_event_t* runtime_event)
+{
+  for (u32 ix = 0; ix < m_game_data.num_leaderboards; ix++)
+  {
+    if (m_game_data.leaderboards[ix].id == runtime_event->id)
+    {
+      OSD::AddMessage(fmt::format("Attempting leaderboard: {}", m_game_data.leaderboards[ix].title),
+                      OSD::Duration::VERY_LONG, OSD::Color::GREEN);
+      break;
+    }
+  }
+}
+
+void AchievementManager::HandleLeaderboardCanceledEvent(const rc_runtime_event_t* runtime_event)
+{
+  for (u32 ix = 0; ix < m_game_data.num_leaderboards; ix++)
+  {
+    if (m_game_data.leaderboards[ix].id == runtime_event->id)
+    {
+      OSD::AddMessage(fmt::format("Failed leaderboard: {}", m_game_data.leaderboards[ix].title),
+                      OSD::Duration::VERY_LONG, OSD::Color::RED);
+      break;
+    }
+  }
 }
 
 void AchievementManager::HandleLeaderboardTriggeredEvent(const rc_runtime_event_t* runtime_event)
 {
   m_queue.EmplaceItem(
       [this, runtime_event] { SubmitLeaderboard(runtime_event->id, runtime_event->value); });
+  for (u32 ix = 0; ix < m_game_data.num_leaderboards; ix++)
+  {
+    if (m_game_data.leaderboards[ix].id == runtime_event->id)
+    {
+      OSD::AddMessage(fmt::format("Scored {} on leaderboard: {}", runtime_event->value,
+                                  m_game_data.leaderboards[ix].title),
+                      OSD::Duration::VERY_LONG, OSD::Color::YELLOW);
+      break;
+    }
+  }
+}
+
+AchievementManager::PointSpread AchievementManager::TallyScore() const
+{
+  PointSpread spread{};
+  for (const auto& entry : m_unlock_map)
+  {
+    u32 points = entry.second.points;
+    spread.total_count++;
+    spread.total_points += points;
+    if (entry.second.remote_unlock_status == UnlockStatus::UnlockType::HARDCORE ||
+        (hardcore_mode_enabled && entry.second.session_unlock_count > 0))
+    {
+      spread.hard_unlocks++;
+      spread.hard_points += points;
+    }
+    else if (entry.second.remote_unlock_status == UnlockStatus::UnlockType::SOFTCORE ||
+             entry.second.session_unlock_count > 0)
+    {
+      spread.soft_unlocks++;
+      spread.soft_points += points;
+    }
+  }
+  return spread;
 }
 
 // Every RetroAchievements API call, with only a partial exception for fetch_image, follows
