@@ -77,6 +77,8 @@
       <!--FFmpeg and the libs it pulls in-->
       <AdditionalLibraryDirectories>$(ExternalsDir)FFmpeg-bin\$(Platform)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>avcodec.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <!--libcurl needs Crypt32.lib-->
+      <AdditionalDependencies>Crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <!--See Common/CompatPatches.cpp-->
       <ForceSymbolReferences>enableCompatPatches</ForceSymbolReferences>
     </Link>
