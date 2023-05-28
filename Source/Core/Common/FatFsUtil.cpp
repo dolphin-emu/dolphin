@@ -11,6 +11,9 @@
 #include <string_view>
 #include <vector>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+
 #include <fmt/format.h>
 
 // Does not compile if diskio.h is included first.
@@ -490,6 +493,66 @@ static void SortFST(File::FSTEntry* root)
   for (auto& child : root->children)
     SortFST(&child);
 }
+static bool CompareFDateTimeT(time_t src, FILINFO dest)
+{
+  struct tm destTm = {0};
+  destTm.tm_year = ((dest.fdate >> 9) + 1980) - 1900;
+  destTm.tm_mon = (dest.fdate >> 5 & 15) - 1;
+  destTm.tm_mday = dest.fdate & 31;
+  destTm.tm_hour = (dest.ftime >> 11) - 1;
+  destTm.tm_min = dest.ftime >> 5 & 63;
+  destTm.tm_sec = dest.ftime & 29;
+
+  return src <= mktime(&destTm);
+}
+static bool ShrinkUnchangedFST(File::FSTEntry* root, File::FSTEntry* parent, std::string source, std::string dest)
+{
+  if (!root->isDirectory)
+  {
+    if (dest[0] == '/')
+      dest.erase(0, 1);
+    FATFS fs{};
+    struct stat srcStatBuf;
+    int srcResult;
+    f_mount(&fs, "", 0);
+    Common::ScopeGuard unmount_guard{[] { f_unmount(""); }};
+    FILINFO dest_fileinfo;
+    FIL file{};
+    const auto fopen_error_code = f_open(&file, dest.c_str(), FA_READ);
+    if (fopen_error_code == FR_OK)
+    {
+      const auto fstat_error_code = f_stat(dest.c_str(), &dest_fileinfo);
+      if (fstat_error_code != FR_OK)
+      {
+        ERROR_LOG_FMT(COMMON, "Failed to open file {} on SD card: {}", dest,
+                      FatFsErrorToString(fstat_error_code));
+        return false;
+      }
+      srcResult = stat(source.c_str(), &srcStatBuf);
+      if (srcResult == 0)
+      {
+        if (CompareFDateTimeT(srcStatBuf.st_mtime, dest_fileinfo))
+        {
+          parent->children.erase(std::remove_if(
+              parent->children.begin(), parent->children.end(),
+              [&root](File::FSTEntry i) { return i.physicalName == root->physicalName; }));
+        }
+      }
+    }
+    unmount_guard.Exit();
+  }
+  else
+  {
+    for (auto& child : root->children)
+    {
+      if (!ShrinkUnchangedFST(&child, root, child.physicalName, dest + "/" + child.virtualName))
+      {
+        return false;
+      }
+    }
+  }
+  return true;
+}
 
 bool SyncSDFolderToSDImage(const std::function<bool()>& cancelled, bool deterministic)
 {
@@ -512,7 +575,6 @@ bool SyncSDFolderToSDImage(const std::function<bool()>& cancelled, bool determin
     SortFST(&root);
   if (!CheckIfFATCompatible(root))
     return false;
-
   u64 size = GetSize(root);
   // Allocate a reasonable amount of free space
   size += std::clamp(size / 2, MebibytesToBytes(512), GibibytesToBytes(8));
@@ -526,6 +588,18 @@ bool SyncSDFolderToSDImage(const std::function<bool()>& cancelled, bool determin
   File::IOFile image;
   callbacks.m_image = &image;
   callbacks.m_deterministic = deterministic;
+
+  if (!image.Open(image_path, "r+b"))
+  {
+    ERROR_LOG_FMT(COMMON, "Failed to open SD image at {}", image_path);
+  }
+
+  if (!ShrinkUnchangedFST(&root, nullptr, source_dir, ""))
+  {
+    return false;
+  }
+
+  image.Close();
 
   const std::string temp_image_path = File::GetTempFilenameForAtomicWrite(image_path);
   if (!image.Open(temp_image_path, "w+b"))
