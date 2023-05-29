@@ -65,6 +65,12 @@ add_library(videocommon
   GraphicsModSystem/Runtime/Actions/ScaleAction.h
   GraphicsModSystem/Runtime/Actions/SkipAction.cpp
   GraphicsModSystem/Runtime/Actions/SkipAction.h
+  GraphicsModSystem/Runtime/CustomAsset.cpp
+  GraphicsModSystem/Runtime/CustomAsset.h
+  GraphicsModSystem/Runtime/CustomAssetLibrary.cpp
+  GraphicsModSystem/Runtime/CustomAssetLibrary.h
+  GraphicsModSystem/Runtime/CustomAssetLoader.cpp
+  GraphicsModSystem/Runtime/CustomAssetLoader.h
   GraphicsModSystem/Runtime/CustomTextureData.cpp
   GraphicsModSystem/Runtime/CustomTextureData.h
   GraphicsModSystem/Runtime/FBInfo.cpp
