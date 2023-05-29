@@ -54,11 +54,13 @@ class NullFramebuffer final : public AbstractFramebuffer
 {
 public:
   explicit NullFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
+                           std::vector<AbstractTexture*> additional_color_attachments,
                            AbstractTextureFormat color_format, AbstractTextureFormat depth_format,
                            u32 width, u32 height, u32 layers, u32 samples);
 
-  static std::unique_ptr<NullFramebuffer> Create(NullTexture* color_attachment,
-                                                 NullTexture* depth_attachment);
+  static std::unique_ptr<NullFramebuffer>
+  Create(NullTexture* color_attachment, NullTexture* depth_attachment,
+         std::vector<AbstractTexture*> additional_color_attachments);
 };
 
 }  // namespace Null

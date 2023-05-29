@@ -324,23 +324,79 @@ void DXStagingTexture::Flush()
 }
 
 DXFramebuffer::DXFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
+                             std::vector<AbstractTexture*> additional_color_attachments,
                              AbstractTextureFormat color_format, AbstractTextureFormat depth_format,
                              u32 width, u32 height, u32 layers, u32 samples,
                              ComPtr<ID3D11RenderTargetView> rtv,
                              ComPtr<ID3D11RenderTargetView> integer_rtv,
-                             ComPtr<ID3D11DepthStencilView> dsv)
-    : AbstractFramebuffer(color_attachment, depth_attachment, color_format, depth_format, width,
-                          height, layers, samples),
-      m_rtv(std::move(rtv)), m_integer_rtv(std::move(integer_rtv)), m_dsv(std::move(dsv))
+                             ComPtr<ID3D11DepthStencilView> dsv,
+                             std::vector<ComPtr<ID3D11RenderTargetView>> additional_rtvs)
+    : AbstractFramebuffer(color_attachment, depth_attachment,
+                          std::move(additional_color_attachments), color_format, depth_format,
+                          width, height, layers, samples),
+      m_integer_rtv(std::move(integer_rtv)), m_dsv(std::move(dsv))
 {
+  m_render_targets.push_back(std::move(rtv));
+  for (auto additional_rtv : additional_rtvs)
+  {
+    m_render_targets.push_back(std::move(additional_rtv));
+  }
+  for (auto& render_target : m_render_targets)
+  {
+    m_render_targets_raw.push_back(render_target.Get());
+  }
 }
 
 DXFramebuffer::~DXFramebuffer() = default;
 
-std::unique_ptr<DXFramebuffer> DXFramebuffer::Create(DXTexture* color_attachment,
-                                                     DXTexture* depth_attachment)
+void DXFramebuffer::Unbind()
 {
-  if (!ValidateConfig(color_attachment, depth_attachment))
+  bool should_apply = false;
+  if (GetColorAttachment() &&
+      D3D::stateman->UnsetTexture(static_cast<DXTexture*>(GetColorAttachment())->GetD3DSRV()) != 0)
+  {
+    should_apply = true;
+  }
+
+  if (GetDepthAttachment() &&
+      D3D::stateman->UnsetTexture(static_cast<DXTexture*>(GetDepthAttachment())->GetD3DSRV()) != 0)
+  {
+    should_apply = true;
+  }
+
+  for (auto additional_color_attachment : m_additional_color_attachments)
+  {
+    if (D3D::stateman->UnsetTexture(
+            static_cast<DXTexture*>(additional_color_attachment)->GetD3DSRV()) != 0)
+    {
+      should_apply = true;
+    }
+  }
+
+  if (should_apply)
+  {
+    D3D::stateman->ApplyTextures();
+  }
+}
+
+void DXFramebuffer::Clear(const ClearColor& color_value, float depth_value)
+{
+  if (GetDepthFormat() != AbstractTextureFormat::Undefined)
+  {
+    D3D::context->ClearDepthStencilView(GetDSV(), D3D11_CLEAR_DEPTH, depth_value, 0);
+  }
+
+  for (auto render_target : m_render_targets_raw)
+  {
+    D3D::context->ClearRenderTargetView(render_target, color_value.data());
+  }
+}
+
+std::unique_ptr<DXFramebuffer>
+DXFramebuffer::Create(DXTexture* color_attachment, DXTexture* depth_attachment,
+                      std::vector<AbstractTexture*> additional_color_attachments)
+{
+  if (!ValidateConfig(color_attachment, depth_attachment, additional_color_attachments))
     return nullptr;
 
   const AbstractTextureFormat color_format =
@@ -382,6 +438,25 @@ std::unique_ptr<DXFramebuffer> DXFramebuffer::Create(DXTexture* color_attachment
     }
   }
 
+  std::vector<ComPtr<ID3D11RenderTargetView>> additional_rtvs;
+  for (auto additional_color_attachment : additional_color_attachments)
+  {
+    ComPtr<ID3D11RenderTargetView> additional_rtv;
+    CD3D11_RENDER_TARGET_VIEW_DESC desc(
+        additional_color_attachment->IsMultisampled() ? D3D11_RTV_DIMENSION_TEXTURE2DMSARRAY :
+                                                        D3D11_RTV_DIMENSION_TEXTURE2DARRAY,
+        D3DCommon::GetRTVFormatForAbstractFormat(additional_color_attachment->GetFormat(), false),
+        0, 0, 1);
+    HRESULT hr = D3D::device->CreateRenderTargetView(
+        static_cast<DXTexture*>(additional_color_attachment)->GetD3DTexture(), &desc,
+        additional_rtv.GetAddressOf());
+    ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Create render target view for framebuffer: {}",
+               DX11HRWrap(hr));
+    if (FAILED(hr))
+      return nullptr;
+    additional_rtvs.push_back(std::move(additional_rtv));
+  }
+
   ComPtr<ID3D11DepthStencilView> dsv;
   if (depth_attachment)
   {
@@ -398,9 +473,10 @@ std::unique_ptr<DXFramebuffer> DXFramebuffer::Create(DXTexture* color_attachment
       return nullptr;
   }
 
-  return std::make_unique<DXFramebuffer>(color_attachment, depth_attachment, color_format,
-                                         depth_format, width, height, layers, samples,
-                                         std::move(rtv), std::move(integer_rtv), std::move(dsv));
+  return std::make_unique<DXFramebuffer>(
+      color_attachment, depth_attachment, std::move(additional_color_attachments), color_format,
+      depth_format, width, height, layers, samples, std::move(rtv), std::move(integer_rtv),
+      std::move(dsv), std::move(additional_rtvs));
 }
 
 }  // namespace DX11

@@ -388,66 +388,71 @@ VkSampler ObjectCache::GetSampler(const SamplerState& info)
 }
 
 VkRenderPass ObjectCache::GetRenderPass(VkFormat color_format, VkFormat depth_format,
-                                        u32 multisamples, VkAttachmentLoadOp load_op)
+                                        u32 multisamples, VkAttachmentLoadOp load_op,
+                                        u8 additional_attachment_count)
 {
-  auto key = std::tie(color_format, depth_format, multisamples, load_op);
+  auto key =
+      std::tie(color_format, depth_format, multisamples, load_op, additional_attachment_count);
   auto it = m_render_pass_cache.find(key);
   if (it != m_render_pass_cache.end())
     return it->second;
 
-  VkAttachmentReference color_reference;
-  VkAttachmentReference* color_reference_ptr = nullptr;
   VkAttachmentReference depth_reference;
   VkAttachmentReference* depth_reference_ptr = nullptr;
-  std::array<VkAttachmentDescription, 2> attachments;
-  u32 num_attachments = 0;
+  std::vector<VkAttachmentDescription> attachments;
+  std::vector<VkAttachmentReference> color_attachment_references;
   if (color_format != VK_FORMAT_UNDEFINED)
   {
-    attachments[num_attachments] = {0,
-                                    color_format,
-                                    static_cast<VkSampleCountFlagBits>(multisamples),
-                                    load_op,
-                                    VK_ATTACHMENT_STORE_OP_STORE,
-                                    VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-                                    VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                                    VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                                    VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
-    color_reference.attachment = num_attachments;
+    VkAttachmentReference color_reference;
+    color_reference.attachment = static_cast<uint32_t>(attachments.size());
     color_reference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    color_reference_ptr = &color_reference;
-    num_attachments++;
+    color_attachment_references.push_back(std::move(color_reference));
+    attachments.push_back({0, color_format, static_cast<VkSampleCountFlagBits>(multisamples),
+                           load_op, VK_ATTACHMENT_STORE_OP_STORE, VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                           VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                           VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                           VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL});
   }
   if (depth_format != VK_FORMAT_UNDEFINED)
   {
-    attachments[num_attachments] = {0,
-                                    depth_format,
-                                    static_cast<VkSampleCountFlagBits>(multisamples),
-                                    load_op,
-                                    VK_ATTACHMENT_STORE_OP_STORE,
-                                    VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-                                    VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                                    VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-                                    VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL};
-    depth_reference.attachment = num_attachments;
+    depth_reference.attachment = static_cast<uint32_t>(attachments.size());
     depth_reference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
     depth_reference_ptr = &depth_reference;
-    num_attachments++;
+    attachments.push_back({0, depth_format, static_cast<VkSampleCountFlagBits>(multisamples),
+                           load_op, VK_ATTACHMENT_STORE_OP_STORE, VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                           VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                           VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+                           VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL});
   }
 
-  VkSubpassDescription subpass = {0,
-                                  VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                  0,
-                                  nullptr,
-                                  color_reference_ptr ? 1u : 0u,
-                                  color_reference_ptr ? color_reference_ptr : nullptr,
-                                  nullptr,
-                                  depth_reference_ptr,
-                                  0,
-                                  nullptr};
+  for (u8 i = 0; i < additional_attachment_count; i++)
+  {
+    VkAttachmentReference color_reference;
+    color_reference.attachment = static_cast<uint32_t>(attachments.size());
+    color_reference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    color_attachment_references.push_back(std::move(color_reference));
+    attachments.push_back({0, color_format, static_cast<VkSampleCountFlagBits>(multisamples),
+                           load_op, VK_ATTACHMENT_STORE_OP_STORE, VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                           VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                           VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                           VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL});
+  }
+
+  VkSubpassDescription subpass = {
+      0,
+      VK_PIPELINE_BIND_POINT_GRAPHICS,
+      0,
+      nullptr,
+      static_cast<uint32_t>(color_attachment_references.size()),
+      color_attachment_references.empty() ? nullptr : color_attachment_references.data(),
+      nullptr,
+      depth_reference_ptr,
+      0,
+      nullptr};
   VkRenderPassCreateInfo pass_info = {VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
                                       nullptr,
                                       0,
-                                      num_attachments,
+                                      static_cast<uint32_t>(attachments.size()),
                                       attachments.data(),
                                       1,
                                       &subpass,

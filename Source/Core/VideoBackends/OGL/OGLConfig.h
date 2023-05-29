@@ -77,6 +77,7 @@ struct VideoConfig
   bool bSupportsTextureSubImage;
   EsFbFetchType SupportedFramebufferFetch;
   bool bSupportsKHRShaderSubgroup;  // basic + arithmetic + ballot
+  bool bSupportsExplicitLayoutInShader;
 
   const char* gl_vendor;
   const char* gl_renderer;

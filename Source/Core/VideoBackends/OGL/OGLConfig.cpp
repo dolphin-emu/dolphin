@@ -480,6 +480,8 @@ bool PopulateConfig(GLContext* m_main_gl_context)
     else if (GLExtensions::Version() == 330)
     {
       g_ogl_config.eSupportedGLSLVersion = Glsl330;
+      g_ogl_config.bSupportsExplicitLayoutInShader =
+          GLExtensions::Supports("GL_ARB_explicit_attrib_location");
     }
     else if (GLExtensions::Version() >= 430)
     {
@@ -495,6 +497,7 @@ bool PopulateConfig(GLContext* m_main_gl_context)
       g_ogl_config.bSupportsTextureStorage = true;
       g_ogl_config.SupportedMultisampleTexStorage = MultisampleTexStorageType::TexStorageCore;
       g_ogl_config.bSupportsImageLoadStore = true;
+      g_ogl_config.bSupportsExplicitLayoutInShader = true;
       g_Config.backend_info.bSupportsSSAA = true;
       g_Config.backend_info.bSupportsSettingObjectNames = true;
 
