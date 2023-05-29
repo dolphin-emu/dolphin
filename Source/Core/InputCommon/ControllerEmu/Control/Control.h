@@ -10,7 +10,7 @@
 
 namespace ControllerEmu
 {
-enum Translatability
+enum class Translatability
 {
   DoNotTranslate,
   Translate
