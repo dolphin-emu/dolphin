@@ -340,9 +340,11 @@ AchievementManager::ResponseType AchievementManager::VerifyCredentials(const std
       .username = username.c_str(), .api_token = api_token.c_str(), .password = password.c_str()};
   ResponseType r_type = Request<rc_api_login_request_t, rc_api_login_response_t>(
       login_request, &login_data, rc_api_init_login_request, rc_api_process_login_response);
-  m_display_name = login_data.display_name;
   if (r_type == ResponseType::SUCCESS)
+  {
     Config::SetBaseOrCurrent(Config::RA_API_TOKEN, login_data.api_token);
+    m_display_name = login_data.display_name;
+  }
   rc_api_destroy_login_response(&login_data);
   return r_type;
 }
@@ -648,8 +650,7 @@ AchievementManager::ResponseType AchievementManager::Request(
 {
   rc_api_request_t api_request;
   Common::HttpRequest http_request;
-  init_request(&api_request, &rc_request);
-  if (!api_request.post_data)
+  if (init_request(&api_request, &rc_request) != RC_OK || !api_request.post_data)
     return ResponseType::INVALID_REQUEST;
   auto http_response = http_request.Post(api_request.url, api_request.post_data);
   rc_api_destroy_request(&api_request);
