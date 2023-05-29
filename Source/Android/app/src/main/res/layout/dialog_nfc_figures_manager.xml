@@ -4,10 +4,10 @@
     android:layout_height="wrap_content">
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/skylanders_manager"
+        android:id="@+id/figure_manager"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-        android:scrollbars="vertical"
-        android:fadeScrollbars="false"/>
+        android:fadeScrollbars="false"
+        android:scrollbars="vertical" />
 </androidx.appcompat.widget.LinearLayoutCompat>

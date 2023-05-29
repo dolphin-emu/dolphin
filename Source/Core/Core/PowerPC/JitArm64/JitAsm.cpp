@@ -110,35 +110,67 @@ void JitArm64::GenerateAsm()
            jo.fastmem_arena ? memory.GetLogicalBase() : memory.GetLogicalPageMappingsBase());
     SetJumpTarget(membaseend);
 
-    // iCache[(address >> 2) & iCache_Mask];
-    ARM64Reg pc_masked = ARM64Reg::W25;
-    ARM64Reg cache_base = ARM64Reg::X27;
-    ARM64Reg block = ARM64Reg::X30;
-    ORR(pc_masked, ARM64Reg::WZR, LogicalImm(JitBaseBlockCache::FAST_BLOCK_MAP_MASK << 3, 32));
-    AND(pc_masked, pc_masked, DISPATCHER_PC, ArithOption(DISPATCHER_PC, ShiftType::LSL, 1));
-    MOVP2R(cache_base, GetBlockCache()->GetFastBlockMap());
-    LDR(block, cache_base, EncodeRegTo64(pc_masked));
-    FixupBranch not_found = CBZ(block);
+    if (GetBlockCache()->GetFastBlockMap())
+    {
+      // Check if there is a block
+      ARM64Reg pc_masked = ARM64Reg::X25;
+      ARM64Reg cache_base = ARM64Reg::X27;
+      ARM64Reg block = ARM64Reg::X30;
+      LSL(pc_masked, DISPATCHER_PC, 1);
+      MOVP2R(cache_base, GetBlockCache()->GetFastBlockMap());
+      LDR(block, cache_base, pc_masked);
+      FixupBranch not_found = CBZ(block);
 
-    // b.effectiveAddress != addr || b.msrBits != msr
-    ARM64Reg pc_and_msr = ARM64Reg::W25;
-    ARM64Reg pc_and_msr2 = ARM64Reg::W24;
-    LDR(IndexType::Unsigned, pc_and_msr, block, offsetof(JitBlockData, effectiveAddress));
-    CMP(pc_and_msr, DISPATCHER_PC);
-    FixupBranch pc_missmatch = B(CC_NEQ);
+      // b.msrBits != msr
+      ARM64Reg msr = ARM64Reg::W25;
+      ARM64Reg msr2 = ARM64Reg::W24;
+      LDR(IndexType::Unsigned, msr, PPC_REG, PPCSTATE_OFF(msr));
+      AND(msr, msr, LogicalImm(JitBaseBlockCache::JIT_CACHE_MSR_MASK, 32));
+      LDR(IndexType::Unsigned, msr2, block, offsetof(JitBlockData, msrBits));
+      CMP(msr, msr2);
 
-    LDR(IndexType::Unsigned, pc_and_msr2, PPC_REG, PPCSTATE_OFF(msr));
-    AND(pc_and_msr2, pc_and_msr2, LogicalImm(JitBaseBlockCache::JIT_CACHE_MSR_MASK, 32));
-    LDR(IndexType::Unsigned, pc_and_msr, block, offsetof(JitBlockData, msrBits));
-    CMP(pc_and_msr, pc_and_msr2);
-    FixupBranch msr_missmatch = B(CC_NEQ);
+      FixupBranch msr_missmatch = B(CC_NEQ);
 
-    // return blocks[block_num].normalEntry;
-    LDR(IndexType::Unsigned, block, block, offsetof(JitBlockData, normalEntry));
-    BR(block);
-    SetJumpTarget(not_found);
-    SetJumpTarget(pc_missmatch);
-    SetJumpTarget(msr_missmatch);
+      // return blocks[block_num].normalEntry;
+      LDR(IndexType::Unsigned, block, block, offsetof(JitBlockData, normalEntry));
+      BR(block);
+      SetJumpTarget(not_found);
+      SetJumpTarget(msr_missmatch);
+    }
+    else
+    {
+      // iCache[(address >> 2) & iCache_Mask];
+      ARM64Reg pc_masked = ARM64Reg::W25;
+      ARM64Reg cache_base = ARM64Reg::X27;
+      ARM64Reg block = ARM64Reg::X30;
+      ORR(pc_masked, ARM64Reg::WZR,
+          LogicalImm(JitBaseBlockCache::FAST_BLOCK_MAP_FALLBACK_MASK << 3, 32));
+      AND(pc_masked, pc_masked, DISPATCHER_PC, ArithOption(DISPATCHER_PC, ShiftType::LSL, 1));
+      MOVP2R(cache_base, GetBlockCache()->GetFastBlockMapFallback());
+      LDR(block, cache_base, EncodeRegTo64(pc_masked));
+      FixupBranch not_found = CBZ(block);
+
+      // b.effectiveAddress != addr || b.msrBits != msr
+      ARM64Reg pc_and_msr = ARM64Reg::W25;
+      ARM64Reg pc_and_msr2 = ARM64Reg::W24;
+      LDR(IndexType::Unsigned, pc_and_msr, block, offsetof(JitBlockData, effectiveAddress));
+      CMP(pc_and_msr, DISPATCHER_PC);
+      FixupBranch pc_missmatch = B(CC_NEQ);
+
+      LDR(IndexType::Unsigned, pc_and_msr2, PPC_REG, PPCSTATE_OFF(msr));
+      AND(pc_and_msr2, pc_and_msr2, LogicalImm(JitBaseBlockCache::JIT_CACHE_MSR_MASK, 32));
+      LDR(IndexType::Unsigned, pc_and_msr, block, offsetof(JitBlockData, msrBits));
+      CMP(pc_and_msr, pc_and_msr2);
+
+      FixupBranch msr_missmatch = B(CC_NEQ);
+
+      // return blocks[block_num].normalEntry;
+      LDR(IndexType::Unsigned, block, block, offsetof(JitBlockData, normalEntry));
+      BR(block);
+      SetJumpTarget(not_found);
+      SetJumpTarget(pc_missmatch);
+      SetJumpTarget(msr_missmatch);
+    }
   }
 
   // Call C version of Dispatch().

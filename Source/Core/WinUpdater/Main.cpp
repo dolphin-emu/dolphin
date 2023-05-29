@@ -62,7 +62,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     return 0;
   }
 
-  std::vector<std::string> args = CommandLineToUtf8Argv(pCmdLine);
+  std::vector<std::string> args = Common::CommandLineToUtf8Argv(pCmdLine);
 
   return RunUpdater(args) ? 0 : 1;
 }

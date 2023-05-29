@@ -553,7 +553,7 @@ CopyResult Import(const std::string& data_bin_path, std::function<bool()> can_ov
     return CopyResult::CorruptedSource;
   }
 
-  if (!WiiUtils::EnsureTMDIsImported(*ios.GetFS(), *ios.GetES(), header->tid))
+  if (!WiiUtils::EnsureTMDIsImported(*ios.GetFS(), ios.GetESCore(), header->tid))
   {
     ERROR_LOG_FMT(CORE, "WiiSave::Import: Failed to find or import TMD for title {:16x}",
                   header->tid);
@@ -585,7 +585,7 @@ size_t ExportAll(std::string_view export_path)
 {
   IOS::HLE::Kernel ios;
   size_t exported_save_count = 0;
-  for (const u64 title : ios.GetES()->GetInstalledTitles())
+  for (const u64 title : ios.GetESCore().GetInstalledTitles())
   {
     if (Export(title, export_path, &ios) == CopyResult::Success)
       ++exported_save_count;

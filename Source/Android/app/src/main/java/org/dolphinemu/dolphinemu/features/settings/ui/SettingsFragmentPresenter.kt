@@ -115,6 +115,7 @@ class SettingsFragmentPresenter(
                 controllerNumber,
                 controllerType
             )
+
             MenuTag.WIIMOTE_1,
             MenuTag.WIIMOTE_2,
             MenuTag.WIIMOTE_3,
@@ -122,6 +123,7 @@ class SettingsFragmentPresenter(
                 sl,
                 controllerNumber
             )
+
             MenuTag.WIIMOTE_EXTENSION_1,
             MenuTag.WIIMOTE_EXTENSION_2,
             MenuTag.WIIMOTE_EXTENSION_3,
@@ -130,6 +132,7 @@ class SettingsFragmentPresenter(
                 controllerNumber,
                 controllerType
             )
+
             MenuTag.WIIMOTE_GENERAL_1,
             MenuTag.WIIMOTE_GENERAL_2,
             MenuTag.WIIMOTE_GENERAL_3,
@@ -137,6 +140,7 @@ class SettingsFragmentPresenter(
                 sl,
                 controllerNumber
             )
+
             MenuTag.WIIMOTE_MOTION_SIMULATION_1,
             MenuTag.WIIMOTE_MOTION_SIMULATION_2,
             MenuTag.WIIMOTE_MOTION_SIMULATION_3,
@@ -144,6 +148,7 @@ class SettingsFragmentPresenter(
                 sl,
                 controllerNumber
             )
+
             MenuTag.WIIMOTE_MOTION_INPUT_1,
             MenuTag.WIIMOTE_MOTION_INPUT_2,
             MenuTag.WIIMOTE_MOTION_INPUT_3,
@@ -151,6 +156,7 @@ class SettingsFragmentPresenter(
                 sl,
                 controllerNumber
             )
+
             else -> throw UnsupportedOperationException("Unimplemented menu")
         }
 
@@ -454,10 +460,12 @@ class SettingsFragmentPresenter(
                         BooleanSetting.MAIN_DSP_HLE.setBoolean(settings, true)
                         BooleanSetting.MAIN_DSP_JIT.setBoolean(settings, true)
                     }
+
                     DSP_LLE_RECOMPILER -> {
                         BooleanSetting.MAIN_DSP_HLE.setBoolean(settings, false)
                         BooleanSetting.MAIN_DSP_JIT.setBoolean(settings, true)
                     }
+
                     DSP_LLE_INTERPRETER -> {
                         BooleanSetting.MAIN_DSP_HLE.setBoolean(settings, false)
                         BooleanSetting.MAIN_DSP_JIT.setBoolean(settings, false)
@@ -834,6 +842,14 @@ class SettingsFragmentPresenter(
                 0
             )
         )
+        sl.add(
+            SwitchSetting(
+                context,
+                BooleanSetting.MAIN_EMULATE_INFINITY_BASE,
+                R.string.emulate_infinity_base,
+                0
+            )
+        )
     }
 
     private fun addAdvancedSettings(sl: ArrayList<SettingsItem>) {
@@ -856,10 +872,12 @@ class SettingsFragmentPresenter(
                         BooleanSetting.MAIN_SYNC_ON_SKIP_IDLE.setBoolean(settings, false)
                         BooleanSetting.MAIN_SYNC_GPU.setBoolean(settings, false)
                     }
+
                     SYNC_GPU_ON_IDLE_SKIP -> {
                         BooleanSetting.MAIN_SYNC_ON_SKIP_IDLE.setBoolean(settings, true)
                         BooleanSetting.MAIN_SYNC_GPU.setBoolean(settings, false)
                     }
+
                     SYNC_GPU_ALWAYS -> {
                         BooleanSetting.MAIN_SYNC_ON_SKIP_IDLE.setBoolean(settings, true)
                         BooleanSetting.MAIN_SYNC_GPU.setBoolean(settings, true)
@@ -893,10 +911,12 @@ class SettingsFragmentPresenter(
                 emuCoresEntries = R.array.emuCoresEntriesX86_64
                 emuCoresValues = R.array.emuCoresValuesX86_64
             }
+
             4 -> {
                 emuCoresEntries = R.array.emuCoresEntriesARM64
                 emuCoresValues = R.array.emuCoresValuesARM64
             }
+
             else -> {
                 emuCoresEntries = R.array.emuCoresEntriesGeneric
                 emuCoresValues = R.array.emuCoresValuesGeneric
@@ -2246,6 +2266,7 @@ class SettingsFragmentPresenter(
                     setting.uiSuffix
                 )
             )
+
             NumericSetting.TYPE_BOOLEAN -> sl.add(
                 SwitchSetting(
                     InputMappingBooleanSetting(setting),

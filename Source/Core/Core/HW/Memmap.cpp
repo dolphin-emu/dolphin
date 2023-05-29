@@ -121,7 +121,7 @@ void MemoryManager::Init()
     region.active = true;
     mem_size += region.size;
   }
-  m_arena.GrabSHMSegment(mem_size);
+  m_arena.GrabSHMSegment(mem_size, "dolphin-emu");
 
   m_physical_page_mappings.fill(nullptr);
 

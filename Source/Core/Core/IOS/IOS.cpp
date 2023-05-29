@@ -8,7 +8,6 @@
 #include <deque>
 #include <map>
 #include <memory>
-#include <mutex>
 #include <string>
 #include <utility>
 
@@ -300,17 +299,15 @@ Kernel::Kernel(IOSC::ConsoleType console_type) : m_iosc(console_type)
   if (m_is_responsible_for_nand_root)
     Core::InitializeWiiRoot(false);
 
-  AddCoreDevices();
+  m_fs = FS::MakeFileSystem(IOS::HLE::FS::Location::Session, Core::GetActiveNandRedirects());
+  ASSERT(m_fs);
+
+  m_fs_core = std::make_unique<FSCore>(*this);
+  m_es_core = std::make_unique<ESCore>(*this);
 }
 
 Kernel::~Kernel()
 {
-  {
-    std::lock_guard lock(m_device_map_mutex);
-    m_device_map.clear();
-    m_socket_manager.reset();
-  }
-
   if (m_is_responsible_for_nand_root)
     Core::ShutdownWiiRoot();
 }
@@ -333,13 +330,23 @@ EmulationKernel::EmulationKernel(Core::System& system, u64 title_id)
     return;
   }
 
-  AddCoreDevices();
+  m_fs = FS::MakeFileSystem(IOS::HLE::FS::Location::Session, Core::GetActiveNandRedirects());
+  ASSERT(m_fs);
+
+  m_fs_core = std::make_unique<FSCore>(*this);
+  AddDevice(std::make_unique<FSDevice>(*this, *m_fs_core, "/dev/fs"));
+  m_es_core = std::make_unique<ESCore>(*this);
+  AddDevice(std::make_unique<ESDevice>(*this, *m_es_core, "/dev/es"));
+
   AddStaticDevices();
 }
 
 EmulationKernel::~EmulationKernel()
 {
   Core::System::GetInstance().GetCoreTiming().RemoveAllEvents(s_event_enqueue);
+
+  m_device_map.clear();
+  m_socket_manager.reset();
 }
 
 // The title ID is a u64 where the first 32 bits are used for the title type.
@@ -355,12 +362,22 @@ std::shared_ptr<FS::FileSystem> Kernel::GetFS()
   return m_fs;
 }
 
-std::shared_ptr<FSDevice> Kernel::GetFSDevice()
+FSCore& Kernel::GetFSCore()
+{
+  return *m_fs_core;
+}
+
+std::shared_ptr<FSDevice> EmulationKernel::GetFSDevice()
 {
   return std::static_pointer_cast<FSDevice>(m_device_map.at("/dev/fs"));
 }
 
-std::shared_ptr<ESDevice> Kernel::GetES()
+ESCore& Kernel::GetESCore()
+{
+  return *m_es_core;
+}
+
+std::shared_ptr<ESDevice> EmulationKernel::GetESDevice()
 {
   return std::static_pointer_cast<ESDevice>(m_device_map.at("/dev/es"));
 }
@@ -372,51 +389,51 @@ std::shared_ptr<WiiSockMan> EmulationKernel::GetSocketManager()
 
 // Since we don't have actual processes, we keep track of only the PPC's UID/GID.
 // These functions roughly correspond to syscalls 0x2b, 0x2c, 0x2d, 0x2e (though only for the PPC).
-void Kernel::SetUidForPPC(u32 uid)
+void EmulationKernel::SetUidForPPC(u32 uid)
 {
   m_ppc_uid = uid;
 }
 
-u32 Kernel::GetUidForPPC() const
+u32 EmulationKernel::GetUidForPPC() const
 {
   return m_ppc_uid;
 }
 
-void Kernel::SetGidForPPC(u16 gid)
+void EmulationKernel::SetGidForPPC(u16 gid)
 {
   m_ppc_gid = gid;
 }
 
-u16 Kernel::GetGidForPPC() const
+u16 EmulationKernel::GetGidForPPC() const
 {
   return m_ppc_gid;
 }
 
-static std::vector<u8> ReadBootContent(FSDevice* fs, const std::string& path, size_t max_size,
+static std::vector<u8> ReadBootContent(FSCore& fs, const std::string& path, size_t max_size,
                                        Ticks ticks = {})
 {
-  const auto fd = fs->Open(0, 0, path, FS::Mode::Read, {}, ticks);
+  const auto fd = fs.Open(0, 0, path, FS::Mode::Read, {}, ticks);
   if (fd.Get() < 0)
     return {};
 
-  const size_t file_size = fs->GetFileStatus(fd.Get(), ticks)->size;
+  const size_t file_size = fs.GetFileStatus(fd.Get(), ticks)->size;
   if (max_size != 0 && file_size > max_size)
     return {};
 
   std::vector<u8> buffer(file_size);
-  if (!fs->Read(fd.Get(), buffer.data(), buffer.size(), ticks))
+  if (!fs.Read(fd.Get(), buffer.data(), buffer.size(), ticks))
     return {};
   return buffer;
 }
 
 // This corresponds to syscall 0x41, which loads a binary from the NAND and bootstraps the PPC.
 // Unlike 0x42, IOS will set up some constants in memory before booting the PPC.
-bool Kernel::BootstrapPPC(Core::System& system, const std::string& boot_content_path)
+bool EmulationKernel::BootstrapPPC(Core::System& system, const std::string& boot_content_path)
 {
   // Seeking and processing overhead is ignored as most time is spent reading from the NAND.
   u64 ticks = 0;
 
-  const DolReader dol{ReadBootContent(GetFSDevice().get(), boot_content_path, 0, &ticks)};
+  const DolReader dol{ReadBootContent(GetFSCore(), boot_content_path, 0, &ticks)};
 
   if (!dol.IsValid())
     return false;
@@ -485,8 +502,8 @@ static constexpr SystemTimers::TimeBaseTick GetIOSBootTicks(u32 version)
 // Passing a boot content path is optional because we do not require IOSes
 // to be installed at the moment. If one is passed, the boot binary must exist
 // on the NAND, or the call will fail like on a Wii.
-bool Kernel::BootIOS(Core::System& system, const u64 ios_title_id, HangPPC hang_ppc,
-                     const std::string& boot_content_path)
+bool EmulationKernel::BootIOS(Core::System& system, const u64 ios_title_id, HangPPC hang_ppc,
+                              const std::string& boot_content_path)
 {
   // IOS suspends regular PPC<->ARM IPC before loading a new IOS.
   // IPC is not resumed if the boot fails for any reason.
@@ -497,7 +514,7 @@ bool Kernel::BootIOS(Core::System& system, const u64 ios_title_id, HangPPC hang_
     // Load the ARM binary to memory (if possible).
     // Because we do not actually emulate the Starlet, only load the sections that are in MEM1.
 
-    ARMBinary binary{ReadBootContent(GetFSDevice().get(), boot_content_path, 0xB00000)};
+    ARMBinary binary{ReadBootContent(GetFSCore(), boot_content_path, 0xB00000)};
     if (!binary.IsValid())
       return false;
 
@@ -522,7 +539,7 @@ bool Kernel::BootIOS(Core::System& system, const u64 ios_title_id, HangPPC hang_
   return true;
 }
 
-void Kernel::InitIPC()
+void EmulationKernel::InitIPC()
 {
   if (!Core::IsRunning())
     return;
@@ -531,26 +548,14 @@ void Kernel::InitIPC()
   GenerateAck(0);
 }
 
-void Kernel::AddDevice(std::unique_ptr<Device> device)
+void EmulationKernel::AddDevice(std::unique_ptr<Device> device)
 {
   ASSERT(device->GetDeviceType() == Device::DeviceType::Static);
   m_device_map.insert_or_assign(device->GetDeviceName(), std::move(device));
 }
 
-void Kernel::AddCoreDevices()
-{
-  m_fs = FS::MakeFileSystem(IOS::HLE::FS::Location::Session, Core::GetActiveNandRedirects());
-  ASSERT(m_fs);
-
-  std::lock_guard lock(m_device_map_mutex);
-  AddDevice(std::make_unique<FSDevice>(*this, "/dev/fs"));
-  AddDevice(std::make_unique<ESDevice>(*this, "/dev/es"));
-}
-
 void EmulationKernel::AddStaticDevices()
 {
-  std::lock_guard lock(m_device_map_mutex);
-
   const Feature features = GetFeatures(GetVersion());
 
   // Dolphin-specific device for letting homebrew access and alter emulator state.
@@ -637,16 +642,10 @@ s32 EmulationKernel::GetFreeDeviceID()
   return -1;
 }
 
-std::shared_ptr<Device> Kernel::GetDeviceByName(std::string_view device_name)
-{
-  std::lock_guard lock(m_device_map_mutex);
-  const auto iterator = m_device_map.find(device_name);
-  return iterator != m_device_map.end() ? iterator->second : nullptr;
-}
-
 std::shared_ptr<Device> EmulationKernel::GetDeviceByName(std::string_view device_name)
 {
-  return Kernel::GetDeviceByName(device_name);
+  const auto iterator = m_device_map.find(device_name);
+  return iterator != m_device_map.end() ? iterator->second : nullptr;
 }
 
 // Returns the FD for the newly opened device (on success) or an error code.

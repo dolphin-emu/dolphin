@@ -61,6 +61,7 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
     buttonsActionsMap.append(R.id.menu_exit, EmulationActivity.MENU_ACTION_EXIT);
     buttonsActionsMap.append(R.id.menu_settings, EmulationActivity.MENU_ACTION_SETTINGS);
     buttonsActionsMap.append(R.id.menu_skylanders, EmulationActivity.MENU_ACTION_SKYLANDERS);
+    buttonsActionsMap.append(R.id.menu_infinitybase, EmulationActivity.MENU_ACTION_INFINITY_BASE);
   }
 
   private FragmentIngameMenuBinding mBinding;

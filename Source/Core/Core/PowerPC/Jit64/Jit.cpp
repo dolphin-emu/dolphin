@@ -32,6 +32,7 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/MachineContext.h"
 #include "Core/PatchEngine.h"
+#include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/FarCodeCache.h"
@@ -276,12 +277,8 @@ void Jit64::Init()
   m_const_pool.Init(AllocChildCodeSpace(constpool_size), constpool_size);
   ResetCodePtr();
 
-  // BLR optimization has the same consequences as block linking, as well as
-  // depending on the fault handler to be safe in the event of excessive BL.
-  m_enable_blr_optimization =
-      jo.enableBlocklink && m_fastmem_enabled &&
-      !(m_enable_debugging || Scripting::ScriptUtilities::IsScriptingCoreInitialized());
-  m_cleanup_after_stackfault = false;
+  InitBLROptimization();
+
   m_stack_guard = nullptr;
 
   blocks.Init();

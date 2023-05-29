@@ -32,6 +32,10 @@ static jclass s_linked_hash_map_class;
 static jmethodID s_linked_hash_map_init;
 static jmethodID s_linked_hash_map_put;
 
+static jclass s_hash_map_class;
+static jmethodID s_hash_map_init;
+static jmethodID s_hash_map_put;
+
 static jclass s_ini_file_class;
 static jfieldID s_ini_file_pointer;
 static jclass s_ini_file_section_class;
@@ -219,6 +223,21 @@ jmethodID GetLinkedHashMapInit()
 jmethodID GetLinkedHashMapPut()
 {
   return s_linked_hash_map_put;
+}
+
+jclass GetHashMapClass()
+{
+  return s_hash_map_class;
+}
+
+jmethodID GetHashMapInit()
+{
+  return s_hash_map_init;
+}
+
+jmethodID GetHashMapPut()
+{
+  return s_hash_map_put;
 }
 
 jclass GetIniFileClass()
@@ -575,12 +594,19 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
       ini_file_section_class, "<init>", "(Lorg/dolphinemu/dolphinemu/utils/IniFile;J)V");
   env->DeleteLocalRef(ini_file_section_class);
 
-  const jclass map_class = env->FindClass("java/util/LinkedHashMap");
-  s_linked_hash_map_class = reinterpret_cast<jclass>(env->NewGlobalRef(map_class));
+  const jclass linked_hash_map_class = env->FindClass("java/util/LinkedHashMap");
+  s_linked_hash_map_class = reinterpret_cast<jclass>(env->NewGlobalRef(linked_hash_map_class));
   s_linked_hash_map_init = env->GetMethodID(s_linked_hash_map_class, "<init>", "(I)V");
   s_linked_hash_map_put = env->GetMethodID(
       s_linked_hash_map_class, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
-  env->DeleteLocalRef(map_class);
+  env->DeleteLocalRef(linked_hash_map_class);
+
+  const jclass hash_map_class = env->FindClass("java/util/HashMap");
+  s_hash_map_class = reinterpret_cast<jclass>(env->NewGlobalRef(hash_map_class));
+  s_hash_map_init = env->GetMethodID(s_hash_map_class, "<init>", "(I)V");
+  s_hash_map_put = env->GetMethodID(s_hash_map_class, "put",
+                                    "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+  env->DeleteLocalRef(hash_map_class);
 
   const jclass compress_cb_class =
       env->FindClass("org/dolphinemu/dolphinemu/utils/CompressCallback");
@@ -741,6 +767,7 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved)
   env->DeleteGlobalRef(s_game_file_cache_class);
   env->DeleteGlobalRef(s_analytics_class);
   env->DeleteGlobalRef(s_linked_hash_map_class);
+  env->DeleteGlobalRef(s_hash_map_class);
   env->DeleteGlobalRef(s_ini_file_class);
   env->DeleteGlobalRef(s_ini_file_section_class);
   env->DeleteGlobalRef(s_compress_cb_class);

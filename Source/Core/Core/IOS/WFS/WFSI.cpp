@@ -165,7 +165,8 @@ std::optional<IPCReply> WFSIDevice::IOCtl(const IOCtlRequest& request)
     memory.CopyFromEmu(tmd_bytes.data(), tmd_addr, tmd_size);
     m_tmd.SetBytes(std::move(tmd_bytes));
 
-    const ES::TicketReader ticket = m_ios.GetES()->FindSignedTicket(m_tmd.GetTitleId());
+    const ES::TicketReader ticket =
+        GetEmulationKernel().GetESCore().FindSignedTicket(m_tmd.GetTitleId());
     if (!ticket.IsValid())
     {
       return_error_code = -11028;
@@ -385,14 +386,14 @@ std::optional<IPCReply> WFSIDevice::IOCtl(const IOCtlRequest& request)
   {
     INFO_LOG_FMT(IOS_WFS, "IOCTL_WFSI_INIT");
     u64 tid;
-    if (GetEmulationKernel().GetES()->GetTitleId(&tid) < 0)
+    if (GetEmulationKernel().GetESCore().GetTitleId(&tid) < 0)
     {
       ERROR_LOG_FMT(IOS_WFS, "IOCTL_WFSI_INIT: Could not get title id.");
       return_error_code = IPC_EINVAL;
       break;
     }
 
-    const ES::TMDReader tmd = GetEmulationKernel().GetES()->FindInstalledTMD(tid);
+    const ES::TMDReader tmd = GetEmulationKernel().GetESCore().FindInstalledTMD(tid);
     SetCurrentTitleIdAndGroupId(tmd.GetTitleId(), tmd.GetGroupId());
     break;
   }

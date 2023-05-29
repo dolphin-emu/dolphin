@@ -736,7 +736,8 @@ std::optional<IPCReply> DIDevice::IOCtlV(const IOCtlVRequest& request)
     const std::vector<u8>& raw_tmd = tmd.GetBytes();
     memory.CopyToEmu(request.io_vectors[0].address, raw_tmd.data(), raw_tmd.size());
 
-    ReturnCode es_result = m_ios.GetES()->DIVerify(tmd, dvd_thread.GetTicket(m_current_partition));
+    ReturnCode es_result = GetEmulationKernel().GetESDevice()->DIVerify(
+        tmd, dvd_thread.GetTicket(m_current_partition));
     memory.Write_U32(es_result, request.io_vectors[1].address);
 
     return_value = DIResult::Success;

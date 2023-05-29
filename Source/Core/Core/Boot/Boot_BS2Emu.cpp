@@ -595,7 +595,7 @@ bool CBoot::EmulatedBS2_Wii(Core::System& system, const Core::CPUThreadGuard& gu
 
   // Warning: This call will set incorrect running game metadata if our volume parameter
   // doesn't point to the same disc as the one that's inserted in the emulated disc drive!
-  IOS::HLE::GetIOS()->GetES()->DIVerify(tmd, volume.GetTicket(partition));
+  IOS::HLE::GetIOS()->GetESDevice()->DIVerify(tmd, volume.GetTicket(partition));
 
   return true;
 }

@@ -738,7 +738,7 @@ std::string InfinityBase::FindFigure(u32 number) const
       return it->first;
     }
   }
-  return "";
+  return "Unknown Figure";
 }
 
 u8 InfinityBase::DeriveFigurePosition(u8 position)
