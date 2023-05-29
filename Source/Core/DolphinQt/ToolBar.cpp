@@ -196,5 +196,5 @@ void ToolBar::UpdateIcons()
   m_config_action->setIcon(Resources::GetThemeIcon("config"));
   m_controllers_action->setIcon(Resources::GetThemeIcon("classic"));
   m_graphics_action->setIcon(Resources::GetThemeIcon("graphics"));
-  m_start_netplay_action->setIcon(Resources::GetScaledThemeIcon("wifi"));
+  m_start_netplay_action->setIcon(Resources::GetThemeIcon("wifi"));
 }
