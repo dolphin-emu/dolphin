@@ -255,34 +255,39 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
             target);
       };
 
-      const auto add_action = [&](GraphicsModConfig mod_config) {
+      const auto add_action = [&](GraphicsModConfig mod_config) -> bool {
         auto action = create_action(feature.m_action, feature.m_action_data, std::move(mod_config));
         if (action == nullptr)
         {
           WARN_LOG_FMT(VIDEO, "Failed to create action '{}' for group '{}'.", feature.m_action,
                        feature.m_group);
-          return;
+          return false;
         }
         m_actions.push_back(std::move(action));
+        return true;
       };
 
       // Prefer groups in the pack over groups from another pack
       if (const auto local_it = group_to_targets.find(internal_group);
           local_it != group_to_targets.end())
       {
-        add_action(mod);
-        for (const GraphicsTargetConfig& target : local_it->second)
+        if (add_action(mod))
         {
-          add_target(target);
+          for (const GraphicsTargetConfig& target : local_it->second)
+          {
+            add_target(target);
+          }
         }
       }
       else if (const auto global_it = group_to_targets.find(feature.m_group);
                global_it != group_to_targets.end())
       {
-        add_action(mod);
-        for (const GraphicsTargetConfig& target : global_it->second)
+        if (add_action(mod))
         {
-          add_target(target);
+          for (const GraphicsTargetConfig& target : global_it->second)
+          {
+            add_target(target);
+          }
         }
       }
       else
