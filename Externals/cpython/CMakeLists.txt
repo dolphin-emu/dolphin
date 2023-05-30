@@ -38,7 +38,6 @@ add_library(cpython STATIC
 	cpython/Modules/expat/xmltok.h
 	cpython/Modules/expat/xmltok_impl.h
 	cpython/Programs/test_frozenmain.h
-	cpython/Python/deepfreeze/deepfreeze.c
 	cpython/Modules/getpath.c
 	cpython/Programs/python.c
 	cpython/Programs/_testembed.c
