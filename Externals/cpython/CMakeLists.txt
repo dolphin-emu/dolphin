@@ -166,7 +166,6 @@ add_library(cpython STATIC
     cpython/Include/sliceobject.h
     cpython/Include/structmember.h
     cpython/Include/structseq.h
-    cpython/Include/symtable.h
     cpython/Include/sysmodule.h
     cpython/Include/token.h
     cpython/Include/traceback.h
@@ -175,7 +174,6 @@ add_library(cpython STATIC
     cpython/Include/unicodeobject.h
     cpython/Include/weakrefobject.h
     cpython/Modules/_math.h
-    cpython/Modules/hashtable.h
     cpython/Modules/rotatingtree.h
     cpython/Modules/_io/_iomodule.h
     cpython/Modules/cjkcodecs/alg_jisx0201.h
@@ -232,14 +230,14 @@ add_library(cpython STATIC
     cpython/Modules/arraymodule.c
     cpython/Modules/atexitmodule.c
     cpython/Modules/audioop.c
-    cpython/Modules/binascii.c">
+    cpython/Modules/binascii.c
     cpython/Modules/cmathmodule.c
     cpython/Modules/_datetimemodule.c
     cpython/Modules/errnomodule.c
     cpython/Modules/faulthandler.c
     cpython/Modules/gcmodule.c
     cpython/Modules/getbuildinfo.c
-	cpython/Modules/getpath_noop.c
+    cpython/Modules/getpath_noop.c
     cpython/Modules/itertoolsmodule.c
     cpython/Modules/main.c
     cpython/Modules/mathmodule.c
@@ -334,7 +332,7 @@ add_library(cpython STATIC
     cpython/PC/winreg.c
     cpython/PC/config.c
     cpython/PC/msvcrtmodule.c
-	cpython/Programs/_freeze_module.c
+    cpython/Programs/_freeze_module.c
     cpython/Python/pyhash.c
     cpython/Python/_warnings.c
     cpython/Python/asdl.c
@@ -389,7 +387,7 @@ add_library(cpython STATIC
     cpython/Python/suggestions.c
     cpython/Python/structmember.c
     cpython/Python/symtable.c
-    cpython/Python/sysmodule.c">
+    cpython/Python/sysmodule.c
 	)
 
 target_include_directories(cpython PUBLIC cpython)
