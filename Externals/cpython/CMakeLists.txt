@@ -392,6 +392,8 @@ add_library(cpython STATIC
 
 target_include_directories(cpython PUBLIC cpython)
 target_include_directories(cpython PUBLIC cpython/Include)
+target_include_directories(cpython PUBLIC cpython/PC)
+target_include_directories(cpython PUBLIC cpython/Python)
 target_compile_definitions(cpython PUBLIC HAVE_CRC32)
 dolphin_disable_warnings_msvc(cpython)
 
