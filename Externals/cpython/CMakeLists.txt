@@ -39,7 +39,6 @@ add_library(cpython STATIC
     cpython/Include/cpython/objimpl.h
     cpython/Include/cpython/odictobject.h
     cpython/Include/cpython/picklebufobject.h
-    cpython/Include/cpython/pyarena.h
     cpython/Include/cpython/pyctype.h
     cpython/Include/cpython/pydebug.h
     cpython/Include/cpython/pyerrors.h
