@@ -37,57 +37,8 @@ add_library(cpython STATIC
 	cpython/Modules/expat/xmlrole.h
 	cpython/Modules/expat/xmltok.h
 	cpython/Modules/expat/xmltok_impl.h
-	cpython/Python/frozen_modules/importlib._bootstrap.h
 	cpython/Programs/test_frozenmain.h
-	cpython/Python/frozen_modules/importlib._bootstrap.h
-	cpython/Python/frozen_modules/importlib._bootstrap_external.h
-	cpython/Python/frozen_modules/zipimport.h
-	cpython/Python/frozen_modules/abc.h
-	cpython/Python/frozen_modules/codecs.h
-	cpython/Python/frozen_modules/io.h
-	cpython/Python/frozen_modules/_collections_abc.h
-	cpython/Python/frozen_modules/_sitebuiltins.h
-	cpython/Python/frozen_modules/genericpath.h
-	cpython/Python/frozen_modules/ntpath.h
-	cpython/Python/frozen_modules/posixpath.h
-	cpython/Python/frozen_modules/os.h
-	cpython/Python/frozen_modules/site.h
-	cpython/Python/frozen_modules/stat.h
-	cpython/Python/frozen_modules/importlib.util.h
-	cpython/Python/frozen_modules/importlib.machinery.h
-	cpython/Python/frozen_modules/runpy.h
-	cpython/Python/frozen_modules/__hello__.h
-	cpython/Python/frozen_modules/__phello__.h
-	cpython/Python/frozen_modules/__phello__.ham.h
-	cpython/Python/frozen_modules/__phello__.ham.eggs.h
-	cpython/Python/frozen_modules/__phello__.spam.h
-	cpython/Python/frozen_modules/frozen_only.h
-	cpython/Python/frozen_modules/getpath.h
-	cpython/Python/frozen_modules/importlib._bootstrap.h
-	cpython/Python/frozen_modules/importlib._bootstrap_external.h
-	cpython/Python/frozen_modules/zipimport.h
-	cpython/Python/frozen_modules/abc.h
-	cpython/Python/frozen_modules/codecs.h
-	cpython/Python/frozen_modules/io.h
-	cpython/Python/frozen_modules/_collections_abc.h
-	cpython/Python/frozen_modules/_sitebuiltins.h
-	cpython/Python/frozen_modules/genericpath.h
-	cpython/Python/frozen_modules/ntpath.h
-	cpython/Python/frozen_modules/posixpath.h
-	cpython/Python/frozen_modules/os.h
-	cpython/Python/frozen_modules/site.h
-	cpython/Python/frozen_modules/stat.h
-	cpython/Python/frozen_modules/importlib.util.h
-	cpython/Python/frozen_modules/importlib.machinery.h
-	cpython/Python/frozen_modules/runpy.h
-	cpython/Python/frozen_modules/__hello__.h
-	cpython/Python/frozen_modules/__phello__.h
-	cpython/Python/frozen_modules/__phello__.ham.h
-	cpython/Python/frozen_modules/__phello__.ham.eggs.h
-	cpython/Python/frozen_modules/__phello__.spam.h
-	cpython/Python/frozen_modules/frozen_only.h
 	cpython/Python/deepfreeze/deepfreeze.c
-	cpython/Python/frozen_modules/getpath.h
 	cpython/Modules/getpath.c
 	cpython/Programs/python.c
 	cpython/Programs/_testembed.c
