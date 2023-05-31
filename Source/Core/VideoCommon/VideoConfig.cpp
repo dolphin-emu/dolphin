@@ -172,6 +172,8 @@ void VideoConfig::Refresh()
   bPerfQueriesEnable = Config::Get(Config::GFX_PERF_QUERIES_ENABLE);
 
   bGraphicMods = Config::Get(Config::GFX_MODS_ENABLE);
+
+  customDriverLibraryName = Config::Get(Config::GFX_DRIVER_LIB_NAME);
 }
 
 void VideoConfig::VerifyValidity()

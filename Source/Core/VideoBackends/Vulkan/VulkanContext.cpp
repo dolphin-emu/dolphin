@@ -143,7 +143,18 @@ VkInstance VulkanContext::CreateVulkanInstance(WindowSystemType wstype, bool ena
     {
       // The device itself may not support 1.1, so we check that before using any 1.1 functionality.
       app_info.apiVersion = VK_MAKE_VERSION(1, 1, 0);
+      WARN_LOG_FMT(HOST_GPU, "Using Vulkan 1.1, supported: {}.{}",
+                   VK_VERSION_MAJOR(supported_api_version),
+                   VK_VERSION_MINOR(supported_api_version));
     }
+    else
+    {
+      WARN_LOG_FMT(HOST_GPU, "Using Vulkan 1.0");
+    }
+  }
+  else
+  {
+    WARN_LOG_FMT(HOST_GPU, "Using Vulkan 1.0");
   }
 
   *out_vk_api_version = app_info.apiVersion;

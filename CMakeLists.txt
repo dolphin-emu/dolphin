@@ -728,6 +728,11 @@ if(ENABLE_VULKAN)
   if(APPLE AND USE_BUNDLED_MOLTENVK)
     add_subdirectory(Externals/MoltenVK)
   endif()
+
+
+  if (ANDROID AND _M_ARM_64)
+    add_subdirectory(Externals/libadrenotools)
+  endif()
 endif()
 
 if(NOT WIN32 OR (NOT (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")))
