@@ -84,13 +84,6 @@
             android:label="@string/settings"/>
 
         <activity
-            android:name=".features.settings.ui.GpuDriverActivity"
-            android:exported="false"
-            android:configChanges="orientation|screenSize"
-            android:theme="@style/Theme.Dolphin.Main"
-            android:label="@string/settings"/>
-
-        <activity
             android:name=".features.cheats.ui.CheatsActivity"
             android:exported="false"
             android:theme="@style/Theme.Dolphin.Main"
