@@ -52,7 +52,7 @@ class SettingsFragmentPresenter(
         if (menuTag.isGCPadMenu || menuTag.isWiimoteExtensionMenu) {
             controllerNumber = menuTag.subType
             controllerType = extras.getInt(ARG_CONTROLLER_TYPE)
-        } else if (menuTag.isWiimoteMenu) {
+        } else if (menuTag.isWiimoteMenu || menuTag.isWiimoteSubmenu) {
             controllerNumber = menuTag.subType
         } else if (menuTag.isSerialPort1Menu) {
             serialPort1Type = extras.getInt(ARG_SERIALPORT1_TYPE)
