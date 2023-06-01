@@ -18,7 +18,7 @@ public:
   virtual void Shutdown() = 0;
 
   virtual void DoState(PointerWrap& p) = 0;
-  virtual void PauseAndLock(bool do_lock, bool unpause_on_unlock = true) = 0;
+  virtual void PauseAndLock(bool do_lock) = 0;
 
   virtual void DSP_WriteMailBoxHigh(bool cpu_mailbox, u16 value) = 0;
   virtual void DSP_WriteMailBoxLow(bool cpu_mailbox, u16 value) = 0;

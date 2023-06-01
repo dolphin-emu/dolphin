@@ -812,7 +812,7 @@ static bool PauseAndLock(Core::System& system, bool do_lock, bool unpause_on_unl
   system.GetExpansionInterface().PauseAndLock(do_lock, false);
 
   // audio has to come after CPU, because CPU thread can wait for audio thread (m_throttle).
-  system.GetDSP().GetDSPEmulator()->PauseAndLock(do_lock, false);
+  system.GetDSP().GetDSPEmulator()->PauseAndLock(do_lock);
 
   // video has to come after CPU, because CPU thread can wait for video thread
   // (s_efbAccessRequested).
