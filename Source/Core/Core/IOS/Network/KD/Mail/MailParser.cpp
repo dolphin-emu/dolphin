@@ -3,10 +3,12 @@
 
 #include "Core/IOS/Network/KD/Mail/MailParser.h"
 #include "Common/Align.h"
+#include "Common/BitUtils.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 
 #include <chrono>
+#include <regex>
 
 namespace IOS::HLE::NWC24
 {
@@ -14,24 +16,24 @@ MailParser::MailParser(const std::string& boundary, const u32 num_of_mail,
                        const WC24FriendList friend_list)
     : m_friend_list(friend_list), m_message_data(num_of_mail + 1)
 {
-  parser.setBoundary(boundary);
-  parser.onPartBegin = EmptyCallback;
-  parser.onHeaderField = EmptyCallback;
-  parser.onHeaderValue = EmptyCallback;
-  parser.onPartData = [&](const char* buf, size_t start, size_t end, void* user_data) {
+  m_parser.setBoundary(boundary);
+  m_parser.onPartBegin = EmptyCallback;
+  m_parser.onHeaderField = EmptyCallback;
+  m_parser.onHeaderValue = EmptyCallback;
+  m_parser.onPartData = [&](const char* buf, size_t start, size_t end, void* user_data) {
     m_message_data[current_index].append(std::string(buf + start, end - start));
   };
-  parser.onPartEnd = [&](const char* buf, size_t start, size_t end, void* user_data) {
+  m_parser.onPartEnd = [&](const char* buf, size_t start, size_t end, void* user_data) {
     current_index++;
   };
-  parser.onEnd = EmptyCallback;
+  m_parser.onEnd = EmptyCallback;
 }
 
 ErrorCode MailParser::Parse(const std::string& buf)
 {
-  parser.feed(reinterpret_cast<const char*>(buf.data()), buf.size());
+  m_parser.feed(reinterpret_cast<const char*>(buf.data()), buf.size());
 
-  std::string_view err = {parser.getErrorMessage()};
+  std::string_view err = {m_parser.getErrorMessage()};
   if (err != "No error.")
   {
     ERROR_LOG_FMT(IOS_WC24, "Mail parser failed with error: {}", err);
@@ -56,7 +58,10 @@ std::string MailParser::GetHeaderValue(u32 index, const std::string& key) const
   {
     const std::vector<std::string> key_value = SplitString(field, ':');
     if (key_value[0] == key)
+    {
       val = StripWhitespace(key_value[1]);
+      break;
+    }
   }
 
   return val;
@@ -109,7 +114,9 @@ ErrorCode MailParser::ParseContentType(u32 index, u32 receive_index,
 
   const std::vector<std::string> values = SplitString(str_type, ';');
 
-  const auto content_type_iter = m_content_types.find(values[0]);
+  std::string str_content_type = values[0];
+  Common::ToLower(&str_content_type);
+  const auto content_type_iter = m_content_types.find(str_content_type);
   if (content_type_iter == m_content_types.end())
     return WC24_ERR_NOT_SUPPORTED;
 
@@ -119,6 +126,7 @@ ErrorCode MailParser::ParseContentType(u32 index, u32 receive_index,
     const std::string charset = values[1].substr(9, values[1].size());
     const u32 offset = m_message_data[index].find("Content-Type:") + 14 + values[0].size() + 10;
     receive_list.SetPackedCharset(receive_index, offset, charset.size() + 1);
+    receive_list.UpdateFlag(receive_index, 0xfffeffff, WC24ReceiveList::AND);
   }
   else if (content_type == ContentType::Alt || content_type == ContentType::Mixed ||
            content_type == ContentType::Related)
@@ -134,6 +142,7 @@ ErrorCode MailParser::ParseContentType(u32 index, u32 receive_index,
   else
   {
     // TODO: Everything else; does something with the currently unknown fields.
+    receive_list.UpdateFlag(receive_index, 0xfffeffff, WC24ReceiveList::AND);
   }
 
   return WC24_OK;
@@ -160,23 +169,28 @@ ErrorCode MailParser::ParseDate(u32 index, u32 receive_index,
 ErrorCode MailParser::ParseFrom(u32 index, u32 receive_index,
                                 NWC24::WC24ReceiveList& receive_list) const
 {
-  // TODO: Parse if this is an internet email rather than a Wii email
-  // Get sender and strip the "w" and "@wii.com".
-  std::string str_friend = GetHeaderValue(index, "From");
+  u64 friend_code{};
+  const std::string str_friend = GetHeaderValue(index, "From");
   if (str_friend.empty())
     return WC24_ERR_FORMAT;
 
-  const u32 from_address_size = str_friend.size();
-
-  str_friend.erase(0, 1);
-  str_friend.erase(16, str_friend.size());
-
-  u64 friend_code{};
-  const bool did_parse = TryParse(str_friend, &friend_code);
-  if (!did_parse)
+  // Determine if this is a Wii sender or email.
+  if (std::regex_search(str_friend, m_wii_number_regex))
   {
-    ERROR_LOG_FMT(IOS_WC24, "Invalid friend code.");
-    return WC24_ERR_FORMAT;
+    // Wii
+    const std::string str_wii_friend = str_friend.substr(1, 16);
+
+    const bool did_parse = TryParse(str_wii_friend, &friend_code);
+    if (!did_parse)
+    {
+      ERROR_LOG_FMT(IOS_WC24, "Invalid friend code.");
+      return WC24_ERR_FORMAT;
+    }
+  }
+  else
+  {
+    // Email
+    friend_code = WC24FriendList::ConvertEmailToFriendCode(str_friend);
   }
 
   if (!m_friend_list.CheckFriend(Common::swap64(friend_code)))
@@ -184,9 +198,11 @@ ErrorCode MailParser::ParseFrom(u32 index, u32 receive_index,
     NOTICE_LOG_FMT(IOS_WC24, "Received message from someone who is not a friend; discarding.");
     return WC24_ERR_NOT_FOUND;
   }
-
-  const u32 offset = m_message_data[index].find("From:") + 6;
+  
   receive_list.SetFromFriendCode(receive_index, friend_code);
+
+  const u32 from_address_size = str_friend.size();
+  const u32 offset = m_message_data[index].find("From:") + 6;
   receive_list.SetPackedFrom(receive_index, offset, from_address_size);
 
   return WC24_OK;
@@ -227,6 +243,12 @@ ErrorCode MailParser::ParseWiiAppId(u32 index, u32 receive_index,
   const char s = full_id.at(0);
   if (full_id.size() != 15 || s - 48 > 4 || full_id.at(1) != '-' || full_id.at(10) != '-')
     return WC24_ERR_FORMAT;
+
+  if ((s & 1) != 0)
+    receive_list.UpdateFlag(receive_index, 4, WC24ReceiveList::OR);
+
+  if (Common::ExtractBit(s, 1) != 0)
+    receive_list.UpdateFlag(receive_index, 8, WC24ReceiveList::OR);
 
   // Determine the app ID.
   u32 app_id = std::stoul(full_id.substr(2, 10), nullptr, 16);

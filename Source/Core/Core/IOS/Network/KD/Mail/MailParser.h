@@ -11,6 +11,7 @@
 #include "Core/IOS/Network/KD/NWC24Config.h"
 
 #include <map>
+#include <regex>
 #include <vector>
 
 namespace IOS::HLE
@@ -25,6 +26,21 @@ class MailParser final
 {
 public:
   MailParser(const std::string& boundary, u32 num_of_mail, const WC24FriendList friend_list);
+
+  /// Used with the mail flag
+  enum class ContentType : u32
+  {
+      Binary = 0x30000,
+      WiiMini = 0x30002,
+      MessageBoard = 0x30001,
+      Jpeg = 0x20000,
+      WiiPicture = 0x20001,
+      Alt = 0xF0001,
+      Mixed = 0xF0000,
+      Related = 0xF0002,
+      HTML = 0x10001,
+      Plain = 0x10000
+  };
 
   ErrorCode Parse(const std::string& buf);
   ErrorCode ParseContentTransferEncoding(u32 index, u32 receive_index,
@@ -42,20 +58,6 @@ public:
   u32 GetHeaderLength(u32 index) const;
 
 private:
-  enum class ContentType
-  {
-    Binary,
-    WiiMini,
-    MessageBoard,
-    Jpeg,
-    WiiPicture,
-    Alt,
-    Mixed,
-    Related,
-    HTML,
-    Plain
-  };
-
   static void EmptyCallback(const char* buffer, size_t start, size_t end, void* user_data){};
 
   // Minutes from January 1st 1900 to Unix epoch.
@@ -74,9 +76,10 @@ private:
       {"text/plain", ContentType::Plain},
   };
 
-  MultipartParser parser{};
+  MultipartParser m_parser{};
   WC24FriendList m_friend_list;
   std::vector<std::string> m_message_data;
+  std::regex m_wii_number_regex{"w\\d{16}"};
   s32 current_index{};
 };
 }  // namespace NWC24

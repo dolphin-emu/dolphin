@@ -26,6 +26,8 @@ class WC24FriendList final
 {
 public:
   explicit WC24FriendList(std::shared_ptr<FS::FileSystem> fs);
+  static u64 ConvertEmailToFriendCode(const std::string& email);
+
   void ReadFriendList();
   bool CheckFriendList() const;
   void WriteFriendList() const;
@@ -46,10 +48,31 @@ private:
     char padding[48];
   };
 
+  enum class FriendType : u32
+  {
+      _,
+      Wii,
+      Email
+  };
+
+  enum class FriendStatus : u32
+  {
+      _,
+      Unconfirmed,
+      Confirmed,
+      Declined
+  };
+
   struct FriendListEntry final
   {
-    // TODO: Implement this for changing friend status
-    char todo[320];
+    FriendType friend_type;
+    FriendStatus status;
+    char nickname[24];
+    u32 mii_id;
+    u32 system_id;
+    char reserved[24];
+    char email_or_code[96];
+    char padding[160];
   };
 
   struct FriendList final

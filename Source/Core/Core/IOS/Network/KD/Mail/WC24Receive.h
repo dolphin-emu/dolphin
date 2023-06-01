@@ -27,6 +27,12 @@ class WC24ReceiveList final
 public:
   static std::string GetMailPath(u32 index);
 
+    enum FlagOP
+    {
+        OR,
+        AND
+    };
+
   explicit WC24ReceiveList(std::shared_ptr<FS::FileSystem> fs);
   void ReadReceiveList();
   bool CheckReceiveList() const;
@@ -38,6 +44,9 @@ public:
 
   void FinalizeEntry(u32 index);
   void ClearEntry(u32 index);
+  // TODO: This is possibly different for messages sent by email?
+  void InitFlag(u32 index);
+  void UpdateFlag(u32 index, u32 value, FlagOP op);
   void SetMessageId(u32 index, u32 id);
   void SetMessageSize(u32 index, u32 size);
   void SetHeaderLength(u32 index, u32 size);
@@ -78,6 +87,12 @@ private:
     char mail_flag[40];
   };
 
+  struct MultipartEntry final
+  {
+      u32 offset;
+      u32 size;
+  };
+
   struct ReceiveListEntry final
   {
     u32 id;
@@ -101,7 +116,9 @@ private:
     u32 message_offset;
     // Set to message_length if content transfer encoding is not base64.
     u32 encoded_length;
-    u8 padding2[24];
+    MultipartEntry multipart_entries[2];
+    u32 multipart_sizes[2];
+    u32 multipart_content_types[2];
     u64 unk;
     u32 message_length;
     u32 dwc_id;

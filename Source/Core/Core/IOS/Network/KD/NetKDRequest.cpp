@@ -575,6 +575,7 @@ NWC24::ErrorCode NetKDRequestDevice::KDSaveMail()
     const std::vector<u8> data = parser.GetMessageData(i);
     const u32 header_len = parser.GetHeaderLength(i);
 
+    m_receive_list.InitFlag(entry_index);
     m_receive_list.SetMessageId(entry_index, msg_id);
     m_receive_list.SetMessageSize(entry_index, data.size());
     m_receive_list.SetHeaderLength(entry_index, header_len);

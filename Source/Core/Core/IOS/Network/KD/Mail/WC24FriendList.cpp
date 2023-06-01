@@ -52,4 +52,26 @@ bool WC24FriendList::CheckFriend(u64 friend_id) const
                      [&friend_id](const u64 v) { return v == friend_id; });
 }
 
+u64 WC24FriendList::ConvertEmailToFriendCode(const std::string& email)
+{
+  u32 upper = 0x80;
+  u32 lower{};
+
+  u32 idx{};
+  for (char chr : email)
+  {
+    if (idx == 7)
+    {
+      upper = (upper | chr * 0x100 | (email.size() & 0x1f));
+      break;
+    }
+
+    lower = (upper | chr) >> 0x18 | (lower | lower >> 0x1f) << 8;
+    upper = (upper | chr) * 0x100;
+    idx++;
+  }
+
+  return u64{lower} << 32 | upper;
+}
+
 }  // namespace IOS::HLE::NWC24

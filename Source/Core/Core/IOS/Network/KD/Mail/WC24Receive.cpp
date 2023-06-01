@@ -72,6 +72,11 @@ u32 WC24ReceiveList::GetNextEntryIndex() const
   return (Common::swap32(m_data.header.next_entry_offset) - 128) / 128;
 }
 
+void WC24ReceiveList::InitFlag(u32 index)
+{
+  m_data.entries[index].flag = 2097409;
+}
+
 void WC24ReceiveList::FinalizeEntry(u32 index)
 {
   u32 i{};
@@ -81,7 +86,7 @@ void WC24ReceiveList::FinalizeEntry(u32 index)
       break;
   }
 
-  m_data.entries[index].flag = Common::swap32(2097961);
+  m_data.entries[index].flag = Common::swap32(m_data.entries[index].flag | 0x220);
   m_data.entries[index].unk = Common::swap64(0x0001000000010000);
   m_data.entries[index].always_0x80000000 = Common::swap32(0x80000000);
   m_data.header.next_entry_offset = Common::swap32((128 * i) + 128);
@@ -110,6 +115,14 @@ void WC24ReceiveList::ClearEntry(u32 index)
   m_data.entries[index].message_offset = 0;
   m_data.entries[index].encoded_length = 0;
   m_data.entries[index].message_length = 0;
+}
+
+void WC24ReceiveList::UpdateFlag(u32 index, u32 value, FlagOP op)
+{
+  if (op == OR)
+    m_data.entries[index].flag |= value;
+  else
+    m_data.entries[index].flag &= value;
 }
 
 void WC24ReceiveList::SetMessageId(u32 index, u32 id)
