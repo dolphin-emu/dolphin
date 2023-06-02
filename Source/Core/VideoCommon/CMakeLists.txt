@@ -8,6 +8,10 @@ add_library(videocommon
   AbstractStagingTexture.h
   AbstractTexture.cpp
   AbstractTexture.h
+  Assets/CustomAsset.cpp
+  Assets/CustomAsset.h
+  Assets/CustomAssetLibrary.cpp
+  Assets/CustomAssetLibrary.h
   AsyncRequests.cpp
   AsyncRequests.h
   AsyncShaderCompiler.cpp
