@@ -634,6 +634,7 @@
     <ClInclude Include="VideoCommon\Assets\CustomAsset.h" />
     <ClInclude Include="VideoCommon\Assets\CustomAssetLibrary.h" />
     <ClInclude Include="VideoCommon\Assets\CustomTextureData.h" />
+    <ClInclude Include="VideoCommon\Assets\DirectFilesystemAssetLibrary.h" />
     <ClInclude Include="VideoCommon\AsyncRequests.h" />
     <ClInclude Include="VideoCommon\AsyncShaderCompiler.h" />
     <ClInclude Include="VideoCommon\BoundingBox.h" />
@@ -1246,6 +1247,7 @@
     <ClCompile Include="VideoCommon\Assets\CustomAsset.cpp" />
     <ClCompile Include="VideoCommon\Assets\CustomAssetLibrary.cpp" />
     <ClCompile Include="VideoCommon\Assets\CustomTextureData.cpp" />
+    <ClCompile Include="VideoCommon\Assets\DirectFilesystemAssetLibrary.cpp" />
     <ClCompile Include="VideoCommon\AsyncRequests.cpp" />
     <ClCompile Include="VideoCommon\AsyncShaderCompiler.cpp" />
     <ClCompile Include="VideoCommon\BoundingBox.cpp" />
