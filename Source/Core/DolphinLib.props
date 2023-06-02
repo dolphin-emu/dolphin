@@ -631,6 +631,8 @@
     <ClInclude Include="VideoCommon\AbstractShader.h" />
     <ClInclude Include="VideoCommon\AbstractStagingTexture.h" />
     <ClInclude Include="VideoCommon\AbstractTexture.h" />
+    <ClInclude Include="VideoCommon\Assets\CustomAsset.h" />
+    <ClInclude Include="VideoCommon\Assets\CustomAssetLibrary.h" />
     <ClInclude Include="VideoCommon\AsyncRequests.h" />
     <ClInclude Include="VideoCommon\AsyncShaderCompiler.h" />
     <ClInclude Include="VideoCommon\BoundingBox.h" />
@@ -1241,6 +1243,8 @@
     <ClCompile Include="VideoCommon\AbstractGfx.cpp" />
     <ClCompile Include="VideoCommon\AbstractStagingTexture.cpp" />
     <ClCompile Include="VideoCommon\AbstractTexture.cpp" />
+    <ClCompile Include="VideoCommon\Assets\CustomAsset.cpp" />
+    <ClCompile Include="VideoCommon\Assets\CustomAssetLibrary.cpp" />
     <ClCompile Include="VideoCommon\AsyncRequests.cpp" />
     <ClCompile Include="VideoCommon\AsyncShaderCompiler.cpp" />
     <ClCompile Include="VideoCommon\BoundingBox.cpp" />
