@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "VideoCommon/GraphicsModSystem/Runtime/CustomTextureData.h"
+#include "VideoCommon/Assets/CustomTextureData.h"
 #include "VideoCommon/TextureConfig.h"
 #include "VideoCommon/TextureInfo.h"
 

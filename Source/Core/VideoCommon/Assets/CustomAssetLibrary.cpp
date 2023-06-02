@@ -6,7 +6,7 @@
 #include <algorithm>
 
 #include "Common/Logging/Log.h"
-#include "VideoCommon/GraphicsModSystem/Runtime/CustomTextureData.h"
+#include "VideoCommon/Assets/CustomTextureData.h"
 
 namespace VideoCommon
 {

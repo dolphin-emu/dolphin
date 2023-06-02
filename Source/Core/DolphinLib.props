@@ -633,6 +633,7 @@
     <ClInclude Include="VideoCommon\AbstractTexture.h" />
     <ClInclude Include="VideoCommon\Assets\CustomAsset.h" />
     <ClInclude Include="VideoCommon\Assets\CustomAssetLibrary.h" />
+    <ClInclude Include="VideoCommon\Assets\CustomTextureData.h" />
     <ClInclude Include="VideoCommon\AsyncRequests.h" />
     <ClInclude Include="VideoCommon\AsyncShaderCompiler.h" />
     <ClInclude Include="VideoCommon\BoundingBox.h" />
@@ -665,7 +666,6 @@
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\Actions\PrintAction.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\Actions\ScaleAction.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\Actions\SkipAction.h" />
-    <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\CustomTextureData.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\FBInfo.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\GraphicsModAction.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\GraphicsModActionData.h" />
@@ -1245,6 +1245,7 @@
     <ClCompile Include="VideoCommon\AbstractTexture.cpp" />
     <ClCompile Include="VideoCommon\Assets\CustomAsset.cpp" />
     <ClCompile Include="VideoCommon\Assets\CustomAssetLibrary.cpp" />
+    <ClCompile Include="VideoCommon\Assets\CustomTextureData.cpp" />
     <ClCompile Include="VideoCommon\AsyncRequests.cpp" />
     <ClCompile Include="VideoCommon\AsyncShaderCompiler.cpp" />
     <ClCompile Include="VideoCommon\BoundingBox.cpp" />
@@ -1272,7 +1273,6 @@
     <ClCompile Include="VideoCommon\GraphicsModSystem\Runtime\Actions\PrintAction.cpp" />
     <ClCompile Include="VideoCommon\GraphicsModSystem\Runtime\Actions\ScaleAction.cpp" />
     <ClCompile Include="VideoCommon\GraphicsModSystem\Runtime\Actions\SkipAction.cpp" />
-    <ClCompile Include="VideoCommon\GraphicsModSystem\Runtime\CustomTextureData.cpp" />
     <ClCompile Include="VideoCommon\GraphicsModSystem\Runtime\FBInfo.cpp" />
     <ClCompile Include="VideoCommon\GraphicsModSystem\Runtime\GraphicsModActionFactory.cpp" />
     <ClCompile Include="VideoCommon\GraphicsModSystem\Runtime\GraphicsModManager.cpp" />
