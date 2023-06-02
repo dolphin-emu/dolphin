@@ -900,6 +900,10 @@ void Callback_NewField(Core::System& system)
       CallOnStateChangedCallbacks(Core::GetState());
     }
   }
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+  AchievementManager::GetInstance()->DoFrame();
+#endif  // USE_RETRO_ACHIEVEMENTS
 }
 
 void UpdateTitle()
