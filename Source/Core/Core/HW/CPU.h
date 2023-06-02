@@ -122,6 +122,8 @@ private:
   //   deadlock because of the order inversion. (A -> X,Y; B -> Y,X; A waits for
   //   B, B waits for A)
   std::mutex m_stepping_lock;
+  // Protected by m_stepping_lock.
+  bool m_have_fake_cpu_thread = false;
 
   // Primary lock. Protects changing m_state, requesting instruction stepping and
   // pause-and-locking.

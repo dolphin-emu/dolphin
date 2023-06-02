@@ -353,8 +353,6 @@ void CPUManager::Continue()
 
 bool CPUManager::PauseAndLock(bool do_lock, bool unpause_on_unlock, bool control_adjacent)
 {
-  // NOTE: This is protected by m_stepping_lock.
-  static bool s_have_fake_cpu_thread = false;
   bool was_unpaused = false;
 
   if (do_lock)
@@ -380,16 +378,16 @@ bool CPUManager::PauseAndLock(bool do_lock, bool unpause_on_unlock, bool control
     //   depth counter instead of being a boolean.
     if (!Core::IsCPUThread())
     {
-      s_have_fake_cpu_thread = true;
+      m_have_fake_cpu_thread = true;
       Core::DeclareAsCPUThread();
     }
   }
   else
   {
     // Only need the stepping lock for this
-    if (s_have_fake_cpu_thread)
+    if (m_have_fake_cpu_thread)
     {
-      s_have_fake_cpu_thread = false;
+      m_have_fake_cpu_thread = false;
       Core::UndeclareAsCPUThread();
     }
 
