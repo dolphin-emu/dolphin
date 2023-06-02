@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "Common/Version.h"
+#include "Core/Core.h"
 #include "DolphinTool/Command.h"
 #include "DolphinTool/ConvertCommand.h"
 #include "DolphinTool/HeaderCommand.h"
@@ -27,6 +28,8 @@ static int PrintUsage(int code)
 
 int main(int argc, char* argv[])
 {
+  Core::DeclareAsHostThread();
+
   if (argc < 2)
     return PrintUsage(1);
 
