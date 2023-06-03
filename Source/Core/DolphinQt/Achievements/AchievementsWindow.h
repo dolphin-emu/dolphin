@@ -6,6 +6,7 @@
 #ifdef USE_RETRO_ACHIEVEMENTS
 #include <QDialog>
 
+class AchievementHeaderWidget;
 class QTabWidget;
 class QDialogButtonBox;
 
@@ -21,6 +22,7 @@ private:
   void showEvent(QShowEvent* event);
   void ConnectWidgets();
 
+  AchievementHeaderWidget* m_header_widget;
   QTabWidget* m_tab_widget;
   QDialogButtonBox* m_button_box;
 };

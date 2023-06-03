@@ -8,6 +8,7 @@
 #include <QTabWidget>
 #include <QVBoxLayout>
 
+#include "DolphinQt/Achievements/AchievementHeaderWidget.h"
 #include "DolphinQt/Achievements/AchievementSettingsWidget.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 
@@ -30,6 +31,7 @@ void AchievementsWindow::CreateMainLayout()
 {
   auto* layout = new QVBoxLayout();
 
+  m_header_widget = new AchievementHeaderWidget(this);
   m_tab_widget = new QTabWidget();
   m_tab_widget->addTab(
       GetWrappedWidget(new AchievementSettingsWidget(m_tab_widget, this), this, 125, 100),
@@ -37,6 +39,7 @@ void AchievementsWindow::CreateMainLayout()
 
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Close);
 
+  layout->addWidget(m_header_widget);
   layout->addWidget(m_tab_widget);
   layout->addWidget(m_button_box);
 
@@ -50,6 +53,8 @@ void AchievementsWindow::ConnectWidgets()
 
 void AchievementsWindow::UpdateData()
 {
+  m_header_widget->UpdateData();
+  m_header_widget->setVisible(AchievementManager::GetInstance()->IsLoggedIn());
   update();
 }
 
