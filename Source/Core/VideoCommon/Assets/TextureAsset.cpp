@@ -10,20 +10,24 @@ namespace VideoCommon
 CustomAssetLibrary::LoadInfo RawTextureAsset::LoadImpl(const CustomAssetLibrary::AssetID& asset_id)
 {
   std::lock_guard lk(m_lock);
-  const auto loaded_info = m_owning_library->LoadTexture(asset_id, &m_data);
+  auto potential_data = std::make_shared<CustomTextureData>();
+  const auto loaded_info = m_owning_library->LoadTexture(asset_id, potential_data.get());
   if (loaded_info.m_bytes_loaded == 0)
     return {};
   m_loaded = true;
+  m_data = std::move(potential_data);
   return loaded_info;
 }
 
 CustomAssetLibrary::LoadInfo GameTextureAsset::LoadImpl(const CustomAssetLibrary::AssetID& asset_id)
 {
   std::lock_guard lk(m_lock);
-  const auto loaded_info = m_owning_library->LoadGameTexture(asset_id, &m_data);
+  auto potential_data = std::make_shared<CustomTextureData>();
+  const auto loaded_info = m_owning_library->LoadGameTexture(asset_id, potential_data.get());
   if (loaded_info.m_bytes_loaded == 0)
     return {};
   m_loaded = true;
+  m_data = std::move(potential_data);
   return loaded_info;
 }
 
@@ -39,7 +43,7 @@ bool GameTextureAsset::Validate(u32 native_width, u32 native_height) const
     return false;
   }
 
-  if (m_data.m_levels.empty())
+  if (m_data->m_levels.empty())
   {
     ERROR_LOG_FMT(VIDEO,
                   "Game texture can't be validated for asset '{}' because no data was available.",
@@ -49,7 +53,7 @@ bool GameTextureAsset::Validate(u32 native_width, u32 native_height) const
 
   // Verify that the aspect ratio of the texture hasn't changed, as this could have
   // side-effects.
-  const VideoCommon::CustomTextureData::Level& first_mip = m_data.m_levels[0];
+  const VideoCommon::CustomTextureData::Level& first_mip = m_data->m_levels[0];
   if (first_mip.width * native_height != first_mip.height * native_width)
   {
     ERROR_LOG_FMT(

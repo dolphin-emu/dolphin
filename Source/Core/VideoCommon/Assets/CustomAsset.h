@@ -64,7 +64,11 @@ class CustomLoadableAsset : public CustomAsset
 public:
   using CustomAsset::CustomAsset;
 
-  const UnderlyingType* GetData() const
+  // Callees should understand that the type returned is
+  // a local copy and 'GetData()' needs to be called
+  // to ensure the latest copy is available if
+  // they want to handle reloads
+  [[nodiscard]] std::shared_ptr<UnderlyingType> GetData() const
   {
     std::lock_guard lk(m_lock);
     if (m_loaded)
@@ -75,7 +79,7 @@ public:
 protected:
   bool m_loaded = false;
   mutable std::mutex m_lock;
-  UnderlyingType m_data;
+  std::shared_ptr<UnderlyingType> m_data;
 };
 
 }  // namespace VideoCommon
