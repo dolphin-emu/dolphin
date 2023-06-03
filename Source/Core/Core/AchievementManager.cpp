@@ -38,11 +38,20 @@ void AchievementManager::Init()
   }
 }
 
+void AchievementManager::SetUpdateCallback(UpdateCallback callback)
+{
+  m_update_callback = std::move(callback);
+  m_update_callback();
+}
+
 AchievementManager::ResponseType AchievementManager::Login(const std::string& password)
 {
   if (!m_is_runtime_initialized)
     return AchievementManager::ResponseType::MANAGER_NOT_INITIALIZED;
-  return VerifyCredentials(password);
+  AchievementManager::ResponseType r_type = VerifyCredentials(password);
+  if (m_update_callback)
+    m_update_callback();
+  return r_type;
 }
 
 void AchievementManager::LoginAsync(const std::string& password, const ResponseCallback& callback)
@@ -52,7 +61,11 @@ void AchievementManager::LoginAsync(const std::string& password, const ResponseC
     callback(AchievementManager::ResponseType::MANAGER_NOT_INITIALIZED);
     return;
   }
-  m_queue.EmplaceItem([this, password, callback] { callback(VerifyCredentials(password)); });
+  m_queue.EmplaceItem([this, password, callback] {
+      callback(VerifyCredentials(password));
+    if (m_update_callback)
+      m_update_callback();
+  });
 }
 
 bool AchievementManager::IsLoggedIn() const
@@ -179,6 +192,8 @@ void AchievementManager::LoadGameByFilenameAsync(const std::string& iso_path,
     // Reset this to zero so that RP immediately triggers on the first frame
     m_last_ping_time = 0;
 
+    if (m_update_callback)
+      m_update_callback();
     callback(fetch_game_data_response);
   });
 }
@@ -199,6 +214,8 @@ void AchievementManager::LoadUnlockData(const ResponseCallback& callback)
     }
 
     callback(FetchUnlockData(false));
+    if (m_update_callback)
+      m_update_callback();
   });
 }
 
@@ -316,6 +333,8 @@ void AchievementManager::AchievementEventHandler(const rc_runtime_event_t* runti
     HandleLeaderboardTriggeredEvent(runtime_event);
     break;
   }
+  if (m_update_callback)
+    m_update_callback();
 }
 
 std::string AchievementManager::GetPlayerDisplayName() const
@@ -386,12 +405,16 @@ void AchievementManager::CloseGame()
   ActivateDeactivateAchievements();
   ActivateDeactivateLeaderboards();
   ActivateDeactivateRichPresence();
+  if (m_update_callback)
+    m_update_callback();
 }
 
 void AchievementManager::Logout()
 {
   CloseGame();
   Config::SetBaseOrCurrent(Config::RA_API_TOKEN, "");
+  if (m_update_callback)
+    m_update_callback();
 }
 
 void AchievementManager::Shutdown()
