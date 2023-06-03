@@ -304,6 +304,9 @@ void AchievementManager::AchievementEventHandler(const rc_runtime_event_t* runti
   case RC_RUNTIME_EVENT_LBOARD_STARTED:
     HandleLeaderboardStartedEvent(runtime_event);
     break;
+  case RC_RUNTIME_EVENT_LBOARD_CANCELED:
+    HandleLeaderboardCanceledEvent(runtime_event);
+    break;
   case RC_RUNTIME_EVENT_LBOARD_TRIGGERED:
     HandleLeaderboardTriggeredEvent(runtime_event);
     break;
