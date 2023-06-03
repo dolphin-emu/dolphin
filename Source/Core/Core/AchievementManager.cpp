@@ -183,6 +183,11 @@ void AchievementManager::LoadGameByFilenameAsync(const std::string& iso_path,
   });
 }
 
+bool AchievementManager::IsGameLoaded() const
+{
+  return m_is_game_loaded;
+}
+
 void AchievementManager::LoadUnlockData(const ResponseCallback& callback)
 {
   m_queue.EmplaceItem([this, callback] {
@@ -313,6 +318,64 @@ void AchievementManager::AchievementEventHandler(const rc_runtime_event_t* runti
   }
 }
 
+std::string AchievementManager::GetPlayerDisplayName() const
+{
+  return IsLoggedIn() ? m_display_name : "";
+}
+
+u32 AchievementManager::GetPlayerScore() const
+{
+  return IsLoggedIn() ? m_player_score : 0;
+}
+
+std::string AchievementManager::GetGameDisplayName() const
+{
+  return IsGameLoaded() ? m_game_data.title : "";
+}
+
+AchievementManager::PointSpread AchievementManager::TallyScore() const
+{
+  PointSpread spread{};
+  if (!IsGameLoaded())
+    return spread;
+  for (const auto& entry : m_unlock_map)
+  {
+    u32 points = entry.second.points;
+    spread.total_count++;
+    spread.total_points += points;
+    if (entry.second.remote_unlock_status == UnlockStatus::UnlockType::HARDCORE ||
+        (hardcore_mode_enabled && entry.second.session_unlock_count > 0))
+    {
+      spread.hard_unlocks++;
+      spread.hard_points += points;
+    }
+    else if (entry.second.remote_unlock_status == UnlockStatus::UnlockType::SOFTCORE ||
+             entry.second.session_unlock_count > 0)
+    {
+      spread.soft_unlocks++;
+      spread.soft_points += points;
+    }
+  }
+  return spread;
+}
+
+rc_api_fetch_game_data_response_t* AchievementManager::GetGameData()
+{
+  return &m_game_data;
+}
+
+AchievementManager::UnlockStatus
+AchievementManager::GetUnlockStatus(AchievementId achievement_id) const
+{
+  return m_unlock_map.at(achievement_id);
+}
+
+void AchievementManager::GetAchievementProgress(AchievementId achievement_id, u32* value,
+                                                u32* target)
+{
+  rc_runtime_get_achievement_measured(&m_runtime, achievement_id, value, target);
+}
+
 void AchievementManager::CloseGame()
 {
   m_is_game_loaded = false;
@@ -353,6 +416,7 @@ AchievementManager::ResponseType AchievementManager::VerifyCredentials(const std
   {
     Config::SetBaseOrCurrent(Config::RA_API_TOKEN, login_data.api_token);
     m_display_name = login_data.display_name;
+    m_player_score = login_data.score;
   }
   rc_api_destroy_login_response(&login_data);
   return r_type;
@@ -616,30 +680,6 @@ void AchievementManager::HandleLeaderboardTriggeredEvent(const rc_runtime_event_
       break;
     }
   }
-}
-
-AchievementManager::PointSpread AchievementManager::TallyScore() const
-{
-  PointSpread spread{};
-  for (const auto& entry : m_unlock_map)
-  {
-    u32 points = entry.second.points;
-    spread.total_count++;
-    spread.total_points += points;
-    if (entry.second.remote_unlock_status == UnlockStatus::UnlockType::HARDCORE ||
-        (hardcore_mode_enabled && entry.second.session_unlock_count > 0))
-    {
-      spread.hard_unlocks++;
-      spread.hard_points += points;
-    }
-    else if (entry.second.remote_unlock_status == UnlockStatus::UnlockType::SOFTCORE ||
-             entry.second.session_unlock_count > 0)
-    {
-      spread.soft_unlocks++;
-      spread.soft_points += points;
-    }
-  }
-  return spread;
 }
 
 // Every RetroAchievements API call, with only a partial exception for fetch_image, follows

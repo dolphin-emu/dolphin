@@ -52,12 +52,26 @@ public:
     u32 soft_points;
   };
 
+  struct UnlockStatus
+  {
+    AchievementId game_data_index = 0;
+    enum class UnlockType
+    {
+      LOCKED,
+      SOFTCORE,
+      HARDCORE
+    } remote_unlock_status = UnlockType::LOCKED;
+    u32 session_unlock_count = 0;
+    u32 points = 0;
+  };
+
   static AchievementManager* GetInstance();
   void Init();
   ResponseType Login(const std::string& password);
   void LoginAsync(const std::string& password, const ResponseCallback& callback);
   bool IsLoggedIn() const;
   void LoadGameByFilenameAsync(const std::string& iso_path, const ResponseCallback& callback);
+  bool IsGameLoaded() const;
 
   void LoadUnlockData(const ResponseCallback& callback);
   void ActivateDeactivateAchievements();
@@ -67,6 +81,14 @@ public:
   void DoFrame();
   u32 MemoryPeeker(u32 address, u32 num_bytes, void* ud);
   void AchievementEventHandler(const rc_runtime_event_t* runtime_event);
+
+  std::string GetPlayerDisplayName() const;
+  u32 GetPlayerScore() const;
+  std::string GetGameDisplayName() const;
+  PointSpread TallyScore() const;
+  rc_api_fetch_game_data_response_t* GetGameData();
+  UnlockStatus GetUnlockStatus(AchievementId achievement_id) const;
+  void GetAchievementProgress(AchievementId achievement_id, u32* value, u32* target);
 
   void CloseGame();
   void Logout();
@@ -95,8 +117,6 @@ private:
   void HandleLeaderboardCanceledEvent(const rc_runtime_event_t* runtime_event);
   void HandleLeaderboardTriggeredEvent(const rc_runtime_event_t* runtime_event);
 
-  PointSpread TallyScore() const;
-
   template <typename RcRequest, typename RcResponse>
   ResponseType Request(RcRequest rc_request, RcResponse* rc_response,
                        const std::function<int(rc_api_request_t*, const RcRequest*)>& init_request,
@@ -106,24 +126,13 @@ private:
   Core::System* m_system{};
   bool m_is_runtime_initialized = false;
   std::string m_display_name;
+  u32 m_player_score = 0;
   std::array<char, HASH_LENGTH> m_game_hash{};
   u32 m_game_id = 0;
   rc_api_fetch_game_data_response_t m_game_data{};
   bool m_is_game_loaded = false;
   time_t m_last_ping_time = 0;
 
-  struct UnlockStatus
-  {
-    AchievementId game_data_index = 0;
-    enum class UnlockType
-    {
-      LOCKED,
-      SOFTCORE,
-      HARDCORE
-    } remote_unlock_status = UnlockType::LOCKED;
-    u32 session_unlock_count = 0;
-    u32 points = 0;
-  };
   std::unordered_map<AchievementId, UnlockStatus> m_unlock_map;
 
   Common::WorkQueueThread<std::function<void()>> m_queue;
