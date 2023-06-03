@@ -29,9 +29,11 @@ public:
   T& operator[](size_t i) { return m_array[i]; }
   const T& operator[](size_t i) const { return m_array[i]; }
 
+  auto data() { return m_array.data(); }
   auto begin() { return m_array.begin(); }
   auto end() { return m_array.begin() + m_size; }
 
+  auto data() const { return m_array.data(); }
   auto begin() const { return m_array.begin(); }
   auto end() const { return m_array.begin() + m_size; }
 

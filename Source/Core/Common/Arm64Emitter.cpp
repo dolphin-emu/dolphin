@@ -1795,6 +1795,62 @@ void ARM64XEmitter::ADRP(ARM64Reg Rd, s64 imm)
   EncodeAddressInst(1, Rd, static_cast<s32>(imm >> 12));
 }
 
+// This is using a hand-rolled algorithm. The goal is zero memory allocations, not necessarily
+// the best JIT-time time complexity. (The number of moves is usually very small.)
+void ARM64XEmitter::ParallelMoves(RegisterMove* begin, RegisterMove* end,
+                                  std::array<u8, 32>* source_gpr_usages)
+{
+  // X0-X7 are used for passing arguments.
+  // X18-X31 are either callee saved or used for special purposes.
+  constexpr size_t temp_reg_begin = 8;
+  constexpr size_t temp_reg_end = 18;
+
+  while (begin != end)
+  {
+    bool removed_moves_during_this_loop_iteration = false;
+
+    RegisterMove* move = end;
+    while (move != begin)
+    {
+      RegisterMove* prev_move = move;
+      --move;
+      if ((*source_gpr_usages)[DecodeReg(move->dst)] == 0)
+      {
+        MOV(move->dst, move->src);
+        (*source_gpr_usages)[DecodeReg(move->src)]--;
+        std::move(prev_move, end, move);
+        --end;
+        removed_moves_during_this_loop_iteration = true;
+      }
+    }
+
+    if (!removed_moves_during_this_loop_iteration)
+    {
+      // We need to break a cycle using a temporary register.
+
+      size_t temp_reg = temp_reg_begin;
+      while ((*source_gpr_usages)[temp_reg] != 0)
+      {
+        ++temp_reg;
+        ASSERT_MSG(COMMON, temp_reg != temp_reg_end, "Out of registers");
+      }
+
+      const ARM64Reg src = begin->src;
+      const ARM64Reg dst =
+          (Is64Bit(src) ? EncodeRegTo64 : EncodeRegTo32)(static_cast<ARM64Reg>(temp_reg));
+
+      MOV(dst, src);
+      (*source_gpr_usages)[DecodeReg(dst)] = (*source_gpr_usages)[DecodeReg(src)];
+      (*source_gpr_usages)[DecodeReg(src)] = 0;
+
+      std::for_each(begin, end, [src, dst](RegisterMove& move) {
+        if (move.src == src)
+          move.src = dst;
+      });
+    }
+  }
+}
+
 template <typename T>
 void ARM64XEmitter::MOVI2RImpl(ARM64Reg Rd, T imm)
 {
