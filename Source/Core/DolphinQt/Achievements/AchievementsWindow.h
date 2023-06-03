@@ -6,7 +6,10 @@
 #ifdef USE_RETRO_ACHIEVEMENTS
 #include <QDialog>
 
+#include "Core/AchievementManager.h"
+
 class AchievementHeaderWidget;
+class AchievementProgressWidget;
 class QTabWidget;
 class QDialogButtonBox;
 
@@ -24,6 +27,7 @@ private:
 
   AchievementHeaderWidget* m_header_widget;
   QTabWidget* m_tab_widget;
+  AchievementProgressWidget* m_progress_widget;
   QDialogButtonBox* m_button_box;
 };
 
