@@ -11,6 +11,7 @@
 #include "DolphinQt/Achievements/AchievementHeaderWidget.h"
 #include "DolphinQt/Achievements/AchievementProgressWidget.h"
 #include "DolphinQt/Achievements/AchievementSettingsWidget.h"
+#include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 
 AchievementsWindow::AchievementsWindow(QWidget* parent) : QDialog(parent)
@@ -20,6 +21,8 @@ AchievementsWindow::AchievementsWindow(QWidget* parent) : QDialog(parent)
 
   CreateMainLayout();
   ConnectWidgets();
+  AchievementManager::GetInstance()->SetUpdateCallback(
+      [this] { QueueOnObject(this, &AchievementsWindow::UpdateData); });
 }
 
 void AchievementsWindow::showEvent(QShowEvent* event)

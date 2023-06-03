@@ -41,6 +41,7 @@ public:
     UNKNOWN_FAILURE
   };
   using ResponseCallback = std::function<void(ResponseType)>;
+  using UpdateCallback = std::function<void()>;
 
   struct PointSpread
   {
@@ -67,6 +68,7 @@ public:
 
   static AchievementManager* GetInstance();
   void Init();
+  void SetUpdateCallback(UpdateCallback callback);
   ResponseType Login(const std::string& password);
   void LoginAsync(const std::string& password, const ResponseCallback& callback);
   bool IsLoggedIn() const;
@@ -125,6 +127,7 @@ private:
   rc_runtime_t m_runtime{};
   Core::System* m_system{};
   bool m_is_runtime_initialized = false;
+  UpdateCallback m_update_callback;
   std::string m_display_name;
   u32 m_player_score = 0;
   std::array<char, HASH_LENGTH> m_game_hash{};

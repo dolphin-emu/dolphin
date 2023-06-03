@@ -7,11 +7,13 @@
 #include <QDialog>
 
 #include "Core/AchievementManager.h"
+#include "DolphinQt/QtUtils/QueueOnObject.h"
 
 class AchievementHeaderWidget;
 class AchievementProgressWidget;
-class QTabWidget;
 class QDialogButtonBox;
+class QTabWidget;
+class UpdateCallback;
 
 class AchievementsWindow : public QDialog
 {
