@@ -72,7 +72,7 @@ public:
   {
     std::lock_guard lk(m_lock);
     if (m_loaded)
-      return &m_data;
+      return m_data;
     return nullptr;
   }
 
