@@ -24,8 +24,6 @@
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 
-static constexpr bool hardcore_mode_enabled = false;
-
 AchievementSettingsWidget::AchievementSettingsWidget(QWidget* parent,
                                                      AchievementsWindow* parent_window)
     : QWidget(parent), parent_window(parent_window)
@@ -75,6 +73,19 @@ void AchievementSettingsWidget::CreateLayout()
          "achievements.<br><br>Unofficial achievements may be optional or unfinished achievements "
          "that have not been deemed official by RetroAchievements and may be useful for testing or "
          "simply for fun."));
+  m_common_hardcore_enabled_input = new ToolTipCheckBox(tr("Enable Hardcore Mode"));
+  m_common_hardcore_enabled_input->SetDescription(
+      tr("Enable Hardcore Mode on RetroAchievements.<br><br>Hardcore Mode is intended to provide "
+         "an experience as close to gaming on the original hardware as possible. RetroAchievements "
+         "rankings are primarily oriented towards Hardcore points (Softcore points are tracked but "
+         "not as heavily emphasized) and leaderboards require Hardcore Mode to be on.<br><br>To "
+         "ensure this experience, the following features will be disabled, as they give emulator "
+         "players an advantage over console players:<br>- Loading states<br>   Saving states is "
+         "allowed<br>- Emulator speeds below 100%<br>   Includes frame step<br>   Turbo is "
+         "allowed<br>- Cheats<br>- Debug UI<br>- Freelook<br><br><dolphin_emphasis>This cannot be "
+         "turned on while a game is playing.</dolphin_emphasis><br>Close your current game before "
+         "enabling.<br>Be aware that turning Hardcore Mode off while a game is running requires "
+         "the game to be closed before re-enabling."));
   m_common_encore_enabled_input = new ToolTipCheckBox(tr("Enable Encore Achievements"));
   m_common_encore_enabled_input->SetDescription(tr(
       "Enable unlocking achievements in Encore Mode.<br><br>Encore Mode re-enables achievements "
@@ -92,6 +103,7 @@ void AchievementSettingsWidget::CreateLayout()
   m_common_layout->addWidget(m_common_achievements_enabled_input);
   m_common_layout->addWidget(m_common_leaderboards_enabled_input);
   m_common_layout->addWidget(m_common_rich_presence_enabled_input);
+  m_common_layout->addWidget(m_common_hardcore_enabled_input);
   m_common_layout->addWidget(m_common_unofficial_enabled_input);
   m_common_layout->addWidget(m_common_encore_enabled_input);
 
@@ -111,6 +123,8 @@ void AchievementSettingsWidget::ConnectWidgets()
           &AchievementSettingsWidget::ToggleLeaderboards);
   connect(m_common_rich_presence_enabled_input, &QCheckBox::toggled, this,
           &AchievementSettingsWidget::ToggleRichPresence);
+  connect(m_common_hardcore_enabled_input, &QCheckBox::toggled, this,
+          &AchievementSettingsWidget::ToggleHardcore);
   connect(m_common_unofficial_enabled_input, &QCheckBox::toggled, this,
           &AchievementSettingsWidget::ToggleUnofficial);
   connect(m_common_encore_enabled_input, &QCheckBox::toggled, this,
@@ -129,6 +143,7 @@ void AchievementSettingsWidget::LoadSettings()
 {
   bool enabled = Config::Get(Config::RA_ENABLED);
   bool achievements_enabled = Config::Get(Config::RA_ACHIEVEMENTS_ENABLED);
+  bool hardcore_enabled = Config::Get(Config::RA_HARDCORE_ENABLED);
   bool logged_out = Config::Get(Config::RA_API_TOKEN).empty();
   std::string username = Config::Get(Config::RA_USERNAME);
 
@@ -151,11 +166,16 @@ void AchievementSettingsWidget::LoadSettings()
 
   SignalBlocking(m_common_leaderboards_enabled_input)
       ->setChecked(Config::Get(Config::RA_LEADERBOARDS_ENABLED));
-  SignalBlocking(m_common_leaderboards_enabled_input)->setEnabled(enabled && hardcore_mode_enabled);
+  SignalBlocking(m_common_leaderboards_enabled_input)->setEnabled(enabled && hardcore_enabled);
 
   SignalBlocking(m_common_rich_presence_enabled_input)
       ->setChecked(Config::Get(Config::RA_RICH_PRESENCE_ENABLED));
   SignalBlocking(m_common_rich_presence_enabled_input)->setEnabled(enabled);
+
+  SignalBlocking(m_common_hardcore_enabled_input)
+      ->setChecked(Config::Get(Config::RA_RICH_PRESENCE_ENABLED));
+  SignalBlocking(m_common_hardcore_enabled_input)
+      ->setEnabled(enabled && (hardcore_enabled || Core::GetState() == Core::State::Uninitialized));
 
   SignalBlocking(m_common_unofficial_enabled_input)
       ->setChecked(Config::Get(Config::RA_UNOFFICIAL_ENABLED));
@@ -176,6 +196,8 @@ void AchievementSettingsWidget::SaveSettings()
                            m_common_leaderboards_enabled_input->isChecked());
   Config::SetBaseOrCurrent(Config::RA_RICH_PRESENCE_ENABLED,
                            m_common_rich_presence_enabled_input->isChecked());
+  Config::SetBaseOrCurrent(Config::RA_HARDCORE_ENABLED,
+                           m_common_hardcore_enabled_input->isChecked());
   Config::SetBaseOrCurrent(Config::RA_UNOFFICIAL_ENABLED,
                            m_common_unofficial_enabled_input->isChecked());
   Config::SetBaseOrCurrent(Config::RA_ENCORE_ENABLED, m_common_encore_enabled_input->isChecked());
@@ -222,6 +244,12 @@ void AchievementSettingsWidget::ToggleRichPresence()
 {
   SaveSettings();
   AchievementManager::GetInstance()->ActivateDeactivateRichPresence();
+}
+
+void AchievementSettingsWidget::ToggleHardcore()
+{
+  SaveSettings();
+  Settings::Instance().SetHardcoreModeEnabled(Config::Get(Config::RA_HARDCORE_ENABLED));
 }
 
 void AchievementSettingsWidget::ToggleUnofficial()
