@@ -515,11 +515,6 @@ bool LoadDDSTexture(CustomTextureData::Level* level, const std::string& filename
                       info.first_mip_row_length, info.first_mip_size);
 }
 
-bool LoadPNGTexture(CustomTextureData* texture, const std::string& filename)
-{
-  return LoadPNGTexture(&texture->m_levels[0], filename);
-}
-
 bool LoadPNGTexture(CustomTextureData::Level* level, const std::string& filename)
 {
   if (!level) [[unlikely]]

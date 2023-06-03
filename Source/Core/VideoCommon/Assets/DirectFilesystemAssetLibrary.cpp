@@ -72,8 +72,11 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const Ass
     }
     else if (ext == ".png")
     {
-      LoadPNGTexture(data, asset_path.string());
-      if (data->m_levels.empty()) [[unlikely]]
+      // If we have no levels, create one to pass into LoadPNGTexture
+      if (data->m_levels.empty())
+        data->m_levels.push_back({});
+
+      if (!LoadPNGTexture(&data->m_levels[0], asset_path.string()))
         return {};
       if (!LoadMips(asset_path, data))
         return {};
