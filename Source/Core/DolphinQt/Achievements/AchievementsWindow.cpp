@@ -9,6 +9,7 @@
 #include <QVBoxLayout>
 
 #include "DolphinQt/Achievements/AchievementHeaderWidget.h"
+#include "DolphinQt/Achievements/AchievementProgressWidget.h"
 #include "DolphinQt/Achievements/AchievementSettingsWidget.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 
@@ -33,9 +34,12 @@ void AchievementsWindow::CreateMainLayout()
 
   m_header_widget = new AchievementHeaderWidget(this);
   m_tab_widget = new QTabWidget();
+  m_progress_widget = new AchievementProgressWidget(m_tab_widget);
   m_tab_widget->addTab(
       GetWrappedWidget(new AchievementSettingsWidget(m_tab_widget, this), this, 125, 100),
       tr("Settings"));
+  m_tab_widget->addTab(GetWrappedWidget(m_progress_widget, this, 125, 100), tr("Progress"));
+  m_tab_widget->setTabVisible(1, AchievementManager::GetInstance()->IsGameLoaded());
 
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Close);
 
@@ -55,6 +59,9 @@ void AchievementsWindow::UpdateData()
 {
   m_header_widget->UpdateData();
   m_header_widget->setVisible(AchievementManager::GetInstance()->IsLoggedIn());
+  // Settings tab handles its own updates ... indeed, that calls this
+  m_progress_widget->UpdateData();
+  m_tab_widget->setTabVisible(1, AchievementManager::GetInstance()->IsGameLoaded());
   update();
 }
 
