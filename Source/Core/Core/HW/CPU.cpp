@@ -351,36 +351,31 @@ void CPUManager::Continue()
   Core::NotifyStateChanged(Core::State::Running);
 }
 
-bool CPUManager::PauseAndLock(bool do_lock, bool unpause_on_unlock, bool control_adjacent)
+bool CPUManager::PauseAndLock(const bool control_adjacent)
 {
-  bool was_unpaused = false;
+  m_stepping_lock.lock();
 
-  if (do_lock)
+  std::unique_lock state_lock(m_state_change_lock);
+  m_state_paused_and_locked = true;
+
+  const bool was_unpaused = m_state == State::Running;
+  SetStateLocked(State::Stepping);
+
+  while (m_state_cpu_thread_active)
   {
-    m_stepping_lock.lock();
+    m_state_cpu_idle_cvar.wait(state_lock);
+  }
 
-    std::unique_lock state_lock(m_state_change_lock);
-    m_state_paused_and_locked = true;
+  if (control_adjacent)
+    RunAdjacentSystems(false);
+  state_lock.unlock();
 
-    was_unpaused = m_state == State::Running;
-    SetStateLocked(State::Stepping);
-
-    while (m_state_cpu_thread_active)
-    {
-      m_state_cpu_idle_cvar.wait(state_lock);
-    }
-
-    if (control_adjacent)
-      RunAdjacentSystems(false);
-    state_lock.unlock();
-
-    // NOTE: It would make more sense for Core::DeclareAsCPUThread() to keep a
-    //   depth counter instead of being a boolean.
-    if (!Core::IsCPUThread())
-    {
-      m_have_fake_cpu_thread = true;
-      Core::DeclareAsCPUThread();
-    }
+  // NOTE: It would make more sense for Core::DeclareAsCPUThread() to keep a
+  //   depth counter instead of being a boolean.
+  if (!Core::IsCPUThread())
+  {
+    m_have_fake_cpu_thread = true;
+    Core::DeclareAsCPUThread();
   }
 
   return was_unpaused;
