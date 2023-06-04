@@ -710,6 +710,12 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
 
   public void handleMenuAction(@MenuAction int menuAction)
   {
+    if (!NativeLibrary.IsRunning() && menuAction != MENU_ACTION_EXIT)
+    {
+      Toast.makeText(this, R.string.emulation_not_running, Toast.LENGTH_SHORT).show();
+      return;
+    }
+
     //noinspection SwitchIntDef
     switch (menuAction)
     {
