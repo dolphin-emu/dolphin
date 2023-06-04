@@ -382,34 +382,36 @@ bool CPUManager::PauseAndLock(bool do_lock, bool unpause_on_unlock, bool control
       Core::DeclareAsCPUThread();
     }
   }
-  else
-  {
-    // Only need the stepping lock for this
-    if (m_have_fake_cpu_thread)
-    {
-      m_have_fake_cpu_thread = false;
-      Core::UndeclareAsCPUThread();
-    }
 
-    {
-      std::lock_guard state_lock(m_state_change_lock);
-      if (m_state_system_request_stepping)
-      {
-        m_state_system_request_stepping = false;
-      }
-      else if (unpause_on_unlock && SetStateLocked(State::Running))
-      {
-        was_unpaused = true;
-      }
-      m_state_paused_and_locked = false;
-      m_state_cpu_cvar.notify_one();
-
-      if (control_adjacent)
-        RunAdjacentSystems(m_state == State::Running);
-    }
-    m_stepping_lock.unlock();
-  }
   return was_unpaused;
+}
+
+void CPUManager::RestoreStateAndUnlock(const bool unpause_on_unlock, const bool control_adjacent)
+{
+  // Only need the stepping lock for this
+  if (m_have_fake_cpu_thread)
+  {
+    m_have_fake_cpu_thread = false;
+    Core::UndeclareAsCPUThread();
+  }
+
+  {
+    std::lock_guard state_lock(m_state_change_lock);
+    if (m_state_system_request_stepping)
+    {
+      m_state_system_request_stepping = false;
+    }
+    else if (unpause_on_unlock)
+    {
+      SetStateLocked(State::Running);
+    }
+    m_state_paused_and_locked = false;
+    m_state_cpu_cvar.notify_one();
+
+    if (control_adjacent)
+      RunAdjacentSystems(m_state == State::Running);
+  }
+  m_stepping_lock.unlock();
 }
 
 void CPUManager::AddCPUThreadJob(Common::MoveOnlyFunction<void()> function)

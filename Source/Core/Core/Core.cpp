@@ -801,7 +801,7 @@ static bool PauseAndLock(Core::System& system, bool do_lock, bool unpause_on_unl
     // mechanism to unpause them. If we unpaused the systems above when releasing
     // the locks then they could call CPU::Break which would require detecting it
     // and re-pausing with CPU::SetStepping.
-    was_unpaused = system.GetCPU().PauseAndLock(false, unpause_on_unlock, true);
+    system.GetCPU().RestoreStateAndUnlock(unpause_on_unlock, true);
   }
 
   return was_unpaused;
