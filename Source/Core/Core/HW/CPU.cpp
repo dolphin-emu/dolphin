@@ -351,7 +351,7 @@ void CPUManager::Continue()
   Core::NotifyStateChanged(Core::State::Running);
 }
 
-bool CPUManager::PauseAndLock(const bool control_adjacent)
+bool CPUManager::PauseAndLock()
 {
   m_stepping_lock.lock();
 
@@ -366,8 +366,6 @@ bool CPUManager::PauseAndLock(const bool control_adjacent)
     m_state_cpu_idle_cvar.wait(state_lock);
   }
 
-  if (control_adjacent)
-    RunAdjacentSystems(false);
   state_lock.unlock();
 
   // NOTE: It would make more sense for Core::DeclareAsCPUThread() to keep a
