@@ -799,7 +799,6 @@ static void RestoreStateAndUnlock(Core::System& system, const bool unpause_on_un
     return;
 
   system.GetDSP().GetDSPEmulator()->PauseAndLock(false);
-  system.GetFifo().PauseAndLock(false, false);
   ResetRumble();
 
   // CPU is unlocked last because CPU::RestoreStateAndUnlock contains the synchronization mechanism
