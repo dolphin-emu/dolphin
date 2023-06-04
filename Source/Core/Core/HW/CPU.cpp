@@ -379,7 +379,7 @@ bool CPUManager::PauseAndLock()
   return was_unpaused;
 }
 
-void CPUManager::RestoreStateAndUnlock(const bool unpause_on_unlock, const bool control_adjacent)
+void CPUManager::RestoreStateAndUnlock(const bool unpause_on_unlock)
 {
   // Only need the stepping lock for this
   if (m_have_fake_cpu_thread)
@@ -401,8 +401,7 @@ void CPUManager::RestoreStateAndUnlock(const bool unpause_on_unlock, const bool 
     m_state_paused_and_locked = false;
     m_state_cpu_cvar.notify_one();
 
-    if (control_adjacent)
-      RunAdjacentSystems(m_state == State::Running);
+    RunAdjacentSystems(m_state == State::Running);
   }
   m_stepping_lock.unlock();
 }
