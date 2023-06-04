@@ -102,11 +102,6 @@ class MainActivity : AppCompatActivity(), MainView, OnRefreshListener, ThemeProv
         presenter.onResume()
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        presenter.onDestroy()
-    }
-
     override fun onStart() {
         super.onStart()
         StartupHandler.checkSessionReset(this)
