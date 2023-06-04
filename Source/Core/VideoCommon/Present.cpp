@@ -440,8 +440,11 @@ void Presenter::UpdateDrawRectangle()
   }
 
   // ensure divisibility by 4 to make it compatible with all the video encoders
-  draw_width = std::ceil(draw_width) - static_cast<int>(std::ceil(draw_width)) % 4;
-  draw_height = std::ceil(draw_height) - static_cast<int>(std::ceil(draw_height)) % 4;
+  if (g_frame_dumper->IsFrameDumping())
+  {
+    draw_width = std::ceil(draw_width) - static_cast<int>(std::ceil(draw_width)) % 4;
+    draw_height = std::ceil(draw_height) - static_cast<int>(std::ceil(draw_height)) % 4;
+  }
 
   m_target_rectangle.left = static_cast<int>(std::round(win_width / 2.0 - draw_width / 2.0));
   m_target_rectangle.top = static_cast<int>(std::round(win_height / 2.0 - draw_height / 2.0));
