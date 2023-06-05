@@ -47,14 +47,12 @@ if (${IBTOOL} STREQUAL "IBTOOL-NOTFOUND")
 endif()
 
 foreach(sb ${STORYBOARDS})
-  set(output ${CMAKE_CURRENT_BINARY_DIR}/${sb}c)
+  set(output $<TARGET_BUNDLE_DIR:MacUpdater>/Contents/Resources/${sb}c)
   set(input  ${CMAKE_CURRENT_SOURCE_DIR}/${sb})
-  add_custom_command(OUTPUT ${output}
+  add_custom_command(TARGET MacUpdater POST_BUILD
     COMMAND ${IBTOOL} --errors --warnings --notices --output-format human-readable-text --compile ${output} ${input}
     DEPENDS ${input}
     COMMENT "Compiling Storyboard ${sb}...")
-  target_sources(MacUpdater PRIVATE ${output})
-  set_source_files_properties(${output} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 endforeach()
 
 if(MACOS_CODE_SIGNING)

@@ -19,7 +19,7 @@ std::unique_ptr<u8[]> TransferCommand::MakeBuffer(const size_t size) const
 {
   ASSERT_MSG(IOS_USB, data_address != 0, "Invalid data_address");
   auto buffer = std::make_unique<u8[]>(size);
-  auto& system = Core::System::GetInstance();
+  auto& system = m_ios.GetSystem();
   auto& memory = system.GetMemory();
   memory.CopyFromEmu(buffer.get(), data_address, size);
   return buffer;
@@ -28,7 +28,7 @@ std::unique_ptr<u8[]> TransferCommand::MakeBuffer(const size_t size) const
 void TransferCommand::FillBuffer(const u8* src, const size_t size) const
 {
   ASSERT_MSG(IOS_USB, size == 0 || data_address != 0, "Invalid data_address");
-  auto& system = Core::System::GetInstance();
+  auto& system = m_ios.GetSystem();
   auto& memory = system.GetMemory();
   memory.CopyToEmu(data_address, src, size);
 }
@@ -47,7 +47,7 @@ void TransferCommand::ScheduleTransferCompletion(s32 return_value, u32 expected_
 
 void IsoMessage::SetPacketReturnValue(const size_t packet_num, const u16 return_value) const
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = m_ios.GetSystem();
   auto& memory = system.GetMemory();
   memory.Write_U16(return_value, static_cast<u32>(packet_sizes_addr + packet_num * sizeof(u16)));
 }

@@ -1,11 +1,11 @@
 app-id: org.DolphinEmu.dolphin-mpn
 branch: master
 runtime: org.kde.Platform
-runtime-version: 5.15
+runtime-version: 6.4
 sdk: org.kde.Sdk
-command: dolphin-emu-wrapper
-rename-desktop-file: dolphin-emu.desktop
-rename-icon: dolphin-emu
+command: dolphin-mpn-wrapper
+rename-desktop-file: dolphin-mpn.desktop
+rename-icon: dolphin-mpn
 finish-args:
   - --device=all # need for controllers
   # the file picker uses portals but the set
@@ -106,11 +106,11 @@ modules:
     cleanup:
       - /share/man
     post-install:
-      - install -D -t ${FLATPAK_DEST}/bin/ dolphin-emu-wrapper
-      - desktop-file-edit --set-key=Exec --set-value='/app/bin/dolphin-emu-wrapper'
-        /app/share/applications/dolphin-emu.desktop
+      - install -D -t ${FLATPAK_DEST}/bin/ dolphin-mpn-wrapper
+      - desktop-file-edit --set-key=Exec --set-value='/app/bin/dolphin-mpn-wrapper'
+        /app/share/applications/dolphin-mpn.desktop
       - desktop-file-edit --set-key=Name --set-value='Dolphin MPN'
-        /app/share/applications/dolphin-emu.desktop
+        /app/share/applications/dolphin-mpn.desktop
     sources:
       - type: git
         url: https://github.com/MarioPartyNetplay/Dolphin-MPN-src.git
@@ -127,5 +127,5 @@ modules:
               test -S $XDG_RUNTIME_DIR/discord-ipc-$i ||
                 ln -sf {app/com.discordapp.Discord,$XDG_RUNTIME_DIR}/discord-ipc-$i;
             done
-            dolphin-emu "$@"
-        dest-filename: dolphin-emu-wrapper
+            dolphin-mpn "$@"
+        dest-filename: dolphin-mpn-wrapper

@@ -32,6 +32,7 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/MachineContext.h"
 #include "Core/PatchEngine.h"
+#include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/FarCodeCache.h"
@@ -274,6 +275,8 @@ void Jit64::Init()
   AddChildCodeSpace(&m_far_code, farcode_size);
   m_const_pool.Init(AllocChildCodeSpace(constpool_size), constpool_size);
   ResetCodePtr();
+
+  InitBLROptimization();
 
   m_stack_guard = nullptr;
 

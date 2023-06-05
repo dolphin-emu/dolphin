@@ -8,6 +8,8 @@ Source/Core/Common/scmrev.h
 # Ignore files output by build
 /[Bb]uild*/
 /[Bb]inary*/
+/AppDir*/
+*.AppImage
 /obj/
 # Ignore files output by Android cmake build
 /Source/Android/app/.cxx/

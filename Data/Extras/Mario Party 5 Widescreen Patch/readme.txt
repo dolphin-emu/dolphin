@@ -1,0 +1,1 @@
+Drag a Mario Party 5 (USA) ISO onto the .BAT file to patch it.

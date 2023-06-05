@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
 #ifdef _WIN32
 int wmain(int, wchar_t*[], wchar_t*[])
 {
-  std::vector<std::string> args = CommandLineToUtf8Argv(GetCommandLineW());
+  std::vector<std::string> args = Common::CommandLineToUtf8Argv(GetCommandLineW());
   const int argc = static_cast<int>(args.size());
   std::vector<char*> argv(args.size());
   for (size_t i = 0; i < args.size(); ++i)

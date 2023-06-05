@@ -28,7 +28,7 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15.0" CACHE STRING "")
 
 set(CMAKE_USER_MAKE_RULES_OVERRIDE "CMake/FlagsOverride.cmake")
 
-project(dolphin-emu)
+project(dolphin-mpn)
 
 if (MSVC)
   if (POLICY CMP0117)
@@ -40,6 +40,31 @@ if (MSVC)
   set(CMAKE_C_STANDARD 99)
   set(CMAKE_CXX_STANDARD 23)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
+endif()
+
+set(COMPILER ${CMAKE_CXX_COMPILER_ID})
+if (COMPILER STREQUAL "GNU")
+  set(COMPILER "GCC") # perfer printing GCC instead of GNU
+endif()
+
+# Enforce minimium compiler versions that support the c++20 features we use
+set (GCC_min_version 10)
+set (Clang_min_version 12)
+set (AppleClang_min_version 13.0.0)
+set (min_xcode_version "13.0") # corrosponding xcode version for AppleClang_min_version
+set (MSVC_min_version 14.32)
+set (min_vs_version "2022 17.2.3") # corrosponding Visual Studio version for MSVC_min_version
+
+message(STATUS "Using ${COMPILER} ${CMAKE_CXX_COMPILER_VERSION}")
+
+if ("-" STREQUAL "${${COMPILER}_min_version}-")
+  message(WARNING "Unknown compiler ${COMPILER}, assuming it is new enough")
+else()
+  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS  ${${COMPILER}_min_version})
+    message(FATAL_ERROR "Requires GCC ${GCC_min_version}, Clang ${Clang_min_version},"
+    " AppleClang ${AppleClang_min_version} (Xcode ${min_xcode_version}),"
+    " or MSVC ${MSVC_min_version} (Visual Studio ${min_vs_version}) or higher")
+  endif()
 endif()
 
 # Name of the Dolphin distributor. If you redistribute Dolphin builds (forks,
@@ -144,7 +169,7 @@ include(RemoveCompileFlag)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # Set up paths
-set(datadir ${CMAKE_INSTALL_FULL_DATADIR}/dolphin-emu CACHE PATH "datadir")
+set(datadir ${CMAKE_INSTALL_FULL_DATADIR}/dolphin-mpn CACHE PATH "datadir")
 add_definitions(-DDATA_DIR="${datadir}/")
 
 if(CMAKE_SYSROOT)
@@ -258,12 +283,6 @@ else()
   message(FATAL_ERROR "You're building on an unsupported platform: "
       "'${CMAKE_SYSTEM_PROCESSOR}' with ${CMAKE_SIZEOF_VOID_P}-byte pointers."
       " Enable generic build if you really want a JIT-less binary.")
-endif()
-
-
-# Enforce minimum GCC version
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 7.0)
-  message(FATAL_ERROR "Dolphin requires at least GCC 7.0 (found ${CMAKE_CXX_COMPILER_VERSION})")
 endif()
 
 if(CMAKE_GENERATOR MATCHES "Ninja")
@@ -918,19 +937,16 @@ else()
   include_directories(BEFORE Externals/curl/include)
 endif()
 
-if (NOT ANDROID)
-  find_library(ICONV_LIBRARIES NAMES iconv libiconv libiconv-2 c)
-  find_path(ICONV_INCLUDE_DIR NAMES iconv.h)
+if(NOT ANDROID)
+  find_package(Iconv)
 endif()
 
-if (NOT ANDROID AND ICONV_LIBRARIES AND ICONV_INCLUDE_DIR)
-  mark_as_advanced(ICONV_INCLUDE_DIR ICONV_LIBRARIES)
+if(TARGET Iconv::Iconv)
+  message(STATUS "Using shared iconv")
 else()
   check_vendoring_approved(iconv)
   message(STATUS "Using static iconv from Externals")
-  include_directories(Externals/libiconv-1.14/include)
   add_subdirectory(Externals/libiconv-1.14)
-  set(ICONV_LIBRARIES iconv)
 endif()
 
 if(NOT ANDROID)
@@ -1035,19 +1051,19 @@ if(NOT CMAKE_SYSTEM_NAME MATCHES "Linux|FreeBSD|OpenBSD|Darwin")
 endif()
 if(CMAKE_SYSTEM_NAME MATCHES "Linux|FreeBSD|OpenBSD")
   # Install the application icon and menu item
-  install(FILES Data/dolphin-emu.png
+  install(FILES Data/dolphin-mpn.png
           DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/256x256/apps)
-  install(FILES Data/dolphin-emu.desktop
+  install(FILES Data/dolphin-mpn.desktop
           DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications)
   # Install manpages
-  install(FILES Data/dolphin-emu.6
+  install(FILES Data/dolphin-mpn.6
           DESTINATION ${CMAKE_INSTALL_MANDIR}/man6)
-  install(FILES Data/dolphin-emu-nogui.6
+  install(FILES Data/dolphin-mpn-nogui.6
           DESTINATION ${CMAKE_INSTALL_MANDIR}/man6)
 endif()
 
 # packaging information
-set(CPACK_PACKAGE_NAME "dolphin-emu")
+set(CPACK_PACKAGE_NAME "dolphin-mpn")
 set(CPACK_PACKAGE_VENDOR "Dolphin Team")
 set(CPACK_PACKAGE_VERSION_MAJOR ${DOLPHIN_VERSION_MAJOR})
 set(CPACK_PACKAGE_VERSION_MINOR ${DOLPHIN_VERSION_MINOR})

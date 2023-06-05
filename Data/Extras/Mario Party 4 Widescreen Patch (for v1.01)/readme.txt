@@ -1,0 +1,1 @@
+Drag a Mario Party 4 (USA) (v1.01) ISO onto the .BAT file to patch it.

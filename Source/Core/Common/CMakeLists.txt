@@ -31,8 +31,6 @@ add_library(common
   Crypto/ec.h
   Crypto/SHA1.cpp
   Crypto/SHA1.h
-  Debug/CodeTrace.cpp
-  Debug/CodeTrace.h
   Debug/MemoryPatches.cpp
   Debug/MemoryPatches.h
   Debug/Threads.h
@@ -155,7 +153,7 @@ PUBLIC
 PRIVATE
   ${CURL_LIBRARIES}
   FatFs
-  ${ICONV_LIBRARIES}
+  Iconv::Iconv
   ${spng_target}
   ${VTUNE_LIBRARIES}
 )

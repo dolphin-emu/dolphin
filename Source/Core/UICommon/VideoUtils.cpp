@@ -6,45 +6,8 @@
 #include "Common/Assert.h"
 #include "VideoCommon/VideoConfig.h"
 
-#ifdef _WIN32
-#include <Windows.h>
-#endif
-
-#ifdef HAVE_XRANDR
-#include "UICommon/X11Utils.h"
-#endif
-
 namespace VideoUtils
 {
-#if !defined(__APPLE__)
-std::vector<std::string> GetAvailableResolutions(X11Utils::XRRConfiguration* xrr_config)
-{
-  std::vector<std::string> resos;
-#ifdef _WIN32
-  DWORD iModeNum = 0;
-  DEVMODE dmi;
-  ZeroMemory(&dmi, sizeof(dmi));
-  dmi.dmSize = sizeof(dmi);
-
-  while (EnumDisplaySettings(nullptr, iModeNum++, &dmi) != 0)
-  {
-    char res[100];
-    sprintf(res, "%dx%d", dmi.dmPelsWidth, dmi.dmPelsHeight);
-    std::string strRes(res);
-    // Only add unique resolutions
-    if (std::find(resos.begin(), resos.end(), strRes) == resos.end())
-    {
-      resos.push_back(strRes);
-    }
-    ZeroMemory(&dmi, sizeof(dmi));
-  }
-#elif defined(HAVE_XRANDR) && HAVE_XRANDR
-  xrr_config->AddResolutions(resos);
-#endif
-  return resos;
-}
-#endif
-
 std::vector<std::string> GetAvailableAntialiasingModes(int& msaa_modes)
 {
   std::vector<std::string> modes;

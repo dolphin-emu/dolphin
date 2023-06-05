@@ -42,7 +42,7 @@ using linkkey_t = std::array<u8, 16>;
 class BluetoothRealDevice final : public BluetoothBaseDevice
 {
 public:
-  BluetoothRealDevice(Kernel& ios, const std::string& device_name);
+  BluetoothRealDevice(EmulationKernel& ios, const std::string& device_name);
   ~BluetoothRealDevice() override;
 
   std::optional<IPCReply> Open(const OpenRequest& request) override;

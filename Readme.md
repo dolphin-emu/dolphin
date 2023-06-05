@@ -39,9 +39,10 @@ Dolphin can only be installed on devices that satisfy the above requirements. At
 ## Building for Windows
 
 Use the solution file `Source/dolphin-emu.sln` to build Dolphin on Windows.
-Visual Studio 2022 17.2.3 or later is a hard requirement. Other compilers might be
-able to build Dolphin on Windows but have not been tested and are not
-recommended to be used. Git and Windows 11 SDK must be installed when building.
+Dolphin targets the latest MSVC shipped with Visual Studio or Build Tools.
+Other compilers might be able to build Dolphin on Windows but have not been
+tested and are not recommended to be used. Git and latest Windows SDK must be
+installed when building.
 
 Make sure to pull submodules before building:
 ```sh
@@ -53,10 +54,12 @@ The "Debug" solution configuration is significantly slower, more verbose and les
 
 ## Building for Linux and macOS
 
-Dolphin requires [CMake](https://cmake.org/) for systems other than Windows. Many libraries are
-bundled with Dolphin and used if they're not installed on your system. CMake
-will inform you if a bundled library is used or if you need to install any
-missing packages yourself. You may refer to the [wiki](https://github.com/dolphin-emu/dolphin/wiki/Building-for-Linux) for more information.
+Dolphin requires [CMake](https://cmake.org/) for systems other than Windows. 
+You need a recent version of GCC or Clang with decent c++20 support. CMake will
+inform you if your compiler is too old.
+Many libraries are bundled with Dolphin and used if they're not installed on 
+your system. CMake will inform you if a bundled library is used or if you need
+to install any missing packages yourself. You may refer to the [wiki](https://github.com/dolphin-emu/dolphin/wiki/Building-for-Linux) for more information.
 
 Make sure to pull submodules before building:
 ```sh

@@ -30,6 +30,7 @@
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <!--Enable latest C++ standard-->
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <BuildStlModules>false</BuildStlModules>
       <!--Enable Standard Conformance-->
       <ConformanceMode>true</ConformanceMode>
       <!--Enforce some behaviors as standards-conformant when they don't default as such.-->

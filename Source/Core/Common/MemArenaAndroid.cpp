@@ -10,6 +10,8 @@
 #include <set>
 #include <string>
 
+#include <fmt/format.h>
+
 #include <dlfcn.h>
 #include <fcntl.h>
 #include <linux/ashmem.h>
@@ -62,26 +64,36 @@ static int AshmemCreateFileMapping(const char* name, size_t size)
 MemArena::MemArena() = default;
 MemArena::~MemArena() = default;
 
-void MemArena::GrabSHMSegment(size_t size)
+void MemArena::GrabSHMSegment(size_t size, std::string_view base_name)
 {
-  fd = AshmemCreateFileMapping(("dolphin-emu." + std::to_string(getpid())).c_str(), size);
-  if (fd < 0)
+  const std::string name = fmt::format("{}.{}", base_name, getpid());
+  m_shm_fd = AshmemCreateFileMapping(name.c_str(), size);
+  if (m_shm_fd < 0)
     NOTICE_LOG_FMT(MEMMAP, "Ashmem allocation failed");
 }
 
 void MemArena::ReleaseSHMSegment()
 {
-  close(fd);
+  close(m_shm_fd);
 }
 
 void* MemArena::CreateView(s64 offset, size_t size)
 {
-  return MapInMemoryRegion(offset, size, nullptr);
+  void* retval = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, m_shm_fd, offset);
+  if (retval == MAP_FAILED)
+  {
+    NOTICE_LOG_FMT(MEMMAP, "mmap failed");
+    return nullptr;
+  }
+  else
+  {
+    return retval;
+  }
 }
 
 void MemArena::ReleaseView(void* view, size_t size)
 {
-  UnmapFromMemoryRegion(view, size);
+  munmap(view, size);
 }
 
 u8* MemArena::ReserveMemoryRegion(size_t memory_size)
@@ -96,19 +108,23 @@ u8* MemArena::ReserveMemoryRegion(size_t memory_size)
     PanicAlertFmt("Failed to map enough memory space: {}", LastStrerrorString());
     return nullptr;
   }
-  munmap(base, memory_size);
+  m_reserved_region = base;
+  m_reserved_region_size = memory_size;
   return static_cast<u8*>(base);
 }
 
 void MemArena::ReleaseMemoryRegion()
 {
+  if (m_reserved_region)
+  {
+    munmap(m_reserved_region, m_reserved_region_size);
+    m_reserved_region = nullptr;
+  }
 }
 
 void* MemArena::MapInMemoryRegion(s64 offset, size_t size, void* base)
 {
-  void* retval = mmap(base, size, PROT_READ | PROT_WRITE,
-                      MAP_SHARED | ((base == nullptr) ? 0 : MAP_FIXED), fd, offset);
-
+  void* retval = mmap(base, size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED, m_shm_fd, offset);
   if (retval == MAP_FAILED)
   {
     NOTICE_LOG_FMT(MEMMAP, "mmap failed");
@@ -122,6 +138,8 @@ void* MemArena::MapInMemoryRegion(s64 offset, size_t size, void* base)
 
 void MemArena::UnmapFromMemoryRegion(void* view, size_t size)
 {
-  munmap(view, size);
+  void* retval = mmap(view, size, PROT_NONE, MAP_SHARED | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
+  if (retval == MAP_FAILED)
+    NOTICE_LOG_FMT(MEMMAP, "mmap failed");
 }
 }  // namespace Common

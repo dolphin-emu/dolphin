@@ -147,9 +147,12 @@ s32 NWC24MakeUserID(u64* nwc24_id, u32 hollywood_id, u16 id_ctr, HardwareModel h
 }
 }  // Anonymous namespace
 
-NetKDRequestDevice::NetKDRequestDevice(Kernel& ios, const std::string& device_name)
-    : Device(ios, device_name), config{ios.GetFS()}, m_dl_list{ios.GetFS()}
+NetKDRequestDevice::NetKDRequestDevice(EmulationKernel& ios, const std::string& device_name)
+    : EmulationDevice(ios, device_name), config{ios.GetFS()}, m_dl_list{ios.GetFS()}
 {
+  // Enable all NWC24 permissions
+  m_scheduler_buffer[1] = Common::swap32(-1);
+
   m_work_queue.Reset("WiiConnect24 Worker", [this](AsyncTask task) {
     const IPCReply reply = task.handler();
     {
@@ -161,7 +164,7 @@ NetKDRequestDevice::NetKDRequestDevice(Kernel& ios, const std::string& device_na
 
 NetKDRequestDevice::~NetKDRequestDevice()
 {
-  auto socket_manager = m_ios.GetSocketManager();
+  auto socket_manager = GetEmulationKernel().GetSocketManager();
   if (socket_manager)
     socket_manager->Clean();
 }
@@ -173,10 +176,38 @@ void NetKDRequestDevice::Update()
     while (!m_async_replies.empty())
     {
       const auto& reply = m_async_replies.front();
-      GetIOS()->EnqueueIPCReply(reply.request, reply.return_value);
+      GetEmulationKernel().EnqueueIPCReply(reply.request, reply.return_value);
       m_async_replies.pop();
     }
   }
+}
+
+void NetKDRequestDevice::LogError(ErrorType error_type, s32 error_code)
+{
+  s32 new_code{};
+  switch (error_type)
+  {
+  case ErrorType::Account:
+    new_code = -(101200 - error_code);
+    break;
+  case ErrorType::Client:
+    new_code = -(107300 - error_code);
+    break;
+  case ErrorType::KD_Download:
+    new_code = -(107200 - error_code);
+    break;
+  case ErrorType::Server:
+    new_code = -(117000 + error_code);
+    break;
+  }
+
+  std::lock_guard lg(m_scheduler_buffer_lock);
+
+  m_scheduler_buffer[32 + (m_error_count % 32)] = Common::swap32(new_code);
+  m_error_count++;
+
+  m_scheduler_buffer[5] = Common::swap32(m_error_count);
+  m_scheduler_buffer[2] = Common::swap32(new_code);
 }
 
 NWC24::ErrorCode NetKDRequestDevice::KDDownload(const u16 entry_index,
@@ -196,7 +227,14 @@ NWC24::ErrorCode NetKDRequestDevice::KDDownload(const u16 entry_index,
 
   if (!response)
   {
-    ERROR_LOG_FMT(IOS_WC24, "Failed to request data at {}", url);
+    const s32 last_response_code = m_http.GetLastResponseCode();
+    ERROR_LOG_FMT(IOS_WC24, "Failed to request data at {}. HTTP Status Code: {}", url,
+                  last_response_code);
+
+    // On a real Wii, KD throws 107305 if it cannot connect to the host. While other issues other
+    // than invalid host may arise, this code is essentially a catch-all for HTTP client failure.
+    LogError(last_response_code ? ErrorType::Server : ErrorType::Client,
+             last_response_code ? last_response_code : NWC24::WC24_ERR_NULL);
     return NWC24::WC24_ERR_SERVER;
   }
 
@@ -204,6 +242,7 @@ NWC24::ErrorCode NetKDRequestDevice::KDDownload(const u16 entry_index,
   if (response->size() < sizeof(NWC24::WC24File))
   {
     ERROR_LOG_FMT(IOS_WC24, "File at {} is too small to be a valid file.", url);
+    LogError(ErrorType::KD_Download, NWC24::WC24_ERR_BROKEN);
     return NWC24::WC24_ERR_BROKEN;
   }
 
@@ -230,13 +269,16 @@ NWC24::ErrorCode NetKDRequestDevice::KDDownload(const u16 entry_index,
   NWC24::ErrorCode reply = IOS::HLE::NWC24::OpenVFF(m_dl_list.GetVFFPath(entry_index), content_name,
                                                     m_ios.GetFS(), file_data);
 
+  if (reply != NWC24::WC24_OK)
+    LogError(ErrorType::KD_Download, reply);
+
   return reply;
 }
 
 IPCReply NetKDRequestDevice::HandleNWC24DownloadNowEx(const IOCtlRequest& request)
 {
   m_dl_list.ReadDlList();
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
   const u32 flags = memory.Read_U32(request.buffer_in);
   // Nintendo converts the entry ID between a u32 and u16
@@ -252,15 +294,17 @@ IPCReply NetKDRequestDevice::HandleNWC24DownloadNowEx(const IOCtlRequest& reques
   if (entry_index >= NWC24::NWC24Dl::MAX_ENTRIES)
   {
     ERROR_LOG_FMT(IOS_WC24, "NET_KD_REQ: Entry index out of range.");
-    WriteReturnValue(NWC24::WC24_ERR_BROKEN, request.buffer_out);
-    return IPCReply(NWC24::WC24_ERR_BROKEN);
+    LogError(ErrorType::KD_Download, NWC24::WC24_ERR_INVALID_VALUE);
+    WriteReturnValue(NWC24::WC24_ERR_INVALID_VALUE, request.buffer_out);
+    return IPCReply(IPC_SUCCESS);
   }
 
   if (!m_dl_list.DoesEntryExist(entry_index))
   {
     ERROR_LOG_FMT(IOS_WC24, "NET_KD_REQ: Requested entry does not exist in download list!");
+    LogError(ErrorType::KD_Download, NWC24::WC24_ERR_NOT_FOUND);
     WriteReturnValue(NWC24::WC24_ERR_NOT_FOUND, request.buffer_out);
-    return IPCReply(NWC24::WC24_ERR_NOT_FOUND);
+    return IPCReply(IPC_SUCCESS);
   }
 
   // While in theory reply will always get initialized by KDDownload, things happen.
@@ -290,7 +334,7 @@ IPCReply NetKDRequestDevice::HandleNWC24DownloadNowEx(const IOCtlRequest& reques
   }
 
   WriteReturnValue(reply, request.buffer_out);
-  return IPCReply(reply);
+  return IPCReply(IPC_SUCCESS);
 }
 
 std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
@@ -321,7 +365,7 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
     IOCTL_NWC24_REQUEST_SHUTDOWN = 0x28,
   };
 
-  auto& system = Core::System::GetInstance();
+  auto& system = GetSystem();
   auto& memory = system.GetMemory();
   s32 return_value = 0;
   switch (request.request)
@@ -350,7 +394,7 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
 
   case IOCTL_NWC24_CLEANUP_SOCKET:
     INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_CLEANUP_SOCKET");
-    m_ios.GetSocketManager()->Clean();
+    GetEmulationKernel().GetSocketManager()->Clean();
     break;
 
   case IOCTL_NWC24_LOCK_SOCKET:  // WiiMenu
@@ -408,6 +452,7 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
       }
       else
       {
+        LogError(ErrorType::Account, NWC24::WC24_ERR_INVALID_VALUE);
         WriteReturnValue(NWC24::WC24_ERR_FATAL, request.buffer_out);
       }
     }
@@ -424,8 +469,24 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
     break;
 
   case IOCTL_NWC24_GET_SCHEDULER_STAT:
-    INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_GET_SCHEDULER_STAT - NI");
+  {
+    if (request.buffer_out == 0 || request.buffer_out % 4 != 0 || request.buffer_out_size < 16)
+    {
+      return_value = IPC_EINVAL;
+      ERROR_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_GET_SCHEDULER_STAT = IPC_EINVAL");
+      break;
+    }
+
+    INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_GET_SCHEDULER_STAT - buffer out size: {}",
+                 request.buffer_out_size);
+
+    // On a real Wii, GetSchedulerStat copies memory containing a list of error codes recorded by
+    // KD among other things. In most instances there will never be more than one error code
+    // recorded as we do not have a scheduler.
+    const u32 out_size = std::min(request.buffer_out_size, 256U);
+    memory.CopyToEmu(request.buffer_out, m_scheduler_buffer.data(), out_size);
     break;
+  }
 
   case IOCTL_NWC24_SAVE_MAIL_NOW:
     INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_SAVE_MAIL_NOW - NI");
@@ -454,7 +515,7 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
     // SOGetInterfaceOpt(0xfffe,0xc001);  // DHCP lease time remaining?
     // SOGetInterfaceOpt(0xfffe,0x1003);  // Error
     // Call /dev/net/ip/top 0x1b (SOCleanup), it closes all sockets
-    m_ios.GetSocketManager()->Clean();
+    GetEmulationKernel().GetSocketManager()->Clean();
     return_value = IPC_SUCCESS;
     break;
   }

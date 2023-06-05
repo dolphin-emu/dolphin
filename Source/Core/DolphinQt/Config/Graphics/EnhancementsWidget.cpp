@@ -14,10 +14,10 @@
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigManager.h"
 
-#include "DolphinQt/Config/Graphics/GraphicsBool.h"
-#include "DolphinQt/Config/Graphics/GraphicsChoice.h"
-#include "DolphinQt/Config/Graphics/GraphicsRadio.h"
-#include "DolphinQt/Config/Graphics/GraphicsSlider.h"
+#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
+#include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
+#include "DolphinQt/Config/ConfigControls/ConfigRadio.h"
+#include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt/Config/Graphics/PostProcessingConfigWindow.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
@@ -82,7 +82,7 @@ void EnhancementsWidget::CreateWidgets()
                                        QString::number(static_cast<int>(EFB_HEIGHT) * scale)));
   }
 
-  m_ir_combo = new GraphicsChoice(resolution_options, Config::GFX_EFB_SCALE);
+  m_ir_combo = new ConfigChoice(resolution_options, Config::GFX_EFB_SCALE);
   m_ir_combo->setMaxVisibleItems(visible_resolution_option_count);
 
   m_aa_combo = new ToolTipComboBox();
@@ -106,18 +106,18 @@ void EnhancementsWidget::CreateWidgets()
 
   m_pp_effect = new ToolTipComboBox();
   m_configure_pp_effect = new NonDefaultQPushButton(tr("Configure"));
-  m_scaled_efb_copy = new GraphicsBool(tr("Scaled EFB Copy"), Config::GFX_HACK_COPY_EFB_SCALED);
+  m_scaled_efb_copy = new ConfigBool(tr("Scaled EFB Copy"), Config::GFX_HACK_COPY_EFB_SCALED);
   m_per_pixel_lighting =
-      new GraphicsBool(tr("Per-Pixel Lighting"), Config::GFX_ENABLE_PIXEL_LIGHTING);
+      new ConfigBool(tr("Per-Pixel Lighting"), Config::GFX_ENABLE_PIXEL_LIGHTING);
 
-  m_widescreen_hack = new GraphicsBool(tr("Widescreen Hack"), Config::GFX_WIDESCREEN_HACK);
-  m_disable_fog = new GraphicsBool(tr("Disable Fog"), Config::GFX_DISABLE_FOG);
+  m_widescreen_hack = new ConfigBool(tr("Widescreen Hack"), Config::GFX_WIDESCREEN_HACK);
+  m_disable_fog = new ConfigBool(tr("Disable Fog"), Config::GFX_DISABLE_FOG);
   m_force_24bit_color =
-      new GraphicsBool(tr("Force 24-Bit Color"), Config::GFX_ENHANCE_FORCE_TRUE_COLOR);
+      new ConfigBool(tr("Force 24-Bit Color"), Config::GFX_ENHANCE_FORCE_TRUE_COLOR);
   m_disable_copy_filter =
-      new GraphicsBool(tr("Disable Copy Filter"), Config::GFX_ENHANCE_DISABLE_COPY_FILTER);
-  m_arbitrary_mipmap_detection = new GraphicsBool(tr("Arbitrary Mipmap Detection"),
-                                                  Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION);
+      new ConfigBool(tr("Disable Copy Filter"), Config::GFX_ENHANCE_DISABLE_COPY_FILTER);
+  m_arbitrary_mipmap_detection = new ConfigBool(tr("Arbitrary Mipmap Detection"),
+                                                Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION);
 
   int row = 0;
   enhancements_layout->addWidget(new QLabel(tr("Internal Resolution:")), row, 0);
@@ -157,13 +157,13 @@ void EnhancementsWidget::CreateWidgets()
   auto* stereoscopy_layout = new QGridLayout();
   stereoscopy_box->setLayout(stereoscopy_layout);
 
-  m_3d_mode = new GraphicsChoice({tr("Off"), tr("Side-by-Side"), tr("Top-and-Bottom"),
-                                  tr("Anaglyph"), tr("HDMI 3D"), tr("Passive")},
-                                 Config::GFX_STEREO_MODE);
-  m_3d_depth = new GraphicsSlider(0, Config::GFX_STEREO_DEPTH_MAXIMUM, Config::GFX_STEREO_DEPTH);
-  m_3d_convergence = new GraphicsSlider(0, Config::GFX_STEREO_CONVERGENCE_MAXIMUM,
-                                        Config::GFX_STEREO_CONVERGENCE, 100);
-  m_3d_swap_eyes = new GraphicsBool(tr("Swap Eyes"), Config::GFX_STEREO_SWAP_EYES);
+  m_3d_mode = new ConfigChoice({tr("Off"), tr("Side-by-Side"), tr("Top-and-Bottom"), tr("Anaglyph"),
+                                tr("HDMI 3D"), tr("Passive")},
+                               Config::GFX_STEREO_MODE);
+  m_3d_depth = new ConfigSlider(0, Config::GFX_STEREO_DEPTH_MAXIMUM, Config::GFX_STEREO_DEPTH);
+  m_3d_convergence = new ConfigSlider(0, Config::GFX_STEREO_CONVERGENCE_MAXIMUM,
+                                      Config::GFX_STEREO_CONVERGENCE, 100);
+  m_3d_swap_eyes = new ConfigBool(tr("Swap Eyes"), Config::GFX_STEREO_SWAP_EYES);
 
   stereoscopy_layout->addWidget(new QLabel(tr("Stereoscopic 3D Mode:")), 0, 0);
   stereoscopy_layout->addWidget(m_3d_mode, 0, 1);
