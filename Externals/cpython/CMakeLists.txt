@@ -392,7 +392,7 @@ endif()
 	
 add_library(cpython STATIC ${PythonCMakeSourcesList} )
 
-target_include_directories(cpython PUBLIC cpython)
+target_include_directories(cpython PUBLIC "cpython")
 target_include_directories(cpython PUBLIC cpython/Include)
 
 if (WIN32)
