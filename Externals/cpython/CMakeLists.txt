@@ -398,7 +398,7 @@ target_include_directories(cpython PUBLIC cpython/Include)
 if (WIN32)
 	target_include_directories(cpython PUBLIC cpython/PC)
 else()
-	add_custom_target(nonWindowsPythonCommand COMMAND ${CMAKE_SOURCE_DIR}/cpython/configure)
+	add_custom_target(nonWindowsPythonCommand COMMAND ${PROJECT_SOURCE_DIR}/cpython/configure)
 	add_dependencies(cpython nonWindowsPythonCommand)
 endif()
 
