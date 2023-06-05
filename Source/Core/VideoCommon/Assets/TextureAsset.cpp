@@ -9,31 +9,35 @@ namespace VideoCommon
 {
 CustomAssetLibrary::LoadInfo RawTextureAsset::LoadImpl(const CustomAssetLibrary::AssetID& asset_id)
 {
-  std::lock_guard lk(m_lock);
   auto potential_data = std::make_shared<CustomTextureData>();
   const auto loaded_info = m_owning_library->LoadTexture(asset_id, potential_data.get());
   if (loaded_info.m_bytes_loaded == 0)
     return {};
-  m_loaded = true;
-  m_data = std::move(potential_data);
+  {
+    std::lock_guard lk(m_data_lock);
+    m_loaded = true;
+    m_data = std::move(potential_data);
+  }
   return loaded_info;
 }
 
 CustomAssetLibrary::LoadInfo GameTextureAsset::LoadImpl(const CustomAssetLibrary::AssetID& asset_id)
 {
-  std::lock_guard lk(m_lock);
   auto potential_data = std::make_shared<CustomTextureData>();
   const auto loaded_info = m_owning_library->LoadGameTexture(asset_id, potential_data.get());
   if (loaded_info.m_bytes_loaded == 0)
     return {};
-  m_loaded = true;
-  m_data = std::move(potential_data);
+  {
+    std::lock_guard lk(m_data_lock);
+    m_loaded = true;
+    m_data = std::move(potential_data);
+  }
   return loaded_info;
 }
 
 bool GameTextureAsset::Validate(u32 native_width, u32 native_height) const
 {
-  std::lock_guard lk(m_lock);
+  std::lock_guard lk(m_data_lock);
 
   if (!m_loaded)
   {

@@ -16,6 +16,7 @@ bool CustomAsset::Load()
   const auto load_information = LoadImpl(m_asset_id);
   if (load_information.m_bytes_loaded > 0)
   {
+    std::lock_guard lk(m_info_lock);
     m_bytes_loaded = load_information.m_bytes_loaded;
     m_last_loaded_time = load_information.m_load_time;
   }
@@ -29,6 +30,7 @@ CustomAssetLibrary::TimeType CustomAsset::GetLastWriteTime() const
 
 const CustomAssetLibrary::TimeType& CustomAsset::GetLastLoadedTime() const
 {
+  std::lock_guard lk(m_info_lock);
   return m_last_loaded_time;
 }
 
@@ -39,6 +41,7 @@ const CustomAssetLibrary::AssetID& CustomAsset::GetAssetId() const
 
 std::size_t CustomAsset::GetByteSizeInMemory() const
 {
+  std::lock_guard lk(m_info_lock);
   return m_bytes_loaded;
 }
 
