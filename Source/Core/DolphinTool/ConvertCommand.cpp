@@ -1,7 +1,7 @@
 // Copyright 2021 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "DolphinTool/ConvertCommand.h"
+module;
 
 #include <iostream>
 #include <limits>
@@ -18,12 +18,46 @@
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeDisc.h"
 #include "DiscIO/WIABlob.h"
-#include "DolphinTool/Command.h"
 #include "UICommon/UICommon.h"
 
-namespace DolphinTool
+export module ConvertCommand;
+
+namespace DolphinTool::ConvertCommand
 {
-int ConvertCommand::Main(const std::vector<std::string>& args)
+std::optional<DiscIO::WIARVZCompressionType>
+ParseCompressionTypeString(const std::string& compression_str)
+{
+  if (compression_str == "none")
+    return DiscIO::WIARVZCompressionType::None;
+  else if (compression_str == "purge")
+    return DiscIO::WIARVZCompressionType::Purge;
+  else if (compression_str == "bzip2")
+    return DiscIO::WIARVZCompressionType::Bzip2;
+  else if (compression_str == "lzma")
+    return DiscIO::WIARVZCompressionType::LZMA;
+  else if (compression_str == "lzma2")
+    return DiscIO::WIARVZCompressionType::LZMA2;
+  else if (compression_str == "zstd")
+    return DiscIO::WIARVZCompressionType::Zstd;
+  else
+    return std::nullopt;
+}
+
+std::optional<DiscIO::BlobType> ParseFormatString(const std::string& format_str)
+{
+  if (format_str == "iso")
+    return DiscIO::BlobType::PLAIN;
+  else if (format_str == "gcz")
+    return DiscIO::BlobType::GCZ;
+  else if (format_str == "wia")
+    return DiscIO::BlobType::WIA;
+  else if (format_str == "rvz")
+    return DiscIO::BlobType::RVZ;
+  else
+    return std::nullopt;
+}
+
+export int Main(const std::vector<std::string>& args)
 {
   optparse::OptionParser parser;
 
@@ -325,37 +359,4 @@ int ConvertCommand::Main(const std::vector<std::string>& args)
   return 0;
 }
 
-std::optional<DiscIO::WIARVZCompressionType>
-ConvertCommand::ParseCompressionTypeString(const std::string& compression_str)
-{
-  if (compression_str == "none")
-    return DiscIO::WIARVZCompressionType::None;
-  else if (compression_str == "purge")
-    return DiscIO::WIARVZCompressionType::Purge;
-  else if (compression_str == "bzip2")
-    return DiscIO::WIARVZCompressionType::Bzip2;
-  else if (compression_str == "lzma")
-    return DiscIO::WIARVZCompressionType::LZMA;
-  else if (compression_str == "lzma2")
-    return DiscIO::WIARVZCompressionType::LZMA2;
-  else if (compression_str == "zstd")
-    return DiscIO::WIARVZCompressionType::Zstd;
-  else
-    return std::nullopt;
-}
-
-std::optional<DiscIO::BlobType> ConvertCommand::ParseFormatString(const std::string& format_str)
-{
-  if (format_str == "iso")
-    return DiscIO::BlobType::PLAIN;
-  else if (format_str == "gcz")
-    return DiscIO::BlobType::GCZ;
-  else if (format_str == "wia")
-    return DiscIO::BlobType::WIA;
-  else if (format_str == "rvz")
-    return DiscIO::BlobType::RVZ;
-  else
-    return std::nullopt;
-}
-
-}  // namespace DolphinTool
+}  // namespace DolphinTool::ConvertCommand

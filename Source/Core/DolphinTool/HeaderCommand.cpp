@@ -1,17 +1,23 @@
 // Copyright 2022 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "DolphinTool/HeaderCommand.h"
+module;
+
+#include <optional>
+#include <string>
+#include <vector>
+
 #include "DiscIO/Blob.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeDisc.h"
 
 #include <OptionParser.h>
-#include <optional>
 
-namespace DolphinTool
+export module HeaderCommand;
+
+namespace DolphinTool::HeaderCommand
 {
-int HeaderCommand::Main(const std::vector<std::string>& args)
+export int Main(const std::vector<std::string>& args)
 {
   auto parser = std::make_unique<optparse::OptionParser>();
 
