@@ -176,6 +176,8 @@ void AchievementManager::LoadGameByFilenameAsync(const std::string& iso_path,
     }
     ActivateDeactivateLeaderboards();
     ActivateDeactivateRichPresence();
+    // Reset this to zero so that RP immediately triggers on the first frame
+    m_last_ping_time = 0;
 
     callback(fetch_game_data_response);
   });
@@ -255,9 +257,13 @@ void AchievementManager::DoFrame()
   });
   if (!m_system)
     return;
-  u64 current_time = m_system->GetCoreTiming().GetTicks();
-  if (current_time - m_last_ping_time > SystemTimers::GetTicksPerSecond() * 120)
-    m_queue.EmplaceItem([this] { PingRichPresence(GenerateRichPresence()); });
+  time_t current_time = std::time(nullptr);
+  if (difftime(current_time, m_last_ping_time) > 120)
+  {
+    RichPresence rp = GenerateRichPresence();
+    m_queue.EmplaceItem([this, rp] { PingRichPresence(rp); });
+    m_last_ping_time = current_time;
+  }
 }
 
 u32 AchievementManager::MemoryPeeker(u32 address, u32 num_bytes, void* ud)
@@ -297,6 +303,9 @@ void AchievementManager::AchievementEventHandler(const rc_runtime_event_t* runti
     break;
   case RC_RUNTIME_EVENT_LBOARD_STARTED:
     HandleLeaderboardStartedEvent(runtime_event);
+    break;
+  case RC_RUNTIME_EVENT_LBOARD_CANCELED:
+    HandleLeaderboardCanceledEvent(runtime_event);
     break;
   case RC_RUNTIME_EVENT_LBOARD_TRIGGERED:
     HandleLeaderboardTriggeredEvent(runtime_event);
