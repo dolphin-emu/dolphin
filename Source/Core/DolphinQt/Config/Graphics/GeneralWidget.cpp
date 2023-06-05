@@ -88,6 +88,7 @@ void GeneralWidget::CreateWidgets()
   auto* m_options_layout = new QGridLayout();
 
   m_show_ping = new GraphicsBool(tr("Show NetPlay Ping"), Config::GFX_SHOW_NETPLAY_PING);
+  m_show_turn_count = new GraphicsBool(tr("Show MP Turn"), Config::GFX_SHOW_MP_TURN);
   m_autoadjust_window_size =
       new GraphicsBool(tr("Auto-Adjust Window Size"), Config::MAIN_RENDER_WINDOW_AUTOSIZE);
   m_show_messages =
@@ -101,6 +102,7 @@ void GeneralWidget::CreateWidgets()
 
   m_options_layout->addWidget(m_show_messages, 0, 1);
   m_options_layout->addWidget(m_show_ping, 1, 1);
+  m_options_layout->addWidget(m_show_turn_count, 2, 0);
 
   // Other
   auto* shader_compilation_box = new QGroupBox(tr("Shader Compilation"));

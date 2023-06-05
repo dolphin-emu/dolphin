@@ -12,6 +12,7 @@
 #include "Core/HW/VideoInterface.h"
 #include "Core/System.h"
 #include "VideoCommon/VideoConfig.h"
+#include "Core/MarioPartyNetplay/Gamestate.h"
 
 PerformanceMetrics g_perf_metrics;
 
@@ -93,7 +94,8 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
   const double speed = GetSpeed();
 
   // Change Color based on % Speed
-  float r = 0.0f, g = 1.0f, b = 1.0f;
+  float r = 1.0f, g = 0.55f, b = 0.00f;
+
   if (g_ActiveConfig.bShowSpeedColors)
   {
     r = 1.0 - (speed - 0.8) / 0.2;
@@ -105,7 +107,8 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
   const float window_width = 93.f * backbuffer_scale;
   float window_y = window_padding;
   float window_x = ImGui::GetIO().DisplaySize.x - window_padding;
-
+  float window_x_turn = 100.0f;
+  float window_y_turn = 8.0f;
   const float graph_width = 50.f * backbuffer_scale + 3.f * window_width + 2.f * window_padding;
   const float graph_height =
       std::min(200.f * backbuffer_scale, ImGui::GetIO().DisplaySize.y - 85.f * backbuffer_scale);
@@ -236,6 +239,26 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
                            DT_ms(m_fps_counter.GetDtStd()).count());
       }
       ImGui::End();
+    }
+  }
+
+  if (g_ActiveConfig.bShowMPTurn && CurrentState.IsMarioParty && CurrentState.Board && CurrentState.Boards)
+  {
+    float window_height = (30.f) * backbuffer_scale;
+
+    // Position in the top-left corner of the screen.
+    ImGui::SetNextWindowPos(ImVec2(window_x_turn, window_y_turn), ImGuiCond_Always,
+                            ImVec2(1.0f, 0.0f));
+    ImGui::SetNextWindowSize(ImVec2(window_width, window_height));
+    ImGui::SetNextWindowBgAlpha(bg_alpha);
+   
+    if (ImGui::Begin("MPStats", nullptr, imgui_flags))
+    {
+      if (g_ActiveConfig.bShowMPTurn && CurrentState.IsMarioParty && CurrentState.Board && CurrentState.Boards)
+        ImGui::TextColored(ImVec4(r, g, b, 1.0f), "Turn: %d/%d",
+                           mpn_read_value(CurrentState.Addresses->CurrentTurn, 1),
+                           mpn_read_value(CurrentState.Addresses->TotalTurns, 1));
+        ImGui::End();
     }
   }
 

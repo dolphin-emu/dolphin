@@ -50,6 +50,7 @@ private:
 
   // Options
   GraphicsBool* m_show_ping;
+  GraphicsBool* m_show_turn_count;
   GraphicsBool* m_autoadjust_window_size;
   GraphicsBool* m_show_messages;
   GraphicsBool* m_render_main_window;
