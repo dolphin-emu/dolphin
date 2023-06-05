@@ -387,7 +387,8 @@ cpython/Include/Python.h
 if (WIN32)
 	list(APPEND PythonCMakeSourcesList cpython/PC/errmap.h cpython/PC/pyconfig.h cpython/PC/invalid_parameter_handler.c cpython/PC/winreg.c cpython/PC/config.c cpython/PC/msvcrtmodule.c)
 else()
-	execute_process(COMMAND ./cpython/configure)
+	add_custom_target(nonWindowsPythonCommand COMMAND ./cpython/configure)
+	add_dependencies(cpython, nonWindowsPythonCommand)
 	list(APPEND PythonCMakeSourcesList cpython/pyconfig.h)
 endif()
 	
