@@ -30,7 +30,7 @@ void CustomAssetLoader::Init()
 
       std::this_thread::sleep_for(TIME_BETWEEN_ASSET_MONITOR_CHECKS);
 
-      std::lock_guard lk(m_assets_lock);
+      std::lock_guard lk(m_asset_load_lock);
       for (auto& [asset_id, asset_to_monitor] : m_assets_to_monitor)
       {
         if (auto ptr = asset_to_monitor.lock())
@@ -50,11 +50,11 @@ void CustomAssetLoader::Init()
     {
       if (ptr->Load())
       {
-        if (m_max_memory_available >= m_total_bytes_loaded + ptr->GetByteSizeInMemory())
+        std::lock_guard lk(m_asset_load_lock);
+        const std::size_t asset_memory_size = ptr->GetByteSizeInMemory();
+        if (m_max_memory_available >= m_total_bytes_loaded + asset_memory_size)
         {
-          m_total_bytes_loaded += ptr->GetByteSizeInMemory();
-
-          std::lock_guard lk(m_assets_lock);
+          m_total_bytes_loaded += asset_memory_size;
           m_assets_to_monitor.try_emplace(ptr->GetAssetId(), ptr);
         }
         else

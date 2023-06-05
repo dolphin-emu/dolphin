@@ -30,6 +30,7 @@ public:
 
   // Queries the last time the asset was modified or standard epoch time
   // if the asset hasn't been modified yet
+  // Note: not thread safe, expected to be called by the loader
   CustomAssetLibrary::TimeType GetLastWriteTime() const;
 
   // Returns the time that the data was last loaded
@@ -48,8 +49,10 @@ protected:
 private:
   virtual CustomAssetLibrary::LoadInfo LoadImpl(const CustomAssetLibrary::AssetID& asset_id) = 0;
   CustomAssetLibrary::AssetID m_asset_id;
+
+  mutable std::mutex m_info_lock;
   std::size_t m_bytes_loaded = 0;
-  CustomAssetLibrary::TimeType m_last_loaded_time;
+  CustomAssetLibrary::TimeType m_last_loaded_time = {};
 };
 
 // An abstract class that is expected to
@@ -70,7 +73,7 @@ public:
   // they want to handle reloads
   [[nodiscard]] std::shared_ptr<UnderlyingType> GetData() const
   {
-    std::lock_guard lk(m_lock);
+    std::lock_guard lk(m_data_lock);
     if (m_loaded)
       return m_data;
     return nullptr;
@@ -78,7 +81,7 @@ public:
 
 protected:
   bool m_loaded = false;
-  mutable std::mutex m_lock;
+  mutable std::mutex m_data_lock;
   std::shared_ptr<UnderlyingType> m_data;
 };
 

@@ -27,6 +27,7 @@ std::size_t GetAssetSize(const CustomTextureData& data)
 CustomAssetLibrary::TimeType
 DirectFilesystemAssetLibrary::GetLastAssetWriteTime(const AssetID& asset_id) const
 {
+  std::lock_guard lk(m_lock);
   if (auto iter = m_assetid_to_asset_map_path.find(asset_id);
       iter != m_assetid_to_asset_map_path.end())
   {
@@ -47,50 +48,47 @@ DirectFilesystemAssetLibrary::GetLastAssetWriteTime(const AssetID& asset_id) con
 CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const AssetID& asset_id,
                                                                        CustomTextureData* data)
 {
-  if (auto iter = m_assetid_to_asset_map_path.find(asset_id);
-      iter != m_assetid_to_asset_map_path.end())
+  const auto asset_map = GetAssetMapForID(asset_id);
+
+  // Raw texture is expected to have one asset mapped
+  if (asset_map.empty() || asset_map.size() > 1)
+    return {};
+  const auto& asset_path = asset_map.begin()->second;
+
+  const auto last_loaded_time = std::filesystem::last_write_time(asset_path);
+  auto ext = asset_path.extension().string();
+  Common::ToLower(&ext);
+  if (ext == ".dds")
   {
-    const auto& asset_map_path = iter->second;
-
-    // Raw texture is expected to have one asset mapped
-    if (asset_map_path.empty() || asset_map_path.size() > 1)
+    LoadDDSTexture(data, asset_path.string());
+    if (data->m_levels.empty()) [[unlikely]]
       return {};
-    const auto& asset_path = asset_map_path.begin()->second;
+    if (!LoadMips(asset_path, data))
+      return {};
 
-    const auto last_loaded_time = std::filesystem::last_write_time(asset_path);
-    auto ext = asset_path.extension().string();
-    Common::ToLower(&ext);
-    if (ext == ".dds")
-    {
-      LoadDDSTexture(data, asset_path.string());
-      if (data->m_levels.empty()) [[unlikely]]
-        return {};
-      if (!LoadMips(asset_path, data))
-        return {};
+    return LoadInfo{GetAssetSize(*data), last_loaded_time};
+  }
+  else if (ext == ".png")
+  {
+    // If we have no levels, create one to pass into LoadPNGTexture
+    if (data->m_levels.empty())
+      data->m_levels.push_back({});
 
-      return LoadInfo{GetAssetSize(*data), last_loaded_time};
-    }
-    else if (ext == ".png")
-    {
-      // If we have no levels, create one to pass into LoadPNGTexture
-      if (data->m_levels.empty())
-        data->m_levels.push_back({});
+    if (!LoadPNGTexture(&data->m_levels[0], asset_path.string()))
+      return {};
+    if (!LoadMips(asset_path, data))
+      return {};
 
-      if (!LoadPNGTexture(&data->m_levels[0], asset_path.string()))
-        return {};
-      if (!LoadMips(asset_path, data))
-        return {};
-
-      return LoadInfo{GetAssetSize(*data), last_loaded_time};
-    }
+    return LoadInfo{GetAssetSize(*data), last_loaded_time};
   }
 
   return {};
 }
 
-void DirectFilesystemAssetLibrary::SetAssetIDMapData(
-    const AssetID& asset_id, std::map<std::string, std::filesystem::path> asset_path_map)
+void DirectFilesystemAssetLibrary::SetAssetIDMapData(const AssetID& asset_id,
+                                                     AssetMap asset_path_map)
 {
+  std::lock_guard lk(m_lock);
   m_assetid_to_asset_map_path[asset_id] = std::move(asset_path_map);
 }
 
@@ -144,5 +142,17 @@ bool DirectFilesystemAssetLibrary::LoadMips(const std::filesystem::path& asset_p
   }
 
   return true;
+}
+
+DirectFilesystemAssetLibrary::AssetMap
+DirectFilesystemAssetLibrary::GetAssetMapForID(const AssetID& asset_id) const
+{
+  std::lock_guard lk(m_lock);
+  if (auto iter = m_assetid_to_asset_map_path.find(asset_id);
+      iter != m_assetid_to_asset_map_path.end())
+  {
+    return iter->second;
+  }
+  return {};
 }
 }  // namespace VideoCommon

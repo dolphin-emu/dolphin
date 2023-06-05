@@ -52,12 +52,17 @@ private:
   {
     auto [it, inserted] = asset_map.try_emplace(asset_id);
     if (!inserted)
-      return it->second.lock();
+    {
+      auto shared = it->second.lock();
+      if (shared)
+        return shared;
+    }
     std::shared_ptr<AssetType> ptr(new AssetType(std::move(library), asset_id), [&](AssetType* a) {
-      asset_map.erase(a->GetAssetId());
-      m_total_bytes_loaded -= a->GetByteSizeInMemory();
-      std::lock_guard lk(m_assets_lock);
-      m_assets_to_monitor.erase(a->GetAssetId());
+      {
+        std::lock_guard lk(m_asset_load_lock);
+        m_total_bytes_loaded -= a->GetByteSizeInMemory();
+        m_assets_to_monitor.erase(a->GetAssetId());
+      }
       delete a;
     });
     it->second = ptr;
@@ -66,6 +71,7 @@ private:
   }
 
   static constexpr auto TIME_BETWEEN_ASSET_MONITOR_CHECKS = std::chrono::milliseconds{500};
+
   std::map<CustomAssetLibrary::AssetID, std::weak_ptr<RawTextureAsset>> m_textures;
   std::map<CustomAssetLibrary::AssetID, std::weak_ptr<GameTextureAsset>> m_game_textures;
   std::thread m_asset_monitor_thread;
@@ -75,7 +81,10 @@ private:
   std::size_t m_max_memory_available = 0;
 
   std::map<CustomAssetLibrary::AssetID, std::weak_ptr<CustomAsset>> m_assets_to_monitor;
-  std::mutex m_assets_lock;
+
+  // Use a recursive mutex to handle the scenario where an asset goes out of scope while
+  // iterating over the assets to monitor which calls the lock above in 'LoadOrCreateAsset'
+  std::recursive_mutex m_asset_load_lock;
   Common::WorkQueueThread<std::weak_ptr<CustomAsset>> m_asset_load_thread;
 };
 }  // namespace VideoCommon
