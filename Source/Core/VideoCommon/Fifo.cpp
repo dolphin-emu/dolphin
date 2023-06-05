@@ -86,6 +86,12 @@ void FifoManager::PauseAndLock(bool do_lock, bool unpause_on_unlock)
   }
 }
 
+void FifoManager::RestoreState(const bool was_running)
+{
+  if (was_running)
+    EmulatorState(true);
+}
+
 void FifoManager::Init()
 {
   if (!m_config_callback_id)

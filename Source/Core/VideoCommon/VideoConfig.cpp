@@ -70,7 +70,7 @@ void VideoConfig::Refresh()
       g_Config.VerifyValidity();
 
       if (lock_gpu_thread)
-        system.GetFifo().PauseAndLock(false, true);
+        system.GetFifo().RestoreState(true);
     };
 
     s_config_changed_callback_id =
