@@ -1,7 +1,7 @@
 project(cpython)
 
-add_library(cpython STATIC
- cpython/Include/Python.h
+set(PythonCMakeSourcesList 
+cpython/Include/Python.h
     cpython/Include/abstract.h
     cpython/Include/boolobject.h
     cpython/Include/bytearrayobject.h
@@ -196,8 +196,6 @@ add_library(cpython STATIC
     cpython/Parser/tokenizer.h
     cpython/Parser/string_parser.h
     cpython/Parser/pegen.h
-    cpython/PC/errmap.h
-    cpython/PC/pyconfig.h
     cpython/Python/ceval_gil.h
     cpython/Python/condvar.h
     cpython/Python/importdl.h
@@ -328,10 +326,6 @@ add_library(cpython STATIC
     cpython/Parser/parser.c
     cpython/Parser/string_parser.c
     cpython/Parser/peg_api.c
-    cpython/PC/invalid_parameter_handler.c
-    cpython/PC/winreg.c
-    cpython/PC/config.c
-    cpython/PC/msvcrtmodule.c
     cpython/Programs/_freeze_module.c
     cpython/Python/pyhash.c
     cpython/Python/_warnings.c
@@ -389,10 +383,23 @@ add_library(cpython STATIC
     cpython/Python/symtable.c
     cpython/Python/sysmodule.c
 	)
+	
+if (WIN32)
+	list(APPEND PythonCMakeSourcesList cpython/PC/errmap.h cpython/PC/pyconfig.h cpython/PC/invalid_parameter_handler.c cpython/PC/winreg.c cpython/PC/config.c cpython/PC/msvcrtmodule.c)
+else()
+	execute_process(COMMAND ./cpython/configure)
+	list(APPEND, PythonCMakeSourcesList cpython/pyconfig.h)
+endif()
+	
+add_library(cpython STATIC ${PythonCMakeSourcesList} )
 
 target_include_directories(cpython PUBLIC cpython)
 target_include_directories(cpython PUBLIC cpython/Include)
-target_include_directories(cpython PUBLIC cpython/PC)
+
+if (WIN32)
+	target_include_directories(cpython PUBLIC cpython/PC)
+endif()
+
 target_include_directories(cpython PUBLIC cpython/Python)
 target_compile_definitions(cpython PUBLIC HAVE_CRC32)
 dolphin_disable_warnings_msvc(cpython)
