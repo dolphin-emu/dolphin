@@ -388,7 +388,7 @@ if (WIN32)
 	list(APPEND PythonCMakeSourcesList cpython/PC/errmap.h cpython/PC/pyconfig.h cpython/PC/invalid_parameter_handler.c cpython/PC/winreg.c cpython/PC/config.c cpython/PC/msvcrtmodule.c)
 else()
 	execute_process(COMMAND ./cpython/configure)
-	list(APPEND, PythonCMakeSourcesList cpython/pyconfig.h)
+	list(APPEND PythonCMakeSourcesList cpython/pyconfig.h)
 endif()
 	
 add_library(cpython STATIC ${PythonCMakeSourcesList} )
