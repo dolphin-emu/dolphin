@@ -196,7 +196,7 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
 
   private void updatePauseUnpauseVisibility()
   {
-    boolean paused = EmulationActivity.getHasUserPausedEmulation();
+    boolean paused = EmulationActivity.Companion.getHasUserPausedEmulation();
 
     mBinding.menuUnpauseEmulation.setVisibility(paused ? View.VISIBLE : View.GONE);
     mBinding.menuPauseEmulation.setVisibility(paused ? View.GONE : View.VISIBLE);
