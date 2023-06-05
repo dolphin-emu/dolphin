@@ -399,7 +399,7 @@ if (WIN32)
 	target_include_directories(cpython PUBLIC cpython/PC)
 else()
 	add_custom_target(nonWindowsPythonCommand COMMAND ./cpython/configure)
-	add_dependencies(cpython, nonWindowsPythonCommand)
+	add_dependencies(cpython nonWindowsPythonCommand)
 endif()
 
 target_include_directories(cpython PUBLIC cpython/Python)
