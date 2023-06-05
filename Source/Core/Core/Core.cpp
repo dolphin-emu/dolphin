@@ -784,7 +784,7 @@ static bool PauseAndLock(Core::System& system)
 
   // video has to come after CPU, because CPU thread can wait for video thread
   // (s_efbAccessRequested).
-  system.GetFifo().PauseAndLock(true, false);
+  system.GetFifo().PauseAndLock();
 
   ResetRumble();
 
