@@ -65,7 +65,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
 
     private lateinit var settings: Settings
 
-    private var themeId = 0
+    override var themeId = 0
 
     private var menuVisible = false
 
@@ -513,7 +513,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
         val builder = MaterialAlertDialogBuilder(this)
             .setTitle(R.string.emulation_toggle_controls)
 
-        val currentController = InputOverlay.getConfiguredControllerType()
+        val currentController = InputOverlay.configuredControllerType
 
         if (currentController == InputOverlay.OVERLAY_GAMECUBE) {
             val gcEnabledButtons = BooleanArray(11)
@@ -577,7 +577,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
         val currentValue = IntSetting.MAIN_DOUBLE_TAP_BUTTON.int
 
         val buttonList =
-            if (InputOverlay.getConfiguredControllerType() == InputOverlay.OVERLAY_WIIMOTE_CLASSIC) R.array.doubleTapWithClassic else R.array.doubleTap
+            if (InputOverlay.configuredControllerType == InputOverlay.OVERLAY_WIIMOTE_CLASSIC) R.array.doubleTapWithClassic else R.array.doubleTap
 
         var checkedItem = -1
         val itemCount = resources.getStringArray(buttonList).size
@@ -897,8 +897,6 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
         super.setTheme(themeId)
         this.themeId = themeId
     }
-
-    override fun getThemeId(): Int = themeId
 
     companion object {
         private const val BACKSTACK_NAME_MENU = "menu"
