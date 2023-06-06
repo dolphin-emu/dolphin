@@ -15,6 +15,7 @@ check_cxx_source_compiles("
 	#endif
 	int main() {}"
 	MBEDTLS_VERSION_OK)
+unset(CMAKE_REQUIRED_INCLUDES)
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(MBEDTLS DEFAULT_MSG
