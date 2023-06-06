@@ -679,6 +679,10 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     // Join with the CPU thread.
     s_cpu_thread.join();
     INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "CPU thread stopped."));
+
+    // Redeclare this thread as the CPU thread, so that the code running in the scope guards doesn't
+    // think we're doing anything unsafe by doing stuff that could race with the CPU thread.
+    DeclareAsCPUThread();
   }
   else  // SingleCore mode
   {
