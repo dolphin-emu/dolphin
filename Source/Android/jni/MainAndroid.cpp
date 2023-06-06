@@ -74,6 +74,21 @@ ANativeWindow* s_surf;
 // If multiple threads want to call host functions then they need to queue
 // sequentially for access.
 std::mutex s_host_identity_lock;
+template <typename T>
+struct HostThreadWrapper
+{
+  T lock;
+
+  explicit HostThreadWrapper(auto&&... args) : lock(std::forward<decltype(args)>(args)...)
+  {
+    Core::DeclareAsHostThread();
+  }
+  HostThreadWrapper(const HostThreadWrapper& other) = delete;
+  HostThreadWrapper(HostThreadWrapper&& other) = delete;
+  HostThreadWrapper& operator=(const HostThreadWrapper& other) = delete;
+  HostThreadWrapper& operator=(HostThreadWrapper&& other) = delete;
+  ~HostThreadWrapper() { Core::UndeclareAsHostThread(); }
+};
 Common::Event s_update_main_frame_event;
 
 // This exists to prevent surfaces from being destroyed during the boot process,
@@ -248,19 +263,19 @@ extern "C" {
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_UnPauseEmulation(JNIEnv*,
                                                                                      jclass)
 {
-  std::lock_guard<std::mutex> guard(s_host_identity_lock);
+  HostThreadWrapper<std::lock_guard<std::mutex>> guard(s_host_identity_lock);
   Core::SetState(Core::State::Running);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_PauseEmulation(JNIEnv*, jclass)
 {
-  std::lock_guard<std::mutex> guard(s_host_identity_lock);
+  HostThreadWrapper<std::lock_guard<std::mutex>> guard(s_host_identity_lock);
   Core::SetState(Core::State::Paused);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_StopEmulation(JNIEnv*, jclass)
 {
-  std::lock_guard<std::mutex> guard(s_host_identity_lock);
+  HostThreadWrapper<std::lock_guard<std::mutex>> guard(s_host_identity_lock);
   Core::Stop();
 
   // Kick the waiting event
@@ -303,7 +318,7 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetGitRev
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveScreenShot(JNIEnv*, jclass)
 {
-  std::lock_guard<std::mutex> guard(s_host_identity_lock);
+  HostThreadWrapper<std::lock_guard<std::mutex>> guard(s_host_identity_lock);
   Core::SaveScreenShot();
 }
 
@@ -317,7 +332,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveState(JN
                                                                               jint slot,
                                                                               jboolean wait)
 {
-  std::lock_guard<std::mutex> guard(s_host_identity_lock);
+  HostThreadWrapper<std::lock_guard<std::mutex>> guard(s_host_identity_lock);
   State::Save(slot, wait);
 }
 
@@ -325,21 +340,21 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveStateAs(
                                                                                 jstring path,
                                                                                 jboolean wait)
 {
-  std::lock_guard<std::mutex> guard(s_host_identity_lock);
+  HostThreadWrapper<std::lock_guard<std::mutex>> guard(s_host_identity_lock);
   State::SaveAs(GetJString(env, path), wait);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_LoadState(JNIEnv*, jclass,
                                                                               jint slot)
 {
-  std::lock_guard<std::mutex> guard(s_host_identity_lock);
+  HostThreadWrapper<std::lock_guard<std::mutex>> guard(s_host_identity_lock);
   State::Load(slot);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_LoadStateAs(JNIEnv* env, jclass,
                                                                                 jstring path)
 {
-  std::lock_guard<std::mutex> guard(s_host_identity_lock);
+  HostThreadWrapper<std::lock_guard<std::mutex>> guard(s_host_identity_lock);
   State::LoadAs(GetJString(env, path));
 }
 
@@ -359,7 +374,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_utils_DirectoryInitializat
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetUserDirectory(
     JNIEnv* env, jclass, jstring jDirectory)
 {
-  std::lock_guard<std::mutex> guard(s_host_identity_lock);
+  HostThreadWrapper<std::lock_guard<std::mutex>> guard(s_host_identity_lock);
   UICommon::SetUserDirectory(GetJString(env, jDirectory));
 }
 
@@ -372,7 +387,7 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetUserDi
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetCacheDirectory(
     JNIEnv* env, jclass, jstring jDirectory)
 {
-  std::lock_guard<std::mutex> guard(s_host_identity_lock);
+  HostThreadWrapper<std::lock_guard<std::mutex>> guard(s_host_identity_lock);
   File::SetUserPath(D_CACHE_IDX, GetJString(env, jDirectory));
 }
 
@@ -395,7 +410,7 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetMaxLogLev
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetProfiling(JNIEnv*, jclass,
                                                                                  jboolean enable)
 {
-  std::lock_guard<std::mutex> guard(s_host_identity_lock);
+  HostThreadWrapper<std::lock_guard<std::mutex>> guard(s_host_identity_lock);
   Core::SetState(Core::State::Paused);
   auto& jit_interface = Core::System::GetInstance().GetJitInterface();
   jit_interface.ClearCache();
@@ -407,7 +422,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetProfiling
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_WriteProfileResults(JNIEnv*,
                                                                                         jclass)
 {
-  std::lock_guard<std::mutex> guard(s_host_identity_lock);
+  HostThreadWrapper<std::lock_guard<std::mutex>> guard(s_host_identity_lock);
   std::string filename = File::GetUserPath(D_DUMP_IDX) + "Debug/profiler.txt";
   File::CreateFullPath(filename);
   auto& jit_interface = Core::System::GetInstance().GetJitInterface();
@@ -436,14 +451,14 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceDestr
     // If emulation continues running without a valid surface, we will probably crash,
     // so pause emulation until we get a valid surface again. EmulationFragment handles resuming.
 
-    std::unique_lock host_identity_guard(s_host_identity_lock);
+    HostThreadWrapper<std::unique_lock<std::mutex>> host_identity_guard(s_host_identity_lock);
 
     while (s_is_booting.IsSet())
     {
       // Need to wait for boot to finish before we can pause
-      host_identity_guard.unlock();
+      host_identity_guard.lock.unlock();
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
-      host_identity_guard.lock();
+      host_identity_guard.lock.lock();
     }
 
     if (Core::GetState() == Core::State::Running)
@@ -477,7 +492,7 @@ JNIEXPORT jfloat JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetGameAsp
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_RefreshWiimotes(JNIEnv*, jclass)
 {
-  std::lock_guard<std::mutex> guard(s_host_identity_lock);
+  HostThreadWrapper<std::lock_guard<std::mutex>> guard(s_host_identity_lock);
   WiimoteReal::Refresh();
 }
 
@@ -535,7 +550,7 @@ static float GetRenderSurfaceScale(JNIEnv* env)
 
 static void Run(JNIEnv* env, std::unique_ptr<BootParameters>&& boot, bool riivolution)
 {
-  std::unique_lock<std::mutex> host_identity_guard(s_host_identity_lock);
+  HostThreadWrapper<std::unique_lock<std::mutex>> host_identity_guard(s_host_identity_lock);
 
   if (riivolution && std::holds_alternative<BootParameters::Disc>(boot->parameters))
   {
@@ -566,15 +581,15 @@ static void Run(JNIEnv* env, std::unique_ptr<BootParameters>&& boot, bool riivol
 
   while (Core::IsRunning())
   {
-    host_identity_guard.unlock();
+    host_identity_guard.lock.unlock();
     s_update_main_frame_event.Wait();
-    host_identity_guard.lock();
+    host_identity_guard.lock.lock();
     Core::HostDispatchJobs();
   }
 
   s_game_metadata_is_valid = false;
   Core::Shutdown();
-  host_identity_guard.unlock();
+  host_identity_guard.lock.unlock();
 
   env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(),
                             IDCache::GetFinishEmulationActivity());
