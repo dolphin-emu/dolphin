@@ -21,7 +21,7 @@
 
 
 /*
-   Grade-mini (04-06-2023)
+   Grade-mini (06-06-2023)
 
    > CRT emulation shader (composite signal, phosphor, gamma, temperature...)
    > Abridged port of RetroArch's Grade shader.
@@ -50,8 +50,11 @@
 
 
 // Test the following Phosphor gamuts and try to reach to a conclusion
-// For GC  Japan developed games you can use -2 or 2.
+// For GC  Japan developed games you can use -2 or 2
 // For Wii Japan developed games probably -3 or 0 (sRGB/noop)
+// For Japan developed games use a temperature ~8500K (default)
+// For EU/US developed games use a temperature ~7100K
+
 
 /*
 [configuration]
@@ -109,7 +112,7 @@ DefaultValue = true
 [OptionBool]
 GUIName = Gamut Compression
 OptionName = g_GCompress
-DefaultValue = false
+DefaultValue = true
 
 [OptionRangeFloat]
 GUIName = CRT Beam (Red, Gren, Blue)
@@ -143,7 +146,7 @@ DefaultValue = 1.0, 1.0, 1.0
 
 ///////////////////////// Color Space Transformations //////////////////////////
 
-// mat3 type fails for DX11 backend
+// mat3 type fails in Dolphin's HLSL translation for DX11 backend (float3x3)
 mat3 RGB_to_XYZ_mat(mat3 primaries) {
 
     float3 T = RW * inverse(primaries);
@@ -161,7 +164,7 @@ mat3 RGB_to_XYZ_mat(mat3 primaries) {
 ///////////////////////// White Point Mapping /////////////////////////
 //
 //
-// PAL: D65        NTSC-U: D65       NTSC-J: CCT NTSC-J
+// PAL: D65        NTSC-U: D65       NTSC-J: CCT 9300K+27MPCD
 // PAL: 6503.512K  NTSC-U: 6503.512K NTSC-J: ~8945.436K
 // [x:0.31266142   y:0.3289589]      [x:0.281 y:0.311]
 
@@ -171,7 +174,7 @@ mat3 RGB_to_XYZ_mat(mat3 primaries) {
 // "RGB to XYZ -> Temperature -> XYZ to RGB" joint matrix
 float3 wp_adjust(float3 RGB, float temperature, mat3 primaries, mat3 display) {
 
-    float temp3 = 1000.       / temperature;
+    float temp3 = 1000.       /     temperature;
     float temp6 = 1000000.    / pow(temperature, 2.);
     float temp9 = 1000000000. / pow(temperature, 3.);
 
@@ -281,8 +284,7 @@ float3 GamutCompression (float3 rgb, float grey) {
     float temp = max(0,abs(GetOption(wp_temperature)-7000)-1000)/825.0+1; // center at 1
     float3 sat = GetOption(wp_temperature) < 7000 ? float3(1,temp,(temp-1)/2+1) : float3((temp-1)/2+1,temp,1);
 
-    mat2x3 LimThres =
-                           mat2x3( 0.100000,0.100000,0.100000,
+    mat2x3 LimThres =      mat2x3( 0.100000,0.100000,0.100000,
                                    0.125000,0.125000,0.125000);
     if (g_space_out<2.0) {
 
@@ -333,7 +335,8 @@ float3 GamutCompression (float3 rgb, float grey) {
 
     // Compressed distance. Parabolic compression function: https://www.desmos.com/calculator/nvhp63hmtj
     float3 cd;
-    float3 sf = s*sqrt(d-th+s*s/4.0)-s*sqrt(s*s/4.0)+th;
+    float3 ss = s*s/4.0;
+    float3 sf = s*sqrt(d-th+ss)-s*sqrt(ss)+th;
     cd.x = (d.x < th.x) ? d.x : sf.x;
     cd.y = (d.y < th.y) ? d.y : sf.y;
     cd.z = (d.z < th.z) ? d.z : sf.z;
@@ -349,7 +352,7 @@ float3 GamutCompression (float3 rgb, float grey) {
 
 
 
-// Matrices in OpenGL column-major
+// Matrices in column-major
 
 
 //----------------------- Y'UV color model -----------------------
@@ -449,7 +452,7 @@ const mat3 SMPTE470BG_ph = mat3(
 // NTSC-J P22
 // Mix between averaging KV-20M20, KDS VS19, Dell D93, 4-TR-B09v1_0.pdf and Phosphor Handbook 'P22'
 // ILLUMINANT: D93->[0.281000,0.311000] (CCT of 8945.436K)
-// ILLUMINANT: D97->[0.285000,0.285000] (CCT of 9696K) for Nanao MS-2930s series (in practice prolly more like ~9177.98K)
+// ILLUMINANT: D97->[0.285000,0.285000] (CCT of 9696K) for Nanao MS-2930s series (around 10000.0K for wp_adjust() daylight fit)
 const mat3 P22_J_ph = mat3(
      0.625, 0.280, 0.152,
      0.350, 0.605, 0.062,
@@ -496,9 +499,9 @@ const mat3 DCIP3_prims = mat3(
      0.320, 0.690, 0.060,
      0.000, 0.045, 0.790);
 
-// Custom - Add here the primaries of your D65 calibrated display to -partially- color manage Dolphin. Only the matrix part (hue+saturation, gamma is lef out)
+// Custom - Add here the primaries of your D65 calibrated display to -partially- color manage Dolphin. Only the matrix part (hue+saturation, gamma is left out)
 // How: Check the log of DisplayCAL calibration/profiling, search where it says "Increasing saturation of actual primaries..."
-// Note down the R xy, G xy and B xy values before "->" mark
+// Note down in vertical order (column-major) the R xy, G xy and B xy values before "->" mark
 // Alongside you should have DisplayCAL Profile Loader enabled (since it will also load the VCGT/LUT part -white point, grey balance and tone response-)
 const mat3 Custom_prims = mat3(
      1.000, 0.000, 0.000,
