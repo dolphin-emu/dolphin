@@ -238,7 +238,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
     if (mInputOverlay != null)
     {
       mBinding.doneControlConfig.setVisibility(View.VISIBLE);
-      mInputOverlay.setIsInEditMode(true);
+      mInputOverlay.setEditMode(true);
     }
   }
 
@@ -247,7 +247,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
     if (mInputOverlay != null)
     {
       mBinding.doneControlConfig.setVisibility(View.GONE);
-      mInputOverlay.setIsInEditMode(false);
+      mInputOverlay.setEditMode(false);
     }
   }
 
