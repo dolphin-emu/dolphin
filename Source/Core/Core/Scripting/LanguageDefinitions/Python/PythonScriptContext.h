@@ -9,7 +9,7 @@
 
 #include "Core/Core.h"
 #include "Core/Scripting/HelperClasses/FunctionMetadata.h"
-#include "Core/Scripting/ScriptContext.h"
+#include "Core/Scripting/CoreScriptContextFiles/ScriptContext.h"
 
 namespace Scripting::Python
 {

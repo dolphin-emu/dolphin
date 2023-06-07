@@ -1,19 +1,24 @@
-#include <vector>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include "Core/PowerPC/BreakPoints.h"
-#include "Core/PowerPC/PowerPC.h"
-#include "Core/System.h"
+#ifndef MEMORY_ADDRESS_BREAKPOINTS_HOLDER
+#define MEMORY_ADDRESS_BREAKPOINTS_HOLDER
 
-class MemoryAddressBreakpointsHolder
+#include "Core/Scripting/CoreScriptContextFiles/Vector.h"
+
+typedef struct MemoryAddressBreakpointsHolder
 {
-public:
+  Vector read_breakpoint_addresses;
+  Vector write_breakpoint_addresses;
+} MemoryAddressBreakpointsHolder;
+
   MemoryAddressBreakpointsHolder() {}
   inline ~MemoryAddressBreakpointsHolder() { ClearAllBreakpoints(); }
 
   void AddReadBreakpoint(u32 addr)
   {
-    this->read_breakpoint_addresses.push_back(
-        addr);  // add this to the list of breakpoints regardless of whether or not it's a duplicate
+    Vector_PushBack(&read_breakpoint_addresses, reinterpret_cast<void*>(addr));  // add this to the list of breakpoints regardless of whether or not it's a duplicate
     bool write_breakpoint_exists = this->ContainsWriteBreakpoint(addr);
 
     TMemCheck check;
@@ -92,7 +97,6 @@ public:
 
   bool ContainsWriteBreakpoint(u32 addr) { return this->GetNumWriteCopiesOfBreakpoint(addr) > 0; }
 
-private:
   size_t GetNumReadCopiesOfBreakpoint(u32 addr)
   {
     return std::count(read_breakpoint_addresses.begin(), read_breakpoint_addresses.end(), addr);
@@ -103,6 +107,11 @@ private:
     return std::count(write_breakpoint_addresses.begin(), write_breakpoint_addresses.end(), addr);
   }
 
-  std::vector<u32> read_breakpoint_addresses;
-  std::vector<u32> write_breakpoint_addresses;
+
 };
+
+#endif
+
+#ifdef __cplusplus
+}
+#endif

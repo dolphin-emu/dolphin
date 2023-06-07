@@ -1,9 +1,11 @@
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef SCRIPT_CALL_LOCS
 #define SCRIPT_CALL_LOCS
 
-namespace Scripting
-{
-enum class ScriptCallLocations
+enum ScriptCallLocations
 {
   FromScriptStartup,
   FromFrameStartGlobalScope,
@@ -15,6 +17,9 @@ enum class ScriptCallLocations
   FromWiiInputPolled,
   FromGraphicsCallback
 };
-}
 
+#endif
+
+#ifdef __cplusplus
+}
 #endif

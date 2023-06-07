@@ -12,7 +12,7 @@
 #include "Core/Scripting/HelperClasses/ArgHolder.h"
 #include "Core/Scripting/HelperClasses/ArgTypeEnum.h"
 #include "Core/Scripting/HelperClasses/ClassMetadata.h"
-#include "Core/Scripting/HelperClasses/ScriptCallLocations.h"
+#include "Core/Scripting/CoreScriptContextFiles/ScriptCallLocations.h"
 #include "Core/Scripting/HelperClasses/VersionResolver.h"
 #include "Core/System.h"
 

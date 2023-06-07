@@ -926,7 +926,6 @@ bool LuaScriptContext::UnregisterOnGCControllerPolledCallbacks(void* callbacks)
 
 void* LuaScriptContext::RegisterOnInstructionReachedCallbacks(u32 address, void* callbacks)
 {
-  this->instructionsBreakpointHolder.AddBreakpoint(address);
   return this->RegisterForMapHelper(
       address, this->map_of_instruction_address_to_lua_callback_locations, callbacks);
 }
@@ -934,7 +933,6 @@ void* LuaScriptContext::RegisterOnInstructionReachedCallbacks(u32 address, void*
 void LuaScriptContext::RegisterOnInstructionReachedWithAutoDeregistrationCallbacks(u32 address,
                                                                                    void* callbacks)
 {
-  this->instructionsBreakpointHolder.AddBreakpoint(address);
   this->RegisterForMapWithAutoDeregistrationHelper(
       address, this->map_of_instruction_address_to_lua_callback_locations, callbacks,
       number_of_instruction_address_callbacks_to_auto_deregister);
@@ -942,7 +940,6 @@ void LuaScriptContext::RegisterOnInstructionReachedWithAutoDeregistrationCallbac
 
 bool LuaScriptContext::UnregisterOnInstructionReachedCallbacks(u32 address, void* callbacks)
 {
-  this->instructionsBreakpointHolder.RemoveBreakpoint(address);
   return this->UnregisterForMapHelper(
       address, this->map_of_instruction_address_to_lua_callback_locations, callbacks);
 }

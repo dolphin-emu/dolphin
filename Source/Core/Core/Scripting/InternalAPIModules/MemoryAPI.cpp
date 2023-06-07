@@ -8,7 +8,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/Scripting/HelperClasses/ArgHolder.h"
-#include "Core/Scripting/HelperClasses/ScriptCallLocations.h"
+#include "Core/Scripting/CoreScriptContextFiles/ScriptCallLocations.h"
 #include "Core/Scripting/HelperClasses/VersionResolver.h"
 #include "Core/System.h"
 

@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 #include "Core/Scripting/LanguageDefinitions/DefinedScriptingLanguagesEnum.h"
-#include "Core/Scripting/ScriptContext.h"
+#include "Core/Scripting/CoreScriptContextFiles/ScriptContext.h"
 
 namespace Scripting::ScriptUtilities
 {
@@ -20,6 +20,9 @@ extern std::mutex memory_address_read_from_callback_running_lock;
 extern std::mutex memory_address_written_to_callback_running_lock;
 extern std::mutex wii_input_polled_callback_running_lock;
 extern std::mutex graphics_callback_running_lock;
+
+extern ThreadSafeQueue<ScriptContext*> queue_of_scripts_waiting_to_start;
+
 
 bool IsScriptingCoreInitialized();
 
@@ -39,6 +42,9 @@ void RunOnMemoryAddressReadFromCallbacks(u32 memory_address);
 void RunOnMemoryAddressWrittenToCallbacks(u32 memory_address, s64 new_value);
 void RunOnWiiInputPolledCallbacks();
 void RunButtonCallbacksInQueues();
+
+void AddScriptToQueueOfScriptsWaitingToStart(ScriptContext*);
+ScriptContext* RemoveNextScriptToStartFromQueue();
 
 }  // namespace Scripting::ScriptUtilities
 #endif

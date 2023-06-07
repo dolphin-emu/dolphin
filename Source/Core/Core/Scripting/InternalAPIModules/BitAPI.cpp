@@ -3,7 +3,7 @@
 #include <fmt/format.h>
 #include <memory>
 #include "Common/CommonTypes.h"
-#include "Core/Scripting/HelperClasses/ScriptCallLocations.h"
+#include "Core/Scripting/CoreScriptContextFiles/ScriptCallLocations.h"
 #include "Core/Scripting/HelperClasses/VersionResolver.h"
 
 namespace Scripting::BitApi

@@ -6,7 +6,7 @@
 #include "Core/Movie.h"
 #include "Core/Scripting/HelperClasses/ArgHolder.h"
 #include "Core/Scripting/HelperClasses/ClassMetadata.h"
-#include "Core/Scripting/ScriptContext.h"
+#include "Core/Scripting/CoreScriptContextFiles/ScriptContext.h"
 
 namespace Scripting::StatisticsApi
 {

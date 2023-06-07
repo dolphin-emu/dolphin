@@ -1127,7 +1127,6 @@ bool PythonScriptContext::UnregisterOnGCControllerPolledCallbacks(void* callback
 
 void* PythonScriptContext::RegisterOnInstructionReachedCallbacks(u32 address, void* callbacks)
 {
-  this->instructionsBreakpointHolder.AddBreakpoint(address);
   return this->RegisterForMapHelper(address, this->map_of_instruction_address_to_python_callbacks,
                                     callbacks);
 }
@@ -1135,7 +1134,6 @@ void* PythonScriptContext::RegisterOnInstructionReachedCallbacks(u32 address, vo
 void PythonScriptContext::RegisterOnInstructionReachedWithAutoDeregistrationCallbacks(
     u32 address, void* callbacks)
 {
-  this->instructionsBreakpointHolder.AddBreakpoint(address);
   this->RegisterForMapWithAutoDeregistrationHelper(
       address, this->map_of_instruction_address_to_python_callbacks, callbacks,
       this->number_of_instruction_address_callbacks_to_auto_deregister);
@@ -1143,7 +1141,6 @@ void PythonScriptContext::RegisterOnInstructionReachedWithAutoDeregistrationCall
 
 bool PythonScriptContext::UnregisterOnInstructionReachedCallbacks(u32 address, void* callbacks)
 {
-  this->instructionsBreakpointHolder.RemoveBreakpoint(address);
   return this->UnregisterForMapHelper(address, this->map_of_instruction_address_to_python_callbacks,
                                       callbacks);
 }

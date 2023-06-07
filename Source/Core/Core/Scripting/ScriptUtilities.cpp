@@ -19,6 +19,8 @@ std::mutex memory_address_read_from_callback_running_lock;
 std::mutex memory_address_written_to_callback_running_lock;
 std::mutex wii_input_polled_callback_running_lock;
 std::mutex graphics_callback_running_lock;
+ThreadSafeQueue<ScriptContext*> queue_of_scripts_waiting_to_start = ThreadSafeQueue<ScriptContext*>();
+
 
 bool IsScriptingCoreInitialized()
 {
@@ -289,6 +291,16 @@ void RunButtonCallbacksInQueues()
     }
     current_script->script_specific_lock.unlock();
   }
+}
+
+void AddScriptToQueueOfScriptsWaitingToStart(ScriptContext* new_script)
+{
+  queue_of_scripts_waiting_to_start.push(new_script);
+}
+
+ScriptContext* RemoveNextScriptToStartFromQueue()
+{
+  return queue_of_scripts_waiting_to_start.pop();
 }
 
 }  // namespace Scripting::ScriptUtilities

@@ -82,6 +82,7 @@
     <Text Include="$(BuildInfoTemplate)" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Core\Scripting\CoreScriptContextFiles\Vector.h" />
     <ClInclude Include="Core\Scripting\InternalAPIModules\ConfigAPI.h" />
     <ClInclude Include="Core\Scripting\InternalAPIModules\InstructionStepAPI.h" />
     <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\ConfigModuleImporter.h" />

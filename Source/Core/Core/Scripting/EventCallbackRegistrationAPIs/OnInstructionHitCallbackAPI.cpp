@@ -49,23 +49,39 @@ FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
 
 ArgHolder Register(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
+  u32 address_of_breakpoint = args_list[0].u32_val;
+  void* callback = args_list[1].void_pointer_val;
+  if (!current_script->instructionBreakpointsHolder.ContainsBreakpoint(current_script->instructionBreakpointsHolder, address_of_breakpoint))
+    Core::System::GetInstance().GetPowerPC().GetBreakPoints().Add(address_of_breakpoint, false, true, false,
+                                                                  std::nullopt);
+  current_script->instructionBreakpointsHolder.AddBreakpoint(current_script->instructionBreakpointsHolder, address_of_breakpoint);
   return CreateRegistrationReturnTypeArgHolder(
-      current_script->RegisterOnInstructionReachedCallbacks(args_list[0].u32_val,
-                                                            args_list[1].void_pointer_val));
+      current_script->scriptContextBaseFunctionsTable.RegisterOnInstructionReachedCallbacks(
+          address_of_breakpoint, args_list[1].void_pointer_val));
 }
 
 ArgHolder RegisterWithAutoDeregistration(ScriptContext* current_script,
                                          std::vector<ArgHolder>& args_list)
 {
-  current_script->RegisterOnInstructionReachedWithAutoDeregistrationCallbacks(
-      args_list[0].u32_val, args_list[1].void_pointer_val);
+  u32 address_of_breakpoint = args_list[0].u32_val;
+  void* callback = args_list[1].void_pointer_val;
+  if (!current_script->instructionBreakpointsHolder.ContainsBreakpoint(current_script->instructionBreakpointsHolder, address_of_breakpoint))
+    Core::System::GetInstance().GetPowerPC().GetBreakPoints().Add(address_of_breakpoint, false,
+                                                                  true, false, std::nullopt);
+  current_script->instructionBreakpointsHolder.AddBreakpoint(current_script->instructionBreakpointsHolder, address_of_breakpoint);
+  current_script->scriptContextBaseFunctionsTable.RegisterOnInstructioReachedWithAutoDeregistrationCallbacks(address_of_breakpoint, callback);
   return CreateRegistrationWithAutoDeregistrationReturnTypeArgHolder();
 }
 
 ArgHolder Unregister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
-  bool return_value = current_script->UnregisterOnInstructionReachedCallbacks(
-      args_list[0].u32_val, args_list[1].void_pointer_val);
+  u32 address_of_breakpoint = args_list[0].u32_val;
+  void* callback = args_list[1].void_pointer_val;
+  current_script->instructionBreakpointsHolder.RemoveBreakpoint(current_script->instructionBreakpointsHolder, address_of_breakpoint);
+  if (!current_script->instructionBreakpointsHolder.ContainsBreakpoint(current_script->instructionBreakpointsHolder, address_of_breakpoint))
+    Core::System::GetInstance().GetPowerPC().GetBreakPoints().Remove(address_of_breakpoint);
+
+  bool return_value = current_script->scriptContextBaseFunctionsTable.UnregisterOnInstructionReachedCallbacks(address_of_breakpoint, callback);
   if (!return_value)
     return CreateErrorStringArgHolder(
         "Argument passed into OnInstructionHit:unregister() was not a reference to a function "
