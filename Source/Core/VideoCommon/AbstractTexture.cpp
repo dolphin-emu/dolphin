@@ -26,6 +26,9 @@ bool AbstractTexture::Save(const std::string& filename, unsigned int level, int 
   // anyway, so this is fine for now.
   ASSERT(!IsCompressedFormat(m_config.format));
   ASSERT(level < m_config.levels);
+  // We can't copy from float (HDR) textures to RGBA8
+  // (most other formats would probably fail as well)
+  ASSERT(m_config.format != AbstractTextureFormat::RGBA16F);
 
   // Determine dimensions of image we want to save.
   u32 level_width = std::max(1u, m_config.width >> level);
@@ -120,11 +123,13 @@ u32 AbstractTexture::CalculateStrideForFormat(AbstractTextureFormat format, u32 
     return static_cast<size_t>(row_length) * 2;
   case AbstractTextureFormat::RGBA8:
   case AbstractTextureFormat::BGRA8:
+  case AbstractTextureFormat::RGB10_A2:
   case AbstractTextureFormat::R32F:
   case AbstractTextureFormat::D32F:
   case AbstractTextureFormat::D24_S8:
     return static_cast<size_t>(row_length) * 4;
   case AbstractTextureFormat::D32F_S8:
+  case AbstractTextureFormat::RGBA16F:
     return static_cast<size_t>(row_length) * 8;
   default:
     PanicAlertFmt("Unhandled texture format.");
@@ -147,11 +152,13 @@ u32 AbstractTexture::GetTexelSizeForFormat(AbstractTextureFormat format)
     return 2;
   case AbstractTextureFormat::RGBA8:
   case AbstractTextureFormat::BGRA8:
+  case AbstractTextureFormat::RGB10_A2:
   case AbstractTextureFormat::D24_S8:
   case AbstractTextureFormat::R32F:
   case AbstractTextureFormat::D32F:
     return 4;
   case AbstractTextureFormat::D32F_S8:
+  case AbstractTextureFormat::RGBA16F:
     return 8;
   default:
     PanicAlertFmt("Unhandled texture format.");

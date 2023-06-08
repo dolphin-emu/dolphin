@@ -33,6 +33,10 @@ GLenum GetGLInternalFormatForTextureFormat(AbstractTextureFormat format, bool st
     return storage ? GL_RGBA8 : GL_RGBA;
   case AbstractTextureFormat::BGRA8:
     return storage ? GL_RGBA8 : GL_BGRA;
+  case AbstractTextureFormat::RGB10_A2:
+    return GL_RGB10_A2;
+  case AbstractTextureFormat::RGBA16F:
+    return GL_RGBA16F;
   case AbstractTextureFormat::R16:
     return GL_R16;
   case AbstractTextureFormat::R32F:
@@ -59,6 +63,10 @@ GLenum GetGLFormatForTextureFormat(AbstractTextureFormat format)
     return GL_RGBA;
   case AbstractTextureFormat::BGRA8:
     return GL_BGRA;
+  case AbstractTextureFormat::RGB10_A2:
+    return GL_RGB10_A2;
+  case AbstractTextureFormat::RGBA16F:
+    return GL_RGBA16F;
   case AbstractTextureFormat::R16:
   case AbstractTextureFormat::R32F:
     return GL_RED;
@@ -81,6 +89,10 @@ GLenum GetGLTypeForTextureFormat(AbstractTextureFormat format)
   case AbstractTextureFormat::RGBA8:
   case AbstractTextureFormat::BGRA8:
     return GL_UNSIGNED_BYTE;
+  case AbstractTextureFormat::RGB10_A2:
+    return GL_UNSIGNED_INT_2_10_10_10_REV;
+  case AbstractTextureFormat::RGBA16F:
+    return GL_HALF_FLOAT;
   case AbstractTextureFormat::R16:
     return GL_UNSIGNED_SHORT;
   case AbstractTextureFormat::R32F:
