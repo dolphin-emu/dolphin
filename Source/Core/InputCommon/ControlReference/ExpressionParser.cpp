@@ -102,10 +102,10 @@ std::string Lexer::FetchDelimString(char delim)
 
 std::string Lexer::FetchWordChars()
 {
-  // Valid word characters:
-  std::regex rx(R"([a-z\d_])", std::regex_constants::icase);
-
-  return FetchCharsWhile([&rx](char c) { return std::regex_match(std::string(1, c), rx); });
+  return FetchCharsWhile([](char c) {
+    return std::isalpha(c, std::locale::classic()) || std::isdigit(c, std::locale::classic()) ||
+           c == '_';
+  });
 }
 
 Token Lexer::GetDelimitedLiteral()
@@ -134,7 +134,8 @@ Token Lexer::GetRealLiteral(char first_char)
   value += first_char;
   value += FetchCharsWhile([](char c) { return isdigit(c, std::locale::classic()) || ('.' == c); });
 
-  if (std::regex_match(value, std::regex(R"(\d+(\.\d+)?)")))
+  static const std::regex re(R"(\d+(\.\d+)?)");
+  if (std::regex_match(value, re))
     return Token(TOK_LITERAL, value);
 
   return Token(TOK_INVALID);
