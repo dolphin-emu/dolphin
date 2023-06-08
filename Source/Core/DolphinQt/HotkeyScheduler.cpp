@@ -257,7 +257,7 @@ void HotkeyScheduler::Run()
       if (auto bt = WiiUtils::GetBluetoothRealDevice())
         bt->UpdateSyncButtonState(IsHotkey(HK_TRIGGER_SYNC_BUTTON, true));
 
-      if (Config::Get(Config::MAIN_ENABLE_DEBUGGING))
+      if (Config::IsDebuggingEnabled())
       {
         CheckDebuggingHotkeys();
       }

@@ -236,7 +236,7 @@ void Interpreter::Run()
     core_timing.Advance();
 
     // we have to check exceptions at branches apparently (or maybe just rfi?)
-    if (Config::Get(Config::MAIN_ENABLE_DEBUGGING))
+    if (Config::IsDebuggingEnabled())
     {
 #ifdef SHOW_HISTORY
       s_pc_block_vec.push_back(m_ppc_state.pc);

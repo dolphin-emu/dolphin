@@ -44,7 +44,7 @@ void Jit64AsmRoutineManager::Regenerate()
 
 void Jit64AsmRoutineManager::Generate()
 {
-  const bool enable_debugging = Config::Get(Config::MAIN_ENABLE_DEBUGGING);
+  const bool enable_debugging = Config::IsDebuggingEnabled();
 
   enter_code = AlignCode16();
   // We need to own the beginning of RSP, so we do an extra stack adjustment
