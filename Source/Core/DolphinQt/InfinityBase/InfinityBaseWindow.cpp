@@ -3,6 +3,8 @@
 
 #include "DolphinQt/InfinityBase/InfinityBaseWindow.h"
 
+#include <string>
+
 #include <QCheckBox>
 #include <QComboBox>
 #include <QCompleter>
@@ -19,6 +21,8 @@
 #include "Common/IOFile.h"
 
 #include "Core/Config/MainSettings.h"
+#include "Core/Core.h"
+#include "Core/IOS/USB/Emulated/Infinity.h"
 #include "Core/System.h"
 
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"

@@ -4,18 +4,21 @@
 #pragma once
 
 #include <array>
-#include <string>
 
 #include <QDialog>
-#include <QVBoxLayout>
 #include <QWidget>
 
-#include "Core/Core.h"
-#include "Core/IOS/USB/Emulated/Infinity.h"
+#include "Common/CommonTypes.h"
 
 class QCheckBox;
 class QGroupBox;
 class QLineEdit;
+class QVBoxLayout;
+
+namespace Core
+{
+enum class State;
+}
 
 class InfinityBaseWindow : public QWidget
 {
