@@ -71,19 +71,19 @@ void InfinityBaseWindow::CreateMainWindow()
   auto* vbox_group = new QVBoxLayout();
   auto* scroll_area = new QScrollArea();
 
-  AddFigureSlot(vbox_group, QString(tr("Play Set/Power Disc")), 0);
+  AddFigureSlot(vbox_group, tr("Play Set/Power Disc"), 0);
   add_line(vbox_group);
-  AddFigureSlot(vbox_group, QString(tr("Player One")), 1);
+  AddFigureSlot(vbox_group, tr("Player One"), 1);
   add_line(vbox_group);
-  AddFigureSlot(vbox_group, QString(tr("Player One Ability One")), 3);
+  AddFigureSlot(vbox_group, tr("Player One Ability One"), 3);
   add_line(vbox_group);
-  AddFigureSlot(vbox_group, QString(tr("Player One Ability Two")), 5);
+  AddFigureSlot(vbox_group, tr("Player One Ability Two"), 5);
   add_line(vbox_group);
-  AddFigureSlot(vbox_group, QString(tr("Player Two")), 2);
+  AddFigureSlot(vbox_group, tr("Player Two"), 2);
   add_line(vbox_group);
-  AddFigureSlot(vbox_group, QString(tr("Player Two Ability One")), 4);
+  AddFigureSlot(vbox_group, tr("Player Two Ability One"), 4);
   add_line(vbox_group);
-  AddFigureSlot(vbox_group, QString(tr("Player Two Ability Two")), 6);
+  AddFigureSlot(vbox_group, tr("Player Two Ability Two"), 6);
 
   m_group_figures->setLayout(vbox_group);
   scroll_area->setWidget(m_group_figures);
@@ -199,8 +199,9 @@ CreateFigureDialog::CreateFigureDialog(QWidget* parent, u8 slot) : QDialog(paren
         ((slot == 3 || slot == 4 || slot == 5 || slot == 6) &&
          (figure > 0x2DC6C0 && figure < 0x3D08FF)))
     {
-      combo_figlist->addItem(QString::fromStdString(entry.first), QVariant(figure));
-      filterlist << QString::fromStdString(entry.first);
+      const auto figure_name = QString::fromStdString(entry.first);
+      combo_figlist->addItem(figure_name, QVariant(figure));
+      filterlist << figure_name;
       if (first_entry == 0)
       {
         first_entry = figure;
@@ -226,7 +227,7 @@ CreateFigureDialog::CreateFigureDialog(QWidget* parent, u8 slot) : QDialog(paren
 
   auto* hbox_idvar = new QHBoxLayout();
   auto* label_id = new QLabel(tr("Figure Number:"));
-  auto* edit_num = new QLineEdit(QString::fromStdString(std::to_string(first_entry)));
+  auto* edit_num = new QLineEdit(QString::number(first_entry));
   auto* rxv = new QRegularExpressionValidator(QRegularExpression(QStringLiteral("\\d*")), this);
   edit_num->setValidator(rxv);
   hbox_idvar->addWidget(label_id);
@@ -263,7 +264,7 @@ CreateFigureDialog::CreateFigureDialog(QWidget* parent, u8 slot) : QDialog(paren
     const auto found_fig = system.GetInfinityBase().FindFigure(char_number);
     if (!found_fig.empty())
     {
-      predef_name += QString::fromStdString(std::string(found_fig) + ".bin");
+      predef_name += QString::fromStdString(found_fig + ".bin");
     }
     else
     {
