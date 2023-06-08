@@ -13,6 +13,8 @@ enum class AbstractTextureFormat : u32
 {
   RGBA8,
   BGRA8,
+  RGB10_A2,
+  RGBA16F,
   DXT1,
   DXT3,
   DXT5,
