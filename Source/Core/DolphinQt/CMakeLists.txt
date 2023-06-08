@@ -47,6 +47,8 @@ add_executable(dolphin-emu
   Config/ConfigControls/ConfigInteger.h
   Config/ConfigControls/ConfigRadio.cpp
   Config/ConfigControls/ConfigRadio.h
+  Config/ConfigControls/ConfigFloatSlider.cpp
+  Config/ConfigControls/ConfigFloatSlider.h
   Config/ConfigControls/ConfigSlider.cpp
   Config/ConfigControls/ConfigSlider.h
   Config/ControllerInterface/ControllerInterfaceWindow.cpp

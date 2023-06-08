@@ -60,6 +60,7 @@
     <ClCompile Include="Config\ConfigControls\ConfigChoice.cpp" />
     <ClCompile Include="Config\ConfigControls\ConfigInteger.cpp" />
     <ClCompile Include="Config\ConfigControls\ConfigRadio.cpp" />
+    <ClCompile Include="Config\ConfigControls\ConfigFloatSlider.cpp" />
     <ClCompile Include="Config\ConfigControls\ConfigSlider.cpp" />
     <ClCompile Include="Config\ControllerInterface\ControllerInterfaceWindow.cpp" />
     <ClCompile Include="Config\ControllerInterface\DualShockUDPClientAddServerDialog.cpp" />
@@ -263,6 +264,7 @@
     <QtMoc Include="Config\ConfigControls\ConfigChoice.h" />
     <QtMoc Include="Config\ConfigControls\ConfigInteger.h" />
     <QtMoc Include="Config\ConfigControls\ConfigRadio.h" />
+    <QtMoc Include="Config\ConfigControls\ConfigFloatSlider.h" />
     <QtMoc Include="Config\ConfigControls\ConfigSlider.h" />
     <QtMoc Include="Config\ControllerInterface\ControllerInterfaceWindow.h" />
     <QtMoc Include="Config\ControllerInterface\DualShockUDPClientAddServerDialog.h" />
