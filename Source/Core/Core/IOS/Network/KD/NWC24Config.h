@@ -29,7 +29,7 @@ enum ErrorCode : s32
   WC24_ERR_FILE_WRITE = -19,
   WC24_ERR_NETWORK = -31,
   WC24_ERR_SERVER = -32,
-  WC24_ERR_ID_NONEXISTANCE = -34,
+  WC24_ERR_ID_NOT_GENERATED = -34,
   WC24_ERR_ID_GENERATED = -35,
   WC24_ERR_ID_REGISTERED = -36,
   WC24_ERR_DISABLED = -39,
@@ -88,6 +88,10 @@ public:
 
   const char* Email() const;
   void SetEmail(const char* email);
+
+  std::string GetAccountURL() const;
+  void SetMailCheckID(std::string_view mlchkid);
+  void SetPassword(std::string_view password);
 
 private:
   enum

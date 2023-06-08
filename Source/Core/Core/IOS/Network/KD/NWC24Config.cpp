@@ -228,4 +228,22 @@ std::string NWC24Config::GetCheckURL() const
   const size_t size = strnlen(m_data.http_urls[1], MAX_URL_LENGTH);
   return {m_data.http_urls[1], size};
 }
+
+std::string NWC24Config::GetAccountURL() const
+{
+  const size_t size = strnlen(m_data.http_urls[0], MAX_URL_LENGTH);
+  return {m_data.http_urls[0], size};
+}
+
+void NWC24Config::SetMailCheckID(std::string_view mlchkid)
+{
+  std::strncpy(m_data.mlchkid, mlchkid.data(), std::size(m_data.mlchkid));
+  m_data.mlchkid[MAX_MLCHKID_LENGTH - 1] = '\0';
+}
+
+void NWC24Config::SetPassword(std::string_view password)
+{
+  std::strncpy(m_data.paswd, password.data(), std::size(m_data.paswd));
+  m_data.paswd[MAX_PASSWORD_LENGTH - 1] = '\0';
+}
 }  // namespace IOS::HLE::NWC24
