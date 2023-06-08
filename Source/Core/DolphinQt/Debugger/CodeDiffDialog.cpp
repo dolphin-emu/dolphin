@@ -361,7 +361,7 @@ void CodeDiffDialog::Update(bool include)
     OnExclude();
   }
 
-  const auto create_item = [](const QString string = {}, const u32 address = 0x00000000) {
+  const auto create_item = [](const QString& string = {}, const u32 address = 0x00000000) {
     QTableWidgetItem* item = new QTableWidgetItem(string);
     item->setData(Qt::UserRole, address);
     item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
