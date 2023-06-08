@@ -83,10 +83,10 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCAdapter.h"
 
+#include "VideoCommon/Assets/CustomAssetLoader.h"
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/FrameDumper.h"
-#include "VideoCommon/HiresTextures.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PerformanceMetrics.h"
 #include "VideoCommon/Present.h"
@@ -546,6 +546,9 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
 
   FreeLook::LoadInputConfig();
 
+  system.GetCustomAssetLoader().Init();
+  Common::ScopeGuard asset_loader_guard([&system] { system.GetCustomAssetLoader().Shutdown(); });
+
   Movie::Init(*boot);
   Common::ScopeGuard movie_guard{&Movie::Shutdown};
 
@@ -596,10 +599,6 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     PanicAlertFmt("Failed to initialize DSP emulation!");
     return;
   }
-
-  // Inputs loading may have generated custom dynamic textures
-  // it's now ok to initialize any custom textures
-  HiresTexture::Update();
 
   AudioCommon::PostInitSoundStream(system);
 

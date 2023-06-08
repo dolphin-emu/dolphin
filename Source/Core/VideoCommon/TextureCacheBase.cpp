@@ -145,17 +145,6 @@ void TextureCacheBase::Invalidate()
   texture_pool.clear();
 }
 
-void TextureCacheBase::ForceReload()
-{
-  Invalidate();
-
-  // Clear all current hires textures, they are invalid
-  HiresTexture::Clear();
-
-  // Load fresh
-  HiresTexture::Update();
-}
-
 void TextureCacheBase::OnConfigChanged(const VideoConfig& config)
 {
   if (config.bHiresTextures != backup_config.hires_textures ||
@@ -270,6 +259,15 @@ void TextureCacheBase::SetBackupConfig(const VideoConfig& config)
   backup_config.graphics_mods = config.bGraphicMods;
   backup_config.graphics_mod_change_count =
       config.graphics_mod_config ? config.graphics_mod_config->GetChangeCount() : 0;
+}
+
+bool TextureCacheBase::DidLinkedAssetsChange(const TCacheEntry& entry)
+{
+  if (!entry.linked_asset.m_asset)
+    return false;
+
+  const auto last_asset_write_time = entry.linked_asset.m_asset->GetLastLoadedTime();
+  return last_asset_write_time > entry.linked_asset.m_last_write_time;
 }
 
 RcTcacheEntry TextureCacheBase::ApplyPaletteToEntry(RcTcacheEntry& entry, const u8* palette,
@@ -772,17 +770,10 @@ void TextureCacheBase::DoLoadState(PointerWrap& p)
 
 void TextureCacheBase::OnFrameEnd()
 {
-  if (m_force_reload_textures.TestAndClear())
-  {
-    ForceReload();
-  }
-  else
-  {
-    // Flush any outstanding EFB copies to RAM, in case the game is running at an uncapped frame
-    // rate and not waiting for vblank. Otherwise, we'd end up with a huge list of pending
-    // copies.
-    FlushEFBCopies();
-  }
+  // Flush any outstanding EFB copies to RAM, in case the game is running at an uncapped frame
+  // rate and not waiting for vblank. Otherwise, we'd end up with a huge list of pending
+  // copies.
+  FlushEFBCopies();
 
   Cleanup(g_presenter->FrameCount());
 }
@@ -1272,8 +1263,25 @@ private:
 
 TCacheEntry* TextureCacheBase::Load(const TextureInfo& texture_info)
 {
+  if (auto entry = LoadImpl(texture_info, false))
+  {
+    if (!DidLinkedAssetsChange(*entry))
+    {
+      return entry;
+    }
+
+    InvalidateTexture(GetTexCacheIter(entry));
+    return LoadImpl(texture_info, true);
+  }
+
+  return nullptr;
+}
+
+TCacheEntry* TextureCacheBase::LoadImpl(const TextureInfo& texture_info, bool force_reload)
+{
   // if this stage was not invalidated by changes to texture registers, keep the current texture
-  if (TMEM::IsValid(texture_info.GetStage()) && bound_textures[texture_info.GetStage()])
+  if (!force_reload && TMEM::IsValid(texture_info.GetStage()) &&
+      bound_textures[texture_info.GetStage()])
   {
     TCacheEntry* entry = bound_textures[texture_info.GetStage()].get();
     // If the TMEM configuration is such that this texture is more or less guaranteed to still
@@ -1582,7 +1590,8 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
     InvalidateTexture(oldest_entry);
   }
 
-  VideoCommon::CustomTextureData* data = nullptr;
+  CachedTextureAsset cached_texture_asset;
+  std::shared_ptr<VideoCommon::CustomTextureData> data = nullptr;
   bool has_arbitrary_mipmaps = false;
   std::shared_ptr<HiresTexture> hires_texture;
   if (g_ActiveConfig.bHiresTextures)
@@ -1590,19 +1599,31 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
     hires_texture = HiresTexture::Search(texture_info);
     if (hires_texture)
     {
-      data = &hires_texture->GetData();
+      data = hires_texture->GetAsset()->GetData();
+      cached_texture_asset = {hires_texture->GetAsset(),
+                              hires_texture->GetAsset()->GetLastLoadedTime()};
       has_arbitrary_mipmaps = hires_texture->HasArbitraryMipmaps();
+      if (data)
+      {
+        if (!hires_texture->GetAsset()->Validate(texture_info.GetRawWidth(),
+                                                 texture_info.GetRawHeight()))
+        {
+          data = nullptr;
+        }
+      }
     }
   }
 
-  return CreateTextureEntry(
+  auto entry = CreateTextureEntry(
       TextureCreationInfo{base_hash, full_hash, bytes_per_block, palette_size}, texture_info,
-      textureCacheSafetyColorSampleSize, data, has_arbitrary_mipmaps);
+      textureCacheSafetyColorSampleSize, data.get(), has_arbitrary_mipmaps);
+  entry->linked_asset = std::move(cached_texture_asset);
+  return entry;
 }
 
 RcTcacheEntry TextureCacheBase::CreateTextureEntry(
     const TextureCreationInfo& creation_info, const TextureInfo& texture_info,
-    const int safety_color_sample_size, VideoCommon::CustomTextureData* custom_texture_data,
+    const int safety_color_sample_size, const VideoCommon::CustomTextureData* custom_texture_data,
     const bool custom_arbitrary_mipmaps)
 {
 #ifdef __APPLE__
@@ -1741,7 +1762,7 @@ RcTcacheEntry TextureCacheBase::CreateTextureEntry(
 
     if (g_ActiveConfig.bDumpTextures)
     {
-      const std::string basename = HiresTexture::GenBaseName(texture_info, true);
+      const std::string basename = texture_info.CalculateTextureName().GetFullName();
       for (u32 level = 0; level < texLevels; ++level)
       {
         DumpTexture(entry, basename, level, entry->has_arbitrary_mips);
