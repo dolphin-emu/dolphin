@@ -251,7 +251,7 @@ void BreakpointDialog::OnAddressTypeChanged()
 
 void BreakpointDialog::accept()
 {
-  auto invalid_input = [this](QString field) {
+  auto invalid_input = [this](const QString& field) {
     ModalMessageBox::critical(this, tr("Error"),
                               tr("Invalid input for the field \"%1\"").arg(field));
   };
