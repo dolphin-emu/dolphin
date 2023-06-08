@@ -20,6 +20,7 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
+#include "Core/AchievementManager.h"
 #include "Core/Boot/Boot.h"
 #include "Core/CommonTitles.h"
 #include "Core/Config/AchievementSettings.h"
@@ -122,8 +123,15 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   m_fullscreen_action->setEnabled(running);
   m_frame_advance_action->setEnabled(running);
   m_screenshot_action->setEnabled(running);
-  m_state_load_menu->setEnabled(running);
   m_state_save_menu->setEnabled(running);
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+  bool hardcore = AchievementManager::GetInstance()->IsHardcoreModeActive();
+  m_state_load_menu->setEnabled(running && !hardcore);
+#else   // USE_RETRO_ACHIEVEMENTS
+  m_state_load_menu->setEnabled(running);
+
+#endif  // USE_RETRO_ACHIEVEMENTS
 
   // Movie
   m_recording_read_only->setEnabled(running);
