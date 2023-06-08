@@ -143,6 +143,12 @@ void CheatsManager::RefreshCodeTabs(Core::State state, bool force)
   connect(m_ar_code, &ARCodeWidget::OpenGeneralSettings, this, &CheatsManager::OpenGeneralSettings);
   connect(m_gecko_code, &GeckoCodeWidget::OpenGeneralSettings, this,
           &CheatsManager::OpenGeneralSettings);
+#ifdef USE_RETRO_ACHIEVEMENTS
+  connect(m_ar_code, &ARCodeWidget::OpenAchievementSettings, this,
+          &CheatsManager::OpenAchievementSettings);
+  connect(m_gecko_code, &GeckoCodeWidget::OpenAchievementSettings, this,
+          &CheatsManager::OpenAchievementSettings);
+#endif  // USE_RETRO_ACHIEVEMENTS
 }
 
 void CheatsManager::CreateWidgets()

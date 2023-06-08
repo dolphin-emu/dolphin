@@ -90,7 +90,7 @@ void PatchFixedFunctions(Core::System& system)
 
   // HLE jump to loader (homebrew).  Disabled when Gecko is active as it interferes with the code
   // handler
-  if (!Config::Get(Config::MAIN_ENABLE_CHEATS))
+  if (!Config::AreCheatsEnabled())
   {
     Patch(system, 0x80001800, "HBReload");
     auto& memory = system.GetMemory();

@@ -1356,7 +1356,7 @@ bool NetPlayServer::SetupNetSettings()
   // Copy all relevant settings
   settings.cpu_thread = Config::Get(Config::MAIN_CPU_THREAD);
   settings.cpu_core = Config::Get(Config::MAIN_CPU_CORE);
-  settings.enable_cheats = Config::Get(Config::MAIN_ENABLE_CHEATS);
+  settings.enable_cheats = Config::AreCheatsEnabled();
   settings.selected_language = Config::Get(Config::MAIN_GC_LANGUAGE);
   settings.override_region_settings = Config::Get(Config::MAIN_OVERRIDE_REGION_SETTINGS);
   settings.dsp_hle = Config::Get(Config::MAIN_DSP_HLE);

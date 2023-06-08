@@ -52,6 +52,10 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& ga
 
   connect(ar, &ARCodeWidget::OpenGeneralSettings, this, &PropertiesDialog::OpenGeneralSettings);
 #ifdef USE_RETRO_ACHIEVEMENTS
+  connect(ar, &ARCodeWidget::OpenAchievementSettings, this,
+          &PropertiesDialog::OpenAchievementSettings);
+  connect(gecko, &GeckoCodeWidget::OpenAchievementSettings, this,
+          &PropertiesDialog::OpenAchievementSettings);
   connect(patches, &PatchesWidget::OpenAchievementSettings, this,
           &PropertiesDialog::OpenAchievementSettings);
 #endif  // USE_RETRO_ACHIEVEMENTS

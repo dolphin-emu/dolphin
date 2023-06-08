@@ -37,6 +37,9 @@ public:
 
 signals:
   void OpenGeneralSettings();
+#ifdef USE_RETRO_ACHIEVEMENTS
+  void OpenAchievementSettings();
+#endif  // USE_RETRO_ACHIEVEMENTS
   void ShowMemory(u32 address);
   void RequestWatch(QString name, u32 address);
 
