@@ -516,6 +516,8 @@ add_library(core
   System.h
   TitleDatabase.cpp
   TitleDatabase.h
+  WC24PatchEngine.cpp
+  WC24PatchEngine.h
   WiiRoot.cpp
   WiiRoot.h
   WiiUtils.cpp

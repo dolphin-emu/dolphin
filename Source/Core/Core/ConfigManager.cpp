@@ -52,6 +52,8 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 #include "Core/TitleDatabase.h"
+#include "Core/WC24PatchEngine.h"
+
 #include "VideoCommon/HiresTextures.h"
 
 #include "DiscIO/Enums.h"
@@ -206,6 +208,7 @@ void SConfig::OnNewTitleLoad(const Core::CPUThreadGuard& guard)
   HLE::Reload(system);
   PatchEngine::Reload();
   HiresTexture::Update();
+  WC24PatchEngine::Reload();
 }
 
 void SConfig::LoadDefaults()
