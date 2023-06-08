@@ -52,7 +52,7 @@ typedef struct Vector
 // Vector Methods //
 
 
-void* Vector_Get(Vector* _this, int index)
+void* Vector_Get(Vector* __this, int index)
 {
   if (index < 0)
   {
@@ -60,49 +60,49 @@ void* Vector_Get(Vector* _this, int index)
     return NULL;
   }
 
-  else if (index >= _this->length)
+  else if (index >= __this->length)
   {
     fprintf(stderr, "Error: Attempted to access an element passed the end of the vector in Vector_Get()\n");
     return NULL;
   }
   else
   {
-    return _this->arr[index];
+    return __this->arr[index];
   }
 }
     /* Appends value to end of vector  */
-void Vector_PushBack(Vector* _this, void* ptr)
+void Vector_PushBack(Vector* __this, void* ptr)
 {
-  if (_this->length == _this->size)
+  if (__this->length == __this->size)
   {
-    _this->arr = vec_realloc(_this->arr, 2 * (sizeof(void*) * _this->size));
-    _this->size = 2 * _this->size;
+    __this->arr = vec_realloc(__this->arr, 2 * (sizeof(void*) * __this->size));
+    __this->size = 2 * __this->size;
   }
-  _this->arr[_this->length++] = ptr;
+  __this->arr[__this->length++] = ptr;
 }
 
-void* Vector_Pop(Vector* _this)
+void* Vector_Pop(Vector* __this)
 {
-  if (_this->length <= 0)
+  if (__this->length <= 0)
   {
     fprintf(stderr, "Error: cannot pop an empty vector for vec_pop()\n");
     return NULL;
   }
 
-  void* value = _this->arr[_this->length - 1];
+  void* value = __this->arr[__this->length - 1];
 
-  _this->arr[_this->length - 1] = NULL;
-  _this->length--;
+  __this->arr[__this->length - 1] = NULL;
+  __this->length--;
 
   return value;
 }
 
 /* Inserts object at specified location */
-int Vector_Insert(Vector* _this, void* ptr, int index)
+int Vector_Insert(Vector* __this, void* ptr, int index)
 {
-  if (index == _this->length)
-    Vector_PushBack(_this, ptr);
-  else if (index > _this->length)
+  if (index == __this->length)
+    Vector_PushBack(__this, ptr);
+  else if (index > __this->length)
   {
     fprintf(stderr, "Error: Index out of bounds for vec_insert()\n");
     return -1;
@@ -114,32 +114,32 @@ int Vector_Insert(Vector* _this, void* ptr, int index)
   }
   else
   {
-    if (_this->length == _this->size)
+    if (__this->length == __this->size)
     {
-      _this->arr = vec_realloc(_this->arr, 2 * (sizeof(void*) * _this->size));
-      _this->size = 2 * _this->size;
+      __this->arr = vec_realloc(__this->arr, 2 * (sizeof(void*) * __this->size));
+      __this->size = 2 * __this->size;
     }
 
-    int num_values_to_copy = _this->length - index - 1;   
+    int num_values_to_copy = __this->length - index - 1;   
 
-    memmove(_this->arr + index + 1, _this->arr + index, num_values_to_copy * sizeof(void*));
-    _this->arr[index] = ptr;
-    _this->length++;
+    memmove(__this->arr + index + 1, __this->arr + index, num_values_to_copy * sizeof(void*));
+    __this->arr[index] = ptr;
+    __this->length++;
 
   }
   return 0;
 }
 
 /* Removes element from specified location */
-void* Vector_RemoveByIndex(Vector* _this, int index)
+void* Vector_RemoveByIndex(Vector* __this, int index)
 {
-  if (_this->length == 0)
+  if (__this->length == 0)
   {
     fprintf(stderr, "Error: Cannot remove element from empty vector in vec_remove.\n");
     return NULL;
   }
 
-  else if (index > _this->length - 1)
+  else if (index > __this->length - 1)
   {
     fprintf(stderr, "Error: Index out of bounds in vec_remove\n");
     return NULL;
@@ -151,52 +151,52 @@ void* Vector_RemoveByIndex(Vector* _this, int index)
     return NULL;
   }
 
-  void* value = _this->arr[index];
-  _this->arr[index] = NULL;
+  void* value = __this->arr[index];
+  __this->arr[index] = NULL;
 
-  if (index < _this->length - 1)
-    memmove(_this->arr + index, _this->arr + index + 1, (_this->length - index - 1) * sizeof(void*));
+  if (index < __this->length - 1)
+    memmove(__this->arr + index, __this->arr + index + 1, (__this->length - index - 1) * sizeof(void*));
 
-  _this->length--;
+  __this->length--;
   return value;
 }
 
-void* Vector_RemoveByValue(Vector* _this, void* value)
+int Vector_FindFirst(Vector* __this, void* value)
 {
-  if (_this->size <= 0 || _this->length <= 0)
-    return NULL;
-
-  int firstMatchingIndex = Vector_FindFirst(_this, value);
-
-  if (firstMatchingIndex == -1)
-    return NULL;
-
-  return Vector_RemoveByIndex(_this, firstMatchingIndex);
-}
-
-int Vector_FindFirst(Vector* _this, void* value)
-{
-  if (_this->size <= 0 || _this->length <= 0)
+  if (__this->size <= 0 || __this->length <= 0)
     return -1;
 
-  for (int i = 0; i < _this->length; ++i)
+  for (int i = 0; i < __this->length; ++i)
   {
-    if (_this->arr[i] == value)
+    if (__this->arr[i] == value)
       return i;
   }
   return -1;
 }
 
-int Vector_Count(Vector* _this, void* value)
+void* Vector_RemoveByValue(Vector* __this, void* value)
 {
-  if (_this->size <= 0 || _this->length <= 0)
+  if (__this->size <= 0 || __this->length <= 0)
+    return NULL;
+
+  int firstMatchingIndex = Vector_FindFirst(__this, value);
+
+  if (firstMatchingIndex == -1)
+    return NULL;
+
+  return Vector_RemoveByIndex(__this, firstMatchingIndex);
+}
+
+int Vector_Count(Vector* __this, void* value)
+{
+  if (__this->size <= 0 || __this->length <= 0)
     return 0;
 
   int count = 0;
 
-  for (int i = 0; i < _this->length; ++i)
+  for (int i = 0; i < __this->length; ++i)
   {
-    if (_this->arr[i] == value)
+    if (__this->arr[i] == value)
       count++;
   }
 
@@ -229,23 +229,24 @@ Vector Vector_Initializer(void (*new_destructor_function)(void*))
 
 // Destruction //
 
-void Vector_Destructor(Vector* _this)
+void Vector_Destructor(Vector* __this)
 {
 // If the destructor parameter passed into Vector_Initializer was NULL, then that means that this represents an array of primitive types which don't have a destructor.
   //Otherwise, the destructor_function represents the function that acts as the destructor for each object in the array, and each object in the array is the address of an object (we then invoke the destructor on each object).
   //In either case, we free the memory allocated for the array.
-  if (_this->size <= 0)
+  if (__this->size <= 0)
     return;
 
-  if (_this->destructor_function != NULL)
+  if (__this->destructor_function != NULL)
   {
-    for (int i = 0; i < _this->length; ++i)
+    for (int i = 0; i < __this->length; ++i)
     {
-      _this->destructor_function(_this->arr[i]);
+      __this->destructor_function(__this->arr[i]);
     }
   }
 
-  free(_this->arr);
+  free(__this->arr);
+  memset(__this, 0, sizeof(Vector));
 }
 
 #endif

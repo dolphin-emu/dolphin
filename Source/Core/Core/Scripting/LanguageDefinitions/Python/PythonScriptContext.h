@@ -1,3 +1,4 @@
+/*
 #ifndef PYTHON_SCRIPT_CONTEXT
 #define PYTHON_SCRIPT_CONTEXT
 #include <Python.h>
@@ -175,3 +176,4 @@ private:
 
 }  // namespace Scripting::Python
 #endif
+*/

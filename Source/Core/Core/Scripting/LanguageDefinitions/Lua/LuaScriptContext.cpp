@@ -1,3 +1,4 @@
+/*
 #include "Core/Scripting/LanguageDefinitions/Lua/LuaScriptContext.h"
 
 namespace Scripting::Lua
@@ -1045,3 +1046,4 @@ void LuaScriptContext::RunButtonCallbacksInQueue()
 }
 
 }  // namespace Scripting::Lua
+*/

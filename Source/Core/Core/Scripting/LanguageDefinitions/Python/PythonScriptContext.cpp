@@ -1,3 +1,4 @@
+/*
 #include "Core/Scripting/LanguageDefinitions/Python/PythonScriptContext.h"
 
 #include "Common/FileUtil.h"
@@ -91,10 +92,10 @@ bool PythonScriptContext::ShouldCallEndScriptFunction()
 }
 
 PyModuleDef ThisModuleDef = {
-    PyModuleDef_HEAD_INIT, THIS_MODULE_NAME, /* name of module */
-    nullptr,                                 /* module documentation, may be NULL */
-    sizeof(long long*),                      /* size of per-interpreter state of the module,
-                                                            or -1 if the module keeps state in global variables. */
+    PyModuleDef_HEAD_INIT, THIS_MODULE_NAME,
+    nullptr,                                 
+    sizeof(long long*),                     
+                                                            
     nullptr};
 
 PyMODINIT_FUNC PyInit_ThisPointerModule()
@@ -1318,3 +1319,4 @@ void PythonScriptContext::RunEndOfIteraionTasks()
 }
 
 }  // namespace Scripting::Python
+*/

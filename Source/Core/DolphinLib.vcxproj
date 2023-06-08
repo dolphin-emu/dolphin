@@ -85,14 +85,10 @@
     <ClInclude Include="Core\Scripting\CoreScriptContextFiles\Vector.h" />
     <ClInclude Include="Core\Scripting\InternalAPIModules\ConfigAPI.h" />
     <ClInclude Include="Core\Scripting\InternalAPIModules\InstructionStepAPI.h" />
-    <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\ConfigModuleImporter.h" />
-    <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\InstructionStepModuleImporter.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Scripting\InternalAPIModules\ConfigAPI.cpp" />
     <ClCompile Include="Core\Scripting\InternalAPIModules\InstructionStepAPI.cpp" />
-    <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\ConfigModuleImporter.cpp" />
-    <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\ModuleImporters\InstructionStepModuleImporter.cpp" />
   </ItemGroup>
   <UsingTask TaskName="GetProductVersion" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>

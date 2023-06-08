@@ -48,7 +48,7 @@ FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
 ArgHolder ImportCommon(ScriptContext* current_script, std::string api_name,
                        std::string version_number)
 {
-  current_script->ImportModule(api_name, version_number);
+  current_script->scriptContextBaseFunctionsTable.ImportModule(current_script, api_name.c_str(), version_number.c_str());
   return CreateVoidTypeArgHolder();
 }
 
@@ -64,7 +64,7 @@ ArgHolder ImportAlt(ScriptContext* current_script, std::vector<ArgHolder>& args_
 
 ArgHolder ShutdownScript(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
-  current_script->ShutdownScript();
+  ShutdownScript(current_script);
   return CreateShutdownTypeArgHolder();
 }
 

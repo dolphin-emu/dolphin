@@ -12,54 +12,54 @@ extern "C" {
 
 extern const char* most_recent_script_version = "1.0.0";
 
+struct ScriptContext;
 
 typedef struct ScriptContextBaseFunctionsTable
 {
 
-  void (*print_callback)(const char*);
-  void (*script_end_callback)(int);
+  void (*print_callback)(struct ScriptContext*, const char*);
+  void (*script_end_callback)(struct ScriptContext*, int);
 
-  void (*ImportModule)(const char*, const char*);
+  void (*ImportModule)(struct ScriptContext*, const char*, const char*);
 
-  void (*StartScript)();
-  void (*RunGlobalScopeCode)();
+  void (*StartScript)(struct ScriptContext*);
+  void (*RunGlobalScopeCode)(struct ScriptContext*);
 
-  void (*RunOnFrameStartCallbacks)();
-  void (*RunOnFrameStartCallbacks)();
-  void (*RunOnGCControllerPolledCallbacks)();
-  void (*RunOnInstructionReachedCallbacks)(u32);
-  void (*RunOnMemoryAddressReadFromCallbacks)(u32);
-  void (*RunOnMemoryAddressWrittenToCallbacks)(u32);
-  void (*RunOnWiiInputPolledCallbacks)();
+  void (*RunOnFrameStartCallbacks)(struct ScriptContext*);
+  void (*RunOnGCControllerPolledCallbacks)(struct ScriptContext*);
+  void (*RunOnInstructionReachedCallbacks)(struct ScriptContext*, u32);
+  void (*RunOnMemoryAddressReadFromCallbacks)(struct ScriptContext*, u32);
+  void (*RunOnMemoryAddressWrittenToCallbacks)(struct ScriptContext*, u32);
+  void (*RunOnWiiInputPolledCallbacks)(struct ScriptContext*);
 
-  void* (*RegisterOnFrameStartCallbacks)(void*);
-  void (*RegisterOnFrameStartWithAutoDeregistrationCallbacks)(void*);
-  int (*UnregisterOnFrameStartCallbacks)(void*);
+  void* (*RegisterOnFrameStartCallbacks)(struct ScriptContext*, void*);
+  void (*RegisterOnFrameStartWithAutoDeregistrationCallbacks)(struct ScriptContext*, void*);
+  int (*UnregisterOnFrameStartCallbacks)(struct ScriptContext*, void*);
 
-  void* (*RegisterOnGCControllerPolledCallbacks)(void*);
-  void (*RegisterOnGCControllerPolledWithAutoDeregistrationCallbacks)(void*);
-  int (*UnregisterOnGCControllerPolledCallbacks)(void*);
+  void* (*RegisterOnGCControllerPolledCallbacks)(struct ScriptContext*, void*);
+  void (*RegisterOnGCControllerPolledWithAutoDeregistrationCallbacks)(struct ScriptContext*, void*);
+  int (*UnregisterOnGCControllerPolledCallbacks)(struct ScriptContext*, void*);
 
-  void* (*RegisterOnInstructionReachedCallbacks)(u32, void*);
-  void (*RegisterOnInstructioReachedWithAutoDeregistrationCallbacks)(u32, void*);
-  int (*UnregisterOnInstructionReachedCallbacks)(u32, void*);
+  void* (*RegisterOnInstructionReachedCallbacks)(struct ScriptContext*, u32, void*);
+  void (*RegisterOnInstructioReachedWithAutoDeregistrationCallbacks)(struct ScriptContext*, u32, void*);
+  int (*UnregisterOnInstructionReachedCallbacks)(struct ScriptContext*, u32, void*);
 
-  void* (*RegisterOnMemoryAddressReadFromCallbacks)(u32, void*);
-  void (*RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallbacks)(u32, void*);
-  int (*UnregisterOnMemoryAddressReadFromCallbacks)(u32, void*);
+  void* (*RegisterOnMemoryAddressReadFromCallbacks)(struct ScriptContext*, u32, void*);
+  void (*RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallbacks)(struct ScriptContext*, u32, void*);
+  int (*UnregisterOnMemoryAddressReadFromCallbacks)(struct ScriptContext*, u32, void*);
 
-  void* (*RegisterOnMemoryAddressWrittenToCallbacks)(u32, void*);
-  void (*RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallbacks)(u32, void*);
-  int (*UnregisterOnMemoryAddressWrittenToCallbacks)(u32, void*);
+  void* (*RegisterOnMemoryAddressWrittenToCallbacks)(struct ScriptContext*, u32, void*);
+  void (*RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallbacks)(struct ScriptContext*, u32, void*);
+  int (*UnregisterOnMemoryAddressWrittenToCallbacks)(struct ScriptContext*, u32, void*);
 
-  void* (*RegisterOnWiiInputPolledCallbacks)(void*);
-  void (*RegisterOnWiiInputPolledWithAutoDeregistrationCallbacks)(void*);
-  int (*UnregisterOnWiiInputPolledCallbacks)(void*);
+  void* (*RegisterOnWiiInputPolledCallbacks)(struct ScriptContext*, void*);
+  void(*RegisterOnWiiInputPolledWithAutoDeregistrationCallbacks) (struct ScriptContext*, void*);
+  int (*UnregisterOnWiiInputPolledCallbacks)(struct ScriptContext*, void*);
 
-  void (*RegisterButtonCallback)(long long, void*);
-  int (*IsButtonRegistered)(long long);
-  void (*GetButtonCallbacksAndAddToQueue)(long long);
-  void (*RunButtonCallbacksInQueue)();
+  void (*RegisterButtonCallback)(struct ScriptContext*, long long, void*);
+  int (*IsButtonRegistered)(struct ScriptContext*, long long);
+  void (*GetButtonCallbackAndAddToQueue)(struct ScriptContext*, long long);
+  void (*RunButtonCallbacksInQueue)(struct ScriptContext*);
 
 } ScriptContextBaseFunctionsTable;
 
@@ -83,12 +83,12 @@ typedef struct ScriptContext
 } ScriptContext;
 
 ScriptContext* CreateScript(int unique_identifier, const char* script_file_name,
-                            void (*print_callback_function)(const char*),
-                            void(*script))
+                            void (*print_callback_function)(const char*), void(*script));
+
   void ShutdownScript(ScriptContext* script_context)
   {
   script_context->is_script_active = 0;
-  script_context->scriptContextBaseFunctionsTable.script_end_callback(script_context->unique_script_identifier);
+  script_context->scriptContextBaseFunctionsTable.script_end_callback(script_context, script_context->unique_script_identifier);
   }
 
 #endif

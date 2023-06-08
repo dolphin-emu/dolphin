@@ -11,105 +11,104 @@ typedef struct MemoryAddressBreakpointsHolder
 {
   Vector read_breakpoint_addresses;
   Vector write_breakpoint_addresses;
+  void (*AddReadBreakpoint)(struct MemoryAddressBreakpointsHolder*, u32);
+  int (*ContainsReadBreakpoint)(struct MemoryAddressBreakpointsHolder*, u32);
+  void (*RemoveReadBreakpoint)(struct MemoryAddressBreakpointsHolder*, u32);
+  void (*AddWriteBreakpoint)(struct MemoryAddressBreakpointsHolder*, u32);
+  int (*ContainsWriteBreakpoint)(struct MemoryAddressBreakpointsHolder*, u32);
+  void (*RemoveWriteBreakpoint)(struct MemoryAddressBreakpointsHolder*, u32);
+  u32 (*RemoveReadBreakpoints_OneByOne)(struct MemoryAddressBreakpointsHolder*);
+  u32 (*RemoveWriteBreakpoints_OneByOne)(struct MemoryAddressBreakpointsHolder*);
 } MemoryAddressBreakpointsHolder;
 
-  MemoryAddressBreakpointsHolder() {}
-  inline ~MemoryAddressBreakpointsHolder() { ClearAllBreakpoints(); }
 
-  void AddReadBreakpoint(u32 addr)
+  void MemoryAddressBreakpointsHolder_AddReadBreakpoint(MemoryAddressBreakpointsHolder* __this, u32 addr)
   {
-    Vector_PushBack(&read_breakpoint_addresses, reinterpret_cast<void*>(addr));  // add this to the list of breakpoints regardless of whether or not it's a duplicate
-    bool write_breakpoint_exists = this->ContainsWriteBreakpoint(addr);
-
-    TMemCheck check;
-
-    check.start_address = addr;
-    check.end_address = addr;
-    check.is_break_on_read = true;
-    check.is_break_on_write = write_breakpoint_exists;
-    check.condition = std::nullopt;
-    check.break_on_hit = true;
-
-    Core::System::GetInstance().GetPowerPC().GetMemChecks().Add(std::move(check));
+    __this->read_breakpoint_addresses.push_back(&(__this->read_breakpoint_addresses), reinterpret_cast<void*>(addr));  // add this to the list of breakpoints regardless of whether or not it's a duplicate
   }
 
-  void AddWriteBreakpoint(u32 addr)
+  int MemoryAddressBreakpointsHolder_GetNumReadCopiesOfBreakpoint(MemoryAddressBreakpointsHolder* __this, u32 addr)
   {
-    this->write_breakpoint_addresses.push_back(
-        addr);  // add this to the list of breakpoints regardless of whether or not its a duplicate
-
-    bool read_breakpoint_exists = this->ContainsReadBreakpoint(addr);
-
-    TMemCheck check;
-
-    check.start_address = addr;
-    check.end_address = addr;
-    check.is_break_on_read = read_breakpoint_exists;
-    check.is_break_on_write = true;
-    check.condition = {};
-    check.break_on_hit = true;
-
-    Core::System::GetInstance().GetPowerPC().GetMemChecks().Add(std::move(check));
+    return __this->read_breakpoint_addresses.count(&(__this->read_breakpoint_addresses), reinterpret_cast<void*>(addr));
   }
 
-  void RemoveReadBreakpoint(u32 addr)
+  int MemoryAddressBreakpointsHolder_ContainsReadBreakpoint(MemoryAddressBreakpointsHolder* __this, u32 addr)
   {
-    if (!this->ContainsReadBreakpoint(addr))
-      return;
-    else
+    return __this->read_breakpoint_addresses.count(&(__this->read_breakpoint_addresses), reinterpret_cast<void*>(addr)) > 0;
+  }
+
+  void MemoryAddressBreakpointsHolder_RemoveReadBreakpoint(MemoryAddressBreakpointsHolder* __this, u32 addr)
+  {
+    if (MemoryAddressBreakpointsHolder_ContainsReadBreakpoint(__this, addr))
+      __this->read_breakpoint_addresses.remove_by_value(&(__this->read_breakpoint_addresses), reinterpret_cast<void*>(addr));
+  }
+
+  void MemoryAddressBreakpointsHolder_AddWriteBreakpoint(MemoryAddressBreakpointsHolder* __this, u32 addr)
+  {
+    __this->write_breakpoint_addresses.push_back(&(__this->write_breakpoint_addresses), reinterpret_cast<void*>(addr)); // add this to the list of breakpoints regardless of whether or not it's a duplicate
+  }
+
+  int MemoryAddressBreakpointsHolder_GetNumWriteCopiesOfBreakpoint(MemoryAddressBreakpointsHolder* __this, u32 addr)
+  {
+    return __this->write_breakpoint_addresses.count(&(__this->write_breakpoint_addresses), reinterpret_cast<void*>(addr));
+  }
+
+  int MemoryAddressBreakpointsHolder_ContainsWriteBreakpoint(MemoryAddressBreakpointsHolder* __this, u32 addr)
+  {
+    return __this->write_breakpoint_addresses.count(&(__this->write_breakpoint_addresses), reinterpret_cast<void*>(addr)) > 0;
+  }
+
+  void MemoryAddressBreakpointsHolder_RemoveWriteBreakpoint(MemoryAddressBreakpointsHolder* __this, u32 addr)
+  {
+    if (MemoryAddressBreakpointsHolder_ContainsWriteBreakpoint(__this, addr))
+      __this->write_breakpoint_addresses.remove_by_value(&(__this->write_breakpoint_addresses), reinterpret_cast<void*>(addr));
+  }
+
+  u32 MemoryAddressBreakpointsHolder_RemoveReadBreakpoints_OneByOne(MemoryAddressBreakpointsHolder* __this)
+  {
+    u32 ret_val = 0;
+    if (__this->read_breakpoint_addresses.length > 0)
     {
-      read_breakpoint_addresses.erase(
-          std::find(read_breakpoint_addresses.begin(), read_breakpoint_addresses.end(), addr));
-
-      if (!this->ContainsReadBreakpoint(addr) && !this->ContainsWriteBreakpoint(addr))
-      {
-        Core::System::GetInstance().GetPowerPC().GetMemChecks().Remove(addr);
-      }
+      ret_val = reinterpret_cast<u32>(__this->read_breakpoint_addresses.get(&(__this->read_breakpoint_addresses), __this->read_breakpoint_addresses.length - 1));
+      __this->read_breakpoint_addresses.pop(&(__this->read_breakpoint_addresses));
     }
+    return ret_val;
   }
 
-  void RemoveWriteBreakpoint(u32 addr)
+  u32 MemoryAddressBreakpointsHolder_RemoveWriteBreakpoints_OneByOne(MemoryAddressBreakpointsHolder* __this)
   {
-    if (!this->ContainsWriteBreakpoint(addr))
-      return;
-    else
+    u32 ret_val = 0;
+    if (__this->write_breakpoint_addresses.length > 0)
     {
-      write_breakpoint_addresses.erase(
-          std::find(write_breakpoint_addresses.begin(), write_breakpoint_addresses.end(), addr));
-
-      if (!this->ContainsReadBreakpoint(addr) && !this->ContainsWriteBreakpoint(addr))
-      {
-        Core::System::GetInstance().GetPowerPC().GetMemChecks().Remove(addr);
-      }
+      ret_val = reinterpret_cast<u32>(__this->write_breakpoint_addresses.get(&(__this->write_breakpoint_addresses), __this->write_breakpoint_addresses.length - 1));
+      __this->write_breakpoint_addresses.pop(&(__this->write_breakpoint_addresses));
     }
+    return ret_val;
   }
 
-  void ClearAllBreakpoints()
+  MemoryAddressBreakpointsHolder MemoryAddressBreakpointsHolder_Initializer()
   {
-    while (read_breakpoint_addresses.size() > 0)
-      this->RemoveReadBreakpoint(read_breakpoint_addresses[0]);
-
-    while (write_breakpoint_addresses.size() > 0)
-      this->RemoveWriteBreakpoint(write_breakpoint_addresses[0]);
+    MemoryAddressBreakpointsHolder ret_val;
+    ret_val.read_breakpoint_addresses = Vector_Initializer(NULL);
+    ret_val.write_breakpoint_addresses = Vector_Initializer(NULL);
+    ret_val.AddReadBreakpoint = MemoryAddressBreakpointsHolder_AddReadBreakpoint;
+    ret_val.AddWriteBreakpoint = MemoryAddressBreakpointsHolder_AddWriteBreakpoint;
+    ret_val.ContainsReadBreakpoint = MemoryAddressBreakpointsHolder_ContainsReadBreakpoint;
+    ret_val.ContainsWriteBreakpoint = MemoryAddressBreakpointsHolder_ContainsWriteBreakpoint;
+    ret_val.RemoveReadBreakpoint = MemoryAddressBreakpointsHolder_RemoveReadBreakpoint;
+    ret_val.RemoveWriteBreakpoint = MemoryAddressBreakpointsHolder_RemoveWriteBreakpoint;
+    ret_val.RemoveReadBreakpoints_OneByOne = MemoryAddressBreakpointsHolder_RemoveReadBreakpoints_OneByOne;
+    ret_val.RemoveWriteBreakpoints_OneByOne = MemoryAddressBreakpointsHolder_RemoveWriteBreakpoints_OneByOne;
+    return ret_val;
   }
 
-  bool ContainsReadBreakpoint(u32 addr) { return this->GetNumReadCopiesOfBreakpoint(addr) > 0; }
-
-  bool ContainsWriteBreakpoint(u32 addr) { return this->GetNumWriteCopiesOfBreakpoint(addr) > 0; }
-
-  size_t GetNumReadCopiesOfBreakpoint(u32 addr)
+   void MemoryAddressBreakpointsHolder_Destructor(MemoryAddressBreakpointsHolder* __this)
   {
-    return std::count(read_breakpoint_addresses.begin(), read_breakpoint_addresses.end(), addr);
+    Vector_Destructor(&(__this->read_breakpoint_addresses));
+    Vector_Destructor(&(__this->write_breakpoint_addresses));
+    memset(__this, 0, sizeof(MemoryAddressBreakpointsHolder));
   }
-
-  size_t GetNumWriteCopiesOfBreakpoint(u32 addr)
-  {
-    return std::count(write_breakpoint_addresses.begin(), write_breakpoint_addresses.end(), addr);
-  }
-
-
-};
-
+  
 #endif
 
 #ifdef __cplusplus

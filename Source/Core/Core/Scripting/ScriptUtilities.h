@@ -8,6 +8,8 @@
 #include "Core/Scripting/LanguageDefinitions/DefinedScriptingLanguagesEnum.h"
 #include "Core/Scripting/CoreScriptContextFiles/ScriptContext.h"
 
+#include "common/ThreadSafeQueue.h"
+
 namespace Scripting::ScriptUtilities
 {
 

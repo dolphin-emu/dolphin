@@ -55,21 +55,21 @@ FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
 ArgHolder Register(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   return CreateRegistrationReturnTypeArgHolder(
-      current_script->RegisterOnGCCControllerPolledCallbacks(args_list[0].void_pointer_val));
+      current_script->scriptContextBaseFunctionsTable.RegisterOnGCControllerPolledCallbacks(current_script, args_list[0].void_pointer_val));
 }
 
 ArgHolder RegisterWithAutoDeregistration(ScriptContext* current_script,
                                          std::vector<ArgHolder>& args_list)
 {
-  current_script->RegisterOnGCControllerPolledWithAutoDeregistrationCallbacks(
-      args_list[0].void_pointer_val);
+  current_script->scriptContextBaseFunctionsTable.RegisterOnGCControllerPolledWithAutoDeregistrationCallbacks(
+      current_script, args_list[0].void_pointer_val);
   return CreateRegistrationWithAutoDeregistrationReturnTypeArgHolder();
 }
 
 ArgHolder Unregister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   bool return_value =
-      current_script->UnregisterOnGCControllerPolledCallbacks(args_list[0].void_pointer_val);
+      current_script->scriptContextBaseFunctionsTable.UnregisterOnGCControllerPolledCallbacks(current_script, args_list[0].void_pointer_val);
   if (!return_value)
     return CreateErrorStringArgHolder(
         "Argument passed into OnGCControllerPolled:unregister() was not a reference to a function "

@@ -23,6 +23,18 @@ void InstructionBreakpointsHolder_AddBreakpoint(InstructionBreakpointsHolder* in
   instructionBreakpointsHolder->breakpoint_addresses.push_back(&(instructionBreakpointsHolder->breakpoint_addresses), reinterpret_cast<void*>(addr)); // add this to the list of breakpoints regardless of whether or not its a duplicate
 }
 
+int InstructionBreakpointsHolder_GetNumCopiesOfBreakpoint(
+    InstructionBreakpointsHolder* instructionBreakpointsHolder, u32 addr)
+{
+  return instructionBreakpointsHolder->breakpoint_addresses.count(
+      &(instructionBreakpointsHolder->breakpoint_addresses), reinterpret_cast<void*>(addr));
+}
+
+int InstructionBreakpointsHolder_ContainsBreakpoint(InstructionBreakpointsHolder* instructionBreakpointsHolder, u32 addr)
+{
+  return InstructionBreakpointsHolder_GetNumCopiesOfBreakpoint(instructionBreakpointsHolder, addr) > 0;
+}
+
   void InstructionBreakpointsHolder_RemoveBreakpoint(InstructionBreakpointsHolder* instructionBreakpointsHolder, u32 addr)
   {
   if (!InstructionBreakpointsHolder_ContainsBreakpoint(instructionBreakpointsHolder, addr))
@@ -36,16 +48,6 @@ void InstructionBreakpointsHolder_AddBreakpoint(InstructionBreakpointsHolder* in
   void InstuctionBreakpointsHolder_ClearAllBreakpoints(InstructionBreakpointsHolder* instructionBreakpointsHolder)
   {
     Vector_Destructor(&(instructionBreakpointsHolder->breakpoint_addresses));
-  }
-
-  int InstructionBreakpointsHolder_ContainsBreakpoint(InstructionBreakpointsHolder* instructionBreakpointsHolder, u32 addr)
-  {
-    return InstructionBreakpointsHolder_GetNumCopiesOfBreakpoint(instructionBreakpointsHolder, addr) > 0;
-  }
-
-  int InstructionBreakpointsHolder_GetNumCopiesOfBreakpoint(InstructionBreakpointsHolder* instructionBreakpointsHolder, u32 addr)
-  {
-    return instructionBreakpointsHolder->breakpoint_addresses.count(&(instructionBreakpointsHolder->breakpoint_addresses), reinterpret_cast<void*>(addr));
   }
 
   InstructionBreakpointsHolder InstructionBreakpointsHolder_Initialize()
@@ -62,6 +64,7 @@ void InstructionBreakpointsHolder_AddBreakpoint(InstructionBreakpointsHolder* in
   void InstructionBreakpointsHolder_Destructor(InstructionBreakpointsHolder* instructionBreakpointsHolder)
   {
     InstuctionBreakpointsHolder_ClearAllBreakpoints(instructionBreakpointsHolder);
+    memset(instructionBreakpointsHolder, 0, sizeof(InstructionBreakpointsHolder));
   }
 
 #endif

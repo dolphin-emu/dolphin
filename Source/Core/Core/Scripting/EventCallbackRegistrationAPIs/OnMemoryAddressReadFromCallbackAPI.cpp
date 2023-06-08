@@ -1,6 +1,9 @@
 #include "Core/Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressReadFromCallbackAPI.h"
 
 #include "Core/Scripting/HelperClasses/VersionResolver.h"
+#include "Core/PowerPC/BreakPoints.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 namespace Scripting::OnMemoryAddressReadFromCallbackAPI
 {
@@ -51,25 +54,76 @@ FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
 
 ArgHolder Register(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
+  u32 memory_breakpoint_address = args_list[0].u32_val;
+  void* callback = args_list[1].void_pointer_val;
+
+  if (memory_breakpoint_address == 0)
+    return CreateErrorStringArgHolder("Error: Memory address breakpoint cannot be 0!");
+
+  int write_breakpoint_exists = current_script->memoryAddressBreakpointsHolder.ContainsWriteBreakpoint(&(current_script->memoryAddressBreakpointsHolder), memory_breakpoint_address);
+
+  TMemCheck check;
+
+  check.start_address = memory_breakpoint_address;
+  check.end_address = memory_breakpoint_address;
+  check.is_break_on_read = true;
+  check.is_break_on_write = write_breakpoint_exists;
+  check.condition = std::nullopt;
+  check.break_on_hit = true;
+
+  Core::System::GetInstance().GetPowerPC().GetMemChecks().Add(std::move(check));
+  current_script->memoryAddressBreakpointsHolder.AddReadBreakpoint(&(current_script->memoryAddressBreakpointsHolder), memory_breakpoint_address);
   return CreateRegistrationReturnTypeArgHolder(
-      current_script->RegisterOnMemoryAddressReadFromCallbacks(args_list[0].u32_val,
-                                                               args_list[1].void_pointer_val));
+      current_script->scriptContextBaseFunctionsTable.RegisterOnMemoryAddressReadFromCallbacks(current_script, memory_breakpoint_address, callback));
 }
 
 ArgHolder RegisterWithAutoDeregistration(ScriptContext* current_script,
                                          std::vector<ArgHolder>& args_list)
 {
-  current_script->RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallbacks(
-      args_list[0].u32_val, args_list[1].void_pointer_val);
+  u32 memory_breakpoint_address = args_list[0].u32_val;
+  void* callback = args_list[1].void_pointer_val;
+
+  if (memory_breakpoint_address == 0)
+    return CreateErrorStringArgHolder("Error: Memory address breakpoint cannot be 0!");
+
+  int write_breakpoint_exists =
+      current_script->memoryAddressBreakpointsHolder.ContainsWriteBreakpoint(
+          &(current_script->memoryAddressBreakpointsHolder), memory_breakpoint_address);
+
+  TMemCheck check;
+
+  check.start_address = memory_breakpoint_address;
+  check.end_address = memory_breakpoint_address;
+  check.is_break_on_read = true;
+  check.is_break_on_write = write_breakpoint_exists;
+  check.condition = std::nullopt;
+  check.break_on_hit = true;
+
+  Core::System::GetInstance().GetPowerPC().GetMemChecks().Add(std::move(check));
+  current_script->memoryAddressBreakpointsHolder.AddReadBreakpoint(
+      &(current_script->memoryAddressBreakpointsHolder), memory_breakpoint_address);
+
+  current_script->scriptContextBaseFunctionsTable.RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallbacks(current_script, memory_breakpoint_address, callback);
   return CreateRegistrationWithAutoDeregistrationReturnTypeArgHolder();
 }
 
 ArgHolder Unregister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
-  if (args_list[0].u32_val < 0)
-    return CreateErrorStringArgHolder("Address was less than 0!");
-  bool return_value = current_script->UnregisterOnMemoryAddressReadFromCallbacks(
-      args_list[0].u32_val, args_list[1].void_pointer_val);
+  u32 memory_breakpoint_address = args_list[0].u32_val;
+  void* callback = args_list[1].void_pointer_val;
+  current_script->memoryAddressBreakpointsHolder.RemoveReadBreakpoint(
+      &(current_script->memoryAddressBreakpointsHolder), memory_breakpoint_address);
+
+  if (!current_script->memoryAddressBreakpointsHolder.ContainsReadBreakpoint(
+          &(current_script->memoryAddressBreakpointsHolder), memory_breakpoint_address) &&
+      !current_script->memoryAddressBreakpointsHolder.ContainsWriteBreakpoint(
+          &(current_script->memoryAddressBreakpointsHolder), memory_breakpoint_address))
+  {
+    Core::System::GetInstance().GetPowerPC().GetMemChecks().Remove(memory_breakpoint_address);
+  }
+
+  bool return_value = current_script->scriptContextBaseFunctionsTable.UnregisterOnMemoryAddressReadFromCallbacks(current_script, memory_breakpoint_address, callback);
+
   if (!return_value)
     return CreateErrorStringArgHolder(
         "2nd Argument passed into OnMemoryAddressReadFrom:unregister() was not a reference to a "

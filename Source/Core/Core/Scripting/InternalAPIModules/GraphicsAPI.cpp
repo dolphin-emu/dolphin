@@ -699,10 +699,10 @@ ArgHolder AddButton(ScriptContext* current_script, std::vector<ArgHolder>& args_
 
   else if (!display_stack.empty() && display_stack.top())
   {
-    current_script->RegisterButtonCallback(button_id, function_callback);
+    current_script->scriptContextBaseFunctionsTable.RegisterButtonCallback(current_script, button_id, function_callback);
     if (ImGui::Button(button_label.c_str(), {button_width, button_height}))
     {  // true when button was pressed, and false otherwise
-      current_script->GetButtonCallbackAndAddToQueue(button_id);
+      current_script->scriptContextBaseFunctionsTable.GetButtonCallbackAndAddToQueue(current_script, button_id);
     }
   }
   return CreateVoidTypeArgHolder();
@@ -717,13 +717,13 @@ ArgHolder PressButton(ScriptContext* current_script, std::vector<ArgHolder>& arg
     return CreateErrorStringArgHolder("Cannot press button which is not displayed on screen!");
   }
 
-  if (!current_script->IsButtonRegistered(button_id))
+  if (!current_script->scriptContextBaseFunctionsTable.IsButtonRegistered(current_script, button_id))
     return CreateErrorStringArgHolder(fmt::format(
         "Attempted to press undefined button of {}. User must call "
         "GraphicsAPI:registerButtonCallback() before they can call GraphicsAPI:pressButton()",
         button_id));
 
-  current_script->GetButtonCallbackAndAddToQueue(button_id);
+  current_script->scriptContextBaseFunctionsTable.GetButtonCallbackAndAddToQueue(current_script, button_id);
 
   return CreateVoidTypeArgHolder();
 }

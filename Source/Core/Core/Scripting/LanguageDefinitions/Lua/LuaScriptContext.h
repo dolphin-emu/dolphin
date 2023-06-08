@@ -1,3 +1,4 @@
+/*
 #ifndef LUA_SCRIPT_CONTEXT
 #define LUA_SCRIPT_CONTEXT
 
@@ -77,7 +78,6 @@ public:
       if (lua_isstring(lua_state, i))
       {
         output_string.append(lua_tostring(lua_state, i));
-        /* Pop the next arg using lua_tostring(L, i) and do your print */
       }
       else if (lua_isinteger(lua_state, i))
       {
@@ -305,3 +305,4 @@ private:
 }  // namespace Scripting::Lua
 
 #endif
+*/

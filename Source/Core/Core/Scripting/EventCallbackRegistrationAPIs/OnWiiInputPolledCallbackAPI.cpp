@@ -42,13 +42,13 @@ FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
 ArgHolder Register(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   return CreateRegistrationReturnTypeArgHolder(
-      current_script->RegisterOnWiiInputPolledCallbacks(args_list[0].void_pointer_val));
+      current_script->scriptContextBaseFunctionsTable.RegisterOnWiiInputPolledCallbacks(current_script, args_list[0].void_pointer_val));
 }
 
 ArgHolder RegisterWithAutoDeregistration(ScriptContext* current_script,
                                          std::vector<ArgHolder>& args_list)
 {
-  current_script->RegisterOnWiiInputPolledWithAutoDeregistrationCallbacks(
+  current_script->scriptContextBaseFunctionsTable.RegisterOnWiiInputPolledWithAutoDeregistrationCallbacks(current_script,
       args_list[0].void_pointer_val);
   return CreateRegistrationWithAutoDeregistrationReturnTypeArgHolder();
 }
@@ -56,7 +56,7 @@ ArgHolder RegisterWithAutoDeregistration(ScriptContext* current_script,
 ArgHolder Unregister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
 {
   bool return_value =
-      current_script->UnregisterOnWiiInputPolledCallbacks(args_list[0].void_pointer_val);
+      current_script->scriptContextBaseFunctionsTable.UnregisterOnWiiInputPolledCallbacks(current_script, args_list[0].void_pointer_val);
   if (!return_value)
     return CreateErrorStringArgHolder(
         "Argument passed into OnWiiInputPolled:unregister() was not a reference to a function "

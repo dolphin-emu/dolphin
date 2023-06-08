@@ -6,6 +6,7 @@
 #include "Core/Scripting/HelperClasses/ArgTypeEnum.h"
 #include "Core/Scripting/HelperClasses/FunctionMetadata.h"
 #include "Core/Scripting/HelperClasses/VersionResolver.h"
+#include "Core/System.h"
 
 namespace Scripting::StatisticsApi
 {
