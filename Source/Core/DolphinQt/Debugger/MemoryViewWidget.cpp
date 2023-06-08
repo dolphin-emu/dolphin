@@ -609,7 +609,7 @@ AddressSpace::Type MemoryViewWidget::GetAddressSpace() const
   return m_address_space;
 }
 
-std::vector<u8> MemoryViewWidget::ConvertTextToBytes(Type type, QString input_text)
+std::vector<u8> MemoryViewWidget::ConvertTextToBytes(Type type, QStringView input_text) const
 {
   if (type == Type::Null)
     return {};
