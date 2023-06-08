@@ -24,44 +24,53 @@ typedef struct MemoryAddressBreakpointsHolder
 
   void MemoryAddressBreakpointsHolder_AddReadBreakpoint(MemoryAddressBreakpointsHolder* __this, u32 addr)
   {
-    __this->read_breakpoint_addresses.push_back(&(__this->read_breakpoint_addresses), reinterpret_cast<void*>(addr));  // add this to the list of breakpoints regardless of whether or not it's a duplicate
+  __this->read_breakpoint_addresses.push_back(&(__this->read_breakpoint_addresses), (void*)*((void**)&addr));  // add this to the list of breakpoints regardless of whether or not it's a
+                          // duplicate
   }
 
   int MemoryAddressBreakpointsHolder_GetNumReadCopiesOfBreakpoint(MemoryAddressBreakpointsHolder* __this, u32 addr)
   {
-    return __this->read_breakpoint_addresses.count(&(__this->read_breakpoint_addresses), reinterpret_cast<void*>(addr));
+  return __this->read_breakpoint_addresses.count(&(__this->read_breakpoint_addresses),
+                                                 (void*)*((void**)&addr));
   }
 
   int MemoryAddressBreakpointsHolder_ContainsReadBreakpoint(MemoryAddressBreakpointsHolder* __this, u32 addr)
   {
-    return __this->read_breakpoint_addresses.count(&(__this->read_breakpoint_addresses), reinterpret_cast<void*>(addr)) > 0;
+  return __this->read_breakpoint_addresses.count(&(__this->read_breakpoint_addresses),
+                                                 (void*)*((void**)&addr)) > 0;
   }
 
   void MemoryAddressBreakpointsHolder_RemoveReadBreakpoint(MemoryAddressBreakpointsHolder* __this, u32 addr)
   {
     if (MemoryAddressBreakpointsHolder_ContainsReadBreakpoint(__this, addr))
-      __this->read_breakpoint_addresses.remove_by_value(&(__this->read_breakpoint_addresses), reinterpret_cast<void*>(addr));
+      __this->read_breakpoint_addresses.remove_by_value(&(__this->read_breakpoint_addresses),  (void*)*((void**)&addr));
   }
 
   void MemoryAddressBreakpointsHolder_AddWriteBreakpoint(MemoryAddressBreakpointsHolder* __this, u32 addr)
   {
-    __this->write_breakpoint_addresses.push_back(&(__this->write_breakpoint_addresses), reinterpret_cast<void*>(addr)); // add this to the list of breakpoints regardless of whether or not it's a duplicate
+    __this->write_breakpoint_addresses.push_back(
+        &(__this->write_breakpoint_addresses),
+        (void*)*((void**)&addr));  // add this to the list of breakpoints regardless of whether or
+                                   // not it's a duplicate
   }
 
   int MemoryAddressBreakpointsHolder_GetNumWriteCopiesOfBreakpoint(MemoryAddressBreakpointsHolder* __this, u32 addr)
   {
-    return __this->write_breakpoint_addresses.count(&(__this->write_breakpoint_addresses), reinterpret_cast<void*>(addr));
+    return __this->write_breakpoint_addresses.count(&(__this->write_breakpoint_addresses),
+                                                    (void*)*((void**)&addr));
   }
 
   int MemoryAddressBreakpointsHolder_ContainsWriteBreakpoint(MemoryAddressBreakpointsHolder* __this, u32 addr)
   {
-    return __this->write_breakpoint_addresses.count(&(__this->write_breakpoint_addresses), reinterpret_cast<void*>(addr)) > 0;
+    return __this->write_breakpoint_addresses.count(&(__this->write_breakpoint_addresses),
+                                                    (void*)*((void**)&addr)) > 0;
   }
 
   void MemoryAddressBreakpointsHolder_RemoveWriteBreakpoint(MemoryAddressBreakpointsHolder* __this, u32 addr)
   {
     if (MemoryAddressBreakpointsHolder_ContainsWriteBreakpoint(__this, addr))
-      __this->write_breakpoint_addresses.remove_by_value(&(__this->write_breakpoint_addresses), reinterpret_cast<void*>(addr));
+      __this->write_breakpoint_addresses.remove_by_value(&(__this->write_breakpoint_addresses),
+                                                         (void*)*((void**)&addr));
   }
 
   u32 MemoryAddressBreakpointsHolder_RemoveReadBreakpoints_OneByOne(MemoryAddressBreakpointsHolder* __this)
@@ -69,7 +78,8 @@ typedef struct MemoryAddressBreakpointsHolder
     u32 ret_val = 0;
     if (__this->read_breakpoint_addresses.length > 0)
     {
-      ret_val = reinterpret_cast<u32>(__this->read_breakpoint_addresses.get(&(__this->read_breakpoint_addresses), __this->read_breakpoint_addresses.length - 1));
+      void* temp = __this->read_breakpoint_addresses.get(&(__this->read_breakpoint_addresses), __this->read_breakpoint_addresses.length - 1);
+      ret_val = *((u32*)(&temp));
       __this->read_breakpoint_addresses.pop(&(__this->read_breakpoint_addresses));
     }
     return ret_val;
@@ -80,7 +90,8 @@ typedef struct MemoryAddressBreakpointsHolder
     u32 ret_val = 0;
     if (__this->write_breakpoint_addresses.length > 0)
     {
-      ret_val = reinterpret_cast<u32>(__this->write_breakpoint_addresses.get(&(__this->write_breakpoint_addresses), __this->write_breakpoint_addresses.length - 1));
+      void* temp = __this->write_breakpoint_addresses.get(&(__this->write_breakpoint_addresses), __this->write_breakpoint_addresses.length - 1);
+      ret_val = *((u32*)&temp);
       __this->write_breakpoint_addresses.pop(&(__this->write_breakpoint_addresses));
     }
     return ret_val;

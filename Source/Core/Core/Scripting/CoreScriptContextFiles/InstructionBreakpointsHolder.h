@@ -20,14 +20,17 @@ typedef struct InstructionBreakpointsHolder
 
 void InstructionBreakpointsHolder_AddBreakpoint(InstructionBreakpointsHolder* instructionBreakpointsHolder, u32 addr)
 {
-  instructionBreakpointsHolder->breakpoint_addresses.push_back(&(instructionBreakpointsHolder->breakpoint_addresses), reinterpret_cast<void*>(addr)); // add this to the list of breakpoints regardless of whether or not its a duplicate
+  instructionBreakpointsHolder->breakpoint_addresses.push_back(
+      &(instructionBreakpointsHolder->breakpoint_addresses),
+      (void*)*((void**)&addr));  // add this to the list of breakpoints regardless of whether or not
+                                 // its a duplicate
 }
 
 int InstructionBreakpointsHolder_GetNumCopiesOfBreakpoint(
     InstructionBreakpointsHolder* instructionBreakpointsHolder, u32 addr)
 {
   return instructionBreakpointsHolder->breakpoint_addresses.count(
-      &(instructionBreakpointsHolder->breakpoint_addresses), reinterpret_cast<void*>(addr));
+      &(instructionBreakpointsHolder->breakpoint_addresses), (void*)*((void**)&addr));
 }
 
 int InstructionBreakpointsHolder_ContainsBreakpoint(InstructionBreakpointsHolder* instructionBreakpointsHolder, u32 addr)
@@ -41,7 +44,8 @@ int InstructionBreakpointsHolder_ContainsBreakpoint(InstructionBreakpointsHolder
     return;
   else
   {
-    instructionBreakpointsHolder->breakpoint_addresses.remove_by_value(&(instructionBreakpointsHolder->breakpoint_addresses), reinterpret_cast<void*>(addr));
+    instructionBreakpointsHolder->breakpoint_addresses.remove_by_value(
+        &(instructionBreakpointsHolder->breakpoint_addresses), (void*)*((void**)&addr));
   }
   }
 
