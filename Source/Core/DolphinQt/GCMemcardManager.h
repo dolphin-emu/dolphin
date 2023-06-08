@@ -3,10 +3,9 @@
 
 #pragma once
 
-#include <array>
 #include <map>
 #include <memory>
-#include <utility>
+#include <span>
 #include <vector>
 
 #include <QDialog>
@@ -62,7 +61,7 @@ private:
 
   std::vector<u8> GetSelectedFileIndices();
 
-  void ImportFiles(ExpansionInterface::Slot slot, const std::vector<Memcard::Savefile>& savefiles);
+  void ImportFiles(ExpansionInterface::Slot slot, std::span<const Memcard::Savefile> savefiles);
 
   void CopyFiles();
   void ImportFile();
