@@ -42,6 +42,7 @@
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/CPUThreadConfigCallback.h"
+#include "Core/Config/AchievementSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
@@ -1081,6 +1082,13 @@ void HostDispatchJobs()
 // NOTE: Host Thread
 void DoFrameStep()
 {
+#ifdef USE_RETRO_ACHIEVEMENTS
+  if (AchievementManager::GetInstance()->IsHardcoreModeActive())
+  {
+    OSD::AddMessage("Frame stepping is disabled in RetroAchievements hardcore mode");
+    return;
+  }
+#endif  // USE_RETRO_ACHIEVEMENTS
   if (GetState() == State::Paused)
   {
     // if already paused, frame advance for 1 frame
