@@ -55,7 +55,7 @@ void InfinityBaseWindow::CreateMainWindow()
   checkbox_layout->setAlignment(Qt::AlignHCenter);
   m_checkbox = new QCheckBox(tr("Emulate Infinity Base"), this);
   m_checkbox->setChecked(Config::Get(Config::MAIN_EMULATE_INFINITY_BASE));
-  connect(m_checkbox, &QCheckBox::toggled, [=](bool checked) { EmulateBase(checked); });
+  connect(m_checkbox, &QCheckBox::toggled, this, &InfinityBaseWindow::EmulateBase);
   checkbox_layout->addWidget(m_checkbox);
   checkbox_group->setLayout(checkbox_layout);
   main_layout->addWidget(checkbox_group);
