@@ -555,11 +555,13 @@ void OGLStagingTexture::Unmap()
 }
 
 OGLFramebuffer::OGLFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
+                               std::vector<AbstractTexture*> additional_color_attachments,
                                AbstractTextureFormat color_format,
                                AbstractTextureFormat depth_format, u32 width, u32 height,
                                u32 layers, u32 samples, GLuint fbo)
-    : AbstractFramebuffer(color_attachment, depth_attachment, color_format, depth_format, width,
-                          height, layers, samples),
+    : AbstractFramebuffer(color_attachment, depth_attachment,
+                          std::move(additional_color_attachments), color_format, depth_format,
+                          width, height, layers, samples),
       m_fbo(fbo)
 {
 }
@@ -569,10 +571,11 @@ OGLFramebuffer::~OGLFramebuffer()
   glDeleteFramebuffers(1, &m_fbo);
 }
 
-std::unique_ptr<OGLFramebuffer> OGLFramebuffer::Create(OGLTexture* color_attachment,
-                                                       OGLTexture* depth_attachment)
+std::unique_ptr<OGLFramebuffer>
+OGLFramebuffer::Create(OGLTexture* color_attachment, OGLTexture* depth_attachment,
+                       std::vector<AbstractTexture*> additional_color_attachments)
 {
-  if (!ValidateConfig(color_attachment, depth_attachment))
+  if (!ValidateConfig(color_attachment, depth_attachment, additional_color_attachments))
     return nullptr;
 
   const AbstractTextureFormat color_format =
@@ -589,6 +592,7 @@ std::unique_ptr<OGLFramebuffer> OGLFramebuffer::Create(OGLTexture* color_attachm
   glGenFramebuffers(1, &fbo);
   glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
+  std::vector<GLenum> buffers;
   if (color_attachment)
   {
     if (color_attachment->GetConfig().layers > 1)
@@ -601,6 +605,7 @@ std::unique_ptr<OGLFramebuffer> OGLFramebuffer::Create(OGLTexture* color_attachm
       glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                                 color_attachment->GetGLTextureId(), 0, 0);
     }
+    buffers.push_back(GL_COLOR_ATTACHMENT0);
   }
 
   if (depth_attachment)
@@ -619,10 +624,29 @@ std::unique_ptr<OGLFramebuffer> OGLFramebuffer::Create(OGLTexture* color_attachm
     }
   }
 
+  for (std::size_t i = 0; i < additional_color_attachments.size(); i++)
+  {
+    const auto attachment_enum = static_cast<GLenum>(GL_COLOR_ATTACHMENT0 + i + 1);
+    OGLTexture* attachment = static_cast<OGLTexture*>(additional_color_attachments[i]);
+    if (attachment->GetConfig().layers > 1)
+    {
+      glFramebufferTexture(GL_FRAMEBUFFER, attachment_enum, attachment->GetGLTextureId(), 0);
+    }
+    else
+    {
+      glFramebufferTextureLayer(GL_FRAMEBUFFER, attachment_enum, attachment->GetGLTextureId(), 0,
+                                0);
+    }
+    buffers.push_back(attachment_enum);
+  }
+
+  glDrawBuffers(static_cast<GLsizei>(buffers.size()), buffers.data());
+
   DEBUG_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
   GetOGLGfx()->RestoreFramebufferBinding();
 
-  return std::make_unique<OGLFramebuffer>(color_attachment, depth_attachment, color_format,
+  return std::make_unique<OGLFramebuffer>(color_attachment, depth_attachment,
+                                          std::move(additional_color_attachments), color_format,
                                           depth_format, width, height, layers, samples, fbo);
 }
 

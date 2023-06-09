@@ -10,6 +10,7 @@
 
 #include <array>
 #include <memory>
+#include <vector>
 
 class AbstractFramebuffer;
 class AbstractPipeline;
@@ -75,7 +76,8 @@ public:
   virtual std::unique_ptr<AbstractStagingTexture>
   CreateStagingTexture(StagingTextureType type, const TextureConfig& config) = 0;
   virtual std::unique_ptr<AbstractFramebuffer>
-  CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment) = 0;
+  CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
+                    std::vector<AbstractTexture*> additional_color_attachments = {}) = 0;
 
   // Framebuffer operations.
   virtual void SetFramebuffer(AbstractFramebuffer* framebuffer);

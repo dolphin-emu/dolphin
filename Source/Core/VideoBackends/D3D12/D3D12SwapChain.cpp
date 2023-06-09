@@ -42,7 +42,7 @@ bool SwapChain::CreateSwapChainBuffers()
     if (!buffer.texture)
       return false;
 
-    buffer.framebuffer = DXFramebuffer::Create(buffer.texture.get(), nullptr);
+    buffer.framebuffer = DXFramebuffer::Create(buffer.texture.get(), nullptr, {});
     ASSERT_MSG(VIDEO, buffer.framebuffer != nullptr,
                "Failed to create swap chain buffer framebuffer");
     if (!buffer.framebuffer)
