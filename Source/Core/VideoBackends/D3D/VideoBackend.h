@@ -18,7 +18,7 @@ public:
   std::string GetDisplayName() const override;
   std::optional<std::string> GetWarningMessage() const override;
 
-  void InitBackendInfo() override;
+  void InitBackendInfo(const WindowSystemInfo& wsi) override;
 
   static constexpr const char* NAME = "D3D";
 

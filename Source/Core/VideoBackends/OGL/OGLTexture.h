@@ -36,6 +36,7 @@ public:
   {
     return IsMultisampled() ? GL_TEXTURE_2D_MULTISAMPLE_ARRAY : GL_TEXTURE_2D_ARRAY;
   }
+  static GLenum GetGLInternalFormatForTextureFormat(AbstractTextureFormat format, bool storage);
   GLenum GetGLFormatForImageTexture() const;
 
 private:

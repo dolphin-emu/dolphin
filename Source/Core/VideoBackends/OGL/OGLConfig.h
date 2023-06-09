@@ -82,8 +82,6 @@ struct VideoConfig
   const char* gl_vendor;
   const char* gl_renderer;
   const char* gl_version;
-
-  s32 max_samples;
 };
 
 void InitDriverInfo();

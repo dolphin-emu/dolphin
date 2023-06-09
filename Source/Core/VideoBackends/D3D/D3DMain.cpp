@@ -63,7 +63,7 @@ std::optional<std::string> VideoBackend::GetWarningMessage() const
   return result;
 }
 
-void VideoBackend::InitBackendInfo()
+void VideoBackend::InitBackendInfo(const WindowSystemInfo& wsi)
 {
   if (!D3DCommon::LoadLibraries())
     return;

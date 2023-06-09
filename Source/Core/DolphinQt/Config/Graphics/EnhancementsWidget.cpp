@@ -23,8 +23,6 @@
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/Settings.h"
 
-#include "UICommon/VideoUtils.h"
-
 #include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
@@ -260,18 +258,38 @@ void EnhancementsWidget::LoadSettings()
   m_block_save = true;
   // Anti-Aliasing
 
-  const int aa_selection = Config::Get(Config::GFX_MSAA);
+  const u32 aa_selection = Config::Get(Config::GFX_MSAA);
   const bool ssaa = Config::Get(Config::GFX_SSAA);
   const int aniso = Config::Get(Config::GFX_ENHANCE_MAX_ANISOTROPY);
   const TextureFilteringMode tex_filter_mode =
       Config::Get(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING);
 
   m_aa_combo->clear();
-  for (const auto& option : VideoUtils::GetAvailableAntialiasingModes(m_msaa_modes))
-    m_aa_combo->addItem(option == "None" ? tr("None") : QString::fromStdString(option));
 
-  m_aa_combo->setCurrentText(
-      QString::fromStdString(std::to_string(aa_selection) + "x " + (ssaa ? "SSAA" : "MSAA")));
+  for (const u32 aa_mode : g_Config.backend_info.AAModes)
+  {
+    if (aa_mode == 1)
+      m_aa_combo->addItem(tr("None"), 1);
+    else
+      m_aa_combo->addItem(tr("%1x MSAA").arg(aa_mode), static_cast<int>(aa_mode));
+
+    if (aa_mode == aa_selection && !ssaa)
+      m_aa_combo->setCurrentIndex(m_aa_combo->count() - 1);
+  }
+  if (g_Config.backend_info.bSupportsSSAA)
+  {
+    for (const u32 aa_mode : g_Config.backend_info.AAModes)
+    {
+      if (aa_mode != 1)  // don't show "None" twice
+      {
+        // Mark SSAA using negative values in the variant
+        m_aa_combo->addItem(tr("%1x SSAA").arg(aa_mode), -static_cast<int>(aa_mode));
+        if (aa_mode == aa_selection && ssaa)
+          m_aa_combo->setCurrentIndex(m_aa_combo->count() - 1);
+      }
+    }
+  }
+
   m_aa_combo->setEnabled(m_aa_combo->count() > 1);
 
   switch (tex_filter_mode)
@@ -310,22 +328,10 @@ void EnhancementsWidget::SaveSettings()
   if (m_block_save)
     return;
 
-  bool is_ssaa = m_aa_combo->currentText().endsWith(QStringLiteral("SSAA"));
+  const u32 aa_value = static_cast<u32>(std::abs(m_aa_combo->currentData().toInt()));
+  const bool is_ssaa = m_aa_combo->currentData().toInt() < 0;
 
-  int aa_value = m_aa_combo->currentIndex();
-
-  if (aa_value == 0)
-  {
-    aa_value = 1;
-  }
-  else
-  {
-    if (aa_value > m_msaa_modes)
-      aa_value -= m_msaa_modes;
-    aa_value = std::pow(2, aa_value);
-  }
-  Config::SetBaseOrCurrent(Config::GFX_MSAA, static_cast<unsigned int>(aa_value));
-
+  Config::SetBaseOrCurrent(Config::GFX_MSAA, aa_value);
   Config::SetBaseOrCurrent(Config::GFX_SSAA, is_ssaa);
 
   const int texture_filtering_selection = m_texture_filtering_combo->currentData().toInt();

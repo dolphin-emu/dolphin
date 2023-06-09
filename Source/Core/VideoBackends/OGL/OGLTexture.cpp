@@ -15,9 +15,7 @@
 
 namespace OGL
 {
-namespace
-{
-GLenum GetGLInternalFormatForTextureFormat(AbstractTextureFormat format, bool storage)
+GLenum OGLTexture::GetGLInternalFormatForTextureFormat(AbstractTextureFormat format, bool storage)
 {
   switch (format)
   {
@@ -55,6 +53,8 @@ GLenum GetGLInternalFormatForTextureFormat(AbstractTextureFormat format, bool st
   }
 }
 
+namespace
+{
 GLenum GetGLFormatForTextureFormat(AbstractTextureFormat format)
 {
   switch (format)

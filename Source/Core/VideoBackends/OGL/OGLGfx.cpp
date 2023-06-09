@@ -146,12 +146,6 @@ OGLGfx::OGLGfx(std::unique_ptr<GLContext> main_gl_context, float backbuffer_scal
     }
   }
 
-  if (!PopulateConfig(m_main_gl_context.get()))
-  {
-    // Not all needed extensions are supported, so we have to stop here.
-    // Else some of the next calls might crash.
-    return;
-  }
   InitDriverInfo();
 
   // Setup Debug logging

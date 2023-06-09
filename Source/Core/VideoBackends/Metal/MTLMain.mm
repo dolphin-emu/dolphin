@@ -119,7 +119,7 @@ void Metal::VideoBackend::Shutdown()
   ObjectCache::Shutdown();
 }
 
-void Metal::VideoBackend::InitBackendInfo()
+void Metal::VideoBackend::InitBackendInfo(const WindowSystemInfo& wsi)
 {
   @autoreleasepool
   {
