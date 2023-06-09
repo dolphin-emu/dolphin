@@ -431,6 +431,11 @@
     <ClInclude Include="Core\PowerPC\SignatureDB\DSYSignatureDB.h" />
     <ClInclude Include="Core\PowerPC\SignatureDB\MEGASignatureDB.h" />
     <ClInclude Include="Core\PowerPC\SignatureDB\SignatureDB.h" />
+	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\InstructionBreakpointsHolder.h" />
+	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\MemoryAddressBreakpointsHolder.h" />
+	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\ScriptCallLocations.h" />
+	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\ScriptContext.h" />
+	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\Vector.h" />
     <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnFrameStartCallbackAPI.h" />
     <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnGCControllerPolledCallbackAPI.h" />
     <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnInstructionHitCallbackAPI.h" />
@@ -445,7 +450,6 @@
     <ClInclude Include="Core\Scripting\InternalAPIModules\ImportAPI.h" />
     <ClInclude Include="Core\Scripting\InternalAPIModules\WiiAPI.h" />
     <ClInclude Include="Core\Scripting\LanguageDefinitions\DefinedScriptingLanguagesEnum.h" />
-    <ClInclude Include="Core\Scripting\LanguageDefinitions\Python\PythonScriptContext.h" />
     <ClInclude Include="Core\Scripting\ScriptContext.h" />
     <ClInclude Include="Core\Scripting\InternalAPIModules\BitAPI.h" />
     <ClInclude Include="Core\Scripting\HelperClasses\GCButtons.h" />
@@ -1114,7 +1118,6 @@
     <ClCompile Include="Core\Scripting\HelperClasses\ArgHolder.cpp" />
     <ClCompile Include="Core\Scripting\InternalAPIModules\WiiAPI.cpp" />
     <ClCompile Include="Core\Scripting\LanguageDefinitions\Lua\LuaScriptContext.cpp" />
-    <ClCompile Include="Core\Scripting\LanguageDefinitions\Python\PythonScriptContext.cpp" />
     <ClCompile Include="Core\Scripting\ScriptUtilities.cpp" />
     <ClCompile Include="Core\State.cpp" />
     <ClCompile Include="Core\SysConf.cpp" />

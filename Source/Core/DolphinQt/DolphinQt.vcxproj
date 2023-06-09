@@ -5,8 +5,6 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{FA3FA62B-6F58-4B86-9453-4D149940A066}</ProjectGuid>
     <ProjectName>Dolphin</ProjectName>
-	<CPythonPlatform>amd64</CPythonPlatform>
-	<CPythonPlatform Condition="'$(Platform)'=='ARM64'">arm64</CPythonPlatform>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <Import Project="$(VSPropsDir)Configuration.Application.props" />
@@ -462,8 +460,6 @@
   <Target Name="AfterBuild" Inputs="@(AllInputFiles)" Outputs="@(AllInputFiles -> '$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(Extension)')">
     <Message Text="Copying Data directory..." Importance="High" />
     <Copy SourceFiles="@(DataSysFiles)" DestinationFolder="$(BinaryOutputDir)%(RecursiveDir)" Condition="!Exists('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(DataSysFiles.Extension)') OR $([System.DateTime]::Parse('%(ModifiedTime)').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(DataSysFiles.Extension)').Ticks)" />
-	<Copy Condition="'$(Configuration)'=='Release'"  SourceFiles="$(DolphinRootDir)Build/$(Platform)/$(Configuration)/cpython/$(CPythonPlatform)/python311.dll" DestinationFolder="$(BinaryOutputDir)" />
-	<Copy Condition="'$(Configuration)'=='Debug'"  SourceFiles="$(DolphinRootDir)Build/$(Platform)/$(Configuration)/cpython/$(CPythonPlatform)/python311_d.dll" DestinationFolder="$(BinaryOutputDir)" />
     <Copy SourceFiles="@(DataTxtFiles)" DestinationFolder="$(BinaryOutputDir)" Condition="!Exists('$(BinaryOutputDir)%(Filename)%(DataTxtFiles.Extension)') OR $([System.DateTime]::Parse('%(ModifiedTime)').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(DataTxtFiles.Extension)').Ticks)" />
     <Message Text="Copy: @(BinaryFiles) -&gt; $(BinaryOutputDir)" Importance="High" />
     <Copy SourceFiles="@(BinaryFiles)" DestinationFolder="$(BinaryOutputDir)" />

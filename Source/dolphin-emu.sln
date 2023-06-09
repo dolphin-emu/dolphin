@@ -89,8 +89,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spng", "..\Externals\libspn
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lua", "..\Externals\Lua\Lua.vcxproj", "{632B686A-F320-4E96-8E11-F2883D9BE914}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cpython", "..\Externals\cpython\cpython.vcxproj", "{89cc8f65-ce8f-4421-80b1-3c11e7d28da5}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rcheevos", "..\Externals\rcheevos\rcheevos.vcxproj", "{CC99A910-3752-4465-95AA-7DC240D92A99}"
 EndProject
 Global
@@ -615,18 +613,6 @@ Global
 		{CC99A910-3752-4465-95AA-7DC240D92A99}.Release|x64.Build.0 = Release|x64
 		{CC99A910-3752-4465-95AA-7DC240D92A99}.Release|x86.ActiveCfg = Release|x64
 		{CC99A910-3752-4465-95AA-7DC240D92A99}.Release|x86.Build.0 = Release|x64
-		{89cc8f65-ce8f-4421-80b1-3c11e7d28da5}.Debug|ARM64.ActiveCfg = Debug|ARM64
-		{89cc8f65-ce8f-4421-80b1-3c11e7d28da5}.Debug|ARM64.Build.0 = Debug|ARM64
-		{89cc8f65-ce8f-4421-80b1-3c11e7d28da5}.Debug|x64.ActiveCfg = Debug|x64
-		{89cc8f65-ce8f-4421-80b1-3c11e7d28da5}.Debug|x64.Build.0 = Debug|x64
-		{89cc8f65-ce8f-4421-80b1-3c11e7d28da5}.Debug|x86.ActiveCfg = Debug|x64
-		{89cc8f65-ce8f-4421-80b1-3c11e7d28da5}.Debug|x86.Build.0 = Debug|x64
-		{89cc8f65-ce8f-4421-80b1-3c11e7d28da5}.Release|ARM64.ActiveCfg = Release|ARM64
-		{89cc8f65-ce8f-4421-80b1-3c11e7d28da5}.Release|ARM64.Build.0 = Release|ARM64
-		{89cc8f65-ce8f-4421-80b1-3c11e7d28da5}.Release|x64.ActiveCfg = Release|x64
-		{89cc8f65-ce8f-4421-80b1-3c11e7d28da5}.Release|x64.Build.0 = Release|x64
-		{89cc8f65-ce8f-4421-80b1-3c11e7d28da5}.Release|x86.ActiveCfg = Release|x64
-		{89cc8f65-ce8f-4421-80b1-3c11e7d28da5}.Release|x86.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -665,7 +651,6 @@ Global
 		{447B7B1E-1D74-4AEF-B2B9-6EB41C5D5313} = {87ADDFF9-5768-4DA2-A33B-2477593D6677}
 		{632B686A-F320-4E96-8E11-F2883D9BE914} = {87ADDFF9-5768-4DA2-A33B-2477593D6677}
 		{CC99A910-3752-4465-95AA-7DC240D92A99} = {87ADDFF9-5768-4DA2-A33B-2477593D6677}
-		{89cc8f65-ce8f-4421-80b1-3c11e7d28da5} = {87ADDFF9-5768-4DA2-A33B-2477593D6677}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {64B0A343-3B94-4522-9C24-6937FE5EFB22}
