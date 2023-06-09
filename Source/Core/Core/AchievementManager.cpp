@@ -48,7 +48,11 @@ AchievementManager::ResponseType AchievementManager::Login(const std::string& pa
 {
   if (!m_is_runtime_initialized)
     return AchievementManager::ResponseType::MANAGER_NOT_INITIALIZED;
-  AchievementManager::ResponseType r_type = VerifyCredentials(password);
+  AchievementManager::ResponseType r_type = AchievementManager::ResponseType::UNKNOWN_FAILURE;
+  {
+    std::lock_guard lg{m_lock};
+    r_type = VerifyCredentials(password);
+  }
   if (m_update_callback)
     m_update_callback();
   return r_type;
@@ -62,7 +66,10 @@ void AchievementManager::LoginAsync(const std::string& password, const ResponseC
     return;
   }
   m_queue.EmplaceItem([this, password, callback] {
+    {
+      std::lock_guard lg{m_lock};
       callback(VerifyCredentials(password));
+    }
     if (m_update_callback)
       m_update_callback();
   });
@@ -154,11 +161,11 @@ void AchievementManager::LoadGameByFilenameAsync(const std::string& iso_path,
     }
 
     const auto fetch_game_data_response = FetchGameData();
-    m_is_game_loaded = fetch_game_data_response == ResponseType::SUCCESS;
-    if (!m_is_game_loaded)
+    if (fetch_game_data_response != ResponseType::SUCCESS)
     {
       OSD::AddMessage("Unable to retrieve data from RetroAchievements server.",
                       OSD::Duration::VERY_LONG, OSD::Color::RED);
+      return;
     }
 
     // Claim the lock, then queue the fetch unlock data calls, then initialize the unlock map in
@@ -167,6 +174,7 @@ void AchievementManager::LoadGameByFilenameAsync(const std::string& iso_path,
     // it.
     {
       std::lock_guard lg{m_lock};
+      m_is_game_loaded = true;
       LoadUnlockData([](ResponseType r_type) {});
       ActivateDeactivateAchievements();
       PointSpread spread = TallyScore();
@@ -318,23 +326,31 @@ u32 AchievementManager::MemoryPeeker(u32 address, u32 num_bytes, void* ud)
 
 void AchievementManager::AchievementEventHandler(const rc_runtime_event_t* runtime_event)
 {
-  switch (runtime_event->type)
   {
-  case RC_RUNTIME_EVENT_ACHIEVEMENT_TRIGGERED:
-    HandleAchievementTriggeredEvent(runtime_event);
-    break;
-  case RC_RUNTIME_EVENT_LBOARD_STARTED:
-    HandleLeaderboardStartedEvent(runtime_event);
-    break;
-  case RC_RUNTIME_EVENT_LBOARD_CANCELED:
-    HandleLeaderboardCanceledEvent(runtime_event);
-    break;
-  case RC_RUNTIME_EVENT_LBOARD_TRIGGERED:
-    HandleLeaderboardTriggeredEvent(runtime_event);
-    break;
+    std::lock_guard lg{m_lock};
+    switch (runtime_event->type)
+    {
+    case RC_RUNTIME_EVENT_ACHIEVEMENT_TRIGGERED:
+      HandleAchievementTriggeredEvent(runtime_event);
+      break;
+    case RC_RUNTIME_EVENT_LBOARD_STARTED:
+      HandleLeaderboardStartedEvent(runtime_event);
+      break;
+    case RC_RUNTIME_EVENT_LBOARD_CANCELED:
+      HandleLeaderboardCanceledEvent(runtime_event);
+      break;
+    case RC_RUNTIME_EVENT_LBOARD_TRIGGERED:
+      HandleLeaderboardTriggeredEvent(runtime_event);
+      break;
+    }
   }
   if (m_update_callback)
     m_update_callback();
+}
+
+std::recursive_mutex* AchievementManager::GetLock()
+{
+  return &m_lock;
 }
 
 std::string AchievementManager::GetPlayerDisplayName() const
@@ -397,14 +413,17 @@ void AchievementManager::GetAchievementProgress(AchievementId achievement_id, u3
 
 void AchievementManager::CloseGame()
 {
-  m_is_game_loaded = false;
-  m_game_id = 0;
-  m_queue.Cancel();
-  m_unlock_map.clear();
-  m_system = nullptr;
-  ActivateDeactivateAchievements();
-  ActivateDeactivateLeaderboards();
-  ActivateDeactivateRichPresence();
+  {
+    std::lock_guard lg{m_lock};
+    m_is_game_loaded = false;
+    m_game_id = 0;
+    m_queue.Cancel();
+    m_unlock_map.clear();
+    m_system = nullptr;
+    ActivateDeactivateAchievements();
+    ActivateDeactivateLeaderboards();
+    ActivateDeactivateRichPresence();
+  }
   if (m_update_callback)
     m_update_callback();
 }
