@@ -4,9 +4,9 @@
 #include "Common/GL/GLInterface/GLX.h"
 
 #include <array>
-#include <sstream>
 
 #include "Common/Logging/Log.h"
+#include "Common/StrStream.h"
 
 #define GLX_CONTEXT_MAJOR_VERSION_ARB 0x2091
 #define GLX_CONTEXT_MINOR_VERSION_ARB 0x2092
@@ -194,9 +194,8 @@ bool GLContextGLX::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
   glXDestroyGLXPbufferSGIX = nullptr;
   m_supports_pbuffer = false;
 
-  std::string tmp;
-  std::istringstream buffer(glXQueryExtensionsString(m_display, screen));
-  while (buffer >> tmp)
+  std::istrstream buffer(glXQueryExtensionsString(m_display, screen));
+  for (std::string tmp; buffer >> tmp;)
   {
     if (tmp == "GLX_SGIX_pbuffer")
     {

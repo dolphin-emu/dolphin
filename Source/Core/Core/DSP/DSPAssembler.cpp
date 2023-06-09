@@ -11,7 +11,6 @@
 #include <cstring>
 #include <fstream>
 #include <map>
-#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -20,6 +19,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/StrStream.h"
 #include "Common/StringUtil.h"
 
 #include "Core/DSP/DSPCore.h"
@@ -771,7 +771,7 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
 {
   bool disable_text = false;  // modified by Hermes
 
-  std::istringstream fsrc(text);
+  std::istrstream fsrc(text.c_str(), std::ssize(text));
 
   m_location.line_num = 0;
   m_cur_pass = pass;

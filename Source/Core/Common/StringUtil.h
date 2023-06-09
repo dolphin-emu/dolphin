@@ -16,6 +16,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/StrStream.h"
 
 std::string StringFromFormatV(const char* format, va_list args);
 
@@ -117,7 +118,7 @@ template <typename N>
 bool TryParseVector(const std::string& str, std::vector<N>* output, const char delimiter = ',')
 {
   output->clear();
-  std::istringstream buffer(str);
+  std::istrstream buffer(str.c_str(), std::ssize(str));
   std::string variable;
 
   while (std::getline(buffer, variable, delimiter))

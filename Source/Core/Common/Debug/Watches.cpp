@@ -7,6 +7,8 @@
 #include <locale>
 #include <sstream>
 
+#include "Common/StrStream.h"
+
 namespace Common::Debug
 {
 Watch::Watch(u32 address_, std::string name_, State is_enabled_)
@@ -93,7 +95,7 @@ void Watches::LoadFromStrings(const std::vector<std::string>& watches)
 {
   for (const std::string& watch : watches)
   {
-    std::istringstream ss(watch);
+    std::istrstream ss(watch.c_str(), std::ssize(watch));
     ss.imbue(std::locale::classic());
     u32 address;
     std::string name;

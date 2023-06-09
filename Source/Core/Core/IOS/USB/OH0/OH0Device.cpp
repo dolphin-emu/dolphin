@@ -3,13 +3,14 @@
 
 #include "Core/IOS/USB/OH0/OH0Device.h"
 
+#include <charconv>
 #include <memory>
-#include <sstream>
 #include <string>
 #include <tuple>
 #include <vector>
 
 #include "Common/ChunkFile.h"
+#include "Common/StrStream.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/OH0/OH0.h"
 
@@ -17,22 +18,19 @@ namespace IOS::HLE
 {
 static void GetVidPidFromDevicePath(const std::string& device_path, u16& vid, u16& pid)
 {
-  std::istringstream stream{device_path};
-  std::string segment;
+  std::istrstream stream{device_path.c_str(), std::ssize(device_path)};
   std::vector<std::string> list;
-  while (std::getline(stream, segment, '/'))
+  for (std::string segment; std::getline(stream, segment, '/');)
     if (!segment.empty())
       list.push_back(segment);
 
   if (list.size() != 5)
     return;
 
-  std::stringstream ss;
-  ss << std::hex << list[3];
-  ss >> vid;
-  ss.clear();
-  ss << std::hex << list[4];
-  ss >> pid;
+  const char *const vid_begin = list[3].data(), *const vid_end = vid_begin + list[3].size();
+  std::from_chars(vid_begin, vid_end, vid, 16);
+  const char *const pid_begin = list[4].data(), *const pid_end = pid_begin + list[4].size();
+  std::from_chars(pid_begin, pid_end, pid, 16);
 }
 
 OH0Device::OH0Device(EmulationKernel& ios, const std::string& name)

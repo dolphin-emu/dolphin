@@ -12,6 +12,7 @@
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
+#include "Common/StrStream.h"
 
 // CSV separated with tabs
 // Checksum | Size | Symbol | [Object Location |] Object Name
@@ -25,7 +26,7 @@ bool CSVSignatureDB::Load(const std::string& file_path)
     return false;
   for (size_t i = 1; std::getline(ifs, line); i += 1)
   {
-    std::istringstream iss(line);
+    std::istrstream iss(line.c_str(), std::ssize(line));
     u32 checksum, size;
     std::string tab, symbol, object_location, object_name;
 

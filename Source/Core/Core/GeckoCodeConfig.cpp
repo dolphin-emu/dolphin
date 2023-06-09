@@ -5,13 +5,14 @@
 
 #include <algorithm>
 #include <optional>
-#include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "Common/HttpRequest.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
+#include "Common/StrStream.h"
 #include "Common/StringUtil.h"
 #include "Core/CheatCodes.h"
 
@@ -38,7 +39,7 @@ std::vector<GeckoCode> DownloadCodes(std::string gametdb_id, bool* succeeded, bo
   std::vector<GeckoCode> gcodes;
 
   // parse the codes
-  std::istringstream ss(std::string(response->begin(), response->end()));
+  std::istrstream ss(reinterpret_cast<const char*>(response->data()), std::ssize(*response));
 
   std::string line;
 
@@ -60,7 +61,7 @@ std::vector<GeckoCode> DownloadCodes(std::string gametdb_id, bool* succeeded, bo
     {
       // add the code
       if (!gcode.codes.empty())
-        gcodes.push_back(gcode);
+        gcodes.push_back(std::move(gcode));
       gcode = GeckoCode();
       read_state = 0;
       continue;
@@ -71,7 +72,7 @@ std::vector<GeckoCode> DownloadCodes(std::string gametdb_id, bool* succeeded, bo
     // read new code
     case 0:
     {
-      std::istringstream ssline(line);
+      std::istrstream ssline(line.c_str(), std::ssize(line));
       // stop at [ character (beginning of contributor name)
       std::getline(ssline, gcode.name, '[');
       gcode.name = StripWhitespace(gcode.name);
@@ -85,7 +86,7 @@ std::vector<GeckoCode> DownloadCodes(std::string gametdb_id, bool* succeeded, bo
     // read code lines
     case 1:
     {
-      std::istringstream ssline(line);
+      std::istrstream ssline(line.c_str(), std::ssize(line));
       std::string addr, data;
 
       // Some locales (e.g. fr_FR.UTF-8) don't split the string stream on space
@@ -99,14 +100,13 @@ std::vector<GeckoCode> DownloadCodes(std::string gametdb_id, bool* succeeded, bo
       // valid hex chars :/
       if (8 == addr.length() && 8 == data.length())
       {
-        GeckoCode::Code new_code;
-        new_code.original_line = line;
-        ssline >> std::hex >> new_code.address >> new_code.data;
-        gcode.codes.push_back(new_code);
+        u32 new_code_addr, new_code_data;
+        ssline >> std::hex >> new_code_addr >> new_code_data;
+        gcode.codes.push_back(GeckoCode::Code{new_code_addr, new_code_data, std::move(line)});
       }
       else
       {
-        gcode.notes.push_back(line);
+        gcode.notes.push_back(std::move(line));
         read_state = 2;  // start reading comments
       }
     }
@@ -115,14 +115,14 @@ std::vector<GeckoCode> DownloadCodes(std::string gametdb_id, bool* succeeded, bo
     // read comment lines
     case 2:
       // append comment line
-      gcode.notes.push_back(line);
+      gcode.notes.push_back(std::move(line));
       break;
     }
   }
 
   // add the last code
   if (!gcode.codes.empty())
-    gcodes.push_back(gcode);
+    gcodes.push_back(std::move(gcode));
 
   return gcodes;
 }
@@ -144,7 +144,7 @@ std::vector<GeckoCode> LoadCodes(const Common::IniFile& globalIni, const Common:
 
     for (auto& line : lines)
     {
-      std::istringstream ss(line);
+      std::istrstream ss(line.c_str(), std::ssize(line));
 
       // Some locales (e.g. fr_FR.UTF-8) don't split the string stream on space
       // Use the C locale to workaround this behavior
@@ -158,7 +158,7 @@ std::vector<GeckoCode> LoadCodes(const Common::IniFile& globalIni, const Common:
         [[fallthrough]];
       case '$':
         if (!gcode.name.empty())
-          gcodes.push_back(gcode);
+          gcodes.push_back(std::move(gcode));
         gcode = GeckoCode();
         gcode.enabled = (1 == ss.tellg());  // silly
         gcode.user_defined = (ini == &localIni);
@@ -172,7 +172,7 @@ std::vector<GeckoCode> LoadCodes(const Common::IniFile& globalIni, const Common:
 
       // notes
       case '*':
-        gcode.notes.push_back(std::string(++line.begin(), line.end()));
+        gcode.notes.emplace_back(++line.begin(), line.end());
         break;
 
       // either part of the code, or an option choice
@@ -184,7 +184,7 @@ std::vector<GeckoCode> LoadCodes(const Common::IniFile& globalIni, const Common:
           new_code = *code;
         else
           new_code.original_line = line;
-        gcode.codes.push_back(new_code);
+        gcode.codes.push_back(std::move(new_code));
       }
       break;
       }
@@ -193,7 +193,7 @@ std::vector<GeckoCode> LoadCodes(const Common::IniFile& globalIni, const Common:
     // add the last code
     if (!gcode.name.empty())
     {
-      gcodes.push_back(gcode);
+      gcodes.push_back(std::move(gcode));
     }
 
     ReadEnabledAndDisabled(*ini, "Gecko", &gcodes);

@@ -17,6 +17,7 @@
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/StrStream.h"
 #include "Common/StringUtil.h"
 
 #include "VideoCommon/AbstractFramebuffer.h"
@@ -109,7 +110,7 @@ void PostProcessingConfiguration::LoadOptions(const std::string& code)
       code.substr(configuration_start + config_start_delimiter.size(),
                   configuration_end - configuration_start - config_start_delimiter.size());
 
-  std::istringstream in(configuration_string);
+  std::istrstream in(configuration_string.c_str(), std::ssize(configuration_string));
 
   struct GLSLStringOption
   {

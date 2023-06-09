@@ -5,13 +5,13 @@
 
 #include <list>
 #include <optional>
-#include <sstream>
 #include <string>
 #include <tuple>
 
 #include <OptionParser.h>
 
 #include "Common/Config/Config.h"
+#include "Common/StrStream.h"
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
 #include "Core/Config/MainSettings.h"
@@ -45,7 +45,7 @@ public:
     // Arguments are in the format of <System>.<Section>.<Key>=Value
     for (const auto& arg : args)
     {
-      std::istringstream buffer(arg);
+      std::istrstream buffer(arg.c_str(), std::ssize(arg));
       std::string system_str, section, key, value;
       std::getline(buffer, system_str, '.');
       std::getline(buffer, section, '.');

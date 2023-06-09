@@ -19,6 +19,7 @@
 #include <sstream>
 #include <string>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 #include <fmt/format.h>
@@ -27,6 +28,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/StrStream.h"
 #include "Common/Swap.h"
 
 #ifdef _WIN32
@@ -379,13 +381,12 @@ std::string PathToFileName(std::string_view path)
 
 std::vector<std::string> SplitString(const std::string& str, const char delim)
 {
-  std::istringstream iss(str);
-  std::vector<std::string> output(1);
+  std::istrstream iss(str.c_str(), std::ssize(str));
+  std::vector<std::string> output;
 
-  while (std::getline(iss, *output.rbegin(), delim))
-    output.push_back("");
+  for (std::string s; std::getline(iss, s, delim);)
+    output.emplace_back(std::move(s));
 
-  output.pop_back();
   return output;
 }
 

@@ -5,10 +5,10 @@
 
 #include <array>
 #include <cstdlib>
-#include <sstream>
 #include <vector>
 
 #include "Common/Logging/Log.h"
+#include "Common/StrStream.h"
 
 #ifndef EGL_KHR_create_context
 #define EGL_KHR_create_context 1
@@ -206,9 +206,8 @@ bool GLContextEGL::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
   else
     eglBindAPI(EGL_OPENGL_ES_API);
 
-  std::string tmp;
-  std::istringstream buffer(eglQueryString(m_egl_display, EGL_EXTENSIONS));
-  while (buffer >> tmp)
+  std::istrstream buffer(eglQueryString(m_egl_display, EGL_EXTENSIONS));
+  for (std::string tmp; buffer >> tmp;)
   {
     if (tmp == "EGL_KHR_surfaceless_context")
       m_supports_surfaceless = true;

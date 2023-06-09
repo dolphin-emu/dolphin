@@ -116,6 +116,7 @@ add_library(common
   StringLiteral.h
   StringUtil.cpp
   StringUtil.h
+  StrStream.h
   SymbolDB.cpp
   SymbolDB.h
   Thread.cpp

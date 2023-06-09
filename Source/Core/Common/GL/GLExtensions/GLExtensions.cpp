@@ -3,11 +3,11 @@
 
 #include "Common/GL/GLExtensions/GLExtensions.h"
 
-#include <sstream>
 #include <unordered_map>
 
 #include "Common/GL/GLContext.h"
 #include "Common/Logging/Log.h"
+#include "Common/StrStream.h"
 
 #if defined(__linux__) || defined(__APPLE__)
 #include <dlfcn.h>
@@ -2158,10 +2158,9 @@ bool InitFunctionPointers(GLContext* context);
 static void InitExtensionList21()
 {
   const char* extensions = (const char*)glGetString(GL_EXTENSIONS);
-  std::string tmp(extensions);
-  std::istringstream buffer(tmp);
+  std::istrstream buffer(extensions);
 
-  while (buffer >> tmp)
+  for (std::string tmp; buffer >> tmp;)
     s_extension_list[tmp] = true;
 }
 
@@ -2483,10 +2482,9 @@ bool Init(GLContext* context)
 static bool HasFeatures(const std::string& extensions)
 {
   bool result = true;
-  std::string tmp;
-  std::istringstream buffer(extensions);
+  std::istrstream buffer(extensions.c_str(), std::ssize(extensions));
 
-  while (buffer >> tmp)
+  for (std::string tmp; buffer >> tmp;)
   {
     if (tmp[0] == '!')
       result &= !s_extension_list[tmp.erase(0, 1)];

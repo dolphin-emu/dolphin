@@ -22,6 +22,7 @@
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/StrStream.h"
 #include "Common/StringUtil.h"
 
 #include "Core/Config/MainSettings.h"
@@ -127,7 +128,7 @@ static Location MapINIToRealLocation(const std::string& section, const std::stri
 
   // Attempt to load it as a configuration option
   // It will be in the format of '<System>.<Section>'
-  std::istringstream buffer(section);
+  std::istrstream buffer(section.c_str(), std::ssize(section));
   std::string system_str, config_section;
 
   bool fail = false;

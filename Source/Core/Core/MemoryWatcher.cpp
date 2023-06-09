@@ -10,6 +10,7 @@
 #include <unistd.h>
 
 #include "Common/FileUtil.h"
+#include "Common/StrStream.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/PowerPC/MMU.h"
 
@@ -51,10 +52,9 @@ void MemoryWatcher::ParseLine(const std::string& line)
   m_values[line] = 0;
   m_addresses[line] = std::vector<u32>();
 
-  std::istringstream offsets(line);
+  std::istrstream offsets(line.c_str(), std::ssize(line));
   offsets >> std::hex;
-  u32 offset;
-  while (offsets >> offset)
+  for (u32 offset; offsets >> offset;)
     m_addresses[line].push_back(offset);
 }
 

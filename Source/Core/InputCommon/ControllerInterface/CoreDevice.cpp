@@ -13,6 +13,7 @@
 #include <fmt/format.h>
 
 #include "Common/MathUtil.h"
+#include "Common/StrStream.h"
 #include "Common/Thread.h"
 
 namespace ciface::Core
@@ -182,13 +183,13 @@ void DeviceQualifier::FromString(const std::string& str)
 {
   *this = {};
 
-  std::istringstream ss(str);
+  std::istrstream ss(str.c_str(), std::ssize(str));
 
   std::getline(ss, source, '/');
 
   // silly
   std::getline(ss, name, '/');
-  std::istringstream(name) >> cid;
+  std::istrstream(name.c_str(), std::ssize(name)) >> cid;
 
   std::getline(ss, name);
 }

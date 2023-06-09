@@ -9,6 +9,7 @@
 #include "Common/HttpRequest.h"
 #include "Common/IOFile.h"
 #include "Common/ScopeGuard.h"
+#include "Common/StrStream.h"
 #include "Common/StringUtil.h"
 #include "Common/WindowsRegistry.h"
 
@@ -90,9 +91,8 @@ public:
 private:
   void Parse(const std::string& content)
   {
-    std::stringstream content_stream(content);
-    std::string line;
-    while (std::getline(content_stream, line))
+    std::istrstream content_stream(content.c_str(), std::ssize(content));
+    for (std::string line; std::getline(content_stream, line);)
     {
       if (line.starts_with("//"))
         continue;

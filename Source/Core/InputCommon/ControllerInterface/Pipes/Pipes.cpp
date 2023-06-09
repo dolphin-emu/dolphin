@@ -10,13 +10,13 @@
 #include <iostream>
 #include <locale>
 #include <map>
-#include <sstream>
 #include <string>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <vector>
 
 #include "Common/FileUtil.h"
+#include "Common/StrStream.h"
 #include "Common/StringUtil.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
@@ -31,7 +31,7 @@ static const std::array<std::string, 2> s_axis_tokens{{"MAIN", "C"}};
 
 static double StringToDouble(const std::string& text)
 {
-  std::istringstream is(text);
+  std::istrstream is(text.c_str(), std::ssize(text));
   // ignore current locale
   is.imbue(std::locale::classic());
   double result;

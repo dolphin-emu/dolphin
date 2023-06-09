@@ -12,6 +12,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/DebugInterface.h"
 #include "Common/Logging/Log.h"
+#include "Common/StrStream.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/Expression.h"
 #include "Core/PowerPC/JitInterface.h"
@@ -86,16 +87,16 @@ void BreakPoints::AddFromStrings(const TBreakPointsStr& bp_strings)
   {
     TBreakPoint bp;
     std::string flags;
-    std::istringstream iss(bp_string);
+    std::istrstream iss(bp_string.c_str(), std::ssize(bp_string));
     iss.imbue(std::locale::classic());
 
     if (iss.peek() == '$')
       iss.ignore();
     iss >> std::hex >> bp.address;
     iss >> flags;
-    bp.is_enabled = flags.find('n') != flags.npos;
-    bp.log_on_hit = flags.find('l') != flags.npos;
-    bp.break_on_hit = flags.find('b') != flags.npos;
+    bp.is_enabled = flags.find('n') != std::string::npos;
+    bp.log_on_hit = flags.find('l') != std::string::npos;
+    bp.break_on_hit = flags.find('b') != std::string::npos;
     if (flags.find('c') != std::string::npos)
     {
       iss >> std::ws;
@@ -241,7 +242,7 @@ void MemChecks::AddFromStrings(const TMemChecksStr& mc_strings)
   for (const std::string& mc_string : mc_strings)
   {
     TMemCheck mc;
-    std::istringstream iss(mc_string);
+    std::istrstream iss(mc_string.c_str(), std::ssize(mc_string));
     iss.imbue(std::locale::classic());
 
     if (iss.peek() == '$')
@@ -251,11 +252,11 @@ void MemChecks::AddFromStrings(const TMemChecksStr& mc_strings)
     iss >> std::hex >> mc.start_address >> mc.end_address >> flags;
 
     mc.is_ranged = mc.start_address != mc.end_address;
-    mc.is_enabled = flags.find('n') != flags.npos;
-    mc.is_break_on_read = flags.find('r') != flags.npos;
-    mc.is_break_on_write = flags.find('w') != flags.npos;
-    mc.log_on_hit = flags.find('l') != flags.npos;
-    mc.break_on_hit = flags.find('b') != flags.npos;
+    mc.is_enabled = flags.find('n') != std::string::npos;
+    mc.is_break_on_read = flags.find('r') != std::string::npos;
+    mc.is_break_on_write = flags.find('w') != std::string::npos;
+    mc.log_on_hit = flags.find('l') != std::string::npos;
+    mc.break_on_hit = flags.find('b') != std::string::npos;
     if (flags.find('c') != std::string::npos)
     {
       iss >> std::ws;
