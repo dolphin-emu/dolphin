@@ -27,23 +27,6 @@ void** vec_realloc(void* ptr, size_t size)
   return ((void**)(ret));
 }
 
-// Vector  struct //
-typedef struct Vector
-{
-  int length;
-  int size;
-  void** arr;
-  void (*destructor_function)(void*);
-  void* (*get)(struct Vector*, int);
-  void (*push_back)(struct Vector*, void*);
-  void* (*pop)(struct Vector*);
-  int (*insert)(struct Vector*, void*, int);
-  void* (*remove_by_index)(struct Vector*, int);
-  void* (*remove_by_value)(struct Vector*, void*);
-  int (*find_first)(struct Vector*, void*);
-  int (*count)(struct Vector*, void*);
-} Vector;
-
 // Vector Methods //
 
 void* Vector_Get(Vector* __this, int index)
