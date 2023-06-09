@@ -6,15 +6,16 @@
 #include <algorithm>
 #include <array>
 #include <atomic>
+#include <climits>
 #include <cstring>
 #include <iomanip>
 #include <memory>
-#include <sstream>
 
 #include "Common/BitField.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
@@ -153,15 +154,11 @@ void SerialInterfaceManager::RunSIBuffer(u64 user_data, s64 cycles_late)
                   actual_response_length);
     if (actual_response_length > 0 && expected_response_length != actual_response_length)
     {
-      std::ostringstream ss;
-      for (u8 b : request_copy)
-      {
-        ss << std::hex << std::setw(2) << std::setfill('0') << (int)b << ' ';
-      }
       DEBUG_LOG_FMT(
           SERIALINTERFACE,
           "RunSIBuffer: expected_response_length({}) != actual_response_length({}): request: {}",
-          expected_response_length, actual_response_length, ss.str());
+          expected_response_length, actual_response_length,
+          MemToHexString(request_copy.data(), request_copy.size(), SIZE_MAX, true));
     }
 
     // TODO:

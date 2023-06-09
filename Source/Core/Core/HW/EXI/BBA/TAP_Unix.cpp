@@ -107,7 +107,7 @@ bool CEXIETHERNET::TAPNetworkInterface::IsActivated()
 bool CEXIETHERNET::TAPNetworkInterface::SendFrame(const u8* frame, u32 size)
 {
 #ifdef __linux__
-  DEBUG_LOG_FMT(SP1, "SendFrame {}\n{}", size, ArrayToString(frame, size, 0x10));
+  DEBUG_LOG_FMT(SP1, "SendFrame {}\n{}", size, MemToHexString(frame, size, 0x10));
 
   int writtenBytes = write(fd, frame, size);
   if ((u32)writtenBytes != size)
@@ -150,7 +150,7 @@ void CEXIETHERNET::TAPNetworkInterface::ReadThreadHandler(TAPNetworkInterface* s
     else if (self->readEnabled.IsSet())
     {
       DEBUG_LOG_FMT(SP1, "Read data: {}",
-                    ArrayToString(self->m_eth_ref->mRecvBuffer.get(), readBytes, 0x10));
+                    MemToHexString(self->m_eth_ref->mRecvBuffer.get(), readBytes, 0x10));
       self->m_eth_ref->mRecvBufferLength = readBytes;
       self->m_eth_ref->RecvHandlePacket();
     }

@@ -39,8 +39,8 @@ inline void CharArrayFromFormat(char (&out)[Count], const char* format, ...)
   va_end(args);
 }
 
-// Good
-std::string ArrayToString(const u8* data, u32 size, int line_len = 20, bool spaces = true);
+std::string MemToHexString(const void* data, std::size_t size, std::size_t bytes_per_line = 20,
+                           bool spaces = true);
 
 std::string_view StripWhitespace(std::string_view s);
 std::string_view StripSpaces(std::string_view s);

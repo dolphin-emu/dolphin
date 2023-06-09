@@ -4,6 +4,7 @@
 #include "Core/IOS/USB/Bluetooth/BTReal.h"
 
 #include <algorithm>
+#include <climits>
 #include <cstdint>
 #include <cstring>
 #include <iomanip>
@@ -16,6 +17,7 @@
 #include <vector>
 
 #include <fmt/format.h>
+#include <fmt/ostream.h>
 #include <libusb.h>
 
 #include "Common/ChunkFile.h"
@@ -615,20 +617,14 @@ void BluetoothRealDevice::LoadLinkKeys()
 void BluetoothRealDevice::SaveLinkKeys()
 {
   std::ostringstream oss;
-  for (const auto& entry : m_link_keys)
+  for (const auto& [address, link_key] : m_link_keys)
   {
-    bdaddr_t address;
+    bdaddr_t reverse_address;
     // Reverse the address so that it is stored in the correct order in the config file
-    std::reverse_copy(entry.first.begin(), entry.first.end(), address.begin());
-    oss << Common::MacAddressToString(address);
-    oss << '=';
-    oss << std::hex;
-    for (u8 data : entry.second)
-    {
-      // We cast to u16 here in order to have it displayed as two nibbles.
-      oss << std::setfill('0') << std::setw(2) << static_cast<u16>(data);
-    }
-    oss << std::dec << ',';
+    std::reverse_copy(address.begin(), address.end(), reverse_address.begin());
+
+    fmt::print(oss, "{:s}={:s},", Common::MacAddressToString(reverse_address),
+               MemToHexString(link_key.data(), link_key.size(), SIZE_MAX, false));
   }
   std::string config_string = oss.str();
   if (!config_string.empty())

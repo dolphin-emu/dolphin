@@ -3,6 +3,7 @@
 
 #include "DolphinTool/VerifyCommand.h"
 
+#include <climits>
 #include <cstdlib>
 #include <string>
 #include <vector>
@@ -18,13 +19,7 @@ namespace DolphinTool
 {
 static std::string HashToHexString(const std::vector<u8>& hash)
 {
-  std::stringstream ss;
-  ss << std::hex;
-  for (int i = 0; i < static_cast<int>(hash.size()); ++i)
-  {
-    ss << std::setw(2) << std::setfill('0') << static_cast<int>(hash[i]);
-  }
-  return ss.str();
+  return MemToHexString(hash.data(), hash.size(), SIZE_MAX, false);
 }
 
 static void PrintFullReport(const DiscIO::VolumeVerifier::Result& result)

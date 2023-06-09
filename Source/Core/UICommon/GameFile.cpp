@@ -10,7 +10,6 @@
 #include <iterator>
 #include <map>
 #include <memory>
-#include <sstream>
 #include <string>
 #include <string_view>
 #include <tuple>
@@ -580,10 +579,7 @@ std::string GameFile::GetNetPlayName(const Core::TitleDatabase& title_database) 
   }
   if (info.empty())
     return name;
-  std::ostringstream ss;
-  std::copy(info.begin(), info.end() - 1, std::ostream_iterator<std::string>(ss, ", "));
-  ss << info.back();
-  return name + " (" + ss.str() + ")";
+  return fmt::format("{:s} ({:s})", name, JoinStrings(info, ", "));
 }
 
 static Common::SHA1::Digest GetHash(u32 value)
