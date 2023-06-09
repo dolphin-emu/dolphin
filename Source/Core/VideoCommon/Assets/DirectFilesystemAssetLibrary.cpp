@@ -52,7 +52,11 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const Ass
 
   // Raw texture is expected to have one asset mapped
   if (asset_map.empty() || asset_map.size() > 1)
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' error - raw texture expected to have one file mapped!",
+                  asset_id);
     return {};
+  }
   const auto& asset_path = asset_map.begin()->second;
 
   const auto last_loaded_time = std::filesystem::last_write_time(asset_path);
@@ -60,9 +64,12 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const Ass
   Common::ToLower(&ext);
   if (ext == ".dds")
   {
-    LoadDDSTexture(data, asset_path.string());
-    if (data->m_levels.empty()) [[unlikely]]
+    if (!LoadDDSTexture(data, asset_path.string()))
+    {
+      ERROR_LOG_FMT(VIDEO, "Asset '{}' error - could not load dds texture!", asset_id);
       return {};
+    }
+
     if (!LoadMips(asset_path, data))
       return {};
 
@@ -75,13 +82,18 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const Ass
       data->m_levels.push_back({});
 
     if (!LoadPNGTexture(&data->m_levels[0], asset_path.string()))
+    {
+      ERROR_LOG_FMT(VIDEO, "Asset '{}' error - could not load png texture!", asset_id);
       return {};
+    }
+
     if (!LoadMips(asset_path, data))
       return {};
 
     return LoadInfo{GetAssetSize(*data), last_loaded_time};
   }
 
+  ERROR_LOG_FMT(VIDEO, "Asset '{}' error - extension '{}' unknown!", asset_id, ext);
   return {};
 }
 
