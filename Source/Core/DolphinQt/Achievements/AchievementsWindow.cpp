@@ -4,6 +4,8 @@
 #ifdef USE_RETRO_ACHIEVEMENTS
 #include "DolphinQt/Achievements/AchievementsWindow.h"
 
+#include <mutex>
+
 #include <QDialogButtonBox>
 #include <QTabWidget>
 #include <QVBoxLayout>
@@ -60,11 +62,14 @@ void AchievementsWindow::ConnectWidgets()
 
 void AchievementsWindow::UpdateData()
 {
-  m_header_widget->UpdateData();
-  m_header_widget->setVisible(AchievementManager::GetInstance()->IsLoggedIn());
-  // Settings tab handles its own updates ... indeed, that calls this
-  m_progress_widget->UpdateData();
-  m_tab_widget->setTabVisible(1, AchievementManager::GetInstance()->IsGameLoaded());
+  {
+    std::lock_guard lg{*AchievementManager::GetInstance()->GetLock()};
+    m_header_widget->UpdateData();
+    m_header_widget->setVisible(AchievementManager::GetInstance()->IsLoggedIn());
+    // Settings tab handles its own updates ... indeed, that calls this
+    m_progress_widget->UpdateData();
+    m_tab_widget->setTabVisible(1, AchievementManager::GetInstance()->IsGameLoaded());
+  }
   update();
 }
 
