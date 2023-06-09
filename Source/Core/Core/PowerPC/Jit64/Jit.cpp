@@ -3,6 +3,7 @@
 
 #include "Core/PowerPC/Jit64/Jit.h"
 
+#include <climits>
 #include <map>
 #include <sstream>
 #include <string>
@@ -1251,14 +1252,7 @@ void LogGeneratedX86(size_t size, const PPCAnalyst::CodeBuffer& code_buffer, con
 
   if (b->codeSize <= 250)
   {
-    std::ostringstream ss;
-    ss << std::hex;
-    for (u8 i = 0; i <= b->codeSize; i++)
-    {
-      ss.width(2);
-      ss.fill('0');
-      ss << static_cast<u32>(*(normalEntry + i));
-    }
-    DEBUG_LOG_FMT(DYNA_REC, "IR_X86 bin: {}\n\n\n", ss.str());
+    DEBUG_LOG_FMT(DYNA_REC, "IR_X86 bin: {}\n\n\n",
+                  MemToHexString(normalEntry, b->codeSize + 1u, SIZE_MAX, false));
   }
 }

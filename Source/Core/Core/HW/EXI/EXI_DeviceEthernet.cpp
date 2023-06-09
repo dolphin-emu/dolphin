@@ -556,7 +556,7 @@ bool CEXIETHERNET::RecvHandlePacket()
 
 #ifdef BBA_TRACK_PAGE_PTRS
   INFO_LOG_FMT(SP1, "RecvHandlePacket {:x}\n{}", mRecvBufferLength,
-               ArrayToString(mRecvBuffer.get(), mRecvBufferLength, 16));
+               MemToHexString(mRecvBuffer.get(), mRecvBufferLength, 16));
 
   INFO_LOG_FMT(SP1, "{:x} {:x} {:x} {:x}", page_ptr(BBA_BP), page_ptr(BBA_RRP), page_ptr(BBA_RWP),
                page_ptr(BBA_RHBP));

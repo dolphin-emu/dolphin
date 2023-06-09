@@ -308,7 +308,7 @@ void CEXIETHERNET::TAPNetworkInterface::ReadThreadHandler(TAPNetworkInterface* s
 
     // Copy to BBA buffer, and fire interrupt if enabled.
     DEBUG_LOG_FMT(SP1, "Received {} bytes:\n {}", transferred,
-                  ArrayToString(self->m_eth_ref->mRecvBuffer.get(), transferred, 0x10));
+                  MemToHexString(self->m_eth_ref->mRecvBuffer.get(), transferred, 0x10));
     if (self->readEnabled.IsSet())
     {
       self->m_eth_ref->mRecvBufferLength = transferred;
@@ -319,7 +319,7 @@ void CEXIETHERNET::TAPNetworkInterface::ReadThreadHandler(TAPNetworkInterface* s
 
 bool CEXIETHERNET::TAPNetworkInterface::SendFrame(const u8* frame, u32 size)
 {
-  DEBUG_LOG_FMT(SP1, "SendFrame {} bytes:\n{}", size, ArrayToString(frame, size, 0x10));
+  DEBUG_LOG_FMT(SP1, "SendFrame {} bytes:\n{}", size, MemToHexString(frame, size, 0x10));
 
   // Check for a background write. We can't issue another one until this one has completed.
   DWORD transferred;

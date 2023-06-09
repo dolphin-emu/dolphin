@@ -2,9 +2,13 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinTool/VerifyCommand.h"
-#include "UICommon/UICommon.h"
+
+#include <climits>
 
 #include <OptionParser.h>
+
+#include "Common/StringUtil.h"
+#include "UICommon/UICommon.h"
 
 namespace DolphinTool
 {
@@ -189,13 +193,7 @@ VerifyCommand::VerifyVolume(std::shared_ptr<DiscIO::VolumeDisc> volume,
 
 std::string VerifyCommand::HashToHexString(const std::vector<u8>& hash)
 {
-  std::stringstream ss;
-  ss << std::hex;
-  for (int i = 0; i < static_cast<int>(hash.size()); ++i)
-  {
-    ss << std::setw(2) << std::setfill('0') << static_cast<int>(hash[i]);
-  }
-  return ss.str();
+  return MemToHexString(hash.data(), hash.size(), SIZE_MAX, false);
 }
 
 }  // namespace DolphinTool

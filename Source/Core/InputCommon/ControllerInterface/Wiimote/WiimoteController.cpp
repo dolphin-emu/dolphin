@@ -1117,7 +1117,7 @@ void Device::ProcessInputReport(WiimoteReal::Report& report)
       else if (report_id < InputReportID::ReportCore)
       {
         WARN_LOG_FMT(WIIMOTE, "WiiRemote: Unhandled input report: {}.",
-                     ArrayToString(report.data(), u32(report.size())));
+                     MemToHexString(report.data(), report.size()));
       }
 
       break;

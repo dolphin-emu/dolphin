@@ -58,10 +58,7 @@ bool CEXIETHERNET::TAPServerNetworkInterface::Activate()
 
 bool CEXIETHERNET::TAPServerNetworkInterface::SendFrame(const u8* frame, u32 size)
 {
-  {
-    const std::string s = ArrayToString(frame, size, 0x10);
-    INFO_LOG_FMT(SP1, "SendFrame {}\n{}", size, s);
-  }
+  INFO_LOG_FMT(SP1, "SendFrame {}\n{}", size, MemToHexString(frame, size, 0x10));
 
   auto size16 = u16(size);
   if (write(fd, &size16, 2) != 2)
@@ -111,8 +108,8 @@ void CEXIETHERNET::TAPServerNetworkInterface::ReadThreadHandler()
       }
       else if (readEnabled.IsSet())
       {
-        std::string data_string = ArrayToString(m_eth_ref->mRecvBuffer.get(), read_bytes, 0x10);
-        INFO_LOG_FMT(SP1, "Read data: {}", data_string);
+        INFO_LOG_FMT(SP1, "Read data: {}",
+                     MemToHexString(m_eth_ref->mRecvBuffer.get(), read_bytes, 0x10));
         m_eth_ref->mRecvBufferLength = read_bytes;
         m_eth_ref->RecvHandlePacket();
       }

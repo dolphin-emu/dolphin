@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <gtest/gtest.h>
+
+#include <array>
+#include <climits>
 #include <string>
 #include <vector>
 
@@ -89,4 +92,18 @@ TEST(StringUtil, GetEscapedHtml)
   EXPECT_EQ(Common::GetEscapedHtml(no_escape_needed), no_escape_needed);
   EXPECT_EQ(Common::GetEscapedHtml("&<>'\""), "&amp;&lt;&gt;&apos;&quot;");
   EXPECT_EQ(Common::GetEscapedHtml("&&&"), "&amp;&amp;&amp;");
+}
+
+TEST(StringUtil, MemToHexString)
+{
+  static constexpr std::array<u8, 9> arr = {0x00, 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xFF};
+  // The four usages. Note the lack of trailing whitespace/newline
+  EXPECT_EQ(MemToHexString(arr.data(), arr.size(), SIZE_MAX, false), "00123456789ABCDEFF");
+  EXPECT_EQ(MemToHexString(arr.data(), arr.size(), SIZE_MAX, true), "00 12 34 56 78 9A BC DE FF");
+  EXPECT_EQ(MemToHexString(arr.data(), arr.size(), 3, false), "001234\n56789A\nBCDEFF");
+  EXPECT_EQ(MemToHexString(arr.data(), arr.size(), 3, true), "00 12 34\n56 78 9A\nBC DE FF");
+  // size == 0 returns a default constructed string
+  EXPECT_EQ(MemToHexString(arr.data(), 0, SIZE_MAX), std::string{}.c_str());
+  // bytes_per_row == 0 returns a default constructed string
+  EXPECT_EQ(MemToHexString(arr.data(), arr.size(), 0), std::string{}.c_str());
 }

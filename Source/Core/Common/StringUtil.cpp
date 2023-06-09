@@ -197,26 +197,42 @@ std::string StringFromFormatV(const char* format, va_list args)
   return temp;
 }
 
-// For Debugging. Read out an u8 array.
-std::string ArrayToString(const u8* data, u32 size, int line_len, bool spaces)
+// This assumes you already masked the upper four bits.
+static constexpr char NibbleToHex(const u8 n)
 {
-  std::ostringstream oss;
-  oss << std::setfill('0') << std::hex;
+  if (n < 0xa)
+    return '0' + n;
+  else
+    return 'A' + n - 0xa;
+}
 
-  for (int line = 0; size; ++data, --size)
+std::string MemToHexString(const void* data, std::size_t size, const std::size_t per_line,
+                           const bool spaces)
+{
+  std::string hexstring;
+  if (size == 0 || per_line == 0)
+    return hexstring;
+  const u8* dataptr = reinterpret_cast<const u8*>(data);
+  const std::size_t nibble_count = size * 2;
+  const std::size_t newline_count = size / per_line - (size % per_line == 0);
+  const std::size_t space_count = (size - newline_count - 1) * spaces;
+  hexstring.reserve(nibble_count + newline_count + space_count);
+  for (std::size_t on_this_line = 0;; ++dataptr)
   {
-    oss << std::setw(2) << static_cast<int>(*data);
-
-    if (line_len == ++line)
+    const u8 byte = *dataptr;
+    hexstring.push_back(NibbleToHex(byte >> 4));
+    hexstring.push_back(NibbleToHex(byte & 0xf));
+    if (--size == 0)
+      break;
+    if (++on_this_line == per_line)
     {
-      oss << '\n';
-      line = 0;
+      hexstring.push_back('\n');
+      on_this_line = 0;
     }
     else if (spaces)
-      oss << ' ';
+      hexstring.push_back(' ');
   }
-
-  return oss.str();
+  return hexstring;
 }
 
 template <typename T>
@@ -391,17 +407,21 @@ std::vector<std::string> SplitString(const std::string& str, const char delim)
 
 std::string JoinStrings(const std::vector<std::string>& strings, const std::string& delimiter)
 {
-  // Check if we can return early, just for speed
+  std::string joined;
   if (strings.empty())
-    return "";
-
-  std::ostringstream res;
-  std::copy(strings.begin(), strings.end(),
-            std::ostream_iterator<std::string>(res, delimiter.c_str()));
-
-  // Drop the trailing delimiter.
-  std::string joined = res.str();
-  return joined.substr(0, joined.length() - delimiter.length());
+    return joined;
+  const auto iter_begin = strings.begin(), iter_end = strings.end();
+  std::size_t reserve = delimiter.size() * (strings.size() - !delimiter.empty());
+  for (auto iter = iter_begin; iter != iter_end; ++iter)
+    reserve += iter->size();
+  joined.reserve(reserve);
+  for (auto iter = iter_begin;;)
+  {
+    joined += *iter;
+    if (++iter == iter_end)
+      return joined;
+    joined += delimiter;
+  }
 }
 
 std::string TabsToSpaces(int tab_size, std::string str)

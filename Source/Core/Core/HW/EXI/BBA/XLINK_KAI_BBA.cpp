@@ -43,7 +43,7 @@ bool CEXIETHERNET::XLinkNetworkInterface::Activate()
   const auto size = u32(cmd.length());
   memmove(buffer, cmd.c_str(), size);
 
-  DEBUG_LOG_FMT(SP1, "SendCommandPayload {:x}\n{}", size, ArrayToString(buffer, size, 0x10));
+  DEBUG_LOG_FMT(SP1, "SendCommandPayload {:x}\n{}", size, MemToHexString(buffer, size, 0x10));
 
   if (m_sf_socket.send(buffer, size, m_sf_recipient_ip, m_dest_port) != sf::Socket::Done)
   {
@@ -69,7 +69,7 @@ void CEXIETHERNET::XLinkNetworkInterface::Deactivate()
   u8 buffer[255] = {};
   memmove(buffer, cmd.c_str(), size);
 
-  DEBUG_LOG_FMT(SP1, "SendCommandPayload {:x}\n{}", size, ArrayToString(buffer, size, 0x10));
+  DEBUG_LOG_FMT(SP1, "SendCommandPayload {:x}\n{}", size, MemToHexString(buffer, size, 0x10));
 
   if (m_sf_socket.send(buffer, size, m_sf_recipient_ip, m_dest_port) != sf::Socket::Done)
   {
@@ -121,7 +121,7 @@ bool CEXIETHERNET::XLinkNetworkInterface::SendFrame(const u8* frame, u32 size)
   size += 4;
 
   // Only uncomment for debugging, the performance hit is too big otherwise
-  // INFO_LOG_FMT(SP1, "SendFrame {}\n{}", size, ArrayToString(m_out_frame, size, 0x10)));
+  // INFO_LOG_FMT(SP1, "SendFrame {}\n{}", size, MemToHexString(m_out_frame, size, 0x10)));
 
   if (m_sf_socket.send(m_out_frame, size, m_sf_recipient_ip, m_dest_port) != sf::Socket::Done)
   {
@@ -183,8 +183,8 @@ void CEXIETHERNET::XLinkNetworkInterface::ReadThreadHandler(
         else if (self->m_read_enabled.IsSet())
         {
           // Only uncomment for debugging, the performance hit is too big otherwise
-          // DEBUG_LOG_FMT(SP1, "Read data: {}", ArrayToString(self->m_eth_ref->mRecvBuffer.get(),
-          // u32(bytes_read - 4), 0x10));
+          // DEBUG_LOG_FMT(SP1, "Read data: {}",
+          //             MemToHexString(self->m_eth_ref->mRecvBuffer.get(), bytes_read - 4u, 0x10));
           self->m_eth_ref->mRecvBufferLength = u32(bytes_read - 4);
           self->m_eth_ref->RecvHandlePacket();
         }
@@ -215,7 +215,7 @@ void CEXIETHERNET::XLinkNetworkInterface::ReadThreadHandler(
           memmove(buffer, cmd.data(), size);
 
           DEBUG_LOG_FMT(SP1, "SendCommandPayload {:x}\n{}", size,
-                        ArrayToString(buffer, size, 0x10));
+                        MemToHexString(buffer, size, 0x10));
 
           if (self->m_sf_socket.send(buffer, size, self->m_sf_recipient_ip, self->m_dest_port) !=
               sf::Socket::Done)
@@ -252,7 +252,7 @@ void CEXIETHERNET::XLinkNetworkInterface::ReadThreadHandler(
         DEBUG_LOG_FMT(SP1, "XLink Kai BBA keepalive");
 
         // Only uncomment for debugging, just clogs the log otherwise
-        // INFO_LOG_FMT(SP1, "SendCommandPayload {:x}\n{}", 2, ArrayToString(m_in_frame, 2, 0x10));
+        // INFO_LOG_FMT(SP1, "SendCommandPayload {:x}\n{}", 2, MemToHexString(m_in_frame, 2, 0x10));
 
         // Reply (using the message that came in!)
         if (self->m_sf_socket.send(self->m_in_frame, 10, self->m_sf_recipient_ip,

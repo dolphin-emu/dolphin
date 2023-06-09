@@ -234,7 +234,7 @@ int MotionPlus::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
       return m_i2c_bus.BusWrite(slave_addr, addr, count, data_in);
     }
 
-    DEBUG_LOG_FMT(WIIMOTE, "Inactive M+ write {:#x} : {}", addr, ArrayToString(data_in, count));
+    DEBUG_LOG_FMT(WIIMOTE, "Inactive M+ write {:#x} : {}", addr, MemToHexString(data_in, count));
 
     auto const result = RawWrite(&m_reg_data, addr, count, data_in);
 
@@ -255,7 +255,7 @@ int MotionPlus::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
       return 0;
     }
 
-    DEBUG_LOG_FMT(WIIMOTE, "Active M+ write {:#x} : {}", addr, ArrayToString(data_in, count));
+    DEBUG_LOG_FMT(WIIMOTE, "Active M+ write {:#x} : {}", addr, MemToHexString(data_in, count));
 
     auto const result = RawWrite(&m_reg_data, addr, count, data_in);
 
