@@ -10,7 +10,7 @@ extern "C" {
 #include "Core/Scripting/CoreScriptContextFiles/MemoryAddressBreakpointsHolder.h"
 #include "Core/Scripting/CoreScriptContextFiles/ScriptCallLocations.h"
 
-extern const char* most_recent_script_version = "1.0.0";
+extern const char* most_recent_script_version;
 
 struct ScriptContext;
 
@@ -27,9 +27,9 @@ typedef struct ScriptContextBaseFunctionsTable
 
   void (*RunOnFrameStartCallbacks)(struct ScriptContext*);
   void (*RunOnGCControllerPolledCallbacks)(struct ScriptContext*);
-  void (*RunOnInstructionReachedCallbacks)(struct ScriptContext*, u32);
-  void (*RunOnMemoryAddressReadFromCallbacks)(struct ScriptContext*, u32);
-  void (*RunOnMemoryAddressWrittenToCallbacks)(struct ScriptContext*, u32);
+  void (*RunOnInstructionReachedCallbacks)(struct ScriptContext*, unsigned int);
+  void (*RunOnMemoryAddressReadFromCallbacks)(struct ScriptContext*, unsigned int);
+  void (*RunOnMemoryAddressWrittenToCallbacks)(struct ScriptContext*, unsigned int);
   void (*RunOnWiiInputPolledCallbacks)(struct ScriptContext*);
 
   void* (*RegisterOnFrameStartCallbacks)(struct ScriptContext*, void*);
@@ -40,17 +40,17 @@ typedef struct ScriptContextBaseFunctionsTable
   void (*RegisterOnGCControllerPolledWithAutoDeregistrationCallbacks)(struct ScriptContext*, void*);
   int (*UnregisterOnGCControllerPolledCallbacks)(struct ScriptContext*, void*);
 
-  void* (*RegisterOnInstructionReachedCallbacks)(struct ScriptContext*, u32, void*);
-  void (*RegisterOnInstructioReachedWithAutoDeregistrationCallbacks)(struct ScriptContext*, u32, void*);
-  int (*UnregisterOnInstructionReachedCallbacks)(struct ScriptContext*, u32, void*);
+  void* (*RegisterOnInstructionReachedCallbacks)(struct ScriptContext*, unsigned int, void*);
+  void (*RegisterOnInstructioReachedWithAutoDeregistrationCallbacks)(struct ScriptContext*, unsigned int, void*);
+  int (*UnregisterOnInstructionReachedCallbacks)(struct ScriptContext*, unsigned int, void*);
 
-  void* (*RegisterOnMemoryAddressReadFromCallbacks)(struct ScriptContext*, u32, void*);
-  void (*RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallbacks)(struct ScriptContext*, u32, void*);
-  int (*UnregisterOnMemoryAddressReadFromCallbacks)(struct ScriptContext*, u32, void*);
+  void* (*RegisterOnMemoryAddressReadFromCallbacks)(struct ScriptContext*, unsigned int, void*);
+  void (*RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallbacks)(struct ScriptContext*, unsigned int, void*);
+  int (*UnregisterOnMemoryAddressReadFromCallbacks)(struct ScriptContext*, unsigned int, void*);
 
-  void* (*RegisterOnMemoryAddressWrittenToCallbacks)(struct ScriptContext*, u32, void*);
-  void (*RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallbacks)(struct ScriptContext*, u32, void*);
-  int (*UnregisterOnMemoryAddressWrittenToCallbacks)(struct ScriptContext*, u32, void*);
+  void* (*RegisterOnMemoryAddressWrittenToCallbacks)(struct ScriptContext*, unsigned int, void*);
+  void (*RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallbacks)(struct ScriptContext*, unsigned int, void*);
+  int (*UnregisterOnMemoryAddressWrittenToCallbacks)(struct ScriptContext*, unsigned int, void*);
 
   void* (*RegisterOnWiiInputPolledCallbacks)(struct ScriptContext*, void*);
   void(*RegisterOnWiiInputPolledWithAutoDeregistrationCallbacks) (struct ScriptContext*, void*);
@@ -82,14 +82,8 @@ typedef struct ScriptContext
 
 } ScriptContext;
 
-ScriptContext* CreateScript(int unique_identifier, const char* script_file_name,
-                            void (*print_callback_function)(const char*), void(*script));
-
-  void ShutdownScript(ScriptContext* script_context)
-  {
-  script_context->is_script_active = 0;
-  script_context->scriptContextBaseFunctionsTable.script_end_callback(script_context, script_context->unique_script_identifier);
-  }
+ScriptContext* CreateScript(int unique_identifier, const char* script_file_name, void (*print_callback_function)(const char*), void(*script));
+void ShutdownScript(ScriptContext* script_context);
 
 #endif
 

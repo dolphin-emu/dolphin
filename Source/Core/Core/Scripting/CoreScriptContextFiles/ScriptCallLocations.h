@@ -5,7 +5,7 @@ extern "C" {
 #ifndef SCRIPT_CALL_LOCS
 #define SCRIPT_CALL_LOCS
 
-enum ScriptCallLocations
+typedef enum ScriptCallLocations
 {
   FromScriptStartup,
   FromFrameStartGlobalScope,
@@ -16,7 +16,7 @@ enum ScriptCallLocations
   FromGCControllerInputPolled,
   FromWiiInputPolled,
   FromGraphicsCallback
-};
+} ScriptCallLocations;
 
 #endif
 

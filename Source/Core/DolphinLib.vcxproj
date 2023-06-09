@@ -80,14 +80,6 @@
   <ItemGroup>
     <Text Include="$(BuildInfoTemplate)" />
   </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Core\Scripting\InternalAPIModules\ConfigAPI.h" />
-    <ClInclude Include="Core\Scripting\InternalAPIModules\InstructionStepAPI.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="Core\Scripting\InternalAPIModules\ConfigAPI.cpp" />
-    <ClCompile Include="Core\Scripting\InternalAPIModules\InstructionStepAPI.cpp" />
-  </ItemGroup>
   <UsingTask TaskName="GetProductVersion" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
       <Path ParameterType="System.String" Required="true" />

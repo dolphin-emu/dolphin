@@ -1097,6 +1097,10 @@
     <ClCompile Include="Core\PowerPC\SignatureDB\DSYSignatureDB.cpp" />
     <ClCompile Include="Core\PowerPC\SignatureDB\MEGASignatureDB.cpp" />
     <ClCompile Include="Core\PowerPC\SignatureDB\SignatureDB.cpp" />
+	<ClCompile Include="Core\Scripting\CoreScriptContextFiles\InstructionBreakpointsHolder.c" />
+	<ClCompile Include="Core\Scripting\CoreScriptContextFiles\MemoryAddressBreakpointsHolder.c" />
+	<ClCompile Include="Core\Scripting\CoreScriptContextFiles\ScriptContext.c" />
+	<ClCompile Include="Core\Scripting\CoreScriptContextFiles\Vector.c" />
     <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnFrameStartCallbackAPI.cpp" />
     <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnGCControllerPolledCallbackAPI.cpp" />
     <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnInstructionHitCallbackAPI.cpp" />
