@@ -4,6 +4,7 @@
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 #include <sstream>
+#include <utility>
 
 namespace ControllerEmu
 {
@@ -50,7 +51,7 @@ void NumericSetting<double>::SetExpressionFromValue()
   ss.imbue(std::locale::classic());
   ss << GetValue();
 
-  m_value.m_input.SetExpression(ss.str());
+  m_value.m_input.SetExpression(std::move(ss).str());
 }
 
 template <>

@@ -9,6 +9,7 @@
 #include <string>
 
 #include <fmt/format.h>
+#include <fmt/ostream.h>
 
 #include "Common/Align.h"
 #include "Common/Assert.h"
@@ -376,10 +377,8 @@ bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, std::s
       std::string filename = VideoBackendBase::BadShaderFilename(prefix, num_failures++);
       std::ofstream file;
       File::OpenFStream(file, filename, std::ios_base::out);
-      file << s_glsl_header << code << info_log;
-      file << "\n";
-      file << "Dolphin Version: " + Common::GetScmRevStr() + "\n";
-      file << "Video Backend: " + g_video_backend->GetDisplayName();
+      fmt::print(file, "{:s}{:s}{:s}\nDolphin Version: {:s}\nVideo Backend: {:s}", s_glsl_header,
+                 code, info_log, Common::GetScmRevStr(), g_video_backend->GetDisplayName());
       file.close();
 
       PanicAlertFmt("Failed to compile {} shader: {}\n"
@@ -415,16 +414,13 @@ bool ProgramShaderCache::CheckProgramLinkResult(GLuint id, std::string_view vcod
       std::ofstream file;
       File::OpenFStream(file, filename, std::ios_base::out);
       if (!vcode.empty())
-        file << s_glsl_header << vcode << '\n';
+        fmt::print(file, "{:s}{:s}\n", s_glsl_header, vcode);
       if (!gcode.empty())
-        file << s_glsl_header << gcode << '\n';
+        fmt::print(file, "{:s}{:s}\n", s_glsl_header, gcode);
       if (!pcode.empty())
-        file << s_glsl_header << pcode << '\n';
-
-      file << info_log;
-      file << "\n";
-      file << "Dolphin Version: " + Common::GetScmRevStr() + "\n";
-      file << "Video Backend: " + g_video_backend->GetDisplayName();
+        fmt::print(file, "{:s}{:s}\n", s_glsl_header, pcode);
+      fmt::print(file, "{:s}\nDolphin Version: {:s}\nVideo Backend: {:s}", info_log,
+                 Common::GetScmRevStr(), g_video_backend->GetDisplayName());
       file.close();
 
       PanicAlertFmt("Failed to link shaders: {}\n"

@@ -208,7 +208,7 @@ std::string GetRTCDisplay()
 
   std::ostringstream format_time;
   format_time << std::put_time(gm_time, "Date/Time: %c\n");
-  return format_time.str();
+  return std::move(format_time).str();
 }
 
 // NOTE: GPU Thread

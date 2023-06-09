@@ -19,41 +19,30 @@
 #include "InputCommon/DynamicInputTextures/DITSpecification.h"
 #include "InputCommon/ImageOperations.h"
 
-namespace
-{
-std::string GetStreamAsString(std::ifstream& stream)
-{
-  std::stringstream ss;
-  ss << stream.rdbuf();
-  return ss.str();
-}
-}  // namespace
-
 namespace InputCommon::DynamicInputTextures
 {
-Configuration::Configuration(const std::string& json_file)
+Configuration::Configuration(const std::string& json_path)
 {
-  std::ifstream json_stream;
-  File::OpenFStream(json_stream, json_file, std::ios_base::in);
-  if (!json_stream.is_open())
+  std::string json_data;
+  if (!File::ReadFileToString(json_path, json_data))
   {
-    ERROR_LOG_FMT(VIDEO, "Failed to load dynamic input json file '{}'", json_file);
+    ERROR_LOG_FMT(VIDEO, "Failed to load dynamic input json file '{}'", json_path);
     m_valid = false;
     return;
   }
 
   picojson::value root;
-  const auto error = picojson::parse(root, GetStreamAsString(json_stream));
+  const auto error = picojson::parse(root, json_data);
 
   if (!error.empty())
   {
     ERROR_LOG_FMT(VIDEO, "Failed to load dynamic input json file '{}' due to parse error: {}",
-                  json_file, error);
+                  json_path, error);
     m_valid = false;
     return;
   }
 
-  SplitPath(json_file, &m_base_path, nullptr, nullptr);
+  SplitPath(json_path, &m_base_path, nullptr, nullptr);
 
   const picojson::value& specification_json = root.get("specification");
   u8 specification = 1;
@@ -66,7 +55,7 @@ Configuration::Configuration(const std::string& json_file)
       ERROR_LOG_FMT(
           VIDEO,
           "Failed to load dynamic input json file '{}', specification '{}' is not within bounds",
-          json_file, spec_from_json);
+          json_path, spec_from_json);
       m_valid = false;
       return;
     }
@@ -77,12 +66,12 @@ Configuration::Configuration(const std::string& json_file)
   {
     ERROR_LOG_FMT(VIDEO,
                   "Failed to load dynamic input json file '{}', specification '{}' is invalid",
-                  json_file, specification);
+                  json_path, specification);
     m_valid = false;
     return;
   }
 
-  m_valid = ProcessSpecificationV1(root, m_dynamic_input_textures, m_base_path, json_file);
+  m_valid = ProcessSpecificationV1(root, m_dynamic_input_textures, m_base_path, json_path);
 }
 
 Configuration::~Configuration() = default;

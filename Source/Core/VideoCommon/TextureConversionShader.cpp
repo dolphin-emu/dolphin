@@ -6,6 +6,7 @@
 #include <map>
 #include <sstream>
 #include <string_view>
+#include <utility>
 
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
@@ -1055,7 +1056,7 @@ std::string GenerateDecodingShader(TextureFormat format, std::optional<TLUTForma
 {
   const DecodingShaderInfo* info = GetDecodingShaderInfo(format);
   if (!info)
-    return "";
+    return {};
 
   std::ostringstream ss;
   if (palette_format.has_value())
@@ -1096,7 +1097,7 @@ std::string GenerateDecodingShader(TextureFormat format, std::optional<TLUTForma
   ss << decoding_shader_header;
   ss << info->shader_body;
 
-  return ss.str();
+  return std::move(ss).str();
 }
 
 std::string GeneratePaletteConversionShader(TLUTFormat palette_format, APIType api_type)
@@ -1178,43 +1179,42 @@ float4 DecodePixel(int val)
     break;
   }
 
-  ss << "\n";
+  ss.put('\n');
 
   if (api_type == APIType::Metal)
     ss << "SSBO_BINDING(0) readonly buffer Palette { uint16_t palette[]; };\n";
   else
     ss << "TEXEL_BUFFER_BINDING(0) uniform usamplerBuffer samp0;\n";
-  ss << "SAMPLER_BINDING(1) uniform sampler2DArray samp1;\n";
-  ss << "UBO_BINDING(std140, 1) uniform PSBlock {\n";
-
-  ss << "  float multiplier;\n";
-  ss << "  int texel_buffer_offset;\n";
-  ss << "};\n";
+  ss << "SAMPLER_BINDING(1) uniform sampler2DArray samp1;\n"
+        "UBO_BINDING(std140, 1) uniform PSBlock {\n"
+        "  float multiplier;\n"
+        "  int texel_buffer_offset;\n"
+        "};\n";
 
   if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
   {
-    ss << "VARYING_LOCATION(0) in VertexData {\n";
-    ss << "  float3 v_tex0;\n";
-    ss << "};\n";
+    ss << "VARYING_LOCATION(0) in VertexData {\n"
+          "  float3 v_tex0;\n"
+          "};\n";
   }
   else
   {
     ss << "VARYING_LOCATION(0) in float3 v_tex0;\n";
   }
-  ss << "FRAGMENT_OUTPUT_LOCATION(0) out float4 ocol0;\n";
-  ss << "void main() {\n";
-  ss << "  float3 coords = v_tex0;\n";
-  ss << "  int src = int(round(texture(samp1, coords).r * multiplier));\n";
+  ss << "FRAGMENT_OUTPUT_LOCATION(0) out float4 ocol0;\n"
+        "void main() {\n"
+        "  float3 coords = v_tex0;\n"
+        "  int src = int(round(texture(samp1, coords).r * multiplier));\n";
   if (api_type == APIType::Metal)
     ss << "  src = int(palette[uint(src)]);\n";
   else
     ss << "  src = int(texelFetch(samp0, src + texel_buffer_offset).r);\n";
 
-  ss << "  src = ((src << 8) | (src >> 8)) & 0xFFFF;\n";
-  ss << "  ocol0 = DecodePixel(src);\n";
-  ss << "}\n";
+  ss << "  src = ((src << 8) | (src >> 8)) & 0xFFFF;\n"
+        "  ocol0 = DecodePixel(src);\n"
+        "}\n";
 
-  return ss.str();
+  return std::move(ss).str();
 }
 
 }  // namespace TextureConversionShaderTiled

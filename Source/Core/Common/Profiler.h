@@ -5,6 +5,7 @@
 
 #include <list>
 #include <mutex>
+#include <ostream>
 #include <string>
 
 #include "CommonTypes.h"
@@ -21,7 +22,7 @@ public:
 
   void Start();
   void Stop();
-  std::string Read();
+  void Print(std::ostream&);
 
   bool operator<(const Profiler& b) const;
 

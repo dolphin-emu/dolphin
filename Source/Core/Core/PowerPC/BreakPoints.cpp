@@ -9,6 +9,9 @@
 #include <string>
 #include <vector>
 
+#include <fmt/format.h>
+#include <fmt/ostream.h>
+
 #include "Common/CommonTypes.h"
 #include "Common/DebugInterface.h"
 #include "Common/Logging/Log.h"
@@ -58,22 +61,24 @@ const TBreakPoint* BreakPoints::GetBreakpoint(u32 address) const
 BreakPoints::TBreakPointsStr BreakPoints::GetStrings() const
 {
   TBreakPointsStr bp_strings;
+  std::ostringstream ss;
+  ss.imbue(std::locale::classic());
   for (const TBreakPoint& bp : m_breakpoints)
   {
     if (!bp.is_temporary)
     {
-      std::ostringstream ss;
-      ss.imbue(std::locale::classic());
-      ss << fmt::format("${:08x} ", bp.address);
+      fmt::print(ss, "${:08x} ", bp.address);
       if (bp.is_enabled)
-        ss << "n";
+        ss.put('n');
       if (bp.log_on_hit)
-        ss << "l";
+        ss.put('l');
       if (bp.break_on_hit)
-        ss << "b";
+        ss.put('b');
       if (bp.condition)
-        ss << "c " << bp.condition->GetText();
-      bp_strings.emplace_back(ss.str());
+        fmt::print(ss, "c {:s}", bp.condition->GetText());
+      bp_strings.emplace_back(std::move(ss).str());
+      // Underlying buffer is in a valid, but unspecified state.
+      ss.str(std::string{});
     }
   }
 
@@ -212,25 +217,26 @@ MemChecks::~MemChecks() = default;
 MemChecks::TMemChecksStr MemChecks::GetStrings() const
 {
   TMemChecksStr mc_strings;
+  std::ostringstream ss;
+  ss.imbue(std::locale::classic());
   for (const TMemCheck& mc : m_mem_checks)
   {
-    std::ostringstream ss;
-    ss.imbue(std::locale::classic());
-    ss << fmt::format("${:08x} {:08x} ", mc.start_address, mc.end_address);
+    fmt::print(ss, "${:08x} {:08x} ", mc.start_address, mc.end_address);
     if (mc.is_enabled)
-      ss << 'n';
+      ss.put('n');
     if (mc.is_break_on_read)
-      ss << 'r';
+      ss.put('r');
     if (mc.is_break_on_write)
-      ss << 'w';
+      ss.put('w');
     if (mc.log_on_hit)
-      ss << 'l';
+      ss.put('l');
     if (mc.break_on_hit)
-      ss << 'b';
+      ss.put('b');
     if (mc.condition)
-      ss << "c " << mc.condition->GetText();
-
-    mc_strings.emplace_back(ss.str());
+      fmt::print(ss, "c {:s}", mc.condition->GetText());
+    mc_strings.emplace_back(std::move(ss).str());
+    // Underlying buffer is in a valid, but unspecified state.
+    ss.str(std::string{});
   }
 
   return mc_strings;

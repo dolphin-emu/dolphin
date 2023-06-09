@@ -6,8 +6,10 @@
 #include <sstream>
 #include <string>
 #include <string_view>
+#include <utility>
 
 #include <fmt/format.h>
+#include <fmt/ostream.h>
 
 #include "Common/Assert.h"
 #include "Common/CommonPaths.h"
@@ -311,7 +313,7 @@ void PostProcessingConfiguration::SaveOptionsConfiguration()
     case ConfigurationOption::OptionType::Float:
     {
       std::ostringstream value;
-      value.imbue(std::locale("C"));
+      value.imbue(std::locale::classic());
 
       for (size_t i = 0; i < it.second.m_float_values.size(); ++i)
       {
@@ -319,7 +321,7 @@ void PostProcessingConfiguration::SaveOptionsConfiguration()
         if (i != (it.second.m_float_values.size() - 1))
           value << ", ";
       }
-      ini.GetOrCreateSection(section)->Set(it.second.m_option_name, value.str());
+      ini.GetOrCreateSection(section)->Set(it.second.m_option_name, std::move(value).str());
     }
     break;
     }
@@ -454,68 +456,66 @@ std::string PostProcessing::GetUniformBufferHeader() const
 {
   std::ostringstream ss;
   u32 unused_counter = 1;
-  ss << "UBO_BINDING(std140, 1) uniform PSBlock {\n";
-
-  // Builtin uniforms
-  ss << "  float4 resolution;\n";
-  ss << "  float4 window_resolution;\n";
-  ss << "  float4 src_rect;\n";
-  ss << "  int src_layer;\n";
-  ss << "  uint time;\n";
+  ss << "UBO_BINDING(std140, 1) uniform PSBlock {\n"
+        // Builtin uniforms
+        "  float4 resolution;\n"
+        "  float4 window_resolution;\n"
+        "  float4 src_rect;\n"
+        "  int src_layer;\n"
+        "  uint time;\n";
   for (u32 i = 0; i < 2; i++)
-    ss << "  uint ubo_align_" << unused_counter++ << "_;\n";
-  ss << "\n";
+    fmt::print(ss, "  int ubo_align_{:d}_;\n", unused_counter++);
+  ss.put('\n');
 
   // Custom options/uniforms
   for (const auto& it : m_config.GetOptions())
   {
     if (it.second.m_type == PostProcessingConfiguration::ConfigurationOption::OptionType::Bool)
     {
-      ss << fmt::format("  int {};\n", it.first);
+      fmt::print(ss, "  int {};\n", it.first);
       for (u32 i = 0; i < 3; i++)
-        ss << "  int ubo_align_" << unused_counter++ << "_;\n";
+        fmt::print(ss, "  int ubo_align_{:d}_;\n", unused_counter++);
     }
     else if (it.second.m_type ==
              PostProcessingConfiguration::ConfigurationOption::OptionType::Integer)
     {
       u32 count = static_cast<u32>(it.second.m_integer_values.size());
       if (count == 1)
-        ss << fmt::format("  int {};\n", it.first);
+        fmt::print(ss, "  int {};\n", it.first);
       else
-        ss << fmt::format("  int{} {};\n", count, it.first);
+        fmt::print(ss, "  int{} {};\n", count, it.first);
 
       for (u32 i = count; i < 4; i++)
-        ss << "  int ubo_align_" << unused_counter++ << "_;\n";
+        fmt::print(ss, "  int ubo_align_{:d}_;\n", unused_counter++);
     }
     else if (it.second.m_type ==
              PostProcessingConfiguration::ConfigurationOption::OptionType::Float)
     {
       u32 count = static_cast<u32>(it.second.m_float_values.size());
       if (count == 1)
-        ss << fmt::format("  float {};\n", it.first);
+        fmt::print(ss, "  float {};\n", it.first);
       else
-        ss << fmt::format("  float{} {};\n", count, it.first);
+        fmt::print(ss, "  float{} {};\n", count, it.first);
 
       for (u32 i = count; i < 4; i++)
-        ss << "  float ubo_align_" << unused_counter++ << "_;\n";
+        fmt::print(ss, "  int ubo_align_{:d}_;\n", unused_counter++);
     }
   }
 
   ss << "};\n\n";
-  return ss.str();
+  return std::move(ss).str();
 }
 
 std::string PostProcessing::GetHeader() const
 {
   std::ostringstream ss;
-  ss << GetUniformBufferHeader();
-  ss << "SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n";
+  ss << GetUniformBufferHeader() << "SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n";
 
   if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
   {
-    ss << "VARYING_LOCATION(0) in VertexData {\n";
-    ss << "  float3 v_tex0;\n";
-    ss << "};\n";
+    ss << "VARYING_LOCATION(0) in VertexData {\n"
+          "  float3 v_tex0;\n"
+          "};\n";
   }
   else
   {
@@ -574,7 +574,7 @@ void SetOutput(float4 color)
 #define OptionEnabled(x) ((x) != 0)
 
 )";
-  return ss.str();
+  return std::move(ss).str();
 }
 
 std::string PostProcessing::GetFooter() const
@@ -589,30 +589,31 @@ bool PostProcessing::CompileVertexShader()
 
   if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
   {
-    ss << "VARYING_LOCATION(0) out VertexData {\n";
-    ss << "  float3 v_tex0;\n";
-    ss << "};\n";
+    ss << "VARYING_LOCATION(0) out VertexData {\n"
+          "  float3 v_tex0;\n"
+          "};\n";
   }
   else
   {
     ss << "VARYING_LOCATION(0) out float3 v_tex0;\n";
   }
 
-  ss << "#define id gl_VertexID\n";
-  ss << "#define opos gl_Position\n";
-  ss << "void main() {\n";
-  ss << "  v_tex0 = float3(float((id << 1) & 2), float(id & 2), 0.0f);\n";
-  ss << "  opos = float4(v_tex0.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f), 0.0f, 1.0f);\n";
-  ss << "  v_tex0 = float3(src_rect.xy + (src_rect.zw * v_tex0.xy), float(src_layer));\n";
+  ss << "#define id gl_VertexID\n"
+        "#define opos gl_Position\n"
+        "void main() {\n"
+        "  v_tex0 = float3(float((id << 1) & 2), float(id & 2), 0.0f);\n"
+        "  opos = float4(v_tex0.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f), 0.0f, 1.0f);\n"
+        "  v_tex0 = float3(src_rect.xy + (src_rect.zw * v_tex0.xy), float(src_layer));\n";
 
   if (g_ActiveConfig.backend_info.api_type == APIType::Vulkan)
     ss << "  opos.y = -opos.y;\n";
 
   ss << "}\n";
 
-  m_vertex_shader =
-      g_gfx->CreateShaderFromSource(ShaderStage::Vertex, ss.str(), "Post-processing vertex shader");
-  if (!m_vertex_shader)
+  // TODO: Waiting for GCC 11 and Clang 13 to use C++20's std::ostringstream::view()
+  const std::string source_temp = std::move(ss).str();
+  if (!(m_vertex_shader = g_gfx->CreateShaderFromSource(ShaderStage::Vertex, source_temp,
+                                                        "Post-processing vertex shader")))
   {
     PanicAlertFmt("Failed to compile post-processing vertex shader");
     return false;

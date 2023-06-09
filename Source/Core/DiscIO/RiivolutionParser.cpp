@@ -7,6 +7,7 @@
 #include <sstream>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include <fmt/format.h>
@@ -473,9 +474,9 @@ std::string WriteConfigString(const Config& config)
     option_node.append_attribute("default").set_value(option.m_default);
   }
 
-  std::stringstream ss;
-  doc.print(ss, "  ");
-  return ss.str();
+  std::ostringstream oss;
+  doc.print(oss, "  ");
+  return std::move(oss).str();
 }
 
 bool WriteConfigFile(const std::string& filename, const Config& config)
