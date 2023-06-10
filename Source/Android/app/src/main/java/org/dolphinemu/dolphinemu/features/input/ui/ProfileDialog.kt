@@ -16,13 +16,13 @@ import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag
 import org.dolphinemu.dolphinemu.utils.SerializableHelper.serializable
 
 class ProfileDialog : BottomSheetDialogFragment() {
-    private var presenter: ProfileDialogPresenter? = null
+    private lateinit var presenter: ProfileDialogPresenter
 
     private var _binding: DialogInputProfilesBinding? = null
     private val binding get() = _binding!!
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val menuTag = requireArguments().serializable<MenuTag>(KEY_MENU_TAG)
+        val menuTag = requireArguments().serializable<MenuTag>(KEY_MENU_TAG)!!
 
         presenter = ProfileDialogPresenter(this, menuTag)
 
@@ -39,7 +39,7 @@ class ProfileDialog : BottomSheetDialogFragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        binding.profileList.adapter = ProfileAdapter(context, presenter)
+        binding.profileList.adapter = ProfileAdapter(requireContext(), presenter)
         binding.profileList.layoutManager = LinearLayoutManager(context)
         val divider = MaterialDividerItemDecoration(requireActivity(), LinearLayoutManager.VERTICAL)
         divider.isLastItemDecorated = false
