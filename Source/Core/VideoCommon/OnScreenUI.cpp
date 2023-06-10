@@ -120,11 +120,15 @@ bool OnScreenUI::RecompileImGuiPipeline()
     return true;
   }
 
+  const bool linear_space_output =
+      g_presenter->GetBackbufferFormat() == AbstractTextureFormat::RGBA16F;
+
   std::unique_ptr<AbstractShader> vertex_shader = g_gfx->CreateShaderFromSource(
       ShaderStage::Vertex, FramebufferShaderGen::GenerateImGuiVertexShader(),
       "ImGui vertex shader");
   std::unique_ptr<AbstractShader> pixel_shader = g_gfx->CreateShaderFromSource(
-      ShaderStage::Pixel, FramebufferShaderGen::GenerateImGuiPixelShader(), "ImGui pixel shader");
+      ShaderStage::Pixel, FramebufferShaderGen::GenerateImGuiPixelShader(linear_space_output),
+      "ImGui pixel shader");
   if (!vertex_shader || !pixel_shader)
   {
     PanicAlertFmt("Failed to compile ImGui shaders");

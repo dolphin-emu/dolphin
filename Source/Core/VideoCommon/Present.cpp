@@ -514,9 +514,11 @@ void Presenter::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
     m_post_processor->BlitFromTexture(left_rc, source_rc, source_texture, 0);
     m_post_processor->BlitFromTexture(right_rc, source_rc, source_texture, 1);
   }
+  // Every other case will be treated the same (stereo or not).
+  // If there's multiple source layers, they should all be copied.
   else
   {
-    m_post_processor->BlitFromTexture(target_rc, source_rc, source_texture, 0);
+    m_post_processor->BlitFromTexture(target_rc, source_rc, source_texture);
   }
 }
 
