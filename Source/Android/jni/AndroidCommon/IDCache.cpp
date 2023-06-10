@@ -732,7 +732,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   const jclass numeric_setting_class =
       env->FindClass("org/dolphinemu/dolphinemu/features/input/model/controlleremu/NumericSetting");
   s_numeric_setting_class = reinterpret_cast<jclass>(env->NewGlobalRef(numeric_setting_class));
-  s_numeric_setting_pointer = env->GetFieldID(numeric_setting_class, "mPointer", "J");
+  s_numeric_setting_pointer = env->GetFieldID(numeric_setting_class, "pointer", "J");
   s_numeric_setting_constructor = env->GetMethodID(numeric_setting_class, "<init>", "(J)V");
   env->DeleteLocalRef(numeric_setting_class);
 

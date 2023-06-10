@@ -2295,23 +2295,23 @@ class SettingsFragmentPresenter(
     }
 
     private fun addNumericSetting(sl: ArrayList<SettingsItem>, setting: NumericSetting) {
-        when (setting.type) {
+        when (setting.getType()) {
             NumericSetting.TYPE_DOUBLE -> sl.add(
                 FloatSliderSetting(
                     InputMappingDoubleSetting(setting),
-                    setting.uiName,
+                    setting.getUiName(),
                     "",
-                    ceil(setting.doubleMin).toInt(),
-                    floor(setting.doubleMax).toInt(),
-                    setting.uiSuffix
+                    ceil(setting.getDoubleMin()).toInt(),
+                    floor(setting.getDoubleMax()).toInt(),
+                    setting.getUiSuffix()
                 )
             )
 
             NumericSetting.TYPE_BOOLEAN -> sl.add(
                 SwitchSetting(
                     InputMappingBooleanSetting(setting),
-                    setting.uiName,
-                    setting.uiDescription
+                    setting.getUiName(),
+                    setting.getUiDescription()
                 )
             )
         }
