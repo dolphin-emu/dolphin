@@ -725,7 +725,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
       "org/dolphinemu/dolphinemu/features/input/model/controlleremu/EmulatedController");
   s_emulated_controller_class =
       reinterpret_cast<jclass>(env->NewGlobalRef(emulated_controller_class));
-  s_emulated_controller_pointer = env->GetFieldID(emulated_controller_class, "mPointer", "J");
+  s_emulated_controller_pointer = env->GetFieldID(emulated_controller_class, "pointer", "J");
   s_emulated_controller_constructor = env->GetMethodID(emulated_controller_class, "<init>", "(J)V");
   env->DeleteLocalRef(emulated_controller_class);
 

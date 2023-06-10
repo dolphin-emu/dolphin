@@ -2251,7 +2251,7 @@ class SettingsFragmentPresenter(
     ) {
         updateOldControllerSettingsWarningVisibility(controller)
 
-        val groupCount = controller.groupCount
+        val groupCount = controller.getGroupCount()
         for (i in 0 until groupCount) {
             val group = controller.getGroup(i)
             val groupType = group.getGroupType()
@@ -2322,7 +2322,7 @@ class SettingsFragmentPresenter(
     }
 
     private fun updateOldControllerSettingsWarningVisibility(controller: EmulatedController) {
-        val defaultDevice = controller.defaultDevice
+        val defaultDevice = controller.getDefaultDevice()
 
         hasOldControllerSettings = defaultDevice.startsWith("Android/") &&
                 defaultDevice.endsWith("/Touchscreen")
