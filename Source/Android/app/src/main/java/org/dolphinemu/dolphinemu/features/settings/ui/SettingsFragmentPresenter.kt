@@ -2254,12 +2254,12 @@ class SettingsFragmentPresenter(
         val groupCount = controller.groupCount
         for (i in 0 until groupCount) {
             val group = controller.getGroup(i)
-            val groupType = group.groupType
+            val groupType = group.getGroupType()
             if (groupTypeFilter != null && !groupTypeFilter.contains(groupType)) continue
 
-            sl.add(HeaderSetting(group.uiName, ""))
+            sl.add(HeaderSetting(group.getUiName(), ""))
 
-            if (group.defaultEnabledValue != ControlGroup.DEFAULT_ENABLED_ALWAYS) {
+            if (group.getDefaultEnabledValue() != ControlGroup.DEFAULT_ENABLED_ALWAYS) {
                 sl.add(
                     SwitchSetting(
                         context,
@@ -2270,13 +2270,13 @@ class SettingsFragmentPresenter(
                 )
             }
 
-            val controlCount = group.controlCount
+            val controlCount = group.getControlCount()
             for (j in 0 until controlCount) {
                 sl.add(InputMappingControlSetting(group.getControl(j), controller))
             }
 
             if (groupType == ControlGroup.TYPE_ATTACHMENTS) {
-                val attachmentSetting = group.attachmentSetting
+                val attachmentSetting = group.getAttachmentSetting()
                 sl.add(
                     SingleChoiceSetting(
                         context, InputMappingIntSetting(attachmentSetting),
@@ -2287,7 +2287,7 @@ class SettingsFragmentPresenter(
                 )
             }
 
-            val numericSettingCount = group.numericSettingCount
+            val numericSettingCount = group.getNumericSettingCount()
             for (j in 0 until numericSettingCount) {
                 addNumericSetting(sl, group.getNumericSetting(j))
             }
