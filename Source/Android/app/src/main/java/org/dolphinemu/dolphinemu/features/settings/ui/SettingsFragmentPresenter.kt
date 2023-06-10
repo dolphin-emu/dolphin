@@ -1339,13 +1339,8 @@ class SettingsFragmentPresenter(
         val shaderList =
             if (stereoModeValue == anaglyphMode) PostProcessing.anaglyphShaderList else PostProcessing.shaderList
 
-        val shaderListEntries = arrayOfNulls<String>(shaderList.size + 1)
-        shaderListEntries[0] = context.getString(R.string.off)
-        System.arraycopy(shaderList, 0, shaderListEntries, 1, shaderList.size)
-
-        val shaderListValues = arrayOfNulls<String>(shaderList.size + 1)
-        shaderListValues[0] = ""
-        System.arraycopy(shaderList, 0, shaderListValues, 1, shaderList.size)
+        val shaderListEntries = arrayOf(context.getString(R.string.off), *shaderList)
+        val shaderListValues = arrayOf("", *shaderList)
 
         sl.add(
             StringSingleChoiceSetting(

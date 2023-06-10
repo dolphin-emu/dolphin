@@ -17,9 +17,9 @@ open class StringSingleChoiceSetting : SettingsItem {
     override val setting: AbstractSetting?
         get() = stringSetting
 
-    var choices: Array<String?>?
+    var choices: Array<String>?
         protected set
-    var values: Array<String?>?
+    var values: Array<String>?
         protected set
     val menuTag: MenuTag?
     var noChoicesAvailableString = 0
@@ -37,8 +37,8 @@ open class StringSingleChoiceSetting : SettingsItem {
         setting: AbstractStringSetting?,
         titleId: Int,
         descriptionId: Int,
-        choices: Array<String?>?,
-        values: Array<String?>?,
+        choices: Array<String>?,
+        values: Array<String>?,
         menuTag: MenuTag? = null
     ) : super(context, titleId, descriptionId) {
         stringSetting = setting
@@ -52,8 +52,8 @@ open class StringSingleChoiceSetting : SettingsItem {
         setting: AbstractStringSetting,
         titleId: Int,
         descriptionId: Int,
-        choices: Array<String?>,
-        values: Array<String?>,
+        choices: Array<String>,
+        values: Array<String>,
         noChoicesAvailableString: Int
     ) : this(context, setting, titleId, descriptionId, choices, values) {
         this.noChoicesAvailableString = noChoicesAvailableString
@@ -102,8 +102,8 @@ open class StringSingleChoiceSetting : SettingsItem {
             return -1
         }
 
-    open fun setSelectedValue(settings: Settings?, selection: String?) {
-        stringSetting!!.setString(settings!!, selection!!)
+    open fun setSelectedValue(settings: Settings, selection: String) {
+        stringSetting!!.setString(settings, selection)
     }
 
     open fun refreshChoicesAndValues() {}

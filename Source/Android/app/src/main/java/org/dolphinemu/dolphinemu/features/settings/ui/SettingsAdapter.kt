@@ -474,7 +474,7 @@ class SettingsAdapter(
                 val value = scSetting.getValueAt(which)
                 if (scSetting.selectedValue != value) fragmentView.onSettingChanged()
 
-                scSetting.setSelectedValue(settings, value)
+                scSetting.setSelectedValue(settings!!, value!!)
 
                 closeDialog()
             }
