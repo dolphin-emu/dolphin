@@ -55,7 +55,6 @@ bool OnScreenUI::Initialize(u32 width, u32 height, float scale)
   // Don't create an ini file. TODO: Do we want this in the future?
   ImGui::GetIO().IniFilename = nullptr;
   SetScale(scale);
-  ImGui::GetStyle().WindowRounding = 7.0f;
 
   PortableVertexDeclaration vdecl = {};
   vdecl.position = {ComponentFormat::Float, 2, offsetof(ImDrawVert, pos), true, false};
@@ -343,6 +342,10 @@ void OnScreenUI::SetScale(float backbuffer_scale)
   ImGui::GetIO().DisplayFramebufferScale.x = backbuffer_scale;
   ImGui::GetIO().DisplayFramebufferScale.y = backbuffer_scale;
   ImGui::GetIO().FontGlobalScale = backbuffer_scale;
+  // ScaleAllSizes scales in-place, so calling it twice will double-apply the scale
+  // Reset the style first so that the scale is applied to the base style, not an already-scaled one
+  ImGui::GetStyle() = {};
+  ImGui::GetStyle().WindowRounding = 7.0f;
   ImGui::GetStyle().ScaleAllSizes(backbuffer_scale);
 
   m_backbuffer_scale = backbuffer_scale;

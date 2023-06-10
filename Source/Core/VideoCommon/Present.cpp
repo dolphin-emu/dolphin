@@ -176,6 +176,8 @@ void Presenter::SetBackbuffer(SurfaceInfo info)
   m_backbuffer_height = info.height;
   m_backbuffer_scale = info.scale;
   m_backbuffer_format = info.format;
+  if (m_onscreen_ui)
+    m_onscreen_ui->SetScale(info.scale);
   UpdateDrawRectangle();
 }
 
