@@ -61,7 +61,7 @@ public:
   virtual void SetScissorRect(const MathUtil::Rectangle<int>& rc) {}
   virtual void SetTexture(u32 index, const AbstractTexture* texture) {}
   virtual void SetSamplerState(u32 index, const SamplerState& state) {}
-  virtual void SetComputeImageTexture(AbstractTexture* texture, bool read, bool write) {}
+  virtual void SetComputeImageTexture(u32 index, AbstractTexture* texture, bool read, bool write) {}
   virtual void UnbindTexture(const AbstractTexture* texture) {}
   virtual void SetViewport(float x, float y, float width, float height, float near_depth,
                            float far_depth)

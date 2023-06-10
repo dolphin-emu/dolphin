@@ -218,7 +218,7 @@ public:
 
   // Binds constant buffers/textures/samplers to the compute shader stage.
   // We don't track these explicitly because it's not often-used.
-  void SetComputeUAV(ID3D11UnorderedAccessView* uav);
+  void SetComputeUAV(u32 index, ID3D11UnorderedAccessView* uav);
   void SetComputeShader(ID3D11ComputeShader* shader);
   void SyncComputeBindings();
 
@@ -277,9 +277,11 @@ private:
 
   // Compute resources are synced with the graphics resources when we need them.
   ID3D11Buffer* m_compute_constants = nullptr;
-  std::array<ID3D11ShaderResourceView*, 8> m_compute_textures{};
-  std::array<ID3D11SamplerState*, 8> m_compute_samplers{};
-  ID3D11UnorderedAccessView* m_compute_image = nullptr;
+  std::array<ID3D11ShaderResourceView*, VideoCommon::MAX_COMPUTE_SHADER_SAMPLERS>
+      m_compute_textures{};
+  std::array<ID3D11SamplerState*, VideoCommon::MAX_COMPUTE_SHADER_SAMPLERS> m_compute_samplers{};
+  std::array<ID3D11UnorderedAccessView*, VideoCommon::MAX_COMPUTE_SHADER_SAMPLERS>
+      m_compute_images{};
   ID3D11ComputeShader* m_compute_shader = nullptr;
 };
 
