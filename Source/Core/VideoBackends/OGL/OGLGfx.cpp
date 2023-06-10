@@ -22,6 +22,7 @@
 #include "VideoCommon/Present.h"
 #include "VideoCommon/VideoConfig.h"
 
+#include <algorithm>
 #include <string_view>
 
 namespace OGL
@@ -303,8 +304,11 @@ void OGLGfx::DispatchComputeShader(const AbstractShader* shader, u32 groupsize_x
     static_cast<const OGLPipeline*>(m_current_pipeline)->GetProgram()->shader.Bind();
 
   // Barrier to texture can be used for reads.
-  if (m_bound_image_texture)
+  if (std::any_of(m_bound_image_textures.begin(), m_bound_image_textures.end(),
+                  [](auto image) { return image != nullptr; }))
+  {
     glMemoryBarrier(GL_TEXTURE_UPDATE_BARRIER_BIT);
+  }
 }
 
 void OGLGfx::SelectLeftBuffer()
@@ -652,23 +656,23 @@ void OGLGfx::SetSamplerState(u32 index, const SamplerState& state)
   g_sampler_cache->SetSamplerState(index, state);
 }
 
-void OGLGfx::SetComputeImageTexture(AbstractTexture* texture, bool read, bool write)
+void OGLGfx::SetComputeImageTexture(u32 index, AbstractTexture* texture, bool read, bool write)
 {
-  if (m_bound_image_texture == texture)
+  if (m_bound_image_textures[index] == texture)
     return;
 
   if (texture)
   {
     const GLenum access = read ? (write ? GL_READ_WRITE : GL_READ_ONLY) : GL_WRITE_ONLY;
-    glBindImageTexture(0, static_cast<OGLTexture*>(texture)->GetGLTextureId(), 0, GL_TRUE, 0,
+    glBindImageTexture(index, static_cast<OGLTexture*>(texture)->GetGLTextureId(), 0, GL_TRUE, 0,
                        access, static_cast<OGLTexture*>(texture)->GetGLFormatForImageTexture());
   }
   else
   {
-    glBindImageTexture(0, 0, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
+    glBindImageTexture(index, 0, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
   }
 
-  m_bound_image_texture = texture;
+  m_bound_image_textures[index] = texture;
 }
 
 void OGLGfx::UnbindTexture(const AbstractTexture* texture)
@@ -683,10 +687,13 @@ void OGLGfx::UnbindTexture(const AbstractTexture* texture)
     m_bound_textures[i] = nullptr;
   }
 
-  if (m_bound_image_texture == texture)
+  for (size_t i = 0; i < m_bound_image_textures.size(); i++)
   {
-    glBindImageTexture(0, 0, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
-    m_bound_image_texture = nullptr;
+    if (m_bound_image_textures[i] != texture)
+      continue;
+
+    glBindImageTexture(static_cast<GLuint>(i), 0, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
+    m_bound_image_textures[i] = nullptr;
   }
 }
 

@@ -239,9 +239,10 @@ void Gfx::SetSamplerState(u32 index, const SamplerState& state)
   D3D::stateman->SetSampler(index, m_state_cache.Get(state));
 }
 
-void Gfx::SetComputeImageTexture(AbstractTexture* texture, bool read, bool write)
+void Gfx::SetComputeImageTexture(u32 index, AbstractTexture* texture, bool read, bool write)
 {
-  D3D::stateman->SetComputeUAV(texture ? static_cast<DXTexture*>(texture)->GetD3DUAV() : nullptr);
+  D3D::stateman->SetComputeUAV(index,
+                               texture ? static_cast<DXTexture*>(texture)->GetD3DUAV() : nullptr);
 }
 
 void Gfx::UnbindTexture(const AbstractTexture* texture)
