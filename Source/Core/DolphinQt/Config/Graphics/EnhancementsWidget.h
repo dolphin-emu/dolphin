@@ -30,6 +30,7 @@ private:
   void CreateWidgets();
   void ConnectWidgets();
   void AddDescriptions();
+  void ConfigureColorCorrection();
   void ConfigurePostProcessingShader();
   void LoadPPShaders();
 
@@ -38,6 +39,7 @@ private:
   ToolTipComboBox* m_aa_combo;
   ToolTipComboBox* m_texture_filtering_combo;
   ToolTipComboBox* m_pp_effect;
+  QPushButton* m_configure_color_correction;
   QPushButton* m_configure_pp_effect;
   ConfigBool* m_scaled_efb_copy;
   ConfigBool* m_per_pixel_lighting;
@@ -46,6 +48,7 @@ private:
   ConfigBool* m_force_24bit_color;
   ConfigBool* m_disable_copy_filter;
   ConfigBool* m_arbitrary_mipmap_detection;
+  ConfigBool* m_hdr;
 
   // Stereoscopy
   ConfigChoice* m_3d_mode;
