@@ -563,7 +563,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
 
   const jclass game_file_class = env->FindClass("org/dolphinemu/dolphinemu/model/GameFile");
   s_game_file_class = reinterpret_cast<jclass>(env->NewGlobalRef(game_file_class));
-  s_game_file_pointer = env->GetFieldID(game_file_class, "mPointer", "J");
+  s_game_file_pointer = env->GetFieldID(game_file_class, "pointer", "J");
   s_game_file_constructor = env->GetMethodID(game_file_class, "<init>", "(J)V");
   env->DeleteLocalRef(game_file_class);
 

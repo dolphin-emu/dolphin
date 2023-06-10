@@ -25,8 +25,8 @@ class GameDetailsDialog : DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val gameFile = GameFileCacheManager.addOrGet(requireArguments().getString(ARG_GAME_PATH))
 
-        val country = resources.getStringArray(R.array.countryNames)[gameFile.country]
-        val fileSize = NativeLibrary.FormatSize(gameFile.fileSize, 2)
+        val country = resources.getStringArray(R.array.countryNames)[gameFile.getCountry()]
+        val fileSize = NativeLibrary.FormatSize(gameFile.getFileSize(), 2)
 
         // TODO: Remove dialog_game_details_tv if we switch to an AppCompatActivity for leanback
         val binding: DialogGameDetailsBinding
@@ -35,16 +35,16 @@ class GameDetailsDialog : DialogFragment() {
         if (requireActivity() is AppCompatActivity) {
             binding = DialogGameDetailsBinding.inflate(layoutInflater)
             binding.apply {
-                textGameTitle.text = gameFile.title
-                textDescription.text = gameFile.description
-                if (gameFile.description.isEmpty()) {
+                textGameTitle.text = gameFile.getTitle()
+                textDescription.text = gameFile.getDescription()
+                if (gameFile.getDescription().isEmpty()) {
                     textDescription.visibility = View.GONE
                 }
 
                 textCountry.text = country
-                textCompany.text = gameFile.company
-                textGameId.text = gameFile.gameId
-                textRevision.text = gameFile.revision.toString()
+                textCompany.text = gameFile.getCompany()
+                textGameId.text = gameFile.getGameId()
+                textRevision.text = gameFile.getRevision().toString()
 
                 if (!gameFile.shouldShowFileFormatDetails()) {
                     labelFileFormat.setText(R.string.game_details_file_size)
@@ -55,19 +55,19 @@ class GameDetailsDialog : DialogFragment() {
                     labelBlockSize.visibility = View.GONE
                     textBlockSize.visibility = View.GONE
                 } else {
-                    val blockSize = gameFile.blockSize
-                    val compression = gameFile.compressionMethod
+                    val blockSize = gameFile.getBlockSize()
+                    val compression = gameFile.getCompressionMethod()
 
                     textFileFormat.text = resources.getString(
                         R.string.game_details_size_and_format,
-                        gameFile.fileFormatName,
+                        gameFile.getFileFormatName(),
                         fileSize
                     )
 
                     if (compression.isEmpty()) {
                         textCompression.setText(R.string.game_details_no_compression)
                     } else {
-                        textCompression.text = gameFile.compressionMethod
+                        textCompression.text = gameFile.getCompressionMethod()
                     }
 
                     if (blockSize > 0) {
@@ -87,16 +87,16 @@ class GameDetailsDialog : DialogFragment() {
         } else {
             tvBinding = DialogGameDetailsTvBinding.inflate(layoutInflater)
             tvBinding.apply {
-                textGameTitle.text = gameFile.title
-                textDescription.text = gameFile.description
-                if (gameFile.description.isEmpty()) {
+                textGameTitle.text = gameFile.getTitle()
+                textDescription.text = gameFile.getDescription()
+                if (gameFile.getDescription().isEmpty()) {
                     tvBinding.textDescription.visibility = View.GONE
                 }
 
                 textCountry.text = country
-                textCompany.text = gameFile.company
-                textGameId.text = gameFile.gameId
-                textRevision.text = gameFile.revision.toString()
+                textCompany.text = gameFile.getCompany()
+                textGameId.text = gameFile.getGameId()
+                textRevision.text = gameFile.getRevision().toString()
 
                 if (!gameFile.shouldShowFileFormatDetails()) {
                     labelFileFormat.setText(R.string.game_details_file_size)
@@ -107,19 +107,19 @@ class GameDetailsDialog : DialogFragment() {
                     labelBlockSize.visibility = View.GONE
                     textBlockSize.visibility = View.GONE
                 } else {
-                    val blockSize = gameFile.blockSize
-                    val compression = gameFile.compressionMethod
+                    val blockSize = gameFile.getBlockSize()
+                    val compression = gameFile.getCompressionMethod()
 
                     textFileFormat.text = resources.getString(
                         R.string.game_details_size_and_format,
-                        gameFile.fileFormatName,
+                        gameFile.getFileFormatName(),
                         fileSize
                     )
 
                     if (compression.isEmpty()) {
                         textCompression.setText(R.string.game_details_no_compression)
                     } else {
-                        textCompression.text = gameFile.compressionMethod
+                        textCompression.text = gameFile.getCompressionMethod()
                     }
 
                     if (blockSize > 0) {
@@ -141,9 +141,9 @@ class GameDetailsDialog : DialogFragment() {
     }
 
     private suspend fun loadGameBanner(imageView: ImageView, gameFile: GameFile) {
-        val vector = gameFile.banner
-        val width = gameFile.bannerWidth
-        val height = gameFile.bannerHeight
+        val vector = gameFile.getBanner()
+        val width = gameFile.getBannerWidth()
+        val height = gameFile.getBannerHeight()
 
         imageView.scaleType = ImageView.ScaleType.FIT_CENTER
         val request = ImageRequest.Builder(imageView.context)

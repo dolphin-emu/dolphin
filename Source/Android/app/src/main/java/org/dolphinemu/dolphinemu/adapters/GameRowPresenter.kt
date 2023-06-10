@@ -48,7 +48,7 @@ class GameRowPresenter(private val mActivity: FragmentActivity) : Presenter() {
 
         holder.apply {
             imageScreenshot.setImageDrawable(null)
-            cardParent.titleText = gameFile.title
+            cardParent.titleText = gameFile.getTitle()
             holder.gameFile = gameFile
 
             // Set the background color of the card
@@ -64,9 +64,9 @@ class GameRowPresenter(private val mActivity: FragmentActivity) : Presenter() {
 
             if (GameFileCacheManager.findSecondDisc(gameFile) != null) {
                 holder.cardParent.contentText =
-                    context.getString(R.string.disc_number, gameFile.discNumber + 1)
+                    context.getString(R.string.disc_number, gameFile.getDiscNumber() + 1)
             } else {
-                holder.cardParent.contentText = gameFile.company
+                holder.cardParent.contentText = gameFile.getCompany()
             }
         }
 

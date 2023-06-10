@@ -61,12 +61,12 @@ class GameAdapter(private val mActivity: FragmentActivity) : RecyclerView.Adapte
 
         holder.apply {
             if (BooleanSetting.MAIN_SHOW_GAME_TITLES.boolean) {
-                binding.textGameTitle.text = gameFile.title
+                binding.textGameTitle.text = gameFile.getTitle()
                 binding.textGameTitle.visibility = View.VISIBLE
                 binding.textGameTitleInner.visibility = View.GONE
                 binding.textGameCaption.visibility = View.VISIBLE
             } else {
-                binding.textGameTitleInner.text = gameFile.title
+                binding.textGameTitleInner.text = gameFile.getTitle()
                 binding.textGameTitleInner.visibility = View.VISIBLE
                 binding.textGameTitle.visibility = View.GONE
                 binding.textGameCaption.visibility = View.GONE
@@ -94,9 +94,9 @@ class GameAdapter(private val mActivity: FragmentActivity) : RecyclerView.Adapte
         holder.apply {
             if (GameFileCacheManager.findSecondDisc(gameFile) != null) {
                 binding.textGameCaption.text =
-                    context.getString(R.string.disc_number, gameFile.discNumber + 1)
+                    context.getString(R.string.disc_number, gameFile.getDiscNumber() + 1)
             } else {
-                binding.textGameCaption.text = gameFile.company
+                binding.textGameCaption.text = gameFile.getCompany()
             }
             holder.gameFile = gameFile
             binding.root.onFocusChangeListener =
