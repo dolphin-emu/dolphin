@@ -41,7 +41,7 @@ class SettingsFragmentPresenter(
     private val fragmentView: SettingsFragmentView,
     private val context: Context
 ) {
-    private var menuTag: MenuTag? = null
+    private lateinit var menuTag: MenuTag
     private var gameId: String? = null
 
     private var settingsList: ArrayList<SettingsItem>? = null
@@ -78,7 +78,7 @@ class SettingsFragmentPresenter(
         }
     }
 
-    fun onViewCreated(menuTag: MenuTag?, settings: Settings?) {
+    fun onViewCreated(menuTag: MenuTag, settings: Settings?) {
         this.menuTag = menuTag
 
         if (!TextUtils.isEmpty(gameId)) {
@@ -2148,7 +2148,7 @@ class SettingsFragmentPresenter(
         profileString: String,
         controllerNumber: Int
     ) {
-        val profiles = ProfileDialogPresenter(menuTag!!).getProfileNames(false)
+        val profiles = ProfileDialogPresenter(menuTag).getProfileNames(false)
         val profileKey = profileString + "Profile" + (controllerNumber + 1)
         sl.add(
             StringSingleChoiceSetting(
@@ -2227,7 +2227,7 @@ class SettingsFragmentPresenter(
                 0,
                 0,
                 true
-            ) { fragmentView.showDialogFragment(ProfileDialog.create(menuTag!!)) })
+            ) { fragmentView.showDialogFragment(ProfileDialog.create(menuTag)) })
 
         updateOldControllerSettingsWarningVisibility(controller)
     }
@@ -2313,7 +2313,7 @@ class SettingsFragmentPresenter(
     }
 
     fun updateOldControllerSettingsWarningVisibility() {
-        updateOldControllerSettingsWarningVisibility(menuTag!!.correspondingEmulatedController)
+        updateOldControllerSettingsWarningVisibility(menuTag.correspondingEmulatedController)
     }
 
     private fun updateOldControllerSettingsWarningVisibility(controller: EmulatedController) {
