@@ -717,7 +717,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   const jclass control_reference_class = env->FindClass(
       "org/dolphinemu/dolphinemu/features/input/model/controlleremu/ControlReference");
   s_control_reference_class = reinterpret_cast<jclass>(env->NewGlobalRef(control_reference_class));
-  s_control_reference_pointer = env->GetFieldID(control_reference_class, "mPointer", "J");
+  s_control_reference_pointer = env->GetFieldID(control_reference_class, "pointer", "J");
   s_control_reference_constructor = env->GetMethodID(control_reference_class, "<init>", "(J)V");
   env->DeleteLocalRef(control_reference_class);
 
