@@ -95,6 +95,11 @@ bool Metal::VideoBackend::Initialize(const WindowSystemInfo& wsi)
     MRCOwned<id<MTLDevice>> adapter = std::move(devs[selected_adapter_index]);
     Util::PopulateBackendInfoFeatures(&g_Config, adapter);
 
+#if TARGET_OS_OSX
+    if (@available(macOS 13.3, *))
+      [adapter setShouldMaximizeConcurrentCompilation:YES];
+#endif
+
     UpdateActiveConfig();
 
     MRCOwned<CAMetalLayer*> layer = MRCRetain(static_cast<CAMetalLayer*>(wsi.render_surface));
