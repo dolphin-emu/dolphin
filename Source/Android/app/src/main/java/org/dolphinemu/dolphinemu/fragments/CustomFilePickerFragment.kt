@@ -51,7 +51,7 @@ class CustomFilePickerFragment : FilePickerFragment() {
         // files if the files don't show up in the file picker when mode == MODE_DIR.
         // To avoid this, show files even when the user needs to select a directory.
         return (showHiddenItems || !file.isHidden) &&
-                (file.isDirectory || extensions!!.contains(fileExtension(file.name).lowercase(Locale.getDefault())))
+                (file.isDirectory || extensions!!.contains(fileExtension(file.name).lowercase(Locale.ENGLISH)))
     }
 
     override fun isCheckable(file: File): Boolean {
