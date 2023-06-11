@@ -447,9 +447,9 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceDestr
     while (s_is_booting.IsSet())
     {
       // Need to wait for boot to finish before we can pause
-      host_identity_guard.m_lock.unlock();
+      host_identity_guard.Unlock();
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
-      host_identity_guard.m_lock.lock();
+      host_identity_guard.Lock();
     }
 
     if (Core::GetState() == Core::State::Running)
@@ -572,15 +572,15 @@ static void Run(JNIEnv* env, std::unique_ptr<BootParameters>&& boot, bool riivol
 
   while (Core::IsRunning())
   {
-    host_identity_guard.m_lock.unlock();
+    host_identity_guard.Unlock();
     s_update_main_frame_event.Wait();
-    host_identity_guard.m_lock.lock();
+    host_identity_guard.Lock();
     Core::HostDispatchJobs();
   }
 
   s_game_metadata_is_valid = false;
   Core::Shutdown();
-  host_identity_guard.m_lock.unlock();
+  host_identity_guard.Unlock();
 
   env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(),
                             IDCache::GetFinishEmulationActivity());

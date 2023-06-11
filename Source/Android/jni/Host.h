@@ -12,13 +12,33 @@
 // sequentially for access.
 struct HostThreadLock
 {
-  static std::mutex s_host_identity_mutex;
-  std::unique_lock<std::mutex> m_lock;
-
+public:
   explicit HostThreadLock() : m_lock(s_host_identity_mutex) { Core::DeclareAsHostThread(); }
+
+  ~HostThreadLock()
+  {
+    if (m_lock.owns_lock())
+      Core::UndeclareAsHostThread();
+  }
+
   HostThreadLock(const HostThreadLock& other) = delete;
   HostThreadLock(HostThreadLock&& other) = delete;
   HostThreadLock& operator=(const HostThreadLock& other) = delete;
   HostThreadLock& operator=(HostThreadLock&& other) = delete;
-  ~HostThreadLock() { Core::UndeclareAsHostThread(); }
+
+  void Lock()
+  {
+    m_lock.lock();
+    Core::DeclareAsHostThread();
+  }
+
+  void Unlock()
+  {
+    m_lock.unlock();
+    Core::UndeclareAsHostThread();
+  }
+
+private:
+  static std::mutex s_host_identity_mutex;
+  std::unique_lock<std::mutex> m_lock;
 };
