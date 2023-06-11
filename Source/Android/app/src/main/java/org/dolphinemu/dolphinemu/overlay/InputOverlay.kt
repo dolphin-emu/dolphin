@@ -221,7 +221,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                             dpadPressed[3] = true
 
                         // Release the buttons first, then press
-                        for (i in 1 until dpadPressed.size) {
+                        for (i in dpadPressed.indices) {
                             if (!dpadPressed[i]) {
                                 InputOverrider.setControlState(
                                     controllerIndex,
