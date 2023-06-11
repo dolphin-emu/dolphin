@@ -206,7 +206,10 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                         pressed = true
                     }
                 }
-
+            }
+            when (event.action and MotionEvent.ACTION_MASK) {
+                MotionEvent.ACTION_DOWN,
+                MotionEvent.ACTION_POINTER_DOWN,
                 MotionEvent.ACTION_MOVE -> {
                     if (dpad.trackId == event.getPointerId(pointerIndex)) {
                         val dpadPressed = booleanArrayOf(false, false, false, false)
