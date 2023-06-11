@@ -841,6 +841,23 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="about_github"><a href="https://github.com/dolphin-emu/dolphin">GitHub</a></string>
     <string name="about_support"><a href="https://forums.dolphin-emu.org/">Support</a></string>
     <string name="about_copyright_warning">\u00A9 2003–2015+ Dolphin Team. \u201cGameCube\u201d and \u201cWii\u201d are trademarks of Nintendo. Dolphin is not affiliated with Nintendo in any way.</string>
+    <string name="system_driver">System driver</string>
+    <string name="system_driver_desc">The GPU driver that is part of the OS.</string>
+
+    <!-- Custom GPU drivers -->
+    <string name="gpu_driver_dialog_title">Select the GPU driver for Dolphin</string>
+    <string name="gpu_driver_dialog_system">Default</string>
+    <string name="gpu_driver_dialog_install">Install driver</string>
+    <string name="gpu_driver_dialog_uninstall_done">Successfully switched to the system driver</string>
+    <string name="gpu_driver_submenu">GPU Driver</string>
+    <string name="gpu_driver_install_inprogress">Installing the GPU driver…</string>
+    <string name="gpu_driver_install_success">GPU driver installed successfully</string>
+    <string name="gpu_driver_install_invalid_archive">Failed to unzip the provided driver package</string>
+    <string name="gpu_driver_install_missing_metadata">The supplied driver package is invalid due to missing metadata.</string>
+    <string name="gpu_driver_install_invalid_metadata">The supplied driver package contains invalid metadata, it may be corrupted.</string>
+    <string name="gpu_driver_install_unsupported_android_version">Your device doesn\'t meet the minimum Android version requirements for the supplied driver.</string>
+    <string name="gpu_driver_install_already_installed">The supplied driver package is already installed.</string>
+    <string name="gpu_driver_install_file_not_found">The selected file could not be found or accessed.</string>
 
     <!-- Emulated USB Devices -->
     <string name="emulated_usb_devices">Emulated USB Devices</string>

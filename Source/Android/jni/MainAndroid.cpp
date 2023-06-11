@@ -371,6 +371,15 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_utils_DirectoryInitializat
   File::SetSysDirectory(path);
 }
 
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_utils_DirectoryInitialization_SetGpuDriverDirectories(
+    JNIEnv* env, jclass, jstring jPath, jstring jLibPath)
+{
+  const std::string path = GetJString(env, jPath);
+  const std::string lib_path = GetJString(env, jLibPath);
+  File::SetGpuDriverDirectories(path, lib_path);
+}
+
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetUserDirectory(
     JNIEnv* env, jclass, jstring jDirectory)
 {

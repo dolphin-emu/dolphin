@@ -148,4 +148,8 @@ extern const Info<bool> GFX_HACK_NO_MIPMAPPING;
 
 extern const Info<bool> GFX_PERF_QUERIES_ENABLE;
 
+// Android custom GPU drivers
+
+extern const Info<std::string> GFX_DRIVER_LIB_NAME;
+
 }  // namespace Config
