@@ -57,6 +57,7 @@
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeWad.h"
+#include "NetworkPatchEngine.h"
 
 SConfig* SConfig::m_Instance;
 
@@ -206,6 +207,7 @@ void SConfig::OnNewTitleLoad(const Core::CPUThreadGuard& guard)
   HLE::Reload(system);
   PatchEngine::Reload();
   HiresTexture::Update();
+  NetworkPatchEngine::Reload();
 }
 
 void SConfig::LoadDefaults()

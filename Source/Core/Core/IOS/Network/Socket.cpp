@@ -25,6 +25,7 @@
 #include "Core/Core.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
+#include "Core/NetworkPatchEngine.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 
@@ -579,8 +580,14 @@ void WiiSocket::Update(bool read, bool write, bool except)
           u32 flags = memory.Read_U32(BufferIn2 + 0x04);
           u32 has_destaddr = memory.Read_U32(BufferIn2 + 0x08);
 
-          // Not a string, Windows requires a const char* for sendto
-          const char* data = (const char*)memory.GetPointer(BufferIn);
+          std::string data = memory.GetString(BufferIn);
+
+          // Some data sent will contain a Host header that we will need to change.
+          if (std::optional<NetworkPatchEngine::NetworkPatch> patch =
+                  NetworkPatchEngine::GetNetworkPatchByPayload(data))
+          {
+            data = ReplaceAll(data, patch->source, patch->replacement);
+          }
 
           // Act as non blocking when SO_MSG_NONBLOCK is specified
           forceNonBlock = ((flags & SO_MSG_NONBLOCK) == SO_MSG_NONBLOCK);
@@ -596,10 +603,11 @@ void WiiSocket::Update(bool read, bool write, bool except)
 
           auto* to = has_destaddr ? reinterpret_cast<sockaddr*>(&local_name) : nullptr;
           socklen_t tolen = has_destaddr ? sizeof(sockaddr) : 0;
-          const int ret = sendto(fd, data, BufferInSize, flags, to, tolen);
+          const int ret = sendto(fd, data.c_str(), BufferInSize, flags, to, tolen);
           ReturnValue = m_socket_manager.GetNetErrorCode(ret, "SO_SENDTO", true);
           if (ret > 0)
-            system.GetPowerPC().GetDebugInterface().NetworkLogger()->LogWrite(data, ret, fd, to);
+            system.GetPowerPC().GetDebugInterface().NetworkLogger()->LogWrite(data.c_str(), ret, fd,
+                                                                              to);
 
           INFO_LOG_FMT(IOS_NET,
                        "{} = {} Socket: {:08x}, BufferIn: ({:08x}, {}), BufferIn2: ({:08x}, {}), "

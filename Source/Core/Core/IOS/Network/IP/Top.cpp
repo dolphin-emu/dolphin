@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/IOS/Network/IP/Top.h"
+#include "Core/NetworkPatchEngine.h"
 
 #include <algorithm>
 #include <cstddef>
@@ -1056,6 +1057,9 @@ IPCReply NetIPTopDevice::HandleGetAddressInfoRequest(const IOCtlVRequest& reques
   if (!request.in_vectors.empty() && request.in_vectors[0].size > 0)
   {
     nodeNameStr = memory.GetString(request.in_vectors[0].address, request.in_vectors[0].size);
+    if (std::optional<NetworkPatchEngine::NetworkPatch> patch =
+            NetworkPatchEngine::GetNetworkPatch(nodeNameStr))
+      nodeNameStr = patch->replacement;
     pNodeName = nodeNameStr.c_str();
   }
 
