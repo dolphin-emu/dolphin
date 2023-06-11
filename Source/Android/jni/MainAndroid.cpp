@@ -489,12 +489,14 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_RefreshWiimo
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ReloadConfig(JNIEnv*, jclass)
 {
+  HostThreadLock guard;
   SConfig::GetInstance().LoadSettings();
 }
 
 JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_NativeLibrary_UpdateGCAdapterScanThread(JNIEnv*, jclass)
 {
+  HostThreadLock guard;
   if (GCAdapter::UseAdapter())
   {
     GCAdapter::StartScanThread();
@@ -507,6 +509,9 @@ Java_org_dolphinemu_dolphinemu_NativeLibrary_UpdateGCAdapterScanThread(JNIEnv*, 
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Initialize(JNIEnv*, jclass)
 {
+  // InitControllers ends up calling config code, and some config callbacks use RunAsCPUThread
+  HostThreadLock guard;
+
   UICommon::CreateDirectories();
   Common::RegisterMsgAlertHandler(&MsgAlert);
   Common::AndroidSetReportHandler(&ReportSend);
@@ -621,6 +626,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_RunSystemMen
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ChangeDisc(JNIEnv* env, jclass,
                                                                                jstring jFile)
 {
+  HostThreadLock guard;
   const std::string path = GetJString(env, jFile);
   __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Change Disc: %s", path.c_str());
   Core::RunAsCPUThread([&path] { Core::System::GetInstance().GetDVDInterface().ChangeDisc(path); });
