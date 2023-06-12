@@ -193,7 +193,7 @@ CreateFigureDialog::CreateFigureDialog(QWidget* parent, u8 slot) : QDialog(paren
   auto* combo_figlist = new QComboBox();
   QStringList filterlist;
   u32 first_entry = 0;
-  for (const auto& entry : Core::System::GetInstance().GetInfinityBase().GetFigureList())
+  for (const auto& entry : IOS::HLE::USB::InfinityBase::GetFigureList())
   {
     const auto figure = entry.second;
     // Only display entry if it is a piece appropriate for the slot
