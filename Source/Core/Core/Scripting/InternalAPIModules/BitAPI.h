@@ -15,15 +15,15 @@ ClassMetadata GetAllClassMetadata();
 FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
                                                const std::string& function_name);
 
-ArgHolder BitwiseAnd(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
-ArgHolder BitwiseOr(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
-ArgHolder BitwiseNot(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
-ArgHolder BitwiseXor(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
-ArgHolder LogicalAnd(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
-ArgHolder LogicalOr(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
-ArgHolder LogicalXor(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
-ArgHolder LogicalNot(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
-ArgHolder BitShiftLeft(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
-ArgHolder BitShiftRight(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder* BitwiseAnd(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
+ArgHolder* BitwiseOr(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
+ArgHolder* BitwiseNot(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
+ArgHolder* BitwiseXor(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
+ArgHolder* LogicalAnd(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
+ArgHolder* LogicalOr(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
+ArgHolder* LogicalXor(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
+ArgHolder* LogicalNot(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
+ArgHolder* BitShiftLeft(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
+ArgHolder* BitShiftRight(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
 
 }  // namespace Scripting::BitApi

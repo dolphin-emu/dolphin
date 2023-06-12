@@ -12,7 +12,6 @@
 #include "Core/Scripting/HelperClasses/ArgHolder.h"
 #include "Core/Scripting/HelperClasses/ArgTypeEnum.h"
 #include "Core/Scripting/HelperClasses/ClassMetadata.h"
-#include "Core/Scripting/CoreScriptContextFiles/ScriptCallLocations.h"
 #include "Core/Scripting/HelperClasses/VersionResolver.h"
 #include "Core/System.h"
 
@@ -209,7 +208,7 @@ u8* GetAddressForRegister(RegisterObject register_object, u8 offset)
   }
 }
 
-ArgHolder ReturnInvalidRegisterNameArgHolder(const std::string& register_name)
+ArgHolder* ReturnInvalidRegisterNameArgHolder(const std::string& register_name)
 {
   return CreateErrorStringArgHolder(
       fmt::format("Invalid value of {} was passed in for register string. Supported register names "
@@ -228,7 +227,7 @@ bool IsOperationOutOfBounds(RegisterObject register_val, u8 offset, u8 return_va
   return false;
 }
 
-ArgHolder ReturnOperationOutOfBoundsError(std::string read_or_write, std::string return_type,
+ArgHolder* ReturnOperationOutOfBoundsError(std::string read_or_write, std::string return_type,
                                           std::string register_string, u8 offset)
 {
   return CreateErrorStringArgHolder(
@@ -242,10 +241,10 @@ bool IsRegisterObjectUndefined(const RegisterObject& register_object)
   return register_object.register_type == RegisterObject::RegisterType::Undefined;
 }
 
-ArgHolder GetU8FromRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* GetU8FromRegister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  const std::string register_string = args_list[0].string_val;
-  u8 offset = args_list[1].u8_val;
+  const std::string register_string = (*args_list)[0]->string_val;
+  u8 offset = (*args_list)[1]->u8_val;
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
     return ReturnInvalidRegisterNameArgHolder(register_string);
@@ -261,10 +260,10 @@ ArgHolder GetU8FromRegister(ScriptContext* current_script, std::vector<ArgHolder
   return CreateU8ArgHolder(u8_return_val);
 }
 
-ArgHolder GetU16FromRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* GetU16FromRegister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  const std::string register_string = args_list[0].string_val;
-  u8 offset = args_list[1].u8_val;
+  const std::string register_string = (*args_list)[0]->string_val;
+  u8 offset = (*args_list)[1]->u8_val;
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
     return ReturnInvalidRegisterNameArgHolder(register_string);
@@ -280,10 +279,10 @@ ArgHolder GetU16FromRegister(ScriptContext* current_script, std::vector<ArgHolde
   return CreateU16ArgHolder(u16_return_val);
 }
 
-ArgHolder GetU32FromRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* GetU32FromRegister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  const std::string register_string = args_list[0].string_val;
-  u8 offset = args_list[1].u8_val;
+  const std::string register_string = (*args_list)[0]->string_val;
+  u8 offset = (*args_list)[1]->u8_val;
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
     return ReturnInvalidRegisterNameArgHolder(register_string);
@@ -299,10 +298,10 @@ ArgHolder GetU32FromRegister(ScriptContext* current_script, std::vector<ArgHolde
   return CreateU32ArgHolder(u32_return_val);
 }
 
-ArgHolder GetU64FromRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* GetU64FromRegister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  const std::string register_string = args_list[0].string_val;
-  u8 offset = args_list[1].u8_val;
+  const std::string register_string = (*args_list)[0]->string_val;
+  u8 offset = (*args_list)[1]->u8_val;
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
     return ReturnInvalidRegisterNameArgHolder(register_string);
@@ -318,10 +317,10 @@ ArgHolder GetU64FromRegister(ScriptContext* current_script, std::vector<ArgHolde
   return CreateU64ArgHolder(u64_return_val);
 }
 
-ArgHolder GetS8FromRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* GetS8FromRegister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  const std::string register_string = args_list[0].string_val;
-  u8 offset = args_list[1].u8_val;
+  const std::string register_string = (*args_list)[0]->string_val;
+  u8 offset = (*args_list)[1]->u8_val;
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
     return ReturnInvalidRegisterNameArgHolder(register_string);
@@ -337,10 +336,10 @@ ArgHolder GetS8FromRegister(ScriptContext* current_script, std::vector<ArgHolder
   return CreateS8ArgHolder(s8_return_val);
 }
 
-ArgHolder GetS16FromRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* GetS16FromRegister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  const std::string register_string = args_list[0].string_val;
-  u8 offset = args_list[1].u8_val;
+  const std::string register_string = (*args_list)[0]->string_val;
+  u8 offset = (*args_list)[1]->u8_val;
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
     return ReturnInvalidRegisterNameArgHolder(register_string);
@@ -355,10 +354,10 @@ ArgHolder GetS16FromRegister(ScriptContext* current_script, std::vector<ArgHolde
   return CreateS16ArgHolder(s16_return_val);
 }
 
-ArgHolder GetS32FromRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* GetS32FromRegister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  const std::string register_string = args_list[0].string_val;
-  u8 offset = args_list[1].u8_val;
+  const std::string register_string = (*args_list)[0]->string_val;
+  u8 offset = (*args_list)[1]->u8_val;
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
     return ReturnInvalidRegisterNameArgHolder(register_string);
@@ -374,10 +373,10 @@ ArgHolder GetS32FromRegister(ScriptContext* current_script, std::vector<ArgHolde
   return CreateIntArgHolder(s32_return_val);
 }
 
-ArgHolder GetS64FromRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* GetS64FromRegister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  const std::string register_string = args_list[0].string_val;
-  u8 offset = args_list[1].u8_val;
+  const std::string register_string = (*args_list)[0]->string_val;
+  u8 offset = (*args_list)[1]->u8_val;
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
     return ReturnInvalidRegisterNameArgHolder(register_string);
@@ -393,10 +392,10 @@ ArgHolder GetS64FromRegister(ScriptContext* current_script, std::vector<ArgHolde
   return CreateLongLongArgHolder(s64_return_val);
 }
 
-ArgHolder GetFloatFromRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* GetFloatFromRegister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  const std::string register_string = args_list[0].string_val;
-  u8 offset = args_list[1].u8_val;
+  const std::string register_string = (*args_list)[0]->string_val;
+  u8 offset = (*args_list)[1]->u8_val;
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
     return ReturnInvalidRegisterNameArgHolder(register_string);
@@ -412,10 +411,10 @@ ArgHolder GetFloatFromRegister(ScriptContext* current_script, std::vector<ArgHol
   return CreateFloatArgHolder(float_return_val);
 }
 
-ArgHolder GetDoubleFromRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* GetDoubleFromRegister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  const std::string register_string = args_list[0].string_val;
-  u8 offset = args_list[1].u8_val;
+  const std::string register_string = (*args_list)[0]->string_val;
+  u8 offset = (*args_list)[1]->u8_val;
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
     return ReturnInvalidRegisterNameArgHolder(register_string);
@@ -431,12 +430,12 @@ ArgHolder GetDoubleFromRegister(ScriptContext* current_script, std::vector<ArgHo
   return CreateDoubleArgHolder(double_return_val);
 }
 
-ArgHolder GetUnsignedBytesFromRegister(ScriptContext* current_script,
-                                       std::vector<ArgHolder>& args_list)
+ArgHolder* GetUnsignedBytesFromRegister(ScriptContext* current_script,
+                                       std::vector<ArgHolder*>* args_list)
 {
-  const std::string register_string = args_list[0].string_val;
-  u8 num_bytes_to_read = args_list[1].u8_val;
-  u8 offset = args_list[2].u8_val;
+  const std::string register_string = (*args_list)[0]->string_val;
+  u8 num_bytes_to_read = (*args_list)[1]->u8_val;
+  u8 offset = (*args_list)[2]->u8_val;
 
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
@@ -462,12 +461,12 @@ ArgHolder GetUnsignedBytesFromRegister(ScriptContext* current_script,
   return CreateAddressToUnsignedByteMapArgHolder(index_to_unsigned_byte_map);
 }
 
-ArgHolder GetSignedBytesFromRegister(ScriptContext* current_script,
-                                     std::vector<ArgHolder>& args_list)
+ArgHolder* GetSignedBytesFromRegister(ScriptContext* current_script,
+                                     std::vector<ArgHolder*>* args_list)
 {
-  const std::string register_string = args_list[0].string_val;
-  u8 num_bytes_to_read = args_list[1].u8_val;
-  u8 offset = args_list[2].u8_val;
+  const std::string register_string = (*args_list)[0]->string_val;
+  u8 num_bytes_to_read = (*args_list)[1]->u8_val;
+  u8 offset = (*args_list)[2]->u8_val;
 
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
@@ -493,11 +492,11 @@ ArgHolder GetSignedBytesFromRegister(ScriptContext* current_script,
   return CreateAddressToSignedByteMapArgHolder(index_to_signed_byte_map);
 }
 
-ArgHolder WriteU8ToRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* WriteU8ToRegister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  const std::string register_string = args_list[0].string_val;
-  u8 u8_val = args_list[1].u8_val;
-  u8 offset = args_list[2].u8_val;
+  const std::string register_string = (*args_list)[0]->string_val;
+  u8 u8_val = (*args_list)[1]->u8_val;
+  u8 offset = (*args_list)[2]->u8_val;
 
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
@@ -513,11 +512,11 @@ ArgHolder WriteU8ToRegister(ScriptContext* current_script, std::vector<ArgHolder
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder WriteU16ToRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* WriteU16ToRegister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  const std::string register_string = args_list[0].string_val;
-  u16 u16_val = args_list[1].u16_val;
-  u8 offset = args_list[2].u8_val;
+  const std::string register_string = (*args_list)[0]->string_val;
+  u16 u16_val = (*args_list)[1]->u16_val;
+  u8 offset = (*args_list)[2]->u8_val;
 
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
@@ -533,11 +532,11 @@ ArgHolder WriteU16ToRegister(ScriptContext* current_script, std::vector<ArgHolde
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder WriteU32ToRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* WriteU32ToRegister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  const std::string register_string = args_list[0].string_val;
-  u32 u32_val = args_list[1].u32_val;
-  u8 offset = args_list[2].u8_val;
+  const std::string register_string = (*args_list)[0]->string_val;
+  u32 u32_val = (*args_list)[1]->u32_val;
+  u8 offset = (*args_list)[2]->u8_val;
 
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
@@ -553,11 +552,11 @@ ArgHolder WriteU32ToRegister(ScriptContext* current_script, std::vector<ArgHolde
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder WriteU64ToRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* WriteU64ToRegister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  const std::string register_string = args_list[0].string_val;
-  u64 u64_val = args_list[1].u64_val;
-  u8 offset = args_list[2].u8_val;
+  const std::string register_string = (*args_list)[0]->string_val;
+  u64 u64_val = (*args_list)[1]->u64_val;
+  u8 offset = (*args_list)[2]->u8_val;
 
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
@@ -573,11 +572,11 @@ ArgHolder WriteU64ToRegister(ScriptContext* current_script, std::vector<ArgHolde
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder WriteS8ToRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* WriteS8ToRegister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  const std::string register_string = args_list[0].string_val;
-  s8 s8_val = args_list[1].s8_val;
-  u8 offset = args_list[2].u8_val;
+  const std::string register_string = (*args_list)[0]->string_val;
+  s8 s8_val = (*args_list)[1]->s8_val;
+  u8 offset = (*args_list)[2]->u8_val;
 
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
@@ -593,11 +592,11 @@ ArgHolder WriteS8ToRegister(ScriptContext* current_script, std::vector<ArgHolder
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder WriteS16ToRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* WriteS16ToRegister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  const std::string register_string = args_list[0].string_val;
-  s16 s16_val = args_list[1].s16_val;
-  u8 offset = args_list[2].u8_val;
+  const std::string register_string = (*args_list)[0]->string_val;
+  s16 s16_val = (*args_list)[1]->s16_val;
+  u8 offset = (*args_list)[2]->u8_val;
 
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
@@ -613,11 +612,11 @@ ArgHolder WriteS16ToRegister(ScriptContext* current_script, std::vector<ArgHolde
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder WriteS32ToRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* WriteS32ToRegister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  const std::string register_string = args_list[0].string_val;
-  s32 s32_val = args_list[1].int_val;
-  u8 offset = args_list[2].u8_val;
+  const std::string register_string = (*args_list)[0]->string_val;
+  s32 s32_val = (*args_list)[1]->int_val;
+  u8 offset = (*args_list)[2]->u8_val;
 
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
@@ -633,11 +632,11 @@ ArgHolder WriteS32ToRegister(ScriptContext* current_script, std::vector<ArgHolde
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder WriteS64ToRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* WriteS64ToRegister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  const std::string register_string = args_list[0].string_val;
-  s64 s64_val = args_list[1].long_long_val;
-  u8 offset = args_list[2].u8_val;
+  const std::string register_string = (*args_list)[0]->string_val;
+  s64 s64_val = (*args_list)[1]->long_long_val;
+  u8 offset = (*args_list)[2]->u8_val;
 
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
@@ -653,11 +652,11 @@ ArgHolder WriteS64ToRegister(ScriptContext* current_script, std::vector<ArgHolde
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder WriteFloatToRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* WriteFloatToRegister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  const std::string register_string = args_list[0].string_val;
-  float float_val = args_list[1].float_val;
-  u8 offset = args_list[2].u8_val;
+  const std::string register_string = (*args_list)[0]->string_val;
+  float float_val = (*args_list)[1]->float_val;
+  u8 offset = (*args_list)[2]->u8_val;
 
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
@@ -673,11 +672,11 @@ ArgHolder WriteFloatToRegister(ScriptContext* current_script, std::vector<ArgHol
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder WriteDoubleToRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* WriteDoubleToRegister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  const std::string register_string = args_list[0].string_val;
-  double double_val = args_list[1].double_val;
-  u8 offset = args_list[2].u8_val;
+  const std::string register_string = (*args_list)[0]->string_val;
+  double double_val = (*args_list)[1]->double_val;
+  u8 offset = (*args_list)[2]->u8_val;
 
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))
@@ -693,11 +692,11 @@ ArgHolder WriteDoubleToRegister(ScriptContext* current_script, std::vector<ArgHo
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder WriteBytesToRegister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* WriteBytesToRegister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  const std::string register_string = args_list[0].string_val;
-  std::map<long long, s16> index_to_byte_map = args_list[1].address_to_byte_map;
-  u8 offset = args_list[2].u8_val;
+  const std::string register_string = (*args_list)[0]->string_val;
+  std::map<long long, s16> index_to_byte_map = (*args_list)[1]->address_to_byte_map;
+  u8 offset = (*args_list)[2]->u8_val;
 
   RegisterObject register_val = ParseRegister(register_string);
   if (IsRegisterObjectUndefined(register_val))

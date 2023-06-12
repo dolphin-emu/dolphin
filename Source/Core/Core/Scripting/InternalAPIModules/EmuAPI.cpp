@@ -55,7 +55,7 @@ FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
                                deprecated_functions_map);
 }
 
-ArgHolder EmuFrameAdvance(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* EmuFrameAdvance(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   return CreateYieldTypeArgHolder();
 }
@@ -67,9 +67,9 @@ bool CheckIfFileExists(std::string filename)
   return true;
 }
 
-ArgHolder EmuLoadState(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* EmuLoadState(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  load_state_name = args_list[0].string_val;
+  load_state_name = (*args_list)[0]->string_val;
   if (!CheckIfFileExists(load_state_name))
     return CreateErrorStringArgHolder(
         fmt::format("could not find savestate with filename of {}", load_state_name).c_str());
@@ -77,16 +77,16 @@ ArgHolder EmuLoadState(ScriptContext* current_script, std::vector<ArgHolder>& ar
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder EmuSaveState(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* EmuSaveState(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  save_state_name = args_list[0].string_val;
+  save_state_name = (*args_list)[0]->string_val;
   State::SaveAs(save_state_name);
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder EmuPlayMovie(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* EmuPlayMovie(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  play_movie_name = args_list[0].string_val;
+  play_movie_name = (*args_list)[0]->string_val;
   if (!CheckIfFileExists(play_movie_name))
     return CreateErrorStringArgHolder(
         fmt::format("could not find a movie with filename of {}", play_movie_name).c_str());
@@ -96,9 +96,9 @@ ArgHolder EmuPlayMovie(ScriptContext* current_script, std::vector<ArgHolder>& ar
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder EmuSaveMovie(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* EmuSaveMovie(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  save_movie_name = args_list[0].string_val;
+  save_movie_name = (*args_list)[0]->string_val;
   Movie::SaveRecording(save_movie_name);
   return CreateVoidTypeArgHolder();
 }

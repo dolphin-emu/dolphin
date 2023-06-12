@@ -9,7 +9,7 @@
 #include "Core/Movie.h"
 #include "Core/Scripting/HelperClasses/ArgHolder.h"
 #include "Core/Scripting/HelperClasses/ClassMetadata.h"
-#include "Core/Scripting/CoreScriptContextFiles/ScriptContext.h"
+#include "Core/Scripting/CoreScriptContextFiles/Implementations/ScriptContext_Implementation.h"
 #include "InputCommon/GCPadStatus.h"
 #include "InputCommon/InputConfig.h"
 
@@ -24,9 +24,9 @@ ClassMetadata GetAllClassMetadata();
 FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
                                                const std::string& function_name);
 
-ArgHolder GetInputsForPreviousFrame(ScriptContext* current_script,
-                                    std::vector<ArgHolder>& args_list);
-ArgHolder IsGcControllerInPort(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
-ArgHolder IsUsingPort(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder* GetInputsForPreviousFrame(ScriptContext* current_script,
+                                     std::vector<ArgHolder*>* args_list);
+ArgHolder* IsGcControllerInPort(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
+ArgHolder* IsUsingPort(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
 
 }  // namespace Scripting::GameCubeControllerApi

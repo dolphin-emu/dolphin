@@ -4,7 +4,7 @@
 #include "Core/Scripting/HelperClasses/ArgHolder.h"
 #include "Core/Scripting/HelperClasses/ArgTypeEnum.h"
 #include "Core/Scripting/HelperClasses/ClassMetadata.h"
-#include "Core/Scripting/CoreScriptContextFiles/ScriptContext.h"
+#include "Core/Scripting/CoreScriptContextFiles//Implementations/ScriptContext_Implementation.h"
 
 namespace Scripting::EmuApi
 {
@@ -15,10 +15,10 @@ ClassMetadata GetAllClassMetadata();
 FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
                                                const std::string& function_name);
 
-ArgHolder EmuFrameAdvance(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
-ArgHolder EmuLoadState(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
-ArgHolder EmuSaveState(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
-ArgHolder EmuPlayMovie(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
-ArgHolder EmuSaveMovie(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder* EmuFrameAdvance(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
+ArgHolder* EmuLoadState(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
+ArgHolder* EmuSaveState(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
+ArgHolder* EmuPlayMovie(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
+ArgHolder* EmuSaveMovie(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
 
 }  // namespace Scripting::EmuApi

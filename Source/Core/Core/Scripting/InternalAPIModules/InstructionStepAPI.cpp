@@ -56,7 +56,7 @@ bool IsCurrentlyInBreakpoint()
          OnMemoryAddressWrittenToCallbackAPI::in_memory_address_written_to_breakpoint;
 }
 
-ArgHolder CreateNotInBreakpointError(const std::string& function_name)
+ArgHolder* CreateNotInBreakpointError(const std::string& function_name)
 {
   return CreateErrorStringArgHolder(
       std::string("Error: CPU was not in a valid callback when ") + function_name +
@@ -65,7 +65,7 @@ ArgHolder CreateNotInBreakpointError(const std::string& function_name)
       "order to prevent this error.");
 }
 
-ArgHolder SingleStep(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* SingleStep(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   if (!IsCurrentlyInBreakpoint())
     return CreateNotInBreakpointError("SingleStep()");
@@ -80,7 +80,7 @@ ArgHolder SingleStep(ScriptContext* current_script, std::vector<ArgHolder>& args
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder StepOver(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* StepOver(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   if (!IsCurrentlyInBreakpoint())
     return CreateNotInBreakpointError("StepOver()");
@@ -121,7 +121,7 @@ bool IsFunctionReturnInstruction(UGeckoInstruction instruction)
   return isBclr && counter && condition && !instruction.LK_3;
 }
 
-ArgHolder StepOut(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* StepOut(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   if (!IsCurrentlyInBreakpoint())
     return CreateNotInBreakpointError("StepOut()");
@@ -154,7 +154,7 @@ ArgHolder StepOut(ScriptContext* current_script, std::vector<ArgHolder>& args_li
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder Skip(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* Skip(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   if (!IsCurrentlyInBreakpoint())
     return CreateNotInBreakpointError("Skip()");
@@ -166,9 +166,9 @@ ArgHolder Skip(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder SetPC(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* SetPC(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  u32 new_pc = args_list[0].u32_val;
+  u32 new_pc = (*args_list)[0]->u32_val;
   if (!IsCurrentlyInBreakpoint())
     return CreateNotInBreakpointError("SetPC");
 
@@ -178,10 +178,10 @@ ArgHolder SetPC(ScriptContext* current_script, std::vector<ArgHolder>& args_list
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder GetInstructionFromAddress(ScriptContext* current_script,
-                                    std::vector<ArgHolder>& args_list)
+ArgHolder* GetInstructionFromAddress(ScriptContext* current_script,
+                                    std::vector<ArgHolder*>* args_list)
 {
-  u32 instruction_addr = args_list[0].u32_val;
+  u32 instruction_addr = (*args_list)[0]->u32_val;
   Core::CPUThreadGuard guard(Core::System::GetInstance());
   const u32 op = PowerPC::MMU::HostRead_Instruction(guard, instruction_addr);
   std::string disasm = Common::GekkoDisassembler::Disassemble(op, instruction_addr);

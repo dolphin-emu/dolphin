@@ -9,7 +9,6 @@
 #include "Core/Scripting/HelperClasses/ClassMetadata.h"
 #include "Core/Scripting/HelperClasses/FunctionMetadata.h"
 #include "Core/Scripting/HelperClasses/VersionResolver.h"
-#include "Core/Scripting/CoreScriptContextFiles/ScriptContext.h"
 
 namespace Scripting::ImportAPI
 {
@@ -45,32 +44,32 @@ FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
                                deprecated_functions_map);
 }
 
-ArgHolder ImportCommon(ScriptContext* current_script, std::string api_name,
+ArgHolder* ImportCommon(ScriptContext* current_script, std::string api_name,
                        std::string version_number)
 {
-  current_script->scriptContextBaseFunctionsTable.ImportModule(current_script, api_name.c_str(), version_number.c_str());
+  current_script->dll_specific_api_definitions.ImportModule(current_script, api_name.c_str(), version_number.c_str());
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder ImportModule(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* ImportModule(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  return ImportCommon(current_script, args_list[0].string_val, args_list[1].string_val);
+  return ImportCommon(current_script, (*args_list)[0]->string_val, (*args_list)[1]->string_val);
 }
 
-ArgHolder ImportAlt(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* ImportAlt(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  return ImportCommon(current_script, args_list[0].string_val, args_list[1].string_val);
+  return ImportCommon(current_script, (*args_list)[0]->string_val, (*args_list)[1]->string_val);
 }
 
-ArgHolder ShutdownScript(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* ShutdownScript(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   ShutdownScript(current_script);
   return CreateShutdownTypeArgHolder();
 }
 
-ArgHolder ExitDolphin(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* ExitDolphin(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  int exit_code = args_list[0].int_val;
+  int exit_code = (*args_list)[0]->int_val;
   std::exit(exit_code);
 }
 

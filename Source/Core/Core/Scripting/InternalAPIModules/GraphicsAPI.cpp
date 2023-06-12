@@ -11,6 +11,7 @@
 
 #include "Core/Scripting/HelperClasses/VersionResolver.h"
 #include "Core/Scripting/ScriptUtilities.h"
+#include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/ScriptContext_APIs.h"
 
 namespace Scripting::GraphicsAPI
 {
@@ -228,14 +229,14 @@ FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
                                deprecated_functions_map);
 }
 
-ArgHolder DrawLine(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* DrawLine(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  float x_coord_1 = args_list[0].float_val;
-  float y_coord_1 = args_list[1].float_val;
-  float x_coord_2 = args_list[2].float_val;
-  float y_coord_2 = args_list[3].float_val;
-  float thickness = args_list[4].float_val;
-  std::string color = args_list[5].string_val;
+  float x_coord_1 = (*args_list)[0]->float_val;
+  float y_coord_1 = (*args_list)[1]->float_val;
+  float x_coord_2 = (*args_list)[2]->float_val;
+  float y_coord_2 = (*args_list)[3]->float_val;
+  float thickness = (*args_list)[4]->float_val;
+  std::string color = (*args_list)[5]->string_val;
   ImDrawList* draw_list = nullptr;
 
   if (!window_is_open)
@@ -255,14 +256,14 @@ ArgHolder DrawLine(ScriptContext* current_script, std::vector<ArgHolder>& args_l
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder DrawEmptyRectangle(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* DrawEmptyRectangle(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  float bottom_left_x = args_list[0].float_val;
-  float bottom_left_y = args_list[1].float_val;
-  float top_right_x = args_list[2].float_val;
-  float top_right_y = args_list[3].float_val;
-  float thickness = args_list[4].float_val;
-  std::string outline_color = args_list[5].string_val;
+  float bottom_left_x = (*args_list)[0]->float_val;
+  float bottom_left_y = (*args_list)[1]->float_val;
+  float top_right_x = (*args_list)[2]->float_val;
+  float top_right_y = (*args_list)[3]->float_val;
+  float thickness = (*args_list)[4]->float_val;
+  std::string outline_color = (*args_list)[5]->string_val;
   ImDrawList* draw_list = nullptr;
 
   if (!window_is_open)
@@ -282,13 +283,13 @@ ArgHolder DrawEmptyRectangle(ScriptContext* current_script, std::vector<ArgHolde
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder DrawFilledRectangle(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* DrawFilledRectangle(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  float bottom_left_x = args_list[0].float_val;
-  float bottom_left_y = args_list[1].float_val;
-  float top_right_x = args_list[2].float_val;
-  float top_right_y = args_list[3].float_val;
-  std::string fill_color = args_list[4].string_val;
+  float bottom_left_x = (*args_list)[0]->float_val;
+  float bottom_left_y = (*args_list)[1]->float_val;
+  float top_right_x = (*args_list)[2]->float_val;
+  float top_right_y = (*args_list)[3]->float_val;
+  std::string fill_color = (*args_list)[4]->string_val;
   ImDrawList* draw_list = nullptr;
 
   if (!window_is_open)
@@ -308,16 +309,16 @@ ArgHolder DrawFilledRectangle(ScriptContext* current_script, std::vector<ArgHold
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder DrawEmptyTriangle(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* DrawEmptyTriangle(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  float x1 = args_list[0].float_val;
-  float y1 = args_list[1].float_val;
-  float x2 = args_list[2].float_val;
-  float y2 = args_list[3].float_val;
-  float x3 = args_list[4].float_val;
-  float y3 = args_list[5].float_val;
-  float thickness = args_list[6].float_val;
-  std::string color = args_list[7].string_val;
+  float x1 = (*args_list)[0]->float_val;
+  float y1 = (*args_list)[1]->float_val;
+  float x2 = (*args_list)[2]->float_val;
+  float y2 = (*args_list)[3]->float_val;
+  float x3 = (*args_list)[4]->float_val;
+  float y3 = (*args_list)[5]->float_val;
+  float thickness = (*args_list)[6]->float_val;
+  std::string color = (*args_list)[7]->string_val;
   ImDrawList* draw_list = nullptr;
 
   if (!window_is_open)
@@ -337,15 +338,15 @@ ArgHolder DrawEmptyTriangle(ScriptContext* current_script, std::vector<ArgHolder
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder DrawFilledTriangle(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* DrawFilledTriangle(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  float x1 = args_list[0].float_val;
-  float y1 = args_list[1].float_val;
-  float x2 = args_list[2].float_val;
-  float y2 = args_list[3].float_val;
-  float x3 = args_list[4].float_val;
-  float y3 = args_list[5].float_val;
-  std::string fill_color = args_list[6].string_val;
+  float x1 = (*args_list)[0]->float_val;
+  float y1 = (*args_list)[1]->float_val;
+  float x2 = (*args_list)[2]->float_val;
+  float y2 = (*args_list)[3]->float_val;
+  float x3 = (*args_list)[4]->float_val;
+  float y3 = (*args_list)[5]->float_val;
+  std::string fill_color = (*args_list)[6]->string_val;
   ImDrawList* draw_list = nullptr;
 
   if (!window_is_open)
@@ -365,13 +366,13 @@ ArgHolder DrawFilledTriangle(ScriptContext* current_script, std::vector<ArgHolde
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder DrawEmptyCircle(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* DrawEmptyCircle(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  float centerX = args_list[0].float_val;
-  float centerY = args_list[1].float_val;
-  float radius = args_list[2].float_val;
-  float thickness = args_list[3].float_val;
-  std::string outline_color = args_list[4].string_val;
+  float centerX = (*args_list)[0]->float_val;
+  float centerY = (*args_list)[1]->float_val;
+  float radius = (*args_list)[2]->float_val;
+  float thickness = (*args_list)[3]->float_val;
+  std::string outline_color = (*args_list)[4]->string_val;
   ImDrawList* draw_list = nullptr;
 
   if (!window_is_open)
@@ -390,12 +391,12 @@ ArgHolder DrawEmptyCircle(ScriptContext* current_script, std::vector<ArgHolder>&
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder DrawFilledCircle(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* DrawFilledCircle(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  float centerX = args_list[0].float_val;
-  float centerY = args_list[1].float_val;
-  float radius = args_list[2].float_val;
-  std::string fill_color = args_list[3].string_val;
+  float centerX = (*args_list)[0]->float_val;
+  float centerY = (*args_list)[1]->float_val;
+  float radius = (*args_list)[2]->float_val;
+  std::string fill_color = (*args_list)[3]->string_val;
   ImDrawList* draw_list = nullptr;
 
   if (!window_is_open)
@@ -415,17 +416,17 @@ ArgHolder DrawFilledCircle(ScriptContext* current_script, std::vector<ArgHolder>
 }
 
 /*
-ArgHolder DrawEmptyArc(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder DrawEmptyArc(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  float x1 = args_list[0].float_val;
-  float y1 = args_list[1].float_val;
-  float x2 = args_list[2].float_val;
-  float y2 = args_list[3].float_val;
-  float x3 = args_list[4].float_val;
-  float y3 = args_list[5].float_val;
-  float x4 = args_list[6].float_val;
-  float y4 = args_list[7].float_val;
-  long long num_sides = args_list[6].long_long_val;
+  float x1 = (*args_list)[0]->float_val;
+  float y1 = (*args_list)[1]->float_val;
+  float x2 = (*args_list)[2]->float_val;
+  float y2 = (*args_list)[3]->float_val;
+  float x3 = (*args_list)[4]->float_val;
+  float y3 = (*args_list)[5]->float_val;
+  float x4 = (*args_list)[6]->float_val;
+  float y4 = (*args_list)[7]->float_val;
+  long long num_sides = (*args_list)[6]->long_long_val;
 
   ImGui::GetForegroundDrawList()->AddBezierCubic({x1, y1}, {x2, y2}, {x3, y3},
                                                      {x4, y4} , ParseColor("yellow"), 5.0,
@@ -433,11 +434,11 @@ num_sides); return CreateVoidTypeArgHolder();
 }
 */
 
-ArgHolder DrawEmptyPolygon(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* DrawEmptyPolygon(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  std::vector<ImVec2> list_of_points = args_list[0].list_of_points;
-  float thickness = args_list[1].float_val;
-  std::string line_color = args_list[2].string_val;
+  std::vector<ImVec2> list_of_points = (*args_list)[0]->list_of_points;
+  float thickness = (*args_list)[1]->float_val;
+  std::string line_color = (*args_list)[2]->string_val;
 
   ImVec2 window_edge = ImGui::GetCursorScreenPos();
   for (int i = 0; i < list_of_points.size(); ++i)
@@ -461,10 +462,10 @@ ArgHolder DrawEmptyPolygon(ScriptContext* current_script, std::vector<ArgHolder>
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder DrawFilledPolygon(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* DrawFilledPolygon(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  std::vector<ImVec2> list_of_points = args_list[0].list_of_points;
-  std::string line_color = args_list[1].string_val;
+  std::vector<ImVec2> list_of_points = (*args_list)[0]->list_of_points;
+  std::string line_color = (*args_list)[1]->string_val;
 
   ImVec2 window_edge = ImGui::GetCursorScreenPos();
   for (int i = 0; i < list_of_points.size(); ++i)
@@ -488,12 +489,12 @@ ArgHolder DrawFilledPolygon(ScriptContext* current_script, std::vector<ArgHolder
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder DrawText(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* DrawText(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  float x = args_list[0].float_val;
-  float y = args_list[1].float_val;
-  std::string color_string = args_list[2].string_val;
-  std::string display_text = args_list[3].string_val;
+  float x = (*args_list)[0]->float_val;
+  float y = (*args_list)[1]->float_val;
+  std::string color_string = (*args_list)[2]->string_val;
+  std::string display_text = (*args_list)[3]->string_val;
   ImDrawList* draw_list = nullptr;
 
   if (!window_is_open)
@@ -512,10 +513,10 @@ ArgHolder DrawText(ScriptContext* current_script, std::vector<ArgHolder>& args_l
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder AddCheckbox(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* AddCheckbox(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  std::string checkbox_name = args_list[0].string_val;
-  long long id = args_list[1].long_long_val;
+  std::string checkbox_name = (*args_list)[0]->string_val;
+  long long id = (*args_list)[1]->long_long_val;
 
   if (!window_is_open)
   {
@@ -537,9 +538,9 @@ ArgHolder AddCheckbox(ScriptContext* current_script, std::vector<ArgHolder>& arg
   }
 }
 
-ArgHolder GetCheckboxValue(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* GetCheckboxValue(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long checkbox_id = args_list[0].long_long_val;
+  long long checkbox_id = (*args_list)[0]->long_long_val;
   if (id_to_checkbox_map.count(checkbox_id) == 0)
     return CreateErrorStringArgHolder(
         fmt::format("Attempted to get the value of an undefined checkbox with an index of {}. User "
@@ -549,10 +550,10 @@ ArgHolder GetCheckboxValue(ScriptContext* current_script, std::vector<ArgHolder>
   return CreateBoolArgHolder(*(id_to_checkbox_map[checkbox_id]));
 }
 
-ArgHolder SetCheckboxValue(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* SetCheckboxValue(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long checkbox_id = args_list[0].long_long_val;
-  bool new_bool_value = args_list[1].bool_val;
+  long long checkbox_id = (*args_list)[0]->long_long_val;
+  bool new_bool_value = (*args_list)[1]->bool_val;
   if (id_to_checkbox_map.count(checkbox_id) == 0)
     return CreateErrorStringArgHolder(fmt::format(
         "Attempted to set the value of a checkbox with an index of {} before creating it. User "
@@ -564,9 +565,9 @@ ArgHolder SetCheckboxValue(ScriptContext* current_script, std::vector<ArgHolder>
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder AddRadioButtonGroup(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* AddRadioButtonGroup(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long id = args_list[0].long_long_val;
+  long long id = (*args_list)[0]->long_long_val;
   if (!window_is_open)
   {
     return CreateErrorStringArgHolder(
@@ -584,11 +585,11 @@ ArgHolder AddRadioButtonGroup(ScriptContext* current_script, std::vector<ArgHold
   }
 }
 
-ArgHolder AddRadioButton(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* AddRadioButton(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  std::string button_name = args_list[0].string_val;
-  long long radio_button_group_id = args_list[1].long_long_val;
-  long long radio_button_id = args_list[2].long_long_val;
+  std::string button_name = (*args_list)[0]->string_val;
+  long long radio_button_group_id = (*args_list)[1]->long_long_val;
+  long long radio_button_id = (*args_list)[2]->long_long_val;
   if (!window_is_open)
   {
     return CreateErrorStringArgHolder(
@@ -610,9 +611,9 @@ ArgHolder AddRadioButton(ScriptContext* current_script, std::vector<ArgHolder>& 
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder GetRadioButtonGroupValue(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* GetRadioButtonGroupValue(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long radio_group_id = args_list[0].long_long_val;
+  long long radio_group_id = (*args_list)[0]->long_long_val;
   if (id_to_radio_group_map.count(radio_group_id) == 0)
     return CreateErrorStringArgHolder(fmt::format(
         "Attempted to get the value of an undefined radio group with an ID of {}. User must call "
@@ -621,10 +622,10 @@ ArgHolder GetRadioButtonGroupValue(ScriptContext* current_script, std::vector<Ar
   return CreateLongLongArgHolder(*(id_to_radio_group_map[radio_group_id]));
 }
 
-ArgHolder SetRadioButtonGroupValue(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* SetRadioButtonGroupValue(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long radio_group_id = args_list[0].long_long_val;
-  long long new_int_value = args_list[1].long_long_val;
+  long long radio_group_id = (*args_list)[0]->long_long_val;
+  long long new_int_value = (*args_list)[1]->long_long_val;
   if (id_to_radio_group_map.count(radio_group_id) == 0)
     return CreateErrorStringArgHolder(
         fmt::format("Attempted to set the value of a radio group with an ID of {} before creating "
@@ -635,10 +636,10 @@ ArgHolder SetRadioButtonGroupValue(ScriptContext* current_script, std::vector<Ar
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder AddTextBox(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* AddTextBox(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long text_box_id = args_list[0].long_long_val;
-  std::string text_box_name = args_list[1].string_val;
+  long long text_box_id = (*args_list)[0]->long_long_val;
+  std::string text_box_name = (*args_list)[1]->string_val;
 
   if (!window_is_open)
   {
@@ -660,9 +661,9 @@ ArgHolder AddTextBox(ScriptContext* current_script, std::vector<ArgHolder>& args
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder GetTextBoxValue(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* GetTextBoxValue(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long text_box_id = args_list[0].long_long_val;
+  long long text_box_id = (*args_list)[0]->long_long_val;
   if (id_to_text_box_map.count(text_box_id) == 0)
     return CreateErrorStringArgHolder(fmt::format(
         "Attempted to get the textbox value of an invalid textbox with an ID of {}. User must call "
@@ -671,10 +672,10 @@ ArgHolder GetTextBoxValue(ScriptContext* current_script, std::vector<ArgHolder>&
   return CreateStringArgHolder(*(id_to_text_box_map[text_box_id]));
 }
 
-ArgHolder SetTextBoxValue(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* SetTextBoxValue(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long text_box_id = args_list[0].long_long_val;
-  std::string new_string_value = args_list[1].string_val;
+  long long text_box_id = (*args_list)[0]->long_long_val;
+  std::string new_string_value = (*args_list)[1]->string_val;
   if (id_to_text_box_map.count(text_box_id) == 0)
     return CreateErrorStringArgHolder(
         "Attempted to set the value of a text box which had not been created. User "
@@ -683,13 +684,13 @@ ArgHolder SetTextBoxValue(ScriptContext* current_script, std::vector<ArgHolder>&
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder AddButton(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* AddButton(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  std::string button_label = args_list[0].string_val;
-  long long button_id = args_list[1].long_long_val;
-  void* function_callback = args_list[2].void_pointer_val;
-  float button_width = args_list[3].float_val;
-  float button_height = args_list[4].float_val;
+  std::string button_label = (*args_list)[0]->string_val;
+  long long button_id = (*args_list)[1]->long_long_val;
+  void* function_callback = (*args_list)[2]->void_pointer_val;
+  float button_width = (*args_list)[3]->float_val;
+  float button_height = (*args_list)[4]->float_val;
 
   if (!window_is_open)
   {
@@ -699,60 +700,60 @@ ArgHolder AddButton(ScriptContext* current_script, std::vector<ArgHolder>& args_
 
   else if (!display_stack.empty() && display_stack.top())
   {
-    current_script->scriptContextBaseFunctionsTable.RegisterButtonCallback(current_script, button_id, function_callback);
+    current_script->dll_specific_api_definitions.RegisterButtonCallback(current_script, button_id, function_callback);
     if (ImGui::Button(button_label.c_str(), {button_width, button_height}))
     {  // true when button was pressed, and false otherwise
-      current_script->scriptContextBaseFunctionsTable.GetButtonCallbackAndAddToQueue(current_script, button_id);
+      current_script->dll_specific_api_definitions.GetButtonCallbackAndAddToQueue(current_script, button_id);
     }
   }
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder PressButton(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* PressButton(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long button_id = args_list[0].long_long_val;
+  long long button_id = (*args_list)[0]->long_long_val;
 
   if (!window_is_open || display_stack.empty() || !display_stack.top())
   {
     return CreateErrorStringArgHolder("Cannot press button which is not displayed on screen!");
   }
 
-  if (!current_script->scriptContextBaseFunctionsTable.IsButtonRegistered(current_script, button_id))
+  if (!current_script->dll_specific_api_definitions.IsButtonRegistered(current_script, button_id))
     return CreateErrorStringArgHolder(fmt::format(
         "Attempted to press undefined button of {}. User must call "
         "GraphicsAPI:registerButtonCallback() before they can call GraphicsAPI:pressButton()",
         button_id));
 
-  current_script->scriptContextBaseFunctionsTable.GetButtonCallbackAndAddToQueue(current_script, button_id);
+  current_script->dll_specific_api_definitions.GetButtonCallbackAndAddToQueue(current_script, button_id);
 
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder NewLine(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* NewLine(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   if (!window_is_open)
     return CreateErrorStringArgHolder("Cannot add new line when no window is open on screen!");
-  float vertical_offset = args_list[0].float_val;
+  float vertical_offset = (*args_list)[0]->float_val;
   ImGui::Dummy(ImVec2(0.0f, vertical_offset));
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder BeginWindow(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* BeginWindow(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   if (!window_is_open)
   {
     window_is_open = true;
-    display_stack.push(ImGui::Begin(args_list[0].string_val.c_str()));
+    display_stack.push(ImGui::Begin((*args_list)[0]->string_val.c_str()));
   }
   else
   {
-    display_stack.push(ImGui::TreeNode(args_list[0].string_val.c_str()));
+    display_stack.push(ImGui::TreeNode((*args_list)[0]->string_val.c_str()));
   }
 
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder EndWindow(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* EndWindow(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   if (!window_is_open)
     return CreateVoidTypeArgHolder();

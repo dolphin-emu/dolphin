@@ -3,7 +3,7 @@
 
 #include "Core/Scripting/HelperClasses/ArgHolder.h"
 #include "Core/Scripting/HelperClasses/ClassMetadata.h"
-#include "Core/Scripting/CoreScriptContextFiles/ScriptContext.h"
+#include "Core/Scripting/CoreScriptContextFiles/Implementations/ScriptContext_Implementation.h"
 
 namespace Scripting::ImportAPI
 {
@@ -14,13 +14,13 @@ ClassMetadata GetAllClassMetadata();
 FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
                                                const std::string& function_name);
 
-ArgHolder ImportCommon(ScriptContext* current_script, std::string api_name,
+ArgHolder* ImportCommon(ScriptContext* current_script, std::string api_name,
                        std::string version_number);
 
-ArgHolder ImportModule(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder* ImportModule(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
 
-ArgHolder ImportAlt(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
-ArgHolder ShutdownScript(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
-ArgHolder ExitDolphin(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
+ArgHolder* ImportAlt(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
+ArgHolder* ShutdownScript(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
+ArgHolder* ExitDolphin(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
 
 }  // namespace Scripting::ImportAPI

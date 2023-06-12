@@ -62,63 +62,63 @@ FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
                                deprecated_functions_map);
 }
 
-ArgHolder IsRecordingInput(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* IsRecordingInput(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   return CreateBoolArgHolder(Movie::IsRecordingInput());
 }
 
-ArgHolder IsRecordingInputFromSaveState(ScriptContext* current_script,
-                                        std::vector<ArgHolder>& args_list)
+ArgHolder* IsRecordingInputFromSaveState(ScriptContext* current_script,
+                                        std::vector<ArgHolder*>* args_list)
 {
   return CreateBoolArgHolder(Movie::IsRecordingInputFromSaveState());
 }
 
-ArgHolder IsPlayingInput(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* IsPlayingInput(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   return CreateBoolArgHolder(Movie::IsPlayingInput());
 }
 
-ArgHolder IsMovieActive(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* IsMovieActive(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   return CreateBoolArgHolder(Movie::IsMovieActive());
 }
 
-ArgHolder GetCurrentFrame(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* GetCurrentFrame(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   return CreateLongLongArgHolder(Movie::GetCurrentFrame());
 }
 
-ArgHolder GetMovieLength(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* GetMovieLength(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   return CreateLongLongArgHolder(Movie::GetTotalFrames());
 }
 
-ArgHolder GetRerecordCount(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* GetRerecordCount(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   return CreateLongLongArgHolder(Movie::GetRerecordCount());
 }
 
-ArgHolder GetCurrentInputCount(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* GetCurrentInputCount(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   return CreateLongLongArgHolder(Movie::GetCurrentInputCount());
 }
 
-ArgHolder GetTotalInputCount(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* GetTotalInputCount(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   return CreateLongLongArgHolder(Movie::GetTotalInputCount());
 }
 
-ArgHolder GetCurrentLagCount(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* GetCurrentLagCount(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   return CreateLongLongArgHolder(Movie::GetCurrentLagCount());
 }
 
-ArgHolder GetTotalLagCount(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* GetTotalLagCount(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   return CreateLongLongArgHolder(Movie::GetTotalLagCount());
 }
 
-ArgHolder GetRAMSize(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* GetRAMSize(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   return CreateU32ArgHolder(Core::System::GetInstance().GetMemory().getRAM_scriptHelper() !=
                                     nullptr ?
@@ -126,7 +126,7 @@ ArgHolder GetRAMSize(ScriptContext* current_script, std::vector<ArgHolder>& args
                                 0);
 }
 
-ArgHolder GetL1CacheSize(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* GetL1CacheSize(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   return CreateU32ArgHolder(Core::System::GetInstance().GetMemory().getL1Cache_scriptHelper() !=
                                     nullptr ?
@@ -134,7 +134,7 @@ ArgHolder GetL1CacheSize(ScriptContext* current_script, std::vector<ArgHolder>& 
                                 0);
 }
 
-ArgHolder GetFakeVMemSize(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* GetFakeVMemSize(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   return CreateU32ArgHolder(Core::System::GetInstance().GetMemory().getFakeVMEM_scriptHelper() !=
                                     nullptr ?
@@ -142,7 +142,7 @@ ArgHolder GetFakeVMemSize(ScriptContext* current_script, std::vector<ArgHolder>&
                                 0);
 }
 
-ArgHolder GetExRAMSize(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* GetExRAMSize(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   return CreateU32ArgHolder(Core::System::GetInstance().GetMemory().getEXRAM_scriptHelper() !=
                                     nullptr ?

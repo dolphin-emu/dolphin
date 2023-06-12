@@ -445,29 +445,28 @@ std::optional<Config::System> ParseSystem(const std::string& system_name)
     return {};
 }
 
-ArgHolder GetLayerNames_MostGlobalFirst(ScriptContext* current_script,
-                                        std::vector<ArgHolder>& args_list)
+ArgHolder* GetLayerNames_MostGlobalFirst()
 {
   return CreateStringArgHolder(
       "Base, CommandLine, GlobalGame, LocalGame, Movie, Netplay, CurrentRun");
 }
 
-ArgHolder DoesLayerExist(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* DoesLayerExist(std::vector<ArgHolder*>* args_list)
 {
-  std::optional<Config::LayerType> layer_name = ParseLayer(args_list[0].string_val);
+  std::optional<Config::LayerType> layer_name = ParseLayer((*args_list)[0]->string_val);
   if (!layer_name.has_value())
     return CreateErrorStringArgHolder("Invalid layer name passed into function.");
   return CreateBoolArgHolder(Config::GetLayer(layer_name.value()) != nullptr);
 }
 
-ArgHolder GetListOfSystems(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* GetListOfSystems()
 {
   return CreateStringArgHolder(
       "Main, Sysconf, GCPad, WiiPad, GCKeyboard, GFX, Logger, Debugger, DualShockUDPClient, "
       "FreeLook, Session, GameSettingsOnly, Achievements");
 }
 
-ArgHolder GetConfigEnumTypes(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* GetConfigEnumTypes()
 {
   return CreateStringArgHolder(
       "CPUCore, DPL2Quality, EXIDeviceType, SIDeviceType, HSPDeviceType, Region, ShowCursor, "
@@ -475,10 +474,9 @@ ArgHolder GetConfigEnumTypes(ScriptContext* current_script, std::vector<ArgHolde
       "TextureFilteringMode, StereoMode, WiimoteSource");
 }
 
-ArgHolder GetListOfValidValuesForEnumType(ScriptContext* current_script,
-                                          std::vector<ArgHolder>& args_list)
+ArgHolder* GetListOfValidValuesForEnumType(std::vector<ArgHolder*>* args_list)
 {
-  std::optional<Config::ValueType> enum_type = ParseEnumType(args_list[0].string_val);
+  std::optional<Config::ValueType> enum_type = ParseEnumType((*args_list)[0]->string_val);
   if (!enum_type.has_value())
     return CreateErrorStringArgHolder("Unknown enum type passed into function.");
   std::string result_string = "";
@@ -495,23 +493,23 @@ ArgHolder GetListOfValidValuesForEnumType(ScriptContext* current_script,
 }
 
 template <typename T>
-ArgHolder GetConfigSettingForLayer(std::vector<ArgHolder>& args_list, T default_value)
+ArgHolder* GetConfigSettingForLayer(std::vector<ArgHolder*>* args_list, T default_value)
 {
-  std::optional<Config::LayerType> layer_name = ParseLayer(args_list[0].string_val);
-  std::optional<Config::System> system_name = ParseSystem(args_list[1].string_val);
-  std::string section_name = args_list[2].string_val;
-  std::string setting_name = args_list[3].string_val;
+  std::optional<Config::LayerType> layer_name = ParseLayer((*args_list)[0]->string_val);
+  std::optional<Config::System> system_name = ParseSystem((*args_list)[1]->string_val);
+  std::string section_name = (*args_list)[2]->string_val;
+  std::string setting_name = (*args_list)[3]->string_val;
 
   if (!layer_name.has_value())
-    return CreateErrorStringArgHolder("Invalid layer name of " + args_list[0].string_val +
+    return CreateErrorStringArgHolder("Invalid layer name of " + (*args_list)[0]->string_val +
                                       " was used.");
 
   else if (Config::GetLayer(layer_name.value()) == nullptr)
     return CreateErrorStringArgHolder("Attempted to get a layer which was not created/active of " +
-                                      args_list[0].string_val);
+                                      (*args_list)[0]->string_val);
 
   else if (!system_name.has_value())
-    return CreateErrorStringArgHolder("Invalid system name of " + args_list[1].string_val +
+    return CreateErrorStringArgHolder("Invalid system name of " + (*args_list)[1]->string_val +
                                       " was used.");
 
   std::optional<T> returned_config_val;
@@ -539,25 +537,25 @@ ArgHolder GetConfigSettingForLayer(std::vector<ArgHolder>& args_list, T default_
 }
 
 template <typename T>
-ArgHolder GetConfigSettingForLayer_enum(
-    std::vector<ArgHolder>& args_list, T default_value,
+ArgHolder* GetConfigSettingForLayer_enum(
+    std::vector<ArgHolder*>* args_list, T default_value,
     Config::ValueType enum_type)  // unfortunately, this needs to be in a seperate function to
                                   // prevent annoying template errors in the function above.
 {
-  std::optional<Config::LayerType> layer_name = ParseLayer(args_list[0].string_val);
-  std::optional<Config::System> system_name = ParseSystem(args_list[1].string_val);
-  std::string section_name = args_list[2].string_val;
-  std::string setting_name = args_list[3].string_val;
+  std::optional<Config::LayerType> layer_name = ParseLayer((*args_list)[0]->string_val);
+  std::optional<Config::System> system_name = ParseSystem((*args_list)[1]->string_val);
+  std::string section_name = (*args_list)[2]->string_val;
+  std::string setting_name = (*args_list)[3]->string_val;
 
   if (!layer_name.has_value())
-    return CreateErrorStringArgHolder("Invalid layer name of " + args_list[0].string_val +
+    return CreateErrorStringArgHolder("Invalid layer name of " + (*args_list)[0]->string_val +
                                       " was used.");
   else if (Config::GetLayer(layer_name.value()) == nullptr)
     return CreateErrorStringArgHolder("Attempted to get a layer which was not created/active of " +
-                                      args_list[0].string_val);
+                                      (*args_list)[0]->string_val);
 
   else if (!system_name.has_value())
-    return CreateErrorStringArgHolder("Invalid system name of " + args_list[1].string_val +
+    return CreateErrorStringArgHolder("Invalid system name of " + (*args_list)[1]->string_val +
                                       " was used.");
 
   std::optional<T> returned_config_val;
@@ -578,40 +576,40 @@ ArgHolder GetConfigSettingForLayer_enum(
   }
 }
 
-ArgHolder GetBooleanConfigSettingForLayer(ScriptContext* current_script,
-                                          std::vector<ArgHolder>& args_list)
+ArgHolder* GetBooleanConfigSettingForLayer(ScriptContext* current_script,
+                                          std::vector<ArgHolder*>* args_list)
 {
   return GetConfigSettingForLayer(args_list, (bool)false);
 }
 
-ArgHolder GetSignedIntConfigSettingForLayer(ScriptContext* current_script,
-                                            std::vector<ArgHolder>& args_list)
+ArgHolder* GetSignedIntConfigSettingForLayer(ScriptContext* current_script,
+                                            std::vector<ArgHolder*>* args_list)
 {
   return GetConfigSettingForLayer(args_list, (int)0);
 }
 
-ArgHolder GetUnsignedIntConfigSettingForLayer(ScriptContext* current_script,
-                                              std::vector<ArgHolder>& args_list)
+ArgHolder* GetUnsignedIntConfigSettingForLayer(ScriptContext* current_script,
+                                              std::vector<ArgHolder*>* args_list)
 {
   return GetConfigSettingForLayer(args_list, (u32)0);
 }
 
-ArgHolder GetFloatConfigSettingForLayer(ScriptContext* current_script,
-                                        std::vector<ArgHolder>& args_list)
+ArgHolder* GetFloatConfigSettingForLayer(ScriptContext* current_script,
+                                        std::vector<ArgHolder*>* args_list)
 {
   return GetConfigSettingForLayer(args_list, (float)0.0);
 }
 
-ArgHolder GetStringConfigSettingForLayer(ScriptContext* current_script,
-                                         std::vector<ArgHolder>& args_list)
+ArgHolder* GetStringConfigSettingForLayer(ScriptContext* current_script,
+                                         std::vector<ArgHolder*>* args_list)
 {
   return GetConfigSettingForLayer(args_list, std::string());
 }
 
-ArgHolder GetEnumConfigSettingForLayer(ScriptContext* current_script,
-                                       std::vector<ArgHolder>& args_list)
+ArgHolder* GetEnumConfigSettingForLayer(ScriptContext* current_script,
+                                       std::vector<ArgHolder*>* args_list)
 {
-  std::string raw_enum_name = args_list[4].string_val;
+  std::string raw_enum_name = (*args_list)[4]->string_val;
   std::optional<Config::ValueType> optional_parsed_enum = ParseEnumType(raw_enum_name);
   if (!optional_parsed_enum.has_value())
     return CreateErrorStringArgHolder("Invalid enum type name passed into function");
@@ -669,22 +667,22 @@ ArgHolder GetEnumConfigSettingForLayer(ScriptContext* current_script,
 }
 
 template <typename T>
-ArgHolder SetConfigSettingForLayer(std::vector<ArgHolder>& args_list, T new_value)
+ArgHolder* SetConfigSettingForLayer(std::vector<ArgHolder*>* args_list, T new_value)
 {
-  std::optional<Config::LayerType> layer_name = ParseLayer(args_list[0].string_val);
-  std::optional<Config::System> system_name = ParseSystem(args_list[1].string_val);
-  std::string section_name = args_list[2].string_val;
-  std::string setting_name = args_list[3].string_val;
+  std::optional<Config::LayerType> layer_name = ParseLayer((*args_list)[0]->string_val);
+  std::optional<Config::System> system_name = ParseSystem((*args_list)[1]->string_val);
+  std::string section_name = (*args_list)[2]->string_val;
+  std::string setting_name = (*args_list)[3]->string_val;
 
   if (!layer_name.has_value())
-    return CreateErrorStringArgHolder("Invalid layer name of " + args_list[0].string_val +
+    return CreateErrorStringArgHolder("Invalid layer name of " + (*args_list)[0]->string_val +
                                       " was used.");
 
   else if (Config::GetLayer(layer_name.value()) == nullptr)
     return CreateErrorStringArgHolder("Attempted to get a layer which was not created/active of " +
-                                      args_list[0].string_val);
+                                      (*args_list)[0]->string_val);
   else if (!system_name.has_value())
-    return CreateErrorStringArgHolder("Invalid system name of " + args_list[1].string_val +
+    return CreateErrorStringArgHolder("Invalid system name of " + (*args_list)[1]->string_val +
                                       " was used.");
 
   else
@@ -696,53 +694,53 @@ ArgHolder SetConfigSettingForLayer(std::vector<ArgHolder>& args_list, T new_valu
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder SetBooleanConfigSettingForLayer(ScriptContext* current_script,
-                                          std::vector<ArgHolder>& args_list)
+ArgHolder* SetBooleanConfigSettingForLayer(ScriptContext* current_script,
+                                          std::vector<ArgHolder*>* args_list)
 {
-  bool new_bool = args_list[4].bool_val;
+  bool new_bool = (*args_list)[4]->bool_val;
   return SetConfigSettingForLayer(args_list, new_bool);
 }
 
-ArgHolder SetSignedIntConfigSettingForLayer(ScriptContext* current_script,
-                                            std::vector<ArgHolder>& args_list)
+ArgHolder* SetSignedIntConfigSettingForLayer(ScriptContext* current_script,
+                                            std::vector<ArgHolder*>* args_list)
 {
-  int new_int = args_list[4].int_val;
+  int new_int = (*args_list)[4]->int_val;
   return SetConfigSettingForLayer(args_list, new_int);
 }
 
-ArgHolder SetUnsignedIntConfigSettingForLayer(ScriptContext* current_script,
-                                              std::vector<ArgHolder>& args_list)
+ArgHolder* SetUnsignedIntConfigSettingForLayer(ScriptContext* current_script,
+                                              std::vector<ArgHolder*>* args_list)
 {
-  u32 new_u32 = args_list[4].u32_val;
+  u32 new_u32 = (*args_list)[4]->u32_val;
   return SetConfigSettingForLayer(args_list, new_u32);
 }
 
-ArgHolder SetFloatConfigSettingForLayer(ScriptContext* current_script,
-                                        std::vector<ArgHolder>& args_list)
+ArgHolder* SetFloatConfigSettingForLayer(ScriptContext* current_script,
+                                        std::vector<ArgHolder*>* args_list)
 {
-  float new_float = args_list[4].float_val;
+  float new_float = (*args_list)[4]->float_val;
   return SetConfigSettingForLayer(args_list, new_float);
 }
 
-ArgHolder SetStringConfigSettingForLayer(ScriptContext* current_script,
-                                         std::vector<ArgHolder>& args_list)
+ArgHolder* SetStringConfigSettingForLayer(ScriptContext* current_script,
+                                         std::vector<ArgHolder*>* args_list)
 {
-  std::string new_string = args_list[4].string_val;
+  std::string new_string = (*args_list)[4]->string_val;
   return SetConfigSettingForLayer(args_list, new_string);
 }
 
-ArgHolder SetEnumConfigSettingForLayer(ScriptContext* current_script,
-                                       std::vector<ArgHolder>& args_list)
+ArgHolder* SetEnumConfigSettingForLayer(ScriptContext* current_script,
+                                       std::vector<ArgHolder*>* args_list)
 {
-  std::optional<Config::ValueType> optional_enum_type = ParseEnumType(args_list[4].string_val);
+  std::optional<Config::ValueType> optional_enum_type = ParseEnumType((*args_list)[4]->string_val);
   if (!optional_enum_type.has_value())
     return CreateErrorStringArgHolder("Invalid enum type passed into function.");
   Config::ValueType enum_type = optional_enum_type.value();
   int new_value =
-      ConvertEnumStringToIntForType(enum_type, ConvertToUpperCase(args_list[5].string_val));
+      ConvertEnumStringToIntForType(enum_type, ConvertToUpperCase((*args_list)[5]->string_val));
   if (new_value == -1)
     return CreateErrorStringArgHolder("Undefined enum value passed in for type " +
-                                      args_list[4].string_val);
+                                      (*args_list)[4]->string_val);
 
   switch (enum_type)
   {
@@ -784,22 +782,22 @@ ArgHolder SetEnumConfigSettingForLayer(ScriptContext* current_script,
 }
 
 template <typename T>
-ArgHolder DeleteConfigSettingFromLayer(std::vector<ArgHolder>& args_list, T default_value)
+ArgHolder* DeleteConfigSettingFromLayer(std::vector<ArgHolder*>* args_list, T default_value)
 {
-  std::optional<Config::LayerType> layer_name = ParseLayer(args_list[0].string_val);
-  std::optional<Config::System> system_name = ParseSystem(args_list[1].string_val);
-  std::string section_name = args_list[2].string_val;
-  std::string setting_name = args_list[3].string_val;
+  std::optional<Config::LayerType> layer_name = ParseLayer((*args_list)[0]->string_val);
+  std::optional<Config::System> system_name = ParseSystem((*args_list)[1]->string_val);
+  std::string section_name = (*args_list)[2]->string_val;
+  std::string setting_name = (*args_list)[3]->string_val;
 
   if (!layer_name.has_value())
-    return CreateErrorStringArgHolder("Invalid layer name of " + args_list[0].string_val +
+    return CreateErrorStringArgHolder("Invalid layer name of " + (*args_list)[0]->string_val +
                                       " was used.");
 
   else if (Config::GetLayer(layer_name.value()) == nullptr)
     return CreateErrorStringArgHolder("Attempted to get a layer which was not created/active of " +
-                                      args_list[0].string_val);
+                                      (*args_list)[0]->string_val);
   else if (!system_name.has_value())
-    return CreateErrorStringArgHolder("Invalid system name of " + args_list[1].string_val +
+    return CreateErrorStringArgHolder("Invalid system name of " + (*args_list)[1]->string_val +
                                       " was used.");
 
   bool return_value = Config::GetLayer(layer_name.value())
@@ -809,40 +807,40 @@ ArgHolder DeleteConfigSettingFromLayer(std::vector<ArgHolder>& args_list, T defa
   return CreateBoolArgHolder(return_value);
 }
 
-ArgHolder DeleteBooleanConfigSettingFromLayer(ScriptContext* current_script,
-                                              std::vector<ArgHolder>& args_list)
+ArgHolder* DeleteBooleanConfigSettingFromLayer(ScriptContext* current_script,
+                                              std::vector<ArgHolder*>* args_list)
 {
   return DeleteConfigSettingFromLayer(args_list, (bool)false);
 }
 
-ArgHolder DeleteSignedIntConfigSettingFromLayer(ScriptContext* current_script,
-                                                std::vector<ArgHolder>& args_list)
+ArgHolder* DeleteSignedIntConfigSettingFromLayer(ScriptContext* current_script,
+                                                std::vector<ArgHolder*>* args_list)
 {
   return DeleteConfigSettingFromLayer(args_list, (int)0);
 }
 
-ArgHolder DeleteUnsignedIntConfigSettingFromLayer(ScriptContext* current_script,
-                                                  std::vector<ArgHolder>& args_list)
+ArgHolder* DeleteUnsignedIntConfigSettingFromLayer(ScriptContext* current_script,
+                                                  std::vector<ArgHolder*>* args_list)
 {
   return DeleteConfigSettingFromLayer(args_list, (u32)0);
 }
 
-ArgHolder DeleteFloatConfigSettingFromLayer(ScriptContext* current_script,
-                                            std::vector<ArgHolder>& args_list)
+ArgHolder* DeleteFloatConfigSettingFromLayer(ScriptContext* current_script,
+                                            std::vector<ArgHolder*>* args_list)
 {
   return DeleteConfigSettingFromLayer(args_list, (float)0.0f);
 }
 
-ArgHolder DeleteStringConfigSettingFromLayer(ScriptContext* current_script,
-                                             std::vector<ArgHolder>& args_list)
+ArgHolder* DeleteStringConfigSettingFromLayer(ScriptContext* current_script,
+                                             std::vector<ArgHolder*>* args_list)
 {
   return DeleteConfigSettingFromLayer(args_list, std::string(""));
 }
 
-ArgHolder DeleteEnumConfigSettingFromLayer(ScriptContext* current_script,
-                                           std::vector<ArgHolder>& args_list)
+ArgHolder* DeleteEnumConfigSettingFromLayer(ScriptContext* current_script,
+                                           std::vector<ArgHolder*>* args_list)
 {
-  std::optional<Config::ValueType> optional_enum_type = ParseEnumType(args_list[4].string_val);
+  std::optional<Config::ValueType> optional_enum_type = ParseEnumType((*args_list)[4]->string_val);
   if (!optional_enum_type.has_value())
     return CreateErrorStringArgHolder("Invalid enum type passed into function.");
   Config::ValueType enum_type = optional_enum_type.value();
@@ -887,14 +885,14 @@ ArgHolder DeleteEnumConfigSettingFromLayer(ScriptContext* current_script,
 }
 
 template <typename T>
-ArgHolder GetConfigSetting(std::vector<ArgHolder>& args_list, T default_value)
+ArgHolder* GetConfigSetting(std::vector<ArgHolder*>* args_list, T default_value)
 {
-  std::optional<Config::System> system_name = ParseSystem(args_list[0].string_val);
-  std::string section_name = args_list[1].string_val;
-  std::string setting_name = args_list[2].string_val;
+  std::optional<Config::System> system_name = ParseSystem((*args_list)[0]->string_val);
+  std::string section_name = (*args_list)[1]->string_val;
+  std::string setting_name = (*args_list)[2]->string_val;
 
   if (!system_name.has_value())
-    return CreateErrorStringArgHolder("Invalid system name of " + args_list[0].string_val +
+    return CreateErrorStringArgHolder("Invalid system name of " + (*args_list)[0]->string_val +
                                       " was used.");
 
   Config::Location location = {system_name.value(), section_name, setting_name};
@@ -928,17 +926,17 @@ ArgHolder GetConfigSetting(std::vector<ArgHolder>& args_list, T default_value)
 }
 
 template <typename T>
-ArgHolder GetConfigSetting_enum(
-    std::vector<ArgHolder>& args_list, T default_value,
+ArgHolder* GetConfigSetting_enum(
+    std::vector<ArgHolder*>* args_list, T default_value,
     Config::ValueType enum_type)  // unfortunately, this needs to be in a seperate function to
                                   // prevent annoying template errors in the function above.
 {
-  std::optional<Config::System> system_name = ParseSystem(args_list[0].string_val);
-  std::string section_name = args_list[1].string_val;
-  std::string setting_name = args_list[2].string_val;
+  std::optional<Config::System> system_name = ParseSystem((*args_list)[0]->string_val);
+  std::string section_name = (*args_list)[1]->string_val;
+  std::string setting_name = (*args_list)[2]->string_val;
 
   if (!system_name.has_value())
-    return CreateErrorStringArgHolder("Invalid system name of " + args_list[0].string_val +
+    return CreateErrorStringArgHolder("Invalid system name of " + (*args_list)[0]->string_val +
                                       " was used.");
 
   Config::Location location = {system_name.value(), section_name, setting_name};
@@ -965,36 +963,36 @@ ArgHolder GetConfigSetting_enum(
   return CreateEmptyOptionalArgument();
 }
 
-ArgHolder GetBooleanConfigSetting(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* GetBooleanConfigSetting(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   return GetConfigSetting(args_list, (bool)false);
 }
 
-ArgHolder GetSignedIntConfigSetting(ScriptContext* current_script,
-                                    std::vector<ArgHolder>& args_list)
+ArgHolder* GetSignedIntConfigSetting(ScriptContext* current_script,
+                                    std::vector<ArgHolder*>* args_list)
 {
   return GetConfigSetting(args_list, (int)0);
 }
 
-ArgHolder GetUnsignedIntConfigSetting(ScriptContext* current_script,
-                                      std::vector<ArgHolder>& args_list)
+ArgHolder* GetUnsignedIntConfigSetting(ScriptContext* current_script,
+                                      std::vector<ArgHolder*>* args_list)
 {
   return GetConfigSetting(args_list, (u32)0);
 }
 
-ArgHolder GetFloatConfigSetting(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* GetFloatConfigSetting(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   return GetConfigSetting(args_list, (float)0.0f);
 }
 
-ArgHolder GetStringConfigSetting(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* GetStringConfigSetting(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   return GetConfigSetting(args_list, std::string());
 }
 
-ArgHolder GetEnumConfigSetting(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* GetEnumConfigSetting(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  std::string raw_enum_name = args_list[3].string_val;
+  std::string raw_enum_name = (*args_list)[3]->string_val;
   std::optional<Config::ValueType> optional_parsed_enum = ParseEnumType(raw_enum_name);
   if (!optional_parsed_enum.has_value())
     return CreateErrorStringArgHolder("Invalid enum type name passed into function");
@@ -1048,7 +1046,7 @@ ArgHolder GetEnumConfigSetting(ScriptContext* current_script, std::vector<ArgHol
   }
 }
 
-ArgHolder SaveConfigSettings(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* SaveConfigSettings(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   Config::Save();
   return CreateVoidTypeArgHolder();

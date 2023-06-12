@@ -41,41 +41,41 @@ struct ArgHolder
   std::string error_string_val;
 };
 
-ArgHolder CreateBoolArgHolder(bool new_bool_value);
-ArgHolder CreateU8ArgHolder(u8 new_u8_val);
-ArgHolder CreateU16ArgHolder(u16 new_u16_val);
-ArgHolder CreateU32ArgHolder(u32 new_u32_val);
-ArgHolder CreateU64ArgHolder(u64 new_u64_val);
-ArgHolder CreateS8ArgHolder(s8 new_s8_val);
-ArgHolder CreateS16ArgHolder(s16 new_s16_val);
-ArgHolder CreateIntArgHolder(int new_int_val);
-ArgHolder CreateLongLongArgHolder(long long new_long_long_val);
-ArgHolder CreateFloatArgHolder(float new_float_val);
-ArgHolder CreateDoubleArgHolder(double new_double_val);
-ArgHolder CreateStringArgHolder(const std::string& new_string_val);
-ArgHolder CreateVoidPointerArgHolder(void* new_void_pointer_val);
+ArgHolder* CreateBoolArgHolder(bool new_bool_value);
+ArgHolder* CreateU8ArgHolder(u8 new_u8_val);
+ArgHolder* CreateU16ArgHolder(u16 new_u16_val);
+ArgHolder* CreateU32ArgHolder(u32 new_u32_val);
+ArgHolder* CreateU64ArgHolder(u64 new_u64_val);
+ArgHolder* CreateS8ArgHolder(s8 new_s8_val);
+ArgHolder* CreateS16ArgHolder(s16 new_s16_val);
+ArgHolder* CreateIntArgHolder(int new_int_val);
+ArgHolder* CreateLongLongArgHolder(long long new_long_long_val);
+ArgHolder* CreateFloatArgHolder(float new_float_val);
+ArgHolder* CreateDoubleArgHolder(double new_double_val);
+ArgHolder* CreateStringArgHolder(const std::string& new_string_val);
+ArgHolder* CreateVoidPointerArgHolder(void* new_void_pointer_val);
 
-ArgHolder CreateAddressToUnsignedByteMapArgHolder(
+ArgHolder* CreateAddressToUnsignedByteMapArgHolder(
     const std::map<long long, u8>& new_address_to_unsigned_byte_map);
-ArgHolder CreateAddressToSignedByteMapArgHolder(
+ArgHolder* CreateAddressToSignedByteMapArgHolder(
     const std::map<long long, s8>& new_address_to_signed_byte_map);
-ArgHolder CreateAddressToByteMapArgHolder(const std::map<long long, s16>& new_address_to_byte_map);
+ArgHolder* CreateAddressToByteMapArgHolder(const std::map<long long, s16>& new_address_to_byte_map);
 
-ArgHolder CreateControllerStateArgHolder(const Movie::ControllerState& new_controller_state_val);
+ArgHolder* CreateControllerStateArgHolder(const Movie::ControllerState& new_controller_state_val);
 
-ArgHolder CreateListOfPointsArgHolder(const std::vector<ImVec2>& new_points_list);
-ArgHolder CreateErrorStringArgHolder(const std::string& new_error_string_val);
-ArgHolder CreateYieldTypeArgHolder();
-ArgHolder CreateVoidTypeArgHolder();
-ArgHolder CreateRegistrationInputTypeArgHolder(void* new_val);
-ArgHolder CreateRegistrationWithAutoDeregistrationInputTypeArgHolder(void* new_val);
-ArgHolder CreateRegistrationForButtonCallbackInputTypeArgHolder(void* new_val);
-ArgHolder CreateUnregistrationInputTypeArgHolder(void* new_val);
-ArgHolder CreateRegistrationReturnTypeArgHolder(void* new_val);
-ArgHolder CreateRegistrationWithAutoDeregistrationReturnTypeArgHolder();
-ArgHolder CreateUnregistrationReturnTypeArgHolder(void* new_val);
-ArgHolder CreateShutdownTypeArgHolder();
+ArgHolder* CreateListOfPointsArgHolder(const std::vector<ImVec2>& new_points_list);
+ArgHolder* CreateErrorStringArgHolder(const std::string& new_error_string_val);
+ArgHolder* CreateYieldTypeArgHolder();
+ArgHolder* CreateVoidTypeArgHolder();
+ArgHolder* CreateRegistrationInputTypeArgHolder(void* new_val);
+ArgHolder* CreateRegistrationWithAutoDeregistrationInputTypeArgHolder(void* new_val);
+ArgHolder* CreateRegistrationForButtonCallbackInputTypeArgHolder(void* new_val);
+ArgHolder* CreateUnregistrationInputTypeArgHolder(void* new_val);
+ArgHolder* CreateRegistrationReturnTypeArgHolder(void* new_val);
+ArgHolder* CreateRegistrationWithAutoDeregistrationReturnTypeArgHolder();
+ArgHolder* CreateUnregistrationReturnTypeArgHolder(void* new_val);
+ArgHolder* CreateShutdownTypeArgHolder();
 
-ArgHolder CreateEmptyOptionalArgument();
+ArgHolder* CreateEmptyOptionalArgument();
 }  // namespace Scripting
 #endif

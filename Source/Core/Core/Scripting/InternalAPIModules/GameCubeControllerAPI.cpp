@@ -39,10 +39,10 @@ FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
                                function_name, deprecated_functions_map);
 }
 
-ArgHolder GetInputsForPreviousFrame(ScriptContext* current_script,
-                                    std::vector<ArgHolder>& args_list)
+ArgHolder* GetInputsForPreviousFrame(ScriptContext* current_script,
+                                    std::vector<ArgHolder*>* args_list)
 {
-  s64 controller_port_number = args_list[0].long_long_val;
+  s64 controller_port_number = (*args_list)[0]->long_long_val;
   if (controller_port_number < 1 || controller_port_number > 4)
   {
     return CreateErrorStringArgHolder("controller port number was not between 1 and 4 !");
@@ -52,9 +52,9 @@ ArgHolder GetInputsForPreviousFrame(ScriptContext* current_script,
       controller_inputs_on_last_frame[controller_port_number - 1]);
 }
 
-ArgHolder IsGcControllerInPort(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* IsGcControllerInPort(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long controller_port_number = args_list[0].long_long_val;
+  long long controller_port_number = (*args_list)[0]->long_long_val;
 
   if (controller_port_number < 1 || controller_port_number > 4)
     return CreateErrorStringArgHolder("controller port number was outside the valid range of 1-4");
@@ -62,9 +62,9 @@ ArgHolder IsGcControllerInPort(ScriptContext* current_script, std::vector<ArgHol
   return CreateBoolArgHolder(Movie::IsUsingGCController(controller_port_number - 1));
 }
 
-ArgHolder IsUsingPort(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* IsUsingPort(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long controller_port_number = args_list[0].long_long_val;
+  long long controller_port_number = (*args_list)[0]->long_long_val;
   if (controller_port_number < 1 || controller_port_number > 4)
     return CreateErrorStringArgHolder("controller port number was outside the valid range of 1-4");
 

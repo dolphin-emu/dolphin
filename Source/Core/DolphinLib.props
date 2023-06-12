@@ -435,7 +435,6 @@
 	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\MemoryAddressBreakpointsHolder.h" />
 	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\ScriptCallLocations.h" />
 	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\ScriptContext.h" />
-	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\Vector.h" />
     <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnFrameStartCallbackAPI.h" />
     <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnGCControllerPolledCallbackAPI.h" />
     <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnInstructionHitCallbackAPI.h" />
@@ -447,7 +446,9 @@
     <ClInclude Include="Core\Scripting\HelperClasses\MemoryAddressBreakpointsHolder.h" />
     <ClInclude Include="Core\Scripting\HelperClasses\WiiControllerRepresentation.h" />
     <ClInclude Include="Core\Scripting\InternalAPIModules\GraphicsAPI.h" />
+	<ClInclude Include="Core\Scripting\InternalAPIModules\ConfigAPI.h" />
     <ClInclude Include="Core\Scripting\InternalAPIModules\ImportAPI.h" />
+	<ClInclude Include="Core\Scripting\InternalAPIModules\InstructionStepAPI.h" />
     <ClInclude Include="Core\Scripting\InternalAPIModules\WiiAPI.h" />
     <ClInclude Include="Core\Scripting\LanguageDefinitions\DefinedScriptingLanguagesEnum.h" />
     <ClInclude Include="Core\Scripting\ScriptContext.h" />
@@ -1100,7 +1101,6 @@
 	<ClCompile Include="Core\Scripting\CoreScriptContextFiles\InstructionBreakpointsHolder.cpp" />
 	<ClCompile Include="Core\Scripting\CoreScriptContextFiles\MemoryAddressBreakpointsHolder.cpp" />
 	<ClCompile Include="Core\Scripting\CoreScriptContextFiles\ScriptContext.cpp" />
-	<ClCompile Include="Core\Scripting\CoreScriptContextFiles\Vector.cpp" />
     <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnFrameStartCallbackAPI.cpp" />
     <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnGCControllerPolledCallbackAPI.cpp" />
     <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnInstructionHitCallbackAPI.cpp" />
@@ -1112,8 +1112,10 @@
     <ClCompile Include="Core\Scripting\InternalAPIModules\GraphicsAPI.cpp" />
     <ClCompile Include="Core\Scripting\InternalAPIModules\ImportAPI.cpp" />
     <ClCompile Include="Core\Scripting\InternalAPIModules\BitAPI.cpp" />
+	<ClCompile Include="Core\Scripting\InternalAPIModules\ConfigAPI.cpp" />
     <ClCompile Include="Core\Scripting\InternalAPIModules\EmuAPI.cpp" />
     <ClCompile Include="Core\Scripting\InternalAPIModules\GameCubeControllerAPI.cpp" />
+	<ClCompile Include="Core\Scripting\InternalAPIModules\InstructionStepAPI.cpp" />
     <ClCompile Include="Core\Scripting\HelperClasses\GCButtons.cpp" />
     <ClCompile Include="Core\Scripting\InternalAPIModules\MemoryAPI.cpp" />
     <ClCompile Include="Core\Scripting\InternalAPIModules\RegistersAPI.cpp" />
