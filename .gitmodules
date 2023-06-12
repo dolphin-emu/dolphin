@@ -57,3 +57,6 @@
 [submodule "Externals/libadrenotools"]
 	path = Externals/libadrenotools
 	url = https://github.com/bylaws/libadrenotools.git
+[submodule "Externals/fmt/fmt"]
+	path = Externals/fmt/fmt
+	url = https://github.com/fmtlib/fmt.git
