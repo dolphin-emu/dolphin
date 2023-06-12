@@ -3,19 +3,16 @@
 
 #pragma once
 
-#include <map>
 #include <string>
-#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/SymbolDB.h"
 
-#include "Core/Debugger/PPCDebugInterface.h"
-
 namespace Core
 {
 class CPUThreadGuard;
-}
+class DebugInterface;
+}  // namespace Core
 
 // This has functionality overlapping Debugger_Symbolmap. Should merge that stuff in here later.
 class PPCSymbolDB : public Common::SymbolDB
@@ -44,7 +41,7 @@ public:
   void LogFunctionCall(u32 addr);
 
 private:
-  Common::DebugInterface* debugger;
+  Core::DebugInterface* debugger;
 };
 
 extern PPCSymbolDB g_symbolDB;
