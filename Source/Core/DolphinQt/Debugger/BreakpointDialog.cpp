@@ -323,7 +323,7 @@ void BreakpointDialog::accept()
 
 void BreakpointDialog::ShowConditionHelp()
 {
-  const auto message = QStringLiteral(
+  const auto message = tr(
       "Conditions:\n"
       "Sets an expression that is evaluated when a breakpoint is hit. If the expression is false "
       "or 0, the breakpoint is ignored until hit again. Statements should be separated by a comma. "
