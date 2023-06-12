@@ -15,13 +15,14 @@ extern "C" {
   typedef void (*PRINT_CALLBACK_FUNCTION_TYPE)(void*, const char*);
   typedef void (*SCRIPT_END_CALLBACK_FUNCTION_TYPE)(void*, int);
 
-   void* (*ScriptContext_Initializer)(int, const char*, PRINT_CALLBACK_FUNCTION_TYPE, SCRIPT_END_CALLBACK_FUNCTION_TYPE);  // Creates a new ScriptContext struct, and returns a
+   void* (*ScriptContext_Initializer)(int, const char*, PRINT_CALLBACK_FUNCTION_TYPE, SCRIPT_END_CALLBACK_FUNCTION_TYPE, void*);  // Creates a new ScriptContext struct, and returns a
                                            // pointer to it.
    // The first parameter is the unique ID of the script, the 2nd parameter is the script filename, the 3rd parameter is the print_callback function (invoked when a script calls its print function)
    // and the 4th parameter is the script_end_callback (invoked when a script terminates).
 
-   void (*ScriptContext_Destructor)(void*); // Frees the memory allocated by the ScriptContext* passed into the function.
+   void (*ScriptContext_Destructor)(void*); // Calls, the DLL-specific destructor, and then frees the memory allocated by the ScriptContext* passed into the function.
 
+   void (*Shutdown_Script)(void*);  // Sets is_script_active to false, and calls the script_end_callback
   PRINT_CALLBACK_FUNCTION_TYPE (*get_print_callback_function)(void*);  // Returns the function pointer to the print_callback function for the ScriptContext which is passed into the function.
   SCRIPT_END_CALLBACK_FUNCTION_TYPE (*get_script_end_callback_function)(void*); // Returns the function pointer to the script_end_callback function for the ScriptContext which is passed into the function.
 
@@ -44,7 +45,6 @@ extern "C" {
   void* (*get_memory_address_breakpoints_holder)(void*); // Returns a MemoryAddressBreakpointsHolder*, which is a type defined by Dolphin.
 
   void* (*get_dll_defined_script_context_apis)(void*);  // Returns a DLL_Defined_ScriptContext_APIs struct (see below for definition)
-  void (*set_dll_defined_script_context_apis)(void*, void*);  // Sets the ScriptContext to have the DLL_Defined_ScriptContext_APIs (first parameter is ScriptContext, 2nd parameter is the DLL APIs struct).
 
   const char* (*get_script_version)(); // this is the same for all scripts, so no void* is passed into it.
 
@@ -97,6 +97,7 @@ typedef struct DLL_Defined_ScriptContext_APIs
   void (*GetButtonCallbackAndAddToQueue)(void*, long long); // Queues the callback passed into the function to run the next time RunButtonCallbacksInQueue() is called.
   void (*RunButtonCallbacksInQueue)(void*); // Runs all button callbacks which are queued to run.
 
+  void (*DLLSpecificDestructor)(void*);
 } DLL_Defined_ScriptContext_APIs;
 
 #endif

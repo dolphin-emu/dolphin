@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 #include "Core/Scripting/LanguageDefinitions/DefinedScriptingLanguagesEnum.h"
-#include "Core/Scripting/CoreScriptContextFiles/ScriptContext.h"
+#include "Core/Scripting/CoreScriptContextFiles/Implementations/ScriptContext.h"
 
 #include "common/ThreadSafeQueue.h"
 
@@ -46,7 +46,6 @@ void RunOnWiiInputPolledCallbacks();
 void RunButtonCallbacksInQueues();
 
 void AddScriptToQueueOfScriptsWaitingToStart(ScriptContext*);
-ScriptContext* RemoveNextScriptToStartFromQueue();
 
 }  // namespace Scripting::ScriptUtilities
 #endif

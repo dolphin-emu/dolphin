@@ -3,7 +3,7 @@
 #include "Core/Scripting/HelperClasses/ArgHolder.h"
 #include "Core/Scripting/HelperClasses/ArgTypeEnum.h"
 
-#include "Core/Scripting/CoreScriptContextFiles/Implementations/ScriptContext_Implementation.h"
+#include "Core/Scripting/CoreScriptContextFiles/Implementations/ScriptContext.h"
 
 namespace Scripting
 {

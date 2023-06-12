@@ -4,7 +4,7 @@
 #include "Core/System.h"
 #include "Core/PowerPC/PowerPC.h"
 
-#include "Core/Scripting/CoreScriptContextFiles/Implementations/InstructionBreakpointsHolder_Implementation.h"
+#include "Core/Scripting/CoreScriptContextFiles/Implementations/InstructionBreakpointsHolder.h"
 
 namespace Scripting::OnInstructionHitCallbackAPI
 {
