@@ -39,7 +39,6 @@
     <ClInclude Include="Common\Debug\MemoryPatches.h" />
     <ClInclude Include="Common\Debug\Threads.h" />
     <ClInclude Include="Common\Debug\Watches.h" />
-    <ClInclude Include="Common\DebugInterface.h" />
     <ClInclude Include="Common\DynamicLibrary.h" />
     <ClInclude Include="Common\ENet.h" />
     <ClInclude Include="Common\EnumFormatter.h" />
@@ -191,6 +190,7 @@
     <ClInclude Include="Core\Core.h" />
     <ClInclude Include="Core\CoreTiming.h" />
     <ClInclude Include="Core\Debugger\CodeTrace.h" />
+    <ClInclude Include="Core\Debugger\DebugInterface.h" />
     <ClInclude Include="Core\Debugger\Debugger_SymbolMap.h" />
     <ClInclude Include="Core\Debugger\Dump.h" />
     <ClInclude Include="Core\Debugger\GCELF.h" />

@@ -61,6 +61,7 @@ add_library(core
   CoreTiming.h
   Debugger/CodeTrace.cpp
   Debugger/CodeTrace.h
+  Debugger/DebugInterface.h
   Debugger/Debugger_SymbolMap.cpp
   Debugger/Debugger_SymbolMap.h
   Debugger/Dump.cpp
