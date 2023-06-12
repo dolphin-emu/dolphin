@@ -401,7 +401,8 @@ void SkylanderPortalWindow::LoadSelected()
   {
     if (m_skylander_list->currentItem() == nullptr)
       return;
-    file_path = m_collection_path + m_skylander_list->currentItem()->text() + tr(".sky");
+    file_path =
+        m_collection_path + m_skylander_list->currentItem()->text() + QStringLiteral(".sky");
   }
   else
   {
@@ -436,7 +437,7 @@ void SkylanderPortalWindow::LoadSelected()
   }
   else
   {
-    m_last_skylander_path = QFileInfo(file_path).absolutePath() + tr("/");
+    m_last_skylander_path = QFileInfo(file_path).absolutePath() + QLatin1Char{'/'};
 
     LoadSkyfilePath(slot, file_path);
   }
@@ -584,7 +585,7 @@ void SkylanderPortalWindow::RefreshList()
   {
     const QDir collection = QDir(m_collection_path);
     auto& system = Core::System::GetInstance();
-    for (auto file : collection.entryInfoList(QStringList(tr("*.sky"))))
+    for (const auto& file : collection.entryInfoList(QStringList(QStringLiteral("*.sky"))))
     {
       File::IOFile sky_file(file.filePath().toStdString(), "r+b");
       if (!sky_file)
@@ -709,7 +710,7 @@ void SkylanderPortalWindow::UpdateSlotNames()
       }
       else
       {
-        display_string = QString(tr("Unknown (Id:%1 Var:%2)")).arg(sd->m_sky_id).arg(sd->m_sky_var);
+        display_string = tr("Unknown (Id:%1 Var:%2)").arg(sd->m_sky_id).arg(sd->m_sky_var);
       }
     }
     else
@@ -818,7 +819,7 @@ QString SkylanderPortalWindow::GetFilePath(u16 id, u16 var)
 {
   const QDir collection = QDir(m_collection_path);
   auto& system = Core::System::GetInstance();
-  for (auto file : collection.entryInfoList(QStringList(tr("*.sky"))))
+  for (const auto& file : collection.entryInfoList(QStringList(QStringLiteral("*.sky"))))
   {
     File::IOFile sky_file(file.filePath().toStdString(), "r+b");
     if (!sky_file)
