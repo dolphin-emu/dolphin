@@ -19,6 +19,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
+#include "Common/TypeUtils.h"
 
 using PVirtualAlloc2 = PVOID(WINAPI*)(HANDLE Process, PVOID BaseAddress, SIZE_T Size,
                                       ULONG AllocationType, ULONG PageProtection,
@@ -240,7 +241,7 @@ WindowsMemoryRegion* MemArena::EnsureSplitRegionForMapping(void* start_address, 
   {
     // if this region is already split up correctly we don't have to do anything
     if (mapping_size == size)
-      return &*it;
+      return Common::ToPointer(it);
 
     // if this region is smaller than the requested size we can't map
     if (mapping_size < size)

@@ -13,6 +13,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
 #include "Common/MsgHandler.h"
+#include "Common/TypeUtils.h"
 
 #include "DiscIO/CISOBlob.h"
 #include "DiscIO/CompressedBlob.h"
@@ -90,7 +91,7 @@ const SectorReader::Cache* SectorReader::FindCacheLine(u64 block_num)
     return nullptr;
 
   itr->MarkUsed();
-  return &*itr;
+  return Common::ToPointer(itr);
 }
 
 SectorReader::Cache* SectorReader::GetEmptyCacheLine()

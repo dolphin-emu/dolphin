@@ -16,6 +16,7 @@
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/StringUtil.h"
+#include "Common/TypeUtils.h"
 #include "DiscIO/GameModDescriptor.h"
 #include "DiscIO/RiivolutionPatcher.h"
 
@@ -407,7 +408,7 @@ std::vector<Patch> GenerateRiivolutionPatchesFromConfig(const std::string root_d
     if (!parsed || !parsed->IsValidForGame(game_id, revision, disc_number))
       continue;
     if (config)
-      ApplyConfigDefaults(&*parsed, *config);
+      ApplyConfigDefaults(Common::ToPointer(parsed), *config);
 
     for (auto& patch : parsed->GeneratePatches(game_id))
     {

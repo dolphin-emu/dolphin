@@ -4,6 +4,9 @@
 
 #include <cstddef>
 #include <type_traits>
+#include <utility>
+
+#include "Common/Inline.h"
 
 namespace Common
 {
@@ -94,5 +97,34 @@ constexpr void Fill(std::array<T1, N>& array, const T2& value)
   {
     entry = value;
   }
+}
+
+// The overload of operator -> (member of pointer) must return either a raw pointer, or an object
+// (by reference or by value) for which operator -> is in turn overloaded. In the case of a pointer
+// return value, this allows us to get a raw pointer from iterators, std::optional, etc. without
+// resorting to the dereference-then-reference pattern.
+template <class T>
+DOLPHIN_FORCE_INLINE constexpr decltype(std::declval<T>().operator->())
+ToPointer(T& iterator) noexcept requires std::is_pointer_v<decltype(std::declval<T>().operator->())>
+{
+  return iterator.operator->();
+}
+template <class T>
+DOLPHIN_FORCE_INLINE constexpr decltype(std::declval<T>().operator->()) ToPointer(
+    const T& iterator) noexcept requires std::is_pointer_v<decltype(std::declval<T>().operator->())>
+{
+  return iterator.operator->();
+}
+// In case your generic code might get iterators that really are just pointers
+template <class T>
+DOLPHIN_FORCE_INLINE constexpr T& ToPointer(T& iterator) noexcept requires std::is_pointer_v<T>
+{
+  return iterator;
+}
+template <class T>
+DOLPHIN_FORCE_INLINE constexpr const T&
+ToPointer(const T& iterator) noexcept requires std::is_pointer_v<T>
+{
+  return iterator;
 }
 }  // namespace Common

@@ -7,6 +7,7 @@
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+#include "Common/TypeUtils.h"
 
 #include <algorithm>
 
@@ -135,7 +136,7 @@ ResourcePack* Add(const std::string& path, int offset)
   file.Save(packs_path);
 
   auto it = packs.insert(packs.begin() + offset, std::move(pack));
-  return &*it;
+  return Common::ToPointer(it);
 }
 
 bool Remove(ResourcePack& pack)

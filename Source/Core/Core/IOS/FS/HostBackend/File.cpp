@@ -10,6 +10,7 @@
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/TypeUtils.h"
 
 namespace IOS::HLE::FS
 {
@@ -208,7 +209,7 @@ HostFileSystem::Handle* HostFileSystem::AssignFreeHandle()
 
   *it = Handle{};
   it->opened = true;
-  return &*it;
+  return Common::ToPointer(it);
 }
 
 HostFileSystem::Handle* HostFileSystem::GetHandleFromFd(Fd fd)

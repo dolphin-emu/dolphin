@@ -11,6 +11,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/TypeUtils.h"
 #include "Core/Core.h"
 #include "Core/Debugger/DebugInterface.h"
 #include "Core/PowerPC/Expression.h"
@@ -52,7 +53,7 @@ const TBreakPoint* BreakPoints::GetBreakpoint(u32 address) const
   if (bp == m_breakpoints.end())
     return nullptr;
 
-  return &*bp;
+  return Common::ToPointer(bp);
 }
 
 BreakPoints::TBreakPointsStr BreakPoints::GetStrings() const
@@ -346,7 +347,7 @@ TMemCheck* MemChecks::GetMemCheck(u32 address, size_t size)
   if (iter == m_mem_checks.cend())
     return nullptr;
 
-  return &*iter;
+  return Common::ToPointer(iter);
 }
 
 bool MemChecks::OverlapsMemcheck(u32 address, u32 length) const

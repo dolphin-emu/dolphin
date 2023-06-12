@@ -23,6 +23,7 @@
 
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
+#include "Common/TypeUtils.h"
 #include "DiscIO/GameModDescriptor.h"
 #include "DiscIO/RiivolutionParser.h"
 #include "DiscIO/RiivolutionPatcher.h"
@@ -98,7 +99,7 @@ void RiivolutionBootWidget::LoadMatchingXMLs()
     if (!parsed || !parsed->IsValidForGame(m_game_id, m_revision, m_disc_number))
       continue;
     if (config)
-      DiscIO::Riivolution::ApplyConfigDefaults(&*parsed, *config);
+      DiscIO::Riivolution::ApplyConfigDefaults(Common::ToPointer(parsed), *config);
     MakeGUIForParsedFile(path, riivolution_dir, *parsed);
   }
 }
@@ -145,7 +146,7 @@ void RiivolutionBootWidget::OpenXML()
     auto root = FindRoot(p);
     const auto config = LoadConfigXML(root);
     if (config)
-      DiscIO::Riivolution::ApplyConfigDefaults(&*parsed, *config);
+      DiscIO::Riivolution::ApplyConfigDefaults(Common::ToPointer(parsed), *config);
     MakeGUIForParsedFile(p, std::move(root), *parsed);
   }
 }

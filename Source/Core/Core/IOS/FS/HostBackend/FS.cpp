@@ -20,6 +20,7 @@
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
+#include "Common/TypeUtils.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/IOS.h"
 #include "Core/Movie.h"
@@ -136,7 +137,7 @@ static u64 FixupDirectoryEntries(File::FSTEntry* dir, bool is_root)
     }
 
     if (dir->isDirectory)
-      removed_entries += FixupDirectoryEntries(&*it, false);
+      removed_entries += FixupDirectoryEntries(Common::ToPointer(it), false);
 
     ++it;
   }
@@ -272,7 +273,7 @@ HostFileSystem::FstEntry* HostFileSystem::GetFstEntryForPath(const std::string& 
         std::find_if(entry->children.begin(), entry->children.end(), GetNamePredicate(component));
     if (next != entry->children.end())
     {
-      entry = &*next;
+      entry = Common::ToPointer(next);
     }
     else
     {

@@ -12,6 +12,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/TypeUtils.h"
 
 #include "Core/DSP/DSPCore.h"
 
@@ -537,7 +538,7 @@ const DSPOPCTemplate* FindOpInfoByOpcode(UDSPInstruction opcode)
   if (iter == s_opcodes.cend())
     return nullptr;
 
-  return &*iter;
+  return Common::ToPointer(iter);
 }
 
 const DSPOPCTemplate* FindOpInfoByName(std::string_view name)
@@ -546,7 +547,7 @@ const DSPOPCTemplate* FindOpInfoByName(std::string_view name)
   if (iter == s_opcodes.cend())
     return nullptr;
 
-  return &*iter;
+  return Common::ToPointer(iter);
 }
 
 const DSPOPCTemplate* FindExtOpInfoByOpcode(UDSPInstruction opcode)
@@ -555,7 +556,7 @@ const DSPOPCTemplate* FindExtOpInfoByOpcode(UDSPInstruction opcode)
   if (iter == s_opcodes_ext.cend())
     return nullptr;
 
-  return &*iter;
+  return Common::ToPointer(iter);
 }
 
 const DSPOPCTemplate* FindExtOpInfoByName(std::string_view name)
@@ -564,7 +565,7 @@ const DSPOPCTemplate* FindExtOpInfoByName(std::string_view name)
   if (iter == s_opcodes_ext.cend())
     return nullptr;
 
-  return &*iter;
+  return Common::ToPointer(iter);
 }
 
 const DSPOPCTemplate* GetOpTemplate(UDSPInstruction inst)
@@ -597,7 +598,7 @@ void InitInstructionTable()
 
     if (s_ext_op_table[i] == &cw)
     {
-      s_ext_op_table[i] = &*iter;
+      s_ext_op_table[i] = Common::ToPointer(iter);
     }
     else
     {
@@ -620,7 +621,7 @@ void InitInstructionTable()
       continue;
 
     if (s_op_table[i] == &cw)
-      s_op_table[i] = &*iter;
+      s_op_table[i] = Common::ToPointer(iter);
     else
       ERROR_LOG_FMT(DSPLLE, "opcode table place {} already in use for {}", i, iter->name);
   }

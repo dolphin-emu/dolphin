@@ -13,6 +13,7 @@
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
+#include "Common/TypeUtils.h"
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/Uids.h"
 
@@ -133,7 +134,7 @@ static void AppendToBuffer(std::vector<u8>* vector, T value)
 {
   const T swapped_value = Common::FromBigEndian(value);
   vector->resize(vector->size() + sizeof(T));
-  std::memcpy(&*(vector->end() - sizeof(T)), &swapped_value, sizeof(T));
+  std::memcpy(Common::ToPointer(vector->end() - sizeof(T)), &swapped_value, sizeof(T));
 }
 
 bool SysConf::Save() const
@@ -230,14 +231,14 @@ SysConf::Entry* SysConf::GetEntry(std::string_view key)
 {
   const auto iterator = std::find_if(m_entries.begin(), m_entries.end(),
                                      [&key](const auto& entry) { return entry.name == key; });
-  return iterator != m_entries.end() ? &*iterator : nullptr;
+  return iterator != m_entries.end() ? Common::ToPointer(iterator) : nullptr;
 }
 
 const SysConf::Entry* SysConf::GetEntry(std::string_view key) const
 {
   const auto iterator = std::find_if(m_entries.begin(), m_entries.end(),
                                      [&key](const auto& entry) { return entry.name == key; });
-  return iterator != m_entries.end() ? &*iterator : nullptr;
+  return iterator != m_entries.end() ? Common::ToPointer(iterator) : nullptr;
 }
 
 SysConf::Entry* SysConf::GetOrAddEntry(std::string_view key, Entry::Type type)

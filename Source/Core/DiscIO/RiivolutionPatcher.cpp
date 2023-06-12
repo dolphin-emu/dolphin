@@ -14,6 +14,7 @@
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/StringUtil.h"
+#include "Common/TypeUtils.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/FS/FileSystem.h"
@@ -379,7 +380,7 @@ static FSTBuilderNode* FindFileNodeInFST(std::string_view path, std::vector<FSTB
   if (is_file != is_existing_node_file)
     return nullptr;
   if (is_file)
-    return &*it;
+    return Common::ToPointer(it);
 
   return FindFileNodeInFST(path.substr(path_separator + 1),
                            &std::get<std::vector<FSTBuilderNode>>(it->m_content),

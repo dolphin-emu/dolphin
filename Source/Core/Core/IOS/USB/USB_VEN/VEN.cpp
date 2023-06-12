@@ -10,6 +10,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/TypeUtils.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/USB/Common.h"
 #include "Core/System.h"
@@ -160,7 +161,7 @@ IPCReply USB_VEN::GetDeviceInfo(USBV5Device& device, const IOCtlRequest& request
   if (it == interfaces.end())
     return IPCReply(IPC_EINVAL);
   it->Swap();
-  memory.CopyToEmu(request.buffer_out + 52, &*it, sizeof(*it));
+  memory.CopyToEmu(request.buffer_out + 52, Common::ToPointer(it), sizeof(*it));
 
   auto endpoints = host_device->GetEndpoints(0, it->bInterfaceNumber, it->bAlternateSetting);
   for (size_t i = 0; i < endpoints.size(); ++i)

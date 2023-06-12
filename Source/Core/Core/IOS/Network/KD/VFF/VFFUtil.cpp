@@ -21,6 +21,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
 #include "Common/Swap.h"
+#include "Common/TypeUtils.h"
 
 #include "Core/IOS/Uids.h"
 
@@ -271,7 +272,7 @@ ErrorCode OpenVFF(const std::string& path, const std::string& filename,
       return;
     }
 
-    callbacks.m_vff = &*temp;
+    callbacks.m_vff = Common::ToPointer(temp);
 
     Common::ScopeGuard vff_delete_guard{[&] { fs->Delete(PID_KD, PID_KD, path); }};
 

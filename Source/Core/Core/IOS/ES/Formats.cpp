@@ -410,8 +410,8 @@ std::vector<u8> TicketReader::GetRawTicket(u64 ticket_id_to_find) const
 {
   for (size_t i = 0; i < GetNumberOfTickets(); ++i)
   {
-    const auto ticket_begin = m_bytes.begin() + GetTicketSize() * i;
-    const u64 ticket_id = Common::swap64(&*ticket_begin + offsetof(ES::Ticket, ticket_id));
+    const u8* ticket_begin = m_bytes.data() + GetTicketSize() * i;
+    const u64 ticket_id = Common::swap64(ticket_begin + offsetof(ES::Ticket, ticket_id));
     if (ticket_id == ticket_id_to_find)
       return {ticket_begin, ticket_begin + GetTicketSize()};
   }
@@ -421,8 +421,8 @@ std::vector<u8> TicketReader::GetRawTicket(u64 ticket_id_to_find) const
 std::vector<u8> TicketReader::GetRawTicketView(u32 ticket_num) const
 {
   // A ticket view is composed of a version + part of a ticket starting from the ticket_id field.
-  const auto ticket_start = m_bytes.cbegin() + sizeof(Ticket) * ticket_num;
-  const auto view_start = ticket_start + offsetof(Ticket, ticket_id);
+  const u8* ticket_start = m_bytes.data() + sizeof(Ticket) * ticket_num;
+  const u8* view_start = ticket_start + offsetof(Ticket, ticket_id);
 
   std::vector<u8> view(sizeof(u32));
   view[0] = GetVersion();
@@ -491,8 +491,8 @@ void TicketReader::DeleteTicket(u64 ticket_id_to_delete)
   const size_t num_tickets = GetNumberOfTickets();
   for (size_t i = 0; i < num_tickets; ++i)
   {
-    const auto ticket_start = m_bytes.cbegin() + GetTicketSize() * i;
-    const u64 ticket_id = Common::swap64(&*ticket_start + offsetof(Ticket, ticket_id));
+    u8* const ticket_start = m_bytes.data() + GetTicketSize() * i;
+    const u64 ticket_id = Common::swap64(ticket_start + offsetof(Ticket, ticket_id));
     if (ticket_id != ticket_id_to_delete)
       new_ticket.insert(new_ticket.end(), ticket_start, ticket_start + GetTicketSize());
   }
@@ -502,7 +502,7 @@ void TicketReader::DeleteTicket(u64 ticket_id_to_delete)
 
 HLE::ReturnCode TicketReader::Unpersonalise(HLE::IOSC& iosc)
 {
-  const auto ticket_begin = m_bytes.begin();
+  u8* ticket_begin = m_bytes.data();
 
   // IOS uses IOSC to compute an AES key from the peer public key and the device's private ECC key,
   // which is used the decrypt the title key. The IV is the ticket ID (8 bytes), zero extended.
@@ -513,8 +513,8 @@ HLE::ReturnCode TicketReader::Unpersonalise(HLE::IOSC& iosc)
   if (ret != IPC_SUCCESS)
     return ret;
 
-  const auto public_key_iter = ticket_begin + offsetof(Ticket, server_public_key);
-  ret = iosc.ImportPublicKey(public_handle, &*public_key_iter, nullptr, PID_ES);
+  u8* public_key = ticket_begin + offsetof(Ticket, server_public_key);
+  ret = iosc.ImportPublicKey(public_handle, public_key, nullptr, PID_ES);
   if (ret != IPC_SUCCESS)
     return ret;
 
@@ -531,7 +531,7 @@ HLE::ReturnCode TicketReader::Unpersonalise(HLE::IOSC& iosc)
   std::copy_n(ticket_begin + offsetof(Ticket, ticket_id), sizeof(Ticket::ticket_id), iv.begin());
 
   std::array<u8, 16> key{};
-  ret = iosc.Decrypt(key_handle, iv.data(), &*ticket_begin + offsetof(Ticket, title_key),
+  ret = iosc.Decrypt(key_handle, iv.data(), ticket_begin + offsetof(Ticket, title_key),
                      sizeof(Ticket::title_key), key.data(), PID_ES);
   // Finally, IOS copies the decrypted title key back to the ticket buffer.
   if (ret == IPC_SUCCESS)
@@ -764,8 +764,8 @@ PublicKeyType CertReader::GetPublicKeyType() const
   return static_cast<PublicKeyType>(Common::swap32(m_bytes.data() + offset));
 }
 
-template <typename T, typename It>
-std::vector<u8> DetailGetPublicKey(It begin, size_t extra_data = 0)
+template <typename T>
+std::vector<u8> DetailGetPublicKey(const u8* begin, size_t extra_data = 0)
 {
   const auto key_begin = begin + offsetof(T, public_key);
   return {key_begin, key_begin + sizeof(T::public_key) + extra_data};
@@ -776,13 +776,13 @@ std::vector<u8> CertReader::GetPublicKey() const
   switch (GetSignatureType())
   {
   case SignatureType::RSA4096:
-    return DetailGetPublicKey<CertRSA4096RSA2048>(m_bytes.begin(), 4);
+    return DetailGetPublicKey<CertRSA4096RSA2048>(m_bytes.data(), 4);
   case SignatureType::RSA2048:
     if (GetPublicKeyType() == PublicKeyType::RSA2048)
-      return DetailGetPublicKey<CertRSA2048RSA2048>(m_bytes.begin(), 4);
-    return DetailGetPublicKey<CertRSA2048ECC>(m_bytes.begin());
+      return DetailGetPublicKey<CertRSA2048RSA2048>(m_bytes.data(), 4);
+    return DetailGetPublicKey<CertRSA2048ECC>(m_bytes.data());
   case SignatureType::ECC:
-    return DetailGetPublicKey<CertECC>(m_bytes.begin());
+    return DetailGetPublicKey<CertECC>(m_bytes.data());
   default:
     return {};
   }

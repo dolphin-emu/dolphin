@@ -11,6 +11,7 @@
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
+#include "Common/TypeUtils.h"
 #include "DiscIO/RiivolutionParser.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
@@ -159,7 +160,7 @@ Java_org_dolphinemu_dolphinemu_features_riivolution_model_RiivolutionPatches_loa
     if (!parsed || !parsed->IsValidForGame(game_id, revision, disc_number))
       continue;
     if (config)
-      DiscIO::Riivolution::ApplyConfigDefaults(&*parsed, *config);
+      DiscIO::Riivolution::ApplyConfigDefaults(Common::ToPointer(parsed), *config);
     discs.emplace_back(std::move(*parsed));
   }
 }
