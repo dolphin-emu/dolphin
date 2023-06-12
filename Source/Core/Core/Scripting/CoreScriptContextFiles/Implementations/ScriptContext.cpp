@@ -21,9 +21,8 @@ void* ScriptContext_Initializer_impl(int unique_identifier, const char* script_f
   ret_val->finished_with_global_code = 0;
   ret_val->called_yielding_function_in_last_global_script_resume = 0;
   ret_val->called_yielding_function_in_last_frame_callback_script_resume = 0;
-  ret_val->instructionBreakpointsHolder.breakpoint_addresses = std::vector<unsigned int>();
-  ret_val->memoryAddressBreakpointsHolder.read_breakpoint_addresses = std::vector<unsigned int>();
-  ret_val->memoryAddressBreakpointsHolder.write_breakpoint_addresses = std::vector<unsigned int>();
+  ret_val->instructionBreakpointsHolder = InstructionBreakpointsHolder();
+  ret_val->memoryAddressBreakpointsHolder = MemoryAddressBreakpointsHolder();
   DLL_Defined_ScriptContext_APIs temp_dll_apis =
       *((DLL_Defined_ScriptContext_APIs*)(new_dll_api_definitions));
   ret_val->dll_specific_api_definitions = temp_dll_apis;

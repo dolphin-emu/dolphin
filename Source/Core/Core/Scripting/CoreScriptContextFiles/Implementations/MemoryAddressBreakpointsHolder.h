@@ -7,23 +7,25 @@
 extern "C" {
 #endif
 
-  typedef struct MemoryAddressBreakpointsHolder
+class MemoryAddressBreakpointsHolder
 {
+public:
+  MemoryAddressBreakpointsHolder();
+  void AddReadBreakpoint(unsigned int addr);
+  unsigned int GetNumReadCopiesOfBreakpoint(unsigned int addr);
+  bool ContainsReadBreakpoint(unsigned int addr);
+  void RemoveReadBreakpoint(unsigned int addr);
+  void AddWriteBreakpoint(unsigned int addr);
+  unsigned int GetNumWriteCopiesOfBreakpoint(unsigned int addr);
+  bool ContainsWriteBreakpoint(unsigned int addr);
+  void RemoveWriteBreakpoint(unsigned int addr);
+  unsigned int RemoveReadBreakpoints_OneByOne();
+  unsigned int RemoveWriteBreakpoints_OneByOne();
+
+private:
     std::vector<unsigned int> read_breakpoint_addresses;
     std::vector<unsigned int> write_breakpoint_addresses;
-} MemoryAddressBreakpointsHolder;
-
-  // In each of the below functions, the void* parameter  _this represents a MemoryAddressBreakpointsHolder*
-void MemoryAddressBreakpointsHolder_AddReadBreakpoint_impl(void* _this, unsigned int addr);
-unsigned int MemoryAddressBreakpointsHolder_GetNumReadCopiesOfBreakpoint_impl(void* _this, unsigned int addr);
-unsigned int MemoryAddressBreakpointsHolder_ContainsReadBreakpoint_impl(void* _this, unsigned int addr);
-void MemoryAddressBreakpointsHolder_RemoveReadBreakpoint_impl(void* _this, unsigned int addr);
-void MemoryAddressBreakpointsHolder_AddWriteBreakpoint_impl(void* _this, unsigned int addr);
-unsigned int MemoryAddressBreakpointsHolder_GetNumWriteCopiesOfBreakpoint_impl(void* _this, unsigned int addr);
-unsigned int MemoryAddressBreakpointsHolder_ContainsWriteBreakpoint_impl(void* _this, unsigned int addr);
-void MemoryAddressBreakpointsHolder_RemoveWriteBreakpoint_impl(void* _this, unsigned int addr);
-unsigned int MemoryAddressBreakpointsHolder_RemoveReadBreakpoints_OneByOne_impl(void* _this);
-unsigned int MemoryAddressBreakpointsHolder_RemoveWriteBreakpoints_OneByOne_impl(void* _this);
+};
 
 #ifdef __cplusplus
 }
