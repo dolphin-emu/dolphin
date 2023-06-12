@@ -126,6 +126,6 @@ private:
 
   QProgressDialog m_dialog;
   Common::Flag m_was_cancelled;
-  int m_last_received_progress;
+  int m_last_received_progress = 0;
   bool m_is_setting_value = false;
 };
