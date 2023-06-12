@@ -1,9 +1,10 @@
+#ifndef MEMORY_ADDRESS_BREAKPOINTS_HOLDER
+#define MEMORY_ADDRESS_BREAKPOINTS_HOLDER
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#ifndef MEMORY_ADDRESS_BREAKPOINTS_HOLDER
-#define MEMORY_ADDRESS_BREAKPOINTS_HOLDER
 
 // The first void* parameter for each function represents a MemoryAddressBreakpointsHolder*
 // The MemoryBreakpointsHolder struct is basically 2 lists of unsigned ints which represent the
@@ -20,8 +21,8 @@ typedef struct MemoryAddressBreakpointsHolder_APIs
   unsigned int (*RemoveWriteBreakpoints_OneByOne)(void*); // Removes 1 breakpoint from the list of write breakpoints of the MemoryAddressBreakpointsHolder*, and returns the address of the write breakpoint that was removed. If all write breakpoints have been removed, this function returns 0.
 } MemoryAddressBreakpointsHolder_APIs;
 
-#endif
-
 #ifdef __cplusplus
 }
+#endif
+
 #endif

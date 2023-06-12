@@ -1,9 +1,9 @@
+#ifndef SCRIPT_CALL_LOCS
+#define SCRIPT_CALL_LOCS
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#ifndef SCRIPT_CALL_LOCS
-#define SCRIPT_CALL_LOCS
 
 typedef enum ScriptCallLocations
 {
@@ -18,8 +18,8 @@ typedef enum ScriptCallLocations
   FromGraphicsCallback
 } ScriptCallLocations;
 
-#endif
-
 #ifdef __cplusplus
 }
+#endif
+
 #endif

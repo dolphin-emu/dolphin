@@ -431,9 +431,9 @@
     <ClInclude Include="Core\PowerPC\SignatureDB\DSYSignatureDB.h" />
     <ClInclude Include="Core\PowerPC\SignatureDB\MEGASignatureDB.h" />
     <ClInclude Include="Core\PowerPC\SignatureDB\SignatureDB.h" />
-    <ClInclude Include="Core\Scripting\CoreScriptContextFiles\Implementations\InstructionBreakpointsHolder_Implementation.h" />
-    <ClInclude Include="Core\Scripting\CoreScriptContextFiles\Implementations\MemoryAddressBreakpointsHolder_Implementation.h" />
-	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\Implementations\ScriptContext_Implementation.h" />
+    <ClInclude Include="Core\Scripting\CoreScriptContextFiles\Implementations\InstructionBreakpointsHolder.h" />
+    <ClInclude Include="Core\Scripting\CoreScriptContextFiles\Implementations\MemoryAddressBreakpointsHolder.h" />
+	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\Implementations\ScriptContext.h" />
 	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\InternalScriptAPIs\InstructionBreakpointsHolder_APIs.h" />
 	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\InternalScriptAPIs\MemoryAddressBreakpointsHolder_APIs.h" />
 	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\InternalScriptAPIs\ScriptCallLocations.h" />
@@ -454,7 +454,6 @@
 	<ClInclude Include="Core\Scripting\InternalAPIModules\InstructionStepAPI.h" />
     <ClInclude Include="Core\Scripting\InternalAPIModules\WiiAPI.h" />
     <ClInclude Include="Core\Scripting\LanguageDefinitions\DefinedScriptingLanguagesEnum.h" />
-    <ClInclude Include="Core\Scripting\ScriptContext.h" />
     <ClInclude Include="Core\Scripting\InternalAPIModules\BitAPI.h" />
     <ClInclude Include="Core\Scripting\HelperClasses\GCButtons.h" />
     <ClInclude Include="Core\Scripting\InternalAPIModules\EmuAPI.h" />
@@ -1101,9 +1100,9 @@
     <ClCompile Include="Core\PowerPC\SignatureDB\DSYSignatureDB.cpp" />
     <ClCompile Include="Core\PowerPC\SignatureDB\MEGASignatureDB.cpp" />
     <ClCompile Include="Core\PowerPC\SignatureDB\SignatureDB.cpp" />
-	<ClCompile Include="Core\Scripting\CoreScriptContextFiles\InstructionBreakpointsHolder.cpp" />
-	<ClCompile Include="Core\Scripting\CoreScriptContextFiles\MemoryAddressBreakpointsHolder.cpp" />
-	<ClCompile Include="Core\Scripting\CoreScriptContextFiles\ScriptContext.cpp" />
+	<ClCompile Include="Core\Scripting\CoreScriptContextFiles\Implementations\InstructionBreakpointsHolder.cpp" />
+    <ClCompile Include="Core\Scripting\CoreScriptContextFiles\Implementations\MemoryAddressBreakpointsHolder.cpp" />
+	<ClCompile Include="Core\Scripting\CoreScriptContextFiles\Implementations\ScriptContext.cpp" />
     <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnFrameStartCallbackAPI.cpp" />
     <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnGCControllerPolledCallbackAPI.cpp" />
     <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnInstructionHitCallbackAPI.cpp" />

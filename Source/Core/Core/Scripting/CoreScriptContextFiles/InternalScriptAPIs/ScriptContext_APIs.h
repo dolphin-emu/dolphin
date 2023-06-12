@@ -1,11 +1,12 @@
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifndef SCRIPT_CONTEXT_APIs
 #define SCRIPT_CONTEXT_APIs
 
 #include "ScriptCallLocations.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
   // These are functions whose definitions are provided by Dolphin. The void* which is passed as a parameter to each
   // function represents a ScriptContext*
@@ -100,8 +101,8 @@ typedef struct DLL_Defined_ScriptContext_APIs
   void (*DLLSpecificDestructor)(void*);
 } DLL_Defined_ScriptContext_APIs;
 
-#endif
-
 #ifdef __cplusplus
 }
+#endif
+
 #endif

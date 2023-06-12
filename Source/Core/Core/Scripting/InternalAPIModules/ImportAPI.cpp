@@ -10,6 +10,8 @@
 #include "Core/Scripting/HelperClasses/FunctionMetadata.h"
 #include "Core/Scripting/HelperClasses/VersionResolver.h"
 
+#include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/ScriptContext_APIs.h"
+
 namespace Scripting::ImportAPI
 {
 
@@ -63,7 +65,7 @@ ArgHolder* ImportAlt(ScriptContext* current_script, std::vector<ArgHolder*>* arg
 
 ArgHolder* ShutdownScript(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  ShutdownScript(current_script);
+  ScriptContext_ShutdownScript_impl(current_script);
   return CreateShutdownTypeArgHolder();
 }
 

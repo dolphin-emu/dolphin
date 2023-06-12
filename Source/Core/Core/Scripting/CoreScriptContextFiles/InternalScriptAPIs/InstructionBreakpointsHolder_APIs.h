@@ -1,9 +1,9 @@
+#ifndef INSTRUCTION_BREAKPOINTS_HOLDER
+#define INSTRUCTION_BREAKPOINTS_HOLDER
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#ifndef INSTRUCTION_BREAKPOINTS_HOLDER
-#define INSTRUCTION_BREAKPOINTS_HOLDER
 
  // The 1st void* parameter for each function represents an InstructionBreakpointsHolder*
  // The InstructionBreakpointsHolder struct is essentially just a list of unsigned ints representing instruction-hit breakpoints that have been set.
@@ -15,9 +15,10 @@ typedef struct InstructionBreakpointsHolder_APIs
   int (*GetNumCopiesOfBreakpoint)(void*, unsigned int); // Returns the number of times that the specified breakpoint appears in the InstructionBreakpointsHolder*
 } InstructionBreakpointsHolder_APIs;
 
-#endif
 
 #ifdef __cplusplus
   }
+#endif
+
 #endif
 

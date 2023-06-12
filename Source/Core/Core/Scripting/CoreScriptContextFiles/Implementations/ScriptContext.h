@@ -1,6 +1,5 @@
-#ifdef __cplusplus
-extern "C" {
-#endif
+#ifndef  SCRIPT_CONTEXT_IMPL
+#define SCRIPT_CONTEXT_IMPL
 
 #include <memory>
 #include <mutex>
@@ -8,6 +7,11 @@ extern "C" {
 #include "Core/Scripting/CoreScriptContextFiles/Implementations/MemoryAddressBreakpointsHolder.h"
 #include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/ScriptContext_APIs.h"
 #include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/ScriptCallLocations.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 typedef struct ScriptContext
 {
@@ -75,4 +79,6 @@ const char* ScriptContext_GetScriptVersion_impl();
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif
