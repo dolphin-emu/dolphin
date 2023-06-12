@@ -45,7 +45,7 @@ public:
   void SetValue(int progress) { emit SetValueSignal(progress); }
 
   // Can be called from any thread
-  bool WasCanceled() { return m_was_cancelled.IsSet(); }
+  bool WasCanceled() const { return m_was_cancelled.IsSet(); }
 
 signals:
   void CancelSignal();
