@@ -98,7 +98,6 @@ struct EFBCopyParams
 template <>
 struct fmt::formatter<EFBCopyParams>
 {
-  std::shared_ptr<int> state;
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
   auto format(const EFBCopyParams& uid, FormatContext& ctx) const
