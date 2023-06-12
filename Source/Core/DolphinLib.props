@@ -431,10 +431,13 @@
     <ClInclude Include="Core\PowerPC\SignatureDB\DSYSignatureDB.h" />
     <ClInclude Include="Core\PowerPC\SignatureDB\MEGASignatureDB.h" />
     <ClInclude Include="Core\PowerPC\SignatureDB\SignatureDB.h" />
-	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\InstructionBreakpointsHolder.h" />
-	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\MemoryAddressBreakpointsHolder.h" />
-	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\ScriptCallLocations.h" />
-	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\ScriptContext.h" />
+    <ClInclude Include="Core\Scripting\CoreScriptContextFiles\Implementations\InstructionBreakpointsHolder_Implementation.h" />
+    <ClInclude Include="Core\Scripting\CoreScriptContextFiles\Implementations\MemoryAddressBreakpointsHolder_Implementation.h" />
+	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\Implementations\ScriptContext_Implementation.h" />
+	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\InternalScriptAPIs\InstructionBreakpointsHolder_APIs.h" />
+	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\InternalScriptAPIs\MemoryAddressBreakpointsHolder_APIs.h" />
+	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\InternalScriptAPIs\ScriptCallLocations.h" />
+	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\InternalScriptAPIs\ScriptContext_APIs.h" />
     <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnFrameStartCallbackAPI.h" />
     <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnGCControllerPolledCallbackAPI.h" />
     <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnInstructionHitCallbackAPI.h" />

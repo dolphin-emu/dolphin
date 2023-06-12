@@ -52,24 +52,24 @@ FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
                                api_version, function_name, deprecated_functions_map);
 }
 
-ArgHolder Register(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* Register(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   return CreateRegistrationReturnTypeArgHolder(
-      current_script->scriptContextBaseFunctionsTable.RegisterOnGCControllerPolledCallbacks(current_script, args_list[0].void_pointer_val));
+      current_script->dll_specific_api_definitions.RegisterOnGCControllerPolledCallback(current_script, (*args_list)[0]->void_pointer_val));
 }
 
-ArgHolder RegisterWithAutoDeregistration(ScriptContext* current_script,
-                                         std::vector<ArgHolder>& args_list)
+ArgHolder* RegisterWithAutoDeregistration(ScriptContext* current_script,
+                                         std::vector<ArgHolder*>* args_list)
 {
-  current_script->scriptContextBaseFunctionsTable.RegisterOnGCControllerPolledWithAutoDeregistrationCallbacks(
-      current_script, args_list[0].void_pointer_val);
+  current_script->dll_specific_api_definitions.RegisterOnGCControllerPolledWithAutoDeregistrationCallback(
+      current_script, (*args_list)[0]->void_pointer_val);
   return CreateRegistrationWithAutoDeregistrationReturnTypeArgHolder();
 }
 
-ArgHolder Unregister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* Unregister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   bool return_value =
-      current_script->scriptContextBaseFunctionsTable.UnregisterOnGCControllerPolledCallbacks(current_script, args_list[0].void_pointer_val);
+      current_script->dll_specific_api_definitions.UnregisterOnGCControllerPolledCallback(current_script, (*args_list)[0]->void_pointer_val);
   if (!return_value)
     return CreateErrorStringArgHolder(
         "Argument passed into OnGCControllerPolled:unregister() was not a reference to a function "
@@ -78,15 +78,15 @@ ArgHolder Unregister(ScriptContext* current_script, std::vector<ArgHolder>& args
     return CreateUnregistrationReturnTypeArgHolder(nullptr);
 }
 
-ArgHolder IsInGCControllerPolledCallback(ScriptContext* current_script,
-                                         std::vector<ArgHolder>& args_list)
+ArgHolder* IsInGCControllerPolledCallback(ScriptContext* current_script,
+                                         std::vector<ArgHolder*>* args_list)
 {
   return CreateBoolArgHolder(current_script->current_script_call_location ==
                              ScriptCallLocations::FromGCControllerInputPolled);
 }
 
-ArgHolder GetCurrentPortNumberOfPoll(ScriptContext* current_script,
-                                     std::vector<ArgHolder>& args_list)
+ArgHolder* GetCurrentPortNumberOfPoll(ScriptContext* current_script,
+                                     std::vector<ArgHolder*>* args_list)
 {
   if (current_script->current_script_call_location !=
       ScriptCallLocations::FromGCControllerInputPolled)
@@ -98,7 +98,7 @@ ArgHolder GetCurrentPortNumberOfPoll(ScriptContext* current_script,
 
 // NOTE: In SI.cpp, UpdateDevices() is called to update each device, which moves exactly 8 bytes
 // forward for each controller. Also, it moves in order from controllers 1 to 4.
-ArgHolder SetInputsForPoll(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* SetInputsForPoll(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   if (current_script->current_script_call_location !=
       ScriptCallLocations::FromGCControllerInputPolled)
@@ -106,11 +106,11 @@ ArgHolder SetInputsForPoll(ScriptContext* current_script, std::vector<ArgHolder>
         "User attempted to call OnGCControllerPolled:setInputsForPoll() outside of an "
         "OnGCControllerPolled callback function!");
   overwrite_controller_at_specified_port[current_controller_number_polled] = true;
-  new_controller_inputs[current_controller_number_polled] = args_list[0].controller_state_val;
+  new_controller_inputs[current_controller_number_polled] = (*args_list)[0]->controller_state_val;
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder GetInputsForPoll(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* GetInputsForPoll(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   if (current_script->current_script_call_location !=
       ScriptCallLocations::FromGCControllerInputPolled)

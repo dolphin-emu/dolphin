@@ -3,7 +3,7 @@
 
 #include "Core/Scripting/HelperClasses/ArgHolder.h"
 #include "Core/Scripting/HelperClasses/ClassMetadata.h"
-#include "Core/Scripting/CoreScriptContextFiles/ScriptContext.h"
+#include "Core/Scripting/CoreScriptContextFiles/Implementations/ScriptContext_Implementation.h"
 
 namespace Scripting::OnWiiInputPolledCallbackAPI
 {
@@ -14,11 +14,11 @@ ClassMetadata GetAllClassMetadata();
 FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
                                                const std::string& function_name);
 
-ArgHolder Register(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
-ArgHolder RegisterWithAutoDeregistration(ScriptContext* current_script,
-                                         std::vector<ArgHolder>& args_list);
-ArgHolder Unregister(ScriptContext* current_script, std::vector<ArgHolder>& args_list);
-ArgHolder IsInWiiInputPolledCallback(ScriptContext* current_script,
-                                     std::vector<ArgHolder>& args_list);
+ArgHolder* Register(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
+ArgHolder* RegisterWithAutoDeregistration(ScriptContext* current_script,
+                                          std::vector<ArgHolder*>* args_list);
+ArgHolder* Unregister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
+ArgHolder* IsInWiiInputPolledCallback(ScriptContext* current_script,
+                                     std::vector<ArgHolder*>* args_list);
 
 }  // namespace Scripting::OnWiiInputPolledCallbackAPI

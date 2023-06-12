@@ -38,24 +38,24 @@ FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
                                function_name, deprecated_functions_map);
 }
 
-ArgHolder Register(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* Register(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   return CreateRegistrationReturnTypeArgHolder(
-      current_script->scriptContextBaseFunctionsTable.RegisterOnFrameStartCallbacks(current_script, args_list[0].void_pointer_val));
+      current_script->dll_specific_api_definitions.RegisterOnFrameStartCallback(current_script, (*args_list)[0]->void_pointer_val));
 }
 
-ArgHolder RegisterWithAutoDeregistration(ScriptContext* current_script,
-                                         std::vector<ArgHolder>& args_list)
+ArgHolder* RegisterWithAutoDeregistration(ScriptContext* current_script,
+                                         std::vector<ArgHolder*>* args_list)
 {
-  current_script->scriptContextBaseFunctionsTable.RegisterOnFrameStartWithAutoDeregistrationCallbacks(current_script,
-      args_list[0].void_pointer_val);
+  current_script->dll_specific_api_definitions.RegisterOnFrameStartWithAutoDeregistrationCallback(current_script,
+      (*args_list)[0]->void_pointer_val);
   return CreateRegistrationWithAutoDeregistrationReturnTypeArgHolder();
 }
 
-ArgHolder Unregister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* Unregister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   bool return_value =
-      current_script->scriptContextBaseFunctionsTable.UnregisterOnFrameStartCallbacks(current_script, args_list[0].void_pointer_val);
+      current_script->dll_specific_api_definitions.UnregisterOnFrameStartCallback(current_script, (*args_list)[0]->void_pointer_val);
   if (!return_value)
     return CreateErrorStringArgHolder(
         "Argument passed into OnFrameStart:unregister() was not a reference to a function "
@@ -64,7 +64,7 @@ ArgHolder Unregister(ScriptContext* current_script, std::vector<ArgHolder>& args
     return CreateUnregistrationReturnTypeArgHolder(nullptr);
 }
 
-ArgHolder IsInFrameStartCallback(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* IsInFrameStartCallback(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   return CreateBoolArgHolder(current_script->current_script_call_location ==
                              ScriptCallLocations::FromFrameStartCallback);

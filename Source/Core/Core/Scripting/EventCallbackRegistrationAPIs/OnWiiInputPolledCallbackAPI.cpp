@@ -39,24 +39,24 @@ FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
                                api_version, function_name, deprecated_functions_map);
 }
 
-ArgHolder Register(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* Register(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   return CreateRegistrationReturnTypeArgHolder(
-      current_script->scriptContextBaseFunctionsTable.RegisterOnWiiInputPolledCallbacks(current_script, args_list[0].void_pointer_val));
+      current_script->dll_specific_api_definitions.RegisterOnWiiInputPolledCallback(current_script, (*args_list)[0]->void_pointer_val));
 }
 
-ArgHolder RegisterWithAutoDeregistration(ScriptContext* current_script,
-                                         std::vector<ArgHolder>& args_list)
+ArgHolder* RegisterWithAutoDeregistration(ScriptContext* current_script,
+                                         std::vector<ArgHolder*>* args_list)
 {
-  current_script->scriptContextBaseFunctionsTable.RegisterOnWiiInputPolledWithAutoDeregistrationCallbacks(current_script,
-      args_list[0].void_pointer_val);
+  current_script->dll_specific_api_definitions.RegisterOnWiiInputPolledWithAutoDeregistrationCallback(current_script,
+      (*args_list)[0]->void_pointer_val);
   return CreateRegistrationWithAutoDeregistrationReturnTypeArgHolder();
 }
 
-ArgHolder Unregister(ScriptContext* current_script, std::vector<ArgHolder>& args_list)
+ArgHolder* Unregister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   bool return_value =
-      current_script->scriptContextBaseFunctionsTable.UnregisterOnWiiInputPolledCallbacks(current_script, args_list[0].void_pointer_val);
+      current_script->dll_specific_api_definitions.UnregisterOnWiiInputPolledCallback(current_script, (*args_list)[0]->void_pointer_val);
   if (!return_value)
     return CreateErrorStringArgHolder(
         "Argument passed into OnWiiInputPolled:unregister() was not a reference to a function "
@@ -65,8 +65,8 @@ ArgHolder Unregister(ScriptContext* current_script, std::vector<ArgHolder>& args
     return CreateUnregistrationReturnTypeArgHolder(nullptr);
 }
 
-ArgHolder IsInWiiInputPolledCallback(ScriptContext* current_script,
-                                     std::vector<ArgHolder>& args_list)
+ArgHolder* IsInWiiInputPolledCallback(ScriptContext* current_script,
+                                     std::vector<ArgHolder*>* args_list)
 {
   return CreateBoolArgHolder(current_script->current_script_call_location ==
                              ScriptCallLocations::FromWiiInputPolled);
