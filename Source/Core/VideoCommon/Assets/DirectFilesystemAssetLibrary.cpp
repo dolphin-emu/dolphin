@@ -4,7 +4,6 @@
 #include "VideoCommon/Assets/DirectFilesystemAssetLibrary.h"
 
 #include <algorithm>
-#include <fmt/os.h>
 
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
@@ -67,8 +66,10 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const Ass
   const auto last_loaded_time = std::filesystem::last_write_time(asset_path, ec);
   if (ec)
   {
-    ERROR_LOG_FMT(VIDEO, "Asset '{}' error - failed to get last write time with error '{}'!",
-                  asset_id, ec);
+    // FIXME: {fmt} 10.0.0 shipped with a naked try-catch block in fmt/std.h, so don't try to use
+    // the std::error_code formatter until we require a numbered version after {fmt} 10.0.0.
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' error - failed to get last write time with error '{}:{}'!",
+                  asset_id, ec.category().name(), ec.value());
     return {};
   }
   auto ext = asset_path.extension().string();
