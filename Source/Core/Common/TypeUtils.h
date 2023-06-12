@@ -95,4 +95,11 @@ constexpr void Fill(std::array<T1, N>& array, const T2& value)
     entry = value;
   }
 }
+
+// TODO: Replace with std::to_underlying in C++23
+template <typename T>
+constexpr std::underlying_type_t<T> ToUnderlying(T value) noexcept
+{
+  return static_cast<std::underlying_type_t<T>>(value);
+}
 }  // namespace Common
