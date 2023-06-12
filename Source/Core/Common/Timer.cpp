@@ -72,21 +72,14 @@ u64 Timer::GetLocalTimeSinceJan1970()
   // std::chrono::current_zone() until 19H1, and other compilers don't even provide support for
   // timezone-related parts of chrono. Someday!
   // see https://bugs.dolphin-emu.org/issues/13007#note-4
-  time_t sysTime, tzDiff, tzDST;
-  time(&sysTime);
-  tm* gmTime = localtime(&sysTime);
-
-  // Account for DST where needed
-  if (gmTime->tm_isdst == 1)
-    tzDST = 3600;
-  else
-    tzDST = 0;
+  time_t sys_time, tz_diff;
+  time(&sys_time);
 
   // Lazy way to get local time in sec
-  gmTime = gmtime(&sysTime);
-  tzDiff = sysTime - mktime(gmTime);
+  tm* gm_time = gmtime(&sys_time);
+  tz_diff = sys_time - mktime(gm_time);
 
-  return static_cast<u64>(sysTime + tzDiff + tzDST);
+  return static_cast<u64>(sys_time + tz_diff);
 }
 
 void Timer::IncreaseResolution()
