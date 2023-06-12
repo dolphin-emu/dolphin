@@ -402,6 +402,7 @@ void VertexLoaderX64::GenerateVertexLoader()
   BitSet32 regs = {src_reg,  dst_reg,       scratch1,    scratch2,
                    scratch3, remaining_reg, skipped_reg, base_reg};
   regs &= ABI_ALL_CALLEE_SAVED;
+  regs[RBP] = true;  // Give us a stack frame
   ABI_PushRegistersAndAdjustStack(regs, 0);
 
   // Backup count since we're going to count it down.

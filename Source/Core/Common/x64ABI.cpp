@@ -43,17 +43,24 @@ void XEmitter::ABI_CalculateFrameSize(BitSet32 mask, size_t rsp_alignment, size_
 size_t XEmitter::ABI_PushRegistersAndAdjustStack(BitSet32 mask, size_t rsp_alignment,
                                                  size_t needed_frame_size)
 {
+  mask[RSP] = false;  // Stack pointer is never pushed
   size_t shadow, subtraction, xmm_offset;
   ABI_CalculateFrameSize(mask, rsp_alignment, needed_frame_size, &shadow, &subtraction,
                          &xmm_offset);
 
-  for (int r : mask& ABI_ALL_GPRS)
+  if (mask[RBP])
+  {
+    // Make a nice stack frame for any debuggers or profilers that might be looking at this
+    PUSH(RBP);
+    MOV(64, R(RBP), R(RSP));
+  }
+  for (int r : (mask & ABI_ALL_GPRS & ~BitSet32{RBP}))
     PUSH((X64Reg)r);
 
   if (subtraction)
     SUB(64, R(RSP), subtraction >= 0x80 ? Imm32((u32)subtraction) : Imm8((u8)subtraction));
 
-  for (int x : mask& ABI_ALL_FPRS)
+  for (int x : (mask & ABI_ALL_FPRS))
   {
     MOVAPD(MDisp(RSP, (int)xmm_offset), (X64Reg)(x - 16));
     xmm_offset += 16;
@@ -65,11 +72,12 @@ size_t XEmitter::ABI_PushRegistersAndAdjustStack(BitSet32 mask, size_t rsp_align
 void XEmitter::ABI_PopRegistersAndAdjustStack(BitSet32 mask, size_t rsp_alignment,
                                               size_t needed_frame_size)
 {
+  mask[RSP] = false;  // Stack pointer is never pushed
   size_t shadow, subtraction, xmm_offset;
   ABI_CalculateFrameSize(mask, rsp_alignment, needed_frame_size, &shadow, &subtraction,
                          &xmm_offset);
 
-  for (int x : mask& ABI_ALL_FPRS)
+  for (int x : (mask & ABI_ALL_FPRS))
   {
     MOVAPD((X64Reg)(x - 16), MDisp(RSP, (int)xmm_offset));
     xmm_offset += 16;
@@ -80,9 +88,12 @@ void XEmitter::ABI_PopRegistersAndAdjustStack(BitSet32 mask, size_t rsp_alignmen
 
   for (int r = 15; r >= 0; r--)
   {
-    if (mask[r])
+    if (r != RBP && mask[r])
       POP((X64Reg)r);
   }
+  // RSP is pushed first and popped last to make debuggers/profilers happy
+  if (mask[RBP])
+    POP(RBP);
 }
 
 void XEmitter::MOVTwo(int bits, Gen::X64Reg dst1, Gen::X64Reg src1, s32 offset1, Gen::X64Reg dst2,
