@@ -3,10 +3,10 @@
 
 #include <memory>
 #include <mutex>
-#include "Core/Scripting/CoreScriptContextFiles/Implementations/InstructionBreakpointsHolder.h"
-#include "Core/Scripting/CoreScriptContextFiles/Implementations/MemoryAddressBreakpointsHolder.h"
+#include "Core/Scripting/HelperClasses/InstructionBreakpointsHolder.h"
+#include "Core/Scripting/HelperClasses/MemoryAddressBreakpointsHolder.h"
 #include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/ScriptContext_APIs.h"
-#include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/ScriptCallLocations.h"
+#include "Core/Scripting/CoreScriptContextFiles/Enums/ScriptCallLocations.h"
 
 #ifdef __cplusplus
 extern "C" {

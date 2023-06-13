@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 #include "Core/Scripting/LanguageDefinitions/DefinedScriptingLanguagesEnum.h"
-#include "Core/Scripting/CoreScriptContextFiles/Implementations/ScriptContext.h"
+#include "Core/Scripting/HelperClasses/ScriptContext.h"
 
 #include "common/ThreadSafeQueue.h"
 

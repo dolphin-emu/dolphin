@@ -120,26 +120,6 @@ ArgHolder* CreateVoidPointerArgHolder(void* new_void_pointer_val)
   return return_val;
 }
 
-ArgHolder* CreateAddressToUnsignedByteMapArgHolder(
-    const std::map<long long, u8>& new_address_to_unsigned_byte_map)
-{
-  ArgHolder* return_val = new ArgHolder();
-  return_val->argument_type = ArgTypeEnum::AddressToUnsignedByteMap;
-  return_val->address_to_unsigned_byte_map = new_address_to_unsigned_byte_map;
-  return_val->contains_value = true;
-  return return_val;
-}
-
-ArgHolder*
-CreateAddressToSignedByteMapArgHolder(const std::map<long long, s8>& new_address_to_signed_byte_map)
-{
-  ArgHolder* return_val = new ArgHolder();
-  return_val->argument_type = ArgTypeEnum::AddressToSignedByteMap;
-  return_val->address_to_signed_byte_map = new_address_to_signed_byte_map;
-  return_val->contains_value = true;
-  return return_val;
-}
-
 ArgHolder* CreateAddressToByteMapArgHolder(const std::map<long long, s16>& new_address_to_byte_map)
 {
   ArgHolder* return_val = new ArgHolder();

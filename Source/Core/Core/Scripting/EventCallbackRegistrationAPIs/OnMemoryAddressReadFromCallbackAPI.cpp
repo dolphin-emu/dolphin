@@ -5,7 +5,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 
-#include "Core/Scripting/CoreScriptContextFiles/Implementations/MemoryAddressBreakpointsHolder.h"
+#include "Core/Scripting/HelperClasses/MemoryAddressBreakpointsHolder.h"
 
 namespace Scripting::OnMemoryAddressReadFromCallbackAPI
 {

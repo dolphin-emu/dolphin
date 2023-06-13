@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #include "Core/Scripting/HelperClasses/ClassMetadata.h"
-#include "Core/Scripting/CoreScriptContextFiles/Implementations/ScriptContext.h"
+#include "Core/Scripting/HelperClasses/ScriptContext.h"
 namespace Scripting::GraphicsAPI
 {
 

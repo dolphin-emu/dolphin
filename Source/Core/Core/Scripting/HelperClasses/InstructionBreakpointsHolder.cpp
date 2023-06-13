@@ -1,4 +1,4 @@
-#include "Core/Scripting/CoreScriptContextFiles/Implementations/InstructionBreakpointsHolder.h"
+#include "Core/Scripting/HelperClasses/InstructionBreakpointsHolder.h"
 
 InstructionBreakpointsHolder::InstructionBreakpointsHolder()
 {

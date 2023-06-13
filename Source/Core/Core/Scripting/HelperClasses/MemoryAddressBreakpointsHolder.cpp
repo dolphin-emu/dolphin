@@ -1,4 +1,4 @@
-#include "Core/Scripting/CoreScriptContextFiles/Implementations/MemoryAddressBreakpointsHolder.h"
+#include "Core/Scripting/HelperClasses/MemoryAddressBreakpointsHolder.h"
 
 MemoryAddressBreakpointsHolder::MemoryAddressBreakpointsHolder()
 {

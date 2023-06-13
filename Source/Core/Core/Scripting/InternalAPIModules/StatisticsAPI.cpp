@@ -3,7 +3,7 @@
 #include <fmt/format.h>
 #include <memory>
 #include "Core/HW/Memmap.h"
-#include "Core/Scripting/HelperClasses/ArgTypeEnum.h"
+#include "Core/Scripting/CoreScriptContextFiles/Enums/ArgTypeEnum.h"
 #include "Core/Scripting/HelperClasses/FunctionMetadata.h"
 #include "Core/Scripting/HelperClasses/VersionResolver.h"
 #include "Core/System.h"

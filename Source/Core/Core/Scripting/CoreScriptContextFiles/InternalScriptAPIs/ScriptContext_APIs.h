@@ -1,7 +1,7 @@
 #ifndef SCRIPT_CONTEXT_APIs
 #define SCRIPT_CONTEXT_APIs
 
-#include "ScriptCallLocations.h"
+#include "../Enums/ScriptCallLocations.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -97,6 +97,9 @@ typedef struct DLL_Defined_ScriptContext_APIs
   int (*IsButtonRegistered)(void*, long long); //  Returns 1 if the 2nd parameter represents a button ID with a registered callback, and false otherwise.
   void (*GetButtonCallbackAndAddToQueue)(void*, long long); // Queues the callback passed into the function to run the next time RunButtonCallbacksInQueue() is called.
   void (*RunButtonCallbacksInQueue)(void*); // Runs all button callbacks which are queued to run.
+
+  void (*DLLClassMetadataCopyHook)(void*, void*);  // Called by Dolphin when the DLL requests a ClassMetadata object. This gives the DLL a chance to copy the ClassMetadata object's variables to the DLL's pecific ScriptContext* fields, since it will remain in scope until the end of this function.  1st param is ScriptContext*, 2nd param is an opaque  handler which is a ClassMetadata*
+  void (*DLLFunctionMetadataCopyHook)(void*, void*);  // Called by Dolphin when the DLL requests a specific FunctionMetadata object (when it passes in module name + version + function name, and expects a FunctionMetadata to be returned). This gives the DLL a chance to copy the FunctionMetadata object's variables to the DLL's specific ScriptContext* fields, since it will remain in scope until the end of this function. 1st param is ScriptContext*, 2nd param is an opaque handler which is a FunctionMetadata*
 
   void (*DLLSpecificDestructor)(void*);
 } DLL_Defined_ScriptContext_APIs;

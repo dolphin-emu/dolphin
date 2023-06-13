@@ -80,6 +80,13 @@
   <ItemGroup>
     <Text Include="$(BuildInfoTemplate)" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Core\Scripting\CoreScriptContextFiles\Enums\GCButtonNameEnum.h" />
+    <ClInclude Include="Core\Scripting\CoreScriptContextFiles\InternalScriptAPIs\ArgHolder_APIs.h" />
+    <ClInclude Include="Core\Scripting\CoreScriptContextFiles\InternalScriptAPIs\ClassFunctionsResolver_APIs.h" />
+    <ClInclude Include="Core\Scripting\CoreScriptContextFiles\InternalScriptAPIs\ClassMetadata_APIs.h" />
+    <ClInclude Include="Core\Scripting\CoreScriptContextFiles\InternalScriptAPIs\FunctionMetadata_APIs.h" />
+  </ItemGroup>
   <UsingTask TaskName="GetProductVersion" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
       <Path ParameterType="System.String" Required="true" />

@@ -1,7 +1,7 @@
 #include "Core/Scripting/InternalAPIModules/GameCubeControllerAPI.h"
 
 #include <fmt/format.h>
-#include "Core/Scripting/HelperClasses/ArgTypeEnum.h"
+#include "Core/Scripting/CoreScriptContextFiles/Enums/ArgTypeEnum.h"
 #include "Core/Scripting/HelperClasses/FunctionMetadata.h"
 #include "Core/Scripting/HelperClasses/VersionResolver.h"
 

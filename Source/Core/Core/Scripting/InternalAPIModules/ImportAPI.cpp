@@ -5,7 +5,7 @@
 #include <unordered_map>
 
 #include "Core/Scripting/HelperClasses/ArgHolder.h"
-#include "Core/Scripting/HelperClasses/ArgTypeEnum.h"
+#include "Core/Scripting/CoreScriptContextFiles/Enums/ArgTypeEnum.h"
 #include "Core/Scripting/HelperClasses/ClassMetadata.h"
 #include "Core/Scripting/HelperClasses/FunctionMetadata.h"
 #include "Core/Scripting/HelperClasses/VersionResolver.h"

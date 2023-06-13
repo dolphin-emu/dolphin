@@ -1,4 +1,4 @@
-#include "Core/Scripting/CoreScriptContextFiles/Implementations/ScriptContext.h"
+#include "Core/Scripting/HelperClasses/ScriptContext.h"
 
 const char* most_recent_script_version = "1.0.0";
 
