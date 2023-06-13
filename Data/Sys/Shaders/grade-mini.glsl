@@ -21,13 +21,13 @@
 
 
 /*
-   Grade-mini (06-06-2023)
+   Grade-mini (13-06-2023)
 
    > CRT emulation shader (composite signal, phosphor, gamma, temperature...)
    > Abridged port of RetroArch's Grade shader.
 
 
-    ######################################...PRESETS...#######################################
+    ####################################...STANDARDS...#######################################
     ##########################################################################################
     ###                                                                                    ###
     ###    PAL                                                                             ###
@@ -50,8 +50,8 @@
 
 
 // Test the following Phosphor gamuts and try to reach to a conclusion
-// For GC  Japan developed games you can use -2 or 2
-// For Wii Japan developed games probably -3 or 0 (sRGB/noop)
+// For GC  Japan developed games you can use -2 (Rear Projection CRT) or 2 (CRT Tube)
+// For Wii Japan developed games probably -3 (SMPTE-C), -2 (Rear Projection CRT) or 0 (sRGB/noop)
 // For Japan developed games use a temperature ~8500K (default)
 // For EU/US developed games use a temperature ~7100K
 
@@ -73,7 +73,7 @@ StepAmount = 1
 DefaultValue = 2
 
 [OptionRangeInteger]
-GUIName = Diplay Color Space (0:709 1:sRGB 2:P3-D65 3:Custom (Edit L503))
+GUIName = Diplay Color Space (0:709 1:sRGB 2:P3-D65 3:Custom (Edit L506))
 OptionName = g_space_out
 MinValue = 0
 MaxValue = 3
@@ -94,7 +94,7 @@ OptionName = g_MUL
 MinValue = 0.0, 0.0
 MaxValue = 2.0, 2.0
 StepAmount = 0.01, 0.01
-DefaultValue = 1.0, 1.0
+DefaultValue = 0.9, 0.9
 
 [OptionRangeFloat]
 GUIName = CRT Gamma
