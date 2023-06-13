@@ -104,6 +104,5 @@ private:
   static u32* m_iaddr;            // Instruction.address., usually the same as instr
   static std::string m_opcode;    // Buffer for opcode, min. 10 chars.
   static std::string m_operands;  // Operand buffer, min. 24 chars.
-  static unsigned char m_flags;   // Additional flags
 };
 }  // namespace Common
