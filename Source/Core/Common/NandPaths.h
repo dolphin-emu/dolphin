@@ -10,10 +10,10 @@
 
 namespace Common
 {
-enum FromWhichRoot
+enum class FromWhichRoot
 {
-  FROM_CONFIGURED_ROOT,  // not related to currently running game - use D_WIIROOT_IDX
-  FROM_SESSION_ROOT,     // request from currently running game - use D_SESSION_WIIROOT_IDX
+  Configured,  // not related to currently running game - use D_WIIROOT_IDX
+  Session,     // request from currently running game - use D_SESSION_WIIROOT_IDX
 };
 
 std::string RootUserPath(FromWhichRoot from);
