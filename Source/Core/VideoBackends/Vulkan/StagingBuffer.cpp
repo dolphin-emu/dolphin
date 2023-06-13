@@ -68,24 +68,14 @@ void StagingBuffer::FlushCPUCache(VkDeviceSize offset, VkDeviceSize size)
   vmaFlushAllocation(g_vulkan_context->GetMemoryAllocator(), m_alloc, offset, size);
 }
 
-void StagingBuffer::InvalidateGPUCache(VkCommandBuffer command_buffer,
-                                       VkAccessFlagBits dest_access_flags,
-                                       VkPipelineStageFlagBits dest_pipeline_stage,
-                                       VkDeviceSize offset, VkDeviceSize size)
-{
-  ASSERT((offset + size) <= m_size || (offset < m_size && size == VK_WHOLE_SIZE));
-  BufferMemoryBarrier(command_buffer, m_buffer, VK_ACCESS_HOST_WRITE_BIT, dest_access_flags, offset,
-                      size, VK_PIPELINE_STAGE_HOST_BIT, dest_pipeline_stage);
-}
-
 void StagingBuffer::PrepareForGPUWrite(VkCommandBuffer command_buffer,
                                        VkAccessFlagBits dst_access_flags,
                                        VkPipelineStageFlagBits dst_pipeline_stage,
                                        VkDeviceSize offset, VkDeviceSize size)
 {
   ASSERT((offset + size) <= m_size || (offset < m_size && size == VK_WHOLE_SIZE));
-  BufferMemoryBarrier(command_buffer, m_buffer, VK_ACCESS_MEMORY_WRITE_BIT, dst_access_flags,
-                      offset, size, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, dst_pipeline_stage);
+  BufferMemoryBarrier(command_buffer, m_buffer, VK_ACCESS_TRANSFER_WRITE_BIT, dst_access_flags,
+                      offset, size, VK_PIPELINE_STAGE_TRANSFER_BIT, dst_pipeline_stage);
 }
 
 void StagingBuffer::FlushGPUCache(VkCommandBuffer command_buffer, VkAccessFlagBits src_access_flags,
