@@ -154,7 +154,6 @@ u32* GekkoDisassembler::m_iaddr = nullptr;
 std::string GekkoDisassembler::m_opcode;
 std::string GekkoDisassembler::m_operands;
 unsigned char GekkoDisassembler::m_flags = PPCF_ILLEGAL;
-unsigned short GekkoDisassembler::m_sreg = 0;
 u32 GekkoDisassembler::m_displacement = 0;
 
 static u32 HelperRotateMask(int r, int mb, int me)
@@ -927,9 +926,6 @@ void GekkoDisassembler::ldst(u32 in, std::string_view name, char reg, unsigned c
   int d = (u32)(in & 0xffff);
 
   m_flags |= dmode;
-  m_sreg = (short)a;
-  //  if (d >= 0x8000)
-  //    d -= 0x10000;
   m_displacement = (u32)d;
   m_opcode = name;
 
