@@ -92,14 +92,6 @@ private:
 
   static u32* DoDisassembly(bool big_endian);
 
-  enum InstructionType
-  {
-    PPCINSTR_OTHER = 0,   // No additional info for other instr.
-    PPCINSTR_BRANCH = 1,  // Branch dest. = PC+displacement
-    PPCINSTR_LDST = 2,    // Load/store instruction: displ(sreg)
-    PPCINSTR_IMM = 3,     // 16-bit immediate val. in displacement
-  };
-
   enum Flags
   {
     PPCF_ILLEGAL = (1 << 0),   // Illegal PowerPC instruction
