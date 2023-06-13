@@ -154,7 +154,6 @@ u32* GekkoDisassembler::m_iaddr = nullptr;
 std::string GekkoDisassembler::m_opcode;
 std::string GekkoDisassembler::m_operands;
 unsigned char GekkoDisassembler::m_flags = PPCF_ILLEGAL;
-u32 GekkoDisassembler::m_displacement = 0;
 
 static u32 HelperRotateMask(int r, int mb, int me)
 {
@@ -392,7 +391,6 @@ std::string GekkoDisassembler::imm(u32 in, int uimm, int type, bool hex)
   {
     m_flags |= PPCF_UNSIGNED;
   }
-  m_displacement = i;
 
   switch (type)
   {
@@ -582,8 +580,6 @@ void GekkoDisassembler::bc(u32 in)
     m_operands = fmt::format("{} ->0x{:08X}", m_operands, d);
   else
     m_operands = fmt::format("{} ->0x{:08X}", m_operands, *m_iaddr + d);
-
-  m_displacement = d;
 }
 
 void GekkoDisassembler::bli(u32 in)
@@ -599,8 +595,6 @@ void GekkoDisassembler::bli(u32 in)
     m_operands = fmt::format("->0x{:08X}", d);
   else
     m_operands = fmt::format("->0x{:08X}", *m_iaddr + d);
-
-  m_displacement = d;
 }
 
 void GekkoDisassembler::mcrf(u32 in, std::string_view suffix)
@@ -926,7 +920,6 @@ void GekkoDisassembler::ldst(u32 in, std::string_view name, char reg, unsigned c
   int d = (u32)(in & 0xffff);
 
   m_flags |= dmode;
-  m_displacement = (u32)d;
   m_opcode = name;
 
   if (reg == 'r')
