@@ -1,5 +1,14 @@
 #include "Core/Scripting/ScriptUtilities.h"
 
+
+#include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/ArgHolder_APIs.h"
+#include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/ClassFunctionsResolver_APIs.h"
+#include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/ClassMetadata_APIs.h"
+#include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/FunctionMetadata_APIs.h"
+#include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/GCButton_APIs.h"
+#include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/ScriptContext_APIs.h"
+#include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/VectorOfArgHolders_APIs.h"
+
 #include "Core/Scripting/EventCallbackRegistrationAPIs//OnInstructionHitCallbackAPI.h"
 #include "Core/Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressReadFromCallbackAPI.h"
 #include "Core/Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressWrittenToCallbackAPI.h"
@@ -22,6 +31,16 @@ std::mutex memory_address_written_to_callback_running_lock;
 std::mutex wii_input_polled_callback_running_lock;
 std::mutex graphics_callback_running_lock;
 ThreadSafeQueue<ScriptContext*> queue_of_scripts_waiting_to_start = ThreadSafeQueue<ScriptContext*>();
+
+static bool initialized_dolphin_api_structs = false;
+
+static ArgHolder_APIs argHolder_apis_impl(0);
+static ClassFunctionsResolver_APIs classFunctionsResolver_apis_impl(0);
+static ClassMetadata_APIs classMetadata_apis_impl(0);
+static FunctionMetadata_APIs functionMetadata_apis_impl(0);
+static GCButton_APIs gcButton_apis_impl(0);
+static Dolphin_Defined_ScriptContext_APIs dolphin_defined_scriptContext_apis_impl(0);
+static VectorOfArgHolders_APIs vectorOfArgHolders_apis_impl(0);
 
 
 bool IsScriptingCoreInitialized()

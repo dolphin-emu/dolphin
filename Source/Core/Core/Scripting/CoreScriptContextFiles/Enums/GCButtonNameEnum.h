@@ -26,7 +26,7 @@ extern "C"  {
     TriggerR = 16,
     Start = 17,
     Reset = 18,
-    UnknownButtonName = 19
+    UnknownButton = 19
   };
 
 #ifdef __cplusplus

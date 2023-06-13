@@ -1,8 +1,16 @@
-#include "Core/Scripting/CoreScriptContextFiles/Enums/GCButtonNameEnum.h"
-#include <vector>
-#include "string.h"
+#ifndef GC_BUTTONS_FUNCS
+#define GC_BUTTONS_FUNCS
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-extern GcButtonNameEnum ParseGCButton(const char* button_name);
-extern const char* ConvertButtonEnumToString(GcButtonNameEnum button);
-extern std::vector<GcButtonNameEnum> GetListOfAllButtons();
+int ParseGCButton_impl(const char* button_name);
+const char* ConvertButtonEnumToString_impl(int button);
+int IsValidButtonEnum_impl(int);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

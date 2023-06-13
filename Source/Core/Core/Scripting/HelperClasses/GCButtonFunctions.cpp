@@ -1,4 +1,8 @@
-#include "Core/Scripting/HelperClasses/GCButtons.h"
+#include "Core/Scripting/HelperClasses/GCButtonFunctions.h"
+
+#include "Core/Scripting/CoreScriptContextFiles/Enums/GcButtonNameEnum.h"
+
+#include "string.h"
 
 static bool IsEqualIgnoreCase(const char* string_1, const char* string_2)
 {
@@ -22,7 +26,7 @@ static bool IsEqualIgnoreCase(const char* string_1, const char* string_2)
   return string_2[index] == '\0';
 }
 
-GcButtonName ParseGCButton(const char* button_name)
+int ParseGCButton_impl(const char* button_name)
 {
   if (strlen(button_name) == 1)
   {
@@ -30,34 +34,34 @@ GcButtonName ParseGCButton(const char* button_name)
     {
     case 'a':
     case 'A':
-      return GcButtonName::A;
+      return (int) GcButtonNameEnum::A;
 
     case 'b':
     case 'B':
-      return GcButtonName::B;
+      return (int) GcButtonNameEnum::B;
 
     case 'x':
     case 'X':
-      return GcButtonName::X;
+      return (int) GcButtonNameEnum::X;
 
     case 'y':
     case 'Y':
-      return GcButtonName::Y;
+      return (int) GcButtonNameEnum::Y;
 
     case 'z':
     case 'Z':
-      return GcButtonName::Z;
+      return (int) GcButtonNameEnum::Z;
 
     case 'l':
     case 'L':
-      return GcButtonName::L;
+      return (int) GcButtonNameEnum::L;
 
     case 'r':
     case 'R':
-      return GcButtonName::R;
+      return (int) GcButtonNameEnum::R;
 
     default:
-      return GcButtonName::Unknown;
+      return (int)GcButtonNameEnum::UnknownButton;
     }
   }
 
@@ -66,128 +70,113 @@ GcButtonName ParseGCButton(const char* button_name)
   case 'd':
   case 'D':
     if (IsEqualIgnoreCase(button_name, "dPadUp"))
-      return GcButtonName::DPadUp;
+      return (int)GcButtonNameEnum::DPadUp;
     else if (IsEqualIgnoreCase(button_name, "dPadDown"))
-      return GcButtonName::DPadDown;
+      return (int)GcButtonNameEnum::DPadDown;
     else if (IsEqualIgnoreCase(button_name, "dPadLeft"))
-      return GcButtonName::DPadLeft;
+      return (int)GcButtonNameEnum::DPadLeft;
     else if (IsEqualIgnoreCase(button_name, "dPadRight"))
-      return GcButtonName::DPadRight;
+      return (int)GcButtonNameEnum::DPadRight;
     else
-      return GcButtonName::Unknown;
+      return (int)GcButtonNameEnum::UnknownButton;
 
   case 'a':
   case 'A':
     if (IsEqualIgnoreCase(button_name, "analogStickX"))
-      return GcButtonName::AnalogStickX;
+      return (int)GcButtonNameEnum::AnalogStickX;
     else if (IsEqualIgnoreCase(button_name, "analogStickY"))
-      return GcButtonName::AnalogStickY;
+      return (int)GcButtonNameEnum::AnalogStickY;
     else
-      return GcButtonName::Unknown;
+      return (int)GcButtonNameEnum::UnknownButton;
 
   case 'c':
   case 'C':
     if (IsEqualIgnoreCase(button_name, "cStickX"))
-      return GcButtonName::CStickX;
+      return (int)GcButtonNameEnum::CStickX;
     else if (IsEqualIgnoreCase(button_name, "cStickY"))
-      return GcButtonName::CStickY;
+      return (int)GcButtonNameEnum::CStickY;
     else
-      return GcButtonName::Unknown;
+      return (int)GcButtonNameEnum::UnknownButton;
 
   case 't':
   case 'T':
     if (IsEqualIgnoreCase(button_name, "triggerL"))
-      return GcButtonName::TriggerL;
+      return (int)GcButtonNameEnum::TriggerL;
     else if (IsEqualIgnoreCase(button_name, "triggerR"))
-      return GcButtonName::TriggerR;
+      return (int)GcButtonNameEnum::TriggerR;
     else
-      return GcButtonName::Unknown;
+      return (int)GcButtonNameEnum::UnknownButton;
 
   case 'r':
   case 'R':
     if (IsEqualIgnoreCase(button_name, "reset"))
-      return GcButtonName::Reset;
+      return (int)GcButtonNameEnum::Reset;
     else
-      return GcButtonName::Unknown;
+      return (int)GcButtonNameEnum::UnknownButton;
 
   case 's':
   case 'S':
     if (IsEqualIgnoreCase(button_name, "start"))
-      return GcButtonName::Start;
+      return (int)GcButtonNameEnum::Start;
     else
-      return GcButtonName::Unknown;
+      return (int)GcButtonNameEnum::UnknownButton;
 
   default:
-    return GcButtonName::Unknown;
+    return (int)GcButtonNameEnum::UnknownButton;
   }
 }
 
-const char* ConvertButtonEnumToString(GcButtonName button)
+const char* ConvertButtonEnumToString_impl(int button)
 {
   switch (button)
   {
-  case GcButtonName::A:
+  case GcButtonNameEnum::A:
     return "A";
-  case GcButtonName::B:
+  case GcButtonNameEnum::B:
     return "B";
-  case GcButtonName::X:
+  case GcButtonNameEnum::X:
     return "X";
-  case GcButtonName::Y:
+  case GcButtonNameEnum::Y:
     return "Y";
-  case GcButtonName::Z:
+  case GcButtonNameEnum::Z:
     return "Z";
-  case GcButtonName::L:
+  case GcButtonNameEnum::L:
     return "L";
-  case GcButtonName::R:
+  case GcButtonNameEnum::R:
     return "R";
-  case GcButtonName::Start:
+  case GcButtonNameEnum::Start:
     return "Start";
-  case GcButtonName::Reset:
+  case GcButtonNameEnum::Reset:
     return "Reset";
-  case GcButtonName::DPadUp:
+  case GcButtonNameEnum::DPadUp:
     return "dPadUp";
-  case GcButtonName::DPadDown:
+  case GcButtonNameEnum::DPadDown:
     return "dPadDown";
-  case GcButtonName::DPadLeft:
+  case GcButtonNameEnum::DPadLeft:
     return "dPadLeft";
-  case GcButtonName::DPadRight:
+  case GcButtonNameEnum::DPadRight:
     return "dPadRight";
-  case GcButtonName::TriggerL:
+  case GcButtonNameEnum::TriggerL:
     return "triggerL";
-  case GcButtonName::TriggerR:
+  case GcButtonNameEnum::TriggerR:
     return "triggerR";
-  case GcButtonName::AnalogStickX:
+  case GcButtonNameEnum::AnalogStickX:
     return "analogStickX";
-  case GcButtonName::AnalogStickY:
+  case GcButtonNameEnum::AnalogStickY:
     return "analogStickY";
-  case GcButtonName::CStickX:
+  case GcButtonNameEnum::CStickX:
     return "cStickX";
-  case GcButtonName::CStickY:
+  case GcButtonNameEnum::CStickY:
     return "cStickY";
   default:
     return "";
   }
 }
 
-std::vector<GcButtonName> GetListOfAllButtons()
+int IsValidButtonEnum_impl(int button)
 {
-  return {GcButtonName::A,
-          GcButtonName::B,
-          GcButtonName::X,
-          GcButtonName::Y,
-          GcButtonName::Z,
-          GcButtonName::L,
-          GcButtonName::R,
-          GcButtonName::DPadUp,
-          GcButtonName::DPadDown,
-          GcButtonName::DPadLeft,
-          GcButtonName::DPadRight,
-          GcButtonName::AnalogStickX,
-          GcButtonName::AnalogStickY,
-          GcButtonName::CStickX,
-          GcButtonName::CStickY,
-          GcButtonName::TriggerL,
-          GcButtonName::TriggerR,
-          GcButtonName::Start,
-          GcButtonName::Reset};
+  if (button >= 0 && button < GcButtonNameEnum::UnknownButton)
+    return 1;
+  else
+    return 0;
 }
