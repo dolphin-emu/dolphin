@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 
+  // IMPORTANT NOTE: All functions that start with "Create" allocate a new object on the heap. The DLL is reponsible for freeing them by calling Delete_ArgHolder when done using them.
 typedef struct ArgHolder_APIs
 {
   int (*GetArgType)(void*);  // Takes an opaque ArgHolder* as input, and returns its type as int (which represents an ArgTypeEnum)

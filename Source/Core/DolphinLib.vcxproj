@@ -86,6 +86,11 @@
     <ClInclude Include="Core\Scripting\CoreScriptContextFiles\InternalScriptAPIs\ClassFunctionsResolver_APIs.h" />
     <ClInclude Include="Core\Scripting\CoreScriptContextFiles\InternalScriptAPIs\ClassMetadata_APIs.h" />
     <ClInclude Include="Core\Scripting\CoreScriptContextFiles\InternalScriptAPIs\FunctionMetadata_APIs.h" />
+    <ClInclude Include="Core\Scripting\CoreScriptContextFiles\InternalScriptAPIs\VectorOfArgHolders_APIs.h" />
+    <ClInclude Include="Core\Scripting\HelperClasses\VectorOfArgHolders.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Core\Scripting\HelperClasses\VectorOfArgHolders.cpp" />
   </ItemGroup>
   <UsingTask TaskName="GetProductVersion" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
