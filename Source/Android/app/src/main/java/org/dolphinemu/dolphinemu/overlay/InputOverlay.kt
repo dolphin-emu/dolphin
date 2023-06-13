@@ -206,7 +206,10 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                         pressed = true
                     }
                 }
-
+            }
+            when (event.action and MotionEvent.ACTION_MASK) {
+                MotionEvent.ACTION_DOWN,
+                MotionEvent.ACTION_POINTER_DOWN,
                 MotionEvent.ACTION_MOVE -> {
                     if (dpad.trackId == event.getPointerId(pointerIndex)) {
                         val dpadPressed = booleanArrayOf(false, false, false, false)
@@ -221,7 +224,7 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) : SurfaceView(contex
                             dpadPressed[3] = true
 
                         // Release the buttons first, then press
-                        for (i in 1 until dpadPressed.size) {
+                        for (i in dpadPressed.indices) {
                             if (!dpadPressed[i]) {
                                 InputOverrider.setControlState(
                                     controllerIndex,
