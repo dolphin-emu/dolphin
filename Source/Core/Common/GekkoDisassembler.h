@@ -112,7 +112,6 @@ private:
   static u32* m_iaddr;            // Instruction.address., usually the same as instr
   static std::string m_opcode;    // Buffer for opcode, min. 10 chars.
   static std::string m_operands;  // Operand buffer, min. 24 chars.
-  static unsigned char m_type;    // Type of instruction, see below
   static unsigned char m_flags;   // Additional flags
   static unsigned short m_sreg;   // Register in load/store instructions
   static u32 m_displacement;      // Branch- or load/store displacement

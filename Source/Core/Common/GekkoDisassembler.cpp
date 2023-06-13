@@ -153,7 +153,6 @@ u32* GekkoDisassembler::m_instr = nullptr;
 u32* GekkoDisassembler::m_iaddr = nullptr;
 std::string GekkoDisassembler::m_opcode;
 std::string GekkoDisassembler::m_operands;
-unsigned char GekkoDisassembler::m_type = 0;
 unsigned char GekkoDisassembler::m_flags = PPCF_ILLEGAL;
 unsigned short GekkoDisassembler::m_sreg = 0;
 u32 GekkoDisassembler::m_displacement = 0;
@@ -385,8 +384,6 @@ std::string GekkoDisassembler::imm(u32 in, int uimm, int type, bool hex)
 {
   int i = (int)(in & 0xffff);
 
-  m_type = PPCINSTR_IMM;
-
   if (uimm == 0)
   {
     if (i > 0x7fff)
@@ -587,7 +584,6 @@ void GekkoDisassembler::bc(u32 in)
   else
     m_operands = fmt::format("{} ->0x{:08X}", m_operands, *m_iaddr + d);
 
-  m_type = PPCINSTR_BRANCH;
   m_displacement = d;
 }
 
@@ -605,7 +601,6 @@ void GekkoDisassembler::bli(u32 in)
   else
     m_operands = fmt::format("->0x{:08X}", *m_iaddr + d);
 
-  m_type = PPCINSTR_BRANCH;
   m_displacement = d;
 }
 
@@ -931,7 +926,6 @@ void GekkoDisassembler::ldst(u32 in, std::string_view name, char reg, unsigned c
   int a = (int)PPCGETA(in);
   int d = (u32)(in & 0xffff);
 
-  m_type = PPCINSTR_LDST;
   m_flags |= dmode;
   m_sreg = (short)a;
   //  if (d >= 0x8000)
@@ -1276,7 +1270,6 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
 
   m_opcode.clear();
   m_operands.clear();
-  m_type = PPCINSTR_OTHER;
   m_flags = 0;
 
   switch (PPCGETIDX(in))
