@@ -706,7 +706,6 @@ FMT_CONSTEXPR inline size_t compute_width(string_view s) {
       return true;
     }
   };
-  // We could avoid branches by using utf8_decode directly.
   for_each_codepoint(s, count_code_points{&num_code_points});
   return num_code_points;
 }
@@ -984,22 +983,6 @@ constexpr auto compile_string_to_view(detail::std_string_view<Char> s)
   return {s.data(), s.size()};
 }
 }  // namespace detail_exported
-
-// A locale facet that formats values in UTF-8.
-// It is parameterized on the locale to avoid the heavy <locale> include.
-template <typename Locale> class format_facet : public Locale::facet {
- public:
-  static FMT_API typename Locale::id id;
-
-  void put(appender out, basic_format_arg<format_context> val,
-           const format_specs& specs, Locale& loc) const {
-    do_put(out, val, specs, loc);
-  }
-
- protected:
-  virtual void do_put(appender out, basic_format_arg<format_context> val,
-                      const format_specs& specs, Locale& loc) const = 0;
-};
 
 FMT_BEGIN_DETAIL_NAMESPACE
 
@@ -2030,33 +2013,31 @@ auto write_int(OutputIt out, UInt value, unsigned prefix,
       });
 }
 
-FMT_API auto write_int(appender out, basic_format_arg<format_context> value,
-                       const format_specs& specs, locale_ref loc) -> bool;
-template <typename OutputIt, typename Char>
-inline auto write_int(OutputIt, basic_format_arg<buffer_context<Char>>,
-                      const basic_format_specs<Char>&, locale_ref) -> bool {
-  return false;
-}
+template <typename Char>
+FMT_API auto write_int(unsigned long long value, locale_ref loc)
+    -> std::basic_string<Char>;
 
 template <typename OutputIt, typename UInt, typename Char>
 auto write_int(OutputIt& out, UInt value, unsigned prefix,
                const basic_format_specs<Char>& specs, locale_ref loc) -> bool {
-  auto buf = memory_buffer();
-  auto written = write_int(appender(buf), make_arg<buffer_context<Char>>(value),
-                       specs, loc);
-  if (!written) {
+  using char_t =
+      conditional_t<std::is_same<Char, wchar_t>::value, wchar_t, char>;
+  auto str = std::basic_string<char_t>();
+  if (sizeof(value) <= sizeof(unsigned long long))
+    str = write_int<char_t>(static_cast<unsigned long long>(value), loc);
+  if (str.empty()) {
     auto grouping = digit_grouping<Char>(loc);
     out = write_int(out, value, prefix, specs, grouping);
     return true;
   }
-  size_t size = to_unsigned((prefix != 0 ? 1 : 0) + buf.size());
+  size_t size = to_unsigned((prefix != 0 ? 1 : 0) + str.size());
   out = write_padded<align::right>(
       out, specs, size, size, [&](reserve_iterator<OutputIt> it) {
         if (prefix != 0) {
           char sign = static_cast<char>(prefix);
           *it++ = static_cast<Char>(sign);
         }
-        return copy_str<Char>(buf.data(), buf.data() + buf.size(), it);
+        return copy_str<Char>(str.data(), str.data() + str.size(), it);
       });
   return true;
 }

@@ -8,7 +8,6 @@
 #ifndef FMT_STD_H_
 #define FMT_STD_H_
 
-#include <exception>
 #include <thread>
 #include <type_traits>
 #include <utility>
@@ -101,12 +100,14 @@ template <typename T>
 using variant_index_sequence =
     std::make_index_sequence<std::variant_size<T>::value>;
 
-template <typename>
+// variant_size and variant_alternative check.
+template <typename T, typename U = void>
 struct is_variant_like_ : std::false_type {};
-template <typename... Types>
-struct is_variant_like_<std::variant<Types...>> : std::true_type {};
+template <typename T>
+struct is_variant_like_<T, std::void_t<decltype(std::variant_size<T>::value)>>
+    : std::true_type {};
 
-// formattable element check.
+// formattable element check
 template <typename T, typename C> class is_variant_formattable_ {
   template <std::size_t... I>
   static std::conjunction<
@@ -165,20 +166,6 @@ struct formatter<
   }
 };
 FMT_END_NAMESPACE
-#endif  // __cpp_lib_variant
-
-FMT_BEGIN_NAMESPACE
-template <typename T, typename Char>
-struct formatter<
-    T, Char,
-    typename std::enable_if<std::is_base_of<std::exception, T>::value>::type>
-    : formatter<string_view> {
-  template <typename FormatContext>
-  auto format(const std::exception& ex, FormatContext& ctx) const ->
-      typename FormatContext::iterator {
-    return fmt::formatter<string_view>::format(ex.what(), ctx);
-  }
-};
-FMT_END_NAMESPACE
+#endif
 
 #endif  // FMT_STD_H_

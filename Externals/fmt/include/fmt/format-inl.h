@@ -17,6 +17,7 @@
 #include <cstring>  // std::memmove
 #include <cwchar>
 #include <exception>
+#include <sstream>
 
 #ifndef FMT_STATIC_THOUSANDS_SEPARATOR
 #  include <locale>
@@ -27,9 +28,10 @@
 #endif
 
 #include "format.h"
+#include "locale.h"
 
 FMT_BEGIN_NAMESPACE
-template <typename Locale> typename Locale::id format_facet<Locale>::id;
+template <typename Char> std::locale::id num_format_facet<Char>::id;
 
 namespace detail {
 
@@ -118,18 +120,25 @@ template <typename Char> FMT_FUNC Char decimal_point_impl(locale_ref) {
 }
 #endif
 
-FMT_FUNC auto write_int(appender out, basic_format_arg<format_context> value,
-                        const format_specs& specs, locale_ref loc) -> bool {
+template <typename Char>
+FMT_FUNC auto write_int(unsigned long long value, locale_ref loc)
+    -> std::basic_string<Char> {
 #ifndef FMT_STATIC_THOUSANDS_SEPARATOR
+  auto&& ios = std::basic_ios<Char>(nullptr);
   auto locale = loc.get<std::locale>();
+  ios.imbue(locale);
+  auto&& buf = std::basic_stringbuf<Char>();
+  auto out = std::ostreambuf_iterator<Char>(&buf);
   // We cannot use the num_put<char> facet because it may produce output in
   // a wrong encoding.
-  if (!std::has_facet<format_facet<std::locale>>(locale)) return {};
-  std::use_facet<format_facet<std::locale>>(locale).put(out, value, specs,
-                                                        locale);
-  return true;
+  using facet_t = conditional_t<std::is_same<Char, char>::value,
+                                num_format_facet<>, std::num_put<Char>>;
+  if (std::has_facet<facet_t>(locale)) {
+    std::use_facet<facet_t>(locale).put(out, ios, ' ', value);
+    return buf.str();
+  }
 #endif
-  return false;
+  return {};
 }
 
 }  // namespace detail
