@@ -287,8 +287,7 @@ void JitArm64::GenerateFres()
   CMP(ARM64Reg::X2, 895);
   FixupBranch small_exponent = B(CCFlags::CC_LO);
 
-  MOVI2R(ARM64Reg::X4, 1148LL);
-  CMP(ARM64Reg::X2, ARM64Reg::X4);
+  CMP(ARM64Reg::X2, 1148);
   FixupBranch large_exponent = B(CCFlags::CC_HI);
 
   UBFX(ARM64Reg::X2, ARM64Reg::X1, 47, 5);  // Grab upper part of mantissa
@@ -320,8 +319,7 @@ void JitArm64::GenerateFres()
   RET();
 
   SetJumpTarget(large_exponent);
-  MOVI2R(ARM64Reg::X4, 0x7FF);
-  CMP(ARM64Reg::X2, ARM64Reg::X4);
+  CMP(ARM64Reg::X2, 0x7FF);
   CSEL(ARM64Reg::X0, ARM64Reg::X0, ARM64Reg::X3, CCFlags::CC_EQ);
   RET();
 }
