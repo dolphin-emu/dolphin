@@ -69,7 +69,9 @@
 #  define FMT_HAS_FEATURE(x) 0
 #endif
 
-#if defined(__has_include) || FMT_ICC_VERSION >= 1600 || FMT_MSC_VERSION > 1900
+#if (defined(__has_include) || FMT_ICC_VERSION >= 1600 || \
+     FMT_MSC_VERSION > 1900) &&                           \
+    !defined(__INTELLISENSE__)
 #  define FMT_HAS_INCLUDE(x) __has_include(x)
 #else
 #  define FMT_HAS_INCLUDE(x) 0
@@ -482,18 +484,6 @@ template <typename Char> class basic_string_view {
   FMT_CONSTEXPR void remove_prefix(size_t n) noexcept {
     data_ += n;
     size_ -= n;
-  }
-
-  FMT_CONSTEXPR_CHAR_TRAITS bool starts_with(
-      basic_string_view<Char> sv) const noexcept {
-    return size_ >= sv.size_ &&
-           std::char_traits<Char>::compare(data_, sv.data_, sv.size_) == 0;
-  }
-  FMT_CONSTEXPR_CHAR_TRAITS bool starts_with(Char c) const noexcept {
-    return size_ >= 1 && std::char_traits<Char>::eq(*data_, c);
-  }
-  FMT_CONSTEXPR_CHAR_TRAITS bool starts_with(const Char* s) const {
-    return starts_with(basic_string_view<Char>(s));
   }
 
   // Lexicographically compare this string reference to other.
@@ -2395,7 +2385,6 @@ FMT_CONSTEXPR auto parse_align(const Char* begin, const Char* end,
         auto c = *begin;
         if (c == '{')
           return handler.on_error("invalid fill character '{'"), begin;
-        if (c == '}') return begin;
         handler.on_fill(basic_string_view<Char>(begin, to_unsigned(p - begin)));
         begin = p + 1;
       } else
