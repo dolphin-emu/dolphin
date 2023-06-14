@@ -340,8 +340,7 @@ ConvertCommand::ParseCompressionTypeString(const std::string& compression_str)
     return DiscIO::WIARVZCompressionType::LZMA2;
   else if (compression_str == "zstd")
     return DiscIO::WIARVZCompressionType::Zstd;
-  else
-    return std::nullopt;
+  return std::nullopt;
 }
 
 std::optional<DiscIO::BlobType> ConvertCommand::ParseFormatString(const std::string& format_str)
@@ -354,8 +353,6 @@ std::optional<DiscIO::BlobType> ConvertCommand::ParseFormatString(const std::str
     return DiscIO::BlobType::WIA;
   else if (format_str == "rvz")
     return DiscIO::BlobType::RVZ;
-  else
-    return std::nullopt;
+  return std::nullopt;
 }
-
 }  // namespace DolphinTool

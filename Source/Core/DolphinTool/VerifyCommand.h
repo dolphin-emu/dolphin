@@ -20,11 +20,7 @@ public:
   int Main(const std::vector<std::string>& args) override;
 
 private:
-  void PrintFullReport(const std::optional<DiscIO::VolumeVerifier::Result> result);
-
-  std::optional<DiscIO::VolumeVerifier::Result>
-  VerifyVolume(std::shared_ptr<DiscIO::VolumeDisc> volume,
-               const DiscIO::Hashes<bool>& hashes_to_calculate);
+  void PrintFullReport(const DiscIO::VolumeVerifier::Result& result);
 
   std::string HashToHexString(const std::vector<u8>& hash);
 };
