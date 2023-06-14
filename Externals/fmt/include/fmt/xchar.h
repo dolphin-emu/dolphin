@@ -23,7 +23,7 @@ template <typename T>
 using is_exotic_char = bool_constant<!std::is_same<T, char>::value>;
 
 inline auto write_loc(std::back_insert_iterator<detail::buffer<wchar_t>> out,
-                      loc_value value, const format_specs<wchar_t>& specs,
+                      loc_value value, const basic_format_specs<wchar_t>& specs,
                       locale_ref loc) -> bool {
 #ifndef FMT_STATIC_THOUSANDS_SEPARATOR
   auto& numpunct =
@@ -52,9 +52,7 @@ inline auto runtime(wstring_view s) -> wstring_view { return s; }
 #else
 template <typename... Args>
 using wformat_string = basic_format_string<wchar_t, type_identity_t<Args>...>;
-inline auto runtime(wstring_view s) -> runtime_format_string<wchar_t> {
-  return {{s}};
-}
+inline auto runtime(wstring_view s) -> basic_runtime<wchar_t> { return {{s}}; }
 #endif
 
 template <> struct is_char<wchar_t> : std::true_type {};
