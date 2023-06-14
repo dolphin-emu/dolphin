@@ -1625,9 +1625,7 @@ auto snprintf_float(T value, int precision, float_specs specs,
 
 template <typename T>
 using convert_float_result =
-    conditional_t<std::is_same<T, float>::value ||
-                      std::numeric_limits<T>::digits ==
-                          std::numeric_limits<double>::digits,
+    conditional_t<std::is_same<T, float>::value || sizeof(T) == sizeof(double),
                   double, T>;
 
 template <typename T>
@@ -1992,11 +1990,10 @@ template <typename Char> class digit_grouping {
   }
 };
 
-// Writes a decimal integer with digit grouping.
 template <typename OutputIt, typename UInt, typename Char>
-auto write_int(OutputIt out, UInt value, unsigned prefix,
-               const basic_format_specs<Char>& specs,
-               const digit_grouping<Char>& grouping) -> OutputIt {
+auto write_int_localized(OutputIt out, UInt value, unsigned prefix,
+                         const basic_format_specs<Char>& specs,
+                         const digit_grouping<Char>& grouping) -> OutputIt {
   static_assert(std::is_same<uint64_or_128_t<UInt>, UInt>::value, "");
   int num_digits = count_digits(value);
   char digits[40];
@@ -2013,32 +2010,12 @@ auto write_int(OutputIt out, UInt value, unsigned prefix,
       });
 }
 
-template <typename Char>
-FMT_API auto write_int(unsigned long long value, locale_ref loc)
-    -> std::basic_string<Char>;
-
 template <typename OutputIt, typename UInt, typename Char>
-auto write_int(OutputIt& out, UInt value, unsigned prefix,
-               const basic_format_specs<Char>& specs, locale_ref loc) -> bool {
-  using char_t =
-      conditional_t<std::is_same<Char, wchar_t>::value, wchar_t, char>;
-  auto str = std::basic_string<char_t>();
-  if (sizeof(value) <= sizeof(unsigned long long))
-    str = write_int<char_t>(static_cast<unsigned long long>(value), loc);
-  if (str.empty()) {
-    auto grouping = digit_grouping<Char>(loc);
-    out = write_int(out, value, prefix, specs, grouping);
-    return true;
-  }
-  size_t size = to_unsigned((prefix != 0 ? 1 : 0) + str.size());
-  out = write_padded<align::right>(
-      out, specs, size, size, [&](reserve_iterator<OutputIt> it) {
-        if (prefix != 0) {
-          char sign = static_cast<char>(prefix);
-          *it++ = static_cast<Char>(sign);
-        }
-        return copy_str<Char>(str.data(), str.data() + str.size(), it);
-      });
+auto write_int_localized(OutputIt& out, UInt value, unsigned prefix,
+                         const basic_format_specs<Char>& specs, locale_ref loc)
+    -> bool {
+  auto grouping = digit_grouping<Char>(loc);
+  out = write_int_localized(out, value, prefix, specs, grouping);
   return true;
 }
 
@@ -2079,9 +2056,10 @@ FMT_CONSTEXPR FMT_INLINE auto write_int(OutputIt out, write_int_arg<T> arg,
   case presentation_type::none:
   case presentation_type::dec: {
     if (specs.localized &&
-        write_int(out, static_cast<uint64_or_128_t<T>>(abs_value), prefix,
-                  specs, loc))
+        write_int_localized(out, static_cast<uint64_or_128_t<T>>(abs_value),
+                            prefix, specs, loc)) {
       return out;
+    }
     auto num_digits = count_digits(abs_value);
     return write_int(
         out, num_digits, prefix, specs, [=](reserve_iterator<OutputIt> it) {
@@ -3934,7 +3912,7 @@ template <typename T> struct formatter<group_digits_view<T>> : formatter<T> {
                                                        specs_.width_ref, ctx);
     detail::handle_dynamic_spec<detail::precision_checker>(
         specs_.precision, specs_.precision_ref, ctx);
-    return detail::write_int(
+    return detail::write_int_localized(
         ctx.out(), static_cast<detail::uint64_or_128_t<T>>(t.value), 0, specs_,
         detail::digit_grouping<char>({"\3", ','}));
   }
@@ -4075,9 +4053,10 @@ FMT_NODISCARD auto to_string(const basic_memory_buffer<Char, SIZE>& buf)
 FMT_BEGIN_DETAIL_NAMESPACE
 
 template <typename Char>
-void vformat_to(buffer<Char>& buf, basic_string_view<Char> fmt,
-                basic_format_args<FMT_BUFFER_CONTEXT(Char)> args,
-                locale_ref loc) {
+void vformat_to(
+    buffer<Char>& buf, basic_string_view<Char> fmt,
+    basic_format_args<FMT_BUFFER_CONTEXT(type_identity_t<Char>)> args,
+    locale_ref loc) {
   // workaround for msvc bug regarding name-lookup in module
   // link names into function scope
   using detail::arg_formatter;
@@ -4158,9 +4137,6 @@ void vformat_to(buffer<Char>& buf, basic_string_view<Char> fmt,
 }
 
 #ifndef FMT_HEADER_ONLY
-extern template FMT_API void vformat_to(
-    buffer<char>&, string_view, basic_format_args<FMT_BUFFER_CONTEXT(char)>,
-    locale_ref);
 extern template FMT_API auto thousands_sep_impl<char>(locale_ref)
     -> thousands_sep_result<char>;
 extern template FMT_API auto thousands_sep_impl<wchar_t>(locale_ref)

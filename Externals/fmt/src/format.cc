@@ -22,23 +22,20 @@ template FMT_API auto locale_ref::get<std::locale>() const -> std::locale;
 
 // Explicit instantiations for char.
 
-template FMT_API auto write_int(unsigned long long, locale_ref)
-    -> std::basic_string<char>;
-
 template FMT_API auto thousands_sep_impl(locale_ref)
     -> thousands_sep_result<char>;
 template FMT_API auto decimal_point_impl(locale_ref) -> char;
 
 template FMT_API void buffer<char>::append(const char*, const char*);
 
+// DEPRECATED!
+// There is no correspondent extern template in format.h because of
+// incompatibility between clang and gcc (#2377).
 template FMT_API void vformat_to(buffer<char>&, string_view,
                                  basic_format_args<FMT_BUFFER_CONTEXT(char)>,
                                  locale_ref);
 
 // Explicit instantiations for wchar_t.
-
-template FMT_API auto write_int(unsigned long long, locale_ref)
-    -> std::basic_string<wchar_t>;
 
 template FMT_API auto thousands_sep_impl(locale_ref)
     -> thousands_sep_result<wchar_t>;

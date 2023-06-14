@@ -17,7 +17,7 @@
 #include <type_traits>
 
 // The fmt library version in the form major * 10000 + minor * 100 + patch.
-#define FMT_VERSION 90101
+#define FMT_VERSION 90100
 
 #if defined(__clang__) && !defined(__ibmxl__)
 #  define FMT_CLANG_VERSION (__clang_major__ * 100 + __clang_minor__)
@@ -895,11 +895,11 @@ template <typename T> class buffer {
   buffer(const buffer&) = delete;
   void operator=(const buffer&) = delete;
 
-  FMT_INLINE auto begin() noexcept -> T* { return ptr_; }
-  FMT_INLINE auto end() noexcept -> T* { return ptr_ + size_; }
+  auto begin() noexcept -> T* { return ptr_; }
+  auto end() noexcept -> T* { return ptr_ + size_; }
 
-  FMT_INLINE auto begin() const noexcept -> const T* { return ptr_; }
-  FMT_INLINE auto end() const noexcept -> const T* { return ptr_ + size_; }
+  auto begin() const noexcept -> const T* { return ptr_; }
+  auto end() const noexcept -> const T* { return ptr_ + size_; }
 
   /** Returns the size of this buffer. */
   constexpr auto size() const noexcept -> size_t { return size_; }
@@ -1115,7 +1115,7 @@ auto get_buffer(OutputIt out) -> iterator_buffer<OutputIt, T> {
 }
 
 template <typename Buffer>
-FMT_INLINE auto get_iterator(Buffer& buf) -> decltype(buf.out()) {
+auto get_iterator(Buffer& buf) -> decltype(buf.out()) {
   return buf.out();
 }
 template <typename T> auto get_iterator(buffer<T>& buf) -> buffer_appender<T> {
@@ -1715,7 +1715,7 @@ class locale_ref {
   const void* locale_;  // A type-erased pointer to std::locale.
 
  public:
-  constexpr FMT_INLINE locale_ref() : locale_(nullptr) {}
+  constexpr locale_ref() : locale_(nullptr) {}
   template <typename Locale> explicit locale_ref(const Locale& loc);
 
   explicit operator bool() const noexcept { return locale_ != nullptr; }
@@ -3012,11 +3012,11 @@ void check_format_string(S format_str) {
   ignore_unused(invalid_format);
 }
 
-// Don't use type_identity for args to simplify symbols.
 template <typename Char>
-void vformat_to(buffer<Char>& buf, basic_string_view<Char> fmt,
-                basic_format_args<FMT_BUFFER_CONTEXT(Char)> args,
-                locale_ref loc = {});
+void vformat_to(
+    buffer<Char>& buf, basic_string_view<Char> fmt,
+    basic_format_args<FMT_BUFFER_CONTEXT(type_identity_t<Char>)> args,
+    locale_ref loc = {});
 
 FMT_API void vprint_mojibake(std::FILE*, string_view, format_args);
 #ifndef _WIN32
@@ -3275,8 +3275,7 @@ template <typename... T>
 FMT_NODISCARD FMT_INLINE auto formatted_size(format_string<T...> fmt,
                                              T&&... args) -> size_t {
   auto buf = detail::counting_buffer<>();
-  detail::vformat_to(buf, string_view(fmt),
-                     format_args(fmt::make_format_args(args...)), {});
+  detail::vformat_to(buf, string_view(fmt), fmt::make_format_args(args...), {});
   return buf.count();
 }
 
