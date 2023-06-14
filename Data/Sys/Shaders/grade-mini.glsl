@@ -21,7 +21,7 @@
 
 
 /*
-   Grade-mini (13-06-2023)
+   Grade-mini (14-06-2023)
 
    > CRT emulation shader (composite signal, phosphor, gamma, temperature...)
    > Abridged port of RetroArch's Grade shader.
@@ -519,7 +519,8 @@ const mat3 Custom_prims = mat3(
 void main()
 {
 
-    float3    src = Sample().rgb;
+    float4    c0  = Sample();
+    float3    src = c0.rgb;
 
 // Clipping Logic / Gamut Limiting
     bool   NTSC_U = g_crtgamut < 2.0;
@@ -556,10 +557,10 @@ void main()
     if (g_crtgamut  == -3.0) { m_in = SMPTE170M_ph;    } else
     if (g_crtgamut  == -2.0) { m_in = CRT_95s_ph;      } else
     if (g_crtgamut  == -1.0) { m_in = P22_80s_ph;      } else
-    if (g_crtgamut  ==  0.0) { m_in = sRGB_prims;      } else
     if (g_crtgamut  ==  1.0) { m_in = P22_90s_ph;      } else
     if (g_crtgamut  ==  2.0) { m_in = P22_J_ph;        } else
-    if (g_crtgamut  ==  3.0) { m_in = SMPTE470BG_ph;   }
+    if (g_crtgamut  ==  3.0) { m_in = SMPTE470BG_ph;   } else
+                             { m_in = sRGB_prims;      }
 
 
 // Display color space
@@ -588,5 +589,5 @@ void main()
                  (g_space_out == 1.0) ? moncurve_r_f3(src_h,            2.20 + 0.20,     0.0550) : \
                                         clamp(pow(    src_D, float3(1./(2.20 + 0.20))),  0., 1.) ;
 
-    SetOutput(float4(TRC, 1.0));
+    SetOutput(float4(TRC, c0.a));
 }
