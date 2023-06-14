@@ -870,7 +870,7 @@ static NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios, bool repair)
 
   // Check for NANDs that were used with old Dolphin versions.
   const std::string sys_replace_path =
-      Common::RootUserPath(Common::FROM_CONFIGURED_ROOT) + "/sys/replace";
+      Common::RootUserPath(Common::FromWhichRoot::Configured) + "/sys/replace";
   if (File::Exists(sys_replace_path))
   {
     ERROR_LOG_FMT(CORE,
@@ -882,7 +882,7 @@ static NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios, bool repair)
   }
 
   // Clean up after a bug fixed in https://github.com/dolphin-emu/dolphin/pull/8802
-  const std::string rfl_db_path = Common::GetMiiDatabasePath(Common::FROM_CONFIGURED_ROOT);
+  const std::string rfl_db_path = Common::GetMiiDatabasePath(Common::FromWhichRoot::Configured);
   const File::FileInfo rfl_db(rfl_db_path);
   if (rfl_db.Exists() && rfl_db.GetSize() == 0)
   {
@@ -895,7 +895,7 @@ static NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios, bool repair)
 
   for (const u64 title_id : es.GetInstalledTitles())
   {
-    const std::string title_dir = Common::GetTitlePath(title_id, Common::FROM_CONFIGURED_ROOT);
+    const std::string title_dir = Common::GetTitlePath(title_id, Common::FromWhichRoot::Configured);
     const std::string content_dir = title_dir + "/content";
     const std::string data_dir = title_dir + "/data";
 
