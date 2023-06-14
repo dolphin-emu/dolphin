@@ -206,19 +206,21 @@ void Wiimote::Reset()
 
 Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(index)
 {
+  using Translatability = ControllerEmu::Translatability;
+
   // Buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(BUTTONS_GROUP));
   for (auto& named_button : {A_BUTTON, B_BUTTON, ONE_BUTTON, TWO_BUTTON, MINUS_BUTTON, PLUS_BUTTON})
   {
-    m_buttons->AddInput(ControllerEmu::DoNotTranslate, named_button);
+    m_buttons->AddInput(Translatability::DoNotTranslate, named_button);
   }
-  m_buttons->AddInput(ControllerEmu::DoNotTranslate, HOME_BUTTON, "HOME");
+  m_buttons->AddInput(Translatability::DoNotTranslate, HOME_BUTTON, "HOME");
 
   // D-Pad
   groups.emplace_back(m_dpad = new ControllerEmu::Buttons(DPAD_GROUP));
   for (const char* named_direction : named_directions)
   {
-    m_dpad->AddInput(ControllerEmu::Translate, named_direction);
+    m_dpad->AddInput(Translatability::Translate, named_direction);
   }
 
   // i18n: "Point" refers to the action of pointing a Wii Remote.
@@ -279,7 +281,7 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
 
   // Rumble
   groups.emplace_back(m_rumble = new ControllerEmu::ControlGroup(_trans("Rumble")));
-  m_rumble->AddOutput(ControllerEmu::Translate, _trans("Motor"));
+  m_rumble->AddOutput(Translatability::Translate, _trans("Motor"));
 
   // Options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
