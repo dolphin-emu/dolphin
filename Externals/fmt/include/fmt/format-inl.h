@@ -115,7 +115,38 @@ template <typename Char> FMT_FUNC Char decimal_point_impl(locale_ref) {
   return '.';
 }
 #endif
+
+FMT_FUNC auto write_loc(appender out, loc_value value,
+                        const format_specs<>& specs, locale_ref loc) -> bool {
+#ifndef FMT_STATIC_THOUSANDS_SEPARATOR
+  auto locale = loc.get<std::locale>();
+  // We cannot use the num_put<char> facet because it may produce output in
+  // a wrong encoding.
+  using facet = format_facet<std::locale>;
+  if (std::has_facet<facet>(locale))
+    return std::use_facet<facet>(locale).put(out, value, specs);
+  return facet(locale).put(out, value, specs);
+#endif
+  return false;
+}
 }  // namespace detail
+
+template <typename Locale> typename Locale::id format_facet<Locale>::id;
+
+#ifndef FMT_STATIC_THOUSANDS_SEPARATOR
+template <typename Locale> format_facet<Locale>::format_facet(Locale& loc) {
+  auto& numpunct = std::use_facet<std::numpunct<char>>(loc);
+  grouping_ = numpunct.grouping();
+  if (!grouping_.empty()) separator_ = std::string(1, numpunct.thousands_sep());
+}
+
+template <>
+FMT_API FMT_FUNC auto format_facet<std::locale>::do_put(
+    appender out, loc_value val, const format_specs<>& specs) const -> bool {
+  return val.visit(
+      detail::loc_writer<>{out, specs, separator_, grouping_, decimal_point_});
+}
+#endif
 
 #if !FMT_MSC_VERSION
 FMT_API FMT_FUNC format_error::~format_error() noexcept = default;
@@ -1150,6 +1181,8 @@ bool is_left_endpoint_integer_shorter_interval(int exponent) noexcept {
 // Remove trailing zeros from n and return the number of zeros removed (float)
 FMT_INLINE int remove_trailing_zeros(uint32_t& n) noexcept {
   FMT_ASSERT(n != 0, "");
+  // Modular inverse of 5 (mod 2^32): (mod_inv_5 * 5) mod 2^32 = 1.
+  // See https://github.com/fmtlib/fmt/issues/3163 for more details.
   const uint32_t mod_inv_5 = 0xcccccccd;
   const uint32_t mod_inv_25 = mod_inv_5 * mod_inv_5;
 
@@ -1165,7 +1198,6 @@ FMT_INLINE int remove_trailing_zeros(uint32_t& n) noexcept {
     n = q;
     s |= 1;
   }
-
   return s;
 }
 
@@ -1394,17 +1426,6 @@ small_divisor_case_label:
   return ret_value;
 }
 }  // namespace dragonbox
-
-#ifdef _MSC_VER
-FMT_FUNC auto fmt_snprintf(char* buf, size_t size, const char* fmt, ...)
-    -> int {
-  auto args = va_list();
-  va_start(args, fmt);
-  int result = vsnprintf_s(buf, size, _TRUNCATE, fmt, args);
-  va_end(args);
-  return result;
-}
-#endif
 }  // namespace detail
 
 template <> struct formatter<detail::bigint> {
@@ -1413,9 +1434,8 @@ template <> struct formatter<detail::bigint> {
     return ctx.begin();
   }
 
-  template <typename FormatContext>
-  auto format(const detail::bigint& n, FormatContext& ctx) const ->
-      typename FormatContext::iterator {
+  auto format(const detail::bigint& n, format_context& ctx) const
+      -> format_context::iterator {
     auto out = ctx.out();
     bool first = true;
     for (auto i = n.bigits_.size(); i > 0; --i) {

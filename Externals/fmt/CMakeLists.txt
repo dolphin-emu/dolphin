@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1...3.18)
+cmake_minimum_required(VERSION 3.8...3.25)
 
 # Fallback for using newer policies on CMake <3.12.
 if(${CMAKE_VERSION} VERSION_LESS 3.12)
@@ -84,10 +84,8 @@ option(FMT_MODULE "Build a module instead of a traditional library." OFF)
 option(FMT_SYSTEM_HEADERS "Expose headers with marking them as system." OFF)
 
 set(FMT_CAN_MODULE OFF)
-if (CMAKE_CXX_STANDARD GREATER 17 AND
-    # msvc 16.10-pre4
-    MSVC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 19.29.30035)
-  set(FMT_CAN_MODULE OFF)
+if (CMAKE_CXX_STANDARD GREATER 17 AND NOT MSVC)
+  set(FMT_CAN_MODULE ON)
 endif ()
 if (NOT FMT_CAN_MODULE)
   set(FMT_MODULE OFF)
@@ -118,22 +116,14 @@ message(STATUS "Version: ${FMT_VERSION}")
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 if (NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
-  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 endif ()
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
   "${CMAKE_CURRENT_SOURCE_DIR}/support/cmake")
 
-include(cxx14)
+include(CheckCXXCompilerFlag)
 include(JoinPaths)
-
-list(FIND CMAKE_CXX_COMPILE_FEATURES "cxx_variadic_templates" index)
-if (${index} GREATER -1)
-  # Use cxx_variadic_templates instead of more appropriate cxx_std_11 for
-  # compatibility with older CMake versions.
-  set(FMT_REQUIRED_FEATURES cxx_variadic_templates)
-endif ()
-message(STATUS "Required features: ${FMT_REQUIRED_FEATURES}")
 
 if (FMT_MASTER_PROJECT AND NOT DEFINED CMAKE_CXX_VISIBILITY_PRESET)
   set_verbose(CMAKE_CXX_VISIBILITY_PRESET hidden CACHE STRING
@@ -229,7 +219,6 @@ else()
 endif ()
 
 add_library(fmt ${FMT_SOURCES} ${FMT_HEADERS} README.rst ChangeLog.rst)
-dolphin_disable_warnings_msvc(fmt)
 add_library(fmt::fmt ALIAS fmt)
 
 if (FMT_WERROR)
@@ -242,7 +231,7 @@ if (FMT_MODULE)
   enable_module(fmt)
 endif ()
 
-target_compile_features(fmt INTERFACE ${FMT_REQUIRED_FEATURES})
+target_compile_features(fmt PUBLIC cxx_std_11)
 
 target_include_directories(fmt ${FMT_SYSTEM_HEADERS_ATTRIBUTE} PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
@@ -273,7 +262,7 @@ add_library(fmt-header-only INTERFACE)
 add_library(fmt::fmt-header-only ALIAS fmt-header-only)
 
 target_compile_definitions(fmt-header-only INTERFACE FMT_HEADER_ONLY=1)
-target_compile_features(fmt-header-only INTERFACE ${FMT_REQUIRED_FEATURES})
+target_compile_features(fmt-header-only INTERFACE cxx_std_11)
 
 target_include_directories(fmt-header-only ${FMT_SYSTEM_HEADERS_ATTRIBUTE} INTERFACE
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
