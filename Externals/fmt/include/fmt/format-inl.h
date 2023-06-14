@@ -1444,8 +1444,9 @@ template <> struct formatter<detail::bigint> {
     return ctx.begin();
   }
 
-  auto format(const detail::bigint& n, format_context& ctx) const
-      -> format_context::iterator {
+  template <typename FormatContext>
+  auto format(const detail::bigint& n, FormatContext& ctx) const ->
+      typename FormatContext::iterator {
     auto out = ctx.out();
     bool first = true;
     for (auto i = n.bigits_.size(); i > 0; --i) {

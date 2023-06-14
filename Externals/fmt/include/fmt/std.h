@@ -180,25 +180,6 @@ FMT_END_NAMESPACE
 #endif  // __cpp_lib_variant
 
 FMT_BEGIN_NAMESPACE
-
-template <typename Char> struct formatter<std::error_code, Char> {
-  template <typename ParseContext>
-  FMT_CONSTEXPR auto parse(ParseContext& ctx) -> decltype(ctx.begin()) {
-    return ctx.begin();
-  }
-
-  template <typename FormatContext>
-  FMT_CONSTEXPR auto format(const std::error_code& ec, FormatContext& ctx) const
-      -> decltype(ctx.out()) {
-    auto out = ctx.out();
-    out = detail::write_bytes(out, ec.category().name(),
-                              basic_format_specs<Char>());
-    out = detail::write<Char>(out, Char(':'));
-    out = detail::write<Char>(out, ec.value());
-    return out;
-  }
-};
-
 template <typename T, typename Char>
 struct formatter<
     T, Char,
@@ -233,40 +214,10 @@ struct formatter<
     std::size_t size = 0;
     std::unique_ptr<char, decltype(&std::free)> demangled_name_ptr(
         abi::__cxa_demangle(ti.name(), nullptr, &size, &status), &std::free);
-
-    string_view demangled_name_view;
-    if (demangled_name_ptr) {
-      demangled_name_view = demangled_name_ptr.get();
-
-      // Normalization of stdlib inline namespace names.
-      // libc++ inline namespaces.
-      //  std::__1::*       -> std::*
-      //  std::__1::__fs::* -> std::*
-      // libstdc++ inline namespaces.
-      //  std::__cxx11::*             -> std::*
-      //  std::filesystem::__cxx11::* -> std::filesystem::*
-      if (demangled_name_view.starts_with("std::")) {
-        char* begin = demangled_name_ptr.get();
-        char* to = begin + 5;  // std::
-        for (char *from = to, *end = begin + demangled_name_view.size();
-             from < end;) {
-          // This is safe, because demangled_name is NUL-terminated.
-          if (from[0] == '_' && from[1] == '_') {
-            char* next = from + 1;
-            while (next < end && *next != ':') next++;
-            if (next[0] == ':' && next[1] == ':') {
-              from = next + 2;
-              continue;
-            }
-          }
-          *to++ = *from++;
-        }
-        demangled_name_view = {begin, detail::to_unsigned(to - begin)};
-      }
-    } else {
-      demangled_name_view = string_view(ti.name());
-    }
-    out = detail::write_bytes(out, demangled_name_view, spec);
+    out = detail::write_bytes(
+        out,
+        string_view(demangled_name_ptr ? demangled_name_ptr.get() : ti.name()),
+        spec);
 #elif FMT_MSC_VERSION
     string_view demangled_name_view(ti.name());
     if (demangled_name_view.starts_with("class "))

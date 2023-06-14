@@ -961,11 +961,13 @@ FMT_API bool write_console(std::FILE* f, string_view text);
 FMT_API void print(std::FILE*, string_view);
 }  // namespace detail
 
-/** An error reported from a formatting function. */
+/** A formatting error such as invalid format string. */
 FMT_CLASS_API
 class FMT_API format_error : public std::runtime_error {
  public:
-  using std::runtime_error::runtime_error;
+  explicit format_error(const char* message) : std::runtime_error(message) {}
+  explicit format_error(const std::string& message)
+      : std::runtime_error(message) {}
   format_error(const format_error&) = default;
   format_error& operator=(const format_error&) = default;
   format_error(format_error&&) = default;
@@ -1405,8 +1407,8 @@ template <typename Float> constexpr int num_significand_bits() {
 template <typename Float>
 constexpr auto exponent_mask() ->
     typename dragonbox::float_info<Float>::carrier_uint {
-  using float_uint = typename dragonbox::float_info<Float>::carrier_uint;
-  return ((float_uint(1) << dragonbox::float_info<Float>::exponent_bits) - 1)
+  using uint = typename dragonbox::float_info<Float>::carrier_uint;
+  return ((uint(1) << dragonbox::float_info<Float>::exponent_bits) - 1)
          << num_significand_bits<Float>();
 }
 template <typename Float> constexpr auto exponent_bias() -> int {
@@ -2583,14 +2585,14 @@ template <typename T, FMT_ENABLE_IF(std::is_floating_point<T>::value&&
 FMT_CONSTEXPR20 bool isfinite(T value) {
   constexpr T inf = T(std::numeric_limits<double>::infinity());
   if (is_constant_evaluated())
-    return !detail::isnan(value) && value < inf && value > -inf;
+    return !detail::isnan(value) && value != inf && value != -inf;
   return std::isfinite(value);
 }
 template <typename T, FMT_ENABLE_IF(!has_isfinite<T>::value)>
 FMT_CONSTEXPR bool isfinite(T value) {
   T inf = T(std::numeric_limits<double>::infinity());
   // std::isfinite doesn't support __float128.
-  return !detail::isnan(value) && value < inf && value > -inf;
+  return !detail::isnan(value) && value != inf && value != -inf;
 }
 
 template <typename T, FMT_ENABLE_IF(is_floating_point<T>::value)>
@@ -3333,9 +3335,9 @@ FMT_CONSTEXPR20 auto write(OutputIt out, T value) -> OutputIt {
 
   constexpr auto specs = basic_format_specs<Char>();
   using floaty = conditional_t<std::is_same<T, long double>::value, double, T>;
-  using floaty_uint = typename dragonbox::float_info<floaty>::carrier_uint;
-  floaty_uint mask = exponent_mask<floaty>();
-  if ((bit_cast<floaty_uint>(value) & mask) == mask)
+  using uint = typename dragonbox::float_info<floaty>::carrier_uint;
+  uint mask = exponent_mask<floaty>();
+  if ((bit_cast<uint>(value) & mask) == mask)
     return write_nonfinite(out, std::isnan(value), specs, fspecs);
 
   auto dec = dragonbox::to_decimal(static_cast<floaty>(value));
@@ -3426,8 +3428,8 @@ template <typename Char, typename OutputIt, typename T,
 FMT_CONSTEXPR auto write(OutputIt out, const T& value) -> enable_if_t<
     std::is_class<T>::value && !is_string<T>::value &&
         !is_floating_point<T>::value && !std::is_same<T, Char>::value &&
-        !std::is_same<T, remove_cvref_t<decltype(arg_mapper<Context>().map(
-                             value))>>::value,
+        !std::is_same<const T&,
+                      decltype(arg_mapper<Context>().map(value))>::value,
     OutputIt> {
   return write<Char>(out, arg_mapper<Context>().map(value));
 }
@@ -4106,9 +4108,9 @@ auto join(Range&& range, string_view sep)
  */
 template <typename T, FMT_ENABLE_IF(!std::is_integral<T>::value)>
 inline auto to_string(const T& value) -> std::string {
-  auto buffer = memory_buffer();
-  detail::write<char>(appender(buffer), value);
-  return {buffer.data(), buffer.size()};
+  auto result = std::string();
+  detail::write<char>(std::back_inserter(result), value);
+  return result;
 }
 
 template <typename T, FMT_ENABLE_IF(std::is_integral<T>::value)>
@@ -4274,7 +4276,7 @@ auto vformat_to(OutputIt out, const Locale& loc, string_view fmt,
   using detail::get_buffer;
   auto&& buf = get_buffer<char>(out);
   detail::vformat_to(buf, fmt, args, detail::locale_ref(loc));
-  return detail::get_iterator(buf, out);
+  return detail::get_iterator(buf);
 }
 
 template <typename OutputIt, typename Locale, typename... T,
