@@ -34,13 +34,13 @@ ThreadSafeQueue<ScriptContext*> queue_of_scripts_waiting_to_start = ThreadSafeQu
 
 static bool initialized_dolphin_api_structs = false;
 
-static ArgHolder_APIs argHolder_apis_impl(0);
-static ClassFunctionsResolver_APIs classFunctionsResolver_apis_impl(0);
-static ClassMetadata_APIs classMetadata_apis_impl(0);
-static FunctionMetadata_APIs functionMetadata_apis_impl(0);
-static GCButton_APIs gcButton_apis_impl(0);
-static Dolphin_Defined_ScriptContext_APIs dolphin_defined_scriptContext_apis_impl(0);
-static VectorOfArgHolders_APIs vectorOfArgHolders_apis_impl(0);
+static ArgHolder_APIs argHolder_apis_impl = {};
+static ClassFunctionsResolver_APIs classFunctionsResolver_apis_impl = {};
+static ClassMetadata_APIs classMetadata_apis_impl = {};
+static FunctionMetadata_APIs functionMetadata_apis_impl = {};
+static GCButton_APIs gcButton_apis_impl = {};
+static Dolphin_Defined_ScriptContext_APIs dolphin_defined_scriptContext_apis_impl = {};
+static VectorOfArgHolders_APIs vectorOfArgHolders_apis_impl = {};
 
 
 bool IsScriptingCoreInitialized()

@@ -52,7 +52,7 @@ SCRIPT_END_CALLBACK_TYPE ScriptContext_GetScriptEndCallback_impl(void*);
 
 const char* ScriptContext_GetScriptFilename_impl(void*);
 
-ScriptCallLocations ScriptContext_GetScriptCallLocation_impl(void*);
+int ScriptContext_GetScriptCallLocation_impl(void*);
 
 int ScriptContext_GetIsScriptActive_impl(void*);
 void ScriptContext_SetIsScriptActive_impl(void*, int);

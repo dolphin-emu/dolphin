@@ -77,6 +77,8 @@ int ParseGCButton_impl(const char* button_name)
       return (int)GcButtonNameEnum::DPadLeft;
     else if (IsEqualIgnoreCase(button_name, "dPadRight"))
       return (int)GcButtonNameEnum::DPadRight;
+    else if (IsEqualIgnoreCase(button_name, "disc"))
+      return (int)GcButtonNameEnum::Disc;
     else
       return (int)GcButtonNameEnum::UnknownButton;
 
@@ -118,6 +120,20 @@ int ParseGCButton_impl(const char* button_name)
   case 'S':
     if (IsEqualIgnoreCase(button_name, "start"))
       return (int)GcButtonNameEnum::Start;
+    else
+      return (int)GcButtonNameEnum::UnknownButton;
+
+  case 'g':
+  case 'G':
+    if (IsEqualIgnoreCase(button_name, "getOrigin"))
+      return (int)GcButtonNameEnum::GetOrigin;
+    else
+      return (int)GcButtonNameEnum::UnknownButton;
+
+  case 'i':
+  case 'I':
+    if (IsEqualIgnoreCase(button_name, "isConnected"))
+      return (int)GcButtonNameEnum::IsConnected;
     else
       return (int)GcButtonNameEnum::UnknownButton;
 
@@ -168,6 +184,12 @@ const char* ConvertButtonEnumToString_impl(int button)
     return "cStickX";
   case GcButtonNameEnum::CStickY:
     return "cStickY";
+  case GcButtonNameEnum::Disc:
+    return "disc";
+  case GcButtonNameEnum::GetOrigin:
+    return "getOrigin";
+  case GcButtonNameEnum::IsConnected:
+    return "isConnected";
   default:
     return "";
   }

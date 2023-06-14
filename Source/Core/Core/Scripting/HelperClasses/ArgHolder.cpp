@@ -66,20 +66,20 @@ ArgHolder* CreateS16ArgHolder(s16 new_s16_val)
   return return_val;
 }
 
-ArgHolder* CreateIntArgHolder(int new_int_val)
+ArgHolder* CreateS32ArgHolder(s32 new_s32_val)
 {
   ArgHolder* return_val = new ArgHolder();
-  return_val->argument_type = ArgTypeEnum::Integer;
-  return_val->int_val = new_int_val;
+  return_val->argument_type = ArgTypeEnum::S32;
+  return_val->s32_val = new_s32_val;
   return_val->contains_value = true;
   return return_val;
 }
 
-ArgHolder* CreateLongLongArgHolder(long long new_long_long_val)
+ArgHolder* CreateS64ArgHolder(s64 new_s64_val)
 {
   ArgHolder* return_val = new ArgHolder();
-  return_val->argument_type = ArgTypeEnum::LongLong;
-  return_val->long_long_val = new_long_long_val;
+  return_val->argument_type = ArgTypeEnum::S64;
+  return_val->s64_val = new_s64_val;
   return_val->contains_value = true;
   return return_val;
 }

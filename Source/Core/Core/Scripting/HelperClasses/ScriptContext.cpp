@@ -60,9 +60,9 @@ const char* ScriptContext_GetScriptFilename_impl(void* script_context)
   return castToScriptContextPtr(script_context)->script_filename;
 }
 
-ScriptCallLocations ScriptContext_GetScriptCallLocation_impl(void* script_context)
+int ScriptContext_GetScriptCallLocation_impl(void* script_context)
 {
-  return castToScriptContextPtr(script_context)->current_script_call_location;
+  return (int) castToScriptContextPtr(script_context)->current_script_call_location;
 }
 
 int ScriptContext_GetIsScriptActive_impl(void* script_context)

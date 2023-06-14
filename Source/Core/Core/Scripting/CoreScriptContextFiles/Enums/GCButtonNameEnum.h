@@ -26,7 +26,10 @@ extern "C"  {
     TriggerR = 16,
     Start = 17,
     Reset = 18,
-    UnknownButton = 19
+    Disc = 19,
+    GetOrigin = 20,
+    IsConnected = 21,
+    UnknownButton = 22
   };
 
 #ifdef __cplusplus

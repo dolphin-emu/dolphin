@@ -81,4 +81,34 @@ ClassMetadata GetClassMetadataForModule(const std::string& module_name,
     return {};
 }
 
+FunctionMetadata GetFunctionMetadataForModuleFunctionAndVersion(const std::string& module_name,
+                                                                const std::string& function_name,
+                                                                const std::string& version_number)
+{
+  ClassMetadata classMetadata = GetClassMetadataForModule(module_name, version_number);
+  for (FunctionMetadata functionMetadata : classMetadata.functions_list)
+  {
+    if (functionMetadata.function_name == function_name)
+      return functionMetadata;
+  }
+  return {};
+}
+
+void Send_ClassMetadataForVersion_To_DLL_Buffer_impl(void* script_context, const char* module_name, const char* version_number)
+{
+  ClassMetadata classMetadata = GetClassMetadataForModule(std::string(module_name), std::string(version_number));
+  reinterpret_cast<ScriptContext*>(script_context)->dll_specific_api_definitions.DLLClassMetadataCopyHook(script_context, &classMetadata);
+  classMetadata.class_name = classMetadata.class_name; // ... just putting this here to prevent the compiler from trying to delete classMetadata early (although I'm 99% sure that's impossible).
+}
+
+void Send_FunctionMetadataForVersion_To_DLL_Buffer_impl(void* script_context,
+                                                        const char* module_name,
+                                                        const char* function_name,
+                                                        const char* version_number)
+{
+  FunctionMetadata functionMetadata = GetFunctionMetadataForModuleFunctionAndVersion(std::string(module_name), std::string(function_name), std::string(version_number));
+  reinterpret_cast<ScriptContext*>(script_context)->dll_specific_api_definitions.DLLFunctionMetadataCopyHook(script_context, &functionMetadata);
+  functionMetadata.function_name = functionMetadata.function_name; // ... This shouldn't do anything, but I'm putting it here just to make sure the compiler doesn't try to optimize away the FunctionMetadata while the DLL is using it.
+} 
+
 }  // namespace Scripting

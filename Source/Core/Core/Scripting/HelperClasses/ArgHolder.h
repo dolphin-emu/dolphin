@@ -26,8 +26,8 @@ struct ArgHolder
   u64 u64_val;
   s8 s8_val;
   s16 s16_val;
-  int int_val;
-  long long long_long_val;
+  s32 s32_val;
+  s64 s64_val;
   float float_val;
   double double_val;
   std::string string_val;
@@ -46,8 +46,8 @@ ArgHolder* CreateU32ArgHolder(u32 new_u32_val);
 ArgHolder* CreateU64ArgHolder(u64 new_u64_val);
 ArgHolder* CreateS8ArgHolder(s8 new_s8_val);
 ArgHolder* CreateS16ArgHolder(s16 new_s16_val);
-ArgHolder* CreateIntArgHolder(int new_int_val);
-ArgHolder* CreateLongLongArgHolder(long long new_long_long_val);
+ArgHolder* CreateS32ArgHolder(s32 new_s32_val);
+ArgHolder* CreateS64ArgHolder(s64 new_s64_val);
 ArgHolder* CreateFloatArgHolder(float new_float_val);
 ArgHolder* CreateDoubleArgHolder(double new_double_val);
 ArgHolder* CreateStringArgHolder(const std::string& new_string_val);
@@ -71,5 +71,6 @@ ArgHolder* CreateUnregistrationReturnTypeArgHolder(void* new_val);
 ArgHolder* CreateShutdownTypeArgHolder();
 
 ArgHolder* CreateEmptyOptionalArgument();
+
 }  // namespace Scripting
 #endif

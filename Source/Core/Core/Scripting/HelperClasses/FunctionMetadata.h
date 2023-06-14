@@ -47,7 +47,7 @@ typedef void* (*FUNCTION_POINTER_TYPE_FOR_FUNCTION_METADATA_API)(void*, void*);
 // The function which return const char* only have their return value be valid for as long as the lifespan to
 // the inputted FunctionMetadata* lasts on the Dolphin side.
 
-// As such, the 6 functions below should only be invoked from the DLL inside its FunctionMetadata_HookCallback or its ClassMetadata_HookCallback
+// As such, the 6 functions below should only be invoked from the DLL inside its FunctionMetadata_HookCallback or its ClassMetadata_HookCallback methods.
 const char* GetFunctionName_FunctionMetadta_impl(void*); // Returns the name of the function for the FunctionMetadata*
 const char* GetFunctionVersion_FunctionMetadata_impl(void*); // Returns the version of the function for the FunctionMetadata*
 const char* GetExampleFunctionCall_FunctionMetadata_impl(void*); // Returns an example function call for the FunctionMetadata*
