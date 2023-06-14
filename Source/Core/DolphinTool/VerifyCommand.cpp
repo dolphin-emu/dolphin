@@ -2,13 +2,77 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinTool/VerifyCommand.h"
-#include "UICommon/UICommon.h"
+
+#include <string>
+#include <vector>
 
 #include <OptionParser.h>
 
+#include "Common/StringUtil.h"
+#include "DiscIO/VolumeDisc.h"
+#include "DiscIO/VolumeVerifier.h"
+#include "UICommon/UICommon.h"
+
 namespace DolphinTool
 {
-int VerifyCommand::Main(const std::vector<std::string>& args)
+static std::string HashToHexString(const std::vector<u8>& hash)
+{
+  std::stringstream ss;
+  ss << std::hex;
+  for (int i = 0; i < static_cast<int>(hash.size()); ++i)
+  {
+    ss << std::setw(2) << std::setfill('0') << static_cast<int>(hash[i]);
+  }
+  return ss.str();
+}
+
+static void PrintFullReport(const DiscIO::VolumeVerifier::Result& result)
+{
+  if (!result.hashes.crc32.empty())
+    std::cout << "CRC32: " << HashToHexString(result.hashes.crc32) << std::endl;
+  else
+    std::cout << "CRC32 not computed" << std::endl;
+
+  if (!result.hashes.md5.empty())
+    std::cout << "MD5: " << HashToHexString(result.hashes.md5) << std::endl;
+  else
+    std::cout << "MD5 not computed" << std::endl;
+
+  if (!result.hashes.sha1.empty())
+    std::cout << "SHA1: " << HashToHexString(result.hashes.sha1) << std::endl;
+  else
+    std::cout << "SHA1 not computed" << std::endl;
+
+  std::cout << "Problems Found: " << (result.problems.empty() ? "No" : "Yes") << std::endl;
+
+  for (const auto& problem : result.problems)
+  {
+    std::cout << std::endl << "Severity: ";
+    switch (problem.severity)
+    {
+    case DiscIO::VolumeVerifier::Severity::Low:
+      std::cout << "Low";
+      break;
+    case DiscIO::VolumeVerifier::Severity::Medium:
+      std::cout << "Medium";
+      break;
+    case DiscIO::VolumeVerifier::Severity::High:
+      std::cout << "High";
+      break;
+    case DiscIO::VolumeVerifier::Severity::None:
+      std::cout << "None";
+      break;
+    default:
+      ASSERT(false);
+      break;
+    }
+    std::cout << std::endl;
+
+    std::cout << "Summary: " << problem.text << std::endl << std::endl;
+  }
+}
+
+int VerifyCommand(const std::vector<std::string>& args)
 {
   optparse::OptionParser parser;
 
@@ -114,62 +178,5 @@ int VerifyCommand::Main(const std::vector<std::string>& args)
   }
 
   return 0;
-}
-
-void VerifyCommand::PrintFullReport(const DiscIO::VolumeVerifier::Result& result)
-{
-  if (!result.hashes.crc32.empty())
-    std::cout << "CRC32: " << HashToHexString(result.hashes.crc32) << std::endl;
-  else
-    std::cout << "CRC32 not computed" << std::endl;
-
-  if (!result.hashes.md5.empty())
-    std::cout << "MD5: " << HashToHexString(result.hashes.md5) << std::endl;
-  else
-    std::cout << "MD5 not computed" << std::endl;
-
-  if (!result.hashes.sha1.empty())
-    std::cout << "SHA1: " << HashToHexString(result.hashes.sha1) << std::endl;
-  else
-    std::cout << "SHA1 not computed" << std::endl;
-
-  std::cout << "Problems Found: " << (result.problems.empty() ? "No" : "Yes") << std::endl;
-
-  for (const auto& problem : result.problems)
-  {
-    std::cout << std::endl << "Severity: ";
-    switch (problem.severity)
-    {
-    case DiscIO::VolumeVerifier::Severity::Low:
-      std::cout << "Low";
-      break;
-    case DiscIO::VolumeVerifier::Severity::Medium:
-      std::cout << "Medium";
-      break;
-    case DiscIO::VolumeVerifier::Severity::High:
-      std::cout << "High";
-      break;
-    case DiscIO::VolumeVerifier::Severity::None:
-      std::cout << "None";
-      break;
-    default:
-      ASSERT(false);
-      break;
-    }
-    std::cout << std::endl;
-
-    std::cout << "Summary: " << problem.text << std::endl << std::endl;
-  }
-}
-
-std::string VerifyCommand::HashToHexString(const std::vector<u8>& hash)
-{
-  std::stringstream ss;
-  ss << std::hex;
-  for (int i = 0; i < static_cast<int>(hash.size()); ++i)
-  {
-    ss << std::setw(2) << std::setfill('0') << static_cast<int>(hash[i]);
-  }
-  return ss.str();
 }
 }  // namespace DolphinTool
