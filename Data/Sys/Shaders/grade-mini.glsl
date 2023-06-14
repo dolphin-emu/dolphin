@@ -146,7 +146,7 @@ DefaultValue = 1.0, 1.0, 1.0
 
 ///////////////////////// Color Space Transformations //////////////////////////
 
-// mat3 type fails in Dolphin's HLSL translation for DX11 backend (float3x3)
+
 mat3 RGB_to_XYZ_mat(mat3 primaries) {
 
     float3 T = RW * inverse(primaries);
