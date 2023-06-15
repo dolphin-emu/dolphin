@@ -293,12 +293,12 @@ void JitArm64::GenerateFres()
   UBFX(ARM64Reg::X2, ARM64Reg::X1, 47, 5);  // Grab upper part of mantissa
   MOVP2R(ARM64Reg::X3, &Common::fres_expected);
   ADD(ARM64Reg::X2, ARM64Reg::X3, ARM64Reg::X2, ArithOption(ARM64Reg::X2, ShiftType::LSL, 3));
-  LDP(IndexType::Signed, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::X2, 0);
   UBFX(ARM64Reg::X1, ARM64Reg::X1, 37, 10);  // Grab lower part of mantissa
+  LDP(IndexType::Signed, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::X2, 0);
   MOVI2R(ARM64Reg::W4, 1);
-  AND(ARM64Reg::X0, ARM64Reg::X0, LogicalImm(Common::DOUBLE_SIGN | Common::DOUBLE_EXP, 64));
   MADD(ARM64Reg::W1, ARM64Reg::W3, ARM64Reg::W1, ARM64Reg::W4);
   SUB(ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W1, ArithOption(ARM64Reg::W1, ShiftType::LSR, 1));
+  AND(ARM64Reg::X0, ARM64Reg::X0, LogicalImm(Common::DOUBLE_SIGN | Common::DOUBLE_EXP, 64));
   ORR(ARM64Reg::X0, ARM64Reg::X0, ARM64Reg::X1, ArithOption(ARM64Reg::X1, ShiftType::LSL, 29));
   RET();
 
