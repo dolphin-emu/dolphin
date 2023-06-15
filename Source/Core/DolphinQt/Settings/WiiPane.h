@@ -62,6 +62,7 @@ private:
   QCheckBox* m_sd_card_checkbox;
   QCheckBox* m_allow_sd_writes_checkbox;
   QCheckBox* m_sync_sd_folder_checkbox;
+  QComboBox* m_sd_card_size_combo;
   QLineEdit* m_sd_raw_edit;
   QLineEdit* m_sd_sync_folder_edit;
   QPushButton* m_sd_pack_button;

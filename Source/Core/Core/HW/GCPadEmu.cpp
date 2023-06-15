@@ -38,14 +38,16 @@ static const u16 dpad_bitmasks[] = {PAD_BUTTON_UP, PAD_BUTTON_DOWN, PAD_BUTTON_L
 
 GCPad::GCPad(const unsigned int index) : m_index(index)
 {
+  using Translatability = ControllerEmu::Translatability;
+
   // buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(BUTTONS_GROUP));
   for (const char* named_button : {A_BUTTON, B_BUTTON, X_BUTTON, Y_BUTTON, Z_BUTTON})
   {
-    m_buttons->AddInput(ControllerEmu::DoNotTranslate, named_button);
+    m_buttons->AddInput(Translatability::DoNotTranslate, named_button);
   }
   // i18n: The START/PAUSE button on GameCube controllers
-  m_buttons->AddInput(ControllerEmu::Translate, START_BUTTON, _trans("START"));
+  m_buttons->AddInput(Translatability::Translate, START_BUTTON, _trans("START"));
 
   // sticks
   groups.emplace_back(m_main_stick = new ControllerEmu::OctagonAnalogStick(
@@ -57,23 +59,23 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
   groups.emplace_back(m_triggers = new ControllerEmu::MixedTriggers(TRIGGERS_GROUP));
   for (const char* named_trigger : {L_DIGITAL, R_DIGITAL, L_ANALOG, R_ANALOG})
   {
-    m_triggers->AddInput(ControllerEmu::Translate, named_trigger);
+    m_triggers->AddInput(Translatability::Translate, named_trigger);
   }
 
   // dpad
   groups.emplace_back(m_dpad = new ControllerEmu::Buttons(DPAD_GROUP));
   for (const char* named_direction : named_directions)
   {
-    m_dpad->AddInput(ControllerEmu::Translate, named_direction);
+    m_dpad->AddInput(Translatability::Translate, named_direction);
   }
 
   // Microphone
   groups.emplace_back(m_mic = new ControllerEmu::Buttons(MIC_GROUP));
-  m_mic->AddInput(ControllerEmu::Translate, _trans("Button"));
+  m_mic->AddInput(Translatability::Translate, _trans("Button"));
 
   // rumble
   groups.emplace_back(m_rumble = new ControllerEmu::ControlGroup(RUMBLE_GROUP));
-  m_rumble->AddOutput(ControllerEmu::Translate, _trans("Motor"));
+  m_rumble->AddOutput(Translatability::Translate, _trans("Motor"));
 
   // options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(OPTIONS_GROUP));

@@ -21,6 +21,8 @@ public:
   // Automatically loads the specified library. Call IsOpen() to check validity before use.
   DynamicLibrary(const char* filename);
 
+  DynamicLibrary(void* handle);
+
   // Closes the library.
   ~DynamicLibrary();
 
@@ -29,6 +31,8 @@ public:
 
   DynamicLibrary& operator=(const DynamicLibrary&) = delete;
   DynamicLibrary& operator=(DynamicLibrary&&) = delete;
+
+  DynamicLibrary& operator=(void*);
 
   // Returns the specified library name with the platform-specific suffix added.
   static std::string GetUnprefixedFilename(const char* filename);

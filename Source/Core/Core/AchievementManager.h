@@ -5,6 +5,7 @@
 
 #ifdef USE_RETRO_ACHIEVEMENTS
 #include <array>
+#include <ctime>
 #include <functional>
 #include <mutex>
 #include <string>
@@ -109,7 +110,7 @@ private:
   u32 m_game_id = 0;
   rc_api_fetch_game_data_response_t m_game_data{};
   bool m_is_game_loaded = false;
-  u64 m_last_ping_time = 0;
+  time_t m_last_ping_time = 0;
 
   struct UnlockStatus
   {

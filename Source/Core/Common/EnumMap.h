@@ -15,12 +15,9 @@ namespace Common
 {
 // A type that allows lookup of values associated with an enum as the key.
 // Designed for enums whose numeric values start at 0 and increment continuously with few gaps.
-template <typename V, auto last_member, typename = decltype(last_member)>
+template <typename V, auto last_member>
 class EnumMap final
 {
-  // The third template argument is needed to avoid compile errors from ambiguity with multiple
-  // enums with the same number of members in GCC prior to 8.  See https://godbolt.org/z/xcKaW1seW
-  // and https://godbolt.org/z/hz7Yqq1P5
   using T = decltype(last_member);
   static_assert(std::is_enum_v<T>);
   static constexpr size_t s_size = static_cast<size_t>(last_member) + 1;

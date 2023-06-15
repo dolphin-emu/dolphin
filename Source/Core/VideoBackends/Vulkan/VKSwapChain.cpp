@@ -415,7 +415,7 @@ bool SwapChain::SetupSwapChainImages()
     if (!image.texture)
       return false;
 
-    image.framebuffer = VKFramebuffer::Create(image.texture.get(), nullptr);
+    image.framebuffer = VKFramebuffer::Create(image.texture.get(), nullptr, {});
     if (!image.framebuffer)
     {
       image.texture.reset();

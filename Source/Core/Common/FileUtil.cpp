@@ -66,6 +66,8 @@ namespace File
 {
 #ifdef ANDROID
 static std::string s_android_sys_directory;
+static std::string s_android_driver_directory;
+static std::string s_android_lib_directory;
 #endif
 
 #ifdef __APPLE__
@@ -796,6 +798,34 @@ void SetSysDirectory(const std::string& path)
              s_android_sys_directory);
   s_android_sys_directory = path;
 }
+
+void SetGpuDriverDirectories(const std::string& path, const std::string& lib_path)
+{
+  INFO_LOG_FMT(COMMON, "Setting Driver directory to {} and library path to {}", path, lib_path);
+  ASSERT_MSG(COMMON, s_android_driver_directory.empty(), "Driver directory already set to {}",
+             s_android_driver_directory);
+  ASSERT_MSG(COMMON, s_android_lib_directory.empty(), "Library directory already set to {}",
+             s_android_lib_directory);
+  s_android_driver_directory = path;
+  s_android_lib_directory = lib_path;
+}
+
+const std::string GetGpuDriverDirectory(unsigned int dir_index)
+{
+  switch (dir_index)
+  {
+  case D_GPU_DRIVERS_EXTRACTED:
+    return s_android_driver_directory + DIR_SEP GPU_DRIVERS_EXTRACTED DIR_SEP;
+  case D_GPU_DRIVERS_TMP:
+    return s_android_driver_directory + DIR_SEP GPU_DRIVERS_TMP DIR_SEP;
+  case D_GPU_DRIVERS_HOOKS:
+    return s_android_lib_directory;
+  case D_GPU_DRIVERS_FILE_REDIRECT:
+    return s_android_driver_directory + DIR_SEP GPU_DRIVERS_FILE_REDIRECT DIR_SEP;
+  }
+  return "";
+}
+
 #endif
 
 static std::string s_user_paths[NUM_PATH_INDICES];

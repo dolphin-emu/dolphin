@@ -62,6 +62,12 @@ enum class StringSetting(
         Settings.SECTION_GFX_ENHANCEMENTS,
         "PostProcessingShader",
         ""
+    ),
+    GFX_DRIVER_LIB_NAME(
+        Settings.FILE_GFX,
+        Settings.SECTION_GFX_SETTINGS,
+        "DriverLibName",
+        ""
     );
 
     override val isOverridden: Boolean

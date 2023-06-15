@@ -36,7 +36,7 @@ std::string VideoBackend::GetDisplayName() const
   return "Direct3D 12";
 }
 
-void VideoBackend::InitBackendInfo()
+void VideoBackend::InitBackendInfo(const WindowSystemInfo& wsi)
 {
   if (!D3DCommon::LoadLibraries())
     return;

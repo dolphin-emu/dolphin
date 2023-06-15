@@ -93,7 +93,8 @@ Metal::Gfx::CreateStagingTexture(StagingTextureType type, const TextureConfig& c
 }
 
 std::unique_ptr<AbstractFramebuffer>
-Metal::Gfx::CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment)
+Metal::Gfx::CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
+                              std::vector<AbstractTexture*>)
 {
   AbstractTexture* const either_attachment = color_attachment ? color_attachment : depth_attachment;
   return std::make_unique<Framebuffer>(

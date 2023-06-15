@@ -59,16 +59,6 @@ Host* Host::GetInstance()
   return s_instance;
 }
 
-void Host::DeclareAsHostThread()
-{
-  tls_is_host_thread = true;
-}
-
-bool Host::IsHostThread()
-{
-  return tls_is_host_thread;
-}
-
 void Host::SetRenderHandle(void* handle)
 {
   m_render_to_main = Config::Get(Config::MAIN_RENDER_TO_MAIN);

@@ -10,6 +10,7 @@
 #include "AudioCommon/AudioCommon.h"
 #include "Common/Assert.h"
 #include "Common/CommonPaths.h"
+#include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/EnumMap.h"
 #include "Common/FileUtil.h"
@@ -175,6 +176,7 @@ const Info<bool>& GetInfoForSimulateKonga(int channel)
 const Info<bool> MAIN_WII_SD_CARD{{System::Main, "Core", "WiiSDCard"}, true};
 const Info<bool> MAIN_WII_SD_CARD_ENABLE_FOLDER_SYNC{
     {System::Main, "Core", "WiiSDCardEnableFolderSync"}, false};
+const Info<u64> MAIN_WII_SD_CARD_FILESIZE{{System::Main, "Core", "WiiSDCardFilesize"}, 0};
 const Info<bool> MAIN_WII_KEYBOARD{{System::Main, "Core", "WiiKeyboard"}, false};
 const Info<bool> MAIN_WIIMOTE_CONTINUOUS_SCANNING{
     {System::Main, "Core", "WiimoteContinuousScanning"}, false};
@@ -295,6 +297,8 @@ const Info<std::string> MAIN_WIRELESS_MAC{{System::Main, "General", "WirelessMac
 const Info<std::string> MAIN_GDB_SOCKET{{System::Main, "General", "GDBSocket"}, ""};
 const Info<int> MAIN_GDB_PORT{{System::Main, "General", "GDBPort"}, -1};
 const Info<int> MAIN_ISO_PATH_COUNT{{System::Main, "General", "ISOPaths"}, 0};
+const Info<std::string> MAIN_SKYLANDERS_PATH{{System::Main, "General", "SkylandersCollectionPath"},
+                                             ""};
 
 static Info<std::string> MakeISOPathConfigInfo(size_t idx)
 {

@@ -4,6 +4,7 @@
 #pragma once
 
 #include <array>
+#include <filesystem>
 #include <fmt/format.h>
 #include <map>
 #include <memory>
@@ -35,7 +36,8 @@ struct VideoConfig;
 namespace VideoCommon
 {
 class CustomTextureData;
-}
+class GameTextureAsset;
+}  // namespace VideoCommon
 
 constexpr std::string_view EFB_DUMP_PREFIX = "efb1";
 constexpr std::string_view XFB_DUMP_PREFIX = "xfb1";
@@ -113,6 +115,12 @@ struct fmt::formatter<EFBCopyParams>
   }
 };
 
+struct CachedTextureAsset
+{
+  std::shared_ptr<VideoCommon::GameTextureAsset> m_asset;
+  std::optional<std::filesystem::file_time_type> m_last_write_time;
+};
+
 struct TCacheEntry
 {
   // common members
@@ -163,6 +171,8 @@ struct TCacheEntry
   u32 pending_efb_copy_height = 0;
 
   std::string texture_info_name = "";
+
+  CachedTextureAsset linked_asset;
 
   explicit TCacheEntry(std::unique_ptr<AbstractTexture> tex,
                        std::unique_ptr<AbstractFramebuffer> fb);
@@ -262,7 +272,6 @@ public:
   void Shutdown();
 
   void OnConfigChanged(const VideoConfig& config);
-  void ForceReload();
 
   // Removes textures which aren't used for more than TEXTURE_KILL_THRESHOLD frames,
   // frameCount is the current frame number.
@@ -303,9 +312,6 @@ public:
   static bool AllCopyFilterCoefsNeeded(const std::array<u32, 3>& coefficients);
   static bool CopyFilterCanOverflow(const std::array<u32, 3>& coefficients);
 
-  // Will forcibly reload all textures when the frame next ends
-  void ForceReloadTextures() { m_force_reload_textures.Set(); }
-
 protected:
   // Decodes the specified data to the GPU texture specified by entry.
   // Returns false if the configuration is not supported.
@@ -337,13 +343,17 @@ private:
 
   using TexPool = std::unordered_multimap<TextureConfig, TexPoolEntry>;
 
+  static bool DidLinkedAssetsChange(const TCacheEntry& entry);
+
+  TCacheEntry* LoadImpl(const TextureInfo& texture_info, bool force_reload);
+
   bool CreateUtilityTextures();
 
   void SetBackupConfig(const VideoConfig& config);
 
   RcTcacheEntry CreateTextureEntry(const TextureCreationInfo& creation_info,
                                    const TextureInfo& texture_info, int safety_color_sample_size,
-                                   VideoCommon::CustomTextureData* custom_texture_data,
+                                   const VideoCommon::CustomTextureData* custom_texture_data,
                                    bool custom_arbitrary_mipmaps);
 
   RcTcacheEntry GetXFBFromCache(u32 address, u32 width, u32 height, u32 stride);
@@ -454,7 +464,6 @@ private:
 
   void OnFrameEnd();
 
-  Common::Flag m_force_reload_textures;
   Common::EventHook m_frame_event =
       AfterFrameEvent::Register([this] { OnFrameEnd(); }, "TextureCache");
 };

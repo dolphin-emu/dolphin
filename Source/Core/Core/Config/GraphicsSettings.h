@@ -46,6 +46,7 @@ extern const Info<bool> GFX_OVERLAY_SCISSOR_STATS;
 extern const Info<bool> GFX_DUMP_TEXTURES;
 extern const Info<bool> GFX_DUMP_MIP_TEXTURES;
 extern const Info<bool> GFX_DUMP_BASE_TEXTURES;
+extern const Info<int> GFX_TEXTURE_PNG_COMPRESSION_LEVEL;
 extern const Info<bool> GFX_HIRES_TEXTURES;
 extern const Info<bool> GFX_CACHE_HIRES_TEXTURES;
 extern const Info<bool> GFX_DUMP_EFB_TARGET;
@@ -146,5 +147,9 @@ extern const Info<bool> GFX_HACK_NO_MIPMAPPING;
 // Graphics.GameSpecific
 
 extern const Info<bool> GFX_PERF_QUERIES_ENABLE;
+
+// Android custom GPU drivers
+
+extern const Info<std::string> GFX_DRIVER_LIB_NAME;
 
 }  // namespace Config

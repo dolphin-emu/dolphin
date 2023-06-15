@@ -39,7 +39,7 @@ bool SwapChain::CreateSwapChainBuffers()
   if (!m_texture)
     return false;
 
-  m_framebuffer = DXFramebuffer::Create(m_texture.get(), nullptr);
+  m_framebuffer = DXFramebuffer::Create(m_texture.get(), nullptr, {});
   if (!m_framebuffer)
     return false;
 

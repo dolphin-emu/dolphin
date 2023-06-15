@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.serialization' version "1.7.20"
 }
 
 task copyProfile (type: Copy) {
@@ -110,6 +111,7 @@ android {
     externalNativeBuild {
         cmake {
             path "../../../CMakeLists.txt"
+            version "3.22.1+"
         }
     }
     namespace 'org.dolphinemu.dolphinemu'
@@ -122,9 +124,13 @@ android {
                 abiFilters "arm64-v8a", "x86_64" //, "armeabi-v7a", "x86"
 
                 // Remove the line below if you want to build the C++ unit tests
-                targets "main"
+                //targets "main", "hook_impl", "main_hook", "gsl_alloc_hook", "file_redirect_hook"
             }
         }
+    }
+
+    packagingOptions {
+        jniLibs.useLegacyPackaging = true
     }
 }
 
@@ -159,6 +165,9 @@ dependencies {
 
     // For loading game covers from disk and GameTDB
     implementation 'io.coil-kt:coil:2.2.2'
+
+    // For loading custom GPU drivers
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.3"
 
     implementation 'com.nononsenseapps:filepicker:4.2.1'
 }

@@ -30,7 +30,7 @@
 
 namespace Vulkan
 {
-void VideoBackend::InitBackendInfo()
+void VideoBackend::InitBackendInfo(const WindowSystemInfo& wsi)
 {
   VulkanContext::PopulateBackendInfo(&g_Config);
 

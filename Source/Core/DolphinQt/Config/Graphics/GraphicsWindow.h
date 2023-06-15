@@ -28,4 +28,6 @@ signals:
 private:
   void CreateMainLayout();
   void OnBackendChanged(const QString& backend);
+
+  MainWindow* const m_main_window;
 };

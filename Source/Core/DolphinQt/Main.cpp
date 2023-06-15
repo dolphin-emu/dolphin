@@ -129,7 +129,7 @@ int main(int argc, char* argv[])
   }
 #endif
 
-  Host::GetInstance()->DeclareAsHostThread();
+  Core::DeclareAsHostThread();
 
 #ifdef __APPLE__
   // On macOS, a command line option matching the format "-psn_X_XXXXXX" is passed when
@@ -151,15 +151,6 @@ int main(int argc, char* argv[])
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 3, 0))
   setenv("QT_XCB_NO_XI2", "1", true);
 #endif
-#endif
-
-  // setHighDpiScaleFactorRoundingPolicy was added in 5.14, but default behavior changed in 6.0
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
-  // Set to the previous default behavior
-  QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::Round);
-#else
-  QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-  QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 #endif
 
   QCoreApplication::setOrganizationName(QStringLiteral("Dolphin Emulator"));

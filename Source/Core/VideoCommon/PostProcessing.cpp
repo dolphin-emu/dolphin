@@ -255,7 +255,13 @@ void PostProcessingConfiguration::LoadOptionsConfiguration()
       std::string value;
       ini.GetOrCreateSection(section)->Get(it.second.m_option_name, &value);
       if (!value.empty())
-        TryParseVector(value, &it.second.m_integer_values);
+      {
+        auto integer_values = it.second.m_integer_values;
+        if (TryParseVector(value, &integer_values))
+        {
+          it.second.m_integer_values = integer_values;
+        }
+      }
     }
     break;
     case ConfigurationOption::OptionType::Float:
@@ -263,7 +269,13 @@ void PostProcessingConfiguration::LoadOptionsConfiguration()
       std::string value;
       ini.GetOrCreateSection(section)->Get(it.second.m_option_name, &value);
       if (!value.empty())
-        TryParseVector(value, &it.second.m_float_values);
+      {
+        auto float_values = it.second.m_float_values;
+        if (TryParseVector(value, &float_values))
+        {
+          it.second.m_float_values = float_values;
+        }
+      }
     }
     break;
     }
@@ -664,13 +676,13 @@ void PostProcessing::FillUniformBuffer(const MathUtil::Rectangle<int>& src,
       break;
 
     case PostProcessingConfiguration::ConfigurationOption::OptionType::Integer:
-      ASSERT(it.second.m_integer_values.size() < 4);
+      ASSERT(it.second.m_integer_values.size() <= 4);
       std::copy_n(it.second.m_integer_values.begin(), it.second.m_integer_values.size(),
                   value.as_int);
       break;
 
     case PostProcessingConfiguration::ConfigurationOption::OptionType::Float:
-      ASSERT(it.second.m_float_values.size() < 4);
+      ASSERT(it.second.m_float_values.size() <= 4);
       std::copy_n(it.second.m_float_values.begin(), it.second.m_float_values.size(),
                   value.as_float);
       break;

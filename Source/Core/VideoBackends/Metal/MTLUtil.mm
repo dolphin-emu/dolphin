@@ -263,6 +263,8 @@ AbstractTextureFormat Metal::Util::ToAbstract(MTLPixelFormat format)
   {
   case MTLPixelFormatRGBA8Unorm:            return AbstractTextureFormat::RGBA8;
   case MTLPixelFormatBGRA8Unorm:            return AbstractTextureFormat::BGRA8;
+  case MTLPixelFormatRGB10A2Unorm:          return AbstractTextureFormat::RGB10_A2;
+  case MTLPixelFormatRGBA16Float:           return AbstractTextureFormat::RGBA16F;
   case MTLPixelFormatBC1_RGBA:              return AbstractTextureFormat::DXT1;
   case MTLPixelFormatBC2_RGBA:              return AbstractTextureFormat::DXT3;
   case MTLPixelFormatBC3_RGBA:              return AbstractTextureFormat::DXT5;
@@ -289,6 +291,8 @@ MTLPixelFormat Metal::Util::FromAbstract(AbstractTextureFormat format)
   {
   case AbstractTextureFormat::RGBA8:     return MTLPixelFormatRGBA8Unorm;
   case AbstractTextureFormat::BGRA8:     return MTLPixelFormatBGRA8Unorm;
+  case AbstractTextureFormat::RGB10_A2:  return MTLPixelFormatRGB10A2Unorm;
+  case AbstractTextureFormat::RGBA16F:   return MTLPixelFormatRGBA16Float;
   case AbstractTextureFormat::DXT1:      return MTLPixelFormatBC1_RGBA;
   case AbstractTextureFormat::DXT3:      return MTLPixelFormatBC2_RGBA;
   case AbstractTextureFormat::DXT5:      return MTLPixelFormatBC3_RGBA;
