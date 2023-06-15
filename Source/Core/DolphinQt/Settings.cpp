@@ -702,17 +702,17 @@ void Settings::SetBatchModeEnabled(bool batch)
 
 std::string Settings::GetSlippiInputFile() const
 {
-  return SConfig::GetInstance().m_strSlippiInput;
+  return SConfig::GetSlippiConfig().slippi_input;
 }
 
 void Settings::SetSlippiInputFile(std::string path)
 {
-  SConfig::GetInstance().m_strSlippiInput = path;
+  SConfig::GetSlippiConfig().slippi_input = path;
 }
 
 void Settings::SetSlippiSeekbarEnabled(bool enabled)
 {
-  SConfig::GetInstance().m_slippiEnableSeek = enabled;
+  Config::SetBase(Config::SLIPPI_ENABLE_SEEK, enabled);
 }
 
 bool Settings::IsSDCardInserted() const

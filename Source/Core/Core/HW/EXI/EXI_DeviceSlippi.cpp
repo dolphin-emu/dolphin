@@ -28,7 +28,10 @@
 #include "Core/NetPlayClient.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/Slippi/SlippiMatchmaking.h"
+
+// SlippiTODO: should we remove this import for netplay build?? ifdef?
 #include "Core/Slippi/SlippiPlayback.h"
+
 #include "Core/Slippi/SlippiPremadeText.h"
 #include "Core/Slippi/SlippiReplayComm.h"
 #include "Core/State.h"
@@ -399,7 +402,7 @@ std::vector<u8> CEXISlippi::generateMetadata()
 
 void CEXISlippi::writeToFileAsync(u8* payload, u32 length, std::string fileOption)
 {
-  if (!SConfig::GetInstance().m_slippiSaveReplays)
+  if (!Config::Get(Config::SLIPPI_SAVE_REPLAYS))
   {
     return;
   }
@@ -543,12 +546,12 @@ void CEXISlippi::createNewFile()
     closeFile();
   }
 
-  std::string dirpath = SConfig::GetInstance().m_strSlippiReplayDir;
+  std::string dirpath = Config::Get(Config::SLIPPI_REPLAY_DIR);
   // in case the config value just gets lost somehow
   if (dirpath.empty())
   {
-    SConfig::GetInstance().m_strSlippiReplayDir = File::GetHomeDirectory() + DIR_SEP + "Slippi";
-    dirpath = SConfig::GetInstance().m_strSlippiReplayDir;
+    Config::Get(Config::SLIPPI_REPLAY_DIR) = File::GetHomeDirectory() + DIR_SEP + "Slippi";
+    dirpath = Config::Get(Config::SLIPPI_REPLAY_DIR);
   }
 
   // Remove a trailing / or \\ if the user managed to have that in their config
@@ -563,7 +566,7 @@ void CEXISlippi::createNewFile()
 
   // Now we have a dir such as /home/Replays but we need to make one such
   // as /home/Replays/2020-06 if month categorization is enabled
-  if (SConfig::GetInstance().m_slippiReplayMonthFolders)
+  if (Config::Get(Config::SLIPPI_REPLAY_MONTH_FOLDERS))
   {
     dirpath.push_back('/');
 
@@ -657,8 +660,8 @@ void CEXISlippi::prepareGameInfo(u8* payload)
   Slippi::GameSettings* settings = m_current_game->GetSettings();
 
   // Unlikely but reset the overclocking in case we quit during a hard ffw in a previous play
-  SConfig::GetInstance().m_OCEnable = g_playbackStatus->origOCEnable;
-  SConfig::GetInstance().m_OCFactor = g_playbackStatus->origOCFactor;
+  SConfig::GetSlippiConfig().oc_enable = g_playbackStatus->origOCEnable;
+  SConfig::GetSlippiConfig().oc_factor = g_playbackStatus->origOCFactor;
 
   // Start in Fast Forward if this is mirrored
   auto replayCommSettings = g_replayComm->getSettings();
@@ -2042,7 +2045,7 @@ void CEXISlippi::startFindMatch(u8* payload)
   {
     // Some special handling for teams since it is being heavily used for unranked
     if (localSelections.characterId >= 26 &&
-        SConfig::GetInstance().m_melee_version != Melee::Version::MEX)
+        SConfig::GetSlippiConfig().melee_version != Melee::Version::MEX)
     {
       forcedError = "The character you selected is not allowed in this mode";
       return;
@@ -2479,7 +2482,7 @@ void CEXISlippi::prepareOnlineMatchState()
     }
     else if (lastSearch.mode == SlippiMatchmaking::OnlinePlayMode::TEAMS)
     {
-      auto isMEX = SConfig::GetInstance().m_melee_version == Melee::Version::MEX;
+      auto isMEX = SConfig::GetSlippiConfig().melee_version == Melee::Version::MEX;
 
       if (!localCharOk && !isMEX)
       {
@@ -2597,7 +2600,7 @@ void CEXISlippi::prepareOnlineMatchState()
   appendWordToBuffer(&m_read_queue, rngOffset);
 
   // Add delay frames to output
-  m_read_queue.push_back(static_cast<u8>(SConfig::GetInstance().m_slippiOnlineDelay));
+  m_read_queue.push_back(static_cast<u8>(Config::Get(Config::SLIPPI_ONLINE_DELAY)));
 
   // Add chat messages id
   m_read_queue.push_back(static_cast<u8>(sentChatMessageId));
@@ -2865,7 +2868,7 @@ void CEXISlippi::preparePremadeTextLoad(u8* payload)
 
 bool CEXISlippi::isSlippiChatEnabled()
 {
-  auto chatEnabledChoice = SConfig::GetInstance().m_slippiEnableQuickChat;
+  auto chatEnabledChoice = Config::Get(Config::SLIPPI_ENABLE_QUICK_CHAT);
   bool res = true;
   switch (lastSearch.mode)
   {
@@ -3057,7 +3060,7 @@ void CEXISlippi::prepareDelayResponse()
     m_read_queue.push_back(0);
     return;
   }
-  m_read_queue.push_back((u8)SConfig::GetInstance().m_slippiOnlineDelay);
+  m_read_queue.push_back(Config::Get(Config::SLIPPI_ONLINE_DELAY));
 }
 
 void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)

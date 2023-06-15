@@ -116,6 +116,29 @@ void SConfig::SetRunningGameMetadata(const DiscIO::Volume& volume,
                            volume.GetTitleID(partition).value_or(0),
                            volume.GetRevision(partition).value_or(0), volume.GetRegion());
   }
+
+  // Set Slippi specific metadata
+  if (m_game_id == "GALE01" || m_game_id == "GALJ01")
+  {
+    slippi_config.melee_version = Melee::Version::NTSC;
+
+    if (volume.GetLongNames()[DiscIO::Language::English].find("20XX") != std::string::npos)
+      slippi_config.melee_version = Melee::Version::TwentyXX;
+    else
+    {
+      // check for m-ex based build
+      if (volume.GetFileSystem(partition)->FindFileInfo("MxDt.dat") != nullptr)
+      {
+        slippi_config.melee_version = Melee::Version::MEX;
+      }
+    }
+  }
+  else if (m_game_id == "GTME01")
+  {
+    slippi_config.melee_version = Melee::Version::UPTM;
+  }
+
+  INFO_LOG_FMT(SLIPPI, "GameType: {}", m_game_id);
 }
 
 void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd, DiscIO::Platform platform)

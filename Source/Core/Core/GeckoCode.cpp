@@ -167,8 +167,8 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
   PowerPC::HostWrite_U32(guard, MAGIC_GAMEID, INSTALLER_BASE_ADDRESS);
 
   // Install the custom bootloader to write gecko codes to the heap
-  if (SConfig::GetInstance().m_melee_version == Melee::Version::NTSC ||
-      SConfig::GetInstance().m_melee_version == Melee::Version::MEX)
+  if (SConfig::GetSlippiConfig().melee_version == Melee::Version::NTSC ||
+      SConfig::GetSlippiConfig().melee_version == Melee::Version::MEX)
   {
     // Write GCT loader into memory which will eventually load the real GCT into the heap
     std::string bootloaderData;

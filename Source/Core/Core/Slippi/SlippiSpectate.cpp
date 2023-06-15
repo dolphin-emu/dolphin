@@ -1,4 +1,5 @@
 #include "SlippiSpectate.h"
+#include <Core/Config/MainSettings.h>
 #include <Core/ConfigManager.h>
 #include "Common/Base64.hpp"
 #include "Common/CommonTypes.h"
@@ -15,7 +16,7 @@
 
 inline bool isSpectatorEnabled()
 {
-  return SConfig::GetInstance().m_enableSpectator;
+  return Config::Get(Config::SLIPPI_ENABLE_SPECTATOR);
 }
 
 SlippiSpectateServer& SlippiSpectateServer::getInstance()
@@ -279,7 +280,7 @@ void SlippiSpectateServer::SlippicommSocketThread(void)
 
   ENetAddress server_address = {0};
   server_address.host = ENET_HOST_ANY;
-  server_address.port = SConfig::GetInstance().m_spectatorPort;
+  server_address.port = Config::Get(Config::SLIPPI_ENABLE_SPECTATOR);
 
   // Create the spectator server
   // This call can fail if the system is already listening on the specified port

@@ -15,6 +15,7 @@
 #include <sys/stat.h>
 #include <vector>
 
+#include <Core/Config/MainSettings.h>
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
@@ -189,7 +190,7 @@ void PipeDevice::UpdateInput()
       m_buf.erase(0, newline + 1);
       newline = m_buf.find("\n");
     }
-  } while (!finished && SConfig::GetInstance().m_blockingPipes);
+  } while (!finished && Config::Get(Config::SLIPPI_BLOCKING_PIPES));
 }
 
 void PipeDevice::AddAxis(const std::string& name, double value)

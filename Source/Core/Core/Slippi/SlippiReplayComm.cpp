@@ -32,8 +32,8 @@ static inline void trim(std::string& s)
 SlippiReplayComm::SlippiReplayComm()
 {
   INFO_LOG_FMT(EXPANSIONINTERFACE, "SlippiReplayComm: Using playback config path: {}",
-               SConfig::GetInstance().m_strSlippiInput.c_str());
-  configFilePath = SConfig::GetInstance().m_strSlippiInput.c_str();
+               SConfig::GetSlippiConfig().slippi_input);
+  configFilePath = SConfig::GetSlippiConfig().slippi_input;
 }
 
 SlippiReplayComm::~SlippiReplayComm()

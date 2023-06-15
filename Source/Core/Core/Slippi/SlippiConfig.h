@@ -20,4 +20,12 @@ enum class Chat
   DIRECT_ONLY,
   OFF
 };
-}
+
+struct Config
+{
+  Melee::Version melee_version;
+  bool oc_enable = true;
+  float oc_factor = 1.0f;
+  std::string slippi_input = "";
+};
+}  // namespace Slippi

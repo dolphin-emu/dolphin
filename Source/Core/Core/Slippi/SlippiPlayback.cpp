@@ -123,7 +123,7 @@ void SlippiPlaybackStatus::processInitialState()
   // Doing it here to get it out of the way and prevent stutters later
   // Subsequent calls to SaveToBuffer for cState take ~1 frame
   State::SaveToBuffer(cState);
-  if (SConfig::GetInstance().m_slippiEnableSeek)
+  if (Config::Get(Config::SLIPPI_ENABLE_SEEK))
   {
     Config::SetCurrent(Config::MAIN_SHOW_CURSOR, Config::ShowCursor::Constantly);
   }
@@ -159,7 +159,7 @@ void SlippiPlaybackStatus::SavestateThread()
       processInitialState();
       inSlippiPlayback = true;
     }
-    else if (SConfig::GetInstance().m_slippiEnableSeek && !hasStateBeenProcessed && !isStartFrame)
+    else if (Config::Get(Config::SLIPPI_ENABLE_SEEK) && !hasStateBeenProcessed && !isStartFrame)
     {
       INFO_LOG_FMT(SLIPPI, "saving diff at frame: {}", fixedFrameNumber);
       State::SaveToBuffer(cState);
@@ -262,13 +262,13 @@ void SlippiPlaybackStatus::setHardFFW(bool enable)
 {
   if (enable)
   {
-    SConfig::GetInstance().m_OCEnable = true;
-    SConfig::GetInstance().m_OCFactor = 4.0f;
+    SConfig::GetSlippiConfig().oc_enable = true;
+    SConfig::GetSlippiConfig().oc_factor = 4.0f;
   }
   else
   {
-    SConfig::GetInstance().m_OCFactor = origOCFactor;
-    SConfig::GetInstance().m_OCEnable = origOCEnable;
+    SConfig::GetSlippiConfig().oc_factor = origOCFactor;
+    SConfig::GetSlippiConfig().oc_enable = origOCEnable;
   }
 
   isHardFFW = enable;

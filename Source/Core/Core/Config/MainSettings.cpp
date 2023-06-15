@@ -25,11 +25,34 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/PowerPC/PowerPC.h"
+
 #include "DiscIO/Enums.h"
 #include "VideoCommon/VideoBackendBase.h"
 
 namespace Config
 {
+// Main.Slippi
+
+// Netplay Settings
+const Info<u8> SLIPPI_ONLINE_DELAY{{System::Main, "Slippi", "OnlineDelay"}, 2};
+const Info<bool> SLIPPI_ENABLE_SPECTATOR{{System::Main, "Slippi", "EnableSpectator"}, true};
+const Info<u32> SLIPPI_SPECTATOR_LOCAL_PORT{{System::Main, "Slippi", "SpectatorLocalPort"}, 51441};
+const Info<bool> SLIPPI_SAVE_REPLAYS{{System::Main, "Slippi", "SaveReplays"}, true};
+const Info<Slippi::Chat> SLIPPI_ENABLE_QUICK_CHAT{{System::Main, "Slippi", "EnableQuickChat"},
+                                                  Slippi::Chat::ON};
+const Info<bool> SLIPPI_FORCE_NETPLAY_PORT{{System::Main, "Slippi", "ForceNetplayPort"}, false};
+const Info<u32> SLIPPI_NETPLAY_PORT{{System::Main, "Slippi", "NetplayPort"}, 2626};
+const Info<bool> SLIPPI_FORCE_LAN_IP{{System::Main, "Slippi", "ForceLanIP"}, false};
+const Info<std::string> SLIPPI_LAN_IP{{System::Main, "Slippi", "LanIP"}, ""};
+const Info<bool> SLIPPI_REPLAY_MONTH_FOLDERS{{System::Main, "Slippi", "ReplayMonthFolders"}, true};
+const Info<std::string> SLIPPI_REPLAY_DIR{{System::Main, "Slippi", "ReplayDir"},
+                                          File::GetHomeDirectory() + DIR_SEP + "Slippi"};
+const Info<bool> SLIPPI_ENABLE_FRAME_INDEX{{System::Main, "Slippi", "EnableFrameIndex"}, false};
+const Info<bool> SLIPPI_BLOCKING_PIPES{{System::Main, "Slippi", "BlockingPipes"}, false};
+
+// Playback Settings
+const Info<bool> SLIPPI_ENABLE_SEEK{{System::Main, "Slippi", "EnableSeek"}, true};
+
 // Main.Core
 
 const Info<bool> MAIN_SKIP_IPL{{System::Main, "Core", "SkipIPL"}, true};
@@ -107,10 +130,10 @@ const Info<std::string>& GetInfoForGCIPathOverride(ExpansionInterface::Slot slot
 
 const Info<int> MAIN_MEMORY_CARD_SIZE{{System::Main, "Core", "MemoryCardSize"}, -1};
 
-const Info<ExpansionInterface::EXIDeviceType> MAIN_SLOT_A{
-    {System::Main, "Core", "SlotA"}, ExpansionInterface::EXIDeviceType::None};
-const Info<ExpansionInterface::EXIDeviceType> MAIN_SLOT_B{{System::Main, "Core", "SlotB"},
-                                                          ExpansionInterface::EXIDeviceType::Slippi};
+const Info<ExpansionInterface::EXIDeviceType> MAIN_SLOT_A{{System::Main, "Core", "SlotA"},
+                                                          ExpansionInterface::EXIDeviceType::None};
+const Info<ExpansionInterface::EXIDeviceType> MAIN_SLOT_B{
+    {System::Main, "Core", "SlotB"}, ExpansionInterface::EXIDeviceType::Slippi};
 const Info<ExpansionInterface::EXIDeviceType> MAIN_SERIAL_PORT_1{
     {System::Main, "Core", "SerialPort1"}, ExpansionInterface::EXIDeviceType::None};
 

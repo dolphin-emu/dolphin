@@ -40,8 +40,8 @@ struct BootParameters;
 
 struct SConfig
 {
-  // Melee Version
-  Melee::Version m_melee_version;
+  // Slippi Config
+  Slippi::Config slippi_config;
 
   // Settings
   bool bAutomaticStart = false;
@@ -54,25 +54,6 @@ struct SConfig
 
   bool bWii = false;
   bool m_is_mios = false;
-
-  // SLIPPITODO: MOVE SOME OF THESE TO Config/Config.h
-  // enable Slippi Networking output
-  bool m_OCEnable = true;
-  float m_OCFactor = 1.0f;
-  bool m_enableSpectator = true;
-  int m_spectatorPort = 51441;
-  std::string m_strSlippiInput = "";
-  int m_slippiOnlineDelay = 2;
-  bool m_slippiEnableSeek = true;
-  bool m_slippiSaveReplays = true;
-  Slippi::Chat m_slippiEnableQuickChat = Slippi::Chat::ON;
-  bool m_slippiReplayMonthFolders = true;
-  std::string m_strSlippiReplayDir;
-  bool m_blockingPipes = false;
-  bool m_slippiForceNetplayPort = false;
-  int m_slippiNetplayPort = 2626;
-  bool m_slippiForceLanIp = false;
-  std::string m_slippiLanIp = "";
 
   DiscIO::Region m_region;
 
@@ -125,6 +106,7 @@ struct SConfig
 
   // Return the permanent and somewhat globally used instance of this struct
   static SConfig& GetInstance() { return (*m_Instance); }
+  static Slippi::Config& GetSlippiConfig() { return m_Instance->slippi_config; }
   static void Init();
   static void Shutdown();
 

@@ -90,24 +90,15 @@ std::unique_ptr<IEXIDevice> EXIDevice_Create(Core::System& system, EXIDeviceType
 
 template <>
 struct fmt::formatter<ExpansionInterface::EXIDeviceType>
-    : EnumFormatter<ExpansionInterface::EXIDeviceType::EthernetBuiltIn>
+    : EnumFormatter<ExpansionInterface::EXIDeviceType::Slippi>
 {
   static constexpr array_type names = {
-      _trans("Dummy"),
-      _trans("Memory Card"),
-      _trans("Mask ROM"),
+      _trans("Dummy"), _trans("Memory Card"), _trans("Mask ROM"),
       // i18n: A mysterious debugging/diagnostics peripheral for the GameCube.
-      _trans("AD16"),
-      _trans("Microphone"),
-      _trans("Broadband Adapter (TAP)"),
-      _trans("Triforce AM Baseboard"),
-      _trans("USB Gecko"),
-      _trans("GCI Folder"),
-      _trans("Advance Game Port"),
-      _trans("Broadband Adapter (XLink Kai)"),
-      _trans("Broadband Adapter (tapserver)"),
-      _trans("Broadband Adapter (HLE)"),
-  };
+      _trans("AD16"), _trans("Microphone"), _trans("Broadband Adapter (TAP)"),
+      _trans("Triforce AM Baseboard"), _trans("USB Gecko"), _trans("GCI Folder"),
+      _trans("Advance Game Port"), _trans("Broadband Adapter (XLink Kai)"),
+      _trans("Broadband Adapter (tapserver)"), _trans("Broadband Adapter (HLE)"), _trans("Slippi")};
 
   constexpr formatter() : EnumFormatter(names) {}
 
