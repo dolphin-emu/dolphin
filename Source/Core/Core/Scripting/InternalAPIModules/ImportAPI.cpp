@@ -24,7 +24,7 @@ static std::array all_import_functions_metadata_list = {
     FunctionMetadata("shutdownScript", "1.0", "shutdownScript()", ShutdownScript,
                      ArgTypeEnum::ShutdownType, {}),
     FunctionMetadata("exitDolphin", "1.0", "exitDolphin(0)", ExitDolphin, ArgTypeEnum::VoidType,
-                     {ArgTypeEnum::Integer})};
+                     {ArgTypeEnum::S32})};
 
 ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
 {
@@ -71,7 +71,7 @@ ArgHolder* ShutdownScript(ScriptContext* current_script, std::vector<ArgHolder*>
 
 ArgHolder* ExitDolphin(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  int exit_code = (*args_list)[0]->int_val;
+  int exit_code = (*args_list)[0]->s32_val;
   std::exit(exit_code);
 }
 

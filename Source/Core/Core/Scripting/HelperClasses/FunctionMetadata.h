@@ -55,7 +55,7 @@ const char* GetExampleFunctionCall_FunctionMetadata_impl(void*); // Returns an e
 // WARNING: The return result of this function call should never be directly invoked by the DLL! Rather, it should pass the pointer returned by this function into the RunFunctionMain function, which will handle calling the function and returns its results
 FUNCTION_POINTER_TYPE_FOR_FUNCTION_METADATA_API GetFunctionPointer_FunctionMetadata_impl(void*); // Returns an opaque function pointer, which can be passed into the RunFunctionMain_impl function below.
 int GetReturnType_FunctionMetadata_impl(void*); // Returns the return type of the FunctionMetadata*, which represents an ArgTypeEnum value.
-unsigned int GetNumberOfArguments_FunctionMetadata_impl(void*); // Returns the number of arguments that the FunctionMetadata* takes as input.
+unsigned long long GetNumberOfArguments_FunctionMetadata_impl(void*); // Returns the number of arguments that the FunctionMetadata* takes as input.
 int GetArgTypeEnumAtIndexInArguments_FunctionMetadata_impl(void*, unsigned int); // Returns the type of the argument in the list of arguments for the FunctionMetadata* at the specified index (starting with index 0). The return value  represents an ArgTypeEnum value.
 
 void* RunFunctionMain_impl(FUNCTION_POINTER_TYPE_FOR_FUNCTION_METADATA_API, void*, void*); // The function which is called in order to actually call the scripting function. Takes as its 1st param the pointer to the function (returned by calling GetFunctionPointer_FunctionMetadata), the ScriptContext* as its 2nd param, and the vector* of ArgHolder* as its 3rd param.

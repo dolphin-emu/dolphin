@@ -41,7 +41,7 @@ int GetReturnType_FunctionMetadata_impl(void* function_metadata)
   return (int)castToFunctionMetadataPtr(function_metadata)->return_type;
 }
 
-unsigned int GetNumberOfArguments_FunctionMetadata_impl(void* function_metadata)
+unsigned long long GetNumberOfArguments_FunctionMetadata_impl(void* function_metadata)
 {
   return castToFunctionMetadataPtr(function_metadata)->arguments_list.size();
 }

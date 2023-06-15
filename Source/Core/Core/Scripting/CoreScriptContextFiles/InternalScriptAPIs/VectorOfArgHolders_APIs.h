@@ -11,7 +11,7 @@ extern "C" {
 typedef struct VectorOfArgHolders_APIs
 {
   void* (*CreateNewVectorOfArgHolders)(); // This function creates and returns an opaque handle, which is really a pointer to a vector of ArgHolder* structs. This function allocates memory dynamically on the heap.
-  unsigned int (*GetSizeOfVectorOfArgHolders)(void*); // Returns the size of the VectorOfArgHolders which is passed in as input.
+  unsigned long long (*GetSizeOfVectorOfArgHolders)(void*); // Returns the size of the VectorOfArgHolders which is passed in as input.
   void* (*GetArgumentForVectorOfArgHolders)(void*, unsigned int); // Returns an opaque handle for the ArgHolder* which is stored at the specified index in the vector (index starts at 0).
   void (*PushBack)(void*, void*); // 1st param is the VectorOfArgHolders*, 2nd param is the ArgHolder* that the user wants to add to the vector. This function adds the ArgHolder* to the vector.
 

@@ -21,7 +21,6 @@ void* castToVoidPtr(ArgHolder* input)
   return reinterpret_cast<void*>(input);
 }
 
-
 int GetArgType_ArgHolder_impl(void* arg_holder_ptr)
 {
   return (int)castToArgHolderPtr(arg_holder_ptr)->argument_type;
@@ -33,6 +32,11 @@ int GetIsEmpty_ArgHolder_impl(void* arg_holder_ptr)
     return 1;
   else
     return 0;
+}
+
+void* CreateEmptyOptionalArgHolder_API_impl()
+{
+  return castToVoidPtr(CreateEmptyOptionalArgument());
 }
 
 void* CreateBoolArgHolder_API_impl(int new_int)
@@ -119,7 +123,7 @@ void AddPairToAddressToByteMapArgHolder_impl(void* address_to_byte_map_arg_holde
   castToArgHolderPtr(address_to_byte_map_arg_holder_ptr)->address_to_byte_map[address] = static_cast<s16>(byte);
 }
 
-unsigned int GetSizeOfAddressToByteMapArgHolde_impl(void* address_to_byte_map_arg_holder_ptr)
+unsigned long long GetSizeOfAddressToByteMapArgHolder_impl(void* address_to_byte_map_arg_holder_ptr)
 {
   return castToArgHolderPtr(address_to_byte_map_arg_holder_ptr)->address_to_byte_map.size();
 }
@@ -317,36 +321,131 @@ int GetControllerStateArgHolderValue_impl(void* input_ptr, int gc_button_name)
   }
 }
 
-void* CreateListOfPointsArgHolder_API_impl();
+void* CreateListOfPointsArgHolder_API_impl()
+{
+  std::vector<ImVec2> points_vector = std::vector<ImVec2>();
+  return reinterpret_cast<void*>(CreateListOfPointsArgHolder(points_vector));
+}
 
-unsigned int GetSizeOfListOfPointsArgHolder_impl(void*);
-double GetListOfPointsXValueAtIndexForArgHolder_impl(void*, unsigned int);
-double GetListOfPointsYValueAtIndexForArgHolder_impl(void*, unsigned int);
-void ListOfPointsArgHolderPushBack_API_impl(void*, double, double);
+unsigned long long GetSizeOfListOfPointsArgHolder_impl(void* arg_holder_ptr)
+{
+  return castToArgHolderPtr(arg_holder_ptr)->list_of_points.size();
+}
 
-void* CreateRegistrationInputTypeArgHolder_API_impl(void*);
-void* CreateRegistrationWithAutoDeregistrationInputTypeArgHolder_API_impl(void*);
-void* CreateRegistrationForButtonCallbackInputTypeArgHolder_API_impl(void*);
-void* CreateUnregistrationInputTypeArgHolder_API_impl(void*);
+double GetListOfPointsXValueAtIndexForArgHolder_impl(void* arg_holder_ptr, unsigned int index)
+{
+  return static_cast<double>(castToArgHolderPtr(arg_holder_ptr)->list_of_points.at(index).x);
+}
 
-void* GetVoidPointerFromArgHolder_impl(void*);
+double GetListOfPointsYValueAtIndexForArgHolder_impl(void* arg_holder_ptr, unsigned int index)
+{
+  return static_cast<double>(castToArgHolderPtr(arg_holder_ptr)->list_of_points.at(index).y);
+}
 
-int GetBoolFromArgHolder_impl(void*);
-unsigned long long GetU8FromArgHolder_impl(void*);
-unsigned long long GetU16FromArgHolder_impl(void*);
-unsigned long long GetU32FromArgHolder_impl(void*);
-unsigned long long GetU64FromArgHolder_impl(void*);
-signed long long GetS8FromArgHolder_impl(void*);
-signed long long GetS16FromArgHolder_impl(void*);
-signed long long GetS32FromArgHolder_impl(void*);
-signed long long GetS64FromArgHolder_impl(void*);
-double GetFloatFromArgHolder_impl(void*);
-double* GetDoubleFromArgHolder_impl(void*);
+void ListOfPointsArgHolderPushBack_API_impl(void* arg_holder_ptr, double x, double y)
+{
+  ImVec2 new_point = {};
+  new_point.x = static_cast<float>(x);
+  new_point.y = static_cast<float>(y);
+  castToArgHolderPtr(arg_holder_ptr)->list_of_points.push_back(new_point);
+}
+
+void* CreateRegistrationInputTypeArgHolder_API_impl(void* registration_input)
+{
+  return reinterpret_cast<void*>(CreateRegistrationInputTypeArgHolder(registration_input));
+}
+
+void* CreateRegistrationWithAutoDeregistrationInputTypeArgHolder_API_impl(void* auto_deregistration_input)
+{
+  return reinterpret_cast<void*>(CreateRegistrationWithAutoDeregistrationInputTypeArgHolder(auto_deregistration_input));
+}
+
+void* CreateRegistrationForButtonCallbackInputTypeArgHolder_API_impl(void* register_button_callback_input)
+{
+  return reinterpret_cast<void*>(CreateRegistrationForButtonCallbackInputTypeArgHolder(register_button_callback_input));
+}
+
+void* CreateUnregistrationInputTypeArgHolder_API_impl(void* unregistration_input)
+{
+  return reinterpret_cast<void*>(CreateUnregistrationInputTypeArgHolder(unregistration_input));
+}
+
+
+void* GetVoidPointerFromArgHolder_impl(void* arg_holder_ptr)
+{
+  return castToArgHolderPtr(arg_holder_ptr)->void_pointer_val;
+}
+
+int GetBoolFromArgHolder_impl(void* arg_holder_ptr)
+{
+  return (castToArgHolderPtr(arg_holder_ptr)->bool_val) ? 1 : 0;
+}
+
+unsigned long long GetU8FromArgHolder_impl(void* arg_holder_ptr)
+{
+  return static_cast<unsigned long long>(castToArgHolderPtr(arg_holder_ptr)->u8_val);
+}
+
+unsigned long long GetU16FromArgHolder_impl(void* arg_holder_ptr)
+{
+  return static_cast<unsigned long long>(castToArgHolderPtr(arg_holder_ptr)->u16_val);
+}
+
+unsigned long long GetU32FromArgHolder_impl(void* arg_holder_ptr)
+{
+  return static_cast<unsigned long long>(castToArgHolderPtr(arg_holder_ptr)->u32_val);
+}
+
+unsigned long long GetU64FromArgHolder_impl(void* arg_holder_ptr)
+{
+  return castToArgHolderPtr(arg_holder_ptr)->u64_val;
+}
+
+signed long long GetS8FromArgHolder_impl(void* arg_holder_ptr)
+{
+  return static_cast<signed long long>(castToArgHolderPtr(arg_holder_ptr)->s8_val);
+}
+
+signed long long GetS16FromArgHolder_impl(void* arg_holder_ptr)
+{
+  return static_cast<signed long long>(castToArgHolderPtr(arg_holder_ptr)->s16_val);
+}
+
+signed long long GetS32FromArgHolder_impl(void* arg_holder_ptr)
+{
+  return static_cast<signed long long>(castToArgHolderPtr(arg_holder_ptr)->s32_val);
+}
+
+signed long long GetS64FromArgHolder_impl(void* arg_holder_ptr)
+{
+  return castToArgHolderPtr(arg_holder_ptr)->s64_val;
+}
+
+double GetFloatFromArgHolder_impl(void* arg_holder_ptr)
+{
+  return static_cast<double>(castToArgHolderPtr(arg_holder_ptr)->float_val);
+}
+
+double GetDoubleFromArgHolder_impl(void* arg_holder_ptr)
+{
+  return castToArgHolderPtr(arg_holder_ptr)->double_val;
+}
 
 // WARNING: The const char* returned from this method is only valid as long as the ArgHolder* is
 // valid (i.e. until its delete method is called).
-const char* GetStringFromArgHolder_impl(void*);
+const char* GetStringFromArgHolder_impl(void* arg_holder_ptr)
+{
+  return castToArgHolderPtr(arg_holder_ptr)->string_val.c_str();
+}
 
-void Delete_ArgHolder_impl(void*);
+const char* GetErrorStringFromArgHolder_impl(void* arg_holder_ptr)
+{
+  return castToArgHolderPtr(arg_holder_ptr)->error_string_val.c_str();
+}
+
+void Delete_ArgHolder_impl(void* arg_holder_ptr)
+{
+  delete (castToArgHolderPtr(arg_holder_ptr));
+}
 
 }  // namespace Scripting

@@ -17,61 +17,61 @@ const char* class_name = "MemoryAPI";
 
 static std::array all_memory_functions_metadata_list = {
     FunctionMetadata("read_u8", "1.0", "read_u8(0X80003421)", ReadU8, ArgTypeEnum::U8,
-                     {ArgTypeEnum::LongLong}),
+                     {ArgTypeEnum::S64}),
     FunctionMetadata("read_u16", "1.0", "read_u16(0X80003421)", ReadU16, ArgTypeEnum::U16,
-                     {ArgTypeEnum::LongLong}),
+                     {ArgTypeEnum::S64}),
     FunctionMetadata("read_u32", "1.0", "read_u32(0X80003421)", ReadU32, ArgTypeEnum::U32,
-                     {ArgTypeEnum::LongLong}),
+                     {ArgTypeEnum::S64}),
     FunctionMetadata("read_u64", "1.0", "read_u64(0X80003421)", ReadU64, ArgTypeEnum::U64,
-                     {ArgTypeEnum::LongLong}),
+                     {ArgTypeEnum::S64}),
     FunctionMetadata("read_s8", "1.0", "read_s8(0X80003421)", ReadS8, ArgTypeEnum::S8,
-                     {ArgTypeEnum::LongLong}),
+                     {ArgTypeEnum::S64}),
     FunctionMetadata("read_s16", "1.0", "read_s16(0X80003421)", ReadS16, ArgTypeEnum::S16,
-                     {ArgTypeEnum::LongLong}),
-    FunctionMetadata("read_s32", "1.0", "read_s32(0X80003421)", ReadS32, ArgTypeEnum::Integer,
-                     {ArgTypeEnum::LongLong}),
-    FunctionMetadata("read_s64", "1.0", "read_s64(0X80003421)", ReadS64, ArgTypeEnum::LongLong,
-                     {ArgTypeEnum::LongLong}),
+                     {ArgTypeEnum::S64}),
+    FunctionMetadata("read_s32", "1.0", "read_s32(0X80003421)", ReadS32, ArgTypeEnum::S32,
+                     {ArgTypeEnum::S64}),
+    FunctionMetadata("read_s64", "1.0", "read_s64(0X80003421)", ReadS64, ArgTypeEnum::S64,
+                     {ArgTypeEnum::S64}),
     FunctionMetadata("read_float", "1.0", "read_float(0X80003421)", ReadFloat, ArgTypeEnum::Float,
-                     {ArgTypeEnum::LongLong}),
+                     {ArgTypeEnum::S64}),
     FunctionMetadata("read_double", "1.0", "read_double(0X80003421)", ReadDouble,
-                     ArgTypeEnum::Double, {ArgTypeEnum::LongLong}),
+                     ArgTypeEnum::Double, {ArgTypeEnum::S64}),
     FunctionMetadata("read_fixed_length_string", "1.0", "read_fixed_length_string(0X80003421, 8)",
                      ReadFixedLengthString, ArgTypeEnum::String,
-                     {ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),
+                     {ArgTypeEnum::S64, ArgTypeEnum::S64}),
     FunctionMetadata("read_null_terminated_string", "1.0",
                      "read_null_terminated_string(0X80003421)", ReadNullTerminatedString,
-                     ArgTypeEnum::String, {ArgTypeEnum::LongLong}),
+                     ArgTypeEnum::String, {ArgTypeEnum::S64}),
     FunctionMetadata("read_unsigned_bytes", "1.0", "read_unsigned_bytes(0X80003421, 6)",
                      ReadUnsignedBytes, ArgTypeEnum::AddressToUnsignedByteMap,
-                     {ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),
+                     {ArgTypeEnum::S64, ArgTypeEnum::S64}),
     FunctionMetadata("read_signed_bytes", "1.0", "read_signed_bytes(0X80003421, 6)",
                      ReadSignedBytes, ArgTypeEnum::AddressToSignedByteMap,
-                     {ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),
+                     {ArgTypeEnum::S64, ArgTypeEnum::S64}),
 
     FunctionMetadata("write_u8", "1.0", "write_u8(0X80003421, 41)", WriteU8, ArgTypeEnum::VoidType,
-                     {ArgTypeEnum::LongLong, ArgTypeEnum::U8}),
+                     {ArgTypeEnum::S64, ArgTypeEnum::U8}),
     FunctionMetadata("write_u16", "1.0", "write_u16(0X80003421, 400)", WriteU16,
-                     ArgTypeEnum::VoidType, {ArgTypeEnum::LongLong, ArgTypeEnum::U16}),
+                     ArgTypeEnum::VoidType, {ArgTypeEnum::S64, ArgTypeEnum::U16}),
     FunctionMetadata("write_u32", "1.0", "write_u32(0X80003421, 500000)", WriteU32,
-                     ArgTypeEnum::VoidType, {ArgTypeEnum::LongLong, ArgTypeEnum::U32}),
+                     ArgTypeEnum::VoidType, {ArgTypeEnum::S64, ArgTypeEnum::U32}),
     FunctionMetadata("write_u64", "1.0", "write_u64(0X80003421, 7000000)", WriteU64,
-                     ArgTypeEnum::VoidType, {ArgTypeEnum::LongLong, ArgTypeEnum::U64}),
+                     ArgTypeEnum::VoidType, {ArgTypeEnum::S64, ArgTypeEnum::U64}),
     FunctionMetadata("write_s8", "1.0", "write_s8(0X80003421, -42)", WriteS8, ArgTypeEnum::VoidType,
-                     {ArgTypeEnum::LongLong, ArgTypeEnum::S8}),
+                     {ArgTypeEnum::S64, ArgTypeEnum::S8}),
     FunctionMetadata("write_s16", "1.0", "write_s16(0X80003421, -500)", WriteS16,
-                     ArgTypeEnum::VoidType, {ArgTypeEnum::LongLong, ArgTypeEnum::S16}),
+                     ArgTypeEnum::VoidType, {ArgTypeEnum::S64, ArgTypeEnum::S16}),
     FunctionMetadata("write_s32", "1.0", "write_s32(0X80003421, -100000)", WriteS32,
-                     ArgTypeEnum::VoidType, {ArgTypeEnum::LongLong, ArgTypeEnum::Integer}),
+                     ArgTypeEnum::VoidType, {ArgTypeEnum::S64, ArgTypeEnum::S32}),
     FunctionMetadata("write_s64", "1.0", "write_s64(0X80003421, -70000000)", WriteS64,
-                     ArgTypeEnum::VoidType, {ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),
+                     ArgTypeEnum::VoidType, {ArgTypeEnum::S64, ArgTypeEnum::S64}),
     FunctionMetadata("write_float", "1.0", "write_float(0X80003421, 85.64)", WriteFloat,
-                     ArgTypeEnum::VoidType, {ArgTypeEnum::LongLong, ArgTypeEnum::Float}),
+                     ArgTypeEnum::VoidType, {ArgTypeEnum::S64, ArgTypeEnum::Float}),
     FunctionMetadata("write_double", "1.0", "write_double(0X80003421, 143.51)", WriteDouble,
-                     ArgTypeEnum::VoidType, {ArgTypeEnum::LongLong, ArgTypeEnum::Double}),
+                     ArgTypeEnum::VoidType, {ArgTypeEnum::S64, ArgTypeEnum::Double}),
     FunctionMetadata("write_string", "1.0", "write_string(0X80003421, \"Hello World!\")",
                      WriteString, ArgTypeEnum::VoidType,
-                     {ArgTypeEnum::LongLong, ArgTypeEnum::String}),
+                     {ArgTypeEnum::S64, ArgTypeEnum::String}),
     FunctionMetadata("write_bytes", "1.0", "write_bytes(addressToValueMap)", WriteBytes,
                      ArgTypeEnum::VoidType, {ArgTypeEnum::AddressToByteMap}),
     FunctionMetadata(
@@ -100,7 +100,7 @@ FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
 
 ArgHolder* ReadU8(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long address = (*args_list)[0]->long_long_val;
+  long long address = (*args_list)[0]->s64_val;
   if (address < 0)
     return CreateErrorStringArgHolder("address is not allowed to be negative!");
   std::optional<PowerPC::ReadResult<u8>> read_result =
@@ -109,14 +109,14 @@ ArgHolder* ReadU8(ScriptContext* current_script, std::vector<ArgHolder*>* args_l
   {
     // return CreateErrorStringArgHolder(fmt::format("Attempt to read u8 from address {} failed!,
     // address))
-    return CreateIntArgHolder(0);  // TODO: remove this line and uncomment out the line above.
+    return CreateS32ArgHolder(0);  // TODO: remove this line and uncomment out the line above.
   }
   return CreateU8ArgHolder(read_result.value().value);
 }
 
 ArgHolder* ReadU16(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long address = (*args_list)[0]->long_long_val;
+  long long address = (*args_list)[0]->s64_val;
   if (address < 0)
     return CreateErrorStringArgHolder("Address is not allowed to be negative!");
   std::optional<PowerPC::ReadResult<u16>> read_result =
@@ -129,7 +129,7 @@ ArgHolder* ReadU16(ScriptContext* current_script, std::vector<ArgHolder*>* args_
 
 ArgHolder* ReadU32(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long address = (*args_list)[0]->long_long_val;
+  long long address = (*args_list)[0]->s64_val;
   if (address < 0)
     return CreateErrorStringArgHolder("Address is not allowd to be negative!");
   std::optional<PowerPC::ReadResult<u32>> read_result =
@@ -142,7 +142,7 @@ ArgHolder* ReadU32(ScriptContext* current_script, std::vector<ArgHolder*>* args_
 
 ArgHolder* ReadU64(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long address = (*args_list)[0]->long_long_val;
+  long long address = (*args_list)[0]->s64_val;
   if (address < 0)
     return CreateErrorStringArgHolder("Address is not allowed to be negative!");
   std::optional<PowerPC::ReadResult<u64>> read_result =
@@ -155,7 +155,7 @@ ArgHolder* ReadU64(ScriptContext* current_script, std::vector<ArgHolder*>* args_
 
 ArgHolder* ReadS8(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long address = (*args_list)[0]->long_long_val;
+  long long address = (*args_list)[0]->s64_val;
   if (address < 0)
     return CreateErrorStringArgHolder("Address is not allowed to be negative!");
   std::optional<PowerPC::ReadResult<u8>> read_result =
@@ -171,7 +171,7 @@ ArgHolder* ReadS8(ScriptContext* current_script, std::vector<ArgHolder*>* args_l
 
 ArgHolder* ReadS16(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long address = (*args_list)[0]->long_long_val;
+  long long address = (*args_list)[0]->s64_val;
   if (address < 0)
     return CreateErrorStringArgHolder("Address is not allowed to be negative!");
   std::optional<PowerPC::ReadResult<u16>> read_result =
@@ -187,7 +187,7 @@ ArgHolder* ReadS16(ScriptContext* current_script, std::vector<ArgHolder*>* args_
 
 ArgHolder* ReadS32(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long address = (*args_list)[0]->long_long_val;
+  long long address = (*args_list)[0]->s64_val;
   if (address < 0)
     return CreateErrorStringArgHolder("Address is not allowed to be negative!");
   std::optional<PowerPC::ReadResult<u32>> read_result =
@@ -198,12 +198,12 @@ ArgHolder* ReadS32(ScriptContext* current_script, std::vector<ArgHolder*>* args_
   u32 u32_val = read_result.value().value;
   s32 s32_val = 0;
   memcpy(&s32_val, &u32_val, sizeof(s32));
-  return CreateIntArgHolder(s32_val);
+  return CreateS32ArgHolder(s32_val);
 }
 
 ArgHolder* ReadS64(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long address = (*args_list)[0]->long_long_val;
+  long long address = (*args_list)[0]->s64_val;
   if (address < 0)
     return CreateErrorStringArgHolder("Address is not allowed to be negative!");
   std::optional<PowerPC::ReadResult<u64>> read_result =
@@ -214,12 +214,12 @@ ArgHolder* ReadS64(ScriptContext* current_script, std::vector<ArgHolder*>* args_
   u64 u64_val = read_result.value().value;
   s64 s64_val = 0;
   memcpy(&s64_val, &u64_val, sizeof(s64));
-  return CreateLongLongArgHolder(s64_val);
+  return CreateS64ArgHolder(s64_val);
 }
 
 ArgHolder* ReadFloat(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long address = (*args_list)[0]->long_long_val;
+  long long address = (*args_list)[0]->s64_val;
   if (address < 0)
     return CreateErrorStringArgHolder("Address is not allowed to be negative!");
   std::optional<PowerPC::ReadResult<u32>> read_result =
@@ -235,7 +235,7 @@ ArgHolder* ReadFloat(ScriptContext* current_script, std::vector<ArgHolder*>* arg
 
 ArgHolder* ReadDouble(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long address = (*args_list)[0]->long_long_val;
+  long long address = (*args_list)[0]->s64_val;
   if (address < 0)
     return CreateErrorStringArgHolder("Address is not allowed to be negative!");
   std::optional<PowerPC::ReadResult<u64>> read_result =
@@ -251,8 +251,8 @@ ArgHolder* ReadDouble(ScriptContext* current_script, std::vector<ArgHolder*>* ar
 
 ArgHolder* ReadFixedLengthString(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long address = (*args_list)[0]->long_long_val;
-  long long string_length = (*args_list)[1]->long_long_val;
+  long long address = (*args_list)[0]->s64_val;
+  long long string_length = (*args_list)[1]->s64_val;
 
   if (address < 0)
     return CreateErrorStringArgHolder("Address is not allowed to be negative!");
@@ -276,7 +276,7 @@ ArgHolder* ReadFixedLengthString(ScriptContext* current_script, std::vector<ArgH
 
 ArgHolder* ReadNullTerminatedString(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long address = (*args_list)[0]->long_long_val;
+  long long address = (*args_list)[0]->s64_val;
 
   if (address < 0)
     return CreateErrorStringArgHolder("Address is not allowd to be negative!");
@@ -304,8 +304,8 @@ ArgHolder* ReadNullTerminatedString(ScriptContext* current_script, std::vector<A
 
 ArgHolder* ReadUnsignedBytes(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long address = (*args_list)[0]->long_long_val;
-  long long number_of_bytes = (*args_list)[1]->long_long_val;
+  long long address = (*args_list)[0]->s64_val;
+  long long number_of_bytes = (*args_list)[1]->s64_val;
 
   if (address < 0)
     return CreateErrorStringArgHolder("Address is not allowed to be negative!");
@@ -313,7 +313,7 @@ ArgHolder* ReadUnsignedBytes(ScriptContext* current_script, std::vector<ArgHolde
   if (number_of_bytes < 0)
     return CreateErrorStringArgHolder("Number of bytes is not allowed to be negative!");
 
-  std::map<long long, u8> address_to_unsigned_byte_map = std::map<long long, u8>();
+  std::map<long long, s16> address_to_unsigned_byte_map = std::map<long long, s16>();
 
   for (long long i = 0; i < number_of_bytes; ++i)
   {
@@ -325,20 +325,20 @@ ArgHolder* ReadUnsignedBytes(ScriptContext* current_script, std::vector<ArgHolde
     address_to_unsigned_byte_map[address + i] = read_result.value().value;
   }
 
-  return CreateAddressToUnsignedByteMapArgHolder(address_to_unsigned_byte_map);
+  return CreateAddressToByteMapArgHolder(address_to_unsigned_byte_map);
 }
 
 ArgHolder* ReadSignedBytes(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long address = (*args_list)[0]->long_long_val;
-  long long number_of_bytes = (*args_list)[1]->long_long_val;
+  long long address = (*args_list)[0]->s64_val;
+  long long number_of_bytes = (*args_list)[1]->s64_val;
 
   if (address < 0)
     return CreateErrorStringArgHolder("Address is not allowed to be negative!");
   if (number_of_bytes < 0)
     return CreateErrorStringArgHolder("Number of bytes is not allowed to be negative!");
 
-  std::map<long long, s8> address_to_signed_byte_map = std::map<long long, s8>();
+  std::map<long long, s16> address_to_signed_byte_map = std::map<long long, s16>();
 
   for (long long i = 0; i < number_of_bytes; ++i)
   {
@@ -353,12 +353,12 @@ ArgHolder* ReadSignedBytes(ScriptContext* current_script, std::vector<ArgHolder*
     address_to_signed_byte_map[address + i] = s8_val;
   }
 
-  return CreateAddressToSignedByteMapArgHolder(address_to_signed_byte_map);
+  return CreateAddressToByteMapArgHolder(address_to_signed_byte_map);
 }
 
 ArgHolder* WriteU8(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long address = (*args_list)[0]->long_long_val;
+  long long address = (*args_list)[0]->s64_val;
   if (address < 0)
     return CreateErrorStringArgHolder("Address is not allowed to be negative!");
   u8 u8_val = (*args_list)[1]->u8_val;
@@ -372,7 +372,7 @@ ArgHolder* WriteU8(ScriptContext* current_script, std::vector<ArgHolder*>* args_
 
 ArgHolder* WriteU16(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long address = (*args_list)[0]->long_long_val;
+  long long address = (*args_list)[0]->s64_val;
   if (address < 0)
     return CreateErrorStringArgHolder("Address is not allowed to be negative!");
   u16 u16_val = (*args_list)[1]->u16_val;
@@ -386,7 +386,7 @@ ArgHolder* WriteU16(ScriptContext* current_script, std::vector<ArgHolder*>* args
 
 ArgHolder* WriteU32(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long address = (*args_list)[0]->long_long_val;
+  long long address = (*args_list)[0]->s64_val;
   if (address < 0)
     return CreateErrorStringArgHolder("Address is not allowed to be negative!");
   u32 u32_val = (*args_list)[1]->u32_val;
@@ -400,7 +400,7 @@ ArgHolder* WriteU32(ScriptContext* current_script, std::vector<ArgHolder*>* args
 
 ArgHolder* WriteU64(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long address = (*args_list)[0]->long_long_val;
+  long long address = (*args_list)[0]->s64_val;
   if (address < 0)
     return CreateErrorStringArgHolder("Address is not allowed to be negative!");
   u64 u64_val = (*args_list)[1]->u64_val;
@@ -414,7 +414,7 @@ ArgHolder* WriteU64(ScriptContext* current_script, std::vector<ArgHolder*>* args
 
 ArgHolder* WriteS8(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long address = (*args_list)[0]->long_long_val;
+  long long address = (*args_list)[0]->s64_val;
   if (address < 0)
     return CreateErrorStringArgHolder("Address is not allowed to be negative!");
   s8 s8_val = (*args_list)[1]->s8_val;
@@ -430,7 +430,7 @@ ArgHolder* WriteS8(ScriptContext* current_script, std::vector<ArgHolder*>* args_
 
 ArgHolder* WriteS16(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long address = (*args_list)[0]->long_long_val;
+  long long address = (*args_list)[0]->s64_val;
   if (address < 0)
     return CreateErrorStringArgHolder("Address is not allowed to be negative!");
   s16 s16_val = (*args_list)[1]->s16_val;
@@ -446,10 +446,10 @@ ArgHolder* WriteS16(ScriptContext* current_script, std::vector<ArgHolder*>* args
 
 ArgHolder* WriteS32(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long address = (*args_list)[0]->long_long_val;
+  long long address = (*args_list)[0]->s64_val;
   if (address < 0)
     return CreateErrorStringArgHolder("Address is not allowed to be negative!");
-  s32 s32_val = (*args_list)[1]->int_val;
+  s32 s32_val = (*args_list)[1]->s32_val;
   u32 u32_val = 0;
   memcpy(&u32_val, &s32_val, sizeof(u32));
   std::optional<PowerPC::WriteResult> write_result = PowerPC::MMU::HostTryWriteU32(
@@ -462,10 +462,10 @@ ArgHolder* WriteS32(ScriptContext* current_script, std::vector<ArgHolder*>* args
 
 ArgHolder* WriteS64(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long address = (*args_list)[0]->long_long_val;
+  long long address = (*args_list)[0]->s64_val;
   if (address < 0)
     return CreateErrorStringArgHolder("Address is not allowed to be negative!");
-  s64 s64_val = (*args_list)[1]->long_long_val;
+  s64 s64_val = (*args_list)[1]->s64_val;
   u64 u64_val = 0;
   memcpy(&u64_val, &s64_val, sizeof(u64));
   std::optional<PowerPC::WriteResult> write_result = PowerPC::MMU::HostTryWriteU64(
@@ -478,7 +478,7 @@ ArgHolder* WriteS64(ScriptContext* current_script, std::vector<ArgHolder*>* args
 
 ArgHolder* WriteFloat(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long address = (*args_list)[0]->long_long_val;
+  long long address = (*args_list)[0]->s64_val;
   if (address < 0)
     return CreateErrorStringArgHolder("Address is not allowed to be negative!");
   float float_val = (*args_list)[1]->float_val;
@@ -494,7 +494,7 @@ ArgHolder* WriteFloat(ScriptContext* current_script, std::vector<ArgHolder*>* ar
 
 ArgHolder* WriteDouble(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long address = (*args_list)[0]->long_long_val;
+  long long address = (*args_list)[0]->s64_val;
   if (address < 0)
     return CreateErrorStringArgHolder("Address is not allowed to be negative!");
   double double_val = (*args_list)[1]->double_val;
@@ -510,7 +510,7 @@ ArgHolder* WriteDouble(ScriptContext* current_script, std::vector<ArgHolder*>* a
 
 ArgHolder* WriteString(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long address = (*args_list)[0]->long_long_val;
+  long long address = (*args_list)[0]->s64_val;
   if (address < 0)
     return CreateErrorStringArgHolder("Address is not allowed to be negative!");
   std::string input_string = (*args_list)[1]->string_val;

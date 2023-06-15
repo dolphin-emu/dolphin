@@ -9,7 +9,7 @@ extern "C" {
 #endif
 
 void* CreateNewVectorOfArgHolders_impl();
-unsigned int GetSizeOfVectorOfArgHolders_impl(void*);
+unsigned long long GetSizeOfVectorOfArgHolders_impl(void*);
 void* GetArgumentForVectorOfArgHolders_impl(void*, unsigned int);
 void PushBack_VectorOfArgHolders_impl(void*, void*);
 

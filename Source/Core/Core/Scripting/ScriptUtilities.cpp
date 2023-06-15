@@ -9,6 +9,7 @@
 #include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/ScriptContext_APIs.h"
 #include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/VectorOfArgHolders_APIs.h"
 
+#include "Core/Scripting/HelperClasses/ArgHolder_API_Implementations.h"
 #include "Core/Scripting/EventCallbackRegistrationAPIs//OnInstructionHitCallbackAPI.h"
 #include "Core/Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressReadFromCallbackAPI.h"
 #include "Core/Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressWrittenToCallbackAPI.h"
@@ -17,6 +18,8 @@
 #include "Core/Scripting/LanguageDefinitions/Python/PythonScriptContext.h"
 #include "Core/System.h"
 #include "Core/Core.h"
+#include <iostream>
+
 
 namespace Scripting::ScriptUtilities
 {
@@ -34,13 +37,100 @@ ThreadSafeQueue<ScriptContext*> queue_of_scripts_waiting_to_start = ThreadSafeQu
 
 static bool initialized_dolphin_api_structs = false;
 
-static ArgHolder_APIs argHolder_apis_impl = {};
-static ClassFunctionsResolver_APIs classFunctionsResolver_apis_impl = {};
-static ClassMetadata_APIs classMetadata_apis_impl = {};
-static FunctionMetadata_APIs functionMetadata_apis_impl = {};
-static GCButton_APIs gcButton_apis_impl = {};
-static Dolphin_Defined_ScriptContext_APIs dolphin_defined_scriptContext_apis_impl = {};
-static VectorOfArgHolders_APIs vectorOfArgHolders_apis_impl = {};
+static ArgHolder_APIs argHolder_apis = {};
+static ClassFunctionsResolver_APIs classFunctionsResolver_apis = {};
+static ClassMetadata_APIs classMetadata_apis = {};
+static FunctionMetadata_APIs functionMetadata_apis = {};
+static GCButton_APIs gcButton_apis = {};
+static Dolphin_Defined_ScriptContext_APIs dolphin_defined_scriptContext_apis = {};
+static VectorOfArgHolders_APIs vectorOfArgHolders_apis = {};
+
+// Validates that there's no NULL variables in the API struct passed in as an argument.
+static bool ValidateApiStruct(u64* start_of_struct, unsigned int struct_size)
+{
+  u64* travel_ptr = start_of_struct;
+
+  while (((u8*)travel_ptr) < (((u8*)start_of_struct) + struct_size))
+  {
+    if (static_cast<u64>(*travel_ptr) == 0)
+    {
+      return false;
+    }
+    travel_ptr = (u64*)(((u8*)travel_ptr) + sizeof(u64));
+  }
+
+  return true;
+}
+
+static void Initialize_ArgHolder_APIs()
+{ 
+  argHolder_apis.AddPairToAddressToByteMapArgHolder = AddPairToAddressToByteMapArgHolder_impl;
+  argHolder_apis.CreateAddressToByteMapArgHolder = CreateAddressToByteMapArgHolder_API_impl;
+  argHolder_apis.CreateBoolArgHolder = CreateBoolArgHolder_API_impl;
+  argHolder_apis.CreateControllerStateArgHolder = CreateControllerStateArgHolder_API_impl;
+  argHolder_apis.CreateDoubleArgHolder = CreateDoubleArgHolder_API_impl;
+  argHolder_apis.CreateEmptyOptionalArgHolder = CreateEmptyOptionalArgHolder_API_impl;
+  argHolder_apis.CreateFloatArgHolder = CreateFloatArgHolder_API_impl;
+  argHolder_apis.CreateIteratorForAddressToByteMapArgHolder = Create_IteratorForAddressToByteMapArgHolder_impl;
+  argHolder_apis.CreateListOfPointsArgHolder = CreateListOfPointsArgHolder_API_impl;
+  argHolder_apis.CreateRegistrationForButtonCallbackInputTypeArgHolder = CreateRegistrationForButtonCallbackInputTypeArgHolder_API_impl;
+  argHolder_apis.CreateRegistrationInputTypeArgHolder = CreateRegistrationInputTypeArgHolder_API_impl;
+  argHolder_apis.CreateRegistrationWithAutoDeregistrationInputTypeArgHolder = CreateRegistrationWithAutoDeregistrationInputTypeArgHolder_API_impl;
+  argHolder_apis.CreateS8ArgHolder = CreateS8ArgHolder_API_impl;
+  argHolder_apis.CreateS16ArgHolder = CreateS16ArgHolder_API_impl;
+  argHolder_apis.CreateS32ArgHolder = CreateS32ArgHolder_API_impl;
+  argHolder_apis.CreateS64ArgHolder = CreateS64ArgHolder_API_impl;
+  argHolder_apis.CreateStringArgHolder = CreateStringArgHolder_API_impl;
+  argHolder_apis.CreateU8ArgHolder = CreateU8ArgHolder_API_impl;
+  argHolder_apis.CreateU16ArgHolder = CreateU16ArgHolder_API_impl;
+  argHolder_apis.CreateU32ArgHolder = CreateU32ArgHolder_API_impl;
+  argHolder_apis.CreateU64ArgHolder = CreateU64ArgHolder_API_impl;
+  argHolder_apis.CreateUnregistrationInputTypeArgHolder = CreateUnregistrationInputTypeArgHolder_API_impl;
+  argHolder_apis.CreateVoidPointerArgHolder = CreateVoidPointerArgHolder_API_impl;
+  argHolder_apis.Delete_ArgHolder = Delete_ArgHolder_impl;
+  argHolder_apis.Delete_IteratorForAddressToByteMapArgHolder = Delete_IteratorForAddressToByteMapArgHolder_impl;
+  argHolder_apis.GetArgType = GetArgType_ArgHolder_impl;
+  argHolder_apis.GetBoolFromArgHolder = GetBoolFromArgHolder_impl;
+  argHolder_apis.GetControllerStateArgHolderValue = GetControllerStateArgHolderValue_impl;
+  argHolder_apis.GetDoubleFromArgHolder = GetDoubleFromArgHolder_impl;
+  argHolder_apis.GetErrorStringFromArgHolder = GetErrorStringFromArgHolder_impl;
+  argHolder_apis.GetFloatFromArgHolder = GetFloatFromArgHolder_impl;
+  argHolder_apis.GetIsEmpty = GetIsEmpty_ArgHolder_impl;
+  argHolder_apis.GetKeyForAddressToByteMapArgHolder = GetKeyForAddressToByteMapArgHolder_impl;
+  argHolder_apis.GetListOfPointsXValueAtIndexForArgHolder = GetListOfPointsXValueAtIndexForArgHolder_impl;
+  argHolder_apis.GetListOfPointsYValueAtIndexForArgHolder = GetListOfPointsYValueAtIndexForArgHolder_impl;
+  argHolder_apis.GetS8FromArgHolder = GetS8FromArgHolder_impl;
+  argHolder_apis.GetS16FromArgHolder = GetS16FromArgHolder_impl;
+  argHolder_apis.GetS32FromArgHolder = GetS32FromArgHolder_impl;
+  argHolder_apis.GetS64FromArgHolder = GetS64FromArgHolder_impl;
+  argHolder_apis.GetSizeOfAddressToByteMapArgHolder = GetSizeOfAddressToByteMapArgHolder_impl;
+  argHolder_apis.GetSizeOfListOfPointsArgHolder = GetSizeOfListOfPointsArgHolder_impl;
+  argHolder_apis.GetStringFromArgHolder = GetStringFromArgHolder_impl;
+  argHolder_apis.GetU8FromArgHolder = GetU8FromArgHolder_impl;
+  argHolder_apis.GetU16FromArgHolder = GetU16FromArgHolder_impl;
+  argHolder_apis.GetU32FromArgHolder = GetU32FromArgHolder_impl;
+  argHolder_apis.GetU64FromArgHolder = GetU64FromArgHolder_impl;
+  argHolder_apis.GetValueForAddressToUnsignedByteMapArgHolder = GetValueForAddressToUnsignedByteMapArgHolder_impl;
+  argHolder_apis.GetVoidPointerFromArgHolder = GetVoidPointerFromArgHolder_impl;
+  argHolder_apis.IncrementIteratorForAddressToByteMapArgHolder = IncrementIteratorForAddressToByteMapArgHolder_impl;
+  argHolder_apis.ListOfPointsArgHolderPushBack = ListOfPointsArgHolderPushBack_API_impl;
+  argHolder_apis.SetControllerStateArgHolderValue = SetControllerStateArgHolderValue_impl;
+  
+  bool debugVal = ValidateApiStruct(((u64*) &argHolder_apis), sizeof(argHolder_apis));
+  if (!debugVal)
+  {
+    std::cout << "ERROR: ArgHolder_APIs struct had a NULL member!";
+    std::quick_exit(68);
+  }
+  else
+    std::cout << "All good in ArgHolderAPIs!";
+}
+
+static void InitializeDolphinApiStructs()
+{
+  Initialize_ArgHolder_APIs();
+  initialized_dolphin_api_structs = true;
+}
 
 
 bool IsScriptingCoreInitialized()
@@ -56,6 +146,10 @@ void InitializeScript(int unique_script_identifier, const std::string& script_fi
   Core::CPUThreadGuard lock(Core::System::GetInstance());
   initialization_and_destruction_lock.lock();
   global_code_and_frame_callback_running_lock.lock();
+
+  if (!initialized_dolphin_api_structs)
+    InitializeDolphinApiStructs();
+
   if (global_pointer_to_list_of_all_scripts == nullptr)
   {
     global_pointer_to_list_of_all_scripts = new std::vector<ScriptContext*>();

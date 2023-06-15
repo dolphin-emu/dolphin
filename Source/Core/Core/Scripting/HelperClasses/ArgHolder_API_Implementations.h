@@ -14,6 +14,7 @@ extern "C" {
 
 int GetArgType_ArgHolder_impl(void*);
 int GetIsEmpty_ArgHolder_impl(void*);
+void* CreateEmptyOptionalArgHolder_API_impl();
 void* CreateBoolArgHolder_API_impl(int);
 void* CreateU8ArgHolder_API_impl(unsigned long long);
 void* CreateU16ArgHolder_API_impl(unsigned long long);
@@ -31,7 +32,7 @@ void* CreateVoidPointerArgHolder_API_impl(void*);
 void* CreateAddressToByteMapArgHolder_API_impl();
 
 void AddPairToAddressToByteMapArgHolder_impl(void*, long long, signed int);
-unsigned int GetSizeOfAddressToByteMapArgHolde_impl(void*);
+unsigned long long GetSizeOfAddressToByteMapArgHolder_impl(void*);
 void* Create_IteratorForAddressToByteMapArgHolder_impl(void*);
 void* IncrementIteratorForAddressToByteMapArgHolder_impl(void*, void*);
 long long GetKeyForAddressToByteMapArgHolder_impl(void*);
@@ -45,7 +46,7 @@ int GetControllerStateArgHolderValue_impl(void*, int);
 
 void* CreateListOfPointsArgHolder_API_impl();
 
-unsigned int GetSizeOfListOfPointsArgHolder_impl(void*);
+unsigned long long GetSizeOfListOfPointsArgHolder_impl(void*);
 double GetListOfPointsXValueAtIndexForArgHolder_impl(void*, unsigned int);
 double GetListOfPointsYValueAtIndexForArgHolder_impl(void*, unsigned int);
 void ListOfPointsArgHolderPushBack_API_impl(void*, double, double);
@@ -67,11 +68,13 @@ signed long long GetS16FromArgHolder_impl(void*);
 signed long long GetS32FromArgHolder_impl(void*);
 signed long long GetS64FromArgHolder_impl(void*);
 double GetFloatFromArgHolder_impl(void*);
-double* GetDoubleFromArgHolder_impl(void*);
+double GetDoubleFromArgHolder_impl(void*);
 
-// WARNING: The const char* returned from this method is only valid as long as the ArgHolder* is
+// WARNING: The const char* returned from these methods is only valid as long as the ArgHolder* is
 // valid (i.e. until its delete method is called).
 const char* GetStringFromArgHolder_impl(void*);
+const char* GetErrorStringFromArgHolder_impl(void*);
+
 
 void Delete_ArgHolder_impl(
     void*);  // WARNING: Destroys the ArgHolder passed into it, and frees the associated memory.

@@ -63,7 +63,7 @@
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 #include "Core/NetPlayProto.h"
 #include "Core/Scripting/EventCallbackRegistrationAPIs/OnGCControllerPolledCallbackAPI.h"
-#include "Core/Scripting/HelperClasses/GCButtons.h"
+#include "Core/Scripting/CoreScriptContextFiles/Enums/GCButtonNameEnum.h"
 #include "Core/Scripting/InternalAPIModules/GameCubeControllerAPI.h"
 #include "Core/Scripting/ScriptUtilities.h"
 #include "Core/State.h"
@@ -1221,67 +1221,67 @@ static void CheckInputEnd()
 }
 
 void AddControllerInputs(ControllerState& starting_state, ControllerState new_controller_values,
-                         std::vector<GcButtonName> buttons_to_add)
+                         std::vector<GcButtonNameEnum> buttons_to_add)
 {
   for (int i = 0; i < buttons_to_add.size(); ++i)
   {
     switch (buttons_to_add[i])
     {
-    case GcButtonName::A:
+    case GcButtonNameEnum::A:
       starting_state.A = new_controller_values.A;
       break;
-    case GcButtonName::B:
+    case GcButtonNameEnum::B:
       starting_state.B = new_controller_values.B;
       break;
-    case GcButtonName::X:
+    case GcButtonNameEnum::X:
       starting_state.X = new_controller_values.X;
       break;
-    case GcButtonName::Y:
+    case GcButtonNameEnum::Y:
       starting_state.Y = new_controller_values.Y;
       break;
-    case GcButtonName::Z:
+    case GcButtonNameEnum::Z:
       starting_state.Z = new_controller_values.Z;
       break;
-    case GcButtonName::L:
+    case GcButtonNameEnum::L:
       starting_state.L = new_controller_values.L;
       break;
-    case GcButtonName::R:
+    case GcButtonNameEnum::R:
       starting_state.R = new_controller_values.R;
       break;
-    case GcButtonName::Start:
+    case GcButtonNameEnum::Start:
       starting_state.Start = new_controller_values.Start;
       break;
-    case GcButtonName::Reset:
+    case GcButtonNameEnum::Reset:
       starting_state.reset = new_controller_values.reset;
       break;
-    case GcButtonName::DPadUp:
+    case GcButtonNameEnum::DPadUp:
       starting_state.DPadUp = new_controller_values.DPadUp;
       break;
-    case GcButtonName::DPadDown:
+    case GcButtonNameEnum::DPadDown:
       starting_state.DPadDown = new_controller_values.DPadDown;
       break;
-    case GcButtonName::DPadLeft:
+    case GcButtonNameEnum::DPadLeft:
       starting_state.DPadLeft = new_controller_values.DPadLeft;
       break;
-    case GcButtonName::DPadRight:
+    case GcButtonNameEnum::DPadRight:
       starting_state.DPadRight = new_controller_values.DPadRight;
       break;
-    case GcButtonName::TriggerL:
+    case GcButtonNameEnum::TriggerL:
       starting_state.TriggerL = new_controller_values.TriggerL;
       break;
-    case GcButtonName::TriggerR:
+    case GcButtonNameEnum::TriggerR:
       starting_state.TriggerR = new_controller_values.TriggerR;
       break;
-    case GcButtonName::AnalogStickX:
+    case GcButtonNameEnum::AnalogStickX:
       starting_state.AnalogStickX = new_controller_values.AnalogStickX;
       break;
-    case GcButtonName::AnalogStickY:
+    case GcButtonNameEnum::AnalogStickY:
       starting_state.AnalogStickY = new_controller_values.AnalogStickY;
       break;
-    case GcButtonName::CStickX:
+    case GcButtonNameEnum::CStickX:
       starting_state.CStickX = new_controller_values.CStickX;
       break;
-    case GcButtonName::CStickY:
+    case GcButtonNameEnum::CStickY:
       starting_state.CStickY = new_controller_values.CStickY;
       break;
     default:

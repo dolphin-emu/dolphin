@@ -33,10 +33,10 @@ static std::array all_registers_functions_metadata_list = {
     FunctionMetadata("getS16FromRegister", "1.0", "getS16FromRegister(\"R5\", 2)",
                      GetS16FromRegister, ArgTypeEnum::S16, {ArgTypeEnum::String, ArgTypeEnum::U8}),
     FunctionMetadata("getS32FromRegister", "1.0", "getS32FromRegister(\"R5\", 0)",
-                     GetS32FromRegister, ArgTypeEnum::Integer,
+                     GetS32FromRegister, ArgTypeEnum::S32,
                      {ArgTypeEnum::String, ArgTypeEnum::U8}),
     FunctionMetadata("getS64FromRegister", "1.0", "getS64FromRegister(\"F5\", 0)",
-                     GetS64FromRegister, ArgTypeEnum::LongLong,
+                     GetS64FromRegister, ArgTypeEnum::S64,
                      {ArgTypeEnum::String, ArgTypeEnum::U8}),
     FunctionMetadata("getFloatFromRegister", "1.0", "getFloatFromRegister(\"F5\", 4)",
                      GetFloatFromRegister, ArgTypeEnum::Float,
@@ -73,10 +73,10 @@ static std::array all_registers_functions_metadata_list = {
                      {ArgTypeEnum::String, ArgTypeEnum::S16, ArgTypeEnum::U8}),
     FunctionMetadata("writeS32ToRegister", "1.0", "writeS32ToRegister(\"R5\", -800567, 0)",
                      WriteS32ToRegister, ArgTypeEnum::VoidType,
-                     {ArgTypeEnum::String, ArgTypeEnum::Integer, ArgTypeEnum::U8}),
+                     {ArgTypeEnum::String, ArgTypeEnum::S32, ArgTypeEnum::U8}),
     FunctionMetadata("writeS64ToRegister", "1.0", "writeS64ToRegister(\"F5\", -1123456, 0)",
                      WriteS64ToRegister, ArgTypeEnum::VoidType,
-                     {ArgTypeEnum::String, ArgTypeEnum::LongLong, ArgTypeEnum::U8}),
+                     {ArgTypeEnum::String, ArgTypeEnum::S64, ArgTypeEnum::U8}),
     FunctionMetadata("writeFloatToRegister", "1.0", "writeFloatToRegister(\"F5\", 41.23, 4)",
                      WriteFloatToRegister, ArgTypeEnum::VoidType,
                      {ArgTypeEnum::String, ArgTypeEnum::Float, ArgTypeEnum::U8}),
@@ -370,7 +370,7 @@ ArgHolder* GetS32FromRegister(ScriptContext* current_script, std::vector<ArgHold
 
   s32 s32_return_val = 0;
   memcpy(&s32_return_val, address_pointer, sizeof(s32));
-  return CreateIntArgHolder(s32_return_val);
+  return CreateS32ArgHolder(s32_return_val);
 }
 
 ArgHolder* GetS64FromRegister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
@@ -389,7 +389,7 @@ ArgHolder* GetS64FromRegister(ScriptContext* current_script, std::vector<ArgHold
 
   s64 s64_return_val = 0;
   memcpy(&s64_return_val, address_pointer, sizeof(s64));
-  return CreateLongLongArgHolder(s64_return_val);
+  return CreateS64ArgHolder(s64_return_val);
 }
 
 ArgHolder* GetFloatFromRegister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
@@ -450,7 +450,7 @@ ArgHolder* GetUnsignedBytesFromRegister(ScriptContext* current_script,
   if (address_pointer == nullptr)
     return ReturnInvalidRegisterNameArgHolder(register_string);
 
-  std::map<long long, u8> index_to_unsigned_byte_map = std::map<long long, u8>();
+  std::map<long long, s16> index_to_unsigned_byte_map = std::map<long long, s16>();
   for (u8 i = 0; i < num_bytes_to_read; ++i)
   {
     u8 next_byte = 0;
@@ -458,7 +458,7 @@ ArgHolder* GetUnsignedBytesFromRegister(ScriptContext* current_script,
     index_to_unsigned_byte_map[i + 1] = next_byte;
   }
 
-  return CreateAddressToUnsignedByteMapArgHolder(index_to_unsigned_byte_map);
+  return CreateAddressToByteMapArgHolder(index_to_unsigned_byte_map);
 }
 
 ArgHolder* GetSignedBytesFromRegister(ScriptContext* current_script,
@@ -481,7 +481,7 @@ ArgHolder* GetSignedBytesFromRegister(ScriptContext* current_script,
   if (address_pointer == nullptr)
     return ReturnInvalidRegisterNameArgHolder(register_string);
 
-  std::map<long long, s8> index_to_signed_byte_map = std::map<long long, s8>();
+  std::map<long long, s16> index_to_signed_byte_map = std::map<long long, s16>();
   for (u8 i = 0; i < num_bytes_to_read; ++i)
   {
     s8 next_byte = 0;
@@ -489,7 +489,7 @@ ArgHolder* GetSignedBytesFromRegister(ScriptContext* current_script,
     index_to_signed_byte_map[i + 1] = next_byte;
   }
 
-  return CreateAddressToSignedByteMapArgHolder(index_to_signed_byte_map);
+  return CreateAddressToByteMapArgHolder(index_to_signed_byte_map);
 }
 
 ArgHolder* WriteU8ToRegister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
@@ -615,7 +615,7 @@ ArgHolder* WriteS16ToRegister(ScriptContext* current_script, std::vector<ArgHold
 ArgHolder* WriteS32ToRegister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   const std::string register_string = (*args_list)[0]->string_val;
-  s32 s32_val = (*args_list)[1]->int_val;
+  s32 s32_val = (*args_list)[1]->s32_val;
   u8 offset = (*args_list)[2]->u8_val;
 
   RegisterObject register_val = ParseRegister(register_string);
@@ -635,7 +635,7 @@ ArgHolder* WriteS32ToRegister(ScriptContext* current_script, std::vector<ArgHold
 ArgHolder* WriteS64ToRegister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   const std::string register_string = (*args_list)[0]->string_val;
-  s64 s64_val = (*args_list)[1]->long_long_val;
+  s64 s64_val = (*args_list)[1]->s64_val;
   u8 offset = (*args_list)[2]->u8_val;
 
   RegisterObject register_val = ParseRegister(register_string);

@@ -16,7 +16,7 @@ typedef struct FunctionMetadata_APIs
   const char* (*GetFunctionVersion)(void*); // Takes an opaque handle to a FunctionMetadata* as input, and returns the version that the FunctionMetadata* was defined in.
   const char* (*GetExampleFunctionCall)(void*);  // Takes an opaque handle to a FunctionMetadata* as input, and returns an example function call for the FunctionMetadata.
   int (*GetReturnType)(void*);  // Takes an opaque handle to a FunctionMetadata* as input, and returns an int which represents the return type of the function (the int is of type ArgTypeEnum).
-  unsigned int (*GetNumberOfArguments)(void*);  // Takes an opaque handle to a FunctionMetadata* as input, and returns the total number of arguments that the function takes.
+  unsigned long long (*GetNumberOfArguments)(void*);  // Takes an opaque handle to a FunctionMetadata* as input, and returns the total number of arguments that the function takes.
   int (*GetTypeOfArgumentAtIndex)(void*, unsigned int); // Takes an opaque handle to a FunctionMetadata* as its 1st input, and an index into the array of argument types for the function as it's 2nd argument (is a 0-indexed array from 0 to length-1).
                                                         // This function then returns an int which represents the type of the specified argument for the function (the int is of type ArgTypeEnum).
 

@@ -24,7 +24,7 @@ static std::array all_on_gc_controller_polled_callback_functions_metadata_list =
     FunctionMetadata("isInGCControllerPolledCallback", "1.0", "isInGCControllerPolledCallback()",
                      IsInGCControllerPolledCallback, ArgTypeEnum::Boolean, {}),
     FunctionMetadata("getCurrentPortNumberOfPoll", "1.0", "getCurrentPortNumberOfPoll()",
-                     GetCurrentPortNumberOfPoll, ArgTypeEnum::LongLong, {}),
+                     GetCurrentPortNumberOfPoll, ArgTypeEnum::S64, {}),
     FunctionMetadata("setInputsForPoll", "1.0", "setInputsForPoll(controllerValuesTable)",
                      SetInputsForPoll, ArgTypeEnum::VoidType, {ArgTypeEnum::ControllerStateObject}),
     FunctionMetadata("getInputsForPoll", "1.0", "getInputsForPoll()", GetInputsForPoll,
@@ -93,7 +93,7 @@ ArgHolder* GetCurrentPortNumberOfPoll(ScriptContext* current_script,
     return CreateErrorStringArgHolder(
         "User attempted to call OnGCControllerPolled:getCurrentPortNumberOfPoll() outside of an "
         "OnGCControllerPolled callback function!");
-  return CreateLongLongArgHolder(current_controller_number_polled + 1);
+  return CreateS64ArgHolder(current_controller_number_polled + 1);
 }
 
 // NOTE: In SI.cpp, UpdateDevices() is called to update each device, which moves exactly 8 bytes

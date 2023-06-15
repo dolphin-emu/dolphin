@@ -15,7 +15,7 @@ void* CreateNewVectorOfArgHolders_impl()
   return reinterpret_cast<void*>(new std::vector<Scripting::ArgHolder*>());
 }
 
-unsigned int GetSizeOfVectorOfArgHolders_impl(void* input)
+unsigned long long GetSizeOfVectorOfArgHolders_impl(void* input)
 {
   return castToVectorOfArgHolders(input)->size();
 }
@@ -36,8 +36,8 @@ void Delete_VectorOfArgHolders_impl(void* vector_of_arg_holders)
     return;
 
   std::vector<Scripting::ArgHolder*>* casted_pointer = castToVectorOfArgHolders(vector_of_arg_holders);
-  unsigned int length = casted_pointer->size();
-  for (int i = 0; i < length; ++i)
+  unsigned long long length = casted_pointer->size();
+  for (unsigned long long i = 0; i < length; ++i)
   {
     delete (casted_pointer->at(i));
     casted_pointer->at(i) = nullptr;

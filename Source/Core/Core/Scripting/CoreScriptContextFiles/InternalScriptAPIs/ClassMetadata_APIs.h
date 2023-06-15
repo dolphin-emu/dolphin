@@ -13,7 +13,7 @@ extern "C" {
     // WARNING: This returns an exact copy of the name field of the ClassMetadata*, so it's lifespan
     // will end when the ClassMetadata* that the function was called with goes out of scope in the Dolphin side.
     const char* (*GetClassName)(void*);  // takes an opaque handle to a ClassMetadata* as input, and returns the const char* representing the class name.
-    unsigned int (*GetNumberOfFunctions)(void*);  // Takes an opaque handle to a ClassMetadata* as input, and returns the number of FunctionMetadataDefinitions contained in the class.
+    unsigned long long (*GetNumberOfFunctions)(void*);  // Takes an opaque handle to a ClassMetadata* as input, and returns the number of FunctionMetadataDefinitions contained in the class.
 
     //WARNING: This returns an exact copy of the FunctionMetadata* stored in the ClassMetadata*, so it's lifespan
     // will end when the ClassMetadata* that the function was called with goes out of scope in the Dolphin side.

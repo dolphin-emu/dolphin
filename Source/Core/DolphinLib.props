@@ -434,9 +434,6 @@
 	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\Enums\ArgTypeEnum.h" />
 	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\Enums\GCButtonNameEnum.h" />
 	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\Enums\ScriptCallLocations.h" />
-    <ClInclude Include="Core\Scripting\CoreScriptContextFiles\Implementations\InstructionBreakpointsHolder.h" />
-    <ClInclude Include="Core\Scripting\CoreScriptContextFiles\Implementations\MemoryAddressBreakpointsHolder.h" />
-	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\Implementations\ScriptContext.h" />
 	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\InternalScriptAPIs\ArgHolder_APIs.h" />
 	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\InternalScriptAPIs\ClassFunctionsResolver_APIs.h" />
 	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\InternalScriptAPIs\ClassMetadata_APIs.h" />
@@ -450,6 +447,7 @@
     <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnMemoryAddressReadFromCallbackAPI.h" />
     <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnMemoryAddressWrittenToCallbackAPI.h" />
     <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnWiiInputPolledCallbackAPI.h" />
+	<ClInclude Include="Core\Scripting\HelperClasses\ArgHolder_API_Implementations.h" />
     <ClInclude Include="Core\Scripting\HelperClasses\ClassFunctionsResolver.h" />
     <ClInclude Include="Core\Scripting\HelperClasses\InstructionBreakpointsHolder.h" />
     <ClInclude Include="Core\Scripting\HelperClasses\MemoryAddressBreakpointsHolder.h" />
@@ -1106,16 +1104,16 @@
     <ClCompile Include="Core\PowerPC\SignatureDB\DSYSignatureDB.cpp" />
     <ClCompile Include="Core\PowerPC\SignatureDB\MEGASignatureDB.cpp" />
     <ClCompile Include="Core\PowerPC\SignatureDB\SignatureDB.cpp" />
-	<ClCompile Include="Core\Scripting\CoreScriptContextFiles\Implementations\InstructionBreakpointsHolder.cpp" />
-    <ClCompile Include="Core\Scripting\CoreScriptContextFiles\Implementations\MemoryAddressBreakpointsHolder.cpp" />
-	<ClCompile Include="Core\Scripting\CoreScriptContextFiles\Implementations\ScriptContext.cpp" />
     <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnFrameStartCallbackAPI.cpp" />
     <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnGCControllerPolledCallbackAPI.cpp" />
     <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnInstructionHitCallbackAPI.cpp" />
     <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnMemoryAddressReadFromCallbackAPI.cpp" />
     <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnMemoryAddressWrittenToCallbackAPI.cpp" />
     <ClCompile Include="Core\Scripting\EventCallbackRegistrationAPIs\OnWiiInputPolledCallbackAPI.cpp" />
+	<ClCompile Include="Core\Scripting\HelperClasses\ArgHolder_API_Implementations.cpp" />
     <ClCompile Include="Core\Scripting\HelperClasses\ClassFunctionsResolver.cpp" />
+	<ClCompile Include="Core\Scripting\HelperClasses\ClassMetadata.cpp" />
+	<ClCompile Include="Core\Scripting\HelperClasses\FunctionMetadata.cpp" />
 	<ClCompile Include="Core\Scripting\HelperClasses\GCButtonFunctions.cpp" />
     <ClCompile Include="Core\Scripting\HelperClasses\WiiControllerRepresentation.cpp" />
     <ClCompile Include="Core\Scripting\InternalAPIModules\GraphicsAPI.cpp" />

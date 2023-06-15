@@ -36,7 +36,7 @@ static std::array all_on_memory_address_written_to_callback_functions_metadata_l
                      GetMemoryAddressWrittenToForCurrentCallback, ArgTypeEnum::U32, {}),
     FunctionMetadata("getValueWrittenToMemoryAddressForCurrentCallback", "1.0",
                      "getValueWrittenToMemoryAddressForCurrentCallback",
-                     GetValueWrittenToMemoryAddressForCurrentCallback, ArgTypeEnum::LongLong, {})};
+                     GetValueWrittenToMemoryAddressForCurrentCallback, ArgTypeEnum::S64, {})};
 
 ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
 {
@@ -186,6 +186,6 @@ ArgHolder* GetValueWrittenToMemoryAddressForCurrentCallback(ScriptContext* curre
         "User attempted to call "
         "OnMemoryAddressWrittenTo:getValueWrittenToMemoryAddressForCurrentCallback() outside of an "
         "OnMemoryAddressWrittenTo callback function!");
-  return CreateLongLongArgHolder(value_written_to_memory_address_for_current_callback);
+  return CreateS64ArgHolder(value_written_to_memory_address_for_current_callback);
 }
 }  // namespace Scripting::OnMemoryAddressWrittenToCallbackAPI

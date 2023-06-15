@@ -80,14 +80,6 @@
   <ItemGroup>
     <Text Include="$(BuildInfoTemplate)" />
   </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="Core\Scripting\HelperClasses\ArgHolder_API_Implementations.cpp" />
-    <ClCompile Include="Core\Scripting\HelperClasses\ClassMetadata.cpp" />
-    <ClCompile Include="Core\Scripting\HelperClasses\FunctionMetadata.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Core\Scripting\HelperClasses\ArgHolder_API_Implementations.h" />
-  </ItemGroup>
   <UsingTask TaskName="GetProductVersion" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
       <Path ParameterType="System.String" Required="true" />

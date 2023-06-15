@@ -44,7 +44,7 @@ static std::array all_config_functions_metadata_list = {
     FunctionMetadata(
         "getSignedIntConfigSettingForLayer", "1.0",
         "getSignedIntConfigSettingForLayer(\"GlobalGame\", \"Main\", \"Core\", \"TimingVariance\")",
-        GetSignedIntConfigSettingForLayer, ArgTypeEnum::Integer,
+        GetSignedIntConfigSettingForLayer, ArgTypeEnum::S32,
         {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String}),
     FunctionMetadata(
         "getUnsignedIntConfigSettingForLayer", "1.0",
@@ -79,7 +79,7 @@ static std::array all_config_functions_metadata_list = {
                      "\"TimingVariance\", 30)",
                      SetSignedIntConfigSettingForLayer, ArgTypeEnum::VoidType,
                      {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String,
-                      ArgTypeEnum::String, ArgTypeEnum::Integer}),
+                      ArgTypeEnum::String, ArgTypeEnum::S32}),
     FunctionMetadata("setUnsignedIntConfigSettingForLayer", "1.0",
                      "setUnsignedIntConfigSettingForLayer(\"GlobalGame\", \"Main\", \"Core\", "
                      "\"MEM1Size\", 500)",
@@ -150,7 +150,7 @@ static std::array all_config_functions_metadata_list = {
                      {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String}),
     FunctionMetadata("getSignedIntConfigSetting", "1.0",
                      "getSignedIntConfigSetting(\"Main\", \"Core\", \"TimingVariance\")",
-                     GetSignedIntConfigSetting, ArgTypeEnum::Integer,
+                     GetSignedIntConfigSetting, ArgTypeEnum::S32,
                      {ArgTypeEnum::String, ArgTypeEnum::String, ArgTypeEnum::String}),
     FunctionMetadata("getUnsignedIntConfigSetting", "1.0",
                      "getUnsignedIntConfigSetting(\"Main\", \"Core\", \"MEM1Size\")",
@@ -524,7 +524,7 @@ ArgHolder* GetConfigSettingForLayer(std::vector<ArgHolder*>* args_list, T defaul
     if (std::is_same<T, bool>::value)
       return CreateBoolArgHolder((*((std::optional<bool>*)&returned_config_val)).value());
     else if (std::is_same<T, int>::value)
-      return CreateIntArgHolder((*((std::optional<int>*)&returned_config_val)).value());
+      return CreateS32ArgHolder((*((std::optional<int>*)&returned_config_val)).value());
     else if (std::is_same<T, u32>::value)
       return CreateU32ArgHolder((*((std::optional<u32>*)&returned_config_val)).value());
     else if (std::is_same<T, float>::value)
@@ -704,7 +704,7 @@ ArgHolder* SetBooleanConfigSettingForLayer(ScriptContext* current_script,
 ArgHolder* SetSignedIntConfigSettingForLayer(ScriptContext* current_script,
                                             std::vector<ArgHolder*>* args_list)
 {
-  int new_int = (*args_list)[4]->int_val;
+  int new_int = (*args_list)[4]->s32_val;
   return SetConfigSettingForLayer(args_list, new_int);
 }
 
@@ -909,7 +909,7 @@ ArgHolder* GetConfigSetting(std::vector<ArgHolder*>* args_list, T default_value)
         if (std::is_same<T, bool>::value)
           return CreateBoolArgHolder((*((std::optional<bool>*)&returned_config_val)).value());
         else if (std::is_same<T, int>::value)
-          return CreateIntArgHolder((*((std::optional<int>*)&returned_config_val)).value());
+          return CreateS32ArgHolder((*((std::optional<int>*)&returned_config_val)).value());
         else if (std::is_same<T, u32>::value)
           return CreateU32ArgHolder((*((std::optional<u32>*)&returned_config_val)).value());
         else if (std::is_same<T, float>::value)

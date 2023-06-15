@@ -13,11 +13,11 @@ std::array<Movie::ControllerState, 4> controller_inputs_on_last_frame{};
 static std::array all_game_cube_controller_functions_metadata_list = {
     FunctionMetadata("getInputsForPreviousFrame", "1.0", "getInputsForPreviousFrame(1)",
                      GetInputsForPreviousFrame, ArgTypeEnum::ControllerStateObject,
-                     {ArgTypeEnum::LongLong}),
+                     {ArgTypeEnum::S64}),
     FunctionMetadata("isGcControllerInPort", "1.0", "isGcControllerInPort(1)", IsGcControllerInPort,
-                     ArgTypeEnum::Boolean, {ArgTypeEnum::LongLong}),
+                     ArgTypeEnum::Boolean, {ArgTypeEnum::S64}),
     FunctionMetadata("isUsingPort", "1.0", "isUsingPort(1)", IsUsingPort, ArgTypeEnum::Boolean,
-                     {ArgTypeEnum::LongLong})};
+                     {ArgTypeEnum::S64})};
 
 ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
 {
@@ -42,7 +42,7 @@ FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
 ArgHolder* GetInputsForPreviousFrame(ScriptContext* current_script,
                                     std::vector<ArgHolder*>* args_list)
 {
-  s64 controller_port_number = (*args_list)[0]->long_long_val;
+  s64 controller_port_number = (*args_list)[0]->s64_val;
   if (controller_port_number < 1 || controller_port_number > 4)
   {
     return CreateErrorStringArgHolder("controller port number was not between 1 and 4 !");
@@ -54,7 +54,7 @@ ArgHolder* GetInputsForPreviousFrame(ScriptContext* current_script,
 
 ArgHolder* IsGcControllerInPort(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long controller_port_number = (*args_list)[0]->long_long_val;
+  long long controller_port_number = (*args_list)[0]->s64_val;
 
   if (controller_port_number < 1 || controller_port_number > 4)
     return CreateErrorStringArgHolder("controller port number was outside the valid range of 1-4");
@@ -64,7 +64,7 @@ ArgHolder* IsGcControllerInPort(ScriptContext* current_script, std::vector<ArgHo
 
 ArgHolder* IsUsingPort(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long controller_port_number = (*args_list)[0]->long_long_val;
+  long long controller_port_number = (*args_list)[0]->s64_val;
   if (controller_port_number < 1 || controller_port_number > 4)
     return CreateErrorStringArgHolder("controller port number was outside the valid range of 1-4");
 

@@ -86,39 +86,39 @@ static std::array all_graphics_functions_metadata_list = {
         {ArgTypeEnum::Float, ArgTypeEnum::Float, ArgTypeEnum::String, ArgTypeEnum::String}),
 
     FunctionMetadata("addCheckbox", "1.0", "addCheckbox(checkboxLabel, 42)", AddCheckbox,
-                     ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::LongLong}),
+                     ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::S64}),
     FunctionMetadata("getCheckboxValue", "1.0", "getCheckboxValue(42)", GetCheckboxValue,
-                     ArgTypeEnum::Boolean, {ArgTypeEnum::LongLong}),
+                     ArgTypeEnum::Boolean, {ArgTypeEnum::S64}),
     FunctionMetadata("setCheckboxValue", "1.0", "setCheckboxValue(42, true)", SetCheckboxValue,
-                     ArgTypeEnum::VoidType, {ArgTypeEnum::LongLong, ArgTypeEnum::Boolean}),
+                     ArgTypeEnum::VoidType, {ArgTypeEnum::S64, ArgTypeEnum::Boolean}),
 
     FunctionMetadata("addRadioButtonGroup", "1.0", "addRadioButtonGroup(42)", AddRadioButtonGroup,
-                     ArgTypeEnum::VoidType, {ArgTypeEnum::LongLong}),
+                     ArgTypeEnum::VoidType, {ArgTypeEnum::S64}),
     FunctionMetadata("addRadioButton", "1.0", "addRadioButton(\"apples\", 42, 0)", AddRadioButton,
                      ArgTypeEnum::VoidType,
-                     {ArgTypeEnum::String, ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),
+                     {ArgTypeEnum::String, ArgTypeEnum::S64, ArgTypeEnum::S64}),
     FunctionMetadata("getRadioButtonGroupValue", "1.0", "getRadioButtonGroupValue((42)",
-                     GetRadioButtonGroupValue, ArgTypeEnum::LongLong, {ArgTypeEnum::LongLong}),
+                     GetRadioButtonGroupValue, ArgTypeEnum::S64, {ArgTypeEnum::S64}),
     FunctionMetadata("setRadioButtonGroupValue", "1.0", "setRadioButtonGroupValue(42, 1)",
                      SetRadioButtonGroupValue, ArgTypeEnum::VoidType,
-                     {ArgTypeEnum::LongLong, ArgTypeEnum::LongLong}),
+                     {ArgTypeEnum::S64, ArgTypeEnum::S64}),
 
     FunctionMetadata("addTextBox", "1.0", "addTextBox(42, \"Textbox Label\")", AddTextBox,
-                     ArgTypeEnum::VoidType, {ArgTypeEnum::LongLong, ArgTypeEnum::String}),
+                     ArgTypeEnum::VoidType, {ArgTypeEnum::S64, ArgTypeEnum::String}),
     FunctionMetadata("getTextBoxValue", "1.0", "getTextBoxValue(42)", GetTextBoxValue,
-                     ArgTypeEnum::String, {ArgTypeEnum::LongLong}),
+                     ArgTypeEnum::String, {ArgTypeEnum::S64}),
     FunctionMetadata("setTextBoxValue", "1.0", "setTextBoxValue(42, \"Hello World!\")",
                      SetTextBoxValue, ArgTypeEnum::VoidType,
-                     {ArgTypeEnum::LongLong, ArgTypeEnum::String}),
+                     {ArgTypeEnum::S64, ArgTypeEnum::String}),
 
     FunctionMetadata("addButton", "1.0",
                      "addButton(\"Button Label\", 42, callbackFunc, 100.0, 45.0)", AddButton,
                      ArgTypeEnum::VoidType,
-                     {ArgTypeEnum::String, ArgTypeEnum::LongLong,
+                     {ArgTypeEnum::String, ArgTypeEnum::S64,
                       ArgTypeEnum::RegistrationForButtonCallbackInputType, ArgTypeEnum::Float,
                       ArgTypeEnum::Float}),
     FunctionMetadata("pressButton", "1.0", "pressButton(42)", PressButton, ArgTypeEnum::VoidType,
-                     {ArgTypeEnum::LongLong}),
+                     {ArgTypeEnum::S64}),
 
     FunctionMetadata("newLine", "1.0", "newLine(10.0)", NewLine, ArgTypeEnum::VoidType,
                      {ArgTypeEnum::Float}),
@@ -426,7 +426,7 @@ ArgHolder DrawEmptyArc(ScriptContext* current_script, std::vector<ArgHolder*>* a
   float y3 = (*args_list)[5]->float_val;
   float x4 = (*args_list)[6]->float_val;
   float y4 = (*args_list)[7]->float_val;
-  long long num_sides = (*args_list)[6]->long_long_val;
+  long long num_sides = (*args_list)[6]->s64_val;
 
   ImGui::GetForegroundDrawList()->AddBezierCubic({x1, y1}, {x2, y2}, {x3, y3},
                                                      {x4, y4} , ParseColor("yellow"), 5.0,
@@ -516,7 +516,7 @@ ArgHolder* DrawText(ScriptContext* current_script, std::vector<ArgHolder*>* args
 ArgHolder* AddCheckbox(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   std::string checkbox_name = (*args_list)[0]->string_val;
-  long long id = (*args_list)[1]->long_long_val;
+  long long id = (*args_list)[1]->s64_val;
 
   if (!window_is_open)
   {
@@ -540,7 +540,7 @@ ArgHolder* AddCheckbox(ScriptContext* current_script, std::vector<ArgHolder*>* a
 
 ArgHolder* GetCheckboxValue(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long checkbox_id = (*args_list)[0]->long_long_val;
+  long long checkbox_id = (*args_list)[0]->s64_val;
   if (id_to_checkbox_map.count(checkbox_id) == 0)
     return CreateErrorStringArgHolder(
         fmt::format("Attempted to get the value of an undefined checkbox with an index of {}. User "
@@ -552,7 +552,7 @@ ArgHolder* GetCheckboxValue(ScriptContext* current_script, std::vector<ArgHolder
 
 ArgHolder* SetCheckboxValue(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long checkbox_id = (*args_list)[0]->long_long_val;
+  long long checkbox_id = (*args_list)[0]->s64_val;
   bool new_bool_value = (*args_list)[1]->bool_val;
   if (id_to_checkbox_map.count(checkbox_id) == 0)
     return CreateErrorStringArgHolder(fmt::format(
@@ -567,7 +567,7 @@ ArgHolder* SetCheckboxValue(ScriptContext* current_script, std::vector<ArgHolder
 
 ArgHolder* AddRadioButtonGroup(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long id = (*args_list)[0]->long_long_val;
+  long long id = (*args_list)[0]->s64_val;
   if (!window_is_open)
   {
     return CreateErrorStringArgHolder(
@@ -588,8 +588,8 @@ ArgHolder* AddRadioButtonGroup(ScriptContext* current_script, std::vector<ArgHol
 ArgHolder* AddRadioButton(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   std::string button_name = (*args_list)[0]->string_val;
-  long long radio_button_group_id = (*args_list)[1]->long_long_val;
-  long long radio_button_id = (*args_list)[2]->long_long_val;
+  long long radio_button_group_id = (*args_list)[1]->s64_val;
+  long long radio_button_id = (*args_list)[2]->s64_val;
   if (!window_is_open)
   {
     return CreateErrorStringArgHolder(
@@ -613,19 +613,19 @@ ArgHolder* AddRadioButton(ScriptContext* current_script, std::vector<ArgHolder*>
 
 ArgHolder* GetRadioButtonGroupValue(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long radio_group_id = (*args_list)[0]->long_long_val;
+  long long radio_group_id = (*args_list)[0]->s64_val;
   if (id_to_radio_group_map.count(radio_group_id) == 0)
     return CreateErrorStringArgHolder(fmt::format(
         "Attempted to get the value of an undefined radio group with an ID of {}. User must call "
         "addRadioButtonGroup() before they can get the radio button's value!",
         radio_group_id));
-  return CreateLongLongArgHolder(*(id_to_radio_group_map[radio_group_id]));
+  return CreateS64ArgHolder(*(id_to_radio_group_map[radio_group_id]));
 }
 
 ArgHolder* SetRadioButtonGroupValue(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long radio_group_id = (*args_list)[0]->long_long_val;
-  long long new_int_value = (*args_list)[1]->long_long_val;
+  long long radio_group_id = (*args_list)[0]->s64_val;
+  long long new_int_value = (*args_list)[1]->s64_val;
   if (id_to_radio_group_map.count(radio_group_id) == 0)
     return CreateErrorStringArgHolder(
         fmt::format("Attempted to set the value of a radio group with an ID of {} before creating "
@@ -638,7 +638,7 @@ ArgHolder* SetRadioButtonGroupValue(ScriptContext* current_script, std::vector<A
 
 ArgHolder* AddTextBox(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long text_box_id = (*args_list)[0]->long_long_val;
+  long long text_box_id = (*args_list)[0]->s64_val;
   std::string text_box_name = (*args_list)[1]->string_val;
 
   if (!window_is_open)
@@ -663,7 +663,7 @@ ArgHolder* AddTextBox(ScriptContext* current_script, std::vector<ArgHolder*>* ar
 
 ArgHolder* GetTextBoxValue(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long text_box_id = (*args_list)[0]->long_long_val;
+  long long text_box_id = (*args_list)[0]->s64_val;
   if (id_to_text_box_map.count(text_box_id) == 0)
     return CreateErrorStringArgHolder(fmt::format(
         "Attempted to get the textbox value of an invalid textbox with an ID of {}. User must call "
@@ -674,7 +674,7 @@ ArgHolder* GetTextBoxValue(ScriptContext* current_script, std::vector<ArgHolder*
 
 ArgHolder* SetTextBoxValue(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long text_box_id = (*args_list)[0]->long_long_val;
+  long long text_box_id = (*args_list)[0]->s64_val;
   std::string new_string_value = (*args_list)[1]->string_val;
   if (id_to_text_box_map.count(text_box_id) == 0)
     return CreateErrorStringArgHolder(
@@ -687,7 +687,7 @@ ArgHolder* SetTextBoxValue(ScriptContext* current_script, std::vector<ArgHolder*
 ArgHolder* AddButton(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   std::string button_label = (*args_list)[0]->string_val;
-  long long button_id = (*args_list)[1]->long_long_val;
+  long long button_id = (*args_list)[1]->s64_val;
   void* function_callback = (*args_list)[2]->void_pointer_val;
   float button_width = (*args_list)[3]->float_val;
   float button_height = (*args_list)[4]->float_val;
@@ -711,7 +711,7 @@ ArgHolder* AddButton(ScriptContext* current_script, std::vector<ArgHolder*>* arg
 
 ArgHolder* PressButton(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  long long button_id = (*args_list)[0]->long_long_val;
+  long long button_id = (*args_list)[0]->s64_val;
 
   if (!window_is_open || display_stack.empty() || !display_stack.top())
   {

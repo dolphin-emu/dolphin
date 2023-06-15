@@ -12,7 +12,7 @@ const char* GetClassName_ClassMetadata_impl(void* class_metadata)
   return castToClassMetadataPtr(class_metadata)->class_name.c_str();
 }
 
-unsigned int GetNumberOfFunctions_ClassMetadata_impl(void* class_metadata)
+unsigned long long GetNumberOfFunctions_ClassMetadata_impl(void* class_metadata)
 {
   return castToClassMetadataPtr(class_metadata)->functions_list.size();
 }

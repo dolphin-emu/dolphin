@@ -146,12 +146,12 @@ void LuaScriptContext::ImportModule(const std::string& api_name, const std::stri
         case ArgTypeEnum::S16:
           arguments.push_back(CreateS16ArgHolder(luaL_checkinteger(lua_state, next_index_in_args)));
           break;
-        case ArgTypeEnum::Integer:
+        case ArgTypeEnum::S32:
           arguments.push_back(CreateIntArgHolder(luaL_checkinteger(lua_state, next_index_in_args)));
           break;
-        case ArgTypeEnum::LongLong:
+        case ArgTypeEnum::S64:
           arguments.push_back(
-              CreateLongLongArgHolder(luaL_checkinteger(lua_state, next_index_in_args)));
+              CreateS64ArgHolder(luaL_checkinteger(lua_state, next_index_in_args)));
           break;
         case ArgTypeEnum::Float:
           arguments.push_back(
@@ -255,59 +255,59 @@ void LuaScriptContext::ImportModule(const std::string& api_name, const std::stri
 
             switch (ParseGCButton(button_name))
             {
-            case GcButtonName::A:
+            case GcButtonNameEnum::A:
               controller_state_arg.A = lua_toboolean(lua_state, -1);
               break;
 
-            case GcButtonName::B:
+            case GcButtonNameEnum::B:
               controller_state_arg.B = lua_toboolean(lua_state, -1);
               break;
 
-            case GcButtonName::X:
+            case GcButtonNameEnum::X:
               controller_state_arg.X = lua_toboolean(lua_state, -1);
               break;
 
-            case GcButtonName::Y:
+            case GcButtonNameEnum::Y:
               controller_state_arg.Y = lua_toboolean(lua_state, -1);
               break;
 
-            case GcButtonName::Z:
+            case GcButtonNameEnum::Z:
               controller_state_arg.Z = lua_toboolean(lua_state, -1);
               break;
 
-            case GcButtonName::L:
+            case GcButtonNameEnum::L:
               controller_state_arg.L = lua_toboolean(lua_state, -1);
               break;
 
-            case GcButtonName::R:
+            case GcButtonNameEnum::R:
               controller_state_arg.R = lua_toboolean(lua_state, -1);
               break;
 
-            case GcButtonName::DPadUp:
+            case GcButtonNameEnum::DPadUp:
               controller_state_arg.DPadUp = lua_toboolean(lua_state, -1);
               break;
 
-            case GcButtonName::DPadDown:
+            case GcButtonNameEnum::DPadDown:
               controller_state_arg.DPadDown = lua_toboolean(lua_state, -1);
               break;
 
-            case GcButtonName::DPadLeft:
+            case GcButtonNameEnum::DPadLeft:
               controller_state_arg.DPadLeft = lua_toboolean(lua_state, -1);
               break;
 
-            case GcButtonName::DPadRight:
+            case GcButtonNameEnum::DPadRight:
               controller_state_arg.DPadRight = lua_toboolean(lua_state, -1);
               break;
 
-            case GcButtonName::Start:
+            case GcButtonNameEnum::Start:
               controller_state_arg.Start = lua_toboolean(lua_state, -1);
               break;
 
-            case GcButtonName::Reset:
+            case GcButtonNameEnum::Reset:
               controller_state_arg.reset = lua_toboolean(lua_state, -1);
               break;
 
-            case GcButtonName::AnalogStickX:
+            case GcButtonNameEnum::AnalogStickX:
               magnitude = luaL_checkinteger(lua_state, -1);
               if (magnitude < 0 || magnitude > 255)
                 luaL_error(lua_state,
@@ -317,7 +317,7 @@ void LuaScriptContext::ImportModule(const std::string& api_name, const std::stri
               controller_state_arg.AnalogStickX = static_cast<u8>(magnitude);
               break;
 
-            case GcButtonName::AnalogStickY:
+            case GcButtonNameEnum::AnalogStickY:
               magnitude = luaL_checkinteger(lua_state, -1);
               if (magnitude < 0 || magnitude > 255)
                 luaL_error(lua_state,
@@ -327,7 +327,7 @@ void LuaScriptContext::ImportModule(const std::string& api_name, const std::stri
               controller_state_arg.AnalogStickY = static_cast<u8>(magnitude);
               break;
 
-            case GcButtonName::CStickX:
+            case GcButtonNameEnum::CStickX:
               magnitude = luaL_checkinteger(lua_state, -1);
               if (magnitude < 0 || magnitude > 255)
                 luaL_error(lua_state,
@@ -337,7 +337,7 @@ void LuaScriptContext::ImportModule(const std::string& api_name, const std::stri
               controller_state_arg.CStickX = static_cast<u8>(magnitude);
               break;
 
-            case GcButtonName::CStickY:
+            case GcButtonNameEnum::CStickY:
               magnitude = luaL_checkinteger(lua_state, -1);
               if (magnitude < 0 || magnitude > 255)
                 luaL_error(lua_state,
@@ -347,7 +347,7 @@ void LuaScriptContext::ImportModule(const std::string& api_name, const std::stri
               controller_state_arg.CStickY = static_cast<u8>(magnitude);
               break;
 
-            case GcButtonName::TriggerL:
+            case GcButtonNameEnum::TriggerL:
               magnitude = luaL_checkinteger(lua_state, -1);
               if (magnitude < 0 || magnitude > 255)
                 luaL_error(lua_state,
@@ -357,7 +357,7 @@ void LuaScriptContext::ImportModule(const std::string& api_name, const std::stri
               controller_state_arg.TriggerL = static_cast<u8>(magnitude);
               break;
 
-            case GcButtonName::TriggerR:
+            case GcButtonNameEnum::TriggerR:
               magnitude = luaL_checkinteger(lua_state, -1);
               if (magnitude < 0 || magnitude > 255)
                 luaL_error(lua_state,
@@ -456,10 +456,10 @@ void LuaScriptContext::ImportModule(const std::string& api_name, const std::stri
       case ArgTypeEnum::S16:
         lua_pushinteger(lua_state, returnValue.s16_val);
         return 1;
-      case ArgTypeEnum::Integer:
+      case ArgTypeEnum::S32:
         lua_pushinteger(lua_state, returnValue.int_val);
         return 1;
-      case ArgTypeEnum::LongLong:
+      case ArgTypeEnum::S64:
         lua_pushinteger(lua_state, returnValue.long_long_val);
         return 1;
       case ArgTypeEnum::Float:
@@ -514,79 +514,79 @@ void LuaScriptContext::ImportModule(const std::string& api_name, const std::stri
 
           switch (button_code)
           {
-          case GcButtonName::A:
+          case GcButtonNameEnum::A:
             button_pressed = controller_state_arg.A;
             lua_pushboolean(lua_state, button_pressed);
             break;
-          case GcButtonName::B:
+          case GcButtonNameEnum::B:
             button_pressed = controller_state_arg.B;
             lua_pushboolean(lua_state, button_pressed);
             break;
-          case GcButtonName::X:
+          case GcButtonNameEnum::X:
             button_pressed = controller_state_arg.X;
             lua_pushboolean(lua_state, button_pressed);
             break;
-          case GcButtonName::Y:
+          case GcButtonNameEnum::Y:
             button_pressed = controller_state_arg.Y;
             lua_pushboolean(lua_state, button_pressed);
             break;
-          case GcButtonName::Z:
+          case GcButtonNameEnum::Z:
             button_pressed = controller_state_arg.Z;
             lua_pushboolean(lua_state, button_pressed);
             break;
-          case GcButtonName::L:
+          case GcButtonNameEnum::L:
             button_pressed = controller_state_arg.L;
             lua_pushboolean(lua_state, button_pressed);
             break;
-          case GcButtonName::R:
+          case GcButtonNameEnum::R:
             button_pressed = controller_state_arg.R;
             lua_pushboolean(lua_state, button_pressed);
             break;
-          case GcButtonName::Start:
+          case GcButtonNameEnum::Start:
             button_pressed = controller_state_arg.Start;
             lua_pushboolean(lua_state, button_pressed);
             break;
-          case GcButtonName::Reset:
+          case GcButtonNameEnum::Reset:
             button_pressed = controller_state_arg.reset;
             lua_pushboolean(lua_state, button_pressed);
             break;
-          case GcButtonName::DPadUp:
+          case GcButtonNameEnum::DPadUp:
             button_pressed = controller_state_arg.DPadUp;
             lua_pushboolean(lua_state, button_pressed);
             break;
-          case GcButtonName::DPadDown:
+          case GcButtonNameEnum::DPadDown:
             button_pressed = controller_state_arg.DPadDown;
             lua_pushboolean(lua_state, button_pressed);
             break;
-          case GcButtonName::DPadLeft:
+          case GcButtonNameEnum::DPadLeft:
             button_pressed = controller_state_arg.DPadLeft;
             lua_pushboolean(lua_state, button_pressed);
             break;
-          case GcButtonName::DPadRight:
+          case GcButtonNameEnum::DPadRight:
             button_pressed = controller_state_arg.DPadRight;
             lua_pushboolean(lua_state, button_pressed);
             break;
-          case GcButtonName::AnalogStickX:
+          case GcButtonNameEnum::AnalogStickX:
             magnitude = controller_state_arg.AnalogStickX;
             lua_pushinteger(lua_state, magnitude);
             break;
-          case GcButtonName::AnalogStickY:
+          case GcButtonNameEnum::AnalogStickY:
             magnitude = controller_state_arg.AnalogStickY;
             lua_pushinteger(lua_state, magnitude);
             break;
-          case GcButtonName::CStickX:
+          case GcButtonNameEnum::CStickX:
             magnitude = controller_state_arg.CStickX;
             lua_pushinteger(lua_state, magnitude);
             break;
-          case GcButtonName::CStickY:
+          case GcButtonNameEnum::CStickY:
             magnitude = controller_state_arg.CStickY;
             lua_pushinteger(lua_state, magnitude);
             break;
-          case GcButtonName::TriggerL:
+          case GcButtonNameEnum::TriggerL:
             magnitude = controller_state_arg.TriggerL;
             lua_pushinteger(lua_state, magnitude);
             break;
-          case GcButtonName::TriggerR:
+          case GcButtonNameEnum::TriggerR:
             magnitude = controller_state_arg.TriggerR;
             lua_pushinteger(lua_state, magnitude);
             break;

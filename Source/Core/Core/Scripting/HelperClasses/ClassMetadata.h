@@ -13,6 +13,6 @@ struct ClassMetadata
 };
 
 const char* GetClassName_ClassMetadata_impl(void*); 
-unsigned int GetNumberOfFunctions_ClassMetadata_impl(void*); 
+unsigned long long GetNumberOfFunctions_ClassMetadata_impl(void*); 
 void* GetFunctionMetadataAtPosition_ClassMetadata_impl(void*, unsigned int);
 }  // namespace Scripting
