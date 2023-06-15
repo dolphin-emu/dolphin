@@ -10,7 +10,12 @@
 #include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/VectorOfArgHolders_APIs.h"
 
 #include "Core/Scripting/HelperClasses/ArgHolder_API_Implementations.h"
-#include "Core/Scripting/EventCallbackRegistrationAPIs//OnInstructionHitCallbackAPI.h"
+#include "Core/Scripting/HelperClasses/ClassFunctionsResolver.h"
+#include "Core/Scripting/HelperClasses/ClassMetadata.h"
+#include "Core/Scripting/HelperClasses/FunctionMetadata.h"
+#include "Core/Scripting/HelperClasses/GCButtonFunctions.h"
+#include "Core/Scripting/HelperClasses/VectorOfArgHolders.h"
+#include "Core/Scripting/EventCallbackRegistrationAPIs/OnInstructionHitCallbackAPI.h"
 #include "Core/Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressReadFromCallbackAPI.h"
 #include "Core/Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressWrittenToCallbackAPI.h"
 #include "Core/Scripting/InternalAPIModules/GraphicsAPI.h"
@@ -42,23 +47,26 @@ static ClassFunctionsResolver_APIs classFunctionsResolver_apis = {};
 static ClassMetadata_APIs classMetadata_apis = {};
 static FunctionMetadata_APIs functionMetadata_apis = {};
 static GCButton_APIs gcButton_apis = {};
-static Dolphin_Defined_ScriptContext_APIs dolphin_defined_scriptContext_apis = {};
 static VectorOfArgHolders_APIs vectorOfArgHolders_apis = {};
+static Dolphin_Defined_ScriptContext_APIs dolphin_defined_scriptContext_apis = {};
+
 
 // Validates that there's no NULL variables in the API struct passed in as an argument.
-static bool ValidateApiStruct(u64* start_of_struct, unsigned int struct_size)
+static bool ValidateApiStruct(void* start_of_struct, unsigned int struct_size, const char* struct_name)
 {
-  u64* travel_ptr = start_of_struct;
+  u64* travel_ptr = ((u64*)start_of_struct);
 
   while (((u8*)travel_ptr) < (((u8*)start_of_struct) + struct_size))
   {
     if (static_cast<u64>(*travel_ptr) == 0)
     {
-      return false;
+      std::cout << "Error: " << struct_name << " had a NULL member!" << std::endl;
+      std::quick_exit(68);
     }
     travel_ptr = (u64*)(((u8*)travel_ptr) + sizeof(u64));
   }
 
+  std::cout << "All good in " << struct_name << "!" << std::endl;
   return true;
 }
 
@@ -115,20 +123,98 @@ static void Initialize_ArgHolder_APIs()
   argHolder_apis.IncrementIteratorForAddressToByteMapArgHolder = IncrementIteratorForAddressToByteMapArgHolder_impl;
   argHolder_apis.ListOfPointsArgHolderPushBack = ListOfPointsArgHolderPushBack_API_impl;
   argHolder_apis.SetControllerStateArgHolderValue = SetControllerStateArgHolderValue_impl;
-  
-  bool debugVal = ValidateApiStruct(((u64*) &argHolder_apis), sizeof(argHolder_apis));
-  if (!debugVal)
-  {
-    std::cout << "ERROR: ArgHolder_APIs struct had a NULL member!";
-    std::quick_exit(68);
+
+  ValidateApiStruct(&argHolder_apis, sizeof(argHolder_apis), "ArgHolder_APIs");
   }
-  else
-    std::cout << "All good in ArgHolderAPIs!";
+
+
+static void Initialize_ClassFunctionsResolver_APIs()
+{
+  classFunctionsResolver_apis.Send_ClassMetadataForVersion_To_DLL_Buffer = Send_ClassMetadataForVersion_To_DLL_Buffer_impl;
+  classFunctionsResolver_apis.Send_FunctionMetadataForVersion_To_DLL_Buffer = Send_FunctionMetadataForVersion_To_DLL_Buffer_impl;
+
+  ValidateApiStruct(&classFunctionsResolver_apis, sizeof(classFunctionsResolver_apis), "ClassFunctionsResolver_APIs");
 }
+
+static void Initialize_ClassMetadata_APIs()
+{
+  classMetadata_apis.GetClassName = GetClassName_ClassMetadata_impl;
+  classMetadata_apis.GetFunctionMetadataAtPosition = GetFunctionMetadataAtPosition_ClassMetadata_impl;
+  classMetadata_apis.GetNumberOfFunctions = GetNumberOfFunctions_ClassMetadata_impl;
+
+  ValidateApiStruct(&classMetadata_apis, sizeof(classMetadata_apis), "ClassMetadata_APIs");
+}
+
+static void Initialize_FunctionMetadata_APIs()
+{
+  functionMetadata_apis.GetExampleFunctionCall = GetExampleFunctionCall_FunctionMetadata_impl;
+  functionMetadata_apis.GetFunctionName = GetFunctionName_FunctionMetadta_impl;
+  functionMetadata_apis.GetFunctionPointer = GetFunctionPointer_FunctionMetadata_impl;
+  functionMetadata_apis.GetFunctionVersion = GetFunctionVersion_FunctionMetadata_impl;
+  functionMetadata_apis.GetNumberOfArguments = GetNumberOfArguments_FunctionMetadata_impl;
+  functionMetadata_apis.GetReturnType = GetReturnType_FunctionMetadata_impl;
+  functionMetadata_apis.GetTypeOfArgumentAtIndex = GetArgTypeEnumAtIndexInArguments_FunctionMetadata_impl;
+  functionMetadata_apis.RunFunction = RunFunctionMain_impl;
+
+  ValidateApiStruct(&functionMetadata_apis, sizeof(functionMetadata_apis), "FunctionMetadata_APIs");
+}
+
+
+static void Initialize_GCButton_APIs()
+{
+  gcButton_apis.ConvertButtonEnumToString = ConvertButtonEnumToString_impl;
+  gcButton_apis.IsValidButtonEnum = IsValidButtonEnum_impl;
+  gcButton_apis.ParseGCButton = ParseGCButton_impl;
+
+  ValidateApiStruct(&gcButton_apis, sizeof(gcButton_apis), "GCButton_APIs");
+}
+
+static void Initialize_VectorOfArgHolders_APIs()
+{
+  vectorOfArgHolders_apis.CreateNewVectorOfArgHolders = CreateNewVectorOfArgHolders_impl;
+  vectorOfArgHolders_apis.Delete_VectorOfArgHolders = Delete_VectorOfArgHolders_impl;
+  vectorOfArgHolders_apis.GetArgumentForVectorOfArgHolders = GetArgumentForVectorOfArgHolders_impl;
+  vectorOfArgHolders_apis.GetSizeOfVectorOfArgHolders = GetSizeOfVectorOfArgHolders_impl;
+  vectorOfArgHolders_apis.PushBack = PushBack_VectorOfArgHolders_impl;
+
+  ValidateApiStruct(&vectorOfArgHolders_apis, sizeof(vectorOfArgHolders_apis), "VectorOfArgHolders_APIs");
+}
+
+static void Initialize_DolphinDefined_ScriptContext_APIs()
+{
+  dolphin_defined_scriptContext_apis.get_called_yielding_function_in_last_frame_callback_script_resume = ScriptContext_GetCalledYieldingFunctionInLastFrameCallbackScriptResume_impl;
+  dolphin_defined_scriptContext_apis.get_called_yielding_function_in_last_global_script_resume = ScriptContext_GetCalledYieldingFunctionInLastGlobalScriptResume_impl;
+  dolphin_defined_scriptContext_apis.get_dll_defined_script_context_apis = ScriptContext_GetDllDefinedScriptContextApis_impl;
+  dolphin_defined_scriptContext_apis.get_instruction_breakpoints_holder = ScriptContext_GetInstructionBreakpointsHolder_impl;
+  dolphin_defined_scriptContext_apis.get_is_finished_with_global_code = ScriptContext_GetIsFinishedWithGlobalCode_impl;
+  dolphin_defined_scriptContext_apis.get_is_script_active = ScriptContext_GetIsScriptActive_impl;
+  dolphin_defined_scriptContext_apis.get_memory_address_breakpoints_holder = ScriptContext_GetMemoryAddressBreakpointsHolder_impl;
+  dolphin_defined_scriptContext_apis.get_print_callback_function = ScriptContext_GetPrintCallback_impl;
+  dolphin_defined_scriptContext_apis.get_script_call_location = ScriptContext_GetScriptCallLocation_impl;
+  dolphin_defined_scriptContext_apis.get_script_end_callback_function = ScriptContext_GetScriptEndCallback_impl;
+  dolphin_defined_scriptContext_apis.get_script_filename = ScriptContext_GetScriptFilename_impl;
+  dolphin_defined_scriptContext_apis.get_script_version = ScriptContext_GetScriptVersion_impl;
+  dolphin_defined_scriptContext_apis.ScriptContext_Destructor = ScriptContext_Destructor_impl;
+  dolphin_defined_scriptContext_apis.ScriptContext_Initializer = ScriptContext_Initializer_impl;
+  dolphin_defined_scriptContext_apis.set_called_yielding_function_in_last_frame_callback_script_resume = ScriptContext_SetCalledYieldingFunctionInLastFrameCallbackScriptResume_impl;
+  dolphin_defined_scriptContext_apis.set_called_yielding_function_in_last_global_script_resume = ScriptContext_SetCalledYieldingFunctionInLastGlobalScriptResume_impl;
+  dolphin_defined_scriptContext_apis.set_is_finished_with_global_code = ScriptContext_SetIsFinishedWithGlobalCode_impl;
+  dolphin_defined_scriptContext_apis.set_is_script_active = ScriptContext_SetIsScriptActive_impl;
+  dolphin_defined_scriptContext_apis.Shutdown_Script = ScriptContext_ShutdownScript_impl;
+
+  ValidateApiStruct(&dolphin_defined_scriptContext_apis, sizeof(dolphin_defined_scriptContext_apis), "DolphinDefined_ScriptContext_APIs");
+}
+
 
 static void InitializeDolphinApiStructs()
 {
   Initialize_ArgHolder_APIs();
+  Initialize_ClassFunctionsResolver_APIs();
+  Initialize_ClassMetadata_APIs();
+  Initialize_FunctionMetadata_APIs();
+  Initialize_GCButton_APIs();
+  Initialize_VectorOfArgHolders_APIs();
+  Initialize_DolphinDefined_ScriptContext_APIs();
   initialized_dolphin_api_structs = true;
 }
 

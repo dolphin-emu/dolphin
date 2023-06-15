@@ -1,8 +1,6 @@
 #ifndef SCRIPT_CONTEXT_APIs
 #define SCRIPT_CONTEXT_APIs
 
-#include "../Enums/ScriptCallLocations.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -29,7 +27,7 @@ extern "C" {
 
   const char* (*get_script_filename)(void*); // Retuns the filename for the script.
 
-  ScriptCallLocations (*get_script_call_location)(void*); // Returns the location that the Script is executing from.
+  int (*get_script_call_location)(void*); // Returns the location that the Script is executing from.
   int (*get_is_script_active)(void*); // Returns 1 if the ScriptContext is currently active, and 0 otherwise.
   void (*set_is_script_active)(void*, int); // Sets the ScriptContext's is_script_active variable to the specified value.
 
