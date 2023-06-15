@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <string>
@@ -16,12 +17,10 @@
 #include "DolphinTool/HeaderCommand.h"
 #include "DolphinTool/VerifyCommand.h"
 
-static int PrintUsage(int code)
+static void PrintUsage()
 {
   std::cerr << "usage: dolphin-tool COMMAND -h" << std::endl << std::endl;
   std::cerr << "commands supported: [convert, verify, header]" << std::endl;
-
-  return code;
 }
 
 #ifdef _WIN32
@@ -33,7 +32,10 @@ int main(int argc, char* argv[])
   Core::DeclareAsHostThread();
 
   if (argc < 2)
-    return PrintUsage(1);
+  {
+    PrintUsage();
+    return EXIT_FAILURE;
+  }
 
   const std::string_view command_str = argv[1];
   // Take off the program name and command selector before passing arguments down
@@ -45,7 +47,8 @@ int main(int argc, char* argv[])
     return DolphinTool::VerifyCommand(args);
   else if (command_str == "header")
     return DolphinTool::HeaderCommand(args);
-  return PrintUsage(1);
+  PrintUsage();
+  return EXIT_FAILURE;
 }
 
 #ifdef _WIN32
