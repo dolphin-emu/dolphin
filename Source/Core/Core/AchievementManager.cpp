@@ -944,4 +944,30 @@ AchievementManager::ResponseType AchievementManager::Request(
   }
 }
 
+AchievementManager::ResponseType
+AchievementManager::RequestImage(rc_api_fetch_image_request_t rc_request, Badge* rc_response)
+{
+  rc_api_request_t api_request;
+  Common::HttpRequest http_request;
+  if (rc_api_init_fetch_image_request(&api_request, &rc_request) != RC_OK)
+  {
+    ERROR_LOG_FMT(ACHIEVEMENTS, "Invalid request for image.");
+    return ResponseType::INVALID_REQUEST;
+  }
+  auto http_response = http_request.Get(api_request.url);
+  if (http_response.has_value() && http_response->size() > 0)
+  {
+    rc_api_destroy_request(&api_request);
+    *rc_response = std::move(*http_response);
+    return ResponseType::SUCCESS;
+  }
+  else
+  {
+    WARN_LOG_FMT(ACHIEVEMENTS, "RetroAchievements connection failed on image request.\n URL: {}",
+                 api_request.url);
+    rc_api_destroy_request(&api_request);
+    return ResponseType::CONNECTION_FAILED;
+  }
+}
+
 #endif  // USE_RETRO_ACHIEVEMENTS
