@@ -22,7 +22,7 @@ void Jit64::lfXXX(UGeckoInstruction inst)
   bool indexed = inst.OPCD == 31;
   bool update = indexed ? !!(inst.SUBOP10 & 0x20) : !!(inst.OPCD & 1);
   bool single = indexed ? !(inst.SUBOP10 & 0x40) : !(inst.OPCD & 2);
-  update &= indexed || inst.SIMM_16;
+  update &= indexed || (inst.SIMM_16 != 0);
 
   int d = inst.RD;
   int a = inst.RA;
@@ -93,7 +93,7 @@ void Jit64::stfXXX(UGeckoInstruction inst)
   bool indexed = inst.OPCD == 31;
   bool update = indexed ? !!(inst.SUBOP10 & 0x20) : !!(inst.OPCD & 1);
   bool single = indexed ? !(inst.SUBOP10 & 0x40) : !(inst.OPCD & 2);
-  update &= indexed || inst.SIMM_16;
+  update &= indexed || (inst.SIMM_16 != 0);
 
   int s = inst.RS;
   int a = inst.RA;
@@ -101,7 +101,7 @@ void Jit64::stfXXX(UGeckoInstruction inst)
   s32 imm = (s16)inst.SIMM_16;
   int accessSize = single ? 32 : 64;
 
-  FALLBACK_IF(update && jo.memcheck && a == b);
+  FALLBACK_IF(update && jo.memcheck && indexed && a == b);
 
   if (single)
   {
@@ -144,7 +144,7 @@ void Jit64::stfXXX(UGeckoInstruction inst)
       }
       else
       {
-        RCOpArg Ra = gpr.UseNoImm(a, RCMode::Write);
+        RCOpArg Ra = gpr.RevertableBind(a, RCMode::Write);
         RegCache::Realize(Ra);
         MemoryExceptionCheck();
         MOV(32, Ra, Imm32(addr));

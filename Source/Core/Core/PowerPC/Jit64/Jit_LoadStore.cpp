@@ -507,7 +507,7 @@ void Jit64::stX(UGeckoInstruction inst)
       }
       else
       {
-        RCOpArg Ra = gpr.UseNoImm(a, RCMode::Write);
+        RCOpArg Ra = gpr.RevertableBind(a, RCMode::Write);
         RegCache::Realize(Ra);
         MemoryExceptionCheck();
         MOV(32, Ra, Imm32(addr));
