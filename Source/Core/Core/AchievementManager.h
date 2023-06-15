@@ -58,6 +58,12 @@ public:
   using RichPresence = std::array<char, RP_SIZE>;
   using Badge = std::vector<u8>;
 
+  struct BadgeStatus
+  {
+    std::string name = "";
+    Badge badge{};
+  };
+
   struct UnlockStatus
   {
     AchievementId game_data_index = 0;
@@ -69,6 +75,8 @@ public:
     } remote_unlock_status = UnlockType::LOCKED;
     u32 session_unlock_count = 0;
     u32 points = 0;
+    BadgeStatus locked_badge;
+    BadgeStatus unlocked_badge;
   };
 
   static AchievementManager* GetInstance();
@@ -84,6 +92,7 @@ public:
   void ActivateDeactivateAchievements();
   void ActivateDeactivateLeaderboards();
   void ActivateDeactivateRichPresence();
+  void FetchBadges();
 
   void DoFrame();
   u32 MemoryPeeker(u32 address, u32 num_bytes, void* ud);
@@ -92,10 +101,12 @@ public:
   std::recursive_mutex* GetLock();
   std::string GetPlayerDisplayName() const;
   u32 GetPlayerScore() const;
+  const BadgeStatus& GetPlayerBadge() const;
   std::string GetGameDisplayName() const;
   PointSpread TallyScore() const;
   rc_api_fetch_game_data_response_t* GetGameData();
-  UnlockStatus GetUnlockStatus(AchievementId achievement_id) const;
+  const BadgeStatus& GetGameBadge() const;
+  const UnlockStatus& GetUnlockStatus(AchievementId achievement_id) const;
   void GetAchievementProgress(AchievementId achievement_id, u32* value, u32* target);
   RichPresence GetRichPresence();
 
@@ -138,16 +149,19 @@ private:
   UpdateCallback m_update_callback;
   std::string m_display_name;
   u32 m_player_score = 0;
+  BadgeStatus m_player_badge;
   std::array<char, HASH_LENGTH> m_game_hash{};
   u32 m_game_id = 0;
   rc_api_fetch_game_data_response_t m_game_data{};
   bool m_is_game_loaded = false;
+  BadgeStatus m_game_badge;
   RichPresence m_rich_presence;
   time_t m_last_ping_time = 0;
 
   std::unordered_map<AchievementId, UnlockStatus> m_unlock_map;
 
   Common::WorkQueueThread<std::function<void()>> m_queue;
+  Common::WorkQueueThread<std::function<void()>> m_image_queue;
   std::recursive_mutex m_lock;
 };  // class AchievementManager
 

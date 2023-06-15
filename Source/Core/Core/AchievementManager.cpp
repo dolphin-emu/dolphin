@@ -35,6 +35,8 @@ void AchievementManager::Init()
     rc_runtime_init(&m_runtime);
     m_is_runtime_initialized = true;
     m_queue.Reset("AchievementManagerQueue", [](const std::function<void()>& func) { func(); });
+    m_image_queue.Reset("AchievementManagerImageQueue",
+                        [](const std::function<void()>& func) { func(); });
     LoginAsync("", [](ResponseType r_type) {});
     INFO_LOG_FMT(ACHIEVEMENTS, "Achievement Manager Initialized");
   }
@@ -55,6 +57,7 @@ AchievementManager::ResponseType AchievementManager::Login(const std::string& pa
     return AchievementManager::ResponseType::MANAGER_NOT_INITIALIZED;
   }
   AchievementManager::ResponseType r_type = VerifyCredentials(password);
+  FetchBadges();
   if (m_update_callback)
     m_update_callback();
   return r_type;
@@ -71,6 +74,7 @@ void AchievementManager::LoginAsync(const std::string& password, const ResponseC
   }
   m_queue.EmplaceItem([this, password, callback] {
     callback(VerifyCredentials(password));
+    FetchBadges();
     if (m_update_callback)
       m_update_callback();
   });
@@ -207,6 +211,7 @@ void AchievementManager::LoadGameByFilenameAsync(const std::string& iso_path,
     }
     ActivateDeactivateLeaderboards();
     ActivateDeactivateRichPresence();
+    FetchBadges();
     // Reset this to zero so that RP immediately triggers on the first frame
     m_last_ping_time = 0;
     INFO_LOG_FMT(ACHIEVEMENTS, "RetroAchievements successfully loaded for {}.", m_game_data.title);
@@ -284,6 +289,256 @@ void AchievementManager::ActivateDeactivateRichPresence()
           "",
       nullptr, 0);
   INFO_LOG_FMT(ACHIEVEMENTS, "Rich presence (de)activated.");
+}
+
+void AchievementManager::FetchBadges()
+{
+  if (!m_is_runtime_initialized || !IsLoggedIn() || !Config::Get(Config::RA_BADGES_ENABLED))
+  {
+    if (m_update_callback)
+      m_update_callback();
+    return;
+  }
+  m_image_queue.Cancel();
+
+  if (m_player_badge.name != m_display_name)
+  {
+    m_image_queue.EmplaceItem([this] {
+      std::string name_to_fetch;
+      {
+        std::lock_guard lg{m_lock};
+        if (m_display_name == m_player_badge.name)
+          return;
+        name_to_fetch = m_display_name;
+      }
+      rc_api_fetch_image_request_t icon_request = {.image_name = name_to_fetch.c_str(),
+                                                   .image_type = RC_IMAGE_TYPE_USER};
+      Badge fetched_badge;
+      if (RequestImage(icon_request, &fetched_badge) == ResponseType::SUCCESS)
+      {
+        INFO_LOG_FMT(ACHIEVEMENTS, "Successfully downloaded player badge id {}.", name_to_fetch);
+        std::lock_guard lg{m_lock};
+        if (name_to_fetch != m_display_name)
+        {
+          INFO_LOG_FMT(ACHIEVEMENTS, "Requested outdated badge id {} for player id {}.",
+                       name_to_fetch, m_display_name);
+          return;
+        }
+        m_player_badge.badge = std::move(fetched_badge);
+        m_player_badge.name = std::move(name_to_fetch);
+      }
+      else
+      {
+        WARN_LOG_FMT(ACHIEVEMENTS, "Failed to download player badge id {}.", name_to_fetch);
+      }
+      if (m_update_callback)
+        m_update_callback();
+    });
+  }
+
+  if (!IsGameLoaded())
+  {
+    if (m_update_callback)
+      m_update_callback();
+    return;
+  }
+
+  int badgematch = 0;
+  {
+    std::lock_guard lg{m_lock};
+    badgematch = m_game_badge.name.compare(m_game_data.image_name);
+  }
+  if (badgematch != 0)
+  {
+    m_image_queue.EmplaceItem([this] {
+      std::string name_to_fetch;
+      {
+        std::lock_guard lg{m_lock};
+        if (m_game_badge.name.compare(m_game_data.image_name) == 0)
+          return;
+        name_to_fetch.assign(m_game_data.image_name);
+      }
+      rc_api_fetch_image_request_t icon_request = {.image_name = name_to_fetch.c_str(),
+                                                   .image_type = RC_IMAGE_TYPE_GAME};
+      Badge fetched_badge;
+      if (RequestImage(icon_request, &fetched_badge) == ResponseType::SUCCESS)
+      {
+        INFO_LOG_FMT(ACHIEVEMENTS, "Successfully downloaded game badge id {}.", name_to_fetch);
+        std::lock_guard lg{m_lock};
+        if (name_to_fetch.compare(m_game_data.image_name) != 0)
+        {
+          INFO_LOG_FMT(ACHIEVEMENTS, "Requested outdated badge id {} for game id {}.",
+                       name_to_fetch, m_game_data.image_name);
+          return;
+        }
+        m_game_badge.badge = std::move(fetched_badge);
+        m_game_badge.name = std::move(name_to_fetch);
+      }
+      else
+      {
+        WARN_LOG_FMT(ACHIEVEMENTS, "Failed to download game badge id {}.", name_to_fetch);
+      }
+      if (m_update_callback)
+        m_update_callback();
+    });
+  }
+
+  unsigned num_achievements = m_game_data.num_achievements;
+  for (size_t index = 0; index < num_achievements; index++)
+  {
+    std::lock_guard lg{m_lock};
+    // In case the number of achievements changes since the loop started; I just don't want
+    // to lock for the ENTIRE loop so instead I reclaim the lock each cycle
+    if (num_achievements != m_game_data.num_achievements)
+      break;
+    rc_api_achievement_definition_t& achievement = m_game_data.achievements[index];
+    std::string name_to_fetch(achievement.badge_name);
+    const UnlockStatus& unlock_status = m_unlock_map[achievement.id];
+    if (unlock_status.unlocked_badge.name != name_to_fetch)
+    {
+      m_image_queue.EmplaceItem([this, index] {
+        std::string current_name, name_to_fetch;
+        {
+          std::lock_guard lg{m_lock};
+          if (m_game_data.num_achievements <= index)
+          {
+            INFO_LOG_FMT(
+                ACHIEVEMENTS,
+                "Attempted to fetch unlocked badge for index {} after achievement list cleared.",
+                index);
+            return;
+          }
+          rc_api_achievement_definition_t& achievement = m_game_data.achievements[index];
+          auto unlock_itr = m_unlock_map.find(achievement.id);
+          if (unlock_itr == m_unlock_map.end())
+          {
+            ERROR_LOG_FMT(
+                ACHIEVEMENTS,
+                "Attempted to fetch unlocked badge for achievement id {} not in unlock map.",
+                index);
+            return;
+          }
+          name_to_fetch.assign(achievement.badge_name);
+          current_name = unlock_itr->second.unlocked_badge.name;
+        }
+        if (current_name == name_to_fetch)
+          return;
+        rc_api_fetch_image_request_t icon_request = {.image_name = name_to_fetch.c_str(),
+                                                     .image_type = RC_IMAGE_TYPE_ACHIEVEMENT};
+        Badge fetched_badge;
+        if (RequestImage(icon_request, &fetched_badge) == ResponseType::SUCCESS)
+        {
+          INFO_LOG_FMT(ACHIEVEMENTS, "Successfully downloaded unlocked achievement badge id {}.",
+                       name_to_fetch);
+          std::lock_guard lg{m_lock};
+          if (m_game_data.num_achievements <= index)
+          {
+            INFO_LOG_FMT(ACHIEVEMENTS,
+                         "Fetched unlocked badge for index {} after achievement list cleared.",
+                         index);
+            return;
+          }
+          rc_api_achievement_definition_t& achievement = m_game_data.achievements[index];
+          auto unlock_itr = m_unlock_map.find(achievement.id);
+          if (unlock_itr == m_unlock_map.end())
+          {
+            ERROR_LOG_FMT(ACHIEVEMENTS,
+                          "Fetched unlocked badge for achievement id {} not in unlock map.", index);
+            return;
+          }
+          if (name_to_fetch.compare(achievement.badge_name) != 0)
+          {
+            INFO_LOG_FMT(
+                ACHIEVEMENTS,
+                "Requested outdated unlocked achievement badge id {} for achievement id {}.",
+                name_to_fetch, current_name);
+            return;
+          }
+          unlock_itr->second.unlocked_badge.badge = std::move(fetched_badge);
+          unlock_itr->second.unlocked_badge.name = std::move(name_to_fetch);
+        }
+        else
+        {
+          WARN_LOG_FMT(ACHIEVEMENTS, "Failed to download unlocked achievement badge id {}.",
+                       name_to_fetch);
+        }
+        if (m_update_callback)
+          m_update_callback();
+      });
+    }
+    if (unlock_status.locked_badge.name != name_to_fetch)
+    {
+      m_image_queue.EmplaceItem([this, index] {
+        std::string current_name, name_to_fetch;
+        {
+          std::lock_guard lg{m_lock};
+          if (m_game_data.num_achievements <= index)
+          {
+            INFO_LOG_FMT(
+                ACHIEVEMENTS,
+                "Attempted to fetch locked badge for index {} after achievement list cleared.",
+                index);
+            return;
+          }
+          rc_api_achievement_definition_t& achievement = m_game_data.achievements[index];
+          auto unlock_itr = m_unlock_map.find(achievement.id);
+          if (unlock_itr == m_unlock_map.end())
+          {
+            ERROR_LOG_FMT(
+                ACHIEVEMENTS,
+                "Attempted to fetch locked badge for achievement id {} not in unlock map.", index);
+            return;
+          }
+          name_to_fetch.assign(achievement.badge_name);
+          current_name = unlock_itr->second.locked_badge.name;
+        }
+        if (current_name == name_to_fetch)
+          return;
+        rc_api_fetch_image_request_t icon_request = {
+            .image_name = name_to_fetch.c_str(), .image_type = RC_IMAGE_TYPE_ACHIEVEMENT_LOCKED};
+        Badge fetched_badge;
+        if (RequestImage(icon_request, &fetched_badge) == ResponseType::SUCCESS)
+        {
+          INFO_LOG_FMT(ACHIEVEMENTS, "Successfully downloaded locked achievement badge id {}.",
+                       name_to_fetch);
+          std::lock_guard lg{m_lock};
+          if (m_game_data.num_achievements <= index)
+          {
+            INFO_LOG_FMT(ACHIEVEMENTS,
+                         "Fetched locked badge for index {} after achievement list cleared.",
+                         index);
+            return;
+          }
+          rc_api_achievement_definition_t& achievement = m_game_data.achievements[index];
+          auto unlock_itr = m_unlock_map.find(achievement.id);
+          if (unlock_itr == m_unlock_map.end())
+          {
+            ERROR_LOG_FMT(ACHIEVEMENTS,
+                          "Fetched locked badge for achievement id {} not in unlock map.", index);
+            return;
+          }
+          if (name_to_fetch.compare(achievement.badge_name) != 0)
+          {
+            INFO_LOG_FMT(ACHIEVEMENTS,
+                         "Requested outdated locked achievement badge id {} for achievement id {}.",
+                         name_to_fetch, current_name);
+            return;
+          }
+          unlock_itr->second.locked_badge.badge = std::move(fetched_badge);
+          unlock_itr->second.locked_badge.name = std::move(name_to_fetch);
+        }
+        else
+        {
+          WARN_LOG_FMT(ACHIEVEMENTS, "Failed to download locked achievement badge id {}.",
+                       name_to_fetch);
+        }
+        if (m_update_callback)
+          m_update_callback();
+      });
+    }
+  }
+  if (m_update_callback)
+    m_update_callback();
 }
 
 void AchievementManager::DoFrame()
@@ -381,6 +636,11 @@ u32 AchievementManager::GetPlayerScore() const
   return IsLoggedIn() ? m_player_score : 0;
 }
 
+const AchievementManager::BadgeStatus& AchievementManager::GetPlayerBadge() const
+{
+  return m_player_badge;
+}
+
 std::string AchievementManager::GetGameDisplayName() const
 {
   return IsGameLoaded() ? m_game_data.title : "";
@@ -417,7 +677,12 @@ rc_api_fetch_game_data_response_t* AchievementManager::GetGameData()
   return &m_game_data;
 }
 
-AchievementManager::UnlockStatus
+const AchievementManager::BadgeStatus& AchievementManager::GetGameBadge() const
+{
+  return m_game_badge;
+}
+
+const AchievementManager::UnlockStatus&
 AchievementManager::GetUnlockStatus(AchievementId achievement_id) const
 {
   return m_unlock_map.at(achievement_id);
@@ -447,10 +712,12 @@ void AchievementManager::CloseGame()
       ActivateDeactivateLeaderboards();
       ActivateDeactivateRichPresence();
       m_game_id = 0;
+      m_game_badge.name = "";
       m_unlock_map.clear();
       rc_api_destroy_fetch_game_data_response(&m_game_data);
       std::memset(&m_game_data, 0, sizeof(m_game_data));
       m_queue.Cancel();
+      m_image_queue.Cancel();
       m_system = nullptr;
     }
   }
@@ -461,8 +728,12 @@ void AchievementManager::CloseGame()
 
 void AchievementManager::Logout()
 {
-  CloseGame();
-  Config::SetBaseOrCurrent(Config::RA_API_TOKEN, "");
+  {
+    std::lock_guard lg{m_lock};
+    CloseGame();
+    m_player_badge.name = "";
+    Config::SetBaseOrCurrent(Config::RA_API_TOKEN, "");
+  }
   if (m_update_callback)
     m_update_callback();
   INFO_LOG_FMT(ACHIEVEMENTS, "Logged out from server.");
