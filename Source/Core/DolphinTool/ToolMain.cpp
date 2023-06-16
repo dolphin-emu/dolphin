@@ -9,6 +9,9 @@
 #include <string_view>
 #include <vector>
 
+#include <fmt/format.h>
+#include <fmt/ostream.h>
+
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
 #include "Core/Core.h"
@@ -19,8 +22,9 @@
 
 static void PrintUsage()
 {
-  std::cerr << "usage: dolphin-tool COMMAND -h" << std::endl << std::endl;
-  std::cerr << "commands supported: [convert, verify, header]" << std::endl;
+  fmt::print(std::cerr, "usage: dolphin-tool COMMAND -h\n"
+                        "\n"
+                        "commands supported: [convert, verify, header]\n");
 }
 
 #ifdef _WIN32
