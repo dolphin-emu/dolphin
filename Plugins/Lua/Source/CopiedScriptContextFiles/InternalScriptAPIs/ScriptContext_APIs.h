@@ -14,7 +14,7 @@ extern "C" {
   typedef void (*PRINT_CALLBACK_FUNCTION_TYPE)(void*, const char*);
   typedef void (*SCRIPT_END_CALLBACK_FUNCTION_TYPE)(void*, int);
 
-   void* (*ScriptContext_Initializer)(int, const char*, PRINT_CALLBACK_FUNCTION_TYPE, SCRIPT_END_CALLBACK_FUNCTION_TYPE, void*, void*);  // Creates a new ScriptContext struct, and returns a
+   void* (*ScriptContext_Initializer)(int, const char*, PRINT_CALLBACK_FUNCTION_TYPE, SCRIPT_END_CALLBACK_FUNCTION_TYPE, void*);  // Creates a new ScriptContext struct, and returns a
                                            // pointer to it.
    // The first parameter is the unique ID of the script, the 2nd parameter is the script filename, the 3rd parameter is the print_callback function (invoked when a script calls its print function)
    // and the 4th parameter is the script_end_callback (invoked when a script terminates).

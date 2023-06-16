@@ -445,13 +445,13 @@ std::optional<Config::System> ParseSystem(const std::string& system_name)
     return {};
 }
 
-ArgHolder* GetLayerNames_MostGlobalFirst()
+ArgHolder* GetLayerNames_MostGlobalFirst(ScriptContext* script_context, std::vector<ArgHolder*>* args_list)
 {
   return CreateStringArgHolder(
       "Base, CommandLine, GlobalGame, LocalGame, Movie, Netplay, CurrentRun");
 }
 
-ArgHolder* DoesLayerExist(std::vector<ArgHolder*>* args_list)
+ArgHolder* DoesLayerExist(ScriptContext* script_context, std::vector<ArgHolder*>* args_list)
 {
   std::optional<Config::LayerType> layer_name = ParseLayer((*args_list)[0]->string_val);
   if (!layer_name.has_value())
@@ -459,14 +459,14 @@ ArgHolder* DoesLayerExist(std::vector<ArgHolder*>* args_list)
   return CreateBoolArgHolder(Config::GetLayer(layer_name.value()) != nullptr);
 }
 
-ArgHolder* GetListOfSystems()
+ArgHolder* GetListOfSystems(ScriptContext* script_context, std::vector<ArgHolder*>* args_list)
 {
   return CreateStringArgHolder(
       "Main, Sysconf, GCPad, WiiPad, GCKeyboard, GFX, Logger, Debugger, DualShockUDPClient, "
       "FreeLook, Session, GameSettingsOnly, Achievements");
 }
 
-ArgHolder* GetConfigEnumTypes()
+ArgHolder* GetConfigEnumTypes(ScriptContext* script_context, std::vector<ArgHolder*>* args_list)
 {
   return CreateStringArgHolder(
       "CPUCore, DPL2Quality, EXIDeviceType, SIDeviceType, HSPDeviceType, Region, ShowCursor, "
@@ -474,7 +474,7 @@ ArgHolder* GetConfigEnumTypes()
       "TextureFilteringMode, StereoMode, WiimoteSource");
 }
 
-ArgHolder* GetListOfValidValuesForEnumType(std::vector<ArgHolder*>* args_list)
+ArgHolder* GetListOfValidValuesForEnumType(ScriptContext* script_context, std::vector<ArgHolder*>* args_list)
 {
   std::optional<Config::ValueType> enum_type = ParseEnumType((*args_list)[0]->string_val);
   if (!enum_type.has_value())

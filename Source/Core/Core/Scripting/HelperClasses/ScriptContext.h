@@ -32,6 +32,8 @@ typedef struct ScriptContext
 
   DLL_Defined_ScriptContext_APIs dll_specific_api_definitions;
 
+  void* derived_script_context_class_ptr;
+
 } ScriptContext;
 
 extern const char* most_recent_script_version;
@@ -39,7 +41,7 @@ extern const char* most_recent_script_version;
 void* ScriptContext_Initializer_impl(int unique_identifier, const char* script_file_name,
                                      void (*print_callback_function)(void*, const char*),
                                      void (*script_end_callback)(void*, int),
-                                     void* new_dll_api_definitions);
+                                     void* new_dll_api_definitions, void* new_derived_class_ptr);
 
 void ScriptContext_Destructor_impl(void* script_context);
 void ScriptContext_ShutdownScript_impl(void* script_context);
@@ -74,6 +76,8 @@ void* ScriptContext_GetInstructionBreakpointsHolder_impl(void*);
 void* ScriptContext_GetMemoryAddressBreakpointsHolder_impl(void*);
 
 void* ScriptContext_GetDllDefinedScriptContextApis_impl(void*);
+
+void* ScriptContext_GetDerivedScriptContextPtr_impl(void*);
 
 const char* ScriptContext_GetScriptVersion_impl();
 

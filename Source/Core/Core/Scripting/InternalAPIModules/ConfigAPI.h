@@ -15,11 +15,11 @@ ClassMetadata GetAllClassMetadata();
 FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
                                                const std::string& function_name);
 
-ArgHolder* GetLayerNames_MostGlobalFirst();
-ArgHolder* DoesLayerExist(std::vector<ArgHolder*>* args_list);
-ArgHolder* GetListOfSystems();
-ArgHolder* GetConfigEnumTypes();
-ArgHolder* GetListOfValidValuesForEnumType(std::vector<ArgHolder*>* args_list);
+ArgHolder* GetLayerNames_MostGlobalFirst(ScriptContext* script_context, std::vector<ArgHolder*>*);
+ArgHolder* DoesLayerExist(ScriptContext* script_context, std::vector<ArgHolder*>* args_list);
+ArgHolder* GetListOfSystems(ScriptContext* script_context, std::vector<ArgHolder*>* args_list);
+ArgHolder* GetConfigEnumTypes(ScriptContext* script_context, std::vector<ArgHolder*>* args_list);
+ArgHolder* GetListOfValidValuesForEnumType(ScriptContext* script_context, std::vector<ArgHolder*>* args_list);
 
 ArgHolder* GetBooleanConfigSettingForLayer(ScriptContext* current_script,
                                           std::vector<ArgHolder*>* args_list);

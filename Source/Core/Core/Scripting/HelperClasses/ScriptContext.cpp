@@ -9,7 +9,7 @@ ScriptContext* castToScriptContextPtr(void* input)
 
 void* ScriptContext_Initializer_impl(int unique_identifier, const char* script_file_name,
                    void (*print_callback_function)(void*, const char*),
-                   void (*script_end_callback)(void*, int), void* new_dll_api_definitions)
+                   void (*script_end_callback)(void*, int), void* new_dll_api_definitions, void* new_derived_class_ptr)
 {
   ScriptContext* ret_val = new ScriptContext();
   ret_val->unique_script_identifier = unique_identifier;
@@ -26,6 +26,7 @@ void* ScriptContext_Initializer_impl(int unique_identifier, const char* script_f
   DLL_Defined_ScriptContext_APIs temp_dll_apis =
       *((DLL_Defined_ScriptContext_APIs*)(new_dll_api_definitions));
   ret_val->dll_specific_api_definitions = temp_dll_apis;
+  ret_val->derived_script_context_class_ptr = new_derived_class_ptr;
 
   return *((void**)&ret_val);
 }
@@ -122,6 +123,11 @@ void* ScriptContext_GetMemoryAddressBreakpointsHolder_impl(void* script_context)
 void* ScriptContext_GetDllDefinedScriptContextApis_impl(void* script_context)
 {
   return reinterpret_cast<void*>(&(castToScriptContextPtr(script_context)->dll_specific_api_definitions));
+}
+
+void* ScriptContext_GetDerivedScriptContextPtr_impl(void* script_context)
+{
+  return castToScriptContextPtr(script_context)->derived_script_context_class_ptr;
 }
 
 const char* ScriptContext_GetScriptVersion_impl()

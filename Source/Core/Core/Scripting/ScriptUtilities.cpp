@@ -1,5 +1,6 @@
 #include "Core/Scripting/ScriptUtilities.h"
 
+#include "Common/DynamicLibrary.h"
 
 #include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/ArgHolder_APIs.h"
 #include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/ClassFunctionsResolver_APIs.h"
@@ -184,6 +185,7 @@ static void Initialize_DolphinDefined_ScriptContext_APIs()
 {
   dolphin_defined_scriptContext_apis.get_called_yielding_function_in_last_frame_callback_script_resume = ScriptContext_GetCalledYieldingFunctionInLastFrameCallbackScriptResume_impl;
   dolphin_defined_scriptContext_apis.get_called_yielding_function_in_last_global_script_resume = ScriptContext_GetCalledYieldingFunctionInLastGlobalScriptResume_impl;
+  dolphin_defined_scriptContext_apis.get_derived_script_context_class_ptr = ScriptContext_GetDerivedScriptContextPtr_impl;
   dolphin_defined_scriptContext_apis.get_dll_defined_script_context_apis = ScriptContext_GetDllDefinedScriptContextApis_impl;
   dolphin_defined_scriptContext_apis.get_instruction_breakpoints_holder = ScriptContext_GetInstructionBreakpointsHolder_impl;
   dolphin_defined_scriptContext_apis.get_is_finished_with_global_code = ScriptContext_GetIsFinishedWithGlobalCode_impl;
@@ -223,6 +225,8 @@ bool IsScriptingCoreInitialized()
 {
   return global_pointer_to_list_of_all_scripts != nullptr;
 }
+
+typedef unsigned long long (*testType)(unsigned long long);
 
 void InitializeScript(int unique_script_identifier, const std::string& script_filename,
                       std::function<void(const std::string&)>* new_print_callback,
