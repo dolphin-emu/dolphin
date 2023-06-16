@@ -41,17 +41,17 @@ void JitArm64::GenerateAsm()
   enter_code = GetCodePtr();
 
   ABI_PushRegisters(regs_to_save);
-  m_float_emit.ABI_PushRegisters(regs_to_save_fpr, ARM64Reg::X30);
+  m_float_emit.ABI_PushRegisters(regs_to_save_fpr, ARM64Reg::X8);
 
   MOVP2R(PPC_REG, &m_ppc_state);
 
   // Store the stack pointer, so we can reset it if the BLR optimization fails.
-  ADD(ARM64Reg::X0, ARM64Reg::SP, 0);
-  STR(IndexType::Unsigned, ARM64Reg::X0, PPC_REG, PPCSTATE_OFF(stored_stack_pointer));
+  ADD(ARM64Reg::X8, ARM64Reg::SP, 0);
+  STR(IndexType::Unsigned, ARM64Reg::X8, PPC_REG, PPCSTATE_OFF(stored_stack_pointer));
 
   // Push {nullptr; -1} as invalid destination on the stack.
-  MOVI2R(ARM64Reg::X0, 0xFFFF'FFFF'FFFF'FFFF);
-  STP(IndexType::Pre, ARM64Reg::ZR, ARM64Reg::X0, ARM64Reg::SP, -16);
+  MOVI2R(ARM64Reg::X8, 0xFFFF'FFFF'FFFF'FFFF);
+  STP(IndexType::Pre, ARM64Reg::ZR, ARM64Reg::X8, ARM64Reg::SP, -16);
 
   // The PC will be loaded into DISPATCHER_PC after the call to CoreTiming::Advance().
   // Advance() does an exception check so we don't know what PC to use until afterwards.
@@ -86,9 +86,9 @@ void JitArm64::GenerateAsm()
   FixupBranch debug_exit;
   if (enable_debugging)
   {
-    LDR(IndexType::Unsigned, ARM64Reg::W0, ARM64Reg::X0,
-        MOVPage2R(ARM64Reg::X0, cpu.GetStatePtr()));
-    debug_exit = CBNZ(ARM64Reg::W0);
+    LDR(IndexType::Unsigned, ARM64Reg::W8, ARM64Reg::X8,
+        MOVPage2R(ARM64Reg::X8, cpu.GetStatePtr()));
+    debug_exit = CBNZ(ARM64Reg::W8);
   }
 
   dispatcher_no_check = GetCodePtr();
@@ -100,9 +100,9 @@ void JitArm64::GenerateAsm()
     if (GetBlockCache()->GetEntryPoints())
     {
       // Check if there is a block
-      ARM64Reg pc_and_msr = ARM64Reg::X25;
-      ARM64Reg cache_base = ARM64Reg::X27;
-      ARM64Reg block = ARM64Reg::X30;
+      ARM64Reg pc_and_msr = ARM64Reg::X8;
+      ARM64Reg cache_base = ARM64Reg::X9;
+      ARM64Reg block = ARM64Reg::X10;
       LDR(IndexType::Unsigned, EncodeRegTo32(pc_and_msr), PPC_REG, PPCSTATE_OFF(msr));
       MOVP2R(cache_base, GetBlockCache()->GetEntryPoints());
       // The entry points map is indexed by ((msrBits << 26) | (address >> 2)).
@@ -116,9 +116,9 @@ void JitArm64::GenerateAsm()
     else
     {
       // iCache[(address >> 2) & iCache_Mask];
-      ARM64Reg pc_masked = ARM64Reg::W25;
-      ARM64Reg cache_base = ARM64Reg::X27;
-      ARM64Reg block = ARM64Reg::X30;
+      ARM64Reg pc_masked = ARM64Reg::W8;
+      ARM64Reg cache_base = ARM64Reg::X9;
+      ARM64Reg block = ARM64Reg::X10;
       ORR(pc_masked, ARM64Reg::WZR,
           LogicalImm(JitBaseBlockCache::FAST_BLOCK_MAP_FALLBACK_MASK << 3, 32));
       AND(pc_masked, pc_masked, DISPATCHER_PC, ArithOption(DISPATCHER_PC, ShiftType::LSL, 1));
@@ -127,25 +127,25 @@ void JitArm64::GenerateAsm()
       FixupBranch not_found = CBZ(block);
 
       // b.effectiveAddress != addr || b.msrBits != msr
-      ARM64Reg pc_and_msr = ARM64Reg::W25;
-      ARM64Reg pc_and_msr2 = ARM64Reg::W24;
+      ARM64Reg pc_and_msr = ARM64Reg::W11;
+      ARM64Reg pc_and_msr2 = ARM64Reg::W12;
       LDR(IndexType::Unsigned, pc_and_msr, block, offsetof(JitBlockData, effectiveAddress));
       CMP(pc_and_msr, DISPATCHER_PC);
-      FixupBranch pc_missmatch = B(CC_NEQ);
+      FixupBranch pc_mismatch = B(CC_NEQ);
 
       LDR(IndexType::Unsigned, pc_and_msr2, PPC_REG, PPCSTATE_OFF(msr));
       AND(pc_and_msr2, pc_and_msr2, LogicalImm(JitBaseBlockCache::JIT_CACHE_MSR_MASK, 32));
       LDR(IndexType::Unsigned, pc_and_msr, block, offsetof(JitBlockData, msrBits));
       CMP(pc_and_msr, pc_and_msr2);
 
-      FixupBranch msr_missmatch = B(CC_NEQ);
+      FixupBranch msr_mismatch = B(CC_NEQ);
 
       // return blocks[block_num].normalEntry;
       LDR(IndexType::Unsigned, block, block, offsetof(JitBlockData, normalEntry));
       BR(block);
       SetJumpTarget(not_found);
-      SetJumpTarget(pc_missmatch);
-      SetJumpTarget(msr_missmatch);
+      SetJumpTarget(pc_mismatch);
+      SetJumpTarget(msr_mismatch);
     }
   }
 
@@ -182,8 +182,8 @@ void JitArm64::GenerateAsm()
 
   // Check the state pointer to see if we are exiting
   // Gets checked on at the end of every slice
-  LDR(IndexType::Unsigned, ARM64Reg::W0, ARM64Reg::X0, MOVPage2R(ARM64Reg::X0, cpu.GetStatePtr()));
-  FixupBranch exit = CBNZ(ARM64Reg::W0);
+  LDR(IndexType::Unsigned, ARM64Reg::W8, ARM64Reg::X8, MOVPage2R(ARM64Reg::X8, cpu.GetStatePtr()));
+  FixupBranch exit = CBNZ(ARM64Reg::W8);
 
   SetJumpTarget(to_start_of_timing_slice);
   ABI_CallFunction(&CoreTiming::GlobalAdvance);
@@ -212,10 +212,10 @@ void JitArm64::GenerateAsm()
 
   // Reset the stack pointer, since the BLR optimization may have pushed things onto the stack
   // without popping them.
-  LDR(IndexType::Unsigned, ARM64Reg::X0, PPC_REG, PPCSTATE_OFF(stored_stack_pointer));
-  ADD(ARM64Reg::SP, ARM64Reg::X0, 0);
+  LDR(IndexType::Unsigned, ARM64Reg::X8, PPC_REG, PPCSTATE_OFF(stored_stack_pointer));
+  ADD(ARM64Reg::SP, ARM64Reg::X8, 0);
 
-  m_float_emit.ABI_PopRegisters(regs_to_save_fpr, ARM64Reg::X30);
+  m_float_emit.ABI_PopRegisters(regs_to_save_fpr, ARM64Reg::X8);
   ABI_PopRegisters(regs_to_save);
   RET(ARM64Reg::X30);
 
