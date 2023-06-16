@@ -66,7 +66,7 @@ OpArg VertexLoaderX64::GetVertexAddr(CPArray array, VertexComponentFormat attrib
     if (array == CPArray::Position)
     {
       CMP(bits, R(scratch1), Imm8(-1));
-      m_skip_vertex = J_CC(CC_E, true);
+      m_skip_vertex = J_CC(CC_E, Jump::Near);
     }
     IMUL(32, scratch1, MPIC(&g_main_cp_state.array_strides[array]));
     MOV(64, R(scratch2), MPIC(&VertexLoaderManager::cached_arraybases[array]));

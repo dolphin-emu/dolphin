@@ -116,9 +116,9 @@ void Jit64::bcx(UGeckoInstruction inst)
   {
     SUB(32, PPCSTATE_CTR, Imm8(1));
     if (inst.BO & BO_BRANCH_IF_CTR_0)
-      pCTRDontBranch = J_CC(CC_NZ, true);
+      pCTRDontBranch = J_CC(CC_NZ, Jump::Near);
     else
-      pCTRDontBranch = J_CC(CC_Z, true);
+      pCTRDontBranch = J_CC(CC_Z, Jump::Near);
   }
 
   FixupBranch pConditionDontBranch;
@@ -243,9 +243,9 @@ void Jit64::bclrx(UGeckoInstruction inst)
   {
     SUB(32, PPCSTATE_CTR, Imm8(1));
     if (inst.BO & BO_BRANCH_IF_CTR_0)
-      pCTRDontBranch = J_CC(CC_NZ, true);
+      pCTRDontBranch = J_CC(CC_NZ, Jump::Near);
     else
-      pCTRDontBranch = J_CC(CC_Z, true);
+      pCTRDontBranch = J_CC(CC_Z, Jump::Near);
   }
 
   FixupBranch pConditionDontBranch;
