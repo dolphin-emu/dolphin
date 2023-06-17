@@ -146,6 +146,7 @@ private:
   ResponseType StartRASession();
   ResponseType FetchGameData();
   ResponseType FetchUnlockData(bool hardcore);
+  ResponseType FetchBoardInfo(AchievementId leaderboard_id);
 
   void ActivateDeactivateAchievement(AchievementId id, bool enabled, bool unofficial, bool encore);
   void GenerateRichPresence();

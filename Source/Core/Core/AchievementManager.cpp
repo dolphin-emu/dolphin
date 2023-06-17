@@ -7,6 +7,7 @@
 
 #include <fmt/format.h>
 
+#include <rcheevos/include/rc_api_info.h>
 #include <rcheevos/include/rc_hash.h>
 
 #include "Common/HttpRequest.h"
@@ -268,9 +269,15 @@ void AchievementManager::ActivateDeactivateLeaderboards()
   for (u32 ix = 0; ix < m_game_data.num_leaderboards; ix++)
   {
     auto leaderboard = m_game_data.leaderboards[ix];
+    u32 leaderboard_id = leaderboard.id;
     if (m_is_game_loaded && leaderboards_enabled && hardcore_mode_enabled)
     {
-      rc_runtime_activate_lboard(&m_runtime, leaderboard.id, leaderboard.definition, nullptr, 0);
+      rc_runtime_activate_lboard(&m_runtime, leaderboard_id, leaderboard.definition, nullptr, 0);
+      m_queue.EmplaceItem([this, leaderboard_id] {
+        FetchBoardInfo(leaderboard_id);
+        if (m_update_callback)
+          m_update_callback();
+      });
     }
     else
     {
@@ -712,7 +719,7 @@ AchievementManager::GetAchievementProgress(AchievementId achievement_id, u32* va
   return ResponseType::SUCCESS;
 }
 
-const std::unordered_map<AchievementId, AchievementManager::LeaderboardStatus>&
+const std::unordered_map<AchievementManager::AchievementId, AchievementManager::LeaderboardStatus>&
 AchievementManager::GetLeaderboardsInfo() const
 {
   return m_leaderboard_map;
@@ -962,6 +969,90 @@ AchievementManager::ResponseType AchievementManager::FetchUnlockData(bool hardco
   return r_type;
 }
 
+AchievementManager::ResponseType AchievementManager::FetchBoardInfo(AchievementId leaderboard_id)
+{
+  std::string username = Config::Get(Config::RA_USERNAME);
+  LeaderboardStatus lboard{};
+
+  {
+    rc_api_fetch_leaderboard_info_response_t board_info{};
+    const rc_api_fetch_leaderboard_info_request_t fetch_board_request = {
+        .leaderboard_id = leaderboard_id, .count = 4, .first_entry = 1, .username = nullptr};
+    const ResponseType r_type =
+        Request<rc_api_fetch_leaderboard_info_request_t, rc_api_fetch_leaderboard_info_response_t>(
+            fetch_board_request, &board_info, rc_api_init_fetch_leaderboard_info_request,
+            rc_api_process_fetch_leaderboard_info_response);
+    if (r_type != ResponseType::SUCCESS)
+    {
+      ERROR_LOG_FMT(ACHIEVEMENTS, "Failed to fetch info for leaderboard ID {}.", leaderboard_id);
+      rc_api_destroy_fetch_leaderboard_info_response(&board_info);
+      return r_type;
+    }
+    lboard.name = board_info.title;
+    lboard.description = board_info.description;
+    lboard.entries.clear();
+    for (u32 i = 0; i < board_info.num_entries; ++i)
+    {
+      const auto& org_entry = board_info.entries[i];
+      LeaderboardEntry dest_entry =
+          LeaderboardEntry{.username = org_entry.username, .rank = org_entry.rank};
+      if (rc_runtime_format_lboard_value(dest_entry.score.data(), FORMAT_SIZE, org_entry.score,
+                                         board_info.format) == 0)
+      {
+        ERROR_LOG_FMT(ACHIEVEMENTS, "Failed to format leaderboard score {}.", org_entry.score);
+        strncpy(dest_entry.score.data(), fmt::format("{}", org_entry.score).c_str(), FORMAT_SIZE);
+      }
+      lboard.entries[org_entry.index] = dest_entry;
+    }
+    rc_api_destroy_fetch_leaderboard_info_response(&board_info);
+  }
+
+  {
+    // Retrieve, if exists, the player's entry, the two entries above the player, and the two
+    // entries below the player, for a total of five entries. Technically I only need one entry
+    // below, but the API is ambiguous what happens if an even number and a username are provided.
+    rc_api_fetch_leaderboard_info_response_t board_info{};
+    const rc_api_fetch_leaderboard_info_request_t fetch_board_request = {
+        .leaderboard_id = leaderboard_id,
+        .count = 5,
+        .first_entry = 0,
+        .username = username.c_str()};
+    const ResponseType r_type =
+        Request<rc_api_fetch_leaderboard_info_request_t, rc_api_fetch_leaderboard_info_response_t>(
+            fetch_board_request, &board_info, rc_api_init_fetch_leaderboard_info_request,
+            rc_api_process_fetch_leaderboard_info_response);
+    if (r_type != ResponseType::SUCCESS)
+    {
+      ERROR_LOG_FMT(ACHIEVEMENTS, "Failed to fetch info for leaderboard ID {}.", leaderboard_id);
+      rc_api_destroy_fetch_leaderboard_info_response(&board_info);
+      return r_type;
+    }
+    for (u32 i = 0; i < board_info.num_entries; ++i)
+    {
+      const auto& org_entry = board_info.entries[i];
+      LeaderboardEntry dest_entry =
+          LeaderboardEntry{.username = org_entry.username, .rank = org_entry.rank};
+      if (rc_runtime_format_lboard_value(dest_entry.score.data(), FORMAT_SIZE, org_entry.score,
+                                         board_info.format) == 0)
+      {
+        ERROR_LOG_FMT(ACHIEVEMENTS, "Failed to format leaderboard score {}.", org_entry.score);
+        strncpy(dest_entry.score.data(), fmt::format("{}", org_entry.score).c_str(), FORMAT_SIZE);
+      }
+      lboard.entries[org_entry.index] = dest_entry;
+      if (org_entry.username == username)
+        lboard.player_index = org_entry.index;
+    }
+    rc_api_destroy_fetch_leaderboard_info_response(&board_info);
+  }
+
+  {
+    std::lock_guard lg{m_lock};
+    m_leaderboard_map[leaderboard_id] = lboard;
+  }
+
+  return ResponseType::SUCCESS;
+}
+
 void AchievementManager::ActivateDeactivateAchievement(AchievementId id, bool enabled,
                                                        bool unofficial, bool encore)
 {
@@ -1205,7 +1296,12 @@ void AchievementManager::HandleLeaderboardTriggeredEvent(const rc_runtime_event_
                                     m_game_data.leaderboards[ix].title),
                         OSD::Duration::VERY_LONG, OSD::Color::YELLOW);
       }
-      return;
+      m_queue.EmplaceItem([this, event_id] {
+        FetchBoardInfo(event_id);
+        if (m_update_callback)
+          m_update_callback();
+      });
+      break;
     }
   }
   ERROR_LOG_FMT(ACHIEVEMENTS, "Invalid leaderboard triggered event with id {}.", event_id);
