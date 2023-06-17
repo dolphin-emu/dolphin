@@ -444,25 +444,13 @@ void Jit64::DoMergedBranchCondition()
 
   FixupBranch pDontBranch;
   if (test_bit & 8)
-  {
-    // Test < 0, so jump over if >= 0.
-    pDontBranch = J_CC(condition ? CC_GE : CC_L, Jump::Near);
-  }
+    pDontBranch = J_CC(condition ? CC_GE : CC_L, true);  // Test < 0, so jump over if >= 0.
   else if (test_bit & 4)
-  {
-    // Test > 0, so jump over if <= 0.
-    pDontBranch = J_CC(condition ? CC_LE : CC_G, Jump::Near);
-  }
+    pDontBranch = J_CC(condition ? CC_LE : CC_G, true);  // Test > 0, so jump over if <= 0.
   else if (test_bit & 2)
-  {
-    // Test = 0, so jump over if != 0.
-    pDontBranch = J_CC(condition ? CC_NE : CC_E, Jump::Near);
-  }
-  else
-  {
-    // SO bit, do not branch (we don't emulate SO for cmp).
-    pDontBranch = J(Jump::Near);
-  }
+    pDontBranch = J_CC(condition ? CC_NE : CC_E, true);  // Test = 0, so jump over if != 0.
+  else  // SO bit, do not branch (we don't emulate SO for cmp).
+    pDontBranch = J(true);
 
   {
     RCForkGuard gpr_guard = gpr.Fork();
@@ -2729,7 +2717,7 @@ void Jit64::twX(UGeckoInstruction inst)
   {
     if (inst.TO & (1 << i))
     {
-      FixupBranch f = J_CC(conditions[i], Jump::Near);
+      FixupBranch f = J_CC(conditions[i], true);
       fixups.push_back(f);
     }
   }

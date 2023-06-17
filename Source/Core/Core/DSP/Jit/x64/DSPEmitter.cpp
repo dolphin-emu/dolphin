@@ -109,7 +109,7 @@ void DSPEmitter::checkExceptions(u32 retval)
 {
   // Check for interrupts and exceptions
   TEST(8, M_SDSP_exceptions(), Imm8(0xff));
-  FixupBranch skipCheck = J_CC(CC_Z, Jump::Near);
+  FixupBranch skipCheck = J_CC(CC_Z, true);
 
   MOV(16, M_SDSP_pc(), Imm16(m_compile_pc));
 
@@ -117,7 +117,7 @@ void DSPEmitter::checkExceptions(u32 retval)
   m_gpr.SaveRegs();
   ABI_CallFunctionP(CheckExceptionsThunk, &m_dsp_core);
   MOV(32, R(EAX), Imm32(retval));
-  JMP(m_return_dispatcher, Jump::Near);
+  JMP(m_return_dispatcher, true);
   m_gpr.LoadRegs(false);
   m_gpr.FlushRegs(c, false);
 
@@ -265,11 +265,11 @@ void DSPEmitter::Compile(u16 start_addr)
     {
       MOVZX(32, 16, EAX, M_SDSP_r_st(2));
       TEST(32, R(EAX), R(EAX));
-      FixupBranch rLoopAddressExit = J_CC(CC_LE, Jump::Near);
+      FixupBranch rLoopAddressExit = J_CC(CC_LE, true);
 
       MOVZX(32, 16, EAX, M_SDSP_r_st(3));
       TEST(32, R(EAX), R(EAX));
-      FixupBranch rLoopCounterExit = J_CC(CC_LE, Jump::Near);
+      FixupBranch rLoopCounterExit = J_CC(CC_LE, true);
 
       if (!opcode->branch)
       {
@@ -290,7 +290,7 @@ void DSPEmitter::Compile(u16 start_addr)
       {
         MOV(16, R(EAX), Imm16(m_block_size[start_addr]));
       }
-      JMP(m_return_dispatcher, Jump::Near);
+      JMP(m_return_dispatcher, true);
       m_gpr.LoadRegs(false);
       m_gpr.FlushRegs(c, false);
 
@@ -313,7 +313,7 @@ void DSPEmitter::Compile(u16 start_addr)
         // look at g_dsp.pc if we actually branched
         MOV(16, R(AX), M_SDSP_pc());
         CMP(16, R(AX), Imm16(m_compile_pc));
-        FixupBranch rNoBranch = J_CC(CC_Z, Jump::Near);
+        FixupBranch rNoBranch = J_CC(CC_Z, true);
 
         DSPJitRegCache c(m_gpr);
         // don't update g_dsp.pc -- the branch insn already did
@@ -326,7 +326,7 @@ void DSPEmitter::Compile(u16 start_addr)
         {
           MOV(16, R(EAX), Imm16(m_block_size[start_addr]));
         }
-        JMP(m_return_dispatcher, Jump::Near);
+        JMP(m_return_dispatcher, true);
         m_gpr.LoadRegs(false);
         m_gpr.FlushRegs(c, false);
 
@@ -389,7 +389,7 @@ void DSPEmitter::Compile(u16 start_addr)
   {
     MOV(16, R(EAX), Imm16(m_block_size[start_addr]));
   }
-  JMP(m_return_dispatcher, Jump::Near);
+  JMP(m_return_dispatcher, true);
 }
 
 void DSPEmitter::CompileCurrent(DSPEmitter& emitter)
