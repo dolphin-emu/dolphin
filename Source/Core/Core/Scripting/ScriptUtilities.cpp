@@ -1,10 +1,12 @@
 #include "Core/Scripting/ScriptUtilities.h"
 
 #include "Common/DynamicLibrary.h"
+#include "common/FileUtil.h"
 
 #include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/ArgHolder_APIs.h"
 #include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/ClassFunctionsResolver_APIs.h"
 #include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/ClassMetadata_APIs.h"
+#include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/FileUtility_APIs.h"
 #include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/FunctionMetadata_APIs.h"
 #include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/GCButton_APIs.h"
 #include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/ScriptContext_APIs.h"
@@ -13,6 +15,7 @@
 #include "Core/Scripting/HelperClasses/ArgHolder_API_Implementations.h"
 #include "Core/Scripting/HelperClasses/ClassFunctionsResolver.h"
 #include "Core/Scripting/HelperClasses/ClassMetadata.h"
+#include "Core/Scripting/HelperClasses/FileUtility_API_Implementations.h"
 #include "Core/Scripting/HelperClasses/FunctionMetadata.h"
 #include "Core/Scripting/HelperClasses/GCButtonFunctions.h"
 #include "Core/Scripting/HelperClasses/VectorOfArgHolders.h"
@@ -39,13 +42,13 @@ std::mutex memory_address_read_from_callback_running_lock;
 std::mutex memory_address_written_to_callback_running_lock;
 std::mutex wii_input_polled_callback_running_lock;
 std::mutex graphics_callback_running_lock;
-ThreadSafeQueue<ScriptContext*> queue_of_scripts_waiting_to_start = ThreadSafeQueue<ScriptContext*>();
 
 static bool initialized_dolphin_api_structs = false;
 
 static ArgHolder_APIs argHolder_apis = {};
 static ClassFunctionsResolver_APIs classFunctionsResolver_apis = {};
 static ClassMetadata_APIs classMetadata_apis = {};
+static FileUtility_APIs fileUtility_apis = {};
 static FunctionMetadata_APIs functionMetadata_apis = {};
 static GCButton_APIs gcButton_apis = {};
 static VectorOfArgHolders_APIs vectorOfArgHolders_apis = {};
@@ -146,6 +149,17 @@ static void Initialize_ClassMetadata_APIs()
   ValidateApiStruct(&classMetadata_apis, sizeof(classMetadata_apis), "ClassMetadata_APIs");
 }
 
+static void Initialize_FileUtility_APIs()
+{
+  setUserPath(File::GetUserPath(D_LOAD_IDX));
+  setSysPath(File::GetSysDirectory());
+
+  fileUtility_apis.GetSystemDirectory = GetSystemDirectory_impl;
+  fileUtility_apis.GetUserPath = GetUserPath_impl;
+
+  ValidateApiStruct(&fileUtility_apis, sizeof(fileUtility_apis), "FileUtility_APIs");
+}
+
 static void Initialize_FunctionMetadata_APIs()
 {
   functionMetadata_apis.GetExampleFunctionCall = GetExampleFunctionCall_FunctionMetadata_impl;
@@ -203,6 +217,9 @@ static void Initialize_DolphinDefined_ScriptContext_APIs()
   dolphin_defined_scriptContext_apis.set_is_finished_with_global_code = ScriptContext_SetIsFinishedWithGlobalCode_impl;
   dolphin_defined_scriptContext_apis.set_is_script_active = ScriptContext_SetIsScriptActive_impl;
   dolphin_defined_scriptContext_apis.Shutdown_Script = ScriptContext_ShutdownScript_impl;
+  dolphin_defined_scriptContext_apis.set_dll_script_context_ptr = ScriptContext_SetDLLScriptContextPtr;
+  dolphin_defined_scriptContext_apis.add_script_to_queue_of_scripts_waiting_to_start = ScriptContext_AddScriptToQueueOfScriptsWaitingToStart_impl;
+  dolphin_defined_scriptContext_apis.get_unique_script_identifier = ScriptContext_GetUniqueScriptIdentifier_impl;
 
   ValidateApiStruct(&dolphin_defined_scriptContext_apis, sizeof(dolphin_defined_scriptContext_apis), "DolphinDefined_ScriptContext_APIs");
 }
@@ -213,6 +230,7 @@ static void InitializeDolphinApiStructs()
   Initialize_ArgHolder_APIs();
   Initialize_ClassFunctionsResolver_APIs();
   Initialize_ClassMetadata_APIs();
+  Initialize_FileUtility_APIs();
   Initialize_FunctionMetadata_APIs();
   Initialize_GCButton_APIs();
   Initialize_VectorOfArgHolders_APIs();
@@ -497,11 +515,6 @@ void RunButtonCallbacksInQueues()
     }
     current_script->script_specific_lock.unlock();
   }
-}
-
-void AddScriptToQueueOfScriptsWaitingToStart(ScriptContext* new_script)
-{
-  queue_of_scripts_waiting_to_start.push(new_script);
 }
 
 }  // namespace Scripting::ScriptUtilities

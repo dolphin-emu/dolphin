@@ -2,14 +2,17 @@
 
 const char* most_recent_script_version = "1.0.0";
 
+ThreadSafeQueue<ScriptContext*> queue_of_scripts_waiting_to_start =  ThreadSafeQueue<ScriptContext*>();
+
 ScriptContext* castToScriptContextPtr(void* input)
 {
   return reinterpret_cast<ScriptContext*>(input);
 }
 
 void* ScriptContext_Initializer_impl(int unique_identifier, const char* script_file_name,
-                   void (*print_callback_function)(void*, const char*),
-                   void (*script_end_callback)(void*, int), void* new_dll_api_definitions, void* new_derived_class_ptr)
+                                     void (*print_callback_function)(void*, const char*),
+                                     void (*script_end_callback)(void*, int),
+                                     void* new_dll_api_definitions)
 {
   ScriptContext* ret_val = new ScriptContext();
   ret_val->unique_script_identifier = unique_identifier;
@@ -26,7 +29,6 @@ void* ScriptContext_Initializer_impl(int unique_identifier, const char* script_f
   DLL_Defined_ScriptContext_APIs temp_dll_apis =
       *((DLL_Defined_ScriptContext_APIs*)(new_dll_api_definitions));
   ret_val->dll_specific_api_definitions = temp_dll_apis;
-  ret_val->derived_script_context_class_ptr = new_derived_class_ptr;
 
   return *((void**)&ret_val);
 }
@@ -54,6 +56,11 @@ PRINT_CALLBACK_TYPE ScriptContext_GetPrintCallback_impl(void* script_context)
 SCRIPT_END_CALLBACK_TYPE ScriptContext_GetScriptEndCallback_impl(void* script_context)
 {
   return castToScriptContextPtr(script_context)->script_end_callback_function;
+}
+
+int ScriptContext_GetUniqueScriptIdentifier_impl(void* script_context)
+{
+  return castToScriptContextPtr(script_context)->unique_script_identifier;
 }
 
 const char* ScriptContext_GetScriptFilename_impl(void* script_context)
@@ -133,4 +140,14 @@ void* ScriptContext_GetDerivedScriptContextPtr_impl(void* script_context)
 const char* ScriptContext_GetScriptVersion_impl()
 {
   return most_recent_script_version;
+}
+
+void ScriptContext_SetDLLScriptContextPtr(void* script_context, void* dll_script_context)
+{
+  castToScriptContextPtr(script_context)->derived_script_context_class_ptr = dll_script_context;
+}
+
+void ScriptContext_AddScriptToQueueOfScriptsWaitingToStart_impl(void* script_context)
+{
+  queue_of_scripts_waiting_to_start.push(reinterpret_cast<ScriptContext*>(script_context));
 }

@@ -1,0 +1,115 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\Lua\lapi.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\Lua\lauxlib.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\Lua\lbaselib.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\Lua\lcode.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\Lua\lcorolib.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\Lua\lctype.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\Lua\ldblib.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\Lua\ldebug.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\Lua\ldo.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\Lua\ldump.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\Lua\lfunc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\Lua\lgc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\Lua\linit.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\Lua\liolib.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\Lua\llex.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\Lua\lmathlib.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\Lua\lmem.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\Lua\loadlib.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\Lua\lobject.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\Lua\lopcodes.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\Lua\loslib.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\Lua\lparser.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\Lua\lstate.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\Lua\lstring.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\Lua\lstrlib.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\Lua\ltable.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\Lua\ltablib.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\Lua\ltests.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\Lua\ltm.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\Lua\lua.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\Lua\lundump.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\Lua\lutf8lib.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\Lua\lvm.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\Lua\lzio.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{08F6EA39-4DE3-3562-AF70-AE93E16A0F2A}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

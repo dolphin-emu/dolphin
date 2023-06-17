@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\CMakeFiles\71a7d05e5fb0d8eb9433b06b8bc9c4f9\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaExternals\CMakeLists.txt">
+      <Filter>Buildsystem Input Files\LuaExternals</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{2FB62C8C-EEAB-332D-8EE4-780837941635}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Buildsystem Input Files\LuaExternals">
+      <UniqueIdentifier>{B54F20F8-4E5E-3125-AA9D-7D7540D17202}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

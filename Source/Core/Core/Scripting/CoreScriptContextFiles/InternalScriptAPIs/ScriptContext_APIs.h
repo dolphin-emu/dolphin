@@ -14,16 +14,18 @@ extern "C" {
   typedef void (*PRINT_CALLBACK_FUNCTION_TYPE)(void*, const char*);
   typedef void (*SCRIPT_END_CALLBACK_FUNCTION_TYPE)(void*, int);
 
-   void* (*ScriptContext_Initializer)(int, const char*, PRINT_CALLBACK_FUNCTION_TYPE, SCRIPT_END_CALLBACK_FUNCTION_TYPE, void*, void*);  // Creates a new ScriptContext struct, and returns a
+   void* (*ScriptContext_Initializer)(int, const char*, PRINT_CALLBACK_FUNCTION_TYPE, SCRIPT_END_CALLBACK_FUNCTION_TYPE, void*);  // Creates a new ScriptContext struct, and returns a
                                            // pointer to it.
    // The first parameter is the unique ID of the script, the 2nd parameter is the script filename, the 3rd parameter is the print_callback function (invoked when a script calls its print function)
-   // and the 4th parameter is the script_end_callback (invoked when a script terminates).
+   // the 4th parameter is the script_end_callback (invoked when a script terminates), and the 5th parameter is a DLL_Defined_ScriptContext_APIs*
 
    void (*ScriptContext_Destructor)(void*); // Calls, the DLL-specific destructor, and then frees the memory allocated by the ScriptContext* passed into the function.
 
    void (*Shutdown_Script)(void*);  // Sets is_script_active to false, and calls the script_end_callback
   PRINT_CALLBACK_FUNCTION_TYPE (*get_print_callback_function)(void*);  // Returns the function pointer to the print_callback function for the ScriptContext which is passed into the function.
   SCRIPT_END_CALLBACK_FUNCTION_TYPE (*get_script_end_callback_function)(void*); // Returns the function pointer to the script_end_callback function for the ScriptContext which is passed into the function.
+
+  int (*get_unique_script_identifier)(void*); // Returns the integer that represents the unique ID for the ScriptContext*
 
   const char* (*get_script_filename)(void*); // Retuns the filename for the script.
 
@@ -48,6 +50,10 @@ extern "C" {
   void* (*get_derived_script_context_class_ptr)(void*); // Returns a pointer to the derived ScriptContext* class (ex. a LuaScriptContext* defined in the DLL)
 
   const char* (*get_script_version)(); // this is the same for all scripts, so no void* is passed into it.
+
+  void(*set_dll_script_context_ptr)(void*, void*);  // Sets the pointer to the DLL (ex. a LuaScriptContext*)
+
+  void (*add_script_to_queue_of_scripts_waiting_to_start)(void*); // Adds the script passed in as an argument to the queue of scripts waiting to be started.
 
 } Dolphin_Defined_ScriptContext_APIs;
 
