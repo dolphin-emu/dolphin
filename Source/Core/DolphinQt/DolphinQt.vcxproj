@@ -51,6 +51,7 @@
     <ClCompile Include="CheatSearchWidget.cpp" />
     <ClCompile Include="CheatsManager.cpp" />
     <ClCompile Include="Achievements\AchievementHeaderWidget.cpp" />
+    <ClCompile Include="Achievements\AchievementLeaderboardWidget.cpp" />
     <ClCompile Include="Achievements\AchievementProgressWidget.cpp" />
     <ClCompile Include="Achievements\AchievementSettingsWidget.cpp" />
     <ClCompile Include="Achievements\AchievementsWindow.cpp" />
@@ -261,6 +262,7 @@
     <QtMoc Include="CheatSearchWidget.h" />
     <QtMoc Include="CheatsManager.h" />
     <QtMoc Include="Achievements\AchievementHeaderWidget.h" />
+    <QtMoc Include="Achievements\AchievementLeaderboardWidget.h" />
     <QtMoc Include="Achievements\AchievementProgressWidget.h" />
     <QtMoc Include="Achievements\AchievementSettingsWidget.h" />
     <QtMoc Include="Achievements\AchievementsWindow.h" />
