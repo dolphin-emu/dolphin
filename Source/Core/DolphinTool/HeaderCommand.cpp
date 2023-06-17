@@ -2,16 +2,20 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinTool/HeaderCommand.h"
+
+#include <optional>
+#include <string>
+#include <vector>
+
+#include <OptionParser.h>
+
 #include "DiscIO/Blob.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeDisc.h"
 
-#include <OptionParser.h>
-#include <optional>
-
 namespace DolphinTool
 {
-int HeaderCommand::Main(const std::vector<std::string>& args)
+int HeaderCommand(const std::vector<std::string>& args)
 {
   optparse::OptionParser parser;
 

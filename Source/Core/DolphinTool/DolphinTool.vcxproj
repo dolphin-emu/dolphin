@@ -48,7 +48,6 @@
     <SourceFiles Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Command.h" />
     <ClInclude Include="ConvertCommand.h" />
     <ClInclude Include="VerifyCommand.h" />
     <ClInclude Include="HeaderCommand.h" />
