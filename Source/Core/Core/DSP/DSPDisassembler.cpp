@@ -12,6 +12,7 @@
 #include <fmt/format.h>
 
 #include "Common/CommonTypes.h"
+#include "Common/EnumUtils.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 
@@ -132,7 +133,8 @@ std::string DSPDisassembler::DisassembleParameters(const DSPOPCTemplate& opc, u1
       break;
 
     default:
-      ERROR_LOG_FMT(DSPLLE, "Unknown parameter type: {:x}", static_cast<u32>(opc.params[j].type));
+      ERROR_LOG_FMT(DSPLLE, "Unknown parameter type: {:x}",
+                    Common::ToUnderlying(opc.params[j].type));
       break;
     }
   }

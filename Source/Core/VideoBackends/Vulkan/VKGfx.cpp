@@ -12,6 +12,7 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/EnumUtils.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 
@@ -277,13 +278,13 @@ void VKGfx::BindBackbuffer(const ClearColor& clear_color)
     else
     {
       ERROR_LOG_FMT(VIDEO, "Unknown present error {:#010X} {}, please report.",
-                    static_cast<u32>(res), VkResultToString(res));
+                    Common::ToUnderlying(res), VkResultToString(res));
       m_swap_chain->RecreateSwapChain();
     }
 
     res = m_swap_chain->AcquireNextImage();
     if (res != VK_SUCCESS)
-      PanicAlertFmt("Failed to grab image from swap chain: {:#010X} {}", static_cast<u32>(res),
+      PanicAlertFmt("Failed to grab image from swap chain: {:#010X} {}", Common::ToUnderlying(res),
                     VkResultToString(res));
   }
 

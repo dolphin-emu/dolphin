@@ -42,6 +42,7 @@ add_library(common
   ENet.h
   EnumFormatter.h
   EnumMap.h
+  EnumUtils.h
   Event.h
   FatFsUtil.cpp
   FatFsUtil.h

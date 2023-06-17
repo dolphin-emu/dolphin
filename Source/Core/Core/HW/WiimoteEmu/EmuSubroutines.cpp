@@ -10,6 +10,7 @@
 #include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/EnumUtils.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -210,7 +211,7 @@ void Wiimote::HandleExtensionSwap(ExtensionNumber desired_extension_number,
     else
     {
       INFO_LOG_FMT(WIIMOTE, "Switching to Extension {} (Wiimote {} in slot {})",
-                   static_cast<u8>(desired_extension_number), m_index, m_bt_device_index);
+                   Common::ToUnderlying(desired_extension_number), m_index, m_bt_device_index);
 
       m_active_extension = desired_extension_number;
     }
