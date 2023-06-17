@@ -80,9 +80,11 @@ int VerifyCommand(const std::vector<std::string>& args)
   parser.usage("usage: verify [options]...");
 
   parser.add_option("-u", "--user")
+      .type("string")
       .action("store")
       .help("User folder path, required for temporary processing files. "
-            "Will be automatically created if this option is not set.");
+            "Will be automatically created if this option is not set.")
+      .set_default("");
 
   parser.add_option("-i", "--input")
       .type("string")
@@ -101,20 +103,16 @@ int VerifyCommand(const std::vector<std::string>& args)
 
   // Initialize the dolphin user directory, required for temporary processing files
   // If this is not set, destructive file operations could occur due to path confusion
-  std::string user_directory;
-  if (options.is_set("user"))
-    user_directory = static_cast<const char*>(options.get("user"));
-
-  UICommon::SetUserDirectory(user_directory);
+  UICommon::SetUserDirectory(options["user"]);
   UICommon::Init();
 
   // Validate options
-  const std::string input_file_path = static_cast<const char*>(options.get("input"));
-  if (input_file_path.empty())
+  if (!options.is_set("input"))
   {
     std::cerr << "Error: No input set" << std::endl;
     return EXIT_FAILURE;
   }
+  const std::string& input_file_path = options["input"];
 
   DiscIO::Hashes<bool> hashes_to_calculate{};
   const bool algorithm_is_set = options.is_set("algorithm");
@@ -124,7 +122,7 @@ int VerifyCommand(const std::vector<std::string>& args)
   }
   else
   {
-    const std::string algorithm = static_cast<const char*>(options.get("algorithm"));
+    const std::string& algorithm = options["algorithm"];
     if (algorithm == "crc32")
       hashes_to_calculate.crc32 = true;
     else if (algorithm == "md5")

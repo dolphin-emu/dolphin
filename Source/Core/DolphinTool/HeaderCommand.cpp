@@ -43,7 +43,7 @@ int HeaderCommand(const std::vector<std::string>& args)
   const optparse::Values& options = parser.parse_args(args);
 
   // Validate options
-  const std::string input_file_path = static_cast<const char*>(options.get("input"));
+  const std::string& input_file_path = options["input"];
   if (input_file_path.empty())
   {
     std::cerr << "Error: No input set" << std::endl;
