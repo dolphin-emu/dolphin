@@ -583,11 +583,11 @@ void main()
 
 
 // Dark to Dim adaptation OOTF
-    float3 src_D = OptionEnabled(g_Dark_to_Dim) ? pow(  src_h, float3(0.9811)) : src_h;
+    float  DtD = OptionEnabled(g_Dark_to_Dim) ? 1/0.9811 : 1.0;
 
 // EOTF^-1 - Inverted Electro-Optical Transfer Function
-    float3 TRC   = (g_space_out == 1.0) ? moncurve_r_f3(src_h,            2.20 + 0.20,    0.0550) : \
-                                          clamp(  pow(  src_D, float3(1./(2.20 + 0.20))), 0., 1.) ;
+    float3 TRC = (g_space_out == 1.0) ? moncurve_r_f3(src_h,             2.20 + 0.20,         0.0550) : \
+                                        clamp(  pow(  src_h, float3(1./((2.20 + 0.20)*DtD))), 0., 1.) ;
 
     SetOutput(float4(TRC, c0.a));
 }
