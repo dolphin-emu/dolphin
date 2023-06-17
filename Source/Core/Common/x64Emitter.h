@@ -481,12 +481,12 @@ public:
   void BSR(int bits, X64Reg dest, const OpArg& src);  // Top bit to bottom bit
 
   // Cache control
-  enum PrefetchLevel
+  enum class PrefetchLevel : u8
   {
-    PF_NTA,  // Non-temporal (data used once and only once)
-    PF_T0,   // All cache levels
-    PF_T1,   // Levels 2+ (aliased to T0 on AMD)
-    PF_T2,   // Levels 3+ (aliased to T0 on AMD)
+    NTA = 0,  // Non-temporal (data used once and only once)
+    T0 = 1,   // All cache levels
+    T1 = 2,   // Levels 2+ (aliased to T0 on AMD)
+    T2 = 3,   // Levels 3+ (aliased to T0 on AMD)
   };
   void PREFETCH(PrefetchLevel level, OpArg arg);
   void MOVNTI(int bits, const OpArg& dest, X64Reg src);

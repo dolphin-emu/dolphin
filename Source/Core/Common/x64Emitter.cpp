@@ -920,7 +920,7 @@ void XEmitter::UD2()
 void XEmitter::PREFETCH(PrefetchLevel level, OpArg arg)
 {
   ASSERT_MSG(DYNA_REC, !arg.IsImm(), "PREFETCH - Imm argument");
-  arg.operandReg = (u8)level;
+  arg.operandReg = static_cast<u8>(level);
   arg.WriteREX(this, 0, 0);
   Write8(0x0F);
   Write8(0x18);

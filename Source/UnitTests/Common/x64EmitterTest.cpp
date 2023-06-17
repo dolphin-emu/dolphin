@@ -380,10 +380,10 @@ BITSEARCH_TEST(TZCNT);
 
 TEST_F(x64EmitterTest, PREFETCH)
 {
-  emitter->PREFETCH(XEmitter::PF_NTA, MatR(R12));
-  emitter->PREFETCH(XEmitter::PF_T0, MatR(R12));
-  emitter->PREFETCH(XEmitter::PF_T1, MatR(R12));
-  emitter->PREFETCH(XEmitter::PF_T2, MatR(R12));
+  emitter->PREFETCH(XEmitter::PrefetchLevel::NTA, MatR(R12));
+  emitter->PREFETCH(XEmitter::PrefetchLevel::T0, MatR(R12));
+  emitter->PREFETCH(XEmitter::PrefetchLevel::T1, MatR(R12));
+  emitter->PREFETCH(XEmitter::PrefetchLevel::T2, MatR(R12));
 
   ExpectDisassembly("prefetchnta byte ptr ds:[r12] "
                     "prefetcht0 byte ptr ds:[r12] "
