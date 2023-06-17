@@ -61,9 +61,11 @@ int ConvertCommand(const std::vector<std::string>& args)
   parser.usage("usage: convert [options]... [FILE]...");
 
   parser.add_option("-u", "--user")
+      .type("string")
       .action("store")
       .help("User folder path, required for temporary processing files. "
-            "Will be automatically created if this option is not set.");
+            "Will be automatically created if this option is not set.")
+      .set_default("");
 
   parser.add_option("-i", "--input")
       .type("string")
@@ -110,34 +112,29 @@ int ConvertCommand(const std::vector<std::string>& args)
 
   // Initialize the dolphin user directory, required for temporary processing files
   // If this is not set, destructive file operations could occur due to path confusion
-  std::string user_directory;
-  if (options.is_set("user"))
-    user_directory = static_cast<const char*>(options.get("user"));
-
-  UICommon::SetUserDirectory(user_directory);
+  UICommon::SetUserDirectory(options["user"]);
   UICommon::Init();
 
   // Validate options
 
   // --input
-  const std::string input_file_path = static_cast<const char*>(options.get("input"));
-  if (input_file_path.empty())
+  if (!options.is_set("input"))
   {
     std::cerr << "Error: No input set" << std::endl;
     return EXIT_FAILURE;
   }
+  const std::string& input_file_path = options["input"];
 
   // --output
-  const std::string output_file_path = static_cast<const char*>(options.get("output"));
-  if (output_file_path.empty())
+  if (!options.is_set("output"))
   {
     std::cerr << "Error: No output set" << std::endl;
     return EXIT_FAILURE;
   }
+  const std::string& output_file_path = options["output"];
 
   // --format
-  const std::optional<DiscIO::BlobType> format_o =
-      ParseFormatString(static_cast<const char*>(options.get("format")));
+  const std::optional<DiscIO::BlobType> format_o = ParseFormatString(options["format"]);
   if (!format_o.has_value())
   {
     std::cerr << "Error: No output format set" << std::endl;
@@ -255,7 +252,7 @@ int ConvertCommand(const std::vector<std::string>& args)
 
   // --compress, --compress_level
   std::optional<DiscIO::WIARVZCompressionType> compression_o =
-      ParseCompressionTypeString(static_cast<const char*>(options.get("compression")));
+      ParseCompressionTypeString(options["compression"]);
 
   std::optional<int> compression_level_o;
   if (options.is_set("compression_level"))
