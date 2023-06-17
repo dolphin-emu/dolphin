@@ -290,9 +290,11 @@ void AchievementManager::DoFrame()
   time_t current_time = std::time(nullptr);
   if (difftime(current_time, m_last_ping_time) > 120)
   {
-    RichPresence rp = GenerateRichPresence();
-    m_queue.EmplaceItem([this, rp] { PingRichPresence(rp); });
+    GenerateRichPresence();
+    m_queue.EmplaceItem([this] { PingRichPresence(m_rich_presence); });
     m_last_ping_time = current_time;
+    if (m_update_callback)
+      m_update_callback();
   }
 }
 
@@ -305,17 +307,17 @@ u32 AchievementManager::MemoryPeeker(u32 address, u32 num_bytes, void* ud)
   {
   case 1:
     return m_system->GetMMU()
-        .HostTryReadU8(threadguard, address)
+        .HostTryReadU8(threadguard, address, PowerPC::RequestedAddressSpace::Physical)
         .value_or(PowerPC::ReadResult<u8>(false, 0u))
         .value;
   case 2:
     return m_system->GetMMU()
-        .HostTryReadU16(threadguard, address)
+        .HostTryReadU16(threadguard, address, PowerPC::RequestedAddressSpace::Physical)
         .value_or(PowerPC::ReadResult<u16>(false, 0u))
         .value;
   case 4:
     return m_system->GetMMU()
-        .HostTryReadU32(threadguard, address)
+        .HostTryReadU32(threadguard, address, PowerPC::RequestedAddressSpace::Physical)
         .value_or(PowerPC::ReadResult<u32>(false, 0u))
         .value;
   default:
@@ -409,6 +411,13 @@ void AchievementManager::GetAchievementProgress(AchievementId achievement_id, u3
                                                 u32* target)
 {
   rc_runtime_get_achievement_measured(&m_runtime, achievement_id, value, target);
+}
+
+AchievementManager::RichPresence AchievementManager::GetRichPresence()
+{
+  std::lock_guard lg{m_lock};
+  RichPresence rich_presence = m_rich_presence;
+  return rich_presence;
 }
 
 void AchievementManager::CloseGame()
@@ -585,18 +594,17 @@ void AchievementManager::ActivateDeactivateAchievement(AchievementId id, bool en
     rc_runtime_deactivate_achievement(&m_runtime, id);
 }
 
-AchievementManager::RichPresence AchievementManager::GenerateRichPresence()
+void AchievementManager::GenerateRichPresence()
 {
-  RichPresence rp_buffer;
   Core::RunAsCPUThread([&] {
+    std::lock_guard lg{m_lock};
     rc_runtime_get_richpresence(
-        &m_runtime, rp_buffer.data(), RP_SIZE,
+        &m_runtime, m_rich_presence.data(), RP_SIZE,
         [](unsigned address, unsigned num_bytes, void* ud) {
           return static_cast<AchievementManager*>(ud)->MemoryPeeker(address, num_bytes, ud);
         },
         this, nullptr);
   });
-  return rp_buffer;
 }
 
 AchievementManager::ResponseType AchievementManager::AwardAchievement(AchievementId achievement_id)
