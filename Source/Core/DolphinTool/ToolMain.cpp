@@ -5,6 +5,7 @@
 #include <cstring>
 #include <iostream>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "Common/Version.h"
@@ -33,12 +34,9 @@ int main(int argc, char* argv[])
   if (argc < 2)
     return PrintUsage(1);
 
-  std::vector<std::string> args(argv, argv + argc);
-
-  std::string command_str = args.at(1);
-
-  // Take off the command selector before passing arguments down
-  args.erase(args.begin(), args.begin() + 1);
+  const std::string_view command_str = argv[1];
+  // Take off the program name and command selector before passing arguments down
+  const std::vector<std::string> args(argv + 2, argv + argc);
 
   std::unique_ptr<DolphinTool::Command> command;
 
