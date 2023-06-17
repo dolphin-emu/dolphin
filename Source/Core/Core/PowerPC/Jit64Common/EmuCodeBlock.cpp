@@ -61,7 +61,7 @@ void EmuCodeBlock::MemoryExceptionCheck()
     if (js.trampolineExceptionHandler)
     {
       TEST(32, PPCSTATE(Exceptions), Gen::Imm32(EXCEPTION_DSI));
-      J_CC(CC_NZ, js.trampolineExceptionHandler ? Jump::Near : Jump::Short);
+      J_CC(CC_NZ, js.trampolineExceptionHandler);
     }
     return;
   }
