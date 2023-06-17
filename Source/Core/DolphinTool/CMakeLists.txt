@@ -16,6 +16,7 @@ PRIVATE
   discio
   uicommon
   cpp-optparse
+  fmt::fmt
 )
 
 if(MSVC)

@@ -8,6 +8,8 @@
 #include <vector>
 
 #include <OptionParser.h>
+#include <fmt/format.h>
+#include <fmt/ostream.h>
 
 #include "Common/StringUtil.h"
 #include "DiscIO/VolumeDisc.h"
@@ -30,46 +32,44 @@ static std::string HashToHexString(const std::vector<u8>& hash)
 static void PrintFullReport(const DiscIO::VolumeVerifier::Result& result)
 {
   if (!result.hashes.crc32.empty())
-    std::cout << "CRC32: " << HashToHexString(result.hashes.crc32) << std::endl;
+    fmt::print(std::cout, "CRC32: {}\n", HashToHexString(result.hashes.crc32));
   else
-    std::cout << "CRC32 not computed" << std::endl;
+    fmt::print(std::cout, "CRC32 not computed\n");
 
   if (!result.hashes.md5.empty())
-    std::cout << "MD5: " << HashToHexString(result.hashes.md5) << std::endl;
+    fmt::print(std::cout, "MD5: {}\n", HashToHexString(result.hashes.md5));
   else
-    std::cout << "MD5 not computed" << std::endl;
+    fmt::print(std::cout, "MD5 not computed\n");
 
   if (!result.hashes.sha1.empty())
-    std::cout << "SHA1: " << HashToHexString(result.hashes.sha1) << std::endl;
+    fmt::print(std::cout, "SHA1: {}\n", HashToHexString(result.hashes.sha1));
   else
-    std::cout << "SHA1 not computed" << std::endl;
+    fmt::print(std::cout, "SHA1 not computed\n");
 
-  std::cout << "Problems Found: " << (result.problems.empty() ? "No" : "Yes") << std::endl;
+  fmt::print(std::cout, "Problems Found: {}\n", result.problems.empty() ? "No" : "Yes");
 
   for (const auto& problem : result.problems)
   {
-    std::cout << std::endl << "Severity: ";
+    fmt::print(std::cout, "\nSeverity: ");
     switch (problem.severity)
     {
     case DiscIO::VolumeVerifier::Severity::Low:
-      std::cout << "Low";
+      fmt::print(std::cout, "Low");
       break;
     case DiscIO::VolumeVerifier::Severity::Medium:
-      std::cout << "Medium";
+      fmt::print(std::cout, "Medium");
       break;
     case DiscIO::VolumeVerifier::Severity::High:
-      std::cout << "High";
+      fmt::print(std::cout, "High");
       break;
     case DiscIO::VolumeVerifier::Severity::None:
-      std::cout << "None";
+      fmt::print(std::cout, "None");
       break;
     default:
       ASSERT(false);
       break;
     }
-    std::cout << std::endl;
-
-    std::cout << "Summary: " << problem.text << std::endl << std::endl;
+    fmt::print(std::cout, "\nSummary: {}\n\n", problem.text);
   }
 }
 
@@ -109,7 +109,7 @@ int VerifyCommand(const std::vector<std::string>& args)
   // Validate options
   if (!options.is_set("input"))
   {
-    std::cerr << "Error: No input set" << std::endl;
+    fmt::print(std::cerr, "Error: No input set\n");
     return EXIT_FAILURE;
   }
   const std::string& input_file_path = options["input"];
@@ -134,7 +134,7 @@ int VerifyCommand(const std::vector<std::string>& args)
   if (!hashes_to_calculate.crc32 && !hashes_to_calculate.md5 && !hashes_to_calculate.sha1)
   {
     // optparse should protect from this
-    std::cerr << "Error: No algorithms selected for the operation" << std::endl;
+    fmt::print(std::cerr, "Error: No algorithms selected for the operation\n");
     return EXIT_FAILURE;
   }
 
@@ -142,7 +142,7 @@ int VerifyCommand(const std::vector<std::string>& args)
   const std::unique_ptr<DiscIO::VolumeDisc> volume = DiscIO::CreateDisc(input_file_path);
   if (!volume)
   {
-    std::cerr << "Error: Unable to open disc image" << std::endl;
+    fmt::print(std::cerr, "Error: Unable to open disc image\n");
     return EXIT_FAILURE;
   }
 
@@ -164,14 +164,14 @@ int VerifyCommand(const std::vector<std::string>& args)
   else
   {
     if (hashes_to_calculate.crc32 && !result.hashes.crc32.empty())
-      std::cout << HashToHexString(result.hashes.crc32) << std::endl;
+      fmt::print(std::cout, "{}\n", HashToHexString(result.hashes.crc32));
     else if (hashes_to_calculate.md5 && !result.hashes.md5.empty())
-      std::cout << HashToHexString(result.hashes.md5) << std::endl;
+      fmt::print(std::cout, "{}\n", HashToHexString(result.hashes.md5));
     else if (hashes_to_calculate.sha1 && !result.hashes.sha1.empty())
-      std::cout << HashToHexString(result.hashes.sha1) << std::endl;
+      fmt::print(std::cout, "{}\n", HashToHexString(result.hashes.sha1));
     else
     {
-      std::cerr << "Error: No hash computed" << std::endl;
+      fmt::print(std::cerr, "Error: No hash computed\n");
       return EXIT_FAILURE;
     }
   }

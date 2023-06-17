@@ -9,6 +9,8 @@
 #include <vector>
 
 #include <OptionParser.h>
+#include <fmt/format.h>
+#include <fmt/ostream.h>
 
 #include "DiscIO/Blob.h"
 #include "DiscIO/Volume.h"
@@ -46,7 +48,7 @@ int HeaderCommand(const std::vector<std::string>& args)
   const std::string& input_file_path = options["input"];
   if (input_file_path.empty())
   {
-    std::cerr << "Error: No input set" << std::endl;
+    fmt::print(std::cerr, "Error: No input set\n");
     return EXIT_FAILURE;
   }
 
@@ -58,7 +60,7 @@ int HeaderCommand(const std::vector<std::string>& args)
   const std::unique_ptr<DiscIO::BlobReader> blob_reader = DiscIO::CreateBlobReader(input_file_path);
   if (!blob_reader)
   {
-    std::cerr << "Error: Unable to open disc image" << std::endl;
+    fmt::print(std::cerr, "Error: Unable to open disc image\n");
     return EXIT_FAILURE;
   }
 
@@ -68,25 +70,25 @@ int HeaderCommand(const std::vector<std::string>& args)
     {
       const auto block_size = blob_reader->GetBlockSize();
       if (block_size == 0)
-        std::cout << "N/A" << std::endl;
+        fmt::print(std::cout, "N/A\n");
       else
-        std::cout << block_size << std::endl;
+        fmt::print(std::cout, "{}\n", block_size);
     }
     if (enable_compression_method)
     {
       const auto compression_method = blob_reader->GetCompressionMethod();
       if (compression_method == "")
-        std::cout << "N/A" << std::endl;
+        fmt::print(std::cout, "N/A\n");
       else
-        std::cout << compression_method << std::endl;
+        fmt::print(std::cout, "{}\n", compression_method);
     }
     if (enable_compression_level)
     {
       const auto compression_level_o = blob_reader->GetCompressionLevel();
       if (compression_level_o == std::nullopt)
-        std::cout << "N/A" << std::endl;
+        fmt::print(std::cout, "N/A\n");
       else
-        std::cout << compression_level_o.value() << std::endl;
+        fmt::print(std::cout, "{}\n", compression_level_o.value());
     }
   }
   else
@@ -94,14 +96,14 @@ int HeaderCommand(const std::vector<std::string>& args)
     const auto blob_type = blob_reader->GetBlobType();
     if (blob_type == DiscIO::BlobType::GCZ)
     {
-      std::cout << "Block Size: " << blob_reader->GetBlockSize() << std::endl;
-      std::cout << "Compression Method: " << blob_reader->GetCompressionMethod() << std::endl;
+      fmt::print(std::cout, "Block Size: {}\nCompression Method: {}\n", blob_reader->GetBlockSize(),
+                 blob_reader->GetCompressionMethod());
     }
     if (blob_type == DiscIO::BlobType::WIA || blob_type == DiscIO::BlobType::RVZ)
     {
-      std::cout << "Block Size: " << blob_reader->GetBlockSize() << std::endl;
-      std::cout << "Compression Method: " << blob_reader->GetCompressionMethod() << std::endl;
-      std::cout << "Compression Level: " << blob_reader->GetCompressionLevel().value() << std::endl;
+      fmt::print(std::cout, "Block Size: {}\nCompression Method: {}\nCompression Level: {}\n",
+                 blob_reader->GetBlockSize(), blob_reader->GetCompressionMethod(),
+                 blob_reader->GetCompressionLevel().value());
     }
   }
 

@@ -11,6 +11,8 @@
 #include <vector>
 
 #include <OptionParser.h>
+#include <fmt/format.h>
+#include <fmt/ostream.h>
 
 #include "Common/CommonTypes.h"
 #include "DiscIO/Blob.h"
@@ -120,7 +122,7 @@ int ConvertCommand(const std::vector<std::string>& args)
   // --input
   if (!options.is_set("input"))
   {
-    std::cerr << "Error: No input set" << std::endl;
+    fmt::print(std::cerr, "Error: No input set\n");
     return EXIT_FAILURE;
   }
   const std::string& input_file_path = options["input"];
@@ -128,7 +130,7 @@ int ConvertCommand(const std::vector<std::string>& args)
   // --output
   if (!options.is_set("output"))
   {
-    std::cerr << "Error: No output set" << std::endl;
+    fmt::print(std::cerr, "Error: No output set\n");
     return EXIT_FAILURE;
   }
   const std::string& output_file_path = options["output"];
@@ -137,7 +139,7 @@ int ConvertCommand(const std::vector<std::string>& args)
   const std::optional<DiscIO::BlobType> format_o = ParseFormatString(options["format"]);
   if (!format_o.has_value())
   {
-    std::cerr << "Error: No output format set" << std::endl;
+    fmt::print(std::cerr, "Error: No output format set\n");
     return EXIT_FAILURE;
   }
   const DiscIO::BlobType format = format_o.value();
@@ -146,7 +148,7 @@ int ConvertCommand(const std::vector<std::string>& args)
   std::unique_ptr<DiscIO::BlobReader> blob_reader = DiscIO::CreateBlobReader(input_file_path);
   if (!blob_reader)
   {
-    std::cerr << "Error: The input file could not be opened." << std::endl;
+    fmt::print(std::cerr, "Error: The input file could not be opened.\n");
     return EXIT_FAILURE;
   }
 
@@ -159,19 +161,19 @@ int ConvertCommand(const std::vector<std::string>& args)
   {
     if (scrub)
     {
-      std::cerr << "Error: Scrubbing is only supported for GC/Wii disc images." << std::endl;
+      fmt::print(std::cerr, "Error: Scrubbing is only supported for GC/Wii disc images.\n");
       return EXIT_FAILURE;
     }
 
-    std::cerr << "Warning: The input file is not a GC/Wii disc image. Continuing anyway."
-              << std::endl;
+    fmt::print(std::cerr,
+               "Warning: The input file is not a GC/Wii disc image. Continuing anyway.\n");
   }
 
   if (scrub)
   {
     if (volume->IsDatelDisc())
     {
-      std::cerr << "Error: Scrubbing a Datel disc is not supported." << std::endl;
+      fmt::print(std::cerr, "Error: Scrubbing a Datel disc is not supported.\n");
       return EXIT_FAILURE;
     }
 
@@ -179,37 +181,34 @@ int ConvertCommand(const std::vector<std::string>& args)
 
     if (!blob_reader)
     {
-      std::cerr << "Error: Unable to process disc image. Try again without --scrub." << std::endl;
+      fmt::print(std::cerr, "Error: Unable to process disc image. Try again without --scrub.\n");
       return EXIT_FAILURE;
     }
   }
 
   if (scrub && format == DiscIO::BlobType::RVZ)
   {
-    std::cerr << "Warning: Scrubbing an RVZ container does not offer significant space advantages. "
-                 "Continuing anyway."
-              << std::endl;
+    fmt::print(std::cerr, "Warning: Scrubbing an RVZ container does not offer significant space "
+                          "advantages. Continuing anyway.\n");
   }
 
   if (scrub && format == DiscIO::BlobType::PLAIN)
   {
-    std::cerr << "Warning: Scrubbing does not save space when converting to ISO unless using "
-                 "external compression. Continuing anyway."
-              << std::endl;
+    fmt::print(std::cerr, "Warning: Scrubbing does not save space when converting to ISO unless "
+                          "using external compression. Continuing anyway.\n");
   }
 
   if (!scrub && format == DiscIO::BlobType::GCZ && volume &&
       volume->GetVolumeType() == DiscIO::Platform::WiiDisc && !volume->IsDatelDisc())
   {
-    std::cerr << "Warning: Converting Wii disc images to GCZ without scrubbing may not offer space "
-                 "advantages over ISO. Continuing anyway."
-              << std::endl;
+    fmt::print(std::cerr, "Warning: Converting Wii disc images to GCZ without scrubbing may not "
+                          "offer space advantages over ISO. Continuing anyway.\n");
   }
 
   if (volume && volume->IsNKit())
   {
-    std::cerr << "Warning: Converting an NKit file, output will still be NKit! Continuing anyway."
-              << std::endl;
+    fmt::print(std::cerr,
+               "Warning: Converting an NKit file, output will still be NKit! Continuing anyway.\n");
   }
 
   // --block_size
@@ -222,31 +221,30 @@ int ConvertCommand(const std::vector<std::string>& args)
   {
     if (!block_size_o.has_value())
     {
-      std::cerr << "Error: Block size must be set for GCZ/RVZ/WIA" << std::endl;
+      fmt::print(std::cerr, "Error: Block size must be set for GCZ/RVZ/WIA\n");
       return EXIT_FAILURE;
     }
 
     if (!DiscIO::IsDiscImageBlockSizeValid(block_size_o.value(), format))
     {
-      std::cerr << "Error: Block size is not valid for this format" << std::endl;
+      fmt::print(std::cerr, "Error: Block size is not valid for this format\n");
       return EXIT_FAILURE;
     }
 
     if (block_size_o.value() < DiscIO::PREFERRED_MIN_BLOCK_SIZE ||
         block_size_o.value() > DiscIO::PREFERRED_MAX_BLOCK_SIZE)
     {
-      std::cerr << "Warning: Block size is not ideal for performance. Continuing anyway."
-                << std::endl;
+      fmt::print(std::cerr,
+                 "Warning: Block size is not ideal for performance. Continuing anyway.\n");
     }
 
     if (format == DiscIO::BlobType::GCZ && volume &&
         !DiscIO::IsGCZBlockSizeLegacyCompatible(block_size_o.value(), volume->GetDataSize()))
     {
-      std::cerr << "Warning: For GCZs to be compatible with Dolphin < 5.0-11893, "
-                   "the file size must be an integer multiple of the block size "
-                   "and must not be an integer multiple of the block size multiplied by 32. "
-                   "Continuing anyway."
-                << std::endl;
+      fmt::print(std::cerr,
+                 "Warning: For GCZs to be compatible with Dolphin < 5.0-11893, the file size "
+                 "must be an integer multiple of the block size and must not be an integer "
+                 "multiple of the block size multiplied by 32. Continuing anyway.\n");
     }
   }
 
@@ -262,7 +260,7 @@ int ConvertCommand(const std::vector<std::string>& args)
   {
     if (!compression_o.has_value())
     {
-      std::cerr << "Error: Compression format must be set for WIA or RVZ" << std::endl;
+      fmt::print(std::cerr, "Error: Compression format must be set for WIA or RVZ\n");
       return EXIT_FAILURE;
     }
 
@@ -271,7 +269,7 @@ int ConvertCommand(const std::vector<std::string>& args)
         (format == DiscIO::BlobType::RVZ &&
          compression_o.value() == DiscIO::WIARVZCompressionType::Purge))
     {
-      std::cerr << "Error: Compression type is not supported for the container format" << std::endl;
+      fmt::print(std::cerr, "Error: Compression type is not supported for the container format\n");
       return EXIT_FAILURE;
     }
 
@@ -283,8 +281,8 @@ int ConvertCommand(const std::vector<std::string>& args)
     {
       if (!compression_level_o.has_value())
       {
-        std::cerr << "Error: Compression level must be set when compression type is not 'none'"
-                  << std::endl;
+        fmt::print(std::cerr,
+                   "Error: Compression level must be set when compression type is not 'none'\n");
         return EXIT_FAILURE;
       }
 
@@ -292,7 +290,7 @@ int ConvertCommand(const std::vector<std::string>& args)
           DiscIO::GetAllowedCompressionLevels(compression_o.value(), false);
       if (compression_level_o.value() < range.first || compression_level_o.value() > range.second)
       {
-        std::cerr << "Error: Compression level not in acceptable range" << std::endl;
+        fmt::print(std::cerr, "Error: Compression level not in acceptable range\n");
         return EXIT_FAILURE;
       }
     }
@@ -346,7 +344,7 @@ int ConvertCommand(const std::vector<std::string>& args)
 
   if (!success)
   {
-    std::cerr << "Error: Conversion failed" << std::endl;
+    fmt::print(std::cerr, "Error: Conversion failed\n");
     return EXIT_FAILURE;
   }
 
