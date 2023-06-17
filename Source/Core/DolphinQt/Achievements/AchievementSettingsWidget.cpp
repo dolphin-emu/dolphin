@@ -75,6 +75,11 @@ void AchievementSettingsWidget::CreateLayout()
          "achievements.<br><br>Unofficial achievements may be optional or unfinished achievements "
          "that have not been deemed official by RetroAchievements and may be useful for testing or "
          "simply for fun."));
+  m_common_progress_enabled_input = new ToolTipCheckBox(tr("Enable Progress Notifications"));
+  m_common_progress_enabled_input->SetDescription(
+      tr("Enable progress notifications on achievements.<br><br>Displays a brief popup message "
+         "whenever the player makes progress on an achievement that tracks an accumulated value, "
+         "such as 60 out of 120 stars."));
   m_common_badges_enabled_input = new ToolTipCheckBox(tr("Enable Achievement Badges"));
   m_common_badges_enabled_input->SetDescription(
       tr("Enable achievement badges.<br><br>Displays icons for the player, game, and achievements. "
@@ -97,6 +102,7 @@ void AchievementSettingsWidget::CreateLayout()
   m_common_layout->addWidget(m_common_achievements_enabled_input);
   m_common_layout->addWidget(m_common_leaderboards_enabled_input);
   m_common_layout->addWidget(m_common_rich_presence_enabled_input);
+  m_common_layout->addWidget(m_common_progress_enabled_input);
   m_common_layout->addWidget(m_common_badges_enabled_input);
   m_common_layout->addWidget(m_common_unofficial_enabled_input);
   m_common_layout->addWidget(m_common_encore_enabled_input);
@@ -117,6 +123,8 @@ void AchievementSettingsWidget::ConnectWidgets()
           &AchievementSettingsWidget::ToggleLeaderboards);
   connect(m_common_rich_presence_enabled_input, &QCheckBox::toggled, this,
           &AchievementSettingsWidget::ToggleRichPresence);
+  connect(m_common_progress_enabled_input, &QCheckBox::toggled, this,
+          &AchievementSettingsWidget::ToggleProgress);
   connect(m_common_badges_enabled_input, &QCheckBox::toggled, this,
           &AchievementSettingsWidget::ToggleBadges);
   connect(m_common_unofficial_enabled_input, &QCheckBox::toggled, this,
@@ -165,6 +173,10 @@ void AchievementSettingsWidget::LoadSettings()
       ->setChecked(Config::Get(Config::RA_RICH_PRESENCE_ENABLED));
   SignalBlocking(m_common_rich_presence_enabled_input)->setEnabled(enabled);
 
+  SignalBlocking(m_common_progress_enabled_input)
+      ->setChecked(Config::Get(Config::RA_PROGRESS_ENABLED));
+  SignalBlocking(m_common_progress_enabled_input)->setEnabled(enabled && achievements_enabled);
+
   SignalBlocking(m_common_badges_enabled_input)->setChecked(Config::Get(Config::RA_BADGES_ENABLED));
   SignalBlocking(m_common_badges_enabled_input)->setEnabled(enabled);
 
@@ -187,6 +199,8 @@ void AchievementSettingsWidget::SaveSettings()
                            m_common_leaderboards_enabled_input->isChecked());
   Config::SetBaseOrCurrent(Config::RA_RICH_PRESENCE_ENABLED,
                            m_common_rich_presence_enabled_input->isChecked());
+  Config::SetBaseOrCurrent(Config::RA_PROGRESS_ENABLED,
+                           m_common_unofficial_enabled_input->isChecked());
   Config::SetBaseOrCurrent(Config::RA_BADGES_ENABLED, m_common_badges_enabled_input->isChecked());
   Config::SetBaseOrCurrent(Config::RA_UNOFFICIAL_ENABLED,
                            m_common_unofficial_enabled_input->isChecked());
@@ -234,6 +248,11 @@ void AchievementSettingsWidget::ToggleRichPresence()
 {
   SaveSettings();
   AchievementManager::GetInstance()->ActivateDeactivateRichPresence();
+}
+
+void AchievementSettingsWidget::ToggleProgress()
+{
+  SaveSettings();
 }
 
 void AchievementSettingsWidget::ToggleBadges()
