@@ -21,13 +21,13 @@
 
 
 /*
-   Grade-mini (14-06-2023)
+   Grade-mini (16-06-2023)
 
    > CRT emulation shader (composite signal, phosphor, gamma, temperature...)
    > Abridged port of RetroArch's Grade shader.
 
 
-    ####################################...STANDARDS...#######################################
+    #####################################...STANDARDS...######################################
     ##########################################################################################
     ###                                                                                    ###
     ###    PAL                                                                             ###
@@ -50,8 +50,8 @@
 
 
 // Test the following Phosphor gamuts and try to reach to a conclusion
-// For GC  Japan developed games you can use -2 (Rear Projection CRT) or 2 (CRT Tube)
-// For Wii Japan developed games probably -3 (SMPTE-C), -2 (Rear Projection CRT) or 0 (sRGB/noop)
+// For GC  Japan developed games you can use -2 (Rear Projection TVs) or 2 (CRT Tube)
+// For Wii Japan developed games probably -3 (SMPTE-C), -2 (Rear Projection TVs) or 0 (sRGB/noop)
 // For Japan developed games use a temperature ~8500K (default)
 // For EU/US developed games use a temperature ~7100K
 
@@ -65,7 +65,7 @@ OptionName = g_signal_type
 DefaultValue = true
 
 [OptionRangeInteger]
-GUIName = Phosphor (-3:170M -2:CRT-95s -1:P22-80s 1:P22-90s 2:NTSC-J 3:PAL)
+GUIName = Phosphor (-3:170M -2:RPTV-95s -1:P22-80s 1:P22-90s 2:NTSC-J 3:PAL)
 OptionName = g_crtgamut
 MinValue = -3
 MaxValue = 3
@@ -73,7 +73,7 @@ StepAmount = 1
 DefaultValue = 2
 
 [OptionRangeInteger]
-GUIName = Diplay Color Space (0:709 1:sRGB 2:P3-D65 3:Custom (Edit L506))
+GUIName = Diplay Color Space (0:709 1:sRGB 2:P3-D65 3:Custom (Edit L508))
 OptionName = g_space_out
 MinValue = 0
 MaxValue = 3
@@ -475,8 +475,8 @@ const mat3 P22_90s_ph = mat3(
      0.3329, 0.6310, 0.0642,
      0.0010, 0.0556, 0.7886);
 
-// CRT for Projection Tubes for NTSC-U late 90s, early 00s
-const mat3 CRT_95s_ph = mat3(
+// RPTV (Rear Projection TV) for NTSC-U late 90s, early 00s
+const mat3 RPTV_95s_ph = mat3(
      0.640, 0.341, 0.150,
      0.335, 0.586, 0.070,
      0.025, 0.073, 0.780);
@@ -556,7 +556,7 @@ void main()
     mat3 m_in;
 
     if (g_crtgamut  == -3.0) { m_in = SMPTE170M_ph;    } else
-    if (g_crtgamut  == -2.0) { m_in = CRT_95s_ph;      } else
+    if (g_crtgamut  == -2.0) { m_in = RPTV_95s_ph;     } else
     if (g_crtgamut  == -1.0) { m_in = P22_80s_ph;      } else
     if (g_crtgamut  ==  1.0) { m_in = P22_90s_ph;      } else
     if (g_crtgamut  ==  2.0) { m_in = P22_J_ph;        } else
@@ -582,12 +582,11 @@ void main()
     src_h = OptionEnabled(g_GCompress) ? clamp(GamutCompression(src_h, dot(coeff.xyz, src_h)), 0.0, 1.0) : clamp(src_h, 0.0, 1.0);
 
 
-// Dark to Dim adaptation OOTF; only for 709 and Custom
+// Dark to Dim adaptation OOTF
     float3 src_D = OptionEnabled(g_Dark_to_Dim) ? pow(  src_h, float3(0.9811)) : src_h;
 
 // EOTF^-1 - Inverted Electro-Optical Transfer Function
-    float3 TRC   = (g_space_out == 2.0) ? clamp(  pow(  src_h, float3(1./(2.20 + 0.40))), 0., 1.) : \
-                   (g_space_out == 1.0) ? moncurve_r_f3(src_h,            2.20 + 0.20,    0.0550) : \
+    float3 TRC   = (g_space_out == 1.0) ? moncurve_r_f3(src_h,            2.20 + 0.20,    0.0550) : \
                                           clamp(  pow(  src_D, float3(1./(2.20 + 0.20))), 0., 1.) ;
 
     SetOutput(float4(TRC, c0.a));
