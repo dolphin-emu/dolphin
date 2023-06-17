@@ -712,6 +712,12 @@ AchievementManager::GetAchievementProgress(AchievementId achievement_id, u32* va
   return ResponseType::SUCCESS;
 }
 
+const std::unordered_map<AchievementId, AchievementManager::LeaderboardStatus>&
+AchievementManager::GetLeaderboardsInfo() const
+{
+  return m_leaderboard_map;
+}
+
 AchievementManager::RichPresence AchievementManager::GetRichPresence()
 {
   std::lock_guard lg{m_lock};
@@ -732,6 +738,7 @@ void AchievementManager::CloseGame()
       m_game_id = 0;
       m_game_badge.name = "";
       m_unlock_map.clear();
+      m_leaderboard_map.clear();
       rc_api_destroy_fetch_game_data_response(&m_game_data);
       std::memset(&m_game_data, 0, sizeof(m_game_data));
       m_queue.Cancel();
