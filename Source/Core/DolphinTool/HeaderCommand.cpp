@@ -3,6 +3,7 @@
 
 #include "DolphinTool/HeaderCommand.h"
 
+#include <cstdlib>
 #include <optional>
 #include <string>
 #include <vector>
@@ -46,7 +47,7 @@ int HeaderCommand(const std::vector<std::string>& args)
   if (input_file_path.empty())
   {
     std::cerr << "Error: No input set" << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 
   const bool enable_block_size = options.is_set_by_user("block_size");
@@ -58,7 +59,7 @@ int HeaderCommand(const std::vector<std::string>& args)
   if (!blob_reader)
   {
     std::cerr << "Error: Unable to open disc image" << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 
   if (enable_block_size || enable_compression_method || enable_compression_level)
@@ -104,6 +105,6 @@ int HeaderCommand(const std::vector<std::string>& args)
     }
   }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 }  // namespace DolphinTool

@@ -3,6 +3,7 @@
 
 #include "DolphinTool/ConvertCommand.h"
 
+#include <cstdlib>
 #include <iostream>
 #include <limits>
 #include <optional>
@@ -123,7 +124,7 @@ int ConvertCommand(const std::vector<std::string>& args)
   if (input_file_path.empty())
   {
     std::cerr << "Error: No input set" << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 
   // --output
@@ -131,7 +132,7 @@ int ConvertCommand(const std::vector<std::string>& args)
   if (output_file_path.empty())
   {
     std::cerr << "Error: No output set" << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 
   // --format
@@ -140,7 +141,7 @@ int ConvertCommand(const std::vector<std::string>& args)
   if (!format_o.has_value())
   {
     std::cerr << "Error: No output format set" << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
   const DiscIO::BlobType format = format_o.value();
 
@@ -149,7 +150,7 @@ int ConvertCommand(const std::vector<std::string>& args)
   if (!blob_reader)
   {
     std::cerr << "Error: The input file could not be opened." << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 
   // --scrub
@@ -162,7 +163,7 @@ int ConvertCommand(const std::vector<std::string>& args)
     if (scrub)
     {
       std::cerr << "Error: Scrubbing is only supported for GC/Wii disc images." << std::endl;
-      return 1;
+      return EXIT_FAILURE;
     }
 
     std::cerr << "Warning: The input file is not a GC/Wii disc image. Continuing anyway."
@@ -174,7 +175,7 @@ int ConvertCommand(const std::vector<std::string>& args)
     if (volume->IsDatelDisc())
     {
       std::cerr << "Error: Scrubbing a Datel disc is not supported." << std::endl;
-      return 1;
+      return EXIT_FAILURE;
     }
 
     blob_reader = DiscIO::ScrubbedBlob::Create(input_file_path);
@@ -182,7 +183,7 @@ int ConvertCommand(const std::vector<std::string>& args)
     if (!blob_reader)
     {
       std::cerr << "Error: Unable to process disc image. Try again without --scrub." << std::endl;
-      return 1;
+      return EXIT_FAILURE;
     }
   }
 
@@ -225,13 +226,13 @@ int ConvertCommand(const std::vector<std::string>& args)
     if (!block_size_o.has_value())
     {
       std::cerr << "Error: Block size must be set for GCZ/RVZ/WIA" << std::endl;
-      return 1;
+      return EXIT_FAILURE;
     }
 
     if (!DiscIO::IsDiscImageBlockSizeValid(block_size_o.value(), format))
     {
       std::cerr << "Error: Block size is not valid for this format" << std::endl;
-      return 1;
+      return EXIT_FAILURE;
     }
 
     if (block_size_o.value() < DiscIO::PREFERRED_MIN_BLOCK_SIZE ||
@@ -265,7 +266,7 @@ int ConvertCommand(const std::vector<std::string>& args)
     if (!compression_o.has_value())
     {
       std::cerr << "Error: Compression format must be set for WIA or RVZ" << std::endl;
-      return 1;
+      return EXIT_FAILURE;
     }
 
     if ((format == DiscIO::BlobType::WIA &&
@@ -274,7 +275,7 @@ int ConvertCommand(const std::vector<std::string>& args)
          compression_o.value() == DiscIO::WIARVZCompressionType::Purge))
     {
       std::cerr << "Error: Compression type is not supported for the container format" << std::endl;
-      return 1;
+      return EXIT_FAILURE;
     }
 
     if (compression_o.value() == DiscIO::WIARVZCompressionType::None)
@@ -287,7 +288,7 @@ int ConvertCommand(const std::vector<std::string>& args)
       {
         std::cerr << "Error: Compression level must be set when compression type is not 'none'"
                   << std::endl;
-        return 1;
+        return EXIT_FAILURE;
       }
 
       const std::pair<int, int> range =
@@ -295,7 +296,7 @@ int ConvertCommand(const std::vector<std::string>& args)
       if (compression_level_o.value() < range.first || compression_level_o.value() > range.second)
       {
         std::cerr << "Error: Compression level not in acceptable range" << std::endl;
-        return 1;
+        return EXIT_FAILURE;
       }
     }
   }
@@ -349,9 +350,9 @@ int ConvertCommand(const std::vector<std::string>& args)
   if (!success)
   {
     std::cerr << "Error: Conversion failed" << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 }  // namespace DolphinTool

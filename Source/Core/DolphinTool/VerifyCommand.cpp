@@ -3,6 +3,7 @@
 
 #include "DolphinTool/VerifyCommand.h"
 
+#include <cstdlib>
 #include <string>
 #include <vector>
 
@@ -112,7 +113,7 @@ int VerifyCommand(const std::vector<std::string>& args)
   if (input_file_path.empty())
   {
     std::cerr << "Error: No input set" << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 
   DiscIO::Hashes<bool> hashes_to_calculate{};
@@ -136,7 +137,7 @@ int VerifyCommand(const std::vector<std::string>& args)
   {
     // optparse should protect from this
     std::cerr << "Error: No algorithms selected for the operation" << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 
   // Open the volume
@@ -144,7 +145,7 @@ int VerifyCommand(const std::vector<std::string>& args)
   if (!volume)
   {
     std::cerr << "Error: Unable to open disc image" << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 
   // Verify the volume
@@ -173,10 +174,10 @@ int VerifyCommand(const std::vector<std::string>& args)
     else
     {
       std::cerr << "Error: No hash computed" << std::endl;
-      return 1;
+      return EXIT_FAILURE;
     }
   }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 }  // namespace DolphinTool
