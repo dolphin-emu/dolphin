@@ -12,6 +12,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/AES.h"
+#include "Common/EnumUtils.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
@@ -143,7 +144,7 @@ std::optional<IPCReply> WFSIDevice::IOCtl(const IOCtlRequest& request)
     m_continue_install = memory.Read_U32(request.buffer_in + 36);
 
     INFO_LOG_FMT(IOS_WFS, "IOCTL_WFSI_IMPORT_TITLE_INIT: patch type {}, continue install: {}",
-                 static_cast<u32>(m_patch_type), m_continue_install ? "true" : "false");
+                 Common::ToUnderlying(m_patch_type), m_continue_install ? "true" : "false");
 
     if (m_patch_type == PatchType::PATCH_TYPE_2)
     {
