@@ -204,21 +204,12 @@ std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& con
     desc.NumRenderTargets =
         static_cast<u8>(config.framebuffer_state.additional_color_attachment_count) + 1;
     desc.RTVFormats[0] = D3DCommon::GetRTVFormatForAbstractFormat(
-        config.framebuffer_state.color_texture_format, false);
+        config.framebuffer_state.color_texture_format, config.blending_state.logicopenable);
     for (u8 i = 0; i < static_cast<u8>(config.framebuffer_state.additional_color_attachment_count);
          i++)
     {
       // For now set all formats to be the same
-      desc.RTVFormats[i + 1] = D3DCommon::GetRTVFormatForAbstractFormat(
-          config.framebuffer_state.color_texture_format, false);
-    }
-    if (config.blending_state.logicopenable)
-    {
-      desc.NumRenderTargets++;
-      desc.RTVFormats[static_cast<u8>(config.framebuffer_state.additional_color_attachment_count) +
-                      1] =
-          D3DCommon::GetRTVFormatForAbstractFormat(config.framebuffer_state.color_texture_format,
-                                                   true);
+      desc.RTVFormats[i + 1] = desc.RTVFormats[0];
     }
   }
   if (config.framebuffer_state.depth_texture_format != AbstractTextureFormat::Undefined)
