@@ -7,15 +7,15 @@ static bool initialized_dll_specific_script_context_apis = false;
 // Validates that there's no NULL variables in the API struct passed in as an argument.
 static bool ValidateApiStruct(void* start_of_struct, unsigned int struct_size, const char* struct_name)
 {
-  u64* travel_ptr = ((u64*)start_of_struct);
+  unsigned long long* travel_ptr = ((unsigned long long*)start_of_struct);
 
-  while (((u8*)travel_ptr) < (((u8*)start_of_struct) + struct_size))
+  while (((unsigned char*)travel_ptr) < (((unsigned char*)start_of_struct) + struct_size))
   {
-    if (static_cast<u64>(*travel_ptr) == 0)
+    if (static_cast<unsigned long long>(*travel_ptr) == 0)
     {
       std::quick_exit(68);
     }
-    travel_ptr = (u64*)(((u8*)travel_ptr) + sizeof(u64));
+    travel_ptr = (unsigned  long long*)(((unsigned char*)travel_ptr) + sizeof(unsigned long long));
   }
 
   return true;
@@ -32,7 +32,7 @@ static void InitDLLSpecificAPIs()
   dll_defined_scriptContext_apis.RegisterButtonCallback = RegisterButtonCallback_impl;
   dll_defined_scriptContext_apis.RegisterOnFrameStartCallback = RegisterOnFrameStartCallback_impl;
   dll_defined_scriptContext_apis.RegisterOnFrameStartWithAutoDeregistrationCallback = RegisterOnFrameStartWithAutoDeregistrationCallback_impl;
-  dll_defined_scriptContext_apis.RegisterOnGCControllerPolledCallback = RegisterOnGCControllerPolledWithAutoDeregistrationCallback_impl;
+  dll_defined_scriptContext_apis.RegisterOnGCControllerPolledCallback = RegisterOnGCControllerPolledCallback_impl;
   dll_defined_scriptContext_apis.RegisterOnGCControllerPolledWithAutoDeregistrationCallback = RegisterOnGCControllerPolledWithAutoDeregistrationCallback_impl;
   dll_defined_scriptContext_apis.RegisterOnInstructionReachedCallback = RegisterOnInstructionReachedCallback_impl;
   dll_defined_scriptContext_apis.RegisterOnInstructioReachedWithAutoDeregistrationCallback = RegisterOnInstructioReachedWithAutoDeregistrationCallback_impl;
@@ -41,8 +41,8 @@ static void InitDLLSpecificAPIs()
   dll_defined_scriptContext_apis.RegisterOnMemoryAddressWrittenToCallback = RegisterOnMemoryAddressWrittenToCallback_impl;
   dll_defined_scriptContext_apis.RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallback = RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallback_impl;
   dll_defined_scriptContext_apis.RegisterOnWiiInputPolledCallback = RegisterOnWiiInputPolledCallback_impl;
-  dll_defined_scriptContext_apis.RegisterOnWiiInputPolledWithAutoDeregistrationCallback = RegisterOnWiiInputPolledCallback_impl;
-  dll_defined_scriptContext_apis.RunButtonCallbacksInQueue = RegisterButtonCallback_impl;
+  dll_defined_scriptContext_apis.RegisterOnWiiInputPolledWithAutoDeregistrationCallback = RegisterOnWiiInputPolledWithAutoDeregistrationCallback_impl;
+  dll_defined_scriptContext_apis.RunButtonCallbacksInQueue = RunButtonCallbacksInQueue_impl;
   dll_defined_scriptContext_apis.RunGlobalScopeCode = RunGlobalScopeCode_impl;
   dll_defined_scriptContext_apis.RunOnFrameStartCallbacks = RunOnFrameStartCallbacks_impl;
   dll_defined_scriptContext_apis.RunOnGCControllerPolledCallbacks = RunOnGCControllerPolledCallbacks_impl;
@@ -72,6 +72,6 @@ DLL_Export void* CreateNewScript(int unique_script_identifier, const char* scrip
     InitDLLSpecificAPIs();
 
   void* opaque_script_context_handle = dolphinDefinedScriptContext_APIs.ScriptContext_Initializer(unique_script_identifier, script_filename, print_callback_fn_ptr, script_end_callback_fn_ptr, &dll_defined_scriptContext_apis);
-  LuaScriptContext* new_lua_script_context_ptr = Init_LuaScriptContext_impl(opaque_script_context_handle);
+  LuaScriptContext* new_lua_script_context_ptr = reinterpret_cast<LuaScriptContext*>(Init_LuaScriptContext_impl(opaque_script_context_handle));
   return opaque_script_context_handle;
 }

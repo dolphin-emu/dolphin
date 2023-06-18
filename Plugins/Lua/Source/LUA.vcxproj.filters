@@ -4,6 +4,9 @@
     <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaScriptContextFiles\LuaScriptContext.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\CreateScript.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\DolphinDefinedAPIs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -43,6 +46,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\LuaScriptContextFiles\LuaScriptContext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\CreateScript.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\DolphinDefinedAPIs.h">

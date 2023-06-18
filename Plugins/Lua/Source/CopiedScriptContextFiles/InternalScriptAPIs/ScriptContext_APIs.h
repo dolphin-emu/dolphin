@@ -96,7 +96,7 @@ typedef struct DLL_Defined_ScriptContext_APIs
   int (*UnregisterOnMemoryAddressWrittenToCallback)(void*, unsigned int, void*); // Unregisters/removes an OnMemoryAddressWrittenTo callback (the 3rd parameter passed into the function should be the return result of RegisterOnMemoryAddressWrittenToCallback()) for the specified memory address (the 3rd parameter).
 
   void* (*RegisterOnWiiInputPolledCallback)(void*, void*); // Registers a new OnWiiInputPolled callback (the 2nd paramter passed into the function), and returns a handle that can be used to unregister the callback.
-  void(*RegisterOnWiiInputPolledWithAutoDeregistrationCallback)(void*, void*); // Registers a new OnWiiInputPolled callback (the 2nd parameter passed into the function). This callback should auto-deregister when only auto-deregistered callbacks are still running.
+  void (*RegisterOnWiiInputPolledWithAutoDeregistrationCallback)(void*, void*); // Registers a new OnWiiInputPolled callback (the 2nd parameter passed into the function). This callback should auto-deregister when only auto-deregistered callbacks are still running.
   int (*UnregisterOnWiiInputPolledCallback)(void*, void*); // Unregisters/removes an OnWiiInputPolled callback (the 2nd parameter  passed into the function should be the return result of RegisterOnWiiInputPolledCallback()).
 
   void (*RegisterButtonCallback)(void*, long long, void*); // Registers a callback (the 3rd parameter passed into the function) to run when the button with the ID specified by the 2nd parameter is clicked.

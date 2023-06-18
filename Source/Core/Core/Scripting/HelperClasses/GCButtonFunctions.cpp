@@ -202,3 +202,50 @@ int IsValidButtonEnum_impl(int button)
   else
     return 0;
 }
+
+int IsDigitalButton_impl(int raw_button_val)
+{
+  GcButtonNameEnum button_name = (GcButtonNameEnum)raw_button_val;
+
+  switch (button_name)
+  {
+  case GcButtonNameEnum::A:
+  case GcButtonNameEnum::B:
+  case GcButtonNameEnum::Disc:
+  case GcButtonNameEnum::DPadDown:
+  case GcButtonNameEnum::DPadLeft:
+  case GcButtonNameEnum::DPadRight:
+  case GcButtonNameEnum::DPadUp:
+  case GcButtonNameEnum::GetOrigin:
+  case GcButtonNameEnum::IsConnected:
+  case GcButtonNameEnum::L:
+  case GcButtonNameEnum::R:
+  case GcButtonNameEnum::Reset:
+  case GcButtonNameEnum::Start:
+  case GcButtonNameEnum::X:
+  case GcButtonNameEnum::Y:
+  case GcButtonNameEnum::Z:
+    return 1;
+
+  default:
+    return 0;
+  }
+}
+int IsAnalogButton_impl(int raw_button_val)
+{
+  GcButtonNameEnum button_name = (GcButtonNameEnum)raw_button_val;
+
+  switch (button_name)
+  {
+  case GcButtonNameEnum::AnalogStickX:
+  case GcButtonNameEnum::AnalogStickY:
+  case GcButtonNameEnum::CStickX:
+  case GcButtonNameEnum::CStickY:
+  case GcButtonNameEnum::TriggerL:
+  case GcButtonNameEnum::TriggerR:
+    return 1;
+
+  default:
+    return 0;
+  }
+}

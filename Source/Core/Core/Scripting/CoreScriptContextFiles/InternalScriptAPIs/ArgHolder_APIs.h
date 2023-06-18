@@ -28,14 +28,14 @@ typedef struct ArgHolder_APIs
 
   void* (*CreateAddressToByteMapArgHolder)(); // Creates + returns a Map<long long, s16> ArgHolder*. This is initially empty, but the methods below can be used to get/set values in the returned ArgHolder*
 
-  void (*AddPairToAddressToByteMapArgHolder)(void*, long long, signed int); // Takes as its 1st parameter a Map<long long, s16> ArgHolder* (created by the function above), an address as it's 2nd parameter, and the value of the address as its 3rd parameter. The function adds the 2nd and 3rd parameters to the map contained in the 1st arg (the 2nd param is the key, the 3rd param is the value)
+  void (*AddPairToAddressToByteMapArgHolder)(void*, signed long long, signed long long); // Takes as its 1st parameter a Map<long long, s16> ArgHolder* (created by the function above), an address as it's 2nd parameter, and the value of the address as its 3rd parameter. The function adds the 2nd and 3rd parameters to the map contained in the 1st arg (the 2nd param is the key, the 3rd param is the value)
   unsigned long long (*GetSizeOfAddressToByteMapArgHolder)(void*);  // Takes a Map<long long, s16> ArgHolder* as input, and returns the number of key-value pairs in the map (i.e. the total number of keys in the map)
 
   // WARNING: The following function allocates a new iterator on the heap, which must be deleted using the Delete_IteratorForAddressToByteMapArgHolder() function to avoid a memory leak
   void* (*CreateIteratorForAddressToByteMapArgHolder)(void*); // Takes a Map<long long, s16> ArgHolder* as input, and returns an opaque handle to an iterator*, which can be used to access the elements of the map in order (or NULL, if the map is empty)
   void* (*IncrementIteratorForAddressToByteMapArgHolder)(void*, void*);  // Takes an opaque handle to an iterator wrapper for a Map<long long, s16> as its 1st param, and an opaque handle to the ArgHolder* containing the map from address to bytes as the 2nd param. The function calls the iterator's next method, and either returns an opaque handle to the iterator wrapper, or NULL (if the end of the Map was reached).
-  long long (*GetKeyForAddressToByteMapArgHolder)(void*); // Takes as input an opaque handle to an iterator wrapper for a Map<long long, s16> as input, and returns the key for the iterator
-  signed int (*GetValueForAddressToUnsignedByteMapArgHolder)(void*); // Takes as input an opaque handle to an iterator wrapper for a Map<long long, s16> as input, and returns the value for the iterator (of the key-value pair).
+  signed long long (*GetKeyForAddressToByteMapArgHolder)(void*); // Takes as input an opaque handle to an iterator wrapper for a Map<long long, s16> as input, and returns the key for the iterator
+  signed long long (*GetValueForAddressToUnsignedByteMapArgHolder)(void*); // Takes as input an opaque handle to an iterator wrapper for a Map<long long, s16> as input, and returns the value for the iterator (of the key-value pair).
   void (*Delete_IteratorForAddressToByteMapArgHolder)(void*); // Takes as input an opaque handle to an iterator wrapper, and deletes the iterator (frees the memory allocated to it).
 
   void* (*CreateControllerStateArgHolder)(); // Creates + returns an ArgHolder* to represent a GameCube Controller ControllerState. This is initially set so that no buttons are pressed, joysticks are in the 128X128 default position, and no triggers are pressed. However, the functions below can be used to modify the ControllerState struct contained in this ArgHolder

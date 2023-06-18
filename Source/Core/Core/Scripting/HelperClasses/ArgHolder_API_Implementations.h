@@ -31,12 +31,12 @@ void* CreateVoidPointerArgHolder_API_impl(void*);
 
 void* CreateAddressToByteMapArgHolder_API_impl();
 
-void AddPairToAddressToByteMapArgHolder_impl(void*, long long, signed int);
+void AddPairToAddressToByteMapArgHolder_impl(void*, signed long long, signed long long);
 unsigned long long GetSizeOfAddressToByteMapArgHolder_impl(void*);
 void* Create_IteratorForAddressToByteMapArgHolder_impl(void*);
 void* IncrementIteratorForAddressToByteMapArgHolder_impl(void*, void*);
-long long GetKeyForAddressToByteMapArgHolder_impl(void*);
-signed int GetValueForAddressToUnsignedByteMapArgHolder_impl(void*);
+signed long long GetKeyForAddressToByteMapArgHolder_impl(void*);
+signed long long GetValueForAddressToUnsignedByteMapArgHolder_impl(void*);
 void Delete_IteratorForAddressToByteMapArgHolder_impl(void*);
 
 void* CreateControllerStateArgHolder_API_impl();

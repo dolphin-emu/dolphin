@@ -24,7 +24,7 @@ events:
       The output was:
       0
       MSBuild version 17.6.3+07e294721 for .NET Framework
-      Build started 6/16/2023 5:32:56 PM.
+      Build started 6/18/2023 6:18:29 PM.
       
       Project "C:\\Users\\skyle\\OneDrive\\Desktop\\lobsterZeldaDolphin\\Plugins\\Lua\\Source\\CMakeFiles\\3.27.0-rc2\\CompilerIdC\\CompilerIdC.vcxproj" on node 1 (default targets).
       PrepareForBuild:
@@ -51,7 +51,7 @@ events:
           0 Warning(s)
           0 Error(s)
       
-      Time Elapsed 00:00:02.48
+      Time Elapsed 00:00:02.45
       
       
       Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "CompilerIdC.exe"
@@ -77,7 +77,7 @@ events:
       The output was:
       0
       MSBuild version 17.6.3+07e294721 for .NET Framework
-      Build started 6/16/2023 5:32:59 PM.
+      Build started 6/18/2023 6:18:32 PM.
       
       Project "C:\\Users\\skyle\\OneDrive\\Desktop\\lobsterZeldaDolphin\\Plugins\\Lua\\Source\\CMakeFiles\\3.27.0-rc2\\CompilerIdCXX\\CompilerIdCXX.vcxproj" on node 1 (default targets).
       PrepareForBuild:
@@ -104,7 +104,7 @@ events:
           0 Warning(s)
           0 Error(s)
       
-      Time Elapsed 00:00:02.04
+      Time Elapsed 00:00:02.14
       
       
       Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CompilerIdCXX.exe"
@@ -123,8 +123,8 @@ events:
     checks:
       - "Detecting C compiler ABI info"
     directories:
-      source: "C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Plugins/Lua/Source/CMakeFiles/CMakeScratch/TryCompile-hj4jwj"
-      binary: "C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Plugins/Lua/Source/CMakeFiles/CMakeScratch/TryCompile-hj4jwj"
+      source: "C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Plugins/Lua/Source/CMakeFiles/CMakeScratch/TryCompile-u5rk7n"
+      binary: "C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Plugins/Lua/Source/CMakeFiles/CMakeScratch/TryCompile-u5rk7n"
     cmakeVariables:
       CMAKE_C_FLAGS: "/DWIN32 /D_WINDOWS"
       CMAKE_C_FLAGS_DEBUG: "/Ob0 /Od /RTC1"
@@ -133,38 +133,38 @@ events:
       variable: "CMAKE_C_ABI_COMPILED"
       cached: true
       stdout: |
-        Change Dir: 'C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Plugins/Lua/Source/CMakeFiles/CMakeScratch/TryCompile-hj4jwj'
+        Change Dir: 'C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Plugins/Lua/Source/CMakeFiles/CMakeScratch/TryCompile-u5rk7n'
         
-        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_c7e2e.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:n
+        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_8861c.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:n
         MSBuild version 17.6.3+07e294721 for .NET Framework
-        Build started 6/16/2023 5:33:02 PM.
+        Build started 6/18/2023 6:18:35 PM.
         
-        Project "C:\\Users\\skyle\\OneDrive\\Desktop\\lobsterZeldaDolphin\\Plugins\\Lua\\Source\\CMakeFiles\\CMakeScratch\\TryCompile-hj4jwj\\cmTC_c7e2e.vcxproj" on node 1 (default targets).
+        Project "C:\\Users\\skyle\\OneDrive\\Desktop\\lobsterZeldaDolphin\\Plugins\\Lua\\Source\\CMakeFiles\\CMakeScratch\\TryCompile-u5rk7n\\cmTC_8861c.vcxproj" on node 1 (default targets).
         PrepareForBuild:
-          Creating directory "cmTC_c7e2e.dir\\Debug\\".
-          Creating directory "C:\\Users\\skyle\\OneDrive\\Desktop\\lobsterZeldaDolphin\\Plugins\\Lua\\Source\\CMakeFiles\\CMakeScratch\\TryCompile-hj4jwj\\Debug\\".
-          Creating directory "cmTC_c7e2e.dir\\Debug\\cmTC_c7e2e.tlog\\".
+          Creating directory "cmTC_8861c.dir\\Debug\\".
+          Creating directory "C:\\Users\\skyle\\OneDrive\\Desktop\\lobsterZeldaDolphin\\Plugins\\Lua\\Source\\CMakeFiles\\CMakeScratch\\TryCompile-u5rk7n\\Debug\\".
+          Creating directory "cmTC_8861c.dir\\Debug\\cmTC_8861c.tlog\\".
         InitializeBuildStatus:
-          Creating "cmTC_c7e2e.dir\\Debug\\cmTC_c7e2e.tlog\\unsuccessfulbuild" because "AlwaysCreate" was specified.
+          Creating "cmTC_8861c.dir\\Debug\\cmTC_8861c.tlog\\unsuccessfulbuild" because "AlwaysCreate" was specified.
         ClCompile:
-          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.36.32532\\bin\\HostX64\\x64\\CL.exe /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\\"Debug\\"" /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_c7e2e.dir\\Debug\\\\" /Fd"cmTC_c7e2e.dir\\Debug\\vc143.pdb" /external:W1 /Gd /TC /errorReport:queue "C:\\Program Files (x86)\\CMake\\share\\cmake-3.27\\Modules\\CMakeCCompilerABI.c"
+          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.36.32532\\bin\\HostX64\\x64\\CL.exe /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\\"Debug\\"" /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_8861c.dir\\Debug\\\\" /Fd"cmTC_8861c.dir\\Debug\\vc143.pdb" /external:W1 /Gd /TC /errorReport:queue "C:\\Program Files (x86)\\CMake\\share\\cmake-3.27\\Modules\\CMakeCCompilerABI.c"
           Microsoft (R) C/C++ Optimizing Compiler Version 19.36.32532 for x64
           Copyright (C) Microsoft Corporation.  All rights reserved.
           CMakeCCompilerABI.c
-          cl /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\\"Debug\\"" /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_c7e2e.dir\\Debug\\\\" /Fd"cmTC_c7e2e.dir\\Debug\\vc143.pdb" /external:W1 /Gd /TC /errorReport:queue "C:\\Program Files (x86)\\CMake\\share\\cmake-3.27\\Modules\\CMakeCCompilerABI.c"
+          cl /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\\"Debug\\"" /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_8861c.dir\\Debug\\\\" /Fd"cmTC_8861c.dir\\Debug\\vc143.pdb" /external:W1 /Gd /TC /errorReport:queue "C:\\Program Files (x86)\\CMake\\share\\cmake-3.27\\Modules\\CMakeCCompilerABI.c"
         Link:
-          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.36.32532\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:"C:\\Users\\skyle\\OneDrive\\Desktop\\lobsterZeldaDolphin\\Plugins\\Lua\\Source\\CMakeFiles\\CMakeScratch\\TryCompile-hj4jwj\\Debug\\cmTC_c7e2e.exe" /INCREMENTAL /ILK:"cmTC_c7e2e.dir\\Debug\\cmTC_c7e2e.ilk" /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Plugins/Lua/Source/CMakeFiles/CMakeScratch/TryCompile-hj4jwj/Debug/cmTC_c7e2e.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Plugins/Lua/Source/CMakeFiles/CMakeScratch/TryCompile-hj4jwj/Debug/cmTC_c7e2e.lib" /MACHINE:X64  /machine:x64 cmTC_c7e2e.dir\\Debug\\CMakeCCompilerABI.obj
-          cmTC_c7e2e.vcxproj -> C:\\Users\\skyle\\OneDrive\\Desktop\\lobsterZeldaDolphin\\Plugins\\Lua\\Source\\CMakeFiles\\CMakeScratch\\TryCompile-hj4jwj\\Debug\\cmTC_c7e2e.exe
+          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.36.32532\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:"C:\\Users\\skyle\\OneDrive\\Desktop\\lobsterZeldaDolphin\\Plugins\\Lua\\Source\\CMakeFiles\\CMakeScratch\\TryCompile-u5rk7n\\Debug\\cmTC_8861c.exe" /INCREMENTAL /ILK:"cmTC_8861c.dir\\Debug\\cmTC_8861c.ilk" /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Plugins/Lua/Source/CMakeFiles/CMakeScratch/TryCompile-u5rk7n/Debug/cmTC_8861c.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Plugins/Lua/Source/CMakeFiles/CMakeScratch/TryCompile-u5rk7n/Debug/cmTC_8861c.lib" /MACHINE:X64  /machine:x64 cmTC_8861c.dir\\Debug\\CMakeCCompilerABI.obj
+          cmTC_8861c.vcxproj -> C:\\Users\\skyle\\OneDrive\\Desktop\\lobsterZeldaDolphin\\Plugins\\Lua\\Source\\CMakeFiles\\CMakeScratch\\TryCompile-u5rk7n\\Debug\\cmTC_8861c.exe
         FinalizeBuildStatus:
-          Deleting file "cmTC_c7e2e.dir\\Debug\\cmTC_c7e2e.tlog\\unsuccessfulbuild".
-          Touching "cmTC_c7e2e.dir\\Debug\\cmTC_c7e2e.tlog\\cmTC_c7e2e.lastbuildstate".
-        Done Building Project "C:\\Users\\skyle\\OneDrive\\Desktop\\lobsterZeldaDolphin\\Plugins\\Lua\\Source\\CMakeFiles\\CMakeScratch\\TryCompile-hj4jwj\\cmTC_c7e2e.vcxproj" (default targets).
+          Deleting file "cmTC_8861c.dir\\Debug\\cmTC_8861c.tlog\\unsuccessfulbuild".
+          Touching "cmTC_8861c.dir\\Debug\\cmTC_8861c.tlog\\cmTC_8861c.lastbuildstate".
+        Done Building Project "C:\\Users\\skyle\\OneDrive\\Desktop\\lobsterZeldaDolphin\\Plugins\\Lua\\Source\\CMakeFiles\\CMakeScratch\\TryCompile-u5rk7n\\cmTC_8861c.vcxproj" (default targets).
         
         Build succeeded.
             0 Warning(s)
             0 Error(s)
         
-        Time Elapsed 00:00:02.11
+        Time Elapsed 00:00:02.02
         
       exitCode: 0
   -
@@ -176,8 +176,8 @@ events:
     checks:
       - "Detecting CXX compiler ABI info"
     directories:
-      source: "C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Plugins/Lua/Source/CMakeFiles/CMakeScratch/TryCompile-wvjfuy"
-      binary: "C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Plugins/Lua/Source/CMakeFiles/CMakeScratch/TryCompile-wvjfuy"
+      source: "C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Plugins/Lua/Source/CMakeFiles/CMakeScratch/TryCompile-ni3ros"
+      binary: "C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Plugins/Lua/Source/CMakeFiles/CMakeScratch/TryCompile-ni3ros"
     cmakeVariables:
       CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /EHsc"
       CMAKE_CXX_FLAGS_DEBUG: "/Ob0 /Od /RTC1"
@@ -186,38 +186,38 @@ events:
       variable: "CMAKE_CXX_ABI_COMPILED"
       cached: true
       stdout: |
-        Change Dir: 'C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Plugins/Lua/Source/CMakeFiles/CMakeScratch/TryCompile-wvjfuy'
+        Change Dir: 'C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Plugins/Lua/Source/CMakeFiles/CMakeScratch/TryCompile-ni3ros'
         
-        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_b96b8.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:n
+        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_a2480.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:n
         MSBuild version 17.6.3+07e294721 for .NET Framework
-        Build started 6/16/2023 5:33:05 PM.
+        Build started 6/18/2023 6:18:38 PM.
         
-        Project "C:\\Users\\skyle\\OneDrive\\Desktop\\lobsterZeldaDolphin\\Plugins\\Lua\\Source\\CMakeFiles\\CMakeScratch\\TryCompile-wvjfuy\\cmTC_b96b8.vcxproj" on node 1 (default targets).
+        Project "C:\\Users\\skyle\\OneDrive\\Desktop\\lobsterZeldaDolphin\\Plugins\\Lua\\Source\\CMakeFiles\\CMakeScratch\\TryCompile-ni3ros\\cmTC_a2480.vcxproj" on node 1 (default targets).
         PrepareForBuild:
-          Creating directory "cmTC_b96b8.dir\\Debug\\".
-          Creating directory "C:\\Users\\skyle\\OneDrive\\Desktop\\lobsterZeldaDolphin\\Plugins\\Lua\\Source\\CMakeFiles\\CMakeScratch\\TryCompile-wvjfuy\\Debug\\".
-          Creating directory "cmTC_b96b8.dir\\Debug\\cmTC_b96b8.tlog\\".
+          Creating directory "cmTC_a2480.dir\\Debug\\".
+          Creating directory "C:\\Users\\skyle\\OneDrive\\Desktop\\lobsterZeldaDolphin\\Plugins\\Lua\\Source\\CMakeFiles\\CMakeScratch\\TryCompile-ni3ros\\Debug\\".
+          Creating directory "cmTC_a2480.dir\\Debug\\cmTC_a2480.tlog\\".
         InitializeBuildStatus:
-          Creating "cmTC_b96b8.dir\\Debug\\cmTC_b96b8.tlog\\unsuccessfulbuild" because "AlwaysCreate" was specified.
+          Creating "cmTC_a2480.dir\\Debug\\cmTC_a2480.tlog\\unsuccessfulbuild" because "AlwaysCreate" was specified.
         ClCompile:
-          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.36.32532\\bin\\HostX64\\x64\\CL.exe /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\\"Debug\\"" /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_b96b8.dir\\Debug\\\\" /Fd"cmTC_b96b8.dir\\Debug\\vc143.pdb" /external:W1 /Gd /TP /errorReport:queue "C:\\Program Files (x86)\\CMake\\share\\cmake-3.27\\Modules\\CMakeCXXCompilerABI.cpp"
+          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.36.32532\\bin\\HostX64\\x64\\CL.exe /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\\"Debug\\"" /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_a2480.dir\\Debug\\\\" /Fd"cmTC_a2480.dir\\Debug\\vc143.pdb" /external:W1 /Gd /TP /errorReport:queue "C:\\Program Files (x86)\\CMake\\share\\cmake-3.27\\Modules\\CMakeCXXCompilerABI.cpp"
           Microsoft (R) C/C++ Optimizing Compiler Version 19.36.32532 for x64
           Copyright (C) Microsoft Corporation.  All rights reserved.
+          cl /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\\"Debug\\"" /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_a2480.dir\\Debug\\\\" /Fd"cmTC_a2480.dir\\Debug\\vc143.pdb" /external:W1 /Gd /TP /errorReport:queue "C:\\Program Files (x86)\\CMake\\share\\cmake-3.27\\Modules\\CMakeCXXCompilerABI.cpp"
           CMakeCXXCompilerABI.cpp
-          cl /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\\"Debug\\"" /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_b96b8.dir\\Debug\\\\" /Fd"cmTC_b96b8.dir\\Debug\\vc143.pdb" /external:W1 /Gd /TP /errorReport:queue "C:\\Program Files (x86)\\CMake\\share\\cmake-3.27\\Modules\\CMakeCXXCompilerABI.cpp"
         Link:
-          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.36.32532\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:"C:\\Users\\skyle\\OneDrive\\Desktop\\lobsterZeldaDolphin\\Plugins\\Lua\\Source\\CMakeFiles\\CMakeScratch\\TryCompile-wvjfuy\\Debug\\cmTC_b96b8.exe" /INCREMENTAL /ILK:"cmTC_b96b8.dir\\Debug\\cmTC_b96b8.ilk" /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Plugins/Lua/Source/CMakeFiles/CMakeScratch/TryCompile-wvjfuy/Debug/cmTC_b96b8.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Plugins/Lua/Source/CMakeFiles/CMakeScratch/TryCompile-wvjfuy/Debug/cmTC_b96b8.lib" /MACHINE:X64  /machine:x64 cmTC_b96b8.dir\\Debug\\CMakeCXXCompilerABI.obj
-          cmTC_b96b8.vcxproj -> C:\\Users\\skyle\\OneDrive\\Desktop\\lobsterZeldaDolphin\\Plugins\\Lua\\Source\\CMakeFiles\\CMakeScratch\\TryCompile-wvjfuy\\Debug\\cmTC_b96b8.exe
+          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.36.32532\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:"C:\\Users\\skyle\\OneDrive\\Desktop\\lobsterZeldaDolphin\\Plugins\\Lua\\Source\\CMakeFiles\\CMakeScratch\\TryCompile-ni3ros\\Debug\\cmTC_a2480.exe" /INCREMENTAL /ILK:"cmTC_a2480.dir\\Debug\\cmTC_a2480.ilk" /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Plugins/Lua/Source/CMakeFiles/CMakeScratch/TryCompile-ni3ros/Debug/cmTC_a2480.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Plugins/Lua/Source/CMakeFiles/CMakeScratch/TryCompile-ni3ros/Debug/cmTC_a2480.lib" /MACHINE:X64  /machine:x64 cmTC_a2480.dir\\Debug\\CMakeCXXCompilerABI.obj
+          cmTC_a2480.vcxproj -> C:\\Users\\skyle\\OneDrive\\Desktop\\lobsterZeldaDolphin\\Plugins\\Lua\\Source\\CMakeFiles\\CMakeScratch\\TryCompile-ni3ros\\Debug\\cmTC_a2480.exe
         FinalizeBuildStatus:
-          Deleting file "cmTC_b96b8.dir\\Debug\\cmTC_b96b8.tlog\\unsuccessfulbuild".
-          Touching "cmTC_b96b8.dir\\Debug\\cmTC_b96b8.tlog\\cmTC_b96b8.lastbuildstate".
-        Done Building Project "C:\\Users\\skyle\\OneDrive\\Desktop\\lobsterZeldaDolphin\\Plugins\\Lua\\Source\\CMakeFiles\\CMakeScratch\\TryCompile-wvjfuy\\cmTC_b96b8.vcxproj" (default targets).
+          Deleting file "cmTC_a2480.dir\\Debug\\cmTC_a2480.tlog\\unsuccessfulbuild".
+          Touching "cmTC_a2480.dir\\Debug\\cmTC_a2480.tlog\\cmTC_a2480.lastbuildstate".
+        Done Building Project "C:\\Users\\skyle\\OneDrive\\Desktop\\lobsterZeldaDolphin\\Plugins\\Lua\\Source\\CMakeFiles\\CMakeScratch\\TryCompile-ni3ros\\cmTC_a2480.vcxproj" (default targets).
         
         Build succeeded.
             0 Warning(s)
             0 Error(s)
         
-        Time Elapsed 00:00:02.00
+        Time Elapsed 00:00:02.11
         
       exitCode: 0
 ...

@@ -3,13 +3,31 @@
 #include <string>
 #include <map>
 
+
+#include "../CopiedScriptContextFiles/Enums/GCButtonNameEnum.h"
 #include "../CopiedScriptContextFiles/Enums/ScriptCallLocations.h"
 
 const char* THIS_SCRIPT_CONTEXT_VARIABLE_NAME = "THIS_SCRIPT_CONTEXT_13237122LQ7";
 const char* THIS_LUA_SCRIPT_CONTEXT_VARIABLE_NAME = "THIS_LUA_SCRIPT_CONTEXT_98485237889G3Jk";
 
+static std::vector<int> digital_buttons_list = std::vector<int>();
+static std::vector<int> analog_buttons_list = std::vector<int>();
+
 void* Init_LuaScriptContext_impl(void* new_base_script_context_ptr)
 {
+  if (digital_buttons_list.empty())
+  {
+    int raw_button_enum = 0;
+    do
+    {
+      if (gcButton_APIs.IsDigitalButton(raw_button_enum))
+        digital_buttons_list.push_back(raw_button_enum);
+      else if (gcButton_APIs.IsAnalogButton(raw_button_enum))
+        analog_buttons_list.push_back(raw_button_enum);
+      raw_button_enum++;
+    } while (gcButton_APIs.IsValidButtonEnum(raw_button_enum));
+  }
+
   LuaScriptContext* new_lua_script_context_ptr = new LuaScriptContext();
   new_lua_script_context_ptr->base_script_context_ptr = new_base_script_context_ptr;
   dolphinDefinedScriptContext_APIs.set_dll_script_context_ptr(new_lua_script_context_ptr->base_script_context_ptr, new_lua_script_context_ptr);
@@ -209,7 +227,13 @@ public:
 
 UserdataClass* GetNewUserdataInstance()
 {
-  return std::make_unique<UserdataClass>(UserdataClass()).get();
+  return std::make_shared<UserdataClass>(UserdataClass()).get();
+}
+
+int freeAndReturn(void* arg_holder_ptr, int ret_val)
+{
+  argHolder_APIs.Delete_ArgHolder(arg_holder_ptr);
+  return ret_val;
 }
 
 void ImportModule_impl(void* base_script_ptr, const char* api_name, const char* api_version)
@@ -275,8 +299,19 @@ void ImportModule_impl(void* base_script_ptr, const char* api_name, const char* 
       void* temp_arg_holder_ptr = nullptr;
       void* return_value = nullptr;
       int function_reference = -1;
-      long long key = 0;
-      signed int value = 0;
+      signed long long key = 0;
+      signed long long value = 0;
+      const char* raw_button_name;
+      int button_name_as_enum;
+      unsigned char button_value = 0;
+      signed long long raw_magnitude = 0;
+      int garbage_val = 0;
+      double point1 = 0.0;
+      double point2 = 0.0;
+      void* temp_val = nullptr;
+      std::string error_message = "";
+      void* base_iterator_ptr = nullptr;
+      void* travel_iterator_ptr = nullptr;
 
       if (lua_type(lua_state, 1) != LUA_TUSERDATA)
       {
@@ -284,6 +319,7 @@ void ImportModule_impl(void* base_script_ptr, const char* api_name, const char* 
           (std::string("Error: User attempted to call the ") + class_name + ":" + localFunctionMetadata->function_name + "() function using the dot "
             "operator. Please use the colon operator instead like this: " + class_name + ":" + localFunctionMetadata->function_name)
           .c_str());
+        vectorOfArgHolder_APIs.Delete_VectorOfArgHolders(arguments_list_ptr);
         return 0;
       }
 
@@ -295,6 +331,7 @@ void ImportModule_impl(void* base_script_ptr, const char* api_name, const char* 
             "u64. The largest size type that Dolphin supports for Lua is s64. As "
             "such, please use an s64 version of this function instead.")
           .c_str());
+        vectorOfArgHolder_APIs.Delete_VectorOfArgHolders(arguments_list_ptr);
         return 0;
       }
 
@@ -331,6 +368,7 @@ void ImportModule_impl(void* base_script_ptr, const char* api_name, const char* 
                "u64 as one of its parameters. The largest type supported in Dolphin "
                "for Lua is s64. Please use an s64 version of the function instead.")
               .c_str());
+            vectorOfArgHolder_APIs.Delete_VectorOfArgHolders(arguments_list_ptr);
             return 0;
 
           case ArgTypeEnum::S8:
@@ -419,6 +457,8 @@ void ImportModule_impl(void* base_script_ptr, const char* api_name, const char* 
               {
                 luaL_error(lua_state,
                   (std::string("Error: in ") + class_name + ":" + localFunctionMetadata->function_name + "() function, address of byte was less than 0!").c_str());
+                argHolder_APIs.Delete_ArgHolder(temp_arg_holder_ptr);
+                vectorOfArgHolder_APIs.Delete_VectorOfArgHolders(arguments_list_ptr);
                 return 0;
               }
 
@@ -428,6 +468,8 @@ void ImportModule_impl(void* base_script_ptr, const char* api_name, const char* 
                   (std::string("Error: in ") + class_name + ":" + localFunctionMetadata->function_name + "() function, value of byte was less than "
                     "-128, which can't be represented by 1 byte!")
                   .c_str());
+                argHolder_APIs.Delete_ArgHolder(temp_arg_holder_ptr);
+                vectorOfArgHolder_APIs.Delete_VectorOfArgHolders(arguments_list_ptr);
                 return 0;
               }
               if (value > 255)
@@ -436,6 +478,8 @@ void ImportModule_impl(void* base_script_ptr, const char* api_name, const char* 
                   (std::string("Error: in ") + class_name + ":" + localFunctionMetadata->function_name + "() function, value of byte was more than "
                     "255, which can't be represented by 1 byte!")
                   .c_str());
+                argHolder_APIs.Delete_ArgHolder(temp_arg_holder_ptr);
+                vectorOfArgHolder_APIs.Delete_VectorOfArgHolders(arguments_list_ptr);
                 return 0;
               }
 
@@ -446,12 +490,198 @@ void ImportModule_impl(void* base_script_ptr, const char* api_name, const char* 
             break;
 
             case ArgTypeEnum::ControllerStateObject:
-            return 0; // TODO: Continue here
+              lua_pushnil(lua_state);
+              temp_arg_holder_ptr = argHolder_APIs.CreateControllerStateArgHolder();
+              while (lua_next(lua_state, next_index_in_args) != 0)
+              {
+                raw_button_name = luaL_checkstring(lua_state, -2);
+                if (raw_button_name == nullptr || strlen(raw_button_name) == 0)
+                {
+                  luaL_error(lua_state,
+                    (std::string("Error: in " + class_name + ":" + localFunctionMetadata->function_name + " function, an empty string was passed in "
+                      "for a button name!")
+                    .c_str()));
+                  argHolder_APIs.Delete_ArgHolder(temp_arg_holder_ptr);
+                  vectorOfArgHolder_APIs.Delete_VectorOfArgHolders(arguments_list_ptr);
+                  return 0;
+                }
+                button_name_as_enum = gcButton_APIs.ParseGCButton(raw_button_name);
+                if (!gcButton_APIs.IsValidButtonEnum(button_name_as_enum))
+                {
+                  luaL_error(lua_state,
+                    (std::string("Error: in " + class_name + ":" + localFunctionMetadata->function_name + " function, an invalid button name of " + raw_button_name +  " was passed in "
+                      "for a button name. Valid button names are: A, B, X, Y, Z, L, R, triggerR, triggerL, analogStickX, analogStickY, cStcikX, cStickY, start, reset, getOrigin and isConnected")
+                      .c_str()));
+                  argHolder_APIs.Delete_ArgHolder(temp_arg_holder_ptr);
+                  vectorOfArgHolder_APIs.Delete_VectorOfArgHolders(arguments_list_ptr);
+                  return 0;
+                }
+                if (gcButton_APIs.IsDigitalButton(button_name_as_enum))
+                  button_value = static_cast<unsigned char>(lua_toboolean(lua_state, -1));  
+                else if (gcButton_APIs.IsAnalogButton(button_name_as_enum))
+                {
+                  raw_magnitude = luaL_checkinteger(lua_state, -1);
+                  if (raw_magnitude < 0 || raw_magnitude > 255)
+                  {
+                    luaL_error(lua_state, (std::string("Error: in " + class_name + ":" + localFunctionMetadata->function_name + " function, button value for button " + raw_button_name + " was outside the valid bounds of 0-255!").c_str()));
+                    argHolder_APIs.Delete_ArgHolder(temp_arg_holder_ptr);
+                    vectorOfArgHolder_APIs.Delete_VectorOfArgHolders(arguments_list_ptr);
+                    return 0;
+                  }
+                  button_value = static_cast<unsigned char>(raw_magnitude);
+                }
+                argHolder_APIs.SetControllerStateArgHolderValue(temp_arg_holder_ptr, button_name_as_enum, button_value);
+                lua_pop(lua_state, 1);
+              }
+              vectorOfArgHolder_APIs.PushBack(arguments_list_ptr, temp_arg_holder_ptr);
+              break;
+
+            case ArgTypeEnum::ListOfPoints:
+              temp_arg_holder_ptr = argHolder_APIs.CreateListOfPointsArgHolder();
+              lua_pushnil(lua_state);
+              while (lua_next(lua_state, next_index_in_args) != 0)
+              {
+                garbage_val = lua_tointeger(lua_state, -2);
+                lua_pushnil(lua_state);
+                lua_next(lua_state, -2);
+                garbage_val = lua_tointeger(lua_state, -2);
+                point1 = lua_tonumber(lua_state, -1);
+                lua_pop(lua_state, 1);
+                lua_next(lua_state, -2);
+                lua_tointeger(lua_state, -2);
+                point2 = lua_tonumber(lua_state, -1);
+                lua_pop(lua_state, 1);
+                lua_next(lua_state, -2);
+                lua_pop(lua_state, 1);
+                argHolder_APIs.ListOfPointsArgHolderPushBack(temp_arg_holder_ptr, point1, point2);
+              }
+              vectorOfArgHolder_APIs.PushBack(arguments_list_ptr, temp_arg_holder_ptr);
+              break;
+
+            default:
+              luaL_error(lua_state, (std::string("Error: Unknown type passed in as argument to ") + localFunctionMetadata->function_name + " function.").c_str());
+              vectorOfArgHolder_APIs.Delete_VectorOfArgHolders(arguments_list_ptr);
+              return 0;
         }
         ++next_index_in_args;
       }
 
-      return NULL;
+      return_value = functionMetadata_APIs.RunFunction(localFunctionMetadata->function_pointer, lua_script_context_ptr->base_script_context_ptr, arguments_list_ptr);
+      vectorOfArgHolder_APIs.Delete_VectorOfArgHolders(arguments_list_ptr);
+
+      if (return_value == nullptr)
+      {
+        luaL_error(lua_state, (std::string("Error: Unknown implementation error occured in ") + class_name + ":" + localFunctionMetadata->function_name + "(). Return value was NULL!").c_str());
+        return 0;
+      }
+      if (argHolder_APIs.GetIsEmpty(return_value))
+      {
+        lua_pushnil(lua_state);
+        freeAndReturn(return_value, 0);
+      }
+
+      switch (((ArgTypeEnum)argHolder_APIs.GetArgType(return_value)))
+      {
+
+      case ArgTypeEnum::ErrorStringType:
+        error_message = std::string(argHolder_APIs.GetErrorStringFromArgHolder(return_value));
+        argHolder_APIs.Delete_ArgHolder(return_value);
+        luaL_error(lua_state,
+          (std::string("Error: in ") + class_name + ":" + localFunctionMetadata->function_name + "() function, " + error_message).c_str());
+        return 0;
+      case ArgTypeEnum::YieldType:
+        argHolder_APIs.Delete_ArgHolder(return_value);
+        lua_yield(lua_state, 0);
+        return 0;
+      case ArgTypeEnum::VoidType:
+        return freeAndReturn(return_value, 0);
+      case ArgTypeEnum::Boolean:
+        lua_pushboolean(lua_state, argHolder_APIs.GetBoolFromArgHolder(return_value));
+        return freeAndReturn(return_value, 1);
+      case ArgTypeEnum::U8:
+        lua_pushinteger(lua_state, static_cast<signed long long>(argHolder_APIs.GetU8FromArgHolder(return_value)));
+        return freeAndReturn(return_value, 1);
+      case ArgTypeEnum::U16:
+        lua_pushinteger(lua_state, static_cast<signed long long>(argHolder_APIs.GetU16FromArgHolder(return_value)));
+        return freeAndReturn(return_value, 1);
+      case ArgTypeEnum::U32:
+        lua_pushinteger(lua_state, static_cast<signed long long>(argHolder_APIs.GetU32FromArgHolder(return_value)));
+        return freeAndReturn(return_value, 1);
+      case ArgTypeEnum::U64:
+        argHolder_APIs.Delete_ArgHolder(return_value);
+        luaL_error(lua_state,
+          (std::string("Error: User called the ") + class_name + ":" + localFunctionMetadata->function_name +"() function, which returned a value of "
+            "type u64. The largest value that Dolphin supports for Lua is s64. "
+            "Please call an s64 version of the function instead.")
+          .c_str());
+        return 0;
+      case ArgTypeEnum::S8:
+        lua_pushinteger(lua_state, argHolder_APIs.GetS8FromArgHolder(return_value));
+        return freeAndReturn(return_value, 1);
+      case ArgTypeEnum::S16:
+        lua_pushinteger(lua_state, argHolder_APIs.GetS16FromArgHolder(return_value));
+        return freeAndReturn(return_value, 1);
+      case ArgTypeEnum::S32:
+        lua_pushinteger(lua_state, argHolder_APIs.GetS32FromArgHolder(return_value));
+        return freeAndReturn(return_value, 1);
+      case ArgTypeEnum::S64:
+        lua_pushinteger(lua_state, argHolder_APIs.GetS64FromArgHolder(return_value));
+        return freeAndReturn(return_value, 1);
+      case ArgTypeEnum::Float:
+        lua_pushnumber(lua_state, argHolder_APIs.GetFloatFromArgHolder(return_value));
+        return freeAndReturn(return_value, 1);
+      case ArgTypeEnum::Double:
+        lua_pushnumber(lua_state, argHolder_APIs.GetDoubleFromArgHolder(return_value));
+        return freeAndReturn(return_value, 1);
+      case ArgTypeEnum::String:
+        lua_pushstring(lua_state, argHolder_APIs.GetStringFromArgHolder(return_value));
+        return freeAndReturn(return_value, 1);
+      case ArgTypeEnum::RegistrationReturnType:
+        temp_val = argHolder_APIs.GetVoidPointerFromArgHolder(return_value);
+        lua_pushinteger(lua_state, *((int*)&(temp_val)));
+        return freeAndReturn(return_value, 1);
+      case ArgTypeEnum::RegistrationWithAutoDeregistrationReturnType:
+      case ArgTypeEnum::UnregistrationReturnType:
+        return freeAndReturn(return_value, 0);
+      case ArgTypeEnum::ShutdownType:
+        argHolder_APIs.Delete_ArgHolder(return_value);
+        dolphinDefinedScriptContext_APIs.Shutdown_Script(lua_script_context_ptr->base_script_context_ptr);
+        return 0;
+      case ArgTypeEnum::AddressToByteMap:
+        lua_createtable(lua_state, static_cast<int>(argHolder_APIs.GetSizeOfAddressToByteMapArgHolder(return_value)), 0);
+        travel_iterator_ptr = base_iterator_ptr = argHolder_APIs.CreateIteratorForAddressToByteMapArgHolder(return_value);
+        while (travel_iterator_ptr != nullptr)
+        {
+          key = argHolder_APIs.GetKeyForAddressToByteMapArgHolder(return_value);
+          value = argHolder_APIs.GetValueForAddressToUnsignedByteMapArgHolder(return_value);
+          lua_pushinteger(lua_state, value);
+          lua_rawseti(lua_state, -2, key);
+          travel_iterator_ptr = argHolder_APIs.IncrementIteratorForAddressToByteMapArgHolder(travel_iterator_ptr, return_value);
+        }
+        argHolder_APIs.Delete_IteratorForAddressToByteMapArgHolder(base_iterator_ptr);
+        return freeAndReturn(return_value, 1);
+      case ArgTypeEnum::ControllerStateObject:
+        lua_newtable(lua_state);
+        for (int next_digital_button : digital_buttons_list)
+        {
+          const char* button_name = gcButton_APIs.ConvertButtonEnumToString(next_digital_button);
+          lua_pushstring(lua_state, button_name);
+          lua_pushboolean(lua_state, argHolder_APIs.GetControllerStateArgHolderValue(return_value, next_digital_button));
+          lua_settable(lua_state, -3);
+        }
+        for (int next_analog_button : analog_buttons_list)
+        {
+          const char* button_name = gcButton_APIs.ConvertButtonEnumToString(next_analog_button);
+          lua_pushstring(lua_state, button_name);
+          lua_pushinteger(lua_state, argHolder_APIs.GetControllerStateArgHolderValue(return_value, next_analog_button));
+          lua_settable(lua_state, -3);
+        }
+        return freeAndReturn(return_value, 1);
+
+      default:
+        luaL_error(lua_state, (std::string("Error: unsupported return type encountered in function with value of: ") + std::to_string(argHolder_APIs.GetArgType(return_value))).c_str());
+        return freeAndReturn(return_value, 0);
+      }
     };
 
     FunctionMetadata* heap_function_metadata = new FunctionMetadata(current_function_metadata);

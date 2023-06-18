@@ -19,6 +19,8 @@ CopiedScriptContextFiles/InternalScriptAPIs/ScriptContext_APIs.h
 CopiedScriptContextFiles/InternalScriptAPIs/VectorOfArgHolders_APIs.h
 LuaScriptContextFiles/LuaScriptContext.h
 LuaScriptContextFiles/LuaScriptContext.cpp
+CreateScript.h
+CreateScript.cpp
 DolphinDefinedAPIs.h
 DolphinDefinedAPIs.cpp
 HelperFiles/ClassMetadata.h

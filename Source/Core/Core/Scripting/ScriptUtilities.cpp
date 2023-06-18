@@ -178,6 +178,8 @@ static void Initialize_FunctionMetadata_APIs()
 static void Initialize_GCButton_APIs()
 {
   gcButton_apis.ConvertButtonEnumToString = ConvertButtonEnumToString_impl;
+  gcButton_apis.IsAnalogButton = IsAnalogButton_impl;
+  gcButton_apis.IsDigitalButton = IsDigitalButton_impl;
   gcButton_apis.IsValidButtonEnum = IsValidButtonEnum_impl;
   gcButton_apis.ParseGCButton = ParseGCButton_impl;
 

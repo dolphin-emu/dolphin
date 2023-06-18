@@ -1,8 +1,1 @@
 ﻿  1>Checking Build System
-  CMake is re-running because C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Plugins/Lua/Source/CMakeFiles/generate.stamp is out-of-date.
-    the file 'C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Plugins/Lua/Source/CMakeLists.txt'
-    is newer than 'C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Plugins/Lua/Source/CMakeFiles/generate.stamp.depend'
-    result='-1'
-  -- Configuring done (0.3s)
-  -- Generating done (0.2s)
-  -- Build files have been written to: C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Plugins/Lua/Source

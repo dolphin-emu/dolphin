@@ -118,7 +118,7 @@ void* CreateAddressToByteMapArgHolder_API_impl()
   return castToVoidPtr(CreateAddressToByteMapArgHolder(address_to_byte_map));
 }
 
-void AddPairToAddressToByteMapArgHolder_impl(void* address_to_byte_map_arg_holder_ptr, long long address, signed int byte)
+void AddPairToAddressToByteMapArgHolder_impl(void* address_to_byte_map_arg_holder_ptr, signed long long address, signed long long byte)
 {
   castToArgHolderPtr(address_to_byte_map_arg_holder_ptr)->address_to_byte_map[address] = static_cast<s16>(byte);
 }
@@ -142,12 +142,12 @@ void* IncrementIteratorForAddressToByteMapArgHolder_impl(void* iterator_ptr, voi
     return iterator_ptr;
 }
 
-long long GetKeyForAddressToByteMapArgHolder_impl(void* iterator_ptr)
+signed long long GetKeyForAddressToByteMapArgHolder_impl(void* iterator_ptr)
 {
   return castToIteratorPtr(iterator_ptr)->operator*().first;
 }
 
-signed int GetValueForAddressToUnsignedByteMapArgHolder_impl(void* iterator_ptr)
+signed long long GetValueForAddressToUnsignedByteMapArgHolder_impl(void* iterator_ptr)
 {
   return static_cast<signed int>(castToIteratorPtr(iterator_ptr)->operator*().second);
 }

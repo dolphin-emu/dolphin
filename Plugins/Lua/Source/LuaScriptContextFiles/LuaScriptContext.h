@@ -103,8 +103,9 @@ void RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallback_impl(void*, 
 int UnregisterOnMemoryAddressWrittenToCallback_impl(void*, unsigned int, void*); 
 
 void* RegisterOnWiiInputPolledCallback_impl(void*, void*);
-void voidRegisterOnWiiInputPolledWithAutoDeregistrationCallback_impl(void*, void*);
+void RegisterOnWiiInputPolledWithAutoDeregistrationCallback_impl(void*, void*);
 int UnregisterOnWiiInputPolledCallback_impl(void*, void*);
+
 void RegisterButtonCallback_impl(void*, long long, void*); 
 int IsButtonRegistered_impl(void*, long long); 
 void GetButtonCallbackAndAddToQueue_impl(void*, long long); 
