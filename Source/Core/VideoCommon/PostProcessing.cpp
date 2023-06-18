@@ -454,14 +454,13 @@ std::string PostProcessing::GetUniformBufferHeader() const
 {
   std::ostringstream ss;
   u32 unused_counter = 1;
-  ss << "UBO_BINDING(std140, 1) uniform PSBlock {\n";
-
-  // Builtin uniforms
-  ss << "  float4 resolution;\n";
-  ss << "  float4 window_resolution;\n";
-  ss << "  float4 src_rect;\n";
-  ss << "  int src_layer;\n";
-  ss << "  uint time;\n";
+  ss << "UBO_BINDING(std140, 1) uniform PSBlock {\n"
+        // Builtin uniforms
+        "  float4 resolution;\n"
+        "  float4 window_resolution;\n"
+        "  float4 src_rect;\n"
+        "  int src_layer;\n"
+        "  uint time;\n";
   for (u32 i = 0; i < 2; i++)
     ss << "  uint ubo_align_" << unused_counter++ << "_;\n";
   ss << "\n";
@@ -508,14 +507,13 @@ std::string PostProcessing::GetUniformBufferHeader() const
 std::string PostProcessing::GetHeader() const
 {
   std::ostringstream ss;
-  ss << GetUniformBufferHeader();
-  ss << "SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n";
+  ss << GetUniformBufferHeader() << "SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n";
 
   if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
   {
-    ss << "VARYING_LOCATION(0) in VertexData {\n";
-    ss << "  float3 v_tex0;\n";
-    ss << "};\n";
+    ss << "VARYING_LOCATION(0) in VertexData {\n"
+          "  float3 v_tex0;\n"
+          "};\n";
   }
   else
   {
@@ -589,21 +587,21 @@ bool PostProcessing::CompileVertexShader()
 
   if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
   {
-    ss << "VARYING_LOCATION(0) out VertexData {\n";
-    ss << "  float3 v_tex0;\n";
-    ss << "};\n";
+    ss << "VARYING_LOCATION(0) out VertexData {\n"
+          "  float3 v_tex0;\n"
+          "};\n";
   }
   else
   {
     ss << "VARYING_LOCATION(0) out float3 v_tex0;\n";
   }
 
-  ss << "#define id gl_VertexID\n";
-  ss << "#define opos gl_Position\n";
-  ss << "void main() {\n";
-  ss << "  v_tex0 = float3(float((id << 1) & 2), float(id & 2), 0.0f);\n";
-  ss << "  opos = float4(v_tex0.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f), 0.0f, 1.0f);\n";
-  ss << "  v_tex0 = float3(src_rect.xy + (src_rect.zw * v_tex0.xy), float(src_layer));\n";
+  ss << "#define id gl_VertexID\n"
+        "#define opos gl_Position\n"
+        "void main() {\n"
+        "  v_tex0 = float3(float((id << 1) & 2), float(id & 2), 0.0f);\n"
+        "  opos = float4(v_tex0.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f), 0.0f, 1.0f);\n"
+        "  v_tex0 = float3(src_rect.xy + (src_rect.zw * v_tex0.xy), float(src_layer));\n";
 
   if (g_ActiveConfig.backend_info.api_type == APIType::Vulkan)
     ss << "  opos.y = -opos.y;\n";
