@@ -644,7 +644,7 @@ private:
   void EncodeAddressInst(u32 op, ARM64Reg Rd, s32 imm);
   void EncodeLoadStoreUnscaled(u32 size, u32 op, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
 
-  FixupBranch WriteFixupBranch();
+  [[nodiscard]] FixupBranch WriteFixupBranch();
 
   template <typename T>
   void MOVI2RImpl(ARM64Reg Rd, T imm);
@@ -680,13 +680,13 @@ public:
 
   // FixupBranch branching
   void SetJumpTarget(FixupBranch const& branch);
-  FixupBranch CBZ(ARM64Reg Rt);
-  FixupBranch CBNZ(ARM64Reg Rt);
-  FixupBranch B(CCFlags cond);
-  FixupBranch TBZ(ARM64Reg Rt, u8 bit);
-  FixupBranch TBNZ(ARM64Reg Rt, u8 bit);
-  FixupBranch B();
-  FixupBranch BL();
+  [[nodiscard]] FixupBranch CBZ(ARM64Reg Rt);
+  [[nodiscard]] FixupBranch CBNZ(ARM64Reg Rt);
+  [[nodiscard]] FixupBranch B(CCFlags cond);
+  [[nodiscard]] FixupBranch TBZ(ARM64Reg Rt, u8 bit);
+  [[nodiscard]] FixupBranch TBNZ(ARM64Reg Rt, u8 bit);
+  [[nodiscard]] FixupBranch B();
+  [[nodiscard]] FixupBranch BL();
 
   // Compare and Branch
   void CBZ(ARM64Reg Rt, const void* ptr);
