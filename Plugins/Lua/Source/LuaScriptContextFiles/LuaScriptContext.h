@@ -55,9 +55,9 @@ struct LuaScriptContext
 };
 
 void* Init_LuaScriptContext_impl(void* new_base_script_context_ptr); // Creates + returns a new LuaScriptContext object, with all fields properly initialized from the base ScriptContext* passed into the function
-void Destroy_LuaScriptContext_impl(void* lua_script_context_ptr); // Takes as input a LuaScriptContext*, and frees the memory associated with it.
+void Destroy_LuaScriptContext_impl(void* base_script_context_ptr); // Takes as input a ScriptContext*, and frees the memory associated with it.
 int CustomPrintFunction(lua_State* lua_state);
-bool ShouldCallEndScriptFunction();
+bool ShouldCallEndScriptFunction(LuaScriptContext* lua_script_ptr);
 
 
 // See the declarations in the DLL_Defined_ScriptContext_APIs struct in the ScriptContext_APIs.h file for documentation on what these functions do.
@@ -98,7 +98,7 @@ void RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallback_impl(void*, 
 int UnregisterOnMemoryAddressWrittenToCallback_impl(void*, unsigned int, void*); 
 
 void* RegisterOnWiiInputPolledCallback_impl(void*, void*);
-voidRegisterOnWiiInputPolledWithAutoDeregistrationCallback_impl(void*, void*);
+void voidRegisterOnWiiInputPolledWithAutoDeregistrationCallback_impl(void*, void*);
 int UnregisterOnWiiInputPolledCallback_impl(void*, void*);
 void RegisterButtonCallback_impl(void*, long long, void*); 
 int IsButtonRegistered_impl(void*, long long); 
