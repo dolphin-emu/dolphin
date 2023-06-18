@@ -11,7 +11,6 @@
 #include <memory>
 #include <mutex>
 #include <span>
-#include <sstream>
 #include <thread>
 #include <tuple>
 #include <type_traits>
@@ -535,10 +534,7 @@ void NetPlayClient::OnChatMessage(sf::Packet& packet)
   INFO_LOG_FMT(NETPLAY, "Player {} ({}) wrote: {}", player.name, player.pid, msg);
 
   // add to gui
-  std::ostringstream ss;
-  ss << player.name << '[' << char(pid + '0') << "]: " << msg;
-
-  m_dialog->AppendChat(ss.str());
+  m_dialog->AppendChat(fmt::format("{}[{}]: {}", player.name, pid, msg));
 }
 
 void NetPlayClient::OnChunkedDataStart(sf::Packet& packet)
