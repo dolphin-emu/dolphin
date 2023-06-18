@@ -19,7 +19,7 @@ namespace InputCommon::DynamicInputTextures
 class Configuration
 {
 public:
-  explicit Configuration(const std::string& json_file);
+  explicit Configuration(const std::string& json_path);
   ~Configuration();
   bool GenerateTextures(const Common::IniFile& file,
                         const std::vector<std::string>& controller_names) const;
