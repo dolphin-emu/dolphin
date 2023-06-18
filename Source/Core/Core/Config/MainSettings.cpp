@@ -6,6 +6,7 @@
 #include <sstream>
 
 #include <fmt/format.h>
+#include <fmt/ostream.h>
 
 #include "AudioCommon/AudioCommon.h"
 #include "Common/Assert.h"
@@ -537,7 +538,7 @@ static std::string SaveUSBWhitelistToString(const std::set<std::pair<u16, u16>>&
 {
   std::ostringstream oss;
   for (const auto& device : devices)
-    oss << fmt::format("{:04x}:{:04x}", device.first, device.second) << ',';
+    fmt::print(oss, "{:04x}:{:04x},", device.first, device.second);
   std::string devices_string = oss.str();
   if (!devices_string.empty())
     devices_string.pop_back();

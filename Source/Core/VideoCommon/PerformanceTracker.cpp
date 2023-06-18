@@ -8,6 +8,8 @@
 #include <iomanip>
 #include <mutex>
 
+#include <fmt/format.h>
+#include <fmt/ostream.h>
 #include <implot.h>
 
 #include "Common/CommonTypes.h"
@@ -238,7 +240,7 @@ void PerformanceTracker::LogRenderTimeToFile(DT val)
                       std::ios_base::out);
   }
 
-  m_bench_file << std::fixed << std::setprecision(8) << DT_ms(val).count() << std::endl;
+  fmt::print(m_bench_file, "{:.8f}\n", DT_ms(val).count());
 }
 
 void PerformanceTracker::SetPaused(bool paused)

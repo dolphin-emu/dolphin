@@ -7,6 +7,9 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+
+#include <fmt/format.h>
+#include <fmt/ostream.h>
 #include <unistd.h>
 
 #include "Common/FileUtil.h"
@@ -82,19 +85,15 @@ u32 MemoryWatcher::ChasePointer(const Core::CPUThreadGuard& guard, const std::st
 std::string MemoryWatcher::ComposeMessages(const Core::CPUThreadGuard& guard)
 {
   std::ostringstream message_stream;
-  message_stream << std::hex;
 
-  for (auto& entry : m_values)
+  for (auto& [address, current_value] : m_values)
   {
-    std::string address = entry.first;
-    u32& current_value = entry.second;
-
     u32 new_value = ChasePointer(guard, address);
     if (new_value != current_value)
     {
       // Update the value
       current_value = new_value;
-      message_stream << address << '\n' << new_value << '\n';
+      fmt::print(message_stream, "{:s}\n{:x}\n", address, new_value);
     }
   }
 

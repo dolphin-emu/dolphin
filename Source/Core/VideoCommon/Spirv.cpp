@@ -3,6 +3,9 @@
 
 #include "VideoCommon/Spirv.h"
 
+#include <fmt/format.h>
+#include <fmt/ostream.h>
+
 // glslang includes
 #include "GlslangToSpv.h"
 #include "ResourceLimits.h"
@@ -73,22 +76,17 @@ CompileShaderToSPV(EShLanguage stage, APIType api_type,
     File::OpenFStream(stream, filename, std::ios_base::out);
     if (stream.good())
     {
-      stream << source << std::endl;
-      stream << msg << std::endl;
-      stream << "Shader Info Log:" << std::endl;
-      stream << shader->getInfoLog() << std::endl;
-      stream << shader->getInfoDebugLog() << std::endl;
+      fmt::print(stream, "{:s}\n{:s}\nShader Info Log:\n{:s}\n{:s}\n", source, msg,
+                 shader->getInfoLog(), shader->getInfoDebugLog());
       if (program)
       {
-        stream << "Program Info Log:" << std::endl;
-        stream << program->getInfoLog() << std::endl;
-        stream << program->getInfoDebugLog() << std::endl;
+        fmt::print(stream, "Program Info Log:\n{:s}\n{:s}\n", program->getInfoLog(),
+                   program->getInfoDebugLog());
       }
     }
 
-    stream << "\n";
-    stream << "Dolphin Version: " + Common::GetScmRevStr() + "\n";
-    stream << "Video Backend: " + g_video_backend->GetDisplayName();
+    fmt::print(stream, "\nDolphin Version: {:s}\nVideo Backend: {:s}", Common::GetScmRevStr(),
+               g_video_backend->GetDisplayName());
     stream.close();
 
     PanicAlertFmt("{} (written to {})\nDebug info:\n{}", msg, filename, shader->getInfoLog());

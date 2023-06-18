@@ -5,8 +5,10 @@
 
 #include <sstream>
 
-#if defined(HAVE_LLVM)
 #include <fmt/format.h>
+#include <fmt/ostream.h>
+
+#if defined(HAVE_LLVM)
 #include <llvm-c/Disassembler.h>
 #include <llvm-c/Target.h>
 #elif defined(_M_X86)
@@ -77,37 +79,33 @@ std::string HostDisassemblerLLVM::DisassembleHostBlock(const u8* code_start, con
     size_t inst_size = LLVMDisasmInstruction(m_llvm_context, disasmPtr, (u64)(end - disasmPtr),
                                              starting_pc, inst_disasm, 256);
 
-    x86_disasm << "0x" << std::hex << starting_pc << "\t";
+    fmt::print(x86_disasm, "0x{:x}\t", starting_pc);
     if (!inst_size)
     {
-      x86_disasm << "Invalid inst:";
+      fmt::print(x86_disasm, "Invalid inst:");
 
       if (m_instruction_size != -1)
       {
         // If we are on an architecture that has a fixed instruction size
         // We can continue onward past this bad instruction.
-        std::string inst_str;
         for (int i = 0; i < m_instruction_size; ++i)
-          inst_str += fmt::format("{:02x}", disasmPtr[i]);
-
-        x86_disasm << inst_str << std::endl;
+          fmt::print(x86_disasm, "{:02x}", disasmPtr[i]);
+        x86_disasm.put('\n');
         disasmPtr += m_instruction_size;
       }
       else
       {
         // We can't continue if we are on an architecture that has flexible instruction sizes
         // Dump the rest of the block instead
-        std::string code_block;
         for (int i = 0; (disasmPtr + i) < end; ++i)
-          code_block += fmt::format("{:02x}", disasmPtr[i]);
-
-        x86_disasm << code_block << std::endl;
+          fmt::print(x86_disasm, "{:02x}", disasmPtr[i]);
+        x86_disasm.put('\n');
         break;
       }
     }
     else
     {
-      x86_disasm << inst_disasm << std::endl;
+      fmt::print(x86_disasm, "{:s}\n", inst_disasm);
       disasmPtr += inst_size;
       starting_pc += inst_size;
     }
@@ -146,7 +144,7 @@ std::string HostDisassemblerX86::DisassembleHostBlock(const u8* code_start, cons
   {
     char inst_disasm[256];
     disasmPtr += m_disasm.disasm64(disasmPtr, disasmPtr, (u8*)disasmPtr, inst_disasm);
-    x86_disasm << inst_disasm << std::endl;
+    fmt::print(x86_disasm, "{:s}\n", inst_disasm);
     (*host_instructions_count)++;
   }
 

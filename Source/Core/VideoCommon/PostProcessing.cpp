@@ -8,6 +8,7 @@
 #include <string_view>
 
 #include <fmt/format.h>
+#include <fmt/ostream.h>
 
 #include "Common/Assert.h"
 #include "Common/CommonPaths.h"
@@ -463,41 +464,41 @@ std::string PostProcessing::GetUniformBufferHeader() const
   ss << "  int src_layer;\n";
   ss << "  uint time;\n";
   for (u32 i = 0; i < 2; i++)
-    ss << "  uint ubo_align_" << unused_counter++ << "_;\n";
-  ss << "\n";
+    fmt::print(ss, "  int ubo_align_{:d}_;\n", unused_counter++);
+  ss.put('\n');
 
   // Custom options/uniforms
   for (const auto& it : m_config.GetOptions())
   {
     if (it.second.m_type == PostProcessingConfiguration::ConfigurationOption::OptionType::Bool)
     {
-      ss << fmt::format("  int {};\n", it.first);
+      fmt::print(ss, "  int {};\n", it.first);
       for (u32 i = 0; i < 3; i++)
-        ss << "  int ubo_align_" << unused_counter++ << "_;\n";
+        fmt::print(ss, "  int ubo_align_{:d}_;\n", unused_counter++);
     }
     else if (it.second.m_type ==
              PostProcessingConfiguration::ConfigurationOption::OptionType::Integer)
     {
       u32 count = static_cast<u32>(it.second.m_integer_values.size());
       if (count == 1)
-        ss << fmt::format("  int {};\n", it.first);
+        fmt::print(ss, "  int {};\n", it.first);
       else
-        ss << fmt::format("  int{} {};\n", count, it.first);
+        fmt::print(ss, "  int{} {};\n", count, it.first);
 
       for (u32 i = count; i < 4; i++)
-        ss << "  int ubo_align_" << unused_counter++ << "_;\n";
+        fmt::print(ss, "  int ubo_align_{:d}_;\n", unused_counter++);
     }
     else if (it.second.m_type ==
              PostProcessingConfiguration::ConfigurationOption::OptionType::Float)
     {
       u32 count = static_cast<u32>(it.second.m_float_values.size());
       if (count == 1)
-        ss << fmt::format("  float {};\n", it.first);
+        fmt::print(ss, "  float {};\n", it.first);
       else
-        ss << fmt::format("  float{} {};\n", count, it.first);
+        fmt::print(ss, "  float{} {};\n", count, it.first);
 
       for (u32 i = count; i < 4; i++)
-        ss << "  float ubo_align_" << unused_counter++ << "_;\n";
+        fmt::print(ss, "  int ubo_align_{:d}_;\n", unused_counter++);
     }
   }
 

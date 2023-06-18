@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <iosfwd>
 #include <list>
 #include <mutex>
 #include <string>
@@ -21,7 +22,7 @@ public:
 
   void Start();
   void Stop();
-  std::string Read();
+  void Print(std::ostream&);
 
   bool operator<(const Profiler& b) const;
 

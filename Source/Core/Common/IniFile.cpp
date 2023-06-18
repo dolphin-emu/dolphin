@@ -12,6 +12,9 @@
 #include <utility>
 #include <vector>
 
+#include <fmt/format.h>
+#include <fmt/ostream.h>
+
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
@@ -318,7 +321,7 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
 bool IniFile::Save(const std::string& filename)
 {
   std::ofstream out;
-  std::string temp = File::GetTempFilenameForAtomicWrite(filename);
+  const std::string temp = File::GetTempFilenameForAtomicWrite(filename);
   File::OpenFStream(out, temp, std::ios::out);
 
   if (out.fail())
@@ -329,19 +332,19 @@ bool IniFile::Save(const std::string& filename)
   for (const Section& section : sections)
   {
     if (!section.keys_order.empty() || !section.m_lines.empty())
-      out << '[' << section.name << ']' << std::endl;
+      fmt::print(out, "[{:s}]\n", section.name);
 
     if (section.keys_order.empty())
     {
       for (const std::string& s : section.m_lines)
-        out << s << std::endl;
+        fmt::print(out, "{:s}\n", s);
     }
     else
     {
       for (const std::string& kvit : section.keys_order)
       {
         auto pair = section.values.find(kvit);
-        out << pair->first << " = " << pair->second << std::endl;
+        fmt::print(out, "{:s} = {:s}\n", pair->first, pair->second);
       }
     }
   }

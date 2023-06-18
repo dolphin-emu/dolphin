@@ -18,6 +18,9 @@
 
 #include <fstream>
 
+#include <fmt/format.h>
+#include <fmt/ostream.h>
+
 Metal::Gfx::Gfx(MRCOwned<CAMetalLayer*> layer) : m_layer(std::move(layer))
 {
   UpdateActiveConfig();
@@ -165,26 +168,20 @@ std::unique_ptr<AbstractShader> Metal::Gfx::CreateShaderFromMSL(ShaderStage stag
       std::ofstream stream(filename);
       if (stream.good())
       {
-        stream << msl << std::endl;
-        stream << "/*" << std::endl;
-        stream << msg << std::endl;
-        stream << "Error:" << std::endl;
-        stream << [[err localizedDescription] UTF8String] << std::endl;
+        fmt::print(stream, "{:s}\n/*\n{:s}\nError:\n{:s}\n", msl, msg,
+                   [[err localizedDescription] UTF8String]);
         if (!glsl.empty())
         {
-          stream << "Original GLSL:" << std::endl;
-          stream << glsl << std::endl;
+          fmt::print(stream, "Original GLSL:\n{:s}\n", glsl);
         }
         else
         {
-          stream << "Shader was created with cached MSL so no GLSL is available." << std::endl;
+          fmt::print(stream, "Shader was created with cached MSL so no GLSL is available.\n");
         }
       }
 
-      stream << std::endl;
-      stream << "Dolphin Version: " << Common::GetScmRevStr() << std::endl;
-      stream << "Video Backend: " << g_video_backend->GetDisplayName() << std::endl;
-      stream << "*/" << std::endl;
+      fmt::print(stream, "\nDolphin Version: {:s}\nVideo Backend: {:s}\n*/\n",
+                 Common::GetScmRevStr(), g_video_backend->GetDisplayName());
       stream.close();
 
       PanicAlertFmt("{} (written to {})\n", msg, filename);

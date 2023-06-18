@@ -8,6 +8,7 @@
 #include <string_view>
 
 #include <fmt/format.h>
+#include <fmt/ostream.h>
 #include <wrl/client.h>
 #include "disassemble.h"
 #include "spirv_hlsl.hpp"
@@ -254,17 +255,15 @@ std::optional<Shader::BinaryData> Shader::CompileShader(D3D_FEATURE_LEVEL featur
     std::ofstream file;
     File::OpenFStream(file, filename, std::ios_base::out);
     file.write(hlsl->data(), hlsl->size());
-    file << "\n";
+    file.put('\n');
     file.write(static_cast<const char*>(errors->GetBufferPointer()), errors->GetBufferSize());
-    file << "\n";
-    file << "Dolphin Version: " + Common::GetScmRevStr() + "\n";
-    file << "Video Backend: " + g_video_backend->GetDisplayName();
+    file.put('\n');
+    fmt::print(file, "Dolphin Version: {:s}\n", Common::GetScmRevStr());
+    fmt::print(file, "Video Backend: {:s}", g_video_backend->GetDisplayName());
 
     if (const auto spirv = GetSpirv(stage, source))
     {
-      file << "\nOriginal Source: \n";
-      file << source << std::endl;
-      file << "SPIRV: \n";
+      fmt::print(file, "\nOriginal Source: \n{:s}\nSPIRV: \n", source);
       spv::Disassemble(file, *spirv);
     }
     file.close();
