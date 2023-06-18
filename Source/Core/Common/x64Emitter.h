@@ -450,7 +450,7 @@ public:
   void RET();
   void RET_FAST();
   void UD2();
-  FixupBranch J(Jump jump = Jump::Short);
+  [[nodiscard]] FixupBranch J(Jump jump = Jump::Short);
 
   void JMP(const u8* addr, Jump jump = Jump::Short);
   void JMPptr(const OpArg& arg);
@@ -459,10 +459,10 @@ public:
 #undef CALL
 #endif
   void CALL(const void* fnptr);
-  FixupBranch CALL();
+  [[nodiscard]] FixupBranch CALL();
   void CALLptr(OpArg arg);
 
-  FixupBranch J_CC(CCFlags conditionCode, Jump jump = Jump::Short);
+  [[nodiscard]] FixupBranch J_CC(CCFlags conditionCode, Jump jump = Jump::Short);
   void J_CC(CCFlags conditionCode, const u8* addr);
 
   void SetJumpTarget(const FixupBranch& branch);
