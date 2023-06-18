@@ -30,5 +30,4 @@ HelperFiles/FunctionMetadata.h
 set_target_properties(LUA PROPERTIES LINKER_LANGUAGE CXX)
 
 
-target_link_libraries(LUA public
-LuaExternals)
+target_link_libraries(LUA PUBLIC LuaExternals)
