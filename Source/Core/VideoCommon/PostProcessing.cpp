@@ -6,6 +6,7 @@
 #include <sstream>
 #include <string>
 #include <string_view>
+#include <utility>
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
@@ -312,7 +313,7 @@ void PostProcessingConfiguration::SaveOptionsConfiguration()
     case ConfigurationOption::OptionType::Float:
     {
       std::ostringstream value;
-      value.imbue(std::locale("C"));
+      value.imbue(std::locale::classic());
 
       for (size_t i = 0; i < it.second.m_float_values.size(); ++i)
       {
@@ -320,7 +321,7 @@ void PostProcessingConfiguration::SaveOptionsConfiguration()
         if (i != (it.second.m_float_values.size() - 1))
           value << ", ";
       }
-      ini.GetOrCreateSection(section)->Set(it.second.m_option_name, value.str());
+      ini.GetOrCreateSection(section)->Set(it.second.m_option_name, std::move(value).str());
     }
     break;
     }
@@ -503,7 +504,7 @@ std::string PostProcessing::GetUniformBufferHeader() const
   }
 
   ss << "};\n\n";
-  return ss.str();
+  return std::move(ss).str();
 }
 
 std::string PostProcessing::GetHeader() const
@@ -575,7 +576,7 @@ void SetOutput(float4 color)
 #define OptionEnabled(x) ((x) != 0)
 
 )";
-  return ss.str();
+  return std::move(ss).str();
 }
 
 std::string PostProcessing::GetFooter() const
@@ -611,9 +612,10 @@ bool PostProcessing::CompileVertexShader()
 
   ss << "}\n";
 
-  m_vertex_shader =
-      g_gfx->CreateShaderFromSource(ShaderStage::Vertex, ss.str(), "Post-processing vertex shader");
-  if (!m_vertex_shader)
+  // TODO: Waiting for GCC 11 and Clang 13 to use C++20's std::ostringstream::view()
+  const std::string source_temp = std::move(ss).str();
+  if (!(m_vertex_shader = g_gfx->CreateShaderFromSource(ShaderStage::Vertex, source_temp,
+                                                        "Post-processing vertex shader")))
   {
     PanicAlertFmt("Failed to compile post-processing vertex shader");
     return false;

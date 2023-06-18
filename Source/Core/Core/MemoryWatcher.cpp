@@ -7,6 +7,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <utility>
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
@@ -97,7 +98,7 @@ std::string MemoryWatcher::ComposeMessages(const Core::CPUThreadGuard& guard)
     }
   }
 
-  return message_stream.str();
+  return std::move(message_stream).str();
 }
 
 void MemoryWatcher::Step(const Core::CPUThreadGuard& guard)

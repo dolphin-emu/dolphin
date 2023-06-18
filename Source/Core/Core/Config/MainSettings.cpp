@@ -4,6 +4,7 @@
 #include "Core/Config/MainSettings.h"
 
 #include <sstream>
+#include <utility>
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
@@ -539,7 +540,7 @@ static std::string SaveUSBWhitelistToString(const std::set<std::pair<u16, u16>>&
   std::ostringstream oss;
   for (const auto& device : devices)
     fmt::print(oss, "{:04x}:{:04x},", device.first, device.second);
-  std::string devices_string = oss.str();
+  std::string devices_string = std::move(oss).str();
   if (!devices_string.empty())
     devices_string.pop_back();
   return devices_string;

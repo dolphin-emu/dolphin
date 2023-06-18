@@ -6,6 +6,8 @@
 #include <array>
 #include <cmath>
 #include <memory>
+#include <sstream>
+#include <utility>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -988,13 +990,13 @@ void VertexManagerBase::OnEndFrame()
 #if 0
   {
     std::ostringstream ss;
+    // TODO: Waiting for GCC 11 and Clang 13 to use C++20's std::ostringstream::view()
     std::for_each(m_cpu_accesses_this_frame.begin(), m_cpu_accesses_this_frame.end(), [&ss](u32 idx) { ss << idx << ","; });
-    WARN_LOG_FMT(VIDEO, "CPU EFB accesses in last frame: {}", ss.str());
-  }
-  {
-    std::ostringstream ss;
+    WARN_LOG_FMT(VIDEO, "CPU EFB accesses in last frame: {}", std::move(ss).str());
+    // Underlying buffer is in a valid, but unspecified state.
+    ss.str(std::string{});
     std::for_each(m_scheduled_command_buffer_kicks.begin(), m_scheduled_command_buffer_kicks.end(), [&ss](u32 idx) { ss << idx << ","; });
-    WARN_LOG_FMT(VIDEO, "Scheduled command buffer kicks: {}", ss.str());
+    WARN_LOG_FMT(VIDEO, "Scheduled command buffer kicks: {}", std::move(ss).str());
   }
 #endif
 

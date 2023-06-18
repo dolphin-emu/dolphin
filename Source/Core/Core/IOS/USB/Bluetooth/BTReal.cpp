@@ -631,7 +631,7 @@ void BluetoothRealDevice::SaveLinkKeys()
     }
     oss << std::dec << ',';
   }
-  std::string config_string = oss.str();
+  std::string config_string = std::move(oss).str();
   if (!config_string.empty())
     config_string.pop_back();
   Config::SetBase(Config::MAIN_BLUETOOTH_PASSTHROUGH_LINK_KEYS, config_string);

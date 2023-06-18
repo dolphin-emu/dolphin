@@ -6,6 +6,7 @@
 #include <map>
 #include <sstream>
 #include <string_view>
+#include <utility>
 
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
@@ -1055,7 +1056,7 @@ std::string GenerateDecodingShader(TextureFormat format, std::optional<TLUTForma
 {
   const DecodingShaderInfo* info = GetDecodingShaderInfo(format);
   if (!info)
-    return "";
+    return {};
 
   std::ostringstream ss;
   if (palette_format.has_value())
@@ -1096,7 +1097,7 @@ std::string GenerateDecodingShader(TextureFormat format, std::optional<TLUTForma
   ss << decoding_shader_header;
   ss << info->shader_body;
 
-  return ss.str();
+  return std::move(ss).str();
 }
 
 std::string GeneratePaletteConversionShader(TLUTFormat palette_format, APIType api_type)
@@ -1178,7 +1179,7 @@ float4 DecodePixel(int val)
     break;
   }
 
-  ss << "\n";
+  ss.put('\n');
 
   if (api_type == APIType::Metal)
     ss << "SSBO_BINDING(0) readonly buffer Palette { uint16_t palette[]; };\n";
@@ -1214,7 +1215,7 @@ float4 DecodePixel(int val)
   ss << "  ocol0 = DecodePixel(src);\n";
   ss << "}\n";
 
-  return ss.str();
+  return std::move(ss).str();
 }
 
 }  // namespace TextureConversionShaderTiled

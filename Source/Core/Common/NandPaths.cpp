@@ -139,7 +139,7 @@ std::string EscapePath(const std::string& path)
   std::vector<std::string> escaped_split_strings;
   escaped_split_strings.reserve(split_strings.size());
   for (const std::string& split_string : split_strings)
-    escaped_split_strings.push_back(EscapeFileName(split_string));
+    escaped_split_strings.emplace_back(EscapeFileName(split_string));
 
   return JoinStrings(escaped_split_strings, "/");
 }

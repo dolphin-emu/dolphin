@@ -10,6 +10,7 @@
 #include <iomanip>
 #include <ios>
 #include <sstream>
+#include <utility>
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
@@ -82,8 +83,8 @@ std::string Profiler::ToString()
 
   for (auto* profiler : s_all_profilers)
     profiler->Print(buffer);
-  s_lazy_result = buffer.str();
-  return s_lazy_result;
+
+  return s_lazy_result = std::move(buffer).str();
 }
 
 void Profiler::Start()

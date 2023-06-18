@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <fmt/format.h>
@@ -63,10 +64,10 @@ BreakPoints::TBreakPointsStr BreakPoints::GetStrings() const
   TBreakPointsStr bp_strings;
   for (const TBreakPoint& bp : m_breakpoints)
   {
+    std::ostringstream ss;
+    ss.imbue(std::locale::classic());
     if (!bp.is_temporary)
     {
-      std::ostringstream ss;
-      ss.imbue(std::locale::classic());
       fmt::print(ss, "${:08x} ", bp.address);
       if (bp.is_enabled)
         ss.put('n');
@@ -76,7 +77,9 @@ BreakPoints::TBreakPointsStr BreakPoints::GetStrings() const
         ss.put('b');
       if (bp.condition)
         fmt::print(ss, "c {:s}", bp.condition->GetText());
-      bp_strings.emplace_back(ss.str());
+      bp_strings.emplace_back(std::move(ss).str());
+      // Underlying buffer is in a valid, but unspecified state.
+      ss.str(std::string{});
     }
   }
 
@@ -215,10 +218,10 @@ MemChecks::~MemChecks() = default;
 MemChecks::TMemChecksStr MemChecks::GetStrings() const
 {
   TMemChecksStr mc_strings;
+  std::ostringstream ss;
+  ss.imbue(std::locale::classic());
   for (const TMemCheck& mc : m_mem_checks)
   {
-    std::ostringstream ss;
-    ss.imbue(std::locale::classic());
     fmt::print(ss, "${:08x} {:08x} ", mc.start_address, mc.end_address);
     if (mc.is_enabled)
       ss.put('n');
@@ -232,8 +235,9 @@ MemChecks::TMemChecksStr MemChecks::GetStrings() const
       ss.put('b');
     if (mc.condition)
       fmt::print(ss, "c {:s}", mc.condition->GetText());
-
-    mc_strings.emplace_back(ss.str());
+    mc_strings.emplace_back(std::move(ss).str());
+    // Underlying buffer is in a valid, but unspecified state.
+    ss.str(std::string{});
   }
 
   return mc_strings;

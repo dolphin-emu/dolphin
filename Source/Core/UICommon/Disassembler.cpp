@@ -4,6 +4,7 @@
 #include "UICommon/Disassembler.h"
 
 #include <sstream>
+#include <utility>
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
@@ -113,7 +114,7 @@ std::string HostDisassemblerLLVM::DisassembleHostBlock(const u8* code_start, con
     (*host_instructions_count)++;
   }
 
-  return x86_disasm.str();
+  return std::move(x86_disasm).str();
 }
 #elif defined(_M_X86)
 class HostDisassemblerX86 : public HostDisassembler
@@ -148,7 +149,7 @@ std::string HostDisassemblerX86::DisassembleHostBlock(const u8* code_start, cons
     (*host_instructions_count)++;
   }
 
-  return x86_disasm.str();
+  return std::move(x86_disasm).str();
 }
 #endif
 
