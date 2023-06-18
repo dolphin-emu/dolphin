@@ -636,6 +636,7 @@ static void AddGCAdapter(libusb_device* device)
       }
     }
   }
+  libusb_free_config_descriptor(config);
 
   int size = 0;
   std::array<u8, CONTROLER_OUTPUT_INIT_PAYLOAD_SIZE> payload = {0x13};
