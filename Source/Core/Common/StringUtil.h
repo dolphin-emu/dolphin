@@ -239,25 +239,6 @@ inline char ToUpper(char ch)
   return std::toupper(ch, std::locale::classic());
 }
 
-// Thousand separator. Turns 12345678 into 12,345,678
-template <typename I>
-std::string ThousandSeparate(I value, int spaces = 0)
-{
-#ifdef _WIN32
-  std::wostringstream stream;
-#else
-  std::ostringstream stream;
-#endif
-
-  stream << std::setw(spaces) << value;
-
-#ifdef _WIN32
-  return WStringToUTF8(stream.str());
-#else
-  return stream.str();
-#endif
-}
-
 #ifdef _WIN32
 std::vector<std::string> CommandLineToUtf8Argv(const wchar_t* command_line);
 #endif
