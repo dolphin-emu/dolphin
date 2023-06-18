@@ -2,6 +2,7 @@
 #define LUA_SCRIPT_CONTEXT_H
 
 #include "../DolphinDefinedAPIs.h"
+#include "../HelperFiles/ClassMetadata.h"
 #include <atomic>
 #include <unordered_map>
 #include <vector>
@@ -19,6 +20,7 @@ extern const char* THIS_LUA_SCRIPT_CONTEXT_VARIABLE_NAME; // Used to access the 
 
 struct LuaScriptContext
 {
+  LuaScriptContext() {}
   void* base_script_context_ptr;
   lua_State* main_lua_thread;
   lua_State* frame_callback_lua_thread;
@@ -52,6 +54,9 @@ struct LuaScriptContext
   std::atomic<size_t> number_of_instruction_address_callbacks_to_auto_deregister;
   std::atomic<size_t> number_of_memory_address_read_callbacks_to_auto_deregister;
   std::atomic<size_t> number_of_memory_address_write_callbacks_to_auto_deregister;
+
+  ClassMetadata class_metadata_buffer;
+  FunctionMetadata single_function_metadata_buffer; // Unused - but allows for FunctionMetadatas to be run, if the DLLFunctionMetadataCopyHook_impl() is ever used
 };
 
 void* Init_LuaScriptContext_impl(void* new_base_script_context_ptr); // Creates + returns a new LuaScriptContext object, with all fields properly initialized from the base ScriptContext* passed into the function

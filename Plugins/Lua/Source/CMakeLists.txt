@@ -21,6 +21,8 @@ LuaScriptContextFiles/LuaScriptContext.h
 LuaScriptContextFiles/LuaScriptContext.cpp
 DolphinDefinedAPIs.h
 DolphinDefinedAPIs.cpp
+HelperFiles/ClassMetadata.h
+HelperFiles/FunctionMetadata.h
 )
 
 set_target_properties(LUA PROPERTIES LINKER_LANGUAGE CXX)

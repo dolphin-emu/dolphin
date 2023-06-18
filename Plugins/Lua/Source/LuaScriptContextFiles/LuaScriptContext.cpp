@@ -1,5 +1,7 @@
 #include "LuaScriptContext.h"
+#include <memory>
 #include <string>
+#include <map>
 
 #include "../CopiedScriptContextFiles/Enums/ScriptCallLocations.h"
 
@@ -30,6 +32,7 @@ void* Init_LuaScriptContext_impl(void* new_base_script_context_ptr)
   new_lua_script_context_ptr->number_of_memory_address_read_callbacks_to_auto_deregister = 0;
   new_lua_script_context_ptr->number_of_memory_address_write_callbacks_to_auto_deregister = 0;
 
+  new_lua_script_context_ptr->class_metadata_buffer = ClassMetadata("", std::vector<FunctionMetadata>());
 
   new_lua_script_context_ptr->main_lua_thread = luaL_newstate();
   luaL_openlibs(new_lua_script_context_ptr->main_lua_thread);
@@ -198,6 +201,17 @@ bool ShouldCallEndScriptFunction(LuaScriptContext* lua_script_ptr)
   return false;
 }
 
+class UserdataClass
+{
+public:
+  inline UserdataClass() {};
+};
+
+UserdataClass* GetNewUserdataInstance()
+{
+  return std::make_unique<UserdataClass>(UserdataClass()).get();
+}
+
 void ImportModule_impl(void* base_script_ptr, const char* api_name, const char* api_version)
 {
   LuaScriptContext* lua_script_ptr = reinterpret_cast<LuaScriptContext*>(dolphinDefinedScriptContext_APIs.get_derived_script_context_class_ptr(base_script_ptr));
@@ -222,4 +236,272 @@ void ImportModule_impl(void* base_script_ptr, const char* api_name, const char* 
   else if (call_location == ScriptCallLocations::FromWiiInputPolled)
     current_lua_thread = lua_script_ptr->wii_input_polled_callback_lua_thread;
 
+  UserdataClass** userdata_ptr_ptr =
+    (UserdataClass**)lua_newuserdata(current_lua_thread, sizeof(UserdataClass*));
+  *userdata_ptr_ptr = GetNewUserdataInstance();
+
+  luaL_newmetatable(
+    current_lua_thread,
+    (std::string("Lua") + char(std::toupper(api_name[0])) + (api_name + 1) + "MetaTable")
+    .c_str());
+  lua_pushvalue(current_lua_thread, -1);
+  lua_setfield(current_lua_thread, -2, "__index");
+
+  lua_script_ptr->class_metadata_buffer = ClassMetadata();
+  classFunctionsResolver_APIs.Send_ClassMetadataForVersion_To_DLL_Buffer(base_script_ptr, api_name, api_version);
+  if (lua_script_ptr->class_metadata_buffer.class_name.empty())
+  {
+    luaL_error(
+      current_lua_thread,
+      (std::string("Error: Could not find the module the user imported with the name {}") +  api_name)
+      .c_str());
+    return;
+  }
+
+  std::vector<luaL_Reg> final_lua_functions_list = std::vector<luaL_Reg>();
+
+  for (auto& current_function_metadata : lua_script_ptr->class_metadata_buffer.functions_list)
+  {
+    lua_CFunction lambdaFunction = [](lua_State* lua_state) mutable {
+
+      std::string class_name = lua_tostring(lua_state, lua_upvalueindex(1));
+      FunctionMetadata* localFunctionMetadata =
+        (FunctionMetadata*)lua_touserdata(lua_state, lua_upvalueindex(2));
+      lua_getglobal(lua_state, THIS_SCRIPT_CONTEXT_VARIABLE_NAME);
+      void* base_script_context_ptr = lua_touserdata(lua_state, -1);
+      LuaScriptContext* lua_script_context_ptr = (LuaScriptContext*) dolphinDefinedScriptContext_APIs.get_derived_script_context_class_ptr(base_script_context_ptr);
+      lua_pop(lua_state, 1);
+      void* arguments_list_ptr = vectorOfArgHolder_APIs.CreateNewVectorOfArgHolders();
+      void* temp_arg_holder_ptr = nullptr;
+      void* return_value = nullptr;
+      int function_reference = -1;
+      long long key = 0;
+      signed int value = 0;
+
+      if (lua_type(lua_state, 1) != LUA_TUSERDATA)
+      {
+        luaL_error(lua_state,
+          (std::string("Error: User attempted to call the ") + class_name + ":" + localFunctionMetadata->function_name + "() function using the dot "
+            "operator. Please use the colon operator instead like this: " + class_name + ":" + localFunctionMetadata->function_name)
+          .c_str());
+        return 0;
+      }
+
+      if (localFunctionMetadata->return_type == ArgTypeEnum::U64)
+      {
+        luaL_error(
+          lua_state,
+          (std::string("Error: User attempted to call the ") + class_name + ":" + localFunctionMetadata->function_name + "() function, which returns a "
+            "u64. The largest size type that Dolphin supports for Lua is s64. As "
+            "such, please use an s64 version of this function instead.")
+          .c_str());
+        return 0;
+      }
+
+      int next_index_in_args = 2;
+
+      for (ArgTypeEnum arg_type : localFunctionMetadata->arguments_list)
+      {
+        switch (arg_type)
+        {
+          case ArgTypeEnum::Boolean:
+            temp_arg_holder_ptr = argHolder_APIs.CreateBoolArgHolder(lua_toboolean(lua_state, next_index_in_args));
+            vectorOfArgHolder_APIs.PushBack(arguments_list_ptr, temp_arg_holder_ptr);
+            break;
+
+          case ArgTypeEnum::U8:
+            temp_arg_holder_ptr = argHolder_APIs.CreateU8ArgHolder(luaL_checkinteger(lua_state, next_index_in_args));
+            vectorOfArgHolder_APIs.PushBack(arguments_list_ptr, temp_arg_holder_ptr);
+            break;
+
+          case ArgTypeEnum::U16:
+            temp_arg_holder_ptr = argHolder_APIs.CreateU16ArgHolder(luaL_checkinteger(lua_state, next_index_in_args));
+            vectorOfArgHolder_APIs.PushBack(arguments_list_ptr, temp_arg_holder_ptr);
+            break;
+
+          case ArgTypeEnum::U32:
+            temp_arg_holder_ptr = argHolder_APIs.CreateU32ArgHolder(luaL_checkinteger(lua_state, next_index_in_args));
+            vectorOfArgHolder_APIs.PushBack(arguments_list_ptr, temp_arg_holder_ptr);
+            break;
+
+          case ArgTypeEnum::U64:
+            luaL_error(
+              lua_state,
+              (std::string("Error: User attempted to call the ") + class_name + ":" + localFunctionMetadata->function_name + "() function, which takes a "
+               "u64 as one of its parameters. The largest type supported in Dolphin "
+               "for Lua is s64. Please use an s64 version of the function instead.")
+              .c_str());
+            return 0;
+
+          case ArgTypeEnum::S8:
+            temp_arg_holder_ptr = argHolder_APIs.CreateS8ArgHolder(luaL_checkinteger(lua_state, next_index_in_args));
+            vectorOfArgHolder_APIs.PushBack(arguments_list_ptr, temp_arg_holder_ptr);
+            break;
+
+          case ArgTypeEnum::S16:
+            temp_arg_holder_ptr = argHolder_APIs.CreateS16ArgHolder(luaL_checkinteger(lua_state, next_index_in_args));
+            vectorOfArgHolder_APIs.PushBack(arguments_list_ptr, temp_arg_holder_ptr);
+            break;
+
+          case ArgTypeEnum::S32:
+            temp_arg_holder_ptr = argHolder_APIs.CreateS32ArgHolder(luaL_checkinteger(lua_state, next_index_in_args));
+            vectorOfArgHolder_APIs.PushBack(arguments_list_ptr, temp_arg_holder_ptr);
+            break;
+
+          case ArgTypeEnum::S64:
+            temp_arg_holder_ptr = argHolder_APIs.CreateS64ArgHolder(luaL_checkinteger(lua_state, next_index_in_args));
+            vectorOfArgHolder_APIs.PushBack(arguments_list_ptr, temp_arg_holder_ptr);
+            break;
+
+          case ArgTypeEnum::Float:
+            temp_arg_holder_ptr = argHolder_APIs.CreateFloatArgHolder(luaL_checknumber(lua_state, next_index_in_args));
+            vectorOfArgHolder_APIs.PushBack(arguments_list_ptr, temp_arg_holder_ptr);
+            break;
+
+          case ArgTypeEnum::Double:
+            temp_arg_holder_ptr = argHolder_APIs.CreateDoubleArgHolder(luaL_checknumber(lua_state, next_index_in_args));
+            vectorOfArgHolder_APIs.PushBack(arguments_list_ptr, temp_arg_holder_ptr);
+            break;
+
+          case ArgTypeEnum::String:
+            temp_arg_holder_ptr = argHolder_APIs.CreateStringArgHolder(luaL_checkstring(lua_state, next_index_in_args));
+            vectorOfArgHolder_APIs.PushBack(arguments_list_ptr, temp_arg_holder_ptr);
+            break;
+
+          case ArgTypeEnum::RegistrationInputType:
+            lua_pushvalue(lua_state, next_index_in_args);
+            function_reference = luaL_ref(lua_state, LUA_REGISTRYINDEX);
+            temp_arg_holder_ptr = argHolder_APIs.CreateRegistrationInputTypeArgHolder(*((void**)(&function_reference)));
+            vectorOfArgHolder_APIs.PushBack(arguments_list_ptr, temp_arg_holder_ptr);
+            break;
+
+          case ArgTypeEnum::RegistrationWithAutoDeregistrationInputType:
+            lua_pushvalue(lua_state, next_index_in_args);
+            function_reference = luaL_ref(lua_state, LUA_REGISTRYINDEX);
+            temp_arg_holder_ptr = argHolder_APIs.CreateRegistrationWithAutoDeregistrationInputTypeArgHolder(*((void**)(&function_reference)));
+            vectorOfArgHolder_APIs.PushBack(arguments_list_ptr, temp_arg_holder_ptr);
+            break;
+
+          case ArgTypeEnum::RegistrationForButtonCallbackInputType:
+            if (! ((DLL_Defined_ScriptContext_APIs*) dolphinDefinedScriptContext_APIs.get_dll_defined_script_context_apis(base_script_context_ptr))->IsButtonRegistered(base_script_context_ptr,
+              argHolder_APIs.GetS64FromArgHolder(vectorOfArgHolder_APIs.GetArgumentForVectorOfArgHolders(arguments_list_ptr, vectorOfArgHolder_APIs.GetSizeOfVectorOfArgHolders(arguments_list_ptr) - 1))))
+              // this is a terrible hack - but it works to prevent a
+              // button callback from being added to Lua's stack once
+              // every frame.
+            {
+              lua_pushvalue(lua_state, next_index_in_args);
+              function_reference = luaL_ref(lua_state, LUA_REGISTRYINDEX);
+            }
+            else
+            {
+              function_reference = -1;
+            }
+            temp_arg_holder_ptr = argHolder_APIs.CreateRegistrationForButtonCallbackInputTypeArgHolder(*((void**)(&function_reference)));
+            vectorOfArgHolder_APIs.PushBack(arguments_list_ptr, temp_arg_holder_ptr);
+            break;
+
+          case ArgTypeEnum::UnregistrationInputType:
+            function_reference = lua_tointeger(lua_state, next_index_in_args);
+            luaL_unref(lua_state, LUA_REGISTRYINDEX, function_reference);
+            temp_arg_holder_ptr = argHolder_APIs.CreateUnregistrationInputTypeArgHolder(*((void**)(&function_reference)));
+            vectorOfArgHolder_APIs.PushBack(arguments_list_ptr, temp_arg_holder_ptr);
+            break;
+
+          case ArgTypeEnum::AddressToByteMap:
+            temp_arg_holder_ptr = argHolder_APIs.CreateAddressToByteMapArgHolder();
+            lua_pushnil(lua_state);
+            while (lua_next(lua_state, next_index_in_args))
+            {
+              key = lua_tointeger(lua_state, -2);
+              value = lua_tointeger(lua_state, -1);
+
+              if (key < 0)
+              {
+                luaL_error(lua_state,
+                  (std::string("Error: in ") + class_name + ":" + localFunctionMetadata->function_name + "() function, address of byte was less than 0!").c_str());
+                return 0;
+              }
+
+              if (value < -128)
+              {
+                luaL_error(lua_state,
+                  (std::string("Error: in ") + class_name + ":" + localFunctionMetadata->function_name + "() function, value of byte was less than "
+                    "-128, which can't be represented by 1 byte!")
+                  .c_str());
+                return 0;
+              }
+              if (value > 255)
+              {
+                luaL_error(lua_state,
+                  (std::string("Error: in ") + class_name + ":" + localFunctionMetadata->function_name + "() function, value of byte was more than "
+                    "255, which can't be represented by 1 byte!")
+                  .c_str());
+                return 0;
+              }
+
+              argHolder_APIs.AddPairToAddressToByteMapArgHolder(temp_arg_holder_ptr, key, value);
+              lua_pop(lua_state, 1);
+            }
+            vectorOfArgHolder_APIs.PushBack(arguments_list_ptr, temp_arg_holder_ptr);
+            break;
+
+            case ArgTypeEnum::ControllerStateObject:
+            return 0; // TODO: Continue here
+        }
+        ++next_index_in_args;
+      }
+
+      return NULL;
+    };
+
+    FunctionMetadata* heap_function_metadata = new FunctionMetadata(current_function_metadata);
+    lua_pushstring(current_lua_thread, heap_function_metadata->function_name.c_str());
+    lua_pushstring(current_lua_thread, lua_script_ptr->class_metadata_buffer.class_name.c_str());
+    lua_pushlightuserdata(current_lua_thread, heap_function_metadata);
+    lua_pushcclosure(current_lua_thread, lambdaFunction, 2);
+    lua_settable(current_lua_thread, -3);
+  }
+
+  lua_setmetatable(current_lua_thread, -2);
+  lua_setglobal(current_lua_thread, api_name);
+}
+
+void DLLClassMetadataCopyHook_impl(void* base_script_context_ptr, void* class_metadata_ptr)
+{
+  std::string class_name = std::string(classMetadata_APIs.GetClassName(class_metadata_ptr));
+  std::vector<FunctionMetadata> functions_list = std::vector<FunctionMetadata>();
+  unsigned long long number_of_functions = classMetadata_APIs.GetNumberOfFunctions(class_metadata_ptr);
+  for (unsigned long long i = 0; i < number_of_functions; ++i)
+  {
+    void* function_metadata_ptr = classMetadata_APIs.GetFunctionMetadataAtPosition(class_metadata_ptr, i);
+    FunctionMetadata current_function = FunctionMetadata();
+    std::string function_name = std::string(functionMetadata_APIs.GetFunctionName(function_metadata_ptr));
+    std::string function_version = std::string(functionMetadata_APIs.GetFunctionVersion(function_metadata_ptr));
+    std::string example_function_call = std::string(functionMetadata_APIs.GetExampleFunctionCall(function_metadata_ptr));
+    void* (*wrapped_function_ptr)(void*, void*) = functionMetadata_APIs.GetFunctionPointer(function_metadata_ptr);
+    ArgTypeEnum return_type = (ArgTypeEnum)functionMetadata_APIs.GetReturnType(function_metadata_ptr);
+    unsigned long long num_args = functionMetadata_APIs.GetNumberOfArguments(function_metadata_ptr);
+    std::vector<ArgTypeEnum> argument_type_list = std::vector<ArgTypeEnum>();
+    for (unsigned long long arg_index = 0; arg_index < num_args; ++arg_index)
+      argument_type_list.push_back((ArgTypeEnum)functionMetadata_APIs.GetTypeOfArgumentAtIndex(function_metadata_ptr, arg_index));
+    current_function = FunctionMetadata(function_name.c_str(), function_version.c_str(), example_function_call.c_str(), wrapped_function_ptr, return_type, argument_type_list);
+    functions_list.push_back(current_function);
+  }
+
+  ((LuaScriptContext*)dolphinDefinedScriptContext_APIs.get_derived_script_context_class_ptr(base_script_context_ptr))->class_metadata_buffer = ClassMetadata(class_name, functions_list);
+}
+
+void DLLFunctionMetadataCopyHook_impl(void* base_script_context_ptr, void* function_metadata_ptr)
+{
+  std::string function_name = std::string(functionMetadata_APIs.GetFunctionName(function_metadata_ptr));
+  std::string function_version = std::string(functionMetadata_APIs.GetFunctionVersion(function_metadata_ptr));
+  std::string example_function_call = std::string(functionMetadata_APIs.GetExampleFunctionCall(function_metadata_ptr));
+  void* (*wrapped_function_ptr)(void*, void*) = functionMetadata_APIs.GetFunctionPointer(function_metadata_ptr);
+  ArgTypeEnum return_type = (ArgTypeEnum)functionMetadata_APIs.GetReturnType(function_metadata_ptr);
+  unsigned long long num_args = functionMetadata_APIs.GetNumberOfArguments(function_metadata_ptr);
+  std::vector<ArgTypeEnum> argument_type_list = std::vector<ArgTypeEnum>();
+  for (unsigned long long arg_index = 0; arg_index < num_args; ++arg_index)
+    argument_type_list.push_back((ArgTypeEnum)functionMetadata_APIs.GetTypeOfArgumentAtIndex(function_metadata_ptr, arg_index));
+  ((LuaScriptContext*)dolphinDefinedScriptContext_APIs.get_derived_script_context_class_ptr(base_script_context_ptr))->single_function_metadata_buffer =
+    FunctionMetadata(function_name.c_str(), function_version.c_str(), example_function_call.c_str(), wrapped_function_ptr, return_type, argument_type_list);
 }

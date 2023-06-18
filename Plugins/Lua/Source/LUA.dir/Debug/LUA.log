@@ -1,0 +1,5 @@
+﻿  Building Custom Rule C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Plugins/Lua/Source/CMakeLists.txt
+  LuaScriptContext.cpp
+  DolphinDefinedAPIs.cpp
+  Generating Code...
+LINK : fatal error LNK1104: cannot open file 'public.lib'

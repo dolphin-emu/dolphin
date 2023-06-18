@@ -27,6 +27,9 @@
     <ClInclude Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\CopiedScriptContextFiles\InternalScriptAPIs\ClassMetadata_APIs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\CopiedScriptContextFiles\InternalScriptAPIs\FileUtility_APIs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\CopiedScriptContextFiles\InternalScriptAPIs\FunctionMetadata_APIs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -43,6 +46,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\DolphinDefinedAPIs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\HelperFiles\ClassMetadata.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\HelperFiles\FunctionMetadata.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
