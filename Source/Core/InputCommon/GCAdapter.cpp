@@ -211,6 +211,10 @@ static void ReadThreadFunc()
       ERROR_LOG_FMT(CONTROLLERINTERFACE, "Read: libusb_interrupt_transfer failed: {}",
                     LibusbUtils::ErrorWrap(error));
     }
+    if (error == LIBUSB_ERROR_IO)
+    {
+      break;
+    }
 
     ProcessInputPayload(input_buffer.data(), payload_size);
 
