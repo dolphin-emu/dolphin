@@ -1,5 +1,0 @@
-C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Plugins/Lua/Source/CMakeFiles/LUA.dir
-C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Plugins/Lua/Source/CMakeFiles/ALL_BUILD.dir
-C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Plugins/Lua/Source/CMakeFiles/ZERO_CHECK.dir
-C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Plugins/Lua/Source/LuaExternals/CMakeFiles/LuaExternals.dir
-C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/Plugins/Lua/Source/LuaExternals/CMakeFiles/ALL_BUILD.dir

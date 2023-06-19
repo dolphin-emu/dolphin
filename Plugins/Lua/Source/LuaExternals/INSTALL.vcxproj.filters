@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Plugins\Lua\Source\CMakeFiles\ff5bf3b79b5a4d508726aa7e7656750d\INSTALL_force.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{2FB62C8C-EEAB-332D-8EE4-780837941635}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
