@@ -88,7 +88,7 @@ static std::vector<std::string> ReadM3UFile(const std::string& m3u_path,
   if (!nonexistent.empty())
   {
     PanicAlertFmtT("Files specified in the M3U file \"{0}\" were not found:\n{1}", m3u_path,
-                   JoinStrings(nonexistent, "\n"));
+                   fmt::join(nonexistent, "\n"));
     return {};
   }
 

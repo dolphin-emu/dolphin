@@ -423,7 +423,7 @@ std::string WFSSRVDevice::NormalizePath(const std::string& path) const
       normalized_components.push_back(component);
     }
   }
-  return "/" + JoinStrings(normalized_components, "/");
+  return fmt::format("/{}", fmt::join(normalized_components, "/"));
 }
 
 WFSSRVDevice::FileDescriptor* WFSSRVDevice::FindFileDescriptor(u16 fd)

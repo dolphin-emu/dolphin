@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include <fmt/format.h>
 #include <jni.h>
 
 #include "Common/FileUtil.h"
@@ -58,7 +59,7 @@ Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_getCreator(JNIEn
 JNIEXPORT jstring JNICALL
 Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_getNotes(JNIEnv* env, jobject obj)
 {
-  return ToJString(env, JoinStrings(GetPointer(env, obj)->notes, "\n"));
+  return ToJString(env, fmt::to_string(fmt::join(GetPointer(env, obj)->notes, "\n")));
 }
 
 JNIEXPORT jstring JNICALL

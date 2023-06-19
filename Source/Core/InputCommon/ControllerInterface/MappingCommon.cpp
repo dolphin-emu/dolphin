@@ -87,8 +87,9 @@ BuildExpression(const std::vector<ciface::Core::DeviceContainer::InputDetection>
     new_alternation = false;
 
     std::vector<std::string> alternation;
+    alternation.reserve(pressed_inputs.size());
     for (auto* input : pressed_inputs)
-      alternation.push_back(get_control_expression(*input));
+      alternation.emplace_back(get_control_expression(*input));
 
     const bool is_hotkey = pressed_inputs.size() >= 2 &&
                            (pressed_inputs[1]->press_time - pressed_inputs[0]->press_time) >
@@ -96,12 +97,12 @@ BuildExpression(const std::vector<ciface::Core::DeviceContainer::InputDetection>
 
     if (is_hotkey)
     {
-      alternations.push_back(fmt::format("@({})", JoinStrings(alternation, "+")));
+      alternations.emplace_back(fmt::format("@({})", fmt::join(alternation, "+")));
     }
     else
     {
       std::sort(alternation.begin(), alternation.end());
-      alternations.push_back(JoinStrings(alternation, "&"));
+      alternations.emplace_back(fmt::to_string(fmt::join(alternation, "&")));
     }
   };
 
@@ -130,7 +131,7 @@ BuildExpression(const std::vector<ciface::Core::DeviceContainer::InputDetection>
   std::sort(alternations.begin(), alternations.end());
   alternations.erase(std::unique(alternations.begin(), alternations.end()), alternations.end());
 
-  return JoinStrings(alternations, "|");
+  return fmt::to_string(fmt::join(alternations, "|"));
 }
 
 void RemoveSpuriousTriggerCombinations(

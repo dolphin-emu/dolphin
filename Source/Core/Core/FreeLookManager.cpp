@@ -3,6 +3,8 @@
 
 #include "Core/FreeLookManager.h"
 
+#include <fmt/format.h>
+
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
@@ -124,7 +126,7 @@ void FreeLookController::LoadDefaults(const ControllerInterface& ciface)
 
 #ifndef ANDROID
   auto hotkey_string = [](std::vector<std::string> inputs) {
-    return "@(" + JoinStrings(inputs, "+") + ')';
+    return fmt::format("@({})", fmt::join(inputs, "+"));
   };
 
   m_move_buttons->SetControlExpression(MoveButtons::Up, hotkey_string({"Shift", "E"}));

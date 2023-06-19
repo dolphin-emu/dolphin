@@ -141,7 +141,7 @@ std::string EscapePath(const std::string& path)
   for (const std::string& split_string : split_strings)
     escaped_split_strings.push_back(EscapeFileName(split_string));
 
-  return JoinStrings(escaped_split_strings, "/");
+  return fmt::to_string(fmt::join(escaped_split_strings, "/"));
 }
 
 std::string UnescapeFileName(const std::string& filename)

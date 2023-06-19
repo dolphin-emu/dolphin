@@ -153,7 +153,6 @@ bool AsciiToHex(const std::string& _szValue, u32& result);
 std::string TabsToSpaces(int tab_size, std::string str);
 
 std::vector<std::string> SplitString(const std::string& str, char delim);
-std::string JoinStrings(const std::vector<std::string>& strings, const std::string& delimiter);
 
 // "C:/Windows/winhelp.exe" to "C:/Windows/", "winhelp", ".exe"
 // This requires forward slashes to be used for the path separators, even on Windows.
