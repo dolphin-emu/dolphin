@@ -298,8 +298,17 @@ int IOWritePerWriteFile(HANDLE& dev_handle, OVERLAPPED& hid_overlap_write,
       // Pending is no error!
       break;
     default:
-      WARN_LOG_FMT(WIIMOTE, "IOWrite[WWM_WRITE_FILE]: Error on WriteFile: {}",
-                   Common::HRWrap(error));
+      if (FAILED(error))
+      {
+        WARN_LOG_FMT(WIIMOTE, "IOWrite[WWM_WRITE_FILE]: Error on WriteFile: {}",
+                     Common::HRWrap(error));
+      }
+      else
+      {
+        WARN_LOG_FMT(WIIMOTE,
+                     "IOWrite[WWM_WRITE_FILE]: Unexpected error code from WriteFile: 0x{:08x}",
+                     error);
+      }
       CancelIo(dev_handle);
       return 0;
     }
