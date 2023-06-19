@@ -20,7 +20,13 @@ extern const char* THIS_LUA_SCRIPT_CONTEXT_VARIABLE_NAME; // Used to access the 
 
 struct LuaScriptContext
 {
-  LuaScriptContext() {}
+  LuaScriptContext() {
+    base_script_context_ptr = nullptr;
+    main_lua_thread = frame_callback_lua_thread = instruction_address_hit_callback_lua_thread = memory_address_read_from_callback_lua_thread =
+      memory_address_written_to_callback_lua_thread = gc_controller_input_polled_callback_lua_thread = wii_input_polled_callback_lua_thread =
+      button_callback_thread = nullptr;
+    index_of_next_frame_callback_to_execute = 0;
+  }
   void* base_script_context_ptr;
   lua_State* main_lua_thread;
   lua_State* frame_callback_lua_thread;
@@ -72,15 +78,16 @@ bool ShouldCallEndScriptFunction(LuaScriptContext* lua_script_ptr);
 void ImportModule_impl(void*, const char*, const char*);
 
 void StartScript_impl(void*);
-void StopScript_impl(void*);
 
 void RunGlobalScopeCode_impl(void*);
 void RunOnFrameStartCallbacks_impl(void*);
 void RunOnGCControllerPolledCallbacks_impl(void*);
+void RunOnWiiInputPolledCallbacks_impl(void*);
+void RunButtonCallbacksInQueue_impl(void*);
 void RunOnInstructionReachedCallbacks_impl(void*, unsigned int);
 void RunOnMemoryAddressReadFromCallbacks_impl(void*, unsigned int);
 void RunOnMemoryAddressWrittenToCallbacks_impl(void*, unsigned int);
-void RunOnWiiInputPolledCallbacks_impl(void*);
+
 
 void* RegisterOnFrameStartCallback_impl(void*, void*);
 void RegisterOnFrameStartWithAutoDeregistrationCallback_impl(void*, void*);
@@ -89,6 +96,14 @@ int UnregisterOnFrameStartCallback_impl(void*, void*);
 void* RegisterOnGCControllerPolledCallback_impl(void*, void*);
 void RegisterOnGCControllerPolledWithAutoDeregistrationCallback_impl(void*, void*);
 int UnregisterOnGCControllerPolledCallback_impl(void*, void*);
+
+void* RegisterOnWiiInputPolledCallback_impl(void*, void*);
+void RegisterOnWiiInputPolledWithAutoDeregistrationCallback_impl(void*, void*);
+int UnregisterOnWiiInputPolledCallback_impl(void*, void*);
+
+void RegisterButtonCallback_impl(void*, long long, void*);
+int IsButtonRegistered_impl(void*, long long);
+void GetButtonCallbackAndAddToQueue_impl(void*, long long);
 
 void* RegisterOnInstructionReachedCallback_impl(void*, unsigned int, void*);
 void RegisterOnInstructioReachedWithAutoDeregistrationCallback_impl(void*, unsigned int, void*);
@@ -101,15 +116,6 @@ int UnregisterOnMemoryAddressReadFromCallback_impl(void*, unsigned int, void*);
 void* RegisterOnMemoryAddressWrittenToCallback_impl(void*, unsigned int, void*);
 void RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallback_impl(void*, unsigned int, void*);
 int UnregisterOnMemoryAddressWrittenToCallback_impl(void*, unsigned int, void*); 
-
-void* RegisterOnWiiInputPolledCallback_impl(void*, void*);
-void RegisterOnWiiInputPolledWithAutoDeregistrationCallback_impl(void*, void*);
-int UnregisterOnWiiInputPolledCallback_impl(void*, void*);
-
-void RegisterButtonCallback_impl(void*, long long, void*); 
-int IsButtonRegistered_impl(void*, long long); 
-void GetButtonCallbackAndAddToQueue_impl(void*, long long); 
-void RunButtonCallbacksInQueue_impl(void*);
 
 void DLLClassMetadataCopyHook_impl(void*, void*);
 void DLLFunctionMetadataCopyHook_impl(void*, void*);

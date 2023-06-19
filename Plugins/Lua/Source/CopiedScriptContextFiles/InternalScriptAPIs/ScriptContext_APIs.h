@@ -65,7 +65,6 @@ typedef struct DLL_Defined_ScriptContext_APIs
   void (*ImportModule)(void*, const char*, const char*); // 1st parameter is ScriptContext*, 2nd parameter is API name, and 3rd parameter is API version. Imports the specified module into the ScriptContext.
 
   void (*StartScript)(void*); // Makes the Script start running for the 1st time.
-  void (*StopScript)(void*); // Stops the Script from executing. Can be invoked manually, or can be invoked when the ScriptContext destructor is called.
 
   void (*RunGlobalScopeCode)(void*); // Continues running the Script from the global level (used to resume a script which has already started, which isn't supported by all languages).
   void (*RunOnFrameStartCallbacks)(void*); // Runs all the OnFrameStart callbacks for the script.

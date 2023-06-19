@@ -51,7 +51,6 @@ static void InitDLLSpecificAPIs()
   dll_defined_scriptContext_apis.RunOnMemoryAddressWrittenToCallbacks = RunOnMemoryAddressWrittenToCallbacks_impl;
   dll_defined_scriptContext_apis.RunOnWiiInputPolledCallbacks = RunOnWiiInputPolledCallbacks_impl;
   dll_defined_scriptContext_apis.StartScript = StartScript_impl;
-  dll_defined_scriptContext_apis.StopScript = StopScript_impl;
   dll_defined_scriptContext_apis.UnregisterOnFrameStartCallback = UnregisterOnFrameStartCallback_impl;
   dll_defined_scriptContext_apis.UnregisterOnGCControllerPolledCallback = UnregisterOnGCControllerPolledCallback_impl;
   dll_defined_scriptContext_apis.UnregisterOnInstructionReachedCallback = UnregisterOnInstructionReachedCallback_impl;
