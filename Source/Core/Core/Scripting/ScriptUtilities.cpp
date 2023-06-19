@@ -291,28 +291,8 @@ void InitializeDLLs()
   dll_suffix = ".so";
 #endif
 
-  const char* script_utilities_source_path =
-      __FILE__;  // This gives us the path to the ScriptUtilities.cpp file. Now, we need to do some
-                 // String manipulation to get the root Dolphin directory (the directory that
-                 // contains the Plugins folder)
-  unsigned long long str_index = strlen(script_utilities_source_path) - 1;
-  unsigned int num_slashes = 0;
-  while (str_index > 0)
-  {
-    if (script_utilities_source_path[str_index] == '/' ||
-        script_utilities_source_path[str_index] == '\\')
-    {
-      ++num_slashes;
-      if (num_slashes >= 4)
-        break;
-    }
-    --str_index;
-  }
-  if (num_slashes < 4)
-    return;  // This only happens when an error has occured.
+  std::string base_plugins_directory = std::string(fileUtility_apis.GetSystemDirectory()) + "ScriptingPlugins";
 
-  std::filesystem::path base_plugins_directory =
-      std::string(script_utilities_source_path).substr(0, str_index) + "/Plugins";
   for (auto const& dir_entry : std::filesystem::directory_iterator(base_plugins_directory))
   {
     if (dir_entry.is_directory())
@@ -357,10 +337,7 @@ void InitializeDLLs()
               current_file_name.substr(current_file_name.length() - dll_suffix.length()) ==
                   dll_suffix)
           {
-            file_extension_to_dll_map[trimmed_extension] =
-                std::make_shared<Common::DynamicLibrary>(
-                    new Common::DynamicLibrary(current_file_name.c_str()))
-                    .get();
+            file_extension_to_dll_map[trimmed_extension] = new Common::DynamicLibrary(current_file_name.c_str());
             reinterpret_cast<exported_dll_func_type>(
                 file_extension_to_dll_map[trimmed_extension]->GetSymbolAddress(
                     "Init_ArgHolder_APIs"))(&argHolder_apis);
