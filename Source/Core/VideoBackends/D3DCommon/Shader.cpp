@@ -257,9 +257,8 @@ std::optional<Shader::BinaryData> Shader::CompileShader(D3D_FEATURE_LEVEL featur
     file.write(hlsl->data(), hlsl->size());
     file.put('\n');
     file.write(static_cast<const char*>(errors->GetBufferPointer()), errors->GetBufferSize());
-    file.put('\n');
-    fmt::print(file, "Dolphin Version: {:s}\n", Common::GetScmRevStr());
-    fmt::print(file, "Video Backend: {:s}", g_video_backend->GetDisplayName());
+    fmt::print(file, "\nDolphin Version: {:s}\nVideo Backend: {:s}", Common::GetScmRevStr(),
+               g_video_backend->GetDisplayName());
 
     if (const auto spirv = GetSpirv(stage, source))
     {
