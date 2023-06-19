@@ -332,19 +332,19 @@ bool IniFile::Save(const std::string& filename)
   for (const Section& section : sections)
   {
     if (!section.keys_order.empty() || !section.m_lines.empty())
-      fmt::print(out, "[{:s}]\n", section.name);
+      fmt::print(out, "[{}]\n", section.name);
 
     if (section.keys_order.empty())
     {
       for (const std::string& s : section.m_lines)
-        fmt::print(out, "{:s}\n", s);
+        fmt::print(out, "{}\n", s);
     }
     else
     {
       for (const std::string& kvit : section.keys_order)
       {
         auto pair = section.values.find(kvit);
-        fmt::print(out, "{:s} = {:s}\n", pair->first, pair->second);
+        fmt::print(out, "{} = {}\n", pair->first, pair->second);
       }
     }
   }

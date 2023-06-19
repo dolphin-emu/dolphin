@@ -464,7 +464,7 @@ std::string PostProcessing::GetUniformBufferHeader() const
   ss << "  int src_layer;\n";
   ss << "  uint time;\n";
   for (u32 i = 0; i < 2; i++)
-    fmt::print(ss, "  int ubo_align_{:d}_;\n", unused_counter++);
+    fmt::print(ss, "  int ubo_align_{}_;\n", unused_counter++);
   ss.put('\n');
 
   // Custom options/uniforms
@@ -474,7 +474,7 @@ std::string PostProcessing::GetUniformBufferHeader() const
     {
       fmt::print(ss, "  int {};\n", it.first);
       for (u32 i = 0; i < 3; i++)
-        fmt::print(ss, "  int ubo_align_{:d}_;\n", unused_counter++);
+        fmt::print(ss, "  int ubo_align_{}_;\n", unused_counter++);
     }
     else if (it.second.m_type ==
              PostProcessingConfiguration::ConfigurationOption::OptionType::Integer)
@@ -486,7 +486,7 @@ std::string PostProcessing::GetUniformBufferHeader() const
         fmt::print(ss, "  int{} {};\n", count, it.first);
 
       for (u32 i = count; i < 4; i++)
-        fmt::print(ss, "  int ubo_align_{:d}_;\n", unused_counter++);
+        fmt::print(ss, "  int ubo_align_{}_;\n", unused_counter++);
     }
     else if (it.second.m_type ==
              PostProcessingConfiguration::ConfigurationOption::OptionType::Float)
@@ -498,7 +498,7 @@ std::string PostProcessing::GetUniformBufferHeader() const
         fmt::print(ss, "  float{} {};\n", count, it.first);
 
       for (u32 i = count; i < 4; i++)
-        fmt::print(ss, "  int ubo_align_{:d}_;\n", unused_counter++);
+        fmt::print(ss, "  int ubo_align_{}_;\n", unused_counter++);
     }
   }
 

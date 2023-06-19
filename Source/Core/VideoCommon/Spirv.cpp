@@ -76,16 +76,16 @@ CompileShaderToSPV(EShLanguage stage, APIType api_type,
     File::OpenFStream(stream, filename, std::ios_base::out);
     if (stream.good())
     {
-      fmt::print(stream, "{:s}\n{:s}\nShader Info Log:\n{:s}\n{:s}\n", source, msg,
-                 shader->getInfoLog(), shader->getInfoDebugLog());
+      fmt::print(stream, "{}\n{}\nShader Info Log:\n{}\n{}\n", source, msg, shader->getInfoLog(),
+                 shader->getInfoDebugLog());
       if (program)
       {
-        fmt::print(stream, "Program Info Log:\n{:s}\n{:s}\n", program->getInfoLog(),
+        fmt::print(stream, "Program Info Log:\n{}\n{}\n", program->getInfoLog(),
                    program->getInfoDebugLog());
       }
     }
 
-    fmt::print(stream, "\nDolphin Version: {:s}\nVideo Backend: {:s}", Common::GetScmRevStr(),
+    fmt::print(stream, "\nDolphin Version: {}\nVideo Backend: {}", Common::GetScmRevStr(),
                g_video_backend->GetDisplayName());
     stream.close();
 

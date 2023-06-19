@@ -377,8 +377,8 @@ bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, std::s
       std::string filename = VideoBackendBase::BadShaderFilename(prefix, num_failures++);
       std::ofstream file;
       File::OpenFStream(file, filename, std::ios_base::out);
-      fmt::print(file, "{:s}{:s}{:s}\nDolphin Version: {:s}\nVideo Backend: {:s}", s_glsl_header,
-                 code, info_log, Common::GetScmRevStr(), g_video_backend->GetDisplayName());
+      fmt::print(file, "{}{}{}\nDolphin Version: {}\nVideo Backend: {}", s_glsl_header, code,
+                 info_log, Common::GetScmRevStr(), g_video_backend->GetDisplayName());
       file.close();
 
       PanicAlertFmt("Failed to compile {} shader: {}\n"
@@ -414,12 +414,12 @@ bool ProgramShaderCache::CheckProgramLinkResult(GLuint id, std::string_view vcod
       std::ofstream file;
       File::OpenFStream(file, filename, std::ios_base::out);
       if (!vcode.empty())
-        fmt::print(file, "{:s}{:s}\n", s_glsl_header, vcode);
+        fmt::print(file, "{}{}\n", s_glsl_header, vcode);
       if (!gcode.empty())
-        fmt::print(file, "{:s}{:s}\n", s_glsl_header, gcode);
+        fmt::print(file, "{}{}\n", s_glsl_header, gcode);
       if (!pcode.empty())
-        fmt::print(file, "{:s}{:s}\n", s_glsl_header, pcode);
-      fmt::print(file, "{:s}\nDolphin Version: {:s}\nVideo Backend: {:s}", info_log,
+        fmt::print(file, "{}{}\n", s_glsl_header, pcode);
+      fmt::print(file, "{}\nDolphin Version: {}\nVideo Backend: {}", info_log,
                  Common::GetScmRevStr(), g_video_backend->GetDisplayName());
       file.close();
 

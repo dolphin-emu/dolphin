@@ -72,15 +72,15 @@ std::string Profiler::ToString()
   s_frame_time = end;
 
   std::ostringstream buffer;
-  fmt::print(buffer, "{:<{}s} {:>{}s} {:>{}s} {:>{}s} {:>{}s} {:>{}s} {:>{}s} {:>{}s} / usec\n",  //
-             "", s_max_length,                                                                    //
-             "calls", PROFILER_FIELD_LENGTH,                                                      //
-             "sum", PROFILER_FIELD_LENGTH,                                                        //
-             "rel", PROFILER_FIELD_LENGTH_FP,                                                     //
-             "min", PROFILER_FIELD_LENGTH,                                                        //
-             "avg", PROFILER_FIELD_LENGTH_FP,                                                     //
-             "stdev", PROFILER_FIELD_LENGTH_FP,                                                   //
-             "max", PROFILER_FIELD_LENGTH);                                                       //
+  fmt::print(buffer, "{:<{}} {:>{}} {:>{}} {:>{}} {:>{}} {:>{}} {:>{}} {:>{}} / usec\n",  //
+             "", s_max_length,                                                            //
+             "calls", PROFILER_FIELD_LENGTH,                                              //
+             "sum", PROFILER_FIELD_LENGTH,                                                //
+             "rel", PROFILER_FIELD_LENGTH_FP,                                             //
+             "min", PROFILER_FIELD_LENGTH,                                                //
+             "avg", PROFILER_FIELD_LENGTH_FP,                                             //
+             "stdev", PROFILER_FIELD_LENGTH_FP,                                           //
+             "max", PROFILER_FIELD_LENGTH);                                               //
 
   s_all_profilers.sort([](Profiler* a, Profiler* b) { return *b < *a; });
 
@@ -133,15 +133,15 @@ void Profiler::Print(std::ostream& os)
     time_rel = double(m_usecs) * 100 / s_usecs_frame;
   }
 
-  fmt::print(os, "{:<{}s} {:>{}d} {:>{}d} {:>{}f} {:>{}d} {:>{}.2f} {:>{}.2f} {:>{}d}\n",  //
-             m_name, s_max_length,                                                         //
-             m_calls, PROFILER_FIELD_LENGTH,                                               //
-             m_usecs, PROFILER_FIELD_LENGTH,                                               //
-             time_rel, PROFILER_FIELD_LENGTH_FP,                                           //
-             m_usecs_min, PROFILER_FIELD_LENGTH,                                           //
-             avg, PROFILER_FIELD_LENGTH_FP,                                                //
-             stdev, PROFILER_FIELD_LENGTH_FP,                                              //
-             m_usecs_max, PROFILER_FIELD_LENGTH);                                          //
+  fmt::print(os, "{:<{}} {:>{}} {:>{}} {:>{}} {:>{}} {:>{}.2f} {:>{}.2f} {:>{}}\n",  //
+             m_name, s_max_length,                                                   //
+             m_calls, PROFILER_FIELD_LENGTH,                                         //
+             m_usecs, PROFILER_FIELD_LENGTH,                                         //
+             time_rel, PROFILER_FIELD_LENGTH_FP,                                     //
+             m_usecs_min, PROFILER_FIELD_LENGTH,                                     //
+             avg, PROFILER_FIELD_LENGTH_FP,                                          //
+             stdev, PROFILER_FIELD_LENGTH_FP,                                        //
+             m_usecs_max, PROFILER_FIELD_LENGTH);                                    //
 
   m_usecs = 0;
   m_usecs_min = UINT64_MAX;

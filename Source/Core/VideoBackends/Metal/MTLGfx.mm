@@ -168,11 +168,11 @@ std::unique_ptr<AbstractShader> Metal::Gfx::CreateShaderFromMSL(ShaderStage stag
       std::ofstream stream(filename);
       if (stream.good())
       {
-        fmt::print(stream, "{:s}\n/*\n{:s}\nError:\n{:s}\n", msl, msg,
+        fmt::print(stream, "{}\n/*\n{}\nError:\n{}\n", msl, msg,
                    [[err localizedDescription] UTF8String]);
         if (!glsl.empty())
         {
-          fmt::print(stream, "Original GLSL:\n{:s}\n", glsl);
+          fmt::print(stream, "Original GLSL:\n{}\n", glsl);
         }
         else
         {
@@ -180,8 +180,8 @@ std::unique_ptr<AbstractShader> Metal::Gfx::CreateShaderFromMSL(ShaderStage stag
         }
       }
 
-      fmt::print(stream, "\nDolphin Version: {:s}\nVideo Backend: {:s}\n*/\n",
-                 Common::GetScmRevStr(), g_video_backend->GetDisplayName());
+      fmt::print(stream, "\nDolphin Version: {}\nVideo Backend: {}\n*/\n", Common::GetScmRevStr(),
+                 g_video_backend->GetDisplayName());
       stream.close();
 
       PanicAlertFmt("{} (written to {})\n", msg, filename);

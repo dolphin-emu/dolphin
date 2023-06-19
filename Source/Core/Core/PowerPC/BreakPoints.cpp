@@ -75,7 +75,7 @@ BreakPoints::TBreakPointsStr BreakPoints::GetStrings() const
       if (bp.break_on_hit)
         ss.put('b');
       if (bp.condition)
-        fmt::print(ss, "c {:s}", bp.condition->GetText());
+        fmt::print(ss, "c {}", bp.condition->GetText());
       bp_strings.emplace_back(ss.str());
     }
   }
@@ -231,7 +231,7 @@ MemChecks::TMemChecksStr MemChecks::GetStrings() const
     if (mc.break_on_hit)
       ss.put('b');
     if (mc.condition)
-      fmt::print(ss, "c {:s}", mc.condition->GetText());
+      fmt::print(ss, "c {}", mc.condition->GetText());
 
     mc_strings.emplace_back(ss.str());
   }

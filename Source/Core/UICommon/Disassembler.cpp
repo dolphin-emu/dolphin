@@ -105,7 +105,7 @@ std::string HostDisassemblerLLVM::DisassembleHostBlock(const u8* code_start, con
     }
     else
     {
-      fmt::print(x86_disasm, "{:s}\n", inst_disasm);
+      fmt::print(x86_disasm, "{}\n", inst_disasm);
       disasmPtr += inst_size;
       starting_pc += inst_size;
     }
@@ -144,7 +144,7 @@ std::string HostDisassemblerX86::DisassembleHostBlock(const u8* code_start, cons
   {
     char inst_disasm[256];
     disasmPtr += m_disasm.disasm64(disasmPtr, disasmPtr, (u8*)disasmPtr, inst_disasm);
-    fmt::print(x86_disasm, "{:s}\n", inst_disasm);
+    fmt::print(x86_disasm, "{}\n", inst_disasm);
     (*host_instructions_count)++;
   }
 

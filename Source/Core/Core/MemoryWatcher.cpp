@@ -93,7 +93,7 @@ std::string MemoryWatcher::ComposeMessages(const Core::CPUThreadGuard& guard)
     {
       // Update the value
       current_value = new_value;
-      fmt::print(message_stream, "{:s}\n{:x}\n", address, new_value);
+      fmt::print(message_stream, "{}\n{:x}\n", address, new_value);
     }
   }
 
