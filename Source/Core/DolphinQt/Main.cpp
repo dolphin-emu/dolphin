@@ -112,10 +112,10 @@ static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no
 #define main app_main
 #endif
 
-static std::function<void(const std::string&)> script_print_function = [](const std::string& val) {
+static void (*script_print_function)(void*, const char*) = [](void*, const char* val) {
   ::OutputDebugStringW(UTF8ToWString(val).c_str());
 };
-static std::function<void(int)> script_end_function = [](int identifier) {};
+static void (*script_end_function)(void*, int) = [](void*, int identifier) {};
 
 int main(int argc, char* argv[])
 {
@@ -197,12 +197,8 @@ int main(int argc, char* argv[])
     starting_script_path = static_cast<const char*>(options.get("script"));
     if (starting_script_path.has_value())
     {
-      DefinedScriptingLanguagesEnum script_language = DefinedScriptingLanguagesEnum::LUA;
-      if (starting_script_path.value().ends_with(".py"))
-        script_language = DefinedScriptingLanguagesEnum::PYTHON;
       Scripting::ScriptUtilities::InitializeScript(-1, starting_script_path.value(),
-                                                   &script_print_function, &script_end_function,
-                                                   script_language);
+                                                   script_print_function, script_end_function);
     }
   }
 

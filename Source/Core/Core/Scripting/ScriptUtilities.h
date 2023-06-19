@@ -5,7 +5,6 @@
 #include <mutex>
 #include <string>
 #include <vector>
-#include "Core/Scripting/LanguageDefinitions/DefinedScriptingLanguagesEnum.h"
 #include "Core/Scripting/HelperClasses/ScriptContext.h"
 
 namespace Scripting::ScriptUtilities
@@ -23,10 +22,10 @@ extern std::mutex graphics_callback_running_lock;
 
 bool IsScriptingCoreInitialized();
 
-void InitializeScript(int unique_script_identifier, const std::string& script_location,
-                      std::function<void(const std::string&)>* new_print_callback,
-                      std::function<void(int)>* new_script_end_callback,
-                      DefinedScriptingLanguagesEnum language);
+void InitializeScript(
+    int unique_script_identifier, const std::string& script_location,
+    Dolphin_Defined_ScriptContext_APIs::PRINT_CALLBACK_FUNCTION_TYPE new_print_callback,
+    Dolphin_Defined_ScriptContext_APIs::SCRIPT_END_CALLBACK_FUNCTION_TYPE new_script_end_callback);
 
 void StopScript(int unique_script_identifier);
 

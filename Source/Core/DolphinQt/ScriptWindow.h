@@ -30,9 +30,6 @@ private:
   void OnScriptFinish();
   void UpdateButtonText();
 
-  std::function<void(const std::string&)> callback_print_function;
-  std::function<void(int)> finished_script_callback_function;
-
   QListWidget* script_output_list_widget_ptr;
   QListWidget* script_name_list_widget_ptr;
   NonDefaultQPushButton* m_load_script_button;

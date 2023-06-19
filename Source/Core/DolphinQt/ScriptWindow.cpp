@@ -9,18 +9,29 @@
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/Settings.h"
 
+static void (*callback_print_function)(void*, const char*);
+static void (*finished_script_callback_function)(void*, int);
+
+static ScriptWindow* copy_of_window = nullptr;
+
+static ScriptWindow* GetThis()
+{
+  return copy_of_window;
+}
+
 ScriptWindow::ScriptWindow(QWidget* parent) : QDialog(parent)
 {
+  copy_of_window = this;
   next_unique_identifier = 1;
-  callback_print_function = [this](const std::string& message) {
-    std::lock_guard<std::mutex> lock(print_lock);
-    output_lines.push_back(message);
-    QueueOnObject(this, &ScriptWindow::UpdateOutputWindow);
+  callback_print_function = [](void* x, const char* message) {
+    std::lock_guard<std::mutex> lock(GetThis()->print_lock);
+    GetThis()->output_lines.push_back(message);
+    QueueOnObject(GetThis(), &ScriptWindow::UpdateOutputWindow);
   };
 
-  finished_script_callback_function = [this](int unique_identifier) {
-    ids_of_scripts_to_stop.push(unique_identifier);
-    QueueOnObject(this, &ScriptWindow::OnScriptFinish);
+  finished_script_callback_function = [](void* x, int unique_identifier) {
+    GetThis()->ids_of_scripts_to_stop.push(unique_identifier);
+    QueueOnObject(GetThis(), &ScriptWindow::OnScriptFinish);
   };
 
   CreateMainLayout();
@@ -125,14 +136,9 @@ void ScriptWindow::PlayScriptFunction()
       script_name_list_widget_ptr->currentItem()->text().toStdString();
   script_start_or_stop_lock.unlock();
 
-  if (current_script_name.substr(current_script_name.length() - 3) == ".py")
     Scripting::ScriptUtilities::InitializeScript(
-        current_row, current_script_name, &callback_print_function,
-        &finished_script_callback_function, DefinedScriptingLanguagesEnum::PYTHON);
-  else
-    Scripting::ScriptUtilities::InitializeScript(
-        current_row, current_script_name, &callback_print_function,
-        &finished_script_callback_function, DefinedScriptingLanguagesEnum::LUA);
+        current_row, current_script_name, callback_print_function,
+        finished_script_callback_function);
 
   row_num_to_is_running[current_row] = true;
 }

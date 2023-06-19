@@ -28,6 +28,8 @@
 #include "Core/System.h"
 #include "Core/Core.h"
 #include <iostream>
+#include <fstream>
+#include <filesystem>
 
 
 namespace Scripting::ScriptUtilities
@@ -54,6 +56,9 @@ static GCButton_APIs gcButton_apis = {};
 static VectorOfArgHolders_APIs vectorOfArgHolders_apis = {};
 static Dolphin_Defined_ScriptContext_APIs dolphin_defined_scriptContext_apis = {};
 
+static bool initialized_dlls = false;
+
+static std::unordered_map<std::string, Common::DynamicLibrary*> file_extension_to_dll_map = std::unordered_map<std::string, Common::DynamicLibrary*>();
 
 // Validates that there's no NULL variables in the API struct passed in as an argument.
 static bool ValidateApiStruct(void* start_of_struct, unsigned int struct_size, const char* struct_name)
@@ -240,20 +245,119 @@ static void InitializeDolphinApiStructs()
   initialized_dolphin_api_structs = true;
 }
 
+typedef void (*exported_dll_func_type)(void*);
+
+void InitializeDLLs()
+{
+std::string dll_suffix = "";
+#if defined(_WIN32)
+  dll_suffix = ".dll";
+#elif defined(__APPLE__)
+  dll_suffix = ".dylib";
+#else
+  dll_suffix = ".so";
+#endif
+
+  const char* script_utilities_source_path = __FILE__; // This gives us the path to the ScriptUtilities.cpp file. Now, we need to do some String manipulation to get the root Dolphin directory (the directory that contains the Plugins folder)
+  unsigned long long str_index = strlen(script_utilities_source_path) - 1;
+  unsigned int num_slashes = 0;
+  while (str_index > 0)
+  {
+    if (script_utilities_source_path[str_index] == '/' ||
+        script_utilities_source_path[str_index] == '\\')
+    {
+      ++num_slashes;
+      if (num_slashes >= 4)
+        break;
+    }
+    --str_index;
+  }
+  if (num_slashes < 4)
+    return; // This only happens when an error has occured.
+
+  std::filesystem::path base_plugins_directory = std::string(script_utilities_source_path).substr(0, str_index) + "/Plugins";
+  for (auto const& dir_entry : std::filesystem::directory_iterator(base_plugins_directory))
+  {
+    if (dir_entry.is_directory())
+    {
+      std::string current_dir = std::string(dir_entry.path().generic_string());
+      std::string extensions_file_name = "";
+      if (current_dir[current_dir.length() - 1] == '/' ||
+          current_dir[current_dir.length() - 1] == '\\')
+        extensions_file_name = current_dir + "extensions.txt";
+      else
+        extensions_file_name = current_dir + "/extensions.txt";
+      std::ifstream extension_file(extensions_file_name.c_str());
+      std::string current_line = "";
+      std::string trimmed_extension = "";
+      while (std::getline(extension_file, current_line))
+      {
+        trimmed_extension = "";
+        for (int i = 0; i < current_line.length(); ++i)
+        {
+          if (!std::isblank(current_line[i]))
+          {
+            char temp[1] = {current_line[i]};
+            trimmed_extension.append(temp, 1);
+          }
+        }
+        if (trimmed_extension.length() == 0)
+          continue;
+
+        if (file_extension_to_dll_map.contains(trimmed_extension))
+        {
+          // Error: this means that 2 file extensions map to the same type, which isn't allowed!
+          return;
+        }
+      }
+      // Now, we need to find a dll file in this folder
+      for (auto const& inner_file_iterator : std::filesystem::directory_iterator(dir_entry))
+      {
+        if (!inner_file_iterator.is_directory())
+        {
+          std::string current_file_name = inner_file_iterator.path().generic_string();
+          if (current_file_name.length() > dll_suffix.length() &&
+              current_file_name.substr(current_file_name.length() - dll_suffix.length()) ==
+                  dll_suffix)
+          {
+            file_extension_to_dll_map[trimmed_extension] = std::make_shared<Common::DynamicLibrary>(new Common::DynamicLibrary(current_file_name.c_str())).get();
+            reinterpret_cast<exported_dll_func_type>(file_extension_to_dll_map[trimmed_extension]->GetSymbolAddress("Init_ArgHolder_APIs"))(&argHolder_apis);
+            reinterpret_cast<exported_dll_func_type>(file_extension_to_dll_map[trimmed_extension]->GetSymbolAddress("Init_ClassFunctionsResolver_APIs"))(&classFunctionsResolver_apis);
+            reinterpret_cast<exported_dll_func_type>(file_extension_to_dll_map[trimmed_extension]->GetSymbolAddress("Init_ClassMetadata_APIs"))(&classMetadata_apis);
+            reinterpret_cast<exported_dll_func_type>(file_extension_to_dll_map[trimmed_extension]->GetSymbolAddress("Init_FileUtility_APIs"))(&fileUtility_apis);
+            reinterpret_cast<exported_dll_func_type>(file_extension_to_dll_map[trimmed_extension]->GetSymbolAddress("Init_FunctionMetadata_APIs"))(&functionMetadata_apis);
+            reinterpret_cast<exported_dll_func_type>(file_extension_to_dll_map[trimmed_extension]->GetSymbolAddress("Init_GCButton_APIs"))(&gcButton_apis);
+            reinterpret_cast<exported_dll_func_type>(file_extension_to_dll_map[trimmed_extension]->GetSymbolAddress("Init_ScriptContext_APIs"))(&dolphin_defined_scriptContext_apis);
+            reinterpret_cast<exported_dll_func_type>(file_extension_to_dll_map[trimmed_extension]->GetSymbolAddress("Init_VectorOfArgHolders_APIs"))(&vectorOfArgHolders_apis);
+            break;
+          }
+
+        }
+      }
+    }
+  }
+  initialized_dlls = true;
+}
+
 
 bool IsScriptingCoreInitialized()
 {
   return global_pointer_to_list_of_all_scripts != nullptr;
 }
 
-typedef unsigned long long (*testType)(unsigned long long);
 
-void InitializeScript(int unique_script_identifier, const std::string& script_filename,
-                      std::function<void(const std::string&)>* new_print_callback,
-                      std::function<void(int)>* new_script_end_callback,
-                      DefinedScriptingLanguagesEnum language)
+typedef void* (*create_new_script_func_type)(
+    int, const char*, Dolphin_Defined_ScriptContext_APIs::PRINT_CALLBACK_FUNCTION_TYPE,
+    Dolphin_Defined_ScriptContext_APIs::SCRIPT_END_CALLBACK_FUNCTION_TYPE);
+
+void InitializeScript(
+    int unique_script_identifier, const std::string& script_filename,
+                     Dolphin_Defined_ScriptContext_APIs::PRINT_CALLBACK_FUNCTION_TYPE new_print_callback,
+                      Dolphin_Defined_ScriptContext_APIs::SCRIPT_END_CALLBACK_FUNCTION_TYPE new_script_end_callback)
 {
   Core::CPUThreadGuard lock(Core::System::GetInstance());
+  if (script_filename.length() < 1)
+    return;
   initialization_and_destruction_lock.lock();
   global_code_and_frame_callback_running_lock.lock();
 
@@ -264,20 +368,28 @@ void InitializeScript(int unique_script_identifier, const std::string& script_fi
   {
     global_pointer_to_list_of_all_scripts = new std::vector<ScriptContext*>();
   }
-  /*
-  if (language == DefinedScriptingLanguagesEnum::LUA)
+
+  if (!initialized_dlls)
   {
-    global_pointer_to_list_of_all_scripts->push_back(new Scripting::Lua::LuaScriptContext(
-        unique_script_identifier, script_filename, global_pointer_to_list_of_all_scripts,
-        new_print_callback, new_script_end_callback));
+    InitializeDLLs();
   }
-  else if (language == DefinedScriptingLanguagesEnum::PYTHON)
-  {
-    global_pointer_to_list_of_all_scripts->push_back(new Scripting::Python::PythonScriptContext(
-        unique_script_identifier, script_filename, global_pointer_to_list_of_all_scripts,
-        new_print_callback, new_script_end_callback));
-  }
-  */
+
+  std::string file_suffix = "";
+  for (unsigned long long i = script_filename.length() - 1; i > 0; --i)
+    if (script_filename[i] == '.')
+    {
+      file_suffix = script_filename.substr(i);
+      break;
+    }
+
+  if (file_suffix.empty() || !file_extension_to_dll_map.contains(file_suffix))
+    file_suffix = ".lua"; // Lua is the default language to try if we encounter an unknown file type.
+
+  global_pointer_to_list_of_all_scripts->push_back(reinterpret_cast<ScriptContext*>(reinterpret_cast<create_new_script_func_type>(
+      file_extension_to_dll_map[file_suffix]->GetSymbolAddress("CreateNewScript"))(
+      unique_script_identifier, script_filename.c_str(), new_print_callback,
+      new_script_end_callback)));
+
   global_code_and_frame_callback_running_lock.unlock();
   initialization_and_destruction_lock.unlock();
 }
