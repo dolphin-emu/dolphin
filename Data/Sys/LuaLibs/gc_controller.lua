@@ -42,7 +42,8 @@ function isDigitalButton(standardizedButtonName)
 	if standardizedButtonName == "A" or standardizedButtonName == "B" or standardizedButtonName == "X" or standardizedButtonName == "Y"
 	or standardizedButtonName == "Z" or standardizedButtonName == "L" or standardizedButtonName == "R" or standardizedButtonName == "dPadUp"
 	or standardizedButtonName == "dPadDown" or standardizedButtonName == "dPadLeft" or standardizedButtonName == "dPadRight"
-	or standardizedButtonName == "Start" or standardizedButtonName == "Reset" then
+	or standardizedButtonName == "Start" or standardizedButtonName == "Reset" or standardizedButtonName == "disc" or standardizedButtonName == "getOrigin"
+	or standardizedButtonName == "isConnected" then
 		return true
 	else
 		return false
@@ -119,6 +120,9 @@ uppercaseInputButtonNameToFunctionSwitchTable = {
 	["DPADRIGHT"] = function () return "dPadRight" end,
 	["START"] = function () return "Start" end,
 	["RESET"] = function () return "Reset" end,
+	["DISC"] = function () return "disc" end,
+	["GETORIGIN"] = function () return "getOrigin" end,
+	["ISCONNECTED"] = function () return  "isConnected" end,
 	["TRIGGERL"] = function () return "triggerL" end,
 	["TRIGGERR"] = function () return "triggerR" end,
 	["ANALOGSTICKX"] = function () return "analogStickX" end,
@@ -272,6 +276,9 @@ function clearControllerStateToDefaultValues(inputtedControllerState)
 	inputtedControllerState["dPadRight"] = false
 	inputtedControllerState["Start"] = false
 	inputtedControllerState["Reset"] = false
+	inputtedControllerState["disc"] = false
+	inputtedControllerState["getOrigin"] = false
+	inputtedControllerState["isConnected"] = true
 	inputtedControllerState["triggerL"] = 0
 	inputtedControllerState["triggerR"] = 0
 	inputtedControllerState["analogStickX"] = 128

@@ -23,15 +23,16 @@ void* castToVoidPtr(ArgHolder* input)
 
 int GetArgType_ArgHolder_impl(void* arg_holder_ptr)
 {
-  return (int)castToArgHolderPtr(arg_holder_ptr)->argument_type;
+  ArgHolder* castedArgHolderPtr = castToArgHolderPtr(arg_holder_ptr);
+  return (int)castedArgHolderPtr->argument_type;
 }
 
 int GetIsEmpty_ArgHolder_impl(void* arg_holder_ptr)
 {
   if (castToArgHolderPtr(arg_holder_ptr)->contains_value)
-    return 1;
-  else
     return 0;
+  else
+    return 1;
 }
 
 void* CreateEmptyOptionalArgHolder_API_impl()
