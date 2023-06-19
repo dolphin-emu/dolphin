@@ -122,7 +122,12 @@ public final class DirectoryInitialization
 
     File cacheDir = context.getExternalCacheDir();
     if (cacheDir == null)
-      return false;
+    {
+      // In some custom ROMs getExternalCacheDir might return null for some reasons. If that is the case, fallback to getCacheDir which seems to work just fine.
+      cacheDir = context.getCacheDir();
+      if (cacheDir == null)
+        return false;
+    }
 
     Log.debug("[DirectoryInitialization] Cache Dir: " + cacheDir.getPath());
     NativeLibrary.SetCacheDirectory(cacheDir.getPath());
@@ -236,7 +241,7 @@ public final class DirectoryInitialization
 
   public static File getGameListCache(Context context)
   {
-    return new File(context.getExternalCacheDir(), "gamelist.cache");
+    return new File(NativeLibrary.GetCacheDirectory(), "gamelist.cache");
   }
 
   private static boolean copyAsset(String asset, File output, Context context)

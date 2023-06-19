@@ -382,6 +382,12 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetCacheDire
   File::SetUserPath(D_CACHE_IDX, GetJString(env, jDirectory));
 }
 
+JNIEXPORT jstring JNICALL
+Java_org_dolphinemu_dolphinemu_NativeLibrary_GetCacheDirectory(JNIEnv* env, jclass)
+{
+  return ToJString(env, File::GetUserPath(D_CACHE_IDX));
+}
+
 JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_DefaultCPUCore(JNIEnv*, jclass)
 {
   return static_cast<jint>(PowerPC::DefaultCPUCore());
