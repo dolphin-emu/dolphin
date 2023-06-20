@@ -264,6 +264,7 @@ std::string SlippiUser::getUserFilePath()
       File::GetBundleDirectory() + "/Contents/Resources" + DIR_SEP + "user.json";
 #else
   std::string user_file_path = File::GetUserPath(F_USERJSON_IDX);
+  INFO_LOG_FMT(SLIPPI, "{}", user_file_path);
 #endif
   return user_file_path;
 }

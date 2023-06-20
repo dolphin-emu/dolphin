@@ -15,6 +15,7 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
+#include "Core/Config/Mainsettings.h"
 #include "Core/ConfigManager.h"
 
 #include "InputCommon/ControllerEmu/Control/Input.h"
@@ -475,9 +476,9 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
   set_key_expression(HK_UNDO_LOAD_STATE, "F12");
   set_key_expression(HK_UNDO_SAVE_STATE, hotkey_string({"Shift", "F12"}));
 
-// Slippi Playback
+  // Slippi Playback
 #ifdef IS_PLAYBACK
-  if (SConfig::GetInstance().m_slippiEnableSeek)
+  if (Config::Get(Config::SLIPPI_ENABLE_SEEK))
   {
 #ifdef _WIN32
 
@@ -502,31 +503,32 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
     set_key_expression(HK_SLIPPI_STEP_FORWARD, "`Right`");
     set_key_expression(HK_SLIPPI_JUMP_FORWARD, hotkey_string({"Shift", "`Right`"}));
 #endif
+  }
 #endif
 
-    // GBA
-    set_key_expression(HK_GBA_LOAD, hotkey_string({"`Ctrl`", "`Shift`", "`O`"}));
-    set_key_expression(HK_GBA_UNLOAD, hotkey_string({"`Ctrl`", "`Shift`", "`W`"}));
-    set_key_expression(HK_GBA_RESET, hotkey_string({"`Ctrl`", "`Shift`", "`R`"}));
+  // GBA
+  set_key_expression(HK_GBA_LOAD, hotkey_string({"`Ctrl`", "`Shift`", "`O`"}));
+  set_key_expression(HK_GBA_UNLOAD, hotkey_string({"`Ctrl`", "`Shift`", "`W`"}));
+  set_key_expression(HK_GBA_RESET, hotkey_string({"`Ctrl`", "`Shift`", "`R`"}));
 
 #ifdef _WIN32
-    set_key_expression(HK_GBA_VOLUME_DOWN, "`SUBTRACT`");
-    set_key_expression(HK_GBA_VOLUME_UP, "`ADD`");
+  set_key_expression(HK_GBA_VOLUME_DOWN, "`SUBTRACT`");
+  set_key_expression(HK_GBA_VOLUME_UP, "`ADD`");
 #else
   set_key_expression(HK_GBA_VOLUME_DOWN, "`KP_Subtract`");
   set_key_expression(HK_GBA_VOLUME_UP, "`KP_Add`");
 #endif
-    set_key_expression(HK_GBA_TOGGLE_MUTE, "`M`");
+  set_key_expression(HK_GBA_TOGGLE_MUTE, "`M`");
 
 #ifdef _WIN32
-    set_key_expression(HK_GBA_1X, "`NUMPAD1`");
-    set_key_expression(HK_GBA_2X, "`NUMPAD2`");
-    set_key_expression(HK_GBA_3X, "`NUMPAD3`");
-    set_key_expression(HK_GBA_4X, "`NUMPAD4`");
+  set_key_expression(HK_GBA_1X, "`NUMPAD1`");
+  set_key_expression(HK_GBA_2X, "`NUMPAD2`");
+  set_key_expression(HK_GBA_3X, "`NUMPAD3`");
+  set_key_expression(HK_GBA_4X, "`NUMPAD4`");
 #else
   set_key_expression(HK_GBA_1X, "`KP_1`");
   set_key_expression(HK_GBA_2X, "`KP_2`");
   set_key_expression(HK_GBA_3X, "`KP_3`");
   set_key_expression(HK_GBA_4X, "`KP_4`");
 #endif
-  }
+}

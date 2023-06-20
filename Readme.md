@@ -179,6 +179,8 @@ Options:
                         Set a configuration option
   -s <file>, --save_state=<file>
                         Load the initial save state
+  -i <file>, --slippi_input=<file>
+                        Load replay
   -d, --debugger        Show the debugger pane and additional View menu options
   -l, --logger          Open the logger
   -b, --batch           Run Dolphin without the user interface (Requires

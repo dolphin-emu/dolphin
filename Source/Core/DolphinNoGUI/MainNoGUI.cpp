@@ -122,10 +122,18 @@ void Host_TitleChanged()
 #endif
 }
 
-void Host_LowerWindow() {}
-void Host_Exit() {}
-void Host_PlaybackSeek() {}
-void Host_Fullscreen() {}
+void Host_LowerWindow()
+{
+}
+void Host_Exit()
+{
+}
+void Host_PlaybackSeek()
+{
+}
+void Host_Fullscreen()
+{
+}
 void Host_UpdateDiscordClientID(const std::string& client_id)
 {
 #ifdef USE_DISCORD_PRESENCE
@@ -264,7 +272,7 @@ int main(int argc, char* argv[])
   if (options.is_set("slippi_input"))
   {
     slippi_input_path = static_cast<const char*>(options.get("slippi_input"));
-    SConfig::GetInstance().m_strSlippiInput = slippi_input_path.value();
+    SConfig::GetSlippiConfig().slippi_input = slippi_input_path.value();
   }
 #endif
 

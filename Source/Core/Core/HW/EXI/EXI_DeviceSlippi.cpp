@@ -788,7 +788,7 @@ void CEXISlippi::prepareGameInfo(u8* payload)
   if (replayCommSettings.rollbackDisplayMethod == "off" &&
       (replayCommSettings.mode == "normal" || replayCommSettings.mode == "queue"))
   {
-    g_playbackStatus->startThreads();
+    // g_playbackStatus->startThreads();
   }
 }
 

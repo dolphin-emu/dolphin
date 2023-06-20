@@ -18,9 +18,9 @@ namespace Common
 #endif
 
 #ifndef IS_PLAYBACK
-#define SLIPPI_REV_STR "2.4.0"  // netplay version
+#define SLIPPI_REV_STR "3.1.0"  // netplay version
 #else
-#define SLIPPI_REV_STR "2.4.1"  // playback version
+#define SLIPPI_REV_STR "3.1.0"  // playback version
 #endif
 
 const std::string& GetSemVerStr()

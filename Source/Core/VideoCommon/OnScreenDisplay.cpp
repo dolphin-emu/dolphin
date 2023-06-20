@@ -19,6 +19,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Slippi/SlippiPlayback.h"
+#include "Core/System.h"
 
 #ifdef IS_PLAYBACK
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
@@ -29,7 +30,7 @@
 #include "Common/Logging/Log.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
-#include "VideoCommon/IconsFontAwesome4.h"
+#include "VideoCommon/IconsMaterialDesign.h"
 
 extern std::unique_ptr<SlippiPlaybackStatus> g_playbackStatus;
 #endif
@@ -212,11 +213,10 @@ bool ButtonCustom(const char* label, const ImVec2& size_arg,
   ImVec2 pos = window->DC.CursorPos;
   if ((flags & ImGuiButtonFlags_AlignTextBaseLine) &&
       style.FramePadding.y <
-          window->DC
-              .CurrentLineTextBaseOffset)  // Try to vertically align buttons that are smaller/have
-                                           // no padding so that text baseline matches (bit hacky,
-                                           // since it shouldn't be a flag)
-    pos.y += window->DC.CurrentLineTextBaseOffset - style.FramePadding.y;
+          window->DC.CurrLineTextBaseOffset)  // Try to vertically align buttons that are
+                                              // smaller/have no padding so that text baseline
+                                              // matches (bit hacky, since it shouldn't be a flag)
+    pos.y += window->DC.CurrLineTextBaseOffset - style.FramePadding.y;
   ImVec2 size = ImGui::CalcItemSize(size_arg, label_size.x + style.FramePadding.x * 2.0f,
                                     label_size.y + style.FramePadding.y * 2.0f);
 
@@ -225,7 +225,7 @@ bool ButtonCustom(const char* label, const ImVec2& size_arg,
   if (!ImGui::ItemAdd(bb, id))
     return false;
 
-  if (window->DC.ItemFlags & ImGuiItemFlags_ButtonRepeat)
+  if (g.CurrentItemFlags & ImGuiItemFlags_ButtonRepeat)
     flags |= ImGuiButtonFlags_Repeat;
   bool hovered, held;
   bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, flags);
@@ -252,7 +252,7 @@ bool ButtonCustom(const char* label, const ImVec2& size_arg,
   // ImGuiWindowFlags_Popup))
   //    CloseCurrentPopup();
 
-  IMGUI_TEST_ENGINE_ITEM_INFO(id, label, window->DC.LastItemStatusFlags);
+  IMGUI_TEST_ENGINE_ITEM_INFO(id, label, g.LastItemData.StatusFlags);
   return pressed;
 }
 
@@ -356,10 +356,10 @@ bool SeekBarBehavior(const ImRect& bb, ImGuiID id, int* v, int v_min, int v_max,
   else
     isHeld = hovered && isDown;
 
-  float new_grab_t = ImGui::ScaleRatioFromValueT<int, float>(ImGuiDataType_S32, new_value, v_min,
-                                                             v_max, power, linear_zero_pos);
-  float curr_grab_t = ImGui::ScaleRatioFromValueT<int, float>(ImGuiDataType_S32, *v, v_min, v_max,
-                                                              power, linear_zero_pos);
+  float new_grab_t = ImGui::ScaleRatioFromValueT<int, int, float>(
+      ImGuiDataType_S32, new_value, v_min, v_max, false, linear_zero_pos, 0.0f);
+  float curr_grab_t = ImGui::ScaleRatioFromValueT<int, int, float>(
+      ImGuiDataType_S32, *v, v_min, v_max, false, linear_zero_pos, 0.0f);
 
   if (axis == ImGuiAxis_Y)
   {
@@ -511,8 +511,8 @@ bool VolumeBarBehavior(const ImRect& bb, ImGuiID id, int* v, int v_min, int v_ma
 
   isHeld = isHeld ? isHeld && isDown : hovered && isDown;
 
-  float grab_t = ImGui::ScaleRatioFromValueT<int, float>(ImGuiDataType_S32, *v, v_min, v_max, power,
-                                                         linear_zero_pos);
+  float grab_t = ImGui::ScaleRatioFromValueT<int, int, float>(ImGuiDataType_S32, *v, v_min, v_max,
+                                                              power, linear_zero_pos, 0.0f);
   if (axis == ImGuiAxis_Y)
   {
     grab_t = 1.0f - grab_t;
@@ -559,6 +559,7 @@ bool SeekBar(const char* label, ImVec4 color, int* v, int v_min, int v_max, floa
   char value_buf[64];
   const char* value_buf_end =
       value_buf + ImFormatString(value_buf, IM_ARRAYSIZE(value_buf), format, *v);
+  // SLIPPI TODO: rewrite with https://github.com/ocornut/imgui/blob/master/imgui_widgets.cpp#L2987
   const bool value_changed =
       SeekBarBehavior(frame_bb, id, v, v_min, v_max, power, ImGuiSliderFlags_None, color,
                       ImGui::CalcTextSize(value_buf, NULL, true), value_buf_end, value_buf);
@@ -641,7 +642,7 @@ void DrawSlippiPlaybackControls()
     //  INFO_LOG_FMT(SLIPPI, "playing");
     //}
     // ImGui::SameLine(0.0f, 5.0f);
-    if (ButtonCustom(ICON_FA_FAST_BACKWARD, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
+    if (ButtonCustom(ICON_MD_FAST_REWIND, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
     {
       if (g_playbackStatus->targetFrameNum == INT_MAX)
       {
@@ -661,7 +662,7 @@ void DrawSlippiPlaybackControls()
 
     // Step back
     ImGui::SetCursorPos(ImVec2(BUTTON_WIDTH, height - scaled_height * 0.0265f));
-    if (ButtonCustom(ICON_FA_STEP_BACKWARD, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
+    if (ButtonCustom(ICON_MD_FIRST_PAGE, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
     {
       if (g_playbackStatus->targetFrameNum == INT_MAX)
       {
@@ -681,7 +682,7 @@ void DrawSlippiPlaybackControls()
 
     // Step forward
     ImGui::SetCursorPos(ImVec2(BUTTON_WIDTH * 2, height - scaled_height * 0.0265f));
-    if (ButtonCustom(ICON_FA_STEP_FORWARD, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
+    if (ButtonCustom(ICON_MD_LAST_PAGE, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
     {
       if (g_playbackStatus->targetFrameNum == INT_MAX)
       {
@@ -701,7 +702,7 @@ void DrawSlippiPlaybackControls()
 
     // Jump forward
     ImGui::SetCursorPos(ImVec2(BUTTON_WIDTH * 3, height - scaled_height * 0.0265f));
-    if (ButtonCustom(ICON_FA_FAST_FORWARD, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
+    if (ButtonCustom(ICON_MD_FAST_FORWARD, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
     {
       if (g_playbackStatus->targetFrameNum == INT_MAX)
       {
@@ -722,32 +723,34 @@ void DrawSlippiPlaybackControls()
     // Volume
     static bool isIconHovered = false;
     static bool isVolumeVisible = false;
-    int* volume = &SConfig::GetInstance().m_Volume;
+    int volume = Config::Get(Config::MAIN_AUDIO_VOLUME);
     static int prev;
     ImGui::SetCursorPos(ImVec2(BUTTON_WIDTH * 4, height - scaled_height * 0.0265f));
-    if (ButtonCustom(*volume == 0 ? ICON_FA_VOLUME_OFF : ICON_FA_VOLUME_UP,
+    if (ButtonCustom(volume == 0 ? ICON_MD_VOLUME_OFF : ICON_MD_VOLUME_UP,
                      ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
     {
-      if (*volume == 0)
+      if (volume == 0)
       {
-        *volume = prev == 0 ? 30 : prev;  // todo: find good default value
+        volume = prev == 0 ? 30 : prev;  // todo: find good default value
       }
       else
       {
-        prev = *volume;
-        *volume = 0;
+        prev = volume;
+        volume = 0;
       }
-      AudioCommon::UpdateSoundStream();
+      Config::SetBaseOrCurrent(Config::MAIN_AUDIO_VOLUME, volume);
+      AudioCommon::UpdateSoundStream(Core::System::GetInstance());
     }
 
-    if (VolumeBar("SlippiVolume", ImVec4(1.0f, 0.0f, 0.0f, 1.0f), volume, 0, 100, 1.0))
+    if (VolumeBar("SlippiVolume", ImVec4(1.0f, 0.0f, 0.0f, 1.0f), &volume, 0, 100, 1.0))
     {
-      AudioCommon::UpdateSoundStream();
+      Config::SetBaseOrCurrent(Config::MAIN_AUDIO_VOLUME, volume);
+      AudioCommon::UpdateSoundStream(Core::System::GetInstance());
     }
 
     // Help
     ImGui::SetCursorPos(ImVec2(width - BUTTON_WIDTH * 3, height - scaled_height * 0.0265f));
-    if (ButtonCustom(ICON_FA_QUESTION_CIRCLE, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
+    if (ButtonCustom(ICON_MD_HELP, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
     {
       show_help = !show_help;
       show_settings = false;
@@ -794,7 +797,7 @@ void DrawSlippiPlaybackControls()
 
     // Settings
     ImGui::SetCursorPos(ImVec2(width - BUTTON_WIDTH * 2, height - scaled_height * 0.0265f));
-    if (ButtonCustom(ICON_FA_COG, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
+    if (ButtonCustom(ICON_MD_SETTINGS, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
     {
       show_settings = !show_settings;
       show_help = false;
@@ -829,7 +832,7 @@ void DrawSlippiPlaybackControls()
               ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.0f)),
               ImGui::ColorConvertFloat4ToU32(ImVec4(255.0f, 255.0f, 255.0f, 0.3f * style.Alpha))))
       {
-        SConfig::GetInstance().m_EmulationSpeed = 0.25f;
+        Config::SetCurrent(Config::MAIN_EMULATION_SPEED, 0.25f);
       }
 
       ImGui::SetCursorPos(
@@ -839,7 +842,7 @@ void DrawSlippiPlaybackControls()
               ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.0f)),
               ImGui::ColorConvertFloat4ToU32(ImVec4(255.0f, 255.0f, 255.0f, 0.3f * style.Alpha))))
       {
-        SConfig::GetInstance().m_EmulationSpeed = 0.5f;
+        Config::SetCurrent(Config::MAIN_EMULATION_SPEED, 0.5f);
       }
 
       ImGui::SetCursorPos(
@@ -849,7 +852,7 @@ void DrawSlippiPlaybackControls()
               ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.0f)),
               ImGui::ColorConvertFloat4ToU32(ImVec4(255.0f, 255.0f, 255.0f, 0.3f * style.Alpha))))
       {
-        SConfig::GetInstance().m_EmulationSpeed = 1.0f;
+        Config::SetCurrent(Config::MAIN_EMULATION_SPEED, 1.0f);
       }
     }
     if (ImGui::IsItemHovered() && !show_settings)
@@ -864,7 +867,7 @@ void DrawSlippiPlaybackControls()
 
     // Fullscreen
     ImGui::SetCursorPos(ImVec2(width - BUTTON_WIDTH, height - scaled_height * 0.0265f));
-    if (ButtonCustom(ICON_FA_EXPAND, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
+    if (ButtonCustom(ICON_MD_OPEN_IN_FULL, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
     {
       Host_Fullscreen();
     }

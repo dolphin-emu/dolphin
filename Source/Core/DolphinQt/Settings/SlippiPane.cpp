@@ -171,7 +171,7 @@ void SlippiPane::CreateLayout()
   auto* playback_settings = new QGroupBox(tr("Playback Settings"));
   auto* playback_settings_layout = new QVBoxLayout();
   playback_settings->setLayout(playback_settings_layout);
-  layout->addWidget(playback_settings);
+  m_main_layout->addWidget(playback_settings);
 
   auto* enable_playback_seek_checkbox = new QCheckBox(tr("Enable Seekbar"));
   char seekbarTooltip[] = "<html><head/><body><p>Enables video player style controls while "
@@ -182,9 +182,9 @@ void SlippiPane::CreateLayout()
                           "Period (while paused): Advance one frame";
   enable_playback_seek_checkbox->setToolTip(tr(seekbarTooltip));
   playback_settings_layout->addWidget(enable_playback_seek_checkbox);
-  enable_playback_seek_checkbox->setChecked(SConfig::GetInstance().m_slippiEnableSeek);
+  enable_playback_seek_checkbox->setChecked(Config::Get(Config::SLIPPI_ENABLE_SEEK));
   connect(enable_playback_seek_checkbox, &QCheckBox::toggled, this,
-          [](bool checked) { SConfig::GetInstance().m_slippiEnableSeek = checked; });
+          [](bool checked) { Config::SetBaseOrCurrent(Config::SLIPPI_ENABLE_SEEK, checked); });
 #endif
 }
 
