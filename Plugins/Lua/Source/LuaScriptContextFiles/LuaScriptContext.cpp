@@ -579,7 +579,7 @@ void ImportModule_impl(void* base_script_ptr, const char* api_name, const char* 
       if (argHolder_APIs.GetIsEmpty(return_value))
       {
         lua_pushnil(lua_state);
-        freeAndReturn(return_value, 0);
+        return freeAndReturn(return_value, 0);
       }
 
       switch (((ArgTypeEnum)argHolder_APIs.GetArgType(return_value)))
