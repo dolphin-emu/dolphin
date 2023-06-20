@@ -267,7 +267,7 @@ bool TextureCacheBase::DidLinkedAssetsChange(const TCacheEntry& entry)
     return false;
 
   const auto last_asset_write_time = entry.linked_asset.m_asset->GetLastLoadedTime();
-  return last_asset_write_time > entry.linked_asset.m_last_write_time;
+  return last_asset_write_time > entry.linked_asset.m_cached_write_time;
 }
 
 RcTcacheEntry TextureCacheBase::ApplyPaletteToEntry(RcTcacheEntry& entry, const u8* palette,
@@ -1590,7 +1590,7 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
     InvalidateTexture(oldest_entry);
   }
 
-  CachedTextureAsset cached_texture_asset;
+  VideoCommon::CachedAsset<VideoCommon::GameTextureAsset> cached_texture_asset;
   std::shared_ptr<VideoCommon::CustomTextureData> data = nullptr;
   bool has_arbitrary_mipmaps = false;
   std::shared_ptr<HiresTexture> hires_texture;

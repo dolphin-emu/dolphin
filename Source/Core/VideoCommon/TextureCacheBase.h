@@ -22,6 +22,7 @@
 #include "Common/MathUtil.h"
 
 #include "VideoCommon/AbstractTexture.h"
+#include "VideoCommon/Assets/CustomAsset.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/TextureConfig.h"
 #include "VideoCommon/TextureDecoder.h"
@@ -115,12 +116,6 @@ struct fmt::formatter<EFBCopyParams>
   }
 };
 
-struct CachedTextureAsset
-{
-  std::shared_ptr<VideoCommon::GameTextureAsset> m_asset;
-  std::optional<std::filesystem::file_time_type> m_last_write_time;
-};
-
 struct TCacheEntry
 {
   // common members
@@ -172,7 +167,7 @@ struct TCacheEntry
 
   std::string texture_info_name = "";
 
-  CachedTextureAsset linked_asset;
+  VideoCommon::CachedAsset<VideoCommon::GameTextureAsset> linked_asset;
 
   explicit TCacheEntry(std::unique_ptr<AbstractTexture> tex,
                        std::unique_ptr<AbstractFramebuffer> fb);

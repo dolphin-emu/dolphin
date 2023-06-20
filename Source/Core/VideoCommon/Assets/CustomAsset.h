@@ -85,4 +85,18 @@ protected:
   std::shared_ptr<UnderlyingType> m_data;
 };
 
+// A helper struct that contains
+// an asset with a last cached write time
+// This can be used to determine if the asset
+// has diverged from the last known state
+// To know if it is time to update other dependencies
+// based on the asset data
+// TODO C++20: use a 'derived_from' concept against 'CustomAsset' when available
+template <typename AssetType>
+struct CachedAsset
+{
+  std::shared_ptr<AssetType> m_asset;
+  VideoCommon::CustomAssetLibrary::TimeType m_cached_write_time;
+};
+
 }  // namespace VideoCommon
