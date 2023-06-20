@@ -22,6 +22,7 @@ public:
   using AssetMap = std::map<std::string, std::filesystem::path>;
 
   LoadInfo LoadTexture(const AssetID& asset_id, CustomTextureData* data) override;
+  LoadInfo LoadTextureWithMetadata(const AssetID& asset_id, TextureAndSamplerData* data) override;
 
   // Gets the latest time from amongst all the files in the asset map
   TimeType GetLastAssetWriteTime(const AssetID& asset_id) const override;
@@ -32,8 +33,10 @@ public:
   void SetAssetIDMapData(const AssetID& asset_id, AssetMap asset_path_map);
 
 private:
+  bool LoadTextureFile(const AssetID& asset_id, const std::filesystem::path& texture_path,
+                       CustomTextureData* data);
   // Loads additional mip levels into the texture structure until _mip<N> texture is not found
-  bool LoadMips(const std::filesystem::path& asset_path, CustomTextureData* data);
+  bool LoadMips(const std::filesystem::path& texture_path, CustomTextureData* data);
 
   // Gets the asset map given an asset id
   AssetMap GetAssetMapForID(const AssetID& asset_id) const;

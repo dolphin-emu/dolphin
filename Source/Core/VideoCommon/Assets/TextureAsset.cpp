@@ -4,9 +4,99 @@
 #include "VideoCommon/Assets/TextureAsset.h"
 
 #include "Common/Logging/Log.h"
+#include "VideoCommon/BPMemory.h"
 
 namespace VideoCommon
 {
+namespace
+{
+bool ParseSampler(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
+                  const picojson::object& json, SamplerState* sampler)
+{
+  if (!sampler) [[unlikely]]
+    return false;
+
+  *sampler = RenderState::GetLinearSamplerState();
+
+  const auto sampler_state_mode_iter = json.find("texture_mode");
+  if (sampler_state_mode_iter == json.end())
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, 'texture_mode' not found", asset_id);
+    return false;
+  }
+  if (!sampler_state_mode_iter->second.is<std::string>())
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, 'texture_mode' is not the right type",
+                  asset_id);
+    return false;
+  }
+  std::string sampler_state_mode = sampler_state_mode_iter->second.to_str();
+  std::transform(sampler_state_mode.begin(), sampler_state_mode.end(), sampler_state_mode.begin(),
+                 [](unsigned char c) { return std::tolower(c); });
+
+  if (sampler_state_mode == "clamp")
+  {
+    sampler->tm0.wrap_u = WrapMode::Clamp;
+    sampler->tm0.wrap_v = WrapMode::Clamp;
+  }
+  else if (sampler_state_mode == "repeat")
+  {
+    sampler->tm0.wrap_u = WrapMode::Repeat;
+    sampler->tm0.wrap_v = WrapMode::Repeat;
+  }
+  else if (sampler_state_mode == "mirrored_repeat")
+  {
+    sampler->tm0.wrap_u = WrapMode::Mirror;
+    sampler->tm0.wrap_v = WrapMode::Mirror;
+  }
+  else
+  {
+    ERROR_LOG_FMT(VIDEO,
+                  "Asset '{}' failed to parse json, 'texture_mode' has an invalid "
+                  "value '{}'",
+                  asset_id, sampler_state_mode);
+    return false;
+  }
+
+  const auto sampler_state_filter_iter = json.find("texture_filter");
+  if (sampler_state_filter_iter == json.end())
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, 'texture_filter' not found", asset_id);
+    return false;
+  }
+  if (!sampler_state_filter_iter->second.is<std::string>())
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, 'texture_filter' is not the right type",
+                  asset_id);
+    return false;
+  }
+  std::string sampler_state_filter = sampler_state_filter_iter->second.to_str();
+  std::transform(sampler_state_filter.begin(), sampler_state_filter.end(),
+                 sampler_state_filter.begin(), [](unsigned char c) { return std::tolower(c); });
+  if (sampler_state_filter == "linear")
+  {
+    sampler->tm0.min_filter = FilterMode::Linear;
+    sampler->tm0.mag_filter = FilterMode::Linear;
+    sampler->tm0.mipmap_filter = FilterMode::Linear;
+  }
+  else if (sampler_state_filter == "point")
+  {
+    sampler->tm0.min_filter = FilterMode::Linear;
+    sampler->tm0.mag_filter = FilterMode::Linear;
+    sampler->tm0.mipmap_filter = FilterMode::Linear;
+  }
+  else
+  {
+    ERROR_LOG_FMT(VIDEO,
+                  "Asset '{}' failed to parse json, 'texture_filter' has an invalid "
+                  "value '{}'",
+                  asset_id, sampler_state_filter);
+    return false;
+  }
+
+  return true;
+}
+}  // namespace
 CustomAssetLibrary::LoadInfo RawTextureAsset::LoadImpl(const CustomAssetLibrary::AssetID& asset_id)
 {
   auto potential_data = std::make_shared<CustomTextureData>();
@@ -85,5 +175,56 @@ bool GameTextureAsset::Validate(u32 native_width, u32 native_height) const
   }
 
   return true;
+}
+
+bool TextureAndSamplerData::FromJson(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
+                                     const picojson::object& json, TextureAndSamplerData* data)
+{
+  if (!ParseSampler(asset_id, json, &data->m_sampler))
+    return false;
+
+  const auto type_iter = json.find("type");
+  if (type_iter == json.end())
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, 'type' not found", asset_id);
+    return false;
+  }
+  if (!type_iter->second.is<std::string>())
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, 'type' is not the right json type",
+                  asset_id);
+    return false;
+  }
+  std::string type = type_iter->second.to_str();
+  std::transform(type.begin(), type.end(), type.begin(),
+                 [](unsigned char c) { return std::tolower(c); });
+
+  if (type == "2d")
+  {
+    data->m_type = TextureAndSamplerData::Type::Type_2D;
+  }
+  else
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, 'type' is an invalid option", asset_id);
+    return false;
+  }
+
+  return true;
+}
+
+CustomAssetLibrary::LoadInfo
+TextureWithMetadataAsset::LoadImpl(const CustomAssetLibrary::AssetID& asset_id)
+{
+  auto potential_data = std::make_shared<TextureAndSamplerData>();
+  const auto loaded_info =
+      m_owning_library->LoadTextureWithMetadata(asset_id, potential_data.get());
+  if (loaded_info.m_bytes_loaded == 0)
+    return {};
+  {
+    std::lock_guard lk(m_data_lock);
+    m_loaded = true;
+    m_data = std::move(potential_data);
+  }
+  return loaded_info;
 }
 }  // namespace VideoCommon

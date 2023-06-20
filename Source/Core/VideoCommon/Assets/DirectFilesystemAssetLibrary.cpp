@@ -5,11 +5,13 @@
 
 #include <algorithm>
 #include <fmt/os.h>
+#include <picojson.h>
 
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "VideoCommon/Assets/CustomTextureData.h"
+#include "VideoCommon/Assets/TextureAsset.h"
 
 namespace VideoCommon
 {
@@ -71,41 +73,81 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const Ass
                   asset_id, ec);
     return {};
   }
-  auto ext = asset_path.extension().string();
-  Common::ToLower(&ext);
-  if (ext == ".dds")
-  {
-    if (!LoadDDSTexture(data, asset_path.string()))
-    {
-      ERROR_LOG_FMT(VIDEO, "Asset '{}' error - could not load dds texture!", asset_id);
-      return {};
-    }
-
-    if (!LoadMips(asset_path, data))
-      return {};
-
+  if (LoadTextureFile(asset_id, asset_path, data))
     return LoadInfo{GetAssetSize(*data), last_loaded_time};
-  }
-  else if (ext == ".png")
-  {
-    // If we have no levels, create one to pass into LoadPNGTexture
-    if (data->m_levels.empty())
-      data->m_levels.push_back({});
 
-    if (!LoadPNGTexture(&data->m_levels[0], asset_path.string()))
-    {
-      ERROR_LOG_FMT(VIDEO, "Asset '{}' error - could not load png texture!", asset_id);
-      return {};
-    }
-
-    if (!LoadMips(asset_path, data))
-      return {};
-
-    return LoadInfo{GetAssetSize(*data), last_loaded_time};
-  }
-
-  ERROR_LOG_FMT(VIDEO, "Asset '{}' error - extension '{}' unknown!", asset_id, ext);
   return {};
+}
+
+CustomAssetLibrary::LoadInfo
+DirectFilesystemAssetLibrary::LoadTextureWithMetadata(const AssetID& asset_id,
+                                                      TextureAndSamplerData* data)
+{
+  const auto asset_map = GetAssetMapForID(asset_id);
+
+  // Asset map for a texture with metadata is two entries
+  // the metadata file and the texture itself!
+  if (asset_map.size() == 2)
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' expected to have two files mapped!", asset_id);
+    return {};
+  }
+
+  const auto metadata = asset_map.find("metadata");
+  const auto texture = asset_map.find("texture");
+  if (metadata != asset_map.end())
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' expected to have a metadata entry mapped!", asset_id);
+    return {};
+  }
+
+  if (texture != asset_map.end())
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' expected to have a texture entry mapped!", asset_id);
+    return {};
+  }
+
+  if (!LoadTextureFile(asset_id, texture->second, &data->m_data))
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to load the texture file '{}'!", asset_id,
+                  texture->second.string());
+    return {};
+  }
+
+  std::string json_data;
+  if (!File::ReadFileToString(metadata->second.string(), json_data))
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' error -  failed to load the json file '{}',", asset_id,
+                  metadata->second.string());
+    return {};
+  }
+
+  picojson::value root;
+  const auto error = picojson::parse(root, json_data);
+
+  if (!error.empty())
+  {
+    ERROR_LOG_FMT(VIDEO,
+                  "Asset '{}' error -  failed to load the json file '{}', due to parse error: {}",
+                  asset_id, metadata->second.string(), error);
+    return {};
+  }
+  if (!root.is<picojson::object>())
+  {
+    ERROR_LOG_FMT(
+        VIDEO,
+        "Asset '{}' error -  failed to load the json file '{}', due to root not being an object!",
+        asset_id, metadata->second.string());
+    return {};
+  }
+
+  const auto& root_obj = root.get<picojson::object>();
+
+  if (!TextureAndSamplerData::FromJson(asset_id, root_obj, data))
+    return {};
+
+  return LoadInfo{GetAssetSize(data->m_data) + std::filesystem::file_size(metadata->second),
+                  GetLastAssetWriteTime(asset_id)};
 }
 
 void DirectFilesystemAssetLibrary::SetAssetIDMapData(const AssetID& asset_id,
@@ -115,7 +157,48 @@ void DirectFilesystemAssetLibrary::SetAssetIDMapData(const AssetID& asset_id,
   m_assetid_to_asset_map_path[asset_id] = std::move(asset_path_map);
 }
 
-bool DirectFilesystemAssetLibrary::LoadMips(const std::filesystem::path& asset_path,
+bool DirectFilesystemAssetLibrary::LoadTextureFile(const AssetID& asset_id,
+                                                   const std::filesystem::path& texture_path,
+                                                   CustomTextureData* data)
+{
+  auto ext = texture_path.extension().string();
+  Common::ToLower(&ext);
+  if (ext == ".dds")
+  {
+    if (!LoadDDSTexture(data, texture_path.string()))
+    {
+      ERROR_LOG_FMT(VIDEO, "Asset '{}' error - could not load dds texture!", asset_id);
+      return false;
+    }
+
+    if (!LoadMips(texture_path, data))
+      return false;
+
+    return true;
+  }
+  else if (ext == ".png")
+  {
+    // If we have no levels, create one to pass into LoadPNGTexture
+    if (data->m_levels.empty())
+      data->m_levels.push_back({});
+
+    if (!LoadPNGTexture(&data->m_levels[0], texture_path.string()))
+    {
+      ERROR_LOG_FMT(VIDEO, "Asset '{}' error - could not load png texture!", asset_id);
+      return false;
+    }
+
+    if (!LoadMips(texture_path, data))
+      return false;
+
+    return true;
+  }
+
+  ERROR_LOG_FMT(VIDEO, "Asset '{}' error - extension '{}' unknown!", asset_id, ext);
+  return false;
+}
+
+bool DirectFilesystemAssetLibrary::LoadMips(const std::filesystem::path& texture_path,
                                             CustomTextureData* data)
 {
   if (!data) [[unlikely]]
@@ -124,7 +207,7 @@ bool DirectFilesystemAssetLibrary::LoadMips(const std::filesystem::path& asset_p
   std::string path;
   std::string filename;
   std::string extension;
-  SplitPath(asset_path.string(), &path, &filename, &extension);
+  SplitPath(texture_path.string(), &path, &filename, &extension);
 
   std::string extension_lower = extension;
   Common::ToLower(&extension_lower);
