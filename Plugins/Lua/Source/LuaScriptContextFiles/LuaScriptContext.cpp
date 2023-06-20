@@ -654,8 +654,8 @@ void ImportModule_impl(void* base_script_ptr, const char* api_name, const char* 
         travel_iterator_ptr = base_iterator_ptr = argHolder_APIs.CreateIteratorForAddressToByteMapArgHolder(return_value);
         while (travel_iterator_ptr != nullptr)
         {
-          key = argHolder_APIs.GetKeyForAddressToByteMapArgHolder(return_value);
-          value = argHolder_APIs.GetValueForAddressToUnsignedByteMapArgHolder(return_value);
+          key = argHolder_APIs.GetKeyForAddressToByteMapArgHolder(travel_iterator_ptr);
+          value = argHolder_APIs.GetValueForAddressToUnsignedByteMapArgHolder(travel_iterator_ptr);
           lua_pushinteger(lua_state, value);
           lua_rawseti(lua_state, -2, key);
           travel_iterator_ptr = argHolder_APIs.IncrementIteratorForAddressToByteMapArgHolder(travel_iterator_ptr, return_value);

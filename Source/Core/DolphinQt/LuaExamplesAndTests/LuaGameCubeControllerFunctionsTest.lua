@@ -703,7 +703,7 @@ function addControllerClearZeroChanceFunction(portNumber, buttonTable)
 end
 
 function testProbabilityAddControllerClearInput(buttonName, probability)
-	gc_controller:setInputs(1, {A = true, B = true, X = true, Y = true, Z = true, L = true, R = true, disc = true, getOrigin = true, isConnected = true, Start = true, Reset = true, triggerL = 255, triggerR = 255, dPadUp = true, dPadDown = true, dPadLeft = true, dPadRight = true, analogStickX = 255, analogStickY = 255, cStickX = 255, cStickY = 255})
+	gc_controller:setInputs(1, {A = true, B = true, X = true, Y = true, Z = true, L = true, R = true, disc = false, getOrigin = false, isConnected = true, Start = true, Reset = true, triggerL = 255, triggerR = 255, dPadUp = true, dPadDown = true, dPadLeft = true, dPadRight = true, analogStickX = 255, analogStickY = 255, cStickX = 255, cStickY = 255})
 	gc_controller:addControllerClearChance(1, probability)
 end
 
