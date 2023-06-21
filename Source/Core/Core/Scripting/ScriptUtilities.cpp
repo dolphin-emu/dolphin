@@ -1,7 +1,7 @@
 #include "Core/Scripting/ScriptUtilities.h"
 
 #include "Common/DynamicLibrary.h"
-#include "common/FileUtil.h"
+#include "Common/FileUtil.h"
 
 #include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/ArgHolder_APIs.h"
 #include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/ClassFunctionsResolver_APIs.h"

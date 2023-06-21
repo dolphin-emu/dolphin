@@ -13,7 +13,7 @@
 #include "Core/Scripting/HelperClasses/FunctionMetadata.h"
 #include "Core/Scripting/HelperClasses/VersionResolver.h"
 #include "Core/System.h"
-#include "common/GekkoDisassembler.h"
+#include "Common/GekkoDisassembler.h"
 
 namespace Scripting::InstructionStepAPI
 {

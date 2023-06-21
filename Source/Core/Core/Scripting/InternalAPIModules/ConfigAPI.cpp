@@ -15,7 +15,7 @@
 #include "Core/Scripting/HelperClasses/VersionResolver.h"
 #include "DiscIO/Enums.h"
 #include "VideoCommon/VideoConfig.h"
-#include "common/Logging/Log.h"
+#include "Common/Logging/Log.h"
 
 namespace Scripting::ConfigAPI
 {

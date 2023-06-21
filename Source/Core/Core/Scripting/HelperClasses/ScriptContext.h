@@ -3,7 +3,7 @@
 
 #include <memory>
 #include <mutex>
-#include "common/ThreadSafeQueue.h"
+#include "Common/ThreadSafeQueue.h"
 #include "Core/Scripting/HelperClasses/InstructionBreakpointsHolder.h"
 #include "Core/Scripting/HelperClasses/MemoryAddressBreakpointsHolder.h"
 #include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/ScriptContext_APIs.h"
