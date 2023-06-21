@@ -717,11 +717,6 @@ add_subdirectory(Externals/imgui)
 add_subdirectory(Externals/implot)
 add_subdirectory(Externals/glslang)
 add_subdirectory(Externals/Lua)
-find_package (Python3 COMPONENTS Interpreter Development)
-if(NOT Python3_FOUND)
-  message(STATUS "Using static cpython from Externals")
-  add_subdirectory(Externals/cpython)
-endif()
 # SPIRV-Cross is used on Windows for GLSL to HLSL conversion for the Direct3D 11 and Direct3D 12
 # video backends, and on Apple devices for the Metal video backend.
 if(WIN32 OR APPLE)
