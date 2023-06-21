@@ -1,6 +1,5 @@
 #include "Core/Scripting/ScriptUtilities.h"
 
-#include "Common/CommonTypes.h"
 #include "Common/DynamicLibrary.h"
 #include "Common/FileUtil.h"
 

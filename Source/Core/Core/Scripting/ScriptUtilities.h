@@ -5,6 +5,7 @@
 #include <mutex>
 #include <string>
 #include <vector>
+#include "Common/CommonTypes.h"
 #include "Core/Scripting/HelperClasses/ScriptContext.h"
 
 namespace Scripting::ScriptUtilities
