@@ -23,6 +23,7 @@
 #include "Common/Config/Config.h"
 #include "Common/MsgHandler.h"
 #include "Common/ScopeGuard.h"
+#include "Common/StringUtil.h"
 
 #include "Core/Boot/Boot.h"
 #include "Core/Config/MainSettings.h"
@@ -113,7 +114,9 @@ static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no
 #endif
 
 static void (*script_print_function)(void*, const char*) = [](void*, const char* val) {
+  #ifdef _WIN32
   ::OutputDebugStringW(UTF8ToWString(val).c_str());
+  #endif
 };
 static void (*script_end_function)(void*, int) = [](void*, int identifier) {};
 
