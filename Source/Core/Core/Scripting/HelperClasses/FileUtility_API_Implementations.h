@@ -1,4 +1,4 @@
-#ifndef FILE_UTILITY_API_IMPLs
+#ifndef FILE_UTILITY_API_IMPLS
 #define FILE_UTILITY_API_IMPLS
 
 #include <string>

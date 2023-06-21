@@ -1,5 +1,5 @@
-#ifndef SCRIPT_CONTEXT_APIs
-#define SCRIPT_CONTEXT_APIs
+#ifndef SCRIPT_CONTEXT_APIS
+#define SCRIPT_CONTEXT_APIS
 
 #ifdef __cplusplus
 extern "C" {

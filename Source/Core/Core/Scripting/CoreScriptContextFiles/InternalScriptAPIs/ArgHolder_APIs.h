@@ -1,5 +1,5 @@
-#ifndef ARG_HOLDER_APIs
-#define ARG_HOLDER_APIs
+#ifndef ARG_HOLDER_APIS
+#define ARG_HOLDER_APIS
 
 #ifdef __cplusplus
 extern "C" {

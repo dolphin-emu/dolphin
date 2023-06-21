@@ -1,5 +1,5 @@
-#ifndef CLASS_METADATA_APIs
-#define CLASS_METADATA_APIs
+#ifndef CLASS_METADATA_APIS
+#define CLASS_METADATA_APIS
 
 #ifdef __cplusplus
 extern "C" {

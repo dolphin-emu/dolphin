@@ -1,5 +1,5 @@
-#ifndef FUNCTION_METADATA_APIs
-#define FUNCTION_METADATA_APIs
+#ifndef FUNCTION_METADATA_APIS
+#define FUNCTION_METADATA_APIS
 
 #ifdef __cplusplus
 extern "C" {
