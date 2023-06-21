@@ -1,6 +1,6 @@
 #include "Core/Scripting/HelperClasses/GCButtonFunctions.h"
 
-#include "Core/Scripting/CoreScriptContextFiles/Enums/GcButtonNameEnum.h"
+#include "Core/Scripting/CoreScriptContextFiles/Enums/GCButtonNameEnum.h"
 
 #include "string.h"
 
