@@ -673,7 +673,6 @@ target_link_libraries(core
 PUBLIC
   audiocommon
   common
-  cpython
   cubeb
   discio
   enet
