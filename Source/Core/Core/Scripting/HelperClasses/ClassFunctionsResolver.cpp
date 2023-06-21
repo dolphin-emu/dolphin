@@ -28,54 +28,54 @@ ClassMetadata GetClassMetadataForModule(const std::string& module_name,
     return {};
 
   if (module_name == Scripting::BitApi::class_name)
-    return Scripting::BitApi::GetClassMetadataForVersion(version_number);
+    return BitApi::GetClassMetadataForVersion(version_number);
 
   else if (module_name == Scripting::ConfigAPI::class_name)
-    return Scripting::ConfigAPI::GetClassMetadataForVersion(version_number);
+    return ConfigAPI::GetClassMetadataForVersion(version_number);
 
   else if (module_name == Scripting::EmuApi::class_name)
-    return Scripting::EmuApi::GetClassMetadataForVersion(version_number);
+    return EmuApi::GetClassMetadataForVersion(version_number);
 
   else if (module_name == Scripting::GameCubeControllerApi::class_name)
-    return Scripting::GameCubeControllerApi::GetClassMetadataForVersion(version_number);
+    return GameCubeControllerApi::GetClassMetadataForVersion(version_number);
 
   else if (module_name == Scripting::GraphicsAPI::class_name)
-    return Scripting::GraphicsAPI::GetClassMetadataForVersion(version_number);
+    return GraphicsAPI::GetClassMetadataForVersion(version_number);
 
   else if (module_name == Scripting::ImportAPI::class_name)
-    return Scripting::ImportAPI::GetClassMetadataForVersion(version_number);
+    return ImportAPI::GetClassMetadataForVersion(version_number);
 
   else if (module_name == Scripting::InstructionStepAPI::class_name)
-    return Scripting::InstructionStepAPI::GetClassMetadataForVersion(version_number);
+    return InstructionStepAPI::GetClassMetadataForVersion(version_number);
 
   else if (module_name == Scripting::MemoryApi::class_name)
-    return Scripting::MemoryApi::GetClassMetadataForVersion(version_number);
+    return MemoryApi::GetClassMetadataForVersion(version_number);
 
   else if (module_name == Scripting::RegistersAPI::class_name)
-    return Scripting::RegistersAPI::GetClassMetadataForVersion(version_number);
+    return RegistersAPI::GetClassMetadataForVersion(version_number);
 
   else if (module_name == Scripting::StatisticsApi::class_name)
-    return Scripting::StatisticsApi::GetClassMetadataForVersion(version_number);
+    return StatisticsApi::GetClassMetadataForVersion(version_number);
 
   else if (module_name == Scripting::OnFrameStartCallbackAPI::class_name)
-    return Scripting::OnFrameStartCallbackAPI::GetClassMetadataForVersion(version_number);
+    return OnFrameStartCallbackAPI::GetClassMetadataForVersion(version_number);
 
   else if (module_name == Scripting::OnGCControllerPolledCallbackAPI::class_name)
-    return Scripting::OnGCControllerPolledCallbackAPI::GetClassMetadataForVersion(version_number);
+    return OnGCControllerPolledCallbackAPI::GetClassMetadataForVersion(version_number);
 
   else if (module_name == Scripting::OnInstructionHitCallbackAPI::class_name)
-    return Scripting::OnInstructionHitCallbackAPI::GetClassMetadataForVersion(version_number);
+    return OnInstructionHitCallbackAPI::GetClassMetadataForVersion(version_number);
 
   else if (module_name == Scripting::OnMemoryAddressReadFromCallbackAPI::class_name)
-    return Scripting::OnMemoryAddressReadFromCallbackAPI::GetClassMetadataForVersion(
+    return OnMemoryAddressReadFromCallbackAPI::GetClassMetadataForVersion(
         version_number);
 
   else if (module_name == Scripting::OnMemoryAddressWrittenToCallbackAPI::class_name)
-    return Scripting::OnMemoryAddressWrittenToCallbackAPI::GetClassMetadataForVersion(
+    return OnMemoryAddressWrittenToCallbackAPI::GetClassMetadataForVersion(
         version_number);
 
   else if (module_name == Scripting::OnWiiInputPolledCallbackAPI::class_name)
-    return Scripting::OnWiiInputPolledCallbackAPI::GetClassMetadataForVersion(version_number);
+    return OnWiiInputPolledCallbackAPI::GetClassMetadataForVersion(version_number);
 
   else
     return {};
