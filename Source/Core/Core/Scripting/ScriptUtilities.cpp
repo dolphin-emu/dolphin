@@ -74,8 +74,9 @@ static bool ValidateApiStruct(void* start_of_struct, unsigned int struct_size,
       std::cout << "Error: " << struct_name << " had a NULL member!" << std::endl;
       #ifdef _WIN32
       std::quick_exit(68);
-      #endif
+      #else
       return false;
+      #endif
     }
     travel_ptr = (u64*)(((u8*)travel_ptr) + sizeof(u64));
   }
