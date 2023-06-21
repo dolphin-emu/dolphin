@@ -1,13 +1,10 @@
 #pragma once
-
-#include <array>
-#include <memory>
 #include <string>
 #include <vector>
-
 #include "Core/Scripting/HelperClasses/ArgHolder.h"
+#include "Core/Scripting/CoreScriptContextFiles/Enums/ArgTypeEnum.h"
 #include "Core/Scripting/HelperClasses/ClassMetadata.h"
-#include "Core/Scripting/HelperClasses/ScriptContext.h"
+#include "Core/Scripting/HelperClasses/FunctionMetadata.h"
 
 namespace Scripting::InstructionStepAPI
 {

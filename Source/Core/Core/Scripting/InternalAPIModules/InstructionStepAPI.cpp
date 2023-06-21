@@ -9,8 +9,6 @@
 #include "Core/Scripting/EventCallbackRegistrationAPIs/OnInstructionHitCallbackAPI.h"
 #include "Core/Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressReadFromCallbackAPI.h"
 #include "Core/Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressWrittenToCallbackAPI.h"
-#include "Core/Scripting/CoreScriptContextFiles/Enums/ArgTypeEnum.h"
-#include "Core/Scripting/HelperClasses/FunctionMetadata.h"
 #include "Core/Scripting/HelperClasses/VersionResolver.h"
 #include "Core/System.h"
 #include "Common/GekkoDisassembler.h"
