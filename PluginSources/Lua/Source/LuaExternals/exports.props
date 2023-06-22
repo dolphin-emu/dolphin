@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ExternalsDir)Lua\Lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)Lua\Lua.vcxproj">
+      <Project>{632b686a-f320-4e96-8e11-f2883d9be914}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>
