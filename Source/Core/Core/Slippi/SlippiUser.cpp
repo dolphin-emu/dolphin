@@ -106,28 +106,21 @@ bool SlippiUser::AttemptLogin()
 {
   std::string user_file_path = getUserFilePath();
 
-  // INFO_LOG_FMT(SLIPPI_ONLINE, "Looking for file at: {}", user_file_path);
-
+  // TODO: Remove a couple updates after ranked
+#ifndef __APPLE__
   {
-    // Put the filename here in its own scope because we don't really need it elsewhere
-    std::string user_file_path_txt = user_file_path + ".txt";
-    if (File::Exists(user_file_path_txt))
+#ifdef _WIN32
+    std::string old_user_file_path = File::GetExeDirectory() + DIR_SEP + "user.json";
+#else
+    std::string old_user_file_path = File::GetUserPath(D_USER_IDX) + DIR_SEP + "user.json";
+#endif
+    if (File::Exists(old_user_file_path) && !File::Rename(old_user_file_path, user_file_path))
     {
-      // If both files exist we just log they exist and take no further action
-      if (File::Exists(user_file_path))
-      {
-        INFO_LOG_FMT(SLIPPI_ONLINE,
-                     "Found both .json.txt and .json file for user data. Using .json "
-                     "and ignoring the .json.txt");
-      }
-      // If only the .txt file exists move the contents to a json file and log if it fails
-      else if (!File::Rename(user_file_path_txt, user_file_path))
-      {
-        WARN_LOG_FMT(SLIPPI_ONLINE, "Could not move file {} to {}", user_file_path_txt,
-                     user_file_path);
-      }
+      WARN_LOG_FMT(SLIPPI_ONLINE, "Could not move file {} to {}", old_user_file_path,
+                   user_file_path);
     }
   }
+#endif
 
   // Get user file
   std::string user_file_contents;

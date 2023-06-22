@@ -491,20 +491,20 @@ void HotkeyScheduler::Run()
           Config::SetCurrent(Config::MAIN_EMULATION_SPEED, speed);
           ShowEmulationSpeed();
         }
+
+        // Slot Saving / Loading
+        if (IsHotkey(HK_SAVE_STATE_SLOT_SELECTED))
+          emit StateSaveSlotHotkey();
+
+        if (IsHotkey(HK_LOAD_STATE_SLOT_SELECTED))
+          emit StateLoadSlotHotkey();
+
+        if (IsHotkey(HK_INCREMENT_SELECTED_STATE_SLOT))
+          emit IncrementSelectedStateSlotHotkey();
+
+        if (IsHotkey(HK_DECREMENT_SELECTED_STATE_SLOT))
+          emit DecrementSelectedStateSlotHotkey();
       }
-
-      // Slot Saving / Loading
-      if (IsHotkey(HK_SAVE_STATE_SLOT_SELECTED))
-        emit StateSaveSlotHotkey();
-
-      if (IsHotkey(HK_LOAD_STATE_SLOT_SELECTED))
-        emit StateLoadSlotHotkey();
-
-      if (IsHotkey(HK_INCREMENT_SELECTED_STATE_SLOT))
-        emit IncrementSelectedStateSlotHotkey();
-
-      if (IsHotkey(HK_DECREMENT_SELECTED_STATE_SLOT))
-        emit DecrementSelectedStateSlotHotkey();
 
       // Stereoscopy
       if (IsHotkey(HK_TOGGLE_STEREO_SBS))

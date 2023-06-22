@@ -49,6 +49,29 @@ struct SlippiGamePrepStepResults
   u8 stage_selections[2];
 };
 
+struct SlippiSyncedFighterState
+{
+  u8 stocks_remaining = 4;
+  u16 current_health = 0;
+};
+
+struct SlippiSyncedGameState
+{
+  std::string match_id = "";
+  u32 game_index = 0;
+  u32 tiebreak_index = 0;
+  u32 seconds_remaining = 480;
+  SlippiSyncedFighterState fighters[4];
+};
+
+struct SlippiDesyncRecoveryResp
+{
+  bool is_recovering = false;
+  bool is_waiting = false;
+  bool is_error = false;
+  SlippiSyncedGameState state;
+};
+
 class SlippiPlayerSelections
 {
 public:
@@ -154,6 +177,7 @@ public:
   void SendSlippiPad(std::unique_ptr<SlippiPad> pad);
   void SetMatchSelections(SlippiPlayerSelections& s);
   void SendGamePrepStep(SlippiGamePrepStepResults& s);
+  void SendSyncedGameState(SlippiSyncedGameState& s);
   bool GetGamePrepResults(u8 stepIdx, SlippiGamePrepStepResults& res);
   std::unique_ptr<SlippiRemotePadOutput> GetFakePadOutput(int frame);
   std::unique_ptr<SlippiRemotePadOutput> GetSlippiRemotePad(int index, int maxFrameCount);
@@ -163,6 +187,8 @@ public:
   SlippiPlayerSelections GetSlippiRemoteChatMessage(bool isChatEnabled);
   u8 GetSlippiRemoteSentChatMessage(bool isChatEnabled);
   s32 CalcTimeOffsetUs();
+  bool IsWaitingForDesyncRecovery();
+  SlippiDesyncRecoveryResp GetDesyncRecoveryState();
 
   void WriteChatMessageToPacket(sf::Packet& packet, int messageId, u8 playerIdx);
   std::unique_ptr<SlippiPlayerSelections> ReadChatMessageFromPacket(sf::Packet& packet);
@@ -219,7 +245,10 @@ protected:
   std::deque<std::unique_ptr<SlippiPad>> localPadQueue;  // most recent inputs at start of deque
   std::deque<std::unique_ptr<SlippiPad>>
       remotePadQueue[SLIPPI_REMOTE_PLAYER_MAX];  // most recent inputs at start of deque
-  ChecksumEntry remoteChecksum[SLIPPI_REMOTE_PLAYER_MAX];
+  bool is_desync_recovery = false;
+  ChecksumEntry remote_checksums[SLIPPI_REMOTE_PLAYER_MAX];
+  SlippiSyncedGameState remote_sync_states[SLIPPI_REMOTE_PLAYER_MAX];
+  SlippiSyncedGameState local_sync_state;
   std::deque<SlippiGamePrepStepResults> game_prep_step_queue;
   u64 pingUs[SLIPPI_REMOTE_PLAYER_MAX];
   int32_t lastFrameAcked[SLIPPI_REMOTE_PLAYER_MAX];

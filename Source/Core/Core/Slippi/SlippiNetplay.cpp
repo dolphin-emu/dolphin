@@ -334,6 +334,12 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet, ENetPeer* peer)
             static_cast<s32>(frame64 - i), &packetData[pad_data_offset + i * SLIPPI_PAD_DATA_SIZE]);
         remotePadQueue[pIdx].push_front(std::move(pad));
       }
+
+      // Write checksum pad to keep track of latest remote checksum
+      ChecksumEntry e;
+      e.frame = checksum_frame;
+      e.value = checksum;
+      remote_checksums[pIdx] = e;
     }
 
     // Only ack if inputsToCopy is greater than 0. Otherwise we are receiving an old input and
@@ -478,6 +484,43 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet, ENetPeer* peer)
     packet >> results.stage_selections[1];
 
     game_prep_step_queue.push_back(results);
+  }
+  break;
+
+  case NetPlay::MessageID::SLIPPI_SYNCED_STATE:
+  {
+    u8 packetPlayerPort;
+    if (!(packet >> packetPlayerPort))
+    {
+      ERROR_LOG_FMT(SLIPPI_ONLINE, "Netplay packet too small to read player index");
+      break;
+    }
+    u8 pIdx = PlayerIdxFromPort(packetPlayerPort);
+    if (pIdx >= m_remotePlayerCount)
+    {
+      ERROR_LOG_FMT(SLIPPI_ONLINE, "Got packet with invalid player idx {}", pIdx);
+      break;
+    }
+
+    SlippiSyncedGameState results;
+    packet >> results.match_id;
+    packet >> results.game_index;
+    packet >> results.tiebreak_index;
+    packet >> results.seconds_remaining;
+    for (int i = 0; i < 4; i++)
+    {
+      packet >> results.fighters[i].stocks_remaining;
+      packet >> results.fighters[i].current_health;
+    }
+
+    // ERROR_LOG_FMT(SLIPPI_ONLINE, "Received synced state from opponent. {}, {}, {}, {}. F1: {}
+    // ({}%%), F2: {} ({}%%)",
+    //          results.match_id, results.game_index, results.tiebreak_index,
+    //          results.seconds_remaining, results.fighters[0].stocks_remaining,
+    //          results.fighters[0].current_health, results.fighters[1].stocks_remaining,
+    //          results.fighters[1].current_health);
+
+    remote_sync_states[pIdx] = results;
   }
   break;
 
@@ -1030,6 +1073,8 @@ void SlippiNetplayClient::StartSlippiGame()
     std::swap(ackTimers[i], empty);
   }
 
+  is_desync_recovery = false;
+
   // Clear game prep queue in case anything is still lingering
   game_prep_step_queue.clear();
 
@@ -1044,6 +1089,7 @@ void SlippiNetplayClient::SendConnectionSelected()
   *spac << static_cast<u8>(NetPlay::MessageID::SLIPPI_CONN_SELECTED);
   SendAsync(std::move(spac));
 }
+
 void SlippiNetplayClient::SendSlippiPad(std::unique_ptr<SlippiPad> pad)
 {
   auto status = slippiConnectStatus;
@@ -1135,6 +1181,26 @@ void SlippiNetplayClient::SendGamePrepStep(SlippiGamePrepStepResults& s)
   *spac << s.char_selection;
   *spac << s.char_color_selection;
   *spac << s.stage_selections[0] << s.stage_selections[1];
+  SendAsync(std::move(spac));
+}
+
+void SlippiNetplayClient::SendSyncedGameState(SlippiSyncedGameState& s)
+{
+  is_desync_recovery = true;
+  local_sync_state = s;
+
+  auto spac = std::make_unique<sf::Packet>();
+  *spac << static_cast<u8>(NetPlay::MessageID::SLIPPI_SYNCED_STATE);
+  *spac << this->m_player_idx;
+  *spac << s.match_id;
+  *spac << s.game_index;
+  *spac << s.tiebreak_index;
+  *spac << s.seconds_remaining;
+  for (int i = 0; i < 4; i++)
+  {
+    *spac << s.fighters[i].stocks_remaining;
+    *spac << s.fighters[i].current_health;
+  }
   SendAsync(std::move(spac));
 }
 
@@ -1256,8 +1322,8 @@ std::unique_ptr<SlippiRemotePadOutput> SlippiNetplayClient::GetSlippiRemotePad(i
   int inputCount = 0;
 
   padOutput->latest_frame = 0;
-  padOutput->checksum_frame = remoteChecksum[index].frame;
-  padOutput->checksum = remoteChecksum[index].value;
+  padOutput->checksum_frame = remote_checksums[index].frame;
+  padOutput->checksum = remote_checksums[index].value;
 
   // Copy inputs from the remote pad queue to the output. We iterate backwards because
   // we want to get the oldest frames possible (will have been cleared to contain the last
@@ -1378,4 +1444,95 @@ s32 SlippiNetplayClient::CalcTimeOffsetUs()
   }
 
   return minOffset;
+}
+
+bool SlippiNetplayClient::IsWaitingForDesyncRecovery()
+{
+  // If we are not in a desync recovery state, we do not need to wait
+  if (!is_desync_recovery)
+    return false;
+
+  for (int i = 0; i < m_remotePlayerCount; i++)
+  {
+    if (local_sync_state.game_index != remote_sync_states[i].game_index)
+      return true;
+
+    if (local_sync_state.tiebreak_index != remote_sync_states[i].tiebreak_index)
+      return true;
+  }
+
+  return false;
+}
+
+SlippiDesyncRecoveryResp SlippiNetplayClient::GetDesyncRecoveryState()
+{
+  SlippiDesyncRecoveryResp result;
+
+  result.is_recovering = is_desync_recovery;
+  result.is_waiting = IsWaitingForDesyncRecovery();
+
+  // If we are not recovering or if we are currently waiting, don't need to compute state, just
+  // return
+  if (!result.is_recovering || result.is_waiting)
+    return result;
+
+  result.state = local_sync_state;
+
+  // Here let's try to reconcile all the states into one. This is important to make sure
+  // everyone starts at the same percent/stocks because their last synced state might be
+  // a slightly different frame. There didn't seem to be an easy way to guarantee they'd
+  // all be on exactly the same frame
+  for (int i = 0; i < m_remotePlayerCount; i++)
+  {
+    auto& s = remote_sync_states[i];
+    if (abs(static_cast<int>(result.state.seconds_remaining) -
+            static_cast<int>(s.seconds_remaining)) > 1)
+    {
+      ERROR_LOG_FMT(SLIPPI_ONLINE, "Timer values for desync recovery too different: {}, {}",
+                    result.state.seconds_remaining, s.seconds_remaining);
+      result.is_error = true;
+      return result;
+    }
+
+    // Use the timer with more time remaining
+    if (s.seconds_remaining > result.state.seconds_remaining)
+    {
+      result.state.seconds_remaining = s.seconds_remaining;
+    }
+
+    for (int j = 0; j < 4; j++)
+    {
+      auto& fighter = result.state.fighters[i];
+      auto& iFighter = s.fighters[i];
+
+      if (fighter.stocks_remaining != iFighter.stocks_remaining)
+      {
+        // This might actually happen sometimes if a desync happens right as someone is KO'd...
+        // should be quite rare though in a 1v1 situation.
+        ERROR_LOG_FMT(SLIPPI_ONLINE,
+                      "Stocks remaining for desync recovery do not match: [Player {}] {}, {}",
+                      j + 1, fighter.stocks_remaining, iFighter.stocks_remaining);
+        result.is_error = true;
+        return result;
+      }
+
+      if (abs(static_cast<int>(fighter.current_health) -
+              static_cast<int>(iFighter.current_health)) > 25)
+      {
+        ERROR_LOG_FMT(SLIPPI_ONLINE,
+                      "Current health for desync recovery too different: [Player {}] {}, {}", j + 1,
+                      fighter.current_health, iFighter.current_health);
+        result.is_error = true;
+        return result;
+      }
+
+      // Use the lower health value
+      if (iFighter.current_health < fighter.current_health)
+      {
+        result.state.fighters[i].current_health = iFighter.current_health;
+      }
+    }
+  }
+
+  return result;
 }

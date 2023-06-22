@@ -2,6 +2,7 @@
 #include <locale>
 #include <string>
 
+#include <Common/CommonTypes.h>
 #include "SlippiGame.h"
 
 namespace Slippi
@@ -526,7 +527,7 @@ void SlippiGame::processData()
         // Transform this message into a different message
         command = data[SPLIT_MESSAGE_INTERNAL_DATA_LEN + 2];
         data = &splitMessageBuf[0];
-        payloadSize = asmEvents[command];
+        payloadSize = static_cast<u32>(splitMessageBuf.size());
         shouldResetSplitMessageBuf = true;
       }
     }

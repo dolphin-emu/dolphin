@@ -1,0 +1,81 @@
+{
+ "Details": [
+  {
+   "InjectionAddress": "8016E510",
+   "Name": "Full tournament codes",
+   "Codetype": "Auto",
+   "Annotation": "External/NeutralSpawn/NeutralSpawn.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "802FCCD8",
+   "Name": "Full tournament codes",
+   "Codetype": "Auto",
+   "Annotation": "External/Hide Nametag When Invisible/Hide Nametag When Invisible.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80261B1C",
+   "Name": "Full tournament codes",
+   "Codetype": "Auto",
+   "Annotation": "External/Closing CSS Door Preserves Nametag/On Window Close/Skip Nametag ID Reset.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80261B30",
+   "Name": "Full tournament codes",
+   "Codetype": "Auto",
+   "Annotation": "External/Closing CSS Door Preserves Nametag/On Window Close/Skip isUsingNametag Bool Reset.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "802605FC",
+   "Name": "Full tournament codes",
+   "Codetype": "Auto",
+   "Annotation": "External/Unplugging Closes CSS Door/Unplugging Closes CSS Door.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "804DC47C",
+   "Name": "Full tournament codes",
+   "Codetype": "Auto",
+   "Annotation": "External/CSS Player Hands Default to HMN Button/Change Default Hand Position.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80261A6C",
+   "Name": "Full tournament codes",
+   "Codetype": "Auto",
+   "Annotation": "External/CSS Player Hands Default to HMN Button/Fix A Button Buffer When Exiting Name Entry.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80266CE0",
+   "Name": "Full tournament codes",
+   "Codetype": "Auto",
+   "Annotation": "External/Disable FoD During Doubles/Disable FoD During Doubles.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "802608D8",
+   "Name": "Full tournament codes",
+   "Codetype": "Auto",
+   "Annotation": "External/Toggle Rumble From CSS/Toggle Rumble From CSS.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80259B84",
+   "Name": "Full tournament codes",
+   "Codetype": "Auto",
+   "Annotation": "External/Stage Striking/Random_Stage_Fix.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80259C40",
+   "Name": "Full tournament codes",
+   "Codetype": "Auto",
+   "Annotation": "External/Stage Striking/Stage_Striking.asm",
+   "Tags": ""
+  }
+ ]
+}

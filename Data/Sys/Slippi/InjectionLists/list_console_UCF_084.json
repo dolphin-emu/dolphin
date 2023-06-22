@@ -1,0 +1,67 @@
+{
+ "Details": [
+  {
+   "InjectionAddress": "800D65EC",
+   "Name": "UCF Slippi",
+   "Codetype": "Auto",
+   "Annotation": "External/UCF 0.84/UCF/UCF DBOOC SquatRv Fix.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "800C9A44",
+   "Name": "UCF Slippi",
+   "Codetype": "Auto",
+   "Annotation": "External/UCF 0.84/UCF/UCF Dashback.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "8006B460",
+   "Name": "UCF Slippi",
+   "Codetype": "Auto",
+   "Annotation": "External/UCF 0.84/UCF/UCF Pad Buffer + 1.0 Cardinals.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "8008E54C",
+   "Name": "UCF Slippi",
+   "Codetype": "Auto",
+   "Annotation": "External/UCF 0.84/UCF/UCF SDI.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "8009A0B8",
+   "Name": "UCF Slippi",
+   "Codetype": "Auto",
+   "Annotation": "External/UCF 0.84/UCF/UCF Shield Drop Extended.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "800998A4",
+   "Name": "UCF Slippi",
+   "Codetype": "Auto",
+   "Annotation": "External/UCF 0.84/UCF/UCF Shield Drop.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "80093294",
+   "Name": "UCF Slippi",
+   "Codetype": "Auto",
+   "Annotation": "External/UCF 0.84/UCF/UCF Shield SDI.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "800908F4",
+   "Name": "UCF Slippi",
+   "Codetype": "Auto",
+   "Annotation": "External/UCF 0.84/UCF/UCF Tumble.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "802662D0",
+   "Name": "UCF Slippi",
+   "Codetype": "Auto",
+   "Annotation": "External/UCF 0.84/Indicator/UCF Text.asm",
+   "Tags": ""
+  }
+ ]
+}

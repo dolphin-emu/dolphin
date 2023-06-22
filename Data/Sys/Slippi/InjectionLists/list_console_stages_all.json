@@ -1,0 +1,46 @@
+{
+ "Details": [
+  {
+   "InjectionAddress": "8025A530",
+   "Name": "Frozen Stages",
+   "Codetype": "Auto",
+   "Annotation": "External/Frozen All/Blink SSS/EditColor.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8025B718",
+   "Name": "Frozen Stages",
+   "Codetype": "Auto",
+   "Annotation": "External/Frozen All/Blink SSS/SavePointer.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "803E67E0",
+   "Name": "Frozen Stages",
+   "Codetype": "Auto",
+   "Annotation": "External/Frozen All/Core/1.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "8021AAE4",
+   "Name": "Frozen Stages",
+   "Codetype": "Auto",
+   "Annotation": "External/Frozen All/Core/2.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "801D1548",
+   "Name": "Frozen Stages",
+   "Codetype": "Auto",
+   "Annotation": "External/Frozen All/Core/3.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "801E3348",
+   "Name": "Frozen Stages",
+   "Codetype": "Auto",
+   "Annotation": "External/Frozen All/Core/4.asm",
+   "Tags": "[affects-gameplay]"
+  }
+ ]
+}

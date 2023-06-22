@@ -1,0 +1,32 @@
+{
+ "Details": [
+  {
+   "InjectionAddress": "8015FDBC",
+   "Name": "Optional: Normal Functionality in Develop Mode (1.02)",
+   "Codetype": "Auto",
+   "Annotation": "External/NormalDevelopMode/Enable.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8006AE90",
+   "Name": "Optional: Normal Functionality in Develop Mode (1.02)",
+   "Codetype": "Auto",
+   "Annotation": "External/NormalDevelopMode/NormalCStick1.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "800300A4",
+   "Name": "Optional: Normal Functionality in Develop Mode (1.02)",
+   "Codetype": "Auto",
+   "Annotation": "External/NormalDevelopMode/NormalCStick2.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80089250",
+   "Name": "Optional: Normal Functionality in Develop Mode (1.02)",
+   "Codetype": "Auto",
+   "Annotation": "External/NormalDevelopMode/StaleMoves.asm",
+   "Tags": ""
+  }
+ ]
+}
