@@ -559,6 +559,8 @@ add_library(core
   Scripting/HelperClasses/WiiControllerRepresentation.h
   Scripting/InternalAPIModules/BitAPI.cpp
   Scripting/InternalAPIModules/BitAPI.h
+  Scripting/InternalAPIModules/ConfigAPI.cpp
+  Scripting/InternalAPIModules/ConfigAPI.h
   Scripting/InternalAPIModules/EmuAPI.cpp
   Scripting/InternalAPIModules/EmuAPI.h
   Scripting/InternalAPIModules/GameCubeControllerAPI.cpp
@@ -567,6 +569,8 @@ add_library(core
   Scripting/InternalAPIModules/GraphicsAPI.h
   Scripting/InternalAPIModules/ImportAPI.cpp
   Scripting/InternalAPIModules/ImportAPI.h
+  Scripting/InternalAPIModules/InstructionStepAPI.cpp
+  Scripting/InternalAPIModules/InstructionStepAPI.h
   Scripting/InternalAPIModules/MemoryAPI.cpp
   Scripting/InternalAPIModules/MemoryAPI.h
   Scripting/InternalAPIModules/RegistersAPI.cpp
