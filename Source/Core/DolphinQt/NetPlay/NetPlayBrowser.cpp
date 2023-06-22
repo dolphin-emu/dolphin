@@ -1,6 +1,5 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/NetPlay/NetPlayBrowser.h"
 
@@ -26,6 +25,7 @@
 #include "Core/ConfigManager.h"
 
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/Settings.h"
 
 NetPlayBrowser::NetPlayBrowser(QWidget* parent) : QDialog(parent)
@@ -85,7 +85,7 @@ void NetPlayBrowser::CreateWidgets()
 
   m_status_label = new QLabel;
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-  m_button_refresh = new QPushButton(tr("Refresh"));
+  m_button_refresh = new NonDefaultQPushButton(tr("Refresh"));
   m_edit_name = new QLineEdit;
   m_edit_game_id = new QLineEdit;
   m_check_hide_incompatible = new QCheckBox(tr("Hide Incompatible Sessions"));
@@ -159,7 +159,7 @@ void NetPlayBrowser::Refresh()
   std::map<std::string, std::string> filters;
 
   if (m_check_hide_incompatible->isChecked())
-    filters["version"] = Common::scm_desc_str;
+    filters["version"] = Common::GetScmDescStr();
 
   if (!m_edit_name->text().isEmpty())
     filters["name"] = m_edit_name->text().toStdString();
@@ -247,7 +247,7 @@ void NetPlayBrowser::UpdateList()
     auto* player_count = new QTableWidgetItem(QStringLiteral("%1").arg(entry.player_count));
     auto* version = new QTableWidgetItem(QString::fromStdString(entry.version));
 
-    const bool enabled = Common::scm_desc_str == entry.version;
+    const bool enabled = Common::GetScmDescStr() == entry.version;
 
     for (const auto& item : {region, name, password, in_game, game_id, player_count, version})
       item->setFlags(enabled ? Qt::ItemIsEnabled | Qt::ItemIsSelectable : Qt::NoItemFlags);

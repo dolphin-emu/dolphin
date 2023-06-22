@@ -1,10 +1,10 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <array>
+#include <map>
 #include <memory>
 #include <utility>
 #include <vector>
@@ -12,22 +12,30 @@
 #include <QDialog>
 
 #include "Common/CommonTypes.h"
+#include "Common/EnumMap.h"
+#include "Core/HW/EXI/EXI.h"
 
 namespace Memcard
 {
 class GCMemcard;
 class GCMemcardErrorCode;
+struct Savefile;
+enum class ReadSavefileErrorCode;
+enum class SavefileFormat;
 }  // namespace Memcard
 
+class QAction;
 class QDialogButtonBox;
 class QGroupBox;
 class QLabel;
 class QLineEdit;
+class QMenu;
 class QPixmap;
 class QPushButton;
 class QString;
 class QTableWidget;
 class QTimer;
+class QToolButton;
 
 class GCMemcardManager : public QDialog
 {
@@ -37,6 +45,7 @@ public:
   ~GCMemcardManager();
 
   static QString GetErrorMessagesForErrorCode(const Memcard::GCMemcardErrorCode& code);
+  static QString GetErrorMessageForErrorCode(Memcard::ReadSavefileErrorCode code);
 
 private:
   struct IconAnimationData;
@@ -46,45 +55,52 @@ private:
   void LoadDefaultMemcards();
 
   void UpdateActions();
-  void UpdateSlotTable(int slot);
-  void SetSlotFile(int slot, QString path);
-  void SetSlotFileInteractive(int slot);
-  void SetActiveSlot(int slot);
+  void UpdateSlotTable(ExpansionInterface::Slot slot);
+  void SetSlotFile(ExpansionInterface::Slot slot, QString path);
+  void SetSlotFileInteractive(ExpansionInterface::Slot slot);
+  void SetActiveSlot(ExpansionInterface::Slot slot);
+
+  std::vector<u8> GetSelectedFileIndices();
+
+  void ImportFiles(ExpansionInterface::Slot slot, const std::vector<Memcard::Savefile>& savefiles);
 
   void CopyFiles();
   void ImportFile();
   void DeleteFiles();
-  void ExportFiles(bool prompt);
-  void ExportAllFiles();
+  void ExportFiles(Memcard::SavefileFormat format);
   void FixChecksums();
-  void CreateNewCard(int slot);
+  void CreateNewCard(ExpansionInterface::Slot slot);
   void DrawIcons();
 
-  QPixmap GetBannerFromSaveFile(int file_index, int slot);
+  QPixmap GetBannerFromSaveFile(int file_index, ExpansionInterface::Slot slot);
 
-  IconAnimationData GetIconFromSaveFile(int file_index, int slot);
+  IconAnimationData GetIconFromSaveFile(int file_index, ExpansionInterface::Slot slot);
 
   // Actions
   QPushButton* m_select_button;
   QPushButton* m_copy_button;
-  QPushButton* m_export_button;
-  QPushButton* m_export_all_button;
+  QToolButton* m_export_button;
+  QMenu* m_export_menu;
+  QAction* m_export_gci_action;
+  QAction* m_export_gcs_action;
+  QAction* m_export_sav_action;
   QPushButton* m_import_button;
   QPushButton* m_delete_button;
   QPushButton* m_fix_checksums_button;
 
   // Slots
-  static constexpr int SLOT_COUNT = 2;
-  std::array<std::vector<IconAnimationData>, SLOT_COUNT> m_slot_active_icons;
-  std::array<std::unique_ptr<Memcard::GCMemcard>, SLOT_COUNT> m_slot_memcard;
-  std::array<QGroupBox*, SLOT_COUNT> m_slot_group;
-  std::array<QLineEdit*, SLOT_COUNT> m_slot_file_edit;
-  std::array<QPushButton*, SLOT_COUNT> m_slot_open_button;
-  std::array<QPushButton*, SLOT_COUNT> m_slot_create_button;
-  std::array<QTableWidget*, SLOT_COUNT> m_slot_table;
-  std::array<QLabel*, SLOT_COUNT> m_slot_stat_label;
+  Common::EnumMap<std::map<u8, IconAnimationData>, ExpansionInterface::MAX_MEMCARD_SLOT>
+      m_slot_active_icons;
+  Common::EnumMap<std::unique_ptr<Memcard::GCMemcard>, ExpansionInterface::MAX_MEMCARD_SLOT>
+      m_slot_memcard;
+  Common::EnumMap<QGroupBox*, ExpansionInterface::MAX_MEMCARD_SLOT> m_slot_group;
+  Common::EnumMap<QLineEdit*, ExpansionInterface::MAX_MEMCARD_SLOT> m_slot_file_edit;
+  Common::EnumMap<QPushButton*, ExpansionInterface::MAX_MEMCARD_SLOT> m_slot_open_button;
+  Common::EnumMap<QPushButton*, ExpansionInterface::MAX_MEMCARD_SLOT> m_slot_create_button;
+  Common::EnumMap<QTableWidget*, ExpansionInterface::MAX_MEMCARD_SLOT> m_slot_table;
+  Common::EnumMap<QLabel*, ExpansionInterface::MAX_MEMCARD_SLOT> m_slot_stat_label;
 
-  int m_active_slot;
+  ExpansionInterface::Slot m_active_slot;
   u64 m_current_frame = 0;
 
   QDialogButtonBox* m_button_box;

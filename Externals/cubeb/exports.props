@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ExternalsDir)cubeb\cubeb\include;$(ExternalsDir)cubeb\msvc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)cubeb\msvc\cubeb.vcxproj">
+      <Project>{8ea11166-6512-44fc-b7a5-a4d1ecc81170}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

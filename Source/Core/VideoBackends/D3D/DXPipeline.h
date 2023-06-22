@@ -1,11 +1,12 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <d3d11.h>
 #include <memory>
+
+#include "VideoBackends/D3D/D3DBase.h"
 #include "VideoCommon/AbstractPipeline.h"
 
 namespace DX11
@@ -13,11 +14,11 @@ namespace DX11
 class DXPipeline final : public AbstractPipeline
 {
 public:
-  DXPipeline(ID3D11InputLayout* input_layout, ID3D11VertexShader* vertex_shader,
-             ID3D11GeometryShader* geometry_shader, ID3D11PixelShader* pixel_shader,
-             ID3D11RasterizerState* rasterizer_state, ID3D11DepthStencilState* depth_state,
-             ID3D11BlendState* blend_state, D3D11_PRIMITIVE_TOPOLOGY primitive_topology,
-             bool use_logic_op);
+  DXPipeline(const AbstractPipelineConfig& config, ID3D11InputLayout* input_layout,
+             ID3D11VertexShader* vertex_shader, ID3D11GeometryShader* geometry_shader,
+             ID3D11PixelShader* pixel_shader, ID3D11RasterizerState* rasterizer_state,
+             ID3D11DepthStencilState* depth_state, ID3D11BlendState* blend_state,
+             D3D11_PRIMITIVE_TOPOLOGY primitive_topology, bool use_logic_op);
   ~DXPipeline() override;
 
   ID3D11InputLayout* GetInputLayout() const { return m_input_layout.Get(); }

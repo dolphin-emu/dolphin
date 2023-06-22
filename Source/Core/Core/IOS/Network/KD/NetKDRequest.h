@@ -1,69 +1,63 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
+#include <queue>
 #include <string>
 
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/HttpRequest.h"
+#include "Common/WorkQueueThread.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/Network/KD/NWC24Config.h"
+#include "Core/IOS/Network/KD/NWC24DL.h"
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
+constexpr const char DL_CNT_PATH[] = "/" WII_WC24CONF_DIR "/dlcnt.bin";
+
 // KD is the IOS module responsible for implementing WiiConnect24 functionality.
 // It can perform HTTPS downloads, send and receive mail via SMTP, and execute a
 // JavaScript-like language while the Wii is in standby mode.
-class NetKDRequest : public Device
+class NetKDRequestDevice : public Device
 {
 public:
-  NetKDRequest(Kernel& ios, const std::string& device_name);
-  ~NetKDRequest() override;
+  NetKDRequestDevice(Kernel& ios, const std::string& device_name);
+  IPCReply HandleNWC24DownloadNowEx(const IOCtlRequest& request);
+  NWC24::ErrorCode KDDownload(const u16 entry_index, const std::optional<u8> subtask_id);
+  ~NetKDRequestDevice() override;
 
-  IPCCommandResult IOCtl(const IOCtlRequest& request) override;
+  std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
+  void Update() override;
 
 private:
-  enum
+  struct AsyncTask
   {
-    IOCTL_NWC24_SUSPEND_SCHEDULAR = 0x01,
-    IOCTL_NWC24_EXEC_TRY_SUSPEND_SCHEDULAR = 0x02,
-    IOCTL_NWC24_EXEC_RESUME_SCHEDULAR = 0x03,
-    IOCTL_NWC24_KD_GET_TIME_TRIGGERS = 0x04,
-    IOCTL_NWC24_SET_SCHEDULE_SPAN = 0x05,
-    IOCTL_NWC24_STARTUP_SOCKET = 0x06,
-    IOCTL_NWC24_CLEANUP_SOCKET = 0x07,
-    IOCTL_NWC24_LOCK_SOCKET = 0x08,
-    IOCTL_NWC24_UNLOCK_SOCKET = 0x09,
-    IOCTL_NWC24_CHECK_MAIL_NOW = 0x0A,
-    IOCTL_NWC24_SEND_MAIL_NOW = 0x0B,
-    IOCTL_NWC24_RECEIVE_MAIL_NOW = 0x0C,
-    IOCTL_NWC24_SAVE_MAIL_NOW = 0x0D,
-    IOCTL_NWC24_DOWNLOAD_NOW_EX = 0x0E,
-    IOCTL_NWC24_REQUEST_GENERATED_USER_ID = 0x0F,
-    IOCTL_NWC24_REQUEST_REGISTER_USER_ID = 0x10,
-    IOCTL_NWC24_GET_SCHEDULAR_STAT = 0x1E,
-    IOCTL_NWC24_SET_FILTER_MODE = 0x1F,
-    IOCTL_NWC24_SET_DEBUG_MODE = 0x20,
-    IOCTL_NWC24_KD_SET_NEXT_WAKEUP = 0x21,
-    IOCTL_NWC24_SET_SCRIPT_MODE = 0x22,
-    IOCTL_NWC24_REQUEST_SHUTDOWN = 0x28,
+    IOS::HLE::Request request;
+    std::function<IPCReply()> handler;
   };
 
-  enum
+  struct AsyncReply
   {
-    MODEL_RVT = 0,
-    MODEL_RVV = 0,
-    MODEL_RVL = 1,
-    MODEL_RVD = 2,
-    MODEL_ELSE = 7
+    IOS::HLE::Request request;
+    s32 return_value;
   };
 
-  u8 GetAreaCode(const std::string& area) const;
-  u8 GetHardwareModel(const std::string& model) const;
-
-  s32 NWC24MakeUserID(u64* nwc24_id, u32 hollywood_id, u16 id_ctr, u8 hardware_model, u8 area_code);
+  template <typename Method, typename Request>
+  std::optional<IPCReply> LaunchAsyncTask(Method method, const Request& request)
+  {
+    m_work_queue.EmplaceItem(AsyncTask{request, std::bind(method, this, request)});
+    return std::nullopt;
+  }
 
   NWC24::NWC24Config config;
+  NWC24::NWC24Dl m_dl_list;
+  Common::WorkQueueThread<AsyncTask> m_work_queue;
+  std::mutex m_async_reply_lock;
+  std::queue<AsyncReply> m_async_replies;
+  // TODO: Maybe move away from Common::HttpRequest?
+  Common::HttpRequest m_http{std::chrono::minutes{1}};
 };
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

@@ -1,13 +1,12 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "Common/LdrWatcher.h"
 
 #include <Windows.h>
 #include <TlHelp32.h>
 #include <string>
 #include <winternl.h>
-
-#include "Common/LdrWatcher.h"
 
 typedef struct _LDR_DLL_LOADED_NOTIFICATION_DATA
 {

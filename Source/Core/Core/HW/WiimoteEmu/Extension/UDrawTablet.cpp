@@ -1,15 +1,16 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/WiimoteEmu/Extension/UDrawTablet.h"
 
 #include <array>
-#include <cassert>
 
+#include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
+
+#include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 #include "InputCommon/ControllerEmu/Control/Input.h"
@@ -47,9 +48,10 @@ UDrawTablet::UDrawTablet() : Extension3rdParty("uDraw", _trans("uDraw GameTablet
   // Touch
   groups.emplace_back(m_touch = new ControllerEmu::Triggers(_trans("Touch")));
   m_touch->AddInput(ControllerEmu::Translate, _trans("Pressure"));
+  m_touch->AddInput(ControllerEmu::Translate, _trans("Lift"));
 }
 
-void UDrawTablet::Update()
+void UDrawTablet::BuildDesiredExtensionState(DesiredExtensionState* target_state)
 {
   DataFormat tablet_data = {};
 
@@ -77,11 +79,10 @@ void UDrawTablet::Update()
   constexpr double center_y = (max_y + min_y) / 2.0;
 
   // Neutral (lifted) stylus state:
-  u16 stylus_x = 0x7ff;
-  u16 stylus_y = 0x7ff;
+  u16 stylus_x = 0xfff;
+  u16 stylus_y = 0xfff;
 
-  // TODO: Expose the lifted stylus state in the UI.
-  bool is_stylus_lifted = false;
+  const bool is_stylus_lifted = std::lround(touch_state.data[1]) != 0;
 
   const auto stylus_state = m_stylus->GetState();
 
@@ -106,7 +107,12 @@ void UDrawTablet::Update()
   // Always 0xff
   tablet_data.unk = 0xff;
 
-  Common::BitCastPtr<DataFormat>(&m_reg.controller_data) = tablet_data;
+  target_state->data = tablet_data;
+}
+
+void UDrawTablet::Update(const DesiredExtensionState& target_state)
+{
+  DefaultExtensionUpdate<DataFormat>(&m_reg, target_state);
 }
 
 void UDrawTablet::Reset()
@@ -130,7 +136,7 @@ ControllerEmu::ControlGroup* UDrawTablet::GetGroup(UDrawTabletGroup group)
   case UDrawTabletGroup::Touch:
     return m_touch;
   default:
-    assert(false);
+    ASSERT(false);
     return nullptr;
   }
 }

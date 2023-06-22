@@ -1,11 +1,16 @@
-package org.dolphinemu.dolphinemu.model;
+// SPDX-License-Identifier: GPL-2.0-or-later
 
-import android.content.Context;
+package org.dolphinemu.dolphinemu.model;
 
 import androidx.annotation.Keep;
 
 public class GameFile
 {
+  public static int REGION_NTSC_J = 0;
+  public static int REGION_NTSC_U = 1;
+  public static int REGION_PAL = 2;
+  public static int REGION_NTSC_K = 4;
+
   @Keep
   private long mPointer;
 
@@ -58,16 +63,13 @@ public class GameFile
 
   public native boolean isDatelDisc();
 
+  public native boolean isNKit();
+
   public native int[] getBanner();
 
   public native int getBannerWidth();
 
   public native int getBannerHeight();
-
-  public String getCoverPath(Context context)
-  {
-    return context.getExternalCacheDir().getPath() + "/GameCovers/" + getGameTdbId() + ".png";
-  }
 
   public String getCustomCoverPath()
   {

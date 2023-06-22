@@ -1,10 +1,11 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <array>
+
+#include "Common/Common.h"
 
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
 #include "Core/HW/WiimoteEmu/Dynamics.h"
@@ -150,11 +151,14 @@ public:
 
   Nunchuk();
 
-  void Update() override;
+  void BuildDesiredExtensionState(DesiredExtensionState* target_state) override;
+  void Update(const DesiredExtensionState& target_state) override;
   void Reset() override;
   void DoState(PointerWrap& p) override;
 
   ControllerEmu::ControlGroup* GetGroup(NunchukGroup group);
+
+  void LoadDefaults(const ControllerInterface& ciface) override;
 
   static constexpr u8 BUTTON_C = 0x02;
   static constexpr u8 BUTTON_Z = 0x01;
@@ -166,8 +170,14 @@ public:
 
   static constexpr u8 STICK_CENTER = 0x80;
   static constexpr u8 STICK_RADIUS = 0x7F;
+  static constexpr u8 STICK_RANGE = 0xFF;
 
-  void LoadDefaults(const ControllerInterface& ciface) override;
+  static constexpr const char* BUTTONS_GROUP = _trans("Buttons");
+  static constexpr const char* STICK_GROUP = _trans("Stick");
+  static constexpr const char* ACCELEROMETER_GROUP = "IMUAccelerometer";
+
+  static constexpr const char* C_BUTTON = "C";
+  static constexpr const char* Z_BUTTON = "Z";
 
 private:
   ControllerEmu::Tilt* m_tilt;

@@ -1,13 +1,13 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "DolphinQt/Config/SettingsWindow.h"
 
 #include <QDialogButtonBox>
 #include <QPushButton>
 #include <QTabWidget>
 #include <QVBoxLayout>
 
-#include "DolphinQt/Config/SettingsWindow.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"

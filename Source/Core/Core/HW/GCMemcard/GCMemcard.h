@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -30,9 +29,6 @@ enum
 {
   SLOT_A = 0,
   SLOT_B = 1,
-  GCI = 0,
-  SAV = 0x80,
-  GCS = 0x110,
 };
 
 enum class GCMemcardGetSaveDataRetVal
@@ -45,26 +41,10 @@ enum class GCMemcardGetSaveDataRetVal
 enum class GCMemcardImportFileRetVal
 {
   SUCCESS,
-  FAIL,
   NOMEMCARD,
   OUTOFDIRENTRIES,
   OUTOFBLOCKS,
   TITLEPRESENT,
-  INVALIDFILESIZE,
-  GCSFAIL,
-  SAVFAIL,
-  OPENFAIL,
-  LENGTHFAIL,
-};
-
-enum class GCMemcardExportFileRetVal
-{
-  SUCCESS,
-  FAIL,
-  NOMEMCARD,
-  OPENFAIL,
-  WRITEFAIL,
-  UNUSED,
 };
 
 enum class GCMemcardRemoveFileRetVal
@@ -102,7 +82,7 @@ private:
 struct GCMemcardAnimationFrameRGBA8
 {
   std::vector<u32> image_data;
-  u8 delay;
+  u8 delay = 0;
 };
 
 // size of a single memory card block in bytes
@@ -159,6 +139,11 @@ constexpr u8 MEMORY_CARD_ICON_FORMAT_CI8_UNIQUE_PALETTE = 3;
 // number of palette entries in a CI8 palette of a banner or icon
 // each palette entry is 16 bits in RGB5A3 format
 constexpr u32 MEMORY_CARD_CI8_PALETTE_ENTRIES = 256;
+
+constexpr u32 MbitToFreeBlocks(u16 size_mb)
+{
+  return size_mb * MBIT_TO_BLOCKS - MC_FST_BLOCKS;
+}
 
 struct GCMBlock
 {
@@ -246,6 +231,8 @@ struct Header
   std::pair<u16, u16> CalculateChecksums() const;
 
   GCMemcardErrorCode CheckForErrors(u16 card_size_mbits) const;
+
+  bool IsShiftJIS() const;
 };
 static_assert(sizeof(Header) == BLOCK_SIZE);
 static_assert(std::is_trivially_copyable_v<Header>);
@@ -253,9 +240,6 @@ static_assert(std::is_trivially_copyable_v<Header>);
 struct DEntry
 {
   DEntry();
-
-  // TODO: This probably shouldn't be here at all?
-  std::string GCI_FileName() const;
 
   static constexpr std::array<u8, 4> UNINITIALIZED_GAMECODE{{0xFF, 0xFF, 0xFF, 0xFF}};
 
@@ -400,6 +384,12 @@ static_assert(sizeof(BlockAlloc) == BLOCK_SIZE);
 static_assert(std::is_trivially_copyable_v<BlockAlloc>);
 #pragma pack(pop)
 
+struct Savefile
+{
+  DEntry dir_entry;
+  std::vector<GCMBlock> blocks;
+};
+
 class GCMemcard
 {
 private:
@@ -418,8 +408,6 @@ private:
   int m_active_bat;
 
   GCMemcard();
-
-  GCMemcardImportFileRetVal ImportGciInternal(File::IOFile&& gci, const std::string& inputFile);
 
   const Directory& GetActiveDirectory() const;
   const BlockAlloc& GetActiveBat() const;
@@ -464,19 +452,8 @@ public:
   // with that identity exists in this card.
   std::optional<u8> TitlePresent(const DEntry& d) const;
 
-  bool GCI_FileName(u8 index, std::string& filename) const;
   // DEntry functions, all take u8 index < DIRLEN (127)
-  std::string DEntry_GameCode(u8 index) const;
-  std::string DEntry_Makercode(u8 index) const;
-  std::string DEntry_BIFlags(u8 index) const;
   bool DEntry_IsPingPong(u8 index) const;
-  std::string DEntry_FileName(u8 index) const;
-  u32 DEntry_ModTime(u8 index) const;
-  u32 DEntry_ImageOffset(u8 index) const;
-  std::string DEntry_IconFmt(u8 index) const;
-  std::string DEntry_AnimSpeed(u8 index) const;
-  std::string DEntry_Permissions(u8 index) const;
-  u8 DEntry_CopyCounter(u8 index) const;
   // get first block for file
   u16 DEntry_FirstBlock(u8 index) const;
   // get file length in blocks
@@ -496,25 +473,14 @@ public:
 
   GCMemcardGetSaveDataRetVal GetSaveData(u8 index, std::vector<GCMBlock>& saveBlocks) const;
 
-  // adds the file to the directory and copies its contents
-  GCMemcardImportFileRetVal ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlocks);
+  // Adds the given savefile to the memory card, if possible.
+  GCMemcardImportFileRetVal ImportFile(const Savefile& savefile);
+
+  // Fetches the savefile at the given directory index, if any.
+  std::optional<Savefile> ExportFile(u8 index) const;
 
   // delete a file from the directory
   GCMemcardRemoveFileRetVal RemoveFile(u8 index);
-
-  // reads a save from another memcard, and imports the data into this memcard
-  GCMemcardImportFileRetVal CopyFrom(const GCMemcard& source, u8 index);
-
-  // reads a .gci/.gcs/.sav file and calls ImportFile
-  GCMemcardImportFileRetVal ImportGci(const std::string& inputFile);
-
-  // writes a .gci file to disk containing index
-  GCMemcardExportFileRetVal ExportGci(u8 index, const std::string& fileName,
-                                      const std::string& directory) const;
-
-  // GCI files are untouched, SAV files are byteswapped
-  // GCS files have the block count set, default is 1 (For export as GCS)
-  static void Gcs_SavConvert(DEntry& tempDEntry, int saveType, u64 length = BLOCK_SIZE);
 
   // reads the banner image
   std::optional<std::vector<u32>> ReadBannerRGBA8(u8 index) const;

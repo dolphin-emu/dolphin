@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Config/Mapping/WiimoteEmuExtension.h"
 
@@ -15,6 +14,7 @@
 #include "Core/HW/WiimoteEmu/Extension/Drums.h"
 #include "Core/HW/WiimoteEmu/Extension/Guitar.h"
 #include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
+#include "Core/HW/WiimoteEmu/Extension/Shinkansen.h"
 #include "Core/HW/WiimoteEmu/Extension/TaTaCon.h"
 #include "Core/HW/WiimoteEmu/Extension/Turntable.h"
 #include "Core/HW/WiimoteEmu/Extension/UDrawTablet.h"
@@ -33,6 +33,7 @@ WiimoteEmuExtension::WiimoteEmuExtension(MappingWindow* window) : MappingWidget(
   CreateUDrawTabletLayout();
   CreateDrawsomeTabletLayout();
   CreateTaTaConLayout();
+  CreateShinkansenLayout();
   CreateMainLayout();
 
   ChangeExtensionType(WiimoteEmu::ExtensionNumber::NONE);
@@ -225,6 +226,21 @@ void WiimoteEmuExtension::CreateTaTaConLayout()
   m_tatacon_box->setLayout(hbox);
 }
 
+void WiimoteEmuExtension::CreateShinkansenLayout()
+{
+  auto* hbox = new QHBoxLayout();
+  m_shinkansen_box = new QGroupBox(tr("Shinkansen"), this);
+
+  hbox->addWidget(CreateGroupBox(
+      tr("Levers"), Wiimote::GetShinkansenGroup(GetPort(), WiimoteEmu::ShinkansenGroup::Levers)));
+  hbox->addWidget(CreateGroupBox(
+      tr("Buttons"), Wiimote::GetShinkansenGroup(GetPort(), WiimoteEmu::ShinkansenGroup::Buttons)));
+  hbox->addWidget(CreateGroupBox(
+      tr("Light"), Wiimote::GetShinkansenGroup(GetPort(), WiimoteEmu::ShinkansenGroup::Light)));
+
+  m_shinkansen_box->setLayout(hbox);
+}
+
 void WiimoteEmuExtension::CreateMainLayout()
 {
   m_main_layout = new QHBoxLayout();
@@ -238,6 +254,7 @@ void WiimoteEmuExtension::CreateMainLayout()
   m_main_layout->addWidget(m_udraw_tablet_box);
   m_main_layout->addWidget(m_drawsome_tablet_box);
   m_main_layout->addWidget(m_tatacon_box);
+  m_main_layout->addWidget(m_shinkansen_box);
 
   setLayout(m_main_layout);
 }
@@ -270,4 +287,5 @@ void WiimoteEmuExtension::ChangeExtensionType(u32 type)
   m_udraw_tablet_box->setHidden(type != ExtensionNumber::UDRAW_TABLET);
   m_drawsome_tablet_box->setHidden(type != ExtensionNumber::DRAWSOME_TABLET);
   m_tatacon_box->setHidden(type != ExtensionNumber::TATACON);
+  m_shinkansen_box->setHidden(type != ExtensionNumber::SHINKANSEN);
 }

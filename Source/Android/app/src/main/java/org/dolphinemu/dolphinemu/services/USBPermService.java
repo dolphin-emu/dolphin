@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.services;
 
 import android.app.IntentService;

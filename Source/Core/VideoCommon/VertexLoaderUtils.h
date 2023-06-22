@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -8,8 +7,9 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Inline.h"
+#include "Common/Swap.h"
 
-extern u8* g_video_buffer_read_ptr;
+extern const u8* g_video_buffer_read_ptr;
 extern u8* g_vertex_manager_write_ptr;
 
 DOLPHIN_FORCE_INLINE void DataSkip(u32 skip)
@@ -25,7 +25,7 @@ DOLPHIN_FORCE_INLINE void DataSkip()
 }
 
 template <typename T>
-DOLPHIN_FORCE_INLINE T DataPeek(int _uOffset, u8* bufp = g_video_buffer_read_ptr)
+DOLPHIN_FORCE_INLINE T DataPeek(int _uOffset, const u8* bufp = g_video_buffer_read_ptr)
 {
   T result;
   std::memcpy(&result, &bufp[_uOffset], sizeof(T));
@@ -33,7 +33,7 @@ DOLPHIN_FORCE_INLINE T DataPeek(int _uOffset, u8* bufp = g_video_buffer_read_ptr
 }
 
 template <typename T>
-DOLPHIN_FORCE_INLINE T DataRead(u8** bufp = &g_video_buffer_read_ptr)
+DOLPHIN_FORCE_INLINE T DataRead(const u8** bufp = &g_video_buffer_read_ptr)
 {
   auto const result = DataPeek<T>(0, *bufp);
   *bufp += sizeof(T);
@@ -48,7 +48,7 @@ DOLPHIN_FORCE_INLINE u32 DataReadU32Unswapped()
   return result;
 }
 
-DOLPHIN_FORCE_INLINE u8* DataGetPosition()
+DOLPHIN_FORCE_INLINE const u8* DataGetPosition()
 {
   return g_video_buffer_read_ptr;
 }

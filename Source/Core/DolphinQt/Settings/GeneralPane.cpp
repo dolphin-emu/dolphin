@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Settings/GeneralPane.h"
 
@@ -16,15 +15,17 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-#include "Core/Analytics.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/UISettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/DolphinAnalytics.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/Slippi/SlippiNetplay.h"
 
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
+#include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 
 #ifdef USE_DISCORD_PRESENCE
@@ -32,12 +33,10 @@
 #endif
 
 constexpr int AUTO_UPDATE_DISABLE_INDEX = 0;
-constexpr int AUTO_UPDATE_STABLE_INDEX = 1;
-constexpr int AUTO_UPDATE_BETA_INDEX = 2;
-constexpr int AUTO_UPDATE_DEV_INDEX = 3;
+constexpr int AUTO_UPDATE_BETA_INDEX = 1;
+constexpr int AUTO_UPDATE_DEV_INDEX = 2;
 
 constexpr const char* AUTO_UPDATE_DISABLE_STRING = "";
-constexpr const char* AUTO_UPDATE_STABLE_STRING = "stable";
 constexpr const char* AUTO_UPDATE_BETA_STRING = "beta";
 constexpr const char* AUTO_UPDATE_DEV_STRING = "dev";
 
@@ -55,6 +54,7 @@ GeneralPane::GeneralPane(QWidget* parent) : QWidget(parent)
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           &GeneralPane::OnEmulationStateChanged);
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this, &GeneralPane::LoadConfig);
 
   OnEmulationStateChanged(Core::GetState());
 }
@@ -101,8 +101,11 @@ void GeneralPane::ConnectLayout()
 #endif
 
   // Advanced
-  connect(m_combobox_speedlimit, qOverload<int>(&QComboBox::currentIndexChanged),
-          [this]() { OnSaveConfig(); });
+  connect(m_combobox_speedlimit, qOverload<int>(&QComboBox::currentIndexChanged), [this]() {
+    Config::SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED,
+                             m_combobox_speedlimit->currentIndex() * 0.1f);
+    Config::Save();
+  });
 
   connect(m_combobox_fallback_region, qOverload<int>(&QComboBox::currentIndexChanged), this,
           &GeneralPane::OnSaveConfig);
@@ -168,28 +171,26 @@ void GeneralPane::CreateBasic()
 void GeneralPane::CreateFallbackRegion()
 {
   auto* fallback_region_group = new QGroupBox(tr("Fallback Region"));
-  auto* layout = new QVBoxLayout;
-  fallback_region_group->setLayout(layout);
+  auto* fallback_region_group_layout = new QVBoxLayout;
+  fallback_region_group->setLayout(fallback_region_group_layout);
   m_main_layout->addWidget(fallback_region_group);
 
-  m_combobox_fallback_region = new QComboBox(this);
+  auto* fallback_region_dropdown_layout = new QFormLayout;
+  fallback_region_dropdown_layout->setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
+  fallback_region_dropdown_layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+  fallback_region_group_layout->addLayout(fallback_region_dropdown_layout);
 
-  auto* form_widget = new QWidget;
-  auto* form_layout = new QFormLayout;
-  form_widget->setLayout(form_layout);
-  form_layout->setAlignment(Qt::AlignLeft | Qt::AlignTop);
-  form_layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
-  form_layout->addRow(tr("Fallback Region:"), m_combobox_fallback_region);
-  layout->addWidget(form_widget);
+  m_combobox_fallback_region = new QComboBox(this);
+  fallback_region_dropdown_layout->addRow(tr("Fallback Region:"), m_combobox_fallback_region);
+
+  for (const QString& option : {tr("NTSC-J"), tr("NTSC-U"), tr("PAL"), tr("NTSC-K")})
+    m_combobox_fallback_region->addItem(option);
 
   auto* fallback_region_description =
       new QLabel(tr("Dolphin will use this for titles whose region cannot be determined "
                     "automatically."));
   fallback_region_description->setWordWrap(true);
-  layout->addWidget(fallback_region_description);
-
-  for (const QString& option : {tr("NTSC-J"), tr("NTSC-U"), tr("PAL"), tr("NTSC-K")})
-    m_combobox_fallback_region->addItem(option);
+  fallback_region_group_layout->addWidget(fallback_region_description);
 }
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
@@ -201,7 +202,8 @@ void GeneralPane::CreateAnalytics()
   m_main_layout->addWidget(analytics_group);
 
   m_checkbox_enable_analytics = new QCheckBox(tr("Enable Usage Statistics Reporting"));
-  m_button_generate_new_identity = new QPushButton(tr("Generate a New Statistics Identity"));
+  m_button_generate_new_identity =
+      new NonDefaultQPushButton(tr("Generate a New Statistics Identity"));
   analytics_group_layout->addWidget(m_checkbox_enable_analytics);
   analytics_group_layout->addWidget(m_button_generate_new_identity);
 }
@@ -209,34 +211,32 @@ void GeneralPane::CreateAnalytics()
 
 void GeneralPane::LoadConfig()
 {
-#if defined(USE_ANALYTICS) && USE_ANALYTICS
-  m_checkbox_enable_analytics->setChecked(Settings::Instance().IsAnalyticsEnabled());
-#endif
-  m_checkbox_dualcore->setChecked(SConfig::GetInstance().bCPUThread);
-  m_checkbox_cheats->setChecked(Settings::Instance().GetCheatsEnabled());
-  m_checkbox_default_boot_iso->setChecked(SConfig::GetInstance().bBootDefaultISO);
-  m_checkbox_override_region_settings->setChecked(SConfig::GetInstance().bOverrideRegionSettings);
-  m_checkbox_auto_disc_change->setChecked(Config::Get(Config::MAIN_AUTO_DISC_CHANGE));
+  const QSignalBlocker blocker(this);
+  SignalBlocking(m_checkbox_dualcore)->setChecked(Config::Get(Config::MAIN_CPU_THREAD));
+  SignalBlocking(m_checkbox_cheats)->setChecked(Settings::Instance().GetCheatsEnabled());
+  SignalBlocking(m_checkbox_override_region_settings)
+      ->setChecked(Config::Get(Config::MAIN_OVERRIDE_REGION_SETTINGS));
+  SignalBlocking(m_checkbox_auto_disc_change)
+      ->setChecked(Config::Get(Config::MAIN_AUTO_DISC_CHANGE));
 #ifdef USE_DISCORD_PRESENCE
-  m_checkbox_discord_presence->setChecked(Config::Get(Config::MAIN_USE_DISCORD_PRESENCE));
+  SignalBlocking(m_checkbox_discord_presence)
+      ->setChecked(Config::Get(Config::MAIN_USE_DISCORD_PRESENCE));
 #endif
-  int selection = qRound(SConfig::GetInstance().m_EmulationSpeed * 10);
+  int selection = qRound(Config::Get(Config::MAIN_EMULATION_SPEED) * 10);
   if (selection < m_combobox_speedlimit->count())
-    m_combobox_speedlimit->setCurrentIndex(selection);
-  m_checkbox_dualcore->setChecked(SConfig::GetInstance().bCPUThread);
+    SignalBlocking(m_combobox_speedlimit)->setCurrentIndex(selection);
 
   const auto fallback = Settings::Instance().GetFallbackRegion();
-
   if (fallback == DiscIO::Region::NTSC_J)
-    m_combobox_fallback_region->setCurrentIndex(FALLBACK_REGION_NTSCJ_INDEX);
+    SignalBlocking(m_combobox_fallback_region)->setCurrentIndex(FALLBACK_REGION_NTSCJ_INDEX);
   else if (fallback == DiscIO::Region::NTSC_U)
-    m_combobox_fallback_region->setCurrentIndex(FALLBACK_REGION_NTSCU_INDEX);
+    SignalBlocking(m_combobox_fallback_region)->setCurrentIndex(FALLBACK_REGION_NTSCU_INDEX);
   else if (fallback == DiscIO::Region::PAL)
-    m_combobox_fallback_region->setCurrentIndex(FALLBACK_REGION_PAL_INDEX);
+    SignalBlocking(m_combobox_fallback_region)->setCurrentIndex(FALLBACK_REGION_PAL_INDEX);
   else if (fallback == DiscIO::Region::NTSC_K)
-    m_combobox_fallback_region->setCurrentIndex(FALLBACK_REGION_NTSCK_INDEX);
+    SignalBlocking(m_combobox_fallback_region)->setCurrentIndex(FALLBACK_REGION_NTSCK_INDEX);
   else
-    m_combobox_fallback_region->setCurrentIndex(FALLBACK_REGION_NTSCJ_INDEX);
+    SignalBlocking(m_combobox_fallback_region)->setCurrentIndex(FALLBACK_REGION_NTSCJ_INDEX);
 }
 
 static DiscIO::Region UpdateFallbackRegionFromIndex(int index)
@@ -278,17 +278,12 @@ void GeneralPane::OnSaveConfig()
   Settings::Instance().SetAnalyticsEnabled(m_checkbox_enable_analytics->isChecked());
   DolphinAnalytics::Instance().ReloadConfig();
 #endif
-  settings.bCPUThread = m_checkbox_dualcore->isChecked();
   Config::SetBaseOrCurrent(Config::MAIN_CPU_THREAD, m_checkbox_dualcore->isChecked());
   Settings::Instance().SetCheatsEnabled(m_checkbox_cheats->isChecked());
-  settings.bBootDefaultISO = m_checkbox_default_boot_iso->isChecked();
-  settings.bOverrideRegionSettings = m_checkbox_override_region_settings->isChecked();
   Config::SetBaseOrCurrent(Config::MAIN_OVERRIDE_REGION_SETTINGS,
                            m_checkbox_override_region_settings->isChecked());
   Config::SetBase(Config::MAIN_AUTO_DISC_CHANGE, m_checkbox_auto_disc_change->isChecked());
   Config::SetBaseOrCurrent(Config::MAIN_ENABLE_CHEATS, m_checkbox_cheats->isChecked());
-  if (!IsOnline())
-    settings.m_EmulationSpeed = m_combobox_speedlimit->currentIndex() * 0.1f;
   Settings::Instance().SetFallbackRegion(
       UpdateFallbackRegionFromIndex(m_combobox_fallback_region->currentIndex()));
 

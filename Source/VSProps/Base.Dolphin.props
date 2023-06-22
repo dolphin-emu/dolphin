@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <!--This file is included by Dolphin code only-->
+  <PropertyGroup>
+    <TargetName Condition="'$(ConfigurationType)'=='Application'">$(ProjectName)$(TargetSuffix)</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <!--Dolphin includes are relative to Source\Core-->
+      <AdditionalIncludeDirectories>$(CoreDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+
+      <!--For now, header-only libs don't have their own vcxproj/exports, so just supply their include paths to all Dolphin code-->
+      <AdditionalIncludeDirectories>$(ExternalsDir)FFmpeg-bin\$(Platform)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)OpenAL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)expr\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)rangeset\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)Vulkan\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)VulkanMemoryAllocator\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)WIL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <!--WIL doesn't have it's own vcxproj/exports, and no externals reference WIL, so this is fine to define only for Dolphin-->
+      <PreprocessorDefinitions>WIL_SUPPRESS_EXCEPTIONS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <!--Prevent Windows.h from defining some common stuff-->
+      <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+
+      <!--
+        It would be a good idea to disable _CRT_SECURE_NO_WARNINGS and get rid of e.g. C string parsing funcs
+        Unfortunately this also complains about FILE* APIs, which can be inconvenient to replace.
+      -->
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <!--IOS net code uses some ipv4-only functions which are marked as deprecated by winsock2-->
+      <PreprocessorDefinitions>_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <!--Currently needed for some code in StringUtil used only on Android-->
+      <PreprocessorDefinitions>_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+
+      <!--Dolphin-specific definitions-->
+      <PreprocessorDefinitions Condition="'$(Platform)'=='x64'">_ARCH_64=1;_M_X86=1;_M_X86_64=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Platform)'=='ARM64'">_ARCH_64=1;_M_ARM_64=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_UPNP;__LIBUSB__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_ANALYTICS=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_DISCORD_PRESENCE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>HAVE_FFMPEG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Platform)'=='x64'">HAS_OPENGL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>HAS_VULKAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>HAS_LIBMGBA;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(AutoUpdate)'!='false'">AUTOUPDATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>HAVE_SDL2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Steam)'=='true'">STEAM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+
+      <!-- Warnings one may want to ignore when using Level4.
+      4201  nonstandard extension used : nameless struct/union
+      4127  conditional expression is constant
+      4100  'identifier' : unreferenced formal parameter
+      4244  'conversion' conversion from 'type1' to 'type2', possible loss of data
+                Level4 warns if type1==int and there is narrowing
+      4121  'symbol' : alignment of a member was sensitive to packing
+      4324  Padding was added at the end of a structure because you specified a __declspec(align) value.
+      4714  function 'function' marked as __forceinline not inlined
+      -->
+      <DisableSpecificWarnings>4201;4127;4100;4244;4121;4324;4714;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <!-- Level4 warnings which should eventually be enabled
+      4245  'conversion' : conversion from 'type1' to 'type2', signed/unsigned mismatch
+                Currently jits use some annoying code patterns which makes this common
+      -->
+      <DisableSpecificWarnings>4245;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <!-- Enable some off-by-default warnings
+      4263  Non-virtual member function hides base class virtual function
+      4265  Class has virtual functions, but destructor is not virtual
+      4946  Reinterpret cast between related types
+      -->
+      <AdditionalOptions>/w44263 /w44265 /w44946 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <!--Link Base:Application-->
+    <Link Condition="'$(ConfigurationType)'=='Application'">
+      <AdditionalDependencies>avrt.lib;comctl32.lib;iphlpapi.lib;ksuser.lib;setupapi.lib;shlwapi.lib;winmm.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(Platform)'=='x64'">opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <!--FFmpeg and the libs it pulls in-->
+      <AdditionalLibraryDirectories>$(ExternalsDir)FFmpeg-bin\$(Platform)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>avcodec.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <!--See Common/CompatPatches.cpp-->
+      <ForceSymbolReferences>enableCompatPatches</ForceSymbolReferences>
+    </Link>
+    <!--Link Debug:Application-->
+    <Link Condition="'$(Configuration)'=='Debug' And '$(ConfigurationType)'=='Application'">
+      <!--The FFmpeg we link against uses non-debug msvcrt. Ignore it.-->
+      <AdditionalOptions>/NODEFAULTLIB:msvcrt %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+  </ItemDefinitionGroup>
+</Project>

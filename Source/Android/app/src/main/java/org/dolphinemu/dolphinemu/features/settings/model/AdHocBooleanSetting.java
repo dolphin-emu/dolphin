@@ -1,4 +1,8 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.model;
+
+import androidx.annotation.NonNull;
 
 public class AdHocBooleanSetting implements AbstractBooleanSetting
 {
@@ -21,7 +25,7 @@ public class AdHocBooleanSetting implements AbstractBooleanSetting
   }
 
   @Override
-  public boolean isOverridden(Settings settings)
+  public boolean isOverridden(@NonNull Settings settings)
   {
     return NativeConfig.isOverridden(mFile, mSection, mKey);
   }
@@ -33,19 +37,19 @@ public class AdHocBooleanSetting implements AbstractBooleanSetting
   }
 
   @Override
-  public boolean delete(Settings settings)
+  public boolean delete(@NonNull Settings settings)
   {
     return NativeConfig.deleteKey(settings.getWriteLayer(), mFile, mSection, mKey);
   }
 
   @Override
-  public boolean getBoolean(Settings settings)
+  public boolean getBoolean(@NonNull Settings settings)
   {
     return NativeConfig.getBoolean(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey, mDefaultValue);
   }
 
   @Override
-  public void setBoolean(Settings settings, boolean newValue)
+  public void setBoolean(@NonNull Settings settings, boolean newValue)
   {
     NativeConfig.setBoolean(settings.getWriteLayer(), mFile, mSection, mKey, newValue);
   }

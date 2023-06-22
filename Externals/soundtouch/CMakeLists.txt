@@ -16,4 +16,5 @@ set(SRCS
 	)
 
 add_library(SoundTouch STATIC ${SRCS})
+dolphin_disable_warnings_msvc(SoundTouch)
 add_definitions(-w)

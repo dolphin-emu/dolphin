@@ -5,12 +5,12 @@
 #include <unordered_map>
 #include <vector>
 
-#include <SlippiLib/SlippiGame.h>
 #include <open-vcdiff/src/google/vcdecoder.h>
 #include <open-vcdiff/src/google/vcencoder.h>
 
-#include "../../Common/CommonTypes.h"
+#include "Common/CommonTypes.h"
 #include "Core/ConfigManager.h"
+#include "SlippiGame.h"
 
 class SlippiPlaybackStatus
 {
@@ -24,8 +24,8 @@ public:
   volatile bool shouldRunThreads = false;
   bool isHardFFW = false;
   bool isSoftFFW = false;
-  bool origOCEnable = SConfig::GetInstance().m_OCEnable;
-  float origOCFactor = SConfig::GetInstance().m_OCFactor;
+  bool origOCEnable = SConfig::GetSlippiConfig().oc_enable;
+  float origOCFactor = SConfig::GetSlippiConfig().oc_factor;
 
   s32 lastFFWFrame = INT_MIN;
   s32 currentPlaybackFrame = INT_MIN;

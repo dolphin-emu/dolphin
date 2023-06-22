@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -8,7 +7,7 @@
 #include <QString>
 #include <memory>
 
-#include "InputCommon/ControllerInterface/Device.h"
+#include "InputCommon/ControllerInterface/CoreDevice.h"
 
 namespace ControllerEmu
 {
@@ -24,6 +23,7 @@ class QGroupBox;
 class QVBoxLayout;
 class QPushButton;
 class QTabWidget;
+class QToolButton;
 class QWidget;
 
 class MappingWindow final : public QDialog
@@ -35,6 +35,7 @@ public:
     // GameCube
     MAPPING_GC_BONGOS,
     MAPPING_GC_DANCEMAT,
+    MAPPING_GC_GBA,
     MAPPING_GC_KEYBOARD,
     MAPPING_GCPAD,
     MAPPING_GC_STEERINGWHEEL,
@@ -42,7 +43,9 @@ public:
     // Wii
     MAPPING_WIIMOTE_EMU,
     // Hotkeys
-    MAPPING_HOTKEYS
+    MAPPING_HOTKEYS,
+    // Freelook
+    MAPPING_FREELOOK,
   };
 
   explicit MappingWindow(QWidget* parent, Type type, int port_num);
@@ -96,7 +99,7 @@ private:
   QGroupBox* m_devices_box;
   QHBoxLayout* m_devices_layout;
   QComboBox* m_devices_combo;
-  QPushButton* m_devices_refresh;
+  QAction* m_all_devices_action;
 
   // Profiles
   QGroupBox* m_profiles_box;

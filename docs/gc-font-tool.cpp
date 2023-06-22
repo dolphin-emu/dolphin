@@ -1109,7 +1109,7 @@ static std::vector<uint8_t> fnt_to_bmp(const std::vector<uint8_t>& input)
 	return bitmap;
 }
 
-// Generates a gamecube font file
+// Generates a GameCube font file
 static std::vector<uint8_t> generate_fnt(
 	font_type type,
 	const std::vector<uint8_t>& widths,
@@ -1230,7 +1230,7 @@ static void freetype_to_fnt_data(
 	}
 }
 
-// Converts a freetype font to a gamecube compressed font
+// Converts a freetype font to a GameCube compressed font
 static std::vector<uint8_t> freetype_to_fnt(const std::vector<uint8_t>& font_buf, font_type type, bool dither)
 {
 	// Get font table from font type

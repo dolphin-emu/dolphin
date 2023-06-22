@@ -1,6 +1,5 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -12,7 +11,7 @@ class Vec3
 public:
   float x, y, z;
 
-  Vec3() {}
+  Vec3() = default;
   explicit Vec3(float f) { x = y = z = f; }
   explicit Vec3(const float* f)
   {

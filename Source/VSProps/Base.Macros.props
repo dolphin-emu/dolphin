@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project>
   <PropertyGroup Label="UserMacros">
     <DolphinRelease Condition="'$(DolphinRelease)'!='true' or '$(Configuration)'!='Release'">false</DolphinRelease>
     <TargetSuffix></TargetSuffix>
@@ -11,6 +11,7 @@
     <ExternalsDir>$(DolphinRootDir)Externals\</ExternalsDir>
     <SourceDir>$(DolphinRootDir)Source\</SourceDir>
     <CoreDir>$(SourceDir)Core\</CoreDir>
+    <CScript>%windir%\System32\cscript</CScript>
     <VSPropsDir>$(SourceDir)VSProps\</VSPropsDir>
   </PropertyGroup>
   <PropertyGroup>

@@ -6,6 +6,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 
 #if defined __linux__ && HAVE_ALSA
@@ -36,10 +37,9 @@ SlippiMatchmaking::SlippiMatchmaking(SlippiUser* user)
   m_client = nullptr;
   m_server = nullptr;
 
-  MM_HOST =
-      Common::scm_slippi_semver_str.find("dev") == std::string::npos ? MM_HOST_PROD : MM_HOST_DEV;
+  MM_HOST = Common::GetSemVerStr().find("dev") == std::string::npos ? MM_HOST_PROD : MM_HOST_DEV;
 
-  generator = std::default_random_engine(Common::Timer::GetTimeMs());
+  generator = std::default_random_engine(Common::Timer::NowMs());
 }
 
 SlippiMatchmaking::~SlippiMatchmaking()
@@ -219,8 +219,8 @@ void SlippiMatchmaking::startMatchmaking()
   auto userInfo = m_user->GetUserInfo();
   while (m_client == nullptr && retryCount < 15)
   {
-    if (SConfig::GetInstance().m_slippiForceNetplayPort)
-      m_hostPort = SConfig::GetInstance().m_slippiNetplayPort;
+    if (Config::Get(Config::SLIPPI_FORCE_NETPLAY_PORT))
+      m_hostPort = Config::Get(Config::SLIPPI_NETPLAY_PORT);
     else
       m_hostPort = 41000 + (generator() % 10000);
     ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Port to use: {}...", m_hostPort);
@@ -365,10 +365,10 @@ void SlippiMatchmaking::startMatchmaking()
     }
   }
 
-  if (SConfig::GetInstance().m_slippiForceLanIp)
+  if (Config::Get(Config::SLIPPI_FORCE_LAN_IP))
   {
-    WARN_LOG(SLIPPI_ONLINE, "[Matchmaking] Overwriting LAN IP sent with configured address");
-    sprintf(lan_addr, "%s:%d", SConfig::GetInstance().m_slippiLanIp.c_str(), m_hostPort);
+    WARN_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Overwriting LAN IP sent with configured address");
+    sprintf(lan_addr, "%s:%d", Config::Get(Config::SLIPPI_LAN_IP).c_str(), m_hostPort);
   }
 
   WARN_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Sending LAN address: {}", lan_addr);
@@ -382,7 +382,7 @@ void SlippiMatchmaking::startMatchmaking()
   request["type"] = MmMessageType::CREATE_TICKET;
   request["user"] = {{"uid", userInfo.uid}, {"playKey", userInfo.play_key}};
   request["search"] = {{"mode", m_searchSettings.mode}, {"connectCode", connectCodeBuf}};
-  request["appVersion"] = Common::scm_slippi_semver_str;
+  request["appVersion"] = Common::GetSemVerStr();
   request["ipAddressLan"] = lan_addr;
   sendMessage(request);
 

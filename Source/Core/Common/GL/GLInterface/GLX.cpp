@@ -1,11 +1,11 @@
 // Copyright 2012 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "Common/GL/GLInterface/GLX.h"
 
 #include <array>
 #include <sstream>
 
-#include "Common/GL/GLInterface/GLX.h"
 #include "Common/Logging/Log.h"
 
 #define GLX_CONTEXT_MAJOR_VERSION_ARB 0x2091
@@ -13,7 +13,11 @@
 
 typedef GLXContext (*PFNGLXCREATECONTEXTATTRIBSPROC)(Display*, GLXFBConfig, GLXContext, Bool,
                                                      const int*);
+
+#ifndef GLX_EXT_swap_control
 typedef void (*PFNGLXSWAPINTERVALEXTPROC)(Display*, GLXDrawable, int);
+#endif
+
 typedef int (*PFNGLXSWAPINTERVALMESAPROC)(unsigned int);
 
 static PFNGLXCREATECONTEXTATTRIBSPROC glXCreateContextAttribs = nullptr;

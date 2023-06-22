@@ -215,7 +215,7 @@ std::vector<SlippiDirectCodes::CodeInfo> SlippiDirectCodes::parseFile(std::strin
   // Unlike the user.json, the encapsulating type should be an array.
   if (res.is_discarded() || !res.is_array())
   {
-    WARN_LOG(SLIPPI_ONLINE, "Malformed json in direct codes file.");
+    WARN_LOG_FMT(SLIPPI_ONLINE, "Malformed json in direct codes file.");
     return directCodes;
   }
 

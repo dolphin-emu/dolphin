@@ -1,7 +1,6 @@
 // Copyright 2008 Dolphin Emulator Project
 // Copyright 2004 Duddie & Tratax
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -11,12 +10,22 @@
 #include <memory>
 #include <string>
 
+#include "Common/Event.h"
+#include "Core/DSP/DSPAnalyzer.h"
 #include "Core/DSP/DSPBreakpoints.h"
 #include "Core/DSP/DSPCaptureLogger.h"
+
+class PointerWrap;
 
 namespace DSP
 {
 class Accelerator;
+class DSPCore;
+
+namespace Interpreter
+{
+class Interpreter;
+}
 
 namespace JIT
 {
@@ -113,15 +122,23 @@ enum : int
   DSP_REG_AXH1 = 0x1b,
 
   // Accumulator (global)
-  DSP_REG_ACC0 = 0x1c,
-  DSP_REG_ACC1 = 0x1d,
-
   DSP_REG_ACL0 = 0x1c,  // Low accumulator
   DSP_REG_ACL1 = 0x1d,
   DSP_REG_ACM0 = 0x1e,  // Mid accumulator
   DSP_REG_ACM1 = 0x1f,
   DSP_REG_ACH0 = 0x10,  // Sign extended 8 bit register 0
-  DSP_REG_ACH1 = 0x11   // Sign extended 8 bit register 1
+  DSP_REG_ACH1 = 0x11,  // Sign extended 8 bit register 1
+};
+
+enum : int
+{
+  // Magic values used by DSPTables.h
+  // These do not correspond to real registers like above, but instead combined versions of the
+  // registers.
+  DSP_REG_ACC0_FULL = 0x20,
+  DSP_REG_ACC1_FULL = 0x21,
+  DSP_REG_AX0_FULL = 0x22,
+  DSP_REG_AX1_FULL = 0x23,
 };
 
 // Hardware registers address
@@ -172,9 +189,11 @@ enum class StackRegister
 // See HW/DSP.cpp.
 enum : u32
 {
+  CR_RESET = 0x0001,
   CR_EXTERNAL_INT = 0x0002,
   CR_HALT = 0x0004,
-  CR_INIT = 0x0400
+  CR_INIT_CODE = 0x0400,
+  CR_INIT = 0x0800
 };
 
 // SR bits
@@ -189,7 +208,7 @@ enum : u16
   SR_LOGIC_ZERO = 0x0040,
   SR_OVERFLOW_STICKY =
       0x0080,  // Set at the same time as 0x2 (under same conditions) - but not cleared the same
-  SR_100 = 0x0100,         // Unknown
+  SR_100 = 0x0100,         // Unknown, always reads back as 0
   SR_INT_ENABLE = 0x0200,  // Not 100% sure but duddie says so. This should replace the hack, if so.
   SR_400 = 0x0400,         // Unknown
   SR_EXT_INT_ENABLE = 0x0800,  // Appears in zelda - seems to disable external interrupts
@@ -214,6 +233,12 @@ enum class ExceptionType
   AcceleratorOverflow = 5,  // 0x000a accelerator address overflow
   EXP_6 = 6,                // 0x000c
   ExternalInterrupt = 7     // 0x000e external int (message from CPU)
+};
+
+enum class Mailbox
+{
+  CPU,
+  DSP
 };
 
 struct DSP_Regs
@@ -254,73 +279,18 @@ struct DSP_Regs
     {
       u16 l;
       u16 m;
-      u16 h;
+      u32 h;  // 32 bits so that val is fully sign-extended (only 8 bits are actually used)
     };
   } ac[2];
 };
 
-// All the state of the DSP should be in this struct. Any DSP state that is not filled on init
-// should be moved here.
-struct SDSP
-{
-  DSP_Regs r;
-  u16 pc;
-#if PROFILE
-  u16 err_pc;
-#endif
-
-  // This is NOT the same cr as r.cr.
-  // This register is shared with the main emulation, see DSP.cpp
-  // The engine has control over 0x0C07 of this reg.
-  // Bits are defined in a struct in DSP.cpp.
-  u16 cr;
-
-  u8 reg_stack_ptrs[4];
-  u8 exceptions;  // pending exceptions
-  volatile bool external_interrupt_waiting;
-  bool reset_dspjit_codespace;
-
-  // DSP hardware stacks. They're mapped to a bunch of registers, such that writes
-  // to them push and reads pop.
-  // Let's make stack depth 32 for now, which is way more than what's needed.
-  // The real DSP has different depths for the different stacks, but it would
-  // be strange if any ucode relied on stack overflows since on the DSP, when
-  // the stack overflows, you're screwed.
-  u16 reg_stacks[4][DSP_STACK_DEPTH];
-
-  // For debugging.
-  u32 iram_crc;
-  u64 step_counter;
-
-  // Mailbox.
-  std::atomic<u32> mbox[2];
-
-  // Accelerator / DMA / other hardware registers. Not GPRs.
-  std::array<u16, 256> ifx_regs;
-
-  std::unique_ptr<Accelerator> accelerator;
-
-  // When state saving, all of the above can just be memcpy'd into the save state.
-  // The below needs special handling.
-  u16* iram;
-  u16* dram;
-  u16* irom;
-  u16* coef;
-};
-
-extern SDSP g_dsp;
-extern DSPBreakpoints g_dsp_breakpoints;
-extern bool g_init_hax;
-extern std::unique_ptr<JIT::DSPEmitter> g_dsp_jit;
-extern std::unique_ptr<DSPCaptureLogger> g_dsp_cap;
-
 struct DSPInitOptions
 {
   // DSP IROM blob, which is where the DSP boots from. Embedded into the DSP.
-  std::array<u16, DSP_IROM_SIZE> irom_contents;
+  std::array<u16, DSP_IROM_SIZE> irom_contents{};
 
   // DSP DROM blob, which contains resampling coefficients.
-  std::array<u16, DSP_COEF_SIZE> coef_contents;
+  std::array<u16, DSP_COEF_SIZE> coef_contents{};
 
   // Core used to emulate the DSP.
   // Default: JIT64.
@@ -338,19 +308,170 @@ struct DSPInitOptions
   DSPInitOptions() : capture_logger(new DefaultDSPCaptureLogger()) {}
 };
 
-// Initializes the DSP emulator using the provided options. Takes ownership of
-// all the pointers contained in the options structure.
-bool DSPCore_Init(const DSPInitOptions& opts);
+// All the state of the DSP should be in this struct. Any DSP state that is not filled on init
+// should be moved here.
+struct SDSP
+{
+  explicit SDSP(DSPCore& core);
+  ~SDSP();
 
-void DSPCore_Reset();
-void DSPCore_Shutdown();  // Frees all allocated memory.
+  SDSP(const SDSP&) = delete;
+  SDSP& operator=(const SDSP&) = delete;
 
-void DSPCore_CheckExternalInterrupt();
-void DSPCore_CheckExceptions();
-void DSPCore_SetExternalInterrupt(bool val);
+  SDSP(SDSP&&) = delete;
+  SDSP& operator=(SDSP&&) = delete;
 
-// sets a flag in the pending exception register.
-void DSPCore_SetException(ExceptionType exception);
+  // Initializes overall state.
+  bool Initialize(const DSPInitOptions& opts);
+
+  // Shuts down any necessary DSP state.
+  void Shutdown();
+
+  // Resets DSP state as if the reset exception vector has been taken.
+  void Reset();
+
+  // Initializes the IFX registers.
+  void InitializeIFX();
+
+  // Writes to IFX registers.
+  void WriteIFX(u32 address, u16 value);
+
+  // Reads from IFX registers.
+  u16 ReadIFX(u16 address);
+
+  // Checks the whole value within a mailbox.
+  u32 PeekMailbox(Mailbox mailbox) const;
+
+  // Reads the low part of the value in the specified mailbox.
+  u16 ReadMailboxLow(Mailbox mailbox);
+
+  // Reads the high part of the value in the specified mailbox.
+  u16 ReadMailboxHigh(Mailbox mailbox);
+
+  // Writes to the low part of the mailbox.
+  void WriteMailboxLow(Mailbox mailbox, u16 value);
+
+  // Writes to the high part of the mailbox.
+  void WriteMailboxHigh(Mailbox mailbox, u16 value);
+
+  // Reads from instruction memory.
+  u16 ReadIMEM(u16 address) const;
+
+  // Reads from data memory.
+  u16 ReadDMEM(u16 address);
+
+  // Write to data memory.
+  void WriteDMEM(u16 address, u16 value);
+
+  // Fetches the next instruction and increments the PC.
+  u16 FetchInstruction();
+
+  // Fetches the instruction at the PC address, but doesn't increment the PC.
+  u16 PeekInstruction() const;
+
+  // Skips over the next instruction in memory.
+  void SkipInstruction();
+
+  // Sets the given flags in the SR register.
+  void SetSRFlag(u16 flag) { r.sr |= flag; }
+
+  // Whether or not the given flag is set in the SR register.
+  bool IsSRFlagSet(u16 flag) const { return (r.sr & flag) != 0; }
+
+  // Indicates that a particular exception has occurred
+  // and sets a flag in the pending exception register.
+  void SetException(ExceptionType exception);
+
+  // Checks if any exceptions occurred an updates the DSP state as appropriate.
+  void CheckExceptions();
+
+  // Notify that an external interrupt is pending (used by thread mode)
+  void SetExternalInterrupt(bool val);
+
+  // Coming from the CPU
+  void CheckExternalInterrupt();
+
+  // Stores a value into the specified stack
+  void StoreStack(StackRegister stack_reg, u16 val);
+
+  // Pops a value off of the specified stack
+  u16 PopStack(StackRegister stack_reg);
+
+  // Reads the current value from a particular register.
+  u16 ReadRegister(size_t reg) const;
+
+  // Writes a value to a given register.
+  void WriteRegister(size_t reg, u16 val);
+
+  // Advances the step counter used for debugging purposes.
+  void AdvanceStepCounter() { ++m_step_counter; }
+
+  // Sets the calculated IRAM CRC for debugging purposes.
+  void SetIRAMCRC(u32 crc) { m_iram_crc = crc; }
+
+  // Saves and loads any necessary state.
+  void DoState(PointerWrap& p);
+
+  // DSP static analyzer.
+  Analyzer& GetAnalyzer() { return m_analyzer; }
+  const Analyzer& GetAnalyzer() const { return m_analyzer; }
+
+  DSP_Regs r{};
+  u16 pc = 0;
+
+  // This is NOT the same as r.cr.
+  // This register is shared with the main emulation, see DSP.cpp
+  // The engine has control over 0x0C07 of this reg.
+  // Bits are defined in a struct in DSP.cpp.
+  u16 control_reg = 0;
+  u64 control_reg_init_code_clear_time = 0;
+
+  u8 reg_stack_ptrs[4]{};
+  u8 exceptions = 0;  // pending exceptions
+  std::atomic<bool> external_interrupt_waiting = false;
+  bool reset_dspjit_codespace = false;
+
+  // DSP hardware stacks. They're mapped to a bunch of registers, such that writes
+  // to them push and reads pop.
+  // Let's make stack depth 32 for now, which is way more than what's needed.
+  // The real DSP has different depths for the different stacks, but it would
+  // be strange if any ucode relied on stack overflows since on the DSP, when
+  // the stack overflows, you're screwed.
+  u16 reg_stacks[4][DSP_STACK_DEPTH]{};
+
+  // When state saving, all of the above can just be memcpy'd into the save state.
+  // The below needs special handling.
+  u16* iram = nullptr;
+  u16* dram = nullptr;
+  u16* irom = nullptr;
+  u16* coef = nullptr;
+
+private:
+  auto& GetMailbox(Mailbox mailbox) { return m_mailbox[static_cast<u32>(mailbox)]; }
+  const auto& GetMailbox(Mailbox mailbox) const { return m_mailbox[static_cast<u32>(mailbox)]; }
+
+  void FreeMemoryPages();
+
+  void DoDMA();
+  const u8* DDMAIn(u16 dsp_addr, u32 addr, u32 size);
+  const u8* DDMAOut(u16 dsp_addr, u32 addr, u32 size);
+  const u8* IDMAIn(u16 dsp_addr, u32 addr, u32 size);
+  const u8* IDMAOut(u16 dsp_addr, u32 addr, u32 size);
+
+  u16 ReadIFXImpl(u16 address);
+
+  // For debugging.
+  u32 m_iram_crc = 0;
+  u64 m_step_counter = 0;
+
+  // Accelerator / DMA / other hardware registers. Not GPRs.
+  std::array<u16, 256> m_ifx_regs{};
+
+  std::unique_ptr<Accelerator> m_accelerator;
+  std::array<std::atomic<u32>, 2> m_mailbox;
+  DSPCore& m_dsp_core;
+  Analyzer m_analyzer;
+};
 
 enum class State
 {
@@ -359,14 +480,112 @@ enum class State
   Stepping,
 };
 
-int DSPCore_RunCycles(int cycles);
+class DSPCore
+{
+public:
+  DSPCore();
+  ~DSPCore();
 
-// These are meant to be called from the UI thread.
-void DSPCore_SetState(State new_state);
-State DSPCore_GetState();
+  DSPCore(const DSPCore&) = delete;
+  DSPCore& operator=(const DSPCore&) = delete;
 
-void DSPCore_Step();
+  DSPCore(DSPCore&&) = delete;
+  DSPCore& operator=(DSPCore&&) = delete;
 
-u16 DSPCore_ReadRegister(size_t reg);
-void DSPCore_WriteRegister(size_t reg, u16 val);
+  // Initializes the DSP emulator using the provided options. Takes ownership of
+  // all the pointers contained in the options structure.
+  bool Initialize(const DSPInitOptions& opts);
+
+  // Shuts down the DSP core and cleans up any necessary state.
+  void Shutdown();
+
+  // Delegates to JIT or interpreter as appropriate.
+  // Handle state changes and stepping.
+  int RunCycles(int cycles);
+
+  // Steps the DSP by a single instruction.
+  void Step();
+
+  // Resets DSP state as if the reset exception vector has been taken.
+  void Reset();
+
+  // Clears the DSP instruction RAM.
+  void ClearIRAM();
+
+  // Dictates whether or not the DSP is currently stopped, running or stepping
+  // through instructions.
+  void SetState(State new_state);
+
+  // Retrieves the current execution state of the DSP.
+  State GetState() const;
+
+  // Indicates that a particular exception has occurred
+  // and sets a flag in the pending exception register.
+  void SetException(ExceptionType exception);
+
+  // Notify that an external interrupt is pending (used by thread mode)
+  void SetExternalInterrupt(bool val);
+
+  // Coming from the CPU
+  void CheckExternalInterrupt();
+
+  // Checks if any exceptions occurred an updates the DSP state as appropriate.
+  void CheckExceptions();
+
+  // Reads the current value from a particular register.
+  u16 ReadRegister(size_t reg) const;
+
+  // Writes a value to a given register.
+  void WriteRegister(size_t reg, u16 val);
+
+  // Checks the value within a mailbox.
+  u32 PeekMailbox(Mailbox mailbox) const;
+
+  // Reads the low part of the specified mailbox register.
+  u16 ReadMailboxLow(Mailbox mailbox);
+
+  // Reads the high part of the specified mailbox register.
+  u16 ReadMailboxHigh(Mailbox mailbox);
+
+  // Writes to the low part of the mailbox register.
+  void WriteMailboxLow(Mailbox mailbox, u16 value);
+
+  // Writes to the high part of the mailbox register.
+  void WriteMailboxHigh(Mailbox mailbox, u16 value);
+
+  // Logs an IFX register read.
+  void LogIFXRead(u16 address, u16 read_value);
+
+  // Logs an IFX register write.
+  void LogIFXWrite(u16 address, u16 written_value);
+
+  // Logs a DMA operation
+  void LogDMA(u16 control, u32 gc_address, u16 dsp_address, u16 length, const u8* data);
+
+  // Whether or not the JIT has been created.
+  bool IsJITCreated() const;
+
+  // Writes or loads state for savestates.
+  void DoState(PointerWrap& p);
+
+  // Accessors for the DSP breakpoint facilities.
+  DSPBreakpoints& BreakPoints() { return m_dsp_breakpoints; }
+  const DSPBreakpoints& BreakPoints() const { return m_dsp_breakpoints; }
+
+  SDSP& DSPState() { return m_dsp; }
+  const SDSP& DSPState() const { return m_dsp; }
+
+  Interpreter::Interpreter& GetInterpreter() { return *m_dsp_interpreter; }
+  const Interpreter::Interpreter& GetInterpreter() const { return *m_dsp_interpreter; }
+
+private:
+  SDSP m_dsp;
+  DSPBreakpoints m_dsp_breakpoints;
+  State m_core_state = State::Stopped;
+  bool m_init_hax = false;
+  std::unique_ptr<Interpreter::Interpreter> m_dsp_interpreter;
+  std::unique_ptr<JIT::DSPEmitter> m_dsp_jit;
+  std::unique_ptr<DSPCaptureLogger> m_dsp_cap;
+  Common::Event m_step_event;
+};
 }  // namespace DSP

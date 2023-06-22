@@ -1,0 +1,332 @@
+incdir "tests"
+include "dsp_base.inc"
+
+input_ax:
+; [0] - 0x0000'0000 - 0
+CW 0
+CW 0
+; [1] - 0x0000'0001 - 1 in $ax0.l
+CW 0
+CW 1
+; [2] - 0x0000'ffff - -1 in $ax0.l
+CW 0
+CW 0xffff
+; [3] - 0x0001'0000 - 1 in $ax0.h
+CW 1
+CW 0
+; [4] - 0x7fff'0000 - INT_MAX in $ax0.h
+CW 0x7fff
+CW 0
+; [5] - 0x8000'0000 - INT_MIN in $ax0.h
+CW 0x8000
+CW 0
+; [6] - 0xffff'0000 - -1 in $ax0.h
+CW 0xffff
+CW 0
+input_ax_end:
+
+input_acc:
+; [0] - 0x00'0000'0000 - 0
+CW 0
+CW 0
+CW 0
+; [1] - 0x00'0000'0001 - 1 in $ac0.l
+CW 0
+CW 0
+CW 1
+; [2] - 0x00'0000'ffff - -1 in $ac0.l
+CW 0
+CW 0
+CW 1
+; [3] - 0x00'0001'0000 - 1 in $ac0.m
+CW 0
+CW 1
+CW 0
+; [4] - 0x00'7fff'0000 - INT_MAX in $ac0.m
+CW 0
+CW 0x7fff
+CW 0
+; [5] - 0x00'8000'0000 - INT_MIN in $ac0.m, but not sign extended
+CW 0
+CW 0x8000
+CW 0
+; [6] - 0x00'ffff'0000 - -1 in $ac0.m, but not sign extended
+CW 0
+CW 0xffff
+CW 0
+; [7] - 0x01'0000'0000 - 1 in $ac0.l
+CW 1
+CW 0
+CW 0
+; [8] - 0x7f'ffff'0000 - true INT_MAX
+CW 0x7f
+CW 0xffff
+CW 0
+; [9] - 0x80'0000'0000 - true INT_MIN
+CW 0x80
+CW 0
+CW 0
+; [10] - 0xff'8000'0000 - INT_MIN in $ac0.m, sign-extended
+CW 0xff
+CW 0x8000
+CW 0
+; [11] - 0xff'ffff'0000 - -1
+CW 0xff
+CW 0xffff
+CW 0
+input_acc_end:
+
+/* Python script to generate the following result tables from a DSP dump:
+import struct
+def gen_tables(name, num_ax, num_acc):
+	with open(name, "rb") as fin:
+		data = fin.read()
+	reg_values = list(struct.iter_unpack(">" + "H"*0x20, data))
+	# Initial register values (there is no corresponding send_back call for these), then our two
+	# default value checks, then the TSTAXH test, then the CMPAXH test, then the test results
+	assert len(reg_values) == 1 + 2 + num_ax + num_ax * num_acc + 1
+	print("result_table_tstaxh:")
+	for ax in range(num_ax):
+		# SR is register 0x13
+		print("CW {:#04x}".format(reg_values[3 + ax][0x13]))
+	print("result_table_tstaxh_end:")
+	print()
+	print("result_table_cmpaxh:")
+	for ax in range(num_ax):
+		print("; ax [{}]".format(ax))
+		for acc in range(num_acc):
+			print("CW {:#04x}".format(reg_values[3 + num_ax + ax * num_acc + acc][0x13]))
+	print("result_table_cmpaxh_end:")
+
+gen_tables("dsp_dump0.bin", 7, 12)
+*/
+
+result_table_tstaxh:
+CW 0x22a4
+CW 0x22a4
+CW 0x22a4
+CW 0x22a0
+CW 0x2280
+CW 0x2288
+CW 0x22a8
+result_table_tstaxh_end:
+
+result_table_cmpaxh:
+; ax [0]
+CW 0x22a5
+CW 0x22a1
+CW 0x22a1
+CW 0x22a1
+CW 0x2281
+CW 0x2291
+CW 0x22b1
+CW 0x22b1
+CW 0x22b1
+CW 0x22b9
+CW 0x2289
+CW 0x22a9
+; ax [1]
+CW 0x22a5
+CW 0x22a1
+CW 0x22a1
+CW 0x22a1
+CW 0x2281
+CW 0x2291
+CW 0x22b1
+CW 0x22b1
+CW 0x22b1
+CW 0x22b9
+CW 0x2289
+CW 0x22a9
+; ax [2]
+CW 0x22a5
+CW 0x22a1
+CW 0x22a1
+CW 0x22a1
+CW 0x2281
+CW 0x2291
+CW 0x22b1
+CW 0x22b1
+CW 0x22b1
+CW 0x22b9
+CW 0x2289
+CW 0x22a9
+; ax [3]
+CW 0x22a8
+CW 0x22a8
+CW 0x22a8
+CW 0x22a5
+CW 0x2281
+CW 0x2281
+CW 0x22b1
+CW 0x22b1
+CW 0x22b1
+CW 0x22b3
+CW 0x2299
+CW 0x22a9
+; ax [4]
+CW 0x2288
+CW 0x2288
+CW 0x2288
+CW 0x2288
+CW 0x22a5
+CW 0x22a1
+CW 0x2291
+CW 0x2291
+CW 0x2291
+CW 0x2293
+CW 0x22b9
+CW 0x2289
+; ax [5]
+CW 0x2290
+CW 0x2290
+CW 0x2290
+CW 0x2290
+CW 0x22b0
+CW 0x22b0
+CW 0x2290
+CW 0x2290
+CW 0x229a
+CW 0x2298
+CW 0x22a5
+CW 0x2281
+; ax [6]
+CW 0x22a0
+CW 0x22a0
+CW 0x22a0
+CW 0x22a0
+CW 0x2290
+CW 0x2290
+CW 0x22b0
+CW 0x22b0
+CW 0x22ba
+CW 0x22b8
+CW 0x2288
+CW 0x22a5
+result_table_cmpaxh_end:
+
+test_main:
+	; Perform one test using the default values
+	; ($acc0 is 14 0009 0007 and $ax0 is 8000 0003, but this can be changed in the DSPSpy UI)
+	; Also, as a sanity check, record the computed sizes of the result tables
+	LRI $ar0, #input_ax
+	LRI $ix0, #(input_ax_end - input_ax)
+	LRI $ar1, #input_acc
+	LRI $ix1, #(input_acc_end - input_acc)
+	LRI $ar2, #result_table_tstaxh
+	LRI $ix2, #(input_ax_end - input_ax)/2
+	LRI $ar3, #result_table_cmpaxh
+	LRI $ix3, #((input_ax_end - input_ax)/2)*((input_acc_end - input_acc)/3)
+	; Set the sticky overflow bit just so that we get consistent $sr values
+	; before and after an overflow occurs
+	SBSET #1
+	CMPAXH $acc0, $ax0.h
+	CALL send_back ; Expected $sr: 2290
+	; $ar0 should match $ix0, etc
+	ADDARN $ar0, $ix0
+	LRI $ix0, #input_ax_end
+	ADDARN $ar1, $ix1
+	LRI $ix1, #input_acc_end
+	ADDARN $ar2, $ix2
+	LRI $ix2, #result_table_tstaxh_end
+	ADDARN $ar3, $ix3
+	LRI $ix3, #result_table_cmpaxh_end
+	TSTAXH $ax0.h
+	CALL send_back ; Expected $sr: 2288
+
+	CLR $acc0
+	CLR $acc1
+	LRI $ax0.h, #0
+	LRI $ax0.l, #0
+	LRI $ax1.h, #0
+	LRI $ax1.l, #0
+
+	; Check TSTAXH...
+	LRI $ar0, #input_ax
+	LRI $ar2, #result_table_tstaxh
+
+	; for (int ctr = input_ax.size(); ctr > 0; ctr--) {
+	BLOOPI #(input_ax_end - input_ax)/2, check_tstaxh_last_ins
+		; Note: if DSPSpy supported populating DMEM as well as IMEM, then there are several
+		; instructions that could make this faster and cleaner... but it doesn't currently,
+		; so we're stuck with ILRRI.
+
+		; Load the test value into $ax0.h/$ax0.l via $ac0.m
+		ILRRI $ac0.m, $ar0 ; $ac0.m = IMEM[$ar0++]
+		MRR $ax0.h, $ac0.m
+		ILRRI $ac0.m, $ar0
+		MRR $ax0.l, $ac0.m
+		; Load the expected value into $ac1.m
+		ILRRI $ac1.m, $ar2 ; $ac1.m = IMEM[$ar2++]
+		; Reduce noise in the results
+		LRI $ac0.m, #0
+
+		; Do the test
+		TSTAXH $ax0.h
+		CALL send_back
+
+		; Check if $sr matches the value we expected.  If there is any difference,
+		; note it via a nonzero $ax1.l.  (send_back saves the value of $sr)
+		MRR $ac0.m, $sr
+		CMP
+		IFNZ
+		LRIS $ax1.l, #1
+check_tstaxh_last_ins:
+	NOP
+	; }
+
+	; Check CMPAXH...
+	CLR $acc0
+	CLR $acc1
+	LRI $ar0, #input_ax
+	LRI $ar3, #result_table_cmpaxh
+
+	; for (int ctr_ax = input_ax.size(); ctr_ax > 0; ctr_ax--) {
+	BLOOPI #(input_ax_end - input_ax)/2, check_cmpaxh_last_ins_outer
+		; Load the test value into $ax0.h/$ax0.l via $ac1.m
+		ILRRI $ac1.m, $ar0
+		MRR $ax0.h, $ac1.m
+		ILRRI $ac1.m, $ar0
+		MRR $ax0.l, $ac1.m
+
+		LRI $ar1, #input_acc
+
+		; for (int ctr_acc = input_acc.size(); ctr_acc > 0; ctr_acc--) {
+		BLOOPI #(input_acc_end - input_acc)/3, check_cmpaxh_last_ins_inner
+
+			; Load the test value into $ac0.h/$ac0.m/$ac0.l via $ac1.m
+			ILRRI $ac1.m, $ar1
+			MRR $ac0.h, $ac1.m
+			ILRRI $ac0.m, $ar1 ; we can load it directly here
+			ILRRI $ac1.m, $ar1
+			MRR $ac0.l, $ac1.m
+
+			; Load the expected value into $ac1.m
+			ILRRI $ac1.m, $ar3
+
+			; Do the test
+			CMPAXH $acc0, $ax0.h
+			CALL send_back
+
+			; Check if $sr matches the value we expected.  If there is any difference,
+			; note it via a nonzero $ax1.h.  (send_back saves the value of $sr)
+			; We can overwrite $ac0.m here because we load it on the next iteration.
+			MRR $ac0.m, $sr
+			LRIS $ac0.l, #0
+			LRI $ac0.h, #0
+			CMP
+			IFNZ
+			LRIS $ax1.h, #1
+check_cmpaxh_last_ins_inner:
+		NOP
+		; }
+check_cmpaxh_last_ins_outer:
+	NOP
+	; }
+
+	; We're done testing.  In the final send_back call, if $ax1.l or $ax1.h
+	; is nonzero, the test failed.
+	CALL send_back
+
+	; We're done, DO NOT DELETE THIS LINE
+	JMP end_of_test

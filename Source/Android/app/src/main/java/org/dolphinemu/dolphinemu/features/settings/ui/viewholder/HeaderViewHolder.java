@@ -1,34 +1,31 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.ui.viewholder;
 
 import android.view.View;
-import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
+import org.dolphinemu.dolphinemu.databinding.ListItemHeaderBinding;
 
-public final class HeaderViewHolder extends SettingViewHolder
+public class HeaderViewHolder extends SettingViewHolder
 {
-  private TextView mHeaderName;
+  private final ListItemHeaderBinding mBinding;
 
-  public HeaderViewHolder(View itemView, SettingsAdapter adapter)
+  public HeaderViewHolder(@NonNull ListItemHeaderBinding binding, SettingsAdapter adapter)
   {
-    super(itemView, adapter);
+    super(binding.getRoot(), adapter);
     itemView.setOnClickListener(null);
+    mBinding = binding;
   }
 
   @Override
-  protected void findViews(View root)
+  public void bind(@NonNull SettingsItem item)
   {
-    mHeaderName = root.findViewById(R.id.text_header_name);
-  }
-
-  @Override
-  public void bind(SettingsItem item)
-  {
-    mHeaderName.setText(item.getNameId());
+    mBinding.textHeaderName.setText(item.getName());
   }
 
   @Override

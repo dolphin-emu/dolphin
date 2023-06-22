@@ -1,8 +1,8 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/GL/GLInterface/EGLAndroid.h"
+
 #include <android/native_window.h>
 
 EGLDisplay GLContextEGLAndroid::OpenEGLDisplay()

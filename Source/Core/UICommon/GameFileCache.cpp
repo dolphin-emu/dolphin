@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "UICommon/GameFileCache.h"
 
@@ -17,9 +16,9 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
+#include "Common/IOFile.h"
 
 #include "DiscIO/DirectoryBlob.h"
 
@@ -27,13 +26,14 @@
 
 namespace UICommon
 {
-static constexpr u32 CACHE_REVISION = 19;  // Last changed in PR 9135
+static constexpr u32 CACHE_REVISION = 24;  // Last changed in PR 11557
 
 std::vector<std::string> FindAllGamePaths(const std::vector<std::string>& directories_to_scan,
                                           bool recursive_scan)
 {
   static const std::vector<std::string> search_extensions = {
-      ".gcm", ".tgc", ".iso", ".ciso", ".gcz", ".wbfs", ".wia", ".rvz", ".wad", ".dol", ".elf"};
+      ".gcm", ".tgc", ".iso", ".ciso", ".gcz", ".wbfs", ".wia",
+      ".rvz", ".nfs", ".wad", ".dol",  ".elf", ".json"};
 
   // TODO: We could process paths iteratively as they are found
   return Common::DoFileSearch(directories_to_scan, search_extensions, recursive_scan);
@@ -43,13 +43,9 @@ GameFileCache::GameFileCache() : m_path(File::GetUserPath(D_CACHE_IDX) + "gameli
 {
 }
 
-GameFileCache::GameFileCache(std::string path) : m_path(std::move(path))
-{
-}
-
 void GameFileCache::ForEach(std::function<void(const std::shared_ptr<const GameFile>&)> f) const
 {
-  for (const std::shared_ptr<const GameFile>& item : m_cached_files)
+  for (const std::shared_ptr<GameFile>& item : m_cached_files)
     f(item);
 }
 
@@ -233,14 +229,14 @@ bool GameFileCache::SyncCacheFile(bool save)
   {
     // Measure the size of the buffer.
     u8* ptr = nullptr;
-    PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
-    DoState(&p);
+    PointerWrap p_measure(&ptr, 0, PointerWrap::Mode::Measure);
+    DoState(&p_measure);
     const size_t buffer_size = reinterpret_cast<size_t>(ptr);
 
     // Then actually do the write.
     std::vector<u8> buffer(buffer_size);
-    ptr = &buffer[0];
-    p.SetMode(PointerWrap::MODE_WRITE);
+    ptr = buffer.data();
+    PointerWrap p(&ptr, buffer_size, PointerWrap::Mode::Write);
     DoState(&p, buffer_size);
     if (f.WriteBytes(buffer.data(), buffer.size()))
       success = true;
@@ -251,9 +247,9 @@ bool GameFileCache::SyncCacheFile(bool save)
     if (!buffer.empty() && f.ReadBytes(buffer.data(), buffer.size()))
     {
       u8* ptr = buffer.data();
-      PointerWrap p(&ptr, PointerWrap::MODE_READ);
+      PointerWrap p(&ptr, buffer.size(), PointerWrap::Mode::Read);
       DoState(&p, buffer.size());
-      if (p.GetMode() == PointerWrap::MODE_READ)
+      if (p.IsReadMode())
         success = true;
     }
   }
@@ -274,16 +270,16 @@ void GameFileCache::DoState(PointerWrap* p, u64 size)
     u64 expected_size;
   } header = {CACHE_REVISION, size};
   p->Do(header);
-  if (p->GetMode() == PointerWrap::MODE_READ)
+  if (p->IsReadMode())
   {
     if (header.revision != CACHE_REVISION || header.expected_size != size)
     {
-      p->SetMode(PointerWrap::MODE_MEASURE);
+      p->SetMeasureMode();
       return;
     }
   }
   p->DoEachElement(m_cached_files, [](PointerWrap& state, std::shared_ptr<GameFile>& elem) {
-    if (state.GetMode() == PointerWrap::MODE_READ)
+    if (state.IsReadMode())
       elem = std::make_shared<GameFile>();
     elem->DoState(state);
   });

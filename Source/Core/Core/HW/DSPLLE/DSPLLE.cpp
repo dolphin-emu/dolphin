@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/DSPLLE/DSPLLE.h"
 
@@ -16,31 +15,26 @@
 #include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
 #include "Common/Thread.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/DSP/DSPAccelerator.h"
 #include "Core/DSP/DSPCaptureLogger.h"
 #include "Core/DSP/DSPCore.h"
-#include "Core/DSP/DSPHWInterface.h"
 #include "Core/DSP/DSPHost.h"
 #include "Core/DSP/DSPTables.h"
 #include "Core/DSP/Interpreter/DSPInterpreter.h"
 #include "Core/DSP/Jit/DSPEmitterBase.h"
-#include "Core/HW/DSPLLE/DSPLLEGlobals.h"
 #include "Core/HW/Memmap.h"
 #include "Core/Host.h"
 
 namespace DSP::LLE
 {
-static Common::Event s_dsp_event;
-static Common::Event s_ppc_event;
-static bool s_request_disable_thread;
-
 DSPLLE::DSPLLE() = default;
 
 DSPLLE::~DSPLLE()
 {
-  DSPCore_Shutdown();
+  m_dsp_core.Shutdown();
   DSP_StopSoundStream();
 }
 
@@ -48,46 +42,15 @@ void DSPLLE::DoState(PointerWrap& p)
 {
   bool is_hle = false;
   p.Do(is_hle);
-  if (is_hle && p.GetMode() == PointerWrap::MODE_READ)
+  if (is_hle && p.IsReadMode())
   {
     Core::DisplayMessage("State is incompatible with current DSP engine. Aborting load state.",
                          3000);
-    p.SetMode(PointerWrap::MODE_VERIFY);
+    p.SetVerifyMode();
     return;
   }
-  p.Do(g_dsp.r);
-  p.Do(g_dsp.pc);
-#if PROFILE
-  p.Do(g_dsp.err_pc);
-#endif
-  p.Do(g_dsp.cr);
-  p.Do(g_dsp.reg_stack_ptrs);
-  p.Do(g_dsp.exceptions);
-  p.Do(g_dsp.external_interrupt_waiting);
-
-  for (auto& stack : g_dsp.reg_stacks)
-  {
-    p.Do(stack);
-  }
-
-  p.Do(g_dsp.step_counter);
-  p.DoArray(g_dsp.ifx_regs);
-  g_dsp.accelerator->DoState(p);
-  p.Do(g_dsp.mbox[0]);
-  p.Do(g_dsp.mbox[1]);
-  Common::UnWriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
-  p.DoArray(g_dsp.iram, DSP_IRAM_SIZE);
-  Common::WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
-  // TODO: This uses the wrong endianness (producing bad disassembly)
-  // and a bogus byte count (producing bad hashes)
-  if (p.GetMode() == PointerWrap::MODE_READ)
-    Host::CodeLoaded(reinterpret_cast<const u8*>(g_dsp.iram), DSP_IRAM_BYTE_SIZE);
-  p.DoArray(g_dsp.dram, DSP_DRAM_SIZE);
-  p.Do(g_init_hax);
+  m_dsp_core.DoState(p);
   p.Do(m_cycle_count);
-
-  if (g_dsp_jit)
-    g_dsp_jit->DoState(p);
 }
 
 // Regular thread
@@ -103,21 +66,21 @@ void DSPLLE::DSPThread(DSPLLE* dsp_lle)
       std::unique_lock dsp_thread_lock(dsp_lle->m_dsp_thread_mutex, std::try_to_lock);
       if (dsp_thread_lock)
       {
-        if (g_dsp_jit)
+        if (dsp_lle->m_dsp_core.IsJITCreated())
         {
-          DSPCore_RunCycles(cycles);
+          dsp_lle->m_dsp_core.RunCycles(cycles);
         }
         else
         {
-          DSP::Interpreter::RunCyclesThread(cycles);
+          dsp_lle->m_dsp_core.GetInterpreter().RunCyclesThread(cycles);
         }
         dsp_lle->m_cycle_count.store(0);
         continue;
       }
     }
 
-    s_ppc_event.Set();
-    s_dsp_event.Wait();
+    dsp_lle->m_ppc_event.Set();
+    dsp_lle->m_dsp_event.Wait();
   }
 }
 
@@ -158,11 +121,11 @@ static bool FillDSPInitOptions(DSPInitOptions* opts)
 
   opts->core_type = DSPInitOptions::CoreType::Interpreter;
 #ifdef _M_X86
-  if (SConfig::GetInstance().m_DSPEnableJIT)
+  if (Config::Get(Config::MAIN_DSP_JIT))
     opts->core_type = DSPInitOptions::CoreType::JIT64;
 #endif
 
-  if (SConfig::GetInstance().m_DSPCaptureLog)
+  if (Config::Get(Config::MAIN_DSP_CAPTURE_LOG))
   {
     const std::string pcap_path = File::GetUserPath(D_DUMPDSP_IDX) + "dsp.pcap";
     opts->capture_logger = new PCAPDSPCaptureLogger(pcap_path);
@@ -173,22 +136,22 @@ static bool FillDSPInitOptions(DSPInitOptions* opts)
 
 bool DSPLLE::Initialize(bool wii, bool dsp_thread)
 {
-  s_request_disable_thread = false;
+  m_request_disable_thread = false;
 
   DSPInitOptions opts;
   if (!FillDSPInitOptions(&opts))
     return false;
-  if (!DSPCore_Init(opts))
+  if (!m_dsp_core.Initialize(opts))
     return false;
 
   // needs to be after DSPCore_Init for the dspjit ptr
-  if (Core::WantsDeterminism() || !g_dsp_jit)
+  if (Core::WantsDeterminism() || !m_dsp_core.IsJITCreated())
     dsp_thread = false;
 
   m_wii = wii;
   m_is_dsp_on_thread = dsp_thread;
 
-  DSPCore_Reset();
+  m_dsp_core.Reset();
 
   InitInstructionTable();
 
@@ -204,77 +167,70 @@ bool DSPLLE::Initialize(bool wii, bool dsp_thread)
 
 void DSPLLE::DSP_StopSoundStream()
 {
-  if (m_is_dsp_on_thread)
-  {
-    m_is_running.Clear();
-    s_ppc_event.Set();
-    s_dsp_event.Set();
-    m_dsp_thread.join();
-  }
+  if (!m_is_dsp_on_thread)
+    return;
+
+  m_is_running.Clear();
+  m_ppc_event.Set();
+  m_dsp_event.Set();
+  m_dsp_thread.join();
 }
 
 void DSPLLE::Shutdown()
 {
-  DSPCore_Shutdown();
+  m_dsp_core.Shutdown();
 }
 
 u16 DSPLLE::DSP_WriteControlRegister(u16 value)
 {
-  DSP::Interpreter::WriteCR(value);
+  m_dsp_core.GetInterpreter().WriteControlRegister(value);
 
-  if (value & 2)
+  if ((value & CR_EXTERNAL_INT) != 0)
   {
-    if (!m_is_dsp_on_thread)
-    {
-      DSPCore_CheckExternalInterrupt();
-      DSPCore_CheckExceptions();
-    }
-    else
+    if (m_is_dsp_on_thread)
     {
       // External interrupt pending: this is the zelda ucode.
       // Disable the DSP thread because there is no performance gain.
-      s_request_disable_thread = true;
+      m_request_disable_thread = true;
 
-      DSPCore_SetExternalInterrupt(true);
+      m_dsp_core.SetExternalInterrupt(true);
+    }
+    else
+    {
+      m_dsp_core.CheckExternalInterrupt();
+      m_dsp_core.CheckExceptions();
     }
   }
 
-  return DSP::Interpreter::ReadCR();
+  return DSP_ReadControlRegister();
 }
 
 u16 DSPLLE::DSP_ReadControlRegister()
 {
-  return DSP::Interpreter::ReadCR();
+  return m_dsp_core.GetInterpreter().ReadControlRegister();
 }
 
 u16 DSPLLE::DSP_ReadMailBoxHigh(bool cpu_mailbox)
 {
-  return gdsp_mbox_read_h(cpu_mailbox ? MAILBOX_CPU : MAILBOX_DSP);
+  return m_dsp_core.ReadMailboxHigh(cpu_mailbox ? Mailbox::CPU : Mailbox::DSP);
 }
 
 u16 DSPLLE::DSP_ReadMailBoxLow(bool cpu_mailbox)
 {
-  return gdsp_mbox_read_l(cpu_mailbox ? MAILBOX_CPU : MAILBOX_DSP);
+  return m_dsp_core.ReadMailboxLow(cpu_mailbox ? Mailbox::CPU : Mailbox::DSP);
 }
 
 void DSPLLE::DSP_WriteMailBoxHigh(bool cpu_mailbox, u16 value)
 {
   if (cpu_mailbox)
   {
-    if (gdsp_mbox_peek(MAILBOX_CPU) & 0x80000000)
+    if ((m_dsp_core.PeekMailbox(Mailbox::CPU) & 0x80000000) != 0)
     {
       // the DSP didn't read the previous value
       WARN_LOG_FMT(DSPLLE, "Mailbox isn't empty ... strange");
     }
 
-#if PROFILE
-    if (value == 0xBABE)
-    {
-      ProfilerStart();
-    }
-#endif
-
-    gdsp_mbox_write_h(MAILBOX_CPU, value);
+    m_dsp_core.WriteMailboxHigh(Mailbox::CPU, value);
   }
   else
   {
@@ -286,7 +242,7 @@ void DSPLLE::DSP_WriteMailBoxLow(bool cpu_mailbox, u16 value)
 {
   if (cpu_mailbox)
   {
-    gdsp_mbox_write_l(MAILBOX_CPU, value);
+    m_dsp_core.WriteMailboxLow(Mailbox::CPU, value);
   }
   else
   {
@@ -296,19 +252,19 @@ void DSPLLE::DSP_WriteMailBoxLow(bool cpu_mailbox, u16 value)
 
 void DSPLLE::DSP_Update(int cycles)
 {
-  int dsp_cycles = cycles / 6;
+  const int dsp_cycles = cycles / 6;
 
   if (dsp_cycles <= 0)
     return;
 
   if (m_is_dsp_on_thread)
   {
-    if (s_request_disable_thread || Core::WantsDeterminism())
+    if (m_request_disable_thread || Core::WantsDeterminism())
     {
       DSP_StopSoundStream();
       m_is_dsp_on_thread = false;
-      s_request_disable_thread = false;
-      SConfig::GetInstance().bDSPThread = false;
+      m_request_disable_thread = false;
+      Config::SetBaseOrCurrent(Config::MAIN_DSP_THREAD, false);
     }
   }
 
@@ -316,14 +272,14 @@ void DSPLLE::DSP_Update(int cycles)
   if (!m_is_dsp_on_thread)
   {
     // ~1/6th as many cycles as the period PPC-side.
-    DSPCore_RunCycles(dsp_cycles);
+    m_dsp_core.RunCycles(dsp_cycles);
   }
   else
   {
     // Wait for DSP thread to complete its cycle. Note: this logic should be thought through.
-    s_ppc_event.Wait();
+    m_ppc_event.Wait();
     m_cycle_count.fetch_add(dsp_cycles);
-    s_dsp_event.Set();
+    m_dsp_event.Set();
   }
 }
 
@@ -345,8 +301,8 @@ void DSPLLE::PauseAndLock(bool do_lock, bool unpause_on_unlock)
     if (m_is_dsp_on_thread)
     {
       // Signal the DSP thread so it can perform any outstanding work now (if any)
-      s_ppc_event.Wait();
-      s_dsp_event.Set();
+      m_ppc_event.Wait();
+      m_dsp_event.Set();
     }
   }
 }

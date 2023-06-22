@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/Version.h"
 
@@ -19,29 +18,68 @@ namespace Common
 #endif
 
 #ifndef IS_PLAYBACK
-#define SLIPPI_REV_STR "2.4.0" // netplay version
+#define SLIPPI_REV_STR "3.1.0"  // netplay version
 #else
-#define SLIPPI_REV_STR "2.4.1" // playback version
+#define SLIPPI_REV_STR "3.1.0"  // playback version
 #endif
 
-const std::string scm_slippi_semver_str = SLIPPI_REV_STR;
+const std::string& GetSemVerStr()
+{
+  static const std::string sem_ver_str = SLIPPI_REV_STR;
+  return sem_ver_str;
+}
 
+const std::string& GetScmRevStr()
+{
 #ifndef IS_PLAYBACK
-const std::string scm_rev_str = "Mainline - Slippi (" SLIPPI_REV_STR ")" BUILD_TYPE_STR;
+  static const std::string scm_rev_str = "Mainline - Slippi (" SLIPPI_REV_STR ")" BUILD_TYPE_STR;
 #else
-const std::string scm_rev_str = "Mainline - Slippi (" SLIPPI_REV_STR ") - Playback" BUILD_TYPE_STR;
+  static const std::string scm_rev_str =
+      "Mainline - Slippi (" SLIPPI_REV_STR ") - Playback" BUILD_TYPE_STR;
 #endif
+  return scm_rev_str;
+}
 
-const std::string scm_rev_git_str = SCM_REV_STR;
-const std::string scm_desc_str = SCM_DESC_STR;
-const std::string scm_branch_str = SCM_BRANCH_STR;
-const std::string scm_distributor_str = SCM_DISTRIBUTOR_STR;
+const std::string& GetScmRevGitStr()
+{
+  static const std::string scm_rev_git_str = SCM_REV_STR;
+  return scm_rev_git_str;
+}
 
+const std::string& GetScmDescStr()
+{
+  static const std::string scm_desc_str = SCM_DESC_STR;
+  return scm_desc_str;
+}
+
+const std::string& GetScmBranchStr()
+{
+  static const std::string scm_branch_str = SCM_BRANCH_STR;
+  return scm_branch_str;
+}
+
+const std::string& GetScmDistributorStr()
+{
+  static const std::string scm_distributor_str = SCM_DISTRIBUTOR_STR;
+  return scm_distributor_str;
+}
+
+const std::string& GetScmUpdateTrackStr()
+{
+  static const std::string scm_update_track_str = SCM_UPDATE_TRACK_STR;
+  return scm_update_track_str;
+}
+
+const std::string& GetNetplayDolphinVer()
+{
 #ifdef _WIN32
-const std::string netplay_dolphin_ver = "Slippi-" SLIPPI_REV_STR " Win";
+  static const std::string netplay_dolphin_ver = "Slippi-" SCM_DESC_STR " Win";
 #elif __APPLE__
-const std::string netplay_dolphin_ver = "Slippi-" SLIPPI_REV_STR " Mac";
+  static const std::string netplay_dolphin_ver = "Slippi-" SCM_DESC_STR " Mac";
 #else
-const std::string netplay_dolphin_ver = "Slippi-" SLIPPI_REV_STR " Lin";
+  static const std::string netplay_dolphin_ver = "Slippi-" SCM_DESC_STR " Lin";
 #endif
+  return netplay_dolphin_ver;
+}
+
 }  // namespace Common

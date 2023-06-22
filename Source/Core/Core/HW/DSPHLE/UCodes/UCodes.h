@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -47,7 +46,7 @@ public:
   virtual void HandleMail(u32 mail) = 0;
   virtual void Update() = 0;
 
-  virtual void DoState(PointerWrap& p) { DoStateShared(p); }
+  virtual void DoState(PointerWrap& p) = 0;
   static u32 GetCRC(UCodeInterface* ucode) { return ucode ? ucode->m_crc : UCODE_NULL; }
 
 protected:
@@ -62,15 +61,50 @@ protected:
 
   CMailHandler& m_mail_handler;
 
-  enum EDSP_Codes : u32
-  {
-    DSP_INIT = 0xDCD10000,
-    DSP_RESUME = 0xDCD10001,
-    DSP_YIELD = 0xDCD10002,
-    DSP_DONE = 0xDCD10003,
-    DSP_SYNC = 0xDCD10004,
-    DSP_FRAME_END = 0xDCD10005,
-  };
+  static constexpr u32 TASK_MAIL_MASK = 0xFFFF'0000;
+  // Task-management mails, used for uCode switching. The DSP sends mail with 0xDCD1 in the high
+  // word to the CPU to report its status. The CPU reacts in different ways for different mails.
+  // Also, Zelda uCode titles use a slightly different handler compared to AX uCode titles. Libogc's
+  // mail handler is based on the AX one.
+  static constexpr u32 TASK_MAIL_TO_CPU = 0xDCD1'0000;
+  // Triggers a callback. No response is sent.
+  static constexpr u32 DSP_INIT = TASK_MAIL_TO_CPU | 0x0000;
+  // Triggers a callback. No response is sent.
+  static constexpr u32 DSP_RESUME = TASK_MAIL_TO_CPU | 0x0001;
+  // If the current task is canceled by the CPU, the CPU processes this mail as if it were DSP_DONE
+  // instead. Otherwise, it is handled differently for Zelda uCode games and AX games.
+  // On Zelda uCode, the CPU will always respond with MAIL_NEW_UCODE.
+  // On AX uCode, the CPU will respond with MAIL_NEW_UCODE if it has a new task, and otherwise
+  // will use MAIL_CONTINUE.
+  static constexpr u32 DSP_YIELD = TASK_MAIL_TO_CPU | 0x0002;
+  // Triggers a callback. The response is handled differently for Zelda uCode games and AX games.
+  // On Zelda uCode, the CPU will always respond with MAIL_NEW_UCODE.
+  // On AX uCode, the CPU will respond with MAIL_NEW_UCODE if there is a new task, and otherwise
+  // will use MAIL_RESET if the finished task was the only task.
+  static constexpr u32 DSP_DONE = TASK_MAIL_TO_CPU | 0x0003;
+  // Triggers a callback. No response is sent.
+  static constexpr u32 DSP_SYNC = TASK_MAIL_TO_CPU | 0x0004;
+  // Used by Zelda uCode only. Zelda uCode titles (or at least Super Mario Sunshine and Super Mario
+  // Galaxy) will log "Audio Yield Start", send MAIL_NEW_UCODE, and then log "Audio Yield Finish" if
+  // they have a task to execute (e.g. the card uCode), and otherwise will send MAIL_CONTINUE.
+  static constexpr u32 DSP_FRAME_END = TASK_MAIL_TO_CPU | 0x0005;
+
+  // The CPU will send a mail prefixed with 0xCDD1 in the high word in response.
+  static constexpr u32 TASK_MAIL_TO_DSP = 0xCDD1'0000;
+  // On AX, this sends DSP_RESUME and then returns to normal execution. On Zelda, this immediately
+  // HALTs. Other uCodes (e.g. Card, GBA) do not implement (and instead ignore) this mail.
+  // This mail does not seem to be sent in practice.
+  static constexpr u32 MAIL_RESUME = TASK_MAIL_TO_DSP | 0x0000;
+  // Starts populating info for a new uCode (see PrepareBootUCode and m_upload_setup_in_progress).
+  // The current uCode's state can optionally be saved, although the Card and GBA uCode do not
+  // support this (as there is no reason to reload their old state).
+  static constexpr u32 MAIL_NEW_UCODE = TASK_MAIL_TO_DSP | 0x0001;
+  // Immediately switches to ROM uCode. Implemented by the Zelda uCode, but the Zelda uCode task
+  // handler doesn't seem to send it.
+  static constexpr u32 MAIL_RESET = TASK_MAIL_TO_DSP | 0x0002;
+  // Jumps back to the main loop. Not implemented by all uCode (in particular Card and GBA which do
+  // not have a main loop).
+  static constexpr u32 MAIL_CONTINUE = TASK_MAIL_TO_DSP | 0x0003;
 
   // UCode is forwarding mails to PrepareBootUCode
   // UCode only needs to set this to true, UCodeInterface will set to false when done!

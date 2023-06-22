@@ -1,6 +1,5 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -16,6 +15,7 @@
 #include "InputCommon/ControllerEmu/ControlGroup/IMUCursor.h"
 #include "InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
 
 namespace WiimoteEmu
 {
@@ -24,27 +24,25 @@ using MathUtil::GRAVITY_ACCELERATION;
 struct PositionalState
 {
   // meters
-  Common::Vec3 position;
+  Common::Vec3 position{};
   // meters/second
-  Common::Vec3 velocity;
+  Common::Vec3 velocity{};
   // meters/second^2
-  Common::Vec3 acceleration;
+  Common::Vec3 acceleration{};
 };
 
 struct RotationalState
 {
   // radians
-  Common::Vec3 angle;
+  Common::Vec3 angle{};
   // radians/second
-  Common::Vec3 angular_velocity;
+  Common::Vec3 angular_velocity{};
 };
 
 struct IMUCursorState
 {
-  IMUCursorState();
-
   // Rotation of world around device.
-  Common::Quaternion rotation;
+  Common::Quaternion rotation = Common::Quaternion::Identity();
 
   float recentered_pitch = {};
 };
@@ -52,6 +50,7 @@ struct IMUCursorState
 // Contains both positional and rotational state.
 struct MotionState : PositionalState, RotationalState
 {
+  MotionState() = default;
 };
 
 // Note that 'gyroscope' is rotation of world around device.
@@ -83,7 +82,8 @@ void ApproachAngleWithAccel(RotationalState* state, const Common::Vec3& target, 
 void EmulateShake(PositionalState* state, ControllerEmu::Shake* shake_group, float time_elapsed);
 void EmulateTilt(RotationalState* state, ControllerEmu::Tilt* tilt_group, float time_elapsed);
 void EmulateSwing(MotionState* state, ControllerEmu::Force* swing_group, float time_elapsed);
-void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group, float time_elapsed);
+void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
+                  const ControllerEmu::InputOverrideFunction& override_func, float time_elapsed);
 void EmulateIMUCursor(IMUCursorState* state, ControllerEmu::IMUCursor* imu_ir_group,
                       ControllerEmu::IMUAccelerometer* imu_accelerometer_group,
                       ControllerEmu::IMUGyroscope* imu_gyroscope_group, float time_elapsed);

@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "InputCommon/ControllerEmu/ControlGroup/Cursor.h"
 
@@ -64,7 +63,7 @@ Cursor::Cursor(std::string name_, std::string ui_name_)
   AddSetting(&m_autohide_setting, {_trans("Auto-Hide")}, false);
 }
 
-Cursor::ReshapeData Cursor::GetReshapableState(bool adjusted)
+Cursor::ReshapeData Cursor::GetReshapableState(bool adjusted) const
 {
   const ControlState y = controls[0]->GetState() - controls[1]->GetState();
   const ControlState x = controls[3]->GetState() - controls[2]->GetState();
@@ -83,15 +82,28 @@ ControlState Cursor::GetGateRadiusAtAngle(double ang) const
 
 Cursor::StateData Cursor::GetState(const bool adjusted)
 {
-  if (!adjusted)
-  {
-    const auto raw_input = GetReshapableState(false);
+  const ReshapeData input = GetReshapableState(adjusted);
+  const StateData state = adjusted ? UpdateState(input) : StateData{input.x, input.y};
+  return state;
+}
 
-    return {raw_input.x, raw_input.y};
-  }
+Cursor::StateData Cursor::GetState(const bool adjusted,
+                                   const ControllerEmu::InputOverrideFunction& override_func)
+{
+  StateData state = GetState(adjusted);
+  if (!override_func)
+    return state;
 
-  const auto input = GetReshapableState(true);
+  if (const std::optional<ControlState> x_override = override_func(name, X_INPUT_OVERRIDE, state.x))
+    state.x = *x_override;
+  if (const std::optional<ControlState> y_override = override_func(name, Y_INPUT_OVERRIDE, state.y))
+    state.y = *y_override;
 
+  return state;
+}
+
+Cursor::StateData Cursor::UpdateState(Cursor::ReshapeData input)
+{
   // TODO: Using system time is ugly.
   // Kill this after state is moved into wiimote rather than this class.
   const auto now = Clock::now();
@@ -141,8 +153,11 @@ Cursor::StateData Cursor::GetState(const bool adjusted)
 
   m_prev_result = result;
 
-  // If auto-hide time is up or hide button is held:
-  if (!m_auto_hide_timer || controls[4]->GetState<bool>())
+  // If auto-hide time is up, the hide button is held, or the input gate is disabled, hide the
+  // cursor.  We need to check the input gate explicitly as the hide button check always returns
+  // false if the input gate is disabled (e.g. the window is not focused with background input
+  // disabled)
+  if (!m_auto_hide_timer || !ControlReference::GetInputGate() || controls[4]->GetState<bool>())
   {
     result.x = std::numeric_limits<ControlState>::quiet_NaN();
     result.y = 0;

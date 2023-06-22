@@ -1,14 +1,11 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/GCMemcard/GCIFile.h"
 
-#include <cinttypes>
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
+#include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 
 namespace Memcard
@@ -58,7 +55,7 @@ bool GCIFile::LoadSaveBlocks()
     }
 
     m_save_data.resize(num_blocks);
-    save_file.Seek(DENTRY_SIZE, SEEK_SET);
+    save_file.Seek(DENTRY_SIZE, File::SeekOrigin::Begin);
     if (!save_file.ReadBytes(m_save_data.data(), size))
     {
       ERROR_LOG_FMT(EXPANSIONINTERFACE, "Failed to read data from GCI file {}", m_filename);
@@ -90,16 +87,10 @@ int GCIFile::UsesBlock(u16 block_num)
 
 void GCIFile::DoState(PointerWrap& p)
 {
-  p.DoPOD<DEntry>(m_gci_header);
+  p.Do(m_gci_header);
   p.Do(m_dirty);
   p.Do(m_filename);
-  int num_blocks = (int)m_save_data.size();
-  p.Do(num_blocks);
-  m_save_data.resize(num_blocks);
-  for (auto itr = m_save_data.begin(); itr != m_save_data.end(); ++itr)
-  {
-    p.DoPOD<GCMBlock>(*itr);
-  }
+  p.Do(m_save_data);
   p.Do(m_used_blocks);
 }
 }  // namespace Memcard

@@ -1,10 +1,11 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <string>
 #include <utility>
 #include <vector>
+
+#include <fmt/format.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -39,10 +40,10 @@ bool DSP::Host::IsWiiHost()
 {
   return false;
 }
-void DSP::Host::CodeLoaded(u32 addr, size_t size)
+void DSP::Host::CodeLoaded(DSPCore& dsp, u32 addr, size_t size)
 {
 }
-void DSP::Host::CodeLoaded(const u8* ptr, size_t size)
+void DSP::Host::CodeLoaded(DSPCore& dsp, const u8* ptr, size_t size)
 {
 }
 void DSP::Host::InterruptRequest()
@@ -65,16 +66,16 @@ static std::string CodeToHeader(const std::vector<u16>& code, const std::string&
   header.append("#define NUM_UCODES 1\n\n");
   std::string filename_without_extension;
   SplitPath(filename, nullptr, &filename_without_extension, nullptr);
-  header.append(StringFromFormat("const char* UCODE_NAMES[NUM_UCODES] = {\"%s\"};\n\n",
-                                 filename_without_extension.c_str()));
-  header.append("const unsigned short dsp_code[NUM_UCODES][0x1000] = {\n");
+  header.append(fmt::format("const char* UCODE_NAMES[NUM_UCODES] = {{\"{}\"}};\n\n",
+                            filename_without_extension));
+  header.append("alignas(0x20) const unsigned short dsp_code[NUM_UCODES][0x1000] = {\n");
 
   header.append("\t{\n\t\t");
   for (u32 j = 0; j < code_padded.size(); j++)
   {
     if (j && ((j & 15) == 0))
       header.append("\n\t\t");
-    header.append(StringFromFormat("0x%04x, ", code_padded[j]));
+    header.append(fmt::format("{:#06x}, ", code_padded[j]));
   }
   header.append("\n\t},\n");
 
@@ -99,14 +100,14 @@ static std::string CodesToHeader(const std::vector<std::vector<u16>>& codes,
 
   std::string header;
   header.reserve(reserve_size * 4);
-  header.append(StringFromFormat("#define NUM_UCODES %zu\n\n", codes.size()));
+  header.append(fmt::format("#define NUM_UCODES {}\n\n", codes.size()));
   header.append("const char* UCODE_NAMES[NUM_UCODES] = {\n");
   for (const std::string& in_filename : filenames)
   {
     std::string filename;
     if (!SplitPath(in_filename, nullptr, &filename, nullptr))
       filename = in_filename;
-    header.append(StringFromFormat("\t\"%s\",\n", filename.c_str()));
+    header.append(fmt::format("\t\"{}\",\n", filename));
   }
   header.append("};\n\n");
   header.append("const unsigned short dsp_code[NUM_UCODES][0x1000] = {\n");
@@ -121,7 +122,7 @@ static std::string CodesToHeader(const std::vector<std::vector<u16>>& codes,
     {
       if (j && ((j & 15) == 0))
         header.append("\n\t\t");
-      header.append(StringFromFormat("0x%04x, ", codes_padded[i][j]));
+      header.append(fmt::format("{:#06x}, ", codes_padded[i][j]));
     }
     header.append("\n\t},\n");
   }
@@ -129,7 +130,7 @@ static std::string CodesToHeader(const std::vector<std::vector<u16>>& codes,
   return header;
 }
 
-static void PerformBinaryComparison(const std::string& lhs, const std::string& rhs)
+static bool PerformBinaryComparison(const std::string& lhs, const std::string& rhs)
 {
   std::string binary_code;
 
@@ -139,7 +140,7 @@ static void PerformBinaryComparison(const std::string& lhs, const std::string& r
   File::ReadFileToString(rhs, binary_code);
   const std::vector<u16> code2 = DSP::BinaryStringBEToCode(binary_code);
 
-  DSP::Compare(code1, code2);
+  return DSP::Compare(code1, code2);
 }
 
 static void PrintResults(const std::string& input_name, const std::string& output_name,
@@ -153,7 +154,7 @@ static void PrintResults(const std::string& input_name, const std::string& outpu
   std::string results("Start:\n");
   for (int initial_reg = 0; initial_reg < 32; initial_reg++)
   {
-    results.append(StringFromFormat("%02x %04x ", initial_reg, reg_vector.at(initial_reg)));
+    results.append(fmt::format("{:02x} {:04x} ", initial_reg, reg_vector.at(initial_reg)));
     if ((initial_reg + 1) % 8 == 0)
       results.append("\n");
   }
@@ -167,9 +168,9 @@ static void PrintResults(const std::string& input_name, const std::string& outpu
     u16 current_reg;
     u16 last_reg;
     u32 htemp;
-    // results.append(StringFromFormat("Step %3d: (CW 0x%04x) UC:%03d\n", step, 0x8fff+step,
+    // results.append(fmt::format("Step {:3d}: (CW {:#06x}) UC:{:03d}\n", step, 0x8fff+step,
     // (step-1)/32));
-    results.append(StringFromFormat("Step %3d:\n", step));
+    results.append(fmt::format("Step {:3d}:\n", step));
     for (int reg = 0; reg < 32; reg++)
     {
       if (reg >= 0x0c && reg <= 0x0f)
@@ -211,8 +212,8 @@ static void PrintResults(const std::string& input_name, const std::string& outpu
       }
       if (last_reg != current_reg)
       {
-        results.append(StringFromFormat("%02x %-7s: %04x %04x\n", reg, DSP::pdregname(reg),
-                                        last_reg, current_reg));
+        results.append(fmt::format("{:02x} {:7s}: {:04x} {:04x}\n", reg, DSP::pdregname(reg),
+                                   last_reg, current_reg));
         changed = true;
       }
     }
@@ -483,8 +484,7 @@ int main(int argc, const char* argv[])
 
   if (compare)
   {
-    PerformBinaryComparison(input_name, output_name);
-    return 0;
+    return PerformBinaryComparison(input_name, output_name) ? 0 : 1;
   }
 
   if (print_results)

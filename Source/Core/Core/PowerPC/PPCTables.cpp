@@ -1,12 +1,10 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/PowerPC/PPCTables.h"
 
 #include <algorithm>
 #include <array>
-#include <cinttypes>
 #include <cstddef>
 #include <cstdio>
 #include <vector>
@@ -15,8 +13,8 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
 #include "Common/FileUtil.h"
+#include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 
@@ -53,7 +51,8 @@ GekkoOPInfo* GetOpInfo(UGeckoInstruction inst)
     case 63:
       return m_infoTable63[inst.SUBOP10];
     default:
-      ASSERT_MSG(POWERPC, 0, "GetOpInfo - invalid subtable op %08x @ %08x", inst.hex, PC);
+      ASSERT_MSG(POWERPC, 0, "GetOpInfo - invalid subtable op {:08x} @ {:08x}", inst.hex,
+                 PowerPC::ppcState.pc);
       return nullptr;
     }
   }
@@ -61,7 +60,8 @@ GekkoOPInfo* GetOpInfo(UGeckoInstruction inst)
   {
     if (info->type == OpType::Invalid)
     {
-      ASSERT_MSG(POWERPC, 0, "GetOpInfo - invalid op %08x @ %08x", inst.hex, PC);
+      ASSERT_MSG(POWERPC, 0, "GetOpInfo - invalid op {:08x} @ {:08x}", inst.hex,
+                 PowerPC::ppcState.pc);
       return nullptr;
     }
     return m_infoTable[inst.OPCD];
@@ -86,7 +86,8 @@ Interpreter::Instruction GetInterpreterOp(UGeckoInstruction inst)
     case 63:
       return Interpreter::m_op_table63[inst.SUBOP10];
     default:
-      ASSERT_MSG(POWERPC, 0, "GetInterpreterOp - invalid subtable op %08x @ %08x", inst.hex, PC);
+      ASSERT_MSG(POWERPC, 0, "GetInterpreterOp - invalid subtable op {:08x} @ {:08x}", inst.hex,
+                 PowerPC::ppcState.pc);
       return nullptr;
     }
   }
@@ -94,7 +95,8 @@ Interpreter::Instruction GetInterpreterOp(UGeckoInstruction inst)
   {
     if (info->type == OpType::Invalid)
     {
-      ASSERT_MSG(POWERPC, 0, "GetInterpreterOp - invalid op %08x @ %08x", inst.hex, PC);
+      ASSERT_MSG(POWERPC, 0, "GetInterpreterOp - invalid op {:08x} @ {:08x}", inst.hex,
+                 PowerPC::ppcState.pc);
       return nullptr;
     }
     return Interpreter::m_op_table[inst.OPCD];

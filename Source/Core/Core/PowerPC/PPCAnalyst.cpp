@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/PowerPC/PPCAnalyst.h"
 
@@ -16,6 +15,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/MMU.h"
@@ -74,7 +74,8 @@ static u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
 // Also collect which internal branch goes the farthest.
 // If any one goes farther than the blr or rfi, assume that there is more than
 // one blr or rfi, and keep scanning.
-bool AnalyzeFunction(u32 startAddr, Common::Symbol& func, u32 max_size)
+bool AnalyzeFunction(const Core::CPUThreadGuard& guard, u32 startAddr, Common::Symbol& func,
+                     u32 max_size)
 {
   if (func.name.empty())
     func.Rename(fmt::format("zz_{:08x}_", startAddr));
@@ -91,15 +92,18 @@ bool AnalyzeFunction(u32 startAddr, Common::Symbol& func, u32 max_size)
   for (u32 addr = startAddr; true; addr += 4)
   {
     func.size += 4;
-    if (func.size >= JitBase::code_buffer_size * 4 || !PowerPC::HostIsInstructionRAMAddress(addr))
+    if (func.size >= JitBase::code_buffer_size * 4 ||
+        !PowerPC::HostIsInstructionRAMAddress(guard, addr))
+    {
       return false;
+    }
 
     if (max_size && func.size > max_size)
     {
       func.address = startAddr;
       func.analyzed = true;
       func.size -= 4;
-      func.hash = HashSignatureDB::ComputeCodeChecksum(startAddr, addr - 4);
+      func.hash = HashSignatureDB::ComputeCodeChecksum(guard, startAddr, addr - 4);
       if (numInternalBranches == 0)
         func.flags |= Common::FFLAG_STRAIGHT;
       return true;
@@ -121,7 +125,7 @@ bool AnalyzeFunction(u32 startAddr, Common::Symbol& func, u32 max_size)
         // Let's calc the checksum and get outta here
         func.address = startAddr;
         func.analyzed = true;
-        func.hash = HashSignatureDB::ComputeCodeChecksum(startAddr, addr);
+        func.hash = HashSignatureDB::ComputeCodeChecksum(guard, startAddr, addr);
         if (numInternalBranches == 0)
           func.flags |= Common::FFLAG_STRAIGHT;
         return true;
@@ -167,12 +171,13 @@ bool AnalyzeFunction(u32 startAddr, Common::Symbol& func, u32 max_size)
   }
 }
 
-bool ReanalyzeFunction(u32 start_addr, Common::Symbol& func, u32 max_size)
+bool ReanalyzeFunction(const Core::CPUThreadGuard& guard, u32 start_addr, Common::Symbol& func,
+                       u32 max_size)
 {
   ASSERT_MSG(SYMBOLS, func.analyzed, "The function wasn't previously analyzed!");
 
   func.analyzed = false;
-  return AnalyzeFunction(start_addr, func, max_size);
+  return AnalyzeFunction(guard, start_addr, func, max_size);
 }
 
 // Second pass analysis, done after the first pass is done for all functions
@@ -192,17 +197,26 @@ static void AnalyzeFunction2(Common::Symbol* func)
   func->flags = flags;
 }
 
-static bool CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b)
+bool PPCAnalyzer::CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b) const
 {
   const GekkoOPInfo* a_info = a.opinfo;
   const GekkoOPInfo* b_info = b.opinfo;
-  int a_flags = a_info->flags;
-  int b_flags = b_info->flags;
+  u64 a_flags = a_info->flags;
+  u64 b_flags = b_info->flags;
 
   // can't reorder around breakpoints
-  if (SConfig::GetInstance().bEnableDebugging &&
-      (PowerPC::breakpoints.IsAddressBreakPoint(a.address) ||
-       PowerPC::breakpoints.IsAddressBreakPoint(b.address)))
+  if (m_is_debugging_enabled && (PowerPC::breakpoints.IsAddressBreakPoint(a.address) ||
+                                 PowerPC::breakpoints.IsAddressBreakPoint(b.address)))
+  {
+    return false;
+  }
+  // Any instruction which can raise an interrupt is *not* a possible swap candidate:
+  // see [1] for an example of a crash caused by this error.
+  //
+  // [1] https://bugs.dolphin-emu.org/issues/5864#note-7
+  if (a.canCauseException || b.canCauseException)
+    return false;
+  if (a_flags & FL_ENDBLOCK)
     return false;
   if (b_flags & (FL_SET_CRx | FL_ENDBLOCK | FL_TIMER | FL_EVIL | FL_SET_OE))
     return false;
@@ -222,16 +236,8 @@ static bool CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b)
     return false;
   }
 
-  // For now, only integer ops acceptable. Any instruction which can raise an
-  // interrupt is *not* a possible swap candidate: see [1] for an example of
-  // a crash caused by this error.
-  //
-  // [1] https://bugs.dolphin-emu.org/issues/5864#note-7
+  // For now, only integer ops are acceptable.
   if (b_info->type != OpType::Integer)
-    return false;
-
-  // And it's possible a might raise an interrupt too (fcmpo/fcmpu)
-  if (a_info->type != OpType::Integer)
     return false;
 
   // Check that we have no register collisions.
@@ -255,7 +261,8 @@ static bool CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b)
 // called by another function. Therefore, let's scan the
 // entire space for bl operations and find what functions
 // get called.
-static void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, Common::SymbolDB* func_db)
+static void FindFunctionsFromBranches(const Core::CPUThreadGuard& guard, u32 startAddr, u32 endAddr,
+                                      Common::SymbolDB* func_db)
 {
   for (u32 addr = startAddr; addr < endAddr; addr += 4)
   {
@@ -273,9 +280,9 @@ static void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, Common::Symbol
           u32 target = SignExt26(instr.LI << 2);
           if (!instr.AA)
             target += addr;
-          if (PowerPC::HostIsRAMAddress(target))
+          if (PowerPC::HostIsRAMAddress(guard, target))
           {
-            func_db->AddFunction(target);
+            func_db->AddFunction(guard, target);
           }
         }
       }
@@ -287,7 +294,7 @@ static void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, Common::Symbol
   }
 }
 
-static void FindFunctionsFromHandlers(PPCSymbolDB* func_db)
+static void FindFunctionsFromHandlers(const Core::CPUThreadGuard& guard, PPCSymbolDB* func_db)
 {
   static const std::map<u32, const char* const> handlers = {
       {0x80000100, "system_reset_exception_handler"},
@@ -313,7 +320,7 @@ static void FindFunctionsFromHandlers(PPCSymbolDB* func_db)
     if (read_result.valid && PPCTables::IsValidInstruction(read_result.hex))
     {
       // Check if this function is already mapped
-      Common::Symbol* f = func_db->AddFunction(entry.first);
+      Common::Symbol* f = func_db->AddFunction(guard, entry.first);
       if (!f)
         continue;
       f->Rename(entry.second);
@@ -321,7 +328,8 @@ static void FindFunctionsFromHandlers(PPCSymbolDB* func_db)
   }
 }
 
-static void FindFunctionsAfterReturnInstruction(PPCSymbolDB* func_db)
+static void FindFunctionsAfterReturnInstruction(const Core::CPUThreadGuard& guard,
+                                                PPCSymbolDB* func_db)
 {
   std::vector<u32> funcAddrs;
 
@@ -345,7 +353,7 @@ static void FindFunctionsAfterReturnInstruction(PPCSymbolDB* func_db)
       if (read_result.valid && PPCTables::IsValidInstruction(read_result.hex))
       {
         // check if this function is already mapped
-        Common::Symbol* f = func_db->AddFunction(location);
+        Common::Symbol* f = func_db->AddFunction(guard, location);
         if (!f)
           break;
         else
@@ -357,15 +365,17 @@ static void FindFunctionsAfterReturnInstruction(PPCSymbolDB* func_db)
   }
 }
 
-void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB* func_db)
+void FindFunctions(const Core::CPUThreadGuard& guard, u32 startAddr, u32 endAddr,
+                   PPCSymbolDB* func_db)
 {
   // Step 1: Find all functions
-  FindFunctionsFromBranches(startAddr, endAddr, func_db);
-  FindFunctionsFromHandlers(func_db);
-  FindFunctionsAfterReturnInstruction(func_db);
+  FindFunctionsFromBranches(guard, startAddr, endAddr, func_db);
+  FindFunctionsFromHandlers(guard, func_db);
+  FindFunctionsAfterReturnInstruction(guard, func_db);
 
   // Step 2:
   func_db->FillInCallers();
+  func_db->Index();
 
   int numLeafs = 0, numNice = 0, numUnNice = 0;
   int numTimer = 0, numRFI = 0, numStraightLeaf = 0;
@@ -450,7 +460,7 @@ static bool isCror(const CodeOp& a)
 }
 
 void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool reverse,
-                                          ReorderType type)
+                                          ReorderType type) const
 {
   // Bubbling an instruction sometimes reveals another opportunity to bubble an instruction, so do
   // multiple passes.
@@ -473,7 +483,7 @@ void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool r
       // (if we add more merged branch instructions, add them here!)
       if ((type == ReorderType::CROR && isCror(a)) ||
           (type == ReorderType::Carry && isCarryOp(a)) ||
-          (type == ReorderType::CMP && (isCmp(a) || a.outputCR0)))
+          (type == ReorderType::CMP && (isCmp(a) || a.outputCR[0])))
       {
         // once we're next to a carry instruction, don't move away!
         if (type == ReorderType::Carry && i != start)
@@ -501,7 +511,7 @@ void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool r
   }
 }
 
-void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp* code)
+void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp* code) const
 {
   // Reorder cror instructions upwards (e.g. towards an fcmp). Technically we should be more
   // picky about this, but cror seems to almost solely be used for this purpose in real code.
@@ -519,37 +529,42 @@ void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp* code)
     ReorderInstructionsCore(instructions, code, false, ReorderType::CMP);
 }
 
-void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const GekkoOPInfo* opinfo,
-                                      u32 index)
+void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code,
+                                      const GekkoOPInfo* opinfo) const
 {
-  code->wantsCR0 = false;
-  code->wantsCR1 = false;
-
+  bool first_fpu_instruction = false;
   if (opinfo->flags & FL_USE_FPU)
+  {
+    first_fpu_instruction = !block->m_fpa->any;
     block->m_fpa->any = true;
+  }
 
-  if (opinfo->flags & FL_TIMER)
-    block->m_gpa->anyTimer = true;
+  code->wantsCR = BitSet8(0);
+  if (opinfo->flags & FL_READ_ALL_CR)
+    code->wantsCR = BitSet8(0xFF);
+  else if (opinfo->flags & FL_READ_CRn)
+    code->wantsCR[code->inst.CRFS] = true;
+  else if (opinfo->flags & FL_READ_CR_BI)
+    code->wantsCR[code->inst.BI] = true;
 
-  // Does the instruction output CR0?
-  if (opinfo->flags & FL_RC_BIT)
-    code->outputCR0 = code->inst.hex & 1;  // todo fix
-  else if ((opinfo->flags & FL_SET_CRn) && code->inst.CRFD == 0)
-    code->outputCR0 = true;
-  else
-    code->outputCR0 = (opinfo->flags & FL_SET_CR0) != 0;
-
-  // Does the instruction output CR1?
-  if (opinfo->flags & FL_RC_BIT_F)
-    code->outputCR1 = code->inst.hex & 1;  // todo fix
-  else if ((opinfo->flags & FL_SET_CRn) && code->inst.CRFD == 1)
-    code->outputCR1 = true;
-  else
-    code->outputCR1 = (opinfo->flags & FL_SET_CR1) != 0;
+  code->outputCR = BitSet8(0);
+  if (opinfo->flags & FL_SET_ALL_CR)
+    code->outputCR = BitSet8(0xFF);
+  else if (opinfo->flags & FL_SET_CRn)
+    code->outputCR[code->inst.CRFD] = true;
+  else if ((opinfo->flags & FL_SET_CR0) || ((opinfo->flags & FL_RC_BIT) && code->inst.Rc))
+    code->outputCR[0] = true;
+  else if ((opinfo->flags & FL_SET_CR1) || ((opinfo->flags & FL_RC_BIT_F) && code->inst.Rc))
+    code->outputCR[1] = true;
 
   code->wantsFPRF = (opinfo->flags & FL_READ_FPRF) != 0;
   code->outputFPRF = (opinfo->flags & FL_SET_FPRF) != 0;
   code->canEndBlock = (opinfo->flags & FL_ENDBLOCK) != 0;
+
+  code->canCauseException = first_fpu_instruction ||
+                            (opinfo->flags & (FL_LOADSTORE | FL_PROGRAMEXCEPTION)) != 0 ||
+                            (m_enable_float_exceptions && (opinfo->flags & FL_FLOAT_EXCEPTION)) ||
+                            (m_enable_div_by_zero_exceptions && (opinfo->flags & FL_FLOAT_DIV));
 
   code->wantsCA = (opinfo->flags & FL_READ_CA) != 0;
   code->outputCA = (opinfo->flags & FL_SET_CA) != 0;
@@ -575,39 +590,32 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const Gekk
   if (opinfo->flags & FL_OUT_A)
   {
     code->regsOut[code->inst.RA] = true;
-    block->m_gpa->SetOutputRegister(code->inst.RA, index);
   }
   if (opinfo->flags & FL_OUT_D)
   {
     code->regsOut[code->inst.RD] = true;
-    block->m_gpa->SetOutputRegister(code->inst.RD, index);
   }
   if ((opinfo->flags & FL_IN_A) || ((opinfo->flags & FL_IN_A0) && code->inst.RA != 0))
   {
     code->regsIn[code->inst.RA] = true;
-    block->m_gpa->SetInputRegister(code->inst.RA, index);
   }
   if (opinfo->flags & FL_IN_B)
   {
     code->regsIn[code->inst.RB] = true;
-    block->m_gpa->SetInputRegister(code->inst.RB, index);
   }
   if (opinfo->flags & FL_IN_C)
   {
     code->regsIn[code->inst.RC] = true;
-    block->m_gpa->SetInputRegister(code->inst.RC, index);
   }
   if (opinfo->flags & FL_IN_S)
   {
     code->regsIn[code->inst.RS] = true;
-    block->m_gpa->SetInputRegister(code->inst.RS, index);
   }
   if (code->inst.OPCD == 46)  // lmw
   {
     for (int iReg = code->inst.RD; iReg < 32; ++iReg)
     {
       code->regsOut[iReg] = true;
-      block->m_gpa->SetOutputRegister(iReg, index);
     }
   }
   else if (code->inst.OPCD == 47)  // stmw
@@ -615,7 +623,6 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const Gekk
     for (int iReg = code->inst.RS; iReg < 32; ++iReg)
     {
       code->regsIn[iReg] = true;
-      block->m_gpa->SetInputRegister(iReg, index);
     }
   }
 
@@ -634,13 +641,6 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const Gekk
     code->fregsIn[code->inst.FD] = true;
   if (opinfo->flags & FL_IN_FLOAT_S)
     code->fregsIn[code->inst.FS] = true;
-
-  // For analysis purposes, we can assume that blr eats opinfo->flags.
-  if (opinfo->type == OpType::Branch && code->inst.hex == 0x4e800020)
-  {
-    code->outputCR0 = true;
-    code->outputCR1 = true;
-  }
 
   code->branchUsesCtr = false;
   code->branchTo = UINT32_MAX;
@@ -674,7 +674,7 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const Gekk
   }
 }
 
-bool PPCAnalyzer::IsBusyWaitLoop(CodeBlock* block, CodeOp* code, size_t instructions)
+bool PPCAnalyzer::IsBusyWaitLoop(CodeBlock* block, CodeOp* code, size_t instructions) const
 {
   // Very basic algorithm to detect busy wait loops:
   //   * It loops to itself and does not contain any other branches.
@@ -727,7 +727,8 @@ bool PPCAnalyzer::IsBusyWaitLoop(CodeBlock* block, CodeOp* code, size_t instruct
   return false;
 }
 
-u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std::size_t block_size)
+u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
+                         std::size_t block_size) const
 {
   // Clear block stats
   *block->m_stats = {};
@@ -735,9 +736,6 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
   // Clear register stats
   block->m_gpa->any = true;
   block->m_fpa->any = false;
-
-  block->m_gpa->Clear();
-  block->m_fpa->Clear();
 
   // Set the blocks start address
   block->m_address = address;
@@ -757,7 +755,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
   u32 numFollows = 0;
   u32 num_inst = 0;
 
-  const bool enable_follow = SConfig::GetInstance().bJITFollowBranch;
+  const bool enable_follow = m_enable_branch_following;
 
   for (std::size_t i = 0; i < block_size; ++i)
   {
@@ -781,7 +779,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
     block->m_stats->numCycles += opinfo->numCycles;
     block->m_physical_addresses.insert(result.physical_address);
 
-    SetInstructionStats(block, &code[i], opinfo, static_cast<u32>(i));
+    SetInstructionStats(block, &code[i], opinfo);
 
     bool follow = false;
 
@@ -915,45 +913,47 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
 
   // Scan for flag dependencies; assume the next block (or any branch that can leave the block)
   // wants flags, to be safe.
-  bool wantsCR0 = true, wantsCR1 = true, wantsFPRF = true, wantsCA = true;
-  BitSet32 fprInUse, gprInUse, gprInReg, fprInXmm;
+  BitSet8 wantsCR = BitSet8(0xFF);
+  bool wantsFPRF = true;
+  bool wantsCA = true;
+  BitSet32 fprInUse, gprInUse, gprDiscardable, fprDiscardable, fprInXmm;
   for (int i = block->m_num_instructions - 1; i >= 0; i--)
   {
     CodeOp& op = code[i];
 
-    const bool opWantsCR0 = op.wantsCR0;
-    const bool opWantsCR1 = op.wantsCR1;
+    const BitSet8 opWantsCR = op.wantsCR;
     const bool opWantsFPRF = op.wantsFPRF;
     const bool opWantsCA = op.wantsCA;
-    op.wantsCR0 = wantsCR0 || op.canEndBlock;
-    op.wantsCR1 = wantsCR1 || op.canEndBlock;
-    op.wantsFPRF = wantsFPRF || op.canEndBlock;
-    op.wantsCA = wantsCA || op.canEndBlock;
-    wantsCR0 |= opWantsCR0 || op.canEndBlock;
-    wantsCR1 |= opWantsCR1 || op.canEndBlock;
-    wantsFPRF |= opWantsFPRF || op.canEndBlock;
-    wantsCA |= opWantsCA || op.canEndBlock;
-    wantsCR0 &= !op.outputCR0 || opWantsCR0;
-    wantsCR1 &= !op.outputCR1 || opWantsCR1;
+    op.wantsCR = wantsCR | BitSet8(op.canEndBlock || op.canCauseException ? 0xFF : 0);
+    op.wantsFPRF = wantsFPRF || op.canEndBlock || op.canCauseException;
+    op.wantsCA = wantsCA || op.canEndBlock || op.canCauseException;
+    wantsCR |= opWantsCR | BitSet8(op.canEndBlock || op.canCauseException ? 0xFF : 0);
+    wantsFPRF |= opWantsFPRF || op.canEndBlock || op.canCauseException;
+    wantsCA |= opWantsCA || op.canEndBlock || op.canCauseException;
+    wantsCR &= ~op.outputCR | opWantsCR;
     wantsFPRF &= !op.outputFPRF || opWantsFPRF;
     wantsCA &= !op.outputCA || opWantsCA;
     op.gprInUse = gprInUse;
     op.fprInUse = fprInUse;
-    op.gprInReg = gprInReg;
+    op.gprDiscardable = gprDiscardable;
+    op.fprDiscardable = fprDiscardable;
     op.fprInXmm = fprInXmm;
-    // TODO: if there's no possible endblocks or exceptions in between, tell the regcache
-    // we can throw away a register if it's going to be overwritten later.
-    gprInUse |= op.regsIn;
-    gprInReg |= op.regsIn;
-    fprInUse |= op.fregsIn;
+    gprInUse |= op.regsIn | op.regsOut;
+    fprInUse |= op.fregsIn | op.GetFregsOut();
+    if (op.canEndBlock || op.canCauseException)
+    {
+      gprDiscardable = BitSet32{};
+      fprDiscardable = BitSet32{};
+    }
+    else
+    {
+      gprDiscardable |= op.regsOut;
+      gprDiscardable &= ~op.regsIn;
+      fprDiscardable |= op.GetFregsOut();
+      fprDiscardable &= ~op.fregsIn;
+    }
     if (strncmp(op.opinfo->opname, "stfd", 4))
       fprInXmm |= op.fregsIn;
-    // For now, we need to count output registers as "used" though; otherwise the flush
-    // will result in a redundant store (e.g. store to regcache, then store again to
-    // the same location later).
-    gprInUse |= op.regsOut;
-    if (op.fregOut >= 0)
-      fprInUse[op.fregOut] = true;
   }
 
   // Forward scan, for flags that need the other direction for calculation.
@@ -968,40 +968,75 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
 
     op.fprIsSingle = fprIsSingle;
     op.fprIsDuplicated = fprIsDuplicated;
-    op.fprIsStoreSafe = fprIsStoreSafe;
+    op.fprIsStoreSafeBeforeInst = fprIsStoreSafe;
     if (op.fregOut >= 0)
     {
-      fprIsSingle[op.fregOut] = false;
-      fprIsDuplicated[op.fregOut] = false;
-      fprIsStoreSafe[op.fregOut] = false;
-      // Single, duplicated, and doesn't need PPC_FP.
-      if (op.opinfo->type == OpType::SingleFP)
+      BitSet32 bitexact_inputs;
+      if (op.opinfo->flags &
+          (FL_IN_FLOAT_A_BITEXACT | FL_IN_FLOAT_B_BITEXACT | FL_IN_FLOAT_C_BITEXACT))
+      {
+        if (op.opinfo->flags & FL_IN_FLOAT_A_BITEXACT)
+          bitexact_inputs[op.inst.FA] = true;
+        if (op.opinfo->flags & FL_IN_FLOAT_B_BITEXACT)
+          bitexact_inputs[op.inst.FB] = true;
+        if (op.opinfo->flags & FL_IN_FLOAT_C_BITEXACT)
+          bitexact_inputs[op.inst.FC] = true;
+      }
+
+      if (op.opinfo->type == OpType::SingleFP || !strncmp(op.opinfo->opname, "frsp", 4))
       {
         fprIsSingle[op.fregOut] = true;
         fprIsDuplicated[op.fregOut] = true;
-        fprIsStoreSafe[op.fregOut] = true;
       }
-      // Single and duplicated, but might be a denormal (not safe to skip PPC_FP).
-      // TODO: if we go directly from a load to store, skip conversion entirely?
-      // TODO: if we go directly from a load to a float instruction, and the value isn't used
-      // for anything else, we can skip PPC_FP on a load too.
-      if (!strncmp(op.opinfo->opname, "lfs", 3))
+      else if (!strncmp(op.opinfo->opname, "lfs", 3))
       {
         fprIsSingle[op.fregOut] = true;
         fprIsDuplicated[op.fregOut] = true;
       }
-      // Paired are still floats, but the top/bottom halves may differ.
-      if (op.opinfo->type == OpType::PS || op.opinfo->type == OpType::LoadPS)
+      else if (bitexact_inputs)
+      {
+        fprIsSingle[op.fregOut] = (fprIsSingle & bitexact_inputs) == bitexact_inputs;
+        fprIsDuplicated[op.fregOut] = false;
+      }
+      else if (op.opinfo->type == OpType::PS || op.opinfo->type == OpType::LoadPS)
       {
         fprIsSingle[op.fregOut] = true;
-        fprIsStoreSafe[op.fregOut] = true;
+        fprIsDuplicated[op.fregOut] = false;
       }
-      // Careful: changing the float mode in a block breaks this optimization, since
-      // a previous float op might have had had FTZ off while the later store has FTZ
-      // on. So, discard all information we have.
+      else
+      {
+        fprIsSingle[op.fregOut] = false;
+        fprIsDuplicated[op.fregOut] = false;
+      }
+
       if (!strncmp(op.opinfo->opname, "mtfs", 4))
+      {
+        // Careful: changing the float mode in a block breaks the store-safe optimization,
+        // since a previous float op might have had FTZ off while the later store has FTZ on.
+        // So, discard all information we have.
         fprIsStoreSafe = BitSet32(0);
+      }
+      else if (bitexact_inputs)
+      {
+        // If the instruction copies bits between registers (without flushing denormals to zero
+        // or turning SNaN into QNaN), the output is store-safe if the inputs are.
+        fprIsStoreSafe[op.fregOut] = (fprIsStoreSafe & bitexact_inputs) == bitexact_inputs;
+      }
+      else
+      {
+        // Other FPU instructions are store-safe if they perform a single-precision
+        // arithmetic operation.
+
+        // TODO: if we go directly from a load to store, skip conversion entirely?
+        // TODO: if we go directly from a load to a float instruction, and the value isn't used
+        // for anything else, we can use fast single -> double conversion after the load.
+
+        fprIsStoreSafe[op.fregOut] = op.opinfo->type == OpType::SingleFP ||
+                                     op.opinfo->type == OpType::PS ||
+                                     !strncmp(op.opinfo->opname, "frsp", 4);
+      }
     }
+    op.fprIsStoreSafeAfterInst = fprIsStoreSafe;
 
     if (op.opinfo->type == OpType::StorePS || op.opinfo->type == OpType::LoadPS)
     {

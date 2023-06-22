@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -50,9 +49,7 @@ private:
   GraphicsBool* m_enable_fullscreen;
 
   // Options
-  GraphicsBool* m_show_fps;
   GraphicsBool* m_show_ping;
-  GraphicsBool* m_log_render_time;
   GraphicsBool* m_autoadjust_window_size;
   GraphicsBool* m_show_messages;
   GraphicsBool* m_render_main_window;

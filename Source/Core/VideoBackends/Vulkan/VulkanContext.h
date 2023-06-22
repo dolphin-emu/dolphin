@@ -1,6 +1,5 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -26,8 +25,8 @@ public:
   static bool CheckValidationLayerAvailablility();
 
   // Helper method to create a Vulkan instance.
-  static VkInstance CreateVulkanInstance(WindowSystemType wstype, bool enable_debug_report,
-                                         bool enable_validation_layer);
+  static VkInstance CreateVulkanInstance(WindowSystemType wstype, bool enable_debug_utils,
+                                         bool enable_validation_layer, u32* out_vk_api_version);
 
   // Returns a list of Vulkan-compatible GPUs.
   using GPUList = std::vector<VkPhysicalDevice>;
@@ -47,12 +46,12 @@ public:
   // This assumes that PopulateBackendInfo and PopulateBackendInfoAdapters has already
   // been called for the specified VideoConfig.
   static std::unique_ptr<VulkanContext> Create(VkInstance instance, VkPhysicalDevice gpu,
-                                               VkSurfaceKHR surface, bool enable_debug_reports,
-                                               bool enable_validation_layer);
+                                               VkSurfaceKHR surface, bool enable_debug_utils,
+                                               bool enable_validation_layer, u32 api_version);
 
   // Enable/disable debug message runtime.
-  bool EnableDebugReports();
-  void DisableDebugReports();
+  bool EnableDebugUtils();
+  void DisableDebugUtils();
 
   // Global state accessors
   VkInstance GetVulkanInstance() const { return m_instance; }
@@ -99,20 +98,14 @@ public:
     return m_device_properties.limits.bufferImageGranularity;
   }
   float GetMaxSamplerAnisotropy() const { return m_device_properties.limits.maxSamplerAnisotropy; }
-  // Finds a memory type index for the specified memory properties and the bits returned by
-  // vkGetImageMemoryRequirements
-  std::optional<u32> GetMemoryType(u32 bits, VkMemoryPropertyFlags properties, bool strict,
-                                   bool* is_coherent = nullptr);
-
-  // Finds a memory type for upload or readback buffers.
-  u32 GetUploadMemoryType(u32 bits, bool* is_coherent = nullptr);
-  u32 GetReadbackMemoryType(u32 bits, bool* is_coherent = nullptr);
 
   // Returns true if the specified extension is supported and enabled.
   bool SupportsDeviceExtension(const char* name) const;
 
   // Returns true if exclusive fullscreen is supported for the given surface.
   bool SupportsExclusiveFullscreen(const WindowSystemInfo& wsi, VkSurfaceKHR surface);
+
+  VmaAllocator GetMemoryAllocator() const { return m_allocator; }
 
 #ifdef WIN32
   // Returns the platform-specific exclusive fullscreen structure.
@@ -122,16 +115,19 @@ public:
 
 private:
   static bool SelectInstanceExtensions(std::vector<const char*>* extension_list,
-                                       WindowSystemType wstype, bool enable_debug_report);
+                                       WindowSystemType wstype, bool enable_debug_utils,
+                                       bool validation_layer_enabled);
   bool SelectDeviceExtensions(bool enable_surface);
   bool SelectDeviceFeatures();
   bool CreateDevice(VkSurfaceKHR surface, bool enable_validation_layer);
   void InitDriverDetails();
   void PopulateShaderSubgroupSupport();
+  bool CreateAllocator(u32 vk_api_version);
 
   VkInstance m_instance = VK_NULL_HANDLE;
   VkPhysicalDevice m_physical_device = VK_NULL_HANDLE;
   VkDevice m_device = VK_NULL_HANDLE;
+  VmaAllocator m_allocator = VK_NULL_HANDLE;
 
   VkQueue m_graphics_queue = VK_NULL_HANDLE;
   u32 m_graphics_queue_family_index = 0;
@@ -139,7 +135,7 @@ private:
   u32 m_present_queue_family_index = 0;
   VkQueueFamilyProperties m_graphics_queue_properties = {};
 
-  VkDebugReportCallbackEXT m_debug_report_callback = VK_NULL_HANDLE;
+  VkDebugUtilsMessengerEXT m_debug_utils_messenger = VK_NULL_HANDLE;
 
   VkPhysicalDeviceFeatures m_device_features = {};
   VkPhysicalDeviceProperties m_device_properties = {};

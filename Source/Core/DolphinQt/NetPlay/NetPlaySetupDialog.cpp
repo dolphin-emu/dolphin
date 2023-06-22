@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/NetPlay/NetPlaySetupDialog.h"
 
@@ -22,6 +21,7 @@
 #include "Core/NetPlayProto.h"
 
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/UTF8CodePointCountValidator.h"
 #include "DolphinQt/Settings.h"
 
@@ -88,7 +88,7 @@ void NetPlaySetupDialog::CreateMainLayout()
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Cancel);
   m_nickname_edit = new QLineEdit;
   m_connection_type = new QComboBox;
-  m_reset_traversal_button = new QPushButton(tr("Reset Traversal Settings"));
+  m_reset_traversal_button = new NonDefaultQPushButton(tr("Reset Traversal Settings"));
   m_tab_widget = new QTabWidget;
 
   m_nickname_edit->setValidator(
@@ -102,7 +102,7 @@ void NetPlaySetupDialog::CreateMainLayout()
   m_ip_edit = new QLineEdit;
   m_connect_port_label = new QLabel(tr("Port:"));
   m_connect_port_box = new QSpinBox;
-  m_connect_button = new QPushButton(tr("Connect"));
+  m_connect_button = new NonDefaultQPushButton(tr("Connect"));
 
   m_connect_port_box->setMaximum(65535);
 
@@ -145,7 +145,7 @@ void NetPlaySetupDialog::CreateMainLayout()
   m_host_upnp = new QCheckBox(tr("Forward port (UPnP)"));
 #endif
   m_host_games = new QListWidget;
-  m_host_button = new QPushButton(tr("Host"));
+  m_host_button = new NonDefaultQPushButton(tr("Host"));
 
   m_host_port_box->setMaximum(65535);
   m_host_force_port_box->setMaximum(65535);
@@ -381,13 +381,13 @@ void NetPlaySetupDialog::PopulateGameList()
 void NetPlaySetupDialog::ResetTraversalHost()
 {
   Config::SetBaseOrCurrent(Config::NETPLAY_TRAVERSAL_SERVER,
-                           Config::NETPLAY_TRAVERSAL_SERVER.default_value);
+                           Config::NETPLAY_TRAVERSAL_SERVER.GetDefaultValue());
   Config::SetBaseOrCurrent(Config::NETPLAY_TRAVERSAL_PORT,
-                           Config::NETPLAY_TRAVERSAL_PORT.default_value);
+                           Config::NETPLAY_TRAVERSAL_PORT.GetDefaultValue());
 
   ModalMessageBox::information(
       this, tr("Reset Traversal Server"),
       tr("Reset Traversal Server to %1:%2")
-          .arg(QString::fromStdString(Config::NETPLAY_TRAVERSAL_SERVER.default_value),
-               QString::number(Config::NETPLAY_TRAVERSAL_PORT.default_value)));
+          .arg(QString::fromStdString(Config::NETPLAY_TRAVERSAL_SERVER.GetDefaultValue()),
+               QString::number(Config::NETPLAY_TRAVERSAL_PORT.GetDefaultValue())));
 }

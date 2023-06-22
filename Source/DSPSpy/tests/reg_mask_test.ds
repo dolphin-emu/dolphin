@@ -1,0 +1,66 @@
+incdir "tests"
+include "dsp_base.inc"
+
+test_main:
+; Test what happens various values are written to every register
+	LRI $ar0, #0xffff
+	CALL set_all_regs
+	CALL send_back
+
+	LRI $ar0, #0x0000
+	CALL set_all_regs
+	CALL send_back
+
+	LRI $ar0, #0x007f
+	CALL set_all_regs
+	CALL send_back
+
+	LRI $ar0, #0x0080
+	CALL set_all_regs
+	CALL send_back
+
+	LRI $ar0, #0x0100
+	CALL set_all_regs
+	CALL send_back
+
+; We're done, DO NOT DELETE THIS LINE
+	JMP end_of_test
+
+; Copy $ar0 to all other registers
+set_all_regs:
+	SET16
+	MRR $ar1,     $ar0
+	MRR $ar2,     $ar0
+	MRR $ar3,     $ar0
+	MRR $ix0,     $ar0
+	MRR $ix1,     $ar0
+	MRR $ix2,     $ar0
+	MRR $ix3,     $ar0
+	MRR $wr0,     $ar0
+	MRR $wr1,     $ar0
+	MRR $wr2,     $ar0
+	MRR $wr3,     $ar0
+	; Don't write to the stacks; returning from this function breaks otherwise
+	; They don't show up in DSPSpy anyways
+	;MRR $st0,     $ar0
+	;MRR $st1,     $ar0
+	;MRR $st2,     $ar0
+	;MRR $st3,     $ar0
+	MRR $ac0.h,   $ar0
+	MRR $ac1.h,   $ar0
+	MRR $cr,      $ar0
+	; Wait to set $sr, as it can change the way stores work
+	MRR $prod.l,  $ar0
+	MRR $prod.m1, $ar0
+	MRR $prod.h,  $ar0
+	MRR $prod.m2, $ar0
+	MRR $ax0.l,   $ar0
+	MRR $ax1.l,   $ar0
+	MRR $ax0.h,   $ar0
+	MRR $ax1.h,   $ar0
+	MRR $ac0.l,   $ar0
+	MRR $ac1.l,   $ar0
+	MRR $ac0.m,   $ar0
+	MRR $ac1.m,   $ar0
+	MRR $sr,      $ar0
+	RET

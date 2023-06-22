@@ -1,6 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <limits>
 #include <memory>
@@ -12,6 +11,7 @@
 
 #include "Common/BitUtils.h"
 #include "Common/Common.h"
+#include "Common/MathUtil.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/OpcodeDecoding.h"
@@ -23,12 +23,11 @@ TEST(VertexLoaderUID, UniqueEnough)
   std::unordered_set<VertexLoaderUID> uids;
 
   TVtxDesc vtx_desc;
-  memset(&vtx_desc, 0, sizeof(vtx_desc));
   VAT vat;
-  memset(&vat, 0, sizeof(vat));
   uids.insert(VertexLoaderUID(vtx_desc, vat));
 
-  vtx_desc.Hex = 0xFEDCBA9876543210ull;
+  vtx_desc.low.Hex = 0x76543210;
+  vtx_desc.high.Hex = 0xFEDCBA98;
   EXPECT_EQ(uids.end(), uids.find(VertexLoaderUID(vtx_desc, vat)));
   uids.insert(VertexLoaderUID(vtx_desc, vat));
 
@@ -50,8 +49,12 @@ protected:
     memset(input_memory, 0, sizeof(input_memory));
     memset(output_memory, 0xFF, sizeof(input_memory));
 
-    memset(&m_vtx_desc, 0, sizeof(m_vtx_desc));
-    memset(&m_vtx_attr, 0, sizeof(m_vtx_attr));
+    m_vtx_desc.low.Hex = 0;
+    m_vtx_desc.high.Hex = 0;
+
+    m_vtx_attr.g0.Hex = 0;
+    m_vtx_attr.g1.Hex = 0;
+    m_vtx_attr.g2.Hex = 0;
 
     m_loader = nullptr;
 
@@ -61,7 +64,7 @@ protected:
   void CreateAndCheckSizes(size_t input_size, size_t output_size)
   {
     m_loader = VertexLoaderBase::CreateVertexLoader(m_vtx_desc, m_vtx_attr);
-    ASSERT_EQ((int)input_size, m_loader->m_VertexSize);
+    ASSERT_EQ(input_size, m_loader->m_vertex_size);
     ASSERT_EQ((int)output_size, m_loader->m_native_vtx_decl.stride);
   }
 
@@ -88,7 +91,7 @@ protected:
     if (expected_count == -1)
       expected_count = count;
     ResetPointers();
-    int actual_count = m_loader->RunVertices(m_src, m_dst, count);
+    int actual_count = m_loader->RunVertices(m_src.GetPointer(), m_dst.GetPointer(), count);
     EXPECT_EQ(actual_count, expected_count);
   }
 
@@ -106,29 +109,37 @@ protected:
   std::unique_ptr<VertexLoaderBase> m_loader;
 };
 
-class VertexLoaderParamTest : public VertexLoaderTest,
-                              public ::testing::WithParamInterface<std::tuple<int, int, int, int>>
+class VertexLoaderParamTest
+    : public VertexLoaderTest,
+      public ::testing::WithParamInterface<
+          std::tuple<VertexComponentFormat, ComponentFormat, CoordComponentCount, int>>
 {
 };
-INSTANTIATE_TEST_CASE_P(AllCombinations, VertexLoaderParamTest,
-                        ::testing::Combine(::testing::Values(DIRECT, INDEX8, INDEX16),
-                                           ::testing::Values(FORMAT_UBYTE, FORMAT_BYTE,
-                                                             FORMAT_USHORT, FORMAT_SHORT,
-                                                             FORMAT_FLOAT),
-                                           ::testing::Values(0, 1),     // elements
-                                           ::testing::Values(0, 1, 31)  // frac
-                                           ));
+INSTANTIATE_TEST_SUITE_P(
+    AllCombinations, VertexLoaderParamTest,
+    ::testing::Combine(
+        ::testing::Values(VertexComponentFormat::Direct, VertexComponentFormat::Index8,
+                          VertexComponentFormat::Index16),
+        ::testing::Values(ComponentFormat::UByte, ComponentFormat::Byte, ComponentFormat::UShort,
+                          ComponentFormat::Short, ComponentFormat::Float),
+        ::testing::Values(CoordComponentCount::XY, CoordComponentCount::XYZ),
+        ::testing::Values(0, 1, 31)  // frac
+        ));
 
 TEST_P(VertexLoaderParamTest, PositionAll)
 {
-  int addr, format, elements, frac;
+  VertexComponentFormat addr;
+  ComponentFormat format;
+  CoordComponentCount elements;
+  int frac;
   std::tie(addr, format, elements, frac) = GetParam();
-  this->m_vtx_desc.Position = addr;
+  this->m_vtx_desc.low.Position = addr;
   this->m_vtx_attr.g0.PosFormat = format;
   this->m_vtx_attr.g0.PosElements = elements;
   this->m_vtx_attr.g0.PosFrac = frac;
   this->m_vtx_attr.g0.ByteDequant = true;
-  elements += 2;
+  const u32 elem_size = GetElementSize(format);
+  const u32 elem_count = elements == CoordComponentCount::XY ? 2 : 3;
 
   std::vector<float> values = {
       std::numeric_limits<float>::lowest(),
@@ -140,7 +151,7 @@ TEST_P(VertexLoaderParamTest, PositionAll)
       -0x8000,
       -0x80,
       -1,
-      -0,
+      -0.0,
       0,
       1,
       123,
@@ -153,38 +164,37 @@ TEST_P(VertexLoaderParamTest, PositionAll)
   ASSERT_EQ(0u, values.size() % 2);
   ASSERT_EQ(0u, values.size() % 3);
 
-  int count = (int)values.size() / elements;
-  u32 elem_size = 1 << (format / 2);
-  size_t input_size = elements * elem_size;
-  if (addr & MASK_INDEXED)
+  int count = (int)values.size() / elem_count;
+  size_t input_size = elem_count * elem_size;
+  if (IsIndexed(addr))
   {
-    input_size = addr - 1;
+    input_size = addr == VertexComponentFormat::Index8 ? 1 : 2;
     for (int i = 0; i < count; i++)
-      if (addr == INDEX8)
+      if (addr == VertexComponentFormat::Index8)
         Input<u8>(i);
       else
         Input<u16>(i);
-    VertexLoaderManager::cached_arraybases[ARRAY_POSITION] = m_src.GetPointer();
-    g_main_cp_state.array_strides[ARRAY_POSITION] = elements * elem_size;
+    VertexLoaderManager::cached_arraybases[CPArray::Position] = m_src.GetPointer();
+    g_main_cp_state.array_strides[CPArray::Position] = elem_count * elem_size;
   }
-  CreateAndCheckSizes(input_size, elements * sizeof(float));
+  CreateAndCheckSizes(input_size, elem_count * sizeof(float));
   for (float value : values)
   {
     switch (format)
     {
-    case FORMAT_UBYTE:
-      Input((u8)value);
+    case ComponentFormat::UByte:
+      Input(MathUtil::SaturatingCast<u8>(value));
       break;
-    case FORMAT_BYTE:
-      Input((s8)value);
+    case ComponentFormat::Byte:
+      Input(MathUtil::SaturatingCast<s8>(value));
       break;
-    case FORMAT_USHORT:
-      Input((u16)value);
+    case ComponentFormat::UShort:
+      Input(MathUtil::SaturatingCast<u16>(value));
       break;
-    case FORMAT_SHORT:
-      Input((s16)value);
+    case ComponentFormat::Short:
+      Input(MathUtil::SaturatingCast<s16>(value));
       break;
-    case FORMAT_FLOAT:
+    case ComponentFormat::Float:
       Input(value);
       break;
     }
@@ -192,29 +202,29 @@ TEST_P(VertexLoaderParamTest, PositionAll)
 
   RunVertices(count);
 
-  float scale = 1.f / (1u << (format == FORMAT_FLOAT ? 0 : frac));
+  float scale = 1.f / (1u << (format == ComponentFormat::Float ? 0 : frac));
   for (auto iter = values.begin(); iter != values.end();)
   {
     float f, g;
     switch (format)
     {
-    case FORMAT_UBYTE:
-      f = (u8)*iter++;
-      g = (u8)*iter++;
+    case ComponentFormat::UByte:
+      f = MathUtil::SaturatingCast<u8>(*iter++);
+      g = MathUtil::SaturatingCast<u8>(*iter++);
       break;
-    case FORMAT_BYTE:
-      f = (s8)*iter++;
-      g = (s8)*iter++;
+    case ComponentFormat::Byte:
+      f = MathUtil::SaturatingCast<s8>(*iter++);
+      g = MathUtil::SaturatingCast<s8>(*iter++);
       break;
-    case FORMAT_USHORT:
-      f = (u16)*iter++;
-      g = (u16)*iter++;
+    case ComponentFormat::UShort:
+      f = MathUtil::SaturatingCast<u16>(*iter++);
+      g = MathUtil::SaturatingCast<u16>(*iter++);
       break;
-    case FORMAT_SHORT:
-      f = (s16)*iter++;
-      g = (s16)*iter++;
+    case ComponentFormat::Short:
+      f = MathUtil::SaturatingCast<s16>(*iter++);
+      g = MathUtil::SaturatingCast<s16>(*iter++);
       break;
-    case FORMAT_FLOAT:
+    case ComponentFormat::Float:
       f = *iter++;
       g = *iter++;
       break;
@@ -228,13 +238,13 @@ TEST_P(VertexLoaderParamTest, PositionAll)
 
 TEST_F(VertexLoaderTest, PositionIndex16FloatXY)
 {
-  m_vtx_desc.Position = INDEX16;
-  m_vtx_attr.g0.PosFormat = FORMAT_FLOAT;
+  m_vtx_desc.low.Position = VertexComponentFormat::Index16;
+  m_vtx_attr.g0.PosFormat = ComponentFormat::Float;
   CreateAndCheckSizes(sizeof(u16), 2 * sizeof(float));
   Input<u16>(1);
   Input<u16>(0);
-  VertexLoaderManager::cached_arraybases[ARRAY_POSITION] = m_src.GetPointer();
-  g_main_cp_state.array_strides[ARRAY_POSITION] = sizeof(float);  // ;)
+  VertexLoaderManager::cached_arraybases[CPArray::Position] = m_src.GetPointer();
+  g_main_cp_state.array_strides[CPArray::Position] = sizeof(float);  // ;)
   Input(1.f);
   Input(2.f);
   Input(3.f);
@@ -246,47 +256,49 @@ TEST_F(VertexLoaderTest, PositionIndex16FloatXY)
 }
 
 class VertexLoaderSpeedTest : public VertexLoaderTest,
-                              public ::testing::WithParamInterface<std::tuple<int, int>>
+                              public ::testing::WithParamInterface<std::tuple<ComponentFormat, int>>
 {
 };
-INSTANTIATE_TEST_CASE_P(FormatsAndElements, VertexLoaderSpeedTest,
-                        ::testing::Combine(::testing::Values(FORMAT_UBYTE, FORMAT_BYTE,
-                                                             FORMAT_USHORT, FORMAT_SHORT,
-                                                             FORMAT_FLOAT),
-                                           ::testing::Values(0, 1)  // elements
-                                           ));
+INSTANTIATE_TEST_SUITE_P(
+    FormatsAndElements, VertexLoaderSpeedTest,
+    ::testing::Combine(::testing::Values(ComponentFormat::UByte, ComponentFormat::Byte,
+                                         ComponentFormat::UShort, ComponentFormat::Short,
+                                         ComponentFormat::Float),
+                       ::testing::Values(0, 1)));
 
 TEST_P(VertexLoaderSpeedTest, PositionDirectAll)
 {
-  int format, elements;
-  std::tie(format, elements) = GetParam();
-  const char* map[] = {"u8", "s8", "u16", "s16", "float"};
-  printf("format: %s, elements: %d\n", map[format], elements);
-  m_vtx_desc.Position = DIRECT;
+  ComponentFormat format;
+  int elements_i;
+  std::tie(format, elements_i) = GetParam();
+  CoordComponentCount elements = static_cast<CoordComponentCount>(elements_i);
+  fmt::print("format: {}, elements: {}\n", format, elements);
+  const u32 elem_count = elements == CoordComponentCount::XY ? 2 : 3;
+  m_vtx_desc.low.Position = VertexComponentFormat::Direct;
   m_vtx_attr.g0.PosFormat = format;
   m_vtx_attr.g0.PosElements = elements;
-  elements += 2;
-  size_t elem_size = static_cast<size_t>(1) << (format / 2);
-  CreateAndCheckSizes(elements * elem_size, elements * sizeof(float));
+  const size_t elem_size = GetElementSize(format);
+  CreateAndCheckSizes(elem_count * elem_size, elem_count * sizeof(float));
   for (int i = 0; i < 1000; ++i)
     RunVertices(100000);
 }
 
 TEST_P(VertexLoaderSpeedTest, TexCoordSingleElement)
 {
-  int format, elements;
-  std::tie(format, elements) = GetParam();
-  const char* map[] = {"u8", "s8", "u16", "s16", "float"};
-  printf("format: %s, elements: %d\n", map[format], elements);
-  m_vtx_desc.Position = DIRECT;
-  m_vtx_attr.g0.PosFormat = FORMAT_BYTE;
-  m_vtx_desc.Tex0Coord = DIRECT;
+  ComponentFormat format;
+  int elements_i;
+  std::tie(format, elements_i) = GetParam();
+  TexComponentCount elements = static_cast<TexComponentCount>(elements_i);
+  fmt::print("format: {}, elements: {}\n", format, elements);
+  const u32 elem_count = elements == TexComponentCount::S ? 1 : 2;
+  m_vtx_desc.low.Position = VertexComponentFormat::Direct;
+  m_vtx_attr.g0.PosFormat = ComponentFormat::Byte;
+  m_vtx_desc.high.Tex0Coord = VertexComponentFormat::Direct;
   m_vtx_attr.g0.Tex0CoordFormat = format;
   m_vtx_attr.g0.Tex0CoordElements = elements;
-  elements += 1;
-  size_t elem_size = static_cast<size_t>(1) << (format / 2);
-  CreateAndCheckSizes(2 * sizeof(s8) + elements * elem_size,
-                      2 * sizeof(float) + elements * sizeof(float));
+  const size_t elem_size = GetElementSize(format);
+  CreateAndCheckSizes(2 * sizeof(s8) + elem_count * elem_size,
+                      2 * sizeof(float) + elem_count * sizeof(float));
   for (int i = 0; i < 1000; ++i)
     RunVertices(100000);
 }
@@ -294,63 +306,473 @@ TEST_P(VertexLoaderSpeedTest, TexCoordSingleElement)
 TEST_F(VertexLoaderTest, LargeFloatVertexSpeed)
 {
   // Enables most attributes in floating point indexed mode to test speed.
-  m_vtx_desc.PosMatIdx = 1;
-  m_vtx_desc.Tex0MatIdx = 1;
-  m_vtx_desc.Tex1MatIdx = 1;
-  m_vtx_desc.Tex2MatIdx = 1;
-  m_vtx_desc.Tex3MatIdx = 1;
-  m_vtx_desc.Tex4MatIdx = 1;
-  m_vtx_desc.Tex5MatIdx = 1;
-  m_vtx_desc.Tex6MatIdx = 1;
-  m_vtx_desc.Tex7MatIdx = 1;
-  m_vtx_desc.Position = INDEX16;
-  m_vtx_desc.Normal = INDEX16;
-  m_vtx_desc.Color0 = INDEX16;
-  m_vtx_desc.Color1 = INDEX16;
-  m_vtx_desc.Tex0Coord = INDEX16;
-  m_vtx_desc.Tex1Coord = INDEX16;
-  m_vtx_desc.Tex2Coord = INDEX16;
-  m_vtx_desc.Tex3Coord = INDEX16;
-  m_vtx_desc.Tex4Coord = INDEX16;
-  m_vtx_desc.Tex5Coord = INDEX16;
-  m_vtx_desc.Tex6Coord = INDEX16;
-  m_vtx_desc.Tex7Coord = INDEX16;
+  m_vtx_desc.low.PosMatIdx = 1;
+  m_vtx_desc.low.Tex0MatIdx = 1;
+  m_vtx_desc.low.Tex1MatIdx = 1;
+  m_vtx_desc.low.Tex2MatIdx = 1;
+  m_vtx_desc.low.Tex3MatIdx = 1;
+  m_vtx_desc.low.Tex4MatIdx = 1;
+  m_vtx_desc.low.Tex5MatIdx = 1;
+  m_vtx_desc.low.Tex6MatIdx = 1;
+  m_vtx_desc.low.Tex7MatIdx = 1;
+  m_vtx_desc.low.Position = VertexComponentFormat::Index16;
+  m_vtx_desc.low.Normal = VertexComponentFormat::Index16;
+  m_vtx_desc.low.Color0 = VertexComponentFormat::Index16;
+  m_vtx_desc.low.Color1 = VertexComponentFormat::Index16;
+  m_vtx_desc.high.Tex0Coord = VertexComponentFormat::Index16;
+  m_vtx_desc.high.Tex1Coord = VertexComponentFormat::Index16;
+  m_vtx_desc.high.Tex2Coord = VertexComponentFormat::Index16;
+  m_vtx_desc.high.Tex3Coord = VertexComponentFormat::Index16;
+  m_vtx_desc.high.Tex4Coord = VertexComponentFormat::Index16;
+  m_vtx_desc.high.Tex5Coord = VertexComponentFormat::Index16;
+  m_vtx_desc.high.Tex6Coord = VertexComponentFormat::Index16;
+  m_vtx_desc.high.Tex7Coord = VertexComponentFormat::Index16;
 
-  m_vtx_attr.g0.PosElements = 1;  // XYZ
-  m_vtx_attr.g0.PosFormat = FORMAT_FLOAT;
-  m_vtx_attr.g0.NormalElements = 1;  // NBT
-  m_vtx_attr.g0.NormalFormat = FORMAT_FLOAT;
-  m_vtx_attr.g0.Color0Elements = 1;  // Has Alpha
-  m_vtx_attr.g0.Color0Comp = FORMAT_32B_8888;
-  m_vtx_attr.g0.Color1Elements = 1;  // Has Alpha
-  m_vtx_attr.g0.Color1Comp = FORMAT_32B_8888;
-  m_vtx_attr.g0.Tex0CoordElements = 1;  // ST
-  m_vtx_attr.g0.Tex0CoordFormat = FORMAT_FLOAT;
-  m_vtx_attr.g1.Tex1CoordElements = 1;  // ST
-  m_vtx_attr.g1.Tex1CoordFormat = FORMAT_FLOAT;
-  m_vtx_attr.g1.Tex2CoordElements = 1;  // ST
-  m_vtx_attr.g1.Tex2CoordFormat = FORMAT_FLOAT;
-  m_vtx_attr.g1.Tex3CoordElements = 1;  // ST
-  m_vtx_attr.g1.Tex3CoordFormat = FORMAT_FLOAT;
-  m_vtx_attr.g1.Tex4CoordElements = 1;  // ST
-  m_vtx_attr.g1.Tex4CoordFormat = FORMAT_FLOAT;
-  m_vtx_attr.g2.Tex5CoordElements = 1;  // ST
-  m_vtx_attr.g2.Tex5CoordFormat = FORMAT_FLOAT;
-  m_vtx_attr.g2.Tex6CoordElements = 1;  // ST
-  m_vtx_attr.g2.Tex6CoordFormat = FORMAT_FLOAT;
-  m_vtx_attr.g2.Tex7CoordElements = 1;  // ST
-  m_vtx_attr.g2.Tex7CoordFormat = FORMAT_FLOAT;
+  m_vtx_attr.g0.PosElements = CoordComponentCount::XYZ;
+  m_vtx_attr.g0.PosFormat = ComponentFormat::Float;
+  m_vtx_attr.g0.NormalElements = NormalComponentCount::NTB;
+  m_vtx_attr.g0.NormalFormat = ComponentFormat::Float;
+  m_vtx_attr.g0.Color0Elements = ColorComponentCount::RGBA;
+  m_vtx_attr.g0.Color0Comp = ColorFormat::RGBA8888;
+  m_vtx_attr.g0.Color1Elements = ColorComponentCount::RGBA;
+  m_vtx_attr.g0.Color1Comp = ColorFormat::RGBA8888;
+  m_vtx_attr.g0.Tex0CoordElements = TexComponentCount::ST;
+  m_vtx_attr.g0.Tex0CoordFormat = ComponentFormat::Float;
+  m_vtx_attr.g1.Tex1CoordElements = TexComponentCount::ST;
+  m_vtx_attr.g1.Tex1CoordFormat = ComponentFormat::Float;
+  m_vtx_attr.g1.Tex2CoordElements = TexComponentCount::ST;
+  m_vtx_attr.g1.Tex2CoordFormat = ComponentFormat::Float;
+  m_vtx_attr.g1.Tex3CoordElements = TexComponentCount::ST;
+  m_vtx_attr.g1.Tex3CoordFormat = ComponentFormat::Float;
+  m_vtx_attr.g1.Tex4CoordElements = TexComponentCount::ST;
+  m_vtx_attr.g1.Tex4CoordFormat = ComponentFormat::Float;
+  m_vtx_attr.g2.Tex5CoordElements = TexComponentCount::ST;
+  m_vtx_attr.g2.Tex5CoordFormat = ComponentFormat::Float;
+  m_vtx_attr.g2.Tex6CoordElements = TexComponentCount::ST;
+  m_vtx_attr.g2.Tex6CoordFormat = ComponentFormat::Float;
+  m_vtx_attr.g2.Tex7CoordElements = TexComponentCount::ST;
+  m_vtx_attr.g2.Tex7CoordFormat = ComponentFormat::Float;
 
   CreateAndCheckSizes(33, 156);
 
-  for (int i = 0; i < 12; i++)
+  for (int i = 0; i < NUM_VERTEX_COMPONENT_ARRAYS; i++)
   {
-    VertexLoaderManager::cached_arraybases[i] = m_src.GetPointer();
-    g_main_cp_state.array_strides[i] = 129;
+    VertexLoaderManager::cached_arraybases[static_cast<CPArray>(i)] = m_src.GetPointer();
+    g_main_cp_state.array_strides[static_cast<CPArray>(i)] = 129;
   }
 
   // This test is only done 100x in a row since it's ~20x slower using the
   // current vertex loader implementation.
   for (int i = 0; i < 100; ++i)
     RunVertices(100000);
+}
+
+TEST_F(VertexLoaderTest, DirectAllComponents)
+{
+  m_vtx_desc.low.PosMatIdx = 1;
+  m_vtx_desc.low.Tex0MatIdx = 1;
+  m_vtx_desc.low.Tex1MatIdx = 1;
+  m_vtx_desc.low.Tex2MatIdx = 1;
+  m_vtx_desc.low.Tex3MatIdx = 1;
+  m_vtx_desc.low.Tex4MatIdx = 1;
+  m_vtx_desc.low.Tex5MatIdx = 1;
+  m_vtx_desc.low.Tex6MatIdx = 1;
+  m_vtx_desc.low.Tex7MatIdx = 1;
+  m_vtx_desc.low.Position = VertexComponentFormat::Direct;
+  m_vtx_desc.low.Normal = VertexComponentFormat::Direct;
+  m_vtx_desc.low.Color0 = VertexComponentFormat::Direct;
+  m_vtx_desc.low.Color1 = VertexComponentFormat::Direct;
+  m_vtx_desc.high.Tex0Coord = VertexComponentFormat::Direct;
+  m_vtx_desc.high.Tex1Coord = VertexComponentFormat::Direct;
+  m_vtx_desc.high.Tex2Coord = VertexComponentFormat::Direct;
+  m_vtx_desc.high.Tex3Coord = VertexComponentFormat::Direct;
+  m_vtx_desc.high.Tex4Coord = VertexComponentFormat::Direct;
+  m_vtx_desc.high.Tex5Coord = VertexComponentFormat::Direct;
+  m_vtx_desc.high.Tex6Coord = VertexComponentFormat::Direct;
+  m_vtx_desc.high.Tex7Coord = VertexComponentFormat::Direct;
+
+  m_vtx_attr.g0.PosElements = CoordComponentCount::XYZ;
+  m_vtx_attr.g0.PosFormat = ComponentFormat::Float;
+  m_vtx_attr.g0.NormalElements = NormalComponentCount::NTB;
+  m_vtx_attr.g0.NormalFormat = ComponentFormat::Float;
+  m_vtx_attr.g0.Color0Elements = ColorComponentCount::RGBA;
+  m_vtx_attr.g0.Color0Comp = ColorFormat::RGBA8888;
+  m_vtx_attr.g0.Color1Elements = ColorComponentCount::RGBA;
+  m_vtx_attr.g0.Color1Comp = ColorFormat::RGBA8888;
+  m_vtx_attr.g0.Tex0CoordElements = TexComponentCount::ST;
+  m_vtx_attr.g0.Tex0CoordFormat = ComponentFormat::Float;
+  m_vtx_attr.g1.Tex1CoordElements = TexComponentCount::ST;
+  m_vtx_attr.g1.Tex1CoordFormat = ComponentFormat::Float;
+  m_vtx_attr.g1.Tex2CoordElements = TexComponentCount::ST;
+  m_vtx_attr.g1.Tex2CoordFormat = ComponentFormat::Float;
+  m_vtx_attr.g1.Tex3CoordElements = TexComponentCount::ST;
+  m_vtx_attr.g1.Tex3CoordFormat = ComponentFormat::Float;
+  m_vtx_attr.g1.Tex4CoordElements = TexComponentCount::ST;
+  m_vtx_attr.g1.Tex4CoordFormat = ComponentFormat::Float;
+  m_vtx_attr.g2.Tex5CoordElements = TexComponentCount::ST;
+  m_vtx_attr.g2.Tex5CoordFormat = ComponentFormat::Float;
+  m_vtx_attr.g2.Tex6CoordElements = TexComponentCount::ST;
+  m_vtx_attr.g2.Tex6CoordFormat = ComponentFormat::Float;
+  m_vtx_attr.g2.Tex7CoordElements = TexComponentCount::ST;
+  m_vtx_attr.g2.Tex7CoordFormat = ComponentFormat::Float;
+
+  CreateAndCheckSizes(129, 39 * sizeof(float));
+
+  // Pos matrix idx
+  Input<u8>(20);
+  // Tex matrix idx
+  Input<u8>(0);
+  Input<u8>(1);
+  Input<u8>(2);
+  Input<u8>(3);
+  Input<u8>(4);
+  Input<u8>(5);
+  Input<u8>(6);
+  Input<u8>(7);
+  // Position
+  Input(-1.0f);
+  Input(-2.0f);
+  Input(-3.0f);
+  // Normal
+  Input(-4.0f);
+  Input(-5.0f);
+  Input(-6.0f);
+  // Tangent
+  Input(-7.0f);
+  Input(-8.0f);
+  Input(-9.0f);
+  // Binormal
+  Input(-10.0f);
+  Input(-11.0f);
+  Input(-12.0f);
+  // Colors
+  Input<u32>(0x01234567);
+  Input<u32>(0x89abcdef);
+  // Texture coordinates
+  Input(0.1f);
+  Input(-0.9f);
+  Input(1.1f);
+  Input(-1.9f);
+  Input(2.1f);
+  Input(-2.9f);
+  Input(3.1f);
+  Input(-3.9f);
+  Input(4.1f);
+  Input(-4.9f);
+  Input(5.1f);
+  Input(-5.9f);
+  Input(6.1f);
+  Input(-6.9f);
+  Input(7.1f);
+  Input(-7.9f);
+
+  RunVertices(1);
+
+  // Position matrix
+  ASSERT_EQ(m_loader->m_native_vtx_decl.posmtx.offset, 0 * sizeof(float));
+  EXPECT_EQ((m_dst.Read<u32, false>()), 20u);
+  // Position
+  ASSERT_EQ(m_loader->m_native_vtx_decl.position.offset, 1 * sizeof(float));
+  ExpectOut(-1.0f);
+  ExpectOut(-2.0f);
+  ExpectOut(-3.0f);
+  // Normal
+  ASSERT_EQ(m_loader->m_native_vtx_decl.normals[0].offset, 4 * sizeof(float));
+  ExpectOut(-4.0f);
+  ExpectOut(-5.0f);
+  ExpectOut(-6.0f);
+  // Tangent
+  ASSERT_EQ(m_loader->m_native_vtx_decl.normals[1].offset, 7 * sizeof(float));
+  ExpectOut(-7.0f);
+  ExpectOut(-8.0f);
+  ExpectOut(-9.0f);
+  // Binormal
+  ASSERT_EQ(m_loader->m_native_vtx_decl.normals[2].offset, 10 * sizeof(float));
+  ExpectOut(-10.0f);
+  ExpectOut(-11.0f);
+  ExpectOut(-12.0f);
+  // Colors
+  ASSERT_EQ(m_loader->m_native_vtx_decl.colors[0].offset, 13 * sizeof(float));
+  EXPECT_EQ((m_dst.Read<u32, true>()), 0x01234567u);
+  ASSERT_EQ(m_loader->m_native_vtx_decl.colors[1].offset, 14 * sizeof(float));
+  EXPECT_EQ((m_dst.Read<u32, true>()), 0x89abcdefu);
+  // Texture coordinates and matrices (interleaved)
+  ASSERT_EQ(m_loader->m_native_vtx_decl.texcoords[0].offset, 15 * sizeof(float));
+  ExpectOut(0.1f);   // S
+  ExpectOut(-0.9f);  // T
+  ExpectOut(0.0f);   // matrix (yes, a float)
+  ASSERT_EQ(m_loader->m_native_vtx_decl.texcoords[1].offset, 18 * sizeof(float));
+  ExpectOut(1.1f);
+  ExpectOut(-1.9f);
+  ExpectOut(1.0f);
+  ASSERT_EQ(m_loader->m_native_vtx_decl.texcoords[2].offset, 21 * sizeof(float));
+  ExpectOut(2.1f);
+  ExpectOut(-2.9f);
+  ExpectOut(2.0f);
+  ASSERT_EQ(m_loader->m_native_vtx_decl.texcoords[3].offset, 24 * sizeof(float));
+  ExpectOut(3.1f);
+  ExpectOut(-3.9f);
+  ExpectOut(3.0f);
+  ASSERT_EQ(m_loader->m_native_vtx_decl.texcoords[4].offset, 27 * sizeof(float));
+  ExpectOut(4.1f);
+  ExpectOut(-4.9f);
+  ExpectOut(4.0f);
+  ASSERT_EQ(m_loader->m_native_vtx_decl.texcoords[5].offset, 30 * sizeof(float));
+  ExpectOut(5.1f);
+  ExpectOut(-5.9f);
+  ExpectOut(5.0f);
+  ASSERT_EQ(m_loader->m_native_vtx_decl.texcoords[6].offset, 33 * sizeof(float));
+  ExpectOut(6.1f);
+  ExpectOut(-6.9f);
+  ExpectOut(6.0f);
+  ASSERT_EQ(m_loader->m_native_vtx_decl.texcoords[7].offset, 36 * sizeof(float));
+  ExpectOut(7.1f);
+  ExpectOut(-7.9f);
+  ExpectOut(7.0f);
+}
+
+class VertexLoaderNormalTest
+    : public VertexLoaderTest,
+      public ::testing::WithParamInterface<
+          std::tuple<VertexComponentFormat, ComponentFormat, NormalComponentCount, bool>>
+{
+};
+INSTANTIATE_TEST_SUITE_P(
+    AllCombinations, VertexLoaderNormalTest,
+    ::testing::Combine(
+        ::testing::Values(VertexComponentFormat::NotPresent, VertexComponentFormat::Direct,
+                          VertexComponentFormat::Index8, VertexComponentFormat::Index16),
+        ::testing::Values(ComponentFormat::UByte, ComponentFormat::Byte, ComponentFormat::UShort,
+                          ComponentFormat::Short, ComponentFormat::Float),
+        ::testing::Values(NormalComponentCount::N, NormalComponentCount::NTB),
+        ::testing::Values(false, true)));
+
+TEST_P(VertexLoaderNormalTest, NormalAll)
+{
+  VertexComponentFormat addr;
+  ComponentFormat format;
+  NormalComponentCount elements;
+  bool index3;
+  std::tie(addr, format, elements, index3) = GetParam();
+
+  m_vtx_desc.low.Position = VertexComponentFormat::Direct;
+  m_vtx_attr.g0.PosFormat = ComponentFormat::Float;
+  m_vtx_attr.g0.PosElements = CoordComponentCount::XY;
+  m_vtx_attr.g0.PosFrac = 0;
+  m_vtx_desc.low.Normal = addr;
+  m_vtx_attr.g0.NormalFormat = format;
+  m_vtx_attr.g0.NormalElements = elements;
+  m_vtx_attr.g0.NormalIndex3 = index3;
+
+  const u32 in_size = [&]() -> u32 {
+    if (addr == VertexComponentFormat::NotPresent)
+      return 0;
+
+    if (IsIndexed(addr))
+    {
+      const u32 base_size = (addr == VertexComponentFormat::Index8) ? 1 : 2;
+      if (elements == NormalComponentCount::NTB)
+        return (index3 ? 3 : 1) * base_size;
+      else
+        return 1 * base_size;
+    }
+    else
+    {
+      const u32 base_count = (elements == NormalComponentCount::NTB) ? 9 : 3;
+      const u32 base_size = GetElementSize(format);
+      return base_count * base_size;
+    }
+  }();
+  const u32 out_size = [&]() -> u32 {
+    if (addr == VertexComponentFormat::NotPresent)
+      return 0;
+
+    const u32 base_count = (elements == NormalComponentCount::NTB) ? 9 : 3;
+    return base_count * sizeof(float);
+  }();
+
+  CreateAndCheckSizes(2 * sizeof(float) + in_size, 2 * sizeof(float) + out_size);
+
+  auto input_with_expected_type = [&](float value) {
+    switch (format)
+    {
+    case ComponentFormat::UByte:
+      Input<u8>(value * (1 << 7));
+      break;
+    case ComponentFormat::Byte:
+      Input<s8>(value * (1 << 6));
+      break;
+    case ComponentFormat::UShort:
+      Input<u16>(value * (1 << 15));
+      break;
+    case ComponentFormat::Short:
+      Input<s16>(value * (1 << 14));
+      break;
+    case ComponentFormat::Float:
+    default:
+      Input<float>(value);
+      break;
+    }
+  };
+
+  auto create_normal = [&](int counter_base) {
+    if (addr == VertexComponentFormat::Direct)
+    {
+      input_with_expected_type(counter_base / 32.f);
+      input_with_expected_type((counter_base + 1) / 32.f);
+      input_with_expected_type((counter_base + 2) / 32.f);
+    }
+    else if (addr == VertexComponentFormat::Index8)
+    {
+      // We set up arrays so that this works
+      Input<u8>(counter_base);
+    }
+    else if (addr == VertexComponentFormat::Index16)
+    {
+      Input<u16>(counter_base);
+    }
+    // Do nothing for NotPresent
+  };
+  auto create_tangent_and_binormal = [&](int counter_base) {
+    if (IsIndexed(addr))
+    {
+      // With NormalIndex3, specifying the same index 3 times should give the same result
+      // as specifying one index in non-index3 mode (as the index is biased by bytes).
+      // If index3 is disabled, we don't want to write any more indices.
+      if (index3)
+      {
+        // Tangent
+        create_normal(counter_base);
+        // Binormal
+        create_normal(counter_base);
+      }
+    }
+    else
+    {
+      // Tangent
+      create_normal(counter_base + 3);
+      // Binormal
+      create_normal(counter_base + 6);
+    }
+  };
+
+  // Create our two vertices
+  // Position 1
+  Input(4.0f);
+  Input(8.0f);
+  // Normal 1
+  create_normal(1);
+  if (elements == NormalComponentCount::NTB)
+  {
+    create_tangent_and_binormal(1);
+  }
+
+  // Position 2
+  Input(6.0f);
+  Input(12.0f);
+  // Normal 1
+  create_normal(10);
+  if (elements == NormalComponentCount::NTB)
+  {
+    create_tangent_and_binormal(10);
+  }
+
+  // Create an array for indexed representations
+  for (int i = 0; i < NUM_VERTEX_COMPONENT_ARRAYS; i++)
+  {
+    VertexLoaderManager::cached_arraybases[static_cast<CPArray>(i)] = m_src.GetPointer();
+    g_main_cp_state.array_strides[static_cast<CPArray>(i)] = GetElementSize(format);
+  }
+
+  for (int i = 0; i < 32; i++)
+    input_with_expected_type(i / 32.f);
+
+  // Pre-fill these values to detect if they're modified
+  VertexLoaderManager::binormal_cache = {42.f, 43.f, 44.f, 45.f};
+  VertexLoaderManager::tangent_cache = {46.f, 47.f, 48.f, 49.f};
+
+  RunVertices(2);
+
+  // First vertex, position
+  ExpectOut(4.0f);
+  ExpectOut(8.0f);
+  if (addr != VertexComponentFormat::NotPresent)
+  {
+    // Normal
+    ExpectOut(1 / 32.f);
+    ExpectOut(2 / 32.f);
+    ExpectOut(3 / 32.f);
+    if (elements == NormalComponentCount::NTB)
+    {
+      // Tangent
+      ExpectOut(4 / 32.f);
+      ExpectOut(5 / 32.f);
+      ExpectOut(6 / 32.f);
+      // Binormal
+      ExpectOut(7 / 32.f);
+      ExpectOut(8 / 32.f);
+      ExpectOut(9 / 32.f);
+    }
+  }
+
+  // Second vertex, position
+  ExpectOut(6.0f);
+  ExpectOut(12.0f);
+  if (addr != VertexComponentFormat::NotPresent)
+  {
+    // Normal
+    ExpectOut(10 / 32.f);
+    ExpectOut(11 / 32.f);
+    ExpectOut(12 / 32.f);
+    if (elements == NormalComponentCount::NTB)
+    {
+      // Tangent
+      ExpectOut(13 / 32.f);
+      ExpectOut(14 / 32.f);
+      ExpectOut(15 / 32.f);
+      // Binormal
+      ExpectOut(16 / 32.f);
+      ExpectOut(17 / 32.f);
+      ExpectOut(18 / 32.f);
+
+      EXPECT_EQ(VertexLoaderManager::tangent_cache[0], 13 / 32.f);
+      EXPECT_EQ(VertexLoaderManager::tangent_cache[1], 14 / 32.f);
+      EXPECT_EQ(VertexLoaderManager::tangent_cache[2], 15 / 32.f);
+      // Last index is padding/junk
+      EXPECT_EQ(VertexLoaderManager::binormal_cache[0], 16 / 32.f);
+      EXPECT_EQ(VertexLoaderManager::binormal_cache[1], 17 / 32.f);
+      EXPECT_EQ(VertexLoaderManager::binormal_cache[2], 18 / 32.f);
+    }
+  }
+
+  if (addr == VertexComponentFormat::NotPresent || elements == NormalComponentCount::N)
+  {
+    // Expect these to not be written
+    EXPECT_EQ(VertexLoaderManager::binormal_cache[0], 42.f);
+    EXPECT_EQ(VertexLoaderManager::binormal_cache[1], 43.f);
+    EXPECT_EQ(VertexLoaderManager::binormal_cache[2], 44.f);
+    EXPECT_EQ(VertexLoaderManager::binormal_cache[3], 45.f);
+    EXPECT_EQ(VertexLoaderManager::tangent_cache[0], 46.f);
+    EXPECT_EQ(VertexLoaderManager::tangent_cache[1], 47.f);
+    EXPECT_EQ(VertexLoaderManager::tangent_cache[2], 48.f);
+    EXPECT_EQ(VertexLoaderManager::tangent_cache[3], 49.f);
+  }
+}
+
+// For gtest, which doesn't know about our fmt::formatters by default
+static void PrintTo(const VertexComponentFormat& t, std::ostream* os)
+{
+  *os << fmt::to_string(t);
+}
+static void PrintTo(const ComponentFormat& t, std::ostream* os)
+{
+  *os << fmt::to_string(t);
+}
+static void PrintTo(const CoordComponentCount& t, std::ostream* os)
+{
+  *os << fmt::to_string(t);
+}
+static void PrintTo(const NormalComponentCount& t, std::ostream* os)
+{
+  *os << fmt::to_string(t);
 }

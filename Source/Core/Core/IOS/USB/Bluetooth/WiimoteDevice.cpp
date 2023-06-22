@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 
@@ -22,6 +21,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
+#include "Core/HW/WiimoteEmu/DesiredWiimoteState.h"
 #include "Core/Host.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/WiimoteHIDAttr.h"
@@ -55,24 +55,28 @@ private:
 
 constexpr int CONNECTION_MESSAGE_TIME = 3000;
 
-WiimoteDevice::WiimoteDevice(Device::BluetoothEmu* host, int number, bdaddr_t bd)
+WiimoteDevice::WiimoteDevice(BluetoothEmuDevice* host, bdaddr_t bd, unsigned int hid_source_number)
     : m_host(host), m_bd(bd),
-      m_name(number == WIIMOTE_BALANCE_BOARD ? "Nintendo RVL-WBC-01" : "Nintendo RVL-CNT-01")
+      m_name(GetNumber() == WIIMOTE_BALANCE_BOARD ? "Nintendo RVL-WBC-01" : "Nintendo RVL-CNT-01")
 
 {
-  INFO_LOG_FMT(IOS_WIIMOTE, "Wiimote: #{} Constructed", number);
+  INFO_LOG_FMT(IOS_WIIMOTE, "Wiimote: #{} Constructed", GetNumber());
 
-  m_link_key.fill(0xa0 + number);
+  m_link_key.fill(0xa0 + GetNumber());
   m_class = {0x00, 0x04, 0x48};
   m_features = {0xBC, 0x02, 0x04, 0x38, 0x08, 0x00, 0x00, 0x00};
   m_lmp_version = 0x2;
   m_lmp_subversion = 0x229;
 
-  const auto hid_source = WiimoteCommon::GetHIDWiimoteSource(GetNumber());
+  const auto hid_source = WiimoteCommon::GetHIDWiimoteSource(hid_source_number);
 
-  // UGLY: This prevents an OSD message in SetSource -> Activate.
   if (hid_source)
+  {
+    hid_source->SetWiimoteDeviceIndex(GetNumber());
+
+    // UGLY: This prevents an OSD message in SetSource -> Activate.
     SetBasebandState(BasebandState::RequestConnection);
+  }
 
   SetSource(hid_source);
 }
@@ -213,13 +217,12 @@ bool WiimoteDevice::IsConnected() const
 
 void WiimoteDevice::Activate(bool connect)
 {
-  const char* message = nullptr;
-
   if (connect && m_baseband_state == BasebandState::Inactive)
   {
     SetBasebandState(BasebandState::RequestConnection);
 
-    message = "Wii Remote {} connected";
+    Core::DisplayMessage(fmt::format("Wii Remote {} connected", GetNumber() + 1),
+                         CONNECTION_MESSAGE_TIME);
   }
   else if (!connect && IsConnected())
   {
@@ -229,11 +232,9 @@ void WiimoteDevice::Activate(bool connect)
     // Not doing that doesn't seem to break anything.
     m_host->RemoteDisconnect(GetBD());
 
-    message = "Wii Remote {} disconnected";
+    Core::DisplayMessage(fmt::format("Wii Remote {} disconnected", GetNumber() + 1),
+                         CONNECTION_MESSAGE_TIME);
   }
-
-  if (message)
-    Core::DisplayMessage(fmt::format(message, GetNumber() + 1), CONNECTION_MESSAGE_TIME);
 }
 
 bool WiimoteDevice::EventConnectionRequest()
@@ -341,25 +342,51 @@ void WiimoteDevice::Update()
   }
 }
 
-void WiimoteDevice::UpdateInput()
+WiimoteDevice::NextUpdateInputCall
+WiimoteDevice::PrepareInput(WiimoteEmu::DesiredWiimoteState* wiimote_state)
 {
   if (m_connection_request_counter)
     --m_connection_request_counter;
 
   if (!IsSourceValid())
-    return;
+    return NextUpdateInputCall::None;
 
-  // Allow button press to trigger activation after a second of no connection activity.
-  if (!m_connection_request_counter && m_baseband_state == BasebandState::Inactive)
+  if (m_baseband_state == BasebandState::Inactive)
   {
-    if (Wiimote::NetPlay_GetButtonPress(GetNumber(), m_hid_source->IsButtonPressed()))
-      Activate(true);
+    // Allow button press to trigger activation after a second of no connection activity.
+    if (!m_connection_request_counter)
+    {
+      wiimote_state->buttons = m_hid_source->GetCurrentlyPressedButtons();
+      return NextUpdateInputCall::Activate;
+    }
+    return NextUpdateInputCall::None;
   }
 
   // Verify interrupt channel is connected and configured.
   const auto* channel = FindChannelWithPSM(L2CAP_PSM_HID_INTR);
   if (channel && channel->IsComplete())
-    m_hid_source->Update();
+  {
+    m_hid_source->PrepareInput(wiimote_state);
+    return NextUpdateInputCall::Update;
+  }
+  return NextUpdateInputCall::None;
+}
+
+void WiimoteDevice::UpdateInput(NextUpdateInputCall next_call,
+                                const WiimoteEmu::DesiredWiimoteState& wiimote_state)
+{
+  switch (next_call)
+  {
+  case NextUpdateInputCall::Activate:
+    if (wiimote_state.buttons.hex & WiimoteCommon::ButtonData::BUTTON_MASK)
+      Activate(true);
+    break;
+  case NextUpdateInputCall::Update:
+    m_hid_source->Update(wiimote_state);
+    break;
+  default:
+    break;
+  }
 }
 
 // This function receives L2CAP commands from the CPU
@@ -611,7 +638,7 @@ void WiimoteDevice::ReceiveConfigurationReq(u8 ident, u8* data, u32 size)
     break;
 
     default:
-      DEBUG_ASSERT_MSG(IOS_WIIMOTE, 0, "Unknown Option: 0x%02x", options->type);
+      DEBUG_ASSERT_MSG(IOS_WIIMOTE, 0, "Unknown Option: {:#04x}", options->type);
       break;
     }
 
@@ -725,11 +752,11 @@ void WiimoteDevice::SendConfigurationRequest(u16 cid, u16 mtu, u16 flush_time_ou
   SendCommandToACL(L2CAP_CONFIG_REQ, L2CAP_CONFIG_REQ, offset, buffer);
 }
 
-constexpr u8 SDP_UINT8 = 0x08;
-constexpr u8 SDP_UINT16 = 0x09;
+[[maybe_unused]] constexpr u8 SDP_UINT8 = 0x08;
+[[maybe_unused]] constexpr u8 SDP_UINT16 = 0x09;
 constexpr u8 SDP_UINT32 = 0x0A;
 constexpr u8 SDP_SEQ8 = 0x35;
-constexpr u8 SDP_SEQ16 = 0x36;
+[[maybe_unused]] constexpr u8 SDP_SEQ16 = 0x36;
 
 void WiimoteDevice::SDPSendServiceSearchResponse(u16 cid, u16 transaction_id,
                                                  u8* service_search_pattern,
@@ -800,16 +827,12 @@ static int ParseAttribList(u8* attrib_id_list, u16& start_id, u16& end_id)
 
   const u8 sequence = attrib_list.Read8(attrib_offset);
   attrib_offset++;
-  const u8 seq_size = attrib_list.Read8(attrib_offset);
+  [[maybe_unused]] const u8 seq_size = attrib_list.Read8(attrib_offset);
   attrib_offset++;
   const u8 type_id = attrib_list.Read8(attrib_offset);
   attrib_offset++;
 
-  if constexpr (MAX_LOGLEVEL >= Common::Log::LOG_LEVELS::LDEBUG)
-  {
-    DEBUG_ASSERT(sequence == SDP_SEQ8);
-    (void)seq_size;
-  }
+  DEBUG_ASSERT(sequence == SDP_SEQ8);
 
   if (type_id == SDP_UINT32)
   {

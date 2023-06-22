@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/IOS/USB/USB_VEN/VEN.h"
 
@@ -13,8 +12,9 @@
 #include "Common/Logging/Log.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/USB/Common.h"
+#include "Core/System.h"
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
 constexpr u32 USBV5_VERSION = 0x50001;
 
@@ -23,14 +23,17 @@ USB_VEN::~USB_VEN()
   m_scan_thread.Stop();
 }
 
-IPCCommandResult USB_VEN::IOCtl(const IOCtlRequest& request)
+std::optional<IPCReply> USB_VEN::IOCtl(const IOCtlRequest& request)
 {
-  request.Log(GetDeviceName(), Common::Log::IOS_USB);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
+  request.Log(GetDeviceName(), Common::Log::LogType::IOS_USB);
   switch (request.request)
   {
   case USB::IOCTL_USBV5_GETVERSION:
-    Memory::Write_U32(USBV5_VERSION, request.buffer_out);
-    return GetDefaultReply(IPC_SUCCESS);
+    memory.Write_U32(USBV5_VERSION, request.buffer_out);
+    return IPCReply(IPC_SUCCESS);
   case USB::IOCTL_USBV5_GETDEVICECHANGE:
     return GetDeviceChange(request);
   case USB::IOCTL_USBV5_SHUTDOWN:
@@ -39,7 +42,7 @@ IPCCommandResult USB_VEN::IOCtl(const IOCtlRequest& request)
     return HandleDeviceIOCtl(request,
                              [&](USBV5Device& device) { return GetDeviceInfo(device, request); });
   case USB::IOCTL_USBV5_ATTACHFINISH:
-    return GetDefaultReply(IPC_SUCCESS);
+    return IPCReply(IPC_SUCCESS);
   case USB::IOCTL_USBV5_SETALTERNATE:
     return HandleDeviceIOCtl(
         request, [&](USBV5Device& device) { return SetAlternateSetting(device, request); });
@@ -50,12 +53,13 @@ IPCCommandResult USB_VEN::IOCtl(const IOCtlRequest& request)
     return HandleDeviceIOCtl(request,
                              [&](USBV5Device& device) { return CancelEndpoint(device, request); });
   default:
-    request.DumpUnknown(GetDeviceName(), Common::Log::IOS_USB, Common::Log::LERROR);
-    return GetDefaultReply(IPC_SUCCESS);
+    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_USB,
+                        Common::Log::LogLevel::LERROR);
+    return IPCReply(IPC_SUCCESS);
   }
 }
 
-IPCCommandResult USB_VEN::IOCtlV(const IOCtlVRequest& request)
+std::optional<IPCReply> USB_VEN::IOCtlV(const IOCtlVRequest& request)
 {
   static const std::map<u32, u32> s_num_vectors = {
       {USB::IOCTLV_USBV5_CTRLMSG, 2},
@@ -72,12 +76,12 @@ IPCCommandResult USB_VEN::IOCtlV(const IOCtlVRequest& request)
   case USB::IOCTLV_USBV5_ISOMSG:
   {
     if (request.in_vectors.size() + request.io_vectors.size() != s_num_vectors.at(request.request))
-      return GetDefaultReply(IPC_EINVAL);
+      return IPCReply(IPC_EINVAL);
 
-    std::lock_guard<std::mutex> lock{m_usbv5_devices_mutex};
+    std::lock_guard lock{m_usbv5_devices_mutex};
     USBV5Device* device = GetUSBV5Device(request.in_vectors[0].address);
     if (!device)
-      return GetDefaultReply(IPC_EINVAL);
+      return IPCReply(IPC_EINVAL);
     auto host_device = GetDeviceById(device->host_id);
     if (request.request == USB::IOCTLV_USBV5_CTRLMSG)
       host_device->Attach();
@@ -87,7 +91,7 @@ IPCCommandResult USB_VEN::IOCtlV(const IOCtlVRequest& request)
                           [&, this]() { return SubmitTransfer(*host_device, request); });
   }
   default:
-    return GetDefaultReply(IPC_EINVAL);
+    return IPCReply(IPC_EINVAL);
   }
 }
 
@@ -108,35 +112,41 @@ s32 USB_VEN::SubmitTransfer(USB::Device& device, const IOCtlVRequest& ioctlv)
   }
 }
 
-IPCCommandResult USB_VEN::CancelEndpoint(USBV5Device& device, const IOCtlRequest& request)
+IPCReply USB_VEN::CancelEndpoint(USBV5Device& device, const IOCtlRequest& request)
 {
-  const u8 endpoint = Memory::Read_U8(request.buffer_in + 8);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
+  const u8 endpoint = memory.Read_U8(request.buffer_in + 8);
   // IPC_EINVAL (-4) is returned when no transfer was cancelled.
   if (GetDeviceById(device.host_id)->CancelTransfer(endpoint) < 0)
-    return GetDefaultReply(IPC_EINVAL);
-  return GetDefaultReply(IPC_SUCCESS);
+    return IPCReply(IPC_EINVAL);
+  return IPCReply(IPC_SUCCESS);
 }
 
-IPCCommandResult USB_VEN::GetDeviceInfo(USBV5Device& device, const IOCtlRequest& request)
+IPCReply USB_VEN::GetDeviceInfo(USBV5Device& device, const IOCtlRequest& request)
 {
   if (request.buffer_out == 0 || request.buffer_out_size != 0xc0)
-    return GetDefaultReply(IPC_EINVAL);
+    return IPCReply(IPC_EINVAL);
+
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
 
   const std::shared_ptr<USB::Device> host_device = GetDeviceById(device.host_id);
-  const u8 alt_setting = Memory::Read_U8(request.buffer_in + 8);
+  const u8 alt_setting = memory.Read_U8(request.buffer_in + 8);
 
-  Memory::Memset(request.buffer_out, 0, request.buffer_out_size);
-  Memory::Write_U32(Memory::Read_U32(request.buffer_in), request.buffer_out);
-  Memory::Write_U32(1, request.buffer_out + 4);
+  memory.Memset(request.buffer_out, 0, request.buffer_out_size);
+  memory.Write_U32(memory.Read_U32(request.buffer_in), request.buffer_out);
+  memory.Write_U32(1, request.buffer_out + 4);
 
   USB::DeviceDescriptor device_descriptor = host_device->GetDeviceDescriptor();
   device_descriptor.Swap();
-  Memory::CopyToEmu(request.buffer_out + 20, &device_descriptor, sizeof(device_descriptor));
+  memory.CopyToEmu(request.buffer_out + 20, &device_descriptor, sizeof(device_descriptor));
 
   // VEN only cares about the first configuration.
   USB::ConfigDescriptor config_descriptor = host_device->GetConfigurations()[0];
   config_descriptor.Swap();
-  Memory::CopyToEmu(request.buffer_out + 40, &config_descriptor, sizeof(config_descriptor));
+  memory.CopyToEmu(request.buffer_out + 40, &config_descriptor, sizeof(config_descriptor));
 
   std::vector<USB::InterfaceDescriptor> interfaces = host_device->GetInterfaces(0);
   auto it = std::find_if(interfaces.begin(), interfaces.end(),
@@ -145,18 +155,18 @@ IPCCommandResult USB_VEN::GetDeviceInfo(USBV5Device& device, const IOCtlRequest&
                                   interface.bAlternateSetting == alt_setting;
                          });
   if (it == interfaces.end())
-    return GetDefaultReply(IPC_EINVAL);
+    return IPCReply(IPC_EINVAL);
   it->Swap();
-  Memory::CopyToEmu(request.buffer_out + 52, &*it, sizeof(*it));
+  memory.CopyToEmu(request.buffer_out + 52, &*it, sizeof(*it));
 
   auto endpoints = host_device->GetEndpoints(0, it->bInterfaceNumber, it->bAlternateSetting);
   for (size_t i = 0; i < endpoints.size(); ++i)
   {
     endpoints[i].Swap();
-    Memory::CopyToEmu(request.buffer_out + 64 + 8 * static_cast<u8>(i), &endpoints[i],
-                      sizeof(endpoints[i]));
+    memory.CopyToEmu(request.buffer_out + 64 + 8 * static_cast<u8>(i), &endpoints[i],
+                     sizeof(endpoints[i]));
   }
 
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

@@ -1,4 +1,8 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.model.view;
+
+import android.content.Context;
 
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractIntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
@@ -8,10 +12,10 @@ public final class IntSliderSetting extends SliderSetting
 {
   private AbstractIntSetting mSetting;
 
-  public IntSliderSetting(AbstractIntSetting setting, int titleId, int descriptionId, int min,
-          int max, String units)
+  public IntSliderSetting(Context context, AbstractIntSetting setting, int titleId,
+          int descriptionId, int min, int max, String units, int stepSize)
   {
-    super(titleId, descriptionId, min, max, units);
+    super(context, titleId, descriptionId, min, max, units, stepSize);
     mSetting = setting;
   }
 

@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -24,7 +23,7 @@
 
 class PointerWrap;
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
 // Common base class for USB host devices (such as /dev/usb/oh0 and /dev/usb/ven).
 class USBHost : public Device
@@ -33,7 +32,7 @@ public:
   USBHost(Kernel& ios, const std::string& device_name);
   virtual ~USBHost();
 
-  IPCCommandResult Open(const OpenRequest& request) override;
+  std::optional<IPCReply> Open(const OpenRequest& request) override;
 
   void UpdateWantDeterminism(bool new_want_determinism) override;
   void DoState(PointerWrap& p) override;
@@ -72,17 +71,20 @@ protected:
   virtual bool ShouldAddDevice(const USB::Device& device) const;
   virtual ScanThread& GetScanThread() = 0;
 
-  IPCCommandResult HandleTransfer(std::shared_ptr<USB::Device> device, u32 request,
-                                  std::function<s32()> submit) const;
+  std::optional<IPCReply> HandleTransfer(std::shared_ptr<USB::Device> device, u32 request,
+                                         std::function<s32()> submit) const;
 
 private:
   bool AddDevice(std::unique_ptr<USB::Device> device);
+  void Update() override;
   bool UpdateDevices(bool always_add_hooks = false);
   bool AddNewDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks, bool always_add_hooks);
   void DetectRemovedDevices(const std::set<u64>& plugged_devices, DeviceChangeHooks& hooks);
   void DispatchHooks(const DeviceChangeHooks& hooks);
+  void AddEmulatedDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks,
+                          bool always_add_hooks);
 
   bool m_has_initialised = false;
   LibusbUtils::Context m_context;
 };
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

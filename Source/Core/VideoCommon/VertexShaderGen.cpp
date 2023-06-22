@@ -1,12 +1,12 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/VertexShaderGen.h"
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/ConstantManager.h"
 #include "VideoCommon/LightingShaderGen.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/VertexLoaderManager.h"
@@ -39,8 +39,8 @@ VertexShaderUid GetVertexShaderUid()
     // first transformation
     switch (texinfo.texgentype)
     {
-    case XF_TEXGEN_EMBOSS_MAP:  // calculate tex coords into bump map
-      if ((uid_data->components & (VB_HAS_NRM1 | VB_HAS_NRM2)) != 0)
+    case TexGenType::EmbossMap:  // calculate tex coords into bump map
+      if ((uid_data->components & (VB_HAS_TANGENT | VB_HAS_BINORMAL)) != 0)
       {
         // transform the light dir into tangent space
         texinfo.embosslightshift = xfmem.texMtxInfo[i].embosslightshift;
@@ -51,18 +51,19 @@ VertexShaderUid GetVertexShaderUid()
         texinfo.embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
       }
       break;
-    case XF_TEXGEN_COLOR_STRGBC0:
-    case XF_TEXGEN_COLOR_STRGBC1:
+    case TexGenType::Color0:
+    case TexGenType::Color1:
       break;
-    case XF_TEXGEN_REGULAR:
+    case TexGenType::Regular:
     default:
-      uid_data->texMtxInfo_n_projection |= xfmem.texMtxInfo[i].projection << i;
+      uid_data->texMtxInfo_n_projection |= static_cast<u32>(xfmem.texMtxInfo[i].projection.Value())
+                                           << i;
       break;
     }
 
     uid_data->dualTexTrans_enabled = xfmem.dualTexTrans.enabled;
     // CHECKME: does this only work for regular tex gen types?
-    if (uid_data->dualTexTrans_enabled && texinfo.texgentype == XF_TEXGEN_REGULAR)
+    if (uid_data->dualTexTrans_enabled && texinfo.texgentype == TexGenType::Regular)
     {
       auto& postInfo = uid_data->postMtxInfo[i];
       postInfo.index = xfmem.postMtxInfo[i].index;
@@ -83,37 +84,54 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   const bool ssaa = host_config.ssaa;
   const bool vertex_rounding = host_config.vertex_rounding;
 
+  ShaderCode input_extract;
+
   out.Write("{}", s_lighting_struct);
 
   // uniforms
-  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-    out.Write("UBO_BINDING(std140, 2) uniform VSBlock {{\n");
-  else
-    out.Write("cbuffer VSBlock {{\n");
+  out.Write("UBO_BINDING(std140, 2) uniform VSBlock {{\n");
 
   out.Write("{}", s_shader_uniforms);
   out.Write("}};\n");
 
-  out.Write("struct VS_OUTPUT {{\n");
-  GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config, "");
-  out.Write("}};\n");
-
-  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
+  if (uid_data->vs_expand != VSExpand::None)
   {
-    out.Write("ATTRIBUTE_LOCATION({}) in float4 rawpos;\n", SHADER_POSITION_ATTRIB);
+    out.Write("UBO_BINDING(std140, 3) uniform GSBlock {{\n");
+    out.Write("{}", s_geometry_shader_uniforms);
+    out.Write("}};\n");
+
+    if (api_type == APIType::D3D)
+    {
+      // D3D doesn't include the base vertex in SV_VertexID
+      out.Write("UBO_BINDING(std140, 4) uniform DX_Constants {{\n"
+                "  uint base_vertex;\n"
+                "}};\n\n");
+    }
+  }
+
+  out.Write("struct VS_OUTPUT {{\n");
+  GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config, "",
+                          ShaderStage::Vertex);
+  out.Write("}};\n\n");
+
+  WriteIsNanHeader(out, api_type);
+
+  if (uid_data->vs_expand == VSExpand::None)
+  {
+    out.Write("ATTRIBUTE_LOCATION({:s}) in float4 rawpos;\n", ShaderAttrib::Position);
     if ((uid_data->components & VB_HAS_POSMTXIDX) != 0)
-      out.Write("ATTRIBUTE_LOCATION({}) in uint4 posmtx;\n", SHADER_POSMTX_ATTRIB);
-    if ((uid_data->components & VB_HAS_NRM0) != 0)
-      out.Write("ATTRIBUTE_LOCATION({}) in float3 rawnorm0;\n", SHADER_NORM0_ATTRIB);
-    if ((uid_data->components & VB_HAS_NRM1) != 0)
-      out.Write("ATTRIBUTE_LOCATION({}) in float3 rawnorm1;\n", SHADER_NORM1_ATTRIB);
-    if ((uid_data->components & VB_HAS_NRM2) != 0)
-      out.Write("ATTRIBUTE_LOCATION({}) in float3 rawnorm2;\n", SHADER_NORM2_ATTRIB);
+      out.Write("ATTRIBUTE_LOCATION({:s}) in uint4 posmtx;\n", ShaderAttrib::PositionMatrix);
+    if ((uid_data->components & VB_HAS_NORMAL) != 0)
+      out.Write("ATTRIBUTE_LOCATION({:s}) in float3 rawnormal;\n", ShaderAttrib::Normal);
+    if ((uid_data->components & VB_HAS_TANGENT) != 0)
+      out.Write("ATTRIBUTE_LOCATION({:s}) in float3 rawtangent;\n", ShaderAttrib::Tangent);
+    if ((uid_data->components & VB_HAS_BINORMAL) != 0)
+      out.Write("ATTRIBUTE_LOCATION({:s}) in float3 rawbinormal;\n", ShaderAttrib::Binormal);
 
     if ((uid_data->components & VB_HAS_COL0) != 0)
-      out.Write("ATTRIBUTE_LOCATION({}) in float4 rawcolor0;\n", SHADER_COLOR0_ATTRIB);
+      out.Write("ATTRIBUTE_LOCATION({:s}) in float4 rawcolor0;\n", ShaderAttrib::Color0);
     if ((uid_data->components & VB_HAS_COL1) != 0)
-      out.Write("ATTRIBUTE_LOCATION({}) in float4 rawcolor1;\n", SHADER_COLOR1_ATTRIB);
+      out.Write("ATTRIBUTE_LOCATION({:s}) in float4 rawcolor1;\n", ShaderAttrib::Color1);
 
     for (u32 i = 0; i < 8; ++i)
     {
@@ -121,72 +139,142 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
 
       if ((uid_data->components & (VB_HAS_UV0 << i)) != 0 || has_texmtx != 0)
       {
-        out.Write("ATTRIBUTE_LOCATION({}) in float{} rawtex{};\n", SHADER_TEXTURE0_ATTRIB + i,
+        out.Write("ATTRIBUTE_LOCATION({:s}) in float{} rawtex{};\n", ShaderAttrib::TexCoord0 + i,
                   has_texmtx != 0 ? 3 : 2, i);
       }
     }
-
-    if (host_config.backend_geometry_shaders)
+  }
+  else
+  {
+    // Can't use float3, etc because we want 4-byte alignment
+    out.Write(
+        "uint4 unpack_ubyte4(uint value) {{\n"
+        "  return uint4(value & 0xff, (value >> 8) & 0xff, (value >> 16) & 0xff, value >> 24);\n"
+        "}}\n\n"
+        "struct InputData {{\n");
+    if (uid_data->components & VB_HAS_POSMTXIDX)
     {
-      out.Write("VARYING_LOCATION(0) out VertexData {{\n");
-      GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config,
-                              GetInterpolationQualifier(msaa, ssaa, true, false));
-      out.Write("}} vs;\n");
+      out.Write("  uint posmtx;\n");
+      input_extract.Write("uint4 posmtx = unpack_ubyte4(i.posmtx);\n");
+    }
+    if (uid_data->position_has_3_elems)
+    {
+      out.Write("  float pos0;\n"
+                "  float pos1;\n"
+                "  float pos2;\n");
+      input_extract.Write("float4 rawpos = float4(i.pos0, i.pos1, i.pos2, 1.0f);\n");
     }
     else
     {
-      // Let's set up attributes
-      u32 counter = 0;
-      out.Write("VARYING_LOCATION({}) {} out float4 colors_0;\n", counter++,
-                GetInterpolationQualifier(msaa, ssaa));
-      out.Write("VARYING_LOCATION({}) {} out float4 colors_1;\n", counter++,
-                GetInterpolationQualifier(msaa, ssaa));
-      for (u32 i = 0; i < uid_data->numTexGens; ++i)
-      {
-        out.Write("VARYING_LOCATION({}) {} out float3 tex{};\n", counter++,
-                  GetInterpolationQualifier(msaa, ssaa), i);
-      }
-      if (!host_config.fast_depth_calc)
-      {
-        out.Write("VARYING_LOCATION({}) {} out float4 clipPos;\n", counter++,
-                  GetInterpolationQualifier(msaa, ssaa));
-      }
-      if (per_pixel_lighting)
-      {
-        out.Write("VARYING_LOCATION({}) {} out float3 Normal;\n", counter++,
-                  GetInterpolationQualifier(msaa, ssaa));
-        out.Write("VARYING_LOCATION({}) {} out float3 WorldPos;\n", counter++,
-                  GetInterpolationQualifier(msaa, ssaa));
-      }
+      out.Write("  float pos0;\n"
+                "  float pos1;\n");
+      input_extract.Write("float4 rawpos = float4(i.pos0, i.pos1, 0.0f, 1.0f);\n");
     }
-
-    out.Write("void main()\n{{\n");
-  }
-  else  // D3D
-  {
-    out.Write("VS_OUTPUT main(\n");
-
-    // inputs
-    if ((uid_data->components & VB_HAS_NRM0) != 0)
-      out.Write("  float3 rawnorm0 : NORMAL0,\n");
-    if ((uid_data->components & VB_HAS_NRM1) != 0)
-      out.Write("  float3 rawnorm1 : NORMAL1,\n");
-    if ((uid_data->components & VB_HAS_NRM2) != 0)
-      out.Write("  float3 rawnorm2 : NORMAL2,\n");
-    if ((uid_data->components & VB_HAS_COL0) != 0)
-      out.Write("  float4 rawcolor0 : COLOR0,\n");
-    if ((uid_data->components & VB_HAS_COL1) != 0)
-      out.Write("  float4 rawcolor1 : COLOR1,\n");
-    for (u32 i = 0; i < 8; ++i)
+    std::array<std::string_view, 3> names = {"normal", "binormal", "tangent"};
+    for (int i = 0; i < 3; i++)
     {
-      const u32 has_texmtx = (uid_data->components & (VB_HAS_TEXMTXIDX0 << i));
-
-      if ((uid_data->components & (VB_HAS_UV0 << i)) != 0 || has_texmtx != 0)
-        out.Write("  float{} rawtex{} : TEXCOORD{},\n", has_texmtx ? 3 : 2, i, i);
+      if (uid_data->components & (VB_HAS_NORMAL << i))
+      {
+        out.Write("  float {0}0;\n"
+                  "  float {0}1;\n"
+                  "  float {0}2;\n",
+                  names[i]);
+        input_extract.Write("float3 raw{0} = float3(i.{0}0, i.{0}1, i.{0}2);\n", names[i]);
+      }
     }
-    if ((uid_data->components & VB_HAS_POSMTXIDX) != 0)
-      out.Write("  uint4 posmtx : BLENDINDICES,\n");
-    out.Write("  float4 rawpos : POSITION) {{\n");
+    for (int i = 0; i < 2; i++)
+    {
+      if (uid_data->components & (VB_HAS_COL0 << i))
+      {
+        out.Write("  uint color{};\n", i);
+        input_extract.Write("float4 rawcolor{0} = float4(unpack_ubyte4(i.color{0})) / 255.0f;\n",
+                            i);
+      }
+    }
+    for (int i = 0; i < 8; i++)
+    {
+      if (uid_data->components & (VB_HAS_UV0 << i))
+      {
+        u32 ncomponents = (uid_data->texcoord_elem_count >> (2 * i)) & 3;
+        if (ncomponents < 2)
+        {
+          out.Write("  float tex{};\n", i);
+          input_extract.Write("float3 rawtex{0} = float3(i.tex{0}, 0.0f, 0.0f);\n", i);
+        }
+        else if (ncomponents == 2)
+        {
+          out.Write("  float tex{0}_0;\n"
+                    "  float tex{0}_1;\n",
+                    i);
+          input_extract.Write("float3 rawtex{0} = float3(i.tex{0}_0, i.tex{0}_1, 0.0f);\n", i);
+        }
+        else
+        {
+          out.Write("  float tex{0}_0;\n"
+                    "  float tex{0}_1;\n"
+                    "  float tex{0}_2;\n",
+                    i);
+          input_extract.Write("float3 rawtex{0} = float3(i.tex{0}_0, i.tex{0}_1, i.tex{0}_2);\n",
+                              i);
+        }
+      }
+    }
+    out.Write("}};\n\n"
+              "SSBO_BINDING(1) readonly restrict buffer InputBuffer {{\n"
+              "  InputData input_buffer[];\n"
+              "}};\n\n");
+  }
+
+  if (host_config.backend_geometry_shaders)
+  {
+    out.Write("VARYING_LOCATION(0) out VertexData {{\n");
+    GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config,
+                            GetInterpolationQualifier(msaa, ssaa, true, false),
+                            ShaderStage::Vertex);
+    out.Write("}} vs;\n");
+  }
+  else
+  {
+    // Let's set up attributes
+    u32 counter = 0;
+    out.Write("VARYING_LOCATION({}) {} out float4 colors_0;\n", counter++,
+              GetInterpolationQualifier(msaa, ssaa));
+    out.Write("VARYING_LOCATION({}) {} out float4 colors_1;\n", counter++,
+              GetInterpolationQualifier(msaa, ssaa));
+    for (u32 i = 0; i < uid_data->numTexGens; ++i)
+    {
+      out.Write("VARYING_LOCATION({}) {} out float3 tex{};\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa), i);
+    }
+    if (!host_config.fast_depth_calc)
+    {
+      out.Write("VARYING_LOCATION({}) {} out float4 clipPos;\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa));
+    }
+    if (per_pixel_lighting)
+    {
+      out.Write("VARYING_LOCATION({}) {} out float3 Normal;\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa));
+      out.Write("VARYING_LOCATION({}) {} out float3 WorldPos;\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa));
+    }
+  }
+
+  out.Write("void main()\n{{\n");
+
+  if (uid_data->vs_expand != VSExpand::None)
+  {
+    out.Write("bool is_bottom = (gl_VertexID & 2) != 0;\n"
+              "bool is_right = (gl_VertexID & 1) != 0;\n");
+    // D3D doesn't include the base vertex in SV_VertexID
+    // See comment in UberShaderVertex for details
+    if (api_type == APIType::D3D)
+      out.Write("uint vertex_id = (gl_VertexID >> 2) + base_vertex;\n");
+    else
+      out.Write("uint vertex_id = gl_VertexID >> 2;\n");
+    out.Write("InputData i = input_buffer[vertex_id];\n"
+              "{}",
+              input_extract.GetBuffer());
   }
 
   out.Write("VS_OUTPUT o;\n");
@@ -213,70 +301,67 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     }
     else
     {
-      // The default alpha channel depends on the number of components in the vertex format.
-      out.Write(
-          "vertex_color_{0} = float4(1.0, 1.0, 1.0, float((color_chan_alpha >> {0}) & 1u));\n",
-          color);
+      out.Write("vertex_color_{0} = missing_color_value;\n", color);
     }
   }
 
   // transforms
   if ((uid_data->components & VB_HAS_POSMTXIDX) != 0)
   {
+    // Vertex format has a per-vertex matrix
     out.Write("int posidx = int(posmtx.r);\n"
-              "float4 pos = float4(dot(" I_TRANSFORMMATRICES
-              "[posidx], rawpos), dot(" I_TRANSFORMMATRICES
-              "[posidx+1], rawpos), dot(" I_TRANSFORMMATRICES "[posidx+2], rawpos), 1);\n");
-
-    if ((uid_data->components & VB_HAS_NRMALL) != 0)
+              "float4 P0 = " I_TRANSFORMMATRICES "[posidx];\n"
+              "float4 P1 = " I_TRANSFORMMATRICES "[posidx + 1];\n"
+              "float4 P2 = " I_TRANSFORMMATRICES "[posidx + 2];\n");
+    if ((uid_data->components & VB_HAS_NORMAL) != 0)
     {
       out.Write("int normidx = posidx & 31;\n"
-                "float3 N0 = " I_NORMALMATRICES "[normidx].xyz, N1 = " I_NORMALMATRICES
-                "[normidx+1].xyz, N2 = " I_NORMALMATRICES "[normidx+2].xyz;\n");
-    }
-
-    if ((uid_data->components & VB_HAS_NRM0) != 0)
-    {
-      out.Write("float3 _norm0 = normalize(float3(dot(N0, rawnorm0), dot(N1, rawnorm0), dot(N2, "
-                "rawnorm0)));\n");
-    }
-    if ((uid_data->components & VB_HAS_NRM1) != 0)
-    {
-      out.Write(
-          "float3 _norm1 = float3(dot(N0, rawnorm1), dot(N1, rawnorm1), dot(N2, rawnorm1));\n");
-    }
-    if ((uid_data->components & VB_HAS_NRM2) != 0)
-    {
-      out.Write(
-          "float3 _norm2 = float3(dot(N0, rawnorm2), dot(N1, rawnorm2), dot(N2, rawnorm2));\n");
+                "float3 N0 = " I_NORMALMATRICES "[normidx].xyz;\n"
+                "float3 N1 = " I_NORMALMATRICES "[normidx + 1].xyz;\n"
+                "float3 N2 = " I_NORMALMATRICES "[normidx + 2].xyz;\n");
     }
   }
   else
   {
-    out.Write("float4 pos = float4(dot(" I_POSNORMALMATRIX "[0], rawpos), dot(" I_POSNORMALMATRIX
-              "[1], rawpos), dot(" I_POSNORMALMATRIX "[2], rawpos), 1.0);\n");
-    if ((uid_data->components & VB_HAS_NRM0) != 0)
+    // One shared matrix
+    out.Write("float4 P0 = " I_POSNORMALMATRIX "[0];\n"
+              "float4 P1 = " I_POSNORMALMATRIX "[1];\n"
+              "float4 P2 = " I_POSNORMALMATRIX "[2];\n");
+    if ((uid_data->components & VB_HAS_NORMAL) != 0)
     {
-      out.Write("float3 _norm0 = normalize(float3(dot(" I_POSNORMALMATRIX
-                "[3].xyz, rawnorm0), dot(" I_POSNORMALMATRIX
-                "[4].xyz, rawnorm0), dot(" I_POSNORMALMATRIX "[5].xyz, rawnorm0)));\n");
-    }
-    if ((uid_data->components & VB_HAS_NRM1) != 0)
-    {
-      out.Write("float3 _norm1 = float3(dot(" I_POSNORMALMATRIX
-                "[3].xyz, rawnorm1), dot(" I_POSNORMALMATRIX
-                "[4].xyz, rawnorm1), dot(" I_POSNORMALMATRIX "[5].xyz, rawnorm1));\n");
-    }
-    if ((uid_data->components & VB_HAS_NRM2) != 0)
-    {
-      out.Write("float3 _norm2 = float3(dot(" I_POSNORMALMATRIX
-                "[3].xyz, rawnorm2), dot(" I_POSNORMALMATRIX
-                "[4].xyz, rawnorm2), dot(" I_POSNORMALMATRIX "[5].xyz, rawnorm2));\n");
+      out.Write("float3 N0 = " I_POSNORMALMATRIX "[3].xyz;\n"
+                "float3 N1 = " I_POSNORMALMATRIX "[4].xyz;\n"
+                "float3 N2 = " I_POSNORMALMATRIX "[5].xyz;\n");
     }
   }
 
-  if ((uid_data->components & VB_HAS_NRM0) == 0)
-    out.Write("float3 _norm0 = float3(0.0, 0.0, 0.0);\n");
+  out.Write("// Multiply the position vector by the position matrix\n"
+            "float4 pos = float4(dot(P0, rawpos), dot(P1, rawpos), dot(P2, rawpos), 1.0);\n");
+  if ((uid_data->components & VB_HAS_NORMAL) != 0)
+  {
+    if ((uid_data->components & VB_HAS_TANGENT) == 0)
+      out.Write("float3 rawtangent = " I_CACHED_TANGENT ".xyz;\n");
+    if ((uid_data->components & VB_HAS_BINORMAL) == 0)
+      out.Write("float3 rawbinormal = " I_CACHED_BINORMAL ".xyz;\n");
+
+    // The scale of the transform matrix is used to control the size of the emboss map effect, by
+    // changing the scale of the transformed binormals (which only get used by emboss map texgens).
+    // By normalising the first transformed normal (which is used by lighting calculations and needs
+    // to be unit length), the same transform matrix can do double duty, scaling for emboss mapping,
+    // and not scaling for lighting.
+    out.Write("float3 _normal = normalize(float3(dot(N0, rawnormal), dot(N1, rawnormal), dot(N2, "
+              "rawnormal)));\n"
+              "float3 _tangent = float3(dot(N0, rawtangent), dot(N1, rawtangent), dot(N2, "
+              "rawtangent));\n"
+              "float3 _binormal = float3(dot(N0, rawbinormal), dot(N1, rawbinormal), dot(N2, "
+              "rawbinormal));\n");
+  }
+  else
+  {
+    out.Write("float3 _normal = float3(0.0, 0.0, 0.0);\n");
+    out.Write("float3 _binormal = float3(0.0, 0.0, 0.0);\n");
+    out.Write("float3 _tangent = float3(0.0, 0.0, 0.0);\n");
+  }
 
   out.Write("o.pos = float4(dot(" I_PROJECTION "[0], pos), dot(" I_PROJECTION
             "[1], pos), dot(" I_PROJECTION "[2], pos), dot(" I_PROJECTION "[3], pos));\n");
@@ -297,80 +382,76 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     out.Write("coord = float4(0.0, 0.0, 1.0, 1.0);\n");
     switch (texinfo.sourcerow)
     {
-    case XF_SRCGEOM_INROW:
+    case SourceRow::Geom:
       out.Write("coord.xyz = rawpos.xyz;\n");
       break;
-    case XF_SRCNORMAL_INROW:
-      if ((uid_data->components & VB_HAS_NRM0) != 0)
+    case SourceRow::Normal:
+      if ((uid_data->components & VB_HAS_NORMAL) != 0)
       {
-        out.Write("coord.xyz = rawnorm0.xyz;\n");
+        out.Write("coord.xyz = rawnormal.xyz;\n");
       }
       break;
-    case XF_SRCCOLORS_INROW:
-      ASSERT(texinfo.texgentype == XF_TEXGEN_COLOR_STRGBC0 ||
-             texinfo.texgentype == XF_TEXGEN_COLOR_STRGBC1);
+    case SourceRow::Colors:
+      ASSERT(texinfo.texgentype == TexGenType::Color0 || texinfo.texgentype == TexGenType::Color1);
       break;
-    case XF_SRCBINORMAL_T_INROW:
-      if ((uid_data->components & VB_HAS_NRM1) != 0)
+    case SourceRow::BinormalT:
+      if ((uid_data->components & VB_HAS_TANGENT) != 0)
       {
-        out.Write("coord.xyz = rawnorm1.xyz;\n");
+        out.Write("coord.xyz = rawtangent.xyz;\n");
       }
       break;
-    case XF_SRCBINORMAL_B_INROW:
-      if ((uid_data->components & VB_HAS_NRM2) != 0)
+    case SourceRow::BinormalB:
+      if ((uid_data->components & VB_HAS_BINORMAL) != 0)
       {
-        out.Write("coord.xyz = rawnorm2.xyz;\n");
+        out.Write("coord.xyz = rawbinormal.xyz;\n");
       }
       break;
     default:
-      ASSERT(texinfo.sourcerow <= XF_SRCTEX7_INROW);
-      if ((uid_data->components & (VB_HAS_UV0 << (texinfo.sourcerow - XF_SRCTEX0_INROW))) != 0)
+      ASSERT(texinfo.sourcerow >= SourceRow::Tex0 && texinfo.sourcerow <= SourceRow::Tex7);
+      u32 texnum = static_cast<u32>(texinfo.sourcerow) - static_cast<u32>(SourceRow::Tex0);
+      if ((uid_data->components & (VB_HAS_UV0 << (texnum))) != 0)
       {
-        out.Write("coord = float4(rawtex{}.x, rawtex{}.y, 1.0, 1.0);\n",
-                  texinfo.sourcerow - XF_SRCTEX0_INROW, texinfo.sourcerow - XF_SRCTEX0_INROW);
+        out.Write("coord = float4(rawtex{}.x, rawtex{}.y, 1.0, 1.0);\n", texnum, texnum);
       }
       break;
     }
     // Input form of AB11 sets z element to 1.0
 
-    if (texinfo.inputform == XF_TEXINPUT_AB11)
+    if (texinfo.inputform == TexInputForm::AB11)
       out.Write("coord.z = 1.0;\n");
+
+    // Convert NaNs to 1 - needed to fix eyelids in Shadow the Hedgehog during cutscenes
+    // See https://bugs.dolphin-emu.org/issues/11458
+    out.Write("// Convert NaN to 1\n");
+    out.Write("if (dolphin_isnan(coord.x)) coord.x = 1.0;\n");
+    out.Write("if (dolphin_isnan(coord.y)) coord.y = 1.0;\n");
+    out.Write("if (dolphin_isnan(coord.z)) coord.z = 1.0;\n");
 
     // first transformation
     switch (texinfo.texgentype)
     {
-    case XF_TEXGEN_EMBOSS_MAP:  // calculate tex coords into bump map
+    case TexGenType::EmbossMap:  // calculate tex coords into bump map
 
-      if ((uid_data->components & (VB_HAS_NRM1 | VB_HAS_NRM2)) != 0)
-      {
-        // transform the light dir into tangent space
-        out.Write("ldir = normalize(" LIGHT_POS ".xyz - pos.xyz);\n",
-                  LIGHT_POS_PARAMS(texinfo.embosslightshift));
-        out.Write(
-            "o.tex{}.xyz = o.tex{}.xyz + float3(dot(ldir, _norm1), dot(ldir, _norm2), 0.0);\n", i,
-            texinfo.embosssourceshift);
-      }
-      else
-      {
-        // The following assert was triggered in House of the Dead Overkill and Star Wars Rogue
-        // Squadron 2
-        // ASSERT(0); // should have normals
-        out.Write("o.tex{}.xyz = o.tex{}.xyz;\n", i, texinfo.embosssourceshift);
-      }
+      // transform the light dir into tangent space
+      out.Write("ldir = normalize(" LIGHT_POS ".xyz - pos.xyz);\n",
+                LIGHT_POS_PARAMS(texinfo.embosslightshift));
+      out.Write(
+          "o.tex{}.xyz = o.tex{}.xyz + float3(dot(ldir, _tangent), dot(ldir, _binormal), 0.0);\n",
+          i, texinfo.embosssourceshift);
 
       break;
-    case XF_TEXGEN_COLOR_STRGBC0:
+    case TexGenType::Color0:
       out.Write("o.tex{}.xyz = float3(o.colors_0.x, o.colors_0.y, 1);\n", i);
       break;
-    case XF_TEXGEN_COLOR_STRGBC1:
+    case TexGenType::Color1:
       out.Write("o.tex{}.xyz = float3(o.colors_1.x, o.colors_1.y, 1);\n", i);
       break;
-    case XF_TEXGEN_REGULAR:
+    case TexGenType::Regular:
     default:
       if ((uid_data->components & (VB_HAS_TEXMTXIDX0 << i)) != 0)
       {
         out.Write("int tmp = int(rawtex{}.z);\n", i);
-        if (((uid_data->texMtxInfo_n_projection >> i) & 1) == XF_TEXPROJ_STQ)
+        if (static_cast<TexSize>((uid_data->texMtxInfo_n_projection >> i) & 1) == TexSize::STQ)
         {
           out.Write("o.tex{}.xyz = float3(dot(coord, " I_TRANSFORMMATRICES
                     "[tmp]), dot(coord, " I_TRANSFORMMATRICES
@@ -386,7 +467,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       }
       else
       {
-        if (((uid_data->texMtxInfo_n_projection >> i) & 1) == XF_TEXPROJ_STQ)
+        if (static_cast<TexSize>((uid_data->texMtxInfo_n_projection >> i) & 1) == TexSize::STQ)
         {
           out.Write("o.tex{}.xyz = float3(dot(coord, " I_TEXMATRICES
                     "[{}]), dot(coord, " I_TEXMATRICES "[{}]), dot(coord, " I_TEXMATRICES
@@ -404,7 +485,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     }
 
     // CHECKME: does this only work for regular tex gen types?
-    if (uid_data->dualTexTrans_enabled && texinfo.texgentype == XF_TEXGEN_REGULAR)
+    if (uid_data->dualTexTrans_enabled && texinfo.texgentype == TexGenType::Regular)
     {
       auto& postInfo = uid_data->postMtxInfo[i];
 
@@ -427,7 +508,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     // This can be seen in devkitPro's neheGX Lesson08 example for Wii
     // Makes differences in Rogue Squadron 3 (Hoth sky) and The Last Story (shadow culling)
     // TODO: check if this only affects XF_TEXGEN_REGULAR
-    if (texinfo.texgentype == XF_TEXGEN_REGULAR)
+    if (texinfo.texgentype == TexGenType::Regular)
     {
       out.Write(
           "if(o.tex{0}.z == 0.0f)\n"
@@ -438,36 +519,53 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     out.Write("}}\n");
   }
 
-  if (uid_data->numColorChans == 0)
+  if (uid_data->vs_expand == VSExpand::Line)
   {
-    if ((uid_data->components & VB_HAS_COL0) != 0)
-      out.Write("o.colors_0 = rawcolor0;\n");
+    out.Write("// Line expansion\n"
+              "uint other_id = vertex_id;\n"
+              "if (is_bottom) {{\n"
+              "  other_id -= 1;\n"
+              "}} else {{\n"
+              "  other_id += 1;\n"
+              "}}\n"
+              "InputData other = input_buffer[other_id];\n");
+    if (uid_data->position_has_3_elems)
+      out.Write("float4 other_pos = float4(other.pos0, other.pos1, other.pos2, 1.0f);\n");
     else
-      out.Write("o.colors_0 = float4(1.0, 1.0, 1.0, 1.0);\n");
+      out.Write("float4 other_pos = float4(other.pos0, other.pos1, 0.0f, 1.0f);\n");
+    if (uid_data->components & VB_HAS_POSMTXIDX)
+    {
+      out.Write("uint other_posidx = other.posmtx & 0xff;\n"
+                "float4 other_p0 = " I_TRANSFORMMATRICES "[other_posidx];\n"
+                "float4 other_p1 = " I_TRANSFORMMATRICES "[other_posidx + 1];\n"
+                "float4 other_p2 = " I_TRANSFORMMATRICES "[other_posidx + 2];\n"
+                "other_pos = float4(dot(other_p0, other_pos), dot(other_p1, other_pos), "
+                "dot(other_p2, other_pos), 1.0f);\n");
+    }
+    else
+    {
+      out.Write("other_pos = float4(dot(P0, other_pos), dot(P1, other_pos), dot(P2, other_pos), "
+                "1.0f);\n");
+    }
+    GenerateVSLineExpansion(out, "", uid_data->numTexGens);
   }
-  if (uid_data->numColorChans < 2)
+  else if (uid_data->vs_expand == VSExpand::Point)
   {
-    if ((uid_data->components & VB_HAS_COL1) != 0)
-      out.Write("o.colors_1 = rawcolor1;\n");
-    else
-      out.Write("o.colors_1 = o.colors_0;\n");
+    out.Write("// Point expansion\n");
+    GenerateVSPointExpansion(out, "", uid_data->numTexGens);
   }
-
-  // clipPos/w needs to be done in pixel shader, not here
-  if (!host_config.fast_depth_calc)
-    out.Write("o.clipPos = o.pos;\n");
 
   if (per_pixel_lighting)
   {
-    out.Write("o.Normal = _norm0;\n"
-              "o.WorldPos = pos.xyz;\n");
+    // When per-pixel lighting is enabled, the vertex colors are passed through
+    // unmodified so we can evaluate the lighting in the pixel shader.
 
-    // Pass through the vertex colors unmodified so we can evaluate the lighting in the same manner.
-    if ((uid_data->components & VB_HAS_COL0) != 0)
-      out.Write("o.colors_0 = vertex_color_0;\n");
-
-    if ((uid_data->components & VB_HAS_COL1) != 0)
-      out.Write("o.colors_1 = vertex_color_1;\n");
+    // Lighting is also still computed in the vertex shader since it can be used to
+    // generate texture coordinates. We generated them above, so now the colors can
+    // be reverted to their previous stage.
+    out.Write("o.colors_0 = vertex_color_0;\n");
+    out.Write("o.colors_1 = vertex_color_1;\n");
+    // Note that the numColorChans logic is performed in the pixel shader.
   }
   else
   {
@@ -477,6 +575,16 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       out.Write("o.colors_0 = float4(0.0, 0.0, 0.0, 0.0);\n");
     if (uid_data->numColorChans <= 1)
       out.Write("o.colors_1 = float4(0.0, 0.0, 0.0, 0.0);\n");
+  }
+
+  // clipPos/w needs to be done in pixel shader, not here
+  if (!host_config.fast_depth_calc)
+    out.Write("o.clipPos = o.pos;\n");
+
+  if (per_pixel_lighting)
+  {
+    out.Write("o.Normal = _normal;\n"
+              "o.WorldPos = pos.xyz;\n");
   }
 
   // If we can disable the incorrect depth clipping planes using depth clamping, then we can do
@@ -497,6 +605,12 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       out.Write("o.clipDist0 = clipDist0;\n"
                 "o.clipDist1 = clipDist1;\n");
     }
+  }
+  else
+  {
+    // Same depth adjustment for Sonic. Without depth clamping, it unfortunately
+    // affects non-clipping uses of depth too.
+    out.Write("o.pos.z = o.pos.z * (1.0 - 1e-7);\n");
   }
 
   // Write the true depth value. If the game uses depth textures, then the pixel shader will
@@ -556,45 +670,38 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
               "}}\n");
   }
 
-  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
+  if (host_config.backend_geometry_shaders)
   {
-    if (host_config.backend_geometry_shaders)
-    {
-      AssignVSOutputMembers(out, "vs", "o", uid_data->numTexGens, host_config);
-    }
-    else
-    {
-      // TODO: Pass interface blocks between shader stages even if geometry shaders
-      // are not supported, however that will require at least OpenGL 3.2 support.
-      for (u32 i = 0; i < uid_data->numTexGens; ++i)
-        out.Write("tex{}.xyz = o.tex{};\n", i, i);
-      if (!host_config.fast_depth_calc)
-        out.Write("clipPos = o.clipPos;\n");
-      if (per_pixel_lighting)
-      {
-        out.Write("Normal = o.Normal;\n"
-                  "WorldPos = o.WorldPos;\n");
-      }
-      out.Write("colors_0 = o.colors_0;\n"
-                "colors_1 = o.colors_1;\n");
-    }
-
-    if (host_config.backend_depth_clamp)
-    {
-      out.Write("gl_ClipDistance[0] = clipDist0;\n"
-                "gl_ClipDistance[1] = clipDist1;\n");
-    }
-
-    // Vulkan NDC space has Y pointing down (right-handed NDC space).
-    if (api_type == APIType::Vulkan)
-      out.Write("gl_Position = float4(o.pos.x, -o.pos.y, o.pos.z, o.pos.w);\n");
-    else
-      out.Write("gl_Position = o.pos;\n");
+    AssignVSOutputMembers(out, "vs", "o", uid_data->numTexGens, host_config);
   }
-  else  // D3D
+  else
   {
-    out.Write("return o;\n");
+    // TODO: Pass interface blocks between shader stages even if geometry shaders
+    // are not supported, however that will require at least OpenGL 3.2 support.
+    for (u32 i = 0; i < uid_data->numTexGens; ++i)
+      out.Write("tex{}.xyz = o.tex{};\n", i, i);
+    if (!host_config.fast_depth_calc)
+      out.Write("clipPos = o.clipPos;\n");
+    if (per_pixel_lighting)
+    {
+      out.Write("Normal = o.Normal;\n"
+                "WorldPos = o.WorldPos;\n");
+    }
+    out.Write("colors_0 = o.colors_0;\n"
+              "colors_1 = o.colors_1;\n");
   }
+
+  if (host_config.backend_depth_clamp)
+  {
+    out.Write("gl_ClipDistance[0] = clipDist0;\n"
+              "gl_ClipDistance[1] = clipDist1;\n");
+  }
+
+  // Vulkan NDC space has Y pointing down (right-handed NDC space).
+  if (api_type == APIType::Vulkan)
+    out.Write("gl_Position = float4(o.pos.x, -o.pos.y, o.pos.z, o.pos.w);\n");
+  else
+    out.Write("gl_Position = o.pos;\n");
   out.Write("}}\n");
 
   return out;

@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -15,7 +14,7 @@
 #include <utility>
 
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
+#include "Common/IOFile.h"
 #include "Common/LinearDiskCache.h"
 
 #include "VideoCommon/AbstractPipeline.h"
@@ -31,6 +30,7 @@
 #include "VideoCommon/UberShaderPixel.h"
 #include "VideoCommon/UberShaderVertex.h"
 #include "VideoCommon/VertexShaderGen.h"
+#include "VideoCommon/VideoEvents.h"
 
 class NativeVertexFormat;
 enum class AbstractTextureFormat : u32;
@@ -54,7 +54,7 @@ public:
   void InitializeShaderCache();
 
   // Changes the shader host config. Shaders should be reloaded afterwards.
-  void SetHostConfig(const ShaderHostConfig& host_config) { m_host_config = host_config; }
+  void SetHostConfig(const ShaderHostConfig& host_config) { m_host_config.bits = host_config.bits; }
 
   // Reloads/recreates all shaders and pipelines.
   void Reload();
@@ -111,7 +111,8 @@ public:
                                                         TextureFormat to_format);
 
   // Texture decoding compute shaders
-  const AbstractShader* GetTextureDecodingShader(TextureFormat format, TLUTFormat palette_format);
+  const AbstractShader* GetTextureDecodingShader(TextureFormat format,
+                                                 std::optional<TLUTFormat> palette_format);
 
 private:
   static constexpr size_t NUM_PALETTE_CONVERSION_SHADERS = 3;
@@ -151,7 +152,7 @@ private:
   GetGXPipelineConfig(const NativeVertexFormat* vertex_format, const AbstractShader* vertex_shader,
                       const AbstractShader* geometry_shader, const AbstractShader* pixel_shader,
                       const RasterizationState& rasterization_state, const DepthState& depth_state,
-                      const BlendingState& blending_state);
+                      const BlendingState& blending_state, AbstractPipelineUsage usage);
   std::optional<AbstractPipelineConfig> GetGXPipelineConfig(const GXPipelineUid& uid);
   std::optional<AbstractPipelineConfig> GetGXPipelineConfig(const GXUberPipelineUid& uid);
   const AbstractPipeline* InsertGXPipeline(const GXPipelineUid& config,
@@ -212,7 +213,7 @@ private:
     struct Shader
     {
       std::unique_ptr<AbstractShader> shader;
-      bool pending;
+      bool pending = false;
     };
     std::map<Uid, Shader> shader_map;
     LinearDiskCache<Uid, u8> disk_cache;
@@ -250,6 +251,8 @@ private:
 
   // Texture decoding shaders
   std::map<std::pair<u32, u32>, std::unique_ptr<AbstractShader>> m_texture_decoding_shaders;
+
+  Common::EventHook m_frame_end_handler;
 };
 
 }  // namespace VideoCommon

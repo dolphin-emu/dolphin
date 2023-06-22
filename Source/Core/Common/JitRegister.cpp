@@ -1,6 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/JitRegister.h"
 
@@ -13,7 +12,7 @@
 #include <fmt/format.h>
 
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
+#include "Common/IOFile.h"
 #include "Common/StringUtil.h"
 
 #ifdef _WIN32
@@ -82,14 +81,12 @@ bool IsEnabled()
   return s_is_enabled;
 }
 
-void RegisterV(const void* base_address, u32 code_size, const char* format, va_list args)
+void Register(const void* base_address, u32 code_size, const std::string& symbol_name)
 {
 #if !(defined USE_OPROFILE && USE_OPROFILE) && !defined(USE_VTUNE)
   if (!s_perf_map_file.IsOpen())
     return;
 #endif
-
-  std::string symbol_name = StringFromFormatV(format, args);
 
 #if defined USE_OPROFILE && USE_OPROFILE
   op_write_native_code(s_agent, symbol_name.c_str(), (u64)base_address, base_address, code_size);

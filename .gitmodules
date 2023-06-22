@@ -3,3 +3,51 @@
 	url = https://github.com/dolphin-emu/ext-win-qt.git
 	branch = master
 	shallow = true
+[submodule "Externals/mGBA/mgba"]
+	path = Externals/mGBA/mgba
+	url = https://github.com/mgba-emu/mgba.git
+	branch = master
+	shallow = true
+[submodule "Externals/FFmpeg-bin"]
+	path = Externals/FFmpeg-bin
+	url = https://github.com/dolphin-emu/ext-win-ffmpeg.git
+	branch = master
+	shallow = true
+[submodule "libusb"]
+	path = Externals/libusb/libusb
+	url = https://github.com/libusb/libusb.git
+	branch = master
+	shallow = true
+[submodule "Externals/spirv_cross/SPIRV-Cross"]
+	path = Externals/spirv_cross/SPIRV-Cross
+	url = https://github.com/KhronosGroup/SPIRV-Cross.git
+	branch = main
+	shallow = true
+[submodule "SDL"]
+	path = Externals/SDL/SDL
+	url = https://github.com/libsdl-org/SDL.git
+	branch = SDL2
+	shallow = true
+[submodule "Externals/zlib-ng/zlib-ng"]
+	path = Externals/zlib-ng/zlib-ng
+	url = https://github.com/zlib-ng/zlib-ng.git
+	shallow = true
+[submodule "Externals/libspng/libspng"]
+	path = Externals/libspng/libspng
+	url = https://github.com/randy408/libspng.git
+	branch = v0.7.2
+	shallow = true
+[submodule "Externals/VulkanMemoryAllocator"]
+	path = Externals/VulkanMemoryAllocator
+	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+[submodule "Externals/cubeb/cubeb"]
+	path = Externals/cubeb/cubeb
+	url = https://github.com/mozilla/cubeb.git
+	branch = master
+	shallow = true
+[submodule "Externals/implot/implot"]
+	path = Externals/implot/implot
+	url = https://github.com/epezent/implot.git
+[submodule "Externals/gtest"]
+	path = Externals/gtest
+	url = https://github.com/google/googletest.git

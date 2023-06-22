@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="org.dolphinemu.dolphinemu">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-feature
         android:name="android.hardware.touchscreen"
@@ -32,31 +32,40 @@
     <application
         android:name=".DolphinApplication"
         android:label="@string/app_name"
-        android:icon="@drawable/ic_launcher"
+        android:icon="@mipmap/ic_launcher"
         android:requestLegacyExternalStorage="true"
-        android:allowBackup="false"
+        android:preserveLegacyExternalStorage="true"
+        android:allowBackup="true"
+        android:fullBackupContent="@xml/backup_rules"
+        android:dataExtractionRules="@xml/backup_rules_api_31"
         android:supportsRtl="true"
         android:isGame="true"
-        android:banner="@drawable/banner_tv">
+        android:banner="@drawable/banner_tv"
+        android:hasFragileUserData="true">
         <meta-data
             android:name="android.max_aspect"
             android:value="2.1"/>
+        <profileable
+            android:shell="true"
+            tools:targetApi="29" />
 
         <activity
             android:name=".ui.main.MainActivity"
-            android:theme="@style/DolphinBase">
+            android:exported="true"
+            android:theme="@style/Theme.Dolphin.Splash.Main">
 
             <!-- This intentfilter marks this Activity as the one that gets launched from Home screen. -->
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
+                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
         <activity
             android:name=".ui.main.TvMainActivity"
-            android:theme="@style/DolphinTvBase">
+            android:exported="true"
+            android:theme="@style/Theme.Dolphin.Splash.TV">
 
             <!-- This intentfilter marks this Activity as the one that gets launched from Home screen. -->
             <intent-filter>
@@ -68,26 +77,39 @@
 
         <activity
             android:name=".features.settings.ui.SettingsActivity"
+            android:exported="false"
             android:configChanges="orientation|screenSize"
-            android:theme="@style/DolphinSettingsBase"
-            android:label="@string/preferences_settings"/>
+            android:theme="@style/Theme.Dolphin.Main"
+            android:label="@string/settings"/>
+
+        <activity
+            android:name=".features.cheats.ui.CheatsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Dolphin.Main"
+            android:label="@string/cheats"/>
 
         <activity
             android:name=".activities.EmulationActivity"
-            android:theme="@style/DolphinEmulationBase"
+            android:exported="false"
+            android:theme="@style/Theme.Dolphin.Main"
             android:preferMinimalPostProcessing="true"/>
 
         <activity
             android:name=".activities.CustomFilePickerActivity"
+            android:exported="false"
             android:label="@string/app_name"
-            android:theme="@style/FilePickerTheme">
+            android:theme="@style/Theme.Dolphin.FilePicker">
+
             <intent-filter>
                 <action android:name="android.intent.action.GET_CONTENT"/>
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
 
-        <activity android:name=".activities.AppLinkActivity">
+        <activity
+            android:name=".activities.AppLinkActivity"
+            android:exported="true">
+
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
@@ -99,14 +121,25 @@
 
         <activity
             android:name=".activities.ConvertActivity"
-            android:theme="@style/DolphinBase" />
+            android:exported="false"
+            android:theme="@style/Theme.Dolphin.Main" />
 
-        <service android:name=".utils.DirectoryInitialization"/>
-        <service android:name=".services.GameFileCacheService"/>
+        <activity
+            android:name=".activities.UserDataActivity"
+            android:exported="false"
+            android:label="@string/user_data_submenu"
+            android:theme="@style/Theme.Dolphin.Main" />
+
+        <activity
+            android:name=".features.riivolution.ui.RiivolutionBootActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Dolphin.Main" />
+
         <service
             android:name=".services.SyncChannelJobService"
             android:exported="false"
             android:permission="android.permission.BIND_JOB_SERVICE"/>
+
         <service
             android:name=".services.SyncProgramsJobService"
             android:exported="false"
@@ -122,7 +155,18 @@
                 android:resource="@xml/nnf_provider_paths"/>
         </provider>
 
+        <provider
+            android:name=".features.DocumentProvider"
+            android:authorities="${applicationId}.user"
+            android:grantUriPermissions="true"
+            android:exported="true"
+            android:permission="android.permission.MANAGE_DOCUMENTS"
+            android:enabled="@bool/enableDocumentProvider">
+            <intent-filter>
+                <action android:name="android.content.action.DOCUMENTS_PROVIDER" />
+            </intent-filter>
+        </provider>
+
     </application>
 
 </manifest>
-

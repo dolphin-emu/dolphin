@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -21,14 +20,14 @@ public:
   ~PulseAudio() override;
 
   bool Init() override;
-  bool SetRunning(bool running) override { return running; }
-  static bool isValid() { return true; }
+  bool SetRunning(bool running) override { return true; }
+  static bool IsValid() { return true; }
   void StateCallback(pa_context* c);
   void WriteCallback(pa_stream* s, size_t length);
   void UnderflowCallback(pa_stream* s);
 
 private:
-  void SoundLoop() override;
+  void SoundLoop();
 
   bool PulseInit();
   void PulseShutdown();

@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DiscIO/WiiSaveBanner.h"
 
@@ -10,7 +9,7 @@
 
 #include "Common/ColorUtil.h"
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
+#include "Common/IOFile.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 
@@ -61,7 +60,7 @@ std::vector<u32> WiiSaveBanner::GetBanner(u32* width, u32* height) const
   *height = 0;
 
   File::IOFile file(m_path, "rb");
-  if (!file.Seek(sizeof(Header), SEEK_SET))
+  if (!file.Seek(sizeof(Header), File::SeekOrigin::Begin))
     return std::vector<u32>();
 
   std::vector<u16> banner_data(BANNER_WIDTH * BANNER_HEIGHT);

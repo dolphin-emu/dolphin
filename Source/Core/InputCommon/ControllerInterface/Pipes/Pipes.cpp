@@ -1,6 +1,7 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "InputCommon/ControllerInterface/Pipes/Pipes.h"
 
 #include <algorithm>
 #include <array>
@@ -14,11 +15,11 @@
 #include <sys/stat.h>
 #include <vector>
 
+#include <Core/Config/MainSettings.h>
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
-#include "InputCommon/ControllerInterface/Pipes/Pipes.h"
 
 bool g_needInputForFrame;
 
@@ -189,7 +190,7 @@ void PipeDevice::UpdateInput()
       m_buf.erase(0, newline + 1);
       newline = m_buf.find("\n");
     }
-  } while (!finished && SConfig::GetInstance().m_blockingPipes);
+  } while (!finished && Config::Get(Config::SLIPPI_BLOCKING_PIPES));
 }
 
 void PipeDevice::AddAxis(const std::string& name, double value)

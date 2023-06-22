@@ -1,6 +1,5 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -16,6 +15,7 @@ std::string GenerateScreenQuadVertexShader();
 std::string GeneratePassthroughGeometryShader(u32 num_tex, u32 num_colors);
 std::string GenerateTextureCopyVertexShader();
 std::string GenerateTextureCopyPixelShader();
+std::string GenerateResolveColorPixelShader(u32 samples);
 std::string GenerateResolveDepthPixelShader(u32 samples);
 std::string GenerateClearVertexShader();
 std::string GenerateEFBPokeVertexShader();

@@ -86,7 +86,7 @@ TEST_P(LinkTest, FromFile)
 }
 
 // clang-format off
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     Glsl, LinkTest,
     ::testing::ValuesIn(std::vector<std::vector<std::string>>({
         {"mains1.frag", "mains2.frag", "noMain1.geom", "noMain2.geom"},
@@ -99,8 +99,16 @@ INSTANTIATE_TEST_CASE_P(
         {"empty.frag", "empty2.frag", "empty3.frag"},
         {"150.tesc", "150.tese", "400.tesc", "400.tese", "410.tesc", "420.tesc", "420.tese"},
         {"max_vertices_0.geom"},
+        {"contradict_0.geom", "contradict_1.geom"},
         {"es-link1.frag", "es-link2.frag"},
-        {"missingBodies.vert"}
+        {"missingBodies.vert"},
+        {"link.multiAnonBlocksInvalid.0.0.vert", "link.multiAnonBlocksInvalid.0.1.vert"},
+        {"link.multiAnonBlocksValid.0.0.vert", "link.multiAnonBlocksValid.0.1.vert"},
+        {"link.multiBlocksInvalid.0.0.vert", "link.multiBlocksInvalid.0.1.vert"},
+        {"link.multiBlocksValid.1.0.vert", "link.multiBlocksValid.1.1.vert"},
+        {"link.tesselation.vert", "link.tesselation.frag"},
+        {"link.tesselation.tese", "link.tesselation.tesc"},
+        {"link.redeclareBuiltin.vert", "link.redeclareBuiltin.geom"},
     }))
 );
 // clang-format on

@@ -1,13 +1,12 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "Common/CommonFuncs.h"
 
 #include <cstddef>
 #include <cstring>
 #include <errno.h>
 #include <type_traits>
-
-#include "Common/CommonFuncs.h"
 
 #ifdef _WIN32
 #include <windows.h>

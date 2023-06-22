@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ExternalsDir)libusb\libusb\libusb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)libusb\libusb-1.0.vcxproj">
+      <Project>{349ee8f9-7d25-4909-aaf5-ff3fade72187}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

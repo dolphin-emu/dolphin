@@ -1,10 +1,12 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "Core/PowerPC/JitArm64/Jit.h"
 
 #include "Common/Arm64Emitter.h"
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
+#include "Common/ScopeGuard.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -12,25 +14,27 @@
 #include "Core/HW/DSP.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
-#include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 #include "Core/PowerPC/JitArm64/Jit_Util.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 using namespace Arm64Gen;
 
 void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 offset, bool update)
 {
   // We want to make sure to not get LR as a temp register
-  gpr.Lock(W0, W30);
+  gpr.Lock(ARM64Reg::W0, ARM64Reg::W30);
+  if (!jo.fastmem_arena)
+    gpr.Lock(ARM64Reg::W2);
 
-  gpr.BindToRegister(dest, dest == (u32)addr || dest == (u32)offsetReg);
+  gpr.BindToRegister(dest, dest == (u32)addr || dest == (u32)offsetReg, false);
   ARM64Reg dest_reg = gpr.R(dest);
-  ARM64Reg up_reg = INVALID_REG;
-  ARM64Reg off_reg = INVALID_REG;
+  ARM64Reg up_reg = ARM64Reg::INVALID_REG;
+  ARM64Reg off_reg = ARM64Reg::INVALID_REG;
 
   if (addr != -1 && !gpr.IsImm(addr))
     up_reg = gpr.R(addr);
@@ -38,7 +42,7 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
   if (offsetReg != -1 && !gpr.IsImm(offsetReg))
     off_reg = gpr.R(offsetReg);
 
-  ARM64Reg addr_reg = W0;
+  ARM64Reg addr_reg = ARM64Reg::W0;
   u32 imm_addr = 0;
   bool is_immediate = false;
 
@@ -102,63 +106,91 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
 
   ARM64Reg XA = EncodeRegTo64(addr_reg);
 
-  if (is_immediate)
-    MOVI2R(XA, imm_addr);
+  bool addr_reg_set = !is_immediate;
+  const auto set_addr_reg_if_needed = [&] {
+    if (!addr_reg_set)
+      MOVI2R(XA, imm_addr);
+  };
 
-  if (update)
+  const bool early_update = !jo.memcheck && dest != static_cast<u32>(addr);
+  if (update && early_update)
   {
     gpr.BindToRegister(addr, false);
+    set_addr_reg_if_needed();
     MOV(gpr.R(addr), addr_reg);
   }
 
   BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
   BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
-  regs_in_use[W0] = 0;
-  regs_in_use[dest_reg] = 0;
+  if (!update || early_update)
+    regs_in_use[DecodeReg(ARM64Reg::W0)] = 0;
+  if (!jo.fastmem_arena)
+    regs_in_use[DecodeReg(ARM64Reg::W2)] = 0;
+  if (!jo.memcheck)
+    regs_in_use[DecodeReg(dest_reg)] = 0;
 
   u32 access_size = BackPatchInfo::GetFlagSize(flags);
   u32 mmio_address = 0;
   if (is_immediate)
     mmio_address = PowerPC::IsOptimizableMMIOAccess(imm_addr, access_size);
 
-  if (jo.fastmem_arena && is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
+  if (is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
   {
-    EmitBackpatchRoutine(flags, true, false, dest_reg, XA, BitSet32(0), BitSet32(0));
+    set_addr_reg_if_needed();
+    EmitBackpatchRoutine(flags, MemAccessMode::AlwaysUnsafe, dest_reg, XA, regs_in_use,
+                         fprs_in_use);
   }
   else if (mmio_address)
   {
-    MMIOLoadToReg(Memory::mmio_mapping.get(), this, regs_in_use, fprs_in_use, dest_reg,
+    regs_in_use[DecodeReg(ARM64Reg::W0)] = 0;
+    regs_in_use[DecodeReg(ARM64Reg::W30)] = 0;
+    regs_in_use[DecodeReg(dest_reg)] = 0;
+    auto& system = Core::System::GetInstance();
+    auto& memory = system.GetMemory();
+    MMIOLoadToReg(memory.GetMMIOMapping(), this, &m_float_emit, regs_in_use, fprs_in_use, dest_reg,
                   mmio_address, flags);
+    addr_reg_set = false;
   }
   else
   {
-    EmitBackpatchRoutine(flags, jo.fastmem, jo.fastmem, dest_reg, XA, regs_in_use, fprs_in_use);
+    set_addr_reg_if_needed();
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, dest_reg, XA, regs_in_use, fprs_in_use);
   }
 
-  gpr.Unlock(W0, W30);
+  gpr.BindToRegister(dest, false, true);
+  ASSERT(dest_reg == gpr.R(dest));
+
+  if (update && !early_update)
+  {
+    gpr.BindToRegister(addr, false);
+    set_addr_reg_if_needed();
+    MOV(gpr.R(addr), addr_reg);
+  }
+
+  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W30);
+  if (!jo.fastmem_arena)
+    gpr.Unlock(ARM64Reg::W2);
 }
 
-void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s32 offset)
+void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s32 offset,
+                                bool update)
 {
   // We want to make sure to not get LR as a temp register
-  gpr.Lock(W0, W1, W30);
+  gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W30);
+  if (!jo.fastmem_arena)
+    gpr.Lock(ARM64Reg::W2);
 
   ARM64Reg RS = gpr.R(value);
 
-  ARM64Reg reg_dest = INVALID_REG;
-  ARM64Reg reg_off = INVALID_REG;
+  ARM64Reg reg_dest = ARM64Reg::INVALID_REG;
+  ARM64Reg reg_off = ARM64Reg::INVALID_REG;
 
   if (regOffset != -1 && !gpr.IsImm(regOffset))
     reg_off = gpr.R(regOffset);
   if (dest != -1 && !gpr.IsImm(dest))
     reg_dest = gpr.R(dest);
 
-  BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
-  BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
-  regs_in_use[W0] = 0;
-  regs_in_use[W1] = 0;
-
-  ARM64Reg addr_reg = W1;
+  ARM64Reg addr_reg = ARM64Reg::W1;
 
   u32 imm_addr = 0;
   bool is_immediate = false;
@@ -223,6 +255,28 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
 
   ARM64Reg XA = EncodeRegTo64(addr_reg);
 
+  bool addr_reg_set = !is_immediate;
+  const auto set_addr_reg_if_needed = [&] {
+    if (!addr_reg_set)
+      MOVI2R(XA, imm_addr);
+  };
+
+  const bool early_update = !jo.memcheck && value != static_cast<u32>(dest);
+  if (update && early_update)
+  {
+    gpr.BindToRegister(dest, false);
+    set_addr_reg_if_needed();
+    MOV(gpr.R(dest), addr_reg);
+  }
+
+  BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
+  BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
+  regs_in_use[DecodeReg(ARM64Reg::W0)] = 0;
+  if (!update || early_update)
+    regs_in_use[DecodeReg(ARM64Reg::W1)] = 0;
+  if (!jo.fastmem_arena)
+    regs_in_use[DecodeReg(ARM64Reg::W2)] = 0;
+
   u32 access_size = BackPatchInfo::GetFlagSize(flags);
   u32 mmio_address = 0;
   if (is_immediate)
@@ -238,50 +292,89 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
     else
       accessSize = 8;
 
-    LDR(INDEX_UNSIGNED, X0, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
+    LDR(IndexType::Unsigned, ARM64Reg::X0, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
+
+    ARM64Reg temp = ARM64Reg::W1;
+    temp = ByteswapBeforeStore(this, &m_float_emit, temp, RS, flags, true);
+
     if (accessSize == 32)
-    {
-      REV32(W1, RS);
-      STR(INDEX_POST, W1, X0, 4);
-    }
+      STR(IndexType::Post, temp, ARM64Reg::X0, 4);
     else if (accessSize == 16)
-    {
-      REV16(W1, RS);
-      STRH(INDEX_POST, W1, X0, 2);
-    }
+      STRH(IndexType::Post, temp, ARM64Reg::X0, 2);
     else
-    {
-      STRB(INDEX_POST, RS, X0, 1);
-    }
-    STR(INDEX_UNSIGNED, X0, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
+      STRB(IndexType::Post, temp, ARM64Reg::X0, 1);
+
+    STR(IndexType::Unsigned, ARM64Reg::X0, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
+
     js.fifoBytesSinceCheck += accessSize >> 3;
   }
-  else if (jo.fastmem_arena && is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
+  else if (is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
   {
-    MOVI2R(XA, imm_addr);
-    EmitBackpatchRoutine(flags, true, false, RS, XA, BitSet32(0), BitSet32(0));
+    set_addr_reg_if_needed();
+    EmitBackpatchRoutine(flags, MemAccessMode::AlwaysUnsafe, RS, XA, regs_in_use, fprs_in_use);
   }
-  else if (mmio_address && !(flags & BackPatchInfo::FLAG_REVERSE))
+  else if (mmio_address)
   {
-    MMIOWriteRegToAddr(Memory::mmio_mapping.get(), this, regs_in_use, fprs_in_use, RS, mmio_address,
-                       flags);
+    regs_in_use[DecodeReg(ARM64Reg::W0)] = 0;
+    regs_in_use[DecodeReg(ARM64Reg::W1)] = 0;
+    regs_in_use[DecodeReg(ARM64Reg::W30)] = 0;
+    regs_in_use[DecodeReg(RS)] = 0;
+    auto& system = Core::System::GetInstance();
+    auto& memory = system.GetMemory();
+    MMIOWriteRegToAddr(memory.GetMMIOMapping(), this, &m_float_emit, regs_in_use, fprs_in_use, RS,
+                       mmio_address, flags);
+    addr_reg_set = false;
   }
   else
   {
-    if (is_immediate)
-      MOVI2R(XA, imm_addr);
-
-    EmitBackpatchRoutine(flags, jo.fastmem, jo.fastmem, RS, XA, regs_in_use, fprs_in_use);
+    set_addr_reg_if_needed();
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, RS, XA, regs_in_use, fprs_in_use);
   }
 
-  gpr.Unlock(W0, W1, W30);
+  if (update && !early_update)
+  {
+    gpr.BindToRegister(dest, false);
+    set_addr_reg_if_needed();
+    MOV(gpr.R(dest), addr_reg);
+  }
+
+  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W30);
+  if (!jo.fastmem_arena)
+    gpr.Unlock(ARM64Reg::W2);
+}
+
+FixupBranch JitArm64::BATAddressLookup(ARM64Reg addr_out, ARM64Reg addr_in, ARM64Reg tmp,
+                                       const void* bat_table)
+{
+  tmp = EncodeRegTo64(tmp);
+
+  MOVP2R(tmp, bat_table);
+  LSR(addr_out, addr_in, PowerPC::BAT_INDEX_SHIFT);
+  LDR(addr_out, tmp, ArithOption(addr_out, true));
+  FixupBranch pass = TBNZ(addr_out, IntLog2(PowerPC::BAT_MAPPED_BIT));
+  FixupBranch fail = B();
+  SetJumpTarget(pass);
+  return fail;
+}
+
+FixupBranch JitArm64::CheckIfSafeAddress(Arm64Gen::ARM64Reg addr, Arm64Gen::ARM64Reg tmp1,
+                                         Arm64Gen::ARM64Reg tmp2)
+{
+  tmp2 = EncodeRegTo64(tmp2);
+
+  MOVP2R(tmp2, PowerPC::dbat_table.data());
+  LSR(tmp1, addr, PowerPC::BAT_INDEX_SHIFT);
+  LDR(tmp1, tmp2, ArithOption(tmp1, true));
+  FixupBranch pass = TBNZ(tmp1, IntLog2(PowerPC::BAT_PHYSICAL_BIT));
+  FixupBranch fail = B();
+  SetJumpTarget(pass);
+  return fail;
 }
 
 void JitArm64::lXX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
-  FALLBACK_IF(jo.memcheck);
 
   u32 a = inst.RA, b = inst.RB, d = inst.RD;
   s32 offset = inst.SIMM_16;
@@ -297,21 +390,25 @@ void JitArm64::lXX(UGeckoInstruction inst)
     {
     case 55:  // lwzux
       update = true;
+      [[fallthrough]];
     case 23:  // lwzx
       flags |= BackPatchInfo::FLAG_SIZE_32;
       break;
     case 119:  // lbzux
       update = true;
+      [[fallthrough]];
     case 87:  // lbzx
       flags |= BackPatchInfo::FLAG_SIZE_8;
       break;
     case 311:  // lhzux
       update = true;
+      [[fallthrough]];
     case 279:  // lhzx
       flags |= BackPatchInfo::FLAG_SIZE_16;
       break;
     case 375:  // lhaux
       update = true;
+      [[fallthrough]];
     case 343:  // lhax
       flags |= BackPatchInfo::FLAG_EXTEND | BackPatchInfo::FLAG_SIZE_16;
       break;
@@ -325,21 +422,25 @@ void JitArm64::lXX(UGeckoInstruction inst)
     break;
   case 33:  // lwzu
     update = true;
+    [[fallthrough]];
   case 32:  // lwz
     flags |= BackPatchInfo::FLAG_SIZE_32;
     break;
   case 35:  // lbzu
     update = true;
+    [[fallthrough]];
   case 34:  // lbz
     flags |= BackPatchInfo::FLAG_SIZE_8;
     break;
   case 41:  // lhzu
     update = true;
+    [[fallthrough]];
   case 40:  // lhz
     flags |= BackPatchInfo::FLAG_SIZE_16;
     break;
   case 43:  // lhau
     update = true;
+    [[fallthrough]];
   case 42:  // lha
     flags |= BackPatchInfo::FLAG_EXTEND | BackPatchInfo::FLAG_SIZE_16;
     break;
@@ -352,7 +453,6 @@ void JitArm64::stX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
-  FALLBACK_IF(jo.memcheck);
 
   u32 a = inst.RA, b = inst.RB, s = inst.RS;
   s32 offset = inst.SIMM_16;
@@ -362,6 +462,7 @@ void JitArm64::stX(UGeckoInstruction inst)
   switch (inst.OPCD)
   {
   case 31:
+    regOffset = b;
     switch (inst.SUBOP10)
     {
     case 183:  // stwux
@@ -369,26 +470,30 @@ void JitArm64::stX(UGeckoInstruction inst)
       [[fallthrough]];
     case 151:  // stwx
       flags |= BackPatchInfo::FLAG_SIZE_32;
-      regOffset = b;
       break;
     case 247:  // stbux
       update = true;
       [[fallthrough]];
     case 215:  // stbx
       flags |= BackPatchInfo::FLAG_SIZE_8;
-      regOffset = b;
       break;
     case 439:  // sthux
       update = true;
       [[fallthrough]];
     case 407:  // sthx
       flags |= BackPatchInfo::FLAG_SIZE_16;
-      regOffset = b;
+      break;
+    case 662:  // stwbrx
+      flags |= BackPatchInfo::FLAG_REVERSE | BackPatchInfo::FLAG_SIZE_32;
+      break;
+    case 918:  // sthbrx
+      flags |= BackPatchInfo::FLAG_REVERSE | BackPatchInfo::FLAG_SIZE_16;
       break;
     }
     break;
   case 37:  // stwu
     update = true;
+    [[fallthrough]];
   case 36:  // stw
     flags |= BackPatchInfo::FLAG_SIZE_32;
     break;
@@ -406,179 +511,286 @@ void JitArm64::stX(UGeckoInstruction inst)
     break;
   }
 
-  SafeStoreFromReg(update ? a : (a ? a : -1), s, regOffset, flags, offset);
-
-  if (update)
-  {
-    gpr.BindToRegister(a, false);
-
-    ARM64Reg WA = gpr.GetReg();
-    ARM64Reg RB = {};
-    ARM64Reg RA = gpr.R(a);
-    if (regOffset != -1)
-      RB = gpr.R(regOffset);
-    if (regOffset == -1)
-    {
-      ADDI2R(RA, RA, offset, WA);
-    }
-    else
-    {
-      ADD(RA, RA, RB);
-    }
-    gpr.Unlock(WA);
-  }
+  SafeStoreFromReg(update ? a : (a ? a : -1), s, regOffset, flags, offset, update);
 }
 
 void JitArm64::lmw(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
-  FALLBACK_IF(!jo.fastmem || jo.memcheck);
 
-  u32 a = inst.RA;
+  u32 a = inst.RA, d = inst.RD;
+  s32 offset = inst.SIMM_16;
 
-  ARM64Reg WA = gpr.GetReg();
-  ARM64Reg XA = EncodeRegTo64(WA);
-  if (a)
-  {
-    ADDI2R(WA, gpr.R(a), inst.SIMM_16, WA);
-    ADD(XA, XA, MEM_REG);
-  }
+  gpr.Lock(ARM64Reg::W0, ARM64Reg::W30);
+  if (!jo.fastmem_arena)
+    gpr.Lock(ARM64Reg::W2);
+
+  // MMU games make use of a >= d despite this being invalid according to the PEM.
+  // If a >= d occurs, we must make sure to not re-read rA after starting doing the loads.
+  ARM64Reg addr_reg = ARM64Reg::W0;
+  bool a_is_addr_base_reg = false;
+  if (!a)
+    MOVI2R(addr_reg, offset);
+  else if (gpr.IsImm(a))
+    MOVI2R(addr_reg, gpr.GetImm(a) + offset);
+  else if (a < d && offset + (31 - d) * 4 < 0x1000)
+    a_is_addr_base_reg = true;
   else
+    ADDI2R(addr_reg, gpr.R(a), offset, addr_reg);
+
+  ARM64Reg addr_base_reg = a_is_addr_base_reg ? ARM64Reg::INVALID_REG : gpr.GetReg();
+  if (!a_is_addr_base_reg)
+    MOV(addr_base_reg, addr_reg);
+
+  // TODO: This doesn't handle rollback on DSI correctly
+  constexpr u32 flags = BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_SIZE_32;
+  for (u32 i = d; i < 32; i++)
   {
-    ADDI2R(XA, MEM_REG, (u32)(s32)(s16)inst.SIMM_16, XA);
+    gpr.BindToRegister(i, false, false);
+    ARM64Reg dest_reg = gpr.R(i);
+
+    if (a_is_addr_base_reg)
+      ADDI2R(addr_reg, gpr.R(a), offset + (i - d) * 4);
+    else if (i != d)
+      ADDI2R(addr_reg, addr_base_reg, (i - d) * 4);
+
+    BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
+    BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
+    regs_in_use[DecodeReg(addr_reg)] = 0;
+    if (!jo.fastmem_arena)
+      regs_in_use[DecodeReg(ARM64Reg::W2)] = 0;
+    if (!jo.memcheck)
+      regs_in_use[DecodeReg(dest_reg)] = 0;
+
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, dest_reg, EncodeRegTo64(addr_reg), regs_in_use,
+                         fprs_in_use);
+
+    gpr.BindToRegister(i, false, true);
+    ASSERT(dest_reg == gpr.R(i));
   }
 
-  for (int i = inst.RD; i < 32; i++)
-  {
-    int remaining = 32 - i;
-    if (remaining >= 4)
-    {
-      gpr.BindToRegister(i + 3, false);
-      gpr.BindToRegister(i + 2, false);
-      gpr.BindToRegister(i + 1, false);
-      gpr.BindToRegister(i, false);
-      ARM64Reg RX4 = gpr.R(i + 3);
-      ARM64Reg RX3 = gpr.R(i + 2);
-      ARM64Reg RX2 = gpr.R(i + 1);
-      ARM64Reg RX1 = gpr.R(i);
-      LDP(INDEX_POST, EncodeRegTo64(RX1), EncodeRegTo64(RX3), XA, 16);
-      REV32(EncodeRegTo64(RX1), EncodeRegTo64(RX1));
-      REV32(EncodeRegTo64(RX3), EncodeRegTo64(RX3));
-      LSR(EncodeRegTo64(RX2), EncodeRegTo64(RX1), 32);
-      LSR(EncodeRegTo64(RX4), EncodeRegTo64(RX3), 32);
-      i += 3;
-    }
-    else if (remaining >= 2)
-    {
-      gpr.BindToRegister(i + 1, false);
-      gpr.BindToRegister(i, false);
-      ARM64Reg RX2 = gpr.R(i + 1);
-      ARM64Reg RX1 = gpr.R(i);
-      LDP(INDEX_POST, RX1, RX2, XA, 8);
-      REV32(RX1, RX1);
-      REV32(RX2, RX2);
-      ++i;
-    }
-    else
-    {
-      gpr.BindToRegister(i, false);
-      ARM64Reg RX = gpr.R(i);
-      LDR(INDEX_POST, RX, XA, 4);
-      REV32(RX, RX);
-    }
-  }
-
-  gpr.Unlock(WA);
+  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W30);
+  if (!jo.fastmem_arena)
+    gpr.Unlock(ARM64Reg::W2);
+  if (!a_is_addr_base_reg)
+    gpr.Unlock(addr_base_reg);
 }
 
 void JitArm64::stmw(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
-  FALLBACK_IF(!jo.fastmem || jo.memcheck);
 
-  u32 a = inst.RA;
+  u32 a = inst.RA, s = inst.RS;
+  s32 offset = inst.SIMM_16;
 
-  ARM64Reg WA = gpr.GetReg();
-  ARM64Reg XA = EncodeRegTo64(WA);
-  ARM64Reg WB = gpr.GetReg();
+  gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W30);
+  if (!jo.fastmem_arena)
+    gpr.Lock(ARM64Reg::W2);
 
-  if (a)
-  {
-    ADDI2R(WA, gpr.R(a), inst.SIMM_16, WA);
-    ADD(XA, XA, MEM_REG);
-  }
+  ARM64Reg addr_reg = ARM64Reg::W1;
+  bool a_is_addr_base_reg = false;
+  if (!a)
+    MOVI2R(addr_reg, offset);
+  else if (gpr.IsImm(a))
+    MOVI2R(addr_reg, gpr.GetImm(a) + offset);
+  else if (offset + (31 - s) * 4 < 0x1000)
+    a_is_addr_base_reg = true;
   else
+    ADDI2R(addr_reg, gpr.R(a), offset, addr_reg);
+
+  ARM64Reg addr_base_reg = a_is_addr_base_reg ? ARM64Reg::INVALID_REG : gpr.GetReg();
+  if (!a_is_addr_base_reg)
+    MOV(addr_base_reg, addr_reg);
+
+  // TODO: This doesn't handle rollback on DSI correctly
+  constexpr u32 flags = BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_SIZE_32;
+  for (u32 i = s; i < 32; i++)
   {
-    ADDI2R(XA, MEM_REG, (u32)(s32)(s16)inst.SIMM_16, XA);
+    ARM64Reg src_reg = gpr.R(i);
+
+    if (a_is_addr_base_reg)
+      ADDI2R(addr_reg, gpr.R(a), offset + (i - s) * 4);
+    else if (i != s)
+      ADDI2R(addr_reg, addr_base_reg, (i - s) * 4);
+
+    BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
+    BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
+    regs_in_use[DecodeReg(ARM64Reg::W0)] = 0;
+    regs_in_use[DecodeReg(addr_reg)] = 0;
+    if (!jo.fastmem_arena)
+      regs_in_use[DecodeReg(ARM64Reg::W2)] = 0;
+
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, src_reg, EncodeRegTo64(addr_reg), regs_in_use,
+                         fprs_in_use);
   }
 
-  for (int i = inst.RD; i < 32; i++)
-  {
-    ARM64Reg RX = gpr.R(i);
-    REV32(WB, RX);
-    STR(INDEX_UNSIGNED, WB, XA, (i - inst.RD) * 4);
-  }
-
-  gpr.Unlock(WA, WB);
+  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W30);
+  if (!jo.fastmem_arena)
+    gpr.Unlock(ARM64Reg::W2);
+  if (!a_is_addr_base_reg)
+    gpr.Unlock(addr_base_reg);
 }
 
 void JitArm64::dcbx(UGeckoInstruction inst)
 {
+  FALLBACK_IF(m_accurate_cpu_cache_enabled);
+
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
 
-  gpr.Lock(W30);
-
-  ARM64Reg addr = gpr.GetReg();
-  ARM64Reg value = gpr.GetReg();
-  ARM64Reg WA = W30;
-
   u32 a = inst.RA, b = inst.RB;
 
+  // Check if the next instructions match a known looping pattern:
+  // - dcbx rX
+  // - addi rX,rX,32
+  // - bdnz+ -8
+  const bool make_loop = a == 0 && b != 0 && CanMergeNextInstructions(2) &&
+                         (js.op[1].inst.hex & 0xfc00'ffff) == 0x38000020 &&
+                         js.op[1].inst.RA_6 == b && js.op[1].inst.RD_2 == b &&
+                         js.op[2].inst.hex == 0x4200fff8;
+
+  gpr.Lock(ARM64Reg::W0);
+  if (make_loop)
+    gpr.Lock(ARM64Reg::W1);
+
+  ARM64Reg WA = gpr.GetReg();
+
+  if (make_loop)
+    gpr.BindToRegister(b, true);
+
+  ARM64Reg loop_counter = ARM64Reg::INVALID_REG;
+  if (make_loop)
+  {
+    // We'll execute somewhere between one single cacheline invalidation and however many are needed
+    // to reduce the downcount to zero, never exceeding the amount requested by the game.
+    // To stay consistent with the rest of the code we adjust the involved registers (CTR and Rb)
+    // by the amount of cache lines we invalidate minus one -- since we'll run the regular addi and
+    // bdnz afterwards! So if we invalidate a single cache line, we don't adjust the registers at
+    // all, if we invalidate 2 cachelines we adjust the registers by one step, and so on.
+
+    ARM64Reg reg_cycle_count = gpr.GetReg();
+    ARM64Reg reg_downcount = gpr.GetReg();
+    loop_counter = ARM64Reg::W1;
+    ARM64Reg WB = ARM64Reg::W0;
+
+    // Figure out how many loops we want to do.
+    const u8 cycle_count_per_loop =
+        js.op[0].opinfo->numCycles + js.op[1].opinfo->numCycles + js.op[2].opinfo->numCycles;
+
+    LDR(IndexType::Unsigned, reg_downcount, PPC_REG, PPCSTATE_OFF(downcount));
+    MOVI2R(WA, 0);
+    CMP(reg_downcount, 0);                                          // if (downcount <= 0)
+    FixupBranch downcount_is_zero_or_negative = B(CCFlags::CC_LE);  // only do 1 invalidation; else:
+    LDR(IndexType::Unsigned, loop_counter, PPC_REG, PPCSTATE_OFF_SPR(SPR_CTR));
+    MOVI2R(reg_cycle_count, cycle_count_per_loop);
+    SDIV(WB, reg_downcount, reg_cycle_count);  // WB = downcount / cycle_count
+    SUB(WA, loop_counter, 1);                  // WA = CTR - 1
+    // ^ Note that this CTR-1 implicitly handles the CTR == 0 case correctly.
+    CMP(WB, WA);
+    CSEL(WA, WB, WA, CCFlags::CC_LO);  // WA = min(WB, WA)
+
+    // WA now holds the amount of loops to execute minus 1, which is the amount we need to adjust
+    // downcount, CTR, and Rb by to exit the loop construct with the right values in those
+    // registers.
+
+    // CTR -= WA
+    SUB(loop_counter, loop_counter, WA);
+    STR(IndexType::Unsigned, loop_counter, PPC_REG, PPCSTATE_OFF_SPR(SPR_CTR));
+
+    // downcount -= (WA * reg_cycle_count)
+    MUL(WB, WA, reg_cycle_count);
+    // ^ Note that this cannot overflow because it's limited by (downcount/cycle_count).
+    SUB(reg_downcount, reg_downcount, WB);
+    STR(IndexType::Unsigned, reg_downcount, PPC_REG, PPCSTATE_OFF(downcount));
+
+    SetJumpTarget(downcount_is_zero_or_negative);
+
+    // Load the loop_counter register with the amount of invalidations to execute.
+    ADD(loop_counter, WA, 1);
+
+    gpr.Unlock(reg_cycle_count, reg_downcount);
+  }
+
+  ARM64Reg effective_addr = ARM64Reg::W0;
+  ARM64Reg physical_addr = gpr.GetReg();
+
   if (a)
-    ADD(addr, gpr.R(a), gpr.R(b));
+    ADD(effective_addr, gpr.R(a), gpr.R(b));
   else
-    MOV(addr, gpr.R(b));
+    MOV(effective_addr, gpr.R(b));
+
+  if (make_loop)
+  {
+    // This is the best place to adjust Rb to what it should be since WA still has the
+    // adjusted loop count and we're done reading from Rb.
+    ADD(gpr.R(b), gpr.R(b), WA, ArithOption(WA, ShiftType::LSL, 5));  // Rb += (WA * 32)
+  }
+
+  // Translate effective address to physical address.
+  const u8* loop_start = GetCodePtr();
+  FixupBranch bat_lookup_failed;
+  if (PowerPC::ppcState.msr.IR)
+  {
+    bat_lookup_failed =
+        BATAddressLookup(physical_addr, effective_addr, WA, PowerPC::ibat_table.data());
+    BFI(physical_addr, effective_addr, 0, PowerPC::BAT_INDEX_SHIFT);
+  }
 
   // Check whether a JIT cache line needs to be invalidated.
-  AND(value, addr, 32 - 10, 28 - 10);  // upper three bits and last 10 bit are masked for the bitset
-                                       // of cachelines, 0x1ffffc00
-  LSR(value, value, 5 + 5);            // >> 5 for cache line size, >> 5 for width of bitset
+  LSR(physical_addr, physical_addr, 5 + 5);  // >> 5 for cache line size, >> 5 for width of bitset
   MOVP2R(EncodeRegTo64(WA), GetBlockCache()->GetBlockBitSet());
-  LDR(value, EncodeRegTo64(WA), ArithOption(EncodeRegTo64(value), true));
+  LDR(physical_addr, EncodeRegTo64(WA), ArithOption(EncodeRegTo64(physical_addr), true));
 
-  LSR(addr, addr, 5);  // mask sizeof cacheline, & 0x1f is the position within the bitset
+  LSR(WA, effective_addr, 5);  // mask sizeof cacheline, & 0x1f is the position within the bitset
 
-  LSR(value, value, addr);  // move current bit to bit 0
+  LSRV(physical_addr, physical_addr, WA);  // move current bit to bit 0
 
-  FixupBranch bit_not_set = TBZ(value, 0);
-  FixupBranch far_addr = B();
+  FixupBranch bit_not_set = TBZ(physical_addr, 0);
+  FixupBranch invalidate_needed = B();
+  SetJumpTarget(bit_not_set);
+
+  if (make_loop)
+  {
+    ADD(effective_addr, effective_addr, 32);
+    SUBS(loop_counter, loop_counter, 1);
+    B(CCFlags::CC_NEQ, loop_start);
+  }
+
   SwitchToFarCode();
-  SetJumpTarget(far_addr);
+  SetJumpTarget(invalidate_needed);
+  if (PowerPC::ppcState.msr.IR)
+    SetJumpTarget(bat_lookup_failed);
 
   BitSet32 gprs_to_push = gpr.GetCallerSavedUsed();
   BitSet32 fprs_to_push = fpr.GetCallerSavedUsed();
+  gprs_to_push[DecodeReg(effective_addr)] = false;
+  gprs_to_push[DecodeReg(physical_addr)] = false;
+  gprs_to_push[DecodeReg(WA)] = false;
+  if (make_loop)
+    gprs_to_push[DecodeReg(loop_counter)] = false;
 
   ABI_PushRegisters(gprs_to_push);
-  m_float_emit.ABI_PushRegisters(fprs_to_push, X30);
+  m_float_emit.ABI_PushRegisters(fprs_to_push, WA);
 
-  LSL(W0, addr, 5);
-  MOVI2R(X1, 32);
-  MOVI2R(X2, 0);
-  MOVP2R(X3, &JitInterface::InvalidateICache);
-  BLR(X3);
+  // The function call arguments are already in the correct registers
+  if (make_loop)
+    MOVP2R(ARM64Reg::X8, &JitInterface::InvalidateICacheLines);
+  else
+    MOVP2R(ARM64Reg::X8, &JitInterface::InvalidateICacheLine);
+  BLR(ARM64Reg::X8);
 
-  m_float_emit.ABI_PopRegisters(fprs_to_push, X30);
+  m_float_emit.ABI_PopRegisters(fprs_to_push, WA);
   ABI_PopRegisters(gprs_to_push);
 
   FixupBranch near_addr = B();
   SwitchToNearCode();
-  SetJumpTarget(bit_not_set);
   SetJumpTarget(near_addr);
 
-  gpr.Unlock(addr, value, W30);
+  gpr.Unlock(effective_addr, physical_addr, WA);
+  if (make_loop)
+    gpr.Unlock(loop_counter);
 }
 
 void JitArm64::dcbt(UGeckoInstruction inst)
@@ -604,14 +816,34 @@ void JitArm64::dcbz(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
-  FALLBACK_IF(jo.memcheck || !jo.fastmem_arena);
-  FALLBACK_IF(SConfig::GetInstance().bLowDCBZHack);
+  FALLBACK_IF(m_low_dcbz_hack);
 
   int a = inst.RA, b = inst.RB;
 
-  gpr.Lock(W0);
+  gpr.Lock(ARM64Reg::W0, ARM64Reg::W30);
+  if (!jo.fastmem_arena)
+    gpr.Lock(ARM64Reg::W2);
 
-  ARM64Reg addr_reg = W0;
+  Common::ScopeGuard register_guard([&] {
+    gpr.Unlock(ARM64Reg::W0, ARM64Reg::W30);
+    if (!jo.fastmem_arena)
+      gpr.Unlock(ARM64Reg::W2);
+  });
+
+  constexpr ARM64Reg addr_reg = ARM64Reg::W0;
+  constexpr ARM64Reg temp_reg = ARM64Reg::W30;
+
+  // HACK: Don't clear any memory in the [0x8000'0000, 0x8000'8000) region.
+  FixupBranch end_dcbz_hack;
+  bool using_dcbz_hack = false;
+  const auto emit_low_dcbz_hack = [&](ARM64Reg reg) {
+    if (m_low_dcbz_hack)
+    {
+      CMPI2R(reg, 0x8000'8000, temp_reg);
+      end_dcbz_hack = B(CCFlags::CC_LT);
+      using_dcbz_hack = true;
+    }
+  };
 
   if (a)
   {
@@ -622,6 +854,8 @@ void JitArm64::dcbz(UGeckoInstruction inst)
     {
       // full imm_addr
       u32 imm_addr = gpr.GetImm(b) + gpr.GetImm(a);
+      if (m_low_dcbz_hack && imm_addr >= 0x8000'0000 && imm_addr < 0x8000'8000)
+        return;
       MOVI2R(addr_reg, imm_addr & ~31);
     }
     else if (is_imm_a || is_imm_b)
@@ -630,13 +864,15 @@ void JitArm64::dcbz(UGeckoInstruction inst)
       ARM64Reg base = is_imm_a ? gpr.R(b) : gpr.R(a);
       u32 imm_offset = is_imm_a ? gpr.GetImm(a) : gpr.GetImm(b);
       ADDI2R(addr_reg, base, imm_offset, addr_reg);
-      ANDI2R(addr_reg, addr_reg, ~31);
+      emit_low_dcbz_hack(addr_reg);
+      AND(addr_reg, addr_reg, LogicalImm(~31, 32));
     }
     else
     {
       // Both are registers
       ADD(addr_reg, gpr.R(a), gpr.R(b));
-      ANDI2R(addr_reg, addr_reg, ~31);
+      emit_low_dcbz_hack(addr_reg);
+      AND(addr_reg, addr_reg, LogicalImm(~31, 32));
     }
   }
   else
@@ -645,25 +881,28 @@ void JitArm64::dcbz(UGeckoInstruction inst)
     if (gpr.IsImm(b))
     {
       u32 imm_addr = gpr.GetImm(b);
+      if (m_low_dcbz_hack && imm_addr >= 0x8000'0000 && imm_addr < 0x8000'8000)
+        return;
       MOVI2R(addr_reg, imm_addr & ~31);
     }
     else
     {
-      ANDI2R(addr_reg, gpr.R(b), ~31);
+      emit_low_dcbz_hack(gpr.R(b));
+      AND(addr_reg, gpr.R(b), LogicalImm(~31, 32));
     }
   }
 
-  // We don't care about being /too/ terribly efficient here
-  // As long as we aren't falling back to interpreter we're winning a lot
-
   BitSet32 gprs_to_push = gpr.GetCallerSavedUsed();
   BitSet32 fprs_to_push = fpr.GetCallerSavedUsed();
-  gprs_to_push[W0] = 0;
+  gprs_to_push[DecodeReg(ARM64Reg::W0)] = 0;
+  if (!jo.fastmem_arena)
+    gprs_to_push[DecodeReg(ARM64Reg::W2)] = 0;
 
-  EmitBackpatchRoutine(BackPatchInfo::FLAG_ZERO_256, true, true, W0, EncodeRegTo64(addr_reg),
-                       gprs_to_push, fprs_to_push);
+  EmitBackpatchRoutine(BackPatchInfo::FLAG_ZERO_256, MemAccessMode::Auto, ARM64Reg::W0,
+                       EncodeRegTo64(addr_reg), gprs_to_push, fprs_to_push);
 
-  gpr.Unlock(W0);
+  if (using_dcbz_hack)
+    SetJumpTarget(end_dcbz_hack);
 }
 
 void JitArm64::eieio(UGeckoInstruction inst)

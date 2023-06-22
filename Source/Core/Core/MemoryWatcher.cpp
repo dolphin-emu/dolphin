@@ -1,16 +1,17 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/MemoryWatcher.h"
+
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <unistd.h>
 
 #include "Common/FileUtil.h"
-#include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
-#include "Core/MemoryWatcher.h"
+#include "Core/PowerPC/MMU.h"
 
 MemoryWatcher::MemoryWatcher()
 {
@@ -66,19 +67,19 @@ bool MemoryWatcher::OpenSocket(const std::string& path)
   return m_fd >= 0;
 }
 
-u32 MemoryWatcher::ChasePointer(const std::string& line)
+u32 MemoryWatcher::ChasePointer(const Core::CPUThreadGuard& guard, const std::string& line)
 {
   u32 value = 0;
   for (u32 offset : m_addresses[line])
   {
-    value = Memory::Read_U32(value + offset);
-    if (!PowerPC::HostIsRAMAddress(value))
+    value = PowerPC::HostRead_U32(guard, value + offset);
+    if (!PowerPC::HostIsRAMAddress(guard, value))
       break;
   }
   return value;
 }
 
-std::string MemoryWatcher::ComposeMessages()
+std::string MemoryWatcher::ComposeMessages(const Core::CPUThreadGuard& guard)
 {
   std::ostringstream message_stream;
   message_stream << std::hex;
@@ -88,7 +89,7 @@ std::string MemoryWatcher::ComposeMessages()
     std::string address = entry.first;
     u32& current_value = entry.second;
 
-    u32 new_value = ChasePointer(address);
+    u32 new_value = ChasePointer(guard, address);
     if (new_value != current_value)
     {
       // Update the value
@@ -100,12 +101,12 @@ std::string MemoryWatcher::ComposeMessages()
   return message_stream.str();
 }
 
-void MemoryWatcher::Step()
+void MemoryWatcher::Step(const Core::CPUThreadGuard& guard)
 {
   if (!m_running)
     return;
 
-  std::string message = ComposeMessages();
+  std::string message = ComposeMessages(guard);
   sendto(m_fd, message.c_str(), message.size() + 1, 0, reinterpret_cast<sockaddr*>(&m_addr),
          sizeof(m_addr));
 }

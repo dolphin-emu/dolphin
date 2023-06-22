@@ -1,13 +1,12 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "DolphinQt/Config/Mapping/GCMicrophone.h"
 
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
-
-#include "DolphinQt/Config/Mapping/GCMicrophone.h"
 
 #include "InputCommon/InputConfig.h"
 

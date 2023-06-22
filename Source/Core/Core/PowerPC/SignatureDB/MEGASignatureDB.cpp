@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/PowerPC/SignatureDB/MEGASignatureDB.h"
 
@@ -53,7 +52,7 @@ bool GetFunctionName(std::istringstream* iss, std::string* name)
 
   std::getline(*iss, buffer);
   size_t next = buffer.find(" ^");
-  *name = StripSpaces(buffer.substr(0, next));
+  *name = StripWhitespace(buffer.substr(0, next));
 
   if (name->empty())
     return false;
@@ -102,7 +101,7 @@ bool GetRefs(MEGASignature* sig, std::istringstream* iss)
   return true;
 }
 
-bool Compare(u32 address, u32 size, const MEGASignature& sig)
+bool Compare(const Core::CPUThreadGuard& guard, u32 address, u32 size, const MEGASignature& sig)
 {
   if (size != sig.code.size() * sizeof(u32))
     return false;
@@ -110,8 +109,10 @@ bool Compare(u32 address, u32 size, const MEGASignature& sig)
   for (size_t i = 0; i < sig.code.size(); ++i)
   {
     if (sig.code[i] != 0 &&
-        PowerPC::HostRead_U32(static_cast<u32>(address + i * sizeof(u32))) != sig.code[i])
+        PowerPC::HostRead_U32(guard, static_cast<u32>(address + i * sizeof(u32))) != sig.code[i])
+    {
       return false;
+    }
   }
   return true;
 }
@@ -157,14 +158,14 @@ bool MEGASignatureDB::Save(const std::string& file_path) const
   return false;
 }
 
-void MEGASignatureDB::Apply(PPCSymbolDB* symbol_db) const
+void MEGASignatureDB::Apply(const Core::CPUThreadGuard& guard, PPCSymbolDB* symbol_db) const
 {
   for (auto& it : symbol_db->AccessSymbols())
   {
     auto& symbol = it.second;
     for (const auto& sig : m_signatures)
     {
-      if (Compare(symbol.address, symbol.size, sig))
+      if (Compare(guard, symbol.address, symbol.size, sig))
       {
         symbol.name = sig.name;
         INFO_LOG_FMT(SYMBOLS, "Found {} at {:08x} (size: {:08x})!", sig.name, symbol.address,
@@ -181,7 +182,8 @@ void MEGASignatureDB::Populate(const PPCSymbolDB* func_db, const std::string& fi
   ERROR_LOG_FMT(SYMBOLS, "MEGA database can't be populated yet.");
 }
 
-bool MEGASignatureDB::Add(u32 startAddr, u32 size, const std::string& name)
+bool MEGASignatureDB::Add(const Core::CPUThreadGuard& guard, u32 startAddr, u32 size,
+                          const std::string& name)
 {
   ERROR_LOG_FMT(SYMBOLS, "Can't add symbol to MEGA database yet.");
   return false;

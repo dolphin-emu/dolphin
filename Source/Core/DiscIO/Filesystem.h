@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -89,6 +88,7 @@ public:
   virtual u32 GetSize() const = 0;
   // For a file, returns its size. For a directory, returns the total size of its contents.
   u64 GetTotalSize() const;
+  virtual bool IsRoot() const = 0;
   virtual bool IsDirectory() const = 0;
   // The number of files and directories in a directory, including those in subdirectories.
   // Not guaranteed to return a meaningful value for files.

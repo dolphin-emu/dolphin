@@ -1,21 +1,22 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
-
-// http://www.nvidia.com/object/General_FAQ.html#t6 !!!!!
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/PixelEngine.h"
 
 #include <mutex>
 
+#include "Common/BitField.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
+#include "Core/System.h"
+
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/PerfQueryBase.h"
@@ -23,143 +24,54 @@
 
 namespace PixelEngine
 {
-union UPEZConfReg
-{
-  u16 Hex;
-  struct
-  {
-    u16 ZCompEnable : 1;  // Z Comparator Enable
-    u16 Function : 3;
-    u16 ZUpdEnable : 1;
-    u16 : 11;
-  };
-};
-
-union UPEAlphaConfReg
-{
-  u16 Hex;
-  struct
-  {
-    u16 BMMath : 1;   // GX_BM_BLEND || GX_BM_SUBSTRACT
-    u16 BMLogic : 1;  // GX_BM_LOGIC
-    u16 Dither : 1;
-    u16 ColorUpdEnable : 1;
-    u16 AlphaUpdEnable : 1;
-    u16 DstFactor : 3;
-    u16 SrcFactor : 3;
-    u16 Substract : 1;  // Additive mode by default
-    u16 BlendOperator : 4;
-  };
-};
-
-union UPEDstAlphaConfReg
-{
-  u16 Hex;
-  struct
-  {
-    u16 DstAlpha : 8;
-    u16 Enable : 1;
-    u16 : 7;
-  };
-};
-
-union UPEAlphaModeConfReg
-{
-  u16 Hex;
-  struct
-  {
-    u16 Threshold : 8;
-    u16 CompareMode : 8;
-  };
-};
-
-// fifo Control Register
-union UPECtrlReg
-{
-  struct
-  {
-    u16 PETokenEnable : 1;
-    u16 PEFinishEnable : 1;
-    u16 PEToken : 1;   // write only
-    u16 PEFinish : 1;  // write only
-    u16 : 12;
-  };
-  u16 Hex;
-  UPECtrlReg() { Hex = 0; }
-  UPECtrlReg(u16 _hex) { Hex = _hex; }
-};
-
-// STATE_TO_SAVE
-static UPEZConfReg m_ZConf;
-static UPEAlphaConfReg m_AlphaConf;
-static UPEDstAlphaConfReg m_DstAlphaConf;
-static UPEAlphaModeConfReg m_AlphaModeConf;
-static UPEAlphaReadReg m_AlphaRead;
-static UPECtrlReg m_Control;
-
-static std::mutex s_token_finish_mutex;
-static u16 s_token;
-static u16 s_token_pending;
-static bool s_token_interrupt_pending;
-static bool s_finish_interrupt_pending;
-static bool s_event_raised;
-
-static bool s_signal_token_interrupt;
-static bool s_signal_finish_interrupt;
-
-static CoreTiming::EventType* et_SetTokenFinishOnMainThread;
-
 enum
 {
   INT_CAUSE_PE_TOKEN = 0x200,   // GP Token
   INT_CAUSE_PE_FINISH = 0x400,  // GP Finished
 };
 
-void DoState(PointerWrap& p)
+void PixelEngineManager::DoState(PointerWrap& p)
 {
-  p.Do(m_ZConf);
-  p.Do(m_AlphaConf);
-  p.Do(m_DstAlphaConf);
-  p.Do(m_AlphaModeConf);
-  p.Do(m_AlphaRead);
-  p.DoPOD(m_Control);
+  p.Do(m_z_conf);
+  p.Do(m_alpha_conf);
+  p.Do(m_dst_alpha_conf);
+  p.Do(m_alpha_mode_conf);
+  p.Do(m_alpha_read);
+  p.Do(m_control);
 
-  p.Do(s_token);
-  p.Do(s_token_pending);
-  p.Do(s_token_interrupt_pending);
-  p.Do(s_finish_interrupt_pending);
-  p.Do(s_event_raised);
+  p.Do(m_token);
+  p.Do(m_token_pending);
+  p.Do(m_token_interrupt_pending);
+  p.Do(m_finish_interrupt_pending);
+  p.Do(m_event_raised);
 
-  p.Do(s_signal_token_interrupt);
-  p.Do(s_signal_finish_interrupt);
+  p.Do(m_signal_token_interrupt);
+  p.Do(m_signal_finish_interrupt);
 }
 
-static void UpdateInterrupts();
-static void SetTokenFinish_OnMainThread(u64 userdata, s64 cyclesLate);
-
-void Init()
+void PixelEngineManager::Init(Core::System& system)
 {
-  m_Control.Hex = 0;
-  m_ZConf.Hex = 0;
-  m_AlphaConf.Hex = 0;
-  m_DstAlphaConf.Hex = 0;
-  m_AlphaModeConf.Hex = 0;
-  m_AlphaRead.Hex = 0;
+  m_control.hex = 0;
+  m_z_conf.hex = 0;
+  m_alpha_conf.hex = 0;
+  m_dst_alpha_conf.hex = 0;
+  m_alpha_mode_conf.hex = 0;
+  m_alpha_read.hex = 0;
 
-  s_token = 0;
-  s_token_pending = 0;
-  s_token_interrupt_pending = false;
-  s_finish_interrupt_pending = false;
-  s_event_raised = false;
+  m_token = 0;
+  m_token_pending = 0;
+  m_token_interrupt_pending = false;
+  m_finish_interrupt_pending = false;
+  m_event_raised = false;
 
-  s_signal_token_interrupt = false;
-  s_signal_finish_interrupt = false;
+  m_signal_token_interrupt = false;
+  m_signal_finish_interrupt = false;
 
-  et_SetTokenFinishOnMainThread =
-      CoreTiming::RegisterEvent("SetTokenFinish", SetTokenFinish_OnMainThread);
+  m_event_type_set_token_finish =
+      system.GetCoreTiming().RegisterEvent("SetTokenFinish", SetTokenFinish_OnMainThread_Static);
 }
 
-void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
+void PixelEngineManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
   // Directly mapped registers.
   struct
@@ -167,11 +79,11 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
     u32 addr;
     u16* ptr;
   } directly_mapped_vars[] = {
-      {PE_ZCONF, &m_ZConf.Hex},
-      {PE_ALPHACONF, &m_AlphaConf.Hex},
-      {PE_DSTALPHACONF, &m_DstAlphaConf.Hex},
-      {PE_ALPHAMODE, &m_AlphaModeConf.Hex},
-      {PE_ALPHAREAD, &m_AlphaRead.Hex},
+      {PE_ZCONF, &m_z_conf.hex},
+      {PE_ALPHACONF, &m_alpha_conf.hex},
+      {PE_DSTALPHACONF, &m_dst_alpha_conf.hex},
+      {PE_ALPHAMODE, &m_alpha_mode_conf.hex},
+      {PE_ALPHAREAD, &m_alpha_read.hex},
   };
   for (auto& mapped_var : directly_mapped_vars)
   {
@@ -195,79 +107,92 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   };
   for (auto& pq_reg : pq_regs)
   {
-    mmio->Register(base | pq_reg.addr, MMIO::ComplexRead<u16>([pq_reg](u32) {
+    mmio->Register(base | pq_reg.addr, MMIO::ComplexRead<u16>([pq_reg](Core::System&, u32) {
                      return g_video_backend->Video_GetQueryResult(pq_reg.pqtype) & 0xFFFF;
                    }),
                    MMIO::InvalidWrite<u16>());
-    mmio->Register(base | (pq_reg.addr + 2), MMIO::ComplexRead<u16>([pq_reg](u32) {
+    mmio->Register(base | (pq_reg.addr + 2), MMIO::ComplexRead<u16>([pq_reg](Core::System&, u32) {
                      return g_video_backend->Video_GetQueryResult(pq_reg.pqtype) >> 16;
                    }),
                    MMIO::InvalidWrite<u16>());
   }
 
   // Control register
-  mmio->Register(base | PE_CTRL_REGISTER, MMIO::DirectRead<u16>(&m_Control.Hex),
-                 MMIO::ComplexWrite<u16>([](u32, u16 val) {
-                   UPECtrlReg tmpCtrl(val);
+  mmio->Register(base | PE_CTRL_REGISTER, MMIO::DirectRead<u16>(&m_control.hex),
+                 MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
+                   auto& pe = system.GetPixelEngine();
 
-                   if (tmpCtrl.PEToken)
-                     s_signal_token_interrupt = false;
+                   UPECtrlReg tmpCtrl{.hex = val};
 
-                   if (tmpCtrl.PEFinish)
-                     s_signal_finish_interrupt = false;
+                   if (tmpCtrl.pe_token)
+                     pe.m_signal_token_interrupt = false;
 
-                   m_Control.PETokenEnable = tmpCtrl.PETokenEnable;
-                   m_Control.PEFinishEnable = tmpCtrl.PEFinishEnable;
-                   m_Control.PEToken = 0;   // this flag is write only
-                   m_Control.PEFinish = 0;  // this flag is write only
+                   if (tmpCtrl.pe_finish)
+                     pe.m_signal_finish_interrupt = false;
+
+                   pe.m_control.pe_token_enable = tmpCtrl.pe_token_enable.Value();
+                   pe.m_control.pe_finish_enable = tmpCtrl.pe_finish_enable.Value();
+                   pe.m_control.pe_token = false;   // this flag is write only
+                   pe.m_control.pe_finish = false;  // this flag is write only
 
                    DEBUG_LOG_FMT(PIXELENGINE, "(w16) CTRL_REGISTER: {:#06x}", val);
-                   UpdateInterrupts();
+                   pe.UpdateInterrupts();
                  }));
 
   // Token register, readonly.
-  mmio->Register(base | PE_TOKEN_REG, MMIO::DirectRead<u16>(&s_token), MMIO::InvalidWrite<u16>());
+  mmio->Register(base | PE_TOKEN_REG, MMIO::DirectRead<u16>(&m_token), MMIO::InvalidWrite<u16>());
 
   // BBOX registers, readonly and need to update a flag.
   for (int i = 0; i < 4; ++i)
   {
-    mmio->Register(base | (PE_BBOX_LEFT + 2 * i), MMIO::ComplexRead<u16>([i](u32) {
-                     BoundingBox::Disable();
+    mmio->Register(base | (PE_BBOX_LEFT + 2 * i),
+                   MMIO::ComplexRead<u16>([i](Core::System& system, u32) {
+                     g_bounding_box->Disable(system.GetPixelShaderManager());
                      return g_video_backend->Video_GetBoundingBox(i);
                    }),
                    MMIO::InvalidWrite<u16>());
   }
 }
 
-static void UpdateInterrupts()
+void PixelEngineManager::UpdateInterrupts()
 {
+  auto& system = Core::System::GetInstance();
+  auto& processor_interface = system.GetProcessorInterface();
+
   // check if there is a token-interrupt
-  ProcessorInterface::SetInterrupt(INT_CAUSE_PE_TOKEN,
-                                   s_signal_token_interrupt && m_Control.PETokenEnable);
+  processor_interface.SetInterrupt(INT_CAUSE_PE_TOKEN,
+                                   m_signal_token_interrupt && m_control.pe_token_enable);
 
   // check if there is a finish-interrupt
-  ProcessorInterface::SetInterrupt(INT_CAUSE_PE_FINISH,
-                                   s_signal_finish_interrupt && m_Control.PEFinishEnable);
+  processor_interface.SetInterrupt(INT_CAUSE_PE_FINISH,
+                                   m_signal_finish_interrupt && m_control.pe_finish_enable);
 }
 
-static void SetTokenFinish_OnMainThread(u64 userdata, s64 cyclesLate)
+void PixelEngineManager::SetTokenFinish_OnMainThread_Static(Core::System& system, u64 userdata,
+                                                            s64 cycles_late)
 {
-  std::unique_lock<std::mutex> lk(s_token_finish_mutex);
-  s_event_raised = false;
+  system.GetPixelEngine().SetTokenFinish_OnMainThread(system, userdata, cycles_late);
+}
 
-  s_token = s_token_pending;
+void PixelEngineManager::SetTokenFinish_OnMainThread(Core::System& system, u64 userdata,
+                                                     s64 cycles_late)
+{
+  std::unique_lock<std::mutex> lk(m_token_finish_mutex);
+  m_event_raised = false;
 
-  if (s_token_interrupt_pending)
+  m_token = m_token_pending;
+
+  if (m_token_interrupt_pending)
   {
-    s_token_interrupt_pending = false;
-    s_signal_token_interrupt = true;
+    m_token_interrupt_pending = false;
+    m_signal_token_interrupt = true;
     UpdateInterrupts();
   }
 
-  if (s_finish_interrupt_pending)
+  if (m_finish_interrupt_pending)
   {
-    s_finish_interrupt_pending = false;
-    s_signal_finish_interrupt = true;
+    m_finish_interrupt_pending = false;
+    m_signal_finish_interrupt = true;
     UpdateInterrupts();
     lk.unlock();
     Core::FrameUpdateOnCPUThread();
@@ -275,51 +200,54 @@ static void SetTokenFinish_OnMainThread(u64 userdata, s64 cyclesLate)
 }
 
 // Raise the event handler above on the CPU thread.
-// s_token_finish_mutex must be locked.
+// m_token_finish_mutex must be locked.
 // THIS IS EXECUTED FROM VIDEO THREAD
-static void RaiseEvent()
+void PixelEngineManager::RaiseEvent(Core::System& system, int cycles_into_future)
 {
-  if (s_event_raised)
+  if (m_event_raised)
     return;
 
-  s_event_raised = true;
+  m_event_raised = true;
 
   CoreTiming::FromThread from = CoreTiming::FromThread::NON_CPU;
-  if (!SConfig::GetInstance().bCPUThread || Fifo::UseDeterministicGPUThread())
+  s64 cycles = 0;  // we don't care about timings for dual core mode.
+  if (!system.IsDualCoreMode() || system.GetFifo().UseDeterministicGPUThread())
+  {
     from = CoreTiming::FromThread::CPU;
-  CoreTiming::ScheduleEvent(0, et_SetTokenFinishOnMainThread, 0, from);
+
+    // Hack: Dolphin's single-core gpu timings are way too fast. Enforce a minimum delay to give
+    //       games time to setup any interrupt state
+    cycles = std::max(500, cycles_into_future);
+  }
+  system.GetCoreTiming().ScheduleEvent(cycles, m_event_type_set_token_finish, 0, from);
 }
 
 // SetToken
 // THIS IS EXECUTED FROM VIDEO THREAD
-void SetToken(const u16 token, const bool interrupt)
+void PixelEngineManager::SetToken(Core::System& system, const u16 token, const bool interrupt,
+                                  int cycles_into_future)
 {
   DEBUG_LOG_FMT(PIXELENGINE, "VIDEO Backend raises INT_CAUSE_PE_TOKEN (btw, token: {:04x})", token);
 
-  std::lock_guard<std::mutex> lk(s_token_finish_mutex);
+  std::lock_guard<std::mutex> lk(m_token_finish_mutex);
 
-  s_token_pending = token;
-  s_token_interrupt_pending |= interrupt;
+  m_token_pending = token;
+  m_token_interrupt_pending |= interrupt;
 
-  RaiseEvent();
+  RaiseEvent(system, cycles_into_future);
 }
 
 // SetFinish
 // THIS IS EXECUTED FROM VIDEO THREAD (BPStructs.cpp) when a new frame has been drawn
-void SetFinish()
+void PixelEngineManager::SetFinish(Core::System& system, int cycles_into_future)
 {
   DEBUG_LOG_FMT(PIXELENGINE, "VIDEO Set Finish");
 
-  std::lock_guard<std::mutex> lk(s_token_finish_mutex);
+  std::lock_guard<std::mutex> lk(m_token_finish_mutex);
 
-  s_finish_interrupt_pending |= true;
+  m_finish_interrupt_pending |= true;
 
-  RaiseEvent();
+  RaiseEvent(system, cycles_into_future);
 }
 
-UPEAlphaReadReg GetAlphaReadMode()
-{
-  return m_AlphaRead;
-}
-
-}  // end of namespace PixelEngine
+}  // namespace PixelEngine

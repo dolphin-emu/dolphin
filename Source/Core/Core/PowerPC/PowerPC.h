@@ -1,9 +1,9 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <iosfwd>
 #include <tuple>
@@ -50,12 +50,16 @@ constexpr size_t TLB_WAYS = 2;
 
 struct TLBEntry
 {
+  using WayArray = std::array<u32, TLB_WAYS>;
+
   static constexpr u32 INVALID_TAG = 0xffffffff;
 
-  u32 tag[TLB_WAYS] = {INVALID_TAG, INVALID_TAG};
-  u32 paddr[TLB_WAYS] = {};
-  u32 pte[TLB_WAYS] = {};
-  u8 recent = 0;
+  WayArray tag{INVALID_TAG, INVALID_TAG};
+  WayArray paddr{};
+  WayArray pte{};
+  u32 recent = 0;
+
+  void Invalidate() { tag.fill(INVALID_TAG); }
 };
 
 struct PairedSingle
@@ -96,66 +100,84 @@ struct PairedSingle
 static_assert(std::is_standard_layout<PairedSingle>(), "PairedSingle must be standard layout");
 
 // This contains the entire state of the emulated PowerPC "Gekko" CPU.
+//
+// To minimize code size on x86, we want as much useful stuff in the first 256 bytes as possible.
+// ps needs to be relatively late in the struct due to it being larger than 256 bytes in itself.
+//
+// On AArch64, most load/store instructions support fairly large immediate offsets,
+// but not LDP/STP, which we want to use for accessing certain things.
+// These must be in the first 260 bytes: pc, npc
+// These must be in the first 520 bytes: gather_pipe_ptr, gather_pipe_base_ptr
+// Better code is generated if these are in the first 260 bytes: gpr
+// Better code is generated if these are in the first 520 bytes: ps
+// Unfortunately not all of those fit in 520 bytes, but we can fit most of ps and all of the rest.
 struct PowerPCState
 {
-  u32 gpr[32];  // General purpose registers. r1 = stack pointer.
+  u32 pc = 0;  // program counter
+  u32 npc = 0;
 
-  u32 pc;  // program counter
-  u32 npc;
+  // gather pipe pointer for JIT access
+  u8* gather_pipe_ptr = nullptr;
+  u8* gather_pipe_base_ptr = nullptr;
 
-  ConditionRegister cr;
+  u32 gpr[32]{};  // General purpose registers. r1 = stack pointer.
+
+#ifndef _M_X86_64
+  // The paired singles are strange : PS0 is stored in the full 64 bits of each FPR
+  // but ps calculations are only done in 32-bit precision, and PS1 is only 32 bits.
+  // Since we want to use SIMD, SSE2 is the only viable alternative - 2x double.
+  alignas(16) PairedSingle ps[32];
+#endif
+
+  ConditionRegister cr{};
 
   UReg_MSR msr;      // machine state register
   UReg_FPSCR fpscr;  // floating point flags/status bits
 
   // Exception management.
-  u32 Exceptions;
+  u32 Exceptions = 0;
 
   // Downcount for determining when we need to do timing
   // This isn't quite the right location for it, but it is here to accelerate the ARM JIT
   // This variable should be inside of the CoreTiming namespace if we wanted to be correct.
-  int downcount;
+  int downcount = 0;
 
   // XER, reformatted into byte fields for easier access.
-  u8 xer_ca;
-  u8 xer_so_ov;  // format: (SO << 1) | OV
+  u8 xer_ca = 0;
+  u8 xer_so_ov = 0;  // format: (SO << 1) | OV
   // The Broadway CPU implements bits 16-23 of the XER register... even though it doesn't support
   // lscbx
-  u16 xer_stringctrl;
-
-  // gather pipe pointer for JIT access
-  u8* gather_pipe_ptr;
-  u8* gather_pipe_base_ptr;
+  u16 xer_stringctrl = 0;
 
 #if _M_X86_64
-  // This member exists for the purpose of an assertion in x86 JitBase.cpp
-  // that its offset <= 0x100.  To minimize code size on x86, we want as much
-  // useful stuff in the one-byte offset range as possible - which is why ps
-  // is sitting down here.  It currently doesn't make a difference on other
-  // supported architectures.
+  // This member exists only for the purpose of an assertion that its offset <= 0x100.
   std::tuple<> above_fits_in_first_0x100;
+
+  alignas(16) PairedSingle ps[32];
 #endif
 
-  // The paired singles are strange : PS0 is stored in the full 64 bits of each FPR
-  // but ps calculations are only done in 32-bit precision, and PS1 is only 32 bits.
-  // Since we want to use SIMD, SSE2 is the only viable alternative - 2x double.
-  alignas(16) PairedSingle ps[32];
-
-  u32 sr[16];  // Segment registers.
+  u32 sr[16]{};  // Segment registers.
 
   // special purpose registers - controls quantizers, DMA, and lots of other misc extensions.
   // also for power management, but we don't care about that.
-  u32 spr[1024];
+  // JitArm64 needs 64-bit alignment for SPR_TL.
+  alignas(8) u32 spr[1024]{};
 
   // Storage for the stack pointer of the BLR optimization.
-  u8* stored_stack_pointer;
+  u8* stored_stack_pointer = nullptr;
 
   std::array<std::array<TLBEntry, TLB_SIZE / TLB_WAYS>, NUM_TLBS> tlb;
 
-  u32 pagetable_base;
-  u32 pagetable_hashmask;
+  u32 pagetable_base = 0;
+  u32 pagetable_hashmask = 0;
 
   InstructionCache iCache;
+  bool m_enable_dcache = false;
+  Cache dCache;
+
+  // Reservation monitor for lwarx and its friend stwcxd.
+  bool reserve;
+  u32 reserve_address;
 
   void UpdateCR1()
   {
@@ -163,11 +185,53 @@ struct PowerPCState
   }
 
   void SetSR(u32 index, u32 value);
+
+  void SetCarry(u32 ca) { xer_ca = ca; }
+
+  u32 GetCarry() const { return xer_ca; }
+
+  UReg_XER GetXER() const
+  {
+    u32 xer = 0;
+    xer |= xer_stringctrl;
+    xer |= xer_ca << XER_CA_SHIFT;
+    xer |= xer_so_ov << XER_OV_SHIFT;
+    return UReg_XER{xer};
+  }
+
+  void SetXER(UReg_XER new_xer)
+  {
+    xer_stringctrl = new_xer.BYTE_COUNT + (new_xer.BYTE_CMP << 8);
+    xer_ca = new_xer.CA;
+    xer_so_ov = (new_xer.SO << 1) + new_xer.OV;
+  }
+
+  u32 GetXER_SO() const { return xer_so_ov >> 1; }
+
+  void SetXER_SO(bool value) { xer_so_ov |= static_cast<u32>(value) << 1; }
+
+  u32 GetXER_OV() const { return xer_so_ov & 1; }
+
+  void SetXER_OV(bool value)
+  {
+    xer_so_ov = (xer_so_ov & 0xFE) | static_cast<u32>(value);
+    SetXER_SO(value);
+  }
+
+  void UpdateFPRFDouble(double dvalue);
+  void UpdateFPRFSingle(float fvalue);
 };
 
 #if _M_X86_64
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Winvalid-offsetof"
+#endif
 static_assert(offsetof(PowerPC::PowerPCState, above_fits_in_first_0x100) <= 0x100,
               "top of PowerPCState too big");
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 #endif
 
 extern PowerPCState ppcState;
@@ -210,89 +274,29 @@ void RunLoop();
 u64 ReadFullTimeBaseValue();
 void WriteFullTimeBaseValue(u64 value);
 
-void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst);
+void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst,
+                              PowerPCState& ppc_state);
 
 // Easy register access macros.
-#define HID0 ((UReg_HID0&)PowerPC::ppcState.spr[SPR_HID0])
-#define HID2 ((UReg_HID2&)PowerPC::ppcState.spr[SPR_HID2])
-#define HID4 ((UReg_HID4&)PowerPC::ppcState.spr[SPR_HID4])
-#define DMAU (*(UReg_DMAU*)&PowerPC::ppcState.spr[SPR_DMAU])
-#define DMAL (*(UReg_DMAL*)&PowerPC::ppcState.spr[SPR_DMAL])
-#define MMCR0 ((UReg_MMCR0&)PowerPC::ppcState.spr[SPR_MMCR0])
-#define MMCR1 ((UReg_MMCR1&)PowerPC::ppcState.spr[SPR_MMCR1])
-#define THRM1 ((UReg_THRM12&)PowerPC::ppcState.spr[SPR_THRM1])
-#define THRM2 ((UReg_THRM12&)PowerPC::ppcState.spr[SPR_THRM2])
-#define THRM3 ((UReg_THRM3&)PowerPC::ppcState.spr[SPR_THRM3])
-#define PC PowerPC::ppcState.pc
-#define NPC PowerPC::ppcState.npc
-#define FPSCR PowerPC::ppcState.fpscr
-#define MSR PowerPC::ppcState.msr
-#define GPR(n) PowerPC::ppcState.gpr[n]
+#define HID0(ppc_state) ((UReg_HID0&)(ppc_state).spr[SPR_HID0])
+#define HID2(ppc_state) ((UReg_HID2&)(ppc_state).spr[SPR_HID2])
+#define HID4(ppc_state) ((UReg_HID4&)(ppc_state).spr[SPR_HID4])
+#define DMAU(ppc_state) (*(UReg_DMAU*)&(ppc_state).spr[SPR_DMAU])
+#define DMAL(ppc_state) (*(UReg_DMAL*)&(ppc_state).spr[SPR_DMAL])
+#define MMCR0(ppc_state) ((UReg_MMCR0&)(ppc_state).spr[SPR_MMCR0])
+#define MMCR1(ppc_state) ((UReg_MMCR1&)(ppc_state).spr[SPR_MMCR1])
+#define THRM1(ppc_state) ((UReg_THRM12&)(ppc_state).spr[SPR_THRM1])
+#define THRM2(ppc_state) ((UReg_THRM12&)(ppc_state).spr[SPR_THRM2])
+#define THRM3(ppc_state) ((UReg_THRM3&)(ppc_state).spr[SPR_THRM3])
 
-#define rGPR PowerPC::ppcState.gpr
-#define rSPR(i) PowerPC::ppcState.spr[i]
-#define LR PowerPC::ppcState.spr[SPR_LR]
-#define CTR PowerPC::ppcState.spr[SPR_CTR]
-#define rDEC PowerPC::ppcState.spr[SPR_DEC]
-#define SRR0 PowerPC::ppcState.spr[SPR_SRR0]
-#define SRR1 PowerPC::ppcState.spr[SPR_SRR1]
-#define SPRG0 PowerPC::ppcState.spr[SPR_SPRG0]
-#define SPRG1 PowerPC::ppcState.spr[SPR_SPRG1]
-#define SPRG2 PowerPC::ppcState.spr[SPR_SPRG2]
-#define SPRG3 PowerPC::ppcState.spr[SPR_SPRG3]
-#define GQR(x) PowerPC::ppcState.spr[SPR_GQR0 + (x)]
-#define TL PowerPC::ppcState.spr[SPR_TL]
-#define TU PowerPC::ppcState.spr[SPR_TU]
+#define LR(ppc_state) (ppc_state).spr[SPR_LR]
+#define CTR(ppc_state) (ppc_state).spr[SPR_CTR]
+#define SRR0(ppc_state) (ppc_state).spr[SPR_SRR0]
+#define SRR1(ppc_state) (ppc_state).spr[SPR_SRR1]
+#define GQR(ppc_state, x) (ppc_state).spr[SPR_GQR0 + (x)]
+#define TL(ppc_state) (ppc_state).spr[SPR_TL]
+#define TU(ppc_state) (ppc_state).spr[SPR_TU]
 
-#define rPS(i) (PowerPC::ppcState.ps[(i)])
-
-inline void SetCarry(u32 ca)
-{
-  PowerPC::ppcState.xer_ca = ca;
-}
-
-inline u32 GetCarry()
-{
-  return PowerPC::ppcState.xer_ca;
-}
-
-inline UReg_XER GetXER()
-{
-  u32 xer = 0;
-  xer |= PowerPC::ppcState.xer_stringctrl;
-  xer |= PowerPC::ppcState.xer_ca << XER_CA_SHIFT;
-  xer |= PowerPC::ppcState.xer_so_ov << XER_OV_SHIFT;
-  return UReg_XER{xer};
-}
-
-inline void SetXER(UReg_XER new_xer)
-{
-  PowerPC::ppcState.xer_stringctrl = new_xer.BYTE_COUNT + (new_xer.BYTE_CMP << 8);
-  PowerPC::ppcState.xer_ca = new_xer.CA;
-  PowerPC::ppcState.xer_so_ov = (new_xer.SO << 1) + new_xer.OV;
-}
-
-inline u32 GetXER_SO()
-{
-  return PowerPC::ppcState.xer_so_ov >> 1;
-}
-
-inline void SetXER_SO(bool value)
-{
-  PowerPC::ppcState.xer_so_ov |= static_cast<u32>(value) << 1;
-}
-
-inline u32 GetXER_OV()
-{
-  return PowerPC::ppcState.xer_so_ov & 1;
-}
-
-inline void SetXER_OV(bool value)
-{
-  PowerPC::ppcState.xer_so_ov = (PowerPC::ppcState.xer_so_ov & 0xFE) | static_cast<u32>(value);
-  SetXER_SO(value);
-}
-
-void UpdateFPRF(double dvalue);
+void RoundingModeUpdated();
 
 }  // namespace PowerPC

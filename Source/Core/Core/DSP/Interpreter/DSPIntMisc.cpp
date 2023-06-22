@@ -1,31 +1,27 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 //
 // Additional copyrights go to Duddie and Tratax (c) 2004
 
+#include "Core/DSP/Interpreter/DSPInterpreter.h"
+
 #include "Core/DSP/DSPCore.h"
-#include "Core/DSP/DSPMemoryMap.h"
 #include "Core/DSP/DSPTables.h"
 #include "Core/DSP/Interpreter/DSPIntUtil.h"
-#include "Core/DSP/Interpreter/DSPInterpreter.h"
 
 namespace DSP::Interpreter
 {
 // MRR $D, $S
 // 0001 11dd ddds ssss
 // Move value from register $S to register $D.
-void mrr(const UDSPInstruction opc)
+void Interpreter::mrr(const UDSPInstruction opc)
 {
-  u8 sreg = opc & 0x1f;
-  u8 dreg = (opc >> 5) & 0x1f;
+  const u8 sreg = opc & 0x1f;
+  const u8 dreg = (opc >> 5) & 0x1f;
 
-  if (sreg >= DSP_REG_ACM0)
-    dsp_op_write_reg(dreg, dsp_op_read_reg_and_saturate(sreg - DSP_REG_ACM0));
-  else
-    dsp_op_write_reg(dreg, dsp_op_read_reg(sreg));
+  OpWriteRegister(dreg, OpReadRegister(sreg));
 
-  dsp_conditional_extend_accum(dreg);
+  ConditionalExtendAccum(dreg);
 }
 
 // LRI $D, #I
@@ -37,23 +33,26 @@ void mrr(const UDSPInstruction opc)
 // register, has a different behaviour in S40 mode if loaded to AC0.M: The
 // value gets sign extended to the whole accumulator! This does not happen in
 // S16 mode.
-void lri(const UDSPInstruction opc)
+void Interpreter::lri(const UDSPInstruction opc)
 {
-  u8 reg = opc & 0x1F;
-  u16 imm = dsp_fetch_code();
-  dsp_op_write_reg(reg, imm);
-  dsp_conditional_extend_accum(reg);
+  auto& state = m_dsp_core.DSPState();
+  const u8 reg = opc & 0x1F;
+  const u16 imm = state.FetchInstruction();
+
+  OpWriteRegister(reg, imm);
+  ConditionalExtendAccum(reg);
 }
 
 // LRIS $(0x18+D), #I
 // 0000 1ddd iiii iiii
 // Load immediate value I (8-bit sign extended) to accumulator register.
-void lris(const UDSPInstruction opc)
+void Interpreter::lris(const UDSPInstruction opc)
 {
-  u8 reg = ((opc >> 8) & 0x7) + DSP_REG_AXL0;
-  u16 imm = (s8)opc;
-  dsp_op_write_reg(reg, imm);
-  dsp_conditional_extend_accum(reg);
+  const u8 reg = ((opc >> 8) & 0x7) + DSP_REG_AXL0;
+  const u16 imm = static_cast<u16>(static_cast<s8>(opc));
+
+  OpWriteRegister(reg, imm);
+  ConditionalExtendAccum(reg);
 }
 
 //----
@@ -63,7 +62,7 @@ void lris(const UDSPInstruction opc)
 // No operation, but can be extended with extended opcode.
 // This opcode is supposed to do nothing - it's used if you want to use
 // an opcode extension but not do anything. At least according to duddie.
-void nx(const UDSPInstruction opc)
+void Interpreter::nx(const UDSPInstruction)
 {
   ZeroWriteBackLog();
 }
@@ -73,85 +72,101 @@ void nx(const UDSPInstruction opc)
 // DAR $arD
 // 0000 0000 0000 01dd
 // Decrement address register $arD.
-void dar(const UDSPInstruction opc)
+void Interpreter::dar(const UDSPInstruction opc)
 {
-  g_dsp.r.ar[opc & 0x3] = dsp_decrement_addr_reg(opc & 0x3);
+  auto& state = m_dsp_core.DSPState();
+  const u16 index = opc & 3;
+
+  state.r.ar[index] = DecrementAddressRegister(index);
 }
 
 // IAR $arD
 // 0000 0000 0000 10dd
 // Increment address register $arD.
-void iar(const UDSPInstruction opc)
+void Interpreter::iar(const UDSPInstruction opc)
 {
-  g_dsp.r.ar[opc & 0x3] = dsp_increment_addr_reg(opc & 0x3);
+  auto& state = m_dsp_core.DSPState();
+  const u16 index = opc & 3;
+
+  state.r.ar[index] = IncrementAddressRegister(index);
 }
 
 // SUBARN $arD
 // 0000 0000 0000 11dd
 // Subtract indexing register $ixD from an addressing register $arD.
 // used only in IPL-NTSC ucode
-void subarn(const UDSPInstruction opc)
+void Interpreter::subarn(const UDSPInstruction opc)
 {
-  u8 dreg = opc & 0x3;
-  g_dsp.r.ar[dreg] = dsp_decrease_addr_reg(dreg, (s16)g_dsp.r.ix[dreg]);
+  auto& state = m_dsp_core.DSPState();
+  const u8 dreg = opc & 0x3;
+
+  state.r.ar[dreg] = DecreaseAddressRegister(dreg, static_cast<s16>(state.r.ix[dreg]));
 }
 
 // ADDARN $arD, $ixS
 // 0000 0000 0001 ssdd
 // Adds indexing register $ixS to an addressing register $arD.
 // It is critical for the Zelda ucode that this one wraps correctly.
-void addarn(const UDSPInstruction opc)
+void Interpreter::addarn(const UDSPInstruction opc)
 {
-  u8 dreg = opc & 0x3;
-  u8 sreg = (opc >> 2) & 0x3;
-  g_dsp.r.ar[dreg] = dsp_increase_addr_reg(dreg, (s16)g_dsp.r.ix[sreg]);
+  auto& state = m_dsp_core.DSPState();
+  const u8 dreg = opc & 0x3;
+  const u8 sreg = (opc >> 2) & 0x3;
+
+  state.r.ar[dreg] = IncreaseAddressRegister(dreg, static_cast<s16>(state.r.ix[sreg]));
 }
 
 //----
 
 // SBCLR #I
 // 0001 0010 aaaa aiii
-// bit of status register $sr. Bit number is calculated by adding 6 to
-// immediate value I.
-void sbclr(const UDSPInstruction opc)
+// Clear bit of status register $sr. Bit number is calculated by adding 6 to immediate value I;
+// thus, bits 6 through 13 (LZ through AM) can be cleared with this instruction.
+void Interpreter::sbclr(const UDSPInstruction opc)
 {
-  u8 bit = (opc & 0x7) + 6;
-  g_dsp.r.sr &= ~(1 << bit);
+  auto& state = m_dsp_core.DSPState();
+  const u8 bit = (opc & 0x7) + 6;
+
+  state.r.sr &= ~(1U << bit);
 }
 
 // SBSET #I
 // 0001 0011 aaaa aiii
-// Set bit of status register $sr. Bit number is calculated by adding 6 to
-// immediate value I.
-void sbset(const UDSPInstruction opc)
+// Set bit of status register $sr. Bit number is calculated by adding 6 to immediate value I;
+// thus, bits 6 through 13 (LZ through AM) can be set with this instruction.
+void Interpreter::sbset(const UDSPInstruction opc)
 {
-  u8 bit = (opc & 0x7) + 6;
-  g_dsp.r.sr |= (1 << bit);
+  auto& state = m_dsp_core.DSPState();
+  const u8 bit = (opc & 0x7) + 6;
+
+  state.r.sr |= (1U << bit);
 }
 
 // This is a bunch of flag setters, flipping bits in SR.
-void srbith(const UDSPInstruction opc)
+void Interpreter::srbith(const UDSPInstruction opc)
 {
+  auto& state = m_dsp_core.DSPState();
+
   ZeroWriteBackLog();
   switch ((opc >> 8) & 0x7)
   {
   case 2:  // M2
-    g_dsp.r.sr &= ~SR_MUL_MODIFY;
+    state.r.sr &= ~SR_MUL_MODIFY;
     break;
   case 3:  // M0
-    g_dsp.r.sr |= SR_MUL_MODIFY;
+    state.r.sr |= SR_MUL_MODIFY;
     break;
   case 4:  // CLR15
-    g_dsp.r.sr &= ~SR_MUL_UNSIGNED;
+    state.r.sr &= ~SR_MUL_UNSIGNED;
     break;
   case 5:  // SET15
-    g_dsp.r.sr |= SR_MUL_UNSIGNED;
+    state.r.sr |= SR_MUL_UNSIGNED;
     break;
   case 6:  // SET16 (CLR40)
-    g_dsp.r.sr &= ~SR_40_MODE_BIT;
+    state.r.sr &= ~SR_40_MODE_BIT;
     break;
   case 7:  // SET40
-    g_dsp.r.sr |= SR_40_MODE_BIT;
+    state.r.sr |= SR_40_MODE_BIT;
     break;
   default:
     break;

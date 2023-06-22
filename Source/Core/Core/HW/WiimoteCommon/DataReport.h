@@ -1,6 +1,5 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -50,7 +49,7 @@ public:
 
   virtual u32 GetDataSize() const = 0;
 
-  u8* data_ptr;
+  u8* data_ptr = nullptr;
 };
 
 std::unique_ptr<DataReportManipulator> MakeDataReportManipulator(InputReportID rpt_id,

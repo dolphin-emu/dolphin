@@ -33,6 +33,9 @@
 
 #include "hidapi.h"
 
+/* As defined in AppKit.h, but we don't need the entire AppKit for a single constant. */
+extern const double NSAppKitVersionNumber;
+
 /* Barrier implementation because Mac OSX doesn't have pthread_barrier.
    It also doesn't have clock_gettime(). So much for POSIX and SUSv2.
    This implementation came from Brent Priddy and was posted on
@@ -177,6 +180,7 @@ static void free_hid_device(hid_device *dev)
 }
 
 static	IOHIDManagerRef hid_mgr = 0x0;
+static	int is_macos_10_10_or_greater = 0;
 
 
 #if 0
@@ -390,6 +394,7 @@ static int init_hid_manager(void)
 int HID_API_EXPORT hid_init(void)
 {
 	if (!hid_mgr) {
+		is_macos_10_10_or_greater = (NSAppKitVersionNumber >= 1343); /* NSAppKitVersionNumber10_10 */
 		return init_hid_manager();
 	}
 
@@ -562,11 +567,10 @@ hid_device * HID_API_EXPORT hid_open(unsigned short vendor_id, unsigned short pr
 static void hid_device_removal_callback(void *context, IOReturn result,
                                         void *sender)
 {
-	/* Stop the Run Loop for this device. */
-	hid_device *d = context;
-
-	d->disconnected = 1;
-	CFRunLoopStop(d->run_loop);
+	/* Stop the Run Loop for this device. This callback will always
+	   be called on the device's registered run loop, so we can just
+	   get the current loop. */		
+	CFRunLoopStop(CFRunLoopGetCurrent());
 }
 
 /* The Run Loop calls this function for each input report received.
@@ -658,7 +662,7 @@ static void *read_thread(void *param)
 	while (!dev->shutdown_thread && !dev->disconnected) {
 		code = CFRunLoopRunInMode(dev->run_loop_mode, 1000/*sec*/, FALSE);
 		/* Return if the device has been disconnected */
-		if (code == kCFRunLoopRunFinished) {
+		if (code == kCFRunLoopRunFinished || code == kCFRunLoopRunStopped) {
 			dev->disconnected = 1;
 			break;
 		}
@@ -990,7 +994,7 @@ void HID_API_EXPORT hid_close(hid_device *dev)
 		return;
 
 	/* Disconnect the report callback before close. */
-	if (!dev->disconnected) {
+	if (is_macos_10_10_or_greater || !dev->disconnected) {
 		IOHIDDeviceRegisterInputReportCallback(
 			dev->device_handle, dev->input_report_buf, dev->max_input_report_len,
 			NULL, dev);
@@ -1014,8 +1018,14 @@ void HID_API_EXPORT hid_close(hid_device *dev)
 
 	/* Close the OS handle to the device, but only if it's not
 	   been unplugged. If it's been unplugged, then calling
-	   IOHIDDeviceClose() will crash. */
-	if (!dev->disconnected) {
+	   IOHIDDeviceClose() will crash.
+
+	   UPD: The crash part was true in/until some version of macOS.
+	   Starting with macOS 10.15, there is an opposite effect in some environments:
+	   crash happenes if IOHIDDeviceClose() is not called.
+	   Not leaking a resource in all tested environments.
+	*/
+	if (is_macos_10_10_or_greater || !dev->disconnected) {
 		IOHIDDeviceClose(dev->device_handle, kIOHIDOptionsTypeSeizeDevice);
 	}
 

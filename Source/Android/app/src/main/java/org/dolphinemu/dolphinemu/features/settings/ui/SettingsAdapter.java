@@ -1,58 +1,86 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.ui;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
+import android.provider.DocumentsContract;
+import android.text.format.DateFormat;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
-import android.widget.SeekBar;
 import android.widget.TextView;
 
+import androidx.annotation.ColorInt;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.color.MaterialColors;
+import com.google.android.material.datepicker.CalendarConstraints;
+import com.google.android.material.datepicker.MaterialDatePicker;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.elevation.ElevationOverlayProvider;
+import com.google.android.material.slider.Slider;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.timepicker.MaterialTimePicker;
+import com.google.android.material.timepicker.TimeFormat;
+
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.dialogs.MotionAlertDialog;
-import org.dolphinemu.dolphinemu.features.settings.model.AdHocBooleanSetting;
+import org.dolphinemu.dolphinemu.databinding.DialogAdvancedMappingBinding;
+import org.dolphinemu.dolphinemu.databinding.DialogInputStringBinding;
+import org.dolphinemu.dolphinemu.databinding.DialogSliderBinding;
+import org.dolphinemu.dolphinemu.databinding.ListItemHeaderBinding;
+import org.dolphinemu.dolphinemu.databinding.ListItemMappingBinding;
+import org.dolphinemu.dolphinemu.databinding.ListItemSettingBinding;
+import org.dolphinemu.dolphinemu.databinding.ListItemSettingSwitchBinding;
+import org.dolphinemu.dolphinemu.databinding.ListItemSubmenuBinding;
+import org.dolphinemu.dolphinemu.features.input.ui.AdvancedMappingDialog;
+import org.dolphinemu.dolphinemu.features.input.ui.MotionAlertDialog;
+import org.dolphinemu.dolphinemu.features.input.model.view.InputMappingControlSetting;
+import org.dolphinemu.dolphinemu.features.input.ui.viewholder.InputMappingControlSettingViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
-import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.view.CheckBoxSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.view.DateTimeChoiceSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.view.SwitchSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.FilePicker;
 import org.dolphinemu.dolphinemu.features.settings.model.view.FloatSliderSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.view.InputBindingSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.IntSliderSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.view.RumbleBindingSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SingleChoiceSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SingleChoiceSettingDynamicDescriptions;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SliderSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.view.InputStringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.StringSingleChoiceSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SubmenuSetting;
-import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.CheckBoxSettingViewHolder;
+import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.DateTimeSettingViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.FilePickerViewHolder;
+import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.HeaderHyperLinkViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.HeaderViewHolder;
-import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.InputBindingSettingViewHolder;
-import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.RumbleBindingViewHolder;
+import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.InputStringSettingViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.RunRunnableViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SettingViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SingleChoiceViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SliderViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SubmenuViewHolder;
-import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
+import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SwitchSettingViewHolder;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.Log;
+import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.security.InvalidParameterException;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.Calendar;
+import java.util.TimeZone;
 
 public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolder>
-        implements DialogInterface.OnClickListener, SeekBar.OnSeekBarChangeListener
+        implements DialogInterface.OnClickListener, Slider.OnChangeListener
 {
   private final SettingsFragmentView mView;
   private final Context mContext;
@@ -60,7 +88,6 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
   private SettingsItem mClickedItem;
   private int mClickedPosition;
-  private int mSeekbarMinValue;
   private int mSeekbarProgress;
 
   private AlertDialog mDialog;
@@ -73,51 +100,49 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     mClickedPosition = -1;
   }
 
+  @NonNull
   @Override
-  public SettingViewHolder onCreateViewHolder(ViewGroup parent, int viewType)
+  public SettingViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType)
   {
-    View view;
     LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-
     switch (viewType)
     {
       case SettingsItem.TYPE_HEADER:
-        view = inflater.inflate(R.layout.list_item_settings_header, parent, false);
-        return new HeaderViewHolder(view, this);
+        return new HeaderViewHolder(ListItemHeaderBinding.inflate(inflater), this);
 
-      case SettingsItem.TYPE_CHECKBOX:
-        view = inflater.inflate(R.layout.list_item_setting_checkbox, parent, false);
-        return new CheckBoxSettingViewHolder(view, this);
+      case SettingsItem.TYPE_SWITCH:
+        return new SwitchSettingViewHolder(ListItemSettingSwitchBinding.inflate(inflater),
+                this);
 
       case SettingsItem.TYPE_STRING_SINGLE_CHOICE:
       case SettingsItem.TYPE_SINGLE_CHOICE_DYNAMIC_DESCRIPTIONS:
       case SettingsItem.TYPE_SINGLE_CHOICE:
-        view = inflater.inflate(R.layout.list_item_setting, parent, false);
-        return new SingleChoiceViewHolder(view, this);
+        return new SingleChoiceViewHolder(ListItemSettingBinding.inflate(inflater), this);
 
       case SettingsItem.TYPE_SLIDER:
-        view = inflater.inflate(R.layout.list_item_setting, parent, false);
-        return new SliderViewHolder(view, this, mContext);
+        return new SliderViewHolder(ListItemSettingBinding.inflate(inflater), this, mContext);
 
       case SettingsItem.TYPE_SUBMENU:
-        view = inflater.inflate(R.layout.list_item_setting_submenu, parent, false);
-        return new SubmenuViewHolder(view, this);
+        return new SubmenuViewHolder(ListItemSubmenuBinding.inflate(inflater), this);
 
-      case SettingsItem.TYPE_INPUT_BINDING:
-        view = inflater.inflate(R.layout.list_item_setting, parent, false);
-        return new InputBindingSettingViewHolder(view, this, mContext);
-
-      case SettingsItem.TYPE_RUMBLE_BINDING:
-        view = inflater.inflate(R.layout.list_item_setting, parent, false);
-        return new RumbleBindingViewHolder(view, this, mContext);
+      case SettingsItem.TYPE_INPUT_MAPPING_CONTROL:
+        return new InputMappingControlSettingViewHolder(ListItemMappingBinding.inflate(inflater),
+                this);
 
       case SettingsItem.TYPE_FILE_PICKER:
-        view = inflater.inflate(R.layout.list_item_setting, parent, false);
-        return new FilePickerViewHolder(view, this);
+        return new FilePickerViewHolder(ListItemSettingBinding.inflate(inflater), this);
 
       case SettingsItem.TYPE_RUN_RUNNABLE:
-        view = inflater.inflate(R.layout.list_item_setting, parent, false);
-        return new RunRunnableViewHolder(view, this, mContext);
+        return new RunRunnableViewHolder(ListItemSettingBinding.inflate(inflater), this, mContext);
+
+      case SettingsItem.TYPE_STRING:
+        return new InputStringSettingViewHolder(ListItemSettingBinding.inflate(inflater), this);
+
+      case SettingsItem.TYPE_HYPERLINK_HEADER:
+        return new HeaderHyperLinkViewHolder(ListItemHeaderBinding.inflate(inflater), this);
+
+      case SettingsItem.TYPE_DATETIME_CHOICE:
+        return new DateTimeSettingViewHolder(ListItemSettingBinding.inflate(inflater), this);
 
       default:
         throw new IllegalArgumentException("Invalid view type: " + viewType);
@@ -125,7 +150,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
   }
 
   @Override
-  public void onBindViewHolder(SettingViewHolder holder, int position)
+  public void onBindViewHolder(@NonNull SettingViewHolder holder, int position)
   {
     holder.bind(getItem(position));
   }
@@ -165,20 +190,52 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     notifyDataSetChanged();
   }
 
-  public void clearSetting(SettingsItem item, int position)
+  public void clearSetting(SettingsItem item)
   {
     item.clear(getSettings());
-    notifyItemChanged(position);
 
     mView.onSettingChanged();
   }
 
-  public void onBooleanClick(CheckBoxSetting item, int position, boolean checked)
+  public void notifyAllSettingsChanged()
   {
-    item.setChecked(getSettings(), checked);
-    notifyItemChanged(position);
+    notifyItemRangeChanged(0, getItemCount());
 
     mView.onSettingChanged();
+  }
+
+  public void onBooleanClick(SwitchSetting item, boolean checked)
+  {
+    item.setChecked(getSettings(), checked);
+
+    mView.onSettingChanged();
+  }
+
+  public void onInputStringClick(InputStringSetting item, int position)
+  {
+    LayoutInflater inflater = LayoutInflater.from(mContext);
+
+    DialogInputStringBinding binding = DialogInputStringBinding.inflate(inflater);
+    TextInputEditText input = binding.input;
+    input.setText(item.getSelectedValue(getSettings()));
+
+    mDialog = new MaterialAlertDialogBuilder(mView.getActivity())
+            .setView(binding.getRoot())
+            .setMessage(item.getDescription())
+            .setPositiveButton(R.string.ok, (dialogInterface, i) ->
+            {
+              String editTextInput = input.getText().toString();
+
+              if (!item.getSelectedValue(mView.getSettings()).equals(editTextInput))
+              {
+                notifyItemChanged(position);
+                mView.onSettingChanged();
+              }
+
+              item.setSelectedValue(mView.getSettings(), editTextInput);
+            })
+            .setNegativeButton(R.string.cancel, null)
+            .show();
   }
 
   public void onSingleChoiceClick(SingleChoiceSetting item, int position)
@@ -188,13 +245,10 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
     int value = getSelectionForSingleChoiceValue(item);
 
-    AlertDialog.Builder builder = new AlertDialog.Builder(mView.getActivity(),
-            R.style.DolphinDialogBase);
-
-    builder.setTitle(item.getNameId());
-    builder.setSingleChoiceItems(item.getChoicesId(), value, this);
-
-    mDialog = builder.show();
+    mDialog = new MaterialAlertDialogBuilder(mView.getActivity())
+            .setTitle(item.getName())
+            .setSingleChoiceItems(item.getChoicesId(), value, this)
+            .show();
   }
 
   public void onStringSingleChoiceClick(StringSingleChoiceSetting item, int position)
@@ -202,14 +256,26 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     mClickedItem = item;
     mClickedPosition = position;
 
-    AlertDialog.Builder builder = new AlertDialog.Builder(mView.getActivity(),
-            R.style.DolphinDialogBase);
+    item.refreshChoicesAndValues();
 
-    builder.setTitle(item.getNameId());
-    builder.setSingleChoiceItems(item.getChoicesId(), item.getSelectValueIndex(getSettings()),
-            this);
-
-    mDialog = builder.show();
+    String[] choices = item.getChoices();
+    int noChoicesAvailableString = item.getNoChoicesAvailableString();
+    if (noChoicesAvailableString != 0 && choices.length == 0)
+    {
+      mDialog = new MaterialAlertDialogBuilder(mView.getActivity())
+              .setTitle(item.getName())
+              .setMessage(noChoicesAvailableString)
+              .setPositiveButton(R.string.ok, null)
+              .show();
+    }
+    else
+    {
+      mDialog = new MaterialAlertDialogBuilder(mView.getActivity())
+              .setTitle(item.getName())
+              .setSingleChoiceItems(item.getChoices(), item.getSelectedValueIndex(getSettings()),
+                      this)
+              .show();
+    }
   }
 
   public void onSingleChoiceDynamicDescriptionsClick(SingleChoiceSettingDynamicDescriptions item,
@@ -220,48 +286,39 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
     int value = getSelectionForSingleChoiceDynamicDescriptionsValue(item);
 
-    AlertDialog.Builder builder = new AlertDialog.Builder(mView.getActivity(),
-            R.style.DolphinDialogBase);
-
-    builder.setTitle(item.getNameId());
-    builder.setSingleChoiceItems(item.getChoicesId(), value, this);
-
-    mDialog = builder.show();
+    mDialog = new MaterialAlertDialogBuilder(mView.getActivity())
+            .setTitle(item.getName())
+            .setSingleChoiceItems(item.getChoicesId(), value, this)
+            .show();
   }
 
   public void onSliderClick(SliderSetting item, int position)
   {
     mClickedItem = item;
     mClickedPosition = position;
-    mSeekbarMinValue = item.getMin();
     mSeekbarProgress = item.getSelectedValue(getSettings());
-    AlertDialog.Builder builder = new AlertDialog.Builder(mView.getActivity(),
-            R.style.DolphinDialogBase);
 
     LayoutInflater inflater = LayoutInflater.from(mView.getActivity());
-    View view = inflater.inflate(R.layout.dialog_seekbar, null);
+    DialogSliderBinding binding = DialogSliderBinding.inflate(inflater);
 
-    builder.setTitle(item.getNameId());
-    builder.setView(view);
-    builder.setPositiveButton(R.string.ok, this);
-    mDialog = builder.show();
-
-    mTextSliderValue = view.findViewById(R.id.text_value);
+    mTextSliderValue = binding.textValue;
     mTextSliderValue.setText(String.valueOf(mSeekbarProgress));
 
-    TextView units = view.findViewById(R.id.text_units);
-    units.setText(item.getUnits());
+    binding.textUnits.setText(item.getUnits());
 
-    SeekBar seekbar = view.findViewById(R.id.seekbar);
+    Slider slider = binding.slider;
+    slider.setValueFrom(item.getMin());
+    slider.setValueTo(item.getMax());
+    slider.setValue(mSeekbarProgress);
+    slider.setStepSize(item.getStepSize());
 
-    // TODO: Once we require API 26, uncomment this line and remove the mSeekbarMinValue variable
-    //seekbar.setMin(item.getMin());
+    slider.addOnChangeListener(this);
 
-    seekbar.setMax(item.getMax() - mSeekbarMinValue);
-    seekbar.setProgress(mSeekbarProgress - mSeekbarMinValue);
-    seekbar.setKeyProgressIncrement(5);
-
-    seekbar.setOnSeekBarChangeListener(this);
+    mDialog = new MaterialAlertDialogBuilder(mView.getActivity())
+            .setTitle(item.getName())
+            .setView(binding.getRoot())
+            .setPositiveButton(R.string.ok, this)
+            .show();
   }
 
   public void onSubmenuClick(SubmenuSetting item)
@@ -269,17 +326,33 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     mView.loadSubMenu(item.getMenuKey());
   }
 
-  public void onInputBindingClick(final InputBindingSetting item, final int position)
+  public void onInputMappingClick(final InputMappingControlSetting item, final int position)
   {
-    final MotionAlertDialog dialog = new MotionAlertDialog(mContext, item, this);
+    if (item.getController().getDefaultDevice().isEmpty() && !mView.isMappingAllDevices())
+    {
+      new MaterialAlertDialogBuilder(mView.getActivity())
+              .setMessage(R.string.input_binding_no_device)
+              .setPositiveButton(R.string.ok, this)
+              .show();
+      return;
+    }
+
+    final MotionAlertDialog dialog = new MotionAlertDialog(mView.getActivity(), item,
+            mView.isMappingAllDevices());
+
+    Drawable background = ContextCompat.getDrawable(mContext, R.drawable.dialog_round);
+    @ColorInt int color = new ElevationOverlayProvider(dialog.getContext()).compositeOverlay(
+            MaterialColors.getColor(dialog.getWindow().getDecorView(), R.attr.colorSurface),
+            dialog.getWindow().getDecorView().getElevation());
+    background.setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
+    dialog.getWindow().setBackgroundDrawable(background);
+
     dialog.setTitle(R.string.input_binding);
-    dialog.setMessage(String.format(mContext.getString(
-            item instanceof RumbleBindingSetting ?
-                    R.string.input_rumble_description : R.string.input_binding_description),
-            mContext.getString(item.getNameId())));
+    dialog.setMessage(String.format(mContext.getString(R.string.input_binding_description),
+            item.getName()));
     dialog.setButton(AlertDialog.BUTTON_NEGATIVE, mContext.getString(R.string.cancel), this);
     dialog.setButton(AlertDialog.BUTTON_NEUTRAL, mContext.getString(R.string.clear),
-            (dialogInterface, i) -> item.clearValue(getSettings()));
+            (dialogInterface, i) -> item.clearValue());
     dialog.setOnDismissListener(dialog1 ->
     {
       notifyItemChanged(position);
@@ -289,33 +362,136 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     dialog.show();
   }
 
-  public void onFilePickerDirectoryClick(SettingsItem item)
+  public void onAdvancedInputMappingClick(final InputMappingControlSetting item, final int position)
   {
-    mClickedItem = item;
+    LayoutInflater inflater = LayoutInflater.from(mContext);
 
-    FileBrowserHelper.openDirectoryPicker(mView.getActivity(), FileBrowserHelper.GAME_EXTENSIONS);
+    DialogAdvancedMappingBinding binding = DialogAdvancedMappingBinding.inflate(inflater);
+
+    final AdvancedMappingDialog dialog = new AdvancedMappingDialog(mContext, binding,
+            item.getControlReference(), item.getController());
+
+    Drawable background = ContextCompat.getDrawable(mContext, R.drawable.dialog_round);
+    @ColorInt int color = new ElevationOverlayProvider(dialog.getContext()).compositeOverlay(
+            MaterialColors.getColor(dialog.getWindow().getDecorView(), R.attr.colorSurface),
+            dialog.getWindow().getDecorView().getElevation());
+    background.setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
+    dialog.getWindow().setBackgroundDrawable(background);
+
+    dialog.setTitle(item.isInput() ?
+            R.string.input_configure_input : R.string.input_configure_output);
+    dialog.setView(binding.getRoot());
+    dialog.setButton(AlertDialog.BUTTON_POSITIVE, mContext.getString(R.string.ok),
+            (dialogInterface, i) ->
+            {
+              item.setValue(dialog.getExpression());
+              notifyItemChanged(position);
+              mView.onSettingChanged();
+            });
+    dialog.setButton(AlertDialog.BUTTON_NEGATIVE, mContext.getString(R.string.cancel), this);
+    dialog.setButton(AlertDialog.BUTTON_NEUTRAL, mContext.getString(R.string.clear),
+            (dialogInterface, i) ->
+            {
+              item.clearValue();
+              notifyItemChanged(position);
+              mView.onSettingChanged();
+            });
+    dialog.setCanceledOnTouchOutside(false);
+    dialog.show();
   }
 
-  public void onFilePickerFileClick(SettingsItem item)
+  public void onFilePickerDirectoryClick(SettingsItem item, int position)
   {
     mClickedItem = item;
+    mClickedPosition = position;
+
+    if (!PermissionsHandler.isExternalStorageLegacy())
+    {
+      new MaterialAlertDialogBuilder(mContext)
+              .setMessage(R.string.path_not_changeable_scoped_storage)
+              .setPositiveButton(R.string.ok, (dialog, i) -> dialog.dismiss())
+              .show();
+    }
+    else
+    {
+      FileBrowserHelper.openDirectoryPicker(mView.getActivity(), FileBrowserHelper.GAME_EXTENSIONS);
+    }
+  }
+
+  public void onFilePickerFileClick(SettingsItem item, int position)
+  {
+    mClickedItem = item;
+    mClickedPosition = position;
     FilePicker filePicker = (FilePicker) item;
 
-    HashSet<String> extensions;
-    switch (filePicker.getRequestType())
+    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+    intent.addCategory(Intent.CATEGORY_OPENABLE);
+    intent.setType("*/*");
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
     {
-      case MainPresenter.REQUEST_SD_FILE:
-        extensions = FileBrowserHelper.RAW_EXTENSION;
-        break;
-      case MainPresenter.REQUEST_GAME_FILE:
-        extensions = FileBrowserHelper.GAME_EXTENSIONS;
-        break;
-      default:
-        throw new InvalidParameterException("Unhandled request code");
+      intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI,
+              filePicker.getSelectedValue(mView.getSettings()));
     }
 
-    FileBrowserHelper.openFilePicker(mView.getActivity(), filePicker.getRequestType(), false,
-            extensions);
+    mView.getActivity().startActivityForResult(intent, filePicker.getRequestType());
+  }
+
+  public void onDateTimeClick(DateTimeChoiceSetting item, int position)
+  {
+    mClickedItem = item;
+    mClickedPosition = position;
+    long storedTime = Long.decode(item.getSelectedValue(mView.getSettings())) * 1000;
+
+    // Helper to extract hour and minute from epoch time
+    Calendar calendar = Calendar.getInstance();
+    calendar.setTimeInMillis(storedTime);
+    calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+    // Start and end epoch times available for the Wii's date picker
+    CalendarConstraints calendarConstraints = new CalendarConstraints.Builder()
+            .setStart(946684800000L)
+            .setEnd(2082672000000L)
+            .build();
+
+    int timeFormat = TimeFormat.CLOCK_12H;
+    if (DateFormat.is24HourFormat(mView.getActivity()))
+    {
+      timeFormat = TimeFormat.CLOCK_24H;
+    }
+
+    MaterialDatePicker<Long> datePicker = MaterialDatePicker.Builder.datePicker()
+            .setSelection(storedTime)
+            .setTitleText(R.string.select_rtc_date)
+            .setCalendarConstraints(calendarConstraints)
+            .build();
+    MaterialTimePicker timePicker = new MaterialTimePicker.Builder()
+            .setTimeFormat(timeFormat)
+            .setHour(calendar.get(Calendar.HOUR_OF_DAY))
+            .setMinute(calendar.get(Calendar.MINUTE))
+            .setTitleText(R.string.select_rtc_time)
+            .build();
+
+    datePicker.addOnPositiveButtonClickListener(
+            selection -> timePicker.show(mView.getActivity().getSupportFragmentManager(),
+                    "TimePicker"));
+    timePicker.addOnPositiveButtonClickListener(selection ->
+    {
+      long epochTime = datePicker.getSelection() / 1000;
+      epochTime += (long) timePicker.getHour() * 60 * 60;
+      epochTime += (long) timePicker.getMinute() * 60;
+      String rtcString = "0x" + Long.toHexString(epochTime);
+      if (!item.getSelectedValue(mView.getSettings()).equals(rtcString))
+      {
+        notifyItemChanged(mClickedPosition);
+        mView.onSettingChanged();
+      }
+
+      item.setSelectedValue(mView.getSettings(), rtcString);
+
+      mClickedItem = null;
+    });
+    datePicker.show(mView.getActivity().getSupportFragmentManager(), "DatePicker");
   }
 
   public void onFilePickerConfirmation(String selectedFile)
@@ -323,25 +499,14 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     FilePicker filePicker = (FilePicker) mClickedItem;
 
     if (!filePicker.getSelectedValue(mView.getSettings()).equals(selectedFile))
+    {
+      notifyItemChanged(mClickedPosition);
       mView.onSettingChanged();
+    }
 
     filePicker.setSelectedValue(mView.getSettings(), selectedFile);
 
     mClickedItem = null;
-  }
-
-  public void setAllLogTypes(boolean value)
-  {
-    Settings settings = mView.getSettings();
-
-    for (Map.Entry<String, String> entry : SettingsFragmentPresenter.LOG_TYPE_NAMES.entrySet())
-    {
-      new AdHocBooleanSetting(Settings.FILE_LOGGER, Settings.SECTION_LOGGER_LOGS, entry.getKey(),
-              false).setBoolean(settings, value);
-    }
-
-    notifyItemRangeChanged(0, getItemCount());
-    mView.onSettingChanged();
   }
 
   public static void clearLog()
@@ -360,25 +525,14 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     }
   }
 
-  private void handleMenuTag(MenuTag menuTag, int value)
+  public void onMenuTagAction(@NonNull MenuTag menuTag, int value)
   {
-    if (menuTag != null)
-    {
-      if (menuTag.isGCPadMenu())
-      {
-        mView.onGcPadSettingChanged(menuTag, value);
-      }
+    mView.onMenuTagAction(menuTag, value);
+  }
 
-      if (menuTag.isWiimoteMenu())
-      {
-        mView.onWiimoteSettingChanged(menuTag, value);
-      }
-
-      if (menuTag.isWiimoteExtensionMenu())
-      {
-        mView.onExtensionSettingChanged(menuTag, value);
-      }
-    }
+  public boolean hasMenuTagActionForValue(@NonNull MenuTag menuTag, int value)
+  {
+    return mView.hasMenuTagActionForValue(menuTag, value);
   }
 
   @Override
@@ -391,8 +545,6 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       int value = getValueForSingleChoiceSelection(scSetting, which);
       if (scSetting.getSelectedValue(getSettings()) != value)
         mView.onSettingChanged();
-
-      handleMenuTag(scSetting.getMenuTag(), value);
 
       scSetting.setSelectedValue(getSettings(), value);
 
@@ -417,8 +569,6 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       String value = scSetting.getValueAt(which);
       if (!scSetting.getSelectedValue(getSettings()).equals(value))
         mView.onSettingChanged();
-
-      handleMenuTag(scSetting.getMenuTag(), which);
 
       scSetting.setSelectedValue(getSettings(), value);
 
@@ -464,20 +614,10 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
   }
 
   @Override
-  public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
+  public void onValueChange(@NonNull Slider slider, float progress, boolean fromUser)
   {
-    mSeekbarProgress = progress + mSeekbarMinValue;
+    mSeekbarProgress = (int) progress;
     mTextSliderValue.setText(String.valueOf(mSeekbarProgress));
-  }
-
-  @Override
-  public void onStartTrackingTouch(SeekBar seekBar)
-  {
-  }
-
-  @Override
-  public void onStopTrackingTouch(SeekBar seekBar)
-  {
   }
 
   private int getValueForSingleChoiceSelection(SingleChoiceSetting item, int which)

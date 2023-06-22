@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ItemGroup>
+    <ClCompile Include="ConvertCommand.cpp" />
+    <ClCompile Include="VerifyCommand.cpp" />
+    <ClCompile Include="ToolHeadlessPlatform.cpp" />
+    <ClCompile Include="ToolMain.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Command.h" />
+    <ClInclude Include="ConvertCommand.h" />
+    <ClInclude Include="VerifyCommand.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="DolphinTool.exe.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="DolphinTool.rc" />
+  </ItemGroup>
+</Project>

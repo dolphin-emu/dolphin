@@ -1,11 +1,11 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "Core/PowerPC/Jit64/Jit.h"
 
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
-#include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 
@@ -105,7 +105,7 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 
   if (single)
   {
-    if (js.op->fprIsStoreSafe[s])
+    if (js.fpr_is_store_safe[s] && js.op->fprIsSingle[s])
     {
       RCOpArg Rs = fpr.Use(s, RCMode::Read);
       RegCache::Realize(Rs);
@@ -144,10 +144,10 @@ void Jit64::stfXXX(UGeckoInstruction inst)
       }
       else
       {
-        RCOpArg Ra = gpr.UseNoImm(a, RCMode::ReadWrite);
+        RCOpArg Ra = gpr.UseNoImm(a, RCMode::Write);
         RegCache::Realize(Ra);
         MemoryExceptionCheck();
-        ADD(32, Ra, Imm32((u32)imm));
+        MOV(32, Ra, Imm32(addr));
       }
     }
     return;

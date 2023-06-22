@@ -1,0 +1,248 @@
+incdir "tests"
+include "dsp_base.inc"
+
+test_main:
+	CLR $acc0
+	CLR $acc1
+	CALL test_cond
+	; 1.  ar0: 9969.  ac0.h: 0000.  sr: 2224
+
+	LRI $ac0.h, #0x0050
+	CALL test_cond
+	; 2.  ar0: 9969.  ac0.h: 0050.  sr: 2224.  LRI doesn't change sr.
+
+	TST $acc0
+	CALL test_cond
+	; 3.  ar0: 9655.  ac0.h: 0050.  sr: 2230
+
+	LRI $ac1.h, #0x0050
+	ADD $acc0, $acc1      ; Causes acc0 to overflow, and thus also become negative
+	CALL test_cond
+	; 4.  ar0: d655.  ac0.h: ffa0.  sr: 22ba
+
+	ADD $acc0, $acc1      ; acc0 is now negative, but not overflowed
+	CALL test_cond
+	; 5.  ar0: 965a.  ac0.h: fff0.  sr: 22b8
+
+	ADD $acc0, $acc1      ; Triggers carry
+	CALL test_cond
+	; 6.  ar0: 9695.  ac0.h: 0040.  sr: 22b1
+
+	CLR $acc1
+	ADD $acc0, $acc1      ; Adding 0 should do nothing
+	CALL test_cond
+	; 7.  ar0: 9655.  ac0.h: 0040.  sr: 22b0
+
+	SUB $acc0, $acc1      ; Subtracting 0 sets the carry flag
+	CALL test_cond
+	; 8.  ar0: 9695.  ac0.h: 0040.  sr: 22b1
+
+	LRI $ac1.h, #0x0050
+	SUB $acc0, $acc1      ; No carry
+	CALL test_cond
+	; 9.  ar0: 965a.  ac0.h: fff0.  sr: 22b8
+
+	SUB $acc0, $acc1      ; Carry
+	CALL test_cond
+	; 10. ar0: 969a.  ac0.h: ffa0.  sr: 22b9
+
+	SUB $acc0, $acc1      ; Carry and overflow
+	CALL test_cond
+	; 11. ar0: d69a.  ac0.h: 0050.  sr: 22b3
+
+	SUB $acc0, $acc1      ; Carry
+	CALL test_cond
+	; 12. ar0: 99a9.  ac0.h: 0000.  sr: 22a5
+
+	LRI $ac1.h, #0xffb0   ; -0x50
+	SUB $acc0, $acc1      ; No carry or overflow
+	CALL test_cond
+	; 13. ar0: 9655.  ac0.h: 0050.  sr: 22b0
+
+	SUB $acc0, $acc1      ; Overflow, no carry
+	CALL test_cond
+	; 14. ar0: d655.  ac0.h: ffa0.  sr: 22ba
+
+	SUB $acc0, $acc1      ; No carry or overflow
+	CALL test_cond
+	; 15. ar0: 965a.  ac0.h: fff0.  sr: 22b8
+
+	SUB $acc0, $acc1      ; Carry
+	CALL test_cond
+	; 16. ar0: 9695.  ac0.h: 0040.  sr: 22b1
+
+	LRI $ac1.h, #0xff80
+	SUB $acc0, $acc1      ; Overflow, no carry
+	CALL test_cond
+	; 17. ar0: d655.  ac0.h: ffc0.  sr: 22ba
+
+	ADD $acc0, $acc1      ; Overflow and carry
+	CALL test_cond
+	; 18. ar0: d69a.  ac0.h: 0040.  sr: 22b3
+
+	LRI $ac1.h, #0xffb0
+	ADD $acc0, $acc1      ; No overflow or carry
+	CALL test_cond
+	; 19. ar0: 965a.  ac0.h: fff0.  sr: 22b8
+
+	ADD $acc0, $acc1      ; Carry
+	CALL test_cond
+	; 20. ar0: 969a.  ac0.h: ffa0.  sr: 22b9
+
+	ADD $acc0, $acc1      ; Overflow and carry
+	CALL test_cond
+	; 21. ar0: d69a.  ac0.h: 0050.  sr: 22b3
+
+	ADD $acc0, $acc1      ; Carry
+	CALL test_cond
+	; 22. ar0: 99a9.  ac0.h: 0000.  sr: 22a5
+
+	CLR $acc1
+	CMP                   ; Compare 0 with 0.  Results in 0 and carry.
+	CALL test_cond
+	; 23. ar0: 99a9.  sr: 22a5
+
+	; Logic zero tests
+	LRIS $ac0.m, #0x01
+	ANDF $ac0.m, #0x0000
+	CALL test_cond
+	; 24. ar0: a9a9.  sr: 22e5
+
+	ANDCF $ac0.m, #0x0000
+	CALL test_cond
+	; 25. ar0: a9a9.  sr: 22e5
+
+	ANDF $ac0.m, #0x0001
+	CALL test_cond
+	; 26. ar0: 99a9.  sr: 22a5
+
+	ANDCF $ac0.m, #0x0001
+	CALL test_cond
+	; 27. ar0: a9a9.  sr: 22e5
+
+	ANDF $ac0.m, #0x0002
+	CALL test_cond
+	; 28. ar0: a9a9.  sr: 22e5
+
+	ANDCF $ac0.m, #0x0002
+	CALL test_cond
+	; 29. ar0: 99a9.  sr: 22a5
+
+	ANDF $ac0.m, #0x0003
+	CALL test_cond
+	; 30. ar0: 99a9.  sr: 22a5
+
+	ANDCF $ac0.m, #0x0003
+	CALL test_cond
+	; 31. ar0: 99a9.  sr: 22a5
+
+	CLR $acc0
+	NEG $acc0             ; 0 - 0, marked as carry
+	CALL test_cond
+	; 32. ar0: 99a9.  ac0.h: 0000.  sr: 22a5
+
+	LRI $ac0.h, #0x0010
+	NEG $acc0
+	CALL test_cond
+	; 33. ar0: 965a.  ac0.h: fff0.  sr: 22b8
+
+	NEG $acc0
+	CALL test_cond
+	; 34. ar0: 9655.  ac0.h: 0010.  sr: 22b0
+
+	LRI $ac0.h, #0xff80
+	NEG $acc0             ; -INT_MIN is INT_MIN.  This generates an overflow.
+	CALL test_cond
+	; 35. ar0: d655.  ac0.h: ff80.  sr: 22ba
+
+	CMP                   ; Compare INT_MIN with 0.  Carry but no overflow.
+	CALL test_cond
+	; 36. ar0: 969a.  ac0.h: ff80.  sr: 22b9
+
+	MOV $acc1, $acc0
+	CALL test_cond
+	; 37. ar0: 965a.  ac0.h: ff80.  sr: 22b8
+
+	TST $acc1
+	CALL test_cond
+	; 38. ar0: 965a.  ac0.h: ff80.  sr: 22b8
+
+	CLR $acc0
+	CMP                   ; Compare 0 with INT_MIN.  Overflow but no carry.
+	CALL test_cond
+	; 39. ar0: d655.  ac0.h: 0000.  sr: 22ba
+
+; We're done, DO NOT DELETE THIS LINE
+	JMP end_of_test
+
+; Test all conditionals, setting bits in $AR0 based on it.
+; $AR0 is used because ADDARN does not update flags.
+test_cond:
+	LRI $AR0, #0x0000
+
+	LRI $IX0, #0x0001
+	IFGE
+	ADDARN $AR0, $IX0
+
+	LRI $IX0, #0x0002
+	IFL
+	ADDARN $AR0, $IX0
+
+	LRI $IX0, #0x0004
+	IFG
+	ADDARN $AR0, $IX0
+
+	LRI $IX0, #0x0008
+	IFLE
+	ADDARN $AR0, $IX0
+
+	LRI $IX0, #0x0010
+	IFNZ
+	ADDARN $AR0, $IX0
+
+	LRI $IX0, #0x0020
+	IFZ
+	ADDARN $AR0, $IX0
+
+	LRI $IX0, #0x0040
+	IFNC
+	ADDARN $AR0, $IX0
+
+	LRI $IX0, #0x0080
+	IFC
+	ADDARN $AR0, $IX0
+
+	LRI $IX0, #0x0100
+	IFx8
+	ADDARN $AR0, $IX0
+
+	LRI $IX0, #0x0200
+	IFx9
+	ADDARN $AR0, $IX0
+
+	LRI $IX0, #0x0400
+	IFxA
+	ADDARN $AR0, $IX0
+
+	LRI $IX0, #0x0800
+	IFxB
+	ADDARN $AR0, $IX0
+
+	LRI $IX0, #0x1000
+	IFLNZ
+	ADDARN $AR0, $IX0
+
+	LRI $IX0, #0x2000
+	IFLZ
+	ADDARN $AR0, $IX0
+
+	LRI $IX0, #0x4000
+	IFO
+	ADDARN $AR0, $IX0
+
+	LRI $IX0, #0x8000
+	IF                ; Always true
+	ADDARN $AR0, $IX0
+
+	CALL send_back
+	RET

@@ -2,6 +2,7 @@
 #include <vector>
 #include "Common/CommonFuncs.h"
 #include "Common/MemoryUtil.h"
+#include "Core/Core.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DVD/DVDInterface.h"
@@ -13,6 +14,7 @@
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 bool SlippiSavestate::shouldForceInit;
 
@@ -108,11 +110,13 @@ void SlippiSavestate::initBackupLocs()
     return;
   }
 
+  ASSERT(Core::IsCPUThread());
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
   // Get Main Heap Boundaries
-  fullBackupRegions[3].startAddress = PowerPC::HostRead_U32(0x804d76b8);
-  fullBackupRegions[3].endAddress = PowerPC::HostRead_U32(0x804d76bc);
-  WARN_LOG(SLIPPI_ONLINE, "Heap start is: 0x%X", fullBackupRegions[3].startAddress);
-  WARN_LOG(SLIPPI_ONLINE, "Heap end is: 0x%X", fullBackupRegions[3].endAddress);
+  fullBackupRegions[3].startAddress = PowerPC::HostRead_U32(guard, 0x804d76b8);
+  fullBackupRegions[3].endAddress = PowerPC::HostRead_U32(guard, 0x804d76bc);
+  WARN_LOG_FMT(SLIPPI_ONLINE, "Heap start is: {:#x}", fullBackupRegions[3].startAddress);
+  WARN_LOG_FMT(SLIPPI_ONLINE, "Heap end is: {:#x}", fullBackupRegions[3].endAddress);
 
   // Sort exclude sections
   std::sort(excludeSections.begin(), excludeSections.end(), cmpFn);
@@ -194,7 +198,7 @@ void SlippiSavestate::getDolphinState(PointerWrap& p)
   // p.DoMarker("DVDInterface");
   // GPFifo::DoState(p);
   // p.DoMarker("GPFifo");
-  ExpansionInterface::DoState(p);
+  Core::System::GetInstance().GetExpansionInterface().DoState(p);
   p.DoMarker("ExpansionInterface");
   // AudioInterface::DoState(p);
   // p.DoMarker("AudioInterface");
@@ -206,7 +210,7 @@ void SlippiSavestate::Capture()
   for (auto it = backupLocs.begin(); it != backupLocs.end(); ++it)
   {
     auto size = it->endAddress - it->startAddress;
-    Memory::CopyFromEmu(it->data, it->startAddress, size);
+    Core::System::GetInstance().GetMemory().CopyFromEmu(it->data, it->startAddress, size);
   }
 
   //// Second copy dolphin states
@@ -228,6 +232,7 @@ void SlippiSavestate::Load(std::vector<PreserveBlock> blocks)
   // {
   //  blocks.push_back(*it);
   // }
+  auto& memory = Core::System::GetInstance().GetMemory();
 
   // Back up
   for (auto it = blocks.begin(); it != blocks.end(); ++it)
@@ -238,14 +243,14 @@ void SlippiSavestate::Load(std::vector<PreserveBlock> blocks)
       preservationMap[*it] = std::vector<u8>(it->length);
     }
 
-    Memory::CopyFromEmu(&preservationMap[*it][0], it->address, it->length);
+    memory.CopyFromEmu(&preservationMap[*it][0], it->address, it->length);
   }
 
   // Restore memory blocks
   for (auto it = backupLocs.begin(); it != backupLocs.end(); ++it)
   {
     auto size = it->endAddress - it->startAddress;
-    Memory::CopyToEmu(it->startAddress, it->data, size);
+    memory.CopyToEmu(it->startAddress, it->data, size);
   }
 
   //// Restore audio
@@ -256,6 +261,6 @@ void SlippiSavestate::Load(std::vector<PreserveBlock> blocks)
   // Restore
   for (auto it = blocks.begin(); it != blocks.end(); ++it)
   {
-    Memory::CopyToEmu(it->address, &preservationMap[*it][0], it->length);
+    memory.CopyToEmu(it->address, &preservationMap[*it][0], it->length);
   }
 }

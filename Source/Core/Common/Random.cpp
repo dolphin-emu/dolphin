@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/Random.h"
 
@@ -11,10 +10,10 @@
 
 namespace Common::Random
 {
-class CSPRNG final
+class EntropySeededPRNG final
 {
 public:
-  CSPRNG()
+  EntropySeededPRNG()
   {
     mbedtls_entropy_init(&m_entropy);
     mbedtls_hmac_drbg_init(&m_context);
@@ -23,7 +22,7 @@ public:
     ASSERT(ret == 0);
   }
 
-  ~CSPRNG()
+  ~EntropySeededPRNG()
   {
     mbedtls_hmac_drbg_free(&m_context);
     mbedtls_entropy_free(&m_entropy);
@@ -40,10 +39,10 @@ private:
   mbedtls_hmac_drbg_context m_context;
 };
 
-static thread_local CSPRNG s_csprng;
+static thread_local EntropySeededPRNG s_esprng;
 
 void Generate(void* buffer, std::size_t size)
 {
-  s_csprng.Generate(buffer, size);
+  s_esprng.Generate(buffer, size);
 }
 }  // namespace Common::Random

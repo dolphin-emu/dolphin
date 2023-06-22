@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/DSP/Jit/x64/DSPJitTables.h"
 
@@ -20,7 +19,7 @@ struct JITOpInfo
 };
 
 // clang-format off
-const std::array<JITOpInfo, 214> s_opcodes =
+const std::array<JITOpInfo, 125> s_opcodes =
 {{
   {0x0000, 0xfffc, &DSPEmitter::nop},
 
@@ -31,109 +30,19 @@ const std::array<JITOpInfo, 214> s_opcodes =
 
   {0x0021, 0xffff, &DSPEmitter::halt},
 
-  {0x02d0, 0xffff, &DSPEmitter::ret},
-  {0x02d1, 0xffff, &DSPEmitter::ret},
-  {0x02d2, 0xffff, &DSPEmitter::ret},
-  {0x02d3, 0xffff, &DSPEmitter::ret},
-  {0x02d4, 0xffff, &DSPEmitter::ret},
-  {0x02d5, 0xffff, &DSPEmitter::ret},
-  {0x02d6, 0xffff, &DSPEmitter::ret},
-  {0x02d7, 0xffff, &DSPEmitter::ret},
-  {0x02d8, 0xffff, &DSPEmitter::ret},
-  {0x02d9, 0xffff, &DSPEmitter::ret},
-  {0x02da, 0xffff, &DSPEmitter::ret},
-  {0x02db, 0xffff, &DSPEmitter::ret},
-  {0x02dc, 0xffff, &DSPEmitter::ret},
-  {0x02dd, 0xffff, &DSPEmitter::ret},
-  {0x02de, 0xffff, &DSPEmitter::ret},
-  {0x02df, 0xffff, &DSPEmitter::ret},
+  {0x02d0, 0xfff0, &DSPEmitter::ret},
 
-  {0x02ff, 0xffff, &DSPEmitter::rti},
+  {0x02f0, 0xfff0, &DSPEmitter::rti},
 
-  {0x02b0, 0xffff, &DSPEmitter::call},
-  {0x02b1, 0xffff, &DSPEmitter::call},
-  {0x02b2, 0xffff, &DSPEmitter::call},
-  {0x02b3, 0xffff, &DSPEmitter::call},
-  {0x02b4, 0xffff, &DSPEmitter::call},
-  {0x02b5, 0xffff, &DSPEmitter::call},
-  {0x02b6, 0xffff, &DSPEmitter::call},
-  {0x02b7, 0xffff, &DSPEmitter::call},
-  {0x02b8, 0xffff, &DSPEmitter::call},
-  {0x02b9, 0xffff, &DSPEmitter::call},
-  {0x02ba, 0xffff, &DSPEmitter::call},
-  {0x02bb, 0xffff, &DSPEmitter::call},
-  {0x02bc, 0xffff, &DSPEmitter::call},
-  {0x02bd, 0xffff, &DSPEmitter::call},
-  {0x02be, 0xffff, &DSPEmitter::call},
-  {0x02bf, 0xffff, &DSPEmitter::call},
+  {0x02b0, 0xfff0, &DSPEmitter::call},
 
-  {0x0270, 0xffff, &DSPEmitter::ifcc},
-  {0x0271, 0xffff, &DSPEmitter::ifcc},
-  {0x0272, 0xffff, &DSPEmitter::ifcc},
-  {0x0273, 0xffff, &DSPEmitter::ifcc},
-  {0x0274, 0xffff, &DSPEmitter::ifcc},
-  {0x0275, 0xffff, &DSPEmitter::ifcc},
-  {0x0276, 0xffff, &DSPEmitter::ifcc},
-  {0x0277, 0xffff, &DSPEmitter::ifcc},
-  {0x0278, 0xffff, &DSPEmitter::ifcc},
-  {0x0279, 0xffff, &DSPEmitter::ifcc},
-  {0x027a, 0xffff, &DSPEmitter::ifcc},
-  {0x027b, 0xffff, &DSPEmitter::ifcc},
-  {0x027c, 0xffff, &DSPEmitter::ifcc},
-  {0x027d, 0xffff, &DSPEmitter::ifcc},
-  {0x027e, 0xffff, &DSPEmitter::ifcc},
-  {0x027f, 0xffff, &DSPEmitter::ifcc},
+  {0x0270, 0xfff0, &DSPEmitter::ifcc},
 
-  {0x0290, 0xffff, &DSPEmitter::jcc},
-  {0x0291, 0xffff, &DSPEmitter::jcc},
-  {0x0292, 0xffff, &DSPEmitter::jcc},
-  {0x0293, 0xffff, &DSPEmitter::jcc},
-  {0x0294, 0xffff, &DSPEmitter::jcc},
-  {0x0295, 0xffff, &DSPEmitter::jcc},
-  {0x0296, 0xffff, &DSPEmitter::jcc},
-  {0x0297, 0xffff, &DSPEmitter::jcc},
-  {0x0298, 0xffff, &DSPEmitter::jcc},
-  {0x0299, 0xffff, &DSPEmitter::jcc},
-  {0x029a, 0xffff, &DSPEmitter::jcc},
-  {0x029b, 0xffff, &DSPEmitter::jcc},
-  {0x029c, 0xffff, &DSPEmitter::jcc},
-  {0x029d, 0xffff, &DSPEmitter::jcc},
-  {0x029e, 0xffff, &DSPEmitter::jcc},
-  {0x029f, 0xffff, &DSPEmitter::jcc},
+  {0x0290, 0xfff0, &DSPEmitter::jcc},
 
-  {0x1700, 0xff1f, &DSPEmitter::jmprcc},
-  {0x1701, 0xff1f, &DSPEmitter::jmprcc},
-  {0x1702, 0xff1f, &DSPEmitter::jmprcc},
-  {0x1703, 0xff1f, &DSPEmitter::jmprcc},
-  {0x1704, 0xff1f, &DSPEmitter::jmprcc},
-  {0x1705, 0xff1f, &DSPEmitter::jmprcc},
-  {0x1706, 0xff1f, &DSPEmitter::jmprcc},
-  {0x1707, 0xff1f, &DSPEmitter::jmprcc},
-  {0x1708, 0xff1f, &DSPEmitter::jmprcc},
-  {0x1709, 0xff1f, &DSPEmitter::jmprcc},
-  {0x170a, 0xff1f, &DSPEmitter::jmprcc},
-  {0x170b, 0xff1f, &DSPEmitter::jmprcc},
-  {0x170c, 0xff1f, &DSPEmitter::jmprcc},
-  {0x170d, 0xff1f, &DSPEmitter::jmprcc},
-  {0x170e, 0xff1f, &DSPEmitter::jmprcc},
-  {0x170f, 0xff1f, &DSPEmitter::jmprcc},
+  {0x1700, 0xff10, &DSPEmitter::jmprcc},
 
-  {0x1710, 0xff1f, &DSPEmitter::callr},
-  {0x1711, 0xff1f, &DSPEmitter::callr},
-  {0x1712, 0xff1f, &DSPEmitter::callr},
-  {0x1713, 0xff1f, &DSPEmitter::callr},
-  {0x1714, 0xff1f, &DSPEmitter::callr},
-  {0x1715, 0xff1f, &DSPEmitter::callr},
-  {0x1716, 0xff1f, &DSPEmitter::callr},
-  {0x1717, 0xff1f, &DSPEmitter::callr},
-  {0x1718, 0xff1f, &DSPEmitter::callr},
-  {0x1719, 0xff1f, &DSPEmitter::callr},
-  {0x171a, 0xff1f, &DSPEmitter::callr},
-  {0x171b, 0xff1f, &DSPEmitter::callr},
-  {0x171c, 0xff1f, &DSPEmitter::callr},
-  {0x171d, 0xff1f, &DSPEmitter::callr},
-  {0x171e, 0xff1f, &DSPEmitter::callr},
-  {0x171f, 0xff1f, &DSPEmitter::callr},
+  {0x1710, 0xff10, &DSPEmitter::callr},
 
   {0x1200, 0xff00, &DSPEmitter::sbclr},
   {0x1300, 0xff00, &DSPEmitter::sbset},
@@ -192,7 +101,8 @@ const std::array<JITOpInfo, 214> s_opcodes =
 
   // 2
   {0x2000, 0xf800, &DSPEmitter::lrs},
-  {0x2800, 0xf800, &DSPEmitter::srs},
+  {0x2800, 0xfe00, &DSPEmitter::srsh},
+  {0x2c00, 0xfc00, &DSPEmitter::srs},
 
   // opcodes that can be extended
 
@@ -268,7 +178,7 @@ const std::array<JITOpInfo, 214> s_opcodes =
 
   // C-D
   {0xc000, 0xe700, &DSPEmitter::mulc},
-  {0xc100, 0xe700, &DSPEmitter::cmpar},
+  {0xc100, 0xe700, &DSPEmitter::cmpaxh},
   {0xc200, 0xe600, &DSPEmitter::mulcmvz},
   {0xc400, 0xe600, &DSPEmitter::mulcac},
   {0xc600, 0xe600, &DSPEmitter::mulcmv},

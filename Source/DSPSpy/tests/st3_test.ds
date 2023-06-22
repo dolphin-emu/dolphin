@@ -1,0 +1,25 @@
+; This test checks when $st3 gets decremented during BLOOP{,I} iterations.
+; Expected $st3 values are: 2, 1, 0x0b88, 2, 1, 0x0b88.
+
+incdir  "tests"
+include "dsp_base.inc"
+
+test_main:
+	LRI $ac0.l, #2
+	BLOOP $ac0.l, last_of_bloop
+	CALL send_back
+	NOP
+	NOP
+last_of_bloop:
+	NOP
+	CALL send_back
+
+	BLOOPI #2, last_of_bloopi
+	CALL send_back
+	NOP
+	NOP
+last_of_bloopi:
+	NOP
+	CALL send_back
+
+	JMP end_of_test

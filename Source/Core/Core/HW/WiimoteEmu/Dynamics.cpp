@@ -1,11 +1,11 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/WiimoteEmu/Dynamics.h"
 
 #include <algorithm>
 #include <cmath>
+#include <optional>
 
 #include "Common/MathUtil.h"
 #include "Core/Config/SYSCONFSettings.h"
@@ -80,10 +80,6 @@ Common::Quaternion ComplementaryFilter(const Common::Quaternion& gyroscope,
   }
 }
 
-IMUCursorState::IMUCursorState() : rotation{Common::Quaternion::Identity()}
-{
-}
-
 void EmulateShake(PositionalState* state, ControllerEmu::Shake* const shake_group,
                   float time_elapsed)
 {
@@ -120,9 +116,19 @@ void EmulateTilt(RotationalState* state, ControllerEmu::Tilt* const tilt_group, 
   const ControlState roll = target.x * MathUtil::PI;
   const ControlState pitch = target.y * MathUtil::PI;
 
+  const auto target_angle = Common::Vec3(pitch, -roll, 0);
+
+  // For each axis, wrap around current angle if target is farther than 180 degrees.
+  for (std::size_t i = 0; i != target_angle.data.size(); ++i)
+  {
+    auto& angle = state->angle.data[i];
+    if (std::abs(angle - target_angle.data[i]) > float(MathUtil::PI))
+      angle -= std::copysign(MathUtil::TAU, angle);
+  }
+
   const auto max_accel = std::pow(tilt_group->GetMaxRotationalVelocity(), 2) / MathUtil::TAU;
 
-  ApproachAngleWithAccel(state, Common::Vec3(pitch, -roll, 0), max_accel, time_elapsed);
+  ApproachAngleWithAccel(state, target_angle, max_accel, time_elapsed);
 }
 
 void EmulateSwing(MotionState* state, ControllerEmu::Force* swing_group, float time_elapsed)
@@ -216,9 +222,10 @@ WiimoteCommon::AccelData ConvertAccelData(const Common::Vec3& accel, u16 zero_g,
        u16(std::clamp(std::lround(scaled_accel.z + zero_g), 0l, MAX_VALUE))});
 }
 
-void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group, float time_elapsed)
+void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
+                  const ControllerEmu::InputOverrideFunction& override_func, float time_elapsed)
 {
-  const auto cursor = ir_group->GetState(true);
+  const auto cursor = ir_group->GetState(true, override_func);
 
   if (!cursor.IsVisible())
   {
@@ -315,10 +322,10 @@ void EmulateIMUCursor(IMUCursorState* state, ControllerEmu::IMUCursor* imu_ir_gr
   state->rotation = gyro_rotation * state->rotation;
 
   // If we have some non-zero accel data use it to adjust gyro drift.
-  constexpr auto ACCEL_WEIGHT = 0.02f;
+  const auto accel_weight = imu_ir_group->GetAccelWeight();
   auto const accel = imu_accelerometer_group->GetState().value_or(Common::Vec3{});
   if (accel.LengthSquared())
-    state->rotation = ComplementaryFilter(state->rotation, accel, ACCEL_WEIGHT);
+    state->rotation = ComplementaryFilter(state->rotation, accel, accel_weight);
 
   // Clamp yaw within configured bounds.
   const auto yaw = GetYaw(state->rotation);
@@ -391,7 +398,9 @@ Common::Quaternion GetRotationFromAcceleration(const Common::Vec3& accel)
 
 Common::Quaternion GetRotationFromGyroscope(const Common::Vec3& gyro)
 {
-  return Common::Quaternion{1, gyro.x / 2, gyro.y / 2, gyro.z / 2};
+  const auto length = gyro.Length();
+  return (length != 0) ? Common::Quaternion::Rotate(length, gyro / length) :
+                         Common::Quaternion::Identity();
 }
 
 Common::Matrix33 GetRotationalMatrix(const Common::Vec3& angle)

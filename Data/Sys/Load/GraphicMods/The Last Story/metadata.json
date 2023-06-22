@@ -1,0 +1,157 @@
+{
+	"meta":
+	{
+		"title": "Bloom and HUD Texture Definitions",
+		"author": "iwubcode"
+	},
+	"groups":
+	[
+		{
+			"name": "HUD",
+			"targets": [
+				{
+					"type": "draw_started",
+					"pretty_name": "faces",
+					"texture_filename": "tex1_512x256_ff742945bb1f5cd6_14"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"pretty_name": "faces",
+					"texture_filename": "tex1_512x256_ff742945bb1f5cd6_14"
+				},
+				{
+					"type": "draw_started",
+					"pretty_name": "text",
+					"texture_filename": "tex1_512x512_09ca8ef639199fa9_0"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"pretty_name": "text",
+					"texture_filename": "tex1_512x512_09ca8ef639199fa9_0"
+				},
+				{
+					"type": "draw_started",
+					"pretty_name": "text2",
+					"texture_filename": "tex1_512x512_79e54f19ff7811de_0"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"pretty_name": "text2",
+					"texture_filename": "tex1_512x512_79e54f19ff7811de_0"
+				},
+				{
+					"type": "draw_started",
+					"pretty_name": "text3",
+					"texture_filename": "tex1_512x256_cb8c5f14fa63398f_0"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"pretty_name": "text3",
+					"texture_filename": "tex1_512x256_cb8c5f14fa63398f_0"
+				},
+				{
+					"type": "draw_started",
+					"pretty_name": "text4",
+					"texture_filename": "tex1_256x256_d315e7747da82c51_2"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"pretty_name": "text4",
+					"texture_filename": "tex1_256x256_d315e7747da82c51_2"
+				},
+				{
+					"type": "draw_started",
+					"pretty_name": "text5",
+					"texture_filename": "tex1_256x256_3b4f6a3796d8e193_0"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"pretty_name": "text5",
+					"texture_filename": "tex1_256x256_3b4f6a3796d8e193_0"
+				},
+				{
+					"type": "draw_started",
+					"pretty_name": "text6",
+					"texture_filename": "tex1_256x128_50cf981847978524_0"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"pretty_name": "text6",
+					"texture_filename": "tex1_256x128_50cf981847978524_0"
+				},
+				{
+					"type": "draw_started",
+					"pretty_name": "text7",
+					"texture_filename": "tex1_128x128_73d3f8a2f0347b4a_0"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"pretty_name": "text7",
+					"texture_filename": "tex1_128x128_73d3f8a2f0347b4a_0"
+				},
+				{
+					"type": "draw_started",
+					"pretty_name": "large numbers",
+					"texture_filename": "tex1_128x256_5fd7e727abd256a9_0"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"pretty_name": "large numbers",
+					"texture_filename": "tex1_128x256_5fd7e727abd256a9_0"
+				},
+				{
+					"type": "draw_started",
+					"pretty_name": "life gradient",
+					"texture_filename": "tex1_128x64_e3c9e617a9fdf915_14"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"pretty_name": "life gradient",
+					"texture_filename": "tex1_128x64_e3c9e617a9fdf915_14"
+				},
+				{
+					"type": "draw_started",
+					"pretty_name": "life outline",
+					"texture_filename": "tex1_128x64_deeeaa33ca3dc0f1_14"
+				},
+				{
+					"type": "projection",
+					"value": "2d",
+					"pretty_name": "life outline",
+					"texture_filename": "tex1_128x64_deeeaa33ca3dc0f1_14"
+				}
+			]
+		},
+		{
+			"name": "Bloom",
+			"targets": [
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n56_80x56_6"
+				},
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n04_80x56_6"
+				},
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n359_160x112_1"
+				},
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n432_320x224_6"
+				}
+			]
+		}
+	]
+}

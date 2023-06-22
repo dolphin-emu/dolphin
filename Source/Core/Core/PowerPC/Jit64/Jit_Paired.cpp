@@ -1,12 +1,14 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "Core/PowerPC/Jit64/Jit.h"
+
+#include <optional>
 
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "Common/x64Emitter.h"
-#include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/Jit64Constants.h"
 
@@ -34,6 +36,7 @@ void Jit64::ps_sum(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions);
 
   int d = inst.FD;
   int a = inst.FA;
@@ -76,9 +79,9 @@ void Jit64::ps_sum(UGeckoInstruction inst)
   default:
     PanicAlertFmt("ps_sum WTF!!!");
   }
-  HandleNaNs(inst, Rd, tmp, tmp == XMM1 ? XMM0 : XMM1);
-  ForceSinglePrecision(Rd, Rd);
-  SetFPRFIfNeeded(Rd);
+  // We're intentionally not calling HandleNaNs here.
+  // For addition and subtraction specifically, x86's NaN behavior matches PPC's.
+  FinalizeSingleResult(Rd, R(tmp));
 }
 
 void Jit64::ps_muls(UGeckoInstruction inst)
@@ -86,6 +89,7 @@ void Jit64::ps_muls(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions);
 
   int d = inst.FD;
   int a = inst.FA;
@@ -95,25 +99,27 @@ void Jit64::ps_muls(UGeckoInstruction inst)
   RCOpArg Ra = fpr.Use(a, RCMode::Read);
   RCOpArg Rc = fpr.Use(c, RCMode::Read);
   RCX64Reg Rd = fpr.Bind(d, RCMode::Write);
-  RegCache::Realize(Ra, Rc, Rd);
+  RCX64Reg Rc_duplicated = m_accurate_nans ? fpr.Scratch() : fpr.Scratch(XMM1);
+  RegCache::Realize(Ra, Rc, Rd, Rc_duplicated);
 
   switch (inst.SUBOP5)
   {
   case 12:  // ps_muls0
-    MOVDDUP(XMM1, Rc);
+    MOVDDUP(Rc_duplicated, Rc);
     break;
   case 13:  // ps_muls1
-    avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, XMM1, Rc, Rc, 3);
+    avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, Rc_duplicated, Rc, Rc, 3);
     break;
   default:
     PanicAlertFmt("ps_muls WTF!!!");
   }
   if (round_input)
-    Force25BitPrecision(XMM1, R(XMM1), XMM0);
+    Force25BitPrecision(XMM1, R(Rc_duplicated), XMM0);
+  else if (XMM1 != Rc_duplicated)
+    MOVAPD(XMM1, Rc_duplicated);
   MULPD(XMM1, Ra);
-  HandleNaNs(inst, Rd, XMM1);
-  ForceSinglePrecision(Rd, Rd);
-  SetFPRFIfNeeded(Rd);
+  HandleNaNs(inst, XMM1, XMM0, Ra, std::nullopt, Rc_duplicated);
+  FinalizeSingleResult(Rd, R(XMM1));
 }
 
 void Jit64::ps_mergeXX(UGeckoInstruction inst)
@@ -155,6 +161,7 @@ void Jit64::ps_rsqrte(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions || jo.div_by_zero_exceptions);
   int b = inst.FB;
   int d = inst.FD;
 
@@ -171,8 +178,7 @@ void Jit64::ps_rsqrte(UGeckoInstruction inst)
   CALL(asm_routines.frsqrte);
   MOVLHPS(Rd, XMM0);
 
-  ForceSinglePrecision(Rd, Rd);
-  SetFPRFIfNeeded(Rd);
+  FinalizeSingleResult(Rd, Rd);
 }
 
 void Jit64::ps_res(UGeckoInstruction inst)
@@ -180,6 +186,7 @@ void Jit64::ps_res(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions || jo.div_by_zero_exceptions);
   int b = inst.FB;
   int d = inst.FD;
 
@@ -196,14 +203,14 @@ void Jit64::ps_res(UGeckoInstruction inst)
   CALL(asm_routines.fres);
   MOVLHPS(Rd, XMM0);
 
-  ForceSinglePrecision(Rd, Rd);
-  SetFPRFIfNeeded(Rd);
+  FinalizeSingleResult(Rd, Rd);
 }
 
 void Jit64::ps_cmpXX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
+  FALLBACK_IF(jo.fp_exceptions);
 
   FloatCompare(inst, !!(inst.SUBOP10 & 64));
 }

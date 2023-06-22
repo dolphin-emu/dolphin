@@ -1,6 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -95,6 +94,7 @@ private:
   bool m_initial_games_emitted = false;
   bool m_started = false;
   bool m_needs_purge = false;
+  bool m_refresh_in_progress = false;
   std::atomic_bool m_processing_halted = false;
 };
 

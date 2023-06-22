@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cassert>
+#include <cstddef>
 #include <map>
 
 namespace HyoutaUtilities {
@@ -217,7 +218,7 @@ public:
     return get_from(it) <= value && value < get_to(it);
   }
 
-  size_t size() const {
+  std::size_t size() const {
     return Map.size();
   }
 

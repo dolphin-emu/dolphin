@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -40,6 +39,21 @@ enum class BlobType
   TGC,
   WIA,
   RVZ,
+  MOD_DESCRIPTOR,
+  NFS,
+  SPLIT_PLAIN,
+};
+
+// If you convert an ISO file to another format and then call GetDataSize on it, what is the result?
+enum class DataSizeType
+{
+  // The result is the same as for the ISO.
+  Accurate,
+  // The result is not larger than for the ISO. (It's usually a little smaller than for the ISO.)
+  // Reads to offsets that are larger than the result will return some kind of "blank" data.
+  LowerBound,
+  // The result is not smaller than for the ISO. (It's usually much larger than for the ISO.)
+  UpperBound,
 };
 
 std::string GetName(BlobType blob_type, bool translate);
@@ -53,12 +67,13 @@ public:
 
   virtual u64 GetRawSize() const = 0;
   virtual u64 GetDataSize() const = 0;
-  virtual bool IsDataSizeAccurate() const = 0;
+  virtual DataSizeType GetDataSizeType() const = 0;
 
   // Returns 0 if the format does not use blocks
   virtual u64 GetBlockSize() const = 0;
   virtual bool HasFastRandomAccessInBlock() const = 0;
   virtual std::string GetCompressionMethod() const = 0;
+  virtual std::optional<int> GetCompressionLevel() const = 0;
 
   // NOT thread-safe - can't call this from multiple threads.
   virtual bool Read(u64 offset, u64 size, u8* out_ptr) = 0;

@@ -1,18 +1,23 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
+#include "Common/Timer.h"
 #include "Core/IOS/Device.h"
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
 class DolphinDevice final : public Device
 {
 public:
-  // Inherit the constructor from the Device class, since we don't need to do anything special.
-  using Device::Device;
-  IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
+  DolphinDevice(Kernel& ios, const std::string& device_name);
+  std::optional<IPCReply> IOCtlV(const IOCtlVRequest& request) override;
+
+private:
+  IPCReply GetElapsedTime(const IOCtlVRequest& request) const;
+  IPCReply GetSystemTime(const IOCtlVRequest& request) const;
+
+  Common::Timer m_timer;
 };
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

@@ -1,8 +1,12 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.utils;
 
 import android.net.Uri;
 
 import androidx.annotation.StringDef;
+
+import org.dolphinemu.dolphinemu.ui.platform.Platform;
 
 import java.util.List;
 
@@ -29,9 +33,9 @@ public class AppLinkHelper
             .build();
   }
 
-  public static Uri buildBrowseUri(String subscriptionName)
+  public static Uri buildBrowseUri(Platform platform)
   {
-    return Uri.parse(URI_VIEW).buildUpon().appendPath(subscriptionName).build();
+    return Uri.parse(URI_VIEW).buildUpon().appendPath(platform.getIdString()).build();
   }
 
   public static AppLinkAction extractAction(Uri uri)

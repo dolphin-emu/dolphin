@@ -1,33 +1,44 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Debugger/MemoryWidget.h"
 
+#include <limits>
 #include <optional>
 #include <string>
 
+#include <fmt/printf.h>
+
+#include <QButtonGroup>
 #include <QCheckBox>
+#include <QComboBox>
+#include <QFileDialog>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QMenuBar>
 #include <QPushButton>
-#include <QRadioButton>
+#include <QRegularExpression>
 #include <QScrollArea>
 #include <QSpacerItem>
 #include <QSplitter>
 #include <QTableWidget>
 #include <QVBoxLayout>
 
-#include "Common/File.h"
+#include "Common/BitUtils.h"
 #include "Common/FileUtil.h"
+#include "Common/IOFile.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/HW/AddressSpace.h"
+#include "Core/System.h"
 #include "DolphinQt/Debugger/MemoryViewWidget.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings.h"
+
+using Type = MemoryViewWidget::Type;
 
 MemoryWidget::MemoryWidget(QWidget* parent) : QDockWidget(parent)
 {
@@ -61,7 +72,7 @@ MemoryWidget::MemoryWidget(QWidget* parent) : QDockWidget(parent)
 
   ConnectWidgets();
   OnAddressSpaceChanged();
-  OnTypeChanged();
+  OnDisplayChanged();
 }
 
 MemoryWidget::~MemoryWidget()
@@ -85,18 +96,53 @@ void MemoryWidget::CreateWidgets()
   //// Sidebar
 
   // Search
-  m_search_address = new QLineEdit;
-  m_data_edit = new QLineEdit;
-  m_set_value = new QPushButton(tr("Set &Value"));
+  auto* m_address_splitter = new QSplitter(Qt::Horizontal);
 
+  m_search_address = new QComboBox;
+  m_search_address->setInsertPolicy(QComboBox::InsertAtTop);
+  m_search_address->setDuplicatesEnabled(false);
+  m_search_address->setEditable(true);
+  m_search_address->setMaxVisibleItems(8);
+  m_search_offset = new QLineEdit;
+
+  m_search_offset->setMaxLength(9);
   m_search_address->setPlaceholderText(tr("Search Address"));
-  m_data_edit->setPlaceholderText(tr("Value"));
+  m_search_offset->setPlaceholderText(tr("Offset"));
 
-  // Dump
-  m_dump_mram = new QPushButton(tr("Dump &MRAM"));
-  m_dump_exram = new QPushButton(tr("Dump &ExRAM"));
-  m_dump_aram = new QPushButton(tr("Dump &ARAM"));
-  m_dump_fake_vmem = new QPushButton(tr("Dump &FakeVMEM"));
+  m_address_splitter->addWidget(m_search_address);
+  m_address_splitter->addWidget(m_search_offset);
+  m_address_splitter->setHandleWidth(1);
+  m_address_splitter->setCollapsible(0, false);
+  m_address_splitter->setStretchFactor(1, 2);
+
+  auto* input_layout = new QHBoxLayout;
+  m_data_edit = new QLineEdit;
+  m_base_check = new QCheckBox(tr("Hex"));
+  m_set_value = new QPushButton(tr("Set &Value"));
+  m_data_preview = new QLabel;
+
+  m_base_check->setLayoutDirection(Qt::RightToLeft);
+  m_data_edit->setPlaceholderText(tr("Value"));
+  m_data_preview->setBackgroundRole(QPalette::AlternateBase);
+  m_data_preview->setAutoFillBackground(true);
+
+  input_layout->addWidget(m_data_edit);
+  input_layout->addWidget(m_base_check);
+
+  // Input types
+  m_input_combo = new QComboBox;
+  m_input_combo->setMaxVisibleItems(20);
+  // Order here determines combo list order.
+  m_input_combo->addItem(tr("Hex Byte String"), int(Type::HexString));
+  m_input_combo->addItem(tr("ASCII"), int(Type::ASCII));
+  m_input_combo->addItem(tr("Float"), int(Type::Float32));
+  m_input_combo->addItem(tr("Double"), int(Type::Double));
+  m_input_combo->addItem(tr("Unsigned 8"), int(Type::Unsigned8));
+  m_input_combo->addItem(tr("Unsigned 16"), int(Type::Unsigned16));
+  m_input_combo->addItem(tr("Unsigned 32"), int(Type::Unsigned32));
+  m_input_combo->addItem(tr("Signed 8"), int(Type::Signed8));
+  m_input_combo->addItem(tr("Signed 16"), int(Type::Signed16));
+  m_input_combo->addItem(tr("Signed 32"), int(Type::Signed32));
 
   // Search Options
   auto* search_group = new QGroupBox(tr("Search"));
@@ -105,8 +151,6 @@ void MemoryWidget::CreateWidgets()
 
   m_find_next = new QPushButton(tr("Find &Next"));
   m_find_previous = new QPushButton(tr("Find &Previous"));
-  m_find_ascii = new QRadioButton(tr("ASCII"));
-  m_find_hex = new QRadioButton(tr("Hex"));
   m_result_label = new QLabel;
 
   search_layout->addWidget(m_find_next);
@@ -119,13 +163,14 @@ void MemoryWidget::CreateWidgets()
   auto* address_space_layout = new QVBoxLayout;
   address_space_group->setLayout(address_space_layout);
 
-  // i18n: "Effective" addresses are the addresses used directly by the CPU and may be subject to
-  // translation via the MMU to physical addresses.
+  // i18n: One of the options shown below "Address Space". "Effective" addresses are the addresses
+  // used directly by the CPU and may be subject to translation via the MMU to physical addresses.
   m_address_space_effective = new QRadioButton(tr("Effective"));
-  // i18n: The "Auxiliary" address space is the address space of ARAM (Auxiliary RAM).
+  // i18n: One of the options shown below "Address Space". "Auxiliary" is the address space of ARAM
+  // (Auxiliary RAM).
   m_address_space_auxiliary = new QRadioButton(tr("Auxiliary"));
-  // i18n: The "Physical" address space is the address space that reflects how devices (e.g. RAM) is
-  // physically wired up.
+  // i18n: One of the options shown below "Address Space". "Physical" is the address space that
+  // reflects how devices (e.g. RAM) is physically wired up.
   m_address_space_physical = new QRadioButton(tr("Physical"));
 
   address_space_layout->addWidget(m_address_space_effective);
@@ -134,22 +179,42 @@ void MemoryWidget::CreateWidgets()
   address_space_layout->setSpacing(1);
 
   // Data Type
-  auto* datatype_group = new QGroupBox(tr("Data Type"));
-  auto* datatype_layout = new QVBoxLayout;
-  datatype_group->setLayout(datatype_layout);
+  auto* displaytype_group = new QGroupBox(tr("Display Type"));
+  auto* displaytype_layout = new QVBoxLayout;
+  displaytype_group->setLayout(displaytype_layout);
 
-  m_type_u8 = new QRadioButton(tr("U&8"));
-  m_type_u16 = new QRadioButton(tr("U&16"));
-  m_type_u32 = new QRadioButton(tr("U&32"));
-  m_type_ascii = new QRadioButton(tr("ASCII"));
-  m_type_float = new QRadioButton(tr("Float"));
+  m_display_combo = new QComboBox;
+  m_display_combo->setMaxVisibleItems(20);
+  m_display_combo->addItem(tr("Hex 8"), int(Type::Hex8));
+  m_display_combo->addItem(tr("Hex 16"), int(Type::Hex16));
+  m_display_combo->addItem(tr("Hex 32"), int(Type::Hex32));
+  m_display_combo->addItem(tr("Unsigned 8"), int(Type::Unsigned8));
+  m_display_combo->addItem(tr("Unsigned 16"), int(Type::Unsigned16));
+  m_display_combo->addItem(tr("Unsigned 32"), int(Type::Unsigned32));
+  m_display_combo->addItem(tr("Signed 8"), int(Type::Signed8));
+  m_display_combo->addItem(tr("Signed 16"), int(Type::Signed16));
+  m_display_combo->addItem(tr("Signed 32"), int(Type::Signed32));
+  m_display_combo->addItem(tr("ASCII"), int(Type::ASCII));
+  m_display_combo->addItem(tr("Float"), int(Type::Float32));
+  m_display_combo->addItem(tr("Double"), int(Type::Double));
 
-  datatype_layout->addWidget(m_type_u8);
-  datatype_layout->addWidget(m_type_u16);
-  datatype_layout->addWidget(m_type_u32);
-  datatype_layout->addWidget(m_type_ascii);
-  datatype_layout->addWidget(m_type_float);
-  datatype_layout->setSpacing(1);
+  m_align_combo = new QComboBox;
+  m_align_combo->addItem(tr("Fixed Alignment"));
+  m_align_combo->addItem(tr("Type-based Alignment"), 0);
+  m_align_combo->addItem(tr("No Alignment"), 1);
+
+  m_row_length_combo = new QComboBox;
+  m_row_length_combo->addItem(tr("4 Bytes"), 4);
+  m_row_length_combo->addItem(tr("8 Bytes"), 8);
+  m_row_length_combo->addItem(tr("16 Bytes"), 16);
+
+  m_row_length_combo->setCurrentIndex(2);
+  m_dual_check = new QCheckBox(tr("Dual View"));
+
+  displaytype_layout->addWidget(m_display_combo);
+  displaytype_layout->addWidget(m_align_combo);
+  displaytype_layout->addWidget(m_row_length_combo);
+  displaytype_layout->addWidget(m_dual_check);
 
   // MBP options
   auto* bp_group = new QGroupBox(tr("Memory breakpoint options"));
@@ -179,23 +244,39 @@ void MemoryWidget::CreateWidgets()
   // Sidebar
   auto* sidebar = new QWidget;
   auto* sidebar_layout = new QVBoxLayout;
+
+  // Sidebar top menu
+  QMenuBar* menubar = new QMenuBar(sidebar);
+  menubar->setNativeMenuBar(false);
+
+  QMenu* menu_import = new QMenu(tr("&Import"));
+  menu_import->addAction(tr("&Load file to current address"), this,
+                         &MemoryWidget::OnSetValueFromFile);
+  menubar->addMenu(menu_import);
+
+  QMenu* menu_export = new QMenu(tr("&Export"));
+  menu_export->addAction(tr("Dump &MRAM"), this, &MemoryWidget::OnDumpMRAM);
+  menu_export->addAction(tr("Dump &ExRAM"), this, &MemoryWidget::OnDumpExRAM);
+  menu_export->addAction(tr("Dump &ARAM"), this, &MemoryWidget::OnDumpARAM);
+  menu_export->addAction(tr("Dump &FakeVMEM"), this, &MemoryWidget::OnDumpFakeVMEM);
+  menubar->addMenu(menu_export);
+
   sidebar_layout->setSpacing(1);
-
   sidebar->setLayout(sidebar_layout);
-
-  sidebar_layout->addWidget(m_search_address);
-  sidebar_layout->addWidget(m_data_edit);
-  sidebar_layout->addWidget(m_find_ascii);
-  sidebar_layout->addWidget(m_find_hex);
+  sidebar_layout->addItem(new QSpacerItem(1, 20));
+  sidebar_layout->addWidget(m_address_splitter);
+  sidebar_layout->addLayout(input_layout);
+  sidebar_layout->addWidget(m_input_combo);
+  sidebar_layout->addItem(new QSpacerItem(1, 10));
+  sidebar_layout->addWidget(m_data_preview);
   sidebar_layout->addWidget(m_set_value);
-  sidebar_layout->addItem(new QSpacerItem(1, 32));
-  sidebar_layout->addWidget(m_dump_mram);
-  sidebar_layout->addWidget(m_dump_exram);
-  sidebar_layout->addWidget(m_dump_aram);
-  sidebar_layout->addWidget(m_dump_fake_vmem);
+  sidebar_layout->addItem(new QSpacerItem(1, 10));
   sidebar_layout->addWidget(search_group);
+  sidebar_layout->addItem(new QSpacerItem(1, 10));
+  sidebar_layout->addWidget(displaytype_group);
+  sidebar_layout->addItem(new QSpacerItem(1, 10));
   sidebar_layout->addWidget(address_space_group);
-  sidebar_layout->addWidget(datatype_group);
+  sidebar_layout->addItem(new QSpacerItem(1, 10));
   sidebar_layout->addWidget(bp_group);
   sidebar_layout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding));
 
@@ -205,12 +286,13 @@ void MemoryWidget::CreateWidgets()
   auto* sidebar_scroll = new QScrollArea;
   sidebar_scroll->setWidget(sidebar);
   sidebar_scroll->setWidgetResizable(true);
-  sidebar_scroll->setFixedWidth(190);
 
   m_memory_view = new MemoryViewWidget(this);
 
   m_splitter->addWidget(m_memory_view);
   m_splitter->addWidget(sidebar_scroll);
+  m_splitter->setStretchFactor(0, 3);
+  m_splitter->setStretchFactor(1, 1);
 
   layout->addWidget(m_splitter);
 
@@ -221,18 +303,13 @@ void MemoryWidget::CreateWidgets()
 
 void MemoryWidget::ConnectWidgets()
 {
-  connect(m_search_address, &QLineEdit::textChanged, this, &MemoryWidget::OnSearchAddress);
+  connect(m_search_address, &QComboBox::currentTextChanged, this, &MemoryWidget::OnSearchAddress);
+  connect(m_search_offset, &QLineEdit::textChanged, this, &MemoryWidget::OnSearchAddress);
+  connect(m_data_edit, &QLineEdit::textChanged, this, &MemoryWidget::ValidateAndPreviewInputValue);
 
-  connect(m_data_edit, &QLineEdit::textChanged, this, &MemoryWidget::ValidateSearchValue);
-  connect(m_find_ascii, &QRadioButton::toggled, this, &MemoryWidget::ValidateSearchValue);
-  connect(m_find_hex, &QRadioButton::toggled, this, &MemoryWidget::ValidateSearchValue);
-
+  connect(m_input_combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
+          &MemoryWidget::ValidateAndPreviewInputValue);
   connect(m_set_value, &QPushButton::clicked, this, &MemoryWidget::OnSetValue);
-
-  connect(m_dump_mram, &QPushButton::clicked, this, &MemoryWidget::OnDumpMRAM);
-  connect(m_dump_exram, &QPushButton::clicked, this, &MemoryWidget::OnDumpExRAM);
-  connect(m_dump_aram, &QPushButton::clicked, this, &MemoryWidget::OnDumpARAM);
-  connect(m_dump_fake_vmem, &QPushButton::clicked, this, &MemoryWidget::OnDumpFakeVMEM);
 
   connect(m_find_next, &QPushButton::clicked, this, &MemoryWidget::OnFindNextValue);
   connect(m_find_previous, &QPushButton::clicked, this, &MemoryWidget::OnFindPreviousValue);
@@ -242,17 +319,23 @@ void MemoryWidget::ConnectWidgets()
   {
     connect(radio, &QRadioButton::toggled, this, &MemoryWidget::OnAddressSpaceChanged);
   }
+  for (auto* combo : {m_display_combo, m_align_combo, m_row_length_combo})
+  {
+    connect(combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
+            &MemoryWidget::OnDisplayChanged);
+  }
 
-  for (auto* radio : {m_type_u8, m_type_u16, m_type_u32, m_type_ascii, m_type_float})
-    connect(radio, &QRadioButton::toggled, this, &MemoryWidget::OnTypeChanged);
+  connect(m_dual_check, &QCheckBox::toggled, this, &MemoryWidget::OnDisplayChanged);
 
   for (auto* radio : {m_bp_read_write, m_bp_read_only, m_bp_write_only})
     connect(radio, &QRadioButton::toggled, this, &MemoryWidget::OnBPTypeChanged);
 
+  connect(m_base_check, &QCheckBox::toggled, this, &MemoryWidget::ValidateAndPreviewInputValue);
   connect(m_bp_log_check, &QCheckBox::toggled, this, &MemoryWidget::OnBPLogChanged);
   connect(m_memory_view, &MemoryViewWidget::BreakpointsChanged, this,
           &MemoryWidget::BreakpointsChanged);
   connect(m_memory_view, &MemoryViewWidget::ShowCode, this, &MemoryWidget::ShowCode);
+  connect(m_memory_view, &MemoryViewWidget::RequestWatch, this, &MemoryWidget::RequestWatch);
 }
 
 void MemoryWidget::closeEvent(QCloseEvent*)
@@ -278,12 +361,9 @@ void MemoryWidget::LoadSettings()
 {
   QSettings& settings = Settings::GetQSettings();
 
-  const bool search_ascii =
-      settings.value(QStringLiteral("memorywidget/searchascii"), true).toBool();
-  const bool search_hex = settings.value(QStringLiteral("memorywidget/searchhex"), false).toBool();
+  const int combo_index = settings.value(QStringLiteral("memorywidget/inputcombo"), 1).toInt();
 
-  m_find_ascii->setChecked(search_ascii);
-  m_find_hex->setChecked(search_hex);
+  m_input_combo->setCurrentIndex(combo_index);
 
   const bool address_space_effective =
       settings.value(QStringLiteral("memorywidget/addrspace_effective"), true).toBool();
@@ -296,17 +376,9 @@ void MemoryWidget::LoadSettings()
   m_address_space_auxiliary->setChecked(address_space_auxiliary);
   m_address_space_physical->setChecked(address_space_physical);
 
-  const bool type_u8 = settings.value(QStringLiteral("memorywidget/typeu8"), true).toBool();
-  const bool type_u16 = settings.value(QStringLiteral("memorywidget/typeu16"), false).toBool();
-  const bool type_u32 = settings.value(QStringLiteral("memorywidget/typeu32"), false).toBool();
-  const bool type_float = settings.value(QStringLiteral("memorywidget/typefloat"), false).toBool();
-  const bool type_ascii = settings.value(QStringLiteral("memorywidget/typeascii"), false).toBool();
+  const int display_index = settings.value(QStringLiteral("memorywidget/display_type"), 1).toInt();
 
-  m_type_u8->setChecked(type_u8);
-  m_type_u16->setChecked(type_u16);
-  m_type_u32->setChecked(type_u32);
-  m_type_float->setChecked(type_float);
-  m_type_ascii->setChecked(type_ascii);
+  m_display_combo->setCurrentIndex(display_index);
 
   bool bp_rw = settings.value(QStringLiteral("memorywidget/bpreadwrite"), true).toBool();
   bool bp_r = settings.value(QStringLiteral("memorywidget/bpread"), false).toBool();
@@ -330,8 +402,7 @@ void MemoryWidget::SaveSettings()
 {
   QSettings& settings = Settings::GetQSettings();
 
-  settings.setValue(QStringLiteral("memorywidget/searchascii"), m_find_ascii->isChecked());
-  settings.setValue(QStringLiteral("memorywidget/searchhex"), m_find_hex->isChecked());
+  settings.setValue(QStringLiteral("memorywidget/inputcombo"), m_input_combo->currentIndex());
 
   settings.setValue(QStringLiteral("memorywidget/addrspace_effective"),
                     m_address_space_effective->isChecked());
@@ -340,11 +411,7 @@ void MemoryWidget::SaveSettings()
   settings.setValue(QStringLiteral("memorywidget/addrspace_physical"),
                     m_address_space_physical->isChecked());
 
-  settings.setValue(QStringLiteral("memorywidget/typeu8"), m_type_u8->isChecked());
-  settings.setValue(QStringLiteral("memorywidget/typeu16"), m_type_u16->isChecked());
-  settings.setValue(QStringLiteral("memorywidget/typeu32"), m_type_u32->isChecked());
-  settings.setValue(QStringLiteral("memorywidget/typeascii"), m_type_ascii->isChecked());
-  settings.setValue(QStringLiteral("memorywidget/typefloat"), m_type_float->isChecked());
+  settings.setValue(QStringLiteral("memorywidget/display_type"), m_display_combo->currentIndex());
 
   settings.setValue(QStringLiteral("memorywidget/bpreadwrite"), m_bp_read_write->isChecked());
   settings.setValue(QStringLiteral("memorywidget/bpread"), m_bp_read_only->isChecked());
@@ -368,22 +435,25 @@ void MemoryWidget::OnAddressSpaceChanged()
   SaveSettings();
 }
 
-void MemoryWidget::OnTypeChanged()
+void MemoryWidget::OnDisplayChanged()
 {
-  MemoryViewWidget::Type type;
+  const auto type = static_cast<Type>(m_display_combo->currentData().toInt());
+  int bytes_per_row = m_row_length_combo->currentData().toInt();
+  int alignment;
+  bool dual_view = m_dual_check->isChecked();
 
-  if (m_type_u8->isChecked())
-    type = MemoryViewWidget::Type::U8;
-  else if (m_type_u16->isChecked())
-    type = MemoryViewWidget::Type::U16;
-  else if (m_type_u32->isChecked())
-    type = MemoryViewWidget::Type::U32;
-  else if (m_type_ascii->isChecked())
-    type = MemoryViewWidget::Type::ASCII;
+  if (type == Type::Double && bytes_per_row == 4)
+    bytes_per_row = 8;
+
+  // Alignment: First (fixed) option equals bytes per row. 'currentData' is correct for other
+  // options. Type-based must be calculated in memoryviewwidget and is left at 0. "No alignment" is
+  // equivalent to a value of 1.
+  if (m_align_combo->currentIndex() == 0)
+    alignment = bytes_per_row;
   else
-    type = MemoryViewWidget::Type::Float32;
+    alignment = m_align_combo->currentData().toInt();
 
-  m_memory_view->SetType(type);
+  m_memory_view->SetDisplay(type, bytes_per_row, alignment, dual_view);
 
   SaveSettings();
 }
@@ -415,6 +485,30 @@ void MemoryWidget::OnBPTypeChanged()
 
 void MemoryWidget::SetAddress(u32 address)
 {
+  // Store current and target address in combo box
+  const QSignalBlocker blocker(m_search_address);
+  const QString current_text = m_search_address->currentText();
+  const QString target_addr = QString::number(address, 16);
+  bool good;
+  const u32 current_addr = current_text.toUInt(&good, 16);
+
+  if (good)
+  {
+    AddressSpace::Accessors* accessors =
+        AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
+
+    Core::CPUThreadGuard guard(Core::System::GetInstance());
+    good = accessors->IsValidAddress(guard, current_addr);
+  }
+
+  if (m_search_address->findText(current_text) == -1 && good)
+    m_search_address->insertItem(0, current_text);
+
+  if (m_search_address->findText(target_addr) == -1)
+    m_search_address->insertItem(0, target_addr);
+
+  m_search_address->setCurrentText(target_addr);
+
   m_memory_view->SetAddress(address);
   Settings::Instance().SetMemoryVisible(true);
   raise();
@@ -424,16 +518,83 @@ void MemoryWidget::SetAddress(u32 address)
 
 void MemoryWidget::OnSearchAddress()
 {
-  bool good;
-  u32 addr = m_search_address->text().toUInt(&good, 16);
+  const auto target_addr = GetTargetAddress();
+
+  if (target_addr.is_good_address && target_addr.is_good_offset)
+    m_memory_view->SetAddress(target_addr.address);
+
+  QFont addr_font, offset_font;
+  QPalette addr_palette, offset_palette;
+
+  if (!target_addr.is_good_address)
+  {
+    addr_font.setBold(true);
+    addr_palette.setColor(QPalette::Text, Qt::red);
+  }
+
+  if (!target_addr.is_good_offset)
+  {
+    offset_font.setBold(true);
+    offset_palette.setColor(QPalette::Text, Qt::red);
+  }
+
+  m_search_address->setFont(addr_font);
+  m_search_address->setPalette(addr_palette);
+  m_search_offset->setFont(offset_font);
+  m_search_offset->setPalette(offset_palette);
+}
+
+void MemoryWidget::ValidateAndPreviewInputValue()
+{
+  m_data_preview->clear();
+  QString input_text = m_data_edit->text();
+  const auto input_type = static_cast<Type>(m_input_combo->currentData().toInt());
+
+  m_base_check->setEnabled(input_type == Type::Unsigned32 || input_type == Type::Signed32 ||
+                           input_type == Type::Unsigned16 || input_type == Type::Signed16 ||
+                           input_type == Type::Unsigned8 || input_type == Type::Signed8);
+
+  if (input_text.isEmpty())
+    return;
+
+  // Remove any spaces
+  if (input_type != Type::ASCII)
+    input_text.remove(QLatin1Char(' '));
+
+  if (m_base_check->isChecked())
+  {
+    if (input_text.startsWith(QLatin1Char('-')))
+      input_text.insert(1, QStringLiteral("0x"));
+    else
+      input_text.prepend(QStringLiteral("0x"));
+  }
 
   QFont font;
   QPalette palette;
+  std::vector<u8> bytes = m_memory_view->ConvertTextToBytes(input_type, input_text);
 
-  if (good || m_search_address->text().isEmpty())
+  if (!bytes.empty())
   {
-    if (good)
-      m_memory_view->SetAddress(addr);
+    QString hex_string;
+    std::string s;
+
+    for (const u8 c : bytes)
+      s.append(fmt::format("{:02x}", c));
+
+    hex_string = QString::fromStdString(s);
+    int output_length = hex_string.length();
+
+    if (output_length > 16)
+    {
+      hex_string.truncate(16);
+      output_length = hex_string.length();
+      hex_string.append(QStringLiteral("..."));
+    }
+
+    for (int i = 2; i < output_length; i += 2)
+      hex_string.insert(output_length - i, QLatin1Char{' '});
+
+    m_data_preview->setText(hex_string);
   }
   else
   {
@@ -441,86 +602,124 @@ void MemoryWidget::OnSearchAddress()
     palette.setColor(QPalette::Text, Qt::red);
   }
 
-  m_search_address->setFont(font);
-  m_search_address->setPalette(palette);
-}
-
-void MemoryWidget::ValidateSearchValue()
-{
-  QFont font;
-  QPalette palette;
-
-  if (m_find_hex->isChecked() && !m_data_edit->text().isEmpty())
-  {
-    bool good;
-    m_data_edit->text().toULongLong(&good, 16);
-
-    if (!good)
-    {
-      font.setBold(true);
-      palette.setColor(QPalette::Text, Qt::red);
-    }
-  }
-
   m_data_edit->setFont(font);
   m_data_edit->setPalette(palette);
 }
 
+QByteArray MemoryWidget::GetInputData() const
+{
+  // Empty or invalid input data returns an empty array.
+  if (m_data_preview->text().isEmpty())
+    return QByteArray();
+
+  const auto input_type = static_cast<Type>(m_input_combo->currentData().toInt());
+
+  // Ascii might be truncated, pull from data edit box.
+  if (input_type == Type::ASCII)
+    return QByteArray(m_data_edit->text().toUtf8());
+
+  // If we are doing a large array of hex bytes
+  if (input_type == Type::HexString)
+    return QByteArray::fromHex(m_data_edit->text().toUtf8());
+
+  // Data preview has exactly what we want to input, so pull it from there.
+  return QByteArray::fromHex(m_data_preview->text().toUtf8());
+}
+
 void MemoryWidget::OnSetValue()
 {
-  bool good_address;
-  u32 addr = m_search_address->text().toUInt(&good_address, 16);
+  if (!Core::IsRunning())
+    return;
 
-  if (!good_address)
+  auto target_addr = GetTargetAddress();
+
+  if (!target_addr.is_good_address)
   {
     ModalMessageBox::critical(this, tr("Error"), tr("Bad address provided."));
     return;
   }
 
-  if (m_data_edit->text().isEmpty())
+  if (!target_addr.is_good_offset)
   {
-    ModalMessageBox::critical(this, tr("Error"), tr("No value provided."));
+    ModalMessageBox::critical(this, tr("Error"), tr("Bad offset provided."));
+    return;
+  }
+
+  const QByteArray bytes = GetInputData();
+
+  // Invalid input will give an empty array.
+  if (bytes.isEmpty())
+  {
+    ModalMessageBox::critical(this, tr("Error"), tr("Bad value provided."));
+    return;
+  }
+
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
+
+  AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
+  u32 end_address = target_addr.address + static_cast<u32>(bytes.size()) - 1;
+
+  if (!accessors->IsValidAddress(guard, target_addr.address) ||
+      !accessors->IsValidAddress(guard, end_address))
+  {
+    ModalMessageBox::critical(this, tr("Error"), tr("Target address range is invalid."));
+    return;
+  }
+
+  for (const char c : bytes)
+    accessors->WriteU8(guard, target_addr.address++, static_cast<u8>(c));
+
+  Update();
+}
+
+void MemoryWidget::OnSetValueFromFile()
+{
+  if (!Core::IsRunning())
+    return;
+
+  auto target_addr = GetTargetAddress();
+
+  if (!target_addr.is_good_address)
+  {
+    ModalMessageBox::critical(this, tr("Error"), tr("Bad address provided."));
+    return;
+  }
+
+  if (!target_addr.is_good_offset)
+  {
+    ModalMessageBox::critical(this, tr("Error"), tr("Bad offset provided."));
+    return;
+  }
+
+  QString path = QFileDialog::getOpenFileName(this, tr("Select a file"), QDir::currentPath(),
+                                              tr("All files (*)"));
+  if (path.isNull())
+  {
+    return;
+  }
+
+  File::IOFile f(path.toStdString(), "rb");
+
+  if (!f)
+  {
+    ModalMessageBox::critical(this, tr("Error"), tr("Unable to open file."));
+    return;
+  }
+
+  const u64 file_length = f.GetSize();
+  std::vector<u8> file_contents(file_length);
+  if (!f.ReadBytes(file_contents.data(), file_length))
+  {
+    ModalMessageBox::critical(this, tr("Error"), tr("Unable to read file."));
     return;
   }
 
   AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
 
-  if (m_find_ascii->isChecked())
-  {
-    const QByteArray bytes = m_data_edit->text().toUtf8();
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
 
-    for (char c : bytes)
-      accessors->WriteU8(addr++, static_cast<u8>(c));
-  }
-  else
-  {
-    bool good_value;
-    const QString text = m_data_edit->text();
-    const int length =
-        text.startsWith(QStringLiteral("0x"), Qt::CaseInsensitive) ? text.size() - 2 : text.size();
-    const u64 value = text.toULongLong(&good_value, 16);
-
-    if (!good_value)
-    {
-      ModalMessageBox::critical(this, tr("Error"), tr("Bad value provided."));
-      return;
-    }
-
-    if (length <= 2)
-    {
-      accessors->WriteU8(addr, static_cast<u8>(value));
-    }
-    else if (length <= 4)
-    {
-      accessors->WriteU16(addr, static_cast<u16>(value));
-    }
-    else if (length <= 8)
-    {
-      accessors->WriteU32(addr, static_cast<u32>(value));
-    }
-    else
-      accessors->WriteU64(addr, value);
-  }
+  for (u8 b : file_contents)
+    accessors->WriteU8(guard, target_addr.address++, b);
 
   Update();
 }
@@ -576,62 +775,70 @@ void MemoryWidget::OnDumpFakeVMEM()
             std::distance(accessors->begin(), accessors->end()));
 }
 
-std::vector<u8> MemoryWidget::GetValueData() const
+MemoryWidget::TargetAddress MemoryWidget::GetTargetAddress() const
 {
-  std::vector<u8> search_for;  // Series of bytes we want to look for
+  TargetAddress target;
 
-  if (m_find_ascii->isChecked())
-  {
-    const QByteArray bytes = m_data_edit->text().toUtf8();
-    search_for.assign(bytes.begin(), bytes.end());
-  }
+  // Returns 0 if conversion fails
+  const u32 addr = m_search_address->currentText().toUInt(&target.is_good_address, 16);
+  target.is_good_address |= m_search_address->currentText().isEmpty();
+  const s32 offset = m_search_offset->text().toInt(&target.is_good_offset, 16);
+  const u32 neg_offset = offset != std::numeric_limits<s32>::min() ?
+                             -offset :
+                             u32(std::numeric_limits<s32>::max()) + 1;
+  target.is_good_offset |= m_search_offset->text().isEmpty();
+  target.is_good_offset &= offset >= 0 || neg_offset <= addr;
+  target.is_good_offset &= offset <= 0 || (std::numeric_limits<u32>::max() - u32(offset)) >= addr;
+
+  if (!target.is_good_address || !target.is_good_offset)
+    return target;
+
+  if (offset < 0)
+    target.address = addr - neg_offset;
   else
-  {
-    bool good;
-    u64 value = m_data_edit->text().toULongLong(&good, 16);
-
-    if (!good)
-      return {};
-
-    int size;
-
-    if (value == static_cast<u8>(value))
-      size = sizeof(u8);
-    else if (value == static_cast<u16>(value))
-      size = sizeof(u16);
-    else if (value == static_cast<u32>(value))
-      size = sizeof(u32);
-    else
-      size = sizeof(u64);
-
-    for (int i = size - 1; i >= 0; i--)
-      search_for.push_back((value >> (i * 8)) & 0xFF);
-  }
-
-  return search_for;
+    target.address = addr + u32(offset);
+  return target;
 }
 
 void MemoryWidget::FindValue(bool next)
 {
-  std::vector<u8> search_for = GetValueData();
+  auto target_addr = GetTargetAddress();
 
-  if (search_for.empty())
+  if (!target_addr.is_good_address)
   {
-    m_result_label->setText(tr("No Value Given"));
+    m_result_label->setText(tr("Bad address provided."));
     return;
   }
-  u32 addr = 0;
 
-  if (!m_search_address->text().isEmpty())
+  if (!target_addr.is_good_offset)
   {
-    // skip the quoted address so we don't potentially refind the last result
-    addr = m_search_address->text().toUInt(nullptr, 16) + (next ? 1 : -1);
+    m_result_label->setText(tr("Bad offset provided."));
+    return;
   }
 
-  AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
+  const QByteArray search_for = GetInputData();
 
-  auto found_addr =
-      accessors->Search(addr, search_for.data(), static_cast<u32>(search_for.size()), next);
+  if (search_for.isEmpty())
+  {
+    m_result_label->setText(tr("Bad Value Given"));
+    return;
+  }
+
+  if (!m_search_address->currentText().isEmpty())
+  {
+    // skip the quoted address so we don't potentially refind the last result
+    target_addr.address += next ? 1 : -1;
+  }
+
+  const std::optional<u32> found_addr = [&] {
+    AddressSpace::Accessors* accessors =
+        AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
+
+    Core::CPUThreadGuard guard(Core::System::GetInstance());
+    return accessors->Search(guard, target_addr.address,
+                             reinterpret_cast<const u8*>(search_for.data()),
+                             static_cast<u32>(search_for.size()), next);
+  }();
 
   if (found_addr.has_value())
   {
@@ -639,7 +846,8 @@ void MemoryWidget::FindValue(bool next)
 
     u32 offset = *found_addr;
 
-    m_search_address->setText(QStringLiteral("%1").arg(offset, 8, 16, QLatin1Char('0')));
+    m_search_address->setCurrentText(QStringLiteral("%1").arg(offset, 8, 16, QLatin1Char('0')));
+    m_search_offset->clear();
 
     m_memory_view->SetAddress(offset);
 

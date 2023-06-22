@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/Config/NetplaySettings.h"
 
@@ -46,17 +45,16 @@ const Info<u32> NETPLAY_CHUNKED_UPLOAD_LIMIT{{System::Main, "NetPlay", "ChunkedU
 const Info<u32> NETPLAY_BUFFER_SIZE{{System::Main, "NetPlay", "BufferSize"}, 5};
 const Info<u32> NETPLAY_CLIENT_BUFFER_SIZE{{System::Main, "NetPlay", "BufferSizeClient"}, 1};
 
-const Info<bool> NETPLAY_WRITE_SAVE_SDCARD_DATA{{System::Main, "NetPlay", "WriteSaveSDCardData"},
-                                                false};
-const Info<bool> NETPLAY_LOAD_WII_SAVE{{System::Main, "NetPlay", "LoadWiiSave"}, false};
-const Info<bool> NETPLAY_SYNC_SAVES{{System::Main, "NetPlay", "SyncSaves"}, true};
+const Info<bool> NETPLAY_SAVEDATA_LOAD{{System::Main, "NetPlay", "SyncSaves"}, true};
+const Info<bool> NETPLAY_SAVEDATA_WRITE{{System::Main, "NetPlay", "WriteSaveData"}, true};
+const Info<bool> NETPLAY_SAVEDATA_SYNC_ALL_WII{{System::Main, "NetPlay", "SyncAllWiiSaves"}, false};
 const Info<bool> NETPLAY_SYNC_CODES{{System::Main, "NetPlay", "SyncCodes"}, true};
 const Info<bool> NETPLAY_RECORD_INPUTS{{System::Main, "NetPlay", "RecordInputs"}, false};
 const Info<bool> NETPLAY_STRICT_SETTINGS_SYNC{{System::Main, "NetPlay", "StrictSettingsSync"},
                                               false};
 const Info<std::string> NETPLAY_NETWORK_MODE{{System::Main, "NetPlay", "NetworkMode"},
                                              "fixeddelay"};
-const Info<bool> NETPLAY_SYNC_ALL_WII_SAVES{{System::Main, "NetPlay", "SyncAllWiiSaves"}, false};
 const Info<bool> NETPLAY_GOLF_MODE_OVERLAY{{System::Main, "NetPlay", "GolfModeOverlay"}, true};
+const Info<bool> NETPLAY_HIDE_REMOTE_GBAS{{System::Main, "NetPlay", "HideRemoteGBAs"}, false};
 
 }  // namespace Config

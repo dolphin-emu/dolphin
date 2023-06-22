@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #ifdef USE_DISCORD_PRESENCE
 
@@ -12,9 +11,9 @@
 #include <QPushButton>
 
 #include <discord_rpc.h>
+#include <fmt/format.h>
 
 #include "Common/HttpRequest.h"
-#include "Common/StringUtil.h"
 
 DiscordJoinRequestDialog::DiscordJoinRequestDialog(QWidget* parent, const std::string& id,
                                                    const std::string& discord_tag,
@@ -28,8 +27,8 @@ DiscordJoinRequestDialog::DiscordJoinRequestDialog(QWidget* parent, const std::s
 
   if (!avatar.empty())
   {
-    const std::string avatar_endpoint = StringFromFormat(
-        "https://cdn.discordapp.com/avatars/%s/%s.png", id.c_str(), avatar.c_str());
+    const std::string avatar_endpoint =
+        fmt::format("https://cdn.discordapp.com/avatars/{}/{}.png", id, avatar);
 
     Common::HttpRequest request;
     Common::HttpRequest::Response response = request.Get(avatar_endpoint);

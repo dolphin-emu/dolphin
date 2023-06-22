@@ -1,18 +1,19 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "AudioCommon/WaveFile.h"
+#include "AudioCommon/Mixer.h"
 
 #include <string>
 
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
 #include "Common/FileUtil.h"
+#include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 
 constexpr size_t WaveFileWriter::BUFFER_SIZE;
@@ -26,12 +27,12 @@ WaveFileWriter::~WaveFileWriter()
   Stop();
 }
 
-bool WaveFileWriter::Start(const std::string& filename, unsigned int HLESampleRate)
+bool WaveFileWriter::Start(const std::string& filename, u32 sample_rate_divisor)
 {
   // Ask to delete file
   if (File::Exists(filename))
   {
-    if (SConfig::GetInstance().m_DumpAudioSilent ||
+    if (Config::Get(Config::MAIN_DUMP_AUDIO_SILENT) ||
         AskYesNoFmtT("Delete the existing file '{0}'?", filename))
     {
       File::Delete(filename);
@@ -65,7 +66,7 @@ bool WaveFileWriter::Start(const std::string& filename, unsigned int HLESampleRa
   if (basename.empty())
     SplitPath(filename, nullptr, &basename, nullptr);
 
-  current_sample_rate = HLESampleRate;
+  current_sample_rate_divisor = sample_rate_divisor;
 
   // -----------------
   // Write file header
@@ -78,7 +79,7 @@ bool WaveFileWriter::Start(const std::string& filename, unsigned int HLESampleRa
   Write(16);          // size of fmt block
   Write(0x00020001);  // two channels, uncompressed
 
-  const u32 sample_rate = HLESampleRate;
+  const u32 sample_rate = Mixer::FIXED_SAMPLE_RATE_DIVIDEND / sample_rate_divisor;
   Write(sample_rate);
   Write(sample_rate * 2 * 2);  // two channels, 16bit
 
@@ -95,11 +96,10 @@ bool WaveFileWriter::Start(const std::string& filename, unsigned int HLESampleRa
 
 void WaveFileWriter::Stop()
 {
-  // u32 file_size = (u32)ftello(file);
-  file.Seek(4, SEEK_SET);
+  file.Seek(4, File::SeekOrigin::Begin);
   Write(audio_size + 36);
 
-  file.Seek(40, SEEK_SET);
+  file.Seek(40, File::SeekOrigin::Begin);
   Write(audio_size);
 
   file.Close();
@@ -115,13 +115,20 @@ void WaveFileWriter::Write4(const char* ptr)
   file.WriteBytes(ptr, 4);
 }
 
-void WaveFileWriter::AddStereoSamplesBE(const short* sample_data, u32 count, int sample_rate)
+void WaveFileWriter::AddStereoSamplesBE(const short* sample_data, u32 count,
+                                        u32 sample_rate_divisor, int l_volume, int r_volume)
 {
   if (!file)
+  {
     ERROR_LOG_FMT(AUDIO, "WaveFileWriter - file not open.");
+    return;
+  }
 
-  if (count > BUFFER_SIZE * 2)
+  if (count * 2 > BUFFER_SIZE)
+  {
     ERROR_LOG_FMT(AUDIO, "WaveFileWriter - buffer too small (count = {}).", count);
+    return;
+  }
 
   if (skip_silence)
   {
@@ -142,16 +149,20 @@ void WaveFileWriter::AddStereoSamplesBE(const short* sample_data, u32 count, int
     // Flip the audio channels from RL to LR
     conv_buffer[2 * i] = Common::swap16((u16)sample_data[2 * i + 1]);
     conv_buffer[2 * i + 1] = Common::swap16((u16)sample_data[2 * i]);
+
+    // Apply volume (volume ranges from 0 to 256)
+    conv_buffer[2 * i] = conv_buffer[2 * i] * l_volume / 256;
+    conv_buffer[2 * i + 1] = conv_buffer[2 * i + 1] * r_volume / 256;
   }
 
-  if (sample_rate != current_sample_rate)
+  if (sample_rate_divisor != current_sample_rate_divisor)
   {
     Stop();
     file_index++;
     std::ostringstream filename;
     filename << File::GetUserPath(D_DUMPAUDIO_IDX) << basename << file_index << ".wav";
-    Start(filename.str(), sample_rate);
-    current_sample_rate = sample_rate;
+    Start(filename.str(), sample_rate_divisor);
+    current_sample_rate_divisor = sample_rate_divisor;
   }
 
   file.WriteBytes(conv_buffer.data(), count * 4);

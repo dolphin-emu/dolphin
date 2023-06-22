@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -16,7 +15,7 @@ namespace OGL
 class OGLPipeline final : public AbstractPipeline
 {
 public:
-  explicit OGLPipeline(const GLVertexFormat* vertex_format,
+  explicit OGLPipeline(const AbstractPipelineConfig& config, const GLVertexFormat* vertex_format,
                        const RasterizationState& rasterization_state, const DepthState& depth_state,
                        const BlendingState& blending_state, PipelineProgram* program,
                        GLenum gl_primitive);

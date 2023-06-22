@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/EXI/EXI_DeviceDummy.h"
 
@@ -11,7 +10,8 @@
 
 namespace ExpansionInterface
 {
-CEXIDummy::CEXIDummy(const std::string& name) : m_name{name}
+CEXIDummy::CEXIDummy(Core::System& system, const std::string& name)
+    : IEXIDevice(system), m_name{name}
 {
 }
 

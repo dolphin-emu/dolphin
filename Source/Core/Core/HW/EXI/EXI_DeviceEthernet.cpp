@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/EXI/EXI_DeviceEthernet.h"
 
@@ -9,15 +8,18 @@
 #include <optional>
 #include <string>
 
+#include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Network.h"
 #include "Common/StringUtil.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/Memmap.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 namespace ExpansionInterface
 {
@@ -25,21 +27,21 @@ namespace ExpansionInterface
 // Multiple parts of this implementation depend on Dolphin
 // being compiled for a little endian host.
 
-CEXIETHERNET::CEXIETHERNET(BBADeviceType type)
+CEXIETHERNET::CEXIETHERNET(Core::System& system, BBADeviceType type) : IEXIDevice(system)
 {
   // Parse MAC address from config, and generate a new one if it doesn't
   // exist or can't be parsed.
-  std::string& mac_addr_setting = SConfig::GetInstance().m_bba_mac;
+  std::string mac_addr_setting = Config::Get(Config::MAIN_BBA_MAC);
   std::optional<Common::MACAddress> mac_addr = Common::StringToMacAddress(mac_addr_setting);
 
-  std::transform(mac_addr_setting.begin(), mac_addr_setting.end(), mac_addr_setting.begin(),
-                 [](unsigned char c) { return std::tolower(c); });
+  Common::ToLower(&mac_addr_setting);
 
   if (!mac_addr)
   {
     mac_addr = Common::GenerateMacAddress(Common::MACConsumer::BBA);
     mac_addr_setting = Common::MacAddressToString(mac_addr.value());
-    SConfig::GetInstance().SaveSettings();
+    Config::SetBaseOrCurrent(Config::MAIN_BBA_MAC, mac_addr_setting);
+    Config::Save();
   }
 
   switch (type)
@@ -48,14 +50,24 @@ CEXIETHERNET::CEXIETHERNET(BBADeviceType type)
     m_network_interface = std::make_unique<TAPNetworkInterface>(this);
     INFO_LOG_FMT(SP1, "Created TAP physical network interface.");
     break;
+#if defined(__APPLE__)
+  case BBADeviceType::TAPSERVER:
+    m_network_interface = std::make_unique<TAPServerNetworkInterface>(this);
+    INFO_LOG_FMT(SP1, "Created tapserver physical network interface.");
+    break;
+#endif
+  case BBADeviceType::BuiltIn:
+    m_network_interface = std::make_unique<BuiltInBBAInterface>(
+        this, Config::Get(Config::MAIN_BBA_BUILTIN_DNS), Config::Get(Config::MAIN_BBA_BUILTIN_IP));
+    INFO_LOG_FMT(SP1, "Created Built in network interface.");
+    break;
   case BBADeviceType::XLINK:
     // TODO start BBA with network link down, bring it up after "connected" response from XLink
 
     // Perform sanity check on BBA MAC address, XLink requires the vendor OUI to be Nintendo's and
     // to be one of the two used for the GameCube.
     // Don't actually stop the BBA from initializing though
-    if (!StringBeginsWith(mac_addr_setting, "00:09:bf") &&
-        !StringBeginsWith(mac_addr_setting, "00:17:ab"))
+    if (!mac_addr_setting.starts_with("00:09:bf") && !mac_addr_setting.starts_with("00:17:ab"))
     {
       PanicAlertFmtT(
           "BBA MAC address {0} invalid for XLink Kai. A valid Nintendo GameCube MAC address "
@@ -65,11 +77,12 @@ CEXIETHERNET::CEXIETHERNET(BBADeviceType type)
 
     // m_client_mdentifier should be unique per connected emulator from the XLink kai client's
     // perspective so lets use "dolphin<bba mac>"
-    m_network_interface = std::make_unique<XLinkNetworkInterface>(
-        this, SConfig::GetInstance().m_bba_xlink_ip, 34523,
-        "dolphin" + SConfig::GetInstance().m_bba_mac, SConfig::GetInstance().m_bba_xlink_chat_osd);
+    m_network_interface =
+        std::make_unique<XLinkNetworkInterface>(this, Config::Get(Config::MAIN_BBA_XLINK_IP), 34523,
+                                                "dolphin" + Config::Get(Config::MAIN_BBA_MAC),
+                                                Config::Get(Config::MAIN_BBA_XLINK_CHAT_OSD));
     INFO_LOG_FMT(SP1, "Created XLink Kai BBA network interface connection to {}:34523",
-                 SConfig::GetInstance().m_bba_xlink_ip);
+                 Config::Get(Config::MAIN_BBA_XLINK_IP));
     break;
   }
 
@@ -149,12 +162,23 @@ void CEXIETHERNET::ImmWrite(u32 data, u32 size)
     {
     case INTERRUPT:
       exi_status.interrupt &= data ^ 0xff;
+      // raise back if there is still data
+      if (page_ptr(BBA_RRP) != page_ptr(BBA_RWP))
+      {
+        if (mBbaMem[BBA_IMR] & INT_R)
+        {
+          mBbaMem[BBA_IR] |= INT_R;
+
+          exi_status.interrupt |= exi_status.TRANSFER;
+        }
+      }
+
       break;
     case INTERRUPT_MASK:
       exi_status.interrupt_mask = data;
       break;
     }
-    ExpansionInterface::UpdateInterrupts();
+    m_system.GetExpansionInterface().UpdateInterrupts();
   }
   else
   {
@@ -209,7 +233,8 @@ void CEXIETHERNET::DMAWrite(u32 addr, u32 size)
   if (transfer.region == transfer.MX && transfer.direction == transfer.WRITE &&
       transfer.address == BBA_WRTXFIFOD)
   {
-    DirectFIFOWrite(Memory::GetPointer(addr), size);
+    auto& memory = m_system.GetMemory();
+    DirectFIFOWrite(memory.GetPointer(addr), size);
   }
   else
   {
@@ -222,9 +247,8 @@ void CEXIETHERNET::DMAWrite(u32 addr, u32 size)
 void CEXIETHERNET::DMARead(u32 addr, u32 size)
 {
   DEBUG_LOG_FMT(SP1, "DMA read: {:08x} {:x}", addr, size);
-
-  Memory::CopyToEmu(addr, &mBbaMem[transfer.address], size);
-
+  auto& memory = m_system.GetMemory();
+  memory.CopyToEmu(addr, &mBbaMem[transfer.address], size);
   transfer.address += size;
 }
 
@@ -342,7 +366,6 @@ void CEXIETHERNET::MXCommandHandler(u32 data, u32 size)
       // MXSoftReset();
       m_network_interface->Activate();
     }
-
     if (((mBbaMem[BBA_NCRA] & NCRA_SR) ^ (data & NCRA_SR)) != 0)
     {
       DEBUG_LOG_FMT(SP1, "{} rx", (data & NCRA_SR) ? "start" : "stop");
@@ -409,7 +432,6 @@ void CEXIETHERNET::DirectFIFOWrite(const u8* data, u32 size)
 {
   // In direct mode, the hardware handles creating the state required by the
   // GMAC instead of finagling with packet descriptors and such
-
   u16* tx_fifo_count = (u16*)&mBbaMem[BBA_TXFIFOCNT];
 
   memcpy(tx_fifo.get() + *tx_fifo_count, data, size);
@@ -423,7 +445,10 @@ void CEXIETHERNET::DirectFIFOWrite(const u8* data, u32 size)
 
 void CEXIETHERNET::SendFromDirectFIFO()
 {
-  m_network_interface->SendFrame(tx_fifo.get(), *(u16*)&mBbaMem[BBA_TXFIFOCNT]);
+  const u8* frame = tx_fifo.get();
+  const u16 size = Common::BitCastPtr<u16>(&mBbaMem[BBA_TXFIFOCNT]);
+  if (m_network_interface->SendFrame(frame, size))
+    PowerPC::debug_interface.NetworkLogger()->LogBBA(frame, size);
 }
 
 void CEXIETHERNET::SendFromPacketBuffer()
@@ -441,7 +466,7 @@ void CEXIETHERNET::SendComplete()
     mBbaMem[BBA_IR] |= INT_T;
 
     exi_status.interrupt |= exi_status.TRANSFER;
-    ExpansionInterface::ScheduleUpdateInterrupts(CoreTiming::FromThread::CPU, 0);
+    m_system.GetExpansionInterface().ScheduleUpdateInterrupts(CoreTiming::FromThread::CPU, 0);
   }
 
   mBbaMem[BBA_LTPS] = 0;
@@ -504,10 +529,16 @@ inline void CEXIETHERNET::inc_rwp()
 {
   u16* rwp = (u16*)&mBbaMem[BBA_RWP];
 
-  if (*rwp + 1 == page_ptr(BBA_RHBP))
+  if (*rwp == page_ptr(BBA_RHBP))
     *rwp = page_ptr(BBA_BP);
   else
     (*rwp)++;
+}
+
+inline void CEXIETHERNET::set_rwp(u16 value)
+{
+  u16* rwp = (u16*)&mBbaMem[BBA_RWP];
+  *rwp = value;
 }
 
 // This function is on the critical path for receiving data.
@@ -515,65 +546,63 @@ inline void CEXIETHERNET::inc_rwp()
 bool CEXIETHERNET::RecvHandlePacket()
 {
   u8* write_ptr;
-  u8* end_ptr;
-  u8* read_ptr;
   Descriptor* descriptor;
   u32 status = 0;
   u16 rwp_initial = page_ptr(BBA_RWP);
-
+  u16 current_rwp = 0;
+  u32 off = 4;
   if (!RecvMACFilter())
     goto wait_for_next;
 
 #ifdef BBA_TRACK_PAGE_PTRS
   INFO_LOG_FMT(SP1, "RecvHandlePacket {:x}\n{}", mRecvBufferLength,
-               ArrayToString(mRecvBuffer, mRecvBufferLength, 0x100));
+               ArrayToString(mRecvBuffer.get(), mRecvBufferLength, 16));
 
   INFO_LOG_FMT(SP1, "{:x} {:x} {:x} {:x}", page_ptr(BBA_BP), page_ptr(BBA_RRP), page_ptr(BBA_RWP),
                page_ptr(BBA_RHBP));
 #endif
-
-  write_ptr = ptr_from_page_ptr(BBA_RWP);
-  end_ptr = ptr_from_page_ptr(BBA_RHBP);
-  read_ptr = ptr_from_page_ptr(BBA_RRP);
+  PowerPC::debug_interface.NetworkLogger()->LogBBA(mRecvBuffer.get(), mRecvBufferLength);
+  write_ptr = &mBbaMem[page_ptr(BBA_RWP) << 8];
 
   descriptor = (Descriptor*)write_ptr;
-  write_ptr += 4;
-
-  for (u32 i = 0, off = 4; i < mRecvBufferLength; ++i, ++off)
+  current_rwp = page_ptr(BBA_RWP);
+  DEBUG_LOG_FMT(SP1, "Frame recv: {:x}", mRecvBufferLength);
+  for (u32 i = 0; i < mRecvBufferLength; i++)
   {
-    *write_ptr++ = mRecvBuffer[i];
-
-    if (off == 0xff)
+    write_ptr[off] = mRecvBuffer[i];
+    off++;
+    if (off == 0x100)
     {
       off = 0;
-      inc_rwp();
-    }
+      // avoid increasing the BBA register while copying
+      // sometime the OS can try to process when it's not completed
+      current_rwp = current_rwp == page_ptr(BBA_RHBP) ? page_ptr(BBA_BP) : current_rwp + 1;
 
-    if (write_ptr == end_ptr)
-      write_ptr = ptr_from_page_ptr(BBA_BP);
+      write_ptr = &mBbaMem[current_rwp << 8];
 
-    if (write_ptr == read_ptr)
-    {
-      /*
-      halt copy
-      if (cur_packet_size >= PAGE_SIZE)
-        desc.status |= FO | BF
-      if (RBFIM)
-        raise RBFI
-      if (AUTORCVR)
-        discard bad packet
-      else
-        inc MPC instead of receiving packets
-      */
-      status |= DESC_FO | DESC_BF;
-      mBbaMem[BBA_IR] |= mBbaMem[BBA_IMR] & INT_RBF;
-      break;
+      if (page_ptr(BBA_RRP) == current_rwp)
+      {
+        /*
+        halt copy
+        if (cur_packet_size >= PAGE_SIZE)
+          desc.status |= FO | BF
+        if (RBFIM)
+          raise RBFI
+        if (AUTORCVR)
+          discard bad packet
+        else
+          inc MPC instead of receiving packets
+        */
+        status |= DESC_FO | DESC_BF;
+        mBbaMem[BBA_IR] |= mBbaMem[BBA_IMR] & INT_RBF;
+        break;
+      }
     }
   }
 
   // Align up to next page
   if ((mRecvBufferLength + 4) % 256)
-    inc_rwp();
+    current_rwp = current_rwp == page_ptr(BBA_RHBP) ? page_ptr(BBA_BP) : current_rwp + 1;
 
 #ifdef BBA_TRACK_PAGE_PTRS
   INFO_LOG_FMT(SP1, "{:x} {:x} {:x} {:x}", page_ptr(BBA_BP), page_ptr(BBA_RRP), page_ptr(BBA_RWP),
@@ -596,7 +625,9 @@ bool CEXIETHERNET::RecvHandlePacket()
     }
   }
 
-  descriptor->set(*(u16*)&mBbaMem[BBA_RWP], 4 + mRecvBufferLength, status);
+  descriptor->set(current_rwp, 4 + mRecvBufferLength, status);
+
+  set_rwp(current_rwp);
 
   mBbaMem[BBA_LRPS] = status;
 
@@ -606,7 +637,7 @@ bool CEXIETHERNET::RecvHandlePacket()
     mBbaMem[BBA_IR] |= INT_R;
 
     exi_status.interrupt |= exi_status.TRANSFER;
-    ExpansionInterface::ScheduleUpdateInterrupts(CoreTiming::FromThread::NON_CPU, 0);
+    m_system.GetExpansionInterface().ScheduleUpdateInterrupts(CoreTiming::FromThread::NON_CPU, 0);
   }
   else
   {

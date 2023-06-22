@@ -98,7 +98,7 @@ public:
     va_start(args, textId);
     vsprintf(str, format.c_str(), args);
     va_end(args);
-    //		INFO_LOG(SLIPPI, "%s", str);
+    //		INFO_LOG_FMT(SLIPPI, "%s", str);
 
     std::vector<u8> data = {};
     std::vector<u8> empty = {};
@@ -222,7 +222,7 @@ public:
               u16 sht = static_cast<u16>((TEXT_OP_CODE::COMMON_CHARACTER << 8) | pos);
               u8 r = static_cast<u8>(sht >> 8);
               u8 r2 = static_cast<u8>(sht & 0xFF);
-              // INFO_LOG(SLIPPI, "%x %x %x %c", sht, r, r2, chr);
+              // INFO_LOG_FMT(SLIPPI, "%x %x %x %c", sht, r, r2, chr);
 
               data.push_back(r);
               data.push_back(r2);

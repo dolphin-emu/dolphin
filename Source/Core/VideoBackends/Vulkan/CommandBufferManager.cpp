@@ -1,6 +1,5 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 
@@ -12,11 +11,12 @@
 #include "Common/Thread.h"
 
 #include "VideoBackends/Vulkan/VulkanContext.h"
+#include "VideoCommon/Constants.h"
 
 namespace Vulkan
 {
 CommandBufferManager::CommandBufferManager(bool use_threaded_submission)
-    : m_submit_semaphore(1, 1), m_use_threaded_submission(use_threaded_submission)
+    : m_use_threaded_submission(use_threaded_submission)
 {
 }
 
@@ -25,6 +25,7 @@ CommandBufferManager::~CommandBufferManager()
   // If the worker thread is enabled, stop and block until it exits.
   if (m_use_threaded_submission)
   {
+    WaitForWorkerThreadIdle();
     m_submit_loop->Stop();
     m_submit_thread.join();
   }
@@ -51,7 +52,7 @@ bool CommandBufferManager::CreateCommandBuffers()
   VkDevice device = g_vulkan_context->GetDevice();
   VkResult res;
 
-  for (FrameResources& resources : m_frame_resources)
+  for (CmdBufferResources& resources : m_command_buffers)
   {
     resources.init_command_buffer_used = false;
     resources.semaphore_used = false;
@@ -93,31 +94,6 @@ bool CommandBufferManager::CreateCommandBuffers()
       LOG_VULKAN_ERROR(res, "vkCreateSemaphore failed: ");
       return false;
     }
-
-    // TODO: A better way to choose the number of descriptors.
-    const std::array<VkDescriptorPoolSize, 5> pool_sizes{{
-        {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 500000},
-        {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 500000},
-        {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 16},
-        {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 16384},
-        {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 16384},
-    }};
-
-    const VkDescriptorPoolCreateInfo pool_create_info = {
-        VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-        nullptr,
-        0,
-        100000,  // tweak this
-        static_cast<u32>(pool_sizes.size()),
-        pool_sizes.data(),
-    };
-
-    res = vkCreateDescriptorPool(device, &pool_create_info, nullptr, &resources.descriptor_pool);
-    if (res != VK_SUCCESS)
-    {
-      LOG_VULKAN_ERROR(res, "vkCreateDescriptorPool failed: ");
-      return false;
-    }
   }
 
   res = vkCreateSemaphore(device, &semaphore_create_info, nullptr, &m_present_semaphore);
@@ -127,8 +103,8 @@ bool CommandBufferManager::CreateCommandBuffers()
     return false;
   }
 
-  // Activate the first command buffer. ActivateCommandBuffer moves forward, so start with the last
-  m_current_frame = static_cast<u32>(m_frame_resources.size()) - 1;
+  // Activate the first command buffer. BeginCommandBuffer moves forward, so start with the last
+  m_current_cmd_buffer = static_cast<u32>(m_command_buffers.size()) - 1;
   BeginCommandBuffer();
   return true;
 }
@@ -137,7 +113,7 @@ void CommandBufferManager::DestroyCommandBuffers()
 {
   VkDevice device = g_vulkan_context->GetDevice();
 
-  for (FrameResources& resources : m_frame_resources)
+  for (CmdBufferResources& resources : m_command_buffers)
   {
     // The Vulkan spec section 5.2 says: "When a pool is destroyed, all command buffers allocated
     // from the pool are freed.". So we don't need to free the command buffers, just the pools.
@@ -155,28 +131,89 @@ void CommandBufferManager::DestroyCommandBuffers()
 
     if (resources.fence != VK_NULL_HANDLE)
       vkDestroyFence(device, resources.fence, nullptr);
+  }
 
-    if (resources.descriptor_pool != VK_NULL_HANDLE)
-      vkDestroyDescriptorPool(device, resources.descriptor_pool, nullptr);
+  for (FrameResources& resources : m_frame_resources)
+  {
+    for (VkDescriptorPool descriptor_pool : resources.descriptor_pools)
+    {
+      vkDestroyDescriptorPool(device, descriptor_pool, nullptr);
+    }
   }
 
   vkDestroySemaphore(device, m_present_semaphore, nullptr);
 }
 
-VkDescriptorSet CommandBufferManager::AllocateDescriptorSet(VkDescriptorSetLayout set_layout)
+VkDescriptorPool CommandBufferManager::CreateDescriptorPool(u32 max_descriptor_sets)
 {
-  VkDescriptorSetAllocateInfo allocate_info = {
-      VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO, nullptr,
-      m_frame_resources[m_current_frame].descriptor_pool, 1, &set_layout};
+  /*
+   * Worst case descriptor counts according to the descriptor layout created in ObjectCache.cpp:
+   * UNIFORM_BUFFER_DYNAMIC: 3
+   * COMBINED_IMAGE_SAMPLER: NUM_UTILITY_PIXEL_SAMPLERS + NUM_COMPUTE_SHADER_SAMPLERS +
+   * VideoCommon::MAX_PIXEL_SHADER_SAMPLERS
+   * STORAGE_BUFFER: 2
+   * UNIFORM_TEXEL_BUFFER: 3
+   * STORAGE_IMAGE: 1
+   */
+  const std::array<VkDescriptorPoolSize, 5> pool_sizes{{
+      {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, max_descriptor_sets * 3},
+      {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+       max_descriptor_sets * (VideoCommon::MAX_PIXEL_SHADER_SAMPLERS + NUM_COMPUTE_SHADER_SAMPLERS +
+                              NUM_UTILITY_PIXEL_SAMPLERS)},
+      {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, max_descriptor_sets * 2},
+      {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, max_descriptor_sets * 3},
+      {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, max_descriptor_sets * 1},
+  }};
 
-  VkDescriptorSet descriptor_set;
-  VkResult res =
-      vkAllocateDescriptorSets(g_vulkan_context->GetDevice(), &allocate_info, &descriptor_set);
+  const VkDescriptorPoolCreateInfo pool_create_info = {
+      VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO, nullptr,           0, max_descriptor_sets,
+      static_cast<u32>(pool_sizes.size()),           pool_sizes.data(),
+  };
+
+  VkDevice device = g_vulkan_context->GetDevice();
+  VkDescriptorPool descriptor_pool = VK_NULL_HANDLE;
+  VkResult res = vkCreateDescriptorPool(device, &pool_create_info, nullptr, &descriptor_pool);
   if (res != VK_SUCCESS)
   {
-    // Failing to allocate a descriptor set is not a fatal error, we can
-    // recover by moving to the next command buffer.
+    LOG_VULKAN_ERROR(res, "vkCreateDescriptorPool failed: ");
     return VK_NULL_HANDLE;
+  }
+  return descriptor_pool;
+}
+
+VkDescriptorSet CommandBufferManager::AllocateDescriptorSet(VkDescriptorSetLayout set_layout)
+{
+  VkDescriptorSet descriptor_set = VK_NULL_HANDLE;
+  FrameResources& resources = GetCurrentFrameResources();
+
+  if (!resources.descriptor_pools.empty()) [[likely]]
+  {
+    VkDescriptorSetAllocateInfo allocate_info = {
+        VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO, nullptr,
+        resources.descriptor_pools[resources.current_descriptor_pool_index], 1, &set_layout};
+
+    VkResult res =
+        vkAllocateDescriptorSets(g_vulkan_context->GetDevice(), &allocate_info, &descriptor_set);
+    if (res != VK_SUCCESS &&
+        resources.descriptor_pools.size() > resources.current_descriptor_pool_index + 1)
+    {
+      // Mark the next descriptor set as active and try again.
+      resources.current_descriptor_pool_index++;
+      descriptor_set = AllocateDescriptorSet(set_layout);
+    }
+  }
+
+  if (descriptor_set == VK_NULL_HANDLE) [[unlikely]]
+  {
+    VkDescriptorPool descriptor_pool = CreateDescriptorPool(DESCRIPTOR_SETS_PER_POOL);
+    m_descriptor_set_count += DESCRIPTOR_SETS_PER_POOL;
+    if (descriptor_pool == VK_NULL_HANDLE) [[unlikely]]
+      return VK_NULL_HANDLE;
+
+    resources.descriptor_pools.push_back(descriptor_pool);
+    resources.current_descriptor_pool_index =
+        static_cast<u32>(resources.descriptor_pools.size()) - 1;
+    descriptor_set = AllocateDescriptorSet(set_layout);
   }
 
   return descriptor_set;
@@ -195,6 +232,8 @@ bool CommandBufferManager::CreateSubmitThread()
         if (m_pending_submits.empty())
         {
           m_submit_loop->AllowSleep();
+          m_submit_worker_idle = true;
+          m_submit_worker_condvar.notify_all();
           return;
         }
 
@@ -204,6 +243,17 @@ bool CommandBufferManager::CreateSubmitThread()
 
       SubmitCommandBuffer(submit.command_buffer_index, submit.present_swap_chain,
                           submit.present_image_index);
+      CmdBufferResources& resources = m_command_buffers[submit.command_buffer_index];
+      resources.waiting_for_submit.store(false, std::memory_order_release);
+
+      {
+        std::lock_guard<std::mutex> guard(m_pending_submit_lock);
+        if (m_pending_submits.empty())
+        {
+          m_submit_worker_idle = true;
+          m_submit_worker_condvar.notify_all();
+        }
+      }
     });
   });
 
@@ -212,9 +262,11 @@ bool CommandBufferManager::CreateSubmitThread()
 
 void CommandBufferManager::WaitForWorkerThreadIdle()
 {
-  // Drain the semaphore, then allow another request in the future.
-  m_submit_semaphore.Wait();
-  m_submit_semaphore.Post();
+  if (!m_use_threaded_submission)
+    return;
+
+  std::unique_lock lock{m_pending_submit_lock};
+  m_submit_worker_condvar.wait(lock, [&] { return m_submit_worker_idle; });
 }
 
 void CommandBufferManager::WaitForFenceCounter(u64 fence_counter)
@@ -223,45 +275,52 @@ void CommandBufferManager::WaitForFenceCounter(u64 fence_counter)
     return;
 
   // Find the first command buffer which covers this counter value.
-  u32 index = (m_current_frame + 1) % NUM_COMMAND_BUFFERS;
-  while (index != m_current_frame)
+  u32 index = (m_current_cmd_buffer + 1) % NUM_COMMAND_BUFFERS;
+  while (index != m_current_cmd_buffer)
   {
-    if (m_frame_resources[index].fence_counter >= fence_counter)
+    if (m_command_buffers[index].fence_counter >= fence_counter)
       break;
 
     index = (index + 1) % NUM_COMMAND_BUFFERS;
   }
 
-  ASSERT(index != m_current_frame);
+  ASSERT(index != m_current_cmd_buffer);
   WaitForCommandBufferCompletion(index);
 }
 
 void CommandBufferManager::WaitForCommandBufferCompletion(u32 index)
 {
+  CmdBufferResources& resources = m_command_buffers[index];
+
   // Ensure this command buffer has been submitted.
-  WaitForWorkerThreadIdle();
+  if (resources.waiting_for_submit.load(std::memory_order_acquire))
+  {
+    WaitForWorkerThreadIdle();
+    ASSERT_MSG(VIDEO, !resources.waiting_for_submit.load(std::memory_order_relaxed),
+               "Submit thread is idle but command buffer is still waiting for submission!");
+  }
 
   // Wait for this command buffer to be completed.
-  VkResult res = vkWaitForFences(g_vulkan_context->GetDevice(), 1, &m_frame_resources[index].fence,
-                                 VK_TRUE, UINT64_MAX);
+  VkResult res =
+      vkWaitForFences(g_vulkan_context->GetDevice(), 1, &resources.fence, VK_TRUE, UINT64_MAX);
   if (res != VK_SUCCESS)
     LOG_VULKAN_ERROR(res, "vkWaitForFences failed: ");
 
   // Clean up any resources for command buffers between the last known completed buffer and this
   // now-completed command buffer. If we use >2 buffers, this may be more than one buffer.
-  const u64 now_completed_counter = m_frame_resources[index].fence_counter;
-  u32 cleanup_index = (m_current_frame + 1) % NUM_COMMAND_BUFFERS;
-  while (cleanup_index != m_current_frame)
+  const u64 now_completed_counter = resources.fence_counter;
+  u32 cleanup_index = (m_current_cmd_buffer + 1) % NUM_COMMAND_BUFFERS;
+  while (cleanup_index != m_current_cmd_buffer)
   {
-    FrameResources& resources = m_frame_resources[cleanup_index];
-    if (resources.fence_counter > now_completed_counter)
+    CmdBufferResources& cleanup_resources = m_command_buffers[cleanup_index];
+    if (cleanup_resources.fence_counter > now_completed_counter)
       break;
 
-    if (resources.fence_counter > m_completed_fence_counter)
+    if (cleanup_resources.fence_counter > m_completed_fence_counter)
     {
-      for (auto& it : resources.cleanup_resources)
+      for (auto& it : cleanup_resources.cleanup_resources)
         it();
-      resources.cleanup_resources.clear();
+      cleanup_resources.cleanup_resources.clear();
     }
 
     cleanup_index = (cleanup_index + 1) % NUM_COMMAND_BUFFERS;
@@ -276,29 +335,27 @@ void CommandBufferManager::SubmitCommandBuffer(bool submit_on_worker_thread,
                                                uint32_t present_image_index)
 {
   // End the current command buffer.
-  FrameResources& resources = m_frame_resources[m_current_frame];
+  CmdBufferResources& resources = GetCurrentCmdBufferResources();
   for (VkCommandBuffer command_buffer : resources.command_buffers)
   {
     VkResult res = vkEndCommandBuffer(command_buffer);
     if (res != VK_SUCCESS)
     {
       LOG_VULKAN_ERROR(res, "vkEndCommandBuffer failed: ");
-      PanicAlert("Failed to end command buffer");
+      PanicAlertFmt("Failed to end command buffer: {} ({})", VkResultToString(res),
+                    static_cast<int>(res));
     }
   }
-
-  // Grab the semaphore before submitting command buffer either on-thread or off-thread.
-  // This prevents a race from occurring where a second command buffer is executed
-  // before the worker thread has woken and executed the first one yet.
-  m_submit_semaphore.Wait();
 
   // Submitting off-thread?
   if (m_use_threaded_submission && submit_on_worker_thread && !wait_for_completion)
   {
+    resources.waiting_for_submit.store(true, std::memory_order_relaxed);
     // Push to the pending submit queue.
     {
       std::lock_guard<std::mutex> guard(m_pending_submit_lock);
-      m_pending_submits.push_back({present_swap_chain, present_image_index, m_current_frame});
+      m_submit_worker_idle = false;
+      m_pending_submits.push_back({present_swap_chain, present_image_index, m_current_cmd_buffer});
     }
 
     // Wake up the worker thread for a single iteration.
@@ -306,10 +363,54 @@ void CommandBufferManager::SubmitCommandBuffer(bool submit_on_worker_thread,
   }
   else
   {
+    WaitForWorkerThreadIdle();
+
     // Pass through to normal submission path.
-    SubmitCommandBuffer(m_current_frame, present_swap_chain, present_image_index);
+    SubmitCommandBuffer(m_current_cmd_buffer, present_swap_chain, present_image_index);
     if (wait_for_completion)
-      WaitForCommandBufferCompletion(m_current_frame);
+      WaitForCommandBufferCompletion(m_current_cmd_buffer);
+  }
+
+  if (present_swap_chain != VK_NULL_HANDLE)
+  {
+    m_current_frame = (m_current_frame + 1) % NUM_FRAMES_IN_FLIGHT;
+
+    // Wait for all command buffers that used the descriptor pool to finish
+    u32 cmd_buffer_index = (m_current_cmd_buffer + 1) % NUM_COMMAND_BUFFERS;
+    while (cmd_buffer_index != m_current_cmd_buffer)
+    {
+      CmdBufferResources& cmd_buffer = m_command_buffers[cmd_buffer_index];
+      if (cmd_buffer.frame_index == m_current_frame && cmd_buffer.fence_counter != 0 &&
+          cmd_buffer.fence_counter > m_completed_fence_counter)
+      {
+        WaitForCommandBufferCompletion(cmd_buffer_index);
+      }
+      cmd_buffer_index = (cmd_buffer_index + 1) % NUM_COMMAND_BUFFERS;
+    }
+
+    // Reset the descriptor pools
+    FrameResources& frame_resources = GetCurrentFrameResources();
+
+    if (frame_resources.descriptor_pools.size() == 1) [[likely]]
+    {
+      VkResult res = vkResetDescriptorPool(g_vulkan_context->GetDevice(),
+                                           frame_resources.descriptor_pools[0], 0);
+      if (res != VK_SUCCESS)
+        LOG_VULKAN_ERROR(res, "vkResetDescriptorPool failed: ");
+    }
+    else [[unlikely]]
+    {
+      for (VkDescriptorPool descriptor_pool : frame_resources.descriptor_pools)
+      {
+        vkDestroyDescriptorPool(g_vulkan_context->GetDevice(), descriptor_pool, nullptr);
+      }
+      frame_resources.descriptor_pools.clear();
+      VkDescriptorPool descriptor_pool = CreateDescriptorPool(m_descriptor_set_count);
+      if (descriptor_pool != VK_NULL_HANDLE) [[likely]]
+        frame_resources.descriptor_pools.push_back(descriptor_pool);
+    }
+
+    frame_resources.current_descriptor_pool_index = 0;
   }
 
   // Switch to next cmdbuffer.
@@ -320,7 +421,7 @@ void CommandBufferManager::SubmitCommandBuffer(u32 command_buffer_index,
                                                VkSwapchainKHR present_swap_chain,
                                                u32 present_image_index)
 {
-  FrameResources& resources = m_frame_resources[command_buffer_index];
+  CmdBufferResources& resources = m_command_buffers[command_buffer_index];
 
   // This may be executed on the worker thread, so don't modify any state of the manager class.
   uint32_t wait_bits = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -358,7 +459,8 @@ void CommandBufferManager::SubmitCommandBuffer(u32 command_buffer_index,
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkQueueSubmit failed: ");
-    PanicAlert("Failed to submit command buffer.");
+    PanicAlertFmt("Failed to submit command buffer: {} ({})", VkResultToString(res),
+                  static_cast<int>(res));
   }
 
   // Do we have a swap chain to present?
@@ -375,6 +477,7 @@ void CommandBufferManager::SubmitCommandBuffer(u32 command_buffer_index,
                                      nullptr};
 
     m_last_present_result = vkQueuePresentKHR(g_vulkan_context->GetPresentQueue(), &present_info);
+    m_last_present_done.Set();
     if (m_last_present_result != VK_SUCCESS)
     {
       // VK_ERROR_OUT_OF_DATE_KHR is not fatal, just means we need to recreate our swap chain.
@@ -395,16 +498,13 @@ void CommandBufferManager::SubmitCommandBuffer(u32 command_buffer_index,
 #endif
     }
   }
-
-  // Command buffer has been queued, so permit the next one.
-  m_submit_semaphore.Post();
 }
 
 void CommandBufferManager::BeginCommandBuffer()
 {
   // Move to the next command buffer.
-  const u32 next_buffer_index = (m_current_frame + 1) % NUM_COMMAND_BUFFERS;
-  FrameResources& resources = m_frame_resources[next_buffer_index];
+  const u32 next_buffer_index = (m_current_cmd_buffer + 1) % NUM_COMMAND_BUFFERS;
+  CmdBufferResources& resources = m_command_buffers[next_buffer_index];
 
   // Wait for the GPU to finish with all resources for this command buffer.
   if (resources.fence_counter > m_completed_fence_counter)
@@ -430,57 +530,47 @@ void CommandBufferManager::BeginCommandBuffer()
       LOG_VULKAN_ERROR(res, "vkBeginCommandBuffer failed: ");
   }
 
-  // Also can do the same for the descriptor pools
-  res = vkResetDescriptorPool(g_vulkan_context->GetDevice(), resources.descriptor_pool, 0);
-  if (res != VK_SUCCESS)
-    LOG_VULKAN_ERROR(res, "vkResetDescriptorPool failed: ");
-
   // Reset upload command buffer state
   resources.init_command_buffer_used = false;
   resources.semaphore_used = false;
   resources.fence_counter = m_next_fence_counter++;
-  m_current_frame = next_buffer_index;
-}
-
-void CommandBufferManager::DeferBufferDestruction(VkBuffer object)
-{
-  FrameResources& resources = m_frame_resources[m_current_frame];
-  resources.cleanup_resources.push_back(
-      [object]() { vkDestroyBuffer(g_vulkan_context->GetDevice(), object, nullptr); });
+  resources.frame_index = m_current_frame;
+  m_current_cmd_buffer = next_buffer_index;
 }
 
 void CommandBufferManager::DeferBufferViewDestruction(VkBufferView object)
 {
-  FrameResources& resources = m_frame_resources[m_current_frame];
-  resources.cleanup_resources.push_back(
+  CmdBufferResources& cmd_buffer_resources = GetCurrentCmdBufferResources();
+  cmd_buffer_resources.cleanup_resources.push_back(
       [object]() { vkDestroyBufferView(g_vulkan_context->GetDevice(), object, nullptr); });
 }
 
-void CommandBufferManager::DeferDeviceMemoryDestruction(VkDeviceMemory object)
+void CommandBufferManager::DeferBufferDestruction(VkBuffer buffer, VmaAllocation alloc)
 {
-  FrameResources& resources = m_frame_resources[m_current_frame];
-  resources.cleanup_resources.push_back(
-      [object]() { vkFreeMemory(g_vulkan_context->GetDevice(), object, nullptr); });
+  CmdBufferResources& cmd_buffer_resources = GetCurrentCmdBufferResources();
+  cmd_buffer_resources.cleanup_resources.push_back([buffer, alloc]() {
+    vmaDestroyBuffer(g_vulkan_context->GetMemoryAllocator(), buffer, alloc);
+  });
 }
 
 void CommandBufferManager::DeferFramebufferDestruction(VkFramebuffer object)
 {
-  FrameResources& resources = m_frame_resources[m_current_frame];
-  resources.cleanup_resources.push_back(
+  CmdBufferResources& cmd_buffer_resources = GetCurrentCmdBufferResources();
+  cmd_buffer_resources.cleanup_resources.push_back(
       [object]() { vkDestroyFramebuffer(g_vulkan_context->GetDevice(), object, nullptr); });
 }
 
-void CommandBufferManager::DeferImageDestruction(VkImage object)
+void CommandBufferManager::DeferImageDestruction(VkImage image, VmaAllocation alloc)
 {
-  FrameResources& resources = m_frame_resources[m_current_frame];
-  resources.cleanup_resources.push_back(
-      [object]() { vkDestroyImage(g_vulkan_context->GetDevice(), object, nullptr); });
+  CmdBufferResources& cmd_buffer_resources = GetCurrentCmdBufferResources();
+  cmd_buffer_resources.cleanup_resources.push_back(
+      [image, alloc]() { vmaDestroyImage(g_vulkan_context->GetMemoryAllocator(), image, alloc); });
 }
 
 void CommandBufferManager::DeferImageViewDestruction(VkImageView object)
 {
-  FrameResources& resources = m_frame_resources[m_current_frame];
-  resources.cleanup_resources.push_back(
+  CmdBufferResources& cmd_buffer_resources = GetCurrentCmdBufferResources();
+  cmd_buffer_resources.cleanup_resources.push_back(
       [object]() { vkDestroyImageView(g_vulkan_context->GetDevice(), object, nullptr); });
 }
 

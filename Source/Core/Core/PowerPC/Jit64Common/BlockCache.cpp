@@ -1,6 +1,5 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/PowerPC/Jit64Common/BlockCache.h"
 
@@ -14,13 +13,9 @@ JitBlockCache::JitBlockCache(JitBase& jit) : JitBaseBlockCache{jit}
 
 void JitBlockCache::WriteLinkBlock(const JitBlock::LinkData& source, const JitBlock* dest)
 {
-  // Do not skip breakpoint check if debugging.
-  const u8* dispatcher = SConfig::GetInstance().bEnableDebugging ?
-                             m_jit.GetAsmRoutines()->dispatcher :
-                             m_jit.GetAsmRoutines()->dispatcher_no_check;
-
   u8* location = source.exitPtrs;
-  const u8* address = dest ? dest->checkedEntry : dispatcher;
+  const u8* address =
+      dest ? dest->checkedEntry : m_jit.GetAsmRoutines()->dispatcher_no_timing_check;
   if (source.call)
   {
     Gen::XEmitter emit(location, location + 5);

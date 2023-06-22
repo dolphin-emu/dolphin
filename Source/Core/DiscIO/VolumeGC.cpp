@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DiscIO/VolumeGC.h"
 
@@ -12,17 +11,17 @@
 #include <utility>
 #include <vector>
 
-#include <mbedtls/sha1.h>
-
 #include "Common/Assert.h"
 #include "Common/ColorUtil.h"
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/SHA1.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
 #include "DiscIO/Blob.h"
 #include "DiscIO/DiscExtractor.h"
+#include "DiscIO/DiscUtils.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/FileSystemGCWii.h"
 #include "DiscIO/Filesystem.h"
@@ -61,10 +60,21 @@ const FileSystem* VolumeGC::GetFileSystem(const Partition& partition) const
 
 std::string VolumeGC::GetGameTDBID(const Partition& partition) const
 {
-  const std::string game_id = GetGameID(partition);
+  // Datel discs for the GameCube can have one of two different game IDs:
+  //
+  // 1: GNHE5d. (Yes, with a lowercase d.) This game ID is used not only for
+  // all kinds of Datel discs, but also for the licensed release NHL Hitz 2002.
+  //
+  // 2: DTLX01. This game ID is used for a few late Datel releases. Both Action Replay
+  // and FreeLoader are known to have been released under this game ID.
+  //
+  // Since no game ID used for Datel discs uniquely represents one product,
+  // never use the game ID of a Datel disc for looking up the title or cover art.
+  if (IsDatelDisc())
+    return "";
 
-  // Don't return an ID for Datel discs that are using the game ID of NHL Hitz 2002
-  return game_id == "GNHE5d" && IsDatelDisc() ? "" : game_id;
+  // Normal case. Just return the usual game ID.
+  return GetGameID(partition);
 }
 
 Region VolumeGC::GetRegion() const
@@ -109,14 +119,14 @@ BlobType VolumeGC::GetBlobType() const
   return m_reader->GetBlobType();
 }
 
-u64 VolumeGC::GetSize() const
+u64 VolumeGC::GetDataSize() const
 {
   return m_reader->GetDataSize();
 }
 
-bool VolumeGC::IsSizeAccurate() const
+DataSizeType VolumeGC::GetDataSizeType() const
 {
-  return m_reader->IsDataSizeAccurate();
+  return m_reader->GetDataSizeType();
 }
 
 u64 VolumeGC::GetRawSize() const
@@ -136,20 +146,16 @@ Platform VolumeGC::GetVolumeType() const
 
 bool VolumeGC::IsDatelDisc() const
 {
-  return !GetBootDOLOffset(*this, PARTITION_NONE).has_value();
+  return GetGameID() == "DTLX01" || !GetBootDOLOffset(*this, PARTITION_NONE).has_value();
 }
 
 std::array<u8, 20> VolumeGC::GetSyncHash() const
 {
-  mbedtls_sha1_context context;
-  mbedtls_sha1_init(&context);
-  mbedtls_sha1_starts_ret(&context);
+  auto context = Common::SHA1::CreateContext();
 
-  AddGamePartitionToSyncHash(&context);
+  AddGamePartitionToSyncHash(context.get());
 
-  std::array<u8, 20> hash;
-  mbedtls_sha1_finish_ret(&context, hash.data());
-  return hash;
+  return context->Finish();
 }
 
 VolumeGC::ConvertedGCBanner VolumeGC::LoadBannerFile() const

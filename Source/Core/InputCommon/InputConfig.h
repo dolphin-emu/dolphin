@@ -1,6 +1,5 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -25,31 +24,38 @@ public:
 
   ~InputConfig();
 
-  bool LoadConfig(bool isGC);
+  enum class InputClass
+  {
+    GC,
+    Wii,
+    GBA,
+  };
+
+  bool LoadConfig(InputClass type);
   void SaveConfig();
 
   template <typename T, typename... Args>
   void CreateController(Args&&... args)
   {
-    OnControllerCreated(
-        *m_controllers.emplace_back(std::make_unique<T>(std::forward<Args>(args)...)));
+    m_controllers.emplace_back(std::make_unique<T>(std::forward<Args>(args)...));
   }
 
-  ControllerEmu::EmulatedController* GetController(int index);
+  ControllerEmu::EmulatedController* GetController(int index) const;
   void ClearControllers();
   bool ControllersNeedToBeCreated() const;
   bool IsControllerControlledByGamepadDevice(int index) const;
 
   std::string GetGUIName() const { return m_gui_name; }
   std::string GetProfileName() const { return m_profile_name; }
-  std::size_t GetControllerCount() const;
+  int GetControllerCount() const;
 
   // These should be used after creating all controllers and before clearing them, respectively.
   void RegisterHotplugCallback();
   void UnregisterHotplugCallback();
 
+  void GenerateControllerTextures(const IniFile& file);
+
 private:
-  void OnControllerCreated(ControllerEmu::EmulatedController& controller);
   ControllerInterface::HotplugCallbackHandle m_hotplug_callback_handle;
   std::vector<std::unique_ptr<ControllerEmu::EmulatedController>> m_controllers;
   const std::string m_ini_name;

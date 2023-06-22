@@ -1,6 +1,5 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "InputCommon/ControllerInterface/OSX/OSXJoystick.h"
 
@@ -109,8 +108,9 @@ void Joystick::AddElements(CFArrayRef elements, std::set<IOHIDElementCookie>& co
         break;
       }
 
-      NOTICE_LOG_FMT(SERIALINTERFACE, "Unknown IOHIDElement, ignoring (Usage: {:x}, Type: {:x})",
-                     usage, IOHIDElementGetType(e));
+      NOTICE_LOG_FMT(CONTROLLERINTERFACE,
+                     "Unknown IOHIDElement, ignoring (Usage: {:x}, Type: {:x})", usage,
+                     IOHIDElementGetType(e));
 
       break;
     }
@@ -164,7 +164,7 @@ std::string Joystick::Button::GetName() const
 {
   std::ostringstream s;
   s << IOHIDElementGetUsage(m_element);
-  return std::string("Button ").append(StripSpaces(s.str()));
+  return std::string("Button ").append(StripWhitespace(s.str()));
 }
 
 Joystick::Axis::Axis(IOHIDElementRef element, IOHIDDeviceRef device, direction dir)
@@ -210,7 +210,7 @@ Joystick::Axis::Axis(IOHIDElementRef element, IOHIDDeviceRef device, direction d
     std::ostringstream s;
     s << "CK-";
     s << elementCookie;
-    description = StripSpaces(s.str());
+    description = StripWhitespace(s.str());
     break;
   }
   }

@@ -5,7 +5,9 @@
 #include <share.h>
 #endif
 
+#include "Common/Config/Config.h"
 #include "Common/Logging/Log.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/HW/EXI/EXI_DeviceSlippi.h"
 #include "Core/NetPlayClient.h"
@@ -37,14 +39,14 @@ s32 emod(s32 a, s32 b)
 
 std::string processDiff(std::vector<u8> iState, std::vector<u8> cState)
 {
-  INFO_LOG(SLIPPI, "Processing diff");
+  INFO_LOG_FMT(SLIPPI, "Processing diff");
   numDiffsProcessing += 1;
   cv_processingDiff.notify_one();
   std::string diff = std::string();
   open_vcdiff::VCDiffEncoder encoder((char*)iState.data(), iState.size());
   encoder.Encode((char*)cState.data(), cState.size(), &diff);
 
-  INFO_LOG(SLIPPI, "done processing");
+  INFO_LOG_FMT(SLIPPI, "done processing");
   numDiffsProcessing -= 1;
   cv_processingDiff.notify_one();
   return diff;
@@ -75,7 +77,7 @@ void SlippiPlaybackStatus::prepareSlippiPlayback(s32& frameIndex)
   // block if there's too many diffs being processed
   while (shouldRunThreads && numDiffsProcessing > 2)
   {
-    INFO_LOG(SLIPPI, "Processing too many diffs, blocking main process");
+    INFO_LOG_FMT(SLIPPI, "Processing too many diffs, blocking main process");
     cv_processingDiff.wait(processingLock);
   }
 
@@ -86,7 +88,7 @@ void SlippiPlaybackStatus::prepareSlippiPlayback(s32& frameIndex)
   // TODO: figure out why sometimes playback frame increments past targetFrameNum
   if (inSlippiPlayback && frameIndex >= targetFrameNum)
   {
-    INFO_LOG(SLIPPI, "Reached frame %d. Target was %d. Unblocking", frameIndex, targetFrameNum);
+    INFO_LOG_FMT(SLIPPI, "Reached frame {}. Target was {}. Unblocking", frameIndex, targetFrameNum);
     cv_waitingForTargetFrame.notify_one();
   }
 }
@@ -115,15 +117,15 @@ void SlippiPlaybackStatus::resetPlayback()
 
 void SlippiPlaybackStatus::processInitialState()
 {
-  INFO_LOG(SLIPPI, "saving iState");
+  INFO_LOG_FMT(SLIPPI, "saving iState");
   State::SaveToBuffer(iState);
   // The initial save to cState causes a stutter of about 5-10 frames
   // Doing it here to get it out of the way and prevent stutters later
   // Subsequent calls to SaveToBuffer for cState take ~1 frame
   State::SaveToBuffer(cState);
-  if (SConfig::GetInstance().m_slippiEnableSeek)
+  if (Config::Get(Config::SLIPPI_ENABLE_SEEK))
   {
-    SConfig::GetInstance().bHideCursor = false;
+    Config::SetCurrent(Config::MAIN_SHOW_CURSOR, Config::ShowCursor::Constantly);
   }
 };
 
@@ -132,7 +134,7 @@ void SlippiPlaybackStatus::SavestateThread()
   Common::SetCurrentThreadName("Savestate thread");
   std::unique_lock<std::mutex> intervalLock(mtx);
 
-  INFO_LOG(SLIPPI, "Entering savestate thread");
+  INFO_LOG_FMT(SLIPPI, "Entering savestate thread");
 
   while (shouldRunThreads)
   {
@@ -157,9 +159,9 @@ void SlippiPlaybackStatus::SavestateThread()
       processInitialState();
       inSlippiPlayback = true;
     }
-    else if (SConfig::GetInstance().m_slippiEnableSeek && !hasStateBeenProcessed && !isStartFrame)
+    else if (Config::Get(Config::SLIPPI_ENABLE_SEEK) && !hasStateBeenProcessed && !isStartFrame)
     {
-      INFO_LOG(SLIPPI, "saving diff at frame: %d", fixedFrameNumber);
+      INFO_LOG_FMT(SLIPPI, "saving diff at frame: {}", fixedFrameNumber);
       State::SaveToBuffer(cState);
 
       futureDiffs[fixedFrameNumber] = std::async(processDiff, iState, cState);
@@ -167,7 +169,7 @@ void SlippiPlaybackStatus::SavestateThread()
     Common::SleepCurrentThread(SLEEP_TIME_MS);
   }
 
-  INFO_LOG(SLIPPI, "Exiting savestate thread");
+  INFO_LOG_FMT(SLIPPI, "Exiting savestate thread");
 }
 
 void SlippiPlaybackStatus::seekToFrame()
@@ -251,7 +253,7 @@ void SlippiPlaybackStatus::seekToFrame()
   }
   else
   {
-    INFO_LOG(SLIPPI, "Already seeking. Ignoring this call");
+    INFO_LOG_FMT(SLIPPI, "Already seeking. Ignoring this call");
   }
 }
 
@@ -260,13 +262,13 @@ void SlippiPlaybackStatus::setHardFFW(bool enable)
 {
   if (enable)
   {
-    SConfig::GetInstance().m_OCEnable = true;
-    SConfig::GetInstance().m_OCFactor = 4.0f;
+    SConfig::GetSlippiConfig().oc_enable = true;
+    SConfig::GetSlippiConfig().oc_factor = 4.0f;
   }
   else
   {
-    SConfig::GetInstance().m_OCFactor = origOCFactor;
-    SConfig::GetInstance().m_OCEnable = origOCEnable;
+    SConfig::GetSlippiConfig().oc_factor = origOCFactor;
+    SConfig::GetSlippiConfig().oc_enable = origOCEnable;
   }
 
   isHardFFW = enable;

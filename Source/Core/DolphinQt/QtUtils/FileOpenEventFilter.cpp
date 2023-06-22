@@ -1,10 +1,9 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
-
-#include <QFileOpenEvent>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/QtUtils/FileOpenEventFilter.h"
+
+#include <QFileOpenEvent>
 
 FileOpenEventFilter::FileOpenEventFilter(QObject* event_source) : QObject(event_source)
 {

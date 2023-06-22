@@ -1,17 +1,21 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/ShaderCache.h"
+
+#include <fmt/format.h>
 
 #include "Common/Assert.h"
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
 #include "Core/ConfigManager.h"
 
+#include "VideoCommon/AbstractGfx.h"
+#include "VideoCommon/ConstantManager.h"
+#include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/FramebufferShaderGen.h"
-#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/Present.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
@@ -36,12 +40,14 @@ ShaderCache::~ShaderCache()
 bool ShaderCache::Initialize()
 {
   m_api_type = g_ActiveConfig.backend_info.api_type;
-  m_host_config = ShaderHostConfig::GetCurrent();
+  m_host_config.bits = ShaderHostConfig::GetCurrent().bits;
 
   if (!CompileSharedPipelines())
     return false;
 
-  m_async_shader_compiler = g_renderer->CreateAsyncShaderCompiler();
+  m_async_shader_compiler = g_gfx->CreateAsyncShaderCompiler();
+  m_frame_end_handler =
+      AfterFrameEvent::Register([this] { RetrieveAsyncShaders(); }, "RetreiveAsyncShaders");
   return true;
 }
 
@@ -118,7 +124,7 @@ const AbstractPipeline* ShaderCache::GetPipelineForUid(const GXPipelineUid& uid)
   std::unique_ptr<AbstractPipeline> pipeline;
   std::optional<AbstractPipelineConfig> pipeline_config = GetGXPipelineConfig(uid);
   if (pipeline_config)
-    pipeline = g_renderer->CreatePipeline(*pipeline_config);
+    pipeline = g_gfx->CreatePipeline(*pipeline_config);
   if (g_ActiveConfig.bShaderCache && !exists_in_cache)
     AppendGXPipelineUID(uid);
   return InsertGXPipeline(uid, std::move(pipeline));
@@ -150,45 +156,54 @@ const AbstractPipeline* ShaderCache::GetUberPipelineForUid(const GXUberPipelineU
   std::unique_ptr<AbstractPipeline> pipeline;
   std::optional<AbstractPipelineConfig> pipeline_config = GetGXPipelineConfig(uid);
   if (pipeline_config)
-    pipeline = g_renderer->CreatePipeline(*pipeline_config);
+    pipeline = g_gfx->CreatePipeline(*pipeline_config);
   return InsertGXUberPipeline(uid, std::move(pipeline));
 }
 
 void ShaderCache::WaitForAsyncCompiler()
 {
-  while (m_async_shader_compiler->HasPendingWork() || m_async_shader_compiler->HasCompletedWork())
+  bool running = true;
+
+  constexpr auto update_ui_progress = [](size_t completed, size_t total) {
+    const float center_x = ImGui::GetIO().DisplaySize.x * 0.5f;
+    const float center_y = ImGui::GetIO().DisplaySize.y * 0.5f;
+    const float scale = ImGui::GetIO().DisplayFramebufferScale.x;
+
+    ImGui::SetNextWindowSize(ImVec2(400.0f * scale, 50.0f * scale), ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(center_x, center_y), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+    if (ImGui::Begin(Common::GetStringT("Compiling Shaders").c_str(), nullptr,
+                     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs |
+                         ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
+                         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav |
+                         ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing))
+    {
+      ImGui::Text("Compiling shaders: %zu/%zu", completed, total);
+      ImGui::ProgressBar(static_cast<float>(completed) /
+                             static_cast<float>(std::max(total, static_cast<size_t>(1))),
+                         ImVec2(-1.0f, 0.0f), "");
+    }
+    ImGui::End();
+
+    g_presenter->Present();
+  };
+
+  while (running &&
+         (m_async_shader_compiler->HasPendingWork() || m_async_shader_compiler->HasCompletedWork()))
   {
-    m_async_shader_compiler->WaitUntilCompletion([](size_t completed, size_t total) {
-      g_renderer->BeginUIFrame();
+    running = m_async_shader_compiler->WaitUntilCompletion(update_ui_progress);
 
-      const float scale = ImGui::GetIO().DisplayFramebufferScale.x;
-
-      ImGui::SetNextWindowSize(ImVec2(400.0f * scale, 50.0f * scale), ImGuiCond_Always);
-      ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
-      if (ImGui::Begin(Common::GetStringT("Compiling Shaders").c_str(), nullptr,
-                       ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs |
-                           ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
-                           ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav |
-                           ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing))
-      {
-        ImGui::Text("Compiling shaders: %zu/%zu", completed, total);
-        ImGui::ProgressBar(static_cast<float>(completed) /
-                               static_cast<float>(std::max(total, static_cast<size_t>(1))),
-                           ImVec2(-1.0f, 0.0f), "");
-      }
-      ImGui::End();
-
-      g_renderer->EndUIFrame();
-    });
     m_async_shader_compiler->RetrieveWorkItems();
   }
+
+  // An extra Present to clear the screen
+  g_presenter->Present();
 }
 
 template <typename SerializedUidType, typename UidType>
 static void SerializePipelineUid(const UidType& uid, SerializedUidType& serialized_uid)
 {
   // Convert to disk format. Ensure all padding bytes are zero.
-  std::memset(&serialized_uid, 0, sizeof(serialized_uid));
+  std::memset(reinterpret_cast<u8*>(&serialized_uid), 0, sizeof(serialized_uid));
   serialized_uid.vertex_decl = uid.vertex_format->GetVertexDeclaration();
   serialized_uid.vs_uid = uid.vs_uid;
   serialized_uid.gs_uid = uid.gs_uid;
@@ -219,7 +234,7 @@ void ShaderCache::LoadShaderCache(T& cache, APIType api_type, const char* type, 
     CacheReader(T& cache_) : cache(cache_) {}
     void Read(const K& key, const u8* value, u32 value_size)
     {
-      auto shader = g_renderer->CreateShaderFromBinary(stage, value, value_size);
+      auto shader = g_gfx->CreateShaderFromBinary(stage, value, value_size);
       if (shader)
       {
         auto& entry = cache.shader_map[key];
@@ -282,7 +297,7 @@ void ShaderCache::LoadPipelineCache(T& cache, LinearDiskCache<DiskKeyType, u8>& 
       if (!config)
         return;
 
-      auto pipeline = g_renderer->CreatePipeline(*config, value, value_size);
+      auto pipeline = g_gfx->CreatePipeline(*config, value, value_size);
       if (!pipeline)
       {
         // If any of the pipelines fail to create, consider the cache stale.
@@ -419,7 +434,7 @@ std::unique_ptr<AbstractShader> ShaderCache::CompileVertexShader(const VertexSha
 {
   const ShaderCode source_code =
       GenerateVertexShaderCode(m_api_type, m_host_config, uid.GetUidData());
-  return g_renderer->CreateShaderFromSource(ShaderStage::Vertex, source_code.GetBuffer());
+  return g_gfx->CreateShaderFromSource(ShaderStage::Vertex, source_code.GetBuffer());
 }
 
 std::unique_ptr<AbstractShader>
@@ -427,14 +442,15 @@ ShaderCache::CompileVertexUberShader(const UberShader::VertexShaderUid& uid) con
 {
   const ShaderCode source_code =
       UberShader::GenVertexShader(m_api_type, m_host_config, uid.GetUidData());
-  return g_renderer->CreateShaderFromSource(ShaderStage::Vertex, source_code.GetBuffer());
+  return g_gfx->CreateShaderFromSource(ShaderStage::Vertex, source_code.GetBuffer(),
+                                       fmt::to_string(*uid.GetUidData()));
 }
 
 std::unique_ptr<AbstractShader> ShaderCache::CompilePixelShader(const PixelShaderUid& uid) const
 {
   const ShaderCode source_code =
       GeneratePixelShaderCode(m_api_type, m_host_config, uid.GetUidData());
-  return g_renderer->CreateShaderFromSource(ShaderStage::Pixel, source_code.GetBuffer());
+  return g_gfx->CreateShaderFromSource(ShaderStage::Pixel, source_code.GetBuffer());
 }
 
 std::unique_ptr<AbstractShader>
@@ -442,7 +458,8 @@ ShaderCache::CompilePixelUberShader(const UberShader::PixelShaderUid& uid) const
 {
   const ShaderCode source_code =
       UberShader::GenPixelShader(m_api_type, m_host_config, uid.GetUidData());
-  return g_renderer->CreateShaderFromSource(ShaderStage::Pixel, source_code.GetBuffer());
+  return g_gfx->CreateShaderFromSource(ShaderStage::Pixel, source_code.GetBuffer(),
+                                       fmt::to_string(*uid.GetUidData()));
 }
 
 const AbstractShader* ShaderCache::InsertVertexShader(const VertexShaderUid& uid,
@@ -538,7 +555,8 @@ const AbstractShader* ShaderCache::CreateGeometryShader(const GeometryShaderUid&
   const ShaderCode source_code =
       GenerateGeometryShaderCode(m_api_type, m_host_config, uid.GetUidData());
   std::unique_ptr<AbstractShader> shader =
-      g_renderer->CreateShaderFromSource(ShaderStage::Geometry, source_code.GetBuffer());
+      g_gfx->CreateShaderFromSource(ShaderStage::Geometry, source_code.GetBuffer(),
+                                    fmt::format("Geometry shader: {}", *uid.GetUidData()));
 
   auto& entry = m_gs_cache.shader_map[uid];
   entry.pending = false;
@@ -571,10 +589,10 @@ AbstractPipelineConfig ShaderCache::GetGXPipelineConfig(
     const NativeVertexFormat* vertex_format, const AbstractShader* vertex_shader,
     const AbstractShader* geometry_shader, const AbstractShader* pixel_shader,
     const RasterizationState& rasterization_state, const DepthState& depth_state,
-    const BlendingState& blending_state)
+    const BlendingState& blending_state, AbstractPipelineUsage usage)
 {
   AbstractPipelineConfig config = {};
-  config.usage = AbstractPipelineUsage::GX;
+  config.usage = usage;
   config.vertex_format = vertex_format;
   config.vertex_shader = vertex_shader;
   config.geometry_shader = geometry_shader;
@@ -583,19 +601,150 @@ AbstractPipelineConfig ShaderCache::GetGXPipelineConfig(
   config.depth_state = depth_state;
   config.blending_state = blending_state;
   config.framebuffer_state = g_framebuffer_manager->GetEFBFramebufferState();
-
-  if (config.blending_state.logicopenable && !g_ActiveConfig.backend_info.bSupportsLogicOp)
-  {
-    WARN_LOG_FMT(VIDEO,
-                 "Approximating logic op with blending, this will produce incorrect rendering.");
-    config.blending_state.ApproximateLogicOpWithBlending();
-  }
-
   return config;
 }
 
-std::optional<AbstractPipelineConfig> ShaderCache::GetGXPipelineConfig(const GXPipelineUid& config)
+/// Edits the UID based on driver bugs and other special configurations
+static GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
 {
+  GXPipelineUid out;
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
+#endif
+  memcpy(&out, &in, sizeof(out));  // copy padding
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
+  pixel_shader_uid_data* ps = out.ps_uid.GetUidData();
+  BlendingState& blend = out.blending_state;
+
+  if (ps->ztest == EmulatedZ::ForcedEarly && !out.depth_state.updateenable)
+  {
+    // No need to force early depth test if you're not writing z
+    ps->ztest = EmulatedZ::Early;
+  }
+
+  // If framebuffer fetch is available, we can emulate logic ops in the fragment shader
+  // and don't need the below blend approximation
+  if (blend.logicopenable && !g_ActiveConfig.backend_info.bSupportsLogicOp &&
+      !g_ActiveConfig.backend_info.bSupportsFramebufferFetch)
+  {
+    if (!blend.LogicOpApproximationIsExact())
+      WARN_LOG_FMT(VIDEO,
+                   "Approximating logic op with blending, this will produce incorrect rendering.");
+    if (blend.LogicOpApproximationWantsShaderHelp())
+    {
+      ps->emulate_logic_op_with_blend = true;
+      ps->logic_op_mode = static_cast<u32>(blend.logicmode.Value());
+    }
+    blend.ApproximateLogicOpWithBlending();
+  }
+
+  const bool benefits_from_ps_dual_source_off =
+      (!g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
+       g_ActiveConfig.backend_info.bSupportsFramebufferFetch) ||
+      DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING);
+  if (benefits_from_ps_dual_source_off && !blend.RequiresDualSrc())
+  {
+    // Only use dual-source blending when required on drivers that don't support it very well.
+    ps->no_dual_src = true;
+    blend.usedualsrc = false;
+  }
+
+  if (g_ActiveConfig.backend_info.bSupportsFramebufferFetch)
+  {
+    bool fbfetch_blend = false;
+    if ((DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z) ||
+         !g_ActiveConfig.backend_info.bSupportsEarlyZ) &&
+        ps->ztest == EmulatedZ::ForcedEarly)
+    {
+      ps->ztest = EmulatedZ::EarlyWithFBFetch;
+      fbfetch_blend |= static_cast<bool>(out.blending_state.blendenable);
+      ps->no_dual_src = true;
+    }
+    fbfetch_blend |= blend.logicopenable && !g_ActiveConfig.backend_info.bSupportsLogicOp;
+    fbfetch_blend |= blend.usedualsrc && !g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
+    if (fbfetch_blend)
+    {
+      ps->no_dual_src = true;
+      if (blend.logicopenable)
+      {
+        ps->logic_op_enable = true;
+        ps->logic_op_mode = static_cast<u32>(blend.logicmode.Value());
+        blend.logicopenable = false;
+      }
+      if (blend.blendenable)
+      {
+        ps->blend_enable = true;
+        ps->blend_src_factor = blend.srcfactor;
+        ps->blend_src_factor_alpha = blend.srcfactoralpha;
+        ps->blend_dst_factor = blend.dstfactor;
+        ps->blend_dst_factor_alpha = blend.dstfactoralpha;
+        ps->blend_subtract = blend.subtract;
+        ps->blend_subtract_alpha = blend.subtractAlpha;
+        blend.blendenable = false;
+      }
+    }
+  }
+
+  // force dual src off if we can't support it
+  if (!g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
+  {
+    ps->no_dual_src = true;
+    blend.usedualsrc = false;
+  }
+
+  if (ps->ztest == EmulatedZ::ForcedEarly && !g_ActiveConfig.backend_info.bSupportsEarlyZ)
+  {
+    // These things should be false
+    ASSERT(!ps->zfreeze);
+    // ZCOMPLOC HACK:
+    // The only way to emulate alpha test + early-z is to force early-z in the shader.
+    // As this isn't available on all drivers and as we can't emulate this feature otherwise,
+    // we are only able to choose which one we want to respect more.
+    // Tests seem to have proven that writing depth even when the alpha test fails is more
+    // important that a reliable alpha test, so we just force the alpha test to always succeed.
+    // At least this seems to be less buggy.
+    ps->ztest = EmulatedZ::EarlyWithZComplocHack;
+  }
+
+  if (g_ActiveConfig.UseVSForLinePointExpand() &&
+      (out.rasterization_state.primitive == PrimitiveType::Points ||
+       out.rasterization_state.primitive == PrimitiveType::Lines))
+  {
+    // All primitives are expanded to triangles in the vertex shader
+    vertex_shader_uid_data* vs = out.vs_uid.GetUidData();
+    const PortableVertexDeclaration& decl = out.vertex_format->GetVertexDeclaration();
+    vs->position_has_3_elems = decl.position.components >= 3;
+    vs->texcoord_elem_count = 0;
+    for (int i = 0; i < 8; i++)
+    {
+      if (decl.texcoords[i].enable)
+      {
+        ASSERT(decl.texcoords[i].components <= 3);
+        vs->texcoord_elem_count |= decl.texcoords[i].components << (i * 2);
+      }
+    }
+    out.vertex_format = nullptr;
+    if (out.rasterization_state.primitive == PrimitiveType::Points)
+      vs->vs_expand = VSExpand::Point;
+    else
+      vs->vs_expand = VSExpand::Line;
+    PrimitiveType prim = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ?
+                             PrimitiveType::TriangleStrip :
+                             PrimitiveType::Triangles;
+    out.rasterization_state.primitive = prim;
+    out.gs_uid.GetUidData()->primitive_type = static_cast<u32>(prim);
+  }
+
+  return out;
+}
+
+std::optional<AbstractPipelineConfig>
+ShaderCache::GetGXPipelineConfig(const GXPipelineUid& config_in)
+{
+  GXPipelineUid config = ApplyDriverBugs(config_in);
   const AbstractShader* vs;
   auto vs_iter = m_vs_cache.shader_map.find(config.vs_uid);
   if (vs_iter != m_vs_cache.shader_map.end() && !vs_iter->second.pending)
@@ -629,12 +778,68 @@ std::optional<AbstractPipelineConfig> ShaderCache::GetGXPipelineConfig(const GXP
   }
 
   return GetGXPipelineConfig(config.vertex_format, vs, gs, ps, config.rasterization_state,
-                             config.depth_state, config.blending_state);
+                             config.depth_state, config.blending_state, AbstractPipelineUsage::GX);
+}
+
+/// Edits the UID based on driver bugs and other special configurations
+static GXUberPipelineUid ApplyDriverBugs(const GXUberPipelineUid& in)
+{
+  GXUberPipelineUid out;
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
+#endif
+  memcpy(&out, &in, sizeof(out));  // Copy padding
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
+  if (g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader)
+    out.vertex_format = nullptr;
+
+  // If framebuffer fetch is available, we can emulate logic ops in the fragment shader
+  // and don't need the below blend approximation
+  if (out.blending_state.logicopenable && !g_ActiveConfig.backend_info.bSupportsLogicOp &&
+      !g_ActiveConfig.backend_info.bSupportsFramebufferFetch)
+  {
+    if (!out.blending_state.LogicOpApproximationIsExact())
+      WARN_LOG_FMT(VIDEO,
+                   "Approximating logic op with blending, this will produce incorrect rendering.");
+    out.blending_state.ApproximateLogicOpWithBlending();
+  }
+
+  if (g_ActiveConfig.backend_info.bSupportsFramebufferFetch)
+  {
+    // Always blend in shader
+    out.blending_state.hex = 0;
+    out.blending_state.colorupdate = in.blending_state.colorupdate.Value();
+    out.blending_state.alphaupdate = in.blending_state.alphaupdate.Value();
+    out.ps_uid.GetUidData()->no_dual_src = true;
+  }
+  else if (!g_ActiveConfig.backend_info.bSupportsDualSourceBlend ||
+           (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) &&
+            !out.blending_state.RequiresDualSrc()))
+  {
+    out.blending_state.usedualsrc = false;
+    out.ps_uid.GetUidData()->no_dual_src = true;
+  }
+
+  if (g_ActiveConfig.UseVSForLinePointExpand())
+  {
+    // All primitives are expanded to triangles in the vertex shader
+    PrimitiveType prim = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ?
+                             PrimitiveType::TriangleStrip :
+                             PrimitiveType::Triangles;
+    out.rasterization_state.primitive = prim;
+    out.gs_uid.GetUidData()->primitive_type = static_cast<u32>(prim);
+  }
+
+  return out;
 }
 
 std::optional<AbstractPipelineConfig>
-ShaderCache::GetGXPipelineConfig(const GXUberPipelineUid& config)
+ShaderCache::GetGXPipelineConfig(const GXUberPipelineUid& config_in)
 {
+  GXUberPipelineUid config = ApplyDriverBugs(config_in);
   const AbstractShader* vs;
   auto vs_iter = m_uber_vs_cache.shader_map.find(config.vs_uid);
   if (vs_iter != m_uber_vs_cache.shader_map.end() && !vs_iter->second.pending)
@@ -668,7 +873,8 @@ ShaderCache::GetGXPipelineConfig(const GXUberPipelineUid& config)
   }
 
   return GetGXPipelineConfig(config.vertex_format, vs, gs, ps, config.rasterization_state,
-                             config.depth_state, config.blending_state);
+                             config.depth_state, config.blending_state,
+                             AbstractPipelineUsage::GXUber);
 }
 
 const AbstractPipeline* ShaderCache::InsertGXPipeline(const GXPipelineUid& config,
@@ -766,7 +972,7 @@ void ShaderCache::LoadPipelineUIDCache()
 
       // We open the file for reading and writing, so we must seek to the end before writing.
       if (uid_file_valid)
-        uid_file_valid = m_gx_pipeline_uid_cache_file.Seek(expected_size, SEEK_SET);
+        uid_file_valid = m_gx_pipeline_uid_cache_file.Seek(expected_size, File::SeekOrigin::Begin);
     }
 
     // If the file is invalid, close it. We re-open and truncate it below.
@@ -963,12 +1169,14 @@ void ShaderCache::QueuePipelineCompile(const GXPipelineUid& uid, u32 priority)
     {
       stages_ready = true;
 
-      auto vs_it = shader_cache->m_vs_cache.shader_map.find(uid.vs_uid);
+      GXPipelineUid actual_uid = ApplyDriverBugs(uid);
+
+      auto vs_it = shader_cache->m_vs_cache.shader_map.find(actual_uid.vs_uid);
       stages_ready &= vs_it != shader_cache->m_vs_cache.shader_map.end() && !vs_it->second.pending;
       if (vs_it == shader_cache->m_vs_cache.shader_map.end())
-        shader_cache->QueueVertexShaderCompile(uid.vs_uid, priority);
+        shader_cache->QueueVertexShaderCompile(actual_uid.vs_uid, priority);
 
-      PixelShaderUid ps_uid = uid.ps_uid;
+      PixelShaderUid ps_uid = actual_uid.ps_uid;
       ClearUnusedPixelShaderUidBits(shader_cache->m_api_type, shader_cache->m_host_config, &ps_uid);
 
       auto ps_it = shader_cache->m_ps_cache.shader_map.find(ps_uid);
@@ -982,7 +1190,7 @@ void ShaderCache::QueuePipelineCompile(const GXPipelineUid& uid, u32 priority)
     bool Compile() override
     {
       if (config)
-        pipeline = g_renderer->CreatePipeline(*config);
+        pipeline = g_gfx->CreatePipeline(*config);
       return true;
     }
 
@@ -1033,13 +1241,15 @@ void ShaderCache::QueueUberPipelineCompile(const GXUberPipelineUid& uid, u32 pri
     {
       stages_ready = true;
 
-      auto vs_it = shader_cache->m_uber_vs_cache.shader_map.find(uid.vs_uid);
+      GXUberPipelineUid actual_uid = ApplyDriverBugs(uid);
+
+      auto vs_it = shader_cache->m_uber_vs_cache.shader_map.find(actual_uid.vs_uid);
       stages_ready &=
           vs_it != shader_cache->m_uber_vs_cache.shader_map.end() && !vs_it->second.pending;
       if (vs_it == shader_cache->m_uber_vs_cache.shader_map.end())
-        shader_cache->QueueVertexUberShaderCompile(uid.vs_uid, priority);
+        shader_cache->QueueVertexUberShaderCompile(actual_uid.vs_uid, priority);
 
-      UberShader::PixelShaderUid ps_uid = uid.ps_uid;
+      UberShader::PixelShaderUid ps_uid = actual_uid.ps_uid;
       UberShader::ClearUnusedPixelShaderUidBits(shader_cache->m_api_type,
                                                 shader_cache->m_host_config, &ps_uid);
 
@@ -1055,7 +1265,7 @@ void ShaderCache::QueueUberPipelineCompile(const GXUberPipelineUid& uid, u32 pri
     bool Compile() override
     {
       if (config)
-        UberPipeline = g_renderer->CreatePipeline(*config);
+        UberPipeline = g_gfx->CreatePipeline(*config);
       return true;
     }
 
@@ -1094,37 +1304,37 @@ void ShaderCache::QueueUberShaderPipelines()
   // All attributes will be enabled in GetUberVertexFormat.
   PortableVertexDeclaration dummy_vertex_decl = {};
   dummy_vertex_decl.position.components = 4;
-  dummy_vertex_decl.position.type = VAR_FLOAT;
+  dummy_vertex_decl.position.type = ComponentFormat::Float;
   dummy_vertex_decl.position.enable = true;
   dummy_vertex_decl.stride = sizeof(float) * 4;
   NativeVertexFormat* dummy_vertex_format =
       VertexLoaderManager::GetUberVertexFormat(dummy_vertex_decl);
-  auto QueueDummyPipeline = [&](const UberShader::VertexShaderUid& vs_uid,
-                                const GeometryShaderUid& gs_uid,
-                                const UberShader::PixelShaderUid& ps_uid) {
-    GXUberPipelineUid config;
-    config.vertex_format = dummy_vertex_format;
-    config.vs_uid = vs_uid;
-    config.gs_uid = gs_uid;
-    config.ps_uid = ps_uid;
-    config.rasterization_state = RenderState::GetCullBackFaceRasterizationState(
-        static_cast<PrimitiveType>(gs_uid.GetUidData()->primitive_type));
-    config.depth_state = RenderState::GetNoDepthTestingDepthState();
-    config.blending_state = RenderState::GetNoBlendingBlendState();
-    if (ps_uid.GetUidData()->uint_output)
-    {
-      // uint_output is only ever enabled when logic ops are enabled.
-      config.blending_state.logicopenable = true;
-      config.blending_state.logicmode = BlendMode::AND;
-    }
+  auto QueueDummyPipeline =
+      [&](const UberShader::VertexShaderUid& vs_uid, const GeometryShaderUid& gs_uid,
+          const UberShader::PixelShaderUid& ps_uid, const BlendingState& blend) {
+        GXUberPipelineUid config;
+        config.vertex_format = dummy_vertex_format;
+        config.vs_uid = vs_uid;
+        config.gs_uid = gs_uid;
+        config.ps_uid = ps_uid;
+        config.rasterization_state = RenderState::GetCullBackFaceRasterizationState(
+            static_cast<PrimitiveType>(gs_uid.GetUidData()->primitive_type));
+        config.depth_state = RenderState::GetNoDepthTestingDepthState();
+        config.blending_state = blend;
+        if (ps_uid.GetUidData()->uint_output)
+        {
+          // uint_output is only ever enabled when logic ops are enabled.
+          config.blending_state.logicopenable = true;
+          config.blending_state.logicmode = LogicOp::And;
+        }
 
-    auto iter = m_gx_uber_pipeline_cache.find(config);
-    if (iter != m_gx_uber_pipeline_cache.end())
-      return;
+        auto iter = m_gx_uber_pipeline_cache.find(config);
+        if (iter != m_gx_uber_pipeline_cache.end())
+          return;
 
-    auto& entry = m_gx_uber_pipeline_cache[config];
-    entry.second = false;
-  };
+        auto& entry = m_gx_uber_pipeline_cache[config];
+        entry.second = false;
+      };
 
   // Populate the pipeline configs with empty entries, these will be compiled afterwards.
   UberShader::EnumerateVertexShaderUids([&](const UberShader::VertexShaderUid& vuid) {
@@ -1141,7 +1351,45 @@ void ShaderCache::QueueUberShaderPipelines()
         {
           return;
         }
-        QueueDummyPipeline(vuid, guid, cleared_puid);
+        BlendingState blend = RenderState::GetNoBlendingBlendState();
+        QueueDummyPipeline(vuid, guid, cleared_puid, blend);
+        if (g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader)
+        {
+          // Not all GPUs need all the pipeline state compiled into shaders, so they tend to key
+          // compiled shaders based on some subset of the pipeline state.
+          // Some test results:
+          //   (GPUs tested: AMD Radeon Pro 5600M, Nvidia GT 750M, Intel UHD 630,
+          //    Intel Iris Pro 5200, Apple M1)
+          // MacOS Metal:
+          //  - AMD, Nvidia, Intel GPUs: Shaders are keyed on vertex layout and whether or not
+          //    dual source blend is enabled.  That's it.
+          //  - Apple GPUs: Shaders are keyed on vertex layout and all blending settings.  We use
+          //    framebuffer fetch here, so the only blending settings used by ubershaders are the
+          //    alphaupdate and colorupdate ones.  Also keyed on primitive type, but Metal supports
+          //    setting it to "unknown" and we do for ubershaders (but MoltenVK won't).
+          // Windows Vulkan:
+          //  - AMD, Nvidia: Definitely keyed on dual source blend, but the others seem more random
+          //    Changing a setting on one shader will require a recompile, but changing the same
+          //    setting on another won't.  Compiling a copy with alphaupdate off, colorupdate off,
+          //    and one with DSB on seems to get pretty good coverage though.
+          // Windows D3D12:
+          //  - AMD: Keyed on dual source blend and vertex layout
+          //  - Nvidia Kepler: No recompiles for changes to vertex layout or blend
+          blend.alphaupdate = false;
+          QueueDummyPipeline(vuid, guid, cleared_puid, blend);
+          blend.alphaupdate = true;
+          blend.colorupdate = false;
+          QueueDummyPipeline(vuid, guid, cleared_puid, blend);
+          blend.colorupdate = true;
+          if (!cleared_puid.GetUidData()->no_dual_src && !cleared_puid.GetUidData()->uint_output)
+          {
+            blend.blendenable = true;
+            blend.usedualsrc = true;
+            blend.srcfactor = SrcBlendFactor::SrcAlpha;
+            blend.dstfactor = DstBlendFactor::InvSrcAlpha;
+            QueueDummyPipeline(vuid, guid, cleared_puid, blend);
+          }
+        }
       });
     });
   });
@@ -1155,7 +1403,9 @@ ShaderCache::GetEFBCopyToVRAMPipeline(const TextureConversionShaderGen::TCShader
     return iter->second.get();
 
   auto shader_code = TextureConversionShaderGen::GeneratePixelShader(m_api_type, uid.GetUidData());
-  auto shader = g_renderer->CreateShaderFromSource(ShaderStage::Pixel, shader_code.GetBuffer());
+  auto shader = g_gfx->CreateShaderFromSource(
+      ShaderStage::Pixel, shader_code.GetBuffer(),
+      fmt::format("EFB copy to VRAM pixel shader: {}", *uid.GetUidData()));
   if (!shader)
   {
     m_efb_copy_to_vram_pipelines.emplace(uid, nullptr);
@@ -1173,7 +1423,7 @@ ShaderCache::GetEFBCopyToVRAMPipeline(const TextureConversionShaderGen::TCShader
   config.blending_state = RenderState::GetNoBlendingBlendState();
   config.framebuffer_state = RenderState::GetRGBA8FramebufferState();
   config.usage = AbstractPipelineUsage::Utility;
-  auto iiter = m_efb_copy_to_vram_pipelines.emplace(uid, g_renderer->CreatePipeline(config));
+  auto iiter = m_efb_copy_to_vram_pipelines.emplace(uid, g_gfx->CreatePipeline(config));
   return iiter.first->second.get();
 }
 
@@ -1185,7 +1435,8 @@ const AbstractPipeline* ShaderCache::GetEFBCopyToRAMPipeline(const EFBCopyParams
 
   const std::string shader_code =
       TextureConversionShaderTiled::GenerateEncodingShader(uid, m_api_type);
-  const auto shader = g_renderer->CreateShaderFromSource(ShaderStage::Pixel, shader_code);
+  const auto shader = g_gfx->CreateShaderFromSource(
+      ShaderStage::Pixel, shader_code, fmt::format("EFB copy to RAM pixel shader: {}", uid));
   if (!shader)
   {
     m_efb_copy_to_ram_pipelines.emplace(uid, nullptr);
@@ -1200,36 +1451,41 @@ const AbstractPipeline* ShaderCache::GetEFBCopyToRAMPipeline(const EFBCopyParams
   config.blending_state = RenderState::GetNoBlendingBlendState();
   config.framebuffer_state = RenderState::GetColorFramebufferState(AbstractTextureFormat::BGRA8);
   config.usage = AbstractPipelineUsage::Utility;
-  auto iiter = m_efb_copy_to_ram_pipelines.emplace(uid, g_renderer->CreatePipeline(config));
+  auto iiter = m_efb_copy_to_ram_pipelines.emplace(uid, g_gfx->CreatePipeline(config));
   return iiter.first->second.get();
 }
 
 bool ShaderCache::CompileSharedPipelines()
 {
-  m_screen_quad_vertex_shader = g_renderer->CreateShaderFromSource(
-      ShaderStage::Vertex, FramebufferShaderGen::GenerateScreenQuadVertexShader());
-  m_texture_copy_vertex_shader = g_renderer->CreateShaderFromSource(
-      ShaderStage::Vertex, FramebufferShaderGen::GenerateTextureCopyVertexShader());
-  m_efb_copy_vertex_shader = g_renderer->CreateShaderFromSource(
-      ShaderStage::Vertex,
-      TextureConversionShaderGen::GenerateVertexShader(m_api_type).GetBuffer());
+  m_screen_quad_vertex_shader = g_gfx->CreateShaderFromSource(
+      ShaderStage::Vertex, FramebufferShaderGen::GenerateScreenQuadVertexShader(),
+      "Screen quad vertex shader");
+  m_texture_copy_vertex_shader = g_gfx->CreateShaderFromSource(
+      ShaderStage::Vertex, FramebufferShaderGen::GenerateTextureCopyVertexShader(),
+      "Texture copy vertex shader");
+  m_efb_copy_vertex_shader = g_gfx->CreateShaderFromSource(
+      ShaderStage::Vertex, TextureConversionShaderGen::GenerateVertexShader(m_api_type).GetBuffer(),
+      "EFB copy vertex shader");
   if (!m_screen_quad_vertex_shader || !m_texture_copy_vertex_shader || !m_efb_copy_vertex_shader)
     return false;
 
   if (UseGeometryShaderForEFBCopies())
   {
-    m_texcoord_geometry_shader = g_renderer->CreateShaderFromSource(
-        ShaderStage::Geometry, FramebufferShaderGen::GeneratePassthroughGeometryShader(1, 0));
-    m_color_geometry_shader = g_renderer->CreateShaderFromSource(
-        ShaderStage::Geometry, FramebufferShaderGen::GeneratePassthroughGeometryShader(0, 1));
+    m_texcoord_geometry_shader = g_gfx->CreateShaderFromSource(
+        ShaderStage::Geometry, FramebufferShaderGen::GeneratePassthroughGeometryShader(1, 0),
+        "Texcoord passthrough geometry shader");
+    m_color_geometry_shader = g_gfx->CreateShaderFromSource(
+        ShaderStage::Geometry, FramebufferShaderGen::GeneratePassthroughGeometryShader(0, 1),
+        "Color passthrough geometry shader");
     if (!m_texcoord_geometry_shader || !m_color_geometry_shader)
       return false;
   }
 
-  m_texture_copy_pixel_shader = g_renderer->CreateShaderFromSource(
-      ShaderStage::Pixel, FramebufferShaderGen::GenerateTextureCopyPixelShader());
-  m_color_pixel_shader = g_renderer->CreateShaderFromSource(
-      ShaderStage::Pixel, FramebufferShaderGen::GenerateColorPixelShader());
+  m_texture_copy_pixel_shader = g_gfx->CreateShaderFromSource(
+      ShaderStage::Pixel, FramebufferShaderGen::GenerateTextureCopyPixelShader(),
+      "Texture copy pixel shader");
+  m_color_pixel_shader = g_gfx->CreateShaderFromSource(
+      ShaderStage::Pixel, FramebufferShaderGen::GenerateColorPixelShader(), "Color pixel shader");
   if (!m_texture_copy_pixel_shader || !m_color_pixel_shader)
     return false;
 
@@ -1243,14 +1499,14 @@ bool ShaderCache::CompileSharedPipelines()
   config.blending_state = RenderState::GetNoBlendingBlendState();
   config.framebuffer_state = RenderState::GetRGBA8FramebufferState();
   config.usage = AbstractPipelineUsage::Utility;
-  m_copy_rgba8_pipeline = g_renderer->CreatePipeline(config);
+  m_copy_rgba8_pipeline = g_gfx->CreatePipeline(config);
   if (!m_copy_rgba8_pipeline)
     return false;
 
   if (UseGeometryShaderForEFBCopies())
   {
     config.geometry_shader = m_texcoord_geometry_shader.get();
-    m_rgba8_stereo_copy_pipeline = g_renderer->CreatePipeline(config);
+    m_rgba8_stereo_copy_pipeline = g_gfx->CreatePipeline(config);
     if (!m_rgba8_stereo_copy_pipeline)
       return false;
   }
@@ -1262,14 +1518,16 @@ bool ShaderCache::CompileSharedPipelines()
 
     for (size_t i = 0; i < NUM_PALETTE_CONVERSION_SHADERS; i++)
     {
-      auto shader = g_renderer->CreateShaderFromSource(
-          ShaderStage::Pixel, TextureConversionShaderTiled::GeneratePaletteConversionShader(
-                                  static_cast<TLUTFormat>(i), m_api_type));
+      TLUTFormat format = static_cast<TLUTFormat>(i);
+      auto shader = g_gfx->CreateShaderFromSource(
+          ShaderStage::Pixel,
+          TextureConversionShaderTiled::GeneratePaletteConversionShader(format, m_api_type),
+          fmt::format("Palette conversion pixel shader: {}", format));
       if (!shader)
         return false;
 
       config.pixel_shader = shader.get();
-      m_palette_conversion_pipelines[i] = g_renderer->CreatePipeline(config);
+      m_palette_conversion_pipelines[i] = g_gfx->CreatePipeline(config);
       if (!m_palette_conversion_pipelines[i])
         return false;
     }
@@ -1300,8 +1558,9 @@ const AbstractPipeline* ShaderCache::GetTextureReinterpretPipeline(TextureFormat
     return nullptr;
   }
 
-  std::unique_ptr<AbstractShader> shader =
-      g_renderer->CreateShaderFromSource(ShaderStage::Pixel, shader_source);
+  std::unique_ptr<AbstractShader> shader = g_gfx->CreateShaderFromSource(
+      ShaderStage::Pixel, shader_source,
+      fmt::format("Texture reinterpret pixel shader: {} to {}", from_format, to_format));
   if (!shader)
   {
     m_texture_reinterpret_pipelines.emplace(key, nullptr);
@@ -1318,19 +1577,21 @@ const AbstractPipeline* ShaderCache::GetTextureReinterpretPipeline(TextureFormat
   config.blending_state = RenderState::GetNoBlendingBlendState();
   config.framebuffer_state = RenderState::GetRGBA8FramebufferState();
   config.usage = AbstractPipelineUsage::Utility;
-  auto iiter = m_texture_reinterpret_pipelines.emplace(key, g_renderer->CreatePipeline(config));
+  auto iiter = m_texture_reinterpret_pipelines.emplace(key, g_gfx->CreatePipeline(config));
   return iiter.first->second.get();
 }
 
-const AbstractShader* ShaderCache::GetTextureDecodingShader(TextureFormat format,
-                                                            TLUTFormat palette_format)
+const AbstractShader*
+ShaderCache::GetTextureDecodingShader(TextureFormat format,
+                                      std::optional<TLUTFormat> palette_format)
 {
-  const auto key = std::make_pair(static_cast<u32>(format), static_cast<u32>(palette_format));
-  auto iter = m_texture_decoding_shaders.find(key);
+  const auto key = std::make_pair(static_cast<u32>(format),
+                                  static_cast<u32>(palette_format.value_or(TLUTFormat::IA8)));
+  const auto iter = m_texture_decoding_shaders.find(key);
   if (iter != m_texture_decoding_shaders.end())
     return iter->second.get();
 
-  std::string shader_source =
+  const std::string shader_source =
       TextureConversionShaderTiled::GenerateDecodingShader(format, palette_format, APIType::OpenGL);
   if (shader_source.empty())
   {
@@ -1338,15 +1599,20 @@ const AbstractShader* ShaderCache::GetTextureDecodingShader(TextureFormat format
     return nullptr;
   }
 
+  const std::string name =
+      palette_format.has_value() ?
+          fmt::format("Texture decoding compute shader: {}, {}", format, *palette_format) :
+          fmt::format("Texture decoding compute shader: {}", format);
+
   std::unique_ptr<AbstractShader> shader =
-      g_renderer->CreateShaderFromSource(ShaderStage::Compute, shader_source);
+      g_gfx->CreateShaderFromSource(ShaderStage::Compute, shader_source, name);
   if (!shader)
   {
     m_texture_decoding_shaders.emplace(key, nullptr);
     return nullptr;
   }
 
-  auto iiter = m_texture_decoding_shaders.emplace(key, std::move(shader));
+  const auto iiter = m_texture_decoding_shaders.emplace(key, std::move(shader));
   return iiter.first->second.get();
 }
 }  // namespace VideoCommon
