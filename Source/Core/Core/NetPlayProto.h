@@ -157,6 +157,7 @@ enum class MessageID : u8
   SLIPPI_MATCH_SELECTIONS = 0x82,
   SLIPPI_CONN_SELECTED = 0x83,
   SLIPPI_CHAT_MESSAGE = 0x84,
+  SLIPPI_COMPLETE_STEP = 0x85,
 
   GolfRequest = 0x90,
   GolfSwitch = 0x91,

@@ -8,6 +8,7 @@
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Core/Slippi/SlippiDirectCodes.h"
+#include "Core/Slippi/SlippiExiTypes.h"
 #include "Core/Slippi/SlippiGame.h"
 #include "Core/Slippi/SlippiGameFileLoader.h"
 #include "Core/Slippi/SlippiGameReporter.h"
@@ -75,6 +76,9 @@ private:
     CMD_GET_NEW_SEED = 0xBC,
     CMD_REPORT_GAME = 0xBD,
     CMD_FETCH_CODE_SUGGESTION = 0xBE,
+    CMD_OVERWRITE_SELECTIONS = 0xBF,
+    CMD_GP_COMPLETE_STEP = 0xC0,
+    CMD_GP_FETCH_STEP = 0xC1,
 
     // Misc
     CMD_LOG_MESSAGE = 0xD0,
@@ -102,8 +106,8 @@ private:
       {CMD_RECEIVE_COMMANDS, 1},
 
       // The following are all commands used to play back a replay and
-      // have fixed sizes
-      {CMD_PREPARE_REPLAY, 0},
+      // have fixed sizes unless otherwise specified
+      {CMD_PREPARE_REPLAY, 0xFFFF},  // Variable size... will only work if by itself
       {CMD_READ_FRAME, 4},
       {CMD_IS_STOCK_STEAL, 5},
       {CMD_GET_LOCATION, 6},
@@ -111,7 +115,7 @@ private:
       {CMD_GET_GECKO_CODES, 0},
 
       // The following are used for Slippi online and also have fixed sizes
-      {CMD_ONLINE_INPUTS, 21},
+      {CMD_ONLINE_INPUTS, 25},
       {CMD_CAPTURE_SAVESTATE, 32},
       {CMD_LOAD_SAVESTATE, 32},
       {CMD_GET_MATCH_STATE, 0},
@@ -124,8 +128,12 @@ private:
       {CMD_GET_ONLINE_STATUS, 0},
       {CMD_CLEANUP_CONNECTION, 0},
       {CMD_GET_NEW_SEED, 0},
-      {CMD_REPORT_GAME, 16},
+      {CMD_REPORT_GAME, static_cast<u32>(sizeof(SlippiExiTypes::ReportGameQuery) - 1)},
       {CMD_FETCH_CODE_SUGGESTION, 31},
+      {CMD_OVERWRITE_SELECTIONS,
+       static_cast<u32>(sizeof(SlippiExiTypes::OverwriteSelectionsQuery) - 1)},
+      {CMD_GP_COMPLETE_STEP, static_cast<u32>(sizeof(SlippiExiTypes::GpCompleteStepQuery) - 1)},
+      {CMD_GP_FETCH_STEP, static_cast<u32>(sizeof(SlippiExiTypes::GpFetchStepQuery) - 1)},
 
       // Misc
       {CMD_LOG_MESSAGE, 0xFFFF},  // Variable size... will only work if by itself
@@ -173,7 +181,7 @@ private:
   bool isDisconnected();
   void handleOnlineInputs(u8* payload);
   void prepareOpponentInputs(s32 frame, bool shouldSkip);
-  void handleSendInputs(u8* payload);
+  void handleSendInputs(s32 frame, u8 delay, s32 checksum_frame, u32 checksum, u8* inputs);
   void handleCaptureSavestate(u8* payload);
   void handleLoadSavestate(u8* payload);
   void handleNameEntryLoad(u8* payload);
@@ -187,7 +195,10 @@ private:
   void prepareOnlineStatus();
   void handleConnectionCleanup();
   void prepareNewSeed();
-  void handleReportGame(u8* payload);
+  void handleReportGame(const SlippiExiTypes::ReportGameQuery& query);
+  void handleOverwriteSelections(const SlippiExiTypes::OverwriteSelectionsQuery& query);
+  void handleGamePrepStepComplete(const SlippiExiTypes::GpCompleteStepQuery& query);
+  void prepareGamePrepOppStep(const SlippiExiTypes::GpFetchStepQuery& query);
 
   // replay playback stuff
   void prepareGameInfo(u8* payload);
@@ -231,8 +242,12 @@ private:
   std::unique_ptr<Slippi::SlippiGame> m_current_game = nullptr;
   SlippiSpectateServer* m_slippiserver = nullptr;
   SlippiMatchmaking::MatchSearchSettings lastSearch;
+  SlippiMatchmaking::MatchmakeResult recentMmResult;
 
   std::vector<u16> stagePool;
+
+  // Used by ranked to set game prep selections
+  std::vector<SlippiPlayerSelections> overwrite_selections;
 
   u32 frameSeqIdx = 0;
 

@@ -19,16 +19,16 @@
 #include <QTimer>
 #include <QWindow>
 
-//test ui stuff
-#include <QVBoxLayout>
+// test ui stuff
 #include <QPushButton>
+#include <QVBoxLayout>
 
 #include "imgui.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
-#include "Core/State.h"
 #include "Core/Slippi/SlippiPlayback.h"
+#include "Core/State.h"
 
 #include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"

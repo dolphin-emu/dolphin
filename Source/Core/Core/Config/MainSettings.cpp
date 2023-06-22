@@ -175,12 +175,21 @@ const Info<SerialInterface::SIDevices>& GetInfoForSIDevice(int channel)
 
 const Info<bool>& GetInfoForAdapterRumble(int channel)
 {
+#ifndef IS_PLAYBACK
   static const std::array<const Info<bool>, 4> infos{
       Info<bool>{{System::Main, "Core", "AdapterRumble0"}, true},
       Info<bool>{{System::Main, "Core", "AdapterRumble1"}, true},
       Info<bool>{{System::Main, "Core", "AdapterRumble2"}, true},
       Info<bool>{{System::Main, "Core", "AdapterRumble3"}, true},
   };
+#else
+  static const std::array<const Info<bool>, 4> infos{
+      Info<bool>{{System::Main, "Core", "AdapterRumble0"}, false},
+      Info<bool>{{System::Main, "Core", "AdapterRumble1"}, false},
+      Info<bool>{{System::Main, "Core", "AdapterRumble2"}, false},
+      Info<bool>{{System::Main, "Core", "AdapterRumble3"}, false},
+  };
+#endif
   return infos[channel];
 }
 

@@ -178,6 +178,7 @@ std::u32string UTF8ToUTF32(const std::string& input);
 std::u32string UTF8ToUTF32(const std::string& input);
 #endif
 std::string UTF32toUTF8(const std::u32string& input);
+std::string TruncateLengthChar(const std::string& input, int length);
 std::string ConvertStringForGame(const std::string& input, int length);
 std::string CP1252ToUTF8(std::string_view str);
 std::string SHIFTJISToUTF8(std::string_view str);

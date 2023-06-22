@@ -170,6 +170,13 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
   if (SConfig::GetSlippiConfig().melee_version == Melee::Version::NTSC ||
       SConfig::GetSlippiConfig().melee_version == Melee::Version::MEX)
   {
+    // Here we are replacing a line in the codehandler with a blr.
+    // The reason for this is that this is the section of the codehandler
+    // that attempts to read/write commands for the USB Gecko. These calls
+    // were sometimes interfering with the Slippi EXI calls and causing
+    // the game to loop infinitely in EXISync.
+    PowerPC::HostWrite_U32(guard, 0x4E800020, 0x80001D6C);
+
     // Write GCT loader into memory which will eventually load the real GCT into the heap
     std::string bootloaderData;
     std::string _bootloaderFilename = File::GetSysDirectory() + GCT_BOOTLOADER;
@@ -218,7 +225,7 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
                        "not write: \"{}\". Need {} bytes, only {} remain.",
                        active_code.name, active_code.codes.size() * CODE_SIZE,
                        end_address - next_address);
-        continue;
+        return Installation::Failed;
       }
 
       for (const GeckoCode::Code& code : active_code.codes)

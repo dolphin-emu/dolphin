@@ -188,7 +188,10 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet, ENetPeer* peer)
     // Fetch current time immediately for the most accurate timing calculations
     u64 curTime = Common::Timer::NowUs();
 
-    int32_t frame;
+    s32 frame;
+    s32 checksum_frame;
+    u32 checksum;
+
     if (!(packet >> frame))
     {
       ERROR_LOG_FMT(SLIPPI_ONLINE, "Netplay packet too small to read frame count");
@@ -201,12 +204,25 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet, ENetPeer* peer)
       ERROR_LOG_FMT(SLIPPI_ONLINE, "Netplay packet too small to read player index");
       break;
     }
+    if (!(packet >> checksum_frame))
+    {
+      ERROR_LOG_FMT(SLIPPI_ONLINE, "Netplay packet too small to read checksum frame");
+      break;
+    }
+    if (!(packet >> checksum))
+    {
+      ERROR_LOG_FMT(SLIPPI_ONLINE, "Netplay packet too small to read checksum value");
+      break;
+    }
     u8 pIdx = PlayerIdxFromPort(packetPlayerPort);
     if (pIdx >= m_remotePlayerCount)
     {
       ERROR_LOG_FMT(SLIPPI_ONLINE, "Got packet with invalid player idx {}", pIdx);
       break;
     }
+
+    // This is the amount of bytes from the start of the packet where the pad data starts
+    int pad_data_offset = 14;
 
     // This fetches the m_server index that stores the connection we want to overwrite (if
     // necessary). Note that this index is not necessarily the same as the pIdx because if we have
@@ -277,6 +293,7 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet, ENetPeer* peer)
 
     frameOffsetData[pIdx].idx = (frameOffsetData[pIdx].idx + 1) % SLIPPI_ONLINE_LOCKSTEP_INTERVAL;
 
+    s64 inputs_to_copy;
     {
       std::lock_guard<std::mutex> lk(pad_mutex);  // TODO: Is this the correct lock?
 
@@ -289,45 +306,56 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet, ENetPeer* peer)
 
       s64 frame64 = static_cast<s64>(frame);
       s32 headFrame = remotePadQueue[pIdx].empty() ? 0 : remotePadQueue[pIdx].front()->frame;
-      s64 inputsToCopy = frame64 - static_cast<s64>(headFrame);
+      s64 inputs_to_copy = frame64 - static_cast<s64>(headFrame);
 
       // Check that the packet actually contains the data it claims to
-      if ((6 + inputsToCopy * SLIPPI_PAD_DATA_SIZE) > static_cast<s64>(packet.getDataSize()))
+      if ((pad_data_offset + inputs_to_copy * SLIPPI_PAD_DATA_SIZE) >
+          static_cast<s64>(packet.getDataSize()))
       {
         ERROR_LOG_FMT(
             SLIPPI_ONLINE,
             "Netplay packet too small to read pad buffer. Size: {}, Inputs: {}, MinSize: {}",
-            static_cast<int>(packet.getDataSize()), inputsToCopy,
-            6 + inputsToCopy * SLIPPI_PAD_DATA_SIZE);
+            static_cast<int>(packet.getDataSize()), inputs_to_copy,
+            pad_data_offset + inputs_to_copy * SLIPPI_PAD_DATA_SIZE);
         break;
       }
 
       // Not sure what the max is here. If we never ack frames it could get big...
-      if (inputsToCopy > 128)
+      if (inputs_to_copy > 128)
       {
-        ERROR_LOG_FMT(SLIPPI_ONLINE, "Netplay packet contained too many frames: {}", inputsToCopy);
+        ERROR_LOG_FMT(SLIPPI_ONLINE, "Netplay packet contained too many frames: {}",
+                      inputs_to_copy);
         break;
       }
 
-      for (s64 i = inputsToCopy - 1; i >= 0; i--)
+      for (s64 i = inputs_to_copy - 1; i >= 0; i--)
       {
-        auto pad = std::make_unique<SlippiPad>(static_cast<s32>(frame64 - i), pIdx,
-                                               &packetData[6 + i * SLIPPI_PAD_DATA_SIZE]);
+        auto pad =
+            std::make_unique<SlippiPad>(static_cast<s32>(frame64 - i), pIdx,
+                                        &packetData[pad_data_offset + i * SLIPPI_PAD_DATA_SIZE]);
         remotePadQueue[pIdx].push_front(std::move(pad));
       }
     }
 
-    // Send Ack
-    sf::Packet spac;
-    spac << static_cast<u8>(NetPlay::MessageID::SLIPPI_PAD_ACK);
-    spac << frame;
-    spac << m_player_idx;
-    // INFO_LOG_FMT(SLIPPI_ONLINE, "Sending ack packet for frame {} (player {}) to peer at {}:{}",
-    //              frame, packetPlayerPort, peer->address.host, peer->address.port);
+    // Only ack if inputsToCopy is greater than 0. Otherwise we are receiving an old input and
+    // we should have already acked something in the future. This can also happen in the case
+    // where a new game starts quickly before the remote queue is reset and if we ack the early
+    // inputs we will never receive them
+    if (inputs_to_copy > 0)
+    {
+      // Send Ack
+      sf::Packet spac;
+      spac << static_cast<u8>(NetPlay::MessageID::SLIPPI_PAD_ACK);
+      spac << frame;
+      spac << m_player_idx;
+      // INFO_LOG(SLIPPI_ONLINE, "Sending ack packet for frame %d (player %d) to peer at %d:%d",
+      // frame, packetPlayerPort,
+      //         peer->address.host, peer->address.port);
 
-    ENetPacket* epac =
-        enet_packet_create(spac.getData(), spac.getDataSize(), ENET_PACKET_FLAG_UNSEQUENCED);
-    enet_peer_send(peer, 2, epac);
+      ENetPacket* epac =
+          enet_packet_create(spac.getData(), spac.getDataSize(), ENET_PACKET_FLAG_UNSEQUENCED);
+      int sendResult = enet_peer_send(peer, 2, epac);
+    }
   }
   break;
 
@@ -437,6 +465,20 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet, ENetPeer* peer)
     // Currently this is unused but the intent is to support two-way simultaneous connection
     // attempts
     isConnectionSelected = true;
+  }
+  break;
+
+  case NetPlay::MessageID::SLIPPI_COMPLETE_STEP:
+  {
+    SlippiGamePrepStepResults results;
+
+    packet >> results.step_idx;
+    packet >> results.char_selection;
+    packet >> results.char_color_selection;
+    packet >> results.stage_selections[0];
+    packet >> results.stage_selections[1];
+
+    game_prep_step_queue.push_back(results);
   }
   break;
 
@@ -989,6 +1031,9 @@ void SlippiNetplayClient::StartSlippiGame()
     std::swap(ackTimers[i], empty);
   }
 
+  // Clear game prep queue in case anything is still lingering
+  game_prep_step_queue.clear();
+
   // Reset match info for next game
   matchInfo.Reset();
 }
@@ -1046,9 +1091,11 @@ void SlippiNetplayClient::SendSlippiPad(std::unique_ptr<SlippiPad> pad)
   *spac << static_cast<u8>(NetPlay::MessageID::SLIPPI_PAD);
   *spac << frame;
   *spac << this->m_player_idx;
+  *spac << localPadQueue.front()->checksum_frame;
+  *spac << localPadQueue.front()->checksum;
 
   for (auto it = localPadQueue.begin(); it != localPadQueue.end(); ++it)
-    spac->append((*it)->padBuf, SLIPPI_PAD_DATA_SIZE);  // only transfer 8 bytes per pad
+    spac->append((*it)->pad_buf, SLIPPI_PAD_DATA_SIZE);  // only transfer 8 bytes per pad
 
   SendAsync(std::move(spac));
   u64 time = Common::Timer::NowUs();
@@ -1081,6 +1128,35 @@ void SlippiNetplayClient::SetMatchSelections(SlippiPlayerSelections& s)
   SendAsync(std::move(spac));
 }
 
+void SlippiNetplayClient::SendGamePrepStep(SlippiGamePrepStepResults& s)
+{
+  auto spac = std::make_unique<sf::Packet>();
+  *spac << static_cast<u8>(NetPlay::MessageID::SLIPPI_COMPLETE_STEP);
+  *spac << s.step_idx;
+  *spac << s.char_selection;
+  *spac << s.char_color_selection;
+  *spac << s.stage_selections[0] << s.stage_selections[1];
+  SendAsync(std::move(spac));
+}
+
+bool SlippiNetplayClient::GetGamePrepResults(u8 step_idx, SlippiGamePrepStepResults& res)
+{
+  // Just pull stuff off until we find something for the right step. I think that should be fine
+  while (!game_prep_step_queue.empty())
+  {
+    auto front = game_prep_step_queue.front();
+    if (front.step_idx == step_idx)
+    {
+      res = front;
+      return true;
+    }
+
+    game_prep_step_queue.pop_front();
+  }
+
+  return false;
+}
+
 SlippiPlayerSelections SlippiNetplayClient::GetSlippiRemoteChatMessage(bool isChatEnabled)
 {
   SlippiPlayerSelections copiedSelection = SlippiPlayerSelections();
@@ -1098,6 +1174,7 @@ SlippiPlayerSelections SlippiNetplayClient::GetSlippiRemoteChatMessage(bool isCh
   {
     copiedSelection.messageId = 0;
     copiedSelection.playerIdx = 0;
+
     // if chat is not enabled, automatically send back a message saying so.
     if (remoteChatMessageSelection != nullptr && !isChatEnabled &&
         (remoteChatMessageSelection->messageId > 0 &&
@@ -1137,12 +1214,12 @@ std::unique_ptr<SlippiRemotePadOutput> SlippiNetplayClient::GetFakePadOutput(int
   if (frame % 60 < 5)
   {
     // Return old inputs for a bit
-    padOutput->latestFrame = frame - (frame % 60);
+    padOutput->latest_frame = frame - (frame % 60);
     padOutput->data.insert(padOutput->data.begin(), SLIPPI_PAD_FULL_SIZE, 0);
   }
   else if (frame % 60 == 5)
   {
-    padOutput->latestFrame = frame;
+    padOutput->latest_frame = frame;
     // Add 5 frames of 0'd inputs
     padOutput->data.insert(padOutput->data.begin(), 5 * SLIPPI_PAD_FULL_SIZE, 0);
 
@@ -1151,7 +1228,7 @@ std::unique_ptr<SlippiRemotePadOutput> SlippiNetplayClient::GetFakePadOutput(int
   }
   else
   {
-    padOutput->latestFrame = frame;
+    padOutput->latest_frame = frame;
     padOutput->data.insert(padOutput->data.begin(), SLIPPI_PAD_FULL_SIZE, 0);
   }
 
@@ -1169,9 +1246,9 @@ std::unique_ptr<SlippiRemotePadOutput> SlippiNetplayClient::GetSlippiRemotePad(i
   {
     auto emptyPad = std::make_unique<SlippiPad>(0);
 
-    padOutput->latestFrame = emptyPad->frame;
+    padOutput->latest_frame = emptyPad->frame;
 
-    auto emptyIt = std::begin(emptyPad->padBuf);
+    auto emptyIt = std::begin(emptyPad->pad_buf);
     padOutput->data.insert(padOutput->data.end(), emptyIt, emptyIt + SLIPPI_PAD_FULL_SIZE);
 
     return std::move(padOutput);
@@ -1179,7 +1256,9 @@ std::unique_ptr<SlippiRemotePadOutput> SlippiNetplayClient::GetSlippiRemotePad(i
 
   int inputCount = 0;
 
-  padOutput->latestFrame = 0;
+  padOutput->latest_frame = 0;
+  padOutput->checksum_frame = remoteChecksum[index].frame;
+  padOutput->checksum = remoteChecksum[index].value;
 
   // Copy inputs from the remote pad queue to the output. We iterate backwards because
   // we want to get the oldest frames possible (will have been cleared to contain the last
@@ -1188,14 +1267,14 @@ std::unique_ptr<SlippiRemotePadOutput> SlippiNetplayClient::GetSlippiRemotePad(i
   // game actually needed.
   for (auto it = remotePadQueue[index].rbegin(); it != remotePadQueue[index].rend(); ++it)
   {
-    if ((*it)->frame > padOutput->latestFrame)
-      padOutput->latestFrame = (*it)->frame;
+    if ((*it)->frame > padOutput->latest_frame)
+      padOutput->latest_frame = (*it)->frame;
 
     // NOTICE_LOG(SLIPPI_ONLINE, "[%d] (Remote) P%d %08X %08X %08X", (*it)->frame,
     //						index >= playerIdx ? index + 1 : index, Common::swap32(&(*it)->padBuf[0]),
     //						Common::swap32(&(*it)->padBuf[4]), Common::swap32(&(*it)->padBuf[8]));
 
-    auto padIt = std::begin((*it)->padBuf);
+    auto padIt = std::begin((*it)->pad_buf);
     padOutput->data.insert(padOutput->data.begin(), padIt, padIt + SLIPPI_PAD_FULL_SIZE);
 
     // Limit max amount of inputs to send
@@ -1231,7 +1310,7 @@ int32_t SlippiNetplayClient::GetSlippiLatestRemoteFrame(int maxFrameCount)
   for (int i = 0; i < m_remotePlayerCount; i++)
   {
     auto rp = GetSlippiRemotePad(i, maxFrameCount);
-    int f = rp->latestFrame;
+    int f = rp->latest_frame;
     if (f < lowestFrame || !isFrameSet)
     {
       lowestFrame = f;

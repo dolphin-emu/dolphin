@@ -44,6 +44,7 @@ SlippiMatchmaking::SlippiMatchmaking(SlippiUser* user)
 
 SlippiMatchmaking::~SlippiMatchmaking()
 {
+  is_mm_terminated = true;
   m_state = ProcessState::ERROR_ENCOUNTERED;
   m_errorMsg = "Matchmaking shut down";
 
@@ -148,6 +149,11 @@ void SlippiMatchmaking::MatchmakeThread()
 {
   while (IsSearching())
   {
+    if (is_mm_terminated)
+    {
+      break;
+    }
+
     switch (m_state)
     {
     case ProcessState::INITIALIZING:
@@ -380,7 +386,10 @@ void SlippiMatchmaking::startMatchmaking()
   // Send message to server to create ticket
   json request;
   request["type"] = MmMessageType::CREATE_TICKET;
-  request["user"] = {{"uid", userInfo.uid}, {"playKey", userInfo.play_key}};
+  request["user"] = {{"uid", userInfo.uid},
+                     {"playKey", userInfo.play_key},
+                     {"connectCode", userInfo.connect_code},
+                     {"displayName", userInfo.display_name}};
   request["search"] = {{"mode", m_searchSettings.mode}, {"connectCode", connectCodeBuf}};
   request["appVersion"] = Common::GetSemVerStr();
   request["ipAddressLan"] = lan_addr;
@@ -477,6 +486,12 @@ void SlippiMatchmaking::handleMatchmaking()
   m_remoteIps.clear();
   m_playerInfo.clear();
 
+  std::string matchId = getResp.value("matchId", "");
+  WARN_LOG_FMT(SLIPPI_ONLINE, "Match ID: {}", matchId);
+
+  std::string match_id = getResp.value("matchId", "");
+  WARN_LOG_FMT(SLIPPI_ONLINE, "Match ID: {}", match_id);
+
   auto queue = getResp["players"];
   if (queue.is_array())
   {
@@ -564,6 +579,10 @@ void SlippiMatchmaking::handleMatchmaking()
     }
   }
 
+  m_mm_result.id = match_id;
+  m_mm_result.players = m_playerInfo;
+  m_mm_result.stages = m_allowedStages;
+
   // Disconnect and destroy enet client to mm server
   terminateMmConnection();
 
@@ -594,6 +613,11 @@ std::string SlippiMatchmaking::GetPlayerName(u8 port)
     return "";
   }
   return m_playerInfo[port].display_name;
+}
+
+SlippiMatchmaking::MatchmakeResult SlippiMatchmaking::GetMatchmakeResult()
+{
+  return m_mm_result;
 }
 
 u8 SlippiMatchmaking::RemotePlayerCount()
