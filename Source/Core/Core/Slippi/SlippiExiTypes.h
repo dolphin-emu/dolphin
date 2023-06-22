@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Common/CommonTypes.h"
+#include <Common/CommonTypes.h>
+#include <Common/Swap.h>
 
 #define REPORT_PLAYER_COUNT 4
 
@@ -86,13 +87,13 @@ template <>
 inline ReportGameQuery Convert(u8* payload)
 {
   auto q = *reinterpret_cast<ReportGameQuery*>(payload);
-  q.frameLength = Common::FromBigEndian(q.frameLength);
-  q.gameIndex = Common::FromBigEndian(q.gameIndex);
-  q.tiebreakIndex = Common::FromBigEndian(q.tiebreakIndex);
+  q.frame_length = Common::FromBigEndian(q.frame_length);
+  q.game_index = Common::FromBigEndian(q.game_index);
+  q.tiebreak_index = Common::FromBigEndian(q.tiebreak_index);
   for (int i = 0; i < REPORT_PLAYER_COUNT; i++)
   {
     auto* p = &q.players[i];
-    p->damageDone = Common::FromBigEndian(p->damageDone);
+    p->damage_done = Common::FromBigEndian(p->damage_done);
   }
   return q;
 }

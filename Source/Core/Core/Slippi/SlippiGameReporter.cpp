@@ -171,6 +171,7 @@ void SlippiGameReporter::ReportAbandonment(std::string match_id)
   if (res != 0)
   {
     ERROR_LOG_FMT(SLIPPI_ONLINE,
-                  "[GameReport] Got error executing abandonment request. Err code: {}", res);
+                  "[GameReport] Got error executing abandonment request. Err code: {}",
+                  static_cast<u8>(res));
   }
 }

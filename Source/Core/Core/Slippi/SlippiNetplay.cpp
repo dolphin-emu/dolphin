@@ -306,7 +306,7 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet, ENetPeer* peer)
 
       s64 frame64 = static_cast<s64>(frame);
       s32 headFrame = remotePadQueue[pIdx].empty() ? 0 : remotePadQueue[pIdx].front()->frame;
-      s64 inputs_to_copy = frame64 - static_cast<s64>(headFrame);
+      inputs_to_copy = frame64 - static_cast<s64>(headFrame);
 
       // Check that the packet actually contains the data it claims to
       if ((pad_data_offset + inputs_to_copy * SLIPPI_PAD_DATA_SIZE) >
@@ -330,9 +330,8 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet, ENetPeer* peer)
 
       for (s64 i = inputs_to_copy - 1; i >= 0; i--)
       {
-        auto pad =
-            std::make_unique<SlippiPad>(static_cast<s32>(frame64 - i), pIdx,
-                                        &packetData[pad_data_offset + i * SLIPPI_PAD_DATA_SIZE]);
+        auto pad = std::make_unique<SlippiPad>(
+            static_cast<s32>(frame64 - i), &packetData[pad_data_offset + i * SLIPPI_PAD_DATA_SIZE]);
         remotePadQueue[pIdx].push_front(std::move(pad));
       }
     }
@@ -354,7 +353,7 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet, ENetPeer* peer)
 
       ENetPacket* epac =
           enet_packet_create(spac.getData(), spac.getDataSize(), ENET_PACKET_FLAG_UNSEQUENCED);
-      int sendResult = enet_peer_send(peer, 2, epac);
+      enet_peer_send(peer, 2, epac);
     }
   }
   break;

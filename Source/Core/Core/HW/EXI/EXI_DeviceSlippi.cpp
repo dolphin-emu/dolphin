@@ -259,10 +259,10 @@ CEXISlippi::~CEXISlippi()
   // indicate to server that this client has abandoned. Anyone trying to modify
   // this behavior to game their rating is subject to get banned.
   auto active_match_id = matchmaking->GetMatchmakeResult().id;
-  if (activeMatchId.find("mode.ranked") != std::string::npos)
+  if (active_match_id.find("mode.ranked") != std::string::npos)
   {
-    ERROR_LOG(SLIPPI_ONLINE, "Exit during in-progress ranked game: %s", activeMatchId.c_str());
-    gameReporter->ReportAbandonment(activeMatchId);
+    ERROR_LOG_FMT(SLIPPI_ONLINE, "Exit during in-progress ranked game: {}", active_match_id);
+    game_reporter->ReportAbandonment(active_match_id);
   }
   handleConnectionCleanup();
 
@@ -1872,9 +1872,9 @@ void CEXISlippi::prepareOpponentInputs(s32 frame, bool shouldSkip)
     results[i] = slippi_netplay->GetSlippiRemotePad(i, ROLLBACK_MAX_FRAMES);
     // results[i] = slippi_netplay->GetFakePadOutput(frame);
 
-    // INFO_LOG(SLIPPI_ONLINE, "Sending checksum values: [%d] %08x", results[i]->checksumFrame,
+    // INFO_LOG(SLIPPI_ONLINE, "Sending checksum values: [%d] %08x", results[i]->checksum_frame,
     // results[i]->checksum);
-    appendWordToBuffer(&m_read_queue, static_cast<u32>(results[i]->checksumFrame));
+    appendWordToBuffer(&m_read_queue, static_cast<u32>(results[i]->checksum_frame));
     appendWordToBuffer(&m_read_queue, results[i]->checksum);
   }
   for (int i = remotePlayerCount; i < SLIPPI_REMOTE_PLAYER_MAX; i++)
@@ -1895,11 +1895,11 @@ void CEXISlippi::prepareOpponentInputs(s32 frame, bool shouldSkip)
     // results[i] = slippi_netplay->GetFakePadOutput(frame);
 
     // determine offset from which to copy data
-    offset[i] = (results[i]->latestFrame - frame) * SLIPPI_PAD_FULL_SIZE;
+    offset[i] = (results[i]->latest_frame - frame) * SLIPPI_PAD_FULL_SIZE;
     offset[i] = offset[i] < 0 ? 0 : offset[i];
 
     // add latest frame we are transfering to begining of return buf
-    int32_t latestFrame = results[i]->latestFrame;
+    int32_t latestFrame = results[i]->latest_frame;
     if (latestFrame > frame)
       latestFrame = frame;
     latestFrameRead[i] = latestFrame;
@@ -2727,21 +2727,21 @@ void CEXISlippi::prepareOnlineMatchState()
   std::vector<std::string> opponentNames = {};
   if (matchmaking->RemotePlayerCount() == 1)
   {
-    opponentNames.push_back(matchmaking->GetPlayerName(remotePlayerIndex));
+    opponentNames.push_back(matchmaking->GetPlayerName(m_remote_player_index));
   }
   else
   {
-    int teamIdx = onlineMatchBlock[0x69 + localPlayerIndex * 0x24];
+    int teamIdx = onlineMatchBlock[0x69 + m_local_player_index * 0x24];
     for (int i = 0; i < 4; i++)
     {
-      if (localPlayerIndex == i || onlineMatchBlock[0x69 + i * 0x24] == teamIdx)
+      if (m_local_player_index == i || onlineMatchBlock[0x69 + i * 0x24] == teamIdx)
         continue;
 
       opponentNames.push_back(matchmaking->GetPlayerName(i));
     }
   }
 
-  auto numOpponents = opponentNames.size() == 0 ? 1 : opponentNames.size();
+  int numOpponents = opponentNames.size() == 0 ? 1 : static_cast<int>(opponentNames.size());
   auto charsPerName = (MAX_NAME_LENGTH - (numOpponents - 1)) / numOpponents;
   std::string oppText = "";
   for (auto& name : opponentNames)
@@ -3143,8 +3143,8 @@ void CEXISlippi::handleReportGame(const SlippiExiTypes::ReportGameQuery& query)
   ERROR_LOG_FMT(SLIPPI_ONLINE,
                 "Mode: {} / {}, Frames: {}, GameIdx: {}, TiebreakIdx: {}, WinnerIdx: {}, "
                 "StageId: {}, GameEndMethod: {}, LRASInitiator: {}",
-                r.mode, query.mode, r.duration_frames, r.game_index, r.tiebreak_index, r.winner_idx,
-                r.stage_id, r.game_end_method, r.lras_initiator);
+                static_cast<u8>(r.mode), query.mode, r.duration_frames, r.game_index,
+                r.tiebreak_index, r.winner_idx, r.stage_id, r.game_end_method, r.lras_initiator);
 
   auto mm_players = recentMmResult.players;
 
