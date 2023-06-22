@@ -114,9 +114,9 @@ static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no
 #endif
 
 static void (*script_print_function)(void*, const char*) = [](void*, const char* val) {
-  #ifdef _WIN32
+#ifdef _WIN32
   ::OutputDebugStringW(UTF8ToWString(val).c_str());
-  #endif
+#endif
 };
 static void (*script_end_function)(void*, int) = [](void*, int identifier) {};
 

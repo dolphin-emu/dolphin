@@ -28,10 +28,10 @@ typedef struct Dolphin_Defined_ScriptContext_APIs
 
   void (*Shutdown_Script)(
       void*);  // Sets is_script_active to false, and calls the script_end_callback
-  PRINT_CALLBACK_FUNCTION_TYPE (*get_print_callback_function)
+  PRINT_CALLBACK_FUNCTION_TYPE(*get_print_callback_function)
   (void*);  // Returns the function pointer to the print_callback function for the ScriptContext
             // which is passed into the function.
-  SCRIPT_END_CALLBACK_FUNCTION_TYPE (*get_script_end_callback_function)
+  SCRIPT_END_CALLBACK_FUNCTION_TYPE(*get_script_end_callback_function)
   (void*);  // Returns the function pointer to the script_end_callback function for the
             // ScriptContext which is passed into the function.
 

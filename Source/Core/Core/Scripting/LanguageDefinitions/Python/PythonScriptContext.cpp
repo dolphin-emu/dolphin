@@ -29,17 +29,24 @@
 #include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/BitModuleImporter.h"
 #include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/ConfigModuleImporter.h"
 #include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/EmuModuleImporter.h"
-#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/GameCubeControllerModuleImporter.h"
+#include
+"Core/Scripting/LanguageDefinitions/Python/ModuleImporters/GameCubeControllerModuleImporter.h"
 #include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/GraphicsModuleImporter.h"
 #include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/ImportModuleImporter.h"
 #include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/InstructionStepModuleImporter.h"
 #include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/MemoryModuleImporter.h"
-#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/OnFrameStartCallbackModuleImporter.h"
-#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/OnGCControllerPolledCallbackModuleImporter.h"
-#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/OnInstructionHitCallbackModuleImporter.h"
-#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/OnMemoryAddressReadFromCallbackModuleImporter.h"
-#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/OnMemoryAddressWrittenToCallbackModuleImporter.h"
-#include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/OnWiiInputPolledCallbackModuleImporter.h"
+#include
+"Core/Scripting/LanguageDefinitions/Python/ModuleImporters/OnFrameStartCallbackModuleImporter.h"
+#include
+"Core/Scripting/LanguageDefinitions/Python/ModuleImporters/OnGCControllerPolledCallbackModuleImporter.h"
+#include
+"Core/Scripting/LanguageDefinitions/Python/ModuleImporters/OnInstructionHitCallbackModuleImporter.h"
+#include
+"Core/Scripting/LanguageDefinitions/Python/ModuleImporters/OnMemoryAddressReadFromCallbackModuleImporter.h"
+#include
+"Core/Scripting/LanguageDefinitions/Python/ModuleImporters/OnMemoryAddressWrittenToCallbackModuleImporter.h"
+#include
+"Core/Scripting/LanguageDefinitions/Python/ModuleImporters/OnWiiInputPolledCallbackModuleImporter.h"
 #include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/RegistersModuleImporter.h"
 #include "Core/Scripting/LanguageDefinitions/Python/ModuleImporters/StatisticsModuleImporter.h"
 
@@ -93,9 +100,9 @@ bool PythonScriptContext::ShouldCallEndScriptFunction()
 
 PyModuleDef ThisModuleDef = {
     PyModuleDef_HEAD_INIT, THIS_MODULE_NAME,
-    nullptr,                                 
-    sizeof(long long*),                     
-                                                            
+    nullptr,
+    sizeof(long long*),
+
     nullptr};
 
 PyMODINIT_FUNC PyInit_ThisPointerModule()

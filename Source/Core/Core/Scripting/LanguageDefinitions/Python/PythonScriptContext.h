@@ -9,8 +9,8 @@
 #include <unordered_map>
 
 #include "Core/Core.h"
-#include "Core/Scripting/HelperClasses/FunctionMetadata.h"
 #include "Core/Scripting/CoreScriptContextFiles/ScriptContext.h"
+#include "Core/Scripting/HelperClasses/FunctionMetadata.h"
 
 namespace Scripting::Python
 {

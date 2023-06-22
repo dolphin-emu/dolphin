@@ -136,9 +136,8 @@ void ScriptWindow::PlayScriptFunction()
       script_name_list_widget_ptr->currentItem()->text().toStdString();
   script_start_or_stop_lock.unlock();
 
-    Scripting::ScriptUtilities::InitializeScript(
-        current_row, current_script_name, callback_print_function,
-        finished_script_callback_function);
+  Scripting::ScriptUtilities::InitializeScript(
+      current_row, current_script_name, callback_print_function, finished_script_callback_function);
 
   row_num_to_is_running[current_row] = true;
 }
