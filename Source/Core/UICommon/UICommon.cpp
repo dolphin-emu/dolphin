@@ -553,7 +553,7 @@ std::string FormatSize(u64 bytes, int decimals)
 
   // Don't need exact values, only 5 most significant digits
   const double unit_size = std::pow(2, unit * 10);
-  return fmt::format("{:.{}Lf} {}", bytes / unit_size, decimals,
+  return fmt::format("{} {}", Common::ThousandSeparate(bytes / unit_size, std::fixed, decimals),
                      Common::GetStringT(unit_symbols[unit]));
 }
 

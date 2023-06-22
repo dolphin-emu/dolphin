@@ -239,22 +239,36 @@ inline char ToUpper(char ch)
   return std::toupper(ch, std::locale::classic());
 }
 
-// Thousand separator. Turns 12345678 into 12,345,678
-template <typename I>
-std::string ThousandSeparate(I value, int spaces = 0)
+// Turns 12345678 into a localized punctuated number, such as 12,345,678. This family of functions
+// is necessary because locales are bound to encodings in C/C++, much to the detriment of Windows,
+// which often uses Windows 1252 rather than UTF-8. Maybe the situation will improve in the future.
+// https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/setlocale-wsetlocale?view=msvc-170#utf-8-support
+template <typename I, std::enable_if_t<std::is_integral_v<I>>* = nullptr>
+std::string ThousandSeparate(I value)
 {
 #ifdef _WIN32
   std::wostringstream stream;
+  stream << value;
+  return WStringToUTF8(stream.view());
 #else
   std::ostringstream stream;
+  stream << value;
+  return std::move(stream).str();
 #endif
+}
 
-  stream << std::setw(spaces) << value;
-
+template <typename F, std::enable_if_t<std::is_floating_point_v<F>>* = nullptr>
+std::string ThousandSeparate(F value, std::ios_base& (*const formatting)(std::ios_base&),
+                             int precision)
+{
 #ifdef _WIN32
-  return WStringToUTF8(stream.str());
+  std::wostringstream stream;
+  stream << *formatting << std::setprecision(precision) << value;
+  return WStringToUTF8(stream.view());
 #else
-  return stream.str();
+  std::ostringstream stream;
+  stream << *formatting << std::setprecision(precision) << value;
+  return std::move(stream).str();
 #endif
 }
 

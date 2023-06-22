@@ -77,13 +77,12 @@ void FileLogger::Log(const DiscIO::Volume& volume, const DiscIO::Partition& part
   if (m_previous_partition == partition && m_previous_file_offset == file_offset)
     return;
 
-  const std::string size_string = Common::ThousandSeparate(file_info->GetSize() / 1000, 7);
+  const std::string size_string = Common::ThousandSeparate(file_info->GetSize() / 1000);
   const std::string path = file_info->GetPath();
-  const std::string log_string = fmt::format("{} kB {}", size_string, path);
   if (IsSoundFile(path))
-    INFO_LOG_FMT(FILEMON, "{}", log_string);
+    INFO_LOG_FMT(FILEMON, "{:>7s} kB {}", size_string, path);
   else
-    WARN_LOG_FMT(FILEMON, "{}", log_string);
+    WARN_LOG_FMT(FILEMON, "{:>7s} kB {}", size_string, path);
 
   // Update the last accessed file
   m_previous_partition = partition;
