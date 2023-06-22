@@ -5,6 +5,7 @@
 #include "AudioCommon/Enums.h"
 #include "Common/Config/Config.h"
 #include "Common/Config/Layer.h"
+#include "Common/Logging/Log.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/FreeLookConfig.h"
 #include "Core/HW/EXI/EXI_Device.h"
@@ -16,7 +17,6 @@
 #include "Core/Scripting/HelperClasses/VersionResolver.h"
 #include "DiscIO/Enums.h"
 #include "VideoCommon/VideoConfig.h"
-#include "Common/Logging/Log.h"
 
 namespace Scripting::ConfigAPI
 {
@@ -446,7 +446,8 @@ std::optional<Config::System> ParseSystem(const std::string& system_name)
     return {};
 }
 
-ArgHolder* GetLayerNames_MostGlobalFirst(ScriptContext* script_context, std::vector<ArgHolder*>* args_list)
+ArgHolder* GetLayerNames_MostGlobalFirst(ScriptContext* script_context,
+                                         std::vector<ArgHolder*>* args_list)
 {
   return CreateStringArgHolder(
       "Base, CommandLine, GlobalGame, LocalGame, Movie, Netplay, CurrentRun");
@@ -475,7 +476,8 @@ ArgHolder* GetConfigEnumTypes(ScriptContext* script_context, std::vector<ArgHold
       "TextureFilteringMode, StereoMode, WiimoteSource");
 }
 
-ArgHolder* GetListOfValidValuesForEnumType(ScriptContext* script_context, std::vector<ArgHolder*>* args_list)
+ArgHolder* GetListOfValidValuesForEnumType(ScriptContext* script_context,
+                                           std::vector<ArgHolder*>* args_list)
 {
   std::optional<Config::ValueType> enum_type = ParseEnumType((*args_list)[0]->string_val);
   if (!enum_type.has_value())
@@ -578,37 +580,37 @@ ArgHolder* GetConfigSettingForLayer_enum(
 }
 
 ArgHolder* GetBooleanConfigSettingForLayer(ScriptContext* current_script,
-                                          std::vector<ArgHolder*>* args_list)
+                                           std::vector<ArgHolder*>* args_list)
 {
   return GetConfigSettingForLayer(args_list, (bool)false);
 }
 
 ArgHolder* GetSignedIntConfigSettingForLayer(ScriptContext* current_script,
-                                            std::vector<ArgHolder*>* args_list)
+                                             std::vector<ArgHolder*>* args_list)
 {
   return GetConfigSettingForLayer(args_list, (int)0);
 }
 
 ArgHolder* GetUnsignedIntConfigSettingForLayer(ScriptContext* current_script,
-                                              std::vector<ArgHolder*>* args_list)
+                                               std::vector<ArgHolder*>* args_list)
 {
   return GetConfigSettingForLayer(args_list, (u32)0);
 }
 
 ArgHolder* GetFloatConfigSettingForLayer(ScriptContext* current_script,
-                                        std::vector<ArgHolder*>* args_list)
+                                         std::vector<ArgHolder*>* args_list)
 {
   return GetConfigSettingForLayer(args_list, (float)0.0);
 }
 
 ArgHolder* GetStringConfigSettingForLayer(ScriptContext* current_script,
-                                         std::vector<ArgHolder*>* args_list)
+                                          std::vector<ArgHolder*>* args_list)
 {
   return GetConfigSettingForLayer(args_list, std::string());
 }
 
 ArgHolder* GetEnumConfigSettingForLayer(ScriptContext* current_script,
-                                       std::vector<ArgHolder*>* args_list)
+                                        std::vector<ArgHolder*>* args_list)
 {
   std::string raw_enum_name = (*args_list)[4]->string_val;
   std::optional<Config::ValueType> optional_parsed_enum = ParseEnumType(raw_enum_name);
@@ -696,42 +698,42 @@ ArgHolder* SetConfigSettingForLayer(std::vector<ArgHolder*>* args_list, T new_va
 }
 
 ArgHolder* SetBooleanConfigSettingForLayer(ScriptContext* current_script,
-                                          std::vector<ArgHolder*>* args_list)
+                                           std::vector<ArgHolder*>* args_list)
 {
   bool new_bool = (*args_list)[4]->bool_val;
   return SetConfigSettingForLayer(args_list, new_bool);
 }
 
 ArgHolder* SetSignedIntConfigSettingForLayer(ScriptContext* current_script,
-                                            std::vector<ArgHolder*>* args_list)
+                                             std::vector<ArgHolder*>* args_list)
 {
   int new_int = (*args_list)[4]->s32_val;
   return SetConfigSettingForLayer(args_list, new_int);
 }
 
 ArgHolder* SetUnsignedIntConfigSettingForLayer(ScriptContext* current_script,
-                                              std::vector<ArgHolder*>* args_list)
+                                               std::vector<ArgHolder*>* args_list)
 {
   u32 new_u32 = (*args_list)[4]->u32_val;
   return SetConfigSettingForLayer(args_list, new_u32);
 }
 
 ArgHolder* SetFloatConfigSettingForLayer(ScriptContext* current_script,
-                                        std::vector<ArgHolder*>* args_list)
+                                         std::vector<ArgHolder*>* args_list)
 {
   float new_float = (*args_list)[4]->float_val;
   return SetConfigSettingForLayer(args_list, new_float);
 }
 
 ArgHolder* SetStringConfigSettingForLayer(ScriptContext* current_script,
-                                         std::vector<ArgHolder*>* args_list)
+                                          std::vector<ArgHolder*>* args_list)
 {
   std::string new_string = (*args_list)[4]->string_val;
   return SetConfigSettingForLayer(args_list, new_string);
 }
 
 ArgHolder* SetEnumConfigSettingForLayer(ScriptContext* current_script,
-                                       std::vector<ArgHolder*>* args_list)
+                                        std::vector<ArgHolder*>* args_list)
 {
   std::optional<Config::ValueType> optional_enum_type = ParseEnumType((*args_list)[4]->string_val);
   if (!optional_enum_type.has_value())
@@ -809,37 +811,37 @@ ArgHolder* DeleteConfigSettingFromLayer(std::vector<ArgHolder*>* args_list, T de
 }
 
 ArgHolder* DeleteBooleanConfigSettingFromLayer(ScriptContext* current_script,
-                                              std::vector<ArgHolder*>* args_list)
+                                               std::vector<ArgHolder*>* args_list)
 {
   return DeleteConfigSettingFromLayer(args_list, (bool)false);
 }
 
 ArgHolder* DeleteSignedIntConfigSettingFromLayer(ScriptContext* current_script,
-                                                std::vector<ArgHolder*>* args_list)
+                                                 std::vector<ArgHolder*>* args_list)
 {
   return DeleteConfigSettingFromLayer(args_list, (int)0);
 }
 
 ArgHolder* DeleteUnsignedIntConfigSettingFromLayer(ScriptContext* current_script,
-                                                  std::vector<ArgHolder*>* args_list)
+                                                   std::vector<ArgHolder*>* args_list)
 {
   return DeleteConfigSettingFromLayer(args_list, (u32)0);
 }
 
 ArgHolder* DeleteFloatConfigSettingFromLayer(ScriptContext* current_script,
-                                            std::vector<ArgHolder*>* args_list)
+                                             std::vector<ArgHolder*>* args_list)
 {
   return DeleteConfigSettingFromLayer(args_list, (float)0.0f);
 }
 
 ArgHolder* DeleteStringConfigSettingFromLayer(ScriptContext* current_script,
-                                             std::vector<ArgHolder*>* args_list)
+                                              std::vector<ArgHolder*>* args_list)
 {
   return DeleteConfigSettingFromLayer(args_list, std::string(""));
 }
 
 ArgHolder* DeleteEnumConfigSettingFromLayer(ScriptContext* current_script,
-                                           std::vector<ArgHolder*>* args_list)
+                                            std::vector<ArgHolder*>* args_list)
 {
   std::optional<Config::ValueType> optional_enum_type = ParseEnumType((*args_list)[4]->string_val);
   if (!optional_enum_type.has_value())
@@ -964,19 +966,20 @@ ArgHolder* GetConfigSetting_enum(
   return CreateEmptyOptionalArgument();
 }
 
-ArgHolder* GetBooleanConfigSetting(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
+ArgHolder* GetBooleanConfigSetting(ScriptContext* current_script,
+                                   std::vector<ArgHolder*>* args_list)
 {
   return GetConfigSetting(args_list, (bool)false);
 }
 
 ArgHolder* GetSignedIntConfigSetting(ScriptContext* current_script,
-                                    std::vector<ArgHolder*>* args_list)
+                                     std::vector<ArgHolder*>* args_list)
 {
   return GetConfigSetting(args_list, (int)0);
 }
 
 ArgHolder* GetUnsignedIntConfigSetting(ScriptContext* current_script,
-                                      std::vector<ArgHolder*>* args_list)
+                                       std::vector<ArgHolder*>* args_list)
 {
   return GetConfigSetting(args_list, (u32)0);
 }

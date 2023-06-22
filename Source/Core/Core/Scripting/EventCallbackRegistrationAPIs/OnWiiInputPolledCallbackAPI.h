@@ -19,6 +19,6 @@ ArgHolder* RegisterWithAutoDeregistration(ScriptContext* current_script,
                                           std::vector<ArgHolder*>* args_list);
 ArgHolder* Unregister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
 ArgHolder* IsInWiiInputPolledCallback(ScriptContext* current_script,
-                                     std::vector<ArgHolder*>* args_list);
+                                      std::vector<ArgHolder*>* args_list);
 
 }  // namespace Scripting::OnWiiInputPolledCallbackAPI

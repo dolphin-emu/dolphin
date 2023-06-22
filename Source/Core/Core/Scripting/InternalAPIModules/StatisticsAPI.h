@@ -19,7 +19,7 @@ FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
 
 ArgHolder* IsRecordingInput(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
 ArgHolder* IsRecordingInputFromSaveState(ScriptContext* current_script,
-                                        std::vector<ArgHolder*>* args_list);
+                                         std::vector<ArgHolder*>* args_list);
 ArgHolder* IsPlayingInput(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
 ArgHolder* IsMovieActive(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
 

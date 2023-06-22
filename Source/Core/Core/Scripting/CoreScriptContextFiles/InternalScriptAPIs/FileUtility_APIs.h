@@ -11,11 +11,8 @@ typedef struct FileUtility_APIs
   const char* (*GetSystemDirectory)();
 } FileUtility_APIs;
 
-
 #ifdef __cplusplus
 }
 #endif
-
-
 
 #endif

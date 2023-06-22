@@ -68,7 +68,9 @@ ArgHolder* Register(ScriptContext* current_script, std::vector<ArgHolder*>* args
   if (memory_breakpoint_address == 0)
     return CreateErrorStringArgHolder("Error: Memory address breakpoint cannot be 0!");
 
-  bool read_breakpoint_exists = current_script->memoryAddressBreakpointsHolder.ContainsReadBreakpoint(memory_breakpoint_address);
+  bool read_breakpoint_exists =
+      current_script->memoryAddressBreakpointsHolder.ContainsReadBreakpoint(
+          memory_breakpoint_address);
 
   TMemCheck check;
 
@@ -84,11 +86,12 @@ ArgHolder* Register(ScriptContext* current_script, std::vector<ArgHolder*>* args
   current_script->memoryAddressBreakpointsHolder.AddWriteBreakpoint(memory_breakpoint_address);
 
   return CreateRegistrationReturnTypeArgHolder(
-      current_script->dll_specific_api_definitions.RegisterOnMemoryAddressWrittenToCallback(current_script, memory_breakpoint_address, callback));
+      current_script->dll_specific_api_definitions.RegisterOnMemoryAddressWrittenToCallback(
+          current_script, memory_breakpoint_address, callback));
 }
 
 ArgHolder* RegisterWithAutoDeregistration(ScriptContext* current_script,
-                                         std::vector<ArgHolder*>* args_list)
+                                          std::vector<ArgHolder*>* args_list)
 {
   u32 memory_breakpoint_address = (*args_list)[0]->u32_val;
   void* callback = (*args_list)[1]->void_pointer_val;
@@ -96,7 +99,9 @@ ArgHolder* RegisterWithAutoDeregistration(ScriptContext* current_script,
   if (memory_breakpoint_address == 0)
     return CreateErrorStringArgHolder("Error: Memory address breakpoint cannot be 0!");
 
-  bool read_breakpoint_exists = current_script->memoryAddressBreakpointsHolder.ContainsReadBreakpoint(memory_breakpoint_address);
+  bool read_breakpoint_exists =
+      current_script->memoryAddressBreakpointsHolder.ContainsReadBreakpoint(
+          memory_breakpoint_address);
 
   TMemCheck check;
 
@@ -111,7 +116,9 @@ ArgHolder* RegisterWithAutoDeregistration(ScriptContext* current_script,
 
   current_script->memoryAddressBreakpointsHolder.AddWriteBreakpoint(memory_breakpoint_address);
 
-  current_script->dll_specific_api_definitions.RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallback(current_script, memory_breakpoint_address, callback);
+  current_script->dll_specific_api_definitions
+      .RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallback(
+          current_script, memory_breakpoint_address, callback);
   return CreateRegistrationWithAutoDeregistrationReturnTypeArgHolder();
 }
 
@@ -120,7 +127,8 @@ ArgHolder* Unregister(ScriptContext* current_script, std::vector<ArgHolder*>* ar
   u32 memory_breakpoint_address = (*args_list)[0]->u32_val;
   void* callback = (*args_list)[1]->void_pointer_val;
 
-  if (!current_script->memoryAddressBreakpointsHolder.ContainsWriteBreakpoint(memory_breakpoint_address))
+  if (!current_script->memoryAddressBreakpointsHolder.ContainsWriteBreakpoint(
+          memory_breakpoint_address))
   {
     return CreateErrorStringArgHolder(
         "Error: Address passed into OnMemoryAddressWrittenTo:Unregister() did not represent a "
@@ -129,15 +137,20 @@ ArgHolder* Unregister(ScriptContext* current_script, std::vector<ArgHolder*>* ar
 
   current_script->memoryAddressBreakpointsHolder.RemoveWriteBreakpoint(memory_breakpoint_address);
 
-    if (current_script->memoryAddressBreakpointsHolder.ContainsReadBreakpoint(memory_breakpoint_address) ||
-     current_script->memoryAddressBreakpointsHolder.ContainsWriteBreakpoint(memory_breakpoint_address))
+  if (current_script->memoryAddressBreakpointsHolder.ContainsReadBreakpoint(
+          memory_breakpoint_address) ||
+      current_script->memoryAddressBreakpointsHolder.ContainsWriteBreakpoint(
+          memory_breakpoint_address))
   {
     TMemCheck check;
 
     check.start_address = memory_breakpoint_address;
     check.end_address = memory_breakpoint_address;
-    check.is_break_on_read = current_script->memoryAddressBreakpointsHolder.ContainsReadBreakpoint(memory_breakpoint_address);
-    check.is_break_on_write = current_script->memoryAddressBreakpointsHolder.ContainsWriteBreakpoint(memory_breakpoint_address);
+    check.is_break_on_read = current_script->memoryAddressBreakpointsHolder.ContainsReadBreakpoint(
+        memory_breakpoint_address);
+    check.is_break_on_write =
+        current_script->memoryAddressBreakpointsHolder.ContainsWriteBreakpoint(
+            memory_breakpoint_address);
     check.condition = std::nullopt;
     check.break_on_hit = true;
     Core::System::GetInstance().GetPowerPC().GetMemChecks().Add(std::move(check));
@@ -147,7 +160,7 @@ ArgHolder* Unregister(ScriptContext* current_script, std::vector<ArgHolder*>* ar
     Core::System::GetInstance().GetPowerPC().GetMemChecks().Remove(memory_breakpoint_address);
   }
 
-      bool return_value =
+  bool return_value =
       current_script->dll_specific_api_definitions.UnregisterOnMemoryAddressWrittenToCallback(
           current_script, memory_breakpoint_address, callback);
   if (!return_value)
@@ -159,14 +172,14 @@ ArgHolder* Unregister(ScriptContext* current_script, std::vector<ArgHolder*>* ar
 }
 
 ArgHolder* IsInMemoryAddressWrittenToCallback(ScriptContext* current_script,
-                                             std::vector<ArgHolder*>* arg_list)
+                                              std::vector<ArgHolder*>* arg_list)
 {
   return CreateBoolArgHolder(current_script->current_script_call_location ==
                              ScriptCallLocations::FromMemoryAddressWrittenToCallback);
 }
 
 ArgHolder* GetMemoryAddressWrittenToForCurrentCallback(ScriptContext* current_script,
-                                                      std::vector<ArgHolder*>* args_list)
+                                                       std::vector<ArgHolder*>* args_list)
 {
   if (current_script->current_script_call_location !=
       ScriptCallLocations::FromMemoryAddressWrittenToCallback)

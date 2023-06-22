@@ -75,7 +75,6 @@ double GetDoubleFromArgHolder_impl(void*);
 const char* GetStringFromArgHolder_impl(void*);
 const char* GetErrorStringFromArgHolder_impl(void*);
 
-
 void Delete_ArgHolder_impl(
     void*);  // WARNING: Destroys the ArgHolder passed into it, and frees the associated memory.
              // You should either call this function on an ArgHolder, or call the

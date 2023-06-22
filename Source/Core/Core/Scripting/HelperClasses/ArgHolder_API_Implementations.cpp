@@ -1,8 +1,8 @@
 #include "Core/Scripting/HelperClasses/ArgHolder_API_Implementations.h"
 
-#include "Core/Scripting/HelperClasses/ArgHolder.h"
 #include "Core/Scripting/CoreScriptContextFiles/Enums/ArgTypeEnum.h"
 #include "Core/Scripting/CoreScriptContextFiles/Enums/GCButtonNameEnum.h"
+#include "Core/Scripting/HelperClasses/ArgHolder.h"
 
 namespace Scripting
 {
@@ -119,9 +119,11 @@ void* CreateAddressToByteMapArgHolder_API_impl()
   return castToVoidPtr(CreateAddressToByteMapArgHolder(address_to_byte_map));
 }
 
-void AddPairToAddressToByteMapArgHolder_impl(void* address_to_byte_map_arg_holder_ptr, signed long long address, signed long long byte)
+void AddPairToAddressToByteMapArgHolder_impl(void* address_to_byte_map_arg_holder_ptr,
+                                             signed long long address, signed long long byte)
 {
-  castToArgHolderPtr(address_to_byte_map_arg_holder_ptr)->address_to_byte_map[address] = static_cast<s16>(byte);
+  castToArgHolderPtr(address_to_byte_map_arg_holder_ptr)->address_to_byte_map[address] =
+      static_cast<s16>(byte);
 }
 
 unsigned long long GetSizeOfAddressToByteMapArgHolder_impl(void* address_to_byte_map_arg_holder_ptr)
@@ -131,13 +133,16 @@ unsigned long long GetSizeOfAddressToByteMapArgHolder_impl(void* address_to_byte
 
 void* Create_IteratorForAddressToByteMapArgHolder_impl(void* address_to_byte_map_arg_holder_ptr)
 {
-  return reinterpret_cast<void*>(new std::map<long long, s16>::iterator(castToArgHolderPtr(address_to_byte_map_arg_holder_ptr)->address_to_byte_map.begin()));
+  return reinterpret_cast<void*>(new std::map<long long, s16>::iterator(
+      castToArgHolderPtr(address_to_byte_map_arg_holder_ptr)->address_to_byte_map.begin()));
 }
 
-void* IncrementIteratorForAddressToByteMapArgHolder_impl(void* iterator_ptr, void* address_to_byte_map_arg_holder)
+void* IncrementIteratorForAddressToByteMapArgHolder_impl(void* iterator_ptr,
+                                                         void* address_to_byte_map_arg_holder)
 {
   castToIteratorPtr(iterator_ptr)->operator++();
-  if ((*castToIteratorPtr(iterator_ptr)) == castToArgHolderPtr(address_to_byte_map_arg_holder)->address_to_byte_map.end())
+  if ((*castToIteratorPtr(iterator_ptr)) ==
+      castToArgHolderPtr(address_to_byte_map_arg_holder)->address_to_byte_map.end())
     return nullptr;
   else
     return iterator_ptr;
@@ -157,7 +162,6 @@ void Delete_IteratorForAddressToByteMapArgHolder_impl(void* iterator_ptr)
 {
   delete (castToIteratorPtr(iterator_ptr));
 }
-
 
 void* CreateControllerStateArgHolder_API_impl()
 {
@@ -188,7 +192,8 @@ void* CreateControllerStateArgHolder_API_impl()
   return reinterpret_cast<void*>(CreateControllerStateArgHolder(controllerState));
 }
 
-void SetControllerStateArgHolderValue_impl(void* input_ptr, int gc_button_name, unsigned char raw_char_button_value)
+void SetControllerStateArgHolderValue_impl(void* input_ptr, int gc_button_name,
+                                           unsigned char raw_char_button_value)
 {
   u8 button_value = static_cast<u8>(raw_char_button_value);
   ArgHolder* controller_state_arg_holder = castToArgHolderPtr(input_ptr);
@@ -274,7 +279,7 @@ int GetControllerStateArgHolderValue_impl(void* input_ptr, int gc_button_name)
   switch (button_name_enum)
   {
   case GcButtonNameEnum::A:
-    return (int )controller_state_arg_holder->controller_state_val.A;
+    return (int)controller_state_arg_holder->controller_state_val.A;
   case GcButtonNameEnum::AnalogStickX:
     return (int)controller_state_arg_holder->controller_state_val.AnalogStickX;
   case GcButtonNameEnum::AnalogStickY:
@@ -284,7 +289,7 @@ int GetControllerStateArgHolderValue_impl(void* input_ptr, int gc_button_name)
   case GcButtonNameEnum::CStickX:
     return (int)controller_state_arg_holder->controller_state_val.CStickX;
   case GcButtonNameEnum::CStickY:
-    return (int) controller_state_arg_holder->controller_state_val.CStickY;
+    return (int)controller_state_arg_holder->controller_state_val.CStickY;
   case GcButtonNameEnum::Disc:
     return (int)controller_state_arg_holder->controller_state_val.disc;
   case GcButtonNameEnum::DPadDown:
@@ -356,21 +361,24 @@ void* CreateRegistrationInputTypeArgHolder_API_impl(void* registration_input)
   return reinterpret_cast<void*>(CreateRegistrationInputTypeArgHolder(registration_input));
 }
 
-void* CreateRegistrationWithAutoDeregistrationInputTypeArgHolder_API_impl(void* auto_deregistration_input)
+void* CreateRegistrationWithAutoDeregistrationInputTypeArgHolder_API_impl(
+    void* auto_deregistration_input)
 {
-  return reinterpret_cast<void*>(CreateRegistrationWithAutoDeregistrationInputTypeArgHolder(auto_deregistration_input));
+  return reinterpret_cast<void*>(
+      CreateRegistrationWithAutoDeregistrationInputTypeArgHolder(auto_deregistration_input));
 }
 
-void* CreateRegistrationForButtonCallbackInputTypeArgHolder_API_impl(void* register_button_callback_input)
+void* CreateRegistrationForButtonCallbackInputTypeArgHolder_API_impl(
+    void* register_button_callback_input)
 {
-  return reinterpret_cast<void*>(CreateRegistrationForButtonCallbackInputTypeArgHolder(register_button_callback_input));
+  return reinterpret_cast<void*>(
+      CreateRegistrationForButtonCallbackInputTypeArgHolder(register_button_callback_input));
 }
 
 void* CreateUnregistrationInputTypeArgHolder_API_impl(void* unregistration_input)
 {
   return reinterpret_cast<void*>(CreateUnregistrationInputTypeArgHolder(unregistration_input));
 }
-
 
 void* GetVoidPointerFromArgHolder_impl(void* arg_holder_ptr)
 {

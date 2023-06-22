@@ -21,7 +21,7 @@ ArgHolder* RegisterWithAutoDeregistration(ScriptContext* current_script,
                                           std::vector<ArgHolder*>* args_list);
 ArgHolder* Unregister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
 ArgHolder* IsInInstructionHitCallback(ScriptContext* current_script,
-                                     std::vector<ArgHolder*>* args_list);
+                                      std::vector<ArgHolder*>* args_list);
 ArgHolder* GetAddressOfInstructionForCurrentCallback(ScriptContext* current_script,
-                                                    std::vector<ArgHolder*>* args_list);
+                                                     std::vector<ArgHolder*>* args_list);
 }  // namespace Scripting::OnInstructionHitCallbackAPI

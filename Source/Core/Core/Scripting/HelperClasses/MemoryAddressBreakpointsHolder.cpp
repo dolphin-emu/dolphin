@@ -8,44 +8,52 @@ MemoryAddressBreakpointsHolder::MemoryAddressBreakpointsHolder()
 
 void MemoryAddressBreakpointsHolder::AddReadBreakpoint(unsigned int addr)
 {
-  this->read_breakpoint_addresses.push_back(addr);   // add this to the list of breakpoints regardless of whether or not it's a duplicate
+  this->read_breakpoint_addresses.push_back(
+      addr);  // add this to the list of breakpoints regardless of whether or not it's a duplicate
 }
 
 unsigned int MemoryAddressBreakpointsHolder::GetNumReadCopiesOfBreakpoint(unsigned int addr)
 {
-  return std::count(this->read_breakpoint_addresses.begin(), this->read_breakpoint_addresses.end(), addr);
+  return std::count(this->read_breakpoint_addresses.begin(), this->read_breakpoint_addresses.end(),
+                    addr);
 }
 
 bool MemoryAddressBreakpointsHolder::ContainsReadBreakpoint(unsigned int addr)
 {
-  return (std::count(this->read_breakpoint_addresses.begin(), this->read_breakpoint_addresses.end(), addr) > 0);
+  return (std::count(this->read_breakpoint_addresses.begin(), this->read_breakpoint_addresses.end(),
+                     addr) > 0);
 }
 
 void MemoryAddressBreakpointsHolder::RemoveReadBreakpoint(unsigned int addr)
 {
-  auto it = std::find(this->read_breakpoint_addresses.begin(), this->read_breakpoint_addresses.end(), addr);
+  auto it = std::find(this->read_breakpoint_addresses.begin(),
+                      this->read_breakpoint_addresses.end(), addr);
   if (it != this->read_breakpoint_addresses.end())
     this->read_breakpoint_addresses.erase(it);
 }
 
 void MemoryAddressBreakpointsHolder::AddWriteBreakpoint(unsigned int addr)
 {
-  this->write_breakpoint_addresses.push_back(addr);  // add this to the list of breakpoints regardless of whether or not it's a duplicate
+  this->write_breakpoint_addresses.push_back(
+      addr);  // add this to the list of breakpoints regardless of whether or not it's a duplicate
 }
 
 unsigned int MemoryAddressBreakpointsHolder::GetNumWriteCopiesOfBreakpoint(unsigned int addr)
 {
-  return std::count(this->write_breakpoint_addresses.begin(), this->write_breakpoint_addresses.end(), addr);
+  return std::count(this->write_breakpoint_addresses.begin(),
+                    this->write_breakpoint_addresses.end(), addr);
 }
 
 bool MemoryAddressBreakpointsHolder::ContainsWriteBreakpoint(unsigned int addr)
 {
-  return (std::count(this->write_breakpoint_addresses.begin(), this->write_breakpoint_addresses.end(), addr) > 0);
+  return (std::count(this->write_breakpoint_addresses.begin(),
+                     this->write_breakpoint_addresses.end(), addr) > 0);
 }
 
 void MemoryAddressBreakpointsHolder::RemoveWriteBreakpoint(unsigned int addr)
 {
-  auto it = std::find(this->write_breakpoint_addresses.begin(), this->write_breakpoint_addresses.end(), addr);
+  auto it = std::find(this->write_breakpoint_addresses.begin(),
+                      this->write_breakpoint_addresses.end(), addr);
   if (it != this->write_breakpoint_addresses.end())
     this->write_breakpoint_addresses.erase(it);
 }

@@ -55,21 +55,24 @@ FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
 ArgHolder* Register(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   return CreateRegistrationReturnTypeArgHolder(
-      current_script->dll_specific_api_definitions.RegisterOnGCControllerPolledCallback(current_script, (*args_list)[0]->void_pointer_val));
+      current_script->dll_specific_api_definitions.RegisterOnGCControllerPolledCallback(
+          current_script, (*args_list)[0]->void_pointer_val));
 }
 
 ArgHolder* RegisterWithAutoDeregistration(ScriptContext* current_script,
-                                         std::vector<ArgHolder*>* args_list)
+                                          std::vector<ArgHolder*>* args_list)
 {
-  current_script->dll_specific_api_definitions.RegisterOnGCControllerPolledWithAutoDeregistrationCallback(
-      current_script, (*args_list)[0]->void_pointer_val);
+  current_script->dll_specific_api_definitions
+      .RegisterOnGCControllerPolledWithAutoDeregistrationCallback(
+          current_script, (*args_list)[0]->void_pointer_val);
   return CreateRegistrationWithAutoDeregistrationReturnTypeArgHolder();
 }
 
 ArgHolder* Unregister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   bool return_value =
-      current_script->dll_specific_api_definitions.UnregisterOnGCControllerPolledCallback(current_script, (*args_list)[0]->void_pointer_val);
+      current_script->dll_specific_api_definitions.UnregisterOnGCControllerPolledCallback(
+          current_script, (*args_list)[0]->void_pointer_val);
   if (!return_value)
     return CreateErrorStringArgHolder(
         "Argument passed into OnGCControllerPolled:unregister() was not a reference to a function "
@@ -79,14 +82,14 @@ ArgHolder* Unregister(ScriptContext* current_script, std::vector<ArgHolder*>* ar
 }
 
 ArgHolder* IsInGCControllerPolledCallback(ScriptContext* current_script,
-                                         std::vector<ArgHolder*>* args_list)
+                                          std::vector<ArgHolder*>* args_list)
 {
   return CreateBoolArgHolder(current_script->current_script_call_location ==
                              ScriptCallLocations::FromGCControllerInputPolled);
 }
 
 ArgHolder* GetCurrentPortNumberOfPoll(ScriptContext* current_script,
-                                     std::vector<ArgHolder*>* args_list)
+                                      std::vector<ArgHolder*>* args_list)
 {
   if (current_script->current_script_call_location !=
       ScriptCallLocations::FromGCControllerInputPolled)

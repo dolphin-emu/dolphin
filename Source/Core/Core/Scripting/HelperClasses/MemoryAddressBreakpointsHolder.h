@@ -23,8 +23,8 @@ public:
   unsigned int RemoveWriteBreakpoints_OneByOne();
 
 private:
-    std::vector<unsigned int> read_breakpoint_addresses;
-    std::vector<unsigned int> write_breakpoint_addresses;
+  std::vector<unsigned int> read_breakpoint_addresses;
+  std::vector<unsigned int> write_breakpoint_addresses;
 };
 
 #ifdef __cplusplus

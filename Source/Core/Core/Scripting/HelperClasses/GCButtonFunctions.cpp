@@ -34,31 +34,31 @@ int ParseGCButton_impl(const char* button_name)
     {
     case 'a':
     case 'A':
-      return (int) GcButtonNameEnum::A;
+      return (int)GcButtonNameEnum::A;
 
     case 'b':
     case 'B':
-      return (int) GcButtonNameEnum::B;
+      return (int)GcButtonNameEnum::B;
 
     case 'x':
     case 'X':
-      return (int) GcButtonNameEnum::X;
+      return (int)GcButtonNameEnum::X;
 
     case 'y':
     case 'Y':
-      return (int) GcButtonNameEnum::Y;
+      return (int)GcButtonNameEnum::Y;
 
     case 'z':
     case 'Z':
-      return (int) GcButtonNameEnum::Z;
+      return (int)GcButtonNameEnum::Z;
 
     case 'l':
     case 'L':
-      return (int) GcButtonNameEnum::L;
+      return (int)GcButtonNameEnum::L;
 
     case 'r':
     case 'R':
-      return (int) GcButtonNameEnum::R;
+      return (int)GcButtonNameEnum::R;
 
     default:
       return (int)GcButtonNameEnum::UnknownButton;

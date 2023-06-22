@@ -70,8 +70,7 @@ static std::array all_memory_functions_metadata_list = {
     FunctionMetadata("write_double", "1.0", "write_double(0X80003421, 143.51)", WriteDouble,
                      ArgTypeEnum::VoidType, {ArgTypeEnum::S64, ArgTypeEnum::Double}),
     FunctionMetadata("write_string", "1.0", "write_string(0X80003421, \"Hello World!\")",
-                     WriteString, ArgTypeEnum::VoidType,
-                     {ArgTypeEnum::S64, ArgTypeEnum::String}),
+                     WriteString, ArgTypeEnum::VoidType, {ArgTypeEnum::S64, ArgTypeEnum::String}),
     FunctionMetadata("write_bytes", "1.0", "write_bytes(addressToValueMap)", WriteBytes,
                      ArgTypeEnum::VoidType, {ArgTypeEnum::AddressToByteMap}),
     FunctionMetadata(
@@ -274,7 +273,8 @@ ArgHolder* ReadFixedLengthString(ScriptContext* current_script, std::vector<ArgH
   return CreateStringArgHolder(return_string);
 }
 
-ArgHolder* ReadNullTerminatedString(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
+ArgHolder* ReadNullTerminatedString(ScriptContext* current_script,
+                                    std::vector<ArgHolder*>* args_list)
 {
   long long address = (*args_list)[0]->s64_val;
 
@@ -569,9 +569,10 @@ ArgHolder* WriteBytes(ScriptContext* current_script, std::vector<ArgHolder*>* ar
 }
 
 ArgHolder* WriteAllMemoryAsUnsignedBytesToFile(ScriptContext* current_script,
-                                              std::vector<ArgHolder*>* args_list)
+                                               std::vector<ArgHolder*>* args_list)
 {
-  std::ofstream output_stream((*args_list)[0]->string_val.c_str(), std::ios::trunc | std::ios::binary);
+  std::ofstream output_stream((*args_list)[0]->string_val.c_str(),
+                              std::ios::trunc | std::ios::binary);
   Memory::MemoryManager& memory = Core::System::GetInstance().GetMemory();
   u8* ram = memory.getRAM_scriptHelper();
   if (ram != nullptr)

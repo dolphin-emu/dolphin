@@ -29,9 +29,9 @@ ArgHolder* SetCheckboxValue(ScriptContext* current_script, std::vector<ArgHolder
 ArgHolder* AddRadioButtonGroup(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
 ArgHolder* AddRadioButton(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
 ArgHolder* GetRadioButtonGroupValue(ScriptContext* current_script,
-                                   std::vector<ArgHolder*>* args_list);
+                                    std::vector<ArgHolder*>* args_list);
 ArgHolder* SetRadioButtonGroupValue(ScriptContext* current_script,
-                                   std::vector<ArgHolder*>* args_list);
+                                    std::vector<ArgHolder*>* args_list);
 ArgHolder* AddTextBox(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
 ArgHolder* GetTextBoxValue(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
 ArgHolder* SetTextBoxValue(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);

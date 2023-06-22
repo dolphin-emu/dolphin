@@ -42,5 +42,5 @@ enum ArgTypeEnum
 #ifdef __cplusplus
 }
 #endif
-}
+}  // namespace Scripting
 #endif

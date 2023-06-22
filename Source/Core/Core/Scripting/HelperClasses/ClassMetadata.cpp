@@ -19,7 +19,8 @@ unsigned long long GetNumberOfFunctions_ClassMetadata_impl(void* class_metadata)
 
 void* GetFunctionMetadataAtPosition_ClassMetadata_impl(void* class_metadata, unsigned int index)
 {
-  return reinterpret_cast<void*>(&(castToClassMetadataPtr(class_metadata)->functions_list.at(index)));
+  return reinterpret_cast<void*>(
+      &(castToClassMetadataPtr(class_metadata)->functions_list.at(index)));
 }
 
 }  // namespace Scripting

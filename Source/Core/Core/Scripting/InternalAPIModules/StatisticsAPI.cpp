@@ -23,8 +23,8 @@ static std::array all_statistics_functions_metadata_list = {
                      {}),
     FunctionMetadata("getCurrentFrame", "1.0", "getCurrentFrame()", GetCurrentFrame,
                      ArgTypeEnum::S64, {}),
-    FunctionMetadata("getMovieLength", "1.0", "getMovieLength()", GetMovieLength,
-                     ArgTypeEnum::S64, {}),
+    FunctionMetadata("getMovieLength", "1.0", "getMovieLength()", GetMovieLength, ArgTypeEnum::S64,
+                     {}),
     FunctionMetadata("getRerecordCount", "1.0", "getRerecordCount()", GetRerecordCount,
                      ArgTypeEnum::S64, {}),
     FunctionMetadata("getCurrentInputCount", "1.0", "getCurrentInputCount()", GetCurrentInputCount,
@@ -68,7 +68,7 @@ ArgHolder* IsRecordingInput(ScriptContext* current_script, std::vector<ArgHolder
 }
 
 ArgHolder* IsRecordingInputFromSaveState(ScriptContext* current_script,
-                                        std::vector<ArgHolder*>* args_list)
+                                         std::vector<ArgHolder*>* args_list)
 {
   return CreateBoolArgHolder(Movie::IsRecordingInputFromSaveState());
 }

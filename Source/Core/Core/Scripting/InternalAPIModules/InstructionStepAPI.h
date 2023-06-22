@@ -19,5 +19,6 @@ ArgHolder* StepOver(ScriptContext* current_script, std::vector<ArgHolder*>* args
 ArgHolder* StepOut(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
 ArgHolder* Skip(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
 ArgHolder* SetPC(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
-ArgHolder* GetInstructionFromAddress(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
+ArgHolder* GetInstructionFromAddress(ScriptContext* current_script,
+                                     std::vector<ArgHolder*>* args_list);
 }  // namespace Scripting::InstructionStepAPI

@@ -9,9 +9,9 @@
 #include <stack>
 #include <string>
 
+#include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/ScriptContext_APIs.h"
 #include "Core/Scripting/HelperClasses/VersionResolver.h"
 #include "Core/Scripting/ScriptUtilities.h"
-#include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/ScriptContext_APIs.h"
 
 namespace Scripting::GraphicsAPI
 {
@@ -611,7 +611,8 @@ ArgHolder* AddRadioButton(ScriptContext* current_script, std::vector<ArgHolder*>
   return CreateVoidTypeArgHolder();
 }
 
-ArgHolder* GetRadioButtonGroupValue(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
+ArgHolder* GetRadioButtonGroupValue(ScriptContext* current_script,
+                                    std::vector<ArgHolder*>* args_list)
 {
   long long radio_group_id = (*args_list)[0]->s64_val;
   if (id_to_radio_group_map.count(radio_group_id) == 0)
@@ -622,7 +623,8 @@ ArgHolder* GetRadioButtonGroupValue(ScriptContext* current_script, std::vector<A
   return CreateS64ArgHolder(*(id_to_radio_group_map[radio_group_id]));
 }
 
-ArgHolder* SetRadioButtonGroupValue(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
+ArgHolder* SetRadioButtonGroupValue(ScriptContext* current_script,
+                                    std::vector<ArgHolder*>* args_list)
 {
   long long radio_group_id = (*args_list)[0]->s64_val;
   long long new_int_value = (*args_list)[1]->s64_val;
@@ -700,10 +702,12 @@ ArgHolder* AddButton(ScriptContext* current_script, std::vector<ArgHolder*>* arg
 
   else if (!display_stack.empty() && display_stack.top())
   {
-    current_script->dll_specific_api_definitions.RegisterButtonCallback(current_script, button_id, function_callback);
+    current_script->dll_specific_api_definitions.RegisterButtonCallback(current_script, button_id,
+                                                                        function_callback);
     if (ImGui::Button(button_label.c_str(), {button_width, button_height}))
     {  // true when button was pressed, and false otherwise
-      current_script->dll_specific_api_definitions.GetButtonCallbackAndAddToQueue(current_script, button_id);
+      current_script->dll_specific_api_definitions.GetButtonCallbackAndAddToQueue(current_script,
+                                                                                  button_id);
     }
   }
   return CreateVoidTypeArgHolder();
@@ -724,7 +728,8 @@ ArgHolder* PressButton(ScriptContext* current_script, std::vector<ArgHolder*>* a
         "GraphicsAPI:registerButtonCallback() before they can call GraphicsAPI:pressButton()",
         button_id));
 
-  current_script->dll_specific_api_definitions.GetButtonCallbackAndAddToQueue(current_script, button_id);
+  current_script->dll_specific_api_definitions.GetButtonCallbackAndAddToQueue(current_script,
+                                                                              button_id);
 
   return CreateVoidTypeArgHolder();
 }

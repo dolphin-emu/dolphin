@@ -4,15 +4,14 @@
 #include <memory>
 #include <mutex>
 #include "Common/ThreadSafeQueue.h"
+#include "Core/Scripting/CoreScriptContextFiles/Enums/ScriptCallLocations.h"
+#include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/ScriptContext_APIs.h"
 #include "Core/Scripting/HelperClasses/InstructionBreakpointsHolder.h"
 #include "Core/Scripting/HelperClasses/MemoryAddressBreakpointsHolder.h"
-#include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/ScriptContext_APIs.h"
-#include "Core/Scripting/CoreScriptContextFiles/Enums/ScriptCallLocations.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 
 typedef struct ScriptContext
 {
@@ -36,7 +35,6 @@ typedef struct ScriptContext
   void* derived_script_context_class_ptr;
 
 } ScriptContext;
-
 
 extern ThreadSafeQueue<ScriptContext*> queue_of_scripts_waiting_to_start;
 
@@ -68,11 +66,9 @@ int ScriptContext_GetIsFinishedWithGlobalCode_impl(void*);
 
 void ScriptContext_SetIsFinishedWithGlobalCode_impl(void*, int);
 
-
 int ScriptContext_GetCalledYieldingFunctionInLastGlobalScriptResume_impl(void*);
 
 void ScriptContext_SetCalledYieldingFunctionInLastGlobalScriptResume_impl(void*, int);
-
 
 int ScriptContext_GetCalledYieldingFunctionInLastFrameCallbackScriptResume_impl(void*);
 void ScriptContext_SetCalledYieldingFunctionInLastFrameCallbackScriptResume_impl(void*, int);

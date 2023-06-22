@@ -21,13 +21,13 @@ FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
 
 ArgHolder* Register(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
 ArgHolder* RegisterWithAutoDeregistration(ScriptContext* current_script,
-                                         std::vector<ArgHolder*>* args_list);
+                                          std::vector<ArgHolder*>* args_list);
 ArgHolder* Unregister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
 
 ArgHolder* IsInGCControllerPolledCallback(ScriptContext* current_script,
-                                         std::vector<ArgHolder*>* args_list);
+                                          std::vector<ArgHolder*>* args_list);
 ArgHolder* GetCurrentPortNumberOfPoll(ScriptContext* current_script,
-                                     std::vector<ArgHolder*>* args_list);
+                                      std::vector<ArgHolder*>* args_list);
 ArgHolder* SetInputsForPoll(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
 ArgHolder* GetInputsForPoll(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
 

@@ -72,11 +72,11 @@ static bool ValidateApiStruct(void* start_of_struct, unsigned int struct_size,
     if (static_cast<u64>(*travel_ptr) == 0)
     {
       std::cout << "Error: " << struct_name << " had a NULL member!" << std::endl;
-      #ifdef _WIN32
+#ifdef _WIN32
       std::quick_exit(68);
-      #else
+#else
       return false;
-      #endif
+#endif
     }
     travel_ptr = (u64*)(((u8*)travel_ptr) + sizeof(u64));
   }
@@ -296,7 +296,8 @@ void InitializeDLLs()
   dll_suffix = ".so";
 #endif
 
-  std::string base_plugins_directory = std::string(fileUtility_apis.GetSystemDirectory()) + "ScriptingPlugins";
+  std::string base_plugins_directory =
+      std::string(fileUtility_apis.GetSystemDirectory()) + "ScriptingPlugins";
 
   for (auto const& dir_entry : std::filesystem::directory_iterator(base_plugins_directory))
   {
@@ -342,7 +343,8 @@ void InitializeDLLs()
               current_file_name.substr(current_file_name.length() - dll_suffix.length()) ==
                   dll_suffix)
           {
-            file_extension_to_dll_map[trimmed_extension] = new Common::DynamicLibrary(current_file_name.c_str());
+            file_extension_to_dll_map[trimmed_extension] =
+                new Common::DynamicLibrary(current_file_name.c_str());
             reinterpret_cast<exported_dll_func_type>(
                 file_extension_to_dll_map[trimmed_extension]->GetSymbolAddress(
                     "Init_ArgHolder_APIs"))(&argHolder_apis);

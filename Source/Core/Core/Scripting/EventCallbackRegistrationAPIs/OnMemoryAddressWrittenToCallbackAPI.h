@@ -19,13 +19,13 @@ FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
 
 ArgHolder* Register(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
 ArgHolder* RegisterWithAutoDeregistration(ScriptContext* current_script,
-                                         std::vector<ArgHolder*>* args_list);
+                                          std::vector<ArgHolder*>* args_list);
 ArgHolder* Unregister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
 ArgHolder* IsInMemoryAddressWrittenToCallback(ScriptContext* current_script,
-                                             std::vector<ArgHolder*>* arg_list);
+                                              std::vector<ArgHolder*>* arg_list);
 ArgHolder* GetMemoryAddressWrittenToForCurrentCallback(ScriptContext* current_script,
-                                                      std::vector<ArgHolder*>* args_list);
+                                                       std::vector<ArgHolder*>* args_list);
 ArgHolder* GetValueWrittenToMemoryAddressForCurrentCallback(ScriptContext* current_script,
-                                                           std::vector<ArgHolder*>* args_list);
+                                                            std::vector<ArgHolder*>* args_list);
 
 }  // namespace Scripting::OnMemoryAddressWrittenToCallbackAPI

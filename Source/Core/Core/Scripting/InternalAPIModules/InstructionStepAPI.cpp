@@ -1,6 +1,7 @@
 #include "Core/Scripting/InternalAPIModules/InstructionStepAPI.h"
 
 #include <fmt/format.h>
+#include "Common/GekkoDisassembler.h"
 #include "Core/Core.h"
 #include "Core/HW/CPU.h"
 #include "Core/Movie.h"
@@ -12,7 +13,6 @@
 #include "Core/Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressWrittenToCallbackAPI.h"
 #include "Core/Scripting/HelperClasses/VersionResolver.h"
 #include "Core/System.h"
-#include "Common/GekkoDisassembler.h"
 
 namespace Scripting::InstructionStepAPI
 {
@@ -178,7 +178,7 @@ ArgHolder* SetPC(ScriptContext* current_script, std::vector<ArgHolder*>* args_li
 }
 
 ArgHolder* GetInstructionFromAddress(ScriptContext* current_script,
-                                    std::vector<ArgHolder*>* args_list)
+                                     std::vector<ArgHolder*>* args_list)
 {
   u32 instruction_addr = (*args_list)[0]->u32_val;
   Core::CPUThreadGuard guard(Core::System::GetInstance());

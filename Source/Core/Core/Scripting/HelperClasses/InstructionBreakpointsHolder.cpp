@@ -7,7 +7,8 @@ InstructionBreakpointsHolder::InstructionBreakpointsHolder()
 
 void InstructionBreakpointsHolder::AddBreakpoint(unsigned int addr)
 {
-  this->breakpoint_addresses.push_back(addr);  // add this to the list of breakpoints regardless of whether or not its a duplicate
+  this->breakpoint_addresses.push_back(
+      addr);  // add this to the list of breakpoints regardless of whether or not its a duplicate
 }
 
 unsigned int InstructionBreakpointsHolder::GetNumCopiesOfBreakpoint(unsigned int addr)
@@ -17,7 +18,8 @@ unsigned int InstructionBreakpointsHolder::GetNumCopiesOfBreakpoint(unsigned int
 
 bool InstructionBreakpointsHolder::ContainsBreakpoint(unsigned int addr)
 {
-  return (std::count(this->breakpoint_addresses.begin(), this->breakpoint_addresses.end(), addr) > 0);
+  return (std::count(this->breakpoint_addresses.begin(), this->breakpoint_addresses.end(), addr) >
+          0);
 }
 
 void InstructionBreakpointsHolder::RemoveBreakpoint(unsigned int addr)

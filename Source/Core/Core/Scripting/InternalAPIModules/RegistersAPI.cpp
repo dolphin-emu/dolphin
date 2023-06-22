@@ -9,8 +9,8 @@
 #include "Common/CommonTypes.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "Core/Scripting/HelperClasses/ArgHolder.h"
 #include "Core/Scripting/CoreScriptContextFiles/Enums/ArgTypeEnum.h"
+#include "Core/Scripting/HelperClasses/ArgHolder.h"
 #include "Core/Scripting/HelperClasses/ClassMetadata.h"
 #include "Core/Scripting/HelperClasses/VersionResolver.h"
 #include "Core/System.h"
@@ -33,11 +33,9 @@ static std::array all_registers_functions_metadata_list = {
     FunctionMetadata("getS16FromRegister", "1.0", "getS16FromRegister(\"R5\", 2)",
                      GetS16FromRegister, ArgTypeEnum::S16, {ArgTypeEnum::String, ArgTypeEnum::U8}),
     FunctionMetadata("getS32FromRegister", "1.0", "getS32FromRegister(\"R5\", 0)",
-                     GetS32FromRegister, ArgTypeEnum::S32,
-                     {ArgTypeEnum::String, ArgTypeEnum::U8}),
+                     GetS32FromRegister, ArgTypeEnum::S32, {ArgTypeEnum::String, ArgTypeEnum::U8}),
     FunctionMetadata("getS64FromRegister", "1.0", "getS64FromRegister(\"F5\", 0)",
-                     GetS64FromRegister, ArgTypeEnum::S64,
-                     {ArgTypeEnum::String, ArgTypeEnum::U8}),
+                     GetS64FromRegister, ArgTypeEnum::S64, {ArgTypeEnum::String, ArgTypeEnum::U8}),
     FunctionMetadata("getFloatFromRegister", "1.0", "getFloatFromRegister(\"F5\", 4)",
                      GetFloatFromRegister, ArgTypeEnum::Float,
                      {ArgTypeEnum::String, ArgTypeEnum::U8}),
@@ -228,7 +226,7 @@ bool IsOperationOutOfBounds(RegisterObject register_val, u8 offset, u8 return_va
 }
 
 ArgHolder* ReturnOperationOutOfBoundsError(std::string read_or_write, std::string return_type,
-                                          std::string register_string, u8 offset)
+                                           std::string register_string, u8 offset)
 {
   return CreateErrorStringArgHolder(
       fmt::format("Attempt to {} {} with offset of {} at register {} failed. Attempted to {} past "
@@ -431,7 +429,7 @@ ArgHolder* GetDoubleFromRegister(ScriptContext* current_script, std::vector<ArgH
 }
 
 ArgHolder* GetUnsignedBytesFromRegister(ScriptContext* current_script,
-                                       std::vector<ArgHolder*>* args_list)
+                                        std::vector<ArgHolder*>* args_list)
 {
   const std::string register_string = (*args_list)[0]->string_val;
   u8 num_bytes_to_read = (*args_list)[1]->u8_val;
@@ -462,7 +460,7 @@ ArgHolder* GetUnsignedBytesFromRegister(ScriptContext* current_script,
 }
 
 ArgHolder* GetSignedBytesFromRegister(ScriptContext* current_script,
-                                     std::vector<ArgHolder*>* args_list)
+                                      std::vector<ArgHolder*>* args_list)
 {
   const std::string register_string = (*args_list)[0]->string_val;
   u8 num_bytes_to_read = (*args_list)[1]->u8_val;

@@ -2,7 +2,8 @@
 
 const char* most_recent_script_version = "1.0.0";
 
-ThreadSafeQueue<ScriptContext*> queue_of_scripts_waiting_to_start =  ThreadSafeQueue<ScriptContext*>();
+ThreadSafeQueue<ScriptContext*> queue_of_scripts_waiting_to_start =
+    ThreadSafeQueue<ScriptContext*>();
 
 ScriptContext* castToScriptContextPtr(void* input)
 {
@@ -38,14 +39,14 @@ void ScriptContext_Destructor_impl(void* script_context)
   casted_struct_ptr->is_script_active = 0;
   casted_struct_ptr->dll_specific_api_definitions.DLLSpecificDestructor(script_context);
   delete casted_struct_ptr;
-
 }
 
 void ScriptContext_ShutdownScript_impl(void* script_context)
 {
   ScriptContext* casted_struct_ptr = castToScriptContextPtr(script_context);
   casted_struct_ptr->is_script_active = 0;
-  casted_struct_ptr->script_end_callback_function(script_context, casted_struct_ptr->unique_script_identifier);
+  casted_struct_ptr->script_end_callback_function(script_context,
+                                                  casted_struct_ptr->unique_script_identifier);
 }
 
 PRINT_CALLBACK_TYPE ScriptContext_GetPrintCallback_impl(void* script_context)
@@ -70,7 +71,7 @@ const char* ScriptContext_GetScriptFilename_impl(void* script_context)
 
 int ScriptContext_GetScriptCallLocation_impl(void* script_context)
 {
-  return (int) castToScriptContextPtr(script_context)->current_script_call_location;
+  return (int)castToScriptContextPtr(script_context)->current_script_call_location;
 }
 
 int ScriptContext_GetIsScriptActive_impl(void* script_context)
@@ -97,39 +98,49 @@ void ScriptContext_SetIsFinishedWithGlobalCode_impl(void* script_context, int ne
 
 int ScriptContext_GetCalledYieldingFunctionInLastGlobalScriptResume_impl(void* script_context)
 {
-  return castToScriptContextPtr(script_context)->called_yielding_function_in_last_global_script_resume;
+  return castToScriptContextPtr(script_context)
+      ->called_yielding_function_in_last_global_script_resume;
 }
 
-void ScriptContext_SetCalledYieldingFunctionInLastGlobalScriptResume_impl(void* script_context, int new_val)
+void ScriptContext_SetCalledYieldingFunctionInLastGlobalScriptResume_impl(void* script_context,
+                                                                          int new_val)
 {
   int value_to_set = new_val != 0 ? 1 : 0;
-  castToScriptContextPtr(script_context)->called_yielding_function_in_last_global_script_resume = value_to_set;
+  castToScriptContextPtr(script_context)->called_yielding_function_in_last_global_script_resume =
+      value_to_set;
 }
 
-int ScriptContext_GetCalledYieldingFunctionInLastFrameCallbackScriptResume_impl(void* script_context)
+int ScriptContext_GetCalledYieldingFunctionInLastFrameCallbackScriptResume_impl(
+    void* script_context)
 {
-  return castToScriptContextPtr(script_context)->called_yielding_function_in_last_frame_callback_script_resume;
+  return castToScriptContextPtr(script_context)
+      ->called_yielding_function_in_last_frame_callback_script_resume;
 }
 
-void ScriptContext_SetCalledYieldingFunctionInLastFrameCallbackScriptResume_impl(void* script_context, int new_val)
+void ScriptContext_SetCalledYieldingFunctionInLastFrameCallbackScriptResume_impl(
+    void* script_context, int new_val)
 {
   int value_to_set = new_val != 0 ? 1 : 0;
-  castToScriptContextPtr(script_context)->called_yielding_function_in_last_frame_callback_script_resume = value_to_set;
+  castToScriptContextPtr(script_context)
+      ->called_yielding_function_in_last_frame_callback_script_resume = value_to_set;
 }
 
 void* ScriptContext_GetInstructionBreakpointsHolder_impl(void* script_context)
 {
-  return reinterpret_cast<void*>(&(castToScriptContextPtr(script_context)->instructionBreakpointsHolder));
+  return reinterpret_cast<void*>(
+      &(castToScriptContextPtr(script_context)->instructionBreakpointsHolder));
 }
 
 void* ScriptContext_GetMemoryAddressBreakpointsHolder_impl(void* script_context)
 {
-  return reinterpret_cast<void*>(&(castToScriptContextPtr(script_context)->memoryAddressBreakpointsHolder));
+  return reinterpret_cast<void*>(
+      &(castToScriptContextPtr(script_context)->memoryAddressBreakpointsHolder));
 }
 
 void* ScriptContext_GetDllDefinedScriptContextApis_impl(void* script_context)
 {
-  return reinterpret_cast<void*>(&(castToScriptContextPtr(script_context)->dll_specific_api_definitions));
+  return reinterpret_cast<void*>(
+      &(castToScriptContextPtr(script_context)->dll_specific_api_definitions));
 }
 
 void* ScriptContext_GetDerivedScriptContextPtr_impl(void* script_context)

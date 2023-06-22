@@ -28,7 +28,8 @@ ArgHolder* ReadS64(ScriptContext* current_script, std::vector<ArgHolder*>* args_
 ArgHolder* ReadFloat(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
 ArgHolder* ReadDouble(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
 ArgHolder* ReadFixedLengthString(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
-ArgHolder* ReadNullTerminatedString(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
+ArgHolder* ReadNullTerminatedString(ScriptContext* current_script,
+                                    std::vector<ArgHolder*>* args_list);
 ArgHolder* ReadUnsignedBytes(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
 ArgHolder* ReadSignedBytes(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
 
@@ -44,6 +45,7 @@ ArgHolder* WriteFloat(ScriptContext* current_script, std::vector<ArgHolder*>* ar
 ArgHolder* WriteDouble(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
 ArgHolder* WriteString(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
 ArgHolder* WriteBytes(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
-ArgHolder* WriteAllMemoryAsUnsignedBytesToFile(ScriptContext* current_script, std::vector<ArgHolder*>* args_list);
+ArgHolder* WriteAllMemoryAsUnsignedBytesToFile(ScriptContext* current_script,
+                                               std::vector<ArgHolder*>* args_list);
 
 }  // namespace Scripting::MemoryApi

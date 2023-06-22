@@ -4,8 +4,8 @@
 #include <memory>
 #include <unordered_map>
 
-#include "Core/Scripting/HelperClasses/ArgHolder.h"
 #include "Core/Scripting/CoreScriptContextFiles/Enums/ArgTypeEnum.h"
+#include "Core/Scripting/HelperClasses/ArgHolder.h"
 #include "Core/Scripting/HelperClasses/ClassMetadata.h"
 #include "Core/Scripting/HelperClasses/FunctionMetadata.h"
 #include "Core/Scripting/HelperClasses/VersionResolver.h"
@@ -47,9 +47,10 @@ FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
 }
 
 ArgHolder* ImportCommon(ScriptContext* current_script, std::string api_name,
-                       std::string version_number)
+                        std::string version_number)
 {
-  current_script->dll_specific_api_definitions.ImportModule(current_script, api_name.c_str(), version_number.c_str());
+  current_script->dll_specific_api_definitions.ImportModule(current_script, api_name.c_str(),
+                                                            version_number.c_str());
   return CreateVoidTypeArgHolder();
 }
 

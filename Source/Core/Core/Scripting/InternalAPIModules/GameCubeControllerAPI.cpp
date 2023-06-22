@@ -40,7 +40,7 @@ FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
 }
 
 ArgHolder* GetInputsForPreviousFrame(ScriptContext* current_script,
-                                    std::vector<ArgHolder*>* args_list)
+                                     std::vector<ArgHolder*>* args_list)
 {
   s64 controller_port_number = (*args_list)[0]->s64_val;
   if (controller_port_number < 1 || controller_port_number > 4)
