@@ -1,0 +1,35 @@
+cmake_minimum_required(VERSION 3.27)
+set(CMAKE_CXX_FLAGS)
+
+project(PythonDLL)
+
+
+add_library(PYTHON SHARED
+CopiedScriptContextFiles/Enums/ArgTypeEnum.h
+CopiedScriptContextFiles/Enums/GCButtonNameEnum.h
+CopiedScriptContextFiles/Enums/ScriptCallLocations.h
+CopiedScriptContextFiles/InternalScriptAPIs/ArgHolder_APIs.h
+CopiedScriptContextFiles/InternalScriptAPIs/ClassFunctionsResolver_APIs.h
+CopiedScriptContextFiles/InternalScriptAPIs/ClassMetadata_APIs.h
+CopiedScriptContextFiles/InternalScriptAPIs/FileUtility_APIs.h
+CopiedScriptContextFiles/InternalScriptAPIs/FunctionMetadata_APIs.h
+CopiedScriptContextFiles/InternalScriptAPIs/GCButton_APIs.h
+CopiedScriptContextFiles/InternalScriptAPIs/ScriptContext_APIs.h
+CopiedScriptContextFiles/InternalScriptAPIs/VectorOfArgHolders_APIs.h
+PythonScriptContextFiles/PythonScriptContext.h
+PythonScriptContextFiles/PythonScriptContext.cpp
+CreateScript.h
+CreateScript.cpp
+DolphinDefinedAPIs.h
+DolphinDefinedAPIs.cpp
+HelperFiles/ClassMetadata.h
+HelperFiles/FunctionMetadata.h
+HelperFiles/PythonInterface.h
+HelperFiles/PythonInterface.cpp
+)
+
+set_target_properties(PYTHON PROPERTIES LINKER_LANGUAGE CXX)
+set_property(TARGET PYTHON PROPERTY CXX_STANDARD 20)
+target_include_directories(PYTHON PUBLIC "C:/Users/skyle/OneDrive/Desktop/PythonStuff/include")
+
+target_link_libraries(PYTHON PUBLIC "C:/Users/skyle/OneDrive/Desktop/PythonStuff/libs/python311.lib")

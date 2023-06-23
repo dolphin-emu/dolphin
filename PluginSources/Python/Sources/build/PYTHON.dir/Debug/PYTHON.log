@@ -1,0 +1,7 @@
+﻿  Building Custom Rule C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/PluginSources/Python/Sources/CMakeLists.txt
+  PythonScriptContext.cpp
+  CreateScript.cpp
+  DolphinDefinedAPIs.cpp
+  PythonInterface.cpp
+  Generating Code...
+C:\Users\skyle\OneDrive\Desktop\PythonStuff\python311_d.dll : fatal error LNK1107: invalid or corrupt file: cannot read at 0x370

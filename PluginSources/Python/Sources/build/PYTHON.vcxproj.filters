@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\PluginSources\Python\Sources\PythonScriptContextFiles\PythonScriptContext.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\PluginSources\Python\Sources\CreateScript.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\PluginSources\Python\Sources\DolphinDefinedAPIs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\PluginSources\Python\Sources\HelperFiles\PythonInterface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\PluginSources\Python\Sources\CopiedScriptContextFiles\Enums\ArgTypeEnum.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\PluginSources\Python\Sources\CopiedScriptContextFiles\Enums\GCButtonNameEnum.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\PluginSources\Python\Sources\CopiedScriptContextFiles\Enums\ScriptCallLocations.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\PluginSources\Python\Sources\CopiedScriptContextFiles\InternalScriptAPIs\ArgHolder_APIs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\PluginSources\Python\Sources\CopiedScriptContextFiles\InternalScriptAPIs\ClassFunctionsResolver_APIs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\PluginSources\Python\Sources\CopiedScriptContextFiles\InternalScriptAPIs\ClassMetadata_APIs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\PluginSources\Python\Sources\CopiedScriptContextFiles\InternalScriptAPIs\FileUtility_APIs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\PluginSources\Python\Sources\CopiedScriptContextFiles\InternalScriptAPIs\FunctionMetadata_APIs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\PluginSources\Python\Sources\CopiedScriptContextFiles\InternalScriptAPIs\GCButton_APIs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\PluginSources\Python\Sources\CopiedScriptContextFiles\InternalScriptAPIs\ScriptContext_APIs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\PluginSources\Python\Sources\CopiedScriptContextFiles\InternalScriptAPIs\VectorOfArgHolders_APIs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\PluginSources\Python\Sources\PythonScriptContextFiles\PythonScriptContext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\PluginSources\Python\Sources\CreateScript.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\PluginSources\Python\Sources\DolphinDefinedAPIs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\PluginSources\Python\Sources\HelperFiles\ClassMetadata.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\PluginSources\Python\Sources\HelperFiles\FunctionMetadata.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\PluginSources\Python\Sources\HelperFiles\PythonInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\PluginSources\Python\Sources\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{4FB5B782-FD34-3FEA-9762-0AB447520472}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{A536FA0B-83F6-348B-ABB8-C1EB27E58602}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
