@@ -21,5 +21,6 @@ public:
   virtual void OnProjection(GraphicsModActionData::Projection*) {}
   virtual void OnProjectionAndTexture(GraphicsModActionData::Projection*) {}
   virtual void OnTextureLoad(GraphicsModActionData::TextureLoad*) {}
+  virtual void OnTextureCreate(GraphicsModActionData::TextureCreate*) {}
   virtual void OnFrameEnd() {}
 };
