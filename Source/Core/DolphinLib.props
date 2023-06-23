@@ -39,11 +39,11 @@
     <ClInclude Include="Common\Debug\MemoryPatches.h" />
     <ClInclude Include="Common\Debug\Threads.h" />
     <ClInclude Include="Common\Debug\Watches.h" />
-    <ClInclude Include="Common\DebugInterface.h" />
     <ClInclude Include="Common\DynamicLibrary.h" />
     <ClInclude Include="Common\ENet.h" />
     <ClInclude Include="Common\EnumFormatter.h" />
     <ClInclude Include="Common\EnumMap.h" />
+    <ClInclude Include="Common\EnumUtils.h" />
     <ClInclude Include="Common\Event.h" />
     <ClInclude Include="Common\FatFsUtil.h" />
     <ClInclude Include="Common\FileSearch.h" />
@@ -191,6 +191,7 @@
     <ClInclude Include="Core\Core.h" />
     <ClInclude Include="Core\CoreTiming.h" />
     <ClInclude Include="Core\Debugger\CodeTrace.h" />
+    <ClInclude Include="Core\Debugger\DebugInterface.h" />
     <ClInclude Include="Core\Debugger\Debugger_SymbolMap.h" />
     <ClInclude Include="Core\Debugger\Dump.h" />
     <ClInclude Include="Core\Debugger\GCELF.h" />
@@ -534,7 +535,6 @@
     <ClInclude Include="UICommon\ResourcePack\ResourcePack.h" />
     <ClInclude Include="UICommon\UICommon.h" />
     <ClInclude Include="UICommon\USBUtils.h" />
-    <ClInclude Include="UICommon\VideoUtils.h" />
     <ClInclude Include="UpdaterCommon\UI.h" />
     <ClInclude Include="UpdaterCommon\UpdaterCommon.h" />
     <ClInclude Include="VideoBackends\D3D\D3DBase.h" />
@@ -631,6 +631,12 @@
     <ClInclude Include="VideoCommon\AbstractShader.h" />
     <ClInclude Include="VideoCommon\AbstractStagingTexture.h" />
     <ClInclude Include="VideoCommon\AbstractTexture.h" />
+    <ClInclude Include="VideoCommon\Assets\CustomAsset.h" />
+    <ClInclude Include="VideoCommon\Assets\CustomAssetLibrary.h" />
+    <ClInclude Include="VideoCommon\Assets\CustomAssetLoader.h" />
+    <ClInclude Include="VideoCommon\Assets\CustomTextureData.h" />
+    <ClInclude Include="VideoCommon\Assets\DirectFilesystemAssetLibrary.h" />
+    <ClInclude Include="VideoCommon\Assets\TextureAsset.h" />
     <ClInclude Include="VideoCommon\AsyncRequests.h" />
     <ClInclude Include="VideoCommon\AsyncShaderCompiler.h" />
     <ClInclude Include="VideoCommon\BoundingBox.h" />
@@ -663,7 +669,6 @@
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\Actions\PrintAction.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\Actions\ScaleAction.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\Actions\SkipAction.h" />
-    <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\CustomTextureData.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\FBInfo.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\GraphicsModAction.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\GraphicsModActionData.h" />
@@ -1155,7 +1160,6 @@
     <ClCompile Include="UICommon\ResourcePack\ResourcePack.cpp" />
     <ClCompile Include="UICommon\UICommon.cpp" />
     <ClCompile Include="UICommon\USBUtils.cpp" />
-    <ClCompile Include="UICommon\VideoUtils.cpp" />
     <ClCompile Include="UpdaterCommon\UpdaterCommon.cpp" />
     <ClCompile Include="VideoBackends\D3D\D3DBase.cpp" />
     <ClCompile Include="VideoBackends\D3D\D3DBoundingBox.cpp" />
@@ -1241,6 +1245,12 @@
     <ClCompile Include="VideoCommon\AbstractGfx.cpp" />
     <ClCompile Include="VideoCommon\AbstractStagingTexture.cpp" />
     <ClCompile Include="VideoCommon\AbstractTexture.cpp" />
+    <ClCompile Include="VideoCommon\Assets\CustomAsset.cpp" />
+    <ClCompile Include="VideoCommon\Assets\CustomAssetLibrary.cpp" />
+    <ClCompile Include="VideoCommon\Assets\CustomAssetLoader.cpp" />
+    <ClCompile Include="VideoCommon\Assets\CustomTextureData.cpp" />
+    <ClCompile Include="VideoCommon\Assets\DirectFilesystemAssetLibrary.cpp" />
+    <ClCompile Include="VideoCommon\Assets\TextureAsset.cpp" />
     <ClCompile Include="VideoCommon\AsyncRequests.cpp" />
     <ClCompile Include="VideoCommon\AsyncShaderCompiler.cpp" />
     <ClCompile Include="VideoCommon\BoundingBox.cpp" />
@@ -1268,7 +1278,6 @@
     <ClCompile Include="VideoCommon\GraphicsModSystem\Runtime\Actions\PrintAction.cpp" />
     <ClCompile Include="VideoCommon\GraphicsModSystem\Runtime\Actions\ScaleAction.cpp" />
     <ClCompile Include="VideoCommon\GraphicsModSystem\Runtime\Actions\SkipAction.cpp" />
-    <ClCompile Include="VideoCommon\GraphicsModSystem\Runtime\CustomTextureData.cpp" />
     <ClCompile Include="VideoCommon\GraphicsModSystem\Runtime\FBInfo.cpp" />
     <ClCompile Include="VideoCommon\GraphicsModSystem\Runtime\GraphicsModActionFactory.cpp" />
     <ClCompile Include="VideoCommon\GraphicsModSystem\Runtime\GraphicsModManager.cpp" />

@@ -71,7 +71,7 @@ Settings::Settings()
   });
 
   m_hotplug_callback_handle = g_controller_interface.RegisterDevicesChangedCallback([this] {
-    if (Host::GetInstance()->IsHostThread())
+    if (Core::IsHostThread())
     {
       emit DevicesChanged();
     }

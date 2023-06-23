@@ -1,5 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// GPU driver implementation partially based on:
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.ui
 
 import android.content.Context
@@ -20,6 +24,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.appbar.CollapsingToolbarLayout
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
 import org.dolphinemu.dolphinemu.NativeLibrary
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.databinding.ActivitySettingsBinding
@@ -27,6 +32,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.Settings
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsFragment.Companion.newInstance
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper
+import org.dolphinemu.dolphinemu.utils.GpuDriverInstallResult
 import org.dolphinemu.dolphinemu.utils.InsetsHelper
 import org.dolphinemu.dolphinemu.utils.SerializableHelper.serializable
 import org.dolphinemu.dolphinemu.utils.ThemeHelper.enableScrollTint
@@ -165,8 +171,21 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
         super.onActivityResult(requestCode, resultCode, result)
 
         // If the user picked a file, as opposed to just backing out.
-        if (resultCode == RESULT_OK) {
-            if (requestCode != MainPresenter.REQUEST_DIRECTORY) {
+        if (resultCode != RESULT_OK) {
+            return
+        }
+
+        when (requestCode) {
+            MainPresenter.REQUEST_DIRECTORY -> {
+                val path = FileBrowserHelper.getSelectedPath(result)
+                fragment!!.adapter!!.onFilePickerConfirmation(path!!)
+            }
+
+            MainPresenter.REQUEST_GAME_FILE
+                or MainPresenter.REQUEST_SD_FILE
+                or MainPresenter.REQUEST_WAD_FILE
+                or MainPresenter.REQUEST_WII_SAVE_FILE
+                or MainPresenter.REQUEST_NAND_BIN_FILE -> {
                 val uri = canonicalizeIfPossible(result!!.data!!)
                 val validExtensions: Set<String> =
                     if (requestCode == MainPresenter.REQUEST_GAME_FILE) FileBrowserHelper.GAME_EXTENSIONS else FileBrowserHelper.RAW_EXTENSION
@@ -178,9 +197,6 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
                     contentResolver.takePersistableUriPermission(uri, takeFlags)
                     fragment!!.adapter!!.onFilePickerConfirmation(uri.toString())
                 }
-            } else {
-                val path = FileBrowserHelper.getSelectedPath(result)
-                fragment!!.adapter!!.onFilePickerConfirmation(path!!)
             }
         }
     }

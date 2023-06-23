@@ -77,12 +77,11 @@ struct VideoConfig
   bool bSupportsTextureSubImage;
   EsFbFetchType SupportedFramebufferFetch;
   bool bSupportsKHRShaderSubgroup;  // basic + arithmetic + ballot
+  bool bSupportsExplicitLayoutInShader;
 
   const char* gl_vendor;
   const char* gl_renderer;
   const char* gl_version;
-
-  s32 max_samples;
 };
 
 void InitDriverInfo();

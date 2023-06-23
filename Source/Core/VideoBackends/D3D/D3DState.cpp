@@ -41,7 +41,8 @@ void StateManager::Apply()
           m_pending.framebuffer->GetNumRTVs(),
           m_pending.use_integer_rtv ? m_pending.framebuffer->GetIntegerRTVArray() :
                                       m_pending.framebuffer->GetRTVArray(),
-          m_pending.framebuffer->GetDSV(), 2, 1, &m_pending.uav, nullptr);
+          m_pending.framebuffer->GetDSV(), m_pending.framebuffer->GetNumRTVs() + 1, 1,
+          &m_pending.uav, nullptr);
     }
     else
     {

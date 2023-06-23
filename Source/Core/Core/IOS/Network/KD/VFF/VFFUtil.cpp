@@ -17,6 +17,7 @@
 // clang-format on
 
 #include "Common/Align.h"
+#include "Common/EnumUtils.h"
 #include "Common/FatFsUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
@@ -211,7 +212,7 @@ static ErrorCode WriteFile(const std::string& filename, const std::vector<u8>& t
     if (write_error_code != FR_OK)
     {
       ERROR_LOG_FMT(IOS_WC24, "Failed to write file {} to VFF: {}", filename,
-                    static_cast<u32>(write_error_code));
+                    Common::ToUnderlying(write_error_code));
       return WC24_ERR_FILE_WRITE;
     }
 

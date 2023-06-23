@@ -23,8 +23,6 @@ add_library(uicommon
   UICommon.h
   USBUtils.cpp
   USBUtils.h
-  VideoUtils.cpp
-  VideoUtils.h
 )
 
 target_link_libraries(uicommon

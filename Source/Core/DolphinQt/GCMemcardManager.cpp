@@ -502,7 +502,7 @@ void GCMemcardManager::ExportFiles(Memcard::SavefileFormat format)
   }
 }
 
-void GCMemcardManager::ImportFiles(Slot slot, const std::vector<Memcard::Savefile>& savefiles)
+void GCMemcardManager::ImportFiles(Slot slot, std::span<const Memcard::Savefile> savefiles)
 {
   auto& card = m_slot_memcard[slot];
   if (!card)

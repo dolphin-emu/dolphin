@@ -65,6 +65,9 @@ signals:
   void ToggleBreakpoint();
   void AddBreakpoint();
 
+  void SkylandersPortalHotkey();
+  void InfinityBaseHotkey();
+
 private:
   void Run();
   void CheckDebuggingHotkeys();

@@ -326,7 +326,17 @@ void JitArm64::boolX(UGeckoInstruction inst)
   else if ((gpr.IsImm(s) && (gpr.GetImm(s) == 0 || gpr.GetImm(s) == 0xFFFFFFFF)) ||
            (gpr.IsImm(b) && (gpr.GetImm(b) == 0 || gpr.GetImm(b) == 0xFFFFFFFF)))
   {
-    const auto [i, j] = gpr.IsImm(s) ? std::pair(s, b) : std::pair(b, s);
+    int i, j;
+    if (gpr.IsImm(s))
+    {
+      i = s;
+      j = b;
+    }
+    else
+    {
+      i = b;
+      j = s;
+    }
     bool is_zero = gpr.GetImm(i) == 0;
 
     bool complement_b = (inst.SUBOP10 == 60 /* andcx */) || (inst.SUBOP10 == 412 /* orcx */);

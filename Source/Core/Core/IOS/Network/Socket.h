@@ -52,6 +52,7 @@ typedef struct pollfd pollfd_t;
 #include <utility>
 
 #include "Common/CommonTypes.h"
+#include "Common/EnumUtils.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/IOS.h"
@@ -289,7 +290,7 @@ public:
     if (socket_entry == WiiSockets.end())
     {
       ERROR_LOG_FMT(IOS_NET, "DoSock: Error, fd not found ({:08x}, {:08X}, {:08X})", sock,
-                    request.address, static_cast<u32>(type));
+                    request.address, Common::ToUnderlying(type));
       GetIOS()->EnqueueIPCReply(request, -SO_EBADF);
     }
     else

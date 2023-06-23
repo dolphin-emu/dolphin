@@ -7,6 +7,7 @@
 
 #include "Common/Crypto/SHA1.h"
 #include "Common/Crypto/ec.h"
+#include "Common/EnumUtils.h"
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
@@ -162,7 +163,7 @@ ReturnCode ESCore::VerifySign(const std::vector<u8>& hash, const std::vector<u8>
   if (ret != IPC_SUCCESS)
   {
     ERROR_LOG_FMT(IOS_ES, "VerifySign: VerifyContainer(ng) failed with error {}",
-                  static_cast<s32>(ret));
+                  Common::ToUnderlying(ret));
     return ret;
   }
 
@@ -170,7 +171,7 @@ ReturnCode ESCore::VerifySign(const std::vector<u8>& hash, const std::vector<u8>
   if (ret != IPC_SUCCESS)
   {
     ERROR_LOG_FMT(IOS_ES, "VerifySign: IOSC_VerifyPublicKeySign(ap) failed with error {}",
-                  static_cast<s32>(ret));
+                  Common::ToUnderlying(ret));
     return ret;
   }
 
@@ -184,7 +185,7 @@ ReturnCode ESCore::VerifySign(const std::vector<u8>& hash, const std::vector<u8>
   if (ret != IPC_SUCCESS)
   {
     ERROR_LOG_FMT(IOS_ES, "VerifySign: IOSC_ImportPublicKey(ap) failed with error {}",
-                  static_cast<s32>(ret));
+                  Common::ToUnderlying(ret));
     return ret;
   }
 
@@ -193,7 +194,7 @@ ReturnCode ESCore::VerifySign(const std::vector<u8>& hash, const std::vector<u8>
   if (ret != IPC_SUCCESS)
   {
     ERROR_LOG_FMT(IOS_ES, "VerifySign: IOSC_VerifyPublicKeySign(data) failed with error {}",
-                  static_cast<s32>(ret));
+                  Common::ToUnderlying(ret));
     return ret;
   }
 

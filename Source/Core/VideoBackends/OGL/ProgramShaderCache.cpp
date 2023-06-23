@@ -126,6 +126,10 @@ void SHADER::SetProgramVariables()
 
 void SHADER::SetProgramBindings(bool is_compute)
 {
+  if (g_ogl_config.bSupportsExplicitLayoutInShader)
+  {
+    return;
+  }
   if (!is_compute)
   {
     if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
@@ -729,6 +733,49 @@ void ProgramShaderCache::CreateHeader()
       v >= GlslEs320 ||
       g_ogl_config.SupportedMultisampleTexStorage != MultisampleTexStorageType::TexStorageNone;
 
+  std::string binding_layout;
+  if (g_ActiveConfig.backend_info.bSupportsBindingLayout)
+  {
+    if (g_ogl_config.bSupportsExplicitLayoutInShader)
+    {
+      binding_layout =
+          "#extension GL_ARB_explicit_attrib_location : enable\n"
+          "#define ATTRIBUTE_LOCATION(x) layout(location = x)\n"
+          "#define FRAGMENT_OUTPUT_LOCATION(x) layout(location = x)\n"
+          "#define FRAGMENT_OUTPUT_LOCATION_INDEXED(x, y) layout(location = x, index = y)\n"
+          "#define UBO_BINDING(packing, x) layout(packing, binding = x)\n"
+          "#define SAMPLER_BINDING(x) layout(binding = x)\n"
+          "#define TEXEL_BUFFER_BINDING(x) layout(binding = x)\n"
+          "#define SSBO_BINDING(x) layout(std430, binding = x)\n"
+          "#define IMAGE_BINDING(format, x) layout(format, binding = x)\n";
+    }
+    else
+    {
+      binding_layout = "#define ATTRIBUTE_LOCATION(x)\n"
+                       "#define FRAGMENT_OUTPUT_LOCATION(x)\n"
+                       "#define FRAGMENT_OUTPUT_LOCATION_INDEXED(x, y)\n"
+                       "#define UBO_BINDING(packing, x) layout(packing, binding = x)\n"
+                       "#define SAMPLER_BINDING(x) layout(binding = x)\n"
+                       "#define TEXEL_BUFFER_BINDING(x) layout(binding = x)\n"
+                       "#define SSBO_BINDING(x) layout(std430, binding = x)\n"
+                       "#define IMAGE_BINDING(format, x) layout(format, binding = x)\n";
+    }
+  }
+  else
+  {
+    binding_layout = "#define ATTRIBUTE_LOCATION(x)\n"
+                     "#define FRAGMENT_OUTPUT_LOCATION(x)\n"
+                     "#define FRAGMENT_OUTPUT_LOCATION_INDEXED(x, y)\n"
+                     "#define UBO_BINDING(packing, x) layout(packing)\n"
+                     "#define SAMPLER_BINDING(x)\n"
+                     "#define TEXEL_BUFFER_BINDING(x)\n"
+                     "#define SSBO_BINDING(x) layout(std430)\n"
+                     "#define IMAGE_BINDING(format, x) layout(format)\n";
+  }
+
+  // TODO: actually define this if using 'bSupportsExplicitLayoutInShader'
+  const std::string varying_location = "#define VARYING_LOCATION(x)\n";
+
   std::string shader_shuffle_string;
   if (g_ogl_config.bSupportsKHRShaderSubgroup)
   {
@@ -799,28 +846,7 @@ void ProgramShaderCache::CreateHeader()
       (g_ogl_config.bSupportsMSAA && v < Glsl150) ?
           "#extension GL_ARB_texture_multisample : enable" :
           "",
-      // Attribute and fragment output bindings are still done via glBindAttribLocation and
-      // glBindFragDataLocation. In the future this could be moved to the layout qualifier
-      // in GLSL, but requires verification of GL_ARB_explicit_attrib_location.
-      g_ActiveConfig.backend_info.bSupportsBindingLayout ?
-          "#define ATTRIBUTE_LOCATION(x)\n"
-          "#define FRAGMENT_OUTPUT_LOCATION(x)\n"
-          "#define FRAGMENT_OUTPUT_LOCATION_INDEXED(x, y)\n"
-          "#define UBO_BINDING(packing, x) layout(packing, binding = x)\n"
-          "#define SAMPLER_BINDING(x) layout(binding = x)\n"
-          "#define TEXEL_BUFFER_BINDING(x) layout(binding = x)\n"
-          "#define SSBO_BINDING(x) layout(std430, binding = x)\n"
-          "#define IMAGE_BINDING(format, x) layout(format, binding = x)\n" :
-          "#define ATTRIBUTE_LOCATION(x)\n"
-          "#define FRAGMENT_OUTPUT_LOCATION(x)\n"
-          "#define FRAGMENT_OUTPUT_LOCATION_INDEXED(x, y)\n"
-          "#define UBO_BINDING(packing, x) layout(packing)\n"
-          "#define SAMPLER_BINDING(x)\n"
-          "#define TEXEL_BUFFER_BINDING(x)\n"
-          "#define SSBO_BINDING(x) layout(std430)\n"
-          "#define IMAGE_BINDING(format, x) layout(format)\n",
-      // Input/output blocks are matched by name during program linking
-      "#define VARYING_LOCATION(x)\n",
+      binding_layout.c_str(), varying_location.c_str(),
       !is_glsles && g_ActiveConfig.backend_info.bSupportsFragmentStoresAndAtomics ?
           "#extension GL_ARB_shader_storage_buffer_object : enable" :
           "",

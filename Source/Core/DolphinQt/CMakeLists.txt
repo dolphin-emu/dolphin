@@ -5,15 +5,15 @@ endif()
 
 if (MSVC)
   if(_M_ARM_64)
-    list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt6.3.0/ARM64")
+    list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt6.5.1/ARM64")
   else()
-    list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt6.3.0/x64")
+    list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt6.5.1/x64")
   endif()
 endif()
 
 set(CMAKE_AUTOMOC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Svg)
 message(STATUS "Found Qt version ${Qt6_VERSION}")
 
 set_property(TARGET Qt6::Core PROPERTY INTERFACE_COMPILE_FEATURES "")
@@ -27,6 +27,10 @@ add_executable(dolphin-mpn
   CheatSearchWidget.h
   CheatsManager.cpp
   CheatsManager.h
+  Achievements/AchievementSettingsWidget.cpp
+  Achievements/AchievementSettingsWidget.h
+  Achievements/AchievementsWindow.cpp
+  Achievements/AchievementsWindow.h
   Config/ARCodeWidget.cpp
   Config/ARCodeWidget.h
   Config/CheatCodeEditor.cpp
@@ -43,6 +47,8 @@ add_executable(dolphin-mpn
   Config/ConfigControls/ConfigInteger.h
   Config/ConfigControls/ConfigRadio.cpp
   Config/ConfigControls/ConfigRadio.h
+  Config/ConfigControls/ConfigFloatSlider.cpp
+  Config/ConfigControls/ConfigFloatSlider.h
   Config/ConfigControls/ConfigSlider.cpp
   Config/ConfigControls/ConfigSlider.h
   Config/ControllerInterface/ControllerInterfaceWindow.cpp
@@ -81,6 +87,8 @@ add_executable(dolphin-mpn
   Config/Graphics/GraphicsWindow.h
   Config/Graphics/HacksWidget.cpp
   Config/Graphics/HacksWidget.h
+  Config/Graphics/ColorCorrectionConfigWindow.cpp
+  Config/Graphics/ColorCorrectionConfigWindow.h
   Config/Graphics/PostProcessingConfigWindow.cpp
   Config/Graphics/PostProcessingConfigWindow.h
   Config/GraphicsModListWidget.cpp
@@ -125,6 +133,8 @@ add_executable(dolphin-mpn
   Config/Mapping/HotkeyStatesOther.h
   Config/Mapping/HotkeyTAS.cpp
   Config/Mapping/HotkeyTAS.h
+  Config/Mapping/HotkeyUSBEmu.cpp
+  Config/Mapping/HotkeyUSBEmu.h
   Config/Mapping/HotkeyWii.cpp
   Config/Mapping/HotkeyWii.h
   Config/Mapping/IOWindow.cpp

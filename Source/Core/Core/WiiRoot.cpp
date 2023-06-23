@@ -356,7 +356,7 @@ void InitializeWiiFileSystemContents(
       File::CreateDirs(save_redirect->m_target_path);
       if (save_redirect->m_clone)
       {
-        File::Copy(Common::GetTitleDataPath(title_id, Common::FROM_SESSION_ROOT),
+        File::Copy(Common::GetTitleDataPath(title_id, Common::FromWhichRoot::Session),
                    save_redirect->m_target_path);
       }
     }

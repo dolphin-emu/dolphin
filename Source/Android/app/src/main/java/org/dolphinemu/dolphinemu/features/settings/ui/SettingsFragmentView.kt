@@ -6,6 +6,7 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
 import org.dolphinemu.dolphinemu.features.settings.model.Settings
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem
+import org.dolphinemu.dolphinemu.utils.GpuDriverInstallResult
 
 /**
  * Abstraction for a screen showing a list of settings. Instances of
@@ -111,4 +112,21 @@ interface SettingsFragmentView {
      * @param visible Whether the warning should be visible.
      */
     fun setOldControllerSettingsWarningVisibility(visible: Boolean)
+
+    /**
+     * Called when the driver installation is finished
+     *
+     * @param result The result of the driver installation
+     */
+    fun onDriverInstallDone(result: GpuDriverInstallResult)
+
+    /**
+     * Called when the driver uninstall process is finished
+     */
+    fun onDriverUninstallDone()
+
+    /**
+     * Shows a dialog asking the user to install or uninstall a GPU driver
+     */
+    fun showGpuDriverDialog()
 }

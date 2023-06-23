@@ -7,6 +7,7 @@
 
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
+#include "Common/EnumUtils.h"
 #include "Common/FloatUtils.h"
 #include "Common/Intrinsics.h"
 #include "Common/JitRegister.h"
@@ -128,7 +129,7 @@ void CommonAsmRoutines::GenFrsqrte()
   // Negatives, zeros, denormals, infinities and NaNs take the complex path.
   LEA(32, RSCRATCH2, MDisp(RSCRATCH_EXTRA, -1));
   CMP(32, R(RSCRATCH2), Imm32(0x7FE));
-  FixupBranch complex = J_CC(CC_AE, true);
+  FixupBranch complex = J_CC(CC_AE, Jump::Near);
 
   SUB(32, R(RSCRATCH_EXTRA), Imm32(0x3FD));
   SAR(32, R(RSCRATCH_EXTRA), Imm8(1));
@@ -370,7 +371,7 @@ const u8* CommonAsmRoutines::GenQuantizedStoreRuntime(bool single, EQuantizeType
   GenQuantizedStore(single, type, -1);
   RET();
   Common::JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedStore_{}_{}",
-                                static_cast<u32>(type), single);
+                                Common::ToUnderlying(type), single);
 
   return load;
 }
@@ -402,7 +403,7 @@ const u8* CommonAsmRoutines::GenQuantizedLoadRuntime(bool single, EQuantizeType 
   GenQuantizedLoad(single, type, -1);
   RET();
   Common::JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedLoad_{}_{}",
-                                static_cast<u32>(type), single);
+                                Common::ToUnderlying(type), single);
 
   return load;
 }

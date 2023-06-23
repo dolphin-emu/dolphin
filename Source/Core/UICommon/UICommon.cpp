@@ -16,6 +16,8 @@
 #include <wil/resource.h>
 #endif
 
+#include <fmt/format.h>
+
 #include "Common/Common.h"
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
@@ -551,10 +553,8 @@ std::string FormatSize(u64 bytes, int decimals)
 
   // Don't need exact values, only 5 most significant digits
   const double unit_size = std::pow(2, unit * 10);
-  std::ostringstream ss;
-  ss << std::fixed << std::setprecision(decimals);
-  ss << bytes / unit_size << ' ' << Common::GetStringT(unit_symbols[unit]);
-  return ss.str();
+  return fmt::format("{:.{}Lf} {}", bytes / unit_size, decimals,
+                     Common::GetStringT(unit_symbols[unit]));
 }
 
 }  // namespace UICommon

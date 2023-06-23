@@ -9,6 +9,7 @@
 #include <utility>
 
 #include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "DiscIO/Enums.h"
 
@@ -98,6 +99,7 @@ const Info<bool>& GetInfoForAdapterRumble(int channel);
 const Info<bool>& GetInfoForSimulateKonga(int channel);
 extern const Info<bool> MAIN_WII_SD_CARD;
 extern const Info<bool> MAIN_WII_SD_CARD_ENABLE_FOLDER_SYNC;
+extern const Info<u64> MAIN_WII_SD_CARD_FILESIZE;
 extern const Info<bool> MAIN_WII_KEYBOARD;
 extern const Info<bool> MAIN_WIIMOTE_CONTINUOUS_SCANNING;
 extern const Info<bool> MAIN_WIIMOTE_ENABLE_SPEAKER;
@@ -194,6 +196,7 @@ extern const Info<std::string> MAIN_WIRELESS_MAC;
 extern const Info<std::string> MAIN_GDB_SOCKET;
 extern const Info<int> MAIN_GDB_PORT;
 extern const Info<int> MAIN_ISO_PATH_COUNT;
+extern const Info<std::string> MAIN_SKYLANDERS_PATH;
 std::vector<std::string> GetIsoPaths();
 void SetIsoPaths(const std::vector<std::string>& paths);
 

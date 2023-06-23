@@ -85,6 +85,10 @@ namespace SerialInterface
 {
 class SerialInterfaceManager;
 };
+namespace VideoCommon
+{
+class CustomAssetLoader;
+}
 namespace VideoInterface
 {
 class VideoInterfaceManager;
@@ -152,6 +156,7 @@ public:
   Sram& GetSRAM() const;
   VertexShaderManager& GetVertexShaderManager() const;
   VideoInterface::VideoInterfaceManager& GetVideoInterface() const;
+  VideoCommon::CustomAssetLoader& GetCustomAssetLoader() const;
 
 private:
   System();

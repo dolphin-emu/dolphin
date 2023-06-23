@@ -82,7 +82,7 @@ std::vector<ResourcePack>& GetPacks()
   return packs;
 }
 
-std::vector<ResourcePack*> GetLowerPriorityPacks(ResourcePack& pack)
+std::vector<ResourcePack*> GetLowerPriorityPacks(const ResourcePack& pack)
 {
   std::vector<ResourcePack*> list;
   for (auto it = std::find(packs.begin(), packs.end(), pack) + 1; it != packs.end(); ++it)
@@ -97,7 +97,7 @@ std::vector<ResourcePack*> GetLowerPriorityPacks(ResourcePack& pack)
   return list;
 }
 
-std::vector<ResourcePack*> GetHigherPriorityPacks(ResourcePack& pack)
+std::vector<ResourcePack*> GetHigherPriorityPacks(const ResourcePack& pack)
 {
   std::vector<ResourcePack*> list;
   auto end = std::find(packs.begin(), packs.end(), pack);

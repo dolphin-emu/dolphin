@@ -81,31 +81,33 @@ enum GyroButtons
 
 FreeLookController::FreeLookController(const unsigned int index) : m_index(index)
 {
+  using Translatability = ControllerEmu::Translatability;
+
   groups.emplace_back(m_move_buttons = new ControllerEmu::Buttons(_trans("Move")));
 
-  m_move_buttons->AddInput(ControllerEmu::Translate, _trans("Up"));
-  m_move_buttons->AddInput(ControllerEmu::Translate, _trans("Down"));
-  m_move_buttons->AddInput(ControllerEmu::Translate, _trans("Left"));
-  m_move_buttons->AddInput(ControllerEmu::Translate, _trans("Right"));
-  m_move_buttons->AddInput(ControllerEmu::Translate, _trans("Forward"));
-  m_move_buttons->AddInput(ControllerEmu::Translate, _trans("Backward"));
+  m_move_buttons->AddInput(Translatability::Translate, _trans("Up"));
+  m_move_buttons->AddInput(Translatability::Translate, _trans("Down"));
+  m_move_buttons->AddInput(Translatability::Translate, _trans("Left"));
+  m_move_buttons->AddInput(Translatability::Translate, _trans("Right"));
+  m_move_buttons->AddInput(Translatability::Translate, _trans("Forward"));
+  m_move_buttons->AddInput(Translatability::Translate, _trans("Backward"));
 
   groups.emplace_back(m_speed_buttons = new ControllerEmu::Buttons(_trans("Speed")));
 
-  m_speed_buttons->AddInput(ControllerEmu::Translate, _trans("Decrease"));
-  m_speed_buttons->AddInput(ControllerEmu::Translate, _trans("Increase"));
-  m_speed_buttons->AddInput(ControllerEmu::Translate, _trans("Reset"));
+  m_speed_buttons->AddInput(Translatability::Translate, _trans("Decrease"));
+  m_speed_buttons->AddInput(Translatability::Translate, _trans("Increase"));
+  m_speed_buttons->AddInput(Translatability::Translate, _trans("Reset"));
 
   groups.emplace_back(m_other_buttons = new ControllerEmu::Buttons(_trans("Other")));
 
-  m_other_buttons->AddInput(ControllerEmu::Translate, _trans("Reset View"));
+  m_other_buttons->AddInput(Translatability::Translate, _trans("Reset View"));
 
   groups.emplace_back(m_fov_buttons = new ControllerEmu::Buttons(_trans("Field of View")));
 
-  m_fov_buttons->AddInput(ControllerEmu::Translate, _trans("Increase X"));
-  m_fov_buttons->AddInput(ControllerEmu::Translate, _trans("Decrease X"));
-  m_fov_buttons->AddInput(ControllerEmu::Translate, _trans("Increase Y"));
-  m_fov_buttons->AddInput(ControllerEmu::Translate, _trans("Decrease Y"));
+  m_fov_buttons->AddInput(Translatability::Translate, _trans("Increase X"));
+  m_fov_buttons->AddInput(Translatability::Translate, _trans("Decrease X"));
+  m_fov_buttons->AddInput(Translatability::Translate, _trans("Increase Y"));
+  m_fov_buttons->AddInput(Translatability::Translate, _trans("Decrease Y"));
 
   groups.emplace_back(m_rotation_gyro = new ControllerEmu::IMUGyroscope(
                           _trans("Incremental Rotation"), _trans("Incremental Rotation")));

@@ -3,13 +3,14 @@
   <ItemGroup>
     <ClCompile Include="ConvertCommand.cpp" />
     <ClCompile Include="VerifyCommand.cpp" />
+    <ClCompile Include="HeaderCommand.cpp" />
     <ClCompile Include="ToolHeadlessPlatform.cpp" />
     <ClCompile Include="ToolMain.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Command.h" />
     <ClInclude Include="ConvertCommand.h" />
     <ClInclude Include="VerifyCommand.h" />
+    <ClInclude Include="HeaderCommand.h" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="DolphinTool.exe.manifest" />
