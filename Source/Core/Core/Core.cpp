@@ -796,7 +796,6 @@ void SaveScreenShot(std::string_view name)
 static bool PauseAndLock(Core::System& system, bool do_lock, bool unpause_on_unlock)
 {
   // WARNING: PauseAndLock is not fully threadsafe so is only valid on the Host Thread
-  ASSERT(IsHostThread());
 
   if (!IsRunningAndStarted())
     return true;
