@@ -38,7 +38,7 @@ private:
   void ClearBlockCache();
   void OnClickItem();
   void OnRecord(bool enabled);
-  std::vector<Diff> CalculateSymbolsFromProfile();
+  std::vector<Diff> CalculateSymbolsFromProfile() const;
   void OnInclude();
   void OnExclude();
   void RemoveMissingSymbolsFromIncludes(const std::vector<Diff>& symbol_diff);

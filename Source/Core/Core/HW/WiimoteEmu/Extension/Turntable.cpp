@@ -48,18 +48,20 @@ constexpr std::array<const char*, 6> turntable_button_names{{
 
 Turntable::Turntable() : Extension1stParty("Turntable", _trans("DJ Turntable"))
 {
+  using Translatability = ControllerEmu::Translatability;
+
   // buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
   for (auto& turntable_button_name : turntable_button_names)
   {
-    m_buttons->AddInput(ControllerEmu::Translate, turntable_button_name);
+    m_buttons->AddInput(Translatability::Translate, turntable_button_name);
   }
 
-  m_buttons->AddInput(ControllerEmu::DoNotTranslate, "-");
-  m_buttons->AddInput(ControllerEmu::DoNotTranslate, "+");
+  m_buttons->AddInput(Translatability::DoNotTranslate, "-");
+  m_buttons->AddInput(Translatability::DoNotTranslate, "+");
 
   // i18n: This button name refers to a gameplay element in DJ Hero
-  m_buttons->AddInput(ControllerEmu::Translate, _trans("Euphoria"));
+  m_buttons->AddInput(Translatability::Translate, _trans("Euphoria"));
 
   // turntables
   // i18n: "Table" refers to a turntable

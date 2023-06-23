@@ -38,9 +38,7 @@ static bool AttachContextToView(NSOpenGLContext* context, NSView* view, u32* wid
 
   (void)UpdateCachedDimensions(view, width, height);
 
-  [window makeFirstResponder:view];
   [context setView:view];
-  [window makeKeyAndOrderFront:nil];
 
   return true;
 }
@@ -101,9 +99,16 @@ bool GLContextAGL::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
   m_opengl_mode = Mode::OpenGL;
 
   __block bool success;
-  dispatch_sync(dispatch_get_main_queue(), ^{
+  if ([NSThread isMainThread])
+  {
     success = AttachContextToView(m_context, m_view, &m_backbuffer_width, &m_backbuffer_height);
-  });
+  }
+  else
+  {
+    dispatch_sync(dispatch_get_main_queue(), ^{
+      success = AttachContextToView(m_context, m_view, &m_backbuffer_width, &m_backbuffer_height);
+    });
+  }
 
   if (!success)
   {

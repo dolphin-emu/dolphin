@@ -4,11 +4,16 @@ package org.dolphinemu.dolphinemu.features.settings.ui
 
 import android.content.Context
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.text.TextUtils
 import androidx.appcompat.app.AppCompatActivity
 import androidx.collection.ArraySet
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.dolphinemu.dolphinemu.NativeLibrary
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.activities.UserDataActivity
@@ -25,6 +30,7 @@ import org.dolphinemu.dolphinemu.features.input.ui.ProfileDialog
 import org.dolphinemu.dolphinemu.features.input.ui.ProfileDialogPresenter
 import org.dolphinemu.dolphinemu.features.settings.model.*
 import org.dolphinemu.dolphinemu.features.settings.model.view.*
+import org.dolphinemu.dolphinemu.model.GpuDriverMetadata
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter
 import org.dolphinemu.dolphinemu.utils.*
 import java.util.*
@@ -45,6 +51,9 @@ class SettingsFragmentPresenter(
     private var controllerNumber = 0
     private var controllerType = 0
 
+    var gpuDriver: GpuDriverMetadata? = null
+    private val libNameSetting: StringSetting = StringSetting.GFX_DRIVER_LIB_NAME
+
     fun onCreate(menuTag: MenuTag, gameId: String?, extras: Bundle) {
         this.gameId = gameId
         this.menuTag = menuTag
@@ -52,10 +61,15 @@ class SettingsFragmentPresenter(
         if (menuTag.isGCPadMenu || menuTag.isWiimoteExtensionMenu) {
             controllerNumber = menuTag.subType
             controllerType = extras.getInt(ARG_CONTROLLER_TYPE)
-        } else if (menuTag.isWiimoteMenu) {
+        } else if (menuTag.isWiimoteMenu || menuTag.isWiimoteSubmenu) {
             controllerNumber = menuTag.subType
         } else if (menuTag.isSerialPort1Menu) {
             serialPort1Type = extras.getInt(ARG_SERIALPORT1_TYPE)
+        } else if (menuTag == MenuTag.GRAPHICS) {
+            this.gpuDriver =
+                GpuDriverHelper.getInstalledDriverMetadata() ?: GpuDriverHelper.getSystemDriverMetadata(
+                    context.applicationContext
+                )
         }
     }
 
@@ -115,6 +129,7 @@ class SettingsFragmentPresenter(
                 controllerNumber,
                 controllerType
             )
+
             MenuTag.WIIMOTE_1,
             MenuTag.WIIMOTE_2,
             MenuTag.WIIMOTE_3,
@@ -122,6 +137,7 @@ class SettingsFragmentPresenter(
                 sl,
                 controllerNumber
             )
+
             MenuTag.WIIMOTE_EXTENSION_1,
             MenuTag.WIIMOTE_EXTENSION_2,
             MenuTag.WIIMOTE_EXTENSION_3,
@@ -130,6 +146,7 @@ class SettingsFragmentPresenter(
                 controllerNumber,
                 controllerType
             )
+
             MenuTag.WIIMOTE_GENERAL_1,
             MenuTag.WIIMOTE_GENERAL_2,
             MenuTag.WIIMOTE_GENERAL_3,
@@ -137,6 +154,7 @@ class SettingsFragmentPresenter(
                 sl,
                 controllerNumber
             )
+
             MenuTag.WIIMOTE_MOTION_SIMULATION_1,
             MenuTag.WIIMOTE_MOTION_SIMULATION_2,
             MenuTag.WIIMOTE_MOTION_SIMULATION_3,
@@ -144,6 +162,7 @@ class SettingsFragmentPresenter(
                 sl,
                 controllerNumber
             )
+
             MenuTag.WIIMOTE_MOTION_INPUT_1,
             MenuTag.WIIMOTE_MOTION_INPUT_2,
             MenuTag.WIIMOTE_MOTION_INPUT_3,
@@ -151,6 +170,7 @@ class SettingsFragmentPresenter(
                 sl,
                 controllerNumber
             )
+
             else -> throw UnsupportedOperationException("Unimplemented menu")
         }
 
@@ -454,10 +474,12 @@ class SettingsFragmentPresenter(
                         BooleanSetting.MAIN_DSP_HLE.setBoolean(settings, true)
                         BooleanSetting.MAIN_DSP_JIT.setBoolean(settings, true)
                     }
+
                     DSP_LLE_RECOMPILER -> {
                         BooleanSetting.MAIN_DSP_HLE.setBoolean(settings, false)
                         BooleanSetting.MAIN_DSP_JIT.setBoolean(settings, true)
                     }
+
                     DSP_LLE_INTERPRETER -> {
                         BooleanSetting.MAIN_DSP_HLE.setBoolean(settings, false)
                         BooleanSetting.MAIN_DSP_JIT.setBoolean(settings, false)
@@ -834,6 +856,14 @@ class SettingsFragmentPresenter(
                 0
             )
         )
+        sl.add(
+            SwitchSetting(
+                context,
+                BooleanSetting.MAIN_EMULATE_INFINITY_BASE,
+                R.string.emulate_infinity_base,
+                0
+            )
+        )
     }
 
     private fun addAdvancedSettings(sl: ArrayList<SettingsItem>) {
@@ -856,10 +886,12 @@ class SettingsFragmentPresenter(
                         BooleanSetting.MAIN_SYNC_ON_SKIP_IDLE.setBoolean(settings, false)
                         BooleanSetting.MAIN_SYNC_GPU.setBoolean(settings, false)
                     }
+
                     SYNC_GPU_ON_IDLE_SKIP -> {
                         BooleanSetting.MAIN_SYNC_ON_SKIP_IDLE.setBoolean(settings, true)
                         BooleanSetting.MAIN_SYNC_GPU.setBoolean(settings, false)
                     }
+
                     SYNC_GPU_ALWAYS -> {
                         BooleanSetting.MAIN_SYNC_ON_SKIP_IDLE.setBoolean(settings, true)
                         BooleanSetting.MAIN_SYNC_GPU.setBoolean(settings, true)
@@ -893,10 +925,12 @@ class SettingsFragmentPresenter(
                 emuCoresEntries = R.array.emuCoresEntriesX86_64
                 emuCoresValues = R.array.emuCoresValuesX86_64
             }
+
             4 -> {
                 emuCoresEntries = R.array.emuCoresEntriesARM64
                 emuCoresValues = R.array.emuCoresValuesARM64
             }
+
             else -> {
                 emuCoresEntries = R.array.emuCoresEntriesGeneric
                 emuCoresValues = R.array.emuCoresValuesGeneric
@@ -1230,6 +1264,15 @@ class SettingsFragmentPresenter(
                 MenuTag.ADVANCED_GRAPHICS
             )
         )
+
+        if (GpuDriverHelper.supportsCustomDriverLoading() && this.gpuDriver != null) {
+            sl.add(
+                SubmenuSetting(
+                    context,
+                    R.string.gpu_driver_submenu, MenuTag.GPU_DRIVERS
+                )
+            )
+        }
     }
 
     private fun addEnhanceSettings(sl: ArrayList<SettingsItem>) {
@@ -2093,7 +2136,7 @@ class SettingsFragmentPresenter(
         profileString: String,
         controllerNumber: Int
     ) {
-        val profiles = ProfileDialogPresenter(menuTag).getProfileNames(false)
+        val profiles = ProfileDialogPresenter(menuTag!!).getProfileNames(false)
         val profileKey = profileString + "Profile" + (controllerNumber + 1)
         sl.add(
             StringSingleChoiceSetting(
@@ -2246,6 +2289,7 @@ class SettingsFragmentPresenter(
                     setting.uiSuffix
                 )
             )
+
             NumericSetting.TYPE_BOOLEAN -> sl.add(
                 SwitchSetting(
                     InputMappingBooleanSetting(setting),
@@ -2301,6 +2345,45 @@ class SettingsFragmentPresenter(
             0,
             { context.resources.getString(if (f.get()) R.string.wii_convert_success else R.string.wii_convert_failure) }
         )
+    }
+
+    fun installDriver(uri: Uri) {
+        val context = this.context.applicationContext
+        CoroutineScope(Dispatchers.IO).launch {
+            val stream = context.contentResolver.openInputStream(uri)
+            if (stream == null) {
+                GpuDriverHelper.uninstallDriver()
+                withContext(Dispatchers.Main) {
+                    fragmentView.onDriverInstallDone(GpuDriverInstallResult.FileNotFound)
+                }
+                return@launch
+            }
+
+            val result = GpuDriverHelper.installDriver(stream)
+            withContext(Dispatchers.Main) {
+                with(this@SettingsFragmentPresenter) {
+                    this.gpuDriver = GpuDriverHelper.getInstalledDriverMetadata()
+                        ?: GpuDriverHelper.getSystemDriverMetadata(context) ?: return@withContext
+                    this.libNameSetting.setString(this.settings!!, this.gpuDriver!!.libraryName)
+                }
+                fragmentView.onDriverInstallDone(result)
+            }
+        }
+    }
+
+    fun useSystemDriver() {
+        CoroutineScope(Dispatchers.IO).launch {
+            GpuDriverHelper.uninstallDriver()
+            withContext(Dispatchers.Main) {
+                with(this@SettingsFragmentPresenter) {
+                    this.gpuDriver =
+                        GpuDriverHelper.getInstalledDriverMetadata()
+                            ?: GpuDriverHelper.getSystemDriverMetadata(context.applicationContext)
+                    this.libNameSetting.setString(this.settings!!, "")
+                }
+                fragmentView.onDriverUninstallDone()
+            }
+        }
     }
 
     companion object {

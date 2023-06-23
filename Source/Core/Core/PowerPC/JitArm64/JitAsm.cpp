@@ -287,19 +287,18 @@ void JitArm64::GenerateFres()
   CMP(ARM64Reg::X2, 895);
   FixupBranch small_exponent = B(CCFlags::CC_LO);
 
-  MOVI2R(ARM64Reg::X4, 1148LL);
-  CMP(ARM64Reg::X2, ARM64Reg::X4);
+  CMP(ARM64Reg::X2, 1148);
   FixupBranch large_exponent = B(CCFlags::CC_HI);
 
   UBFX(ARM64Reg::X2, ARM64Reg::X1, 47, 5);  // Grab upper part of mantissa
   MOVP2R(ARM64Reg::X3, &Common::fres_expected);
   ADD(ARM64Reg::X2, ARM64Reg::X3, ARM64Reg::X2, ArithOption(ARM64Reg::X2, ShiftType::LSL, 3));
-  LDP(IndexType::Signed, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::X2, 0);
   UBFX(ARM64Reg::X1, ARM64Reg::X1, 37, 10);  // Grab lower part of mantissa
+  LDP(IndexType::Signed, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::X2, 0);
   MOVI2R(ARM64Reg::W4, 1);
-  AND(ARM64Reg::X0, ARM64Reg::X0, LogicalImm(Common::DOUBLE_SIGN | Common::DOUBLE_EXP, 64));
   MADD(ARM64Reg::W1, ARM64Reg::W3, ARM64Reg::W1, ARM64Reg::W4);
   SUB(ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W1, ArithOption(ARM64Reg::W1, ShiftType::LSR, 1));
+  AND(ARM64Reg::X0, ARM64Reg::X0, LogicalImm(Common::DOUBLE_SIGN | Common::DOUBLE_EXP, 64));
   ORR(ARM64Reg::X0, ARM64Reg::X0, ARM64Reg::X1, ArithOption(ARM64Reg::X1, ShiftType::LSL, 29));
   RET();
 
@@ -320,8 +319,7 @@ void JitArm64::GenerateFres()
   RET();
 
   SetJumpTarget(large_exponent);
-  MOVI2R(ARM64Reg::X4, 0x7FF);
-  CMP(ARM64Reg::X2, ARM64Reg::X4);
+  CMP(ARM64Reg::X2, 0x7FF);
   CSEL(ARM64Reg::X0, ARM64Reg::X0, ARM64Reg::X3, CCFlags::CC_EQ);
   RET();
 }

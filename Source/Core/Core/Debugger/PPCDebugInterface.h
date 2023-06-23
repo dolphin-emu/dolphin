@@ -9,7 +9,7 @@
 
 #include "Common/Debug/MemoryPatches.h"
 #include "Common/Debug/Watches.h"
-#include "Common/DebugInterface.h"
+#include "Core/Debugger/DebugInterface.h"
 #include "Core/NetworkCaptureLogger.h"
 
 namespace Core
@@ -33,7 +33,7 @@ private:
 
 // wrapper between disasm control and Dolphin debugger
 
-class PPCDebugInterface final : public Common::DebugInterface
+class PPCDebugInterface final : public Core::DebugInterface
 {
 public:
   explicit PPCDebugInterface(Core::System& system);

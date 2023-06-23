@@ -63,7 +63,7 @@ std::optional<std::string> VideoBackend::GetWarningMessage() const
   return result;
 }
 
-void VideoBackend::InitBackendInfo()
+void VideoBackend::InitBackendInfo(const WindowSystemInfo& wsi)
 {
   if (!D3DCommon::LoadLibraries())
     return;
@@ -114,6 +114,7 @@ void VideoBackend::FillBackendInfo()
   g_Config.backend_info.bSupportsSettingObjectNames = true;
   g_Config.backend_info.bSupportsPartialMultisampleResolve = true;
   g_Config.backend_info.bSupportsDynamicVertexLoader = false;
+  g_Config.backend_info.bSupportsHDROutput = true;
 
   g_Config.backend_info.Adapters = D3DCommon::GetAdapterNames();
   g_Config.backend_info.AAModes = D3D::GetAAModes(g_Config.iAdapter);

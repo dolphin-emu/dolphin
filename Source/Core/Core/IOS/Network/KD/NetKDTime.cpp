@@ -91,19 +91,29 @@ u64 NetKDTimeDevice::GetAdjustedUTC() const
 {
   using namespace ExpansionInterface;
 
+  time_t dst_diff{};
   const time_t current_time = CEXIIPL::GetEmulatedTime(GetSystem(), CEXIIPL::UNIX_EPOCH);
   tm* const gm_time = gmtime(&current_time);
+
   const u32 emulated_time = mktime(gm_time);
-  return u64(s64(emulated_time) + utcdiff);
+  if (gm_time->tm_isdst == 1)
+    dst_diff = 3600;
+
+  return u64(s64(emulated_time) + utcdiff - dst_diff);
 }
 
 void NetKDTimeDevice::SetAdjustedUTC(u64 wii_utc)
 {
   using namespace ExpansionInterface;
 
+  time_t dst_diff{};
   const time_t current_time = CEXIIPL::GetEmulatedTime(GetSystem(), CEXIIPL::UNIX_EPOCH);
   tm* const gm_time = gmtime(&current_time);
+
   const u32 emulated_time = mktime(gm_time);
-  utcdiff = s64(emulated_time - wii_utc);
+  if (gm_time->tm_isdst == 1)
+    dst_diff = 3600;
+
+  utcdiff = s64(emulated_time - wii_utc - dst_diff);
 }
 }  // namespace IOS::HLE

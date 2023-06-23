@@ -72,11 +72,11 @@ static VkPipelineMultisampleStateCreateInfo GetVulkanMultisampleState(const Fram
       0,        // VkPipelineMultisampleStateCreateFlags    flags
       static_cast<VkSampleCountFlagBits>(
           state.samples.Value()),  // VkSampleCountFlagBits                    rasterizationSamples
-      state.per_sample_shading,    // VkBool32                                 sampleShadingEnable
-      1.0f,                        // float                                    minSampleShading
-      nullptr,                     // const VkSampleMask*                      pSampleMask;
-      VK_FALSE,                    // VkBool32                                 alphaToCoverageEnable
-      VK_FALSE                     // VkBool32                                 alphaToOneEnable
+      static_cast<bool>(state.per_sample_shading),  // VkBool32 sampleShadingEnable
+      1.0f,      // float                                    minSampleShading
+      nullptr,   // const VkSampleMask*                      pSampleMask;
+      VK_FALSE,  // VkBool32                                 alphaToCoverageEnable
+      VK_FALSE   // VkBool32                                 alphaToOneEnable
   };
 }
 
@@ -243,7 +243,14 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
   VkRenderPass render_pass = g_object_cache->GetRenderPass(
       VKTexture::GetVkFormatForHostTextureFormat(config.framebuffer_state.color_texture_format),
       VKTexture::GetVkFormatForHostTextureFormat(config.framebuffer_state.depth_texture_format),
-      config.framebuffer_state.samples, VK_ATTACHMENT_LOAD_OP_LOAD);
+      config.framebuffer_state.samples, VK_ATTACHMENT_LOAD_OP_LOAD,
+      config.framebuffer_state.additional_color_attachment_count);
+
+  if (render_pass == VK_NULL_HANDLE)
+  {
+    PanicAlertFmt("Failed to get render pass");
+    return nullptr;
+  }
 
   // Get pipeline layout.
   VkPipelineLayout pipeline_layout;
@@ -343,8 +350,18 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
       GetVulkanDepthStencilState(config.depth_state);
   VkPipelineColorBlendAttachmentState blend_attachment_state =
       GetVulkanAttachmentBlendState(config.blending_state, config.usage);
+
+  std::vector<VkPipelineColorBlendAttachmentState> blend_attachment_states;
+  blend_attachment_states.push_back(blend_attachment_state);
+  // Right now all our attachments have the same state
+  for (u8 i = 0; i < static_cast<u8>(config.framebuffer_state.additional_color_attachment_count);
+       i++)
+  {
+    blend_attachment_states.push_back(blend_attachment_state);
+  }
   VkPipelineColorBlendStateCreateInfo blend_state =
-      GetVulkanColorBlendState(config.blending_state, &blend_attachment_state, 1);
+      GetVulkanColorBlendState(config.blending_state, blend_attachment_states.data(),
+                               static_cast<uint32_t>(blend_attachment_states.size()));
 
   // This viewport isn't used, but needs to be specified anyway.
   static const VkViewport viewport = {0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f};

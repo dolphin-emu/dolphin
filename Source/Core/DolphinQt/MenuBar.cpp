@@ -21,6 +21,7 @@
 
 #include "Core/Boot/Boot.h"
 #include "Core/CommonTitles.h"
+#include "Core/Config/AchievementSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -231,6 +232,19 @@ void MenuBar::AddToolsMenu()
   tools_menu->addMenu(usb_device_menu);
 
   tools_menu->addSeparator();
+
+  tools_menu->addAction(tr("Start &NetPlay..."), this, &MenuBar::StartNetPlay);
+
+  tools_menu->addSeparator();
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+  if (Config::Get(Config::RA_ENABLED))
+  {
+    tools_menu->addAction(tr("Achievements"), this, [this] { emit ShowAchievementsWindow(); });
+
+    tools_menu->addSeparator();
+  }
+#endif  // USE_RETRO_ACHIEVEMENTS
 
   QMenu* gc_ipl = tools_menu->addMenu(tr("Load GameCube Main Menu"));
 

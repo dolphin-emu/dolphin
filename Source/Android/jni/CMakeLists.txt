@@ -10,6 +10,9 @@ add_library(main SHARED
   GameList/GameFile.cpp
   GameList/GameFile.h
   GameList/GameFileCache.cpp
+  Host.cpp
+  Host.h
+  InfinityConfig.cpp
   Input/Control.cpp
   Input/Control.h
   Input/ControlGroup.cpp
@@ -29,6 +32,7 @@ add_library(main SHARED
   RiivolutionPatches.cpp
   SkylanderConfig.cpp
   WiiUtils.cpp
+  GpuDriver.cpp
 )
 
 target_link_libraries(main
@@ -47,6 +51,12 @@ PRIVATE
   "-Wl,--no-warn-mismatch"
   "-Wl,--whole-archive"
   "-Wl,--no-whole-archive"
+)
+
+target_include_directories(main
+PRIVATE
+    ${CMAKE_SOURCE_DIR}/Externals/libadrenotools/include
+    ${CMAKE_SOURCE_DIR}/Externals/VulkanMemoryAllocator/include
 )
 
 file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/Source/Android/app/src/main/assets/)

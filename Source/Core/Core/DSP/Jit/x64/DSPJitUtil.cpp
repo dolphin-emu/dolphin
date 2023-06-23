@@ -151,7 +151,7 @@ void DSPEmitter::dsp_conditional_extend_accum(int reg)
     const OpArg sr_reg = m_gpr.GetReg(DSP_REG_SR);
     DSPJitRegCache c(m_gpr);
     TEST(16, sr_reg, Imm16(SR_40_MODE_BIT));
-    FixupBranch not_40bit = J_CC(CC_Z, true);
+    FixupBranch not_40bit = J_CC(CC_Z, Jump::Near);
     // if (g_dsp.r[DSP_REG_SR] & SR_40_MODE_BIT)
     //{
     // Sign extend into whole accum.
@@ -180,7 +180,7 @@ void DSPEmitter::dsp_conditional_extend_accum_imm(int reg, u16 val)
     const OpArg sr_reg = m_gpr.GetReg(DSP_REG_SR);
     DSPJitRegCache c(m_gpr);
     TEST(16, sr_reg, Imm16(SR_40_MODE_BIT));
-    FixupBranch not_40bit = J_CC(CC_Z, true);
+    FixupBranch not_40bit = J_CC(CC_Z, Jump::Near);
     // if (g_dsp.r[DSP_REG_SR] & SR_40_MODE_BIT)
     //{
     // Sign extend into whole accum.
@@ -227,7 +227,7 @@ void DSPEmitter::dsp_op_read_reg(int reg, Gen::X64Reg host_dreg, RegisterExtensi
 
     DSPJitRegCache c(m_gpr);
     TEST(16, sr_reg, Imm16(SR_40_MODE_BIT));
-    FixupBranch not_40bit = J_CC(CC_Z, true);
+    FixupBranch not_40bit = J_CC(CC_Z, Jump::Near);
 
     MOVSX(64, 32, host_dreg, acc_reg);
     CMP(64, R(host_dreg), acc_reg);
@@ -491,7 +491,7 @@ void DSPEmitter::dmem_write(X64Reg value)
   MOV(64, R(ECX), ImmPtr(m_dsp_core.DSPState().dram));
   MOV(16, MComplex(ECX, EAX, SCALE_2, 0), R(value));
 
-  FixupBranch end = J(true);
+  FixupBranch end = J(Jump::Near);
   //	else if (saddr == 0xf)
   SetJumpTarget(ifx);
   DSPJitRegCache c(m_gpr);
@@ -566,7 +566,7 @@ void DSPEmitter::dmem_read(X64Reg address)
   MOV(64, R(ECX), ImmPtr(m_dsp_core.DSPState().dram));
   MOV(16, R(EAX), MComplex(ECX, address, SCALE_2, 0));
 
-  FixupBranch end = J(true);
+  FixupBranch end = J(Jump::Near);
   SetJumpTarget(dram);
   //	else if (saddr == 0x1)
   CMP(16, R(address), Imm16(0x1fff));
@@ -576,7 +576,7 @@ void DSPEmitter::dmem_read(X64Reg address)
   MOV(64, R(ECX), ImmPtr(m_dsp_core.DSPState().coef));
   MOV(16, R(EAX), MComplex(ECX, address, SCALE_2, 0));
 
-  FixupBranch end2 = J(true);
+  FixupBranch end2 = J(Jump::Near);
   SetJumpTarget(ifx);
   //	else if (saddr == 0xf)
   //		return gdsp_ifx_read(addr);

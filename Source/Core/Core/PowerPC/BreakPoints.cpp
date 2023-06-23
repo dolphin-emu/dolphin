@@ -10,9 +10,9 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/DebugInterface.h"
 #include "Common/Logging/Log.h"
 #include "Core/Core.h"
+#include "Core/Debugger/DebugInterface.h"
 #include "Core/PowerPC/Expression.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/MMU.h"
@@ -365,7 +365,7 @@ bool MemChecks::OverlapsMemcheck(u32 address, u32 length) const
   });
 }
 
-bool TMemCheck::Action(Core::System& system, Common::DebugInterface* debug_interface, u64 value,
+bool TMemCheck::Action(Core::System& system, Core::DebugInterface* debug_interface, u64 value,
                        u32 addr, bool write, size_t size, u32 pc)
 {
   if (!is_enabled)

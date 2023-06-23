@@ -36,13 +36,13 @@ add_library(common
   Debug/Threads.h
   Debug/Watches.cpp
   Debug/Watches.h
-  DebugInterface.h
   DynamicLibrary.cpp
   DynamicLibrary.h
   ENet.cpp
   ENet.h
   EnumFormatter.h
   EnumMap.h
+  EnumUtils.h
   Event.h
   FatFsUtil.cpp
   FatFsUtil.h

@@ -45,7 +45,7 @@ public:
   void SetValue(int progress) { emit SetValueSignal(progress); }
 
   // Can be called from any thread
-  bool WasCanceled() { return m_was_cancelled.IsSet(); }
+  bool WasCanceled() const { return m_was_cancelled.IsSet(); }
 
 signals:
   void CancelSignal();
@@ -126,6 +126,6 @@ private:
 
   QProgressDialog m_dialog;
   Common::Flag m_was_cancelled;
-  int m_last_received_progress;
+  int m_last_received_progress = 0;
   bool m_is_setting_value = false;
 };

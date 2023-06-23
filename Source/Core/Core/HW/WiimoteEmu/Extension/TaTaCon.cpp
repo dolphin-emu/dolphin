@@ -39,15 +39,17 @@ constexpr std::array<const char*, 2> position_names{{
 // i18n: The drum controller used in "Taiko no Tatsujin" games. Also known as a "TaTaCon".
 TaTaCon::TaTaCon() : Extension3rdParty("TaTaCon", _trans("Taiko Drum"))
 {
+  using Translatability = ControllerEmu::Translatability;
+
   // i18n: Refers to the "center" of a TaTaCon drum.
   groups.emplace_back(m_center = new ControllerEmu::Buttons(_trans("Center")));
   for (auto& name : position_names)
-    m_center->AddInput(ControllerEmu::Translate, name);
+    m_center->AddInput(Translatability::Translate, name);
 
   // i18n: Refers to the "rim" of a TaTaCon drum.
   groups.emplace_back(m_rim = new ControllerEmu::Buttons(_trans("Rim")));
   for (auto& name : position_names)
-    m_rim->AddInput(ControllerEmu::Translate, name);
+    m_rim->AddInput(Translatability::Translate, name);
 }
 
 void TaTaCon::BuildDesiredExtensionState(DesiredExtensionState* target_state)

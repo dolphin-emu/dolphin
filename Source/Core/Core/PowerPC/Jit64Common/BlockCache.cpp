@@ -35,7 +35,7 @@ void JitBlockCache::WriteLinkBlock(const JitBlock::LinkData& source, const JitBl
     else
     {
       Gen::XEmitter emit(location, location + 5);
-      emit.JMP(address, true);
+      emit.JMP(address, Gen::XEmitter::Jump::Near);
     }
   }
 }

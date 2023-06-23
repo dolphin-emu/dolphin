@@ -32,6 +32,10 @@ jclass GetLinkedHashMapClass();
 jmethodID GetLinkedHashMapInit();
 jmethodID GetLinkedHashMapPut();
 
+jclass GetHashMapClass();
+jmethodID GetHashMapInit();
+jmethodID GetHashMapPut();
+
 jclass GetIniFileClass();
 jfieldID GetIniFilePointer();
 jclass GetIniFileSectionClass();

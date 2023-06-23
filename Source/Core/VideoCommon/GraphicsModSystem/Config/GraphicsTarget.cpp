@@ -187,6 +187,16 @@ std::optional<GraphicsTargetConfig> DeserializeTargetFromConfig(const picojson::
     target.m_texture_info_string = texture_info.value();
     return target;
   }
+  else if (type == "create_texture")
+  {
+    std::optional<std::string> texture_info = ExtractTextureFilenameForConfig(obj);
+    if (!texture_info.has_value())
+      return std::nullopt;
+
+    CreateTextureTarget target;
+    target.m_texture_info_string = texture_info.value();
+    return target;
+  }
   else if (type == "efb")
   {
     return DeserializeFBTargetFromConfig<EFBTarget>(obj, EFB_DUMP_PREFIX);

@@ -191,7 +191,7 @@ void Metal::StagingTexture::Flush()
 
 Metal::Framebuffer::Framebuffer(AbstractTexture* color, AbstractTexture* depth,  //
                                 u32 width, u32 height, u32 layers, u32 samples)
-    : AbstractFramebuffer(color, depth,
+    : AbstractFramebuffer(color, depth, {},
                           color ? color->GetFormat() : AbstractTextureFormat::Undefined,  //
                           depth ? depth->GetFormat() : AbstractTextureFormat::Undefined,  //
                           width, height, layers, samples)

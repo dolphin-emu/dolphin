@@ -21,15 +21,15 @@ namespace Common
 class BlockingLoop
 {
 public:
-  enum StopMode
+  enum class StopMode
   {
-    kNonBlock,
-    kBlock,
-    kBlockAndGiveUp,
+    NonBlock,
+    Block,
+    BlockAndGiveUp,
   };
 
   BlockingLoop() { m_stopped.Set(); }
-  ~BlockingLoop() { Stop(kBlockAndGiveUp); }
+  ~BlockingLoop() { Stop(StopMode::BlockAndGiveUp); }
   // Triggers to rerun the payload of the Run() function at least once again.
   // This function will never block and is designed to finish as fast as possible.
   void Wakeup()
@@ -200,7 +200,7 @@ public:
   // Quits the main loop.
   // By default, it will wait until the main loop quits.
   // Be careful to not use the blocking way within the payload of the Run() method.
-  void Stop(StopMode mode = kBlock)
+  void Stop(StopMode mode = StopMode::Block)
   {
     if (m_stopped.IsSet())
       return;
@@ -212,12 +212,12 @@ public:
 
     switch (mode)
     {
-    case kNonBlock:
+    case StopMode::NonBlock:
       break;
-    case kBlock:
+    case StopMode::Block:
       Wait();
       break;
-    case kBlockAndGiveUp:
+    case StopMode::BlockAndGiveUp:
       WaitYield(std::chrono::milliseconds(100), [&] {
         // If timed out, assume no one will come along to call Run, so force a break
         m_stopped.Set();

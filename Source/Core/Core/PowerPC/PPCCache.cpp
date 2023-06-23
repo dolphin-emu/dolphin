@@ -144,7 +144,7 @@ void Cache::Store(u32 addr)
     return;
 
   if (valid[set] & (1U << way) && modified[set] & (1U << way))
-    memory.CopyToEmu((addr & ~0x1f), reinterpret_cast<u8*>(data[set][way].data()), 32);
+    memory.CopyToEmu((addr & ~0x1f), data[set][way].data(), 32);
   modified[set] &= ~(1U << way);
 }
 
@@ -158,7 +158,7 @@ void Cache::FlushAll()
     for (size_t way = 0; way < CACHE_WAYS; way++)
     {
       if (valid[set] & (1U << way) && modified[set] & (1U << way))
-        memory.CopyToEmu(addrs[set][way], reinterpret_cast<u8*>(data[set][way].data()), 32);
+        memory.CopyToEmu(addrs[set][way], data[set][way].data(), 32);
     }
   }
 
@@ -202,7 +202,7 @@ void Cache::Flush(u32 addr)
   if (valid[set] & (1U << way))
   {
     if (modified[set] & (1U << way))
-      memory.CopyToEmu((addr & ~0x1f), reinterpret_cast<u8*>(data[set][way].data()), 32);
+      memory.CopyToEmu((addr & ~0x1f), data[set][way].data(), 32);
 
     if (addrs[set][way] & CACHE_VMEM_BIT)
       lookup_table_vmem[(addrs[set][way] & memory.GetFakeVMemMask()) >> 5] = 0xff;
@@ -256,7 +256,7 @@ std::pair<u32, u32> Cache::GetCache(u32 addr, bool locked)
     {
       // store the cache back to main memory
       if (modified[set] & (1 << way))
-        memory.CopyToEmu(addrs[set][way], reinterpret_cast<u8*>(data[set][way].data()), 32);
+        memory.CopyToEmu(addrs[set][way], data[set][way].data(), 32);
 
       if (addrs[set][way] & CACHE_VMEM_BIT)
         lookup_table_vmem[(addrs[set][way] & memory.GetFakeVMemMask()) >> 5] = 0xff;
@@ -267,7 +267,7 @@ std::pair<u32, u32> Cache::GetCache(u32 addr, bool locked)
     }
 
     // load
-    memory.CopyFromEmu(reinterpret_cast<u8*>(data[set][way].data()), (addr & ~0x1f), 32);
+    memory.CopyFromEmu(data[set][way].data(), (addr & ~0x1f), 32);
 
     if (addr & CACHE_VMEM_BIT)
       lookup_table_vmem[(addr & memory.GetFakeVMemMask()) >> 5] = way;

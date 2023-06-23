@@ -372,7 +372,7 @@ else()
   check_and_add_flag(VISIBILITY_INLINES_HIDDEN -fvisibility-inlines-hidden)
   check_and_add_flag(VISIBILITY_HIDDEN -fvisibility=hidden)
 
-  check_and_add_flag(FOMIT_FRAME_POINTER -fomit-frame-pointer RELEASE_ONLY)
+  check_and_add_flag(FOMIT_FRAME_POINTER -fomit-frame-pointer NO_DEBINFO_ONLY)
 
   dolphin_compile_definitions(_DEBUG DEBUG_ONLY)
   check_and_add_flag(GGDB -ggdb DEBUG_ONLY)
@@ -728,6 +728,11 @@ if(ENABLE_VULKAN)
   if(APPLE AND USE_BUNDLED_MOLTENVK)
     add_subdirectory(Externals/MoltenVK)
   endif()
+
+
+  if (ANDROID AND _M_ARM_64)
+    add_subdirectory(Externals/libadrenotools)
+  endif()
 endif()
 
 if(NOT WIN32 OR (NOT (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")))
@@ -1027,10 +1032,16 @@ include_directories("${PROJECT_BINARY_DIR}/Source/Core")
 # Unit testing.
 #
 if(ENABLE_TESTS)
-  message(STATUS "Using static gtest from Externals")
+  find_package(GTest)
+  if (GTEST_FOUND)
+    message(STATUS "Using the system gtest")
+    include_directories(${GTEST_INCLUDE_DIRS})
+  else()
+    message(STATUS "Using static gtest from Externals")
+    add_subdirectory(Externals/gtest EXCLUDE_FROM_ALL)
+  endif()
   # Force gtest to link the C runtime dynamically on Windows in order to avoid runtime mismatches.
   set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-  add_subdirectory(Externals/gtest EXCLUDE_FROM_ALL)
 else()
   message(STATUS "Unit tests are disabled")
 endif()

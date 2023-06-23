@@ -269,7 +269,6 @@ u32 PostProcessingConfigWindow::ConfigGroup::AddInteger(PostProcessingConfigWind
 
   for (size_t i = 0; i < vector_size; ++i)
   {
-    const int current_value = m_config_option->m_integer_values[i];
     const double range =
         m_config_option->m_integer_max_values[i] - m_config_option->m_integer_min_values[i];
     // "How many steps we have is the range divided by the step interval configured.
@@ -278,6 +277,9 @@ u32 PostProcessingConfigWindow::ConfigGroup::AddInteger(PostProcessingConfigWind
     //  Round up so if it is outside our range, then set it to the minimum or maximum"
     const int steps =
         std::ceil(range / static_cast<double>(m_config_option->m_integer_step_values[i]));
+    const int current_value = std::round(
+        (m_config_option->m_integer_values[i] - m_config_option->m_integer_min_values[i]) /
+        static_cast<double>(m_config_option->m_integer_max_values[i]));
 
     auto* const slider = new QSlider(Qt::Orientation::Horizontal);
     slider->setMinimum(0);

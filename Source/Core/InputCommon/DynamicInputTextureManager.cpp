@@ -42,13 +42,9 @@ void DynamicInputTextureManager::Load()
 void DynamicInputTextureManager::GenerateTextures(const Common::IniFile& file,
                                                   const std::vector<std::string>& controller_names)
 {
-  bool any_dirty = false;
   for (const auto& configuration : m_configuration)
   {
-    any_dirty |= configuration.GenerateTextures(file, controller_names);
+    (void)configuration.GenerateTextures(file, controller_names);
   }
-
-  if (any_dirty && g_texture_cache && Core::GetState() != Core::State::Starting)
-    g_texture_cache->ForceReloadTextures();
 }
 }  // namespace InputCommon

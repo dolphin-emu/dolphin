@@ -292,7 +292,7 @@ TEST_F(x64EmitterTest, JMP)
                     "jmp .-8");
 
   emitter->NOP(6);
-  emitter->JMP(code_buffer, true);
+  emitter->JMP(code_buffer, XEmitter::Jump::Near);
   ExpectDisassembly("multibyte nop "
                     "jmp .-11");
 }
@@ -380,10 +380,10 @@ BITSEARCH_TEST(TZCNT);
 
 TEST_F(x64EmitterTest, PREFETCH)
 {
-  emitter->PREFETCH(XEmitter::PF_NTA, MatR(R12));
-  emitter->PREFETCH(XEmitter::PF_T0, MatR(R12));
-  emitter->PREFETCH(XEmitter::PF_T1, MatR(R12));
-  emitter->PREFETCH(XEmitter::PF_T2, MatR(R12));
+  emitter->PREFETCH(XEmitter::PrefetchLevel::NTA, MatR(R12));
+  emitter->PREFETCH(XEmitter::PrefetchLevel::T0, MatR(R12));
+  emitter->PREFETCH(XEmitter::PrefetchLevel::T1, MatR(R12));
+  emitter->PREFETCH(XEmitter::PrefetchLevel::T2, MatR(R12));
 
   ExpectDisassembly("prefetchnta byte ptr ds:[r12] "
                     "prefetcht0 byte ptr ds:[r12] "

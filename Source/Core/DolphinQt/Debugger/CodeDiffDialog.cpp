@@ -279,7 +279,7 @@ void CodeDiffDialog::OnExclude()
   }
 }
 
-std::vector<Diff> CodeDiffDialog::CalculateSymbolsFromProfile()
+std::vector<Diff> CodeDiffDialog::CalculateSymbolsFromProfile() const
 {
   Profiler::ProfileStats prof_stats;
   auto& blockstats = prof_stats.block_stats;
@@ -288,23 +288,23 @@ std::vector<Diff> CodeDiffDialog::CalculateSymbolsFromProfile()
   current.reserve(20000);
 
   // Convert blockstats to smaller struct Diff. Exclude repeat functions via symbols.
-  for (auto& iter : blockstats)
+  for (const auto& iter : blockstats)
   {
-    Diff tmp_diff;
     std::string symbol = g_symbolDB.GetDescription(iter.addr);
     if (!std::any_of(current.begin(), current.end(),
-                     [&symbol](Diff& v) { return v.symbol == symbol; }))
+                     [&symbol](const Diff& v) { return v.symbol == symbol; }))
     {
-      tmp_diff.symbol = symbol;
-      tmp_diff.addr = iter.addr;
-      tmp_diff.hits = iter.run_count;
-      tmp_diff.total_hits = iter.run_count;
-      current.push_back(tmp_diff);
+      current.push_back(Diff{
+          .addr = iter.addr,
+          .symbol = std::move(symbol),
+          .hits = static_cast<u32>(iter.run_count),
+          .total_hits = static_cast<u32>(iter.run_count),
+      });
     }
   }
 
-  sort(current.begin(), current.end(),
-       [](const Diff& v1, const Diff& v2) { return (v1.symbol < v2.symbol); });
+  std::sort(current.begin(), current.end(),
+            [](const Diff& v1, const Diff& v2) { return (v1.symbol < v2.symbol); });
 
   return current;
 }
@@ -361,7 +361,7 @@ void CodeDiffDialog::Update(bool include)
     OnExclude();
   }
 
-  const auto create_item = [](const QString string = {}, const u32 address = 0x00000000) {
+  const auto create_item = [](const QString& string = {}, const u32 address = 0x00000000) {
     QTableWidgetItem* item = new QTableWidgetItem(string);
     item->setData(Qt::UserRole, address);
     item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);

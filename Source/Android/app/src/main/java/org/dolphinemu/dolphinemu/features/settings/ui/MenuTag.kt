@@ -49,7 +49,8 @@ enum class MenuTag {
     WIIMOTE_MOTION_INPUT_1("wiimote_motion_input", 0),
     WIIMOTE_MOTION_INPUT_2("wiimote_motion_input", 1),
     WIIMOTE_MOTION_INPUT_3("wiimote_motion_input", 2),
-    WIIMOTE_MOTION_INPUT_4("wiimote_motion_input", 3);
+    WIIMOTE_MOTION_INPUT_4("wiimote_motion_input", 3),
+    GPU_DRIVERS("gpu_drivers");
 
     var tag: String
         private set
@@ -84,6 +85,14 @@ enum class MenuTag {
 
     val isWiimoteMenu: Boolean
         get() = this == WIIMOTE_1 || this == WIIMOTE_2 || this == WIIMOTE_3 || this == WIIMOTE_4
+
+    val isWiimoteSubmenu: Boolean
+        get() = this == WIIMOTE_GENERAL_1 || this == WIIMOTE_GENERAL_2 ||
+                this == WIIMOTE_GENERAL_3 || this == WIIMOTE_GENERAL_4 ||
+                this == WIIMOTE_MOTION_SIMULATION_1 || this == WIIMOTE_MOTION_SIMULATION_2 ||
+                this == WIIMOTE_MOTION_SIMULATION_3 || this == WIIMOTE_MOTION_SIMULATION_4 ||
+                this == WIIMOTE_MOTION_INPUT_1 || this == WIIMOTE_MOTION_INPUT_2 ||
+                this == WIIMOTE_MOTION_INPUT_3 || this == WIIMOTE_MOTION_INPUT_4
 
     val isWiimoteExtensionMenu: Boolean
         get() = this == WIIMOTE_EXTENSION_1 || this == WIIMOTE_EXTENSION_2 || this == WIIMOTE_EXTENSION_3 || this == WIIMOTE_EXTENSION_4

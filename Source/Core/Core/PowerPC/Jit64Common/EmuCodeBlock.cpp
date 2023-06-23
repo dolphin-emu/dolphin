@@ -72,7 +72,7 @@ void EmuCodeBlock::MemoryExceptionCheck()
   if (m_jit.jo.memcheck && !js.fastmemLoadStore && !js.fixupExceptionHandler)
   {
     TEST(32, PPCSTATE(Exceptions), Gen::Imm32(EXCEPTION_DSI));
-    js.exceptionHandler = J_CC(Gen::CC_NZ, true);
+    js.exceptionHandler = J_CC(Gen::CC_NZ, Jump::Near);
     js.fixupExceptionHandler = true;
   }
 }
@@ -99,7 +99,7 @@ FixupBranch EmuCodeBlock::BATAddressLookup(X64Reg addr, X64Reg tmp, const void* 
   MOV(32, R(addr), MComplex(tmp, addr, SCALE_4, 0));
   BT(32, R(addr), Imm8(MathUtil::IntLog2(PowerPC::BAT_MAPPED_BIT)));
 
-  return J_CC(CC_NC, m_far_code.Enabled());
+  return J_CC(CC_NC, m_far_code.Enabled() ? Jump::Near : Jump::Short);
 }
 
 FixupBranch EmuCodeBlock::CheckIfSafeAddress(const OpArg& reg_value, X64Reg reg_addr,
@@ -128,7 +128,7 @@ FixupBranch EmuCodeBlock::CheckIfSafeAddress(const OpArg& reg_value, X64Reg reg_
   if (registers_in_use[RSCRATCH])
     POP(RSCRATCH);
 
-  return J_CC(CC_Z, m_far_code.Enabled());
+  return J_CC(CC_Z, m_far_code.Enabled() ? Jump::Near : Jump::Short);
 }
 
 void EmuCodeBlock::UnsafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int accessSize, s32 offset,
@@ -380,7 +380,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
     if (m_far_code.Enabled())
       SwitchToFarCode();
     else
-      exit = J(true);
+      exit = J(Jump::Near);
     SetJumpTarget(slow);
   }
 
@@ -425,7 +425,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
   {
     if (m_far_code.Enabled())
     {
-      exit = J(true);
+      exit = J(Jump::Near);
       SwitchToNearCode();
     }
     SetJumpTarget(exit);
@@ -549,7 +549,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
     if (m_far_code.Enabled())
       SwitchToFarCode();
     else
-      exit = J(true);
+      exit = J(Jump::Near);
     SetJumpTarget(slow);
   }
 
@@ -601,7 +601,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
   {
     if (m_far_code.Enabled())
     {
-      exit = J(true);
+      exit = J(Jump::Near);
       SwitchToNearCode();
     }
     SetJumpTarget(exit);
@@ -866,14 +866,14 @@ void EmuCodeBlock::ConvertSingleToDouble(X64Reg dst, X64Reg src, bool src_is_gpr
 
   UCOMISS(dst, R(dst));
   CVTSS2SD(dst, R(dst));
-  FixupBranch nanConversion = J_CC(CC_P, true);
+  FixupBranch nanConversion = J_CC(CC_P, Jump::Near);
 
   SwitchToFarCode();
   SetJumpTarget(nanConversion);
   TEST(32, R(gprsrc), Imm32(0x00400000));
-  FixupBranch continue1 = J_CC(CC_NZ, true);
+  FixupBranch continue1 = J_CC(CC_NZ, Jump::Near);
   ANDPD(dst, MConst(double_qnan_bit));
-  FixupBranch continue2 = J(true);
+  FixupBranch continue2 = J(Jump::Near);
   SwitchToNearCode();
 
   SetJumpTarget(continue1);

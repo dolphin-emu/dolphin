@@ -338,7 +338,7 @@ void Jit64::dcbx(UGeckoInstruction inst)
   MOV(32, R(tmp), R(effective_address));
   SHR(32, R(tmp), Imm8(5));
   BT(32, R(addr), R(tmp));
-  FixupBranch invalidate_needed = J_CC(CC_C, true);
+  FixupBranch invalidate_needed = J_CC(CC_C, Jump::Near);
 
   if (make_loop)
   {
@@ -372,7 +372,7 @@ void Jit64::dcbx(UGeckoInstruction inst)
   ABI_PopRegistersAndAdjustStack(registersInUse, 0);
   asm_routines.ResetStack(*this);
 
-  FixupBranch done = J(true);
+  FixupBranch done = J(Jump::Near);
   SwitchToNearCode();
   SetJumpTarget(done);
 }
@@ -432,7 +432,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
     SHR(32, R(RSCRATCH), Imm8(PowerPC::BAT_INDEX_SHIFT));
     TEST(32, MComplex(RSCRATCH2, RSCRATCH, SCALE_4, 0), Imm32(PowerPC::BAT_PHYSICAL_BIT));
     POP(RSCRATCH);
-    FixupBranch slow = J_CC(CC_Z, true);
+    FixupBranch slow = J_CC(CC_Z, Jump::Near);
 
     // Fast path: compute full address, then zero out 32 bytes of memory.
     XORPS(XMM0, R(XMM0));
@@ -451,7 +451,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
 
   if (emit_fast_path)
   {
-    FixupBranch end_far_code = J(true);
+    FixupBranch end_far_code = J(Jump::Near);
     SwitchToNearCode();
     SetJumpTarget(end_far_code);
   }
@@ -507,7 +507,7 @@ void Jit64::stX(UGeckoInstruction inst)
       }
       else
       {
-        RCOpArg Ra = gpr.UseNoImm(a, RCMode::Write);
+        RCOpArg Ra = gpr.RevertableBind(a, RCMode::Write);
         RegCache::Realize(Ra);
         MemoryExceptionCheck();
         MOV(32, Ra, Imm32(addr));

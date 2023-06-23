@@ -50,7 +50,7 @@ class RiivolutionBootActivity : AppCompatActivity() {
         binding.textSdRoot.text = getString(R.string.riivolution_sd_root, "$loadPath/Riivolution")
         binding.buttonStart.setOnClickListener {
             if (patches != null) patches!!.saveConfig()
-            EmulationActivity.launch(this, path, true)
+            EmulationActivity.launch(this, path!!, true)
         }
 
         lifecycleScope.launch {

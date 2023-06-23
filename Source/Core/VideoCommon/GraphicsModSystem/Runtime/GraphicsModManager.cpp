@@ -58,6 +58,12 @@ public:
       return;
     m_action_impl->OnTextureLoad(texture_load);
   }
+  void OnTextureCreate(GraphicsModActionData::TextureCreate* texture_create) override
+  {
+    if (!m_mod.m_enabled)
+      return;
+    m_action_impl->OnTextureCreate(texture_create);
+  }
   void OnFrameEnd() override
   {
     if (!m_mod.m_enabled)
@@ -143,6 +149,18 @@ GraphicsModManager::GetTextureLoadActions(const std::string& texture_name) const
   return m_default;
 }
 
+const std::vector<GraphicsModAction*>&
+GraphicsModManager::GetTextureCreateActions(const std::string& texture_name) const
+{
+  if (const auto it = m_create_texture_target_to_actions.find(texture_name);
+      it != m_create_texture_target_to_actions.end())
+  {
+    return it->second;
+  }
+
+  return m_default;
+}
+
 const std::vector<GraphicsModAction*>& GraphicsModManager::GetEFBActions(const FBInfo& efb) const
 {
   if (const auto it = m_efb_target_to_actions.find(efb); it != m_efb_target_to_actions.end())
@@ -212,16 +230,7 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
 
       const auto internal_group = fmt::format("{}.{}", mod.m_title, feature.m_group);
 
-      const auto add_target = [&](const GraphicsTargetConfig& target,
-                                  GraphicsModConfig mod_config) {
-        auto action = create_action(feature.m_action, feature.m_action_data, std::move(mod_config));
-        if (action == nullptr)
-        {
-          WARN_LOG_FMT(VIDEO, "Failed to create action '{}' for group '{}'.", feature.m_action,
-                       feature.m_group);
-          return;
-        }
-        m_actions.push_back(std::move(action));
+      const auto add_target = [&](const GraphicsTargetConfig& target) {
         std::visit(
             overloaded{
                 [&](const DrawStartedTextureTarget& the_target) {
@@ -230,6 +239,10 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
                 },
                 [&](const LoadTextureTarget& the_target) {
                   m_load_texture_target_to_actions[the_target.m_texture_info_string].push_back(
+                      m_actions.back().get());
+                },
+                [&](const CreateTextureTarget& the_target) {
+                  m_create_texture_target_to_actions[the_target.m_texture_info_string].push_back(
                       m_actions.back().get());
                 },
                 [&](const EFBTarget& the_target) {
@@ -264,21 +277,39 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
             target);
       };
 
+      const auto add_action = [&](GraphicsModConfig mod_config) -> bool {
+        auto action = create_action(feature.m_action, feature.m_action_data, std::move(mod_config));
+        if (action == nullptr)
+        {
+          WARN_LOG_FMT(VIDEO, "Failed to create action '{}' for group '{}'.", feature.m_action,
+                       feature.m_group);
+          return false;
+        }
+        m_actions.push_back(std::move(action));
+        return true;
+      };
+
       // Prefer groups in the pack over groups from another pack
       if (const auto local_it = group_to_targets.find(internal_group);
           local_it != group_to_targets.end())
       {
-        for (const GraphicsTargetConfig& target : local_it->second)
+        if (add_action(mod))
         {
-          add_target(target, mod);
+          for (const GraphicsTargetConfig& target : local_it->second)
+          {
+            add_target(target);
+          }
         }
       }
       else if (const auto global_it = group_to_targets.find(feature.m_group);
                global_it != group_to_targets.end())
       {
-        for (const GraphicsTargetConfig& target : global_it->second)
+        if (add_action(mod))
         {
-          add_target(target, mod);
+          for (const GraphicsTargetConfig& target : global_it->second)
+          {
+            add_target(target);
+          }
         }
       }
       else
@@ -306,6 +337,7 @@ void GraphicsModManager::Reset()
   m_projection_texture_target_to_actions.clear();
   m_draw_started_target_to_actions.clear();
   m_load_texture_target_to_actions.clear();
+  m_create_texture_target_to_actions.clear();
   m_efb_target_to_actions.clear();
   m_xfb_target_to_actions.clear();
 }
