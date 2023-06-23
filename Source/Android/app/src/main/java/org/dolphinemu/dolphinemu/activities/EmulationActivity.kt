@@ -234,9 +234,14 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             menuToastShown = true
         }
 
-        title = NativeLibrary.GetCurrentTitleDescription()
+        try {
+            title = NativeLibrary.GetCurrentTitleDescription()
 
-        emulationFragment?.refreshInputOverlay()
+            emulationFragment?.refreshInputOverlay()
+        } catch (_: IllegalStateException) {
+            // Most likely the core delivered an onTitleChanged while emulation was shutting down.
+            // Let's just ignore it, since we're about to shut down anyway.
+        }
     }
 
     override fun onDestroy() {
