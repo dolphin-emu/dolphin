@@ -187,7 +187,7 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
   gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
   fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
 
-  if (js.op->opinfo->flags & FL_ENDBLOCK)
+  if (js.op->canEndBlock)
   {
     // also flush the program counter
     ARM64Reg WA = gpr.GetReg();
@@ -207,7 +207,7 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
   fpr.ResetRegisters(js.op->GetFregsOut());
   gpr.ResetCRRegisters(js.op->crOut);
 
-  if (js.op->opinfo->flags & FL_ENDBLOCK)
+  if (js.op->canEndBlock)
   {
     if (js.isLastInstruction)
     {
@@ -276,7 +276,6 @@ void JitArm64::Cleanup()
     SetJumpTarget(exit);
   }
 
-  // SPEED HACK: MMCR0/MMCR1 should be checked at run-time, not at compile time.
   if (MMCR0(m_ppc_state).Hex || MMCR1(m_ppc_state).Hex)
   {
     ABI_CallFunction(&PowerPC::UpdatePerformanceMonitor, js.downcountAmount, js.numLoadStoreInst,

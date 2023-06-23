@@ -202,6 +202,23 @@ static void AnalyzeFunction2(Common::Symbol* func)
   func->flags = flags;
 }
 
+static bool IsMtspr(UGeckoInstruction inst)
+{
+  return inst.OPCD == 31 && inst.SUBOP10 == 467;
+}
+
+static bool IsSprInstructionUsingMmcr(UGeckoInstruction inst)
+{
+  const u32 index = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
+  return index == SPR_MMCR0 || index == SPR_MMCR1;
+}
+
+static bool InstructionCanEndBlock(const CodeOp& op)
+{
+  return (op.opinfo->flags & FL_ENDBLOCK) &&
+         (!IsMtspr(op.inst) || IsSprInstructionUsingMmcr(op.inst));
+}
+
 bool PPCAnalyzer::CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b) const
 {
   const GekkoOPInfo* a_info = a.opinfo;
@@ -222,9 +239,11 @@ bool PPCAnalyzer::CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b) const
   // [1] https://bugs.dolphin-emu.org/issues/5864#note-7
   if (a.canCauseException || b.canCauseException)
     return false;
-  if (a_flags & (FL_ENDBLOCK | FL_TIMER | FL_NO_REORDER | FL_SET_OE))
+  if (a.canEndBlock || b.canEndBlock)
     return false;
-  if (b_flags & (FL_ENDBLOCK | FL_TIMER | FL_NO_REORDER | FL_SET_OE))
+  if (a_flags & (FL_TIMER | FL_NO_REORDER | FL_SET_OE))
+    return false;
+  if (b_flags & (FL_TIMER | FL_NO_REORDER | FL_SET_OE))
     return false;
   if ((a_flags & (FL_SET_CA | FL_READ_CA)) && (b_flags & (FL_SET_CA | FL_READ_CA)))
     return false;
@@ -597,7 +616,7 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code,
 
   code->wantsFPRF = (opinfo->flags & FL_READ_FPRF) != 0;
   code->outputFPRF = (opinfo->flags & FL_SET_FPRF) != 0;
-  code->canEndBlock = (opinfo->flags & FL_ENDBLOCK) != 0;
+  code->canEndBlock = InstructionCanEndBlock(*code);
 
   code->canCauseException = first_fpu_instruction ||
                             (opinfo->flags & (FL_LOADSTORE | FL_PROGRAMEXCEPTION)) != 0 ||
@@ -935,7 +954,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
     {
       // Just pick the next instruction
       address += 4;
-      if (!conditional_continue && opinfo->flags & FL_ENDBLOCK)  // right now we stop early
+      if (!conditional_continue && InstructionCanEndBlock(code[i]))  // right now we stop early
       {
         found_exit = true;
         break;

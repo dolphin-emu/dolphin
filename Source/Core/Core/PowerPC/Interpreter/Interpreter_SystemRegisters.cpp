@@ -491,6 +491,11 @@ void Interpreter::mtspr(Interpreter& interpreter, UGeckoInstruction inst)
     }
     break;
 
+  case SPR_MMCR0:
+  case SPR_MMCR1:
+    MMCRUpdated(ppc_state);
+    break;
+
   case SPR_THRM1:
   case SPR_THRM2:
   case SPR_THRM3:

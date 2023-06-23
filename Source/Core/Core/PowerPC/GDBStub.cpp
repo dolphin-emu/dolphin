@@ -761,6 +761,7 @@ static void WriteRegister()
       break;
     case 131:
       ppc_state.spr[SPR_MMCR0] = re32hex(bufptr);
+      PowerPC::MMCRUpdated(ppc_state);
       break;
     case 132:
       ppc_state.spr[SPR_PMC1] = re32hex(bufptr);
@@ -773,6 +774,7 @@ static void WriteRegister()
       break;
     case 135:
       ppc_state.spr[SPR_MMCR1] = re32hex(bufptr);
+      PowerPC::MMCRUpdated(ppc_state);
       break;
     case 136:
       ppc_state.spr[SPR_PMC3] = re32hex(bufptr);

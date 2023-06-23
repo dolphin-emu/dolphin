@@ -349,5 +349,7 @@ void CheckBreakPointsFromJIT(PowerPCManager& power_pc);
 
 void RoundingModeUpdated(PowerPCState& ppc_state);
 void MSRUpdated(PowerPCState& ppc_state);
+void MMCRUpdated(PowerPCState& ppc_state);
+void RecalculateAllFeatureFlags(PowerPCState& ppc_state);
 
 }  // namespace PowerPC

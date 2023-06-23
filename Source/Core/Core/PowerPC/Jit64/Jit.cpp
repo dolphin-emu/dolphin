@@ -337,7 +337,7 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
   gpr.Flush();
   fpr.Flush();
 
-  if (js.op->opinfo->flags & FL_ENDBLOCK)
+  if (js.op->canEndBlock)
   {
     MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
     MOV(32, PPCSTATE(npc), Imm32(js.compilerPC + 4));
@@ -353,7 +353,7 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
   gpr.Reset(js.op->regsOut);
   fpr.Reset(js.op->GetFregsOut());
 
-  if (js.op->opinfo->flags & FL_ENDBLOCK)
+  if (js.op->canEndBlock)
   {
     if (js.isLastInstruction)
     {
@@ -445,7 +445,6 @@ bool Jit64::Cleanup()
     did_something = true;
   }
 
-  // SPEED HACK: MMCR0/MMCR1 should be checked at run-time, not at compile time.
   if (MMCR0(m_ppc_state).Hex || MMCR1(m_ppc_state).Hex)
   {
     ABI_PushRegistersAndAdjustStack({}, 0);
