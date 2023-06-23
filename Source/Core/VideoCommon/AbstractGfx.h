@@ -159,8 +159,8 @@ public:
   // Called when the configuration changes, and backend structures need to be updated.
   virtual void OnConfigChanged(u32 changed_bits);
 
-  // Returns true if a layer-expanding geometry shader should be used when rendering the user
-  // interface and final XFB.
+  // Returns true if a layer-expanding geometry shader should be used when rendering
+  // the user interface on the output buffer.
   bool UseGeometryShaderForUI() const;
 
   // Returns info about the main surface (aka backbuffer)

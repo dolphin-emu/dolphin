@@ -175,6 +175,9 @@ void Gfx::OnConfigChanged(u32 bits)
   // Quad-buffer changes require swap chain recreation.
   if (bits & CONFIG_CHANGE_BIT_STEREO_MODE && m_swap_chain)
     m_swap_chain->SetStereo(SwapChain::WantsStereo());
+
+  if (bits & CONFIG_CHANGE_BIT_HDR && m_swap_chain)
+    m_swap_chain->SetHDR(SwapChain::WantsHDR());
 }
 
 void Gfx::CheckForSwapChainChanges()

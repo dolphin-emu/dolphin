@@ -421,6 +421,12 @@ void Gfx::OnConfigChanged(u32 bits)
     m_swap_chain->SetStereo(SwapChain::WantsStereo());
   }
 
+  if (m_swap_chain && bits & CONFIG_CHANGE_BIT_HDR)
+  {
+    ExecuteCommandList(true);
+    m_swap_chain->SetHDR(SwapChain::WantsHDR());
+  }
+
   // Wipe sampler cache if force texture filtering or anisotropy changes.
   if (bits & (CONFIG_CHANGE_BIT_ANISOTROPY | CONFIG_CHANGE_BIT_FORCE_TEXTURE_FILTERING))
   {

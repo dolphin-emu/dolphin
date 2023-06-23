@@ -128,6 +128,22 @@ const Info<bool> GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION{
     {System::GFX, "Enhancements", "ArbitraryMipmapDetection"}, true};
 const Info<float> GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_THRESHOLD{
     {System::GFX, "Enhancements", "ArbitraryMipmapDetectionThreshold"}, 14.0f};
+const Info<bool> GFX_ENHANCE_HDR_OUTPUT{{System::GFX, "Enhancements", "HDROutput"}, false};
+
+// Color.Correction
+
+const Info<bool> GFX_CC_CORRECT_COLOR_SPACE{{System::GFX, "ColorCorrection", "CorrectColorSpace"},
+                                            false};
+const Info<ColorCorrectionRegion> GFX_CC_GAME_COLOR_SPACE{
+    {System::GFX, "ColorCorrection", "GameColorSpace"}, ColorCorrectionRegion::SMPTE_NTSCM};
+const Info<bool> GFX_CC_CORRECT_GAMMA{{System::GFX, "ColorCorrection", "CorrectGamma"}, false};
+const Info<float> GFX_CC_GAME_GAMMA{{System::GFX, "ColorCorrection", "GameGamma"}, 2.35f};
+const Info<bool> GFX_CC_SDR_DISPLAY_GAMMA_SRGB{
+    {System::GFX, "ColorCorrection", "SDRDisplayGammaSRGB"}, true};
+const Info<float> GFX_CC_SDR_DISPLAY_CUSTOM_GAMMA{
+    {System::GFX, "ColorCorrection", "SDRDisplayCustomGamma"}, 2.2f};
+const Info<float> GFX_CC_HDR_PAPER_WHITE_NITS{{System::GFX, "ColorCorrection", "HDRPaperWhiteNits"},
+                                              200.f};
 
 // Graphics.Stereoscopy
 

@@ -15,6 +15,7 @@
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/DXTexture.h"
 #include "VideoBackends/D3DCommon/D3DCommon.h"
+#include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DX11
@@ -202,12 +203,14 @@ std::vector<u32> GetAAModes(u32 adapter_index)
   if (temp_feature_level == D3D_FEATURE_LEVEL_10_0)
     return {};
 
+  const DXGI_FORMAT target_format =
+      D3DCommon::GetDXGIFormatForAbstractFormat(FramebufferManager::GetEFBColorFormat(), false);
   std::vector<u32> aa_modes;
   for (u32 samples = 1; samples <= D3D11_MAX_MULTISAMPLE_SAMPLE_COUNT; ++samples)
   {
     UINT quality_levels = 0;
-    if (SUCCEEDED(temp_device->CheckMultisampleQualityLevels(DXGI_FORMAT_R8G8B8A8_UNORM, samples,
-                                                             &quality_levels)) &&
+    if (SUCCEEDED(
+            temp_device->CheckMultisampleQualityLevels(target_format, samples, &quality_levels)) &&
         quality_levels > 0)
     {
       aa_modes.push_back(samples);

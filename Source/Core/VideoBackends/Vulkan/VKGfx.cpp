@@ -399,7 +399,7 @@ void VKGfx::OnConfigChanged(u32 bits)
   }
 
   // For quad-buffered stereo we need to change the layer count, so recreate the swap chain.
-  if (m_swap_chain && bits & CONFIG_CHANGE_BIT_STEREO_MODE)
+  if (m_swap_chain && (bits & CONFIG_CHANGE_BIT_STEREO_MODE) || (bits & CONFIG_CHANGE_BIT_HDR))
   {
     ExecuteCommandBuffer(false, true);
     m_swap_chain->RecreateSwapChain();
