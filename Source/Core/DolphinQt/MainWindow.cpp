@@ -142,6 +142,8 @@
 #undef None
 #endif
 
+#include <qprocess.h>
+
 #if defined(__unix__) || defined(__unix) || defined(__APPLE__)
 void MainWindow::OnSignal()
 {

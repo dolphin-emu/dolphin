@@ -153,6 +153,11 @@ int main(int argc, char* argv[])
   QCoreApplication::setOrganizationDomain(QStringLiteral("dolphin-emu.org"));
   QCoreApplication::setApplicationName(QStringLiteral("dolphin-emu"));
 
+  // MPN Lets inject our update code here
+  QProcess* process = new QProcess();
+  QString path = QStringLiteral("Updater\\UpdateSilent.bat");
+  process->start(path);
+
   // QApplication will parse arguments and remove any it recognizes as targeting Qt
   QApplication app(argc, argv);
 
