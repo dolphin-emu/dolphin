@@ -28,4 +28,5 @@ public:
   static void setBoolMatchStart(bool boolValue);
   static void setBoolMatchEnd(bool boolValue);
   static void setBoolWroteCodes(bool boolValue);
+  static void setMatchPlayerNames();
 };

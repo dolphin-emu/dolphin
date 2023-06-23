@@ -100,12 +100,19 @@
 #endif
 #include <Core/HW/SI/SI_Device.h>
 #include <codecvt>
+#include "HW/AddressSpace.h"
+#include "Config/GraphicsSettings.h"
 
 namespace Core
 {
 static bool boolMatchStart = false;
 static bool boolMatchEnd = false;
 static bool wroteCodes = false;
+static bool madeAccessor = false;
+static AddressSpace::Accessors* accessors;
+static int movieIndex = 0;
+static bool isPlayback = false;
+static bool doneFFW = false;
 static bool s_wants_determinism;
 
 // Declarations and definitions
@@ -188,7 +195,34 @@ void OnFrameEnd()
   if (s_memory_watcher)
     s_memory_watcher->Step();
 #endif
-
+  /*
+  if (Movie::IsPlayingInput() || isPlayback)
+  {
+    isPlayback = true;
+    if (!madeAccessor)
+    {
+      accessors = AddressSpace::GetAccessors(AddressSpace::Type::Effective);
+      madeAccessor = true;
+      Config::SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED, 1.0f);
+      SConfig::GetInstance().SaveSettings();
+    }
+    if (Movie::GetCurrentFrame() > 300 && Movie::GetCurrentFrame() < 2100)
+    {
+      Config::SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED, 0.0f);
+      SConfig::GetInstance().SaveSettings();
+    }
+    else
+    {
+      if (Movie::GetCurrentFrame() > 2100 && !doneFFW)
+      {
+        Config::SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED, 1.0f);
+        SConfig::GetInstance().SaveSettings();
+        doneFFW = true;
+      }
+    }
+    movieIndex++;
+  }
+  */
   /*
   if (Movie::IsPlayingInput())
   {
@@ -277,6 +311,9 @@ void OnFrameEnd()
       (Metadata::getMatchMode() == 1 || Metadata::getMatchMode() == 2) &&
       Config::Get(Config::MAIN_REPLAYS))
   {
+    // Uncomment this in next version after revising spaces in names
+    // This version should be focused on the updater
+    // StateAuxillary::setMatchPlayerNames();
     boolMatchStart = true;
     StateAuxillary::setBoolMatchStart(true);
     // begin recording

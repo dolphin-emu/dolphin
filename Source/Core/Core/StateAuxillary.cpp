@@ -9,6 +9,7 @@
 #include <Core/Metadata.h>
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
+#include "HW/Memmap.h"
 
 static bool boolMatchStart = false;
 static bool boolMatchEnd = false;
@@ -52,6 +53,160 @@ void StateAuxillary::setBoolMatchEnd(bool boolValue)
 void StateAuxillary::setBoolWroteCodes(bool boolValue)
 {
   wroteCodes = boolValue;
+}
+
+void StateAuxillary::setMatchPlayerNames()
+{
+  bool leftTeamNetPlayFound = false;
+  bool rightTeamNetPlayFound = false;
+
+  int leftTeamNetPlayPort = -1;
+  int rightTeamNetPlayPort = -1;
+
+  std::string leftTeamNetPlayName = "";
+  std::string rightTeamNetPlayName = "";
+
+  if (NetPlay::IsNetPlayRunning())
+  {
+    int currentPortValue = Memory::Read_U16(Metadata::addressControllerPort1);
+    if (currentPortValue == 0)
+    {
+      leftTeamNetPlayPort = 0;
+      leftTeamNetPlayFound = true;
+    }
+    else if (currentPortValue == 1)
+    {
+      rightTeamNetPlayPort = 0;
+      rightTeamNetPlayFound = true;
+    }
+
+    currentPortValue = Memory::Read_U16(Metadata::addressControllerPort2);
+    if (currentPortValue == 0)
+    {
+      leftTeamNetPlayPort = 1;
+      leftTeamNetPlayFound = true;
+    }
+    else if (currentPortValue == 1)
+    {
+      rightTeamNetPlayPort = 1;
+      rightTeamNetPlayFound = true;
+    }
+
+    // just check this to save read from mem time
+    if (!leftTeamNetPlayFound || !rightTeamNetPlayFound)
+    {
+      currentPortValue = Memory::Read_U16(Metadata::addressControllerPort3);
+      if (currentPortValue == 0)
+      {
+        leftTeamNetPlayPort = 2;
+        leftTeamNetPlayFound = true;
+      }
+      else if (currentPortValue == 1)
+      {
+        rightTeamNetPlayPort = 2;
+        rightTeamNetPlayFound = true;
+      }
+    }
+
+    // just check this to save read from mem time
+    if (!leftTeamNetPlayFound || !rightTeamNetPlayFound)
+    {
+      currentPortValue = Memory::Read_U16(Metadata::addressControllerPort4);
+      if (currentPortValue == 0)
+      {
+        leftTeamNetPlayPort = 3;
+        leftTeamNetPlayFound = true;
+      }
+      else if (currentPortValue == 1)
+      {
+        rightTeamNetPlayPort = 3;
+        rightTeamNetPlayFound = true;
+      }
+    }
+
+    std::vector<const NetPlay::Player*> playerArray = Metadata::getPlayerArray();
+
+    if (leftTeamNetPlayFound)
+    {
+      // netplay is running and we have at least one player on both sides
+      // therefore, we can get their player ids from pad map now since we know the ports
+      // using the id's we can get their player names
+
+      // getting left team
+      // so we're going to go to m_pad_map and find what player id is at port 0
+      // then we're going to search for that player id in our player array and return their name
+      NetPlay::PlayerId pad_map_player_id = netplayGCMap[leftTeamNetPlayPort];
+      // now get the player name that matches the PID we just stored
+      for (int j = 0; j < playerArray.size(); j++)
+      {
+        if (playerArray.at(j)->pid == pad_map_player_id)
+        {
+          leftTeamNetPlayName = playerArray.at(j)->name;
+          break;
+        }
+      }
+
+      // write the names to their spots in memory
+      // need to format name to go .P.o.o.l.B.o.i...
+      int index = 0;
+      Memory::Write_U8(00, 0x80400018 + index);
+      index++;
+      for (char& c : leftTeamNetPlayName)
+      {
+        Memory::Write_U8(c, 0x80400018 + index);
+        index++;
+        Memory::Write_U8(00, 0x80400018 + index);
+        index++;
+      }
+      for (int i = 0; i < 3; i++)
+      {
+        Memory::Write_U8(00, 0x80400018 + index);
+        index++;
+      }
+      Memory::Write_U8(01, 0x80400014);
+    }
+    else
+    {
+      Memory::Write_U8(00, 0x80400014);
+    }
+
+    if (rightTeamNetPlayFound)
+    {
+      // getting right team
+      NetPlay::PlayerId pad_map_player_id = netplayGCMap[rightTeamNetPlayPort];
+      for (int j = 0; j < playerArray.size(); j++)
+      {
+        if (playerArray.at(j)->pid == pad_map_player_id)
+        {
+          rightTeamNetPlayName = playerArray.at(j)->name;
+          break;
+        }
+      }
+
+      // write the names to their spots in memory
+      // need to format name to go .P.o.o.l.B.o.i...
+      int index = 0;
+      Memory::Write_U8(00, 0x80400040 + index);
+      index++;
+      for (char& c : rightTeamNetPlayName)
+      {
+        Memory::Write_U8(c, 0x80400040 + index);
+        index++;
+        Memory::Write_U8(00, 0x80400040 + index);
+        index++;
+      }
+      for (int i = 0; i < 3; i++)
+      {
+        Memory::Write_U8(00, 0x80400040 + index);
+        index++;
+      }
+      Memory::Write_U8(01, 0x80400015);
+    }
+    else
+    {
+      Memory::Write_U8(00, 0x80400015);
+    }
+  }
 }
 
 void StateAuxillary::saveState(const std::string& filename, bool wait) {
