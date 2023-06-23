@@ -283,9 +283,6 @@
     <ClCompile Include="mgba\src\util\elf-read.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mgba\src\util\export.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="mgba\src\util\patch.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -296,9 +293,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mgba\src\util\patch-ups.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mgba\src\util\png-io.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mgba\src\util\ring-fifo.c">
@@ -430,6 +424,11 @@
     <ClCompile Include="mgba\src\feature\video-logger.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mgba\src\util\geometry.c" />
+    <ClCompile Include="mgba\src\util\image.c" />
+    <ClCompile Include="mgba\src\util\image\export.c" />
+    <ClCompile Include="mgba\src\util\image\png-io.c" />
+    <ClCompile Include="mgba\src\feature\video-backend.c" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Generated sources">
