@@ -460,6 +460,9 @@ bool CBoot::Load_BS2(Core::System& system, const std::string& boot_rom_filename)
   SetupBAT(system, /*is_wii*/ false);
 
   ppc_state.pc = 0x81200150;
+
+  PowerPC::MSRUpdated(ppc_state);
+
   return true;
 }
 

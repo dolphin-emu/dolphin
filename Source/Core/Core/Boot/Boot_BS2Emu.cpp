@@ -74,6 +74,7 @@ void CBoot::SetupMSR(PowerPC::PowerPCState& ppc_state)
   ppc_state.msr.DR = 1;
   ppc_state.msr.IR = 1;
   ppc_state.msr.FP = 1;
+  PowerPC::MSRUpdated(ppc_state);
 }
 
 void CBoot::SetupHID(PowerPC::PowerPCState& ppc_state, bool is_wii)

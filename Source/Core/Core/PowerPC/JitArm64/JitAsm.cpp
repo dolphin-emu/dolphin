@@ -100,15 +100,20 @@ void JitArm64::GenerateAsm()
     if (GetBlockCache()->GetEntryPoints())
     {
       // Check if there is a block
-      ARM64Reg pc_and_msr = ARM64Reg::X8;
-      ARM64Reg cache_base = ARM64Reg::X9;
-      ARM64Reg block = ARM64Reg::X10;
-      LDR(IndexType::Unsigned, EncodeRegTo32(pc_and_msr), PPC_REG, PPCSTATE_OFF(msr));
+      ARM64Reg feature_flags = ARM64Reg::W8;
+      ARM64Reg pc_and_feature_flags = ARM64Reg::X9;
+      ARM64Reg cache_base = ARM64Reg::X10;
+      ARM64Reg block = ARM64Reg::X11;
+
+      LDR(IndexType::Unsigned, feature_flags, PPC_REG, PPCSTATE_OFF(feature_flags));
       MOVP2R(cache_base, GetBlockCache()->GetEntryPoints());
-      // The entry points map is indexed by ((msrBits << 26) | (address >> 2)).
-      UBFIZ(pc_and_msr, pc_and_msr, 26, 6);
-      BFXIL(pc_and_msr, EncodeRegTo64(DISPATCHER_PC), 2, 30);
-      LDR(block, cache_base, ArithOption(pc_and_msr, true));
+      // The entry points map is indexed by ((feature_flags << 30) | (pc >> 2)).
+      // The map contains 8-byte pointers and that means we need to shift feature_flags
+      // left by 33 bits and pc left by 1 bit to get the correct offset in the map.
+      LSL(pc_and_feature_flags, EncodeRegTo64(DISPATCHER_PC), 1);
+      BFI(pc_and_feature_flags, EncodeRegTo64(feature_flags), 33, 31);
+      LDR(block, cache_base, pc_and_feature_flags);
+
       FixupBranch not_found = CBZ(block);
       BR(block);
       SetJumpTarget(not_found);
@@ -119,8 +124,8 @@ void JitArm64::GenerateAsm()
       ARM64Reg cache_base = ARM64Reg::X9;
       ARM64Reg block = ARM64Reg::X10;
       ARM64Reg pc = ARM64Reg::W11;
-      ARM64Reg msr = ARM64Reg::W12;
-      ARM64Reg msr2 = ARM64Reg::W13;
+      ARM64Reg feature_flags = ARM64Reg::W12;
+      ARM64Reg feature_flags_2 = ARM64Reg::W13;
       ARM64Reg entry = ARM64Reg::X14;
 
       // iCache[(address >> 2) & iCache_Mask];
@@ -130,25 +135,24 @@ void JitArm64::GenerateAsm()
       LDR(block, cache_base, ArithOption(EncodeRegTo64(pc_masked), true));
       FixupBranch not_found = CBZ(block);
 
-      // b.effectiveAddress != addr || b.msrBits != msr
-      static_assert(offsetof(JitBlockData, msrBits) + 4 ==
+      // b.effectiveAddress != addr || b.feature_flags != feature_flags
+      static_assert(offsetof(JitBlockData, feature_flags) + 4 ==
                     offsetof(JitBlockData, effectiveAddress));
-      LDP(IndexType::Signed, msr, pc, block, offsetof(JitBlockData, msrBits));
-      LDR(IndexType::Unsigned, msr2, PPC_REG, PPCSTATE_OFF(msr));
+      LDP(IndexType::Signed, feature_flags, pc, block, offsetof(JitBlockData, feature_flags));
+      LDR(IndexType::Unsigned, feature_flags_2, PPC_REG, PPCSTATE_OFF(feature_flags));
       CMP(pc, DISPATCHER_PC);
       FixupBranch pc_mismatch = B(CC_NEQ);
 
       LDR(IndexType::Unsigned, entry, block, offsetof(JitBlockData, normalEntry));
-      AND(msr2, msr2, LogicalImm(JitBaseBlockCache::JIT_CACHE_MSR_MASK, 32));
-      CMP(msr, msr2);
-      FixupBranch msr_mismatch = B(CC_NEQ);
+      CMP(feature_flags, feature_flags_2);
+      FixupBranch feature_flags_mismatch = B(CC_NEQ);
 
       // return blocks[block_num].normalEntry;
       BR(entry);
 
       SetJumpTarget(not_found);
       SetJumpTarget(pc_mismatch);
-      SetJumpTarget(msr_mismatch);
+      SetJumpTarget(feature_flags_mismatch);
     }
   }
 

@@ -348,27 +348,61 @@ void JitArm64::EmitUpdateMembase()
   LDR(IndexType::Unsigned, MEM_REG, PPC_REG, PPCSTATE_OFF(mem_ptr));
 }
 
-void JitArm64::EmitStoreMembase(u32 msr)
+void JitArm64::MSRUpdated(u32 msr)
 {
+  // Update mem_ptr
   auto& memory = m_system.GetMemory();
   MOVP2R(MEM_REG,
          UReg_MSR(msr).DR ?
              (jo.fastmem_arena ? memory.GetLogicalBase() : memory.GetLogicalPageMappingsBase()) :
              (jo.fastmem_arena ? memory.GetPhysicalBase() : memory.GetPhysicalPageMappingsBase()));
   STR(IndexType::Unsigned, MEM_REG, PPC_REG, PPCSTATE_OFF(mem_ptr));
+
+  // Update feature_flags
+  static_assert(UReg_MSR{}.DR.StartBit() == 4);
+  static_assert(UReg_MSR{}.IR.StartBit() == 5);
+  static_assert(FEATURE_FLAG_MSR_DR == 1 << 0);
+  static_assert(FEATURE_FLAG_MSR_IR == 1 << 1);
+  const u32 other_feature_flags = m_ppc_state.feature_flags & ~0x3;
+  const u32 feature_flags = other_feature_flags | ((msr >> 4) & 0x3);
+  if (feature_flags == 0)
+  {
+    STR(IndexType::Unsigned, ARM64Reg::WZR, PPC_REG, PPCSTATE_OFF(feature_flags));
+  }
+  else
+  {
+    ARM64Reg WA = gpr.GetReg();
+    MOVI2R(WA, feature_flags);
+    STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(feature_flags));
+    gpr.Unlock(WA);
+  }
 }
 
-void JitArm64::EmitStoreMembase(const ARM64Reg& msr)
+void JitArm64::MSRUpdated(ARM64Reg msr)
 {
+  ARM64Reg WA = gpr.GetReg();
+  ARM64Reg XA = EncodeRegTo64(WA);
+
+  // Update mem_ptr
   auto& memory = m_system.GetMemory();
-  ARM64Reg WD = gpr.GetReg();
-  ARM64Reg XD = EncodeRegTo64(WD);
   MOVP2R(MEM_REG, jo.fastmem ? memory.GetLogicalBase() : memory.GetLogicalPageMappingsBase());
-  MOVP2R(XD, jo.fastmem ? memory.GetPhysicalBase() : memory.GetPhysicalPageMappingsBase());
+  MOVP2R(XA, jo.fastmem ? memory.GetPhysicalBase() : memory.GetPhysicalPageMappingsBase());
   TST(msr, LogicalImm(1 << (31 - 27), 32));
-  CSEL(MEM_REG, MEM_REG, XD, CCFlags::CC_NEQ);
+  CSEL(MEM_REG, MEM_REG, XA, CCFlags::CC_NEQ);
   STR(IndexType::Unsigned, MEM_REG, PPC_REG, PPCSTATE_OFF(mem_ptr));
-  gpr.Unlock(WD);
+
+  // Update feature_flags
+  static_assert(UReg_MSR{}.DR.StartBit() == 4);
+  static_assert(UReg_MSR{}.IR.StartBit() == 5);
+  static_assert(FEATURE_FLAG_MSR_DR == 1 << 0);
+  static_assert(FEATURE_FLAG_MSR_IR == 1 << 1);
+  const u32 other_feature_flags = m_ppc_state.feature_flags & ~0x3;
+  UBFX(WA, msr, 4, 2);
+  if (other_feature_flags != 0)
+    ORR(WA, WA, LogicalImm(32, other_feature_flags));
+  STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(feature_flags));
+
+  gpr.Unlock(WA);
 }
 
 void JitArm64::WriteExit(u32 destination, bool LK, u32 exit_address_after_return,
@@ -383,20 +417,20 @@ void JitArm64::WriteExit(u32 destination, bool LK, u32 exit_address_after_return
   const u8* host_address_after_return;
   if (LK)
   {
-    // Push {ARM_PC (64-bit); PPC_PC (32-bit); MSR_BITS (32-bit)} on the stack
+    // Push {ARM_PC (64-bit); PPC_PC (32-bit); feature_flags (32-bit)} on the stack
     ARM64Reg reg_to_push = ARM64Reg::X1;
-    const u64 msr_bits = m_ppc_state.msr.Hex & JitBaseBlockCache::JIT_CACHE_MSR_MASK;
+    const u64 feature_flags = m_ppc_state.feature_flags;
     if (exit_address_after_return_reg == ARM64Reg::INVALID_REG)
     {
-      MOVI2R(ARM64Reg::X1, msr_bits << 32 | exit_address_after_return);
+      MOVI2R(ARM64Reg::X1, feature_flags << 32 | exit_address_after_return);
     }
-    else if (msr_bits == 0)
+    else if (feature_flags == 0)
     {
       reg_to_push = EncodeRegTo64(exit_address_after_return_reg);
     }
     else
     {
-      ORRI2R(ARM64Reg::X1, EncodeRegTo64(exit_address_after_return_reg), msr_bits << 32,
+      ORRI2R(ARM64Reg::X1, EncodeRegTo64(exit_address_after_return_reg), feature_flags << 32,
              ARM64Reg::X1);
     }
     constexpr s32 adr_offset = JitArm64BlockCache::BLOCK_LINK_SIZE + sizeof(u32) * 2;
@@ -487,20 +521,20 @@ void JitArm64::WriteExit(Arm64Gen::ARM64Reg dest, bool LK, u32 exit_address_afte
   }
   else
   {
-    // Push {ARM_PC (64-bit); PPC_PC (32-bit); MSR_BITS (32-bit)} on the stack
+    // Push {ARM_PC (64-bit); PPC_PC (32-bit); feature_flags (32-bit)} on the stack
     ARM64Reg reg_to_push = ARM64Reg::X1;
-    const u64 msr_bits = m_ppc_state.msr.Hex & JitBaseBlockCache::JIT_CACHE_MSR_MASK;
+    const u64 feature_flags = m_ppc_state.feature_flags;
     if (exit_address_after_return_reg == ARM64Reg::INVALID_REG)
     {
-      MOVI2R(ARM64Reg::X1, msr_bits << 32 | exit_address_after_return);
+      MOVI2R(ARM64Reg::X1, feature_flags << 32 | exit_address_after_return);
     }
-    else if (msr_bits == 0)
+    else if (feature_flags == 0)
     {
       reg_to_push = EncodeRegTo64(exit_address_after_return_reg);
     }
     else
     {
-      ORRI2R(ARM64Reg::X1, EncodeRegTo64(exit_address_after_return_reg), msr_bits << 32,
+      ORRI2R(ARM64Reg::X1, EncodeRegTo64(exit_address_after_return_reg), feature_flags << 32,
              ARM64Reg::X1);
     }
     constexpr s32 adr_offset = sizeof(u32) * 3;
@@ -558,17 +592,17 @@ void JitArm64::FakeLKExit(u32 exit_address_after_return, ARM64Reg exit_address_a
     // function has been called!
     gpr.Lock(ARM64Reg::W30);
   }
-  // Push {ARM_PC (64-bit); PPC_PC (32-bit); MSR_BITS (32-bit)} on the stack
+  // Push {ARM_PC (64-bit); PPC_PC (32-bit); feature_flags (32-bit)} on the stack
   ARM64Reg after_reg = ARM64Reg::INVALID_REG;
   ARM64Reg reg_to_push;
-  const u64 msr_bits = m_ppc_state.msr.Hex & JitBaseBlockCache::JIT_CACHE_MSR_MASK;
+  const u64 feature_flags = m_ppc_state.feature_flags;
   if (exit_address_after_return_reg == ARM64Reg::INVALID_REG)
   {
     after_reg = gpr.GetReg();
     reg_to_push = EncodeRegTo64(after_reg);
-    MOVI2R(reg_to_push, msr_bits << 32 | exit_address_after_return);
+    MOVI2R(reg_to_push, feature_flags << 32 | exit_address_after_return);
   }
-  else if (msr_bits == 0)
+  else if (feature_flags == 0)
   {
     reg_to_push = EncodeRegTo64(exit_address_after_return_reg);
   }
@@ -576,7 +610,8 @@ void JitArm64::FakeLKExit(u32 exit_address_after_return, ARM64Reg exit_address_a
   {
     after_reg = gpr.GetReg();
     reg_to_push = EncodeRegTo64(after_reg);
-    ORRI2R(reg_to_push, EncodeRegTo64(exit_address_after_return_reg), msr_bits << 32, reg_to_push);
+    ORRI2R(reg_to_push, EncodeRegTo64(exit_address_after_return_reg), feature_flags << 32,
+           reg_to_push);
   }
   ARM64Reg code_reg = gpr.GetReg();
   constexpr s32 adr_offset = sizeof(u32) * 3;
@@ -640,16 +675,16 @@ void JitArm64::WriteBLRExit(Arm64Gen::ARM64Reg dest)
   Cleanup();
   EndTimeProfile(js.curBlock);
 
-  // Check if {PPC_PC, MSR_BITS} matches the current state, then RET to ARM_PC.
+  // Check if {PPC_PC, feature_flags} matches the current state, then RET to ARM_PC.
   LDP(IndexType::Post, ARM64Reg::X2, ARM64Reg::X1, ARM64Reg::SP, 16);
-  const u64 msr_bits = m_ppc_state.msr.Hex & JitBaseBlockCache::JIT_CACHE_MSR_MASK;
-  if (msr_bits == 0)
+  const u64 feature_flags = m_ppc_state.feature_flags;
+  if (feature_flags == 0)
   {
     CMP(ARM64Reg::X1, EncodeRegTo64(DISPATCHER_PC));
   }
   else
   {
-    ORRI2R(ARM64Reg::X0, EncodeRegTo64(DISPATCHER_PC), msr_bits << 32, ARM64Reg::X0);
+    ORRI2R(ARM64Reg::X0, EncodeRegTo64(DISPATCHER_PC), feature_flags << 32, ARM64Reg::X0);
     CMP(ARM64Reg::X1, ARM64Reg::X0);
   }
   FixupBranch no_match = B(CC_NEQ);
