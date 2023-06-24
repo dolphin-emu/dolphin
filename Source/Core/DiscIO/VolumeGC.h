@@ -25,7 +25,7 @@ enum class Language;
 enum class Region;
 enum class Platform;
 
-class VolumeGC : public VolumeDisc
+class VolumeGC final : public VolumeDisc
 {
 public:
   VolumeGC(std::unique_ptr<BlobReader> reader);

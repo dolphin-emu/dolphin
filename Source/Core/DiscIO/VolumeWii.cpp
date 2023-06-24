@@ -74,7 +74,7 @@ VolumeWii::VolumeWii(std::unique_ptr<BlobReader> reader)
         continue;
 
       // If this is the game partition, set m_game_partition
-      if (m_game_partition == PARTITION_NONE && *partition_type == 0)
+      if (m_game_partition == PARTITION_NONE && *partition_type == PARTITION_DATA)
         m_game_partition = partition;
 
       auto get_ticket = [this, partition]() -> IOS::ES::TicketReader {
@@ -253,6 +253,7 @@ bool VolumeWii::HasWiiEncryption() const
 std::vector<Partition> VolumeWii::GetPartitions() const
 {
   std::vector<Partition> partitions;
+  partitions.reserve(m_partitions.size());
   for (const auto& pair : m_partitions)
     partitions.push_back(pair.first);
   return partitions;

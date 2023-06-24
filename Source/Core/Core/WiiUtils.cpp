@@ -41,6 +41,7 @@
 #include "Core/IOS/Uids.h"
 #include "Core/SysConf.h"
 #include "DiscIO/DiscExtractor.h"
+#include "DiscIO/DiscUtils.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/VolumeDisc.h"
@@ -751,7 +752,7 @@ UpdateResult DiscSystemUpdater::DoDiscUpdate()
   const auto partitions = m_volume->GetPartitions();
   const auto update_partition =
       std::find_if(partitions.cbegin(), partitions.cend(), [&](const DiscIO::Partition& partition) {
-        return m_volume->GetPartitionType(partition) == 1u;
+        return m_volume->GetPartitionType(partition) == DiscIO::PARTITION_UPDATE;
       });
 
   if (update_partition == partitions.cend())

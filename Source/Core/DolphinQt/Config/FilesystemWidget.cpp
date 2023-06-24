@@ -277,7 +277,7 @@ void FilesystemWidget::ShowContextMenu(const QPoint&)
       }
       else
       {
-        for (DiscIO::Partition& p : m_volume->GetPartitions())
+        for (const DiscIO::Partition& p : m_volume->GetPartitions())
         {
           if (const std::optional<u32> partition_type = m_volume->GetPartitionType(p))
           {
