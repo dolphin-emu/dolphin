@@ -99,12 +99,12 @@ bool ExportFile(const Volume& volume, const Partition& partition, std::string_vi
 }
 
 void ExportDirectory(const Volume& volume, const Partition& partition, const FileInfo& directory,
-                     bool recursive, const std::string& filesystem_path,
-                     const std::string& export_folder,
+                     bool recursive, bool top_level, bool overwrite,
+                     const std::string& filesystem_path, const std::string& export_folder,
                      const std::function<bool(const std::string& path)>& update_progress)
 {
   std::string export_root = export_folder + '/';
-  if (directory.IsDirectory() && !directory.IsRoot())
+  if (directory.IsDirectory() && !top_level)
     export_root += directory.GetName() + '/';
 
   File::CreateFullPath(export_root);
@@ -122,15 +122,15 @@ void ExportDirectory(const Volume& volume, const Partition& partition, const Fil
 
     if (!file_info.IsDirectory())
     {
-      if (File::Exists(export_path))
-        NOTICE_LOG_FMT(DISCIO, "{} already exists", export_path);
+      if (!overwrite && File::Exists(export_path))
+        NOTICE_LOG_FMT(DISCIO, "\"{}\" already exists", export_path);
       else if (!ExportFile(volume, partition, &file_info, export_path))
-        ERROR_LOG_FMT(DISCIO, "Could not export {}", export_path);
+        ERROR_LOG_FMT(DISCIO, "Could not export \"{}\"", export_path);
     }
     else if (recursive)
     {
-      ExportDirectory(volume, partition, file_info, recursive, filesystem_path, export_root,
-                      update_progress);
+      ExportDirectory(volume, partition, file_info, recursive, false, overwrite, filesystem_path,
+                      export_root, update_progress);
     }
   }
 }

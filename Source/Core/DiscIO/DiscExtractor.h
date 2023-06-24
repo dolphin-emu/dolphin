@@ -27,12 +27,15 @@ bool ExportFile(const Volume& volume, const Partition& partition, const FileInfo
 bool ExportFile(const Volume& volume, const Partition& partition, std::string_view path,
                 const std::string& export_filename);
 
+// recursive == true allows contents of subdirectories to be extracted recursively.
+// top_level == true indicates this directory is the root directory of the filesystem.
+// overwrite == true permits existing files to be overwritten.
 // update_progress is called once for each child (file or directory).
 // If update_progress returns true, the extraction gets cancelled.
 // filesystem_path is supposed to be the path corresponding to the directory argument.
 void ExportDirectory(const Volume& volume, const Partition& partition, const FileInfo& directory,
-                     bool recursive, const std::string& filesystem_path,
-                     const std::string& export_folder,
+                     bool recursive, bool top_level, bool overwrite,
+                     const std::string& filesystem_path, const std::string& export_folder,
                      const std::function<bool(const std::string& path)>& update_progress);
 
 // To export everything listed below, you can use ExportSystemData

@@ -349,8 +349,8 @@ void FilesystemWidget::ExtractDirectory(const DiscIO::Partition& partition, cons
     int progress = 0;
 
     DiscIO::ExportDirectory(
-        *m_volume, partition, *info, true, path.toStdString(), out.toStdString(),
-        [all, &dialog, &progress](const std::string& current) {
+        *m_volume, partition, *info, true, info->IsRoot(), false, path.toStdString(),
+        out.toStdString(), [all, &dialog, &progress](const std::string& current) {
           dialog.SetLabelText(
               (all ? QObject::tr("Extracting All Files...") :
                      QObject::tr("Extracting Directory..."))

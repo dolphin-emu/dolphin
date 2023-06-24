@@ -6,6 +6,8 @@ add_executable(dolphin-tool
   VerifyCommand.h
   HeaderCommand.cpp
   HeaderCommand.h
+  ExtractCommand.cpp
+  ExtractCommand.h
   ToolMain.cpp
 )
 
