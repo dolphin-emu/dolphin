@@ -6,6 +6,7 @@
  FileUtility_APIs fileUtility_APIs;
  FunctionMetadata_APIs functionMetadata_APIs;
  GCButton_APIs gcButton_APIs;
+ ModuleLists_APIs moduleLists_APIs;
  Dolphin_Defined_ScriptContext_APIs dolphinDefinedScriptContext_APIs;
  VectorOfArgHolders_APIs vectorOfArgHolder_APIs;
 
@@ -37,6 +38,11 @@ DLL_Export void Init_FunctionMetadata_APIs(FunctionMetadata_APIs* new_functionMe
 DLL_Export void Init_GCButton_APIs(GCButton_APIs* new_gcButton_APIs)
 {
   gcButton_APIs = *new_gcButton_APIs;
+}
+
+DLL_Export void Init_ModuleLists_APIs(ModuleLists_APIs* new_moduleLists_APIs)
+{
+	moduleLists_APIs = *new_moduleLists_APIs;
 }
 
 DLL_Export void Init_ScriptContext_APIs(Dolphin_Defined_ScriptContext_APIs* new_dolphinDefinedScriptContext_APIs)

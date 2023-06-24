@@ -9,6 +9,7 @@
 #include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/FileUtility_APIs.h"
 #include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/FunctionMetadata_APIs.h"
 #include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/GCButton_APIs.h"
+#include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/ModuleLists_APIs.h"
 #include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/ScriptContext_APIs.h"
 #include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/VectorOfArgHolders_APIs.h"
 
@@ -26,6 +27,7 @@
 #include "Core/Scripting/HelperClasses/FileUtility_API_Implementations.h"
 #include "Core/Scripting/HelperClasses/FunctionMetadata.h"
 #include "Core/Scripting/HelperClasses/GCButtonFunctions.h"
+#include "Core/Scripting/HelperClasses/ModuleLists_API_Implementations.h"
 #include "Core/Scripting/HelperClasses/VectorOfArgHolders.h"
 #include "Core/Scripting/InternalAPIModules/GraphicsAPI.h"
 #include "Core/Scripting/LanguageDefinitions/Lua/LuaScriptContext.h"
@@ -53,6 +55,7 @@ static ClassMetadata_APIs classMetadata_apis = {};
 static FileUtility_APIs fileUtility_apis = {};
 static FunctionMetadata_APIs functionMetadata_apis = {};
 static GCButton_APIs gcButton_apis = {};
+static ModuleLists_APIs moduleLists_apis = {};
 static VectorOfArgHolders_APIs vectorOfArgHolders_apis = {};
 static Dolphin_Defined_ScriptContext_APIs dolphin_defined_scriptContext_apis = {};
 
@@ -210,6 +213,16 @@ static void Initialize_GCButton_APIs()
   ValidateApiStruct(&gcButton_apis, sizeof(gcButton_apis), "GCButton_APIs");
 }
 
+static void Initialize_ModuleLists_APIs()
+{
+  moduleLists_apis.GetElementAtListIndex = GetElementAtListIndex_impl;
+  moduleLists_apis.GetListOfDefaultModules = GetListOfDefaultModules_impl;
+  moduleLists_apis.GetListOfNonDefaultModules = GetListOfNonDefaultModules_impl;
+  moduleLists_apis.GetSizeOfList = GetSizeOfList_impl;
+
+  ValidateApiStruct(&moduleLists_apis, sizeof(moduleLists_apis), "ModuleLists_APIs");
+}
+
 static void Initialize_VectorOfArgHolders_APIs()
 {
   vectorOfArgHolders_apis.CreateNewVectorOfArgHolders = CreateNewVectorOfArgHolders_impl;
@@ -278,6 +291,7 @@ static void InitializeDolphinApiStructs()
   Initialize_FileUtility_APIs();
   Initialize_FunctionMetadata_APIs();
   Initialize_GCButton_APIs();
+  Initialize_ModuleLists_APIs();
   Initialize_VectorOfArgHolders_APIs();
   Initialize_DolphinDefined_ScriptContext_APIs();
   initialized_dolphin_api_structs = true;
@@ -363,6 +377,9 @@ void InitializeDLLs()
             reinterpret_cast<exported_dll_func_type>(
                 file_extension_to_dll_map[trimmed_extension]->GetSymbolAddress(
                     "Init_GCButton_APIs"))(&gcButton_apis);
+            reinterpret_cast<exported_dll_func_type>(
+                file_extension_to_dll_map[trimmed_extension]->GetSymbolAddress(
+                    "Init_ModuleLists_APIs"))(&moduleLists_apis);
             reinterpret_cast<exported_dll_func_type>(
                 file_extension_to_dll_map[trimmed_extension]->GetSymbolAddress(
                     "Init_ScriptContext_APIs"))(&dolphin_defined_scriptContext_apis);

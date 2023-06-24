@@ -437,6 +437,8 @@
 	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\InternalScriptAPIs\ArgHolder_APIs.h" />
 	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\InternalScriptAPIs\ClassFunctionsResolver_APIs.h" />
 	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\InternalScriptAPIs\ClassMetadata_APIs.h" />
+	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\InternalScriptAPIs\FileUtility_APIs.h" />
+    <ClInclude Include="Core\Scripting\CoreScriptContextFiles\InternalScriptAPIs\ModuleLists_APIs.h" />
 	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\InternalScriptAPIs\FunctionMetadata_APIs.h" />
 	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\InternalScriptAPIs\GCButton_APIs.h" />
 	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\InternalScriptAPIs\ScriptContext_APIs.h" />
@@ -449,6 +451,8 @@
     <ClInclude Include="Core\Scripting\EventCallbackRegistrationAPIs\OnWiiInputPolledCallbackAPI.h" />
 	<ClInclude Include="Core\Scripting\HelperClasses\ArgHolder_API_Implementations.h" />
     <ClInclude Include="Core\Scripting\HelperClasses\ClassFunctionsResolver.h" />
+	<ClInclude Include="Core\Scripting\HelperClasses\FileUtility_API_Implementations.h" />
+    <ClInclude Include="Core\Scripting\HelperClasses\ModuleLists_API_Implementations.h" />
     <ClInclude Include="Core\Scripting\HelperClasses\InstructionBreakpointsHolder.h" />
     <ClInclude Include="Core\Scripting\HelperClasses\MemoryAddressBreakpointsHolder.h" />
 	<ClInclude Include="Core\Scripting\HelperClasses\VectorOfArgHolders.h" />
@@ -1132,6 +1136,8 @@
     <ClCompile Include="Core\Scripting\InternalAPIModules\StatisticsAPI.cpp" />
     <ClCompile Include="Core\Scripting\HelperClasses\VersionComparisonFunctions.cpp" />
     <ClCompile Include="Core\Scripting\HelperClasses\ArgHolder.cpp" />
+	<ClCompile Include="Core\Scripting\HelperClasses\FileUtility_API_Implementations.cpp" />
+    <ClCompile Include="Core\Scripting\HelperClasses\ModuleLists_API_Implementations.cpp" />
 	<ClCompile Include="Core\Scripting\HelperClasses\InstructionBreakpointsHolder.cpp" />
 	<ClCompile Include="Core\Scripting\HelperClasses\MemoryAddressBreakpointsHolder.cpp" />
 	<ClCompile Include="Core\Scripting\HelperClasses\ScriptContext.cpp" />

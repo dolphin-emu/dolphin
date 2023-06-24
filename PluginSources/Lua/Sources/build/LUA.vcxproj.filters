@@ -39,6 +39,9 @@
     <ClInclude Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\PluginSources\Lua\Sources\CopiedScriptContextFiles\InternalScriptAPIs\GCButton_APIs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\PluginSources\Lua\Sources\CopiedScriptContextFiles\InternalScriptAPIs\ModuleLists_APIs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\PluginSources\Lua\Sources\CopiedScriptContextFiles\InternalScriptAPIs\ScriptContext_APIs.h">
       <Filter>Header Files</Filter>
     </ClInclude>

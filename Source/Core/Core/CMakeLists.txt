@@ -516,6 +516,7 @@ add_library(core
   Scripting/CoreScriptContextFiles/InternalScriptAPIs/FileUtility_APIs.h
   Scripting/CoreScriptContextFiles/InternalScriptAPIs/FunctionMetadata_APIs.h
   Scripting/CoreScriptContextFiles/InternalScriptAPIs/GCButton_APIs.h
+  Scripting/CoreScriptContextFiles/InternalScriptAPIs/ModuleLists_APIs.h
   Scripting/CoreScriptContextFiles/InternalScriptAPIs/ScriptContext_APIs.h
   Scripting/CoreScriptContextFiles/InternalScriptAPIs/VectorOfArgHolders_APIs.h
   Scripting/EventCallbackRegistrationAPIs/OnFrameStartCallbackAPI.cpp
@@ -548,6 +549,8 @@ add_library(core
   Scripting/HelperClasses/InstructionBreakpointsHolder.h
   Scripting/HelperClasses/MemoryAddressBreakpointsHolder.cpp
   Scripting/HelperClasses/MemoryAddressBreakpointsHolder.h
+  Scripting/HelperClasses/ModuleLists_API_Implementations.cpp
+  Scripting/HelperClasses/ModuleLists_API_Implementations.h
   Scripting/HelperClasses/ScriptContext.cpp
   Scripting/HelperClasses/ScriptContext.h
   Scripting/HelperClasses/VectorOfArgHolders.cpp
