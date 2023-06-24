@@ -263,11 +263,16 @@ void TextureCacheBase::SetBackupConfig(const VideoConfig& config)
 
 bool TextureCacheBase::DidLinkedAssetsChange(const TCacheEntry& entry)
 {
-  if (!entry.linked_asset.m_asset)
-    return false;
+  for (const auto& cached_asset : entry.linked_game_texture_assets)
+  {
+    if (cached_asset.m_asset)
+    {
+      if (cached_asset.m_asset->GetLastLoadedTime() > cached_asset.m_cached_write_time)
+        return true;
+    }
+  }
 
-  const auto last_asset_write_time = entry.linked_asset.m_asset->GetLastLoadedTime();
-  return last_asset_write_time > entry.linked_asset.m_cached_write_time;
+  return false;
 }
 
 RcTcacheEntry TextureCacheBase::ApplyPaletteToEntry(RcTcacheEntry& entry, const u8* palette,
@@ -1590,8 +1595,8 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
     InvalidateTexture(oldest_entry);
   }
 
-  VideoCommon::CachedAsset<VideoCommon::GameTextureAsset> cached_texture_asset;
-  std::shared_ptr<VideoCommon::CustomTextureData> data = nullptr;
+  std::vector<VideoCommon::CachedAsset<VideoCommon::GameTextureAsset>> cached_game_assets;
+  std::vector<std::shared_ptr<VideoCommon::CustomTextureData>> data_for_assets;
   bool has_arbitrary_mipmaps = false;
   std::shared_ptr<HiresTexture> hires_texture;
   if (g_ActiveConfig.bHiresTextures)
@@ -1599,31 +1604,37 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
     hires_texture = HiresTexture::Search(texture_info);
     if (hires_texture)
     {
-      data = hires_texture->GetAsset()->GetData();
-      cached_texture_asset = {hires_texture->GetAsset(),
-                              hires_texture->GetAsset()->GetLastLoadedTime()};
+      auto asset = hires_texture->GetAsset();
+      const auto loaded_time = asset->GetLastLoadedTime();
+      cached_game_assets.push_back(
+          VideoCommon::CachedAsset<VideoCommon::GameTextureAsset>{std::move(asset), loaded_time});
       has_arbitrary_mipmaps = hires_texture->HasArbitraryMipmaps();
-      if (data)
+    }
+  }
+
+  for (auto& cached_asset : cached_game_assets)
+  {
+    auto data = cached_asset.m_asset->GetData();
+    if (data)
+    {
+      if (cached_asset.m_asset->Validate(texture_info.GetRawWidth(), texture_info.GetRawHeight()))
       {
-        if (!hires_texture->GetAsset()->Validate(texture_info.GetRawWidth(),
-                                                 texture_info.GetRawHeight()))
-        {
-          data = nullptr;
-        }
+        data_for_assets.push_back(std::move(data));
       }
     }
   }
 
   auto entry = CreateTextureEntry(
       TextureCreationInfo{base_hash, full_hash, bytes_per_block, palette_size}, texture_info,
-      textureCacheSafetyColorSampleSize, data.get(), has_arbitrary_mipmaps);
-  entry->linked_asset = std::move(cached_texture_asset);
+      textureCacheSafetyColorSampleSize, std::move(data_for_assets), has_arbitrary_mipmaps);
+  entry->linked_game_texture_assets = std::move(cached_game_assets);
   return entry;
 }
 
 RcTcacheEntry TextureCacheBase::CreateTextureEntry(
     const TextureCreationInfo& creation_info, const TextureInfo& texture_info,
-    const int safety_color_sample_size, const VideoCommon::CustomTextureData* custom_texture_data,
+    const int safety_color_sample_size,
+    std::vector<std::shared_ptr<VideoCommon::CustomTextureData>> assets_data,
     const bool custom_arbitrary_mipmaps)
 {
 #ifdef __APPLE__
@@ -1633,20 +1644,33 @@ RcTcacheEntry TextureCacheBase::CreateTextureEntry(
 #endif
 
   RcTcacheEntry entry;
-  if (custom_texture_data && custom_texture_data->m_levels.size() >= 1)
+  if (!assets_data.empty())
   {
-    const u32 texLevels = no_mips ? 1 : (u32)custom_texture_data->m_levels.size();
-    const auto& first_level = custom_texture_data->m_levels[0];
-    const TextureConfig config(first_level.width, first_level.height, texLevels, 1, 1,
-                               first_level.format, 0);
+    const auto calculate_max_levels = [&]() {
+      const auto max_element = std::max_element(
+          assets_data.begin(), assets_data.end(), [](const auto& lhs, const auto& rhs) {
+            return lhs->m_levels.size() < rhs->m_levels.size();
+          });
+      return max_element->get()->m_levels.size();
+    };
+    const u32 texLevels = no_mips ? 1 : (u32)calculate_max_levels();
+    const auto& first_level = assets_data[0]->m_levels[0];
+    const TextureConfig config(first_level.width, first_level.height, texLevels,
+                               static_cast<u32>(assets_data.size()), 1, first_level.format, 0);
     entry = AllocateCacheEntry(config);
     if (!entry) [[unlikely]]
       return entry;
-    for (u32 level_index = 0; level_index != texLevels; ++level_index)
+    for (u32 data_index = 0; data_index < static_cast<u32>(assets_data.size()); data_index++)
     {
-      const auto& level = custom_texture_data->m_levels[level_index];
-      entry->texture->Load(level_index, level.width, level.height, level.row_length,
-                           level.data.data(), level.data.size());
+      const auto asset = assets_data[data_index];
+      for (u32 level_index = 0;
+           level_index < std::min(texLevels, static_cast<u32>(asset->m_levels.size()));
+           ++level_index)
+      {
+        const auto& level = asset->m_levels[level_index];
+        entry->texture->Load(level_index, level.width, level.height, level.row_length,
+                             level.data.data(), level.data.size(), data_index);
+      }
     }
 
     entry->has_arbitrary_mips = custom_arbitrary_mipmaps;
