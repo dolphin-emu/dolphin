@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <charconv>
 #include <cstdarg>
 #include <cstddef>
 #include <cstdlib>
@@ -147,8 +148,24 @@ std::string ValueToString(T value)
 // Generates an hexdump-like representation of a binary data blob.
 std::string HexDump(const u8* data, size_t size);
 
-// TODO: kill this
-bool AsciiToHex(const std::string& _szValue, u32& result);
+namespace Common
+{
+template <typename T, typename std::enable_if_t<std::is_integral_v<T>>* = nullptr>
+std::from_chars_result FromChars(std::string_view sv, T& value, int base = 10)
+{
+  const char* const first = sv.data();
+  const char* const last = first + sv.size();
+  return std::from_chars(first, last, value, base);
+}
+template <typename T, typename std::enable_if_t<std::is_floating_point_v<T>>* = nullptr>
+std::from_chars_result FromChars(std::string_view sv, T& value,
+                                 std::chars_format fmt = std::chars_format::general)
+{
+  const char* const first = sv.data();
+  const char* const last = first + sv.size();
+  return std::from_chars(first, last, value, fmt);
+}
+};  // namespace Common
 
 std::string TabsToSpaces(int tab_size, std::string str);
 
