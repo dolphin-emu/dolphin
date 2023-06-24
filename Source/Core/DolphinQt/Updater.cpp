@@ -70,7 +70,7 @@ void Updater::OnUpdateAvailable(std::string info)
       auto* label = new QLabel(tr("<h2>A new version of Citrus Dolphin is available!</h2><h4>Click Update "
                                   "to begin the update.</h4>"
                                   "<p>Citrus Launcher will open and start updating Citrus Dolphin.</p>"
-                                  "<em>This application will automatically close once the update begins. You will need to re-open Dolphin after the 'Done Updating Citrus Dolphin' text is displayed.</em>"));
+                                  "<em>This application will automatically close once the update begins.</em>"));
       label->setTextFormat(Qt::RichText);
 
       auto* buttons = new QDialogButtonBox;
