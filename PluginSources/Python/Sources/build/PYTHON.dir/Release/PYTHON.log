@@ -1,8 +1,0 @@
-﻿  Building Custom Rule C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/PluginSources/Python/Sources/CMakeLists.txt
-  PythonScriptContext.cpp
-  CreateScript.cpp
-  DolphinDefinedAPIs.cpp
-  PythonInterface.cpp
-C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\PluginSources\Python\Sources\HelperFiles\PythonInterface.cpp(31,6): error C2228: left of '.tp_basicsize' must have class/struct/union
-C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\PluginSources\Python\Sources\HelperFiles\PythonInterface.cpp(31,6): message : type is 'const char [23]'
-  Generating Code...

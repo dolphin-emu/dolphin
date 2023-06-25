@@ -1,3 +1,0 @@
-C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/PluginSources/Python/Sources/build/CMakeFiles/PYTHON.dir
-C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/PluginSources/Python/Sources/build/CMakeFiles/ALL_BUILD.dir
-C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/PluginSources/Python/Sources/build/CMakeFiles/ZERO_CHECK.dir
