@@ -39,4 +39,5 @@ CMakeLists.txt.user
 /.idea/
 # Ignore Visual Studio Code's working dir
 /.vscode/
-/Plugins/Lua/Source/[Bb]uild*/
+/PluginSources/Lua/Sources/[Bb]uild*/
+/PluginSources/Python/Sources/[Bb]uild*/
