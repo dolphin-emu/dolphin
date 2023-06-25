@@ -540,9 +540,9 @@ void* RunFunction_impl(void* base_script_context_ptr, FunctionMetadata* current_
       argHolder_APIs.Delete_ArgHolder(return_value);
       return HandleError(current_function_metadata, true, "Unknown implementation error occured involving registration retun type");
     }
-     temp_void_ptr =  argHolder_APIs.GetVoidPointerFromArgHolder(return_value);
-     temp_u64 = *(reinterpret_cast<unsigned long long*>(&temp_void_ptr));
-     return FreeAndReturn(return_value, PythonInterface::Python_BuildValue("K", &temp_u64));
+    temp_void_ptr = argHolder_APIs.GetVoidPointerFromArgHolder(return_value);
+    temp_u64 = *(reinterpret_cast<unsigned long long*>(&temp_void_ptr));
+    return FreeAndReturn(return_value, PythonInterface::Python_BuildValue("K", &temp_u64));
 
   case ArgTypeEnum::RegistrationWithAutoDeregistrationReturnType:
   case ArgTypeEnum::UnregistrationReturnType:
@@ -577,46 +577,350 @@ void RunGlobalScopeCode_impl(void* base_script_context_ptr)
   return; // Python can only run global code when it starts a script for the 1st time (in StartScript_impl()). Thus, this function does nothing.
 }
 
-void RunOnFrameStartCallbacks_impl(void* x) {}
-void RunOnGCControllerPolledCallbacks_impl(void* x) {}
-void RunOnWiiInputPolledCallbacks_impl(void* x) {}
-void RunButtonCallbacksInQueue_impl(void* x) {}
-void RunOnInstructionReachedCallbacks_impl(void* x, unsigned int y) {}
-void RunOnMemoryAddressReadFromCallbacks_impl(void* s, unsigned int y) {}
-void RunOnMemoryAddressWrittenToCallbacks_impl(void* x, unsigned int y) {}
+void RunCallbacksForVector(void* base_script_context_ptr, PythonScriptContext* python_script, std::vector<PythonScriptContext::IdentifierToCallback>& callback_list)
+{
+  if (!dolphinDefinedScriptContext_APIs.get_is_script_active(base_script_context_ptr))
+    return;
 
+  if (ShouldCallEndScriptFunction(base_script_context_ptr))
+  {
+    dolphinDefinedScriptContext_APIs.Shutdown_Script(base_script_context_ptr);
+    return;
+  }
 
-void* RegisterOnFrameStartCallback_impl(void* x, void* y) {
-  return nullptr;
+  PythonInterface::PythonEval_RestoreThread(python_script->main_python_thread);
+
+  for (unsigned long long i = 0; i < callback_list.size(); ++i)
+  {
+    if (callback_list[i].callback == nullptr)
+      break;
+    PythonInterface::PythonObject_CallFunction(callback_list[i].callback);
+  }
+  RunEndOfIteraionTasks(base_script_context_ptr);
+  PythonInterface::PythonEval_ReleaseThread(python_script->main_python_thread);
 }
-void RegisterOnFrameStartWithAutoDeregistrationCallback_impl(void* x, void* y) {}
-int UnregisterOnFrameStartCallback_impl(void* x, void* y) { return 3; }
 
-void* RegisterOnGCControllerPolledCallback_impl(void* x, void* y) {
-  return nullptr;
+void RunOnFrameStartCallbacks_impl(void* base_script_context_ptr)
+{
+  PythonScriptContext* python_script = GetPythonScriptContext(base_script_context_ptr);
+  RunCallbacksForVector(base_script_context_ptr, python_script, python_script->frame_callbacks);
 }
-void RegisterOnGCControllerPolledWithAutoDeregistrationCallback_impl(void* x, void* y) {}
-int UnregisterOnGCControllerPolledCallback_impl(void* x, void* y) { return 4; }
 
-void* RegisterOnWiiInputPolledCallback_impl(void* x, void* y) { return nullptr; }
-void RegisterOnWiiInputPolledWithAutoDeregistrationCallback_impl(void* x, void* y) {}
-int UnregisterOnWiiInputPolledCallback_impl(void* x, void* y) { return 2; }
+void RunOnGCControllerPolledCallbacks_impl(void* base_script_context_ptr)
+{
+  PythonScriptContext* python_script = GetPythonScriptContext(base_script_context_ptr);
+  RunCallbacksForVector(base_script_context_ptr, python_script, python_script->gc_controller_input_polled_callbacks);
+}
 
-void RegisterButtonCallback_impl(void* x, long long y, void* z) {}
-int IsButtonRegistered_impl(void* x, long long y) { return 2; }
-void GetButtonCallbackAndAddToQueue_impl(void* x, long long y) {}
+void RunOnWiiInputPolledCallbacks_impl(void* base_script_context_ptr)
+{
+  PythonScriptContext* python_script = GetPythonScriptContext(base_script_context_ptr);
+  RunCallbacksForVector(base_script_context_ptr, python_script, python_script->wii_controller_input_polled_callbacks);
+}
 
-void* RegisterOnInstructionReachedCallback_impl(void* x, unsigned int y, void* z) { return nullptr; }
-void RegisterOnInstructioReachedWithAutoDeregistrationCallback_impl(void* x, unsigned int y, void* z) {}
-int UnregisterOnInstructionReachedCallback_impl(void* x, unsigned int y, void* z) { return 2; }
+void RunButtonCallbacksInQueue_impl(void* base_script_context_ptr)
+{
+  PythonScriptContext* python_script = GetPythonScriptContext(base_script_context_ptr);
+  std::vector<PythonScriptContext::IdentifierToCallback> vector_of_callbacks = {};
+  while (!python_script->button_callbacks_to_run.empty())
+  {
+    vector_of_callbacks.push_back(python_script->button_callbacks_to_run.front());
+    python_script->button_callbacks_to_run.pop();
+  }
+  RunCallbacksForVector(base_script_context_ptr, python_script, vector_of_callbacks);
+}
 
-void* RegisterOnMemoryAddressReadFromCallback_impl(void* x, unsigned int y, void* z) { return nullptr; }
-void RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallback_impl(void* x, unsigned int y, void* z) {}
-int UnregisterOnMemoryAddressReadFromCallback_impl(void* x, unsigned int y, void* z) { return 2; }
+void RunCallbacksForMap(void* base_script_context_ptr, PythonScriptContext* python_script, std::unordered_map<unsigned int, std::vector<PythonScriptContext::IdentifierToCallback> >& map_of_callbacks, unsigned int current_int)
+{
+  if (!dolphinDefinedScriptContext_APIs.get_is_script_active(base_script_context_ptr))
+    return;
 
-void* RegisterOnMemoryAddressWrittenToCallback_impl(void* x, unsigned int y, void* z) { return nullptr; }
-void RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallback_impl(void* x, unsigned int y, void* z) {}
-int UnregisterOnMemoryAddressWrittenToCallback_impl(void* x, unsigned int y, void* z) { return 2; }
+  if (ShouldCallEndScriptFunction(base_script_context_ptr))
+  {
+    dolphinDefinedScriptContext_APIs.Shutdown_Script(base_script_context_ptr);
+    return;
+  }
+
+  if (!map_of_callbacks.contains(current_int))
+    return;
+
+  std::vector<PythonScriptContext::IdentifierToCallback> current_vector = map_of_callbacks[current_int];
+  unsigned long long num_callbacks = current_vector.size();
+
+  if (num_callbacks == 0)
+    return;
+
+  PythonInterface::PythonEval_RestoreThread(python_script->main_python_thread);
+
+  for (unsigned long long i = 0; i < num_callbacks; ++i)
+  {
+    if (current_vector[i].callback == nullptr)
+      break;
+    PythonInterface::PythonObject_CallFunction(current_vector[i].callback);
+  }
+  RunEndOfIteraionTasks(base_script_context_ptr);
+  PythonInterface::PythonEval_ReleaseThread(python_script->main_python_thread);
+}
+
+void RunOnInstructionReachedCallbacks_impl(void* base_script_context_ptr, unsigned int addr)
+{
+  PythonScriptContext* python_script = GetPythonScriptContext(base_script_context_ptr);
+  RunCallbacksForMap(base_script_context_ptr, python_script, python_script->map_of_instruction_address_to_python_callbacks, addr);
+}
+
+void RunOnMemoryAddressReadFromCallbacks_impl(void* base_script_context_ptr, unsigned int addr)
+{
+  PythonScriptContext* python_script = GetPythonScriptContext(base_script_context_ptr);
+  RunCallbacksForMap(base_script_context_ptr, python_script, python_script->map_of_memory_address_read_from_to_python_callbacks, addr);
+}
+
+void RunOnMemoryAddressWrittenToCallbacks_impl(void* base_script_context_ptr, unsigned int addr)
+{
+  PythonScriptContext* python_script = GetPythonScriptContext(base_script_context_ptr);
+  RunCallbacksForMap(base_script_context_ptr, python_script, python_script->map_of_memory_address_written_to_to_python_callbacks, addr);
+}
+
+void* RegisterForVectorHelper(PythonScriptContext* python_script, std::vector<PythonScriptContext::IdentifierToCallback>& callback_list, void* callback)
+{
+  size_t return_result = 0;
+  if (callback == nullptr || !PythonInterface::Python_IsCallable(callback))
+  {
+    PythonInterface::Python_SetRunTimeError("Error: Attempted to register a Python object which wasn't callable as a callback function!");
+    return nullptr;
+  }
+  PythonInterface::Python_IncRef(callback);
+  callback_list.push_back({ python_script->next_unique_identifier_for_callback, callback });
+  return_result = python_script->next_unique_identifier_for_callback;
+  python_script->next_unique_identifier_for_callback++;
+  return *((void**)(&return_result));
+}
+
+void RegisterForVectorWithAutoDeregistrationHelper(std::vector<PythonScriptContext::IdentifierToCallback>& callback_list, void* callback, std::atomic<size_t>& number_of_callbacks_to_auto_deregister)
+{
+  if (callback == nullptr || !PythonInterface::Python_IsCallable(callback))
+  {
+    PythonInterface::Python_SetRunTimeError("Error: attempted to register as an auto-deregister function a python object which wasn't callable!");
+    return;
+  }
+  PythonInterface::Python_IncRef(callback);
+  callback_list.push_back({ 0, callback });
+  ++number_of_callbacks_to_auto_deregister;
+}
+
+bool UnregisterForVectorHelper(std::vector<PythonScriptContext::IdentifierToCallback>& callback_list, void* identifier_for_callback)
+{
+  size_t casted_callback_identifier = *((size_t*)&identifier_for_callback);
+  if (casted_callback_identifier == 0)
+  {
+    PythonInterface::Python_SetRunTimeError("Error: Attempted to de-register a callback which was registered with auto-deregistration. These are deleted by the app automatically when there's no more non-auto-deregistered callbacks left to run");
+    return false;
+  }
+  size_t list_size = callback_list.size();
+
+  for (size_t i = 0; i < list_size; ++i)
+  {
+    if (callback_list[i].identifier == casted_callback_identifier)
+    {
+      PythonInterface::Python_DecRef(callback_list[i].callback);
+      callback_list.erase(callback_list.begin() + i);
+      return true;
+    }
+  }
+
+  PythonInterface::Python_SetRunTimeError("Error: Attempted to unregister a function which wasn't currently registered!");
+  return false;
+}
+
+void* RegisterOnFrameStartCallback_impl(void* base_script_context_ptr, void* callback_func)
+{
+  PythonScriptContext* python_script = GetPythonScriptContext(base_script_context_ptr);
+  return RegisterForVectorHelper(python_script, python_script->frame_callbacks, callback_func);
+}
+
+void RegisterOnFrameStartWithAutoDeregistrationCallback_impl(void* base_script_context_ptr, void* callback_func)
+{
+  PythonScriptContext* python_script = GetPythonScriptContext(base_script_context_ptr);
+  RegisterForVectorWithAutoDeregistrationHelper(python_script->frame_callbacks, callback_func, python_script->number_of_frame_callbacks_to_auto_deregister);
+}
+
+int UnregisterOnFrameStartCallback_impl(void* base_script_context_ptr, void* identifier_for_callback)
+{
+  return UnregisterForVectorHelper(GetPythonScriptContext(base_script_context_ptr)->frame_callbacks, identifier_for_callback);
+}
+
+void* RegisterOnGCControllerPolledCallback_impl(void* base_script_context_ptr, void* callback_func)
+{
+  PythonScriptContext* python_script = GetPythonScriptContext(base_script_context_ptr);
+  return RegisterForVectorHelper(python_script, python_script->gc_controller_input_polled_callbacks, callback_func);
+}
+
+void RegisterOnGCControllerPolledWithAutoDeregistrationCallback_impl(void* base_script_context_ptr, void* callback_func)
+{
+  PythonScriptContext* python_script = GetPythonScriptContext(base_script_context_ptr);
+  RegisterForVectorWithAutoDeregistrationHelper(python_script->gc_controller_input_polled_callbacks, callback_func, python_script->number_of_gc_controller_input_callbacks_to_auto_deregister);
+}
+
+int UnregisterOnGCControllerPolledCallback_impl(void* base_script_context_ptr, void* identifier_for_callback)
+{
+  return UnregisterForVectorHelper(GetPythonScriptContext(base_script_context_ptr)->gc_controller_input_polled_callbacks, identifier_for_callback);
+}
+
+void* RegisterOnWiiInputPolledCallback_impl(void* base_script_context_ptr, void* callback_func)
+{
+  PythonScriptContext* python_script = GetPythonScriptContext(base_script_context_ptr);
+  return RegisterForVectorHelper(python_script, python_script->wii_controller_input_polled_callbacks, callback_func);
+}
+
+void RegisterOnWiiInputPolledWithAutoDeregistrationCallback_impl(void* base_script_context_ptr, void* callback_func)
+{
+  PythonScriptContext* python_script = GetPythonScriptContext(base_script_context_ptr);
+  RegisterForVectorWithAutoDeregistrationHelper(python_script->wii_controller_input_polled_callbacks, callback_func, python_script->number_of_wii_input_callbacks_to_auto_deregister);
+}
+
+int UnregisterOnWiiInputPolledCallback_impl(void* base_script_context_ptr, void* identifier_for_callback)
+{
+  return UnregisterForVectorHelper(GetPythonScriptContext(base_script_context_ptr)->wii_controller_input_polled_callbacks, identifier_for_callback);
+}
+
+void RegisterButtonCallback_impl(void* base_script_context_ptr, long long button_id, void* callback)
+{
+  if (callback == nullptr || !PythonInterface::Python_IsCallable(callback))
+  {
+    PythonInterface::Python_SetRunTimeError("Error: Attempted to register a Python object which wasn't callable as a button-clicked callback function!");
+    return;
+  }
+  GetPythonScriptContext(base_script_context_ptr)->map_of_button_id_to_callback[button_id] = { 0, callback };
+}
+
+int IsButtonRegistered_impl(void* base_script_context_ptr, long long button_id)
+{
+  return GetPythonScriptContext(base_script_context_ptr)->map_of_button_id_to_callback.count(button_id) != 0 ? 1 : 0;
+}
+
+void GetButtonCallbackAndAddToQueue_impl(void* base_script_context_ptr, long long button_id)
+{
+  PythonScriptContext* python_script = GetPythonScriptContext(base_script_context_ptr);
+  if (!python_script->map_of_button_id_to_callback.contains(button_id))
+  {
+    PythonInterface::Python_SetRunTimeError("Error: Attempted to get a non-existent button callback");
+    return;
+  }
+  python_script->button_callbacks_to_run.push(python_script->map_of_button_id_to_callback[button_id]);
+}
+
+void* RegisterForMapHelper(PythonScriptContext* python_script, unsigned int addr, std::unordered_map<unsigned int, std::vector<PythonScriptContext::IdentifierToCallback> >& map_of_callbacks, void* callback)
+{
+  size_t return_result = 0;
+  if (callback == nullptr || !PythonInterface::Python_IsCallable(callback))
+  {
+    PythonInterface::Python_SetRunTimeError("Error: Attempted to register a Python object which wasn't callable as a callback function!");
+    return nullptr;
+  }
+
+  if (map_of_callbacks.count(addr) == 0)
+    map_of_callbacks[addr] = std::vector<PythonScriptContext::IdentifierToCallback>();
+  PythonInterface::Python_IncRef(callback);
+  map_of_callbacks[addr].push_back({ python_script->next_unique_identifier_for_callback, callback });
+  return_result = python_script->next_unique_identifier_for_callback;
+  ++python_script->next_unique_identifier_for_callback;
+  return *((void**)(&return_result));
+}
+
+void RegisterForMapWithAutoDeregistrationHelper(unsigned int addr, std::unordered_map<unsigned int, std::vector<PythonScriptContext::IdentifierToCallback> >& map_of_callbacks, void* callback, std::atomic<size_t>& number_of_auto_deregistration_callbacks)
+{
+  if (callback == nullptr || !PythonInterface::Python_IsCallable(callback))
+  {
+    PythonInterface::Python_SetRunTimeError("Error: Attempted to register with auto-deregistration a Python object which wasn't callable as a callback function!");
+    return;
+  }
+  if (map_of_callbacks.count(addr) == 0)
+    map_of_callbacks[addr] = std::vector<PythonScriptContext::IdentifierToCallback>();
+  PythonInterface::Python_IncRef(callback);
+  map_of_callbacks[addr].push_back({ 0, callback });
+  ++number_of_auto_deregistration_callbacks;
+}
+
+bool UnregisterForMapHelper(unsigned int addr, std::unordered_map<unsigned int, std::vector<PythonScriptContext::IdentifierToCallback> >& map_of_callbacks, void* identifier_for_callback)
+{
+  size_t identifier_to_unregister = *((size_t*)(&identifier_for_callback));
+  if (identifier_to_unregister == 0)
+  {
+    PythonInterface::Python_SetRunTimeError("Error: Attempted to unregister a function which was registered with auto-deregistration enabled. These functions are unregistered automatically when the only callbacks still running are auto-deregistered callbacks.");
+    return false;
+  }
+
+  if (map_of_callbacks.count(addr) == 0)
+  {
+    PythonInterface::Python_SetRunTimeError("Error: Attempted to unregister a callback which was not currently registered!");
+    return false;
+  }
+
+  size_t num_callbacks = map_of_callbacks[addr].size();
+
+  for (size_t i = 0; i < num_callbacks; ++i)
+  {
+    if (map_of_callbacks[addr][i].identifier == identifier_to_unregister)
+    {
+      PythonInterface::Python_DecRef(map_of_callbacks[addr][i].callback);
+      map_of_callbacks[addr].erase(map_of_callbacks[addr].begin() + i);
+      return true;
+    }
+  }
+
+  PythonInterface::Python_SetRunTimeError("Error: Attempted to unregister a callback which was not currently registered!");
+  return false;
+}
+
+void* RegisterOnInstructionReachedCallback_impl(void* base_script_context_ptr, unsigned int addr, void* callback)
+{
+  PythonScriptContext* python_script = GetPythonScriptContext(base_script_context_ptr);
+  return RegisterForMapHelper(python_script, addr, python_script->map_of_instruction_address_to_python_callbacks, callback);
+}
+
+void RegisterOnInstructioReachedWithAutoDeregistrationCallback_impl(void* base_script_context_ptr, unsigned int addr, void* callback)
+{
+  PythonScriptContext* python_script = GetPythonScriptContext(base_script_context_ptr);
+  RegisterForMapWithAutoDeregistrationHelper(addr, python_script->map_of_instruction_address_to_python_callbacks, callback, python_script->number_of_instruction_address_callbacks_to_auto_deregister);
+}
+
+int UnregisterOnInstructionReachedCallback_impl(void* base_script_context_ptr, unsigned int addr, void* identifier_for_callback)
+{
+  return UnregisterForMapHelper(addr, GetPythonScriptContext(base_script_context_ptr)->map_of_instruction_address_to_python_callbacks, identifier_for_callback);
+}
+
+void* RegisterOnMemoryAddressReadFromCallback_impl(void* base_script_context_ptr, unsigned int addr, void* callback)
+{
+  PythonScriptContext* python_script = GetPythonScriptContext(base_script_context_ptr);
+  return RegisterForMapHelper(python_script, addr, python_script->map_of_memory_address_read_from_to_python_callbacks, callback);
+}
+
+void RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallback_impl(void* base_script_context_ptr, unsigned int addr, void* callback)
+{
+  PythonScriptContext* python_script = GetPythonScriptContext(base_script_context_ptr);
+  RegisterForMapWithAutoDeregistrationHelper(addr, python_script->map_of_memory_address_read_from_to_python_callbacks, callback, python_script->number_of_memory_address_read_callbacks_to_auto_deregister);
+}
+
+int UnregisterOnMemoryAddressReadFromCallback_impl(void* base_script_context_ptr, unsigned int addr, void* identifier_for_callback)
+{
+  return UnregisterForMapHelper(addr, GetPythonScriptContext(base_script_context_ptr)->map_of_memory_address_read_from_to_python_callbacks, identifier_for_callback);
+}
+
+void* RegisterOnMemoryAddressWrittenToCallback_impl(void* base_script_context_ptr, unsigned int addr, void* callback)
+{
+  PythonScriptContext* python_script = GetPythonScriptContext(base_script_context_ptr);
+  return RegisterForMapHelper(python_script, addr, python_script->map_of_memory_address_written_to_to_python_callbacks, callback);
+}
+
+void RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallback_impl(void* base_script_context_ptr, unsigned int addr, void* callback)
+{
+  PythonScriptContext* python_script = GetPythonScriptContext(base_script_context_ptr);
+  RegisterForMapWithAutoDeregistrationHelper(addr, python_script->map_of_memory_address_written_to_to_python_callbacks, callback, python_script->number_of_memory_address_write_callbacks_to_auto_deregister);
+}
+
+int UnregisterOnMemoryAddressWrittenToCallback_impl(void* base_script_context_ptr, unsigned int addr, void* identifier_for_callback)
+{
+  return UnregisterForMapHelper(addr, GetPythonScriptContext(base_script_context_ptr)->map_of_memory_address_written_to_to_python_callbacks, identifier_for_callback);
+}
 
 void DLLClassMetadataCopyHook_impl(void* base_script_context_ptr, void* class_metadata_ptr)
 {

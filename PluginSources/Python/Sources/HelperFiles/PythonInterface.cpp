@@ -261,6 +261,11 @@ namespace PythonInterface
     PyImport_ImportModule(redirect_output_module_name);
   }
 
+  bool Python_IsCallable(void* raw_py_obj)
+  {
+    return PyCallable_Check(castToPyObject(raw_py_obj));
+  }
+
   void* PythonObject_CallFunction(void* raw_py_obj)
   {
     PyObject* casted_py_obj = castToPyObject(raw_py_obj);

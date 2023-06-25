@@ -695,20 +695,9 @@ void ImportModule_impl(void* base_script_ptr, const char* api_name, const char* 
   lua_setglobal(current_lua_thread, api_name);
 }
 
-void callScriptEndFunction(void* base_script_context_ptr)
-{
-  dolphinDefinedScriptContext_APIs.get_script_end_callback_function(base_script_context_ptr)(base_script_context_ptr, dolphinDefinedScriptContext_APIs.get_unique_script_identifier(base_script_context_ptr));
-}
-
 void callPrintFunction(void* base_script_context_ptr, const char* string_to_print)
 {
   dolphinDefinedScriptContext_APIs.get_print_callback_function(base_script_context_ptr)(base_script_context_ptr, string_to_print);
-}
-
-void start_script_shutdown(void* base_script_context_ptr)
-{
-  dolphinDefinedScriptContext_APIs.set_is_script_active(base_script_context_ptr, 0);
-  callScriptEndFunction(base_script_context_ptr);
 }
 
 LuaScriptContext* getLuaScriptContext(void* base_script_context_ptr)
@@ -733,7 +722,7 @@ void StartScript_impl(void* base_script_context_ptr)
     {
       dolphinDefinedScriptContext_APIs.set_is_finished_with_global_code(base_script_context_ptr, 1);
       if (ShouldCallEndScriptFunction(lua_script_ptr))
-        start_script_shutdown(base_script_context_ptr);
+        dolphinDefinedScriptContext_APIs.Shutdown_Script(base_script_context_ptr);
     }
     else
     {
@@ -742,7 +731,7 @@ void StartScript_impl(void* base_script_context_ptr)
         const char* error_msg = lua_tostring(lua_script_ptr->main_lua_thread, -1);
         callPrintFunction(base_script_context_ptr, error_msg);
       }
-      start_script_shutdown(base_script_context_ptr);
+      dolphinDefinedScriptContext_APIs.Shutdown_Script(base_script_context_ptr);
     }
   }
 }
@@ -756,7 +745,7 @@ void RunGlobalScopeCode_impl(void* base_script_context_ptr)
 
   if (ShouldCallEndScriptFunction(lua_script_ptr))
   {
-    start_script_shutdown(base_script_context_ptr);
+    dolphinDefinedScriptContext_APIs.Shutdown_Script(base_script_context_ptr);
     return;
   }
 
@@ -775,7 +764,7 @@ void RunGlobalScopeCode_impl(void* base_script_context_ptr)
     {
       const char* error_msg = lua_tostring(lua_script_ptr->main_lua_thread, -1);
       callPrintFunction(base_script_context_ptr, error_msg);
-      start_script_shutdown(base_script_context_ptr);
+      dolphinDefinedScriptContext_APIs.Shutdown_Script(base_script_context_ptr);
     }
   }
 }
@@ -816,7 +805,7 @@ void GenericRunCallbacksHelperFunction(void* base_script_context_ptr, lua_State*
       {
         const char* error_msg = lua_tostring(current_lua_state, -1);
         callPrintFunction(base_script_context_ptr, error_msg);
-        start_script_shutdown(base_script_context_ptr);
+        dolphinDefinedScriptContext_APIs.Shutdown_Script(base_script_context_ptr);
         return;
       }
     }
@@ -830,7 +819,7 @@ void RunOnFrameStartCallbacks_impl(void* base_script_context_ptr)
   LuaScriptContext* lua_script_ptr = getLuaScriptContext(base_script_context_ptr);
   if (ShouldCallEndScriptFunction(lua_script_ptr))
   {
-    start_script_shutdown(base_script_context_ptr);
+    dolphinDefinedScriptContext_APIs.Shutdown_Script(base_script_context_ptr);
     return;
   }
 
@@ -844,7 +833,7 @@ void RunOnGCControllerPolledCallbacks_impl(void* base_script_context_ptr)
   LuaScriptContext* lua_script_ptr = getLuaScriptContext(base_script_context_ptr);
   if (ShouldCallEndScriptFunction(lua_script_ptr))
   {
-    start_script_shutdown(base_script_context_ptr);
+    dolphinDefinedScriptContext_APIs.Shutdown_Script(base_script_context_ptr);
     return;
   }
 
@@ -859,7 +848,7 @@ void RunOnWiiInputPolledCallbacks_impl(void* base_script_context_ptr)
   LuaScriptContext* lua_script_ptr = getLuaScriptContext(base_script_context_ptr);
   if (ShouldCallEndScriptFunction(lua_script_ptr))
   {
-    start_script_shutdown(base_script_context_ptr);
+    dolphinDefinedScriptContext_APIs.Shutdown_Script(base_script_context_ptr);
     return;
   }
 
@@ -874,7 +863,7 @@ void RunButtonCallbacksInQueue_impl(void* base_script_context_ptr)
   LuaScriptContext* lua_script_ptr = getLuaScriptContext(base_script_context_ptr);
   if (ShouldCallEndScriptFunction(lua_script_ptr))
   {
-    start_script_shutdown(base_script_context_ptr);
+    dolphinDefinedScriptContext_APIs.Shutdown_Script(base_script_context_ptr);
     return;
   }
   int next_callback = 0;
@@ -895,7 +884,7 @@ void RunOnInstructionReachedCallbacks_impl(void* base_script_context_ptr, unsign
   LuaScriptContext* lua_script_ptr = getLuaScriptContext(base_script_context_ptr);
   if (ShouldCallEndScriptFunction(lua_script_ptr))
   {
-    start_script_shutdown(base_script_context_ptr);
+    dolphinDefinedScriptContext_APIs.Shutdown_Script(base_script_context_ptr);
     return;
   }
 
@@ -912,7 +901,7 @@ void RunOnMemoryAddressReadFromCallbacks_impl(void* base_script_context_ptr, uns
   LuaScriptContext* lua_script_ptr = getLuaScriptContext(base_script_context_ptr);
   if (ShouldCallEndScriptFunction(lua_script_ptr))
   {
-    start_script_shutdown(base_script_context_ptr);
+    dolphinDefinedScriptContext_APIs.Shutdown_Script(base_script_context_ptr);
     return;
   }
 
@@ -929,7 +918,7 @@ void RunOnMemoryAddressWrittenToCallbacks_impl(void* base_script_context_ptr, un
   LuaScriptContext* lua_script_ptr = getLuaScriptContext(base_script_context_ptr);
   if (ShouldCallEndScriptFunction(lua_script_ptr))
   {
-    start_script_shutdown(base_script_context_ptr);
+    dolphinDefinedScriptContext_APIs.Shutdown_Script(base_script_context_ptr);
     return;
   }
 

@@ -42,6 +42,7 @@ extern  "C" {
     void AppendArgumentsToPath(const char*, const char*);
     void RedirectStdOutAndStdErr();
 
+    bool Python_IsCallable(void*);
     void* PythonObject_CallFunction(void*);
 
     bool PythonObject_IsTrue(void*);
