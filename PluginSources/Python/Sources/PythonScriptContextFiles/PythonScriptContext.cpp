@@ -128,7 +128,7 @@ void ImportModule_impl(void* base_script_context_ptr, const char* api_name, cons
   PythonInterface::RunImportCommand(api_name);
 }
 
-void* RunFunction_impl(FunctionMetadata* current_function_metadata, void* self_raw, void* args_raw)
+void* RunFunction_impl(PythonScriptContext* python_script, FunctionMetadata* current_function_metadata, void* self_raw, void* args_raw)
 {
   return self_raw;
 }

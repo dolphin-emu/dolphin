@@ -17,7 +17,7 @@ extern  "C" {
     void* GetPyTrueObject();
     void* GetPyFalseObject();
     void* Python_BuildValue(const char*, void*);
-    void* Python_RunString(const char*);
+    void Python_RunString(const char*);
     void Python_RunFile(const char*);
     void Python_SetRunTimeError(const char*);
     bool Python_ErrOccured();

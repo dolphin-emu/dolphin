@@ -14,7 +14,9 @@ namespace PythonInterface
   static PyObject* RunFunction(PyObject* self, PyObject* args)
   {
     FunctionMetadata* current_function_metadata = reinterpret_cast<FunctionMetadata*>(PyCapsule_GetPointer(self, function_metadata_capsule_name));
-    return reinterpret_cast<PyObject*>(RunFunction_impl(current_function_metadata, reinterpret_cast<void*>(self), reinterpret_cast<void*>(args)));
+    PythonScriptContext* python_script = reinterpret_cast<PythonScriptContext*>(*((unsigned long long*)PyModule_GetState(PyImport_ImportModule(THIS_MODULE_NAME))));
+
+    return reinterpret_cast<PyObject*>(RunFunction_impl(python_script, current_function_metadata, reinterpret_cast<void*>(self), reinterpret_cast<void*>(args)));
   }
 
   void Python_IncRef(void* x) {
@@ -25,9 +27,9 @@ namespace PythonInterface
   void* GetPyFalseObject() { return nullptr; }
   void* Python_BuildValue(const char* x, void* y) { return nullptr; }
 
-  void* Python_RunString(const char* string_to_run)
+  void Python_RunString(const char* string_to_run)
   {
-    return Python_RunString(string_to_run);
+    PyRun_SimpleString(string_to_run);
   }
 
   void Python_RunFile(const char* file_name)
@@ -66,7 +68,7 @@ namespace PythonInterface
   PyModuleDef ThisModuleDef = {
     PyModuleDef_HEAD_INIT, THIS_MODULE_NAME,
     nullptr,
-    sizeof(unsigned long long),
+    sizeof(unsigned long long*),
     nullptr };
 
   PyMODINIT_FUNC internal_this_mod_create_func()
