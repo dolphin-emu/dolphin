@@ -75,13 +75,10 @@ void* Init_LuaScriptContext_impl(void* new_base_script_context_ptr)
   void (*ImportModuleFuncPtr)(void*, const char*, const char*) = ((DLL_Defined_ScriptContext_APIs*)dolphinDefinedScriptContext_APIs.get_dll_defined_script_context_apis(new_lua_script_context_ptr->base_script_context_ptr))->ImportModule;
   const char* most_recent_script_version = dolphinDefinedScriptContext_APIs.get_script_version();
 
-  ImportModuleFuncPtr(new_lua_script_context_ptr->base_script_context_ptr, "dolphin", most_recent_script_version);
-  ImportModuleFuncPtr(new_lua_script_context_ptr->base_script_context_ptr, "OnFrameStart", most_recent_script_version);
-  ImportModuleFuncPtr(new_lua_script_context_ptr->base_script_context_ptr, "OnGCControllerPolled", most_recent_script_version);
-  ImportModuleFuncPtr(new_lua_script_context_ptr->base_script_context_ptr, "OnInstructionHit", most_recent_script_version);
-  ImportModuleFuncPtr(new_lua_script_context_ptr->base_script_context_ptr, "OnMemoryAddressReadFrom", most_recent_script_version);
-  ImportModuleFuncPtr(new_lua_script_context_ptr->base_script_context_ptr, "OnMemoryAddressWrittenTo", most_recent_script_version);
-  ImportModuleFuncPtr(new_lua_script_context_ptr->base_script_context_ptr, "OnWiiInputPolled", most_recent_script_version);
+  const void* default_modules = moduleLists_APIs.GetListOfDefaultModules();
+  unsigned long long number_of_default_modules = moduleLists_APIs.GetSizeOfList(default_modules);
+  for (unsigned long long i = 0; i < number_of_default_modules; ++i)
+    ImportModuleFuncPtr(new_lua_script_context_ptr->base_script_context_ptr, moduleLists_APIs.GetElementAtListIndex(default_modules, i), most_recent_script_version);
 
   new_lua_script_context_ptr->frame_callback_lua_thread = lua_newthread(new_lua_script_context_ptr->main_lua_thread);
   new_lua_script_context_ptr->instruction_address_hit_callback_lua_thread = lua_newthread(new_lua_script_context_ptr->main_lua_thread);

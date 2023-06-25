@@ -1,0 +1,7 @@
+﻿  Building Custom Rule C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/PluginSources/Lua/Sources/CMakeLists.txt
+  LuaScriptContext.cpp
+  CreateScript.cpp
+  DolphinDefinedAPIs.cpp
+  Generating Code...
+     Creating library C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/PluginSources/Lua/Sources/build/Debug/LUA.lib and object C:/Users/skyle/OneDrive/Desktop/lobsterZeldaDolphin/PluginSources/Lua/Sources/build/Debug/LUA.exp
+  LUA.vcxproj -> C:\Users\skyle\OneDrive\Desktop\lobsterZeldaDolphin\Data\Sys\ScriptingPlugins\Lua\LUA.dll
