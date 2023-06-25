@@ -14,9 +14,28 @@ extern "C" {
 
   struct PythonScriptContext
   {
-    PythonScriptContext() {
-      base_script_context_ptr = nullptr;
+    PythonScriptContext(void* new_base_script_context_ptr) {
+      base_script_context_ptr = new_base_script_context_ptr;
       main_python_thread = nullptr;
+      button_callbacks_to_run = std::queue<IdentifierToCallback>();
+      frame_callbacks = std::vector<IdentifierToCallback>();
+      gc_controller_input_polled_callbacks = std::vector<IdentifierToCallback>();
+      wii_controller_input_polled_callbacks = std::vector<IdentifierToCallback>();
+      map_of_instruction_address_to_python_callbacks = std::unordered_map<unsigned int, std::vector<IdentifierToCallback> >();
+      map_of_memory_address_read_from_to_python_callbacks = std::unordered_map<unsigned int, std::vector<IdentifierToCallback> >();
+      map_of_memory_address_written_to_to_python_callbacks = std::unordered_map<unsigned int, std::vector<IdentifierToCallback> >();
+      map_of_button_id_to_callback = std::unordered_map<long long, IdentifierToCallback>();
+      number_of_frame_callbacks_to_auto_deregister = 0;
+      number_of_gc_controller_input_callbacks_to_auto_deregister = 0;
+      number_of_instruction_address_callbacks_to_auto_deregister = 0;
+      number_of_memory_address_read_callbacks_to_auto_deregister = 0;
+      number_of_memory_address_write_callbacks_to_auto_deregister = 0;
+      number_of_wii_input_callbacks_to_auto_deregister = 0;
+      next_unique_identifier_for_callback = 1;
+      class_metadata_buffer = ClassMetadata();
+      single_function_metadata_buffer = FunctionMetadata();
+      classes_to_delete = {};
+      py_method_defs_to_delete = {};
     }
 
     void* base_script_context_ptr;
@@ -63,13 +82,14 @@ extern "C" {
 
     ClassMetadata class_metadata_buffer;
     FunctionMetadata single_function_metadata_buffer; // Unused - but allows for FunctionMetadatas to be run, if the DLLFunctionMetadataCopyHook_impl() is ever used
+
+    std::vector<ClassMetadata*> classes_to_delete;
+    std::vector<void*> py_method_defs_to_delete;
   };
 
   void* Init_PythonScriptContext_impl(void* new_base_script_context_ptr); // Creates + returns a new PythonScriptContext object, with all fields properly initialized from the base ScriptContext* passed into the function
-  void Destroy_PythonScriptContext_impl(void* base_script_context_ptr); // Takes as input a ScriptContext*, and frees the memory associated with it.
-  int CustomPrintFunction();
-  bool ShouldCallEndScriptFunction();
-
+  void Destroy_PythonScriptContext_impl(void* base_script_context_ptr); // Takes as input a ScriptContext*, and frees the associated PythonScriptContext*
+  bool ShouldCallEndScriptFunction(void*);
 
   // See the declarations in the DLL_Defined_ScriptContext_APIs struct in the ScriptContext_APIs.h file for documentation on what these functions do.
   // Note that each of these functions takes as input for its 1st parameter an opaque void* handle to a ScriptContext* (in order to be callable from the Dolphin side).
@@ -77,8 +97,9 @@ extern "C" {
 
   void ImportModule_impl(void*, const char*, const char*);
 
-  void StartScript_impl(void*);
+  void* RunFunction_impl(FunctionMetadata*, void*, void*);
 
+  void StartScript_impl(void*);
   void RunGlobalScopeCode_impl(void*);
   void RunOnFrameStartCallbacks_impl(void*);
   void RunOnGCControllerPolledCallbacks_impl(void*);
