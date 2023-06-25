@@ -97,7 +97,7 @@ extern "C" {
 
   void ImportModule_impl(void*, const char*, const char*);
 
-  void* RunFunction_impl(PythonScriptContext*, FunctionMetadata*, void*, void*);
+  void* RunFunction_impl(void*, FunctionMetadata*, void*, void*);
 
   void StartScript_impl(void*);
   void RunGlobalScopeCode_impl(void*);

@@ -4,10 +4,25 @@
 
 
 void* original_python_thread = nullptr;
+static std::vector<int> digital_buttons_list = std::vector<int>();
+static std::vector<int> analog_buttons_list = std::vector<int>();
 
 // Creates + returns a new PythonScriptContext object, with all fields properly initialized from the base ScriptContext* passed into the function.
 void* Init_PythonScriptContext_impl(void* new_base_script_context_ptr)
 {
+  if (digital_buttons_list.empty())
+  {
+    int raw_button_enum = 0;
+    do
+    {
+      if (gcButton_APIs.IsDigitalButton(raw_button_enum))
+        digital_buttons_list.push_back(raw_button_enum);
+      else if (gcButton_APIs.IsAnalogButton(raw_button_enum))
+        analog_buttons_list.push_back(raw_button_enum);
+      raw_button_enum++;
+    } while (gcButton_APIs.IsValidButtonEnum(raw_button_enum));
+  }
+
   PythonScriptContext* new_python_script = new PythonScriptContext(new_base_script_context_ptr);
   if (original_python_thread == nullptr) // This means it's our first time initializing the Python runtime.
   {
@@ -30,7 +45,7 @@ void* Init_PythonScriptContext_impl(void* new_base_script_context_ptr)
     PythonInterface::PythonEval_RestoreThread(original_python_thread);
 
   new_python_script->main_python_thread = PythonInterface::Python_NewInterpreter();
-  PythonInterface::SetThisModule(new_python_script);
+  PythonInterface::SetThisModule(new_python_script->base_script_context_ptr);
 
   const void* default_module_names = moduleLists_APIs.GetListOfDefaultModules();
   unsigned long long number_of_default_modules = moduleLists_APIs.GetSizeOfList(default_module_names);
@@ -103,11 +118,11 @@ bool ShouldCallEndScriptFunction(void* base_script_context_ptr)
   if (dolphinDefinedScriptContext_APIs.get_is_finished_with_global_code(base_script_context_ptr) &&
     (current_script->frame_callbacks.size() == 0 || (current_script->frame_callbacks.size() - current_script->number_of_frame_callbacks_to_auto_deregister <= 0)) &&
     (current_script->gc_controller_input_polled_callbacks.size() == 0 || (current_script->gc_controller_input_polled_callbacks.size() - current_script->number_of_gc_controller_input_callbacks_to_auto_deregister <= 0)) &&
-    (current_script->wii_controller_input_polled_callbacks.size() == 0 || (current_script->wii_controller_input_polled_callbacks.size() - current_script->number_of_wii_input_callbacks_to_auto_deregister <=0)) &&
+    (current_script->wii_controller_input_polled_callbacks.size() == 0 || (current_script->wii_controller_input_polled_callbacks.size() - current_script->number_of_wii_input_callbacks_to_auto_deregister <= 0)) &&
     (current_script->map_of_instruction_address_to_python_callbacks.size() == 0 || (getNumberOfCallbacksInMap(current_script->map_of_instruction_address_to_python_callbacks) - current_script->number_of_instruction_address_callbacks_to_auto_deregister <= 0)) &&
     (current_script->map_of_memory_address_read_from_to_python_callbacks.size() == 0 || (getNumberOfCallbacksInMap(current_script->map_of_memory_address_read_from_to_python_callbacks) - current_script->number_of_memory_address_read_callbacks_to_auto_deregister <= 0)) &&
     (current_script->map_of_memory_address_written_to_to_python_callbacks.size() == 0 || (getNumberOfCallbacksInMap(current_script->map_of_memory_address_written_to_to_python_callbacks) - current_script->number_of_memory_address_write_callbacks_to_auto_deregister <= 0)) &&
-     current_script->button_callbacks_to_run.empty())
+    current_script->button_callbacks_to_run.empty())
     return true;
   return false;
 }
@@ -128,9 +143,382 @@ void ImportModule_impl(void* base_script_context_ptr, const char* api_name, cons
   PythonInterface::RunImportCommand(api_name);
 }
 
-void* RunFunction_impl(PythonScriptContext* python_script, FunctionMetadata* current_function_metadata, void* self_raw, void* args_raw)
+void* HandleError(FunctionMetadata* function_metadata, bool include_example, const std::string& base_error_msg)
 {
-  return self_raw;
+  std::string error_msg = "";
+
+  if (include_example)
+    error_msg = std::string("Error: In ") + function_metadata->module_name + "." + function_metadata->function_name + "() function, " + base_error_msg + ". The method should be called like this: " + function_metadata->module_name + "." + function_metadata->example_function_call;
+  else
+    error_msg = std::string("Error: In ") + function_metadata->module_name + "." + function_metadata->function_name + "() function, " + base_error_msg;
+
+  PythonInterface::Python_SetRunTimeError(error_msg.c_str());
+  return nullptr;
+}
+
+void* FreeAndReturn(void* arg_holder, void* ret_val)
+{
+  argHolder_APIs.Delete_ArgHolder(arg_holder);
+  return ret_val;
+}
+
+void* RunFunction_impl(void* base_script_context_ptr, FunctionMetadata* current_function_metadata, void* self_raw, void* args_raw)
+{
+  const char* module_version = PythonInterface::GetModuleVersion(current_function_metadata->module_name.c_str());
+  if (module_version[0] == '\0' || module_version[0] == '0')
+  {
+    PythonInterface::Python_SetRunTimeError((std::string("Error: ") + current_function_metadata->module_name + " was used without being imported! Please import the method like this: " + moduleLists_APIs.GetImportModuleName() + ".importModule(\"" + current_function_metadata->function_name + "\", \"1.0\")").c_str());
+    return nullptr;
+  }
+
+  unsigned long long actual_number_of_arguments = PythonInterface::PythonTuple_GetSize(args_raw);
+  unsigned long long expected_number_of_arguments = current_function_metadata->arguments_list.size();
+
+  if (actual_number_of_arguments != expected_number_of_arguments)
+  {
+    return HandleError(current_function_metadata, true, std::string("expected ") + std::to_string(expected_number_of_arguments) + " arguments, but got " + std::to_string(actual_number_of_arguments) + "instead");
+  }
+
+  void* vector_of_args = vectorOfArgHolder_APIs.CreateNewVectorOfArgHolders();
+  void* next_arg_holder = nullptr;
+  signed long long dict_index = 0;
+  void* key_ref = nullptr;
+  void* value_ref = nullptr;
+  signed long long key_s64 = 0;
+  signed long long value_s64 = 0;
+  const char* button_name = "";
+  bool digital_button_value = false;
+  unsigned long long analog_button_value = 0;
+  int button_name_as_enum = 0;
+  unsigned long long container_size = 0;
+  void* return_value = nullptr;
+  std::string error_msg = "";
+
+  unsigned long long temp_u64 = 0;
+  signed long long temp_s64 = 0;
+  float temp_float = 0.0f;
+  double temp_double = 0.0f;
+  const char* temp_const_char_ptr = "";
+  void* return_dict = nullptr;
+  void* base_iterator_ptr = nullptr;
+  void* travel_iterator_ptr = nullptr;
+  void* temp_void_ptr = nullptr;
+
+  for (unsigned long long argument_index = 0; argument_index < expected_number_of_arguments; ++argument_index)
+  {
+    void* current_py_obj = PythonInterface::PythonTuple_GetItem(args_raw, argument_index);
+
+    switch (current_function_metadata->arguments_list[argument_index])
+    {
+    case ArgTypeEnum::Boolean:
+      next_arg_holder = argHolder_APIs.CreateBoolArgHolder(PythonInterface::PythonObject_IsTrue(current_py_obj) ? 1 : 0);
+      break;
+    case ArgTypeEnum::U8:
+      next_arg_holder = argHolder_APIs.CreateU8ArgHolder(PythonInterface::PythonLongObj_AsU64(current_py_obj));
+      break;
+    case ArgTypeEnum::U16:
+      next_arg_holder = argHolder_APIs.CreateU16ArgHolder(PythonInterface::PythonLongObj_AsU64(current_py_obj));
+      break;
+    case ArgTypeEnum::U32:
+      next_arg_holder = argHolder_APIs.CreateU32ArgHolder(PythonInterface::PythonLongObj_AsU64(current_py_obj));
+      break;
+    case ArgTypeEnum::U64:
+      next_arg_holder = argHolder_APIs.CreateU64ArgHolder(PythonInterface::PythonLongObj_AsU64(current_py_obj));
+      break;
+    case ArgTypeEnum::S8:
+      next_arg_holder = argHolder_APIs.CreateS8ArgHolder(PythonInterface::PythonLongObj_AsS64(current_py_obj));
+      break;
+    case ArgTypeEnum::S16:
+      next_arg_holder = argHolder_APIs.CreateS16ArgHolder(PythonInterface::PythonLongObj_AsS64(current_py_obj));
+      break;
+    case ArgTypeEnum::S32:
+      next_arg_holder = argHolder_APIs.CreateS32ArgHolder(PythonInterface::PythonLongObj_AsS64(current_py_obj));
+      break;
+    case ArgTypeEnum::S64:
+      next_arg_holder = argHolder_APIs.CreateS64ArgHolder(PythonInterface::PythonLongObj_AsS64(current_py_obj));
+      break;
+    case ArgTypeEnum::Float:
+      next_arg_holder = argHolder_APIs.CreateFloatArgHolder(PythonInterface::PythonFloatObj_AsDouble(current_py_obj));
+      break;
+    case ArgTypeEnum::Double:
+      next_arg_holder = argHolder_APIs.CreateDoubleArgHolder(PythonInterface::PythonFloatObj_AsDouble(current_py_obj));
+      break;
+    case ArgTypeEnum::String:
+      next_arg_holder = argHolder_APIs.CreateStringArgHolder(PythonInterface::PythonUnicodeObj_AsString(current_py_obj));
+      break;
+    case ArgTypeEnum::AddressToByteMap:
+      dict_index = 0;
+      key_ref = PythonInterface::ResetAndGetRef_ToPyKey();
+      value_ref = PythonInterface::ResetAndGetRef_ToPyVal();
+      next_arg_holder = argHolder_APIs.CreateAddressToByteMapArgHolder();
+      while (PythonInterface::PythonDict_Next(current_py_obj, &dict_index, &key_ref, &value_ref))
+      {
+        key_s64 = PythonInterface::PythonLongObj_AsS64(key_ref);
+        value_s64 = PythonInterface::PythonLongObj_AsS64(value_ref);
+
+        if (key_s64 < 0)
+        {
+          vectorOfArgHolder_APIs.Delete_VectorOfArgHolders(vector_of_args);
+          argHolder_APIs.Delete_ArgHolder(next_arg_holder);
+          return HandleError(current_function_metadata, true, "Key in address-to-byte map was less than 0!");
+        }
+        else if (value_s64 < -128)
+        {
+          vectorOfArgHolder_APIs.Delete_VectorOfArgHolders(vector_of_args);
+          argHolder_APIs.Delete_ArgHolder(next_arg_holder);
+          return HandleError(current_function_metadata, true, "Value in address-to-byte map was less than -128, which can't be represented in 1 byte!");
+        }
+        else if (value_s64 > 255)
+        {
+          vectorOfArgHolder_APIs.Delete_VectorOfArgHolders(vector_of_args);
+          argHolder_APIs.Delete_ArgHolder(next_arg_holder);
+          return HandleError(current_function_metadata, true, "Value in address-to-byte map was greater than 255, which can't be represented in 1 byte!");
+        }
+        else
+        {
+          argHolder_APIs.AddPairToAddressToByteMapArgHolder(next_arg_holder, key_s64, value_s64);
+        }
+      }
+      break;
+
+    case ArgTypeEnum::ControllerStateObject:
+      next_arg_holder = argHolder_APIs.CreateControllerStateArgHolder();
+      dict_index = 0;
+      key_ref = PythonInterface::ResetAndGetRef_ToPyKey();
+      value_ref = PythonInterface::ResetAndGetRef_ToPyVal();
+      while (PythonInterface::PythonDict_Next(current_py_obj, &dict_index, &key_ref, &value_ref))
+      {
+        button_name = PythonInterface::PythonUnicodeObj_AsString(key_ref);
+        if (button_name == nullptr || button_name[0] == '\0')
+        {
+          vectorOfArgHolder_APIs.Delete_VectorOfArgHolders(vector_of_args);
+          argHolder_APIs.Delete_ArgHolder(next_arg_holder);
+          return HandleError(current_function_metadata, true, "Attempted to pass invalid button name into function.");
+        }
+        button_name_as_enum = gcButton_APIs.ParseGCButton(button_name);
+        if (!gcButton_APIs.IsValidButtonEnum(button_name_as_enum))
+        {
+          vectorOfArgHolder_APIs.Delete_VectorOfArgHolders(vector_of_args);
+          argHolder_APIs.Delete_ArgHolder(next_arg_holder);
+          return HandleError(current_function_metadata, true, "Invalid GameCube controller button name passed into function.");
+        }
+
+        if (gcButton_APIs.IsDigitalButton(button_name_as_enum))
+        {
+          digital_button_value = PythonInterface::PythonObject_IsTrue(value_ref);
+          argHolder_APIs.SetControllerStateArgHolderValue(next_arg_holder, button_name_as_enum, digital_button_value);
+        }
+        else if (gcButton_APIs.IsAnalogButton(button_name_as_enum))
+        {
+          analog_button_value = PythonInterface::PythonLongObj_AsU64(value_ref);
+          if (analog_button_value > 255)
+          {
+            vectorOfArgHolder_APIs.Delete_VectorOfArgHolders(vector_of_args);
+            argHolder_APIs.Delete_ArgHolder(next_arg_holder);
+            return HandleError(current_function_metadata, true, "Analog button value was outside the valid range of 0-255");
+          }
+          argHolder_APIs.SetControllerStateArgHolderValue(next_arg_holder, button_name_as_enum, analog_button_value);
+        }
+        else
+        {
+          vectorOfArgHolder_APIs.Delete_VectorOfArgHolders(vector_of_args);
+          argHolder_APIs.Delete_ArgHolder(next_arg_holder);
+          return HandleError(current_function_metadata, true, "Invalid GameCube controller button name passed into function");
+        }
+      }
+      break;
+
+    case ArgTypeEnum::ListOfPoints:
+      next_arg_holder = argHolder_APIs.CreateListOfPointsArgHolder();
+      container_size = PythonInterface::PythonList_Size(current_py_obj);
+      for (unsigned long long i = 0; i < container_size; ++i)
+      {
+        float x = 0.0f;
+        float y = 0.0f;
+        void* next_item_in_list = PythonInterface::PythonList_GetItem(current_py_obj, i);
+        if (PythonInterface::PythonList_Check(next_item_in_list)) // case where the next item was a list of points.
+        {
+          if (PythonInterface::PythonList_Size(next_item_in_list) != 2)
+          {
+            vectorOfArgHolder_APIs.Delete_VectorOfArgHolders(vector_of_args);
+            argHolder_APIs.Delete_ArgHolder(next_arg_holder);
+            return HandleError(current_function_metadata, true, "List of points contained a list which did NOT have exactly 2 points in it.");
+          }
+          x = PythonInterface::PythonFloatObj_AsDouble(PythonInterface::PythonList_GetItem(next_item_in_list, 0));
+          y = PythonInterface::PythonFloatObj_AsDouble(PythonInterface::PythonList_GetItem(next_item_in_list, 1));
+          argHolder_APIs.ListOfPointsArgHolderPushBack(next_arg_holder, x, y);
+        }
+        else if (PythonInterface::PythonTuple_Check(next_item_in_list)) // case where next item was a tuple of points.
+        {
+          if (PythonInterface::PythonTuple_GetSize(next_item_in_list) != 2)
+          {
+            vectorOfArgHolder_APIs.Delete_VectorOfArgHolders(vector_of_args);
+            argHolder_APIs.Delete_ArgHolder(next_arg_holder);
+            return HandleError(current_function_metadata, true, "List of points contained a tuple which did NOT have exactly 2 points in it.");
+          }
+          x = PythonInterface::PythonFloatObj_AsDouble(PythonInterface::PythonTuple_GetItem(next_item_in_list, 0));
+          y = PythonInterface::PythonFloatObj_AsDouble(PythonInterface::PythonTuple_GetItem(next_item_in_list, 1));
+          argHolder_APIs.ListOfPointsArgHolderPushBack(next_arg_holder, x, y);
+        }
+        else
+        {
+          vectorOfArgHolder_APIs.Delete_VectorOfArgHolders(vector_of_args);
+          argHolder_APIs.Delete_ArgHolder(next_arg_holder);
+          return HandleError(current_function_metadata, true, "List of points contained an item which wasn't a tuple or list! List should have a format like [ [43.2, 45.2], [12.2, 41.8] ] or [ (43.2, 45.2), (12.2, 41.8) ]");
+        }
+      }
+      break;
+
+    case ArgTypeEnum::RegistrationForButtonCallbackInputType:
+      next_arg_holder = argHolder_APIs.CreateRegistrationForButtonCallbackInputTypeArgHolder(&current_py_obj);
+      break;
+
+    case ArgTypeEnum::RegistrationInputType:
+      next_arg_holder = argHolder_APIs.CreateRegistrationInputTypeArgHolder(&current_py_obj);
+      break;
+
+    case ArgTypeEnum::RegistrationWithAutoDeregistrationInputType:
+      next_arg_holder = argHolder_APIs.CreateRegistrationWithAutoDeregistrationInputTypeArgHolder(&current_py_obj);
+      break;
+
+    case ArgTypeEnum::UnregistrationInputType:
+      next_arg_holder = argHolder_APIs.CreateUnregistrationInputTypeArgHolder((void*)PythonInterface::PythonLongObj_AsU64(current_py_obj));
+      break;
+
+    default:
+      vectorOfArgHolder_APIs.Delete_VectorOfArgHolders(vector_of_args);
+      return HandleError(current_function_metadata, true, "Function parameter type not supported yet for Python");
+    }
+    vectorOfArgHolder_APIs.PushBack(vector_of_args, next_arg_holder);
+  }
+
+  return_value = functionMetadata_APIs.RunFunction(current_function_metadata->function_pointer, base_script_context_ptr, vector_of_args);
+  vectorOfArgHolder_APIs.Delete_VectorOfArgHolders(vector_of_args);
+
+  if (return_value == nullptr)
+  {
+    return HandleError(current_function_metadata, true, "An unknown implementation error occured. Return value of functionw as NULL!");
+  }
+
+  if (argHolder_APIs.GetIsEmpty(return_value))
+  {
+    return FreeAndReturn(return_value, PythonInterface::GetNoneObject());
+  }
+
+  switch (((ArgTypeEnum)argHolder_APIs.GetArgType(return_value)))
+  {
+  case ArgTypeEnum::ErrorStringType:
+    error_msg = std::string(argHolder_APIs.GetErrorStringFromArgHolder(return_value));
+    argHolder_APIs.Delete_ArgHolder(return_value);
+    return HandleError(current_function_metadata, true, error_msg.c_str());
+
+  case ArgTypeEnum::VoidType:
+    return FreeAndReturn(return_value, PythonInterface::GetNoneObject());
+
+  case ArgTypeEnum::YieldType:
+    argHolder_APIs.Delete_ArgHolder(return_value);
+    return HandleError(current_function_metadata, false, "This is a yielding function, which can't be called in Python!");
+
+  case ArgTypeEnum::Boolean:
+    return FreeAndReturn(return_value, argHolder_APIs.GetBoolFromArgHolder(return_value) ? PythonInterface::GetPyTrueObject : PythonInterface::GetPyFalseObject());
+
+  case ArgTypeEnum::U8:
+    temp_u64 = argHolder_APIs.GetU8FromArgHolder(return_value);
+    return FreeAndReturn(return_value, PythonInterface::Python_BuildValue("K", &temp_u64));
+
+  case ArgTypeEnum::U16:
+    temp_u64 = argHolder_APIs.GetU16FromArgHolder(return_value);
+    return FreeAndReturn(return_value, PythonInterface::Python_BuildValue("K", &temp_u64));
+
+  case ArgTypeEnum::U32:
+    temp_u64 = argHolder_APIs.GetU32FromArgHolder(return_value);
+    return FreeAndReturn(return_value, PythonInterface::Python_BuildValue("K", &temp_u64));
+
+  case ArgTypeEnum::U64:
+    temp_u64 = argHolder_APIs.GetU64FromArgHolder(return_value);
+    return FreeAndReturn(return_value, PythonInterface::Python_BuildValue("K", &temp_u64));
+
+  case ArgTypeEnum::S8:
+    temp_s64 = argHolder_APIs.GetS8FromArgHolder(return_value);
+    return FreeAndReturn(return_value, PythonInterface::Python_BuildValue("L", &temp_s64));
+
+  case ArgTypeEnum::S16:
+    temp_s64 = argHolder_APIs.GetS16FromArgHolder(return_value);
+    return FreeAndReturn(return_value, PythonInterface::Python_BuildValue("L", &temp_s64));
+
+  case ArgTypeEnum::S32:
+    temp_s64 = argHolder_APIs.GetS32FromArgHolder(return_value);
+    return FreeAndReturn(return_value, PythonInterface::Python_BuildValue("L", &temp_s64));
+
+  case ArgTypeEnum::S64:
+    temp_s64 = argHolder_APIs.GetS64FromArgHolder(return_value);
+    return FreeAndReturn(return_value, PythonInterface::Python_BuildValue("L", &temp_s64));
+
+  case ArgTypeEnum::Float:
+    temp_float = argHolder_APIs.GetFloatFromArgHolder(return_value);
+    return FreeAndReturn(return_value, PythonInterface::Python_BuildValue("f", &temp_float));
+
+  case ArgTypeEnum::Double:
+    temp_double = argHolder_APIs.GetDoubleFromArgHolder(return_value);
+    return FreeAndReturn(return_value, PythonInterface::Python_BuildValue("d", &temp_double));
+
+  case ArgTypeEnum::String:
+    temp_const_char_ptr = argHolder_APIs.GetStringFromArgHolder(return_value);
+    return FreeAndReturn(return_value, PythonInterface::Python_BuildValue("s", &temp_const_char_ptr));
+
+  case ArgTypeEnum::AddressToByteMap:
+    return_dict = PythonInterface::PythonDictionary_New();
+    travel_iterator_ptr = base_iterator_ptr = argHolder_APIs.CreateIteratorForAddressToByteMapArgHolder(return_value);
+    while (travel_iterator_ptr != nullptr)
+    {
+      key_s64 = argHolder_APIs.GetKeyForAddressToByteMapArgHolder(travel_iterator_ptr);
+      value_s64 = argHolder_APIs.GetValueForAddressToUnsignedByteMapArgHolder(travel_iterator_ptr);
+
+      PythonInterface::PythonDictionary_SetItem(return_dict, PythonInterface::S64_ToPythonLongObj(key_s64), PythonInterface::S64_ToPythonLongObj(value_s64));
+      travel_iterator_ptr = argHolder_APIs.IncrementIteratorForAddressToByteMapArgHolder(travel_iterator_ptr, return_value);
+    }
+    argHolder_APIs.Delete_IteratorForAddressToByteMapArgHolder(base_iterator_ptr);
+    return FreeAndReturn(return_value, return_dict);
+
+  case ArgTypeEnum::ControllerStateObject:
+    return_dict = PythonInterface::PythonDictionary_New();
+    for (int next_button : digital_buttons_list)
+    {
+      const char* button_name = gcButton_APIs.ConvertButtonEnumToString(next_button);
+      bool button_value = argHolder_APIs.GetControllerStateArgHolderValue(return_value, next_button);
+      PythonInterface::PythonDictionary_SetItem(return_dict, PythonInterface::StringTo_PythonUnicodeObj(button_name), button_value ? PythonInterface::GetPyTrueObject() : PythonInterface::GetPyFalseObject());
+    }
+    for (int next_button : analog_buttons_list)
+    {
+      const char* button_name = gcButton_APIs.ConvertButtonEnumToString(next_button);
+      unsigned long long button_value = argHolder_APIs.GetControllerStateArgHolderValue(return_value, next_button);
+      PythonInterface::PythonDictionary_SetItem(return_dict, PythonInterface::StringTo_PythonUnicodeObj(button_name), PythonInterface::U64_ToPythonLongObj(button_value));
+    }
+    return FreeAndReturn(return_value, return_dict);
+
+  case ArgTypeEnum::RegistrationReturnType:
+    if (PythonInterface::Python_ErrOccured())
+    {
+      argHolder_APIs.Delete_ArgHolder(return_value);
+      return HandleError(current_function_metadata, true, "Unknown implementation error occured involving registration retun type");
+    }
+     temp_void_ptr =  argHolder_APIs.GetVoidPointerFromArgHolder(return_value);
+     temp_u64 = *(reinterpret_cast<unsigned long long*>(&temp_void_ptr));
+     return FreeAndReturn(return_value, PythonInterface::Python_BuildValue("K", &temp_u64));
+
+  case ArgTypeEnum::RegistrationWithAutoDeregistrationReturnType:
+  case ArgTypeEnum::UnregistrationReturnType:
+    return FreeAndReturn(return_value, PythonInterface::GetNoneObject());
+
+  case ArgTypeEnum::ShutdownType:
+    argHolder_APIs.Delete_ArgHolder(return_value);
+    dolphinDefinedScriptContext_APIs.Shutdown_Script(base_script_context_ptr);
+    return PythonInterface::GetNoneObject();
+
+  default:
+    argHolder_APIs.Delete_ArgHolder(return_value);
+    return HandleError(current_function_metadata, true, "Unsupported return type encountered in python function (this type has not been implemented as a return type yet.");
+  }
 }
 
 void StartScript_impl(void* base_script_context_ptr)
@@ -210,7 +598,7 @@ void DLLClassMetadataCopyHook_impl(void* base_script_context_ptr, void* class_me
     std::vector<ArgTypeEnum> argument_type_list = std::vector<ArgTypeEnum>();
     for (unsigned long long arg_index = 0; arg_index < num_args; ++arg_index)
       argument_type_list.push_back((ArgTypeEnum)functionMetadata_APIs.GetTypeOfArgumentAtIndex(function_metadata_ptr, arg_index));
-    current_function = FunctionMetadata(function_name.c_str(), function_version.c_str(), example_function_call.c_str(), wrapped_function_ptr, return_type, argument_type_list);
+    current_function = FunctionMetadata(class_name.c_str(), function_name.c_str(), function_version.c_str(), example_function_call.c_str(), wrapped_function_ptr, return_type, argument_type_list);
     functions_list.push_back(current_function);
   }
 

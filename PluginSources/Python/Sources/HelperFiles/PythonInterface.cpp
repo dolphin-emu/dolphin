@@ -8,24 +8,59 @@
 namespace PythonInterface
 {
   const char* function_metadata_capsule_name = "functionMetadataCapsule";
-  const char* THIS_MODULE_NAME = "ThisModuleNamesdbkhcjs";
+  const char* THIS_MODULE_NAME = "ThisBaseScriptModuleNamesdbkhcjs";
   static const char* redirect_output_module_name = "RedirectStdOut";
+
+  PyObject* castToPyObject(void* input)
+  {
+    return reinterpret_cast<PyObject*>(input);
+  }
+
+  void* castToVoidPtr(PyObject* input)
+  {
+    return reinterpret_cast<void*>(input);
+  }
 
   static PyObject* RunFunction(PyObject* self, PyObject* args)
   {
     FunctionMetadata* current_function_metadata = reinterpret_cast<FunctionMetadata*>(PyCapsule_GetPointer(self, function_metadata_capsule_name));
-    PythonScriptContext* python_script = reinterpret_cast<PythonScriptContext*>(*((unsigned long long*)PyModule_GetState(PyImport_ImportModule(THIS_MODULE_NAME))));
+    void* base_script_context_ptr = reinterpret_cast<void*>(*((unsigned long long*)PyModule_GetState(PyImport_ImportModule(THIS_MODULE_NAME))));
 
-    return reinterpret_cast<PyObject*>(RunFunction_impl(python_script, current_function_metadata, reinterpret_cast<void*>(self), reinterpret_cast<void*>(args)));
+    return castToPyObject(RunFunction_impl(base_script_context_ptr, current_function_metadata, castToVoidPtr(self), castToVoidPtr(args)));
   }
 
-  void Python_IncRef(void* x) {
+  void Python_IncRef(void* raw_py_obj)
+  {
+    Py_INCREF(castToPyObject(raw_py_obj));   
   }
-  void Python_DecRef(void* x) {}
-  void* GetNoneObject(void* x) { return nullptr; }
-  void* GetPyTrueObject() { return nullptr; }
-  void* GetPyFalseObject() { return nullptr; }
-  void* Python_BuildValue(const char* x, void* y) { return nullptr; }
+
+  void Python_DecRef(void* raw_py_obj)
+  {
+    Py_DECREF(castToPyObject(raw_py_obj));
+  }
+
+  void* GetNoneObject() { Py_RETURN_NONE; }
+  void* GetPyTrueObject() { Py_RETURN_TRUE; }
+  void* GetPyFalseObject() { Py_RETURN_FALSE; }
+
+  void* Python_BuildValue(const char* format_string, void* ptr_to_val)
+  {
+    switch (format_string[0])
+    {
+    case 'K':
+      return castToVoidPtr(Py_BuildValue("K", *(reinterpret_cast<unsigned long long*>(ptr_to_val))));
+    case 'L':
+      return castToVoidPtr(Py_BuildValue("L", *(reinterpret_cast<signed long long*>(ptr_to_val))));
+    case 'f':
+      return castToVoidPtr(Py_BuildValue("f", *(reinterpret_cast<float*>(ptr_to_val))));
+    case 'd':
+      return castToVoidPtr(Py_BuildValue("d", *(reinterpret_cast<double*>(ptr_to_val))));
+    case 's':
+      return castToVoidPtr(Py_BuildValue("s", *(reinterpret_cast<const char**>(ptr_to_val))));
+    default:
+      return nullptr;
+    }
+  }
 
   void Python_RunString(const char* string_to_run)
   {
@@ -39,8 +74,12 @@ namespace PythonInterface
     fclose(fp);
   }
 
-  void Python_SetRunTimeError(const char* x) {}
-  bool Python_ErrOccured() { return true; }
+  void Python_SetRunTimeError(const char* error_msg)
+  {
+    PyErr_SetString(PyExc_RuntimeError, error_msg);
+  }
+
+  bool Python_ErrOccured() { return PyErr_Occurred(); }
   void Python_Initialize()
   {
     Py_Initialize();
@@ -81,7 +120,7 @@ namespace PythonInterface
     PyImport_AppendInittab(THIS_MODULE_NAME, internal_this_mod_create_func);
   }
 
-  bool SetThisModule(void* python_script_context)
+  bool SetThisModule(void* base_script_context_ptr)
   {
     PyObject* this_module = PyImport_ImportModule(THIS_MODULE_NAME);
     if (this_module == nullptr)
@@ -90,7 +129,7 @@ namespace PythonInterface
     if (this_module_state == nullptr)
       return false;
 
-    *(reinterpret_cast<unsigned long long*>(this_module_state)) = reinterpret_cast<unsigned long long>(python_script_context);
+    *(reinterpret_cast<unsigned long long*>(this_module_state)) = reinterpret_cast<unsigned long long>(base_script_context_ptr);
     return true;
   }
 
@@ -98,7 +137,7 @@ namespace PythonInterface
     PyModuleDef_HEAD_INIT,
     "genericModuleName",
     "genericDocumentationString",
-    sizeof(std::string),
+    sizeof(std::string*),
     nullptr
   };
 
@@ -175,6 +214,11 @@ namespace PythonInterface
     method_defs_to_delete->clear();
   }
 
+  const char* GetModuleVersion(const char* module_name)
+  {
+    return (*((std::string*)PyModule_GetState(PyImport_ImportModule(module_name)))).c_str();
+  }
+
   bool RunImportCommand(const char* module_name)
   {
     PyRun_SimpleString((std::string("import ") + module_name).c_str());
@@ -194,22 +238,122 @@ namespace PythonInterface
     PyImport_ImportModule(redirect_output_module_name);
   }
 
-  void* PythonObject_CallFunction(void* x) { return nullptr; }
+  void* PythonObject_CallFunction(void* raw_py_obj)
+  {
+    PyObject* casted_py_obj = castToPyObject(raw_py_obj);
+    Py_INCREF(casted_py_obj);
+    PyObject* return_value = PyObject_CallFunction(casted_py_obj, nullptr);
+    Py_DECREF(casted_py_obj);
+    return castToVoidPtr(return_value);
+  }
 
-  bool PythonObject_IsTrue(void* x) { return true; }
-  int PythonTuple_GetSize(void* x) { return 0; }
-  void* PythonTuple_GetItem(void* x, unsigned long long y) { return nullptr; }
-  unsigned long long PythonLongObj_AsU64(void* x) { return 8; }
-  signed long long PythonLongObj_AsS64(void* x) { return 4; }
-  double PythonFloatObj_AsDouble(void* x) { return 3; }
-  const char* PythonUnicodeObj_AsString(void* x) { return ""; }
-  void* PythonDictionary_New() { return nullptr; }
-  void PythonDictionary_SetItem(void* x, signed long long y, signed long long z) {}
-  bool PythonDict_Next(void* x, unsigned long long y, void* z, void* u) { return true; }
-  unsigned long long PythonList_Size(void* x) { return 3; }
-  void* PythonList_GetItem(void* x, unsigned long long y) { return nullptr; }
-  bool PythonList_Check(void* x) { return true; }
-  bool PythonTuple_Check(void* x) { return true; }
-  void* StringTo_PythonUnicodeObj(const char* x) { return nullptr; }
-  bool PythonBooleanObj_FromLong(long long x) { return true; }
+  bool PythonObject_IsTrue(void* py_obj_raw)
+  {
+    return Py_IsTrue(castToPyObject(py_obj_raw));
+  }
+
+  unsigned long long PythonTuple_GetSize(void* raw_python_tuple)
+  {
+    return PyTuple_GET_SIZE(castToPyObject(raw_python_tuple));
+  }
+
+  void* PythonTuple_GetItem(void* raw_python_tuple, unsigned long long index)
+  {
+    return reinterpret_cast<void*>(PyTuple_GetItem(castToPyObject(raw_python_tuple), index));
+  }
+
+  bool PythonTuple_Check(void* raw_python_arg)
+  {
+    return PyTuple_Check(castToPyObject(raw_python_arg));
+  }
+
+  unsigned long long PythonLongObj_AsU64(void* raw_python_obj)
+  {
+    return PyLong_AsUnsignedLong(castToPyObject(raw_python_obj));
+  }
+
+  signed long long PythonLongObj_AsS64(void* raw_python_obj)
+  {
+    return PyLong_AsLongLong(castToPyObject(raw_python_obj));
+  }
+
+  void* S64_ToPythonLongObj(signed long long input_s64)
+  {
+    return castToVoidPtr(PyLong_FromLongLong(input_s64));
+  }
+
+  void* U64_ToPythonLongObj(unsigned long long input_u64)
+  {
+    return castToVoidPtr(PyLong_FromUnsignedLongLong(input_u64));
+  }
+
+  double PythonFloatObj_AsDouble(void* raw_python_obj)
+  {
+    return PyFloat_AsDouble(castToPyObject(raw_python_obj));
+  }
+
+  const char* PythonUnicodeObj_AsString(void* raw_python_obj)
+  {
+    return PyUnicode_AsUTF8(castToPyObject(raw_python_obj));
+  }
+
+  void* PythonDictionary_New()
+  {
+    return castToVoidPtr(PyDict_New());
+  }
+
+  void PythonDictionary_SetItem(void* raw_dict_obj, void* raw_key_obj, void* raw_val_obj)
+  {
+    PyDict_SetItem(castToPyObject(raw_dict_obj), castToPyObject(raw_key_obj), castToPyObject(raw_val_obj));
+  }
+
+  PyObject* key = nullptr;
+  PyObject* value = nullptr;
+
+  void* ResetAndGetRef_ToPyKey()
+  {
+    key = nullptr;
+    return castToVoidPtr(key);
+  }
+
+  void* ResetAndGetRef_ToPyVal()
+  {
+    value = nullptr;
+    return castToVoidPtr(value);
+  }
+
+  // Since everything in Python has a global lock, that means that only one python function can be executing at a time.
+  // Also, functions cannot be interrupted by another thread/script once they've started, which means it's safe
+  // to have a static value for the key and value that get passed into this function (via the above 2 functions)
+  bool PythonDict_Next(void* raw_dict_obj, signed long long* ptr_to_index, void** raw_key_ptr_ptr, void** raw_value_ptr_ptr)
+  {
+    PyObject** casted_key = reinterpret_cast<PyObject**>(raw_key_ptr_ptr);
+    PyObject** casted_value = reinterpret_cast<PyObject**>(raw_value_ptr_ptr);
+    return PyDict_Next(castToPyObject(raw_dict_obj), ptr_to_index, casted_key, casted_value);
+  }
+
+  unsigned long long PythonList_Size(void* raw_py_obj)
+  {
+    return PyList_Size(castToPyObject(raw_py_obj));
+  }
+
+  void* PythonList_GetItem(void* raw_py_list, unsigned long long index)
+  {
+    return castToVoidPtr(PyList_GetItem(castToPyObject(raw_py_list), index));
+  }
+
+  bool PythonList_Check(void* raw_py_obj)
+  {
+    return PyList_Check(castToPyObject(raw_py_obj));
+  }
+
+  void* StringTo_PythonUnicodeObj(const char* input_str)
+  {
+    return castToVoidPtr(PyUnicode_FromString(input_str));
+  }
+
+  void* PythonBooleanObj_FromLong(long long input_long_long)
+  {
+    return PyBool_FromLong(input_long_long);
+  }
 }
