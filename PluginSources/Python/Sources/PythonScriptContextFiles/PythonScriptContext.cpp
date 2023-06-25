@@ -85,6 +85,27 @@ PythonScriptContext* GetPythonScriptContext(void* base_script_context_ptr)
   return reinterpret_cast<PythonScriptContext*>(dolphinDefinedScriptContext_APIs.get_derived_script_context_class_ptr(base_script_context_ptr));
 }
 
+void unref_vector(std::vector<PythonScriptContext::IdentifierToCallback>& input_vector)
+{
+  for (auto& identifier_callback_pair : input_vector)
+    PythonInterface::Python_DecRef(identifier_callback_pair.callback);
+  input_vector.clear();
+}
+
+void unref_map(std::unordered_map<unsigned int, std::vector<PythonScriptContext::IdentifierToCallback>>& input_map)
+{
+  for (auto& addr_input_vector_pair : input_map)
+    unref_vector(addr_input_vector_pair.second);
+  input_map.clear();
+}
+
+void unref_map(std::unordered_map<long long, PythonScriptContext::IdentifierToCallback>& input_map)
+{
+  for (auto& identifier_callback_pair : input_map)
+    PythonInterface::Python_DecRef(identifier_callback_pair.second.callback);
+  input_map.clear();
+}
+
 void Destroy_PythonScriptContext_impl(void* base_script_context_ptr) // Takes as input a ScriptContext*, and frees the associated PythonScriptContext*
 {
   PythonScriptContext* current_script = GetPythonScriptContext(base_script_context_ptr);
@@ -93,12 +114,29 @@ void Destroy_PythonScriptContext_impl(void* base_script_context_ptr) // Takes as
     delete ((ClassMetadata*)current_script->classes_to_delete[i]);
   current_script->classes_to_delete.clear();
   PythonInterface::DeleteMethodDefsVector(&(current_script->py_method_defs_to_delete));
+
+  unref_vector(current_script->frame_callbacks);
+  unref_vector(current_script->gc_controller_input_polled_callbacks);
+  unref_vector(current_script->wii_controller_input_polled_callbacks);
+  unref_map(current_script->map_of_instruction_address_to_python_callbacks);
+  unref_map(current_script->map_of_memory_address_read_from_to_python_callbacks);
+  unref_map(current_script->map_of_memory_address_written_to_to_python_callbacks);
+  unref_map(current_script->map_of_button_id_to_callback);
+
   delete current_script;
 }
 
 void RunEndOfIteraionTasks(void* base_script_context_ptr)
 {
+  if (PythonInterface::Python_ErrOccured())
+  {
+    PythonInterface::Python_CallPyErrPrintEx();
+  }
 
+  PythonInterface::Python_SendOutputToCallbackLocationAndClear(base_script_context_ptr, dolphinDefinedScriptContext_APIs.get_print_callback_function(base_script_context_ptr));
+
+  if (ShouldCallEndScriptFunction(base_script_context_ptr))
+    dolphinDefinedScriptContext_APIs.Shutdown_Script(base_script_context_ptr);
 }
 
 int getNumberOfCallbacksInMap(std::unordered_map<unsigned int, std::vector<PythonScriptContext::IdentifierToCallback>>& input_map)
@@ -605,4 +643,19 @@ void DLLClassMetadataCopyHook_impl(void* base_script_context_ptr, void* class_me
   ((PythonScriptContext*)dolphinDefinedScriptContext_APIs.get_derived_script_context_class_ptr(base_script_context_ptr))->class_metadata_buffer = ClassMetadata(class_name, functions_list);
 }
 
-void DLLFunctionMetadataCopyHook_impl(void* x, void* y) {}
+// This function is unused, but it's implemented in case we ever want to get a single FunctionMetadata* for a specific function
+void DLLFunctionMetadataCopyHook_impl(void* base_script_context_ptr, void* function_metadata_ptr)
+{
+  PythonScriptContext* python_script = GetPythonScriptContext(base_script_context_ptr);
+  python_script->single_function_metadata_buffer.module_name = std::string("");
+  python_script->single_function_metadata_buffer.function_name = std::string(functionMetadata_APIs.GetFunctionName(function_metadata_ptr));
+  python_script->single_function_metadata_buffer.function_version = std::string(functionMetadata_APIs.GetFunctionVersion(function_metadata_ptr));
+  python_script->single_function_metadata_buffer.return_type = (ArgTypeEnum)functionMetadata_APIs.GetReturnType(function_metadata_ptr);
+  python_script->single_function_metadata_buffer.example_function_call = std::string(functionMetadata_APIs.GetExampleFunctionCall(function_metadata_ptr));
+  python_script->single_function_metadata_buffer.function_pointer = functionMetadata_APIs.GetFunctionPointer(function_metadata_ptr);
+  std::vector<ArgTypeEnum> new_argument_list = {};
+  unsigned long long num_args = functionMetadata_APIs.GetNumberOfArguments(function_metadata_ptr);
+  for (unsigned long long arg_index = 0; arg_index < num_args; ++arg_index)
+    new_argument_list.push_back((ArgTypeEnum)functionMetadata_APIs.GetTypeOfArgumentAtIndex(function_metadata_ptr, arg_index));
+  python_script->single_function_metadata_buffer.arguments_list = new_argument_list;
+}

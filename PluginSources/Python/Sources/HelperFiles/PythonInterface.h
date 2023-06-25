@@ -21,6 +21,8 @@ extern  "C" {
     void Python_RunFile(const char*);
     void Python_SetRunTimeError(const char*);
     bool Python_ErrOccured();
+    void Python_CallPyErrPrintEx();
+    void Python_SendOutputToCallbackLocationAndClear(void*, void (*print_callback)(void*, const char*));
     void Python_Initialize();
     void* PythonThreadState_Get();
     void PythonEval_RestoreThread(void*);

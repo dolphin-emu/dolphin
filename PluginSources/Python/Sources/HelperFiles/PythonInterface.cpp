@@ -79,7 +79,30 @@ namespace PythonInterface
     PyErr_SetString(PyExc_RuntimeError, error_msg);
   }
 
-  bool Python_ErrOccured() { return PyErr_Occurred(); }
+  bool Python_ErrOccured()
+  {
+    return PyErr_Occurred();
+  }
+
+  void Python_CallPyErrPrintEx()
+  {
+    PyErr_PrintEx(1);
+  }
+
+  void Python_SendOutputToCallbackLocationAndClear(void* base_script_context_ptr, void (*print_callback)(void*, const char*))
+  {
+    PyObject* pModule = PyImport_ImportModule(redirect_output_module_name);
+    PyObject* catcher = PyObject_GetAttrString(pModule, "catchOutErr");  // get our catchOutErr created above
+    PyObject* output = PyObject_GetAttrString(catcher, "value");
+
+    const char* output_msg = PyUnicode_AsUTF8(output);
+    if (output_msg != nullptr && !std::string(output_msg).empty())
+      print_callback(base_script_context_ptr, output_msg);
+
+    PyObject* clear_method = PyObject_GetAttrString(catcher, "clear");
+    PyObject_CallFunction(clear_method, nullptr);
+  }
+
   void Python_Initialize()
   {
     Py_Initialize();
