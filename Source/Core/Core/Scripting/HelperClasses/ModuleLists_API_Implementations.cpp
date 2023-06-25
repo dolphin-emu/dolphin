@@ -18,6 +18,8 @@ const std::vector<const char*> non_default_modules = {
     "GraphicsAPI",  "InstructionStepAPI", "MemoryAPI", "RegistersAPI",
     "StatisticsAPI"};
 
+const char* import_module_name = "dolphin";
+
 const void* GetListOfDefaultModules_impl()
 {
   return reinterpret_cast<const void*>(&default_modules);
@@ -36,5 +38,9 @@ unsigned long long GetSizeOfList_impl(const void* input_list)
 const char* GetElementAtListIndex_impl(const void* input_list, unsigned long long index)
 {
   return reinterpret_cast<const std::vector<const char*>*>(input_list)->at(index);
+}
+const char* GetImportModuleName_impl()
+{
+  return import_module_name;
 }
 }  // namespace Scripting

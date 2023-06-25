@@ -216,6 +216,7 @@ static void Initialize_GCButton_APIs()
 static void Initialize_ModuleLists_APIs()
 {
   moduleLists_apis.GetElementAtListIndex = GetElementAtListIndex_impl;
+  moduleLists_apis.GetImportModuleName = GetImportModuleName_impl;
   moduleLists_apis.GetListOfDefaultModules = GetListOfDefaultModules_impl;
   moduleLists_apis.GetListOfNonDefaultModules = GetListOfNonDefaultModules_impl;
   moduleLists_apis.GetSizeOfList = GetSizeOfList_impl;

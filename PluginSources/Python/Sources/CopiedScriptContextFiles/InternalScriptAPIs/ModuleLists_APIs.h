@@ -24,6 +24,9 @@ typedef struct ModuleLists_APIs
   // struct, and returns the const char* at the specified index in the list (numbered starting from
   // 0)
   const char* (*GetElementAtListIndex)(const void*, unsigned long long);
+
+  // Returns the name of the module which contains the "import" and "importModule" functions.
+  const char* (*GetImportModuleName)();
 } ModuleLists_APIs;
 
 #ifdef __cplusplus
