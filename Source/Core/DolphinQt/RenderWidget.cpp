@@ -70,9 +70,7 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
   // (which results in them not getting called)
   connect(this, &RenderWidget::StateChanged, Host::GetInstance(), &Host::SetRenderFullscreen,
           Qt::DirectConnection);
-  connect(this, &RenderWidget::HandleChanged, this, &RenderWidget::OnHandleChanged,
-          Qt::DirectConnection);
-  connect(this, &RenderWidget::SizeChanged, Host::GetInstance(), &Host::ResizeSurface,
+  connect(this, &RenderWidget::WindowChanged, Host::GetInstance(), &Host::SetRenderWindowInfo,
           Qt::DirectConnection);
   connect(this, &RenderWidget::FocusChanged, Host::GetInstance(), &Host::SetRenderFocus,
           Qt::DirectConnection);
@@ -132,20 +130,6 @@ void RenderWidget::dropEvent(QDropEvent* event)
   }
 
   State::LoadAs(Core::System::GetInstance(), path.toStdString());
-}
-
-void RenderWidget::OnHandleChanged(void* handle)
-{
-  if (handle)
-  {
-#ifdef _WIN32
-    // Remove rounded corners from the render window on Windows 11
-    const DWM_WINDOW_CORNER_PREFERENCE corner_preference = DWMWCP_DONOTROUND;
-    DwmSetWindowAttribute(reinterpret_cast<HWND>(handle), DWMWA_WINDOW_CORNER_PREFERENCE,
-                          &corner_preference, sizeof(corner_preference));
-#endif
-  }
-  Host::GetInstance()->SetRenderHandle(handle);
 }
 
 void RenderWidget::OnHideCursorChanged()
@@ -216,7 +200,7 @@ void RenderWidget::showFullScreen()
 
   const auto dpr = screen->devicePixelRatio();
 
-  emit SizeChanged(width() * dpr, height() * dpr);
+  emit WindowChanged(nullptr, width() * dpr, height() * dpr, dpr);
 }
 
 // Lock the cursor within the window/widget internal borders, including the aspect ratio if wanted
@@ -402,9 +386,6 @@ bool RenderWidget::event(QEvent* event)
       m_mouse_timer->start(MOUSE_HIDE_DELAY);
     }
     break;
-  case QEvent::WinIdChange:
-    emit HandleChanged(reinterpret_cast<void*>(winId()));
-    break;
   case QEvent::Show:
     // Don't do if "stay on top" changed (or was true)
     if (Settings::Instance().GetLockCursor() &&
@@ -469,27 +450,37 @@ bool RenderWidget::event(QEvent* event)
 
   // According to https://bugreports.qt.io/browse/QTBUG-95925 the recommended practice for
   // handling DPI change is responding to paint events
+  case QEvent::WinIdChange:
   case QEvent::Paint:
   case QEvent::Resize:
   {
-    SetCursorLocked(m_cursor_locked);
+    void* handle = nullptr;
+    if (event->type() == QEvent::WinIdChange)
+    {
+      handle = reinterpret_cast<void*>(winId());
+#ifdef _WIN32
+      // Remove rounded corners from the render window on Windows 11
+      const DWM_WINDOW_CORNER_PREFERENCE corner_preference = DWMWCP_DONOTROUND;
+      DwmSetWindowAttribute(reinterpret_cast<HWND>(handle), DWMWA_WINDOW_CORNER_PREFERENCE,
+                            &corner_preference, sizeof(corner_preference));
+#endif
+    }
 
-    const QResizeEvent* se = static_cast<QResizeEvent*>(event);
-    QSize new_size = se->size();
+    SetCursorLocked(m_cursor_locked);
 
     QScreen* screen = window()->windowHandle()->screen();
 
     const float dpr = screen->devicePixelRatio();
-    const int width = new_size.width() * dpr;
-    const int height = new_size.height() * dpr;
+    const int width = this->width() * dpr;
+    const int height = this->height() * dpr;
 
-    if (m_last_window_width != width || m_last_window_height != height ||
+    if (handle || m_last_window_width != width || m_last_window_height != height ||
         m_last_window_scale != dpr)
     {
       m_last_window_width = width;
       m_last_window_height = height;
       m_last_window_scale = dpr;
-      emit SizeChanged(width, height);
+      emit WindowChanged(handle, width, height, dpr);
     }
     break;
   }

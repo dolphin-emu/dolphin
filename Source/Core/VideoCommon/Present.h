@@ -14,6 +14,7 @@
 #include <array>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <span>
 #include <tuple>
 
@@ -80,11 +81,23 @@ public:
   VideoCommon::PostProcessing* GetPostProcessor() const { return m_post_processor.get(); }
   // Final surface changing
   // This is called when the surface is resized (WX) or the window changes (Android).
-  void ChangeSurface(void* new_surface_handle);
-  void ResizeSurface();
-  bool SurfaceResizedTestAndClear() { return m_surface_resized.TestAndClear(); }
-  bool SurfaceChangedTestAndClear() { return m_surface_changed.TestAndClear(); }
-  void* GetNewSurfaceHandle();
+  void ChangeSurface(void* new_surface_handle, u32 width, u32 height, float scale);
+  void ResizeSurface(u32 width, u32 height, float scale)
+  {
+    ChangeSurface(nullptr, width, height, scale);
+  }
+  struct SurfaceChangedInfo {
+    void* new_handle;  ///< New surface handle if changed, else null
+    int new_width;     ///< New surface width
+    int new_height;    ///< New surface height
+    float new_scale;   ///< New surface scale
+  };
+  std::optional<SurfaceChangedInfo> SurfaceChangedTestAndClear()
+  {
+    if (!m_surface_changed.load(std::memory_order_relaxed))
+      return std::nullopt;
+    return SurfaceChangedGetAndClear();
+  }
 
   void SetKeyMap(const DolphinKeyMap& key_map);
 
@@ -130,8 +143,12 @@ private:
   AbstractTextureFormat m_backbuffer_format = AbstractTextureFormat::Undefined;
 
   void* m_new_surface_handle = nullptr;
-  Common::Flag m_surface_changed;
-  Common::Flag m_surface_resized;
+  int m_new_surface_width = 0;
+  int m_new_surface_height = 0;
+  float m_new_surface_scale = 1.f;
+  // note: Atomic for anti-tearing / anti-compiler-optimization only, write only under m_swap_mutex
+  std::atomic_bool m_surface_changed;
+  SurfaceChangedInfo SurfaceChangedGetAndClear();
 
   // The presentation rectangle.
   // Width and height correspond to the final output resolution.

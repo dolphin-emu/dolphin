@@ -230,7 +230,6 @@ bool VKGfx::BindBackbuffer(const ClearColor& clear_color)
 
   // Handle host window resizes.
   CheckForSurfaceChange();
-  CheckForSurfaceResize();
 
   // Check for exclusive fullscreen request.
   if (m_swap_chain->GetCurrentFullscreenState() != m_swap_chain->GetNextFullscreenState() &&
@@ -363,7 +362,8 @@ void VKGfx::ExecuteCommandBuffer(bool submit_off_thread, bool wait_for_completio
 
 void VKGfx::CheckForSurfaceChange()
 {
-  if (!g_presenter->SurfaceChangedTestAndClear() || !m_swap_chain)
+  std::optional<VideoCommon::Presenter::SurfaceChangedInfo> change_info;
+  if (!(change_info = g_presenter->SurfaceChangedTestAndClear()) || !m_swap_chain)
     return;
 
   // Submit the current draws up until rendering the XFB.
@@ -372,35 +372,18 @@ void VKGfx::CheckForSurfaceChange()
   // Clear the present failed flag, since we don't want to resize after recreating.
   g_command_buffer_mgr->CheckLastPresentFail();
 
-  // Recreate the surface. If this fails we're in trouble.
-  if (!m_swap_chain->RecreateSurface(g_presenter->GetNewSurfaceHandle()))
-    PanicAlertFmt("Failed to recreate Vulkan surface. Cannot continue.");
-
-  // Handle case where the dimensions are now different.
-  OnSwapChainResized();
-}
-
-void VKGfx::CheckForSurfaceResize()
-{
-  if (!g_presenter->SurfaceResizedTestAndClear())
-    return;
-
-  // If we don't have a surface, how can we resize the swap chain?
-  // CheckForSurfaceChange should handle this case.
-  if (!m_swap_chain)
+  if (change_info->new_handle)
   {
-    WARN_LOG_FMT(VIDEO, "Surface resize event received without active surface, ignoring");
-    return;
+    // Recreate the surface. If this fails we're in trouble.
+    if (!m_swap_chain->RecreateSurface(change_info->new_handle))
+      PanicAlertFmt("Failed to recreate Vulkan surface. Cannot continue.");
+  }
+  else
+  {
+    m_swap_chain->RecreateSwapChain();
   }
 
-  // Wait for the GPU to catch up since we're going to destroy the swap chain.
-  ExecuteCommandBuffer(false, true);
-
-  // Clear the present failed flag, since we don't want to resize after recreating.
-  g_command_buffer_mgr->CheckLastPresentFail();
-
-  // Resize the swap chain.
-  m_swap_chain->RecreateSwapChain();
+  // Handle case where the dimensions are now different.
   OnSwapChainResized();
 }
 

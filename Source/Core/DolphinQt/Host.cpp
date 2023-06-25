@@ -58,21 +58,6 @@ Host* Host::GetInstance()
   return s_instance;
 }
 
-void Host::SetRenderHandle(void* handle)
-{
-  m_render_to_main = Config::Get(Config::MAIN_RENDER_TO_MAIN);
-
-  if (m_render_handle == handle)
-    return;
-
-  m_render_handle = handle;
-  if (g_presenter)
-  {
-    g_presenter->ChangeSurface(handle);
-    g_controller_interface.ChangeWindow(handle);
-  }
-}
-
 void Host::SetMainWindowHandle(void* handle)
 {
   m_main_window_handle = handle;
@@ -187,10 +172,20 @@ void Host::SetTASInputFocus(const bool focus)
   m_tas_input_focus = focus;
 }
 
-void Host::ResizeSurface(int new_width, int new_height)
+void Host::SetRenderWindowInfo(void* new_handle, int new_width, int new_height, float new_scale)
 {
+  if (new_handle)
+  {
+    m_render_to_main = Config::Get(Config::MAIN_RENDER_TO_MAIN);
+    if (m_render_handle == new_handle)
+      new_handle = nullptr;
+    else
+      m_render_handle = new_handle;
+  }
   if (g_presenter)
-    g_presenter->ResizeSurface();
+    g_presenter->ChangeSurface(new_handle, new_width, new_height, new_scale);
+  if (g_presenter && new_handle)
+    g_controller_interface.ChangeWindow(new_handle);
 }
 
 std::vector<std::string> Host_GetPreferredLocales()

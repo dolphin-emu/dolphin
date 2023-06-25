@@ -87,7 +87,6 @@ public:
 
 private:
   void CheckForSurfaceChange();
-  void CheckForSurfaceResize();
 
   void ResetSamplerStates();
 

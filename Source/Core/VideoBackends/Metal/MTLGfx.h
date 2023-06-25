@@ -82,7 +82,6 @@ private:
   std::array<u32, 4> m_shader_counter = {};
 
   void CheckForSurfaceChange();
-  void CheckForSurfaceResize();
   void SetupSurface();
 };
 }  // namespace Metal

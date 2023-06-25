@@ -93,6 +93,9 @@ WindowSystemInfo PlatformFBDev::GetWindowSystemInfo() const
   wsi.display_connection = nullptr;  // EGL_DEFAULT_DISPLAY
   wsi.render_window = nullptr;
   wsi.render_surface = nullptr;
+  wsi.render_surface_width = 0;
+  wsi.render_surface_height = 0;
+  wsi.render_surface_scale = 1.f;
   return wsi;
 }
 }  // namespace

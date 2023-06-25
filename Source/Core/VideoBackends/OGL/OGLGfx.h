@@ -94,7 +94,6 @@ public:
 
 private:
   void CheckForSurfaceChange();
-  void CheckForSurfaceResize();
 
   void ApplyRasterizationState(const RasterizationState state);
   void ApplyDepthState(const DepthState state);

@@ -80,12 +80,13 @@
 }
 @end
 
-@interface AppDelegate : NSObject <NSApplicationDelegate>
+@interface AppDelegate : NSObject <NSApplicationDelegate, NSWindowDelegate>
 
 @property(readonly) Platform* platform;
 
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication*)sender;
 - (id)initWithPlatform:(Platform*)platform;
+- (void)windowDidResize:(NSNotification*)notification;
 @end
 
 @implementation AppDelegate
@@ -103,20 +104,20 @@
   }
   return self;
 }
-@end
-
-@interface WindowDelegate : NSObject <NSWindowDelegate>
-
-- (void)windowDidResize:(NSNotification*)notification;
-@end
-
-@implementation WindowDelegate
 
 - (void)windowDidResize:(NSNotification*)notification
 {
+  WindowSystemInfo info = _platform->GetWindowSystemInfo();
   if (g_presenter)
-    g_presenter->ResizeSurface();
+    g_presenter->ResizeSurface(info.render_surface_width, info.render_surface_height,
+                               info.render_surface_scale);
 }
+
+- (void)windowDidChangeScreen:(NSNotification *)notification
+{
+  [self windowDidResize:notification];
+}
+
 @end
 
 namespace
@@ -142,7 +143,6 @@ private:
   NSWindow* m_window;
   NSMenu* menuBar;
   AppDelegate* m_app_delegate;
-  WindowDelegate* m_window_delegate;
 
   int m_window_x = Config::Get(Config::MAIN_RENDER_WINDOW_XPOS);
   int m_window_y = Config::Get(Config::MAIN_RENDER_WINDOW_YPOS);
@@ -176,8 +176,7 @@ bool PlatformMacOS::Init()
                                  styleMask:styleMask
                                    backing:NSBackingStoreBuffered
                                      defer:NO];
-  m_window_delegate = [[WindowDelegate alloc] init];
-  [m_window setDelegate:m_window_delegate];
+  [m_window setDelegate:m_app_delegate];
 
   NSNotificationCenter* c = [NSNotificationCenter defaultCenter];
   [c addObserver:NSApp
@@ -237,10 +236,15 @@ WindowSystemInfo PlatformMacOS::GetWindowSystemInfo() const
 {
   @autoreleasepool
   {
+    NSRect frame = [m_window contentRectForFrameRect:[m_window frame]];
+    CGFloat scale = [m_window backingScaleFactor];
     WindowSystemInfo wsi;
     wsi.type = WindowSystemType::MacOS;
-    wsi.render_window = (void*)CFBridgingRetain([m_window contentView]);
+    wsi.render_window = (__bridge void*)[m_window contentView];
     wsi.render_surface = wsi.render_window;
+    wsi.render_surface_width = frame.size.width * scale;
+    wsi.render_surface_height = frame.size.height * scale;
+    wsi.render_surface_scale = scale;
     return wsi;
   }
 }

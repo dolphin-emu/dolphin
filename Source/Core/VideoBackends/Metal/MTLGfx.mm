@@ -452,7 +452,6 @@ bool Metal::Gfx::BindBackbuffer(const ClearColor& clear_color)
   @autoreleasepool
   {
     CheckForSurfaceChange();
-    CheckForSurfaceResize();
     m_drawable = MRCRetain([m_layer nextDrawable]);
     m_backbuffer->UpdateBackbufferTexture([m_drawable texture]);
     SetAndClearFramebuffer(m_backbuffer.get(), clear_color);
@@ -487,17 +486,12 @@ void Metal::Gfx::PresentBackbuffer()
 
 void Metal::Gfx::CheckForSurfaceChange()
 {
-  if (!g_presenter->SurfaceChangedTestAndClear())
-    return;
-  m_layer = MRCRetain(static_cast<CAMetalLayer*>(g_presenter->GetNewSurfaceHandle()));
-  SetupSurface();
-}
-
-void Metal::Gfx::CheckForSurfaceResize()
-{
-  if (!g_presenter->SurfaceResizedTestAndClear())
-    return;
-  SetupSurface();
+  if (auto change_info = g_presenter->SurfaceChangedTestAndClear())
+  {
+    if (void* handle = change_info->new_handle)
+      m_layer = MRCRetain(static_cast<CAMetalLayer*>(handle));
+    SetupSurface();
+  }
 }
 
 void Metal::Gfx::SetupSurface()

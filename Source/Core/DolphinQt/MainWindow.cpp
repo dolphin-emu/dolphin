@@ -201,7 +201,10 @@ static WindowSystemInfo GetWindowSystemInfo(QWindow* window)
     wsi.render_window = window ? reinterpret_cast<void*>(window->winId()) : nullptr;
   wsi.render_surface = wsi.render_window;
 #endif
-  wsi.render_surface_scale = window ? static_cast<float>(window->devicePixelRatio()) : 1.0f;
+  float dpr = window ? static_cast<float>(window->devicePixelRatio()) : 1.f;
+  wsi.render_surface_width = window ? static_cast<u32>(window->width() * dpr) : 0;
+  wsi.render_surface_height = window ? static_cast<u32>(window->height() * dpr) : 0;
+  wsi.render_surface_scale = dpr;
 
   return wsi;
 }
