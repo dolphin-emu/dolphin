@@ -146,6 +146,8 @@ bool GLContextEGL::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
   bool supports_core_profile = false;
 
   m_wsi = wsi;
+  m_backbuffer_width = wsi.render_surface_width;
+  m_backbuffer_height = wsi.render_surface_height;
   m_egl_display = OpenEGLDisplay();
   if (!m_egl_display)
   {
@@ -347,8 +349,9 @@ bool GLContextEGL::MakeCurrent()
   return eglMakeCurrent(m_egl_display, m_egl_surface, m_egl_surface, m_egl_context);
 }
 
-void GLContextEGL::UpdateSurface(void* window_handle)
+void GLContextEGL::UpdateSurface(void* window_handle, u32 width, u32 height)
 {
+  GLContext::UpdateSurface(window_handle, width, height);
   m_wsi.render_surface = window_handle;
   ClearCurrent();
   DestroyWindowSurface();

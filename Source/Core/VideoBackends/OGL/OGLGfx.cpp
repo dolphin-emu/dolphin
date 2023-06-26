@@ -461,15 +461,16 @@ void OGLGfx::CheckForSurfaceChange()
   if (auto change_info = g_presenter->SurfaceChangedTestAndClear())
   {
     if (void* handle = change_info->new_handle)
-      m_main_gl_context->UpdateSurface(handle);
+      m_main_gl_context->UpdateSurface(handle, change_info->new_width, change_info->new_height);
     else
-      m_main_gl_context->Update();
+      m_main_gl_context->Update(change_info->new_width, change_info->new_height);
 
     u32 width = m_main_gl_context->GetBackBufferWidth();
     u32 height = m_main_gl_context->GetBackBufferHeight();
+    m_backbuffer_scale = change_info->new_scale;
 
     // With a surface change, the window likely has new dimensions.
-    g_presenter->SetBackbuffer(width, height);
+    g_presenter->SetBackbuffer(GetSurfaceInfo());
     m_system_framebuffer->UpdateDimensions(width, height);
   }
 }

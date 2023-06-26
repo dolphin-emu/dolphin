@@ -70,7 +70,7 @@ void GLContextBGL::Swap()
   m_gl->SwapBuffers();
 }
 
-void GLContextBGL::Update()
+void GLContextBGL::Update(u32, u32)
 {
   m_gl->LockLooper();
   BRect size = m_gl->Frame();

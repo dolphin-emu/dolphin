@@ -57,12 +57,15 @@ bool GLContext::ClearCurrent()
   return false;
 }
 
-void GLContext::Update()
+void GLContext::Update(u32 width, u32 height)
 {
+  m_backbuffer_width = width;
+  m_backbuffer_height = height;
 }
 
-void GLContext::UpdateSurface(void* window_handle)
+void GLContext::UpdateSurface(void* window_handle, u32 width, u32 height)
 {
+  Update(width, height);
 }
 
 void GLContext::Swap()

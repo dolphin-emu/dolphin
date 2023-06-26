@@ -19,8 +19,6 @@ public:
   bool MakeCurrent() override;
   bool ClearCurrent() override;
 
-  void Update() override;
-
   void Swap() override;
   void SwapInterval(int interval) override;
 

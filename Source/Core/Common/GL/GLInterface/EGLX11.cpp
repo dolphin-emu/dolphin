@@ -11,7 +11,7 @@ GLContextEGLX11::~GLContextEGLX11()
   m_render_window.reset();
 }
 
-void GLContextEGLX11::Update()
+void GLContextEGLX11::Update(u32, u32)
 {
   m_render_window->UpdateDimensions();
   m_backbuffer_width = m_render_window->GetWidth();

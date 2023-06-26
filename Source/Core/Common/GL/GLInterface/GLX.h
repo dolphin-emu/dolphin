@@ -24,7 +24,7 @@ public:
   bool MakeCurrent() override;
   bool ClearCurrent() override;
 
-  void Update() override;
+  void Update(u32, u32) override;
 
   void SwapInterval(int Interval) override;
   void Swap() override;
