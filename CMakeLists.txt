@@ -102,6 +102,7 @@ option(USE_MGBA "Enables GBA controllers emulation using libmgba" ON)
 option(ENABLE_AUTOUPDATE "Enables support for automatic updates" ON)
 option(STEAM "Creates a build for Steam" OFF)
 option(USE_RETRO_ACHIEVEMENTS "Enables integration with retroachievements.org" ON)
+option(RECONFIGURE_ON_GIT_COMMIT "Rerun cmake configure whenever the git HEAD changes" ON)
 
 # Maintainers: if you consider blanket disabling this for your users, please
 # consider the following points:
@@ -199,20 +200,22 @@ include(CCache)
 # for revision info
 find_package(Git)
 if(GIT_FOUND)
-  # make sure version information gets re-run when the current Git HEAD changes
-  execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} rev-parse --git-path HEAD
-      OUTPUT_VARIABLE dolphin_git_head_filename
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
-  set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${dolphin_git_head_filename}")
+  if(RECONFIGURE_ON_GIT_COMMIT)
+    # make sure version information gets re-run when the current Git HEAD changes
+    execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} rev-parse --git-path HEAD
+        OUTPUT_VARIABLE dolphin_git_head_filename
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${dolphin_git_head_filename}")
 
-  execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} rev-parse --symbolic-full-name HEAD
-      OUTPUT_VARIABLE dolphin_git_head_symbolic
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
-  execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-      COMMAND ${GIT_EXECUTABLE} rev-parse --git-path ${dolphin_git_head_symbolic}
-      OUTPUT_VARIABLE dolphin_git_head_symbolic_filename
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
-  set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${dolphin_git_head_symbolic_filename}")
+    execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} rev-parse --symbolic-full-name HEAD
+        OUTPUT_VARIABLE dolphin_git_head_symbolic
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+    execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+        COMMAND ${GIT_EXECUTABLE} rev-parse --git-path ${dolphin_git_head_symbolic}
+        OUTPUT_VARIABLE dolphin_git_head_symbolic_filename
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${dolphin_git_head_symbolic_filename}")
+  endif()
 
   # defines DOLPHIN_WC_REVISION
   execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
