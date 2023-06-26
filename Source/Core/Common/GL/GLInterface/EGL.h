@@ -22,7 +22,7 @@ public:
   bool MakeCurrent() override;
   bool ClearCurrent() override;
 
-  void UpdateSurface(void* window_handle) override;
+  void UpdateSurface(void* window_handle, u32 width, u32 height) override;
 
   void Swap() override;
   void SwapInterval(int interval) override;

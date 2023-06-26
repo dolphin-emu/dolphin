@@ -478,14 +478,3 @@ bool GLContextWGL::ClearCurrent()
 {
   return wglMakeCurrent(m_dc, nullptr) == TRUE;
 }
-
-// Update window width, size and etc. Called from Render.cpp
-void GLContextWGL::Update()
-{
-  RECT rcWindow;
-  GetClientRect(m_window_handle, &rcWindow);
-
-  // Get the new window width and height
-  m_backbuffer_width = rcWindow.right - rcWindow.left;
-  m_backbuffer_height = rcWindow.bottom - rcWindow.top;
-}
