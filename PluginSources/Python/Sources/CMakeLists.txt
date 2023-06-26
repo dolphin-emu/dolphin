@@ -33,4 +33,16 @@ set_target_properties(PYTHON PROPERTIES LINKER_LANGUAGE CXX)
 set_property(TARGET PYTHON PROPERTY CXX_STANDARD 20)
 target_include_directories(PYTHON PUBLIC "C:/Users/skyle/OneDrive/Desktop/PythonStuff/include")
 
-target_link_libraries(PYTHON PUBLIC "C:/Users/skyle/OneDrive/Desktop/PythonStuff/libs/python311.lib")
+target_link_libraries(PYTHON PUBLIC "C:/Users/skyle/OneDrive/Desktop/PythonStuff/libs/python311_d.lib")
+
+set_target_properties(PYTHON PROPERTIES 
+ CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../../../../../Data/Sys/ScriptingPlugins/Python
+ CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/../../../../../Data/Sys/ScriptingPlugins/Python
+ CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/../../../../../Data/Sys/ScriptingPlugins/Python
+)
+
+set_target_properties(PYTHON
+    PROPERTIES
+        LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/$<CONFIG>/../../../../../Data/Sys/ScriptingPlugins/Python
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/$<CONFIG>/../../../../../Data/Sys/ScriptingPlugins/Python
+)

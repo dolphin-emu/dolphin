@@ -19,7 +19,7 @@ typedef struct ScriptContext
   void (*script_end_callback_function)(void*, int);
 
   int unique_script_identifier;
-  const char* script_filename;
+  std::string script_filename;
   ScriptCallLocations current_script_call_location;
   int is_script_active;
   int finished_with_global_code;

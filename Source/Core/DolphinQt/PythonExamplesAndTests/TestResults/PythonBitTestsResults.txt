@@ -14,17 +14,17 @@ Test 3:
 PASS!
 
 Test 4:
-	Testing if bit.logical_and(113, 546) == 113 && 546:
-	True == True
+	Testing if bit.logical_and(True, False) == True && False:
+	False == False
 PASS!
 
 Test 5:
-	Testing if bit.logical_or(113, 546) == 113 || 546:
+	Testing if bit.logical_or(True, False) == True || False:
 	True == True
 PASS!
 
 Test 6:
-	Testing if bit.logical_xor(113, 546) == 113 XOR 546:
+	Testing if bit.logical_xor(True, False) == True XOR False:
 	False == False
 PASS!
 
@@ -39,12 +39,12 @@ Test 8:
 PASS!
 
 Test 9:
-	Testing if bit.bitwise_not(113) == ~113:
+	Testing if BitAPI.bitwise_not(113) == ~113:
 	-114 == -114
 PASS!
 
 Test 10:
-	Testing if bit.logical_not(113) == !113:
+	Testing if BitAPI.logical_not(113) == !113:
 	False == False
 PASS!
 

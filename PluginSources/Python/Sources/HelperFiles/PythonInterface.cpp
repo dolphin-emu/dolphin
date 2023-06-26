@@ -26,7 +26,8 @@ namespace PythonInterface
     FunctionMetadata* current_function_metadata = reinterpret_cast<FunctionMetadata*>(PyCapsule_GetPointer(self, function_metadata_capsule_name));
     void* base_script_context_ptr = reinterpret_cast<void*>(*((unsigned long long*)PyModule_GetState(PyImport_ImportModule(THIS_MODULE_NAME))));
 
-    return castToPyObject(RunFunction_impl(base_script_context_ptr, current_function_metadata, castToVoidPtr(self), castToVoidPtr(args)));
+    PyObject* ret_val = castToPyObject(RunFunction_impl(base_script_context_ptr, current_function_metadata, castToVoidPtr(self), castToVoidPtr(args)));
+    return ret_val;
   }
 
   void Python_IncRef(void* raw_py_obj)
@@ -39,9 +40,19 @@ namespace PythonInterface
     Py_DECREF(castToPyObject(raw_py_obj));
   }
 
-  void* GetNoneObject() { Py_RETURN_NONE; }
-  void* GetPyTrueObject() { Py_RETURN_TRUE; }
-  void* GetPyFalseObject() { Py_RETURN_FALSE; }
+  void* GetNoneObject() {
+    Py_RETURN_NONE;
+  }
+
+  void* GetPyTrueObject()
+  {
+    Py_RETURN_TRUE;
+  }
+
+  void* GetPyFalseObject()
+  {
+    Py_RETURN_FALSE;
+  }
 
   void* Python_BuildValue(const char* format_string, void* ptr_to_val)
   {
@@ -130,7 +141,7 @@ namespace PythonInterface
   PyModuleDef ThisModuleDef = {
     PyModuleDef_HEAD_INIT, THIS_MODULE_NAME,
     nullptr,
-    sizeof(unsigned long long*),
+    sizeof(unsigned long long),
     nullptr };
 
   PyMODINIT_FUNC internal_this_mod_create_func()
@@ -160,7 +171,7 @@ namespace PythonInterface
     PyModuleDef_HEAD_INIT,
     "genericModuleName",
     "genericDocumentationString",
-    sizeof(std::string*),
+    sizeof(std::string),
     nullptr
   };
 

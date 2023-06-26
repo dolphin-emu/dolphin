@@ -24,6 +24,7 @@ void* Init_PythonScriptContext_impl(void* new_base_script_context_ptr)
   }
 
   PythonScriptContext* new_python_script = new PythonScriptContext(new_base_script_context_ptr);
+  dolphinDefinedScriptContext_APIs.set_dll_script_context_ptr(new_base_script_context_ptr, new_python_script);
   if (original_python_thread == nullptr) // This means it's our first time initializing the Python runtime.
   {
     PythonInterface::CreateThisModule();
@@ -458,7 +459,7 @@ void* RunFunction_impl(void* base_script_context_ptr, FunctionMetadata* current_
     return HandleError(current_function_metadata, false, "This is a yielding function, which can't be called in Python!");
 
   case ArgTypeEnum::Boolean:
-    return FreeAndReturn(return_value, argHolder_APIs.GetBoolFromArgHolder(return_value) ? PythonInterface::GetPyTrueObject : PythonInterface::GetPyFalseObject());
+    return FreeAndReturn(return_value, argHolder_APIs.GetBoolFromArgHolder(return_value) ? PythonInterface::GetPyTrueObject() : PythonInterface::GetPyFalseObject());
 
   case ArgTypeEnum::U8:
     temp_u64 = argHolder_APIs.GetU8FromArgHolder(return_value);
@@ -944,7 +945,8 @@ void DLLClassMetadataCopyHook_impl(void* base_script_context_ptr, void* class_me
     functions_list.push_back(current_function);
   }
 
-  ((PythonScriptContext*)dolphinDefinedScriptContext_APIs.get_derived_script_context_class_ptr(base_script_context_ptr))->class_metadata_buffer = ClassMetadata(class_name, functions_list);
+  ((PythonScriptContext*)dolphinDefinedScriptContext_APIs.get_derived_script_context_class_ptr(base_script_context_ptr))->class_metadata_buffer.class_name = std::move(std::string(class_name.c_str()));
+  ((PythonScriptContext*)dolphinDefinedScriptContext_APIs.get_derived_script_context_class_ptr(base_script_context_ptr))->class_metadata_buffer.functions_list = std::move(functions_list);
 }
 
 // This function is unused, but it's implemented in case we ever want to get a single FunctionMetadata* for a specific function

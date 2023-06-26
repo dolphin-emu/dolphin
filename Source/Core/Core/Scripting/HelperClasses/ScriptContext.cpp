@@ -17,7 +17,7 @@ void* ScriptContext_Initializer_impl(int unique_identifier, const char* script_f
 {
   ScriptContext* ret_val = new ScriptContext();
   ret_val->unique_script_identifier = unique_identifier;
-  ret_val->script_filename = script_file_name;
+  ret_val->script_filename = std::string(script_file_name);
   ret_val->print_callback_function = print_callback_function;
   ret_val->script_end_callback_function = script_end_callback;
   ret_val->current_script_call_location = ScriptCallLocations::FromScriptStartup;
@@ -66,7 +66,7 @@ int ScriptContext_GetUniqueScriptIdentifier_impl(void* script_context)
 
 const char* ScriptContext_GetScriptFilename_impl(void* script_context)
 {
-  return castToScriptContextPtr(script_context)->script_filename;
+  return castToScriptContextPtr(script_context)->script_filename.c_str();
 }
 
 int ScriptContext_GetScriptCallLocation_impl(void* script_context)
