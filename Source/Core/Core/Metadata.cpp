@@ -470,14 +470,15 @@ void Metadata::writeJSON(std::string jsonString, bool callBatch)
     std::copy(out.begin(), out.end(), output_iterator);
     */
     #ifdef _WIN32
-    std::filesystem::path cwd = std::filesystem::current_path() / "creatediff.bat";
+    std::filesystem::path cwd = File::GetExeDirectory() + "\\" + "creatediff.bat";
     std::string pathToBatch = cwd.string();
     std::string batchPath = "\"\"" + pathToBatch + "\"";
     std::string pathToSaveState =
         "\"" + File::GetUserPath(D_CITRUSREPLAYS_IDX) + "output.dtm.sav" + "\"";
     std::string pathToDiff =
         "\"" + File::GetUserPath(D_CITRUSREPLAYS_IDX) + "diffFile.patch" + "\"";
-    batchPath += " " + pathToSaveState + " " + pathToDiff + "\"";
+    std::string pathToDirectory = "\"" + File::GetExeDirectory() + "\"";
+    batchPath += " " + pathToSaveState + " " + pathToDiff + " " + pathToDirectory + "\"";
     STARTUPINFO si;
     PROCESS_INFORMATION pi;
     memset(&si, 0, sizeof(si));
