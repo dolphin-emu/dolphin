@@ -409,15 +409,15 @@ void* RunFunction_impl(void* base_script_context_ptr, FunctionMetadata* current_
       break;
 
     case ArgTypeEnum::RegistrationForButtonCallbackInputType:
-      next_arg_holder = argHolder_APIs.CreateRegistrationForButtonCallbackInputTypeArgHolder(&current_py_obj);
+      next_arg_holder = argHolder_APIs.CreateRegistrationForButtonCallbackInputTypeArgHolder(current_py_obj);
       break;
 
     case ArgTypeEnum::RegistrationInputType:
-      next_arg_holder = argHolder_APIs.CreateRegistrationInputTypeArgHolder(&current_py_obj);
+      next_arg_holder = argHolder_APIs.CreateRegistrationInputTypeArgHolder(current_py_obj);
       break;
 
     case ArgTypeEnum::RegistrationWithAutoDeregistrationInputType:
-      next_arg_holder = argHolder_APIs.CreateRegistrationWithAutoDeregistrationInputTypeArgHolder(&current_py_obj);
+      next_arg_holder = argHolder_APIs.CreateRegistrationWithAutoDeregistrationInputTypeArgHolder(current_py_obj);
       break;
 
     case ArgTypeEnum::UnregistrationInputType:
