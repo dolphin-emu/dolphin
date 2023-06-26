@@ -132,8 +132,11 @@ std::unique_ptr<SwapChain> SwapChain::Create(const WindowSystemInfo& wsi, VkSurf
                                              bool vsync)
 {
   std::unique_ptr<SwapChain> swap_chain = std::make_unique<SwapChain>(wsi, surface, vsync);
-  if (!swap_chain->CreateSwapChain() || !swap_chain->SetupSwapChainImages())
+  if (!swap_chain->CreateSwapChain(wsi.render_surface_width, wsi.render_surface_height)
+      || !swap_chain->SetupSwapChainImages())
+  {
     return nullptr;
+  }
 
   return swap_chain;
 }
@@ -276,7 +279,7 @@ bool SwapChain::SelectPresentMode()
   return true;
 }
 
-bool SwapChain::CreateSwapChain()
+bool SwapChain::CreateSwapChain(u32 width, u32 height)
 {
   // Look up surface properties to determine image count and dimensions
   VkSurfaceCapabilitiesKHR surface_capabilities;
@@ -304,8 +307,8 @@ bool SwapChain::CreateSwapChain()
   VkExtent2D size = surface_capabilities.currentExtent;
   if (size.width == UINT32_MAX)
   {
-    size.width = std::max(g_presenter->GetBackbufferWidth(), 1);
-    size.height = std::max(g_presenter->GetBackbufferHeight(), 1);
+    size.width = width == 0 ? m_width : width;
+    size.height = height == 0 ? m_height : height;
   }
   size.width = std::clamp(size.width, surface_capabilities.minImageExtent.width,
                           surface_capabilities.maxImageExtent.width);
@@ -506,10 +509,10 @@ VkResult SwapChain::AcquireNextImage()
   return res;
 }
 
-bool SwapChain::ResizeSwapChain()
+bool SwapChain::ResizeSwapChain(u32 width, u32 height)
 {
   DestroySwapChainImages();
-  if (!CreateSwapChain() || !SetupSwapChainImages())
+  if (!CreateSwapChain(width, height) || !SetupSwapChainImages())
   {
     PanicAlertFmt("Failed to re-configure swap chain images, this is fatal (for now)");
     return false;
@@ -518,11 +521,11 @@ bool SwapChain::ResizeSwapChain()
   return true;
 }
 
-bool SwapChain::RecreateSwapChain()
+bool SwapChain::RecreateSwapChain(u32 width, u32 height)
 {
   DestroySwapChainImages();
   DestroySwapChain();
-  if (!CreateSwapChain() || !SetupSwapChainImages())
+  if (!CreateSwapChain(width, height) || !SetupSwapChainImages())
   {
     PanicAlertFmt("Failed to re-configure swap chain images, this is fatal (for now)");
     return false;
@@ -538,7 +541,7 @@ bool SwapChain::SetVSync(bool enabled)
 
   // Recreate the swap chain with the new present mode.
   m_vsync_enabled = enabled;
-  return RecreateSwapChain();
+  return RecreateSwapChain(m_width, m_height);
 }
 
 bool SwapChain::SetFullscreenState(bool state)
@@ -574,7 +577,7 @@ bool SwapChain::SetFullscreenState(bool state)
 #endif
 }
 
-bool SwapChain::RecreateSurface(void* native_handle)
+bool SwapChain::RecreateSurface(void* native_handle, u32 width, u32 height)
 {
   // Destroy the old swap chain, images, and surface.
   DestroySwapChainImages();
@@ -611,7 +614,7 @@ bool SwapChain::RecreateSurface(void* native_handle)
   m_next_fullscreen_state = false;
 
   // Finally re-create the swap chain
-  if (!CreateSwapChain() || !SetupSwapChainImages())
+  if (!CreateSwapChain(width, height) || !SetupSwapChainImages())
     return false;
 
   return true;

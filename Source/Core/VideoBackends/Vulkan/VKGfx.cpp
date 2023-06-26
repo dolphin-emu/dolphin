@@ -267,18 +267,18 @@ bool VKGfx::BindBackbuffer(const ClearColor& clear_color)
     {
       // The present keeps returning exclusive mode lost unless we re-create the swap chain.
       INFO_LOG_FMT(VIDEO, "Lost exclusive fullscreen.");
-      m_swap_chain->RecreateSwapChain();
+      m_swap_chain->RecreateSwapChain(0, 0);
     }
     else if (res == VK_SUBOPTIMAL_KHR || res == VK_ERROR_OUT_OF_DATE_KHR)
     {
       INFO_LOG_FMT(VIDEO, "Resizing swap chain due to suboptimal/out-of-date");
-      m_swap_chain->ResizeSwapChain();
+      m_swap_chain->ResizeSwapChain(0, 0);
     }
     else
     {
       ERROR_LOG_FMT(VIDEO, "Unknown present error {:#010X} {}, please report.",
                     Common::ToUnderlying(res), VkResultToString(res));
-      m_swap_chain->RecreateSwapChain();
+      m_swap_chain->RecreateSwapChain(0, 0);
     }
 
     res = m_swap_chain->AcquireNextImage();
@@ -375,13 +375,17 @@ void VKGfx::CheckForSurfaceChange()
   if (change_info->new_handle)
   {
     // Recreate the surface. If this fails we're in trouble.
-    if (!m_swap_chain->RecreateSurface(change_info->new_handle))
+    if (!m_swap_chain->RecreateSurface(change_info->new_handle,  //
+                                       change_info->new_width, change_info->new_height))
+    {
       PanicAlertFmt("Failed to recreate Vulkan surface. Cannot continue.");
+    }
   }
   else
   {
-    m_swap_chain->RecreateSwapChain();
+    m_swap_chain->RecreateSwapChain(change_info->new_width, change_info->new_height);
   }
+  m_backbuffer_scale = change_info->new_scale;
 
   // Handle case where the dimensions are now different.
   OnSwapChainResized();
@@ -405,7 +409,7 @@ void VKGfx::OnConfigChanged(u32 bits)
   if (m_swap_chain && ((bits & CONFIG_CHANGE_BIT_STEREO_MODE) || (bits & CONFIG_CHANGE_BIT_HDR)))
   {
     ExecuteCommandBuffer(false, true);
-    m_swap_chain->RecreateSwapChain();
+    m_swap_chain->RecreateSwapChain(0, 0);
   }
 
   // Wipe sampler cache if force texture filtering or anisotropy changes.
@@ -418,7 +422,7 @@ void VKGfx::OnConfigChanged(u32 bits)
 
 void VKGfx::OnSwapChainResized()
 {
-  g_presenter->SetBackbuffer(m_swap_chain->GetWidth(), m_swap_chain->GetHeight());
+  g_presenter->SetBackbuffer(GetSurfaceInfo());
 }
 
 void VKGfx::BindFramebuffer(VKFramebuffer* fb)
