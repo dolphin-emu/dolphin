@@ -1,0 +1,5 @@
+beq+	 ->0x802461B0
+
+Total Tests: 6
+	Tests Passed: 6
+	Tests Failed: 0

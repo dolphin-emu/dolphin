@@ -589,6 +589,9 @@ void RunCallbacksForVector(void* base_script_context_ptr, PythonScriptContext* p
     return;
   }
 
+  if (callback_list.size() == 0)
+    return;
+
   PythonInterface::PythonEval_RestoreThread(python_script->main_python_thread);
 
   for (unsigned long long i = 0; i < callback_list.size(); ++i)
@@ -641,6 +644,9 @@ void RunCallbacksForMap(void* base_script_context_ptr, PythonScriptContext* pyth
     dolphinDefinedScriptContext_APIs.Shutdown_Script(base_script_context_ptr);
     return;
   }
+
+  if (getNumberOfCallbacksInMap(map_of_callbacks) == 0)
+    return;
 
   if (!map_of_callbacks.contains(current_int))
     return;

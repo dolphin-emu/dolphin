@@ -30,6 +30,7 @@ ScriptWindow::ScriptWindow(QWidget* parent) : QDialog(parent)
   };
 
   finished_script_callback_function = [](void* x, int unique_identifier) {
+    std::lock_guard<std::mutex> lock(GetThis()->script_start_or_stop_lock);
     GetThis()->ids_of_scripts_to_stop.push(unique_identifier);
     QueueOnObject(GetThis(), &ScriptWindow::OnScriptFinish);
   };
