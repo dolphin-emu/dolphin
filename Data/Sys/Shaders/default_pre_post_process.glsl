@@ -46,7 +46,7 @@ void main()
 	float4 color = Sample();
 
 	// Convert to linear space to do any other kind of operation
-	color.rgb = pow(color.rgb, game_gamma.xxx);
+	color.rgb = pow(color.rgb, float3(game_gamma));
 
 	if (OptionEnabled(correct_color_space))
 	{
@@ -60,7 +60,7 @@ void main()
 	
 	if (OptionEnabled(hdr_output))
 	{
-		const float hdr_paper_white = hdr_paper_white_nits / hdr_sdr_white_nits;
+		float hdr_paper_white = hdr_paper_white_nits / hdr_sdr_white_nits;
 		color.rgb *= hdr_paper_white;
 	}
 	
@@ -74,12 +74,12 @@ void main()
 		if (OptionEnabled(sdr_display_gamma_sRGB))
 			color.rgb = LinearTosRGBGamma(color.rgb);
 		else
-			color.rgb = pow(color.rgb, (1.0 / sdr_display_custom_gamma).xxx);
+			color.rgb = pow(color.rgb, float3(1.0 / sdr_display_custom_gamma));
 	}
 	// Restore the original gamma without changes
 	else
 	{
-			color.rgb = pow(color.rgb, (1.0 / game_gamma).xxx);
+			color.rgb = pow(color.rgb, float3(1.0 / game_gamma));
 	}
 
 	SetOutput(color);
