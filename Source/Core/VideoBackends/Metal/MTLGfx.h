@@ -10,6 +10,8 @@
 
 #include "VideoBackends/Metal/MRCHelpers.h"
 
+struct WindowSystemInfo;
+
 namespace Metal
 {
 class Framebuffer;
@@ -18,7 +20,7 @@ class Texture;
 class Gfx final : public ::AbstractGfx
 {
 public:
-  Gfx(MRCOwned<CAMetalLayer*> layer);
+  Gfx(MRCOwned<CAMetalLayer*> layer, const WindowSystemInfo& wsi);
   ~Gfx() override;
 
   bool IsHeadless() const override;
@@ -82,6 +84,6 @@ private:
   std::array<u32, 4> m_shader_counter = {};
 
   void CheckForSurfaceChange();
-  void SetupSurface();
+  void SetupSurface(u32 width, u32 height, float scale);
 };
 }  // namespace Metal
