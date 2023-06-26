@@ -18,6 +18,22 @@
 
 #include "Common/CommonTypes.h"
 
+namespace detail
+{
+template <typename T>
+constexpr bool IsBooleanEnum()
+{
+  if constexpr (std::is_enum_v<T>)
+  {
+    return std::is_same_v<std::underlying_type_t<T>, bool>;
+  }
+  else
+  {
+    return false;
+  }
+}
+}  // namespace detail
+
 std::string StringFromFormatV(const char* format, va_list args);
 
 std::string StringFromFormat(const char* format, ...)
@@ -55,8 +71,10 @@ void TruncateToCString(std::string* s);
 
 bool TryParse(const std::string& str, bool* output);
 
-template <typename T, std::enable_if_t<std::is_integral_v<T> || std::is_enum_v<T>>* = nullptr>
-bool TryParse(const std::string& str, T* output, int base = 0)
+template <typename T>
+requires(std::is_integral_v<T> ||
+         (std::is_enum_v<T> && !detail::IsBooleanEnum<T>())) bool TryParse(const std::string& str,
+                                                                           T* output, int base = 0)
 {
   char* end_ptr = nullptr;
 
@@ -88,6 +106,17 @@ bool TryParse(const std::string& str, T* output, int base = 0)
   {
     return false;
   }
+
+  *output = static_cast<T>(value);
+  return true;
+}
+
+template <typename T>
+requires(detail::IsBooleanEnum<T>()) bool TryParse(const std::string& str, T* output)
+{
+  bool value;
+  if (!TryParse(str, &value))
+    return false;
 
   *output = static_cast<T>(value);
   return true;

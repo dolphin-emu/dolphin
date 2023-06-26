@@ -150,6 +150,7 @@ extern const Info<DiscIO::Region> MAIN_FALLBACK_REGION;
 extern const Info<bool> MAIN_REAL_WII_REMOTE_REPEAT_REPORTS;
 extern const Info<s32> MAIN_OVERRIDE_BOOT_IOS;
 extern const Info<std::string> MAIN_WII_NUS_SHOP_URL;
+extern const Info<bool> MAIN_WII_WIILINK_ENABLE;
 
 // Main.DSP
 
