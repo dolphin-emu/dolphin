@@ -96,6 +96,7 @@ def readFromAndWriteToTest():
         memory.writeTo(address, key, value)
         outputFile.write("\tWrote value of " + str(value) + " to " + str(address) + " as type " + key + "\n")
         outputFile.write("\tValue at address " + str(address) + " as type " + key + " is now: " + str(memory.readFrom(address, key)) + "\n")
+        outputFile.flush()
         if value == memory.readFrom(address, key):
             outputFile.write("PASS!\n\n")
             resultsTable["PASS"] = resultsTable["PASS"] + 1

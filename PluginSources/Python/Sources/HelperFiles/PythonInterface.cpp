@@ -308,7 +308,7 @@ namespace PythonInterface
 
   unsigned long long PythonLongObj_AsU64(void* raw_python_obj)
   {
-    return PyLong_AsUnsignedLong(castToPyObject(raw_python_obj));
+    return PyLong_AsUnsignedLongLong(castToPyObject(raw_python_obj));
   }
 
   signed long long PythonLongObj_AsS64(void* raw_python_obj)

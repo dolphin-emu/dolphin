@@ -1,7 +1,7 @@
 Test 1:
 	Testing that statistics.getCurrentFrame() after frame advancing 10 frames is 10 more than its original value...
-	0 + 10 != 9
-FAILURE!
+	1494 + 10 == 1504
+PASS!
 
 Test 2:
 	Testing statistics.isRecordingInput() function...
@@ -25,27 +25,27 @@ PASS!
 
 Test 6:
 	Testing statistics.getMovieLength() function...
-	statistics.getMovieLength() = 2535
+	statistics.getMovieLength() = 2503
 PASS!
 
 Test 7:
 	Testing statistics.getRerecordCount() function...
-	statistics.getRerecordCount() = 0
+	statistics.getRerecordCount() = 35
 PASS!
 
 Test 8:
 	Testing statistics.getCurrentInputCount() function...
-	statistics.getCurrentInputCount() = 72
+	statistics.getCurrentInputCount() = 12028
 PASS!
 
 Test 9:
 	Testing statistics.getTotalInputCount() function...
-	statistics.getTotalInputCount() = 20276
+	statistics.getTotalInputCount() = 20020
 PASS!
 
 Test 10:
 	Testing statistics.getCurrentLagCount() function...
-	statistics.getCurrentLagCount() = 0
+	statistics.getCurrentLagCount() = 1
 PASS!
 
 Test 11:
@@ -80,10 +80,10 @@ PASS!
 
 Test 17:
 	Testing gc_controller.getExRAMSize() function...
-	gc_controller.getExRAMSize() = 67108864
+	gc_controller.getExRAMSize() = 0
 PASS!
 
 -----------------------
 Total Tests: 17
-	Tests Passed: 16
-	Tests Failed: 1
+	Tests Passed: 17
+	Tests Failed: 0

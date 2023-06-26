@@ -39,12 +39,12 @@ Test 8:
 PASS!
 
 Test 9:
-	Testing if BitAPI.bitwise_not(113) == ~113:
+	Testing if bit.bitwise_not(113) == ~113:
 	-114 == -114
 PASS!
 
 Test 10:
-	Testing if BitAPI.logical_not(113) == !113:
+	Testing if bit.logical_not(113) == !113:
 	False == False
 PASS!
 
