@@ -21,6 +21,39 @@
 #include <cstring>
 #include <thread>
 
+@class AppDelegate;
+
+class PlatformMacOS : public Platform
+{
+public:
+  ~PlatformMacOS() override;
+
+  bool Init() override;
+  void SetTitle(const std::string& title) override;
+  void MainLoop() override;
+
+  WindowSystemInfo GetWindowSystemInfo() const override;
+
+  NSWindow* Window() const { return m_window; }
+
+private:
+  void ProcessEvents();
+  void UpdateWindowPosition();
+  void HandleSaveStates(NSUInteger key, NSUInteger flags);
+  void SetupMenu();
+
+  NSRect m_window_rect;
+  NSWindow* m_window;
+  NSMenu* menuBar;
+  AppDelegate* m_app_delegate;
+
+  int m_window_x = Config::Get(Config::MAIN_RENDER_WINDOW_XPOS);
+  int m_window_y = Config::Get(Config::MAIN_RENDER_WINDOW_YPOS);
+  unsigned int m_window_width = Config::Get(Config::MAIN_RENDER_WINDOW_WIDTH);
+  unsigned int m_window_height = Config::Get(Config::MAIN_RENDER_WINDOW_HEIGHT);
+  bool m_window_fullscreen = Config::Get(Config::MAIN_FULLSCREEN);
+};
+
 @interface Application : NSApplication
 @property Platform* platform;
 - (void)shutdown;
@@ -82,7 +115,7 @@
 
 @interface AppDelegate : NSObject <NSApplicationDelegate, NSWindowDelegate>
 
-@property(readonly) Platform* platform;
+@property(readonly) PlatformMacOS* platform;
 
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication*)sender;
 - (id)initWithPlatform:(Platform*)platform;
@@ -95,7 +128,7 @@
   return YES;
 }
 
-- (id)initWithPlatform:(Platform*)platform
+- (id)initWithPlatform:(PlatformMacOS*)platform
 {
   self = [super init];
   if (self)
@@ -115,41 +148,13 @@
 
 - (void)windowDidChangeScreen:(NSNotification *)notification
 {
+  if (NSWindow* window = _platform->Window())
+    if (CALayer* layer = [[window contentView] layer])
+      [layer setContentsScale:[window backingScaleFactor]];
   [self windowDidResize:notification];
 }
 
 @end
-
-namespace
-{
-class PlatformMacOS : public Platform
-{
-public:
-  ~PlatformMacOS() override;
-
-  bool Init() override;
-  void SetTitle(const std::string& title) override;
-  void MainLoop() override;
-
-  WindowSystemInfo GetWindowSystemInfo() const override;
-
-private:
-  void ProcessEvents();
-  void UpdateWindowPosition();
-  void HandleSaveStates(NSUInteger key, NSUInteger flags);
-  void SetupMenu();
-
-  NSRect m_window_rect;
-  NSWindow* m_window;
-  NSMenu* menuBar;
-  AppDelegate* m_app_delegate;
-
-  int m_window_x = Config::Get(Config::MAIN_RENDER_WINDOW_XPOS);
-  int m_window_y = Config::Get(Config::MAIN_RENDER_WINDOW_YPOS);
-  unsigned int m_window_width = Config::Get(Config::MAIN_RENDER_WINDOW_WIDTH);
-  unsigned int m_window_height = Config::Get(Config::MAIN_RENDER_WINDOW_HEIGHT);
-  bool m_window_fullscreen = Config::Get(Config::MAIN_FULLSCREEN);
-};
 
 PlatformMacOS::~PlatformMacOS()
 {
@@ -424,8 +429,6 @@ void PlatformMacOS::SetupMenu()
     [NSApp setMainMenu:menuBar];
   }
 }
-
-}  // namespace
 
 std::unique_ptr<Platform> Platform::CreateMacOSPlatform()
 {
