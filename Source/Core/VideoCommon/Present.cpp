@@ -33,6 +33,39 @@ static float AspectToWidescreen(float aspect)
   return aspect * ((16.0f / 9.0f) / (4.0f / 3.0f));
 }
 
+static std::tuple<int, int> FindClosestIntegerResolution(float width, float height,
+                                                         float aspect_ratio)
+{
+  // We can't round both the x and y resolution as that might generate an aspect ratio
+  // further away from the target one, we also can't either ceil or floor both sides,
+  // so we find the combination or flooring and ceiling that is closest to the target ar.
+  const int ceiled_width = static_cast<int>(std::ceil(width));
+  const int ceiled_height = static_cast<int>(std::ceil(height));
+  const int floored_width = static_cast<int>(std::floor(width));
+  const int floored_height = static_cast<int>(std::floor(height));
+
+  int int_width = floored_width;
+  int int_height = floored_height;
+
+  float min_aspect_ratio_distance = std::numeric_limits<float>::max();
+  for (const int new_width : std::array<int, 2>{ceiled_width, floored_width})
+  {
+    for (const int new_height : std::array<int, 2>{ceiled_height, floored_height})
+    {
+      const float new_aspect_ratio = static_cast<float>(new_width) / new_height;
+      const float aspect_ratio_distance = std::abs((new_aspect_ratio / aspect_ratio) - 1.f);
+      if (aspect_ratio_distance < min_aspect_ratio_distance)
+      {
+        min_aspect_ratio_distance = aspect_ratio_distance;
+        int_width = new_width;
+        int_height = new_height;
+      }
+    }
+  }
+
+  return std::make_tuple(int_width, int_height);
+}
+
 Presenter::Presenter()
 {
   m_config_changed =
@@ -414,11 +447,12 @@ void Presenter::UpdateDrawRectangle()
   // The rendering window size
   const float win_width = static_cast<float>(m_backbuffer_width);
   const float win_height = static_cast<float>(m_backbuffer_height);
+  const float win_aspect_ratio = win_width / win_height;
 
   // FIXME: this breaks at very low widget sizes
   // Make ControllerInterface aware of the render window region actually being used
   // to adjust mouse cursor inputs.
-  g_controller_interface.SetAspectRatioAdjustment(draw_aspect_ratio / (win_width / win_height));
+  g_controller_interface.SetAspectRatioAdjustment(draw_aspect_ratio / win_aspect_ratio);
 
   float draw_width = draw_aspect_ratio;
   float draw_height = 1;
@@ -427,7 +461,7 @@ void Presenter::UpdateDrawRectangle()
   auto [crop_width, crop_height] = ApplyStandardAspectCrop(draw_width, draw_height);
 
   // scale the picture to fit the rendering window
-  if (win_width / win_height >= crop_width / crop_height)
+  if (win_aspect_ratio >= crop_width / crop_height)
   {
     // the window is flatter than the picture
     draw_width *= win_height / crop_height;
@@ -444,6 +478,9 @@ void Presenter::UpdateDrawRectangle()
     crop_width = win_width;
   }
 
+  int int_draw_width;
+  int int_draw_height;
+
   if (g_frame_dumper->IsFrameDumping())
   {
     // ensure divisibility by "VIDEO_ENCODER_LCM" to make it compatible with all the video encoders.
@@ -452,12 +489,21 @@ void Presenter::UpdateDrawRectangle()
         std::ceil(draw_width) - static_cast<int>(std::ceil(draw_width)) % VIDEO_ENCODER_LCM;
     draw_height =
         std::ceil(draw_height) - static_cast<int>(std::ceil(draw_height)) % VIDEO_ENCODER_LCM;
+    int_draw_width = static_cast<int>(draw_width);
+    int_draw_height = static_cast<int>(draw_height);
+  }
+  else
+  {
+    const auto int_draw_res =
+        FindClosestIntegerResolution(draw_width, draw_height, win_aspect_ratio);
+    int_draw_width = std::get<0>(int_draw_res);
+    int_draw_height = std::get<1>(int_draw_res);
   }
 
-  m_target_rectangle.left = static_cast<int>(std::round(win_width / 2.0 - draw_width / 2.0));
-  m_target_rectangle.top = static_cast<int>(std::round(win_height / 2.0 - draw_height / 2.0));
-  m_target_rectangle.right = m_target_rectangle.left + static_cast<int>(draw_width);
-  m_target_rectangle.bottom = m_target_rectangle.top + static_cast<int>(draw_height);
+  m_target_rectangle.left = static_cast<int>(std::round(win_width / 2.0 - int_draw_width / 2.0));
+  m_target_rectangle.top = static_cast<int>(std::round(win_height / 2.0 - int_draw_height / 2.0));
+  m_target_rectangle.right = m_target_rectangle.left + int_draw_width;
+  m_target_rectangle.bottom = m_target_rectangle.top + int_draw_height;
 }
 
 std::tuple<float, float> Presenter::ScaleToDisplayAspectRatio(const int width,
