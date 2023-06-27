@@ -280,9 +280,12 @@ Presenter::ConvertStereoRectangle(const MathUtil::Rectangle<int>& rc) const
   return std::make_tuple(left_rc, right_rc);
 }
 
-float Presenter::CalculateDrawAspectRatio() const
+float Presenter::CalculateDrawAspectRatio(bool allow_stretch) const
 {
-  const auto aspect_mode = g_ActiveConfig.aspect_mode;
+  auto aspect_mode = g_ActiveConfig.aspect_mode;
+
+  if (!allow_stretch && aspect_mode == AspectMode::Stretch)
+    aspect_mode = AspectMode::Auto;
 
   // If stretch is enabled, we prefer the aspect ratio of the window.
   if (aspect_mode == AspectMode::Stretch)
@@ -367,9 +370,15 @@ u32 Presenter::AutoIntegralScale() const
   u32 height = EFB_HEIGHT * m_target_rectangle.GetHeight() / m_last_xfb_height;
   return std::max((width - 1) / EFB_WIDTH + 1, (height - 1) / EFB_HEIGHT + 1);
 }
+
 void Presenter::SetWindowSize(int width, int height)
 {
-  const auto [out_width, out_height] = g_presenter->CalculateOutputDimensions(width, height);
+  // While trying to guess the best window resolution, we can't allow it to use the
+  // "AspectMode::Stretch" setting because that would self influence the output result,
+  // given it would be based on the previous frame resolution
+  const bool allow_stretch = false;
+  const auto [out_width, out_height] =
+      g_presenter->CalculateOutputDimensions(width, height, allow_stretch);
 
   // Track the last values of width/height to avoid sending a window resize event every frame.
   if (out_width == m_last_window_request_width && out_height == m_last_window_request_height)
@@ -377,13 +386,18 @@ void Presenter::SetWindowSize(int width, int height)
 
   m_last_window_request_width = out_width;
   m_last_window_request_height = out_height;
+  // Pass in the suggested window size. This might not always be acknowledged.
   Host_RequestRenderWindowSize(out_width, out_height);
 }
 
 // Crop to exactly 16:9 or 4:3 if enabled and not AspectMode::Stretch.
-std::tuple<float, float> Presenter::ApplyStandardAspectCrop(float width, float height) const
+std::tuple<float, float> Presenter::ApplyStandardAspectCrop(float width, float height,
+                                                            bool allow_stretch) const
 {
-  const auto aspect_mode = g_ActiveConfig.aspect_mode;
+  auto aspect_mode = g_ActiveConfig.aspect_mode;
+
+  if (!allow_stretch && aspect_mode == AspectMode::Stretch)
+    aspect_mode = AspectMode::Auto;
 
   if (!g_ActiveConfig.bCrop || aspect_mode == AspectMode::Stretch)
     return {width, height};
@@ -506,14 +520,14 @@ void Presenter::UpdateDrawRectangle()
   m_target_rectangle.bottom = m_target_rectangle.top + int_draw_height;
 }
 
-std::tuple<float, float> Presenter::ScaleToDisplayAspectRatio(const int width,
-                                                              const int height) const
+std::tuple<float, float> Presenter::ScaleToDisplayAspectRatio(const int width, const int height,
+                                                              bool allow_stretch) const
 {
   // Scale either the width or height depending the content aspect ratio.
   // This way we preserve as much resolution as possible when scaling.
   float scaled_width = static_cast<float>(width);
   float scaled_height = static_cast<float>(height);
-  const float draw_aspect = CalculateDrawAspectRatio();
+  const float draw_aspect = CalculateDrawAspectRatio(allow_stretch);
   if (scaled_width / scaled_height >= draw_aspect)
     scaled_height = scaled_width / draw_aspect;
   else
@@ -521,18 +535,38 @@ std::tuple<float, float> Presenter::ScaleToDisplayAspectRatio(const int width,
   return std::make_tuple(scaled_width, scaled_height);
 }
 
-std::tuple<int, int> Presenter::CalculateOutputDimensions(int width, int height) const
+std::tuple<int, int> Presenter::CalculateOutputDimensions(int width, int height,
+                                                          bool allow_stretch) const
 {
   width = std::max(width, 1);
   height = std::max(height, 1);
 
-  auto [scaled_width, scaled_height] = ScaleToDisplayAspectRatio(width, height);
+  auto [scaled_width, scaled_height] = ScaleToDisplayAspectRatio(width, height, allow_stretch);
 
   // Apply crop if enabled.
-  std::tie(scaled_width, scaled_height) = ApplyStandardAspectCrop(scaled_width, scaled_height);
+  std::tie(scaled_width, scaled_height) =
+      ApplyStandardAspectCrop(scaled_width, scaled_height, allow_stretch);
 
-  width = static_cast<int>(std::ceil(scaled_width));
-  height = static_cast<int>(std::ceil(scaled_height));
+  auto aspect_mode = g_ActiveConfig.aspect_mode;
+
+  if (!allow_stretch && aspect_mode == AspectMode::Stretch)
+    aspect_mode = AspectMode::Auto;
+
+  // Find the closest integer aspect ratio,
+  // this avoids a small black line from being drawn on one of the four edges
+  if (!g_ActiveConfig.bCrop && aspect_mode != AspectMode::Stretch)
+  {
+    const float draw_aspect_ratio = CalculateDrawAspectRatio(allow_stretch);
+    const auto [int_width, int_height] =
+        FindClosestIntegerResolution(scaled_width, scaled_height, draw_aspect_ratio);
+    width = int_width;
+    height = int_height;
+  }
+  else
+  {
+    width = static_cast<int>(std::ceil(scaled_width));
+    height = static_cast<int>(std::ceil(scaled_height));
+  }
 
   if (g_frame_dumper->IsFrameDumping())
   {
