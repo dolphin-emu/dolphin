@@ -137,8 +137,10 @@ LdrWatcher::~LdrWatcher()
   UninstallAll();
 }
 
+#ifdef _MSC_VER
 // Needed for RtlInitUnicodeString
 #pragma comment(lib, "ntdll")
+#endif
 
 bool LdrWatcher::InjectCurrentModules(const LdrObserver& observer)
 {
