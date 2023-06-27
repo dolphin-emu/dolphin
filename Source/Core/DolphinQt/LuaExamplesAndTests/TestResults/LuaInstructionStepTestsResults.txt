@@ -1,4 +1,4 @@
-cmplwi	r0, 0
+bl	->0x8024377C
 
 Total Tests: 6
 	Tests Passed: 6

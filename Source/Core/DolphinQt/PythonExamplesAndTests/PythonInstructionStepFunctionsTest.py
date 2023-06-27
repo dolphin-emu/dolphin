@@ -18,7 +18,7 @@ def stepFunc():
     print("Total Tests: 6\n\tTests Passed: 6\n\tTests Failed: 0")
     myFile.flush()
     myFile.close()
-    OnInstructionHit.unregister(2149867956 , ret_val)
+    OnInstructionHit.unregister(2149867956, ret_val)
     emu.loadState("temp.sav")
     dolphin.shutdownScript()
 
