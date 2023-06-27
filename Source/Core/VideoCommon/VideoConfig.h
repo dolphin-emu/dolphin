@@ -52,6 +52,17 @@ enum class TextureFilteringMode : int
   Linear,
 };
 
+enum class OutputResamplingMode : int
+{
+  Default,
+  Bilinear,
+  Bicubic,
+  Hermite,
+  CatmullRom,
+  NearestNeighbor,
+  SharpBilinear,
+};
+
 enum class ColorCorrectionRegion : int
 {
   SMPTE_NTSCM,
@@ -103,6 +114,7 @@ struct VideoConfig final
   bool bSSAA = false;
   int iEFBScale = 0;
   TextureFilteringMode texture_filtering_mode = TextureFilteringMode::Default;
+  OutputResamplingMode output_resampling_mode = OutputResamplingMode::Default;
   int iMaxAnisotropy = 0;
   std::string sPostProcessingShader;
   bool bForceTrueColor = false;
