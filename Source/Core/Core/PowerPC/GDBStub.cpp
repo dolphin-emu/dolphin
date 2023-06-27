@@ -23,6 +23,7 @@ typedef SSIZE_T ssize_t;
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
+#define SOCKET int
 #endif
 
 #include "Common/Assert.h"
@@ -264,7 +265,7 @@ static bool IsDataAvailable()
   fd_set _fds, *fds = &_fds;
 
   FD_ZERO(fds);
-  FD_SET(s_sock, fds);
+  FD_SET((SOCKET)s_sock, fds);
 
   t.tv_sec = 0;
   t.tv_usec = 20;

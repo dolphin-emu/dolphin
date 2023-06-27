@@ -36,6 +36,7 @@
 #define ERRORCODE(name) name
 #define EITHER(win32, posix) posix
 #define closesocket close
+#define SOCKET int
 #endif
 
 namespace IOS::HLE
@@ -774,8 +775,8 @@ WiiSocket::ConnectingState WiiSocket::GetConnectingState() const
     FD_ZERO(&read_fds);
     FD_ZERO(&write_fds);
     FD_ZERO(&except_fds);
-    FD_SET(fd, &write_fds);
-    FD_SET(fd, &except_fds);
+    FD_SET((SOCKET)fd, &write_fds);
+    FD_SET((SOCKET)fd, &except_fds);
 
     if (select(nfds, &read_fds, &write_fds, &except_fds, &t) < 0)
     {
@@ -1011,9 +1012,9 @@ void WiiSockMan::Update()
     const WiiSocket& sock = socket_iter->second;
     if (sock.IsValid())
     {
-      FD_SET(sock.fd, &read_fds);
-      FD_SET(sock.fd, &write_fds);
-      FD_SET(sock.fd, &except_fds);
+      FD_SET((SOCKET)sock.fd, &read_fds);
+      FD_SET((SOCKET)sock.fd, &write_fds);
+      FD_SET((SOCKET)sock.fd, &except_fds);
       nfds = std::max(nfds, sock.fd + 1);
       ++socket_iter;
     }
@@ -1176,7 +1177,8 @@ WiiSockAddrIn WiiSockMan::ToWiiAddrIn(const sockaddr_in& from, socklen_t addrlen
 {
   WiiSockAddrIn result;
 
-  result.len = u8(addrlen > sizeof(WiiSockAddrIn) ? sizeof(WiiSockAddrIn) : addrlen);
+  result.len =
+      u8(static_cast<size_t>(addrlen) > sizeof(WiiSockAddrIn) ? sizeof(WiiSockAddrIn) : addrlen);
   result.family = u8(from.sin_family & 0xFF);
   result.port = from.sin_port;
   result.addr.addr = from.sin_addr.s_addr;

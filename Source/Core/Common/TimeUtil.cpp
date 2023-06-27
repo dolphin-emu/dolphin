@@ -11,7 +11,7 @@ namespace Common
 std::optional<std::tm> Localtime(std::time_t time)
 {
   std::tm local_time;
-#ifdef _MSC_VER
+#ifdef _WIN32
   if (localtime_s(&local_time, &time) != 0)
     return std::nullopt;
 #else

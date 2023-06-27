@@ -38,7 +38,7 @@ public:
   VertexManager();
   ~VertexManager();
 
-  bool Initialize();
+  bool Initialize() override;
 
   void UploadUtilityUniforms(const void* uniforms, u32 uniforms_size) override;
   bool UploadTexelBuffer(const void* data, u32 data_size, TexelBufferFormat format,

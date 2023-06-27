@@ -25,7 +25,7 @@ namespace
 {
 std::chrono::system_clock::time_point FileTimeToSysTime(std::filesystem::file_time_type file_time)
 {
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__clang__)
   return std::chrono::clock_cast<std::chrono::system_clock>(file_time);
 #else
   // Note: all compilers should switch to chrono::clock_cast

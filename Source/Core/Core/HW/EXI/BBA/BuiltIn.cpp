@@ -803,7 +803,12 @@ sf::Socket::Status BbaTcpSocket::Connect(const sf::IpAddress& dest, u16 port, u3
   addr.sin_addr.s_addr = net_ip;
   addr.sin_family = AF_INET;
   addr.sin_port = 0;
-  (void)::bind(getNativeHandle(), reinterpret_cast<sockaddr*>(&addr), sizeof(addr));
+  if (::bind(getNativeHandle(), reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) != 0)
+  {
+    ERROR_LOG_FMT(SP1, "bind failed: {}", Common::StrNetworkError());
+    m_connecting_state = ConnectingState::Error;
+    return sf::Socket::Status::Error;
+  }
   m_connecting_state = ConnectingState::Connecting;
   return this->connect(dest, port);
 }
@@ -837,7 +842,7 @@ BbaTcpSocket::ConnectingState BbaTcpSocket::Connected(StackRef* ref)
   {
   case ConnectingState::Connecting:
   {
-    const int fd = getNativeHandle();
+    const sf::SocketHandle fd = getNativeHandle();
     const s32 nfds = fd + 1;
     fd_set read_fds;
     fd_set write_fds;

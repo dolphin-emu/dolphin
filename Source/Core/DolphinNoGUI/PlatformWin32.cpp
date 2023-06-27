@@ -30,7 +30,7 @@ public:
   void SetTitle(const std::string& string) override;
   void MainLoop() override;
 
-  WindowSystemInfo GetWindowSystemInfo() const;
+  WindowSystemInfo GetWindowSystemInfo() const override;
 
 private:
   static constexpr TCHAR WINDOW_CLASS_NAME[] = _T("DolphinNoGUI");

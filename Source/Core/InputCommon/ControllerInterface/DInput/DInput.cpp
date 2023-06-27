@@ -11,8 +11,10 @@
 #include "InputCommon/ControllerInterface/DInput/DInputJoystick.h"
 #include "InputCommon/ControllerInterface/DInput/DInputKeyboardMouse.h"
 
+#ifdef _MSC_VER
 #pragma comment(lib, "Dinput8.lib")
 #pragma comment(lib, "dxguid.lib")
+#endif
 
 namespace ciface::DInput
 {

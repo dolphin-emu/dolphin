@@ -45,7 +45,7 @@ static ComPtr<ID3D12Resource> CreateTextureUploadBuffer(u32 buffer_size)
 
 DXTexture::DXTexture(const TextureConfig& config, ID3D12Resource* resource,
                      D3D12_RESOURCE_STATES state, std::string_view name)
-    : AbstractTexture(config), m_resource(resource), m_state(state), m_name(UTF8ToWString(name))
+    : AbstractTexture(config), m_resource(resource), m_name(UTF8ToWString(name)), m_state(state)
 {
   if (!m_name.empty())
   {
@@ -331,14 +331,16 @@ void DXTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
   // Issue copy from buffer->texture.
   const u32 aligned_width = Common::AlignUp(width, block_size);
   const u32 aligned_height = Common::AlignUp(height, block_size);
-  const D3D12_TEXTURE_COPY_LOCATION dst_loc = {m_resource.Get(),
-                                               D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
-                                               {static_cast<UINT>(CalcSubresource(level, layer))}};
+  const D3D12_TEXTURE_COPY_LOCATION dst_loc = {
+      m_resource.Get(),
+      D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
+      {{static_cast<UINT>(CalcSubresource(level, layer))}}};
   const D3D12_TEXTURE_COPY_LOCATION src_loc = {
       upload_buffer_resource,
       D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT,
-      {{upload_buffer_offset, D3DCommon::GetDXGIFormatForAbstractFormat(m_config.format, false),
-        aligned_width, aligned_height, 1, upload_stride}}};
+      {{upload_buffer_offset,
+        {D3DCommon::GetDXGIFormatForAbstractFormat(m_config.format, false), aligned_width,
+         aligned_height, 1, upload_stride}}}};
   const D3D12_BOX src_box{0, 0, 0, aligned_width, aligned_height, 1};
   g_dx_context->GetCommandList()->CopyTextureRegion(&dst_loc, 0, 0, 0, &src_loc, &src_box);
 
@@ -363,11 +365,11 @@ void DXTexture::CopyRectangleFromTexture(const AbstractTexture* src,
   const D3D12_TEXTURE_COPY_LOCATION dst_loc = {
       m_resource.Get(),
       D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
-      {static_cast<UINT>(CalcSubresource(dst_level, dst_layer))}};
+      {{static_cast<UINT>(CalcSubresource(dst_level, dst_layer))}}};
   const D3D12_TEXTURE_COPY_LOCATION src_loc = {
       src_dxtex->m_resource.Get(),
       D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
-      {static_cast<UINT>(src_dxtex->CalcSubresource(src_level, src_layer))}};
+      {{static_cast<UINT>(src_dxtex->CalcSubresource(src_level, src_layer))}}};
   const D3D12_BOX src_box = RectangleToBox(src_rect);
   const D3D12_RESOURCE_STATES old_src_state = src_dxtex->m_state;
   src_dxtex->TransitionToState(D3D12_RESOURCE_STATE_COPY_SOURCE);
@@ -686,12 +688,13 @@ void DXStagingTexture::CopyFromTexture(const AbstractTexture* src,
   const D3D12_TEXTURE_COPY_LOCATION dst_loc = {
       m_resource.Get(),
       D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT,
-      {0,
-       {D3DCommon::GetDXGIFormatForAbstractFormat(m_config.format, false), m_config.width,
-        m_config.height, 1u, static_cast<UINT>(m_map_stride)}}};
+      {{0,
+        {D3DCommon::GetDXGIFormatForAbstractFormat(m_config.format, false), m_config.width,
+         m_config.height, 1u, static_cast<UINT>(m_map_stride)}}}};
   const D3D12_TEXTURE_COPY_LOCATION src_loc = {
-      src_tex->GetResource(), D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
-      static_cast<UINT>(src_tex->CalcSubresource(src_level, src_layer))};
+      src_tex->GetResource(),
+      D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
+      {{static_cast<UINT>(src_tex->CalcSubresource(src_level, src_layer))}}};
   const D3D12_BOX src_box = RectangleToBox(src_rect);
   g_dx_context->GetCommandList()->CopyTextureRegion(&dst_loc, dst_rect.left, dst_rect.top, 0,
                                                     &src_loc, &src_box);
@@ -725,14 +728,15 @@ void DXStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, A
 
   // Copy from VRAM -> host-visible memory.
   const D3D12_TEXTURE_COPY_LOCATION dst_loc = {
-      dst_tex->GetResource(), D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
-      static_cast<UINT>(dst_tex->CalcSubresource(dst_level, dst_layer))};
+      dst_tex->GetResource(),
+      D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
+      {{static_cast<UINT>(dst_tex->CalcSubresource(dst_level, dst_layer))}}};
   const D3D12_TEXTURE_COPY_LOCATION src_loc = {
       m_resource.Get(),
       D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT,
-      {0,
-       {D3DCommon::GetDXGIFormatForAbstractFormat(m_config.format, false), m_config.width,
-        m_config.height, 1u, static_cast<UINT>(m_map_stride)}}};
+      {{0,
+        {D3DCommon::GetDXGIFormatForAbstractFormat(m_config.format, false), m_config.width,
+         m_config.height, 1u, static_cast<UINT>(m_map_stride)}}}};
   const D3D12_BOX src_box = RectangleToBox(src_rect);
   g_dx_context->GetCommandList()->CopyTextureRegion(&dst_loc, dst_rect.left, dst_rect.top, 0,
                                                     &src_loc, &src_box);
