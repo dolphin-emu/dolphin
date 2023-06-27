@@ -1156,28 +1156,24 @@ bool PlayInput(const std::string& movie_path, std::optional<std::string>* savest
     {
       INFO_LOG_FMT(CORE, "We did not find a savestate in the CIT");
       // create output.dtm.sav from patch if we did not find it from unzipping
-      char ownPth[MAX_PATH];
-      HMODULE hModule = GetModuleHandle(NULL);
-      GetModuleFileNameA(hModule, ownPth, (sizeof(ownPth))); 
-      std::filesystem::path fullpath(ownPth);
-      fullpath.remove_filename();
-      std::string currentDirectory = fullpath.string();
-      std::filesystem::path cwd = fullpath / "createoutputfromdiff.bat";
-      std::string pathToBatch = cwd.string();
+
+      std::string pathToBatch = (File::GetExeDirectory() + "\\createoutputfromdiff.bat");
       INFO_LOG_FMT(CORE, "Path to the batch file is {}", pathToBatch);
       std::string batchPath = "\"\"" + pathToBatch + "\"";
-      std::string pathToSaveState =
-          "\"" + File::GetUserPath(D_CITRUSREPLAYS_IDX) + "output.dtm.sav" + "\"";
-      std::string pathToDiff =
-          "\"" + File::GetUserPath(D_CITRUSREPLAYS_IDX) + "diffFile.patch" + "\"";
-      std::string pathToEXE = "\"" + currentDirectory + "\"";
-      batchPath += " " + pathToDiff + " " + pathToSaveState + " " + pathToEXE + "\"";
+      fs::path incomingCITDirectory = fs::path(movie_path).parent_path();
+
+      std::string pathToSaveState = "\"" + incomingCITDirectory.string() + "/output.dtm.sav" + "\"";
+      std::string pathToDiff = "\"" + incomingCITDirectory.string() + "/diffFile.patch" + "\"";
+      std::string pathToEXE = "\"" + File::GetExeDirectory() + "\"";
+      std::string dolphinDriveLetter = (File::GetExeDirectory().substr(0, 1) + ":");
+      batchPath += " " + pathToDiff + " " + pathToSaveState + " " + pathToEXE + " " + dolphinDriveLetter + "\"";
+      INFO_LOG_FMT(CORE, "Batch args for patching the diff is {}", batchPath);
       STARTUPINFO si;
       PROCESS_INFORMATION pi;
       memset(&si, 0, sizeof(si));
       si.cb = sizeof(si);
       // si.wShowWindow = SW_HIDE;
-      //  CREATE_NO_WINDOW after true
+      //  CREATE_NO_WINDOW after true for no window, NULL for a window
       if (!CreateProcessA(pathToBatch.c_str(), &batchPath[0], NULL, NULL, TRUE, CREATE_NO_WINDOW,
                           NULL, NULL,
                           (LPSTARTUPINFOA)&si, &pi))
