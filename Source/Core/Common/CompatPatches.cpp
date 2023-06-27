@@ -148,7 +148,9 @@ bool ApplyUcrtPatch(const wchar_t* name, const UcrtPatchInfo& patch)
   return true;
 }
 
+#ifdef _MSC_VER
 #pragma comment(lib, "version.lib")
+#endif
 
 struct Version
 {
@@ -244,6 +246,7 @@ void CompatPatchesInstall(LdrWatcher* watcher)
        }});
 }
 
+#ifdef _MSC_VER
 int __cdecl EnableCompatPatches()
 {
   static LdrWatcher watcher;
@@ -263,4 +266,5 @@ int __cdecl EnableCompatPatches()
 extern "C" {
 __declspec(allocate(".CRT$XCZ")) decltype(&EnableCompatPatches)
     enableCompatPatches = EnableCompatPatches;
-}
+};
+#endif
