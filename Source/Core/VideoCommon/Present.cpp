@@ -365,9 +365,34 @@ void* Presenter::GetNewSurfaceHandle()
 
 u32 Presenter::AutoIntegralScale() const
 {
-  // Calculate a scale based on the window size
-  u32 width = EFB_WIDTH * m_target_rectangle.GetWidth() / m_last_xfb_width;
-  u32 height = EFB_HEIGHT * m_target_rectangle.GetHeight() / m_last_xfb_height;
+  const float efb_aspect_ratio = static_cast<float>(EFB_WIDTH) / EFB_HEIGHT;
+  const float target_aspect_ratio =
+      static_cast<float>(m_target_rectangle.GetWidth()) / m_target_rectangle.GetHeight();
+
+  u32 target_width;
+  u32 target_height;
+
+  // Instead of using the entire window (back buffer) resolution,
+  // find the portion of it that will actually contain the EFB output,
+  // and ignore the portion that will likely have black bars.
+  if (target_aspect_ratio >= efb_aspect_ratio)
+  {
+    target_height = m_target_rectangle.GetHeight();
+    target_width = static_cast<u32>(
+        std::round((static_cast<float>(m_target_rectangle.GetWidth()) / target_aspect_ratio) *
+                   efb_aspect_ratio));
+  }
+  else
+  {
+    target_width = m_target_rectangle.GetWidth();
+    target_height = static_cast<u32>(
+        std::round((static_cast<float>(m_target_rectangle.GetHeight()) * target_aspect_ratio) /
+                   efb_aspect_ratio));
+  }
+
+  // Calculate a scale based on the adjusted window size
+  u32 width = EFB_WIDTH * target_width / m_last_xfb_width;
+  u32 height = EFB_HEIGHT * target_height / m_last_xfb_height;
   return std::max((width - 1) / EFB_WIDTH + 1, (height - 1) / EFB_HEIGHT + 1);
 }
 
