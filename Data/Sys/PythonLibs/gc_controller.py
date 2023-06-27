@@ -36,10 +36,10 @@ def _INTERNAL_check_if_event_happened(probability):
     else:
         return ((probability * 1.0) / 100.0) >= random.random()
 
-_INTERNAL_button_uppercase_to_button_table = {"A": "A", "B": "B", "X": "X", "Y": "Y", "Z": "Z", "L": "L", "R": "R", "DPADUP": "dPadUp", "DPADDOWN": "dPadDown", "DPADLEFT": "dPadLeft", "DPADRIGHT": "dPadRight", "START": "Start", "RESET": "Reset", "TRIGGERL": "triggerL", "TRIGGERR": "triggerR", "ANALOGSTICKX": "analogStickX", "ANALOGSTICKY": "analogStickY", "CSTICKX": "cStickX", "CSTICKY": "cStickY"}
+_INTERNAL_button_uppercase_to_button_table = {"A": "A", "B": "B", "X": "X", "Y": "Y", "Z": "Z", "L": "L", "R": "R", "DPADUP": "dPadUp", "DPADDOWN": "dPadDown", "DPADLEFT": "dPadLeft", "DPADRIGHT": "dPadRight", "START": "Start", "RESET": "Reset", "DISC" : "disc", "GETORIGIN" : "getOrigin", "ISCONNECTED" : "isConnected", "TRIGGERL": "triggerL", "TRIGGERR": "triggerR", "ANALOGSTICKX": "analogStickX", "ANALOGSTICKY": "analogStickY", "CSTICKX": "cStickX", "CSTICKY": "cStickY"}
 
 def _INTERNAL_is_digital_button(standardizedButtonName):
-    return standardizedButtonName == "A" or standardizedButtonName == "B" or standardizedButtonName == "X" or standardizedButtonName == "Y" or standardizedButtonName == "Z" or standardizedButtonName == "L" or standardizedButtonName == "R" or standardizedButtonName == "dPadUp" or standardizedButtonName == "dPadDown" or standardizedButtonName == "dPadLeft" or standardizedButtonName == "dPadRight" or standardizedButtonName == "Start" or standardizedButtonName == "Reset"
+    return standardizedButtonName == "A" or standardizedButtonName == "B" or standardizedButtonName == "X" or standardizedButtonName == "Y" or standardizedButtonName == "Z" or standardizedButtonName == "L" or standardizedButtonName == "R" or standardizedButtonName == "dPadUp" or standardizedButtonName == "dPadDown" or standardizedButtonName == "dPadLeft" or standardizedButtonName == "dPadRight" or standardizedButtonName == "Start" or standardizedButtonName == "Reset" or standardizedButtonName == "disc" or standardizedButtonName == "getOrigin" or standardizedButtonName == "isConnected"
 
 def _INTERNAL_is_analog_button(standardizedButtonName):
     return standardizedButtonName == "triggerL" or standardizedButtonName == "triggerR" or standardizedButtonName == "analogStickX" or standardizedButtonName == "analogStickY" or standardizedButtonName == "cStickX" or standardizedButtonName == "cStickY"
@@ -48,7 +48,7 @@ def _INTERNAL_check_and_standardize_button_name(buttonName):
     standardizedButtonName = buttonName.upper()
     standardizedButtonName = _INTERNAL_button_uppercase_to_button_table.get(standardizedButtonName, None)
     if standardizedButtonName == None:
-        raise Exception("Error: unknown button name of " + buttonName + " was passed into function call. Valid values are A, B, X, Y, Z, L, R, dpadUp, dPadDown, dPadLeft, dPadRight, Start, Reset, triggerL, triggerR, analogStickX, analogStickY, cStickX, and cStickY")
+        raise Exception("Error: unknown button name of " + buttonName + " was passed into function call. Valid values are A, B, X, Y, Z, L, R, dpadUp, dPadDown, dPadLeft, dPadRight, Start, Reset, disc, getOrigin, isConnected, triggerL, triggerR, analogStickX, analogStickY, cStickX, and cStickY")
     return standardizedButtonName
 
 def _INTERNAL_check_and_standardize_button_name_and_value(buttonName, buttonValue):
@@ -184,6 +184,9 @@ def _INTERNAL_clearControllerStateToDefaultValues(inputtedControllerState):
     inputtedControllerState["dPadRight"] = False
     inputtedControllerState["Start"] = False
     inputtedControllerState["Reset"] = False
+    inputtedControllerState["disc"] = False
+    inputtedControllerState["getOrigin"] = False
+    inputtedControllerState["isConnected"] = True
     inputtedControllerState["triggerL"] = 0
     inputtedControllerState["triggerR"] = 0
     inputtedControllerState["analogStickX"] = 128

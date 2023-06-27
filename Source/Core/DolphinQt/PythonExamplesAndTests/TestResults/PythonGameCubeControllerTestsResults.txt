@@ -1,0 +1,1607 @@
+Running setInputs() unit tests:
+
+Test 1
+	Calling setInputs() on controller 1 with just setting A to True...
+PASS!
+
+Test 2
+	Calling setInputs() on controller 1 with just setting B to True...
+PASS!
+
+Test 3
+	Calling setInputs() on controller 1 with just setting X to True...
+PASS!
+
+Test 4
+	Calling setInputs() on controller 1 with just setting Y to True...
+PASS!
+
+Test 5
+	Calling setInputs() on controller 1 with just setting Z to True...
+PASS!
+
+Test 6
+	Calling setInputs() on controller 1 with just setting L to True...
+PASS!
+
+Test 7
+	Calling setInputs() on controller 1 with just setting R to True...
+PASS!
+
+Test 8
+	Calling setInputs() on controller 1 with just setting Start to True...
+PASS!
+
+Test 9
+	Calling setInputs() on controller 1 with just setting Reset to True...
+PASS!
+
+Test 10
+	Calling setInputs() on controller 1 with just setting triggerL to 183...
+PASS!
+
+Test 11
+	Calling setInputs() on controller 1 with just setting triggerR to 112...
+PASS!
+
+Test 12
+	Calling setInputs() on controller 1 with just setting dPadUp to True...
+PASS!
+
+Test 13
+	Calling setInputs() on controller 1 with just setting dPadDown to True...
+PASS!
+
+Test 14
+	Calling setInputs() on controller 1 with just setting dPadLeft to True...
+PASS!
+
+Test 15
+	Calling setInputs() on controller 1 with just setting dPadRight to True...
+PASS!
+
+Test 16
+	Calling setInputs() on controller 1 with just setting disc to True...
+PASS!
+
+Test 17
+	Calling setInputs() on controller 1 with just setting getOrigin to True...
+PASS!
+
+Test 18
+	Calling setInputs() on controller 1 with just setting isConnected to True...
+PASS!
+
+Test 19
+	Calling setInputs() on controller 1 with just setting analogStickX to 131...
+PASS!
+
+Test 20
+	Calling setInputs() on controller 1 with just setting analogStickY to 190...
+PASS!
+
+Test 21
+	Calling setInputs() on controller 1 with just setting cStickX to 99...
+PASS!
+
+Test 22
+	Calling setInputs() on controller 1 with just setting cStickY to 43...
+PASS!
+
+Test 23
+	Calling setInputs() on controller 1 with setting A to True and setting cStickX to 232...
+PASS!
+
+Test 24
+	Calling setInputs() on controller 1 with setting all buttons to pressed and all analog inputs to their maximum values...
+PASS!
+
+Test 25
+	Calling setInputs() on controller 2 with just setting A to True...
+PASS!
+
+Test 26
+	Calling setInputs() on controller 2 with just setting B to True...
+PASS!
+
+Test 27
+	Calling setInputs() on controller 2 with just setting X to True...
+PASS!
+
+Test 28
+	Calling setInputs() on controller 2 with just setting Y to True...
+PASS!
+
+Test 29
+	Calling setInputs() on controller 2 with just setting Z to True...
+PASS!
+
+Test 30
+	Calling setInputs() on controller 2 with just setting L to True...
+PASS!
+
+Test 31
+	Calling setInputs() on controller 2 with just setting R to True...
+PASS!
+
+Test 32
+	Calling setInputs() on controller 2 with just setting Start to True...
+PASS!
+
+Test 33
+	Calling setInputs() on controller 2 with just setting Reset to True...
+PASS!
+
+Test 34
+	Calling setInputs() on controller 2 with just setting triggerL to 183...
+PASS!
+
+Test 35
+	Calling setInputs() on controller 2 with just setting triggerR to 112...
+PASS!
+
+Test 36
+	Calling setInputs() on controller 2 with just setting dPadUp to True...
+PASS!
+
+Test 37
+	Calling setInputs() on controller 2 with just setting dPadDown to True...
+PASS!
+
+Test 38
+	Calling setInputs() on controller 2 with just setting dPadLeft to True...
+PASS!
+
+Test 39
+	Calling setInputs() on controller 2 with just setting dPadRight to True...
+PASS!
+
+Test 40
+	Calling setInputs() on controller 2 with just setting disc to True...
+PASS!
+
+Test 41
+	Calling setInputs() on controller 2 with just setting getOrigin to True...
+PASS!
+
+Test 42
+	Calling setInputs() on controller 2 with just setting isConnected to True...
+PASS!
+
+Test 43
+	Calling setInputs() on controller 2 with just setting analogStickX to 131...
+PASS!
+
+Test 44
+	Calling setInputs() on controller 2 with just setting analogStickY to 190...
+PASS!
+
+Test 45
+	Calling setInputs() on controller 2 with just setting cStickX to 99...
+PASS!
+
+Test 46
+	Calling setInputs() on controller 2 with just setting cStickY to 43...
+PASS!
+
+Test 47
+	Calling setInputs() on controller 2 with setting A to True and setting cStickX to 232...
+PASS!
+
+Test 48
+	Calling setInputs() on controller 2 with setting all buttons to pressed and all analog inputs to their maximum values...
+PASS!
+
+Test 49
+	Calling setInputs() on controller 3 with just setting A to True...
+PASS!
+
+Test 50
+	Calling setInputs() on controller 3 with just setting B to True...
+PASS!
+
+Test 51
+	Calling setInputs() on controller 3 with just setting X to True...
+PASS!
+
+Test 52
+	Calling setInputs() on controller 3 with just setting Y to True...
+PASS!
+
+Test 53
+	Calling setInputs() on controller 3 with just setting Z to True...
+PASS!
+
+Test 54
+	Calling setInputs() on controller 3 with just setting L to True...
+PASS!
+
+Test 55
+	Calling setInputs() on controller 3 with just setting R to True...
+PASS!
+
+Test 56
+	Calling setInputs() on controller 3 with just setting Start to True...
+PASS!
+
+Test 57
+	Calling setInputs() on controller 3 with just setting Reset to True...
+PASS!
+
+Test 58
+	Calling setInputs() on controller 3 with just setting triggerL to 183...
+PASS!
+
+Test 59
+	Calling setInputs() on controller 3 with just setting triggerR to 112...
+PASS!
+
+Test 60
+	Calling setInputs() on controller 3 with just setting dPadUp to True...
+PASS!
+
+Test 61
+	Calling setInputs() on controller 3 with just setting dPadDown to True...
+PASS!
+
+Test 62
+	Calling setInputs() on controller 3 with just setting dPadLeft to True...
+PASS!
+
+Test 63
+	Calling setInputs() on controller 3 with just setting dPadRight to True...
+PASS!
+
+Test 64
+	Calling setInputs() on controller 3 with just setting disc to True...
+PASS!
+
+Test 65
+	Calling setInputs() on controller 3 with just setting getOrigin to True...
+PASS!
+
+Test 66
+	Calling setInputs() on controller 3 with just setting isConnected to True...
+PASS!
+
+Test 67
+	Calling setInputs() on controller 3 with just setting analogStickX to 131...
+PASS!
+
+Test 68
+	Calling setInputs() on controller 3 with just setting analogStickY to 190...
+PASS!
+
+Test 69
+	Calling setInputs() on controller 3 with just setting cStickX to 99...
+PASS!
+
+Test 70
+	Calling setInputs() on controller 3 with just setting cStickY to 43...
+PASS!
+
+Test 71
+	Calling setInputs() on controller 3 with setting A to True and setting cStickX to 232...
+PASS!
+
+Test 72
+	Calling setInputs() on controller 3 with setting all buttons to pressed and all analog inputs to their maximum values...
+PASS!
+
+Test 73
+	Calling setInputs() on controller 4 with just setting A to True...
+PASS!
+
+Test 74
+	Calling setInputs() on controller 4 with just setting B to True...
+PASS!
+
+Test 75
+	Calling setInputs() on controller 4 with just setting X to True...
+PASS!
+
+Test 76
+	Calling setInputs() on controller 4 with just setting Y to True...
+PASS!
+
+Test 77
+	Calling setInputs() on controller 4 with just setting Z to True...
+PASS!
+
+Test 78
+	Calling setInputs() on controller 4 with just setting L to True...
+PASS!
+
+Test 79
+	Calling setInputs() on controller 4 with just setting R to True...
+PASS!
+
+Test 80
+	Calling setInputs() on controller 4 with just setting Start to True...
+FAILURE!
+
+Test 81
+	Calling setInputs() on controller 4 with just setting Reset to True...
+PASS!
+
+Test 82
+	Calling setInputs() on controller 4 with just setting triggerL to 183...
+PASS!
+
+Test 83
+	Calling setInputs() on controller 4 with just setting triggerR to 112...
+PASS!
+
+Test 84
+	Calling setInputs() on controller 4 with just setting dPadUp to True...
+PASS!
+
+Test 85
+	Calling setInputs() on controller 4 with just setting dPadDown to True...
+PASS!
+
+Test 86
+	Calling setInputs() on controller 4 with just setting dPadLeft to True...
+PASS!
+
+Test 87
+	Calling setInputs() on controller 4 with just setting dPadRight to True...
+PASS!
+
+Test 88
+	Calling setInputs() on controller 4 with just setting disc to True...
+PASS!
+
+Test 89
+	Calling setInputs() on controller 4 with just setting getOrigin to True...
+PASS!
+
+Test 90
+	Calling setInputs() on controller 4 with just setting isConnected to True...
+PASS!
+
+Test 91
+	Calling setInputs() on controller 4 with just setting analogStickX to 131...
+PASS!
+
+Test 92
+	Calling setInputs() on controller 4 with just setting analogStickY to 190...
+PASS!
+
+Test 93
+	Calling setInputs() on controller 4 with just setting cStickX to 99...
+PASS!
+
+Test 94
+	Calling setInputs() on controller 4 with just setting cStickY to 43...
+PASS!
+
+Test 95
+	Calling setInputs() on controller 4 with setting A to True and setting cStickX to 232...
+PASS!
+
+Test 96
+	Calling setInputs() on controller 4 with setting all buttons to pressed and all analog inputs to their maximum values...
+PASS!
+
+Test 97
+	Calling setInputs() on all controllers...
+PASS!
+
+Test 98
+	Calling setInputs() twice in a row to make sure that the second call overwrites the first one...
+PASS!
+
+----------------------------------------------------------------------------------
+
+Running addInputs() unit tests:
+
+Test 99
+	Calling addInputs() on controller 1 with just setting A to True...
+PASS!
+
+Test 100
+	Calling addInputs() on controller 1 with just setting B to True...
+PASS!
+
+Test 101
+	Calling addInputs() on controller 1 with just setting X to True...
+PASS!
+
+Test 102
+	Calling addInputs() on controller 1 with just setting Y to True...
+PASS!
+
+Test 103
+	Calling addInputs() on controller 1 with just setting Z to True...
+PASS!
+
+Test 104
+	Calling addInputs() on controller 1 with just setting L to True...
+PASS!
+
+Test 105
+	Calling addInputs() on controller 1 with just setting R to True...
+PASS!
+
+Test 106
+	Calling addInputs() on controller 1 with just setting Start to True...
+PASS!
+
+Test 107
+	Calling addInputs() on controller 1 with just setting Reset to True...
+PASS!
+
+Test 108
+	Calling addInputs() on controller 1 with just setting triggerL to 183...
+PASS!
+
+Test 109
+	Calling addInputs() on controller 1 with just setting triggerR to 112...
+PASS!
+
+Test 110
+	Calling addInputs() on controller 1 with just setting dPadUp to True...
+PASS!
+
+Test 111
+	Calling addInputs() on controller 1 with just setting dPadDown to True...
+PASS!
+
+Test 112
+	Calling addInputs() on controller 1 with just setting dPadLeft to True...
+PASS!
+
+Test 113
+	Calling addInputs() on controller 1 with just setting dPadRight to True...
+PASS!
+
+Test 114
+	Calling addInputs() on controller 1 with just setting disc to True...
+PASS!
+
+Test 115
+	Calling addInputs() on controller 1 with just setting getOrigin to True...
+PASS!
+
+Test 116
+	Calling addInputs() on controller 1 with just setting isConnected to True...
+PASS!
+
+Test 117
+	Calling addInputs() on controller 1 with just setting analogStickX to 131...
+PASS!
+
+Test 118
+	Calling addInputs() on controller 1 with just setting analogStickY to 190...
+PASS!
+
+Test 119
+	Calling addInputs() on controller 1 with just setting cStickX to 99...
+PASS!
+
+Test 120
+	Calling addInputs() on controller 1 with just setting cStickY to 43...
+PASS!
+
+Test 121
+	Calling addInputs() on controller 1 with setting A to True and setting cStickX to 232...
+PASS!
+
+Test 122
+	Calling addInputs() on controller 1 with setting all buttons to pressed and all analog inputs to their maximum values...
+PASS!
+
+Test 123
+	Calling addInputs() on controller 2 with just setting A to True...
+PASS!
+
+Test 124
+	Calling addInputs() on controller 2 with just setting B to True...
+PASS!
+
+Test 125
+	Calling addInputs() on controller 2 with just setting X to True...
+PASS!
+
+Test 126
+	Calling addInputs() on controller 2 with just setting Y to True...
+PASS!
+
+Test 127
+	Calling addInputs() on controller 2 with just setting Z to True...
+PASS!
+
+Test 128
+	Calling addInputs() on controller 2 with just setting L to True...
+PASS!
+
+Test 129
+	Calling addInputs() on controller 2 with just setting R to True...
+PASS!
+
+Test 130
+	Calling addInputs() on controller 2 with just setting Start to True...
+PASS!
+
+Test 131
+	Calling addInputs() on controller 2 with just setting Reset to True...
+PASS!
+
+Test 132
+	Calling addInputs() on controller 2 with just setting triggerL to 183...
+PASS!
+
+Test 133
+	Calling addInputs() on controller 2 with just setting triggerR to 112...
+PASS!
+
+Test 134
+	Calling addInputs() on controller 2 with just setting dPadUp to True...
+PASS!
+
+Test 135
+	Calling addInputs() on controller 2 with just setting dPadDown to True...
+PASS!
+
+Test 136
+	Calling addInputs() on controller 2 with just setting dPadLeft to True...
+PASS!
+
+Test 137
+	Calling addInputs() on controller 2 with just setting dPadRight to True...
+PASS!
+
+Test 138
+	Calling addInputs() on controller 2 with just setting disc to True...
+PASS!
+
+Test 139
+	Calling addInputs() on controller 2 with just setting getOrigin to True...
+PASS!
+
+Test 140
+	Calling addInputs() on controller 2 with just setting isConnected to True...
+PASS!
+
+Test 141
+	Calling addInputs() on controller 2 with just setting analogStickX to 131...
+PASS!
+
+Test 142
+	Calling addInputs() on controller 2 with just setting analogStickY to 190...
+PASS!
+
+Test 143
+	Calling addInputs() on controller 2 with just setting cStickX to 99...
+PASS!
+
+Test 144
+	Calling addInputs() on controller 2 with just setting cStickY to 43...
+PASS!
+
+Test 145
+	Calling addInputs() on controller 2 with setting A to True and setting cStickX to 232...
+PASS!
+
+Test 146
+	Calling addInputs() on controller 2 with setting all buttons to pressed and all analog inputs to their maximum values...
+PASS!
+
+Test 147
+	Calling addInputs() on controller 3 with just setting A to True...
+PASS!
+
+Test 148
+	Calling addInputs() on controller 3 with just setting B to True...
+PASS!
+
+Test 149
+	Calling addInputs() on controller 3 with just setting X to True...
+PASS!
+
+Test 150
+	Calling addInputs() on controller 3 with just setting Y to True...
+PASS!
+
+Test 151
+	Calling addInputs() on controller 3 with just setting Z to True...
+PASS!
+
+Test 152
+	Calling addInputs() on controller 3 with just setting L to True...
+PASS!
+
+Test 153
+	Calling addInputs() on controller 3 with just setting R to True...
+PASS!
+
+Test 154
+	Calling addInputs() on controller 3 with just setting Start to True...
+PASS!
+
+Test 155
+	Calling addInputs() on controller 3 with just setting Reset to True...
+PASS!
+
+Test 156
+	Calling addInputs() on controller 3 with just setting triggerL to 183...
+PASS!
+
+Test 157
+	Calling addInputs() on controller 3 with just setting triggerR to 112...
+PASS!
+
+Test 158
+	Calling addInputs() on controller 3 with just setting dPadUp to True...
+PASS!
+
+Test 159
+	Calling addInputs() on controller 3 with just setting dPadDown to True...
+PASS!
+
+Test 160
+	Calling addInputs() on controller 3 with just setting dPadLeft to True...
+PASS!
+
+Test 161
+	Calling addInputs() on controller 3 with just setting dPadRight to True...
+PASS!
+
+Test 162
+	Calling addInputs() on controller 3 with just setting disc to True...
+PASS!
+
+Test 163
+	Calling addInputs() on controller 3 with just setting getOrigin to True...
+PASS!
+
+Test 164
+	Calling addInputs() on controller 3 with just setting isConnected to True...
+PASS!
+
+Test 165
+	Calling addInputs() on controller 3 with just setting analogStickX to 131...
+PASS!
+
+Test 166
+	Calling addInputs() on controller 3 with just setting analogStickY to 190...
+PASS!
+
+Test 167
+	Calling addInputs() on controller 3 with just setting cStickX to 99...
+PASS!
+
+Test 168
+	Calling addInputs() on controller 3 with just setting cStickY to 43...
+PASS!
+
+Test 169
+	Calling addInputs() on controller 3 with setting A to True and setting cStickX to 232...
+PASS!
+
+Test 170
+	Calling addInputs() on controller 3 with setting all buttons to pressed and all analog inputs to their maximum values...
+PASS!
+
+Test 171
+	Calling addInputs() on controller 4 with just setting A to True...
+PASS!
+
+Test 172
+	Calling addInputs() on controller 4 with just setting B to True...
+PASS!
+
+Test 173
+	Calling addInputs() on controller 4 with just setting X to True...
+PASS!
+
+Test 174
+	Calling addInputs() on controller 4 with just setting Y to True...
+PASS!
+
+Test 175
+	Calling addInputs() on controller 4 with just setting Z to True...
+PASS!
+
+Test 176
+	Calling addInputs() on controller 4 with just setting L to True...
+PASS!
+
+Test 177
+	Calling addInputs() on controller 4 with just setting R to True...
+PASS!
+
+Test 178
+	Calling addInputs() on controller 4 with just setting Start to True...
+PASS!
+
+Test 179
+	Calling addInputs() on controller 4 with just setting Reset to True...
+PASS!
+
+Test 180
+	Calling addInputs() on controller 4 with just setting triggerL to 183...
+PASS!
+
+Test 181
+	Calling addInputs() on controller 4 with just setting triggerR to 112...
+PASS!
+
+Test 182
+	Calling addInputs() on controller 4 with just setting dPadUp to True...
+PASS!
+
+Test 183
+	Calling addInputs() on controller 4 with just setting dPadDown to True...
+PASS!
+
+Test 184
+	Calling addInputs() on controller 4 with just setting dPadLeft to True...
+PASS!
+
+Test 185
+	Calling addInputs() on controller 4 with just setting dPadRight to True...
+PASS!
+
+Test 186
+	Calling addInputs() on controller 4 with just setting disc to True...
+PASS!
+
+Test 187
+	Calling addInputs() on controller 4 with just setting getOrigin to True...
+PASS!
+
+Test 188
+	Calling addInputs() on controller 4 with just setting isConnected to True...
+PASS!
+
+Test 189
+	Calling addInputs() on controller 4 with just setting analogStickX to 131...
+PASS!
+
+Test 190
+	Calling addInputs() on controller 4 with just setting analogStickY to 190...
+PASS!
+
+Test 191
+	Calling addInputs() on controller 4 with just setting cStickX to 99...
+PASS!
+
+Test 192
+	Calling addInputs() on controller 4 with just setting cStickY to 43...
+PASS!
+
+Test 193
+	Calling addInputs() on controller 4 with setting A to True and setting cStickX to 232...
+PASS!
+
+Test 194
+	Calling addInputs() on controller 4 with setting all buttons to pressed and all analog inputs to their maximum values...
+PASS!
+
+Test 195
+	Calling addInputs() on all controllers...
+PASS!
+
+Test 196
+	Calling addInputs() twice in a row to make sure that the calls add onto each other...
+PASS!
+
+----------------------------------------------------------------------------------
+
+Running addButtonFlipChance() unit tests:
+
+Test 197
+	Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button A...
+PASS!
+
+Test 198
+	Calling addButtonFlipChance() on controller 2 with 100% probability of flipping button A...
+PASS!
+
+Test 199
+	Calling addButtonFlipChance() on controller 3 with 100% probability of flipping button A...
+PASS!
+
+Test 200
+	Calling addButtonFlipChance() on controller 4 with 100% probability of flipping button A...
+PASS!
+
+Test 201
+	Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button B...
+PASS!
+
+Test 202
+	Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button X...
+PASS!
+
+Test 203
+	Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button Y...
+PASS!
+
+Test 204
+	Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button Z...
+PASS!
+
+Test 205
+	Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button L...
+PASS!
+
+Test 206
+	Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button R...
+PASS!
+
+Test 207
+	Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button Start...
+PASS!
+
+Test 208
+	Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button Reset...
+PASS!
+
+Test 209
+	Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button dPadUp...
+PASS!
+
+Test 210
+	Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button dPadDown...
+PASS!
+
+Test 211
+	Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button dPadLeft...
+PASS!
+
+Test 212
+	Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button dPadRight...
+PASS!
+
+Test 213
+	Calling addButtonFlipChance() on controller 1 with 100% probability of flipping button B (but after setting button B to pressed)...
+PASS!
+
+Test 214
+	Calling addButtonFlipChance() on controller 1 twice in a row with 100% probability of flipping button X...
+PASS!
+
+Test 215
+	Calling addButtonFlipChance() on controller 1 three times in a row with 100% probability of flipping button Y...
+PASS!
+
+Test 216
+	Calling addButtonFlipChance() on controller 1 with 0% probability of flipping button A to pressed...
+PASS!
+
+Test 217:
+	Running through 1000 frames of calling addButtonFlipChance() on controller 1 with 13% chance of flipping button B...
+	Impacted frames made up 11.288711288711289% of all frames, which was in the acceptable range of +- 8% of the selected probability of 13%
+PASS!
+
+----------------------------------------------------------------------------------
+
+Running addButtonPressChance() unit tests:
+
+Test 218
+	Calling addButtonPressChance() on controller 1 with 100% probability of pressing button A...
+PASS!
+
+Test 219
+	Calling addButtonPressChance() on controller 2 with 100% probability of pressing button A...
+PASS!
+
+Test 220
+	Calling addButtonPressChance() on controller 3 with 100% probability of pressing button A...
+PASS!
+
+Test 221
+	Calling addButtonPressChance() on controller 4 with 100% probability of pressing button A...
+PASS!
+
+Test 222
+	Calling addButtonPressChance() on controller 1 with 100% probability of pressing button B...
+PASS!
+
+Test 223
+	Calling addButtonPressChance() on controller 1 with 100% probability of pressing button X...
+PASS!
+
+Test 224
+	Calling addButtonPressChance() on controller 1 with 100% probability of pressing button Y...
+PASS!
+
+Test 225
+	Calling addButtonPressChance() on controller 1 with 100% probability of pressing button Z...
+PASS!
+
+Test 226
+	Calling addButtonPressChance() on controller 1 with 100% probability of pressing button L...
+PASS!
+
+Test 227
+	Calling addButtonPressChance() on controller 1 with 100% probability of pressing button R...
+PASS!
+
+Test 228
+	Calling addButtonPressChance() on controller 1 with 100% probability of pressing button Start...
+PASS!
+
+Test 229
+	Calling addButtonPressChance() on controller 1 with 100% probability of pressing button Reset...
+PASS!
+
+Test 230
+	Calling addButtonPressChance() on controller 1 with 100% probability of pressing button dPadUp...
+PASS!
+
+Test 231
+	Calling addButtonPressChance() on controller 1 with 100% probability of pressing button dPadDown...
+PASS!
+
+Test 232
+	Calling addButtonPressChance() on controller 1 with 100% probability of pressing button dPadLeft...
+PASS!
+
+Test 233
+	Calling addButtonPressChance() on controller 1 with 100% probability of pressing button dPadRight...
+PASS!
+
+Test 234
+	Calling addButtonPressChance() on controller 1 with 100% probability of pressing button B (but after setting button B to pressed)...
+PASS!
+
+Test 235
+	Calling addButtonPressChance() on controller 1 with 0% probability of setting button A to pressed...
+PASS!
+
+Test 236:
+	Running through 1000 frames of calling addButtonPressChance() on controller 1 with 34% chance of pressing button X...
+	Impacted frames made up 35.964035964035965% of all frames, which was in the acceptable range of +- 8% of the selected probability of 34%
+PASS!
+
+----------------------------------------------------------------------------------
+
+Running addButtonReleaseChance() unit tests:
+
+Test 237
+	Calling addButtonReleaseChance() on controller 1 after setting A to pressed with 100% probability of releasing button A...
+PASS!
+
+Test 238
+	Calling addButtonReleaseChance() on controller 2 after setting A to pressed with 100% probability of releasing button A...
+PASS!
+
+Test 239
+	Calling addButtonReleaseChance() on controller 3 after setting A to pressed with 100% probability of releasing button A...
+PASS!
+
+Test 240
+	Calling addButtonReleaseChance() on controller 4 after setting A to pressed with 100% probability of releasing button A...
+PASS!
+
+Test 241
+	Calling addButtonReleaseChance() on controller 1 after setting B to pressed with 100% probability of releasing button B...
+PASS!
+
+Test 242
+	Calling addButtonReleaseChance() on controller 1 after setting X to pressed with 100% probability of releasing button X...
+PASS!
+
+Test 243
+	Calling addButtonReleaseChance() on controller 1 after setting Y to pressed with 100% probability of releasing button Y...
+PASS!
+
+Test 244
+	Calling addButtonReleaseChance() on controller 1 after setting Z to pressed with 100% probability of releasing button Z...
+PASS!
+
+Test 245
+	Calling addButtonReleaseChance() on controller 1 after setting L to pressed with 100% probability of releasing button L...
+PASS!
+
+Test 246
+	Calling addButtonReleaseChance() on controller 1 after setting R to pressed with 100% probability of releasing button R...
+PASS!
+
+Test 247
+	Calling addButtonReleaseChance() on controller 1 after setting Start to pressed with 100% probability of releasing button Start...
+PASS!
+
+Test 248
+	Calling addButtonReleaseChance() on controller 1 after setting Reset to pressed with 100% probability of releasing button Reset...
+PASS!
+
+Test 249
+	Calling addButtonReleaseChance() on controller 1 after setting dPadUp to pressed with 100% probability of releasing button dPadUp...
+PASS!
+
+Test 250
+	Calling addButtonReleaseChance() on controller 1 after setting dPadDown to pressed with 100% probability of releasing button dPadDown...
+PASS!
+
+Test 251
+	Calling addButtonReleaseChance() on controller 1 after setting dPadLeft to pressed with 100% probability of releasing button dPadLeft...
+PASS!
+
+Test 252
+	Calling addButtonReleaseChance() on controller 1 after setting dPadRight to pressed with 100% probability of releasing button dPadRight...
+PASS!
+
+Test 253
+	Calling addButtonReleaseChance() on controller 1 with 100% probability of releasing button B...
+PASS!
+
+Test 254
+	Calling addButtonRelaseChance() on controller 1 after setting A to pressed with 0% probability of releasing button A...
+PASS!
+
+Test 255:
+	Running through 1000 frames of calling addButtonReleaseChance() on controller 1 after setting B to pressed with 68% chance of releasing button B...
+	Impacted frames made up 67.43256743256744% of all frames, which was in the acceptable range of +- 8% of the selected probability of 68%
+PASS!
+
+----------------------------------------------------------------------------------
+
+Running addOrSubtractFromCurrentAnalogValueChance() unit tests:
+
+Test 256
+	Calling addOrSubtractFromCurrentAnalogValueChance() on controller 1 after setting a 100% probability of altering cStickX by -17 to +41...
+PASS!
+
+Test 257
+	Calling addOrSubtractFromCurrentAnalogValueChance() on controller 2 after setting a 100% probability of altering cStickX by -17 to +41...
+PASS!
+
+Test 258
+	Calling addOrSubtractFromCurrentAnalogValueChance() on controller 3 after setting a 100% probability of altering cStickX by -17 to +41...
+PASS!
+
+Test 259
+	Calling addOrSubtractFromCurrentAnalogValueChance() on controller 4 after setting a 100% probability of altering cStickX by -17 to +41...
+PASS!
+
+Test 260
+	Calling addOrSubtractFromCurrentAnalogValueChance() on controller 1 after setting a 100% probability of altering cStickY by -35 to +35...
+PASS!
+
+Test 261
+	Calling addOrSubtractFromCurrentAnalogValueChance() on controller 1 after setting a 100% probability of altering analogStickX by 0 to +41...
+PASS!
+
+Test 262
+	Calling addOrSubtractFromCurrentAnalogValueChance() on controller 1 after setting a 100% probability of altering analogStickY by -62 to +0...
+PASS!
+
+Test 263
+	Calling addOrSubtractFromCurrentAnalogValueChance() on controller 1 after setting a 100% probability of altering triggerL by -13 to +20...
+PASS!
+
+Test 264
+	Calling addOrSubtractFromCurrentAnalogValueChance() on controller 1 after setting a 100% probability of altering triggerR by -35 to +100...
+PASS!
+
+Test 265
+	Calling addOrSubtractFromCurrentAnalogValueChance() on controller 1 after setting a 0% probability of altering cStickY by -20 to +50...
+PASS!
+
+Test 266:
+	Running through 1000 frames of calling addOrSubtractFromCurrentAnalogValueChance() on controller 1 with 40% chance of altering cStickX by between -31 to +85...
+	Final average input of 138.2067932067932 for cStickX input, which was inside the acceptable range of +- 10% of the expected final average of 138.8
+PASS!
+
+----------------------------------------------------------------------------------
+
+Running addOrSubtractFromSpecificAnalogValueChance() unit tests:
+
+Test 267
+	Calling addOrSubtractFromSpecificAnalogValueChance() on controller 1 after setting a 100% probability of setting cStickX to 200 with an offset between -18 to +34...
+PASS!
+
+Test 268
+	Calling addOrSubtractFromSpecificAnalogValueChance() on controller 2 after setting a 100% probability of setting cStickX to 200 with an offset between -18 to +34...
+PASS!
+
+Test 269
+	Calling addOrSubtractFromSpecificAnalogValueChance() on controller 3 after setting a 100% probability of setting cStickX to 200 with an offset between -18 to +34...
+PASS!
+
+Test 270
+	Calling addOrSubtractFromSpecificAnalogValueChance() on controller 4 after setting a 100% probability of setting cStickX to 200 with an offset between -18 to +34...
+PASS!
+
+Test 271
+	Calling addOrSubtractFromSpecificAnalogValueChance() on controller 1 after setting a 100% probability of setting cStickY to 70 with an offset between -40 to +40...
+PASS!
+
+Test 272
+	Calling addOrSubtractFromSpecificAnalogValueChance() on controller 1 after setting a 100% probability of setting analogStickX to 4 with an offset between -20 to +200...
+PASS!
+
+Test 273
+	Calling addOrSubtractFromSpecificAnalogValueChance() on controller 1 after setting a 100% probability of setting analogStickY to 200 with an offset between -80 to +100...
+PASS!
+
+Test 274
+	Calling addOrSubtractFromSpecificAnalogValueChance() on controller 1 after setting a 100% probability of setting triggerL to 31 with an offset between -8 to +6...
+PASS!
+
+Test 275
+	Calling addOrSubtractFromSpecificAnalogValueChance() on controller 1 after setting a 100% probability of setting triggerR to 100 with an offset between -150 to +180...
+PASS!
+
+Test 276
+	Calling addOrSubtractFromSpecificAnalogValueChance() on controller 1 after setting a 0% probability of setting analogStickX to a value between 170 - 30 and 170 + 45...
+PASS!
+
+Test 277:
+	Running through 1000 frames of calling addOrSubtractFromSpecificAnalogValueChance() on controller 1 with a 65% chance of setting cStickX to a random value between 50 - 30 and 50 + 10...
+	Final average input of 71.05494505494505 for cStickX input, which was inside the acceptable range of +- 10% of the expected final average of 70.8
+PASS!
+
+----------------------------------------------------------------------------------
+
+Running addButtonComboChance() unit tests:
+
+Test 278
+	Calling addButtonComboChance() on controller 1 with 100% chance of with just setting A to True...
+PASS!
+
+Test 279
+	Calling addButtonComboChance() on controller 1 with 100% chance of with just setting B to True...
+PASS!
+
+Test 280
+	Calling addButtonComboChance() on controller 1 with 100% chance of with just setting X to True...
+PASS!
+
+Test 281
+	Calling addButtonComboChance() on controller 1 with 100% chance of with just setting Y to True...
+PASS!
+
+Test 282
+	Calling addButtonComboChance() on controller 1 with 100% chance of with just setting Z to True...
+PASS!
+
+Test 283
+	Calling addButtonComboChance() on controller 1 with 100% chance of with just setting L to True...
+PASS!
+
+Test 284
+	Calling addButtonComboChance() on controller 1 with 100% chance of with just setting R to True...
+PASS!
+
+Test 285
+	Calling addButtonComboChance() on controller 1 with 100% chance of with just setting Start to True...
+PASS!
+
+Test 286
+	Calling addButtonComboChance() on controller 1 with 100% chance of with just setting Reset to True...
+PASS!
+
+Test 287
+	Calling addButtonComboChance() on controller 1 with 100% chance of with just setting triggerL to 183...
+PASS!
+
+Test 288
+	Calling addButtonComboChance() on controller 1 with 100% chance of with just setting triggerR to 112...
+PASS!
+
+Test 289
+	Calling addButtonComboChance() on controller 1 with 100% chance of with just setting dPadUp to True...
+PASS!
+
+Test 290
+	Calling addButtonComboChance() on controller 1 with 100% chance of with just setting dPadDown to True...
+PASS!
+
+Test 291
+	Calling addButtonComboChance() on controller 1 with 100% chance of with just setting dPadLeft to True...
+PASS!
+
+Test 292
+	Calling addButtonComboChance() on controller 1 with 100% chance of with just setting dPadRight to True...
+PASS!
+
+Test 293
+	Calling addButtonComboChance() on controller 1 with 100% chance of with just setting disc to True...
+PASS!
+
+Test 294
+	Calling addButtonComboChance() on controller 1 with 100% chance of with just setting getOrigin to True...
+PASS!
+
+Test 295
+	Calling addButtonComboChance() on controller 1 with 100% chance of with just setting isConnected to True...
+PASS!
+
+Test 296
+	Calling addButtonComboChance() on controller 1 with 100% chance of with just setting analogStickX to 131...
+PASS!
+
+Test 297
+	Calling addButtonComboChance() on controller 1 with 100% chance of with just setting analogStickY to 190...
+PASS!
+
+Test 298
+	Calling addButtonComboChance() on controller 1 with 100% chance of with just setting cStickX to 99...
+PASS!
+
+Test 299
+	Calling addButtonComboChance() on controller 1 with 100% chance of with just setting cStickY to 43...
+PASS!
+
+Test 300
+	Calling addButtonComboChance() on controller 1 with 100% chance of with setting A to True and setting cStickX to 232...
+PASS!
+
+Test 301
+	Calling addButtonComboChance() on controller 1 with 100% chance of with setting all buttons to pressed and all analog inputs to their maximum values...
+PASS!
+
+Test 302
+	Calling addButtonComboChance() on controller 2 with 100% chance of with just setting A to True...
+PASS!
+
+Test 303
+	Calling addButtonComboChance() on controller 2 with 100% chance of with just setting B to True...
+PASS!
+
+Test 304
+	Calling addButtonComboChance() on controller 2 with 100% chance of with just setting X to True...
+PASS!
+
+Test 305
+	Calling addButtonComboChance() on controller 2 with 100% chance of with just setting Y to True...
+PASS!
+
+Test 306
+	Calling addButtonComboChance() on controller 2 with 100% chance of with just setting Z to True...
+PASS!
+
+Test 307
+	Calling addButtonComboChance() on controller 2 with 100% chance of with just setting L to True...
+PASS!
+
+Test 308
+	Calling addButtonComboChance() on controller 2 with 100% chance of with just setting R to True...
+PASS!
+
+Test 309
+	Calling addButtonComboChance() on controller 2 with 100% chance of with just setting Start to True...
+PASS!
+
+Test 310
+	Calling addButtonComboChance() on controller 2 with 100% chance of with just setting Reset to True...
+PASS!
+
+Test 311
+	Calling addButtonComboChance() on controller 2 with 100% chance of with just setting triggerL to 183...
+PASS!
+
+Test 312
+	Calling addButtonComboChance() on controller 2 with 100% chance of with just setting triggerR to 112...
+PASS!
+
+Test 313
+	Calling addButtonComboChance() on controller 2 with 100% chance of with just setting dPadUp to True...
+PASS!
+
+Test 314
+	Calling addButtonComboChance() on controller 2 with 100% chance of with just setting dPadDown to True...
+PASS!
+
+Test 315
+	Calling addButtonComboChance() on controller 2 with 100% chance of with just setting dPadLeft to True...
+PASS!
+
+Test 316
+	Calling addButtonComboChance() on controller 2 with 100% chance of with just setting dPadRight to True...
+PASS!
+
+Test 317
+	Calling addButtonComboChance() on controller 2 with 100% chance of with just setting disc to True...
+PASS!
+
+Test 318
+	Calling addButtonComboChance() on controller 2 with 100% chance of with just setting getOrigin to True...
+PASS!
+
+Test 319
+	Calling addButtonComboChance() on controller 2 with 100% chance of with just setting isConnected to True...
+PASS!
+
+Test 320
+	Calling addButtonComboChance() on controller 2 with 100% chance of with just setting analogStickX to 131...
+PASS!
+
+Test 321
+	Calling addButtonComboChance() on controller 2 with 100% chance of with just setting analogStickY to 190...
+PASS!
+
+Test 322
+	Calling addButtonComboChance() on controller 2 with 100% chance of with just setting cStickX to 99...
+PASS!
+
+Test 323
+	Calling addButtonComboChance() on controller 2 with 100% chance of with just setting cStickY to 43...
+PASS!
+
+Test 324
+	Calling addButtonComboChance() on controller 2 with 100% chance of with setting A to True and setting cStickX to 232...
+PASS!
+
+Test 325
+	Calling addButtonComboChance() on controller 2 with 100% chance of with setting all buttons to pressed and all analog inputs to their maximum values...
+PASS!
+
+Test 326
+	Calling addButtonComboChance() on controller 3 with 100% chance of with just setting A to True...
+PASS!
+
+Test 327
+	Calling addButtonComboChance() on controller 3 with 100% chance of with just setting B to True...
+PASS!
+
+Test 328
+	Calling addButtonComboChance() on controller 3 with 100% chance of with just setting X to True...
+PASS!
+
+Test 329
+	Calling addButtonComboChance() on controller 3 with 100% chance of with just setting Y to True...
+PASS!
+
+Test 330
+	Calling addButtonComboChance() on controller 3 with 100% chance of with just setting Z to True...
+PASS!
+
+Test 331
+	Calling addButtonComboChance() on controller 3 with 100% chance of with just setting L to True...
+PASS!
+
+Test 332
+	Calling addButtonComboChance() on controller 3 with 100% chance of with just setting R to True...
+PASS!
+
+Test 333
+	Calling addButtonComboChance() on controller 3 with 100% chance of with just setting Start to True...
+PASS!
+
+Test 334
+	Calling addButtonComboChance() on controller 3 with 100% chance of with just setting Reset to True...
+PASS!
+
+Test 335
+	Calling addButtonComboChance() on controller 3 with 100% chance of with just setting triggerL to 183...
+PASS!
+
+Test 336
+	Calling addButtonComboChance() on controller 3 with 100% chance of with just setting triggerR to 112...
+PASS!
+
+Test 337
+	Calling addButtonComboChance() on controller 3 with 100% chance of with just setting dPadUp to True...
+PASS!
+
+Test 338
+	Calling addButtonComboChance() on controller 3 with 100% chance of with just setting dPadDown to True...
+PASS!
+
+Test 339
+	Calling addButtonComboChance() on controller 3 with 100% chance of with just setting dPadLeft to True...
+PASS!
+
+Test 340
+	Calling addButtonComboChance() on controller 3 with 100% chance of with just setting dPadRight to True...
+PASS!
+
+Test 341
+	Calling addButtonComboChance() on controller 3 with 100% chance of with just setting disc to True...
+PASS!
+
+Test 342
+	Calling addButtonComboChance() on controller 3 with 100% chance of with just setting getOrigin to True...
+PASS!
+
+Test 343
+	Calling addButtonComboChance() on controller 3 with 100% chance of with just setting isConnected to True...
+PASS!
+
+Test 344
+	Calling addButtonComboChance() on controller 3 with 100% chance of with just setting analogStickX to 131...
+PASS!
+
+Test 345
+	Calling addButtonComboChance() on controller 3 with 100% chance of with just setting analogStickY to 190...
+PASS!
+
+Test 346
+	Calling addButtonComboChance() on controller 3 with 100% chance of with just setting cStickX to 99...
+PASS!
+
+Test 347
+	Calling addButtonComboChance() on controller 3 with 100% chance of with just setting cStickY to 43...
+PASS!
+
+Test 348
+	Calling addButtonComboChance() on controller 3 with 100% chance of with setting A to True and setting cStickX to 232...
+PASS!
+
+Test 349
+	Calling addButtonComboChance() on controller 3 with 100% chance of with setting all buttons to pressed and all analog inputs to their maximum values...
+PASS!
+
+Test 350
+	Calling addButtonComboChance() on controller 4 with 100% chance of with just setting A to True...
+PASS!
+
+Test 351
+	Calling addButtonComboChance() on controller 4 with 100% chance of with just setting B to True...
+PASS!
+
+Test 352
+	Calling addButtonComboChance() on controller 4 with 100% chance of with just setting X to True...
+PASS!
+
+Test 353
+	Calling addButtonComboChance() on controller 4 with 100% chance of with just setting Y to True...
+PASS!
+
+Test 354
+	Calling addButtonComboChance() on controller 4 with 100% chance of with just setting Z to True...
+PASS!
+
+Test 355
+	Calling addButtonComboChance() on controller 4 with 100% chance of with just setting L to True...
+PASS!
+
+Test 356
+	Calling addButtonComboChance() on controller 4 with 100% chance of with just setting R to True...
+PASS!
+
+Test 357
+	Calling addButtonComboChance() on controller 4 with 100% chance of with just setting Start to True...
+PASS!
+
+Test 358
+	Calling addButtonComboChance() on controller 4 with 100% chance of with just setting Reset to True...
+PASS!
+
+Test 359
+	Calling addButtonComboChance() on controller 4 with 100% chance of with just setting triggerL to 183...
+PASS!
+
+Test 360
+	Calling addButtonComboChance() on controller 4 with 100% chance of with just setting triggerR to 112...
+PASS!
+
+Test 361
+	Calling addButtonComboChance() on controller 4 with 100% chance of with just setting dPadUp to True...
+PASS!
+
+Test 362
+	Calling addButtonComboChance() on controller 4 with 100% chance of with just setting dPadDown to True...
+PASS!
+
+Test 363
+	Calling addButtonComboChance() on controller 4 with 100% chance of with just setting dPadLeft to True...
+PASS!
+
+Test 364
+	Calling addButtonComboChance() on controller 4 with 100% chance of with just setting dPadRight to True...
+PASS!
+
+Test 365
+	Calling addButtonComboChance() on controller 4 with 100% chance of with just setting disc to True...
+PASS!
+
+Test 366
+	Calling addButtonComboChance() on controller 4 with 100% chance of with just setting getOrigin to True...
+PASS!
+
+Test 367
+	Calling addButtonComboChance() on controller 4 with 100% chance of with just setting isConnected to True...
+PASS!
+
+Test 368
+	Calling addButtonComboChance() on controller 4 with 100% chance of with just setting analogStickX to 131...
+PASS!
+
+Test 369
+	Calling addButtonComboChance() on controller 4 with 100% chance of with just setting analogStickY to 190...
+PASS!
+
+Test 370
+	Calling addButtonComboChance() on controller 4 with 100% chance of with just setting cStickX to 99...
+PASS!
+
+Test 371
+	Calling addButtonComboChance() on controller 4 with 100% chance of with just setting cStickY to 43...
+PASS!
+
+Test 372
+	Calling addButtonComboChance() on controller 4 with 100% chance of with setting A to True and setting cStickX to 232...
+PASS!
+
+Test 373
+	Calling addButtonComboChance() on controller 4 with 100% chance of with setting all buttons to pressed and all analog inputs to their maximum values...
+PASS!
+
+Test 374
+	Calling addButtonComboChance() on controller 1 with 0% probability of setting button A to pressed...
+PASS!
+
+Test 375
+	Calling addButtonComboChance() on all controllers...
+PASS!
+
+Test 376
+	Calling addButtonComboChance() with overwrite-non-specified-values set to true. First call has 100% probability of setting B and X to pressed, and 2nd call has 100% probability of setting A and Z to pressed. Final input should be just A and Z are pressed...
+PASS!
+
+Test 377
+	Calling addButtonComboChance() with overwrite-non-specified-values set to false. First call has 100% probability of setting B and X to pressed, and 2nd call has 100% probability of setting A and Z to pressed. Final input should be A, Z, X and B are pressed...
+PASS!
+
+Test 378:
+	Running through 1000 frames of calling addButtonComboChance() on controller 1 with 80% chance of pressing button B...
+	Impacted frames made up 79.12087912087912% of all frames, which was in the acceptable range of +- 8% of the selected probability of 80%
+PASS!
+
+----------------------------------------------------------------------------------
+
+Running addControllerClearChance() unit tests:
+
+Test 379
+	Calling addControllerClearChance() on controller 1 after setting all inputs to max values with 100% chance of clearing inputs...
+PASS!
+
+Test 380
+	Calling addControllerClearChance() on controller 1 after setting all inputs to max values with 0% chance of clearing inputs...
+PASS!
+
+Test 381
+	Calling addControllerClearChance() on controller 2 after setting all inputs to max values with 100% chance of clearing inputs...
+PASS!
+
+Test 382
+	Calling addControllerClearChance() on controller 2 after setting all inputs to max values with 0% chance of clearing inputs...
+PASS!
+
+Test 383
+	Calling addControllerClearChance() on controller 3 after setting all inputs to max values with 100% chance of clearing inputs...
+PASS!
+
+Test 384
+	Calling addControllerClearChance() on controller 3 after setting all inputs to max values with 0% chance of clearing inputs...
+PASS!
+
+Test 385
+	Calling addControllerClearChance() on controller 4 after setting all inputs to max values with 100% chance of clearing inputs...
+PASS!
+
+Test 386
+	Calling addControllerClearChance() on controller 4 after setting all inputs to max values with 0% chance of clearing inputs...
+PASS!
+
+Test 387:
+	Running through 1000 frames of calling addControllerClearChance() on controller 1 with 75% chance of clearing the controller inputs to their default values...
+	Impacted frames made up 72.52747252747253% of all frames, which was in the acceptable range of +- 8% of the selected probability of 75%
+PASS!
+
+----------------------------------------------------------------------------------
+
+Running integration tests:
+
+Test 388
+	Calling setInputs() and addInputs() multiple times to perform integration testing. Final results should be only X, Y and Z pressed for controller 1...
+PASS!
+
+Test 389
+	Calling setInputs(), addInputs() and multiple probability functions in order to perform integration testing. Final results should be only X, Y, Z, and dPadUp pressed for controller 1...
+PASS!
+
+----------------------------------------------------------------------------------
+
+
+Total Tests: 389
+	Tests Passed: 388
+	Tests Failed: 1
