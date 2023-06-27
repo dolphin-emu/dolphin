@@ -118,6 +118,8 @@ const Info<std::string> GFX_DRIVER_LIB_NAME{{System::GFX, "Settings", "DriverLib
 const Info<TextureFilteringMode> GFX_ENHANCE_FORCE_TEXTURE_FILTERING{
     {System::GFX, "Enhancements", "ForceTextureFiltering"}, TextureFilteringMode::Default};
 const Info<int> GFX_ENHANCE_MAX_ANISOTROPY{{System::GFX, "Enhancements", "MaxAnisotropy"}, 0};
+const Info<OutputResamplingMode> GFX_ENHANCE_OUTPUT_RESAMPLING{
+    {System::GFX, "Enhancements", "OutputResampling"}, OutputResamplingMode::Default};
 const Info<std::string> GFX_ENHANCE_POST_SHADER{
     {System::GFX, "Enhancements", "PostProcessingShader"}, ""};
 const Info<bool> GFX_ENHANCE_FORCE_TRUE_COLOR{{System::GFX, "Enhancements", "ForceTrueColor"},

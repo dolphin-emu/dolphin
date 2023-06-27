@@ -486,23 +486,29 @@ void PostProcessing::BlitFromTexture(const MathUtil::Rectangle<int>& dst,
 
   MathUtil::Rectangle<int> src_rect = src;
   g_gfx->SetSamplerState(0, RenderState::GetLinearSamplerState());
+  g_gfx->SetSamplerState(1, RenderState::GetPointSamplerState());
   g_gfx->SetTexture(0, src_tex);
+  g_gfx->SetTexture(1, src_tex);
 
-  const bool is_color_correction_active = IsColorCorrectionActive();
+  const bool needs_color_correction = IsColorCorrectionActive();
+  // Rely on the default (bi)linear sampler with the default mode
+  // (it might not be gamma corrected).
+  const bool needs_resampling =
+      g_ActiveConfig.output_resampling_mode > OutputResamplingMode::Default;
   const bool needs_intermediary_buffer = NeedsIntermediaryBuffer();
+  const bool needs_default_pipeline = needs_color_correction || needs_resampling;
   const AbstractPipeline* final_pipeline = m_pipeline.get();
   std::vector<u8>* uniform_staging_buffer = &m_default_uniform_staging_buffer;
   bool default_uniform_staging_buffer = true;
+  const MathUtil::Rectangle<int> present_rect = g_presenter->GetTargetRectangle();
 
   // Intermediary pass.
-  // We draw to a high quality intermediary texture for two reasons:
+  // We draw to a high quality intermediary texture for a couple reasons:
+  // -Consistently do high quality gamma corrected resampling (upscaling/downscaling)
   // -Keep quality for gamma and gamut conversions, and HDR output
   //  (low bit depths lose too much quality with gamma conversions)
-  // -We make a texture of the exact same res as the source one,
-  //  because all the post process shaders we already had assume that
-  //  the source texture size (EFB) is different from the swap chain
-  //  texture size (which matches the window size).
-  if (m_default_pipeline && is_color_correction_active && needs_intermediary_buffer)
+  // -Keep the post process phase in linear space, to better operate with colors
+  if (m_default_pipeline && needs_default_pipeline && needs_intermediary_buffer)
   {
     AbstractFramebuffer* const previous_framebuffer = g_gfx->GetCurrentFramebuffer();
 
@@ -512,13 +518,18 @@ void PostProcessing::BlitFromTexture(const MathUtil::Rectangle<int>& dst,
     // so it would be a waste to allocate two layers (see "bUsesExplictQuadBuffering").
     const u32 target_layers = copy_all_layers ? src_tex->GetLayers() : 1;
 
+    const u32 target_width =
+        needs_resampling ? present_rect.GetWidth() : static_cast<u32>(src_rect.GetWidth());
+    const u32 target_height =
+        needs_resampling ? present_rect.GetHeight() : static_cast<u32>(src_rect.GetHeight());
+
     if (!m_intermediary_frame_buffer || !m_intermediary_color_texture ||
-        m_intermediary_color_texture.get()->GetWidth() != static_cast<u32>(src_rect.GetWidth()) ||
-        m_intermediary_color_texture.get()->GetHeight() != static_cast<u32>(src_rect.GetHeight()) ||
+        m_intermediary_color_texture.get()->GetWidth() != target_width ||
+        m_intermediary_color_texture.get()->GetHeight() != target_height ||
         m_intermediary_color_texture.get()->GetLayers() != target_layers)
     {
       const TextureConfig intermediary_color_texture_config(
-          src_rect.GetWidth(), src_rect.GetHeight(), 1, target_layers, src_tex->GetSamples(),
+          target_width, target_height, 1, target_layers, src_tex->GetSamples(),
           s_intermediary_buffer_format, AbstractTextureFlag_RenderTarget);
       m_intermediary_color_texture = g_gfx->CreateTexture(intermediary_color_texture_config,
                                                           "Intermediary post process texture");
@@ -530,7 +541,7 @@ void PostProcessing::BlitFromTexture(const MathUtil::Rectangle<int>& dst,
     g_gfx->SetFramebuffer(m_intermediary_frame_buffer.get());
 
     FillUniformBuffer(src_rect, src_tex, src_layer, g_gfx->GetCurrentFramebuffer()->GetRect(),
-                      g_presenter->GetTargetRectangle(), uniform_staging_buffer->data(),
+                      present_rect, uniform_staging_buffer->data(),
                       !default_uniform_staging_buffer);
     g_vertex_manager->UploadUtilityUniforms(uniform_staging_buffer->data(),
                                             static_cast<u32>(uniform_staging_buffer->size()));
@@ -544,6 +555,7 @@ void PostProcessing::BlitFromTexture(const MathUtil::Rectangle<int>& dst,
     src_rect = m_intermediary_color_texture->GetRect();
     src_tex = m_intermediary_color_texture.get();
     g_gfx->SetTexture(0, src_tex);
+    g_gfx->SetTexture(1, src_tex);
     // The "m_intermediary_color_texture" has already copied
     // from the specified source layer onto its first one.
     // If we query for a layer that the source texture doesn't have,
@@ -557,7 +569,7 @@ void PostProcessing::BlitFromTexture(const MathUtil::Rectangle<int>& dst,
     // If we have no custom user shader selected, and color correction
     // is active, directly run the fixed pipeline shader instead of
     // doing two passes, with the second one doing nothing useful.
-    if (m_default_pipeline && is_color_correction_active)
+    if (m_default_pipeline && needs_default_pipeline)
     {
       final_pipeline = m_default_pipeline.get();
     }
@@ -580,7 +592,7 @@ void PostProcessing::BlitFromTexture(const MathUtil::Rectangle<int>& dst,
   if (final_pipeline)
   {
     FillUniformBuffer(src_rect, src_tex, src_layer, g_gfx->GetCurrentFramebuffer()->GetRect(),
-                      g_presenter->GetTargetRectangle(), uniform_staging_buffer->data(),
+                      present_rect, uniform_staging_buffer->data(),
                       !default_uniform_staging_buffer);
     g_vertex_manager->UploadUtilityUniforms(uniform_staging_buffer->data(),
                                             static_cast<u32>(uniform_staging_buffer->size()));
@@ -610,6 +622,7 @@ std::string PostProcessing::GetUniformBufferHeader(bool user_post_process) const
   ss << "  int src_layer;\n";
   ss << "  uint time;\n";
 
+  ss << "  int resampling_method;\n";
   ss << "  int correct_color_space;\n";
   ss << "  int game_color_space;\n";
   ss << "  int correct_gamma;\n";
@@ -816,6 +829,7 @@ struct BuiltinUniforms
   std::array<float, 4> src_rect;
   s32 src_layer;
   u32 time;
+  s32 resampling_method;
   s32 correct_color_space;
   s32 game_color_space;
   s32 correct_gamma;
@@ -861,6 +875,7 @@ void PostProcessing::FillUniformBuffer(const MathUtil::Rectangle<int>& src,
   builtin_uniforms.src_layer = static_cast<s32>(src_layer);
   builtin_uniforms.time = static_cast<u32>(m_timer.ElapsedMs());
 
+  builtin_uniforms.resampling_method = static_cast<s32>(g_ActiveConfig.output_resampling_mode);
   // Color correction related uniforms.
   // These are mainly used by the "m_default_pixel_shader",
   // but should also be accessible to all other shaders.
