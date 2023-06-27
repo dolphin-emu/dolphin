@@ -23,6 +23,9 @@
 
 std::unique_ptr<VideoCommon::Presenter> g_presenter;
 
+// The video encoder needs the image to be a multiple of x samples.
+static constexpr int VIDEO_ENCODER_LCM = 4;
+
 namespace VideoCommon
 {
 static float AspectToWidescreen(float aspect)
@@ -441,11 +444,14 @@ void Presenter::UpdateDrawRectangle()
     crop_width = win_width;
   }
 
-  // ensure divisibility by 4 to make it compatible with all the video encoders
   if (g_frame_dumper->IsFrameDumping())
   {
-    draw_width = std::ceil(draw_width) - static_cast<int>(std::ceil(draw_width)) % 4;
-    draw_height = std::ceil(draw_height) - static_cast<int>(std::ceil(draw_height)) % 4;
+    // ensure divisibility by "VIDEO_ENCODER_LCM" to make it compatible with all the video encoders.
+    // Note that this is theoretically only necessary when recording videos and not screenshots.
+    draw_width =
+        std::ceil(draw_width) - static_cast<int>(std::ceil(draw_width)) % VIDEO_ENCODER_LCM;
+    draw_height =
+        std::ceil(draw_height) - static_cast<int>(std::ceil(draw_height)) % VIDEO_ENCODER_LCM;
   }
 
   m_target_rectangle.left = static_cast<int>(std::round(win_width / 2.0 - draw_width / 2.0));
@@ -482,10 +488,13 @@ std::tuple<int, int> Presenter::CalculateOutputDimensions(int width, int height)
   width = static_cast<int>(std::ceil(scaled_width));
   height = static_cast<int>(std::ceil(scaled_height));
 
-  // UpdateDrawRectangle() makes sure that the rendered image is divisible by four for video
-  // encoders, so do that here too to match it
-  width -= width % 4;
-  height -= height % 4;
+  if (g_frame_dumper->IsFrameDumping())
+  {
+    // UpdateDrawRectangle() makes sure that the rendered image is divisible by "VIDEO_ENCODER_LCM"
+    // for video encoders, so do that here too to match it
+    width -= width % VIDEO_ENCODER_LCM;
+    height -= height % VIDEO_ENCODER_LCM;
+  }
 
   return std::make_tuple(width, height);
 }
