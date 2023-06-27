@@ -1,4 +1,4 @@
-beq+	 ->0x802461B0
+cmplwi	r0, 0
 
 Total Tests: 6
 	Tests Passed: 6
