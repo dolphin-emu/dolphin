@@ -56,9 +56,6 @@ ArgHolder* Register(ScriptContext* current_script, std::vector<ArgHolder*>* args
   u32 address_of_breakpoint = (*args_list)[0]->u32_val;
   void* callback = (*args_list)[1]->void_pointer_val;
 
-  if (!current_script->instructionBreakpointsHolder.ContainsBreakpoint(address_of_breakpoint))
-    Core::System::GetInstance().GetPowerPC().GetBreakPoints().Add(address_of_breakpoint, false,
-                                                                  true, false, std::nullopt);
   current_script->instructionBreakpointsHolder.AddBreakpoint(address_of_breakpoint);
   return CreateRegistrationReturnTypeArgHolder(
       current_script->dll_specific_api_definitions.RegisterOnInstructionReachedCallback(
@@ -71,9 +68,6 @@ ArgHolder* RegisterWithAutoDeregistration(ScriptContext* current_script,
   u32 address_of_breakpoint = (*args_list)[0]->u32_val;
   void* callback = (*args_list)[1]->void_pointer_val;
 
-  if (!current_script->instructionBreakpointsHolder.ContainsBreakpoint(address_of_breakpoint))
-    Core::System::GetInstance().GetPowerPC().GetBreakPoints().Add(address_of_breakpoint, false,
-                                                                  true, false, std::nullopt);
   current_script->instructionBreakpointsHolder.AddBreakpoint(address_of_breakpoint);
   current_script->dll_specific_api_definitions
       .RegisterOnInstructioReachedWithAutoDeregistrationCallback(current_script,
@@ -86,10 +80,11 @@ ArgHolder* Unregister(ScriptContext* current_script, std::vector<ArgHolder*>* ar
   u32 address_of_breakpoint = (*args_list)[0]->u32_val;
   void* callback = (*args_list)[1]->void_pointer_val;
 
-  current_script->instructionBreakpointsHolder.RemoveBreakpoint(address_of_breakpoint);
-
   if (!current_script->instructionBreakpointsHolder.ContainsBreakpoint(address_of_breakpoint))
-    Core::System::GetInstance().GetPowerPC().GetBreakPoints().Remove(address_of_breakpoint);
+    return CreateErrorStringArgHolder(
+        "Error: Address passed into OnInstructionHit:Unregister() did not correspond to any breakpoint that was currently enabled!");
+
+  current_script->instructionBreakpointsHolder.RemoveBreakpoint(address_of_breakpoint);
 
   bool return_value =
       current_script->dll_specific_api_definitions.UnregisterOnInstructionReachedCallback(

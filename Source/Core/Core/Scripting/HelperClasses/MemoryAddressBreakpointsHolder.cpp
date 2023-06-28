@@ -1,22 +1,36 @@
 #include "Core/Scripting/HelperClasses/MemoryAddressBreakpointsHolder.h"
 
+#include "Core/System.h"
+#include "Core/PowerPC/PowerPC.h"
+
 MemoryAddressBreakpointsHolder::MemoryAddressBreakpointsHolder()
 {
   this->read_breakpoint_addresses = std::vector<unsigned int>();
   this->write_breakpoint_addresses = std::vector<unsigned int>();
 }
 
+MemoryAddressBreakpointsHolder::~MemoryAddressBreakpointsHolder()
+{
+  this->RemoveAllBreakpoints();
+}
+
 void MemoryAddressBreakpointsHolder::AddReadBreakpoint(unsigned int addr)
 {
+  TMemCheck check;
+
+  check.start_address = addr;
+  check.end_address = addr;
+  check.is_break_on_read = true;
+  check.is_break_on_write = this->ContainsWriteBreakpoint(addr);
+  check.condition = std::nullopt;
+  check.break_on_hit = true;
+
+  Core::System::GetInstance().GetPowerPC().GetMemChecks().Add(std::move(check));
+
   this->read_breakpoint_addresses.push_back(
       addr);  // add this to the list of breakpoints regardless of whether or not it's a duplicate
 }
 
-unsigned int MemoryAddressBreakpointsHolder::GetNumReadCopiesOfBreakpoint(unsigned int addr)
-{
-  return std::count(this->read_breakpoint_addresses.begin(), this->read_breakpoint_addresses.end(),
-                    addr);
-}
 
 bool MemoryAddressBreakpointsHolder::ContainsReadBreakpoint(unsigned int addr)
 {
@@ -30,18 +44,41 @@ void MemoryAddressBreakpointsHolder::RemoveReadBreakpoint(unsigned int addr)
                       this->read_breakpoint_addresses.end(), addr);
   if (it != this->read_breakpoint_addresses.end())
     this->read_breakpoint_addresses.erase(it);
+
+  if (this->ContainsReadBreakpoint(addr) || this->ContainsWriteBreakpoint(addr))
+  {
+    TMemCheck check;
+
+    check.start_address = addr;
+    check.end_address = addr;
+    check.is_break_on_read = this->ContainsReadBreakpoint(addr);
+    check.is_break_on_write = this->ContainsWriteBreakpoint(addr);
+    check.condition = std::nullopt;
+    check.break_on_hit = true;
+
+    Core::System::GetInstance().GetPowerPC().GetMemChecks().Add(std::move(check));
+  }
+  else
+  {
+    Core::System::GetInstance().GetPowerPC().GetMemChecks().Remove(addr);
+  }
 }
 
 void MemoryAddressBreakpointsHolder::AddWriteBreakpoint(unsigned int addr)
 {
+  TMemCheck check;
+
+  check.start_address = addr;
+  check.end_address = addr;
+  check.is_break_on_read = this->ContainsReadBreakpoint(addr);
+  check.is_break_on_write = true;
+  check.condition = std::nullopt;
+  check.break_on_hit = true;
+
+  Core::System::GetInstance().GetPowerPC().GetMemChecks().Add(std::move(check));
+
   this->write_breakpoint_addresses.push_back(
       addr);  // add this to the list of breakpoints regardless of whether or not it's a duplicate
-}
-
-unsigned int MemoryAddressBreakpointsHolder::GetNumWriteCopiesOfBreakpoint(unsigned int addr)
-{
-  return std::count(this->write_breakpoint_addresses.begin(),
-                    this->write_breakpoint_addresses.end(), addr);
 }
 
 bool MemoryAddressBreakpointsHolder::ContainsWriteBreakpoint(unsigned int addr)
@@ -56,28 +93,30 @@ void MemoryAddressBreakpointsHolder::RemoveWriteBreakpoint(unsigned int addr)
                       this->write_breakpoint_addresses.end(), addr);
   if (it != this->write_breakpoint_addresses.end())
     this->write_breakpoint_addresses.erase(it);
-}
 
-unsigned int MemoryAddressBreakpointsHolder::RemoveReadBreakpoints_OneByOne()
-{
-  if (this->read_breakpoint_addresses.size() == 0)
-    return 0;
+  if (this->ContainsReadBreakpoint(addr) || this->ContainsWriteBreakpoint(addr))
+  {
+    TMemCheck check;
+
+    check.start_address = addr;
+    check.end_address = addr;
+    check.is_break_on_read = this->ContainsReadBreakpoint(addr);
+    check.is_break_on_write = this->ContainsWriteBreakpoint(addr);
+    check.condition = std::nullopt;
+    check.break_on_hit = true;
+
+    Core::System::GetInstance().GetPowerPC().GetMemChecks().Add(std::move(check));
+  }
   else
   {
-    unsigned int ret_val = this->read_breakpoint_addresses[0];
-    this->read_breakpoint_addresses.erase(this->read_breakpoint_addresses.begin());
-    return ret_val;
+    Core::System::GetInstance().GetPowerPC().GetMemChecks().Remove(addr);
   }
 }
 
-unsigned int MemoryAddressBreakpointsHolder::RemoveWriteBreakpoints_OneByOne()
+void MemoryAddressBreakpointsHolder::RemoveAllBreakpoints()
 {
-  if (this->write_breakpoint_addresses.size() == 0)
-    return 0;
-  else
-  {
-    unsigned int ret_val = this->write_breakpoint_addresses[0];
-    this->write_breakpoint_addresses.erase(this->write_breakpoint_addresses.begin());
-    return ret_val;
-  }
+  while (read_breakpoint_addresses.size() > 0)
+    RemoveReadBreakpoint(read_breakpoint_addresses[0]);
+  while (write_breakpoint_addresses.size() > 0)
+    RemoveWriteBreakpoint(write_breakpoint_addresses[0]);
 }

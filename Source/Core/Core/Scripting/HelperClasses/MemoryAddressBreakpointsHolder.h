@@ -11,16 +11,14 @@ class MemoryAddressBreakpointsHolder
 {
 public:
   MemoryAddressBreakpointsHolder();
+  ~MemoryAddressBreakpointsHolder();
   void AddReadBreakpoint(unsigned int addr);
-  unsigned int GetNumReadCopiesOfBreakpoint(unsigned int addr);
   bool ContainsReadBreakpoint(unsigned int addr);
   void RemoveReadBreakpoint(unsigned int addr);
   void AddWriteBreakpoint(unsigned int addr);
-  unsigned int GetNumWriteCopiesOfBreakpoint(unsigned int addr);
   bool ContainsWriteBreakpoint(unsigned int addr);
   void RemoveWriteBreakpoint(unsigned int addr);
-  unsigned int RemoveReadBreakpoints_OneByOne();
-  unsigned int RemoveWriteBreakpoints_OneByOne();
+  void RemoveAllBreakpoints();
 
 private:
   std::vector<unsigned int> read_breakpoint_addresses;

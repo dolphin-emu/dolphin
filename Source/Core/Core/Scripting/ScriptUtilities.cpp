@@ -479,7 +479,7 @@ void StopScript(int unique_script_identifier)
     (*global_pointer_to_list_of_all_scripts)
         .erase(std::find((*global_pointer_to_list_of_all_scripts).begin(),
                          (*global_pointer_to_list_of_all_scripts).end(), script_to_delete));
-    delete script_to_delete;
+    dolphin_defined_scriptContext_apis.ScriptContext_Destructor(script_to_delete);
   }
 
   graphics_callback_running_lock.unlock();

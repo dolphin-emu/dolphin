@@ -37,6 +37,8 @@ void ScriptContext_Destructor_impl(void* script_context)
 {
   ScriptContext* casted_struct_ptr = castToScriptContextPtr(script_context);
   casted_struct_ptr->is_script_active = 0;
+  casted_struct_ptr->instructionBreakpointsHolder.RemoveAllBreakpoints();
+  casted_struct_ptr->memoryAddressBreakpointsHolder.RemoveAllBreakpoints();
   casted_struct_ptr->dll_specific_api_definitions.DLLSpecificDestructor(script_context);
   delete casted_struct_ptr;
 }
