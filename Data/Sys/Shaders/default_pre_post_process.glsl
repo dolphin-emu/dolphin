@@ -54,7 +54,7 @@ float4 BilinearSample(float3 uvw, float gamma)
 	// This emulates the (bi)linear filtering done directly from GPUs HW.
 	// Note that GPUs might natively filter red green and blue differently, but we don't do it.
 	// They might also use different filtering between upscaling and downscaling.
-	
+
 	float2 source_size = GetResolution();
 	float2 inverted_source_size = GetInvResolution();
 	float2 pixel = (uvw.xy * source_size) - 0.5; // Try to find the matching pixel top left corner
@@ -99,6 +99,107 @@ float4 SharpBilinearSample(float3 uvw, float gamma)
 	return BilinearSample(uvw, gamma);
 }
 
+// By Sam Belliveau. Public Domain license.
+// Effectively a more accurate sharp bilinear filter when upscaling,
+// that also works as a mathematically perfect downscale filter.
+// https://entropymine.com/imageworsener/pixelmixing/
+// https://github.com/obsproject/obs-studio/pull/1715
+// https://legacy.imagemagick.org/Usage/filter/
+float4 BoxResample(float3 uvw, float gamma)
+{
+	// Determine the sizes of the source and target images.
+	float2 source_size = GetResolution();
+	float2 inv_source_size = GetInvResolution();
+	float2 inv_target_size = GetInvWindowResolution();
+
+	// Determine the range of the source image that the target pixel will cover.
+	// We shift by one output pixel because that's a prerequisite of the algorithm.
+	float2 range = source_size * inv_target_size;
+	float2 beg = (uvw.xy - inv_target_size) * source_size;
+	float2 end = beg + range;
+
+	// Compute the top-left and bottom-right corners of the pixel box.
+	float2 f_beg = floor(beg);
+	float2 f_end = floor(end);
+
+	// Compute how much of the start and end pixels are covered horizontally & vertically.
+	float area_w = 1.0 - fract(beg.x);
+	float area_n = 1.0 - fract(beg.y);
+	float area_e = fract(end.x);
+	float area_s = fract(end.y);
+
+	// Compute the areas of the corner pixels in the pixel box.
+	float area_nw = area_n * area_w;
+	float area_ne = area_n * area_e;
+	float area_sw = area_s * area_w;
+	float area_se = area_s * area_e;
+
+	// Initialize the color accumulator.
+	float4 avg_color = float4(0.0, 0.0, 0.0, 0.0);
+
+	// Presents rounding errors
+	const float offset = 0.5;
+
+	// Accumulate corner pixels.
+	avg_color += area_nw * QuickSample(float2(f_beg.x + offset, f_beg.y + offset) * inv_source_size, uvw.z, gamma);
+	avg_color += area_ne * QuickSample(float2(f_end.x + offset, f_beg.y + offset) * inv_source_size, uvw.z, gamma);
+	avg_color += area_sw * QuickSample(float2(f_beg.x + offset, f_end.y + offset) * inv_source_size, uvw.z, gamma);
+	avg_color += area_se * QuickSample(float2(f_end.x + offset, f_end.y + offset) * inv_source_size, uvw.z, gamma);
+	
+	// Determine the size of the pixel box.
+	int x_range = int(f_end.x - f_beg.x + 0.5);
+	int y_range = int(f_end.y - f_beg.y + 0.5);
+
+	// Workaround to compile the shader with DX11/12.
+	// If this isn't done, it will complain that the loop could have too many iterations.
+	// This number should be enough to guarantee downscaling from very high to very small resolutions.
+	const int max_iterations = 16;
+
+	// Fix up the average calculations in case we reached the upper limit
+	x_range = min(x_range, max_iterations);
+	y_range = min(y_range, max_iterations);
+
+	// Accumulate top and bottom edge pixels.
+	for (int ix = 0; ix < max_iterations; ++ix)
+	{
+		if (ix < x_range)
+		{
+			float x = f_beg.x + 1.0 + float(ix);
+			avg_color += area_n * QuickSample(float2(x + offset, f_beg.y + offset) * inv_source_size, uvw.z, gamma);
+			avg_color += area_s * QuickSample(float2(x + offset, f_end.y + offset) * inv_source_size, uvw.z, gamma);
+		}
+	}
+
+	// Accumulate left and right edge pixels and all the pixels in between.
+	for (int iy = 0; iy < max_iterations; ++iy)
+	{
+		if (iy < y_range)
+		{
+			float y = f_beg.y + 1.0 + float(iy);
+
+			avg_color += area_w * QuickSample(float2(f_beg.x + offset, y + offset) * inv_source_size, uvw.z, gamma);
+			avg_color += area_e * QuickSample(float2(f_end.x + offset, y + offset) * inv_source_size, uvw.z, gamma);
+
+			for (int ix = 0; ix < max_iterations; ++ix)
+			{
+				if (ix < x_range)
+				{
+					float x = f_beg.x + 1.0 + float(ix);
+					avg_color += QuickSample(float2(x + offset, y + offset) * inv_source_size, uvw.z, gamma);
+				}
+			}
+		}
+	}
+
+	// Compute the area of the pixel box that was sampled.
+	float area_corners = area_nw + area_ne + area_sw + area_se;
+	float area_edges = float(x_range) * (area_n + area_s) + float(y_range) * (area_w + area_e);
+	float area_center = float(x_range) * float(y_range);
+
+	// Return the normalized average color.
+	return avg_color / (area_corners + area_edges + area_center);
+}
+
 float4 Cubic(float v)
 {
 	float4 n = float4(1.0, 2.0, 3.0, 4.0) - v;
@@ -119,7 +220,7 @@ float4 BicubicSample(float3 uvw, float2 in_source_resolution, float2 in_inverted
 
 	float4 xcubic = Cubic(frac_pixel.x);
 	float4 ycubic = Cubic(frac_pixel.y);
-	
+
 	float4 c = float4(int_pixel.x - 0.5, int_pixel.x + 1.5, int_pixel.y - 0.5, int_pixel.y + 1.5);
 	float4 s = float4(xcubic.x + xcubic.y, xcubic.z + xcubic.w, ycubic.x + ycubic.y, ycubic.z + ycubic.w);
 	float4 offset = c + float4(xcubic.y, xcubic.w, ycubic.y, ycubic.w) / s;
@@ -154,24 +255,24 @@ float4 BicubicHermiteSample(float3 uvw, float2 in_source_resolution, float2 in_i
 	float2 pixel = (uvw.xy * in_source_resolution) + 0.5;
 	float2 frac_pixel = fract(pixel);
 	float2 uv = (floor(pixel) * in_inverted_source_resolution) - (in_inverted_source_resolution / 2.0);
-	
+
 	float2 inverted_source_resolution_double = in_inverted_source_resolution * 2.0;
 
 	float4 c00 = QuickSample(uv + float2(-in_inverted_source_resolution.x,			-in_inverted_source_resolution.y), uvw.z, gamma);
 	float4 c10 = QuickSample(uv + float2(	0.0,																	-in_inverted_source_resolution.y), uvw.z, gamma);
 	float4 c20 = QuickSample(uv + float2(	in_inverted_source_resolution.x,			-in_inverted_source_resolution.y), uvw.z, gamma);
 	float4 c30 = QuickSample(uv + float2(	inverted_source_resolution_double.x,	-in_inverted_source_resolution.y), uvw.z, gamma);
-	
+
 	float4 c01 = QuickSample(uv + float2(-in_inverted_source_resolution.x,			0.0), uvw.z, gamma);
 	float4 c11 = QuickSample(uv + float2(	0.0,																	0.0), uvw.z, gamma);
 	float4 c21 = QuickSample(uv + float2(	in_inverted_source_resolution.x,			0.0), uvw.z, gamma);
 	float4 c31 = QuickSample(uv + float2(	inverted_source_resolution_double.x,	0.0), uvw.z, gamma);
-	
+
 	float4 c02 = QuickSample(uv + float2(-in_inverted_source_resolution.x,			in_inverted_source_resolution.y), uvw.z, gamma);
 	float4 c12 = QuickSample(uv + float2(	0.0,																	in_inverted_source_resolution.y), uvw.z, gamma);
 	float4 c22 = QuickSample(uv + float2(	in_inverted_source_resolution.x,			in_inverted_source_resolution.y), uvw.z, gamma);
 	float4 c32 = QuickSample(uv + float2(	inverted_source_resolution_double.x,	in_inverted_source_resolution.y), uvw.z, gamma);
-	
+
 	float4 c03 = QuickSample(uv + float2(-in_inverted_source_resolution.x,			inverted_source_resolution_double.y), uvw.z, gamma);
 	float4 c13 = QuickSample(uv + float2(	0.0,																	inverted_source_resolution_double.y), uvw.z, gamma);
 	float4 c23 = QuickSample(uv + float2(	in_inverted_source_resolution.x,			inverted_source_resolution_double.y), uvw.z, gamma);
@@ -254,7 +355,7 @@ float4 LinearGammaCorrectedSample(float gamma)
 {
 	float3 uvw = v_tex0;
 	float4 color = float4(0, 0, 0, 1);
-	
+
 	if (resampling_method <= 1) // Bilinear
 	{
 		color = BilinearSample(uvw, gamma);
@@ -278,6 +379,10 @@ float4 LinearGammaCorrectedSample(float gamma)
 	else if (resampling_method == 6) // Sharp Bilinear
 	{
 		color = SharpBilinearSample(uvw, gamma);
+	}
+	else if (resampling_method == 7) // BoxSampling
+	{
+		color = BoxResample(uvw, gamma);
 	}
 
 	return color;
@@ -310,7 +415,7 @@ void main()
 			color = texture(samp0, v_tex0);
 		else
 			color = texture(samp1, v_tex0);
-		
+
 		// Convert to linear before doing any other of follow up operations.
 		color.rgb = pow(color.rgb, float3(game_gamma));
 	}
@@ -324,13 +429,13 @@ void main()
 		else if (game_color_space == 2)
 			color.rgb = color.rgb * from_PAL;
 	}
-	
+
 	if (OptionEnabled(hdr_output))
 	{
 		float hdr_paper_white = hdr_paper_white_nits / hdr_sdr_white_nits;
 		color.rgb *= hdr_paper_white;
 	}
-	
+
 	if (OptionEnabled(linear_space_output))
 	{
 		// Nothing to do here
