@@ -120,6 +120,8 @@ void EnhancementsWidget::CreateWidgets()
                                      static_cast<int>(OutputResamplingMode::NearestNeighbor));
   m_output_resampling_combo->addItem(tr("Sharp Bilinear"),
                                      static_cast<int>(OutputResamplingMode::SharpBilinear));
+  m_output_resampling_combo->addItem(tr("Box Resampling"),
+                                     static_cast<int>(OutputResamplingMode::BoxResampling));
 
   m_configure_color_correction = new ToolTipPushButton(tr("Configure"));
 
@@ -497,8 +499,10 @@ void EnhancementsWidget::AddDescriptions()
       "<br>\"Hermite\" might offer the best quality when upscaling,"
       " at a slightly bigger perform cost.<br>\"Catmull-Rom\" is best for downscaling."
       "<br>\"Nearest Neighbor\" doesn't do any resampling, select if you like a pixelated look."
-      "<br>\"Sharp Bilinear\" works best with 2D games at low resolutions, use if you like a"
-      " sharp look.<br><br><dolphin_emphasis>If unsure, select 'Default'.</dolphin_emphasis>");
+      "<br>\"Sharp Bilinear\" works best with 2D games at low resolutions, use if you like a sharp"
+      " look."
+      "<br>\"Box Resampling\" is most expensive but also most accurate downscaling method."
+      "<br><dolphin_emphasis>If unsure, select 'Default'.</dolphin_emphasis>");
   static const char TR_COLOR_CORRECTION_DESCRIPTION[] =
       QT_TR_NOOP("A group of features to make the colors more accurate, matching the color space "
                  "Wii and GC games were meant for.");

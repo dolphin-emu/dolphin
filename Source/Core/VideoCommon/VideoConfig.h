@@ -61,6 +61,7 @@ enum class OutputResamplingMode : int
   CatmullRom,
   NearestNeighbor,
   SharpBilinear,
+  BoxResampling,
 };
 
 enum class ColorCorrectionRegion : int
