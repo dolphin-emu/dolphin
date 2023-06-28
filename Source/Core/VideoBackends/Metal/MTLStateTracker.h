@@ -182,7 +182,6 @@ private:
   MRCOwned<id<MTLCommandBuffer>> m_last_render_cmdbuf;
   MRCOwned<id<MTLRenderCommandEncoder>> m_current_render_encoder;
   MRCOwned<id<MTLComputeCommandEncoder>> m_current_compute_encoder;
-  MRCOwned<MTLRenderPassDescriptor*> m_render_pass_desc[3];
   MRCOwned<MTLRenderPassDescriptor*> m_resolve_pass_desc;
   Framebuffer* m_current_framebuffer;
   CPUBuffer m_texture_upload_buffer;
