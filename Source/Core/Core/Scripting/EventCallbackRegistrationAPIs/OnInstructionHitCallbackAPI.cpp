@@ -1,9 +1,6 @@
 #include "Core/Scripting/EventCallbackRegistrationAPIs/OnInstructionHitCallbackAPI.h"
 
-#include "Core/PowerPC/PowerPC.h"
 #include "Core/Scripting/HelperClasses/VersionResolver.h"
-#include "Core/System.h"
-
 #include "Core/Scripting/HelperClasses/InstructionBreakpointsHolder.h"
 
 namespace Scripting::OnInstructionHitCallbackAPI

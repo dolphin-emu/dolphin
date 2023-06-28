@@ -1,11 +1,6 @@
 #include "Core/Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressWrittenToCallbackAPI.h"
 
 #include "Core/Scripting/HelperClasses/VersionResolver.h"
-
-#include "Core/PowerPC/BreakPoints.h"
-#include "Core/PowerPC/PowerPC.h"
-#include "Core/System.h"
-
 #include "Core/Scripting/HelperClasses/MemoryAddressBreakpointsHolder.h"
 
 namespace Scripting::OnMemoryAddressWrittenToCallbackAPI
