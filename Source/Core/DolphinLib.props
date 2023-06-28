@@ -434,6 +434,7 @@
 	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\Enums\ArgTypeEnum.h" />
 	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\Enums\GCButtonNameEnum.h" />
 	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\Enums\ScriptCallLocations.h" />
+	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\Enums\ScriptReturnCodes.h" />
 	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\InternalScriptAPIs\ArgHolder_APIs.h" />
 	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\InternalScriptAPIs\ClassFunctionsResolver_APIs.h" />
 	<ClInclude Include="Core\Scripting\CoreScriptContextFiles\InternalScriptAPIs\ClassMetadata_APIs.h" />

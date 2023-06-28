@@ -510,6 +510,7 @@ add_library(core
   Scripting/CoreScriptContextFiles/Enums/ArgTypeEnum.h
   Scripting/CoreScriptContextFiles/Enums/GCButtonNameEnum.h
   Scripting/CoreScriptContextFiles/Enums/ScriptCallLocations.h
+  Scripting/CoreScriptContextFiles/Enums/ScriptReturnCodes.h
   Scripting/CoreScriptContextFiles/InternalScriptAPIs/ArgHolder_APIs.h
   Scripting/CoreScriptContextFiles/InternalScriptAPIs/ClassFunctionsResolver_APIs.h
   Scripting/CoreScriptContextFiles/InternalScriptAPIs/ClassMetadata_APIs.h

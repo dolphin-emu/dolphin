@@ -258,6 +258,12 @@ static void Initialize_DolphinDefined_ScriptContext_APIs()
       ScriptContext_GetPrintCallback_impl;
   dolphin_defined_scriptContext_apis.get_script_call_location =
       ScriptContext_GetScriptCallLocation_impl;
+  dolphin_defined_scriptContext_apis.get_script_return_code =
+      ScriptContext_GetScriptReturnCode_impl;
+  dolphin_defined_scriptContext_apis.set_script_return_code =
+      ScriptContext_SetScriptReturnCode_impl;
+  dolphin_defined_scriptContext_apis.get_error_message = ScriptContext_GetErrorMessage_impl;
+  dolphin_defined_scriptContext_apis.set_error_message = ScriptContext_SetErrorMessage_impl;
   dolphin_defined_scriptContext_apis.get_script_end_callback_function =
       ScriptContext_GetScriptEndCallback_impl;
   dolphin_defined_scriptContext_apis.get_script_filename = ScriptContext_GetScriptFilename_impl;

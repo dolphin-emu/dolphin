@@ -42,6 +42,13 @@ typedef struct Dolphin_Defined_ScriptContext_APIs
 
   int (*get_script_call_location)(
       void*);  // Returns the location that the Script is executing from.
+
+  int (*get_script_return_code)(void*); // gets the return code from the last script execution.
+  void (*set_script_return_code)(void*, int); // sets the return code for the last script execution (called by DLL)
+
+  const char* (*get_error_message)(void*); // Returns the error message from the last script execution (only valid when script_return_code is not Success)
+  void (*set_error_message)(void*, const char*); // Sets the error message from the last script execution to the specified value.
+
   int (*get_is_script_active)(
       void*);  // Returns 1 if the ScriptContext is currently active, and 0 otherwise.
   void (*set_is_script_active)(

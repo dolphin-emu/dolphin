@@ -5,6 +5,7 @@
 #include <mutex>
 #include "Common/ThreadSafeQueue.h"
 #include "Core/Scripting/CoreScriptContextFiles/Enums/ScriptCallLocations.h"
+#include "Core/Scripting/CoreScriptContextFiles/Enums/ScriptReturnCodes.h"
 #include "Core/Scripting/CoreScriptContextFiles/InternalScriptAPIs/ScriptContext_APIs.h"
 #include "Core/Scripting/HelperClasses/InstructionBreakpointsHolder.h"
 #include "Core/Scripting/HelperClasses/MemoryAddressBreakpointsHolder.h"
@@ -21,6 +22,8 @@ typedef struct ScriptContext
   int unique_script_identifier;
   std::string script_filename;
   ScriptCallLocations current_script_call_location;
+  ScriptReturnCodes script_return_code;
+  std::string last_script_error;
   int is_script_active;
   int finished_with_global_code;
   int called_yielding_function_in_last_global_script_resume;
@@ -58,6 +61,12 @@ int ScriptContext_GetUniqueScriptIdentifier_impl(void*);
 const char* ScriptContext_GetScriptFilename_impl(void*);
 
 int ScriptContext_GetScriptCallLocation_impl(void*);
+
+int ScriptContext_GetScriptReturnCode_impl(void*);
+void ScriptContext_SetScriptReturnCode_impl(void*, int);
+
+const char* ScriptContext_GetErrorMessage_impl(void*);
+void ScriptContext_SetErrorMessage_impl(void*, const char*);
 
 int ScriptContext_GetIsScriptActive_impl(void*);
 void ScriptContext_SetIsScriptActive_impl(void*, int);

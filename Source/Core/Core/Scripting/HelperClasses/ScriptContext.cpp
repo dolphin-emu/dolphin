@@ -21,6 +21,8 @@ void* ScriptContext_Initializer_impl(int unique_identifier, const char* script_f
   ret_val->print_callback_function = print_callback_function;
   ret_val->script_end_callback_function = script_end_callback;
   ret_val->current_script_call_location = ScriptCallLocations::FromScriptStartup;
+  ret_val->script_return_code = ScriptReturnCodes::SuccessCode;
+  ret_val->last_script_error = std::string("");
   ret_val->is_script_active = 1;
   ret_val->finished_with_global_code = 0;
   ret_val->called_yielding_function_in_last_global_script_resume = 0;
@@ -74,6 +76,27 @@ const char* ScriptContext_GetScriptFilename_impl(void* script_context)
 int ScriptContext_GetScriptCallLocation_impl(void* script_context)
 {
   return (int)castToScriptContextPtr(script_context)->current_script_call_location;
+}
+
+int ScriptContext_GetScriptReturnCode_impl(void* script_context)
+{
+  return (int)castToScriptContextPtr(script_context)->script_return_code;
+}
+
+void ScriptContext_SetScriptReturnCode_impl(void* script_context, int new_script_return_code)
+{
+  castToScriptContextPtr(script_context)->script_return_code =
+      (ScriptReturnCodes)new_script_return_code;
+}
+
+const char* ScriptContext_GetErrorMessage_impl(void* script_context)
+{
+  return castToScriptContextPtr(script_context)->last_script_error.c_str();
+}
+
+void ScriptContext_SetErrorMessage_impl(void* script_context, const char* new_error_msg)
+{
+  castToScriptContextPtr(script_context)->last_script_error = std::string(new_error_msg);
 }
 
 int ScriptContext_GetIsScriptActive_impl(void* script_context)
