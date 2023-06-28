@@ -88,6 +88,8 @@ typedef struct Dolphin_Defined_ScriptContext_APIs
       void*);  // Returns a pointer to the derived ScriptContext* class (ex. a LuaScriptContext*
                // defined in the DLL)
 
+  void (*set_derived_script_context_class_ptr)(void*, void*); // Sets the derived ScriptContext* to the specified value.
+
   const char* (
       *get_script_version)();  // this is the same for all scripts, so no void* is passed into it.
 

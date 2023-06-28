@@ -88,6 +88,7 @@ void* ScriptContext_GetMemoryAddressBreakpointsHolder_impl(void*);
 void* ScriptContext_GetDllDefinedScriptContextApis_impl(void*);
 
 void* ScriptContext_GetDerivedScriptContextPtr_impl(void*);
+void ScriptContext_SetDerivedScriptContextPtr_impl(void*, void*);
 
 const char* ScriptContext_GetScriptVersion_impl();
 

@@ -125,7 +125,9 @@ void unref_map(LuaScriptContext* lua_script_ptr, std::unordered_map<long long, i
 
 void Destroy_LuaScriptContext_impl(void* base_script_context_ptr) // Takes as input a ScriptContext*, and frees the memory associated with it.
 {
-  LuaScriptContext* lua_script_ptr = (LuaScriptContext*) dolphinDefinedScriptContext_APIs.get_derived_script_context_class_ptr;
+  LuaScriptContext* lua_script_ptr = (LuaScriptContext*) dolphinDefinedScriptContext_APIs.get_derived_script_context_class_ptr(base_script_context_ptr);
+  if (lua_script_ptr == nullptr)
+    return;
   unref_vector(lua_script_ptr, lua_script_ptr->frame_callback_locations);
   unref_vector(lua_script_ptr, lua_script_ptr->gc_controller_input_polled_callback_locations);
   unref_vector(lua_script_ptr, lua_script_ptr->wii_controller_input_polled_callback_locations);
@@ -134,6 +136,7 @@ void Destroy_LuaScriptContext_impl(void* base_script_context_ptr) // Takes as in
   unref_map(lua_script_ptr, lua_script_ptr->map_of_memory_address_written_to_to_lua_callback_locations);
   unref_map(lua_script_ptr, lua_script_ptr->map_of_button_id_to_callback);
   delete lua_script_ptr;
+  dolphinDefinedScriptContext_APIs.set_derived_script_context_class_ptr(base_script_context_ptr, nullptr);
 }
 
 int CustomPrintFunction(lua_State* lua_state)

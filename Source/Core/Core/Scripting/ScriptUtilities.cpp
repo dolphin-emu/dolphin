@@ -245,6 +245,8 @@ static void Initialize_DolphinDefined_ScriptContext_APIs()
       ScriptContext_GetCalledYieldingFunctionInLastGlobalScriptResume_impl;
   dolphin_defined_scriptContext_apis.get_derived_script_context_class_ptr =
       ScriptContext_GetDerivedScriptContextPtr_impl;
+  dolphin_defined_scriptContext_apis.set_derived_script_context_class_ptr =
+      ScriptContext_SetDerivedScriptContextPtr_impl;
   dolphin_defined_scriptContext_apis.get_dll_defined_script_context_apis =
       ScriptContext_GetDllDefinedScriptContextApis_impl;
   dolphin_defined_scriptContext_apis.get_instruction_breakpoints_holder =

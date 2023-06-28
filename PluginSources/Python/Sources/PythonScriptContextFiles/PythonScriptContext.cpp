@@ -110,6 +110,8 @@ void unref_map(std::unordered_map<long long, PythonScriptContext::IdentifierToCa
 void Destroy_PythonScriptContext_impl(void* base_script_context_ptr) // Takes as input a ScriptContext*, and frees the associated PythonScriptContext*
 {
   PythonScriptContext* current_script = GetPythonScriptContext(base_script_context_ptr);
+  if (current_script == nullptr)
+    return;
   unsigned long long num_classes = current_script->classes_to_delete.size();
   for (unsigned long long i = 0; i < num_classes; ++i)
     delete ((ClassMetadata*)current_script->classes_to_delete[i]);
@@ -125,6 +127,8 @@ void Destroy_PythonScriptContext_impl(void* base_script_context_ptr) // Takes as
   unref_map(current_script->map_of_button_id_to_callback);
 
   delete current_script;
+
+  dolphinDefinedScriptContext_APIs.set_derived_script_context_class_ptr(base_script_context_ptr, nullptr);
 }
 
 void RunEndOfIteraionTasks(void* base_script_context_ptr)
