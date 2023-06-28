@@ -135,6 +135,8 @@ add_library(common
   WorkQueueThread.h
 )
 
+add_dependencies(common dolphin_scmrev)
+
 if(NOT MSVC AND _M_ARM_64)
   set_source_files_properties(
     Crypto/AES.cpp
