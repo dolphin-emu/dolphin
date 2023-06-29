@@ -11,6 +11,7 @@
 namespace VideoCommon
 {
 class CustomTextureData;
+struct PixelShaderData;
 
 // This class provides functionality to load
 // specific data (like textures).  Where this data
@@ -45,5 +46,8 @@ public:
   // Loads a texture as a game texture, providing additional checks like confirming
   // each mip level size is correct and that the format is consistent across the data
   LoadInfo LoadGameTexture(const AssetID& asset_id, CustomTextureData* data);
+
+  // Loads a pixel shader
+  virtual LoadInfo LoadPixelShader(const AssetID& asset_id, PixelShaderData* data) = 0;
 };
 }  // namespace VideoCommon
