@@ -7,6 +7,7 @@
 #include <bit>
 #include <mutex>
 
+#include "Common/Align.h"
 #include "Common/Assert.h"
 
 #include "Core/System.h"
@@ -565,12 +566,15 @@ void Metal::StateTracker::InvalidateUniforms(bool vertex, bool geometry, bool fr
 
 void Metal::StateTracker::SetUtilityUniform(const void* buffer, size_t size)
 {
+  // Shader often uses 16-byte aligned types
+  // Metal validation will complain if our upload is smaller than the struct with padding
+  size_t aligned_size = Common::AlignUp(size, 16);
   if (m_state.utility_uniform_capacity < size)
   {
-    m_state.utility_uniform = std::unique_ptr<u8[]>(new u8[size]);
-    m_state.utility_uniform_capacity = size;
+    m_state.utility_uniform = std::unique_ptr<u8[]>(new u8[aligned_size]);
+    m_state.utility_uniform_capacity = static_cast<u32>(aligned_size);
   }
-  m_state.utility_uniform_size = size;
+  m_state.utility_uniform_size = static_cast<u32>(aligned_size);
   memcpy(m_state.utility_uniform.get(), buffer, size);
   m_flags.has_utility_vs_uniform = false;
   m_flags.has_utility_ps_uniform = false;
