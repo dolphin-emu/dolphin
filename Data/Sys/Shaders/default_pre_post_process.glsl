@@ -106,8 +106,8 @@ float4 SharpBilinearSample(float3 uvw, float gamma)
 float4 BoxResample(float3 uvw, float gamma)
 {
 	// Determine the sizes of the source and target images.
-	float2 inv_source_size = GetInvResolution();
 	float2 source_size = GetResolution();
+	float2 inv_source_size = GetInvResolution();
 	float2 inv_target_size = GetInvWindowResolution();
 
 	// Determine the range of the source image that the target pixel will cover.
@@ -135,10 +135,10 @@ float4 BoxResample(float3 uvw, float gamma)
 	float4 avg_color = float4(0.0, 0.0, 0.0, 0.0);
 
 	// Accumulate corner pixels.
-	avg_color += area_nw * QuickSample(float2(f_beg.x, f_beg.y) * inv_source_size, uvw.z, gamma);
-	avg_color += area_ne * QuickSample(float2(f_end.x, f_beg.y) * inv_source_size, uvw.z, gamma);
-	avg_color += area_sw * QuickSample(float2(f_beg.x, f_end.y) * inv_source_size, uvw.z, gamma);
-	avg_color += area_se * QuickSample(float2(f_end.x, f_end.y) * inv_source_size, uvw.z, gamma);
+	avg_color += area_nw * QuickSample(float2(f_beg.x + 0.5, f_beg.y + 0.5) * inv_source_size, uvw.z, gamma);
+	avg_color += area_ne * QuickSample(float2(f_end.x + 0.5, f_beg.y + 0.5) * inv_source_size, uvw.z, gamma);
+	avg_color += area_sw * QuickSample(float2(f_beg.x + 0.5, f_end.y + 0.5) * inv_source_size, uvw.z, gamma);
+	avg_color += area_se * QuickSample(float2(f_end.x + 0.5, f_end.y + 0.5) * inv_source_size, uvw.z, gamma);
 
 	// Determine the size of the pixel box.
 	int x_range = int(f_end.x - f_beg.x - 0.5);
@@ -155,8 +155,8 @@ float4 BoxResample(float3 uvw, float gamma)
 		if (ix < x_range)
 		{
 			float x = f_beg.x + 1.0 + float(ix);
-			avg_color += area_n * QuickSample(float2(x, f_beg.y) * inv_source_size, uvw.z, gamma);
-			avg_color += area_s * QuickSample(float2(x, f_end.y) * inv_source_size, uvw.z, gamma);
+			avg_color += area_n * QuickSample(float2(x + 0.5, f_beg.y + 0.5) * inv_source_size, uvw.z, gamma);
+			avg_color += area_s * QuickSample(float2(x + 0.5, f_end.y + 0.5) * inv_source_size, uvw.z, gamma);
 		}
 	}
 
@@ -167,15 +167,15 @@ float4 BoxResample(float3 uvw, float gamma)
 		{
 			float y = f_beg.y + 1.0 + float(iy);
 
-			avg_color += area_w * QuickSample(float2(f_beg.x, y) * inv_source_size, uvw.z, gamma);
-			avg_color += area_e * QuickSample(float2(f_end.x, y) * inv_source_size, uvw.z, gamma);
+			avg_color += area_w * QuickSample(float2(f_beg.x + 0.5, y + 0.5) * inv_source_size, uvw.z, gamma);
+			avg_color += area_e * QuickSample(float2(f_end.x + 0.5, y + 0.5) * inv_source_size, uvw.z, gamma);
 
 			for (int ix = 0; ix < max_iterations; ++ix)
 			{
 				if (ix < x_range)
 				{
 					float x = f_beg.x + 1.0 + float(ix);
-					avg_color += QuickSample(float2(x, y) * inv_source_size, uvw.z, gamma);
+					avg_color += QuickSample(float2(x + 0.5, y + 0.5) * inv_source_size, uvw.z, gamma);
 				}
 			}
 		}
