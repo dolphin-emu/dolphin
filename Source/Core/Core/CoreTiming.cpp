@@ -380,6 +380,11 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
     DEBUG_LOG_FMT(COMMON, "System can not to keep up with timings! [relaxing timings by {} us]",
                   DT_us(min_deadline - m_throttle_deadline).count());
     m_throttle_deadline = min_deadline;
+  }
+
+  const TimePoint min_vsync_deadline = time - std::chrono::duration_cast<DT>(DT_ms(16));
+
+  if (m_throttle_deadline < min_vsync_deadline) {
     m_throttle_disable_vsync = true;
   }
 
