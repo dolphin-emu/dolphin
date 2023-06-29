@@ -345,8 +345,8 @@ void Metal::StateTracker::BeginRenderPass(MTLRenderPassDescriptor* descriptor)
   m_current.cull_mode = MTLCullModeNone;
   m_current.perf_query_group = static_cast<PerfQueryGroup>(-1);
   m_flags.NewEncoder();
-  m_dirty_samplers = (1 << VideoCommon::MAX_PIXEL_SHADER_SAMPLERS) - 1;
-  m_dirty_textures = (1 << VideoCommon::MAX_PIXEL_SHADER_SAMPLERS) - 1;
+  m_dirty_samplers = (1 << MAX_SAMPLERS) - 1;
+  m_dirty_textures = (1 << MAX_TEXTURES) - 1;
   CheckScissor();
   CheckViewport();
   ASSERT_MSG(VIDEO, m_current_render_encoder, "Failed to create render encoder!");
@@ -360,8 +360,8 @@ void Metal::StateTracker::BeginComputePass()
   if (m_manual_buffer_upload)
     [m_current_compute_encoder waitForFence:m_fence];
   m_flags.NewEncoder();
-  m_dirty_samplers = (1 << VideoCommon::MAX_PIXEL_SHADER_SAMPLERS) - 1;
-  m_dirty_textures = (1 << VideoCommon::MAX_PIXEL_SHADER_SAMPLERS) - 1;
+  m_dirty_samplers = (1 << MAX_SAMPLERS) - 1;
+  m_dirty_textures = (1 << MAX_TEXTURES) - 1;
 }
 
 void Metal::StateTracker::EndRenderPass()
@@ -534,15 +534,6 @@ void Metal::StateTracker::SetSampler(u32 idx, const SamplerState& sampler)
   ASSERT(idx < std::size(m_state.samplers));
   if (m_state.sampler_states[idx] != sampler)
     SetSamplerForce(idx, sampler);
-}
-
-void Metal::StateTracker::SetComputeTexture(const Texture* texture)
-{
-  if (m_state.compute_texture != texture)
-  {
-    m_state.compute_texture = texture;
-    m_flags.has_compute_texture = false;
-  }
 }
 
 void Metal::StateTracker::UnbindTexture(id<MTLTexture> texture)
@@ -897,10 +888,31 @@ void Metal::StateTracker::PrepareCompute()
     m_flags.has_pipeline = true;
     [enc setComputePipelineState:pipe->GetComputePipeline()];
   }
-  if (!m_flags.has_compute_texture && pipe->UsesTexture(0))
+  if (u32 dirty = m_dirty_textures & pipe->GetTextures())
   {
-    m_flags.has_compute_texture = true;
-    [enc setTexture:m_state.compute_texture->GetMTLTexture() atIndex:0];
+    m_dirty_textures &= ~pipe->GetTextures();
+    // Since there's two sets of textures, it's likely there'll be a few in each
+    // Check each set separately to avoid doing too many unneccessary bindings
+    constexpr u32 lo_mask = (1 << VideoCommon::MAX_COMPUTE_SHADER_SAMPLERS) - 1;
+    if (u32 lo = dirty & lo_mask)
+    {
+      NSRange range = RangeOfBits(lo);
+      [enc setTextures:&m_state.textures[range.location] withRange:range];
+    }
+    if (u32 hi = dirty & ~lo_mask)
+    {
+      NSRange range = RangeOfBits(hi);
+      [enc setTextures:&m_state.textures[range.location] withRange:range];
+    }
+  }
+  if (u32 dirty = m_dirty_samplers & pipe->GetSamplers())
+  {
+    m_dirty_samplers &= ~pipe->GetSamplers();
+    NSRange range = RangeOfBits(dirty);
+    [enc setSamplerStates:&m_state.samplers[range.location]
+             lodMinClamps:&m_state.sampler_min_lod[range.location]
+             lodMaxClamps:&m_state.sampler_max_lod[range.location]
+                withRange:range];
   }
   // Compute and render can't happen at the same time, so just reuse one of the flags
   if (!m_flags.has_utility_vs_uniform && pipe->UsesBuffer(0))

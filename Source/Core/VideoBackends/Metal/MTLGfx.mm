@@ -386,9 +386,11 @@ void Metal::Gfx::SetSamplerState(u32 index, const SamplerState& state)
   g_state_tracker->SetSampler(index, state);
 }
 
-void Metal::Gfx::SetComputeImageTexture(u32, AbstractTexture* texture, bool read, bool write)
+void Metal::Gfx::SetComputeImageTexture(u32 index, AbstractTexture* texture, bool read, bool write)
 {
-  g_state_tracker->SetComputeTexture(static_cast<const Texture*>(texture));
+  g_state_tracker->SetTexture(index + VideoCommon::MAX_COMPUTE_SHADER_SAMPLERS,
+                              texture ? static_cast<const Texture*>(texture)->GetMTLTexture() :
+                                        nullptr);
 }
 
 void Metal::Gfx::UnbindTexture(const AbstractTexture* texture)
