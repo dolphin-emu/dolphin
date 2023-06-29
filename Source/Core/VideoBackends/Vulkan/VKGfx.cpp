@@ -392,14 +392,14 @@ void VKGfx::OnConfigChanged(u32 bits)
     g_object_cache->ReloadPipelineCache();
 
   // For vsync, we need to change the present mode, which means recreating the swap chain.
-  if (m_swap_chain && bits & CONFIG_CHANGE_BIT_VSYNC)
+  if (m_swap_chain && (bits & CONFIG_CHANGE_BIT_VSYNC))
   {
     ExecuteCommandBuffer(false, true);
     m_swap_chain->SetVSync(g_ActiveConfig.bVSyncActive);
   }
 
   // For quad-buffered stereo we need to change the layer count, so recreate the swap chain.
-  if (m_swap_chain && (bits & CONFIG_CHANGE_BIT_STEREO_MODE) || (bits & CONFIG_CHANGE_BIT_HDR))
+  if (m_swap_chain && ((bits & CONFIG_CHANGE_BIT_STEREO_MODE) || (bits & CONFIG_CHANGE_BIT_HDR)))
   {
     ExecuteCommandBuffer(false, true);
     m_swap_chain->RecreateSwapChain();
