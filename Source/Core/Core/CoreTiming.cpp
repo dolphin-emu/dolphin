@@ -380,6 +380,7 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
     DEBUG_LOG_FMT(COMMON, "System can not to keep up with timings! [relaxing timings by {} us]",
                   DT_us(min_deadline - m_throttle_deadline).count());
     m_throttle_deadline = min_deadline;
+    m_throttle_disable_vsync = true;
   }
 
   // Skip the VI interrupt if the CPU is lagging by a certain amount.
@@ -392,6 +393,7 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
   // Only sleep if we are behind the deadline
   if (time < m_throttle_deadline)
   {
+    m_throttle_disable_vsync = false;
     std::this_thread::sleep_until(m_throttle_deadline);
 
     // Count amount of time sleeping for analytics
@@ -415,6 +417,11 @@ TimePoint CoreTimingManager::GetCPUTimePoint(s64 cyclesLate) const
 bool CoreTimingManager::GetVISkip() const
 {
   return m_throttle_disable_vi_int && g_ActiveConfig.bVISkip && !Core::WantsDeterminism();
+}
+
+bool CoreTimingManager::GetVSyncAllowed() const
+{
+  return !m_throttle_disable_vsync;
 }
 
 bool CoreTimingManager::UseSyncOnSkipIdle() const
