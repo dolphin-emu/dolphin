@@ -12,6 +12,7 @@
 #include "Common/Flag.h"
 #include "Common/WorkQueueThread.h"
 #include "VideoCommon/Assets/CustomAsset.h"
+#include "VideoCommon/Assets/ShaderAsset.h"
 #include "VideoCommon/Assets/TextureAsset.h"
 
 namespace VideoCommon
@@ -40,6 +41,9 @@ public:
                                                std::shared_ptr<CustomAssetLibrary> library);
 
   std::shared_ptr<GameTextureAsset> LoadGameTexture(const CustomAssetLibrary::AssetID& asset_id,
+                                                    std::shared_ptr<CustomAssetLibrary> library);
+
+  std::shared_ptr<PixelShaderAsset> LoadPixelShader(const CustomAssetLibrary::AssetID& asset_id,
                                                     std::shared_ptr<CustomAssetLibrary> library);
 
 private:
@@ -74,6 +78,7 @@ private:
 
   std::map<CustomAssetLibrary::AssetID, std::weak_ptr<RawTextureAsset>> m_textures;
   std::map<CustomAssetLibrary::AssetID, std::weak_ptr<GameTextureAsset>> m_game_textures;
+  std::map<CustomAssetLibrary::AssetID, std::weak_ptr<PixelShaderAsset>> m_pixel_shaders;
   std::thread m_asset_monitor_thread;
   Common::Flag m_asset_monitor_thread_shutdown;
 

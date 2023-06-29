@@ -90,4 +90,11 @@ CustomAssetLoader::LoadGameTexture(const CustomAssetLibrary::AssetID& asset_id,
 {
   return LoadOrCreateAsset<GameTextureAsset>(asset_id, m_game_textures, std::move(library));
 }
+
+std::shared_ptr<PixelShaderAsset>
+CustomAssetLoader::LoadPixelShader(const CustomAssetLibrary::AssetID& asset_id,
+                                   std::shared_ptr<CustomAssetLibrary> library)
+{
+  return LoadOrCreateAsset<PixelShaderAsset>(asset_id, m_pixel_shaders, std::move(library));
+}
 }  // namespace VideoCommon

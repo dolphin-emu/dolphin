@@ -22,6 +22,7 @@ public:
   using AssetMap = std::map<std::string, std::filesystem::path>;
 
   LoadInfo LoadTexture(const AssetID& asset_id, CustomTextureData* data) override;
+  LoadInfo LoadPixelShader(const AssetID& asset_id, PixelShaderData* data) override;
 
   // Gets the latest time from amongst all the files in the asset map
   TimeType GetLastAssetWriteTime(const AssetID& asset_id) const override;
