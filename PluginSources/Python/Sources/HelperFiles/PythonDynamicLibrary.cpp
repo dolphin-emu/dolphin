@@ -30,14 +30,14 @@ static const char* PY_IMPORT_IMPORT_MODULE_FUNC_NAME = "PyImport_ImportModule";
 static const char* PY_INC_REF_FUNC_NAME = "Py_IncRef";
 static const char* PY_INITIALIZE_FUNC_NAME = "Py_Initialize";
 static const char* PY_IS_TRUE_FUNC_NAME = "Py_IsTrue";
-static const char* PY_LIST_CHECK_FUNC_NAME = "PyList_Check";
+//static const char* PY_LIST_CHECK_FUNC_NAME = "PyList_Check";
 static const char* PY_LIST_GET_ITEM_FUNC_NAME = "PyList_GetItem";
 static const char* PY_LIST_SIZE_FUNC_NAME = "PyList_Size";
 static const char* PY_LONG_AS_LONG_LONG_FUNC_NAME = "PyLong_AsLongLong";
 static const char* PY_LONG_AS_UNSIGNED_LONG_LONG_FUNC_NAME = "PyLong_AsUnsignedLongLong";
 static const char* PY_LONG_FROM_LONG_LONG_FUNC_NAME = "PyLong_FromLongLong";
 static const char* PY_LONG_FROM_UNSIGNED_LONG_LONG_FUNC_NAME = "PyLong_FromUnsignedLongLong";
-static const char* PY_MODULE_CREATE_FUNC_NAME = "PyModule_Create";
+static const char* PY_MODULE_CREATE2_FUNC_NAME = "PyModule_Create2";
 static const char* PY_MODULE_GET_DICT_FUNC_NAME = "PyModule_GetDict";
 static const char* PY_MODULE_GET_STATE_FUNC_NAME = "PyModule_GetState";
 static const char* PY_NEW_INTERPRETER_FUNC_NAME = "Py_NewInterpreter";
@@ -46,9 +46,9 @@ static const char* PY_OBJECT_GET_ATTR_STRING_FUNC_NAME = "PyObject_GetAttrString
 static const char* PY_RUN_ANY_FILE_FUNC_NAME = "PyRun_AnyFile";
 static const char* PY_RUN_SIMPLE_STRING_FUNC_NAME = "PyRun_SimpleString";
 static const char* PY_THREAD_STATE_GET_FUNC_NAME = "PyThreadState_Get";
-static const char* PY_TUPLE_CHECK_FUNC_NAME = "PyTuple_Check";
+//static const char* PY_TUPLE_CHECK_FUNC_NAME = "PyTuple_Check";
 static const char* PY_TUPLE_GET_ITEM_FUNC_NAME = "PyTuple_GetItem";
-static const char* PY_TUPLE_GET_SIZE_FUNC_NAME = "PyTuple_GetSize";
+static const char* PY_OBJECT_LENGTH_FUNC_NAME = "PyObject_Length";
 static const char* PY_UNICODE_AS_UTF8_FUNC_NAME = "PyUnicode_AsUTF8";
 static const char* PY_UNICODE_FROM_STRING_FUNC_NAME = "PyUnicode_FromString";
 
@@ -80,14 +80,14 @@ void* (*PyImport_ImportModule)(const char*) = nullptr;
 void (*Py_IncRef)(void*) = nullptr;
 void (*Py_Initialize)() = nullptr;
 int (*Py_IsTrue)(void*) = nullptr;
-int (*PyList_Check)(void*) = nullptr;
+//int (*PyList_Check)(void*) = nullptr;
 void* (*PyList_GetItem)(void*, long long) = nullptr;
 long long (*PyList_Size)(void*) = nullptr;
 long long (*PyLong_AsLongLong)(void*) = nullptr;
 unsigned long long (*PyLong_AsUnsignedLongLong)(void*) = nullptr;
 void* (*PyLong_FromLongLong)(long long) = nullptr;
 void* (*PyLong_FromUnsignedLongLong)(unsigned long long) = nullptr;
-void* (*PyModule_Create)(void*) = nullptr;
+void* (*PyModule_Create2)(void*) = nullptr;
 void* (*PyModule_GetDict)(void*) = nullptr;
 void* (*PyModule_GetState)(void*) = nullptr;
 void* (*Py_NewInterpreter)() = nullptr;
@@ -96,9 +96,9 @@ void* (*PyObject_GetAttrString)(void*, const char*) = nullptr;
 int (*PyRun_AnyFile)(FILE*, const char*) = nullptr;
 int (*PyRun_SimpleString)(const char*) = nullptr;
 void* (*PyThreadState_Get)() = nullptr;
-int (*PyTuple_Check)(void*) = nullptr;
+//int (*PyTuple_Check)(void*) = nullptr;
 void* (*PyTuple_GetItem)(void*, long long) = nullptr;
-long long (*PyTuple_GetSize)(void*) = nullptr;
+long long (*PyObject_Length)(void*) = nullptr;
 const char* (*PyUnicode_AsUTF8)(void*) = nullptr;
 void* (*PyUnicode_FromString)(const char*) = nullptr;
 
@@ -175,14 +175,14 @@ bool AddNameAndFuncsToList(void* base_script_context_ptr)
   GetFuncFromDLL(base_script_context_ptr, PY_INC_REF_FUNC_NAME, &Py_IncRef) &&
   GetFuncFromDLL(base_script_context_ptr, PY_INITIALIZE_FUNC_NAME, &Py_Initialize) &&
   GetFuncFromDLL(base_script_context_ptr, PY_IS_TRUE_FUNC_NAME, &Py_IsTrue) &&
-  GetFuncFromDLL(base_script_context_ptr, PY_LIST_CHECK_FUNC_NAME, &PyList_Check) &&
+  //GetFuncFromDLL(base_script_context_ptr, PY_LIST_CHECK_FUNC_NAME, &PyList_Check) &&
   GetFuncFromDLL(base_script_context_ptr, PY_LIST_GET_ITEM_FUNC_NAME, &PyList_GetItem) &&
   GetFuncFromDLL(base_script_context_ptr, PY_LIST_SIZE_FUNC_NAME, &PyList_Size) &&
   GetFuncFromDLL(base_script_context_ptr, PY_LONG_AS_LONG_LONG_FUNC_NAME, &PyLong_AsLongLong) &&
   GetFuncFromDLL(base_script_context_ptr, PY_LONG_AS_UNSIGNED_LONG_LONG_FUNC_NAME, &PyLong_AsUnsignedLongLong) &&
   GetFuncFromDLL(base_script_context_ptr, PY_LONG_FROM_LONG_LONG_FUNC_NAME, &PyLong_FromLongLong) &&
   GetFuncFromDLL(base_script_context_ptr, PY_LONG_FROM_UNSIGNED_LONG_LONG_FUNC_NAME, &PyLong_FromUnsignedLongLong) &&
-  GetFuncFromDLL(base_script_context_ptr, PY_MODULE_CREATE_FUNC_NAME, &PyModule_Create) &&
+  GetFuncFromDLL(base_script_context_ptr, PY_MODULE_CREATE2_FUNC_NAME, &PyModule_Create2) &&
   GetFuncFromDLL(base_script_context_ptr, PY_MODULE_GET_DICT_FUNC_NAME, &PyModule_GetDict) &&
   GetFuncFromDLL(base_script_context_ptr, PY_MODULE_GET_STATE_FUNC_NAME, &PyModule_GetState) &&
   GetFuncFromDLL(base_script_context_ptr, PY_NEW_INTERPRETER_FUNC_NAME, &Py_NewInterpreter) &&
@@ -191,9 +191,9 @@ bool AddNameAndFuncsToList(void* base_script_context_ptr)
   GetFuncFromDLL(base_script_context_ptr, PY_RUN_ANY_FILE_FUNC_NAME, &PyRun_AnyFile) &&
   GetFuncFromDLL(base_script_context_ptr, PY_RUN_SIMPLE_STRING_FUNC_NAME, &PyRun_SimpleString) &&
   GetFuncFromDLL(base_script_context_ptr, PY_THREAD_STATE_GET_FUNC_NAME, &PyThreadState_Get) &&
-  GetFuncFromDLL(base_script_context_ptr, PY_TUPLE_CHECK_FUNC_NAME, &PyTuple_Check) &&
+  //GetFuncFromDLL(base_script_context_ptr, PY_TUPLE_CHECK_FUNC_NAME, &PyTuple_Check) &&
   GetFuncFromDLL(base_script_context_ptr, PY_TUPLE_GET_ITEM_FUNC_NAME, &PyTuple_GetItem) &&
-  GetFuncFromDLL(base_script_context_ptr, PY_TUPLE_GET_SIZE_FUNC_NAME, &PyTuple_GetSize) &&
+  GetFuncFromDLL(base_script_context_ptr, PY_OBJECT_LENGTH_FUNC_NAME, &PyObject_Length) &&
   GetFuncFromDLL(base_script_context_ptr, PY_UNICODE_AS_UTF8_FUNC_NAME, &PyUnicode_AsUTF8) &&
   GetFuncFromDLL(base_script_context_ptr, PY_UNICODE_FROM_STRING_FUNC_NAME, &PyUnicode_FromString) &&
   GetFuncFromDLL(base_script_context_ptr, PY_EXC_RUNTIME_ERROR_DATA_NAME, &PY_EXC_RUNTIME_ERROR_DATA) &&
@@ -219,6 +219,7 @@ void InitPythonLib(void* base_script_ptr)
     if (!AddNameAndFuncsToList(base_script_ptr))
       return;
   }
+  py_dll_initialized = true;
 }
 
 void DeletePythonLib() {}
