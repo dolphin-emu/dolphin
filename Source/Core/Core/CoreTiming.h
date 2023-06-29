@@ -149,6 +149,7 @@ public:
 
   TimePoint GetCPUTimePoint(s64 cyclesLate) const;  // Used by Dolphin Analytics
   bool GetVISkip() const;                           // Used By VideoInterface
+  bool GetVSyncAllowed() const;                     // Used By VideoInterface
 
   bool UseSyncOnSkipIdle() const;
 
@@ -192,6 +193,7 @@ private:
   s64 m_throttle_clock_per_sec = 0;
   s64 m_throttle_min_clock_per_sleep = 0;
   bool m_throttle_disable_vi_int = false;
+  bool m_throttle_disable_vsync = false;
 
   void ResetThrottle(s64 cycle);
 
