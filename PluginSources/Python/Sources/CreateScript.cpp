@@ -1,5 +1,6 @@
 #include "CreateScript.h"
 #include "PythonScriptContextFiles/PythonScriptContext.h"
+#include "HelperFiles/PythonDynamicLibrary.h"
 
 static DLL_Defined_ScriptContext_APIs dll_defined_scriptContext_apis = {};
 static bool initialized_dll_specific_script_context_apis = false;
@@ -71,6 +72,17 @@ DLL_Export void* CreateNewScript(int unique_script_identifier, const char* scrip
     InitDLLSpecificAPIs();
 
   void* opaque_script_context_handle = dolphinDefinedScriptContext_APIs.ScriptContext_Initializer(unique_script_identifier, script_filename, print_callback_fn_ptr, script_end_callback_fn_ptr, &dll_defined_scriptContext_apis);
+
+  if (python_lib_ptr == nullptr)
+  {
+    InitPythonLib(opaque_script_context_handle);
+    if (dolphinDefinedScriptContext_APIs.get_script_return_code(opaque_script_context_handle) != 0)
+    {
+      dolphinDefinedScriptContext_APIs.get_script_end_callback_function(opaque_script_context_handle)(opaque_script_context_handle, dolphinDefinedScriptContext_APIs.get_unique_script_identifier(opaque_script_context_handle));
+      return opaque_script_context_handle;
+    }
+  }
+
   PythonScriptContext* new_python_script_context_ptr = reinterpret_cast<PythonScriptContext*>(Init_PythonScriptContext_impl(opaque_script_context_handle));
   return opaque_script_context_handle;
 }
