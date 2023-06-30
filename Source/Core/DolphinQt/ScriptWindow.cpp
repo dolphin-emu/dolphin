@@ -8,20 +8,26 @@
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/Settings.h"
+#include "Core/CoreTiming.h"
+#include "Core/System.h"
 
 static void (*callback_print_function)(void*, const char*);
 static void (*finished_script_callback_function)(void*, int);
 
 static ScriptWindow* copy_of_window = nullptr;
-
+static CoreTiming::EventType* stop_script_event = nullptr;
 static ScriptWindow* GetThis()
 {
   return copy_of_window;
-}
+} 
 
 ScriptWindow::ScriptWindow(QWidget* parent) : QDialog(parent)
 {
   copy_of_window = this;
+  stop_script_event = Core::System::GetInstance().GetCoreTiming().RegisterEvent(
+      "SCRIPT_STOP_FUNC", [](Core::System& system_, u64 script_id, s64) {
+        Scripting::ScriptUtilities::StopScript(script_id);
+      });
   next_unique_identifier = 1;
   callback_print_function = [](void* x, const char* message) {
     std::lock_guard<std::mutex> lock(GetThis()->print_lock);
@@ -137,10 +143,11 @@ void ScriptWindow::PlayScriptFunction()
       script_name_list_widget_ptr->currentItem()->text().toStdString();
   script_start_or_stop_lock.unlock();
 
+ row_num_to_is_running[current_row] = true;
+
   Scripting::ScriptUtilities::InitializeScript(
       current_row, current_script_name, callback_print_function, finished_script_callback_function);
 
-  row_num_to_is_running[current_row] = true;
 }
 
 void ScriptWindow::StopScriptFunction()
@@ -190,8 +197,9 @@ void ScriptWindow::OnScriptFinish()
   if (id_of_script_to_stop > 0 && row_num_to_is_running[id_of_script_to_stop])
   {
     row_num_to_is_running[id_of_script_to_stop] = false;
-    Scripting::ScriptUtilities::StopScript(id_of_script_to_stop);
     UpdateButtonText();
+    Core::System::GetInstance().GetCoreTiming().ScheduleEvent(
+        -1, stop_script_event, id_of_script_to_stop, CoreTiming::FromThread::ANY);
   }
 }
 

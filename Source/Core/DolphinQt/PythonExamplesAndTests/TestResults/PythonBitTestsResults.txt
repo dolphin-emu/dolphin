@@ -15,18 +15,18 @@ PASS!
 
 Test 4:
 	Testing if bit.logical_and(True, False) == True && False:
-	False != False
-FAILURE! Actual value did not equal expected value!
+	False == False
+PASS!
 
 Test 5:
 	Testing if bit.logical_or(True, False) == True || False:
-	True != True
-FAILURE! Actual value did not equal expected value!
+	True == True
+PASS!
 
 Test 6:
 	Testing if bit.logical_xor(True, False) == True XOR False:
-	False != False
-FAILURE! Actual value did not equal expected value!
+	False == False
+PASS!
 
 Test 7:
 	Testing if bit.bit_shift_left(13, 2) == 13 << 2:
@@ -45,9 +45,9 @@ PASS!
 
 Test 10:
 	Testing if bit.logical_not(113) == !113:
-	False != False
-FAILURE! Actual value did not equal expected value!
+	False == False
+PASS!
 
 Total Tests: 10
-	Tests Passed: 6
-	Tests Failed: 4
+	Tests Passed: 10
+	Tests Failed: 0

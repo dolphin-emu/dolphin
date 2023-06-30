@@ -33,6 +33,7 @@
 #include "Core/Scripting/LanguageDefinitions/Lua/LuaScriptContext.h"
 #include "Core/Scripting/LanguageDefinitions/Python/PythonScriptContext.h"
 #include "Core/System.h"
+#include "Common/MsgHandler.h"
 
 namespace Scripting::ScriptUtilities
 {
@@ -455,8 +456,17 @@ void InitializeScript(
           unique_script_identifier, script_filename.c_str(), new_print_callback,
           new_script_end_callback)));
 
+  if ((*global_pointer_to_list_of_all_scripts)[global_pointer_to_list_of_all_scripts->size() - 1]->script_return_code != ScriptReturnCodes::SuccessCode)
+  {
+    PanicAlertFmt("{}", (*global_pointer_to_list_of_all_scripts)[global_pointer_to_list_of_all_scripts->size() - 1]
+            ->last_script_error.c_str());
+  }
+
   global_code_and_frame_callback_running_lock.unlock();
   initialization_and_destruction_lock.unlock();
+  bool x = false;
+  if (!x)
+    return;
 }
 
 void StopScript(int unique_script_identifier)

@@ -379,7 +379,7 @@ void* RunFunction_impl(void* base_script_context_ptr, FunctionMetadata* current_
         float x = 0.0f;
         float y = 0.0f;
         void* next_item_in_list = PythonInterface::PythonList_GetItem(current_py_obj, i);
-        if (PythonInterface::PythonList_Check(next_item_in_list)) // case where the next item was a list of points.
+        if (true)// PythonInterface::PythonList_Check(next_item_in_list)) // case where the next item was a list of points.
         {
           if (PythonInterface::PythonList_Size(next_item_in_list) != 2)
           {
@@ -391,7 +391,7 @@ void* RunFunction_impl(void* base_script_context_ptr, FunctionMetadata* current_
           y = PythonInterface::PythonFloatObj_AsDouble(PythonInterface::PythonList_GetItem(next_item_in_list, 1));
           argHolder_APIs.ListOfPointsArgHolderPushBack(next_arg_holder, x, y);
         }
-        else if (PythonInterface::PythonTuple_Check(next_item_in_list)) // case where next item was a tuple of points.
+        else if (true)//if (PythonInterface::PythonTuple_Check(next_item_in_list)) // case where next item was a tuple of points.
         {
           if (PythonInterface::PythonTuple_GetSize(next_item_in_list) != 2)
           {
