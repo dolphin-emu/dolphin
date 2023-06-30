@@ -89,7 +89,7 @@ namespace PythonDynamicLibrary
   unsigned long long (*PyLong_AsUnsignedLongLong)(void*) = nullptr;
   void* (*PyLong_FromLongLong)(long long) = nullptr;
   void* (*PyLong_FromUnsignedLongLong)(unsigned long long) = nullptr;
-  void* (*PyModule_Create2)(void*) = nullptr;
+  void* (*PyModule_Create2)(void*, int) = nullptr;
   void* (*PyModule_GetDict)(void*) = nullptr;
   void* (*PyModule_GetState)(void*) = nullptr;
   void* (*Py_NewInterpreter)() = nullptr;

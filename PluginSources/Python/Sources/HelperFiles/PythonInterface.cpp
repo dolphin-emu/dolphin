@@ -190,7 +190,7 @@ namespace PythonInterface
 
   extern "C" __declspec(dllexport) void* internal_this_mod_create_func()
   {
-    return PythonDynamicLibrary::PyModule_Create2(&ThisModuleDef);
+    return PythonDynamicLibrary::PyModule_Create2(&ThisModuleDef, 1013);
   }
 
   void CreateThisModule()
@@ -225,7 +225,7 @@ namespace PythonInterface
 
   extern "C" __declspec(dllexport) void* internal_module_create_fnc()
   {
-    return PythonDynamicLibrary::PyModule_Create2(&generic_mod_def);
+    return PythonDynamicLibrary::PyModule_Create2(&generic_mod_def, 1013);
   }
 
   void CreateEmptyModule(const char* new_module_name)

@@ -41,7 +41,7 @@ namespace PythonDynamicLibrary
   extern unsigned long long (*PyLong_AsUnsignedLongLong)(void*);
   extern void* (*PyLong_FromLongLong)(long long);
   extern void* (*PyLong_FromUnsignedLongLong)(unsigned long long);
-  extern void* (*PyModule_Create2)(void*);
+  extern void* (*PyModule_Create2)(void*, int);
   extern void* (*PyModule_GetDict)(void*);
   extern void* (*PyModule_GetState)(void*);
   extern void* (*Py_NewInterpreter)();
