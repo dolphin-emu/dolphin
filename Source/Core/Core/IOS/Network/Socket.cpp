@@ -27,6 +27,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
+#include "Core/WC24PatchEngine.h"
 
 #ifdef _WIN32
 #define ERRORCODE(name) WSA##name
@@ -580,7 +581,14 @@ void WiiSocket::Update(bool read, bool write, bool except)
           u32 has_destaddr = memory.Read_U32(BufferIn2 + 0x08);
 
           // Not a string, Windows requires a const char* for sendto
-          const char* data = (const char*)memory.GetPointer(BufferIn);
+          const char* data = (const char*)memory.GetPointerForRange(BufferIn, BufferInSize);
+          const std::optional<std::string> patch =
+              WC24PatchEngine::GetNetworkPatchByPayload(std::string_view{data, BufferInSize});
+          if (patch)
+          {
+            data = patch->c_str();
+            BufferInSize = static_cast<u32>(patch->size());
+          }
 
           // Act as non blocking when SO_MSG_NONBLOCK is specified
           forceNonBlock = ((flags & SO_MSG_NONBLOCK) == SO_MSG_NONBLOCK);

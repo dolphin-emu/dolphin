@@ -83,7 +83,7 @@ void ColorCorrectionConfigWindow::Create()
   gamma_layout->addWidget(new QLabel(tr("Game Gamma")), 0, 0);
   gamma_layout->addWidget(m_game_gamma, 0, 1);
   m_game_gamma->SetDescription(tr(TR_GAME_GAMMA_DESCRIPTION));
-  m_game_gamma_value = new QLabel(tr(""));
+  m_game_gamma_value = new QLabel();
   gamma_layout->addWidget(m_game_gamma_value, 0, 2);
 
   m_correct_gamma = new ConfigBool(tr("Correct SDR Gamma"), Config::GFX_CC_CORRECT_GAMMA);
@@ -99,7 +99,7 @@ void ColorCorrectionConfigWindow::Create()
                             Config::GFX_CC_SDR_DISPLAY_CUSTOM_GAMMA, 0.01f);
   gamma_layout->addWidget(new QLabel(tr("SDR Display Custom Gamma")), 3, 0);
   gamma_layout->addWidget(m_sdr_display_custom_gamma, 3, 1);
-  m_sdr_display_custom_gamma_value = new QLabel(tr(""));
+  m_sdr_display_custom_gamma_value = new QLabel();
   gamma_layout->addWidget(m_sdr_display_custom_gamma_value, 3, 2);
 
   m_sdr_display_gamma_srgb->setEnabled(m_correct_gamma->isChecked());
@@ -122,7 +122,7 @@ void ColorCorrectionConfigWindow::Create()
                                                  Config::GFX_CC_HDR_PAPER_WHITE_NITS, 1.f);
   hdr_layout->addWidget(new QLabel(tr("HDR Paper White Nits")), 0, 0);
   hdr_layout->addWidget(m_hdr_paper_white_nits, 0, 1);
-  m_hdr_paper_white_nits_value = new QLabel(tr(""));
+  m_hdr_paper_white_nits_value = new QLabel();
   hdr_layout->addWidget(m_hdr_paper_white_nits_value, 0, 2);
 
   m_hdr_paper_white_nits_value->setText(

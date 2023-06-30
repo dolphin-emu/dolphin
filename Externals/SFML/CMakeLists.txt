@@ -1,5 +1,3 @@
-include_directories(BEFORE include src)
-
 set(SRC_NETWORK
 	src/SFML/Network/Http.cpp
 	src/SFML/Network/IPAddress.cpp
@@ -23,7 +21,11 @@ set(SRC_SYSTEM
 	src/SFML/System/Time.cpp
 )
 
-add_library(sfml-network ${SRC_NETWORK})
-add_library(sfml-system ${SRC_SYSTEM})
+add_library(sfml-network STATIC ${SRC_NETWORK})
+add_library(sfml-system STATIC ${SRC_SYSTEM})
+target_compile_definitions(sfml-system PUBLIC SFML_STATIC)
+target_include_directories(sfml-system PUBLIC include PRIVATE src)
+target_include_directories(sfml-network PUBLIC include PRIVATE src)
+target_link_libraries(sfml-network PUBLIC sfml-system)
 dolphin_disable_warnings_msvc(sfml-network)
 dolphin_disable_warnings_msvc(sfml-system)

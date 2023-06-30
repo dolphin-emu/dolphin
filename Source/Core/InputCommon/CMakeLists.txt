@@ -81,7 +81,8 @@ PUBLIC
 
 PRIVATE
   fmt::fmt
-  ${spng_target}
+  sfml-network
+  spng::spng
 )
 
 if(WIN32)
@@ -146,7 +147,7 @@ elseif(ANDROID)
 endif()
 
 if(NOT ANDROID)
-  target_link_libraries(inputcommon PUBLIC ${LIBUSB_LIBRARIES})
+  target_link_libraries(inputcommon PUBLIC LibUSB::LibUSB)
 endif()
 
 if(LIBEVDEV_FOUND AND LIBUDEV_FOUND)
@@ -174,12 +175,13 @@ if(UNIX)
   )
 endif()
 
-if(SDL2_FOUND)
+if(ENABLE_SDL)
   target_sources(inputcommon PRIVATE
     ControllerInterface/SDL/SDL.cpp
     ControllerInterface/SDL/SDL.h
   )
   target_link_libraries(inputcommon PRIVATE SDL2::SDL2)
+  target_compile_definitions(inputcommon PUBLIC HAVE_SDL2=1)
 endif()
 
 if(MSVC)

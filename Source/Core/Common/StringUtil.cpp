@@ -85,25 +85,6 @@ std::string HexDump(const u8* data, size_t size)
   return out;
 }
 
-// faster than sscanf
-bool AsciiToHex(const std::string& _szValue, u32& result)
-{
-  // Set errno to a good state.
-  errno = 0;
-
-  char* endptr = nullptr;
-  const u32 value = strtoul(_szValue.c_str(), &endptr, 16);
-
-  if (!endptr || *endptr)
-    return false;
-
-  if (errno == ERANGE)
-    return false;
-
-  result = value;
-  return true;
-}
-
 bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list args)
 {
   int writtenCount;

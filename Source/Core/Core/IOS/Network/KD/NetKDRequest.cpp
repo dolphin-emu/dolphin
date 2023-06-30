@@ -24,6 +24,7 @@
 #include "Core/IOS/Network/Socket.h"
 #include "Core/IOS/Uids.h"
 #include "Core/System.h"
+#include "Core/WC24PatchEngine.h"
 
 namespace IOS::HLE
 {
@@ -217,7 +218,23 @@ NWC24::ErrorCode NetKDRequestDevice::KDDownload(const u16 entry_index,
 
   // Content metadata
   const std::string content_name = m_dl_list.GetVFFContentName(entry_index, subtask_id);
-  const std::string url = m_dl_list.GetDownloadURL(entry_index, subtask_id);
+  std::string url = m_dl_list.GetDownloadURL(entry_index, subtask_id);
+
+  // Reroute to custom server if enabled.
+  const std::vector<std::string> parts = SplitString(url, '/');
+  if (parts.size() < 3)
+  {
+    // Invalid URL
+    LogError(ErrorType::KD_Download, NWC24::WC24_ERR_SERVER);
+    return NWC24::WC24_ERR_SERVER;
+  }
+
+  if (std::optional<std::string> patch =
+          WC24PatchEngine::GetNetworkPatch(parts[2], WC24PatchEngine::IsKD{true}))
+  {
+    const size_t index = url.find(parts[2]);
+    url.replace(index, parts[2].size(), patch.value());
+  }
 
   INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_DOWNLOAD_NOW_EX - NI - URL: {}", url);
 

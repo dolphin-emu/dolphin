@@ -83,7 +83,7 @@ PUBLIC
   common
 
 PRIVATE
-  cubeb
+  cubeb::cubeb
   SoundTouch
   FreeSurround)
 

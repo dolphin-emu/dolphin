@@ -222,6 +222,7 @@ if(USE_SHARED_MBEDTLS_LIBRARY)
 endif(USE_SHARED_MBEDTLS_LIBRARY)
 
 foreach(target IN LISTS target_libraries)
+    add_library(MbedTLS::${target} ALIAS ${target})  # add_subdirectory support
     # Include public header files from /include and other directories
     # declared by /3rdparty/**/CMakeLists.txt. Include private header files
     # from /library and others declared by /3rdparty/**/CMakeLists.txt.

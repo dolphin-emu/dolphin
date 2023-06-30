@@ -135,6 +135,8 @@ add_library(common
   WorkQueueThread.h
 )
 
+add_dependencies(common dolphin_scmrev)
+
 if(NOT MSVC AND _M_ARM_64)
   set_source_files_properties(
     Crypto/AES.cpp
@@ -145,16 +147,17 @@ endif()
 target_link_libraries(common
 PUBLIC
   ${CMAKE_THREAD_LIBS_INIT}
-  enet
+  enet::enet
   fmt::fmt
-  ${MBEDTLS_LIBRARIES}
-  minizip-ng
+  MbedTLS::mbedtls
+  minizip::minizip
+  sfml-network
 
 PRIVATE
-  ${CURL_LIBRARIES}
+  CURL::libcurl
   FatFs
   Iconv::Iconv
-  ${spng_target}
+  spng::spng
   ${VTUNE_LIBRARIES}
 )
 

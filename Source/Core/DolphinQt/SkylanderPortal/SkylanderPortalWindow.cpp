@@ -259,11 +259,22 @@ QVBoxLayout* SkylanderPortalWindow::CreateFinderLayout()
     m_game_filters[i] = checkbox;
     search_checkbox_layout->addWidget(checkbox);
   }
+  // i18n: Figures for the game Skylanders: Spyro's Adventure. The game has the same title in all
+  // countries it was released in, except Japan, where it's named スカイランダーズ スパイロの大冒険.
   m_game_filters[GetGameID(IOS::HLE::USB::Game::SpyrosAdv)]->setText(tr("Spyro's Adventure"));
+  // i18n: Figures for the game Skylanders: Giants. The game has the same title in all countries
+  // it was released in. It was not released in Japan.
   m_game_filters[GetGameID(IOS::HLE::USB::Game::Giants)]->setText(tr("Giants"));
+  // i18n: Figures for the game Skylanders: Swap Force. The game has the same title in all countries
+  // it was released in. It was not released in Japan.
   m_game_filters[GetGameID(IOS::HLE::USB::Game::SwapForce)]->setText(tr("Swap Force"));
+  // i18n: Figures for the game Skylanders: Trap Team. The game has the same title in all countries
+  // it was released in. It was not released in Japan.
   m_game_filters[GetGameID(IOS::HLE::USB::Game::TrapTeam)]->setText(tr("Trap Team"));
-  m_game_filters[GetGameID(IOS::HLE::USB::Game::Superchargers)]->setText(tr("Superchargers"));
+  // i18n: Figures for the games Skylanders: SuperChargers (not available for the Wii) and
+  // Skylanders: SuperChargers Racing (available for the Wii). The games have the same titles in
+  // all countries they were released in. They were not released in Japan.
+  m_game_filters[GetGameID(IOS::HLE::USB::Game::Superchargers)]->setText(tr("SuperChargers"));
   search_checkbox_group->setLayout(search_checkbox_layout);
   search_checkbox_scroll_area->setWidget(search_checkbox_group);
   search_game_layout->addWidget(search_checkbox_scroll_area);
@@ -272,6 +283,9 @@ QVBoxLayout* SkylanderPortalWindow::CreateFinderLayout()
   search_filters_layout->addWidget(search_game_group);
 
   // WIDGET: Filter by Element
+
+  // i18n: Elements are a trait of Skylanders figures. For official translations of this term,
+  // check the Skylanders SuperChargers manual at https://support.activision.com/manuals
   auto* search_element_group = new QGroupBox(tr("Element"));
   auto* search_element_layout = new QVBoxLayout();
   auto* search_radio_scroll_area = new QScrollArea();
@@ -305,13 +319,30 @@ QVBoxLayout* SkylanderPortalWindow::CreateFinderLayout()
 
   m_element_filter[0]->setText(tr("All"));
   m_element_filter[0]->setChecked(true);
+  // i18n: One of the elements in the Skylanders games. Japanese: まほう. For official translations
+  // in other languages, check the SuperChargers manual at https://support.activision.com/manuals
   m_element_filter[1]->setText(tr("Magic"));
+  // i18n: One of the elements in the Skylanders games. Japanese: 水. For official translations
+  // in other languages, check the SuperChargers manual at https://support.activision.com/manuals
   m_element_filter[2]->setText(tr("Water"));
+  // i18n: One of the elements in the Skylanders games. Japanese: マシン. For official translations
+  // in other languages, check the SuperChargers manual at https://support.activision.com/manuals
   m_element_filter[3]->setText(tr("Tech"));
+  // i18n: One of the elements in the Skylanders games. Japanese: 火. For official translations
+  // in other languages, check the SuperChargers manual at https://support.activision.com/manuals
   m_element_filter[4]->setText(tr("Fire"));
+  // i18n: One of the elements in the Skylanders games. Japanese: 土. For official translations
+  // in other languages, check the SuperChargers manual at https://support.activision.com/manuals
   m_element_filter[5]->setText(tr("Earth"));
+  // i18n: One of the elements in the Skylanders games. Japanese: ライフ. For official translations
+  // in other languages, check the SuperChargers manual at https://support.activision.com/manuals
   m_element_filter[6]->setText(tr("Life"));
+  // i18n: One of the elements in the Skylanders games. Japanese: 風. For official translations
+  // in other languages, check the SuperChargers manual at https://support.activision.com/manuals
   m_element_filter[7]->setText(tr("Air"));
+  // i18n: One of the elements in the Skylanders games. Japanese: アンデッド. For official
+  // translations in other languages, check the SuperChargers manual at
+  // https://support.activision.com/manuals
   m_element_filter[8]->setText(tr("Undead"));
   m_element_filter[9]->setText(tr("Other"));
 

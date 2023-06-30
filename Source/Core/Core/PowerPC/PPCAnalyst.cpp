@@ -470,52 +470,74 @@ static bool isCror(const CodeOp& a)
 void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool reverse,
                                           ReorderType type) const
 {
-  // Bubbling an instruction sometimes reveals another opportunity to bubble an instruction, so do
-  // multiple passes.
+  // Instruction Reordering Pass
+  // Carry pass: bubble carry-using instructions as close to each other as possible, so we can avoid
+  // storing the carry flag.
+  // Compare pass: bubble compare instructions next to branches, so they can be merged.
+
+  const int start = reverse ? instructions - 1 : 0;
+  const int end = reverse ? 0 : instructions - 1;
+  const int increment = reverse ? -1 : 1;
+
+  int i = start;
+  int next = start;
+  bool go_backwards = false;
+
   while (true)
   {
-    // Instruction Reordering Pass
-    // Carry pass: bubble carry-using instructions as close to each other as possible, so we can
-    // avoid
-    // storing the carry flag.
-    // Compare pass: bubble compare instructions next to branches, so they can be merged.
-    bool swapped = false;
-    int increment = reverse ? -1 : 1;
-    int start = reverse ? instructions - 1 : 0;
-    int end = reverse ? 0 : instructions - 1;
-    for (int i = start; i != end; i += increment)
+    if (go_backwards)
     {
-      CodeOp& a = code[i];
-      CodeOp& b = code[i + increment];
-      // Reorder integer compares, rlwinm., and carry-affecting ops
-      // (if we add more merged branch instructions, add them here!)
-      if ((type == ReorderType::CROR && isCror(a)) ||
-          (type == ReorderType::Carry && isCarryOp(a)) ||
-          (type == ReorderType::CMP && (isCmp(a) || a.outputCR[0])))
+      i -= increment;
+      go_backwards = false;
+    }
+    else
+    {
+      i = next;
+      next += increment;
+    }
+
+    if (i == end)
+      break;
+
+    CodeOp& a = code[i];
+    CodeOp& b = code[i + increment];
+
+    // Reorder integer compares, rlwinm., and carry-affecting ops
+    // (if we add more merged branch instructions, add them here!)
+    if ((type == ReorderType::CROR && isCror(a)) || (type == ReorderType::Carry && isCarryOp(a)) ||
+        (type == ReorderType::CMP && (isCmp(a) || a.outputCR[0])))
+    {
+      // once we're next to a carry instruction, don't move away!
+      if (type == ReorderType::Carry && i != start)
       {
-        // once we're next to a carry instruction, don't move away!
-        if (type == ReorderType::Carry && i != start)
+        // if we read the CA flag, and the previous instruction sets it, don't move away.
+        if (!reverse && (a.opinfo->flags & FL_READ_CA) &&
+            (code[i - increment].opinfo->flags & FL_SET_CA))
         {
-          // if we read the CA flag, and the previous instruction sets it, don't move away.
-          if (!reverse && (a.opinfo->flags & FL_READ_CA) &&
-              (code[i - increment].opinfo->flags & FL_SET_CA))
-            continue;
-          // if we set the CA flag, and the next instruction reads it, don't move away.
-          if (reverse && (a.opinfo->flags & FL_SET_CA) &&
-              (code[i - increment].opinfo->flags & FL_READ_CA))
-            continue;
+          continue;
         }
 
-        if (CanSwapAdjacentOps(a, b))
+        // if we set the CA flag, and the next instruction reads it, don't move away.
+        if (reverse && (a.opinfo->flags & FL_SET_CA) &&
+            (code[i - increment].opinfo->flags & FL_READ_CA))
         {
-          // Alright, let's bubble it!
-          std::swap(a, b);
-          swapped = true;
+          continue;
+        }
+      }
+
+      if (CanSwapAdjacentOps(a, b))
+      {
+        // Alright, let's bubble it!
+        std::swap(a, b);
+
+        if (i != start)
+        {
+          // Bubbling an instruction sometimes reveals another opportunity to bubble an instruction,
+          // so go one step backwards and check if we have such an opportunity.
+          go_backwards = true;
         }
       }
     }
-    if (!swapped)
-      return;
   }
 }
 
