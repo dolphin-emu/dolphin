@@ -800,6 +800,7 @@ void RegisterButtonCallback_impl(void* base_script_context_ptr, long long button
     PythonInterface::Python_SetRunTimeError("Error: Attempted to register a Python object which wasn't callable as a button-clicked callback function!");
     return;
   }
+  PythonInterface::Python_IncRef(callback);
   GetPythonScriptContext(base_script_context_ptr)->map_of_button_id_to_callback[button_id] = { 0, callback };
 }
 
