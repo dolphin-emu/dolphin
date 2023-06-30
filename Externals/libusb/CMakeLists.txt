@@ -125,3 +125,4 @@ check_include_files(sys/timerfd.h HAVE_TIMERFD)
 check_include_files(unistd.h HAVE_UNISTD_H)
 
 configure_file(config.h.in config.h)
+add_library(LibUSB::LibUSB ALIAS usb)

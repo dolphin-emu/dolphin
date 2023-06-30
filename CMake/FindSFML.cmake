@@ -206,4 +206,20 @@ endif()
 # handle success
 if(SFML_FOUND)
     message(STATUS "Found SFML ${SFML_VERSION_MAJOR}.${SFML_VERSION_MINOR} in ${SFML_INCLUDE_DIR}")
+    foreach(FIND_SFML_COMPONENT ${SFML_FIND_COMPONENTS})
+        string(TOLOWER ${FIND_SFML_COMPONENT} FIND_SFML_COMPONENT_LOWER)
+        string(TOUPPER ${FIND_SFML_COMPONENT} FIND_SFML_COMPONENT_UPPER)
+        if(NOT TARGET sfml-${FIND_SFML_COMPONENT_LOWER})
+            add_library(sfml-${FIND_SFML_COMPONENT_LOWER} UNKNOWN IMPORTED)
+            set_target_properties(sfml-${FIND_SFML_COMPONENT_LOWER} PROPERTIES
+                IMPORTED_LOCATION "${SFML_${FIND_SFML_COMPONENT_UPPER}_LIBRARY}"
+                INTERFACE_INCLUDE_DIRECTORIES "${SFML_INCLUDE_DIR}"
+            )
+            if(NOT ${FIND_SFML_COMPONENT_LOWER} STREQUAL system)
+                set_target_properties(sfml-${FIND_SFML_COMPONENT_LOWER} PROPERTIES
+                    INTERFACE_LINK_LIBRARIES sfml-system
+                )
+            endif()
+        endif()
+    endforeach()
 endif()
