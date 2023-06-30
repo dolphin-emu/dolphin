@@ -279,7 +279,7 @@ u32 PostProcessingConfigWindow::ConfigGroup::AddInteger(PostProcessingConfigWind
         std::ceil(range / static_cast<double>(m_config_option->m_integer_step_values[i]));
     const int current_value = std::round(
         (m_config_option->m_integer_values[i] - m_config_option->m_integer_min_values[i]) /
-        static_cast<double>(m_config_option->m_integer_max_values[i]));
+        static_cast<double>(m_config_option->m_integer_step_values[i]));
 
     auto* const slider = new QSlider(Qt::Orientation::Horizontal);
     slider->setMinimum(0);
@@ -289,7 +289,7 @@ u32 PostProcessingConfigWindow::ConfigGroup::AddInteger(PostProcessingConfigWind
     QObject::connect(slider, &QSlider::valueChanged,
                      [this, parent](int value) { parent->UpdateInteger(this, value); });
 
-    auto* const value_box = new QLineEdit(QString::number(current_value));
+    auto* const value_box = new QLineEdit(QString::number(m_config_option->m_integer_values[i]));
     value_box->setEnabled(false);
 
     grid->addWidget(slider, row, 1);

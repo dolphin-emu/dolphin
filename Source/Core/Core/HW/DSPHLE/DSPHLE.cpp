@@ -240,7 +240,7 @@ u16 DSPHLE::DSP_ReadControlRegister()
   return m_dsp_control.Hex;
 }
 
-void DSPHLE::PauseAndLock(bool do_lock, bool unpause_on_unlock)
+void DSPHLE::PauseAndLock(bool do_lock)
 {
 }
 }  // namespace DSP::HLE

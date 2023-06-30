@@ -85,7 +85,11 @@ if(NOT ANDROID)
   option(ENABLE_CLI_TOOL "Enable dolphin-tool, a CLI-based utility for functions such as managing disc images" ON)
 endif()
 
-option(USE_SHARED_ENET "Use shared libenet if found rather than Dolphin's soon-to-compatibly-diverge version" OFF)
+
+set(USE_SYSTEM_LIBS "AUTO" CACHE STRING "Use system libraries instead of bundled libraries.  ON - Always use system and fail if unavailable, OFF - Always use bundled, AUTO - Use system if available, otherwise use bundled.  Default is AUTO")
+if(APPROVED_VENDORED_DEPENDENCIES)
+  message(WARNING "APPROVED_VENDORED_DEPENDENCIES is deprecated.  Please migrate to setting USE_SYSTEM_LIBS to ON and setting USE_SYSTEM_<dependency> to either AUTO or OFF to allow bundled libs.")
+endif()
 option(USE_UPNP "Enables UPnP port mapping support" ON)
 option(ENABLE_NOGUI "Enable NoGUI frontend" ON)
 option(ENABLE_QT "Enable Qt (Default)" ON)
@@ -158,7 +162,6 @@ list(APPEND CMAKE_MODULE_PATH
 # Support functions
 include(CheckAndAddFlag)
 include(CheckCCompilerFlag)
-include(CheckVendoringApproved)
 include(DolphinCompileDefinitions)
 include(DolphinDisableWarningsMSVC)
 include(DolphinLibraryTools)
@@ -195,59 +198,6 @@ endif()
 
 # setup CCache
 include(CCache)
-
-# for revision info
-find_package(Git)
-if(GIT_FOUND)
-  # make sure version information gets re-run when the current Git HEAD changes
-  execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} rev-parse --git-path HEAD
-      OUTPUT_VARIABLE dolphin_git_head_filename
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
-  set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${dolphin_git_head_filename}")
-
-  execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} rev-parse --symbolic-full-name HEAD
-      OUTPUT_VARIABLE dolphin_git_head_symbolic
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
-  execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-      COMMAND ${GIT_EXECUTABLE} rev-parse --git-path ${dolphin_git_head_symbolic}
-      OUTPUT_VARIABLE dolphin_git_head_symbolic_filename
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
-  set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${dolphin_git_head_symbolic_filename}")
-
-  # defines DOLPHIN_WC_REVISION
-  execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
-      OUTPUT_VARIABLE DOLPHIN_WC_REVISION
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
-  # defines DOLPHIN_WC_DESCRIBE
-  execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} describe --always --long --dirty
-      OUTPUT_VARIABLE DOLPHIN_WC_DESCRIBE
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-  # remove hash (and trailing "-0" if needed) from description
-  string(REGEX REPLACE "(-0)?-[^-]+((-dirty)?)$" "\\2" DOLPHIN_WC_DESCRIBE "${DOLPHIN_WC_DESCRIBE}")
-
-  # defines DOLPHIN_WC_BRANCH
-  execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
-      OUTPUT_VARIABLE DOLPHIN_WC_BRANCH
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
-endif()
-
-# version number
-set(DOLPHIN_VERSION_MAJOR "5")
-set(DOLPHIN_VERSION_MINOR "0")
-if(DOLPHIN_WC_BRANCH STREQUAL "stable")
-  set(DOLPHIN_VERSION_PATCH "0")
-else()
-  set(DOLPHIN_VERSION_PATCH ${DOLPHIN_WC_REVISION})
-endif()
-
-# If Dolphin is not built from a Git repository, default the version info to
-# reasonable values.
-if(NOT DOLPHIN_WC_REVISION)
-  set(DOLPHIN_WC_DESCRIBE "${DOLPHIN_VERSION_MAJOR}.${DOLPHIN_VERSION_MINOR}")
-  set(DOLPHIN_WC_REVISION "${DOLPHIN_WC_DESCRIBE} (no further info)")
-  set(DOLPHIN_WC_BRANCH "master")
-endif()
 
 # Architecture detection and arch specific settings
 message(STATUS "Detected architecture: ${CMAKE_SYSTEM_PROCESSOR}")
@@ -639,32 +589,7 @@ if(UNIX)
 endif()
 
 if(ENABLE_SDL)
-  find_package(SDL2)
-
-  if(SDL2_FOUND)
-    message(STATUS "Using system SDL2")
-  else()
-    message(STATUS "Using static SDL2 from Externals")
-    option(SDL2_DISABLE_SDL2MAIN "" ON)
-    option(SDL2_DISABLE_INSTALL "" ON)
-    option(SDL2_DISABLE_UNINSTALL "" ON)
-    set(SDL_SHARED OFF)
-    set(SDL_SHARED_ENABLED_BY_DEFAULT OFF)
-    set(SDL_STATIC ON)
-    set(SDL_STATIC_ENABLED_BY_DEFAULT ON)
-    set(SDL_TEST OFF)
-    set(SDL_TEST_ENABLED_BY_DEFAULT OFF)
-    set(OPT_DEF_LIBC ON)
-    add_subdirectory(Externals/SDL/SDL)
-    if (TARGET SDL2)
-      dolphin_disable_warnings_msvc(SDL2)
-    endif()
-    if (TARGET SDL2-static)
-      dolphin_disable_warnings_msvc(SDL2-static)
-    endif()
-    set(SDL2_FOUND TRUE)
-  endif()
-  add_definitions(-DHAVE_SDL2=1)
+  dolphin_find_optional_system_library(SDL2 Externals/SDL)
 endif()
 
 if(ENABLE_ANALYTICS)
@@ -705,14 +630,8 @@ if (_M_X86)
 endif()
 add_subdirectory(Externals/cpp-optparse)
 
-find_package(fmt 8)
-if(fmt_FOUND)
-  message(STATUS "Using shared fmt ${fmt_VERSION}")
-else()
-  check_vendoring_approved(fmt)
-  message(STATUS "Using static fmt from Externals")
-  add_subdirectory(Externals/fmt EXCLUDE_FROM_ALL)
-endif()
+dolphin_find_optional_system_library(fmt Externals/fmt 8)
+
 add_subdirectory(Externals/imgui)
 add_subdirectory(Externals/implot)
 add_subdirectory(Externals/glslang)
@@ -740,111 +659,30 @@ if(NOT WIN32 OR (NOT (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")))
   add_definitions(-DHAS_OPENGL)
 endif()
 
-find_package(pugixml)
-if(NOT pugixml_FOUND)
-  check_vendoring_approved(pugixml)
-  message(STATUS "Using static pugixml from Externals")
-  add_subdirectory(Externals/pugixml)
-endif()
+dolphin_find_optional_system_library(pugixml Externals/pugixml)
 
-if(USE_SHARED_ENET)
-  check_lib(ENET libenet enet enet/enet.h QUIET)
-  include(CheckSymbolExists)
-  if (ENET_FOUND)
-    set(CMAKE_REQUIRED_INCLUDES ${ENET_INCLUDE_DIRS})
-    # hack: LDFLAGS already contains -lenet but all flags but the first are
-    # dropped; ugh, cmake
-    set(CMAKE_REQUIRED_FLAGS ${ENET_LDFLAGS})
-    set(CMAKE_REQUIRED_LIBRARIES ${ENET_LIBRARIES})
-    check_symbol_exists(enet_socket_get_address enet/enet.h ENET_HAVE_SGA)
-    set(CMAKE_REQUIRED_INCLUDES)
-    set(CMAKE_REQUIRED_FLAGS)
-    set(CMAKE_REQUIRED_LIBRARIES)
-    if (NOT ENET_HAVE_SGA)
-      # enet is too old
-     set(ENET_FOUND FALSE)
-    endif()
-  endif()
-endif()
-if (ENET_FOUND)
-  message(STATUS "Using shared enet")
-else()
-  check_vendoring_approved(enet)
-  message(STATUS "Using static enet from Externals")
-  include_directories(Externals/enet/include)
-  add_subdirectory(Externals/enet)
-endif()
+dolphin_find_optional_system_library_pkgconfig(ENET libenet>=1.3.8 enet::enet Externals/enet)
 
 if(NOT XXHASH_FOUND)
   message(STATUS "Using static xxhash from Externals")
   add_subdirectory(Externals/xxhash)
 endif()
 
-find_package(BZip2)
-if(BZIP2_FOUND)
-  message(STATUS "Using shared bzip2")
-else()
-  check_vendoring_approved(bzip2)
-  message(STATUS "Shared bzip2 not found, falling back to the static library")
-  add_subdirectory(Externals/bzip2)
-endif()
+dolphin_find_optional_system_library(BZip2 Externals/bzip2)
 
-# macOS ships with liblzma.dylib but no headers, so check for the headers too
-find_package(LibLZMA)
-if(LIBLZMA_FOUND)
-  # Imported target added in CMake 3.14
-  dolphin_make_imported_target_if_missing(LibLZMA::LibLZMA LIBLZMA)
-  message(STATUS "Using shared lzma")
-else()
-  check_vendoring_approved(lzma)
-  message(STATUS "Shared lzma not found, falling back to the static library")
-  add_subdirectory(Externals/liblzma)
-endif()
+dolphin_find_optional_system_library(LibLZMA Externals/liblzma)
+# Imported target added in CMake 3.14
+dolphin_make_imported_target_if_missing(LibLZMA::LibLZMA LIBLZMA)
 
-pkg_check_modules(ZSTD QUIET libzstd>=1.4.0 IMPORTED_TARGET)
-if(ZSTD_FOUND)
-  message(STATUS "Using shared zstd version: " ${ZSTD_VERSION})
-  dolphin_alias_library(zstd::zstd PkgConfig::ZSTD)
-else()
-  check_vendoring_approved(zstd)
-  message(STATUS "Shared zstd not found, falling back to the static library")
-  add_subdirectory(Externals/zstd)
-endif()
+dolphin_find_optional_system_library_pkgconfig(ZSTD libzstd>=1.4.0 zstd::zstd Externals/zstd)
 
 add_subdirectory(Externals/zlib-ng)
 
-pkg_check_modules(MINIZIP minizip>=3.0.0)
-if(MINIZIP_FOUND)
-  message(STATUS "Using shared minizip")
-  include_directories(${MINIZIP_INCLUDE_DIRS})
-else()
-  check_vendoring_approved(minizip)
-  message(STATUS "Shared minizip not found, falling back to the static library")
-  add_subdirectory(Externals/minizip)
-  include_directories(External/minizip)
-endif()
+dolphin_find_optional_system_library_pkgconfig(MINIZIP minizip>=3.0.0 minizip::minizip Externals/minizip)
 
-if(NOT APPLE)
-  check_lib(LZO "(no .pc for lzo2)" lzo2 lzo/lzo1x.h QUIET)
-endif()
-if(LZO_FOUND)
-  message(STATUS "Using shared lzo")
-else()
-  check_vendoring_approved(lzo)
-  message(STATUS "Using static lzo from Externals")
-  add_subdirectory(Externals/LZO)
-  set(LZO lzo2)
-endif()
+dolphin_find_optional_system_library(LZO Externals/LZO)
 
-pkg_check_modules(pc_spng IMPORTED_TARGET spng)
-if (pc_spng_FOUND AND TARGET PkgConfig::pc_spng)
-  message(STATUS "Using the system libspng")
-  set(spng_target PkgConfig::pc_spng)
-else()
-  message(STATUS "Using static libspng from Externals")
-  add_subdirectory(Externals/libspng)
-  set(spng_target spng)
-endif()
+dolphin_find_optional_system_library_pkgconfig(SPNG spng spng::spng Externals/libspng)
 
 # Using static FreeSurround from Externals
 # There is no system FreeSurround library.
@@ -862,105 +700,33 @@ endif()
 add_subdirectory(Externals/soundtouch)
 include_directories(Externals/soundtouch)
 
-find_package(CUBEB)
-if(CUBEB_FOUND)
-  message(STATUS "Using the system cubeb")
-else()
-  check_vendoring_approved(cubeb)
-  message(STATUS "Using static cubeb from Externals")
-  add_subdirectory(Externals/cubeb EXCLUDE_FROM_ALL)
-endif()
+dolphin_find_optional_system_library(CUBEB Externals/cubeb)
 
 if(NOT ANDROID)
+  dolphin_find_optional_system_library(LibUSB Externals/libusb)
   add_definitions(-D__LIBUSB__)
-  if(NOT APPLE)
-    find_package(LibUSB)
-  endif()
-  if(LIBUSB_FOUND AND NOT APPLE)
-    message(STATUS "Using shared LibUSB")
-    include_directories(${LIBUSB_INCLUDE_DIR})
-  else()
-    check_vendoring_approved(libusb)
-    message(STATUS "Using static LibUSB from Externals")
-    add_subdirectory(Externals/libusb)
-    set(LIBUSB_LIBRARIES usb)
-  endif()
-  set(LIBUSB_FOUND true)
 endif()
 
-set(SFML_REQD_VERSION 2.1)
-if(NOT APPLE)
-  find_package(SFML ${SFML_REQD_VERSION} COMPONENTS network system)
-endif()
-if(SFML_FOUND)
-  message(STATUS "Using shared SFML")
-else()
-  check_vendoring_approved(sfml)
-  message(STATUS "Using static SFML ${SFML_REQD_VERSION} from Externals")
-  add_definitions(-DSFML_STATIC)
-  add_subdirectory(Externals/SFML)
-  include_directories(BEFORE Externals/SFML/include)
-endif()
+dolphin_find_optional_system_library(SFML Externals/SFML 2.1 COMPONENTS network system)
 
 if(USE_UPNP)
-  if(NOT APPLE)
-    find_package(MINIUPNPC)
-  endif()
-  if(MINIUPNPC_FOUND AND MINIUPNPC_API_VERSION GREATER 8)
-    message(STATUS "Using shared miniupnpc")
-  else()
-    check_vendoring_approved(miniupnpc)
-    message(STATUS "Using static miniupnpc from Externals")
-    add_subdirectory(Externals/miniupnpc)
-  endif()
+  dolphin_find_optional_system_library(MINIUPNPC Externals/miniupnpc 1.6)
   add_definitions(-DUSE_UPNP)
 endif()
 
-if(NOT APPLE)
-  find_package(MBEDTLS)
-endif()
-if(MBEDTLS_FOUND)
-  message(STATUS "Using shared mbed TLS")
-  include_directories(${MBEDTLS_INCLUDE_DIRS})
-else()
-  check_vendoring_approved(mbedtls)
-  message(STATUS "Using static mbed TLS from Externals")
-  set(MBEDTLS_LIBRARIES mbedtls mbedcrypto mbedx509)
-  add_subdirectory(Externals/mbedtls/ EXCLUDE_FROM_ALL)
-  include_directories(Externals/mbedtls/include)
-endif()
+dolphin_find_optional_system_library(MBEDTLS Externals/mbedtls 2.28)
 
-find_package(CURL)
-if(CURL_FOUND)
-  message(STATUS "Using shared libcurl")
-  include_directories(${CURL_INCLUDE_DIRS})
-else()
-  check_vendoring_approved(curl)
-  message(STATUS "Using static libcurl from Externals")
-  add_subdirectory(Externals/curl)
-  set(CURL_LIBRARIES curl)
-  include_directories(BEFORE Externals/curl/include)
-endif()
+dolphin_find_optional_system_library(CURL Externals/curl)
 
 if(NOT ANDROID)
-  find_package(Iconv)
-endif()
-
-if(TARGET Iconv::Iconv)
-  message(STATUS "Using shared iconv")
+  dolphin_find_optional_system_library(Iconv Externals/libiconv-1.14)
 else()
-  check_vendoring_approved(iconv)
   message(STATUS "Using static iconv from Externals")
-  add_subdirectory(Externals/libiconv-1.14)
+  add_subdirectory(Externals/libiconv-1.14 EXCLUDE_FROM_ALL)
 endif()
 
 if(NOT ANDROID)
-  find_package(HIDAPI)
-  if(NOT HIDAPI_FOUND)
-    check_vendoring_approved(hidapi)
-    message(STATUS "Using static HIDAPI from Externals")
-    add_subdirectory(Externals/hidapi EXCLUDE_FROM_ALL)
-  endif()
+  dolphin_find_optional_system_library(HIDAPI Externals/hidapi)
 endif()
 
 if(USE_DISCORD_PRESENCE)
@@ -973,11 +739,7 @@ if(NOT ENABLE_QT)
   set(USE_MGBA 0)
 endif()
 if(USE_MGBA)
-  find_package(LIBMGBA)
-  if(NOT LIBMGBA_FOUND)
-    message(STATUS "Using static libmgba from Externals")
-    add_subdirectory(Externals/mGBA)
-  endif()
+  dolphin_find_optional_system_library(LIBMGBA Externals/mGBA)
 endif()
 
 find_package(SYSTEMD)
@@ -1012,20 +774,28 @@ endif()
 ########################################
 # Pre-build events: Define configuration variables and write SCM info header
 #
-if(DOLPHIN_WC_BRANCH STREQUAL "master" OR DOLPHIN_WC_BRANCH STREQUAL "stable")
-  set(DOLPHIN_WC_IS_STABLE "1")
-else()
-  set(DOLPHIN_WC_IS_STABLE "0")
-endif()
 
 # Remove in-tree revision information generated by Visual Studio
 # This is because the compiler will check in-tree first and use this, even if it is outdated
 file(REMOVE "${PROJECT_SOURCE_DIR}/Source/Core/Common/scmrev.h")
 
-configure_file(
-  "${PROJECT_SOURCE_DIR}/Source/Core/Common/scmrev.h.in"
-  "${PROJECT_BINARY_DIR}/Source/Core/Common/scmrev.h"
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/Common)
+if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/Common/scmrev.h)
+	file(TOUCH ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/Common/scmrev.h)
+endif()
+
+find_package(Git)
+if(NOT GIT_FOUND)
+	set(GIT_EXECUTABLE "")
+endif()
+add_custom_target(
+	dolphin_scmrev
+	${CMAKE_COMMAND} -DPROJECT_SOURCE_DIR=${PROJECT_SOURCE_DIR} -DPROJECT_BINARY_DIR=${PROJECT_BINARY_DIR} -DDISTRIBUTOR=${DISTRIBUTOR} -DDOLPHIN_DEFAULT_UPDATE_TRACK=${DOLPHIN_DEFAULT_UPDATE_TRACK} -DGIT_FOUND=${GIT_FOUND} -DGIT_EXECUTABLE=${GIT_EXECUTABLE} -P ${CMAKE_SOURCE_DIR}/CMake/ScmRevGen.cmake
+	BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/Source/Core/Common/scmrev.h
+	VERBATIM
 )
+
+# This is here so #include "Common/scmrev.h" finds the generated header.
 include_directories("${PROJECT_BINARY_DIR}/Source/Core")
 
 ########################################
