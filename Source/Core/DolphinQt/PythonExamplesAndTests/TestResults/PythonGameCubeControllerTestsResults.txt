@@ -32,3 +32,43 @@ Test 8
 	Calling setInputs() on controller 1 with just setting Start to True...
 PASS!
 
+Test 9
+	Calling setInputs() on controller 1 with just setting Reset to True...
+PASS!
+
+Test 10
+	Calling setInputs() on controller 1 with just setting triggerL to 183...
+PASS!
+
+Test 11
+	Calling setInputs() on controller 1 with just setting triggerR to 112...
+PASS!
+
+Test 12
+	Calling setInputs() on controller 1 with just setting dPadUp to True...
+PASS!
+
+Test 13
+	Calling setInputs() on controller 1 with just setting dPadDown to True...
+PASS!
+
+Test 14
+	Calling setInputs() on controller 1 with just setting dPadLeft to True...
+PASS!
+
+Test 15
+	Calling setInputs() on controller 1 with just setting dPadRight to True...
+PASS!
+
+Test 16
+	Calling setInputs() on controller 1 with just setting disc to True...
+PASS!
+
+Test 17
+	Calling setInputs() on controller 1 with just setting getOrigin to True...
+PASS!
+
+Test 18
+	Calling setInputs() on controller 1 with just setting isConnected to True...
+PASS!
+

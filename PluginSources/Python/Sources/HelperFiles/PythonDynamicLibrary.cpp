@@ -1,6 +1,7 @@
 #include "PythonDynamicLibrary.h"
 #include "../DolphinDefinedAPIs.h"
 #include "../CopiedScriptContextFiles/Enums/ScriptReturnCodes.h"
+#include <filesystem>
 #include <memory>
 #include <string>
 #include <vector>
@@ -110,6 +111,13 @@ namespace PythonDynamicLibrary
   void* PY_TRUE_STRUCT_DATA = nullptr;
 
   static bool py_dll_initialized = false;
+
+#if defined(_WIN32)
+  static const char PYTHON_PATH_SEPERATOR_CHAR = ';';
+#else
+  static const char PYTHON_PATH_SEPERATOR_CHAR = ":";
+#endif
+
   struct AbstractNameToFunctionClass
   {
     virtual ~AbstractNameToFunctionClass() = 0;
@@ -205,14 +213,135 @@ namespace PythonDynamicLibrary
   }
 
 
+  bool stringIsBlank(std::string input)
+  {
+    unsigned long long str_length = input.length();
+    for (unsigned long long i = 0; i < str_length; ++i)
+    {
+      if (!isspace(input[i]))
+        return false;
+    }
+    return true;
+  }
+  std::vector<std::string> getPathsFromEnvironmentVar(std::string environment_variable)
+  {
+    std::vector<std::string> return_vector = std::vector<std::string>();
+    std::string next_path = "";
+    unsigned long long env_var_length = environment_variable.size();
+    for (unsigned long long i = 0; i < env_var_length; ++i)
+    {
+      if (environment_variable[i] == PYTHON_PATH_SEPERATOR_CHAR) // we split on colons in the path string for Linux/Unix/Mac, and semi-colons for Windows.
+      {
+        if (next_path.length() > 0 && !stringIsBlank(next_path))
+          return_vector.push_back(next_path);
+        next_path = "";
+      }
+      else if (environment_variable[i] == '"' || environment_variable[i] == '\'')
+        continue;
+      else
+        next_path = next_path + environment_variable[i];
+    }
+    if (next_path.length() > 0 && !stringIsBlank(next_path))
+      return_vector.push_back(next_path);
+
+    return return_vector;
+  }
+
+#if defined(_WIN32)
+  static const std::string LIBRARY_SUFFIX = std::string(".dll");
+#elif defined(__APPLE__)
+  static const std::string LIBRARY_SUFFIX = std::string(".dylib");
+#else
+  static const std::string LIBRARY_SUFFIX = std::string(".so");
+#endif
+
+  // python311_d.dll
+  bool stringIsPathToPythonLib(std::string path_string)
+  {
+    unsigned long long path_string_length = path_string.length();
+    if (path_string.empty() || path_string_length < LIBRARY_SUFFIX.length() + 1)
+      return false;
+
+    if (
+      (path_string[0] == 'p' || path_string[0] == 'P') &&
+      (path_string[1] == 'y' || path_string[1] == 'Y') &&
+      (path_string[2] == 't' || path_string[2] == 'T') &&
+      (path_string[3] == 'h' || path_string[3] == 'H') &&
+      (path_string[4] == 'o' || path_string[4] == 'O') &&
+      (path_string[5] == 'n' || path_string[5] == 'N')
+      )
+    {
+      int number_of_digits = 0;
+      int index_in_string = 6;
+      while (index_in_string < path_string_length && isdigit(path_string[index_in_string]))
+      {
+        ++number_of_digits;
+        ++index_in_string;
+      }
+      if (index_in_string >= path_string_length)
+        return false;
+
+      if (number_of_digits < 2) // NOTE: This code will work until Python10 comes out. However, based on Python's release schedule, that probably won't happen for another 150 years - so this should be safe for the forseeable future...
+        return false;
+
+      #ifndef NDEBUG // case where we're in debug mode
+      if (path_string[index_in_string] == '_' &&
+         (path_string[index_in_string + 1] == 'd') || path_string[index_in_string + 1] == 'D')
+        index_in_string += 2;
+      else
+        return false;
+      #endif
+
+      if (index_in_string < path_string_length && path_string.substr(index_in_string) == LIBRARY_SUFFIX)
+        return true;
+    }
+    return false;
+  }
+
   void InitPythonLib(void* base_script_ptr)
   {
-    path_to_lib = std::string("C:/Users/skyle/OneDrive/Desktop/PythonStuff/python311_d.dll"); // TODO: Actually get the file from path
+    const char* raw_PYTHONPATH_string = getenv("PYTHONPATH");
+    if (raw_PYTHONPATH_string == nullptr)
+    {
+      SetErrorCodeAndMessage(base_script_ptr, ScriptReturnCodes::DLLFileNotFoundError, (std::string("Error: The PYTHONPATH environment variable was not set! Please set this environment variable equal to the directory where the Python ") + LIBRARY_SUFFIX + " file is stored, and then re-run the program.").c_str());
+      return;
+    }
+    std::vector<std::string> python_paths_to_search = getPathsFromEnvironmentVar(raw_PYTHONPATH_string);
+    unsigned long long number_of_paths = python_paths_to_search.size();
+
+    path_to_lib = "";
+    for (unsigned long long i = 0; i < number_of_paths; ++i)
+    {
+      std::string path_to_search = python_paths_to_search[i];
+      if (std::filesystem::is_directory(std::filesystem::path(path_to_search)))
+      {
+        for (auto& entry : std::filesystem::directory_iterator(path_to_search))
+        {
+          const std::string inner_filename = entry.path().filename().string();
+          if (!entry.is_directory() && stringIsPathToPythonLib(inner_filename))
+          {
+            path_to_lib = inner_filename;
+            break;
+          }
+        }
+      }
+      else if (stringIsPathToPythonLib(path_to_search))
+      {
+        path_to_lib = path_to_search;
+        break;
+      }
+    }
+    if (path_to_lib.empty())
+    {
+      SetErrorCodeAndMessage(base_script_ptr, ScriptReturnCodes::DLLFileNotFoundError, (std::string("Error: The ") + LIBRARY_SUFFIX + " file for Python could not be located from the values inside of the PYTHONPATH environment variable! PYTHONPATH was equal to: \"" + raw_PYTHONPATH_string + "\"").c_str());
+      return;
+    }
+
     python_lib_ptr = new DynamicLibrary(path_to_lib.c_str());
 
     if (!python_lib_ptr->IsOpen())
     {
-      SetErrorCodeAndMessage(base_script_ptr, ScriptReturnCodes::DLLFileNotFoundError, "Error: DLL file for Python could not be located!");
+      SetErrorCodeAndMessage(base_script_ptr, ScriptReturnCodes::DLLFileNotFoundError, (std::string("Error: The ") + path_to_lib + " file for Python could not be opened!").c_str());
       return;
     }
 
@@ -224,5 +353,13 @@ namespace PythonDynamicLibrary
     py_dll_initialized = true;
   }
 
-  void DeletePythonLib() {}
+  void DeletePythonLib()
+  {
+    if (!py_dll_initialized || python_lib_ptr == nullptr)
+      return;
+
+    delete python_lib_ptr;
+    python_lib_ptr = nullptr;
+    py_dll_initialized = false;
+  }
 }

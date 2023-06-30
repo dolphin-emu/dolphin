@@ -1,4 +1,4 @@
-beq+	 ->0x802461B0
+bl	->0x8024377C
 
 Total Tests: 6
 	Tests Passed: 6
