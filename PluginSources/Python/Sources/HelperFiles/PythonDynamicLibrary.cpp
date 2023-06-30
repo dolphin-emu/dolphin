@@ -207,7 +207,7 @@ namespace PythonDynamicLibrary
 
   void InitPythonLib(void* base_script_ptr)
   {
-    path_to_lib = std::string("C:/Users/skyle/OneDrive/Desktop/PythonStuff/python311.dll"); // TODO: Actually get the file from path
+    path_to_lib = std::string("C:/Users/skyle/OneDrive/Desktop/PythonStuff/python311_d.dll"); // TODO: Actually get the file from path
     python_lib_ptr = new DynamicLibrary(path_to_lib.c_str());
 
     if (!python_lib_ptr->IsOpen())

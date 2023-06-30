@@ -118,7 +118,7 @@ namespace PythonInterface
   {
     FILE* fp = fopen(file_name, "rb");
     PythonDynamicLibrary::PyRun_AnyFile(fp, nullptr);
-    //fclose(fp);
+    fclose(fp);
   }
 
   void Python_SetRunTimeError(const char* error_msg)
