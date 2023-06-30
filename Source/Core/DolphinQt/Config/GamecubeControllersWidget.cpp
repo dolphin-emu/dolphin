@@ -198,12 +198,11 @@ void GamecubeControllersWidget::SaveSettings()
                                                                       static_cast<s32>(i));
       }
     }
-
-    if (GCAdapter::UseAdapter())
-      GCAdapter::StartScanThread();
-    else
-      GCAdapter::StopScanThread();
   }
+  if (GCAdapter::UseAdapter())
+    GCAdapter::StartScanThread();
+  else
+    GCAdapter::StopScanThread();
 
   SConfig::GetInstance().SaveSettings();
 }
