@@ -36,9 +36,6 @@ HelperFiles/PythonInterface.cpp
 
 set_target_properties(PYTHON PROPERTIES LINKER_LANGUAGE CXX)
 set_property(TARGET PYTHON PROPERTY CXX_STANDARD 20)
-target_include_directories(PYTHON PUBLIC "C:/Users/skyle/OneDrive/Desktop/PythonStuff/include")
-
-target_link_libraries(PYTHON PUBLIC "C:/Users/skyle/OneDrive/Desktop/PythonStuff/libs/python311_d.lib")
 
 set_target_properties(PYTHON PROPERTIES 
  CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../../../../../Data/Sys/ScriptingPlugins/Python
