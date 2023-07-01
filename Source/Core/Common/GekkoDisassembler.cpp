@@ -619,7 +619,7 @@ void GekkoDisassembler::crop(u32 in, std::string_view n1, std::string_view n2)
   }
 }
 
-void GekkoDisassembler::nooper(u32 in, std::string_view name, unsigned char dmode)
+void GekkoDisassembler::nooper(u32 in, std::string_view name)
 {
   if (in & (PPCDMASK | PPCAMASK | PPCBMASK | 1))
   {
@@ -1316,7 +1316,7 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
       break;
 
     case 50:
-      nooper(in, "rfi", PPCF_SUPER);
+      nooper(in, "rfi");
       break;
 
     case 129:
@@ -1324,7 +1324,7 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
       break;
 
     case 150:
-      nooper(in, "isync", 0);
+      nooper(in, "isync");
       break;
 
     case 193:
@@ -1747,7 +1747,7 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
       break;
 
     case 370:
-      nooper(in, "tlbia", PPCF_SUPER);
+      nooper(in, "tlbia");
       break;
 
     case 371:
@@ -1832,7 +1832,7 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
       break;
 
     case 498:
-      nooper(in, "slbia", PPCF_SUPER | PPCF_64);
+      nooper(in, "slbia");
       break;
 
     case 512:
@@ -1868,7 +1868,7 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
       break;
 
     case 566:
-      nooper(in, "tlbsync", PPCF_SUPER);
+      nooper(in, "tlbsync");
       break;
 
     case 567:
@@ -1884,7 +1884,7 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
       break;
 
     case 598:
-      nooper(in, "sync", PPCF_SUPER);
+      nooper(in, "sync");
       break;
 
     case 599:
@@ -1947,7 +1947,7 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
       break;
 
     case 854:
-      nooper(in, "eieio", PPCF_SUPER);
+      nooper(in, "eieio");
       break;
 
     case 918:
