@@ -66,7 +66,7 @@ private:
   static void bli(u32 in);
   static void mcrf(u32 in, std::string_view suffix);
   static void crop(u32 in, std::string_view n1, std::string_view n2);
-  static void nooper(u32 in, std::string_view name, unsigned char dmode);
+  static void nooper(u32 in, std::string_view name);
   static void rlw(u32 in, std::string_view name, int i);
   static void ori(u32 in, std::string_view name);
   static void rld(u32 in, std::string_view name, int i);
