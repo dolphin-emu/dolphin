@@ -233,10 +233,6 @@ void MenuBar::AddToolsMenu()
 
   tools_menu->addSeparator();
 
-  tools_menu->addAction(tr("Start &NetPlay..."), this, &MenuBar::StartNetPlay);
-
-  tools_menu->addSeparator();
-
 #ifdef USE_RETRO_ACHIEVEMENTS
   if (Config::Get(Config::RA_ENABLED))
   {

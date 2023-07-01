@@ -42,6 +42,7 @@
 
 #include "UICommon/CommandLineParse.h"
 #include "UICommon/UICommon.h"
+#include <qstylefactory.h>
 
 static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no,
                               Common::MsgType style)
@@ -152,6 +153,12 @@ int main(int argc, char* argv[])
   QCoreApplication::setOrganizationName(QStringLiteral("Dolphin Emulator"));
   QCoreApplication::setOrganizationDomain(QStringLiteral("dolphin-emu.org"));
   QCoreApplication::setApplicationName(QStringLiteral("dolphin-emu"));
+
+  #ifdef _WIN32
+  // The windowsvista style doesn't support dark mode (and the windows style looks bad), so default
+  // to fusion on windows. Qt on other OSs defaults to styles which support dark mode.
+  QApplication::setStyle(QStringLiteral("fusion"));
+  #endif
 
   // MPN Lets inject our update code here
   QProcess* process = new QProcess();
