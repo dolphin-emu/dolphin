@@ -58,8 +58,8 @@ static const char COMPUTE_SHADER_HEADER[] = R"(
   // All resources are packed into one descriptor set for compute.
   #define UBO_BINDING(packing, x) layout(packing, set = 0, binding = (x - 1))
   #define SAMPLER_BINDING(x) layout(set = 0, binding = (1 + x))
-  #define TEXEL_BUFFER_BINDING(x) layout(set = 0, binding = (3 + x))
-  #define IMAGE_BINDING(format, x) layout(format, set = 0, binding = (5 + x))
+  #define TEXEL_BUFFER_BINDING(x) layout(set = 0, binding = (9 + x))
+  #define IMAGE_BINDING(format, x) layout(format, set = 0, binding = (11 + x))
 
   // hlsl to glsl function translation
   #define API_VULKAN 1
