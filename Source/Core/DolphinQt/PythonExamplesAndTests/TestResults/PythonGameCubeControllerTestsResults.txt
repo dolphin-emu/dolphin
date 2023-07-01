@@ -2,7 +2,7 @@ Running setInputs() unit tests:
 
 Test 1
 	Calling setInputs() on controller 1 with just setting A to True...
-PASS!
+FAILURE!
 
 Test 2
 	Calling setInputs() on controller 1 with just setting B to True...
@@ -18,7 +18,7 @@ PASS!
 
 Test 5
 	Calling setInputs() on controller 1 with just setting Z to True...
-PASS!
+FAILURE!
 
 Test 6
 	Calling setInputs() on controller 1 with just setting L to True...
@@ -26,7 +26,7 @@ PASS!
 
 Test 7
 	Calling setInputs() on controller 1 with just setting R to True...
-PASS!
+FAILURE!
 
 Test 8
 	Calling setInputs() on controller 1 with just setting Start to True...
@@ -70,5 +70,41 @@ PASS!
 
 Test 18
 	Calling setInputs() on controller 1 with just setting isConnected to True...
+PASS!
+
+Test 19
+	Calling setInputs() on controller 1 with just setting analogStickX to 131...
+PASS!
+
+Test 20
+	Calling setInputs() on controller 1 with just setting analogStickY to 190...
+PASS!
+
+Test 21
+	Calling setInputs() on controller 1 with just setting cStickX to 99...
+PASS!
+
+Test 22
+	Calling setInputs() on controller 1 with just setting cStickY to 43...
+PASS!
+
+Test 23
+	Calling setInputs() on controller 1 with setting A to True and setting cStickX to 232...
+PASS!
+
+Test 24
+	Calling setInputs() on controller 1 with setting all buttons to pressed and all analog inputs to their maximum values...
+PASS!
+
+Test 25
+	Calling setInputs() on controller 2 with just setting A to True...
+PASS!
+
+Test 26
+	Calling setInputs() on controller 2 with just setting B to True...
+PASS!
+
+Test 27
+	Calling setInputs() on controller 2 with just setting X to True...
 PASS!
 

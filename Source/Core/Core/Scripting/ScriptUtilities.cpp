@@ -64,6 +64,7 @@ static bool initialized_dlls = false;
 
 static std::unordered_map<std::string, Common::DynamicLibrary*> file_extension_to_dll_map =
     std::unordered_map<std::string, Common::DynamicLibrary*>();
+static std::vector<Common::DynamicLibrary*> all_dlls = std::vector<Common::DynamicLibrary*>();
 
 // Validates that there's no NULL variables in the API struct passed in as an argument.
 static bool ValidateApiStruct(void* start_of_struct, unsigned int struct_size,
@@ -309,6 +310,26 @@ static void InitializeDolphinApiStructs()
 
 typedef void (*exported_dll_func_type)(void*);
 
+bool callSpecifiedDLLInitFunction(Common::DynamicLibrary* dynamic_lib, std::string file_name, const char* func_name, void* arg_val)
+{
+  void* func_addr_in_dll = dynamic_lib->GetSymbolAddress(func_name);
+  if (func_addr_in_dll == nullptr)
+  {
+    PanicAlertFmt(
+        "{}",
+        (std::string("Error: While searching for valid scripting plugins, attempted to use ") +
+         file_name + " as a ScriptingPlugin. However, the " + func_name +
+         " function was not defined in this file!")
+            .c_str());
+    return false;
+  }
+  else
+  {
+    reinterpret_cast<exported_dll_func_type>(func_addr_in_dll)(arg_val);
+    return true;
+  }
+}
+
 void InitializeDLLs()
 {
   std::string dll_suffix = "";
@@ -335,8 +356,11 @@ void InitializeDLLs()
       else
         extensions_file_name = current_dir + "/extensions.txt";
       std::ifstream extension_file(extensions_file_name.c_str());
+      if (!extension_file.is_open())
+        continue;
       std::string current_line = "";
       std::string trimmed_extension = "";
+      std::vector<std::string> trimmed_extensions_list = std::vector<std::string>();
       while (std::getline(extension_file, current_line))
       {
         trimmed_extension = "";
@@ -351,12 +375,25 @@ void InitializeDLLs()
         if (trimmed_extension.length() == 0)
           continue;
 
-        if (file_extension_to_dll_map.contains(trimmed_extension))
+        else if (file_extension_to_dll_map.contains(trimmed_extension) || std::count(trimmed_extensions_list.begin(), trimmed_extensions_list.end(), trimmed_extension) > 0)
         {
-          // Error: this means that 2 file extensions map to the same type, which isn't allowed!
+          PanicAlertFmt("{}", std::string("Error: Encountered duplicate file extension of " +
+                                  trimmed_extension + " while scanning " + extensions_file_name +
+                                  " file!").c_str());
+
           return;
         }
+        else
+          trimmed_extensions_list.push_back(trimmed_extension);
       }
+
+      if (trimmed_extensions_list.empty())
+      {
+        PanicAlertFmt("{}", std::string("Warning: file ") + extensions_file_name +
+                                        " did not contain any extensions!");
+        continue;
+      }
+
       // Now, we need to find a dll file in this folder
       for (auto const& inner_file_iterator : std::filesystem::directory_iterator(dir_entry))
       {
@@ -367,36 +404,36 @@ void InitializeDLLs()
               current_file_name.substr(current_file_name.length() - dll_suffix.length()) ==
                   dll_suffix)
           {
-            file_extension_to_dll_map[trimmed_extension] =
-                new Common::DynamicLibrary(current_file_name.c_str());
-            reinterpret_cast<exported_dll_func_type>(
-                file_extension_to_dll_map[trimmed_extension]->GetSymbolAddress(
-                    "Init_ArgHolder_APIs"))(&argHolder_apis);
-            reinterpret_cast<exported_dll_func_type>(
-                file_extension_to_dll_map[trimmed_extension]->GetSymbolAddress(
-                    "Init_ClassFunctionsResolver_APIs"))(&classFunctionsResolver_apis);
-            reinterpret_cast<exported_dll_func_type>(
-                file_extension_to_dll_map[trimmed_extension]->GetSymbolAddress(
-                    "Init_ClassMetadata_APIs"))(&classMetadata_apis);
-            reinterpret_cast<exported_dll_func_type>(
-                file_extension_to_dll_map[trimmed_extension]->GetSymbolAddress(
-                    "Init_FileUtility_APIs"))(&fileUtility_apis);
-            reinterpret_cast<exported_dll_func_type>(
-                file_extension_to_dll_map[trimmed_extension]->GetSymbolAddress(
-                    "Init_FunctionMetadata_APIs"))(&functionMetadata_apis);
-            reinterpret_cast<exported_dll_func_type>(
-                file_extension_to_dll_map[trimmed_extension]->GetSymbolAddress(
-                    "Init_GCButton_APIs"))(&gcButton_apis);
-            reinterpret_cast<exported_dll_func_type>(
-                file_extension_to_dll_map[trimmed_extension]->GetSymbolAddress(
-                    "Init_ModuleLists_APIs"))(&moduleLists_apis);
-            reinterpret_cast<exported_dll_func_type>(
-                file_extension_to_dll_map[trimmed_extension]->GetSymbolAddress(
-                    "Init_ScriptContext_APIs"))(&dolphin_defined_scriptContext_apis);
-            reinterpret_cast<exported_dll_func_type>(
-                file_extension_to_dll_map[trimmed_extension]->GetSymbolAddress(
-                    "Init_VectorOfArgHolders_APIs"))(&vectorOfArgHolders_apis);
-            break;
+            Common::DynamicLibrary* new_lib = new Common::DynamicLibrary(current_file_name.c_str());
+            if (!new_lib->IsOpen())
+            {
+              delete new_lib;
+              continue;
+            }
+
+            // We use short-circuit evaluation here with &&, so if one symbol isn't found, we won't try to find any of the symbols after it.
+            if (
+              callSpecifiedDLLInitFunction(new_lib, current_file_name, "Init_ArgHolder_APIs", &argHolder_apis) &&
+              callSpecifiedDLLInitFunction(new_lib, current_file_name, "Init_ClassFunctionsResolver_APIs", &classFunctionsResolver_apis) &&
+              callSpecifiedDLLInitFunction(new_lib, current_file_name, "Init_ClassMetadata_APIs", &classMetadata_apis) &&
+              callSpecifiedDLLInitFunction(new_lib, current_file_name, "Init_FileUtility_APIs", &fileUtility_apis) &&
+              callSpecifiedDLLInitFunction(new_lib, current_file_name, "Init_FunctionMetadata_APIs", &functionMetadata_apis) &&
+              callSpecifiedDLLInitFunction(new_lib, current_file_name, "Init_GCButton_APIs", &gcButton_apis) &&
+              callSpecifiedDLLInitFunction(new_lib, current_file_name, "Init_ModuleLists_APIs", &moduleLists_apis) &&
+              callSpecifiedDLLInitFunction(new_lib, current_file_name, "Init_ScriptContext_APIs", &dolphin_defined_scriptContext_apis) &&
+              callSpecifiedDLLInitFunction(new_lib, current_file_name, "Init_VectorOfArgHolders_APIs", &vectorOfArgHolders_apis)
+              )
+            {
+              for (auto& extension : trimmed_extensions_list)
+                file_extension_to_dll_map[extension] = new_lib;
+              all_dlls.push_back(new_lib);
+              break;
+            }
+            else
+            {
+              delete new_lib;
+              break;
+            }
           }
         }
       }
