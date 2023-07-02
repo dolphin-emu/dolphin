@@ -903,7 +903,7 @@ void GekkoDisassembler::ldst(u32 in, std::string_view name, char reg)
 }
 
 // Standard floating point instruction: xxxx fD,fA,fC,fB
-void GekkoDisassembler::fdabc(u32 in, std::string_view name, int mask, unsigned char dmode)
+void GekkoDisassembler::fdabc(u32 in, std::string_view name, int mask)
 {
   int err = 0;
 
@@ -2050,43 +2050,43 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
     switch (in & 0x3e)
     {
     case 36:
-      fdabc(in, "divs", 5, 0);
+      fdabc(in, "divs", 5);
       break;
 
     case 40:
-      fdabc(in, "subs", 5, 0);
+      fdabc(in, "subs", 5);
       break;
 
     case 42:
-      fdabc(in, "adds", 5, 0);
+      fdabc(in, "adds", 5);
       break;
 
     case 44:
-      fdabc(in, "sqrts", 1, 0);
+      fdabc(in, "sqrts", 1);
       break;
 
     case 48:
-      fdabc(in, "res", 1, 0);
+      fdabc(in, "res", 1);
       break;
 
     case 50:
-      fdabc(in, "muls", 6, 0);
+      fdabc(in, "muls", 6);
       break;
 
     case 56:
-      fdabc(in, "msubs", 7, 0);
+      fdabc(in, "msubs", 7);
       break;
 
     case 58:
-      fdabc(in, "madds", 7, 0);
+      fdabc(in, "madds", 7);
       break;
 
     case 60:
-      fdabc(in, "nmsubs", 7, 0);
+      fdabc(in, "nmsubs", 7);
       break;
 
     case 62:
-      fdabc(in, "nmadds", 7, 0);
+      fdabc(in, "nmadds", 7);
       break;
 
     default:
@@ -2116,47 +2116,47 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
       switch (in & 0x1e)
       {
       case 4:
-        fdabc(in, "div", 5, 0);
+        fdabc(in, "div", 5);
         break;
 
       case 8:
-        fdabc(in, "sub", 5, 0);
+        fdabc(in, "sub", 5);
         break;
 
       case 10:
-        fdabc(in, "add", 5, 0);
+        fdabc(in, "add", 5);
         break;
 
       case 12:
-        fdabc(in, "sqrt", 1, 0);
+        fdabc(in, "sqrt", 1);
         break;
 
       case 14:
-        fdabc(in, "sel", 7, 0);
+        fdabc(in, "sel", 7);
         break;
 
       case 18:
-        fdabc(in, "mul", 6, 0);
+        fdabc(in, "mul", 6);
         break;
 
       case 20:
-        fdabc(in, "rsqrte", 1, 0);
+        fdabc(in, "rsqrte", 1);
         break;
 
       case 24:
-        fdabc(in, "msub", 7, 0);
+        fdabc(in, "msub", 7);
         break;
 
       case 26:
-        fdabc(in, "madd", 7, 0);
+        fdabc(in, "madd", 7);
         break;
 
       case 28:
-        fdabc(in, "nmsub", 7, 0);
+        fdabc(in, "nmsub", 7);
         break;
 
       case 30:
-        fdabc(in, "nmadd", 7, 0);
+        fdabc(in, "nmadd", 7);
         break;
 
       default:
@@ -2173,15 +2173,15 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
         break;
 
       case 12:
-        fdabc(in, "rsp", 1, 0);
+        fdabc(in, "rsp", 1);
         break;
 
       case 14:
-        fdabc(in, "ctiw", 1, 0);
+        fdabc(in, "ctiw", 1);
         break;
 
       case 15:
-        fdabc(in, "ctiwz", 1, 0);
+        fdabc(in, "ctiwz", 1);
         break;
 
       case 32:
@@ -2193,7 +2193,7 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
         break;
 
       case 40:
-        fdabc(in, "neg", 9, 0);
+        fdabc(in, "neg", 9);
         break;
 
       case 64:
@@ -2221,11 +2221,11 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
         break;
 
       case 136:
-        fdabc(in, "nabs", 9, 0);
+        fdabc(in, "nabs", 9);
         break;
 
       case 264:
-        fdabc(in, "abs", 9, 0);
+        fdabc(in, "abs", 9);
         break;
 
       case 583:
@@ -2248,15 +2248,15 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
         break;
 
       case 814:
-        fdabc(in, "fctid", 9, PPCF_64);
+        fdabc(in, "fctid", 9);
         break;
 
       case 815:
-        fdabc(in, "fctidz", 9, PPCF_64);
+        fdabc(in, "fctidz", 9);
         break;
 
       case 846:
-        fdabc(in, "fcfid", 9, PPCF_64);
+        fdabc(in, "fcfid", 9);
         break;
 
       default:
