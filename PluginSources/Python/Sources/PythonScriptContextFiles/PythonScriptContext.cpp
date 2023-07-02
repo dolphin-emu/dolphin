@@ -199,6 +199,7 @@ void* HandleErrorInFunction(void* base_script_context_ptr, FunctionMetadata* fun
   PythonInterface::Python_SetRunTimeError(error_msg.c_str());
   dolphinDefinedScriptContext_APIs.set_script_return_code(base_script_context_ptr, ScriptReturnCodes::UnknownError);
   dolphinDefinedScriptContext_APIs.set_error_message(base_script_context_ptr, error_msg.c_str());
+  dolphinDefinedScriptContext_APIs.get_script_end_callback_function(base_script_context_ptr)(base_script_context_ptr, dolphinDefinedScriptContext_APIs.get_unique_script_identifier(base_script_context_ptr));
   return nullptr;
 }
 
@@ -207,6 +208,7 @@ void* HandleErrorGeneral(void* base_script_context_ptr, const std::string& error
   PythonInterface::Python_SetRunTimeError(error_msg.c_str());
   dolphinDefinedScriptContext_APIs.set_script_return_code(base_script_context_ptr, ScriptReturnCodes::UnknownError);
   dolphinDefinedScriptContext_APIs.set_error_message(base_script_context_ptr, error_msg.c_str());
+  dolphinDefinedScriptContext_APIs.get_script_end_callback_function(base_script_context_ptr)(base_script_context_ptr, dolphinDefinedScriptContext_APIs.get_unique_script_identifier(base_script_context_ptr));
   return nullptr;
 
 }
