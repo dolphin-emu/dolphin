@@ -45,7 +45,6 @@
   <Import Project="$(ExternalsDir)liblzma\exports.props" />
   <Import Project="$(ExternalsDir)libspng\exports.props" />
   <Import Project="$(ExternalsDir)libusb\exports.props" />
-  <Import Project="$(ExternalsDir)Lua\exports.props" />
   <Import Project="$(ExternalsDir)LZO\exports.props" />
   <Import Project="$(ExternalsDir)mbedtls\exports.props" />
   <Import Project="$(ExternalsDir)mGBA\exports.props" />

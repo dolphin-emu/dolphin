@@ -478,7 +478,6 @@
 	<ClInclude Include="Core\Scripting\HelperClasses\GCButtonFunctions.h" />
 	<ClInclude Include="Core\Scripting\HelperClasses\ScriptContext.h" />
     <ClInclude Include="Core\Scripting\HelperClasses\VersionResolver.h" />
-    <ClInclude Include="Core\Scripting\LanguageDefinitions\Lua\LuaScriptContext.h" />
     <ClInclude Include="Core\Scripting\ScriptUtilities.h" />
     <ClInclude Include="Core\State.h" />
     <ClInclude Include="Core\SyncIdentifier.h" />
@@ -1146,7 +1145,6 @@
 	<ClCompile Include="Core\Scripting\HelperClasses\ScriptContext.cpp" />
 	<ClCompile Include="Core\Scripting\HelperClasses\VectorOfArgHolders.cpp" />
     <ClCompile Include="Core\Scripting\InternalAPIModules\WiiAPI.cpp" />
-    <ClCompile Include="Core\Scripting\LanguageDefinitions\Lua\LuaScriptContext.cpp" />
     <ClCompile Include="Core\Scripting\ScriptUtilities.cpp" />
     <ClCompile Include="Core\State.cpp" />
     <ClCompile Include="Core\SysConf.cpp" />

@@ -31,8 +31,6 @@
 #include "Core/Scripting/HelperClasses/ModuleLists_API_Implementations.h"
 #include "Core/Scripting/HelperClasses/VectorOfArgHolders.h"
 #include "Core/Scripting/InternalAPIModules/GraphicsAPI.h"
-#include "Core/Scripting/LanguageDefinitions/Lua/LuaScriptContext.h"
-#include "Core/Scripting/LanguageDefinitions/Python/PythonScriptContext.h"
 #include "Core/System.h"
 
 namespace Scripting::ScriptUtilities
