@@ -79,7 +79,7 @@ private:
   static void mspr(u32 in, int smode);
   static void mtb(u32 in);
   static void sradi(u32 in);
-  static void ldst(u32 in, std::string_view name, char reg, unsigned char dmode);
+  static void ldst(u32 in, std::string_view name, char reg);
   static void fdabc(u32 in, std::string_view name, int mask, unsigned char dmode);
   static void fmr(u32 in);
   static void fdab(u32 in, std::string_view name);
