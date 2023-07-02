@@ -687,6 +687,7 @@ PUBLIC
   enet::enet
   expr
   inputcommon
+  imgui
   MbedTLS::mbedtls
   pugixml
   RangeSet::RangeSet
