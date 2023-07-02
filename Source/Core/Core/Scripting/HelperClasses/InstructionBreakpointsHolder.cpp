@@ -1,7 +1,7 @@
 #include "Core/Scripting/HelperClasses/InstructionBreakpointsHolder.h"
 
-#include "Core/System.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 InstructionBreakpointsHolder::InstructionBreakpointsHolder()
 {
@@ -16,7 +16,8 @@ InstructionBreakpointsHolder::~InstructionBreakpointsHolder()
 void InstructionBreakpointsHolder::AddBreakpoint(unsigned int addr)
 {
   if (!this->ContainsBreakpoint(addr))
-    Core::System::GetInstance().GetPowerPC().GetBreakPoints().Add(addr, false, true, false, std::nullopt);
+    Core::System::GetInstance().GetPowerPC().GetBreakPoints().Add(addr, false, true, false,
+                                                                  std::nullopt);
 
   breakpoint_addresses.push_back(
       addr);  // add this to the list of breakpoints regardless of whether or not its a duplicate
@@ -24,14 +25,13 @@ void InstructionBreakpointsHolder::AddBreakpoint(unsigned int addr)
 
 bool InstructionBreakpointsHolder::ContainsBreakpoint(unsigned int addr)
 {
-  return (std::count(breakpoint_addresses.begin(), breakpoint_addresses.end(), addr) >
-          0);
+  return (std::count(breakpoint_addresses.begin(), breakpoint_addresses.end(), addr) > 0);
 }
 
 void InstructionBreakpointsHolder::RemoveBreakpoint(unsigned int addr)
 {
   auto it = std::find(breakpoint_addresses.begin(), breakpoint_addresses.end(), addr);
-  if (it !=breakpoint_addresses.end())
+  if (it != breakpoint_addresses.end())
     breakpoint_addresses.erase(it);
 
   if (!this->ContainsBreakpoint(addr))

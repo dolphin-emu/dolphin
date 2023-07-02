@@ -4,12 +4,12 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QListWidget>
+#include "Core/CoreTiming.h"
+#include "Core/System.h"
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/Settings.h"
-#include "Core/CoreTiming.h"
-#include "Core/System.h"
 
 static void (*callback_print_function)(void*, const char*);
 static void (*finished_script_callback_function)(void*, int);
@@ -19,7 +19,7 @@ static CoreTiming::EventType* stop_script_event = nullptr;
 static ScriptWindow* GetThis()
 {
   return copy_of_window;
-} 
+}
 
 ScriptWindow::ScriptWindow(QWidget* parent) : QDialog(parent)
 {
@@ -143,11 +143,10 @@ void ScriptWindow::PlayScriptFunction()
       script_name_list_widget_ptr->currentItem()->text().toStdString();
   script_start_or_stop_lock.unlock();
 
- row_num_to_is_running[current_row] = true;
+  row_num_to_is_running[current_row] = true;
 
   Scripting::ScriptUtilities::InitializeScript(
       current_row, current_script_name, callback_print_function, finished_script_callback_function);
-
 }
 
 void ScriptWindow::StopScriptFunction()

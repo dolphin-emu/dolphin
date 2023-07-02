@@ -1,7 +1,7 @@
 #include "Core/Scripting/EventCallbackRegistrationAPIs/OnInstructionHitCallbackAPI.h"
 
-#include "Core/Scripting/HelperClasses/VersionResolver.h"
 #include "Core/Scripting/HelperClasses/InstructionBreakpointsHolder.h"
+#include "Core/Scripting/HelperClasses/VersionResolver.h"
 
 namespace Scripting::OnInstructionHitCallbackAPI
 {
@@ -79,7 +79,8 @@ ArgHolder* Unregister(ScriptContext* current_script, std::vector<ArgHolder*>* ar
 
   if (!current_script->instructionBreakpointsHolder.ContainsBreakpoint(address_of_breakpoint))
     return CreateErrorStringArgHolder(
-        "Error: Address passed into OnInstructionHit:Unregister() did not correspond to any breakpoint that was currently enabled!");
+        "Error: Address passed into OnInstructionHit:Unregister() did not correspond to any "
+        "breakpoint that was currently enabled!");
 
   current_script->instructionBreakpointsHolder.RemoveBreakpoint(address_of_breakpoint);
 

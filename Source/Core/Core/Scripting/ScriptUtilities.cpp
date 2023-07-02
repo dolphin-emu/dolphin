@@ -17,6 +17,7 @@
 #include <fstream>
 #include <iostream>
 #include <unordered_map>
+#include "Common/MsgHandler.h"
 #include "Core/Core.h"
 #include "Core/Scripting/EventCallbackRegistrationAPIs/OnInstructionHitCallbackAPI.h"
 #include "Core/Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressReadFromCallbackAPI.h"
@@ -33,7 +34,6 @@
 #include "Core/Scripting/LanguageDefinitions/Lua/LuaScriptContext.h"
 #include "Core/Scripting/LanguageDefinitions/Python/PythonScriptContext.h"
 #include "Core/System.h"
-#include "Common/MsgHandler.h"
 
 namespace Scripting::ScriptUtilities
 {
@@ -310,7 +310,8 @@ static void InitializeDolphinApiStructs()
 
 typedef void (*exported_dll_func_type)(void*);
 
-bool callSpecifiedDLLInitFunction(Common::DynamicLibrary* dynamic_lib, std::string file_name, const char* func_name, void* arg_val)
+bool callSpecifiedDLLInitFunction(Common::DynamicLibrary* dynamic_lib, std::string file_name,
+                                  const char* func_name, void* arg_val)
 {
   void* func_addr_in_dll = dynamic_lib->GetSymbolAddress(func_name);
   if (func_addr_in_dll == nullptr)
@@ -375,11 +376,14 @@ void InitializeDLLs()
         if (trimmed_extension.length() == 0)
           continue;
 
-        else if (file_extension_to_dll_map.contains(trimmed_extension) || std::count(trimmed_extensions_list.begin(), trimmed_extensions_list.end(), trimmed_extension) > 0)
+        else if (file_extension_to_dll_map.contains(trimmed_extension) ||
+                 std::count(trimmed_extensions_list.begin(), trimmed_extensions_list.end(),
+                            trimmed_extension) > 0)
         {
           PanicAlertFmt("{}", std::string("Error: Encountered duplicate file extension of " +
-                                  trimmed_extension + " while scanning " + extensions_file_name +
-                                  " file!").c_str());
+                                          trimmed_extension + " while scanning " +
+                                          extensions_file_name + " file!")
+                                  .c_str());
 
           return;
         }
@@ -390,7 +394,7 @@ void InitializeDLLs()
       if (trimmed_extensions_list.empty())
       {
         PanicAlertFmt("{}", std::string("Warning: file ") + extensions_file_name +
-                                        " did not contain any extensions!");
+                                " did not contain any extensions!");
         continue;
       }
 
@@ -411,18 +415,29 @@ void InitializeDLLs()
               continue;
             }
 
-            // We use short-circuit evaluation here with &&, so if one symbol isn't found, we won't try to find any of the symbols after it.
-            if (
-              callSpecifiedDLLInitFunction(new_lib, current_file_name, "Init_ArgHolder_APIs", &argHolder_apis) &&
-              callSpecifiedDLLInitFunction(new_lib, current_file_name, "Init_ClassFunctionsResolver_APIs", &classFunctionsResolver_apis) &&
-              callSpecifiedDLLInitFunction(new_lib, current_file_name, "Init_ClassMetadata_APIs", &classMetadata_apis) &&
-              callSpecifiedDLLInitFunction(new_lib, current_file_name, "Init_FileUtility_APIs", &fileUtility_apis) &&
-              callSpecifiedDLLInitFunction(new_lib, current_file_name, "Init_FunctionMetadata_APIs", &functionMetadata_apis) &&
-              callSpecifiedDLLInitFunction(new_lib, current_file_name, "Init_GCButton_APIs", &gcButton_apis) &&
-              callSpecifiedDLLInitFunction(new_lib, current_file_name, "Init_ModuleLists_APIs", &moduleLists_apis) &&
-              callSpecifiedDLLInitFunction(new_lib, current_file_name, "Init_ScriptContext_APIs", &dolphin_defined_scriptContext_apis) &&
-              callSpecifiedDLLInitFunction(new_lib, current_file_name, "Init_VectorOfArgHolders_APIs", &vectorOfArgHolders_apis)
-              )
+            // We use short-circuit evaluation here with &&, so if one symbol isn't found, we won't
+            // try to find any of the symbols after it.
+            if (callSpecifiedDLLInitFunction(new_lib, current_file_name, "Init_ArgHolder_APIs",
+                                             &argHolder_apis) &&
+                callSpecifiedDLLInitFunction(new_lib, current_file_name,
+                                             "Init_ClassFunctionsResolver_APIs",
+                                             &classFunctionsResolver_apis) &&
+                callSpecifiedDLLInitFunction(new_lib, current_file_name, "Init_ClassMetadata_APIs",
+                                             &classMetadata_apis) &&
+                callSpecifiedDLLInitFunction(new_lib, current_file_name, "Init_FileUtility_APIs",
+                                             &fileUtility_apis) &&
+                callSpecifiedDLLInitFunction(new_lib, current_file_name,
+                                             "Init_FunctionMetadata_APIs",
+                                             &functionMetadata_apis) &&
+                callSpecifiedDLLInitFunction(new_lib, current_file_name, "Init_GCButton_APIs",
+                                             &gcButton_apis) &&
+                callSpecifiedDLLInitFunction(new_lib, current_file_name, "Init_ModuleLists_APIs",
+                                             &moduleLists_apis) &&
+                callSpecifiedDLLInitFunction(new_lib, current_file_name, "Init_ScriptContext_APIs",
+                                             &dolphin_defined_scriptContext_apis) &&
+                callSpecifiedDLLInitFunction(new_lib, current_file_name,
+                                             "Init_VectorOfArgHolders_APIs",
+                                             &vectorOfArgHolders_apis))
             {
               for (auto& extension : trimmed_extensions_list)
                 file_extension_to_dll_map[extension] = new_lib;
@@ -493,9 +508,12 @@ void InitializeScript(
           unique_script_identifier, script_filename.c_str(), new_print_callback,
           new_script_end_callback)));
 
-  if ((*global_pointer_to_list_of_all_scripts)[global_pointer_to_list_of_all_scripts->size() - 1]->script_return_code != ScriptReturnCodes::SuccessCode)
+  if ((*global_pointer_to_list_of_all_scripts)[global_pointer_to_list_of_all_scripts->size() - 1]
+          ->script_return_code != ScriptReturnCodes::SuccessCode)
   {
-    PanicAlertFmt("{}", (*global_pointer_to_list_of_all_scripts)[global_pointer_to_list_of_all_scripts->size() - 1]
+    PanicAlertFmt(
+        "{}",
+        (*global_pointer_to_list_of_all_scripts)[global_pointer_to_list_of_all_scripts->size() - 1]
             ->last_script_error.c_str());
   }
 

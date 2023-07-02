@@ -97,11 +97,14 @@ void CPUManager::Run()
         if (power_pc.GetBreakPoints().IsAddressBreakPoint(power_pc.GetPPCState().pc) ||
             power_pc.GetMemChecks().HasAny())
         {
-          const TBreakPoint* instr_br = power_pc.GetBreakPoints().GetBreakpoint(power_pc.GetPPCState().pc);
-          if (instr_br != nullptr && instr_br->is_enabled && instr_br->break_on_hit && EvaluateCondition(m_system, instr_br->condition))
+          const TBreakPoint* instr_br =
+              power_pc.GetBreakPoints().GetBreakpoint(power_pc.GetPPCState().pc);
+          if (instr_br != nullptr && instr_br->is_enabled && instr_br->break_on_hit &&
+              EvaluateCondition(m_system, instr_br->condition))
           {
             Scripting::OnInstructionHitCallbackAPI::in_instruction_hit_breakpoint = true;
-            Scripting::OnInstructionHitCallbackAPI::instruction_address_for_current_callback = power_pc.GetPPCState().pc;
+            Scripting::OnInstructionHitCallbackAPI::instruction_address_for_current_callback =
+                power_pc.GetPPCState().pc;
           }
           m_state = State::Stepping;
           PowerPC::CoreMode old_mode = power_pc.GetMode();

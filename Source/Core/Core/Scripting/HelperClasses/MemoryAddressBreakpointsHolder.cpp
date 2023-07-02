@@ -1,7 +1,7 @@
 #include "Core/Scripting/HelperClasses/MemoryAddressBreakpointsHolder.h"
 
-#include "Core/System.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 MemoryAddressBreakpointsHolder::MemoryAddressBreakpointsHolder()
 {
@@ -30,7 +30,6 @@ void MemoryAddressBreakpointsHolder::AddReadBreakpoint(unsigned int addr)
   this->read_breakpoint_addresses.push_back(
       addr);  // add this to the list of breakpoints regardless of whether or not it's a duplicate
 }
-
 
 bool MemoryAddressBreakpointsHolder::ContainsReadBreakpoint(unsigned int addr)
 {

@@ -547,7 +547,8 @@ void MMU::Memcheck(u32 address, u64 var, bool write, size_t size)
     return;
   }
 
-  if (Scripting::ScriptUtilities::IsScriptingCoreInitialized() && mc->is_enabled && mc->break_on_hit)
+  if (Scripting::ScriptUtilities::IsScriptingCoreInitialized() && mc->is_enabled &&
+      mc->break_on_hit)
   {
     if (write && mc->is_break_on_write)
     {

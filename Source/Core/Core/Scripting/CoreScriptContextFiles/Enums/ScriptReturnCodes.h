@@ -7,7 +7,7 @@ extern "C" {
 
 enum ScriptReturnCodes
 {
-  SuccessCode = 0, // duh
+  SuccessCode = 0,
   DLLFileNotFoundError = 1,
   DLLComponentNotFoundError = 2,
   ScriptFileNotFoundError = 3,

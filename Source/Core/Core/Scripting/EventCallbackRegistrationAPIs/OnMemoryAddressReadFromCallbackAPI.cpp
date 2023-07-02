@@ -1,8 +1,7 @@
 #include "Core/Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressReadFromCallbackAPI.h"
 
-
-#include "Core/Scripting/HelperClasses/VersionResolver.h"
 #include "Core/Scripting/HelperClasses/MemoryAddressBreakpointsHolder.h"
+#include "Core/Scripting/HelperClasses/VersionResolver.h"
 
 namespace Scripting::OnMemoryAddressReadFromCallbackAPI
 {
@@ -58,7 +57,6 @@ ArgHolder* Register(ScriptContext* current_script, std::vector<ArgHolder*>* args
 
   if (memory_breakpoint_address == 0)
     return CreateErrorStringArgHolder("Error: Memory address breakpoint cannot be 0!");
-
 
   current_script->memoryAddressBreakpointsHolder.AddReadBreakpoint(memory_breakpoint_address);
   return CreateRegistrationReturnTypeArgHolder(

@@ -1,7 +1,7 @@
 #include "Core/Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressWrittenToCallbackAPI.h"
 
-#include "Core/Scripting/HelperClasses/VersionResolver.h"
 #include "Core/Scripting/HelperClasses/MemoryAddressBreakpointsHolder.h"
+#include "Core/Scripting/HelperClasses/VersionResolver.h"
 
 namespace Scripting::OnMemoryAddressWrittenToCallbackAPI
 {
