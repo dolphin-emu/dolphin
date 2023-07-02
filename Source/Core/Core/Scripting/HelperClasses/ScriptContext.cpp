@@ -173,12 +173,12 @@ void* ScriptContext_GetDerivedScriptContextPtr_impl(void* script_context)
   return castToScriptContextPtr(script_context)->derived_script_context_class_ptr;
 }
 
-void ScriptContext_SetDerivedScriptContextPtr_impl(void* base_script_context_ptr, void* derived_script_context_ptr)
+void ScriptContext_SetDerivedScriptContextPtr_impl(void* base_script_context_ptr,
+                                                   void* derived_script_context_ptr)
 {
   castToScriptContextPtr(base_script_context_ptr)->derived_script_context_class_ptr =
       derived_script_context_ptr;
 }
-
 
 const char* ScriptContext_GetScriptVersion_impl()
 {
