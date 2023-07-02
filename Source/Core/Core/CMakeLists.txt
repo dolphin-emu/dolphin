@@ -688,6 +688,7 @@ PUBLIC
   expr
   inputcommon
   imgui
+  implot
   MbedTLS::mbedtls
   pugixml
   RangeSet::RangeSet
