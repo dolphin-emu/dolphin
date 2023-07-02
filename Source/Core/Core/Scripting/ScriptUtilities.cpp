@@ -566,8 +566,10 @@ bool StartScripts()
     {
       next_script->current_script_call_location = ScriptCallLocations::FromScriptStartup;
       next_script->dll_specific_api_definitions.StartScript(next_script);
+      return_value = next_script->called_yielding_function_in_last_global_script_resume;
+      if (next_script->script_return_code != 0)
+        PanicAlertFmt("{}", next_script->last_script_error);
     }
-    return_value = next_script->called_yielding_function_in_last_global_script_resume;
     next_script->script_specific_lock.unlock();
     if (return_value)
       break;
@@ -589,8 +591,10 @@ bool RunGlobalCode()
     {
       current_script->current_script_call_location = ScriptCallLocations::FromFrameStartGlobalScope;
       current_script->dll_specific_api_definitions.RunGlobalScopeCode(current_script);
+      return_value = current_script->called_yielding_function_in_last_global_script_resume;
+      if (current_script->script_return_code != 0)
+        PanicAlertFmt("{}", current_script->last_script_error);
     }
-    return_value = current_script->called_yielding_function_in_last_global_script_resume;
     current_script->script_specific_lock.unlock();
     if (return_value)
       break;
@@ -612,8 +616,10 @@ bool RunOnFrameStartCallbacks()
     {
       current_script->current_script_call_location = ScriptCallLocations::FromFrameStartCallback;
       current_script->dll_specific_api_definitions.RunOnFrameStartCallbacks(current_script);
+      return_value = current_script->called_yielding_function_in_last_frame_callback_script_resume;
+      if (current_script->script_return_code != 0)
+        PanicAlertFmt("{}", current_script->last_script_error);
     }
-    return_value = current_script->called_yielding_function_in_last_frame_callback_script_resume;
     current_script->script_specific_lock.unlock();
     if (return_value)
       break;
@@ -635,6 +641,8 @@ void RunOnGCInputPolledCallbacks()
       current_script->current_script_call_location =
           ScriptCallLocations::FromGCControllerInputPolled;
       current_script->dll_specific_api_definitions.RunOnGCControllerPolledCallbacks(current_script);
+      if (current_script->script_return_code != 0)
+        PanicAlertFmt("{}", current_script->last_script_error);
     }
     current_script->script_specific_lock.unlock();
   }
@@ -657,6 +665,8 @@ void RunOnInstructionHitCallbacks(u32 instruction_address)
           ScriptCallLocations::FromInstructionHitCallback;
       current_script->dll_specific_api_definitions.RunOnInstructionReachedCallbacks(
           current_script, instruction_address);
+      if (current_script->script_return_code != 0)
+        PanicAlertFmt("{}", current_script->last_script_error);
     }
     current_script->script_specific_lock.unlock();
   }
@@ -680,6 +690,8 @@ void RunOnMemoryAddressReadFromCallbacks(u32 memory_address)
           ScriptCallLocations::FromMemoryAddressReadFromCallback;
       current_script->dll_specific_api_definitions.RunOnMemoryAddressReadFromCallbacks(
           current_script, memory_address);
+      if (current_script->script_return_code != 0)
+        PanicAlertFmt("{}", current_script->last_script_error);
     }
     current_script->script_specific_lock.unlock();
   }
@@ -705,6 +717,8 @@ void RunOnMemoryAddressWrittenToCallbacks(u32 memory_address, s64 new_value)
           ScriptCallLocations::FromMemoryAddressWrittenToCallback;
       current_script->dll_specific_api_definitions.RunOnMemoryAddressWrittenToCallbacks(
           current_script, memory_address);
+      if (current_script->script_return_code != 0)
+        PanicAlertFmt("{}", current_script->last_script_error);
     }
     current_script->script_specific_lock.unlock();
   }
@@ -723,6 +737,8 @@ void RunOnWiiInputPolledCallbacks()
     {
       current_script->current_script_call_location = ScriptCallLocations::FromWiiInputPolled;
       current_script->dll_specific_api_definitions.RunOnWiiInputPolledCallbacks(current_script);
+      if (current_script->script_return_code != 0)
+        PanicAlertFmt("{}", current_script->last_script_error);
     }
     current_script->script_specific_lock.unlock();
   }
@@ -741,9 +757,10 @@ void RunButtonCallbacksInQueues()
     {
       current_script->current_script_call_location = ScriptCallLocations::FromGraphicsCallback;
       current_script->dll_specific_api_definitions.RunButtonCallbacksInQueue(current_script);
+      if (current_script->script_return_code != 0)
+        PanicAlertFmt("{}", current_script->last_script_error);
     }
     current_script->script_specific_lock.unlock();
   }
 }
-
 }  // namespace Scripting::ScriptUtilities
