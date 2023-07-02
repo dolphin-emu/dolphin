@@ -167,7 +167,7 @@ struct TCacheEntry
 
   std::string texture_info_name = "";
 
-  VideoCommon::CachedAsset<VideoCommon::GameTextureAsset> linked_asset;
+  std::vector<VideoCommon::CachedAsset<VideoCommon::GameTextureAsset>> linked_game_texture_assets;
 
   explicit TCacheEntry(std::unique_ptr<AbstractTexture> tex,
                        std::unique_ptr<AbstractFramebuffer> fb);
@@ -346,10 +346,11 @@ private:
 
   void SetBackupConfig(const VideoConfig& config);
 
-  RcTcacheEntry CreateTextureEntry(const TextureCreationInfo& creation_info,
-                                   const TextureInfo& texture_info, int safety_color_sample_size,
-                                   const VideoCommon::CustomTextureData* custom_texture_data,
-                                   bool custom_arbitrary_mipmaps);
+  RcTcacheEntry
+  CreateTextureEntry(const TextureCreationInfo& creation_info, const TextureInfo& texture_info,
+                     int safety_color_sample_size,
+                     std::vector<std::shared_ptr<VideoCommon::CustomTextureData>> assets_data,
+                     bool custom_arbitrary_mipmaps);
 
   RcTcacheEntry GetXFBFromCache(u32 address, u32 width, u32 height, u32 stride);
 
