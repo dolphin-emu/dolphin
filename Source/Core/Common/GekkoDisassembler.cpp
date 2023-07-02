@@ -884,7 +884,7 @@ void GekkoDisassembler::sradi(u32 in)
   m_operands = fmt::format("{}, {}, {}", regnames[a], regnames[s], bsh);
 }
 
-void GekkoDisassembler::ldst(u32 in, std::string_view name, char reg, unsigned char dmode)
+void GekkoDisassembler::ldst(u32 in, std::string_view name, char reg)
 {
   int s = (int)PPCGETD(in);
   int a = (int)PPCGETA(in);
@@ -2014,7 +2014,7 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
   case 45:
   case 46:
   case 47:
-    ldst(in, ldstnames[PPCGETIDX(in) - 32], 'r', 0);
+    ldst(in, ldstnames[PPCGETIDX(in) - 32], 'r');
     break;
 
   case 48:
@@ -2025,20 +2025,20 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
   case 53:
   case 54:
   case 55:
-    ldst(in, ldstnames[PPCGETIDX(in) - 32], 'f', 0);
+    ldst(in, ldstnames[PPCGETIDX(in) - 32], 'f');
     break;
 
   case 58:
     switch (in & 3)
     {
     case 0:
-      ldst(in & ~3, "ld", 'r', PPCF_64);
+      ldst(in & ~3, "ld", 'r');
       break;
     case 1:
-      ldst(in & ~3, "ldu", 'r', PPCF_64);
+      ldst(in & ~3, "ldu", 'r');
       break;
     case 2:
-      ldst(in & ~3, "lwa", 'r', PPCF_64);
+      ldst(in & ~3, "lwa", 'r');
       break;
     default:
       ill(in);
@@ -2099,10 +2099,10 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
     switch (in & 3)
     {
     case 0:
-      ldst(in & ~3, "std", 'r', PPCF_64);
+      ldst(in & ~3, "std", 'r');
       break;
     case 1:
-      ldst(in & ~3, "stdu", 'r', PPCF_64);
+      ldst(in & ~3, "stdu", 'r');
       break;
     default:
       ill(in);
