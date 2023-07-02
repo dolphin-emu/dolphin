@@ -13,9 +13,8 @@
 
 static void (*callback_print_function)(void*, const char*);
 static void (*finished_script_callback_function)(void*, int);
-
+static CoreTiming::EventType* stop_script_from_callback_event = nullptr;
 static ScriptWindow* copy_of_window = nullptr;
-static CoreTiming::EventType* stop_script_event = nullptr;
 static ScriptWindow* GetThis()
 {
   return copy_of_window;
@@ -24,10 +23,12 @@ static ScriptWindow* GetThis()
 ScriptWindow::ScriptWindow(QWidget* parent) : QDialog(parent)
 {
   copy_of_window = this;
-  stop_script_event = Core::System::GetInstance().GetCoreTiming().RegisterEvent(
+  stop_script_from_callback_event = Core::System::GetInstance().GetCoreTiming().RegisterEvent(
       "SCRIPT_STOP_FUNC", [](Core::System& system_, u64 script_id, s64) {
-        Scripting::ScriptUtilities::StopScript(script_id);
+        Scripting::ScriptUtilities::PushScriptStopQueueEvent(
+            ScriptQueueEventTypes::StopScriptFromScriptEndCallback, script_id);
       });
+
   next_unique_identifier = 1;
   callback_print_function = [](void* x, const char* message) {
     std::lock_guard<std::mutex> lock(GetThis()->print_lock);
@@ -38,6 +39,8 @@ ScriptWindow::ScriptWindow(QWidget* parent) : QDialog(parent)
   finished_script_callback_function = [](void* x, int unique_identifier) {
     std::lock_guard<std::mutex> lock(GetThis()->script_start_or_stop_lock);
     GetThis()->ids_of_scripts_to_stop.push(unique_identifier);
+    Core::System::GetInstance().GetCoreTiming().ScheduleEvent(
+        -1, stop_script_from_callback_event, unique_identifier, CoreTiming::FromThread::ANY);
     QueueOnObject(GetThis(), &ScriptWindow::OnScriptFinish);
   };
 
@@ -145,8 +148,8 @@ void ScriptWindow::PlayScriptFunction()
 
   row_num_to_is_running[current_row] = true;
 
-  Scripting::ScriptUtilities::InitializeScript(
-      current_row, current_script_name, callback_print_function, finished_script_callback_function);
+  Scripting::ScriptUtilities::PushScriptStartQueueEvent(
+      current_row, current_script_name.c_str(), callback_print_function, finished_script_callback_function);
 }
 
 void ScriptWindow::StopScriptFunction()
@@ -157,8 +160,7 @@ void ScriptWindow::StopScriptFunction()
   script_start_or_stop_lock.lock();
   int current_row = script_name_list_widget_ptr->currentRow() + 1;
   script_start_or_stop_lock.unlock();
-
-  Scripting::ScriptUtilities::StopScript(current_row);
+  Scripting::ScriptUtilities::PushScriptStopQueueEvent(ScriptQueueEventTypes::StopScriptFromUI, current_row);
   row_num_to_is_running[current_row] = false;
   UpdateButtonText();
 }
@@ -197,8 +199,6 @@ void ScriptWindow::OnScriptFinish()
   {
     row_num_to_is_running[id_of_script_to_stop] = false;
     UpdateButtonText();
-    Core::System::GetInstance().GetCoreTiming().ScheduleEvent(
-        -1, stop_script_event, id_of_script_to_stop, CoreTiming::FromThread::ANY);
   }
 }
 

@@ -914,6 +914,7 @@ void Callback_NewField(Core::System& system)
         [] {
           Core::RunOnCPUThread(
               [] {
+                Scripting::ScriptUtilities::ProcessScriptQueueEvents();
                 if (!Scripting::ScriptUtilities::StartScripts())
                   if (!Scripting::ScriptUtilities::RunOnFrameStartCallbacks())
                     Scripting::ScriptUtilities::RunGlobalCode();
