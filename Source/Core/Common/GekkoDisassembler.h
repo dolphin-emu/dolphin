@@ -80,7 +80,7 @@ private:
   static void mtb(u32 in);
   static void sradi(u32 in);
   static void ldst(u32 in, std::string_view name, char reg);
-  static void fdabc(u32 in, std::string_view name, int mask, unsigned char dmode);
+  static void fdabc(u32 in, std::string_view name, int mask);
   static void fmr(u32 in);
   static void fdab(u32 in, std::string_view name);
   static void fcmp(u32 in, char c);
