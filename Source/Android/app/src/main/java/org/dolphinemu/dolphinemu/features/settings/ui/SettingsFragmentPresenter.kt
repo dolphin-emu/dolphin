@@ -65,7 +65,12 @@ class SettingsFragmentPresenter(
             controllerNumber = menuTag.subType
         } else if (menuTag.isSerialPort1Menu) {
             serialPort1Type = extras.getInt(ARG_SERIALPORT1_TYPE)
-        } else if (menuTag == MenuTag.GRAPHICS) {
+        } else if (
+            menuTag == MenuTag.GRAPHICS
+            && this.gameId.isNullOrEmpty()
+            && !NativeLibrary.IsRunning()
+            && GpuDriverHelper.supportsCustomDriverLoading()
+        ) {
             this.gpuDriver =
                 GpuDriverHelper.getInstalledDriverMetadata() ?: GpuDriverHelper.getSystemDriverMetadata(
                     context.applicationContext
@@ -1265,7 +1270,11 @@ class SettingsFragmentPresenter(
             )
         )
 
-        if (GpuDriverHelper.supportsCustomDriverLoading() && this.gpuDriver != null) {
+        if (
+            this.gpuDriver != null && this.gameId.isNullOrEmpty()
+            && !NativeLibrary.IsRunning()
+            && GpuDriverHelper.supportsCustomDriverLoading()
+        ) {
             sl.add(
                 SubmenuSetting(
                     context,

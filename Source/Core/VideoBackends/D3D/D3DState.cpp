@@ -222,13 +222,14 @@ void StateManager::SetTextureByMask(u32 textureSlotMask, ID3D11ShaderResourceVie
   }
 }
 
-void StateManager::SetComputeUAV(ID3D11UnorderedAccessView* uav)
+void StateManager::SetComputeUAV(u32 index, ID3D11UnorderedAccessView* uav)
 {
-  if (m_compute_image == uav)
+  if (m_compute_images[index] == uav)
     return;
 
-  m_compute_image = uav;
-  D3D::context->CSSetUnorderedAccessViews(0, 1, &uav, nullptr);
+  m_compute_images[index] = uav;
+  D3D::context->CSSetUnorderedAccessViews(0, static_cast<u32>(m_compute_images.size()),
+                                          m_compute_images.data(), nullptr);
 }
 
 void StateManager::SetComputeShader(ID3D11ComputeShader* shader)

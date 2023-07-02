@@ -74,7 +74,7 @@ PASS!
 
 Test: 19
 	Calling setInput() on controller 1 with just setting analogStickX to 31...
-FAILURE!
+PASS!
 
 Test: 20
 	Calling setInput() on controller 1 with just setting analogStickY to 90...
@@ -82,7 +82,7 @@ PASS!
 
 Test: 21
 	Calling setInput() on controller 1 with just setting cStickX to 201...
-FAILURE!
+PASS!
 
 Test: 22
 	Calling setInput() on controller 1 with just setting cStickY button to 64...
@@ -230,7 +230,7 @@ PASS!
 
 Test: 58
 	Calling setInput() on controller 3 with just setting disc to true...
-FAILURE!
+PASS!
 
 Test: 59
 	Calling setInput() on controller 3 with just setting getOrigin to true...
@@ -242,7 +242,7 @@ PASS!
 
 Test: 61
 	Calling setInput() on controller 3 with just setting triggerL to 183...
-FAILURE!
+PASS!
 
 Test: 62
 	Calling setInput() on controller 3 with just setting triggerR to 112...
@@ -250,7 +250,7 @@ PASS!
 
 Test: 63
 	Calling setInput() on controller 3 with just setting dPadUp...
-FAILURE!
+PASS!
 
 Test: 64
 	Calling setInput() on controller 3 with just setting dPadDown button...
@@ -342,7 +342,7 @@ PASS!
 
 Test: 86
 	Calling setInput() on controller 4 with just setting triggerR to 112...
-FAILURE!
+PASS!
 
 Test: 87
 	Calling setInput() on controller 4 with just setting dPadUp...
@@ -370,7 +370,7 @@ PASS!
 
 Test: 93
 	Calling setInput() on controller 4 with just setting cStickX to 201...
-FAILURE!
+PASS!
 
 Test: 94
 	Calling setInput() on controller 4 with just setting cStickY button to 64...
@@ -378,7 +378,7 @@ PASS!
 
 Test: 95
 	Calling setInput() on controller 4 with setting A to pressed and cStickX to 232...
-FAILURE!
+PASS!
 
 Test: 96
 	Calling setInputs() on controller 4 with setting all buttons to pressed and all analog inputs to their maximum values...
@@ -390,7 +390,7 @@ PASS!
 
 Test: 98
 	Calling setInput() twice in a row to make sure the 2nd call overwrites the 1st one...
-FAILURE!
+PASS!
 
 ----------------------------------------------------------------------------------
 
@@ -522,7 +522,7 @@ PASS!
 
 Test: 130
 	Calling addInputs() on controller 2 with just setting Start button...
-FAILURE!
+PASS!
 
 Test: 131
 	Calling addInputs() on controller 2 with just setting Reset button...
@@ -722,7 +722,7 @@ PASS!
 
 Test: 180
 	Calling addInputs() on controller 4 with just setting disc to true...
-FAILURE!
+PASS!
 
 Test: 181
 	Calling addInputs() on controller 4 with just setting getOrigin to true...
@@ -878,7 +878,7 @@ PASS!
 
 Test: 218
 	Calling addButtonFlipChance() on controller 1 three times in a row with 100% probability of flipping button Y...
-FAILURE!
+PASS!
 
 Test: 219
 	Calling addButtonFlipChance() on controller 1 with 0% probability of flipping button A to pressed...
@@ -886,7 +886,7 @@ PASS!
 
 Test 220:
 	Running through 1000 frames of calling addButtonFlipChance() on controller 1 with 13% chance of flipping button B...
-	Impacted frames made up 13.586413586414% of all frames, which was in the acceptable range of +- 8% of the selected probability of 13%
+	Impacted frames made up 12.387612387612% of all frames, which was in the acceptable range of +- 8% of the selected probability of 13%
 PASS!
 
 ----------------------------------------------------------------------------------
@@ -979,7 +979,7 @@ PASS!
 
 Test 242:
 	Running through 1000 frames of calling addButtonPressChance() on controller 1 with 34% chance of pressing X button...
-	Impacted frames made up 32.767232767233% of all frames, which was in the acceptable range of +- 8% of the selected probability of 34%
+	Impacted frames made up 31.968031968032% of all frames, which was in the acceptable range of +- 8% of the selected probability of 34%
 PASS!
 
 ----------------------------------------------------------------------------------
@@ -1072,7 +1072,7 @@ PASS!
 
 Test 264:
 	Running through 1000 frames of calling addButtonReleaseChance() on controller 1 after setting B to pressed with 68% chance of releasing button B...
-	Impacted frames made up 65.834165834166% of all frames, which was in the acceptable range of +- 8% of the selected probability of 68%
+	Impacted frames made up 64.935064935065% of all frames, which was in the acceptable range of +- 8% of the selected probability of 68%
 PASS!
 
 ----------------------------------------------------------------------------------
@@ -1121,7 +1121,7 @@ PASS!
 
 Test 275:
 	Running through 1000 frames of calling addOrSubtractFromCurrentAnalogValueChance() on controller 1 with 40% chance of altering cStickX by between -31 to +85...
-	Final average input of 139.17782217782 for cStickX input, which was inside the acceptable range of +- 10% of the expected final average of 138.8
+	Final average input of 138.56843156843 for cStickX input, which was inside the acceptable range of +- 10% of the expected final average of 138.8
 PASS!
 
 ----------------------------------------------------------------------------------
@@ -1170,7 +1170,7 @@ PASS!
 
 Test 286:
 	Running through 1000 frames of calling addOrSubtractFromSpecificAnalogValueChance() on controller 1 with a 65% chance of setting cStickX to a random value between 50 - 30 and 50 + 10...
-	Final average input of 71.196803196803 for cStickX input, which was inside the acceptable range of +- 10% of the expected final average of 70.8
+	Final average input of 72.124875124875 for cStickX input, which was inside the acceptable range of +- 10% of the expected final average of 70.8
 PASS!
 
 ----------------------------------------------------------------------------------
@@ -1179,7 +1179,7 @@ Running addButtonComboChance() unit tests:
 
 Test: 287
 	Calling addButtonComboChance() on controller 1 with 100% probability of setting A button...
-FAILURE!
+PASS!
 
 Test: 288
 	Calling addButtonComboChance() on controller 1 with 100% probability of setting B button...
@@ -1215,7 +1215,7 @@ PASS!
 
 Test: 296
 	Calling addButtonComboChance() on controller 1 with 100% probability of releasing isConnected...
-FAILURE!
+PASS!
 
 Test: 297
 	Calling addButtonComboChance() on controller 1 with 100% probability of setting Start button...
@@ -1299,7 +1299,7 @@ PASS!
 
 Test: 317
 	Calling addButtonComboChance() on controller 2 with 100% probability of setting R button...
-FAILURE!
+PASS!
 
 Test: 318
 	Calling addButtonComboChance() on controller 2 with 100% probability of setting disc...
@@ -1359,7 +1359,7 @@ PASS!
 
 Test: 332
 	Calling addButtonComboChance() on controller 2 with 100% probability of setting cStickY to 43...
-FAILURE!
+PASS!
 
 Test: 333
 	Calling addButtonComboChance() on controller 2 with 100% probability of setting A to pressed and cStickX to 232...
@@ -1367,7 +1367,7 @@ PASS!
 
 Test: 334
 	Calling addButtonComboChance() on controller 2 with 100% probability of setting all buttons to pressed and all analog inputs to their maximum values...
-PASS!
+FAILURE!
 
 Test: 335
 	Calling addButtonComboChance() on controller 3 with 100% probability of setting A button...
@@ -1519,7 +1519,7 @@ PASS!
 
 Test: 372
 	Calling addButtonComboChance() on controller 4 with 100% probability of setting triggerR to 112...
-FAILURE!
+PASS!
 
 Test: 373
 	Calling addButtonComboChance() on controller 4 with 100% probability of setting dPadUp button...
@@ -1579,7 +1579,7 @@ PASS!
 
 Test 387:
 	Running through 1000 frames of calling addButtonComboChance() on controller 1 with 80% chance of pressing button B...
-	Impacted frames made up 79.020979020979% of all frames, which was in the acceptable range of +- 8% of the selected probability of 80%
+	Impacted frames made up 81.118881118881% of all frames, which was in the acceptable range of +- 8% of the selected probability of 80%
 PASS!
 
 ----------------------------------------------------------------------------------
@@ -1608,7 +1608,7 @@ PASS!
 
 Test: 393
 	Calling addControllerClearChance() on controller 3 after setting all inputs to max values with 0% chance of clearing inputs...
-FAILURE!
+PASS!
 
 Test: 394
 	Calling addControllerClearChance() on controller 4 after setting all inputs to max values with 100% chance of clearing inputs...
@@ -1620,7 +1620,7 @@ PASS!
 
 Test 396:
 	Running through 1000 frames of calling addControllerClearChance() on controller 1 with 75% chance of clearing the controller inputs to their default values...
-	Impacted frames made up 75.824175824176% of all frames, which was in the acceptable range of +- 8% of the selected probability of 75%
+	Impacted frames made up 74.125874125874% of all frames, which was in the acceptable range of +- 8% of the selected probability of 75%
 PASS!
 
 ----------------------------------------------------------------------------------
@@ -1639,5 +1639,5 @@ PASS!
 
 
 Total Tests: 398
-	Tests Passed: 380
-	Tests Failed: 18
+	Tests Passed: 397
+	Tests Failed: 1

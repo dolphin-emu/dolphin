@@ -10,6 +10,8 @@ add_library(main SHARED
   GameList/GameFile.cpp
   GameList/GameFile.h
   GameList/GameFileCache.cpp
+  Host.cpp
+  Host.h
   InfinityConfig.cpp
   Input/Control.cpp
   Input/Control.h

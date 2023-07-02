@@ -799,11 +799,7 @@ void SaveScreenShot(std::string_view name)
 
 static bool PauseAndLock(Core::System& system, bool do_lock, bool unpause_on_unlock)
 {
-// WARNING: PauseAndLock is not fully threadsafe so is only valid on the Host Thread
-// TODO: Fix Android
-#ifndef ANDROID
-  ASSERT(IsHostThread());
-#endif
+  // WARNING: PauseAndLock is not fully threadsafe so is only valid on the Host Thread
 
   if (!IsRunningAndStarted())
     return true;
@@ -820,7 +816,7 @@ static bool PauseAndLock(Core::System& system, bool do_lock, bool unpause_on_unl
   system.GetExpansionInterface().PauseAndLock(do_lock, false);
 
   // audio has to come after CPU, because CPU thread can wait for audio thread (m_throttle).
-  system.GetDSP().GetDSPEmulator()->PauseAndLock(do_lock, false);
+  system.GetDSP().GetDSPEmulator()->PauseAndLock(do_lock);
 
   // video has to come after CPU, because CPU thread can wait for video thread
   // (s_efbAccessRequested).

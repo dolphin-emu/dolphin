@@ -22,7 +22,7 @@ std::unique_ptr<SwapChain> SwapChain::Create(const WindowSystemInfo& wsi)
 {
   std::unique_ptr<SwapChain> swap_chain = std::make_unique<SwapChain>(
       wsi, g_dx_context->GetDXGIFactory(), g_dx_context->GetCommandQueue());
-  if (!swap_chain->CreateSwapChain(WantsStereo()))
+  if (!swap_chain->CreateSwapChain(WantsStereo(), WantsHDR()))
     return nullptr;
 
   return swap_chain;

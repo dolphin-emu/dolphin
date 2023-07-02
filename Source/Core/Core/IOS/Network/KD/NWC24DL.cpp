@@ -139,5 +139,4 @@ void NWC24Dl::SetVersion(u32 version)
 {
   m_data.header.version = Common::swap32(version);
 }
-
 }  // namespace IOS::HLE::NWC24

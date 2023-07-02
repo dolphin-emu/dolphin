@@ -121,6 +121,7 @@ void WiiPane::ConnectLayout()
           &QCheckBox::setChecked);
   connect(&Settings::Instance(), &Settings::USBKeyboardConnectionChanged,
           m_connect_keyboard_checkbox, &QCheckBox::setChecked);
+  connect(m_wiilink_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
 
   // SD Card Settings
   connect(m_sd_card_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
@@ -157,6 +158,7 @@ void WiiPane::CreateMisc()
   m_main_layout->addWidget(misc_settings_group);
   m_pal60_mode_checkbox = new QCheckBox(tr("Use PAL60 Mode (EuRGB60)"));
   m_screensaver_checkbox = new QCheckBox(tr("Enable Screen Saver"));
+  m_wiilink_checkbox = new QCheckBox(tr("Enable WiiConnect24 via WiiLink"));
   m_connect_keyboard_checkbox = new QCheckBox(tr("Connect USB Keyboard"));
 
   m_aspect_ratio_choice_label = new QLabel(tr("Aspect Ratio:"));
@@ -187,12 +189,17 @@ void WiiPane::CreateMisc()
   m_pal60_mode_checkbox->setToolTip(tr("Sets the Wii display mode to 60Hz (480i) instead of 50Hz "
                                        "(576i) for PAL games.\nMay not work for all games."));
   m_screensaver_checkbox->setToolTip(tr("Dims the screen after five minutes of inactivity."));
+  m_wiilink_checkbox->setToolTip(tr(
+      "Enables the WiiLink service for WiiConnect24 channels.\nWiiLink is an alternate provider "
+      "for the discontinued WiiConnect24 Channels such as the Forecast and Nintendo Channels\nRead "
+      "the Terms of Service at: https://www.wiilink24.com/tos"));
   m_system_language_choice->setToolTip(tr("Sets the Wii system language."));
   m_connect_keyboard_checkbox->setToolTip(tr("May cause slow down in Wii Menu and some games."));
 
   misc_settings_group_layout->addWidget(m_pal60_mode_checkbox, 0, 0, 1, 1);
   misc_settings_group_layout->addWidget(m_connect_keyboard_checkbox, 0, 1, 1, 1);
   misc_settings_group_layout->addWidget(m_screensaver_checkbox, 1, 0, 1, 1);
+  misc_settings_group_layout->addWidget(m_wiilink_checkbox, 1, 1, 1, 1);
   misc_settings_group_layout->addWidget(m_aspect_ratio_choice_label, 2, 0, 1, 1);
   misc_settings_group_layout->addWidget(m_aspect_ratio_choice, 2, 1, 1, 1);
   misc_settings_group_layout->addWidget(m_system_language_choice_label, 3, 0, 1, 1);
@@ -386,6 +393,7 @@ void WiiPane::OnEmulationStateChanged(bool running)
   m_wiimote_speaker_volume->setEnabled(!running);
   m_wiimote_ir_sensitivity->setEnabled(!running);
   m_wiimote_ir_sensor_position->setEnabled(!running);
+  m_wiilink_checkbox->setEnabled(!running);
 }
 
 void WiiPane::LoadConfig()
@@ -396,6 +404,7 @@ void WiiPane::LoadConfig()
   m_aspect_ratio_choice->setCurrentIndex(Config::Get(Config::SYSCONF_WIDESCREEN));
   m_system_language_choice->setCurrentIndex(Config::Get(Config::SYSCONF_LANGUAGE));
   m_sound_mode_choice->setCurrentIndex(Config::Get(Config::SYSCONF_SOUND_MODE));
+  m_wiilink_checkbox->setChecked(Config::Get(Config::MAIN_WII_WIILINK_ENABLE));
 
   m_sd_card_checkbox->setChecked(Settings::Instance().IsSDCardInserted());
   m_allow_sd_writes_checkbox->setChecked(Config::Get(Config::MAIN_ALLOW_SD_WRITES));
@@ -433,6 +442,7 @@ void WiiPane::OnSaveConfig()
   Config::SetBase<bool>(Config::SYSCONF_WIDESCREEN, m_aspect_ratio_choice->currentIndex());
   Config::SetBase<u32>(Config::SYSCONF_SOUND_MODE, m_sound_mode_choice->currentIndex());
   Config::SetBase(Config::SYSCONF_WIIMOTE_MOTOR, m_wiimote_motor->isChecked());
+  Config::SetBase(Config::MAIN_WII_WIILINK_ENABLE, m_wiilink_checkbox->isChecked());
 
   Settings::Instance().SetSDCardInserted(m_sd_card_checkbox->isChecked());
   Config::SetBase(Config::MAIN_ALLOW_SD_WRITES, m_allow_sd_writes_checkbox->isChecked());

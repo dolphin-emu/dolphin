@@ -261,7 +261,7 @@ void NetworkWidget::Update()
     return;
 
   m_socket_table->setRowCount(0);
-  for (u32 wii_fd = 0; wii_fd < IOS::HLE::WII_SOCKET_FD_MAX; wii_fd++)
+  for (s32 wii_fd = 0; wii_fd < IOS::HLE::WII_SOCKET_FD_MAX; wii_fd++)
   {
     m_socket_table->insertRow(wii_fd);
     const s32 host_fd = socket_manager->GetHostSocket(wii_fd);
@@ -275,7 +275,7 @@ void NetworkWidget::Update()
   m_socket_table->resizeColumnsToContents();
 
   m_ssl_table->setRowCount(0);
-  for (u32 ssl_id = 0; ssl_id < IOS::HLE::NET_SSL_MAXINSTANCES; ssl_id++)
+  for (s32 ssl_id = 0; ssl_id < IOS::HLE::NET_SSL_MAXINSTANCES; ssl_id++)
   {
     m_ssl_table->insertRow(ssl_id);
     s32 host_fd = -1;
@@ -328,7 +328,7 @@ QGroupBox* NetworkWidget::CreateSocketTableGroup()
   m_socket_table = new QTableWidget();
   // i18n: FD stands for file descriptor (and in this case refers to sockets, not regular files)
   QStringList header{tr("FD"), tr("Domain"), tr("Type"), tr("State"), tr("Blocking"), tr("Name")};
-  m_socket_table->setColumnCount(header.size());
+  m_socket_table->setColumnCount(static_cast<int>(header.size()));
 
   m_socket_table->setHorizontalHeaderLabels(header);
   m_socket_table->setTabKeyNavigation(false);
@@ -350,7 +350,7 @@ QGroupBox* NetworkWidget::CreateSSLContextGroup()
 
   m_ssl_table = new QTableWidget();
   QStringList header{tr("ID"), tr("Domain"), tr("Type"), tr("State"), tr("Name"), tr("Hostname")};
-  m_ssl_table->setColumnCount(header.size());
+  m_ssl_table->setColumnCount(static_cast<int>(header.size()));
 
   m_ssl_table->setHorizontalHeaderLabels(header);
   m_ssl_table->setTabKeyNavigation(false);

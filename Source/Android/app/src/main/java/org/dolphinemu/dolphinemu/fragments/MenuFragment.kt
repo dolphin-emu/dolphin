@@ -58,10 +58,15 @@ class MenuFragment : Fragment(), View.OnClickListener {
         if (!requireArguments().getBoolean(KEY_WII, true)) {
             binding.menuRefreshWiimotes.visibility = View.GONE
             binding.menuSkylanders.visibility = View.GONE
+            binding.menuInfinityBase.visibility = View.GONE
         }
 
         if (!BooleanSetting.MAIN_EMULATE_SKYLANDER_PORTAL.boolean) {
             binding.menuSkylanders.visibility = View.GONE
+        }
+
+        if (!BooleanSetting.MAIN_EMULATE_INFINITY_BASE.boolean) {
+            binding.menuInfinityBase.visibility = View.GONE
         }
 
         val options = binding.layoutOptions
@@ -191,7 +196,7 @@ class MenuFragment : Fragment(), View.OnClickListener {
             buttonsActionsMap.append(R.id.menu_settings, EmulationActivity.MENU_ACTION_SETTINGS)
             buttonsActionsMap.append(R.id.menu_skylanders, EmulationActivity.MENU_ACTION_SKYLANDERS)
             buttonsActionsMap.append(
-                R.id.menu_infinitybase,
+                R.id.menu_infinity_base,
                 EmulationActivity.MENU_ACTION_INFINITY_BASE
             )
         }

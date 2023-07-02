@@ -61,7 +61,7 @@ public:
   virtual void SetScissorRect(const MathUtil::Rectangle<int>& rc) {}
   virtual void SetTexture(u32 index, const AbstractTexture* texture) {}
   virtual void SetSamplerState(u32 index, const SamplerState& state) {}
-  virtual void SetComputeImageTexture(AbstractTexture* texture, bool read, bool write) {}
+  virtual void SetComputeImageTexture(u32 index, AbstractTexture* texture, bool read, bool write) {}
   virtual void UnbindTexture(const AbstractTexture* texture) {}
   virtual void SetViewport(float x, float y, float width, float height, float near_depth,
                            float far_depth)
@@ -159,8 +159,8 @@ public:
   // Called when the configuration changes, and backend structures need to be updated.
   virtual void OnConfigChanged(u32 changed_bits);
 
-  // Returns true if a layer-expanding geometry shader should be used when rendering the user
-  // interface and final XFB.
+  // Returns true if a layer-expanding geometry shader should be used when rendering
+  // the user interface on the output buffer.
   bool UseGeometryShaderForUI() const;
 
   // Returns info about the main surface (aka backbuffer)

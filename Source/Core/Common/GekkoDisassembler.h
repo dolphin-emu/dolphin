@@ -92,14 +92,6 @@ private:
 
   static u32* DoDisassembly(bool big_endian);
 
-  enum InstructionType
-  {
-    PPCINSTR_OTHER = 0,   // No additional info for other instr.
-    PPCINSTR_BRANCH = 1,  // Branch dest. = PC+displacement
-    PPCINSTR_LDST = 2,    // Load/store instruction: displ(sreg)
-    PPCINSTR_IMM = 3,     // 16-bit immediate val. in displacement
-  };
-
   enum Flags
   {
     PPCF_ILLEGAL = (1 << 0),   // Illegal PowerPC instruction
@@ -112,7 +104,6 @@ private:
   static u32* m_iaddr;            // Instruction.address., usually the same as instr
   static std::string m_opcode;    // Buffer for opcode, min. 10 chars.
   static std::string m_operands;  // Operand buffer, min. 24 chars.
-  static unsigned char m_type;    // Type of instruction, see below
   static unsigned char m_flags;   // Additional flags
   static unsigned short m_sreg;   // Register in load/store instructions
   static u32 m_displacement;      // Branch- or load/store displacement

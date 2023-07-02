@@ -12,6 +12,7 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/EnumUtils.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 
@@ -277,13 +278,13 @@ void VKGfx::BindBackbuffer(const ClearColor& clear_color)
     else
     {
       ERROR_LOG_FMT(VIDEO, "Unknown present error {:#010X} {}, please report.",
-                    static_cast<u32>(res), VkResultToString(res));
+                    Common::ToUnderlying(res), VkResultToString(res));
       m_swap_chain->RecreateSwapChain();
     }
 
     res = m_swap_chain->AcquireNextImage();
     if (res != VK_SUCCESS)
-      PanicAlertFmt("Failed to grab image from swap chain: {:#010X} {}", static_cast<u32>(res),
+      PanicAlertFmt("Failed to grab image from swap chain: {:#010X} {}", Common::ToUnderlying(res),
                     VkResultToString(res));
   }
 
@@ -391,14 +392,14 @@ void VKGfx::OnConfigChanged(u32 bits)
     g_object_cache->ReloadPipelineCache();
 
   // For vsync, we need to change the present mode, which means recreating the swap chain.
-  if (m_swap_chain && bits & CONFIG_CHANGE_BIT_VSYNC)
+  if (m_swap_chain && (bits & CONFIG_CHANGE_BIT_VSYNC))
   {
     ExecuteCommandBuffer(false, true);
     m_swap_chain->SetVSync(g_ActiveConfig.bVSyncActive);
   }
 
   // For quad-buffered stereo we need to change the layer count, so recreate the swap chain.
-  if (m_swap_chain && bits & CONFIG_CHANGE_BIT_STEREO_MODE)
+  if (m_swap_chain && ((bits & CONFIG_CHANGE_BIT_STEREO_MODE) || (bits & CONFIG_CHANGE_BIT_HDR)))
   {
     ExecuteCommandBuffer(false, true);
     m_swap_chain->RecreateSwapChain();
@@ -511,13 +512,13 @@ void VKGfx::SetSamplerState(u32 index, const SamplerState& state)
   m_sampler_states[index] = state;
 }
 
-void VKGfx::SetComputeImageTexture(AbstractTexture* texture, bool read, bool write)
+void VKGfx::SetComputeImageTexture(u32 index, AbstractTexture* texture, bool read, bool write)
 {
   VKTexture* vk_texture = static_cast<VKTexture*>(texture);
   if (vk_texture)
   {
     StateTracker::GetInstance()->EndRenderPass();
-    StateTracker::GetInstance()->SetImageTexture(vk_texture->GetView());
+    StateTracker::GetInstance()->SetImageTexture(index, vk_texture->GetView());
     vk_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                    read ? (write ? VKTexture::ComputeImageLayout::ReadWrite :
                                                    VKTexture::ComputeImageLayout::ReadOnly) :
@@ -525,7 +526,7 @@ void VKGfx::SetComputeImageTexture(AbstractTexture* texture, bool read, bool wri
   }
   else
   {
-    StateTracker::GetInstance()->SetImageTexture(VK_NULL_HANDLE);
+    StateTracker::GetInstance()->SetImageTexture(index, VK_NULL_HANDLE);
   }
 }
 

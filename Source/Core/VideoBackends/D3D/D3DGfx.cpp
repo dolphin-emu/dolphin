@@ -175,6 +175,9 @@ void Gfx::OnConfigChanged(u32 bits)
   // Quad-buffer changes require swap chain recreation.
   if (bits & CONFIG_CHANGE_BIT_STEREO_MODE && m_swap_chain)
     m_swap_chain->SetStereo(SwapChain::WantsStereo());
+
+  if (bits & CONFIG_CHANGE_BIT_HDR && m_swap_chain)
+    m_swap_chain->SetHDR(SwapChain::WantsHDR());
 }
 
 void Gfx::CheckForSwapChainChanges()
@@ -236,9 +239,10 @@ void Gfx::SetSamplerState(u32 index, const SamplerState& state)
   D3D::stateman->SetSampler(index, m_state_cache.Get(state));
 }
 
-void Gfx::SetComputeImageTexture(AbstractTexture* texture, bool read, bool write)
+void Gfx::SetComputeImageTexture(u32 index, AbstractTexture* texture, bool read, bool write)
 {
-  D3D::stateman->SetComputeUAV(texture ? static_cast<DXTexture*>(texture)->GetD3DUAV() : nullptr);
+  D3D::stateman->SetComputeUAV(index,
+                               texture ? static_cast<DXTexture*>(texture)->GetD3DUAV() : nullptr);
 }
 
 void Gfx::UnbindTexture(const AbstractTexture* texture)

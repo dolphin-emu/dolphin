@@ -432,14 +432,14 @@ void XEmitter::Rex(int w, int r, int x, int b)
     Write8(rx);
 }
 
-void XEmitter::JMP(const u8* addr, bool force5Bytes)
+void XEmitter::JMP(const u8* addr, const Jump jump)
 {
   u64 fn = (u64)addr;
-  if (!force5Bytes)
+  if (jump == Jump::Short)
   {
     s64 distance = (s64)(fn - ((u64)code + 2));
     ASSERT_MSG(DYNA_REC, distance >= -0x80 && distance < 0x80,
-               "Jump target too far away ({}), needs force5Bytes = true", distance);
+               "Jump::Short target too far away ({}), needs Jump::Near", distance);
     // 8 bits will do
     Write8(0xEB);
     Write8((u8)(s8)distance);
@@ -449,7 +449,7 @@ void XEmitter::JMP(const u8* addr, bool force5Bytes)
     s64 distance = (s64)(fn - ((u64)code + 5));
 
     ASSERT_MSG(DYNA_REC, distance >= -0x80000000LL && distance < 0x80000000LL,
-               "Jump target too far away ({}), needs indirect register", distance);
+               "Jump::Near target too far away ({}), needs indirect register", distance);
     Write8(0xE9);
     Write32((u32)(s32)distance);
   }
@@ -510,12 +510,13 @@ FixupBranch XEmitter::CALL()
   return branch;
 }
 
-FixupBranch XEmitter::J(bool force5bytes)
+FixupBranch XEmitter::J(const Jump jump)
 {
   FixupBranch branch;
-  branch.type = force5bytes ? FixupBranch::Type::Branch32Bit : FixupBranch::Type::Branch8Bit;
-  branch.ptr = code + (force5bytes ? 5 : 2);
-  if (!force5bytes)
+  const bool is_near_jump = jump == Jump::Near;
+  branch.type = is_near_jump ? FixupBranch::Type::Branch32Bit : FixupBranch::Type::Branch8Bit;
+  branch.ptr = code + (is_near_jump ? 5 : 2);
+  if (!is_near_jump)
   {
     // 8 bits will do
     Write8(0xEB);
@@ -536,12 +537,13 @@ FixupBranch XEmitter::J(bool force5bytes)
   return branch;
 }
 
-FixupBranch XEmitter::J_CC(CCFlags conditionCode, bool force5bytes)
+FixupBranch XEmitter::J_CC(CCFlags conditionCode, const Jump jump)
 {
   FixupBranch branch;
-  branch.type = force5bytes ? FixupBranch::Type::Branch32Bit : FixupBranch::Type::Branch8Bit;
-  branch.ptr = code + (force5bytes ? 6 : 2);
-  if (!force5bytes)
+  const bool is_near_jump = jump == Jump::Near;
+  branch.type = is_near_jump ? FixupBranch::Type::Branch32Bit : FixupBranch::Type::Branch8Bit;
+  branch.ptr = code + (is_near_jump ? 6 : 2);
+  if (!is_near_jump)
   {
     // 8 bits will do
     Write8(0x70 + conditionCode);
@@ -592,14 +594,14 @@ void XEmitter::SetJumpTarget(const FixupBranch& branch)
   {
     s64 distance = (s64)(code - branch.ptr);
     ASSERT_MSG(DYNA_REC, distance >= -0x80 && distance < 0x80,
-               "Jump target too far away ({}), needs force5Bytes = true", distance);
+               "Jump::Short target too far away ({}), needs Jump::Near", distance);
     branch.ptr[-1] = (u8)(s8)distance;
   }
   else if (branch.type == FixupBranch::Type::Branch32Bit)
   {
     s64 distance = (s64)(code - branch.ptr);
     ASSERT_MSG(DYNA_REC, distance >= -0x80000000LL && distance < 0x80000000LL,
-               "Jump target too far away ({}), needs indirect register", distance);
+               "Jump::Near target too far away ({}), needs indirect register", distance);
 
     s32 valid_distance = static_cast<s32>(distance);
     std::memcpy(&branch.ptr[-4], &valid_distance, sizeof(s32));
@@ -918,7 +920,7 @@ void XEmitter::UD2()
 void XEmitter::PREFETCH(PrefetchLevel level, OpArg arg)
 {
   ASSERT_MSG(DYNA_REC, !arg.IsImm(), "PREFETCH - Imm argument");
-  arg.operandReg = (u8)level;
+  arg.operandReg = static_cast<u8>(level);
   arg.WriteREX(this, 0, 0);
   Write8(0x0F);
   Write8(0x18);

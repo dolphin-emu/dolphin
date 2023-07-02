@@ -107,7 +107,7 @@
                 style="@style/InGameMenuOption" />
 
             <Button
-                android:id="@+id/menu_infinitybase"
+                android:id="@+id/menu_infinity_base"
                 android:text="@string/emulate_infinity_base"
                 style="@style/InGameMenuOption" />
 

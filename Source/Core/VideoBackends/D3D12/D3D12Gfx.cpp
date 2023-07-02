@@ -263,7 +263,7 @@ void Gfx::SetSamplerState(u32 index, const SamplerState& state)
   m_dirty_bits |= DirtyState_Samplers;
 }
 
-void Gfx::SetComputeImageTexture(AbstractTexture* texture, bool read, bool write)
+void Gfx::SetComputeImageTexture(u32 index, AbstractTexture* texture, bool read, bool write)
 {
   const DXTexture* dxtex = static_cast<const DXTexture*>(texture);
   if (m_state.compute_image_texture == dxtex)
@@ -419,6 +419,12 @@ void Gfx::OnConfigChanged(u32 bits)
   {
     ExecuteCommandList(true);
     m_swap_chain->SetStereo(SwapChain::WantsStereo());
+  }
+
+  if (m_swap_chain && bits & CONFIG_CHANGE_BIT_HDR)
+  {
+    ExecuteCommandList(true);
+    m_swap_chain->SetHDR(SwapChain::WantsHDR());
   }
 
   // Wipe sampler cache if force texture filtering or anisotropy changes.
