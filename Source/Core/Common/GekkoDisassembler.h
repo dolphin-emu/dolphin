@@ -72,8 +72,7 @@ private:
   static void rld(u32 in, std::string_view name, int i);
   static void cmp(u32 in);
   static void trap(u32 in, unsigned char dmode);
-  static void dab(u32 in, std::string_view name, int mask, int smode, int chkoe, int chkrc,
-                  unsigned char dmode);
+  static void dab(u32 in, std::string_view name, int mask, int smode, int chkoe, int chkrc);
   static void rrn(u32 in, std::string_view name, int smode, int chkoe, int chkrc,
                   unsigned char dmode);
   static void mtcr(u32 in);
