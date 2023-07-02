@@ -733,8 +733,7 @@ void GekkoDisassembler::dab(u32 in, std::string_view name, int mask, int smode, 
 }
 
 // Last operand is no register: xxxx rD,rA,NB
-void GekkoDisassembler::rrn(u32 in, std::string_view name, int smode, int chkoe, int chkrc,
-                            unsigned char dmode)
+void GekkoDisassembler::rrn(u32 in, std::string_view name, int smode, int chkoe, int chkrc)
 {
   if (chkrc >= 0 && ((in & 1) != (unsigned int)chkrc))
   {
@@ -1880,7 +1879,7 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
       break;
 
     case 597:
-      rrn(in, "lswi", 0, 0, 0, 0);
+      rrn(in, "lswi", 0, 0, 0);
       break;
 
     case 598:
@@ -1919,7 +1918,7 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
       break;
 
     case 725:
-      rrn(in, "stswi", 0, 0, 0, 0);
+      rrn(in, "stswi", 0, 0, 0);
       break;
 
     case 727:
@@ -1943,7 +1942,7 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
       break;
 
     case 824:
-      rrn(in, "srawi", 1, 0, -1, 0);
+      rrn(in, "srawi", 1, 0, -1);
       break;
 
     case 854:
