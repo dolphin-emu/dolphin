@@ -18,11 +18,6 @@
 	url = https://github.com/libusb/libusb.git
 	branch = master
 	shallow = true
-[submodule "Externals/Lua/Lua"]
-	path = Externals/Lua/Lua
-	url = https://github.com/lua/lua.git
-	branch = master
-	shallow = true
 [submodule "Externals/spirv_cross/SPIRV-Cross"]
 	path = Externals/spirv_cross/SPIRV-Cross
 	url = https://github.com/KhronosGroup/SPIRV-Cross.git
