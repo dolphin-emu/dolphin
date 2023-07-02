@@ -1322,7 +1322,7 @@ TCacheEntry* TextureCacheBase::LoadImpl(const TextureInfo& texture_info, bool fo
     entry->texture_info_name = texture_info.CalculateTextureName().GetFullName();
 
     GraphicsModActionData::TextureLoad texture_load{entry->texture_info_name};
-    for (const auto action :
+    for (const auto& action :
          g_graphics_mod_manager->GetTextureLoadActions(entry->texture_info_name))
     {
       action->OnTextureLoad(&texture_load);
@@ -2274,7 +2274,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     info.m_texture_format = baseFormat;
     if (is_xfb_copy)
     {
-      for (const auto action : g_graphics_mod_manager->GetXFBActions(info))
+      for (const auto& action : g_graphics_mod_manager->GetXFBActions(info))
       {
         action->OnXFB();
       }
@@ -2283,7 +2283,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     {
       bool skip = false;
       GraphicsModActionData::EFB efb{tex_w, tex_h, &skip, &scaled_tex_w, &scaled_tex_h};
-      for (const auto action : g_graphics_mod_manager->GetEFBActions(info))
+      for (const auto& action : g_graphics_mod_manager->GetEFBActions(info))
       {
         action->OnEFB(&efb);
       }
