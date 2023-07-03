@@ -10,6 +10,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "VideoCommon/Assets/CustomTextureData.h"
+#include "VideoCommon/Assets/ShaderAsset.h"
 
 namespace VideoCommon
 {
@@ -47,6 +48,100 @@ DirectFilesystemAssetLibrary::GetLastAssetWriteTime(const AssetID& asset_id) con
   }
 
   return {};
+}
+
+CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadPixelShader(const AssetID& asset_id,
+                                                                           PixelShaderData* data)
+{
+  const auto asset_map = GetAssetMapForID(asset_id);
+
+  // Asset map for a pixel shader is the shader and some metadata
+  if (asset_map.size() != 2)
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' expected to have two files mapped!", asset_id);
+    return {};
+  }
+
+  const auto metadata = asset_map.find("metadata");
+  const auto shader = asset_map.find("shader");
+  if (metadata == asset_map.end())
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' expected to have a metadata entry mapped!", asset_id);
+    return {};
+  }
+
+  if (shader == asset_map.end())
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' expected to have a shader entry mapped!", asset_id);
+    return {};
+  }
+
+  std::size_t metadata_size;
+  {
+    std::error_code ec;
+    metadata_size = std::filesystem::file_size(metadata->second, ec);
+    if (ec)
+    {
+      ERROR_LOG_FMT(VIDEO,
+                    "Asset '{}' error - failed to get shader metadata file size with error '{}'!",
+                    asset_id, ec);
+      return {};
+    }
+  }
+  std::size_t shader_size;
+  {
+    std::error_code ec;
+    shader_size = std::filesystem::file_size(shader->second, ec);
+    if (ec)
+    {
+      ERROR_LOG_FMT(VIDEO,
+                    "Asset '{}' error - failed to get shader source file size with error '{}'!",
+                    asset_id, ec);
+      return {};
+    }
+  }
+  const auto approx_mem_size = metadata_size + shader_size;
+
+  if (!File::ReadFileToString(shader->second.string(), data->m_shader_source))
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' error -  failed to load the shader file '{}',", asset_id,
+                  shader->second.string());
+    return {};
+  }
+
+  std::string json_data;
+  if (!File::ReadFileToString(metadata->second.string(), json_data))
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' error -  failed to load the json file '{}',", asset_id,
+                  metadata->second.string());
+    return {};
+  }
+
+  picojson::value root;
+  const auto error = picojson::parse(root, json_data);
+
+  if (!error.empty())
+  {
+    ERROR_LOG_FMT(VIDEO,
+                  "Asset '{}' error -  failed to load the json file '{}', due to parse error: {}",
+                  asset_id, metadata->second.string(), error);
+    return {};
+  }
+  if (!root.is<picojson::object>())
+  {
+    ERROR_LOG_FMT(
+        VIDEO,
+        "Asset '{}' error -  failed to load the json file '{}', due to root not being an object!",
+        asset_id, metadata->second.string());
+    return {};
+  }
+
+  const auto& root_obj = root.get<picojson::object>();
+
+  if (!PixelShaderData::FromJson(asset_id, root_obj, data))
+    return {};
+
+  return LoadInfo{approx_mem_size, GetLastAssetWriteTime(asset_id)};
 }
 
 CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const AssetID& asset_id,

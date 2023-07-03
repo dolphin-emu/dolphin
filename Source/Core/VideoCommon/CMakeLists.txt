@@ -18,6 +18,8 @@ add_library(videocommon
   Assets/CustomTextureData.h
   Assets/DirectFilesystemAssetLibrary.cpp
   Assets/DirectFilesystemAssetLibrary.h
+  Assets/ShaderAsset.cpp
+  Assets/ShaderAsset.h
   Assets/TextureAsset.cpp
   Assets/TextureAsset.h
   AsyncRequests.cpp
