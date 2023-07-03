@@ -10,6 +10,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "VideoCommon/Assets/CustomTextureData.h"
+#include "VideoCommon/Assets/MaterialAsset.h"
 #include "VideoCommon/Assets/ShaderAsset.h"
 
 namespace VideoCommon
@@ -142,6 +143,61 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadPixelShader(const
     return {};
 
   return LoadInfo{approx_mem_size, GetLastAssetWriteTime(asset_id)};
+}
+
+CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMaterial(const AssetID& asset_id,
+                                                                        MaterialData* data)
+{
+  const auto asset_map = GetAssetMapForID(asset_id);
+
+  // Material is expected to have one asset mapped
+  if (asset_map.empty() || asset_map.size() > 1)
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' error - material expected to have one file mapped!", asset_id);
+    return {};
+  }
+  const auto& asset_path = asset_map.begin()->second;
+
+  std::string json_data;
+  if (!File::ReadFileToString(asset_path.string(), json_data))
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' error -  material failed to load the json file '{}',",
+                  asset_id, asset_path.string());
+    return {};
+  }
+
+  picojson::value root;
+  const auto error = picojson::parse(root, json_data);
+
+  if (!error.empty())
+  {
+    ERROR_LOG_FMT(
+        VIDEO,
+        "Asset '{}' error -  material failed to load the json file '{}', due to parse error: {}",
+        asset_id, asset_path.string(), error);
+    return {};
+  }
+  if (!root.is<picojson::object>())
+  {
+    ERROR_LOG_FMT(VIDEO,
+                  "Asset '{}' error - material failed to load the json file '{}', due to root not "
+                  "being an object!",
+                  asset_id, asset_path.string());
+    return {};
+  }
+
+  const auto& root_obj = root.get<picojson::object>();
+
+  if (!MaterialData::FromJson(asset_id, root_obj, data))
+  {
+    ERROR_LOG_FMT(VIDEO,
+                  "Asset '{}' error -  material failed to load the json file '{}', as material "
+                  "json could not be parsed!",
+                  asset_id, asset_path.string());
+    return {};
+  }
+
+  return LoadInfo{json_data.size(), GetLastAssetWriteTime(asset_id)};
 }
 
 CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const AssetID& asset_id,
