@@ -554,6 +554,8 @@ add_library(core
   Scripting/HelperClasses/ModuleLists_API_Implementations.h
   Scripting/HelperClasses/ScriptContext.cpp
   Scripting/HelperClasses/ScriptContext.h
+  Scripting/HelperClasses/ScriptQueueEvent.h
+  Scripting/HelperClasses/ScriptQueueEventTypes.h
   Scripting/HelperClasses/VectorOfArgHolders.cpp
   Scripting/HelperClasses/VectorOfArgHolders.h
   Scripting/HelperClasses/VersionComparisonFunctions.cpp

@@ -32,19 +32,20 @@ void InitializeScript(
 void StopScript(int unique_script_identifier);
 
 void PushScriptStartQueueEvent(
-    const int new_unique_script_identifier,
-    const char* new_script_filename,
+    const int new_unique_script_identifier, const char* new_script_filename,
     const Dolphin_Defined_ScriptContext_APIs::PRINT_CALLBACK_FUNCTION_TYPE& new_print_callback_func,
-    const Dolphin_Defined_ScriptContext_APIs::SCRIPT_END_CALLBACK_FUNCTION_TYPE& new_script_end_callback_func);
+    const Dolphin_Defined_ScriptContext_APIs::SCRIPT_END_CALLBACK_FUNCTION_TYPE&
+        new_script_end_callback_func);
 
 void PushScriptStopQueueEvent(const ScriptQueueEventTypes event_type, const int script_identifier);
 
 void ProcessScriptQueueEvents();  // This function executes
-                                                                        // the events in the queue
-                                                                        // of script events in the
-                                                                        // order that they were
-                                                                        // triggered.
-// This includes the events to start and stop scripts from the UI, as well as the script-end-callback function being called from the script (which is another event)
+                                  // the events in the queue
+                                  // of script events in the
+                                  // order that they were
+                                  // triggered.
+// This includes the events to start and stop scripts from the UI, as well as the
+// script-end-callback function being called from the script (which is another event)
 
 bool StartScripts();
 bool RunGlobalCode();

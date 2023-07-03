@@ -477,6 +477,8 @@
     <ClInclude Include="Core\Scripting\HelperClasses\FunctionMetadata.h" />
 	<ClInclude Include="Core\Scripting\HelperClasses\GCButtonFunctions.h" />
 	<ClInclude Include="Core\Scripting\HelperClasses\ScriptContext.h" />
+	<ClInclude Include="Core\Scripting\HelperClasses\ScriptQueueEvent.h" />
+    <ClInclude Include="Core\Scripting\HelperClasses\ScriptQueueEventTypes.h" />
     <ClInclude Include="Core\Scripting\HelperClasses\VersionResolver.h" />
     <ClInclude Include="Core\Scripting\ScriptUtilities.h" />
     <ClInclude Include="Core\State.h" />

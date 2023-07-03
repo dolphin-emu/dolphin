@@ -148,8 +148,9 @@ void ScriptWindow::PlayScriptFunction()
 
   row_num_to_is_running[current_row] = true;
 
-  Scripting::ScriptUtilities::PushScriptStartQueueEvent(
-      current_row, current_script_name.c_str(), callback_print_function, finished_script_callback_function);
+  Scripting::ScriptUtilities::PushScriptStartQueueEvent(current_row, current_script_name.c_str(),
+                                                        callback_print_function,
+                                                        finished_script_callback_function);
 }
 
 void ScriptWindow::StopScriptFunction()
@@ -160,7 +161,8 @@ void ScriptWindow::StopScriptFunction()
   script_start_or_stop_lock.lock();
   int current_row = script_name_list_widget_ptr->currentRow() + 1;
   script_start_or_stop_lock.unlock();
-  Scripting::ScriptUtilities::PushScriptStopQueueEvent(ScriptQueueEventTypes::StopScriptFromUI, current_row);
+  Scripting::ScriptUtilities::PushScriptStopQueueEvent(ScriptQueueEventTypes::StopScriptFromUI,
+                                                       current_row);
   row_num_to_is_running[current_row] = false;
   UpdateButtonText();
 }

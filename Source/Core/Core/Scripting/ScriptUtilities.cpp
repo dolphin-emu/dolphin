@@ -24,13 +24,13 @@
 #include "Core/Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressReadFromCallbackAPI.h"
 #include "Core/Scripting/EventCallbackRegistrationAPIs/OnMemoryAddressWrittenToCallbackAPI.h"
 #include "Core/Scripting/HelperClasses/ArgHolder_API_Implementations.h"
-#include "Core/Scripting/HelperClasses/ScriptQueueEvent.h"
 #include "Core/Scripting/HelperClasses/ClassFunctionsResolver.h"
 #include "Core/Scripting/HelperClasses/ClassMetadata.h"
 #include "Core/Scripting/HelperClasses/FileUtility_API_Implementations.h"
 #include "Core/Scripting/HelperClasses/FunctionMetadata.h"
 #include "Core/Scripting/HelperClasses/GCButtonFunctions.h"
 #include "Core/Scripting/HelperClasses/ModuleLists_API_Implementations.h"
+#include "Core/Scripting/HelperClasses/ScriptQueueEvent.h"
 #include "Core/Scripting/HelperClasses/VectorOfArgHolders.h"
 #include "Core/Scripting/InternalAPIModules/GraphicsAPI.h"
 #include "Core/System.h"
@@ -477,7 +477,8 @@ void InitializeScript(
   if (script_filename.length() < 1)
     return;
 
-  // We only call this function from inside of ProccessScriptQueueEvents, which holds the initialization_and_destruction lock when it makes this call.
+  // We only call this function from inside of ProccessScriptQueueEvents, which holds the
+  // initialization_and_destruction lock when it makes this call.
   if (!initialized_dolphin_api_structs)
     InitializeDolphinApiStructs();
 
@@ -504,20 +505,19 @@ void InitializeScript(
           unique_script_identifier, script_filename.c_str(), new_print_callback,
           new_script_end_callback)));
 
-  if (list_of_all_scripts[list_of_all_scripts.size() - 1]
-          ->script_return_code != ScriptReturnCodes::SuccessCode)
+  if (list_of_all_scripts[list_of_all_scripts.size() - 1]->script_return_code !=
+      ScriptReturnCodes::SuccessCode)
   {
-    PanicAlertFmt(
-        "{}",
-        list_of_all_scripts[list_of_all_scripts.size() - 1]
-            ->last_script_error.c_str());
+    PanicAlertFmt("{}",
+                  list_of_all_scripts[list_of_all_scripts.size() - 1]->last_script_error.c_str());
   }
 }
 
 void StopScript(int unique_script_identifier)
 {
   Core::CPUThreadGuard lock(Core::System::GetInstance());
-  //initialization_and_destruction_lock.lock(); We already have this locked when the function is called.
+  // initialization_and_destruction_lock.lock(); We already have this locked when the function is
+  // called.
   global_code_and_frame_callback_running_lock.lock();
   gc_controller_polled_callback_running_lock.lock();
   instruction_hit_callback_running_lock.lock();
@@ -528,23 +528,20 @@ void StopScript(int unique_script_identifier)
 
   ScriptContext* script_to_delete = nullptr;
 
+  for (size_t i = 0; i < list_of_all_scripts.size(); ++i)
+  {
+    list_of_all_scripts[i]->script_specific_lock.lock();
+    if (list_of_all_scripts[i]->unique_script_identifier == unique_script_identifier)
+      script_to_delete = list_of_all_scripts[i];
+    list_of_all_scripts[i]->script_specific_lock.unlock();
+  }
 
-    for (size_t i = 0; i < list_of_all_scripts.size(); ++i)
-    {
-      list_of_all_scripts[i]->script_specific_lock.lock();
-      if (list_of_all_scripts[i]->unique_script_identifier ==
-          unique_script_identifier)
-        script_to_delete = list_of_all_scripts[i];
-      list_of_all_scripts[i]->script_specific_lock.unlock();
-    }
-
-    if (script_to_delete != nullptr)
-    {
-      list_of_all_scripts
-          .erase(std::find(list_of_all_scripts.begin(),
-                           list_of_all_scripts.end(), script_to_delete));
-      dolphin_defined_scriptContext_apis.ScriptContext_Destructor(script_to_delete);
-    }
+  if (script_to_delete != nullptr)
+  {
+    list_of_all_scripts.erase(
+        std::find(list_of_all_scripts.begin(), list_of_all_scripts.end(), script_to_delete));
+    dolphin_defined_scriptContext_apis.ScriptContext_Destructor(script_to_delete);
+  }
   graphics_callback_running_lock.unlock();
   wii_input_polled_callback_running_lock.unlock();
   memory_address_written_to_callback_running_lock.unlock();
@@ -552,14 +549,14 @@ void StopScript(int unique_script_identifier)
   instruction_hit_callback_running_lock.unlock();
   gc_controller_polled_callback_running_lock.unlock();
   global_code_and_frame_callback_running_lock.unlock();
-  //initialization_and_destruction_lock.unlock();
+  // initialization_and_destruction_lock.unlock();
 }
 
 void PushScriptStartQueueEvent(
-  const int new_unique_script_identifier, const char* new_script_filename,
-  const Dolphin_Defined_ScriptContext_APIs::PRINT_CALLBACK_FUNCTION_TYPE& new_print_callback_func,
-  const Dolphin_Defined_ScriptContext_APIs::SCRIPT_END_CALLBACK_FUNCTION_TYPE&
-  new_script_end_callback_func)
+    const int new_unique_script_identifier, const char* new_script_filename,
+    const Dolphin_Defined_ScriptContext_APIs::PRINT_CALLBACK_FUNCTION_TYPE& new_print_callback_func,
+    const Dolphin_Defined_ScriptContext_APIs::SCRIPT_END_CALLBACK_FUNCTION_TYPE&
+        new_script_end_callback_func)
 {
   std::lock_guard<std::mutex> lock(initialization_and_destruction_lock);
   is_scripting_core_initialized = true;
@@ -577,12 +574,13 @@ void PushScriptStopQueueEvent(const ScriptQueueEventTypes event_type, const int 
 
 void ProcessScriptQueueEvents()
 {
-  //Core::CPUThreadGuard lock(Core::System::GetInstance());
+  // Core::CPUThreadGuard lock(Core::System::GetInstance());
   std::lock_guard<std::mutex> lock(initialization_and_destruction_lock);
   if (script_events.size() == 0)
     return;
 
-  for (unsigned long long i = 0; i < script_events.size() - 1; ++i) // deleting all duplicate events from the queue
+  for (unsigned long long i = 0; i < script_events.size() - 1;
+       ++i)  // deleting all duplicate events from the queue
   {
     for (unsigned long long j = i + 1; j < script_events.size(); ++j)
     {
@@ -594,14 +592,17 @@ void ProcessScriptQueueEvents()
     }
   }
 
-  for (unsigned long long i = 0; i < script_events.size() - 1; ++i) // Now, removing all pairs of start and stop script events that have the same unique script identifier
+  for (unsigned long long i = 0; i < script_events.size() - 1;
+       ++i)  // Now, removing all pairs of start and stop script events that have the same unique
+             // script identifier
   {
     if (script_events[i].event_type == ScriptQueueEventTypes::CreateScriptFromUI)
     {
       int current_script_identifier = script_events[i].unique_script_identifier;
       for (unsigned long long j = i + 1; j < script_events.size(); ++j)
       {
-        if (script_events[j].unique_script_identifier == current_script_identifier && script_events[j].event_type == ScriptQueueEventTypes::StopScriptFromUI)
+        if (script_events[j].unique_script_identifier == current_script_identifier &&
+            script_events[j].event_type == ScriptQueueEventTypes::StopScriptFromUI)
         {
           script_events.erase(script_events.begin() + j);
           script_events.erase(script_events.begin() + i);
@@ -611,14 +612,16 @@ void ProcessScriptQueueEvents()
     }
   }
 
-  // Now, we begin processing the events in the queue in the order that they were added to the queue.
+  // Now, we begin processing the events in the queue in the order that they were added to the
+  // queue.
   while (script_events.size() > 0)
   {
     ScriptQueueEvent current_event = script_events[0];
     if (current_event.event_type == ScriptQueueEventTypes::CreateScriptFromUI)
       InitializeScript(current_event.unique_script_identifier, current_event.script_filename,
                        current_event.print_callback_func, current_event.script_end_callback_func);
-    else if (current_event.event_type == ScriptQueueEventTypes::StopScriptFromUI || current_event.event_type == ScriptQueueEventTypes::StopScriptFromScriptEndCallback)
+    else if (current_event.event_type == ScriptQueueEventTypes::StopScriptFromUI ||
+             current_event.event_type == ScriptQueueEventTypes::StopScriptFromScriptEndCallback)
       StopScript(current_event.unique_script_identifier);
     else
     {
@@ -635,8 +638,7 @@ bool StartScripts()
   std::lock_guard<std::mutex> lock(initialization_and_destruction_lock);
   std::lock_guard<std::mutex> second_lock(global_code_and_frame_callback_running_lock);
   bool return_value = false;
-  if (list_of_all_scripts.size() == 0 ||
-      queue_of_scripts_waiting_to_start.IsEmpty())
+  if (list_of_all_scripts.size() == 0 || queue_of_scripts_waiting_to_start.IsEmpty())
     return false;
   while (!queue_of_scripts_waiting_to_start.IsEmpty())
   {
