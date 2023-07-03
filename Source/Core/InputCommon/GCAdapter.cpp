@@ -218,10 +218,9 @@ static void ReadThreadFunc()
       error = libusb_reset_device(s_handle);
       ERROR_LOG_FMT(CONTROLLERINTERFACE, "Read: libusb_reset_device: {}",
                     LibusbUtils::ErrorWrap(error));
-      if (error != 0)
-      {
-        break;
-      }
+
+      // If error is nonzero, try fixing it next loop iteration. We can't easily return
+      // and cleanup program state without getting another thread to call Reset().
     }
 
     ProcessInputPayload(input_buffer.data(), payload_size);
