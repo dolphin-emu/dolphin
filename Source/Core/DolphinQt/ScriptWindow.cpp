@@ -36,9 +36,10 @@ ScriptWindow::ScriptWindow(QWidget* parent) : QDialog(parent)
     QueueOnObject(GetThis(), &ScriptWindow::UpdateOutputWindow);
   };
 
-  finished_script_callback_function = [](void* x, int unique_identifier) {
+  finished_script_callback_function = [](void* base_script_context_ptr, int unique_identifier) {
     std::lock_guard<std::mutex> lock(GetThis()->script_start_or_stop_lock);
     GetThis()->ids_of_scripts_to_stop.push(unique_identifier);
+    Scripting::ScriptUtilities::SetIsScriptActiveToFalse(base_script_context_ptr);
     Core::System::GetInstance().GetCoreTiming().ScheduleEvent(
         -1, stop_script_from_callback_event, unique_identifier, CoreTiming::FromThread::ANY);
     QueueOnObject(GetThis(), &ScriptWindow::OnScriptFinish);
