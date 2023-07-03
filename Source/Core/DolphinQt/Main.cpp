@@ -28,8 +28,10 @@
 #include "Core/Boot/Boot.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
+#include "Core/CoreTiming.h"
 #include "Core/DolphinAnalytics.h"
 #include "Core/Scripting/ScriptUtilities.h"
+#include "Core/System.h"
 
 #include "DolphinQt/Host.h"
 #include "DolphinQt/MainWindow.h"
@@ -118,7 +120,14 @@ static void (*script_print_function)(void*, const char*) = [](void*, const char*
   ::OutputDebugStringW(UTF8ToWString(val).c_str());
 #endif
 };
-static void (*script_end_function)(void*, int) = [](void*, int identifier) {};
+
+static CoreTiming::EventType* stop_script_from_callback_main_event = nullptr;
+
+static void (*script_end_function)(void*, int) = [](void* base_script_context_ptr, int identifier) {
+  Scripting::ScriptUtilities::SetIsScriptActiveToFalse(base_script_context_ptr);
+  Core::System::GetInstance().GetCoreTiming().ScheduleEvent(
+      -1, stop_script_from_callback_main_event, 0, CoreTiming::FromThread::ANY);
+};
 
 int main(int argc, char* argv[])
 {
@@ -200,8 +209,14 @@ int main(int argc, char* argv[])
     starting_script_path = static_cast<const char*>(options.get("script"));
     if (starting_script_path.has_value())
     {
-      Scripting::ScriptUtilities::InitializeScript(-1, starting_script_path.value(),
-                                                   script_print_function, script_end_function);
+      stop_script_from_callback_main_event =
+          Core::System::GetInstance().GetCoreTiming().RegisterEvent(
+              "SCRIPT_STOP_FROM_MAIN_FUNC", [](Core::System& system_, u64, s64) {
+                Scripting::ScriptUtilities::PushScriptStopQueueEvent(
+                    ScriptQueueEventTypes::StopScriptFromScriptEndCallback, -1);
+              });
+      Scripting::ScriptUtilities::PushScriptStartQueueEvent(
+          -1, starting_script_path.value().c_str(), script_print_function, script_end_function);
     }
   }
 

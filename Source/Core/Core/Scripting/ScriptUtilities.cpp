@@ -513,6 +513,11 @@ void InitializeScript(
   }
 }
 
+void SetIsScriptActiveToFalse(void* base_script_context_ptr)
+{
+  dolphin_defined_scriptContext_apis.set_is_script_active(base_script_context_ptr, 0);
+}
+
 void StopScript(int unique_script_identifier)
 {
   Core::CPUThreadGuard lock(Core::System::GetInstance());

@@ -29,6 +29,8 @@ void InitializeScript(
     Dolphin_Defined_ScriptContext_APIs::PRINT_CALLBACK_FUNCTION_TYPE new_print_callback,
     Dolphin_Defined_ScriptContext_APIs::SCRIPT_END_CALLBACK_FUNCTION_TYPE new_script_end_callback);
 
+void SetIsScriptActiveToFalse(void* base_script_context_ptr);  // Only used by Main.cpp
+
 void StopScript(int unique_script_identifier);
 
 void PushScriptStartQueueEvent(
