@@ -267,6 +267,7 @@ typedef struct DLL_Defined_ScriptContext_APIs
   // The destructor for the DLL-specific object(s) associated with the ScriptContext* (this is
   // called by Dolphin).
   void (*DLLSpecificDestructor)(void*);
+
 } DLL_Defined_ScriptContext_APIs;
 
 #ifdef __cplusplus

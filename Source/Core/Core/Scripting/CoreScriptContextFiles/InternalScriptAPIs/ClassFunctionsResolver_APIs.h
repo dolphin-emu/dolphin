@@ -22,6 +22,7 @@ typedef struct ClassFunctionsResolver_APIs
   // DLL-side).
   void (*Send_FunctionMetadataForVersion_To_DLL_Buffer)(void*, const char*, const char*,
                                                         const char*);
+
 } ClassFunctionsResolver_APIs;
 
 #ifdef __cplusplus
