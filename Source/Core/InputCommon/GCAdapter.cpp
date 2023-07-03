@@ -625,8 +625,8 @@ static bool CheckDeviceAccess(libusb_device* device)
 
 static void AddGCAdapter(libusb_device* device)
 {
-  libusb_config_descriptor* config = nullptr;
-  if (const int error = libusb_get_config_descriptor(device, 0, &config); error != LIBUSB_SUCCESS)
+  auto [error, config] = LibusbUtils::MakeConfigDescriptor(device);
+  if (error != LIBUSB_SUCCESS)
   {
     WARN_LOG_FMT(CONTROLLERINTERFACE, "libusb_get_config_descriptor failed: {}",
                  LibusbUtils::ErrorWrap(error));
@@ -647,13 +647,12 @@ static void AddGCAdapter(libusb_device* device)
       }
     }
   }
-  libusb_free_config_descriptor(config);
+  config.reset();
 
   int size = 0;
   std::array<u8, CONTROLER_OUTPUT_INIT_PAYLOAD_SIZE> payload = {0x13};
-  const int error =
-      libusb_interrupt_transfer(s_handle, s_endpoint_out, payload.data(),
-                                CONTROLER_OUTPUT_INIT_PAYLOAD_SIZE, &size, USB_TIMEOUT_MS);
+  error = libusb_interrupt_transfer(s_handle, s_endpoint_out, payload.data(),
+                                    CONTROLER_OUTPUT_INIT_PAYLOAD_SIZE, &size, USB_TIMEOUT_MS);
   if (error != LIBUSB_SUCCESS)
   {
     WARN_LOG_FMT(CONTROLLERINTERFACE, "AddGCAdapter: libusb_interrupt_transfer failed: {}",
