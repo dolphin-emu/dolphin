@@ -26,8 +26,8 @@ const char* GetExampleFunctionCall_FunctionMetadata_impl(void* function_metadata
 //  and returns an ArgHolder*.
 // However, it's safe to cast this function to a different function type, as long as we cast it back
 // to its original type before calling it. As such, we return this casted function pointer here, and
-// the user calls the RunFunctionMain function with this casted function pointer as an argument. The
-// function then casts the function pointer back to its original type before calling it.
+// the user calls the RunFunctionMain function with this casted function pointer as an argument.
+// RunFunctionMain then casts the function pointer back to its original type before calling it.
 
 // This is why the user can't directly invoke the function pointer returned by this function!!!
 FUNCTION_POINTER_TYPE_FOR_FUNCTION_METADATA_API

@@ -71,14 +71,19 @@ int ParseGCButton_impl(const char* button_name)
   case 'D':
     if (IsEqualIgnoreCase(button_name, "dPadUp"))
       return (int)ScriptingEnums::GcButtonNameEnum::DPadUp;
+
     else if (IsEqualIgnoreCase(button_name, "dPadDown"))
       return (int)ScriptingEnums::GcButtonNameEnum::DPadDown;
+
     else if (IsEqualIgnoreCase(button_name, "dPadLeft"))
       return (int)ScriptingEnums::GcButtonNameEnum::DPadLeft;
+
     else if (IsEqualIgnoreCase(button_name, "dPadRight"))
       return (int)ScriptingEnums::GcButtonNameEnum::DPadRight;
+
     else if (IsEqualIgnoreCase(button_name, "disc"))
       return (int)ScriptingEnums::GcButtonNameEnum::Disc;
+
     else
       return (int)ScriptingEnums::GcButtonNameEnum::UnknownButton;
 
@@ -86,8 +91,10 @@ int ParseGCButton_impl(const char* button_name)
   case 'A':
     if (IsEqualIgnoreCase(button_name, "analogStickX"))
       return (int)ScriptingEnums::GcButtonNameEnum::AnalogStickX;
+
     else if (IsEqualIgnoreCase(button_name, "analogStickY"))
       return (int)ScriptingEnums::GcButtonNameEnum::AnalogStickY;
+
     else
       return (int)ScriptingEnums::GcButtonNameEnum::UnknownButton;
 
@@ -95,8 +102,10 @@ int ParseGCButton_impl(const char* button_name)
   case 'C':
     if (IsEqualIgnoreCase(button_name, "cStickX"))
       return (int)ScriptingEnums::GcButtonNameEnum::CStickX;
+
     else if (IsEqualIgnoreCase(button_name, "cStickY"))
       return (int)ScriptingEnums::GcButtonNameEnum::CStickY;
+
     else
       return (int)ScriptingEnums::GcButtonNameEnum::UnknownButton;
 
@@ -104,8 +113,10 @@ int ParseGCButton_impl(const char* button_name)
   case 'T':
     if (IsEqualIgnoreCase(button_name, "triggerL"))
       return (int)ScriptingEnums::GcButtonNameEnum::TriggerL;
+
     else if (IsEqualIgnoreCase(button_name, "triggerR"))
       return (int)ScriptingEnums::GcButtonNameEnum::TriggerR;
+
     else
       return (int)ScriptingEnums::GcButtonNameEnum::UnknownButton;
 
@@ -113,6 +124,7 @@ int ParseGCButton_impl(const char* button_name)
   case 'R':
     if (IsEqualIgnoreCase(button_name, "reset"))
       return (int)ScriptingEnums::GcButtonNameEnum::Reset;
+
     else
       return (int)ScriptingEnums::GcButtonNameEnum::UnknownButton;
 
@@ -120,6 +132,7 @@ int ParseGCButton_impl(const char* button_name)
   case 'S':
     if (IsEqualIgnoreCase(button_name, "start"))
       return (int)ScriptingEnums::GcButtonNameEnum::Start;
+
     else
       return (int)ScriptingEnums::GcButtonNameEnum::UnknownButton;
 
@@ -127,6 +140,7 @@ int ParseGCButton_impl(const char* button_name)
   case 'G':
     if (IsEqualIgnoreCase(button_name, "getOrigin"))
       return (int)ScriptingEnums::GcButtonNameEnum::GetOrigin;
+
     else
       return (int)ScriptingEnums::GcButtonNameEnum::UnknownButton;
 
@@ -134,6 +148,7 @@ int ParseGCButton_impl(const char* button_name)
   case 'I':
     if (IsEqualIgnoreCase(button_name, "isConnected"))
       return (int)ScriptingEnums::GcButtonNameEnum::IsConnected;
+
     else
       return (int)ScriptingEnums::GcButtonNameEnum::UnknownButton;
 
@@ -148,48 +163,70 @@ const char* ConvertButtonEnumToString_impl(int button)
   {
   case ScriptingEnums::GcButtonNameEnum::A:
     return "A";
+
   case ScriptingEnums::GcButtonNameEnum::B:
     return "B";
+
   case ScriptingEnums::GcButtonNameEnum::X:
     return "X";
+
   case ScriptingEnums::GcButtonNameEnum::Y:
     return "Y";
+
   case ScriptingEnums::GcButtonNameEnum::Z:
     return "Z";
+
   case ScriptingEnums::GcButtonNameEnum::L:
     return "L";
+
   case ScriptingEnums::GcButtonNameEnum::R:
     return "R";
+
   case ScriptingEnums::GcButtonNameEnum::Start:
     return "Start";
+
   case ScriptingEnums::GcButtonNameEnum::Reset:
     return "Reset";
+
   case ScriptingEnums::GcButtonNameEnum::DPadUp:
     return "dPadUp";
+
   case ScriptingEnums::GcButtonNameEnum::DPadDown:
     return "dPadDown";
+
   case ScriptingEnums::GcButtonNameEnum::DPadLeft:
     return "dPadLeft";
+
   case ScriptingEnums::GcButtonNameEnum::DPadRight:
     return "dPadRight";
+
   case ScriptingEnums::GcButtonNameEnum::TriggerL:
     return "triggerL";
+
   case ScriptingEnums::GcButtonNameEnum::TriggerR:
     return "triggerR";
+
   case ScriptingEnums::GcButtonNameEnum::AnalogStickX:
     return "analogStickX";
+
   case ScriptingEnums::GcButtonNameEnum::AnalogStickY:
     return "analogStickY";
+
   case ScriptingEnums::GcButtonNameEnum::CStickX:
     return "cStickX";
+
   case ScriptingEnums::GcButtonNameEnum::CStickY:
     return "cStickY";
+
   case ScriptingEnums::GcButtonNameEnum::Disc:
     return "disc";
+
   case ScriptingEnums::GcButtonNameEnum::GetOrigin:
     return "getOrigin";
+
   case ScriptingEnums::GcButtonNameEnum::IsConnected:
     return "isConnected";
+
   default:
     return "";
   }

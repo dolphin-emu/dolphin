@@ -282,48 +282,70 @@ int GetControllerStateArgHolderValue_impl(void* input_ptr, int gc_button_name)
   {
   case ScriptingEnums::GcButtonNameEnum::A:
     return (int)controller_state_arg_holder->controller_state_val.A;
+
   case ScriptingEnums::GcButtonNameEnum::AnalogStickX:
     return (int)controller_state_arg_holder->controller_state_val.AnalogStickX;
+
   case ScriptingEnums::GcButtonNameEnum::AnalogStickY:
     return (int)controller_state_arg_holder->controller_state_val.AnalogStickY;
+
   case ScriptingEnums::GcButtonNameEnum::B:
     return (int)controller_state_arg_holder->controller_state_val.B;
+
   case ScriptingEnums::GcButtonNameEnum::CStickX:
     return (int)controller_state_arg_holder->controller_state_val.CStickX;
+
   case ScriptingEnums::GcButtonNameEnum::CStickY:
     return (int)controller_state_arg_holder->controller_state_val.CStickY;
+
   case ScriptingEnums::GcButtonNameEnum::Disc:
     return (int)controller_state_arg_holder->controller_state_val.disc;
+
   case ScriptingEnums::GcButtonNameEnum::DPadDown:
     return (int)controller_state_arg_holder->controller_state_val.DPadDown;
+
   case ScriptingEnums::GcButtonNameEnum::DPadLeft:
     return (int)controller_state_arg_holder->controller_state_val.DPadLeft;
+
   case ScriptingEnums::GcButtonNameEnum::DPadRight:
     return (int)controller_state_arg_holder->controller_state_val.DPadRight;
+
   case ScriptingEnums::GcButtonNameEnum::DPadUp:
     return (int)controller_state_arg_holder->controller_state_val.DPadUp;
+
   case ScriptingEnums::GcButtonNameEnum::GetOrigin:
     return (int)controller_state_arg_holder->controller_state_val.get_origin;
+
   case ScriptingEnums::GcButtonNameEnum::IsConnected:
     return (int)controller_state_arg_holder->controller_state_val.is_connected;
+
   case ScriptingEnums::GcButtonNameEnum::L:
     return (int)controller_state_arg_holder->controller_state_val.L;
+
   case ScriptingEnums::GcButtonNameEnum::R:
     return (int)controller_state_arg_holder->controller_state_val.R;
+
   case ScriptingEnums::GcButtonNameEnum::Reset:
     return (int)controller_state_arg_holder->controller_state_val.reset;
+
   case ScriptingEnums::GcButtonNameEnum::Start:
     return (int)controller_state_arg_holder->controller_state_val.Start;
+
   case ScriptingEnums::GcButtonNameEnum::TriggerL:
     return (int)controller_state_arg_holder->controller_state_val.TriggerL;
+
   case ScriptingEnums::GcButtonNameEnum::TriggerR:
     return (int)controller_state_arg_holder->controller_state_val.TriggerR;
+
   case ScriptingEnums::GcButtonNameEnum::X:
     return (int)controller_state_arg_holder->controller_state_val.X;
+
   case ScriptingEnums::GcButtonNameEnum::Y:
     return (int)controller_state_arg_holder->controller_state_val.Y;
+
   case ScriptingEnums::GcButtonNameEnum::Z:
     return (int)controller_state_arg_holder->controller_state_val.Z;
+
   default:
     return 0;
   }

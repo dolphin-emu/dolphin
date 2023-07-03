@@ -70,16 +70,10 @@ signed long long GetS64FromArgHolder_impl(void*);
 double GetFloatFromArgHolder_impl(void*);
 double GetDoubleFromArgHolder_impl(void*);
 
-// WARNING: The const char* returned from these methods is only valid as long as the ArgHolder* is
-// valid (i.e. until its delete method is called).
 const char* GetStringFromArgHolder_impl(void*);
 const char* GetErrorStringFromArgHolder_impl(void*);
 
-void Delete_ArgHolder_impl(
-    void*);  // WARNING: Destroys the ArgHolder passed into it, and frees the associated memory.
-             // You should either call this function on an ArgHolder, or call the
-             // vector_of_arg_holder destructor once. You shouldn't call the vector destructor AND
-             // the destructor for the ArgHolder - as this would cause a double delete!
+void Delete_ArgHolder_impl(void*);
 #ifdef __cplusplus
 }
 #endif
