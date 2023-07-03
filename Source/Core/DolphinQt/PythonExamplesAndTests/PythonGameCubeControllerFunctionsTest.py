@@ -162,7 +162,7 @@ def MainFunction():
 
 controllerNumberForTest = 1
 indexInListOfAllCases = 0
-listOfExampleCasesForMultiButtonFunctions = [ {"A": True}, {"B": True}, {"X": True}, {"Y": True}, {"Z": True}, {"L": True}, {"R": True}, {"Start": True}, {"Reset": True}, {"triggerL": 183}, {"triggerR": 112}, {"dPadUp": True}, {"dPadDown": True}, {"dPadLeft": True}, {"dPadRight": True}, {"disc" : True}, {"getOrigin" : True}, {"isConnected" : True}, {"analogStickX": 131}, {"analogStickY": 190}, {"cStickX": 99}, {"cStickY": 43}, {"A": True, "cStickX": 232}, {"A": True, "B": True, "X": True, "Y": True, "Z": True, "L": True, "R": True, "Start": True, "Reset": True, "triggerL": 255, "triggerR": 255, "dPadUp": True, "dPadDown": True, "dPadLeft": True, "dPadRight": True, "disc":True, "getOrigin":True, "isConnected":True, "analogStickX": 255, "analogStickY": 255, "cStickX": 255, "cStickY": 255} ]
+listOfExampleCasesForMultiButtonFunctions = [ {"A": True}, {"B": True}, {"X": True}, {"Y": True}, {"Z": True}, {"L": True}, {"R": True}, {"Start": True}, {"Reset": True}, {"triggerL": 183}, {"triggerR": 112}, {"dPadUp": True}, {"dPadDown": True}, {"dPadLeft": True}, {"dPadRight": True}, {"analogStickX": 131}, {"analogStickY": 190}, {"cStickX": 99}, {"cStickY": 43}, {"A": True, "cStickX": 232}, {"A": True, "B": True, "X": True, "Y": True, "Z": True, "L": True, "R": True, "Start": True, "Reset": True, "triggerL": 255, "triggerR": 255, "dPadUp": True, "dPadDown": True, "dPadLeft": True, "dPadRight": True, "analogStickX": 255, "analogStickY": 255, "cStickX": 255, "cStickY": 255} ]
 numberOfCases = len(listOfExampleCasesForMultiButtonFunctions)
 inMiscTestsForController = False
 inMiscTestsForAllControllers = False
@@ -932,7 +932,7 @@ def testAddButtonComboMultiFrameTest():
     if testProbabilityButton("Running through 1000 frames of calling addButtonComboChance() on controller 1 with 80% chance of pressing button B...", testProbabilityAddButtonComboInputAlter, "B", 80, {"B": True}, testActualButtonsEqualExpectedFunction):
         testSuiteNumber += 1
 
-allButtonsSetDict = {"A": True, "B": True, "X": True, "Y": True, "Z": True, "L": True, "R": True, "dPadUp": True, "dPadDown":True, "dPadLeft":True, "dPadRight":True, "Start":True, "Reset":True, "disc":False, "getOrigin":False, "isConnected":True, "analogStickX": 255, "analogStickY":255, "cStickX":255, "cStickY":255, "triggerL":255, "triggerR":255}
+allButtonsSetDict = {"A": True, "B": True, "X": True, "Y": True, "Z": True, "L": True, "R": True, "dPadUp": True, "dPadDown":True, "dPadLeft":True, "dPadRight":True, "Start":True, "Reset":True, "analogStickX": 255, "analogStickY":255, "cStickX":255, "cStickY":255, "triggerL":255, "triggerR":255}
 controllerClearTestNum = 1  
 
 def addControllerClearChanceFunction(portNumber, buttonTable):

@@ -1,4 +1,4 @@
-lwz	r0, -0x5358 (r13)
+bl	->0x8024377C
 
 Total Tests: 6
 	Tests Passed: 6
