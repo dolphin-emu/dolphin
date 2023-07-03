@@ -248,17 +248,20 @@ typedef struct DLL_Defined_ScriptContext_APIs
   // queue (and removes all of them from the queue afterwards).
   void (*RunButtonCallbacksInQueue)(void*);
 
-  // Called by Dolphin when the DLL requests a ClassMetadata object. This gives the DLL a chance to
-  // copy the ClassMetadata object's variables to the DLL's fields, since it will remain in scope
-  // until the end of this function. 1st param is ScriptContext*, 2nd param is an opaque handle to a
-  // ClassMetadata*
+  // This function is called by Dolphin when the DLL calls the
+  // Send_ClassMetadataForVersion_To_DLL_Buffer function (from ClassFunctionsResolver_APIs). This
+  // function gives the DLL a chance to copy the ClassMetadata*'s variables to the DLL's fields,
+  // since it will remain in scope until the end of this function. 1st param is ScriptContext*, 2nd
+  // param is an opaque handle to a ClassMetadata*. Can use the methods in ClassMetadata_APIs to
+  // extract the fields of the opaque ClassMetadata*
   void (*DLLClassMetadataCopyHook)(void*, void*);
 
-  // Called by Dolphin when the DLL requests a specific FunctionMetadata object (when it passes in
-  // module name + version + function name, and expects a FunctionMetadata* to be returned). This
-  // gives the DLL a chance to copy the FunctionMetadata object's variables to the DLL's fields,
-  // since it will remain in scope until the end of this function. 1st param is ScriptContext*, 2nd
-  // param is an opaque handle to a FunctionMetadata*
+  // This function is called by Dolphin when the DLL calls the
+  // Send_FunctionMetadataForVersion_To_DLL_Buffer function (from ClassResolver_APIs). This gives
+  // the DLL a chance to copy the FunctionMetadata*'s variables to the DLL's fields, since it will
+  // remain in scope until the end of this function. 1st param is ScriptContext*, 2nd param is an
+  // opaque handle to a FunctionMetadata*. Can use the methods in FunctionMetadata_APIs to extract
+  // the fields of the opaque FunctionMetadata*
   void (*DLLFunctionMetadataCopyHook)(void*, void*);
 
   // The destructor for the DLL-specific object(s) associated with the ScriptContext* (this is
