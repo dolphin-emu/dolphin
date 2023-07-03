@@ -33,7 +33,7 @@ void SetIsScriptActiveToFalse(void* base_script_context_ptr);  // Only used by M
 
 void StopScript(int unique_script_identifier);
 
-void PushScriptStartQueueEvent(
+void PushScriptCreateQueueEvent(
     const int new_unique_script_identifier, const char* new_script_filename,
     const Dolphin_Defined_ScriptContext_APIs::PRINT_CALLBACK_FUNCTION_TYPE& new_print_callback_func,
     const Dolphin_Defined_ScriptContext_APIs::SCRIPT_END_CALLBACK_FUNCTION_TYPE&

@@ -149,9 +149,9 @@ void ScriptWindow::PlayScriptFunction()
 
   row_num_to_is_running[current_row] = true;
 
-  Scripting::ScriptUtilities::PushScriptStartQueueEvent(current_row, current_script_name.c_str(),
-                                                        callback_print_function,
-                                                        finished_script_callback_function);
+  Scripting::ScriptUtilities::PushScriptCreateQueueEvent(current_row, current_script_name.c_str(),
+                                                         callback_print_function,
+                                                         finished_script_callback_function);
 }
 
 void ScriptWindow::StopScriptFunction()

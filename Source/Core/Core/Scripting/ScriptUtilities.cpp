@@ -557,7 +557,7 @@ void StopScript(int unique_script_identifier)
   // initialization_and_destruction_lock.unlock();
 }
 
-void PushScriptStartQueueEvent(
+void PushScriptCreateQueueEvent(
     const int new_unique_script_identifier, const char* new_script_filename,
     const Dolphin_Defined_ScriptContext_APIs::PRINT_CALLBACK_FUNCTION_TYPE& new_print_callback_func,
     const Dolphin_Defined_ScriptContext_APIs::SCRIPT_END_CALLBACK_FUNCTION_TYPE&

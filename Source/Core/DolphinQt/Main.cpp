@@ -215,7 +215,7 @@ int main(int argc, char* argv[])
                 Scripting::ScriptUtilities::PushScriptStopQueueEvent(
                     ScriptQueueEventTypes::StopScriptFromScriptEndCallback, -1);
               });
-      Scripting::ScriptUtilities::PushScriptStartQueueEvent(
+      Scripting::ScriptUtilities::PushScriptCreateQueueEvent(
           -1, starting_script_path.value().c_str(), script_print_function, script_end_function);
     }
   }

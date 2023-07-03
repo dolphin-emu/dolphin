@@ -13,252 +13,256 @@ typedef struct Dolphin_Defined_ScriptContext_APIs
   typedef void (*PRINT_CALLBACK_FUNCTION_TYPE)(void*, const char*);
   typedef void (*SCRIPT_END_CALLBACK_FUNCTION_TYPE)(void*, int);
 
+  // Creates a new ScriptContext struct, and returns a  pointer to it. The first parameter is the
+  // unique ID of the script, the 2nd parameter is the script filename, the 3rd parameter is the
+  // print_callback function (invoked when a script calls its print function), the 4th parameter is
+  // the script_end_callback (invoked when a script terminates), and the 5th parameter is a
+  // DLL_Defined_ScriptContext_APIs*
   void* (*ScriptContext_Initializer)(int, const char*, PRINT_CALLBACK_FUNCTION_TYPE,
-                                     SCRIPT_END_CALLBACK_FUNCTION_TYPE,
-                                     void*);  // Creates a new ScriptContext struct, and returns a
-                                              // pointer to it.
-  // The first parameter is the unique ID of the script, the 2nd parameter is the script filename,
-  // the 3rd parameter is the print_callback function (invoked when a script calls its print
-  // function) the 4th parameter is the script_end_callback (invoked when a script terminates), and
-  // the 5th parameter is a DLL_Defined_ScriptContext_APIs*
+                                     SCRIPT_END_CALLBACK_FUNCTION_TYPE, void*);
 
-  void (*ScriptContext_Destructor)(
-      void*);  // Calls, the DLL-specific destructor, and then frees the memory allocated by the
-               // ScriptContext* passed into the function.
+  // Calls the DLL-Specific destructor, and then frees the memory allocated by the ScriptContext*
+  // passed into the function.
+  void (*ScriptContext_Destructor)(void*);
 
-  void (*Shutdown_Script)(
-      void*);  // Sets is_script_active to false, and calls the script_end_callback
-  PRINT_CALLBACK_FUNCTION_TYPE(*get_print_callback_function)
-  (void*);  // Returns the function pointer to the print_callback function for the ScriptContext
-            // which is passed into the function.
-  SCRIPT_END_CALLBACK_FUNCTION_TYPE(*get_script_end_callback_function)
-  (void*);  // Returns the function pointer to the script_end_callback function for the
-            // ScriptContext which is passed into the function.
+  // Returns the function pointer to the print_callback function for the ScriptContext* which is
+  // passed into the function.
+  PRINT_CALLBACK_FUNCTION_TYPE (*get_print_callback_function)(void*);
 
-  int (*get_unique_script_identifier)(
-      void*);  // Returns the integer that represents the unique ID for the ScriptContext*
+  // Returns the function pointer to the script_end_callback function for the ScriptContext* which
+  // is passed into the function.
+  SCRIPT_END_CALLBACK_FUNCTION_TYPE (*get_script_end_callback_function)(void*);
 
-  const char* (*get_script_filename)(void*);  // Retuns the filename for the script.
+  // Returns the integer that represents the unique ID for the ScriptContext*
+  int (*get_unique_script_identifier)(void*);
 
-  int (*get_script_call_location)(
-      void*);  // Returns the location that the Script is executing from.
+  // Retuns the filename for the script.
+  const char* (*get_script_filename)(void*);
 
-  int (*get_script_return_code)(void*);  // gets the return code from the last script execution.
-  void (*set_script_return_code)(
-      void*, int);  // sets the return code for the last script execution (called by DLL)
+  // Returns the location that the ScriptContext* is executing from.
+  int (*get_script_call_location)(void*);
 
-  const char* (*get_error_message)(
-      void*);  // Returns the error message from the last script execution (only valid when
-               // script_return_code is not Success)
-  void (*set_error_message)(void*, const char*);  // Sets the error message from the last script
-                                                  // execution to the specified value.
+  // Gets the return code of the last script execution (which is really of type ScriptReturnCodes).
+  int (*get_script_return_code)(void*);
 
-  int (*get_is_script_active)(
-      void*);  // Returns 1 if the ScriptContext is currently active, and 0 otherwise.
-  void (*set_is_script_active)(
-      void*, int);  // Sets the ScriptContext's is_script_active variable to the specified value.
+  // sets the return code for the last script execution (should only be called by the DLL).
+  // 2nd parameter represents a ScriptReturnCodes enum.
+  void (*set_script_return_code)(void*, int);
 
-  int (*get_is_finished_with_global_code)(void*);  // Returns 1 if the ScriptContext has finished
-                                                   // running all global code, and 0 otherwise.
-  void (*set_is_finished_with_global_code)(
-      void*, int);  // Sets the ScriptContext's is_finished_with_global_code variable to the
-                    // specified value.
+  // Returns the error message from the last script execution (only valid when script_return_code is
+  // not Success)
+  const char* (*get_error_message)(void*);
 
-  int (*get_called_yielding_function_in_last_global_script_resume)(
-      void*);  // Returns 1 if the ScriptContext yielded in its last global scope code, and 0
-               // otherwise.
-  void (*set_called_yielding_function_in_last_global_script_resume)(
-      void*,
-      int);  //  Sets the ScriptContext's called_yielding_function_in_last_global_script_resume
-             //  variable to the specified value
+  // Sets the error message from the last script execution to the specified value (should only be
+  // called by the DLL).
+  void (*set_error_message)(void*, const char*);
 
-  int (*get_called_yielding_function_in_last_frame_callback_script_resume)(
-      void*);  // Returns 1 if the ScriptContext yielded in its last frame callback code, and 0
-               // otherwise.
-  void (*set_called_yielding_function_in_last_frame_callback_script_resume)(
-      void*, int);  // Sets the ScriptContext's
-                    // called_yielding_function_in_last_frame_callback_script_resume variable to the
-                    // sspecified value.
+  // Returns 1 if the ScriptContext* is currently active, and 0 otherwise.
+  int (*get_is_script_active)(void*);
 
-  void* (*get_instruction_breakpoints_holder)(
-      void*);  // Returns a InstructionBreakpointsHolder*, which is a type defined by Dolphin.
-  void* (*get_memory_address_breakpoints_holder)(
-      void*);  // Returns a MemoryAddressBreakpointsHolder*, which is a type defined by Dolphin.
+  // Sets the ScriptContext*'s is_script_active variable to the specified value.
+  void (*set_is_script_active)(void*, int);
 
-  void* (*get_dll_defined_script_context_apis)(
-      void*);  // Returns a DLL_Defined_ScriptContext_APIs struct (see below for definition)
+  // Returns 1 if the ScriptContext* has finished running all global code, and 0 otherwise.
+  int (*get_is_finished_with_global_code)(void*);
 
-  void* (*get_derived_script_context_class_ptr)(
-      void*);  // Returns a pointer to the derived ScriptContext* class (ex. a LuaScriptContext*
-               // defined in the DLL)
+  // Sets the ScriptContext*'s is_finished_with_global_code variable to the specified value.
+  void (*set_is_finished_with_global_code)(void*, int);
 
-  void (*set_derived_script_context_class_ptr)(
-      void*, void*);  // Sets the derived ScriptContext* to the specified value.
+  // Returns 1 if the ScriptContext* yielded in its last global scope code, and 0 otherwise.
+  int (*get_called_yielding_function_in_last_global_script_resume)(void*);
 
-  const char* (
-      *get_script_version)();  // this is the same for all scripts, so no void* is passed into it.
+  //  Sets the ScriptContext*'s called_yielding_function_in_last_global_script_resume variable to
+  //  the specified value
+  void (*set_called_yielding_function_in_last_global_script_resume)(void*, int);
 
-  void (*set_dll_script_context_ptr)(
-      void*, void*);  // Sets the pointer to the DLL (ex. a LuaScriptContext*)
+  // Returns 1 if the ScriptContext* yielded in its last frame callback code, and 0 otherwise.
+  int (*get_called_yielding_function_in_last_frame_callback_script_resume)(void*);
 
-  void (*add_script_to_queue_of_scripts_waiting_to_start)(
-      void*);  // Adds the script passed in as an argument to the queue of scripts waiting to be
-               // started.
+  // Sets the ScriptContext*'s called_yielding_function_in_last_frame_callback_script_resume
+  // variable to the specified value.
+  void (*set_called_yielding_function_in_last_frame_callback_script_resume)(void*, int);
+
+  // Returns the DLL_Defined_ScriptContext_APIs* for the ScriptContext* (see below for definition)
+  void* (*get_dll_defined_script_context_apis)(void*);
+
+  // Sets the DLL_Defined_ScriptContext_APIs* for the ScriptContext*
+  void (*set_dll_defined_script_context_ptr)(void*, void*);
+
+  // Returns a pointer to the associated derived ScriptContext* object (ex. a LuaScriptContext*
+  // defined in the DLL)
+  void* (*get_derived_script_context_class_ptr)(void*);
+
+  // Sets the associated derived ScriptContext* for the ScriptContext* to the specified value.
+  void (*set_derived_script_context_class_ptr)(void*, void*);
+
+  // This is the same for all scripts, so no void* is passed into it.
+  const char* (*get_script_version)();
+
+  // Adds the ScriptContext* passed in as an argument to the queue of scripts waiting to be started.
+  void (*add_script_to_queue_of_scripts_waiting_to_start)(void*);
 
 } Dolphin_Defined_ScriptContext_APIs;
 
 // These are functions whose definitions are provided by the implementing DLL (each DLL has their
-// own definitions for these functions)
-//  The first parameter for each function is a void* which represents a ScriptContext*
-//  A pointer to the struct containing these APIs is included in
-//  ScriptContext.dll_specific_api_definitions.
+// own definitions for these functions) The first parameter for each function is a void* which
+// represents a ScriptContext* (NOT a derived class pointer) A pointer to the struct containing
+// these APIs is included in ScriptContext.dll_specific_api_definitions.
 typedef struct DLL_Defined_ScriptContext_APIs
 {
-  void (*ImportModule)(void*, const char*,
-                       const char*);  // 1st parameter is ScriptContext*, 2nd parameter is API name,
-                                      // and 3rd parameter is API version. Imports the specified
-                                      // module into the ScriptContext.
+  // 1st parameter is ScriptContext*, 2nd parameter is API name, and 3rd parameter is API version.
+  // Imports the specified module into the ScriptContext* (scripts will be able to call the imported
+  // functions after this function terminates).
+  void (*ImportModule)(void*, const char*, const char*);
 
-  void (*StartScript)(void*);  // Makes the Script start running for the 1st time.
+  // Makes the Script start running for the 1st time.
+  void (*StartScript)(void*);
 
-  void (*RunGlobalScopeCode)(
-      void*);  // Continues running the Script from the global level (used to resume a script which
-               // has already started, which isn't supported by all languages).
-  void (*RunOnFrameStartCallbacks)(void*);  // Runs all the OnFrameStart callbacks for the script.
-  void (*RunOnGCControllerPolledCallbacks)(
-      void*);  // Runs all the OnGCControllerPolled callbacks for the script.
-  void (*RunOnInstructionReachedCallbacks)(
-      void*, unsigned int);  // Runs all OnInstructionReached callbacks for the specified
-                             // instruction address for the script.
-  void (*RunOnMemoryAddressReadFromCallbacks)(
-      void*, unsigned int);  // Runs all OnMemoryAddressReadFrom callbacks for the specified memory
-                             // address for the script.
-  void (*RunOnMemoryAddressWrittenToCallbacks)(
-      void*, unsigned int);  // Runs all OnMemoryAddressWrittenTo callbacks for the specified memory
-                             // address for the script.
-  void (*RunOnWiiInputPolledCallbacks)(
-      void*);  // Runs all OnWiiInputPolled callbacks for the script.
+  // Continues running the ScriptContext* from the global level (used to resume a script which has
+  // already started, which isn't supported by all languages. Languages that don't support this
+  // should just return right away in their implementation of this function)
+  void (*RunGlobalScopeCode)(void*);
 
-  void* (*RegisterOnFrameStartCallback)(
-      void*,
-      void*);  // Registers a new OnFrameStart callback (the 2nd parameter passed into the
-               // function), and returns a handle that can be used to unregister the callback.
-  void (*RegisterOnFrameStartWithAutoDeregistrationCallback)(
-      void*, void*);  // Registers a new OnFrameStart callback (the 2nd parameter passed into the
-                      // function). This callback should auto-deregister when only auto-deregistered
-                      // callbacks are still running.
-  int (*UnregisterOnFrameStartCallback)(
-      void*,
-      void*);  // Unregisters/removes an OnFrameStart callback (the 2nd parameter passed into the
-               // function should be the return result of RegisterOnFrameStartCallback()).
+  // Runs all the OnFrameStart callbacks currently registered for the ScriptContext*
+  void (*RunOnFrameStartCallbacks)(void*);
 
-  void* (*RegisterOnGCControllerPolledCallback)(
-      void*,
-      void*);  // Registers a new OnGCControllerPolled callback (the 2nd parameter passed into the
-               // function), and returns a handle that can be used to unregister the callback.
-  void (*RegisterOnGCControllerPolledWithAutoDeregistrationCallback)(
-      void*, void*);  // Registers a new OnGCControllerPolled callback (the 2nd parameter passed
-                      // into the function). This callback should auto-deregister when only
-                      // auto-deregistered callbacks are still running.
-  int (*UnregisterOnGCControllerPolledCallback)(
-      void*, void*);  // Unregisters/removes an OnGCControllerPolled callback (the 2nd parameter
-                      // passed into the function should be the return result of
-                      // RegisterOnGCControllerPolledCallback()).
+  // Runs all the OnGCControllerPolled callbacks currently registered for the ScriptContext*
+  void (*RunOnGCControllerPolledCallbacks)(void*);
 
-  void* (*RegisterOnInstructionReachedCallback)(
-      void*, unsigned int,
-      void*);  // Registers a new OnInstructionReached callback (the 3rd paramater passed into the
-               // function) to run when the instruction address specified by the 2nd parameter to
-               // the function is hit. This function returns a handle that can be used to unregister
-               // the callback.
-  void (*RegisterOnInstructioReachedWithAutoDeregistrationCallback)(
-      void*, unsigned int,
-      void*);  // Registers a new OnInstructionReached callback (the 3rd parameter passed into the
-               // function) to run when the instruction address specified by the 2nd parameter to
-               // the function is hit. This function should auto-deregister when only
-               // auto-deregistered callbacks are still running.
-  int (*UnregisterOnInstructionReachedCallback)(
-      void*, unsigned int, void*);  // Unregisters/removes an OnInstructionReached callback (the 3rd
-                                    // parameter passed into the function should be the return
-                                    // result of RegisterOnInstructionReachedCallback()) for the
-                                    // specified instruction address (the 2nd parameter).
+  // Runs all OnWiiInputPolled callbacks currently registered for the ScriptContext*
+  void (*RunOnWiiInputPolledCallbacks)(void*);
 
-  void* (*RegisterOnMemoryAddressReadFromCallback)(
-      void*, unsigned int,
-      void*);  // Registers a new OnMemoryAddressReadFrom callback (the 3rd parameter passed into
-               // the function) to run when the memory address specified by the 2nd parameter to the
-               // function is read from. The function returns a handle that can be used to
-               // unregister the callback.
-  void (*RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallback)(
-      void*, unsigned int,
-      void*);  // Registers a new OnMemoryAddressReadFrom callback (the 3rd parameter passed into
-               // the function) to run when the memory address specified by the 2nd parameter to the
-               // function is read from. This function should auto-deregister when only
-               // auto-deregistered callbacks are still running.
-  int (*UnregisterOnMemoryAddressReadFromCallback)(
-      void*, unsigned int, void*);  // Unregisters/removes an OnMemoryAddressReadFrom callback (the
-                                    // 3rd parameter passed into the function should be the return
-                                    // result of RegisterOnMemoryAddressReadFromCallback()) for the
-                                    // specified memory address (the 2nd parameter).
+  // Runs all OnInstructionReached callbacks currently registered for the specified instruction
+  // address for the ScriptContext*
+  void (*RunOnInstructionReachedCallbacks)(void*, unsigned int);
 
-  void* (*RegisterOnMemoryAddressWrittenToCallback)(
-      void*, unsigned int,
-      void*);  // Registers a new OnMemoryAddressWrittenTo callback (the 3rd parameter passed into
-               // the function) to run when the memory address specified by the 2nd parameter to the
-               // function is written to. The function returns a handle that can be used to
-               // unregister the callback.
-  void (*RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallback)(
-      void*, unsigned int,
-      void*);  // Registers a new OnMemoryAddressWrittenTo callback (the 3rd parameter passed into
-               // the function) to run when the memory address specified by the 2nd parameter to the
-               // function is written to. This function should auto-deregister when only
-               // auto-deregistered callbacks are still running.
-  int (*UnregisterOnMemoryAddressWrittenToCallback)(
-      void*, unsigned int, void*);  // Unregisters/removes an OnMemoryAddressWrittenTo callback (the
-                                    // 3rd parameter passed into the function should be the return
-                                    // result of RegisterOnMemoryAddressWrittenToCallback()) for the
-                                    // specified memory address (the 3rd parameter).
+  // Runs all OnMemoryAddressReadFrom callbacks currently registered for the specified memory
+  // address for the ScriptContext*
+  void (*RunOnMemoryAddressReadFromCallbacks)(void*, unsigned int);
 
-  void* (*RegisterOnWiiInputPolledCallback)(
-      void*,
-      void*);  // Registers a new OnWiiInputPolled callback (the 2nd paramter passed into the
-               // function), and returns a handle that can be used to unregister the callback.
-  void (*RegisterOnWiiInputPolledWithAutoDeregistrationCallback)(
-      void*, void*);  // Registers a new OnWiiInputPolled callback (the 2nd parameter passed into
-                      // the function). This callback should auto-deregister when only
-                      // auto-deregistered callbacks are still running.
-  int (*UnregisterOnWiiInputPolledCallback)(
-      void*,
-      void*);  // Unregisters/removes an OnWiiInputPolled callback (the 2nd parameter  passed into
-               // the function should be the return result of RegisterOnWiiInputPolledCallback()).
+  // Runs all OnMemoryAddressWrittenTo callbacks currently registered for the specified memory
+  // address for the ScriptContext*
+  void (*RunOnMemoryAddressWrittenToCallbacks)(void*, unsigned int);
 
-  void (*RegisterButtonCallback)(
-      void*, long long,
-      void*);  // Registers a callback (the 3rd parameter passed into the function) to run when the
-               // button with the ID specified by the 2nd parameter is clicked.
-  int (*IsButtonRegistered)(void*,
-                            long long);  //  Returns 1 if the 2nd parameter represents a button ID
-                                         //  with a registered callback, and false otherwise.
-  void (*GetButtonCallbackAndAddToQueue)(
-      void*, long long);  // Queues the callback passed into the function to run the next time
-                          // RunButtonCallbacksInQueue() is called.
-  void (*RunButtonCallbacksInQueue)(void*);  // Runs all button callbacks which are queued to run.
+  // Registers a new OnFrameStart callback function (the 2nd parameter passed into the function),
+  // and returns a handle that can be used to unregister the callback later on.
+  void* (*RegisterOnFrameStartCallback)(void*, void*);
 
-  void (*DLLClassMetadataCopyHook)(
-      void*, void*);  // Called by Dolphin when the DLL requests a ClassMetadata object. This gives
-                      // the DLL a chance to copy the ClassMetadata object's variables to the DLL's
-                      // pecific ScriptContext* fields, since it will remain in scope until the end
-                      // of this function.  1st param is ScriptContext*, 2nd param is an opaque
-                      // handler which is a ClassMetadata*
-  void (*DLLFunctionMetadataCopyHook)(
-      void*,
-      void*);  // Called by Dolphin when the DLL requests a specific FunctionMetadata object (when
-               // it passes in module name + version + function name, and expects a FunctionMetadata
-               // to be returned). This gives the DLL a chance to copy the FunctionMetadata object's
-               // variables to the DLL's specific ScriptContext* fields, since it will remain in
-               // scope until the end of this function. 1st param is ScriptContext*, 2nd param is an
-               // opaque handler which is a FunctionMetadata*
+  // Registers a new OnFrameStart callback function (the 2nd parameter passed into the function).
+  // This callback should auto-deregister when only auto-deregistered callbacks are still running.
+  void (*RegisterOnFrameStartWithAutoDeregistrationCallback)(void*, void*);
 
+  // Unregisters/removes an OnFrameStart callback (the 2nd parameter passed into the function should
+  // be the return result of RegisterOnFrameStartCallback()).
+  int (*UnregisterOnFrameStartCallback)(void*, void*);
+
+  // Registers a new OnGCControllerPolled callback function (the 2nd parameter passed into the
+  // function), and returns a handle that can be used to unregister the callback later on.
+  void* (*RegisterOnGCControllerPolledCallback)(void*, void*);
+
+  // Registers a new OnGCControllerPolled callback function (the 2nd parameter passed into the
+  // function). This callback should auto-deregister when only auto-deregistered callbacks are still
+  // running.
+  void (*RegisterOnGCControllerPolledWithAutoDeregistrationCallback)(void*, void*);
+
+  // Unregisters/removes an OnGCControllerPolled callback (the 2nd parameter passed into the
+  // function should be the return result of RegisterOnGCControllerPolledCallback()).
+  int (*UnregisterOnGCControllerPolledCallback)(void*, void*);
+
+  // Registers a new OnWiiInputPolled callback function (the 2nd paramter passed into the
+  // function), and returns a handle that can be used to unregister the callback later on.
+  void* (*RegisterOnWiiInputPolledCallback)(void*, void*);
+
+  // Registers a new OnWiiInputPolled callback function (the 2nd parameter passed into the
+  // function). This callback should auto-deregister when only auto-deregistered callbacks are still
+  // running.
+  void (*RegisterOnWiiInputPolledWithAutoDeregistrationCallback)(void*, void*);
+
+  // Unregisters/removes an OnWiiInputPolled callback (the 2nd parameter passed into
+  // the function should be the return result of RegisterOnWiiInputPolledCallback()).
+  int (*UnregisterOnWiiInputPolledCallback)(void*, void*);
+
+  // Registers a new OnInstructionReached callback function (the 3rd paramater passed into the
+  // function) to run when the instruction address specified by the 2nd parameter to
+  // the function is hit. This function returns a handle that can be used to unregister
+  // the callback later on.
+  void* (*RegisterOnInstructionReachedCallback)(void*, unsigned int, void*);
+
+  // Registers a new OnInstructionReached callback function (the 3rd parameter passed into the
+  // function) to run when the instruction address specified by the 2nd parameter to the function is
+  // hit. This function should auto-deregister when only auto-deregistered callbacks are still
+  // running.
+  void (*RegisterOnInstructionReachedWithAutoDeregistrationCallback)(void*, unsigned int, void*);
+
+  // Unregisters/removes an OnInstructionReached callback (the 3rd parameter passed into the
+  // function should be the return result of RegisterOnInstructionReachedCallback()) for the
+  // specified instruction address (the 2nd parameter).
+  int (*UnregisterOnInstructionReachedCallback)(void*, unsigned int, void*);
+
+  // Registers a new OnMemoryAddressReadFrom callback function (the 3rd parameter passed into the
+  // function) to run when the memory address specified by the 2nd parameter to the function is read
+  // from. The function returns a handle that can be used to unregister the callback later on.
+  void* (*RegisterOnMemoryAddressReadFromCallback)(void*, unsigned int, void*);
+
+  // Registers a new OnMemoryAddressReadFrom callback function (the 3rd parameter passed into the
+  // function) to run when the memory address specified by the 2nd parameter to the function is read
+  // from. This function should auto-deregister when only auto-deregistered callbacks are still
+  // running.
+  void (*RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallback)(void*, unsigned int, void*);
+
+  // Unregisters/removes an OnMemoryAddressReadFrom callback (the 3rd parameter passed into the
+  // function should be the return result of RegisterOnMemoryAddressReadFromCallback()) for the
+  // specified memory address (the 2nd parameter).
+  int (*UnregisterOnMemoryAddressReadFromCallback)(void*, unsigned int, void*);
+
+  // Registers a new OnMemoryAddressWrittenTo callback function (the 3rd parameter passed into the
+  // function) to run when the memory address specified by the 2nd parameter to the function is
+  // written to. The function returns a handle that can be used to unregister the callback later on.
+  void* (*RegisterOnMemoryAddressWrittenToCallback)(void*, unsigned int, void*);
+
+  // Registers a new OnMemoryAddressWrittenTo callback function (the 3rd parameter passed into the
+  // function) to run when the memory address specified by the 2nd parameter to the function is
+  // written to. This function should auto-deregister when only auto-deregistered callbacks are
+  // still running.
+  void (*RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallback)(void*, unsigned int,
+                                                                         void*);
+
+  // Unregisters/removes an OnMemoryAddressWrittenTo callback (the 3rd parameter passed into the
+  // function should be the return result of RegisterOnMemoryAddressWrittenToCallback()) for the
+  // specified memory address (the 2nd parameter).
+  int (*UnregisterOnMemoryAddressWrittenToCallback)(void*, unsigned int, void*);
+
+  // Registers a callback function (the 3rd parameter passed into the function) to run when the
+  // button with the ID specified by the 2nd parameter is clicked.
+  void (*RegisterButtonCallback)(void*, long long, void*);
+
+  //  Returns 1 if the 2nd parameter represents a button ID with a registered callback, and 0
+  //  otherwise.
+  int (*IsButtonRegistered)(void*, long long);
+
+  // Queues the callback passed into the function to run the next time RunButtonCallbacksInQueue()
+  // is called.
+  void (*GetButtonCallbackAndAddToQueue)(void*, long long);
+
+  // Runs all button callbacks which are queued to run in the order that they were added to the
+  // queue (and removes all of them from the queue afterwards).
+  void (*RunButtonCallbacksInQueue)(void*);
+
+  // Called by Dolphin when the DLL requests a ClassMetadata object. This gives the DLL a chance to
+  // copy the ClassMetadata object's variables to the DLL's fields, since it will remain in scope
+  // until the end of this function. 1st param is ScriptContext*, 2nd param is an opaque handle to a
+  // ClassMetadata*
+  void (*DLLClassMetadataCopyHook)(void*, void*);
+
+  // Called by Dolphin when the DLL requests a specific FunctionMetadata object (when it passes in
+  // module name + version + function name, and expects a FunctionMetadata* to be returned). This
+  // gives the DLL a chance to copy the FunctionMetadata object's variables to the DLL's fields,
+  // since it will remain in scope until the end of this function. 1st param is ScriptContext*, 2nd
+  // param is an opaque handle to a FunctionMetadata*
+  void (*DLLFunctionMetadataCopyHook)(void*, void*);
+
+  // The destructor for the DLL-specific object(s) associated with the ScriptContext* (this is
+  // called by Dolphin).
   void (*DLLSpecificDestructor)(void*);
 } DLL_Defined_ScriptContext_APIs;
 
