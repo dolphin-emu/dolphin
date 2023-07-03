@@ -38,11 +38,24 @@ void AchievementManager::Init()
   }
 }
 
+void AchievementManager::SetUpdateCallback(UpdateCallback callback)
+{
+  m_update_callback = std::move(callback);
+  m_update_callback();
+}
+
 AchievementManager::ResponseType AchievementManager::Login(const std::string& password)
 {
   if (!m_is_runtime_initialized)
     return AchievementManager::ResponseType::MANAGER_NOT_INITIALIZED;
-  return VerifyCredentials(password);
+  AchievementManager::ResponseType r_type = AchievementManager::ResponseType::UNKNOWN_FAILURE;
+  {
+    std::lock_guard lg{m_lock};
+    r_type = VerifyCredentials(password);
+  }
+  if (m_update_callback)
+    m_update_callback();
+  return r_type;
 }
 
 void AchievementManager::LoginAsync(const std::string& password, const ResponseCallback& callback)
@@ -52,7 +65,14 @@ void AchievementManager::LoginAsync(const std::string& password, const ResponseC
     callback(AchievementManager::ResponseType::MANAGER_NOT_INITIALIZED);
     return;
   }
-  m_queue.EmplaceItem([this, password, callback] { callback(VerifyCredentials(password)); });
+  m_queue.EmplaceItem([this, password, callback] {
+    {
+      std::lock_guard lg{m_lock};
+      callback(VerifyCredentials(password));
+    }
+    if (m_update_callback)
+      m_update_callback();
+  });
 }
 
 bool AchievementManager::IsLoggedIn() const
@@ -141,11 +161,11 @@ void AchievementManager::LoadGameByFilenameAsync(const std::string& iso_path,
     }
 
     const auto fetch_game_data_response = FetchGameData();
-    m_is_game_loaded = fetch_game_data_response == ResponseType::SUCCESS;
-    if (!m_is_game_loaded)
+    if (fetch_game_data_response != ResponseType::SUCCESS)
     {
       OSD::AddMessage("Unable to retrieve data from RetroAchievements server.",
                       OSD::Duration::VERY_LONG, OSD::Color::RED);
+      return;
     }
 
     // Claim the lock, then queue the fetch unlock data calls, then initialize the unlock map in
@@ -154,6 +174,7 @@ void AchievementManager::LoadGameByFilenameAsync(const std::string& iso_path,
     // it.
     {
       std::lock_guard lg{m_lock};
+      m_is_game_loaded = true;
       LoadUnlockData([](ResponseType r_type) {});
       ActivateDeactivateAchievements();
       PointSpread spread = TallyScore();
@@ -179,8 +200,15 @@ void AchievementManager::LoadGameByFilenameAsync(const std::string& iso_path,
     // Reset this to zero so that RP immediately triggers on the first frame
     m_last_ping_time = 0;
 
+    if (m_update_callback)
+      m_update_callback();
     callback(fetch_game_data_response);
   });
+}
+
+bool AchievementManager::IsGameLoaded() const
+{
+  return m_is_game_loaded;
 }
 
 void AchievementManager::LoadUnlockData(const ResponseCallback& callback)
@@ -194,6 +222,8 @@ void AchievementManager::LoadUnlockData(const ResponseCallback& callback)
     }
 
     callback(FetchUnlockData(false));
+    if (m_update_callback)
+      m_update_callback();
   });
 }
 
@@ -296,39 +326,114 @@ u32 AchievementManager::MemoryPeeker(u32 address, u32 num_bytes, void* ud)
 
 void AchievementManager::AchievementEventHandler(const rc_runtime_event_t* runtime_event)
 {
-  switch (runtime_event->type)
   {
-  case RC_RUNTIME_EVENT_ACHIEVEMENT_TRIGGERED:
-    HandleAchievementTriggeredEvent(runtime_event);
-    break;
-  case RC_RUNTIME_EVENT_LBOARD_STARTED:
-    HandleLeaderboardStartedEvent(runtime_event);
-    break;
-  case RC_RUNTIME_EVENT_LBOARD_CANCELED:
-    HandleLeaderboardCanceledEvent(runtime_event);
-    break;
-  case RC_RUNTIME_EVENT_LBOARD_TRIGGERED:
-    HandleLeaderboardTriggeredEvent(runtime_event);
-    break;
+    std::lock_guard lg{m_lock};
+    switch (runtime_event->type)
+    {
+    case RC_RUNTIME_EVENT_ACHIEVEMENT_TRIGGERED:
+      HandleAchievementTriggeredEvent(runtime_event);
+      break;
+    case RC_RUNTIME_EVENT_LBOARD_STARTED:
+      HandleLeaderboardStartedEvent(runtime_event);
+      break;
+    case RC_RUNTIME_EVENT_LBOARD_CANCELED:
+      HandleLeaderboardCanceledEvent(runtime_event);
+      break;
+    case RC_RUNTIME_EVENT_LBOARD_TRIGGERED:
+      HandleLeaderboardTriggeredEvent(runtime_event);
+      break;
+    }
   }
+  if (m_update_callback)
+    m_update_callback();
+}
+
+std::recursive_mutex* AchievementManager::GetLock()
+{
+  return &m_lock;
+}
+
+std::string AchievementManager::GetPlayerDisplayName() const
+{
+  return IsLoggedIn() ? m_display_name : "";
+}
+
+u32 AchievementManager::GetPlayerScore() const
+{
+  return IsLoggedIn() ? m_player_score : 0;
+}
+
+std::string AchievementManager::GetGameDisplayName() const
+{
+  return IsGameLoaded() ? m_game_data.title : "";
+}
+
+AchievementManager::PointSpread AchievementManager::TallyScore() const
+{
+  PointSpread spread{};
+  if (!IsGameLoaded())
+    return spread;
+  for (const auto& entry : m_unlock_map)
+  {
+    u32 points = entry.second.points;
+    spread.total_count++;
+    spread.total_points += points;
+    if (entry.second.remote_unlock_status == UnlockStatus::UnlockType::HARDCORE ||
+        (hardcore_mode_enabled && entry.second.session_unlock_count > 0))
+    {
+      spread.hard_unlocks++;
+      spread.hard_points += points;
+    }
+    else if (entry.second.remote_unlock_status == UnlockStatus::UnlockType::SOFTCORE ||
+             entry.second.session_unlock_count > 0)
+    {
+      spread.soft_unlocks++;
+      spread.soft_points += points;
+    }
+  }
+  return spread;
+}
+
+rc_api_fetch_game_data_response_t* AchievementManager::GetGameData()
+{
+  return &m_game_data;
+}
+
+AchievementManager::UnlockStatus
+AchievementManager::GetUnlockStatus(AchievementId achievement_id) const
+{
+  return m_unlock_map.at(achievement_id);
+}
+
+void AchievementManager::GetAchievementProgress(AchievementId achievement_id, u32* value,
+                                                u32* target)
+{
+  rc_runtime_get_achievement_measured(&m_runtime, achievement_id, value, target);
 }
 
 void AchievementManager::CloseGame()
 {
-  m_is_game_loaded = false;
-  m_game_id = 0;
-  m_queue.Cancel();
-  m_unlock_map.clear();
-  m_system = nullptr;
-  ActivateDeactivateAchievements();
-  ActivateDeactivateLeaderboards();
-  ActivateDeactivateRichPresence();
+  {
+    std::lock_guard lg{m_lock};
+    m_is_game_loaded = false;
+    m_game_id = 0;
+    m_queue.Cancel();
+    m_unlock_map.clear();
+    m_system = nullptr;
+    ActivateDeactivateAchievements();
+    ActivateDeactivateLeaderboards();
+    ActivateDeactivateRichPresence();
+  }
+  if (m_update_callback)
+    m_update_callback();
 }
 
 void AchievementManager::Logout()
 {
   CloseGame();
   Config::SetBaseOrCurrent(Config::RA_API_TOKEN, "");
+  if (m_update_callback)
+    m_update_callback();
 }
 
 void AchievementManager::Shutdown()
@@ -353,6 +458,7 @@ AchievementManager::ResponseType AchievementManager::VerifyCredentials(const std
   {
     Config::SetBaseOrCurrent(Config::RA_API_TOKEN, login_data.api_token);
     m_display_name = login_data.display_name;
+    m_player_score = login_data.score;
   }
   rc_api_destroy_login_response(&login_data);
   return r_type;
@@ -616,30 +722,6 @@ void AchievementManager::HandleLeaderboardTriggeredEvent(const rc_runtime_event_
       break;
     }
   }
-}
-
-AchievementManager::PointSpread AchievementManager::TallyScore() const
-{
-  PointSpread spread{};
-  for (const auto& entry : m_unlock_map)
-  {
-    u32 points = entry.second.points;
-    spread.total_count++;
-    spread.total_points += points;
-    if (entry.second.remote_unlock_status == UnlockStatus::UnlockType::HARDCORE ||
-        (hardcore_mode_enabled && entry.second.session_unlock_count > 0))
-    {
-      spread.hard_unlocks++;
-      spread.hard_points += points;
-    }
-    else if (entry.second.remote_unlock_status == UnlockStatus::UnlockType::SOFTCORE ||
-             entry.second.session_unlock_count > 0)
-    {
-      spread.soft_unlocks++;
-      spread.soft_points += points;
-    }
-  }
-  return spread;
 }
 
 // Every RetroAchievements API call, with only a partial exception for fetch_image, follows
