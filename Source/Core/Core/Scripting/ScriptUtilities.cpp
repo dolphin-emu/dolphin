@@ -248,19 +248,17 @@ static void Initialize_DolphinDefined_ScriptContext_APIs()
       ScriptContext_GetCalledYieldingFunctionInLastFrameCallbackScriptResume_impl;
   dolphin_defined_scriptContext_apis.get_called_yielding_function_in_last_global_script_resume =
       ScriptContext_GetCalledYieldingFunctionInLastGlobalScriptResume_impl;
-  dolphin_defined_scriptContext_apis.get_derived_script_context_class_ptr =
+  dolphin_defined_scriptContext_apis.get_derived_script_context_ptr =
       ScriptContext_GetDerivedScriptContextPtr_impl;
-  dolphin_defined_scriptContext_apis.set_derived_script_context_class_ptr =
+  dolphin_defined_scriptContext_apis.set_derived_script_context_ptr =
       ScriptContext_SetDerivedScriptContextPtr_impl;
   dolphin_defined_scriptContext_apis.get_dll_defined_script_context_apis =
-      ScriptContext_GetDllDefinedScriptContextApis_impl;
-  dolphin_defined_scriptContext_apis.get_instruction_breakpoints_holder =
-      ScriptContext_GetInstructionBreakpointsHolder_impl;
+      ScriptContext_GetDllDefinedScriptContextAPIs_impl;
+  dolphin_defined_scriptContext_apis.set_dll_defined_script_context_apis =
+      ScriptContext_SetDLLDefinedScriptContextAPIs_impl;
   dolphin_defined_scriptContext_apis.get_is_finished_with_global_code =
       ScriptContext_GetIsFinishedWithGlobalCode_impl;
   dolphin_defined_scriptContext_apis.get_is_script_active = ScriptContext_GetIsScriptActive_impl;
-  dolphin_defined_scriptContext_apis.get_memory_address_breakpoints_holder =
-      ScriptContext_GetMemoryAddressBreakpointsHolder_impl;
   dolphin_defined_scriptContext_apis.get_print_callback_function =
       ScriptContext_GetPrintCallback_impl;
   dolphin_defined_scriptContext_apis.get_script_call_location =
@@ -285,9 +283,6 @@ static void Initialize_DolphinDefined_ScriptContext_APIs()
   dolphin_defined_scriptContext_apis.set_is_finished_with_global_code =
       ScriptContext_SetIsFinishedWithGlobalCode_impl;
   dolphin_defined_scriptContext_apis.set_is_script_active = ScriptContext_SetIsScriptActive_impl;
-  dolphin_defined_scriptContext_apis.Shutdown_Script = ScriptContext_ShutdownScript_impl;
-  dolphin_defined_scriptContext_apis.set_dll_script_context_ptr =
-      ScriptContext_SetDLLScriptContextPtr;
   dolphin_defined_scriptContext_apis.add_script_to_queue_of_scripts_waiting_to_start =
       ScriptContext_AddScriptToQueueOfScriptsWaitingToStart_impl;
   dolphin_defined_scriptContext_apis.get_unique_script_identifier =

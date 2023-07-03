@@ -49,7 +49,6 @@ void* ScriptContext_Initializer_impl(int unique_identifier, const char* script_f
                                      void* new_dll_api_definitions);
 
 void ScriptContext_Destructor_impl(void* script_context);
-void ScriptContext_ShutdownScript_impl(void* script_context);
 
 typedef void (*PRINT_CALLBACK_TYPE)(void*, const char*);
 typedef void (*SCRIPT_END_CALLBACK_TYPE)(void*, int);
@@ -82,17 +81,13 @@ void ScriptContext_SetCalledYieldingFunctionInLastGlobalScriptResume_impl(void*,
 int ScriptContext_GetCalledYieldingFunctionInLastFrameCallbackScriptResume_impl(void*);
 void ScriptContext_SetCalledYieldingFunctionInLastFrameCallbackScriptResume_impl(void*, int);
 
-void* ScriptContext_GetInstructionBreakpointsHolder_impl(void*);
-void* ScriptContext_GetMemoryAddressBreakpointsHolder_impl(void*);
-
-void* ScriptContext_GetDllDefinedScriptContextApis_impl(void*);
+void* ScriptContext_GetDllDefinedScriptContextAPIs_impl(void*);
+void ScriptContext_SetDLLDefinedScriptContextAPIs_impl(void*, void*);
 
 void* ScriptContext_GetDerivedScriptContextPtr_impl(void*);
 void ScriptContext_SetDerivedScriptContextPtr_impl(void*, void*);
 
 const char* ScriptContext_GetScriptVersion_impl();
-
-void ScriptContext_SetDLLScriptContextPtr(void*, void*);
 
 void ScriptContext_AddScriptToQueueOfScriptsWaitingToStart_impl(void*);
 

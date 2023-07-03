@@ -45,14 +45,6 @@ void ScriptContext_Destructor_impl(void* script_context)
   delete casted_struct_ptr;
 }
 
-void ScriptContext_ShutdownScript_impl(void* script_context)
-{
-  ScriptContext* casted_struct_ptr = castToScriptContextPtr(script_context);
-  casted_struct_ptr->is_script_active = 0;
-  casted_struct_ptr->script_end_callback_function(script_context,
-                                                  casted_struct_ptr->unique_script_identifier);
-}
-
 PRINT_CALLBACK_TYPE ScriptContext_GetPrintCallback_impl(void* script_context)
 {
   return castToScriptContextPtr(script_context)->print_callback_function;
@@ -150,22 +142,17 @@ void ScriptContext_SetCalledYieldingFunctionInLastFrameCallbackScriptResume_impl
       ->called_yielding_function_in_last_frame_callback_script_resume = value_to_set;
 }
 
-void* ScriptContext_GetInstructionBreakpointsHolder_impl(void* script_context)
-{
-  return reinterpret_cast<void*>(
-      &(castToScriptContextPtr(script_context)->instructionBreakpointsHolder));
-}
-
-void* ScriptContext_GetMemoryAddressBreakpointsHolder_impl(void* script_context)
-{
-  return reinterpret_cast<void*>(
-      &(castToScriptContextPtr(script_context)->memoryAddressBreakpointsHolder));
-}
-
-void* ScriptContext_GetDllDefinedScriptContextApis_impl(void* script_context)
+void* ScriptContext_GetDllDefinedScriptContextAPIs_impl(void* script_context)
 {
   return reinterpret_cast<void*>(
       &(castToScriptContextPtr(script_context)->dll_specific_api_definitions));
+}
+
+void ScriptContext_SetDLLDefinedScriptContextAPIs_impl(void* script_context,
+                                                       void* new_dll_definitions)
+{
+  castToScriptContextPtr(script_context)->dll_specific_api_definitions =
+      *(reinterpret_cast<DLL_Defined_ScriptContext_APIs*>(new_dll_definitions));
 }
 
 void* ScriptContext_GetDerivedScriptContextPtr_impl(void* script_context)
@@ -183,11 +170,6 @@ void ScriptContext_SetDerivedScriptContextPtr_impl(void* base_script_context_ptr
 const char* ScriptContext_GetScriptVersion_impl()
 {
   return most_recent_script_version;
-}
-
-void ScriptContext_SetDLLScriptContextPtr(void* script_context, void* dll_script_context)
-{
-  castToScriptContextPtr(script_context)->derived_script_context_class_ptr = dll_script_context;
 }
 
 void ScriptContext_AddScriptToQueueOfScriptsWaitingToStart_impl(void* script_context)
