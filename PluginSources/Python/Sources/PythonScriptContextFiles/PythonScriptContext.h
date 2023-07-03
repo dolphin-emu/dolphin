@@ -127,7 +127,7 @@ extern "C" {
   void GetButtonCallbackAndAddToQueue_impl(void*, long long);
 
   void* RegisterOnInstructionReachedCallback_impl(void*, unsigned int, void*);
-  void RegisterOnInstructioReachedWithAutoDeregistrationCallback_impl(void*, unsigned int, void*);
+  void RegisterOnInstructionReachedWithAutoDeregistrationCallback_impl(void*, unsigned int, void*);
   int UnregisterOnInstructionReachedCallback_impl(void*, unsigned int, void*);
 
   void* RegisterOnMemoryAddressReadFromCallback_impl(void*, unsigned int, void*);

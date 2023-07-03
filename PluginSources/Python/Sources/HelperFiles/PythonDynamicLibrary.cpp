@@ -138,7 +138,7 @@ namespace PythonDynamicLibrary
   };
 
 
-  void SetErrorCodeAndMessage(void* script_context_ptr, ScriptReturnCodes error_code, const char* error_msg)
+  void SetErrorCodeAndMessage(void* script_context_ptr, ScriptingEnums::ScriptReturnCodes error_code, const char* error_msg)
   {
     dolphinDefinedScriptContext_APIs.set_script_return_code(script_context_ptr, error_code);
     dolphinDefinedScriptContext_APIs.set_error_message(script_context_ptr, error_msg);
@@ -153,7 +153,7 @@ namespace PythonDynamicLibrary
     *func_ptr = reinterpret_cast<T*>(python_lib_ptr->GetSymbolAddress(func_name));
     if (*func_ptr == nullptr)
     {
-      SetErrorCodeAndMessage(base_script_context_ptr, ScriptReturnCodes::DLLComponentNotFoundError, (std::string("Error: ") + func_name + " component was not found in " + path_to_lib + " file.").c_str());
+      SetErrorCodeAndMessage(base_script_context_ptr, ScriptingEnums::ScriptReturnCodes::DLLComponentNotFoundError, (std::string("Error: ") + func_name + " component was not found in " + path_to_lib + " file.").c_str());
       return false;
     }
     return true;
@@ -284,13 +284,13 @@ namespace PythonDynamicLibrary
       if (number_of_digits < 2) // NOTE: This code will work until Python10 comes out. However, based on Python's release schedule, that probably won't happen for another 150 years - so this should be safe for the forseeable future...
         return false;
 
-      #ifndef NDEBUG // case where we're in debug mode
+#ifndef NDEBUG // case where we're in debug mode
       if (path_string[index_in_string] == '_' &&
-         (path_string[index_in_string + 1] == 'd') || path_string[index_in_string + 1] == 'D')
+        (path_string[index_in_string + 1] == 'd') || path_string[index_in_string + 1] == 'D')
         index_in_string += 2;
       else
         return false;
-      #endif
+#endif
 
       if (index_in_string < path_string_length && path_string.substr(index_in_string) == LIBRARY_SUFFIX)
         return true;
@@ -303,7 +303,7 @@ namespace PythonDynamicLibrary
     const char* raw_PYTHONPATH_string = getenv("PYTHONPATH");
     if (raw_PYTHONPATH_string == nullptr)
     {
-      SetErrorCodeAndMessage(base_script_ptr, ScriptReturnCodes::DLLFileNotFoundError, (std::string("Error: The PYTHONPATH environment variable was not set! Please set this environment variable equal to the directory where the Python ") + LIBRARY_SUFFIX + " file is stored, and then re-run the program.").c_str());
+      SetErrorCodeAndMessage(base_script_ptr, ScriptingEnums::ScriptReturnCodes::DLLFileNotFoundError, (std::string("Error: The PYTHONPATH environment variable was not set! Please set this environment variable equal to the directory where the Python ") + LIBRARY_SUFFIX + " file is stored, and then re-run the program.").c_str());
       return;
     }
     std::vector<std::string> python_paths_to_search = getPathsFromEnvironmentVar(raw_PYTHONPATH_string);
@@ -333,7 +333,7 @@ namespace PythonDynamicLibrary
     }
     if (path_to_lib.empty())
     {
-      SetErrorCodeAndMessage(base_script_ptr, ScriptReturnCodes::DLLFileNotFoundError, (std::string("Error: The ") + LIBRARY_SUFFIX + " file for Python could not be located from the values inside of the PYTHONPATH environment variable! PYTHONPATH was equal to: \"" + raw_PYTHONPATH_string + "\"").c_str());
+      SetErrorCodeAndMessage(base_script_ptr, ScriptingEnums::ScriptReturnCodes::DLLFileNotFoundError, (std::string("Error: The ") + LIBRARY_SUFFIX + " file for Python could not be located from the values inside of the PYTHONPATH environment variable! PYTHONPATH was equal to: \"" + raw_PYTHONPATH_string + "\"").c_str());
       return;
     }
 
@@ -341,7 +341,7 @@ namespace PythonDynamicLibrary
 
     if (!python_lib_ptr->IsOpen())
     {
-      SetErrorCodeAndMessage(base_script_ptr, ScriptReturnCodes::DLLFileNotFoundError, (std::string("Error: The ") + path_to_lib + " file for Python could not be opened!").c_str());
+      SetErrorCodeAndMessage(base_script_ptr, ScriptingEnums::ScriptReturnCodes::DLLFileNotFoundError, (std::string("Error: The ") + path_to_lib + " file for Python could not be opened!").c_str());
       return;
     }
 

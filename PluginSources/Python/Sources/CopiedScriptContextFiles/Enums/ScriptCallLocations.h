@@ -1,6 +1,7 @@
 #ifndef SCRIPT_CALL_LOCS
 #define SCRIPT_CALL_LOCS
-
+namespace ScriptingEnums
+{
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -21,5 +22,5 @@ enum ScriptCallLocations
 #ifdef __cplusplus
 }
 #endif
-
+}  // namespace ScriptingEnums
 #endif

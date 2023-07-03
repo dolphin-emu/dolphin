@@ -8,8 +8,7 @@ extern "C" {
 typedef struct ModuleLists_APIs
 {
   // Returns an opaque handle to the list of all module names which should be imported by default
-  // when a script starts (without the user needing to manually import them -
-  // ex."OnInstructionHitCallbackAPI")
+  // when a script starts (without the user needing to manually import them - ex."OnInstructionHit")
   const void* (*GetListOfDefaultModules)();
 
   // Returns an opaque a handle to the list of all module names which are NOT imported by default
@@ -27,6 +26,7 @@ typedef struct ModuleLists_APIs
 
   // Returns the name of the module which contains the "import" and "importModule" functions.
   const char* (*GetImportModuleName)();
+
 } ModuleLists_APIs;
 
 #ifdef __cplusplus

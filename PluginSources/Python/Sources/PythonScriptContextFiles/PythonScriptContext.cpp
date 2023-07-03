@@ -25,7 +25,7 @@ void* Init_PythonScriptContext_impl(void* new_base_script_context_ptr)
   }
 
   PythonScriptContext* new_python_script = new PythonScriptContext(new_base_script_context_ptr);
-  dolphinDefinedScriptContext_APIs.set_dll_script_context_ptr(new_base_script_context_ptr, new_python_script);
+  dolphinDefinedScriptContext_APIs.set_derived_script_context_ptr(new_base_script_context_ptr, new_python_script);
   if (original_python_thread == nullptr) // This means it's our first time initializing the Python runtime.
   {
     PythonInterface::CreateThisModule();
@@ -84,7 +84,7 @@ void* Init_PythonScriptContext_impl(void* new_base_script_context_ptr)
 
 PythonScriptContext* GetPythonScriptContext(void* base_script_context_ptr)
 {
-  return reinterpret_cast<PythonScriptContext*>(dolphinDefinedScriptContext_APIs.get_derived_script_context_class_ptr(base_script_context_ptr));
+  return reinterpret_cast<PythonScriptContext*>(dolphinDefinedScriptContext_APIs.get_derived_script_context_ptr(base_script_context_ptr));
 }
 
 void unref_vector(std::vector<PythonScriptContext::IdentifierToCallback>& input_vector)
@@ -129,7 +129,7 @@ void Destroy_PythonScriptContext_impl(void* base_script_context_ptr) // Takes as
 
   delete current_script;
 
-  dolphinDefinedScriptContext_APIs.set_derived_script_context_class_ptr(base_script_context_ptr, nullptr);
+  dolphinDefinedScriptContext_APIs.set_derived_script_context_ptr(base_script_context_ptr, nullptr);
 }
 
 void RunEndOfIteraionTasks(void* base_script_context_ptr)
@@ -142,7 +142,7 @@ void RunEndOfIteraionTasks(void* base_script_context_ptr)
   PythonInterface::Python_SendOutputToCallbackLocationAndClear(base_script_context_ptr, dolphinDefinedScriptContext_APIs.get_print_callback_function(base_script_context_ptr));
 
   if (ShouldCallEndScriptFunction(base_script_context_ptr))
-    dolphinDefinedScriptContext_APIs.Shutdown_Script(base_script_context_ptr);
+    dolphinDefinedScriptContext_APIs.get_script_end_callback_function(base_script_context_ptr)(base_script_context_ptr, dolphinDefinedScriptContext_APIs.get_unique_script_identifier(base_script_context_ptr));
 }
 
 int getNumberOfCallbacksInMap(std::unordered_map<unsigned int, std::vector<PythonScriptContext::IdentifierToCallback>>& input_map)
@@ -181,7 +181,7 @@ void ImportModule_impl(void* base_script_context_ptr, const char* api_name, cons
 {
   PythonInterface::SetModuleVersion(api_name, api_version);
   classFunctionsResolver_APIs.Send_ClassMetadataForVersion_To_DLL_Buffer(base_script_context_ptr, api_name, api_version);
-  ClassMetadata* new_class_metadata = new ClassMetadata(((PythonScriptContext*)dolphinDefinedScriptContext_APIs.get_derived_script_context_class_ptr(base_script_context_ptr))->class_metadata_buffer);
+  ClassMetadata* new_class_metadata = new ClassMetadata(((PythonScriptContext*)dolphinDefinedScriptContext_APIs.get_derived_script_context_ptr(base_script_context_ptr))->class_metadata_buffer);
   GetPythonScriptContext(base_script_context_ptr)->classes_to_delete.push_back(new_class_metadata); // storing the pointer so it can be deleted later on when the Python DLL shuts down.
   PythonInterface::SetModuleFunctions(api_name, new_class_metadata, &(GetPythonScriptContext(base_script_context_ptr)->py_method_defs_to_delete));
   PythonInterface::RunImportCommand(api_name);
@@ -197,7 +197,7 @@ void* HandleErrorInFunction(void* base_script_context_ptr, FunctionMetadata* fun
     error_msg = std::string("Error: In ") + function_metadata->module_name + "." + function_metadata->function_name + "() function, " + base_error_msg;
 
   PythonInterface::Python_SetRunTimeError(error_msg.c_str());
-  dolphinDefinedScriptContext_APIs.set_script_return_code(base_script_context_ptr, ScriptReturnCodes::UnknownError);
+  dolphinDefinedScriptContext_APIs.set_script_return_code(base_script_context_ptr, ScriptingEnums::ScriptReturnCodes::UnknownError);
   dolphinDefinedScriptContext_APIs.set_error_message(base_script_context_ptr, error_msg.c_str());
   dolphinDefinedScriptContext_APIs.get_script_end_callback_function(base_script_context_ptr)(base_script_context_ptr, dolphinDefinedScriptContext_APIs.get_unique_script_identifier(base_script_context_ptr));
   return nullptr;
@@ -206,7 +206,7 @@ void* HandleErrorInFunction(void* base_script_context_ptr, FunctionMetadata* fun
 void* HandleErrorGeneral(void* base_script_context_ptr, const std::string& error_msg)
 {
   PythonInterface::Python_SetRunTimeError(error_msg.c_str());
-  dolphinDefinedScriptContext_APIs.set_script_return_code(base_script_context_ptr, ScriptReturnCodes::UnknownError);
+  dolphinDefinedScriptContext_APIs.set_script_return_code(base_script_context_ptr, ScriptingEnums::ScriptReturnCodes::UnknownError);
   dolphinDefinedScriptContext_APIs.set_error_message(base_script_context_ptr, error_msg.c_str());
   dolphinDefinedScriptContext_APIs.get_script_end_callback_function(base_script_context_ptr)(base_script_context_ptr, dolphinDefinedScriptContext_APIs.get_unique_script_identifier(base_script_context_ptr));
   return nullptr;
@@ -267,43 +267,43 @@ void* RunFunction_impl(void* base_script_context_ptr, FunctionMetadata* current_
 
     switch (current_function_metadata->arguments_list[argument_index])
     {
-    case ArgTypeEnum::Boolean:
+    case ScriptingEnums::ArgTypeEnum::Boolean:
       next_arg_holder = argHolder_APIs.CreateBoolArgHolder(PythonInterface::PythonObject_IsTrue(current_py_obj) ? 1 : 0);
       break;
-    case ArgTypeEnum::U8:
+    case ScriptingEnums::ArgTypeEnum::U8:
       next_arg_holder = argHolder_APIs.CreateU8ArgHolder(PythonInterface::PythonLongObj_AsU64(current_py_obj));
       break;
-    case ArgTypeEnum::U16:
+    case ScriptingEnums::ArgTypeEnum::U16:
       next_arg_holder = argHolder_APIs.CreateU16ArgHolder(PythonInterface::PythonLongObj_AsU64(current_py_obj));
       break;
-    case ArgTypeEnum::U32:
+    case ScriptingEnums::ArgTypeEnum::U32:
       next_arg_holder = argHolder_APIs.CreateU32ArgHolder(PythonInterface::PythonLongObj_AsU64(current_py_obj));
       break;
-    case ArgTypeEnum::U64:
+    case ScriptingEnums::ArgTypeEnum::U64:
       next_arg_holder = argHolder_APIs.CreateU64ArgHolder(PythonInterface::PythonLongObj_AsU64(current_py_obj));
       break;
-    case ArgTypeEnum::S8:
+    case ScriptingEnums::ArgTypeEnum::S8:
       next_arg_holder = argHolder_APIs.CreateS8ArgHolder(PythonInterface::PythonLongObj_AsS64(current_py_obj));
       break;
-    case ArgTypeEnum::S16:
+    case ScriptingEnums::ArgTypeEnum::S16:
       next_arg_holder = argHolder_APIs.CreateS16ArgHolder(PythonInterface::PythonLongObj_AsS64(current_py_obj));
       break;
-    case ArgTypeEnum::S32:
+    case ScriptingEnums::ArgTypeEnum::S32:
       next_arg_holder = argHolder_APIs.CreateS32ArgHolder(PythonInterface::PythonLongObj_AsS64(current_py_obj));
       break;
-    case ArgTypeEnum::S64:
+    case ScriptingEnums::ArgTypeEnum::S64:
       next_arg_holder = argHolder_APIs.CreateS64ArgHolder(PythonInterface::PythonLongObj_AsS64(current_py_obj));
       break;
-    case ArgTypeEnum::Float:
+    case ScriptingEnums::ArgTypeEnum::Float:
       next_arg_holder = argHolder_APIs.CreateFloatArgHolder(PythonInterface::PythonFloatObj_AsDouble(current_py_obj));
       break;
-    case ArgTypeEnum::Double:
+    case ScriptingEnums::ArgTypeEnum::Double:
       next_arg_holder = argHolder_APIs.CreateDoubleArgHolder(PythonInterface::PythonFloatObj_AsDouble(current_py_obj));
       break;
-    case ArgTypeEnum::String:
+    case ScriptingEnums::ArgTypeEnum::String:
       next_arg_holder = argHolder_APIs.CreateStringArgHolder(PythonInterface::PythonUnicodeObj_AsString(current_py_obj));
       break;
-    case ArgTypeEnum::AddressToByteMap:
+    case ScriptingEnums::ArgTypeEnum::AddressToByteMap:
       dict_index = 0;
       key_ref = PythonInterface::ResetAndGetRef_ToPyKey();
       value_ref = PythonInterface::ResetAndGetRef_ToPyVal();
@@ -338,7 +338,7 @@ void* RunFunction_impl(void* base_script_context_ptr, FunctionMetadata* current_
       }
       break;
 
-    case ArgTypeEnum::ControllerStateObject:
+    case ScriptingEnums::ArgTypeEnum::ControllerStateObject:
       next_arg_holder = argHolder_APIs.CreateControllerStateArgHolder();
       dict_index = 0;
       key_ref = PythonInterface::ResetAndGetRef_ToPyKey();
@@ -385,7 +385,7 @@ void* RunFunction_impl(void* base_script_context_ptr, FunctionMetadata* current_
       }
       break;
 
-    case ArgTypeEnum::ListOfPoints:
+    case ScriptingEnums::ArgTypeEnum::ListOfPoints:
       next_arg_holder = argHolder_APIs.CreateListOfPointsArgHolder();
       container_size = PythonInterface::PythonList_Size(current_py_obj);
       for (unsigned long long i = 0; i < container_size; ++i)
@@ -426,19 +426,19 @@ void* RunFunction_impl(void* base_script_context_ptr, FunctionMetadata* current_
       }
       break;
 
-    case ArgTypeEnum::RegistrationForButtonCallbackInputType:
+    case ScriptingEnums::ArgTypeEnum::RegistrationForButtonCallbackInputType:
       next_arg_holder = argHolder_APIs.CreateRegistrationForButtonCallbackInputTypeArgHolder(current_py_obj);
       break;
 
-    case ArgTypeEnum::RegistrationInputType:
+    case ScriptingEnums::ArgTypeEnum::RegistrationInputType:
       next_arg_holder = argHolder_APIs.CreateRegistrationInputTypeArgHolder(current_py_obj);
       break;
 
-    case ArgTypeEnum::RegistrationWithAutoDeregistrationInputType:
+    case ScriptingEnums::ArgTypeEnum::RegistrationWithAutoDeregistrationInputType:
       next_arg_holder = argHolder_APIs.CreateRegistrationWithAutoDeregistrationInputTypeArgHolder(current_py_obj);
       break;
 
-    case ArgTypeEnum::UnregistrationInputType:
+    case ScriptingEnums::ArgTypeEnum::UnregistrationInputType:
       next_arg_holder = argHolder_APIs.CreateUnregistrationInputTypeArgHolder((void*)PythonInterface::PythonLongObj_AsU64(current_py_obj));
       break;
 
@@ -462,68 +462,68 @@ void* RunFunction_impl(void* base_script_context_ptr, FunctionMetadata* current_
     return FreeAndReturn(return_value, PythonInterface::GetNoneObject());
   }
 
-  switch (((ArgTypeEnum)argHolder_APIs.GetArgType(return_value)))
+  switch (((ScriptingEnums::ArgTypeEnum)argHolder_APIs.GetArgType(return_value)))
   {
-  case ArgTypeEnum::ErrorStringType:
+  case ScriptingEnums::ArgTypeEnum::ErrorStringType:
     error_msg = std::string(argHolder_APIs.GetErrorStringFromArgHolder(return_value));
     argHolder_APIs.Delete_ArgHolder(return_value);
     return HandleErrorInFunction(base_script_context_ptr, current_function_metadata, true, error_msg.c_str());
 
-  case ArgTypeEnum::VoidType:
+  case ScriptingEnums::ArgTypeEnum::VoidType:
     return FreeAndReturn(return_value, PythonInterface::GetNoneObject());
 
-  case ArgTypeEnum::YieldType:
+  case ScriptingEnums::ArgTypeEnum::YieldType:
     argHolder_APIs.Delete_ArgHolder(return_value);
     return HandleErrorInFunction(base_script_context_ptr, current_function_metadata, false, "This is a yielding function, which can't be called in Python!");
 
-  case ArgTypeEnum::Boolean:
+  case ScriptingEnums::ArgTypeEnum::Boolean:
     return FreeAndReturn(return_value, argHolder_APIs.GetBoolFromArgHolder(return_value) ? PythonInterface::GetPyTrueObject() : PythonInterface::GetPyFalseObject());
 
-  case ArgTypeEnum::U8:
+  case ScriptingEnums::ArgTypeEnum::U8:
     temp_u64 = argHolder_APIs.GetU8FromArgHolder(return_value);
     return FreeAndReturn(return_value, PythonInterface::Python_BuildValue("K", &temp_u64));
 
-  case ArgTypeEnum::U16:
+  case ScriptingEnums::ArgTypeEnum::U16:
     temp_u64 = argHolder_APIs.GetU16FromArgHolder(return_value);
     return FreeAndReturn(return_value, PythonInterface::Python_BuildValue("K", &temp_u64));
 
-  case ArgTypeEnum::U32:
+  case ScriptingEnums::ArgTypeEnum::U32:
     temp_u64 = argHolder_APIs.GetU32FromArgHolder(return_value);
     return FreeAndReturn(return_value, PythonInterface::Python_BuildValue("K", &temp_u64));
 
-  case ArgTypeEnum::U64:
+  case ScriptingEnums::ArgTypeEnum::U64:
     temp_u64 = argHolder_APIs.GetU64FromArgHolder(return_value);
     return FreeAndReturn(return_value, PythonInterface::Python_BuildValue("K", &temp_u64));
 
-  case ArgTypeEnum::S8:
+  case ScriptingEnums::ArgTypeEnum::S8:
     temp_s64 = argHolder_APIs.GetS8FromArgHolder(return_value);
     return FreeAndReturn(return_value, PythonInterface::Python_BuildValue("L", &temp_s64));
 
-  case ArgTypeEnum::S16:
+  case ScriptingEnums::ArgTypeEnum::S16:
     temp_s64 = argHolder_APIs.GetS16FromArgHolder(return_value);
     return FreeAndReturn(return_value, PythonInterface::Python_BuildValue("L", &temp_s64));
 
-  case ArgTypeEnum::S32:
+  case ScriptingEnums::ArgTypeEnum::S32:
     temp_s64 = argHolder_APIs.GetS32FromArgHolder(return_value);
     return FreeAndReturn(return_value, PythonInterface::Python_BuildValue("L", &temp_s64));
 
-  case ArgTypeEnum::S64:
+  case ScriptingEnums::ArgTypeEnum::S64:
     temp_s64 = argHolder_APIs.GetS64FromArgHolder(return_value);
     return FreeAndReturn(return_value, PythonInterface::Python_BuildValue("L", &temp_s64));
 
-  case ArgTypeEnum::Float:
+  case ScriptingEnums::ArgTypeEnum::Float:
     temp_float = argHolder_APIs.GetFloatFromArgHolder(return_value);
     return FreeAndReturn(return_value, PythonInterface::Python_BuildValue("f", &temp_float));
 
-  case ArgTypeEnum::Double:
+  case ScriptingEnums::ArgTypeEnum::Double:
     temp_double = argHolder_APIs.GetDoubleFromArgHolder(return_value);
     return FreeAndReturn(return_value, PythonInterface::Python_BuildValue("d", &temp_double));
 
-  case ArgTypeEnum::String:
+  case ScriptingEnums::ArgTypeEnum::String:
     temp_const_char_ptr = argHolder_APIs.GetStringFromArgHolder(return_value);
     return FreeAndReturn(return_value, PythonInterface::Python_BuildValue("s", &temp_const_char_ptr));
 
-  case ArgTypeEnum::AddressToByteMap:
+  case ScriptingEnums::ArgTypeEnum::AddressToByteMap:
     return_dict = PythonInterface::PythonDictionary_New();
     travel_iterator_ptr = base_iterator_ptr = argHolder_APIs.CreateIteratorForAddressToByteMapArgHolder(return_value);
     while (travel_iterator_ptr != nullptr)
@@ -537,7 +537,7 @@ void* RunFunction_impl(void* base_script_context_ptr, FunctionMetadata* current_
     argHolder_APIs.Delete_IteratorForAddressToByteMapArgHolder(base_iterator_ptr);
     return FreeAndReturn(return_value, return_dict);
 
-  case ArgTypeEnum::ControllerStateObject:
+  case ScriptingEnums::ArgTypeEnum::ControllerStateObject:
     return_dict = PythonInterface::PythonDictionary_New();
     for (int next_button : digital_buttons_list)
     {
@@ -553,7 +553,7 @@ void* RunFunction_impl(void* base_script_context_ptr, FunctionMetadata* current_
     }
     return FreeAndReturn(return_value, return_dict);
 
-  case ArgTypeEnum::RegistrationReturnType:
+  case ScriptingEnums::ArgTypeEnum::RegistrationReturnType:
     if (PythonInterface::Python_ErrOccured())
     {
       argHolder_APIs.Delete_ArgHolder(return_value);
@@ -563,13 +563,13 @@ void* RunFunction_impl(void* base_script_context_ptr, FunctionMetadata* current_
     temp_u64 = *(reinterpret_cast<unsigned long long*>(&temp_void_ptr));
     return FreeAndReturn(return_value, PythonInterface::Python_BuildValue("K", &temp_u64));
 
-  case ArgTypeEnum::RegistrationWithAutoDeregistrationReturnType:
-  case ArgTypeEnum::UnregistrationReturnType:
+  case ScriptingEnums::ArgTypeEnum::RegistrationWithAutoDeregistrationReturnType:
+  case ScriptingEnums::ArgTypeEnum::UnregistrationReturnType:
     return FreeAndReturn(return_value, PythonInterface::GetNoneObject());
 
-  case ArgTypeEnum::ShutdownType:
+  case ScriptingEnums::ArgTypeEnum::ShutdownType:
     argHolder_APIs.Delete_ArgHolder(return_value);
-    dolphinDefinedScriptContext_APIs.Shutdown_Script(base_script_context_ptr);
+    dolphinDefinedScriptContext_APIs.get_script_end_callback_function(base_script_context_ptr)(base_script_context_ptr, dolphinDefinedScriptContext_APIs.get_unique_script_identifier(base_script_context_ptr));
     return PythonInterface::GetNoneObject();
 
   default:
@@ -603,7 +603,7 @@ void RunCallbacksForVector(void* base_script_context_ptr, PythonScriptContext* p
 
   if (ShouldCallEndScriptFunction(base_script_context_ptr))
   {
-    dolphinDefinedScriptContext_APIs.Shutdown_Script(base_script_context_ptr);
+    dolphinDefinedScriptContext_APIs.get_script_end_callback_function(base_script_context_ptr)(base_script_context_ptr, dolphinDefinedScriptContext_APIs.get_unique_script_identifier(base_script_context_ptr));
     return;
   }
 
@@ -659,7 +659,7 @@ void RunCallbacksForMap(void* base_script_context_ptr, PythonScriptContext* pyth
 
   if (ShouldCallEndScriptFunction(base_script_context_ptr))
   {
-    dolphinDefinedScriptContext_APIs.Shutdown_Script(base_script_context_ptr);
+    dolphinDefinedScriptContext_APIs.get_script_end_callback_function(base_script_context_ptr)(base_script_context_ptr, dolphinDefinedScriptContext_APIs.get_unique_script_identifier(base_script_context_ptr));
     return;
   }
 
@@ -903,7 +903,7 @@ void* RegisterOnInstructionReachedCallback_impl(void* base_script_context_ptr, u
   return RegisterForMapHelper(python_script, addr, python_script->map_of_instruction_address_to_python_callbacks, callback);
 }
 
-void RegisterOnInstructioReachedWithAutoDeregistrationCallback_impl(void* base_script_context_ptr, unsigned int addr, void* callback)
+void RegisterOnInstructionReachedWithAutoDeregistrationCallback_impl(void* base_script_context_ptr, unsigned int addr, void* callback)
 {
   PythonScriptContext* python_script = GetPythonScriptContext(base_script_context_ptr);
   RegisterForMapWithAutoDeregistrationHelper(base_script_context_ptr, addr, python_script->map_of_instruction_address_to_python_callbacks, callback, python_script->number_of_instruction_address_callbacks_to_auto_deregister);
@@ -961,17 +961,17 @@ void DLLClassMetadataCopyHook_impl(void* base_script_context_ptr, void* class_me
     std::string function_version = std::string(functionMetadata_APIs.GetFunctionVersion(function_metadata_ptr));
     std::string example_function_call = std::string(functionMetadata_APIs.GetExampleFunctionCall(function_metadata_ptr));
     void* (*wrapped_function_ptr)(void*, void*) = functionMetadata_APIs.GetFunctionPointer(function_metadata_ptr);
-    ArgTypeEnum return_type = (ArgTypeEnum)functionMetadata_APIs.GetReturnType(function_metadata_ptr);
+    ScriptingEnums::ArgTypeEnum return_type = (ScriptingEnums::ArgTypeEnum)functionMetadata_APIs.GetReturnType(function_metadata_ptr);
     unsigned long long num_args = functionMetadata_APIs.GetNumberOfArguments(function_metadata_ptr);
-    std::vector<ArgTypeEnum> argument_type_list = std::vector<ArgTypeEnum>();
+    std::vector<ScriptingEnums::ArgTypeEnum> argument_type_list = std::vector<ScriptingEnums::ArgTypeEnum>();
     for (unsigned long long arg_index = 0; arg_index < num_args; ++arg_index)
-      argument_type_list.push_back((ArgTypeEnum)functionMetadata_APIs.GetTypeOfArgumentAtIndex(function_metadata_ptr, arg_index));
+      argument_type_list.push_back((ScriptingEnums::ArgTypeEnum)functionMetadata_APIs.GetTypeOfArgumentAtIndex(function_metadata_ptr, arg_index));
     current_function = FunctionMetadata(class_name.c_str(), function_name.c_str(), function_version.c_str(), example_function_call.c_str(), wrapped_function_ptr, return_type, argument_type_list);
     functions_list.push_back(current_function);
   }
 
-  ((PythonScriptContext*)dolphinDefinedScriptContext_APIs.get_derived_script_context_class_ptr(base_script_context_ptr))->class_metadata_buffer.class_name = std::move(std::string(class_name.c_str()));
-  ((PythonScriptContext*)dolphinDefinedScriptContext_APIs.get_derived_script_context_class_ptr(base_script_context_ptr))->class_metadata_buffer.functions_list = std::move(functions_list);
+  ((PythonScriptContext*)dolphinDefinedScriptContext_APIs.get_derived_script_context_ptr(base_script_context_ptr))->class_metadata_buffer.class_name = std::move(std::string(class_name.c_str()));
+  ((PythonScriptContext*)dolphinDefinedScriptContext_APIs.get_derived_script_context_ptr(base_script_context_ptr))->class_metadata_buffer.functions_list = std::move(functions_list);
 }
 
 // This function is unused, but it's implemented in case we ever want to get a single FunctionMetadata* for a specific function
@@ -981,12 +981,12 @@ void DLLFunctionMetadataCopyHook_impl(void* base_script_context_ptr, void* funct
   python_script->single_function_metadata_buffer.module_name = std::string("");
   python_script->single_function_metadata_buffer.function_name = std::string(functionMetadata_APIs.GetFunctionName(function_metadata_ptr));
   python_script->single_function_metadata_buffer.function_version = std::string(functionMetadata_APIs.GetFunctionVersion(function_metadata_ptr));
-  python_script->single_function_metadata_buffer.return_type = (ArgTypeEnum)functionMetadata_APIs.GetReturnType(function_metadata_ptr);
+  python_script->single_function_metadata_buffer.return_type = (ScriptingEnums::ArgTypeEnum)functionMetadata_APIs.GetReturnType(function_metadata_ptr);
   python_script->single_function_metadata_buffer.example_function_call = std::string(functionMetadata_APIs.GetExampleFunctionCall(function_metadata_ptr));
   python_script->single_function_metadata_buffer.function_pointer = functionMetadata_APIs.GetFunctionPointer(function_metadata_ptr);
-  std::vector<ArgTypeEnum> new_argument_list = {};
+  std::vector<ScriptingEnums::ArgTypeEnum> new_argument_list = {};
   unsigned long long num_args = functionMetadata_APIs.GetNumberOfArguments(function_metadata_ptr);
   for (unsigned long long arg_index = 0; arg_index < num_args; ++arg_index)
-    new_argument_list.push_back((ArgTypeEnum)functionMetadata_APIs.GetTypeOfArgumentAtIndex(function_metadata_ptr, arg_index));
+    new_argument_list.push_back((ScriptingEnums::ArgTypeEnum)functionMetadata_APIs.GetTypeOfArgumentAtIndex(function_metadata_ptr, arg_index));
   python_script->single_function_metadata_buffer.arguments_list = new_argument_list;
 }

@@ -7,15 +7,16 @@ extern "C" {
 
 typedef struct FileUtility_APIs
 {
+  // Returns the user directory path for Dolphin.
   const char* (*GetUserPath)();
-  const char* (*GetSystemDirectory)();
-} FileUtility_APIs;
 
+  // Returns the system directory path for Dolphin.
+  const char* (*GetSystemDirectory)();
+
+} FileUtility_APIs;
 
 #ifdef __cplusplus
 }
 #endif
-
-
 
 #endif
