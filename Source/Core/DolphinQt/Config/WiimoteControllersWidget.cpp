@@ -28,6 +28,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTReal.h"
 #include "Core/NetPlayProto.h"
+#include "Core/System.h"
 #include "Core/WiiUtils.h"
 
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
@@ -328,6 +329,10 @@ void WiimoteControllersWidget::LoadSettings(Core::State state)
 
 void WiimoteControllersWidget::SaveSettings()
 {
+  // SerialInterface::SerialInterfaceManager::UpdateDevices() can enter a race
+  // condition with Config::OnConfigChanged(), leading to iterator invalidation.
+  Core::CPUThreadGuard cpu_thread_guard(Core::System::GetInstance());
+
   {
     Config::ConfigChangeCallbackGuard config_guard;
     Config::SetBaseOrCurrent(Config::MAIN_WIIMOTE_ENABLE_SPEAKER,

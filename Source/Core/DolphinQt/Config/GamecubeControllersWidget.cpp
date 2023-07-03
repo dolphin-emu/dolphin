@@ -183,6 +183,10 @@ void GamecubeControllersWidget::LoadSettings(Core::State state)
 
 void GamecubeControllersWidget::SaveSettings()
 {
+  // SerialInterface::SerialInterfaceManager::UpdateDevices() can enter a race
+  // condition with Config::OnConfigChanged(), leading to iterator invalidation.
+  Core::CPUThreadGuard cpu_thread_guard(Core::System::GetInstance());
+
   {
     Config::ConfigChangeCallbackGuard config_guard;
 
