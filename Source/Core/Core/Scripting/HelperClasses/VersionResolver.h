@@ -20,8 +20,8 @@ GetLatestFunctionsForVersion(const std::array<FunctionMetadata, array_size> all_
   //  For example, suppose we have a function that we want to be
   // called "writeBytes" in scripts, which refers to a function called do_general_write on the
   // backend. The key value pairs might look like:
-  //  "writeBytes", {"writeBytes", "1.0", do_general_write, ArgTypeEnum::VoidType,
-  //  {ArgTypeEnum::UnsignedByteVector}}
+  //  "writeBytes", {"writeBytes", "1.0", do_general_write, ScriptingEnums::ArgTypeEnum::VoidType,
+  //  {ScriptingEnums::ArgTypeEnum::UnsignedByteVector}}
   std::unordered_map<std::string, FunctionMetadata> function_to_latest_version_found_map;
 
   for (int i = 0; i < array_size; ++i)

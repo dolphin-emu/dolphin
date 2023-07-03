@@ -14,14 +14,14 @@ public:
     this->function_version = "";
     this->example_function_call = "";
     function_pointer = nullptr;
-    return_type = (ArgTypeEnum) 0;
-    arguments_list = std::vector<ArgTypeEnum>();
+    return_type = (ScriptingEnums::ArgTypeEnum)0;
+    arguments_list = std::vector<ScriptingEnums::ArgTypeEnum>();
   }
 
   FunctionMetadata(const char* new_module_name, const char* new_func_name, const char* new_func_version,
-                   const char* new_example_function_call,
-                   void* (*new_function_ptr)(void*, void*),
-                   ArgTypeEnum new_return_type, std::vector<ArgTypeEnum> new_arguments_list)
+    const char* new_example_function_call,
+    void* (*new_function_ptr)(void*, void*),
+    ScriptingEnums::ArgTypeEnum new_return_type, std::vector<ScriptingEnums::ArgTypeEnum> new_arguments_list)
   {
     this->module_name = std::string(new_module_name);
     this->function_name = std::string(new_func_name);
@@ -37,7 +37,7 @@ public:
   std::string function_version;
   std::string example_function_call;
   void* (*function_pointer)(void*, void*);
-  ArgTypeEnum return_type;
-  std::vector<ArgTypeEnum> arguments_list;
+  ScriptingEnums::ArgTypeEnum return_type;
+  std::vector<ScriptingEnums::ArgTypeEnum> arguments_list;
 };
 

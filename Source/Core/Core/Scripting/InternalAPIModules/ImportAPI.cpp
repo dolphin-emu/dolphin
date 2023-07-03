@@ -18,13 +18,13 @@ namespace Scripting::ImportAPI
 const char* class_name = "dolphin";
 static std::array all_import_functions_metadata_list = {
     FunctionMetadata("importModule", "1.0", "importModule(apiName, versionNumber)", ImportModule,
-                     ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::String}),
+                     ScriptingEnums::ArgTypeEnum::VoidType, {ScriptingEnums::ArgTypeEnum::String, ScriptingEnums::ArgTypeEnum::String}),
     FunctionMetadata("import", "1.0", "import(apiName, versionNumber)", ImportAlt,
-                     ArgTypeEnum::VoidType, {ArgTypeEnum::String, ArgTypeEnum::String}),
+                     ScriptingEnums::ArgTypeEnum::VoidType, {ScriptingEnums::ArgTypeEnum::String, ScriptingEnums::ArgTypeEnum::String}),
     FunctionMetadata("shutdownScript", "1.0", "shutdownScript()", ShutdownScript,
-                     ArgTypeEnum::ShutdownType, {}),
-    FunctionMetadata("exitDolphin", "1.0", "exitDolphin(0)", ExitDolphin, ArgTypeEnum::VoidType,
-                     {ArgTypeEnum::S32})};
+                     ScriptingEnums::ArgTypeEnum::ShutdownType, {}),
+    FunctionMetadata("exitDolphin", "1.0", "exitDolphin(0)", ExitDolphin, ScriptingEnums::ArgTypeEnum::VoidType,
+                     {ScriptingEnums::ArgTypeEnum::S32})};
 
 ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
 {
@@ -66,7 +66,8 @@ ArgHolder* ImportAlt(ScriptContext* current_script, std::vector<ArgHolder*>* arg
 
 ArgHolder* ShutdownScript(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  ScriptContext_ShutdownScript_impl(current_script);
+  current_script->script_end_callback_function(reinterpret_cast<void*>(current_script),
+                                               current_script->unique_script_identifier);
   return CreateShutdownTypeArgHolder();
 }
 

@@ -8,15 +8,15 @@ const char* class_name = "OnWiiInputPolled";
 
 static std::array all_on_wii_input_polled_callback_functions_metadata_list = {
     FunctionMetadata("register", "1.0", "register(value)", Register,
-                     ArgTypeEnum::RegistrationReturnType, {ArgTypeEnum::RegistrationInputType}),
+                     ScriptingEnums::ArgTypeEnum::RegistrationReturnType, {ScriptingEnums::ArgTypeEnum::RegistrationInputType}),
     FunctionMetadata("registerWithAutoDeregistration", "1.0",
                      "registerWithAutoDeregistration(value)", RegisterWithAutoDeregistration,
-                     ArgTypeEnum::RegistrationWithAutoDeregistrationReturnType,
-                     {ArgTypeEnum::RegistrationWithAutoDeregistrationInputType}),
+                     ScriptingEnums::ArgTypeEnum::RegistrationWithAutoDeregistrationReturnType,
+                     {ScriptingEnums::ArgTypeEnum::RegistrationWithAutoDeregistrationInputType}),
     FunctionMetadata("unregister", "1.0", "unregister(value)", Unregister,
-                     ArgTypeEnum::UnregistrationReturnType, {ArgTypeEnum::UnregistrationInputType}),
+                     ScriptingEnums::ArgTypeEnum::UnregistrationReturnType, {ScriptingEnums::ArgTypeEnum::UnregistrationInputType}),
     FunctionMetadata("isInWiiInputPolledCallback", "1.0", "isInWiiInputPolledCallback()",
-                     IsInWiiInputPolledCallback, ArgTypeEnum::Boolean, {})};
+                     IsInWiiInputPolledCallback, ScriptingEnums::ArgTypeEnum::Boolean, {})};
 
 ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
 {
@@ -72,6 +72,6 @@ ArgHolder* IsInWiiInputPolledCallback(ScriptContext* current_script,
                                       std::vector<ArgHolder*>* args_list)
 {
   return CreateBoolArgHolder(current_script->current_script_call_location ==
-                             ScriptCallLocations::FromWiiInputPolled);
+                             ScriptingEnums::ScriptCallLocations::FromWiiInputPolled);
 }
 }  // namespace Scripting::OnWiiInputPolledCallbackAPI

@@ -7,15 +7,15 @@ namespace Scripting::OnFrameStartCallbackAPI
 const char* class_name = "OnFrameStart";
 static std::array all_on_frame_start_callback_functions_metadata_list = {
     FunctionMetadata("register", "1.0", "register(value)", Register,
-                     ArgTypeEnum::RegistrationReturnType, {ArgTypeEnum::RegistrationInputType}),
+                     ScriptingEnums::ArgTypeEnum::RegistrationReturnType, {ScriptingEnums::ArgTypeEnum::RegistrationInputType}),
     FunctionMetadata("registerWithAutoDeregistration", "1.0",
                      "registerWithAutoDeregistration(value)", RegisterWithAutoDeregistration,
-                     ArgTypeEnum::RegistrationWithAutoDeregistrationReturnType,
-                     {ArgTypeEnum::RegistrationWithAutoDeregistrationInputType}),
+                     ScriptingEnums::ArgTypeEnum::RegistrationWithAutoDeregistrationReturnType,
+                     {ScriptingEnums::ArgTypeEnum::RegistrationWithAutoDeregistrationInputType}),
     FunctionMetadata("unregister", "1.0", "unregister(value)", Unregister,
-                     ArgTypeEnum::UnregistrationReturnType, {ArgTypeEnum::UnregistrationInputType}),
+                     ScriptingEnums::ArgTypeEnum::UnregistrationReturnType, {ScriptingEnums::ArgTypeEnum::UnregistrationInputType}),
     FunctionMetadata("isInFrameStartCallback", "1.0", "isInFrameStartCallback()",
-                     IsInFrameStartCallback, ArgTypeEnum::Boolean, {})};
+                     IsInFrameStartCallback, ScriptingEnums::ArgTypeEnum::Boolean, {})};
 
 ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
 {
@@ -68,6 +68,6 @@ ArgHolder* Unregister(ScriptContext* current_script, std::vector<ArgHolder*>* ar
 ArgHolder* IsInFrameStartCallback(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
   return CreateBoolArgHolder(current_script->current_script_call_location ==
-                             ScriptCallLocations::FromFrameStartCallback);
+                             ScriptingEnums::ScriptCallLocations::FromFrameStartCallback);
 }
 }  // namespace Scripting::OnFrameStartCallbackAPI

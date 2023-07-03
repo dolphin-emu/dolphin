@@ -21,8 +21,8 @@ typedef struct ScriptContext
 
   int unique_script_identifier;
   std::string script_filename;
-  ScriptCallLocations current_script_call_location;
-  ScriptReturnCodes script_return_code;
+  ScriptingEnums::ScriptCallLocations current_script_call_location;
+  ScriptingEnums::ScriptReturnCodes script_return_code;
   std::string last_script_error;
   int is_script_active;
   int finished_with_global_code;

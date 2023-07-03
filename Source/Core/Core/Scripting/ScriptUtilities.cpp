@@ -501,7 +501,7 @@ void InitializeScript(
           new_script_end_callback)));
 
   if (list_of_all_scripts[list_of_all_scripts.size() - 1]->script_return_code !=
-      ScriptReturnCodes::SuccessCode)
+      ScriptingEnums::ScriptReturnCodes::SuccessCode)
   {
     PanicAlertFmt("{}",
                   list_of_all_scripts[list_of_all_scripts.size() - 1]->last_script_error.c_str());
@@ -648,7 +648,7 @@ bool StartScripts()
     next_script->script_specific_lock.lock();
     if (next_script->is_script_active)
     {
-      next_script->current_script_call_location = ScriptCallLocations::FromScriptStartup;
+      next_script->current_script_call_location = ScriptingEnums::ScriptCallLocations::FromScriptStartup;
       next_script->dll_specific_api_definitions.StartScript(next_script);
       return_value = next_script->called_yielding_function_in_last_global_script_resume;
       if (next_script->script_return_code != 0)
@@ -671,7 +671,7 @@ bool RunGlobalCode()
     current_script->script_specific_lock.lock();
     if (current_script->is_script_active && !current_script->finished_with_global_code)
     {
-      current_script->current_script_call_location = ScriptCallLocations::FromFrameStartGlobalScope;
+      current_script->current_script_call_location = ScriptingEnums::ScriptCallLocations::FromFrameStartGlobalScope;
       current_script->dll_specific_api_definitions.RunGlobalScopeCode(current_script);
       return_value = current_script->called_yielding_function_in_last_global_script_resume;
       if (current_script->script_return_code != 0)
@@ -694,7 +694,7 @@ bool RunOnFrameStartCallbacks()
     current_script->script_specific_lock.lock();
     if (current_script->is_script_active)
     {
-      current_script->current_script_call_location = ScriptCallLocations::FromFrameStartCallback;
+      current_script->current_script_call_location = ScriptingEnums::ScriptCallLocations::FromFrameStartCallback;
       current_script->dll_specific_api_definitions.RunOnFrameStartCallbacks(current_script);
       return_value = current_script->called_yielding_function_in_last_frame_callback_script_resume;
       if (current_script->script_return_code != 0)
@@ -717,7 +717,7 @@ void RunOnGCInputPolledCallbacks()
     if (current_script->is_script_active)
     {
       current_script->current_script_call_location =
-          ScriptCallLocations::FromGCControllerInputPolled;
+          ScriptingEnums::ScriptCallLocations::FromGCControllerInputPolled;
       current_script->dll_specific_api_definitions.RunOnGCControllerPolledCallbacks(current_script);
       if (current_script->script_return_code != 0)
         PanicAlertFmt("{}", current_script->last_script_error);
@@ -738,7 +738,7 @@ void RunOnInstructionHitCallbacks(u32 instruction_address)
     if (current_script->is_script_active)
     {
       current_script->current_script_call_location =
-          ScriptCallLocations::FromInstructionHitCallback;
+          ScriptingEnums::ScriptCallLocations::FromInstructionHitCallback;
       current_script->dll_specific_api_definitions.RunOnInstructionReachedCallbacks(
           current_script, instruction_address);
       if (current_script->script_return_code != 0)
@@ -761,7 +761,7 @@ void RunOnMemoryAddressReadFromCallbacks(u32 memory_address)
     if (current_script->is_script_active)
     {
       current_script->current_script_call_location =
-          ScriptCallLocations::FromMemoryAddressReadFromCallback;
+          ScriptingEnums::ScriptCallLocations::FromMemoryAddressReadFromCallback;
       current_script->dll_specific_api_definitions.RunOnMemoryAddressReadFromCallbacks(
           current_script, memory_address);
       if (current_script->script_return_code != 0)
@@ -786,7 +786,7 @@ void RunOnMemoryAddressWrittenToCallbacks(u32 memory_address, s64 new_value)
     if (current_script->is_script_active)
     {
       current_script->current_script_call_location =
-          ScriptCallLocations::FromMemoryAddressWrittenToCallback;
+          ScriptingEnums::ScriptCallLocations::FromMemoryAddressWrittenToCallback;
       current_script->dll_specific_api_definitions.RunOnMemoryAddressWrittenToCallbacks(
           current_script, memory_address);
       if (current_script->script_return_code != 0)
@@ -806,7 +806,7 @@ void RunOnWiiInputPolledCallbacks()
     current_script->script_specific_lock.lock();
     if (current_script->is_script_active)
     {
-      current_script->current_script_call_location = ScriptCallLocations::FromWiiInputPolled;
+      current_script->current_script_call_location = ScriptingEnums::ScriptCallLocations::FromWiiInputPolled;
       current_script->dll_specific_api_definitions.RunOnWiiInputPolledCallbacks(current_script);
       if (current_script->script_return_code != 0)
         PanicAlertFmt("{}", current_script->last_script_error);
@@ -824,7 +824,7 @@ void RunButtonCallbacksInQueues()
     current_script->script_specific_lock.lock();
     if (current_script->is_script_active)
     {
-      current_script->current_script_call_location = ScriptCallLocations::FromGraphicsCallback;
+      current_script->current_script_call_location = ScriptingEnums::ScriptCallLocations::FromGraphicsCallback;
       current_script->dll_specific_api_definitions.RunButtonCallbacksInQueue(current_script);
       if (current_script->script_return_code != 0)
         PanicAlertFmt("{}", current_script->last_script_error);

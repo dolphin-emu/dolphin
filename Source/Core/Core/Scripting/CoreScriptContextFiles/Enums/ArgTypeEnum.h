@@ -1,7 +1,7 @@
 #pragma once
 #ifndef ARG_TYPE_ENUM
 #define ARG_TYPE_ENUM
-namespace Scripting
+namespace ScriptingEnums
 {
 #ifdef __cplusplus
 extern "C" {
@@ -42,5 +42,5 @@ enum ArgTypeEnum
 #ifdef __cplusplus
 }
 #endif
-}  // namespace Scripting
+}  // namespace ScriptingEnums
 #endif

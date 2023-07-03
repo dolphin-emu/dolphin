@@ -20,8 +20,8 @@ void* ScriptContext_Initializer_impl(int unique_identifier, const char* script_f
   ret_val->script_filename = std::string(script_file_name);
   ret_val->print_callback_function = print_callback_function;
   ret_val->script_end_callback_function = script_end_callback;
-  ret_val->current_script_call_location = ScriptCallLocations::FromScriptStartup;
-  ret_val->script_return_code = ScriptReturnCodes::SuccessCode;
+  ret_val->current_script_call_location = ScriptingEnums::ScriptCallLocations::FromScriptStartup;
+  ret_val->script_return_code = ScriptingEnums::ScriptReturnCodes::SuccessCode;
   ret_val->last_script_error = std::string("");
   ret_val->is_script_active = 1;
   ret_val->finished_with_global_code = 0;
@@ -78,7 +78,7 @@ int ScriptContext_GetScriptReturnCode_impl(void* script_context)
 void ScriptContext_SetScriptReturnCode_impl(void* script_context, int new_script_return_code)
 {
   castToScriptContextPtr(script_context)->script_return_code =
-      (ScriptReturnCodes)new_script_return_code;
+      (ScriptingEnums::ScriptReturnCodes)new_script_return_code;
 }
 
 const char* ScriptContext_GetErrorMessage_impl(void* script_context)

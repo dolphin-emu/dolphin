@@ -13,25 +13,25 @@ bool in_memory_address_written_to_breakpoint = false;
 
 static std::array all_on_memory_address_written_to_callback_functions_metadata_list = {
     FunctionMetadata("register", "1.0", "register(memoryAddress, value)", Register,
-                     ArgTypeEnum::RegistrationReturnType,
-                     {ArgTypeEnum::U32, ArgTypeEnum::RegistrationInputType}),
+                     ScriptingEnums::ArgTypeEnum::RegistrationReturnType,
+                     {ScriptingEnums::ArgTypeEnum::U32, ScriptingEnums::ArgTypeEnum::RegistrationInputType}),
     FunctionMetadata("registerWithAutoDeregistration", "1.0",
                      "registerWithAutoDeregistration(memoryAddress, value)",
                      RegisterWithAutoDeregistration,
-                     ArgTypeEnum::RegistrationWithAutoDeregistrationReturnType,
-                     {ArgTypeEnum::U32, ArgTypeEnum::RegistrationWithAutoDeregistrationInputType}),
+                     ScriptingEnums::ArgTypeEnum::RegistrationWithAutoDeregistrationReturnType,
+                     {ScriptingEnums::ArgTypeEnum::U32, ScriptingEnums::ArgTypeEnum::RegistrationWithAutoDeregistrationInputType}),
     FunctionMetadata("unregister", "1.0", "unregister(memoryAddress, value)", Unregister,
-                     ArgTypeEnum::UnregistrationReturnType,
-                     {ArgTypeEnum::U32, ArgTypeEnum::UnregistrationInputType}),
+                     ScriptingEnums::ArgTypeEnum::UnregistrationReturnType,
+                     {ScriptingEnums::ArgTypeEnum::U32, ScriptingEnums::ArgTypeEnum::UnregistrationInputType}),
     FunctionMetadata("isInMemoryAddressWrittenToCallback", "1.0",
                      "isInMemoryAddressWrittenToCallback()", IsInMemoryAddressWrittenToCallback,
-                     ArgTypeEnum::Boolean, {}),
+                     ScriptingEnums::ArgTypeEnum::Boolean, {}),
     FunctionMetadata("getMemoryAddressWrittenToForCurrentCallback", "1.0",
                      "getMemoryAddressWrittenToForCurrentCallback()",
-                     GetMemoryAddressWrittenToForCurrentCallback, ArgTypeEnum::U32, {}),
+                     GetMemoryAddressWrittenToForCurrentCallback, ScriptingEnums::ArgTypeEnum::U32, {}),
     FunctionMetadata("getValueWrittenToMemoryAddressForCurrentCallback", "1.0",
                      "getValueWrittenToMemoryAddressForCurrentCallback",
-                     GetValueWrittenToMemoryAddressForCurrentCallback, ArgTypeEnum::S64, {})};
+                     GetValueWrittenToMemoryAddressForCurrentCallback, ScriptingEnums::ArgTypeEnum::S64, {})};
 
 ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
 {
@@ -117,14 +117,14 @@ ArgHolder* IsInMemoryAddressWrittenToCallback(ScriptContext* current_script,
                                               std::vector<ArgHolder*>* arg_list)
 {
   return CreateBoolArgHolder(current_script->current_script_call_location ==
-                             ScriptCallLocations::FromMemoryAddressWrittenToCallback);
+                             ScriptingEnums::ScriptCallLocations::FromMemoryAddressWrittenToCallback);
 }
 
 ArgHolder* GetMemoryAddressWrittenToForCurrentCallback(ScriptContext* current_script,
                                                        std::vector<ArgHolder*>* args_list)
 {
   if (current_script->current_script_call_location !=
-      ScriptCallLocations::FromMemoryAddressWrittenToCallback)
+      ScriptingEnums::ScriptCallLocations::FromMemoryAddressWrittenToCallback)
     return CreateErrorStringArgHolder(
         "User attempted to call "
         "OnMemoryAddressWrittenTo:getMemoryAddressWrittenToForCurrentCallback() outside of an "
@@ -136,7 +136,7 @@ ArgHolder* GetValueWrittenToMemoryAddressForCurrentCallback(ScriptContext* curre
                                                             std::vector<ArgHolder*>* args_list)
 {
   if (current_script->current_script_call_location !=
-      ScriptCallLocations::FromMemoryAddressWrittenToCallback)
+      ScriptingEnums::ScriptCallLocations::FromMemoryAddressWrittenToCallback)
     return CreateErrorStringArgHolder(
         "User attempted to call "
         "OnMemoryAddressWrittenTo:getValueWrittenToMemoryAddressForCurrentCallback() outside of an "

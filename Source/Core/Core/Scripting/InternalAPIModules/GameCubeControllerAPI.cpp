@@ -12,12 +12,12 @@ std::array<Movie::ControllerState, 4> controller_inputs_on_last_frame{};
 
 static std::array all_game_cube_controller_functions_metadata_list = {
     FunctionMetadata("getInputsForPreviousFrame", "1.0", "getInputsForPreviousFrame(1)",
-                     GetInputsForPreviousFrame, ArgTypeEnum::ControllerStateObject,
-                     {ArgTypeEnum::S64}),
+                     GetInputsForPreviousFrame, ScriptingEnums::ArgTypeEnum::ControllerStateObject,
+                     {ScriptingEnums::ArgTypeEnum::S64}),
     FunctionMetadata("isGcControllerInPort", "1.0", "isGcControllerInPort(1)", IsGcControllerInPort,
-                     ArgTypeEnum::Boolean, {ArgTypeEnum::S64}),
-    FunctionMetadata("isUsingPort", "1.0", "isUsingPort(1)", IsUsingPort, ArgTypeEnum::Boolean,
-                     {ArgTypeEnum::S64})};
+                     ScriptingEnums::ArgTypeEnum::Boolean, {ScriptingEnums::ArgTypeEnum::S64}),
+    FunctionMetadata("isUsingPort", "1.0", "isUsingPort(1)", IsUsingPort, ScriptingEnums::ArgTypeEnum::Boolean,
+                     {ScriptingEnums::ArgTypeEnum::S64})};
 
 ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
 {

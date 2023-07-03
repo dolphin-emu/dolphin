@@ -13,7 +13,7 @@ namespace Scripting
 
 struct ArgHolder
 {
-  ArgTypeEnum argument_type;
+  ScriptingEnums::ArgTypeEnum argument_type;
   bool contains_value;
 
   // The below lines should all ideally be in a union. However, C++ won't let vectors be included in
