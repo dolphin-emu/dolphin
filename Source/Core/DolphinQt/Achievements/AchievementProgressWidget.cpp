@@ -35,7 +35,10 @@ AchievementProgressWidget::AchievementProgressWidget(QWidget* parent) : QWidget(
   m_common_box = new QGroupBox();
   m_common_layout = new QVBoxLayout();
 
-  UpdateData();
+  {
+    std::lock_guard lg{*AchievementManager::GetInstance()->GetLock()};
+    UpdateData();
+  }
 
   m_common_box->setLayout(m_common_layout);
 
@@ -51,12 +54,46 @@ AchievementProgressWidget::CreateAchievementBox(const rc_api_achievement_definit
 {
   if (!AchievementManager::GetInstance()->IsGameLoaded())
     return new QGroupBox();
+  QLabel* a_badge = new QLabel();
+  const auto unlock_status = AchievementManager::GetInstance()->GetUnlockStatus(achievement->id);
+  const AchievementManager::BadgeStatus* badge = &unlock_status.locked_badge;
+  if (unlock_status.remote_unlock_status == AchievementManager::UnlockStatus::UnlockType::HARDCORE)
+  {
+    badge = &unlock_status.unlocked_badge;
+  }
+  else if (hardcore_mode_enabled && unlock_status.session_unlock_count > 1)
+  {
+    badge = &unlock_status.unlocked_badge;
+  }
+  else if (unlock_status.remote_unlock_status ==
+           AchievementManager::UnlockStatus::UnlockType::SOFTCORE)
+  {
+    badge = &unlock_status.unlocked_badge;
+  }
+  else if (unlock_status.session_unlock_count > 1)
+  {
+    badge = &unlock_status.unlocked_badge;
+  }
+  if (Config::Get(Config::RA_BADGES_ENABLED) && badge->name != "")
+  {
+    QImage i_badge{};
+    if (i_badge.loadFromData(&badge->badge.front(), (int)badge->badge.size()))
+    {
+      a_badge->setPixmap(QPixmap::fromImage(i_badge).scaled(64, 64, Qt::KeepAspectRatio,
+                                                            Qt::SmoothTransformation));
+      a_badge->adjustSize();
+    }
+  }
+
   QLabel* a_title = new QLabel(QString::fromUtf8(achievement->title, strlen(achievement->title)));
   QLabel* a_description =
       new QLabel(QString::fromUtf8(achievement->description, strlen(achievement->description)));
   QLabel* a_points = new QLabel(tr("%1 points").arg(achievement->points));
   QLabel* a_status = new QLabel(GetStatusString(achievement->id));
   QProgressBar* a_progress_bar = new QProgressBar();
+  QSizePolicy sp_retain = a_progress_bar->sizePolicy();
+  sp_retain.setRetainSizeWhenHidden(true);
+  a_progress_bar->setSizePolicy(sp_retain);
   unsigned int value = 0;
   unsigned int target = 0;
   AchievementManager::GetInstance()->GetAchievementProgress(achievement->id, &value, &target);
@@ -77,7 +114,7 @@ AchievementProgressWidget::CreateAchievementBox(const rc_api_achievement_definit
   a_col_right->addWidget(a_status);
   a_col_right->addWidget(a_progress_bar);
   QHBoxLayout* a_total = new QHBoxLayout();
-  // TODO: achievement badge goes here
+  a_total->addWidget(a_badge);
   a_total->addLayout(a_col_right);
   QGroupBox* a_group_box = new QGroupBox();
   a_group_box->setLayout(a_total);

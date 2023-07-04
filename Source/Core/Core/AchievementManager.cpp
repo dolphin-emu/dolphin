@@ -691,6 +691,8 @@ AchievementManager::GetUnlockStatus(AchievementId achievement_id) const
 void AchievementManager::GetAchievementProgress(AchievementId achievement_id, u32* value,
                                                 u32* target)
 {
+  if (!IsGameLoaded())
+    return;
   rc_runtime_get_achievement_measured(&m_runtime, achievement_id, value, target);
 }
 
