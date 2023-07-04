@@ -16,8 +16,8 @@ static std::array all_game_cube_controller_functions_metadata_list = {
                      {ScriptingEnums::ArgTypeEnum::S64}),
     FunctionMetadata("isGcControllerInPort", "1.0", "isGcControllerInPort(1)", IsGcControllerInPort,
                      ScriptingEnums::ArgTypeEnum::Boolean, {ScriptingEnums::ArgTypeEnum::S64}),
-    FunctionMetadata("isUsingPort", "1.0", "isUsingPort(1)", IsUsingPort, ScriptingEnums::ArgTypeEnum::Boolean,
-                     {ScriptingEnums::ArgTypeEnum::S64})};
+    FunctionMetadata("isUsingPort", "1.0", "isUsingPort(1)", IsUsingPort,
+                     ScriptingEnums::ArgTypeEnum::Boolean, {ScriptingEnums::ArgTypeEnum::S64})};
 
 ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
 {

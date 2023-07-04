@@ -19,12 +19,12 @@ static std::array all_statistics_functions_metadata_list = {
                      IsRecordingInputFromSaveState, ScriptingEnums::ArgTypeEnum::Boolean, {}),
     FunctionMetadata("isPlayingInput", "1.0", "isPlayingInput()", IsPlayingInput,
                      ScriptingEnums::ArgTypeEnum::Boolean, {}),
-    FunctionMetadata("isMovieActive", "1.0", "isMovieActive()", IsMovieActive, ScriptingEnums::ArgTypeEnum::Boolean,
-                     {}),
+    FunctionMetadata("isMovieActive", "1.0", "isMovieActive()", IsMovieActive,
+                     ScriptingEnums::ArgTypeEnum::Boolean, {}),
     FunctionMetadata("getCurrentFrame", "1.0", "getCurrentFrame()", GetCurrentFrame,
                      ScriptingEnums::ArgTypeEnum::S64, {}),
-    FunctionMetadata("getMovieLength", "1.0", "getMovieLength()", GetMovieLength, ScriptingEnums::ArgTypeEnum::S64,
-                     {}),
+    FunctionMetadata("getMovieLength", "1.0", "getMovieLength()", GetMovieLength,
+                     ScriptingEnums::ArgTypeEnum::S64, {}),
     FunctionMetadata("getRerecordCount", "1.0", "getRerecordCount()", GetRerecordCount,
                      ScriptingEnums::ArgTypeEnum::S64, {}),
     FunctionMetadata("getCurrentInputCount", "1.0", "getCurrentInputCount()", GetCurrentInputCount,
@@ -35,12 +35,14 @@ static std::array all_statistics_functions_metadata_list = {
                      ScriptingEnums::ArgTypeEnum::S64, {}),
     FunctionMetadata("getTotalLagCount", "1.0", "getTotalLagCount()", GetTotalLagCount,
                      ScriptingEnums::ArgTypeEnum::S64, {}),
-    FunctionMetadata("getRAMSize", "1.0", "getRAMSize()", GetRAMSize, ScriptingEnums::ArgTypeEnum::U32, {}),
-    FunctionMetadata("getL1CacheSize", "1.0", "getL1CacheSize()", GetL1CacheSize, ScriptingEnums::ArgTypeEnum::U32,
-                     {}),
+    FunctionMetadata("getRAMSize", "1.0", "getRAMSize()", GetRAMSize,
+                     ScriptingEnums::ArgTypeEnum::U32, {}),
+    FunctionMetadata("getL1CacheSize", "1.0", "getL1CacheSize()", GetL1CacheSize,
+                     ScriptingEnums::ArgTypeEnum::U32, {}),
     FunctionMetadata("getFakeVMemSize", "1.0", "getFakeVMemSize()", GetFakeVMemSize,
                      ScriptingEnums::ArgTypeEnum::U32, {}),
-    FunctionMetadata("getExRAMSize", "1.0", "getExRAMSize()", GetExRAMSize, ScriptingEnums::ArgTypeEnum::U32, {})};
+    FunctionMetadata("getExRAMSize", "1.0", "getExRAMSize()", GetExRAMSize,
+                     ScriptingEnums::ArgTypeEnum::U32, {})};
 
 ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
 {

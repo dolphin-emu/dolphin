@@ -10,22 +10,26 @@ u32 instruction_address_for_current_callback = 0;
 bool in_instruction_hit_breakpoint = false;
 
 static std::array all_on_instruction_hit_callback_functions_metadata_list = {
-    FunctionMetadata("register", "1.0", "register(instructionAddress, value)", Register,
-                     ScriptingEnums::ArgTypeEnum::RegistrationReturnType,
-                     {ScriptingEnums::ArgTypeEnum::U32, ScriptingEnums::ArgTypeEnum::RegistrationInputType}),
+    FunctionMetadata(
+        "register", "1.0", "register(instructionAddress, value)", Register,
+        ScriptingEnums::ArgTypeEnum::RegistrationReturnType,
+        {ScriptingEnums::ArgTypeEnum::U32, ScriptingEnums::ArgTypeEnum::RegistrationInputType}),
     FunctionMetadata("registerWithAutoDeregistration", "1.0",
                      "registerWithAutoDeregistration(instructionAddress, value)",
                      RegisterWithAutoDeregistration,
                      ScriptingEnums::ArgTypeEnum::RegistrationWithAutoDeregistrationReturnType,
-                     {ScriptingEnums::ArgTypeEnum::U32, ScriptingEnums::ArgTypeEnum::RegistrationWithAutoDeregistrationInputType}),
-    FunctionMetadata("unregister", "1.0", "unregister(instructionAddress, value)", Unregister,
-                     ScriptingEnums::ArgTypeEnum::UnregistrationReturnType,
-                     {ScriptingEnums::ArgTypeEnum::U32, ScriptingEnums::ArgTypeEnum::UnregistrationInputType}),
+                     {ScriptingEnums::ArgTypeEnum::U32,
+                      ScriptingEnums::ArgTypeEnum::RegistrationWithAutoDeregistrationInputType}),
+    FunctionMetadata(
+        "unregister", "1.0", "unregister(instructionAddress, value)", Unregister,
+        ScriptingEnums::ArgTypeEnum::UnregistrationReturnType,
+        {ScriptingEnums::ArgTypeEnum::U32, ScriptingEnums::ArgTypeEnum::UnregistrationInputType}),
     FunctionMetadata("isInInstructionHitCallback", "1.0", "isInInstructionHitCallback()",
                      IsInInstructionHitCallback, ScriptingEnums::ArgTypeEnum::Boolean, {}),
     FunctionMetadata("getAddressOfInstructionForCurrentCallback", "1.0",
                      "getAddressOfInstructionForCurrentCallback()",
-                     GetAddressOfInstructionForCurrentCallback, ScriptingEnums::ArgTypeEnum::U32, {})};
+                     GetAddressOfInstructionForCurrentCallback, ScriptingEnums::ArgTypeEnum::U32,
+                     {})};
 
 ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
 {
@@ -68,7 +72,7 @@ ArgHolder* RegisterWithAutoDeregistration(ScriptContext* current_script,
   current_script->instructionBreakpointsHolder.AddBreakpoint(address_of_breakpoint);
   current_script->dll_specific_api_definitions
       .RegisterOnInstructionReachedWithAutoDeregistrationCallback(current_script,
-                                                                 address_of_breakpoint, callback);
+                                                                  address_of_breakpoint, callback);
   return CreateRegistrationWithAutoDeregistrationReturnTypeArgHolder();
 }
 

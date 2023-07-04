@@ -18,13 +18,15 @@ namespace Scripting::ImportAPI
 const char* class_name = "dolphin";
 static std::array all_import_functions_metadata_list = {
     FunctionMetadata("importModule", "1.0", "importModule(apiName, versionNumber)", ImportModule,
-                     ScriptingEnums::ArgTypeEnum::VoidType, {ScriptingEnums::ArgTypeEnum::String, ScriptingEnums::ArgTypeEnum::String}),
+                     ScriptingEnums::ArgTypeEnum::VoidType,
+                     {ScriptingEnums::ArgTypeEnum::String, ScriptingEnums::ArgTypeEnum::String}),
     FunctionMetadata("import", "1.0", "import(apiName, versionNumber)", ImportAlt,
-                     ScriptingEnums::ArgTypeEnum::VoidType, {ScriptingEnums::ArgTypeEnum::String, ScriptingEnums::ArgTypeEnum::String}),
+                     ScriptingEnums::ArgTypeEnum::VoidType,
+                     {ScriptingEnums::ArgTypeEnum::String, ScriptingEnums::ArgTypeEnum::String}),
     FunctionMetadata("shutdownScript", "1.0", "shutdownScript()", ShutdownScript,
                      ScriptingEnums::ArgTypeEnum::ShutdownType, {}),
-    FunctionMetadata("exitDolphin", "1.0", "exitDolphin(0)", ExitDolphin, ScriptingEnums::ArgTypeEnum::VoidType,
-                     {ScriptingEnums::ArgTypeEnum::S32})};
+    FunctionMetadata("exitDolphin", "1.0", "exitDolphin(0)", ExitDolphin,
+                     ScriptingEnums::ArgTypeEnum::VoidType, {ScriptingEnums::ArgTypeEnum::S32})};
 
 ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
 {

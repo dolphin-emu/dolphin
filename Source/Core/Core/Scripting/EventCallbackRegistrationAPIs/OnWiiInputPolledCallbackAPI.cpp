@@ -8,13 +8,15 @@ const char* class_name = "OnWiiInputPolled";
 
 static std::array all_on_wii_input_polled_callback_functions_metadata_list = {
     FunctionMetadata("register", "1.0", "register(value)", Register,
-                     ScriptingEnums::ArgTypeEnum::RegistrationReturnType, {ScriptingEnums::ArgTypeEnum::RegistrationInputType}),
+                     ScriptingEnums::ArgTypeEnum::RegistrationReturnType,
+                     {ScriptingEnums::ArgTypeEnum::RegistrationInputType}),
     FunctionMetadata("registerWithAutoDeregistration", "1.0",
                      "registerWithAutoDeregistration(value)", RegisterWithAutoDeregistration,
                      ScriptingEnums::ArgTypeEnum::RegistrationWithAutoDeregistrationReturnType,
                      {ScriptingEnums::ArgTypeEnum::RegistrationWithAutoDeregistrationInputType}),
     FunctionMetadata("unregister", "1.0", "unregister(value)", Unregister,
-                     ScriptingEnums::ArgTypeEnum::UnregistrationReturnType, {ScriptingEnums::ArgTypeEnum::UnregistrationInputType}),
+                     ScriptingEnums::ArgTypeEnum::UnregistrationReturnType,
+                     {ScriptingEnums::ArgTypeEnum::UnregistrationInputType}),
     FunctionMetadata("isInWiiInputPolledCallback", "1.0", "isInWiiInputPolledCallback()",
                      IsInWiiInputPolledCallback, ScriptingEnums::ArgTypeEnum::Boolean, {})};
 

@@ -10,23 +10,27 @@ u32 memory_address_read_from_for_current_callback = 0;
 bool in_memory_address_read_from_breakpoint = false;
 
 static std::array all_on_memory_address_read_from_callback_functions_metadata_list = {
-    FunctionMetadata("register", "1.0", "register(memoryAddress, value)", Register,
-                     ScriptingEnums::ArgTypeEnum::RegistrationReturnType,
-                     {ScriptingEnums::ArgTypeEnum::U32, ScriptingEnums::ArgTypeEnum::RegistrationInputType}),
+    FunctionMetadata(
+        "register", "1.0", "register(memoryAddress, value)", Register,
+        ScriptingEnums::ArgTypeEnum::RegistrationReturnType,
+        {ScriptingEnums::ArgTypeEnum::U32, ScriptingEnums::ArgTypeEnum::RegistrationInputType}),
     FunctionMetadata("registerWithAutoDeregistration", "1.0",
                      "registerWithAutoDeregistration(memoryAddress, value)",
                      RegisterWithAutoDeregistration,
                      ScriptingEnums::ArgTypeEnum::RegistrationWithAutoDeregistrationReturnType,
-                     {ScriptingEnums::ArgTypeEnum::U32, ScriptingEnums::ArgTypeEnum::RegistrationWithAutoDeregistrationInputType}),
-    FunctionMetadata("unregister", "1.0", "unregister(memoryAddress, value)", Unregister,
-                     ScriptingEnums::ArgTypeEnum::UnregistrationReturnType,
-                     {ScriptingEnums::ArgTypeEnum::U32, ScriptingEnums::ArgTypeEnum::UnregistrationInputType}),
+                     {ScriptingEnums::ArgTypeEnum::U32,
+                      ScriptingEnums::ArgTypeEnum::RegistrationWithAutoDeregistrationInputType}),
+    FunctionMetadata(
+        "unregister", "1.0", "unregister(memoryAddress, value)", Unregister,
+        ScriptingEnums::ArgTypeEnum::UnregistrationReturnType,
+        {ScriptingEnums::ArgTypeEnum::U32, ScriptingEnums::ArgTypeEnum::UnregistrationInputType}),
     FunctionMetadata("isInMemoryAddressReadFromCallback", "1.0",
                      "isInMemoryAddressReadFromCallback()", IsInMemoryAddressReadFromCallback,
                      ScriptingEnums::ArgTypeEnum::Boolean, {}),
     FunctionMetadata("getMemoryAddressReadFromForCurrentCallback", "1.0",
                      "getMemoryAddressReadFromForCurrentCallback()",
-                     GetMemoryAddressReadFromForCurrentCallback, ScriptingEnums::ArgTypeEnum::U32, {})};
+                     GetMemoryAddressReadFromForCurrentCallback, ScriptingEnums::ArgTypeEnum::U32,
+                     {})};
 
 ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
 {
@@ -110,8 +114,9 @@ ArgHolder* Unregister(ScriptContext* current_script, std::vector<ArgHolder*>* ar
 ArgHolder* IsInMemoryAddressReadFromCallback(ScriptContext* current_script,
                                              std::vector<ArgHolder*>* args_list)
 {
-  return CreateBoolArgHolder(current_script->current_script_call_location ==
-                             ScriptingEnums::ScriptCallLocations::FromMemoryAddressReadFromCallback);
+  return CreateBoolArgHolder(
+      current_script->current_script_call_location ==
+      ScriptingEnums::ScriptCallLocations::FromMemoryAddressReadFromCallback);
 }
 ArgHolder* GetMemoryAddressReadFromForCurrentCallback(ScriptContext* current_script,
                                                       std::vector<ArgHolder*>* args_list)

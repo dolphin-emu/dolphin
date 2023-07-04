@@ -13,20 +13,23 @@ int current_controller_number_polled = -1;
 
 static std::array all_on_gc_controller_polled_callback_functions_metadata_list = {
     FunctionMetadata("register", "1.0", "register(value)", Register,
-                     ScriptingEnums::ArgTypeEnum::RegistrationReturnType, {ScriptingEnums::ArgTypeEnum::RegistrationInputType}),
+                     ScriptingEnums::ArgTypeEnum::RegistrationReturnType,
+                     {ScriptingEnums::ArgTypeEnum::RegistrationInputType}),
     FunctionMetadata("registerWithAutoDeregistration", "1.0",
                      "registerWithAutoDeregisteration(value)", RegisterWithAutoDeregistration,
                      ScriptingEnums::ArgTypeEnum::RegistrationWithAutoDeregistrationReturnType,
                      {ScriptingEnums::ArgTypeEnum::RegistrationWithAutoDeregistrationInputType}),
     FunctionMetadata("unregister", "1.0", "unregister(value)", Unregister,
-                     ScriptingEnums::ArgTypeEnum::UnregistrationReturnType, {ScriptingEnums::ArgTypeEnum::UnregistrationInputType}),
+                     ScriptingEnums::ArgTypeEnum::UnregistrationReturnType,
+                     {ScriptingEnums::ArgTypeEnum::UnregistrationInputType}),
 
     FunctionMetadata("isInGCControllerPolledCallback", "1.0", "isInGCControllerPolledCallback()",
                      IsInGCControllerPolledCallback, ScriptingEnums::ArgTypeEnum::Boolean, {}),
     FunctionMetadata("getCurrentPortNumberOfPoll", "1.0", "getCurrentPortNumberOfPoll()",
                      GetCurrentPortNumberOfPoll, ScriptingEnums::ArgTypeEnum::S64, {}),
     FunctionMetadata("setInputsForPoll", "1.0", "setInputsForPoll(controllerValuesTable)",
-                     SetInputsForPoll, ScriptingEnums::ArgTypeEnum::VoidType, {ScriptingEnums::ArgTypeEnum::ControllerStateObject}),
+                     SetInputsForPoll, ScriptingEnums::ArgTypeEnum::VoidType,
+                     {ScriptingEnums::ArgTypeEnum::ControllerStateObject}),
     FunctionMetadata("getInputsForPoll", "1.0", "getInputsForPoll()", GetInputsForPoll,
                      ScriptingEnums::ArgTypeEnum::ControllerStateObject, {})};
 

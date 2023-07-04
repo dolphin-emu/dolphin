@@ -19,14 +19,18 @@ namespace Scripting::InstructionStepAPI
 const char* class_name = "InstructionStepAPI";
 
 static std::array all_instruction_step_functions_metadata_list = {
-    FunctionMetadata("singleStep", "1.0", "singleStep()", SingleStep, ScriptingEnums::ArgTypeEnum::VoidType, {}),
-    FunctionMetadata("stepOver", "1.0", "stepOver()", StepOver, ScriptingEnums::ArgTypeEnum::VoidType, {}),
-    FunctionMetadata("stepOut", "1.0", "stepOut()", StepOut, ScriptingEnums::ArgTypeEnum::VoidType, {}),
+    FunctionMetadata("singleStep", "1.0", "singleStep()", SingleStep,
+                     ScriptingEnums::ArgTypeEnum::VoidType, {}),
+    FunctionMetadata("stepOver", "1.0", "stepOver()", StepOver,
+                     ScriptingEnums::ArgTypeEnum::VoidType, {}),
+    FunctionMetadata("stepOut", "1.0", "stepOut()", StepOut, ScriptingEnums::ArgTypeEnum::VoidType,
+                     {}),
     FunctionMetadata("skip", "1.0", "skip()", Skip, ScriptingEnums::ArgTypeEnum::VoidType, {}),
-    FunctionMetadata("setPC", "1.0", "setPC(0X80000045)", SetPC, ScriptingEnums::ArgTypeEnum::VoidType,
-                     {ScriptingEnums::ArgTypeEnum::U32}),
+    FunctionMetadata("setPC", "1.0", "setPC(0X80000045)", SetPC,
+                     ScriptingEnums::ArgTypeEnum::VoidType, {ScriptingEnums::ArgTypeEnum::U32}),
     FunctionMetadata("getInstructionFromAddress", "1.0", "getInstructionFromAddress(0X80000032)",
-                     GetInstructionFromAddress, ScriptingEnums::ArgTypeEnum::String, {ScriptingEnums::ArgTypeEnum::U32})};
+                     GetInstructionFromAddress, ScriptingEnums::ArgTypeEnum::String,
+                     {ScriptingEnums::ArgTypeEnum::U32})};
 
 ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
 {
