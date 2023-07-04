@@ -30,6 +30,8 @@
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 
+static constexpr bool hardcore_mode_enabled = false;
+
 AchievementProgressWidget::AchievementProgressWidget(QWidget* parent) : QWidget(parent)
 {
   m_common_box = new QGroupBox();
@@ -57,22 +59,27 @@ AchievementProgressWidget::CreateAchievementBox(const rc_api_achievement_definit
   QLabel* a_badge = new QLabel();
   const auto unlock_status = AchievementManager::GetInstance()->GetUnlockStatus(achievement->id);
   const AchievementManager::BadgeStatus* badge = &unlock_status.locked_badge;
+  std::string_view color = AchievementManager::GRAY;
   if (unlock_status.remote_unlock_status == AchievementManager::UnlockStatus::UnlockType::HARDCORE)
   {
     badge = &unlock_status.unlocked_badge;
+    color = AchievementManager::GOLD;
   }
   else if (hardcore_mode_enabled && unlock_status.session_unlock_count > 1)
   {
     badge = &unlock_status.unlocked_badge;
+    color = AchievementManager::GOLD;
   }
   else if (unlock_status.remote_unlock_status ==
            AchievementManager::UnlockStatus::UnlockType::SOFTCORE)
   {
     badge = &unlock_status.unlocked_badge;
+    color = AchievementManager::BLUE;
   }
   else if (unlock_status.session_unlock_count > 1)
   {
     badge = &unlock_status.unlocked_badge;
+    color = AchievementManager::BLUE;
   }
   if (Config::Get(Config::RA_BADGES_ENABLED) && badge->name != "")
   {
@@ -82,6 +89,8 @@ AchievementProgressWidget::CreateAchievementBox(const rc_api_achievement_definit
       a_badge->setPixmap(QPixmap::fromImage(i_badge).scaled(64, 64, Qt::KeepAspectRatio,
                                                             Qt::SmoothTransformation));
       a_badge->adjustSize();
+      a_badge->setStyleSheet(
+          QStringLiteral("border: 4px solid %1").arg(QString::fromStdString(std::string(color))));
     }
   }
 

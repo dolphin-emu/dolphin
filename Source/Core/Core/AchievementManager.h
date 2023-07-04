@@ -79,6 +79,10 @@ public:
     BadgeStatus unlocked_badge;
   };
 
+  static constexpr std::string_view GRAY = "transparent";
+  static constexpr std::string_view GOLD = "#FFD700";
+  static constexpr std::string_view BLUE = "#0B71C1";
+
   static AchievementManager* GetInstance();
   void Init();
   void SetUpdateCallback(UpdateCallback callback);

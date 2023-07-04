@@ -119,7 +119,13 @@ void AchievementHeaderWidget::UpdateData()
         m_game_icon->setPixmap(QPixmap::fromImage(i_game_icon)
                                    .scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
         m_game_icon->adjustSize();
-        m_game_icon->setStyleSheet(QStringLiteral("border: 4px solid transparent"));
+        std::string_view color = AchievementManager::GRAY;
+        if (point_spread.hard_unlocks == point_spread.total_count)
+          color = AchievementManager::GOLD;
+        else if (point_spread.hard_unlocks + point_spread.soft_unlocks == point_spread.total_count)
+          color = AchievementManager::BLUE;
+        m_game_icon->setStyleSheet(
+            QStringLiteral("border: 4px solid %1").arg(QString::fromStdString(std::string(color))));
         m_game_icon->setVisible(true);
       }
     }
