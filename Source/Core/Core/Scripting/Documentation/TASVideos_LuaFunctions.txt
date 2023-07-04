@@ -1,17 +1,20 @@
 This page documents the behavior and parameters of Lua functions available for the [Dolphin] emulator.
 
-Note that all builtin Lua classes that come with Dolphin use the colon operator to access member functions. For example, to frame advance, you would write emu:frameAdvance() and _NOT__ emu.frameAdvance()
+Note that all builtin Lua classes that come with Dolphin use the colon operator to access member functions. For example, to frame advance, you would write emu:frameAdvance() and __NOT__ emu.frameAdvance()
 Lua scripts execute from top to bottom one time, so to run a script on multiple frames, you need to put your code in a loop like this:
 
+%%SRC_EMBED lua
 require ("emu")
 
 while true do
 	// code that executes once at the start of each frame
 	emu:frameAdvance()
 end
+%%END_EMBED
 
 Alternatively, you could register a callback function which runs at the start of each frame like this:
 
+%%SRC_EMBED lua
 require ("emu")
 
 function callbackFunc()
@@ -19,6 +22,7 @@ function callbackFunc()
 end
 
 funcRef = OnFrameStart:register(callbackFunc) // Store funcRef so that the callback can be unregistered when you want it to stop running at the start of each frame.
+%%END_EMBED
 
 __Types and notation__
 * [[optional]]
@@ -45,7 +49,9 @@ __Types and notation__
 
 A library for performing standard bitwise operations. To use these functions, the following line __MUST__ be included at the top of your Lua script:
 
+%%SRC_EMBED lua
 require ("bit")
+%%END_EMBED
 
 __bit:bitwise_and__%%%
 
@@ -79,5 +85,328 @@ __bit:bitwise_xor__%%%
 
 * bit:bitwise_xor(17, 41) ==> Returns 56
 
+__bit:logical_and__%%%
+
+* boolean logical_and(boolean inputArg1, boolean inputArg2)
+
+* Returns the logical AND of inputArg1 and inputArg2
+
+* bit:logical_and(true, false) ==> Returns false
+
+__bit:logical_or__%%%
+
+* boolean logical_or(boolean inputArg1, boolean inputArg2)
+
+* Returns the logical OR of inputArg1 and inputArg2
+
+* bit:logical_or(true, false) ==> Returns true
+
+__bit:logical_xor__%%%
+
+* boolean logical_xor(boolean inputArg1, boolean inputArg2)
+
+* Returns the logical XOR of inputArg1 and inputArg2
+
+* bit:logical_xor(true, true) ==> Returns false
+
+__bit:logical_not__%%%
+
+* boolean logical_not(boolean inputArg)
+
+* Returns the logical NOT of inputArg
+
+* bit:logical_not(false) ==> Returns true
+
+__bit:bit_shift_left__%%%
+
+* s64 bit_shift_left(s64 inputArg1, s64 inputArg2)
+
+* Returns the result of bit-shifting inputArg1 to the left by the number of bits specified by inputArg2
+
+* bit:bit_shift_left(16, 2) ==> Returns 64
+
+__bit:bit_shift_right__%%%
+
+* s64 bit_shift_right(s64 inputArg1, s64 inputArg2)
+
+* Returns the result of bit-shifting inputArg1 to the right by the number of bits specified by inputArg2
+
+* bit:bit_shift_right(16, 2) ==> Returns 4
+
+%%TAB config%%
+
+A library for getting and setting Dolphin's configuration values. Dolphin's config settings are layered, where a setting in a more specific layer can override the same setting listed in a more general layer (ex. if the setting "emulatorSpeed"-> 4.0 is defined at the LocalGame layer, and "emulatorSpeed" -> 6.0 is defined at the GlobalGame layer, then the value of emulatorSpeed that Dolphin will use when it tries to get the emulatorSpeed setting is 4.0, since LocalGame is less global than GlobalGame.
+
+The functions below provide ways to get the value of settings in a layer, set the value of settings in a layer, and get the overall value of a setting (i.e the value that Dolphin will actually use for the setting - which is the most-specific layer that has the setting defined).
+
+Every config setting has a system name, a section name, and a setting name (the actual name of the setting). The system names are pre-defined, but the user can create arbitrary section and setting names using these functions. Note that all system names, section names, setting names and type names are case-insensitive.
+
+To use these functions, the following line __MUST__ be included at the top of your Lua script:
+
+%%SRC_EMBED lua
+require ("config")
+%%END_EMBED
+
+__config:getLayerNames_mostGlobalFirst__%%%
+
+* List<String> getLayerNames_mostGlobalFirst()
+
+* Returns a list of all layer names, with the most global layer names first, and the most specific layer names last (more specific layer values override more global ones).
+
+* config:getLayerNames_mostGlobalFirst() ==> Returns {"Base", "CommandLine", "GlobalGame", "LocalGame", "Movie", "Netplay", "CurrentRun" }
+
+__config:doesLayerExist__%%%
+
+* boolean doesLayerExist(String layerName)
+
+* Returns true if layerName is the name of a layer which is currently defined in Dolphin, and false otherwise. Note that some layers are only defined when doing certain actions. For example, the Netplay layer is only defined when the user is using Netplay. Otherwise, doesLayerExist("Netplay") will return false.
+
+* config:doesLayerExist("Netplay") ==> Returns true when the user is using Netplay, and false otherwise.
+
+__config:getListOfSystems__%%%
+
+* List<String> getListOfSystems()
+
+* Returns a list of all of the valid System values for config settings.
+
+* config:getListOfSystems() ==> Returns { "Main", "Sysconf", "GCPad", "WiiPad", "GCKeyboard", "GFX", "Logger", "Debugger", "DualShockUDPClient", "FreeLook", "Session", "GameSettingsOnly", "Achievements" }
+
+__config:getConfigEnumTypes__%%%
+
+* List<String> getConfigEnumTypes()
+
+* Returns a list of all valid enum type names for config settings
+
+* config:getConfigEnumTypes() ==> Returns { "CPUCore", "DPL2Quality", "EXIDeviceType", "SIDeviceType", "HSPDeviceType", "Region", "ShowCursor", "LogLevel", "FreeLookControl", "AspectMode", "ShaderCompilationMode", "TriState", "TextureFilteringMode", "StereoMode", "WiimoteSource" }
+
+__config:getListOfValidValuesForEnumType__%%%
+
+* List<String> getListOfValidValuesForEnumType(String enumType)
+
+* Returns a list of all valid enum strings for the specified enumType.
+
+* config:getListOfValidValuesForEnumType("AspectMode") ==> Returns { "AUTO", "ANALOGWIDE", "ANALOG", "STRETCH" }
+
+__config:getConfigSettingForLayer__%%%
+
+* returnType getConfigSettingForLayer(String returnType, String layerName, String systemName, String sectionName, String settingName)
+
+* Returns the value of the config setting at the specified layer for the specified systemName, sectionName, and settingName (or returns nil if the setting isn't defined at that layer). The return type of this function is equal to the parameter returnType, where returnType can be either "BOOLEAN", "S32", "U32", "FLOAT", "STRING" or one of the enum types (ex. "AspectMode")
+
+* config:getConfigSettingForLayer("BOOLEAN", "LocalGame", "Main", "Interface",  "DebugModeEnabled") ==> Could return true.
+
+* config:getConfigSettingForLayer("AspectMode", "LocalGame", "GFX", "Settings", "AspectRatio") ==> Could return "ANALOG", if aspect ratio is in analog mode right now.
+
+__config:setConfigSettingForLayer__%%%
+
+* void setConfigSettingForLayer(String settingType, String layerName, String systemName, String sectionName, String settingName, settingType newValue)
+
+* Sets the config setting at the specified layer for the specified systemName, sectionName and settingName equal to newValue. The type of newValue is specified by the settingType argument, which can have the values of "BOOLEAN", "S32", "U32", "FLOAT", "STRING", or one of the enum types (ex. "TriState")
+
+* config:setConfigSettingForLayer("U32", "LocalGame", "Main", "Interface", "SensorBarSensitivity", 45) ==> Sets the SensorBarSensitivity setting in the specified layer+systemName+sectionName to have the value of 45 (overwrites the setting in this layer if it already exists, or creates the setting in this layer if it didn't exist in this layer before).
+
+* config:setConfigSettingForLayer("TriState", "LocalGame", "GFX", "Settings", "ManuallyUploadBuffers", "AUTO") ==> Sets the ManuallyUploadBuggers setting in the specified layer+systemName+sectionName to have the value of "AUTO" (overwrites this setting in the layer if it already exists, or creates the setting in this layer if it didn't exist in this layer before).
+
+__config:deleteConfigSettingFromLayer__%%%
+
+* boolean deleteConfigSettingFromLayer(String settingType, String layerName, String systemName, String sectionName, String settingName)
+
+* Deletes the specified config setting from the specified layer. settingType specifies the type of the setting, which can be either "BOOLEAN", "S32", "U32", "FLOAT", "STRING", or one of the enum types (ex. "TriState"). Returns true if this setting was deleted from the specified layer, and false if the setting was not deleted from the layer (which only happens when the setting wasn't in the layer to begin with. Note that the settingType, layerName, systemName, sectionName, and settingName need to all match with a specific setting in order for the setting to be deleted).
+
+* config:deleteConfigSettingFromLayer("FLOAT", "Base", "GFX", "colorProps", "ColorSaturationRate") ==> Deletes the setting from the "Base" layer and returns true if a setting named "ColorSaturationRate" of type float was present in the "Base" layer in the system "GFX" and the sectionName "colorProps". Otherwise, returns false, and no setting is deleted (if this setting is present in a different layer, nothing happens to it - it needs to be in the specified layer in order to get deleted).
+
+* config:deleteConfigSettingFromLayer("TextureFilteringMode", "Base", "GFX", "textureProps", "mainFilterSetting") ==> Deletes the setting from the "Base" layer and returns true if a setting named "mainFilterSetting" of type enum "TextureFilteringMode" was present in the "Base" layer in the system "GFX" and the sectionName "textureProps".  Otherwise, returns false, and no setting is deleted (if this setting is present in a different layer, nothing happens to it - it needs to be in the specified layer in order to get deleted).
+
+__config:getConfigSetting__%%%
+
+* returnType getConfigSetting(String returnType, String systemName, String sectionName, String settingName)
+
+* Returns the value of the config setting (what Dolphin will find when it looks for the value of the config setting). This returns the value of the specified config setting in the most specific layer that it's defined in. returnType can be either "BOOLEAN", "S32", "U32", "FLOAT",  "STRING", or one of the enum types (ex. "TriState").
+
+* config:getConfigSetting("U32", "Main", "Interface", "numberOfTriangles") ==> If "numberOfTriangles" is equal to 43 in "Base" and is equal to 65 in "LocalGame", then 65 will be returned, since LocalGame is more specific than Base.
+
+* config:getConfigSetting("TextureFilteringMode", "GFX", "textureProps", "mainFilterSetting") ==> If "mainFilterSetting" is equal to "DEFAULT" in the "Base" layer, and is equal to "NEAREST" in the "LocalGame" layer, then this function will return "NEAREST", since LocalGame is more specific than Base.
+
+__config:saveSettings__%%%
+
+* void saveSettings()
+
+* Saves the settings to the config files, so they'll be loaded the next time Dolphin boots up. Note that most config functions save the settings to the config files right away, so this function is generally redundant/useless.
+
+* config:saveSettings() ==> Now all settings are saved/written out to the config files, and will be loaded again the next time Dolphin boots up.
+
+%%TAB emu%%
+
+A library for performing certain functions on movies, save states, and advancing frames.
+
+To use these functions, the following line __MUST__ be included at the top of your Lua script:
+
+%%SRC_EMBED lua
+require ("emu")
+%%END_EMBED
+
+__emu:frameAdvance__%%%
+
+* void frameAdvance()
+
+* Advances to the next visual frame. This is called in a while(true) loop in order to advance the script to the next frame (otherwise, the script would never advance any frames, and would remain paused forever).
+
+* emu:frameAdvance() ==> if the frame count was 14,000 before this function was called, then it will be 14,001 after this function finishes.
+
+__emu:loadState__%%%
+
+* void loadState(String saveStatePath)
+
+* Loads the savestate specified by saveStatePath.
+
+* emu:loadState("myState.sav") ==> Loads the savestate from the file "MyState.sav"
+
+__emu:saveState__%%%
+
+* void saveState(String saveStatePath)
+
+* Saves a savestate to the file specified by saveStatePath.
+
+* emu:saveState("MyState.sav") ==> Saves a savestate to the file "MyState.sav"
+
+__emu:playMovie__%%%
+
+* void playMovie(String moviePath)
+
+* Starts playing the movie file specified by moviePath.
+
+* emu:playMovie("MyMovie.dtm") ==> Starts playing inputs from the movie file "MyMovie.dtm"
+
+__emu:saveMovie__%%%
+
+* void saveMovie(String moviePath)
+
+* Saves the movie which is currently being recorded to the file specified by moviePath.
+
+* emu:saveMovie("MyMovie.dtm") ==> Saves the inputs which are currently being recorded to the file "MyMovie.dtm"
+
+%%TAB gc_controller%%
+
+A library for getting and setting inputs on the game cube controllers, and for checking what inputs were pressed. There are 2 types of GameCube controller buttons: digital buttons (which can be either true when pressed or false when not pressed) and analog buttons (which are an integer between 0-255).
+
+The following is a list of the valid names for all digital buttons for the API functions listed below:
+
+"A", "B", "X", "Y", "Z", "L", "R", "Start", "Reset", "disc", "getOrigin", "isConnected", "dPadUp", "dPadleft", "dPadRight", "dPadDown"
+
+The following is a list of all analog buttons for the API functions listed below:
+
+"analogStickX", "analogStickY", "cStickX", "cStickY", "triggerL", "triggerR"
+
+Note that L and R refer to whether or not the L and R triggers are pressed at all (i.e. if they've been pressed hard enough to "click"), while triggerL and triggerR refer to how much the triggers are pressed down.
+
+The default value for all digital buttons is false (except for isConnected, which defaults to true). The default value for triggerL and triggerR is 0, and the default value for analogStickX, analogStickY, cStickX, and cStickY is 128.
+
+The functions in this library queue up events to run when the gc controller is polled for input during the frame (all set_input calls run first, followed by all add_input calls, and finishing off with all probability_input calls. Items within each type run in the same order that they were queued (for items of the same type), and with the same values for each input poll during the frame). All the queued events are cleared at the start of the next frame, so each of these function needs to be called at the start of each frame that you want to use them during. Also, whether or not a probability event will be evaluate to true (will happen) or false (won't happen) is determined at the moment when you call the probability_input function - which means that if all inputs polled during a frame were originally equal, then all inputs polled after this library modifies your inputs will also be equal to each other (whatever those values are).
+
+Also, if you create a save state or save a movie after calling these functions while playing back or recording a movie, the resulting movie will have its inputs updated to match the actual inputs that occured (i.e. if A is set to pressed on frame 15,004 and was not pressed in the original movie, then if you save a new movie at frame 15,010, it will have A pressed).
+
+To use these functions, the following line __MUST__ be included at the top of your Lua script:
+
+%%SRC_EMBED lua
+require ("gc_controller")
+%%END_EMBED
+
+__gc_controller:set_inputs__%%%
+
+* void set_inputs(u64 portNumber, Dict<GCButton> gcButtonTable)
+
+* Queues an event to set the specified controller to have the inputs referenced by gcButtonTable (and any inputs not specified in gcButtonTable are set to their default values). portNumber is between 1-4. This happens before any call to add_inputs or any probability button functions are run for each input poll.
+
+* gc_controller:set_inputs(1, {A = true, B = true, cStickX = 200}) ==> Sets controller 1 to have A and B pressed, cStickX set to 200, and all other buttons are set to their default values.
+
+__gc_controller:add_inputs__%%%
+
+* void add_inputs(u64 portNumber, Dict<GCButton> gcButtonTable)
+
+* Queues an event to add the inputs referenced by gcButtonTable to the specified controller. Buttons not specified by gcButtonTable retain their current values. All calls to add_inputs happen in the order they were called in AFTER any calls to set_inputs and BEFORE any calls to probability button functions.
+
+* gc_controller:add_inputs(1, {A = true, B = true, cStickX = 200}) ==> Sets controller 1 to have A and B pressed, cStickX set to 200, and all other buttons retain their current values.
+
+__gc_controller:addButtonFlipChance__%%%
+
+* void addButtonFlipChance(u64 portNumber, double probability, String binaryButtonName)
+
+* Queues an event to run which has a chance of flipping a binary button (from either true to false or false to true), specified by binaryButtonName. Probability is a number between 0.0 - 100.0, where 0.0 means the event will never happen, and 100.0 means there's an 100% chance the event will happen. These events happen AFTER any call to set_inputs or add_inputs. Whether or not the event will happen or not is determined at the moment that the event is added to queue (which means it will either happen each time input is polled for the controller for the frame, or it will happen no times when input is polled for the controller for the frame). This is true for all of the other probability functions, as well.
+
+* gc_controller:addButtonFlipChance(1, 76.4, "A") ==> There is a 76.4% chance that button A will have its current value flipped for controller 1 on the next frame (only applies for the next frame. To make it apply for the frame after that, you would need to call this again at the start of the next frame).
+
+__gc_controller:addButtonPressChance__%%%
+
+* void addButtonPressChance(u64 portNumber, double probability, String binaryButtonName)
+
+* Queues an event to run which has a chance of pressing the binary button specified by binaryButtonName (sets it to true).
+
+* gc_controller:addButtonPressChance(2, 31.2, "X") ==> There is a 31.2% chance that button X will be pressed on controller 2 on the next frame.
+
+__gc_controller:addButtonReleaseChance__%%%
+
+* void addButtonReleaseChance(u64 portNumber, double probability, String binaryButtonName)
+
+* Queues an event to run which has a chance of releasing the binary button specified by binaryButtonName (sets it to falas).
+
+* gc_controller:addButtonReleaseChance(1, 10.3, "Y") ==> There is a 10.3% chance that button Y will be released on controller 1 on the next frame.
+
+__gc_controller:addOrSubtractFromCurrentAnalogValueChance__%%%
+
+* void addOrSubtractFromCurrentAnalogValueChance(u64 portNumber, double probability, String analogButtonName, u64 amountToSubtract, [optional] u64 amountToAdd)
+
+* Queues an event to run which has a chance of adding or subtracting from the current analog value specified by analogButtonName. If amountToAdd is not included, then amountToSubtract is treated as both the amount to add and the amount to subtract. amountToSubtract is the maximum amount that can be subtracted from the input, and amountToAdd is the maximum amount that can be added to the input (if the input goes below 0, it's set to 0, and if it goes above 255, it's set to 255).
+
+* gc_controller:addOrSubtractFromCurrentAnalogValueChance(1, 25.0, "cStickX", 43, 10) ==> There is a 25% chance that cStickX will be altered from its current value. If cStickX is altered, it will be altered by a random value between currentValue - 43 and currentValue + 10.
+
+__gc_controller:addOrSubtractFromSpecificAnalogValueChance__%%%
+
+* void addOrSubtractFromSpecificAnalogValueChance(u64 portNumber, double probability, String analogButtonName, u64 baseValue, u64 amountToSubtract, [optional] u64 amountToAdd)
+
+* Queues an event to run which has a chance of setting the button specified by analogButtonName to a random value between baseValue - amountToSubtract and baseValue + amountToAdd. If amountToAdd is not included, then amountToSubtract is treated as both the amount to add and the amount to subtract. amountToSubtract is the maximum that can be subtracted from the input, and amountToAd is the maximum amount that can be added to the input (if the input goes below 0, it's set to 0, and if it goes above 255, it's set to 255).
+
+* gc_controller:addOrSubtractFromSpecificAnalogValueChance(1, 13.0, "analogStickX", 210, 30, 70) ==> There is a 13% chance that analogStickX will be altered from  its current value. If analogStickX is altered, it will be set to a random value between 180-255.
+
+__gc_controller:addButtonComboChance__%%%
+
+* void addButtonComboChance(u64 portNumber, double probability, Dict<GCButton> gcButtonTable, boolean setUnspecifiedValuesToDefaults)
+
+* Queues an event to run which has a chance of setting the buttons to be pressed on the controller which are specified by the gcButtonTable. If setUnspecifiedValuesToDefaults is true, then any values not included in gcButtonTable will be set to their default values when the event executes. Otherwise, any values not specified by gcButtonTable will retain their current values.
+
+* gc_controller:addButtonComboChance(1, 50.0, {A = true, X = false}, true) ==> There is a 50% chance that A will be set to true and X will be set to false and all other buttons will be set to their default values on the next frame for controller 1.
+
+__gc_controller:addControllerClearChance__%%%
+
+* void addControllerClearChance(u64 portNumber, double probability)
+
+* Queues an event to run which has a chance of clearing all values on the controller to their default values.
+
+* gc_controller:addControllerClearChance(3, 80.0) ==> There is an 80% chance that controller 3 will have all of its inputs set to their default values on the next frame.
+
+__gc_controller:getControllerInputsForPreviousFrame__%%%
+
+* void getControllerInputsForPreviousFrame(u64 portNumber)
+
+* Returns a dictionary which represents the buttons which were pressed on the controller on the previous frame (this assumes that the buttons pressed on a controller during multiple input polls during a frame are the same. Either way, this function is really returning the inputs that occured on the last controller poll, to be more precise).
+
+* gc_controller:getControllerInputsForPreviousFrame(1) ==> Could return { A = true, B = false, X = true, Y = true, Z = false, L = true, R = true, Start = false, Reset = false, triggerL = 255, triggerR = 0, dPadUp = false, dPadDown = false, dPadLeft = false, dPadRight = false, disc = false, getOrigin = false, isConnected = true, analogStickX = 128, analogStickY = 255, cStickX = 128, cStickY = 128 }
+
+__gc_controller:isGcControllerInPort__%%%
+
+* boolean isGcControllerInPort(u64 portNumber)
+
+* Returns true if a GameCube controller was plugged into the specified port, and false otherwise.
+
+* gc_controller:isGcControllerInPort(1) ==> Returns true if a GameCube controller was plugged into port 1.
+
+__gc_controller:isUsingPort__%%%
+
+* boolean isUsingPort(u64 portNumber)
+
+* Returns true if anything is plugged into the specified port, and false otherwise.
+
+* gc_controller:isUsingPort(1) ==> Returns true if anything was plugged into port 1.
+
+%%TAB graphics%%
 
 

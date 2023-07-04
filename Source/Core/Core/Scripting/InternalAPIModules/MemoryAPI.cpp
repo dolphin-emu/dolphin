@@ -43,10 +43,10 @@ static std::array all_memory_functions_metadata_list = {
                      "read_null_terminated_string(0X80003421)", ReadNullTerminatedString,
                      ScriptingEnums::ArgTypeEnum::String, {ScriptingEnums::ArgTypeEnum::S64}),
     FunctionMetadata("read_unsigned_bytes", "1.0", "read_unsigned_bytes(0X80003421, 6)",
-                     ReadUnsignedBytes, ScriptingEnums::ArgTypeEnum::AddressToUnsignedByteMap,
+                     ReadUnsignedBytes, ScriptingEnums::ArgTypeEnum::AddressToByteMap,
                      {ScriptingEnums::ArgTypeEnum::S64, ScriptingEnums::ArgTypeEnum::S64}),
     FunctionMetadata("read_signed_bytes", "1.0", "read_signed_bytes(0X80003421, 6)",
-                     ReadSignedBytes, ScriptingEnums::ArgTypeEnum::AddressToSignedByteMap,
+                     ReadSignedBytes, ScriptingEnums::ArgTypeEnum::AddressToByteMap,
                      {ScriptingEnums::ArgTypeEnum::S64, ScriptingEnums::ArgTypeEnum::S64}),
 
     FunctionMetadata("write_u8", "1.0", "write_u8(0X80003421, 41)", WriteU8, ScriptingEnums::ArgTypeEnum::VoidType,

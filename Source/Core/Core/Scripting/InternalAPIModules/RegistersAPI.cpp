@@ -44,11 +44,11 @@ static std::array all_registers_functions_metadata_list = {
                      {ScriptingEnums::ArgTypeEnum::String, ScriptingEnums::ArgTypeEnum::U8}),
     FunctionMetadata("getUnsignedBytesFromRegister", "1.0",
                      "getUnsignedBytesFromRegister(\"R5\", 3, 1)", GetUnsignedBytesFromRegister,
-                     ScriptingEnums::ArgTypeEnum::AddressToUnsignedByteMap,
+                     ScriptingEnums::ArgTypeEnum::AddressToByteMap,
                      {ScriptingEnums::ArgTypeEnum::String, ScriptingEnums::ArgTypeEnum::U8, ScriptingEnums::ArgTypeEnum::U8}),
     FunctionMetadata("getSignedBytesFromRegister", "1.0",
                      "getSignedBytesFromRegister(\"R5\", 3, 1)", GetSignedBytesFromRegister,
-                     ScriptingEnums::ArgTypeEnum::AddressToSignedByteMap,
+                     ScriptingEnums::ArgTypeEnum::AddressToByteMap,
                      {ScriptingEnums::ArgTypeEnum::String, ScriptingEnums::ArgTypeEnum::U8, ScriptingEnums::ArgTypeEnum::U8}),
 
     FunctionMetadata("writeU8ToRegister", "1.0", "writeU8ToRegister(\"R5\", 41, 3)",
