@@ -27,16 +27,17 @@
 
 namespace File
 {
-IOFile::IOFile() : m_file(nullptr), m_good(true)
+IOFile::IOFile() : m_file(nullptr), m_path(""), m_good(true)
 {
 }
 
-IOFile::IOFile(std::FILE* file) : m_file(file), m_good(true)
+IOFile::IOFile(std::FILE* file, const std::string& filename)
+    : m_file(file), m_path(filename), m_good(true)
 {
 }
 
 IOFile::IOFile(const std::string& filename, const char openmode[], SharedAccess sh)
-    : m_file(nullptr), m_good(true)
+    : m_file(nullptr), m_path(filename), m_good(true)
 {
   Open(filename, openmode, sh);
 }

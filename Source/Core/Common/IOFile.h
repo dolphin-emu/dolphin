@@ -33,7 +33,7 @@ class IOFile
 {
 public:
   IOFile();
-  IOFile(std::FILE* file);
+  IOFile(std::FILE* file, const std::string& filename);
   IOFile(const std::string& filename, const char openmode[],
          SharedAccess sh = SharedAccess::Default);
 
@@ -102,6 +102,7 @@ public:
   bool IsGood() const { return m_good; }
   explicit operator bool() const { return IsGood() && IsOpen(); }
   std::FILE* GetHandle() { return m_file; }
+  const std::string& GetPath() { return m_path; }
   void SetHandle(std::FILE* file);
 
   bool Seek(s64 offset, SeekOrigin origin);
@@ -119,6 +120,7 @@ public:
 
 private:
   std::FILE* m_file;
+  std::string m_path;
   bool m_good;
 };
 

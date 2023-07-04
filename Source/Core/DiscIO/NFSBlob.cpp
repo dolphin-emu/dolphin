@@ -159,8 +159,9 @@ std::unique_ptr<NFSFileReader> NFSFileReader::Create(File::IOFile first_file,
 
 NFSFileReader::NFSFileReader(std::vector<NFSLBARange> lba_ranges, std::vector<File::IOFile> files,
                              Key key, u64 raw_size)
-    : m_lba_ranges(std::move(lba_ranges)), m_files(std::move(files)),
-      m_aes_context(Common::AES::CreateContextDecrypt(key.data())), m_raw_size(raw_size)
+    : BlobReader(files.begin()->GetPath()), m_lba_ranges(std::move(lba_ranges)),
+      m_files(std::move(files)), m_aes_context(Common::AES::CreateContextDecrypt(key.data())),
+      m_raw_size(raw_size)
 {
   m_data_size = CalculateExpectedDataSize(m_lba_ranges);
 }

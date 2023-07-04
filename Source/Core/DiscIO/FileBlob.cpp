@@ -15,7 +15,8 @@
 
 namespace DiscIO
 {
-PlainFileReader::PlainFileReader(File::IOFile file) : m_file(std::move(file))
+PlainFileReader::PlainFileReader(File::IOFile file)
+    : BlobReader(file.GetPath()), m_file(std::move(file))
 {
   m_size = m_file.GetSize();
 }

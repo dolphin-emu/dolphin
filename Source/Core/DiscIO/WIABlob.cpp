@@ -79,7 +79,7 @@ std::pair<int, int> GetAllowedCompressionLevels(WIARVZCompressionType compressio
 
 template <bool RVZ>
 WIARVZFileReader<RVZ>::WIARVZFileReader(File::IOFile file, const std::string& path)
-    : m_file(std::move(file)), m_encryption_cache(this)
+    : BlobReader(path), m_file(std::move(file)), m_encryption_cache(this)
 {
   m_valid = Initialize(path);
 }

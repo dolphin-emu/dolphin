@@ -18,7 +18,7 @@
 namespace DiscIO
 {
 SplitPlainFileReader::SplitPlainFileReader(std::vector<SingleFile> files)
-    : m_files(std::move(files))
+    : BlobReader(files.begin()->file.GetPath()), m_files(std::move(files))
 {
   m_size = 0;
   for (const auto& f : m_files)

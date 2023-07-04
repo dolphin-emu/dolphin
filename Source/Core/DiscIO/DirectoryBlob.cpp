@@ -375,7 +375,7 @@ std::unique_ptr<DirectoryBlobReader> DirectoryBlobReader::Create(
 
 DirectoryBlobReader::DirectoryBlobReader(const std::string& game_partition_root,
                                          const std::string& true_root)
-    : m_encryption_cache(this)
+    : BlobReader(true_root), m_encryption_cache(this)
 {
   DirectoryBlobPartition game_partition(game_partition_root, {});
   m_is_wii = game_partition.IsWii();
@@ -422,7 +422,8 @@ DirectoryBlobReader::DirectoryBlobReader(
     const std::function<void(std::vector<FSTBuilderNode>* fst_nodes)>& sys_callback,
     const std::function<void(std::vector<FSTBuilderNode>* fst_nodes, FSTBuilderNode* dol_node)>&
         fst_callback)
-    : m_encryption_cache(this), m_wrapped_volume(std::move(volume))
+    : BlobReader(volume->GetBlobReader()), m_encryption_cache(this),
+      m_wrapped_volume(std::move(volume))
 {
   DirectoryBlobPartition game_partition(m_wrapped_volume.get(),
                                         m_wrapped_volume->GetGamePartition(), std::nullopt,

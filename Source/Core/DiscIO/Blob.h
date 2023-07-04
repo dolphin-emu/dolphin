@@ -64,6 +64,7 @@ public:
   virtual ~BlobReader() {}
 
   virtual BlobType GetBlobType() const = 0;
+  virtual const std::string& GetFilePath() const { return m_file_path; }
 
   virtual u64 GetRawSize() const = 0;
   virtual u64 GetDataSize() const = 0;
@@ -96,8 +97,11 @@ public:
     return false;
   }
 
+private:
+  const std::string m_file_path;
+
 protected:
-  BlobReader() {}
+  BlobReader(std::string file_path) : m_file_path(file_path) {}
 };
 
 // Provides caching and byte-operation-to-block-operations facilities.
@@ -186,6 +190,9 @@ private:
   u32 m_block_size = 0;    // Bytes in a sector/block
   u32 m_chunk_blocks = 1;  // Number of sectors/blocks in a chunk
   std::array<Cache, CACHE_LINES> m_cache;
+
+protected:
+  SectorReader(std::string file_path) : BlobReader(file_path) {}
 };
 
 // Factory function - examines the path to choose the right type of BlobReader, and returns one.

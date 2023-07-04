@@ -57,7 +57,8 @@ std::unique_ptr<TGCFileReader> TGCFileReader::Create(File::IOFile file)
   return nullptr;
 }
 
-TGCFileReader::TGCFileReader(File::IOFile file) : m_file(std::move(file))
+TGCFileReader::TGCFileReader(File::IOFile file)
+    : BlobReader(file.GetPath()), m_file(std::move(file))
 {
   m_file.Seek(0, File::SeekOrigin::Begin);
   m_file.ReadArray(&m_header, 1);
