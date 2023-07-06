@@ -54,7 +54,6 @@ protected:
 public:
   // Constructor
   CSIDevice_GCController(Core::System& system, SIDevices device, int device_number);
-  ~CSIDevice_GCController() override;
 
   // Run the SI Buffer
   int RunBuffer(u8* buffer, int request_length) override;
@@ -83,12 +82,6 @@ public:
 
 protected:
   void SetOrigin(const GCPadStatus& pad_status);
-
-private:
-  void RefreshConfig();
-
-  std::array<SIDevices, 4> m_config_si_devices{};
-  size_t m_config_changed_callback_id;
 };
 
 // "TaruKonga", the DK Bongo controller
