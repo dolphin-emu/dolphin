@@ -21,7 +21,7 @@
 
 
 /*
-   Grade-mini (16-06-2023)
+   Grade-mini (06-07-2023)
 
    > CRT emulation shader (composite signal, phosphor, gamma, temperature...)
    > Abridged port of RetroArch's Grade shader.
@@ -175,17 +175,17 @@ mat3 RGB_to_XYZ_mat(mat3 primaries) {
 float3 wp_adjust(float3 RGB, float temperature, mat3 primaries, mat3 display) {
 
     float temp3 = 1000.       /     temperature;
-    float temp6 = 1000000.    / pow(temperature, 2.);
-    float temp9 = 1000000000. / pow(temperature, 3.);
+    float temp6 = 1000000.    / pow(temperature, 2.0);
+    float temp9 = 1000000000. / pow(temperature, 3.0);
 
-    float3 wp = float3(1.);
+    float3 wp = float3(1.0);
 
     wp.x = (temperature < 5500.) ? 0.244058 + 0.0989971 * temp3 + 2.96545 * temp6 - 4.59673 * temp9 : \
            (temperature < 8000.) ? 0.200033 + 0.9545630 * temp3 - 2.53169 * temp6 + 7.08578 * temp9 : \
                                    0.237045 + 0.2437440 * temp3 + 1.94062 * temp6 - 2.11004 * temp9 ;
 
-    wp.y = -0.275275 + 2.87396 * wp.x - 3.02034 * pow(wp.x,2) + 0.0297408 * pow(wp.x,3);
-    wp.z = 1. - wp.x - wp.y;
+    wp.y = -0.275275 + 2.87396 * wp.x - 3.02034 * pow(wp.x,2.0) + 0.0297408 * pow(wp.x,3.0);
+    wp.z =  1.0 - wp.x - wp.y;
 
     const mat3 CAT16 = mat3(
      0.401288,-0.250268, -0.002079,
@@ -222,17 +222,17 @@ float EOTF_1886a(float color, float bl, float brightness, float contrast) {
     //  Contrast    = 100
 
     const float wl = 100.0;
-          float b  = pow(bl, 1/2.4);
-          float a  = pow(wl, 1/2.4)-b;
-                b  = (brightness-50) / 250. + b/a;                 // -0.20 to +0.20
-                a  = contrast!=50 ? pow(2,(contrast-50)/50.) : 1.; //  0.50 to +2.00
+          float b  = pow(bl, 1./2.4);
+          float a  = pow(wl, 1./2.4)-b;
+                b  = (brightness-50.) / 250. + b/a;                   // -0.20 to +0.20
+                a  = contrast!=50. ? pow(2.,(contrast-50.)/50.) : 1.; //  0.50 to +2.00
 
     const float Vc = 0.35;                           // Offset
-          float Lw =   wl/100. * a;                  // White level
-          float Lb = clamp( b  * a,0.0,Vc);          // Black level
+          float Lw = wl/100. * a;                    // White level
+          float Lb = min( b  * a,Vc);                // Black level
     const float a1 = 2.6;                            // Shoulder gamma
     const float a2 = 3.0;                            // Knee gamma
-          float k  = Lw /pow(1  + Lb,    a1);
+          float k  = Lw /pow(1. + Lb,    a1);
           float sl = k * pow(Vc + Lb, a1-a2);        // Slope for knee gamma
 
     color = color >= Vc ? k * pow(color + Lb, a1 ) : sl * pow(color + Lb, a2 );
@@ -281,14 +281,14 @@ float3 moncurve_r_f3( float3 color, float gamma, float offs) {
 float3 GamutCompression (float3 rgb, float grey) {
 
     // Limit/Thres order is Cyan, Magenta, Yellow
-    float temp = max(0,abs(GetOption(wp_temperature)-7000)-1000)/825.0+1; // center at 1
-    float3 sat = GetOption(wp_temperature) < 7000 ? float3(1,temp,(temp-1)/2+1) : float3((temp-1)/2+1,temp,1);
+    float temp = max(0.0,abs(GetOption(wp_temperature)-7000.)-1000.)/825.0+1.; // center at 1
+    float3 sat = GetOption(wp_temperature) < 7000. ? float3(1.,temp,(temp-1.)/2.+1.) : float3((temp-1.)/2.+1.,temp,1.);
 
     mat2x3 LimThres =      mat2x3( 0.100000,0.100000,0.100000,
                                    0.125000,0.125000,0.125000);
-    if (g_space_out<2.0) {
+    if (g_space_out < 2.0) {
 
-       LimThres =
+       LimThres = \
        g_crtgamut == 3.0 ? mat2x3( 0.000000,0.044065,0.000000,
                                    0.000000,0.095638,0.000000) : \
        g_crtgamut == 2.0 ? mat2x3( 0.006910,0.092133,0.000000,
@@ -301,9 +301,9 @@ float3 GamutCompression (float3 rgb, float grey) {
                                    0.028222,0.083075,0.056029) : \
        g_crtgamut ==-3.0 ? mat2x3( 0.018424,0.053469,0.016841,
                                    0.067146,0.102294,0.064393) : LimThres;
-    } else if (g_space_out==2.0) {
+    } else if (g_space_out == 2.0) {
 
-       LimThres =
+       LimThres = \
        g_crtgamut == 3.0 ? mat2x3( 0.000000,0.234229,0.007680,
                                    0.000000,0.154983,0.042446) : \
        g_crtgamut == 2.0 ? mat2x3( 0.078526,0.108432,0.006143,
@@ -381,8 +381,8 @@ const mat3 YByRy = mat3(
 // Y  excursion is limited to 16-235 for NTSC-U and 0-235 for PAL and NTSC-J
 float3 r601_YUV(float3 RGB, float NTSC_U) {
 
-    const float sclU = ((0.5*(235-16)+16)/255.); // This yields Luma   grey  at around 0.49216 or 125.5 in 8-bit
-    const float sclV =       (240-16)    /255. ; // This yields Chroma range at around 0.87843 or 224   in 8-bit
+    const float sclU = ((0.5*(235.-16.)+16.)/255.); // This yields Luma   grey  at around 0.49216 or 125.5 in 8-bit
+    const float sclV =       (240.-16.)     /255. ; // This yields Chroma range at around 0.87843 or 224   in 8-bit
 
     mat3 conv_mat = mat3(
                    float3(YByRy[0]),
@@ -536,16 +536,16 @@ void main()
                                                                            float3(Ymax.y,   UVmax.x,  UVmax.y))/255.0;
 
 // YUV Analogue Color Controls (Color Burst)
-    float hue_radians = 0 * M_PI;
+    float hue_radians = 0.0 * M_PI;
     float    hue  = atan(col.z,  col.y) + hue_radians;
     float chroma  = sqrt(col.z * col.z  + col.y * col.y);  // Euclidean Distance
-    col.yz        = float2(chroma * cos(hue), chroma * sin(hue)) * float2(g_U_MUL,g_V_MUL);
+    col.yz        = clamp(float2(chroma * cos(hue), chroma * sin(hue)) * float2(g_U_MUL,g_V_MUL), -UVmax.x, UVmax.y);
 
 // Back to R'G'B' full
-    col   = OptionEnabled(g_signal_type) ? max(Quantize8_f3(YUV_r601(col.xyz, NTSC_U ? 1.0 : 0.0))/255.0, 0.0) : src;
+    col   = OptionEnabled(g_signal_type) ? Quantize8_f3(clamp(YUV_r601(col.xyz, NTSC_U ? 1.0 : 0.0), 0.0, 1.0))/255.0 : src;
 
 // CRT EOTF. To Display Referred Linear: Undo developer baked CRT gamma (from 2.40 at default 0.1 CRT black level, to 2.60 at 0.0 CRT black level)
-    col   = EOTF_1886a_f3(col, g_bl, 50, 50);
+    col   = EOTF_1886a_f3(col, g_bl, 50., 50.);
 
 
 //_   _   _   _   _   _   _   _   _   _   _   _   _   _   _   _   _   _   _   _
@@ -583,7 +583,7 @@ void main()
 
 
 // Dark to Dim adaptation OOTF
-    float  DtD = OptionEnabled(g_Dark_to_Dim) ? 1/0.9811 : 1.0;
+    float  DtD = OptionEnabled(g_Dark_to_Dim) ? 1.0/0.9811 : 1.0;
 
 // EOTF^-1 - Inverted Electro-Optical Transfer Function
     float3 TRC = (g_space_out == 1.0) ? moncurve_r_f3(src_h,             2.20 + 0.20,         0.0550) : \
