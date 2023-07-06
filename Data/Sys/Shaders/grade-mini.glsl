@@ -526,7 +526,7 @@ void main()
 // Clipping Logic / Gamut Limiting
     bool   NTSC_U = g_crtgamut < 2.0;
 
-    float2 UVmax  = float2(Quantize8(0.435812284313725), Quantize8(0.615857694117647));
+    float2 UVmax  = float2(112.0, 157.0);
     float2 Ymax   = NTSC_U ? float2(16.0, 235.0) : float2(0.0, 235.0);
 
 
@@ -539,7 +539,8 @@ void main()
     float hue_radians = 0.0 * M_PI;
     float    hue  = atan(col.z,  col.y) + hue_radians;
     float chroma  = sqrt(col.z * col.z  + col.y * col.y);  // Euclidean Distance
-    col.yz        = clamp(float2(chroma * cos(hue), chroma * sin(hue)) * float2(g_U_MUL,g_V_MUL), -UVmax.x, UVmax.y);
+    col.yz        = clamp(float2(chroma * cos(hue), chroma * sin(hue)) * float2(g_U_MUL,g_V_MUL), float2(-UVmax.x, -UVmax.y)/255.0, \
+                                                                                                  float2( UVmax.x,  UVmax.y)/255.0);
 
 // Back to R'G'B' full
     col   = OptionEnabled(g_signal_type) ? Quantize8_f3(clamp(YUV_r601(col.xyz, NTSC_U ? 1.0 : 0.0), 0.0, 1.0))/255.0 : src;
