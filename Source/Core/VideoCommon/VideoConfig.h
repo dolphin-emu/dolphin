@@ -54,14 +54,14 @@ enum class TextureFilteringMode : int
 
 enum class OutputResamplingMode : int
 {
-  Default,
-  Bilinear,
-  Bicubic,
-  Hermite,
-  CatmullRom,
-  NearestNeighbor,
-  SharpBilinear,
-  BoxResampling,
+  Default = 0,
+  Bilinear = 1,
+  BSpline = 2,
+  MitchellNetravali = 3,
+  CatmullRom = 4,
+  NearestNeighbor = 5,
+  SharpBilinear = 6,
+  AreaSampling = 7,
 };
 
 enum class ColorCorrectionRegion : int

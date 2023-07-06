@@ -108,18 +108,18 @@ void EnhancementsWidget::CreateWidgets()
                                      static_cast<int>(OutputResamplingMode::Default));
   m_output_resampling_combo->addItem(tr("Bilinear"),
                                      static_cast<int>(OutputResamplingMode::Bilinear));
-  m_output_resampling_combo->addItem(tr("Bicubic"),
-                                     static_cast<int>(OutputResamplingMode::Bicubic));
-  m_output_resampling_combo->addItem(tr("Hermite"),
-                                     static_cast<int>(OutputResamplingMode::Hermite));
-  m_output_resampling_combo->addItem(tr("Catmull-Rom"),
+  m_output_resampling_combo->addItem(tr("Bicubic [B-Spline]"),
+                                     static_cast<int>(OutputResamplingMode::BSpline));
+  m_output_resampling_combo->addItem(tr("Bicubic [Mitchell-Netravali]"),
+                                     static_cast<int>(OutputResamplingMode::MitchellNetravali));
+  m_output_resampling_combo->addItem(tr("Bicubic [Catmull-Rom]"),
                                      static_cast<int>(OutputResamplingMode::CatmullRom));
   m_output_resampling_combo->addItem(tr("Nearest Neighbor"),
                                      static_cast<int>(OutputResamplingMode::NearestNeighbor));
   m_output_resampling_combo->addItem(tr("Sharp Bilinear"),
                                      static_cast<int>(OutputResamplingMode::SharpBilinear));
-  m_output_resampling_combo->addItem(tr("Box Resampling"),
-                                     static_cast<int>(OutputResamplingMode::BoxResampling));
+  m_output_resampling_combo->addItem(tr("Area Sampling"),
+                                     static_cast<int>(OutputResamplingMode::AreaSampling));
 
   m_configure_color_correction = new NonDefaultQPushButton(tr("Configure"));
 
@@ -489,18 +489,34 @@ void EnhancementsWidget::AddDescriptions()
       "scaling filter selected by the game.<br><br>Any option except 'Default' will alter the look "
       "of the game's textures and might cause issues in a small number of "
       "games.<br><br><dolphin_emphasis>If unsure, select 'Default'.</dolphin_emphasis>");
-  static const char TR_OUTPUT_RESAMPLING_DESCRIPTION[] = QT_TR_NOOP(
-      "Affects how the game output image is upscaled or downscaled to the window resolution.<br>"
-      "\"Default\" will rely on the GPU internal bilinear sampler which isn't gamma corrected."
-      "<br>\"Bilinear\" (gamma corrected) is a good compromise between quality and performance."
-      "<br>\"Bicubic\" is smoother than \"Bilinear\"."
-      "<br>\"Hermite\" might offer the best quality when upscaling,"
-      " at a slightly bigger perform cost.<br>\"Catmull-Rom\" is best for downscaling."
-      "<br>\"Nearest Neighbor\" doesn't do any resampling, select if you like a pixelated look."
-      "<br>\"Sharp Bilinear\" works best with 2D games at low resolutions, use if you like a sharp"
-      " look."
-      "<br>\"Box Resampling\" is most expensive but also most accurate downscaling method."
-      "<br><dolphin_emphasis>If unsure, select 'Default'.</dolphin_emphasis>");
+  static const char TR_OUTPUT_RESAMPLING_DESCRIPTION[] =
+      QT_TR_NOOP("Affects how the game output is scaled to the window resolution."
+
+                 "<br><br><b>Default</b> - [fastest]"
+                 "<br>Internal GPU bilinear sampler which is not gamma corrected."
+
+                 "<br><br><b>Bilinear</b> - [4 taps]"
+                 "<br>Gamma corrected linear interpolation between pixels."
+
+                 "<br><br><b>Bicubic</b> - [16 taps]"
+                 "<br>Gamma corrected cubic interpolation between pixels."
+                 "<br>Good when rescaling between close resolutions. i.e 1080p and 1440p"
+                 "<br><br>Comes in various flavors:"
+                 "<br><b>B-Spline</b>: Blurry, but avoids all lobing artifacts"
+                 "<br><b>Mitchell-Netravali</b>: Good middle ground between blurry and lobing"
+                 "<br><b>Catmull-Rom</b>: Sharper, but can cause lobing artifacts"
+
+                 "<br><br><b>Nearest Neighbor</b> - [1 tap]"
+                 "<br>Very sharp pixels that may be uneven throughout image."
+
+                 "<br><br><b>Sharp Bilinear</b> - [1-4 taps]"
+                 "<br>Very sharp pixels with slight blending to preserve consistency."
+
+                 "<br><br><b>Area Sampling</b> - [upto 256 taps]"
+                 "<br>Weights pixels by percent area they occupy."
+                 "<br>Best for down scaling by more than 2x."
+
+                 "<br><br><dolphin_emphasis>If unsure, select 'Default'.</dolphin_emphasis>");
   static const char TR_COLOR_CORRECTION_DESCRIPTION[] =
       QT_TR_NOOP("A group of features to make the colors more accurate,"
                  " matching the color space Wii and GC games were meant for.");
