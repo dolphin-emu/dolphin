@@ -4,7 +4,9 @@
 
 #include "Common/CommonTypes.h"
 
-constexpr u64 TARGET_VSYNC_BLOCK_US = 2'000;
+// Setting this value too low will cause repeated dropped frames
+// as emulation constantly slows down too late for vsync.
+constexpr u64 TARGET_VSYNC_BLOCK_US = 4'000;
 
 struct PendingTimeOffset
 {
