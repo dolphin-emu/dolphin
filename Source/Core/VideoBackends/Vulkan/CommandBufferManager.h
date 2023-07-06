@@ -14,22 +14,27 @@
 #include <utility>
 #include <vector>
 
+#include <Common/CommonTypes.h>
 #include <Common/WorkQueueThread.h>
 #include "Common/BlockingLoop.h"
 #include "Common/Flag.h"
 #include "Common/Semaphore.h"
 
+#include "VideoCommon/PendingTimeOffset.h"
 #include "VideoBackends/Vulkan/Constants.h"
 
 namespace Vulkan
 {
+
 class CommandBufferManager
 {
 public:
-  explicit CommandBufferManager(bool use_threaded_submission);
+  explicit CommandBufferManager(bool use_threaded_submission, bool vsync);
   ~CommandBufferManager();
 
   bool Initialize();
+
+  void SetVSync(bool vsync) { m_vsync = vsync; }
 
   // These command buffers are allocated per-frame. They are valid until the command buffer
   // is submitted, after that you should call these functions again.
@@ -102,6 +107,7 @@ private:
 
   void WaitForCommandBufferCompletion(u32 command_buffer_index);
   void SubmitCommandBuffer(u32 command_buffer_index, VkSwapchainKHR present_swap_chain,
+                           bool vsync,
                            u32 present_image_index, u64 frame_id);
   void BeginCommandBuffer();
 
@@ -138,6 +144,7 @@ private:
     return m_command_buffers[m_current_cmd_buffer];
   }
 
+  bool m_vsync;
   u64 m_next_fence_counter = 1;
   u64 m_completed_fence_counter = 0;
 
@@ -150,6 +157,7 @@ private:
   struct PendingCommandBufferSubmit
   {
     VkSwapchainKHR present_swap_chain;
+    bool vsync;
     u32 present_image_index;
     u32 command_buffer_index;
     u64 frame_id;

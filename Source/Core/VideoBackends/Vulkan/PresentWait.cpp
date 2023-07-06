@@ -8,6 +8,7 @@
 #include <tuple>
 
 #include "Common/WorkQueueThread.h"
+#include "VideoCommon/PendingTimeOffset.h"
 
 #include "VideoBackends/Vulkan/VulkanContext.h"
 #include "VideoBackends/Vulkan/VulkanLoader.h"
@@ -22,16 +23,24 @@ struct Wait
 {
   u64 present_id;
   VkSwapchainKHR swapchain;
+  bool vsync;
 };
 
 static Common::WorkQueueThread<Wait> s_present_wait_thread;
 
-void WaitFunction(Wait wait)
+static void WaitFunction(Wait wait)
 {
+  using namespace std::chrono;
+
   do
   {
+    const TimePoint begin = Clock::now();
+
     // We choose a timeout of 20ms so can poll for IsFlushing
     VkResult res = vkWaitForPresentKHR(s_device, wait.swapchain, wait.present_id, 20'000'000);
+
+    const TimePoint end = Clock::now();
+    DT block_dur = end - begin;
 
     if (res == VK_TIMEOUT)
     {
@@ -46,6 +55,20 @@ void WaitFunction(Wait wait)
 
     if (res == VK_SUCCESS)
       g_perf_metrics.CountPresent();
+
+    if (wait.vsync)
+    {
+      block_dur = std::min(block_dur, duration_cast<DT>(DT_us(2 * TARGET_VSYNC_BLOCK_US)));
+
+      std::unique_lock lk{s_pending_time_offset.Lock};
+
+      // pray DT is signed.
+      s_pending_time_offset.Offset__ =
+        block_dur - duration_cast<DT>(DT_us(TARGET_VSYNC_BLOCK_US));
+    } else {
+      std::unique_lock lk{s_pending_time_offset.Lock};
+      s_pending_time_offset.Offset__ = DT::zero();
+    }
 
     return;
   } while (!s_present_wait_thread.IsCancelling());
@@ -62,9 +85,9 @@ void StopPresentWaitThread()
   s_present_wait_thread.Shutdown();
 }
 
-void PresentQueued(u64 present_id, VkSwapchainKHR swapchain)
+void PresentQueued(u64 present_id, VkSwapchainKHR swapchain, bool vsync)
 {
-  s_present_wait_thread.EmplaceItem(Wait{present_id, swapchain});
+  s_present_wait_thread.EmplaceItem(Wait{present_id, swapchain, vsync});
 }
 
 void FlushPresentWaitQueue()

@@ -198,7 +198,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   UpdateActiveConfig();
 
   // Create command buffers. We do this separately because the other classes depend on it.
-  g_command_buffer_mgr = std::make_unique<CommandBufferManager>(g_Config.bBackendMultithreading);
+  g_command_buffer_mgr = std::make_unique<CommandBufferManager>(g_Config.bBackendMultithreading, g_ActiveConfig.bVSyncActive);
   if (!g_command_buffer_mgr->Initialize())
   {
     PanicAlertFmt("Failed to create Vulkan command buffers");
