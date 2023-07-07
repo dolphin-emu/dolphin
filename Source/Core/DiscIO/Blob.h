@@ -64,6 +64,7 @@ public:
   virtual ~BlobReader() {}
 
   virtual BlobType GetBlobType() const = 0;
+  virtual std::unique_ptr<BlobReader> CopyReader() const = 0;
 
   virtual u64 GetRawSize() const = 0;
   virtual u64 GetDataSize() const = 0;

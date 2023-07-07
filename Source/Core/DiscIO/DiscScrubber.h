@@ -27,7 +27,6 @@ class DiscScrubber final
 {
 public:
   DiscScrubber();
-  ~DiscScrubber();
 
   bool SetupScrub(const Volume& disc);
 

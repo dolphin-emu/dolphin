@@ -234,13 +234,23 @@ static void SplitAt(BuilderContentSource* before, BuilderContentSource* after, u
   after->m_offset += before->m_size;
   after->m_size = end - split_at;
   if (std::holds_alternative<ContentFile>(after->m_source))
+  {
     std::get<ContentFile>(after->m_source).m_offset += before->m_size;
-  else if (std::holds_alternative<const u8*>(after->m_source))
-    std::get<const u8*>(after->m_source) += before->m_size;
+  }
+  else if (std::holds_alternative<ContentMemory>(after->m_source))
+  {
+    after->m_source = std::make_shared<std::vector<u8>>(
+        std::get<ContentMemory>(after->m_source)->begin() + before->m_size,
+        std::get<ContentMemory>(after->m_source)->end());
+  }
   else if (std::holds_alternative<ContentPartition>(after->m_source))
+  {
     std::get<ContentPartition>(after->m_source).m_offset += before->m_size;
+  }
   else if (std::holds_alternative<ContentVolume>(after->m_source))
+  {
     std::get<ContentVolume>(after->m_source).m_offset += before->m_size;
+  }
 }
 
 static void ApplyPatchToFile(const Patch& patch, DiscIO::FSTBuilderNode* file_node,
