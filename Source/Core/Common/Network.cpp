@@ -18,6 +18,13 @@
 
 #include <fmt/format.h>
 
+#define _GNU_SOURCE
+#include <features.h>
+#ifndef __USE_GNU
+    #define __MUSL__ 
+#endif
+#undef _GNU_SOURCE
+
 #include "Common/BitUtils.h"
 #include "Common/Random.h"
 #include "Common/StringUtil.h"
@@ -563,7 +570,7 @@ const char* DecodeNetworkError(s32 error_code)
                  sizeof(buffer), nullptr);
   return buffer;
 #elif defined(IS_BSD_STRERROR) ||                                                                  \
-    ((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && !_GNU_SOURCE)
+    ((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && !_GNU_SOURCE) || defined(__MUSL__)
   strerror_r(error_code, buffer, sizeof(buffer));
   return buffer;
 #else
