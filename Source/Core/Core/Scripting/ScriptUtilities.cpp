@@ -308,18 +308,22 @@ static void InitializeDolphinApiStructs()
 
 typedef void (*exported_dll_func_type)(void*);
 
+static void queuePanicAlertEvent(const std::string& error_msg)
+{
+  Core::QueueHostJob([error_msg] { PanicAlertFmt("{}", error_msg); }, true);
+}
+
 bool callSpecifiedDLLInitFunction(Common::DynamicLibrary* dynamic_lib, std::string file_name,
                                   const char* func_name, void* arg_val)
 {
   void* func_addr_in_dll = dynamic_lib->GetSymbolAddress(func_name);
   if (func_addr_in_dll == nullptr)
   {
-    PanicAlertFmt(
-        "{}",
-        (std::string("Error: While searching for valid scripting plugins, attempted to use ") +
-         file_name + " as a ScriptingPlugin. However, the " + func_name +
-         " function was not defined in this file!")
-            .c_str());
+    queuePanicAlertEvent(
+        std::string("Error: While searching for valid scripting plugins, attempted to use ") +
+        file_name + " as a ScriptingPlugin. However, the " + func_name +
+        " function was not defined in this file!");
+
     return false;
   }
   else
@@ -378,11 +382,9 @@ void InitializeDLLs()
                  std::count(trimmed_extensions_list.begin(), trimmed_extensions_list.end(),
                             trimmed_extension) > 0)
         {
-          PanicAlertFmt("{}", std::string("Error: Encountered duplicate file extension of " +
-                                          trimmed_extension + " while scanning " +
-                                          extensions_file_name + " file!")
-                                  .c_str());
-
+          queuePanicAlertEvent("Error: Encountered duplicate file extension of " +
+                               trimmed_extension + " while scanning " + extensions_file_name +
+                               " file!");
           return;
         }
         else
@@ -391,8 +393,8 @@ void InitializeDLLs()
 
       if (trimmed_extensions_list.empty())
       {
-        PanicAlertFmt("{}", std::string("Warning: file ") + extensions_file_name +
-                                " did not contain any extensions!");
+        queuePanicAlertEvent(std::string("Warning: file ") + extensions_file_name +
+                             " did not contain any extensions!");
         continue;
       }
 
@@ -503,8 +505,7 @@ void InitializeScript(
   if (list_of_all_scripts[list_of_all_scripts.size() - 1]->script_return_code !=
       ScriptingEnums::ScriptReturnCodes::SuccessCode)
   {
-    PanicAlertFmt("{}",
-                  list_of_all_scripts[list_of_all_scripts.size() - 1]->last_script_error.c_str());
+    queuePanicAlertEvent(list_of_all_scripts[list_of_all_scripts.size() - 1]->last_script_error);
   }
 }
 
@@ -625,8 +626,8 @@ void ProcessScriptQueueEvents()
       StopScript(current_event.unique_script_identifier);
     else
     {
-      PanicAlertFmt("{}", "Error: Encountered unknown ScriptQueueEventType in "
-                          "ProcessScriptQueueEvents() function.");
+      queuePanicAlertEvent("Error: Encountered unknown ScriptQueueEventType in "
+                           "ProcessScriptQueueEvents() function.");
       return;
     }
     script_events.erase(script_events.begin());
@@ -653,7 +654,7 @@ bool StartScripts()
       next_script->dll_specific_api_definitions.StartScript(next_script);
       return_value = next_script->called_yielding_function_in_last_global_script_resume;
       if (next_script->script_return_code != 0)
-        PanicAlertFmt("{}", next_script->last_script_error);
+        queuePanicAlertEvent(next_script->last_script_error);
     }
     next_script->script_specific_lock.unlock();
     if (return_value)
@@ -677,7 +678,7 @@ bool RunGlobalCode()
       current_script->dll_specific_api_definitions.RunGlobalScopeCode(current_script);
       return_value = current_script->called_yielding_function_in_last_global_script_resume;
       if (current_script->script_return_code != 0)
-        PanicAlertFmt("{}", current_script->last_script_error);
+        queuePanicAlertEvent(current_script->last_script_error);
     }
     current_script->script_specific_lock.unlock();
     if (return_value)
@@ -701,7 +702,7 @@ bool RunOnFrameStartCallbacks()
       current_script->dll_specific_api_definitions.RunOnFrameStartCallbacks(current_script);
       return_value = current_script->called_yielding_function_in_last_frame_callback_script_resume;
       if (current_script->script_return_code != 0)
-        PanicAlertFmt("{}", current_script->last_script_error);
+        queuePanicAlertEvent(current_script->last_script_error);
     }
     current_script->script_specific_lock.unlock();
     if (return_value)
@@ -723,7 +724,7 @@ void RunOnGCInputPolledCallbacks()
           ScriptingEnums::ScriptCallLocations::FromGCControllerInputPolled;
       current_script->dll_specific_api_definitions.RunOnGCControllerPolledCallbacks(current_script);
       if (current_script->script_return_code != 0)
-        PanicAlertFmt("{}", current_script->last_script_error);
+        queuePanicAlertEvent(current_script->last_script_error);
     }
     current_script->script_specific_lock.unlock();
   }
@@ -745,7 +746,7 @@ void RunOnInstructionHitCallbacks(u32 instruction_address)
       current_script->dll_specific_api_definitions.RunOnInstructionReachedCallbacks(
           current_script, instruction_address);
       if (current_script->script_return_code != 0)
-        PanicAlertFmt("{}", current_script->last_script_error);
+        queuePanicAlertEvent(current_script->last_script_error);
     }
     current_script->script_specific_lock.unlock();
   }
@@ -768,7 +769,7 @@ void RunOnMemoryAddressReadFromCallbacks(u32 memory_address)
       current_script->dll_specific_api_definitions.RunOnMemoryAddressReadFromCallbacks(
           current_script, memory_address);
       if (current_script->script_return_code != 0)
-        PanicAlertFmt("{}", current_script->last_script_error);
+        queuePanicAlertEvent(current_script->last_script_error);
     }
     current_script->script_specific_lock.unlock();
   }
@@ -793,7 +794,7 @@ void RunOnMemoryAddressWrittenToCallbacks(u32 memory_address, s64 new_value)
       current_script->dll_specific_api_definitions.RunOnMemoryAddressWrittenToCallbacks(
           current_script, memory_address);
       if (current_script->script_return_code != 0)
-        PanicAlertFmt("{}", current_script->last_script_error);
+        queuePanicAlertEvent(current_script->last_script_error);
     }
     current_script->script_specific_lock.unlock();
   }
@@ -813,7 +814,7 @@ void RunOnWiiInputPolledCallbacks()
           ScriptingEnums::ScriptCallLocations::FromWiiInputPolled;
       current_script->dll_specific_api_definitions.RunOnWiiInputPolledCallbacks(current_script);
       if (current_script->script_return_code != 0)
-        PanicAlertFmt("{}", current_script->last_script_error);
+        queuePanicAlertEvent(current_script->last_script_error);
     }
     current_script->script_specific_lock.unlock();
   }
@@ -832,7 +833,7 @@ void RunButtonCallbacksInQueues()
           ScriptingEnums::ScriptCallLocations::FromGraphicsCallback;
       current_script->dll_specific_api_definitions.RunButtonCallbacksInQueue(current_script);
       if (current_script->script_return_code != 0)
-        PanicAlertFmt("{}", current_script->last_script_error);
+        queuePanicAlertEvent(current_script->last_script_error);
     }
     current_script->script_specific_lock.unlock();
   }

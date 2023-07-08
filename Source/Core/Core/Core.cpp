@@ -910,12 +910,20 @@ void Callback_NewField(Core::System& system)
 {
   if (Scripting::ScriptUtilities::IsScriptingCoreInitialized())
   {
-    Scripting::ScriptUtilities::ProcessScriptQueueEvents();
-    if (!Scripting::ScriptUtilities::StartScripts())
-      if (!Scripting::ScriptUtilities::RunOnFrameStartCallbacks())
-        Scripting::ScriptUtilities::RunGlobalCode();
+    Core::QueueHostJob(
+        [] {
+          Core::RunOnCPUThread(
+              [] {
+                Scripting::ScriptUtilities::ProcessScriptQueueEvents();
+                if (!Scripting::ScriptUtilities::StartScripts())
+                  if (!Scripting::ScriptUtilities::RunOnFrameStartCallbacks())
+                    Scripting::ScriptUtilities::RunGlobalCode();
 
-    Scripting::ScriptUtilities::RunButtonCallbacksInQueues();
+                Scripting::ScriptUtilities::RunButtonCallbacksInQueues();
+              },
+              true);
+        },
+        true);
   }
 
   if (s_frame_step)

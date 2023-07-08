@@ -591,3 +591,232 @@ __graphics:endWindow__%%%
 * graphics:endWindow() ==> Changes the currently open window to its parent window/subwindow (or to the game screen, if this was the last opened window).
 
 __graphics:getCheckboxValue__%%%
+
+* boolean getCheckboxValue(int uniqueCheckboxId)
+
+* Returns the value associated with the specified uniqueCheckboxId. If the checkbox is clicked, then the function returns true. Otherwise, it returns false.
+
+* graphics:getCheckboxValue(42) ==> Returns true if the checkbox with the ID of 42 was currently pressed, and returns false otherwise.
+
+__graphics:getRadioButtonGroupValue__%%%
+
+* int getRadioButtonGroupValue(int radioButtonGroupId)
+
+* Returns the value associated with the specified radioButtonGroupId (which indicates which radio button in the group was clicked). This value defaults to 0, if none of the radio buttons have been clicked and setRadioButtonGroupValue() has never been called.
+
+* graphics:getRadioButtonGroupValue(42) ==> Returns the value stored in the radioButtonGroupId with the ID of 42.
+
+__graphics:getTextBoxValue__%%%
+
+* String getTextBoxValue(int uniqueTextBoxId)
+
+* Returns the contents of the String which is currently typed into the textbox with the ID of uniqiueTextBoxId.
+
+* graphics:getTextBoxValue(42) ==> If the user typed "Hello World!" into the textbox that was created with an ID of 42, then this function call will return "Hello World!"
+
+__graphics:newLine__%%%
+
+* void newLine(double verticalOffset)
+
+* Adds vertical space/padding below the last added element in the currently open window. After calling this function, the next item added to the window will be further down from what its original position would have been by verticalOffset units. This function is useful, since an element added to a window by default will be added directly below the last element in the window by a fixed amount.
+
+* __WARNING:__ This function may NOT be called when no windows are currently open. Otherwise, an error will occur.
+
+__graphics:pressButton__%%%
+
+* void pressButton(int uniqueButtonId)
+
+* Runs the callback associated with the button references by uniqueButtonId (has the same effects as though the button was actually clicked by the user).
+
+* graphics:pressButton(42) ==> Clicks the button with the associated ID of 42.
+
+__graphics:setCheckboxValue__%%%
+
+* void setCheckboxValue(int checkboxId, boolean newValue)
+
+* Sets the checkbox with an ID of checkboxId to have the value specified by newValue. If newValue is true, then the checkbox is set to checked off. Otherwise, the checkbox is set to not being checked off.
+
+%%SRC_EMBED lua
+graphics:addCheckbox("Ice Cream", 32)
+graphics:setCheckboxValue(32, true)
+%%END_EMBED
+
+* ==> Now the checkbox labeled "Ice Cream" is set to be checked off.
+
+__graphics:setRadioButtonGroupValue__%%%
+
+* void setRadioButtonGroupValue(int radioButtonGroupId, int newValue)
+
+* Sets the radio button group with the ID of radioButtonGroupId to have the value specified by newValue. Note that a radio button must exist in the radio button group with a radioButtonGroupId of newValue in order for that option to be selected. Otherwise, no option in the radio button group will be registered as selected.
+
+%%SRC_EMBED lua
+graphics:addRadioButtonGroup(20)
+graphics:addRadioButton("Vanilla", 20, 0)
+graphics:addRadioButton("Chocolate", 20, 1)
+graphics:addRadioButton("Strawberry", 20, 2)
+graphics:setRadioButtonGroupValue(20, 1)
+%%END_EMBED
+
+* ==> Now the radio button which is labeled "Chocolate" will be selected, and none of the other 2 radio buttons in the group will be selected.
+
+__graphics:setTextBoxValue__%%%
+
+* void setTextBoxValue(int textBoxId, String newValue)
+
+* Sets the textbox with the ID of textBoxId to have the value specified by newValue.
+
+%%SRC_EMBED lua
+graphics:addTextBox(42, "Enter your name here:")
+graphics:setTextBoxValue(42, "John Smith")
+%%END_EMBED
+
+* ==> Now the textbox labeled "Enter your name here:" will start with having its contents be "John Smith"
+
+%%TAB instruction_step%%
+
+A library for stepping through a game's code one instruction at a time. Note that with the exception of the getInstructionFromAddress() function, all of these functions MUST be called from inside of an OnInstructionHit callback function, an OnMemoryAddressReadFrom callback function, or an OnMemoryAddressWrittenTo callback function. Otherwise, an error will occur.
+
+To use these functions, the following line __MUST__ be included at the top of your Lua script:
+%%SRC_EMBED lua
+require ("instruction_step")
+%%END_EMBED
+
+__instruction_step:getInstructionFromAddress__%%%
+
+* String getInstructionFromAddress(int instructionAddress)
+
+* Returns a human-readable representation of the instruction which is stored at instructionAddress in the game's code. Note that this is the only function in this library which can be called from anywhere anytime.
+
+* instruction_step:getInstructionFromAddress(0x85005432) ==> ex. could return "addi r0, r1, r2"
+
+__instruction_step:setPC__%%%
+
+* void setPC(int newPcValue)
+
+* Sets PC to have the value specified by newPcValue.
+
+* instruction_step:setPC(0X85005432) ==> Now PC is equal to 0X85005432, and the instruction at that address will be the next instruction executed by the game.
+
+__instruction_step:singleStep__%%%
+
+* void singleStep()
+
+* Executes the next instruction that the game would run (the instruction at the value of PC), and then returns.
+
+* instruction_step:singleStep() ==> Now the next instruction has been executed by the game.
+
+__instruction_step:skip__%%%
+
+* void skip()
+
+* Skips execution of the next instruction. After this instruction executes PC will equal the original value of PC + 4, and the instruction at PC will not have been executed.
+
+__WARNING:__ This function alters the execution of gameplay, since it skips over a function. If you want the game to run the next instruction or run until it reaches the instruction at PC + 4, then use either singleStep() or stepOver() respectively.
+
+* instruction_step:skip() ==> Now PC equals original value of PC + 4, and the instruction at address PC was not executed.
+
+__instruction_step:stepOut__%%%
+
+* void stepOut()
+
+* Executes code until the game returns from whatever function it was in when this function called. Note that if the frame-boundary is encountered before this function has ended, then the function will end immediately.
+
+* instruction_step:stepOut() ==>When this function ends, the game will have returned from the function it was in when stepOut() was called.
+
+__instruction_step:stepOver__%%%
+
+* void stepOver()
+
+* Executes code until PC is equal to original PC value + 4. Note that if the instruction at address PC isn't a function call or jump call, then this will behave the same as singleStep(). If a function call is the current instruction, then this function will execute instructions until the function has returned. Note that if the frame-boundary is encountered before this function has ended, then the function will end immediately.
+
+* instruction_step:stepOver() ==> Executes code until PC equals the original value of PC + 4
+
+%%TAB memory%%
+
+A library for reading and writing values to memory.
+
+To use these functions, the following line __MUST__ be included at the top of your Lua script:
+%%SRC_EMBED lua
+require ("memory")
+%%END_EMBED
+
+__memory:readFixedLengthString__%%%
+
+* String readFixedLengthString(int address, int numBytes)
+
+* reads numBytes total bytes starting at the address specified by address. Each byte is treated as being a signed ASCII char, and the resulting String that is returned contains each byte/char in order, followed by the null terminator char ('\0')
+
+* memory:readFixedLengthString(0X8D005320, 3) ==> If address 0X8D005320 contains the following bytes in order of increasing memory address of: 'H', 'e' 'l', 'l', 'o', then the String "Hel" will be returned (which is a null-terminated string. To be more precise, the sequence of chars in the returned string are: 'H', 'E', 'L', '\0')
+
+__memory:readFrom__%%%
+
+* typeString readFrom(int address, DataTypeString typeString)
+
+* Returns the data stored at the address specified by address. The data is returned as the type specified by typeString (for a definition of which Strings represent DataTypeString, see the top of this page).
+
+* memory:readFrom(0X8D004320, "S32") ==> Returns the value stored at 0X8D004320 as a 4-byte signed integer.
+
+__memory:readNullTerminatedString__%%%
+
+* String readNullTerminatedString(int address)
+
+* Returns a String which starts at the address specified by address. Each byte is treated as being a signed ASCII character. The function keeps adding bytes to the end of the return String until the null-terminator character is encountered.
+
+* memory:readNullTerminatedString(0X8D004320) ==> If the sequence of bytes stored between 0X8D00430 and 0X8D00435 (in order) are the following: 'H', 'E', 'L', 'L', 'O', '\0', then the null-terminated String "Hello" will be returned by the function.
+
+__memory:readSignedBytes__%%%
+
+* Dict<int, int> readSignedBytes(int address, int numBytes)
+
+* Returns a dictionary whose keys are addresses and whose values are the values at the corresponding address as a signed byte.
+
+* memory:readSignedBytes(0X8D004320, 4) ==> If the bytes stored at address 0X8d004320-0X8d004323 (as signed bytes) are the following: 45, 10, -54, 7, then the following dictionary will be returned: {0X8D004320 = 45, 0X8D004321 = 10, 0X8D004322 = -54, 0X8D004323 = 7}. Note that these are the same memory values as in the example below for readUnsignedBytes. The only difference is, we interpret the bytes as signed bytes here instead of unsigned bytes.
+
+__memory:readUnsignedBytes__%%%
+
+* Dict<int, int> readUnsignedBytes(int address, int numBytes)
+
+* Returns a dictionary whose keys are addresses and whose values are the values stored at the corresponding address as an unsigned byte.
+
+* memory:readUnsignedBytes(0X8D004320, 4) ==> If the bytes stored at address 0X8D004320-0X8D004323 (as unsigned bytes) are the following: 45, 10, 201, 7, then the following dictionary will be returned: {0X8D004320 = 45, 0X8D004321 = 10, 0X8D004322 = 201, 0X8D004323 = 7}. Note that these are the same memory values as in the example above for readSignedBytes. The only difference is, we interpret the bytes as unsigned bytes here instead of signed bytes.
+
+__memory:writeBytes__%%%
+
+* void writeBytes(Dict<int, int> addressToBytesDict)
+
+* addressToBytesDict is treated as a mapping from address to address-value (as a byte). All of the bytes represented in addressToBytesDict are written out to memory.
+
+__WARNING: The values in addressToBytesDict MUST be small enough to be contained within 1 byte. In other words, they must be between -128 to 255.  Values that are less than 0 are automatically written as signed bytes, and values greater than or equal to 0 are automatically written as unsigned bytes.
+
+* memory:writeBytes({0X8D004320 = -54, 0X8D004400 = 152}) ==> Writes the value -54 to 0X8D004320 (as a signed byte), and writes the value 152 to 0X8D004400 (as an unsigned byte).
+
+__memory:writeString__%%%
+
+* void writeString(int address, String stringToWrite)
+
+* Writes the bytes of stringToWrite to the address specified by the address parameter. Each character is treated as a signed byte, and the null-terminator character is added to the end of the string (technically, all Lua strings end in the null terminator, so my code doesn't do anything special to add this in).
+
+* memory:writeString(0X8D004400, "Hello") ==> After this code runs, the bytes from 0X8D004400 to 0X8D004405 contain the following bytes (in order): 'H', 'e', 'l', 'l', 'o', '\0'
+
+__memory:writeTo__%%%
+
+* void writeTo(int address, DataTypeString typeString, typeString newValue)
+
+* Writes the the value specified by newValue to the address specified by the address parameter. newValue is interpreted as being the type specified by typeString (to see a list of all valid DataTypeStrings, go to the top of this page). Each DataTypeString specifies an exact size of its parameter - which is the exact number of bytes that will be written by this function.
+
+* memory:writeTo(0X8D004400, "U32", 98543) ==> if memory:readFrom(0X8D004400, "U32") is called immediately after running the writeTo call described here, then 98543 will be returned.
+
+%%TAB OnFrameStart%%
+
+A library for registering functions which will be run at the start of each frame. If multiple functions are registered to run at the start of each frame, then the functions will execute each frame in the order that they were registered. Note that any registered OnFrameStart callbacks will be run before running global code (i.e. Lua code which is not in a registered callback function) which is still running at the start of each frame.
+
+This is a builtin library, so you don't need to put a require(X) statement at the top of your Lua script to use these functions.
+
+__OnFrameStart:isInFrameStartCallback__%%%
+
+* boolean isInFrameStartCallback()
+
+* Returns true if this function was called from inside of an OnFrameStart callback which is currently being executed at the start of a frame, and returns false otherwise.
+
+* if OnFrameStart:isInFrameStartCallback() then ==> Only executes the code inside the if statement block if the isInFrameStartCallback() function was called from inside of a currently executing OnFrameStart callback right now.
+
