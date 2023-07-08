@@ -27,6 +27,7 @@ DolphinDefinedAPIs.h
 DolphinDefinedAPIs.cpp
 HelperFiles/ClassMetadata.h
 HelperFiles/FunctionMetadata.h
+HelperFiles/MemoryAddressCallbackTriple.h
 )
 
 set_target_properties(LUA PROPERTIES LINKER_LANGUAGE CXX)

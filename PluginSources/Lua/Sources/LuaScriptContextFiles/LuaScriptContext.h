@@ -3,6 +3,7 @@
 
 #include "../DolphinDefinedAPIs.h"
 #include "../HelperFiles/ClassMetadata.h"
+#include "../HelperFiles/MemoryAddressCallbackTriple.h"
 #include <atomic>
 #include <unordered_map>
 #include <vector>
@@ -46,11 +47,9 @@ struct LuaScriptContext
 
   std::unordered_map<unsigned int, std::vector<int> > map_of_instruction_address_to_lua_callback_locations;
 
-  std::unordered_map<unsigned  int, std::vector<int> >
-    map_of_memory_address_read_from_to_lua_callback_locations;
+  std::vector<MemoryAddressCallbackTriple> memory_address_read_from_callback_list;
 
-  std::unordered_map<unsigned int, std::vector<int> >
-    map_of_memory_address_written_to_to_lua_callback_locations;
+  std::vector<MemoryAddressCallbackTriple> memory_address_written_to_callback_list;
 
   std::unordered_map<long long, int> map_of_button_id_to_callback;
 
@@ -107,15 +106,15 @@ void GetButtonCallbackAndAddToQueue_impl(void*, long long);
 
 void* RegisterOnInstructionReachedCallback_impl(void*, unsigned int, void*);
 void RegisterOnInstructionReachedWithAutoDeregistrationCallback_impl(void*, unsigned int, void*);
-int UnregisterOnInstructionReachedCallback_impl(void*, unsigned int, void*);
+int UnregisterOnInstructionReachedCallback_impl(void*, void*);
 
-void* RegisterOnMemoryAddressReadFromCallback_impl(void*, unsigned int, void*);
-void RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallback_impl(void*, unsigned int, void*);
-int UnregisterOnMemoryAddressReadFromCallback_impl(void*, unsigned int, void*);
+void* RegisterOnMemoryAddressReadFromCallback_impl(void*, unsigned int, unsigned int, void*);
+void RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallback_impl(void*, unsigned int, unsigned int, void*);
+int UnregisterOnMemoryAddressReadFromCallback_impl(void*, void*);
 
-void* RegisterOnMemoryAddressWrittenToCallback_impl(void*, unsigned int, void*);
-void RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallback_impl(void*, unsigned int, void*);
-int UnregisterOnMemoryAddressWrittenToCallback_impl(void*, unsigned int, void*); 
+void* RegisterOnMemoryAddressWrittenToCallback_impl(void*, unsigned int, unsigned int, void*);
+void RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallback_impl(void*, unsigned int, unsigned int, void*);
+int UnregisterOnMemoryAddressWrittenToCallback_impl(void*, void*); 
 
 void DLLClassMetadataCopyHook_impl(void*, void*);
 void DLLFunctionMetadataCopyHook_impl(void*, void*);

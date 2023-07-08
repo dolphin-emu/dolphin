@@ -47,8 +47,8 @@ void* Init_LuaScriptContext_impl(void* new_base_script_context_ptr)
   new_lua_script_context_ptr->index_of_next_frame_callback_to_execute = 0;
 
   new_lua_script_context_ptr->map_of_instruction_address_to_lua_callback_locations = std::unordered_map<unsigned int, std::vector<int> >();
-  new_lua_script_context_ptr->map_of_memory_address_read_from_to_lua_callback_locations = std::unordered_map<unsigned int, std::vector<int> >();
-  new_lua_script_context_ptr->map_of_memory_address_written_to_to_lua_callback_locations = std::unordered_map<unsigned int, std::vector<int> >();
+  new_lua_script_context_ptr->memory_address_read_from_callback_list = std::vector<MemoryAddressCallbackTriple>();
+  new_lua_script_context_ptr->memory_address_written_to_callback_list = std::vector<MemoryAddressCallbackTriple>();
   new_lua_script_context_ptr->map_of_button_id_to_callback = std::unordered_map<long long, int>();
 
   new_lua_script_context_ptr->number_of_frame_callbacks_to_auto_deregister = 0;
@@ -115,6 +115,13 @@ void unref_vector(LuaScriptContext* lua_script_ptr, std::vector<int>& input_vect
   input_vector.clear();
 }
 
+void unref_vector(LuaScriptContext* lua_script_ptr, std::vector<MemoryAddressCallbackTriple>& input_vector)
+{
+  for (auto& triple : input_vector)
+    luaL_unref(lua_script_ptr->main_lua_thread, LUA_REGISTRYINDEX, triple.callback_ref);
+  input_vector.clear();
+}
+
 void unref_map(LuaScriptContext* lua_script_ptr, std::unordered_map<unsigned int, std::vector<int> >& input_map)
 {
   for (auto& addr_func_pair : input_map)
@@ -138,8 +145,8 @@ void Destroy_LuaScriptContext_impl(void* base_script_context_ptr) // Takes as in
   unref_vector(lua_script_ptr, lua_script_ptr->gc_controller_input_polled_callback_locations);
   unref_vector(lua_script_ptr, lua_script_ptr->wii_controller_input_polled_callback_locations);
   unref_map(lua_script_ptr, lua_script_ptr->map_of_instruction_address_to_lua_callback_locations);
-  unref_map(lua_script_ptr, lua_script_ptr->map_of_memory_address_read_from_to_lua_callback_locations);
-  unref_map(lua_script_ptr, lua_script_ptr->map_of_memory_address_written_to_to_lua_callback_locations);
+  unref_vector(lua_script_ptr, lua_script_ptr->memory_address_read_from_callback_list);
+  unref_vector(lua_script_ptr, lua_script_ptr->memory_address_written_to_callback_list);
   unref_map(lua_script_ptr, lua_script_ptr->map_of_button_id_to_callback);
   delete lua_script_ptr;
   dolphinDefinedScriptContext_APIs.set_derived_script_context_ptr(base_script_context_ptr, nullptr);
@@ -225,12 +232,12 @@ bool ShouldCallEndScriptFunction(LuaScriptContext* lua_script_ptr)
       getNumberOfCallbacksInMap(lua_script_ptr->map_of_instruction_address_to_lua_callback_locations) -
       lua_script_ptr->number_of_instruction_address_callbacks_to_auto_deregister <=
       0) &&
-    (lua_script_ptr->map_of_memory_address_read_from_to_lua_callback_locations.size() == 0 ||
-      getNumberOfCallbacksInMap(lua_script_ptr->map_of_memory_address_read_from_to_lua_callback_locations) -
+    (lua_script_ptr->memory_address_read_from_callback_list.size() == 0 ||
+      lua_script_ptr->memory_address_read_from_callback_list.size() - 
       lua_script_ptr->number_of_memory_address_read_callbacks_to_auto_deregister <=
       0) &&
-    (lua_script_ptr->map_of_memory_address_written_to_to_lua_callback_locations.size() == 0 ||
-      getNumberOfCallbacksInMap(lua_script_ptr->map_of_memory_address_written_to_to_lua_callback_locations) -
+    (lua_script_ptr->memory_address_written_to_callback_list.size() == 0 ||
+      lua_script_ptr->memory_address_written_to_callback_list.size() -
       lua_script_ptr->number_of_memory_address_write_callbacks_to_auto_deregister <=
       0) &&
     lua_script_ptr->button_callbacks_to_run.empty())
@@ -749,18 +756,26 @@ void StartScript_impl(void* base_script_context_ptr)
   }
 }
 
+bool callEndIfNeededAndReturnTrueIfShouldEnd(void* base_script_context_ptr)
+{
+  if (!dolphinDefinedScriptContext_APIs.get_is_script_active)
+    return true;
+
+  if (ShouldCallEndScriptFunction(getLuaScriptContext(base_script_context_ptr)))
+  {
+    callScriptEndCallbackFunction(base_script_context_ptr);
+    return true;
+  }
+
+  return false;
+}
+
 void RunGlobalScopeCode_impl(void* base_script_context_ptr)
 {
-  if (!dolphinDefinedScriptContext_APIs.get_is_script_active(base_script_context_ptr))
+  if (callEndIfNeededAndReturnTrueIfShouldEnd(base_script_context_ptr))
     return;
 
   LuaScriptContext* lua_script_ptr = getLuaScriptContext(base_script_context_ptr);
-
-  if (ShouldCallEndScriptFunction(lua_script_ptr))
-  {
-    callScriptEndCallbackFunction(base_script_context_ptr);
-    return;
-  }
 
   if (dolphinDefinedScriptContext_APIs.get_is_finished_with_global_code(base_script_context_ptr))
     return;
@@ -827,58 +842,35 @@ void GenericRunCallbacksHelperFunction(void* base_script_context_ptr, lua_State*
 
 void RunOnFrameStartCallbacks_impl(void* base_script_context_ptr)
 {
-  if (!dolphinDefinedScriptContext_APIs.get_is_script_active(base_script_context_ptr))
+  if (callEndIfNeededAndReturnTrueIfShouldEnd(base_script_context_ptr))
     return;
   LuaScriptContext* lua_script_ptr = getLuaScriptContext(base_script_context_ptr);
-  if (ShouldCallEndScriptFunction(lua_script_ptr))
-  {
-    callScriptEndCallbackFunction(base_script_context_ptr);
-    return;
-  }
-
   GenericRunCallbacksHelperFunction(base_script_context_ptr, lua_script_ptr->frame_callback_lua_thread, lua_script_ptr->frame_callback_locations, lua_script_ptr->index_of_next_frame_callback_to_execute, true);
 }
 
 void RunOnGCControllerPolledCallbacks_impl(void* base_script_context_ptr)
 {
-  if (!dolphinDefinedScriptContext_APIs.get_is_script_active(base_script_context_ptr))
+  if (callEndIfNeededAndReturnTrueIfShouldEnd(base_script_context_ptr))
     return;
   LuaScriptContext* lua_script_ptr = getLuaScriptContext(base_script_context_ptr);
-  if (ShouldCallEndScriptFunction(lua_script_ptr))
-  {
-    callScriptEndCallbackFunction(base_script_context_ptr);
-    return;
-  }
-
   int next_callback = 0;
   GenericRunCallbacksHelperFunction(base_script_context_ptr, lua_script_ptr->gc_controller_input_polled_callback_lua_thread, lua_script_ptr->gc_controller_input_polled_callback_locations, next_callback, false);
 }
 
 void RunOnWiiInputPolledCallbacks_impl(void* base_script_context_ptr)
 {
-  if (!dolphinDefinedScriptContext_APIs.get_is_script_active(base_script_context_ptr))
+  if (callEndIfNeededAndReturnTrueIfShouldEnd(base_script_context_ptr))
     return;
   LuaScriptContext* lua_script_ptr = getLuaScriptContext(base_script_context_ptr);
-  if (ShouldCallEndScriptFunction(lua_script_ptr))
-  {
-    callScriptEndCallbackFunction(base_script_context_ptr);
-    return;
-  }
-
   int next_callback = 0;
   GenericRunCallbacksHelperFunction(base_script_context_ptr, lua_script_ptr->wii_input_polled_callback_lua_thread, lua_script_ptr->wii_controller_input_polled_callback_locations, next_callback, false);
 }
 
 void RunButtonCallbacksInQueue_impl(void* base_script_context_ptr)
 {
-  if (!dolphinDefinedScriptContext_APIs.get_is_script_active(base_script_context_ptr))
+  if (callEndIfNeededAndReturnTrueIfShouldEnd(base_script_context_ptr))
     return;
   LuaScriptContext* lua_script_ptr = getLuaScriptContext(base_script_context_ptr);
-  if (ShouldCallEndScriptFunction(lua_script_ptr))
-  {
-    callScriptEndCallbackFunction(base_script_context_ptr);
-    return;
-  }
   int next_callback = 0;
   std::vector<int> vector_of_functions_to_run;
   while (!lua_script_ptr->button_callbacks_to_run.empty())
@@ -892,15 +884,9 @@ void RunButtonCallbacksInQueue_impl(void* base_script_context_ptr)
 
 void RunOnInstructionReachedCallbacks_impl(void* base_script_context_ptr, unsigned int address)
 {
-  if (!dolphinDefinedScriptContext_APIs.get_is_script_active(base_script_context_ptr))
+  if (callEndIfNeededAndReturnTrueIfShouldEnd(base_script_context_ptr))
     return;
   LuaScriptContext* lua_script_ptr = getLuaScriptContext(base_script_context_ptr);
-  if (ShouldCallEndScriptFunction(lua_script_ptr))
-  {
-    callScriptEndCallbackFunction(base_script_context_ptr);
-    return;
-  }
-
   int next_callback = 0;
   if (lua_script_ptr->map_of_instruction_address_to_lua_callback_locations.count(address) == 0)
     return;
@@ -909,36 +895,40 @@ void RunOnInstructionReachedCallbacks_impl(void* base_script_context_ptr, unsign
 
 void RunOnMemoryAddressReadFromCallbacks_impl(void* base_script_context_ptr, unsigned int address)
 {
-  if (!dolphinDefinedScriptContext_APIs.get_is_script_active(base_script_context_ptr))
+  if (callEndIfNeededAndReturnTrueIfShouldEnd(base_script_context_ptr))
     return;
   LuaScriptContext* lua_script_ptr = getLuaScriptContext(base_script_context_ptr);
-  if (ShouldCallEndScriptFunction(lua_script_ptr))
-  {
-    callScriptEndCallbackFunction(base_script_context_ptr);
-    return;
-  }
-
   int next_callback = 0;
-  if (lua_script_ptr->map_of_memory_address_read_from_to_lua_callback_locations.count(address) == 0)
+  std::vector<int> vector_of_functions_to_run;
+  size_t number_of_callbacks = lua_script_ptr->memory_address_read_from_callback_list.size();
+  for (size_t i = 0; i < number_of_callbacks; ++i)
+  {
+    if (address >= lua_script_ptr->memory_address_read_from_callback_list[i].memory_start_address &&
+      address <= lua_script_ptr->memory_address_read_from_callback_list[i].memory_end_address)
+      vector_of_functions_to_run.push_back(lua_script_ptr->memory_address_read_from_callback_list[i].callback_ref);
+  }
+  if (vector_of_functions_to_run.size() == 0)
     return;
-  GenericRunCallbacksHelperFunction(base_script_context_ptr, lua_script_ptr->memory_address_read_from_callback_lua_thread, lua_script_ptr->map_of_memory_address_read_from_to_lua_callback_locations[address], next_callback, false);
+  GenericRunCallbacksHelperFunction(base_script_context_ptr, lua_script_ptr->memory_address_read_from_callback_lua_thread, vector_of_functions_to_run, next_callback, false);
 }
 
 void RunOnMemoryAddressWrittenToCallbacks_impl(void* base_script_context_ptr, unsigned int address)
 {
-  if (!dolphinDefinedScriptContext_APIs.get_is_script_active(base_script_context_ptr))
+  if (callEndIfNeededAndReturnTrueIfShouldEnd(base_script_context_ptr))
     return;
   LuaScriptContext* lua_script_ptr = getLuaScriptContext(base_script_context_ptr);
-  if (ShouldCallEndScriptFunction(lua_script_ptr))
-  {
-    callScriptEndCallbackFunction(base_script_context_ptr);
-    return;
-  }
-
   int next_callback = 0;
-  if (lua_script_ptr->map_of_memory_address_written_to_to_lua_callback_locations.count(address) == 0)
+  std::vector<int> vector_of_functions_to_run;
+  size_t number_of_callbacks = lua_script_ptr->memory_address_written_to_callback_list.size();
+  for (size_t i = 0; i < number_of_callbacks; ++i)
+  {
+    if (address >= lua_script_ptr->memory_address_written_to_callback_list[i].memory_start_address &&
+        address <= lua_script_ptr->memory_address_written_to_callback_list[i].memory_end_address)
+          vector_of_functions_to_run.push_back(lua_script_ptr->memory_address_written_to_callback_list[i].callback_ref);
+  }
+  if (vector_of_functions_to_run.size() == 0)
     return;
-  GenericRunCallbacksHelperFunction(base_script_context_ptr, lua_script_ptr->memory_address_written_to_callback_lua_thread, lua_script_ptr->map_of_memory_address_written_to_to_lua_callback_locations[address], next_callback, false);
+  GenericRunCallbacksHelperFunction(base_script_context_ptr, lua_script_ptr->memory_address_written_to_callback_lua_thread, vector_of_functions_to_run, next_callback, false);
 }
 
 void* RegisterForVectorHelper(std::vector<int>& input_vector, void* callback, std::atomic<size_t>& number_of_auto_deregister_callbacks)
@@ -973,19 +963,30 @@ void* RegisterForMapHelper(
   return *((void**)(&callback));
 }
 
-bool UnregisterForMapHelper(unsigned int address, std::unordered_map<unsigned int, std::vector<int> >& input_map,
-  void* callback)
+bool UnregisterForMapHelper(std::unordered_map<unsigned int, std::vector<int> >& input_map, void* callback)
 {
   int function_reference_to_delete = *((int*)(&callback));
-  if (!input_map.count(address))
+  signed long long address = -1;
+  for (auto& map_iterator : input_map)
+  {
+    if (!map_iterator.second.empty())
+    {
+      // This is the case where the vector contains the callback we want to delete.
+      if (std::count(map_iterator.second.begin(), map_iterator.second.end(), function_reference_to_delete) > 0)
+      {
+        address = map_iterator.first;
+        break;
+      }
+    }
+  }
+
+  if (address == -1)
     return false;
 
-  if (std::find(input_map[address].begin(), input_map[address].end(),
-    function_reference_to_delete) == input_map[address].end())
-    return false;
+  input_map[address].erase(std::find(input_map[address].begin(), input_map[address].end(), function_reference_to_delete));
+  if (input_map[address].empty())
+    input_map.erase(address);
 
-  input_map[address].erase((std::find(input_map[address].begin(), input_map[address].end(),
-    function_reference_to_delete)));
   return true;
 }
 
@@ -1076,45 +1077,43 @@ void RegisterOnInstructionReachedWithAutoDeregistrationCallback_impl(void* base_
   RegisterForMapHelper(address, lua_script_ptr->map_of_instruction_address_to_lua_callback_locations, callback, lua_script_ptr->number_of_instruction_address_callbacks_to_auto_deregister);
 }
 
-int UnregisterOnInstructionReachedCallback_impl(void* base_script_context_ptr, unsigned int address, void* callback)
+int UnregisterOnInstructionReachedCallback_impl(void* base_script_context_ptr, void* callback)
 {
-  return UnregisterForMapHelper(address, getLuaScriptContext(base_script_context_ptr)->map_of_instruction_address_to_lua_callback_locations, callback);
+  return UnregisterForMapHelper(getLuaScriptContext(base_script_context_ptr)->map_of_instruction_address_to_lua_callback_locations, callback);
 }
 
-void* RegisterOnMemoryAddressReadFromCallback_impl(void* base_script_context_ptr, unsigned int address, void* callback)
+void* RegisterOnMemoryAddressReadFromCallback_impl(void* base_script_context_ptr, unsigned int start_address, unsigned int end_address, void* callback)
 {
-  LuaScriptContext* lua_script_ptr = getLuaScriptContext(base_script_context_ptr);
   std::atomic<size_t> garbage_val = 0;
-  return RegisterForMapHelper(address, lua_script_ptr->map_of_memory_address_read_from_to_lua_callback_locations, callback, garbage_val);
+  return RegisterForVectorHelper(getLuaScriptContext(base_script_context_ptr)->memory_address_read_from_callback_list, start_address, end_address, callback, garbage_val);
 }
 
-void RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallback_impl(void* base_script_context_ptr, unsigned int address, void* callback)
+void RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallback_impl(void* base_script_context_ptr, unsigned int start_address, unsigned int end_address, void* callback)
 {
   LuaScriptContext* lua_script_ptr = getLuaScriptContext(base_script_context_ptr);
-  RegisterForMapHelper(address, lua_script_ptr->map_of_memory_address_read_from_to_lua_callback_locations, callback, lua_script_ptr->number_of_memory_address_read_callbacks_to_auto_deregister);
+  RegisterForVectorHelper(lua_script_ptr->memory_address_read_from_callback_list, start_address, end_address, callback, lua_script_ptr->number_of_memory_address_read_callbacks_to_auto_deregister);
 }
 
-int UnregisterOnMemoryAddressReadFromCallback_impl(void* base_script_context_ptr, unsigned int address, void* callback)
+int UnregisterOnMemoryAddressReadFromCallback_impl(void* base_script_context_ptr, void* callback)
 {
-  return UnregisterForMapHelper(address, getLuaScriptContext(base_script_context_ptr)->map_of_memory_address_read_from_to_lua_callback_locations, callback);
+  return UnregisterForVectorHelper(getLuaScriptContext(base_script_context_ptr)->memory_address_read_from_callback_list, callback);
 }
 
-void* RegisterOnMemoryAddressWrittenToCallback_impl(void* base_script_context_ptr, unsigned int address, void* callback)
+void* RegisterOnMemoryAddressWrittenToCallback_impl(void* base_script_context_ptr, unsigned int start_address, unsigned int end_address, void* callback)
 {
-  LuaScriptContext* lua_script_ptr = getLuaScriptContext(base_script_context_ptr);
   std::atomic<size_t> garbage_val = 0;
-  return RegisterForMapHelper(address, lua_script_ptr->map_of_memory_address_written_to_to_lua_callback_locations, callback, garbage_val);
+  return RegisterForVectorHelper(getLuaScriptContext(base_script_context_ptr)->memory_address_written_to_callback_list, start_address, end_address, callback, garbage_val);
 }
 
-void RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallback_impl(void* base_script_context_ptr, unsigned int address, void* callback)
+void RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallback_impl(void* base_script_context_ptr, unsigned int start_address, unsigned int end_address, void* callback)
 {
   LuaScriptContext* lua_script_ptr = getLuaScriptContext(base_script_context_ptr);
-  RegisterForMapHelper(address, lua_script_ptr->map_of_memory_address_written_to_to_lua_callback_locations, callback, lua_script_ptr->number_of_memory_address_write_callbacks_to_auto_deregister);
+  RegisterForVectorHelper(lua_script_ptr->memory_address_written_to_callback_list, start_address, end_addresss, callback, lua_script_ptr->number_of_memory_address_write_callbacks_to_auto_deregister);
 }
 
-int UnregisterOnMemoryAddressWrittenToCallback_impl(void* base_script_context_ptr, unsigned int address, void* callback)
+int UnregisterOnMemoryAddressWrittenToCallback_impl(void* base_script_context_ptr, void* callback)
 {
-  return UnregisterForMapHelper(address, getLuaScriptContext(base_script_context_ptr)->map_of_memory_address_written_to_to_lua_callback_locations, callback);
+  return UnregisterForVectorHelper(getLuaScriptContext(base_script_context_ptr)->memory_address_written_to_callback_list, callback);
 }
 
 void DLLClassMetadataCopyHook_impl(void* base_script_context_ptr, void* class_metadata_ptr)
