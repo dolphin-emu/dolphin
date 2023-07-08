@@ -586,8 +586,9 @@ int main()
     if (PAD_ButtonsDown(0) & PAD_BUTTON_B)
 #endif
     {
-      dsp_steps =
-          0;  // Let's not add the new steps after the original ones. That was just annoying.
+      // Reset step counter so that the ucode starts from the beginning instead of appending
+      // to the list of steps.
+      dsp_steps = 0;
 
       DCInvalidateRange(dspbufC, 0x2000);
       DCFlushRange(dspbufC, 0x2000);
