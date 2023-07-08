@@ -8,7 +8,8 @@ namespace Scripting::OnMemoryAddressWrittenToCallbackAPI
 const char* class_name = "OnMemoryAddressWrittenTo";
 
 u32 memory_address_written_to_for_current_callback = 0;
-s64 value_written_to_memory_address_for_current_callback = -1;
+u64 value_written_to_memory_address_for_current_callback = 0;
+u32 write_size = 0;
 bool in_memory_address_written_to_breakpoint = false;
 
 static std::array all_on_memory_address_written_to_callback_functions_metadata_list = {
@@ -34,9 +35,11 @@ static std::array all_on_memory_address_written_to_callback_functions_metadata_l
                      GetMemoryAddressWrittenToForCurrentCallback, ScriptingEnums::ArgTypeEnum::U32,
                      {}),
     FunctionMetadata("getValueWrittenToMemoryAddressForCurrentCallback", "1.0",
-                     "getValueWrittenToMemoryAddressForCurrentCallback",
+                     "getValueWrittenToMemoryAddressForCurrentCallback()",
                      GetValueWrittenToMemoryAddressForCurrentCallback,
-                     ScriptingEnums::ArgTypeEnum::S64, {})};
+                     ScriptingEnums::ArgTypeEnum::U64, {}),
+    FunctionMetadata("getWriteSize", "1.0", "getWriteSize()", GetWriteSize,
+                     ScriptingEnums::ArgTypeEnum::U32, {})};
 
 ClassMetadata GetClassMetadataForVersion(const std::string& api_version)
 {
@@ -62,54 +65,66 @@ FunctionMetadata GetFunctionMetadataForVersion(const std::string& api_version,
 
 ArgHolder* Register(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  u32 memory_breakpoint_address = (*args_list)[0]->u32_val;
-  void* callback = (*args_list)[1]->void_pointer_val;
+  u32 memory_breakpoint_start_address = (*args_list)[0]->u32_val;
+  u32 memory_breakpoint_end_address = (*args_list)[1]->u32_val;
+  void* callback = (*args_list)[2]->void_pointer_val;
 
-  if (memory_breakpoint_address == 0)
-    return CreateErrorStringArgHolder("Error: Memory address breakpoint cannot be 0!");
+  if (memory_breakpoint_start_address == 0)
+    return CreateErrorStringArgHolder("Error: Memory address write breakpoint cannot be 0!");
+  else if (memory_breakpoint_start_address > memory_breakpoint_end_address)
+    return CreateErrorStringArgHolder(
+        "Error: Memory address write breakpoint has an ending address less "
+        "than its starting address!");
 
-  current_script->memoryAddressBreakpointsHolder.AddWriteBreakpoint(memory_breakpoint_address);
+  current_script->memoryAddressBreakpointsHolder.AddWriteBreakpoint(memory_breakpoint_start_address,
+                                                                    memory_breakpoint_end_address);
 
   return CreateRegistrationReturnTypeArgHolder(
       current_script->dll_specific_api_definitions.RegisterOnMemoryAddressWrittenToCallback(
-          current_script, memory_breakpoint_address, callback));
+          current_script, memory_breakpoint_start_address, callback));
 }
 
 ArgHolder* RegisterWithAutoDeregistration(ScriptContext* current_script,
                                           std::vector<ArgHolder*>* args_list)
 {
-  u32 memory_breakpoint_address = (*args_list)[0]->u32_val;
-  void* callback = (*args_list)[1]->void_pointer_val;
+  u32 memory_breakpoint_start_address = (*args_list)[0]->u32_val;
+  u32 memory_breakpoint_end_address = (*args_list)[1]->u32_val;
+  void* callback = (*args_list)[2]->void_pointer_val;
 
-  if (memory_breakpoint_address == 0)
-    return CreateErrorStringArgHolder("Error: Memory address breakpoint cannot be 0!");
+  if (memory_breakpoint_start_address == 0)
+    return CreateErrorStringArgHolder("Error: Memory address write breakpoint cannot be 0!");
+  else if (memory_breakpoint_start_address > memory_breakpoint_end_address)
+    return CreateErrorStringArgHolder("Error: Memory address write breakpoint has an ending "
+                                      "address less than its starting address!");
 
-  current_script->memoryAddressBreakpointsHolder.AddWriteBreakpoint(memory_breakpoint_address);
+  current_script->memoryAddressBreakpointsHolder.AddWriteBreakpoint(memory_breakpoint_start_address,
+                                                                    memory_breakpoint_end_address);
 
   current_script->dll_specific_api_definitions
       .RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallback(
-          current_script, memory_breakpoint_address, callback);
+          current_script, memory_breakpoint_start_address, callback);
   return CreateRegistrationWithAutoDeregistrationReturnTypeArgHolder();
 }
 
 ArgHolder* Unregister(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
 {
-  u32 memory_breakpoint_address = (*args_list)[0]->u32_val;
+  u32 memory_breakpoint_start_address = (*args_list)[0]->u32_val;
   void* callback = (*args_list)[1]->void_pointer_val;
 
   if (!current_script->memoryAddressBreakpointsHolder.ContainsWriteBreakpoint(
-          memory_breakpoint_address))
+          memory_breakpoint_start_address))
   {
     return CreateErrorStringArgHolder(
         "Error: Address passed into OnMemoryAddressWrittenTo:Unregister() did not represent a "
         "write breakpoint that was currently enabled!");
   }
 
-  current_script->memoryAddressBreakpointsHolder.RemoveWriteBreakpoint(memory_breakpoint_address);
+  current_script->memoryAddressBreakpointsHolder.RemoveWriteBreakpoint(
+      memory_breakpoint_start_address);
 
   bool return_value =
       current_script->dll_specific_api_definitions.UnregisterOnMemoryAddressWrittenToCallback(
-          current_script, memory_breakpoint_address, callback);
+          current_script, memory_breakpoint_start_address, callback);
   if (!return_value)
     return CreateErrorStringArgHolder(
         "2nd argument passed into OnMemoryAddressWrittenTo:unregister() was not a reference to a "
@@ -147,6 +162,17 @@ ArgHolder* GetValueWrittenToMemoryAddressForCurrentCallback(ScriptContext* curre
         "User attempted to call "
         "OnMemoryAddressWrittenTo:getValueWrittenToMemoryAddressForCurrentCallback() outside of an "
         "OnMemoryAddressWrittenTo callback function!");
-  return CreateS64ArgHolder(value_written_to_memory_address_for_current_callback);
+  return CreateU64ArgHolder(value_written_to_memory_address_for_current_callback);
 }
+
+ArgHolder* GetWriteSize(ScriptContext* current_script, std::vector<ArgHolder*>* args_list)
+{
+  if (current_script->current_script_call_location !=
+      ScriptingEnums::ScriptCallLocations::FromMemoryAddressWrittenToCallback)
+    return CreateErrorStringArgHolder("User attempted to call "
+                                      "OnMemoryAddressWrittenTo:getWriteSize() outside of an "
+                                      "OnMemoryAddressWrittenTo callback function!");
+  return CreateU32ArgHolder(write_size);
+}
+
 }  // namespace Scripting::OnMemoryAddressWrittenToCallbackAPI
