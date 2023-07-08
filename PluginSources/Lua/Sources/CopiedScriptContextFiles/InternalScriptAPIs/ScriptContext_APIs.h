@@ -42,11 +42,11 @@ typedef struct Dolphin_Defined_ScriptContext_APIs
   // Returns the location that the ScriptContext* is executing from.
   int (*get_script_call_location)(void*);
 
-  // Gets the return code of the last script execution (which is really of type ScriptingEnums::ScriptReturnCodes).
+  // Gets the return code of the last script execution (which is really of type ScriptReturnCodes).
   int (*get_script_return_code)(void*);
 
   // sets the return code for the last script execution (should only be called by the DLL).
-  // 2nd parameter represents a ScriptingEnums::ScriptReturnCodes enum.
+  // 2nd parameter represents a ScriptReturnCodes enum.
   void (*set_script_return_code)(void*, int);
 
   // Returns the error message from the last script execution (only valid when script_return_code is
@@ -136,12 +136,14 @@ typedef struct DLL_Defined_ScriptContext_APIs
   // address for the ScriptContext*
   void (*RunOnInstructionReachedCallbacks)(void*, unsigned int);
 
-  // Runs all OnMemoryAddressReadFrom callbacks currently registered for the specified memory
-  // address for the ScriptContext*
+  // Runs all OnMemoryAddressReadFrom callbacks currently registered for the ScriptContext* which
+  // have a start address <= to the 2nd parameter to this function and an end address >= the 2nd
+  // parameter to this function (2nd param needs to be inbetween start and end range for callback).
   void (*RunOnMemoryAddressReadFromCallbacks)(void*, unsigned int);
 
-  // Runs all OnMemoryAddressWrittenTo callbacks currently registered for the specified memory
-  // address for the ScriptContext*
+  // Runs all OnMemoryAddressWrittenTo callbacks currently registered for the ScriptContext* which
+  // have a start address <= to the 2nd parameter to this function and an end address >= the 2nd
+  // parameter to this function (2nd param needs to be inbetween start and end range for callback).
   void (*RunOnMemoryAddressWrittenToCallbacks)(void*, unsigned int);
 
   // Registers a new OnFrameStart callback function (the 2nd parameter passed into the function),
@@ -194,43 +196,43 @@ typedef struct DLL_Defined_ScriptContext_APIs
   // running.
   void (*RegisterOnInstructionReachedWithAutoDeregistrationCallback)(void*, unsigned int, void*);
 
-  // Unregisters/removes an OnInstructionReached callback (the 3rd parameter passed into the
-  // function should be the return result of RegisterOnInstructionReachedCallback()) for the
-  // specified instruction address (the 2nd parameter).
-  int (*UnregisterOnInstructionReachedCallback)(void*, unsigned int, void*);
+  // Unregisters/removes an OnInstructionReached callback (the 2nd parameter passed into the
+  // function should be the return result of RegisterOnInstructionReachedCallback()).
+  int (*UnregisterOnInstructionReachedCallback)(void*, void*);
 
-  // Registers a new OnMemoryAddressReadFrom callback function (the 3rd parameter passed into the
-  // function) to run when the memory address specified by the 2nd parameter to the function is read
-  // from. The function returns a handle that can be used to unregister the callback later on.
-  void* (*RegisterOnMemoryAddressReadFromCallback)(void*, unsigned int, void*);
+  // Registers a new OnMemoryAddressReadFrom callback function (the 4th parameter passed into the
+  // function) to run when a memory address which is >= the 2nd parameter to the function and <=
+  // the 3rd parameter to the function is read from. The function returns a handle that can be used
+  // to unregister the callback later on.
+  void* (*RegisterOnMemoryAddressReadFromCallback)(void*, unsigned int, unsigned int, void*);
 
-  // Registers a new OnMemoryAddressReadFrom callback function (the 3rd parameter passed into the
-  // function) to run when the memory address specified by the 2nd parameter to the function is read
-  // from. This function should auto-deregister when only auto-deregistered callbacks are still
-  // running.
-  void (*RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallback)(void*, unsigned int, void*);
+  // Registers a new OnMemoryAddressReadFrom callback function (the 4th parameter passed into the
+  // function) to run when a memory address which is >= the 2nd parameter to the function and <= the
+  // 3rd parameter to the function is read from. This function should auto-deregister when only
+  // auto-deregistered callbacks are still running.
+  void (*RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallback)(void*, unsigned int,
+                                                                        unsigned int, void*);
 
-  // Unregisters/removes an OnMemoryAddressReadFrom callback (the 3rd parameter passed into the
-  // function should be the return result of RegisterOnMemoryAddressReadFromCallback()) for the
-  // specified memory address (the 2nd parameter).
-  int (*UnregisterOnMemoryAddressReadFromCallback)(void*, unsigned int, void*);
+  // Unregisters/removes an OnMemoryAddressReadFrom callback (the 2nd parameter passed into the
+  // function should be the return result of RegisterOnMemoryAddressReadFromCallback()).
+  int (*UnregisterOnMemoryAddressReadFromCallback)(void*, void*);
 
-  // Registers a new OnMemoryAddressWrittenTo callback function (the 3rd parameter passed into the
-  // function) to run when the memory address specified by the 2nd parameter to the function is
-  // written to. The function returns a handle that can be used to unregister the callback later on.
-  void* (*RegisterOnMemoryAddressWrittenToCallback)(void*, unsigned int, void*);
+  // Registers a new OnMemoryAddressWrittenTo callback function (the 4th parameter passed into the
+  // function) to run when a memory address which is >= the 2nd parameter to the function and <= the
+  // 3rd parameter to the function is written to. The function returns a handle that can be used to
+  // unregister the callback later on.
+  void* (*RegisterOnMemoryAddressWrittenToCallback)(void*, unsigned int, unsigned int, void*);
 
-  // Registers a new OnMemoryAddressWrittenTo callback function (the 3rd parameter passed into the
-  // function) to run when the memory address specified by the 2nd parameter to the function is
-  // written to. This function should auto-deregister when only auto-deregistered callbacks are
-  // still running.
+  // Registers a new OnMemoryAddressWrittenTo callback function (the 4th parameter passed into the
+  // function) to run when a memory address which is >= the 2nd parameter to the function and <= the
+  // 3rd parameter to the function is written to. This function should auto-deregister when only
+  // auto-deregistered callbacks are still running.
   void (*RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallback)(void*, unsigned int,
-                                                                         void*);
+                                                                         unsigned int, void*);
 
-  // Unregisters/removes an OnMemoryAddressWrittenTo callback (the 3rd parameter passed into the
-  // function should be the return result of RegisterOnMemoryAddressWrittenToCallback()) for the
-  // specified memory address (the 2nd parameter).
-  int (*UnregisterOnMemoryAddressWrittenToCallback)(void*, unsigned int, void*);
+  // Unregisters/removes an OnMemoryAddressWrittenTo callback (the 2nd parameter passed into the
+  // function should be the return result of RegisterOnMemoryAddressWrittenToCallback()).
+  int (*UnregisterOnMemoryAddressWrittenToCallback)(void*, void*);
 
   // Registers a callback function (the 3rd parameter passed into the function) to run when the
   // button with the ID specified by the 2nd parameter is clicked.

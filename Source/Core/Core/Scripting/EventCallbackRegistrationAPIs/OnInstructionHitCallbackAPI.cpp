@@ -90,7 +90,7 @@ ArgHolder* Unregister(ScriptContext* current_script, std::vector<ArgHolder*>* ar
 
   bool return_value =
       current_script->dll_specific_api_definitions.UnregisterOnInstructionReachedCallback(
-          current_script, address_of_breakpoint, callback);
+          current_script, callback);
   if (!return_value)
     return CreateErrorStringArgHolder(
         "Argument passed into OnInstructionHit:unregister() was not a reference to a function "
