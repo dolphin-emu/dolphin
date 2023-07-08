@@ -26,29 +26,22 @@ public:
 private:
   struct MemCheckAndCounts
   {
-    TMemCheck memory_breakpoint;
+    unsigned long long start_address;
+    unsigned long long end_address;
     unsigned long long read_breakpoint_count;
     unsigned long long write_breakpoint_count;
 
-    //TODO: Fix this code.
     MemCheckAndCounts()
     {
-      memory_breakpoint = TMemCheck();
+      start_address = 0;
+      end_address = 0;
       read_breakpoint_count = 0;
       write_breakpoint_count = 0;
-    }
-    MemCheckAndCounts(const MemCheckAndCounts& o)
-    {
-      //memory_breakpoint = std::move(o.memory_breakpoint);
-      read_breakpoint_count = o.read_breakpoint_count;
-      write_breakpoint_count = o.write_breakpoint_count;
-    }
-    MemCheckAndCounts& operator=(const MemCheckAndCounts&) { return *this;
     }
   };
 
   int GetIndexOfStartAddress(unsigned int) const;
-
+  void PopulateBreakpointFromValueAtIndex(TMemCheck& check, int index);
   //  We keep track of how many times we've added each read+write breakpoint
   // for a given start address. Note that when a breakpoint is added with
   // the same start address as another breakpoint the breakpoint is updated
