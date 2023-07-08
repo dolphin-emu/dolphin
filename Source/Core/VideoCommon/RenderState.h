@@ -80,6 +80,12 @@ union FramebufferState
   BitField<16, 8, u32> samples;
   BitField<24, 1, u32> per_sample_shading;
 
+  // Note: all additional color attachments
+  // have the same format as `color_texture_format`
+  // TODO: in the future improve this so every attachment
+  // can specify its own format
+  BitField<25, 3, u32> additional_color_attachment_count;
+
   u32 hex = 0;
 };
 

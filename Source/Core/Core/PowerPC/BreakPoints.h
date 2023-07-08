@@ -11,7 +11,7 @@
 #include "Common/CommonTypes.h"
 #include "Core/PowerPC/Expression.h"
 
-namespace Common
+namespace Core
 {
 class DebugInterface;
 }
@@ -49,7 +49,7 @@ struct TMemCheck
   std::optional<Expression> condition;
 
   // returns whether to break
-  bool Action(Core::System& system, Common::DebugInterface* debug_interface, u64 value, u32 addr,
+  bool Action(Core::System& system, Core::DebugInterface* debug_interface, u64 value, u32 addr,
               bool write, size_t size, u32 pc);
 };
 

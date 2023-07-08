@@ -139,6 +139,15 @@ void VideoConfig::Refresh()
   bArbitraryMipmapDetection = Config::Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION);
   fArbitraryMipmapDetectionThreshold =
       Config::Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_THRESHOLD);
+  bHDR = Config::Get(Config::GFX_ENHANCE_HDR_OUTPUT);
+
+  color_correction.bCorrectColorSpace = Config::Get(Config::GFX_CC_CORRECT_COLOR_SPACE);
+  color_correction.game_color_space = Config::Get(Config::GFX_CC_GAME_COLOR_SPACE);
+  color_correction.bCorrectGamma = Config::Get(Config::GFX_CC_CORRECT_GAMMA);
+  color_correction.fGameGamma = Config::Get(Config::GFX_CC_GAME_GAMMA);
+  color_correction.bSDRDisplayGammaSRGB = Config::Get(Config::GFX_CC_SDR_DISPLAY_GAMMA_SRGB);
+  color_correction.fSDRDisplayCustomGamma = Config::Get(Config::GFX_CC_SDR_DISPLAY_CUSTOM_GAMMA);
+  color_correction.fHDRPaperWhiteNits = Config::Get(Config::GFX_CC_HDR_PAPER_WHITE_NITS);
 
   stereo_mode = Config::Get(Config::GFX_STEREO_MODE);
   iStereoDepth = Config::Get(Config::GFX_STEREO_DEPTH);
@@ -172,6 +181,8 @@ void VideoConfig::Refresh()
   bPerfQueriesEnable = Config::Get(Config::GFX_PERF_QUERIES_ENABLE);
 
   bGraphicMods = Config::Get(Config::GFX_MODS_ENABLE);
+
+  customDriverLibraryName = Config::Get(Config::GFX_DRIVER_LIB_NAME);
 }
 
 void VideoConfig::VerifyValidity()
@@ -261,6 +272,7 @@ void CheckForConfigChanges()
   const AspectMode old_suggested_aspect_mode = g_ActiveConfig.suggested_aspect_mode;
   const bool old_widescreen_hack = g_ActiveConfig.bWidescreenHack;
   const auto old_post_processing_shader = g_ActiveConfig.sPostProcessingShader;
+  const auto old_hdr = g_ActiveConfig.bHDR;
 
   UpdateActiveConfig();
   FreeLook::UpdateActiveConfig();
@@ -312,6 +324,8 @@ void CheckForConfigChanges()
     changed_bits |= CONFIG_CHANGE_BIT_ASPECT_RATIO;
   if (old_post_processing_shader != g_ActiveConfig.sPostProcessingShader)
     changed_bits |= CONFIG_CHANGE_BIT_POST_PROCESSING_SHADER;
+  if (old_hdr != g_ActiveConfig.bHDR)
+    changed_bits |= CONFIG_CHANGE_BIT_HDR;
 
   // No changes?
   if (changed_bits == 0)
@@ -321,7 +335,7 @@ void CheckForConfigChanges()
 
   // Framebuffer changed?
   if (changed_bits & (CONFIG_CHANGE_BIT_MULTISAMPLES | CONFIG_CHANGE_BIT_STEREO_MODE |
-                      CONFIG_CHANGE_BIT_TARGET_SIZE))
+                      CONFIG_CHANGE_BIT_TARGET_SIZE | CONFIG_CHANGE_BIT_HDR))
   {
     g_framebuffer_manager->RecreateEFBFramebuffer();
   }

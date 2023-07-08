@@ -18,8 +18,8 @@ namespace ControllerEmu
 Slider::Slider(const std::string& name_, const std::string& ui_name_)
     : ControlGroup(name_, ui_name_, GroupType::Slider)
 {
-  AddInput(Translate, _trans("Left"));
-  AddInput(Translate, _trans("Right"));
+  AddInput(Translatability::Translate, _trans("Left"));
+  AddInput(Translatability::Translate, _trans("Right"));
 
   AddDeadzoneSetting(&m_deadzone_setting, 50);
 }

@@ -717,7 +717,7 @@ u32 VideoInterfaceManager::GetTargetRefreshRateDenominator() const
 
 u32 VideoInterfaceManager::GetTicksPerSample() const
 {
-  return 2 * SystemTimers::GetTicksPerSecond() / CLOCK_FREQUENCIES[m_clock];
+  return 2 * SystemTimers::GetTicksPerSecond() / CLOCK_FREQUENCIES[m_clock & 1];
 }
 
 u32 VideoInterfaceManager::GetTicksPerHalfLine() const

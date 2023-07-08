@@ -7,10 +7,12 @@
 #include <string>
 #include <vector>
 
+#include <QGuiApplication>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QMenu>
 #include <QPushButton>
+#include <QStyleHints>
 #include <QTableWidget>
 #include <QVBoxLayout>
 
@@ -29,6 +31,10 @@
 #include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings.h"
+
+static const QString RECORD_BUTTON_STYLESHEET =
+    QStringLiteral("QPushButton:checked { background-color: rgb(150, 0, 0); border-style: solid; "
+                   "border-width: 3px; border-color: rgb(150,0,0); color: rgb(255, 255, 255);}");
 
 CodeDiffDialog::CodeDiffDialog(CodeWidget* parent) : QDialog(parent), m_code_widget(parent)
 {
@@ -54,9 +60,7 @@ void CodeDiffDialog::CreateWidgets()
   m_include_btn = new QPushButton(tr("Code has been executed"));
   m_record_btn = new QPushButton(tr("Start Recording"));
   m_record_btn->setCheckable(true);
-  m_record_btn->setStyleSheet(
-      QStringLiteral("QPushButton:checked { background-color: rgb(150, 0, 0); border-style: solid; "
-                     "border-width: 3px; border-color: rgb(150,0,0); color: rgb(255, 255, 255);}"));
+  m_record_btn->setStyleSheet(RECORD_BUTTON_STYLESHEET);
 
   m_exclude_btn->setEnabled(false);
   m_include_btn->setEnabled(false);
@@ -105,6 +109,13 @@ void CodeDiffDialog::CreateWidgets()
 
 void CodeDiffDialog::ConnectWidgets()
 {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+  connect(QGuiApplication::styleHints(), &QStyleHints::colorSchemeChanged, this,
+          [this](Qt::ColorScheme colorScheme) {
+            m_record_btn->setStyleSheet(RECORD_BUTTON_STYLESHEET);
+          });
+#endif
+
   connect(m_record_btn, &QPushButton::toggled, this, &CodeDiffDialog::OnRecord);
   connect(m_include_btn, &QPushButton::pressed, [this]() { Update(true); });
   connect(m_exclude_btn, &QPushButton::pressed, [this]() { Update(false); });
@@ -268,7 +279,7 @@ void CodeDiffDialog::OnExclude()
   }
 }
 
-std::vector<Diff> CodeDiffDialog::CalculateSymbolsFromProfile()
+std::vector<Diff> CodeDiffDialog::CalculateSymbolsFromProfile() const
 {
   Profiler::ProfileStats prof_stats;
   auto& blockstats = prof_stats.block_stats;
@@ -277,23 +288,23 @@ std::vector<Diff> CodeDiffDialog::CalculateSymbolsFromProfile()
   current.reserve(20000);
 
   // Convert blockstats to smaller struct Diff. Exclude repeat functions via symbols.
-  for (auto& iter : blockstats)
+  for (const auto& iter : blockstats)
   {
-    Diff tmp_diff;
     std::string symbol = g_symbolDB.GetDescription(iter.addr);
     if (!std::any_of(current.begin(), current.end(),
-                     [&symbol](Diff& v) { return v.symbol == symbol; }))
+                     [&symbol](const Diff& v) { return v.symbol == symbol; }))
     {
-      tmp_diff.symbol = symbol;
-      tmp_diff.addr = iter.addr;
-      tmp_diff.hits = iter.run_count;
-      tmp_diff.total_hits = iter.run_count;
-      current.push_back(tmp_diff);
+      current.push_back(Diff{
+          .addr = iter.addr,
+          .symbol = std::move(symbol),
+          .hits = static_cast<u32>(iter.run_count),
+          .total_hits = static_cast<u32>(iter.run_count),
+      });
     }
   }
 
-  sort(current.begin(), current.end(),
-       [](const Diff& v1, const Diff& v2) { return (v1.symbol < v2.symbol); });
+  std::sort(current.begin(), current.end(),
+            [](const Diff& v1, const Diff& v2) { return (v1.symbol < v2.symbol); });
 
   return current;
 }
@@ -350,7 +361,7 @@ void CodeDiffDialog::Update(bool include)
     OnExclude();
   }
 
-  const auto create_item = [](const QString string = {}, const u32 address = 0x00000000) {
+  const auto create_item = [](const QString& string = {}, const u32 address = 0x00000000) {
     QTableWidgetItem* item = new QTableWidgetItem(string);
     item->setData(Qt::UserRole, address);
     item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);

@@ -356,7 +356,7 @@ void InitializeWiiFileSystemContents(
       File::CreateDirs(save_redirect->m_target_path);
       if (save_redirect->m_clone)
       {
-        File::Copy(Common::GetTitleDataPath(title_id, Common::FROM_SESSION_ROOT),
+        File::Copy(Common::GetTitleDataPath(title_id, Common::FromWhichRoot::Session),
                    save_redirect->m_target_path);
       }
     }
@@ -416,7 +416,7 @@ void CleanUpWiiFileSystemContents(const BootSessionData& boot_session_data)
   // cleanup process.
   const bool copy_all = !netplay_settings || netplay_settings->savedata_sync_all_wii;
   for (const u64 title_id :
-       (copy_all ? ios->GetES()->GetInstalledTitles() : boot_session_data.GetWiiSyncTitles()))
+       (copy_all ? ios->GetESCore().GetInstalledTitles() : boot_session_data.GetWiiSyncTitles()))
   {
     INFO_LOG_FMT(CORE, "Wii FS Cleanup: Copying {0:016x}.", title_id);
 

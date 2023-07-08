@@ -8,6 +8,8 @@
 #include <cstdlib>
 #include <string>
 
+#include <fmt/format.h>
+
 #include <windows.h>
 
 #include "Common/Assert.h"
@@ -97,11 +99,22 @@ MemArena::~MemArena()
   ReleaseSHMSegment();
 }
 
-void MemArena::GrabSHMSegment(size_t size)
+static DWORD GetHighDWORD(u64 value)
 {
-  const std::string name = "dolphin-emu." + std::to_string(GetCurrentProcessId());
-  m_memory_handle = CreateFileMapping(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE, 0,
-                                      static_cast<DWORD>(size), UTF8ToTStr(name).c_str());
+  return static_cast<DWORD>(value >> 32);
+}
+
+static DWORD GetLowDWORD(u64 value)
+{
+  return static_cast<DWORD>(value);
+}
+
+void MemArena::GrabSHMSegment(size_t size, std::string_view base_name)
+{
+  const std::string name = fmt::format("{}.{}", base_name, GetCurrentProcessId());
+  m_memory_handle =
+      CreateFileMapping(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE, GetHighDWORD(size),
+                        GetLowDWORD(size), UTF8ToTStr(name).c_str());
 }
 
 void MemArena::ReleaseSHMSegment()
@@ -114,8 +127,9 @@ void MemArena::ReleaseSHMSegment()
 
 void* MemArena::CreateView(s64 offset, size_t size)
 {
-  return MapViewOfFileEx(m_memory_handle, FILE_MAP_ALL_ACCESS, 0, (DWORD)((u64)offset), size,
-                         nullptr);
+  const u64 off = static_cast<u64>(offset);
+  return MapViewOfFileEx(m_memory_handle, FILE_MAP_ALL_ACCESS, GetHighDWORD(off), GetLowDWORD(off),
+                         size, nullptr);
 }
 
 void MemArena::ReleaseView(void* view, size_t size)

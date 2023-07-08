@@ -8,6 +8,20 @@ add_library(videocommon
   AbstractStagingTexture.h
   AbstractTexture.cpp
   AbstractTexture.h
+  Assets/CustomAsset.cpp
+  Assets/CustomAsset.h
+  Assets/CustomAssetLibrary.cpp
+  Assets/CustomAssetLibrary.h
+  Assets/CustomAssetLoader.cpp
+  Assets/CustomAssetLoader.h
+  Assets/CustomTextureData.cpp
+  Assets/CustomTextureData.h
+  Assets/DirectFilesystemAssetLibrary.cpp
+  Assets/DirectFilesystemAssetLibrary.h
+  Assets/ShaderAsset.cpp
+  Assets/ShaderAsset.h
+  Assets/TextureAsset.cpp
+  Assets/TextureAsset.h
   AsyncRequests.cpp
   AsyncRequests.h
   AsyncShaderCompiler.cpp
@@ -65,8 +79,6 @@ add_library(videocommon
   GraphicsModSystem/Runtime/Actions/ScaleAction.h
   GraphicsModSystem/Runtime/Actions/SkipAction.cpp
   GraphicsModSystem/Runtime/Actions/SkipAction.h
-  GraphicsModSystem/Runtime/CustomTextureData.cpp
-  GraphicsModSystem/Runtime/CustomTextureData.h
   GraphicsModSystem/Runtime/FBInfo.cpp
   GraphicsModSystem/Runtime/FBInfo.h
   GraphicsModSystem/Runtime/GraphicsModAction.h
@@ -185,7 +197,7 @@ PUBLIC
   core
 PRIVATE
   fmt::fmt
-  ${spng_target}
+  spng::spng
   xxhash
   imgui
   implot

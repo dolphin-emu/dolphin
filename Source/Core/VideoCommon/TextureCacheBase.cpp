@@ -36,9 +36,9 @@
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/AbstractStagingTexture.h"
+#include "VideoCommon/Assets/CustomTextureData.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FramebufferManager.h"
-#include "VideoCommon/GraphicsModSystem/Runtime/CustomTextureData.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/FBInfo.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionData.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
@@ -143,17 +143,6 @@ void TextureCacheBase::Invalidate()
   textures_by_address.clear();
 
   texture_pool.clear();
-}
-
-void TextureCacheBase::ForceReload()
-{
-  Invalidate();
-
-  // Clear all current hires textures, they are invalid
-  HiresTexture::Clear();
-
-  // Load fresh
-  HiresTexture::Update();
 }
 
 void TextureCacheBase::OnConfigChanged(const VideoConfig& config)
@@ -270,6 +259,20 @@ void TextureCacheBase::SetBackupConfig(const VideoConfig& config)
   backup_config.graphics_mods = config.bGraphicMods;
   backup_config.graphics_mod_change_count =
       config.graphics_mod_config ? config.graphics_mod_config->GetChangeCount() : 0;
+}
+
+bool TextureCacheBase::DidLinkedAssetsChange(const TCacheEntry& entry)
+{
+  for (const auto& cached_asset : entry.linked_game_texture_assets)
+  {
+    if (cached_asset.m_asset)
+    {
+      if (cached_asset.m_asset->GetLastLoadedTime() > cached_asset.m_cached_write_time)
+        return true;
+    }
+  }
+
+  return false;
 }
 
 RcTcacheEntry TextureCacheBase::ApplyPaletteToEntry(RcTcacheEntry& entry, const u8* palette,
@@ -772,17 +775,10 @@ void TextureCacheBase::DoLoadState(PointerWrap& p)
 
 void TextureCacheBase::OnFrameEnd()
 {
-  if (m_force_reload_textures.TestAndClear())
-  {
-    ForceReload();
-  }
-  else
-  {
-    // Flush any outstanding EFB copies to RAM, in case the game is running at an uncapped frame
-    // rate and not waiting for vblank. Otherwise, we'd end up with a huge list of pending
-    // copies.
-    FlushEFBCopies();
-  }
+  // Flush any outstanding EFB copies to RAM, in case the game is running at an uncapped frame
+  // rate and not waiting for vblank. Otherwise, we'd end up with a huge list of pending
+  // copies.
+  FlushEFBCopies();
 
   Cleanup(g_presenter->FrameCount());
 }
@@ -1023,7 +1019,7 @@ void TextureCacheBase::DumpTexture(RcTcacheEntry& entry, std::string basename, u
   if (File::Exists(filename))
     return;
 
-  entry->texture->Save(filename, level);
+  entry->texture->Save(filename, level, Config::Get(Config::GFX_TEXTURE_PNG_COMPRESSION_LEVEL));
 }
 
 // Helper for checking if a BPMemory TexMode0 register is set to Point
@@ -1272,8 +1268,25 @@ private:
 
 TCacheEntry* TextureCacheBase::Load(const TextureInfo& texture_info)
 {
+  if (auto entry = LoadImpl(texture_info, false))
+  {
+    if (!DidLinkedAssetsChange(*entry))
+    {
+      return entry;
+    }
+
+    InvalidateTexture(GetTexCacheIter(entry));
+    return LoadImpl(texture_info, true);
+  }
+
+  return nullptr;
+}
+
+TCacheEntry* TextureCacheBase::LoadImpl(const TextureInfo& texture_info, bool force_reload)
+{
   // if this stage was not invalidated by changes to texture registers, keep the current texture
-  if (TMEM::IsValid(texture_info.GetStage()) && bound_textures[texture_info.GetStage()])
+  if (!force_reload && TMEM::IsValid(texture_info.GetStage()) &&
+      bound_textures[texture_info.GetStage()])
   {
     TCacheEntry* entry = bound_textures[texture_info.GetStage()].get();
     // If the TMEM configuration is such that this texture is more or less guaranteed to still
@@ -1309,7 +1322,7 @@ TCacheEntry* TextureCacheBase::Load(const TextureInfo& texture_info)
     entry->texture_info_name = texture_info.CalculateTextureName().GetFullName();
 
     GraphicsModActionData::TextureLoad texture_load{entry->texture_info_name};
-    for (const auto action :
+    for (const auto& action :
          g_graphics_mod_manager->GetTextureLoadActions(entry->texture_info_name))
     {
       action->OnTextureLoad(&texture_load);
@@ -1582,7 +1595,8 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
     InvalidateTexture(oldest_entry);
   }
 
-  VideoCommon::CustomTextureData* data = nullptr;
+  std::vector<VideoCommon::CachedAsset<VideoCommon::GameTextureAsset>> cached_game_assets;
+  std::vector<std::shared_ptr<VideoCommon::CustomTextureData>> data_for_assets;
   bool has_arbitrary_mipmaps = false;
   std::shared_ptr<HiresTexture> hires_texture;
   if (g_ActiveConfig.bHiresTextures)
@@ -1590,19 +1604,37 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
     hires_texture = HiresTexture::Search(texture_info);
     if (hires_texture)
     {
-      data = &hires_texture->GetData();
+      auto asset = hires_texture->GetAsset();
+      const auto loaded_time = asset->GetLastLoadedTime();
+      cached_game_assets.push_back(
+          VideoCommon::CachedAsset<VideoCommon::GameTextureAsset>{std::move(asset), loaded_time});
       has_arbitrary_mipmaps = hires_texture->HasArbitraryMipmaps();
     }
   }
 
-  return CreateTextureEntry(
+  for (auto& cached_asset : cached_game_assets)
+  {
+    auto data = cached_asset.m_asset->GetData();
+    if (data)
+    {
+      if (cached_asset.m_asset->Validate(texture_info.GetRawWidth(), texture_info.GetRawHeight()))
+      {
+        data_for_assets.push_back(std::move(data));
+      }
+    }
+  }
+
+  auto entry = CreateTextureEntry(
       TextureCreationInfo{base_hash, full_hash, bytes_per_block, palette_size}, texture_info,
-      textureCacheSafetyColorSampleSize, data, has_arbitrary_mipmaps);
+      textureCacheSafetyColorSampleSize, std::move(data_for_assets), has_arbitrary_mipmaps);
+  entry->linked_game_texture_assets = std::move(cached_game_assets);
+  return entry;
 }
 
 RcTcacheEntry TextureCacheBase::CreateTextureEntry(
     const TextureCreationInfo& creation_info, const TextureInfo& texture_info,
-    const int safety_color_sample_size, VideoCommon::CustomTextureData* custom_texture_data,
+    const int safety_color_sample_size,
+    std::vector<std::shared_ptr<VideoCommon::CustomTextureData>> assets_data,
     const bool custom_arbitrary_mipmaps)
 {
 #ifdef __APPLE__
@@ -1612,20 +1644,33 @@ RcTcacheEntry TextureCacheBase::CreateTextureEntry(
 #endif
 
   RcTcacheEntry entry;
-  if (custom_texture_data && custom_texture_data->m_levels.size() >= 1)
+  if (!assets_data.empty())
   {
-    const u32 texLevels = no_mips ? 1 : (u32)custom_texture_data->m_levels.size();
-    const auto& first_level = custom_texture_data->m_levels[0];
-    const TextureConfig config(first_level.width, first_level.height, texLevels, 1, 1,
-                               first_level.format, 0);
+    const auto calculate_max_levels = [&]() {
+      const auto max_element = std::max_element(
+          assets_data.begin(), assets_data.end(), [](const auto& lhs, const auto& rhs) {
+            return lhs->m_levels.size() < rhs->m_levels.size();
+          });
+      return max_element->get()->m_levels.size();
+    };
+    const u32 texLevels = no_mips ? 1 : (u32)calculate_max_levels();
+    const auto& first_level = assets_data[0]->m_levels[0];
+    const TextureConfig config(first_level.width, first_level.height, texLevels,
+                               static_cast<u32>(assets_data.size()), 1, first_level.format, 0);
     entry = AllocateCacheEntry(config);
     if (!entry) [[unlikely]]
       return entry;
-    for (u32 level_index = 0; level_index != texLevels; ++level_index)
+    for (u32 data_index = 0; data_index < static_cast<u32>(assets_data.size()); data_index++)
     {
-      const auto& level = custom_texture_data->m_levels[level_index];
-      entry->texture->Load(level_index, level.width, level.height, level.row_length,
-                           level.data.data(), level.data.size());
+      const auto asset = assets_data[data_index];
+      for (u32 level_index = 0;
+           level_index < std::min(texLevels, static_cast<u32>(asset->m_levels.size()));
+           ++level_index)
+      {
+        const auto& level = asset->m_levels[level_index];
+        entry->texture->Load(level_index, level.width, level.height, level.row_length,
+                             level.data.data(), level.data.size(), data_index);
+      }
     }
 
     entry->has_arbitrary_mips = custom_arbitrary_mipmaps;
@@ -1741,7 +1786,7 @@ RcTcacheEntry TextureCacheBase::CreateTextureEntry(
 
     if (g_ActiveConfig.bDumpTextures)
     {
-      const std::string basename = HiresTexture::GenBaseName(texture_info, true);
+      const std::string basename = texture_info.CalculateTextureName().GetFullName();
       for (u32 level = 0; level < texLevels; ++level)
       {
         DumpTexture(entry, basename, level, entry->has_arbitrary_mips);
@@ -2229,7 +2274,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     info.m_texture_format = baseFormat;
     if (is_xfb_copy)
     {
-      for (const auto action : g_graphics_mod_manager->GetXFBActions(info))
+      for (const auto& action : g_graphics_mod_manager->GetXFBActions(info))
       {
         action->OnXFB();
       }
@@ -2238,7 +2283,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     {
       bool skip = false;
       GraphicsModActionData::EFB efb{tex_w, tex_h, &skip, &scaled_tex_w, &scaled_tex_h};
-      for (const auto action : g_graphics_mod_manager->GetEFBActions(info))
+      for (const auto& action : g_graphics_mod_manager->GetEFBActions(info))
       {
         action->OnEFB(&efb);
       }
@@ -2988,7 +3033,7 @@ bool TextureCacheBase::DecodeTextureOnGPU(RcTcacheEntry& entry, u32 dst_level, c
                 aligned_height, src_offset, row_stride / bytes_per_buffer_elem,
                 palette_offset};
   g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
-  g_gfx->SetComputeImageTexture(m_decoding_texture.get(), false, true);
+  g_gfx->SetComputeImageTexture(0, m_decoding_texture.get(), false, true);
 
   auto dispatch_groups =
       TextureConversionShaderTiled::GetDispatchCount(info, aligned_width, aligned_height);

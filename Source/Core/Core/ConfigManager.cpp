@@ -52,6 +52,8 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 #include "Core/TitleDatabase.h"
+#include "Core/WC24PatchEngine.h"
+
 #include "VideoCommon/HiresTextures.h"
 
 #include "DiscIO/Enums.h"
@@ -206,6 +208,7 @@ void SConfig::OnNewTitleLoad(const Core::CPUThreadGuard& guard)
   HLE::Reload(system);
   PatchEngine::Reload();
   HiresTexture::Update();
+  WC24PatchEngine::Reload();
 }
 
 void SConfig::LoadDefaults()
@@ -286,7 +289,7 @@ struct SetGameMetadata
   bool operator()(const BootParameters::NANDTitle& nand_title) const
   {
     IOS::HLE::Kernel ios;
-    const IOS::ES::TMDReader tmd = ios.GetES()->FindInstalledTMD(nand_title.id);
+    const IOS::ES::TMDReader tmd = ios.GetESCore().FindInstalledTMD(nand_title.id);
     if (!tmd.IsValid() || !IOS::ES::IsChannel(nand_title.id))
     {
       PanicAlertFmtT("This title cannot be booted.");
@@ -432,4 +435,39 @@ Common::IniFile SConfig::LoadGameIni(const std::string& id, std::optional<u16> r
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
     game_ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
   return game_ini;
+}
+
+std::string SConfig::GetGameTDBImageRegionCode(bool wii, DiscIO::Region region) const
+{
+  switch (region)
+  {
+  case DiscIO::Region::NTSC_J:
+    return "JA";
+  case DiscIO::Region::NTSC_U:
+    return "US";
+  case DiscIO::Region::NTSC_K:
+    return "KO";
+  case DiscIO::Region::PAL:
+  {
+    const auto user_lang = GetCurrentLanguage(wii);
+    switch (user_lang)
+    {
+    case DiscIO::Language::German:
+      return "DE";
+    case DiscIO::Language::French:
+      return "FR";
+    case DiscIO::Language::Spanish:
+      return "ES";
+    case DiscIO::Language::Italian:
+      return "IT";
+    case DiscIO::Language::Dutch:
+      return "NL";
+    case DiscIO::Language::English:
+    default:
+      return "EN";
+    }
+  }
+  default:
+    return "EN";
+  }
 }

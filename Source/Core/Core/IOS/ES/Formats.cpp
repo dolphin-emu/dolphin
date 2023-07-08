@@ -302,7 +302,7 @@ std::string TMDReader::GetGameID() const
   std::memcpy(game_id, m_bytes.data() + offsetof(TMDHeader, title_id) + 4, 4);
   std::memcpy(game_id + 4, m_bytes.data() + offsetof(TMDHeader, group_id), 2);
 
-  if (std::all_of(std::begin(game_id), std::end(game_id), IsPrintableCharacter))
+  if (std::all_of(std::begin(game_id), std::end(game_id), Common::IsPrintableCharacter))
     return std::string(game_id, sizeof(game_id));
 
   return fmt::format("{:016x}", GetTitleId());
@@ -313,7 +313,7 @@ std::string TMDReader::GetGameTDBID() const
   const u8* begin = m_bytes.data() + offsetof(TMDHeader, title_id) + 4;
   const u8* end = begin + 4;
 
-  if (std::all_of(begin, end, IsPrintableCharacter))
+  if (std::all_of(begin, end, Common::IsPrintableCharacter))
     return std::string(begin, end);
 
   return fmt::format("{:016x}", GetTitleId());
@@ -554,17 +554,16 @@ struct SharedContentMap::Entry
 };
 
 constexpr char CONTENT_MAP_PATH[] = "/shared1/content.map";
-SharedContentMap::SharedContentMap(std::shared_ptr<HLE::FSDevice> fs)
-    : m_fs_device{fs}, m_fs{fs->GetFS()}
+SharedContentMap::SharedContentMap(HLE::FSCore& fs_core) : m_fs_core{fs_core}, m_fs{fs_core.GetFS()}
 {
   static_assert(sizeof(Entry) == 28, "SharedContentMap::Entry has the wrong size");
 
   Entry entry;
   const auto fd =
-      fs->Open(PID_KERNEL, PID_KERNEL, CONTENT_MAP_PATH, HLE::FS::Mode::Read, {}, &m_ticks);
+      fs_core.Open(PID_KERNEL, PID_KERNEL, CONTENT_MAP_PATH, HLE::FS::Mode::Read, {}, &m_ticks);
   if (fd.Get() < 0)
     return;
-  while (fs->Read(fd.Get(), &entry, 1, &m_ticks) == sizeof(entry))
+  while (fs_core.Read(fd.Get(), &entry, 1, &m_ticks) == sizeof(entry))
   {
     m_entries.push_back(entry);
     m_last_id++;
@@ -637,7 +636,7 @@ bool SharedContentMap::WriteEntries() const
          HLE::FS::ResultCode::Success;
 }
 
-static std::pair<u32, u64> ReadUidSysEntry(HLE::FSDevice& fs, u64 fd, u64* ticks)
+static std::pair<u32, u64> ReadUidSysEntry(HLE::FSCore& fs, u64 fd, u64* ticks)
 {
   u64 title_id = 0;
   if (fs.Read(fd, &title_id, 1, ticks) != sizeof(title_id))
@@ -651,15 +650,15 @@ static std::pair<u32, u64> ReadUidSysEntry(HLE::FSDevice& fs, u64 fd, u64* ticks
 }
 
 constexpr char UID_MAP_PATH[] = "/sys/uid.sys";
-UIDSys::UIDSys(std::shared_ptr<HLE::FSDevice> fs) : m_fs_device{fs}, m_fs{fs->GetFS()}
+UIDSys::UIDSys(HLE::FSCore& fs_core) : m_fs_core{fs_core}, m_fs{fs_core.GetFS()}
 {
   if (const auto fd =
-          fs->Open(PID_KERNEL, PID_KERNEL, UID_MAP_PATH, HLE::FS::Mode::Read, {}, &m_ticks);
+          fs_core.Open(PID_KERNEL, PID_KERNEL, UID_MAP_PATH, HLE::FS::Mode::Read, {}, &m_ticks);
       fd.Get() >= 0)
   {
     while (true)
     {
-      std::pair<u32, u64> entry = ReadUidSysEntry(*fs, fd.Get(), &m_ticks);
+      std::pair<u32, u64> entry = ReadUidSysEntry(fs_core, fd.Get(), &m_ticks);
       if (!entry.first && !entry.second)
         break;
 
@@ -721,9 +720,6 @@ CertReader::CertReader(std::vector<u8>&& bytes) : SignedBlobReader(std::move(byt
   if (!IsSignatureValid())
     return;
 
-  // XXX: in old GCC versions, capturing 'this' does not work for some lambdas. The workaround
-  // is to not use auto for the parameter (even though the type is obvious).
-  // This can be dropped once we require GCC 7.
   using CertStructInfo = std::tuple<SignatureType, PublicKeyType, size_t>;
   static constexpr std::array<CertStructInfo, 4> types{{
       {SignatureType::RSA4096, PublicKeyType::RSA2048, sizeof(CertRSA4096RSA2048)},

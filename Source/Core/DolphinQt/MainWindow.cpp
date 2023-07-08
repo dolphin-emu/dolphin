@@ -14,6 +14,7 @@
 #include <QIcon>
 #include <QMimeData>
 #include <QStackedWidget>
+#include <QStyleHints>
 #include <QVBoxLayout>
 #include <QWindow>
 
@@ -71,6 +72,7 @@
 #include "DiscIO/RiivolutionPatcher.h"
 
 #include "DolphinQt/AboutDialog.h"
+#include "DolphinQt/Achievements/AchievementsWindow.h"
 #include "DolphinQt/CheatsManager.h"
 #include "DolphinQt/Config/ControllersWindow.h"
 #include "DolphinQt/Config/FreeLookWindow.h"
@@ -94,6 +96,7 @@
 #include "DolphinQt/GameList/GameList.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/HotkeyScheduler.h"
+#include "DolphinQt/InfinityBase/InfinityBaseWindow.h"
 #include "DolphinQt/MenuBar.h"
 #include "DolphinQt/NKitWarningDialog.h"
 #include "DolphinQt/NetPlay/NetPlayBrowser.h"
@@ -238,6 +241,13 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
   ConnectMenuBar();
   ConnectHotkeys();
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+  connect(QGuiApplication::styleHints(), &QStyleHints::colorSchemeChanged, this,
+          [](Qt::ColorScheme colorScheme) {
+            Settings::Instance().SetCurrentUserStyle(Settings::Instance().GetCurrentUserStyle());
+          });
+#endif
+
   connect(m_cheats_manager, &CheatsManager::OpenGeneralSettings, this,
           &MainWindow::ShowGeneralWindow);
 
@@ -333,12 +343,17 @@ MainWindow::~MainWindow()
   Config::Save();
 }
 
+WindowSystemInfo MainWindow::GetWindowSystemInfo() const
+{
+  return ::GetWindowSystemInfo(m_render_widget->windowHandle());
+}
+
 void MainWindow::InitControllers()
 {
   if (g_controller_interface.IsInit())
     return;
 
-  UICommon::InitControllers(GetWindowSystemInfo(windowHandle()));
+  UICommon::InitControllers(::GetWindowSystemInfo(windowHandle()));
 
   m_hotkey_scheduler = new HotkeyScheduler();
   m_hotkey_scheduler->Start();
@@ -532,7 +547,12 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::BrowseNetPlay, this, &MainWindow::ShowNetPlayBrowser);
   connect(m_menu_bar, &MenuBar::ShowFIFOPlayer, this, &MainWindow::ShowFIFOPlayer);
   connect(m_menu_bar, &MenuBar::ShowSkylanderPortal, this, &MainWindow::ShowSkylanderPortal);
+  connect(m_menu_bar, &MenuBar::ShowInfinityBase, this, &MainWindow::ShowInfinityBase);
   connect(m_menu_bar, &MenuBar::ConnectWiiRemote, this, &MainWindow::OnConnectWiiRemote);
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+  connect(m_menu_bar, &MenuBar::ShowAchievementsWindow, this, &MainWindow::ShowAchievementsWindow);
+#endif  // USE_RETRO_ACHIEVEMENTS
 
   // Movie
   connect(m_menu_bar, &MenuBar::PlayRecording, this, &MainWindow::OnPlayRecording);
@@ -632,6 +652,11 @@ void MainWindow::ConnectHotkeys()
           &CodeWidget::ToggleBreakpoint);
   connect(m_hotkey_scheduler, &HotkeyScheduler::AddBreakpoint, m_code_widget,
           &CodeWidget::AddBreakpoint);
+
+  connect(m_hotkey_scheduler, &HotkeyScheduler::SkylandersPortalHotkey, this,
+          &MainWindow::ShowSkylanderPortal);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::InfinityBaseHotkey, this,
+          &MainWindow::ShowInfinityBase);
 }
 
 void MainWindow::ConnectToolBar()
@@ -1078,7 +1103,7 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
 
   // Boot up, show an error if it fails to load the game.
   if (!BootManager::BootCore(std::move(parameters),
-                             GetWindowSystemInfo(m_render_widget->windowHandle())))
+                             ::GetWindowSystemInfo(m_render_widget->windowHandle())))
   {
     ModalMessageBox::critical(this, tr("Error"), tr("Failed to init core"), QMessageBox::Ok);
     HideRenderWidget();
@@ -1186,7 +1211,7 @@ void MainWindow::HideRenderWidget(bool reinit, bool is_exit)
     // The controller interface will still be registered to the old render widget, if the core
     // has booted. Therefore, we should re-bind it to the main window for now. When the core
     // is next started, it will be swapped back to the new render widget.
-    g_controller_interface.ChangeWindow(GetWindowSystemInfo(windowHandle()).render_window,
+    g_controller_interface.ChangeWindow(::GetWindowSystemInfo(windowHandle()).render_window,
                                         is_exit ? ControllerInterface::WindowChangeReason::Exit :
                                                   ControllerInterface::WindowChangeReason::Other);
   }
@@ -1274,10 +1299,8 @@ void MainWindow::ShowGraphicsWindow()
               "display", windowHandle())),
           winId());
     }
-    m_graphics_window = new GraphicsWindow(m_xrr_config.get(), this);
-#else
-    m_graphics_window = new GraphicsWindow(nullptr, this);
 #endif
+    m_graphics_window = new GraphicsWindow(this);
     InstallHotkeyFilter(m_graphics_window);
   }
 
@@ -1319,7 +1342,7 @@ void MainWindow::ShowSkylanderPortal()
 {
   if (!m_skylander_window)
   {
-    m_skylander_window = new SkylanderPortalWindow;
+    m_skylander_window = new SkylanderPortalWindow();
   }
 
   m_skylander_window->show();
@@ -1327,12 +1350,25 @@ void MainWindow::ShowSkylanderPortal()
   m_skylander_window->activateWindow();
 }
 
+void MainWindow::ShowInfinityBase()
+{
+  if (!m_infinity_window)
+  {
+    m_infinity_window = new InfinityBaseWindow();
+  }
+
+  m_infinity_window->show();
+  m_infinity_window->raise();
+  m_infinity_window->activateWindow();
+}
+
 void MainWindow::StateLoad()
 {
   QString path =
       DolphinFileDialog::getOpenFileName(this, tr("Select a File"), QDir::currentPath(),
                                          tr("All Save States (*.sav *.s##);; All Files (*)"));
-  State::LoadAs(path.toStdString());
+  if (!path.isEmpty())
+    State::LoadAs(path.toStdString());
 }
 
 void MainWindow::StateSave()
@@ -1340,7 +1376,8 @@ void MainWindow::StateSave()
   QString path =
       DolphinFileDialog::getSaveFileName(this, tr("Select a File"), QDir::currentPath(),
                                          tr("All Save States (*.sav *.s##);; All Files (*)"));
-  State::SaveAs(path.toStdString());
+  if (!path.isEmpty())
+    State::SaveAs(path.toStdString());
 }
 
 void MainWindow::StateLoadSlot()
@@ -1864,6 +1901,20 @@ void MainWindow::OnConnectWiiRemote(int id)
     }
   });
 }
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+void MainWindow::ShowAchievementsWindow()
+{
+  if (!m_achievements_window)
+  {
+    m_achievements_window = new AchievementsWindow(this);
+  }
+
+  m_achievements_window->show();
+  m_achievements_window->raise();
+  m_achievements_window->activateWindow();
+}
+#endif  // USE_RETRO_ACHIEVEMENTS
 
 void MainWindow::ShowMemcardManager()
 {

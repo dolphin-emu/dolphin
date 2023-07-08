@@ -18,10 +18,10 @@ namespace IOS::HLE
 void BackUpBTInfoSection(const SysConf* sysconf);
 void RestoreBTInfoSection(SysConf* sysconf);
 
-class BluetoothBaseDevice : public Device
+class BluetoothBaseDevice : public EmulationDevice
 {
 public:
-  using Device::Device;
+  using EmulationDevice::EmulationDevice;
   virtual void UpdateSyncButtonState(bool is_held) {}
   virtual void TriggerSyncButtonPressedEvent() {}
   virtual void TriggerSyncButtonHeldEvent() {}

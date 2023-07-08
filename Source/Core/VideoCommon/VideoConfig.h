@@ -52,6 +52,13 @@ enum class TextureFilteringMode : int
   Linear,
 };
 
+enum class ColorCorrectionRegion : int
+{
+  SMPTE_NTSCM,
+  SYSTEMJ_NTSCJ,
+  EBU_PAL,
+};
+
 enum class TriState : int
 {
   Off,
@@ -72,6 +79,7 @@ enum ConfigChangeBits : u32
   CONFIG_CHANGE_BIT_BBOX = (1 << 7),
   CONFIG_CHANGE_BIT_ASPECT_RATIO = (1 << 8),
   CONFIG_CHANGE_BIT_POST_PROCESSING_SHADER = (1 << 9),
+  CONFIG_CHANGE_BIT_HDR = (1 << 10),
 };
 
 // NEVER inherit from this class.
@@ -101,6 +109,26 @@ struct VideoConfig final
   bool bDisableCopyFilter = false;
   bool bArbitraryMipmapDetection = false;
   float fArbitraryMipmapDetectionThreshold = 0;
+  bool bHDR = false;
+
+  // Color Correction
+  struct
+  {
+    // Color Space Correction:
+    bool bCorrectColorSpace = false;
+    ColorCorrectionRegion game_color_space = ColorCorrectionRegion::SMPTE_NTSCM;
+
+    // Gamma Correction:
+    bool bCorrectGamma = false;
+    float fGameGamma = 2.35f;
+    bool bSDRDisplayGammaSRGB = true;
+    // Custom gamma when the display is not sRGB
+    float fSDRDisplayCustomGamma = 2.2f;
+
+    // HDR:
+    // 200 is a good default value that matches the brightness of many SDR screens
+    float fHDRPaperWhiteNits = 200.f;
+  } color_correction;
 
   // Information
   bool bShowFPS = false;
@@ -214,6 +242,9 @@ struct VideoConfig final
   int iShaderCompilerThreads = 0;
   int iShaderPrecompilerThreads = 0;
 
+  // Loading custom drivers on Android
+  std::string customDriverLibraryName;
+
   // Static config per API
   // TODO: Move this out of VideoConfig
   struct
@@ -272,6 +303,7 @@ struct VideoConfig final
     bool bSupportsDynamicVertexLoader = false;
     bool bSupportsVSLinePointExpand = false;
     bool bSupportsGLLayerInFS = true;
+    bool bSupportsHDROutput = false;
   } backend_info;
 
   // Utility

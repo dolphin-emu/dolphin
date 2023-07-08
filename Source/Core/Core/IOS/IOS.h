@@ -7,7 +7,6 @@
 #include <deque>
 #include <map>
 #include <memory>
-#include <mutex>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -33,8 +32,11 @@ class FileSystem;
 }
 
 class Device;
+class ESCore;
 class ESDevice;
+class FSCore;
 class FSDevice;
+class WiiSockMan;
 
 struct Request;
 struct OpenRequest;
@@ -118,17 +120,52 @@ public:
   explicit Kernel(IOSC::ConsoleType console_type = IOSC::ConsoleType::Retail);
   virtual ~Kernel();
 
-  void DoState(PointerWrap& p);
-  void HandleIPCEvent(u64 userdata);
-  void UpdateIPC();
-  void UpdateDevices();
-  void UpdateWantDeterminism(bool new_want_determinism);
-
   // These are *always* part of the IOS kernel and always available.
   // They are also the only available resource managers even before loading any module.
   std::shared_ptr<FS::FileSystem> GetFS();
+  FSCore& GetFSCore();
+  ESCore& GetESCore();
+
+  u32 GetVersion() const;
+
+  IOSC& GetIOSC();
+
+protected:
+  explicit Kernel(u64 title_id);
+
+  std::unique_ptr<FSCore> m_fs_core;
+  std::unique_ptr<ESCore> m_es_core;
+
+  bool m_is_responsible_for_nand_root = false;
+  u64 m_title_id = 0;
+
+  IOSC m_iosc;
+  std::shared_ptr<FS::FileSystem> m_fs;
+  std::shared_ptr<WiiSockMan> m_socket_manager;
+};
+
+// HLE for an IOS tied to emulation: base kernel which may have additional modules loaded.
+class EmulationKernel final : public Kernel
+{
+public:
+  EmulationKernel(Core::System& system, u64 ios_title_id);
+  ~EmulationKernel();
+
+  // Get a resource manager by name.
+  // This only works for devices which are part of the device map.
+  std::shared_ptr<Device> GetDeviceByName(std::string_view device_name);
+
   std::shared_ptr<FSDevice> GetFSDevice();
-  std::shared_ptr<ESDevice> GetES();
+  std::shared_ptr<ESDevice> GetESDevice();
+
+  void DoState(PointerWrap& p);
+  void UpdateDevices();
+  void UpdateWantDeterminism(bool new_want_determinism);
+
+  std::shared_ptr<WiiSockMan> GetSocketManager();
+
+  void HandleIPCEvent(u64 userdata);
+  void UpdateIPC();
 
   void EnqueueIPCRequest(u32 address);
   void EnqueueIPCReply(const Request& request, s32 return_value, s64 cycles_in_future = 0,
@@ -143,28 +180,23 @@ public:
   bool BootIOS(Core::System& system, u64 ios_title_id, HangPPC hang_ppc = HangPPC::No,
                const std::string& boot_content_path = {});
   void InitIPC();
-  u32 GetVersion() const;
 
-  IOSC& GetIOSC();
+  Core::System& GetSystem() const { return m_system; }
 
-protected:
-  explicit Kernel(u64 title_id);
-
+private:
   void ExecuteIPCCommand(u32 address);
   std::optional<IPCReply> HandleIPCCommand(const Request& request);
 
   void AddDevice(std::unique_ptr<Device> device);
-  void AddCoreDevices();
+
   void AddStaticDevices();
-  std::shared_ptr<Device> GetDeviceByName(std::string_view device_name);
   s32 GetFreeDeviceID();
   std::optional<IPCReply> OpenDevice(OpenRequest& request);
 
-  bool m_is_responsible_for_nand_root = false;
-  u64 m_title_id = 0;
+  Core::System& m_system;
+
   static constexpr u8 IPC_MAX_FDS = 0x18;
   std::map<std::string, std::shared_ptr<Device>, std::less<>> m_device_map;
-  std::mutex m_device_map_mutex;
   // TODO: make this fdmap per process.
   std::array<std::shared_ptr<Device>, IPC_MAX_FDS> m_fdmap;
 
@@ -176,21 +208,6 @@ protected:
   IPCMsgQueue m_reply_queue;    // arm -> ppc
   u64 m_last_reply_time = 0;
   bool m_ipc_paused = false;
-
-  IOSC m_iosc;
-  std::shared_ptr<FS::FileSystem> m_fs;
-};
-
-// HLE for an IOS tied to emulation: base kernel which may have additional modules loaded.
-class EmulationKernel : public Kernel
-{
-public:
-  explicit EmulationKernel(u64 ios_title_id);
-  ~EmulationKernel();
-
-  // Get a resource manager by name.
-  // This only works for devices which are part of the device map.
-  std::shared_ptr<Device> GetDeviceByName(std::string_view device_name);
 };
 
 // Used for controlling and accessing an IOS instance that is tied to emulation.

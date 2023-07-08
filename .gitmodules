@@ -54,3 +54,6 @@
 [submodule "Externals/rcheevos/rcheevos"]
 	path = Externals/rcheevos/rcheevos
 	url = https://github.com/RetroAchievements/rcheevos.git
+[submodule "Externals/libadrenotools"]
+	path = Externals/libadrenotools
+	url = https://github.com/bylaws/libadrenotools.git

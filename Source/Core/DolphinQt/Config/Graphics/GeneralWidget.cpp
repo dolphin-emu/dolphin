@@ -18,21 +18,18 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
-#include "DolphinQt/Config/Graphics/GraphicsBool.h"
-#include "DolphinQt/Config/Graphics/GraphicsChoice.h"
-#include "DolphinQt/Config/Graphics/GraphicsRadio.h"
+#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
+#include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
+#include "DolphinQt/Config/ConfigControls/ConfigRadio.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipComboBox.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings.h"
 
-#include "UICommon/VideoUtils.h"
-
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
-GeneralWidget::GeneralWidget(X11Utils::XRRConfiguration* xrr_config, GraphicsWindow* parent)
-    : m_xrr_config(xrr_config)
+GeneralWidget::GeneralWidget(GraphicsWindow* parent)
 {
   CreateWidgets();
   LoadSettings();
@@ -57,11 +54,11 @@ void GeneralWidget::CreateWidgets()
 
   m_backend_combo = new ToolTipComboBox();
   m_aspect_combo =
-      new GraphicsChoice({tr("Auto"), tr("Force 16:9"), tr("Force 4:3"), tr("Stretch to Window")},
-                         Config::GFX_ASPECT_RATIO);
+      new ConfigChoice({tr("Auto"), tr("Force 16:9"), tr("Force 4:3"), tr("Stretch to Window")},
+                       Config::GFX_ASPECT_RATIO);
   m_adapter_combo = new ToolTipComboBox;
-  m_enable_vsync = new GraphicsBool(tr("V-Sync"), Config::GFX_VSYNC);
-  m_enable_fullscreen = new GraphicsBool(tr("Start in Fullscreen"), Config::MAIN_FULLSCREEN);
+  m_enable_vsync = new ConfigBool(tr("V-Sync"), Config::GFX_VSYNC);
+  m_enable_fullscreen = new ConfigBool(tr("Start in Fullscreen"), Config::MAIN_FULLSCREEN);
 
   m_video_box->setLayout(m_video_layout);
 
@@ -87,12 +84,11 @@ void GeneralWidget::CreateWidgets()
   auto* m_options_box = new QGroupBox(tr("Other"));
   auto* m_options_layout = new QGridLayout();
 
-  m_show_ping = new GraphicsBool(tr("Show NetPlay Ping"), Config::GFX_SHOW_NETPLAY_PING);
+  m_show_ping = new ConfigBool(tr("Show NetPlay Ping"), Config::GFX_SHOW_NETPLAY_PING);
   m_autoadjust_window_size =
-      new GraphicsBool(tr("Auto-Adjust Window Size"), Config::MAIN_RENDER_WINDOW_AUTOSIZE);
-  m_show_messages =
-      new GraphicsBool(tr("Show NetPlay Messages"), Config::GFX_SHOW_NETPLAY_MESSAGES);
-  m_render_main_window = new GraphicsBool(tr("Render to Main Window"), Config::MAIN_RENDER_TO_MAIN);
+      new ConfigBool(tr("Auto-Adjust Window Size"), Config::MAIN_RENDER_WINDOW_AUTOSIZE);
+  m_show_messages = new ConfigBool(tr("Show NetPlay Messages"), Config::GFX_SHOW_NETPLAY_MESSAGES);
+  m_render_main_window = new ConfigBool(tr("Render to Main Window"), Config::MAIN_RENDER_TO_MAIN);
 
   m_options_box->setLayout(m_options_layout);
 
@@ -114,13 +110,13 @@ void GeneralWidget::CreateWidgets()
   }};
   for (size_t i = 0; i < modes.size(); i++)
   {
-    m_shader_compilation_mode[i] = new GraphicsRadioInt(
-        tr(modes[i]), Config::GFX_SHADER_COMPILATION_MODE, static_cast<int>(i));
+    m_shader_compilation_mode[i] =
+        new ConfigRadioInt(tr(modes[i]), Config::GFX_SHADER_COMPILATION_MODE, static_cast<int>(i));
     shader_compilation_layout->addWidget(m_shader_compilation_mode[i], static_cast<int>(i / 2),
                                          static_cast<int>(i % 2));
   }
-  m_wait_for_shaders = new GraphicsBool(tr("Compile Shaders Before Starting"),
-                                        Config::GFX_WAIT_FOR_SHADERS_BEFORE_STARTING);
+  m_wait_for_shaders = new ConfigBool(tr("Compile Shaders Before Starting"),
+                                      Config::GFX_WAIT_FOR_SHADERS_BEFORE_STARTING);
   shader_compilation_layout->addWidget(m_wait_for_shaders);
   shader_compilation_box->setLayout(shader_compilation_layout);
 

@@ -126,6 +126,10 @@ void SHADER::SetProgramVariables()
 
 void SHADER::SetProgramBindings(bool is_compute)
 {
+  if (g_ogl_config.bSupportsExplicitLayoutInShader)
+  {
+    return;
+  }
   if (!is_compute)
   {
     if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
@@ -664,12 +668,13 @@ void ProgramShaderCache::CreateHeader()
   std::string SupportedESTextureBuffer;
   switch (g_ogl_config.SupportedESPointSize)
   {
-  case 1:
+  case EsPointSizeType::PointSizeOes:
     SupportedESPointSize = "#extension GL_OES_geometry_point_size : enable";
     break;
-  case 2:
+  case EsPointSizeType::PointSizeExt:
     SupportedESPointSize = "#extension GL_EXT_geometry_point_size : enable";
     break;
+  case EsPointSizeType::PointSizeNone:
   default:
     SupportedESPointSize = "";
     break;
@@ -721,6 +726,56 @@ void ProgramShaderCache::CreateHeader()
     break;
   }
 
+  // The sampler2DMSArray keyword is reserved in GLSL ES 3.0 and 3.1, but is available in 3.2 and
+  // with GL_OES_texture_storage_multisample_2d_array for 3.1.
+  // See https://bugs.dolphin-emu.org/issues/13198.
+  const bool use_multisample_2d_array_precision =
+      v >= GlslEs320 ||
+      g_ogl_config.SupportedMultisampleTexStorage != MultisampleTexStorageType::TexStorageNone;
+
+  std::string binding_layout;
+  if (g_ActiveConfig.backend_info.bSupportsBindingLayout)
+  {
+    if (g_ogl_config.bSupportsExplicitLayoutInShader)
+    {
+      binding_layout =
+          "#extension GL_ARB_explicit_attrib_location : enable\n"
+          "#define ATTRIBUTE_LOCATION(x) layout(location = x)\n"
+          "#define FRAGMENT_OUTPUT_LOCATION(x) layout(location = x)\n"
+          "#define FRAGMENT_OUTPUT_LOCATION_INDEXED(x, y) layout(location = x, index = y)\n"
+          "#define UBO_BINDING(packing, x) layout(packing, binding = x)\n"
+          "#define SAMPLER_BINDING(x) layout(binding = x)\n"
+          "#define TEXEL_BUFFER_BINDING(x) layout(binding = x)\n"
+          "#define SSBO_BINDING(x) layout(std430, binding = x)\n"
+          "#define IMAGE_BINDING(format, x) layout(format, binding = x)\n";
+    }
+    else
+    {
+      binding_layout = "#define ATTRIBUTE_LOCATION(x)\n"
+                       "#define FRAGMENT_OUTPUT_LOCATION(x)\n"
+                       "#define FRAGMENT_OUTPUT_LOCATION_INDEXED(x, y)\n"
+                       "#define UBO_BINDING(packing, x) layout(packing, binding = x)\n"
+                       "#define SAMPLER_BINDING(x) layout(binding = x)\n"
+                       "#define TEXEL_BUFFER_BINDING(x) layout(binding = x)\n"
+                       "#define SSBO_BINDING(x) layout(std430, binding = x)\n"
+                       "#define IMAGE_BINDING(format, x) layout(format, binding = x)\n";
+    }
+  }
+  else
+  {
+    binding_layout = "#define ATTRIBUTE_LOCATION(x)\n"
+                     "#define FRAGMENT_OUTPUT_LOCATION(x)\n"
+                     "#define FRAGMENT_OUTPUT_LOCATION_INDEXED(x, y)\n"
+                     "#define UBO_BINDING(packing, x) layout(packing)\n"
+                     "#define SAMPLER_BINDING(x)\n"
+                     "#define TEXEL_BUFFER_BINDING(x)\n"
+                     "#define SSBO_BINDING(x) layout(std430)\n"
+                     "#define IMAGE_BINDING(format, x) layout(format)\n";
+  }
+
+  // TODO: actually define this if using 'bSupportsExplicitLayoutInShader'
+  const std::string varying_location = "#define VARYING_LOCATION(x)\n";
+
   std::string shader_shuffle_string;
   if (g_ogl_config.bSupportsKHRShaderSubgroup)
   {
@@ -758,6 +813,7 @@ void ProgramShaderCache::CreateHeader()
       "{}\n"  // shader thread shuffle
       "{}\n"  // derivative control
       "{}\n"  // query levels
+      "{}\n"  // OES multisample texture storage
 
       // Precision defines for GLSL ES
       "{}\n"
@@ -790,28 +846,7 @@ void ProgramShaderCache::CreateHeader()
       (g_ogl_config.bSupportsMSAA && v < Glsl150) ?
           "#extension GL_ARB_texture_multisample : enable" :
           "",
-      // Attribute and fragment output bindings are still done via glBindAttribLocation and
-      // glBindFragDataLocation. In the future this could be moved to the layout qualifier
-      // in GLSL, but requires verification of GL_ARB_explicit_attrib_location.
-      g_ActiveConfig.backend_info.bSupportsBindingLayout ?
-          "#define ATTRIBUTE_LOCATION(x)\n"
-          "#define FRAGMENT_OUTPUT_LOCATION(x)\n"
-          "#define FRAGMENT_OUTPUT_LOCATION_INDEXED(x, y)\n"
-          "#define UBO_BINDING(packing, x) layout(packing, binding = x)\n"
-          "#define SAMPLER_BINDING(x) layout(binding = x)\n"
-          "#define TEXEL_BUFFER_BINDING(x) layout(binding = x)\n"
-          "#define SSBO_BINDING(x) layout(std430, binding = x)\n"
-          "#define IMAGE_BINDING(format, x) layout(format, binding = x)\n" :
-          "#define ATTRIBUTE_LOCATION(x)\n"
-          "#define FRAGMENT_OUTPUT_LOCATION(x)\n"
-          "#define FRAGMENT_OUTPUT_LOCATION_INDEXED(x, y)\n"
-          "#define UBO_BINDING(packing, x) layout(packing)\n"
-          "#define SAMPLER_BINDING(x)\n"
-          "#define TEXEL_BUFFER_BINDING(x)\n"
-          "#define SSBO_BINDING(x) layout(std430)\n"
-          "#define IMAGE_BINDING(format, x) layout(format)\n",
-      // Input/output blocks are matched by name during program linking
-      "#define VARYING_LOCATION(x)\n",
+      binding_layout.c_str(), varying_location.c_str(),
       !is_glsles && g_ActiveConfig.backend_info.bSupportsFragmentStoresAndAtomics ?
           "#extension GL_ARB_shader_storage_buffer_object : enable" :
           "",
@@ -843,12 +878,18 @@ void ProgramShaderCache::CreateHeader()
       g_ActiveConfig.backend_info.bSupportsTextureQueryLevels ?
           "#extension GL_ARB_texture_query_levels : enable" :
           "",
+      // Note: GL_ARB_texture_storage_multisample doesn't have an #extension, as it doesn't
+      // need to change GLSL, but on GLES 3.1 sampler2DMSArray is a reserved keyword unless
+      // the extension is enabled. Thus, we don't need to check TexStorageCore/have an ARB version.
+      g_ogl_config.SupportedMultisampleTexStorage == MultisampleTexStorageType::TexStorageOes ?
+          "#extension GL_OES_texture_storage_multisample_2d_array : enable" :
+          "",
       is_glsles ? "precision highp float;" : "", is_glsles ? "precision highp int;" : "",
       is_glsles ? "precision highp sampler2DArray;" : "",
       (is_glsles && g_ActiveConfig.backend_info.bSupportsPaletteConversion) ?
           "precision highp usamplerBuffer;" :
           "",
-      v > GlslEs300 ? "precision highp sampler2DMSArray;" : "",
+      use_multisample_2d_array_precision ? "precision highp sampler2DMSArray;" : "",
       v >= GlslEs310 ? "precision highp image2DArray;" : "");
 }
 

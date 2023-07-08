@@ -17,12 +17,12 @@ namespace ControllerEmu
 {
 Force::Force(const std::string& name_) : ReshapableInput(name_, name_, GroupType::Force)
 {
-  AddInput(Translate, _trans("Up"));
-  AddInput(Translate, _trans("Down"));
-  AddInput(Translate, _trans("Left"));
-  AddInput(Translate, _trans("Right"));
-  AddInput(Translate, _trans("Forward"));
-  AddInput(Translate, _trans("Backward"));
+  AddInput(Translatability::Translate, _trans("Up"));
+  AddInput(Translatability::Translate, _trans("Down"));
+  AddInput(Translatability::Translate, _trans("Left"));
+  AddInput(Translatability::Translate, _trans("Right"));
+  AddInput(Translatability::Translate, _trans("Forward"));
+  AddInput(Translatability::Translate, _trans("Backward"));
 
   AddSetting(&m_distance_setting,
              {_trans("Distance"),
@@ -126,11 +126,11 @@ Shake::Shake(const std::string& name_, ControlState default_intensity_scale)
     : ControlGroup(name_, name_, GroupType::Shake)
 {
   // i18n: Refers to a 3D axis (used when mapping motion controls)
-  AddInput(ControllerEmu::Translate, _trans("X"));
+  AddInput(Translatability::Translate, _trans("X"));
   // i18n: Refers to a 3D axis (used when mapping motion controls)
-  AddInput(ControllerEmu::Translate, _trans("Y"));
+  AddInput(Translatability::Translate, _trans("Y"));
   // i18n: Refers to a 3D axis (used when mapping motion controls)
-  AddInput(ControllerEmu::Translate, _trans("Z"));
+  AddInput(Translatability::Translate, _trans("Z"));
 
   AddDeadzoneSetting(&m_deadzone_setting, 50);
 

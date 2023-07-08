@@ -31,10 +31,10 @@ private:
   std::vector<u8> m_whole_file;
 };
 
-class WFSIDevice : public Device
+class WFSIDevice : public EmulationDevice
 {
 public:
-  WFSIDevice(Kernel& ios, const std::string& device_name);
+  WFSIDevice(EmulationKernel& ios, const std::string& device_name);
 
   std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
 
@@ -51,7 +51,6 @@ private:
   std::string m_device_name;
 
   std::unique_ptr<Common::AES::Context> m_aes_ctx{};
-  u8 m_aes_key[0x10] = {};
   u8 m_aes_iv[0x10] = {};
 
   ES::TMDReader m_tmd;

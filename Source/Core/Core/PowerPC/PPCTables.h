@@ -3,13 +3,8 @@
 
 #pragma once
 
-#include <array>
-#include <cstddef>
-#include <utility>
-
 #include "Common/CommonTypes.h"
 #include "Core/PowerPC/Gekko.h"
-#include "Core/PowerPC/Interpreter/Interpreter.h"
 
 // Flags that indicate what an instruction can do.
 enum InstructionFlags : u64

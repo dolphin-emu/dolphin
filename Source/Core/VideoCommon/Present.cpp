@@ -176,6 +176,8 @@ void Presenter::SetBackbuffer(SurfaceInfo info)
   m_backbuffer_height = info.height;
   m_backbuffer_scale = info.scale;
   m_backbuffer_format = info.format;
+  if (m_onscreen_ui)
+    m_onscreen_ui->SetScale(info.scale);
   UpdateDrawRectangle();
 }
 
@@ -440,8 +442,11 @@ void Presenter::UpdateDrawRectangle()
   }
 
   // ensure divisibility by 4 to make it compatible with all the video encoders
-  draw_width = std::ceil(draw_width) - static_cast<int>(std::ceil(draw_width)) % 4;
-  draw_height = std::ceil(draw_height) - static_cast<int>(std::ceil(draw_height)) % 4;
+  if (g_frame_dumper->IsFrameDumping())
+  {
+    draw_width = std::ceil(draw_width) - static_cast<int>(std::ceil(draw_width)) % 4;
+    draw_height = std::ceil(draw_height) - static_cast<int>(std::ceil(draw_height)) % 4;
+  }
 
   m_target_rectangle.left = static_cast<int>(std::round(win_width / 2.0 - draw_width / 2.0));
   m_target_rectangle.top = static_cast<int>(std::round(win_height / 2.0 - draw_height / 2.0));
@@ -509,9 +514,11 @@ void Presenter::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
     m_post_processor->BlitFromTexture(left_rc, source_rc, source_texture, 0);
     m_post_processor->BlitFromTexture(right_rc, source_rc, source_texture, 1);
   }
+  // Every other case will be treated the same (stereo or not).
+  // If there's multiple source layers, they should all be copied.
   else
   {
-    m_post_processor->BlitFromTexture(target_rc, source_rc, source_texture, 0);
+    m_post_processor->BlitFromTexture(target_rc, source_rc, source_texture);
   }
 }
 

@@ -19,11 +19,40 @@ constexpr u8 MAX_SKYLANDERS = 16;
 
 namespace IOS::HLE::USB
 {
-extern const std::map<const std::pair<const u16, const u16>, const char*> list_skylanders;
+enum class Game
+{
+  SpyrosAdv,
+  Giants,
+  SwapForce,
+  TrapTeam,
+  Superchargers,
+  Other,
+};
+enum class Element
+{
+  Magic,
+  Fire,
+  Air,
+  Life,
+  Undead,
+  Earth,
+  Water,
+  Tech,
+  Other
+};
+
+struct SkyData
+{
+  const char* name = "";
+  Game game = Game::Other;
+  Element element = Element::Other;
+};
+
+extern const std::map<const std::pair<const u16, const u16>, SkyData> list_skylanders;
 class SkylanderUSB final : public Device
 {
 public:
-  SkylanderUSB(Kernel& ios, const std::string& device_name);
+  SkylanderUSB(EmulationKernel& ios, const std::string& device_name);
   ~SkylanderUSB();
   DeviceDescriptor GetDeviceDescriptor() const override;
   std::vector<ConfigDescriptor> GetConfigurations() const override;
@@ -43,7 +72,7 @@ public:
                         s32 expected_count, u64 expected_time_us);
 
 private:
-  Kernel& m_ios;
+  EmulationKernel& m_ios;
   u16 m_vid = 0;
   u16 m_pid = 0;
   u8 m_active_interface = 0;
@@ -93,7 +122,7 @@ public:
   void QueryBlock(u8 sky_num, u8 block, u8* reply_buf);
   void WriteBlock(u8 sky_num, u8 block, const u8* to_write_buf, u8* reply_buf);
 
-  bool CreateSkylander(const std::string& file_path, u16 sky_id, u16 sky_var);
+  bool CreateSkylander(const std::string& file_path, u16 m_sky_id, u16 m_sky_var);
   bool RemoveSkylander(u8 sky_num);
   u8 LoadSkylander(u8* buf, File::IOFile in_file);
   std::pair<u16, u16> CalculateIDs(const std::array<u8, 0x40 * 0x10>& file_data);

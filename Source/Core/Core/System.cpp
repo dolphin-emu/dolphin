@@ -25,7 +25,9 @@
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "IOS/USB/Emulated/Infinity.h"
 #include "IOS/USB/Emulated/Skylander.h"
+#include "VideoCommon/Assets/CustomAssetLoader.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/GeometryShaderManager.h"
@@ -63,6 +65,7 @@ struct System::Impl
   GeometryShaderManager m_geometry_shader_manager;
   GPFifo::GPFifoManager m_gp_fifo;
   HSP::HSPManager m_hsp;
+  IOS::HLE::USB::InfinityBase m_infinity_base;
   IOS::HLE::USB::SkylanderPortal m_skylander_portal;
   Memory::MemoryManager m_memory;
   MemoryInterface::MemoryInterfaceManager m_memory_interface;
@@ -77,6 +80,7 @@ struct System::Impl
   VideoInterface::VideoInterfaceManager m_video_interface;
   Interpreter m_interpreter;
   JitInterface m_jit_interface;
+  VideoCommon::CustomAssetLoader m_custom_asset_loader;
 };
 
 System::System() : m_impl{std::make_unique<Impl>(*this)}
@@ -197,6 +201,11 @@ IOS::HLE::USB::SkylanderPortal& System::GetSkylanderPortal() const
   return m_impl->m_skylander_portal;
 }
 
+IOS::HLE::USB::InfinityBase& System::GetInfinityBase() const
+{
+  return m_impl->m_infinity_base;
+}
+
 Memory::MemoryManager& System::GetMemory() const
 {
   return m_impl->m_memory;
@@ -255,5 +264,10 @@ VertexShaderManager& System::GetVertexShaderManager() const
 VideoInterface::VideoInterfaceManager& System::GetVideoInterface() const
 {
   return m_impl->m_video_interface;
+}
+
+VideoCommon::CustomAssetLoader& System::GetCustomAssetLoader() const
+{
+  return m_impl->m_custom_asset_loader;
 }
 }  // namespace Core

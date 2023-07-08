@@ -212,11 +212,7 @@ void MemoryViewWidget::UpdateFont()
   // BoundingRect is too unpredictable, a custom one would be needed for each view type. Different
   // fonts have wildly different spacing between two characters and horizontalAdvance includes
   // spacing.
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
   m_font_width = fm.horizontalAdvance(QLatin1Char('0'));
-#else
-  m_font_width = fm.width(QLatin1Char('0'));
-#endif
   m_table->setFont(Settings::Instance().GetDebugFont());
 
   CreateTable();
@@ -499,8 +495,8 @@ QString MemoryViewWidget::ValueToString(const Core::CPUThreadGuard& guard, u32 a
   case Type::ASCII:
   {
     const char value = accessors->ReadU8(guard, address);
-    return IsPrintableCharacter(value) ? QString{QChar::fromLatin1(value)} :
-                                         QString{QChar::fromLatin1('.')};
+    return Common::IsPrintableCharacter(value) ? QString{QChar::fromLatin1(value)} :
+                                                 QString{QChar::fromLatin1('.')};
   }
   case Type::Hex16:
   {
@@ -587,7 +583,7 @@ void MemoryViewWidget::UpdateBreakpointTags()
     {
       m_table->item(i, 0)->setData(
           Qt::DecorationRole,
-          Resources::GetScaledThemeIcon("debugger_breakpoint")
+          Resources::GetThemeIcon("debugger_breakpoint")
               .pixmap(QSize(m_table->rowHeight(0) - 3, m_table->rowHeight(0) - 3)));
     }
     else
@@ -613,7 +609,7 @@ AddressSpace::Type MemoryViewWidget::GetAddressSpace() const
   return m_address_space;
 }
 
-std::vector<u8> MemoryViewWidget::ConvertTextToBytes(Type type, QString input_text)
+std::vector<u8> MemoryViewWidget::ConvertTextToBytes(Type type, QStringView input_text) const
 {
   if (type == Type::Null)
     return {};

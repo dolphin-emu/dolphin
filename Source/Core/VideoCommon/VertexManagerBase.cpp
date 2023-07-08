@@ -566,7 +566,7 @@ void VertexManagerBase::Flush()
     {
       bool skip = false;
       GraphicsModActionData::DrawStarted draw_started{&skip};
-      for (const auto action : g_graphics_mod_manager->GetDrawStartedActions(texture_name))
+      for (const auto& action : g_graphics_mod_manager->GetDrawStartedActions(texture_name))
       {
         action->OnDrawStarted(&draw_started);
       }

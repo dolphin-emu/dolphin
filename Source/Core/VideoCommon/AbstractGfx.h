@@ -10,6 +10,7 @@
 
 #include <array>
 #include <memory>
+#include <vector>
 
 class AbstractFramebuffer;
 class AbstractPipeline;
@@ -60,7 +61,7 @@ public:
   virtual void SetScissorRect(const MathUtil::Rectangle<int>& rc) {}
   virtual void SetTexture(u32 index, const AbstractTexture* texture) {}
   virtual void SetSamplerState(u32 index, const SamplerState& state) {}
-  virtual void SetComputeImageTexture(AbstractTexture* texture, bool read, bool write) {}
+  virtual void SetComputeImageTexture(u32 index, AbstractTexture* texture, bool read, bool write) {}
   virtual void UnbindTexture(const AbstractTexture* texture) {}
   virtual void SetViewport(float x, float y, float width, float height, float near_depth,
                            float far_depth)
@@ -75,7 +76,8 @@ public:
   virtual std::unique_ptr<AbstractStagingTexture>
   CreateStagingTexture(StagingTextureType type, const TextureConfig& config) = 0;
   virtual std::unique_ptr<AbstractFramebuffer>
-  CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment) = 0;
+  CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
+                    std::vector<AbstractTexture*> additional_color_attachments = {}) = 0;
 
   // Framebuffer operations.
   virtual void SetFramebuffer(AbstractFramebuffer* framebuffer);
@@ -157,8 +159,8 @@ public:
   // Called when the configuration changes, and backend structures need to be updated.
   virtual void OnConfigChanged(u32 changed_bits);
 
-  // Returns true if a layer-expanding geometry shader should be used when rendering the user
-  // interface and final XFB.
+  // Returns true if a layer-expanding geometry shader should be used when rendering
+  // the user interface on the output buffer.
   bool UseGeometryShaderForUI() const;
 
   // Returns info about the main surface (aka backbuffer)

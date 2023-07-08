@@ -85,7 +85,8 @@ static void GetD3DDepthDesc(D3D12_DEPTH_STENCIL_DESC* desc, const DepthState& st
       state.updateenable ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
 }
 
-static void GetD3DBlendDesc(D3D12_BLEND_DESC* desc, const BlendingState& state)
+static void GetD3DBlendDesc(D3D12_BLEND_DESC* desc, const BlendingState& state,
+                            u8 render_target_count)
 {
   static constexpr std::array<D3D12_BLEND, 8> src_dual_src_factors = {
       {D3D12_BLEND_ZERO, D3D12_BLEND_ONE, D3D12_BLEND_DEST_COLOR, D3D12_BLEND_INV_DEST_COLOR,
@@ -115,44 +116,48 @@ static void GetD3DBlendDesc(D3D12_BLEND_DESC* desc, const BlendingState& state)
   desc->AlphaToCoverageEnable = FALSE;
   desc->IndependentBlendEnable = FALSE;
 
-  D3D12_RENDER_TARGET_BLEND_DESC* rtblend = &desc->RenderTarget[0];
-  if (state.colorupdate)
+  for (u8 i = 0; i < render_target_count; i++)
   {
-    rtblend->RenderTargetWriteMask |= D3D12_COLOR_WRITE_ENABLE_RED |
-                                      D3D12_COLOR_WRITE_ENABLE_GREEN |
-                                      D3D12_COLOR_WRITE_ENABLE_BLUE;
-  }
-  if (state.alphaupdate)
-  {
-    rtblend->RenderTargetWriteMask |= D3D12_COLOR_WRITE_ENABLE_ALPHA;
-  }
-
-  // blend takes precedence over logic op
-  rtblend->BlendEnable = state.blendenable;
-  if (state.blendenable)
-  {
-    rtblend->BlendOp = state.subtract ? D3D12_BLEND_OP_REV_SUBTRACT : D3D12_BLEND_OP_ADD;
-    rtblend->BlendOpAlpha = state.subtractAlpha ? D3D12_BLEND_OP_REV_SUBTRACT : D3D12_BLEND_OP_ADD;
-    if (state.usedualsrc)
+    D3D12_RENDER_TARGET_BLEND_DESC* rtblend = &desc->RenderTarget[i];
+    if (state.colorupdate)
     {
-      rtblend->SrcBlend = src_dual_src_factors[u32(state.srcfactor.Value())];
-      rtblend->SrcBlendAlpha = src_dual_src_factors[u32(state.srcfactoralpha.Value())];
-      rtblend->DestBlend = dst_dual_src_factors[u32(state.dstfactor.Value())];
-      rtblend->DestBlendAlpha = dst_dual_src_factors[u32(state.dstfactoralpha.Value())];
+      rtblend->RenderTargetWriteMask |= D3D12_COLOR_WRITE_ENABLE_RED |
+                                        D3D12_COLOR_WRITE_ENABLE_GREEN |
+                                        D3D12_COLOR_WRITE_ENABLE_BLUE;
+    }
+    if (state.alphaupdate)
+    {
+      rtblend->RenderTargetWriteMask |= D3D12_COLOR_WRITE_ENABLE_ALPHA;
+    }
+
+    // blend takes precedence over logic op
+    rtblend->BlendEnable = state.blendenable;
+    if (state.blendenable)
+    {
+      rtblend->BlendOp = state.subtract ? D3D12_BLEND_OP_REV_SUBTRACT : D3D12_BLEND_OP_ADD;
+      rtblend->BlendOpAlpha =
+          state.subtractAlpha ? D3D12_BLEND_OP_REV_SUBTRACT : D3D12_BLEND_OP_ADD;
+      if (state.usedualsrc)
+      {
+        rtblend->SrcBlend = src_dual_src_factors[u32(state.srcfactor.Value())];
+        rtblend->SrcBlendAlpha = src_dual_src_factors[u32(state.srcfactoralpha.Value())];
+        rtblend->DestBlend = dst_dual_src_factors[u32(state.dstfactor.Value())];
+        rtblend->DestBlendAlpha = dst_dual_src_factors[u32(state.dstfactoralpha.Value())];
+      }
+      else
+      {
+        rtblend->SrcBlend = src_factors[u32(state.srcfactor.Value())];
+        rtblend->SrcBlendAlpha = src_factors[u32(state.srcfactoralpha.Value())];
+        rtblend->DestBlend = dst_factors[u32(state.dstfactor.Value())];
+        rtblend->DestBlendAlpha = dst_factors[u32(state.dstfactoralpha.Value())];
+      }
     }
     else
     {
-      rtblend->SrcBlend = src_factors[u32(state.srcfactor.Value())];
-      rtblend->SrcBlendAlpha = src_factors[u32(state.srcfactoralpha.Value())];
-      rtblend->DestBlend = dst_factors[u32(state.dstfactor.Value())];
-      rtblend->DestBlendAlpha = dst_factors[u32(state.dstfactoralpha.Value())];
+      rtblend->LogicOpEnable = state.logicopenable;
+      if (state.logicopenable)
+        rtblend->LogicOp = logic_ops[u32(state.logicmode.Value())];
     }
-  }
-  else
-  {
-    rtblend->LogicOpEnable = state.logicopenable;
-    if (state.logicopenable)
-      rtblend->LogicOp = logic_ops[u32(state.logicmode.Value())];
   }
 }
 
@@ -183,7 +188,8 @@ std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& con
   if (config.pixel_shader)
     desc.PS = static_cast<const DXShader*>(config.pixel_shader)->GetD3DByteCode();
 
-  GetD3DBlendDesc(&desc.BlendState, config.blending_state);
+  GetD3DBlendDesc(&desc.BlendState, config.blending_state,
+                  config.framebuffer_state.additional_color_attachment_count + 1);
   desc.SampleMask = 0xFFFFFFFF;
   GetD3DRasterizerDesc(&desc.RasterizerState, config.rasterization_state, config.framebuffer_state);
   GetD3DDepthDesc(&desc.DepthStencilState, config.depth_state);
@@ -195,9 +201,16 @@ std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& con
   desc.PrimitiveTopologyType = GetD3DTopologyType(config.rasterization_state);
   if (config.framebuffer_state.color_texture_format != AbstractTextureFormat::Undefined)
   {
-    desc.NumRenderTargets = 1;
+    desc.NumRenderTargets =
+        static_cast<u8>(config.framebuffer_state.additional_color_attachment_count) + 1;
     desc.RTVFormats[0] = D3DCommon::GetRTVFormatForAbstractFormat(
         config.framebuffer_state.color_texture_format, config.blending_state.logicopenable);
+    for (u8 i = 0; i < static_cast<u8>(config.framebuffer_state.additional_color_attachment_count);
+         i++)
+    {
+      // For now set all formats to be the same
+      desc.RTVFormats[i + 1] = desc.RTVFormats[0];
+    }
   }
   if (config.framebuffer_state.depth_texture_format != AbstractTextureFormat::Undefined)
     desc.DSVFormat =

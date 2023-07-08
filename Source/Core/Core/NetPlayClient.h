@@ -68,8 +68,8 @@ public:
   virtual void OnDesync(u32 frame, const std::string& player) = 0;
   virtual void OnConnectionLost() = 0;
   virtual void OnConnectionError(const std::string& message) = 0;
-  virtual void OnTraversalError(TraversalClient::FailureReason error) = 0;
-  virtual void OnTraversalStateChanged(TraversalClient::State state) = 0;
+  virtual void OnTraversalError(Common::TraversalClient::FailureReason error) = 0;
+  virtual void OnTraversalStateChanged(Common::TraversalClient::State state) = 0;
   virtual void OnGameStartAborted() = 0;
   virtual void OnGolferChanged(bool is_golfer, const std::string& golfer_name) = 0;
 
@@ -107,7 +107,7 @@ public:
   bool IsHost() const { return pid == 1; }
 };
 
-class NetPlayClient : public TraversalClientClient
+class NetPlayClient : public Common::TraversalClientClient
 {
 public:
   void ThreadFunc();
@@ -147,7 +147,7 @@ public:
 
   void OnTraversalStateChanged() override;
   void OnConnectReady(ENetAddress addr) override;
-  void OnConnectFailed(TraversalConnectFailedReason reason) override;
+  void OnConnectFailed(Common::TraversalConnectFailedReason reason) override;
 
   bool IsFirstInGamePad(int ingame_pad) const;
   int NumLocalPads() const;
@@ -325,7 +325,7 @@ private:
   std::string m_host_spec;
   std::string m_player_name;
   bool m_connecting = false;
-  TraversalClient* m_traversal_client = nullptr;
+  Common::TraversalClient* m_traversal_client = nullptr;
   std::thread m_game_digest_thread;
   bool m_should_compute_game_digest = false;
   Common::Event m_gc_pad_event;

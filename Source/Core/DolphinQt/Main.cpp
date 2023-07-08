@@ -123,7 +123,7 @@ int main(int argc, char* argv[])
   }
 #endif
 
-  Host::GetInstance()->DeclareAsHostThread();
+  Core::DeclareAsHostThread();
 
 #ifdef __APPLE__
   // On macOS, a command line option matching the format "-psn_X_XXXXXX" is passed when
@@ -147,28 +147,16 @@ int main(int argc, char* argv[])
 #endif
 #endif
 
-  auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::IncludeGUIOptions);
-  const optparse::Values& options = CommandLineParse::ParseArguments(parser.get(), argc, argv);
-  const std::vector<std::string> args = parser->args();
-
-  // setHighDpiScaleFactorRoundingPolicy was added in 5.14, but default behavior changed in 6.0
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
-  // Set to the previous default behavior
-  QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::Round);
-#else
-  QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-  QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
-#endif
-
   QCoreApplication::setOrganizationName(QStringLiteral("Dolphin Emulator"));
   QCoreApplication::setOrganizationDomain(QStringLiteral("dolphin-emu.org"));
   QCoreApplication::setApplicationName(QStringLiteral("dolphin-emu"));
 
-#ifdef _WIN32
-  QApplication app(__argc, __argv);
-#else
+  // QApplication will parse arguments and remove any it recognizes as targeting Qt
   QApplication app(argc, argv);
-#endif
+
+  auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::IncludeGUIOptions);
+  const optparse::Values& options = CommandLineParse::ParseArguments(parser.get(), argc, argv);
+  const std::vector<std::string> args = parser->args();
 
 #ifdef _WIN32
   FreeConsole();
@@ -309,7 +297,7 @@ int main(int argc, char* argv[])
 #ifdef _WIN32
 int WINAPI wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int)
 {
-  std::vector<std::string> args = CommandLineToUtf8Argv(GetCommandLineW());
+  std::vector<std::string> args = Common::CommandLineToUtf8Argv(GetCommandLineW());
   const int argc = static_cast<int>(args.size());
   std::vector<char*> argv(args.size());
   for (size_t i = 0; i < args.size(); ++i)

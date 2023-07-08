@@ -93,7 +93,8 @@ Metal::Gfx::CreateStagingTexture(StagingTextureType type, const TextureConfig& c
 }
 
 std::unique_ptr<AbstractFramebuffer>
-Metal::Gfx::CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment)
+Metal::Gfx::CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
+                              std::vector<AbstractTexture*>)
 {
   AbstractTexture* const either_attachment = color_attachment ? color_attachment : depth_attachment;
   return std::make_unique<Framebuffer>(
@@ -385,7 +386,7 @@ void Metal::Gfx::SetSamplerState(u32 index, const SamplerState& state)
   g_state_tracker->SetSampler(index, state);
 }
 
-void Metal::Gfx::SetComputeImageTexture(AbstractTexture* texture, bool read, bool write)
+void Metal::Gfx::SetComputeImageTexture(u32, AbstractTexture* texture, bool read, bool write)
 {
   g_state_tracker->SetComputeTexture(static_cast<const Texture*>(texture));
 }

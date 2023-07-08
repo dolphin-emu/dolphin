@@ -12,8 +12,8 @@
 #include <QTableWidget>
 #include <QVBoxLayout>
 
-#include "Common/Debug/CodeTrace.h"
 #include "Core/Core.h"
+#include "Core/Debugger/CodeTrace.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"

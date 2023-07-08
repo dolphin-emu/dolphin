@@ -57,7 +57,8 @@ class HSPManager;
 namespace IOS::HLE::USB
 {
 class SkylanderPortal;
-};
+class InfinityBase;
+};  // namespace IOS::HLE::USB
 namespace Memory
 {
 class MemoryManager;
@@ -84,6 +85,10 @@ namespace SerialInterface
 {
 class SerialInterfaceManager;
 };
+namespace VideoCommon
+{
+class CustomAssetLoader;
+}
 namespace VideoInterface
 {
 class VideoInterfaceManager;
@@ -138,6 +143,7 @@ public:
   Interpreter& GetInterpreter() const;
   JitInterface& GetJitInterface() const;
   IOS::HLE::USB::SkylanderPortal& GetSkylanderPortal() const;
+  IOS::HLE::USB::InfinityBase& GetInfinityBase() const;
   Memory::MemoryManager& GetMemory() const;
   MemoryInterface::MemoryInterfaceManager& GetMemoryInterface() const;
   PowerPC::MMU& GetMMU() const;
@@ -150,6 +156,7 @@ public:
   Sram& GetSRAM() const;
   VertexShaderManager& GetVertexShaderManager() const;
   VideoInterface::VideoInterfaceManager& GetVideoInterface() const;
+  VideoCommon::CustomAssetLoader& GetCustomAssetLoader() const;
 
 private:
   System();

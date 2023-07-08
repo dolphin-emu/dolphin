@@ -44,6 +44,8 @@ const Info<bool> GFX_OVERLAY_SCISSOR_STATS{{System::GFX, "Settings", "OverlaySci
 const Info<bool> GFX_DUMP_TEXTURES{{System::GFX, "Settings", "DumpTextures"}, false};
 const Info<bool> GFX_DUMP_MIP_TEXTURES{{System::GFX, "Settings", "DumpMipTextures"}, true};
 const Info<bool> GFX_DUMP_BASE_TEXTURES{{System::GFX, "Settings", "DumpBaseTextures"}, true};
+const Info<int> GFX_TEXTURE_PNG_COMPRESSION_LEVEL{
+    {System::GFX, "Settings", "TexturePNGCompressionLevel"}, 6};
 const Info<bool> GFX_HIRES_TEXTURES{{System::GFX, "Settings", "HiresTextures"}, false};
 const Info<bool> GFX_CACHE_HIRES_TEXTURES{{System::GFX, "Settings", "CacheHiresTextures"}, false};
 const Info<bool> GFX_DUMP_EFB_TARGET{{System::GFX, "Settings", "DumpEFBTarget"}, false};
@@ -109,6 +111,8 @@ const Info<bool> GFX_PREFER_GLES{{System::GFX, "Settings", "PreferGLES"}, false}
 
 const Info<bool> GFX_MODS_ENABLE{{System::GFX, "Settings", "EnableMods"}, false};
 
+const Info<std::string> GFX_DRIVER_LIB_NAME{{System::GFX, "Settings", "DriverLibName"}, ""};
+
 // Graphics.Enhancements
 
 const Info<TextureFilteringMode> GFX_ENHANCE_FORCE_TEXTURE_FILTERING{
@@ -124,6 +128,22 @@ const Info<bool> GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION{
     {System::GFX, "Enhancements", "ArbitraryMipmapDetection"}, true};
 const Info<float> GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_THRESHOLD{
     {System::GFX, "Enhancements", "ArbitraryMipmapDetectionThreshold"}, 14.0f};
+const Info<bool> GFX_ENHANCE_HDR_OUTPUT{{System::GFX, "Enhancements", "HDROutput"}, false};
+
+// Color.Correction
+
+const Info<bool> GFX_CC_CORRECT_COLOR_SPACE{{System::GFX, "ColorCorrection", "CorrectColorSpace"},
+                                            false};
+const Info<ColorCorrectionRegion> GFX_CC_GAME_COLOR_SPACE{
+    {System::GFX, "ColorCorrection", "GameColorSpace"}, ColorCorrectionRegion::SMPTE_NTSCM};
+const Info<bool> GFX_CC_CORRECT_GAMMA{{System::GFX, "ColorCorrection", "CorrectGamma"}, false};
+const Info<float> GFX_CC_GAME_GAMMA{{System::GFX, "ColorCorrection", "GameGamma"}, 2.35f};
+const Info<bool> GFX_CC_SDR_DISPLAY_GAMMA_SRGB{
+    {System::GFX, "ColorCorrection", "SDRDisplayGammaSRGB"}, true};
+const Info<float> GFX_CC_SDR_DISPLAY_CUSTOM_GAMMA{
+    {System::GFX, "ColorCorrection", "SDRDisplayCustomGamma"}, 2.2f};
+const Info<float> GFX_CC_HDR_PAPER_WHITE_NITS{{System::GFX, "ColorCorrection", "HDRPaperWhiteNits"},
+                                              200.f};
 
 // Graphics.Stereoscopy
 
@@ -169,4 +189,5 @@ const Info<bool> GFX_HACK_NO_MIPMAPPING{{System::GFX, "Hacks", "NoMipmapping"}, 
 // Graphics.GameSpecific
 
 const Info<bool> GFX_PERF_QUERIES_ENABLE{{System::GFX, "GameSpecific", "PerfQueriesEnable"}, false};
+
 }  // namespace Config

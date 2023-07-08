@@ -126,11 +126,11 @@ void BreakpointWidget::CreateWidgets()
 
 void BreakpointWidget::UpdateIcons()
 {
-  m_new->setIcon(Resources::GetScaledThemeIcon("debugger_add_breakpoint"));
-  m_delete->setIcon(Resources::GetScaledThemeIcon("debugger_delete"));
-  m_clear->setIcon(Resources::GetScaledThemeIcon("debugger_clear"));
-  m_load->setIcon(Resources::GetScaledThemeIcon("debugger_load"));
-  m_save->setIcon(Resources::GetScaledThemeIcon("debugger_save"));
+  m_new->setIcon(Resources::GetThemeIcon("debugger_add_breakpoint"));
+  m_delete->setIcon(Resources::GetThemeIcon("debugger_delete"));
+  m_clear->setIcon(Resources::GetThemeIcon("debugger_clear"));
+  m_load->setIcon(Resources::GetThemeIcon("debugger_load"));
+  m_save->setIcon(Resources::GetThemeIcon("debugger_save"));
 }
 
 void BreakpointWidget::closeEvent(QCloseEvent*)
@@ -168,7 +168,7 @@ void BreakpointWidget::Update()
   int i = 0;
   m_table->setRowCount(i);
 
-  const auto create_item = [](const QString string = {}) {
+  const auto create_item = [](const QString& string = {}) {
     QTableWidgetItem* item = new QTableWidgetItem(string);
     item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
     return item;

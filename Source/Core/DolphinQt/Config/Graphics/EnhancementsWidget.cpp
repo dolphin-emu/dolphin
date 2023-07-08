@@ -14,16 +14,15 @@
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigManager.h"
 
-#include "DolphinQt/Config/Graphics/GraphicsBool.h"
-#include "DolphinQt/Config/Graphics/GraphicsChoice.h"
-#include "DolphinQt/Config/Graphics/GraphicsRadio.h"
-#include "DolphinQt/Config/Graphics/GraphicsSlider.h"
+#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
+#include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
+#include "DolphinQt/Config/ConfigControls/ConfigRadio.h"
+#include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
+#include "DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt/Config/Graphics/PostProcessingConfigWindow.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/Settings.h"
-
-#include "UICommon/VideoUtils.h"
 
 #include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -82,7 +81,7 @@ void EnhancementsWidget::CreateWidgets()
                                        QString::number(static_cast<int>(EFB_HEIGHT) * scale)));
   }
 
-  m_ir_combo = new GraphicsChoice(resolution_options, Config::GFX_EFB_SCALE);
+  m_ir_combo = new ConfigChoice(resolution_options, Config::GFX_EFB_SCALE);
   m_ir_combo->setMaxVisibleItems(visible_resolution_option_count);
 
   m_aa_combo = new ToolTipComboBox();
@@ -104,20 +103,23 @@ void EnhancementsWidget::CreateWidgets()
   m_texture_filtering_combo->addItem(tr("Force Linear and 16x Anisotropic"),
                                      TEXTURE_FILTERING_FORCE_LINEAR_ANISO_16X);
 
+  m_configure_color_correction = new NonDefaultQPushButton(tr("Configure"));
+
   m_pp_effect = new ToolTipComboBox();
   m_configure_pp_effect = new NonDefaultQPushButton(tr("Configure"));
-  m_scaled_efb_copy = new GraphicsBool(tr("Scaled EFB Copy"), Config::GFX_HACK_COPY_EFB_SCALED);
+  m_scaled_efb_copy = new ConfigBool(tr("Scaled EFB Copy"), Config::GFX_HACK_COPY_EFB_SCALED);
   m_per_pixel_lighting =
-      new GraphicsBool(tr("Per-Pixel Lighting"), Config::GFX_ENABLE_PIXEL_LIGHTING);
+      new ConfigBool(tr("Per-Pixel Lighting"), Config::GFX_ENABLE_PIXEL_LIGHTING);
 
-  m_widescreen_hack = new GraphicsBool(tr("Widescreen Hack"), Config::GFX_WIDESCREEN_HACK);
-  m_disable_fog = new GraphicsBool(tr("Disable Fog"), Config::GFX_DISABLE_FOG);
+  m_widescreen_hack = new ConfigBool(tr("Widescreen Hack"), Config::GFX_WIDESCREEN_HACK);
+  m_disable_fog = new ConfigBool(tr("Disable Fog"), Config::GFX_DISABLE_FOG);
   m_force_24bit_color =
-      new GraphicsBool(tr("Force 24-Bit Color"), Config::GFX_ENHANCE_FORCE_TRUE_COLOR);
+      new ConfigBool(tr("Force 24-Bit Color"), Config::GFX_ENHANCE_FORCE_TRUE_COLOR);
   m_disable_copy_filter =
-      new GraphicsBool(tr("Disable Copy Filter"), Config::GFX_ENHANCE_DISABLE_COPY_FILTER);
-  m_arbitrary_mipmap_detection = new GraphicsBool(tr("Arbitrary Mipmap Detection"),
-                                                  Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION);
+      new ConfigBool(tr("Disable Copy Filter"), Config::GFX_ENHANCE_DISABLE_COPY_FILTER);
+  m_arbitrary_mipmap_detection = new ConfigBool(tr("Arbitrary Mipmap Detection"),
+                                                Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION);
+  m_hdr = new ConfigBool(tr("HDR Post-Processing"), Config::GFX_ENHANCE_HDR_OUTPUT);
 
   int row = 0;
   enhancements_layout->addWidget(new QLabel(tr("Internal Resolution:")), row, 0);
@@ -130,6 +132,10 @@ void EnhancementsWidget::CreateWidgets()
 
   enhancements_layout->addWidget(new QLabel(tr("Texture Filtering:")), row, 0);
   enhancements_layout->addWidget(m_texture_filtering_combo, row, 1, 1, -1);
+  ++row;
+
+  enhancements_layout->addWidget(new QLabel(tr("Color Correction:")), row, 0);
+  enhancements_layout->addWidget(m_configure_color_correction, row, 1, 1, -1);
   ++row;
 
   enhancements_layout->addWidget(new QLabel(tr("Post-Processing Effect:")), row, 0);
@@ -150,6 +156,7 @@ void EnhancementsWidget::CreateWidgets()
   ++row;
 
   enhancements_layout->addWidget(m_disable_copy_filter, row, 0);
+  enhancements_layout->addWidget(m_hdr, row, 1, 1, -1);
   ++row;
 
   // Stereoscopy
@@ -157,13 +164,13 @@ void EnhancementsWidget::CreateWidgets()
   auto* stereoscopy_layout = new QGridLayout();
   stereoscopy_box->setLayout(stereoscopy_layout);
 
-  m_3d_mode = new GraphicsChoice({tr("Off"), tr("Side-by-Side"), tr("Top-and-Bottom"),
-                                  tr("Anaglyph"), tr("HDMI 3D"), tr("Passive")},
-                                 Config::GFX_STEREO_MODE);
-  m_3d_depth = new GraphicsSlider(0, Config::GFX_STEREO_DEPTH_MAXIMUM, Config::GFX_STEREO_DEPTH);
-  m_3d_convergence = new GraphicsSlider(0, Config::GFX_STEREO_CONVERGENCE_MAXIMUM,
-                                        Config::GFX_STEREO_CONVERGENCE, 100);
-  m_3d_swap_eyes = new GraphicsBool(tr("Swap Eyes"), Config::GFX_STEREO_SWAP_EYES);
+  m_3d_mode = new ConfigChoice({tr("Off"), tr("Side-by-Side"), tr("Top-and-Bottom"), tr("Anaglyph"),
+                                tr("HDMI 3D"), tr("Passive")},
+                               Config::GFX_STEREO_MODE);
+  m_3d_depth = new ConfigSlider(0, Config::GFX_STEREO_DEPTH_MAXIMUM, Config::GFX_STEREO_DEPTH);
+  m_3d_convergence = new ConfigSlider(0, Config::GFX_STEREO_CONVERGENCE_MAXIMUM,
+                                      Config::GFX_STEREO_CONVERGENCE, 100);
+  m_3d_swap_eyes = new ConfigBool(tr("Swap Eyes"), Config::GFX_STEREO_SWAP_EYES);
 
   stereoscopy_layout->addWidget(new QLabel(tr("Stereoscopic 3D Mode:")), 0, 0);
   stereoscopy_layout->addWidget(m_3d_mode, 0, 1);
@@ -190,11 +197,14 @@ void EnhancementsWidget::ConnectWidgets()
           [this](int) { SaveSettings(); });
   connect(m_3d_mode, qOverload<int>(&QComboBox::currentIndexChanged), [this] {
     m_block_save = true;
+    m_configure_color_correction->setEnabled(g_Config.backend_info.bSupportsPostProcessing);
     LoadPPShaders();
     m_block_save = false;
 
     SaveSettings();
   });
+  connect(m_configure_color_correction, &QPushButton::clicked, this,
+          &EnhancementsWidget::ConfigureColorCorrection);
   connect(m_configure_pp_effect, &QPushButton::clicked, this,
           &EnhancementsWidget::ConfigurePostProcessingShader);
 }
@@ -260,18 +270,38 @@ void EnhancementsWidget::LoadSettings()
   m_block_save = true;
   // Anti-Aliasing
 
-  const int aa_selection = Config::Get(Config::GFX_MSAA);
+  const u32 aa_selection = Config::Get(Config::GFX_MSAA);
   const bool ssaa = Config::Get(Config::GFX_SSAA);
   const int aniso = Config::Get(Config::GFX_ENHANCE_MAX_ANISOTROPY);
   const TextureFilteringMode tex_filter_mode =
       Config::Get(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING);
 
   m_aa_combo->clear();
-  for (const auto& option : VideoUtils::GetAvailableAntialiasingModes(m_msaa_modes))
-    m_aa_combo->addItem(option == "None" ? tr("None") : QString::fromStdString(option));
 
-  m_aa_combo->setCurrentText(
-      QString::fromStdString(std::to_string(aa_selection) + "x " + (ssaa ? "SSAA" : "MSAA")));
+  for (const u32 aa_mode : g_Config.backend_info.AAModes)
+  {
+    if (aa_mode == 1)
+      m_aa_combo->addItem(tr("None"), 1);
+    else
+      m_aa_combo->addItem(tr("%1x MSAA").arg(aa_mode), static_cast<int>(aa_mode));
+
+    if (aa_mode == aa_selection && !ssaa)
+      m_aa_combo->setCurrentIndex(m_aa_combo->count() - 1);
+  }
+  if (g_Config.backend_info.bSupportsSSAA)
+  {
+    for (const u32 aa_mode : g_Config.backend_info.AAModes)
+    {
+      if (aa_mode != 1)  // don't show "None" twice
+      {
+        // Mark SSAA using negative values in the variant
+        m_aa_combo->addItem(tr("%1x SSAA").arg(aa_mode), -static_cast<int>(aa_mode));
+        if (aa_mode == aa_selection && ssaa)
+          m_aa_combo->setCurrentIndex(m_aa_combo->count() - 1);
+      }
+    }
+  }
+
   m_aa_combo->setEnabled(m_aa_combo->count() > 1);
 
   switch (tex_filter_mode)
@@ -293,6 +323,8 @@ void EnhancementsWidget::LoadSettings()
     break;
   }
 
+  m_configure_color_correction->setEnabled(g_Config.backend_info.bSupportsPostProcessing);
+
   // Post Processing Shader
   LoadPPShaders();
 
@@ -302,6 +334,9 @@ void EnhancementsWidget::LoadSettings()
   m_3d_convergence->setEnabled(supports_stereoscopy);
   m_3d_depth->setEnabled(supports_stereoscopy);
   m_3d_swap_eyes->setEnabled(supports_stereoscopy);
+
+  m_hdr->setEnabled(g_Config.backend_info.bSupportsHDROutput);
+
   m_block_save = false;
 }
 
@@ -310,22 +345,10 @@ void EnhancementsWidget::SaveSettings()
   if (m_block_save)
     return;
 
-  bool is_ssaa = m_aa_combo->currentText().endsWith(QStringLiteral("SSAA"));
+  const u32 aa_value = static_cast<u32>(std::abs(m_aa_combo->currentData().toInt()));
+  const bool is_ssaa = m_aa_combo->currentData().toInt() < 0;
 
-  int aa_value = m_aa_combo->currentIndex();
-
-  if (aa_value == 0)
-  {
-    aa_value = 1;
-  }
-  else
-  {
-    if (aa_value > m_msaa_modes)
-      aa_value -= m_msaa_modes;
-    aa_value = std::pow(2, aa_value);
-  }
-  Config::SetBaseOrCurrent(Config::GFX_MSAA, static_cast<unsigned int>(aa_value));
-
+  Config::SetBaseOrCurrent(Config::GFX_MSAA, aa_value);
   Config::SetBaseOrCurrent(Config::GFX_SSAA, is_ssaa);
 
   const int texture_filtering_selection = m_texture_filtering_combo->currentData().toInt();
@@ -430,6 +453,9 @@ void EnhancementsWidget::AddDescriptions()
       "scaling filter selected by the game.<br><br>Any option except 'Default' will alter the look "
       "of the game's textures and might cause issues in a small number of "
       "games.<br><br><dolphin_emphasis>If unsure, select 'Default'.</dolphin_emphasis>");
+  static const char TR_COLOR_CORRECTION_DESCRIPTION[] =
+      QT_TR_NOOP("A group of features to make the colors more accurate,"
+                 " matching the color space Wii and GC games were meant for.");
   static const char TR_POSTPROCESSING_DESCRIPTION[] =
       QT_TR_NOOP("Applies a post-processing effect after rendering a frame.<br><br "
                  "/><dolphin_emphasis>If unsure, select (off).</dolphin_emphasis>");
@@ -492,6 +518,13 @@ void EnhancementsWidget::AddDescriptions()
       "reduce stutter in games that frequently load new textures. This feature is not compatible "
       "with GPU Texture Decoding.<br><br><dolphin_emphasis>If unsure, leave this "
       "checked.</dolphin_emphasis>");
+  static const char TR_HDR_DESCRIPTION[] = QT_TR_NOOP(
+      "Enables scRGB HDR output (if supported by your graphics backend and monitor)."
+      " Fullscreen might be required."
+      "<br><br>This gives post process shaders more room for accuracy, allows \"AutoHDR\" "
+      "post-process shaders to work, and allows to fully display the PAL and NTSC-J color spaces."
+      "<br><br>Note that games still render in SDR internally."
+      "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
 
   m_ir_combo->SetTitle(tr("Internal Resolution"));
   m_ir_combo->SetDescription(tr(TR_INTERNAL_RESOLUTION_DESCRIPTION));
@@ -501,6 +534,8 @@ void EnhancementsWidget::AddDescriptions()
 
   m_texture_filtering_combo->SetTitle(tr("Texture Filtering"));
   m_texture_filtering_combo->SetDescription(tr(TR_FORCE_TEXTURE_FILTERING_DESCRIPTION));
+
+  m_configure_color_correction->setToolTip(tr(TR_COLOR_CORRECTION_DESCRIPTION));
 
   m_pp_effect->SetTitle(tr("Post-Processing Effect"));
   m_pp_effect->SetDescription(tr(TR_POSTPROCESSING_DESCRIPTION));
@@ -519,6 +554,8 @@ void EnhancementsWidget::AddDescriptions()
 
   m_arbitrary_mipmap_detection->SetDescription(tr(TR_ARBITRARY_MIPMAP_DETECTION_DESCRIPTION));
 
+  m_hdr->SetDescription(tr(TR_HDR_DESCRIPTION));
+
   m_3d_mode->SetTitle(tr("Stereoscopic 3D Mode"));
   m_3d_mode->SetDescription(tr(TR_3D_MODE_DESCRIPTION));
 
@@ -529,6 +566,11 @@ void EnhancementsWidget::AddDescriptions()
   m_3d_convergence->SetDescription(tr(TR_3D_CONVERGENCE_DESCRIPTION));
 
   m_3d_swap_eyes->SetDescription(tr(TR_3D_SWAP_EYES_DESCRIPTION));
+}
+
+void EnhancementsWidget::ConfigureColorCorrection()
+{
+  ColorCorrectionConfigWindow(this).exec();
 }
 
 void EnhancementsWidget::ConfigurePostProcessingShader()

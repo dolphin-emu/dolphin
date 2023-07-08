@@ -12,6 +12,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/GPFifo.h"
@@ -695,16 +696,50 @@ void CommandProcessorManager::HandleUnknownOpcode(Core::System& system, u8 cmd_b
   {
     m_is_fifo_error_seen = true;
 
-    // TODO(Omega): Maybe dump FIFO to file on this error
+    // The panic alert contains an explanatory part that's worded differently depending on the
+    // user's settings, so as to offer the most relevant advice to the user.
+    const char* advice;
+    if (IsOnThread(system) && !system.GetFifo().UseDeterministicGPUThread())
+    {
+      if (!system.GetCoreTiming().UseSyncOnSkipIdle() && !system.GetFifo().UseSyncGPU())
+      {
+// The SyncOnSkipIdle setting is only in the Android GUI, so we use the INI name on other platforms.
+//
+// TODO: Mark the Android string as translatable once we have translations on Android. It's
+// currently untranslatable so translators won't try to look up how they translated "Synchronize
+// GPU Thread" and "On Idle Skipping" and then not find those strings and become confused.
+#ifdef ANDROID
+        advice = "Please change the \"Synchronize GPU Thread\" setting to \"On Idle Skipping\"! "
+                 "It's currently set to \"Never\", which makes this problem very likely to happen.";
+#else
+        // i18n: Please leave SyncOnSkipIdle and True untranslated.
+        // The user needs to enter these terms as-is in an INI file.
+        advice = _trans("Please change the \"SyncOnSkipIdle\" setting to \"True\"! "
+                        "It's currently disabled, which makes this problem very likely to happen.");
+#endif
+      }
+      else
+      {
+        advice = _trans(
+            "This error is usually caused by the emulated GPU desyncing with the emulated CPU. "
+            "Turn off the \"Dual Core\" setting to avoid this.");
+      }
+    }
+    else
+    {
+      advice = _trans(
+          "This error is usually caused by the emulated GPU desyncing with the emulated CPU, "
+          "but your current settings make this unlikely to happen. If this error is stopping the "
+          "game from working, please report it to the developers.");
+    }
+
     PanicAlertFmtT("GFX FIFO: Unknown Opcode ({0:#04x} @ {1}, preprocess={2}).\n"
-                   "This means one of the following:\n"
-                   "* The emulated GPU got desynced, disabling dual core can help\n"
-                   "* Command stream corrupted by some spurious memory bug\n"
-                   "* This really is an unknown opcode (unlikely)\n"
-                   "* Some other sort of bug\n\n"
-                   "Further errors will be sent to the Video Backend log and\n"
+                   "\n"
+                   "{3}\n"
+                   "\n"
+                   "Further errors will be sent to the Video Backend log and "
                    "Dolphin will now likely crash or hang.",
-                   cmd_byte, fmt::ptr(buffer), preprocess);
+                   cmd_byte, fmt::ptr(buffer), preprocess, Common::GetStringT(advice));
   }
 }
 

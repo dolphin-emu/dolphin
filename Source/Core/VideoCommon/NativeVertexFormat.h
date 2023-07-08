@@ -10,7 +10,7 @@
 #include "VideoCommon/CPMemory.h"
 
 // m_components
-enum
+enum : u32
 {
   VB_HAS_POSMTXIDX = (1 << 1),
   VB_HAS_TEXMTXIDX0 = (1 << 2),

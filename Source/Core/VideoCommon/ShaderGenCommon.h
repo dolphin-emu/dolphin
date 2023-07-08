@@ -227,14 +227,11 @@ std::string BitfieldExtract(std::string_view source)
                      static_cast<u32>(BitFieldT::NumBits()));
 }
 
-template <auto last_member, typename = decltype(last_member)>
+template <auto last_member>
 void WriteSwitch(ShaderCode& out, APIType ApiType, std::string_view variable,
                  const Common::EnumMap<std::string_view, last_member>& values, int indent,
                  bool break_)
 {
-  // The second template argument is needed to avoid compile errors from ambiguity with multiple
-  // enums with the same number of members in GCC prior to 8.  See https://godbolt.org/z/xcKaW1seW
-  // and https://godbolt.org/z/hz7Yqq1P5
   using enum_type = decltype(last_member);
 
   // Generate a tree of if statements recursively

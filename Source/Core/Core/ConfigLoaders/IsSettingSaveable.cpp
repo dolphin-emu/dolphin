@@ -44,6 +44,11 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::RA_ENABLED.GetLocation(),
       &Config::RA_USERNAME.GetLocation(),
       &Config::RA_API_TOKEN.GetLocation(),
+      &Config::RA_ACHIEVEMENTS_ENABLED.GetLocation(),
+      &Config::RA_LEADERBOARDS_ENABLED.GetLocation(),
+      &Config::RA_RICH_PRESENCE_ENABLED.GetLocation(),
+      &Config::RA_UNOFFICIAL_ENABLED.GetLocation(),
+      &Config::RA_ENCORE_ENABLED.GetLocation(),
   };
 
   return std::any_of(begin(s_setting_saveable), end(s_setting_saveable),

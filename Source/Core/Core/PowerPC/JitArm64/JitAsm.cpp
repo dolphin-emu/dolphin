@@ -110,35 +110,67 @@ void JitArm64::GenerateAsm()
            jo.fastmem_arena ? memory.GetLogicalBase() : memory.GetLogicalPageMappingsBase());
     SetJumpTarget(membaseend);
 
-    // iCache[(address >> 2) & iCache_Mask];
-    ARM64Reg pc_masked = ARM64Reg::W25;
-    ARM64Reg cache_base = ARM64Reg::X27;
-    ARM64Reg block = ARM64Reg::X30;
-    ORR(pc_masked, ARM64Reg::WZR, LogicalImm(JitBaseBlockCache::FAST_BLOCK_MAP_MASK << 3, 32));
-    AND(pc_masked, pc_masked, DISPATCHER_PC, ArithOption(DISPATCHER_PC, ShiftType::LSL, 1));
-    MOVP2R(cache_base, GetBlockCache()->GetFastBlockMap());
-    LDR(block, cache_base, EncodeRegTo64(pc_masked));
-    FixupBranch not_found = CBZ(block);
+    if (GetBlockCache()->GetFastBlockMap())
+    {
+      // Check if there is a block
+      ARM64Reg pc_masked = ARM64Reg::X25;
+      ARM64Reg cache_base = ARM64Reg::X27;
+      ARM64Reg block = ARM64Reg::X30;
+      LSL(pc_masked, DISPATCHER_PC, 1);
+      MOVP2R(cache_base, GetBlockCache()->GetFastBlockMap());
+      LDR(block, cache_base, pc_masked);
+      FixupBranch not_found = CBZ(block);
 
-    // b.effectiveAddress != addr || b.msrBits != msr
-    ARM64Reg pc_and_msr = ARM64Reg::W25;
-    ARM64Reg pc_and_msr2 = ARM64Reg::W24;
-    LDR(IndexType::Unsigned, pc_and_msr, block, offsetof(JitBlockData, effectiveAddress));
-    CMP(pc_and_msr, DISPATCHER_PC);
-    FixupBranch pc_missmatch = B(CC_NEQ);
+      // b.msrBits != msr
+      ARM64Reg msr = ARM64Reg::W25;
+      ARM64Reg msr2 = ARM64Reg::W24;
+      LDR(IndexType::Unsigned, msr, PPC_REG, PPCSTATE_OFF(msr));
+      AND(msr, msr, LogicalImm(JitBaseBlockCache::JIT_CACHE_MSR_MASK, 32));
+      LDR(IndexType::Unsigned, msr2, block, offsetof(JitBlockData, msrBits));
+      CMP(msr, msr2);
 
-    LDR(IndexType::Unsigned, pc_and_msr2, PPC_REG, PPCSTATE_OFF(msr));
-    AND(pc_and_msr2, pc_and_msr2, LogicalImm(JitBaseBlockCache::JIT_CACHE_MSR_MASK, 32));
-    LDR(IndexType::Unsigned, pc_and_msr, block, offsetof(JitBlockData, msrBits));
-    CMP(pc_and_msr, pc_and_msr2);
-    FixupBranch msr_missmatch = B(CC_NEQ);
+      FixupBranch msr_missmatch = B(CC_NEQ);
 
-    // return blocks[block_num].normalEntry;
-    LDR(IndexType::Unsigned, block, block, offsetof(JitBlockData, normalEntry));
-    BR(block);
-    SetJumpTarget(not_found);
-    SetJumpTarget(pc_missmatch);
-    SetJumpTarget(msr_missmatch);
+      // return blocks[block_num].normalEntry;
+      LDR(IndexType::Unsigned, block, block, offsetof(JitBlockData, normalEntry));
+      BR(block);
+      SetJumpTarget(not_found);
+      SetJumpTarget(msr_missmatch);
+    }
+    else
+    {
+      // iCache[(address >> 2) & iCache_Mask];
+      ARM64Reg pc_masked = ARM64Reg::W25;
+      ARM64Reg cache_base = ARM64Reg::X27;
+      ARM64Reg block = ARM64Reg::X30;
+      ORR(pc_masked, ARM64Reg::WZR,
+          LogicalImm(JitBaseBlockCache::FAST_BLOCK_MAP_FALLBACK_MASK << 3, 32));
+      AND(pc_masked, pc_masked, DISPATCHER_PC, ArithOption(DISPATCHER_PC, ShiftType::LSL, 1));
+      MOVP2R(cache_base, GetBlockCache()->GetFastBlockMapFallback());
+      LDR(block, cache_base, EncodeRegTo64(pc_masked));
+      FixupBranch not_found = CBZ(block);
+
+      // b.effectiveAddress != addr || b.msrBits != msr
+      ARM64Reg pc_and_msr = ARM64Reg::W25;
+      ARM64Reg pc_and_msr2 = ARM64Reg::W24;
+      LDR(IndexType::Unsigned, pc_and_msr, block, offsetof(JitBlockData, effectiveAddress));
+      CMP(pc_and_msr, DISPATCHER_PC);
+      FixupBranch pc_missmatch = B(CC_NEQ);
+
+      LDR(IndexType::Unsigned, pc_and_msr2, PPC_REG, PPCSTATE_OFF(msr));
+      AND(pc_and_msr2, pc_and_msr2, LogicalImm(JitBaseBlockCache::JIT_CACHE_MSR_MASK, 32));
+      LDR(IndexType::Unsigned, pc_and_msr, block, offsetof(JitBlockData, msrBits));
+      CMP(pc_and_msr, pc_and_msr2);
+
+      FixupBranch msr_missmatch = B(CC_NEQ);
+
+      // return blocks[block_num].normalEntry;
+      LDR(IndexType::Unsigned, block, block, offsetof(JitBlockData, normalEntry));
+      BR(block);
+      SetJumpTarget(not_found);
+      SetJumpTarget(pc_missmatch);
+      SetJumpTarget(msr_missmatch);
+    }
   }
 
   // Call C version of Dispatch().
@@ -205,7 +237,7 @@ void JitArm64::GenerateAsm()
   ABI_PopRegisters(regs_to_save);
   RET(ARM64Reg::X30);
 
-  JitRegister::Register(enter_code, GetCodePtr(), "JIT_Dispatcher");
+  Common::JitRegister::Register(enter_code, GetCodePtr(), "JIT_Dispatcher");
 
   GenerateCommonAsm();
 
@@ -216,25 +248,25 @@ void JitArm64::GenerateCommonAsm()
 {
   GetAsmRoutines()->fres = GetCodePtr();
   GenerateFres();
-  JitRegister::Register(GetAsmRoutines()->fres, GetCodePtr(), "JIT_fres");
+  Common::JitRegister::Register(GetAsmRoutines()->fres, GetCodePtr(), "JIT_fres");
 
   GetAsmRoutines()->frsqrte = GetCodePtr();
   GenerateFrsqrte();
-  JitRegister::Register(GetAsmRoutines()->frsqrte, GetCodePtr(), "JIT_frsqrte");
+  Common::JitRegister::Register(GetAsmRoutines()->frsqrte, GetCodePtr(), "JIT_frsqrte");
 
   GetAsmRoutines()->cdts = GetCodePtr();
   GenerateConvertDoubleToSingle();
-  JitRegister::Register(GetAsmRoutines()->cdts, GetCodePtr(), "JIT_cdts");
+  Common::JitRegister::Register(GetAsmRoutines()->cdts, GetCodePtr(), "JIT_cdts");
 
   GetAsmRoutines()->cstd = GetCodePtr();
   GenerateConvertSingleToDouble();
-  JitRegister::Register(GetAsmRoutines()->cstd, GetCodePtr(), "JIT_cstd");
+  Common::JitRegister::Register(GetAsmRoutines()->cstd, GetCodePtr(), "JIT_cstd");
 
   GetAsmRoutines()->fprf_single = GetCodePtr();
   GenerateFPRF(true);
   GetAsmRoutines()->fprf_double = GetCodePtr();
   GenerateFPRF(false);
-  JitRegister::Register(GetAsmRoutines()->fprf_single, GetCodePtr(), "JIT_FPRF");
+  Common::JitRegister::Register(GetAsmRoutines()->fprf_single, GetCodePtr(), "JIT_FPRF");
 
   GenerateQuantizedLoads();
   GenerateQuantizedStores();
@@ -255,19 +287,18 @@ void JitArm64::GenerateFres()
   CMP(ARM64Reg::X2, 895);
   FixupBranch small_exponent = B(CCFlags::CC_LO);
 
-  MOVI2R(ARM64Reg::X4, 1148LL);
-  CMP(ARM64Reg::X2, ARM64Reg::X4);
+  CMP(ARM64Reg::X2, 1148);
   FixupBranch large_exponent = B(CCFlags::CC_HI);
 
   UBFX(ARM64Reg::X2, ARM64Reg::X1, 47, 5);  // Grab upper part of mantissa
   MOVP2R(ARM64Reg::X3, &Common::fres_expected);
   ADD(ARM64Reg::X2, ARM64Reg::X3, ARM64Reg::X2, ArithOption(ARM64Reg::X2, ShiftType::LSL, 3));
-  LDP(IndexType::Signed, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::X2, 0);
   UBFX(ARM64Reg::X1, ARM64Reg::X1, 37, 10);  // Grab lower part of mantissa
+  LDP(IndexType::Signed, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::X2, 0);
   MOVI2R(ARM64Reg::W4, 1);
-  AND(ARM64Reg::X0, ARM64Reg::X0, LogicalImm(Common::DOUBLE_SIGN | Common::DOUBLE_EXP, 64));
   MADD(ARM64Reg::W1, ARM64Reg::W3, ARM64Reg::W1, ARM64Reg::W4);
   SUB(ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W1, ArithOption(ARM64Reg::W1, ShiftType::LSR, 1));
+  AND(ARM64Reg::X0, ARM64Reg::X0, LogicalImm(Common::DOUBLE_SIGN | Common::DOUBLE_EXP, 64));
   ORR(ARM64Reg::X0, ARM64Reg::X0, ARM64Reg::X1, ArithOption(ARM64Reg::X1, ShiftType::LSL, 29));
   RET();
 
@@ -288,8 +319,7 @@ void JitArm64::GenerateFres()
   RET();
 
   SetJumpTarget(large_exponent);
-  MOVI2R(ARM64Reg::X4, 0x7FF);
-  CMP(ARM64Reg::X2, ARM64Reg::X4);
+  CMP(ARM64Reg::X2, 0x7FF);
   CSEL(ARM64Reg::X0, ARM64Reg::X0, ARM64Reg::X3, CCFlags::CC_EQ);
   RET();
 }
@@ -677,7 +707,7 @@ void JitArm64::GenerateQuantizedLoads()
     RET(ARM64Reg::X30);
   }
 
-  JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedLoad");
+  Common::JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedLoad");
 
   paired_load_quantized = reinterpret_cast<const u8**>(AlignCode16());
   ReserveCodeSpace(8 * sizeof(u8*));
@@ -896,7 +926,7 @@ void JitArm64::GenerateQuantizedStores()
     RET(ARM64Reg::X30);
   }
 
-  JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedStore");
+  Common::JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedStore");
 
   paired_store_quantized = reinterpret_cast<const u8**>(AlignCode16());
   ReserveCodeSpace(8 * sizeof(u8*));

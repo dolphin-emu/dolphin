@@ -5,24 +5,18 @@ endif()
 
 if (MSVC)
   if(_M_ARM_64)
-    list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt6.3.0/ARM64")
+    list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt6.5.1/ARM64")
   else()
-    list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt6.3.0/x64")
+    list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt6.5.1/x64")
   endif()
 endif()
 
 set(CMAKE_AUTOMOC ON)
 
-# For some reason the method in Qt6 documentation is not working (at least on ubuntu jammy)
-# When Qt5 and Qt6 are given in same NAMES entry, only Qt5 is ever found.
-find_package(QT NAMES Qt6 COMPONENTS Core Gui Widgets)
-if(NOT QT_DIR)
-  find_package(QT NAMES Qt5 COMPONENTS Core Gui Widgets)
-endif()
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Widgets)
-message(STATUS "Found Qt version ${QT_VERSION}")
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Svg)
+message(STATUS "Found Qt version ${Qt6_VERSION}")
 
-set_property(TARGET Qt${QT_VERSION_MAJOR}::Core PROPERTY INTERFACE_COMPILE_FEATURES "")
+set_property(TARGET Qt6::Core PROPERTY INTERFACE_COMPILE_FEATURES "")
 
 add_executable(dolphin-emu
   AboutDialog.cpp
@@ -33,6 +27,14 @@ add_executable(dolphin-emu
   CheatSearchWidget.h
   CheatsManager.cpp
   CheatsManager.h
+  Achievements/AchievementHeaderWidget.cpp
+  Achievements/AchievementHeaderWidget.h
+  Achievements/AchievementProgressWidget.cpp
+  Achievements/AchievementProgressWidget.h
+  Achievements/AchievementSettingsWidget.cpp
+  Achievements/AchievementSettingsWidget.h
+  Achievements/AchievementsWindow.cpp
+  Achievements/AchievementsWindow.h
   Config/ARCodeWidget.cpp
   Config/ARCodeWidget.h
   Config/CheatCodeEditor.cpp
@@ -41,6 +43,18 @@ add_executable(dolphin-emu
   Config/CheatWarningWidget.h
   Config/CommonControllersWidget.cpp
   Config/CommonControllersWidget.h
+  Config/ConfigControls/ConfigBool.cpp
+  Config/ConfigControls/ConfigBool.h
+  Config/ConfigControls/ConfigChoice.cpp
+  Config/ConfigControls/ConfigChoice.h
+  Config/ConfigControls/ConfigInteger.cpp
+  Config/ConfigControls/ConfigInteger.h
+  Config/ConfigControls/ConfigRadio.cpp
+  Config/ConfigControls/ConfigRadio.h
+  Config/ConfigControls/ConfigFloatSlider.cpp
+  Config/ConfigControls/ConfigFloatSlider.h
+  Config/ConfigControls/ConfigSlider.cpp
+  Config/ConfigControls/ConfigSlider.h
   Config/ControllerInterface/ControllerInterfaceWindow.cpp
   Config/ControllerInterface/ControllerInterfaceWindow.h
   Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp
@@ -73,21 +87,12 @@ add_executable(dolphin-emu
   Config/Graphics/EnhancementsWidget.h
   Config/Graphics/GeneralWidget.cpp
   Config/Graphics/GeneralWidget.h
-  Config/Graphics/GraphicsBool.cpp
-  Config/Graphics/GraphicsBool.h
-  Config/Graphics/GraphicsChoice.cpp
-  Config/Graphics/GraphicsChoice.h
-  Config/Graphics/GraphicsInteger.cpp
-  Config/Graphics/GraphicsInteger.h
-  Config/Graphics/GraphicsRadio.cpp
-  Config/Graphics/GraphicsRadio.h
-  Config/Graphics/GraphicsSlider.cpp
-  Config/Graphics/GraphicsSlider.h
-  Config/Graphics/GraphicsWidget.h
   Config/Graphics/GraphicsWindow.cpp
   Config/Graphics/GraphicsWindow.h
   Config/Graphics/HacksWidget.cpp
   Config/Graphics/HacksWidget.h
+  Config/Graphics/ColorCorrectionConfigWindow.cpp
+  Config/Graphics/ColorCorrectionConfigWindow.h
   Config/Graphics/PostProcessingConfigWindow.cpp
   Config/Graphics/PostProcessingConfigWindow.h
   Config/GraphicsModListWidget.cpp
@@ -132,6 +137,8 @@ add_executable(dolphin-emu
   Config/Mapping/HotkeyStatesOther.h
   Config/Mapping/HotkeyTAS.cpp
   Config/Mapping/HotkeyTAS.h
+  Config/Mapping/HotkeyUSBEmu.cpp
+  Config/Mapping/HotkeyUSBEmu.h
   Config/Mapping/HotkeyWii.cpp
   Config/Mapping/HotkeyWii.h
   Config/Mapping/IOWindow.cpp
@@ -240,6 +247,8 @@ add_executable(dolphin-emu
   Host.h
   HotkeyScheduler.cpp
   HotkeyScheduler.h
+  InfinityBase/InfinityBaseWindow.cpp
+  InfinityBase/InfinityBaseWindow.h
   Main.cpp
   MainWindow.cpp
   MainWindow.h
@@ -291,8 +300,6 @@ add_executable(dolphin-emu
   QtUtils/UTF8CodePointCountValidator.h
   QtUtils/WindowActivationEventFilter.cpp
   QtUtils/WindowActivationEventFilter.h
-  QtUtils/WinIconHelper.cpp
-  QtUtils/WinIconHelper.h
   QtUtils/WrapInScrollArea.cpp
   QtUtils/WrapInScrollArea.h
   RenderWidget.cpp
@@ -374,13 +381,13 @@ PRIVATE
 target_include_directories(dolphin-emu
 PRIVATE
   ${CMAKE_CURRENT_BINARY_DIR}
-  ${Qt${QT_VERSION_MAJOR}Gui_PRIVATE_INCLUDE_DIRS}
+  ${Qt6Gui_PRIVATE_INCLUDE_DIRS}
 )
 
 target_link_libraries(dolphin-emu
 PRIVATE
   core
-  Qt${QT_VERSION_MAJOR}::Widgets
+  Qt6::Widgets
   uicommon
   imgui
   implot
@@ -408,14 +415,9 @@ if (MSVC)
   # Qt 6.3.0 headers use std::aligned_storage instead of alignas
   target_compile_definitions(dolphin-emu PRIVATE _SILENCE_CXX23_ALIGNED_STORAGE_DEPRECATION_WARNING)
 
-  if ("${QT_VERSION_MAJOR}" GREATER_EQUAL 6)
-    # Qt6 requires RTTI
-    remove_cxx_flag_from_target(dolphin-emu "/GR-")
-    target_compile_options(dolphin-emu PRIVATE "/GR")
-  else()
-    # Add precompiled header
-    target_link_libraries(audiocommon PRIVATE use_pch)
-  endif()
+  # Qt6 requires RTTI
+  remove_cxx_flag_from_target(dolphin-emu "/GR-")
+  target_compile_options(dolphin-emu PRIVATE "/GR")
 endif()
 
 if(WIN32)
@@ -448,16 +450,9 @@ if(WIN32)
   )
 
   # Delegate to Qt's official deployment binary on Windows to copy over the necessary Qt-specific libraries, etc.
-  get_target_property(MOC_EXECUTABLE_LOCATION Qt${QT_VERSION_MAJOR}::moc IMPORTED_LOCATION)
+  get_target_property(MOC_EXECUTABLE_LOCATION Qt6::moc IMPORTED_LOCATION)
   get_filename_component(QT_BINARY_DIRECTORY "${MOC_EXECUTABLE_LOCATION}" DIRECTORY)
   find_program(WINDEPLOYQT_EXE windeployqt HINTS "${QT_BINARY_DIRECTORY}")
-
-  if ("${QT_VERSION_MAJOR}" LESS 6)
-    set(NO_ANGLE_PARAM "--no-angle")
-  else()
-    # parameter no longer exists in Qt6
-    set(NO_ANGLE_PARAM "")
-  endif()
 
   # Note: We set the PATH for the duration of this command so that the
   #       deployment application is able to locate the Qt libraries to copy.
@@ -481,7 +476,6 @@ if(WIN32)
                                  --no-translations
                                  --no-compiler-runtime
                                  --no-system-d3d-compiler
-                                 "${NO_ANGLE_PARAM}"
                                  --no-opengl-sw
                                  "$<TARGET_FILE:dolphin-emu>"
   )
@@ -560,18 +554,16 @@ if(APPLE)
   target_sources(dolphin-emu PRIVATE "${CMAKE_SOURCE_DIR}/Data/Dolphin.icns")
   set_source_files_properties("${CMAKE_SOURCE_DIR}/Data/Dolphin.icns" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 
-  # Plugins have to be manually included with Qt 6
-  if (QT_VERSION_MAJOR EQUAL 6)
-    find_package(Qt6QMacStylePlugin REQUIRED PATHS ${Qt6Widgets_DIR})
-    find_package(Qt6QCocoaIntegrationPlugin REQUIRED PATHS ${Qt6Gui_DIR})
-  endif()
+  # Manually include plugins
+  find_package(Qt6QMacStylePlugin REQUIRED PATHS ${Qt6Widgets_DIR})
+  find_package(Qt6QCocoaIntegrationPlugin REQUIRED PATHS ${Qt6Gui_DIR})
 
   # Copy Qt plugins into the bundle
-  get_target_property(qtcocoa_location Qt${QT_VERSION_MAJOR}::QCocoaIntegrationPlugin LOCATION)
+  get_target_property(qtcocoa_location Qt6::QCocoaIntegrationPlugin LOCATION)
   target_sources(dolphin-emu PRIVATE "${qtcocoa_location}")
   set_source_files_properties("${qtcocoa_location}" PROPERTIES MACOSX_PACKAGE_LOCATION MacOS/platforms)
 
-  get_target_property(qtmacstyle_location Qt${QT_VERSION_MAJOR}::QMacStylePlugin LOCATION)
+  get_target_property(qtmacstyle_location Qt6::QMacStylePlugin LOCATION)
   target_sources(dolphin-emu PRIVATE "${qtmacstyle_location}")
   set_source_files_properties("${qtmacstyle_location}" PROPERTIES MACOSX_PACKAGE_LOCATION MacOS/styles)
 
@@ -640,9 +632,9 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND STEAM)
 
   add_custom_command(TARGET dolphin-emu POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib"
-    COMMAND cp "${QT_DIR}/../../LICENSE.*" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib"
-    COMMAND cp -P "${QT_DIR}/../../*.so*" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib"
-    COMMAND ${CMAKE_COMMAND} -E copy_directory "${QT_DIR}/../../../plugins" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/plugins"
+    COMMAND cp "${Qt6_DIR}/../../LICENSE.*" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib"
+    COMMAND cp -P "${Qt6_DIR}/../../*.so*" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${Qt6_DIR}/../../../plugins" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/plugins"
   )
 
   # Copy qt.conf

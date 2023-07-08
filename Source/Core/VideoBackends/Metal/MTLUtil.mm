@@ -193,20 +193,18 @@ void Metal::Util::PopulateBackendInfoFeatures(VideoConfig* config, id<MTLDevice>
   config->backend_info.bSupportsST3CTextures = true;
   config->backend_info.bSupportsBPTCTextures = true;
 #else
-  bool supports_mac1 = false;
   bool supports_apple4 = false;
+  bool supports_bcn = false;
   if (@available(iOS 13, *))
-  {
-    supports_mac1 = [device supportsFamily:MTLGPUFamilyMac1];
     supports_apple4 = [device supportsFamily:MTLGPUFamilyApple4];
-  }
   else
-  {
     supports_apple4 = [device supportsFeatureSet:MTLFeatureSet_iOS_GPUFamily4_v1];
-  }
-  config->backend_info.bSupportsDepthClamp = supports_mac1 || supports_apple4;
-  config->backend_info.bSupportsST3CTextures = supports_mac1;
-  config->backend_info.bSupportsBPTCTextures = supports_mac1;
+  if (@available(iOS 16.4, *))
+    supports_bcn = [device supportsBCTextureCompression];
+  config->backend_info.bSupportsDepthClamp = supports_apple4;
+  config->backend_info.bSupportsST3CTextures = supports_bcn;
+  config->backend_info.bSupportsBPTCTextures = supports_bcn;
+
   config->backend_info.bSupportsFramebufferFetch = true;
 #endif
 
@@ -265,12 +263,12 @@ AbstractTextureFormat Metal::Util::ToAbstract(MTLPixelFormat format)
   {
   case MTLPixelFormatRGBA8Unorm:            return AbstractTextureFormat::RGBA8;
   case MTLPixelFormatBGRA8Unorm:            return AbstractTextureFormat::BGRA8;
-#if TARGET_OS_OSX
+  case MTLPixelFormatRGB10A2Unorm:          return AbstractTextureFormat::RGB10_A2;
+  case MTLPixelFormatRGBA16Float:           return AbstractTextureFormat::RGBA16F;
   case MTLPixelFormatBC1_RGBA:              return AbstractTextureFormat::DXT1;
   case MTLPixelFormatBC2_RGBA:              return AbstractTextureFormat::DXT3;
   case MTLPixelFormatBC3_RGBA:              return AbstractTextureFormat::DXT5;
   case MTLPixelFormatBC7_RGBAUnorm:         return AbstractTextureFormat::BPTC;
-#endif
   case MTLPixelFormatR16Unorm:              return AbstractTextureFormat::R16;
   case MTLPixelFormatDepth16Unorm:          return AbstractTextureFormat::D16;
 #if TARGET_OS_OSX
@@ -283,18 +281,22 @@ AbstractTextureFormat Metal::Util::ToAbstract(MTLPixelFormat format)
   }
 }
 
+// Don't complain about BCn formats requiring iOS 16.4, these are just enum conversions
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunguarded-availability"
+
 MTLPixelFormat Metal::Util::FromAbstract(AbstractTextureFormat format)
 {
   switch (format)
   {
   case AbstractTextureFormat::RGBA8:     return MTLPixelFormatRGBA8Unorm;
   case AbstractTextureFormat::BGRA8:     return MTLPixelFormatBGRA8Unorm;
-#if TARGET_OS_OSX
+  case AbstractTextureFormat::RGB10_A2:  return MTLPixelFormatRGB10A2Unorm;
+  case AbstractTextureFormat::RGBA16F:   return MTLPixelFormatRGBA16Float;
   case AbstractTextureFormat::DXT1:      return MTLPixelFormatBC1_RGBA;
   case AbstractTextureFormat::DXT3:      return MTLPixelFormatBC2_RGBA;
   case AbstractTextureFormat::DXT5:      return MTLPixelFormatBC3_RGBA;
   case AbstractTextureFormat::BPTC:      return MTLPixelFormatBC7_RGBAUnorm;
-#endif
   case AbstractTextureFormat::R16:       return MTLPixelFormatR16Unorm;
   case AbstractTextureFormat::D16:       return MTLPixelFormatDepth16Unorm;
 #if TARGET_OS_OSX
@@ -306,6 +308,8 @@ MTLPixelFormat Metal::Util::FromAbstract(AbstractTextureFormat format)
   default:                               return MTLPixelFormatInvalid;
   }
 }
+
+#pragma clang diagnostic pop
 
 // clang-format on
 

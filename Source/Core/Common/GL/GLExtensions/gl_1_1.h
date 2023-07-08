@@ -21,6 +21,7 @@
 #define GL_INT 0x1404
 #define GL_UNSIGNED_INT 0x1405
 #define GL_FLOAT 0x1406
+#define GL_HALF_FLOAT 0x140B
 #define GL_2_BYTES 0x1407
 #define GL_3_BYTES 0x1408
 #define GL_4_BYTES 0x1409

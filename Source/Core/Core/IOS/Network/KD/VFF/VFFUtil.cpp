@@ -17,6 +17,7 @@
 // clang-format on
 
 #include "Common/Align.h"
+#include "Common/EnumUtils.h"
 #include "Common/FatFsUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
@@ -211,7 +212,7 @@ static ErrorCode WriteFile(const std::string& filename, const std::vector<u8>& t
     if (write_error_code != FR_OK)
     {
       ERROR_LOG_FMT(IOS_WC24, "Failed to write file {} to VFF: {}", filename,
-                    static_cast<u32>(write_error_code));
+                    Common::ToUnderlying(write_error_code));
       return WC24_ERR_FILE_WRITE;
     }
 
@@ -267,7 +268,7 @@ ErrorCode OpenVFF(const std::string& path, const std::string& filename,
     if (!temp)
     {
       ERROR_LOG_FMT(IOS_WC24, "Failed to open VFF at: {}", path);
-      return_value = WC24_ERR_NOT_FOUND;
+      return_value = WC24_ERR_FILE_OPEN;
       return;
     }
 
@@ -281,7 +282,7 @@ ErrorCode OpenVFF(const std::string& path, const std::string& filename,
     {
       // The VFF is most likely broken.
       ERROR_LOG_FMT(IOS_WC24, "Failed to mount VFF at: {}", path);
-      return_value = WC24_ERR_BROKEN;
+      return_value = WC24_ERR_FILE_READ;
       return;
     }
 
@@ -290,7 +291,7 @@ ErrorCode OpenVFF(const std::string& path, const std::string& filename,
     {
       // The VFF is most likely broken.
       ERROR_LOG_FMT(IOS_WC24, "Failed to mount VFF at: {}", path);
-      return_value = WC24_ERR_BROKEN;
+      return_value = WC24_ERR_FILE_READ;
       return;
     }
 

@@ -180,6 +180,9 @@ enum Hotkey
   HK_GBA_3X,
   HK_GBA_4X,
 
+  HK_SKYLANDERS_PORTAL,
+  HK_INFINITY_BASE,
+
   NUM_HOTKEYS,
 };
 
@@ -211,6 +214,7 @@ enum HotkeyGroup : int
   HKGP_GBA_CORE,
   HKGP_GBA_VOLUME,
   HKGP_GBA_SIZE,
+  HKGP_USB_EMU,
 
   NUM_HOTKEY_GROUPS,
 };
