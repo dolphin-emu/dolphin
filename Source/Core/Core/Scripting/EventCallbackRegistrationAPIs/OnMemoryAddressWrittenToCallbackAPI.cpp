@@ -13,18 +13,18 @@ u32 write_size = 0;
 bool in_memory_address_written_to_breakpoint = false;
 
 static std::array all_on_memory_address_written_to_callback_functions_metadata_list = {
-    FunctionMetadata(
-        "register", "1.0", "register(memoryAddress, value)", Register,
-        ScriptingEnums::ArgTypeEnum::RegistrationReturnType,
-        {ScriptingEnums::ArgTypeEnum::U32, ScriptingEnums::ArgTypeEnum::RegistrationInputType}),
+    FunctionMetadata("register", "1.0", "register(memoryStartAddress, memoryEndAddress, value)",
+                     Register, ScriptingEnums::ArgTypeEnum::RegistrationReturnType,
+                     {ScriptingEnums::ArgTypeEnum::U32, ScriptingEnums::ArgTypeEnum::U32,
+                      ScriptingEnums::ArgTypeEnum::RegistrationInputType}),
     FunctionMetadata("registerWithAutoDeregistration", "1.0",
-                     "registerWithAutoDeregistration(memoryAddress, value)",
+                     "registerWithAutoDeregistration(memoryStartAddress, memoryEndAddress, value)",
                      RegisterWithAutoDeregistration,
                      ScriptingEnums::ArgTypeEnum::RegistrationWithAutoDeregistrationReturnType,
-                     {ScriptingEnums::ArgTypeEnum::U32,
+                     {ScriptingEnums::ArgTypeEnum::U32, ScriptingEnums::ArgTypeEnum::U32,
                       ScriptingEnums::ArgTypeEnum::RegistrationWithAutoDeregistrationInputType}),
     FunctionMetadata(
-        "unregister", "1.0", "unregister(memoryAddress, value)", Unregister,
+        "unregister", "1.0", "unregister(memoryStartAddress, value)", Unregister,
         ScriptingEnums::ArgTypeEnum::UnregistrationReturnType,
         {ScriptingEnums::ArgTypeEnum::U32, ScriptingEnums::ArgTypeEnum::UnregistrationInputType}),
     FunctionMetadata("isInMemoryAddressWrittenToCallback", "1.0",
@@ -81,7 +81,8 @@ ArgHolder* Register(ScriptContext* current_script, std::vector<ArgHolder*>* args
 
   return CreateRegistrationReturnTypeArgHolder(
       current_script->dll_specific_api_definitions.RegisterOnMemoryAddressWrittenToCallback(
-          current_script, memory_breakpoint_start_address, callback));
+          current_script, memory_breakpoint_start_address, memory_breakpoint_end_address,
+          callback));
 }
 
 ArgHolder* RegisterWithAutoDeregistration(ScriptContext* current_script,
@@ -102,7 +103,7 @@ ArgHolder* RegisterWithAutoDeregistration(ScriptContext* current_script,
 
   current_script->dll_specific_api_definitions
       .RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallback(
-          current_script, memory_breakpoint_start_address, callback);
+          current_script, memory_breakpoint_start_address, memory_breakpoint_end_address, callback);
   return CreateRegistrationWithAutoDeregistrationReturnTypeArgHolder();
 }
 
@@ -124,7 +125,7 @@ ArgHolder* Unregister(ScriptContext* current_script, std::vector<ArgHolder*>* ar
 
   bool return_value =
       current_script->dll_specific_api_definitions.UnregisterOnMemoryAddressWrittenToCallback(
-          current_script, memory_breakpoint_start_address, callback);
+          current_script, callback);
   if (!return_value)
     return CreateErrorStringArgHolder(
         "2nd argument passed into OnMemoryAddressWrittenTo:unregister() was not a reference to a "

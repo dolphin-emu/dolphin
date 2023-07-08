@@ -77,7 +77,8 @@ ArgHolder* Register(ScriptContext* current_script, std::vector<ArgHolder*>* args
                                                                    memory_breakpoint_end_address);
   return CreateRegistrationReturnTypeArgHolder(
       current_script->dll_specific_api_definitions.RegisterOnMemoryAddressReadFromCallback(
-          current_script, memory_breakpoint_start_address, callback));
+          current_script, memory_breakpoint_start_address, memory_breakpoint_end_address,
+          callback));
 }
 
 ArgHolder* RegisterWithAutoDeregistration(ScriptContext* current_script,
@@ -98,7 +99,7 @@ ArgHolder* RegisterWithAutoDeregistration(ScriptContext* current_script,
 
   current_script->dll_specific_api_definitions
       .RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallback(
-          current_script, memory_breakpoint_start_address, callback);
+          current_script, memory_breakpoint_start_address, memory_breakpoint_end_address, callback);
   return CreateRegistrationWithAutoDeregistrationReturnTypeArgHolder();
 }
 
@@ -119,7 +120,7 @@ ArgHolder* Unregister(ScriptContext* current_script, std::vector<ArgHolder*>* ar
 
   bool return_value =
       current_script->dll_specific_api_definitions.UnregisterOnMemoryAddressReadFromCallback(
-          current_script, memory_breakpoint_start_address, callback);
+          current_script, callback);
 
   if (!return_value)
     return CreateErrorStringArgHolder(
