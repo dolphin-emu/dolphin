@@ -990,6 +990,34 @@ bool UnregisterForMapHelper(std::unordered_map<unsigned int, std::vector<int> >&
   return true;
 }
 
+void* RegisterForVectorHelper(std::vector<MemoryAddressCallbackTriple>& input_vector, unsigned int start_address,
+                              unsigned int end_address, void* callback, std::atomic<size_t>& number_of_auto_deregister_callbacks)
+{
+  int function_reference = *((int*)(&callback));
+  MemoryAddressCallbackTriple new_callback_triple = MemoryAddressCallbackTriple();
+  new_callback_triple.memory_start_address = start_address;
+  new_callback_triple.memory_end_address = end_address;
+  new_callback_triple.callback_ref = function_reference;
+  input_vector.push_back(new_callback_triple);
+  ++number_of_auto_deregister_callbacks;
+  return callback;
+}
+
+bool UnregisterForVectorHelper(std::vector<MemoryAddressCallbackTriple>& input_vector, void* callback)
+{
+  int function_reference = *((int*)(&callback));
+  unsigned long long vector_length = input_vector.size();
+  for (unsigned long long i = 0; i < vector_length; ++i)
+  {
+    if (input_vector[i].callback_ref == function_reference)
+    {
+      input_vector.erase(input_vector.begin() + i);
+      return true;
+    }
+  }
+  return false;
+}
+
 void* RegisterOnFrameStartCallback_impl(void* base_script_context_ptr, void* callback)
 {
   LuaScriptContext* lua_script_ptr = getLuaScriptContext(base_script_context_ptr);
@@ -1108,7 +1136,7 @@ void* RegisterOnMemoryAddressWrittenToCallback_impl(void* base_script_context_pt
 void RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallback_impl(void* base_script_context_ptr, unsigned int start_address, unsigned int end_address, void* callback)
 {
   LuaScriptContext* lua_script_ptr = getLuaScriptContext(base_script_context_ptr);
-  RegisterForVectorHelper(lua_script_ptr->memory_address_written_to_callback_list, start_address, end_addresss, callback, lua_script_ptr->number_of_memory_address_write_callbacks_to_auto_deregister);
+  RegisterForVectorHelper(lua_script_ptr->memory_address_written_to_callback_list, start_address, end_address, callback, lua_script_ptr->number_of_memory_address_write_callbacks_to_auto_deregister);
 }
 
 int UnregisterOnMemoryAddressWrittenToCallback_impl(void* base_script_context_ptr, void* callback)
