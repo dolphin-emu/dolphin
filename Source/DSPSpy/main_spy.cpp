@@ -195,7 +195,7 @@ void ui_pad_sel(void)
   cursor_reg &= 0x1f;
   if (WPAD_ButtonsDown(0) & WPAD_BUTTON_A)
   {
-    ui_mode = UIM_EDIT_REG;
+    ui_mode = UIRegisterMode::Edit;
     reg_value = &dspreg_in[cursor_reg];
   }
 #endif
@@ -210,7 +210,7 @@ void ui_pad_sel(void)
   cursor_reg &= 0x1f;
   if (PAD_ButtonsDown(0) & PAD_BUTTON_A)
   {
-    ui_mode = UIM_EDIT_REG;
+    ui_mode = UIRegisterMode::Edit;
     reg_value = &dspreg_in[cursor_reg];
   }
 }
@@ -301,8 +301,8 @@ void handle_dsp_mail(void)
     }
     else if (mail == 0x8888beef)
     {
-      // Provide register base to DSP (if using dsp_base.inc, it will DMA them to the correct
-      // place.)
+      // Provide register base to DSP.
+      // If using dsp_base.inc, it will DMA them to the correct place.
       while (real_dsp.CheckMailTo())
       {
       }
@@ -571,7 +571,7 @@ int main()
     case UIRegisterMode::Select:
       ui_pad_sel();
       break;
-    case UIM_EDIT_REG:
+    case UIRegisterMode::Edit:
       ui_pad_edit_reg();
       break;
     default:
