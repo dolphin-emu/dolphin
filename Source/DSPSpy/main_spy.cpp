@@ -52,11 +52,9 @@
 // Used for communications with the DSP, such as dumping registers etc.
 u16 dspbuffer[16 * 1024] __attribute__((aligned(0x4000)));
 
-static void* xfb = nullptr;
+static void* s_xfb = nullptr;
 void (*reboot)() = (void (*)())0x80001800;
 GXRModeObj* rmode;
-
-static vu16* const _dspReg = (u16*)0xCC005000;
 
 u16* dspbufP;
 u16* dspbufC;
@@ -474,12 +472,12 @@ void InitGeneral()
   rmode = VIDEO_GetPreferredMode(nullptr);
 
   // Allocate memory for the display in the uncached region.
-  xfb = MEM_K0_TO_K1(SYS_AllocateFramebuffer(rmode));
+  s_xfb = MEM_K0_TO_K1(SYS_AllocateFramebuffer(rmode));
 
   // Set up the video registers with the chosen mode.
   VIDEO_Configure(rmode);
   // Tell the video hardware where our display memory is.
-  VIDEO_SetNextFramebuffer(xfb);
+  VIDEO_SetNextFramebuffer(s_xfb);
   // Make the display visible.
   VIDEO_SetBlack(FALSE);
   // Flush the video register changes to the hardware.
@@ -490,7 +488,7 @@ void InitGeneral()
     VIDEO_WaitVSync();
 
   // Initialize the console, required for printf.
-  CON_Init(xfb, 20, 64, rmode->fbWidth, rmode->xfbHeight, rmode->fbWidth * VI_DISPLAY_PIX_SZ);
+  CON_Init(s_xfb, 20, 64, rmode->fbWidth, rmode->xfbHeight, rmode->fbWidth * VI_DISPLAY_PIX_SZ);
 
 #ifdef HW_RVL
   // Initialize FAT so we can write to SD.
@@ -580,7 +578,7 @@ int main()
     default:
       break;
     }
-    DCFlushRange(xfb, 0x200000);
+    DCFlushRange(s_xfb, 0x200000);
 
 // Use B to start over.
 #ifdef HW_RVL
