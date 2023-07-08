@@ -18,12 +18,14 @@
 
 #include <fmt/format.h>
 
-#define _GNU_SOURCE
+#ifdef __linux__ // features.h is only available on Linux
+#define _GNU_SOURCE // We have to define this to use macros in features.h
 #include <features.h>
 #ifndef __USE_GNU
-    #define __MUSL__ 
+#define __MUSL__ 
 #endif
 #undef _GNU_SOURCE
+#endif
 
 #include "Common/BitUtils.h"
 #include "Common/Random.h"
