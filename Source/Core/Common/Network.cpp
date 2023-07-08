@@ -22,7 +22,7 @@
 #define _GNU_SOURCE  // We have to define this to use macros in features.h
 #include <features.h>
 #ifndef __USE_GNU
-#define __MUSL__
+#define __NO_GLIBC__
 #endif
 #undef _GNU_SOURCE
 #endif
@@ -561,8 +561,8 @@ const char* DecodeNetworkError(s32 error_code)
   thread_local char buffer[1024];
 
 #if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(ANDROID) ||     \
-    defined(__APPLE__)
-#define IS_BSD_STRERROR
+    defined(__APPLE__) || defined(__NO_GLIBC__)
+#define USE_XSI_STRERROR
 #endif
 
 #ifdef _WIN32
@@ -571,8 +571,8 @@ const char* DecodeNetworkError(s32 error_code)
                  nullptr, error_code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), buffer,
                  sizeof(buffer), nullptr);
   return buffer;
-#elif defined(IS_BSD_STRERROR) ||                                                                  \
-    ((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && !_GNU_SOURCE) || defined(__MUSL__)
+#elif defined(USE_XSI_STRERROR) ||                                                                  \
+    ((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && !_GNU_SOURCE)
   strerror_r(error_code, buffer, sizeof(buffer));
   return buffer;
 #else
