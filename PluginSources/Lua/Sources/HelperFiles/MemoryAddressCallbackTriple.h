@@ -1,7 +1,6 @@
 #ifndef MEMORY_ADDRESS_TRIPLE
 #define MEMORY_ADDRESS_TRIPLE
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif

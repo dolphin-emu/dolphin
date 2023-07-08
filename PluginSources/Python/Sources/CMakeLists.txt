@@ -28,6 +28,7 @@ HelperFiles/ClassMetadata.h
 HelperFiles/FunctionMetadata.h
 HelperFiles/DynamicLibrary.h
 HelperFiles/DynamicLibrary.cpp
+HelperFiles/IdentifierToCallback.h
 HelperFiles/MemoryAddressCallbackTriple.h
 HelperFiles/PythonDynamicLibrary.h
 HelperFiles/PythonDynamicLibrary.cpp

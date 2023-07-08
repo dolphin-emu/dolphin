@@ -3,6 +3,8 @@
 
 #include "../DolphinDefinedAPIs.h"
 #include "../HelperFiles/ClassMetadata.h"
+#include "../HelperFiles/IdentifierToCallback.h"
+#include "../HelperFiles/MemoryAddressCallbackTriple.h"
 #include <atomic>
 #include <unordered_map>
 #include <vector>
@@ -22,8 +24,8 @@ extern "C" {
       gc_controller_input_polled_callbacks = std::vector<IdentifierToCallback>();
       wii_controller_input_polled_callbacks = std::vector<IdentifierToCallback>();
       map_of_instruction_address_to_python_callbacks = std::unordered_map<unsigned int, std::vector<IdentifierToCallback> >();
-      map_of_memory_address_read_from_to_python_callbacks = std::unordered_map<unsigned int, std::vector<IdentifierToCallback> >();
-      map_of_memory_address_written_to_to_python_callbacks = std::unordered_map<unsigned int, std::vector<IdentifierToCallback> >();
+      memory_address_read_from_callbacks = std::vector<MemoryAddressCallbackTriple>();
+      memory_address_written_to_callbacks = std::vector<MemoryAddressCallbackTriple>();
       map_of_button_id_to_callback = std::unordered_map<long long, IdentifierToCallback>();
       number_of_frame_callbacks_to_auto_deregister = 0;
       number_of_gc_controller_input_callbacks_to_auto_deregister = 0;
@@ -42,12 +44,6 @@ extern "C" {
 
     void* main_python_thread;
 
-    typedef struct IdentifierToCallback
-    {
-      size_t identifier;
-      void* callback;
-    } IdentifierToCallback;
-
     std::queue<IdentifierToCallback> button_callbacks_to_run;
     std::vector<IdentifierToCallback> frame_callbacks;
     std::vector<IdentifierToCallback> gc_controller_input_polled_callbacks;
@@ -55,11 +51,8 @@ extern "C" {
 
     std::unordered_map<unsigned int, std::vector<IdentifierToCallback> > map_of_instruction_address_to_python_callbacks;
 
-    std::unordered_map<unsigned  int, std::vector<IdentifierToCallback> >
-      map_of_memory_address_read_from_to_python_callbacks;
-
-    std::unordered_map<unsigned int, std::vector<IdentifierToCallback> >
-      map_of_memory_address_written_to_to_python_callbacks;
+    std::vector<MemoryAddressCallbackTriple> memory_address_read_from_callbacks;
+    std::vector<MemoryAddressCallbackTriple> memory_address_written_to_callbacks;
 
     std::unordered_map<long long, IdentifierToCallback> map_of_button_id_to_callback;
 
