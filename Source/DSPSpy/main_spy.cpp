@@ -69,13 +69,12 @@ u16 dspreg_in[32] = {
 u16 dspreg_out[1000][32];
 
 // UI (interactive register editing.)
-u32 ui_mode;
-
-enum
+enum class UIRegisterMode
 {
-  UIM_SEL = 1,
-  UIM_EDIT_REG = 2,
+  Select = 1,
+  Edit = 2,
 };
+UIRegisterMode ui_mode;
 
 // Currently selected register.
 s32 cursor_reg = 0;
@@ -109,7 +108,7 @@ void print_reg_block(int x, int y, int sel, const u16* regs, const u16* compare_
       CON_Printf(x + j * 9, i + y, "%s ", reg_names[reg]);
       for (int k = 0; k < 4; ++k)
       {
-        if (sel == reg && k == small_cursor_x && ui_mode == UIM_EDIT_REG)
+        if (sel == reg && k == small_cursor_x && ui_mode == UIRegisterMode::Edit)
           CON_SetColor(CON_BRIGHT_CYAN);
         else
           CON_SetColor(color1);
@@ -230,7 +229,7 @@ void ui_pad_edit_reg(void)
   if (WPAD_ButtonsDown(0) & WPAD_BUTTON_DOWN)
     *reg_value -= 0x1 << (4 * (3 - small_cursor_x));
   if (WPAD_ButtonsDown(0) & WPAD_BUTTON_A)
-    ui_mode = UIM_SEL;
+    ui_mode = UIRegisterMode::Select;
   if (WPAD_ButtonsDown(0) & WPAD_BUTTON_1)
     *reg_value = 0;
   if (WPAD_ButtonsDown(0) & WPAD_BUTTON_2)
@@ -247,7 +246,7 @@ void ui_pad_edit_reg(void)
   if (PAD_ButtonsDown(0) & PAD_BUTTON_DOWN)
     *reg_value -= 0x1 << (4 * (3 - small_cursor_x));
   if (PAD_ButtonsDown(0) & PAD_BUTTON_A)
-    ui_mode = UIM_SEL;
+    ui_mode = UIRegisterMode::Select;
   if (PAD_ButtonsDown(0) & PAD_BUTTON_X)
     *reg_value = 0;
   if (PAD_ButtonsDown(0) & PAD_BUTTON_Y)
@@ -522,7 +521,7 @@ int main()
 {
   InitGeneral();
 
-  ui_mode = UIM_SEL;
+  ui_mode = UIRegisterMode::Select;
 
   dspbufP = (u16*)MEM_VIRTUAL_TO_PHYSICAL(dspbuffer);  // Physical.
   dspbufC = dspbuffer;                                 // Cached.
@@ -569,7 +568,7 @@ int main()
 
     switch (ui_mode)
     {
-    case UIM_SEL:
+    case UIRegisterMode::Select:
       ui_pad_sel();
       break;
     case UIM_EDIT_REG:
