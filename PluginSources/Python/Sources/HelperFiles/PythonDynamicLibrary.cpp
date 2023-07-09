@@ -110,33 +110,11 @@ namespace PythonDynamicLibrary
   void* PY_NONE_STRUCT_DATA = nullptr;
   void* PY_TRUE_STRUCT_DATA = nullptr;
 
-  static bool py_dll_initialized = false;
-
 #if defined(_WIN32)
   static const char PYTHON_PATH_SEPERATOR_CHAR = ';';
 #else
   static const char PYTHON_PATH_SEPERATOR_CHAR = ":";
 #endif
-
-  struct AbstractNameToFunctionClass
-  {
-    virtual ~AbstractNameToFunctionClass() = 0;
-  };
-
-  template<class T>
-  class NameToFunctionClass : public AbstractNameToFunctionClass
-  {
-  public:
-    NameToFunctionClass(const char* new_name, T new_ptr)
-    {
-      function_name = new_name;
-      func_ptr = new_ptr;
-    }
-
-    const char* function_name;
-    T func_ptr;
-  };
-
 
   void SetErrorCodeAndMessage(void* script_context_ptr, ScriptingEnums::ScriptReturnCodes error_code, const char* error_msg)
   {
@@ -223,7 +201,7 @@ namespace PythonDynamicLibrary
     }
     return true;
   }
-  std::vector<std::string> getPathsFromEnvironmentVar(std::string environment_variable)
+  std::vector<std::string> getPathsFromEnvironmentValue(std::string environment_variable)
   {
     std::vector<std::string> return_vector = std::vector<std::string>();
     std::string next_path = "";
@@ -298,18 +276,15 @@ namespace PythonDynamicLibrary
     return false;
   }
 
-  void InitPythonLib(void* base_script_ptr)
+  void GetPythonLibFromEnvVariable(const char* env_variable)
   {
-    const char* raw_PYTHONPATH_string = getenv("PYTHONPATH");
-    if (raw_PYTHONPATH_string == nullptr)
-    {
-      SetErrorCodeAndMessage(base_script_ptr, ScriptingEnums::ScriptReturnCodes::DLLFileNotFoundError, (std::string("Error: The PYTHONPATH environment variable was not set! Please set this environment variable equal to the directory where the Python ") + LIBRARY_SUFFIX + " file is stored, and then re-run the program.").c_str());
+    const char* raw_env_value = getenv(env_variable);
+    if (raw_env_value == nullptr)
       return;
-    }
-    std::vector<std::string> python_paths_to_search = getPathsFromEnvironmentVar(raw_PYTHONPATH_string);
+
+    std::vector<std::string> python_paths_to_search = getPathsFromEnvironmentValue(raw_env_value);
     unsigned long long number_of_paths = python_paths_to_search.size();
 
-    path_to_lib = "";
     for (unsigned long long i = 0; i < number_of_paths; ++i)
     {
       std::string path_to_search = python_paths_to_search[i];
@@ -321,19 +296,33 @@ namespace PythonDynamicLibrary
           if (!entry.is_directory() && stringIsPathToPythonLib(inner_filename))
           {
             path_to_lib = inner_filename;
-            break;
+            return;
           }
         }
       }
       else if (stringIsPathToPythonLib(path_to_search))
       {
         path_to_lib = path_to_search;
-        break;
+        return;
       }
     }
+  }
+
+  void InitPythonLib(void* base_script_ptr)
+  {
+    if (python_lib_ptr != nullptr)
+      return;
+
+    path_to_lib = "";
+    GetPythonLibFromEnvVariable("PATH");
+    if (path_to_lib.empty())
+      GetPythonLibFromEnvVariable("PYTHONHOME");
+    if (path_to_lib.empty())
+      GetPythonLibFromEnvVariable("PYTHONPATH");
+
     if (path_to_lib.empty())
     {
-      SetErrorCodeAndMessage(base_script_ptr, ScriptingEnums::ScriptReturnCodes::DLLFileNotFoundError, (std::string("Error: The ") + LIBRARY_SUFFIX + " file for Python could not be located from the values inside of the PYTHONPATH environment variable! PYTHONPATH was equal to: \"" + raw_PYTHONPATH_string + "\"").c_str());
+      SetErrorCodeAndMessage(base_script_ptr, ScriptingEnums::ScriptReturnCodes::DLLFileNotFoundError, (std::string("Error: The ") + LIBRARY_SUFFIX + " file for Python could not be located. Environment variables that were searched for Python DLLs (in order) were PATH, PYTHONHOME, and PYTHONPATH").c_str());
       return;
     }
 
@@ -342,24 +331,21 @@ namespace PythonDynamicLibrary
     if (!python_lib_ptr->IsOpen())
     {
       SetErrorCodeAndMessage(base_script_ptr, ScriptingEnums::ScriptReturnCodes::DLLFileNotFoundError, (std::string("Error: The ") + path_to_lib + " file for Python could not be opened!").c_str());
+      DeletePythonLib();
       return;
     }
 
-    if (!py_dll_initialized)
-    {
-      if (!AddNameAndFuncsToList(base_script_ptr))
-        return;
-    }
-    py_dll_initialized = true;
+    // Indicates that an error occured, and a function couldn't be found.
+    if (!AddNameAndFuncsToList(base_script_ptr))
+      DeletePythonLib();
   }
 
   void DeletePythonLib()
   {
-    if (!py_dll_initialized || python_lib_ptr == nullptr)
+    if (python_lib_ptr == nullptr)
       return;
 
     delete python_lib_ptr;
     python_lib_ptr = nullptr;
-    py_dll_initialized = false;
   }
 }
