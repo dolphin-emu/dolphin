@@ -543,7 +543,7 @@ void main()
                                                                                                   float2( UVmax.x,  UVmax.y)/255.0);
 
 // Back to R'G'B' full
-    col   = OptionEnabled(g_signal_type) ? max(1.0,Quantize8_f3(clamp(YUV_r601(col.xyz, NTSC_U ? 1.0 : 0.0), 0.0, 1.0))/255.0) : src;
+    col   = OptionEnabled(g_signal_type) ? min(1.0,Quantize8_f3(clamp(YUV_r601(col.xyz, NTSC_U ? 1.0 : 0.0), 0.0, 1.0))/255.0) : src;
 
 // CRT EOTF. To Display Referred Linear: Undo developer baked CRT gamma (from 2.40 at default 0.1 CRT black level, to 2.60 at 0.0 CRT black level)
     col   = EOTF_1886a_f3(col, g_bl, 50., 50.);
