@@ -568,7 +568,7 @@ void SerialInterfaceManager::UpdateDevices()
   NetPlay::SetSIPollBatching(false);
 }
 
-SIDevices SerialInterfaceManager::GetDeviceType(int channel)
+SIDevices SerialInterfaceManager::GetDeviceType(int channel) const
 {
   if (channel < 0 || channel >= MAX_SI_CHANNELS || !m_channel[channel].device)
     return SIDEVICE_NONE;
