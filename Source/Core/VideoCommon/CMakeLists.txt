@@ -73,6 +73,8 @@ add_library(videocommon
   GraphicsModSystem/Config/GraphicsTargetGroup.cpp
   GraphicsModSystem/Config/GraphicsTargetGroup.h
   GraphicsModSystem/Constants.h
+  GraphicsModSystem/Runtime/Actions/CustomPipelineAction.cpp
+  GraphicsModSystem/Runtime/Actions/CustomPipelineAction.h
   GraphicsModSystem/Runtime/Actions/MoveAction.cpp
   GraphicsModSystem/Runtime/Actions/MoveAction.h
   GraphicsModSystem/Runtime/Actions/PrintAction.cpp
