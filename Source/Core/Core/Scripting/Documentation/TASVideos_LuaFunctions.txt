@@ -266,7 +266,7 @@ __dolphin:shutdownScript_%%%
 
 * void shutdownScript()
 
-* Immediately ends the script that called this function.
+* Immediately ends the script that called this function. This will also unregister any callbacks that were set to run on various events by the script.
 
 * dolphin:shutdownScript() ==> Causes the script to terminate.
 
@@ -412,7 +412,7 @@ __gc_controller:add_inputs__%%%
 
 __gc_controller:getControllerInputsForPreviousFrame__%%%
 
-* void getControllerInputsForPreviousFrame(u64 portNumber)
+* Dict<GCButton> getControllerInputsForPreviousFrame(u64 portNumber)
 
 * Returns a dictionary which represents the buttons which were pressed on the controller on the previous frame (this assumes that the buttons pressed on a controller during multiple input polls during a frame are the same. Either way, this function is really returning the inputs that occured on the last controller poll, to be more precise).
 
@@ -676,7 +676,10 @@ graphics:setTextBoxValue(42, "John Smith")
 
 A library for stepping through a game's code one instruction at a time. Note that with the exception of the getInstructionFromAddress() function, all of these functions MUST be called from inside of an OnInstructionHit callback function, an OnMemoryAddressReadFrom callback function, or an OnMemoryAddressWrittenTo callback function. Otherwise, an error will occur.
 
+Also, in order to prevent an infinite loop, additional callbacks for OnInstructionHit, OnMemoryAddressReadFrom and OnMemoryAddressWrittenTo will be skipped over when these step functions are used (even if PC becomes equal to an OnInstructionHit callback address).
+
 To use these functions, the following line __MUST__ be included at the top of your Lua script:
+
 %%SRC_EMBED lua
 require ("instruction_step")
 %%END_EMBED
@@ -820,3 +823,645 @@ __OnFrameStart:isInFrameStartCallback__%%%
 
 * if OnFrameStart:isInFrameStartCallback() then ==> Only executes the code inside the if statement block if the isInFrameStartCallback() function was called from inside of a currently executing OnFrameStart callback right now.
 
+__OnFrameStart:register__%%%
+
+* int register(LuaFunction callbackFunction)
+
+* Registers the function passed in as an argument to run at the start of each frame, and returns an int that can be used to unregister the callback later on.
+
+%%SRC_EMBED lua
+function myCallbackFunc()
+	print("Hello World!")
+end
+funcRef = OnFrameStart:register(myCallbackFunc)
+%%END_EMBED
+
+* ==> Now, myCallbackFunc() will run once at the start of each frame (which means "Hello World!" will be printed at the start of each frame), and funcRef can be used to unregister the function later on.
+
+__OnFrameStart:registerWithAutoDeregistration__%%%
+
+* void registerWithAutoDeregistration(LuaFunction callbackFunction)
+
+* Registers the function passed in as an argument to run at the start of each frame. This function will automatically unregister when the only functions which are still running are all callbacks which were registered with auto-deregistration.
+
+%%SRC_EMBED lua
+function myCallbackFunc()
+	print("Hello World!")
+end
+OnFrameStart:registerWithAutoDeregistration(myCallbackFunc)
+%%END_EMBED
+
+* ==> Registers the myCallbackFunc() function to run at the start of each frame (will auto-deregister when only functions which have been registered with auto-deregistration are still running).
+
+__OnFrameStart:unregister__
+
+* void unregister(int functionReference)
+
+* Unregisters the OnFrameStart callback specified by functionReference, so that it will no longer run at the start of each frame. The value passed into this function must be the return result of OnFrameStart:register()
+
+%%SRC_EMBED lua
+function myCallbackFunc()
+	print("Hello World!")
+end
+funcRef = OnFrameStart:register(myCallbackFunc)
+...
+OnFrameStart:unregister(funcRef)
+%%END_EMBED
+
+* ==> Now, the myCallbackFunc() won't run on the start of each frame anymore.
+
+%%TAB OnGCControllerPolled
+
+A library for registering functions which will be run each time a Game Cube Controller is polled. More specifically, the callbacks will be run right before input is read from or written to a movie/DTM file. If multiple functions are registered to run at the start of Game Cube Controller polls, then each callback will be executed in the order that they were registered.
+
+This is a builtin library, so you don't need to put a require(X) statement at the top of your Lua script to use these functions.
+
+__OnGCControllerPolled:getCurrentPortNumberOfPoll__%%%
+
+* int getCurrentPortNumberOfPoll()
+
+* Returns the port number of the controller that is currently being polled (between 1-4).
+
+* __WARNING:__ This function throws an exception if called from outside of an OnGCControllerPolled callback function.
+
+* getCurrentPortNumberOfPoll() ==> If controller 2 was being polled when the callback function containing this line was triggered, then this function will return 2.
+
+__OnGCControllerPolled:getInputsForPoll__
+
+* Dict<GCButton> getInputsForPoll()
+
+* Returns a dictionary which represents the buttons pressed/not-pressed for the current controller (see the gc_controller tab for a list of valid GCButton values. This dictionary contains all valid GCButtons). The controller that inputs are returned from is the one that was being polled when the OnGCControllerPolled callback function was triggered. Note that a call to setInputsForPoll() will update the buttons pressed on the controller immediately, and will change the values returned by the next call to getInputsForPoll() (if the call changed the buttons pressed).
+
+* __WARNING:__ This function throws an exception if called from outside of an OnGCControllerPolled callback function.
+
+* OnGCControllerPolled:getInputsForPoll() ==> If the user held slightly up left on this frame while holding L and pressing A, then this function could return the following dictionary: {A = true, B = false, X = false, Y = false, Z = false, L = true, R = false, disc = false, isConnected = true, getOrigin = false, Start = false, Reset = false, triggerL = 255, triggerR = 0, dPadUp = false, dPadDown = false, dPadLeft = false, dPadRight = false, analogStickX = 68, analogStickY = 255, cStickX = 128, cStickY = 128}
+
+__OnGCControllerPolled:isInGCControllerPolledCallback__%%%
+
+* boolean isInGCControllerPolledCallback()
+
+* Returns true if called from inside of an OnGCControllerPolledCallback function, and returns false otherwise.
+
+* OnGCControllerPolled:isInGCControllerPolledCallback() ==> Returns true if called from inside of an OnGCControllerPolled callback function (while a GC controller is being polled), and returns false otherwise.
+
+__OnGCControllerPolled:register__%%%
+
+* int register(LuaFunction callbackFunction)
+
+* Registers the callbackFunction to be run each time a GameCube controller is polled, and returns an identifier that can be used to unregister the callback later on.
+
+%%SRC_EMBED lua
+function callbackFunc()
+	print("Currently polling controller " .. tostring(OnGCControllerPolled:getCurrentPortNumberOfPoll()))
+end
+
+funcRef = OnGCControllerPolled:register(callbackFunc)
+%%END_EMBED
+
+* ==> Prints the controller number that's being currently polled (whenever a Game Cube controller is polled).
+
+__OnGCControllerPolled:registerWithAutoDeregistration__%%%
+
+* void registerWithAutoDeregistration(LuaFunction callbackFunction)
+
+* Registers the callbackFunction to be run each time a GameCube controller is polled. This function will be automatically de-registered when the only callbacks that are still running are callbacks that were registered with auto-deregistration.
+
+%%SRC_EMBED lua
+function callbackFunc()
+end
+OnGCControllerPolled:registerWithAutoDeregistration(callbackFunc)
+%%END_EMBED
+
+* ==> Calls callbackFunc() each time a GameCube controller is being polled. This function will auto-deregister when the only callbacks that are still running are callbacks that were registered with auto-deregistration.
+
+__OnGCControllerPolled:setInputsForPoll__%%%
+
+* void setInputsForPoll(Dict<GCButton> newControllerInputs)
+
+* Sets the currently polled controller to have the value specified by newControllerInputs. Note that any values not specified in newControllerInputs will be set to their default value in the currently polled controller.
+
+* __WARNING:__ This function throws an exception if called from outside of an OnGCControllerPolled callback function.
+
+* OnGCControllerPolled:setInputsForPoll({A = true, B = true}) ==> Sets the currently-polled controller to have A and B pressed (and every other button on the controller is set to its default values. See the gc-controller tab for a list of default values for GC controller buttons).
+
+__OnGCCOntrollerPolled:unregister__%%%
+
+* void unregister(int functionReference)
+
+* Unregisters the callback specified by functionReference, so it won't keep running whenever a GameCube controller poll occurs. functionReference should be the return value from calling OnGCControllerPolled:register().
+
+%%SRC_EMBED lua
+function callbackFunc()
+	if (OnGCControllerPolled:getCurrentPortNumberOfPoll() == 2) then
+		OnGCControllerPolled:setInputs({A = true, X = true})
+	end
+end
+funcRef = OnGCControllerPolled:register(callbackFunc)
+...
+OnGCControllerPolled:unregister(funcRef)
+%%END_EMBED
+
+* ==> CallbackFunc() checks at the start of each GameCube controller poll if we're currently polling controller 2. If we are, then we set controller 2 to just have the A and X buttons pressed, and all other buttons are set to their default values. After the call to OnGCControllerPolled:unregister(), callbackFunc() won't run anymore when a GameCube controller poll occurs.
+
+%%TAB OnInstructionHit%%
+
+A library for registering functions that will be run when a specific instruction address is reached by the game. When PC equals the same value that the callback was registered to run on, the callback will be run. If multiple functions are registered to run on the same instruction address, then each callback will be executed in the order that they were registered.
+
+This is a builtin library, so you don't need to put a require(X) statement at the top of your Lua script to use these functions.
+
+__OnInstructionHit:getAddressOfInstructionForCurrentCallback__
+
+* unsigned int getAddressOfInstructionForCurrentCallback()
+
+* Returns the address of the instruction that triggered the current callback to run.
+
+* __WARNING: This function will throw an exception if called from outside of an OnInstructionHit callback function.
+
+__OnInstructionHit:isInInstructionHitCallback__%%%
+
+* boolean isInInstructionHitCallback()
+
+* Returns true if called from inside of an OnInstructionHit callback function that is currently being run, and returns false otherwise.
+
+* OnInstructionHit:isInInstructionHitCallback() ==> Returns true if called from inside of a callback that was triggered to run when a specific instruction was hit.
+
+__OnInstructionHit:register__ %%%
+
+* int register(unsigned int instructionAddress, LuaFunction callbackFunction)
+
+* Registers the callbackFunction to run whenever the game hits the specified instructionAddress (when PC = instructionAddress, the callbackFunction is called). The function also returns a unique value that can be used to unregister the callback function later on.
+
+%%SRC_EMBED lua
+function callbackFunc()
+end
+funcRef = OnInstructionHit:register(0X8D005432, callbackFunc)
+%%END_EMBED
+
+* ==> Registers callbackFunc() to be called whenever PC equals 0X8D005432. funcRef can be used to unregister the callback from running again later on.
+
+__OnInstructionHit:registerWithAutoDeregistration__%%%
+
+* void registerWithAutoDeregistration(unsigned int instructionAddress, LuaFunction callbackFunction)
+
+* Registers the callbackFunction to run whenever the game hits the specified instruction address (when PC = instructionAddress, the callbackFunction is called).
+
+%%SRC_EMBED lua
+function callbackFunc()
+end
+OnInstructionHit:registerWithAutoDeregistration(0X8D005432, callbackFunc)
+%%END_EMBED
+
+* ==> Registers callbackFunc() to be called whenever PC equals 0X8D005432. This callback will automatically de-register when the only callbacks that are still running are ones which were registered with auto-deregistration.
+
+__OnInstructionHit:unregister__%%%
+
+*  void unregister(unsigned int instructionAddress, int functionReference)
+
+* Unregisters the callback specified by functionReference for the given instructionAddress. After this, the callback associated with functionReference won't run anymore when PC equals instructionAddress. Note that functionReference must be the return value of calling OnInstructionHit:register()
+
+%%SRC_EMBED lua
+function callbackFunc()
+	print("The instruction that was just hit to trigger this function was " .. tostring(OnInstructionHit:getAddressOfInstructionForCurrentCallback()))
+end
+funcRef = OnInstructionHit:register(0X8D005432, callbackFunc)
+...
+OnInstructionHit:unregister(0X8D005432, funcRef)
+%%END_EMBED
+
+* ==> Now, callbackFunc() won't run anymore when PC equals 0X8D005432.
+
+%%TAB OnMemoryAddressReadFrom%%
+
+A Library for registering functions that will be run when a game reads from a memory address which is in between a specified start and end address. If multiple functions are registered to run for a certain memory address (i.e. the address is between the start and end range of multiple registered callbacks), then each callback will be executed in the order that they were registered (when that memory address is read from).
+
+This is a builtin library, so you don't need to put a require(X) statement at the top of your Lua script to use these functions.
+
+__OnMemoryAddressReadFrom:getReadSize__%%%
+
+* unsigned int getReadSize()
+
+* Returns the number of bytes that were read in the memory-read which triggered the currently-running OnMemoryAddressReadFrom callback.
+
+* __WARNING:__ This function will throw an exception if called from outside of a currently-executing OnMemoryAddressReadFrom callback.
+
+* OnMemoryAddressReadFrom:getReadSize() ==> Could return 1, 2, 4, or 8.
+
+__OnMemoryAddressReadFrom:getMemoryAddressReadFromForCurrentCallback__%%%
+
+* unsigned int getMemoryAddressReadFromForCurrentCallback()
+
+* Returns the memory address that was read from to trigger the current OnMemoryAddressReadFrom callback function to run.
+
+* __WARNING:__ This function will throw an exception if called from outside of a currently-executing OnMemoryAddressReadFrom callback.
+
+* OnMemoryAddressReadFrom:getMemoryAddressReadFromForCurrentCallback() ==> Could return 0X8D005432
+
+__OnMemoryAddressReadFrom:isInMemoryAddressReadFromCallback__%%%
+
+* boolean isInMemoryAddressReadFrom()
+
+* Returns true if called from a currently-executing OnMemoryAddressReadFrom callback function, and returns false otherwise.
+
+* OnMemoryAddressReadFrom:isInMemoryAddressReadFromCallback() ==> Returns true if called from inside of a currently-executing OnMemoryAddressReadFrom callback function, and returns false otherwise.
+
+__OnMemoryAddressReadFrom:register__%%%
+
+* int register(unsigned int memoryStartAddress, unsigned int memoryEndAddress, LuaFunction callbackFunction)
+
+* Registers the specified callbackFunction to run when a memory address is read from between memoryStartAddress and memoryEndAddress. Note that if any byte that would be read from memory falls in between the start andend addresses, then the callback will be triggered. For example, if the startAddress is 0X8D004005 and the endAddress is 0X8D004010, and a 4-byte value is read starting at address 0X8D004004, then the callback will be triggered, since the 2nd byte of the number is read from address 0X8D004005. This function returns a unique identifier which can be used to unregister the callback later on.
+
+* __WARNING:__ This function will thrown an exception if memoryEndAddress is less than memoryStartAddress.
+
+%%SRC_EMBED lua
+function callbackFunc()
+end
+funcRef = OnMemoryAddressReadFrom:register(0X8D004010, 0X8D004025, callbackFunc)
+%%END_EMBED
+
+* ==> Registers callbackFunc() to run whenever a memory address between 0X8D004010 and 0X8D004025 is read from. funcRef can be used to unregister the callback later on.
+
+__OnMemoryAddressReadFrom:registerWithAutoDeregistration__%%%
+
+* void registerWithAutoDeregistration(unsigned int memoryStartAddress, unsigned int memoryEndAddress, LuaFunction callbackFunction)
+
+* Registers the specified callbackFunction to run when a memory address is read from which is between memoryStartAddress and memoryEndAddress. This function will be automatically de-registered when the only callbacks that are still running are callbacks which were registered with auto-deregistration.
+
+* __WARNING:__ This function will thrown an exception if memoryEndAddress is less than memoryStartAddress.
+
+%%SRC_EMBED lua
+function callbackFunc()
+end
+OnMemoryAddressReadFrom:registerWithAutoDeregistration(0X8D004010, 0X8D004025, callbackFunc)
+%%END_EMBED
+
+* ==> Registers callbackFunc() to run whenever a memory address is read from between 0X8D004010 and 0X8D004025. This callback will automatically de-register when the only callbacks that are still running are ones which were registered with auto-deregistration.
+
+__OnMemoryAddressReadFrom:unregister__%%%
+
+* void unregister(unsigned int memoryStartAddress, int functionReference)
+
+* Unregisters the callback specified by functionReference which was registered with the specified memoryStartAddress. Note that functionReference should be the return value of OnMemoryAddressReadFrom:register().
+
+%%SRC_EMBED lua
+function callbackFunc()
+	print("Read from an address between 0X8D004010 and 0X8D004025")
+	print("Actual address read from was: " .. tostring(OnMemoryAddressReadFrom:getMemoryAddressReadFromForCurrentCallback()))
+end
+funcRef = OnMemoryAddressReadFrom:register(0X8D004010, 0X8D004025, callbackFunc)
+....
+OnMemoryAddressReadFrom:unregister(0X8D004010, funcRef)
+%%END_EMBED
+
+* ==> Now callbackFunc() won't be called again when a memory address between 0X8D004010 and 0X8D004025 is read from.
+
+%%TAB OnMemoryAddressWrittenTo%%
+
+A Library for registering functions that will be run when a game writes to a memory address which is in between a specified start and end address. If multiple functions are registered to run for a certain memory address (i.e. the address is between the start and end range of multiple registered callbacks), then each callback will be executed in the order that they were registered (when that memory address is written to).
+
+This is a builtin library, so you don't need to put a require(X) statement at the top of your Lua script to use these functions.
+
+__OnMemoryAddressWrittenTo:getMemoryAddressWrittenToForCurrentCallback__%%%
+
+* unsigned int getMemoryAddressWrittenToForCurrentCallback()
+
+* Returns the memory address that was written to which triggered the current OnMemoryAddressWrittenTo callback function to run.
+
+* __WARNING:__ This function will throw an exception if called from outside of a currently-executing OnMemoryAddressWrittenTo callback.
+
+* OnMemoryAddressWrittenTo:getMemoryAddressWrittenToForCurrentCallback() ==> Could return 0X8D005432
+
+__OnMemoryAddressWrittenTo:getValueWrittenToMemoryAddressForCurrentCallback__%%%
+
+* unsigned long long getValueWrittenToMemoryAddressForCurrentCallback()
+
+* Returns the value which was written to the memory address which triggered the current OnMemoryAddressWrittenTo callback function to run.
+
+* __WARNING:__ This function will throw an exception if called from outside of a currently-executing OnMemoryAddressWrittenTo callback.
+
+* OnMemoryAddressWrittenTo:getValueWrittenToMemoryAddressForCurrentCallback() ==> Would return 5432, if 5432 was written to the memory address which triggered the currently-executing OnMemoryAddressWrittenTo callback to run.
+
+__OnMemoryAddressWrittenTo:getWriteSize__
+
+* int getWriteSize()
+
+* Returns the number of bytes that were written in the memory-write which triggered the currently-running OnMemoryAddressReadWrittenTo callback function to run.
+
+* __WARNING:__ This function will throw an exception if called from outside of a currently-executing OnMemoryAddressWrittenTo callback.
+
+* OnMemoryAddressWrittenTo:getWriteSize() ==> Could return 1, 2, 4, or 8.
+
+__OnMemoryAddressWrittenTo:isInMemoryAddressWrittenToCallback__%%%
+
+* boolean isInMemoryAddressWrittenToCallback()
+
+* Returns true if called from a currently-executing OnMemoryAddressWrittenTo callback function, and returns false otherwise.
+
+* OnMemoryAddressWrittenTo:isInMemoryAddressWrittenToCallback() ==> Returns true if called from a currently-executing OnMemoryAddressWrittenTo callback function, and returns false otherwise.
+
+__OnMemoryAddressWrittenTo:register__%%%
+
+* int register(unsigned int memoryStartAddress, unsigned int memoryEndAddress, LuaFunction callbackFunction)
+
+* Registers the specified callbackFunction to run when a memory address is written to between memoryStartAddress and memoryEndAddress. Note that if any byte that would be written to memory falls in between the start and end addresses, then the callback will be triggered. For example, if the startAddress is 0X8D004005 and the endAddress is 0X8D004010, and a 4-byte value is written starting at address 0X8D004004, then the callback will be triggered, since the 2nd byte of the number is written to address 0X8D004005. This function returns a unique identifier which can be used to unregister the callback later on.
+
+* __WARNING:__ This function will thrown an exception if memoryEndAddress is less than memoryStartAddress.
+
+%%SRC_EMBED lua
+function callbackFunc()
+end
+funcRef = OnMemoryAddressWrittenTo:register(0X8D004010, 0X8D004025, callbackFunc)
+%%END_EMBED
+
+* ==> Registers callbackFunc() to run whenever a memory address between 0X8D004010 and 0X8D004025 is written to. funcRef can be used to unregister the callback later on.
+
+__OnMemoryAddressWrittenTo:registerWithAutoDeregistration__%%%
+
+* void registerWithAutoDeregistration(unsigned int memoryStartAddress, unsigned int memoryEndAddress, LuaFunction callbackFunction)
+
+* Registers the specified callbackFunction to run when a memory address is written to which is between memoryStartAddress and memoryEndAddress. This function will be automatically de-registered when the only callbacks that are still running are callbacks which were registered with auto-deregistration.
+
+* __WARNING:__ This function will thrown an exception if memoryEndAddress is less than memoryStartAddress.
+
+%%SRC_EMBED lua
+function callbackFunc()
+end
+OnMemoryAddressWrittenTo:registerWithAutoDeregistration(0X8D004010, 0X8D004025, callbackFunc)
+%%END_EMBED
+
+* ==> Registers callbackFunc() to run whenever a memory address is written to between 0X8D004010 and 0X8D004025. This callback will automatically de-register when the only callbacks that are still running are ones which were registered with auto-deregistration.
+
+__OnMemoryAddressWrittenTo:unregister__%%%
+
+* void unregister(unsigned int memoryStartAddress, int functionReference)
+
+* Unregisters the callback specified by functionReference which was registered with the specified memoryStartAddress. Note that functionReference should be the return value of OnMemoryAddressWrittenTo:register().
+
+%%SRC_EMBED lua
+function callbackFunc()
+	print("Wrote to an address between 0X8D004010 and 0X8D004025")
+	print("Actual address written to was: " .. tostring(OnMemoryAddressWrittenTo:getMemoryAddressWrittenToForCurrentCallback()))
+end
+funcRef = OnMemoryAddressWrittenTo:register(0X8D004010, 0X8D004025, callbackFunc)
+....
+OnMemoryAddressWrittenTo:unregister(0X8D004010, funcRef)
+%%END_EMBED
+
+* ==> Now callbackFunc() won't be called again when a memory address between 0X8D004010 and 0X8D004025 is written to.
+
+%%TAB OnWiiInputPolled%%
+
+A library for registering functions which will be run each time a Wiimote is polled. More specifically, the callbacks will be run right before wiimote input is read from or written to a movie/DTM file. If multiple functions are registered to run at the start of Wiimote polls, then each callback will be executed in the order that they were registered.
+
+This is a builtin library, so you don't need to put a require(X) statement at the top of your Lua script to use these functions.
+
+__OnWiiInputPolled:isInWiiInputPolledCallback__%%%
+
+* boolean isInWiiInputPolledCallback()
+
+* Returns true if called from inside of a currently-executing OnWiiInputPolled callback function, and returns false otherwise.
+
+* OnWiiInputPolled:isInWiiInputPolledCallback() ==> Returns true if called from inside of a currently-executing OnWiiInputPolled callback function, and returns false otherwise.
+
+__OnWiiInputPolled:register__%%%
+
+* int register(LuaFunction callbackFunction)
+
+* Registers callbackFunction to be run each time a Wiimote is polled for input, and returns an identifier that can be used to unregister the callback later on.
+
+%%SRC_EMBED lua
+function callbackFunc()
+	print("Game polled for wii input!")
+end
+funcRef = OnWiiInputPolled(callbackFunc)
+%%END_EMBED
+
+* ==> Registers callbackFunc to run each time a wiimote is polled for input, and returns a unique identifier that can be used to unregister the callback later on.
+
+__OnWiiInputPolled:registerWithAutoDeregistration__%%%
+
+* void registerWithAutoDeregistration(LuaFunction callbackFunction)
+
+* Registers the callbackFunction to be run each time a Wiimote is polled for input. This function will be automatically de-registered when the only callbacks that are still running are callbacks that were registered with auto-deregistration.
+
+%%SRC_EMBED lua
+function callbackFunc()
+end
+OnWiiInputPolled:registerWithAutoDeregistration(callbackFunc)
+%%END_EMBED
+
+* ==> Calls callbackFunc() each time a Wiimote is being polled for input. This function will auto-deregister when the only callbacks that are still running are callbacks that were registered with auto-deregistration.
+
+__OnWiiInputPolled:unregister__%%%
+
+* void unregister(int functionReference)
+
+* Unregisters the OnWiiInputPolled callback specified by functionReference, so that it will no longer run whenever a wiimote is polled. The value passed into this function must be the return result of OnWiiInputPolled:register()
+
+%%SRC_EMBED lua
+function myCallbackFunc()
+	print("Hello World!")
+end
+funcRef = OnWiiInputPolled:register(myCallbackFunc)
+...
+OnWiiInputPolled:unregister(funcRef)
+%%END_EMBED
+
+* ==> Now, the myCallbackFunc() function won't run whenever a wiimote is polled anymore.
+
+%%TAB registers%%
+
+A library for reading from and writing to registers.
+
+RegisterTypeString in the documentation below refers to a String representing a register. Currently supported values are: 
+* "R0", "R1", ... , "R31"
+* "F0", "F1", ... , "F31"
+* "PC"
+* "LR" (register that stores where to return to when a function returns).
+
+All register types can hold a maximum size of 4 bytes, except for the floating-point registers (F0-F31), which can hold a maximum size of 16 bytes.
+
+To use these functions, the following line __MUST__ be included at the top of your Lua script:
+%%SRC_EMBED lua
+require ("registers")
+%%END_EMBED
+
+__registers:getRegister__%%%
+
+* returnType getRegister(RegisterTypeString registerTypeString, DataTypeString returnType, [[optional]] unsigned int optionalOffset)
+
+* This function takes as input a registerTypeString (representing which register to read from), a returnType (which specified the return type of the function, as described in the "DataTypeString" description at the top of this page), an an optional integer offset (in bytes) from the start of the register. The function returns the value stored in the specified register with the type specified by returnType. If optionalOffset is included, then we start reading from the register at an offset of optionalOffset total bytes from the start of the register. Otherwise, we start reading from the beginning of the register.
+
+* __WARNING:__ If the size of the type referred to by returnType plus the optionalOffset is greater than the maximum size of the register, then this function will thrown an exception.
+
+* registers:getRegister("R2", "S16", 2) ==> Returns the last 2 bytes of register R2 as a signed 2-byte integer.
+
+__registers:getRegisterAsSignedByteArray__%%%
+
+* Dict<unsigned int, int> getRegisterAsSignedByteArray(RegisterTypeString registerTypeString, unsigned int arraySize, [[optional]] unsigned int optionalOffset)
+
+* This function takes as input a registerTypeString representing which register to read from, an arraySize representing how many bytes to read, and an optional integer offset (in bytes) from the start of the register. The function returns a dictionary where the 1st key = 1, the 2nd key = 2, etc. and the associated 1st value is the 1st byte read from the register as a signed byte, and the 2nd value represents the 2nd byte read from the register as a signed byte, etc. If optionalOffset is included, then we start reading from the register at an offset of optionalOffset total bytes from the start of the register. Otherwise, we start reading from the beginning of the register.
+
+* __WARNING:__ If arraySize + optionalOffset is greater than the maximum size of the register, then this function will thrown an exception.
+
+* registers:getRegisterAsSignedByteArray("R3", 4) ==> Could return {1 = -30, 2 = 56, 3 = 120, 4 = 67}. Note that this represents the same bytes for R3 as shown in the example below for getRegisterAsUnsignedByteArray()
+
+__registers:getRegisterAsUnsignedByteArray__%%%
+
+* Dict<unsigned int, unsigned int> getRegisterAsUnsignedByteArray(RegisterTypeString registerTypeString, unsigned int arraySize, [[optional]] unsigned int optionalOffset)
+
+* This function takes as input a registerTypeString representing which register to read from, an arraySize representing how many bytes to read, and an optional integer offset (in bytes) from the start of the register. The function returns a dictionary where the 1st key = 1, the 2nd key = 2, etc. and the associated 1st value is the 1st byte read from the register as an unsigned byte, and the 2nd value represents the 2nd byte read from the register as a signed byte, etc.  If optionalOffset is included, then we start reading from the register at an offset of optionalOffset total bytes from the start of the register. Otherwise, we start reading from the beginning of the register.
+
+* __WARNING:__ If arraySize + optionalOffset is greater than the maximum size of the register, then this function will thrown an exception.
+
+* registers:getRegisterAsUnsignedByteArray("R3", 4) --> Could return {1 = 226, 2 = 56, 3 = 120, 4 = 67}. Note that this represents the same bytes for R3 as shown in the example above for getRegisterAsSignedByteArray().
+
+__registers:setRegister__%%%
+
+* void setRegister(RegisterTypeString registerTypeString, DataTypeString writeType, writeType writeValue, [[optional]] unsigned int optionalOffset)
+
+* This function takes as input a registerTypeString representing which register to write to, a DataTypeString specifying what data type writeValue will be (as described in the "DataTypeString" description at the top of this page), a writeValue, and an optional integer offset (in bytes) from the start of the register. The function interprets writeValue of being the type specified by writeType, and writes this value to the specified register. If optionalOffset is included, then we start writing to the register at an offset of optionalOffset total bytes from the start of the register. Otherwise, we start writing at the beginning of the register.
+
+* __WARNING:__ If the size of the type referred to by writeType plus the optionalOffset is greater than the maximum size of the register, then this function will thrown an exception.
+
+* registers:setRegister("R8", "U32", 512321) ==> Writes the value of 512,321 to register R8.
+
+__registers:setRegisterFromByteArray__%%%
+
+* void setRegisterFromByteArray(RegisterTypeString registerTypeString, Dict<unsigned int, int> indexToByteDict, [[optional]] unsigned int optionalOffset)
+
+* This function takes as input a registerTypeString representing which register to write to, an indexToByteDict representing the bytes to write to the register, and an optional integer offset (in bytes) from the start of the register. The function writes the bytes specified by indexToByteDict in order to the specified register (in order of bytes with the lowest key in the dictionary to the byte with the highest associated key). If optionalOffset is included, then we start writing to the register at an offset of optionalOffset total bytes from the start of the register. Otherwise, we start writing at the beginning of the register. Note that each byte is written one-after-the-other (consecutively) to the register. Also, any negative numbers in the dictionary are written as signed bytes, and any non-negative numbers in the dictionary are written as unsigned bytes.
+
+* __WARNING:__ If the number of elements in the dictionary + the optionalOffset is greater than the maximum size of the register, then this function will thrown an exception.
+
+* __SECOND WARNING:__ This function will throw an exception if indexToByteDict contains any values which can't be represented as a byte (i.e. any values < -128 or > 255).
+
+* registers:setRegisterFromByteArray("R3", {1 = -65, 2 = 211, 3 = 40, 4 = 12}) ==> Will write the specified bytes (in order) to register R3. 1st byte is written as a signed byte, and the next 3 bytes are written as unsigned bytes.
+
+%%TAB statistics%%
+
+A library which returns various dolphin statistics.
+
+To use these functions, the following line __MUST__ be included at the top of your Lua script:
+%%SRC_EMBED lua
+require ("statistics")
+%%END_EMBED
+
+__statistics:getCurrentFrame__%%%
+
+* unsigned int getCurrentFrame()
+
+* Returns the current frame number.
+
+* statistics:getCurrentFrame() ==> Would return 1503, if we're on the 1,503rd visual frame since emulation started.
+
+__statistics:getCurrentInputCount__%%%
+
+* unsigned int getCurrentInputCount()
+
+* Returns the current input count.
+
+* statistics:getCurrentInputCount() ==> Would return 1503, if there have been 1503 input polls since emulation started.
+
+__statistics:getCurrentLagCount__%%%
+
+* unsigned int getCurrentLagCount()
+
+* Returns the current lag count.
+
+* statistics:getCurrentLagCount() ==> Would return 4, if there have been 4 lag frames since emulation started.
+
+__statistics:getExRAMSize__%%%
+
+* unsigned int getExRAMSize()
+
+* Returns the size of ExRAM (in bytes), or 0 if this isn't used by the game.
+
+* statistics:getExRAMSize() ==> Could return 67108864 (the value for a lot of games).
+
+__statistics:getFakeVMemSize__%%%
+
+* unsigned int getFakeVMemSize()
+
+* Returns the size of FakeVMem (in bytes), or 0 if this isn't used by the game.
+
+* statistics:getFakeVMem() ==> Could return 33554432 (the value for a lot of games).
+
+__statistics:getL1CacheSize__%%%
+
+* unsigned int getL1CacheSize()
+
+* Returns the size of L1Cache (in bytes), or 0 if this isn't used by the game.
+
+* statistics:getL1CacheSize() ==> Could return 262144 (the value for a lot of games).
+
+__statistics:getMovieLength__%%%
+
+* unsigned int getMovieLength()
+
+* Returns the number of visual frames in the currently-active movie.
+
+* statistics:getMovieLength() ==> Could return 12000, if the currently-active movie is 12000 frames-long.
+
+__statistics:getRAMSize__%%%
+
+* unsigned int getRAMSize()
+
+* Returns the size of RAM (in bytes).
+
+* statistics:getRAMSize() ==> Could return 25165824 (the value for most games).
+
+__statistics:getRerecordCount__%%%
+
+* unsigned int getRerecordCount()
+
+* Returns the number of re-records in the currently-active movie.
+
+* statistics:getRerecordCount() ==> Could return 2642, if there have been 2,642 re-records in the currently-active movie.
+
+__statistics:getTotalInputCount__%%%
+
+* unsigned int getTotalInputCount()
+
+* Returns the total number of input polls that occur from emulation start up to the end of the currently-active movie.
+
+* statistics:getTotalInputCount() ==> Could return 10542, if there are 10,542 total input polls from emulation start up until the end of the DTM.
+
+__statistics:getTotalLagCount__%%%
+
+* unsigned int getTotalLagCount()
+
+* Returns the total number of lag frames that occur from emulation start up to the end of the currently-active movie.
+
+* statistics:getTotalLagCount() ==> Could return 143, if there are 143 total lag frames from emulation start up until the end of the DTM.
+
+__statistics:isMovieActive__%%%
+
+* boolean isMovieActive()
+
+* Returns true if a movie is currently active, and returns false otherwise.
+
+* statistics:isMovieActive() ==> Returns true if a movie is currently playing back or being recorded, and returns false otherwise.
+
+__statistics:isPlayingInput__%%%
+
+* boolean isPlayingInput()
+
+* Returns true if a movie is currently being played back, and returns false otherwise.
+
+* statistics:isPlayingInput() ==> Returns true if a movie is currently playing back, and returns false otherwise.
+
+__statistics:isRecordingInput__%%%
+
+* boolean isRecordingInput()
+
+* Returns true if a movie is currently being recorded, and returns false otherwise.
+
+* statistics:isRecordingInput() ==> Returns true if a movie is currently being recorded, and returns false otherwise.
+
+__statistics:isRecordingInputFromSaveState__%%%
+
+* boolean isRecordingInputFromSaveState()
+
+* Returns true if a movie is currently being played or recorded which started from a save state (as opposed to the DTM starting from power-on).
+
+* statistics:isRecordingInputFromSaveState() ==> Returns true if a movie is currently being played or recorded which started from a save state, and returns false otherwise.
