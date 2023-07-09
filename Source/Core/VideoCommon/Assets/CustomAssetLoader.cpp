@@ -97,4 +97,11 @@ CustomAssetLoader::LoadPixelShader(const CustomAssetLibrary::AssetID& asset_id,
 {
   return LoadOrCreateAsset<PixelShaderAsset>(asset_id, m_pixel_shaders, std::move(library));
 }
+
+std::shared_ptr<MaterialAsset>
+CustomAssetLoader::LoadMaterial(const CustomAssetLibrary::AssetID& asset_id,
+                                std::shared_ptr<CustomAssetLibrary> library)
+{
+  return LoadOrCreateAsset<MaterialAsset>(asset_id, m_materials, std::move(library));
+}
 }  // namespace VideoCommon

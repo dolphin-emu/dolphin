@@ -637,6 +637,7 @@
     <ClInclude Include="VideoCommon\Assets\CustomAssetLoader.h" />
     <ClInclude Include="VideoCommon\Assets\CustomTextureData.h" />
     <ClInclude Include="VideoCommon\Assets\DirectFilesystemAssetLibrary.h" />
+    <ClInclude Include="VideoCommon\Assets\MaterialAsset.h" />
     <ClInclude Include="VideoCommon\Assets\ShaderAsset.h" />
     <ClInclude Include="VideoCommon\Assets\TextureAsset.h" />
     <ClInclude Include="VideoCommon\AsyncRequests.h" />
@@ -1253,6 +1254,7 @@
     <ClCompile Include="VideoCommon\Assets\CustomAssetLoader.cpp" />
     <ClCompile Include="VideoCommon\Assets\CustomTextureData.cpp" />
     <ClCompile Include="VideoCommon\Assets\DirectFilesystemAssetLibrary.cpp" />
+    <ClCompile Include="VideoCommon\Assets\MaterialAsset.cpp" />
     <ClCompile Include="VideoCommon\Assets\ShaderAsset.cpp" />
     <ClCompile Include="VideoCommon\Assets\TextureAsset.cpp" />
     <ClCompile Include="VideoCommon\AsyncRequests.cpp" />
