@@ -659,57 +659,46 @@ void RunButtonCallbacksInQueue_impl(void* base_script_context_ptr)
   RunCallbacksForVector(base_script_context_ptr, python_script, vector_of_callbacks);
 }
 
-void RunCallbacksForMap(void* base_script_context_ptr, PythonScriptContext* python_script, std::unordered_map<unsigned int, std::vector<IdentifierToCallback> >& map_of_callbacks, unsigned int current_int)
-{
-  if (!dolphinDefinedScriptContext_APIs.get_is_script_active(base_script_context_ptr))
-    return;
-
-  if (ShouldCallEndScriptFunction(base_script_context_ptr))
-  {
-    dolphinDefinedScriptContext_APIs.get_script_end_callback_function(base_script_context_ptr)(base_script_context_ptr, dolphinDefinedScriptContext_APIs.get_unique_script_identifier(base_script_context_ptr));
-    return;
-  }
-
-  if (getNumberOfCallbacksInMap(map_of_callbacks) == 0)
-    return;
-
-  if (!map_of_callbacks.contains(current_int))
-    return;
-
-  std::vector<IdentifierToCallback> current_vector = map_of_callbacks[current_int];
-  unsigned long long num_callbacks = current_vector.size();
-
-  if (num_callbacks == 0)
-    return;
-
-  PythonInterface::PythonEval_RestoreThread(python_script->main_python_thread);
-
-  for (unsigned long long i = 0; i < num_callbacks; ++i)
-  {
-    if (current_vector[i].callback == nullptr)
-      break;
-    PythonInterface::PythonObject_CallFunction(current_vector[i].callback);
-  }
-  RunEndOfIteraionTasks(base_script_context_ptr);
-  PythonInterface::PythonEval_ReleaseThread(python_script->main_python_thread);
-}
-
 void RunOnInstructionReachedCallbacks_impl(void* base_script_context_ptr, unsigned int addr)
 {
   PythonScriptContext* python_script = GetPythonScriptContext(base_script_context_ptr);
-  RunCallbacksForMap(base_script_context_ptr, python_script, python_script->map_of_instruction_address_to_python_callbacks, addr);
+  if (python_script->map_of_instruction_address_to_python_callbacks.count(addr) == 0)
+    return;
+  RunCallbacksForVector(base_script_context_ptr, python_script, python_script->map_of_instruction_address_to_python_callbacks[addr]);
 }
 
-void RunOnMemoryAddressReadFromCallbacks_impl(void* base_script_context_ptr, unsigned int addr)
+void RunOnMemoryAddressReadFromCallbacks_impl(void* base_script_context_ptr, unsigned int address)
 {
   PythonScriptContext* python_script = GetPythonScriptContext(base_script_context_ptr);
-  RunCallbacksForMap(base_script_context_ptr, python_script, python_script->memory_address_read_from_callbacks, addr);
+  std::vector<IdentifierToCallback> callbacks_to_run = std::vector<IdentifierToCallback>();
+  size_t list_size = python_script->memory_address_read_from_callbacks.size();
+  for (size_t i = 0; i < list_size; ++i)
+  {
+    if (address >= python_script->memory_address_read_from_callbacks[i].memory_start_address &&
+        address <= python_script->memory_address_read_from_callbacks[i].memory_end_address)
+          callbacks_to_run.push_back(python_script->memory_address_read_from_callbacks[i].identifier_to_callback);
+  }
+
+  if (callbacks_to_run.size() == 0)
+    return;
+  RunCallbacksForVector(base_script_context_ptr, python_script, callbacks_to_run);
 }
 
-void RunOnMemoryAddressWrittenToCallbacks_impl(void* base_script_context_ptr, unsigned int addr)
+void RunOnMemoryAddressWrittenToCallbacks_impl(void* base_script_context_ptr, unsigned int address)
 {
   PythonScriptContext* python_script = GetPythonScriptContext(base_script_context_ptr);
-  RunCallbacksForMap(base_script_context_ptr, python_script, python_script->memory_address_written_to_callbacks, addr);
+  std::vector<IdentifierToCallback> callbacks_to_run = std::vector<IdentifierToCallback>();
+  size_t list_size = python_script->memory_address_written_to_callbacks.size();
+  for (size_t i = 0; i < list_size; ++i)
+  {
+    if (address >= python_script->memory_address_written_to_callbacks[i].memory_start_address &&
+        address <= python_script->memory_address_written_to_callbacks[i].memory_end_address)
+          callbacks_to_run.push_back(python_script->memory_address_written_to_callbacks[i].identifier_to_callback);
+  }
+
+  if (callbacks_to_run.size() == 0)
+    return;
+  RunCallbacksForVector(base_script_context_ptr, python_script, callbacks_to_run);
 }
 
 void* RegisterForVectorHelper(PythonScriptContext* python_script, std::vector<IdentifierToCallback>& callback_list, void* callback)
@@ -873,7 +862,7 @@ void RegisterForMapWithAutoDeregistrationHelper(void* base_script_context_ptr, u
   ++number_of_auto_deregistration_callbacks;
 }
 
-bool UnregisterForMapHelper(void* base_script_context_ptr, unsigned int addr, std::unordered_map<unsigned int, std::vector<IdentifierToCallback> >& map_of_callbacks, void* identifier_for_callback)
+bool UnregisterForMapHelper(void* base_script_context_ptr, std::unordered_map<unsigned int, std::vector<IdentifierToCallback> >& map_of_callbacks, void* identifier_for_callback)
 {
   size_t identifier_to_unregister = *((size_t*)(&identifier_for_callback));
   if (identifier_to_unregister == 0)
@@ -882,26 +871,44 @@ bool UnregisterForMapHelper(void* base_script_context_ptr, unsigned int addr, st
     return false;
   }
 
-  if (map_of_callbacks.count(addr) == 0)
-  {
-    HandleErrorGeneral(base_script_context_ptr, "Error: Attempted to unregister a callback which was not currently registered!");
-    return false;
-  }
+  unsigned long long address = -1;
 
-  size_t num_callbacks = map_of_callbacks[addr].size();
-
-  for (size_t i = 0; i < num_callbacks; ++i)
+  for (auto& map_iterator : map_of_callbacks)
   {
-    if (map_of_callbacks[addr][i].identifier == identifier_to_unregister)
+    if (!map_iterator.second.empty())
     {
-      PythonInterface::Python_DecRef(map_of_callbacks[addr][i].callback);
-      map_of_callbacks[addr].erase(map_of_callbacks[addr].begin() + i);
-      return true;
+      for (auto& callback_to_identifier : map_iterator.second)
+      {
+        if (callback_to_identifier.identifier == identifier_to_unregister)
+        {
+          address = map_iterator.first;
+          break;
+        }
+      }
     }
   }
 
-  HandleErrorGeneral(base_script_context_ptr, "Error: Attempted to unregister a callback which was not currently registered!");
-  return false;
+  if (address == -1)
+  {
+    // This function is only called from an OnInstructionHit.unregister() call.
+    HandleErrorGeneral(base_script_context_ptr, "Error: Attempted to unregister an OnInstructionHit callback function which wasn't currently registered!");
+    return false;
+  }
+
+  size_t list_size = map_of_callbacks[address].size();
+  for (unsigned i = 0; i < list_size; ++i)
+  {
+    if (map_of_callbacks[address][i].identifier == identifier_to_unregister)
+    {
+      PythonInterface::Python_DecRef(map_of_callbacks[address][i].callback);
+      map_of_callbacks[address].erase(map_of_callbacks[address].begin() + i);
+    }
+  }
+
+  if (map_of_callbacks[address].empty())
+    map_of_callbacks.erase(address);
+
+  return true;
 }
 
 void* RegisterOnInstructionReachedCallback_impl(void* base_script_context_ptr, unsigned int addr, void* callback)
@@ -918,41 +925,102 @@ void RegisterOnInstructionReachedWithAutoDeregistrationCallback_impl(void* base_
 
 int UnregisterOnInstructionReachedCallback_impl(void* base_script_context_ptr, void* identifier_for_callback)
 {
-  return UnregisterForMapHelper(base_script_context_ptr, addr, GetPythonScriptContext(base_script_context_ptr)->map_of_instruction_address_to_python_callbacks, identifier_for_callback);
+  return UnregisterForMapHelper(base_script_context_ptr, GetPythonScriptContext(base_script_context_ptr)->map_of_instruction_address_to_python_callbacks, identifier_for_callback);
+}
+
+void* RegisterForVectorHelper(PythonScriptContext* python_script, std::vector<MemoryAddressCallbackTriple>& input_vector, unsigned int start_address, unsigned int end_address, void* callback)
+{
+  size_t return_result = 0;
+  if (callback == nullptr || !PythonInterface::Python_IsCallable(callback))
+  {
+    HandleErrorGeneral(python_script->base_script_context_ptr, "Error: Attempted to register a Python object which wasn't callable as a callback function!");
+    return nullptr;
+  }
+
+  PythonInterface::Python_IncRef(callback);
+  MemoryAddressCallbackTriple new_callback_triple = {};
+  new_callback_triple.memory_start_address = start_address;
+  new_callback_triple.memory_end_address = end_address;
+  new_callback_triple.identifier_to_callback = {python_script->next_unique_identifier_for_callback, callback};
+  input_vector.push_back(new_callback_triple);
+  return_result = python_script->next_unique_identifier_for_callback;
+  python_script->next_unique_identifier_for_callback++;
+  return *((void**)(&return_result));
+}
+
+void RegisterForVectorWithAutoDeregistrationHelper(void* base_script_context_ptr, std::vector<MemoryAddressCallbackTriple>& input_vector, unsigned int start_address, unsigned int end_address, void* callback, std::atomic<size_t>& number_of_callbacks_to_auto_deregister)
+{
+  if (callback == nullptr || !PythonInterface::Python_IsCallable(callback))
+  {
+    HandleErrorGeneral(base_script_context_ptr, "Error: attempted to register as an auto-deregister function a python object which wasn't callable!");
+    return;
+  }
+
+  PythonInterface::Python_IncRef(callback);
+  MemoryAddressCallbackTriple new_callback_triple = {};
+  new_callback_triple.memory_start_address = start_address;
+  new_callback_triple.memory_end_address = end_address;
+  new_callback_triple.identifier_to_callback = { 0, callback };
+  input_vector.push_back(new_callback_triple);
+  ++number_of_callbacks_to_auto_deregister;
+}
+
+bool UnregisterForVectorHelper(void* base_script_context_ptr, std::vector<MemoryAddressCallbackTriple>& callback_list, void* identifier_for_callback)
+{
+  size_t casted_callback_identifier = *((size_t*)&identifier_for_callback);
+  if (casted_callback_identifier == 0)
+  {
+    HandleErrorGeneral(base_script_context_ptr, "Error: Attempted to de-register a callback which was registered with auto-deregistration. These are deleted by the app automatically when the only callbacks that are still running are registered with auto-deregistration.");
+    return false;
+  }
+  size_t list_size = callback_list.size();
+
+  for (size_t i = 0; i < list_size; ++i)
+  {
+    if (callback_list[i].identifier_to_callback.identifier == casted_callback_identifier)
+    {
+      PythonInterface::Python_DecRef(callback_list[i].identifier_to_callback.callback);
+      callback_list.erase(callback_list.begin() + i);
+      return true;
+    }
+  }
+
+  HandleErrorGeneral(base_script_context_ptr, "Error: Attempted to unregister a function which wasn't currently registered!");
+  return false;
 }
 
 void* RegisterOnMemoryAddressReadFromCallback_impl(void* base_script_context_ptr, unsigned int start_address, unsigned int end_address, void* callback)
 {
   PythonScriptContext* python_script = GetPythonScriptContext(base_script_context_ptr);
-  return RegisterForVectorHelper(python_script, addr, python_script->memory_address_read_from_callbacks, callback);
+  return RegisterForVectorHelper(python_script, python_script->memory_address_read_from_callbacks, start_address, end_address, callback);
 }
 
 void RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallback_impl(void* base_script_context_ptr, unsigned int start_address, unsigned int end_address, void* callback)
 {
   PythonScriptContext* python_script = GetPythonScriptContext(base_script_context_ptr);
-  RegisterForVectorWithAutoDeregistrationHelper(base_script_context_ptr, addr, python_script->memory_address_read_from_callbacks, callback, python_script->number_of_memory_address_read_callbacks_to_auto_deregister);
+  RegisterForVectorWithAutoDeregistrationHelper(base_script_context_ptr, python_script->memory_address_read_from_callbacks, start_address, end_address, callback, python_script->number_of_memory_address_read_callbacks_to_auto_deregister);
 }
 
 int UnregisterOnMemoryAddressReadFromCallback_impl(void* base_script_context_ptr, void* identifier_for_callback)
 {
-  return UnregisterForVectorHelper(base_script_context_ptr, addr, GetPythonScriptContext(base_script_context_ptr)->memory_address_read_from_callbacks, identifier_for_callback);
+  return UnregisterForVectorHelper(base_script_context_ptr, GetPythonScriptContext(base_script_context_ptr)->memory_address_read_from_callbacks, identifier_for_callback);
 }
 
 void* RegisterOnMemoryAddressWrittenToCallback_impl(void* base_script_context_ptr, unsigned int start_address, unsigned int end_address, void* callback)
 {
   PythonScriptContext* python_script = GetPythonScriptContext(base_script_context_ptr);
-  return RegisterForVectorHelper(python_script, addr, python_script->memory_address_written_to_callbacks, callback);
+  return RegisterForVectorHelper(python_script, python_script->memory_address_written_to_callbacks, start_address, end_address, callback);
 }
 
-void RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallback_impl(void* base_script_context_ptr, unsigned int start_address, unsigned int end_address,, void* callback)
+void RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallback_impl(void* base_script_context_ptr, unsigned int start_address, unsigned int end_address, void* callback)
 {
   PythonScriptContext* python_script = GetPythonScriptContext(base_script_context_ptr);
-  RegisterForVectorWithAutoDeregistrationHelper(base_script_context_ptr, addr, python_script->memory_address_written_to_callbacks, callback, python_script->number_of_memory_address_write_callbacks_to_auto_deregister);
+  RegisterForVectorWithAutoDeregistrationHelper(base_script_context_ptr, python_script->memory_address_written_to_callbacks, start_address, end_address, callback, python_script->number_of_memory_address_write_callbacks_to_auto_deregister);
 }
 
 int UnregisterOnMemoryAddressWrittenToCallback_impl(void* base_script_context_ptr, void* identifier_for_callback)
 {
-  return UnregisterForVectorHelper(base_script_context_ptr, addr, GetPythonScriptContext(base_script_context_ptr)->memory_address_written_to_callbacks, identifier_for_callback);
+  return UnregisterForVectorHelper(base_script_context_ptr, GetPythonScriptContext(base_script_context_ptr)->memory_address_written_to_callbacks, identifier_for_callback);
 }
 
 void DLLClassMetadataCopyHook_impl(void* base_script_context_ptr, void* class_metadata_ptr)

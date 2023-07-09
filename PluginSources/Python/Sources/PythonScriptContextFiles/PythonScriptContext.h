@@ -121,15 +121,15 @@ extern "C" {
 
   void* RegisterOnInstructionReachedCallback_impl(void*, unsigned int, void*);
   void RegisterOnInstructionReachedWithAutoDeregistrationCallback_impl(void*, unsigned int, void*);
-  int UnregisterOnInstructionReachedCallback_impl(void*, unsigned int, void*);
+  int UnregisterOnInstructionReachedCallback_impl(void*, void*);
 
-  void* RegisterOnMemoryAddressReadFromCallback_impl(void*, unsigned int, void*);
-  void RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallback_impl(void*, unsigned int, void*);
-  int UnregisterOnMemoryAddressReadFromCallback_impl(void*, unsigned int, void*);
+  void* RegisterOnMemoryAddressReadFromCallback_impl(void*, unsigned int, unsigned int, void*);
+  void RegisterOnMemoryAddressReadFromWithAutoDeregistrationCallback_impl(void*, unsigned int, unsigned int, void*);
+  int UnregisterOnMemoryAddressReadFromCallback_impl(void*, void*);
 
-  void* RegisterOnMemoryAddressWrittenToCallback_impl(void*, unsigned int, void*);
-  void RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallback_impl(void*, unsigned int, void*);
-  int UnregisterOnMemoryAddressWrittenToCallback_impl(void*, unsigned int, void*);
+  void* RegisterOnMemoryAddressWrittenToCallback_impl(void*, unsigned int, unsigned int, void*);
+  void RegisterOnMemoryAddressWrittenToWithAutoDeregistrationCallback_impl(void*, unsigned int, unsigned int, void*);
+  int UnregisterOnMemoryAddressWrittenToCallback_impl(void*, void*);
 
   void DLLClassMetadataCopyHook_impl(void*, void*);
   void DLLFunctionMetadataCopyHook_impl(void*, void*);
