@@ -10,9 +10,6 @@ u32 memory_address_read_from_for_current_callback = 0;
 u32 read_size = 0;
 bool in_memory_address_read_from_breakpoint = false;
 
-u32 start_address_for_current_breakpoint = 0;
-u32 end_address_for_current_breakpoint = 0;
-
 static std::array all_on_memory_address_read_from_callback_functions_metadata_list = {
     FunctionMetadata("register", "1.0", "register(memoryStartAddress, memoryEndAddress, value)",
                      Register, ScriptingEnums::ArgTypeEnum::RegistrationReturnType,

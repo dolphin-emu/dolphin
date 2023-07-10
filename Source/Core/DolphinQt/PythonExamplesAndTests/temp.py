@@ -1,4 +1,4 @@
-import instruction_step
+"""import instruction_step
 import registers
 import memory
 
@@ -37,3 +37,14 @@ print("Python file")
 
 PatCryptDecryptKey = OnInstructionHit.register(PatCryptDecryptAddress, PatCryptDecryptCb)
 PatCryptEncryptKey = OnInstructionHit.register(PatCryptEncryptAddress, PatCryptEncryptCb)
+"""
+
+# This is from the Source/Core/Core/Scripting/Documentation/PythonRawAPIDocumentation.txt file
+dolphin.importModule("EmuAPI", "1.0")
+dolphin.importModule("MemoryAPI", "1.0")
+
+def myCheckMemoryFunction():
+	if MemoryAPI.read_u8(0X80000008) != 42:
+		print("Byte at 0X80000008 was NOT 42!")
+
+OnFrameStart.register(myCheckMemoryFunction)
