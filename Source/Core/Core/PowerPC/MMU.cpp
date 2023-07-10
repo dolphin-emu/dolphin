@@ -558,14 +558,14 @@ void MMU::Memcheck(u32 address, u64 var, bool write, size_t size)
           memory_address_written_to_for_current_callback = address;
       Scripting::OnMemoryAddressWrittenToCallbackAPI::
           value_written_to_memory_address_for_current_callback = var;
-      Scripting::OnMemoryAddressWrittenToCallbackAPI::write_size = size;
+      Scripting::OnMemoryAddressWrittenToCallbackAPI::write_size = static_cast<u32>(size);
     }
     if ((!write) && mc->is_break_on_read)
     {
       Scripting::OnMemoryAddressReadFromCallbackAPI::in_memory_address_read_from_breakpoint = true;
       Scripting::OnMemoryAddressReadFromCallbackAPI::memory_address_read_from_for_current_callback =
           address;
-      Scripting::OnMemoryAddressReadFromCallbackAPI::read_size = size;
+      Scripting::OnMemoryAddressReadFromCallbackAPI::read_size = static_cast<u32>(size);
     }
   }
 
