@@ -18,6 +18,7 @@
 
 #include <fmt/format.h>
 
+// https://stackoverflow.com/a/70211227
 #ifdef __linux__     // features.h is only available on Linux
 #define _GNU_SOURCE  // We have to define this to use macros in features.h
 #include <features.h>
