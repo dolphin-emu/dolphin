@@ -26,8 +26,9 @@ public:
     std::string m_pixel_material_asset;
   };
 
-  static std::unique_ptr<CustomPipelineAction> Create(const picojson::value& json_data,
-                                                      std::string_view path);
+  static std::unique_ptr<CustomPipelineAction>
+  Create(const picojson::value& json_data,
+         std::shared_ptr<VideoCommon::CustomAssetLibrary> library);
   CustomPipelineAction(std::shared_ptr<VideoCommon::CustomAssetLibrary> library,
                        std::vector<PipelinePassPassDescription> pass_descriptions);
   ~CustomPipelineAction();

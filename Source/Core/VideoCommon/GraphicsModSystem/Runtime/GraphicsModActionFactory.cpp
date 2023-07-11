@@ -12,7 +12,7 @@
 namespace GraphicsModActionFactory
 {
 std::unique_ptr<GraphicsModAction> Create(std::string_view name, const picojson::value& json_data,
-                                          std::string_view path)
+                                          std::shared_ptr<VideoCommon::CustomAssetLibrary> library)
 {
   if (name == "print")
   {
@@ -32,7 +32,7 @@ std::unique_ptr<GraphicsModAction> Create(std::string_view name, const picojson:
   }
   else if (name == "custom_pipeline")
   {
-    return CustomPipelineAction::Create(json_data, path);
+    return CustomPipelineAction::Create(json_data, std::move(library));
   }
 
   return nullptr;

@@ -663,6 +663,7 @@
     <ClInclude Include="VideoCommon\GeometryShaderGen.h" />
     <ClInclude Include="VideoCommon\GeometryShaderManager.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Config\GraphicsMod.h" />
+    <ClInclude Include="VideoCommon\GraphicsModSystem\Config\GraphicsModAsset.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Config\GraphicsModFeature.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Config\GraphicsModGroup.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Config\GraphicsTarget.h" />
@@ -1278,6 +1279,7 @@
     <ClCompile Include="VideoCommon\GeometryShaderGen.cpp" />
     <ClCompile Include="VideoCommon\GeometryShaderManager.cpp" />
     <ClCompile Include="VideoCommon\GraphicsModSystem\Config\GraphicsMod.cpp" />
+    <ClCompile Include="VideoCommon\GraphicsModSystem\Config\GraphicsModAsset.cpp" />
     <ClCompile Include="VideoCommon\GraphicsModSystem\Config\GraphicsModFeature.cpp" />
     <ClCompile Include="VideoCommon\GraphicsModSystem\Config\GraphicsModGroup.cpp" />
     <ClCompile Include="VideoCommon\GraphicsModSystem\Config\GraphicsTarget.cpp" />
