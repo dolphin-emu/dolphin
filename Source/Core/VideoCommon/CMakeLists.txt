@@ -64,6 +64,8 @@ add_library(videocommon
   GeometryShaderManager.h
   GraphicsModSystem/Config/GraphicsMod.cpp
   GraphicsModSystem/Config/GraphicsMod.h
+  GraphicsModSystem/Config/GraphicsModAsset.cpp
+  GraphicsModSystem/Config/GraphicsModAsset.h
   GraphicsModSystem/Config/GraphicsModFeature.cpp
   GraphicsModSystem/Config/GraphicsModFeature.h
   GraphicsModSystem/Config/GraphicsModGroup.cpp
