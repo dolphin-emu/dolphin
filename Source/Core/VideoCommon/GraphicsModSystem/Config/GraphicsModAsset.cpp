@@ -44,6 +44,7 @@ bool GraphicsModAssetConfig::DeserializeFromConfig(const picojson::object& obj)
                     "Failed to load mod configuration file, specified asset '{}' has data "
                     "with a value for key '{}' that is not a string",
                     m_name, key);
+      return false;
     }
     m_map[key] = value.to_str();
   }
