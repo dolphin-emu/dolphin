@@ -314,15 +314,17 @@ namespace PythonDynamicLibrary
       return;
 
     path_to_lib = "";
-    GetPythonLibFromEnvVariable("PATH");
+    GetPythonLibFromEnvVariable("DOLPHIN_PYTHON_PATH");
+    if (path_to_lib.empty())
+      GetPythonLibFromEnvVariable("PYTHONPATH");
     if (path_to_lib.empty())
       GetPythonLibFromEnvVariable("PYTHONHOME");
     if (path_to_lib.empty())
-      GetPythonLibFromEnvVariable("PYTHONPATH");
+      GetPythonLibFromEnvVariable("PATH");
 
     if (path_to_lib.empty())
     {
-      SetErrorCodeAndMessage(base_script_ptr, ScriptingEnums::ScriptReturnCodes::DLLFileNotFoundError, (std::string("Error: The ") + LIBRARY_SUFFIX + " file for Python could not be located. Environment variables that were searched for Python DLLs (in order) were PATH, PYTHONHOME, and PYTHONPATH").c_str());
+      SetErrorCodeAndMessage(base_script_ptr, ScriptingEnums::ScriptReturnCodes::DLLFileNotFoundError, (std::string("Error: The ") + LIBRARY_SUFFIX + " file for Python could not be located. Environment variables that were searched for Python DLLs (in order) were DOLPHIN_PYTHON_PATH, PYTHONPATH, PYTHONHOME and PATH").c_str());
       return;
     }
 
