@@ -46,7 +46,7 @@ installed when building.
 
 Make sure to pull submodules before building:
 ```sh
-git submodule update --init
+git submodule update --init --recursive
 ```
 
 The "Release" solution configuration includes performance optimizations for the best user experience but complicates debugging Dolphin.
@@ -63,7 +63,7 @@ to install any missing packages yourself. You may refer to the [wiki](https://gi
 
 Make sure to pull submodules before building:
 ```sh
-git submodule update --init
+git submodule update --init --recursive
 ```
 
 ### macOS Build Steps:
@@ -128,7 +128,7 @@ Android dev environment set up, see [AndroidSetup.md](AndroidSetup.md).
 
 Make sure to pull submodules before building:
 ```sh
-git submodule update --init
+git submodule update --init --recursive
 ```
 
 If using Android Studio, import the Gradle project located in `./Source/Android`.
