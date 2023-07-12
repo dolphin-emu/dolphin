@@ -41,6 +41,9 @@ __declspec(dllimport) void __stdcall DebugBreak(void);
 
 namespace Common
 {
+// strerror_r wrapper to handle XSI and GNU versions.
+const char* StrErrorWrapper(int error, char* buffer, std::size_t length);
+
 // Wrapper function to get last strerror(errno) string.
 // This function might change the error code.
 std::string LastStrerrorString();
