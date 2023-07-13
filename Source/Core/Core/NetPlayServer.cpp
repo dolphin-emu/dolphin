@@ -169,7 +169,7 @@ NetPlayServer::NetPlayServer(const u16 port, const bool forward_port, NetPlayUI*
     m_chunked_data_thread = std::thread(&NetPlayServer::ChunkedDataThreadFunc, this);
 
 #ifdef USE_UPNP
-    if (forward_port)
+    if (forward_port && !traversal_config.use_traversal)
       Common::UPnP::TryPortmapping(port);
 #endif
   }
