@@ -312,9 +312,9 @@ static void HandlePacket(Common::TraversalPacket* packet, sockaddr_in6* addr)
       Common::TraversalInetAddress* iaddr{};
       // not that there is any significant change of
       // duplication, but...
-      GetRandomHostId(&hostId);
       while (true)
       {
+        GetRandomHostId(&hostId);
         auto r = EvictFind(connectedClients, hostId);
         if (!r.found)
         {
