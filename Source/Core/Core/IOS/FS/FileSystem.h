@@ -151,6 +151,14 @@ struct DirectoryStats
   u32 used_inodes;
 };
 
+// Not a real Wii data struct, but useful for calculating how full the user's NAND is even if it's
+// way larger than it should be.
+struct ExtendedDirectoryStats
+{
+  u64 used_clusters;
+  u64 used_inodes;
+};
+
 struct FileStatus
 {
   u32 offset;
@@ -278,6 +286,9 @@ public:
   virtual Result<NandStats> GetNandStats() = 0;
   /// Get usage information about a directory (used cluster and inode counts).
   virtual Result<DirectoryStats> GetDirectoryStats(const std::string& path) = 0;
+
+  /// Like GetDirectoryStats() but not limited to the actual 512 MB NAND limit.
+  virtual Result<ExtendedDirectoryStats> GetExtendedDirectoryStats(const std::string& path) = 0;
 
   virtual void SetNandRedirects(std::vector<NandRedirect> nand_redirects) = 0;
 };
