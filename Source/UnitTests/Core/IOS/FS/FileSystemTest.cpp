@@ -269,8 +269,7 @@ TEST_F(FileSystemTest, GetDirectoryStats)
     file->Write(std::vector<u8>(20).data(), 20);
   }
   // The file should now take up one cluster.
-  // TODO: uncomment after the FS code is fixed.
-  // check_stats(1u, 2u);
+  check_stats(1u, 2u);
 }
 
 // Files need to be explicitly created using CreateFile or CreateDirectory.
