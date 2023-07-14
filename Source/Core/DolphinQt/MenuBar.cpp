@@ -15,6 +15,7 @@
 #include <QMap>
 #include <QUrl>
 
+#include "Common/Align.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
@@ -32,6 +33,7 @@
 #include "Core/HW/WiiSave.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/IOS/ES/ES.h"
+#include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/Movie.h"
@@ -1137,7 +1139,42 @@ void MenuBar::CheckNAND()
   WiiUtils::NANDCheckResult result = WiiUtils::CheckNAND(ios);
   if (!result.bad)
   {
-    ModalMessageBox::information(this, tr("NAND Check"), tr("No issues have been detected."));
+    const bool overfull = result.used_clusters_user > IOS::HLE::FS::USER_CLUSTERS ||
+                          result.used_clusters_system > IOS::HLE::FS::SYSTEM_CLUSTERS;
+    const QString user_cluster_message =
+        tr("The user-accessible part of your NAND contains %1 blocks (%2 KiB) "
+           "of data, out of an allowed maximum of %3 blocks (%4 KiB).")
+            .arg(Common::AlignUp(result.used_clusters_user, IOS::HLE::FS::CLUSTERS_PER_BLOCK) /
+                 IOS::HLE::FS::CLUSTERS_PER_BLOCK)
+            .arg((result.used_clusters_user * IOS::HLE::FS::CLUSTER_SIZE) / 1024)
+            .arg(IOS::HLE::FS::USER_CLUSTERS / IOS::HLE::FS::CLUSTERS_PER_BLOCK)
+            .arg((IOS::HLE::FS::USER_CLUSTERS * IOS::HLE::FS::CLUSTER_SIZE) / 1024);
+    const QString system_cluster_message =
+        tr("The system-reserved part of your NAND contains %1 blocks (%2 KiB) "
+           "of data, out of an allowed maximum of %3 blocks (%4 KiB).")
+            .arg(Common::AlignUp(result.used_clusters_system, IOS::HLE::FS::CLUSTERS_PER_BLOCK) /
+                 IOS::HLE::FS::CLUSTERS_PER_BLOCK)
+            .arg((result.used_clusters_system * IOS::HLE::FS::CLUSTER_SIZE) / 1024)
+            .arg(IOS::HLE::FS::SYSTEM_CLUSTERS / IOS::HLE::FS::CLUSTERS_PER_BLOCK)
+            .arg((IOS::HLE::FS::SYSTEM_CLUSTERS * IOS::HLE::FS::CLUSTER_SIZE) / 1024);
+
+    if (overfull)
+    {
+      ModalMessageBox::warning(this, tr("NAND Check"),
+                               QStringLiteral("<b>%1</b><br/><br/>%2<br/><br/>%3")
+                                   .arg(tr("Your NAND contains more data than allowed. Wii "
+                                           "software may behave incorrectly or not allow saving."))
+                                   .arg(user_cluster_message)
+                                   .arg(system_cluster_message));
+    }
+    else
+    {
+      ModalMessageBox::information(this, tr("NAND Check"),
+                                   QStringLiteral("<b>%1</b><br/><br/>%2<br/><br/>%3")
+                                       .arg(tr("No issues have been detected."))
+                                       .arg(user_cluster_message)
+                                       .arg(system_cluster_message));
+    }
     return;
   }
 

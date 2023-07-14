@@ -101,6 +101,10 @@ struct NANDCheckResult
 {
   bool bad = false;
   std::unordered_set<u64> titles_to_remove;
+  u64 used_clusters_user = 0;
+  u64 used_clusters_system = 0;
+  u64 used_inodes_user = 0;
+  u64 used_inodes_system = 0;
 };
 NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios);
 bool RepairNAND(IOS::HLE::Kernel& ios);
