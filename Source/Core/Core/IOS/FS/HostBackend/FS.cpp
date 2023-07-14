@@ -29,21 +29,6 @@ namespace IOS::HLE::FS
 {
 constexpr u32 BUFFER_CHUNK_SIZE = 65536;
 
-// size of a single cluster in the NAND
-constexpr u16 CLUSTER_SIZE = 16384;
-
-// total number of clusters available in the NAND
-constexpr u16 TOTAL_CLUSTERS = 0x7ec0;
-
-// number of clusters reserved for bad blocks and similar, not accessible to normal writes
-constexpr u16 RESERVED_CLUSTERS = 0x0300;
-
-// number of clusters actually usable by the file system
-constexpr u16 USABLE_CLUSTERS = TOTAL_CLUSTERS - RESERVED_CLUSTERS;
-
-// total number of inodes available in the NAND
-constexpr u16 TOTAL_INODES = 0x17ff;
-
 HostFileSystem::HostFilename HostFileSystem::BuildFilename(const std::string& wii_path) const
 {
   for (const auto& redirect : m_nand_redirects)
