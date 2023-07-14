@@ -569,7 +569,10 @@ void PowerPCManager::CheckExceptions()
   else
   {
     CheckExternalExceptions();
+    return;
   }
+
+  m_system.GetJitInterface().UpdateMembase();
 }
 
 void PowerPCManager::CheckExternalExceptions()
@@ -623,6 +626,8 @@ void PowerPCManager::CheckExternalExceptions()
                     exceptions);
     }
   }
+
+  m_system.GetJitInterface().UpdateMembase();
 }
 
 void PowerPCManager::CheckBreakPoints()

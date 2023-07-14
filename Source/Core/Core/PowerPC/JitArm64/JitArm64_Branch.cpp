@@ -11,6 +11,7 @@
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 using namespace Arm64Gen;
 
@@ -63,6 +64,8 @@ void JitArm64::rfi(UGeckoInstruction inst)
   ORR(WA, WA, WC);                        // rB = Masked MSR OR masked SRR1
 
   STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(msr));  // STR rB in to rA
+
+  EmitStoreMembase(WA);
 
   LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF_SPR(SPR_SRR0));
   gpr.Unlock(WB, WC);

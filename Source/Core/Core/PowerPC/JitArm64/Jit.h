@@ -311,6 +311,9 @@ protected:
   void BeginTimeProfile(JitBlock* b);
   void EndTimeProfile(JitBlock* b);
 
+  void EmitUpdateMembase();
+  void EmitStoreMembase(const Arm64Gen::ARM64Reg& msr);
+
   // Exits
   void WriteExit(u32 destination, bool LK = false, u32 exit_address_after_return = 0);
   void WriteExit(Arm64Gen::ARM64Reg dest, bool LK = false, u32 exit_address_after_return = 0);

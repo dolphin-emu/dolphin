@@ -95,26 +95,13 @@ void JitArm64::GenerateAsm()
 
   bool assembly_dispatcher = true;
 
-  auto& memory = m_system.GetMemory();
-
   if (assembly_dispatcher)
   {
-    // set the mem_base based on MSR flags
-    LDR(IndexType::Unsigned, ARM64Reg::W28, PPC_REG, PPCSTATE_OFF(msr));
-    FixupBranch physmem = TBNZ(ARM64Reg::W28, 31 - 27);
-    MOVP2R(MEM_REG,
-           jo.fastmem_arena ? memory.GetPhysicalBase() : memory.GetPhysicalPageMappingsBase());
-    FixupBranch membaseend = B();
-    SetJumpTarget(physmem);
-    MOVP2R(MEM_REG,
-           jo.fastmem_arena ? memory.GetLogicalBase() : memory.GetLogicalPageMappingsBase());
-    SetJumpTarget(membaseend);
-
     if (GetBlockCache()->GetFastBlockMap())
     {
       // Check if there is a block
       ARM64Reg pc_masked = ARM64Reg::X25;
-      ARM64Reg cache_base = ARM64Reg::X27;
+      ARM64Reg cache_base = ARM64Reg::X24;
       ARM64Reg block = ARM64Reg::X30;
       LSL(pc_masked, DISPATCHER_PC, 1);
       MOVP2R(cache_base, GetBlockCache()->GetFastBlockMap());
@@ -122,7 +109,7 @@ void JitArm64::GenerateAsm()
       FixupBranch not_found = CBZ(block);
 
       // b.msrBits != msr
-      ARM64Reg msr = ARM64Reg::W25;
+      ARM64Reg msr = ARM64Reg::W27;
       ARM64Reg msr2 = ARM64Reg::W24;
       LDR(IndexType::Unsigned, msr, PPC_REG, PPCSTATE_OFF(msr));
       AND(msr, msr, LogicalImm(JitBaseBlockCache::JIT_CACHE_MSR_MASK, 32));
@@ -181,14 +168,6 @@ void JitArm64::GenerateAsm()
 
   FixupBranch no_block_available = CBZ(ARM64Reg::X0);
 
-  // set the mem_base based on MSR flags and jump to next block.
-  LDR(IndexType::Unsigned, ARM64Reg::W28, PPC_REG, PPCSTATE_OFF(msr));
-  FixupBranch physmem = TBNZ(ARM64Reg::W28, 31 - 27);
-  MOVP2R(MEM_REG,
-         jo.fastmem_arena ? memory.GetPhysicalBase() : memory.GetPhysicalPageMappingsBase());
-  BR(ARM64Reg::X0);
-  SetJumpTarget(physmem);
-  MOVP2R(MEM_REG, jo.fastmem_arena ? memory.GetLogicalBase() : memory.GetLogicalPageMappingsBase());
   BR(ARM64Reg::X0);
 
   // Call JIT
@@ -216,6 +195,11 @@ void JitArm64::GenerateAsm()
   SetJumpTarget(to_start_of_timing_slice);
   MOVP2R(ARM64Reg::X8, &CoreTiming::GlobalAdvance);
   BLR(ARM64Reg::X8);
+
+  // When we've just entered the jit we need to update the membase
+  // GlobalAdvance also checks exceptions after which we need to
+  // update the membase so it makes sense to do this here.
+  EmitUpdateMembase();
 
   // Load the PC back into DISPATCHER_PC (the exception handler might have changed it)
   LDR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));

@@ -127,8 +127,11 @@ bool JitArm64::HandleFault(uintptr_t access_address, SContext* ctx)
       {
         ERROR_LOG_FMT(DYNA_REC,
                       "JitArm64 address calculation overflowed. This should never happen! "
-                      "PC {:#018x}, access address {:#018x}, memory base {:#018x}, MSR.DR {}",
-                      ctx->CTX_PC, access_address, memory_base, m_ppc_state.msr.DR);
+                      "PC {:#018x}, access address {:#018x}, memory base {:#018x}, MSR.DR {}, "
+                      "mem_ptr {}, pbase {}, lbase {}",
+                      ctx->CTX_PC, access_address, memory_base, m_ppc_state.msr.DR,
+                      fmt::ptr(m_ppc_state.mem_ptr), fmt::ptr(memory.GetPhysicalBase()),
+                      fmt::ptr(memory.GetLogicalBase()));
       }
       else
       {
@@ -353,6 +356,24 @@ void JitArm64::IntializeSpeculativeConstants()
   }
 }
 
+void JitArm64::EmitUpdateMembase()
+{
+  LDR(IndexType::Unsigned, MEM_REG, PPC_REG, PPCSTATE_OFF(mem_ptr));
+}
+
+void JitArm64::EmitStoreMembase(const ARM64Reg& msr)
+{
+  auto& memory = m_system.GetMemory();
+  ARM64Reg WD = gpr.GetReg();
+  ARM64Reg XD = EncodeRegTo64(WD);
+  MOVP2R(MEM_REG, jo.fastmem_arena ? memory.GetLogicalBase() : memory.GetLogicalPageMappingsBase());
+  MOVP2R(XD, jo.fastmem_arena ? memory.GetPhysicalBase() : memory.GetPhysicalPageMappingsBase());
+  TST(msr, LogicalImm(1 << (31 - 27), 32));
+  CSEL(MEM_REG, MEM_REG, XD, CCFlags::CC_NEQ);
+  STR(IndexType::Unsigned, MEM_REG, PPC_REG, PPCSTATE_OFF(mem_ptr));
+  gpr.Unlock(WD);
+}
+
 void JitArm64::WriteExit(u32 destination, bool LK, u32 exit_address_after_return)
 {
   Cleanup();
@@ -523,6 +544,7 @@ void JitArm64::WriteExceptionExit(ARM64Reg dest, bool only_external, bool always
   else
     MOVP2R(EncodeRegTo64(DISPATCHER_PC), &PowerPC::CheckExceptionsFromJIT);
   BLR(EncodeRegTo64(DISPATCHER_PC));
+  EmitUpdateMembase();
 
   LDR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
 
@@ -636,6 +658,7 @@ void JitArm64::EndTimeProfile(JitBlock* b)
 void JitArm64::Run()
 {
   ProtectStack();
+  m_system.GetJitInterface().UpdateMembase();
 
   CompiledCode pExecAddr = (CompiledCode)enter_code;
   pExecAddr();
@@ -646,6 +669,7 @@ void JitArm64::Run()
 void JitArm64::SingleStep()
 {
   ProtectStack();
+  m_system.GetJitInterface().UpdateMembase();
 
   CompiledCode pExecAddr = (CompiledCode)enter_code;
   pExecAddr();
@@ -747,6 +771,7 @@ void JitArm64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
     m_ppc_state.npc = nextPC;
     m_ppc_state.Exceptions |= EXCEPTION_ISI;
     m_system.GetPowerPC().CheckExceptions();
+    m_system.GetJitInterface().UpdateMembase();
     WARN_LOG_FMT(POWERPC, "ISI exception at {:#010x}", nextPC);
     return;
   }

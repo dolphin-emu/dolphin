@@ -490,6 +490,21 @@ void Jit64::FakeBLCall(u32 after)
   SetJumpTarget(skip_exit);
 }
 
+void Jit64::EmitUpdateMembase()
+{
+  MOV(64, R(RMEM), PPCSTATE(mem_ptr));
+}
+
+void Jit64::EmitStoreMembase(const OpArg& msr, X64Reg scratch_reg)
+{
+  auto& memory = m_system.GetMemory();
+  MOV(64, R(RMEM), ImmPtr(memory.GetLogicalBase()));
+  MOV(64, R(scratch_reg), ImmPtr(memory.GetPhysicalBase()));
+  TEST(32, msr, Imm32(1 << (31 - 27)));
+  CMOVcc(64, RMEM, R(scratch_reg), CC_Z);
+  MOV(64, PPCSTATE(mem_ptr), R(RMEM));
+}
+
 void Jit64::WriteExit(u32 destination, bool bl, u32 after)
 {
   if (!m_enable_blr_optimization)
@@ -599,6 +614,7 @@ void Jit64::WriteRfiExitDestInRSCRATCH()
   ABI_PushRegistersAndAdjustStack({}, 0);
   ABI_CallFunctionP(PowerPC::CheckExceptionsFromJIT, &m_system.GetPowerPC());
   ABI_PopRegistersAndAdjustStack({}, 0);
+  EmitUpdateMembase();
   SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
   JMP(asm_routines.dispatcher, Jump::Near);
 }
@@ -620,6 +636,7 @@ void Jit64::WriteExceptionExit()
   ABI_PushRegistersAndAdjustStack({}, 0);
   ABI_CallFunctionP(PowerPC::CheckExceptionsFromJIT, &m_system.GetPowerPC());
   ABI_PopRegistersAndAdjustStack({}, 0);
+  EmitUpdateMembase();
   SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
   JMP(asm_routines.dispatcher, Jump::Near);
 }
@@ -632,6 +649,7 @@ void Jit64::WriteExternalExceptionExit()
   ABI_PushRegistersAndAdjustStack({}, 0);
   ABI_CallFunctionP(PowerPC::CheckExternalExceptionsFromJIT, &m_system.GetPowerPC());
   ABI_PopRegistersAndAdjustStack({}, 0);
+  EmitUpdateMembase();
   SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
   JMP(asm_routines.dispatcher, Jump::Near);
 }
@@ -639,6 +657,7 @@ void Jit64::WriteExternalExceptionExit()
 void Jit64::Run()
 {
   ProtectStack();
+  m_system.GetJitInterface().UpdateMembase();
 
   CompiledCode pExecAddr = (CompiledCode)asm_routines.enter_code;
   pExecAddr();
@@ -649,6 +668,7 @@ void Jit64::Run()
 void Jit64::SingleStep()
 {
   ProtectStack();
+  m_system.GetJitInterface().UpdateMembase();
 
   CompiledCode pExecAddr = (CompiledCode)asm_routines.enter_code;
   pExecAddr();
@@ -745,6 +765,7 @@ void Jit64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
     m_ppc_state.npc = nextPC;
     m_ppc_state.Exceptions |= EXCEPTION_ISI;
     m_system.GetPowerPC().CheckExceptions();
+    m_system.GetJitInterface().UpdateMembase();
     WARN_LOG_FMT(POWERPC, "ISI exception at {:#010x}", nextPC);
     return;
   }
