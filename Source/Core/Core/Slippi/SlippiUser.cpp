@@ -173,27 +173,17 @@ void SlippiUser::OpenLogInPage()
 
 void SlippiUser::UpdateApp()
 {
-#if defined(__APPLE__) || defined(_WIN32)
-  CriticalAlertFmtT("Dolphin auto updates are not available on standalone builds. Migrate to "
-                    "the Slippi Launcher at your earliest convenience");
-  return;
+	std::string url = "https://slippi.gg/downloads?update=true";
+
+#ifdef _WIN32
+	std::string command = "explorer \"" + url + "\"";
+#elif defined(__APPLE__)
+	std::string command = "open \"" + url + "\"";
 #else
-  const char* appimage_path = getenv("APPIMAGE");
-  const char* appmount_path = getenv("APPDIR");
-  if (!appimage_path)
-  {
-    CriticalAlertFmtT("Automatic updates are not available for non-AppImage Linux builds.");
-    return;
-  }
-  std::string path(appimage_path);
-  std::string mount_path(appmount_path);
-  std::string command = mount_path + "/usr/bin/appimageupdatetool " + path;
-  WARN_LOG_FMT(SLIPPI, "Executing app update command: {}", command);
-  RunSystemCommand(command);
-  CriticalAlertFmtT(
-      "Dolphin failed to update, please head over to the Slippi Discord for support.");
-  return;
+	std::string command = "xdg-open \"" + url + "\""; // Linux
 #endif
+
+	RunSystemCommand(command);
 }
 
 void SlippiUser::ListenForLogIn()
