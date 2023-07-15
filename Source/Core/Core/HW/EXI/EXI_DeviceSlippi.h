@@ -31,7 +31,7 @@ namespace ExpansionInterface
 class CEXISlippi : public IEXIDevice
 {
 public:
-  CEXISlippi(Core::System& system);
+  CEXISlippi(Core::System& system, const std::string current_file_name);
   virtual ~CEXISlippi();
 
   void DMAWrite(u32 _uAddr, u32 _uSize) override;

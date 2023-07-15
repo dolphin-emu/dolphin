@@ -31,7 +31,7 @@
 
 namespace HW
 {
-void Init(const Sram* override_sram)
+void Init(const Sram* override_sram, const std::string current_file_name)
 {
   auto& system = Core::System::GetInstance();
   system.GetCoreTiming().Init();
@@ -44,7 +44,7 @@ void Init(const Sram* override_sram)
   system.GetVideoInterface().Init();
   SerialInterface::Init();
   system.GetProcessorInterface().Init();
-  system.GetExpansionInterface().Init(override_sram);  // Needs to be initialized before Memory
+  system.GetExpansionInterface().Init(override_sram, current_file_name);  // Needs to be initialized before Memory
   system.GetHSP().Init();
   system.GetMemory().Init();  // Needs to be initialized before AddressSpace
   AddressSpace::Init();

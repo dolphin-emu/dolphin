@@ -532,7 +532,8 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   AudioCommon::InitSoundStream(system);
   Common::ScopeGuard audio_guard([&system] { AudioCommon::ShutdownSoundStream(system); });
 
-  HW::Init(NetPlay::IsNetPlayRunning() ? &(boot_session_data.GetNetplaySettings()->sram) : nullptr);
+  std::string current_file_name = std::get<BootParameters::Disc>(boot->parameters).path;
+  HW::Init(NetPlay::IsNetPlayRunning() ? &(boot_session_data.GetNetplaySettings()->sram) : nullptr, current_file_name);
 
   Common::ScopeGuard hw_guard{[&system] {
     // We must set up this flag before executing HW::Shutdown()

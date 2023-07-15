@@ -116,7 +116,7 @@ std::string ConvertConnectCodeForGame(const std::string& input)
   return connectCode;
 }
 
-CEXISlippi::CEXISlippi(Core::System& system) : IEXIDevice(system)
+CEXISlippi::CEXISlippi(Core::System& system, const std::string current_file_name) : IEXIDevice(system)
 {
   INFO_LOG_FMT(SLIPPI, "EXI SLIPPI Constructor called.");
 
@@ -124,7 +124,7 @@ CEXISlippi::CEXISlippi(Core::System& system) : IEXIDevice(system)
   g_playbackStatus = std::make_unique<SlippiPlaybackStatus>();
   matchmaking = std::make_unique<SlippiMatchmaking>(user.get());
   gameFileLoader = std::make_unique<SlippiGameFileLoader>();
-  game_reporter = std::make_unique<SlippiGameReporter>(user.get());
+  game_reporter = std::make_unique<SlippiGameReporter>(user.get(), current_file_name);
   g_replayComm = std::make_unique<SlippiReplayComm>();
   directCodes = std::make_unique<SlippiDirectCodes>("direct-codes.json");
   teamsCodes = std::make_unique<SlippiDirectCodes>("teams-codes.json");
@@ -2957,6 +2957,7 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
     g_needInputForFrame = true;
     SlippiSpectateServer::getInstance().startGame();
     SlippiSpectateServer::getInstance().write(&memPtr[0], receiveCommandsLen + 1);
+    game_reporter->PushReplayData(&memPtr[0], receiveCommandsLen + 1, "create");
   }
 
   if (byte == CMD_MENU_FRAME)
@@ -2990,6 +2991,7 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
       writeToFileAsync(&memPtr[bufLoc], payloadLen + 1, "close");
       SlippiSpectateServer::getInstance().write(&memPtr[bufLoc], payloadLen + 1);
       SlippiSpectateServer::getInstance().endGame();
+      game_reporter->PushReplayData(&memPtr[bufLoc], payloadLen + 1, "close");
       break;
     case CMD_PREPARE_REPLAY:
       // log.open("log.txt");
@@ -3002,6 +3004,7 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
       g_needInputForFrame = true;
       writeToFileAsync(&memPtr[bufLoc], payloadLen + 1, "");
       SlippiSpectateServer::getInstance().write(&memPtr[bufLoc], payloadLen + 1);
+      game_reporter->PushReplayData(&memPtr[bufLoc], payloadLen + 1, "");
       break;
     case CMD_IS_STOCK_STEAL:
       prepareIsStockSteal(&memPtr[bufLoc + 1]);
@@ -3097,6 +3100,7 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
     default:
       writeToFileAsync(&memPtr[bufLoc], payloadLen + 1, "");
       SlippiSpectateServer::getInstance().write(&memPtr[bufLoc], payloadLen + 1);
+      game_reporter->PushReplayData(&memPtr[bufLoc], payloadLen + 1, "");
       break;
     }
 
