@@ -66,8 +66,11 @@ SlippiPlaybackStatus::SlippiPlaybackStatus()
   currentPlaybackFrame = INT_MIN;
   targetFrameNum = INT_MAX;
   lastFrame = Slippi::PLAYBACK_FIRST_SAVE;
+#ifdef IS_PLAYBACK
+  // Only generate these if this is a playback configuration. Should this class get initialized at all?
   generateDenylist();
   generateLegacyCodelist();
+#endif
 }
 
 void SlippiPlaybackStatus::startThreads()
