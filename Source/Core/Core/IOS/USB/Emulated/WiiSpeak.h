@@ -83,6 +83,7 @@ private:
   u8 m_active_interface = 0;
   bool m_device_attached = false;
   bool init = false;
+  bool b_is_mic_connected = true;
   Microphone m_microphone;
   DeviceDescriptor m_device_descriptor{};
   std::vector<ConfigDescriptor> m_config_descriptor;

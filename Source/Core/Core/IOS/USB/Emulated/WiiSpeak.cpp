@@ -24,8 +24,19 @@ WiiSpeak::WiiSpeak(IOS::HLE::EmulationKernel& ios, const std::string& device_nam
   m_endpoint_descriptor.emplace_back(EndpointDescriptor{0x7, 0x5, 0x3, 0x1, 0x0040, 1});
 
   m_microphone = Microphone();
-  m_microphone.OpenMicrophone();
-  m_microphone.StartCapture();
+  if (m_microphone.OpenMicrophone() != 0)
+  {
+    ERROR_LOG_FMT(IOS_USB, "Error opening the microphone.");
+    b_is_mic_connected = false;
+    return;
+  }
+
+  if (m_microphone.StartCapture() != 0)
+  {
+    ERROR_LOG_FMT(IOS_USB, "Error starting captures.");
+    b_is_mic_connected = false;
+    return;
+  }
 
   m_microphone_thread = std::thread([this] {
     u64 timeout{};
@@ -135,6 +146,9 @@ int WiiSpeak::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
                 m_vid, m_pid, m_active_interface, cmd->request_type, cmd->request, cmd->value,
                 cmd->index, cmd->length);
 
+  if (!b_is_mic_connected)
+    return IPC_ENOENT;
+
   switch (cmd->request_type << 8 | cmd->request)
   {
   case USBHDR(DIR_DEVICE2HOST, TYPE_STANDARD, REC_INTERFACE, REQUEST_GET_INTERFACE):
@@ -195,6 +209,9 @@ int WiiSpeak::SubmitTransfer(std::unique_ptr<IntrMessage> cmd)
 
 int WiiSpeak::SubmitTransfer(std::unique_ptr<IsoMessage> cmd)
 {
+  if (!b_is_mic_connected)
+    return IPC_ENOENT;
+  
   auto& system = m_ios.GetSystem();
   auto& memory = system.GetMemory();
 
