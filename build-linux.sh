@@ -26,7 +26,8 @@ make -j$(nproc)
 popd
 
 # Copy the Sys folder in
-cp -r -n ${DATA_SYS_PATH} ${BINARY_PATH}
+rm -rf ${BINARY_PATH}/Sys
+cp -r ${DATA_SYS_PATH} ${BINARY_PATH}
 
 touch ./build/Binaries/portable.txt
 
