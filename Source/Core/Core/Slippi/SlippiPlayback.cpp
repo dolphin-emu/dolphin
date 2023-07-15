@@ -348,6 +348,33 @@ inline std::string readString(json obj, std::string key)
   return obj[key];
 }
 
+int getOrderNumFromFileName(std::string name)
+{
+	// Extract last value after a dash, then try to parse it into a number. This is the
+	// number we will sort by. If there is no number present, the number used is 0.
+	std::string last;
+	std::istringstream f(name);
+	std::string s;
+	while (std::getline(f, s, '-'))
+	{
+		last = s;
+	}
+
+	int num;
+	if (!TryParse(last, &num))
+	{
+		num = 0;
+	}
+
+	return num;
+}
+
+// Compares two intervals according to starting times.
+bool compareInjectionList(File::FSTEntry i1, File::FSTEntry i2)
+{
+	return getOrderNumFromFileName(i1.virtualName) < getOrderNumFromFileName(i2.virtualName);
+}
+
 void SlippiPlaybackStatus::generateDenylist()
 {
   // We start by populating the denylist with old injections that are not longer used but need
@@ -370,6 +397,9 @@ void SlippiPlaybackStatus::generateDenylist()
       // Yellow During IASA
       // (https://smashboards.com/threads/color-overlays-for-iasa-frames.401474/post-19120928)
       {0x80071960, true},
+      // Turn Green When Actionable (https://blippi.gg/codes)
+	    {0x800CC818, true},
+	    {0x8008A478, true},
   };
 
   // Next we parse through the injection lists files to exclude all of our injections that don't
@@ -377,11 +407,17 @@ void SlippiPlaybackStatus::generateDenylist()
   std::string injections_path =
       File::GetSysDirectory() + DIR_SEP + "Slippi" + DIR_SEP + "InjectionLists";
   auto entries = File::ScanDirectoryTree(injections_path, false);
-  for (auto& entry : entries.children)
+  auto children = entries.children;
+
+	// First sort by the file names so later lists take precedence
+	std::sort(children.begin(), children.end(), compareInjectionList);
+
+	for (auto &entry : children)
   {
     if (entry.isDirectory)
       continue;
 
+    WARN_LOG_FMT(SLIPPI, "Injection List checking: {}. {}", entry.physicalName, entry.virtualName);
     std::string contents;
     File::ReadFileToString(entry.physicalName, contents);
     auto res = json::parse(contents, nullptr, false);
@@ -413,8 +449,7 @@ void SlippiPlaybackStatus::generateDenylist()
       // Check if tags indicate that this code affects gameplay, if so, do not put it on the
       // denylist
       auto tags = readString(injection, "Tags");
-      if (tags.find("[affects-gameplay]") != std::string::npos)
-        continue;
+      bool shouldDeny = tags.find("[affects-gameplay]") == std::string::npos;
 
       // Add injection to denylist
       u32 address;
@@ -425,7 +460,7 @@ void SlippiPlaybackStatus::generateDenylist()
                       entry.physicalName, addressStr);
         continue;
       }
-      denylist[address] = true;
+      denylist[address] = shouldDeny;
       // INFO_LOG(SLIPPI, "New denylist entry: %08X", address);
     }
   }
