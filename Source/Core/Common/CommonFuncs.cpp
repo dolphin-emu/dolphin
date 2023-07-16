@@ -17,27 +17,35 @@ namespace Common
 {
 constexpr size_t BUFFER_SIZE = 256;
 
+// There are two variants of strerror_r. The XSI version stores the message to the passed-in
+// buffer and returns an int (0 on success). The GNU version returns a pointer to the message,
+// which might have been stored in the passed-in buffer or might be a static string.
+//
+// This function might change the errno value.
+//
+// References:
+// https://www.gnu.org/software/gnulib/manual/html_node/strerror_005fr.html
+// https://pubs.opengroup.org/onlinepubs/9699919799/functions/strerror_r.html
+// https://refspecs.linuxbase.org/LSB_5.0.0/LSB-Core-generic/LSB-Core-generic/baselib-strerror-r.html
+const char* StrErrorWrapper(int error, char* buffer, std::size_t length)
+{
+  // We check defines in order to figure out which variant is in use.
+#if (defined(__GLIBC__) || __ANDROID_API__ >= 23) &&                                               \
+    (_GNU_SOURCE || (_POSIX_C_SOURCE < 200112L && _XOPEN_SOURCE < 600))
+  return strerror_r(error, buffer, length);
+#else
+  const int error_code = strerror_r(error, buffer, length);
+  return error_code == 0 ? buffer : "";
+#endif
+}
+
 // Wrapper function to get last strerror(errno) string.
 // This function might change the error code.
 std::string LastStrerrorString()
 {
   char error_message[BUFFER_SIZE];
 
-  // There are two variants of strerror_r. The XSI version stores the message to the passed-in
-  // buffer and returns an int (0 on success). The GNU version returns a pointer to the message,
-  // which might have been stored in the passed-in buffer or might be a static string.
-
-  // We check defines in order to figure out variant is in use, and we store the returned value
-  // to a variable so that we'll get a compile-time check that our assumption was correct.
-
-#if (defined(__GLIBC__) || __ANDROID_API__ >= 23) &&                                               \
-    (_GNU_SOURCE || (_POSIX_C_SOURCE < 200112L && _XOPEN_SOURCE < 600))
-  const char* str = strerror_r(errno, error_message, BUFFER_SIZE);
-  return std::string(str);
-#else
-  int error_code = strerror_r(errno, error_message, BUFFER_SIZE);
-  return error_code == 0 ? std::string(error_message) : "";
-#endif
+  return StrErrorWrapper(errno, error_message, BUFFER_SIZE);
 }
 
 #ifdef _WIN32
