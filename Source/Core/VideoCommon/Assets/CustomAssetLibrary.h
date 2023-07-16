@@ -34,8 +34,8 @@ public:
 
   struct LoadInfo
   {
-    std::size_t m_bytes_loaded;
-    CustomAssetLibrary::TimeType m_load_time;
+    std::size_t m_bytes_loaded = 0;
+    CustomAssetLibrary::TimeType m_load_time = {};
   };
 
   // Loads a texture, if there are no levels, bytes loaded will be empty
