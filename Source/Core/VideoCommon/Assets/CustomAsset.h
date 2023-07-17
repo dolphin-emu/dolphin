@@ -20,10 +20,10 @@ public:
   CustomAsset(std::shared_ptr<CustomAssetLibrary> library,
               const CustomAssetLibrary::AssetID& asset_id);
   virtual ~CustomAsset() = default;
-  CustomAsset(const CustomAsset&) = default;
-  CustomAsset(CustomAsset&&) = default;
-  CustomAsset& operator=(const CustomAsset&) = default;
-  CustomAsset& operator=(CustomAsset&&) = default;
+  CustomAsset(const CustomAsset&) = delete;
+  CustomAsset(CustomAsset&&) = delete;
+  CustomAsset& operator=(const CustomAsset&) = delete;
+  CustomAsset& operator=(CustomAsset&&) = delete;
 
   // Loads the asset from the library returning a pass/fail result
   bool Load();
