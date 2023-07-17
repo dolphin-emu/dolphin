@@ -132,6 +132,8 @@ public:
   static double HostRead_F64(const Core::CPUThreadGuard& guard, u32 address);
   static u32 HostRead_Instruction(const Core::CPUThreadGuard& guard, u32 address);
   static std::string HostGetString(const Core::CPUThreadGuard& guard, u32 address, size_t size = 0);
+  static std::u16string HostGetU16String(const Core::CPUThreadGuard& guard, u32 address,
+                                         size_t size = 0);
 
   // Try to read a value from emulated memory at the given address in the given memory space.
   // If the read succeeds, the returned value will be present and the ReadResult contains the read
