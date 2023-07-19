@@ -1223,12 +1223,17 @@ bool SkylanderPortal::CreateSkylander(const std::string& file_path, u16 m_sky_id
   // The BCC (Block Check Character)
   file_data[4] = file_data[0] ^ file_data[1] ^ file_data[2] ^ file_data[3];
 
-  // ATQA
-  file_data[5] = 0x81;
-  file_data[6] = 0x01;
-
   // SAK
+  file_data[5] = 0x81;
+
+  // ATQA
+  file_data[6] = 0x01;
   file_data[7] = 0x0F;
+
+  // Year of production
+  // the last 2 digits of the year the tag was produced, interpreted as hexadecimal
+  // 2011 example:
+  // file_data[0xF] = 0x11;
 
   // Set the skylander info
   memcpy(&file_data[0x10], &m_sky_id, sizeof(m_sky_id));
@@ -1237,6 +1242,12 @@ bool SkylanderPortal::CreateSkylander(const std::string& file_path, u16 m_sky_id
   // Set checksum
   u16 checksum = SkylanderCRC16(0xFFFF, file_data, 0x1E);
   memcpy(&file_data[0x1E], &checksum, sizeof(checksum));
+
+  // Key A
+  for (char i = 0; i < 64; i++)
+  {
+
+  }
 
   sky_file.WriteBytes(buf.data(), buf.size());
   return true;
