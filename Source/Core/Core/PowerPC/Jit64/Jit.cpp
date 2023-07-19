@@ -469,6 +469,7 @@ bool Jit64::Cleanup()
         Imm32(js.downcountAmount));
     MOV(64, MDisp(RSCRATCH2, offsetof(JitBlock::ProfileData, ticCounter)), R(RSCRATCH));
     ABI_PopRegistersAndAdjustStack({}, 0);
+    did_something = true;
   }
 
   return did_something;
