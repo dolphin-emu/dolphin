@@ -126,6 +126,8 @@ public:
   bool RemoveSkylander(u8 sky_num);
   u8 LoadSkylander(u8* buf, File::IOFile in_file);
   std::pair<u16, u16> CalculateIDs(const std::array<u8, 0x40 * 0x10>& file_data);
+  u64 CalculateKeyA(u8 sector, u8* nuid);
+  u64 ComputeCRC48(u8* data);
 
 protected:
   std::mutex sky_mutex;

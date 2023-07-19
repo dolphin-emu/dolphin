@@ -1198,6 +1198,45 @@ static u16 SkylanderCRC16(u16 init_value, const u8* buffer, u32 size)
   return crc;
 }
 
+u64 SkylanderPortal::ComputeCRC48(u8* data)
+{
+  const u64 polynomial = 0x42f0e1eba9ea3693;
+  const u64 initialRegisterValue = (static_cast<long long>(2 * 2 * 3) * 1103 * 12868356821);
+
+  u64 crc = initialRegisterValue;
+  for (char i = 0; i < 5; i++)
+  {
+    crc ^= (static_cast<unsigned long long>(data[i]) << 40);
+    for (char j = 0; j < 8; j++)
+    {
+      if ((crc & 0x800000000000))
+      {
+        crc = (crc << 1) ^ polynomial;
+      }
+      else
+      {
+        crc <<= 1;
+      }
+
+      crc &= 0x0000FFFFFFFFFFFF;
+    }
+  }
+  return crc;
+}
+
+u64 SkylanderPortal::CalculateKeyA(u8 sector, u8* nuid)
+{
+  if (sector == 0)
+  {
+    return (static_cast<u64>(73 * 2017) * 560381651);
+  }
+
+  u8 data[5] = {nuid[0], nuid[1], nuid[2], nuid[3], sector};
+
+  return ComputeCRC48(data);
+
+}
+
 bool SkylanderPortal::CreateSkylander(const std::string& file_path, u16 m_sky_id, u16 m_sky_var)
 {
   File::IOFile sky_file(file_path, "w+b");
@@ -1246,7 +1285,15 @@ bool SkylanderPortal::CreateSkylander(const std::string& file_path, u16 m_sky_id
   // Key A
   for (char i = 0; i < 64; i++)
   {
+    // NUID is at start of data so no index needed
+    u64 key = CalculateKeyA(i, file_data);
 
+    for (u8 j = 0; j < 6; j++)
+    {
+      u16 index = (i * 64) + (3 * 16) + ((i == 0)? (5 - j) : j);
+      u8 data = (key >> (j * 8)) & 0xFF;
+      file_data[index] = data;
+    }
   }
 
   sky_file.WriteBytes(buf.data(), buf.size());
