@@ -410,6 +410,8 @@ add_library(core
   IOS/USB/Emulated/Infinity.h
   IOS/USB/Emulated/Skylander.cpp
   IOS/USB/Emulated/Skylander.h
+	IOS/USB/Emulated/SkylanderCrypt.cpp
+  IOS/USB/Emulated/SkylanderCrypt.h
   IOS/USB/Host.cpp
   IOS/USB/Host.h
   IOS/USB/OH0/OH0.cpp
