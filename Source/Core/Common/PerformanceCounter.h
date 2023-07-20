@@ -3,14 +3,16 @@
 
 #pragma once
 
-#if !defined(_WIN32)
-
-#include <cstdint>
-
 #include "Common/CommonTypes.h"
+
+#if defined(_WIN32)
+#include <profileapi.h>
+#else
 
 typedef u64 LARGE_INTEGER;
 bool QueryPerformanceCounter(u64* out);
 bool QueryPerformanceFrequency(u64* lpFrequency);
 
 #endif
+
+u64 QueryCachedPerformanceFrequency();

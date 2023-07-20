@@ -8,12 +8,6 @@
 #include <string>
 #include <unordered_set>
 
-#ifdef _WIN32
-#include <windows.h>
-#else
-#include "Common/PerformanceCounter.h"
-#endif
-
 #include <fmt/format.h>
 
 #include "Common/Assert.h"
@@ -21,6 +15,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
 #include "Common/MsgHandler.h"
+#include "Common/PerformanceCounter.h"
 
 #include "Core/Core.h"
 #include "Core/PowerPC/CPUCoreBase.h"
@@ -120,7 +115,7 @@ void JitInterface::WriteProfileResults(const std::string& filename) const
                               stat.addr, name, stat.run_count, stat.cost, stat.tick_counter,
                               percent, timePercent,
                               static_cast<double>(stat.tick_counter) * 1000.0 /
-                                  static_cast<double>(prof_stats.countsPerSec),
+                                  static_cast<double>(QueryCachedPerformanceFrequency()),
                               stat.block_size));
   }
 }
@@ -136,7 +131,6 @@ void JitInterface::GetProfileResults(Profiler::ProfileStats* prof_stats) const
   prof_stats->block_stats.clear();
 
   Core::RunAsCPUThread([this, &prof_stats] {
-    QueryPerformanceFrequency((LARGE_INTEGER*)&prof_stats->countsPerSec);
     m_jit->GetBlockCache()->RunOnBlocks([&prof_stats](const JitBlock& block) {
       const auto& data = block.profile_data;
       u64 cost = data.downcountCounter;
