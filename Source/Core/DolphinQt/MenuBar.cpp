@@ -141,6 +141,11 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
     m_recording_export->setEnabled(false);
   }
   m_recording_play->setEnabled(m_game_selected && !running);
+#ifdef USE_RETRO_ACHIEVEMENTS
+  m_recording_play->setEnabled(m_game_selected && !running && !hardcore);
+#else   // USE_RETRO_ACHIEVEMENTS
+  m_recording_play->setEnabled(m_game_selected && !running);
+#endif  // USE_RETRO_ACHIEVEMENTS
   m_recording_start->setEnabled((m_game_selected || running) && !Movie::IsPlayingInput());
 
   // JIT

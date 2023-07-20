@@ -34,6 +34,7 @@
 #include "Common/Version.h"
 
 #include "Core/Boot/Boot.h"
+#include "Core/Config/AchievementSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/Config/WiimoteSettings.h"
@@ -974,6 +975,12 @@ bool PlayInput(const std::string& movie_path, std::optional<std::string>* savest
   }
 
   ReadHeader();
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+    return false;
+#endif  // USE_RETRO_ACHIEVEMENTS
+
   s_totalFrames = tmpHeader.frameCount;
   s_totalLagCount = tmpHeader.lagCount;
   s_totalInputCount = tmpHeader.inputCount;
@@ -1010,6 +1017,12 @@ bool PlayInput(const std::string& movie_path, std::optional<std::string>* savest
     }
 
     s_bRecordingFromSaveState = true;
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+    // On the chance someone tries to re-enable before the TAS can start
+    Config::SetBase(Config::RA_HARDCORE_ENABLED, false);
+#endif  // USE_RETRO_ACHIEVEMENTS
+
     Movie::LoadInput(movie_path);
   }
 
