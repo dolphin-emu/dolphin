@@ -193,6 +193,10 @@ private:
   s64 m_throttle_min_clock_per_sleep = 0;
   bool m_throttle_disable_vi_int = false;
 
+  DT m_max_fallback = {};
+  DT m_max_variance = {};
+  double m_emulation_speed = 1.0;
+
   void ResetThrottle(s64 cycle);
 
   int DowncountToCycles(int downcount) const;
