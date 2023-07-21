@@ -323,8 +323,10 @@ void JitArm64::boolX(UGeckoInstruction inst)
       PanicAlertFmt("WTF!");
     }
   }
-  else if ((gpr.IsImm(s) && (gpr.GetImm(s) == 0 || gpr.GetImm(s) == 0xFFFFFFFF)) ||
-           (gpr.IsImm(b) && (gpr.GetImm(b) == 0 || gpr.GetImm(b) == 0xFFFFFFFF)))
+  else if ((gpr.IsImm(s) &&
+            (gpr.GetImm(s) == 0 || gpr.GetImm(s) == 0xFFFFFFFF || LogicalImm(gpr.GetImm(s), 32))) ||
+           (gpr.IsImm(b) &&
+            (gpr.GetImm(b) == 0 || gpr.GetImm(b) == 0xFFFFFFFF || LogicalImm(gpr.GetImm(b), 32))))
   {
     int i, j;
     if (gpr.IsImm(s))
@@ -337,7 +339,6 @@ void JitArm64::boolX(UGeckoInstruction inst)
       i = b;
       j = s;
     }
-    bool is_zero = gpr.GetImm(i) == 0;
 
     bool complement_b = (inst.SUBOP10 == 60 /* andcx */) || (inst.SUBOP10 == 412 /* orcx */);
     const bool final_not = (inst.SUBOP10 == 476 /* nandx */) || (inst.SUBOP10 == 124 /* norx */);
@@ -347,23 +348,39 @@ void JitArm64::boolX(UGeckoInstruction inst)
                        (inst.SUBOP10 == 124 /* norx */);
     const bool is_xor = (inst.SUBOP10 == 316 /* xorx */) || (inst.SUBOP10 == 284 /* eqvx */);
 
+    u32 imm = gpr.GetImm(i);
     if ((complement_b && i == b) || (inst.SUBOP10 == 284 /* eqvx */))
     {
-      is_zero = !is_zero;
+      imm = ~imm;
       complement_b = false;
     }
 
+    const bool is_zero = imm == 0;
+    const bool is_ones = imm == 0xFFFFFFFF;
+    // If imm can be represented as LogicalImm, so can ~imm.
+    const auto log_imm = LogicalImm(imm, 32);
+
     if (is_xor)
     {
-      if (!is_zero)
+      if (is_zero)
+      {
+        if (a != j)
+        {
+          gpr.BindToRegister(a, false);
+          MOV(gpr.R(a), gpr.R(j));
+        }
+      }
+      else
       {
         gpr.BindToRegister(a, a == j);
-        MVN(gpr.R(a), gpr.R(j));
-      }
-      else if (a != j)
-      {
-        gpr.BindToRegister(a, false);
-        MOV(gpr.R(a), gpr.R(j));
+        if (is_ones)
+        {
+          MVN(gpr.R(a), gpr.R(j));
+        }
+        else
+        {
+          EOR(gpr.R(a), gpr.R(j), log_imm);
+        }
       }
       if (inst.Rc)
         ComputeRC0(gpr.R(a));
@@ -376,16 +393,14 @@ void JitArm64::boolX(UGeckoInstruction inst)
         if (inst.Rc)
           ComputeRC0(gpr.GetImm(a));
       }
-      else if (final_not || complement_b)
+      else if (is_ones)
       {
-        gpr.BindToRegister(a, a == j);
-        MVN(gpr.R(a), gpr.R(j));
-        if (inst.Rc)
-          ComputeRC0(gpr.R(a));
-      }
-      else
-      {
-        if (a != j)
+        if (final_not || complement_b)
+        {
+          gpr.BindToRegister(a, a == j);
+          MVN(gpr.R(a), gpr.R(j));
+        }
+        else if (a != j)
         {
           gpr.BindToRegister(a, false);
           MOV(gpr.R(a), gpr.R(j));
@@ -393,28 +408,66 @@ void JitArm64::boolX(UGeckoInstruction inst)
         if (inst.Rc)
           ComputeRC0(gpr.R(a));
       }
+      else
+      {
+        if (!complement_b)
+        {
+          gpr.BindToRegister(a, a == j);
+          AND(gpr.R(a), gpr.R(j), log_imm);
+          if (final_not)
+            MVN(gpr.R(a), gpr.R(a));
+        }
+        else
+        {
+          // No shorter instruction sequence is possible. Just materialize the
+          // immediate in a register as usual, so subsequent uses can leech off
+          // of it.
+          gpr.BindToRegister(a, (a == i) || (a == j));
+          BIC(gpr.R(a), gpr.R(i), gpr.R(j));
+        }
+        if (inst.Rc)
+          ComputeRC0(gpr.R(a));
+      }
     }
     else if (is_or)
     {
-      if (!is_zero)
+      if (is_ones)
       {
         gpr.SetImmediate(a, final_not ? 0 : 0xFFFFFFFF);
         if (inst.Rc)
           ComputeRC0(gpr.GetImm(a));
       }
-      else if (final_not || complement_b)
+      else if (is_zero)
       {
-        gpr.BindToRegister(a, a == j);
-        MVN(gpr.R(a), gpr.R(j));
+        if (final_not || complement_b)
+        {
+          gpr.BindToRegister(a, a == j);
+          MVN(gpr.R(a), gpr.R(j));
+        }
+        else if (a != j)
+        {
+          gpr.BindToRegister(a, false);
+          MOV(gpr.R(a), gpr.R(j));
+        }
         if (inst.Rc)
           ComputeRC0(gpr.R(a));
       }
       else
       {
-        if (a != j)
+        if (!complement_b)
         {
-          gpr.BindToRegister(a, false);
-          MOV(gpr.R(a), gpr.R(j));
+          gpr.BindToRegister(a, a == j);
+          ORR(gpr.R(a), gpr.R(j), log_imm);
+          if (final_not)
+            MVN(gpr.R(a), gpr.R(a));
+        }
+        else
+        {
+          // No shorter instruction sequence is possible. Just materialize the
+          // immediate in a register as usual, so subsequent uses can leech off
+          // of it.
+          gpr.BindToRegister(a, (a == i) || (a == j));
+          ORN(gpr.R(a), gpr.R(i), gpr.R(j));
         }
         if (inst.Rc)
           ComputeRC0(gpr.R(a));
