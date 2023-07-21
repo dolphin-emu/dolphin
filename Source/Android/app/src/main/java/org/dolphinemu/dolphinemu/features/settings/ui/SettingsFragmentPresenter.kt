@@ -713,6 +713,14 @@ class SettingsFragmentPresenter(
             )
         )
         sl.add(
+          SwitchSetting(
+            context,
+            BooleanSetting.MAIN_WII_WIILINK_ENABLE,
+            R.string.wii_enable_wiilink,
+            R.string.wii_enable_wiilink_description
+          )
+        )
+        sl.add(
             SingleChoiceSetting(
                 context,
                 IntSetting.SYSCONF_SOUND_MODE,
