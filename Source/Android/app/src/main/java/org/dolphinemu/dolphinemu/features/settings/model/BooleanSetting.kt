@@ -128,6 +128,7 @@ enum class BooleanSetting(
         "EnableSaveStates",
         false
     ),
+    MAIN_WII_WIILINK_ENABLE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "EnableWiiLink", false),
     MAIN_DSP_JIT(Settings.FILE_DOLPHIN, Settings.SECTION_INI_DSP, "EnableJIT", true),
     MAIN_EXPAND_TO_CUTOUT_AREA(
         Settings.FILE_DOLPHIN,

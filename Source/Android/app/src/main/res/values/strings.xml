@@ -92,6 +92,8 @@
     <string name="wii_pal60_description">Changes refresh rate from 50 Hz to 60 Hz in PAL games that support it.</string>
     <string name="wii_screensaver">Enable Screen Saver</string>
     <string name="wii_screensaver_description">Dims the screen after five minutes of inactivity.</string>
+    <string name="wii_enable_wiilink">Enable WiiConnect24 via WiiLink</string>
+    <string name="wii_enable_wiilink_description">Enables the WiiLink service for WiiConnect24 channels. Read the Terms of Service at https://www.wiilink24.com/tos</string>
     <string name="sound_mode">Sound</string>
     <string name="insert_sd_card">Insert SD Card</string>
     <string name="insert_sd_card_description">Supports SD and SDHC. Default size is 128 MB.</string>
