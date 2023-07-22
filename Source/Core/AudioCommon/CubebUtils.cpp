@@ -72,7 +72,7 @@ std::shared_ptr<cubeb> CubebUtils::GetContext()
   }
 
   cubeb* ctx;
-  if (cubeb_init(&ctx, "Dolphin", nullptr) != CUBEB_OK)
+  if (cubeb_init(&ctx, "Dolphin Emulator", nullptr) != CUBEB_OK)
   {
     ERROR_LOG_FMT(AUDIO, "Error initializing cubeb library");
     return nullptr;
