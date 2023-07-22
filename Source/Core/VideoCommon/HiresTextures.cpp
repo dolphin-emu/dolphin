@@ -147,6 +147,17 @@ void HiresTexture::Update()
                     texture_directory);
     }
   }
+
+  if (g_ActiveConfig.bCacheHiresTextures)
+  {
+    OSD::AddMessage(fmt::format("Loading '{}' custom textures", s_hires_texture_cache.size()),
+                    10000);
+  }
+  else
+  {
+    OSD::AddMessage(
+        fmt::format("Found '{}' custom textures", s_hires_texture_id_to_arbmipmap.size()), 10000);
+  }
 }
 
 void HiresTexture::Clear()
