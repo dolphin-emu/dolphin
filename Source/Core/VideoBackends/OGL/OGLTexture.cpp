@@ -140,7 +140,11 @@ OGLTexture::OGLTexture(const TextureConfig& tex_config, std::string_view name)
   glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, m_config.levels - 1);
 
   GLenum gl_internal_format = GetGLInternalFormatForTextureFormat(m_config.format, true);
-  if (tex_config.IsMultisampled())
+  if (g_ogl_config.bSupportsTextureStorage && m_config.IsCubeMap())
+  {
+    glTexStorage2D(target, m_config.levels, gl_internal_format, m_config.width, m_config.height);
+  }
+  else if (tex_config.IsMultisampled())
   {
     ASSERT(g_ogl_config.bSupportsMSAA);
     if (g_ogl_config.SupportedMultisampleTexStorage != MultisampleTexStorageType::TexStorageNone)
@@ -267,29 +271,62 @@ void OGLTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8
   GLenum gl_internal_format = GetGLInternalFormatForTextureFormat(m_config.format, false);
   if (IsCompressedFormat(m_config.format))
   {
-    if (g_ogl_config.bSupportsTextureStorage)
+    if (m_config.IsCubeMap())
     {
-      glCompressedTexSubImage3D(target, level, 0, 0, layer, width, height, 1, gl_internal_format,
-                                static_cast<GLsizei>(buffer_size), buffer);
+      if (g_ogl_config.bSupportsTextureStorage)
+      {
+        glCompressedTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + layer, level, 0, 0, width,
+                                  height, gl_internal_format, static_cast<GLsizei>(buffer_size),
+                                  buffer);
+      }
+      else
+      {
+        glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + layer, level, gl_internal_format,
+                               width, height, 0, static_cast<GLsizei>(buffer_size), buffer);
+      }
     }
     else
     {
-      glCompressedTexImage3D(target, level, gl_internal_format, width, height, 1, 0,
-                             static_cast<GLsizei>(buffer_size), buffer);
+      if (g_ogl_config.bSupportsTextureStorage)
+      {
+        glCompressedTexSubImage3D(target, level, 0, 0, layer, width, height, 1, gl_internal_format,
+                                  static_cast<GLsizei>(buffer_size), buffer);
+      }
+      else
+      {
+        glCompressedTexImage3D(target, level, gl_internal_format, width, height, 1, 0,
+                               static_cast<GLsizei>(buffer_size), buffer);
+      }
     }
   }
   else
   {
     GLenum gl_format = GetGLFormatForTextureFormat(m_config.format);
     GLenum gl_type = GetGLTypeForTextureFormat(m_config.format);
-    if (g_ogl_config.bSupportsTextureStorage)
+    if (m_config.IsCubeMap())
     {
-      glTexSubImage3D(target, level, 0, 0, layer, width, height, 1, gl_format, gl_type, buffer);
+      if (g_ogl_config.bSupportsTextureStorage)
+      {
+        glTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + layer, level, 0, 0, width, height,
+                        gl_format, gl_type, buffer);
+      }
+      else
+      {
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + layer, level, gl_internal_format, width,
+                     height, 0, gl_format, gl_type, buffer);
+      }
     }
     else
     {
-      glTexImage3D(target, level, gl_internal_format, width, height, 1, 0, gl_format, gl_type,
-                   buffer);
+      if (g_ogl_config.bSupportsTextureStorage)
+      {
+        glTexSubImage3D(target, level, 0, 0, layer, width, height, 1, gl_format, gl_type, buffer);
+      }
+      else
+      {
+        glTexImage3D(target, level, gl_internal_format, width, height, 1, 0, gl_format, gl_type,
+                     buffer);
+      }
     }
   }
 
