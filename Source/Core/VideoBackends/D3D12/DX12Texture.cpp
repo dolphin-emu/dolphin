@@ -165,19 +165,30 @@ bool DXTexture::CreateSRVDescriptor()
     return false;
   }
 
-  D3D12_SHADER_RESOURCE_VIEW_DESC desc = {D3DCommon::GetSRVFormatForAbstractFormat(m_config.format),
-                                          m_config.IsMultisampled() ?
-                                              D3D12_SRV_DIMENSION_TEXTURE2DMSARRAY :
-                                              D3D12_SRV_DIMENSION_TEXTURE2DARRAY,
-                                          D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING};
-  if (m_config.IsMultisampled())
+  D3D12_SHADER_RESOURCE_VIEW_DESC desc = {
+      D3DCommon::GetSRVFormatForAbstractFormat(m_config.format),
+      m_config.IsCubeMap()      ? D3D12_SRV_DIMENSION_TEXTURECUBE :
+      m_config.IsMultisampled() ? D3D12_SRV_DIMENSION_TEXTURE2DMSARRAY :
+                                  D3D12_SRV_DIMENSION_TEXTURE2DARRAY,
+      D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING};
+
+  if (m_config.IsCubeMap())
   {
-    desc.Texture2DMSArray.ArraySize = m_config.layers;
+    desc.TextureCube.MostDetailedMip = 0;
+    desc.TextureCube.MipLevels = m_config.levels;
+    desc.TextureCube.ResourceMinLODClamp = 0.0f;
   }
   else
   {
-    desc.Texture2DArray.MipLevels = m_config.levels;
-    desc.Texture2DArray.ArraySize = m_config.layers;
+    if (m_config.IsMultisampled())
+    {
+      desc.Texture2DMSArray.ArraySize = m_config.layers;
+    }
+    else
+    {
+      desc.Texture2DArray.MipLevels = m_config.levels;
+      desc.Texture2DArray.ArraySize = m_config.layers;
+    }
   }
   g_dx_context->GetDevice()->CreateShaderResourceView(m_resource.Get(), &desc,
                                                       m_srv_descriptor.cpu_handle);
