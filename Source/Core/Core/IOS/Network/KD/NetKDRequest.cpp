@@ -269,22 +269,16 @@ void NetKDRequestDevice::SchedulerWorker(const SchedulerEvent event)
     {
       code = KDReceiveMail();
       if (code != NWC24::WC24_OK)
-      {
         LogError(ErrorType::ReceiveMail, code);
-      }
 
       code = KDSaveMail();
       if (code != NWC24::WC24_OK)
-      {
         LogError(ErrorType::ReceiveMail, code);
-      }
     }
 
     code = KDSendMail();
     if (code != NWC24::WC24_OK)
-    {
       LogError(ErrorType::SendMail, code);
-    }
   }
 }
 
@@ -305,6 +299,7 @@ std::string NetKDRequestDevice::GetValueFromCGIResponse(const std::string& respo
 
 NWC24::ErrorCode NetKDRequestDevice::KDCheckMail(u32* _mail_flag, u32* _interval)
 {
+  m_scheduler_buffer[4] = Common::swap32(2);
   u64 random_number{};
   Common::Random::Generate(&random_number, sizeof(u64));
   const std::string form_data(
@@ -361,11 +356,14 @@ NWC24::ErrorCode NetKDRequestDevice::KDCheckMail(u32* _mail_flag, u32* _interval
   }
 
   m_scheduler_buffer[11] = Common::swap32(Common::swap32(m_scheduler_buffer[11]) + 1);
+  m_scheduler_buffer[4] = 0;
   return NWC24::WC24_OK;
 }
 
 NWC24::ErrorCode NetKDRequestDevice::KDSendMail()
 {
+  m_scheduler_buffer[4] = Common::swap32(5);
+  m_send_list.AddRegistrationMessages(m_friend_list, m_config.Id());
   m_send_list.ReadSendList();
   const std::string auth =
       fmt::format("mlid=w{}\r\npasswd={}", m_config.Id(), m_config.GetPassword());
@@ -392,7 +390,7 @@ NWC24::ErrorCode NetKDRequestDevice::KDSendMail()
 
     std::vector<u8> mail_data(mail_size);
     NWC24::ErrorCode res = NWC24::ReadFromVFF(
-        NWC24::SEND_BOX_PATH, m_send_list.GetMailPath(file_index), m_ios.GetFS(), mail_data);
+        NWC24::Mail::SEND_BOX_PATH, m_send_list.GetMailPath(file_index), m_ios.GetFS(), mail_data);
 
     if (res != NWC24::WC24_OK)
     {
@@ -465,11 +463,13 @@ NWC24::ErrorCode NetKDRequestDevice::KDSendMail()
 
   m_scheduler_buffer[14] = Common::swap32(Common::swap32(m_scheduler_buffer[14]) + 1);
   m_send_list.WriteSendList();
+  m_scheduler_buffer[4] = 0;
   return NWC24::WC24_OK;
 }
 
 NWC24::ErrorCode NetKDRequestDevice::KDReceiveMail()
 {
+  m_scheduler_buffer[4] = Common::swap32(3);
   std::string form_data = fmt::format("mlid=w{}&passwd={}&maxsize={}", m_config.Id(),
                                       m_config.GetPassword(), MAX_MAIL_RECEIVE_SIZE);
   const Common::HttpRequest::Response response = m_http.Post(m_config.GetReceiveURL(), form_data);
@@ -521,11 +521,13 @@ NWC24::ErrorCode NetKDRequestDevice::KDReceiveMail()
 
   m_scheduler_buffer[7] = Common::swap32(Common::swap32(m_scheduler_buffer[7]) + mail_num);
   m_scheduler_buffer[12] = Common::swap32(Common::swap32(m_scheduler_buffer[12]) + 1);
+  m_scheduler_buffer[4] = 0;
   return NWC24::WC24_OK;
 }
 
 NWC24::ErrorCode NetKDRequestDevice::KDSaveMail()
 {
+  m_scheduler_buffer[4] = Common::swap32(6);
   Common::ScopeGuard mail_del_guard([&] { m_ios.GetFS()->Delete(PID_KD, PID_KD, TEMP_MAIL_PATH); });
 
   std::string mail_str{};
@@ -561,7 +563,7 @@ NWC24::ErrorCode NetKDRequestDevice::KDSaveMail()
     return NWC24::WC24_ERR_SERVER;
   }
 
-  NWC24::MailParser parser(boundary, mail_num, m_friend_list);
+  NWC24::Mail::MailParser parser(boundary, mail_num, m_friend_list);
   parser.Parse(mail_str);
 
   for (u32 i = 1; i <= mail_num; i++)
@@ -581,8 +583,15 @@ NWC24::ErrorCode NetKDRequestDevice::KDSaveMail()
     m_receive_list.SetHeaderLength(entry_index, header_len);
     m_receive_list.SetMessageOffset(entry_index, header_len);
 
-    NWC24::ErrorCode reply = parser.ParseContentTransferEncoding(i, entry_index, m_receive_list);
+    NWC24::ErrorCode reply = parser.ParseFrom(i, entry_index, m_receive_list);
     if (reply != NWC24::WC24_OK)
+    {
+      ERROR_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_SAVE_MAIL_NOW: Failed to parse From field.");
+      continue;
+    }
+
+    reply = parser.ParseContentTransferEncoding(i, entry_index, m_receive_list);
+    if (reply != NWC24::WC24_OK && reply != NWC24::WC24_ERR_NOT_FOUND)
     {
       ERROR_LOG_FMT(
           IOS_WC24,
@@ -605,13 +614,6 @@ NWC24::ErrorCode NetKDRequestDevice::KDSaveMail()
       continue;
     }
 
-    reply = parser.ParseFrom(i, entry_index, m_receive_list);
-    if (reply != NWC24::WC24_OK)
-    {
-      ERROR_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_SAVE_MAIL_NOW: Failed to parse From field.");
-      continue;
-    }
-
     // This can be empty.
     parser.ParseSubject(i, entry_index, m_receive_list);
 
@@ -629,6 +631,17 @@ NWC24::ErrorCode NetKDRequestDevice::KDSaveMail()
       continue;
     }
 
+    if (m_receive_list.GetAppID(entry_index) == 0)
+    {
+      m_receive_list.UpdateFlag(entry_index, 2, NWC24::Mail::FlagOP::Or);
+      m_receive_list.SetWiiCmd(entry_index, 0x44001);
+    }
+    else
+    {
+      m_receive_list.UpdateFlag(entry_index, 1, NWC24::Mail::FlagOP::Or);
+      m_receive_list.SetWiiCmd(entry_index, 0x80000);
+    }
+
     reply = parser.ParseWiiCmd(i, entry_index, m_receive_list);
     if (reply != NWC24::WC24_OK)
     {
@@ -636,8 +649,9 @@ NWC24::ErrorCode NetKDRequestDevice::KDSaveMail()
       continue;
     }
 
-    reply = NWC24::WriteToVFF(NWC24::RECEIVE_BOX_PATH, NWC24::WC24ReceiveList::GetMailPath(msg_id),
-                              m_ios.GetFS(), data);
+    reply =
+        NWC24::WriteToVFF(NWC24::Mail::RECEIVE_BOX_PATH,
+                          NWC24::Mail::WC24ReceiveList::GetMailPath(msg_id), m_ios.GetFS(), data);
     if (reply != NWC24::WC24_OK)
     {
       ERROR_LOG_FMT(IOS_WC24,
@@ -651,6 +665,7 @@ NWC24::ErrorCode NetKDRequestDevice::KDSaveMail()
 
   m_receive_list.WriteReceiveList();
   m_scheduler_buffer[13] = Common::swap32(Common::swap32(m_scheduler_buffer[13]) + 1);
+  m_scheduler_buffer[4] = 0;
   return NWC24::WC24_OK;
 }
 

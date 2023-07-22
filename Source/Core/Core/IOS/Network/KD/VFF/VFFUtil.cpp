@@ -247,7 +247,7 @@ static ErrorCode ReadFile(const std::string& filename, std::vector<u8>& out)
     return WC24_ERR_FILE_OPEN;
   }
 
-  u32 size = out.size();
+  u32 size = static_cast<u32>(out.size());
   u32 read_size{};
   const auto read_error_code = f_read(&src, out.data(), size, &read_size);
   if (read_error_code != FR_OK)

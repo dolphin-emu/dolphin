@@ -373,6 +373,7 @@ add_library(core
   IOS/Network/KD/NWC24Config.h
   IOS/Network/KD/NWC24DL.cpp
   IOS/Network/KD/NWC24DL.h
+  IOS/Network/KD/Mail/MailCommon.h
   IOS/Network/KD/Mail/MailParser.cpp
   IOS/Network/KD/Mail/MailParser.h
   IOS/Network/KD/Mail/WC24FriendList.cpp

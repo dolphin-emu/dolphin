@@ -28,7 +28,7 @@ ErrorCode DeleteFileFromVFF(const std::string& path, const std::string& filename
 ErrorCode WriteToVFF(const std::string& path, const std::string& filename,
                      const std::shared_ptr<FS::FileSystem>& fs, const std::vector<u8>& data);
 ErrorCode ReadFromVFF(const std::string& path, const std::string& filename,
-                  const std::shared_ptr<FS::FileSystem>& fs, std::vector<u8>& out);
+                      const std::shared_ptr<FS::FileSystem>& fs, std::vector<u8>& out);
 
 #pragma pack(push, 1)
 struct VFFHeader final

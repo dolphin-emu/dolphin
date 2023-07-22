@@ -6,6 +6,7 @@
 #include <array>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -33,6 +34,7 @@ public:
   void WriteFriendList() const;
 
   bool CheckFriend(u64 friend_id) const;
+  std::vector<u64> GetUnconfirmedFriends() const;
 
 private:
   static constexpr u32 FRIEND_LIST_MAGIC = 0x5763466C;  // WcFl
@@ -50,17 +52,17 @@ private:
 
   enum class FriendType : u32
   {
-      _,
-      Wii,
-      Email
+    _,
+    Wii,
+    Email
   };
 
   enum class FriendStatus : u32
   {
-      _,
-      Unconfirmed,
-      Confirmed,
-      Declined
+    _,
+    Unconfirmed,
+    Confirmed,
+    Declined
   };
 
   struct FriendListEntry final
@@ -79,7 +81,7 @@ private:
   {
     FriendListHeader header;
     std::array<u64, MAX_ENTRIES> friend_codes;
-    FriendListEntry entries[MAX_ENTRIES];
+    std::array<FriendListEntry, MAX_ENTRIES> entries;
   };
 #pragma pack(pop)
 

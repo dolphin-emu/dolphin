@@ -6,7 +6,9 @@
 #include "Core/IOS/Network/KD/VFF/VFFUtil.h"
 #include "Core/IOS/Uids.h"
 
-namespace IOS::HLE::NWC24
+#include <fmt/chrono.h>
+
+namespace IOS::HLE::NWC24::Mail
 {
 constexpr const char SEND_LIST_PATH[] = "/" WII_WC24CONF_DIR "/mbox"
                                         "/wc24send.ctl";
@@ -40,10 +42,10 @@ void WC24SendList::WriteSendList() const
 bool WC24SendList::CheckSendList() const
 {
   // 'WcTF' magic
-  if (Common::swap32(m_data.header.magic) != SEND_LIST_MAGIC)
+  if (Common::swap32(m_data.header.magic) != MAIL_LIST_MAGIC)
   {
     ERROR_LOG_FMT(IOS_WC24, "Send List magic mismatch ({} != {})",
-                  Common::swap32(m_data.header.magic), SEND_LIST_MAGIC);
+                  Common::swap32(m_data.header.magic), MAIL_LIST_MAGIC);
     return false;
   }
 
@@ -56,9 +58,34 @@ bool WC24SendList::CheckSendList() const
   return true;
 }
 
+u32 WC24SendList::GetNextEntryId() const
+{
+  return Common::swap32(m_data.header.next_entry_id);
+}
+
+u32 WC24SendList::GetNextEntryIndex() const
+{
+  return (Common::swap32(m_data.header.next_entry_offset) - 128) / 128;
+}
+
+void WC24SendList::InitEntry(u32 entry_index, u64 from)
+{
+  m_data.entries[entry_index].flag = 2097409;
+  const u32 kd_app_id = Common::swap32(1);
+  m_data.entries[entry_index].app_id = kd_app_id;
+  m_data.entries[entry_index].app_group = kd_app_id;
+  m_data.entries[entry_index].from_friend_code = Common::swap64(from);
+  m_data.entries[entry_index].always_0x80000000 = Common::swap32(0x80000000);
+}
+
 u32 WC24SendList::GetNumberOfMail() const
 {
   return Common::swap32(m_data.header.number_of_mail);
+}
+
+void WC24SendList::SetPackedTo(u32 index, u32 offset, u32 size)
+{
+  m_data.entries[index].packed_to = Common::swap32(PackData(offset, size));
 }
 
 std::vector<u32> WC24SendList::GetPopulatedEntries() const
@@ -90,7 +117,7 @@ std::string_view WC24SendList::GetMailFlag() const
 
 u32 WC24SendList::GetMailSize(const u32 index) const
 {
-  return Common::swap32(m_data.entries[index].mail_size);
+  return Common::swap32(m_data.entries[index].msg_size);
 }
 
 std::string WC24SendList::GetMailPath(const u32 index) const
@@ -100,21 +127,63 @@ std::string WC24SendList::GetMailPath(const u32 index) const
 
 u32 WC24SendList::GetIndex(const u32 index) const
 {
-  return Common::swap32(m_data.entries[index].index);
+  return Common::swap32(m_data.entries[index].id);
 }
 
-NWC24::ErrorCode WC24SendList::DeleteMessage(const u32 index)
+ErrorCode WC24SendList::DeleteMessage(const u32 index)
 {
   // Deleting is broken for the time being.
   // const NWC24::ErrorCode return_code =
   //    NWC24::DeleteFileFromVFF(SEND_BOX_PATH, GetMailPath(index), m_fs);
   m_data.header.number_of_mail = Common::swap32(Common::swap32(m_data.header.number_of_mail) - 1);
-  m_data.header.next_index_offset = Common::swap32(128 + (index * 128));
-  m_data.header.next_index = Common::swap32(Common::swap32(m_data.header.next_index) - 1);
-  m_data.entries[index].index = 0;
-  m_data.entries[index].mail_size = 0;
-  m_data.entries[index].unk1 = 0;
-  std::memset(m_data.entries[index]._, 0, 116);
+  m_data.header.next_entry_offset = Common::swap32(128 + (index * 128));
+  m_data.header.next_entry_id = Common::swap32(Common::swap32(m_data.header.next_entry_id) - 1);
+  m_data.entries[index].id = 0;
+  m_data.entries[index].msg_size = 0;
   return WC24_OK;
 }
-}  // namespace IOS::HLE::NWC24
+
+u32 WC24SendList::GetTotalEntries() const
+{
+  return Common::swap32(m_data.header.total_entries);
+}
+
+ErrorCode WC24SendList::AddRegistrationMessages(const WC24FriendList& friend_list, u64 from)
+{
+  const std::vector<u64> unconfirmed_friends = friend_list.GetUnconfirmedFriends();
+  for (const u64 code : unconfirmed_friends)
+  {
+    const u32 entry_index = GetNextEntryIndex();
+    const u32 msg_id = GetNextEntryId();
+
+    const std::string formatted_message =
+        fmt::format(MAIL_REGISTRATION_STRING, from, code, from, code);
+    std::vector<u8> message{formatted_message.begin(), formatted_message.end()};
+    NWC24::ErrorCode reply =
+        NWC24::WriteToVFF(NWC24::Mail::SEND_BOX_PATH, GetMailPath(msg_id), m_fs, message);
+
+    if (reply != WC24_OK)
+      ERROR_LOG_FMT(IOS_WC24, "Error writing reg to VFF");
+
+    NOTICE_LOG_FMT(IOS_WC24, "Issued message for {}", code);
+    m_data.entries[entry_index].id = Common::swap32(msg_id);
+    m_data.header.next_entry_id = Common::swap32(entry_index + 1);
+    m_data.header.number_of_mail = Common::swap32(GetNumberOfMail() + 1);
+    m_data.header.total_entries = Common::swap32(GetTotalEntries() + 1);
+    // The mail that is sent is for the most part constant, so we can assign hardcoded values.
+    /*m_data.entries[entry_index].flag = Common::swap32(2097945);
+    m_data.entries[entry_index].app_id = 1;
+    m_data.entries[entry_index].wii_cmd = Common::swap32(2147549185);*/
+  }
+
+  // Flush data to file
+  WriteSendList();
+  return WC24_OK;
+}
+
+std::string WC24SendList::GetUTCTime()
+{
+  time_t time = std::time(nullptr);
+  return fmt::format("{:%d %b %Y %T %z}", fmt::gmtime(time));
+}
+}  // namespace IOS::HLE::NWC24::Mail

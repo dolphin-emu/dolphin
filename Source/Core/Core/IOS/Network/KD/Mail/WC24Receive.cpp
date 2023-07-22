@@ -5,7 +5,7 @@
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/Uids.h"
 
-namespace IOS::HLE::NWC24
+namespace IOS::HLE::NWC24::Mail
 {
 constexpr const char RECEIVE_LIST_PATH[] = "/" WII_WC24CONF_DIR "/mbox"
                                            "/wc24recv.ctl";
@@ -39,10 +39,10 @@ void WC24ReceiveList::WriteReceiveList() const
 bool WC24ReceiveList::CheckReceiveList() const
 {
   // 'WcTF' magic
-  if (Common::swap32(m_data.header.magic) != RECEIVE_LIST_MAGIC)
+  if (Common::swap32(m_data.header.magic) != MAIL_LIST_MAGIC)
   {
     ERROR_LOG_FMT(IOS_WC24, "Receive List magic mismatch ({} != {})",
-                  Common::swap32(m_data.header.magic), RECEIVE_LIST_MAGIC);
+                  Common::swap32(m_data.header.magic), MAIL_LIST_MAGIC);
     return false;
   }
 
@@ -53,11 +53,6 @@ bool WC24ReceiveList::CheckReceiveList() const
   }
 
   return true;
-}
-
-u32 WC24ReceiveList::PackData(u32 one, u32 two)
-{
-  return (one & 0xFFFFF) | two << 20;
 }
 
 u32 WC24ReceiveList::GetNextEntryId() const
@@ -74,7 +69,7 @@ u32 WC24ReceiveList::GetNextEntryIndex() const
 
 void WC24ReceiveList::InitFlag(u32 index)
 {
-  m_data.entries[index].flag = 2097409;
+  m_data.entries[index].flag = 0x200200;
 }
 
 void WC24ReceiveList::FinalizeEntry(u32 index)
@@ -87,8 +82,8 @@ void WC24ReceiveList::FinalizeEntry(u32 index)
   }
 
   m_data.entries[index].flag = Common::swap32(m_data.entries[index].flag | 0x220);
-  m_data.entries[index].unk = Common::swap64(0x0001000000010000);
   m_data.entries[index].always_0x80000000 = Common::swap32(0x80000000);
+  m_data.entries[index].always_1 = 1;
   m_data.header.next_entry_offset = Common::swap32((128 * i) + 128);
   m_data.header.number_of_mail = Common::swap32(Common::swap32(m_data.header.number_of_mail) + 1);
   m_data.header.next_entry_id = Common::swap32(Common::swap32(m_data.header.next_entry_id) + 1);
@@ -117,9 +112,14 @@ void WC24ReceiveList::ClearEntry(u32 index)
   m_data.entries[index].message_length = 0;
 }
 
+u32 WC24ReceiveList::GetAppID(u32 index) const
+{
+  return Common::swap32(m_data.entries[index].app_id);
+}
+
 void WC24ReceiveList::UpdateFlag(u32 index, u32 value, FlagOP op)
 {
-  if (op == OR)
+  if (op == FlagOP::Or)
     m_data.entries[index].flag |= value;
   else
     m_data.entries[index].flag &= value;
@@ -195,9 +195,9 @@ void WC24ReceiveList::SetWiiAppId(u32 index, u32 id)
   m_data.entries[index].app_id = Common::swap32(id);
 }
 
-void WC24ReceiveList::SetWiiAppGroupId(u32 index, u32 id)
+void WC24ReceiveList::SetWiiAppGroupId(u32 index, u16 id)
 {
-  m_data.entries[index].app_group = Common::swap32(id);
+  m_data.entries[index].app_group = Common::swap16(id);
 }
 
 void WC24ReceiveList::SetWiiCmd(u32 index, u32 cmd)
@@ -205,8 +205,25 @@ void WC24ReceiveList::SetWiiCmd(u32 index, u32 cmd)
   m_data.entries[index].wii_cmd = Common::swap32(cmd);
 }
 
+void WC24ReceiveList::SetMultipartField(u32 index, u32 multipart_index, u32 offset, u32 size)
+{
+  m_data.entries[index].multipart_entries[multipart_index] =
+      MultipartEntry{Common::swap32(offset), Common::swap32(size)};
+  m_data.entries[index].number_of_multipart_entries++;
+}
+
+void WC24ReceiveList::SetMultipartContentType(u32 index, u32 multipart_index, u32 type)
+{
+  m_data.entries[index].multipart_content_types[multipart_index] = Common::swap32(type);
+}
+
+void WC24ReceiveList::SetMultipartSize(u32 index, u32 multipart_index, u32 size)
+{
+  m_data.entries[index].multipart_sizes[multipart_index] = Common::swap32(size);
+}
+
 std::string WC24ReceiveList::GetMailPath(const u32 index)
 {
   return fmt::format("mb/r{:07d}.msg", index);
 }
-}  // namespace IOS::HLE::NWC24
+}  // namespace IOS::HLE::NWC24::Mail

@@ -10,6 +10,7 @@
 class MultipartParser {
 public:
 	using Callback = std::function<void(const char *buffer, size_t start, size_t end, void *userData)>;
+  std::string boundary;
 	
 private:
 	static const char CR     = 13;
@@ -17,6 +18,7 @@ private:
 	static const char SPACE  = 32;
 	static const char HYPHEN = 45;
 	static const char COLON  = 58;
+  static const char SEMICOLON  = 59;
 	static const size_t UNMARKED = (size_t) -1;
 	
 	enum State {
@@ -39,8 +41,7 @@ private:
 		PART_BOUNDARY = 1,
 		LAST_BOUNDARY = 2
 	};
-	
-	std::string boundary;
+
 	const char *boundaryData;
 	size_t boundarySize;
 	bool boundaryIndex[256];
@@ -240,10 +241,10 @@ public:
 		reset();
 	}
 	
-	MultipartParser(const std::string &boundary) {
-		lookbehind = NULL;
+	MultipartParser(const std::string& boundary_) {
+		lookbehind = nullptr;
 		resetCallbacks();
-		setBoundary(boundary);
+		setBoundary(boundary_);
 	}
 	
 	~MultipartParser() {
@@ -365,7 +366,7 @@ public:
 				headerValueMark = i;
           _state = HEADER_VALUE;
 			case HEADER_VALUE:
-				if (c == CR) {
+				if (c == CR && buffer[i-1] != SEMICOLON) {
 					dataCallback(onHeaderValue, headerValueMark, buffer, i, len, true, true);
 					callback(onHeaderEnd);
           _state = HEADER_VALUE_ALMOST_DONE;

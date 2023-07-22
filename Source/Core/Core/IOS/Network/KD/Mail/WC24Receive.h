@@ -10,6 +10,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
+#include "Core/IOS/Network/KD/Mail/MailCommon.h"
 #include "Core/IOS/Network/KD/NWC24Config.h"
 
 namespace IOS::HLE
@@ -18,20 +19,20 @@ namespace FS
 {
 class FileSystem;
 }
-namespace NWC24
+namespace NWC24::Mail
 {
 constexpr const char RECEIVE_BOX_PATH[] = "/" WII_WC24CONF_DIR "/mbox"
                                           "/wc24recv.mbx";
+
+constexpr char REGISTRATION_MESSAGE_TEXT[] =
+    "MAIL FROM: {}\r\nRCPT TO: {}\r\nDATA\r\nDate: {}\r\nFrom: {}\r\nTo: {}\r\nMessage-Id: "
+    "{}\r\nX-Wii-AppId: {}\r\nX-Wii-Cmd: {}\r\nContent-Type: text/plain; "
+    "charset=us-ascii\r\nContent-Transfer-Encoding: 7bit\r\n\r\nWC24 Cmd Message";
+
 class WC24ReceiveList final
 {
 public:
   static std::string GetMailPath(u32 index);
-
-    enum FlagOP
-    {
-        OR,
-        AND
-    };
 
   explicit WC24ReceiveList(std::shared_ptr<FS::FileSystem> fs);
   void ReadReceiveList();
@@ -41,10 +42,10 @@ public:
   u32 GetIndex(u32 index) const;
   u32 GetNextEntryId() const;
   u32 GetNextEntryIndex() const;
+  u32 GetAppID(u32 index) const;
 
   void FinalizeEntry(u32 index);
   void ClearEntry(u32 index);
-  // TODO: This is possibly different for messages sent by email?
   void InitFlag(u32 index);
   void UpdateFlag(u32 index, u32 value, FlagOP op);
   void SetMessageId(u32 index, u32 id);
@@ -55,86 +56,31 @@ public:
   void SetMessageLength(u32 index, u32 size);
   void SetPackedContentTransferEncoding(u32 index, u32 offset, u32 size);
   void SetPackedCharset(u32 index, u32 offset, u32 size);
+  void SetMultipartField(u32 index, u32 multipart_index, u32 offset, u32 size);
+  void SetMultipartContentType(u32 index, u32 multipart_index, u32 type);
+  void SetMultipartSize(u32 index, u32 multipart_index, u32 size);
   void SetTime(u32 index, u32 time);
   void SetFromFriendCode(u32 index, u64 friend_code);
   void SetPackedFrom(u32 index, u32 offset, u32 size);
   void SetPackedSubject(u32 index, u32 offset, u32 size);
   void SetPackedTo(u32 index, u32 offset, u32 size);
   void SetWiiAppId(u32 index, u32 id);
-  void SetWiiAppGroupId(u32 index, u32 id);
+  void SetWiiAppGroupId(u32 index, u16 id);
   void SetWiiCmd(u32 index, u32 cmd);
 
 private:
-  static constexpr u32 RECEIVE_LIST_MAGIC = 0x57635466;  // WcTf
   static constexpr u32 MAX_ENTRIES = 255;
 
-  static u32 PackData(u32 one, u32 two);
-
 #pragma pack(push, 1)
-  struct ReceiveListHeader final
-  {
-    u32 magic;    // 'WcTf' 0x57635466
-    u32 version;  // 4 in Wii Menu 4.x
-    u32 number_of_mail;
-    u32 total_entries;
-    u32 total_size_of_messages;
-    u32 filesize;
-    u32 next_entry_id;
-    u32 next_entry_offset;
-    u32 unk2;
-    u32 vff_free_space;
-    u8 unk3[48];
-    char mail_flag[40];
-  };
-
-  struct MultipartEntry final
-  {
-      u32 offset;
-      u32 size;
-  };
-
-  struct ReceiveListEntry final
-  {
-    u32 id;
-    u32 flag;
-    u32 msg_size;
-    u32 app_id;
-    u32 header_length;
-    u32 tag;
-    u32 wii_cmd;
-    // Never written to for some reason
-    u32 crc32;
-    u64 from_friend_code;
-    u32 minutes_since_1900;
-    u32 padding;
-    u32 app_group;
-    u32 packed_from;
-    u32 packed_to;
-    u32 packed_subject;
-    u32 packed_charset;
-    u32 packed_transfer_encoding;
-    u32 message_offset;
-    // Set to message_length if content transfer encoding is not base64.
-    u32 encoded_length;
-    MultipartEntry multipart_entries[2];
-    u32 multipart_sizes[2];
-    u32 multipart_content_types[2];
-    u64 unk;
-    u32 message_length;
-    u32 dwc_id;
-    u32 always_0x80000000;
-    u32 padding3;
-  };
-
   struct ReceiveList final
   {
-    ReceiveListHeader header;
-    ReceiveListEntry entries[MAX_ENTRIES];
+    MailListHeader header;
+    MailListEntry entries[MAX_ENTRIES];
   };
 #pragma pack(pop)
 
   ReceiveList m_data;
   std::shared_ptr<FS::FileSystem> m_fs;
 };
-}  // namespace NWC24
+}  // namespace NWC24::Mail
 }  // namespace IOS::HLE

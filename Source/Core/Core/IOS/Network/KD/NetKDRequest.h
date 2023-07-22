@@ -128,8 +128,8 @@ private:
 
   NWC24::NWC24Config m_config;
   NWC24::NWC24Dl m_dl_list;
-  NWC24::WC24SendList m_send_list;
-  NWC24::WC24ReceiveList m_receive_list;
+  NWC24::Mail::WC24SendList m_send_list;
+  NWC24::Mail::WC24ReceiveList m_receive_list;
   NWC24::WC24FriendList m_friend_list;
   Common::WorkQueueThread<AsyncTask> m_work_queue;
   Common::WorkQueueThread<std::function<void()>> m_scheduler_work_queue;
