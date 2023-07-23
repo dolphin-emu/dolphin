@@ -677,18 +677,13 @@ int SkylanderUSB::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
       // Sided color
       // The 2nd byte is the side
       // 0x00: right
-      // 0x01: left and right
       // 0x02: left
 
       // The 3rd, 4th and 5th bytes are red, green and blue
 
-      // The 6th byte is unknown. Observed values are 0x00, 0x0D and 0xF4
-
-      // The 7th byte is the fade duration. Exact value-time corrolation unknown. Observed values
-      // are 0x00, 0x01 and 0x07. Custom commands show that the higher this value the longer the
-      // duration.
-
-      // Empty J response is sent after the fade is completed.
+      // The 6th and 7th bytes form a little-endian short for how long the fade duration should be
+      // in milliseconds.
+      // For example, 500 milliseconds becomes 0xF4, 0x01
       if (cmd->length == 7)
       {
         control_response = {buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6]};
