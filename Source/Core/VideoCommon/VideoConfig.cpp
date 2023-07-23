@@ -12,6 +12,7 @@
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
+#include "Core/CoreTiming.h"
 #include "Core/Core.h"
 #include "Core/Movie.h"
 #include "Core/System.h"
@@ -40,7 +41,8 @@ static bool IsVSyncActive(bool enabled)
 {
   // Vsync is disabled when the throttler is disabled by the tab key.
   return enabled && !Core::GetIsThrottlerTempDisabled() &&
-         Config::Get(Config::MAIN_EMULATION_SPEED) == 1.0;
+         Config::Get(Config::MAIN_EMULATION_SPEED) == 1.0 &&
+         Core::System::GetInstance().GetCoreTiming().GetVSyncAllowed();
 }
 
 void UpdateActiveConfig()

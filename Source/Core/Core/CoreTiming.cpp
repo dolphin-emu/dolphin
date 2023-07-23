@@ -382,6 +382,12 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
     m_throttle_deadline = min_deadline;
   }
 
+  const TimePoint min_vsync_deadline = time - std::chrono::duration_cast<DT>(DT_ms(16));
+
+  if (m_throttle_deadline < min_vsync_deadline) {
+    m_throttle_disable_vsync = true;
+  }
+
   // Skip the VI interrupt if the CPU is lagging by a certain amount.
   // It doesn't matter what amount of lag we skip VI at, as long as it's constant.
   const DT max_variance =
@@ -392,6 +398,7 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
   // Only sleep if we are behind the deadline
   if (time < m_throttle_deadline)
   {
+    m_throttle_disable_vsync = false;
     std::this_thread::sleep_until(m_throttle_deadline);
 
     // Count amount of time sleeping for analytics
@@ -415,6 +422,11 @@ TimePoint CoreTimingManager::GetCPUTimePoint(s64 cyclesLate) const
 bool CoreTimingManager::GetVISkip() const
 {
   return m_throttle_disable_vi_int && g_ActiveConfig.bVISkip && !Core::WantsDeterminism();
+}
+
+bool CoreTimingManager::GetVSyncAllowed() const
+{
+  return !m_throttle_disable_vsync;
 }
 
 bool CoreTimingManager::UseSyncOnSkipIdle() const
