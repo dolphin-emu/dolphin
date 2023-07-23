@@ -69,17 +69,6 @@ void SaveToSYSCONF(Config::LayerType layer, std::function<bool(const Config::Loc
   }
 
   sysconf.SetData<u32>("IPL.CB", SysConf::Entry::Type::Long, 0);
-
-  // Disable WiiConnect24's standby mode. If it is enabled, it prevents us from receiving
-  // shutdown commands in the State Transition Manager (STM).
-  // TODO: remove this if and once Dolphin supports WC24 standby mode.
-  SysConf::Entry* idle_entry = sysconf.GetOrAddEntry("IPL.IDL", SysConf::Entry::Type::SmallArray);
-  if (idle_entry->bytes.empty())
-    idle_entry->bytes = std::vector<u8>(2);
-  else
-    idle_entry->bytes[0] = 0;
-  NOTICE_LOG_FMT(CORE, "Disabling WC24 'standby' (shutdown to idle) to avoid hanging on shutdown");
-
   IOS::HLE::RestoreBTInfoSection(&sysconf);
   sysconf.Save();
 }
