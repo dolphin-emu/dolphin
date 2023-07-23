@@ -127,6 +127,14 @@ void CoreTimingManager::RefreshConfig()
       Config::Get(Config::MAIN_OVERCLOCK_ENABLE) ? Config::Get(Config::MAIN_OVERCLOCK) : 1.0f;
   m_config_oc_inv_factor = 1.0f / m_config_oc_factor;
   m_config_sync_on_skip_idle = Config::Get(Config::MAIN_SYNC_ON_SKIP_IDLE);
+
+  // A maximum fallback is used to prevent the system from sleeping for
+  // too long or going full speed in an attempt to catch up to timings.
+  m_max_fallback = std::chrono::duration_cast<DT>(DT_ms(Config::Get(Config::MAIN_MAX_FALLBACK)));
+
+  m_max_variance = std::chrono::duration_cast<DT>(DT_ms(Config::Get(Config::MAIN_TIMING_VARIANCE)));
+
+  m_emulation_speed = Config::Get(Config::MAIN_EMULATION_SPEED);
 }
 
 void CoreTimingManager::DoState(PointerWrap& p)
@@ -355,21 +363,15 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
 
   m_throttle_last_cycle = target_cycle;
 
-  const double speed =
-      Core::GetIsThrottlerTempDisabled() ? 0.0 : Config::Get(Config::MAIN_EMULATION_SPEED);
+  const double speed = Core::GetIsThrottlerTempDisabled() ? 0.0 : m_emulation_speed;
 
   if (0.0 < speed)
     m_throttle_deadline +=
         std::chrono::duration_cast<DT>(DT_s(cycles) / (speed * m_throttle_clock_per_sec));
 
-  // A maximum fallback is used to prevent the system from sleeping for
-  // too long or going full speed in an attempt to catch up to timings.
-  const DT max_fallback =
-      std::chrono::duration_cast<DT>(DT_ms(Config::Get(Config::MAIN_MAX_FALLBACK)));
-
   const TimePoint time = Clock::now();
-  const TimePoint min_deadline = time - max_fallback;
-  const TimePoint max_deadline = time + max_fallback;
+  const TimePoint min_deadline = time - m_max_fallback;
+  const TimePoint max_deadline = time + m_max_fallback;
 
   if (m_throttle_deadline > max_deadline)
   {
@@ -382,11 +384,10 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
     m_throttle_deadline = min_deadline;
   }
 
+  const TimePoint vi_deadline = time - std::min(m_max_fallback, m_max_variance) / 2;
+
   // Skip the VI interrupt if the CPU is lagging by a certain amount.
   // It doesn't matter what amount of lag we skip VI at, as long as it's constant.
-  const DT max_variance =
-      std::chrono::duration_cast<DT>(DT_ms(Config::Get(Config::MAIN_TIMING_VARIANCE)));
-  const TimePoint vi_deadline = time - std::min(max_fallback, max_variance) / 2;
   m_throttle_disable_vi_int = 0.0 < speed && m_throttle_deadline < vi_deadline;
 
   // Only sleep if we are behind the deadline
