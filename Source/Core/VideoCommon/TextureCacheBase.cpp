@@ -1607,6 +1607,7 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
   std::vector<VideoCommon::CachedAsset<VideoCommon::GameTextureAsset>> cached_game_assets;
   std::vector<std::shared_ptr<VideoCommon::CustomTextureData>> data_for_assets;
   bool has_arbitrary_mipmaps = false;
+  bool skip_texture_dump = false;
   std::shared_ptr<HiresTexture> hires_texture;
   if (g_ActiveConfig.bHiresTextures)
   {
@@ -1618,6 +1619,7 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
       cached_game_assets.push_back(
           VideoCommon::CachedAsset<VideoCommon::GameTextureAsset>{std::move(asset), loaded_time});
       has_arbitrary_mipmaps = hires_texture->HasArbitraryMipmaps();
+      skip_texture_dump = true;
     }
   }
 
@@ -1666,9 +1668,10 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
     }
   }
 
-  auto entry = CreateTextureEntry(
-      TextureCreationInfo{base_hash, full_hash, bytes_per_block, palette_size}, texture_info,
-      textureCacheSafetyColorSampleSize, std::move(data_for_assets), has_arbitrary_mipmaps);
+  auto entry =
+      CreateTextureEntry(TextureCreationInfo{base_hash, full_hash, bytes_per_block, palette_size},
+                         texture_info, textureCacheSafetyColorSampleSize,
+                         std::move(data_for_assets), has_arbitrary_mipmaps, skip_texture_dump);
   entry->linked_game_texture_assets = std::move(cached_game_assets);
   entry->linked_asset_dependencies = std::move(additional_dependencies);
   entry->texture_info_name = std::move(texture_name);
@@ -1679,7 +1682,7 @@ RcTcacheEntry TextureCacheBase::CreateTextureEntry(
     const TextureCreationInfo& creation_info, const TextureInfo& texture_info,
     const int safety_color_sample_size,
     std::vector<std::shared_ptr<VideoCommon::CustomTextureData>> assets_data,
-    const bool custom_arbitrary_mipmaps)
+    const bool custom_arbitrary_mipmaps, bool skip_texture_dump)
 {
 #ifdef __APPLE__
   const bool no_mips = g_ActiveConfig.bNoMipmapping;
@@ -1828,7 +1831,7 @@ RcTcacheEntry TextureCacheBase::CreateTextureEntry(
 
     entry->has_arbitrary_mips = arbitrary_mip_detector.HasArbitraryMipmaps(dst_buffer);
 
-    if (g_ActiveConfig.bDumpTextures)
+    if (g_ActiveConfig.bDumpTextures && !skip_texture_dump)
     {
       const std::string basename = texture_info.CalculateTextureName().GetFullName();
       for (u32 level = 0; level < texLevels; ++level)
