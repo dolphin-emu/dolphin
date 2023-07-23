@@ -1645,6 +1645,13 @@ bool MainWindow::eventFilter(QObject* object, QEvent* event)
   return false;
 }
 
+QMenu* MainWindow::createPopupMenu()
+{
+  // Disable the default popup menu as it exposes the debugger UI even when the debugger UI is
+  // disabled, which can lead to user confusion (see e.g. https://bugs.dolphin-emu.org/issues/13306)
+  return nullptr;
+}
+
 void MainWindow::dragEnterEvent(QDragEnterEvent* event)
 {
   if (event->mimeData()->hasUrls() && event->mimeData()->urls().size() == 1)
