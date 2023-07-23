@@ -146,7 +146,7 @@ void InterfacePane::CreateUI()
   m_checkbox_use_userstyle = new QCheckBox(tr("Use Custom User Style"));
   m_checkbox_use_covers =
       new QCheckBox(tr("Download Game Covers from GameTDB.com for Use in Grid Mode"));
-  m_checkbox_show_debugging_ui = new QCheckBox(tr("Show Debugging UI"));
+  m_checkbox_show_debugging_ui = new QCheckBox(tr("Enable Debugging UI"));
   m_checkbox_focused_hotkeys = new QCheckBox(tr("Hotkeys Require Window Focus"));
   m_checkbox_disable_screensaver = new QCheckBox(tr("Inhibit Screensaver During Emulation"));
 
