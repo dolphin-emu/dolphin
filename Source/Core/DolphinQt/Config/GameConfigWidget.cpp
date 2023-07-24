@@ -90,6 +90,7 @@ void GameConfigWidget::CreateWidgets()
   m_sync_gpu = new QCheckBox(tr("Synchronize GPU thread"));
   m_emulate_disc_speed = new QCheckBox(tr("Emulate Disc Speed"));
   m_use_dsp_hle = new QCheckBox(tr("DSP HLE (fast)"));
+  m_manual_texture_sampling = new QCheckBox(tr("Manual Texture Sampling"));
   m_deterministic_dual_core = new QComboBox;
 
   for (const auto& item : {tr("Not Set"), tr("auto"), tr("none"), tr("fake-completion")})
@@ -113,8 +114,9 @@ void GameConfigWidget::CreateWidgets()
   core_layout->addWidget(m_sync_gpu, 3, 0);
   core_layout->addWidget(m_emulate_disc_speed, 4, 0);
   core_layout->addWidget(m_use_dsp_hle, 5, 0);
-  core_layout->addWidget(new QLabel(tr("Deterministic dual core:")), 6, 0);
-  core_layout->addWidget(m_deterministic_dual_core, 6, 1);
+  core_layout->addWidget(m_manual_texture_sampling, 6, 0);
+  core_layout->addWidget(new QLabel(tr("Deterministic dual core:")), 7, 0);
+  core_layout->addWidget(m_deterministic_dual_core, 7, 1);
 
   // Stereoscopy
   auto* stereoscopy_box = new QGroupBox(tr("Stereoscopy"));
@@ -160,8 +162,9 @@ void GameConfigWidget::CreateWidgets()
 
   general_layout->addWidget(m_refresh_config, 1, 0, 1, -1);
 
-  for (QCheckBox* item : {m_enable_dual_core, m_enable_mmu, m_enable_fprf, m_sync_gpu,
-                          m_emulate_disc_speed, m_use_dsp_hle, m_use_monoscopic_shadows})
+  for (QCheckBox* item :
+       {m_enable_dual_core, m_enable_mmu, m_enable_fprf, m_sync_gpu, m_emulate_disc_speed,
+        m_use_dsp_hle, m_manual_texture_sampling, m_use_monoscopic_shadows})
     item->setTristate(true);
 
   auto* general_widget = new QWidget;
@@ -207,8 +210,9 @@ void GameConfigWidget::ConnectWidgets()
   // Buttons
   connect(m_refresh_config, &QPushButton::clicked, this, &GameConfigWidget::LoadSettings);
 
-  for (QCheckBox* box : {m_enable_dual_core, m_enable_mmu, m_enable_fprf, m_sync_gpu,
-                         m_emulate_disc_speed, m_use_dsp_hle, m_use_monoscopic_shadows})
+  for (QCheckBox* box :
+       {m_enable_dual_core, m_enable_mmu, m_enable_fprf, m_sync_gpu, m_emulate_disc_speed,
+        m_use_dsp_hle, m_manual_texture_sampling, m_use_monoscopic_shadows})
     connect(box, &QCheckBox::stateChanged, this, &GameConfigWidget::SaveSettings);
 
   connect(m_deterministic_dual_core, qOverload<int>(&QComboBox::currentIndexChanged), this,
@@ -279,6 +283,7 @@ void GameConfigWidget::LoadSettings()
   LoadCheckBox(m_sync_gpu, "Core", "SyncGPU");
   LoadCheckBox(m_emulate_disc_speed, "Core", "FastDiscSpeed", true);
   LoadCheckBox(m_use_dsp_hle, "Core", "DSPHLE");
+  LoadCheckBox(m_manual_texture_sampling, "Video_Hacks", "FastTextureSampling", true);
 
   std::string determinism_mode;
 
@@ -329,6 +334,7 @@ void GameConfigWidget::SaveSettings()
   SaveCheckBox(m_sync_gpu, "Core", "SyncGPU");
   SaveCheckBox(m_emulate_disc_speed, "Core", "FastDiscSpeed", true);
   SaveCheckBox(m_use_dsp_hle, "Core", "DSPHLE");
+  SaveCheckBox(m_manual_texture_sampling, "Video_Hacks", "FastTextureSampling", true);
 
   int determinism_num = m_deterministic_dual_core->currentIndex();
 
