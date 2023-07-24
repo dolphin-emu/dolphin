@@ -50,7 +50,7 @@ private:
   QCheckBox* m_enable_mmu;
   QCheckBox* m_enable_fprf;
   QCheckBox* m_sync_gpu;
-  QCheckBox* m_enable_fast_disc;
+  QCheckBox* m_emulate_disc_speed;
   QCheckBox* m_use_dsp_hle;
   QCheckBox* m_use_monoscopic_shadows;
 
