@@ -219,30 +219,19 @@ void GameConfigWidget::ConnectWidgets()
 }
 
 void GameConfigWidget::LoadCheckBox(QCheckBox* checkbox, const std::string& section,
-                                    const std::string& key)
+                                    const std::string& key, bool reverse)
 {
   bool checked;
-  if (key == "FastDiscSpeed")
-  {
-    if (m_gameini_local.GetOrCreateSection(section)->Get("FastDiscSpeed", &checked))
-      return checkbox->setCheckState(!checked ? Qt::Checked : Qt::Unchecked);
+  if (m_gameini_local.GetOrCreateSection(section)->Get(key, &checked))
+    return checkbox->setCheckState(checked ^ reverse ? Qt::Checked : Qt::Unchecked);
 
-    if (m_gameini_default.GetOrCreateSection(section)->Get("FastDiscSpeed", &checked))
-      return checkbox->setCheckState(!checked ? Qt::Checked : Qt::Unchecked);
-  }
-  else
-  {
-    if (m_gameini_local.GetOrCreateSection(section)->Get(key, &checked))
-      return checkbox->setCheckState(checked ? Qt::Checked : Qt::Unchecked);
-
-    if (m_gameini_default.GetOrCreateSection(section)->Get(key, &checked))
-      return checkbox->setCheckState(checked ? Qt::Checked : Qt::Unchecked);
-  }
+  if (m_gameini_default.GetOrCreateSection(section)->Get(key, &checked))
+    return checkbox->setCheckState(checked ^ reverse ? Qt::Checked : Qt::Unchecked);
   checkbox->setCheckState(Qt::PartiallyChecked);
 }
 
 void GameConfigWidget::SaveCheckBox(QCheckBox* checkbox, const std::string& section,
-                                    const std::string& key)
+                                    const std::string& key, bool reverse)
 {
   // Delete any existing entries from the local gameini if checkbox is undetermined.
   // Otherwise, write the current value to the local gameini if the value differs from the default
@@ -256,13 +245,7 @@ void GameConfigWidget::SaveCheckBox(QCheckBox* checkbox, const std::string& sect
     return;
   }
 
-  bool checked = checkbox->checkState() == Qt::Checked;
-
-  if (key == "FastDiscSpeed")
-  {
-    m_gameini_local.GetOrCreateSection(section)->Set(key, !checked);
-    return;
-  }
+  bool checked = (checkbox->checkState() == Qt::Checked) ^ reverse;
 
   if (m_gameini_default.Exists(section, key))
   {
@@ -293,7 +276,7 @@ void GameConfigWidget::LoadSettings()
   LoadCheckBox(m_enable_mmu, "Core", "MMU");
   LoadCheckBox(m_enable_fprf, "Core", "FPRF");
   LoadCheckBox(m_sync_gpu, "Core", "SyncGPU");
-  LoadCheckBox(m_enable_fast_disc, "Core", "FastDiscSpeed");
+  LoadCheckBox(m_enable_fast_disc, "Core", "FastDiscSpeed", true);
   LoadCheckBox(m_use_dsp_hle, "Core", "DSPHLE");
 
   std::string determinism_mode;
@@ -343,7 +326,7 @@ void GameConfigWidget::SaveSettings()
   SaveCheckBox(m_enable_mmu, "Core", "MMU");
   SaveCheckBox(m_enable_fprf, "Core", "FPRF");
   SaveCheckBox(m_sync_gpu, "Core", "SyncGPU");
-  SaveCheckBox(m_enable_fast_disc, "Core", "FastDiscSpeed");
+  SaveCheckBox(m_enable_fast_disc, "Core", "FastDiscSpeed", true);
   SaveCheckBox(m_use_dsp_hle, "Core", "DSPHLE");
 
   int determinism_num = m_deterministic_dual_core->currentIndex();

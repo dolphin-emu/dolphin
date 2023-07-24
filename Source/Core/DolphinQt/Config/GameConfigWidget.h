@@ -35,8 +35,10 @@ private:
   void LoadSettings();
   void SaveSettings();
 
-  void SaveCheckBox(QCheckBox* checkbox, const std::string& section, const std::string& key);
-  void LoadCheckBox(QCheckBox* checkbox, const std::string& section, const std::string& key);
+  void SaveCheckBox(QCheckBox* checkbox, const std::string& section, const std::string& key,
+                    bool reverse = false);
+  void LoadCheckBox(QCheckBox* checkbox, const std::string& section, const std::string& key,
+                    bool reverse = false);
 
   QString m_gameini_sys_path;
   QString m_gameini_local_path;
