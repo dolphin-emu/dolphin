@@ -53,6 +53,7 @@ private:
   QCheckBox* m_emulate_disc_speed;
   QCheckBox* m_use_dsp_hle;
   QCheckBox* m_use_monoscopic_shadows;
+  QCheckBox* m_manual_texture_sampling;
 
   QPushButton* m_refresh_config;
 
