@@ -88,7 +88,7 @@ void GameConfigWidget::CreateWidgets()
   m_enable_mmu = new QCheckBox(tr("Enable MMU"));
   m_enable_fprf = new QCheckBox(tr("Enable FPRF"));
   m_sync_gpu = new QCheckBox(tr("Synchronize GPU thread"));
-  m_enable_fast_disc = new QCheckBox(tr("Emulate Disc Speed"));
+  m_emulate_disc_speed = new QCheckBox(tr("Emulate Disc Speed"));
   m_use_dsp_hle = new QCheckBox(tr("DSP HLE (fast)"));
   m_deterministic_dual_core = new QComboBox;
 
@@ -102,15 +102,16 @@ void GameConfigWidget::CreateWidgets()
                                "games. (ON = Compatible, OFF = Fast)"));
   m_sync_gpu->setToolTip(tr("Synchronizes the GPU and CPU threads to help prevent random freezes "
                             "in Dual core mode. (ON = Compatible, OFF = Fast)"));
-  m_enable_fast_disc->setToolTip(tr("Enable emulated disc speed. Disabling this can cause crashes "
-                                    "and other problems in some games. "
-                                    "(ON = Compatible, OFF = Unlocked)"));
+  m_emulate_disc_speed->setToolTip(
+      tr("Enable emulated disc speed. Disabling this can cause crashes "
+         "and other problems in some games. "
+         "(ON = Compatible, OFF = Unlocked)"));
 
   core_layout->addWidget(m_enable_dual_core, 0, 0);
   core_layout->addWidget(m_enable_mmu, 1, 0);
   core_layout->addWidget(m_enable_fprf, 2, 0);
   core_layout->addWidget(m_sync_gpu, 3, 0);
-  core_layout->addWidget(m_enable_fast_disc, 4, 0);
+  core_layout->addWidget(m_emulate_disc_speed, 4, 0);
   core_layout->addWidget(m_use_dsp_hle, 5, 0);
   core_layout->addWidget(new QLabel(tr("Deterministic dual core:")), 6, 0);
   core_layout->addWidget(m_deterministic_dual_core, 6, 1);
@@ -160,7 +161,7 @@ void GameConfigWidget::CreateWidgets()
   general_layout->addWidget(m_refresh_config, 1, 0, 1, -1);
 
   for (QCheckBox* item : {m_enable_dual_core, m_enable_mmu, m_enable_fprf, m_sync_gpu,
-                          m_enable_fast_disc, m_use_dsp_hle, m_use_monoscopic_shadows})
+                          m_emulate_disc_speed, m_use_dsp_hle, m_use_monoscopic_shadows})
     item->setTristate(true);
 
   auto* general_widget = new QWidget;
@@ -207,7 +208,7 @@ void GameConfigWidget::ConnectWidgets()
   connect(m_refresh_config, &QPushButton::clicked, this, &GameConfigWidget::LoadSettings);
 
   for (QCheckBox* box : {m_enable_dual_core, m_enable_mmu, m_enable_fprf, m_sync_gpu,
-                         m_enable_fast_disc, m_use_dsp_hle, m_use_monoscopic_shadows})
+                         m_emulate_disc_speed, m_use_dsp_hle, m_use_monoscopic_shadows})
     connect(box, &QCheckBox::stateChanged, this, &GameConfigWidget::SaveSettings);
 
   connect(m_deterministic_dual_core, qOverload<int>(&QComboBox::currentIndexChanged), this,
@@ -276,7 +277,7 @@ void GameConfigWidget::LoadSettings()
   LoadCheckBox(m_enable_mmu, "Core", "MMU");
   LoadCheckBox(m_enable_fprf, "Core", "FPRF");
   LoadCheckBox(m_sync_gpu, "Core", "SyncGPU");
-  LoadCheckBox(m_enable_fast_disc, "Core", "FastDiscSpeed", true);
+  LoadCheckBox(m_emulate_disc_speed, "Core", "FastDiscSpeed", true);
   LoadCheckBox(m_use_dsp_hle, "Core", "DSPHLE");
 
   std::string determinism_mode;
@@ -326,7 +327,7 @@ void GameConfigWidget::SaveSettings()
   SaveCheckBox(m_enable_mmu, "Core", "MMU");
   SaveCheckBox(m_enable_fprf, "Core", "FPRF");
   SaveCheckBox(m_sync_gpu, "Core", "SyncGPU");
-  SaveCheckBox(m_enable_fast_disc, "Core", "FastDiscSpeed", true);
+  SaveCheckBox(m_emulate_disc_speed, "Core", "FastDiscSpeed", true);
   SaveCheckBox(m_use_dsp_hle, "Core", "DSPHLE");
 
   int determinism_num = m_deterministic_dual_core->currentIndex();
