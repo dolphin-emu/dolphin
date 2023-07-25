@@ -22,6 +22,7 @@
 #include "VideoCommon/AbstractShader.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/FramebufferShaderGen.h"
+#include "VideoCommon/GraphicsModEditor/EditorMain.h"
 #include "VideoCommon/NetPlayChatUI.h"
 #include "VideoCommon/NetPlayGolfUI.h"
 #include "VideoCommon/OnScreenDisplay.h"
@@ -106,11 +107,19 @@ bool OnScreenUI::Initialize(u32 width, u32 height, float scale)
   m_ready = true;
   BeginImGuiFrameUnlocked(width, height);  // lock is already held
 
+  auto& system = Core::System::GetInstance();
+  auto& graphics_mod_editor = system.GetGraphicsModEditor();
+  graphics_mod_editor.Initialize();
+
   return true;
 }
 
 OnScreenUI::~OnScreenUI()
 {
+  auto& system = Core::System::GetInstance();
+  auto& graphics_mod_editor = system.GetGraphicsModEditor();
+  graphics_mod_editor.Shutdown();
+
   std::unique_lock<std::mutex> imgui_lock(m_imgui_mutex);
 
   ImGui::EndFrame();
@@ -311,6 +320,13 @@ void OnScreenUI::DrawDebugText()
         ImGui::TextUnformatted(movie.GetRerecords().c_str());
     }
     ImGui::End();
+  }
+
+  auto& system = Core::System::GetInstance();
+  auto& graphics_mod_editor = system.GetGraphicsModEditor();
+  if (graphics_mod_editor.IsEnabled())
+  {
+    graphics_mod_editor.DrawImGui();
   }
 
   if (g_ActiveConfig.bOverlayStats)
