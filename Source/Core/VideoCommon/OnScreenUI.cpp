@@ -103,11 +103,19 @@ bool OnScreenUI::Initialize(u32 width, u32 height, float scale)
   m_ready = true;
   BeginImGuiFrameUnlocked(width, height);  // lock is already held
 
+  auto& system = Core::System::GetInstance();
+  auto& graphics_mod_editor = system.GetGraphicsModEditor();
+  graphics_mod_editor.Initialize();
+
   return true;
 }
 
 OnScreenUI::~OnScreenUI()
 {
+  auto& system = Core::System::GetInstance();
+  auto& graphics_mod_editor = system.GetGraphicsModEditor();
+  graphics_mod_editor.Shutdown();
+
   std::unique_lock<std::mutex> imgui_lock(m_imgui_mutex);
 
   ImGui::EndFrame();
