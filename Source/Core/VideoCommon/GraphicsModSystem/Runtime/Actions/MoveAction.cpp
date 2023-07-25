@@ -3,6 +3,8 @@
 
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/MoveAction.h"
 
+#include <imgui.h>
+
 std::unique_ptr<MoveAction> MoveAction::Create(const picojson::value& json_data)
 {
   Common::Vec3 position_offset;
@@ -26,8 +28,20 @@ std::unique_ptr<MoveAction> MoveAction::Create(const picojson::value& json_data)
   return std::make_unique<MoveAction>(position_offset);
 }
 
+std::unique_ptr<MoveAction> MoveAction::Create()
+{
+  return std::make_unique<MoveAction>(Common::Vec3{});
+}
+
 MoveAction::MoveAction(Common::Vec3 position_offset) : m_position_offset(position_offset)
 {
+}
+
+void MoveAction::DrawImGui()
+{
+  ImGui::InputFloat("X", &m_position_offset.x);
+  ImGui::InputFloat("Y", &m_position_offset.y);
+  ImGui::InputFloat("Z", &m_position_offset.z);
 }
 
 void MoveAction::OnProjection(GraphicsModActionData::Projection* projection)
