@@ -169,7 +169,6 @@ struct TCacheEntry
   std::string texture_info_name = "";
 
   std::vector<VideoCommon::CachedAsset<VideoCommon::GameTextureAsset>> linked_game_texture_assets;
-  std::vector<VideoCommon::CachedAsset<VideoCommon::CustomAsset>> linked_asset_dependencies;
 
   explicit TCacheEntry(std::unique_ptr<AbstractTexture> tex,
                        std::unique_ptr<AbstractFramebuffer> fb);
@@ -345,6 +344,9 @@ private:
   using TexPool = std::unordered_multimap<TextureConfig, TexPoolEntry>;
 
   static bool DidLinkedAssetsChange(const TCacheEntry& entry);
+
+  void InvalideOverlappingTextures(u32 dstStride, u32 dstAddr, u32 bytes_per_row, u32 num_blocks_y,
+                                   bool copy_to_vram, bool copy_to_ram);
 
   TCacheEntry* LoadImpl(const TextureInfo& texture_info, bool force_reload);
 

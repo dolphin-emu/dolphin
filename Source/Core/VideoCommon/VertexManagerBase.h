@@ -3,12 +3,14 @@
 
 #pragma once
 
+#include <map>
 #include <memory>
 #include <vector>
 
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+#include "Common/Matrix.h"
 #include "VideoCommon/CPUCull.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/RenderState.h"
@@ -171,6 +173,23 @@ public:
   // Call at the end of a frame.
   void OnEndFrame();
 
+  // Draws the normal mesh sourced from emulation
+  void DrawEmulatedMesh();
+
+  // Draws the normal mesh sourced from emulation, with a custom shader and/or transform
+  void DrawEmulatedMesh(const CustomPixelShaderContents& custom_pixel_shader_contents,
+                        const std::optional<Common::Matrix44>& custom_transform,
+                        std::span<u8> custom_pixel_shader_uniforms);
+
+  // Draw a custom mesh sourced from a mod, with a custom shader and custom vertex information
+  void DrawCustomMesh(const CustomPixelShaderContents& custom_pixel_shader_contents,
+                      const Common::Matrix44& custom_transform,
+                      std::span<u8> custom_pixel_shader_uniforms, std::span<const u8> vertex_data,
+                      std::span<const u16> index_data, PrimitiveType primitive_type,
+                      u32 vertex_stride,
+                      const VideoCommon::GXPipelineUid& specialized_pipeline_config,
+                      const VideoCommon::GXUberPipelineUid& uber_pipeline_config);
+
 protected:
   // When utility uniforms are used, the GX uniforms need to be re-written afterwards.
   static void InvalidateConstants();
@@ -199,6 +218,7 @@ protected:
   u8* m_cur_buffer_pointer = nullptr;
   u8* m_base_buffer_pointer = nullptr;
   u8* m_end_buffer_pointer = nullptr;
+  u8* m_last_reset_pointer = nullptr;
 
   // Alternative buffers in CPU memory for primitives we are going to discard.
   std::vector<u8> m_cpu_vertex_buffer;
@@ -223,11 +243,6 @@ private:
   // Minimum number of draws per command buffer when attempting to preempt a readback operation.
   static constexpr u32 MINIMUM_DRAW_CALLS_PER_COMMAND_BUFFER_FOR_READBACK = 10;
 
-  void RenderDrawCall(PixelShaderManager& pixel_shader_manager,
-                      GeometryShaderManager& geometry_shader_manager,
-                      const CustomPixelShaderContents& custom_pixel_shader_contents,
-                      std::span<u8> custom_pixel_shader_uniforms, PrimitiveType primitive_type,
-                      const AbstractPipeline* current_pipeline);
   void UpdatePipelineConfig();
   void UpdatePipelineObject();
 
