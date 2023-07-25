@@ -17,11 +17,13 @@
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/System.h"
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/FreeLookCamera.h"
+#include "VideoCommon/GraphicsModEditor/EditorMain.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionData.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/Statistics.h"
@@ -392,17 +394,38 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
   std::vector<GraphicsModAction*> projection_actions;
   if (g_ActiveConfig.bGraphicMods)
   {
-    for (const auto& action : g_graphics_mod_manager->GetProjectionActions(xfmem.projection.type))
+    auto& system = Core::System::GetInstance();
+    auto& editor = system.GetGraphicsModEditor();
+    if (editor.IsEnabled())
     {
-      projection_actions.push_back(action);
-    }
-
-    for (const auto& texture : textures)
-    {
-      for (const auto& action :
-           g_graphics_mod_manager->GetProjectionTextureActions(xfmem.projection.type, texture))
+      for (const auto& action : editor.GetProjectionActions(xfmem.projection.type))
       {
         projection_actions.push_back(action);
+      }
+
+      for (const auto& texture : textures)
+      {
+        for (const auto& action :
+             editor.GetProjectionTextureActions(xfmem.projection.type, texture))
+        {
+          projection_actions.push_back(action);
+        }
+      }
+    }
+    else
+    {
+      for (const auto& action : g_graphics_mod_manager->GetProjectionActions(xfmem.projection.type))
+      {
+        projection_actions.push_back(action);
+      }
+
+      for (const auto& texture : textures)
+      {
+        for (const auto& action :
+             g_graphics_mod_manager->GetProjectionTextureActions(xfmem.projection.type, texture))
+        {
+          projection_actions.push_back(action);
+        }
       }
     }
   }

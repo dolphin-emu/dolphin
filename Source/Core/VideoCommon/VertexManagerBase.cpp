@@ -24,6 +24,8 @@
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/GeometryShaderManager.h"
+#include "VideoCommon/GraphicsModEditor/EditorMain.h"
+#include "VideoCommon/GraphicsModEditor/EditorTypes.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/CustomShaderCache.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionData.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
@@ -544,6 +546,7 @@ void VertexManagerBase::Flush()
   auto& geometry_shader_manager = system.GetGeometryShaderManager();
   auto& vertex_shader_manager = system.GetVertexShaderManager();
   auto& xf_state_manager = system.GetXFStateManager();
+  auto& editor = system.GetGraphicsModEditor();
 
   if (g_ActiveConfig.bGraphicMods)
   {
@@ -577,6 +580,15 @@ void VertexManagerBase::Flush()
                         cache_entry->texture_info_name) == texture_names.end())
           {
             texture_names.push_back(cache_entry->texture_info_name);
+            if (editor.IsEnabled())
+            {
+              GraphicsModEditor::DrawCallData data;
+              data.m_id = GraphicsModEditor::DrawCallID{cache_entry->texture_info_name};
+              data.m_projection_type = xfmem.projection.type;
+              data.m_time = std::chrono::steady_clock::now();
+              data.m_texture = cache_entry->texture.get();
+              editor.AddDrawCall(std::move(data));
+            }
             texture_units.push_back(i);
           }
         }
@@ -606,15 +618,32 @@ void VertexManagerBase::Flush()
     {
       GraphicsModActionData::DrawStarted draw_started{texture_units, &skip, &custom_pixel_shader,
                                                       &custom_pixel_shader_uniforms};
-      for (const auto& action : g_graphics_mod_manager->GetDrawStartedActions(texture_names[i]))
+
+      if (editor.IsEnabled())
       {
-        action->OnDrawStarted(&draw_started);
-        if (custom_pixel_shader)
+        for (const auto& action : editor.GetDrawStartedActions(texture_name))
         {
-          custom_pixel_shader_contents.shaders.push_back(*custom_pixel_shader);
-          custom_pixel_texture_names.push_back(texture_names[i]);
+          action->OnDrawStarted(&draw_started);
+          if (custom_pixel_shader)
+          {
+            custom_pixel_shader_contents.shaders.push_back(*custom_pixel_shader);
+            custom_pixel_texture_names.push_back(texture_name);
+          }
+          custom_pixel_shader = std::nullopt;
         }
-        custom_pixel_shader = std::nullopt;
+      }
+      else
+      {
+        for (const auto& action : g_graphics_mod_manager->GetDrawStartedActions(texture_name))
+        {
+          action->OnDrawStarted(&draw_started);
+          if (custom_pixel_shader)
+          {
+            custom_pixel_shader_contents.shaders.push_back(*custom_pixel_shader);
+            custom_pixel_texture_names.push_back(texture_name);
+          }
+          custom_pixel_shader = std::nullopt;
+        }
       }
     }
 

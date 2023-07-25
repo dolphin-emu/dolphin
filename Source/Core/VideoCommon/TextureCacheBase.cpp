@@ -39,6 +39,7 @@
 #include "VideoCommon/Assets/CustomTextureData.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FramebufferManager.h"
+#include "VideoCommon/GraphicsModEditor/EditorMain.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/FBInfo.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionData.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
@@ -1301,10 +1302,22 @@ TCacheEntry* TextureCacheBase::LoadImpl(const TextureInfo& texture_info, bool fo
     entry->texture_info_name = texture_info.CalculateTextureName().GetFullName();
 
     GraphicsModActionData::TextureLoad texture_load{entry->texture_info_name};
-    for (const auto& action :
-         g_graphics_mod_manager->GetTextureLoadActions(entry->texture_info_name))
+    auto& system = Core::System::GetInstance();
+    auto& editor = system.GetGraphicsModEditor();
+    if (editor.IsEnabled())
     {
-      action->OnTextureLoad(&texture_load);
+      for (const auto& action : editor.GetTextureLoadActions(entry->texture_info_name))
+      {
+        action->OnTextureLoad(&texture_load);
+      }
+    }
+    else
+    {
+      for (const auto& action :
+           g_graphics_mod_manager->GetTextureLoadActions(entry->texture_info_name))
+      {
+        action->OnTextureLoad(&texture_load);
+      }
     }
   }
   m_bound_textures[texture_info.GetStage()] = entry;
@@ -1624,9 +1637,21 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
     texture_name = texture_info.CalculateTextureName().GetFullName();
     GraphicsModActionData::TextureCreate texture_create{
         texture_name, width, height, &cached_game_assets, &additional_dependencies};
-    for (const auto& action : g_graphics_mod_manager->GetTextureCreateActions(texture_name))
+    auto& system = Core::System::GetInstance();
+    auto& editor = system.GetGraphicsModEditor();
+    if (editor.IsEnabled())
     {
-      action->OnTextureCreate(&texture_create);
+      for (const auto& action : editor.GetTextureCreateActions(texture_name))
+      {
+        action->OnTextureCreate(&texture_create);
+      }
+    }
+    else
+    {
+      for (const auto& action : g_graphics_mod_manager->GetTextureCreateActions(texture_name))
+      {
+        action->OnTextureCreate(&texture_create);
+      }
     }
   }
 
