@@ -13,7 +13,13 @@ class MoveAction final : public GraphicsModAction
 {
 public:
   static std::unique_ptr<MoveAction> Create(const picojson::value& json_data);
+  static std::unique_ptr<MoveAction> Create();
+
+  MoveAction() = default;
   explicit MoveAction(Common::Vec3 position_offset);
+
+  void DrawImGui() override;
+
   void OnProjection(GraphicsModActionData::Projection* projection) override;
   void OnProjectionAndTexture(GraphicsModActionData::Projection* projection) override;
 
