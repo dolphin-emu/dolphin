@@ -346,6 +346,9 @@ private:
 
   static bool DidLinkedAssetsChange(const TCacheEntry& entry);
 
+  void InvalideOverlappingTextures(u32 dstStride, u32 dstAddr, u32 bytes_per_row, u32 num_blocks_y,
+                                   bool copy_to_vram, bool copy_to_ram);
+
   TCacheEntry* LoadImpl(u32 stage, bool force_reload);
 
   bool CreateUtilityTextures();
