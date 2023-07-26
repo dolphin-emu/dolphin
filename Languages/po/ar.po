@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-27 22:41+0200\n"
+"POT-Creation-Date: 2023-07-26 15:31+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: mansoor <asseryma@hotmail.com>, 2013,2015-2023\n"
 "Language-Team: Arabic (http://app.transifex.com/delroth/dolphin-emu/language/"
@@ -186,6 +186,16 @@ msgstr "%1 قد انضم"
 msgid "%1 has left"
 msgstr "%1 لقد غادر"
 
+#: Source/Core/DolphinQt/Achievements/AchievementHeaderWidget.cpp:120
+msgid ""
+"%1 has unlocked %2/%3 achievements (%4 hardcore) worth %5/%6 points (%7 "
+"hardcore)"
+msgstr ""
+
+#: Source/Core/DolphinQt/Achievements/AchievementHeaderWidget.cpp:131
+msgid "%1 has unlocked %2/%3 achievements worth %4/%5 points"
+msgstr ""
+
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1108
 msgid "%1 is not a valid ROM"
 msgstr "%1 القرص غير صالح"
@@ -202,6 +212,11 @@ msgstr "نطاقات الذاكرة %1"
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:323
 msgid "%1 ms"
 msgstr "%1 ms"
+
+#: Source/Core/DolphinQt/Achievements/AchievementHeaderWidget.cpp:86
+#: Source/Core/DolphinQt/Achievements/AchievementProgressWidget.cpp:55
+msgid "%1 points"
+msgstr ""
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:265
 msgid "%1 session found"
@@ -261,7 +276,7 @@ msgstr "%1[%2]: %3/%4 ميغابايت"
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:286
 #, c-format
 msgid "%1x MSAA"
-msgstr ""
+msgstr "%1x MSAA"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:78
 msgid "%1x Native (%2x%3)"
@@ -270,7 +285,7 @@ msgstr "%1x Native (%2x%3)"
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:298
 #, c-format
 msgid "%1x SSAA"
-msgstr ""
+msgstr "%1x SSAA"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:315
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:333
@@ -754,7 +769,7 @@ msgstr "0"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:79
 msgid "1 GiB"
-msgstr ""
+msgstr "1 GiB"
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:31
 msgid "128 Mbit (2043 blocks)"
@@ -762,7 +777,7 @@ msgstr "128 Mbit (2043 blocks)"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:76
 msgid "128 MiB"
-msgstr ""
+msgstr "128 MiB"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:209
 msgid "16 Bytes"
@@ -770,7 +785,7 @@ msgstr "16 Bytes"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:83
 msgid "16 GiB (SDHC)"
-msgstr ""
+msgstr "16 GiB (SDHC)"
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:28
 msgid "16 Mbit (251 blocks)"
@@ -804,11 +819,11 @@ msgstr "1x"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:80
 msgid "2 GiB"
-msgstr ""
+msgstr "2 GiB"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:77
 msgid "256 MiB"
-msgstr ""
+msgstr "256 MiB"
 
 #: Source/Core/Core/HotkeyManager.cpp:194
 msgid "2x"
@@ -824,7 +839,7 @@ msgstr "2x Native (1280x1056) for 720p"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:84
 msgid "32 GiB (SDHC)"
-msgstr ""
+msgstr "32 GiB (SDHC)"
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:29
 msgid "32 Mbit (507 blocks)"
@@ -876,7 +891,7 @@ msgstr "4 Bytes"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:81
 msgid "4 GiB (SDHC)"
-msgstr ""
+msgstr "4 GiB (SDHC)"
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:26
 msgid "4 Mbit (59 blocks)"
@@ -900,7 +915,7 @@ msgstr "4x Native (2560x2112) for 1440p"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:78
 msgid "512 MiB"
-msgstr ""
+msgstr "512 MiB"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:67
 msgid "5x Native (3200x2640)"
@@ -912,7 +927,7 @@ msgstr "64 Mbit (1019 blocks)"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:75
 msgid "64 MiB"
-msgstr ""
+msgstr "64 MiB"
 
 #: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:111
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:164
@@ -943,7 +958,7 @@ msgstr "8 Bytes"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:82
 msgid "8 GiB (SDHC)"
-msgstr ""
+msgstr "8 GiB (SDHC)"
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:27
 msgid "8 Mbit (123 blocks)"
@@ -1132,10 +1147,10 @@ msgstr "تأثير مقياس التسارع"
 msgid "Accuracy:"
 msgstr "ضبط"
 
-#: Source/Core/DolphinQt/Achievements/AchievementsWindow.cpp:16
+#: Source/Core/DolphinQt/Achievements/AchievementsWindow.cpp:21
 #: Source/Core/DolphinQt/MenuBar.cpp:243
 msgid "Achievements"
-msgstr ""
+msgstr "الإنجازات"
 
 #: Source/Core/DolphinQt/Debugger/BreakpointDialog.cpp:172
 msgid "Action"
@@ -1414,7 +1429,7 @@ msgstr "محاذاة لطول نوع البيانات"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:320
 msgid "All"
-msgstr ""
+msgstr "الكل"
 
 #. i18n: A double precision floating point number
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:168
@@ -2302,7 +2317,7 @@ msgstr "الصين"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:220
 msgid "Choose"
-msgstr ""
+msgstr "اختر"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:620
 msgid "Choose a file to open"
@@ -2322,7 +2337,7 @@ msgstr "اختر ملف الإدخال الثانوي"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:514
 msgid "Choose the GCI base folder"
-msgstr ""
+msgstr "GCI اختر المجلد الأساسي"
 
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:216
 msgid "Choose the folder to extract to"
@@ -2407,17 +2422,17 @@ msgstr "رمز"
 msgid "Codes received!"
 msgstr "الرموز الواردة!"
 
-#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:22
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:24
 msgid "Color Correction Configuration"
-msgstr ""
+msgstr "إعدادات تصحيح الألوان"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:137
 msgid "Color Correction:"
-msgstr ""
+msgstr "تصحيح الألوان"
 
-#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:52
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:58
 msgid "Color Space"
-msgstr ""
+msgstr "مساحة اللون"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1003
 msgid "Combine &Two Signature Files..."
@@ -2703,6 +2718,14 @@ msgstr "إعدادات وحدة التحكم"
 msgid "Controllers"
 msgstr "وحدات التحكم"
 
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:51
+msgid ""
+"Controls the base luminance of a paper white surface in nits. Useful for "
+"adjusting to different environmental lighting conditions when using a HDR "
+"display.<br><br>HDR output is required for this setting to take effect."
+"<br><br><dolphin_emphasis>If unsure, leave this at 200.</dolphin_emphasis>"
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:496
 msgid ""
 "Controls the distance of the convergence plane. This is the distance at "
@@ -2823,19 +2846,19 @@ msgstr ""
 "تحويل...\n"
 "%1"
 
-#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:32
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:34
 msgid ""
-"Converts the colors to the color spaces that GC/Wii were meant to work with "
-"to sRGB/Rec.709.<br><br>There's no way of knowing what exact color space "
-"games were meant for,<br>given there were multiple standards and most games "
-"didn't acknowledge them,<br>so it's not correct to assume a format from the "
-"game disc region.<br>Just pick the one that looks more natural to you, or "
+"Converts the colors from the color spaces that GC/Wii were meant to work "
+"with to sRGB/Rec.709.<br><br>There's no way of knowing what exact color "
+"space games were meant for, given there were multiple standards and most "
+"games didn't acknowledge them, so it's not correct to assume a format from "
+"the game disc region. Just pick the one that looks more natural to you, or "
 "match it with the region the game was developed in.<br><br>HDR output is "
 "required to show all the colors from the PAL and NTSC-J color spaces."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:46
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:47
 msgid ""
 "Converts the gamma from what the game targeted to what your current SDR "
 "display targets.<br>Monitors often target sRGB. TVs often target 2.2."
@@ -2895,11 +2918,11 @@ msgstr "B نسخ إلى"
 msgid "Core"
 msgstr "النواة"
 
-#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:59
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:64
 msgid "Correct Color Space"
-msgstr ""
+msgstr "مساحة اللون الصحيحة"
 
-#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:89
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:93
 msgid "Correct SDR Gamma"
 msgstr ""
 
@@ -3132,9 +3155,13 @@ msgstr "مساحة العنوان المخصصة"
 msgid "Custom RTC Options"
 msgstr "خيارات تخصيص وقت النظام "
 
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:102
+msgid "Custom:"
+msgstr ""
+
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:117
 msgid "Customize"
-msgstr ""
+msgstr "تخصيص"
 
 #: Source/Core/Core/HW/GBAPadEmu.h:37 Source/Core/Core/HW/GCPadEmu.h:57
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Classic.h:223
@@ -3450,22 +3477,6 @@ msgstr "اتصال مباشر"
 #: Source/Core/VideoBackends/D3D/D3DMain.cpp:38
 msgid "Direct3D 11"
 msgstr "Direct3D 11"
-
-#: Source/Core/VideoBackends/D3D/D3DMain.cpp:57
-msgid ""
-"Direct3D 11 renderer requires support for features not supported by your "
-"system configuration. This is most likely because you are using Windows 7. "
-"You may still use this backend, but you might encounter graphical "
-"artifacts.\n"
-"\n"
-"Do you really want to switch to Direct3D 11? If unsure, select 'No'."
-msgstr ""
-"Direct3D 11 renderer requires support for features not supported by your "
-"system configuration. This is most likely because you are using Windows 7. "
-"You may still use this backend, but you might encounter graphical "
-"artifacts.\n"
-"\n"
-"Do you really want to switch to Direct3D 11? If unsure, select 'No'."
 
 #: Source/Core/DolphinQt/GBAWidget.cpp:386
 msgid "Dis&connected"
@@ -3952,7 +3963,7 @@ msgstr "إخراج القرص"
 #. check the Skylanders SuperChargers manual at https://support.activision.com/manuals
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:289
 msgid "Element"
-msgstr ""
+msgstr "عنصر"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:41
 msgid "Embedded Frame Buffer (EFB)"
@@ -4030,7 +4041,7 @@ msgstr "تمكين طبقات التحقق من واجهة برمجة التطب
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:60
 msgid "Enable Achievements"
-msgstr ""
+msgstr "تمكين الإنجازات"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:142
 msgid "Enable Audio Stretching"
@@ -4043,6 +4054,10 @@ msgstr "تمكين الأسرار"
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:155
 msgid "Enable Custom RTC"
 msgstr "تمكين وقت مخصص"
+
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:149
+msgid "Enable Debugging UI"
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:87
 msgid "Enable Dual Core"
@@ -4062,7 +4077,7 @@ msgstr "تمكين تجاوز المحاكي حجم الذاكرة"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:78
 msgid "Enable Encore Achievements"
-msgstr ""
+msgstr "تمكين ظهور الإنجازات "
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:89
 msgid "Enable FPRF"
@@ -4074,7 +4089,7 @@ msgstr "تمكين تعديلات الرسومات"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:62
 msgid "Enable Leaderboards"
-msgstr ""
+msgstr "تمكين المتصدرين"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:88
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:66
@@ -4087,7 +4102,7 @@ msgstr "تمكين المسح التدريجي"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:45
 msgid "Enable RetroAchievements.org Integration"
-msgstr ""
+msgstr "RetroAchievements.org تمكين التكامل"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:66
 msgid "Enable Rich Presence"
@@ -4108,7 +4123,7 @@ msgstr "تمكين بيانات مكبر صوت"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:72
 msgid "Enable Unofficial Achievements"
-msgstr ""
+msgstr "تمكين الإنجازات غير الرسمية"
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:230
 msgid "Enable Usage Statistics Reporting"
@@ -4164,7 +4179,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:61
 msgid "Enable unlocking achievements.<br>"
-msgstr ""
+msgstr "<br>تمكين فتح الإنجازات"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:74
 msgid ""
@@ -4764,7 +4779,7 @@ msgstr "Redump.org فشل الاتصال بـ"
 msgid "Failed to connect to server: %1"
 msgstr "%1 فشل الاتصال بالخادم"
 
-#: Source/Core/VideoBackends/D3D/D3DMain.cpp:153
+#: Source/Core/VideoBackends/D3D/D3DMain.cpp:154
 #: Source/Core/VideoBackends/D3D12/VideoBackend.cpp:129
 msgid "Failed to create D3D swap chain"
 msgstr "D3D فشل إنشاء سلسله مبادله"
@@ -5634,7 +5649,7 @@ msgstr "GCI مجلد"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:120
 msgid "GCI Folder Path:"
-msgstr ""
+msgstr "GCI مسار مجلد "
 
 #: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:428
 msgid "GCMemcardDirectory: ClearBlock called with invalid block address"
@@ -5739,8 +5754,8 @@ msgstr ""
 msgid "Game Boy Advance at Port %1"
 msgstr "%1 جيم بوي أدفانس في منفذ"
 
-#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:68
-msgid "Game Color Space"
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:73
+msgid "Game Color Space:"
 msgstr ""
 
 #: Source/Core/DolphinQt/Config/PropertiesDialog.cpp:61
@@ -5755,8 +5770,12 @@ msgstr "تفاصيل اللعبة"
 msgid "Game Folders"
 msgstr "مجلدات الألعاب"
 
-#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:83
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:88
 msgid "Game Gamma"
+msgstr ""
+
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:86
+msgid "Game Gamma:"
 msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:988
@@ -5865,9 +5884,9 @@ msgstr "فتحة ميكروفون جيم كيوب %1"
 msgid "GameCube TAS Input %1"
 msgstr "GameCube TAS Input %1"
 
-#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:75
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:80
 msgid "Gamma"
-msgstr ""
+msgstr "جاما"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/AnalogStick.cpp:103
 msgid "Gate Size"
@@ -5999,12 +6018,16 @@ msgstr "جيروسكوب"
 msgid "HDMI 3D"
 msgstr "HDMI 3D"
 
-#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:114
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:130
 msgid "HDR"
+msgstr "HDR"
+
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:139
+msgid "HDR Paper White Nits"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:123
-msgid "HDR Paper White Nits"
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:137
+msgid "HDR Paper White Nits:"
 msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:122
@@ -6787,7 +6810,7 @@ msgstr "JIT Register Cache Off"
 msgid "JIT SystemRegisters Off"
 msgstr "JIT SystemRegisters Off"
 
-#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:792
+#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:793
 #: Source/Core/Core/PowerPC/JitArm64/Jit.cpp:795
 msgid ""
 "JIT failed to find code space after a cache clear. This should never happen. "
@@ -7038,7 +7061,7 @@ msgstr "تحميل النسيج المخصص"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:118
 msgid "Load File"
-msgstr ""
+msgstr "تحميل الملف"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:249
 msgid "Load GameCube Main Menu"
@@ -7063,7 +7086,7 @@ msgstr "تحميل القرص"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:120
 msgid "Load Slot"
-msgstr ""
+msgstr "فتحة التحميل"
 
 #: Source/Core/Core/HotkeyManager.cpp:181
 #: Source/Core/Core/HotkeyManager.cpp:353
@@ -7216,6 +7239,7 @@ msgstr "محلي"
 msgid "Lock Mouse Cursor"
 msgstr "قفل مؤشر الماوس"
 
+#: Source/Core/DolphinQt/Achievements/AchievementProgressWidget.cpp:115
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:97
 msgid "Locked"
 msgstr ""
@@ -7247,15 +7271,15 @@ msgstr "مسجل المخرجات"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:55
 msgid "Login"
-msgstr ""
+msgstr "تسجيل الدخول"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:57
 msgid "Login Failed"
-msgstr ""
+msgstr "فشل تسجيل الدخول"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:56
 msgid "Logout"
-msgstr ""
+msgstr "تسجيل الخروج"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:284
 msgid ""
@@ -7559,24 +7583,25 @@ msgstr "NKit تحذير"
 msgid "NTSC-J"
 msgstr "NTSC-J"
 
-#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:64
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:69
 msgid "NTSC-J (ARIB TR-B9)"
-msgstr ""
+msgstr "NTSC-J (ARIB TR-B9)"
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:212
 msgid "NTSC-K"
 msgstr "NTSC-K"
 
-#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:64
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:69
 msgid "NTSC-M (SMPTE 170M)"
-msgstr ""
+msgstr "NTSC-M (SMPTE 170M)"
 
-#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:41
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:42
 msgid ""
 "NTSC-M and NTSC-J target gamma ~2.2. PAL targets gamma ~2.8.<br>None of the "
-"two were necessarily followed by games or TVs. 2.35 is a good generic value "
-"for all regions.<br>If a game allows you to chose a gamma value, match it "
-"here."
+"two were necessarily followed by games or TVs.<br>2.35 is a good generic "
+"value for all regions.<br><br>If a game allows you to chose a gamma value, "
+"match it here.<br><br><dolphin_emphasis>If unsure, leave this at 2.35.</"
+"dolphin_emphasis>"
 msgstr ""
 
 #: Source/Core/DolphinQt/MenuBar.cpp:253
@@ -7977,7 +8002,7 @@ msgstr "وثائق على الانترنت"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:47
 msgid "Only Show Collection"
-msgstr ""
+msgstr "عرض المجموعة فقط"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1615
 msgid ""
@@ -8119,9 +8144,9 @@ msgstr "تشغيل تسجيل الإدخال"
 msgid "PAL"
 msgstr "PAL"
 
-#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:65
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:70
 msgid "PAL (EBU)"
-msgstr ""
+msgstr "PAL (EBU)"
 
 #. i18n: PCAP is a file format
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:425
@@ -8397,7 +8422,7 @@ msgstr "منفذ"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:163
 msgid "Portal Slots"
-msgstr ""
+msgstr "فتحات البوابة"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:967
 msgid "Possible desync detected: %1 might have desynced at frame %2"
@@ -8532,6 +8557,7 @@ msgstr "الملف الشخصي"
 msgid "Program Counter"
 msgstr "عداد البرنامج"
 
+#: Source/Core/DolphinQt/Achievements/AchievementsWindow.cpp:46
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:344
 #: Source/Core/DolphinQt/ConvertDialog.cpp:434
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:284
@@ -9061,12 +9087,8 @@ msgstr "SD Root:"
 msgid "SD Sync Folder:"
 msgstr "مجلد مزامنة SD:"
 
-#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:100
-msgid "SDR Display Custom Gamma"
-msgstr ""
-
-#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:94
-msgid "SDR Display Gamma sRGB"
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:97
+msgid "SDR Display Gamma Target"
 msgstr ""
 
 #: Source/Core/Core/HW/GBAPadEmu.h:43
@@ -9353,7 +9375,7 @@ msgstr "تعليمات البحث"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:236
 msgid "Search:"
-msgstr ""
+msgstr "بحث:"
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:59
 msgid "Section that contains all Action Replay cheat codes."
@@ -9722,7 +9744,7 @@ msgid ""
 "address space. This will work for the vast majority of games."
 msgstr ""
 
-#: Source/Core/DolphinQt/Achievements/AchievementsWindow.cpp:36
+#: Source/Core/DolphinQt/Achievements/AchievementsWindow.cpp:45
 #: Source/Core/DolphinQt/Config/SettingsWindow.cpp:27
 #: Source/Core/DolphinQt/TAS/TASInputWindow.cpp:70
 msgid "Settings"
@@ -9783,10 +9805,6 @@ msgstr "أستراليا"
 msgid "Show Current Game on Discord"
 msgstr "عرض اللعبة الحالية على الخلاف"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:149
-msgid "Show Debugging UI"
-msgstr "عرض تصحيح واجهة المستخدم"
-
 #: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:118
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:262
 msgid "Show Disabled Codes First"
@@ -9803,7 +9821,7 @@ msgstr "إظهار الرموز الممكّنة أولاً"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:53
 msgid "Show FPS"
-msgstr "عرض عدد الإطارات"
+msgstr "FPS عرض"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:785
 msgid "Show Frame Counter"
@@ -10290,7 +10308,7 @@ msgstr "سرعة"
 #. countries it was released in, except Japan, where it's named スカイランダーズ スパイロの大冒険.
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:264
 msgid "Spyro's Adventure"
-msgstr ""
+msgstr "Spyro's Adventure"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:186
 msgid "Stack end"
@@ -10777,6 +10795,15 @@ msgstr "طلاء تنسيق النسيج"
 msgid ""
 "The DFF's minimum loader version ({0}) exceeds the version of this FIFO "
 "Player ({1})"
+msgstr ""
+
+#: Source/Core/VideoBackends/D3D/D3DMain.cpp:57
+msgid ""
+"The Direct3D 11 renderer requires support for features not supported by your "
+"system configuration. You may still use this backend, but you will encounter "
+"graphical artifacts in certain games.\n"
+"\n"
+"Do you really want to switch to Direct3D 11? If unsure, select 'No'."
 msgstr ""
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:601
@@ -11660,15 +11687,15 @@ msgstr "امريكا"
 
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyUSBEmu.cpp:21
 msgid "USB Device Emulation"
-msgstr ""
+msgstr "محاكاة جهاز يو اس بي"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:454
 msgid "USB Emulation"
-msgstr ""
+msgstr "محاكاة يو اس بي"
 
 #: Source/Core/Core/HotkeyManager.cpp:361
 msgid "USB Emulation Devices"
-msgstr ""
+msgstr "محاكاة اجهزة يو اس بي"
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:103
 msgid "USB Gecko"
@@ -11898,6 +11925,22 @@ msgstr "إلغاء تحميل القرص"
 msgid "Unlock Cursor"
 msgstr "فتح المؤشر"
 
+#: Source/Core/DolphinQt/Achievements/AchievementProgressWidget.cpp:119
+msgid "Unlocked"
+msgstr ""
+
+#: Source/Core/DolphinQt/Achievements/AchievementProgressWidget.cpp:108
+msgid "Unlocked %1 times this session"
+msgstr ""
+
+#: Source/Core/DolphinQt/Achievements/AchievementProgressWidget.cpp:117
+msgid "Unlocked (Casual)"
+msgstr ""
+
+#: Source/Core/DolphinQt/Achievements/AchievementProgressWidget.cpp:110
+msgid "Unlocked this session"
+msgstr ""
+
 #: Source/Core/DiscIO/FileBlob.cpp:82
 msgid "Unpacking"
 msgstr "تفريغ"
@@ -12099,7 +12142,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:50
 msgid "Username"
-msgstr ""
+msgstr "اسم المستخدم"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:270
 msgid ""
@@ -12932,6 +12975,10 @@ msgstr "او حدد الجهاز"
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:47
 msgid "s"
 msgstr "s"
+
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:101
+msgid "sRGB"
+msgstr ""
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:199
 msgid "this value:"

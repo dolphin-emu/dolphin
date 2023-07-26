@@ -21,9 +21,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-27 22:41+0200\n"
+"POT-Creation-Date: 2023-07-26 15:31+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
-"Last-Translator: 陈 依云 <c1998lf@qq.com>, 2023\n"
+"Last-Translator: 天绝星 <c.cejhb@gmail.com>, 2015-2023\n"
 "Language-Team: Chinese (China) (http://app.transifex.com/delroth/dolphin-emu/"
 "language/zh_CN/)\n"
 "Language: zh_CN\n"
@@ -196,6 +196,16 @@ msgstr "%1 已加入"
 msgid "%1 has left"
 msgstr "%1 已离开"
 
+#: Source/Core/DolphinQt/Achievements/AchievementHeaderWidget.cpp:120
+msgid ""
+"%1 has unlocked %2/%3 achievements (%4 hardcore) worth %5/%6 points (%7 "
+"hardcore)"
+msgstr ""
+
+#: Source/Core/DolphinQt/Achievements/AchievementHeaderWidget.cpp:131
+msgid "%1 has unlocked %2/%3 achievements worth %4/%5 points"
+msgstr ""
+
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1108
 msgid "%1 is not a valid ROM"
 msgstr "%1 不是有效的 ROM"
@@ -212,6 +222,11 @@ msgstr "%1 内存范围"
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:323
 msgid "%1 ms"
 msgstr "%1 毫秒"
+
+#: Source/Core/DolphinQt/Achievements/AchievementHeaderWidget.cpp:86
+#: Source/Core/DolphinQt/Achievements/AchievementProgressWidget.cpp:55
+msgid "%1 points"
+msgstr ""
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:265
 msgid "%1 session found"
@@ -271,7 +286,7 @@ msgstr "%1[%2]: %3/%4 MiB"
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:286
 #, c-format
 msgid "%1x MSAA"
-msgstr ""
+msgstr "%1x MSAA"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:78
 msgid "%1x Native (%2x%3)"
@@ -280,7 +295,7 @@ msgstr "%1x 原生 (%2x%3)"
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:298
 #, c-format
 msgid "%1x SSAA"
-msgstr ""
+msgstr "%1x SSAA"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:315
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:333
@@ -644,7 +659,7 @@ msgstr "扫描 e-Reader 卡...(&S)"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:229
 msgid "&Skylanders Portal"
-msgstr "Skylanders 插槽(&S)"
+msgstr "Skylanders 传送门(&S)"
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:175
 msgid "&Speed Limit:"
@@ -764,7 +779,7 @@ msgstr "0"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:79
 msgid "1 GiB"
-msgstr ""
+msgstr "1 GiB"
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:31
 msgid "128 Mbit (2043 blocks)"
@@ -772,7 +787,7 @@ msgstr "128 Mbit (2043 区块)"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:76
 msgid "128 MiB"
-msgstr ""
+msgstr "128 MiB"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:209
 msgid "16 Bytes"
@@ -780,7 +795,7 @@ msgstr "16 字节"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:83
 msgid "16 GiB (SDHC)"
-msgstr ""
+msgstr "16 GiB (SDHC)"
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:28
 msgid "16 Mbit (251 blocks)"
@@ -814,11 +829,11 @@ msgstr "1x"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:80
 msgid "2 GiB"
-msgstr ""
+msgstr "2 GiB"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:77
 msgid "256 MiB"
-msgstr ""
+msgstr "256 MiB"
 
 #: Source/Core/Core/HotkeyManager.cpp:194
 msgid "2x"
@@ -834,7 +849,7 @@ msgstr "2x 原生 (1280x1056) 适合 720p"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:84
 msgid "32 GiB (SDHC)"
-msgstr ""
+msgstr "32 GiB (SDHC)"
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:29
 msgid "32 Mbit (507 blocks)"
@@ -886,7 +901,7 @@ msgstr "4 字节"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:81
 msgid "4 GiB (SDHC)"
-msgstr ""
+msgstr "4 GiB (SDHC)"
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:26
 msgid "4 Mbit (59 blocks)"
@@ -910,7 +925,7 @@ msgstr "4x 原生 (2560x2112) 适合 1440p"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:78
 msgid "512 MiB"
-msgstr ""
+msgstr "512 MiB"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:67
 msgid "5x Native (3200x2640)"
@@ -922,7 +937,7 @@ msgstr "64 Mbit (1019 区块)"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:75
 msgid "64 MiB"
-msgstr ""
+msgstr "64 MiB"
 
 #: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:111
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:164
@@ -953,7 +968,7 @@ msgstr "8 字节"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:82
 msgid "8 GiB (SDHC)"
-msgstr ""
+msgstr "8 GiB (SDHC)"
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:27
 msgid "8 Mbit (123 blocks)"
@@ -995,7 +1010,7 @@ msgstr "<系统语言>"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:406
 msgid "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
-msgstr "<dolphin_emphasis>如果不确定，请不要勾选此项。</dolphin_emphasis>"
+msgstr "<dolphin_emphasis>如果不确定，请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:700
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:293
@@ -1046,7 +1061,7 @@ msgstr "光盘已可插入。"
 msgid ""
 "A group of features to make the colors more accurate, matching the color "
 "space Wii and GC games were meant for."
-msgstr ""
+msgstr "一些使颜色更准确的功能，使其与 Wii 和 GC 游戏的色彩空间相匹配。"
 
 #: Source/Core/DolphinQt/Main.cpp:226
 msgid "A save state cannot be loaded without specifying a game to launch."
@@ -1140,10 +1155,10 @@ msgstr "加速度器影响"
 msgid "Accuracy:"
 msgstr "精确度："
 
-#: Source/Core/DolphinQt/Achievements/AchievementsWindow.cpp:16
+#: Source/Core/DolphinQt/Achievements/AchievementsWindow.cpp:21
 #: Source/Core/DolphinQt/MenuBar.cpp:243
 msgid "Achievements"
-msgstr ""
+msgstr "成就"
 
 #: Source/Core/DolphinQt/Debugger/BreakpointDialog.cpp:172
 msgid "Action"
@@ -1431,7 +1446,7 @@ msgstr "非洲"
 #. in other languages, check the SuperChargers manual at https://support.activision.com/manuals
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:342
 msgid "Air"
-msgstr ""
+msgstr "风"
 
 #: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:116
 msgid "Aligned to data type length"
@@ -1439,7 +1454,7 @@ msgstr "与数据类型长度对齐"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:320
 msgid "All"
-msgstr ""
+msgstr "全部"
 
 #. i18n: A double precision floating point number
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:168
@@ -1517,7 +1532,7 @@ msgid ""
 "Allows manipulation of the in-game camera.<br><br><dolphin_emphasis>If "
 "unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
-"允许操纵游戏中的镜头。<br><br><dolphin_emphasis>如果不确定，请不要勾选此项。"
+"允许操纵游戏中的镜头。<br><br><dolphin_emphasis>如果不确定，请不要选中此项。"
 "</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/CommonControllersWidget.cpp:36
@@ -1728,7 +1743,7 @@ msgid ""
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 "自动将窗口大小调整为内部分辨率。<br><br><dolphin_emphasis>如果不确定，请不要"
-"勾选此项。</dolphin_emphasis>"
+"选中此项。</dolphin_emphasis>"
 
 #. i18n: One of the options shown below "Address Space". "Auxiliary" is the address space of ARAM
 #. (Auxiliary RAM).
@@ -2104,7 +2119,7 @@ msgid ""
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 "在启动时将自定义纹理缓存到系统内存。<br><br>这将导致内存需求指数级增加但会修"
-"正可能的卡顿。<br><br><dolphin_emphasis>如果不确定，请不要勾选此项。</"
+"正可能的卡顿。<br><br><dolphin_emphasis>如果不确定，请不要选中此项。</"
 "dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/VerifyWidget.cpp:107
@@ -2120,7 +2135,7 @@ msgid ""
 msgstr ""
 "逐个像素而非逐个顶点地计算 3D 物体的光照，这将使被照明多边形外观更平滑，单个"
 "三角面更不明显。<br><br />很少造成速度降低或图像问题。"
-"<br><br><dolphin_emphasis>如果不确定，请不要勾选此项。</dolphin_emphasis>"
+"<br><br><dolphin_emphasis>如果不确定，请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:897
 msgid "Calibrate"
@@ -2267,8 +2282,8 @@ msgid ""
 "Changes the color of the FPS counter depending on emulation speed."
 "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>"
 msgstr ""
-"根据模拟速度改变 FPS 计数器的颜色。<br><br><dolphin_emphasis>如果不确定，请勾"
-"选此项。</dolphin_emphasis>"
+"根据模拟速度改变 FPS 计数器的颜色。<br><br><dolphin_emphasis>如果不确定，请选"
+"中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/FreeLookWidget.cpp:44
 msgid ""
@@ -2343,7 +2358,7 @@ msgstr "中国"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:220
 msgid "Choose"
-msgstr ""
+msgstr "选择"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:620
 msgid "Choose a file to open"
@@ -2398,7 +2413,7 @@ msgstr "清除缓存"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:119
 msgid "Clear Slot"
-msgstr ""
+msgstr "清除插槽"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:83
 msgid "Clock Override"
@@ -2448,17 +2463,17 @@ msgstr "代码："
 msgid "Codes received!"
 msgstr "代码已接收！"
 
-#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:22
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:24
 msgid "Color Correction Configuration"
-msgstr ""
+msgstr "色彩校正配置"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:137
 msgid "Color Correction:"
-msgstr ""
+msgstr "色彩校正："
 
-#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:52
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:58
 msgid "Color Space"
-msgstr ""
+msgstr "色彩空间"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1003
 msgid "Combine &Two Signature Files..."
@@ -2589,6 +2604,46 @@ msgid ""
 "possible for them to go out of range or to become NaN. A warning will be "
 "given if NaN is returned, and the var that became NaN will be logged."
 msgstr ""
+"状况：\n"
+"设置命中断点时计算的表达式。如果表达式为 false 或 0，则忽略断点，直到再次命中"
+"断点。语句应该用逗号间隔。只有最后一个语句将用于确定要做什么。\n"
+"\n"
+"可以参考的寄存器：\n"
+"GPRs : r0..r31\n"
+"FPRs : f0..f31\n"
+"LR, CTR, PC\n"
+"\n"
+"函数：\n"
+"设置寄存器：r1 = 8\n"
+"转换：s8(0xff). 可用：s8, u8, s16, u16, s32, u32\n"
+"调用堆栈：callstack(0x80123456), callstack(\"anim\")\n"
+"比较字符串：streq(r3, \"abc\"). 两个参数都可以是地址或字符串常量。\n"
+"读取内存：read_u32(0x80000000). 可用：u8, s8, u16, s16, u32, s32, f32, f64\n"
+"写入内存：write_u32(r3, 0x80000000). 可用：u8, u16, u32, f32, f64\n"
+"*当前写入会一直触发\n"
+"\n"
+"操作：\n"
+"一元：-u, !u, ~u\n"
+"数学：* / + -, power: **, remainder: %, shift: <<, >>\n"
+"比较：<, <=, >, >=, ==, !=, &&, ||\n"
+"按位：&, |, ^\n"
+"\n"
+"示例：\n"
+"r4 == 1\n"
+"f0 == 1.0 && f2 < 10.0\n"
+"r26 <= r0 && ((r5 + 3) & -4) * ((r6 + 3) & -4)* 4 > r0\n"
+"p = r3 + 0x8, p == 0x8003510 && read_u32(p) != 0\n"
+"写入并中断：r4 = 8, 1\n"
+"写入并继续：f3 = f1 + f2, 0\n"
+"条件必须始终是最后一个\n"
+"\n"
+"字符串只能在 callstack() 或 streq() 中使用并且“引用”。不要将字符串分配给变"
+"量。\n"
+"如果有命中或 NaN 结果，所有变量都将打印在内存接口日志中。要检查问题，请为方程"
+"分配一个变量，以便可以打印显示。\n"
+"\n"
+"注意：所有值都会在内部转换为双精度数以进行计算。它们有可能超出范围或变为 "
+"NaN。如果返回 NaN 将给出警告，并且将变为 NaN 的值记录下来。"
 
 #: Source/Core/DolphinQt/ToolBar.cpp:129
 msgid "Config"
@@ -2745,6 +2800,14 @@ msgstr "控制器设置"
 msgid "Controllers"
 msgstr "控制器"
 
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:51
+msgid ""
+"Controls the base luminance of a paper white surface in nits. Useful for "
+"adjusting to different environmental lighting conditions when using a HDR "
+"display.<br><br>HDR output is required for this setting to take effect."
+"<br><br><dolphin_emphasis>If unsure, leave this at 200.</dolphin_emphasis>"
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:496
 msgid ""
 "Controls the distance of the convergence plane. This is the distance at "
@@ -2860,24 +2923,27 @@ msgstr ""
 "正在转换...\n"
 "%1"
 
-#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:32
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:34
 msgid ""
-"Converts the colors to the color spaces that GC/Wii were meant to work with "
-"to sRGB/Rec.709.<br><br>There's no way of knowing what exact color space "
-"games were meant for,<br>given there were multiple standards and most games "
-"didn't acknowledge them,<br>so it's not correct to assume a format from the "
-"game disc region.<br>Just pick the one that looks more natural to you, or "
+"Converts the colors from the color spaces that GC/Wii were meant to work "
+"with to sRGB/Rec.709.<br><br>There's no way of knowing what exact color "
+"space games were meant for, given there were multiple standards and most "
+"games didn't acknowledge them, so it's not correct to assume a format from "
+"the game disc region. Just pick the one that looks more natural to you, or "
 "match it with the region the game was developed in.<br><br>HDR output is "
 "required to show all the colors from the PAL and NTSC-J color spaces."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:46
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:47
 msgid ""
 "Converts the gamma from what the game targeted to what your current SDR "
 "display targets.<br>Monitors often target sRGB. TVs often target 2.2."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"将伽玛值从游戏标准转换为当前 SDR 显示标准。<br>显示器通常以 sRGB 为标准。电视"
+"通常以 2.2 为标准。<br><br><dolphin_emphasis>如果不确定，请不要选中此项。</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:290
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:704
@@ -2932,13 +2998,13 @@ msgstr "复制到 B"
 msgid "Core"
 msgstr "核心"
 
-#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:59
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:64
 msgid "Correct Color Space"
-msgstr ""
+msgstr "校正色彩空间"
 
-#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:89
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:93
 msgid "Correct SDR Gamma"
-msgstr ""
+msgstr "校正 SDR 伽玛"
 
 #. i18n: Performance cost, not monetary cost
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:91
@@ -3089,7 +3155,7 @@ msgstr "创建 Skylander 文件"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:80
 msgid "Create Skylander Folder"
-msgstr ""
+msgstr "创建 Skylander 文件夹"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:109
 msgid "Create mappings for other devices"
@@ -3109,7 +3175,7 @@ msgid ""
 msgstr ""
 "以渲染器的内部分辨率创建帧转储和屏幕截图，而不是其在窗口中显示的大小。"
 "<br><br>如果长宽比是宽屏，输出图像将会水平缩放以保持垂直分辨率。"
-"<br><br><dolphin_emphasis>如果不确定，请不要勾选此项。</dolphin_emphasis>"
+"<br><br><dolphin_emphasis>如果不确定，请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:82
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:109
@@ -3130,7 +3196,7 @@ msgid ""
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 "将图像由原生长宽比裁切为 4:3 或 16:9 。<br><br><dolphin_emphasis>如果不确定，"
-"请不要勾选此项。</dolphin_emphasis>"
+"请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Turntable.cpp:82
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:175
@@ -3148,7 +3214,7 @@ msgid ""
 "leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 "清除 CPU 上的顶点以减少所需的绘制调用数。可能影响性能和绘制统计数据。"
-"<br><br><dolphin_emphasis>如不确定，请不要勾选此项。</dolphin_emphasis>"
+"<br><br><dolphin_emphasis>如不确定，请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:278
 msgid "Current Region"
@@ -3178,9 +3244,13 @@ msgstr "自定义地址空间"
 msgid "Custom RTC Options"
 msgstr "自定义 RTC 选项"
 
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:102
+msgid "Custom:"
+msgstr ""
+
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:117
 msgid "Customize"
-msgstr ""
+msgstr "自定义"
 
 #: Source/Core/Core/HW/GBAPadEmu.h:37 Source/Core/Core/HW/GCPadEmu.h:57
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Classic.h:223
@@ -3383,7 +3453,7 @@ msgid ""
 msgstr ""
 "将 EFB 访问缓存失效推迟至 GPU 同步指令执行时。如果禁用，每次绘制调用都将令缓"
 "存失效。<br><br>可能提高一些依靠 CPU EFB 访问游戏的性能，但会牺牲稳定性。"
-"<br><br><dolphin_emphasis>如果不确定，请不要勾选此项。</dolphin_emphasis>"
+"<br><br><dolphin_emphasis>如果不确定，请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:132
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:111
@@ -3497,20 +3567,6 @@ msgstr "直接连接"
 msgid "Direct3D 11"
 msgstr "Direct3D 11"
 
-#: Source/Core/VideoBackends/D3D/D3DMain.cpp:57
-msgid ""
-"Direct3D 11 renderer requires support for features not supported by your "
-"system configuration. This is most likely because you are using Windows 7. "
-"You may still use this backend, but you might encounter graphical "
-"artifacts.\n"
-"\n"
-"Do you really want to switch to Direct3D 11? If unsure, select 'No'."
-msgstr ""
-"Direct3D 11 渲染器需要某些您的系统配置所不支持的特性。这很可能是因为您使用的"
-"是 Windows 7 系统。您仍然可以使用此后端，但您可能会遇到图像错误。\n"
-"\n"
-"你真的想切换到 Direct3D 11 吗？如果不确定，请选择“否”。"
-
 #: Source/Core/DolphinQt/GBAWidget.cpp:386
 msgid "Dis&connected"
 msgstr "断开连接(&C)"
@@ -3559,7 +3615,7 @@ msgid ""
 "unsure, leave this checked.</dolphin_emphasis>"
 msgstr ""
 "禁用边界框模拟。<br><br>这可能显著提高 GPU 性能，但是一些游戏可能会停止运行。"
-"<br><br><dolphin_emphasis>如果不确定，请勾选此项。</dolphin_emphasis>"
+"<br><br><dolphin_emphasis>如果不确定，请选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:331
 msgid ""
@@ -3568,7 +3624,7 @@ msgid ""
 "dolphin_emphasis>"
 msgstr ""
 "禁用 VRAM 中的 EFB 副本，而强制从 RAM 中读取。所有放大将不可用。"
-"<br><br><dolphin_emphasis>如果不确定，请不要勾选此项。</dolphin_emphasis>"
+"<br><br><dolphin_emphasis>如果不确定，请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:508
 msgid ""
@@ -3580,7 +3636,7 @@ msgid ""
 msgstr ""
 "禁用复制 EFB 时相邻行间的混合。一些游戏称之为“抗闪烁”或“平滑”。<br><br>禁用此"
 "过滤器对性能没有影响，但会使图像更锐利，且很少导致图像问题。"
-"<br><br><dolphin_emphasis>如果不确定，请勾选此项。</dolphin_emphasis>"
+"<br><br><dolphin_emphasis>如果不确定，请选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:96
 msgid "Disc"
@@ -3608,7 +3664,7 @@ msgid ""
 msgstr ""
 "在 XFB 副本创建后立即将其显示，而不是等待扫描输出。<br><br>在一些不将所有 "
 "XFB 副本用于显示的游戏中会导致图像瑕疵。然而开启此项可以降低延迟。"
-"<br><br><dolphin_emphasis>如果不确定，请不要勾选此项。</dolphin_emphasis>"
+"<br><br><dolphin_emphasis>如果不确定，请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:28
 msgid "Distance"
@@ -3902,7 +3958,7 @@ msgid ""
 "dolphin_emphasis>"
 msgstr ""
 "根据其他标记将解码的游戏纹理转储到 User/Dump/Textures/&lt;game_id&gt;/ 目录"
-"中。<br><br><dolphin_emphasis>如果不确定，请不要勾选此项。</dolphin_emphasis>"
+"中。<br><br><dolphin_emphasis>如果不确定，请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:325
 msgid ""
@@ -3910,7 +3966,7 @@ msgid ""
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 "将 EFB 副本的内容转储到 User/Dump/Textures/ 目录中。"
-"<br><br><dolphin_emphasis>如果不确定，请不要勾选此项。</dolphin_emphasis>"
+"<br><br><dolphin_emphasis>如果不确定，请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:328
 msgid ""
@@ -3918,7 +3974,7 @@ msgid ""
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 "将 XFB 副本的内容转储到 User/Dump/Textures/ 目录中。"
-"<br><br><dolphin_emphasis>如果不确定，请不要勾选此项。</dolphin_emphasis>"
+"<br><br><dolphin_emphasis>如果不确定，请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/TAS/TASInputWindow.cpp:58
 msgid "Duration of Turbo Button Press (frames):"
@@ -3970,7 +4026,7 @@ msgstr "内存提前更新"
 #. in other languages, check the SuperChargers manual at https://support.activision.com/manuals
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:336
 msgid "Earth"
-msgstr ""
+msgstr "土"
 
 #: Source/Core/UICommon/NetPlayIndex.cpp:249
 msgid "East Asia"
@@ -4017,7 +4073,7 @@ msgstr "弹出光盘"
 #. check the Skylanders SuperChargers manual at https://support.activision.com/manuals
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:289
 msgid "Element"
-msgstr ""
+msgstr "元素"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:41
 msgid "Embedded Frame Buffer (EFB)"
@@ -4041,7 +4097,7 @@ msgstr "模拟 Infinity 底座"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:146
 msgid "Emulate Skylander Portal"
-msgstr "模拟 Skylander 插槽"
+msgstr "模拟 Skylander 传送门"
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:110
 msgid "Emulate the Wii's Bluetooth adapter"
@@ -4095,7 +4151,7 @@ msgstr "启用 API 验证层"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:60
 msgid "Enable Achievements"
-msgstr ""
+msgstr "启用成就"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:142
 msgid "Enable Audio Stretching"
@@ -4108,6 +4164,10 @@ msgstr "启用金手指"
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:155
 msgid "Enable Custom RTC"
 msgstr "启用自定义 RTC"
+
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:149
+msgid "Enable Debugging UI"
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:87
 msgid "Enable Dual Core"
@@ -4127,7 +4187,7 @@ msgstr "启用模拟内存大小覆盖"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:78
 msgid "Enable Encore Achievements"
-msgstr ""
+msgstr "启用硬核成就"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:89
 msgid "Enable FPRF"
@@ -4139,7 +4199,7 @@ msgstr "启用图形模组"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:62
 msgid "Enable Leaderboards"
-msgstr ""
+msgstr "启用排行榜"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:88
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:66
@@ -4152,11 +4212,11 @@ msgstr "启用逐行扫描"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:45
 msgid "Enable RetroAchievements.org Integration"
-msgstr ""
+msgstr "启用 RetroAchievements.org 集成"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:66
 msgid "Enable Rich Presence"
-msgstr ""
+msgstr "启用详细状态信息"
 
 #: Source/Core/DolphinQt/Config/Mapping/GCPadWiiUConfigDialog.cpp:39
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:353
@@ -4173,7 +4233,7 @@ msgstr "启用扬声器"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:72
 msgid "Enable Unofficial Achievements"
-msgstr ""
+msgstr "启用非官方成就"
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:230
 msgid "Enable Usage Statistics Reporting"
@@ -4181,7 +4241,7 @@ msgstr "启用使用情况统计报告"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:161
 msgid "Enable WiiConnect24 via WiiLink"
-msgstr ""
+msgstr "通过 WiiLink 启用 WiiConnect24"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:81
 msgid "Enable Wireframe"
@@ -4196,6 +4256,7 @@ msgid ""
 "Enable competing in RetroAchievements leaderboards.<br><br>Hardcore Mode "
 "must be enabled to use."
 msgstr ""
+"允许在 RetroAchievements 排行榜中竞争。<br><br>必须启用硬核模式才能使用。"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:68
 msgid ""
@@ -4204,6 +4265,9 @@ msgid ""
 "website. If this is disabled, the website will only report what game is "
 "being played.<br><br>This has no bearing on Discord rich presence."
 msgstr ""
+"在 RetroAchievements 网站上启用详细的状态展示。<br><br>这向网站提供了玩家在游"
+"戏中所做操作的详细描述。如果禁用此功能，网站将仅报告正在玩的游戏。<br><br>这"
+"对 Discord 的详细状态没有影响。"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:105
 msgid ""
@@ -4220,6 +4284,9 @@ msgid ""
 "account to use. Dolphin does not save your password locally and uses an API "
 "token to maintain login."
 msgstr ""
+"启用集成 RetroAchievements，以获取成就并参与排行榜竞争。<br><br>必须使用 "
+"RetroAchievements 帐户登录才能使用。Dolphin 不会在本地保存您的密码，而是使用 "
+"API 令牌来维持登录。"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:80
 msgid ""
@@ -4228,10 +4295,13 @@ msgid ""
 "will be notified if they meet the unlock conditions again, useful for custom "
 "speedrun criteria or simply for fun."
 msgstr ""
+"在硬核模式中启用解锁成就。<br><br>硬核模式会重新启用玩家已在网站上解锁的成"
+"就，以便玩家再次满足解锁条件时会收到通知，这对于自定义速通标准很有用或者只是"
+"为了好玩。"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:61
 msgid "Enable unlocking achievements.<br>"
-msgstr ""
+msgstr "启用解锁成就。<br>"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:74
 msgid ""
@@ -4240,6 +4310,8 @@ msgid ""
 "that have not been deemed official by RetroAchievements and may be useful "
 "for testing or simply for fun."
 msgstr ""
+"允许像官方成就一样解锁非官方成就。<br><br>非官方成就可能是可选的或未完成的成"
+"就，尚未被 RetroAchievements 视为官方成就，可能对测试有用或只是为了好玩。"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:97
 msgid ""
@@ -4266,7 +4338,7 @@ msgstr ""
 "启用对非常规多级纹理的检测。一些游戏使用这一技术实现基于距离的特殊效果。"
 "<br><br>可能存在误判而导致高内部分辨率下的纹理模糊，例如在使用很低分辨率的多"
 "级纹理的游戏中。禁用此功能还可以在频繁加载新纹理的游戏中减少卡顿。此功能与 "
-"GPU 纹理解码不兼容。<br><br><dolphin_emphasis>如果不确定，请勾选此项。</"
+"GPU 纹理解码不兼容。<br><br><dolphin_emphasis>如果不确定，请选中此项。</"
 "dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:79
@@ -4288,7 +4360,7 @@ msgid ""
 msgstr ""
 "在支持的后端中启用多线程指令提交。启用此选项可能会在两个以上 CPU 核心的系统中"
 "有性能提升。目前仅限于 Vulkan 后端。<br><br><dolphin_emphasis>如果不确定，请"
-"勾选此项。</dolphin_emphasis>"
+"选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:361
 msgid ""
@@ -4297,7 +4369,7 @@ msgid ""
 "this unchecked.</dolphin_emphasis>"
 msgstr ""
 "启用逐行扫描模拟支持该特性的软件。对多数游戏无任何影响。"
-"<br><br><dolphin_emphasis>如果不确定，请不要勾选此项。</dolphin_emphasis>"
+"<br><br><dolphin_emphasis>如果不确定，请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:522
 msgid ""
@@ -4308,6 +4380,10 @@ msgid ""
 "<br><br>Note that games still render in SDR internally."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"启用 scRGB HDR 输出（如果您的图形后端和显示器支持）。可能需要全屏。<br><br>这"
+"为后处理着色器提供了更多的准确性空间，允许“AutoHDR”后处理着色器工作，并允许完"
+"全显示 PAL 和 NTSC-J 色彩空间。<br><br>请注意，游戏仍然在内部以 SDR 渲染。"
+"<br><br><dolphin_emphasis>如果 不确定，请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:151
 msgid "Enables stretching of the audio to match emulation speed."
@@ -4321,7 +4397,7 @@ msgid ""
 "</dolphin_emphasis>"
 msgstr ""
 "启用 GPU 而非 CPU 进行纹理解码。<br><br>这将在某些场景下，或 CPU 成为瓶颈的系"
-"统中带来性能提升。<br><br><dolphin_emphasis>如果不确定，请不要勾选此项。</"
+"统中带来性能提升。<br><br><dolphin_emphasis>如果不确定，请不要选中此项。</"
 "dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:99
@@ -4338,6 +4414,10 @@ msgid ""
 "such as the Forecast and Nintendo Channels\n"
 "Read the Terms of Service at: https://www.wiilink24.com/tos"
 msgstr ""
+"启用 WiiConnect24 频道的 WiiLink 服务。\n"
+"WiiLink 是已停服的 WiiConnect24 频道（例如 Forecast 和 Nintendo 频道）的替代"
+"提供商\n"
+"请阅读服务条款：https://www.wiilink24.com/tos"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:298
 msgid ""
@@ -4348,7 +4428,7 @@ msgid ""
 msgstr ""
 "启用由视频后端调用的 API 验证，这可以帮助调试图形问题。在 Vulkan 和 D3D 后"
 "端，这也为已编译的着色器启用调试符号。<br><br><dolphin_emphasis>如果不确定，"
-"请不要勾选此项。</dolphin_emphasis>"
+"请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:344
 msgid ""
@@ -4356,7 +4436,7 @@ msgid ""
 "unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 "使用 FFV1 编解码器编码转储的帧。<br><br><dolphin_emphasis>如果不确定，请不要"
-"勾选此项。</dolphin_emphasis>"
+"选中此项。</dolphin_emphasis>"
 
 #. i18n: Character encoding
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:43
@@ -4849,11 +4929,11 @@ msgstr "申请蓝牙直通接口失败: {0}"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:574
 msgid "Failed to clear Skylander!"
-msgstr "移除 Skylander 失败！"
+msgstr "清除 Skylander 失败！"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:575
 msgid "Failed to clear the Skylander from slot(%1)!"
-msgstr ""
+msgstr "清除插槽 (%1) 的 Skylander 失败！"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:108
 msgid "Failed to connect to Redump.org"
@@ -4863,7 +4943,7 @@ msgstr "连接 Redump.org 失败"
 msgid "Failed to connect to server: %1"
 msgstr "连接服务器失败: %1"
 
-#: Source/Core/VideoBackends/D3D/D3DMain.cpp:153
+#: Source/Core/VideoBackends/D3D/D3DMain.cpp:154
 #: Source/Core/VideoBackends/D3D12/VideoBackend.cpp:129
 msgid "Failed to create D3D swap chain"
 msgstr "创建 D3D 交换链失败"
@@ -4894,6 +4974,9 @@ msgid ""
 "%1\n"
 "(Skylander may already be on the portal)"
 msgstr ""
+"创建 Skylander 文件失败：\n"
+"%1\n"
+"（此 Skylander 可能已在传送门上）"
 
 #: Source/Core/Core/NetPlayClient.cpp:1292
 msgid ""
@@ -5099,7 +5182,7 @@ msgid ""
 "File may already be in use on the base."
 msgstr ""
 "打开 Infinity 文件 (%1) 失败！\n"
-"此文件可能已在使用中。"
+"此 Skylander 可能已在传送门上。"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:696
 msgid "Failed to open the Skylander file!"
@@ -5111,7 +5194,7 @@ msgid ""
 "File may already be in use on the portal."
 msgstr ""
 "打开 Skylander 文件 (%1) 失败！\n"
-"此文件可能已在使用中。"
+"此 Skylander 可能已在传送门上。"
 
 #: Source/Core/DolphinQt/ConvertDialog.cpp:472
 msgid "Failed to open the input file \"%1\"."
@@ -5418,7 +5501,7 @@ msgstr ""
 #. in other languages, check the SuperChargers manual at https://support.activision.com/manuals
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:333
 msgid "Fire"
-msgstr ""
+msgstr "火"
 
 #: Source/Core/DolphinQt/Config/FreeLookWidget.cpp:40
 msgid "First Person"
@@ -5535,8 +5618,8 @@ msgid ""
 msgstr ""
 "强制游戏输出任何比例的图像。配合“强制 16:9”的“长宽比”设置可使仅用于 4:3 比例"
 "的游戏在 16:9 下运行。<br><br>很少能够得到理想的结果并经常会部分破坏图像和游"
-"戏界面。如果使用任何 AR/Gecko 宽屏补丁代码则不应勾选此项。"
-"<br><br><dolphin_emphasis>如果不确定，请不要勾选此项。</dolphin_emphasis>"
+"戏界面。如果使用任何 AR/Gecko 宽屏补丁代码则不应选中此项。"
+"<br><br><dolphin_emphasis>如果不确定，请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:503
 msgid ""
@@ -5547,7 +5630,7 @@ msgid ""
 msgstr ""
 "强制游戏渲染 24 位的 RGB 颜色通道，从而通过减少渐变色带来提高质量。<br><br>对"
 "性能没有影响，并且几乎没有图形问题。<br><br><dolphin_emphasis>如果不确定，请"
-"勾选此项。</dolphin_emphasis>"
+"选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/ConvertDialog.cpp:59
 msgid "Format:"
@@ -5770,6 +5853,11 @@ msgid ""
 "Further errors will be sent to the Video Backend log and Dolphin will now "
 "likely crash or hang."
 msgstr ""
+"GFX FIFO: 未知 Opcode ({0:#04x} @ {1}, preprocess={2}).\n"
+"\n"
+"{3}\n"
+"\n"
+"更多错误将被发送到视频后端日志，Dolphin 现在可能会崩溃或挂起。"
 
 #: Source/Core/VideoBackends/OGL/OGLMain.cpp:181
 msgid "GL_MAX_TEXTURE_SIZE is {0} - must be at least 1024."
@@ -5875,8 +5963,8 @@ msgstr ""
 msgid "Game Boy Advance at Port %1"
 msgstr "GameBoy Advance 连至端口 %1"
 
-#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:68
-msgid "Game Color Space"
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:73
+msgid "Game Color Space:"
 msgstr ""
 
 #: Source/Core/DolphinQt/Config/PropertiesDialog.cpp:61
@@ -5891,8 +5979,12 @@ msgstr "游戏详细信息"
 msgid "Game Folders"
 msgstr "游戏文件夹"
 
-#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:83
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:88
 msgid "Game Gamma"
+msgstr "游戏伽玛"
+
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:86
+msgid "Game Gamma:"
 msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:988
@@ -5999,9 +6091,9 @@ msgstr "GameCube 麦克风插槽 %1"
 msgid "GameCube TAS Input %1"
 msgstr "GameCube TAS 输入 %1"
 
-#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:75
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:80
 msgid "Gamma"
-msgstr ""
+msgstr "伽玛"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/AnalogStick.cpp:103
 msgid "Gate Size"
@@ -6065,7 +6157,7 @@ msgstr "GiB"
 #. it was released in. It was not released in Japan.
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:267
 msgid "Giants"
-msgstr ""
+msgstr "巨人"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:195
 msgid "Golf Mode"
@@ -6104,7 +6196,7 @@ msgid ""
 msgstr ""
 "显著提高渲染到纹理效果所生成纹理的质量。<br><br>轻微提升 GPU 占用率，较少产生"
 "图像问题。提高内部分辨率将增强此选项的效果。<br><br><dolphin_emphasis>如果不"
-"确定，请勾选此项。</dolphin_emphasis>"
+"确定，请选中此项。</dolphin_emphasis>"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:38
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:49
@@ -6136,17 +6228,21 @@ msgstr "陀螺仪"
 msgid "HDMI 3D"
 msgstr "HDMI 3D"
 
-#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:114
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:130
 msgid "HDR"
-msgstr ""
+msgstr "HDR"
 
-#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:123
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:139
 msgid "HDR Paper White Nits"
+msgstr "HDR 白色亮度尼特数"
+
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:137
+msgid "HDR Paper White Nits:"
 msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:122
 msgid "HDR Post-Processing"
-msgstr ""
+msgstr "HDR 后处理"
 
 #: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:62
 msgid "Hacks"
@@ -6448,7 +6544,7 @@ msgid ""
 msgstr ""
 "如果启用，则所有内存刷新都会在第一帧之前立即发生。<br><br>会导致问题并出现大"
 "量 fifo 日志，但对测试很有帮助。<br><br><dolphin_emphasis>如果不确定，请不要"
-"勾选此项。</dolphin_emphasis>"
+"选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:208
 msgid ""
@@ -6457,7 +6553,7 @@ msgid ""
 "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>"
 msgstr ""
 "如果未选中，则 fifo 日志 的回放将在最后一帧后停止。<br><br>这通常仅在启用帧转"
-"储选项时有用。<br><br><dolphin_emphasis>如果不确定，请勾选此项。</"
+"储选项时有用。<br><br><dolphin_emphasis>如果不确定，请选中此项。</"
 "dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/DiscordJoinRequestDialog.cpp:55
@@ -6481,7 +6577,7 @@ msgid ""
 "checked.</dolphin_emphasis>"
 msgstr ""
 "忽略 EFB 格式的任何变化。<br><br>在许多游戏中会提高性能且无负面作用。但在其余"
-"一小部分游戏中也会导致图像瑕疵。<br><br><dolphin_emphasis>如果不确定，请勾选"
+"一小部分游戏中也会导致图像瑕疵。<br><br><dolphin_emphasis>如果不确定，请选中"
 "此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:219
@@ -6493,7 +6589,7 @@ msgid ""
 msgstr ""
 "忽略 CPU 对 EFB 的任何读写请求。<br><br>在一些游戏中可提高性能，但会禁用所有"
 "基于 EFB 的图形效果或与游戏相关的特性。<br><br><dolphin_emphasis>如果不确定，"
-"请不要勾选此项。</dolphin_emphasis>"
+"请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:89
 msgid "Immediately Present XFB"
@@ -6509,7 +6605,7 @@ msgid ""
 msgstr ""
 "使用一个覆盖整个屏幕的无边框窗口来实现全屏模式，而非使用独占模式。开启后在全"
 "屏模式与窗口模式之间切换会更快，但是输入延迟将略有增加，影响操作流畅性并且性"
-"能也会略微降低。<br><br><dolphin_emphasis>如果不确定，请不要勾选此项。</"
+"能也会略微降低。<br><br><dolphin_emphasis>如果不确定，请不要选中此项。</"
 "dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:266
@@ -6566,7 +6662,7 @@ msgid ""
 msgstr ""
 "在即时存档中包含内置帧缓冲 (EFB) 和放大的 EFB 副本内容。可解决读取即时存档时"
 "纹理与物体缺失或模糊的问题，但会加长存/读档时间。<br><br><dolphin_emphasis>如"
-"果不确定，请勾选此项。</dolphin_emphasis>"
+"果不确定，请选中此项。</dolphin_emphasis>"
 
 #: Source/Core/Core/FreeLookManager.cpp:98
 msgid "Increase"
@@ -6954,7 +7050,7 @@ msgstr "关闭 JIT 寄存器缓存"
 msgid "JIT SystemRegisters Off"
 msgstr "关闭 JIT 系统寄存器"
 
-#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:792
+#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:793
 #: Source/Core/Core/PowerPC/JitArm64/Jit.cpp:795
 msgid ""
 "JIT failed to find code space after a cache clear. This should never happen. "
@@ -7156,7 +7252,7 @@ msgstr "许可"
 #. in other languages, check the SuperChargers manual at https://support.activision.com/manuals
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:339
 msgid "Life"
-msgstr ""
+msgstr "生命"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/DrawsomeTablet.cpp:35
 #: Source/Core/Core/HW/WiimoteEmu/Extension/UDrawTablet.cpp:53
@@ -7207,7 +7303,7 @@ msgstr "加载自定义纹理"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:118
 msgid "Load File"
-msgstr ""
+msgstr "载入文件"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:249
 msgid "Load GameCube Main Menu"
@@ -7232,7 +7328,7 @@ msgstr "载入 ROM"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:120
 msgid "Load Slot"
-msgstr ""
+msgstr "载入插槽"
 
 #: Source/Core/Core/HotkeyManager.cpp:181
 #: Source/Core/Core/HotkeyManager.cpp:353
@@ -7372,7 +7468,7 @@ msgid ""
 msgstr ""
 "加载 User/Load/Textures/&lt;game_id&gt;/ 和 User/Load/DynamicInputTextures/"
 "&lt;game_id&gt;/ 目录中的自定义纹理。<br><br><dolphin_emphasis>如果不确定，请"
-"不要勾选此项。</dolphin_emphasis>"
+"不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:335
 msgid ""
@@ -7380,7 +7476,7 @@ msgid ""
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 "从 User/Load/GraphicsMods/ 加载图形模组。<br><br><dolphin_emphasis>如果不确"
-"定，请不要勾选此项。</dolphin_emphasis>"
+"定，请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:525
 msgid "Local"
@@ -7390,6 +7486,7 @@ msgstr "本地"
 msgid "Lock Mouse Cursor"
 msgstr "锁定鼠标光标"
 
+#: Source/Core/DolphinQt/Achievements/AchievementProgressWidget.cpp:115
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:97
 msgid "Locked"
 msgstr "已锁定"
@@ -7421,15 +7518,15 @@ msgstr "日志输出"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:55
 msgid "Login"
-msgstr ""
+msgstr "登录"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:57
 msgid "Login Failed"
-msgstr ""
+msgstr "登录失败"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:56
 msgid "Logout"
-msgstr ""
+msgstr "注销"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:284
 msgid ""
@@ -7438,7 +7535,7 @@ msgid ""
 "unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 "将每帧的渲染时间记录于 User/Logs/render_time.txt 文件。<br><br>启用此功能可衡"
-"量 Dolphin 的性能。<br><br><dolphin_emphasis>如果不确定，请不要勾选此项。</"
+"量 Dolphin 的性能。<br><br><dolphin_emphasis>如果不确定，请不要选中此项。</"
 "dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:123
@@ -7478,7 +7575,7 @@ msgstr "MadCatz Gameshark 文件"
 #. in other languages, check the SuperChargers manual at https://support.activision.com/manuals
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:324
 msgid "Magic"
-msgstr ""
+msgstr "魔法"
 
 #: Source/Core/DolphinQt/TAS/GCTASInputWindow.cpp:29
 msgid "Main Stick"
@@ -7503,8 +7600,8 @@ msgid ""
 "unchecked.</dolphin_emphasis>"
 msgstr ""
 "通过移除雾提升远处对象的可见性，进而增加整体细节。<br><br>有些游戏依赖正确的"
-"雾模拟，禁用雾将破坏其游戏性。<br><br><dolphin_emphasis>如果不确定，请不要勾"
-"选此项。</dolphin_emphasis>"
+"雾模拟，禁用雾将破坏其游戏性。<br><br><dolphin_emphasis>如果不确定，请不要选"
+"中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:265
 msgid "Manage NAND"
@@ -7654,7 +7751,7 @@ msgid ""
 "unchecked.</dolphin_emphasis>"
 msgstr ""
 "修改纹理以显示以其编码格式。<br><br>可能需要重置模拟才能生效。"
-"<br><br><dolphin_emphasis>如果不确定，请不要勾选此项。</dolphin_emphasis>"
+"<br><br><dolphin_emphasis>如果不确定，请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1290
 #: Source/Core/DolphinQt/MenuBar.cpp:1439
@@ -7744,24 +7841,25 @@ msgstr "NKit 警告"
 msgid "NTSC-J"
 msgstr "NTSC-J"
 
-#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:64
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:69
 msgid "NTSC-J (ARIB TR-B9)"
-msgstr ""
+msgstr "NTSC-J (ARIB TR-B9)"
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:212
 msgid "NTSC-K"
 msgstr "NTSC-K"
 
-#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:64
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:69
 msgid "NTSC-M (SMPTE 170M)"
-msgstr ""
+msgstr "NTSC-M (SMPTE 170M)"
 
-#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:41
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:42
 msgid ""
 "NTSC-M and NTSC-J target gamma ~2.2. PAL targets gamma ~2.8.<br>None of the "
-"two were necessarily followed by games or TVs. 2.35 is a good generic value "
-"for all regions.<br>If a game allows you to chose a gamma value, match it "
-"here."
+"two were necessarily followed by games or TVs.<br>2.35 is a good generic "
+"value for all regions.<br><br>If a game allows you to chose a gamma value, "
+"match it here.<br><br><dolphin_emphasis>If unsure, leave this at 2.35.</"
+"dolphin_emphasis>"
 msgstr ""
 
 #: Source/Core/DolphinQt/MenuBar.cpp:253
@@ -8169,7 +8267,7 @@ msgstr "在线文档(&D)"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:47
 msgid "Only Show Collection"
-msgstr ""
+msgstr "只显示合集"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1615
 msgid ""
@@ -8311,9 +8409,9 @@ msgstr "播放录制...(&L)"
 msgid "PAL"
 msgstr "PAL"
 
-#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:65
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:70
 msgid "PAL (EBU)"
-msgstr ""
+msgstr "PAL (EBU)"
 
 #. i18n: PCAP is a file format
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:425
@@ -8564,6 +8662,7 @@ msgid ""
 "Please change the \"SyncOnSkipIdle\" setting to \"True\"! It's currently "
 "disabled, which makes this problem very likely to happen."
 msgstr ""
+"请将“SyncOnSkipIdle”设置更改为“True”！当前已被禁用，使得很可能发生这个问题。"
 
 #: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:164
 msgid ""
@@ -8592,7 +8691,7 @@ msgstr "端口 :"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:163
 msgid "Portal Slots"
-msgstr ""
+msgstr "传送门插槽"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:967
 msgid "Possible desync detected: %1 might have desynced at frame %2"
@@ -8724,6 +8823,7 @@ msgstr "预设"
 msgid "Program Counter"
 msgstr "程序计数器"
 
+#: Source/Core/DolphinQt/Achievements/AchievementsWindow.cpp:46
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:344
 #: Source/Core/DolphinQt/ConvertDialog.cpp:434
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:284
@@ -9030,7 +9130,7 @@ msgid ""
 "Renders the scene as a wireframe.<br><br><dolphin_emphasis>If unsure, leave "
 "this unchecked.</dolphin_emphasis>"
 msgstr ""
-"将场景以线框样式渲染。<br><br><dolphin_emphasis>如果不确定，请不要勾选此项。"
+"将场景以线框样式渲染。<br><br><dolphin_emphasis>如果不确定，请不要选中此项。"
 "</dolphin_emphasis>"
 
 #: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:408
@@ -9198,7 +9298,7 @@ msgid ""
 msgstr ""
 "将 2D 顶点舍入为整数像素并将视口大小舍入为整数。<br><br>修正部分游戏在较高内"
 "部分辨率下的图像问题。该选项在使用原生内部分辨率时没有效果。"
-"<br><br><dolphin_emphasis>如果不确定，请不要勾选此项。</dolphin_emphasis>"
+"<br><br><dolphin_emphasis>如果不确定，请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/Core/HW/GCPadEmu.h:59
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:283
@@ -9237,7 +9337,7 @@ msgstr "SD 卡"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:266
 msgid "SD Card File Size:"
-msgstr ""
+msgstr "SD 卡文件大小："
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:506
 msgid "SD Card Image (*.raw);;All Files (*)"
@@ -9259,12 +9359,8 @@ msgstr "SD 根目录："
 msgid "SD Sync Folder:"
 msgstr "SD 同步文件夹："
 
-#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:100
-msgid "SDR Display Custom Gamma"
-msgstr ""
-
-#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:94
-msgid "SDR Display Gamma sRGB"
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:97
+msgid "SDR Display Gamma Target"
 msgstr ""
 
 #: Source/Core/Core/HW/GBAPadEmu.h:43
@@ -9548,7 +9644,7 @@ msgstr "搜索指令"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:236
 msgid "Search:"
-msgstr ""
+msgstr "搜索："
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:59
 msgid "Section that contains all Action Replay cheat codes."
@@ -9617,7 +9713,7 @@ msgstr "选择 Riivolutione XML 文件"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:410
 msgid "Select Skylander Collection"
-msgstr ""
+msgstr "选择 Skylander 合集"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:481
 msgid "Select Skylander File"
@@ -9936,7 +10032,7 @@ msgstr ""
 "设置搜索在虚拟地址空间中使用标准内存 1 和（在 Wii 上）内存 2 映射。这将适用于"
 "绝大多数游戏。"
 
-#: Source/Core/DolphinQt/Achievements/AchievementsWindow.cpp:36
+#: Source/Core/DolphinQt/Achievements/AchievementsWindow.cpp:45
 #: Source/Core/DolphinQt/Config/SettingsWindow.cpp:27
 #: Source/Core/DolphinQt/TAS/TASInputWindow.cpp:70
 msgid "Settings"
@@ -9997,10 +10093,6 @@ msgstr "显示澳大利亚"
 msgid "Show Current Game on Discord"
 msgstr "在 Discord 软件中显示当前游戏"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:149
-msgid "Show Debugging UI"
-msgstr "显示调试界面"
-
 #: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:118
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:262
 msgid "Show Disabled Codes First"
@@ -10045,7 +10137,7 @@ msgstr "叠加显示高尔夫模式"
 
 #: Source/Core/Core/HotkeyManager.cpp:199
 msgid "Show Infinity Base"
-msgstr ""
+msgstr "显示 Infinity 底座"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:791
 msgid "Show Input Display"
@@ -10122,7 +10214,7 @@ msgstr "显示俄罗斯"
 
 #: Source/Core/Core/HotkeyManager.cpp:198
 msgid "Show Skylanders Portal"
-msgstr ""
+msgstr "显示 Skylanders 传送门"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:710
 msgid "Show Spain"
@@ -10207,7 +10299,7 @@ msgid ""
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 "在联机游戏时显示聊天消息、缓冲变化和未同步警告。<br><br><dolphin_emphasis>如"
-"果不确定，请不要勾选此项。</dolphin_emphasis>"
+"果不确定，请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:266
 msgid ""
@@ -10216,7 +10308,7 @@ msgid ""
 "dolphin_emphasis>"
 msgstr ""
 "显示帧时间图以及统计数据来展现模拟性能。<br><br><dolphin_emphasis>如果不确"
-"定，请不要勾选此项。</dolphin_emphasis>"
+"定，请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:270
 #, c-format
@@ -10225,7 +10317,7 @@ msgid ""
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 "显示与全速相对的百分比模拟速度。<br><br><dolphin_emphasis>如果不确定，请不要"
-"勾选此项。</dolphin_emphasis>"
+"选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:254
 msgid ""
@@ -10234,7 +10326,7 @@ msgid ""
 "unchecked.</dolphin_emphasis>"
 msgstr ""
 "以毫秒显示每个不同渲染帧与标准差之间的平均时间。<br><br><dolphin_emphasis>如"
-"果不确定，请不要勾选此项。</dolphin_emphasis>"
+"果不确定，请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:262
 msgid ""
@@ -10243,7 +10335,7 @@ msgid ""
 "</dolphin_emphasis>"
 msgstr ""
 "以毫秒显示每个渲染帧与标准差之间的平均时间。<br><br><dolphin_emphasis>如果不"
-"确定，请不要勾选此项。</dolphin_emphasis>"
+"确定，请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:250
 msgid ""
@@ -10252,7 +10344,7 @@ msgid ""
 "</dolphin_emphasis>"
 msgstr ""
 "显示每秒呈现的不同帧数以衡量视觉平滑度。<br><br><dolphin_emphasis>如果不确"
-"定，请不要勾选此项。</dolphin_emphasis>"
+"定，请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:258
 msgid ""
@@ -10261,7 +10353,7 @@ msgid ""
 "dolphin_emphasis>"
 msgstr ""
 "显示每秒渲染的帧数以衡量模拟速度。<br><br><dolphin_emphasis>如果不确定，请不"
-"要勾选此项。</dolphin_emphasis>"
+"要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:220
 msgid ""
@@ -10269,14 +10361,14 @@ msgid ""
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 "在联机游戏时显示玩家的最大延迟。<br><br><dolphin_emphasis>如果不确定，请不要"
-"勾选此项。</dolphin_emphasis>"
+"选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:291
 msgid ""
 "Shows various rendering statistics.<br><br><dolphin_emphasis>If unsure, "
 "leave this unchecked.</dolphin_emphasis>"
 msgstr ""
-"显示各种渲染统计数据。<br><br><dolphin_emphasis>如果不确定，请不要勾选此项。"
+"显示各种渲染统计数据。<br><br><dolphin_emphasis>如果不确定，请不要选中此项。"
 "</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:167
@@ -10372,7 +10464,7 @@ msgid ""
 msgstr ""
 "检测到延迟时跳过垂直消隐中断，从而在模拟速度不是 100% 时平滑地播放音频。"
 "<br><br><dolphin_emphasis>警告：可能导致卡死和兼容性问题。</"
-"dolphin_emphasis><br><br><dolphin_emphasis>如果不确定，请不要勾选此项。</"
+"dolphin_emphasis><br><br><dolphin_emphasis>如果不确定，请不要选中此项。</"
 "dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:258
@@ -10385,7 +10477,7 @@ msgid ""
 msgstr ""
 "在 25fps/30fps 游戏中跳过重复帧（XFB 副本）的显示。这可以提高低端设备的性能，"
 "同时会降低帧定步的一致性。<br><br />可禁用此选项并启用 “垂直同步” 来获得最佳"
-"的帧定步。<br><br><dolphin_emphasis>如果不确定，请勾选此项。</"
+"的帧定步。<br><br><dolphin_emphasis>如果不确定，请选中此项。</"
 "dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:177
@@ -10395,15 +10487,15 @@ msgstr "Skylander %1"
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:482
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:551
 msgid "Skylander (*.sky);;All Files (*)"
-msgstr ""
+msgstr "Skylander (*.sky);;所有文件 (*)"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:217
 msgid "Skylander Collection Path:"
-msgstr ""
+msgstr "Skylander 合集路径："
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:448
 msgid "Skylander not found in this collection. Create new file?"
-msgstr ""
+msgstr "在此合集中未找到 Skylander。是否创建新文件？"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:42
 msgid "Skylanders Manager"
@@ -10411,7 +10503,7 @@ msgstr "Skylander 管理器"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:81
 msgid "Skylanders folder not found for this user. Create new folder?"
-msgstr ""
+msgstr "未找到该用户的 Skylanders 文件夹。是否创建新文件夹？"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:97
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:140
@@ -10532,7 +10624,7 @@ msgstr "速度"
 #. countries it was released in, except Japan, where it's named スカイランダーズ スパイロの大冒険.
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:264
 msgid "Spyro's Adventure"
-msgstr ""
+msgstr "小龙斯派罗的大冒险"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:186
 msgid "Stack end"
@@ -10707,7 +10799,7 @@ msgid ""
 msgstr ""
 "绕过系统内存而仅在 GPU 中存储 EFB 副本。会在少数游戏中导致图形缺陷。<br><br>"
 "开启 = EFB 副本为纹理<br>关闭 = EFB 副本为内存（和纹理）"
-"<br><br><dolphin_emphasis>如果不确定，请勾选此项。</dolphin_emphasis>"
+"<br><br><dolphin_emphasis>如果不确定，请选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:248
 msgid ""
@@ -10719,7 +10811,7 @@ msgid ""
 msgstr ""
 "绕过系统内存而仅在 GPU 中存储 XFB 副本。会在少数游戏中导致图形缺陷。<br><br>"
 "开启 = XFB 副本为纹理<br>关闭 = XFB 副本为内存（和纹理）"
-"<br><br><dolphin_emphasis>如果不确定，请勾选此项。</dolphin_emphasis>"
+"<br><br><dolphin_emphasis>如果不确定，请选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:57
 msgid "Stretch to Window"
@@ -10810,7 +10902,7 @@ msgstr "成功将此软件从 NAND 中移除。"
 #. all countries they were released in. They were not released in Japan.
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:277
 msgid "SuperChargers"
-msgstr ""
+msgstr "超级充能者"
 
 #: Source/Core/DolphinQt/AboutDialog.cpp:69
 msgid "Support"
@@ -10841,7 +10933,7 @@ msgstr "交换双眼"
 #. it was released in. It was not released in Japan.
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:270
 msgid "Swap Force"
-msgstr ""
+msgstr "交换力量"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:500
 msgid ""
@@ -10849,7 +10941,7 @@ msgid ""
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 "交换左右眼图像。通常用于左右并排立体模式。<br><br><dolphin_emphasis>如果不确"
-"定，请不要勾选此项。</dolphin_emphasis>"
+"定，请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:58
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:230
@@ -10998,7 +11090,7 @@ msgstr ""
 #. in other languages, check the SuperChargers manual at https://support.activision.com/manuals
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:330
 msgid "Tech"
-msgstr ""
+msgstr "科技"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:244
 msgid "Test"
@@ -11034,6 +11126,15 @@ msgid ""
 "The DFF's minimum loader version ({0}) exceeds the version of this FIFO "
 "Player ({1})"
 msgstr "DFF 的最低加载程序版本 ({0}) 超过此 FIFO 播放器的版本 ({1})"
+
+#: Source/Core/VideoBackends/D3D/D3DMain.cpp:57
+msgid ""
+"The Direct3D 11 renderer requires support for features not supported by your "
+"system configuration. You may still use this backend, but you will encounter "
+"graphical artifacts in certain games.\n"
+"\n"
+"Do you really want to switch to Direct3D 11? If unsure, select 'No'."
+msgstr ""
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:601
 msgid "The H3 hash table for the {0} partition is not correct."
@@ -11538,12 +11639,16 @@ msgid ""
 "CPU, but your current settings make this unlikely to happen. If this error "
 "is stopping the game from working, please report it to the developers."
 msgstr ""
+"此错误通常是由模拟 GPU 与模拟 CPU 不同步引起的，但您当前的设置使这种情况不太"
+"可能发生。如果此错误导致游戏无法运行，请向开发人员报告。"
 
 #: Source/Core/VideoCommon/CommandProcessor.cpp:724
 msgid ""
 "This error is usually caused by the emulated GPU desyncing with the emulated "
 "CPU. Turn off the \"Dual Core\" setting to avoid this."
 msgstr ""
+"此错误通常是由于模拟 GPU 与模拟 CPU 不同步引起的。关闭“双核”设置以避免这种情"
+"况。"
 
 #: Source/Core/DiscIO/NANDImporter.cpp:116
 msgid "This file does not contain a valid Wii filesystem."
@@ -11606,7 +11711,7 @@ msgid ""
 msgstr ""
 "该设定可以让你设置一个与当前系统时间隔离的自定义实时时钟(RTC)。\n"
 "\n"
-"如果不确定，请不要勾选此项。"
+"如果不确定，请不要选中此项。"
 
 #: Source/Core/DolphinQt/AboutDialog.cpp:66
 msgid "This software should not be used to play games you do not legally own."
@@ -11864,7 +11969,7 @@ msgstr "繁体中文"
 #. it was released in. It was not released in Japan.
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:273
 msgid "Trap Team"
-msgstr ""
+msgstr "诱捕小队"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:991
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:995
@@ -11923,15 +12028,15 @@ msgstr "美国"
 
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyUSBEmu.cpp:21
 msgid "USB Device Emulation"
-msgstr ""
+msgstr "USB 设备模拟"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:454
 msgid "USB Emulation"
-msgstr ""
+msgstr "USB 模拟"
 
 #: Source/Core/Core/HotkeyManager.cpp:361
 msgid "USB Emulation Devices"
-msgstr ""
+msgstr "USB 模拟设备"
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:103
 msgid "USB Gecko"
@@ -12042,7 +12147,7 @@ msgstr "未压缩的 GC/Wii 镜像 (*.iso *.gcm)"
 #. https://support.activision.com/manuals
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:346
 msgid "Undead"
-msgstr ""
+msgstr "亡灵"
 
 #: Source/Core/Core/HotkeyManager.cpp:178 Source/Core/DolphinQt/MenuBar.cpp:342
 msgid "Undo Load State"
@@ -12167,6 +12272,22 @@ msgstr "卸载 ROM"
 #: Source/Core/Core/HotkeyManager.cpp:37
 msgid "Unlock Cursor"
 msgstr "解锁光标"
+
+#: Source/Core/DolphinQt/Achievements/AchievementProgressWidget.cpp:119
+msgid "Unlocked"
+msgstr ""
+
+#: Source/Core/DolphinQt/Achievements/AchievementProgressWidget.cpp:108
+msgid "Unlocked %1 times this session"
+msgstr ""
+
+#: Source/Core/DolphinQt/Achievements/AchievementProgressWidget.cpp:117
+msgid "Unlocked (Casual)"
+msgstr ""
+
+#: Source/Core/DolphinQt/Achievements/AchievementProgressWidget.cpp:110
+msgid "Unlocked this session"
+msgstr ""
 
 #: Source/Core/DiscIO/FileBlob.cpp:82
 msgid "Unpacking"
@@ -12309,7 +12430,7 @@ msgstr ""
 "样将允许在特殊情况下正确模拟纹理打包（在 1x 内部分辨率或禁用缩放 EFB 时，并禁"
 "用自定义纹理）并更好地模拟细节级别计算。<br><br>代价是性能消耗可能会更大，尤"
 "其是在更高的内部分辨率下；此外，各向异性过滤目前与手动纹理采样不兼容。"
-"<br><br><dolphin_emphasis>如果不确定，请不要勾选此项。</dolphin_emphasis>"
+"<br><br><dolphin_emphasis>如果不确定，请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:138
 msgid "Use a single depth buffer for both eyes. Needed for a few games."
@@ -12390,7 +12511,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:50
 msgid "Username"
-msgstr ""
+msgstr "用户名"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:270
 msgid ""
@@ -12400,7 +12521,7 @@ msgid ""
 "checked.</dolphin_emphasis>"
 msgstr ""
 "使用精确度较低的算法计算深度值。<br><br>在一些游戏中将导致问题但可能带来可观"
-"的提速，取决于游戏和/或 GPU。<br><br><dolphin_emphasis>如果不确定，请勾选此"
+"的提速，取决于游戏和/或 GPU。<br><br><dolphin_emphasis>如果不确定，请选中此"
 "项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:199
@@ -12410,7 +12531,7 @@ msgid ""
 "unchecked.</dolphin_emphasis>"
 msgstr ""
 "使用整个屏幕进行渲染。<br><br>如果禁用，则会创建一个渲染窗口。"
-"<br><br><dolphin_emphasis>如果不确定，请不要勾选此项。</dolphin_emphasis>"
+"<br><br><dolphin_emphasis>如果不确定，请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:206
 msgid ""
@@ -12419,7 +12540,7 @@ msgid ""
 "dolphin_emphasis>"
 msgstr ""
 "使用 Dolphin 主窗口而非单独的渲染窗口进行渲染。<br><br><dolphin_emphasis>如果"
-"不确定，请不要勾选此项。</dolphin_emphasis>"
+"不确定，请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/AboutDialog.cpp:57
 msgid "Using Qt %1"
@@ -12653,7 +12774,7 @@ msgstr ""
 "等到所有着色器编译完成再开始游戏。启用此选项将会减少游戏开始后短时间的卡顿，"
 "但游戏开始前会有更长的延迟。对于有两个或以下核心的系统，较大的着色器队列将降"
 "低帧率，因而建议启用此选项。<br><br><dolphin_emphasis>其他情况下，如果不确"
-"定，请不要勾选此项。</dolphin_emphasis>"
+"定，请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:215
 msgid ""
@@ -12662,7 +12783,7 @@ msgid ""
 "unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 "等待场消隐期以防止撕裂。<br><br>模拟速度低于 100% 时会降低性能。"
-"<br><br><dolphin_emphasis>如果不确定，请不要勾选此项。</dolphin_emphasis>"
+"<br><br><dolphin_emphasis>如果不确定，请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:235
 msgid ""
@@ -12674,7 +12795,7 @@ msgid ""
 msgstr ""
 "在将 EFB 副本的内容写入内存之前等待，直到游戏与模拟 GPU 同步。<br><br>可减少 "
 "EFB 内存副本占用，在许多游戏中有性能提升，但有可能导致某些无法与模拟 GPU 安全"
-"同步的风险。<br><br><dolphin_emphasis>如果不确定，请勾选此项。</"
+"同步的风险。<br><br><dolphin_emphasis>如果不确定，请选中此项。</"
 "dolphin_emphasis>"
 
 #: Source/Core/Common/MsgHandler.cpp:61
@@ -12781,7 +12902,7 @@ msgstr "监视"
 #. in other languages, check the SuperChargers manual at https://support.activision.com/manuals
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:327
 msgid "Water"
-msgstr ""
+msgstr "水"
 
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:91
 msgid "Website"
@@ -12805,7 +12926,7 @@ msgid ""
 msgstr ""
 "是否将基本游戏纹理转储到 User/Dump/Textures/&lt;game_id&gt;/。如果在增强选项"
 "卡中启用了“特殊多级纹理检测”，则特殊基本纹理也会被转储。"
-"<br><br><dolphin_emphasis>如果不确定，请勾选此项。</dolphin_emphasis>"
+"<br><br><dolphin_emphasis>如果不确定，请选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:307
 msgid ""
@@ -12816,7 +12937,7 @@ msgid ""
 msgstr ""
 "是否将多级纹理的游戏材质转储到 User/Dump/Textures/&lt;game_id&gt;/。如果在增"
 "强选项卡中启用了“特殊多级纹理检测”，则特殊多级纹理也会被转储。"
-"<br><br><dolphin_emphasis>如果不确定，请勾选此项。</dolphin_emphasis>"
+"<br><br><dolphin_emphasis>如果不确定，请选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:341
 msgid "Whitelisted USB Passthrough Devices"
@@ -13289,6 +13410,10 @@ msgstr "或选择一个设备"
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:47
 msgid "s"
 msgstr "秒"
+
+#: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:101
+msgid "sRGB"
+msgstr ""
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:199
 msgid "this value:"
