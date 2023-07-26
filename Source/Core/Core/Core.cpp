@@ -535,7 +535,16 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
 
   Common::ScopeGuard sd_folder_sync_guard{[sync_sd_folder] {
     if (sync_sd_folder && Config::Get(Config::MAIN_ALLOW_SD_WRITES))
-      Common::SyncSDImageToSDFolder([]() { return false; });
+    {
+      const bool sync_ok = Common::SyncSDImageToSDFolder([]() { return false; });
+      if (!sync_ok)
+      {
+        PanicAlertFmtT(
+            "Failed to sync SD card with folder. All changes made this session will be "
+            "discarded on next boot if you do not manually re-issue a resync in Config > "
+            "Wii > SD Card Settings > Convert File to Folder Now!");
+      }
+    }
   }};
 
   // Load Wiimotes - only if we are booting in Wii mode
