@@ -947,7 +947,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
   BitSet8 wantsCR = BitSet8(0xFF);
   bool wantsFPRF = true;
   bool wantsCA = true;
-  BitSet32 gprDefined, gprBlockInputs, gprInUse, fprInUse, gprDiscardable, fprDiscardable, fprInXmm;
+  BitSet32 gprBlockInputs, gprInUse, fprInUse, gprDiscardable, fprDiscardable, fprInXmm;
   for (int i = block->m_num_instructions - 1; i >= 0; i--)
   {
     CodeOp& op = code[i];
@@ -969,8 +969,8 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
     op.gprDiscardable = gprDiscardable;
     op.fprDiscardable = fprDiscardable;
     op.fprInXmm = fprInXmm;
-    gprBlockInputs |= op.regsIn & ~gprDefined;
-    gprDefined |= op.regsOut;
+    gprBlockInputs &= ~op.regsOut;
+    gprBlockInputs |= op.regsIn;
     gprInUse |= op.regsIn | op.regsOut;
     fprInUse |= op.fregsIn | op.GetFregsOut();
     if (op.canEndBlock || op.canCauseException)
