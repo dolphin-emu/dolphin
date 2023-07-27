@@ -1,7 +1,7 @@
 /* mz_sstrm_os.h -- Stream for filesystem access
    part of the minizip-ng project
 
-   Copyright (C) 2010-2021 Nathan Moinvaziri
+   Copyright (C) Nathan Moinvaziri
      https://github.com/zlib-ng/minizip-ng
 
    This program is distributed under the terms of the same license as zlib.
@@ -26,7 +26,7 @@ int32_t mz_stream_os_seek(void *stream, int64_t offset, int32_t origin);
 int32_t mz_stream_os_close(void *stream);
 int32_t mz_stream_os_error(void *stream);
 
-void*   mz_stream_os_create(void **stream);
+void*   mz_stream_os_create(void);
 void    mz_stream_os_delete(void **stream);
 
 void*   mz_stream_os_get_interface(void);

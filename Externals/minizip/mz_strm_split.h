@@ -1,7 +1,7 @@
 /* mz_strm_split.h -- Stream for split files
    part of the minizip-ng project
 
-   Copyright (C) 2010-2021 Nathan Moinvaziri
+   Copyright (C) Nathan Moinvaziri
       https://github.com/zlib-ng/minizip-ng
 
    This program is distributed under the terms of the same license as zlib.
@@ -29,7 +29,7 @@ int32_t mz_stream_split_error(void *stream);
 int32_t mz_stream_split_get_prop_int64(void *stream, int32_t prop, int64_t *value);
 int32_t mz_stream_split_set_prop_int64(void *stream, int32_t prop, int64_t value);
 
-void*   mz_stream_split_create(void **stream);
+void*   mz_stream_split_create(void);
 void    mz_stream_split_delete(void **stream);
 
 void*   mz_stream_split_get_interface(void);

@@ -23,8 +23,6 @@ add_library(minizip STATIC
   mz_zip.h
   mz_zip_rw.c
   mz_zip_rw.h
-  unzip.h
-  zip.h
 )
 dolphin_disable_warnings_msvc(minizip)
 

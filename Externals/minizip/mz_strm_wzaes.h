@@ -1,7 +1,7 @@
 /* mz_strm_wzaes.h -- Stream for WinZIP AES encryption
    part of the minizip-ng project
 
-   Copyright (C) 2010-2021 Nathan Moinvaziri
+   Copyright (C) Nathan Moinvaziri
       https://github.com/zlib-ng/minizip-ng
 
    This program is distributed under the terms of the same license as zlib.
@@ -27,12 +27,12 @@ int32_t mz_stream_wzaes_close(void *stream);
 int32_t mz_stream_wzaes_error(void *stream);
 
 void    mz_stream_wzaes_set_password(void *stream, const char *password);
-void    mz_stream_wzaes_set_encryption_mode(void *stream, int16_t encryption_mode);
+void    mz_stream_wzaes_set_strength(void *stream, uint8_t strength);
 
 int32_t mz_stream_wzaes_get_prop_int64(void *stream, int32_t prop, int64_t *value);
 int32_t mz_stream_wzaes_set_prop_int64(void *stream, int32_t prop, int64_t value);
 
-void*   mz_stream_wzaes_create(void **stream);
+void*   mz_stream_wzaes_create(void);
 void    mz_stream_wzaes_delete(void **stream);
 
 void*   mz_stream_wzaes_get_interface(void);

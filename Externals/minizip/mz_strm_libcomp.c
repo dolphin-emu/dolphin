@@ -1,13 +1,12 @@
 /* mz_strm_libcomp.c -- Stream for apple compression
    part of the minizip-ng project
 
-   Copyright (C) 2010-2021 Nathan Moinvaziri
+   Copyright (C) Nathan Moinvaziri
       https://github.com/zlib-ng/minizip-ng
 
    This program is distributed under the terms of the same license as zlib.
    See the accompanying LICENSE file for the full text of the license.
 */
-
 
 #include "mz.h"
 #include "mz_strm.h"
@@ -197,7 +196,6 @@ static int32_t mz_stream_libcomp_deflate(void *stream, int flush) {
     uint32_t out_bytes = 0;
     int32_t err = MZ_OK;
 
-
     do {
         if (libcomp->cstream.dst_size == 0) {
             err = mz_stream_libcomp_flush(libcomp);
@@ -267,7 +265,6 @@ int32_t mz_stream_libcomp_seek(void *stream, int64_t offset, int32_t origin) {
 int32_t mz_stream_libcomp_close(void *stream) {
     mz_stream_libcomp *libcomp = (mz_stream_libcomp *)stream;
 
-
     if (libcomp->mode & MZ_OPEN_MODE_WRITE) {
 #ifdef MZ_ZIP_NO_COMPRESSION
         return MZ_SUPPORT_ERROR;
@@ -331,26 +328,19 @@ int32_t mz_stream_libcomp_set_prop_int64(void *stream, int32_t prop, int64_t val
     return MZ_OK;
 }
 
-void *mz_stream_libcomp_create(void **stream) {
-    mz_stream_libcomp *libcomp = NULL;
-
-    libcomp = (mz_stream_libcomp *)MZ_ALLOC(sizeof(mz_stream_libcomp));
-    if (libcomp != NULL) {
-        memset(libcomp, 0, sizeof(mz_stream_libcomp));
+void *mz_stream_libcomp_create(void) {
+    mz_stream_libcomp *libcomp = (mz_stream_libcomp *)calloc(1, sizeof(mz_stream_libcomp));
+    if (libcomp)
         libcomp->stream.vtbl = &mz_stream_libcomp_vtbl;
-    }
-    if (stream != NULL)
-        *stream = libcomp;
-
     return libcomp;
 }
 
 void mz_stream_libcomp_delete(void **stream) {
     mz_stream_libcomp *libcomp = NULL;
-    if (stream == NULL)
+    if (!stream)
         return;
     libcomp = (mz_stream_libcomp *)*stream;
-    if (libcomp != NULL)
-        MZ_FREE(libcomp);
+    if (libcomp)
+        free(libcomp);
     *stream = NULL;
 }

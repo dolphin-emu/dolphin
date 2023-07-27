@@ -1,7 +1,7 @@
 /* mz_compat.h -- Backwards compatible interface for older versions
    part of the minizip-ng project
 
-   Copyright (C) 2010-2021 Nathan Moinvaziri
+   Copyright (C) Nathan Moinvaziri
      https://github.com/zlib-ng/minizip-ng
    Copyright (C) 1998-2010 Gilles Vollant
      https://www.winimage.com/zLibDll/minizip.html
@@ -63,7 +63,7 @@ typedef uint64_t ZPOS64_T;
 typedef void*         (ZCALLBACK *open_file_func)     (void *opaque, const char *filename, int mode);
 typedef void*         (ZCALLBACK *open64_file_func)   (void *opaque, const void *filename, int mode);
 typedef unsigned long (ZCALLBACK *read_file_func)     (void *opaque, void *stream, void* buf, unsigned long size);
-typedef unsigned long (ZCALLBACK *write_file_func)    (void *opaque, void *stream, const void* buf, 
+typedef unsigned long (ZCALLBACK *write_file_func)    (void *opaque, void *stream, const void* buf,
                                                        unsigned long size);
 typedef int           (ZCALLBACK *close_file_func)    (void *opaque, void *stream);
 typedef int           (ZCALLBACK *testerror_file_func)(void *opaque, void *stream);

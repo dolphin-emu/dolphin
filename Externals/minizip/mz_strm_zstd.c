@@ -1,7 +1,7 @@
 /* mz_strm_zstd.c -- Stream for zstd compress/decompress
    part of the minizip-ng project
 
-   Copyright (C) 2010-2021 Nathan Moinvaziri
+   Copyright (C) Nathan Moinvaziri
       https://github.com/zlib-ng/minizip-ng
    Authors: Force Charlie
       https://github.com/fcharlie
@@ -68,6 +68,7 @@ int32_t mz_stream_zstd_open(void *stream, const char *path, int32_t mode) {
         zstd->out.dst = zstd->buffer;
         zstd->out.size = sizeof(zstd->buffer);
         zstd->out.pos = 0;
+        ZSTD_CCtx_setParameter(zstd->zcstream, ZSTD_c_compressionLevel, zstd->preset);
 #endif
     } else if (mode & MZ_OPEN_MODE_READ) {
 #ifdef MZ_ZIP_NO_DECOMPRESSION
@@ -114,7 +115,7 @@ int32_t mz_stream_zstd_read(void *stream, void *buf, int32_t size) {
     int32_t read = 0;
     size_t result = 0;
 
-    zstd->out.dst = (void*)buf;
+    zstd->out.dst = (void *)buf;
     zstd->out.size = (size_t)size;
     zstd->out.pos = 0;
 
@@ -130,7 +131,7 @@ int32_t mz_stream_zstd_read(void *stream, void *buf, int32_t size) {
             if (read < 0)
                 return read;
 
-            zstd->in.src = (const void*)zstd->buffer;
+            zstd->in.src = (const void *)zstd->buffer;
             zstd->in.pos = 0;
             zstd->in.size = (size_t)read;
         }
@@ -323,26 +324,22 @@ int32_t mz_stream_zstd_set_prop_int64(void *stream, int32_t prop, int64_t value)
     return MZ_EXIST_ERROR;
 }
 
-void *mz_stream_zstd_create(void **stream) {
-    mz_stream_zstd *zstd = NULL;
-    zstd = (mz_stream_zstd *)MZ_ALLOC(sizeof(mz_stream_zstd));
-    if (zstd != NULL) {
-        memset(zstd, 0, sizeof(mz_stream_zstd));
+void *mz_stream_zstd_create(void) {
+    mz_stream_zstd *zstd = (mz_stream_zstd *)calloc(1, sizeof(mz_stream_zstd));
+    if (zstd) {
         zstd->stream.vtbl = &mz_stream_zstd_vtbl;
         zstd->max_total_out = -1;
     }
-    if (stream != NULL)
-        *stream = zstd;
     return zstd;
 }
 
 void mz_stream_zstd_delete(void **stream) {
     mz_stream_zstd *zstd = NULL;
-    if (stream == NULL)
+    if (!stream)
         return;
     zstd = (mz_stream_zstd *)*stream;
-    if (zstd != NULL)
-        MZ_FREE(zstd);
+    if (zstd)
+        free(zstd);
     *stream = NULL;
 }
 
