@@ -30,7 +30,7 @@ public:
   void SetCookies(const std::string& cookies);
   void UseIPv4();
   void FollowRedirects(long max);
-  s32 GetLastResponseCode();
+  s32 GetLastResponseCode() const;
   Response Fetch(const std::string& url, Method method, const Headers& headers, const u8* payload,
                  size_t size, AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only);
 
@@ -43,6 +43,7 @@ private:
   ProgressCallback m_callback;
   std::unique_ptr<CURL, decltype(&curl_easy_cleanup)> m_curl{nullptr, curl_easy_cleanup};
   std::string m_error_string;
+  s32 m_last_response_code{};
 };
 
 HttpRequest::HttpRequest(std::chrono::milliseconds timeout_ms, ProgressCallback callback)
@@ -150,11 +151,9 @@ bool HttpRequest::Impl::IsValid() const
   return m_curl != nullptr;
 }
 
-s32 HttpRequest::Impl::GetLastResponseCode()
+s32 HttpRequest::Impl::GetLastResponseCode() const
 {
-  s32 response_code{};
-  curl_easy_getinfo(m_curl.get(), CURLINFO_RESPONSE_CODE, &response_code);
-  return response_code;
+  return m_last_response_code;
 }
 
 void HttpRequest::Impl::SetCookies(const std::string& cookies)
@@ -230,19 +229,18 @@ HttpRequest::Response HttpRequest::Impl::Fetch(const std::string& url, Method me
   if (codes == AllowedReturnCodes::All)
     return buffer;
 
-  long response_code = 0;
-  curl_easy_getinfo(m_curl.get(), CURLINFO_RESPONSE_CODE, &response_code);
-  if (response_code != 200)
+  curl_easy_getinfo(m_curl.get(), CURLINFO_RESPONSE_CODE, &m_last_response_code);
+  if (m_last_response_code != 200)
   {
     if (buffer.empty())
     {
       ERROR_LOG_FMT(COMMON, "Failed to {} {}: server replied with code {}", type, url,
-                    response_code);
+                    m_last_response_code);
     }
     else
     {
       ERROR_LOG_FMT(COMMON, "Failed to {} {}: server replied with code {} and body\n\x1b[0m{:.{}}",
-                    type, url, response_code, reinterpret_cast<char*>(buffer.data()),
+                    type, url, m_last_response_code, reinterpret_cast<char*>(buffer.data()),
                     static_cast<int>(buffer.size()));
     }
     return {};
