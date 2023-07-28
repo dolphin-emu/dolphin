@@ -181,11 +181,11 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
                 fragment!!.adapter!!.onFilePickerConfirmation(path!!)
             }
 
-            MainPresenter.REQUEST_GAME_FILE
-                or MainPresenter.REQUEST_SD_FILE
-                or MainPresenter.REQUEST_WAD_FILE
-                or MainPresenter.REQUEST_WII_SAVE_FILE
-                or MainPresenter.REQUEST_NAND_BIN_FILE -> {
+            MainPresenter.REQUEST_GAME_FILE,
+            MainPresenter.REQUEST_SD_FILE,
+            MainPresenter.REQUEST_WAD_FILE,
+            MainPresenter.REQUEST_WII_SAVE_FILE,
+            MainPresenter.REQUEST_NAND_BIN_FILE -> {
                 val uri = canonicalizeIfPossible(result!!.data!!)
                 val validExtensions: Set<String> =
                     if (requestCode == MainPresenter.REQUEST_GAME_FILE) FileBrowserHelper.GAME_EXTENSIONS else FileBrowserHelper.RAW_EXTENSION
