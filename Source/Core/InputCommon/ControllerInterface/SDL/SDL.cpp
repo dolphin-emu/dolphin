@@ -191,6 +191,10 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
   SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE, "1");
 #endif
 
+#if SDL_VERSION_ATLEAST(2, 26, 0)
+  SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_VERTICAL_JOY_CONS, "1");
+#endif
+
   m_hotplug_thread = std::thread([this] {
     Common::ScopeGuard quit_guard([] {
       // TODO: there seems to be some sort of memory leak with SDL, quit isn't freeing everything up
