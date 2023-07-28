@@ -18,14 +18,16 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <!--IM_ASSERT is defined as Dolphin's ASSERT() :( (DolphinLib circular dependency)-->
-      <AdditionalIncludeDirectories>$(CoreDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;$(CoreDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="imgui.cpp" />
+    <ClCompile Include="imgui_demo.cpp" />
     <ClCompile Include="imgui_draw.cpp" />
     <ClCompile Include="imgui_tables.cpp" />
     <ClCompile Include="imgui_widgets.cpp" />
+    <ClCompile Include="misc/cpp/imgui_stdlib.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imconfig.h" />
@@ -34,6 +36,7 @@
     <ClInclude Include="imstb_rectpack.h" />
     <ClInclude Include="imstb_textedit.h" />
     <ClInclude Include="imstb_truetype.h" />
+    <ClInclude Include="misc/cpp/imgui_stdlib.h" />
   </ItemGroup>
   <Import Project="$(ExternalsDir)fmt\exports.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
