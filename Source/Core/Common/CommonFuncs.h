@@ -53,6 +53,9 @@ std::string LastStrerrorString();
 // This function might change the error code.
 std::string GetLastErrorString();
 
+// Like GetLastErrorString() but if you have already queried the error code.
+std::string GetWin32ErrorString(unsigned long error_code);
+
 // Obtains a full path to the specified module.
 std::optional<std::wstring> GetModuleName(void* hInstance);
 #endif
