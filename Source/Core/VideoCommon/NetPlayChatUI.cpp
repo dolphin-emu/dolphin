@@ -57,7 +57,7 @@ void NetPlayChatUI::Display()
 
   ImGui::PushItemWidth(-50.0f * scale);
 
-  if (ImGui::InputText("", m_message_buf, IM_ARRAYSIZE(m_message_buf),
+  if (ImGui::InputText("##NetplayMessageBuffer", m_message_buf, IM_ARRAYSIZE(m_message_buf),
                        ImGuiInputTextFlags_EnterReturnsTrue))
   {
     SendMessage();
