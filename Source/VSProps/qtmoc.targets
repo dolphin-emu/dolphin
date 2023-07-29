@@ -178,7 +178,7 @@
   /////////////////////////////////////////////////////////////////////////////////////////////////
   //
   // -->
-  <!--<Import Project="qtmoc_cl.targets"/>-->
+  <Import Project="qtmoc_cl.targets"/>
 
   <!--
   /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -191,6 +191,7 @@
       QtPrepare;
       QtMocPrepare;
       QtMocSetModified;
+      QtMocOverrideCpp;
       $(QtMocDependsOn)
     </QtMocDependsOn>
   </PropertyGroup>
