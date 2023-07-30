@@ -152,6 +152,8 @@ QTabBar::tab:!selected {
 
 QDockWidget {
 	background-color: #404040;
+	titlebar-close-icon: url(_/dockwidget-close.svg);
+	titlebar-normal-icon: url(_/dockwidget-undock.svg);
 }
 
 QPushButton, QToolButton {
@@ -202,6 +204,11 @@ QToolBar QToolButton:focus {
 }
 QToolBar QToolButton:disabled {
 	background-color: #202020;
+}
+QToolBar::separator {
+	min-width: 0px;
+	width: 1px;
+	background-color: #7e7e7e;
 }
 
 QGroupBox {
