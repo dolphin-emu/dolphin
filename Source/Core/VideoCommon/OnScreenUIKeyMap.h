@@ -26,6 +26,8 @@ enum class DolphinKey
   Enter,
   Escape,
   KeyPadEnter,
+  CTRL,
+  SHIFT,
   A,  // for text edit CTRL+A: select all
   C,  // for text edit CTRL+C: copy
   V,  // for text edit CTRL+V: paste
