@@ -294,6 +294,8 @@ add_executable(dolphin-mpn
   QtUtils/ParallelProgressDialog.h
   QtUtils/PartiallyClosableTabWidget.cpp
   QtUtils/PartiallyClosableTabWidget.h
+  QtUtils/SetWindowDecorations.cpp
+  QtUtils/SetWindowDecorations.h
   QtUtils/SignalBlocking.h
   QtUtils/UTF8CodePointCountValidator.cpp
   QtUtils/UTF8CodePointCountValidator.h
@@ -403,6 +405,7 @@ if (WIN32)
   PRIVATE
     gdi32.lib
     shell32.lib
+    dwmapi.lib # Needed to set window decorations for dark theme
   )
 endif()
 
