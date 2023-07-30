@@ -121,27 +121,54 @@ QTabBar::tab:!selected {
 	margin-top: 2px;
 }
 
-/* the icon bar at the top of the main window */
-QToolButton {
-	border: 0px;
-	padding: 0px 3px;
-	min-width: 0px;
-}
-
-QPushButton, QGroupBox QToolButton {
+QPushButton, QToolButton {
 	background-color: #303030;
 	border: 1px solid #7e7e7e;
 	padding: 2px;
 	min-width: 67px;
 }
-QPushButton:hover, QGroupBox QToolButton:hover {
+QPushButton:hover, QToolButton:hover {
 	background-color: #202050;
 }
-QPushButton:focus, QGroupBox QToolButton:focus {
+QPushButton:focus, QToolButton:focus {
 	background-color: #202050;
 }
-QPushButton:disabled, QGroupBox QToolButton:disabled {
+QPushButton:disabled, QToolButton:disabled {
 	background-color: #404040;
+}
+
+/* the icon bar at the top of the main window */
+QToolBar {
+	border: 0px;
+}
+QToolBar QToolButton {
+	border: 0px;
+	padding: 0px 3px;
+	min-width: 10px;
+	background-color: #202020;
+}
+QToolBar QToolButton:hover {
+	background-color: #202050;
+}
+QToolBar QToolButton:focus {
+	background-color: #202050;
+}
+QToolBar QToolButton:disabled {
+	background-color: #202020;
+}
+
+/* the dropdownarrow on the right of the button in menu popup mode */
+QToolButton[popupMode="1"] {
+	padding-right: 19px;
+}
+QToolButton::menu-button {
+	border: 0px;
+	border-left: 1px solid #7e7e7e;
+	width: 18px;
+}
+QToolButton::menu-arrow {
+	image: url(:/dolphin_dark_win/down-triangle.svg);
+	width: 14px;
 }
 
 QGroupBox {
@@ -151,12 +178,13 @@ QGroupBox {
 	padding-bottom: 0px;
 	padding-left: 1px;
 	padding-right: 1px;
-	min-width: 60px;
 }
 QGroupBox::title {
 	subcontrol-origin: margin;
+	subcontrol-position: top left;
 	left: 9px;
 	padding-top: 1px;
+	min-width: 0px;
 }
 
 QLineEdit {
@@ -282,13 +310,13 @@ QSpinBox::down-button, QDateTimeEdit::down-button, QDoubleSpinBox::down-button {
 	width: 16px;
 }
 QSpinBox::up-arrow, QDateTimeEdit::up-arrow, QDoubleSpinBox::up-arrow {
-	image: url(:/dolphin_dark_win/scrollbar-arrow-up.svg);
-	width: 7px;
+	image: url(:/dolphin_dark_win/up-triangle-spinbox.svg);
+	width: 14px;
 	height: 7px;
 }
 QSpinBox::down-arrow, QDateTimeEdit::down-arrow, QDoubleSpinBox::down-arrow {
-	image: url(:/dolphin_dark_win/scrollbar-arrow-down.svg);
-	width: 7px;
+	image: url(:/dolphin_dark_win/down-triangle-spinbox.svg);
+	width: 14px;
 	height: 7px;
 }
 
