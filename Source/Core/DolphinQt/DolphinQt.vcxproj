@@ -416,6 +416,10 @@
     <Natvis Include="qt6.natvis" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="Styles\Dark\dark.qss" />
+    <QtRcc Include="Styles\Dark\dark.qrc" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="$(CoreDir)DolphinLib.vcxproj">
       <Project>{D79392F7-06D6-4B4B-A39F-4D587C215D3A}</Project>
     </ProjectReference>
