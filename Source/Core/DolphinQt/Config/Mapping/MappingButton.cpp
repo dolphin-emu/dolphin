@@ -12,6 +12,7 @@
 #include "DolphinQt/Config/Mapping/MappingCommon.h"
 #include "DolphinQt/Config/Mapping/MappingWidget.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
+#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
@@ -97,6 +98,7 @@ void MappingButton::AdvancedPressed()
 {
   IOWindow io(m_parent, m_parent->GetController(), m_reference,
               m_reference->IsInput() ? IOWindow::Type::Input : IOWindow::Type::Output);
+  SetQWidgetWindowDecorations(&io);
   io.exec();
 
   ConfigChanged();

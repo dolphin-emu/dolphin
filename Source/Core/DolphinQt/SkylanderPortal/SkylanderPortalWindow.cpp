@@ -34,6 +34,7 @@
 #include "Core/System.h"
 
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
+#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
@@ -560,6 +561,7 @@ void SkylanderPortalWindow::CreateSkylanderAdvanced()
 
   connect(buttons, &QDialogButtonBox::rejected, create_window, &QDialog::reject);
 
+  SetQWidgetWindowDecorations(create_window);
   create_window->show();
   create_window->raise();
 }
