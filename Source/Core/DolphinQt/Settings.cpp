@@ -47,6 +47,8 @@
 #include "VideoCommon/NetPlayChatUI.h"
 #include "VideoCommon/NetPlayGolfUI.h"
 
+static bool s_system_dark = false;
+
 Settings::Settings()
 {
   qRegisterMetaType<Core::State>();
@@ -123,6 +125,16 @@ QString Settings::GetCurrentUserStyle() const
 
   // Migration code for the old way of storing this setting
   return QFileInfo(GetQSettings().value(QStringLiteral("userstyle/path")).toString()).fileName();
+}
+
+void Settings::SetSystemDark(bool dark)
+{
+  s_system_dark = dark;
+}
+
+bool Settings::IsSystemDark()
+{
+  return s_system_dark;
 }
 
 // Calling this before the main window has been created breaks the style of some widgets.
