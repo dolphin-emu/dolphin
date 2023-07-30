@@ -12,6 +12,7 @@ if (MSVC)
 endif()
 
 set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Svg)
 message(STATUS "Found Qt version ${Qt6_VERSION}")
