@@ -75,16 +75,41 @@ QListView, QTableView {
 }
 QHeaderView::section {
 	background-color: #202020;
+	border: 0px;
+	border-top: 1px solid #7e7e7e;
+	border-right: 1px solid #7e7e7e;
+	padding: 0px;
+	text-align: right;
+
+	/*
+	this is a hack, Qt is extremely convinced that the sort arrow belongs on the right side
+	of the header and will reserve space for it there. so this applies that same space to the left
+	so the text is still centered correctly.
+	*/
+	padding-left: 10px;
 }
 QHeaderView::section:hover, QHeaderView::section:checked {
 	background-color: #404040;
 }
+QHeaderView::down-arrow {
+	subcontrol-origin: margin;
+	subcontrol-position: top center;
+	image: url(:/dolphin_dark_win/table-header-sort-arrow-down.svg);
+	width: 10px;
+	height: 7px;
+	background: transparent;
+}
+QHeaderView::up-arrow {
+	subcontrol-origin: margin;
+	subcontrol-position: top center;
+	image: url(:/dolphin_dark_win/table-header-sort-arrow-up.svg);
+	width: 10px;
+	height: 7px;
+	background: transparent;
+}
 
 QTabWidget::pane {
-	border-left: 1px solid #7e7e7e;
-	border-right: 1px solid #7e7e7e;
-	border-top: 1px solid #7e7e7e;
-	border-bottom: 1px solid #7e7e7e;
+	border: 1px solid #7e7e7e;
 	top: -1px; /* move border behind tabs */
 }
 QTabWidget::tab-bar {
@@ -187,7 +212,7 @@ QGroupBox::title {
 	min-width: 0px;
 }
 
-QLineEdit {
+QLineEdit, QTextEdit {
 	border: 1px solid #7e7e7e;
 }
 
@@ -216,6 +241,21 @@ QComboBox::down-arrow {
 	image: url(:/dolphin_dark_win/dropdown-arrow.svg);
 	height: 10px;
 	width: 15px;
+}
+QComboBox QAbstractItemView {
+	background-color: #303030;
+	selection-background-color: #202050;
+	border: 1px solid #7e7e7e;
+	padding: 0px;
+	margin: 0px;
+	outline: 0px;
+}
+QComboBox QAbstractItemView::item:selected {
+	color: #dcdcdc;
+	background-color: #202050;
+}
+QComboBox QAbstractItemView::item:last {
+	border: 0px;
 }
 
 QScrollBar:vertical {
@@ -293,28 +333,28 @@ QScrollBar::right-arrow:horizontal {
 	width: 15px;
 }
 
-QSpinBox, QDateTimeEdit, QDoubleSpinBox {
+QSpinBox, QDateEdit, QDateTimeEdit, QTimeEdit, QDoubleSpinBox {
 	border: 1px solid #7e7e7e;
 	padding-right: 15px;
 }
-QSpinBox::up-button, QDateTimeEdit::up-button, QDoubleSpinBox::up-button {
+QSpinBox::up-button, QDateEdit::up-button, QDateTimeEdit::up-button, QTimeEdit::up-button, QDoubleSpinBox::up-button {
 	border: 1px transparent;
 	subcontrol-origin: border;
 	subcontrol-position: top right;
 	width: 16px;
 }
-QSpinBox::down-button, QDateTimeEdit::down-button, QDoubleSpinBox::down-button {
+QSpinBox::down-button, QDateEdit::down-button, QDateTimeEdit::down-button, QTimeEdit::down-button, QDoubleSpinBox::down-button {
 	border: 1px transparent;
 	subcontrol-origin: border;
 	subcontrol-position: bottom right;
 	width: 16px;
 }
-QSpinBox::up-arrow, QDateTimeEdit::up-arrow, QDoubleSpinBox::up-arrow {
+QSpinBox::up-arrow, QDateEdit::up-arrow, QDateTimeEdit::up-arrow,  QTimeEdit::up-arrow, QDoubleSpinBox::up-arrow {
 	image: url(:/dolphin_dark_win/up-triangle-spinbox.svg);
 	width: 14px;
 	height: 7px;
 }
-QSpinBox::down-arrow, QDateTimeEdit::down-arrow, QDoubleSpinBox::down-arrow {
+QSpinBox::down-arrow, QDateEdit::down-arrow, QDateTimeEdit::down-arrow, QTimeEdit::down-arrow, QDoubleSpinBox::down-arrow {
 	image: url(:/dolphin_dark_win/down-triangle-spinbox.svg);
 	width: 14px;
 	height: 7px;
@@ -327,5 +367,8 @@ https://bugreports.qt.io/browse/QTBUG-3564 (yes that's from 2009 and it's still 
 Truly bizarre. I'll just refrain from styling it from now...
 */
 QSlider::handle {
+	background-color: #dcdcdc;
+}
+QSlider::handle:disabled {
 	background-color: #7e7e7e;
 }
