@@ -138,8 +138,12 @@ void GamecubeControllersWidget::OnGCPadConfigure(size_t index)
     type = MappingWindow::Type::MAPPING_GCPAD;
     break;
   case SerialInterface::SIDEVICE_WIIU_ADAPTER:
-    GCPadWiiUConfigDialog(static_cast<int>(index), this).exec();
+  {
+    GCPadWiiUConfigDialog dialog(static_cast<int>(index), this);
+    SetQWidgetWindowDecorations(&dialog);
+    dialog.exec();
     return;
+  }
   case SerialInterface::SIDEVICE_GC_STEERING:
     type = MappingWindow::Type::MAPPING_GC_STEERINGWHEEL;
     break;

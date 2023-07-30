@@ -14,6 +14,7 @@
 #include "Common/FileUtil.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
+#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "UICommon/ResourcePack/Manager.h"
 
 ResourcePackManager::ResourcePackManager(QWidget* widget) : QDialog(widget)
@@ -241,6 +242,7 @@ void ResourcePackManager::Remove()
   box.setIcon(QMessageBox::Warning);
   box.setStandardButtons(QMessageBox::Yes | QMessageBox::Abort);
 
+  SetQWidgetWindowDecorations(&box);
   if (box.exec() != QMessageBox::Yes)
     return;
 

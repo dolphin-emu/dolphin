@@ -1275,6 +1275,7 @@ void MainWindow::ShowGeneralWindow()
 void MainWindow::ShowAboutDialog()
 {
   AboutDialog about{this};
+  SetQWidgetWindowDecorations(&about);
   about.exec();
 }
 
@@ -1770,6 +1771,7 @@ void MainWindow::OnImportNANDBackup()
     dialog.Reset();
   });
 
+  SetQWidgetWindowDecorations(dialog.GetRaw());
   dialog.GetRaw()->exec();
 
   result.wait();

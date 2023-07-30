@@ -29,6 +29,7 @@
 #include "Core/System.h"
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Settings/GameCubePane.h"
@@ -486,6 +487,7 @@ void GBAWidget::contextMenuEvent(QContextMenuEvent* event)
   size_menu->addAction(x4_action);
 
   menu->move(event->globalPos());
+  SetQWidgetWindowDecorations(menu);
   menu->show();
 }
 

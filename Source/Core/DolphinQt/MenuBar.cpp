@@ -57,6 +57,7 @@
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
+#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Updater.h"
 
@@ -1141,8 +1142,12 @@ void MenuBar::CheckNAND()
     return;
   }
 
-  if (NANDRepairDialog(result, this).exec() != QDialog::Accepted)
-    return;
+  {
+    NANDRepairDialog dialog(result, this);
+    SetQWidgetWindowDecorations(&dialog);
+    if (dialog.exec() != QDialog::Accepted)
+      return;
+  }
 
   if (WiiUtils::RepairNAND(ios))
   {
@@ -1299,6 +1304,7 @@ void MenuBar::GenerateSymbolsFromRSOAuto()
 
     return matches;
   });
+  SetQWidgetWindowDecorations(progress.GetRaw());
   progress.GetRaw()->exec();
 
   const auto matches = future.get();
