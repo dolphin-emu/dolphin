@@ -452,8 +452,8 @@ void OnScreenUI::SetKeyMap(const DolphinKeyMap& key_map)
       ImGuiKey_DownArrow, ImGuiKey_PageUp,    ImGuiKey_PageDown,   ImGuiKey_Home,
       ImGuiKey_End,       ImGuiKey_Insert,    ImGuiKey_Delete,     ImGuiKey_Backspace,
       ImGuiKey_Space,     ImGuiKey_Enter,     ImGuiKey_Escape,     ImGuiKey_KeypadEnter,
-      ImGuiKey_A,         ImGuiKey_C,         ImGuiKey_V,          ImGuiKey_X,
-      ImGuiKey_Y,         ImGuiKey_Z,
+      ImGuiMod_Ctrl,      ImGuiMod_Shift,     ImGuiKey_A,          ImGuiKey_C,
+      ImGuiKey_V,         ImGuiKey_X,         ImGuiKey_Y,          ImGuiKey_Z,
   };
 
   auto lock = GetImGuiLock();
