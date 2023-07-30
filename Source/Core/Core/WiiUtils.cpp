@@ -961,6 +961,34 @@ static NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios, bool repair)
     }
   }
 
+  // Get some storage stats.
+  const auto fs = ios.GetFS();
+  const auto root_stats = fs->GetExtendedDirectoryStats("/");
+
+  // The Wii System Menu's save/channel management only considers a specific subset of the Wii NAND
+  // user-accessible and will only use those folders when calculating the amount of free blocks it
+  // displays. This can have weird side-effects where the other parts of the NAND contain more data
+  // than reserved and it will display free blocks even though there isn't any space left. To avoid
+  // confusion, report the 'user' and 'system' data separately to the user.
+  u64 used_clusters_user = 0;
+  u64 used_inodes_user = 0;
+  for (std::string user_path : {"/meta", "/ticket", "/title/00010000", "/title/00010001",
+                                "/title/00010003", "/title/00010004", "/title/00010005",
+                                "/title/00010006", "/title/00010007", "/shared2/title"})
+  {
+    const auto dir_stats = fs->GetExtendedDirectoryStats(user_path);
+    if (dir_stats)
+    {
+      used_clusters_user += dir_stats->used_clusters;
+      used_inodes_user += dir_stats->used_inodes;
+    }
+  }
+
+  result.used_clusters_user = used_clusters_user;
+  result.used_clusters_system = root_stats ? (root_stats->used_clusters - used_clusters_user) : 0;
+  result.used_inodes_user = used_inodes_user;
+  result.used_inodes_system = root_stats ? (root_stats->used_inodes - used_inodes_user) : 0;
+
   return result;
 }
 

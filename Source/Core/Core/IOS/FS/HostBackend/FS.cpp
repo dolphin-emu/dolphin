@@ -29,21 +29,6 @@ namespace IOS::HLE::FS
 {
 constexpr u32 BUFFER_CHUNK_SIZE = 65536;
 
-// size of a single cluster in the NAND
-constexpr u16 CLUSTER_SIZE = 16384;
-
-// total number of clusters available in the NAND
-constexpr u16 TOTAL_CLUSTERS = 0x7ec0;
-
-// number of clusters reserved for bad blocks and similar, not accessible to normal writes
-constexpr u16 RESERVED_CLUSTERS = 0x0300;
-
-// number of clusters actually usable by the file system
-constexpr u16 USABLE_CLUSTERS = TOTAL_CLUSTERS - RESERVED_CLUSTERS;
-
-// total number of inodes available in the NAND
-constexpr u16 TOTAL_INODES = 0x17ff;
-
 HostFileSystem::HostFilename HostFileSystem::BuildFilename(const std::string& wii_path) const
 {
   for (const auto& redirect : m_nand_redirects)
@@ -819,10 +804,23 @@ Result<NandStats> HostFileSystem::GetNandStats()
 
 Result<DirectoryStats> HostFileSystem::GetDirectoryStats(const std::string& wii_path)
 {
+  const auto result = GetExtendedDirectoryStats(wii_path);
+  if (!result)
+    return result.Error();
+
+  DirectoryStats stats{};
+  stats.used_inodes = static_cast<u32>(std::min<u64>(result->used_inodes, TOTAL_INODES));
+  stats.used_clusters = static_cast<u32>(std::min<u64>(result->used_clusters, USABLE_CLUSTERS));
+  return stats;
+}
+
+Result<ExtendedDirectoryStats>
+HostFileSystem::GetExtendedDirectoryStats(const std::string& wii_path)
+{
   if (!IsValidPath(wii_path))
     return ResultCode::Invalid;
 
-  DirectoryStats stats{};
+  ExtendedDirectoryStats stats{};
   std::string path(BuildFilename(wii_path).host_path);
   File::FileInfo info(path);
   if (!info.Exists())
@@ -835,10 +833,8 @@ Result<DirectoryStats> HostFileSystem::GetDirectoryStats(const std::string& wii_
     FixupDirectoryEntries(&parent_dir, wii_path == "/");
 
     // add one for the folder itself
-    stats.used_inodes = static_cast<u32>(std::min<u64>(1 + parent_dir.size, TOTAL_INODES));
-
-    const u64 clusters = ComputeUsedClusters(parent_dir);
-    stats.used_clusters = static_cast<u32>(std::min<u64>(clusters, USABLE_CLUSTERS));
+    stats.used_inodes = 1 + parent_dir.size;
+    stats.used_clusters = ComputeUsedClusters(parent_dir);
   }
   else
   {
