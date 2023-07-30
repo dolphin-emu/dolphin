@@ -69,14 +69,15 @@ QMenu::separator {
 QWidget {
 	background-color: #202020;
 }
-QListView, QTableView {
+QColumnView, QListView, QTableView, QTreeView {
 	background-color: #202020;
 	alternate-background-color: #303030;
+	border: 1px solid #7e7e7e;
+	selection-background-color: #202050;
 }
 QHeaderView::section {
 	background-color: #202020;
 	border: 0px;
-	border-top: 1px solid #7e7e7e;
 	border-right: 1px solid #7e7e7e;
 	padding: 0px;
 	text-align: right;
@@ -87,6 +88,9 @@ QHeaderView::section {
 	so the text is still centered correctly.
 	*/
 	padding-left: 10px;
+}
+QHeaderView::section:last {
+	border-right: 0px;
 }
 QHeaderView::section:hover, QHeaderView::section:checked {
 	background-color: #404040;
@@ -371,4 +375,55 @@ QSlider::handle {
 }
 QSlider::handle:disabled {
 	background-color: #7e7e7e;
+}
+
+QCheckBox {
+	padding: 2px 0px;
+}
+QCheckBox::indicator {
+	padding: 0px;
+	margin: 0px;
+	border: 0px;
+	width: 13px;
+}
+QCheckBox::indicator:disabled {
+	background-color: #505050;
+}
+QCheckBox::indicator:unchecked {
+	image: url(:/dolphin_dark_win/checkbox-empty.svg);
+}
+QCheckBox::indicator:checked {
+	image: url(:/dolphin_dark_win/checkbox-checked.svg);
+}
+QCheckBox::indicator:indeterminate {
+	image: url(:/dolphin_dark_win/checkbox-half.svg);
+}
+
+QRadioButton {
+	padding: 2px 0px;
+}
+QRadioButton::indicator {
+	padding: 0px;
+	margin: 0px;
+	border: 0px;
+	width: 13px;
+}
+QRadioButton::indicator:disabled {
+	background-color: #505050;
+}
+QRadioButton::indicator:unchecked {
+	image: url(:/dolphin_dark_win/radiobutton-empty.svg);
+}
+QRadioButton::indicator:checked {
+	image: url(:/dolphin_dark_win/radiobutton-checked.svg);
+}
+
+QListView::indicator:unchecked {
+	image: url(:/dolphin_dark_win/checkbox-empty.svg);
+}
+QListView::indicator:checked {
+	image: url(:/dolphin_dark_win/checkbox-checked.svg);
+}
+QListView::indicator:indeterminate {
+	image: url(:/dolphin_dark_win/checkbox-half.svg);
 }
