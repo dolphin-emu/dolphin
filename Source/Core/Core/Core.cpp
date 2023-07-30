@@ -391,9 +391,10 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
   static_cast<void>(IDCache::GetEnvForThread());
 #endif
 
-  const bool fastmem_enabled = Config::Get(Config::MAIN_FASTMEM);
-  if (fastmem_enabled)
-    EMM::InstallExceptionHandler();  // Let's run under memory watch
+  // The JIT need to be able to intercept faults, both for fastmem and for the BLR optimization.
+  const bool exception_handler = EMM::IsExceptionHandlerSupported();
+  if (exception_handler)
+    EMM::InstallExceptionHandler();
 
 #ifdef USE_MEMORYWATCHER
   s_memory_watcher = std::make_unique<MemoryWatcher>();
@@ -441,7 +442,7 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
 
   s_is_started = false;
 
-  if (fastmem_enabled)
+  if (exception_handler)
     EMM::UninstallExceptionHandler();
 
   if (GDBStub::IsActive())
