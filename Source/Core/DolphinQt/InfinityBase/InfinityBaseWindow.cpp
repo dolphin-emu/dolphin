@@ -26,6 +26,7 @@
 #include "Core/System.h"
 
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
+#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Settings.h"
 
 // Qt is not guaranteed to keep track of file paths using native file pickers, so we use this
@@ -149,6 +150,7 @@ void InfinityBaseWindow::LoadFigure(u8 slot)
 void InfinityBaseWindow::CreateFigure(u8 slot)
 {
   CreateFigureDialog create_dlg(this, slot);
+  SetQWidgetWindowDecorations(&create_dlg);
   if (create_dlg.exec() == CreateFigureDialog::Accepted)
   {
     LoadFigurePath(slot, create_dlg.GetFilePath());

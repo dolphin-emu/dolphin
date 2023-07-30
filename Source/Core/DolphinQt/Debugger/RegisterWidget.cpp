@@ -18,6 +18,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 #include "DolphinQt/Host.h"
+#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Settings.h"
 
 RegisterWidget::RegisterWidget(QWidget* parent)
@@ -307,6 +308,7 @@ void RegisterWidget::AutoStep(const std::string& reg) const
       break;
 
     // Can keep running and try again after a time out.
+    SetQWidgetWindowDecorations(&msgbox);
     msgbox.exec();
     if (msgbox.clickedButton() != (QAbstractButton*)run_button)
       break;

@@ -28,6 +28,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 #include "DolphinQt/Host.h"
+#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Settings.h"
 
 static const QString BOX_SPLITTER_STYLESHEET = QStringLiteral(
@@ -213,6 +214,7 @@ void CodeWidget::OnDiff()
   if (!m_diff_dialog)
     m_diff_dialog = new CodeDiffDialog(this);
   m_diff_dialog->setWindowFlag(Qt::WindowMinimizeButtonHint);
+  SetQWidgetWindowDecorations(m_diff_dialog);
   m_diff_dialog->show();
   m_diff_dialog->raise();
   m_diff_dialog->activateWindow();
