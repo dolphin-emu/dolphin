@@ -1,5 +1,5 @@
 /*
-Qt dark theme for a Window 10-like look and feel
+Theme for a look and feel like our default Windows theme, but dark
 */
 
 * {
@@ -17,17 +17,38 @@ would be #000000 for active, #2b2b2b for background
 QMenu {
 	border: 1px solid #7e7e7e;
 }
-QMenuBar, QMenuBar::item, QMenu, QMenu::item {
+QMenuBar {
 	background-color: #202020;
 	color: #dcdcdc;
+	border: 0px;
+}
+QMenu {
+	background-color: #202020;
+	color: #dcdcdc;
+	border: 1px solid #7e7e7e;
+}
+QMenuBar::item {
+	background-color: #202020;
+	color: #dcdcdc;
+	border: 0px;
+	padding-left: 8px;
+	padding-right: 8px;
+	padding-top: 3px;
+	padding-bottom: 2px;
+	margin: 0px;
+}
+QMenuBar {
+	border-color: #404040;
 }
 QMenu::item {
 	background-color: #202020;
 	color: #dcdcdc;
+	border: 0px;
 	padding-left: 8px;
 	padding-right: 32px;
 	padding-top: 4px;
 	padding-bottom: 4px;
+	margin: 0px;
 }
 QMenuBar::item:hover, QMenuBar::item:selected, QMenu::item:hover, QMenu::item:selected {
 	background-color: #404040;
@@ -59,41 +80,224 @@ QHeaderView::section:hover, QHeaderView::section:checked {
 	background-color: #404040;
 }
 
-QTabBar::tab {
-	background-color: #202020;
+QTabWidget::pane {
 	border-left: 1px solid #7e7e7e;
-	border-right: 0px;
+	border-right: 1px solid #7e7e7e;
 	border-top: 1px solid #7e7e7e;
 	border-bottom: 1px solid #7e7e7e;
-	padding: 5px;
-	margin-top: 1px;
+	top: -1px; /* move border behind tabs */
 }
-QTabBar::tab:last {
-	border-right: 1px solid #7e7e7e;
-}
-QTabBar::tab:hover {
-	background-color: #404040;
-}
-QTabBar::tab:next-selected {
-	border-right: 0px;
-}
-QTabBar::tab:previous-selected {
-	border-left: 0px;
-}
-QTabBar::tab:selected {
-	border-right: 1px solid #7e7e7e;
-	background-color: #404040;
-	margin-top: 0px;
+QTabWidget::tab-bar {
+	left: 2px; /* leave space on the side of the tabs */
 }
 
-QPushButton {
+QTabBar::tab {
+	background-color: #303030;
+	border-left: 1px solid #7e7e7e;
+	border-right: 1px solid #7e7e7e;
+	border-top: 1px solid #7e7e7e;
+	border-bottom: 1px solid #7e7e7e;
+	padding-top: 2px;
+	padding-bottom: 2px;
+	padding-left: 9px;
+	padding-right: 10px;
+	margin-right: -1px; /* so adjacent tab borders overlap */
+}
+QTabBar::tab:only-one {
+	margin-right: 0px;
+}
+QTabBar::tab:last {
+	margin-right: 0px;
+}
+QTabBar::tab:hover {
+	background-color: #202050;
+}
+QTabBar::tab:selected {
+	border-bottom: 0px;
+	background-color: #202020;
+	padding-bottom: 1px;
+}
+QTabBar::tab:!selected {
+	margin-top: 2px;
+}
+
+/* the icon bar at the top of the main window */
+QToolButton {
+	border: 0px;
+	padding: 0px 3px;
+	min-width: 0px;
+}
+
+QPushButton, QGroupBox QToolButton {
+	background-color: #303030;
 	border: 1px solid #7e7e7e;
 	padding: 2px;
 	min-width: 67px;
 }
-QPushButton:hover {
+QPushButton:hover, QGroupBox QToolButton:hover {
+	background-color: #202050;
+}
+QPushButton:focus, QGroupBox QToolButton:focus {
+	background-color: #202050;
+}
+QPushButton:disabled, QGroupBox QToolButton:disabled {
 	background-color: #404040;
 }
-QPushButton:focus {
-	border: 2px solid #7e7e7e;
+
+QGroupBox {
+	border: 1px solid #7e7e7e;
+	margin-top: 9px;
+	padding-top: 7px;
+	padding-bottom: 0px;
+	padding-left: 1px;
+	padding-right: 1px;
+	min-width: 60px;
+}
+QGroupBox::title {
+	subcontrol-origin: margin;
+	left: 9px;
+	padding-top: 1px;
+}
+
+QLineEdit {
+	border: 1px solid #7e7e7e;
+}
+
+QComboBox {
+	background-color: #303030;
+	border: 1px solid #7e7e7e;
+	margin: 0px;
+	padding-left: 3px;
+	padding-right: 3px;
+	padding-top: 1px;
+	padding-bottom: 1px;
+}
+QComboBox:disabled {
+	background-color: #404040;
+}
+QComboBox:selected {
+	background-color: #202050;
+}
+QComboBox:editable {
+	background-color: #202020;
+}
+QComboBox::drop-down {
+	border: 0px;
+}
+QComboBox::down-arrow {
+	image: url(:/dolphin_dark_win/dropdown-arrow.svg);
+	height: 10px;
+	width: 15px;
+}
+
+QScrollBar:vertical {
+	border: 0px;
+	background: #303030;
+	width: 15px;
+	margin: 15px 0px;
+}
+QScrollBar::handle:vertical { /* the bar in the middle */
+	border: 0px;
+	background: #606060;
+	min-height: 20px;
+}
+QScrollBar::add-line:vertical { /* the down button at the bottom */
+	border: 0px;
+	background: #303030;
+	height: 15px;
+	subcontrol-position: bottom;
+	subcontrol-origin: margin;
+}
+QScrollBar::sub-line:vertical { /* the up button at the top */
+	border: 0px;
+	background: #303030;
+	height: 15px;
+	subcontrol-position: top;
+	subcontrol-origin: margin;
+}
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { /* the area between the bar and the up/down buttons */
+	border: 0px;
+	background: none;
+}
+QScrollBar::up-arrow:vertical {
+	image: url(:/dolphin_dark_win/scrollbar-arrow-up.svg);
+	height: 15px;
+}
+QScrollBar::down-arrow:vertical {
+	image: url(:/dolphin_dark_win/scrollbar-arrow-down.svg);
+	height: 15px;
+}
+QScrollBar:horizontal {
+	border: 0px;
+	background: #303030;
+	height: 15px;
+	margin: 0px 15px;
+}
+QScrollBar::handle:horizontal { /* the bar in the middle */
+	border: 0px;
+	background: #606060;
+	min-width: 20px;
+}
+QScrollBar::add-line:horizontal { /* the right button */
+	border: 0px;
+	background: #303030;
+	width: 15px;
+	subcontrol-position: right;
+	subcontrol-origin: margin;
+}
+QScrollBar::sub-line:horizontal { /* the left button */
+	border: 0px;
+	background: #303030;
+	width: 15px;
+	subcontrol-position: left;
+	subcontrol-origin: margin;
+}
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal { /* the area between the bar and the left/right buttons */
+	border: 0px;
+	background: none;
+}
+QScrollBar::left-arrow:horizontal {
+	image: url(:/dolphin_dark_win/scrollbar-arrow-left.svg);
+	width: 15px;
+}
+QScrollBar::right-arrow:horizontal {
+	image: url(:/dolphin_dark_win/scrollbar-arrow-right.svg);
+	width: 15px;
+}
+
+QSpinBox, QDateTimeEdit, QDoubleSpinBox {
+	border: 1px solid #7e7e7e;
+	padding-right: 15px;
+}
+QSpinBox::up-button, QDateTimeEdit::up-button, QDoubleSpinBox::up-button {
+	border: 1px transparent;
+	subcontrol-origin: border;
+	subcontrol-position: top right;
+	width: 16px;
+}
+QSpinBox::down-button, QDateTimeEdit::down-button, QDoubleSpinBox::down-button {
+	border: 1px transparent;
+	subcontrol-origin: border;
+	subcontrol-position: bottom right;
+	width: 16px;
+}
+QSpinBox::up-arrow, QDateTimeEdit::up-arrow, QDoubleSpinBox::up-arrow {
+	image: url(:/dolphin_dark_win/scrollbar-arrow-up.svg);
+	width: 7px;
+	height: 7px;
+}
+QSpinBox::down-arrow, QDateTimeEdit::down-arrow, QDoubleSpinBox::down-arrow {
+	image: url(:/dolphin_dark_win/scrollbar-arrow-down.svg);
+	width: 7px;
+	height: 7px;
+}
+
+/*
+QSlider ticks break if you try to style the groove.
+https://stackoverflow.com/questions/27531542/tick-marks-disappear-on-styled-qslider
+https://bugreports.qt.io/browse/QTBUG-3564 (yes that's from 2009 and it's still accurate)
+Truly bizarre. I'll just refrain from styling it from now...
+*/
+QSlider::handle {
+	background-color: #7e7e7e;
 }

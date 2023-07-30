@@ -1,5 +1,10 @@
 <RCC>
-  <qresource prefix="/dolphin_dark_win">
-    <file>dark.qss</file>
-  </qresource>
+	<qresource prefix="/dolphin_dark_win">
+		<file>dark.qss</file>
+		<file>dropdown-arrow.svg</file>
+		<file>scrollbar-arrow-down.svg</file>
+		<file>scrollbar-arrow-left.svg</file>
+		<file>scrollbar-arrow-right.svg</file>
+		<file>scrollbar-arrow-up.svg</file>
+	</qresource>
 </RCC>
