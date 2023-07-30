@@ -153,6 +153,22 @@ void Settings::SetCurrentUserStyle(const QString& stylesheet_name)
       stylesheet_contents = QString::fromUtf8(stylesheet.readAll().data());
   }
 
+#ifdef _WIN32
+  if (stylesheet_contents.isEmpty())
+  {
+    // No theme selected or found. Usually we would just fallthrough and set an empty stylesheet
+    // which would select Qt's default theme, but unlike other OSes we don't automatically get a
+    // default dark theme on Windows when the user has selected dark mode in the Windows settings.
+    // So manually check if the user wants dark mode and, if yes, load our embedded dark theme.
+    if (IsSystemDark())
+    {
+      QFile file(QStringLiteral(":/dolphin_dark_win/dark.qss"));
+      if (file.open(QFile::ReadOnly))
+        stylesheet_contents = QString::fromUtf8(file.readAll().data());
+    }
+  }
+#endif
+
   // Define tooltips style if not already defined
   if (!stylesheet_contents.contains(QStringLiteral("QToolTip"), Qt::CaseSensitive))
   {
