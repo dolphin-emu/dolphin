@@ -150,6 +150,10 @@ QTabBar::tab:!selected {
 	margin-top: 2px;
 }
 
+QDockWidget {
+	background-color: #404040;
+}
+
 QPushButton, QToolButton {
 	background-color: #303030;
 	border: 1px solid #7e7e7e;
@@ -164,6 +168,20 @@ QPushButton:focus, QToolButton:focus {
 }
 QPushButton:disabled, QToolButton:disabled {
 	background-color: #404040;
+}
+
+/* the dropdownarrow on the right of the button in menu popup mode */
+QToolButton[popupMode="1"] {
+	padding-right: 19px;
+}
+QToolButton::menu-button {
+	border: 0px;
+	border-left: 1px solid #7e7e7e;
+	width: 18px;
+}
+QToolButton::menu-arrow {
+	image: url(:/dolphin_dark_win/down-triangle.svg);
+	width: 14px;
 }
 
 /* the icon bar at the top of the main window */
@@ -184,20 +202,6 @@ QToolBar QToolButton:focus {
 }
 QToolBar QToolButton:disabled {
 	background-color: #202020;
-}
-
-/* the dropdownarrow on the right of the button in menu popup mode */
-QToolButton[popupMode="1"] {
-	padding-right: 19px;
-}
-QToolButton::menu-button {
-	border: 0px;
-	border-left: 1px solid #7e7e7e;
-	width: 18px;
-}
-QToolButton::menu-arrow {
-	image: url(:/dolphin_dark_win/down-triangle.svg);
-	width: 14px;
 }
 
 QGroupBox {
@@ -426,4 +430,15 @@ QListView::indicator:checked {
 }
 QListView::indicator:indeterminate {
 	image: url(:/dolphin_dark_win/checkbox-half.svg);
+}
+
+QTabBar QToolButton {
+	background-color: #202020;
+	min-width: 0px;
+}
+QTabBar QToolButton::left-arrow {
+	image: url(:/dolphin_dark_win/left-triangle-tabbar.svg);
+}
+QTabBar QToolButton::right-arrow {
+	image: url(:/dolphin_dark_win/right-triangle-tabbar.svg);
 }
