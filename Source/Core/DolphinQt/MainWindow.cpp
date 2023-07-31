@@ -1822,6 +1822,30 @@ QSize MainWindow::sizeHint() const
   return QSize(800, 600);
 }
 
+#ifdef _WIN32
+bool MainWindow::nativeEvent(const QByteArray& eventType, void* message, qintptr* result)
+{
+  auto* msg = reinterpret_cast<MSG*>(message);
+  if (msg && msg->message == WM_SETTINGCHANGE && msg->lParam != NULL &&
+      std::wstring_view(L"ImmersiveColorSet")
+              .compare(reinterpret_cast<const wchar_t*>(msg->lParam)) == 0)
+  {
+    // Windows light/dark theme has changed. Update our flag and refresh the theme.
+    auto& settings = Settings::Instance();
+    const bool was_dark_before = settings.IsSystemDark();
+    settings.UpdateSystemDark();
+    if (settings.IsSystemDark() != was_dark_before)
+      settings.SetCurrentUserStyle(settings.GetCurrentUserStyle());
+
+    // TODO: When switching from light to dark, the window decorations remain light. Qt seems very
+    // convinced that it needs to change these in response to this message, so even if we set them
+    // to dark here, Qt sets them back to light afterwards.
+  }
+
+  return false;
+}
+#endif
+
 void MainWindow::OnBootGameCubeIPL(DiscIO::Region region)
 {
   StartGame(std::make_unique<BootParameters>(BootParameters::IPL{region}));
