@@ -19,6 +19,8 @@
 
 #include <fmt/format.h>
 
+#include <winrt/Windows.UI.ViewManagement.h>
+
 #include <QTabBar>
 #include <QToolButton>
 #endif
@@ -125,6 +127,22 @@ QString Settings::GetCurrentUserStyle() const
 
   // Migration code for the old way of storing this setting
   return QFileInfo(GetQSettings().value(QStringLiteral("userstyle/path")).toString()).fileName();
+}
+
+void Settings::UpdateSystemDark()
+{
+#ifdef _WIN32
+  // Check if the system is set to dark mode so we can set the default theme and window
+  // decorations accordingly.
+  {
+    using namespace winrt::Windows::UI::ViewManagement;
+    const UISettings settings;
+    const auto& color = settings.GetColorValue(UIColorType::Foreground);
+
+    const bool is_system_dark = 5 * color.G + 2 * color.R + color.B > 8 * 128;
+    Settings::Instance().SetSystemDark(is_system_dark);
+  }
+#endif
 }
 
 void Settings::SetSystemDark(bool dark)

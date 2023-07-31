@@ -7,8 +7,6 @@
 #include <vector>
 
 #include <Windows.h>
-
-#include <winrt/Windows.UI.ViewManagement.h>
 #endif
 
 #ifdef __linux__
@@ -248,20 +246,7 @@ int main(int argc, char* argv[])
     DolphinAnalytics::Instance().ReportDolphinStart("qt");
 
     MainWindow win{std::move(boot), static_cast<const char*>(options.get("movie"))};
-
-#ifdef _WIN32
-    // Check if the system is set to dark mode so we can set the default theme and window
-    // decorations accordingly.
-    {
-      using namespace winrt::Windows::UI::ViewManagement;
-      const UISettings settings;
-      const auto& color = settings.GetColorValue(UIColorType::Foreground);
-
-      const bool is_system_dark = 5 * color.G + 2 * color.R + color.B > 8 * 128;
-      Settings::Instance().SetSystemDark(is_system_dark);
-    }
-#endif
-
+    Settings::Instance().UpdateSystemDark();
     Settings::Instance().SetCurrentUserStyle(Settings::Instance().GetCurrentUserStyle());
     win.Show();
 
