@@ -76,6 +76,7 @@
     <ClCompile Include="Core\PatchAllowlistTest.cpp" />
     <ClCompile Include="Core\PowerPC\DivUtilsTest.cpp" />
     <ClCompile Include="Core\PowerPC\PageTableHostMappingTest.cpp" />
+    <ClCompile Include="Core\PowerPC\PPCAnalystTest.cpp" />
     <ClCompile Include="VideoCommon\VertexLoaderTest.cpp" />
     <ClCompile Include="StubHost.cpp" />
   </ItemGroup>
