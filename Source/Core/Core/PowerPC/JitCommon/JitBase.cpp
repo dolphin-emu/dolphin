@@ -151,7 +151,12 @@ void JitBase::ProtectStack()
 
 #ifdef _WIN32
   ULONG reserveSize = SAFE_STACK_SIZE;
-  SetThreadStackGuarantee(&reserveSize);
+  if (!SetThreadStackGuarantee(&reserveSize))
+  {
+    PanicAlertFmt("Failed to set thread stack guarantee");
+    m_enable_blr_optimization = false;
+    return;
+  }
 #else
   auto [stack_addr, stack_size] = Common::GetCurrentThreadStack();
 
@@ -184,7 +189,12 @@ void JitBase::ProtectStack()
   }
 
   m_stack_guard = reinterpret_cast<u8*>(stack_guard_addr);
-  Common::ReadProtectMemory(m_stack_guard, GUARD_SIZE);
+  if (!Common::ReadProtectMemory(m_stack_guard, GUARD_SIZE))
+  {
+    m_stack_guard = nullptr;
+    m_enable_blr_optimization = false;
+    return;
+  }
 #endif
 }
 
