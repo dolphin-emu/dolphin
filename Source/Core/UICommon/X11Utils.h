@@ -23,7 +23,7 @@ bool ToggleFullscreen(Display* dpy, Window win);
 Window XWindowFromHandle(void* Handle);
 Display* XDisplayFromHandle(void* Handle);
 
-void InhibitScreensaver(Window win, bool suspend);
+void InhibitScreensaver(bool suspend);
 
 #ifdef HAVE_XRANDR
 class XRRConfiguration
