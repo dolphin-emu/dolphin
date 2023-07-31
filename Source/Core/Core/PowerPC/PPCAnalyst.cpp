@@ -4,6 +4,7 @@
 #include "Core/PowerPC/PPCAnalyst.h"
 
 #include <algorithm>
+#include <bit>
 #include <map>
 #include <queue>
 #include <string>
@@ -809,6 +810,12 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
   // Clear register stats
   block->m_gpa->any = true;
   block->m_fpa->any = false;
+#ifdef _M_ARM_64
+  block->m_gpa->load_pairs = {};
+  block->m_gpa->store_pairs = {};
+  block->m_fpa->load_pairs = {};
+  block->m_fpa->store_pairs = {};
+#endif
 
   // Set the blocks start address
   block->m_address = address;
@@ -1068,6 +1075,24 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
     }
   }
 
+#ifdef _M_ARM_64
+  BitSet32 gpr_load_pair_candidates = gprWillBeRead;
+  FindRegisterPairs(&gpr_load_pair_candidates, &block->m_gpa->load_pairs);
+
+  BitSet32 fpr_load_pair_candidates = fprWillBeRead;
+  FindRegisterPairs(&fpr_load_pair_candidates, &block->m_fpa->load_pairs);
+
+  BitSet32 gpr_store_pair_candidates = gprWillBeWritten;
+  FindRegisterPairs(&gpr_store_pair_candidates, &block->m_gpa->store_pairs);
+  OddLengthRunsToEvenLengthRuns(&gpr_store_pair_candidates);
+  FindRegisterPairs(&gpr_store_pair_candidates, &block->m_gpa->store_pairs);
+
+  BitSet32 fpr_store_pair_candidates = fprWillBeWritten;
+  FindRegisterPairs(&fpr_store_pair_candidates, &block->m_fpa->store_pairs);
+  OddLengthRunsToEvenLengthRuns(&fpr_store_pair_candidates);
+  FindRegisterPairs(&fpr_store_pair_candidates, &block->m_fpa->store_pairs);
+#endif
+
   // Forward scan, for flags that need the other direction for calculation.
   BitSet32 fprIsSingle, fprIsDuplicated, fprIsStoreSafe;
   BitSet8 gqrUsed, gqrModified;
@@ -1159,11 +1184,73 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
       if (gqr >= 0 && gqr <= 7)
         gqrModified[gqr] = true;
     }
+
+#ifdef _M_ARM_64
+    // As a tie-break for odd-length runs of registers to assign load pairs for, if an instruction
+    // that's early in a block has two adjacent registers as inputs, prefer putting those registers
+    // in the same load pair. This is intended to let the host CPU start doing useful work as soon
+    // as possible.
+    if (FindRegisterPairs(&gpr_load_pair_candidates, &block->m_gpa->load_pairs, op.regsIn) != 0)
+    {
+      // If the odd-length run was long, it will now have been split into two shorter runs, with a
+      // gap in between. One of the new runs is even-length, so let's run FindRegisterPairs again.
+      FindRegisterPairs(&gpr_load_pair_candidates, &block->m_gpa->load_pairs);
+    }
+    if (FindRegisterPairs(&fpr_load_pair_candidates, &block->m_fpa->load_pairs, op.fregsIn) != 0)
+    {
+      // If the odd-length run was long, it will now have been split into two shorter runs, with a
+      // gap in between. One of the new runs is even-length, so let's run FindRegisterPairs again.
+      FindRegisterPairs(&fpr_load_pair_candidates, &block->m_fpa->load_pairs);
+    }
+#endif
   }
+
   block->m_gqr_used = gqrUsed;
   block->m_gqr_modified = gqrModified;
   block->m_gpr_inputs = gprWillBeRead;
+
+#ifdef _M_ARM_64
+  OddLengthRunsToEvenLengthRuns(&fpr_load_pair_candidates);
+  FindRegisterPairs(&fpr_load_pair_candidates, &block->m_fpa->load_pairs);
+
+  OddLengthRunsToEvenLengthRuns(&fpr_load_pair_candidates);
+  FindRegisterPairs(&fpr_load_pair_candidates, &block->m_fpa->load_pairs);
+#endif
+
   return address;
+}
+
+size_t FindRegisterPairs(BitSet32* candidates, BitSet32* out, BitSet32 mask)
+{
+  u64 candidates_to_check = candidates->m_val & mask.m_val;
+  size_t shift = 32;
+  size_t registers_handled = 0;
+
+  while (candidates_to_check != 0)
+  {
+    const int zero_count = std::countl_zero(u32(candidates_to_check));
+    shift -= zero_count;
+    candidates_to_check <<= zero_count;
+
+    const int one_count = std::countl_one(u32(candidates_to_check));
+    shift -= one_count;
+    candidates_to_check <<= one_count;
+
+    if ((one_count & 1) == 0)
+    {
+      const u32 ones = static_cast<u32>(((1ULL << one_count) - 1));
+      *candidates &= ~BitSet32(ones << shift);
+      *out |= BitSet32((ones & 0x55555555) << shift);
+      registers_handled += ones;
+    }
+  }
+
+  return registers_handled;
+}
+
+void OddLengthRunsToEvenLengthRuns(BitSet32* candidates)
+{
+  *candidates &= *candidates >> 1;
 }
 
 }  // namespace PPCAnalyst
