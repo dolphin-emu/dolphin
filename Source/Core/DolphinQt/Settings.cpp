@@ -4,19 +4,21 @@
 #include "DolphinQt/Settings.h"
 
 #include <atomic>
+#include <memory>
 
 #include <QApplication>
+#include <QColor>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QFontDatabase>
+#include <QPalette>
 #include <QRadioButton>
 #include <QSize>
+#include <QStyle>
 #include <QWidget>
 
 #ifdef _WIN32
-#include <memory>
-
 #include <fmt/format.h>
 
 #include <winrt/Windows.UI.ViewManagement.h>
@@ -50,6 +52,7 @@
 #include "VideoCommon/NetPlayGolfUI.h"
 
 static bool s_system_dark = false;
+static std::unique_ptr<QPalette> s_default_palette;
 
 Settings::Settings()
 {
@@ -129,6 +132,11 @@ QString Settings::GetCurrentUserStyle() const
   return QFileInfo(GetQSettings().value(QStringLiteral("userstyle/path")).toString()).fileName();
 }
 
+void Settings::InitDefaultPalette()
+{
+  s_default_palette = std::make_unique<QPalette>(qApp->palette());
+}
+
 void Settings::UpdateSystemDark()
 {
 #ifdef _WIN32
@@ -183,6 +191,28 @@ void Settings::SetCurrentUserStyle(const QString& stylesheet_name)
       QFile file(QStringLiteral(":/dolphin_dark_win/dark.qss"));
       if (file.open(QFile::ReadOnly))
         stylesheet_contents = QString::fromUtf8(file.readAll().data());
+
+      QPalette palette = qApp->style()->standardPalette();
+      palette.setColor(QPalette::Window, QColor(32, 32, 32));
+      palette.setColor(QPalette::WindowText, QColor(220, 220, 220));
+      palette.setColor(QPalette::Base, QColor(32, 32, 32));
+      palette.setColor(QPalette::AlternateBase, QColor(48, 48, 48));
+      palette.setColor(QPalette::PlaceholderText, QColor(126, 126, 126));
+      palette.setColor(QPalette::Text, QColor(220, 220, 220));
+      palette.setColor(QPalette::Button, QColor(48, 48, 48));
+      palette.setColor(QPalette::ButtonText, QColor(220, 220, 220));
+      palette.setColor(QPalette::BrightText, QColor(255, 255, 255));
+      palette.setColor(QPalette::Highlight, QColor(0, 120, 215));
+      palette.setColor(QPalette::HighlightedText, QColor(255, 255, 255));
+      palette.setColor(QPalette::Link, QColor(100, 160, 220));
+      palette.setColor(QPalette::LinkVisited, QColor(100, 160, 220));
+      qApp->setPalette(palette);
+    }
+    else
+    {
+      // reset any palette changes that may exist from a previously set dark mode
+      if (s_default_palette)
+        qApp->setPalette(*s_default_palette);
     }
   }
 #endif

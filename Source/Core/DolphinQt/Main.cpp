@@ -246,6 +246,7 @@ int main(int argc, char* argv[])
     DolphinAnalytics::Instance().ReportDolphinStart("qt");
 
     MainWindow win{std::move(boot), static_cast<const char*>(options.get("movie"))};
+    Settings::Instance().InitDefaultPalette();
     Settings::Instance().UpdateSystemDark();
     Settings::Instance().SetCurrentUserStyle(Settings::Instance().GetCurrentUserStyle());
     win.Show();

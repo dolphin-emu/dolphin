@@ -52,6 +52,7 @@ public:
 
   // UI
   void SetThemeName(const QString& theme_name);
+  void InitDefaultPalette();
   void UpdateSystemDark();
   void SetSystemDark(bool dark);
   bool IsSystemDark();
