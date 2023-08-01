@@ -22,6 +22,28 @@
 #include <json.hpp>
 using json = nlohmann::json;
 
+const std::vector<std::string> SlippiUser::default_chat_messages = {
+    "ggs",
+    "one more",
+    "brb",
+    "good luck",
+
+    "well played",
+    "that was fun",
+    "thanks",
+    "too good",
+
+    "sorry",
+    "my b",
+    "lol",
+    "wow",
+
+    "gotta go",
+    "one sec",
+    "let's play again later",
+    "bad connection",
+};
+
 #ifdef _WIN32
 #define MAX_SYSTEM_PROGRAM (4096)
 static void system_hidden(const char* cmd)
@@ -173,17 +195,17 @@ void SlippiUser::OpenLogInPage()
 
 void SlippiUser::UpdateApp()
 {
-	std::string url = "https://slippi.gg/downloads?update=true";
+  std::string url = "https://slippi.gg/downloads?update=true";
 
 #ifdef _WIN32
-	std::string command = "explorer \"" + url + "\"";
+  std::string command = "explorer \"" + url + "\"";
 #elif defined(__APPLE__)
-	std::string command = "open \"" + url + "\"";
+  std::string command = "open \"" + url + "\"";
 #else
-	std::string command = "xdg-open \"" + url + "\""; // Linux
+  std::string command = "xdg-open \"" + url + "\"";       // Linux
 #endif
 
-	RunSystemCommand(command);
+  RunSystemCommand(command);
 }
 
 void SlippiUser::ListenForLogIn()
@@ -279,6 +301,15 @@ SlippiUser::UserInfo SlippiUser::parseFile(std::string file_contents)
   info.play_key = readString(res, "playKey");
   info.connect_code = readString(res, "connectCode");
   info.latest_version = readString(res, "latestVersion");
+  info.chat_messages = SlippiUser::default_chat_messages;
+  if (res["chatMessages"].is_array())
+  {
+    info.chat_messages = res.value("chatMessages", SlippiUser::default_chat_messages);
+    if (info.chat_messages.size() != 16)
+    {
+      info.chat_messages = SlippiUser::default_chat_messages;
+    }
+  }
 
   return info;
 }
@@ -296,7 +327,8 @@ void SlippiUser::overwriteFromServer()
 
   // Perform curl request
   std::string resp;
-  curl_easy_setopt(m_curl, CURLOPT_URL, (URL_START + "/" + m_user_info.uid).c_str());
+  curl_easy_setopt(m_curl, CURLOPT_URL,
+                   (URL_START + "/" + m_user_info.uid + "?additionalFields=chatMessages").c_str());
   curl_easy_setopt(m_curl, CURLOPT_WRITEDATA, &resp);
   CURLcode res = curl_easy_perform(m_curl);
 
@@ -320,4 +352,12 @@ void SlippiUser::overwriteFromServer()
   m_user_info.connect_code = r.value("connectCode", m_user_info.connect_code);
   m_user_info.latest_version = r.value("latestVersion", m_user_info.latest_version);
   m_user_info.display_name = r.value("displayName", m_user_info.display_name);
+  if (r["chatMessages"].is_array())
+  {
+    m_user_info.chat_messages = r.value("chatMessages", SlippiUser::default_chat_messages);
+    if (m_user_info.chat_messages.size() != 16)
+    {
+      m_user_info.chat_messages = SlippiUser::default_chat_messages;
+    }
+  }
 }

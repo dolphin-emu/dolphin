@@ -657,7 +657,7 @@ endif()
 set(SLIPPI_PLAYBACK TRUE)
 if(SLIPPI_PLAYBACK)
   # Slippi Playback build option
-  add_definitions(-DIS_PLAYBACK=1)
+  # add_definitions(-DIS_PLAYBACK=1)
 endif()
 
 ########################################

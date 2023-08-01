@@ -611,11 +611,25 @@ std::string UTF16BEToUTF8(const char16_t* str, size_t max_size)
 #else
 
 template <typename T>
-std::string CodeTo(const char* tocode, const char* fromcode, std::basic_string_view<T> input)
+#ifdef __APPLE__
+std::string CodeToWithFallbacks(const char* tocode, const char* fromcode,
+                                const std::basic_string<T>& input, iconv_fallbacks* fallbacks)
+#else
+std::string CodeTo(const char* tocode, const char* fromcode, const std::basic_string<T>& input)
+#endif
 {
   std::string result;
 
   iconv_t const conv_desc = iconv_open(tocode, fromcode);
+
+  // Only on OS X can we call iconvctl, it isn't found on Linux
+#ifdef __APPLE__
+  if (fallbacks)
+  {
+    iconvctl(conv_desc, ICONV_SET_FALLBACKS, fallbacks);
+  }
+#endif
+
   if ((iconv_t)-1 == conv_desc)
   {
     ERROR_LOG_FMT(COMMON, "Iconv initialization failure [{}]: {}", fromcode, strerror(errno));
@@ -671,6 +685,14 @@ std::string CodeTo(const char* tocode, const char* fromcode, std::basic_string_v
   return result;
 }
 
+#ifdef __APPLE__
+template <typename T>
+std::string CodeTo(const char* tocode, const char* fromcode, const std::basic_string<T>& input)
+{
+  return CodeToWithFallbacks(tocode, fromcode, input, nullptr);
+}
+#endif
+
 template <typename T>
 std::string CodeToUTF8(const char* fromcode, std::basic_string_view<T> input)
 {
@@ -690,9 +712,74 @@ std::string SHIFTJISToUTF8(std::string_view input)
   return CodeToUTF8("SJIS", input);
 }
 
-std::string UTF8ToSHIFTJIS(std::string_view input)
+#ifdef __APPLE__
+void uc_to_mb_fb(unsigned int code,
+                 void (*write_replacement)(const char* buf, size_t buflen, void* callback_arg),
+                 void* callback_arg, void* data)
 {
-  return CodeTo("SJIS", "UTF-8", input);
+  static std::unordered_map<unsigned int, const char*> specialCharConvert = {
+      {'!', (const char*)"\x81\x49"},
+      {'"', (const char*)"\x81\x68"},
+      {'#', (const char*)"\x81\x94"},
+      {'$', (const char*)"\x81\x90"},
+      {'%', (const char*)"\x81\x93"},
+      {'&', (const char*)"\x81\x95"},
+      {'\'', (const char*)"\x81\x66"},
+      {'(', (const char*)"\x81\x69"},
+      {')', (const char*)"\x81\x6a"},
+      {'*', (const char*)"\x81\x96"},
+      {'+', (const char*)"\x81\x7b"},
+      {',', (const char*)"\x81\x43"},
+      {'-', (const char*)"\x81\x7c"},
+      {'.', (const char*)"\x81\x44"},
+      {'/', (const char*)"\x81\x5e"},
+      {':', (const char*)"\x81\x46"},
+      {';', (const char*)"\x81\x47"},
+      {'<', (const char*)"\x81\x83"},
+      {'=', (const char*)"\x81\x81"},
+      {'>', (const char*)"\x81\x84"},
+      {'?', (const char*)"\x81\x48"},
+      {'@', (const char*)"\x81\x97"},
+      {'[', (const char*)"\x81\x6d"},
+      {'\\', (const char*)"\x81\x5f"},
+      {']', (const char*)"\x81\x6e"},
+      {'^', (const char*)"\x81\x4f"},
+      {'_', (const char*)"\x81\x51"},
+      {'`', (const char*)"\x81\x4d"},
+      {'{', (const char*)"\x81\x6f"},
+      {'|', (const char*)"\x81\x62"},
+      {'}', (const char*)"\x81\x70"},
+      {'~', (const char*)"\x81\x60"},
+      {U'¥', "\x81\x8f"},
+      {U'•', "\x81\x45"},
+      {U'—', "\x81\x7C"}};
+
+  bool hasConversion = specialCharConvert.count(code);
+  if (!hasConversion)
+    return;
+
+  auto newChar = specialCharConvert[code];
+  // Add new chars to pos to replace
+  write_replacement(newChar, 2, callback_arg);
+}
+#endif
+
+std::string UTF8ToSHIFTJIS(const std::string& input)
+{
+#ifdef __APPLE__
+  // Set SHIFTJIS callbacks only if converting to shift jis
+  auto fallbacks = new iconv_fallbacks();
+  fallbacks->uc_to_mb_fallback = uc_to_mb_fb;
+  fallbacks->mb_to_uc_fallback = nullptr;
+  fallbacks->mb_to_wc_fallback = nullptr;
+  fallbacks->wc_to_mb_fallback = nullptr;
+  fallbacks->data = nullptr;
+  auto str = CodeToWithFallbacks("SJIS", "UTF-8", input, fallbacks);
+  free(fallbacks);
+#else
+  auto str = CodeTo("SJIS", "UTF-8", input);
+#endif
+  return str;
 }
 
 std::string WStringToUTF8(std::wstring_view input)

@@ -123,9 +123,6 @@ SlippiGameReporter::SlippiGameReporter(SlippiUser* user, const std::string curre
     INFO_LOG_FMT(SLIPPI_ONLINE, "MD5 Hash: {}", this->m_iso_hash);
   });
   m_md5_thread.detach();
-
-  run_thread = true;
-  reporting_thread = std::thread(&SlippiGameReporter::ReportThreadHandler, this);
 }
 
 SlippiGameReporter::~SlippiGameReporter()

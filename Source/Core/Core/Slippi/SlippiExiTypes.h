@@ -80,6 +80,15 @@ struct OverwriteSelectionsQuery
   OverwriteCharSelections chars[4];
 };
 
+struct PlayerSettings
+{
+  char chatMessages[16][51];
+};
+struct GetPlayerSettingsResponse
+{
+  PlayerSettings settings[4];
+};
+
 // Not sure if resetting is strictly needed, might be contained to the file
 #pragma pack()
 

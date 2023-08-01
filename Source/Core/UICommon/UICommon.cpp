@@ -513,7 +513,7 @@ bool TriggerSTMPowerEvent()
 #ifdef HAVE_X11
 void InhibitScreenSaver(Window win, bool inhibit)
 #else
-void InhibitScreenSaver(bool inhibit)
+  void InhibitScreenSaver(bool inhibit)
 #endif
 {
   // Inhibit the screensaver. Depending on the operating system this may also
