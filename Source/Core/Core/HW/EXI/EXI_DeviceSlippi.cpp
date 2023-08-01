@@ -2933,6 +2933,18 @@ void CEXISlippi::prepareGamePrepOppStep(const SlippiExiTypes::GpFetchStepQuery& 
                       data_ptr + sizeof(SlippiExiTypes::GpFetchStepResponse));
 }
 
+void CEXISlippi::handleCompleteSet(const SlippiExiTypes::ReportSetCompletionQuery& query)
+{
+  ERROR_LOG_FMT(SLIPPI_ONLINE, "Hello");
+
+  auto lastMatchId = recentMmResult.id;
+  if (lastMatchId.find("mode.ranked") != std::string::npos)
+  {
+    ERROR_LOG_FMT(SLIPPI_ONLINE, "Reporting set completion: {}", lastMatchId);
+    game_reporter->ReportCompletion(lastMatchId, query.endMode);
+  }
+}
+
 void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
 {
   auto& system = Core::System::GetInstance();
@@ -3102,6 +3114,10 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
     case CMD_GP_COMPLETE_STEP:
       handleGamePrepStepComplete(
           SlippiExiTypes::Convert<SlippiExiTypes::GpCompleteStepQuery>(&memPtr[bufLoc]));
+      break;
+    case CMD_REPORT_SET_COMPLETE:
+      handleCompleteSet(
+          SlippiExiTypes::Convert<SlippiExiTypes::ReportSetCompletionQuery>(&memPtr[bufLoc]));
       break;
     default:
       writeToFileAsync(&memPtr[bufLoc], payloadLen + 1, "");

@@ -54,6 +54,24 @@ static size_t curl_send(char* ptr, size_t size, size_t nmemb, void* userdata)
 
 SlippiGameReporter::SlippiGameReporter(SlippiUser* user, const std::string current_file_name)
 {
+  CURL* curl = curl_easy_init();
+  if (curl)
+  {
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_receive);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 10000);
+    // Set up HTTP Headers
+    m_curl_header_list = curl_slist_append(m_curl_header_list, "Content-Type: application/json");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, m_curl_header_list);
+
+    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, m_curl_err_buf);
+    curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
+#ifdef _WIN32
+    // ALPN support is enabled by default but requires Windows >= 8.1.
+    curl_easy_setopt(curl, CURLOPT_SSL_ENABLE_ALPN, false);
+#endif
+    m_curl = curl;
+  }
+
   CURL* curl_upload = curl_easy_init();
   if (curl_upload)
   {
@@ -61,6 +79,8 @@ SlippiGameReporter::SlippiGameReporter(SlippiUser* user, const std::string curre
     curl_easy_setopt(curl_upload, CURLOPT_UPLOAD, 1L);
     curl_easy_setopt(curl_upload, CURLOPT_WRITEFUNCTION, &curl_receive);
     curl_easy_setopt(curl_upload, CURLOPT_TIMEOUT_MS, 10000);
+    curl_easy_setopt(curl_upload, CURLOPT_ERRORBUFFER, m_curl_upload_err_buf);
+    curl_easy_setopt(curl_upload, CURLOPT_FAILONERROR, 1L);
 
     // Set up HTTP Headers
     m_curl_upload_headers =
@@ -79,8 +99,6 @@ SlippiGameReporter::SlippiGameReporter(SlippiUser* user, const std::string curre
 
   m_user = user;
 
-  // TODO: For mainline port, ISO file path can't be fetched this way. Look at the following:
-  // https://github.com/dolphin-emu/dolphin/blob/7f450f1d7e7d37bd2300f3a2134cb443d07251f9/Source/Core/Core/Movie.cpp#L246-L249;
   static const mbedtls_md_info_t* s_md5_info = mbedtls_md_info_from_type(MBEDTLS_MD_MD5);
   m_md5_thread = std::thread([this, current_file_name]() {
     std::array<u8, 16> md5_array;
@@ -315,6 +333,34 @@ void SlippiGameReporter::ReportAbandonment(std::string match_id)
   {
     ERROR_LOG_FMT(SLIPPI_ONLINE,
                   "[GameReport] Got error executing abandonment request. Err code: {}",
+                  static_cast<u8>(res));
+  }
+}
+
+void SlippiGameReporter::ReportCompletion(std::string matchId, u8 endMode)
+{
+  auto userInfo = m_user->GetUserInfo();
+
+  // Prepare report
+  json request;
+  request["matchId"] = matchId;
+  request["uid"] = userInfo.uid;
+  request["playKey"] = userInfo.play_key;
+  request["endMode"] = endMode;
+
+  auto requestString = request.dump();
+
+  // Send report
+  curl_easy_setopt(m_curl, CURLOPT_POST, true);
+  curl_easy_setopt(m_curl, CURLOPT_URL, COMPLETE_URL.c_str());
+  curl_easy_setopt(m_curl, CURLOPT_POSTFIELDS, requestString.c_str());
+  curl_easy_setopt(m_curl, CURLOPT_POSTFIELDSIZE, requestString.length());
+  CURLcode res = curl_easy_perform(m_curl);
+
+  if (res != 0)
+  {
+    ERROR_LOG_FMT(SLIPPI_ONLINE,
+                  "[GameReport] Got error executing completion request. Err code: {}",
                   static_cast<u8>(res));
   }
 }

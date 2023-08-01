@@ -37,6 +37,12 @@ struct ReportGameQuery
   u8 game_info_block[312];
 };
 
+struct ReportSetCompletionQuery
+{
+  u8 command;
+  u8 endMode;
+};
+
 struct GpCompleteStepQuery
 {
   u8 command;
