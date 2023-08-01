@@ -21,7 +21,7 @@
 
 
 /*
-   Grade-mini (27-07-2023)
+   Grade-mini (01-08-2023)
 
    > CRT emulation shader (composite signal, phosphor, gamma, temperature...)
    > Abridged port of RetroArch's Grade shader.
@@ -512,12 +512,12 @@ void main()
     bool   NTSC_U = g_crtgamut < 2.0;
 
     float2 UVmax  = float2(0.435812284313725, 0.615857694117647);  // 112.0,157.0
-    float2 Ymax   = NTSC_U ? float2(16.0, 235.0) : float2(0.0, 235.0);
+    float2 Ymax   = NTSC_U ? float2(16.0/255.0, 235.0/255.0) : float2(0.0, 235.0/255.0);
 
 
 // Assumes framebuffer in Rec.601 full range with baked gamma
-    float3 col    = clamp(r601_YUV(src, NTSC_U ? 1.0 : 0.0), float3(Ymax.x/255.0, -UVmax.x, -UVmax.y),\
-                                                             float3(Ymax.y/255.0,  UVmax.x,  UVmax.y));
+    float3 col    = clamp(r601_YUV(src, NTSC_U ? 1.0 : 0.0), float3(Ymax.x, -UVmax.x, -UVmax.y),\
+                                                             float3(Ymax.y,  UVmax.x,  UVmax.y));
 
 // YUV Analogue Color Controls (Color Burst)
     float    hue  = atan(col.z,  col.y);
