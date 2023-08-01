@@ -172,7 +172,7 @@ void SlippiGameReporter::ReportThreadHandler()
         continue;
       }
 
-      auto ranked = SlippiMatchmaking::OnlinePlayMode::RANKED;
+      // auto ranked = SlippiMatchmaking::OnlinePlayMode::RANKED;
 
       auto user_info = m_user->GetUserInfo();
       WARN_LOG_FMT(SLIPPI_ONLINE, "Checking game report for game {}. Length: {}...",
