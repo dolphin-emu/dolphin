@@ -21,9 +21,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-26 15:31+0200\n"
+"POT-Creation-Date: 2023-08-01 21:06+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
-"Last-Translator: 天绝星 <c.cejhb@gmail.com>, 2015-2023\n"
+"Last-Translator: 陈 依云 <c1998lf@qq.com>, 2023\n"
 "Language-Team: Chinese (China) (http://app.transifex.com/delroth/dolphin-emu/"
 "language/zh_CN/)\n"
 "Language: zh_CN\n"
@@ -201,10 +201,12 @@ msgid ""
 "%1 has unlocked %2/%3 achievements (%4 hardcore) worth %5/%6 points (%7 "
 "hardcore)"
 msgstr ""
+"%1 已解锁 %2/%3 项成就 (包括 %4 项 Hardcore 成就) 折合 %5/%6 成就点数 (包括 "
+"%7 Hardcore 点数)"
 
 #: Source/Core/DolphinQt/Achievements/AchievementHeaderWidget.cpp:131
 msgid "%1 has unlocked %2/%3 achievements worth %4/%5 points"
-msgstr ""
+msgstr "%1 已解锁 %2/%3 项成就，折合 %4/%5 成就点数"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1108
 msgid "%1 is not a valid ROM"
@@ -226,7 +228,7 @@ msgstr "%1 毫秒"
 #: Source/Core/DolphinQt/Achievements/AchievementHeaderWidget.cpp:86
 #: Source/Core/DolphinQt/Achievements/AchievementProgressWidget.cpp:55
 msgid "%1 points"
-msgstr ""
+msgstr "%1 成就点数"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:265
 msgid "%1 session found"
@@ -336,7 +338,7 @@ msgstr "&3x"
 msgid "&4x"
 msgstr "&4x"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:614
+#: Source/Core/DolphinQt/MenuBar.cpp:616
 msgid "&About"
 msgstr "关于(&A)"
 
@@ -357,7 +359,7 @@ msgstr "添加函数(&A)"
 msgid "&Add..."
 msgstr "添加...(&A)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:540
+#: Source/Core/DolphinQt/MenuBar.cpp:542
 msgid "&Audio Settings"
 msgstr "音频设置(&A)"
 
@@ -365,7 +367,7 @@ msgstr "音频设置(&A)"
 msgid "&Auto Update:"
 msgstr "自动更新(&A):"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:556
+#: Source/Core/DolphinQt/MenuBar.cpp:558
 msgid "&Automatic Start"
 msgstr "自动开始游戏(&A)"
 
@@ -373,11 +375,11 @@ msgstr "自动开始游戏(&A)"
 msgid "&Borderless Window"
 msgstr "无边框窗口(&B)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:472
+#: Source/Core/DolphinQt/MenuBar.cpp:474
 msgid "&Breakpoints"
 msgstr "断点(&B)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:597
+#: Source/Core/DolphinQt/MenuBar.cpp:599
 msgid "&Bug Tracker"
 msgstr "错误跟踪器(&B)"
 
@@ -385,15 +387,15 @@ msgstr "错误跟踪器(&B)"
 msgid "&Cancel"
 msgstr "取消(&C)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:224
+#: Source/Core/DolphinQt/MenuBar.cpp:226
 msgid "&Cheats Manager"
 msgstr "金手指管理器(&C)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:607
+#: Source/Core/DolphinQt/MenuBar.cpp:609
 msgid "&Check for Updates..."
 msgstr "检查更新...(&C)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:980
+#: Source/Core/DolphinQt/MenuBar.cpp:982
 msgid "&Clear Symbols"
 msgstr "清除符号(&C)"
 
@@ -401,7 +403,7 @@ msgstr "清除符号(&C)"
 msgid "&Clone..."
 msgstr "克隆...(&C)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:437
+#: Source/Core/DolphinQt/MenuBar.cpp:439
 msgid "&Code"
 msgstr "代码(&C)"
 
@@ -409,7 +411,7 @@ msgstr "代码(&C)"
 msgid "&Connected"
 msgstr "连接(&C)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:542
+#: Source/Core/DolphinQt/MenuBar.cpp:544
 msgid "&Controller Settings"
 msgstr "控制器设置(&C)"
 
@@ -448,11 +450,11 @@ msgstr "编辑代码...(&E)"
 msgid "&Edit..."
 msgstr "编辑...(&E)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:204
+#: Source/Core/DolphinQt/MenuBar.cpp:206
 msgid "&Eject Disc"
 msgstr "弹出光盘(&E)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:315
+#: Source/Core/DolphinQt/MenuBar.cpp:317
 msgid "&Emulation"
 msgstr "模拟(&E)"
 
@@ -472,27 +474,27 @@ msgstr "导出状态...(&E)"
 msgid "&Export as .gci..."
 msgstr "导出为 .gci...(&E)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:194
+#: Source/Core/DolphinQt/MenuBar.cpp:196
 msgid "&File"
 msgstr "文件(&F)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:569
+#: Source/Core/DolphinQt/MenuBar.cpp:571
 msgid "&Font..."
 msgstr "字体...(&F)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:321
+#: Source/Core/DolphinQt/MenuBar.cpp:323
 msgid "&Frame Advance"
 msgstr "逐帧播放(&F)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:544
+#: Source/Core/DolphinQt/MenuBar.cpp:546
 msgid "&Free Look Settings"
 msgstr "自由视点设置(&F)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:982
+#: Source/Core/DolphinQt/MenuBar.cpp:984
 msgid "&Generate Symbols From"
 msgstr "生成符号来自(&G)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:593
+#: Source/Core/DolphinQt/MenuBar.cpp:595
 msgid "&GitHub Repository"
 msgstr "GitHub 资源库(&G)"
 
@@ -500,15 +502,15 @@ msgstr "GitHub 资源库(&G)"
 msgid "&Go to start of function"
 msgstr "转到函数起始位置(&G)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:539
+#: Source/Core/DolphinQt/MenuBar.cpp:541
 msgid "&Graphics Settings"
 msgstr "图形设置(&G)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:584
+#: Source/Core/DolphinQt/MenuBar.cpp:586
 msgid "&Help"
 msgstr "帮助(&H)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:543
+#: Source/Core/DolphinQt/MenuBar.cpp:545
 msgid "&Hotkey Settings"
 msgstr "热键设置(&H)"
 
@@ -528,7 +530,7 @@ msgstr "导入状态...(&I)"
 msgid "&Import..."
 msgstr "导入...(&I)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:230
+#: Source/Core/DolphinQt/MenuBar.cpp:232
 msgid "&Infinity Base"
 msgstr "Infinity 底座(&I)"
 
@@ -540,7 +542,7 @@ msgstr "插入 blr (&I)"
 msgid "&Interframe Blending"
 msgstr "帧间混合(&I)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:497
+#: Source/Core/DolphinQt/MenuBar.cpp:499
 msgid "&JIT"
 msgstr "即时编译器(&J)"
 
@@ -548,11 +550,11 @@ msgstr "即时编译器(&J)"
 msgid "&Language:"
 msgstr "语言(&L):"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:338
+#: Source/Core/DolphinQt/MenuBar.cpp:340
 msgid "&Load State"
 msgstr "载入状态(&L)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:988
+#: Source/Core/DolphinQt/MenuBar.cpp:990
 msgid "&Load Symbol Map"
 msgstr "载入符号映射(&L)"
 
@@ -566,15 +568,15 @@ msgstr "将文件加载到当前地址(&L)"
 msgid "&Lock Watches"
 msgstr "锁定监视(&L)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:429
+#: Source/Core/DolphinQt/MenuBar.cpp:431
 msgid "&Lock Widgets In Place"
 msgstr "锁定部件位置(&L)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:481
+#: Source/Core/DolphinQt/MenuBar.cpp:483
 msgid "&Memory"
 msgstr "内存(&M)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:743
+#: Source/Core/DolphinQt/MenuBar.cpp:745
 msgid "&Movie"
 msgstr "影片(&M)"
 
@@ -582,7 +584,7 @@ msgstr "影片(&M)"
 msgid "&Mute"
 msgstr "静音(&M)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:489
+#: Source/Core/DolphinQt/MenuBar.cpp:491
 msgid "&Network"
 msgstr "网络(&N)"
 
@@ -591,23 +593,23 @@ msgid "&No"
 msgstr "否(&N)"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:135
-#: Source/Core/DolphinQt/MenuBar.cpp:196 Source/Core/DolphinQt/MenuBar.cpp:198
+#: Source/Core/DolphinQt/MenuBar.cpp:198 Source/Core/DolphinQt/MenuBar.cpp:200
 msgid "&Open..."
 msgstr "打开...(&O)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:530
+#: Source/Core/DolphinQt/MenuBar.cpp:532
 msgid "&Options"
 msgstr "选项(&O)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1008
+#: Source/Core/DolphinQt/MenuBar.cpp:1010
 msgid "&Patch HLE Functions"
 msgstr "修补 HLE 功能函数(&P)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:317
+#: Source/Core/DolphinQt/MenuBar.cpp:319
 msgid "&Pause"
 msgstr "暂停游戏(&P)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:316
+#: Source/Core/DolphinQt/MenuBar.cpp:318
 msgid "&Play"
 msgstr "开始游戏(&P)"
 
@@ -615,7 +617,7 @@ msgstr "开始游戏(&P)"
 msgid "&Properties"
 msgstr "属性(&P)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:758
+#: Source/Core/DolphinQt/MenuBar.cpp:760
 msgid "&Read-Only Mode"
 msgstr "只读模式(&R)"
 
@@ -623,7 +625,7 @@ msgstr "只读模式(&R)"
 msgid "&Refresh List"
 msgstr "刷新列表(&R)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:445
+#: Source/Core/DolphinQt/MenuBar.cpp:447
 msgid "&Registers"
 msgstr "寄存器(&R)"
 
@@ -641,15 +643,15 @@ msgid "&Rename symbol"
 msgstr "重命名符号(&R)"
 
 #: Source/Core/DolphinQt/GBAWidget.cpp:404
-#: Source/Core/DolphinQt/MenuBar.cpp:319
+#: Source/Core/DolphinQt/MenuBar.cpp:321
 msgid "&Reset"
 msgstr "重置游戏(&R)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:221
+#: Source/Core/DolphinQt/MenuBar.cpp:223
 msgid "&Resource Pack Manager"
 msgstr "资源包管理器(&R)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:989
+#: Source/Core/DolphinQt/MenuBar.cpp:991
 msgid "&Save Symbol Map"
 msgstr "保存符号映射(&S)"
 
@@ -657,7 +659,7 @@ msgstr "保存符号映射(&S)"
 msgid "&Scan e-Reader Card(s)..."
 msgstr "扫描 e-Reader 卡...(&S)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:229
+#: Source/Core/DolphinQt/MenuBar.cpp:231
 msgid "&Skylanders Portal"
 msgstr "Skylanders 传送门(&S)"
 
@@ -665,7 +667,7 @@ msgstr "Skylanders 传送门(&S)"
 msgid "&Speed Limit:"
 msgstr "速度限制(&S):"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:318
+#: Source/Core/DolphinQt/MenuBar.cpp:320
 msgid "&Stop"
 msgstr "停止游戏(&S)"
 
@@ -673,11 +675,11 @@ msgstr "停止游戏(&S)"
 msgid "&Theme:"
 msgstr "主题(&T):"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:454
+#: Source/Core/DolphinQt/MenuBar.cpp:456
 msgid "&Threads"
 msgstr "线程(&T)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:219
+#: Source/Core/DolphinQt/MenuBar.cpp:221
 msgid "&Tools"
 msgstr "工具(&T)"
 
@@ -691,17 +693,17 @@ msgstr "卸载 ROM (&U)"
 msgid "&Unlock Watches"
 msgstr "解锁监视(&U)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:403
+#: Source/Core/DolphinQt/MenuBar.cpp:405
 msgid "&View"
 msgstr "视图(&V)"
 
 #. i18n: This kind of "watch" is used for watching emulated memory.
 #. It's not related to timekeeping devices.
-#: Source/Core/DolphinQt/MenuBar.cpp:464
+#: Source/Core/DolphinQt/MenuBar.cpp:466
 msgid "&Watch"
 msgstr "监视(&W)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:586
+#: Source/Core/DolphinQt/MenuBar.cpp:588
 msgid "&Website"
 msgstr "网站(&W)"
 
@@ -713,11 +715,11 @@ msgstr "百科(&W)"
 msgid "&Yes"
 msgstr "是(&Y)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1248
+#: Source/Core/DolphinQt/MenuBar.cpp:1285
 msgid "'%1' not found, no symbol names generated"
 msgstr "找不到 '%1'，未生成符号名"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1469
+#: Source/Core/DolphinQt/MenuBar.cpp:1506
 msgid "'%1' not found, scanning for common functions instead"
 msgstr "找不到 '%1'，改为扫描常用函数"
 
@@ -1156,7 +1158,7 @@ msgid "Accuracy:"
 msgstr "精确度："
 
 #: Source/Core/DolphinQt/Achievements/AchievementsWindow.cpp:21
-#: Source/Core/DolphinQt/MenuBar.cpp:243
+#: Source/Core/DolphinQt/MenuBar.cpp:245
 msgid "Achievements"
 msgstr "成就"
 
@@ -1342,7 +1344,7 @@ msgstr "添加..."
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:181
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:233
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:91
-#: Source/Core/DolphinQt/MenuBar.cpp:983
+#: Source/Core/DolphinQt/MenuBar.cpp:985
 msgid "Address"
 msgstr "地址"
 
@@ -1591,15 +1593,15 @@ msgstr "抗锯齿："
 msgid "Any Region"
 msgstr "任意区域"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1618
+#: Source/Core/DolphinQt/MenuBar.cpp:1655
 msgid "Append signature to"
 msgstr "附加签名到"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1001
+#: Source/Core/DolphinQt/MenuBar.cpp:1003
 msgid "Append to &Existing Signature File..."
 msgstr "附加到现有签名文件...(&E)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1005
+#: Source/Core/DolphinQt/MenuBar.cpp:1007
 msgid "Appl&y Signature File..."
 msgstr "应用签名文件...(&Y)"
 
@@ -1619,7 +1621,7 @@ msgstr "应用载入器时间："
 msgid "Apply"
 msgstr "应用"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1641
+#: Source/Core/DolphinQt/MenuBar.cpp:1678
 msgid "Apply signature file"
 msgstr "应用签名文件"
 
@@ -1729,7 +1731,7 @@ msgstr "自动调整窗口大小"
 msgid "Auto-Hide"
 msgstr "自动隐藏"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1258
+#: Source/Core/DolphinQt/MenuBar.cpp:1295
 msgid "Auto-detect RSO modules?"
 msgstr "自动检测 RSO 模块？"
 
@@ -1836,7 +1838,7 @@ msgstr "值格式不正确。"
 #: Source/Core/DolphinQt/GameList/GameList.cpp:982
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:217
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:151
-#: Source/Core/DolphinQt/MenuBar.cpp:641
+#: Source/Core/DolphinQt/MenuBar.cpp:643
 msgid "Banner"
 msgstr "标图"
 
@@ -1910,7 +1912,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:992
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:231
-#: Source/Core/DolphinQt/MenuBar.cpp:651
+#: Source/Core/DolphinQt/MenuBar.cpp:653
 msgid "Block Size"
 msgstr "区块大小"
 
@@ -1947,7 +1949,7 @@ msgid ""
 msgstr ""
 "蓝牙直通模式已启用，但 Dolphin 构建没有加入 libusb 驱动。无法使用直通模式。"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:549
+#: Source/Core/DolphinQt/MenuBar.cpp:551
 msgid "Boot to Pause"
 msgstr "引导后暂停"
 
@@ -2024,7 +2026,7 @@ msgstr "宽带适配器错误"
 msgid "Broadband Adapter MAC Address"
 msgstr "宽带适配器 MAC 地址"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:236
+#: Source/Core/DolphinQt/MenuBar.cpp:238
 msgid "Browse &NetPlay Sessions...."
 msgstr "浏览联机会话...(&N)"
 
@@ -2088,7 +2090,7 @@ msgstr "作者："
 msgid "C Stick"
 msgstr "C 摇杆"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1000
+#: Source/Core/DolphinQt/MenuBar.cpp:1002
 msgid "C&reate Signature File..."
 msgstr "创建签名文件...(&R)"
 
@@ -2190,7 +2192,7 @@ msgstr "游戏运行时无法启动联机会话！"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp:57
 #: Source/Core/DolphinQt/Config/VerifyWidget.cpp:157
-#: Source/Core/DolphinQt/MenuBar.cpp:1290
+#: Source/Core/DolphinQt/MenuBar.cpp:1327
 #: Source/Core/DolphinQt/NKitWarningDialog.cpp:59
 #: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:50
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:282
@@ -2261,7 +2263,7 @@ msgstr "中心和校准"
 msgid "Change &Disc"
 msgstr "切换光盘(&D)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:203
+#: Source/Core/DolphinQt/MenuBar.cpp:205
 msgid "Change &Disc..."
 msgstr "切换光盘...(&D)"
 
@@ -2330,7 +2332,7 @@ msgstr "金手指搜索"
 msgid "Cheats Manager"
 msgstr "金手指管理器"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:268
+#: Source/Core/DolphinQt/MenuBar.cpp:270
 msgid "Check NAND..."
 msgstr "校验 NAND..."
 
@@ -2368,11 +2370,11 @@ msgstr "选择要打开的文件"
 msgid "Choose a file to open or create"
 msgstr "选择要打开或创建的文件"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1663
+#: Source/Core/DolphinQt/MenuBar.cpp:1700
 msgid "Choose priority input file"
 msgstr "选择优先输入文件"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1668
+#: Source/Core/DolphinQt/MenuBar.cpp:1705
 msgid "Choose secondary input file"
 msgstr "选择次要输入文件"
 
@@ -2407,7 +2409,7 @@ msgstr "传统控制器"
 msgid "Clear"
 msgstr "清除"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:859
+#: Source/Core/DolphinQt/MenuBar.cpp:861
 msgid "Clear Cache"
 msgstr "清除缓存"
 
@@ -2428,7 +2430,7 @@ msgstr "复制并编辑代码...(&E)"
 msgid "Close"
 msgstr "关闭"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:532 Source/Core/DolphinQt/MenuBar.cpp:535
+#: Source/Core/DolphinQt/MenuBar.cpp:534 Source/Core/DolphinQt/MenuBar.cpp:537
 msgid "Co&nfiguration"
 msgstr "程序设置(&N)"
 
@@ -2475,7 +2477,7 @@ msgstr "色彩校正："
 msgid "Color Space"
 msgstr "色彩空间"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1003
+#: Source/Core/DolphinQt/MenuBar.cpp:1005
 msgid "Combine &Two Signature Files..."
 msgstr "合并两个签名文件...(&T)"
 
@@ -2516,7 +2518,7 @@ msgstr "正在编译着色器"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:993
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:233
-#: Source/Core/DolphinQt/MenuBar.cpp:652
+#: Source/Core/DolphinQt/MenuBar.cpp:654
 msgid "Compression"
 msgstr "压缩"
 
@@ -2692,7 +2694,7 @@ msgstr "确认改变后端"
 msgid "Confirm on Stop"
 msgstr "停止游戏时确认"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1203
+#: Source/Core/DolphinQt/MenuBar.cpp:1240
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:496
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:239
 msgid "Confirmation"
@@ -2703,7 +2705,7 @@ msgstr "确认"
 msgid "Connect"
 msgstr "连接"
 
-#: Source/Core/Core/HotkeyManager.cpp:85 Source/Core/DolphinQt/MenuBar.cpp:309
+#: Source/Core/Core/HotkeyManager.cpp:85 Source/Core/DolphinQt/MenuBar.cpp:311
 msgid "Connect Balance Board"
 msgstr "连接平衡板"
 
@@ -2711,7 +2713,7 @@ msgstr "连接平衡板"
 msgid "Connect USB Keyboard"
 msgstr "连接 USB 键盘"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:301
+#: Source/Core/DolphinQt/MenuBar.cpp:303
 msgid "Connect Wii Remote %1"
 msgstr "连接 Wii 遥控器 %1"
 
@@ -2731,7 +2733,7 @@ msgstr "连接 Wii 遥控器 3"
 msgid "Connect Wii Remote 4"
 msgstr "连接 Wii 遥控器 4"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:294
+#: Source/Core/DolphinQt/MenuBar.cpp:296
 msgid "Connect Wii Remotes"
 msgstr "连接 Wii 遥控器"
 
@@ -2807,6 +2809,9 @@ msgid ""
 "display.<br><br>HDR output is required for this setting to take effect."
 "<br><br><dolphin_emphasis>If unsure, leave this at 200.</dolphin_emphasis>"
 msgstr ""
+"控制 HDR 白色亮度(单位：尼特)。用于在使用 HDR 显示器时根据不同的环境照明条件"
+"进行亮度调整。<br><br>此设置需要 HDR 输出才能生效。<br><br><dolphin_emphasis>"
+"如果不确定，请将其保持为 200。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:496
 msgid ""
@@ -2862,7 +2867,7 @@ msgstr "控制使用高级还是低级 DSP 模拟。默认值为 <b>True</b>"
 msgid "Convergence"
 msgstr "会聚"
 
-#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:142
+#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:145
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:179
 msgid "Convergence:"
 msgstr "会聚："
@@ -2934,6 +2939,11 @@ msgid ""
 "required to show all the colors from the PAL and NTSC-J color spaces."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"将颜色转换为 GC/Wii 所能使用的 sRGB/Rec.709 色彩空间。<br><br>考虑到存在多种"
+"标准并且大多数游戏不认可，因此无法知道游戏的确切色彩空间是什么 ，所以从游戏光"
+"盘区域假设一种格式是不正确的。只需选择对您来说更自然的格式，或将其与游戏开发"
+"地的区域相匹配。<br><br>需要 HDR 输出才能显示 PAL  和 NTSC-J 色彩空间的所有颜"
+"色。<br><br><dolphin_emphasis>如果不确定，请不要选中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:47
 msgid ""
@@ -3216,7 +3226,7 @@ msgstr ""
 "清除 CPU 上的顶点以减少所需的绘制调用数。可能影响性能和绘制统计数据。"
 "<br><br><dolphin_emphasis>如不确定，请不要选中此项。</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:278
+#: Source/Core/DolphinQt/MenuBar.cpp:280
 msgid "Current Region"
 msgstr "当前区域"
 
@@ -3246,7 +3256,7 @@ msgstr "自定义 RTC 选项"
 
 #: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:102
 msgid "Custom:"
-msgstr ""
+msgstr "自定义："
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:117
 msgid "Customize"
@@ -3415,7 +3425,7 @@ msgstr "减小 Y"
 msgid "Default"
 msgstr "默认"
 
-#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:172
+#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:176
 msgid "Default Config (Read Only)"
 msgstr "默认配置 (只读)"
 
@@ -3478,7 +3488,7 @@ msgstr "删除已经存在的文件 ‘{0}’ 吗?"
 msgid "Depth"
 msgstr "深度"
 
-#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:140
+#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:143
 msgid "Depth Percentage:"
 msgstr "深度百分比:"
 
@@ -3491,7 +3501,7 @@ msgstr "深度："
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:233
 #: Source/Core/DolphinQt/GameList/GameList.cpp:984
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:219
-#: Source/Core/DolphinQt/MenuBar.cpp:643
+#: Source/Core/DolphinQt/MenuBar.cpp:645
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:91
 msgid "Description"
 msgstr "说明"
@@ -3513,11 +3523,11 @@ msgstr "分离的"
 msgid "Detect"
 msgstr "检测"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1291
+#: Source/Core/DolphinQt/MenuBar.cpp:1328
 msgid "Detecting RSO Modules"
 msgstr "正在检测 RSO 模块"
 
-#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:115
+#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:118
 msgid "Deterministic dual core:"
 msgstr "确定性双核:"
 
@@ -3592,7 +3602,7 @@ msgstr "禁用 EFB VRAM 副本"
 msgid "Disable Emulation Speed Limit"
 msgstr "禁用模拟速度限制"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:851
+#: Source/Core/DolphinQt/MenuBar.cpp:853
 msgid "Disable Fastmem"
 msgstr "禁用快速内存"
 
@@ -3600,7 +3610,7 @@ msgstr "禁用快速内存"
 msgid "Disable Fog"
 msgstr "禁用雾化"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:843
+#: Source/Core/DolphinQt/MenuBar.cpp:845
 msgid "Disable JIT Cache"
 msgstr "禁用 JIT 缓存"
 
@@ -3683,7 +3693,7 @@ msgstr "是否授权 Dolphin 向开发者报告信息?"
 msgid "Do you want to add \"%1\" to the list of Game Paths?"
 msgstr "是否要添加 \"%1\" 到游戏路径列表?"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1204
+#: Source/Core/DolphinQt/MenuBar.cpp:1241
 msgid "Do you want to clear the list of symbol names?"
 msgstr "你是否要清除符号名称列表？"
 
@@ -3714,17 +3724,17 @@ msgstr "Dolphin FIFO 日志 (*.dff)"
 msgid "Dolphin Game Mod Preset"
 msgstr "Dolphin 游戏模组预设"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1499
-#: Source/Core/DolphinQt/MenuBar.cpp:1516
-#: Source/Core/DolphinQt/MenuBar.cpp:1535
+#: Source/Core/DolphinQt/MenuBar.cpp:1536
+#: Source/Core/DolphinQt/MenuBar.cpp:1553
+#: Source/Core/DolphinQt/MenuBar.cpp:1572
 msgid "Dolphin Map File (*.map)"
 msgstr "Dolphin 映射文件 (*.map)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:71
+#: Source/Core/DolphinQt/MenuBar.cpp:73
 msgid "Dolphin Signature CSV File"
 msgstr "Dolphin 签名 CSV 文件"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:71
+#: Source/Core/DolphinQt/MenuBar.cpp:73
 msgid "Dolphin Signature File"
 msgstr "Dolphin 签名文件"
 
@@ -3894,7 +3904,7 @@ msgstr "转储伪显存(&F)"
 msgid "Dump &MRAM"
 msgstr "转储主内存(&M)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:812
+#: Source/Core/DolphinQt/MenuBar.cpp:814
 msgid "Dump Audio"
 msgstr "转储音频"
 
@@ -3906,7 +3916,7 @@ msgstr "转储基本纹理"
 msgid "Dump EFB Target"
 msgstr "转储 EFB 目标"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:806
+#: Source/Core/DolphinQt/MenuBar.cpp:808
 msgid "Dump Frames"
 msgstr "转储帧"
 
@@ -3990,7 +4000,7 @@ msgstr "连发按键的松开持续时间（帧）："
 msgid "Dutch"
 msgstr "荷兰语"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:213
+#: Source/Core/DolphinQt/MenuBar.cpp:215
 msgid "E&xit"
 msgstr "退出模拟(&X)"
 
@@ -4042,7 +4052,7 @@ msgid "Edit..."
 msgstr "编辑..."
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:200
-#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:197
+#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:201
 msgid "Editor"
 msgstr "编辑器"
 
@@ -4109,7 +4119,7 @@ msgid ""
 "Defaults to <b>True</b>"
 msgstr "模拟实机的光盘速度。禁用可能会导致不稳定。默认<b>启用</b>"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:228
+#: Source/Core/DolphinQt/MenuBar.cpp:230
 msgid "Emulated USB Devices"
 msgstr "模拟 USB 设备"
 
@@ -4167,7 +4177,7 @@ msgstr "启用自定义 RTC"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:149
 msgid "Enable Debugging UI"
-msgstr ""
+msgstr "启用调试页面"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:87
 msgid "Enable Dual Core"
@@ -4269,7 +4279,7 @@ msgstr ""
 "戏中所做操作的详细描述。如果禁用此功能，网站将仅报告正在玩的游戏。<br><br>这"
 "对 Discord 的详细状态没有影响。"
 
-#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:105
+#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:107
 msgid ""
 "Enable emulated disc speed. Disabling this can cause crashes and other "
 "problems in some games. (ON = Compatible, OFF = Unlocked)"
@@ -4319,7 +4329,7 @@ msgid ""
 "only."
 msgstr "启用杜比定向逻辑II模拟5.1环绕声。仅适用于某些后端。"
 
-#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:101
+#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:102
 msgid ""
 "Enables Floating Point Result Flag calculation, needed for a few games. (ON "
 "= Compatible, OFF = Fast)"
@@ -4400,7 +4410,7 @@ msgstr ""
 "统中带来性能提升。<br><br><dolphin_emphasis>如果不确定，请不要选中此项。</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:99
+#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:100
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:68
 msgid ""
 "Enables the Memory Management Unit, needed for some games. (ON = Compatible, "
@@ -4496,7 +4506,7 @@ msgstr "输入密码"
 msgid "Enter the DNS server to use:"
 msgstr "输入要使用的 DNS 服务器："
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1263
+#: Source/Core/DolphinQt/MenuBar.cpp:1300
 msgid "Enter the RSO module address:"
 msgstr "请输入 RSO 模块地址:"
 
@@ -4543,18 +4553,18 @@ msgstr "请输入 RSO 模块地址:"
 #: Source/Core/DolphinQt/MainWindow.cpp:1561
 #: Source/Core/DolphinQt/MainWindow.cpp:1568
 #: Source/Core/DolphinQt/MainWindow.cpp:1670
-#: Source/Core/DolphinQt/MenuBar.cpp:1167
-#: Source/Core/DolphinQt/MenuBar.cpp:1247
-#: Source/Core/DolphinQt/MenuBar.cpp:1270
+#: Source/Core/DolphinQt/MenuBar.cpp:1204
 #: Source/Core/DolphinQt/MenuBar.cpp:1284
-#: Source/Core/DolphinQt/MenuBar.cpp:1315
-#: Source/Core/DolphinQt/MenuBar.cpp:1339
-#: Source/Core/DolphinQt/MenuBar.cpp:1560
-#: Source/Core/DolphinQt/MenuBar.cpp:1571
-#: Source/Core/DolphinQt/MenuBar.cpp:1583
-#: Source/Core/DolphinQt/MenuBar.cpp:1605
-#: Source/Core/DolphinQt/MenuBar.cpp:1631
-#: Source/Core/DolphinQt/MenuBar.cpp:1685
+#: Source/Core/DolphinQt/MenuBar.cpp:1307
+#: Source/Core/DolphinQt/MenuBar.cpp:1321
+#: Source/Core/DolphinQt/MenuBar.cpp:1352
+#: Source/Core/DolphinQt/MenuBar.cpp:1376
+#: Source/Core/DolphinQt/MenuBar.cpp:1597
+#: Source/Core/DolphinQt/MenuBar.cpp:1608
+#: Source/Core/DolphinQt/MenuBar.cpp:1620
+#: Source/Core/DolphinQt/MenuBar.cpp:1642
+#: Source/Core/DolphinQt/MenuBar.cpp:1668
+#: Source/Core/DolphinQt/MenuBar.cpp:1722
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:315
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:477
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:738
@@ -4697,7 +4707,7 @@ msgstr "在 {1} 分区未使用的 {0} 区块中发现错误。"
 msgid "Euphoria"
 msgstr "Euphoria"
 
-#: Source/Core/DiscIO/Enums.cpp:24 Source/Core/DolphinQt/MenuBar.cpp:280
+#: Source/Core/DiscIO/Enums.cpp:24 Source/Core/DolphinQt/MenuBar.cpp:282
 #: Source/Core/UICommon/NetPlayIndex.cpp:249
 msgid "Europe"
 msgstr "欧洲"
@@ -4790,7 +4800,7 @@ msgstr "建议使用的变量名称。"
 msgid "Experimental"
 msgstr "实验性"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:292
+#: Source/Core/DolphinQt/MenuBar.cpp:294
 msgid "Export All Wii Saves"
 msgstr "导出所有 Wii 存档"
 
@@ -4805,7 +4815,7 @@ msgstr "导出失败"
 msgid "Export Recording"
 msgstr "导出录制"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:751
+#: Source/Core/DolphinQt/MenuBar.cpp:753
 msgid "Export Recording..."
 msgstr "导出录制..."
 
@@ -4833,7 +4843,7 @@ msgstr "导出为 .gcs...(&G)"
 msgid "Export as .&sav..."
 msgstr "导出为 .sav...(&S)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1131
+#: Source/Core/DolphinQt/MenuBar.cpp:1133
 #, c-format
 msgctxt ""
 msgid "Exported %n save(s)"
@@ -4861,7 +4871,7 @@ msgstr "外部"
 msgid "External Frame Buffer (XFB)"
 msgstr "外部帧缓冲 (XFB)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:269
+#: Source/Core/DolphinQt/MenuBar.cpp:271
 msgid "Extract Certificates from NAND"
 msgstr "从 NAND 中提取证书"
 
@@ -4899,7 +4909,7 @@ msgid "FD"
 msgstr "文件描述符"
 
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:37
-#: Source/Core/DolphinQt/MenuBar.cpp:226
+#: Source/Core/DolphinQt/MenuBar.cpp:228
 msgid "FIFO Player"
 msgstr "FIFO 回放器"
 
@@ -4919,7 +4929,7 @@ msgstr ""
 msgid "Failed to add this session to the NetPlay index: %1"
 msgstr "无法将此会话添加到联机索引: %1"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1632
+#: Source/Core/DolphinQt/MenuBar.cpp:1669
 msgid "Failed to append to signature file '%1'"
 msgstr "附加到签名文件 '%1' 失败"
 
@@ -5016,7 +5026,7 @@ msgstr "在 %1 个存档文件中 %n 个导出失败。"
 msgid "Failed to export the following save files:"
 msgstr "导出以下存档文件失败："
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1167
+#: Source/Core/DolphinQt/MenuBar.cpp:1204
 msgid "Failed to extract certificates from NAND"
 msgstr "从 NAND 中提取证书失败"
 
@@ -5046,18 +5056,18 @@ msgstr "无法找到一个或多个 D3D 符号"
 msgid "Failed to import \"%1\"."
 msgstr "导入 \"%1\" 失败。"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1107
+#: Source/Core/DolphinQt/MenuBar.cpp:1109
 msgid ""
 "Failed to import save file. Please launch the game once, then try again."
 msgstr "导入存档文件失败。请运行一次游戏，然后重试。"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1101
+#: Source/Core/DolphinQt/MenuBar.cpp:1103
 msgid ""
 "Failed to import save file. The given file appears to be corrupted or is not "
 "a valid Wii save."
 msgstr "导入存档文件失败。给定的文件似乎已损坏或不是有效的 Wii 存档。"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1114
+#: Source/Core/DolphinQt/MenuBar.cpp:1116
 msgid ""
 "Failed to import save file. Your NAND may be corrupt, or something is "
 "preventing access to files within it. Try repairing your NAND (Tools -> "
@@ -5089,7 +5099,7 @@ msgid "Failed to install pack: %1"
 msgstr "安装包失败: %1"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:619
-#: Source/Core/DolphinQt/MenuBar.cpp:1072
+#: Source/Core/DolphinQt/MenuBar.cpp:1074
 msgid "Failed to install this title to the NAND."
 msgstr "无法将该游戏安装到 NAND。"
 
@@ -5099,8 +5109,8 @@ msgid ""
 "running?"
 msgstr "监听端口 %1 失败。是否有另一个联机服务器的实例正在运行？"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1284
-#: Source/Core/DolphinQt/MenuBar.cpp:1339
+#: Source/Core/DolphinQt/MenuBar.cpp:1321
+#: Source/Core/DolphinQt/MenuBar.cpp:1376
 msgid "Failed to load RSO module at %1"
 msgstr "无法在 %1 处加载 RSO 模块"
 
@@ -5112,7 +5122,7 @@ msgstr "载入 d3d11.dll 失败"
 msgid "Failed to load dxgi.dll"
 msgstr "载入 dxgi.dll 失败"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1571
+#: Source/Core/DolphinQt/MenuBar.cpp:1608
 msgid "Failed to load map file '%1'"
 msgstr "载入映射文件 '%1' 失败"
 
@@ -5299,19 +5309,19 @@ msgstr "重置联机重定向文件夹失败。请验证你的写入权限。"
 msgid "Failed to save FIFO log."
 msgstr "保存 FIFO 日志失败。"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1561
+#: Source/Core/DolphinQt/MenuBar.cpp:1598
 msgid "Failed to save code map to path '%1'"
 msgstr "保存代码映射到路径 '%1' 失败"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1605
+#: Source/Core/DolphinQt/MenuBar.cpp:1642
 msgid "Failed to save signature file '%1'"
 msgstr "保存签名文件 '%1' 失败"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1584
+#: Source/Core/DolphinQt/MenuBar.cpp:1621
 msgid "Failed to save symbol map to path '%1'"
 msgstr "保存符号映射到路径 '%1' 失败"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1686
+#: Source/Core/DolphinQt/MenuBar.cpp:1723
 msgid "Failed to save to signature file '%1'"
 msgstr "保存到签名文件 '%1' 失败"
 
@@ -5361,7 +5371,7 @@ msgstr ""
 #: Source/Core/DolphinQt/GameList/GameList.cpp:617
 #: Source/Core/DolphinQt/GameList/GameList.cpp:645
 #: Source/Core/DolphinQt/GameList/GameList.cpp:840
-#: Source/Core/DolphinQt/MenuBar.cpp:1072
+#: Source/Core/DolphinQt/MenuBar.cpp:1074
 msgid "Failure"
 msgstr "失败"
 
@@ -5408,7 +5418,7 @@ msgstr "文件详细信息"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:991
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:229
-#: Source/Core/DolphinQt/MenuBar.cpp:650
+#: Source/Core/DolphinQt/MenuBar.cpp:652
 msgid "File Format"
 msgstr "文件格式"
 
@@ -5422,18 +5432,18 @@ msgstr "文件信息"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:986
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:223
-#: Source/Core/DolphinQt/MenuBar.cpp:645
+#: Source/Core/DolphinQt/MenuBar.cpp:647
 msgid "File Name"
 msgstr "文件名"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:987
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:225
-#: Source/Core/DolphinQt/MenuBar.cpp:646
+#: Source/Core/DolphinQt/MenuBar.cpp:648
 msgid "File Path"
 msgstr "文件路径"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:990
-#: Source/Core/DolphinQt/MenuBar.cpp:649
+#: Source/Core/DolphinQt/MenuBar.cpp:651
 msgid "File Size"
 msgstr "文件大小"
 
@@ -5965,7 +5975,7 @@ msgstr "GameBoy Advance 连至端口 %1"
 
 #: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:73
 msgid "Game Color Space:"
-msgstr ""
+msgstr "游戏色彩空间："
 
 #: Source/Core/DolphinQt/Config/PropertiesDialog.cpp:61
 msgid "Game Config"
@@ -5985,10 +5995,10 @@ msgstr "游戏伽玛"
 
 #: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:86
 msgid "Game Gamma:"
-msgstr ""
+msgstr "游戏伽玛："
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:988
-#: Source/Core/DolphinQt/MenuBar.cpp:647
+#: Source/Core/DolphinQt/MenuBar.cpp:649
 msgid "Game ID"
 msgstr "游戏 ID"
 
@@ -6034,7 +6044,7 @@ msgstr "游戏覆盖了其他的游戏存档，将会破坏数据 {0:#x}, {1:#x}
 msgid "Game region does not match"
 msgstr "游戏区域不匹配"
 
-#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:146
+#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:149
 msgid "Game-Specific Settings"
 msgstr "特定游戏设置"
 
@@ -6105,7 +6115,7 @@ msgid "Gecko Codes"
 msgstr "Gecko 代码"
 
 #: Source/Core/Core/HotkeyManager.cpp:333
-#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:196
+#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:200
 #: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:60
 #: Source/Core/DolphinQt/Config/Graphics/PostProcessingConfigWindow.cpp:120
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGeneral.cpp:21
@@ -6131,7 +6141,7 @@ msgstr "生成一个新的统计标识"
 msgid "Generated AR code."
 msgstr "已生成 AR 代码。"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1241
+#: Source/Core/DolphinQt/MenuBar.cpp:1278
 msgid "Generated symbol names from '%1'"
 msgstr "从 '%1' 中生成符号名"
 
@@ -6211,7 +6221,7 @@ msgstr "绿 左"
 msgid "Green Right"
 msgstr "绿 右"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:622
+#: Source/Core/DolphinQt/MenuBar.cpp:624
 msgid "Grid View"
 msgstr "网格视图"
 
@@ -6238,7 +6248,7 @@ msgstr "HDR 白色亮度尼特数"
 
 #: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:137
 msgid "HDR Paper White Nits:"
-msgstr ""
+msgstr "HDR 白色亮度尼特数："
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:122
 msgid "HDR Post-Processing"
@@ -6286,7 +6296,7 @@ msgstr "十六进制"
 msgid "Hide"
 msgstr "隐藏"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:717
+#: Source/Core/DolphinQt/MenuBar.cpp:719
 msgid "Hide All"
 msgstr "隐藏全部"
 
@@ -6608,7 +6618,7 @@ msgstr ""
 "能也会略微降低。<br><br><dolphin_emphasis>如果不确定，请不要选中此项。</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:266
+#: Source/Core/DolphinQt/MenuBar.cpp:268
 msgid "Import BootMii NAND Backup..."
 msgstr "导入 BootMii NAND 备份..."
 
@@ -6623,7 +6633,7 @@ msgstr "导入失败"
 msgid "Import Save File(s)"
 msgstr "导入存档文件"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:291
+#: Source/Core/DolphinQt/MenuBar.cpp:293
 msgid "Import Wii Save..."
 msgstr "导入 Wii 存档..."
 
@@ -6735,8 +6745,8 @@ msgstr "信息"
 #: Source/Core/Common/MsgHandler.cpp:59
 #: Source/Core/DolphinQt/GameList/GameList.cpp:700
 #: Source/Core/DolphinQt/GameList/GameList.cpp:762
-#: Source/Core/DolphinQt/MenuBar.cpp:1240
-#: Source/Core/DolphinQt/MenuBar.cpp:1479
+#: Source/Core/DolphinQt/MenuBar.cpp:1277
+#: Source/Core/DolphinQt/MenuBar.cpp:1516
 msgid "Information"
 msgstr "信息"
 
@@ -6745,10 +6755,10 @@ msgid "Inhibit Screensaver During Emulation"
 msgstr "在模拟过程中禁止屏幕保护程序"
 
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:275
-#: Source/Core/DolphinQt/MenuBar.cpp:1263
-#: Source/Core/DolphinQt/MenuBar.cpp:1321
-#: Source/Core/DolphinQt/MenuBar.cpp:1590
-#: Source/Core/DolphinQt/MenuBar.cpp:1615
+#: Source/Core/DolphinQt/MenuBar.cpp:1300
+#: Source/Core/DolphinQt/MenuBar.cpp:1358
+#: Source/Core/DolphinQt/MenuBar.cpp:1627
+#: Source/Core/DolphinQt/MenuBar.cpp:1652
 msgid "Input"
 msgstr "输入"
 
@@ -6789,7 +6799,7 @@ msgstr "安装分区 (%1)"
 msgid "Install Update"
 msgstr "安装更新"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:264
+#: Source/Core/DolphinQt/MenuBar.cpp:266
 msgid "Install WAD..."
 msgstr "安装 WAD..."
 
@@ -6809,7 +6819,7 @@ msgstr "指令"
 msgid "Instruction Breakpoint"
 msgstr "指令断点"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1713
+#: Source/Core/DolphinQt/MenuBar.cpp:1750
 msgid "Instruction:"
 msgstr "指令:"
 
@@ -6878,7 +6888,7 @@ msgstr "生成 AR 代码时出现内部错误。"
 msgid "Interpreter (slowest)"
 msgstr "解释器（最慢）"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:823
+#: Source/Core/DolphinQt/MenuBar.cpp:825
 msgid "Interpreter Core"
 msgstr "解释器核心"
 
@@ -6903,7 +6913,7 @@ msgstr "包 %1 无效: %2"
 msgid "Invalid Player ID"
 msgstr "无效玩家 ID"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1270
+#: Source/Core/DolphinQt/MenuBar.cpp:1307
 msgid "Invalid RSO module address: %1"
 msgstr "无效 RSO 模块地址: %1"
 
@@ -6978,11 +6988,11 @@ msgstr "意大利语"
 msgid "Italy"
 msgstr "意大利"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:821
+#: Source/Core/DolphinQt/MenuBar.cpp:823
 msgid "JIT"
 msgstr "JIT"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:835
+#: Source/Core/DolphinQt/MenuBar.cpp:837
 msgid "JIT Block Linking Off"
 msgstr "关闭 JIT 区块链接"
 
@@ -6990,47 +7000,47 @@ msgstr "关闭 JIT 区块链接"
 msgid "JIT Blocks"
 msgstr "JIT 区块"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:959
+#: Source/Core/DolphinQt/MenuBar.cpp:961
 msgid "JIT Branch Off"
 msgstr "关闭 JIT 分支"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:927
+#: Source/Core/DolphinQt/MenuBar.cpp:929
 msgid "JIT FloatingPoint Off"
 msgstr "关闭 JIT 浮点"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:935
+#: Source/Core/DolphinQt/MenuBar.cpp:937
 msgid "JIT Integer Off"
 msgstr "关闭 JIT 整数"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:910
+#: Source/Core/DolphinQt/MenuBar.cpp:912
 msgid "JIT LoadStore Floating Off"
 msgstr "关闭 JIT 加载存储浮动"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:878
+#: Source/Core/DolphinQt/MenuBar.cpp:880
 msgid "JIT LoadStore Off"
 msgstr "关闭 JIT 加载存储"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:919
+#: Source/Core/DolphinQt/MenuBar.cpp:921
 msgid "JIT LoadStore Paired Off"
 msgstr "关闭 JIT 加载存储配对"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:894
+#: Source/Core/DolphinQt/MenuBar.cpp:896
 msgid "JIT LoadStore lXz Off"
 msgstr "关闭 JIT 加载存储 IXz"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:886
+#: Source/Core/DolphinQt/MenuBar.cpp:888
 msgid "JIT LoadStore lbzx Off"
 msgstr "关闭 JIT 加载存储 Ibzx"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:902
+#: Source/Core/DolphinQt/MenuBar.cpp:904
 msgid "JIT LoadStore lwz Off"
 msgstr "关闭 JIT 加载存储 Iwz"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:870
+#: Source/Core/DolphinQt/MenuBar.cpp:872
 msgid "JIT Off (JIT Core)"
 msgstr "关闭 JIT (JIT 核心)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:943
+#: Source/Core/DolphinQt/MenuBar.cpp:945
 msgid "JIT Paired Off"
 msgstr "关闭 JIT 配对"
 
@@ -7042,11 +7052,11 @@ msgstr "适用于 ARM64 的 JIT 重编译器（推荐）"
 msgid "JIT Recompiler for x86-64 (recommended)"
 msgstr "适用于 x86-64 的 JIT 重编译器（推荐）"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:967
+#: Source/Core/DolphinQt/MenuBar.cpp:969
 msgid "JIT Register Cache Off"
 msgstr "关闭 JIT 寄存器缓存"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:951
+#: Source/Core/DolphinQt/MenuBar.cpp:953
 msgid "JIT SystemRegisters Off"
 msgstr "关闭 JIT 系统寄存器"
 
@@ -7059,7 +7069,7 @@ msgstr ""
 "清除缓存后，JIT 无法找到代码空间。这应该从不会出现。请在错误跟踪器中上报此事"
 "件。 Dolphin 即将退出。"
 
-#: Source/Core/DiscIO/Enums.cpp:27 Source/Core/DolphinQt/MenuBar.cpp:282
+#: Source/Core/DiscIO/Enums.cpp:27 Source/Core/DolphinQt/MenuBar.cpp:284
 msgid "Japan"
 msgstr "日本"
 
@@ -7118,7 +7128,7 @@ msgstr "KiB"
 msgid "Kick Player"
 msgstr "踢除玩家"
 
-#: Source/Core/DiscIO/Enums.cpp:45 Source/Core/DolphinQt/MenuBar.cpp:284
+#: Source/Core/DiscIO/Enums.cpp:45 Source/Core/DolphinQt/MenuBar.cpp:286
 msgid "Korea"
 msgstr "韩国"
 
@@ -7269,11 +7279,11 @@ msgstr "标识灯"
 msgid "Limit Chunked Upload Speed:"
 msgstr "限制数据块上传速度:"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:656
+#: Source/Core/DolphinQt/MenuBar.cpp:658
 msgid "List Columns"
 msgstr "表单列"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:619
+#: Source/Core/DolphinQt/MenuBar.cpp:621
 msgid "List View"
 msgstr "列表视图"
 
@@ -7289,11 +7299,11 @@ msgstr "正在监听"
 msgid "Load"
 msgstr "载入"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:993
+#: Source/Core/DolphinQt/MenuBar.cpp:995
 msgid "Load &Bad Map File..."
 msgstr "载入损坏映射文件(&B)..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:992
+#: Source/Core/DolphinQt/MenuBar.cpp:994
 msgid "Load &Other Map File..."
 msgstr "载入其他映射文件(&O)..."
 
@@ -7305,7 +7315,7 @@ msgstr "加载自定义纹理"
 msgid "Load File"
 msgstr "载入文件"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:249
+#: Source/Core/DolphinQt/MenuBar.cpp:251
 msgid "Load GameCube Main Menu"
 msgstr "载入 GameCube 主菜单"
 
@@ -7415,19 +7425,19 @@ msgstr "载入状态 8"
 msgid "Load State Slot 9"
 msgstr "载入状态 9"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:339
+#: Source/Core/DolphinQt/MenuBar.cpp:341
 msgid "Load State from File"
 msgstr "从文件中载入状态"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:340
+#: Source/Core/DolphinQt/MenuBar.cpp:342
 msgid "Load State from Selected Slot"
 msgstr "从选择的插槽中加载状态"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:341
+#: Source/Core/DolphinQt/MenuBar.cpp:343
 msgid "Load State from Slot"
 msgstr "从插槽中载入状态"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1032
+#: Source/Core/DolphinQt/MenuBar.cpp:1034
 msgid "Load Wii System Menu %1"
 msgstr "加载 Wii 系统菜单 %1"
 
@@ -7439,16 +7449,16 @@ msgstr "加载和写入主机的存档数据"
 msgid "Load from Selected Slot"
 msgstr "从选择的插槽中加载"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:395
+#: Source/Core/DolphinQt/MenuBar.cpp:397
 msgid "Load from Slot %1 - %2"
 msgstr "从插槽 %1 - %2 载入"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1498
-#: Source/Core/DolphinQt/MenuBar.cpp:1515
+#: Source/Core/DolphinQt/MenuBar.cpp:1535
+#: Source/Core/DolphinQt/MenuBar.cpp:1552
 msgid "Load map file"
 msgstr "载入映射文件"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1031
+#: Source/Core/DolphinQt/MenuBar.cpp:1033
 msgid "Load vWii System Menu %1"
 msgstr "加载 vWii 系统菜单 %1"
 
@@ -7456,7 +7466,7 @@ msgstr "加载 vWii 系统菜单 %1"
 msgid "Load..."
 msgstr "载入..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1480
+#: Source/Core/DolphinQt/MenuBar.cpp:1517
 msgid "Loaded symbols from '%1'"
 msgstr "已从 '%1' 中加载符号"
 
@@ -7500,7 +7510,7 @@ msgstr "日志"
 msgid "Log Configuration"
 msgstr "日志设置"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:864
+#: Source/Core/DolphinQt/MenuBar.cpp:866
 msgid "Log JIT Instruction Coverage"
 msgstr "记录 JIT 指令范围"
 
@@ -7583,7 +7593,7 @@ msgstr "主摇杆"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:985
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:221
-#: Source/Core/DolphinQt/MenuBar.cpp:644
+#: Source/Core/DolphinQt/MenuBar.cpp:646
 msgid "Maker"
 msgstr "制作者"
 
@@ -7603,10 +7613,11 @@ msgstr ""
 "雾模拟，禁用雾将破坏其游戏性。<br><br><dolphin_emphasis>如果不确定，请不要选"
 "中此项。</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:265
+#: Source/Core/DolphinQt/MenuBar.cpp:267
 msgid "Manage NAND"
 msgstr "管理 NAND"
 
+#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:93
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:184
 msgid "Manual Texture Sampling"
 msgstr "手动纹理采样"
@@ -7657,7 +7668,7 @@ msgstr "内存断点"
 msgid "Memory Card"
 msgstr "存储卡"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:258
+#: Source/Core/DolphinQt/MenuBar.cpp:260
 msgid "Memory Card Manager"
 msgstr "存储卡管理器"
 
@@ -7753,8 +7764,8 @@ msgstr ""
 "修改纹理以显示以其编码格式。<br><br>可能需要重置模拟才能生效。"
 "<br><br><dolphin_emphasis>如果不确定，请不要选中此项。</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1290
-#: Source/Core/DolphinQt/MenuBar.cpp:1439
+#: Source/Core/DolphinQt/MenuBar.cpp:1327
+#: Source/Core/DolphinQt/MenuBar.cpp:1476
 msgid "Modules found: %1"
 msgstr "已找到模块: %1"
 
@@ -7762,7 +7773,7 @@ msgstr "已找到模块: %1"
 msgid "Mono"
 msgstr "单声道"
 
-#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:131
+#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:134
 msgid "Monoscopic Shadows"
 msgstr "单视场阴影"
 
@@ -7825,9 +7836,10 @@ msgstr "多重分插器"
 msgid "N&o to All"
 msgstr "全部选否(&O)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1140
-#: Source/Core/DolphinQt/MenuBar.cpp:1149
-#: Source/Core/DolphinQt/MenuBar.cpp:1153
+#: Source/Core/DolphinQt/MenuBar.cpp:1163
+#: Source/Core/DolphinQt/MenuBar.cpp:1172
+#: Source/Core/DolphinQt/MenuBar.cpp:1186
+#: Source/Core/DolphinQt/MenuBar.cpp:1190
 #: Source/Core/DolphinQt/NANDRepairDialog.cpp:29
 msgid "NAND Check"
 msgstr "NAND 校验"
@@ -7836,7 +7848,7 @@ msgstr "NAND 校验"
 msgid "NKit Warning"
 msgstr "NKit 警告"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:251
+#: Source/Core/DolphinQt/MenuBar.cpp:253
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:212
 msgid "NTSC-J"
 msgstr "NTSC-J"
@@ -7861,8 +7873,12 @@ msgid ""
 "match it here.<br><br><dolphin_emphasis>If unsure, leave this at 2.35.</"
 "dolphin_emphasis>"
 msgstr ""
+"NTSC-M 和 NTSC-J 标准伽玛值约为 2.2。PAL 的标准伽玛值约为 2.8。<br>游戏或电视"
+"不一定遵循这两者。<br>2.35 是一个很好的通用值。<br><br>如果游戏允许您选择伽玛"
+"值，请在此处进行设置。<br><br><dolphin_emphasis>如果不确定，请保持为 2.35。</"
+"dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:253
+#: Source/Core/DolphinQt/MenuBar.cpp:255
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:212
 msgid "NTSC-U"
 msgstr "NTSC-U"
@@ -8076,7 +8092,7 @@ msgstr "没有游戏在运行。"
 msgid "No game running."
 msgstr "没有游戏运行。"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1140
+#: Source/Core/DolphinQt/MenuBar.cpp:1174
 msgid "No issues have been detected."
 msgstr "没有发现问题。"
 
@@ -8137,7 +8153,7 @@ msgstr "无"
 msgid "North America"
 msgstr "北美"
 
-#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:95
+#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:96
 msgid "Not Set"
 msgstr "未设置"
 
@@ -8261,7 +8277,7 @@ msgstr ""
 "在同时支持使用几何着色器和顶点着色器来扩展点和线的后端上，为任务选择顶点着色"
 "器。可能会影响性能。<br><br>%1"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:589
+#: Source/Core/DolphinQt/MenuBar.cpp:591
 msgid "Online &Documentation"
 msgstr "在线文档(&D)"
 
@@ -8269,7 +8285,7 @@ msgstr "在线文档(&D)"
 msgid "Only Show Collection"
 msgstr "只显示合集"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1615
+#: Source/Core/DolphinQt/MenuBar.cpp:1652
 msgid ""
 "Only append symbols with prefix:\n"
 "(Blank for all symbols)"
@@ -8277,7 +8293,7 @@ msgstr ""
 "仅附加有此前缀的符号:\n"
 "(留空表示全部)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1590
+#: Source/Core/DolphinQt/MenuBar.cpp:1627
 msgid ""
 "Only export symbols with prefix:\n"
 "(Blank for all symbols)"
@@ -8294,7 +8310,7 @@ msgstr "打开"
 msgid "Open &Containing Folder"
 msgstr "打开所在目录(&C)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:209
+#: Source/Core/DolphinQt/MenuBar.cpp:211
 msgid "Open &User Folder"
 msgstr "打开用户目录(&U)"
 
@@ -8400,11 +8416,11 @@ msgstr "其他游戏..."
 msgid "Overwritten"
 msgstr "覆盖"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:747
+#: Source/Core/DolphinQt/MenuBar.cpp:749
 msgid "P&lay Input Recording..."
 msgstr "播放录制...(&L)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:256
+#: Source/Core/DolphinQt/MenuBar.cpp:258
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:212
 msgid "PAL"
 msgstr "PAL"
@@ -8506,7 +8522,7 @@ msgstr "路径"
 msgid "Pause"
 msgstr "暂停"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:767
+#: Source/Core/DolphinQt/MenuBar.cpp:769
 msgid "Pause at End of Movie"
 msgstr "在影片末尾暂停"
 
@@ -8547,7 +8563,7 @@ msgstr "向外挥舞的峰值速度。"
 msgid "Per-Pixel Lighting"
 msgstr "逐像素光照"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:276
+#: Source/Core/DolphinQt/MenuBar.cpp:278
 msgid "Perform Online System Update"
 msgstr "执行在线系统更新"
 
@@ -8581,7 +8597,7 @@ msgstr "物理地址空间"
 msgid "PiB"
 msgstr "PiB"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1195
+#: Source/Core/DolphinQt/MenuBar.cpp:1232
 msgid "Pick a debug font"
 msgstr "选择调试字体"
 
@@ -8598,7 +8614,7 @@ msgid "Pitch Up"
 msgstr "上仰"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:981
-#: Source/Core/DolphinQt/MenuBar.cpp:640
+#: Source/Core/DolphinQt/MenuBar.cpp:642
 msgid "Platform"
 msgstr "平台"
 
@@ -8835,7 +8851,7 @@ msgstr "进度"
 msgid "Public"
 msgstr "公开"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:514
+#: Source/Core/DolphinQt/MenuBar.cpp:516
 msgid "Purge Game List Cache"
 msgstr "清除游戏列表缓存"
 
@@ -8891,11 +8907,11 @@ msgstr "R-模拟"
 msgid "READY"
 msgstr "就绪"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:985
+#: Source/Core/DolphinQt/MenuBar.cpp:987
 msgid "RSO Modules"
 msgstr "RSO 模块"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1258
+#: Source/Core/DolphinQt/MenuBar.cpp:1295
 msgid "RSO auto-detection"
 msgstr "RSO 自动检测"
 
@@ -9053,7 +9069,7 @@ msgid "Refreshing..."
 msgstr "正在刷新..."
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:989
-#: Source/Core/DolphinQt/MenuBar.cpp:648
+#: Source/Core/DolphinQt/MenuBar.cpp:650
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:223
 msgid "Region"
 msgstr "地区"
@@ -9155,7 +9171,7 @@ msgstr "重置"
 msgid "Reset All"
 msgstr "全部重置"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:563
+#: Source/Core/DolphinQt/MenuBar.cpp:565
 msgid "Reset Ignore Panic Handler"
 msgstr "重置忽略警告程序"
 
@@ -9361,7 +9377,7 @@ msgstr "SD 同步文件夹："
 
 #: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:97
 msgid "SDR Display Gamma Target"
-msgstr ""
+msgstr "SDR 显示目标伽玛值"
 
 #: Source/Core/Core/HW/GBAPadEmu.h:43
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Shinkansen.cpp:42
@@ -9390,11 +9406,11 @@ msgstr "SSL 上下文"
 msgid "START"
 msgstr "START"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:997
+#: Source/Core/DolphinQt/MenuBar.cpp:999
 msgid "Sa&ve Code"
 msgstr "保存代码(&V)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:354
+#: Source/Core/DolphinQt/MenuBar.cpp:356
 msgid "Sa&ve State"
 msgstr "保存状态(&V)"
 
@@ -9417,7 +9433,7 @@ msgstr "保存全部"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:575
 #: Source/Core/DolphinQt/GameList/GameList.cpp:580
-#: Source/Core/DolphinQt/MenuBar.cpp:1130
+#: Source/Core/DolphinQt/MenuBar.cpp:1132
 msgid "Save Export"
 msgstr "存档导出"
 
@@ -9438,11 +9454,11 @@ msgstr "游戏存档"
 msgid "Save Game Files (*.sav);;All Files (*)"
 msgstr "游戏存档文件 (*.sav);;所有文件 (*)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1088
-#: Source/Core/DolphinQt/MenuBar.cpp:1097
-#: Source/Core/DolphinQt/MenuBar.cpp:1100
-#: Source/Core/DolphinQt/MenuBar.cpp:1106
-#: Source/Core/DolphinQt/MenuBar.cpp:1113
+#: Source/Core/DolphinQt/MenuBar.cpp:1090
+#: Source/Core/DolphinQt/MenuBar.cpp:1099
+#: Source/Core/DolphinQt/MenuBar.cpp:1102
+#: Source/Core/DolphinQt/MenuBar.cpp:1108
+#: Source/Core/DolphinQt/MenuBar.cpp:1115
 msgid "Save Import"
 msgstr "存档导入"
 
@@ -9504,23 +9520,23 @@ msgstr "保存状态 8"
 msgid "Save State Slot 9"
 msgstr "保存状态 9"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:355
+#: Source/Core/DolphinQt/MenuBar.cpp:357
 msgid "Save State to File"
 msgstr "保存状态到文件"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:357
+#: Source/Core/DolphinQt/MenuBar.cpp:359
 msgid "Save State to Oldest Slot"
 msgstr "保存状态到最早的插槽"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:356
+#: Source/Core/DolphinQt/MenuBar.cpp:358
 msgid "Save State to Selected Slot"
 msgstr "向选中的插槽保存状态"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:358
+#: Source/Core/DolphinQt/MenuBar.cpp:360
 msgid "Save State to Slot"
 msgstr "保存状态到插槽"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:994
+#: Source/Core/DolphinQt/MenuBar.cpp:996
 msgid "Save Symbol Map &As..."
 msgstr "保存符号映射为...(&A)"
 
@@ -9540,11 +9556,11 @@ msgstr "另存为预设..."
 msgid "Save as..."
 msgstr "另存为..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1673
+#: Source/Core/DolphinQt/MenuBar.cpp:1710
 msgid "Save combined output file as"
 msgstr "将组合输出文件另存为"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1089
+#: Source/Core/DolphinQt/MenuBar.cpp:1091
 msgid ""
 "Save data for this title already exists in the NAND. Consider backing up the "
 "current data before overwriting.\n"
@@ -9557,11 +9573,11 @@ msgstr ""
 msgid "Save in Same Directory as the ROM"
 msgstr "保存在与 ROM 相同的目录中"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1533
+#: Source/Core/DolphinQt/MenuBar.cpp:1570
 msgid "Save map file"
 msgstr "保存映射文件"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1593
+#: Source/Core/DolphinQt/MenuBar.cpp:1630
 msgid "Save signature file"
 msgstr "保存签名文件"
 
@@ -9569,7 +9585,7 @@ msgstr "保存签名文件"
 msgid "Save to Selected Slot"
 msgstr "保存至所选插槽"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:396
+#: Source/Core/DolphinQt/MenuBar.cpp:398
 msgid "Save to Slot %1 - %2"
 msgstr "保存到插槽 %1 - %2"
 
@@ -9603,7 +9619,7 @@ msgstr "截图"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:148
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:86
-#: Source/Core/DolphinQt/MenuBar.cpp:522 Source/Core/DolphinQt/MenuBar.cpp:524
+#: Source/Core/DolphinQt/MenuBar.cpp:524 Source/Core/DolphinQt/MenuBar.cpp:526
 msgid "Search"
 msgstr "搜索"
 
@@ -9630,7 +9646,7 @@ msgid ""
 "for a bit and try again."
 msgstr "当前无法在虚拟地址空间中进行搜索。请运行一会儿游戏，然后重试。"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:866
+#: Source/Core/DolphinQt/MenuBar.cpp:868
 msgid "Search for an Instruction"
 msgstr "搜索一个指令"
 
@@ -9638,7 +9654,7 @@ msgstr "搜索一个指令"
 msgid "Search games..."
 msgstr "搜索游戏..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1713
+#: Source/Core/DolphinQt/MenuBar.cpp:1750
 msgid "Search instruction"
 msgstr "搜索指令"
 
@@ -9675,7 +9691,7 @@ msgid "Select Dump Path"
 msgstr "选择转储路径"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:555
-#: Source/Core/DolphinQt/MenuBar.cpp:1124
+#: Source/Core/DolphinQt/MenuBar.cpp:1126
 msgid "Select Export Directory"
 msgstr "选择导出目录"
 
@@ -9719,7 +9735,7 @@ msgstr "选择 Skylander 合集"
 msgid "Select Skylander File"
 msgstr "选择 Skylander 文件"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:397
+#: Source/Core/DolphinQt/MenuBar.cpp:399
 msgid "Select Slot %1 - %2"
 msgstr "选择插槽 %1 - %2"
 
@@ -9727,7 +9743,7 @@ msgstr "选择插槽 %1 - %2"
 msgid "Select State"
 msgstr "选择状态"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:371
+#: Source/Core/DolphinQt/MenuBar.cpp:373
 msgid "Select State Slot"
 msgstr "选择状态插槽"
 
@@ -9813,7 +9829,7 @@ msgstr "选择文件"
 msgid "Select a game"
 msgstr "选择游戏"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1059
+#: Source/Core/DolphinQt/MenuBar.cpp:1061
 msgid "Select a title to install to NAND"
 msgstr "选择要安装到 NAND 的软件"
 
@@ -9821,7 +9837,7 @@ msgstr "选择要安装到 NAND 的软件"
 msgid "Select e-Reader Cards"
 msgstr "选择 e-Reader 卡"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1321
+#: Source/Core/DolphinQt/MenuBar.cpp:1358
 msgid "Select the RSO module address:"
 msgstr "选择 RSO 模块地址:"
 
@@ -9838,7 +9854,7 @@ msgid "Select the keys file (OTP/SEEPROM dump)"
 msgstr "选择密钥文件 (OTP/SEEPROM 转储)"
 
 #: Source/Core/DolphinQt/MainWindow.cpp:1724
-#: Source/Core/DolphinQt/MenuBar.cpp:1079
+#: Source/Core/DolphinQt/MenuBar.cpp:1081
 msgid "Select the save file"
 msgstr "选择一个存档文件"
 
@@ -10069,11 +10085,11 @@ msgstr "新干线控制器"
 msgid "Show % Speed"
 msgstr "显示百分比速度"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:404
+#: Source/Core/DolphinQt/MenuBar.cpp:406
 msgid "Show &Log"
 msgstr "显示日志(&L)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:417
+#: Source/Core/DolphinQt/MenuBar.cpp:419
 msgid "Show &Toolbar"
 msgstr "显示工具栏(&T)"
 
@@ -10081,11 +10097,11 @@ msgstr "显示工具栏(&T)"
 msgid "Show Active Title in Window Title"
 msgstr "在标题栏显示当前游戏名"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:716
+#: Source/Core/DolphinQt/MenuBar.cpp:718
 msgid "Show All"
 msgstr "显示全部"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:703
+#: Source/Core/DolphinQt/MenuBar.cpp:705
 msgid "Show Australia"
 msgstr "显示澳大利亚"
 
@@ -10098,7 +10114,7 @@ msgstr "在 Discord 软件中显示当前游戏"
 msgid "Show Disabled Codes First"
 msgstr "优先显示禁用的代码"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:678
+#: Source/Core/DolphinQt/MenuBar.cpp:680
 msgid "Show ELF/DOL"
 msgstr "显示 ELF/DOL"
 
@@ -10111,7 +10127,7 @@ msgstr "优先显示启用的代码"
 msgid "Show FPS"
 msgstr "显示 FPS"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:785
+#: Source/Core/DolphinQt/MenuBar.cpp:787
 msgid "Show Frame Counter"
 msgstr "显示帧计数器"
 
@@ -10119,15 +10135,15 @@ msgstr "显示帧计数器"
 msgid "Show Frame Times"
 msgstr "显示帧生成时间"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:704
+#: Source/Core/DolphinQt/MenuBar.cpp:706
 msgid "Show France"
 msgstr "显示法国"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:676
+#: Source/Core/DolphinQt/MenuBar.cpp:678
 msgid "Show GameCube"
 msgstr "显示 GameCube"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:705
+#: Source/Core/DolphinQt/MenuBar.cpp:707
 msgid "Show Germany"
 msgstr "显示德国"
 
@@ -10139,23 +10155,23 @@ msgstr "叠加显示高尔夫模式"
 msgid "Show Infinity Base"
 msgstr "显示 Infinity 底座"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:791
+#: Source/Core/DolphinQt/MenuBar.cpp:793
 msgid "Show Input Display"
 msgstr "显示输入回显"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:706
+#: Source/Core/DolphinQt/MenuBar.cpp:708
 msgid "Show Italy"
 msgstr "显示意大利"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:700
+#: Source/Core/DolphinQt/MenuBar.cpp:702
 msgid "Show JPN"
 msgstr "显示日本"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:707
+#: Source/Core/DolphinQt/MenuBar.cpp:709
 msgid "Show Korea"
 msgstr "显示韩国"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:779
+#: Source/Core/DolphinQt/MenuBar.cpp:781
 msgid "Show Lag Counter"
 msgstr "显示延迟计数器"
 
@@ -10163,7 +10179,7 @@ msgstr "显示延迟计数器"
 msgid "Show Language:"
 msgstr "显示语言："
 
-#: Source/Core/DolphinQt/MenuBar.cpp:410
+#: Source/Core/DolphinQt/MenuBar.cpp:412
 msgid "Show Log &Configuration"
 msgstr "显示日志设置(&C)"
 
@@ -10175,7 +10191,7 @@ msgstr "显示联机信息"
 msgid "Show NetPlay Ping"
 msgstr "显示联机延迟"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:708
+#: Source/Core/DolphinQt/MenuBar.cpp:710
 msgid "Show Netherlands"
 msgstr "显示荷兰"
 
@@ -10183,7 +10199,7 @@ msgstr "显示荷兰"
 msgid "Show On-Screen Display Messages"
 msgstr "显示屏显消息"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:701
+#: Source/Core/DolphinQt/MenuBar.cpp:703
 msgid "Show PAL"
 msgstr "显示 PAL"
 
@@ -10196,19 +10212,19 @@ msgstr "显示 PC"
 msgid "Show Performance Graphs"
 msgstr "显示性能图表"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:681
+#: Source/Core/DolphinQt/MenuBar.cpp:683
 msgid "Show Platforms"
 msgstr "显示平台"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:715
+#: Source/Core/DolphinQt/MenuBar.cpp:717
 msgid "Show Regions"
 msgstr "显示地区"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:773
+#: Source/Core/DolphinQt/MenuBar.cpp:775
 msgid "Show Rerecord Counter"
 msgstr "显示重录计数器"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:709
+#: Source/Core/DolphinQt/MenuBar.cpp:711
 msgid "Show Russia"
 msgstr "显示俄罗斯"
 
@@ -10216,7 +10232,7 @@ msgstr "显示俄罗斯"
 msgid "Show Skylanders Portal"
 msgstr "显示 Skylanders 传送门"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:710
+#: Source/Core/DolphinQt/MenuBar.cpp:712
 msgid "Show Spain"
 msgstr "显示西班牙"
 
@@ -10228,19 +10244,19 @@ msgstr "显示速度颜色"
 msgid "Show Statistics"
 msgstr "显示统计数据"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:798
+#: Source/Core/DolphinQt/MenuBar.cpp:800
 msgid "Show System Clock"
 msgstr "显示系统频率"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:711
+#: Source/Core/DolphinQt/MenuBar.cpp:713
 msgid "Show Taiwan"
 msgstr "显示台湾"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:702
+#: Source/Core/DolphinQt/MenuBar.cpp:704
 msgid "Show USA"
 msgstr "显示美国"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:713
+#: Source/Core/DolphinQt/MenuBar.cpp:715
 msgid "Show Unknown"
 msgstr "显示未知"
 
@@ -10252,15 +10268,15 @@ msgstr "显示垂直消隐时间"
 msgid "Show VPS"
 msgstr "显示 VPS"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:677
+#: Source/Core/DolphinQt/MenuBar.cpp:679
 msgid "Show WAD"
 msgstr "显示 WAD"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:675
+#: Source/Core/DolphinQt/MenuBar.cpp:677
 msgid "Show Wii"
 msgstr "显示 Wii"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:712
+#: Source/Core/DolphinQt/MenuBar.cpp:714
 msgid "Show World"
 msgstr "显示全球"
 
@@ -10387,7 +10403,7 @@ msgstr "切换横握"
 msgid "Sideways Wii Remote"
 msgstr "横握 Wii 遥控器"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:984
+#: Source/Core/DolphinQt/MenuBar.cpp:986
 msgid "Signature Database"
 msgstr "签名数据库"
 
@@ -10643,7 +10659,7 @@ msgstr "标准控制器"
 msgid "Start"
 msgstr "开始"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:235
+#: Source/Core/DolphinQt/MenuBar.cpp:237
 msgid "Start &NetPlay..."
 msgstr "开始联机...(&N)"
 
@@ -10651,7 +10667,7 @@ msgstr "开始联机...(&N)"
 msgid "Start New Cheat Search"
 msgstr "开始新的金手指搜索"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:745
+#: Source/Core/DolphinQt/MenuBar.cpp:747
 msgid "Start Re&cording Input"
 msgstr "开始录制输入(&C)"
 
@@ -10745,7 +10761,7 @@ msgstr "立体 3D 模式"
 msgid "Stereoscopic 3D Mode:"
 msgstr "立体 3D 模式："
 
-#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:119
+#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:122
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:163
 msgid "Stereoscopy"
 msgstr "立体 3D"
@@ -10767,7 +10783,7 @@ msgstr "摇杆"
 msgid "Stop"
 msgstr "停止"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:748
+#: Source/Core/DolphinQt/MenuBar.cpp:750
 msgid "Stop Playing/Recording Input"
 msgstr "停止播放/录制输入"
 
@@ -10844,8 +10860,8 @@ msgstr "手写笔"
 #: Source/Core/DolphinQt/ConvertDialog.cpp:534
 #: Source/Core/DolphinQt/GameList/GameList.cpp:617
 #: Source/Core/DolphinQt/GameList/GameList.cpp:645
-#: Source/Core/DolphinQt/MenuBar.cpp:1067
-#: Source/Core/DolphinQt/MenuBar.cpp:1162
+#: Source/Core/DolphinQt/MenuBar.cpp:1069
+#: Source/Core/DolphinQt/MenuBar.cpp:1199
 msgid "Success"
 msgstr "成功"
 
@@ -10872,7 +10888,7 @@ msgstr "在 %1 个存档文件中 %n 个导出成功。"
 msgid "Successfully exported save files"
 msgstr "成功导出存档文件"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1163
+#: Source/Core/DolphinQt/MenuBar.cpp:1200
 msgid "Successfully extracted certificates from NAND"
 msgstr "已成功从 NAND 中提取证书"
 
@@ -10884,12 +10900,12 @@ msgstr "提取文件成功。"
 msgid "Successfully extracted system data."
 msgstr "提取系统数据成功。"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1097
+#: Source/Core/DolphinQt/MenuBar.cpp:1099
 msgid "Successfully imported save file."
 msgstr "导入存档文件成功。"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:618
-#: Source/Core/DolphinQt/MenuBar.cpp:1068
+#: Source/Core/DolphinQt/MenuBar.cpp:1070
 msgid "Successfully installed this title to the NAND."
 msgstr "成功将此软件安装到 NAND。"
 
@@ -10989,7 +11005,7 @@ msgstr "符号名:"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:157
 #: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:135
-#: Source/Core/DolphinQt/MenuBar.cpp:978
+#: Source/Core/DolphinQt/MenuBar.cpp:980
 msgid "Symbols"
 msgstr "符号"
 
@@ -11009,7 +11025,7 @@ msgstr "同步并配对真实 Wii 遥控器"
 msgid "Synchronize GPU thread"
 msgstr "同步 GPU 线程"
 
-#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:103
+#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:104
 msgid ""
 "Synchronizes the GPU and CPU threads to help prevent random freezes in Dual "
 "core mode. (ON = Compatible, OFF = Fast)"
@@ -11039,7 +11055,7 @@ msgstr "正在同步存档数据..."
 msgid "System Language:"
 msgstr "系统语言："
 
-#: Source/Core/DolphinQt/MenuBar.cpp:763
+#: Source/Core/DolphinQt/MenuBar.cpp:765
 msgid "TAS Input"
 msgstr "TAS 输入"
 
@@ -11052,7 +11068,7 @@ msgstr "TAS 工具"
 #: Source/Core/DolphinQt/GameList/GameList.cpp:494
 #: Source/Core/DolphinQt/GameList/GameList.cpp:994
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:235
-#: Source/Core/DolphinQt/MenuBar.cpp:653
+#: Source/Core/DolphinQt/MenuBar.cpp:655
 msgid "Tags"
 msgstr "标签"
 
@@ -11070,7 +11086,7 @@ msgstr "尾"
 msgid "Taiwan"
 msgstr "台湾"
 
-#: Source/Core/Core/HotkeyManager.cpp:35 Source/Core/DolphinQt/MenuBar.cpp:323
+#: Source/Core/Core/HotkeyManager.cpp:35 Source/Core/DolphinQt/MenuBar.cpp:325
 msgid "Take Screenshot"
 msgstr "屏幕截图"
 
@@ -11135,6 +11151,10 @@ msgid ""
 "\n"
 "Do you really want to switch to Direct3D 11? If unsure, select 'No'."
 msgstr ""
+"Direct3D 11 渲染器需要某些您的系统配置所不支持的特性。您仍然可以使用此后端，"
+"但您可能会在某些游戏中遇到图像错误。\n"
+"\n"
+"您真的想要切换到 Direct3D 11 吗？如果不确定，请选择“否”。"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:601
 msgid "The H3 hash table for the {0} partition is not correct."
@@ -11154,13 +11174,13 @@ msgstr "此 IPL 文件不是已知的正确转储。(CRC32: {0:x})"
 msgid "The Masterpiece partitions are missing."
 msgstr "缺少杰作分区。"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1154
+#: Source/Core/DolphinQt/MenuBar.cpp:1191
 msgid ""
 "The NAND could not be repaired. It is recommended to back up your current "
 "data and start over with a fresh NAND."
 msgstr "该 NAND 无法修复。建议备份您当前的数据并使用新的 NAND 启动。"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1149
+#: Source/Core/DolphinQt/MenuBar.cpp:1186
 msgid "The NAND has been repaired."
 msgstr "NAND 已修复。"
 
@@ -11468,6 +11488,12 @@ msgstr "指定的公用密钥索引是 {0} ，但应该为 {1} 。"
 msgid "The specified file \"{0}\" does not exist"
 msgstr "指定的文件 “{0}” 不存在"
 
+#: Source/Core/DolphinQt/MenuBar.cpp:1153
+msgid ""
+"The system-reserved part of your NAND contains %1 blocks (%2 KiB) of data, "
+"out of an allowed maximum of %3 blocks (%4 KiB)."
+msgstr ""
+
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:543
 msgid "The target memory card already contains a file \"%1\"."
 msgstr "目标存储卡已包含文件 “%1”。"
@@ -11499,6 +11525,12 @@ msgstr "缺少更新分区。"
 msgid "The update partition is not at its normal position."
 msgstr "更新分区未处于正常位置。"
 
+#: Source/Core/DolphinQt/MenuBar.cpp:1145
+msgid ""
+"The user-accessible part of your NAND contains %1 blocks (%2 KiB) of data, "
+"out of an allowed maximum of %3 blocks (%4 KiB)."
+msgstr ""
+
 #: Source/Core/DiscIO/VolumeVerifier.cpp:643
 msgid "The {0} partition does not have a valid file system."
 msgstr "分区 {0} 无有效的文件系统。"
@@ -11527,7 +11559,7 @@ msgstr "没有需要撤销的操作。"
 msgid "There was an issue adding a shortcut to the desktop"
 msgstr "向桌面添加快捷方式时出现问题"
 
-#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:151
+#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:154
 msgid ""
 "These settings override core Dolphin settings.\n"
 "Undetermined means the game uses Dolphin's setting."
@@ -11752,13 +11784,13 @@ msgstr ""
 "\n"
 "未知 Ucode (CRC = {0:08x}) - 强制 AXWii."
 
-#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:136
+#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:139
 msgid ""
 "This value is added to the convergence value set in the graphics "
 "configuration."
 msgstr "该数值将与图像设置中设定的会聚值相加。"
 
-#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:134
+#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:137
 msgid ""
 "This value is multiplied with the depth set in the graphics configuration."
 msgstr "该数值将与图像设置中设定的深度值相乘。"
@@ -11814,7 +11846,7 @@ msgstr "超时"
 #: Source/Core/DolphinQt/GameList/GameList.cpp:983
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:213
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:153
-#: Source/Core/DolphinQt/MenuBar.cpp:642
+#: Source/Core/DolphinQt/MenuBar.cpp:644
 msgid "Title"
 msgstr "标题"
 
@@ -11828,7 +11860,7 @@ msgstr "至"
 msgid "To:"
 msgstr "至："
 
-#: Source/Core/DolphinQt/MenuBar.cpp:320
+#: Source/Core/DolphinQt/MenuBar.cpp:322
 msgid "Toggle &Fullscreen"
 msgstr "切换全屏(&F)"
 
@@ -12083,7 +12115,7 @@ msgstr ""
 "<br><br>在理想情况下将在消除着色器编译卡顿的同时尽可能减小性能影响，但效果因"
 "视频驱动的行为而异。"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1315
+#: Source/Core/DolphinQt/MenuBar.cpp:1352
 msgid "Unable to auto-detect RSO module"
 msgstr "无法自动检测 RSO 模块"
 
@@ -12149,11 +12181,11 @@ msgstr "未压缩的 GC/Wii 镜像 (*.iso *.gcm)"
 msgid "Undead"
 msgstr "亡灵"
 
-#: Source/Core/Core/HotkeyManager.cpp:178 Source/Core/DolphinQt/MenuBar.cpp:342
+#: Source/Core/Core/HotkeyManager.cpp:178 Source/Core/DolphinQt/MenuBar.cpp:344
 msgid "Undo Load State"
 msgstr "撤销载入状态"
 
-#: Source/Core/Core/HotkeyManager.cpp:179 Source/Core/DolphinQt/MenuBar.cpp:359
+#: Source/Core/Core/HotkeyManager.cpp:179 Source/Core/DolphinQt/MenuBar.cpp:361
 msgid "Undo Save State"
 msgstr "撤销保存状态"
 
@@ -12173,7 +12205,7 @@ msgstr ""
 "卸载 WAD 会将该游戏的当前已安装版本从 NAND 中移除，而不会删除其存档。是否继"
 "续？"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:286
+#: Source/Core/DolphinQt/MenuBar.cpp:288
 msgid "United States"
 msgstr "美国"
 
@@ -12275,19 +12307,19 @@ msgstr "解锁光标"
 
 #: Source/Core/DolphinQt/Achievements/AchievementProgressWidget.cpp:119
 msgid "Unlocked"
-msgstr ""
+msgstr "已解锁"
 
 #: Source/Core/DolphinQt/Achievements/AchievementProgressWidget.cpp:108
 msgid "Unlocked %1 times this session"
-msgstr ""
+msgstr "本次会话期间解锁 %1 次"
 
 #: Source/Core/DolphinQt/Achievements/AchievementProgressWidget.cpp:117
 msgid "Unlocked (Casual)"
-msgstr ""
+msgstr "已解锁 (临时)"
 
 #: Source/Core/DolphinQt/Achievements/AchievementProgressWidget.cpp:110
 msgid "Unlocked this session"
-msgstr ""
+msgstr "本次会话期间解锁"
 
 #: Source/Core/DiscIO/FileBlob.cpp:82
 msgid "Unpacking"
@@ -12432,7 +12464,7 @@ msgstr ""
 "其是在更高的内部分辨率下；此外，各向异性过滤目前与手动纹理采样不兼容。"
 "<br><br><dolphin_emphasis>如果不确定，请不要选中此项。</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:138
+#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:141
 msgid "Use a single depth buffer for both eyes. Needed for a few games."
 msgstr "双眼使用同一个深度缓冲，部分游戏需要。"
 
@@ -12483,7 +12515,7 @@ msgstr ""
 "在你同时使用排除和包含一次后，将从包含列表中减去排除列表，并显示任意剩余的包"
 "含数。你可以继续使用“代码未执行”/“代码已执行”来缩小结果范围。"
 
-#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:179
+#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:183
 msgid "User Config"
 msgstr "用户配置"
 
@@ -12687,7 +12719,7 @@ msgstr "增大音量"
 msgid "Vulkan"
 msgstr "Vulkan"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1059
+#: Source/Core/DolphinQt/MenuBar.cpp:1061
 msgid "WAD files (*.wad)"
 msgstr "WAD 文件 (*.wad)"
 
@@ -12804,7 +12836,7 @@ msgstr ""
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:47
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:215
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:231
-#: Source/Core/DolphinQt/MenuBar.cpp:1468
+#: Source/Core/DolphinQt/MenuBar.cpp:1505
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:469
 msgid "Warning"
 msgstr "警告"
@@ -13017,11 +13049,11 @@ msgstr "Wii 和 Wii 遥控器"
 msgid "Wii data is not public yet"
 msgstr "Wii 数据尚未公开"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1080
+#: Source/Core/DolphinQt/MenuBar.cpp:1082
 msgid "Wii save files (*.bin);;All Files (*)"
 msgstr "Wii 存档文件 (*.bin);; 所有文件 (*)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:72
+#: Source/Core/DolphinQt/MenuBar.cpp:74
 msgid "WiiTools Signature MEGA File"
 msgstr "WiiTools 签名 MEGA 文件"
 
@@ -13273,6 +13305,12 @@ msgstr ""
 "您想现在停下来修复此问题吗？\n"
 "如果选择“否”，音频可能会嘈杂混乱。"
 
+#: Source/Core/DolphinQt/MenuBar.cpp:1165
+msgid ""
+"Your NAND contains more data than allowed. Wii software may behave "
+"incorrectly or not allow saving."
+msgstr ""
+
 #. i18n: Refers to a 3D axis (used when mapping motion controls)
 #: Source/Core/DolphinQt/TAS/WiiTASInputWindow.cpp:133
 #: Source/Core/DolphinQt/TAS/WiiTASInputWindow.cpp:173
@@ -13309,7 +13347,7 @@ msgstr "已对齐"
 msgid "any value"
 msgstr "任意值"
 
-#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:95
+#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:96
 msgid "auto"
 msgstr "自动"
 
@@ -13342,7 +13380,7 @@ msgstr "e-Reader 卡 (*.raw);;所有文件 (*)"
 msgid "errno"
 msgstr "errno"
 
-#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:95
+#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:96
 msgid "fake-completion"
 msgstr "伪完成"
 
@@ -13388,7 +13426,7 @@ msgstr ""
 "mGBA 即时存档 (*.ss0 *.ss1 *.ss2 *.ss3 *.ss4 *.ss5 *.ss6 *.ss7 *.ss8 *.ss9);;"
 "所有文件 (*)"
 
-#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:95
+#: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:96
 msgid "none"
 msgstr "无"
 
@@ -13413,7 +13451,7 @@ msgstr "秒"
 
 #: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:101
 msgid "sRGB"
-msgstr ""
+msgstr "sRGB"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:199
 msgid "this value:"
