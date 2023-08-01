@@ -307,7 +307,7 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
   const std::optional<u32> pc =
       guard ? std::make_optional(power_pc.GetPPCState().pc) : std::nullopt;
 
-  const bool dark_theme = qApp->palette().color(QPalette::Base).valueF() < 0.5;
+  const bool dark_theme = Settings::Instance().IsThemeDark();
 
   m_branches.clear();
 
@@ -350,7 +350,7 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
       }
       else if (color != 0xFFFFFF)
       {
-        item->setBackground(dark_theme ? QColor(color).darker(240) : QColor(color));
+        item->setBackground(dark_theme ? QColor(color).darker(400) : QColor(color));
       }
     }
 
@@ -372,7 +372,7 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
 
       description_item->setText(
           tr("--> %1").arg(QString::fromStdString(debug_interface.GetDescription(branch_addr))));
-      param_item->setForeground(Qt::magenta);
+      param_item->setForeground(dark_theme ? QColor(255, 135, 255) : Qt::magenta);
     }
 
     if (ins == "blr")
