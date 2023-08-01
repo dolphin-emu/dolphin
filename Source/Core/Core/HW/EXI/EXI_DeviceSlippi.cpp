@@ -116,7 +116,8 @@ std::string ConvertConnectCodeForGame(const std::string& input)
   return connectCode;
 }
 
-CEXISlippi::CEXISlippi(Core::System& system, const std::string current_file_name) : IEXIDevice(system)
+CEXISlippi::CEXISlippi(Core::System& system, const std::string current_file_name)
+    : IEXIDevice(system)
 {
   INFO_LOG_FMT(SLIPPI, "EXI SLIPPI Constructor called.");
 
@@ -2453,6 +2454,11 @@ void CEXISlippi::prepareOnlineMatchState()
 
   // Add the match struct block to output
   m_read_queue.insert(m_read_queue.end(), onlineMatchBlock.begin(), onlineMatchBlock.end());
+
+  // Add match id to output
+  std::string matchId = recentMmResult.id;
+  matchId.resize(51);
+  m_read_queue.insert(m_read_queue.end(), matchId.begin(), matchId.end());
 }
 
 u16 CEXISlippi::getRandomStage()

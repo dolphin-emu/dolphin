@@ -3,12 +3,12 @@
 #include <atomic>
 #include <condition_variable>  // std::condition_variable
 #include <curl/curl.h>
+#include <map>
 #include <mutex>  // std::mutex, std::unique_lock
 #include <queue>
 #include <string>
 #include <thread>
 #include <vector>
-#include <map>
 #include "Common/CommonTypes.h"
 #include "Core/Slippi/SlippiMatchmaking.h"
 #include "Core/Slippi/SlippiUser.h"
@@ -32,6 +32,7 @@ public:
   {
     SlippiMatchmaking::OnlinePlayMode mode = SlippiMatchmaking::OnlinePlayMode::UNRANKED;
     std::string match_id;
+    int report_attempts = 0;
     u32 duration_frames = 0;
     u32 game_index = 0;
     u32 tiebreak_index = 0;
@@ -49,7 +50,7 @@ public:
   void ReportAbandonment(std::string match_id);
   void StartNewSession();
   void ReportThreadHandler();
-  void PushReplayData(u8 *data, u32 length, std::string action);
+  void PushReplayData(u8* data, u32 length, std::string action);
   void UploadReplay(int idx, std::string url);
 
 protected:
@@ -58,10 +59,9 @@ protected:
   CURL* m_curl = nullptr;
   struct curl_slist* m_curl_header_list = nullptr;
 
-  CURL *m_curl_upload = nullptr;
-  struct curl_slist *m_curl_upload_headers = nullptr;
+  CURL* m_curl_upload = nullptr;
+  struct curl_slist* m_curl_upload_headers = nullptr;
 
-  u32 game_index = 1;
   std::vector<std::string> m_player_uids;
 
   SlippiUser* m_user;
