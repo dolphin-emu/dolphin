@@ -885,7 +885,7 @@ void CEXISlippi::prepareCharacterFrameData(Slippi::FrameData* frame, u8 port, u8
   source = isFollower ? frame->followers : frame->players;
 
   // This must be updated if new data is added
-  int characterDataLen = 49;
+  int characterDataLen = 50;
 
   // Check if player exists
   if (!source.count(port))
@@ -918,6 +918,7 @@ void CEXISlippi::prepareCharacterFrameData(Slippi::FrameData* frame, u8 port, u8
   appendWordToBuffer(&m_read_queue, *(u32*)&data.facingDirection);
   appendWordToBuffer(&m_read_queue, static_cast<u32>(data.animation));
   m_read_queue.push_back(data.joystickXRaw);
+  m_read_queue.push_back(data.joystickYRaw);
   appendWordToBuffer(&m_read_queue, *(u32*)&data.percent);
   // NOTE TO DEV: If you add data here, make sure to increase the size above
 }

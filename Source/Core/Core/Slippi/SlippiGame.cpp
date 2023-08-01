@@ -255,13 +255,12 @@ void handlePreFrameUpdate(Game* game, uint32_t maxSize)
   p.lTrigger = readFloat(data, idx, maxSize, 0);
   p.rTrigger = readFloat(data, idx, maxSize, 0);
 
-  if (asmEvents[EVENT_PRE_FRAME_UPDATE] >= 59)
-  {
-    p.joystickXRaw = readByte(data, idx, maxSize, 0);
-  }
+  p.joystickXRaw = readByte(data, idx, maxSize, 0);
 
   uint32_t noPercent = 0xFFFFFFFF;
   p.percent = readFloat(data, idx, maxSize, *(float*)(&noPercent));
+
+  p.joystickYRaw = readByte(data, idx, maxSize, 0);
 
   // Add player data to frame
   std::unordered_map<uint8_t, PlayerFrameData>* target;
