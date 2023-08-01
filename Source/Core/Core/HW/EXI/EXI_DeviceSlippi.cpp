@@ -969,6 +969,9 @@ void CEXISlippi::prepareFrameData(u8* payload)
     return;
   }
 
+  // Hides frame index message on waiting for game screen
+  // OSD::AddTypedMessage(OSD::MessageType::FrameIndex, "", 0, OSD::Color::CYAN);
+
   // If a new replay should be played, terminate the current game
   auto isNewReplay = g_replayComm->isNewReplay();
   if (isNewReplay)

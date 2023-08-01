@@ -99,11 +99,19 @@ SlippiGameReporter::SlippiGameReporter(SlippiUser* user, const std::string curre
 
   m_user = user;
 
+  run_thread = true;
+  reporting_thread = std::thread(&SlippiGameReporter::ReportThreadHandler, this);
+
   static const mbedtls_md_info_t* s_md5_info = mbedtls_md_info_from_type(MBEDTLS_MD_MD5);
   m_md5_thread = std::thread([this, current_file_name]() {
+    if (!run_thread)
+      return;
+
     std::array<u8, 16> md5_array;
     mbedtls_md_file(s_md5_info, current_file_name.c_str(), md5_array.data());
     this->m_iso_hash = std::string(md5_array.begin(), md5_array.end());
+    if (!run_thread)
+      return;
 
     if (known_desync_isos.find(this->m_iso_hash) != known_desync_isos.end() &&
         known_desync_isos.at(this->m_iso_hash))
@@ -126,6 +134,9 @@ SlippiGameReporter::~SlippiGameReporter()
   cv.notify_one();
   if (reporting_thread.joinable())
     reporting_thread.join();
+
+  if (m_md5_thread.joinable())
+    m_md5_thread.join();
 
   if (m_curl)
   {
@@ -282,6 +293,12 @@ void SlippiGameReporter::ReportThreadHandler()
 
       // Parse the response
       auto r = json::parse(resp);
+      if (!r.is_object())
+      {
+        ERROR_LOG_FMT(SLIPPI, "JSON was not an object. {}", resp);
+        Common::SleepCurrentThread(errorSleepMs);
+        continue;
+      }
       bool success = r.value("success", false);
       if (!success)
       {
@@ -368,8 +385,8 @@ void SlippiGameReporter::ReportCompletion(std::string matchId, u8 endMode)
   if (res != 0)
   {
     ERROR_LOG_FMT(SLIPPI_ONLINE,
-                  "[GameReport] Got error executing completion request. Err code: {}",
-                  static_cast<u8>(res));
+                  "[GameReport] Got error executing completion request. Err code: {}. Msg: {}",
+                  static_cast<u8>(res), m_curl_err_buf);
   }
 }
 
