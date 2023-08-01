@@ -69,6 +69,13 @@ protected:
 
   std::vector<std::string> m_player_uids;
 
+  std::unordered_map<std::string, bool> known_desync_isos = {
+      {"23d6baef06bd65989585096915da20f2", true},
+      {"27a5668769a54cd3515af47b8d9982f3", true},
+      {"5805fa9f1407aedc8804d0472346fc5f", true},
+      {"9bb3e275e77bb1a160276f2330f93931", true},
+  };
+
   SlippiUser* m_user;
   std::string m_iso_hash;
   std::queue<GameReport> game_report_queue;

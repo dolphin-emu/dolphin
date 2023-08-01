@@ -1,15 +1,15 @@
 #include "SlippiGameReporter.h"
 
+#include "Common/Common.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
-
-#include "Common/Common.h"
 #include "Core/ConfigManager.h"
 #include "Core/Slippi/SlippiMatchmaking.h"
+#include "VideoCommon/OnScreenDisplay.h"
 
 #include <codecvt>
 #include <locale>
@@ -104,6 +104,14 @@ SlippiGameReporter::SlippiGameReporter(SlippiUser* user, const std::string curre
     std::array<u8, 16> md5_array;
     mbedtls_md_file(s_md5_info, current_file_name.c_str(), md5_array.data());
     this->m_iso_hash = std::string(md5_array.begin(), md5_array.end());
+
+    if (known_desync_isos.find(this->m_iso_hash) != known_desync_isos.end() &&
+        known_desync_isos.at(this->m_iso_hash))
+    {
+      OSD::AddTypedMessage(OSD::MessageType::DesyncWarning,
+                           "\n\n\n\nCAUTION: You are using an ISO that is known to cause desyncs",
+                           20000, OSD::Color::RED);
+    }
     INFO_LOG_FMT(SLIPPI_ONLINE, "MD5 Hash: {}", this->m_iso_hash);
   });
   m_md5_thread.detach();

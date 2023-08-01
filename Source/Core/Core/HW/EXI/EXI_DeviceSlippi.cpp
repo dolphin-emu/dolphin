@@ -2940,7 +2940,7 @@ void CEXISlippi::handleCompleteSet(const SlippiExiTypes::ReportSetCompletionQuer
   auto lastMatchId = recentMmResult.id;
   if (lastMatchId.find("mode.ranked") != std::string::npos)
   {
-    ERROR_LOG_FMT(SLIPPI_ONLINE, "Reporting set completion: {}", lastMatchId);
+    INFO_LOG_FMT(SLIPPI_ONLINE, "Reporting set completion: {}", lastMatchId);
     game_reporter->ReportCompletion(lastMatchId, query.endMode);
   }
 }
