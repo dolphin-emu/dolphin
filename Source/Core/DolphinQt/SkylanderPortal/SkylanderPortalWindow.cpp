@@ -612,6 +612,8 @@ void SkylanderPortalWindow::UpdateCurrentIDs()
 
 void SkylanderPortalWindow::RefreshList()
 {
+  const bool is_dark_theme = Settings::Instance().IsThemeDark();
+
   const int row = m_skylander_list->currentRow();
   m_skylander_list->clear();
   if (m_only_show_collection->isChecked())
@@ -635,8 +637,16 @@ void SkylanderPortalWindow::RefreshList()
       {
         const uint qvar = (ids.first << 16) | ids.second;
         QListWidgetItem* skylander = new QListWidgetItem(file.baseName());
-        skylander->setBackground(GetBaseColor(ids));
-        skylander->setForeground(QBrush(QColor(0, 0, 0, 255)));
+        if (is_dark_theme)
+        {
+          skylander->setBackground(GetBaseColor(ids, true));
+          skylander->setForeground(QBrush(QColor(220, 220, 220)));
+        }
+        else
+        {
+          skylander->setBackground(GetBaseColor(ids, false));
+          skylander->setForeground(QBrush(QColor(0, 0, 0)));
+        }
         skylander->setData(1, qvar);
         m_skylander_list->addItem(skylander);
       }
@@ -652,8 +662,16 @@ void SkylanderPortalWindow::RefreshList()
       {
         const uint qvar = (entry.first.first << 16) | entry.first.second;
         QListWidgetItem* skylander = new QListWidgetItem(tr(entry.second.name));
-        skylander->setBackground(GetBaseColor(entry.first));
-        skylander->setForeground(QBrush(QColor(0, 0, 0, 255)));
+        if (is_dark_theme)
+        {
+          skylander->setBackground(GetBaseColor(entry.first, true));
+          skylander->setForeground(QBrush(QColor(220, 220, 220)));
+        }
+        else
+        {
+          skylander->setBackground(GetBaseColor(entry.first, false));
+          skylander->setForeground(QBrush(QColor(0, 0, 0)));
+        }
         skylander->setData(1, qvar);
         m_skylander_list->addItem(skylander);
       }
@@ -897,27 +915,27 @@ int SkylanderPortalWindow::GetElementRadio()
   return -1;
 }
 
-QBrush SkylanderPortalWindow::GetBaseColor(std::pair<const u16, const u16> ids)
+QBrush SkylanderPortalWindow::GetBaseColor(std::pair<const u16, const u16> ids, bool dark_theme)
 {
   auto skylander = IOS::HLE::USB::list_skylanders.find(ids);
 
   if (skylander == IOS::HLE::USB::list_skylanders.end())
-    return QBrush(QColor(255, 255, 255, 255));
+    return QBrush(dark_theme ? QColor(32, 32, 32) : QColor(255, 255, 255));
 
   switch ((*skylander).second.game)
   {
   case IOS::HLE::USB::Game::SpyrosAdv:
-    return QBrush(QColor(240, 255, 240, 255));
+    return QBrush(dark_theme ? QColor(10, 42, 90) : QColor(240, 255, 240));
   case IOS::HLE::USB::Game::Giants:
-    return QBrush(QColor(255, 240, 215, 255));
+    return QBrush(dark_theme ? QColor(120, 16, 12) : QColor(255, 240, 215));
   case IOS::HLE::USB::Game::SwapForce:
-    return QBrush(QColor(240, 245, 255, 255));
+    return QBrush(dark_theme ? QColor(28, 45, 12) : QColor(240, 245, 255));
   case IOS::HLE::USB::Game::TrapTeam:
-    return QBrush(QColor(255, 240, 240, 255));
+    return QBrush(dark_theme ? QColor(0, 56, 76) : QColor(255, 240, 240));
   case IOS::HLE::USB::Game::Superchargers:
-    return QBrush(QColor(247, 228, 215, 255));
+    return QBrush(dark_theme ? QColor(90, 12, 12) : QColor(247, 228, 215));
   default:
-    return QBrush(QColor(255, 255, 255, 255));
+    return QBrush(dark_theme ? QColor(32, 32, 32) : QColor(255, 255, 255));
   }
 }
 

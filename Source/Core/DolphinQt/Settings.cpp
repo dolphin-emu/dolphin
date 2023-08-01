@@ -163,6 +163,11 @@ bool Settings::IsSystemDark()
   return s_system_dark;
 }
 
+bool Settings::IsThemeDark()
+{
+  return qApp->palette().color(QPalette::Base).valueF() < 0.5;
+}
+
 // Calling this before the main window has been created breaks the style of some widgets.
 void Settings::SetCurrentUserStyle(const QString& stylesheet_name)
 {

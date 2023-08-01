@@ -1835,7 +1835,13 @@ bool MainWindow::nativeEvent(const QByteArray& eventType, void* message, qintptr
     const bool was_dark_before = settings.IsSystemDark();
     settings.UpdateSystemDark();
     if (settings.IsSystemDark() != was_dark_before)
+    {
       settings.SetCurrentUserStyle(settings.GetCurrentUserStyle());
+
+      // force the colors in the Skylander window to update
+      if (m_skylander_window)
+        m_skylander_window->RefreshList();
+    }
 
     // TODO: When switching from light to dark, the window decorations remain light. Qt seems very
     // convinced that it needs to change these in response to this message, so even if we set them
