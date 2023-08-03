@@ -1,3 +1,5 @@
+/***** COLOR CORRECTION *****/
+
 // Color Space references:
 // https://www.unravel.com.au/understanding-color-spaces
 
@@ -36,6 +38,8 @@ float3 LinearTosRGBGamma(float3 color)
 	return color;
 }
 
+/***** COLOR SAMPLING *****/
+
 // Non filtered gamma corrected sample (nearest neighbor)
 float4 QuickSample(float3 uvw, float gamma)
 {
@@ -43,20 +47,24 @@ float4 QuickSample(float3 uvw, float gamma)
 	color.rgb = pow(color.rgb, float3(gamma));
 	return color;
 }
-
 float4 QuickSample(float2 uv, float w, float gamma)
 {
 	return QuickSample(float3(uv, w), gamma);
 }
+float4 QuickSampleByPixel(float2 xy, float w, float gamma)
+{
+	float3 uvw = float3(xy * GetInvResolution(), w);
+	return QuickSample(uvw, gamma);
+}
+
+/***** Bilinear Interpolation *****/
 
 float4 BilinearSample(float3 uvw, float gamma)
 {
 	// This emulates the (bi)linear filtering done directly from GPUs HW.
 	// Note that GPUs might natively filter red green and blue differently, but we don't do it.
 	// They might also use different filtering between upscaling and downscaling.
-
 	float2 source_size = GetResolution();
-	float2 inverted_source_size = GetInvResolution();
 	float2 pixel = (uvw.xy * source_size) - 0.5; // Try to find the matching pixel top left corner
 
 	// Find the integer and floating point parts
@@ -64,14 +72,83 @@ float4 BilinearSample(float3 uvw, float gamma)
 	float2 frac_pixel = fract(pixel);
 
 	// Take 4 samples around the original uvw
-	float4 c11 = QuickSample((int_pixel + float2(0.5, 0.5)) * inverted_source_size, uvw.z, gamma);
-	float4 c21 = QuickSample((int_pixel + float2(1.5, 0.5)) * inverted_source_size, uvw.z, gamma);
-	float4 c12 = QuickSample((int_pixel + float2(0.5, 1.5)) * inverted_source_size, uvw.z, gamma);
-	float4 c22 = QuickSample((int_pixel + float2(1.5, 1.5)) * inverted_source_size, uvw.z, gamma);
+	float4 c11 = QuickSampleByPixel(int_pixel + float2(0.5, 0.5), uvw.z, gamma);
+	float4 c21 = QuickSampleByPixel(int_pixel + float2(1.5, 0.5), uvw.z, gamma);
+	float4 c12 = QuickSampleByPixel(int_pixel + float2(0.5, 1.5), uvw.z, gamma);
+	float4 c22 = QuickSampleByPixel(int_pixel + float2(1.5, 1.5), uvw.z, gamma);
 
 	// Blend the 4 samples by their weight
 	return lerp(lerp(c11, c21, frac_pixel.x), lerp(c12, c22, frac_pixel.x), frac_pixel.y);
 }
+
+/***** Bicubic Interpolation *****/
+
+// Formula derived from:
+// https://en.wikipedia.org/wiki/Mitchell%E2%80%93Netravali_filters#Definition
+// Values from:
+// https://guideencodemoe-mkdocs.readthedocs.io/encoding/resampling/#mitchell-netravali-bicubic
+// Other references:
+// https://www.codeproject.com/Articles/236394/Bi-Cubic-and-Bi-Linear-Interpolation-with-GLSL
+// https://github.com/ValveSoftware/gamescope/pull/740
+// https://stackoverflow.com/questions/13501081/efficient-bicubic-filtering-code-in-glsl
+#define CUBIC_COEFF_GEN(B, C)																						\
+	(mat4(/* t^0 */ ((B) / 6.0), (-(B) / 3.0 + 1.0), ((B) / 6.0), (0.0),	\
+		/* t^1 */ (-(B) / 2.0 - (C)), (0.0), ((B) / 2.0 + (C)), (0.0),			\
+		/* t^2 */ ((B) / 2.0 + 2.0 * (C)), (2.0 * (B) + (C)-3.0),						\
+		(-5.0 * (B) / 2.0 - 2.0 * (C) + 3.0), (-(C)),												\
+		/* t^3 */ (-(B) / 6.0 - (C)), (-3.0 * (B) / 2.0 - (C) + 2.0),				\
+		(3.0 * (B) / 2.0 + (C)-2.0), ((B) / 6.0 + (C))))
+
+float4 CubicCoeffs(float t, mat4 coeffs)
+{
+	return coeffs * float4(1.0, t, t * t, t * t * t);
+}
+
+float4 CubicMix(float4 c0, float4 c1, float4 c2, float4 c3, float4 coeffs)
+{
+	return c0 * coeffs[0] + c1 * coeffs[1] + c2 * coeffs[2] + c3 * coeffs[3];
+}
+
+// By Sam Belliveau. Public Domain license.
+// Simple 16 tap, gamma correct, implementation of bicubic filtering.
+float4 BicubicSample(float3 uvw, float gamma, mat4 coeffs)
+{
+	float2 pixel = (uvw.xy * GetResolution()) - 0.5;
+	float2 int_pixel = floor(pixel);
+	float2 frac_pixel = fract(pixel);
+
+	float4 c00 = QuickSampleByPixel(int_pixel + float2(-0.5, -0.5), uvw.z, gamma);
+	float4 c10 = QuickSampleByPixel(int_pixel + float2(+0.5, -0.5), uvw.z, gamma);
+	float4 c20 = QuickSampleByPixel(int_pixel + float2(+1.5, -0.5), uvw.z, gamma);
+	float4 c30 = QuickSampleByPixel(int_pixel + float2(+2.5, -0.5), uvw.z, gamma);
+
+	float4 c01 = QuickSampleByPixel(int_pixel + float2(-0.5, +0.5), uvw.z, gamma);
+	float4 c11 = QuickSampleByPixel(int_pixel + float2(+0.5, +0.5), uvw.z, gamma);
+	float4 c21 = QuickSampleByPixel(int_pixel + float2(+1.5, +0.5), uvw.z, gamma);
+	float4 c31 = QuickSampleByPixel(int_pixel + float2(+2.5, +0.5), uvw.z, gamma);
+
+	float4 c02 = QuickSampleByPixel(int_pixel + float2(-0.5, +1.5), uvw.z, gamma);
+	float4 c12 = QuickSampleByPixel(int_pixel + float2(+0.5, +1.5), uvw.z, gamma);
+	float4 c22 = QuickSampleByPixel(int_pixel + float2(+1.5, +1.5), uvw.z, gamma);
+	float4 c32 = QuickSampleByPixel(int_pixel + float2(+2.5, +1.5), uvw.z, gamma);
+
+	float4 c03 = QuickSampleByPixel(int_pixel + float2(-0.5, +2.5), uvw.z, gamma);
+	float4 c13 = QuickSampleByPixel(int_pixel + float2(+0.5, +2.5), uvw.z, gamma);
+	float4 c23 = QuickSampleByPixel(int_pixel + float2(+1.5, +2.5), uvw.z, gamma);
+	float4 c33 = QuickSampleByPixel(int_pixel + float2(+2.5, +2.5), uvw.z, gamma);
+
+	float4 cx = CubicCoeffs(frac_pixel.x, coeffs);
+	float4 cy = CubicCoeffs(frac_pixel.y, coeffs);
+
+	float4 x0 = CubicMix(c00, c10, c20, c30, cx);
+	float4 x1 = CubicMix(c01, c11, c21, c31, cx);
+	float4 x2 = CubicMix(c02, c12, c22, c32, cx);
+	float4 x3 = CubicMix(c03, c13, c23, c33, cx);
+
+	return CubicMix(x0, x1, x2, x3, cy);
+}
+
+/***** Sharp Bilinear Filtering *****/
 
 // Based on https://github.com/libretro/slang-shaders/blob/master/interpolation/shaders/sharp-bilinear.slang
 // by Themaister, Public Domain license
@@ -99,23 +176,24 @@ float4 SharpBilinearSample(float3 uvw, float gamma)
 	return BilinearSample(uvw, gamma);
 }
 
+/***** Area Sampling *****/
+
 // By Sam Belliveau. Public Domain license.
 // Effectively a more accurate sharp bilinear filter when upscaling,
 // that also works as a mathematically perfect downscale filter.
 // https://entropymine.com/imageworsener/pixelmixing/
 // https://github.com/obsproject/obs-studio/pull/1715
 // https://legacy.imagemagick.org/Usage/filter/
-float4 BoxResample(float3 uvw, float gamma)
+float4 AreaSampling(float3 uvw, float gamma)
 {
 	// Determine the sizes of the source and target images.
 	float2 source_size = GetResolution();
-	float2 inv_source_size = GetInvResolution();
-	float2 inv_target_size = GetInvWindowResolution();
+	float2 inverted_target_size = GetInvWindowResolution();
 
 	// Determine the range of the source image that the target pixel will cover.
 	// We shift by one output pixel because that's a prerequisite of the algorithm.
-	float2 range = source_size * inv_target_size;
-	float2 beg = (uvw.xy - inv_target_size) * source_size;
+	float2 range = source_size * inverted_target_size;
+	float2 beg = (uvw.xy - inverted_target_size) * source_size;
 	float2 end = beg + range;
 
 	// Compute the top-left and bottom-right corners of the pixel box.
@@ -141,11 +219,11 @@ float4 BoxResample(float3 uvw, float gamma)
 	const float offset = 0.5;
 
 	// Accumulate corner pixels.
-	avg_color += area_nw * QuickSample(float2(f_beg.x + offset, f_beg.y + offset) * inv_source_size, uvw.z, gamma);
-	avg_color += area_ne * QuickSample(float2(f_end.x + offset, f_beg.y + offset) * inv_source_size, uvw.z, gamma);
-	avg_color += area_sw * QuickSample(float2(f_beg.x + offset, f_end.y + offset) * inv_source_size, uvw.z, gamma);
-	avg_color += area_se * QuickSample(float2(f_end.x + offset, f_end.y + offset) * inv_source_size, uvw.z, gamma);
-	
+	avg_color += area_nw * QuickSampleByPixel(float2(f_beg.x + offset, f_beg.y + offset), uvw.z, gamma);
+	avg_color += area_ne * QuickSampleByPixel(float2(f_end.x + offset, f_beg.y + offset), uvw.z, gamma);
+	avg_color += area_sw * QuickSampleByPixel(float2(f_beg.x + offset, f_end.y + offset), uvw.z, gamma);
+	avg_color += area_se * QuickSampleByPixel(float2(f_end.x + offset, f_end.y + offset), uvw.z, gamma);
+
 	// Determine the size of the pixel box.
 	int x_range = int(f_end.x - f_beg.x + 0.5);
 	int y_range = int(f_end.y - f_beg.y + 0.5);
@@ -165,8 +243,8 @@ float4 BoxResample(float3 uvw, float gamma)
 		if (ix < x_range)
 		{
 			float x = f_beg.x + 1.0 + float(ix);
-			avg_color += area_n * QuickSample(float2(x + offset, f_beg.y + offset) * inv_source_size, uvw.z, gamma);
-			avg_color += area_s * QuickSample(float2(x + offset, f_end.y + offset) * inv_source_size, uvw.z, gamma);
+			avg_color += area_n * QuickSampleByPixel(float2(x + offset, f_beg.y + offset), uvw.z, gamma);
+			avg_color += area_s * QuickSampleByPixel(float2(x + offset, f_end.y + offset), uvw.z, gamma);
 		}
 	}
 
@@ -177,15 +255,15 @@ float4 BoxResample(float3 uvw, float gamma)
 		{
 			float y = f_beg.y + 1.0 + float(iy);
 
-			avg_color += area_w * QuickSample(float2(f_beg.x + offset, y + offset) * inv_source_size, uvw.z, gamma);
-			avg_color += area_e * QuickSample(float2(f_end.x + offset, y + offset) * inv_source_size, uvw.z, gamma);
+			avg_color += area_w * QuickSampleByPixel(float2(f_beg.x + offset, y + offset), uvw.z, gamma);
+			avg_color += area_e * QuickSampleByPixel(float2(f_end.x + offset, y + offset), uvw.z, gamma);
 
 			for (int ix = 0; ix < max_iterations; ++ix)
 			{
 				if (ix < x_range)
 				{
 					float x = f_beg.x + 1.0 + float(ix);
-					avg_color += QuickSample(float2(x + offset, y + offset) * inv_source_size, uvw.z, gamma);
+					avg_color += QuickSampleByPixel(float2(x + offset, y + offset), uvw.z, gamma);
 				}
 			}
 		}
@@ -200,154 +278,7 @@ float4 BoxResample(float3 uvw, float gamma)
 	return avg_color / (area_corners + area_edges + area_center);
 }
 
-float4 Cubic(float v)
-{
-	float4 n = float4(1.0, 2.0, 3.0, 4.0) - v;
-	float4 s = n * n * n;
-	float x = s.x;
-	float y = s.y - 4.0 * s.x;
-	float z = s.z - 4.0 * s.y + 6.0 * s.x;
-	float w = 6.0 - x - y - z;
-	return float4(x, y, z, w) * (1.0 / 6.0);
-}
-
-// https://stackoverflow.com/questions/13501081/efficient-bicubic-filtering-code-in-glsl
-float4 BicubicSample(float3 uvw, float2 in_source_resolution, float2 in_inverted_source_resolution, float gamma)
-{
-	float2 pixel = (uvw.xy * in_source_resolution) - 0.5;
-	float2 int_pixel = floor(pixel);
-	float2 frac_pixel = fract(pixel);
-
-	float4 xcubic = Cubic(frac_pixel.x);
-	float4 ycubic = Cubic(frac_pixel.y);
-
-	float4 c = float4(int_pixel.x - 0.5, int_pixel.x + 1.5, int_pixel.y - 0.5, int_pixel.y + 1.5);
-	float4 s = float4(xcubic.x + xcubic.y, xcubic.z + xcubic.w, ycubic.x + ycubic.y, ycubic.z + ycubic.w);
-	float4 offset = c + float4(xcubic.y, xcubic.w, ycubic.y, ycubic.w) / s;
-
-	offset *= float4(in_inverted_source_resolution.x, in_inverted_source_resolution.x, in_inverted_source_resolution.y, in_inverted_source_resolution.y);
-
-	float4 sample0 = QuickSample(offset.xz, uvw.z, gamma);
-	float4 sample1 = QuickSample(offset.yz, uvw.z, gamma);
-	float4 sample2 = QuickSample(offset.xw, uvw.z, gamma);
-	float4 sample3 = QuickSample(offset.yw, uvw.z, gamma);
-
-	float sx = s.x / (s.x + s.y);
-	float sy = s.z / (s.z + s.w);
-
-	return lerp(lerp(sample3, sample2, sx), lerp(sample1, sample0, sx), sy);
-}
-
-float4 CubicHermite(float4 A, float4 B, float4 C, float4 D, float t)
-{
-	float t2 = t * t;
-	float t3 = t * t * t;
-	float4 a = (-A / 2.0) + ((3.0 * B) / 2.0) - ((3.0 * C) / 2.0) + (D / 2.0);
-	float4 b = A - ((5.0 * B) / 2.0 ) + (2.0 * C) - (D / 2.0);
-	float4 c = (-A / 2.0) + (C / 2.0);
-	float4 d = B;
-
-	return (a * t3) + (b * t2) + (c * t) + d;
-}
-
-float4 BicubicHermiteSample(float3 uvw, float2 in_source_resolution, float2 in_inverted_source_resolution, float gamma)
-{
-	float2 pixel = (uvw.xy * in_source_resolution) + 0.5;
-	float2 frac_pixel = fract(pixel);
-	float2 uv = (floor(pixel) * in_inverted_source_resolution) - (in_inverted_source_resolution / 2.0);
-
-	float2 inverted_source_resolution_double = in_inverted_source_resolution * 2.0;
-
-	float4 c00 = QuickSample(uv + float2(-in_inverted_source_resolution.x,			-in_inverted_source_resolution.y), uvw.z, gamma);
-	float4 c10 = QuickSample(uv + float2(	0.0,																	-in_inverted_source_resolution.y), uvw.z, gamma);
-	float4 c20 = QuickSample(uv + float2(	in_inverted_source_resolution.x,			-in_inverted_source_resolution.y), uvw.z, gamma);
-	float4 c30 = QuickSample(uv + float2(	inverted_source_resolution_double.x,	-in_inverted_source_resolution.y), uvw.z, gamma);
-
-	float4 c01 = QuickSample(uv + float2(-in_inverted_source_resolution.x,			0.0), uvw.z, gamma);
-	float4 c11 = QuickSample(uv + float2(	0.0,																	0.0), uvw.z, gamma);
-	float4 c21 = QuickSample(uv + float2(	in_inverted_source_resolution.x,			0.0), uvw.z, gamma);
-	float4 c31 = QuickSample(uv + float2(	inverted_source_resolution_double.x,	0.0), uvw.z, gamma);
-
-	float4 c02 = QuickSample(uv + float2(-in_inverted_source_resolution.x,			in_inverted_source_resolution.y), uvw.z, gamma);
-	float4 c12 = QuickSample(uv + float2(	0.0,																	in_inverted_source_resolution.y), uvw.z, gamma);
-	float4 c22 = QuickSample(uv + float2(	in_inverted_source_resolution.x,			in_inverted_source_resolution.y), uvw.z, gamma);
-	float4 c32 = QuickSample(uv + float2(	inverted_source_resolution_double.x,	in_inverted_source_resolution.y), uvw.z, gamma);
-
-	float4 c03 = QuickSample(uv + float2(-in_inverted_source_resolution.x,			inverted_source_resolution_double.y), uvw.z, gamma);
-	float4 c13 = QuickSample(uv + float2(	0.0,																	inverted_source_resolution_double.y), uvw.z, gamma);
-	float4 c23 = QuickSample(uv + float2(	in_inverted_source_resolution.x,			inverted_source_resolution_double.y), uvw.z, gamma);
-	float4 c33 = QuickSample(uv + float2(	inverted_source_resolution_double.x,	inverted_source_resolution_double.y), uvw.z, gamma);
-
-	float4 cp0x = CubicHermite(c00, c10, c20, c30, frac_pixel.x);
-	float4 cp1x = CubicHermite(c01, c11, c21, c31, frac_pixel.x);
-	float4 cp2x = CubicHermite(c02, c12, c22, c32, frac_pixel.x);
-	float4 cp3x = CubicHermite(c03, c13, c23, c33, frac_pixel.x);
-
-	return CubicHermite(cp0x, cp1x, cp2x, cp3x, frac_pixel.y);
-}
-
-float CatmullRom(float B, float C, float x)
-{
-	float f = x;
-
-	if (f < 0.0)
-		f = -f;
-
-	if (f < 1.0)
-	{
-		return ((12 - 9 * B - 6 * C) * (f * f * f) +
-			(-18 + 12 * B + 6 * C) * (f * f) +
-			(6 - 2 * B)) / 6.0;
-	}
-	else if (f >= 1.0 && f < 2.0)
-	{
-		return ((-B - 6 * C) * (f * f * f)
-			+ (6 * B + 30 * C) * (f * f) +
-			( - (12 * B) - 48 * C) * f +
-			8 * B + 24 * C) / 6.0;
-	}
-	else
-	{
-		return 0.0;
-	}
-}
-
-// https://www.codeproject.com/Articles/236394/Bi-Cubic-and-Bi-Linear-Interpolation-with-GLSL
-// https://github.com/ValveSoftware/gamescope/pull/740
-float4 BicubicCatmullRomSample(float3 uvw, float2 in_source_resolution, float2 in_inverted_source_resolution, float gamma)
-{
-	const float offset = 0.5;
-	float2 pixel = (uvw.xy * in_source_resolution) - offset;
-	float2 int_pixel = floor(pixel);
-	float2 frac_pixel = fract(pixel);
-	float2 int_uvw = (int_pixel + offset) * in_inverted_source_resolution;
-
-	// B and C can be any value between 0 and 1,
-	// though they are meant to be 0 and 0.5 for Catmull-Rom.
-	// https://en.wikipedia.org/wiki/Mitchell%E2%80%93Netravali_filters
-	// https://guideencodemoe-mkdocs.readthedocs.io/encoding/resampling/
-	const float B = 0.0;
-	const float C = 0.5;
-
-	// Take 16 (4x4) samples, each with a different weight.
-	// This loop can be replaced with any other bicubic formula (e.g. Hermite).
-	float4 color_sum = float4(0.0, 0.0, 0.0, 0.0);
-	float4 color_denominator = float4(0.0, 0.0, 0.0, 0.0);
-	for (int m = -1; m <= 2; m++)
-	{
-		for (int n = -1; n <= 2; n++)
-		{
-			float4 color = QuickSample(int_uvw + (float2(m, n) * in_inverted_source_resolution), uvw.z, gamma);
-			float f1 = CatmullRom(B, C, float(m) - frac_pixel.x);
-			float f2 = CatmullRom(B, C, -float(n) + frac_pixel.y);
-			float4 cooef1 = float4(f1, f1, f1, f1);
-			float4 cooef2 = float4(f2, f2, f2, f2);
-			color_sum += color * (cooef2 * cooef1);
-			color_denominator += cooef2 * cooef1;
-		}
-	}
-	return color_sum / color_denominator;
-}
+/***** Main Functions *****/
 
 // Returns an accurate (gamma corrected) sample of a gamma space space texture.
 // Outputs in linear space for simplicity.
@@ -360,29 +291,33 @@ float4 LinearGammaCorrectedSample(float gamma)
 	{
 		color = BilinearSample(uvw, gamma);
 	}
-	else if (resampling_method == 2) // "Simple" Bicubic
+	else if (resampling_method == 2) // Bicubic: B-Spline
 	{
-		color = BicubicSample(uvw, GetResolution(), GetInvResolution(), gamma);
+		color = BicubicSample(uvw, gamma, CUBIC_COEFF_GEN(1.0, 0.0));
 	}
-	else if (resampling_method == 3) // Hermite
+	else if (resampling_method == 3) // Bicubic: Mitchell-Netravali
 	{
-		color = BicubicHermiteSample(uvw, GetResolution(), GetInvResolution(), gamma);
+		color = BicubicSample(uvw, gamma, CUBIC_COEFF_GEN(1.0 / 3.0, 1.0 / 3.0));
 	}
-	else if (resampling_method == 4) // Catmull-Rom
+	else if (resampling_method == 4) // Bicubic: Catmull-Rom
 	{
-		color = BicubicCatmullRomSample(uvw, GetResolution(), GetInvResolution(), gamma);
+		color = BicubicSample(uvw, gamma, CUBIC_COEFF_GEN(0.0, 0.5));
 	}
-	else if (resampling_method == 5) // Nearest Neighbor
-	{
-		color = QuickSample(uvw, gamma);
-	}
-	else if (resampling_method == 6) // Sharp Bilinear
+	else if (resampling_method == 5) // Sharp Bilinear
 	{
 		color = SharpBilinearSample(uvw, gamma);
 	}
-	else if (resampling_method == 7) // BoxSampling
+	else if (resampling_method == 6) // Area Sampling
 	{
-		color = BoxResample(uvw, gamma);
+		color = AreaSampling(uvw, gamma);
+	}
+	else if (resampling_method == 7) // Nearest Neighbor
+	{
+		color = QuickSample(uvw, gamma);
+	}
+	else if (resampling_method == 8) // Bicubic: Hermite
+	{
+		color = BicubicSample(uvw, gamma, CUBIC_COEFF_GEN(0.0, 0.0));
 	}
 
 	return color;

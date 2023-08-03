@@ -56,12 +56,11 @@ enum class OutputResamplingMode : int
 {
   Default,
   Bilinear,
-  Bicubic,
-  Hermite,
+  BSpline,
+  MitchellNetravali,
   CatmullRom,
-  NearestNeighbor,
   SharpBilinear,
-  BoxResampling,
+  AreaSampling,
 };
 
 enum class ColorCorrectionRegion : int
