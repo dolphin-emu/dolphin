@@ -43,6 +43,17 @@ float3 LinearTosRGBGamma(float3 color)
 // Non filtered gamma corrected sample (nearest neighbor)
 float4 QuickSample(float3 uvw, float gamma)
 {
+#if 0 // Test sampling range
+	const float threshold = 0.00000001;
+	float2 xy = uvw.xy * GetResolution();
+	// Sampling outside the valid range, draw in yellow
+	if (xy.x < (0.0 - threshold) || xy.x > (GetResolution().x + threshold) || xy.y < (0.0 - threshold) || xy.y > (GetResolution().y + threshold))
+		return float4(1.0, 1.0, 0.0, 1);
+	// Sampling at the edges, draw in purple
+	if (xy.x < 1.0 || xy.x > (GetResolution().x - 1.0) || xy.y < 1.0 || xy.y > (GetResolution().y - 1.0))
+		return float4(0.5, 0, 0.5, 1);
+#endif
+
 	float4 color = texture(samp1, uvw);
 	color.rgb = pow(color.rgb, float3(gamma));
 	return color;
@@ -178,7 +189,7 @@ float4 SharpBilinearSample(float3 uvw, float gamma)
 
 /***** Area Sampling *****/
 
-// By Sam Belliveau. Public Domain license.
+// By Sam Belliveau and Filippo Tarpini. Public Domain license.
 // Effectively a more accurate sharp bilinear filter when upscaling,
 // that also works as a mathematically perfect downscale filter.
 // https://entropymine.com/imageworsener/pixelmixing/
@@ -191,9 +202,11 @@ float4 AreaSampling(float3 uvw, float gamma)
 	float2 inverted_target_size = GetInvWindowResolution();
 
 	// Determine the range of the source image that the target pixel will cover.
-	// We shift by one output pixel because that's a prerequisite of the algorithm.
-	float2 range = source_size * inverted_target_size;
-	float2 beg = (uvw.xy - inverted_target_size) * source_size;
+	// Workaround: shift the resolution by 1/4 pixel to align the results with other sampling algorithms,
+	// otherwise the results would be offsetted, and we'd be sampling from coordinates outside the valid range.
+	float2 adjusted_source_size = source_size - 0.25;
+	float2 range = adjusted_source_size * inverted_target_size;
+	float2 beg = (uvw.xy * adjusted_source_size) - (range * 0.5);
 	float2 end = beg + range;
 
 	// Compute the top-left and bottom-right corners of the pixel box.
@@ -215,15 +228,15 @@ float4 AreaSampling(float3 uvw, float gamma)
 	// Initialize the color accumulator.
 	float4 avg_color = float4(0.0, 0.0, 0.0, 0.0);
 
-	// Presents rounding errors
-	const float offset = 0.5;
+	// Prevents rounding errors due to the coordinates flooring above
+	const float2 offset = float2(0.5, 0.5);
 
 	// Accumulate corner pixels.
-	avg_color += area_nw * QuickSampleByPixel(float2(f_beg.x + offset, f_beg.y + offset), uvw.z, gamma);
-	avg_color += area_ne * QuickSampleByPixel(float2(f_end.x + offset, f_beg.y + offset), uvw.z, gamma);
-	avg_color += area_sw * QuickSampleByPixel(float2(f_beg.x + offset, f_end.y + offset), uvw.z, gamma);
-	avg_color += area_se * QuickSampleByPixel(float2(f_end.x + offset, f_end.y + offset), uvw.z, gamma);
-
+	avg_color += area_nw * QuickSampleByPixel(float2(f_beg.x, f_beg.y) + offset, uvw.z, gamma);
+	avg_color += area_ne * QuickSampleByPixel(float2(f_end.x, f_beg.y) + offset, uvw.z, gamma);
+	avg_color += area_sw * QuickSampleByPixel(float2(f_beg.x, f_end.y) + offset, uvw.z, gamma);
+	avg_color += area_se * QuickSampleByPixel(float2(f_end.x, f_end.y) + offset, uvw.z, gamma);
+	
 	// Determine the size of the pixel box.
 	int x_range = int(f_end.x - f_beg.x + 0.5);
 	int y_range = int(f_end.y - f_beg.y + 0.5);
@@ -231,6 +244,7 @@ float4 AreaSampling(float3 uvw, float gamma)
 	// Workaround to compile the shader with DX11/12.
 	// If this isn't done, it will complain that the loop could have too many iterations.
 	// This number should be enough to guarantee downscaling from very high to very small resolutions.
+	// Note that this number might be referenced in the UI.
 	const int max_iterations = 16;
 
 	// Fix up the average calculations in case we reached the upper limit
@@ -243,8 +257,8 @@ float4 AreaSampling(float3 uvw, float gamma)
 		if (ix < x_range)
 		{
 			float x = f_beg.x + 1.0 + float(ix);
-			avg_color += area_n * QuickSampleByPixel(float2(x + offset, f_beg.y + offset), uvw.z, gamma);
-			avg_color += area_s * QuickSampleByPixel(float2(x + offset, f_end.y + offset), uvw.z, gamma);
+			avg_color += area_n * QuickSampleByPixel(float2(x, f_beg.y) + offset, uvw.z, gamma);
+			avg_color += area_s * QuickSampleByPixel(float2(x, f_end.y) + offset, uvw.z, gamma);
 		}
 	}
 
@@ -255,15 +269,15 @@ float4 AreaSampling(float3 uvw, float gamma)
 		{
 			float y = f_beg.y + 1.0 + float(iy);
 
-			avg_color += area_w * QuickSampleByPixel(float2(f_beg.x + offset, y + offset), uvw.z, gamma);
-			avg_color += area_e * QuickSampleByPixel(float2(f_end.x + offset, y + offset), uvw.z, gamma);
+			avg_color += area_w * QuickSampleByPixel(float2(f_beg.x, y) + offset, uvw.z, gamma);
+			avg_color += area_e * QuickSampleByPixel(float2(f_end.x, y) + offset, uvw.z, gamma);
 
 			for (int ix = 0; ix < max_iterations; ++ix)
 			{
 				if (ix < x_range)
 				{
 					float x = f_beg.x + 1.0 + float(ix);
-					avg_color += QuickSampleByPixel(float2(x + offset, y + offset), uvw.z, gamma);
+					avg_color += QuickSampleByPixel(float2(x, y) + offset, uvw.z, gamma);
 				}
 			}
 		}
