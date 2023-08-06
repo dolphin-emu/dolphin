@@ -174,7 +174,8 @@ jobs:
           libpng-dev \
           qtbase5-private-dev \
           libxxf86vm-dev \
-          x11proto-xinerama-dev
+          x11proto-xinerama-dev \
+          libfuse2
       - name: "Build ${{ matrix.build_type }} Dolphin"
         if: success()
         working-directory: ${{ github.workspace }}
