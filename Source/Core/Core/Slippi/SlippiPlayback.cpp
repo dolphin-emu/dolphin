@@ -456,7 +456,7 @@ void SlippiPlaybackStatus::generateDenylist()
       // Add injection to denylist
       u32 address;
       auto addressStr = readString(injection, "InjectionAddress");
-      if (!AsciiToHex(addressStr, address))
+      if (Common::FromChars(addressStr, address, 16).ec != std::errc{})
       {
         ERROR_LOG_FMT(SLIPPI, "Injection list file {}: Could not parse address: {}",
                       entry.physicalName, addressStr);

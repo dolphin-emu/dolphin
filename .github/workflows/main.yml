@@ -119,7 +119,7 @@ jobs:
             artifact_name: linux-playback
             build_config: playback
     name: "Linux ${{ matrix.build_type }}"
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: "Checkout"
         uses: actions/checkout@v2

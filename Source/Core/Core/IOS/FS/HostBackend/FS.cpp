@@ -433,7 +433,7 @@ ResultCode HostFileSystem::Format(Uid uid)
 ResultCode HostFileSystem::CreateFileOrDirectory(Uid uid, Gid gid, const std::string& path,
                                                  FileAttribute attr, Modes modes, bool is_file)
 {
-  if (!IsValidNonRootPath(path) || !std::all_of(path.begin(), path.end(), IsPrintableCharacter))
+  if (!IsValidNonRootPath(path) || !std::all_of(path.begin(), path.end(), Common::IsPrintableCharacter))
     return ResultCode::Invalid;
 
   if (!is_file && std::count(path.begin(), path.end(), '/') > int(MaxPathDepth))

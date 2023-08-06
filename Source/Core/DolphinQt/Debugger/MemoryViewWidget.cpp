@@ -495,7 +495,7 @@ QString MemoryViewWidget::ValueToString(const Core::CPUThreadGuard& guard, u32 a
   case Type::ASCII:
   {
     const char value = accessors->ReadU8(guard, address);
-    return IsPrintableCharacter(value) ? QString{QChar::fromLatin1(value)} :
+    return Common::IsPrintableCharacter(value) ? QString{QChar::fromLatin1(value)} :
                                          QString{QChar::fromLatin1('.')};
   }
   case Type::Hex16:

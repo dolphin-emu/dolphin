@@ -19,7 +19,6 @@
 #include <sstream>
 #include <string>
 #include <type_traits>
-#include <unordered_map>
 #include <vector>
 
 #include <fmt/format.h>
@@ -78,31 +77,12 @@ std::string HexDump(const u8* data, size_t size)
       if (row_start + i < size)
       {
         char c = static_cast<char>(data[row_start + i]);
-        out += IsPrintableCharacter(c) ? c : '.';
+        out += Common::IsPrintableCharacter(c) ? c : '.';
       }
     }
     out += "\n";
   }
   return out;
-}
-
-// faster than sscanf
-bool AsciiToHex(const std::string& _szValue, u32& result)
-{
-  // Set errno to a good state.
-  errno = 0;
-
-  char* endptr = nullptr;
-  const u32 value = strtoul(_szValue.c_str(), &endptr, 16);
-
-  if (!endptr || *endptr)
-    return false;
-
-  if (errno == ERANGE)
-    return false;
-
-  result = value;
-  return true;
 }
 
 bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list args)
@@ -615,7 +595,7 @@ template <typename T>
 std::string CodeToWithFallbacks(const char* tocode, const char* fromcode,
                                 const std::basic_string<T>& input, iconv_fallbacks* fallbacks)
 #else
-std::string CodeTo(const char* tocode, const char* fromcode, const std::basic_string<T>& input)
+std::string CodeTo(const char* tocode, const char* fromcode, std::basic_string_view<T> input)
 #endif
 {
   std::string result;
@@ -650,7 +630,7 @@ std::string CodeTo(const char* tocode, const char* fromcode, const std::basic_st
     while (src_bytes != 0)
     {
       size_t const iconv_result =
-#if defined(__OpenBSD__) || defined(__NetBSD__)
+#if defined(__NetBSD__)
           iconv(conv_desc, reinterpret_cast<const char**>(&src_buffer), &src_bytes, &dst_buffer,
                 &dst_bytes);
 #else
@@ -684,14 +664,6 @@ std::string CodeTo(const char* tocode, const char* fromcode, const std::basic_st
 
   return result;
 }
-
-#ifdef __APPLE__
-template <typename T>
-std::string CodeTo(const char* tocode, const char* fromcode, const std::basic_string<T>& input)
-{
-  return CodeToWithFallbacks(tocode, fromcode, input, nullptr);
-}
-#endif
 
 template <typename T>
 std::string CodeToUTF8(const char* fromcode, std::basic_string_view<T> input)
@@ -764,7 +736,7 @@ void uc_to_mb_fb(unsigned int code,
 }
 #endif
 
-std::string UTF8ToSHIFTJIS(const std::string& input)
+std::string UTF8ToSHIFTJIS(std::string_view input)
 {
 #ifdef __APPLE__
   // Set SHIFTJIS callbacks only if converting to shift jis
@@ -846,6 +818,8 @@ std::string PathToString(const std::filesystem::path& path)
 #endif
 }
 
+namespace Common
+{
 #ifdef _WIN32
 std::vector<std::string> CommandLineToUtf8Argv(const wchar_t* command_line)
 {
@@ -883,8 +857,6 @@ std::string GetEscapedHtml(std::string html)
   return html;
 }
 
-namespace Common
-{
 void ToLower(std::string* str)
 {
   std::transform(str->begin(), str->end(), str->begin(), [](char c) { return Common::ToLower(c); });
@@ -903,3 +875,4 @@ bool CaseInsensitiveEquals(std::string_view a, std::string_view b)
                     [](char ca, char cb) { return Common::ToLower(ca) == Common::ToLower(cb); });
 }
 }  // namespace Common
+
