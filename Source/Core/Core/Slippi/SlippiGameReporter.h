@@ -67,8 +67,6 @@ protected:
   char m_curl_err_buf[CURL_ERROR_SIZE];
   char m_curl_upload_err_buf[CURL_ERROR_SIZE];
 
-  std::vector<std::string> m_player_uids;
-
   std::unordered_map<std::string, bool> known_desync_isos = {
       {"23d6baef06bd65989585096915da20f2", true},
       {"27a5668769a54cd3515af47b8d9982f3", true},

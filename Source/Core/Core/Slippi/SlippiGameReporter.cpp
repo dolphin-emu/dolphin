@@ -20,6 +20,9 @@
 #include <zlib.h>
 using json = nlohmann::json;
 
+static std::array<u8, 16> s_MD5;
+static const mbedtls_md_info_t* s_md5_info = mbedtls_md_info_from_type(MBEDTLS_MD_MD5);
+
 static size_t curl_receive(char* ptr, size_t size, size_t nmemb, void* rcvBuf)
 {
   size_t len = size * nmemb;
@@ -102,16 +105,23 @@ SlippiGameReporter::SlippiGameReporter(SlippiUser* user, const std::string curre
   run_thread = true;
   reporting_thread = std::thread(&SlippiGameReporter::ReportThreadHandler, this);
 
-  static const mbedtls_md_info_t* s_md5_info = mbedtls_md_info_from_type(MBEDTLS_MD_MD5);
   m_md5_thread = std::thread([this, current_file_name]() {
-    if (!run_thread)
+    if (!run_thread) {
       return;
+    }
 
-    std::array<u8, 16> md5_array;
-    mbedtls_md_file(s_md5_info, current_file_name.c_str(), md5_array.data());
-    this->m_iso_hash = std::string(md5_array.begin(), md5_array.end());
-    if (!run_thread)
+    mbedtls_md_file(s_md5_info, current_file_name.c_str(), s_MD5.data());
+
+    std::string output{};
+    for (u8 n : s_MD5)
+    {
+      output += StringFromFormat("%02x", n);
+    }
+    this->m_iso_hash = output;
+
+    if (!run_thread) {
       return;
+    }
 
     if (known_desync_isos.find(this->m_iso_hash) != known_desync_isos.end() &&
         known_desync_isos.at(this->m_iso_hash))
@@ -187,7 +197,7 @@ void SlippiGameReporter::ReportThreadHandler()
     // Wait for report to come in
     cv.wait(lck);
 
-    auto queueHasData = !game_report_queue.empty();
+    auto queue_has_data = !game_report_queue.empty();
 
     // Process all messages
     while (!game_report_queue.empty())
@@ -195,12 +205,12 @@ void SlippiGameReporter::ReportThreadHandler()
       auto& report = game_report_queue.front();
       report.report_attempts += 1;
 
-      auto isFirstAttempt = report.report_attempts == 1;
-      auto isLastAttempt = report.report_attempts >= 5;  // Only do five attempts
-      auto errorSleepMs = isLastAttempt ? 0 : report.report_attempts * 100;
+      auto is_first_attempt = report.report_attempts == 1;
+      auto is_last_attempt = report.report_attempts >= 5;  // Only do five attempts
+      auto error_sleep_ms = is_last_attempt ? 0 : report.report_attempts * 100;
 
       // If the thread is shutting down, give up after one attempt
-      if (!run_thread && !isFirstAttempt)
+      if (!run_thread && !is_first_attempt)
       {
         game_report_queue.pop();
         continue;
@@ -232,7 +242,7 @@ void SlippiGameReporter::ReportThreadHandler()
       for (int i = 0; i < report.players.size(); i++)
       {
         json p;
-        p["uid"] = m_player_uids[i];
+        p["uid"] = report.players[i].uid;
         p["slotType"] = report.players[i].slot_type;
         p["damageDone"] = report.players[i].damage_done;
         p["stocksRemaining"] = report.players[i].stocks_remaining;
@@ -246,19 +256,19 @@ void SlippiGameReporter::ReportThreadHandler()
 
       request["players"] = players;
       // Just pop before request if this is the last attempt
-      if (isLastAttempt)
+      if (is_last_attempt)
       {
         game_report_queue.pop();
       }
 
-      auto requestString = request.dump();
+      auto request_string = request.dump();
 
       // Send report
       std::string resp;
       curl_easy_setopt(m_curl, CURLOPT_POST, true);
       curl_easy_setopt(m_curl, CURLOPT_URL, REPORT_URL.c_str());
-      curl_easy_setopt(m_curl, CURLOPT_POSTFIELDS, requestString.c_str());
-      curl_easy_setopt(m_curl, CURLOPT_POSTFIELDSIZE, requestString.length());
+      curl_easy_setopt(m_curl, CURLOPT_POSTFIELDS, request_string.c_str());
+      curl_easy_setopt(m_curl, CURLOPT_POSTFIELDSIZE, request_string.length());
       curl_easy_setopt(m_curl, CURLOPT_WRITEDATA, &resp);
       CURLcode res = curl_easy_perform(m_curl);
 
@@ -266,17 +276,17 @@ void SlippiGameReporter::ReportThreadHandler()
       {
         ERROR_LOG_FMT(SLIPPI_ONLINE, "[GameReport] Got error executing request. Err code : {}",
                       static_cast<u8>(res));
-        Common::SleepCurrentThread(errorSleepMs);
+        Common::SleepCurrentThread(error_sleep_ms);
         continue;
       }
 
-      long responseCode;
-      curl_easy_getinfo(m_curl, CURLINFO_RESPONSE_CODE, &responseCode);
-      if (responseCode != 200)
+      long response_code;
+      curl_easy_getinfo(m_curl, CURLINFO_RESPONSE_CODE, &response_code);
+      if (response_code != 200)
       {
         ERROR_LOG_FMT(SLIPPI_ONLINE, "[GameReport] Server responded with non-success status: {}",
-                      responseCode);
-        Common::SleepCurrentThread(errorSleepMs);
+                      response_code);
+        Common::SleepCurrentThread(error_sleep_ms);
         continue;
       }
 
@@ -284,7 +294,7 @@ void SlippiGameReporter::ReportThreadHandler()
       if (!json::accept(resp))
       {
         ERROR_LOG_FMT(SLIPPI, "[GameReport] Server responded with invalid json: {}", resp);
-        Common::SleepCurrentThread(errorSleepMs);
+        Common::SleepCurrentThread(error_sleep_ms);
         continue;
       }
 
@@ -293,7 +303,7 @@ void SlippiGameReporter::ReportThreadHandler()
       if (!r.is_object())
       {
         ERROR_LOG_FMT(SLIPPI, "JSON was not an object. {}", resp);
-        Common::SleepCurrentThread(errorSleepMs);
+        Common::SleepCurrentThread(error_sleep_ms);
         continue;
       }
       bool success = r.value("success", false);
@@ -301,25 +311,25 @@ void SlippiGameReporter::ReportThreadHandler()
       {
         ERROR_LOG_FMT(SLIPPI_ONLINE, "[GameReport] Report reached server but failed. {}",
                       resp.c_str());
-        Common::SleepCurrentThread(errorSleepMs);
+        Common::SleepCurrentThread(error_sleep_ms);
         continue;
       }
 
       // If this was not the last attempt, pop if we are successful. On the last attempt pop will
       // already have happened
-      if (!isLastAttempt)
+      if (!is_last_attempt)
       {
         game_report_queue.pop();
       }
 
-      std::string uploadUrl = r.value("uploadUrl", "");
-      UploadReplay(m_replay_last_completed_idx, uploadUrl);
+      std::string upload_url = r.value("uploadUrl", "");
+      UploadReplay(m_replay_last_completed_idx, upload_url);
 
       Common::SleepCurrentThread(0);
     }
 
     // Clean up replay data for games that are complete
-    if (queueHasData)
+    if (queue_has_data)
     {
       auto firstIdx = m_replay_data.begin()->first;
       for (int i = firstIdx; i < m_replay_last_completed_idx; i++)
@@ -342,13 +352,13 @@ void SlippiGameReporter::ReportAbandonment(std::string match_id)
   request["uid"] = userInfo.uid;
   request["playKey"] = userInfo.play_key;
 
-  auto requestString = request.dump();
+  auto request_string = request.dump();
 
   // Send report
   curl_easy_setopt(m_curl, CURLOPT_POST, true);
   curl_easy_setopt(m_curl, CURLOPT_URL, ABANDON_URL.c_str());
-  curl_easy_setopt(m_curl, CURLOPT_POSTFIELDS, requestString.c_str());
-  curl_easy_setopt(m_curl, CURLOPT_POSTFIELDSIZE, requestString.length());
+  curl_easy_setopt(m_curl, CURLOPT_POSTFIELDS, request_string.c_str());
+  curl_easy_setopt(m_curl, CURLOPT_POSTFIELDSIZE, request_string.length());
   CURLcode res = curl_easy_perform(m_curl);
 
   if (res != 0)
@@ -370,13 +380,13 @@ void SlippiGameReporter::ReportCompletion(std::string matchId, u8 endMode)
   request["playKey"] = userInfo.play_key;
   request["endMode"] = endMode;
 
-  auto requestString = request.dump();
+  auto request_string = request.dump();
 
   // Send report
   curl_easy_setopt(m_curl, CURLOPT_POST, true);
   curl_easy_setopt(m_curl, CURLOPT_URL, COMPLETE_URL.c_str());
-  curl_easy_setopt(m_curl, CURLOPT_POSTFIELDS, requestString.c_str());
-  curl_easy_setopt(m_curl, CURLOPT_POSTFIELDSIZE, requestString.length());
+  curl_easy_setopt(m_curl, CURLOPT_POSTFIELDS, request_string.c_str());
+  curl_easy_setopt(m_curl, CURLOPT_POSTFIELDSIZE, request_string.length());
   CURLcode res = curl_easy_perform(m_curl);
 
   if (res != 0)
