@@ -156,7 +156,7 @@ private:
 
   // On the Wii, base address of the MRAM or ExRAM region replacing ARAM.
   u32 m_aram_base_addr = 0;
-  void* GetARAMPtr() const;
+  void* GetARAMPtr(u32 offset) const;
 
   // Downloads PCM encoded samples from ARAM. Handles looping and other
   // parameters appropriately.
