@@ -419,9 +419,9 @@ std::vector<std::string> PostProcessing::GetPassiveShaderList()
 bool PostProcessing::Initialize(AbstractTextureFormat format)
 {
   m_framebuffer_format = format;
-  // CompilePixelShader must be run first if configuration options are used.
+  // CompilePixelShader() must be run first if configuration options are used.
   // Otherwise the UBO has a different member list between vertex and pixel
-  // shaders, which is a link error.
+  // shaders, which is a link error on some backends.
   if (!CompilePixelShader() || !CompileVertexShader() || !CompilePipeline())
     return false;
 
@@ -541,8 +541,8 @@ void PostProcessing::BlitFromTexture(const MathUtil::Rectangle<int>& dst,
     g_gfx->SetFramebuffer(m_intermediary_frame_buffer.get());
 
     FillUniformBuffer(src_rect, src_tex, src_layer, g_gfx->GetCurrentFramebuffer()->GetRect(),
-                      present_rect, uniform_staging_buffer->data(),
-                      !default_uniform_staging_buffer);
+                      present_rect, uniform_staging_buffer->data(), !default_uniform_staging_buffer,
+                      true);
     g_vertex_manager->UploadUtilityUniforms(uniform_staging_buffer->data(),
                                             static_cast<u32>(uniform_staging_buffer->size()));
 
@@ -592,8 +592,8 @@ void PostProcessing::BlitFromTexture(const MathUtil::Rectangle<int>& dst,
   if (final_pipeline)
   {
     FillUniformBuffer(src_rect, src_tex, src_layer, g_gfx->GetCurrentFramebuffer()->GetRect(),
-                      present_rect, uniform_staging_buffer->data(),
-                      !default_uniform_staging_buffer);
+                      present_rect, uniform_staging_buffer->data(), !default_uniform_staging_buffer,
+                      false);
     g_vertex_manager->UploadUtilityUniforms(uniform_staging_buffer->data(),
                                             static_cast<u32>(uniform_staging_buffer->size()));
 
@@ -621,6 +621,9 @@ std::string PostProcessing::GetUniformBufferHeader(bool user_post_process) const
   // The first (but not necessarily only) source layer we target
   ss << "  int src_layer;\n";
   ss << "  uint time;\n";
+  ss << "  int graphics_api;\n";
+  // If true, it's an intermediary buffer (including the first), if false, it's the final one
+  ss << "  int intermediary_buffer;\n";
 
   ss << "  int resampling_method;\n";
   ss << "  int correct_color_space;\n";
@@ -755,6 +758,7 @@ void SetOutput(float4 color)
 
 #define GetOption(x) (x)
 #define OptionEnabled(x) ((x) != 0)
+#define OptionDisabled(x) ((x) == 0)
 
 )";
   return ss.str();
@@ -765,13 +769,9 @@ std::string PostProcessing::GetFooter() const
   return {};
 }
 
-bool PostProcessing::CompileVertexShader()
+std::string GetVertexShaderBody()
 {
   std::ostringstream ss;
-  // We never need the user selected post process custom uniforms in the vertex shader
-  const bool user_post_process = false;
-  ss << GetUniformBufferHeader(user_post_process);
-
   if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
   {
     ss << "VARYING_LOCATION(0) out VertexData {\n";
@@ -792,21 +792,34 @@ bool PostProcessing::CompileVertexShader()
 
   // Vulkan Y needs to be inverted on every pass
   if (g_ActiveConfig.backend_info.api_type == APIType::Vulkan)
+  {
     ss << "  opos.y = -opos.y;\n";
-
-  std::string s2 = ss.str();
-  s2 += "}\n";
-  m_default_vertex_shader = g_gfx->CreateShaderFromSource(ShaderStage::Vertex, s2,
-                                                          "Default post-processing vertex shader");
-
-  // OpenGL Y needs to be inverted once only (in the last pass)
-  if (g_ActiveConfig.backend_info.api_type == APIType::OpenGL)
-    ss << "  opos.y = -opos.y;\n";
+  }
+  // OpenGL Y needs to be inverted in all passes except the last one
+  else if (g_ActiveConfig.backend_info.api_type == APIType::OpenGL)
+  {
+    ss << "  if (intermediary_buffer != 0)\n";
+    ss << "    opos.y = -opos.y;\n";
+  }
 
   ss << "}\n";
+  return ss.str();
+}
 
+bool PostProcessing::CompileVertexShader()
+{
+  std::ostringstream ss_default;
+  ss_default << GetUniformBufferHeader(false);
+  ss_default << GetVertexShaderBody();
+  m_default_vertex_shader = g_gfx->CreateShaderFromSource(ShaderStage::Vertex, ss_default.str(),
+                                                          "Default post-processing vertex shader");
+
+  std::ostringstream ss;
+  ss << GetUniformBufferHeader(true);
+  ss << GetVertexShaderBody();
   m_vertex_shader =
       g_gfx->CreateShaderFromSource(ShaderStage::Vertex, ss.str(), "Post-processing vertex shader");
+
   if (!m_default_vertex_shader || !m_vertex_shader)
   {
     PanicAlertFmt("Failed to compile post-processing vertex shader");
@@ -829,6 +842,8 @@ struct BuiltinUniforms
   std::array<float, 4> src_rect;
   s32 src_layer;
   u32 time;
+  s32 graphics_api;
+  s32 intermediary_buffer;
   s32 resampling_method;
   s32 correct_color_space;
   s32 game_color_space;
@@ -853,7 +868,7 @@ void PostProcessing::FillUniformBuffer(const MathUtil::Rectangle<int>& src,
                                        const AbstractTexture* src_tex, int src_layer,
                                        const MathUtil::Rectangle<int>& dst,
                                        const MathUtil::Rectangle<int>& wnd, u8* buffer,
-                                       bool user_post_process)
+                                       bool user_post_process, bool intermediary_buffer)
 {
   const float rcp_src_width = 1.0f / src_tex->GetWidth();
   const float rcp_src_height = 1.0f / src_tex->GetHeight();
@@ -874,6 +889,8 @@ void PostProcessing::FillUniformBuffer(const MathUtil::Rectangle<int>& src,
                                static_cast<float>(src.GetHeight()) * rcp_src_height};
   builtin_uniforms.src_layer = static_cast<s32>(src_layer);
   builtin_uniforms.time = static_cast<u32>(m_timer.ElapsedMs());
+  builtin_uniforms.graphics_api = static_cast<s32>(g_ActiveConfig.backend_info.api_type);
+  builtin_uniforms.intermediary_buffer = static_cast<s32>(intermediary_buffer);
 
   builtin_uniforms.resampling_method = static_cast<s32>(g_ActiveConfig.output_resampling_mode);
   // Color correction related uniforms.
@@ -898,6 +915,8 @@ void PostProcessing::FillUniformBuffer(const MathUtil::Rectangle<int>& src,
   std::memcpy(buffer, &builtin_uniforms, sizeof(builtin_uniforms));
   buffer += sizeof(builtin_uniforms);
 
+  // Don't include the custom pp shader options if they are not necessary,
+  // having mismatching uniforms between different shaders can cause issues on some backends
   if (!user_post_process)
     return;
 
@@ -1015,8 +1034,7 @@ bool PostProcessing::CompilePipeline()
   const bool needs_intermediary_buffer = NeedsIntermediaryBuffer();
 
   AbstractPipelineConfig config = {};
-  config.vertex_shader =
-      needs_intermediary_buffer ? m_vertex_shader.get() : m_default_vertex_shader.get();
+  config.vertex_shader = m_default_vertex_shader.get();
   // This geometry shader will take care of reading both layer 0 and 1 on the source texture,
   // and writing to both layer 0 and 1 on the render target.
   config.geometry_shader = UseGeometryShaderForPostProcess(needs_intermediary_buffer) ?
@@ -1033,7 +1051,7 @@ bool PostProcessing::CompilePipeline()
   if (config.pixel_shader)
     m_default_pipeline = g_gfx->CreatePipeline(config);
 
-  config.vertex_shader = m_default_vertex_shader.get();
+  config.vertex_shader = m_vertex_shader.get();
   config.geometry_shader = UseGeometryShaderForPostProcess(false) ?
                                g_shader_cache->GetTexcoordGeometryShader() :
                                nullptr;
