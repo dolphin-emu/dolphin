@@ -254,7 +254,7 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
 
     // Pick the right NaNs
 
-    m_float_emit.MOVI(8, zero_reg, 0);
+    m_float_emit.MOVI(64, zero_reg, 0);
 
     const auto check_input = [&](ARM64Reg input) {
       m_float_emit.FACGE(size, nan_temp_reg_paired, input, zero_reg);
