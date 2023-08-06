@@ -154,9 +154,7 @@ private:
   // Coefficients used for resampling.
   std::array<s16, 0x100> m_resampling_coeffs{};
 
-  // If non zero, base MRAM address for sound data transfers from ARAM. On
-  // the Wii, this points to some MRAM location since there is no ARAM to be
-  // used. If zero, use the top of ARAM.
+  // On the Wii, base address of the MRAM or ExRAM region replacing ARAM.
   u32 m_aram_base_addr = 0;
   void* GetARAMPtr() const;
 

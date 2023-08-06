@@ -11,6 +11,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
+#include "Core/ConfigManager.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPHLE/MailHandler.h"
@@ -1538,7 +1539,7 @@ void ZeldaAudioRenderer::Resample(VPB* vpb, const s16* src, MixingBuffer* dst)
 
 void* ZeldaAudioRenderer::GetARAMPtr() const
 {
-  if (m_aram_base_addr)
+  if (SConfig::GetInstance().bWii)
     return HLEMemory_Get_Pointer(m_aram_base_addr);
   else
     return Core::System::GetInstance().GetDSP().GetARAMPtr();
