@@ -2005,6 +2005,7 @@ void CEXISlippi::prepareOnlineMatchState()
       // gets re-created when a connection is terminated, that said, it can still be useful to know
       // who we were connected to after they disconnect from us, for example in the case of
       // reporting a match. So let's copy the results.
+      recentMmResult = matchmaking->GetMatchmakeResult();
       allowedStages = recentMmResult.stages;
       // Clear stage pool so that when we call getRandomStage it will use full list
       stagePool.clear();
