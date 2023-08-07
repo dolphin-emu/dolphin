@@ -21,7 +21,7 @@
 
 
 /*
-   Grade-mini (01-08-2023)
+   Grade-mini (07-08-2023)
 
    > CRT emulation shader (composite signal, phosphor, gamma, temperature...)
    > Abridged port of RetroArch's Grade shader.
@@ -520,7 +520,7 @@ void main()
                                                              float3(Ymax.y,  UVmax.x,  UVmax.y));
 
 // YUV Analogue Color Controls (Color Burst)
-    float    hue  = col.z==0.0 ? 0.0 : atan(col.z,  col.y);
+    float    hue  = col.z==0.0 && col.y==0.0 ? 0.0 : atan(col.z,  col.y);
     float chroma  = sqrt(col.z * col.z  + col.y * col.y);  // Euclidean Distance
     col.yz        = float2(chroma * cos(hue), chroma * sin(hue)) * float2(g_U_MUL,g_V_MUL);
 
