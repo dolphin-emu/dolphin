@@ -272,16 +272,15 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
 
     // Make the NaNs quiet
 
-    const ARM64Reg quiet_bit_reg = VD == result_reg ? reg_encoder(V2Q) : VD;
-    EmitQuietNaNBitConstant(quiet_bit_reg, singles, temp_gpr);
+    const ARM64Reg quiet_nan_reg = VD == result_reg ? reg_encoder(V2Q) : VD;
 
+    m_float_emit.FADD(size, quiet_nan_reg, result_reg, result_reg);
     m_float_emit.FCMEQ(size, nan_temp_reg_paired, result_reg, result_reg);
-    m_float_emit.ORR(quiet_bit_reg, quiet_bit_reg, result_reg);
     if (negate_result)
       m_float_emit.FNEG(size, result_reg, result_reg);
     if (VD == result_reg)
-      m_float_emit.BIF(VD, quiet_bit_reg, nan_temp_reg_paired);
-    else  // quiet_bit_reg == VD
+      m_float_emit.BIF(VD, quiet_nan_reg, nan_temp_reg_paired);
+    else  // quiet_nan_reg == VD
       m_float_emit.BIT(VD, result_reg, nan_temp_reg_paired);
 
     nan_fixup = B();
@@ -381,7 +380,6 @@ void JitArm64::ps_sumX(UGeckoInstruction inst)
   const ARM64Reg VC = fpr.R(c, type);
   const ARM64Reg VD = fpr.RW(d, type);
   const ARM64Reg V0 = fpr.GetReg();
-  const ARM64Reg V1 = m_accurate_nans ? fpr.GetReg() : ARM64Reg::INVALID_REG;
   const ARM64Reg temp_gpr = m_accurate_nans && !singles ? gpr.GetReg() : ARM64Reg::INVALID_REG;
 
   m_float_emit.DUP(size, reg_encoder(V0), reg_encoder(VB), 1);
@@ -398,22 +396,23 @@ void JitArm64::ps_sumX(UGeckoInstruction inst)
       SwitchToFarCode();
       SetJumpTarget(nan);
 
-      EmitQuietNaNBitConstant(scalar_reg_encoder(V1), singles, temp_gpr);
-
       if (upper)
       {
-        m_float_emit.ORR(EncodeRegToDouble(V1), EncodeRegToDouble(V1), EncodeRegToDouble(input));
-        m_float_emit.TRN1(size, reg_encoder(VD), reg_encoder(VC), reg_encoder(V1));
+        m_float_emit.FADD(scalar_reg_encoder(V0), scalar_reg_encoder(input),
+                          scalar_reg_encoder(input));
+        m_float_emit.TRN1(size, reg_encoder(VD), reg_encoder(VC), reg_encoder(V0));
       }
       else if (d != c)
       {
-        m_float_emit.ORR(EncodeRegToDouble(VD), EncodeRegToDouble(V1), EncodeRegToDouble(input));
+        m_float_emit.FADD(scalar_reg_encoder(VD), scalar_reg_encoder(input),
+                          scalar_reg_encoder(input));
         m_float_emit.INS(size, VD, 1, VC, 1);
       }
       else
       {
-        m_float_emit.ORR(EncodeRegToDouble(V1), EncodeRegToDouble(V1), EncodeRegToDouble(input));
-        m_float_emit.INS(size, VD, 0, V1, 0);
+        m_float_emit.FADD(scalar_reg_encoder(V0), scalar_reg_encoder(input),
+                          scalar_reg_encoder(input));
+        m_float_emit.INS(size, VD, 0, V0, 0);
       }
 
       FixupBranch nan_done = B();
@@ -449,8 +448,6 @@ void JitArm64::ps_sumX(UGeckoInstruction inst)
   }
 
   fpr.Unlock(V0);
-  if (m_accurate_nans)
-    fpr.Unlock(V1);
   if (temp_gpr != ARM64Reg::INVALID_REG)
     gpr.Unlock(temp_gpr);
 
