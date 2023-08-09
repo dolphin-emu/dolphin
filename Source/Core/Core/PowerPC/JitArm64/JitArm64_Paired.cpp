@@ -384,45 +384,38 @@ void JitArm64::ps_sumX(UGeckoInstruction inst)
 
   m_float_emit.DUP(size, reg_encoder(V0), reg_encoder(VB), 1);
 
-  FixupBranch a_nan_done, b_nan_done;
+  FixupBranch a_nan_done;
   if (m_accurate_nans)
   {
-    const auto check_nan = [&](ARM64Reg input) {
-      m_float_emit.FCMP(scalar_reg_encoder(input));
-      FixupBranch not_nan = B(CCFlags::CC_VC);
-      FixupBranch nan = B();
-      SetJumpTarget(not_nan);
+    m_float_emit.FCMP(scalar_reg_encoder(VA));
+    FixupBranch a_not_nan = B(CCFlags::CC_VC);
+    FixupBranch a_nan = B();
+    SetJumpTarget(a_not_nan);
 
-      SwitchToFarCode();
-      SetJumpTarget(nan);
+    SwitchToFarCode();
+    SetJumpTarget(a_nan);
 
-      if (upper)
-      {
-        m_float_emit.FADD(scalar_reg_encoder(V0), scalar_reg_encoder(input),
-                          scalar_reg_encoder(input));
-        m_float_emit.TRN1(size, reg_encoder(VD), reg_encoder(VC), reg_encoder(V0));
-      }
-      else if (d != c)
-      {
-        m_float_emit.FADD(scalar_reg_encoder(VD), scalar_reg_encoder(input),
-                          scalar_reg_encoder(input));
-        m_float_emit.INS(size, VD, 1, VC, 1);
-      }
-      else
-      {
-        m_float_emit.FADD(scalar_reg_encoder(V0), scalar_reg_encoder(input),
-                          scalar_reg_encoder(input));
-        m_float_emit.INS(size, VD, 0, V0, 0);
-      }
+    if (upper)
+    {
+      m_float_emit.FADD(scalar_reg_encoder(V0), scalar_reg_encoder(VA), scalar_reg_encoder(VA));
+      m_float_emit.TRN1(size, reg_encoder(VD), reg_encoder(VC), reg_encoder(V0));
+    }
+    else if (d != c)
+    {
+      m_float_emit.FADD(scalar_reg_encoder(VD), scalar_reg_encoder(VA), scalar_reg_encoder(VA));
+      m_float_emit.INS(size, VD, 1, VC, 1);
+    }
+    else
+    {
+      m_float_emit.FADD(scalar_reg_encoder(V0), scalar_reg_encoder(VA), scalar_reg_encoder(VA));
+      m_float_emit.INS(size, VD, 0, V0, 0);
+    }
 
-      FixupBranch nan_done = B();
-      SwitchToNearCode();
+    FixupBranch a_nan_done = B();
+    SwitchToNearCode();
 
-      return nan_done;
-    };
-
-    a_nan_done = check_nan(VA);
-    b_nan_done = check_nan(V0);
+    // If exactly one input is NaN, AArch64 arithmetic instructions automatically pick that NaN
+    // and make it quiet, just like we want. So if rA isn't NaN, we can skip checking rB.
   }
 
   if (upper)
@@ -442,10 +435,7 @@ void JitArm64::ps_sumX(UGeckoInstruction inst)
   }
 
   if (m_accurate_nans)
-  {
     SetJumpTarget(a_nan_done);
-    SetJumpTarget(b_nan_done);
-  }
 
   fpr.Unlock(V0);
   if (temp_gpr != ARM64Reg::INVALID_REG)
