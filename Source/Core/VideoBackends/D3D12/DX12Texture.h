@@ -75,10 +75,7 @@ public:
   {
     return m_render_targets_raw.data();
   }
-  const D3D12_CPU_DESCRIPTOR_HANDLE* GetIntRTVDescriptorArray() const
-  {
-    return m_color_attachment ? &m_int_rtv_descriptor.cpu_handle : nullptr;
-  }
+  const D3D12_CPU_DESCRIPTOR_HANDLE* GetIntRTVDescriptorArray() const;
   const D3D12_CPU_DESCRIPTOR_HANDLE* GetDSVDescriptorArray() const
   {
     return m_depth_attachment ? &m_dsv_descriptor.cpu_handle : nullptr;
