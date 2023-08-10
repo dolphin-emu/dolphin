@@ -46,7 +46,8 @@ std::unique_ptr<DXTexture> DXTexture::Create(const TextureConfig& config, std::s
     bindflags |= D3D11_BIND_UNORDERED_ACCESS;
 
   CD3D11_TEXTURE2D_DESC desc(tex_format, config.width, config.height, config.layers, config.levels,
-                             bindflags, D3D11_USAGE_DEFAULT, 0, config.samples, 0, 0);
+                             bindflags, D3D11_USAGE_DEFAULT, 0, config.samples, 0,
+                             config.IsCubeMap() ? D3D11_RESOURCE_MISC_TEXTURECUBE : 0);
   ComPtr<ID3D11Texture2D> d3d_texture;
   HRESULT hr = D3D::device->CreateTexture2D(&desc, nullptr, d3d_texture.GetAddressOf());
   if (FAILED(hr))
@@ -90,6 +91,7 @@ bool DXTexture::CreateSRV()
 {
   const CD3D11_SHADER_RESOURCE_VIEW_DESC desc(
       m_texture.Get(),
+      m_config.IsCubeMap()      ? D3D11_SRV_DIMENSION_TEXTURECUBE :
       m_config.IsMultisampled() ? D3D11_SRV_DIMENSION_TEXTURE2DMSARRAY :
                                   D3D11_SRV_DIMENSION_TEXTURE2DARRAY,
       D3DCommon::GetSRVFormatForAbstractFormat(m_config.format), 0, m_config.levels, 0,
