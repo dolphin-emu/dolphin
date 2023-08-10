@@ -380,42 +380,21 @@ void JitArm64::ps_sumX(UGeckoInstruction inst)
   const ARM64Reg VC = fpr.R(c, type);
   const ARM64Reg VD = fpr.RW(d, type);
   const ARM64Reg V0 = fpr.GetReg();
-  const ARM64Reg temp_gpr = m_accurate_nans && !singles ? gpr.GetReg() : ARM64Reg::INVALID_REG;
 
   m_float_emit.DUP(size, reg_encoder(V0), reg_encoder(VB), 1);
 
-  FixupBranch a_nan_done;
   if (m_accurate_nans)
   {
+    // If the first input is NaN, set the temp register for the second input to 0. This is because:
+    //
+    // - If the second input is also NaN, setting it to 0 ensures that the first NaN will be picked.
+    // - If only the first input is NaN, setting the second input to 0 has no effect on the result.
+    //
+    // Either way, we can then do an FADD as usual, and the FADD will make the NaN quiet.
     m_float_emit.FCMP(scalar_reg_encoder(VA));
     FixupBranch a_not_nan = B(CCFlags::CC_VC);
-    FixupBranch a_nan = B();
+    m_float_emit.MOVI(64, scalar_reg_encoder(V0), 0);
     SetJumpTarget(a_not_nan);
-
-    SwitchToFarCode();
-    SetJumpTarget(a_nan);
-
-    if (upper)
-    {
-      m_float_emit.FADD(scalar_reg_encoder(V0), scalar_reg_encoder(VA), scalar_reg_encoder(VA));
-      m_float_emit.TRN1(size, reg_encoder(VD), reg_encoder(VC), reg_encoder(V0));
-    }
-    else if (d != c)
-    {
-      m_float_emit.FADD(scalar_reg_encoder(VD), scalar_reg_encoder(VA), scalar_reg_encoder(VA));
-      m_float_emit.INS(size, VD, 1, VC, 1);
-    }
-    else
-    {
-      m_float_emit.FADD(scalar_reg_encoder(V0), scalar_reg_encoder(VA), scalar_reg_encoder(VA));
-      m_float_emit.INS(size, VD, 0, V0, 0);
-    }
-
-    FixupBranch a_nan_done = B();
-    SwitchToNearCode();
-
-    // If exactly one input is NaN, AArch64 arithmetic instructions automatically pick that NaN
-    // and make it quiet, just like we want. So if rA isn't NaN, we can skip checking rB.
   }
 
   if (upper)
@@ -434,12 +413,7 @@ void JitArm64::ps_sumX(UGeckoInstruction inst)
     m_float_emit.INS(size, VD, 0, V0, 0);
   }
 
-  if (m_accurate_nans)
-    SetJumpTarget(a_nan_done);
-
   fpr.Unlock(V0);
-  if (temp_gpr != ARM64Reg::INVALID_REG)
-    gpr.Unlock(temp_gpr);
 
   ASSERT_MSG(DYNA_REC, singles == (fpr.IsSingle(a) && fpr.IsSingle(b) && fpr.IsSingle(c)),
              "Register allocation turned singles into doubles in the middle of ps_sumX");
