@@ -595,6 +595,18 @@ enum class BooleanSetting(
         "ArbitraryMipmapDetection",
         true
     ),
+    GFX_CC_CORRECT_COLOR_SPACE(
+        Settings.FILE_GFX,
+        Settings.SECTION_GFX_COLOR_CORRECTION,
+        "CorrectColorSpace",
+        false
+    ),
+    GFX_CC_CORRECT_GAMMA(
+        Settings.FILE_GFX,
+        Settings.SECTION_GFX_COLOR_CORRECTION,
+        "CorrectGamma",
+        false
+    ),
     GFX_STEREO_SWAP_EYES(Settings.FILE_GFX, Settings.SECTION_STEREOSCOPY, "StereoSwapEyes", false),
     GFX_HACK_EFB_ACCESS_ENABLE(
         Settings.FILE_GFX,

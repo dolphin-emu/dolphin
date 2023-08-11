@@ -119,6 +119,12 @@ enum class IntSetting(
         "MaxAnisotropy",
         0
     ),
+    GFX_CC_GAME_COLOR_SPACE(
+        Settings.FILE_GFX,
+        Settings.SECTION_GFX_COLOR_CORRECTION,
+        "GameColorSpace",
+        0
+    ),
     GFX_STEREO_MODE(Settings.FILE_GFX, Settings.SECTION_STEREOSCOPY, "StereoMode", 0),
     GFX_STEREO_DEPTH(Settings.FILE_GFX, Settings.SECTION_STEREOSCOPY, "StereoDepth", 20),
     GFX_STEREO_CONVERGENCE_PERCENTAGE(
