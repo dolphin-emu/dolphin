@@ -120,23 +120,26 @@ void HiresTexture::Update()
         if (has_arbitrary_mipmaps)
           filename.erase(arb_index, 4);
 
-        // Since this is just a texture (single file) the mapper doesn't really matter
-        // just provide a string
-        s_file_library->SetAssetIDMapData(filename,
-                                          std::map<std::string, std::filesystem::path>{{"", path}});
-
-        if (g_ActiveConfig.bCacheHiresTextures)
-        {
-          auto hires_texture = std::make_shared<HiresTexture>(
-              has_arbitrary_mipmaps,
-              system.GetCustomAssetLoader().LoadGameTexture(filename, s_file_library));
-          s_hires_texture_cache.try_emplace(filename, std::move(hires_texture));
-        }
         const auto [it, inserted] =
             s_hires_texture_id_to_arbmipmap.try_emplace(filename, has_arbitrary_mipmaps);
         if (!inserted)
         {
           failed_insert = true;
+        }
+        else
+        {
+          // Since this is just a texture (single file) the mapper doesn't really matter
+          // just provide a string
+          s_file_library->SetAssetIDMapData(
+              filename, std::map<std::string, std::filesystem::path>{{"", path}});
+
+          if (g_ActiveConfig.bCacheHiresTextures)
+          {
+            auto hires_texture = std::make_shared<HiresTexture>(
+                has_arbitrary_mipmaps,
+                system.GetCustomAssetLoader().LoadGameTexture(filename, s_file_library));
+            s_hires_texture_cache.try_emplace(filename, std::move(hires_texture));
+          }
         }
       }
     }
