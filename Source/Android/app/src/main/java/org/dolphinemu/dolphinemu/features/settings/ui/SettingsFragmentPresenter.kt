@@ -34,6 +34,7 @@ import org.dolphinemu.dolphinemu.model.GpuDriverMetadata
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter
 import org.dolphinemu.dolphinemu.utils.*
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.ceil
 import kotlin.math.floor
 
@@ -119,6 +120,7 @@ class SettingsFragmentPresenter(
             MenuTag.GCPAD_TYPE -> addGcPadSettings(sl)
             MenuTag.WIIMOTE -> addWiimoteSettings(sl)
             MenuTag.ENHANCEMENTS -> addEnhanceSettings(sl)
+            MenuTag.COLOR_CORRECTION -> addColorCorrectionSettings(sl)
             MenuTag.STEREOSCOPY -> addStereoSettings(sl)
             MenuTag.HACKS -> addHackSettings(sl)
             MenuTag.STATISTICS -> addStatisticsSettings(sl)
@@ -249,10 +251,11 @@ class SettingsFragmentPresenter(
                 FloatSetting.MAIN_EMULATION_SPEED,
                 R.string.speed_limit,
                 0,
-                0,
-                200,
+                0f,
+                200f,
                 "%",
-                1
+                1f,
+                false
             )
         )
         sl.add(
@@ -1000,10 +1003,11 @@ class SettingsFragmentPresenter(
                 FloatSetting.MAIN_OVERCLOCK,
                 R.string.overclock_title,
                 R.string.overclock_title_description,
-                0,
-                400,
+                0f,
+                400f,
                 "%",
-                1
+                1f,
+                false
             )
         )
 
@@ -2349,9 +2353,10 @@ class SettingsFragmentPresenter(
                     InputMappingDoubleSetting(setting),
                     setting.getUiName(),
                     "",
-                    ceil(setting.getDoubleMin()).toInt(),
-                    floor(setting.getDoubleMax()).toInt(),
-                    setting.getUiSuffix()
+                    ceil(setting.getDoubleMin()).toFloat(),
+                    floor(setting.getDoubleMax()).toFloat(),
+                    setting.getUiSuffix(),
+                    false
                 )
             )
 

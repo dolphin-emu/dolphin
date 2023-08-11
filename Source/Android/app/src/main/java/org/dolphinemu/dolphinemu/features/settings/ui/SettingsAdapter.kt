@@ -51,7 +51,7 @@ class SettingsAdapter(
     private var settingsList: ArrayList<SettingsItem>? = null
     private var clickedItem: SettingsItem? = null
     private var clickedPosition: Int = -1
-    private var seekbarProgress = 0
+    private var seekbarProgress: Float = 0f
     private var dialog: AlertDialog? = null
     private var textSliderValue: TextView? = null
 
@@ -229,21 +229,37 @@ class SettingsAdapter(
     fun onSliderClick(item: SliderSetting, position: Int) {
         clickedItem = item
         clickedPosition = position
-        seekbarProgress = item.selectedValue
+        seekbarProgress = when (item) {
+            is FloatSliderSetting -> item.selectedValue
+            is IntSliderSetting -> item.selectedValue.toFloat()
+        }
 
         val inflater = LayoutInflater.from(fragmentView.fragmentActivity)
         val binding = DialogSliderBinding.inflate(inflater)
 
         textSliderValue = binding.textValue
-        textSliderValue!!.text = seekbarProgress.toString()
+        textSliderValue!!.text = if (item.showDecimal) {
+            String.format("%.2f", seekbarProgress)
+        } else {
+            seekbarProgress.toInt().toString()
+        }
 
         binding.textUnits.text = item.units
 
         val slider = binding.slider
-        slider.valueFrom = item.min.toFloat()
-        slider.valueTo = item.max.toFloat()
-        slider.value = seekbarProgress.toFloat()
-        slider.stepSize = item.stepSize.toFloat()
+        when (item) {
+            is FloatSliderSetting -> {
+                slider.valueFrom = item.min as Float
+                slider.valueTo = item.max as Float
+                slider.stepSize = item.stepSize as Float
+            }
+            is IntSliderSetting -> {
+                slider.valueFrom = (item.min as Int).toFloat()
+                slider.valueTo = (item.max as Int).toFloat()
+                slider.stepSize = (item.stepSize as Int).toFloat()
+            }
+        }
+        slider.value = seekbarProgress
         slider.addOnChangeListener(this)
 
         dialog = MaterialAlertDialogBuilder(fragmentView.fragmentActivity)
@@ -480,8 +496,10 @@ class SettingsAdapter(
             }
             is IntSliderSetting -> {
                 val sliderSetting = clickedItem as IntSliderSetting
-                if (sliderSetting.selectedValue != seekbarProgress) fragmentView.onSettingChanged()
-                sliderSetting.setSelectedValue(settings, seekbarProgress)
+                if (sliderSetting.selectedValue != seekbarProgress.toInt()) {
+                    fragmentView.onSettingChanged()
+                }
+                sliderSetting.setSelectedValue(settings, seekbarProgress.toInt())
                 closeDialog()
             }
             is FloatSliderSetting -> {
@@ -489,13 +507,13 @@ class SettingsAdapter(
 
                 if (sliderSetting.selectedValue != seekbarProgress) fragmentView.onSettingChanged()
 
-                sliderSetting.setSelectedValue(settings, seekbarProgress.toFloat())
+                sliderSetting.setSelectedValue(settings, seekbarProgress)
 
                 closeDialog()
             }
         }
         clickedItem = null
-        seekbarProgress = -1
+        seekbarProgress = -1f
     }
 
     fun closeDialog() {
@@ -510,8 +528,12 @@ class SettingsAdapter(
     }
 
     override fun onValueChange(slider: Slider, progress: Float, fromUser: Boolean) {
-        seekbarProgress = progress.toInt()
-        textSliderValue!!.text = seekbarProgress.toString()
+        seekbarProgress = progress
+        textSliderValue!!.text = if ((clickedItem as SliderSetting).showDecimal) {
+            String.format("%.2f", seekbarProgress)
+        } else {
+            seekbarProgress.toInt().toString()
+        }
     }
 
     private fun getValueForSingleChoiceSelection(item: SingleChoiceSetting, which: Int): Int {
