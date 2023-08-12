@@ -132,6 +132,7 @@
     <ClCompile Include="Config\ToolTipControls\BalloonTip.cpp" />
     <ClCompile Include="Config\ToolTipControls\ToolTipCheckBox.cpp" />
     <ClCompile Include="Config\ToolTipControls\ToolTipComboBox.cpp" />
+    <ClCompile Include="Config\ToolTipControls\ToolTipPushButton.cpp" />
     <ClCompile Include="Config\ToolTipControls\ToolTipRadioButton.cpp" />
     <ClCompile Include="Config\ToolTipControls\ToolTipSlider.cpp" />
     <ClCompile Include="Config\ToolTipControls\ToolTipSpinBox.cpp" />
@@ -332,6 +333,7 @@
     <QtMoc Include="Config\ToolTipControls\BalloonTip.h" />
     <ClInclude Include="Config\ToolTipControls\ToolTipCheckBox.h" />
     <ClInclude Include="Config\ToolTipControls\ToolTipComboBox.h" />
+    <ClInclude Include="Config\ToolTipControls\ToolTipPushButton.h" />
     <ClInclude Include="Config\ToolTipControls\ToolTipRadioButton.h" />
     <ClInclude Include="Config\ToolTipControls\ToolTipSlider.h" />
     <ClInclude Include="Config\ToolTipControls\ToolTipSpinBox.h" />
