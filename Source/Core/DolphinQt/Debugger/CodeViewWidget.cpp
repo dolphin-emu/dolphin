@@ -37,6 +37,7 @@
 #include "Core/System.h"
 #include "DolphinQt/Debugger/PatchInstructionDialog.h"
 #include "DolphinQt/Host.h"
+#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
@@ -306,7 +307,7 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
   const std::optional<u32> pc =
       guard ? std::make_optional(power_pc.GetPPCState().pc) : std::nullopt;
 
-  const bool dark_theme = qApp->palette().color(QPalette::Base).valueF() < 0.5;
+  const bool dark_theme = Settings::Instance().IsThemeDark();
 
   m_branches.clear();
 
@@ -349,7 +350,7 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
       }
       else if (color != 0xFFFFFF)
       {
-        item->setBackground(dark_theme ? QColor(color).darker(240) : QColor(color));
+        item->setBackground(dark_theme ? QColor(color).darker(400) : QColor(color));
       }
     }
 
@@ -371,7 +372,7 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
 
       description_item->setText(
           tr("--> %1").arg(QString::fromStdString(debug_interface.GetDescription(branch_addr))));
-      param_item->setForeground(Qt::magenta);
+      param_item->setForeground(dark_theme ? QColor(255, 135, 255) : Qt::magenta);
     }
 
     if (ins == "blr")
@@ -733,6 +734,7 @@ void CodeViewWidget::AutoStep(CodeTrace::AutoStop option)
             .arg(QString::fromStdString(fmt::format("{:#x}", fmt::join(mem_out, ", "))));
 
     msgbox.setInformativeText(msgtext);
+    SetQWidgetWindowDecorations(&msgbox);
     msgbox.exec();
 
   } while (msgbox.clickedButton() == (QAbstractButton*)run_button);
@@ -1010,6 +1012,7 @@ void CodeViewWidget::OnReplaceInstruction()
   auto& debug_interface = m_system.GetPowerPC().GetDebugInterface();
   PatchInstructionDialog dialog(this, addr, debug_interface.ReadInstruction(guard, addr));
 
+  SetQWidgetWindowDecorations(&dialog);
   if (dialog.exec() == QDialog::Accepted)
   {
     debug_interface.SetPatch(guard, addr, dialog.GetCode());

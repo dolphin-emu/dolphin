@@ -37,6 +37,8 @@ public:
   explicit SkylanderPortalWindow(QWidget* parent = nullptr);
   ~SkylanderPortalWindow() override;
 
+  void RefreshList();
+
 protected:
   std::array<QLineEdit*, MAX_SKYLANDERS> m_edit_skylanders;
   std::array<std::optional<Skylander>, MAX_SKYLANDERS> m_sky_slots;
@@ -60,7 +62,6 @@ private:
   // Behind the scenes
   void OnEmulationStateChanged(Core::State state);
   void OnCollectionPathChanged();
-  void RefreshList();
   void UpdateCurrentIDs();
   void CreateSkyfile(const QString& path, bool load_after);
   void LoadSkyfilePath(u8 slot, const QString& path);
@@ -71,7 +72,7 @@ private:
   QString GetFilePath(u16 id, u16 var);
   u8 GetCurrentSlot();
   int GetElementRadio();
-  QBrush GetBaseColor(std::pair<const u16, const u16> ids);
+  QBrush GetBaseColor(std::pair<const u16, const u16> ids, bool dark_theme);
   int GetGameID(IOS::HLE::USB::Game game);
   int GetElementID(IOS::HLE::USB::Element elem);
 

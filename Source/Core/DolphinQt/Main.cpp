@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #ifdef _WIN32
+#include <cstdio>
 #include <string>
 #include <vector>
 
 #include <Windows.h>
-#include <cstdio>
 #endif
 
 #ifdef __linux__
@@ -33,6 +33,7 @@
 #include "DolphinQt/MainWindow.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/RunOnObject.h"
+#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Translation.h"
@@ -90,6 +91,7 @@ static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no
       return QMessageBox::NoIcon;
     }());
 
+    SetQWidgetWindowDecorations(&message_box);
     const int button = message_box.exec();
     if (button == QMessageBox::Yes)
       return true;
@@ -243,8 +245,11 @@ int main(int argc, char* argv[])
   {
     DolphinAnalytics::Instance().ReportDolphinStart("qt");
 
-    MainWindow win{std::move(boot), static_cast<const char*>(options.get("movie"))};
+    Settings::Instance().InitDefaultPalette();
+    Settings::Instance().UpdateSystemDark();
     Settings::Instance().SetCurrentUserStyle(Settings::Instance().GetCurrentUserStyle());
+
+    MainWindow win{std::move(boot), static_cast<const char*>(options.get("movie"))};
     win.Show();
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
@@ -268,6 +273,7 @@ int main(int argc, char* argv[])
                       "This authorization can be revoked at any time through Dolphin's "
                       "settings."));
 
+      SetQWidgetWindowDecorations(&analytics_prompt);
       const int answer = analytics_prompt.exec();
 
       Config::SetBase(Config::MAIN_ANALYTICS_PERMISSION_ASKED, true);

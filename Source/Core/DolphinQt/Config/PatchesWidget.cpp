@@ -15,6 +15,7 @@
 #include "Core/PatchEngine.h"
 
 #include "DolphinQt/Config/NewPatchDialog.h"
+#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 
 #include "UICommon/GameFile.h"
 
@@ -74,7 +75,13 @@ void PatchesWidget::OnAdd()
   PatchEngine::Patch patch;
   patch.user_defined = true;
 
-  if (NewPatchDialog(this, patch).exec())
+  bool new_patch_confirmed = false;
+  {
+    NewPatchDialog dialog(this, patch);
+    SetQWidgetWindowDecorations(&dialog);
+    new_patch_confirmed = dialog.exec();
+  }
+  if (new_patch_confirmed)
   {
     m_patches.push_back(patch);
     SavePatches();
@@ -98,7 +105,13 @@ void PatchesWidget::OnEdit()
     patch.name = tr("%1 (Copy)").arg(QString::fromStdString(patch.name)).toStdString();
   }
 
-  if (NewPatchDialog(this, patch).exec())
+  bool new_patch_confirmed = false;
+  {
+    NewPatchDialog dialog(this, patch);
+    SetQWidgetWindowDecorations(&dialog);
+    new_patch_confirmed = dialog.exec();
+  }
+  if (new_patch_confirmed)
   {
     if (patch.user_defined)
     {
