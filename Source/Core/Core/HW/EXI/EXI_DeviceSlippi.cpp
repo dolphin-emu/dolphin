@@ -404,9 +404,10 @@ std::vector<u8> CEXISlippi::generateMetadata()
   }
   metadata.push_back('}');
 
-  // Indicate this was played on dolphin
-  metadata.insert(metadata.end(), {'U', 8,   'p', 'l', 'a', 'y', 'e', 'd', 'O', 'n',
-                                   'S', 'U', 7,   'd', 'o', 'l', 'p', 'h', 'i', 'n'});
+  // Indicate this was played on mainline dolphin
+  metadata.insert(metadata.end(),
+                  {'U', 8,   'p', 'l', 'a', 'y', 'e', 'd', 'O', 'n', 'S', 'U', 16,  'm', 'a',
+                   'i', 'n', 'l', 'i', 'n', 'e', ' ', 'd', 'o', 'l', 'p', 'h', 'i', 'n'});
 
   metadata.push_back('}');
   return metadata;
