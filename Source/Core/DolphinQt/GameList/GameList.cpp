@@ -467,8 +467,14 @@ void GameList::ShowContextMenu(const QPoint&)
     if (!is_mod_descriptor &&
         (platform == DiscIO::Platform::WiiWAD || platform == DiscIO::Platform::WiiDisc))
     {
-      menu->addAction(tr("Open Wii &Save Folder"), this, &GameList::OpenWiiSaveFolder);
-      menu->addAction(tr("Export Wii Save"), this, &GameList::ExportWiiSave);
+      QAction* open_wii_save_folder =
+          menu->addAction(tr("Open Wii &Save Folder"), this, &GameList::OpenWiiSaveFolder);
+      QAction* export_wii_save =
+          menu->addAction(tr("Export Wii Save"), this, &GameList::ExportWiiSave);
+
+      open_wii_save_folder->setEnabled(!Core::IsRunning());
+      export_wii_save->setEnabled(!Core::IsRunning());
+
       menu->addSeparator();
     }
 
