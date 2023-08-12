@@ -107,7 +107,7 @@ static bool IsIllegalCharacter(char c)
 {
   static const std::unordered_set<char> illegal_chars = {'\"', '*', '/',  ':', '<',
                                                          '>',  '?', '\\', '|', '\x7f'};
-  return (c >= 0 && c <= 0x1F) || illegal_chars.find(c) != illegal_chars.end();
+  return static_cast<unsigned char>(c) <= 0x1F || illegal_chars.find(c) != illegal_chars.end();
 }
 
 std::string EscapeFileName(const std::string& filename)
