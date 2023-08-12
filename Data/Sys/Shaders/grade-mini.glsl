@@ -21,7 +21,7 @@
 
 
 /*
-   Grade-mini (07-08-2023)
+   Grade-mini (12-08-2023)
 
    > CRT emulation shader (composite signal, phosphor, gamma, temperature...)
    > Abridged port of RetroArch's Grade shader.
@@ -50,7 +50,7 @@
 
 
 // Test the following Phosphor gamuts and try to reach to a conclusion
-// For GC  Japan developed games you can use -2 (Rear Projection TVs) or 2 (CRT Tube)
+// For GC  Japan developed games you can use -2 (Rear Projection TVs) or 2 (CRT Tube) (Plasma gamut is not included)
 // For Wii Japan developed games probably -3 (SMPTE-C), -2 (Rear Projection TVs) or 0 (sRGB/noop)
 // For Japan developed games use a temperature ~8500K (default)
 // For EU/US developed games use a temperature ~7100K
@@ -73,7 +73,7 @@ StepAmount = 1
 DefaultValue = 2
 
 [OptionRangeInteger]
-GUIName = Display Color Space (0:709 1:sRGB 2:P3-D65 3:Custom (Edit L492))
+GUIName = Display Color Space (0:709 1:sRGB 2:P3-D65 3:Custom (Edit L495))
 OptionName = g_space_out
 MinValue = 0
 MaxValue = 3
@@ -484,9 +484,12 @@ const mat3 DCIP3_prims = mat3(
      0.320, 0.690, 0.060,
      0.000, 0.045, 0.790);
 
-// Custom - Add here the primaries of your D65 calibrated display to -partially- color manage Dolphin. Only the matrix part (hue+saturation, gamma is left out)
-// How: Check the log of DisplayCAL calibration/profiling, search where it says "Increasing saturation of actual primaries..."
-// Note down in vertical order (column-major) the R xy, G xy and B xy values before "->" mark
+// Custom - Add here the primaries of your D65 calibrated display to -partially- color manage Dolphin.
+// Only the matrix part will be applied here (hue+saturation), gamma being handled by the display's profile via DisplayCAL.
+// - Launch "Profile Info" from DisplayCAL start menu entry
+// - Drop your profile (icc or icm) into the window
+// - Copy Primaries from "Chromaticity (Illuminant-relative)"
+// - Note down in vertical order (column-major) the R xy, G xy and B xy values
 // For full Dolphin color management, alongside the custom matrix you should also have DisplayCAL Profile Loader enabled...
 // ...since it will also load the VCGT/LUT part -white point, grey balance and tone response-)
 const mat3 Custom_prims = mat3(
