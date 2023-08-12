@@ -1325,11 +1325,13 @@ bool CEXISlippi::shouldSkipOnlineFrame(s32 frame, s32 finalizedFrame)
   s32 t1 = 10000;
   s32 t2 = (2 * frameTime) + t1;
 
+  // 8/8/23: Removed the halting time sync logic after frame 120 in favor of emulation speed.
+  // Hopefully less halts means less dropped inputs.
   // Only skip once for a given frame because our time detection method doesn't take into
   // consideration waiting for a frame. Also it's less jarring and it happens often enough that it
   // will smoothly get to the right place
   auto isTimeSyncFrame = frame % SLIPPI_ONLINE_LOCKSTEP_INTERVAL;  // Only time sync every 30 frames
-  if (isTimeSyncFrame == 0 && !isCurrentlySkipping)
+  if (isTimeSyncFrame == 0 && !isCurrentlySkipping && frame <= 120)
   {
     auto offsetUs = slippi_netplay->CalcTimeOffsetUs();
     INFO_LOG_FMT(SLIPPI_ONLINE, "[Frame {}] Offset for skip is: {} us", frame, offsetUs);
@@ -1398,8 +1400,9 @@ bool CEXISlippi::shouldAdvanceOnlineFrame(s32 frame)
     // front instance as much because we want to prioritize performance for the fast PC
     float deviation = 0;
     float maxSlowDownAmount = 0.005f;
-    float maxSpeedUpAmount = 0.01f;
-    int frameWindow = 3;
+    float maxSpeedUpAmount = 0.05f;
+    int slowDownFrameWindow = 3;
+    int speedUpFrameWindow = 6;
     if (offsetUs > -250 && offsetUs < 8000)
     {
       // Do nothing, leave deviation at 0 for 100% emulation speed when ahead by 8 ms or less
@@ -1407,13 +1410,13 @@ bool CEXISlippi::shouldAdvanceOnlineFrame(s32 frame)
     else if (offsetUs < 0)
     {
       // Here we are behind, so let's speed up our instance
-      float frameWindowMultiplier = std::min(-offsetUs / (frameWindow * 16683.0f), 1.0f);
+      float frameWindowMultiplier = std::min(-offsetUs / (speedUpFrameWindow * 16683.0f), 1.0f);
       deviation = frameWindowMultiplier * maxSpeedUpAmount;
     }
     else
     {
       // Here we are ahead, so let's slow down our instance
-      float frameWindowMultiplier = std::min(offsetUs / (frameWindow * 16683.0f), 1.0f);
+      float frameWindowMultiplier = std::min(offsetUs / (slowDownFrameWindow * 16683.0f), 1.0f);
       deviation = frameWindowMultiplier * -maxSlowDownAmount;
     }
 
@@ -1448,19 +1451,23 @@ bool CEXISlippi::shouldAdvanceOnlineFrame(s32 frame)
           10000, OSD::Color::RED);
     }
 
-    if (offsetUs < -t2 && !isCurrentlyAdvancing)
-    {
-      isCurrentlyAdvancing = true;
+    // 8/8/23: I want to disable forced frame advances for now. I think they're largely unnecessary
+    // because of the dynamic emulation speed and cause more jarring frame drops.
 
-      // On early frames, don't advance any frames. Let the stalling logic handle the initial sync
-      int maxAdvFrames = frame > 120 ? 3 : 0;
-      framesToAdvance = ((-offsetUs - t1) / frameTime) + 1;
-      framesToAdvance = framesToAdvance > maxAdvFrames ? maxAdvFrames : framesToAdvance;
+    // if (offsetUs < -t2 && !isCurrentlyAdvancing)
+    // {
+    //   isCurrentlyAdvancing = true;
 
-      WARN_LOG_FMT(SLIPPI_ONLINE,
-                   "Advancing on frame {} due to time sync. Offset: {} us. Frames: {}...", frame,
-                   offsetUs, framesToAdvance);
-    }
+    // On early frames, don't advance any frames. Let the stalling logic handle the initial sync
+
+    //   int maxAdvFrames = frame > 120 ? 3 : 0; framesToAdvance = ((-offsetUs - t1) /
+    //   frameTime) + 1; framesToAdvance = framesToAdvance > maxAdvFrames ? maxAdvFrames :
+    //   framesToAdvance;
+
+    //   WARN_LOG_FMT(SLIPPI_ONLINE,
+    //                "Advancing on frame {} due to time sync. Offset: {} us. Frames: {}...", frame,
+    //                offsetUs, framesToAdvance);
+    // }
   }
 
   // Handle the skipped frames
