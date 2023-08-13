@@ -13,6 +13,7 @@
 
 #include "Core/Boot/Boot.h"
 
+class QMenu;
 class QStackedWidget;
 class QString;
 
@@ -80,6 +81,7 @@ public:
   WindowSystemInfo GetWindowSystemInfo() const;
 
   bool eventFilter(QObject* object, QEvent* event) override;
+  QMenu* createPopupMenu() override;
 
 signals:
   void ReadOnlyModeChanged(bool read_only);
