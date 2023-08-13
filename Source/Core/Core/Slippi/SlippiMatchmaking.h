@@ -94,7 +94,7 @@ protected:
 
   int m_isSwapAttempt = false;
 
-  int m_hostPort;
+  int m_host_port;
   int m_localPlayerIndex;
   std::vector<std::string> m_remoteIps;
   MatchmakeResult m_mm_result;
