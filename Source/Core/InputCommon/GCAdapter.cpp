@@ -100,7 +100,9 @@ enum class ControllerType : u8
 static std::array<u8, SerialInterface::MAX_SI_CHANNELS> s_controller_rumble;
 
 constexpr size_t CONTROLLER_INPUT_PAYLOAD_EXPECTED_SIZE = 37;
+#if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
 constexpr size_t CONTROLLER_OUTPUT_INIT_PAYLOAD_SIZE = 1;
+#endif
 constexpr size_t CONTROLLER_OUTPUT_RUMBLE_PAYLOAD_SIZE = 5;
 
 struct PortState
