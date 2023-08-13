@@ -31,6 +31,7 @@
 
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 
 #include "Core/Config/GraphicsSettings.h"
@@ -171,6 +172,8 @@ bool Settings::IsThemeDark()
 // Calling this before the main window has been created breaks the style of some widgets.
 void Settings::SetCurrentUserStyle(const QString& stylesheet_name)
 {
+  INFO_LOG_FMT(CORE, "SetCurrentUserStyle({}):", stylesheet_name.toStdString());
+
   QString stylesheet_contents;
 
   // If we haven't found one, we continue with an empty (default) style
@@ -180,19 +183,37 @@ void Settings::SetCurrentUserStyle(const QString& stylesheet_name)
     QDir directory = QDir(QString::fromStdString(File::GetUserPath(D_STYLES_IDX)));
     QFile stylesheet(directory.filePath(stylesheet_name));
 
+    INFO_LOG_FMT(CORE, "attempting to open stylesheet {}", stylesheet.fileName().toStdString());
+
     if (stylesheet.open(QFile::ReadOnly))
+    {
+      INFO_LOG_FMT(CORE, "opened stylesheet");
       stylesheet_contents = QString::fromUtf8(stylesheet.readAll().data());
+      INFO_LOG_FMT(CORE, "stylesheet contents: {}", stylesheet_contents.toStdString());
+    }
+    else
+    {
+      INFO_LOG_FMT(CORE, "failed opening stylesheet");
+    }
+  }
+  else
+  {
+    INFO_LOG_FMT(CORE, "no stylesheet given or user styles disabled");
   }
 
 #ifdef _WIN32
   if (stylesheet_contents.isEmpty())
   {
+    INFO_LOG_FMT(CORE, "stylesheet contents empty, using default stylesheet");
+
     // No theme selected or found. Usually we would just fallthrough and set an empty stylesheet
     // which would select Qt's default theme, but unlike other OSes we don't automatically get a
     // default dark theme on Windows when the user has selected dark mode in the Windows settings.
     // So manually check if the user wants dark mode and, if yes, load our embedded dark theme.
     if (IsSystemDark())
     {
+      INFO_LOG_FMT(CORE, "windows is dark");
+
       QFile file(QStringLiteral(":/dolphin_dark_win/dark.qss"));
       if (file.open(QFile::ReadOnly))
         stylesheet_contents = QString::fromUtf8(file.readAll().data());
@@ -215,6 +236,8 @@ void Settings::SetCurrentUserStyle(const QString& stylesheet_name)
     }
     else
     {
+      INFO_LOG_FMT(CORE, "windows is light");
+
       // reset any palette changes that may exist from a previously set dark mode
       if (s_default_palette)
         qApp->setPalette(*s_default_palette);
