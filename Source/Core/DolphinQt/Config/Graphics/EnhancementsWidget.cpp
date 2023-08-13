@@ -21,6 +21,7 @@
 #include "DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt/Config/Graphics/PostProcessingConfigWindow.h"
+#include "DolphinQt/Config/ToolTipControls/ToolTipPushButton.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Settings.h"
@@ -104,7 +105,7 @@ void EnhancementsWidget::CreateWidgets()
   m_texture_filtering_combo->addItem(tr("Force Linear and 16x Anisotropic"),
                                      TEXTURE_FILTERING_FORCE_LINEAR_ANISO_16X);
 
-  m_configure_color_correction = new NonDefaultQPushButton(tr("Configure"));
+  m_configure_color_correction = new ToolTipPushButton(tr("Configure"));
 
   m_pp_effect = new ToolTipComboBox();
   m_configure_pp_effect = new NonDefaultQPushButton(tr("Configure"));
@@ -455,8 +456,8 @@ void EnhancementsWidget::AddDescriptions()
       "of the game's textures and might cause issues in a small number of "
       "games.<br><br><dolphin_emphasis>If unsure, select 'Default'.</dolphin_emphasis>");
   static const char TR_COLOR_CORRECTION_DESCRIPTION[] =
-      QT_TR_NOOP("A group of features to make the colors more accurate,"
-                 " matching the color space Wii and GC games were meant for.");
+      QT_TR_NOOP("A group of features to make the colors more accurate, matching the color space "
+                 "Wii and GC games were meant for.");
   static const char TR_POSTPROCESSING_DESCRIPTION[] =
       QT_TR_NOOP("Applies a post-processing effect after rendering a frame.<br><br "
                  "/><dolphin_emphasis>If unsure, select (off).</dolphin_emphasis>");
@@ -536,7 +537,8 @@ void EnhancementsWidget::AddDescriptions()
   m_texture_filtering_combo->SetTitle(tr("Texture Filtering"));
   m_texture_filtering_combo->SetDescription(tr(TR_FORCE_TEXTURE_FILTERING_DESCRIPTION));
 
-  m_configure_color_correction->setToolTip(tr(TR_COLOR_CORRECTION_DESCRIPTION));
+  m_configure_color_correction->SetTitle(tr("Color Correction"));
+  m_configure_color_correction->SetDescription(tr(TR_COLOR_CORRECTION_DESCRIPTION));
 
   m_pp_effect->SetTitle(tr("Post-Processing Effect"));
   m_pp_effect->SetDescription(tr(TR_POSTPROCESSING_DESCRIPTION));
