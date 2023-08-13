@@ -38,6 +38,8 @@ public:
   void DMAWrite(u32 _uAddr, u32 _uSize) override;
   void DMARead(u32 addr, u32 size) override;
 
+  void ConfigureJukebox();
+
   bool IsPresent() const override;
 
 private:
@@ -157,6 +159,10 @@ private:
     std::vector<u8> data;
     std::string operation;
   };
+
+  // A pointer to a "shadow" EXI Device that lives on the Rust side of things.
+  // This should be cleaned up in any destructor!
+  uintptr_t slprs_exi_device_ptr;
 
   // .slp File creation stuff
   u32 writtenByteCount = 0;

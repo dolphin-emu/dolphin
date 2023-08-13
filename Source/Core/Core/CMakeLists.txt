@@ -1,3 +1,5 @@
+include_directories(${CMAKE_SOURCE_DIR}/Externals/SlippiRustExtensions/ffi/includes)
+
 add_library(core
   ActionReplay.cpp
   ActionReplay.h

@@ -67,6 +67,7 @@ extern const Info<bool> SLIPPI_REPLAY_MONTH_FOLDERS;
 extern const Info<std::string> SLIPPI_REPLAY_DIR;
 extern const Info<bool> SLIPPI_ENABLE_FRAME_INDEX;
 extern const Info<bool> SLIPPI_BLOCKING_PIPES;
+extern const Info<bool> SLIPPI_ENABLE_JUKEBOX;
 
 // Playback Settings
 extern const Info<bool> SLIPPI_ENABLE_SEEK;

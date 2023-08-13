@@ -42,3 +42,6 @@ CMakeLists.txt.user
 /.idea/
 # Ignore Visual Studio Code's working dir
 /.vscode/
+
+# Ignore the rust target dir
+Externals/SlippiRustExtensions/target/

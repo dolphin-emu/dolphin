@@ -1,0 +1,25 @@
+[package]
+name = "slippi-game-reporter"
+description = "Implements the game reporter service."
+authors = [
+    "Slippi Team",
+    "Ryan McGrath <ryan@rymc.io>"
+]
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[features]
+default = []
+ishiiruka = []
+mainline = []
+
+[dependencies]
+chksum = { version = "0.1.0-rc5", default-features = false, features = ["md5"] }
+dolphin-integrations = { path = "../dolphin" }
+flate2 = "1.0"
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_repr = { workspace = true }
+tracing = { workspace = true }
+ureq = { workspace = true }

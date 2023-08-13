@@ -1,0 +1,35 @@
+[workspace]
+resolver = "2"
+
+# Always build the ffi interface as the default project.
+default-members = ["ffi"]
+
+members = [
+    "dolphin",
+    "exi",
+    "ffi",
+    "game-reporter",
+    "jukebox",
+]
+
+# Ship the resulting dylib with debug information so we can figure out
+# crashes easier, and swap panic behavior to "abort" to match C++ behavior.
+# 
+# We don't want to panic and attempt to unwind into C/C++ since that can cause
+# undefined behavior.
+[profile.release]
+debug = true
+panic = "abort"
+
+[workspace.dependencies]
+fastrand = "2.0.0"
+time = { version = "0.3.20", default-features = false, features = ["std", "local-offset"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1" }
+serde_repr = { version = "0.1" }
+
+# We disable the "attributes" feature as we don't currently need it and it brings
+# in extra dependencies.
+tracing = { version = "0.1", default-features = false, features = ["std"] }
+
+ureq = { version = "2.7.1", features = ["json"] }

@@ -1,0 +1,33 @@
+[package]
+name = "slippi_rust_extensions"
+description = "An internal library that exposes entry points via the C FFI."
+version = "0.1.0"
+authors = [
+    "Slippi Team",
+    "Ryan McGrath <ryan@rymc.io>"
+]
+repository = ""
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[build-dependencies]
+cbindgen = "0.24.3"
+
+[features]
+default = ["ishiiruka"]
+ishiiruka = [
+    "dolphin-integrations/ishiiruka",
+    "slippi-game-reporter/ishiiruka",
+    "slippi-exi-device/ishiiruka"
+]
+mainline = []
+playback = []
+
+[dependencies]
+dolphin-integrations = { path = "../dolphin" }
+slippi-game-reporter = { path = "../game-reporter" }
+slippi-exi-device = { path = "../exi" }
+tracing = { workspace = true }

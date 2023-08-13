@@ -15,6 +15,8 @@
 #include "Common/Thread.h"
 #include "Common/Version.h"
 
+#include "AudioCommon/AudioCommon.h"
+
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -37,6 +39,9 @@
 #include "Core/State.h"
 #include "Core/System.h"
 #include "VideoCommon/OnScreenDisplay.h"
+
+// The Rust library that houses a "shadow" EXI Device that we can call into.
+#include "SlippiRustExtensions.h"
 
 #define FRAME_INTERVAL 900
 #define SLEEP_TIME_MS 8
@@ -116,10 +121,26 @@ std::string ConvertConnectCodeForGame(const std::string& input)
   return connectCode;
 }
 
+// This function gets passed to the Rust EXI device to support emitting OSD messages
+// across the Rust/C/C++ boundary.
+void OSDMessageHandler(const char* message, u32 color, u32 duration_ms)
+{
+  // When called with a C str type, this constructor does a copy.
+  //
+  // We intentionally do this to ensure that there are no ownership issues with a C String coming
+  // from the Rust side. This isn't a particularly hot code path so we don't need to care about
+  // the extra allocation, but this could be revisited in the future.
+  std::string msg(message);
+
+  OSD::AddMessage(msg, duration_ms, color);
+}
+
 CEXISlippi::CEXISlippi(Core::System& system, const std::string current_file_name)
     : IEXIDevice(system)
 {
   INFO_LOG_FMT(SLIPPI, "EXI SLIPPI Constructor called.");
+
+  slprs_exi_device_ptr = slprs_exi_device_create(current_file_name.c_str(), OSDMessageHandler);
 
   user = std::make_unique<SlippiUser>();
   g_playbackStatus = std::make_unique<SlippiPlaybackStatus>();
@@ -243,6 +264,9 @@ CEXISlippi::CEXISlippi(Core::System& system, const std::string current_file_name
 CEXISlippi::~CEXISlippi()
 {
   u8 empty[1];
+
+  // Instruct the Rust EXI device to shut down/drop everything.
+  slprs_exi_device_destroy(slprs_exi_device_ptr);
 
   // Closes file gracefully to prevent file corruption when emulation
   // suddenly stops. This would happen often on netplay when the opponent
@@ -3147,6 +3171,7 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
       break;
     case CMD_GCT_LOAD:
       prepareGctLoad(&memPtr[bufLoc + 1]);
+      ConfigureJukebox();
       break;
     case CMD_GET_DELAY:
       prepareDelayResponse();
@@ -3201,6 +3226,31 @@ void CEXISlippi::DMARead(u32 addr, u32 size)
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   memory.CopyToEmu(addr, queueAddr, size);
+}
+
+// Configures (or reconfigures) the Jukebox by calling over the C FFI boundary.
+//
+// This method can also be called, indirectly, from the Settings panel.
+void CEXISlippi::ConfigureJukebox()
+{
+#ifndef IS_PLAYBACK
+  // Exclusive WASAPI and the Jukebox do not play nicely, so we just don't bother enabling
+  // the Jukebox in that scenario
+#ifdef _WIN32
+  std::string backend = Config::Get(Config::MAIN_AUDIO_BACKEND);
+  if (backend.find(BACKEND_WASAPI) != std::string::npos)
+  {
+    OSD::AddMessage("Slippi Jukebox does not work with WASAPI mode. Music will not play.");
+    return;
+  }
+#endif
+
+  auto& system = Core::System::GetInstance();
+
+  slprs_exi_device_configure_jukebox(slprs_exi_device_ptr,
+                                     Config::Get(Config::SLIPPI_ENABLE_JUKEBOX), system.GetMemory().GetRAM(),
+                                     AudioCommonGetCurrentVolume);
+#endif
 }
 
 bool CEXISlippi::IsPresent() const

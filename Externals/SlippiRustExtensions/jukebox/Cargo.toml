@@ -1,0 +1,24 @@
+[package]
+name = "slippi-jukebox"
+description = "A built-in solution to play melee's OST in a manner that's effectively detached from emulation."
+version = "0.1.0"
+authors = [
+    "Slippi Team",
+    "Daryl Pinto <daryl.j.pinto@gmail.com>"
+]
+edition = "2021"
+publish = false
+
+[features]
+default = []
+ishiiruka = []
+mainline = []
+
+[dependencies]
+anyhow = "1.0.71"
+dolphin-integrations = { path = "../dolphin" }
+fastrand = { workspace = true }
+hps_decode = "0.1.1"
+process-memory = "0.5.0"
+rodio = "0.17.1"
+tracing = { workspace = true }

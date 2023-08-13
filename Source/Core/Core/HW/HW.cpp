@@ -76,11 +76,11 @@ void Shutdown()
   system.GetCPU().Shutdown();
   system.GetDVDInterface().Shutdown();
   system.GetDSP().Shutdown();
+  system.GetExpansionInterface().Shutdown();
   system.GetMemoryInterface().Shutdown();
   AddressSpace::Shutdown();
   system.GetMemory().Shutdown();
   system.GetHSP().Shutdown();
-  system.GetExpansionInterface().Shutdown();
   SerialInterface::Shutdown();
   system.GetAudioInterface().Shutdown();
 

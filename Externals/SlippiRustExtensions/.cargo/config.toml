@@ -1,0 +1,5 @@
+# We want this set on all builds in order to keep unwind tables for backtraces
+# included in the final build. It does bloat things, but it's worth it for us
+# in order to get more accurate crash logs from users.
+[build]
+rustflags = ["-Cforce-unwind-tables=y"]

@@ -41,7 +41,7 @@ endif()
 # Name of the Dolphin distributor. If you redistribute Dolphin builds (forks,
 # unofficial builds) please consider identifying your distribution with a
 # unique name here.
-set(DISTRIBUTOR "None" CACHE STRING "Name of the distributor.")
+set(DISTRIBUTOR "Slippi" CACHE STRING "Name of the distributor.")
 
 set(DOLPHIN_DEFAULT_UPDATE_TRACK "" CACHE STRING "Name of the default update track. If empty, disables auto-update.")
 
@@ -653,6 +653,10 @@ if(ENABLE_ANALYTICS)
   message(STATUS "Enabling analytics collection (subject to end-user opt-in)")
   add_definitions(-DUSE_ANALYTICS=1)
 endif()
+
+# Slippi Stuff
+message("Using static Corrosion from Externals for Rust linking support")
+add_subdirectory(Externals/corrosion)
 
 set(SLIPPI_PLAYBACK TRUE)
 if(SLIPPI_PLAYBACK)
