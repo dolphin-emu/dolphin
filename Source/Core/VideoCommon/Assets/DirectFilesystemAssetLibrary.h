@@ -9,11 +9,10 @@
 #include <string>
 
 #include "VideoCommon/Assets/CustomAssetLibrary.h"
+#include "VideoCommon/Assets/CustomTextureData.h"
 
 namespace VideoCommon
 {
-class CustomTextureData;
-
 // This class implements 'CustomAssetLibrary' and loads any assets
 // directly from the filesystem
 class DirectFilesystemAssetLibrary final : public CustomAssetLibrary
@@ -35,7 +34,7 @@ public:
 
 private:
   // Loads additional mip levels into the texture structure until _mip<N> texture is not found
-  bool LoadMips(const std::filesystem::path& asset_path, CustomTextureData* data);
+  bool LoadMips(const std::filesystem::path& asset_path, CustomTextureData::ArraySlice* data);
 
   // Gets the asset map given an asset id
   AssetMap GetAssetMapForID(const AssetID& asset_id) const;
