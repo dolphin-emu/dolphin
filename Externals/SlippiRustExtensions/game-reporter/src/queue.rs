@@ -47,12 +47,10 @@ pub struct GameReporterQueue {
 impl GameReporterQueue {
     /// Initializes and returns a new game reporter.
     pub(crate) fn new() -> Self {
-        // `max_idle_connections` is set to `0` to mimic how the CURL setup in the
-        // C++ version was done - i.e, I don't want to introduce connection pooling
-        // without Fizzi/Nikki opting in to it.
+        // We set `max_idle_connections` to `5` to mimic how CURL was configured in
+        // the old C++ version of this module.
         let http_client = ureq::AgentBuilder::new()
-            //.https_only(true)
-            .max_idle_connections(0)
+            .max_idle_connections(5)
             .user_agent("SlippiGameReporter/Rust v0.1")
             .build();
 
@@ -103,10 +101,10 @@ impl GameReporterQueue {
 
         match res {
             Ok(value) if value == "true" => {
-                tracing::info!(target: Log::GameReporter, "Successfully executed abandonment request")
+                tracing::info!(target: Log::GameReporter, "Successfully executed completion request")
             },
-            Ok(value) => tracing::error!(target: Log::GameReporter, ?value, "Error executing abandonment request",),
-            Err(error) => tracing::error!(target: Log::GameReporter, ?error, "Error executing abandonment request"),
+            Ok(value) => tracing::error!(target: Log::GameReporter, ?value, "Error executing completion request",),
+            Err(error) => tracing::error!(target: Log::GameReporter, ?error, "Error executing completion request"),
         }
     }
 

@@ -155,11 +155,11 @@ pub fn update_container(kind: *const c_char, enabled: bool, level: c_int) {
 pub fn mainline_update_log_level(level: c_int) {
     let containers = LOG_CONTAINERS
         .get()
-        .expect("[dolphin_logger::update_container]: Attempting to get `LOG_CONTAINERS` before init");
+        .expect("[dolphin_logger::mainline_update_log_level]: Attempting to get `LOG_CONTAINERS` before init");
 
     let mut writer = containers
         .write()
-        .expect("[dolphin_logger::update_container]: Unable to acquire write lock on `LOG_CONTAINERS`?");
+        .expect("[dolphin_logger::mainline_update_log_level]: Unable to acquire write lock on `LOG_CONTAINERS`?");
 
     for container in (*writer).iter_mut() {
         container.level = convert_dolphin_log_level_to_tracing_level(level);
