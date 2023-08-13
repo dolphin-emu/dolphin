@@ -103,6 +103,11 @@ void SkylanderPortalWindow::CreateMainWindow()
 
   auto* select_layout = new QHBoxLayout;
 
+  setMinimumWidth(770);
+
+  // yes, that +1 on 755 is needed to avoid scroll bars on the element selection
+  setMinimumHeight(756);
+
   // left and right widgets within window separated into own functions for readability
   select_layout->addLayout(CreateSlotLayout());
   select_layout->addLayout(CreateFinderLayout());
@@ -262,25 +267,25 @@ QVBoxLayout* SkylanderPortalWindow::CreateFinderLayout()
   }
   // i18n: Figures for the game Skylanders: Spyro's Adventure. The game has the same title in all
   // countries it was released in, except Japan, where it's named スカイランダーズ スパイロの大冒険.
-  m_game_filters[GetGameID(IOS::HLE::USB::Game::SpyrosAdv)]->setText(tr("Spyro's Adventure"));
+  m_game_filters[GetGameID(Game::SpyrosAdv)]->setText(tr("Spyro's Adventure"));
   // i18n: Figures for the game Skylanders: Giants. The game has the same title in all countries
   // it was released in. It was not released in Japan.
-  m_game_filters[GetGameID(IOS::HLE::USB::Game::Giants)]->setText(tr("Giants"));
+  m_game_filters[GetGameID(Game::Giants)]->setText(tr("Giants"));
   // i18n: Figures for the game Skylanders: Swap Force. The game has the same title in all countries
   // it was released in. It was not released in Japan.
-  m_game_filters[GetGameID(IOS::HLE::USB::Game::SwapForce)]->setText(tr("Swap Force"));
+  m_game_filters[GetGameID(Game::SwapForce)]->setText(tr("Swap Force"));
   // i18n: Figures for the game Skylanders: Trap Team. The game has the same title in all countries
   // it was released in. It was not released in Japan.
-  m_game_filters[GetGameID(IOS::HLE::USB::Game::TrapTeam)]->setText(tr("Trap Team"));
+  m_game_filters[GetGameID(Game::TrapTeam)]->setText(tr("Trap Team"));
   // i18n: Figures for the games Skylanders: SuperChargers (not available for the Wii) and
   // Skylanders: SuperChargers Racing (available for the Wii). The games have the same titles in
   // all countries they were released in. They were not released in Japan.
-  m_game_filters[GetGameID(IOS::HLE::USB::Game::Superchargers)]->setText(tr("SuperChargers"));
+  m_game_filters[GetGameID(Game::Superchargers)]->setText(tr("SuperChargers"));
   search_checkbox_group->setLayout(search_checkbox_layout);
   search_checkbox_scroll_area->setWidget(search_checkbox_group);
   search_game_layout->addWidget(search_checkbox_scroll_area);
   search_game_group->setLayout(search_game_layout);
-  search_game_group->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
+  search_game_group->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
   search_filters_layout->addWidget(search_game_group);
 
   // WIDGET: Filter by Element
@@ -297,62 +302,138 @@ QVBoxLayout* SkylanderPortalWindow::CreateFinderLayout()
   auto* search_radio_layout = new QHBoxLayout();
 
   auto* radio_layout_left = new QVBoxLayout();
-  for (int i = 0; i < 10; i += 2)
+  auto* radio_layout_right = new QVBoxLayout();
+  for (int i = 0; i < NUM_SKYLANDER_ELEMENTS_RADIO; i++)
   {
     QRadioButton* radio = new QRadioButton(this);
     radio->setProperty("id", i);
+    if (i == 0)
+    {
+      radio->setChecked(true);
+    }
     connect(radio, &QRadioButton::toggled, this, &SkylanderPortalWindow::RefreshList);
     m_element_filter[i] = radio;
-    radio_layout_left->addWidget(radio);
+
+    if (i % 2 == 0)
+    {
+      radio_layout_left->addWidget(radio);
+    }
+    else
+    {
+      radio_layout_right->addWidget(radio);
+    }
   }
   search_radio_layout->addLayout(radio_layout_left);
-
-  auto* radio_layout_right = new QVBoxLayout();
-  for (int i = 1; i < 10; i += 2)
-  {
-    QRadioButton* radio = new QRadioButton(this);
-    radio->setProperty("id", i);
-    connect(radio, &QRadioButton::toggled, this, &SkylanderPortalWindow::RefreshList);
-    m_element_filter[i] = radio;
-    radio_layout_right->addWidget(radio);
-  }
+  search_radio_layout->setDirection(QBoxLayout::Direction::LeftToRight);
+  search_radio_layout->addSpacing(35);
   search_radio_layout->addLayout(radio_layout_right);
 
   m_element_filter[0]->setText(tr("All"));
   m_element_filter[0]->setChecked(true);
   // i18n: One of the elements in the Skylanders games. Japanese: まほう. For official translations
   // in other languages, check the SuperChargers manual at https://support.activision.com/manuals
-  m_element_filter[1]->setText(tr("Magic"));
+  m_element_filter[GetElementID(Element::Magic)]->setText(tr("Magic"));
   // i18n: One of the elements in the Skylanders games. Japanese: 水. For official translations
   // in other languages, check the SuperChargers manual at https://support.activision.com/manuals
-  m_element_filter[2]->setText(tr("Water"));
+  m_element_filter[GetElementID(Element::Water)]->setText(tr("Water"));
   // i18n: One of the elements in the Skylanders games. Japanese: マシン. For official translations
   // in other languages, check the SuperChargers manual at https://support.activision.com/manuals
-  m_element_filter[3]->setText(tr("Tech"));
+  m_element_filter[GetElementID(Element::Tech)]->setText(tr("Tech"));
   // i18n: One of the elements in the Skylanders games. Japanese: 火. For official translations
   // in other languages, check the SuperChargers manual at https://support.activision.com/manuals
-  m_element_filter[4]->setText(tr("Fire"));
+  m_element_filter[GetElementID(Element::Fire)]->setText(tr("Fire"));
   // i18n: One of the elements in the Skylanders games. Japanese: 土. For official translations
   // in other languages, check the SuperChargers manual at https://support.activision.com/manuals
-  m_element_filter[5]->setText(tr("Earth"));
+  m_element_filter[GetElementID(Element::Earth)]->setText(tr("Earth"));
   // i18n: One of the elements in the Skylanders games. Japanese: ライフ. For official translations
   // in other languages, check the SuperChargers manual at https://support.activision.com/manuals
-  m_element_filter[6]->setText(tr("Life"));
+  m_element_filter[GetElementID(Element::Life)]->setText(tr("Life"));
   // i18n: One of the elements in the Skylanders games. Japanese: 風. For official translations
   // in other languages, check the SuperChargers manual at https://support.activision.com/manuals
-  m_element_filter[7]->setText(tr("Air"));
+  m_element_filter[GetElementID(Element::Air)]->setText(tr("Air"));
   // i18n: One of the elements in the Skylanders games. Japanese: アンデッド. For official
   // translations in other languages, check the SuperChargers manual at
   // https://support.activision.com/manuals
-  m_element_filter[8]->setText(tr("Undead"));
-  m_element_filter[9]->setText(tr("Other"));
+  m_element_filter[GetElementID(Element::Undead)]->setText(tr("Undead"));
+  // i18n: One of the elements in the Skylanders games. For official translations
+  // in other languages, check the SuperChargers manual at https://support.activision.com/manuals
+  m_element_filter[GetElementID(Element::Dark)]->setText(tr("Dark"));
+  // i18n: One of the elements in the Skylanders games. For official translations
+  // in other languages, check the SuperChargers manual at https://support.activision.com/manuals
+  m_element_filter[GetElementID(Element::Light)]->setText(tr("Light"));
+  m_element_filter[GetElementID(Element::Other)]->setText(tr("Other"));
 
   search_radio_group->setLayout(search_radio_layout);
   search_radio_scroll_area->setWidget(search_radio_group);
   search_element_layout->addWidget(search_radio_scroll_area);
+  search_radio_scroll_area->setAlignment(Qt::AlignHCenter);
   search_element_group->setLayout(search_element_layout);
-  search_element_group->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
+  search_element_group->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
   search_filters_layout->addWidget(search_element_group);
+
+  // Widget: Filter by Type
+  auto* search_type_group = new QGroupBox(tr("Figure type"));
+  auto* search_type_layout = new QVBoxLayout();
+  auto* search_type_radio_scroll_area = new QScrollArea();
+  search_type_radio_scroll_area->setContentsMargins(0, 0, 0, 0);
+  search_type_radio_scroll_area->setFrameStyle(QFrame::NoFrame);
+  auto* search_type_radio_group = new QFrame();
+  search_type_radio_group->setContentsMargins(0, 0, 0, 0);
+  auto* search_type_radio_layout = new QHBoxLayout();
+
+  auto* radio_type_layout_left = new QVBoxLayout();
+  auto* radio_type_layout_right = new QVBoxLayout();
+  for (int i = 0; i < NUM_SKYLANDER_TYPES; i++)
+  {
+    QRadioButton* radio = new QRadioButton(this);
+    radio->setProperty("id", i);
+    if (i == 0)
+    {
+      radio->setChecked(true);
+    }
+    connect(radio, &QRadioButton::toggled, this, &SkylanderPortalWindow::RefreshList);
+    m_type_filter[i] = radio;
+
+    if (i % 2 == 0)
+    {
+      radio_type_layout_left->addWidget(radio);
+    }
+    else
+    {
+      radio_type_layout_right->addWidget(radio);
+    }
+  }
+  search_type_radio_layout->addLayout(radio_type_layout_left);
+  search_type_radio_layout->addLayout(radio_type_layout_right);
+
+  m_type_filter[0]->setText(tr("All"));
+  // i18n: One of the figure types in the Skylanders games.
+  m_type_filter[GetTypeID(Type::Skylander)]->setText(tr("Skylander"));
+  // i18n: One of the figure types in the Skylanders games.
+  m_type_filter[GetTypeID(Type::Giant)]->setText(tr("Giant"));
+  // i18n: One of the figure types in the Skylanders games.
+  m_type_filter[GetTypeID(Type::Swapper)]->setText(tr("Swapper"));
+  // i18n: One of the figure types in the Skylanders games.
+  m_type_filter[GetTypeID(Type::TrapMaster)]->setText(tr("Trap Master"));
+  // i18n: One of the figure types in the Skylanders games.
+  m_type_filter[GetTypeID(Type::Mini)]->setText(tr("Mini"));
+  // i18n: One of the figure types in the Skylanders games.
+  m_type_filter[GetTypeID(Type::Item)]->setText(tr("Item"));
+  // i18n: One of the figure types in the Skylanders games.
+  m_type_filter[GetTypeID(Type::Trophy)]->setText(tr("Trophy"));
+  // i18n: One of the figure types in the Skylanders games. For official translations
+  // in other languages, check the SuperChargers manual at https://support.activision.com/manuals
+  m_type_filter[GetTypeID(Type::Vehicle)]->setText(tr("Vehicle"));
+  // i18n: One of the figure types in the Skylanders games.
+  m_type_filter[GetTypeID(Type::Trap)]->setText(tr("Trap"));
+
+  search_type_radio_group->setLayout(search_type_radio_layout);
+  search_type_radio_scroll_area->setWidget(search_type_radio_group);
+  search_type_radio_scroll_area->setAlignment(Qt::AlignHCenter);
+  search_type_layout->addWidget(search_type_radio_scroll_area);
+  search_type_group->setLayout(search_type_layout);
+  search_type_group->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+  search_filters_layout->addWidget(search_type_group);
 
   // Widget: Other Filters
   auto* other_box = new QGroupBox(tr("Other"));
@@ -790,30 +871,12 @@ bool SkylanderPortalWindow::PassesFilter(QString name, u16 id, u16 var)
   bool pass = false;
 
   // Check against active game filters
-  if (m_game_filters[GetGameID(IOS::HLE::USB::Game::SpyrosAdv)]->isChecked())
+  for (size_t i = 0; i < NUM_SKYLANDER_GAMES; i++)
   {
-    if (character.game == IOS::HLE::USB::Game::SpyrosAdv)
+    if (m_game_filters[i]->isChecked() && character.game == (Game)i)
+    {
       pass = true;
-  }
-  if (m_game_filters[GetGameID(IOS::HLE::USB::Game::Giants)]->isChecked())
-  {
-    if (character.game == IOS::HLE::USB::Game::Giants)
-      pass = true;
-  }
-  if (m_game_filters[GetGameID(IOS::HLE::USB::Game::SwapForce)]->isChecked())
-  {
-    if (character.game == IOS::HLE::USB::Game::SwapForce)
-      pass = true;
-  }
-  if (m_game_filters[GetGameID(IOS::HLE::USB::Game::TrapTeam)]->isChecked())
-  {
-    if (character.game == IOS::HLE::USB::Game::TrapTeam)
-      pass = true;
-  }
-  if (m_game_filters[GetGameID(IOS::HLE::USB::Game::Superchargers)]->isChecked())
-  {
-    if (character.game == IOS::HLE::USB::Game::Superchargers)
-      pass = true;
+    }
   }
   if (!pass)
     return false;
@@ -823,45 +886,12 @@ bool SkylanderPortalWindow::PassesFilter(QString name, u16 id, u16 var)
     return false;
 
   // Check against active element filter
-  switch (GetElementRadio())
-  {
-  case 1:
-    if (character.element != IOS::HLE::USB::Element::Magic)
-      return false;
-    break;
-  case 2:
-    if (character.element != IOS::HLE::USB::Element::Water)
-      return false;
-    break;
-  case 3:
-    if (character.element != IOS::HLE::USB::Element::Tech)
-      return false;
-    break;
-  case 4:
-    if (character.element != IOS::HLE::USB::Element::Fire)
-      return false;
-    break;
-  case 5:
-    if (character.element != IOS::HLE::USB::Element::Earth)
-      return false;
-    break;
-  case 6:
-    if (character.element != IOS::HLE::USB::Element::Life)
-      return false;
-    break;
-  case 7:
-    if (character.element != IOS::HLE::USB::Element::Air)
-      return false;
-    break;
-  case 8:
-    if (character.element != IOS::HLE::USB::Element::Undead)
-      return false;
-    break;
-  case 9:
-    if (character.element != IOS::HLE::USB::Element::Other)
-      return false;
-    break;
-  }
+  if ((Element)GetElementRadio() != character.element && GetElementRadio() != 0)
+    return false;
+
+  // Check against active type filter
+  if ((Type)GetTypeRadio() != character.type && GetTypeRadio() != 0)
+    return false;
 
   return true;
 }
@@ -915,6 +945,18 @@ int SkylanderPortalWindow::GetElementRadio()
   return -1;
 }
 
+int SkylanderPortalWindow::GetTypeRadio()
+{
+  for (auto radio : m_type_filter)
+  {
+    if (radio->isChecked())
+    {
+      return radio->property("id").toInt();
+    }
+  }
+  return -1;
+}
+
 QBrush SkylanderPortalWindow::GetBaseColor(std::pair<const u16, const u16> ids, bool dark_theme)
 {
   auto skylander = IOS::HLE::USB::list_skylanders.find(ids);
@@ -924,76 +966,32 @@ QBrush SkylanderPortalWindow::GetBaseColor(std::pair<const u16, const u16> ids, 
 
   switch ((*skylander).second.game)
   {
-  case IOS::HLE::USB::Game::SpyrosAdv:
+  case Game::SpyrosAdv:
     return QBrush(dark_theme ? QColor(10, 42, 90) : QColor(240, 255, 240));
-  case IOS::HLE::USB::Game::Giants:
+  case Game::Giants:
     return QBrush(dark_theme ? QColor(120, 16, 12) : QColor(255, 240, 215));
-  case IOS::HLE::USB::Game::SwapForce:
+  case Game::SwapForce:
     return QBrush(dark_theme ? QColor(28, 45, 12) : QColor(240, 245, 255));
-  case IOS::HLE::USB::Game::TrapTeam:
+  case Game::TrapTeam:
     return QBrush(dark_theme ? QColor(0, 56, 76) : QColor(255, 240, 240));
-  case IOS::HLE::USB::Game::Superchargers:
+  case Game::Superchargers:
     return QBrush(dark_theme ? QColor(90, 12, 12) : QColor(247, 228, 215));
   default:
     return QBrush(dark_theme ? QColor(32, 32, 32) : QColor(255, 255, 255));
   }
 }
 
-int SkylanderPortalWindow::GetGameID(IOS::HLE::USB::Game game)
+int SkylanderPortalWindow::GetGameID(Game game)
 {
-  switch (game)
-  {
-  case IOS::HLE::USB::Game::SpyrosAdv:
-    return 0;
-
-  case IOS::HLE::USB::Game::Giants:
-    return 1;
-
-  case IOS::HLE::USB::Game::SwapForce:
-    return 2;
-
-  case IOS::HLE::USB::Game::TrapTeam:
-    return 3;
-
-  case IOS::HLE::USB::Game::Superchargers:
-    return 4;
-
-  case IOS::HLE::USB::Game::Other:
-    return 5;
-  }
-  return -1;
+  return (int)game;
 }
 
-int SkylanderPortalWindow::GetElementID(IOS::HLE::USB::Element elem)
+int SkylanderPortalWindow::GetElementID(Element elem)
 {
-  switch (elem)
-  {
-  case IOS::HLE::USB::Element::Magic:
-    return 0;
+  return (int)elem;
+}
 
-  case IOS::HLE::USB::Element::Fire:
-    return 1;
-
-  case IOS::HLE::USB::Element::Air:
-    return 2;
-
-  case IOS::HLE::USB::Element::Life:
-    return 3;
-
-  case IOS::HLE::USB::Element::Undead:
-    return 4;
-
-  case IOS::HLE::USB::Element::Earth:
-    return 5;
-
-  case IOS::HLE::USB::Element::Water:
-    return 6;
-
-  case IOS::HLE::USB::Element::Tech:
-    return 7;
-
-  case IOS::HLE::USB::Element::Other:
-    return 8;
-  }
-  return -1;
+int SkylanderPortalWindow::GetTypeID(Type type)
+{
+  return (int)type;
 }

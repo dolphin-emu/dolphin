@@ -23,6 +23,12 @@ class QPushButton;
 class QRadioButton;
 class QListWidget;
 
+using Element = IOS::HLE::USB::Element;
+using Game = IOS::HLE::USB::Game;
+using Type = IOS::HLE::USB::Type;
+
+constexpr u8 NUM_SKYLANDER_ELEMENTS_RADIO = NUM_SKYLANDER_ELEMENTS + 1;
+
 struct Skylander
 {
   u8 portal_slot;
@@ -72,15 +78,17 @@ private:
   QString GetFilePath(u16 id, u16 var);
   u8 GetCurrentSlot();
   int GetElementRadio();
+  int GetTypeRadio();
   QBrush GetBaseColor(std::pair<const u16, const u16> ids, bool dark_theme);
-  int GetGameID(IOS::HLE::USB::Game game);
-  int GetElementID(IOS::HLE::USB::Element elem);
+  int GetGameID(Game game);
+  int GetElementID(Element elem);
+  int GetTypeID(Type type);
 
   bool m_emulating;
   QCheckBox* m_enabled_checkbox;
   QFrame* m_group_skylanders;
   QFrame* m_command_buttons;
-  std::array<QRadioButton*, 16> m_slot_radios;
+  std::array<QRadioButton*, MAX_SKYLANDERS> m_slot_radios;
 
   // Qt is not guaranteed to keep track of file paths using native file pickers, so we use this
   // variable to ensure we open at the most recent Skylander file location
@@ -90,8 +98,9 @@ private:
   QLineEdit* m_path_edit;
   QPushButton* m_path_select;
 
-  std::array<QCheckBox*, 5> m_game_filters;
-  std::array<QRadioButton*, 10> m_element_filter;
+  std::array<QCheckBox*, NUM_SKYLANDER_GAMES> m_game_filters;
+  std::array<QRadioButton*, NUM_SKYLANDER_ELEMENTS_RADIO> m_element_filter;
+  std::array<QRadioButton*, NUM_SKYLANDER_TYPES> m_type_filter;
   QCheckBox* m_only_show_collection;
   QLineEdit* m_sky_search;
   QListWidget* m_skylander_list;
