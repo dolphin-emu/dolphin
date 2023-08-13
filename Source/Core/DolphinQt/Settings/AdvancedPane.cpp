@@ -22,6 +22,7 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/PowerPC/PowerPC.h"
 
+#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Settings.h"
 
 static const std::map<PowerPC::CPUCore, const char*> CPU_CORE_NAMES = {
@@ -63,21 +64,25 @@ void AdvancedPane::CreateLayout()
     m_cpu_emulation_engine_combobox->addItem(tr(CPU_CORE_NAMES.at(cpu_core)));
   }
 
-  m_enable_mmu_checkbox = new QCheckBox(tr("Enable MMU"));
-  m_enable_mmu_checkbox->setToolTip(tr(
-      "Enables the Memory Management Unit, needed for some games. (ON = Compatible, OFF = Fast)"));
+  m_enable_mmu_checkbox = new ConfigBool(tr("Enable MMU"), Config::MAIN_MMU);
+  m_enable_mmu_checkbox->SetDescription(
+      tr("Enables the Memory Management Unit, needed for some games. (ON = Compatible, OFF = "
+         "Fast)<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"));
   cpu_options_group_layout->addWidget(m_enable_mmu_checkbox);
 
-  m_pause_on_panic_checkbox = new QCheckBox(tr("Pause on Panic"));
-  m_pause_on_panic_checkbox->setToolTip(
-      tr("Pauses the emulation if a Read/Write or Unknown Instruction panic occurs.\nEnabling will "
-         "affect performance.\nThe performance impact is the same as having Enable MMU on."));
+  m_pause_on_panic_checkbox = new ConfigBool(tr("Pause on Panic"), Config::MAIN_PAUSE_ON_PANIC);
+  m_pause_on_panic_checkbox->SetDescription(
+      tr("Pauses the emulation if a Read/Write or Unknown Instruction panic occurs.<br>Enabling "
+         "will affect performance.<br>The performance impact is the same as having Enable MMU "
+         "on.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"));
   cpu_options_group_layout->addWidget(m_pause_on_panic_checkbox);
 
-  m_accurate_cpu_cache_checkbox = new QCheckBox(tr("Enable Write-Back Cache (slow)"));
-  m_accurate_cpu_cache_checkbox->setToolTip(
-      tr("Enables emulation of the CPU write-back cache.\nEnabling will have a significant impact "
-         "on performance.\nThis should be left disabled unless absolutely needed."));
+  m_accurate_cpu_cache_checkbox =
+      new ConfigBool(tr("Enable Write-Back Cache (slow)"), Config::MAIN_ACCURATE_CPU_CACHE);
+  m_accurate_cpu_cache_checkbox->SetDescription(
+      tr("Enables emulation of the CPU write-back cache.<br>Enabling will have a significant "
+         "impact on performance.<br>This should be left disabled unless absolutely "
+         "needed.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"));
   cpu_options_group_layout->addWidget(m_accurate_cpu_cache_checkbox);
 
   auto* clock_override = new QGroupBox(tr("Clock Override"));
@@ -189,15 +194,6 @@ void AdvancedPane::ConnectLayout()
             Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, PowerPC::AvailableCPUCores()[index]);
           });
 
-  connect(m_enable_mmu_checkbox, &QCheckBox::toggled, this,
-          [](bool checked) { Config::SetBaseOrCurrent(Config::MAIN_MMU, checked); });
-
-  connect(m_pause_on_panic_checkbox, &QCheckBox::toggled, this,
-          [](bool checked) { Config::SetBaseOrCurrent(Config::MAIN_PAUSE_ON_PANIC, checked); });
-
-  connect(m_accurate_cpu_cache_checkbox, &QCheckBox::toggled, this,
-          [](bool checked) { Config::SetBaseOrCurrent(Config::MAIN_ACCURATE_CPU_CACHE, checked); });
-
   m_cpu_clock_override_checkbox->setChecked(Config::Get(Config::MAIN_OVERCLOCK_ENABLE));
   connect(m_cpu_clock_override_checkbox, &QCheckBox::toggled, [this](bool enable_clock_override) {
     Config::SetBaseOrCurrent(Config::MAIN_OVERCLOCK_ENABLE, enable_clock_override);
@@ -260,14 +256,8 @@ void AdvancedPane::Update()
       m_cpu_emulation_engine_combobox->setCurrentIndex(int(i));
   }
   m_cpu_emulation_engine_combobox->setEnabled(!running);
-
-  m_enable_mmu_checkbox->setChecked(Config::Get(Config::MAIN_MMU));
   m_enable_mmu_checkbox->setEnabled(!running);
-
-  m_pause_on_panic_checkbox->setChecked(Config::Get(Config::MAIN_PAUSE_ON_PANIC));
   m_pause_on_panic_checkbox->setEnabled(!running);
-
-  m_accurate_cpu_cache_checkbox->setChecked(Config::Get(Config::MAIN_ACCURATE_CPU_CACHE));
   m_accurate_cpu_cache_checkbox->setEnabled(!running);
 
   QFont bf = font();
