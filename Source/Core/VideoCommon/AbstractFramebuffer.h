@@ -44,9 +44,9 @@ public:
 protected:
   AbstractTexture* m_color_attachment;
   AbstractTexture* m_depth_attachment;
+  std::vector<AbstractTexture*> m_additional_color_attachments;
   AbstractTextureFormat m_color_format;
   AbstractTextureFormat m_depth_format;
-  std::vector<AbstractTexture*> m_additional_color_attachments;
   u32 m_width;
   u32 m_height;
   u32 m_layers;
