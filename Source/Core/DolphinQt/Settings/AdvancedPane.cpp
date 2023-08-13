@@ -23,6 +23,7 @@
 #include "Core/PowerPC/PowerPC.h"
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
+#include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 
 static const std::map<PowerPC::CPUCore, const char*> CPU_CORE_NAMES = {
@@ -194,7 +195,6 @@ void AdvancedPane::ConnectLayout()
             Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, PowerPC::AvailableCPUCores()[index]);
           });
 
-  m_cpu_clock_override_checkbox->setChecked(Config::Get(Config::MAIN_OVERCLOCK_ENABLE));
   connect(m_cpu_clock_override_checkbox, &QCheckBox::toggled, [this](bool enable_clock_override) {
     Config::SetBaseOrCurrent(Config::MAIN_OVERCLOCK_ENABLE, enable_clock_override);
     Update();
@@ -207,7 +207,6 @@ void AdvancedPane::ConnectLayout()
     Update();
   });
 
-  m_ram_override_checkbox->setChecked(Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE));
   connect(m_ram_override_checkbox, &QCheckBox::toggled, [this](bool enable_ram_override) {
     Config::SetBaseOrCurrent(Config::MAIN_RAM_OVERRIDE_ENABLE, enable_ram_override);
     Update();
@@ -225,15 +224,11 @@ void AdvancedPane::ConnectLayout()
     Update();
   });
 
-  m_custom_rtc_checkbox->setChecked(Config::Get(Config::MAIN_CUSTOM_RTC_ENABLE));
   connect(m_custom_rtc_checkbox, &QCheckBox::toggled, [this](bool enable_custom_rtc) {
     Config::SetBaseOrCurrent(Config::MAIN_CUSTOM_RTC_ENABLE, enable_custom_rtc);
     Update();
   });
 
-  QDateTime initial_date_time;
-  initial_date_time.setSecsSinceEpoch(Config::Get(Config::MAIN_CUSTOM_RTC_VALUE));
-  m_custom_rtc_datetime->setDateTime(initial_date_time);
   connect(m_custom_rtc_datetime, &QDateTimeEdit::dateTimeChanged, [this](QDateTime date_time) {
     Config::SetBaseOrCurrent(Config::MAIN_CUSTOM_RTC_VALUE,
                              static_cast<u32>(date_time.toSecsSinceEpoch()));
@@ -260,11 +255,15 @@ void AdvancedPane::Update()
   m_pause_on_panic_checkbox->setEnabled(!running);
   m_accurate_cpu_cache_checkbox->setEnabled(!running);
 
-  QFont bf = font();
-  bf.setBold(Config::GetActiveLayerForConfig(Config::MAIN_OVERCLOCK_ENABLE) !=
-             Config::LayerType::Base);
-  m_cpu_clock_override_checkbox->setFont(bf);
-  m_cpu_clock_override_checkbox->setChecked(enable_cpu_clock_override_widgets);
+  {
+    QFont bf = font();
+    bf.setBold(Config::GetActiveLayerForConfig(Config::MAIN_OVERCLOCK_ENABLE) !=
+               Config::LayerType::Base);
+
+    const QSignalBlocker blocker(m_cpu_clock_override_checkbox);
+    m_cpu_clock_override_checkbox->setFont(bf);
+    m_cpu_clock_override_checkbox->setChecked(enable_cpu_clock_override_widgets);
+  }
 
   m_cpu_clock_override_slider->setEnabled(enable_cpu_clock_override_widgets);
   m_cpu_clock_override_slider_label->setEnabled(enable_cpu_clock_override_widgets);
@@ -283,6 +282,7 @@ void AdvancedPane::Update()
   }());
 
   m_ram_override_checkbox->setEnabled(!running);
+  SignalBlocking(m_ram_override_checkbox)->setChecked(enable_ram_override_widgets);
 
   m_mem1_override_slider->setEnabled(enable_ram_override_widgets && !running);
   m_mem1_override_slider_label->setEnabled(enable_ram_override_widgets && !running);
@@ -313,5 +313,10 @@ void AdvancedPane::Update()
   }());
 
   m_custom_rtc_checkbox->setEnabled(!running);
+  SignalBlocking(m_custom_rtc_checkbox)->setChecked(Config::Get(Config::MAIN_CUSTOM_RTC_ENABLE));
+
+  QDateTime initial_date_time;
+  initial_date_time.setSecsSinceEpoch(Config::Get(Config::MAIN_CUSTOM_RTC_VALUE));
   m_custom_rtc_datetime->setEnabled(enable_custom_rtc_widgets);
+  SignalBlocking(m_custom_rtc_datetime)->setDateTime(initial_date_time);
 }
