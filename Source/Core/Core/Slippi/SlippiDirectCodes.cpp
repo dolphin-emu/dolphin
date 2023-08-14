@@ -22,12 +22,12 @@
 #include <json.hpp>
 using json = nlohmann::json;
 
-SlippiDirectCodes::SlippiDirectCodes(std::string fileName)
+SlippiDirectCodes::SlippiDirectCodes(std::string file_name)
 {
-  m_fileName = fileName;
+  m_file_name = file_name;
 
   // Prevent additional file reads, if we've already loaded data to memory.
-  // if (directCodeInfos.empty())
+  // if (m_direct_code_infos.empty())
   ReadFile();
   Sort();
 }
@@ -41,27 +41,28 @@ SlippiDirectCodes::~SlippiDirectCodes()
 
 void SlippiDirectCodes::ReadFile()
 {
-  std::string directCodesFilePath = getCodesFilePath();
+  std::string direct_codes_file_path = getCodesFilePath();
 
-  INFO_LOG_FMT(SLIPPI_ONLINE, "Looking for direct codes file at {}", directCodesFilePath.c_str());
+  INFO_LOG_FMT(SLIPPI_ONLINE, "Looking for direct codes file at {}", direct_codes_file_path);
 
-  if (!File::Exists(directCodesFilePath))
+  if (!File::Exists(direct_codes_file_path))
   {
     // Attempt to create empty file with array as parent json item.
-    if (File::CreateFullPath(directCodesFilePath) && File::CreateEmptyFile(directCodesFilePath))
+    if (File::CreateFullPath(direct_codes_file_path) &&
+        File::CreateEmptyFile(direct_codes_file_path))
     {
-      File::WriteStringToFile("[\n]", directCodesFilePath);
+      File::WriteStringToFile(direct_codes_file_path, "[\n]");
     }
     else
     {
-      WARN_LOG_FMT(SLIPPI_ONLINE, "Was unable to create {}", directCodesFilePath.c_str());
+      WARN_LOG_FMT(SLIPPI_ONLINE, "Was unable to create {}", direct_codes_file_path.c_str());
     }
   }
 
-  std::string directCodesFileContents;
-  File::ReadFileToString(directCodesFilePath, directCodesFileContents);
+  std::string direct_codes_file_contents;
+  File::ReadFileToString(direct_codes_file_path, direct_codes_file_contents);
 
-  directCodeInfos = parseFile(directCodesFileContents);
+  m_direct_code_infos = parseFile(direct_codes_file_contents);
 }
 
 void SlippiDirectCodes::AddOrUpdateCode(std::string code)
@@ -76,19 +77,19 @@ void SlippiDirectCodes::AddOrUpdateCode(std::string code)
   std::string timestamp(&dateTimeBuf[0]);
 
   bool found = false;
-  for (auto it = directCodeInfos.begin(); it != directCodeInfos.end(); ++it)
+  for (auto it = m_direct_code_infos.begin(); it != m_direct_code_infos.end(); ++it)
   {
-    if (it->connectCode == code)
+    if (it->connect_code == code)
     {
       found = true;
-      it->lastPlayed = timestamp;
+      it->last_played = timestamp;
     }
   }
 
   if (!found)
   {
     CodeInfo newDirectCode = {code, timestamp, false};
-    directCodeInfos.push_back(newDirectCode);
+    m_direct_code_infos.push_back(newDirectCode);
   }
 
   // TODO: Maybe remove from here?
@@ -96,92 +97,86 @@ void SlippiDirectCodes::AddOrUpdateCode(std::string code)
   WriteFile();
 }
 
-void SlippiDirectCodes::Sort(u8 sortByProperty)
+void SlippiDirectCodes::Sort(u8 sort_by_property)
 {
-  switch (sortByProperty)
+  switch (sort_by_property)
   {
   case SORT_BY_TIME:
     std::sort(
-        directCodeInfos.begin(), directCodeInfos.end(),
-        [](const CodeInfo a, const CodeInfo b) -> bool { return a.lastPlayed > b.lastPlayed; });
+        m_direct_code_infos.begin(), m_direct_code_infos.end(),
+        [](const CodeInfo a, const CodeInfo b) -> bool { return a.last_played > b.last_played; });
     break;
 
   case SORT_BY_NAME:
     std::sort(
-        directCodeInfos.begin(), directCodeInfos.end(),
-        [](const CodeInfo a, const CodeInfo b) -> bool { return a.connectCode < b.connectCode; });
+        m_direct_code_infos.begin(), m_direct_code_infos.end(),
+        [](const CodeInfo a, const CodeInfo b) -> bool { return a.connect_code < b.connect_code; });
     break;
   }
 }
 
-std::string SlippiDirectCodes::Autocomplete(std::string startText)
+std::string SlippiDirectCodes::Autocomplete(std::string start_text)
 {
   // Pre-sort direct codes.
   Sort();
 
   // Find first entry in our sorted vector that starts with the given text.
-  for (auto it = directCodeInfos.begin(); it != directCodeInfos.end(); it++)
+  for (auto it = m_direct_code_infos.begin(); it != m_direct_code_infos.end(); it++)
   {
-    if (it->connectCode.rfind(startText, 0) == 0)
+    if (it->connect_code.rfind(start_text, 0) == 0)
     {
-      return it->connectCode;
+      return it->connect_code;
     }
   }
 
-  return startText;
+  return start_text;
 }
 
 std::string SlippiDirectCodes::get(int index)
 {
   Sort();
 
-  if (index < directCodeInfos.size() && index >= 0)
+  if (index < m_direct_code_infos.size() && index >= 0)
   {
-    return directCodeInfos.at(index).connectCode;
+    return m_direct_code_infos.at(index).connect_code;
   }
 
   INFO_LOG_FMT(SLIPPI_ONLINE, "Out of bounds name entry index {}", index);
 
-  return (index >= directCodeInfos.size()) ? "1" : "";
+  return (index >= m_direct_code_infos.size()) ? "1" : "";
 }
 
 int SlippiDirectCodes::length()
 {
-  return (int)directCodeInfos.size();
+  return (int)m_direct_code_infos.size();
 }
 
 void SlippiDirectCodes::WriteFile()
 {
-  std::string directCodesFilePath = getCodesFilePath();
+  std::string direct_codes_file_path = getCodesFilePath();
 
   // Outer empty array.
-  json fileData = json::array();
+  json file_data = json::array();
 
   // Inner contents.
-  json directCodeData = json::object();
+  json direct_code_data = json::object();
 
   // TODO Define constants for string literals.
-  for (auto it = directCodeInfos.begin(); it != directCodeInfos.end(); ++it)
+  for (auto it = m_direct_code_infos.begin(); it != m_direct_code_infos.end(); ++it)
   {
-    directCodeData["connectCode"] = it->connectCode;
-    directCodeData["lastPlayed"] = it->lastPlayed;
-    directCodeData["isFavorite"] = it->isFavorite;
+    direct_code_data["connect_code"] = it->connect_code;
+    direct_code_data["last_played"] = it->last_played;
+    direct_code_data["is_favorite"] = it->is_favorite;
 
-    fileData.emplace_back(directCodeData);
+    file_data.emplace_back(direct_code_data);
   }
 
-  File::WriteStringToFile(fileData.dump(), directCodesFilePath);
+  File::WriteStringToFile(direct_codes_file_path, file_data.dump());
 }
 
 std::string SlippiDirectCodes::getCodesFilePath()
 {
-  // TODO: Move to User dir
-#if defined(__APPLE__)
-  std::string directCodesPath =
-      File::GetBundleDirectory() + "/Contents/Resources" + DIR_SEP + m_fileName;
-#else
-  std::string directCodesPath = File::GetUserPath(D_SLIPPI_IDX) + m_fileName;
-#endif
+  std::string directCodesPath = File::GetUserPath(D_SLIPPI_IDX) + m_file_name;
   return directCodesPath;
 }
 
@@ -207,16 +202,16 @@ inline bool readBool(json obj, std::string key)
   return obj[key];
 }
 
-std::vector<SlippiDirectCodes::CodeInfo> SlippiDirectCodes::parseFile(std::string fileContents)
+std::vector<SlippiDirectCodes::CodeInfo> SlippiDirectCodes::parseFile(std::string file_contents)
 {
-  std::vector<SlippiDirectCodes::CodeInfo> directCodes;
+  std::vector<SlippiDirectCodes::CodeInfo> direct_codes;
 
-  json res = json::parse(fileContents, nullptr, false);
+  json res = json::parse(file_contents, nullptr, false);
   // Unlike the user.json, the encapsulating type should be an array.
   if (res.is_discarded() || !res.is_array())
   {
     WARN_LOG_FMT(SLIPPI_ONLINE, "Malformed json in direct codes file.");
-    return directCodes;
+    return direct_codes;
   }
 
   // Retrieve all saved direct codes and related info
@@ -224,14 +219,14 @@ std::vector<SlippiDirectCodes::CodeInfo> SlippiDirectCodes::parseFile(std::strin
   {
     if (it.value().is_object())
     {
-      CodeInfo curDirectCode;
-      curDirectCode.connectCode = readString(*it, "connectCode");
-      curDirectCode.lastPlayed = readString(*it, "lastPlayed");
-      curDirectCode.isFavorite = readBool(*it, "favorite");
+      CodeInfo cur_direct_code;
+      cur_direct_code.connect_code = readString(*it, "connect_code");
+      cur_direct_code.last_played = readString(*it, "last_played");
+      cur_direct_code.is_favorite = readBool(*it, "favorite");
 
-      directCodes.push_back(curDirectCode);
+      direct_codes.push_back(cur_direct_code);
     }
   }
 
-  return directCodes;
+  return direct_codes;
 }
