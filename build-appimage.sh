@@ -22,6 +22,8 @@ PLAYBACK_CODES_PATH="./Data/PlaybackGeckoCodes/"
 APPDIR_BIN="./AppDir/usr/bin"
 APPDIR_HOOKS="./AppDir/apprun-hooks"
 
+export NO_STRIP=on
+
 # Grab various appimage binaries from GitHub if we don't have them
 if [ ! -e ./Tools/linuxdeploy ]; then
 	wget ${LINUXDEPLOY_URL} -O ./Tools/linuxdeploy
@@ -82,3 +84,5 @@ else
 		UPDATE_INFORMATION="${ZSYNC_STRING}" \
 			./Tools/linuxdeploy-update-plugin --appdir=./AppDir/
 fi
+
+unset NO_STRIP
