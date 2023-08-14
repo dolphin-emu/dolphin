@@ -120,7 +120,7 @@ private:
   // it, as this class creates the CEXIMemoryCard instances.
   Memcard::HeaderData m_memcard_header_data;
 
-  // used by SlippiGameReporter for calculating the md5
+  // used by game_reporter (rust) for calculating the md5 and Slippi Jukebox (rust) for playback
   std::string m_current_file_name;
 
   // Devices

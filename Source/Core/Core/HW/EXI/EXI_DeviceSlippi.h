@@ -11,7 +11,6 @@
 #include "Core/Slippi/SlippiExiTypes.h"
 #include "Core/Slippi/SlippiGame.h"
 #include "Core/Slippi/SlippiGameFileLoader.h"
-#include "Core/Slippi/SlippiGameReporter.h"
 #include "Core/Slippi/SlippiMatchmaking.h"
 #include "Core/Slippi/SlippiNetplay.h"
 #include "Core/Slippi/SlippiPlayback.h"
@@ -168,7 +167,7 @@ private:
   u32 writtenByteCount = 0;
 
   // vars for metadata generation
-  time_t gameStartTime;
+  time_t game_start_time;
   s32 lastFrame;
   std::unordered_map<u8, std::unordered_map<u8, u32>> characterUsage;
 
@@ -255,8 +254,8 @@ private:
   std::vector<u8> m_read_queue;
   std::unique_ptr<Slippi::SlippiGame> m_current_game = nullptr;
   SlippiSpectateServer* m_slippiserver = nullptr;
-  SlippiMatchmaking::MatchSearchSettings lastSearch;
-  SlippiMatchmaking::MatchmakeResult recentMmResult;
+  SlippiMatchmaking::MatchSearchSettings last_search;
+  SlippiMatchmaking::MatchmakeResult recent_mm_result;
 
   std::vector<u16> stagePool;
 
@@ -299,7 +298,6 @@ private:
   std::unique_ptr<SlippiGameFileLoader> gameFileLoader;
   std::unique_ptr<SlippiNetplayClient> slippi_netplay;
   std::unique_ptr<SlippiMatchmaking> matchmaking;
-  std::unique_ptr<SlippiGameReporter> game_reporter;
   std::unique_ptr<SlippiDirectCodes> directCodes;
   std::unique_ptr<SlippiDirectCodes> teamsCodes;
 

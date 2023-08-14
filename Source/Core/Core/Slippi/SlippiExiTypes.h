@@ -40,7 +40,7 @@ struct ReportGameQuery
 struct ReportSetCompletionQuery
 {
   u8 command;
-  u8 endMode;
+  u8 end_mode;
 };
 
 struct GpCompleteStepQuery

@@ -534,8 +534,6 @@ add_library(core
   Slippi/SlippiUser.h
   Slippi/SlippiGame.cpp
   Slippi/SlippiGame.h
-  Slippi/SlippiGameReporter.cpp
-  Slippi/SlippiGameReporter.h
   Slippi/SlippiDirectCodes.cpp
   Slippi/SlippiPremadeText.h
   State.cpp

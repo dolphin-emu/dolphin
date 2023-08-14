@@ -146,7 +146,6 @@ CEXISlippi::CEXISlippi(Core::System& system, const std::string current_file_name
   g_playbackStatus = std::make_unique<SlippiPlaybackStatus>();
   matchmaking = std::make_unique<SlippiMatchmaking>(user.get());
   gameFileLoader = std::make_unique<SlippiGameFileLoader>();
-  game_reporter = std::make_unique<SlippiGameReporter>(user.get(), current_file_name);
   g_replayComm = std::make_unique<SlippiReplayComm>();
   directCodes = std::make_unique<SlippiDirectCodes>("direct-codes.json");
   teamsCodes = std::make_unique<SlippiDirectCodes>("teams-codes.json");
@@ -265,9 +264,6 @@ CEXISlippi::~CEXISlippi()
 {
   u8 empty[1];
 
-  // Instruct the Rust EXI device to shut down/drop everything.
-  slprs_exi_device_destroy(slprs_exi_device_ptr);
-
   // Closes file gracefully to prevent file corruption when emulation
   // suddenly stops. This would happen often on netplay when the opponent
   // would close the emulation before the file successfully finished writing
@@ -287,13 +283,18 @@ CEXISlippi::~CEXISlippi()
   if (active_match_id.find("mode.ranked") != std::string::npos)
   {
     ERROR_LOG_FMT(SLIPPI_ONLINE, "Exit during in-progress ranked game: {}", active_match_id);
-    game_reporter->ReportAbandonment(active_match_id);
+    auto user_info = user->GetUserInfo();
+    slprs_exi_device_report_match_abandonment(slprs_exi_device_ptr, user_info.uid.c_str(),
+                                              user_info.play_key.c_str(), active_match_id.c_str());
   }
   handleConnectionCleanup();
 
   localSelections.Reset();
 
   g_playbackStatus->resetPlayback();
+
+  // Instruct the Rust EXI device to shut down/drop everything.
+  slprs_exi_device_destroy(slprs_exi_device_ptr);
 
   // TODO: ENET shutdown should maybe be done at app shutdown instead.
   // Right now this might be problematic in the case where someone starts a netplay client
@@ -358,7 +359,7 @@ std::vector<u8> CEXISlippi::generateMetadata()
   // Add game start time
   u8 dateTimeStrLength = sizeof "2011-10-08T07:07:09Z";
   std::vector<char> dateTimeBuf(dateTimeStrLength);
-  strftime(&dateTimeBuf[0], dateTimeStrLength, "%FT%TZ", gmtime(&gameStartTime));
+  strftime(&dateTimeBuf[0], dateTimeStrLength, "%FT%TZ", gmtime(&game_start_time));
   dateTimeBuf.pop_back();  // Removes the \0 from the back of string
   metadata.insert(metadata.end(), {'U', 7, 's', 't', 'a', 'r', 't', 'A', 't', 'S', 'U',
                                    static_cast<u8>(dateTimeBuf.size())});
@@ -519,12 +520,12 @@ void CEXISlippi::writeToFile(std::unique_ptr<WriteMessage> msg)
     // Get display names and connection codes from slippi netplay client
     if (slippi_netplay)
     {
-      auto playerInfo = matchmaking->GetPlayerInfo();
+      auto player_info = matchmaking->GetPlayerInfo();
 
-      for (int i = 0; i < playerInfo.size(); i++)
+      for (int i = 0; i < player_info.size(); i++)
       {
-        slippi_names[i] = playerInfo[i].display_name;
-        slippi_connect_codes[i] = playerInfo[i].connect_code;
+        slippi_names[i] = player_info[i].display_name;
+        slippi_connect_codes[i] = player_info[i].connect_code;
       }
     }
   }
@@ -610,7 +611,7 @@ void CEXISlippi::createNewFile()
     // Append YYYY-MM to the directory path
     uint8_t yearMonthStrLength = sizeof "2020-06-Mainline";
     std::vector<char> yearMonthBuf(yearMonthStrLength);
-    strftime(&yearMonthBuf[0], yearMonthStrLength, "%Y-%m-Mainline", localtime(&gameStartTime));
+    strftime(&yearMonthBuf[0], yearMonthStrLength, "%Y-%m-Mainline", localtime(&game_start_time));
 
     std::string yearMonth(&yearMonthBuf[0]);
     dirpath.append(yearMonth);
@@ -644,7 +645,7 @@ std::string CEXISlippi::generateFileName()
   // Add game start time
   u8 dateTimeStrLength = sizeof "20171015T095717";
   std::vector<char> dateTimeBuf(dateTimeStrLength);
-  strftime(&dateTimeBuf[0], dateTimeStrLength, "%Y%m%dT%H%M%S", localtime(&gameStartTime));
+  strftime(&dateTimeBuf[0], dateTimeStrLength, "%Y%m%dT%H%M%S", localtime(&game_start_time));
 
   std::string str(&dateTimeBuf[0]);
   return StringFromFormat("Game_%s.slp", str.c_str());
@@ -1464,7 +1465,7 @@ bool CEXISlippi::shouldAdvanceOnlineFrame(s32 frame)
 
     bool isSlow =
         (offsetUs < -t1 && fallBehindCounter > 50) || (offsetUs < -t2 && fallFarBehindCounter > 15);
-    if (isSlow && lastSearch.mode != SlippiMatchmaking::OnlinePlayMode::TEAMS)
+    if (isSlow && last_search.mode != SlippiMatchmaking::OnlinePlayMode::TEAMS)
     {
       // We don't show this message for teams because it seems to false positive a lot there, maybe
       // because the min offset is always selected? Idk I feel like doubles has some perf issues I
@@ -1569,7 +1570,7 @@ void CEXISlippi::prepareOpponentInputs(s32 frame, bool shouldSkip)
     results[i] = slippi_netplay->GetSlippiRemotePad(i, ROLLBACK_MAX_FRAMES);
     // results[i] = slippi_netplay->GetFakePadOutput(frame);
 
-    // INFO_LOG(SLIPPI_ONLINE, "Sending checksum values: [%d] %08x", results[i]->checksum_frame,
+    // INFO_LOG_FMT(SLIPPI_ONLINE, "Sending checksum values: [{}] %08x", results[i]->checksum_frame,
     // results[i]->checksum);
     appendWordToBuffer(&m_read_queue, static_cast<u32>(results[i]->checksum_frame));
     appendWordToBuffer(&m_read_queue, results[i]->checksum);
@@ -1672,7 +1673,7 @@ void CEXISlippi::handleCaptureSavestate(u8* payload)
   activeSavestates[frame] = std::move(ss);
 
   // u32 timeDiff = (u32)(Common::Timer::NowUs() - startTime);
-  // INFO_LOG_FMT(SLIPPI_ONLINE, "SLIPPI ONLINE: Captured savestate for frame {} in: %f ms", frame,
+  // INFO_LOG_FMT(SLIPPI_ONLINE, "SLIPPI ONLINE: Captured savestate for frame {} in: {} ms", frame,
   //          ((double)timeDiff) / 1000);
 }
 
@@ -1745,7 +1746,7 @@ void CEXISlippi::startFindMatch(u8* payload)
   search.connectCode = shiftJisCode;
 
   // Store this search so we know what was queued for
-  lastSearch = search;
+  last_search = search;
 
   // While we do have another condition that checks characters after being connected, it's nice to
   // give someone an early error before they even queue so that they wont enter the queue and make
@@ -1912,13 +1913,13 @@ void CEXISlippi::handleNameEntryLoad(u8* payload)
   appendWordToBuffer(&m_read_queue, curIndex);
 }
 
-// teamId 0 = red, 1 = blue, 2 = green
-int CEXISlippi::getCharColor(u8 charId, u8 teamId)
+// team_id 0 = red, 1 = blue, 2 = green
+int CEXISlippi::getCharColor(u8 char_id, u8 team_id)
 {
-  switch (charId)
+  switch (char_id)
   {
   case 0x0:  // Falcon
-    switch (teamId)
+    switch (team_id)
     {
     case 0:
       return 2;
@@ -1928,7 +1929,7 @@ int CEXISlippi::getCharColor(u8 charId, u8 teamId)
       return 4;
     }
   case 0x2:  // Fox
-    switch (teamId)
+    switch (team_id)
     {
     case 0:
       return 1;
@@ -1938,7 +1939,7 @@ int CEXISlippi::getCharColor(u8 charId, u8 teamId)
       return 3;
     }
   case 0xC:  // Peach
-    switch (teamId)
+    switch (team_id)
     {
     case 0:
       return 0;
@@ -1948,7 +1949,7 @@ int CEXISlippi::getCharColor(u8 charId, u8 teamId)
       return 4;
     }
   case 0x13:  // Sheik
-    switch (teamId)
+    switch (team_id)
     {
     case 0:
       return 1;
@@ -1958,7 +1959,7 @@ int CEXISlippi::getCharColor(u8 charId, u8 teamId)
       return 3;
     }
   case 0x14:  // Falco
-    switch (teamId)
+    switch (team_id)
     {
     case 0:
       return 1;
@@ -2037,8 +2038,8 @@ void CEXISlippi::prepareOnlineMatchState()
       // gets re-created when a connection is terminated, that said, it can still be useful to know
       // who we were connected to after they disconnect from us, for example in the case of
       // reporting a match. So let's copy the results.
-      recentMmResult = matchmaking->GetMatchmakeResult();
-      allowedStages = recentMmResult.stages;
+      recent_mm_result = matchmaking->GetMatchmakeResult();
+      allowedStages = recent_mm_result.stages;
       // Clear stage pool so that when we call getRandomStage it will use full list
       stagePool.clear();
       localSelections.stageId = getRandomStage();
@@ -2093,7 +2094,7 @@ void CEXISlippi::prepareOnlineMatchState()
     // Here we are connected, check to see if we should init play session
     if (!is_play_session_active)
     {
-      game_reporter->StartNewSession();
+      slprs_exi_device_start_new_reporter_session(slprs_exi_device_ptr);
       is_play_session_active = true;
     }
   }
@@ -2194,7 +2195,7 @@ void CEXISlippi::prepareOnlineMatchState()
       rps[i].isCharacterSelected = true;
     }
 
-    remotePlayerCount = lastSearch.mode == SlippiMatchmaking::OnlinePlayMode::TEAMS ? 3 : 1;
+    remotePlayerCount = last_search.mode == SlippiMatchmaking::OnlinePlayMode::TEAMS ? 3 : 1;
 
     oppName = std::string("Player");
 #endif
@@ -2245,7 +2246,7 @@ void CEXISlippi::prepareOnlineMatchState()
       break;
     }
 
-    if (SlippiMatchmaking::IsFixedRulesMode(lastSearch.mode))
+    if (SlippiMatchmaking::IsFixedRulesMode(last_search.mode))
     {
       // If we enter one of these conditions, someone is doing something bad, clear the lobby
       if (!localCharOk)
@@ -2270,7 +2271,7 @@ void CEXISlippi::prepareOnlineMatchState()
         return;
       }
     }
-    else if (lastSearch.mode == SlippiMatchmaking::OnlinePlayMode::TEAMS)
+    else if (last_search.mode == SlippiMatchmaking::OnlinePlayMode::TEAMS)
     {
       auto isMEX = SConfig::GetSlippiConfig().melee_version == Melee::Version::MEX;
 
@@ -2363,10 +2364,10 @@ void CEXISlippi::prepareOnlineMatchState()
     *stage = Common::swap16(stageId);
 
     // Turn pause off in unranked/ranked, on in other modes
-    auto pauseAllowed = lastSearch.mode == SlippiMatchmaking::OnlinePlayMode::DIRECT;
-    u8* gameBitField3 = static_cast<u8*>(&onlineMatchBlock[2]);
-    *gameBitField3 = pauseAllowed ? *gameBitField3 & 0xF7 : *gameBitField3 | 0x8;
-    //*gameBitField3 = *gameBitField3 | 0x8;
+    auto pause_allowed = last_search.mode == SlippiMatchmaking::OnlinePlayMode::DIRECT;
+    u8* game_bit_field3 = static_cast<u8*>(&onlineMatchBlock[2]);
+    *game_bit_field3 = pause_allowed ? *game_bit_field3 & 0xF7 : *game_bit_field3 | 0x8;
+    //*game_bit_field3 = *game_bit_field3 | 0x8;
 
     // Group players into left/right side for team splash screen display
     for (int i = 0; i < 4; i++)
@@ -2457,10 +2458,10 @@ void CEXISlippi::prepareOnlineMatchState()
   std::string defaultConnectCodes[] = {"PLYR#001", "PLYR#002", "PLYR#003", "PLYR#004"};
 #endif
 
-  auto playerInfo = matchmaking->GetPlayerInfo();
+  auto player_info = matchmaking->GetPlayerInfo();
   for (int i = 0; i < 4; i++)
   {
-    std::string connectCode = i < playerInfo.size() ? playerInfo[i].connect_code : "";
+    std::string connectCode = i < player_info.size() ? player_info[i].connect_code : "";
 #ifdef LOCAL_TESTING
     connectCode = defaultConnectCodes[i];
 #endif
@@ -2475,7 +2476,7 @@ void CEXISlippi::prepareOnlineMatchState()
 
   for (int i = 0; i < 4; i++)
   {
-    std::string uid = i < playerInfo.size() ? playerInfo[i].uid :
+    std::string uid = i < player_info.size() ? player_info[i].uid :
                                               "";  // UIDs are 28 characters + 1 null terminator
 #ifdef LOCAL_TESTING
     uid = defaultUids[i];
@@ -2493,9 +2494,9 @@ void CEXISlippi::prepareOnlineMatchState()
   m_read_queue.insert(m_read_queue.end(), onlineMatchBlock.begin(), onlineMatchBlock.end());
 
   // Add match id to output
-  std::string matchId = recentMmResult.id;
-  matchId.resize(51);
-  m_read_queue.insert(m_read_queue.end(), matchId.begin(), matchId.end());
+  std::string match_id = recent_mm_result.id;
+  match_id.resize(51);
+  m_read_queue.insert(m_read_queue.end(), match_id.begin(), match_id.end());
 }
 
 u16 CEXISlippi::getRandomStage()
@@ -2527,7 +2528,7 @@ void CEXISlippi::setMatchSelections(u8* payload)
 
   s.stageId = Common::swap16(&payload[4]);
   u8 stageSelectOption = payload[6];
-  // u8 onlineMode = payload[7];
+  // u8 online_mode = payload[7];
 
   s.isStageSelected = stageSelectOption == 1 || stageSelectOption == 3;
   if (stageSelectOption == 3)
@@ -2675,7 +2676,7 @@ bool CEXISlippi::isSlippiChatEnabled()
 {
   auto chatEnabledChoice = Config::Get(Config::SLIPPI_ENABLE_QUICK_CHAT);
   bool res = true;
-  switch (lastSearch.mode)
+  switch (last_search.mode)
   {
   case SlippiMatchmaking::DIRECT:
     res = chatEnabledChoice == Slippi::Chat::ON || chatEnabledChoice == Slippi::Chat::DIRECT_ONLY;
@@ -2829,49 +2830,75 @@ void CEXISlippi::prepareNewSeed()
 
 void CEXISlippi::handleReportGame(const SlippiExiTypes::ReportGameQuery& query)
 {
-  SlippiGameReporter::GameReport r;
-  r.match_id = recentMmResult.id;
-  r.mode = static_cast<SlippiMatchmaking::OnlinePlayMode>(query.mode);
-  r.duration_frames = query.frame_length;
-  r.game_index = query.game_index;
-  r.tiebreak_index = query.tiebreak_index;
-  r.winner_idx = query.winner_idx;
-  r.stage_id = Common::FromBigEndian(*(u16*)&query.game_info_block[0xE]);
-  r.game_end_method = query.game_end_method;
-  r.lras_initiator = query.lras_initiator;
+  std::string match_id = recent_mm_result.id;
+	SlippiMatchmakingOnlinePlayMode online_mode = static_cast<SlippiMatchmakingOnlinePlayMode>(query.mode);
+	u32 duration_frames = query.frame_length;
+	u32 game_index = query.game_index;
+	u32 tiebreak_index = query.tiebreak_index;
+	s8 winner_idx = query.winner_idx;
+	int stage_id = Common::FromBigEndian(*(u16 *)&query.game_info_block[0xE]);
+	u8 game_end_method = query.game_end_method;
+	s8 lras_initiator = query.lras_initiator;
 
-  ERROR_LOG_FMT(SLIPPI_ONLINE,
-                "Mode: {} / {}, Frames: {}, GameIdx: {}, TiebreakIdx: {}, WinnerIdx: {}, "
-                "StageId: {}, GameEndMethod: {}, LRASInitiator: {}",
-                static_cast<u8>(r.mode), query.mode, r.duration_frames, r.game_index,
-                r.tiebreak_index, r.winner_idx, r.stage_id, r.game_end_method, r.lras_initiator);
+	ERROR_LOG_FMT(SLIPPI_ONLINE,
+	          "Mode: {} / {}, Frames: {}, GameIdx: {}, TiebreakIdx: {}, WinnerIdx: {}, StageId: {}, GameEndMethod: {}, "
+	          "LRASInitiator: {}",
+	          static_cast<u8>(online_mode), query.mode, duration_frames, game_index, tiebreak_index, winner_idx, stage_id, game_end_method,
+	          lras_initiator);
 
-  auto mm_players = recentMmResult.players;
+	auto user_info = user->GetUserInfo();
 
-  for (auto i = 0; i < 4; ++i)
-  {
-    SlippiGameReporter::PlayerReport p;
-    p.uid = mm_players.size() > i ? mm_players[i].uid : "";
-    p.slot_type = query.players[i].slot_type;
-    p.stocks_remaining = query.players[i].stocks_remaining;
-    p.damage_done = query.players[i].damage_done;
-    p.char_id = query.game_info_block[0x60 + 0x24 * i];
-    p.color_id = query.game_info_block[0x63 + 0x24 * i];
-    p.starting_stocks = query.game_info_block[0x62 + 0x24 * i];
-    p.starting_percent = Common::FromBigEndian(*(u16*)&query.game_info_block[0x70 + 0x24 * i]);
+	// We pass `uid` and `playKey` here until the User side of things is
+	// ported to Rust.
+	uintptr_t game_report = slprs_game_report_create(user_info.uid.c_str(), user_info.play_key.c_str(), online_mode,
+	                                                match_id.c_str(), duration_frames, game_index, tiebreak_index,
+	                                                winner_idx, game_end_method, lras_initiator, stage_id);
 
-    ERROR_LOG_FMT(SLIPPI_ONLINE,
-                  "UID: {}, Port Type: {}, Stocks: {}, DamageDone: {}, CharId: {}, ColorId: {}, "
-                  "StartStocks: {}, "
-                  "StartPercent: {}",
-                  p.uid, p.slot_type, p.stocks_remaining, p.damage_done, p.char_id, p.color_id,
-                  p.starting_stocks, p.starting_percent);
+	auto mm_players = recent_mm_result.players;
 
-    r.players.push_back(p);
-  }
+	for (auto i = 0; i < 4; ++i)
+	{
+		std::string uid = mm_players.size() > i ? mm_players[i].uid : "";
+		u8 slot_type = query.players[i].slot_type;
+		u8 stocks_remaining = query.players[i].stocks_remaining;
+		float damage_done = query.players[i].damage_done;
+		u8 char_id = query.game_info_block[0x60 + 0x24 * i];
+		u8 color_id = query.game_info_block[0x63 + 0x24 * i];
+		int starting_stocks = query.game_info_block[0x62 + 0x24 * i];
+		int starting_percent = Common::FromBigEndian(*(u16 *)&query.game_info_block[0x70 + 0x24 * i]);
+
+		ERROR_LOG_FMT(SLIPPI_ONLINE,
+		          "UID: {}, Port Type: {}, Stocks: {}, DamageDone: {}, CharId: {}, ColorId: {}, StartStocks: {}, "
+		          "StartPercent: {}",
+		          uid.c_str(), slot_type, stocks_remaining, damage_done, char_id, color_id, starting_stocks, starting_percent);
+
+		uintptr_t player_report = slprs_player_report_create(uid.c_str(), slot_type, damage_done, stocks_remaining, char_id,
+		                                                    color_id, starting_stocks, starting_percent);
+
+		slprs_game_report_add_player_report(game_report, player_report);
+	}
+
+	// If ranked mode and the game ended with a quit out, this is either a desync or an interrupted game,
+	// attempt to send synced values to opponents in order to restart the match where it was left off
+	if (online_mode == SlippiMatchmakingOnlinePlayMode::Ranked && game_end_method == 7)
+	{
+		SlippiSyncedGameState s;
+		s.match_id = match_id;
+		s.game_index = game_index;
+		s.tiebreak_index = tiebreak_index;
+		s.seconds_remaining = query.synced_timer;
+		for (int i = 0; i < 4; i++)
+		{
+			s.fighters[i].stocks_remaining = query.players[i].synced_stocks_remaining;
+			s.fighters[i].current_health = query.players[i].synced_current_health;
+		}
+
+		if (slippi_netplay)
+			slippi_netplay->SendSyncedGameState(s);
+	}
 
 #ifndef LOCAL_TESTING
-  game_reporter->StartReport(r);
+  slprs_exi_device_log_game_report(slprs_exi_device_ptr, game_report);
 #endif
 }
 
@@ -2971,11 +2998,15 @@ void CEXISlippi::handleCompleteSet(const SlippiExiTypes::ReportSetCompletionQuer
 {
   ERROR_LOG_FMT(SLIPPI_ONLINE, "Hello");
 
-  auto lastMatchId = recentMmResult.id;
-  if (lastMatchId.find("mode.ranked") != std::string::npos)
+  auto last_match_id = recent_mm_result.id;
+  if (last_match_id.find("mode.ranked") != std::string::npos)
   {
-    INFO_LOG_FMT(SLIPPI_ONLINE, "Reporting set completion: {}", lastMatchId);
-    game_reporter->ReportCompletion(lastMatchId, query.endMode);
+    INFO_LOG_FMT(SLIPPI_ONLINE, "Reporting set completion: {}", last_match_id);
+    auto user_info = user->GetUserInfo();
+
+    slprs_exi_device_report_match_completion(slprs_exi_device_ptr, user_info.uid.c_str(),
+                                             user_info.play_key.c_str(), last_match_id.c_str(),
+                                             query.end_mode);
   }
 }
 
@@ -2985,29 +3016,29 @@ void CEXISlippi::handleGetPlayerSettings()
 
   SlippiExiTypes::GetPlayerSettingsResponse resp = {};
 
-  std::vector<std::vector<std::string>> messagesByPlayer = {
+  std::vector<std::vector<std::string>> messages_by_player = {
       SlippiUser::default_chat_messages, SlippiUser::default_chat_messages,
       SlippiUser::default_chat_messages, SlippiUser::default_chat_messages};
 
   // These chat messages will be used when previewing messages
-  auto userChatMessages = user->GetUserInfo().chat_messages;
-  if (userChatMessages.size() == 16)
+  auto user_chat_messages = user->GetUserInfo().chat_messages;
+  if (user_chat_messages.size() == 16)
   {
-    messagesByPlayer[0] = userChatMessages;
+    messages_by_player[0] = user_chat_messages;
   }
 
   // These chat messages will be set when we have an opponent. We load their and our messages
-  auto playerInfo = matchmaking->GetPlayerInfo();
-  for (auto& player : playerInfo)
+  auto player_info = matchmaking->GetPlayerInfo();
+  for (auto& player : player_info)
   {
-    messagesByPlayer[player.port - 1] = player.chat_messages;
+    messages_by_player[player.port - 1] = player.chat_messages;
   }
 
   for (int i = 0; i < 4; i++)
   {
     for (int j = 0; j < 16; j++)
     {
-      auto str = ConvertStringForGame(messagesByPlayer[i][j], MAX_MESSAGE_LENGTH);
+      auto str = ConvertStringForGame(messages_by_player[i][j], MAX_MESSAGE_LENGTH);
       sprintf(resp.settings[i].chatMessages[j], "%s", str.c_str());
     }
   }
@@ -3039,15 +3070,16 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
   u8 byte = memPtr[0];
   if (byte == CMD_RECEIVE_COMMANDS)
   {
-    time(&gameStartTime);  // Store game start time
-    u8 receiveCommandsLen = memPtr[1];
-    configureCommands(&memPtr[1], receiveCommandsLen);
-    writeToFileAsync(&memPtr[0], receiveCommandsLen + 1, "create");
-    bufLoc += receiveCommandsLen + 1;
+    time(&game_start_time);  // Store game start time
+    u8 receive_commands_len = memPtr[1];
+    configureCommands(&memPtr[1], receive_commands_len);
+    writeToFileAsync(&memPtr[0], receive_commands_len + 1, "create");
+    bufLoc += receive_commands_len + 1;
     g_needInputForFrame = true;
     SlippiSpectateServer::getInstance().startGame();
-    SlippiSpectateServer::getInstance().write(&memPtr[0], receiveCommandsLen + 1);
-    game_reporter->PushReplayData(&memPtr[0], receiveCommandsLen + 1, "create");
+    SlippiSpectateServer::getInstance().write(&memPtr[0], receive_commands_len + 1);
+    slprs_exi_device_reporter_push_replay_data(slprs_exi_device_ptr, &memPtr[0],
+                                               receive_commands_len + 1);
   }
 
   if (byte == CMD_MENU_FRAME)
@@ -3081,7 +3113,8 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
       writeToFileAsync(&memPtr[bufLoc], payloadLen + 1, "close");
       SlippiSpectateServer::getInstance().write(&memPtr[bufLoc], payloadLen + 1);
       SlippiSpectateServer::getInstance().endGame();
-      game_reporter->PushReplayData(&memPtr[bufLoc], payloadLen + 1, "close");
+      slprs_exi_device_reporter_push_replay_data(slprs_exi_device_ptr, &memPtr[bufLoc],
+                                                 payloadLen + 1);
       break;
     case CMD_PREPARE_REPLAY:
       // log.open("log.txt");
@@ -3094,7 +3127,8 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
       g_needInputForFrame = true;
       writeToFileAsync(&memPtr[bufLoc], payloadLen + 1, "");
       SlippiSpectateServer::getInstance().write(&memPtr[bufLoc], payloadLen + 1);
-      game_reporter->PushReplayData(&memPtr[bufLoc], payloadLen + 1, "");
+      slprs_exi_device_reporter_push_replay_data(slprs_exi_device_ptr, &memPtr[bufLoc],
+                                                 payloadLen + 1);
       break;
     case CMD_IS_STOCK_STEAL:
       prepareIsStockSteal(&memPtr[bufLoc + 1]);
@@ -3198,7 +3232,8 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
     default:
       writeToFileAsync(&memPtr[bufLoc], payloadLen + 1, "");
       SlippiSpectateServer::getInstance().write(&memPtr[bufLoc], payloadLen + 1);
-      game_reporter->PushReplayData(&memPtr[bufLoc], payloadLen + 1, "");
+      slprs_exi_device_reporter_push_replay_data(slprs_exi_device_ptr, &memPtr[bufLoc],
+                                                 payloadLen + 1);
       break;
     }
 
@@ -3248,8 +3283,8 @@ void CEXISlippi::ConfigureJukebox()
   auto& system = Core::System::GetInstance();
 
   slprs_exi_device_configure_jukebox(slprs_exi_device_ptr,
-                                     Config::Get(Config::SLIPPI_ENABLE_JUKEBOX), system.GetMemory().GetRAM(),
-                                     AudioCommonGetCurrentVolume);
+                                     Config::Get(Config::SLIPPI_ENABLE_JUKEBOX),
+                                     system.GetMemory().GetRAM(), AudioCommonGetCurrentVolume);
 #endif
 }
 
