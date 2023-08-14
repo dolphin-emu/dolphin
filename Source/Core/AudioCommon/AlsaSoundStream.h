@@ -30,11 +30,8 @@ public:
 private:
   void SoundLoop();
 
-  // maximum number of frames the buffer can hold
-  static constexpr size_t BUFFER_SIZE_MAX = 8192;
-
   // minimum number of frames to deliver in one transfer
-  static constexpr u32 FRAME_COUNT_MIN = 256;
+  static constexpr u32 FRAME_COUNT_MIN = 64;
 
   // number of channels per frame
   static constexpr u32 CHANNEL_COUNT = 2;
@@ -50,7 +47,6 @@ private:
   bool AlsaInit();
   void AlsaShutdown();
 
-  s16 mix_buffer[BUFFER_SIZE_MAX * CHANNEL_COUNT];
   std::thread thread;
   std::atomic<ALSAThreadStatus> m_thread_status;
   std::condition_variable cv;
