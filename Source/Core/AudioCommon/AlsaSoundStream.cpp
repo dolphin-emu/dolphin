@@ -52,7 +52,7 @@ void AlsaSound::SoundLoop()
     {
       int rc;
       const snd_pcm_channel_area_t* areas;
-      int16_t* buf;
+      s16* buf;
       snd_pcm_uframes_t frames;
       snd_pcm_uframes_t offset;
       snd_pcm_uframes_t avail;
@@ -60,9 +60,22 @@ void AlsaSound::SoundLoop()
       avail = snd_pcm_avail(handle);
       frames = avail;
       rc = snd_pcm_mmap_begin(handle, &areas, &offset, &frames);
-      buf = (int16_t*)((char*)areas[0].addr + (offset * 2 * sizeof(*buf)));
+      if (rc == -EPIPE)
+      {
+        WARN_LOG_FMT(AUDIO, "Underrun");
+        snd_pcm_prepare(handle);
+      }
+      else if (rc < 0)
+      {
+        WARN_LOG_FMT(AUDIO, "Mmap begin error: {}", snd_strerror(rc));
+      }
+      buf = reinterpret_cast<s16*>(areas[0].addr) + offset * 2;
       m_mixer->Mix(buf, frames);
       rc = snd_pcm_mmap_commit(handle, offset, frames);
+      if (rc < 0)
+      {
+        WARN_LOG_FMT(AUDIO, "Mmap commit error: {}", snd_strerror(rc));
+      }
 
       state = snd_pcm_state(handle);
       switch (state)
@@ -72,12 +85,12 @@ void AlsaSound::SoundLoop()
         snd_pcm_start(handle);
         break;
       case SND_PCM_STATE_XRUN:
+        WARN_LOG_FMT(AUDIO, "Underrun");
         snd_pcm_prepare(handle);
         break;
       default:
         break;
       }
-      snd_pcm_wait(handle, SND_PCM_WAIT_IO);
     }
     if (m_thread_status.load() == ALSAThreadStatus::PAUSED)
     {
@@ -122,7 +135,7 @@ bool AlsaSound::AlsaInit()
   period_size = FRAME_COUNT_MIN;
   periods = 4;
 
-  err = snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK);
+  err = snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK, 0);
   if (err < 0)
   {
     ERROR_LOG_FMT(AUDIO, "Audio open error: {}", snd_strerror(err));
