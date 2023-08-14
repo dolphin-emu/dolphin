@@ -8,6 +8,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Thread.h"
+#include "Core/Config/MainSettings.h"
 
 AlsaSound::AlsaSound()
     : m_thread_status(ALSAThreadStatus::STOPPED), handle(nullptr),
@@ -52,7 +53,6 @@ void AlsaSound::SoundLoop()
     {
       int rc;
       const snd_pcm_channel_area_t* areas;
-      s16* buf;
       snd_pcm_uframes_t frames;
       snd_pcm_uframes_t offset;
       snd_pcm_uframes_t avail;
@@ -69,8 +69,18 @@ void AlsaSound::SoundLoop()
       {
         WARN_LOG_FMT(AUDIO, "Mmap begin error: {}", snd_strerror(rc));
       }
-      buf = reinterpret_cast<s16*>(areas[0].addr) + offset * 2;
-      m_mixer->Mix(buf, frames);
+      if (m_stereo)
+      {
+        s16* buf;
+        buf = reinterpret_cast<s16*>(areas[0].addr) + (offset * 2);
+        m_mixer->Mix(buf, frames);
+      }
+      else
+      {
+        float* buf;
+        buf = reinterpret_cast<float*>(areas[0].addr) + (offset * 6);
+        m_mixer->MixSurround(buf, frames);
+      }
       rc = snd_pcm_mmap_commit(handle, offset, frames);
       if (rc < 0)
       {
@@ -126,12 +136,16 @@ bool AlsaSound::AlsaInit()
   // snd_pcm_sw_params_t* sw_params;
   snd_pcm_hw_params_t* hw_params;
   snd_pcm_format_t format;
+  unsigned int channels;
   unsigned int sample_rate;
   snd_pcm_uframes_t period_size;
   snd_pcm_uframes_t buffer_size;
   unsigned int periods;
+
+  m_stereo = !Config::ShouldUseDPL2Decoder();
+  channels = m_stereo ? 2 : 6;
   sample_rate = m_mixer->GetSampleRate();
-  format = SND_PCM_FORMAT_S16;
+  format = m_stereo ? SND_PCM_FORMAT_S16 : SND_PCM_FORMAT_FLOAT;
   period_size = FRAME_COUNT_MIN;
   periods = 4;
 
@@ -173,7 +187,7 @@ bool AlsaSound::AlsaInit()
     return false;
   }
 
-  err = snd_pcm_hw_params_set_channels(handle, hw_params, CHANNEL_COUNT);
+  err = snd_pcm_hw_params_set_channels(handle, hw_params, channels);
   if (err < 0)
   {
     ERROR_LOG_FMT(AUDIO, "Channel count not available: {}", snd_strerror(err));
