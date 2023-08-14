@@ -124,8 +124,8 @@ std::unique_ptr<Slippi::SlippiGame> SlippiReplayComm::loadGame()
     if (commFileSettings.outputOverlayFiles)
     {
       std::string dirpath = File::GetExeDirectory();
-      File::WriteStringToFile(ws.gameStation, dirpath + DIR_SEP + "Slippi/out-station.txt");
-      File::WriteStringToFile(ws.gameStartAt, dirpath + DIR_SEP + "Slippi/out-time.txt");
+      File::WriteStringToFile(dirpath + DIR_SEP + "Slippi/out-station.txt", ws.gameStation);
+      File::WriteStringToFile(dirpath + DIR_SEP + "Slippi/out-time.txt", ws.gameStartAt);
     }
 
     current = ws;

@@ -187,9 +187,8 @@ CEXISlippi::CEXISlippi(Core::System& system, const std::string current_file_name
   std::vector<u8> orig(origStr.begin(), origStr.end());
   std::vector<u8> modified(modifiedStr.begin(), modifiedStr.end());
   auto diff = processDiff(orig, modified);
-  File::WriteStringToFile(
-      diff, "C:\\Users\\Jas\\Documents\\Melee\\Textures\\Slippi\\MainMenu\\MnMaAll.usd.diff");
-  File::WriteStringToFile(diff, "C:\\Dolphin\\IshiiDev\\Sys\\GameFiles\\GALE01\\MnMaAll.usd.diff");
+  File::WriteStringToFile("C:\\Users\\Jas\\Documents\\Melee\\Textures\\Slippi\\MainMenu\\MnMaAll.usd.diff", diff);
+  File::WriteStringToFile("C:\\Dolphin\\IshiiDev\\Sys\\GameFiles\\GALE01\\MnMaAll.usd.diff", diff);
 
   // MnExtAll.usd
   File::ReadFileToString("C:\\Users\\Jas\\Documents\\Melee\\Textures\\Slippi\\CSS\\MnExtAll.usd",
@@ -199,9 +198,8 @@ CEXISlippi::CEXISlippi(Core::System& system, const std::string current_file_name
   orig = std::vector<u8>(origStr.begin(), origStr.end());
   modified = std::vector<u8>(modifiedStr.begin(), modifiedStr.end());
   diff = processDiff(orig, modified);
-  File::WriteStringToFile(
-      diff, "C:\\Users\\Jas\\Documents\\Melee\\Textures\\Slippi\\CSS\\MnExtAll.usd.diff");
-  File::WriteStringToFile(diff, "C:\\Dolphin\\IshiiDev\\Sys\\GameFiles\\GALE01\\MnExtAll.usd.diff");
+  File::WriteStringToFile("C:\\Users\\Jas\\Documents\\Melee\\Textures\\Slippi\\CSS\\MnExtAll.usd.diff", diff);
+  File::WriteStringToFile("C:\\Dolphin\\IshiiDev\\Sys\\GameFiles\\GALE01\\MnExtAll.usd.diff", diff);
 
   // SdMenu.usd
   File::ReadFileToString("C:\\Users\\Jas\\Documents\\Melee\\Textures\\Slippi\\MainMenu\\SdMenu.usd",
@@ -211,9 +209,8 @@ CEXISlippi::CEXISlippi(Core::System& system, const std::string current_file_name
   orig = std::vector<u8>(origStr.begin(), origStr.end());
   modified = std::vector<u8>(modifiedStr.begin(), modifiedStr.end());
   diff = processDiff(orig, modified);
-  File::WriteStringToFile(
-      diff, "C:\\Users\\Jas\\Documents\\Melee\\Textures\\Slippi\\MainMenu\\SdMenu.usd.diff");
-  File::WriteStringToFile(diff, "C:\\Dolphin\\IshiiDev\\Sys\\GameFiles\\GALE01\\SdMenu.usd.diff");
+  File::WriteStringToFile("C:\\Users\\Jas\\Documents\\Melee\\Textures\\Slippi\\MainMenu\\SdMenu.usd.diff", diff);
+  File::WriteStringToFile("C:\\Dolphin\\IshiiDev\\Sys\\GameFiles\\GALE01\\SdMenu.usd.diff", diff);
 
   // Japanese Files
   // MnMaAll.dat
@@ -224,9 +221,8 @@ CEXISlippi::CEXISlippi(Core::System& system, const std::string current_file_name
   orig = std::vector<u8>(origStr.begin(), origStr.end());
   modified = std::vector<u8>(modifiedStr.begin(), modifiedStr.end());
   diff = processDiff(orig, modified);
-  File::WriteStringToFile(
-      diff, "C:\\Users\\Jas\\Documents\\Melee\\Textures\\Slippi\\MainMenu\\MnMaAll.dat.diff");
-  File::WriteStringToFile(diff, "C:\\Dolphin\\IshiiDev\\Sys\\GameFiles\\GALE01\\MnMaAll.dat.diff");
+  File::WriteStringToFile("C:\\Users\\Jas\\Documents\\Melee\\Textures\\Slippi\\MainMenu\\MnMaAll.dat.diff", diff);
+  File::WriteStringToFile("C:\\Dolphin\\IshiiDev\\Sys\\GameFiles\\GALE01\\MnMaAll.dat.diff", diff);
 
   // MnExtAll.dat
   File::ReadFileToString("C:\\Users\\Jas\\Documents\\Melee\\Textures\\Slippi\\CSS\\MnExtAll.dat",
@@ -236,9 +232,8 @@ CEXISlippi::CEXISlippi(Core::System& system, const std::string current_file_name
   orig = std::vector<u8>(origStr.begin(), origStr.end());
   modified = std::vector<u8>(modifiedStr.begin(), modifiedStr.end());
   diff = processDiff(orig, modified);
-  File::WriteStringToFile(
-      diff, "C:\\Users\\Jas\\Documents\\Melee\\Textures\\Slippi\\CSS\\MnExtAll.dat.diff");
-  File::WriteStringToFile(diff, "C:\\Dolphin\\IshiiDev\\Sys\\GameFiles\\GALE01\\MnExtAll.dat.diff");
+  File::WriteStringToFile("C:\\Users\\Jas\\Documents\\Melee\\Textures\\Slippi\\CSS\\MnExtAll.dat.diff", diff);
+  File::WriteStringToFile("C:\\Dolphin\\IshiiDev\\Sys\\GameFiles\\GALE01\\MnExtAll.dat.diff", diff);
 
   // SdMenu.dat
   File::ReadFileToString("C:\\Users\\Jas\\Documents\\Melee\\Textures\\Slippi\\MainMenu\\SdMenu.dat",
@@ -248,15 +243,13 @@ CEXISlippi::CEXISlippi(Core::System& system, const std::string current_file_name
   orig = std::vector<u8>(origStr.begin(), origStr.end());
   modified = std::vector<u8>(modifiedStr.begin(), modifiedStr.end());
   diff = processDiff(orig, modified);
-  File::WriteStringToFile(
-      diff, "C:\\Users\\Jas\\Documents\\Melee\\Textures\\Slippi\\MainMenu\\SdMenu.dat.diff");
-  File::WriteStringToFile(diff, "C:\\Dolphin\\IshiiDev\\Sys\\GameFiles\\GALE01\\SdMenu.dat.diff");
+  File::WriteStringToFile("C:\\Users\\Jas\\Documents\\Melee\\Textures\\Slippi\\MainMenu\\SdMenu.dat.diff", diff);
+  File::WriteStringToFile("C:\\Dolphin\\IshiiDev\\Sys\\GameFiles\\GALE01\\SdMenu.dat.diff", diff);
 
   // TEMP - Restore orig
   // std::string stateString;
   // decoder.Decode((char *)orig.data(), orig.size(), diff, &stateString);
-  // File::WriteStringToFile(stateString,
-  //                        "C:\\Users\\Jas\\Documents\\Melee\\Textures\\Slippi\\MainMenu\\MnMaAll-restored.usd");
+  // File::WriteStringToFile("C:\\Users\\Jas\\Documents\\Melee\\Textures\\Slippi\\MainMenu\\MnMaAll-restored.usd", stateString);
 #endif
 }
 
