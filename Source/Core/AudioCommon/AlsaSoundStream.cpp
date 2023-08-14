@@ -147,7 +147,7 @@ bool AlsaSound::AlsaInit()
   sample_rate = m_mixer->GetSampleRate();
   format = m_stereo ? SND_PCM_FORMAT_S16 : SND_PCM_FORMAT_FLOAT;
   period_size = FRAME_COUNT_MIN;
-  periods = 4;
+  periods = 2;
 
   err = snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK, 0);
   if (err < 0)
@@ -198,15 +198,14 @@ bool AlsaSound::AlsaInit()
   err = snd_pcm_hw_params_set_period_size(handle, hw_params, period_size, dir);
   if (err < 0)
   {
-    ERROR_LOG_FMT(AUDIO, "Cannot set maximum periods per buffer: {}", snd_strerror(err));
+    ERROR_LOG_FMT(AUDIO, "Cannot set period size: {}", snd_strerror(err));
     return false;
   }
-  buffer_size = periods * period_size;
 
   err = snd_pcm_hw_params_set_periods(handle, hw_params, periods, 0);
   if (err < 0)
   {
-    ERROR_LOG_FMT(AUDIO, "Cannot set maximum buffer size: {}", snd_strerror(err));
+    ERROR_LOG_FMT(AUDIO, "Cannot set period count: {}", snd_strerror(err));
     return false;
   }
 
@@ -220,6 +219,7 @@ bool AlsaSound::AlsaInit()
   // periods is the number of fragments alsa can wait for during one
   // buffer_size
   frames_to_deliver = period_size;
+  buffer_size = periods * period_size;
 
   NOTICE_LOG_FMT(AUDIO,
                  "ALSA gave us a {} sample \"hardware\" buffer with {} periods. Will send {} "

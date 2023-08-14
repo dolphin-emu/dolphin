@@ -53,6 +53,7 @@ private:
   std::mutex cv_m;
 
   snd_pcm_t* handle;
+  bool m_stereo;
   unsigned int frames_to_deliver;
 #endif
 };
