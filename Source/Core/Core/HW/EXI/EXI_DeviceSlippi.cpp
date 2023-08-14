@@ -187,7 +187,8 @@ CEXISlippi::CEXISlippi(Core::System& system, const std::string current_file_name
   std::vector<u8> orig(origStr.begin(), origStr.end());
   std::vector<u8> modified(modifiedStr.begin(), modifiedStr.end());
   auto diff = processDiff(orig, modified);
-  File::WriteStringToFile("C:\\Users\\Jas\\Documents\\Melee\\Textures\\Slippi\\MainMenu\\MnMaAll.usd.diff", diff);
+  File::WriteStringToFile(
+      "C:\\Users\\Jas\\Documents\\Melee\\Textures\\Slippi\\MainMenu\\MnMaAll.usd.diff", diff);
   File::WriteStringToFile("C:\\Dolphin\\IshiiDev\\Sys\\GameFiles\\GALE01\\MnMaAll.usd.diff", diff);
 
   // MnExtAll.usd
@@ -198,7 +199,8 @@ CEXISlippi::CEXISlippi(Core::System& system, const std::string current_file_name
   orig = std::vector<u8>(origStr.begin(), origStr.end());
   modified = std::vector<u8>(modifiedStr.begin(), modifiedStr.end());
   diff = processDiff(orig, modified);
-  File::WriteStringToFile("C:\\Users\\Jas\\Documents\\Melee\\Textures\\Slippi\\CSS\\MnExtAll.usd.diff", diff);
+  File::WriteStringToFile(
+      "C:\\Users\\Jas\\Documents\\Melee\\Textures\\Slippi\\CSS\\MnExtAll.usd.diff", diff);
   File::WriteStringToFile("C:\\Dolphin\\IshiiDev\\Sys\\GameFiles\\GALE01\\MnExtAll.usd.diff", diff);
 
   // SdMenu.usd
@@ -209,7 +211,8 @@ CEXISlippi::CEXISlippi(Core::System& system, const std::string current_file_name
   orig = std::vector<u8>(origStr.begin(), origStr.end());
   modified = std::vector<u8>(modifiedStr.begin(), modifiedStr.end());
   diff = processDiff(orig, modified);
-  File::WriteStringToFile("C:\\Users\\Jas\\Documents\\Melee\\Textures\\Slippi\\MainMenu\\SdMenu.usd.diff", diff);
+  File::WriteStringToFile(
+      "C:\\Users\\Jas\\Documents\\Melee\\Textures\\Slippi\\MainMenu\\SdMenu.usd.diff", diff);
   File::WriteStringToFile("C:\\Dolphin\\IshiiDev\\Sys\\GameFiles\\GALE01\\SdMenu.usd.diff", diff);
 
   // Japanese Files
@@ -221,7 +224,8 @@ CEXISlippi::CEXISlippi(Core::System& system, const std::string current_file_name
   orig = std::vector<u8>(origStr.begin(), origStr.end());
   modified = std::vector<u8>(modifiedStr.begin(), modifiedStr.end());
   diff = processDiff(orig, modified);
-  File::WriteStringToFile("C:\\Users\\Jas\\Documents\\Melee\\Textures\\Slippi\\MainMenu\\MnMaAll.dat.diff", diff);
+  File::WriteStringToFile(
+      "C:\\Users\\Jas\\Documents\\Melee\\Textures\\Slippi\\MainMenu\\MnMaAll.dat.diff", diff);
   File::WriteStringToFile("C:\\Dolphin\\IshiiDev\\Sys\\GameFiles\\GALE01\\MnMaAll.dat.diff", diff);
 
   // MnExtAll.dat
@@ -232,7 +236,8 @@ CEXISlippi::CEXISlippi(Core::System& system, const std::string current_file_name
   orig = std::vector<u8>(origStr.begin(), origStr.end());
   modified = std::vector<u8>(modifiedStr.begin(), modifiedStr.end());
   diff = processDiff(orig, modified);
-  File::WriteStringToFile("C:\\Users\\Jas\\Documents\\Melee\\Textures\\Slippi\\CSS\\MnExtAll.dat.diff", diff);
+  File::WriteStringToFile(
+      "C:\\Users\\Jas\\Documents\\Melee\\Textures\\Slippi\\CSS\\MnExtAll.dat.diff", diff);
   File::WriteStringToFile("C:\\Dolphin\\IshiiDev\\Sys\\GameFiles\\GALE01\\MnExtAll.dat.diff", diff);
 
   // SdMenu.dat
@@ -243,13 +248,15 @@ CEXISlippi::CEXISlippi(Core::System& system, const std::string current_file_name
   orig = std::vector<u8>(origStr.begin(), origStr.end());
   modified = std::vector<u8>(modifiedStr.begin(), modifiedStr.end());
   diff = processDiff(orig, modified);
-  File::WriteStringToFile("C:\\Users\\Jas\\Documents\\Melee\\Textures\\Slippi\\MainMenu\\SdMenu.dat.diff", diff);
+  File::WriteStringToFile(
+      "C:\\Users\\Jas\\Documents\\Melee\\Textures\\Slippi\\MainMenu\\SdMenu.dat.diff", diff);
   File::WriteStringToFile("C:\\Dolphin\\IshiiDev\\Sys\\GameFiles\\GALE01\\SdMenu.dat.diff", diff);
 
   // TEMP - Restore orig
   // std::string stateString;
   // decoder.Decode((char *)orig.data(), orig.size(), diff, &stateString);
-  // File::WriteStringToFile("C:\\Users\\Jas\\Documents\\Melee\\Textures\\Slippi\\MainMenu\\MnMaAll-restored.usd", stateString);
+  // File::WriteStringToFile("C:\\Users\\Jas\\Documents\\Melee\\Textures\\Slippi\\MainMenu\\MnMaAll-restored.usd",
+  // stateString);
 #endif
 }
 
@@ -2470,7 +2477,7 @@ void CEXISlippi::prepareOnlineMatchState()
   for (int i = 0; i < 4; i++)
   {
     std::string uid = i < player_info.size() ? player_info[i].uid :
-                                              "";  // UIDs are 28 characters + 1 null terminator
+                                               "";  // UIDs are 28 characters + 1 null terminator
 #ifdef LOCAL_TESTING
     uid = defaultUids[i];
 #endif
@@ -2824,71 +2831,78 @@ void CEXISlippi::prepareNewSeed()
 void CEXISlippi::handleReportGame(const SlippiExiTypes::ReportGameQuery& query)
 {
   std::string match_id = recent_mm_result.id;
-	SlippiMatchmakingOnlinePlayMode online_mode = static_cast<SlippiMatchmakingOnlinePlayMode>(query.mode);
-	u32 duration_frames = query.frame_length;
-	u32 game_index = query.game_index;
-	u32 tiebreak_index = query.tiebreak_index;
-	s8 winner_idx = query.winner_idx;
-	int stage_id = Common::FromBigEndian(*(u16 *)&query.game_info_block[0xE]);
-	u8 game_end_method = query.game_end_method;
-	s8 lras_initiator = query.lras_initiator;
+  SlippiMatchmakingOnlinePlayMode online_mode =
+      static_cast<SlippiMatchmakingOnlinePlayMode>(query.mode);
+  u32 duration_frames = query.frame_length;
+  u32 game_index = query.game_index;
+  u32 tiebreak_index = query.tiebreak_index;
+  s8 winner_idx = query.winner_idx;
+  int stage_id = Common::FromBigEndian(*(u16*)&query.game_info_block[0xE]);
+  u8 game_end_method = query.game_end_method;
+  s8 lras_initiator = query.lras_initiator;
 
-	ERROR_LOG_FMT(SLIPPI_ONLINE,
-	          "Mode: {} / {}, Frames: {}, GameIdx: {}, TiebreakIdx: {}, WinnerIdx: {}, StageId: {}, GameEndMethod: {}, "
-	          "LRASInitiator: {}",
-	          static_cast<u8>(online_mode), query.mode, duration_frames, game_index, tiebreak_index, winner_idx, stage_id, game_end_method,
-	          lras_initiator);
+  ERROR_LOG_FMT(SLIPPI_ONLINE,
+                "Mode: {} / {}, Frames: {}, GameIdx: {}, TiebreakIdx: {}, WinnerIdx: {}, StageId: "
+                "{}, GameEndMethod: {}, "
+                "LRASInitiator: {}",
+                static_cast<u8>(online_mode), query.mode, duration_frames, game_index,
+                tiebreak_index, winner_idx, stage_id, game_end_method, lras_initiator);
 
-	auto user_info = user->GetUserInfo();
+  auto user_info = user->GetUserInfo();
 
-	// We pass `uid` and `playKey` here until the User side of things is
-	// ported to Rust.
-	uintptr_t game_report = slprs_game_report_create(user_info.uid.c_str(), user_info.play_key.c_str(), online_mode,
-	                                                match_id.c_str(), duration_frames, game_index, tiebreak_index,
-	                                                winner_idx, game_end_method, lras_initiator, stage_id);
+  // We pass `uid` and `playKey` here until the User side of things is
+  // ported to Rust.
+  uintptr_t game_report =
+      slprs_game_report_create(user_info.uid.c_str(), user_info.play_key.c_str(), online_mode,
+                               match_id.c_str(), duration_frames, game_index, tiebreak_index,
+                               winner_idx, game_end_method, lras_initiator, stage_id);
 
-	auto mm_players = recent_mm_result.players;
+  auto mm_players = recent_mm_result.players;
 
-	for (auto i = 0; i < 4; ++i)
-	{
-		std::string uid = mm_players.size() > i ? mm_players[i].uid : "";
-		u8 slot_type = query.players[i].slot_type;
-		u8 stocks_remaining = query.players[i].stocks_remaining;
-		float damage_done = query.players[i].damage_done;
-		u8 char_id = query.game_info_block[0x60 + 0x24 * i];
-		u8 color_id = query.game_info_block[0x63 + 0x24 * i];
-		int starting_stocks = query.game_info_block[0x62 + 0x24 * i];
-		int starting_percent = Common::FromBigEndian(*(u16 *)&query.game_info_block[0x70 + 0x24 * i]);
+  for (auto i = 0; i < 4; ++i)
+  {
+    std::string uid = mm_players.size() > i ? mm_players[i].uid : "";
+    u8 slot_type = query.players[i].slot_type;
+    u8 stocks_remaining = query.players[i].stocks_remaining;
+    float damage_done = query.players[i].damage_done;
+    u8 char_id = query.game_info_block[0x60 + 0x24 * i];
+    u8 color_id = query.game_info_block[0x63 + 0x24 * i];
+    int starting_stocks = query.game_info_block[0x62 + 0x24 * i];
+    int starting_percent = Common::FromBigEndian(*(u16*)&query.game_info_block[0x70 + 0x24 * i]);
 
-		ERROR_LOG_FMT(SLIPPI_ONLINE,
-		          "UID: {}, Port Type: {}, Stocks: {}, DamageDone: {}, CharId: {}, ColorId: {}, StartStocks: {}, "
-		          "StartPercent: {}",
-		          uid.c_str(), slot_type, stocks_remaining, damage_done, char_id, color_id, starting_stocks, starting_percent);
+    ERROR_LOG_FMT(SLIPPI_ONLINE,
+                  "UID: {}, Port Type: {}, Stocks: {}, DamageDone: {}, CharId: {}, ColorId: {}, "
+                  "StartStocks: {}, "
+                  "StartPercent: {}",
+                  uid.c_str(), slot_type, stocks_remaining, damage_done, char_id, color_id,
+                  starting_stocks, starting_percent);
 
-		uintptr_t player_report = slprs_player_report_create(uid.c_str(), slot_type, damage_done, stocks_remaining, char_id,
-		                                                    color_id, starting_stocks, starting_percent);
+    uintptr_t player_report =
+        slprs_player_report_create(uid.c_str(), slot_type, damage_done, stocks_remaining, char_id,
+                                   color_id, starting_stocks, starting_percent);
 
-		slprs_game_report_add_player_report(game_report, player_report);
-	}
+    slprs_game_report_add_player_report(game_report, player_report);
+  }
 
-	// If ranked mode and the game ended with a quit out, this is either a desync or an interrupted game,
-	// attempt to send synced values to opponents in order to restart the match where it was left off
-	if (online_mode == SlippiMatchmakingOnlinePlayMode::Ranked && game_end_method == 7)
-	{
-		SlippiSyncedGameState s;
-		s.match_id = match_id;
-		s.game_index = game_index;
-		s.tiebreak_index = tiebreak_index;
-		s.seconds_remaining = query.synced_timer;
-		for (int i = 0; i < 4; i++)
-		{
-			s.fighters[i].stocks_remaining = query.players[i].synced_stocks_remaining;
-			s.fighters[i].current_health = query.players[i].synced_current_health;
-		}
+  // If ranked mode and the game ended with a quit out, this is either a desync or an interrupted
+  // game, attempt to send synced values to opponents in order to restart the match where it was
+  // left off
+  if (online_mode == SlippiMatchmakingOnlinePlayMode::Ranked && game_end_method == 7)
+  {
+    SlippiSyncedGameState s;
+    s.match_id = match_id;
+    s.game_index = game_index;
+    s.tiebreak_index = tiebreak_index;
+    s.seconds_remaining = query.synced_timer;
+    for (int i = 0; i < 4; i++)
+    {
+      s.fighters[i].stocks_remaining = query.players[i].synced_stocks_remaining;
+      s.fighters[i].current_health = query.players[i].synced_current_health;
+    }
 
-		if (slippi_netplay)
-			slippi_netplay->SendSyncedGameState(s);
-	}
+    if (slippi_netplay)
+      slippi_netplay->SendSyncedGameState(s);
+  }
 
 #ifndef LOCAL_TESTING
   slprs_exi_device_log_game_report(slprs_exi_device_ptr, game_report);
