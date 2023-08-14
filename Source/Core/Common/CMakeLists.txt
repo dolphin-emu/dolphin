@@ -154,6 +154,7 @@ PUBLIC
   fmt::fmt
   ${MBEDTLS_LIBRARIES}
   minizip-ng
+  slippi_rust_extensions
 
 PRIVATE
   ${CURL_LIBRARIES}
