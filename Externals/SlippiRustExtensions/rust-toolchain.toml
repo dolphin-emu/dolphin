@@ -1,4 +1,0 @@
-[toolchain]
-channel = "1.70.0"
-components = ["rustfmt", "rustc-dev"]
-profile = "minimal"
