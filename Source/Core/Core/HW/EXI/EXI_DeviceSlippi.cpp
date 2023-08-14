@@ -2996,8 +2996,6 @@ void CEXISlippi::prepareGamePrepOppStep(const SlippiExiTypes::GpFetchStepQuery& 
 
 void CEXISlippi::handleCompleteSet(const SlippiExiTypes::ReportSetCompletionQuery& query)
 {
-  ERROR_LOG_FMT(SLIPPI_ONLINE, "Hello");
-
   auto last_match_id = recent_mm_result.id;
   if (last_match_id.find("mode.ranked") != std::string::npos)
   {

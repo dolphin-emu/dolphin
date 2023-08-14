@@ -425,7 +425,7 @@ if(WIN32)
 
   set_target_properties(dolphin-emu PROPERTIES
     DEBUG_POSTFIX    D
-    OUTPUT_NAME      Dolphin
+    OUTPUT_NAME      Slippi_Dolphin
     WIN32_EXECUTABLE TRUE
   )
 
