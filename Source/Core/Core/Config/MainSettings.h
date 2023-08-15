@@ -68,6 +68,7 @@ extern const Info<std::string> SLIPPI_REPLAY_DIR;
 extern const Info<bool> SLIPPI_ENABLE_FRAME_INDEX;
 extern const Info<bool> SLIPPI_BLOCKING_PIPES;
 extern const Info<bool> SLIPPI_ENABLE_JUKEBOX;
+extern const Info<int> SLIPPI_SFX_MUSIC_BALANCE;
 
 // Playback Settings
 extern const Info<bool> SLIPPI_ENABLE_SEEK;

@@ -1,28 +1,33 @@
 #include "DolphinQt/Settings/SlippiPane.h"
 
-#include <QComboBox>
 #include <QDir>
 #include <QFileDialog>
 #include <QFormLayout>
 #include <QGridLayout>
 #include <QLabel>
-#include <QPushButton>
 #include <QSizePolicy>
-#include <QSpinBox>
+#include <QMouseEvent>
 
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/HW/EXI/EXI.h"
+#include "Core/System.h"
+
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
+
+#ifndef IS_PLAYBACK
+#include "Core/HW/EXI/EXI_DeviceSlippi.h"
+#include "SlippiPane.h"
+#endif
 
 SlippiPane::SlippiPane(QWidget* parent) : QWidget(parent)
 {
   CreateLayout();
   LoadConfig();
-  // ConnectLayout();
+  ConnectLayout();
 }
 
-void SlippiPane::LoadConfig()
-{
-}
 void SlippiPane::CreateLayout()
 {
   setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
@@ -31,105 +36,76 @@ void SlippiPane::CreateLayout()
 
 #ifndef IS_PLAYBACK
   // Replay Settings
-  m_replay_settings = new QGroupBox(tr("Replay Settings"));
-  m_replay_settings_layout = new QVBoxLayout();
-  m_replay_settings->setLayout(m_replay_settings_layout);
-  m_main_layout->addWidget(m_replay_settings);
+  auto* replay_settings = new QGroupBox(tr("Replay Settings"));
+  auto* replay_settings_layout = new QVBoxLayout();
+  replay_settings->setLayout(replay_settings_layout);
+  m_main_layout->addWidget(replay_settings);
 
-  m_enable_replay_save = new QCheckBox(tr("Save Slippi Replays"));
-  m_enable_replay_save->setToolTip(
+  m_save_replays = new QCheckBox(tr("Save Slippi Replays"));
+  m_save_replays->setToolTip(
       tr("Enable this to make Slippi automatically save .slp recordings of your games."));
-  m_replay_settings_layout->addWidget(m_enable_replay_save);
-  m_enable_replay_save->setChecked(Config::Get(Config::SLIPPI_SAVE_REPLAYS));
-  // connect(enable_replay_save_checkbox, &QCheckBox::toggled, this,
-  //   [](bool checked) { Config::SetBase(Config::SLIPPI_SAVE_REPLAYS, checked); });
+  replay_settings_layout->addWidget(m_save_replays);
 
-  // auto* enable_monthly_replay_folders_checkbox =
-  //     new QCheckBox(tr("Save Replays to Monthly Subfolders"));
-  // enable_monthly_replay_folders_checkbox->setToolTip(
-  //     tr("Enable this to save your replays into subfolders by month (YYYY-MM)."));
-  // replay_settings_layout->addWidget(enable_monthly_replay_folders_checkbox);
-  // enable_monthly_replay_folders_checkbox->setChecked(
-  //     SConfig::GetInstance().m_slippiReplayMonthFolders);
-  // connect(enable_monthly_replay_folders_checkbox, &QCheckBox::toggled, this,
-  //         [](bool checked) { SConfig::GetInstance().m_slippiReplayMonthFolders = checked; });
+  m_monthly_replay_folders = new QCheckBox(tr("Save Replays to Monthly Subfolders"));
+  m_monthly_replay_folders->setToolTip(
+      tr("Enable this to save your replays into subfolders by month (YYYY-MM)."));
+  replay_settings_layout->addWidget(m_monthly_replay_folders);
 
-  // auto* replay_folder_layout = new QGridLayout();
-  // m_replay_folder_edit =
-  //     new QLineEdit(QString::fromStdString(SConfig::GetInstance().m_strSlippiReplayDir));
-  // m_replay_folder_edit->setToolTip(tr("Choose where your Slippi replay files are saved."));
-  // connect(m_replay_folder_edit, &QLineEdit::editingFinished, [this] {
-  //   SConfig::GetInstance().m_strSlippiReplayDir = m_replay_folder_edit->text().toStdString();
-  // });
-  // QPushButton* replay_folder_open = new QPushButton(QStringLiteral("..."));
-  // connect(replay_folder_open, &QPushButton::clicked, this, &SlippiPane::BrowseReplayFolder);
-  // replay_folder_layout->addWidget(new QLabel(tr("Replay Folder:")), 0, 0);
-  // replay_folder_layout->addWidget(m_replay_folder_edit, 0, 1);
-  // replay_folder_layout->addWidget(replay_folder_open, 0, 2);
-  // replay_settings_layout->addLayout(replay_folder_layout);
+  auto* replay_folder_layout = new QGridLayout();
+  m_replay_folder_edit = new QLineEdit();
+  m_replay_folder_edit->setToolTip(tr("Choose where your Slippi replay files are saved."));
+  connect(m_replay_folder_edit, &QLineEdit::editingFinished, [this] {
+    Config::SetBase(Config::SLIPPI_REPLAY_DIR, m_replay_folder_edit->text().toStdString());
+  });
 
-  //// Online Settings
-  // auto* online_settings = new QGroupBox(tr("Online Settings"));
-  // auto* online_settings_layout = new QFormLayout();
-  // online_settings->setLayout(online_settings_layout);
-  // layout->addWidget(online_settings);
+  m_replay_folder_open = new NonDefaultQPushButton(QStringLiteral("..."));
+  replay_folder_layout->addWidget(new QLabel(tr("Replay Folder:")), 0, 0);
+  replay_folder_layout->addWidget(m_replay_folder_edit, 0, 1);
+  replay_folder_layout->addWidget(m_replay_folder_open, 0, 2);
+  replay_settings_layout->addLayout(replay_folder_layout);
 
-  // auto* delay_spin = new QSpinBox();
-  // delay_spin->setFixedSize(30, 25);
-  // delay_spin->setRange(1, 9);
-  // delay_spin->setToolTip(tr("Leave this at 2 unless consistently playing on 120+ ping. "
-  //                           "Increasing this can cause unplayable input delay, and lowering it "
-  //                           "can cause visual artifacts/lag."));
-  // online_settings_layout->addRow(tr("Delay Frames:"), delay_spin);
-  // delay_spin->setValue(SConfig::GetInstance().m_slippiOnlineDelay);
-  // connect(delay_spin, qOverload<int>(&QSpinBox::valueChanged), this,
-  //         [](int delay) { SConfig::GetInstance().m_slippiOnlineDelay = delay; });
+  // Online Settings
+  auto* online_settings = new QGroupBox(tr("Online Settings"));
+  auto* online_settings_layout = new QFormLayout();
+  online_settings->setLayout(online_settings_layout);
+  m_main_layout->addWidget(online_settings);
 
-  // auto* netplay_quick_chat_combo = new QComboBox();
-  // for (const auto& item : {tr("Enabled"), tr("Direct Only"), tr("Off")})
-  //{
-  //   netplay_quick_chat_combo->addItem(item);
-  // }
-  // connect(netplay_quick_chat_combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
-  //         [](int index) {
-  //           SConfig::GetInstance().m_slippiEnableQuickChat = static_cast<Slippi::Chat>(index);
-  //         });
-  // netplay_quick_chat_combo->setCurrentIndex(
-  //     static_cast<u32>(SConfig::GetInstance().m_slippiEnableQuickChat));
+  m_delay_spin = new QSpinBox();
+  m_delay_spin->setFixedSize(35, 25);
+  m_delay_spin->setRange(1, 9);
+  m_delay_spin->setToolTip(tr("Leave this at 2 unless consistently playing on 120+ ping. "
+                              "Increasing this can cause unplayable input delay, and lowering it "
+                              "can cause visual artifacts/lag."));
+  online_settings_layout->addRow(tr("Delay Frames:"), m_delay_spin);
 
-  // online_settings_layout->addRow(tr("Quick Chat:"), netplay_quick_chat_combo);
+  m_netplay_quick_chat_combo = new QComboBox();
+  for (const auto& item : {tr("Enabled"), tr("Direct Only"), tr("Off")})
+  {
+    m_netplay_quick_chat_combo->addItem(item);
+  }
+  m_netplay_quick_chat_combo->setSizeAdjustPolicy(QComboBox::AdjustToContents);
+  online_settings_layout->addRow(tr("Quick Chat:"), m_netplay_quick_chat_combo);
 
-  //// i'd like to note that I hate everything about how this is organized for the next two sections
-  //// and a lot of the Qstring bullshit drives me up the wall.
-  // auto* netplay_port_spin = new QSpinBox();
-  // netplay_port_spin->setFixedSize(60, 25);
-  // QSizePolicy sp_retain = netplay_port_spin->sizePolicy();
-  // sp_retain.setRetainSizeWhenHidden(true);
-  // netplay_port_spin->setSizePolicy(sp_retain);
-  // netplay_port_spin->setRange(1000, 65535);
-  // netplay_port_spin->setValue(SConfig::GetInstance().m_slippiNetplayPort);
-  // if (!SConfig::GetInstance().m_slippiForceNetplayPort)
-  //{
-  //   netplay_port_spin->hide();
-  // }
-  // auto* enable_force_netplay_port_checkbox = new QCheckBox(tr("Force Netplay Port"));
-  // enable_force_netplay_port_checkbox->setToolTip(
-  //     tr("Enable this to force Slippi to use a specific network port for online peer-to-peer "
-  //        "connections."));
+  m_netplay_port = new QSpinBox();
+  m_netplay_port->setFixedSize(60, 25);
+  QSizePolicy sp_retain = m_netplay_port->sizePolicy();
+  sp_retain.setRetainSizeWhenHidden(true);
+  m_netplay_port->setSizePolicy(sp_retain);
+  m_netplay_port->setRange(1000, 65535);
+  m_force_netplay_port = new QCheckBox(tr("Force Netplay Port"));
+  m_force_netplay_port->setToolTip(
+      tr("Enable this to force Slippi to use a specific network port for online peer-to-peer "
+         "connections."));
 
-  // enable_force_netplay_port_checkbox->setChecked(SConfig::GetInstance().m_slippiForceNetplayPort);
-  // connect(enable_force_netplay_port_checkbox, &QCheckBox::toggled, this,
-  //         [netplay_port_spin](bool checked) {
-  //           SConfig::GetInstance().m_slippiForceNetplayPort = checked;
-  //           checked ? netplay_port_spin->show() : netplay_port_spin->hide();
-  //         });
-  // auto* netplay_port_layout = new QGridLayout();
-  // netplay_port_layout->setColumnStretch(1, 1);
-  // netplay_port_layout->addWidget(enable_force_netplay_port_checkbox, 0, 0);
-  // netplay_port_layout->addWidget(netplay_port_spin, 0, 1, Qt::AlignLeft);
+  auto* netplay_port_layout = new QGridLayout();
+  netplay_port_layout->setColumnStretch(1, 1);
+  netplay_port_layout->addWidget(m_force_netplay_port, 0, 0);
+  netplay_port_layout->addWidget(m_netplay_port, 0, 1, Qt::AlignLeft);
 
-  // online_settings_layout->addRow(netplay_port_layout);
+  online_settings_layout->addRow(netplay_port_layout);
 
+  // // i'd like to note that I hate everything about how this is organized for the next two sections
+  // // and a lot of the Qstring bullshit drives me up the wall.
   // auto* netplay_ip_edit = new QLineEdit();
   // netplay_ip_edit->setFixedSize(100, 25);
   // sp_retain = netplay_ip_edit->sizePolicy();
@@ -166,6 +142,32 @@ void SlippiPane::CreateLayout()
 
   // online_settings_layout->addRow(netplay_ip_layout);
 
+  // Jukebox Settings
+  auto* jukebox_settings = new QGroupBox(tr("Jukebox Settings"));
+  auto* jukebox_settings_layout = new QVBoxLayout();
+  jukebox_settings->setLayout(jukebox_settings_layout);
+  m_main_layout->addWidget(jukebox_settings);
+
+  m_enable_jukebox = new QCheckBox(tr("Enable Music (Beta)"));
+  m_enable_jukebox->setToolTip(
+      tr("Toggle in-game music for stages and menus. Changing this does not affect "
+         "other audio like character hits or effects. Music will not play when "
+         "using the Exclusive WASAPI audio backend."));
+  jukebox_settings_layout->addWidget(m_enable_jukebox);
+
+  auto* sfx_music_slider_layout = new QGridLayout;
+  m_sfx_music_balance_slider = new QSlider(Qt::Horizontal);
+  m_sfx_music_balance_slider->setRange(0, 41);
+  m_sfx_music_balance_slider->setTickPosition(QSlider::TicksBelow);
+  m_sfx_music_balance_slider->setTickInterval(21);
+  auto* sfx_label = new QLabel(tr("Sound Effects"));
+  auto* music_label = new QLabel(tr("Music"));
+
+  sfx_music_slider_layout->addWidget(sfx_label, 1, 0);
+  sfx_music_slider_layout->addWidget(m_sfx_music_balance_slider, 1, 1);
+  sfx_music_slider_layout->addWidget(music_label, 1, 2);
+  jukebox_settings_layout->addLayout(sfx_music_slider_layout);
+
 #else
   // Playback Settings
   auto* playback_settings = new QGroupBox(tr("Playback Settings"));
@@ -188,16 +190,117 @@ void SlippiPane::CreateLayout()
 #endif
 }
 
+void SlippiPane::LoadConfig()
+{
+  // Replay Settings
+  auto save_replays = Config::Get(Config::SLIPPI_SAVE_REPLAYS);
+  m_save_replays->setChecked(save_replays);
+  m_monthly_replay_folders->setChecked(Config::Get(Config::SLIPPI_REPLAY_MONTHLY_FOLDERS));
+  m_replay_folder_edit->setText(QString::fromStdString(Config::Get(Config::SLIPPI_REPLAY_DIR)));
+
+  m_monthly_replay_folders->setDisabled(!save_replays);
+  m_replay_folder_edit->setDisabled(!save_replays);
+  m_replay_folder_open->setDisabled(!save_replays);
+
+  // Online Settings
+  m_delay_spin->setValue(Config::Get(Config::SLIPPI_ONLINE_DELAY));
+  m_netplay_quick_chat_combo->setCurrentIndex(
+      static_cast<u8>(Config::Get(Config::SLIPPI_ENABLE_QUICK_CHAT)));
+  
+  auto force_netplay_port = Config::Get(Config::SLIPPI_FORCE_NETPLAY_PORT);
+  m_force_netplay_port->setChecked(force_netplay_port);
+  m_netplay_port->setValue(Config::Get(Config::SLIPPI_NETPLAY_PORT));
+
+  m_netplay_port->setDisabled(!force_netplay_port);
+
+  // Jukebox Settings
+  auto enable_jukebox = Config::Get(Config::SLIPPI_ENABLE_JUKEBOX);
+  m_enable_jukebox->setChecked(enable_jukebox);
+  m_sfx_music_balance_slider->setValue(Config::Get(Config::SLIPPI_SFX_MUSIC_BALANCE));
+
+  m_sfx_music_balance_slider->setDisabled(!enable_jukebox);
+}
+
+void SlippiPane::ConnectLayout()
+{
+  // Replay Settings
+  connect(m_save_replays, &QCheckBox::toggled, this, &SlippiPane::SetSaveReplays);
+  connect(m_monthly_replay_folders, &QCheckBox::toggled, this,
+          [](bool checked) { Config::SetBase(Config::SLIPPI_REPLAY_MONTHLY_FOLDERS, checked); });
+  connect(m_replay_folder_open, &QPushButton::clicked, this, &SlippiPane::BrowseReplayFolder);
+
+  // Online Settings
+  connect(m_delay_spin, qOverload<int>(&QSpinBox::valueChanged), this,
+          [](int delay) { Config::SetBase(Config::SLIPPI_ONLINE_DELAY, delay); });
+  connect(m_netplay_quick_chat_combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
+          [](int index) {
+            Config::SetBase(Config::SLIPPI_ENABLE_QUICK_CHAT, static_cast<Slippi::Chat>(index));
+          });
+  connect(m_force_netplay_port, &QCheckBox::toggled, this, &SlippiPane::SetForceNetplayPort);
+  connect(m_netplay_port, qOverload<int>(&QSpinBox::valueChanged), this,
+          [](int port) { Config::SetBase(Config::SLIPPI_NETPLAY_PORT, port); });
+
+  // Jukebox Settings
+  connect(m_enable_jukebox, &QCheckBox::toggled, this, &SlippiPane::ToggleJukebox);
+  connect(m_sfx_music_balance_slider, qOverload<int>(&QSlider::valueChanged), this,
+          [](int index) {
+            
+          });
+}
+
+void SlippiPane::SetSaveReplays(bool checked)
+{
+  Config::SetBase(Config::SLIPPI_SAVE_REPLAYS, checked);
+  m_monthly_replay_folders->setDisabled(!checked);
+  m_replay_folder_edit->setDisabled(!checked);
+  m_replay_folder_open->setDisabled(!checked);
+}
+
 void SlippiPane::BrowseReplayFolder()
 {
-  // QString dir = QDir::toNativeSeparators(QFileDialog::getExistingDirectory(
-  //     this, tr("Select Replay Folder"),
-  //     QString::fromStdString(SConfig::GetInstance().m_strSlippiReplayDir)));
-  // if (!dir.isEmpty())
-  //{
-  //   m_replay_folder_edit->setText(dir);
-  //   SConfig::GetInstance().m_strSlippiReplayDir = dir.toStdString();
-  // }
+  QString dir = QDir::toNativeSeparators(QFileDialog::getExistingDirectory(
+      this, tr("Select Replay Folder"),
+      QString::fromStdString(Config::Get(Config::SLIPPI_REPLAY_DIR))));
+  if (!dir.isEmpty())
+  {
+    m_replay_folder_edit->setText(dir);
+    Config::SetBase(Config::SLIPPI_REPLAY_DIR, dir.toStdString());
+  }
+}
+
+void SlippiPane::SetForceNetplayPort(bool checked)
+{
+  Config::SetBase(Config::SLIPPI_FORCE_NETPLAY_PORT, checked);
+  m_netplay_port->setDisabled(!checked);
+}
+
+void SlippiPane::ToggleJukebox(bool checked)
+{
+  Config::SetBase(Config::SLIPPI_ENABLE_JUKEBOX, checked);
+  m_sfx_music_balance_slider->setDisabled(!checked);
+
+  ConfigureJukebox();
+}
+
+void SlippiPane::UpdateSFXMusicBalance(int index)
+{
+  Config::SetBase(Config::SLIPPI_SFX_MUSIC_BALANCE, index);
+
+  ConfigureJukebox();
+}
+
+void SlippiPane::ConfigureJukebox()
+{
+  if (Core::GetState() == Core::State::Running)
+  {
+    auto& system = Core::System::GetInstance();
+    auto& exi_manager = system.GetExpansionInterface();
+    ExpansionInterface::CEXISlippi* slippi_exi = static_cast<ExpansionInterface::CEXISlippi*>(
+        exi_manager.GetDevice(ExpansionInterface::Slot::B));
+
+    if (slippi_exi != nullptr)
+      slippi_exi->ConfigureJukebox();
+  }
 }
 
 void SlippiPane::OnSaveConfig()
