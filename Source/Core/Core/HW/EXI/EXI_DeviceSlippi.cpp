@@ -604,7 +604,7 @@ void CEXISlippi::createNewFile()
 
   // Now we have a dir such as /home/Replays but we need to make one such
   // as /home/Replays/2020-06 if month categorization is enabled
-  if (Config::Get(Config::SLIPPI_REPLAY_MONTH_FOLDERS))
+  if (Config::Get(Config::SLIPPI_REPLAY_MONTHLY_FOLDERS))
   {
     dirpath.push_back('/');
 
