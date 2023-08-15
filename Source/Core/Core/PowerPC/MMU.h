@@ -292,8 +292,8 @@ private:
   template <const XCheckTLBFlag flag>
   TranslateAddressResult TranslateAddress(u32 address);
 
-  TranslateAddressResult TranslatePageAddress(const EffectiveAddress address,
-                                              const XCheckTLBFlag flag, bool* wi);
+  template <const XCheckTLBFlag flag>
+  TranslateAddressResult TranslatePageAddress(const EffectiveAddress address, bool* wi);
 
   void GenerateDSIException(u32 effective_address, bool write);
   void GenerateISIException(u32 effective_address);

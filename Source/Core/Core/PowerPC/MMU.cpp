@@ -1387,8 +1387,8 @@ void MMU::InvalidateTLBEntry(u32 address)
 }
 
 // Page Address Translation
-MMU::TranslateAddressResult MMU::TranslatePageAddress(const EffectiveAddress address,
-                                                      const XCheckTLBFlag flag, bool* wi)
+template <const XCheckTLBFlag flag>
+MMU::TranslateAddressResult MMU::TranslatePageAddress(const EffectiveAddress address, bool* wi)
 {
   // TLB cache
   // This catches 99%+ of lookups in practice, so the actual page table entry code below doesn't
@@ -1441,11 +1441,11 @@ MMU::TranslateAddressResult MMU::TranslatePageAddress(const EffectiveAddress add
 
     for (int i = 0; i < 8; i++, pteg_addr += 8)
     {
-      const u32 pteg = m_memory.Read_U32(pteg_addr);
+      const u32 pteg = ReadFromHardware<flag, u32, true>(pteg_addr);
 
       if (pte1.Hex == pteg)
       {
-        UPTE_Hi pte2(m_memory.Read_U32(pteg_addr + 4));
+        UPTE_Hi pte2(ReadFromHardware<flag, u32, true>(pteg_addr + 4));
 
         // set the access bits
         switch (flag)
@@ -1643,7 +1643,7 @@ MMU::TranslateAddressResult MMU::TranslateAddress(u32 address)
   if (TranslateBatAddress(IsOpcodeFlag(flag) ? m_ibat_table : m_dbat_table, &address, &wi))
     return TranslateAddressResult{TranslateAddressResultEnum::BAT_TRANSLATED, address, wi};
 
-  return TranslatePageAddress(EffectiveAddress{address}, flag, &wi);
+  return TranslatePageAddress<flag>(EffectiveAddress{address}, &wi);
 }
 
 std::optional<u32> MMU::GetTranslatedAddress(u32 address)
