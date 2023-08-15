@@ -32,7 +32,8 @@ void SlippiRustExtensionsLogger(int level, int slp_log_type, const char* msg)
 
   // mainline is notably different in logging, but we will try this method for now
   // if this fails we should fall back to GENERIC_LOG_FMT(log_level, log_type, msg);
-  if (Common::Log::LogManager::GetInstance()) {
+  if (Common::Log::LogManager::GetInstance())
+  {
     Common::Log::LogManager::GetInstance()->LogPreformatted(log_level, log_type, msg);
   }
 }
@@ -166,7 +167,8 @@ LogManager::LogManager()
   m_log[LogType::SLIPPI_RUST_DEPENDENCIES] = {"SLIPPI_RUST_DEPENDENCIES",
                                               "[Rust] Slippi Dependencies", false, true};
   m_log[LogType::SLIPPI_RUST_EXI] = {"SLIPPI_RUST_EXI", "[Rust] Slippi EXI", false, true};
-  m_log[LogType::SLIPPI_RUST_GAME_REPORTER] = {"SLIPPI_RUST_GAME_REPORTER", "[Rust] Slippi Game Reporter", false, true};
+  m_log[LogType::SLIPPI_RUST_GAME_REPORTER] = {"SLIPPI_RUST_GAME_REPORTER",
+                                               "[Rust] Slippi Game Reporter", false, true};
   m_log[LogType::SLIPPI_RUST_JUKEBOX] = {"SLIPPI_RUST_JUKEBOX", "[Rust] Slippi Jukebox", false,
                                          true};
   m_log[LogType::SP1] = {"SP1", "Serial Port 1"};
@@ -245,8 +247,7 @@ void LogManager::SaveSettings()
 // MAINLINE NOTE
 // i have no clue if this is needed anymore when we can just use GENERIC_LOG_FMT
 // but i'm leaving it here for now
-void LogManager::LogPreformatted(LogLevel level, LogType type,
-                                 const char* msg)
+void LogManager::LogPreformatted(LogLevel level, LogType type, const char* msg)
 {
   LogContainer& container = m_log[type];
 
