@@ -908,6 +908,12 @@ static void AddDevice(JNIEnv* env, int device_id)
   jobject input_device =
       env->CallStaticObjectMethod(s_input_device_class, s_input_device_get_device, device_id);
 
+  if (!input_device)
+  {
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "Could not find device with ID {}", device_id);
+    return;
+  }
+
   auto device = std::make_shared<AndroidDevice>(env, input_device);
 
   env->DeleteLocalRef(input_device);
