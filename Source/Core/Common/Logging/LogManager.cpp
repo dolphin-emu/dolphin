@@ -183,6 +183,17 @@ LogManager::LogManager()
   // Set up log listeners
   LogLevel verbosity = Config::Get(LOGGER_VERBOSITY);
 
+  SetLogLevel(verbosity);
+  EnableListener(LogListener::FILE_LISTENER, Config::Get(LOGGER_WRITE_TO_FILE));
+  EnableListener(LogListener::CONSOLE_LISTENER, Config::Get(LOGGER_WRITE_TO_CONSOLE));
+  EnableListener(LogListener::LOG_WINDOW_LISTENER, Config::Get(LOGGER_WRITE_TO_WINDOW));
+
+  for (auto& container : m_log)
+  {
+    container.m_enable = Config::Get(
+        Config::Info<bool>{{Config::System::Logger, "Logs", container.m_short_name}, false});
+  }
+
   // SLIPPITODO: this section ideally should be less awkward
   for (int log_type = static_cast<int>(LogType::SLIPPI);
        log_type != static_cast<int>(LogType::NUMBER_OF_LOGS); log_type++)
@@ -193,17 +204,6 @@ LogManager::LogManager()
       slprs_logging_register_container(container.m_short_name, log_type, container.m_enable,
                                        static_cast<int>(verbosity));
     }
-  }
-
-  SetLogLevel(verbosity);
-  EnableListener(LogListener::FILE_LISTENER, Config::Get(LOGGER_WRITE_TO_FILE));
-  EnableListener(LogListener::CONSOLE_LISTENER, Config::Get(LOGGER_WRITE_TO_CONSOLE));
-  EnableListener(LogListener::LOG_WINDOW_LISTENER, Config::Get(LOGGER_WRITE_TO_WINDOW));
-
-  for (auto& container : m_log)
-  {
-    container.m_enable = Config::Get(
-        Config::Info<bool>{{Config::System::Logger, "Logs", container.m_short_name}, false});
   }
 
   m_path_cutoff_point = DeterminePathCutOffPoint();
