@@ -190,9 +190,11 @@ void AdvancedPane::CreateLayout()
 
 void AdvancedPane::ConnectLayout()
 {
-  connect(m_cpu_emulation_engine_combobox,
-          static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), [](int index) {
-            Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, PowerPC::AvailableCPUCores()[index]);
+  connect(m_cpu_emulation_engine_combobox, qOverload<int>(&QComboBox::currentIndexChanged),
+          [](int index) {
+            const auto cpu_cores = PowerPC::AvailableCPUCores();
+            if (index >= 0 && static_cast<size_t>(index) < cpu_cores.size())
+              Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, cpu_cores[index]);
           });
 
   connect(m_cpu_clock_override_checkbox, &QCheckBox::toggled, [this](bool enable_clock_override) {
@@ -243,7 +245,7 @@ void AdvancedPane::Update()
   const bool enable_ram_override_widgets = Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE);
   const bool enable_custom_rtc_widgets = Config::Get(Config::MAIN_CUSTOM_RTC_ENABLE) && !running;
 
-  const std::vector<PowerPC::CPUCore>& available_cpu_cores = PowerPC::AvailableCPUCores();
+  const auto available_cpu_cores = PowerPC::AvailableCPUCores();
   const auto cpu_core = Config::Get(Config::MAIN_CPU_CORE);
   for (size_t i = 0; i < available_cpu_cores.size(); ++i)
   {
