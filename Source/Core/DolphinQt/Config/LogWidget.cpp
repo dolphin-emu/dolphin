@@ -152,10 +152,8 @@ void LogWidget::CreateWidgets()
   m_log_text->setUndoRedoEnabled(false);
   m_log_text->setMaximumBlockCount(MAX_LOG_LINES);
 
-  QPalette palette = m_log_text->palette();
-  palette.setColor(QPalette::Base, Qt::black);
-  palette.setColor(QPalette::Text, Qt::white);
-  m_log_text->setPalette(palette);
+  m_log_text->setStyleSheet(
+      QStringLiteral("QPlainTextEdit { background-color: black; color: white; }"));
 }
 
 void LogWidget::ConnectWidgets()
