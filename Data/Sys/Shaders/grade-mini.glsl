@@ -21,7 +21,7 @@
 
 
 /*
-   Grade-mini (12-08-2023)
+   Grade-mini (16-08-2023)
 
    > CRT emulation shader (composite signal, phosphor, gamma, temperature...)
    > Abridged port of RetroArch's Grade shader.
@@ -102,7 +102,7 @@ OptionName = g_CRT_l
 MinValue = 2.30
 MaxValue = 2.60
 StepAmount = 0.05
-DefaultValue = 2.50
+DefaultValue = 2.40
 
 [OptionBool]
 GUIName = Dark to Dim adaptation
@@ -235,8 +235,14 @@ float EOTF_1886a(float color, float bl, float brightness, float contrast) {
           float sl = k * pow(Vc + Lb, a1-a2);        // Slope for knee gamma
 
     color = color >= Vc ? k * pow(color + Lb, a1 ) : sl * pow(color + Lb, a2 );
+
+    // Black lift compensation
+    float bc = 0.00446395*pow(bl,1.23486);
+    color    = max(color-bc,0.0)*(1.0/(1.0-bc));
+
     return color;
  }
+
 
 float3 EOTF_1886a_f3( float3 color, float BlackLevel, float brightness, float contrast) {
 
@@ -510,6 +516,9 @@ void main()
 
     float4    c0  = Sample();
     float3    src = c0.rgb;
+
+// Mask compensation (highlight recovering)
+              src = 1.0-pow(1.0-src, float3(1.0/1.10));
 
 // Clipping Logic / Gamut Limiting
     bool   NTSC_U = g_crtgamut < 2.0;
