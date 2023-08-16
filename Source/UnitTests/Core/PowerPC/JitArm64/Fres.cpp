@@ -6,6 +6,8 @@
 #include "Common/Arm64Emitter.h"
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
+#include "Common/ScopeGuard.h"
+#include "Core/Core.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -51,6 +53,9 @@ public:
 
 TEST(JitArm64, Fres)
 {
+  Core::DeclareAsCPUThread();
+  Common::ScopeGuard cpu_thread_guard([] { Core::UndeclareAsCPUThread(); });
+
   TestFres test(Core::System::GetInstance());
 
   for (const u64 ivalue : double_test_values)
