@@ -138,7 +138,6 @@ void Shutdown()
   WriteLock lock(s_layers_rw_lock);
 
   s_layers.clear();
-  s_callbacks.clear();
 }
 
 void ClearCurrentRunLayer()
