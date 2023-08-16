@@ -13,7 +13,10 @@ namespace
 {
 std::atomic<bool> s_should_run_callbacks = false;
 
-static std::vector<std::pair<size_t, Config::ConfigChangedCallback>> s_callbacks;
+static std::vector<
+    std::pair<CPUThreadConfigCallback::ConfigChangedCallbackID, Config::ConfigChangedCallback>>
+    s_callbacks;
+
 static size_t s_next_callback_id = 0;
 
 void RunCallbacks()
@@ -39,19 +42,19 @@ void OnConfigChanged()
 
 namespace CPUThreadConfigCallback
 {
-size_t AddConfigChangedCallback(Config::ConfigChangedCallback func)
+ConfigChangedCallbackID AddConfigChangedCallback(Config::ConfigChangedCallback func)
 {
   DEBUG_ASSERT(Core::IsCPUThread());
 
-  static size_t s_config_changed_callback_id = Config::AddConfigChangedCallback(&OnConfigChanged);
+  static auto s_config_changed_callback_id = Config::AddConfigChangedCallback(&OnConfigChanged);
 
-  const size_t callback_id = s_next_callback_id;
+  const ConfigChangedCallbackID callback_id{s_next_callback_id};
   ++s_next_callback_id;
   s_callbacks.emplace_back(std::make_pair(callback_id, std::move(func)));
   return callback_id;
 }
 
-void RemoveConfigChangedCallback(size_t callback_id)
+void RemoveConfigChangedCallback(ConfigChangedCallbackID callback_id)
 {
   DEBUG_ASSERT(Core::IsCPUThread());
 

@@ -11,10 +11,18 @@
 
 namespace CPUThreadConfigCallback
 {
-// returns an ID that can be passed to RemoveConfigChangedCallback()
-size_t AddConfigChangedCallback(Config::ConfigChangedCallback func);
+struct ConfigChangedCallbackID
+{
+  size_t id = -1;
 
-void RemoveConfigChangedCallback(size_t callback_id);
+  bool operator==(const ConfigChangedCallbackID&) const = default;
+  bool operator!=(const ConfigChangedCallbackID&) const = default;
+};
+
+// returns an ID that can be passed to RemoveConfigChangedCallback()
+ConfigChangedCallbackID AddConfigChangedCallback(Config::ConfigChangedCallback func);
+
+void RemoveConfigChangedCallback(ConfigChangedCallbackID callback_id);
 
 // Should be called regularly from the CPU thread
 void CheckForConfigChanges();

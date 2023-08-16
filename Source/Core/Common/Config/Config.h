@@ -15,6 +15,14 @@
 
 namespace Config
 {
+struct ConfigChangedCallbackID
+{
+  size_t id = -1;
+
+  bool operator==(const ConfigChangedCallbackID&) const = default;
+  bool operator!=(const ConfigChangedCallbackID&) const = default;
+};
+
 using ConfigChangedCallback = std::function<void()>;
 
 // Layer management
@@ -24,8 +32,8 @@ void RemoveLayer(LayerType layer);
 
 // Returns an ID that can be passed to RemoveConfigChangedCallback().
 // The callback may be called from any thread.
-size_t AddConfigChangedCallback(ConfigChangedCallback func);
-void RemoveConfigChangedCallback(size_t callback_id);
+ConfigChangedCallbackID AddConfigChangedCallback(ConfigChangedCallback func);
+void RemoveConfigChangedCallback(ConfigChangedCallbackID callback_id);
 void OnConfigChanged();
 
 // Returns the number of times the config has changed in the current execution of the program

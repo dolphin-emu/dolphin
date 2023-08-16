@@ -10,6 +10,7 @@
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
+#include "Core/CPUThreadConfigCallback.h"
 #include "Core/ConfigManager.h"
 #include "Core/MachineContext.h"
 #include "Core/PowerPC/CPUCoreBase.h"
@@ -129,7 +130,7 @@ protected:
   PPCAnalyst::CodeBuffer m_code_buffer;
   PPCAnalyst::PPCAnalyzer analyzer;
 
-  size_t m_registered_config_callback_id;
+  CPUThreadConfigCallback::ConfigChangedCallbackID m_registered_config_callback_id;
   bool bJITOff = false;
   bool bJITLoadStoreOff = false;
   bool bJITLoadStorelXzOff = false;
