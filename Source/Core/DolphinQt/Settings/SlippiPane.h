@@ -5,6 +5,7 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QGroupBox>
+#include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QSpinBox>
@@ -29,8 +30,7 @@ private:
   void BrowseReplayFolder();
   void ToggleJukebox(bool checked);
   void SetForceNetplayPort(bool checked);
-  void UpdateSFXMusicBalance(int index);
-  void ConfigureJukebox();
+  void OnMusicVolumeUpdate(int volume);
   void CreateLayout();
   void LoadConfig();
   void ConnectLayout();
@@ -52,5 +52,6 @@ private:
 
   // Jukebox Settings
   QCheckBox* m_enable_jukebox;
-  QSlider* m_sfx_music_balance_slider;
+  QSlider* m_music_volume_slider;
+  QLabel* m_music_volume_percent;
 };

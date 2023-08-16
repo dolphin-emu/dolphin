@@ -4,9 +4,7 @@
 #include <QFileDialog>
 #include <QFormLayout>
 #include <QGridLayout>
-#include <QLabel>
 #include <QSizePolicy>
-#include <QMouseEvent>
 
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
@@ -83,7 +81,6 @@ void SlippiPane::CreateLayout()
   {
     m_netplay_quick_chat_combo->addItem(item);
   }
-  m_netplay_quick_chat_combo->setSizeAdjustPolicy(QComboBox::AdjustToContents);
   online_settings_layout->addRow(tr("Quick Chat:"), m_netplay_quick_chat_combo);
 
   m_netplay_port = new QSpinBox();
@@ -104,7 +101,8 @@ void SlippiPane::CreateLayout()
 
   online_settings_layout->addRow(netplay_port_layout);
 
-  // // i'd like to note that I hate everything about how this is organized for the next two sections
+  // // i'd like to note that I hate everything about how this is organized for the next two
+  // sections
   // // and a lot of the Qstring bullshit drives me up the wall.
   // auto* netplay_ip_edit = new QLineEdit();
   // netplay_ip_edit->setFixedSize(100, 25);
@@ -143,12 +141,12 @@ void SlippiPane::CreateLayout()
   // online_settings_layout->addRow(netplay_ip_layout);
 
   // Jukebox Settings
-  auto* jukebox_settings = new QGroupBox(tr("Jukebox Settings"));
+  auto* jukebox_settings = new QGroupBox(tr("Jukebox Settings (Beta)"));
   auto* jukebox_settings_layout = new QVBoxLayout();
   jukebox_settings->setLayout(jukebox_settings_layout);
   m_main_layout->addWidget(jukebox_settings);
 
-  m_enable_jukebox = new QCheckBox(tr("Enable Music (Beta)"));
+  m_enable_jukebox = new QCheckBox(tr("Enable Music"));
   m_enable_jukebox->setToolTip(
       tr("Toggle in-game music for stages and menus. Changing this does not affect "
          "other audio like character hits or effects. Music will not play when "
@@ -156,16 +154,16 @@ void SlippiPane::CreateLayout()
   jukebox_settings_layout->addWidget(m_enable_jukebox);
 
   auto* sfx_music_slider_layout = new QGridLayout;
-  m_sfx_music_balance_slider = new QSlider(Qt::Horizontal);
-  m_sfx_music_balance_slider->setRange(0, 41);
-  m_sfx_music_balance_slider->setTickPosition(QSlider::TicksBelow);
-  m_sfx_music_balance_slider->setTickInterval(21);
-  auto* sfx_label = new QLabel(tr("Sound Effects"));
-  auto* music_label = new QLabel(tr("Music"));
+  m_music_volume_slider = new QSlider(Qt::Horizontal);
+  m_music_volume_slider->setRange(0, 100);
+  auto* music_volume_label = new QLabel(tr("Music Volume:"));
+  m_music_volume_percent = new QLabel(tr(""));
+  m_music_volume_percent->setFixedWidth(40);
 
-  sfx_music_slider_layout->addWidget(sfx_label, 1, 0);
-  sfx_music_slider_layout->addWidget(m_sfx_music_balance_slider, 1, 1);
-  sfx_music_slider_layout->addWidget(music_label, 1, 2);
+  sfx_music_slider_layout->addWidget(music_volume_label, 1, 0);
+  sfx_music_slider_layout->addWidget(m_music_volume_slider, 1, 1);
+  sfx_music_slider_layout->addWidget(m_music_volume_percent, 1, 2);
+
   jukebox_settings_layout->addLayout(sfx_music_slider_layout);
 
 #else
@@ -206,7 +204,7 @@ void SlippiPane::LoadConfig()
   m_delay_spin->setValue(Config::Get(Config::SLIPPI_ONLINE_DELAY));
   m_netplay_quick_chat_combo->setCurrentIndex(
       static_cast<u8>(Config::Get(Config::SLIPPI_ENABLE_QUICK_CHAT)));
-  
+
   auto force_netplay_port = Config::Get(Config::SLIPPI_FORCE_NETPLAY_PORT);
   m_force_netplay_port->setChecked(force_netplay_port);
   m_netplay_port->setValue(Config::Get(Config::SLIPPI_NETPLAY_PORT));
@@ -215,10 +213,12 @@ void SlippiPane::LoadConfig()
 
   // Jukebox Settings
   auto enable_jukebox = Config::Get(Config::SLIPPI_ENABLE_JUKEBOX);
+  auto jukebox_volume = Config::Get(Config::SLIPPI_JUKEBOX_VOLUME);
   m_enable_jukebox->setChecked(enable_jukebox);
-  m_sfx_music_balance_slider->setValue(Config::Get(Config::SLIPPI_SFX_MUSIC_BALANCE));
+  m_music_volume_slider->setValue(jukebox_volume);
+  m_music_volume_percent->setText(tr(" %1%").arg(jukebox_volume));
 
-  m_sfx_music_balance_slider->setDisabled(!enable_jukebox);
+  m_music_volume_slider->setDisabled(!enable_jukebox);
 }
 
 void SlippiPane::ConnectLayout()
@@ -242,10 +242,8 @@ void SlippiPane::ConnectLayout()
 
   // Jukebox Settings
   connect(m_enable_jukebox, &QCheckBox::toggled, this, &SlippiPane::ToggleJukebox);
-  connect(m_sfx_music_balance_slider, qOverload<int>(&QSlider::valueChanged), this,
-          [](int index) {
-            
-          });
+  connect(m_music_volume_slider, qOverload<int>(&QSlider::valueChanged), this,
+          &SlippiPane::OnMusicVolumeUpdate);
 }
 
 void SlippiPane::SetSaveReplays(bool checked)
@@ -277,20 +275,8 @@ void SlippiPane::SetForceNetplayPort(bool checked)
 void SlippiPane::ToggleJukebox(bool checked)
 {
   Config::SetBase(Config::SLIPPI_ENABLE_JUKEBOX, checked);
-  m_sfx_music_balance_slider->setDisabled(!checked);
+  m_music_volume_slider->setDisabled(!checked);
 
-  ConfigureJukebox();
-}
-
-void SlippiPane::UpdateSFXMusicBalance(int index)
-{
-  Config::SetBase(Config::SLIPPI_SFX_MUSIC_BALANCE, index);
-
-  ConfigureJukebox();
-}
-
-void SlippiPane::ConfigureJukebox()
-{
   if (Core::GetState() == Core::State::Running)
   {
     auto& system = Core::System::GetInstance();
@@ -301,6 +287,12 @@ void SlippiPane::ConfigureJukebox()
     if (slippi_exi != nullptr)
       slippi_exi->ConfigureJukebox();
   }
+}
+
+void SlippiPane::OnMusicVolumeUpdate(int volume)
+{
+  Config::SetBase(Config::SLIPPI_JUKEBOX_VOLUME, volume);
+  m_music_volume_percent->setText(tr(" %1%").arg(volume));
 }
 
 void SlippiPane::OnSaveConfig()

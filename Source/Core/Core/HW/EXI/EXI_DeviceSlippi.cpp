@@ -135,6 +135,12 @@ void OSDMessageHandler(const char* message, u32 color, u32 duration_ms)
   OSD::AddMessage(msg, duration_ms, color);
 }
 
+// This function gets passed to Jukebox for handling music volume changes
+int GetJukeboxVolume()
+{
+  return Config::Get(Config::SLIPPI_JUKEBOX_VOLUME);
+}
+
 CEXISlippi::CEXISlippi(Core::System& system, const std::string current_file_name)
     : IEXIDevice(system)
 {
@@ -2390,7 +2396,7 @@ void CEXISlippi::prepareOnlineMatchState()
   appendWordToBuffer(&m_read_queue, rngOffset);
 
   // Add delay frames to output
-  m_read_queue.push_back(static_cast<u8>(Config::Get(Config::SLIPPI_ONLINE_DELAY)));
+  m_read_queue.push_back(static_cast<int>(Config::Get(Config::SLIPPI_ONLINE_DELAY)));
 
   // Add chat messages id
   m_read_queue.push_back(static_cast<u8>(sentChatMessageId));
@@ -3287,9 +3293,9 @@ void CEXISlippi::ConfigureJukebox()
 
   auto& system = Core::System::GetInstance();
 
-  slprs_exi_device_configure_jukebox(slprs_exi_device_ptr,
-                                     Config::Get(Config::SLIPPI_ENABLE_JUKEBOX),
-                                     system.GetMemory().GetRAM(), AudioCommonGetCurrentVolume);
+  slprs_exi_device_configure_jukebox(
+      slprs_exi_device_ptr, Config::Get(Config::SLIPPI_ENABLE_JUKEBOX), system.GetMemory().GetRAM(),
+      AudioCommonGetCurrentVolume, GetJukeboxVolume);
 #endif
 }
 
