@@ -131,7 +131,7 @@ void HiresTexture::Update()
           // Since this is just a texture (single file) the mapper doesn't really matter
           // just provide a string
           s_file_library->SetAssetIDMapData(
-              filename, std::map<std::string, std::filesystem::path>{{"", path}});
+              filename, std::map<std::string, std::filesystem::path>{{"", StringToPath(path)}});
 
           if (g_ActiveConfig.bCacheHiresTextures)
           {
