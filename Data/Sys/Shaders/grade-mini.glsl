@@ -73,7 +73,7 @@ StepAmount = 1
 DefaultValue = 2
 
 [OptionRangeInteger]
-GUIName = Display Color Space (0:709 1:sRGB 2:P3-D65 3:Custom (Edit L495))
+GUIName = Display Color Space (0:709 1:sRGB 2:P3-D65 3:Custom (Edit L501))
 OptionName = g_space_out
 MinValue = 0
 MaxValue = 3
@@ -517,7 +517,7 @@ void main()
     float4    c0  = Sample();
     float3    src = c0.rgb;
 
-// Mask compensation (highlight recovering)
+// Mask compensation (highlight recovery)
               src = 1.0-pow(1.0-src, float3(1.0/1.10));
 
 // Clipping Logic / Gamut Limiting
