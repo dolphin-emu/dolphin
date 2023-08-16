@@ -22,7 +22,8 @@ void AddLayer(std::unique_ptr<ConfigLayerLoader> loader);
 std::shared_ptr<Layer> GetLayer(LayerType layer);
 void RemoveLayer(LayerType layer);
 
-// returns an ID that can be passed to RemoveConfigChangedCallback()
+// Returns an ID that can be passed to RemoveConfigChangedCallback().
+// The callback may be called from any thread.
 size_t AddConfigChangedCallback(ConfigChangedCallback func);
 void RemoveConfigChangedCallback(size_t callback_id);
 void OnConfigChanged();

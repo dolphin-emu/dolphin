@@ -7,6 +7,8 @@
 #include "Common/CommonTypes.h"
 #include "Common/MemoryUtil.h"
 #include "Common/Thread.h"
+
+#include "Core/CPUThreadConfigCallback.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -64,14 +66,14 @@ JitBase::JitBase(Core::System& system)
     : m_code_buffer(code_buffer_size), m_system(system), m_ppc_state(system.GetPPCState()),
       m_mmu(system.GetMMU())
 {
-  m_registered_config_callback_id = Config::AddConfigChangedCallback(
-      [this] { Core::RunAsCPUThread([this] { RefreshConfig(); }); });
+  m_registered_config_callback_id =
+      CPUThreadConfigCallback::AddConfigChangedCallback([this] { RefreshConfig(); });
   RefreshConfig();
 }
 
 JitBase::~JitBase()
 {
-  Config::RemoveConfigChangedCallback(m_registered_config_callback_id);
+  CPUThreadConfigCallback::RemoveConfigChangedCallback(m_registered_config_callback_id);
 }
 
 void JitBase::RefreshConfig()

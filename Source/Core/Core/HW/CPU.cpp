@@ -10,6 +10,7 @@
 #include "AudioCommon/AudioCommon.h"
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
+#include "Core/CPUThreadConfigCallback.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
 #include "Core/PowerPC/GDBStub.h"
@@ -75,6 +76,7 @@ void CPUManager::Run()
   {
     m_state_cpu_cvar.wait(state_lock, [this] { return !m_state_paused_and_locked; });
     ExecutePendingJobs(state_lock);
+    CPUThreadConfigCallback::CheckForConfigChanges();
 
     Common::Event gdb_step_sync_event;
     switch (m_state)
@@ -113,6 +115,7 @@ void CPUManager::Run()
       // Wait for step command.
       m_state_cpu_cvar.wait(state_lock, [this, &state_lock, &gdb_step_sync_event] {
         ExecutePendingJobs(state_lock);
+        CPUThreadConfigCallback::CheckForConfigChanges();
         state_lock.unlock();
         if (GDBStub::IsActive() && GDBStub::HasControl())
         {
