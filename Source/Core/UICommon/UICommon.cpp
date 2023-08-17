@@ -487,8 +487,8 @@ void SetUserDirectory(std::string custom_path)
       }
     }
 #endif
-  }
 #endif
+  }
 #endif
   File::SetUserPath(D_USER_IDX, std::move(user_path));
 }

@@ -20,6 +20,7 @@
 #include <string>
 #include <type_traits>
 #include <vector>
+#include <unordered_map>
 
 #include <fmt/format.h>
 
@@ -593,7 +594,7 @@ std::string UTF16BEToUTF8(const char16_t* str, size_t max_size)
 template <typename T>
 #ifdef __APPLE__
 std::string CodeToWithFallbacks(const char* tocode, const char* fromcode,
-                                const std::basic_string<T>& input, iconv_fallbacks* fallbacks)
+                                const std::basic_string_view<T> input, iconv_fallbacks* fallbacks)
 #else
 std::string CodeTo(const char* tocode, const char* fromcode, std::basic_string_view<T> input)
 #endif
@@ -664,6 +665,14 @@ std::string CodeTo(const char* tocode, const char* fromcode, std::basic_string_v
 
   return result;
 }
+
+#ifdef __APPLE__
+template <typename T>
+std::string CodeTo(const char* tocode, const char* fromcode, std::basic_string_view<T> input)
+{
+    return CodeToWithFallbacks(tocode, fromcode, input, nullptr);
+}
+#endif
 
 template <typename T>
 std::string CodeToUTF8(const char* fromcode, std::basic_string_view<T> input)
@@ -746,10 +755,10 @@ std::string UTF8ToSHIFTJIS(std::string_view input)
   fallbacks->mb_to_wc_fallback = nullptr;
   fallbacks->wc_to_mb_fallback = nullptr;
   fallbacks->data = nullptr;
-  auto str = CodeToWithFallbacks("SJIS", "UTF-8", input, fallbacks);
+  auto str = CodeToWithFallbacks("SJIS", "UTF-8", std::string_view(input), fallbacks);
   free(fallbacks);
 #else
-  auto str = CodeTo("SJIS", "UTF-8", input);
+  auto str = CodeTo("SJIS", "UTF-8", std::string_view(input));
 #endif
   return str;
 }

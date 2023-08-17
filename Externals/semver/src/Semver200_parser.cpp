@@ -92,8 +92,11 @@ namespace version {
 			for (const auto& r : allowed_prerel_id_chars) {
 				res |= (c >= r.first && c <= r.second);
 			}
-			//if (!res)
-			//	throw Parse_error("invalid character encountered: " + string(1, c));
+                        // Trick the compiler that this is being used so it stops crashing on macos
+                        (void)res;
+
+                        // if (!res)
+                        //	throw Parse_error("invalid character encountered: " + string(1, c));
 		}
 
 		inline bool is_identifier_numeric(const string& id) {
