@@ -117,7 +117,7 @@ static constexpr float GFX_CC_DISPLAY_GAMMA_MIN = 2.2f;
 static constexpr float GFX_CC_DISPLAY_GAMMA_MAX = 2.4f;
 
 static constexpr float GFX_CC_HDR_PAPER_WHITE_NITS_MIN = 80.f;
-static constexpr float GFX_CC_HDR_PAPER_WHITE_NITS_MAX = 400.f;
+static constexpr float GFX_CC_HDR_PAPER_WHITE_NITS_MAX = 500.f;
 
 extern const Info<bool> GFX_CC_CORRECT_COLOR_SPACE;
 extern const Info<ColorCorrectionRegion> GFX_CC_GAME_COLOR_SPACE;
