@@ -236,9 +236,9 @@ void PowerPCManager::InitializeCPUCore(CPUCore cpu_core)
   m_mode = m_cpu_core_base == &interpreter ? CoreMode::Interpreter : CoreMode::JIT;
 }
 
-const std::vector<CPUCore>& AvailableCPUCores()
+std::span<const CPUCore> AvailableCPUCores()
 {
-  static const std::vector<CPUCore> cpu_cores = {
+  static constexpr auto cpu_cores = {
 #ifdef _M_X86_64
       CPUCore::JIT64,
 #elif defined(_M_ARM_64)
