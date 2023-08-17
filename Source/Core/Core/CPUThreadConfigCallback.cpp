@@ -44,8 +44,6 @@ namespace CPUThreadConfigCallback
 {
 ConfigChangedCallbackID AddConfigChangedCallback(Config::ConfigChangedCallback func)
 {
-  DEBUG_ASSERT(Core::IsCPUThread());
-
   static auto s_config_changed_callback_id = Config::AddConfigChangedCallback(&OnConfigChanged);
 
   const ConfigChangedCallbackID callback_id{s_next_callback_id};
@@ -56,8 +54,6 @@ ConfigChangedCallbackID AddConfigChangedCallback(Config::ConfigChangedCallback f
 
 void RemoveConfigChangedCallback(ConfigChangedCallbackID callback_id)
 {
-  DEBUG_ASSERT(Core::IsCPUThread());
-
   for (auto it = s_callbacks.begin(); it != s_callbacks.end(); ++it)
   {
     if (it->first == callback_id)
