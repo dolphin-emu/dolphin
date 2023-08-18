@@ -89,10 +89,6 @@ void IEXIDevice::DoState(PointerWrap& p)
 {
 }
 
-void IEXIDevice::PauseAndLock(bool do_lock, bool resume_on_unlock)
-{
-}
-
 bool IEXIDevice::IsInterruptSet()
 {
   return false;

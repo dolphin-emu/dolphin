@@ -45,7 +45,6 @@ public:
 
   bool IsCausingInterrupt();
   void DoState(PointerWrap& p);
-  void PauseAndLock(bool do_lock, bool resume_on_unlock);
 
   // This should only be used to transition interrupts from SP1 to Channel 2
   void SetEXIINT(bool exiint);

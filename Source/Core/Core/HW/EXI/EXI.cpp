@@ -169,12 +169,6 @@ void ExpansionInterfaceManager::DoState(PointerWrap& p)
     channel->DoState(p);
 }
 
-void ExpansionInterfaceManager::PauseAndLock(bool doLock, bool unpauseOnUnlock)
-{
-  for (auto& channel : m_channels)
-    channel->PauseAndLock(doLock, unpauseOnUnlock);
-}
-
 void ExpansionInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
   for (int i = 0; i < MAX_EXI_CHANNELS; ++i)

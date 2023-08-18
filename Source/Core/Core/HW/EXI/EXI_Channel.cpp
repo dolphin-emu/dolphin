@@ -286,12 +286,6 @@ void CEXIChannel::DoState(PointerWrap& p)
   }
 }
 
-void CEXIChannel::PauseAndLock(bool do_lock, bool resume_on_unlock)
-{
-  for (auto& device : m_devices)
-    device->PauseAndLock(do_lock, resume_on_unlock);
-}
-
 void CEXIChannel::SetEXIINT(bool exiint)
 {
   m_status.EXIINT = !!exiint;
