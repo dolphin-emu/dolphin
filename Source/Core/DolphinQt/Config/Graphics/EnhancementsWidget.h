@@ -39,6 +39,7 @@ private:
   ConfigChoice* m_ir_combo;
   ToolTipComboBox* m_aa_combo;
   ToolTipComboBox* m_texture_filtering_combo;
+  ToolTipComboBox* m_output_resampling_combo;
   ToolTipComboBox* m_pp_effect;
   ToolTipPushButton* m_configure_color_correction;
   QPushButton* m_configure_pp_effect;

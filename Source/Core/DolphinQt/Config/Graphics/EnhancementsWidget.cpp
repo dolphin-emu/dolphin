@@ -105,6 +105,22 @@ void EnhancementsWidget::CreateWidgets()
   m_texture_filtering_combo->addItem(tr("Force Linear and 16x Anisotropic"),
                                      TEXTURE_FILTERING_FORCE_LINEAR_ANISO_16X);
 
+  m_output_resampling_combo = new ToolTipComboBox();
+  m_output_resampling_combo->addItem(tr("Default"),
+                                     static_cast<int>(OutputResamplingMode::Default));
+  m_output_resampling_combo->addItem(tr("Bilinear"),
+                                     static_cast<int>(OutputResamplingMode::Bilinear));
+  m_output_resampling_combo->addItem(tr("Bicubic: B-Spline"),
+                                     static_cast<int>(OutputResamplingMode::BSpline));
+  m_output_resampling_combo->addItem(tr("Bicubic: Mitchell-Netravali"),
+                                     static_cast<int>(OutputResamplingMode::MitchellNetravali));
+  m_output_resampling_combo->addItem(tr("Bicubic: Catmull-Rom"),
+                                     static_cast<int>(OutputResamplingMode::CatmullRom));
+  m_output_resampling_combo->addItem(tr("Sharp Bilinear"),
+                                     static_cast<int>(OutputResamplingMode::SharpBilinear));
+  m_output_resampling_combo->addItem(tr("Area Sampling"),
+                                     static_cast<int>(OutputResamplingMode::AreaSampling));
+
   m_configure_color_correction = new ToolTipPushButton(tr("Configure"));
 
   m_pp_effect = new ToolTipComboBox();
@@ -134,6 +150,10 @@ void EnhancementsWidget::CreateWidgets()
 
   enhancements_layout->addWidget(new QLabel(tr("Texture Filtering:")), row, 0);
   enhancements_layout->addWidget(m_texture_filtering_combo, row, 1, 1, -1);
+  ++row;
+
+  enhancements_layout->addWidget(new QLabel(tr("Output Resampling:")), row, 0);
+  enhancements_layout->addWidget(m_output_resampling_combo, row, 1, 1, -1);
   ++row;
 
   enhancements_layout->addWidget(new QLabel(tr("Color Correction:")), row, 0);
@@ -194,6 +214,8 @@ void EnhancementsWidget::ConnectWidgets()
   connect(m_aa_combo, qOverload<int>(&QComboBox::currentIndexChanged),
           [this](int) { SaveSettings(); });
   connect(m_texture_filtering_combo, qOverload<int>(&QComboBox::currentIndexChanged),
+          [this](int) { SaveSettings(); });
+  connect(m_output_resampling_combo, qOverload<int>(&QComboBox::currentIndexChanged),
           [this](int) { SaveSettings(); });
   connect(m_pp_effect, qOverload<int>(&QComboBox::currentIndexChanged),
           [this](int) { SaveSettings(); });
@@ -325,6 +347,14 @@ void EnhancementsWidget::LoadSettings()
     break;
   }
 
+  // Resampling
+  const OutputResamplingMode output_resampling_mode =
+      Config::Get(Config::GFX_ENHANCE_OUTPUT_RESAMPLING);
+  m_output_resampling_combo->setCurrentIndex(static_cast<int>(output_resampling_mode));
+
+  m_output_resampling_combo->setEnabled(g_Config.backend_info.bSupportsPostProcessing);
+
+  // Color Correction
   m_configure_color_correction->setEnabled(g_Config.backend_info.bSupportsPostProcessing);
 
   // Post Processing Shader
@@ -413,6 +443,10 @@ void EnhancementsWidget::SaveSettings()
     break;
   }
 
+  const int output_resampling_selection = m_output_resampling_combo->currentData().toInt();
+  Config::SetBaseOrCurrent(Config::GFX_ENHANCE_OUTPUT_RESAMPLING,
+                           static_cast<OutputResamplingMode>(output_resampling_selection));
+
   const bool anaglyph = g_Config.stereo_mode == StereoMode::Anaglyph;
   const bool passive = g_Config.stereo_mode == StereoMode::Passive;
   Config::SetBaseOrCurrent(Config::GFX_ENHANCE_POST_SHADER,
@@ -455,6 +489,37 @@ void EnhancementsWidget::AddDescriptions()
       "scaling filter selected by the game.<br><br>Any option except 'Default' will alter the look "
       "of the game's textures and might cause issues in a small number of "
       "games.<br><br><dolphin_emphasis>If unsure, select 'Default'.</dolphin_emphasis>");
+  static const char TR_OUTPUT_RESAMPLING_DESCRIPTION[] =
+      QT_TR_NOOP("Affects how the game output is scaled to the window resolution."
+                 "<br>The performance mostly depends on the number of samples each method uses."
+                 "<br>Compared to SSAA, resampling is useful in case the output window"
+                 "<br>resolution isn't a multiplier of the native emulation resolution."
+
+                 "<br><br><b>Default</b> - [fastest]"
+                 "<br>Internal GPU bilinear sampler which is not gamma corrected."
+                 "<br>This setting might be ignored if gamma correction is forced on."
+
+                 "<br><br><b>Bilinear</b> - [4 samples]"
+                 "<br>Gamma corrected linear interpolation between pixels."
+
+                 "<br><br><b>Bicubic</b> - [16 samples]"
+                 "<br>Gamma corrected cubic interpolation between pixels."
+                 "<br>Good when rescaling between close resolutions. i.e 1080p and 1440p."
+                 "<br>Comes in various flavors:"
+                 "<br><b>B-Spline</b>: Blurry, but avoids all lobing artifacts"
+                 "<br><b>Mitchell-Netravali</b>: Good middle ground between blurry and lobing"
+                 "<br><b>Catmull-Rom</b>: Sharper, but can cause lobing artifacts"
+
+                 "<br><br><b>Sharp Bilinear</b> - [1-4 samples]"
+                 "<br>Similarly to \"Nearest Neighbor\", it maintains a sharp look,"
+                 "<br>but also does some blending to avoid shimmering."
+                 "<br>Works best with 2D games at low resolutions."
+
+                 "<br><br><b>Area Sampling</b> - [up to 324 samples]"
+                 "<br>Weights pixels by the percentage of area they occupy. Gamma corrected."
+                 "<br>Best for down scaling by more than 2x."
+
+                 "<br><br><dolphin_emphasis>If unsure, select 'Default'.</dolphin_emphasis>");
   static const char TR_COLOR_CORRECTION_DESCRIPTION[] =
       QT_TR_NOOP("A group of features to make the colors more accurate, matching the color space "
                  "Wii and GC games were meant for.");
@@ -536,6 +601,9 @@ void EnhancementsWidget::AddDescriptions()
 
   m_texture_filtering_combo->SetTitle(tr("Texture Filtering"));
   m_texture_filtering_combo->SetDescription(tr(TR_FORCE_TEXTURE_FILTERING_DESCRIPTION));
+
+  m_output_resampling_combo->SetTitle(tr("Output Resampling"));
+  m_output_resampling_combo->SetDescription(tr(TR_OUTPUT_RESAMPLING_DESCRIPTION));
 
   m_configure_color_correction->SetTitle(tr("Color Correction"));
   m_configure_color_correction->SetDescription(tr(TR_COLOR_CORRECTION_DESCRIPTION));
