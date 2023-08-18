@@ -8,7 +8,9 @@ on:
         - "**.md"
         - "**.ini"
   pull_request:
-    branches: [ master ]
+    branches:
+      - master
+      - task/update
     paths-ignore:
       - "**.md"
       - "**.ini"
@@ -232,15 +234,15 @@ jobs:
           echo "GIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
           echo "GIT_TAG=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
           echo "CURR_DATE=$(date +%Y-%m-%d)" >> $GITHUB_ENV
-      - name: "Install 10.14 SDK"
-        if: success()
-        shell: bash
-        working-directory: ${{ github.workspace }}
-        run: |
-          wget https://github.com/phracker/MacOSX-SDKs/releases/download/10.15/MacOSX10.14.sdk.tar.xz
-          tar -xf MacOSX10.14.sdk.tar.xz
-          rm MacOSX10.14.sdk.tar.xz
-          sudo mv MacOSX10.14.sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/
+      # - name: "Install 10.14 SDK"
+      #   if: success()
+      #   shell: bash
+      #   working-directory: ${{ github.workspace }}
+      #   run: |
+      #     wget https://github.com/phracker/MacOSX-SDKs/releases/download/10.15/MacOSX10.14.sdk.tar.xz
+      #     tar -xf MacOSX10.14.sdk.tar.xz
+      #     rm MacOSX10.14.sdk.tar.xz
+      #     sudo mv MacOSX10.14.sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/
       - name: "Download and Install prerequisites"
         if: success()
         shell: bash
@@ -255,7 +257,7 @@ jobs:
           libao \
           sound-touch \
           hidapi \
-          qt@5
+          qt@6
       - name: "Build ${{ matrix.build_type }} Dolphin"
         if: success()
         shell: bash
