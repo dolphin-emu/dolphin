@@ -61,6 +61,7 @@ public:
     u32 entry_address;
   };
 
+  void UpdateMembase();
   void SetProfilingState(ProfilingState state);
   void WriteProfileResults(const std::string& filename) const;
   void GetProfileResults(Profiler::ProfileStats* prof_stats) const;

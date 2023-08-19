@@ -438,7 +438,10 @@ void Jit64::mtmsr(UGeckoInstruction inst)
     RCOpArg Rs = gpr.BindOrImm(inst.RS, RCMode::Read);
     RegCache::Realize(Rs);
     MOV(32, PPCSTATE(msr), Rs);
+
+    EmitStoreMembase(PPCSTATE(msr), RSCRATCH2);
   }
+
   gpr.Flush();
   fpr.Flush();
 
