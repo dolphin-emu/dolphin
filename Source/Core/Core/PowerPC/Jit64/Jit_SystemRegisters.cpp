@@ -588,8 +588,8 @@ void Jit64::mcrxr(UGeckoInstruction inst)
   MOV(64, CROffset(inst.CRFD), R(RSCRATCH));
 
   // Clear XER[0-3]
-  MOV(8, PPCSTATE(xer_ca), Imm8(0));
-  MOV(8, PPCSTATE(xer_so_ov), Imm8(0));
+  static_assert(PPCSTATE_OFF(xer_ca) + 1 == PPCSTATE_OFF(xer_so_ov));
+  MOV(16, PPCSTATE(xer_ca), Imm8(0));
 }
 
 void Jit64::crXXX(UGeckoInstruction inst)
