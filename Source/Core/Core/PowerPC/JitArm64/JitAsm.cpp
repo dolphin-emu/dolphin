@@ -121,11 +121,12 @@ void JitArm64::GenerateAsm()
       ARM64Reg pc = ARM64Reg::W11;
       ARM64Reg msr = ARM64Reg::W12;
       ARM64Reg msr2 = ARM64Reg::W13;
+      ARM64Reg entry = ARM64Reg::X14;
 
       // iCache[(address >> 2) & iCache_Mask];
+      MOVP2R(cache_base, GetBlockCache()->GetFastBlockMapFallback());
       UBFX(pc_masked, DISPATCHER_PC, 2,
            MathUtil::IntLog2(JitBaseBlockCache::FAST_BLOCK_MAP_FALLBACK_ELEMENTS) - 2);
-      MOVP2R(cache_base, GetBlockCache()->GetFastBlockMapFallback());
       LDR(block, cache_base, ArithOption(EncodeRegTo64(pc_masked), true));
       FixupBranch not_found = CBZ(block);
 
@@ -133,17 +134,17 @@ void JitArm64::GenerateAsm()
       static_assert(offsetof(JitBlockData, msrBits) + 4 ==
                     offsetof(JitBlockData, effectiveAddress));
       LDP(IndexType::Signed, msr, pc, block, offsetof(JitBlockData, effectiveAddress));
+      LDR(IndexType::Unsigned, msr2, PPC_REG, PPCSTATE_OFF(msr));
       CMP(pc, DISPATCHER_PC);
       FixupBranch pc_mismatch = B(CC_NEQ);
 
-      LDR(IndexType::Unsigned, msr2, PPC_REG, PPCSTATE_OFF(msr));
+      LDR(IndexType::Unsigned, entry, block, offsetof(JitBlockData, normalEntry));
       AND(msr2, msr2, LogicalImm(JitBaseBlockCache::JIT_CACHE_MSR_MASK, 32));
       CMP(msr, msr2);
       FixupBranch msr_mismatch = B(CC_NEQ);
 
       // return blocks[block_num].normalEntry;
-      LDR(IndexType::Unsigned, block, block, offsetof(JitBlockData, normalEntry));
-      BR(block);
+      BR(entry);
 
       SetJumpTarget(not_found);
       SetJumpTarget(pc_mismatch);
