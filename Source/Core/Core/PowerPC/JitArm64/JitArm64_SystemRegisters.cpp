@@ -91,10 +91,15 @@ void JitArm64::mtmsr(UGeckoInstruction inst)
   JITDISABLE(bJITSystemRegistersOff);
   FALLBACK_IF(jo.fp_exceptions);
 
+  const bool imm_value = gpr.IsImm(inst.RS);
+  if (imm_value)
+    EmitStoreMembase(gpr.GetImm(inst.RS));
+
   gpr.BindToRegister(inst.RS, true);
   STR(IndexType::Unsigned, gpr.R(inst.RS), PPC_REG, PPCSTATE_OFF(msr));
 
-  EmitStoreMembase(gpr.R(inst.RS));
+  if (!imm_value)
+    EmitStoreMembase(gpr.R(inst.RS));
 
   gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
   fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
