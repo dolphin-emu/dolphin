@@ -22,7 +22,7 @@ fi
 mkdir -p build
 pushd build
 cmake ${CMAKE_FLAGS} ../
-make -j$(nproc)
+cmake --build . --target dolphin-emu -- -j$(nproc)
 popd
 
 # Copy the Sys folder in
