@@ -867,6 +867,22 @@ std::string MMU::HostGetString(const Core::CPUThreadGuard& guard, u32 address, s
   return s;
 }
 
+std::u16string MMU::HostGetU16String(const Core::CPUThreadGuard& guard, u32 address, size_t size)
+{
+  std::u16string s;
+  do
+  {
+    if (!HostIsRAMAddress(guard, address) || !HostIsRAMAddress(guard, address + 1))
+      break;
+    const u16 res = HostRead_U16(guard, address);
+    if (!res)
+      break;
+    s += static_cast<char16_t>(res);
+    address += 2;
+  } while (size == 0 || s.length() < size);
+  return s;
+}
+
 std::optional<ReadResult<std::string>> MMU::HostTryReadString(const Core::CPUThreadGuard& guard,
                                                               u32 address, size_t size,
                                                               RequestedAddressSpace space)
