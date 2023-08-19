@@ -68,7 +68,7 @@ void Jit64AsmRoutineManager::Generate()
   // When we've just entered the jit we need to update the membase
   // GlobalAdvance also checks exceptions after which we need to
   // update the membase so it makes sense to do this here.
-  m_jit.EmitUpdateMembase();
+  MOV(64, R(RMEM), PPCSTATE(mem_ptr));
 
   // skip the sync and compare first time
   FixupBranch skipToRealDispatch = J(enable_debugging ? Jump::Near : Jump::Short);
