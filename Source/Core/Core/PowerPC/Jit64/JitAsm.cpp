@@ -19,11 +19,6 @@
 #include "Core/System.h"
 
 using namespace Gen;
-
-// These need to be next of each other so that the assembly
-// code can compare them easily.
-static_assert(offsetof(JitBlockData, effectiveAddress) + 4 == offsetof(JitBlockData, msrBits));
-
 Jit64AsmRoutineManager::Jit64AsmRoutineManager(Jit64& jit) : CommonAsmRoutines(jit)
 {
 }
@@ -168,12 +163,14 @@ void Jit64AsmRoutineManager::Generate()
       // Check block.msrBits.
       MOV(32, R(RSCRATCH2), PPCSTATE(msr));
       AND(32, R(RSCRATCH2), Imm32(JitBaseBlockCache::JIT_CACHE_MSR_MASK));
-      // Also check the block.effectiveAddress
-      SHL(64, R(RSCRATCH2), Imm8(32));
-      // RSCRATCH_EXTRA still has the PC.
+      // Also check the block.effectiveAddress. RSCRATCH_EXTRA still has the PC.
+      SHL(64, R(RSCRATCH_EXTRA), Imm8(32));
       OR(64, R(RSCRATCH2), R(RSCRATCH_EXTRA));
-      CMP(64, R(RSCRATCH2),
-          MDisp(RSCRATCH, static_cast<s32>(offsetof(JitBlockData, effectiveAddress))));
+
+      static_assert(offsetof(JitBlockData, msrBits) + 4 ==
+                    offsetof(JitBlockData, effectiveAddress));
+
+      CMP(64, R(RSCRATCH2), MDisp(RSCRATCH, static_cast<s32>(offsetof(JitBlockData, msrBits))));
 
       state_mismatch = J_CC(CC_NE);
       // Success; branch to the block we found.

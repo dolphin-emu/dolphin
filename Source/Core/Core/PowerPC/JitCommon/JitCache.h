@@ -33,10 +33,10 @@ struct JitBlockData
   // The normal entry point for the block, returned by Dispatch().
   u8* normalEntry;
 
-  // The effective address (PC) for the beginning of the block.
-  u32 effectiveAddress;
   // The MSR bits expected for this block to be valid; see JIT_CACHE_MSR_MASK.
   u32 msrBits;
+  // The effective address (PC) for the beginning of the block.
+  u32 effectiveAddress;
   // The physical address of the code represented by this block.
   // Various maps in the cache are indexed by this (block_map
   // and valid_block in particular). This is useful because of
