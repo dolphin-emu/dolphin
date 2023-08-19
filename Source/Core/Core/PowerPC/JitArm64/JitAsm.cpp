@@ -123,11 +123,10 @@ void JitArm64::GenerateAsm()
       ARM64Reg msr2 = ARM64Reg::W13;
 
       // iCache[(address >> 2) & iCache_Mask];
-      ORR(pc_masked, ARM64Reg::WZR,
-          LogicalImm(JitBaseBlockCache::FAST_BLOCK_MAP_FALLBACK_MASK << 3, 32));
-      AND(pc_masked, pc_masked, DISPATCHER_PC, ArithOption(DISPATCHER_PC, ShiftType::LSL, 1));
+      UBFX(pc_masked, DISPATCHER_PC, 2,
+           MathUtil::IntLog2(JitBaseBlockCache::FAST_BLOCK_MAP_FALLBACK_ELEMENTS) - 2);
       MOVP2R(cache_base, GetBlockCache()->GetFastBlockMapFallback());
-      LDR(block, cache_base, EncodeRegTo64(pc_masked));
+      LDR(block, cache_base, ArithOption(EncodeRegTo64(pc_masked), true));
       FixupBranch not_found = CBZ(block);
 
       // b.effectiveAddress != addr || b.msrBits != msr
