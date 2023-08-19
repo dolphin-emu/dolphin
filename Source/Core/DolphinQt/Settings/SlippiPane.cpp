@@ -9,12 +9,12 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/HW/EXI/EXI.h"
 #include "Core/System.h"
 
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 
 #ifndef IS_PLAYBACK
+#include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_DeviceSlippi.h"
 #include "SlippiPane.h"
 #endif
@@ -161,7 +161,7 @@ void SlippiPane::CreateLayout()
   m_music_volume_percent->setFixedWidth(40);
 
   sfx_music_slider_layout->addWidget(music_volume_label, 1, 0);
-  sfx_music_slider_layout->addWidget(m_music_volume_slider, 1, 1);
+  sfx_music_slider_layout->addWidget(m_music_volume_slider, 1, 1, Qt::AlignVCenter);
   sfx_music_slider_layout->addWidget(m_music_volume_percent, 1, 2);
 
   jukebox_settings_layout->addLayout(sfx_music_slider_layout);
@@ -190,6 +190,7 @@ void SlippiPane::CreateLayout()
 
 void SlippiPane::LoadConfig()
 {
+#ifndef IS_PLAYBACK
   // Replay Settings
   auto save_replays = Config::Get(Config::SLIPPI_SAVE_REPLAYS);
   m_save_replays->setChecked(save_replays);
@@ -219,10 +220,14 @@ void SlippiPane::LoadConfig()
   m_music_volume_percent->setText(tr(" %1%").arg(jukebox_volume));
 
   m_music_volume_slider->setDisabled(!enable_jukebox);
+#else
+  // HOOKUP PLAYBACK STUFF
+#endif
 }
 
 void SlippiPane::ConnectLayout()
 {
+#ifndef IS_PLAYBACK
   // Replay Settings
   connect(m_save_replays, &QCheckBox::toggled, this, &SlippiPane::SetSaveReplays);
   connect(m_monthly_replay_folders, &QCheckBox::toggled, this,
@@ -244,6 +249,9 @@ void SlippiPane::ConnectLayout()
   connect(m_enable_jukebox, &QCheckBox::toggled, this, &SlippiPane::ToggleJukebox);
   connect(m_music_volume_slider, qOverload<int>(&QSlider::valueChanged), this,
           &SlippiPane::OnMusicVolumeUpdate);
+#else
+  // HOOKUP PLAYBACK STUFF
+#endif
 }
 
 void SlippiPane::SetSaveReplays(bool checked)
@@ -293,6 +301,16 @@ void SlippiPane::OnMusicVolumeUpdate(int volume)
 {
   Config::SetBase(Config::SLIPPI_JUKEBOX_VOLUME, volume);
   m_music_volume_percent->setText(tr(" %1%").arg(volume));
+  if (Core::GetState() == Core::State::Running)
+  {
+    auto& system = Core::System::GetInstance();
+    auto& exi_manager = system.GetExpansionInterface();
+    ExpansionInterface::CEXISlippi* slippi_exi = static_cast<ExpansionInterface::CEXISlippi*>(
+        exi_manager.GetDevice(ExpansionInterface::Slot::B));
+
+    if (slippi_exi != nullptr)
+      slippi_exi->UpdateJukeboxDolphinMusicVolume(volume);
+  }
 }
 
 void SlippiPane::OnSaveConfig()

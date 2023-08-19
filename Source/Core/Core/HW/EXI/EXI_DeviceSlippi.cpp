@@ -41,6 +41,7 @@
 #include "VideoCommon/OnScreenDisplay.h"
 
 // The Rust library that houses a "shadow" EXI Device that we can call into.
+#include "EXI_DeviceSlippi.h"
 #include "SlippiRustExtensions.h"
 
 #define FRAME_INTERVAL 900
@@ -133,12 +134,6 @@ void OSDMessageHandler(const char* message, u32 color, u32 duration_ms)
   std::string msg(message);
 
   OSD::AddMessage(msg, duration_ms, color);
-}
-
-// This function gets passed to Jukebox for handling music volume changes
-int GetJukeboxVolume()
-{
-  return Config::Get(Config::SLIPPI_JUKEBOX_VOLUME);
 }
 
 CEXISlippi::CEXISlippi(Core::System& system, const std::string current_file_name)
@@ -3240,6 +3235,21 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
     case CMD_GET_PLAYER_SETTINGS:
       handleGetPlayerSettings();
       break;
+    case CMD_PLAY_MUSIC:
+    {
+      auto args = SlippiExiTypes::Convert<SlippiExiTypes::PlayMusicQuery>(&memPtr[bufLoc]);
+      slprs_jukebox_start_song(slprs_exi_device_ptr, args.offset, args.size);
+      break;
+    }
+    case CMD_STOP_MUSIC:
+      slprs_jukebox_stop_music(slprs_exi_device_ptr);
+      break;
+    case CMD_CHANGE_MUSIC_VOLUME:
+    {
+      auto args = SlippiExiTypes::Convert<SlippiExiTypes::ChangeMusicVolumeQuery>(&memPtr[bufLoc]);
+      slprs_jukebox_set_melee_music_volume(slprs_exi_device_ptr, args.volume);
+      break;
+    }
     default:
       writeToFileAsync(&memPtr[bufLoc], payloadLen + 1, "");
       SlippiSpectateServer::getInstance().write(&memPtr[bufLoc], payloadLen + 1);
@@ -3291,12 +3301,25 @@ void CEXISlippi::ConfigureJukebox()
   }
 #endif
 
-  auto& system = Core::System::GetInstance();
+  int dolphin_system_volume =
+      Config::Get(Config::MAIN_AUDIO_MUTED) ? 0 : Config::Get(Config::MAIN_AUDIO_VOLUME);
 
-  slprs_exi_device_configure_jukebox(
-      slprs_exi_device_ptr, Config::Get(Config::SLIPPI_ENABLE_JUKEBOX), system.GetMemory().GetRAM(),
-      AudioCommonGetCurrentVolume, GetJukeboxVolume);
+  int dolphin_music_volume = Config::Get(Config::SLIPPI_JUKEBOX_VOLUME);
+
+  slprs_exi_device_configure_jukebox(slprs_exi_device_ptr,
+                                     Config::Get(Config::SLIPPI_ENABLE_JUKEBOX),
+                                     dolphin_system_volume, dolphin_music_volume);
 #endif
+}
+
+void CEXISlippi::UpdateJukeboxDolphinSystemVolume(int volume)
+{
+  slprs_jukebox_set_dolphin_system_volume(slprs_exi_device_ptr, volume);
+}
+
+void CEXISlippi::UpdateJukeboxDolphinMusicVolume(int volume)
+{
+  slprs_jukebox_set_dolphin_music_volume(slprs_exi_device_ptr, volume);
 }
 
 bool CEXISlippi::IsPresent() const

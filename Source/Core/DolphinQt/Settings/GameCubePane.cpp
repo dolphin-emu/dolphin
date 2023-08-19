@@ -102,6 +102,8 @@ void GameCubePane::CreateWidgets()
     m_slot_buttons[slot]->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   }
 
+  m_slot_combos[ExpansionInterface::Slot::B]->setDisabled(true);
+
   for (ExpansionInterface::Slot slot : ExpansionInterface::MEMCARD_SLOTS)
   {
     m_memcard_path_layouts[slot] = new QHBoxLayout();

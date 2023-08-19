@@ -21,12 +21,6 @@
 #include "Core/ConfigManager.h"
 #include "Core/System.h"
 
-// SlippiChange: Added as a hook for the Jukebox to call.
-int AudioCommonGetCurrentVolume()
-{
-    return Config::Get(Config::MAIN_AUDIO_MUTED) ? 0 : Config::Get(Config::MAIN_AUDIO_VOLUME);
-}
-
 namespace AudioCommon
 {
 constexpr int AUDIO_VOLUME_MIN = 0;

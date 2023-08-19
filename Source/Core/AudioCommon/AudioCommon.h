@@ -18,17 +18,6 @@ namespace Core
 class System;
 }
 
-
-// SlippiChange: Added as a hook for the Jukebox to call.
-//
-// I've intentionally kept this outside of the C++ namespace as I am unsure of the risks
-// of having this inside there with regards to how Rust receives it.
-//
-// If someone can prove that it's safe, then feel free to move it back into the namespace
-// proper. For now, I've just prefixed the method name with the namespace name
-// for grep-ability.
-int AudioCommonGetCurrentVolume();
-
 namespace AudioCommon
 {
 void InitSoundStream(Core::System& system);

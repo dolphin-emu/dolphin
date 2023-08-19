@@ -89,6 +89,19 @@ struct GetPlayerSettingsResponse
   PlayerSettings settings[4];
 };
 
+struct PlayMusicQuery
+{
+  u8 command;
+  u32 offset;
+  u32 size;
+};
+
+struct ChangeMusicVolumeQuery
+{
+  u8 command;
+  u8 volume;
+};
+
 // Not sure if resetting is strictly needed, might be contained to the file
 #pragma pack()
 
@@ -123,6 +136,15 @@ inline OverwriteSelectionsQuery Convert(u8* payload)
 {
   auto q = *reinterpret_cast<OverwriteSelectionsQuery*>(payload);
   q.stage_id = Common::FromBigEndian(q.stage_id);
+  return q;
+}
+
+template <>
+inline PlayMusicQuery Convert(u8* payload)
+{
+  auto q = *reinterpret_cast<PlayMusicQuery*>(payload);
+  q.offset = Common::FromBigEndian(q.offset);
+  q.size = Common::FromBigEndian(q.size);
   return q;
 }
 };  // namespace SlippiExiTypes
