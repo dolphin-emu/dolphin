@@ -571,6 +571,7 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="emulation_edit_layout">Edit Layout</string>
     <string name="emulation_done">Done</string>
     <string name="emulation_toggle_controls">Toggle Controls</string>
+    <string name="emulation_latching_controls">Latching Controls</string>
     <string name="emulation_toggle_all">Toggle All</string>
     <string name="emulation_control_scale">Scale</string>
     <string name="emulation_control_opacity">Opacity</string>
