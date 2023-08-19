@@ -143,7 +143,7 @@ void JitArm64::mcrxr(UGeckoInstruction inst)
   LDRB(IndexType::Unsigned, WB, PPC_REG, PPCSTATE_OFF(xer_so_ov));
 
   // [0 SO OV CA]
-  ADD(WA, WA, WB, ArithOption(WB, ShiftType::LSL, 2));
+  ADD(WA, WA, WB, ArithOption(WB, ShiftType::LSL, 1));
   // [SO OV CA 0] << 3
   LSL(WA, WA, 4);
 
