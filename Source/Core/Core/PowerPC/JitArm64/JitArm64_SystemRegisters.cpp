@@ -95,7 +95,6 @@ void JitArm64::mtmsr(UGeckoInstruction inst)
   if (imm_value)
     EmitStoreMembase(gpr.GetImm(inst.RS));
 
-  gpr.BindToRegister(inst.RS, true);
   STR(IndexType::Unsigned, gpr.R(inst.RS), PPC_REG, PPCSTATE_OFF(msr));
 
   if (!imm_value)
@@ -176,7 +175,6 @@ void JitArm64::mtsr(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
 
-  gpr.BindToRegister(inst.RS, true);
   STR(IndexType::Unsigned, gpr.R(inst.RS), PPC_REG, PPCSTATE_OFF_SR(inst.SR));
 }
 
