@@ -147,7 +147,7 @@ void handleGameInit(Game* game, uint32_t maxSize)
     p.controllerPort = i;
     p.characterId = playerInfo >> 24;
     p.playerType = playerType;
-    p.characterColor = playerInfo & 0xFF;
+    p.character_color = playerInfo & 0xFF;
     p.nametag = playerNametags[i];
     p.displayName = playerDisplayNames[i];
     p.connectCode = playerConnectCodes[i];

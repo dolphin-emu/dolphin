@@ -1771,15 +1771,15 @@ void CEXISlippi::startFindMatch(u8* payload)
   if (SlippiMatchmaking::IsFixedRulesMode(search.mode))
   {
     // Character check
-    if (local_selections.characterId >= 26)
+    if (local_selections.character_id >= 26)
     {
       forced_error = "The character you selected is not allowed in this mode";
       return;
     }
 
     // Stage check
-    if (local_selections.isStageSelected &&
-        std::find(allowed_stages.begin(), allowed_stages.end(), local_selections.stageId) ==
+    if (local_selections.is_stage_selected &&
+        std::find(allowed_stages.begin(), allowed_stages.end(), local_selections.stage_id) ==
             allowed_stages.end())
     {
       forced_error = "The stage being requested is not allowed in this mode";
@@ -1789,7 +1789,7 @@ void CEXISlippi::startFindMatch(u8* payload)
   else if (search.mode == SlippiMatchmaking::OnlinePlayMode::TEAMS)
   {
     // Some special handling for teams since it is being heavily used for unranked
-    if (local_selections.characterId >= 26 &&
+    if (local_selections.character_id >= 26 &&
         SConfig::GetSlippiConfig().melee_version != Melee::Version::MEX)
     {
       forced_error = "The character you selected is not allowed in this mode";
@@ -1966,7 +1966,7 @@ void CEXISlippi::prepareOnlineMatchState()
       !forced_error.empty() ? error_state : matchmaking->GetMatchmakeState();
 
 #ifdef LOCAL_TESTING
-  if (local_selections.isCharacterSelected || is_local_connected)
+  if (local_selections.is_character_selected || is_local_connected)
   {
     mm_state = SlippiMatchmaking::ProcessState::CONNECTION_SUCCESS;
     is_local_connected = true;
@@ -1975,7 +1975,7 @@ void CEXISlippi::prepareOnlineMatchState()
 
   m_read_queue.push_back(mm_state);  // Matchmaking State
 
-  u8 local_player_ready = local_selections.isCharacterSelected;
+  u8 local_player_ready = local_selections.is_character_selected;
   u8 remote_players_ready = 0;
 
   auto user_info = user->GetUserInfo();
@@ -2012,7 +2012,7 @@ void CEXISlippi::prepareOnlineMatchState()
 
       // Clear stage pool so that when we call getRandomStage it will use full list
       stage_pool.clear();
-      local_selections.stageId = getRandomStage();
+      local_selections.stage_id = getRandomStage();
       slippi_netplay->SetMatchSelections(local_selections);
     }
 
@@ -2034,7 +2034,7 @@ void CEXISlippi::prepareOnlineMatchState()
       u8 remote_player_count = matchmaking->RemotePlayerCount();
       for (int i = 0; i < remote_player_count; i++)
       {
-        if (!match_info->remotePlayerSelections[i].isCharacterSelected)
+        if (!match_info->remote_player_selections[i].is_character_selected)
         {
           remote_players_ready = 0;
         }
@@ -2124,8 +2124,8 @@ void CEXISlippi::prepareOnlineMatchState()
     if (sent_chat_message_id <= 0)
     {
       auto remote_message_selection = slippi_netplay->GetSlippiRemoteChatMessage(is_chat_enabled);
-      chat_message_id = remote_message_selection.messageId;
-      chat_message_player_idx = remote_message_selection.playerIdx;
+      chat_message_id = remote_message_selection.message_id;
+      chat_message_player_idx = remote_message_selection.player_idx;
       if (chat_message_id == SlippiPremadeText::CHAT_MSG_CHAT_DISABLED && !is_single_mode)
       {
         // Clear remote chat messages if we are on teams and the player has chat disabled.
@@ -2155,11 +2155,11 @@ void CEXISlippi::prepareOnlineMatchState()
     auto is_decider = slippi_netplay->IsDecider();
     u8 remote_player_count = matchmaking->RemotePlayerCount();
     auto match_info = slippi_netplay->GetMatchInfo();
-    SlippiPlayerSelections lps = match_info->localPlayerSelections;
-    auto rps = match_info->remotePlayerSelections;
+    SlippiPlayerSelections lps = match_info->local_player_selections;
+    auto rps = match_info->remote_player_selections;
 
 #ifdef LOCAL_TESTING
-    lps.playerIdx = 0;
+    lps.player_idx = 0;
 
     // By default Local testing for teams is against
     // 1 RED TEAM Falco
@@ -2168,18 +2168,18 @@ void CEXISlippi::prepareOnlineMatchState()
     {
       if (i == 0)
       {
-        rps[i].characterColor = 1;
-        rps[i].teamId = 0;
+        rps[i].character_color = 1;
+        rps[i].team_id = 0;
       }
       else
       {
-        rps[i].characterColor = 2;
-        rps[i].teamId = 1;
+        rps[i].character_color = 2;
+        rps[i].team_id = 1;
       }
 
-      rps[i].characterId = 0x14;
-      rps[i].playerIdx = i + 1;
-      rps[i].isCharacterSelected = true;
+      rps[i].character_id = 0x14;
+      rps[i].player_idx = i + 1;
+      rps[i].is_character_selected = true;
     }
 
     remote_player_count = last_search.mode == SlippiMatchmaking::OnlinePlayMode::TEAMS ? 3 : 1;
@@ -2188,16 +2188,16 @@ void CEXISlippi::prepareOnlineMatchState()
 #endif
 
     // Check if someone is picking dumb characters in non-direct
-    auto local_char_ok = lps.characterId < 26;
+    auto local_char_ok = lps.character_id < 26;
     auto remote_char_ok = true;
     INFO_LOG_FMT(SLIPPI_ONLINE, "remote_player_count: {}", remote_player_count);
     for (int i = 0; i < remote_player_count; i++)
     {
-      if (rps[i].characterId >= 26)
+      if (rps[i].character_id >= 26)
         remote_char_ok = false;
     }
 
-    // TODO: Ideally remotePlayerSelections would just include everyone including the local player
+    // TODO: Ideally remote_player_selections would just include everyone including the local player
     // TODO: Would also simplify some logic in the Netplay class
 
     // Here we are storing pointers to the player selections. That means that we can technically
@@ -2205,10 +2205,10 @@ void CEXISlippi::prepareOnlineMatchState()
     // from the netplay class. Unfortunately, I think it might be required for the overwrite stuff
     // to work correctly though, maybe on a tiebreak in ranked?
     std::vector<SlippiPlayerSelections*> ordered_selections(remote_player_count + 1);
-    ordered_selections[lps.playerIdx] = &lps;
+    ordered_selections[lps.player_idx] = &lps;
     for (int i = 0; i < remote_player_count; i++)
     {
-      ordered_selections[rps[i].playerIdx] = &rps[i];
+      ordered_selections[rps[i].player_idx] = &rps[i];
     }
 
     // Overwrite selections
@@ -2216,20 +2216,20 @@ void CEXISlippi::prepareOnlineMatchState()
     {
       const auto& ow = overwrite_selections[i];
 
-      ordered_selections[i]->characterId = ow.characterId;
-      ordered_selections[i]->characterColor = ow.characterColor;
-      ordered_selections[i]->stageId = ow.stageId;
+      ordered_selections[i]->character_id = ow.character_id;
+      ordered_selections[i]->character_color = ow.character_color;
+      ordered_selections[i]->stage_id = ow.stage_id;
     }
 
     // Overwrite stage information. Make sure everyone loads the same stage
     u16 stage_id = 0x1F;  // Default to battlefield if there was no selection
     for (const auto& selections : ordered_selections)
     {
-      if (!selections->isStageSelected)
+      if (!selections->is_stage_selected)
         continue;
 
       // Stage selected by this player, use that selection
-      stage_id = selections->stageId;
+      stage_id = selections->stage_id;
       break;
     }
 
@@ -2279,15 +2279,15 @@ void CEXISlippi::prepareOnlineMatchState()
     }
 
     // Set rng offset
-    rng_offset = is_decider ? lps.rngOffset : rps[0].rngOffset;
+    rng_offset = is_decider ? lps.rng_offset : rps[0].rng_offset;
     INFO_LOG_FMT(SLIPPI_ONLINE, "Rng Offset: {:#x}", rng_offset);
 
     // Check if everyone is the same color
-    auto color = ordered_selections[0]->teamId;
+    auto color = ordered_selections[0]->team_id;
     bool are_all_same_team = true;
     for (const auto& s : ordered_selections)
     {
-      if (s->teamId != color)
+      if (s->team_id != color)
         are_all_same_team = false;
     }
 
@@ -2304,21 +2304,21 @@ void CEXISlippi::prepareOnlineMatchState()
     // Overwrite player character choices
     for (auto& s : ordered_selections)
     {
-      if (!s->isCharacterSelected)
+      if (!s->is_character_selected)
       {
         continue;
       }
       if (are_all_same_team)
       {
-        // Overwrite teamId. Color is overwritten by ASM
-        s->teamId = teamAssignments[s->playerIdx];
+        // Overwrite team_id. Color is overwritten by ASM
+        s->team_id = teamAssignments[s->player_idx];
       }
 
       // Overwrite player character
-      online_match_block[0x60 + (s->playerIdx) * 0x24] = s->characterId;
-      online_match_block[0x63 + (s->playerIdx) * 0x24] = s->characterColor;
-      online_match_block[0x67 + (s->playerIdx) * 0x24] = 0;
-      online_match_block[0x69 + (s->playerIdx) * 0x24] = s->teamId;
+      online_match_block[0x60 + (s->player_idx) * 0x24] = s->character_id;
+      online_match_block[0x63 + (s->player_idx) * 0x24] = s->character_color;
+      online_match_block[0x67 + (s->player_idx) * 0x24] = 0;
+      online_match_block[0x69 + (s->player_idx) * 0x24] = s->team_id;
     }
 
     // Handle Singles/Teams specific logic
@@ -2331,10 +2331,10 @@ void CEXISlippi::prepareOnlineMatchState()
       online_match_block[0x61 + 3 * 0x24] = 3;
 
       // Make one character lighter if same character, same color
-      bool is_sheik_vs_zelda = lps.characterId == 0x12 && rps[0].characterId == 0x13 ||
-                               lps.characterId == 0x13 && rps[0].characterId == 0x12;
-      bool char_match = lps.characterId == rps[0].characterId || is_sheik_vs_zelda;
-      bool color_match = lps.characterColor == rps[0].characterColor;
+      bool is_sheik_vs_zelda = lps.character_id == 0x12 && rps[0].character_id == 0x13 ||
+                               lps.character_id == 0x13 && rps[0].character_id == 0x12;
+      bool char_match = lps.character_id == rps[0].character_id || is_sheik_vs_zelda;
+      bool color_match = lps.character_color == rps[0].character_color;
 
       online_match_block[0x67 + 0x24] = char_match && color_match ? 1 : 0;
     }
@@ -2360,7 +2360,7 @@ void CEXISlippi::prepareOnlineMatchState()
     for (int i = 0; i < 4; i++)
     {
       int team_id = online_match_block[0x69 + i * 0x24];
-      if (team_id == lps.teamId)
+      if (team_id == lps.team_id)
         left_team_players.push_back(i);
       else
         right_team_players.push_back(i);
@@ -2522,26 +2522,27 @@ void CEXISlippi::setMatchSelections(u8* payload)
 {
   SlippiPlayerSelections s;
 
-  s.teamId = payload[0];
-  s.characterId = payload[1];
-  s.characterColor = payload[2];
-  s.isCharacterSelected = payload[3];
+  s.team_id = payload[0];
+  s.character_id = payload[1];
+  s.character_color = payload[2];
+  s.is_character_selected = payload[3];
 
-  s.stageId = Common::swap16(&payload[4]);
+  s.stage_id = Common::swap16(&payload[4]);
   u8 stage_select_option = payload[6];
   // u8 online_mode = payload[7];
 
-  s.isStageSelected = stage_select_option == 1 || stage_select_option == 3;
+  s.is_stage_selected = stage_select_option == 1 || stage_select_option == 3;
   if (stage_select_option == 3)
   {
     // If stage requested is random, select a random stage
-    s.stageId = getRandomStage();
+    s.stage_id = getRandomStage();
   }
 
-  INFO_LOG_FMT(SLIPPI, "LPS set char: {}, iSS: {}, {}, stage: {}, team: {}", s.isCharacterSelected,
-               stage_select_option, s.isStageSelected, s.stageId, s.teamId);
+  INFO_LOG_FMT(SLIPPI, "LPS set char: {}, iSS: {}, {}, stage: {}, team: {}",
+               s.is_character_selected, stage_select_option, s.is_stage_selected, s.stage_id,
+               s.team_id);
 
-  s.rngOffset = generator() % 0xFFFF;
+  s.rng_offset = generator() % 0xFFFF;
 
   // Merge these selections
   local_selections.Merge(s);
@@ -2716,7 +2717,7 @@ void CEXISlippi::handleChatMessage(u8* payload)
     auto user_info = user->GetUserInfo();
     auto packet = std::make_unique<sf::Packet>();
     //		OSD::AddMessage("[Me]: "+ msg, OSD::Duration::VERY_LONG, OSD::Color::YELLOW);
-    slippi_netplay->remoteSentChatMessageId = message_id;
+    slippi_netplay->remote_sent_chat_message_id = message_id;
     slippi_netplay->WriteChatMessageToPacket(*packet, message_id,
                                              slippi_netplay->LocalPlayerPort());
     slippi_netplay->SendAsync(std::move(packet));
@@ -2947,12 +2948,12 @@ void CEXISlippi::handleOverwriteSelections(const SlippiExiTypes::OverwriteSelect
       continue;
 
     SlippiPlayerSelections s;
-    s.isCharacterSelected = true;
-    s.characterId = query.chars[i].char_id;
-    s.characterColor = query.chars[i].char_color_id;
-    s.isStageSelected = true;
-    s.stageId = query.stage_id;
-    s.playerIdx = i;
+    s.is_character_selected = true;
+    s.character_id = query.chars[i].char_id;
+    s.character_color = query.chars[i].char_color_id;
+    s.is_stage_selected = true;
+    s.stage_id = query.stage_id;
+    s.player_idx = i;
 
     overwrite_selections.push_back(s);
   }

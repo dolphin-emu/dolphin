@@ -608,8 +608,8 @@ void SlippiMatchmaking::handleMatchmaking()
     for (json::iterator it = stages.begin(); it != stages.end(); ++it)
     {
       json el = *it;
-      auto stageId = el.get<int>();
-      m_allowedStages.push_back(stageId);
+      auto stage_id = el.get<int>();
+      m_allowedStages.push_back(stage_id);
     }
   }
 
@@ -637,7 +637,7 @@ void SlippiMatchmaking::handleMatchmaking()
   terminateMmConnection();
 
   m_state = ProcessState::OPPONENT_CONNECTING;
-  ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Opponent found. isDecider: {}",
+  ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Opponent found. is_decider: {}",
                 m_isHost ? "true" : "false");
 }
 

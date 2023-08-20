@@ -86,7 +86,7 @@ typedef struct
 {
   // Static data
   uint8_t characterId;
-  uint8_t characterColor;
+  uint8_t character_color;
   uint8_t playerType;
   uint8_t controllerPort;
   std::array<uint16_t, NAMETAG_SIZE> nametag;

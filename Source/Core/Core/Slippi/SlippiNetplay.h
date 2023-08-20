@@ -15,6 +15,7 @@
 #include <thread>
 #include <unordered_map>
 #include <vector>
+
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/Timer.h"
@@ -26,8 +27,8 @@
 #include <Qos2.h>
 #endif
 
-#define SLIPPI_ONLINE_LOCKSTEP_INTERVAL                                                            \
-  30  // Number of frames to wait before attempting to time-sync
+// Number of frames to wait before attempting to time-sync
+#define SLIPPI_ONLINE_LOCKSTEP_INTERVAL 30
 #define SLIPPI_PING_DISPLAY_INTERVAL 60
 #define SLIPPI_REMOTE_PLAYER_MAX 3
 #define SLIPPI_REMOTE_PLAYER_COUNT 3
@@ -35,17 +36,17 @@
 struct SlippiRemotePadOutput
 {
   int32_t latest_frame{};
-  s32 checksum_frame;
-  u32 checksum;
-  u8 playerIdx{};
-  std::vector<u8> data;
+  s32 checksum_frame{};
+  u32 checksum{};
+  u8 player_idx{};
+  std::vector<u8> data{};
 };
 
 struct SlippiGamePrepStepResults
 {
-  u8 step_idx;
-  u8 char_selection;
-  u8 char_color_selection;
+  u8 step_idx{};
+  u8 char_selection{};
+  u8 char_color_selection{};
   u8 stage_selections[2];
 };
 
@@ -75,51 +76,51 @@ struct SlippiDesyncRecoveryResp
 class SlippiPlayerSelections
 {
 public:
-  u8 playerIdx{};
-  u8 characterId{};
-  u8 characterColor{};
-  u8 teamId{};
+  u8 player_idx{};
+  u8 character_id{};
+  u8 character_color{};
+  u8 team_id{};
 
-  bool isCharacterSelected = false;
+  bool is_character_selected = false;
 
-  u16 stageId{};
-  bool isStageSelected = false;
+  u16 stage_id{};
+  bool is_stage_selected = false;
 
-  u32 rngOffset{};
+  u32 rng_offset{};
 
-  int messageId = 0;
+  int message_id = 0;
   bool error = false;
 
   void Merge(SlippiPlayerSelections& s)
   {
-    this->rngOffset = s.rngOffset;
+    this->rng_offset = s.rng_offset;
 
-    if (s.isStageSelected)
+    if (s.is_stage_selected)
     {
-      this->stageId = s.stageId;
-      this->isStageSelected = true;
+      this->stage_id = s.stage_id;
+      this->is_stage_selected = true;
     }
 
-    if (s.isCharacterSelected)
+    if (s.is_character_selected)
     {
-      this->characterId = s.characterId;
-      this->characterColor = s.characterColor;
-      this->teamId = s.teamId;
-      this->isCharacterSelected = true;
+      this->character_id = s.character_id;
+      this->character_color = s.character_color;
+      this->team_id = s.team_id;
+      this->is_character_selected = true;
     }
   }
 
   void Reset()
   {
-    characterId = 0;
-    characterColor = 0;
-    isCharacterSelected = false;
-    teamId = 0;
+    character_id = 0;
+    character_color = 0;
+    is_character_selected = false;
+    team_id = 0;
 
-    stageId = 0;
-    isStageSelected = false;
+    stage_id = 0;
+    is_stage_selected = false;
 
-    rngOffset = 0;
+    rng_offset = 0;
   }
 };
 
@@ -132,15 +133,15 @@ struct ChecksumEntry
 class SlippiMatchInfo
 {
 public:
-  SlippiPlayerSelections localPlayerSelections;
-  SlippiPlayerSelections remotePlayerSelections[SLIPPI_REMOTE_PLAYER_MAX];
+  SlippiPlayerSelections local_player_selections;
+  SlippiPlayerSelections remote_player_selections[SLIPPI_REMOTE_PLAYER_MAX];
 
   void Reset()
   {
-    localPlayerSelections.Reset();
+    local_player_selections.Reset();
     for (int i = 0; i < SLIPPI_REMOTE_PLAYER_MAX; i++)
     {
-      remotePlayerSelections[i].Reset();
+      remote_player_selections[i].Reset();
     }
   }
 };
@@ -151,10 +152,10 @@ public:
   void ThreadFunc();
   void SendAsync(std::unique_ptr<sf::Packet> packet);
 
-  SlippiNetplayClient(bool isDecider);  // Make a dummy client
+  SlippiNetplayClient(bool is_decider);  // Make a dummy client
   SlippiNetplayClient(std::vector<std::string> addrs, std::vector<u16> ports,
-                      const u8 remotePlayerCount, const u16 localPort, bool isDecider,
-                      u8 playerIdx);
+                      const u8 remote_player_count, const u16 local_port, bool is_decider,
+                      u8 player_idx);
   ~SlippiNetplayClient();
 
   // Slippi Online
@@ -178,24 +179,24 @@ public:
   void SetMatchSelections(SlippiPlayerSelections& s);
   void SendGamePrepStep(SlippiGamePrepStepResults& s);
   void SendSyncedGameState(SlippiSyncedGameState& s);
-  bool GetGamePrepResults(u8 stepIdx, SlippiGamePrepStepResults& res);
+  bool GetGamePrepResults(u8 step_idx, SlippiGamePrepStepResults& res);
   std::unique_ptr<SlippiRemotePadOutput> GetFakePadOutput(int frame);
-  std::unique_ptr<SlippiRemotePadOutput> GetSlippiRemotePad(int index, int maxFrameCount);
-  void DropOldRemoteInputs(int32_t finalizedFrame);
+  std::unique_ptr<SlippiRemotePadOutput> GetSlippiRemotePad(int index, int max_frame_count);
+  void DropOldRemoteInputs(int32_t finalized_frame);
   SlippiMatchInfo* GetMatchInfo();
-  int32_t GetSlippiLatestRemoteFrame(int maxFrameCount);
-  SlippiPlayerSelections GetSlippiRemoteChatMessage(bool isChatEnabled);
-  u8 GetSlippiRemoteSentChatMessage(bool isChatEnabled);
+  int32_t GetSlippiLatestRemoteFrame(int max_frame_count);
+  SlippiPlayerSelections GetSlippiRemoteChatMessage(bool is_chat_enabled);
+  u8 GetSlippiRemoteSentChatMessage(bool is_chat_enabled);
   s32 CalcTimeOffsetUs();
   bool IsWaitingForDesyncRecovery();
   SlippiDesyncRecoveryResp GetDesyncRecoveryState();
 
-  void WriteChatMessageToPacket(sf::Packet& packet, int messageId, u8 playerIdx);
+  void WriteChatMessageToPacket(sf::Packet& packet, int message_id, u8 player_idx);
   std::unique_ptr<SlippiPlayerSelections> ReadChatMessageFromPacket(sf::Packet& packet);
 
-  std::unique_ptr<SlippiPlayerSelections> remoteChatMessageSelection =
+  std::unique_ptr<SlippiPlayerSelections> remote_chat_message_selection =
       nullptr;  // most recent chat message player selection (message + player index)
-  u8 remoteSentChatMessageId = 0;  // most recent chat message id that current player sent
+  u8 remote_sent_chat_message_id = 0;  // most recent chat message id that current player sent
 
 protected:
   struct
@@ -211,7 +212,7 @@ protected:
   ENetHost* m_client = nullptr;
   std::vector<ENetPeer*> m_server;
   std::thread m_thread;
-  u8 m_remotePlayerCount = 0;
+  u8 m_remote_player_count = 0;
 
   std::string m_selected_game;
   Common::Flag m_is_running{false};
@@ -224,8 +225,8 @@ protected:
   // Slippi Stuff
   struct FrameTiming
   {
-    int32_t frame;
-    u64 timeUs;
+    int32_t frame{};
+    u64 time_us{};
   };
 
   struct FrameOffsetData
@@ -235,30 +236,30 @@ protected:
     std::vector<s32> buf;
   };
 
-  bool isConnectionSelected = false;
-  bool isDecider = false;
-  bool hasGameStarted = false;
+  bool is_connection_selected = false;
+  bool is_decider = false;
+  bool has_game_started = false;
   u8 m_player_idx = 0;
 
-  std::unordered_map<std::string, std::map<ENetPeer*, bool>> activeConnections;
+  std::unordered_map<std::string, std::map<ENetPeer*, bool>> m_active_connections;
 
-  std::deque<std::unique_ptr<SlippiPad>> localPadQueue;  // most recent inputs at start of deque
+  std::deque<std::unique_ptr<SlippiPad>> m_local_pad_queue;  // most recent inputs at start of deque
   std::deque<std::unique_ptr<SlippiPad>>
-      remotePadQueue[SLIPPI_REMOTE_PLAYER_MAX];  // most recent inputs at start of deque
+      m_remote_pad_queue[SLIPPI_REMOTE_PLAYER_MAX];  // most recent inputs at start of deque
   bool is_desync_recovery = false;
   ChecksumEntry remote_checksums[SLIPPI_REMOTE_PLAYER_MAX];
   SlippiSyncedGameState remote_sync_states[SLIPPI_REMOTE_PLAYER_MAX];
   SlippiSyncedGameState local_sync_state;
   std::deque<SlippiGamePrepStepResults> game_prep_step_queue;
-  u64 pingUs[SLIPPI_REMOTE_PLAYER_MAX];
-  int32_t lastFrameAcked[SLIPPI_REMOTE_PLAYER_MAX];
-  FrameOffsetData frameOffsetData[SLIPPI_REMOTE_PLAYER_MAX];
-  FrameTiming lastFrameTiming[SLIPPI_REMOTE_PLAYER_MAX];
-  std::array<std::queue<FrameTiming>, SLIPPI_REMOTE_PLAYER_MAX> ackTimers;
+  u64 ping_us[SLIPPI_REMOTE_PLAYER_MAX];
+  int32_t last_frame_acked[SLIPPI_REMOTE_PLAYER_MAX];
+  FrameOffsetData frame_offset_data[SLIPPI_REMOTE_PLAYER_MAX];
+  FrameTiming last_frame_timing[SLIPPI_REMOTE_PLAYER_MAX];
+  std::array<std::queue<FrameTiming>, SLIPPI_REMOTE_PLAYER_MAX> ack_timers;
 
-  SlippiConnectStatus slippiConnectStatus = SlippiConnectStatus::NET_CONNECT_STATUS_UNSET;
-  std::vector<int> failedConnections;
-  SlippiMatchInfo matchInfo;
+  SlippiConnectStatus slippi_connect_status = SlippiConnectStatus::NET_CONNECT_STATUS_UNSET;
+  std::vector<int> failed_connections;
+  SlippiMatchInfo match_info;
 
   bool m_is_recording = false;
 
