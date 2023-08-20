@@ -1600,7 +1600,7 @@ void CEXISlippi::prepareOpponentInputs(s32 frame, bool should_skip)
   // Get pad data for each remote player and write each of their latest frame nums to the buf
   for (int i = 0; i < remote_player_count; i++)
   {
-    results[i] = slippi_netplay->GetSlippiRemotePad(i, ROLLBACK_MAX_FRAMES);
+    // results[i] = slippi_netplay->GetSlippiRemotePad(i, ROLLBACK_MAX_FRAMES);
     // results[i] = slippi_netplay->GetFakePadOutput(frame);
 
     // determine offset from which to copy data
@@ -1658,6 +1658,8 @@ void CEXISlippi::handleCaptureSavestate(u8* payload)
 
   s32 frame = payload[0] << 24 | payload[1] << 16 | payload[2] << 8 | payload[3];
 
+  // u64 startTime = Common::Timer::GetTimeUs();
+
   // Grab an available savestate
   std::unique_ptr<SlippiSavestate> ss;
   if (!available_savestates.empty())
@@ -1683,7 +1685,7 @@ void CEXISlippi::handleCaptureSavestate(u8* payload)
   ss->Capture();
   active_savestates[frame] = std::move(ss);
 
-  // u32 timeDiff = (u32)(Common::Timer::NowUs() - startTime);
+  // u32 timeDiff = static_cast<u32>(Common::Timer::NowUs() - startTime);
   // INFO_LOG_FMT(SLIPPI_ONLINE, "SLIPPI ONLINE: Captured savestate for frame {} in: {} ms", frame,
   //          ((double)timeDiff) / 1000);
 }
@@ -1699,6 +1701,8 @@ void CEXISlippi::handleLoadSavestate(u8* payload)
     ERROR_LOG_FMT(SLIPPI_ONLINE, "SLIPPI ONLINE: Savestate for frame {} does not exist.", frame);
     return;
   }
+
+  // u64 startTime = Common::Timer::GetTimeUs();
 
   // Fetch preservation blocks
   std::vector<SlippiSavestate::PreserveBlock> blocks;
@@ -1724,7 +1728,7 @@ void CEXISlippi::handleLoadSavestate(u8* payload)
 
   active_savestates.clear();
 
-  // u32 timeDiff = (u32)(Common::Timer::NowUs() - startTime);
+  // u32 timeDiff = static_cast<u32>(Common::Timer::NowUs() - startTime);
   // INFO_LOG_FMT(SLIPPI_ONLINE, "SLIPPI ONLINE: Loaded savestate for frame {} in: %f ms", frame,
   //          ((double)timeDiff) / 1000);
 }
@@ -1740,17 +1744,18 @@ void CEXISlippi::startFindMatch(u8* payload)
                        shift_jis_code.end());
 
   // Log the direct code to file.
-  if (search.mode == SlippiMatchmaking::DIRECT)
   {
     // Make sure to convert to UTF8, otherwise json library will fail when
     // calling dump().
     std::string utf8_code = SHIFTJISToUTF8(shift_jis_code);
-    direct_codes->AddOrUpdateCode(utf8_code);
-  }
-  else if (search.mode == SlippiMatchmaking::TEAMS)
-  {
-    std::string utf8_code = SHIFTJISToUTF8(shift_jis_code);
-    teams_codes->AddOrUpdateCode(utf8_code);
+    if (search.mode == SlippiMatchmaking::DIRECT)
+    {
+      direct_codes->AddOrUpdateCode(utf8_code);
+    }
+    else if (search.mode == SlippiMatchmaking::TEAMS)
+    {
+      teams_codes->AddOrUpdateCode(utf8_code);
+    }
   }
 
   // TODO: Make this work so we dont have to pass shiftJis to mm server
@@ -1925,65 +1930,6 @@ void CEXISlippi::handleNameEntryLoad(u8* payload)
   appendWordToBuffer(&m_read_queue, curr_idx);
 }
 
-// team_id 0 = red, 1 = blue, 2 = green
-int CEXISlippi::getCharColor(u8 char_id, u8 team_id)
-{
-  switch (char_id)
-  {
-  case 0x0:  // Falcon
-    switch (team_id)
-    {
-    case 0:
-      return 2;
-    case 1:
-      return 5;
-    case 2:
-      return 4;
-    }
-  case 0x2:  // Fox
-    switch (team_id)
-    {
-    case 0:
-      return 1;
-    case 1:
-      return 2;
-    case 2:
-      return 3;
-    }
-  case 0xC:  // Peach
-    switch (team_id)
-    {
-    case 0:
-      return 0;
-    case 1:
-      return 3;
-    case 2:
-      return 4;
-    }
-  case 0x13:  // Sheik
-    switch (team_id)
-    {
-    case 0:
-      return 1;
-    case 1:
-      return 2;
-    case 2:
-      return 3;
-    }
-  case 0x14:  // Falco
-    switch (team_id)
-    {
-    case 0:
-      return 1;
-    case 1:
-      return 2;
-    case 2:
-      return 3;
-    }
-  }
-  return 0;
-}
-
 void CEXISlippi::prepareOnlineMatchState()
 {
   // This match block is a VS match with P1 Red Falco vs P2 Red Bowser vs P3 Young Link vs P4 Young
@@ -2052,6 +1998,18 @@ void CEXISlippi::prepareOnlineMatchState()
       // reporting a match. So let's copy the results.
       recent_mm_result = matchmaking->GetMatchmakeResult();
       allowed_stages = recent_mm_result.stages;
+      if (allowed_stages.empty())
+      {
+        allowed_stages = {
+            0x2,   // FoD
+            0x3,   // Pokemon
+            0x8,   // Yoshi's Story
+            0x1C,  // Dream Land
+            0x1F,  // Battlefield
+            0x20,  // Final Destination
+        };
+      }
+
       // Clear stage pool so that when we call getRandomStage it will use full list
       stage_pool.clear();
       local_selections.stageId = getRandomStage();
@@ -2089,10 +2047,6 @@ void CEXISlippi::prepareOnlineMatchState()
         m_remote_player_idx = is_decider ? 1 : 0;
       }
 #endif
-
-      auto is_decider = slippi_netplay->IsDecider();
-      m_local_player_idx = is_decider ? 0 : 1;
-      m_remote_player_idx = is_decider ? 1 : 0;
     }
     else
     {
@@ -2133,6 +2087,27 @@ void CEXISlippi::prepareOnlineMatchState()
   local_player_name = p1_ame = user_info.display_name;
   opp_name = p2_name = "Player 2";
 #endif
+
+  SlippiDesyncRecoveryResp desync_recovery;
+  if (slippi_netplay)
+  {
+    desync_recovery = slippi_netplay->GetDesyncRecoveryState();
+  }
+
+  // If we have an active desync recovery and haven't received the opponent's state, wait
+  if (desync_recovery.is_recovering && desync_recovery.is_waiting)
+  {
+    remote_players_ready = 0;
+  }
+
+  if (desync_recovery.is_error)
+  {
+    // If desync recovery failed, just disconnect connection. Hopefully this will almost never
+    // happen
+    handleConnectionCleanup();
+    prepareOnlineMatchState();  // run again with new state
+    return;
+  }
 
   m_read_queue.push_back(local_player_ready);    // Local player ready
   m_read_queue.push_back(remote_players_ready);  // Remote players ready
@@ -2223,8 +2198,8 @@ void CEXISlippi::prepareOnlineMatchState()
     }
 
     // TODO: Ideally remotePlayerSelections would just include everyone including the local player
-    // the local player
     // TODO: Would also simplify some logic in the Netplay class
+
     // Here we are storing pointers to the player selections. That means that we can technically
     // modify the values from here, which is probably not the cleanest thing since they're coming
     // from the netplay class. Unfortunately, I think it might be required for the overwrite stuff
@@ -2396,13 +2371,27 @@ void CEXISlippi::prepareOnlineMatchState()
     right_team_players.resize(4, 0);
     left_team_players[3] = static_cast<u8>(left_team_size);
     right_team_players[3] = static_cast<u8>(right_team_size);
+
+    // Handle desync recovery. The default values in desync_recovery.state are 480 seconds (8 min
+    // timer) and 4-stock/0 percent damage for the fighters. That means if we are not in a desync
+    // recovery state, the state of the timer and fighters will be restored to the defaults
+    u32* seconds_remaining = reinterpret_cast<u32*>(&online_match_block[0x10]);
+    *seconds_remaining = Common::swap32(desync_recovery.state.seconds_remaining);
+
+    for (int i = 0; i < 4; i++)
+    {
+      online_match_block[0x62 + i * 0x24] = desync_recovery.state.fighters[i].stocks_remaining;
+
+      u16* current_health = reinterpret_cast<u16*>(&online_match_block[0x70 + i * 0x24]);
+      *current_health = Common::swap16(desync_recovery.state.fighters[i].current_health);
+    }
   }
 
   // Add rng offset to output
   appendWordToBuffer(&m_read_queue, rng_offset);
 
   // Add delay frames to output
-  m_read_queue.push_back(static_cast<int>(Config::Get(Config::SLIPPI_ONLINE_DELAY)));
+  m_read_queue.push_back(static_cast<u8>(Config::Get(Config::SLIPPI_ONLINE_DELAY)));
 
   // Add chat messages id
   m_read_queue.push_back(static_cast<u8>(sent_chat_message_id));
@@ -2488,8 +2477,8 @@ void CEXISlippi::prepareOnlineMatchState()
 
   for (int i = 0; i < 4; i++)
   {
-    std::string uid = i < player_info.size() ? player_info[i].uid :
-                                               "";  // UIDs are 28 characters + 1 null terminator
+    // UIDs are 28 characters + 1 null terminator
+    std::string uid = i < player_info.size() ? player_info[i].uid : "";
 #ifdef LOCAL_TESTING
     uid = default_uids[i];
 #endif
@@ -2614,6 +2603,15 @@ void CEXISlippi::prepareGctLoad(u8* payload)
 
   // This is the address where the codes will be written to
   auto address = Common::swap32(&payload[0]);
+
+  // SLIPPITODO: do we still need this?
+  // // Overwrite the instructions which load address pointing to codeset
+  // PowerPC::HostWrite_U32(0x3DE00000 | (address >> 16),
+  //                        0x80001f58);  // lis r15, 0xXXXX # top half of address
+  // PowerPC::HostWrite_U32(0x61EF0000 | (address & 0xFFFF),
+  //                        0x80001f5C);               // ori r15, r15, 0xXXXX # bottom half of
+  //                        address
+  // PowerPC::ppcState.iCache.Invalidate(0x80001f58);  // This should invalidate both instructions
 
   INFO_LOG_FMT(SLIPPI, "Preparing to write gecko codes at: {:#x}", address);
 
@@ -2745,6 +2743,7 @@ void CEXISlippi::handleLogInRequest()
   bool log_in_res = user->AttemptLogin();
   if (!log_in_res)
   {
+    // no easy way to raise and lower the window
     user->OpenLogInPage();
     user->ListenForLogIn();
   }
@@ -2779,12 +2778,8 @@ void CEXISlippi::prepareOnlineStatus()
   m_read_queue.insert(m_read_queue.end(), player_name.begin(), player_name.end());
 
   // Write connect code (10 bytes)
-  std::string connect_code = user_info.connect_code;
-  char shift_jis_hashtag[] = {'\x81', '\x94', '\x00'};
-  connect_code.resize(CONNECT_CODE_LENGTH);
-  connect_code = ReplaceAll(connect_code, "#", shift_jis_hashtag);
-  auto code_buf = connect_code.c_str();
-  m_read_queue.insert(m_read_queue.end(), code_buf, code_buf + CONNECT_CODE_LENGTH + 2);
+  std::string connect_code = ConvertConnectCodeForGame(user_info.connect_code);
+  m_read_queue.insert(m_read_queue.end(), connect_code.begin(), connect_code.end());
 }
 
 void doConnectionCleanup(std::unique_ptr<SlippiMatchmaking> mm,
@@ -3264,6 +3259,7 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
       break;
     }
     default:
+      WARN_LOG_FMT(SLIPPI, "default command byte case: {}", byte);
       writeToFileAsync(&mem_ptr[buf_loc], payload_len + 1, "");
       SlippiSpectateServer::getInstance().write(&mem_ptr[buf_loc], payload_len + 1);
       slprs_exi_device_reporter_push_replay_data(slprs_exi_device_ptr, &mem_ptr[buf_loc],

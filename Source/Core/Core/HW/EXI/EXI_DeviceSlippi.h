@@ -244,7 +244,6 @@ private:
   bool doesTagMatchInput(u8* input, u8 input_len, std::string tag);
 
   std::vector<u8> loadPremadeText(u8* payload);
-  int getCharColor(u8 char_id, u8 team_id);
 
   void FileWriteThread(void);
 
