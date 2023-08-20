@@ -32,7 +32,7 @@ SlippiMatchmaking::SlippiMatchmaking(SlippiUser* user)
 {
   m_user = user;
   m_state = ProcessState::IDLE;
-  m_errorMsg = "";
+  m_error_msg = "";
 
   m_client = nullptr;
   m_server = nullptr;
@@ -46,25 +46,25 @@ SlippiMatchmaking::~SlippiMatchmaking()
 {
   is_mm_terminated = true;
   m_state = ProcessState::ERROR_ENCOUNTERED;
-  m_errorMsg = "Matchmaking shut down";
+  m_error_msg = "Matchmaking shut down";
 
-  if (m_matchmakeThread.joinable())
-    m_matchmakeThread.join();
+  if (m_matchmake_thread.joinable())
+    m_matchmake_thread.join();
 
   terminateMmConnection();
 }
 
 void SlippiMatchmaking::FindMatch(MatchSearchSettings settings)
 {
-  isMmConnected = false;
+  is_mm_connected = false;
 
   ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Starting matchmaking...");
 
-  m_searchSettings = settings;
+  m_search_settings = settings;
 
-  m_errorMsg = "";
+  m_error_msg = "";
   m_state = ProcessState::INITIALIZING;
-  m_matchmakeThread = std::thread(&SlippiMatchmaking::MatchmakeThread, this);
+  m_matchmake_thread = std::thread(&SlippiMatchmaking::MatchmakeThread, this);
 }
 
 SlippiMatchmaking::ProcessState SlippiMatchmaking::GetMatchmakeState()
@@ -74,17 +74,17 @@ SlippiMatchmaking::ProcessState SlippiMatchmaking::GetMatchmakeState()
 
 std::string SlippiMatchmaking::GetErrorMessage()
 {
-  return m_errorMsg;
+  return m_error_msg;
 }
 
 bool SlippiMatchmaking::IsSearching()
 {
-  return searchingStates.count(m_state) != 0;
+  return searching_states.count(m_state) != 0;
 }
 
 std::unique_ptr<SlippiNetplayClient> SlippiMatchmaking::GetNetplayClient()
 {
-  return std::move(m_netplayClient);
+  return std::move(m_netplay_client);
 }
 
 bool SlippiMatchmaking::IsFixedRulesMode(SlippiMatchmaking::OnlinePlayMode mode)
@@ -96,44 +96,44 @@ bool SlippiMatchmaking::IsFixedRulesMode(SlippiMatchmaking::OnlinePlayMode mode)
 void SlippiMatchmaking::sendMessage(json msg)
 {
   enet_uint32 flags = ENET_PACKET_FLAG_RELIABLE;
-  u8 channelId = 0;
+  u8 channel_id = 0;
 
   std::string msgContents = msg.dump();
 
   ENetPacket* epac = enet_packet_create(msgContents.c_str(), msgContents.length(), flags);
-  enet_peer_send(m_server, channelId, epac);
+  enet_peer_send(m_server, channel_id, epac);
 }
 
-int SlippiMatchmaking::receiveMessage(json& msg, int timeoutMs)
+int SlippiMatchmaking::receiveMessage(json& msg, int timeout_ms)
 {
-  int hostServiceTimeoutMs = 250;
+  int host_service_timeout_ms = 250;
 
   // Make sure loop runs at least once
-  if (timeoutMs < hostServiceTimeoutMs)
-    timeoutMs = hostServiceTimeoutMs;
+  if (timeout_ms < host_service_timeout_ms)
+    timeout_ms = host_service_timeout_ms;
 
   // This is not a perfect way to timeout but hopefully it's close enough?
-  int maxAttempts = timeoutMs / hostServiceTimeoutMs;
+  int max_attempts = timeout_ms / host_service_timeout_ms;
 
-  for (int i = 0; i < maxAttempts; i++)
+  for (int i = 0; i < max_attempts; i++)
   {
-    ENetEvent netEvent;
-    int net = enet_host_service(m_client, &netEvent, hostServiceTimeoutMs);
+    ENetEvent net_event;
+    int net = enet_host_service(m_client, &net_event, host_service_timeout_ms);
     if (net <= 0)
       continue;
 
-    switch (netEvent.type)
+    switch (net_event.type)
     {
     case ENET_EVENT_TYPE_RECEIVE:
     {
       std::vector<u8> buf;
-      buf.insert(buf.end(), netEvent.packet->data,
-                 netEvent.packet->data + netEvent.packet->dataLength);
+      buf.insert(buf.end(), net_event.packet->data,
+                 net_event.packet->data + net_event.packet->dataLength);
 
       std::string str(buf.begin(), buf.end());
       msg = json::parse(str, nullptr, false);
 
-      enet_packet_destroy(netEvent.packet);
+      enet_packet_destroy(net_event.packet);
       return 0;
     }
     case ENET_EVENT_TYPE_DISCONNECT:
@@ -174,20 +174,20 @@ void SlippiMatchmaking::MatchmakeThread()
 
 void SlippiMatchmaking::disconnectFromServer()
 {
-  isMmConnected = false;
+  is_mm_connected = false;
 
   if (m_server)
     enet_peer_disconnect(m_server, 0);
   else
     return;
 
-  ENetEvent netEvent;
-  while (enet_host_service(m_client, &netEvent, 3000) > 0)
+  ENetEvent net_event;
+  while (enet_host_service(m_client, &net_event, 3000) > 0)
   {
-    switch (netEvent.type)
+    switch (net_event.type)
     {
     case ENET_EVENT_TYPE_RECEIVE:
-      enet_packet_destroy(netEvent.packet);
+      enet_packet_destroy(net_event.packet);
       break;
     case ENET_EVENT_TYPE_DISCONNECT:
       m_server = nullptr;
@@ -262,8 +262,8 @@ static enet_uint32 getLocalAddress(ENetAddress* mm_address)
     return 0;
   }
 
-  ENetAddress enetAddress;
-  if (enet_socket_get_address(socket, &enetAddress) == -1)
+  ENetAddress enet_address;
+  if (enet_socket_get_address(socket, &enet_address) == -1)
   {
     ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Failed to get local address: socket get address");
     enet_socket_destroy(socket);
@@ -271,7 +271,7 @@ static enet_uint32 getLocalAddress(ENetAddress* mm_address)
   }
 
   enet_socket_destroy(socket);
-  return enetAddress.host;
+  return enet_address.host;
 }
 
 void SlippiMatchmaking::startMatchmaking()
@@ -280,9 +280,9 @@ void SlippiMatchmaking::startMatchmaking()
   // same value
   m_client = nullptr;
 
-  int retryCount = 0;
-  auto userInfo = m_user->GetUserInfo();
-  while (m_client == nullptr && retryCount < 15)
+  int retry_count = 0;
+  auto user_info = m_user->GetUserInfo();
+  while (m_client == nullptr && retry_count < 15)
   {
     if (Config::Get(Config::SLIPPI_FORCE_NETPLAY_PORT))
       m_host_port = Config::Get(Config::SLIPPI_NETPLAY_PORT);
@@ -293,19 +293,19 @@ void SlippiMatchmaking::startMatchmaking()
     // We are explicitly setting the client address because we are trying to utilize our connection
     // to the matchmaking service in order to hole punch. This port will end up being the port
     // we listen on when we start our server
-    ENetAddress clientAddr;
-    clientAddr.host = ENET_HOST_ANY;
-    clientAddr.port = m_host_port;
+    ENetAddress client_addr;
+    client_addr.host = ENET_HOST_ANY;
+    client_addr.port = m_host_port;
 
-    m_client = enet_host_create(&clientAddr, 1, 3, 0, 0);
-    retryCount++;
+    m_client = enet_host_create(&client_addr, 1, 3, 0, 0);
+    retry_count++;
   }
 
   if (m_client == nullptr)
   {
     // Failed to create client
     m_state = ProcessState::ERROR_ENCOUNTERED;
-    m_errorMsg = "Failed to create mm client";
+    m_error_msg = "Failed to create mm client";
     ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Failed to create client...");
     return;
   }
@@ -320,35 +320,35 @@ void SlippiMatchmaking::startMatchmaking()
   {
     // Failed to connect to server
     m_state = ProcessState::ERROR_ENCOUNTERED;
-    m_errorMsg = "Failed to start connection to mm server";
+    m_error_msg = "Failed to start connection to mm server";
     ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Failed to start connection to mm server...");
     return;
   }
 
   // Before we can request a ticket, we must wait for connection to be successful
-  int connectAttemptCount = 0;
-  while (!isMmConnected)
+  int connect_attempt_count = 0;
+  while (!is_mm_connected)
   {
-    ENetEvent netEvent;
-    int net = enet_host_service(m_client, &netEvent, 500);
-    if (net <= 0 || netEvent.type != ENET_EVENT_TYPE_CONNECT)
+    ENetEvent net_event;
+    int net = enet_host_service(m_client, &net_event, 500);
+    if (net <= 0 || net_event.type != ENET_EVENT_TYPE_CONNECT)
     {
       // Not yet connected, will retry
-      connectAttemptCount++;
-      if (connectAttemptCount >= 20)
+      connect_attempt_count++;
+      if (connect_attempt_count >= 20)
       {
         ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Failed to connect to mm server...");
         m_state = ProcessState::ERROR_ENCOUNTERED;
-        m_errorMsg = "Failed to connect to mm server";
+        m_error_msg = "Failed to connect to mm server";
         return;
       }
 
       continue;
     }
 
-    netEvent.peer->data = &userInfo.display_name;
+    net_event.peer->data = &user_info.display_name;
     m_client->intercept = ENetUtil::InterceptCallback;
-    isMmConnected = true;
+    is_mm_connected = true;
     ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Connected to mm server...");
   }
 
@@ -358,20 +358,15 @@ void SlippiMatchmaking::startMatchmaking()
   {
       ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Must be logged in to queue");
       m_state = ProcessState::ERROR_ENCOUNTERED;
-      m_errorMsg = "Must be logged in to queue. Go back to menu";
+      m_error_msg = "Must be logged in to queue. Go back to menu";
       return;
   }*/
 
   // Determine local IP address. We can attempt to connect to our opponent via
-  // LAN IP can be tried in order to establish a connection in the case where the players
   // local IP address if we have the same external IP address. The following
-  // don't have NAT loopback which allows that type of connection.
   // scenarios can cause us to have the same external IP address:
-  // Right now though, the logic would replace the WAN IP with the LAN IP and if the LAN
   // - we are connected to the same LAN
-  // IP connection didn't work but WAN would have, the players can no longer connect.
   // - we are connected to the same VPN node
-  // Two things need to happen to improtve this logic:
   // - we are behind the same CGNAT
   char lan_addr[30]{};
 
@@ -420,41 +415,41 @@ void SlippiMatchmaking::startMatchmaking()
 
   WARN_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Sending LAN address: {}", lan_addr);
 
-  std::vector<u8> connectCodeBuf;
-  connectCodeBuf.insert(connectCodeBuf.end(), m_searchSettings.connectCode.begin(),
-                        m_searchSettings.connectCode.end());
+  std::vector<u8> connect_code_buf;
+  connect_code_buf.insert(connect_code_buf.end(), m_search_settings.connect_code.begin(),
+                          m_search_settings.connect_code.end());
 
   // Send message to server to create ticket
   json request;
   request["type"] = MmMessageType::CREATE_TICKET;
-  request["user"] = {{"uid", userInfo.uid},
-                     {"playKey", userInfo.play_key},
-                     {"connectCode", userInfo.connect_code},
-                     {"displayName", userInfo.display_name}};
-  request["search"] = {{"mode", m_searchSettings.mode}, {"connectCode", connectCodeBuf}};
+  request["user"] = {{"uid", user_info.uid},
+                     {"playKey", user_info.play_key},
+                     {"connectCode", user_info.connect_code},
+                     {"displayName", user_info.display_name}};
+  request["search"] = {{"mode", m_search_settings.mode}, {"connectCode", connect_code_buf}};
   request["appVersion"] = Common::GetSemVerStr();
   request["ipAddressLan"] = lan_addr;
   sendMessage(request);
 
   // Get response from server
   json response;
-  int rcvRes = receiveMessage(response, 5000);
-  if (rcvRes != 0)
+  int rcv_res = receiveMessage(response, 5000);
+  if (rcv_res != 0)
   {
     ERROR_LOG_FMT(SLIPPI_ONLINE,
                   "[Matchmaking] Did not receive response from server for create ticket");
     m_state = ProcessState::ERROR_ENCOUNTERED;
-    m_errorMsg = "Failed to join mm queue";
+    m_error_msg = "Failed to join mm queue";
     return;
   }
 
-  std::string respType = response["type"];
-  if (respType != MmMessageType::CREATE_TICKET_RESP)
+  std::string resp_type = response["type"];
+  if (resp_type != MmMessageType::CREATE_TICKET_RESP)
   {
     ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Received incorrect response for create ticket");
     ERROR_LOG_FMT(SLIPPI_ONLINE, "{}", response.dump().c_str());
     m_state = ProcessState::ERROR_ENCOUNTERED;
-    m_errorMsg = "Invalid response when joining mm queue";
+    m_error_msg = "Invalid response when joining mm queue";
     return;
   }
 
@@ -463,7 +458,7 @@ void SlippiMatchmaking::startMatchmaking()
   {
     ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Received error from server for create ticket");
     m_state = ProcessState::ERROR_ENCOUNTERED;
-    m_errorMsg = err;
+    m_error_msg = err;
     return;
   }
 
@@ -478,93 +473,90 @@ void SlippiMatchmaking::handleMatchmaking()
     return;
 
   // Get response from server
-  json getResp;
-  int rcvRes = receiveMessage(getResp, 2000);
-  if (rcvRes == -1)
+  json get_resp;
+  int rcv_res = receiveMessage(get_resp, 2000);
+  if (rcv_res == -1)
   {
     INFO_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Have not yet received assignment");
     return;
   }
-  else if (rcvRes != 0)
+  else if (rcv_res != 0)
   {
     // Right now the only other code is -2 meaning the server died probably?
     ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Lost connection to the mm server");
     m_state = ProcessState::ERROR_ENCOUNTERED;
-    m_errorMsg = "Lost connection to the mm server";
+    m_error_msg = "Lost connection to the mm server";
     return;
   }
 
-  std::string respType = getResp["type"];
-  if (respType != MmMessageType::GET_TICKET_RESP)
+  std::string resp_type = get_resp["type"];
+  if (resp_type != MmMessageType::GET_TICKET_RESP)
   {
     ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Received incorrect response for get ticket");
     m_state = ProcessState::ERROR_ENCOUNTERED;
-    m_errorMsg = "Invalid response when getting mm status";
+    m_error_msg = "Invalid response when getting mm status";
     return;
   }
 
-  std::string err = getResp.value("error", "");
-  std::string latestVersion = getResp.value("latestVersion", "");
+  std::string err = get_resp.value("error", "");
+  std::string latestVersion = get_resp.value("latestVersion", "");
   if (err.length() > 0)
   {
     if (latestVersion != "")
     {
       // Update version number when the mm server tells us our version is outdated
-      m_user->OverwriteLatestVersion(
-          latestVersion);  // Force latest version for people whose file updates dont work
+      // for people whose file updates dont work
+      m_user->OverwriteLatestVersion(latestVersion);
     }
 
     ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Received error from server for get ticket");
     m_state = ProcessState::ERROR_ENCOUNTERED;
-    m_errorMsg = err;
+    m_error_msg = err;
     return;
   }
 
-  m_isSwapAttempt = false;
-  m_netplayClient = nullptr;
+  m_is_swap_attempt = false;
+  m_netplay_client = nullptr;
 
   // Clear old users
-  m_remoteIps.clear();
-  m_playerInfo.clear();
+  m_remote_ips.clear();
+  m_player_info.clear();
 
-  std::string matchId = getResp.value("matchId", "");
-  WARN_LOG_FMT(SLIPPI_ONLINE, "Match ID: {}", matchId);
-
-  std::string match_id = getResp.value("matchId", "");
+  std::string match_id = get_resp.value("matchId", "");
   WARN_LOG_FMT(SLIPPI_ONLINE, "Match ID: {}", match_id);
 
-  auto queue = getResp["players"];
+  auto queue = get_resp["players"];
   if (queue.is_array())
   {
-    std::string localExternalIp = "";
+    std::string local_external_ip = "";
 
     for (json::iterator it = queue.begin(); it != queue.end(); ++it)
     {
       json el = *it;
-      SlippiUser::UserInfo playerInfo;
+      SlippiUser::UserInfo player_info;
 
-      bool isLocal = el.value("isLocalPlayer", false);
-      playerInfo.uid = el.value("uid", "");
-      playerInfo.display_name = el.value("displayName", "");
-      playerInfo.connect_code = el.value("connectCode", "");
-      playerInfo.port = el.value("port", 0);
-      playerInfo.chat_messages = SlippiUser::default_chat_messages;
+      bool is_local = el.value("isLocalPlayer", false);
+      player_info.uid = el.value("uid", "");
+      player_info.display_name = el.value("displayName", "");
+      player_info.connect_code = el.value("connectCode", "");
+      player_info.port = el.value("port", 0);
+      player_info.chat_messages = SlippiUser::default_chat_messages;
       if (el["chatMessages"].is_array())
       {
-        playerInfo.chat_messages = el.value("chatMessages", SlippiUser::default_chat_messages);
-        if (playerInfo.chat_messages.size() != 16)
+        player_info.chat_messages = el.value("chatMessages", SlippiUser::default_chat_messages);
+        if (player_info.chat_messages.size() != 16)
         {
-          playerInfo.chat_messages = SlippiUser::default_chat_messages;
+          player_info.chat_messages = SlippiUser::default_chat_messages;
         }
       }
-      m_playerInfo.push_back(playerInfo);
+      m_player_info.push_back(player_info);
 
-      if (isLocal)
+      if (is_local)
       {
-        std::vector<std::string> localIpParts;
-        localIpParts = SplitString(el.value("ipAddress", "1.1.1.1:123"), ':');
-        localExternalIp = localIpParts[0];
-        m_localPlayerIndex = playerInfo.port - 1;
+        std::vector<std::string> local_ip_parts;
+        local_ip_parts = SplitString(el.value("ipAddress", "1.1.1.1:123"), ':');
+        local_external_ip = local_ip_parts[0];
+        m_local_player_idx = player_info.port - 1;
       }
     };
 
@@ -573,96 +565,95 @@ void SlippiMatchmaking::handleMatchmaking()
     {
       json el = *it;
 
-      if (el.value("port", 0) - 1 == m_localPlayerIndex)
+      if (el.value("port", 0) - 1 == m_local_player_idx)
         continue;
 
-      auto extIp = el.value("ipAddress", "1.1.1.1:123");
-      std::vector<std::string> exIpParts;
-      exIpParts = SplitString(extIp, ':');
+      auto ext_ip = el.value("ipAddress", "1.1.1.1:123");
+      std::vector<std::string> ext_ip_parts = SplitString(ext_ip, ':');
 
       auto lanIp = el.value("ipAddressLan", "1.1.1.1:123");
 
       WARN_LOG_FMT(SLIPPI_ONLINE, "LAN IP: {}", lanIp.c_str());
 
-      if (exIpParts[0] != localExternalIp || lanIp.empty())
+      if (ext_ip_parts[0] != local_external_ip || lanIp.empty())
       {
         // If external IPs are different, just use that address
-        m_remoteIps.push_back(extIp);
+        m_remote_ips.push_back(ext_ip);
         continue;
       }
 
       // TODO: Instead of using one or the other, it might be better to try both
 
       // If external IPs are the same, try using LAN IPs
-      m_remoteIps.push_back(lanIp);
+      m_remote_ips.push_back(lanIp);
     }
   }
-  m_isHost = getResp.value("isHost", false);
+  m_is_host = get_resp.value("isHost", false);
 
   // Get allowed stages. For stage select modes like direct and teams, this will only impact the
   // first map selected
-  m_allowedStages.clear();
-  auto stages = getResp["stages"];
+  m_allowed_stages.clear();
+  auto stages = get_resp["stages"];
   if (stages.is_array())
   {
     for (json::iterator it = stages.begin(); it != stages.end(); ++it)
     {
       json el = *it;
       auto stage_id = el.get<int>();
-      m_allowedStages.push_back(stage_id);
+      m_allowed_stages.push_back(stage_id);
     }
   }
 
-  if (m_allowedStages.empty())
+  if (m_allowed_stages.empty())
   {
     // Default case, shouldn't ever really be hit but it's here just in case
-    m_allowedStages.push_back(0x3);   // Pokemon
-    m_allowedStages.push_back(0x8);   // Yoshi's Story
-    m_allowedStages.push_back(0x1C);  // Dream Land
-    m_allowedStages.push_back(0x1F);  // Battlefield
-    m_allowedStages.push_back(0x20);  // Final Destination
+    m_allowed_stages.push_back(0x3);   // Pokemon
+    m_allowed_stages.push_back(0x8);   // Yoshi's Story
+    m_allowed_stages.push_back(0x1C);  // Dream Land
+    m_allowed_stages.push_back(0x1F);  // Battlefield
+    m_allowed_stages.push_back(0x20);  // Final Destination
 
     // Add FoD if singles
-    if (m_playerInfo.size() == 2)
+    if (m_player_info.size() == 2)
     {
-      m_allowedStages.push_back(0x2);  // FoD
+      m_allowed_stages.push_back(0x2);  // FoD
     }
   }
 
   m_mm_result.id = match_id;
-  m_mm_result.players = m_playerInfo;
-  m_mm_result.stages = m_allowedStages;
+  m_mm_result.players = m_player_info;
+  m_mm_result.stages = m_allowed_stages;
 
   // Disconnect and destroy enet client to mm server
   terminateMmConnection();
 
   m_state = ProcessState::OPPONENT_CONNECTING;
   ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Opponent found. is_decider: {}",
-                m_isHost ? "true" : "false");
+                m_is_host ? "true" : "false");
 }
 
 int SlippiMatchmaking::LocalPlayerIndex()
 {
-  return m_localPlayerIndex;
+  return m_local_player_idx;
 }
 
 std::vector<SlippiUser::UserInfo> SlippiMatchmaking::GetPlayerInfo()
 {
-  return m_playerInfo;
+  return m_player_info;
 }
 
 std::vector<u16> SlippiMatchmaking::GetStages()
 {
-  return m_allowedStages;
+  return m_allowed_stages;
 }
 
 std::string SlippiMatchmaking::GetPlayerName(u8 port)
 {
-  if (port >= m_playerInfo.size())
+  if (port >= m_player_info.size())
   {
     return "";
   }
-  return m_playerInfo[port].display_name;
+  return m_player_info[port].display_name;
 }
 
 SlippiMatchmaking::MatchmakeResult SlippiMatchmaking::GetMatchmakeResult()
@@ -672,44 +663,44 @@ SlippiMatchmaking::MatchmakeResult SlippiMatchmaking::GetMatchmakeResult()
 
 u8 SlippiMatchmaking::RemotePlayerCount()
 {
-  if (m_playerInfo.size() == 0)
+  if (m_player_info.size() == 0)
     return 0;
 
-  return (u8)m_playerInfo.size() - 1;
+  return (u8)m_player_info.size() - 1;
 }
 
 void SlippiMatchmaking::handleConnecting()
 {
-  auto userInfo = m_user->GetUserInfo();
+  auto user_info = m_user->GetUserInfo();
 
-  m_isSwapAttempt = false;
-  m_netplayClient = nullptr;
+  m_is_swap_attempt = false;
+  m_netplay_client = nullptr;
 
-  u8 remotePlayerCount = (u8)m_remoteIps.size();
-  std::vector<std::string> remoteParts;
+  u8 remote_player_count = (u8)m_remote_ips.size();
+  std::vector<std::string> remote_parts;
   std::vector<std::string> addrs;
   std::vector<u16> ports;
-  for (int i = 0; i < m_remoteIps.size(); i++)
+  for (int i = 0; i < m_remote_ips.size(); i++)
   {
-    remoteParts.clear();
-    remoteParts = SplitString(m_remoteIps[i], ':');
-    addrs.push_back(remoteParts[0]);
-    ports.push_back(std::stoi(remoteParts[1]));
+    remote_parts.clear();
+    remote_parts = SplitString(m_remote_ips[i], ':');
+    addrs.push_back(remote_parts[0]);
+    ports.push_back(std::stoi(remote_parts[1]));
   }
 
-  std::stringstream ipLog;
-  ipLog << "Remote player IPs: ";
-  for (int i = 0; i < m_remoteIps.size(); i++)
+  std::stringstream ip_log;
+  ip_log << "Remote player IPs: ";
+  for (int i = 0; i < m_remote_ips.size(); i++)
   {
-    ipLog << m_remoteIps[i] << ", ";
+    ip_log << m_remote_ips[i] << ", ";
   }
-  // INFO_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] My port: {} || {}", m_host_port, ipLog.str());
+  // INFO_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] My port: {} || {}", m_host_port, ip_log.str());
 
   // Is host is now used to specify who the decider is
-  auto client = std::make_unique<SlippiNetplayClient>(addrs, ports, remotePlayerCount, m_host_port,
-                                                      m_isHost, m_localPlayerIndex);
+  auto client = std::make_unique<SlippiNetplayClient>(addrs, ports, remote_player_count,
+                                                      m_host_port, m_is_host, m_local_player_idx);
 
-  while (!m_netplayClient)
+  while (!m_netplay_client)
   {
     auto status = client->GetSlippiConnectStatus();
     if (status == SlippiNetplayClient::SlippiConnectStatus::NET_CONNECT_STATUS_INITIATED)
@@ -724,29 +715,29 @@ void SlippiMatchmaking::handleConnecting()
       continue;
     }
     else if (status == SlippiNetplayClient::SlippiConnectStatus::NET_CONNECT_STATUS_FAILED &&
-             m_searchSettings.mode == SlippiMatchmaking::OnlinePlayMode::TEAMS)
+             m_search_settings.mode == SlippiMatchmaking::OnlinePlayMode::TEAMS)
     {
       // If we failed setting up a connection in teams mode, show a detailed error about who we had
       // issues connecting to.
       ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Failed to connect to players");
       m_state = ProcessState::ERROR_ENCOUNTERED;
-      m_errorMsg = "Timed out waiting for other players to connect";
-      auto failedConns = client->GetFailedConnections();
-      if (!failedConns.empty())
+      m_error_msg = "Timed out waiting for other players to connect";
+      auto failed_conns = client->GetFailedConnections();
+      if (!failed_conns.empty())
       {
         std::stringstream err;
         err << "Could not connect to players: ";
-        for (int i = 0; i < failedConns.size(); i++)
+        for (int i = 0; i < failed_conns.size(); i++)
         {
-          int p = failedConns[i];
-          if (p >= m_localPlayerIndex)
+          int p = failed_conns[i];
+          if (p >= m_local_player_idx)
             p++;
 
-          err << m_playerInfo[p].display_name;
-          if (i < failedConns.size() - 1)
+          err << m_player_info[p].display_name;
+          if (i < failed_conns.size() - 1)
             err << ", ";
         }
-        m_errorMsg = err.str();
+        m_error_msg = err.str();
       }
 
       return;
@@ -757,7 +748,7 @@ void SlippiMatchmaking::handleConnecting()
                     "[Matchmaking] Connection attempt failed, looking for someone else.");
 
       // Return to the start to get a new ticket to find someone else we can hopefully connect with
-      m_netplayClient = nullptr;
+      m_netplay_client = nullptr;
       m_state = ProcessState::INITIALIZING;
       return;
     }
@@ -765,7 +756,7 @@ void SlippiMatchmaking::handleConnecting()
     ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Connection success!");
 
     // Successful connection
-    m_netplayClient = std::move(client);
+    m_netplay_client = std::move(client);
   }
 
   // Connection success, our work is done

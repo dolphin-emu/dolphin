@@ -44,7 +44,7 @@ public:
   struct MatchSearchSettings
   {
     OnlinePlayMode mode = OnlinePlayMode::RANKED;
-    std::string connectCode = "";
+    std::string connect_code = "";
   };
 
   struct MatchmakeResult
@@ -80,32 +80,32 @@ protected:
 
   std::default_random_engine generator;
 
-  bool isMmConnected = false;
+  bool is_mm_connected = false;
   bool is_mm_terminated = false;
 
-  std::thread m_matchmakeThread;
+  std::thread m_matchmake_thread;
 
-  MatchSearchSettings m_searchSettings;
+  MatchSearchSettings m_search_settings;
 
   ProcessState m_state;
-  std::string m_errorMsg = "";
+  std::string m_error_msg = "";
 
   SlippiUser* m_user;
 
-  int m_isSwapAttempt = false;
+  int m_is_swap_attempt = false;
 
   int m_host_port;
-  int m_localPlayerIndex;
-  std::vector<std::string> m_remoteIps;
+  int m_local_player_idx;
+  std::vector<std::string> m_remote_ips;
   MatchmakeResult m_mm_result;
-  std::vector<SlippiUser::UserInfo> m_playerInfo;
-  std::vector<u16> m_allowedStages;
-  bool m_joinedLobby;
-  bool m_isHost;
+  std::vector<SlippiUser::UserInfo> m_player_info;
+  std::vector<u16> m_allowed_stages;
+  bool m_joined_lobby;
+  bool m_is_host;
 
-  std::unique_ptr<SlippiNetplayClient> m_netplayClient;
+  std::unique_ptr<SlippiNetplayClient> m_netplay_client;
 
-  const std::unordered_map<ProcessState, bool> searchingStates = {
+  const std::unordered_map<ProcessState, bool> searching_states = {
       {ProcessState::INITIALIZING, true},
       {ProcessState::MATCHMAKING, true},
       {ProcessState::OPPONENT_CONNECTING, true},
@@ -114,7 +114,7 @@ protected:
   void disconnectFromServer();
   void terminateMmConnection();
   void sendMessage(json msg);
-  int receiveMessage(json& msg, int maxAttempts);
+  int receiveMessage(json& msg, int max_attempts);
 
   void startMatchmaking();
   void handleMatchmaking();
