@@ -6,7 +6,7 @@
 #include "Common/Logging/LogManager.h"
 #include "Core/ConfigManager.h"
 
-std::unique_ptr<SlippiReplayComm> g_replayComm;
+std::unique_ptr<SlippiReplayComm> g_replay_comm;
 
 // https://stackoverflow.com/questions/216823/whats-the-best-way-to-trim-stdstring
 // trim from start (in place)

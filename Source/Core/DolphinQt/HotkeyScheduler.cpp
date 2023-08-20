@@ -48,7 +48,7 @@
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
-extern std::unique_ptr<SlippiPlaybackStatus> g_playbackStatus;
+extern std::unique_ptr<SlippiPlaybackStatus> g_playback_status;
 
 constexpr const char* DUBOIS_ALGORITHM_SHADER = "dubois";
 
@@ -561,9 +561,9 @@ void HotkeyScheduler::Run()
     if (IsHotkey(HK_SLIPPI_JUMP_BACK))
     {
       INFO_LOG_FMT(SLIPPI, "jump back");
-      if (g_playbackStatus->targetFrameNum == INT_MAX)
+      if (g_playback_status->targetFrameNum == INT_MAX)
       {
-        g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame - 1200;
+        g_playback_status->targetFrameNum = g_playback_status->currentPlaybackFrame - 1200;
         Host_PlaybackSeek();
       }
     }
@@ -571,9 +571,9 @@ void HotkeyScheduler::Run()
     if (IsHotkey(HK_SLIPPI_STEP_BACK))
     {
       INFO_LOG_FMT(SLIPPI, "step back");
-      if (g_playbackStatus->targetFrameNum == INT_MAX)
+      if (g_playback_status->targetFrameNum == INT_MAX)
       {
-        g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame - 300;
+        g_playback_status->targetFrameNum = g_playback_status->currentPlaybackFrame - 300;
         Host_PlaybackSeek();
       }
     }
@@ -581,9 +581,9 @@ void HotkeyScheduler::Run()
     if (IsHotkey(HK_SLIPPI_STEP_FORWARD))
     {
       INFO_LOG_FMT(SLIPPI, "step forward");
-      if (g_playbackStatus->targetFrameNum == INT_MAX)
+      if (g_playback_status->targetFrameNum == INT_MAX)
       {
-        g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame + 300;
+        g_playback_status->targetFrameNum = g_playback_status->currentPlaybackFrame + 300;
         Host_PlaybackSeek();
       }
     }
@@ -591,9 +591,9 @@ void HotkeyScheduler::Run()
     if (IsHotkey(HK_SLIPPI_JUMP_FORWARD))
     {
       INFO_LOG_FMT(SLIPPI, "jump forward");
-      if (g_playbackStatus->targetFrameNum == INT_MAX)
+      if (g_playback_status->targetFrameNum == INT_MAX)
       {
-        g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame + 1200;
+        g_playback_status->targetFrameNum = g_playback_status->currentPlaybackFrame + 1200;
         Host_PlaybackSeek();
       }
     }

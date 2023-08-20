@@ -173,23 +173,23 @@ private:
   uintptr_t slprs_exi_device_ptr;
 
   // .slp File creation stuff
-  u32 writtenByteCount = 0;
+  u32 written_byte_count = 0;
 
   // vars for metadata generation
   time_t game_start_time;
-  s32 lastFrame;
-  std::unordered_map<u8, std::unordered_map<u8, u32>> characterUsage;
+  s32 last_frame;
+  std::unordered_map<u8, std::unordered_map<u8, u32>> character_usage;
 
   void updateMetadataFields(u8* payload, u32 length);
   void configureCommands(u8* payload, u8 length);
-  void writeToFileAsync(u8* payload, u32 length, std::string fileOption);
+  void writeToFileAsync(u8* payload, u32 length, std::string file_option);
   void writeToFile(std::unique_ptr<WriteMessage> msg);
   std::vector<u8> generateMetadata();
   void createNewFile();
   void closeFile();
   std::string generateFileName();
-  bool checkFrameFullyFetched(s32 frameIndex);
-  // bool shouldFFWFrame(s32 frameIndex);
+  bool checkFrameFullyFetched(s32 frame_idx);
+  // bool shouldFFWFrame(s32 frame_idx);
 
   // std::ofstream log;
 
@@ -200,7 +200,7 @@ private:
   u16 getRandomStage();
   bool isDisconnected();
   void handleOnlineInputs(u8* payload);
-  void prepareOpponentInputs(s32 frame, bool shouldSkip);
+  void prepareOpponentInputs(s32 frame, bool should_skip);
   void handleSendInputs(s32 frame, u8 delay, s32 checksum_frame, u32 checksum, u8* inputs);
   void handleCaptureSavestate(u8* payload);
   void handleLoadSavestate(u8* payload);
@@ -208,7 +208,7 @@ private:
   void startFindMatch(u8* payload);
   void prepareOnlineMatchState();
   void setMatchSelections(u8* payload);
-  bool shouldSkipOnlineFrame(s32 frame, s32 finalizedFrame);
+  bool shouldSkipOnlineFrame(s32 frame, s32 finalized_frame);
   bool shouldAdvanceOnlineFrame(s32 frame);
   void handleLogInRequest();
   void handleLogOutRequest();
@@ -225,7 +225,7 @@ private:
   // replay playback stuff
   void prepareGameInfo(u8* payload);
   void prepareGeckoList();
-  void prepareCharacterFrameData(Slippi::FrameData* frame, u8 port, u8 isFollower);
+  void prepareCharacterFrameData(Slippi::FrameData* frame, u8 port, u8 is_follower);
   void prepareFrameData(u8* payload);
   void prepareIsStockSteal(u8* payload);
   void prepareIsFileReady();
@@ -241,42 +241,42 @@ private:
   void prepareDelayResponse();
   void preparePremadeTextLength(u8* payload);
   void preparePremadeTextLoad(u8* payload);
-  bool doesTagMatchInput(u8* input, u8 inputLen, std::string tag);
+  bool doesTagMatchInput(u8* input, u8 input_len, std::string tag);
 
   std::vector<u8> loadPremadeText(u8* payload);
-  int getCharColor(u8 charId, u8 teamId);
+  int getCharColor(u8 char_id, u8 team_id);
 
   void FileWriteThread(void);
 
-  std::queue<std::unique_ptr<WriteMessage>> fileWriteQueue;
-  bool writeThreadRunning = false;
-  std::thread m_fileWriteThread;
+  std::queue<std::unique_ptr<WriteMessage>> file_write_queue;
+  bool write_thread_running = false;
+  std::thread m_file_write_thread;
 
   std::unordered_map<u8, std::string> getNetplayNames();
 
-  std::vector<u8> playbackSavestatePayload;
-  std::vector<u8> geckoList;
+  std::vector<u8> playback_savestate_payload;
+  std::vector<u8> gecko_list;
 
-  u32 stallFrameCount = 0;
-  bool isConnectionStalled = false;
+  u32 stall_frame_count = 0;
+  bool is_connection_stalled = false;
 
   std::vector<u8> m_read_queue;
   std::unique_ptr<Slippi::SlippiGame> m_current_game = nullptr;
   SlippiMatchmaking::MatchSearchSettings last_search;
   SlippiMatchmaking::MatchmakeResult recent_mm_result;
 
-  std::vector<u16> stagePool;
+  std::vector<u16> stage_pool;
 
   // Used by ranked to set game prep selections
   std::vector<SlippiPlayerSelections> overwrite_selections;
 
-  u32 frameSeqIdx = 0;
+  u32 frame_seq_idx = 0;
 
-  bool isEnetInitialized = false;
+  bool is_enet_initialized = false;
 
   std::default_random_engine generator;
 
-  std::string forcedError = "";
+  std::string forced_error = "";
 
   // Used to determine when to detect when a new session has started
   bool is_play_session_active = false;
@@ -287,31 +287,31 @@ private:
   u8 m_remote_player_index = 1;
 
   // Frame skipping variables
-  int framesToSkip = 0;
-  bool isCurrentlySkipping = false;
+  int frames_to_skip = 0;
+  bool is_currently_skipping = false;
 
   // Frame advancing variables
-  int framesToAdvance = 0;
-  bool isCurrentlyAdvancing = false;
-  int fallBehindCounter = 0;
-  int fallFarBehindCounter = 0;
+  int frames_to_advance = 0;
+  bool is_currently_advancing = false;
+  int fall_behind_counter = 0;
+  int fall_far_behind_counter = 0;
 
 protected:
   void TransferByte(u8& byte) override;
 
 private:
-  SlippiPlayerSelections localSelections;
+  SlippiPlayerSelections local_selections;
 
   std::unique_ptr<SlippiUser> user;
-  std::unique_ptr<SlippiGameFileLoader> gameFileLoader;
+  std::unique_ptr<SlippiGameFileLoader> game_file_loader;
   std::unique_ptr<SlippiNetplayClient> slippi_netplay;
   std::unique_ptr<SlippiMatchmaking> matchmaking;
-  std::unique_ptr<SlippiDirectCodes> directCodes;
-  std::unique_ptr<SlippiDirectCodes> teamsCodes;
+  std::unique_ptr<SlippiDirectCodes> direct_codes;
+  std::unique_ptr<SlippiDirectCodes> teams_codes;
 
-  std::map<s32, std::unique_ptr<SlippiSavestate>> activeSavestates;
-  std::deque<std::unique_ptr<SlippiSavestate>> availableSavestates;
+  std::map<s32, std::unique_ptr<SlippiSavestate>> active_savestates;
+  std::deque<std::unique_ptr<SlippiSavestate>> available_savestates;
 
-  std::vector<u16> allowedStages;
+  std::vector<u16> allowed_stages;
 };
 }  // namespace ExpansionInterface

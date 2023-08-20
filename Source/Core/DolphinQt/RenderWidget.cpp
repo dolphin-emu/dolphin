@@ -45,7 +45,7 @@
 #include <Windows.h>
 #endif
 
-extern std::unique_ptr<SlippiPlaybackStatus> g_playbackStatus;
+extern std::unique_ptr<SlippiPlaybackStatus> g_playback_status;
 
 RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
 {
@@ -568,5 +568,5 @@ void RenderWidget::Exit()
 
 void RenderWidget::PlaybackSeek()
 {
-  g_playbackStatus->seekToFrame();
+  g_playback_status->seekToFrame();
 }

@@ -19,8 +19,8 @@
 #define FRAME_INTERVAL 900
 #define SLEEP_TIME_MS 8
 
-std::unique_ptr<SlippiPlaybackStatus> g_playbackStatus;
-extern std::unique_ptr<SlippiReplayComm> g_replayComm;
+std::unique_ptr<SlippiPlaybackStatus> g_playback_status;
+extern std::unique_ptr<SlippiReplayComm> g_replay_comm;
 
 static std::mutex mtx;
 static std::mutex seekMtx;
@@ -67,7 +67,8 @@ SlippiPlaybackStatus::SlippiPlaybackStatus()
   targetFrameNum = INT_MAX;
   lastFrame = Slippi::PLAYBACK_FIRST_SAVE;
 #ifdef IS_PLAYBACK
-  // Only generate these if this is a playback configuration. Should this class get initialized at all?
+  // Only generate these if this is a playback configuration. Should this class get initialized at
+  // all?
   generateDenylist();
   generateLegacyCodelist();
 #endif
@@ -192,7 +193,7 @@ void SlippiPlaybackStatus::seekToFrame()
     }
 
     std::unique_lock<std::mutex> ffwLock(ffwMtx);
-    auto replayCommSettings = g_replayComm->getSettings();
+    auto replayCommSettings = g_replay_comm->getSettings();
     if (replayCommSettings.mode == "queue")
       updateWatchSettingsStartEnd();
 
@@ -253,7 +254,7 @@ void SlippiPlaybackStatus::seekToFrame()
 
     // We've reached the frame we want. Reset targetFrameNum and release mutex so another seek can
     // be performed
-    g_playbackStatus->currentPlaybackFrame = targetFrameNum;
+    g_playback_status->currentPlaybackFrame = targetFrameNum;
     targetFrameNum = INT_MAX;
     Core::SetState(prevState);
     seekMtx.unlock();
@@ -316,14 +317,14 @@ bool SlippiPlaybackStatus::shouldFFWFrame(s32 frameIndex) const
 
 void SlippiPlaybackStatus::updateWatchSettingsStartEnd()
 {
-  int startFrame = g_replayComm->current.startFrame;
-  int endFrame = g_replayComm->current.endFrame;
+  int startFrame = g_replay_comm->current.startFrame;
+  int endFrame = g_replay_comm->current.endFrame;
   if (startFrame != Slippi::GAME_FIRST_FRAME || endFrame != INT_MAX)
   {
-    if (g_playbackStatus->targetFrameNum < startFrame)
-      g_replayComm->current.startFrame = g_playbackStatus->targetFrameNum;
-    if (g_playbackStatus->targetFrameNum > endFrame)
-      g_replayComm->current.endFrame = INT_MAX;
+    if (g_playback_status->targetFrameNum < startFrame)
+      g_replay_comm->current.startFrame = g_playback_status->targetFrameNum;
+    if (g_playback_status->targetFrameNum > endFrame)
+      g_replay_comm->current.endFrame = INT_MAX;
   }
 }
 
@@ -350,29 +351,29 @@ inline std::string readString(json obj, std::string key)
 
 int getOrderNumFromFileName(std::string name)
 {
-	// Extract last value after a dash, then try to parse it into a number. This is the
-	// number we will sort by. If there is no number present, the number used is 0.
-	std::string last;
-	std::istringstream f(name);
-	std::string s;
-	while (std::getline(f, s, '-'))
-	{
-		last = s;
-	}
+  // Extract last value after a dash, then try to parse it into a number. This is the
+  // number we will sort by. If there is no number present, the number used is 0.
+  std::string last;
+  std::istringstream f(name);
+  std::string s;
+  while (std::getline(f, s, '-'))
+  {
+    last = s;
+  }
 
-	int num;
-	if (!TryParse(last, &num))
-	{
-		num = 0;
-	}
+  int num;
+  if (!TryParse(last, &num))
+  {
+    num = 0;
+  }
 
-	return num;
+  return num;
 }
 
 // Compares two intervals according to starting times.
 bool compareInjectionList(File::FSTEntry i1, File::FSTEntry i2)
 {
-	return getOrderNumFromFileName(i1.virtualName) < getOrderNumFromFileName(i2.virtualName);
+  return getOrderNumFromFileName(i1.virtualName) < getOrderNumFromFileName(i2.virtualName);
 }
 
 void SlippiPlaybackStatus::generateDenylist()
@@ -389,8 +390,8 @@ void SlippiPlaybackStatus::generateDenylist()
       // Post 3.7.0: Recording/SendGameEnd.asm
       {0x8016d30c, true},
       // Online/Menus/InGame/InitInGame.asm
-	    // https://github.com/project-slippi/slippi-ssbm-asm/blame/7211b1cfe0792e0fa5ebfbac6bb493bda05d8ee2/Online/Menus/InGame/InitInGame.asm
-	    {0x8016e9b4, true},
+      // https://github.com/project-slippi/slippi-ssbm-asm/blame/7211b1cfe0792e0fa5ebfbac6bb493bda05d8ee2/Online/Menus/InGame/InitInGame.asm
+      {0x8016e9b4, true},
 
       // Common codes not in our codebase
       // HUD Transparency v1.1 (https://smashboards.com/threads/transparent-hud-v1-1.508509/)
@@ -401,8 +402,8 @@ void SlippiPlaybackStatus::generateDenylist()
       // (https://smashboards.com/threads/color-overlays-for-iasa-frames.401474/post-19120928)
       {0x80071960, true},
       // Turn Green When Actionable (https://blippi.gg/codes)
-	    {0x800CC818, true},
-	    {0x8008A478, true},
+      {0x800CC818, true},
+      {0x8008A478, true},
   };
 
   // Next we parse through the injection lists files to exclude all of our injections that don't
@@ -412,10 +413,10 @@ void SlippiPlaybackStatus::generateDenylist()
   auto entries = File::ScanDirectoryTree(injections_path, false);
   auto children = entries.children;
 
-	// First sort by the file names so later lists take precedence
-	std::sort(children.begin(), children.end(), compareInjectionList);
+  // First sort by the file names so later lists take precedence
+  std::sort(children.begin(), children.end(), compareInjectionList);
 
-	for (auto &entry : children)
+  for (auto& entry : children)
   {
     if (entry.isDirectory)
       continue;

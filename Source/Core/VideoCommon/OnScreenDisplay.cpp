@@ -32,7 +32,7 @@
 #include "Core/Host.h"
 #include "VideoCommon/IconsMaterialDesign.h"
 
-extern std::unique_ptr<SlippiPlaybackStatus> g_playbackStatus;
+extern std::unique_ptr<SlippiPlaybackStatus> g_playback_status;
 #endif
 
 namespace OSD
@@ -350,7 +350,7 @@ bool SeekBarBehavior(const ImRect& bb, ImGuiID id, int* v, int v_min, int v_max,
     if (!isHeld)
     {
       value_changed = true;
-      g_playbackStatus->targetFrameNum = *v;
+      g_playback_status->targetFrameNum = *v;
     }
   }
   else
@@ -415,8 +415,9 @@ bool SeekBarBehavior(const ImRect& bb, ImGuiID id, int* v, int v_min, int v_max,
   // Progress bar
   if (!isHeld)
   {
-    frame = (g_playbackStatus->targetFrameNum == INT_MAX) ? g_playbackStatus->currentPlaybackFrame :
-                                                            g_playbackStatus->targetFrameNum;
+    frame = (g_playback_status->targetFrameNum == INT_MAX) ?
+                g_playback_status->currentPlaybackFrame :
+                g_playback_status->targetFrameNum;
     window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y - scaled_height * 0.002f),
                               ImVec2(curr_grab_pos, bb.Min.y - scaled_height * 0.002f),
                               ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, style.Alpha)),
@@ -628,7 +629,7 @@ void DrawSlippiPlaybackControls()
     ImGui::SetWindowFontScale(scaled_height / 2000.0f);
 
     if (SeekBar("SlippiSeek", ImVec4(1.0f, 0.0f, 0.0f, 1.0f), &frame, Slippi::PLAYBACK_FIRST_SAVE,
-                g_playbackStatus->lastFrame, 1.0, "%d"))
+                g_playback_status->lastFrame, 1.0, "%d"))
     {
       Host_PlaybackSeek();
     }
@@ -644,9 +645,9 @@ void DrawSlippiPlaybackControls()
     // ImGui::SameLine(0.0f, 5.0f);
     if (ButtonCustom(ICON_MD_FAST_REWIND, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
     {
-      if (g_playbackStatus->targetFrameNum == INT_MAX)
+      if (g_playback_status->targetFrameNum == INT_MAX)
       {
-        g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame - 1200;
+        g_playback_status->targetFrameNum = g_playback_status->currentPlaybackFrame - 1200;
         Host_PlaybackSeek();
       }
     }
@@ -664,9 +665,9 @@ void DrawSlippiPlaybackControls()
     ImGui::SetCursorPos(ImVec2(BUTTON_WIDTH, height - scaled_height * 0.0265f));
     if (ButtonCustom(ICON_MD_FIRST_PAGE, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
     {
-      if (g_playbackStatus->targetFrameNum == INT_MAX)
+      if (g_playback_status->targetFrameNum == INT_MAX)
       {
-        g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame - 300;
+        g_playback_status->targetFrameNum = g_playback_status->currentPlaybackFrame - 300;
         Host_PlaybackSeek();
       }
     }
@@ -684,9 +685,9 @@ void DrawSlippiPlaybackControls()
     ImGui::SetCursorPos(ImVec2(BUTTON_WIDTH * 2, height - scaled_height * 0.0265f));
     if (ButtonCustom(ICON_MD_LAST_PAGE, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
     {
-      if (g_playbackStatus->targetFrameNum == INT_MAX)
+      if (g_playback_status->targetFrameNum == INT_MAX)
       {
-        g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame + 300;
+        g_playback_status->targetFrameNum = g_playback_status->currentPlaybackFrame + 300;
         Host_PlaybackSeek();
       }
     }
@@ -704,9 +705,9 @@ void DrawSlippiPlaybackControls()
     ImGui::SetCursorPos(ImVec2(BUTTON_WIDTH * 3, height - scaled_height * 0.0265f));
     if (ButtonCustom(ICON_MD_FAST_FORWARD, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
     {
-      if (g_playbackStatus->targetFrameNum == INT_MAX)
+      if (g_playback_status->targetFrameNum == INT_MAX)
       {
-        g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame + 1200;
+        g_playback_status->targetFrameNum = g_playback_status->currentPlaybackFrame + 1200;
         Host_PlaybackSeek();
       }
     }
@@ -886,8 +887,8 @@ void DrawSlippiPlaybackControls()
 
     // Time text
     ImGui::SetCursorPos(ImVec2(BUTTON_WIDTH * 8, height - scaled_height * 0.024f));
-    auto playbackTime = GetTimeForFrame(g_playbackStatus->currentPlaybackFrame);
-    auto endTime = GetTimeForFrame(g_playbackStatus->lastFrame);
+    auto playbackTime = GetTimeForFrame(g_playback_status->currentPlaybackFrame);
+    auto endTime = GetTimeForFrame(g_playback_status->lastFrame);
     auto timeString = playbackTime + " / " + endTime;
     ImGui::Text("%s", timeString.c_str());
   }
