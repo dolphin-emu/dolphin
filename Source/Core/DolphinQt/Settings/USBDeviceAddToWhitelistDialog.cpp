@@ -128,14 +128,16 @@ void USBDeviceAddToWhitelistDialog::AddUSBDeviceToWhitelist()
   const std::string pid_string(StripWhitespace(device_pid_textbox->text().toStdString()));
   if (!IsValidUSBIDString(vid_string))
   {
-    // i18n: Here, VID means Vendor ID (for a USB device).
-    ModalMessageBox::critical(this, tr("USB Whitelist Error"), tr("The entered VID is invalid."));
+    ModalMessageBox::critical(this, tr("USB Whitelist Error"),
+                              // i18n: Here, VID means Vendor ID (for a USB device).
+                              tr("The entered VID is invalid."));
     return;
   }
   if (!IsValidUSBIDString(pid_string))
   {
-    // i18n: Here, PID means Product ID (for a USB device).
-    ModalMessageBox::critical(this, tr("USB Whitelist Error"), tr("The entered PID is invalid."));
+    ModalMessageBox::critical(this, tr("USB Whitelist Error"),
+                              // i18n: Here, PID means Product ID (for a USB device).
+                              tr("The entered PID is invalid."));
     return;
   }
 
