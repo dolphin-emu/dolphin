@@ -151,6 +151,9 @@ CEXISlippi::CEXISlippi(Core::System& system, const std::string current_file_name
   directCodes = std::make_unique<SlippiDirectCodes>("direct-codes.json");
   teamsCodes = std::make_unique<SlippiDirectCodes>("teams-codes.json");
 
+  // initialize the spectate server so we can connect without starting a game
+  SlippiSpectateServer::getInstance();
+
   generator = std::default_random_engine(Common::Timer::NowMs());
 
   // Loggers will check 5 bytes, make sure we own that memory

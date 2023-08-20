@@ -262,7 +262,6 @@ private:
 
   std::vector<u8> m_read_queue;
   std::unique_ptr<Slippi::SlippiGame> m_current_game = nullptr;
-  SlippiSpectateServer* m_slippiserver = nullptr;
   SlippiMatchmaking::MatchSearchSettings last_search;
   SlippiMatchmaking::MatchmakeResult recent_mm_result;
 
