@@ -18,26 +18,26 @@ public:
   SlippiPlaybackStatus();
   ~SlippiPlaybackStatus();
 
-  bool shouldJumpBack = false;
-  bool shouldJumpForward = false;
-  bool inSlippiPlayback = false;
-  volatile bool shouldRunThreads = false;
-  bool isHardFFW = false;
-  bool isSoftFFW = false;
-  bool origOCEnable = SConfig::GetSlippiConfig().oc_enable;
-  float origOCFactor = SConfig::GetSlippiConfig().oc_factor;
+  bool should_jump_back = false;
+  bool should_jump_forward = false;
+  bool in_slippi_playback = false;
+  volatile bool should_run_threads = false;
+  bool is_hard_FFW = false;
+  bool is_soft_FFW = false;
+  bool orig_OC_enable = SConfig::GetSlippiConfig().oc_enable;
+  float orig_OC_factor = SConfig::GetSlippiConfig().oc_factor;
 
-  s32 lastFFWFrame = INT_MIN;
-  s32 currentPlaybackFrame = INT_MIN;
-  s32 targetFrameNum = INT_MAX;
-  s32 lastFrame = Slippi::PLAYBACK_FIRST_SAVE;
+  s32 last_FFW_frame = INT_MIN;
+  s32 current_playback_frame = INT_MIN;
+  s32 target_frame_num = INT_MAX;
+  s32 last_frame = Slippi::PLAYBACK_FIRST_SAVE;
 
-  std::thread m_savestateThread;
+  std::thread m_savestate_thread;
 
   void startThreads(void);
   void resetPlayback(void);
-  bool shouldFFWFrame(s32 frameIndex) const;
-  void prepareSlippiPlayback(s32& frameIndex);
+  bool shouldFFWFrame(s32 frame_idx) const;
+  void prepareSlippiPlayback(s32& frame_idx);
   void setHardFFW(bool enable);
   std::unordered_map<u32, bool> getDenylist();
   std::vector<u8> getLegacyCodelist();
@@ -45,19 +45,19 @@ public:
 
 private:
   void SavestateThread(void);
-  void loadState(s32 closestStateFrame);
+  void loadState(s32 closest_state_frame);
   void processInitialState();
   void updateWatchSettingsStartEnd();
   void generateDenylist();
   void generateLegacyCodelist();
 
   std::unordered_map<int32_t, std::shared_future<std::string>>
-      futureDiffs;         // State diffs keyed by frameIndex, processed async
-  std::vector<u8> iState;  // The initial state
-  std::vector<u8> cState;  // The current (latest) state
+      future_diffs;               // State diffs keyed by frame_idx, processed async
+  std::vector<u8> initial_state;  // The initial state
+  std::vector<u8> curr_state;     // The current (latest) state
 
-  std::unordered_map<u32, bool> denylist;
-  std::vector<u8> legacyCodelist;
+  std::unordered_map<u32, bool> deny_list;
+  std::vector<u8> legacy_code_list;
 
   open_vcdiff::VCDiffDecoder decoder;
   open_vcdiff::VCDiffEncoder* encoder = NULL;

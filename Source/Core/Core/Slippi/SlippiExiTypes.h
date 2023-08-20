@@ -27,8 +27,8 @@ struct ReportGameQuery
   u8 command;
   u8 mode;
   u32 frame_length;
-  u32 game_index;
-  u32 tiebreak_index;
+  u32 game_idx;
+  u32 tiebreak_idx;
   s8 winner_idx;
   u8 game_end_method;
   s8 lras_initiator;
@@ -119,8 +119,8 @@ inline ReportGameQuery Convert(u8* payload)
 {
   auto q = *reinterpret_cast<ReportGameQuery*>(payload);
   q.frame_length = Common::FromBigEndian(q.frame_length);
-  q.game_index = Common::FromBigEndian(q.game_index);
-  q.tiebreak_index = Common::FromBigEndian(q.tiebreak_index);
+  q.game_idx = Common::FromBigEndian(q.game_idx);
+  q.tiebreak_idx = Common::FromBigEndian(q.tiebreak_idx);
   q.synced_timer = Common::FromBigEndian(q.synced_timer);
   for (int i = 0; i < REPORT_PLAYER_COUNT; i++)
   {

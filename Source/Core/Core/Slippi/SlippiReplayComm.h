@@ -1,7 +1,6 @@
 #pragma once
 
 #include <limits.h>
-#include <nlohmann/json.hpp>
 #include <queue>
 #include <string>
 
@@ -9,18 +8,16 @@
 
 #include "SlippiGame.h"
 
-using json = nlohmann::json;
-
 class SlippiReplayComm
 {
 public:
   typedef struct WatchSettings
   {
     std::string path;
-    int startFrame = Slippi::GAME_FIRST_FRAME;
-    int endFrame = INT_MAX;
-    std::string gameStartAt = "";
-    std::string gameStation = "";
+    int start_frame = Slippi::GAME_FIRST_FRAME;
+    int end_frame = INT_MAX;
+    std::string game_start_at = "";
+    std::string game_station = "";
     int index = 0;
   } WatchSettings;
 
@@ -28,14 +25,14 @@ public:
   typedef struct CommSettings
   {
     std::string mode;
-    std::string replayPath;
-    int startFrame = Slippi::GAME_FIRST_FRAME;
-    int endFrame = INT_MAX;
-    bool outputOverlayFiles;
-    bool isRealTimeMode;
-    bool shouldResync;                  // If true, logic will attempt to resync games
-    std::string rollbackDisplayMethod;  // off, normal, visible
-    std::string commandId;
+    std::string replay_path;
+    int start_frame = Slippi::GAME_FIRST_FRAME;
+    int end_frame = INT_MAX;
+    bool output_overlay_files;
+    bool is_real_time_mode;
+    bool should_resync;                   // If true, logic will attempt to resync games
+    std::string rollback_display_method;  // off, normal, visible
+    std::string command_id;
     std::queue<WatchSettings> queue;
   } CommSettings;
 
@@ -53,16 +50,15 @@ private:
   void loadFile();
   std::string getReplayPath();
 
-  std::string configFilePath;
-  json fileData;
-  std::string previousReplayLoaded;
-  std::string previousCommandId;
-  int previousIndex;
+  std::string config_file_path;
+  std::string previous_replay_loaded;
+  std::string previous_command_id;
+  int previous_idx;
 
-  u64 configLastLoadModTime;
+  u64 config_last_load_mod_time;
 
   // Queue stuff
-  bool queueWasEmpty = true;
+  bool queue_was_empty = true;
 
-  CommSettings commFileSettings;
+  CommSettings comm_file_settings;
 };

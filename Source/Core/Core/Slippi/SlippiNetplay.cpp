@@ -504,8 +504,8 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet, ENetPeer* peer)
 
     SlippiSyncedGameState results;
     packet >> results.match_id;
-    packet >> results.game_index;
-    packet >> results.tiebreak_index;
+    packet >> results.game_idx;
+    packet >> results.tiebreak_idx;
     packet >> results.seconds_remaining;
     for (int i = 0; i < 4; i++)
     {
@@ -515,7 +515,7 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet, ENetPeer* peer)
 
     // ERROR_LOG_FMT(SLIPPI_ONLINE, "Received synced state from opponent. {}, {}, {}, {}. F1: {}
     // ({}%%), F2: {} ({}%%)",
-    //          results.match_id, results.game_index, results.tiebreak_index,
+    //          results.match_id, results.game_idx, results.tiebreak_idx,
     //          results.seconds_remaining, results.fighters[0].stocks_remaining,
     //          results.fighters[0].current_health, results.fighters[1].stocks_remaining,
     //          results.fighters[1].current_health);
@@ -1193,8 +1193,8 @@ void SlippiNetplayClient::SendSyncedGameState(SlippiSyncedGameState& s)
   *spac << static_cast<u8>(NetPlay::MessageID::SLIPPI_SYNCED_STATE);
   *spac << this->m_player_idx;
   *spac << s.match_id;
-  *spac << s.game_index;
-  *spac << s.tiebreak_index;
+  *spac << s.game_idx;
+  *spac << s.tiebreak_idx;
   *spac << s.seconds_remaining;
   for (int i = 0; i < 4; i++)
   {
@@ -1454,10 +1454,10 @@ bool SlippiNetplayClient::IsWaitingForDesyncRecovery()
 
   for (int i = 0; i < m_remotePlayerCount; i++)
   {
-    if (local_sync_state.game_index != remote_sync_states[i].game_index)
+    if (local_sync_state.game_idx != remote_sync_states[i].game_idx)
       return true;
 
-    if (local_sync_state.tiebreak_index != remote_sync_states[i].tiebreak_index)
+    if (local_sync_state.tiebreak_idx != remote_sync_states[i].tiebreak_idx)
       return true;
   }
 

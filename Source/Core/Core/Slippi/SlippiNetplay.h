@@ -58,8 +58,8 @@ struct SlippiSyncedFighterState
 struct SlippiSyncedGameState
 {
   std::string match_id = "";
-  u32 game_index = 0;
-  u32 tiebreak_index = 0;
+  u32 game_idx = 0;
+  u32 tiebreak_idx = 0;
   u32 seconds_remaining = 480;
   SlippiSyncedFighterState fighters[4];
 };

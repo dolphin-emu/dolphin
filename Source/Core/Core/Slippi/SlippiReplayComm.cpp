@@ -1,10 +1,16 @@
 #include "SlippiReplayComm.h"
+
 #include <cctype>
 #include <memory>
+
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/LogManager.h"
 #include "Core/ConfigManager.h"
+
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 
 std::unique_ptr<SlippiReplayComm> g_replay_comm;
 
@@ -33,7 +39,7 @@ SlippiReplayComm::SlippiReplayComm()
 {
   INFO_LOG_FMT(EXPANSIONINTERFACE, "SlippiReplayComm: Using playback config path: {}",
                SConfig::GetSlippiConfig().slippi_input);
-  configFilePath = SConfig::GetSlippiConfig().slippi_input;
+  config_file_path = SConfig::GetSlippiConfig().slippi_input;
 }
 
 SlippiReplayComm::~SlippiReplayComm()
@@ -42,16 +48,16 @@ SlippiReplayComm::~SlippiReplayComm()
 
 SlippiReplayComm::CommSettings SlippiReplayComm::getSettings()
 {
-  return commFileSettings;
+  return comm_file_settings;
 }
 
 std::string SlippiReplayComm::getReplayPath()
 {
-  std::string replayFilePath = commFileSettings.replayPath;
-  if (commFileSettings.mode == "queue")
+  std::string replayFilePath = comm_file_settings.replay_path;
+  if (comm_file_settings.mode == "queue")
   {
     // If we are in queue mode, let's grab the replay from the queue instead
-    replayFilePath = commFileSettings.queue.empty() ? "" : commFileSettings.queue.front().path;
+    replayFilePath = comm_file_settings.queue.empty() ? "" : comm_file_settings.queue.front().path;
   }
 
   return replayFilePath;
@@ -62,21 +68,21 @@ bool SlippiReplayComm::isNewReplay()
   loadFile();
   std::string replayFilePath = getReplayPath();
 
-  bool hasPathChanged = replayFilePath != previousReplayLoaded;
+  bool hasPathChanged = replayFilePath != previous_replay_loaded;
   bool isReplay = !!replayFilePath.length();
 
   // The previous check is mostly good enough but it does not
   // work if someone tries to load the same replay twice in a row
-  // the commandId was added to deal with this
-  bool hasCommandChanged = commFileSettings.commandId != previousCommandId;
+  // the command_id was added to deal with this
+  bool hasCommandChanged = comm_file_settings.command_id != previous_command_id;
 
   // This checks if the queue index has changed, this is to fix the
   // issue where the same replay showing up twice in a row in a
   // queue would never cause this function to return true
   bool hasQueueIdxChanged = false;
-  if (commFileSettings.mode == "queue" && !commFileSettings.queue.empty())
+  if (comm_file_settings.mode == "queue" && !comm_file_settings.queue.empty())
   {
-    hasQueueIdxChanged = commFileSettings.queue.front().index != previousIndex;
+    hasQueueIdxChanged = comm_file_settings.queue.front().index != previous_idx;
   }
 
   bool isNewReplay = hasPathChanged || hasCommandChanged || hasQueueIdxChanged;
@@ -86,11 +92,11 @@ bool SlippiReplayComm::isNewReplay()
 
 void SlippiReplayComm::nextReplay()
 {
-  if (commFileSettings.queue.empty())
+  if (comm_file_settings.queue.empty())
     return;
 
   // Increment queue position
-  commFileSettings.queue.pop();
+  comm_file_settings.queue.pop();
 }
 
 std::unique_ptr<Slippi::SlippiGame> SlippiReplayComm::loadGame()
@@ -105,27 +111,27 @@ std::unique_ptr<Slippi::SlippiGame> SlippiReplayComm::loadGame()
     // file did not exist yet, result will be falsy, which will keep
     // the replay considered new so that the file will attempt to be
     // loaded again
-    previousReplayLoaded = replayFilePath;
-    previousCommandId = commFileSettings.commandId;
-    if (commFileSettings.mode == "queue" && !commFileSettings.queue.empty())
+    previous_replay_loaded = replayFilePath;
+    previous_command_id = comm_file_settings.command_id;
+    if (comm_file_settings.mode == "queue" && !comm_file_settings.queue.empty())
     {
-      previousIndex = commFileSettings.queue.front().index;
+      previous_idx = comm_file_settings.queue.front().index;
     }
 
     WatchSettings ws;
     ws.path = replayFilePath;
-    ws.startFrame = commFileSettings.startFrame;
-    ws.endFrame = commFileSettings.endFrame;
-    if (commFileSettings.mode == "queue")
+    ws.start_frame = comm_file_settings.start_frame;
+    ws.end_frame = comm_file_settings.end_frame;
+    if (comm_file_settings.mode == "queue")
     {
-      ws = commFileSettings.queue.front();
+      ws = comm_file_settings.queue.front();
     }
 
-    if (commFileSettings.outputOverlayFiles)
+    if (comm_file_settings.output_overlay_files)
     {
       std::string dirpath = File::GetExeDirectory();
-      File::WriteStringToFile(dirpath + DIR_SEP + "Slippi/out-station.txt", ws.gameStation);
-      File::WriteStringToFile(dirpath + DIR_SEP + "Slippi/out-time.txt", ws.gameStartAt);
+      File::WriteStringToFile(dirpath + DIR_SEP + "Slippi/out-station.txt", ws.game_station);
+      File::WriteStringToFile(dirpath + DIR_SEP + "Slippi/out-time.txt", ws.game_start_at);
     }
 
     current = ws;
@@ -139,43 +145,44 @@ void SlippiReplayComm::loadFile()
   // TODO: Consider even only checking file mod time every 250 ms or something? Not sure
   // TODO: what the perf impact is atm
 
-  u64 modTime = File::GetFileModTime(configFilePath);
-  if (modTime != 0 && modTime == configLastLoadModTime)
+  u64 modTime = File::GetFileModTime(config_file_path);
+  if (modTime != 0 && modTime == config_last_load_mod_time)
   {
     // TODO: Maybe be smarter than just using mod time? Look for other things that would
     // TODO: indicate that file has changed and needs to be reloaded?
     return;
   }
 
-  WARN_LOG_FMT(EXPANSIONINTERFACE, "File change detected in comm file: {}", configFilePath.c_str());
-  configLastLoadModTime = modTime;
+  WARN_LOG_FMT(EXPANSIONINTERFACE, "File change detected in comm file: {}",
+               config_file_path.c_str());
+  config_last_load_mod_time = modTime;
 
   // TODO: Maybe load file in a more intelligent way to save
   // TODO: file operations
   std::string commFileContents;
-  File::ReadFileToString(configFilePath, commFileContents);
+  File::ReadFileToString(config_file_path, commFileContents);
 
   auto res = json::parse(commFileContents, nullptr, false);
   if (res.is_discarded() || !res.is_object())
   {
     // Happens if there is a parse error, I think?
-    commFileSettings.mode = "normal";
-    commFileSettings.replayPath = "";
-    commFileSettings.startFrame = Slippi::GAME_FIRST_FRAME;
-    commFileSettings.endFrame = INT_MAX;
-    commFileSettings.commandId = "";
-    commFileSettings.outputOverlayFiles = false;
-    commFileSettings.isRealTimeMode = false;
-    commFileSettings.shouldResync = true;
-    commFileSettings.rollbackDisplayMethod = "off";
+    comm_file_settings.mode = "normal";
+    comm_file_settings.replay_path = "";
+    comm_file_settings.start_frame = Slippi::GAME_FIRST_FRAME;
+    comm_file_settings.end_frame = INT_MAX;
+    comm_file_settings.command_id = "";
+    comm_file_settings.output_overlay_files = false;
+    comm_file_settings.is_real_time_mode = false;
+    comm_file_settings.should_resync = true;
+    comm_file_settings.rollback_display_method = "off";
 
     if (res.is_string())
     {
-      // If we have a string, let's use that as the replayPath
+      // If we have a string, let's use that as the replay_path
       // This is really only here because when developing it might be easier
       // to just throw in a string instead of an object
 
-      commFileSettings.replayPath = res.get<std::string>();
+      comm_file_settings.replay_path = res.get<std::string>();
     }
     else
     {
@@ -183,44 +190,44 @@ void SlippiReplayComm::loadFile()
 
       // Reset in the case of read error. this fixes a race condition where file mod time changes
       // but the file is not readable yet?
-      configLastLoadModTime = 0;
+      config_last_load_mod_time = 0;
     }
 
     return;
   }
 
   // TODO: Support file with only path string
-  commFileSettings.mode = res.value("mode", "normal");
-  commFileSettings.replayPath = res.value("replay", "");
-  commFileSettings.startFrame = res.value("startFrame", Slippi::GAME_FIRST_FRAME);
-  commFileSettings.endFrame = res.value("endFrame", INT_MAX);
-  commFileSettings.commandId = res.value("commandId", "");
-  commFileSettings.outputOverlayFiles = res.value("outputOverlayFiles", false);
-  commFileSettings.isRealTimeMode = res.value("isRealTimeMode", false);
-  commFileSettings.shouldResync = res.value("shouldResync", true);
-  commFileSettings.rollbackDisplayMethod = res.value("rollbackDisplayMethod", "off");
+  comm_file_settings.mode = res.value("mode", "normal");
+  comm_file_settings.replay_path = res.value("replay", "");
+  comm_file_settings.start_frame = res.value("startFrame", Slippi::GAME_FIRST_FRAME);
+  comm_file_settings.end_frame = res.value("endFrame", INT_MAX);
+  comm_file_settings.command_id = res.value("commandId", "");
+  comm_file_settings.output_overlay_files = res.value("outputOverlayFiles", false);
+  comm_file_settings.is_real_time_mode = res.value("isRealTimeMode", false);
+  comm_file_settings.should_resync = res.value("shouldResync", true);
+  comm_file_settings.rollback_display_method = res.value("rollbackDisplayMethod", "off");
 
-  if (commFileSettings.mode == "queue")
+  if (comm_file_settings.mode == "queue")
   {
     auto queue = res["queue"];
     if (queue.is_array())
     {
-      std::queue<WatchSettings>().swap(commFileSettings.queue);
+      std::queue<WatchSettings>().swap(comm_file_settings.queue);
       int index = 0;
       for (json::iterator it = queue.begin(); it != queue.end(); ++it)
       {
         json el = *it;
         WatchSettings w = {};
         w.path = el.value("path", "");
-        w.startFrame = el.value("startFrame", Slippi::GAME_FIRST_FRAME);
-        w.endFrame = el.value("endFrame", INT_MAX);
-        w.gameStartAt = el.value("gameStartAt", "");
-        w.gameStation = el.value("gameStation", "");
+        w.start_frame = el.value("startFrame", Slippi::GAME_FIRST_FRAME);
+        w.end_frame = el.value("endFrame", INT_MAX);
+        w.game_start_at = el.value("gameStartAt", "");
+        w.game_station = el.value("gameStation", "");
         w.index = index++;
 
-        commFileSettings.queue.push(w);
+        comm_file_settings.queue.push(w);
       };
-      queueWasEmpty = false;
+      queue_was_empty = false;
     }
   }
 }

@@ -561,9 +561,9 @@ void HotkeyScheduler::Run()
     if (IsHotkey(HK_SLIPPI_JUMP_BACK))
     {
       INFO_LOG_FMT(SLIPPI, "jump back");
-      if (g_playback_status->targetFrameNum == INT_MAX)
+      if (g_playback_status->target_frame_num == INT_MAX)
       {
-        g_playback_status->targetFrameNum = g_playback_status->currentPlaybackFrame - 1200;
+        g_playback_status->target_frame_num = g_playback_status->current_playback_frame - 1200;
         Host_PlaybackSeek();
       }
     }
@@ -571,9 +571,9 @@ void HotkeyScheduler::Run()
     if (IsHotkey(HK_SLIPPI_STEP_BACK))
     {
       INFO_LOG_FMT(SLIPPI, "step back");
-      if (g_playback_status->targetFrameNum == INT_MAX)
+      if (g_playback_status->target_frame_num == INT_MAX)
       {
-        g_playback_status->targetFrameNum = g_playback_status->currentPlaybackFrame - 300;
+        g_playback_status->target_frame_num = g_playback_status->current_playback_frame - 300;
         Host_PlaybackSeek();
       }
     }
@@ -581,9 +581,9 @@ void HotkeyScheduler::Run()
     if (IsHotkey(HK_SLIPPI_STEP_FORWARD))
     {
       INFO_LOG_FMT(SLIPPI, "step forward");
-      if (g_playback_status->targetFrameNum == INT_MAX)
+      if (g_playback_status->target_frame_num == INT_MAX)
       {
-        g_playback_status->targetFrameNum = g_playback_status->currentPlaybackFrame + 300;
+        g_playback_status->target_frame_num = g_playback_status->current_playback_frame + 300;
         Host_PlaybackSeek();
       }
     }
@@ -591,9 +591,9 @@ void HotkeyScheduler::Run()
     if (IsHotkey(HK_SLIPPI_JUMP_FORWARD))
     {
       INFO_LOG_FMT(SLIPPI, "jump forward");
-      if (g_playback_status->targetFrameNum == INT_MAX)
+      if (g_playback_status->target_frame_num == INT_MAX)
       {
-        g_playback_status->targetFrameNum = g_playback_status->currentPlaybackFrame + 1200;
+        g_playback_status->target_frame_num = g_playback_status->current_playback_frame + 1200;
         Host_PlaybackSeek();
       }
     }

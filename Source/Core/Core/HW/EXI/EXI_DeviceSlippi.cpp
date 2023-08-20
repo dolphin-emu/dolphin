@@ -314,9 +314,9 @@ void CEXISlippi::configureCommands(u8* payload, u8 length)
   for (int i = 1; i < length; i += 3)
   {
     // Go through the receive commands payload and set up other commands
-    u8 commandByte = payload[i];
-    u32 commandPayloadSize = payload[i + 1] << 8 | payload[i + 2];
-    payloadSizes[commandByte] = commandPayloadSize;
+    u8 command_byte = payload[i];
+    u32 command_payload_size = payload[i + 1] << 8 | payload[i + 2];
+    payloadSizes[command_byte] = command_payload_size;
   }
 }
 
@@ -474,6 +474,7 @@ void CEXISlippi::writeToFileAsync(u8* payload, u32 length, std::string file_opti
 
 void CEXISlippi::FileWriteThread(void)
 {
+  Common::SetCurrentThreadName("Slippi File Write");
   while (write_thread_running || !file_write_queue.empty())
   {
     // Process all messages
@@ -703,14 +704,14 @@ void CEXISlippi::prepareGameInfo(u8* payload)
   Slippi::GameSettings* settings = m_current_game->GetSettings();
 
   // Unlikely but reset the overclocking in case we quit during a hard ffw in a previous play
-  SConfig::GetSlippiConfig().oc_enable = g_playback_status->origOCEnable;
-  SConfig::GetSlippiConfig().oc_factor = g_playback_status->origOCFactor;
+  SConfig::GetSlippiConfig().oc_enable = g_playback_status->orig_OC_enable;
+  SConfig::GetSlippiConfig().oc_factor = g_playback_status->orig_OC_factor;
 
   // Start in Fast Forward if this is mirrored
   auto replay_comm_settings = g_replay_comm->getSettings();
-  if (!g_playback_status->isHardFFW)
-    g_playback_status->isHardFFW = replay_comm_settings.mode == "mirror";
-  g_playback_status->lastFFWFrame = INT_MIN;
+  if (!g_playback_status->is_hard_FFW)
+    g_playback_status->is_hard_FFW = replay_comm_settings.mode == "mirror";
+  g_playback_status->last_FFW_frame = INT_MIN;
 
   // Build a word containing the stage and the presence of the characters
   u32 random_seed = settings->randomSeed;
@@ -786,7 +787,7 @@ void CEXISlippi::prepareGameInfo(u8* payload)
   m_read_queue.push_back(settings->isFrozenPS);
 
   // Write should resync setting
-  m_read_queue.push_back(replay_comm_settings.shouldResync ? 1 : 0);
+  m_read_queue.push_back(replay_comm_settings.should_resync ? 1 : 0);
 
   // Write display names
   for (int i = 0; i < 4; i++)
@@ -802,7 +803,7 @@ void CEXISlippi::prepareGameInfo(u8* payload)
   // Initialize frame sequence index value for reading rollbacks
   frame_seq_idx = 0;
 
-  if (replay_comm_settings.rollbackDisplayMethod != "off")
+  if (replay_comm_settings.rollback_display_method != "off")
   {
     // Prepare savestates
     available_savestates.clear();
@@ -825,10 +826,10 @@ void CEXISlippi::prepareGameInfo(u8* payload)
   }
 
   // Reset playback frame to begining
-  g_playback_status->currentPlaybackFrame = Slippi::GAME_FIRST_FRAME;
+  g_playback_status->current_playback_frame = Slippi::GAME_FIRST_FRAME;
 
   // Initialize replay related threads if not viewing rollback versions of relays
-  if (replay_comm_settings.rollbackDisplayMethod == "off" &&
+  if (replay_comm_settings.rollback_display_method == "off" &&
       (replay_comm_settings.mode == "normal" || replay_comm_settings.mode == "queue"))
   {
     // g_playback_status->startThreads();
@@ -845,7 +846,7 @@ void CEXISlippi::prepareGeckoList()
   // Some codes should only be denylisted when not displaying rollbacks, these are codes
   // that are required for things to not break when using Slippi savestates. Perhaps this
   // should be handled by actually applying these codes in the playback ASM instead? not sure
-  auto should_deny = replay_comm_settings.rollbackDisplayMethod == "off";
+  auto should_deny = replay_comm_settings.rollback_display_method == "off";
   deny_list[0x8038add0] = should_deny;  // Online/Core/PreventFileAlarms/PreventMusicAlarm.asm
   deny_list[0x80023FFC] = should_deny;  // Online/Core/PreventFileAlarms/MuteMusic.asm
 
@@ -938,19 +939,19 @@ void CEXISlippi::prepareCharacterFrameData(Slippi::FrameData* frame, u8 port, u8
 
   // Add all of the inputs in order
   appendWordToBuffer(&m_read_queue, data.randomSeed);
-  appendWordToBuffer(&m_read_queue, *(u32*)&data.joystickX);
-  appendWordToBuffer(&m_read_queue, *(u32*)&data.joystickY);
-  appendWordToBuffer(&m_read_queue, *(u32*)&data.cstickX);
-  appendWordToBuffer(&m_read_queue, *(u32*)&data.cstickY);
-  appendWordToBuffer(&m_read_queue, *(u32*)&data.trigger);
+  appendWordToBuffer(&m_read_queue, static_cast<u32>(data.joystickX));
+  appendWordToBuffer(&m_read_queue, static_cast<u32>(data.joystickY));
+  appendWordToBuffer(&m_read_queue, static_cast<u32>(data.cstickX));
+  appendWordToBuffer(&m_read_queue, static_cast<u32>(data.cstickY));
+  appendWordToBuffer(&m_read_queue, static_cast<u32>(data.trigger));
   appendWordToBuffer(&m_read_queue, data.buttons);
-  appendWordToBuffer(&m_read_queue, *(u32*)&data.locationX);
-  appendWordToBuffer(&m_read_queue, *(u32*)&data.locationY);
-  appendWordToBuffer(&m_read_queue, *(u32*)&data.facingDirection);
+  appendWordToBuffer(&m_read_queue, static_cast<u32>(data.locationX));
+  appendWordToBuffer(&m_read_queue, static_cast<u32>(data.locationY));
+  appendWordToBuffer(&m_read_queue, static_cast<u32>(data.facingDirection));
   appendWordToBuffer(&m_read_queue, static_cast<u32>(data.animation));
   m_read_queue.push_back(data.joystickXRaw);
   m_read_queue.push_back(data.joystickYRaw);
-  appendWordToBuffer(&m_read_queue, *(u32*)&data.percent);
+  appendWordToBuffer(&m_read_queue, static_cast<u32>(data.percent));
   // NOTE TO DEV: If you add data here, make sure to increase the size above
 }
 
@@ -992,11 +993,11 @@ void CEXISlippi::prepareFrameData(u8* payload)
   // Parse input
   s32 frame_idx = payload[0] << 24 | payload[1] << 16 | payload[2] << 8 | payload[3];
 
-  // If loading from queue, move on to the next replay if we have past endFrame
+  // If loading from queue, move on to the next replay if we have past end_frame
   auto watch_settings = g_replay_comm->current;
-  if (frame_idx > watch_settings.endFrame)
+  if (frame_idx > watch_settings.end_frame)
   {
-    INFO_LOG_FMT(SLIPPI, "Killing game because we are past endFrame");
+    INFO_LOG_FMT(SLIPPI, "Killing game because we are past end_frame");
     m_read_queue.push_back(FRAME_RESP_TERMINATE);
     return;
   }
@@ -1018,18 +1019,18 @@ void CEXISlippi::prepareFrameData(u8* payload)
   // data from this frame. Don't wait until next frame is processing is complete
   // (this is the last frame, in that case)
   auto is_frame_found = m_current_game->DoesFrameExist(frame_idx);
-  g_playback_status->lastFrame = m_current_game->GetLatestIndex();
+  g_playback_status->last_frame = m_current_game->GetLatestIndex();
   auto is_frame_complete = checkFrameFullyFetched(frame_idx);
   auto is_frame_ready = is_frame_found && (is_processing_complete || is_frame_complete);
 
-  // If there is a startFrame configured, manage the fast-forward flag
-  if (watch_settings.startFrame > Slippi::GAME_FIRST_FRAME)
+  // If there is a start_frame configured, manage the fast-forward flag
+  if (watch_settings.start_frame > Slippi::GAME_FIRST_FRAME)
   {
-    if (frame_idx < watch_settings.startFrame)
+    if (frame_idx < watch_settings.start_frame)
     {
       g_playback_status->setHardFFW(true);
     }
-    else if (frame_idx == watch_settings.startFrame)
+    else if (frame_idx == watch_settings.start_frame)
     {
       // TODO: This might disable fast forward on first frame when we dont want to?
       g_playback_status->setHardFFW(false);
@@ -1037,11 +1038,11 @@ void CEXISlippi::prepareFrameData(u8* payload)
   }
 
   auto comm_settings = g_replay_comm->getSettings();
-  if (comm_settings.rollbackDisplayMethod == "normal")
+  if (comm_settings.rollback_display_method == "normal")
   {
     auto next_frame = m_current_game->GetFrameAt(frame_seq_idx);
     bool should_hard_FFW =
-        next_frame && next_frame->frame <= g_playback_status->currentPlaybackFrame;
+        next_frame && next_frame->frame <= g_playback_status->current_playback_frame;
     g_playback_status->setHardFFW(should_hard_FFW);
 
     if (next_frame)
@@ -1053,26 +1054,26 @@ void CEXISlippi::prepareFrameData(u8* payload)
   }
 
   // If RealTimeMode is enabled, let's trigger fast forwarding under certain conditions
-  auto is_far_behind = g_playback_status->lastFrame - frame_idx > 2;
-  auto is_very_far_behind = g_playback_status->lastFrame - frame_idx > 25;
-  if (is_far_behind && comm_settings.mode == "mirror" && comm_settings.isRealTimeMode)
+  auto is_far_behind = g_playback_status->last_frame - frame_idx > 2;
+  auto is_very_far_behind = g_playback_status->last_frame - frame_idx > 25;
+  if (is_far_behind && comm_settings.mode == "mirror" && comm_settings.is_real_time_mode)
   {
-    g_playback_status->isSoftFFW = true;
+    g_playback_status->is_soft_FFW = true;
 
-    // Once isHardFFW has been turned on, do not turn it off with this condition, should
+    // Once is_hard_FFW has been turned on, do not turn it off with this condition, should
     // hard FFW to the latest point
-    if (!g_playback_status->isHardFFW)
-      g_playback_status->isHardFFW = is_very_far_behind;
+    if (!g_playback_status->is_hard_FFW)
+      g_playback_status->is_hard_FFW = is_very_far_behind;
   }
 
-  if (g_playback_status->lastFrame == frame_idx)
+  if (g_playback_status->last_frame == frame_idx)
   {
     // The reason to disable fast forwarding here is in hopes
     // of disabling it on the last frame that we have actually received.
     // Doing this will allow the rendering logic to run to display the
     // last frame instead of the frame previous to fast forwarding.
     // Not sure if this fully works with partial frames
-    g_playback_status->isSoftFFW = false;
+    g_playback_status->is_soft_FFW = false;
     g_playback_status->setHardFFW(false);
   }
 
@@ -1088,7 +1089,7 @@ void CEXISlippi::prepareFrameData(u8* payload)
 
     // Disable fast forward here too... this shouldn't be necessary but better
     // safe than sorry I guess
-    g_playback_status->isSoftFFW = false;
+    g_playback_status->is_soft_FFW = false;
     g_playback_status->setHardFFW(false);
 
     if (request_result_code == FRAME_RESP_TERMINATE)
@@ -1103,11 +1104,11 @@ void CEXISlippi::prepareFrameData(u8* payload)
   u8 rollback_code = 0;  // 0 = not rollback, 1 = rollback, perhaps other options in the future?
 
   // Increment frame index if greater
-  if (frame_idx > g_playback_status->currentPlaybackFrame)
+  if (frame_idx > g_playback_status->current_playback_frame)
   {
-    g_playback_status->currentPlaybackFrame = frame_idx;
+    g_playback_status->current_playback_frame = frame_idx;
   }
-  else if (comm_settings.rollbackDisplayMethod != "off")
+  else if (comm_settings.rollback_display_method != "off")
   {
     rollback_code = 1;
   }
@@ -1116,8 +1117,8 @@ void CEXISlippi::prepareFrameData(u8* payload)
   if (should_FFW)
   {
     WARN_LOG_FMT(SLIPPI, "[Frame {}] FFW frame, behind by: {} frames.", frame_idx,
-                 g_playback_status->lastFrame - frame_idx);
-    g_playback_status->lastFFWFrame = frame_idx;
+                 g_playback_status->last_frame - frame_idx);
+    g_playback_status->last_FFW_frame = frame_idx;
   }
 
   // Return success code
@@ -1125,11 +1126,12 @@ void CEXISlippi::prepareFrameData(u8* payload)
 
   // Get frame
   Slippi::FrameData* frame = m_current_game->GetFrame(frame_idx);
-  if (comm_settings.rollbackDisplayMethod != "off")
+  if (comm_settings.rollback_display_method != "off")
   {
     auto previous_frame = m_current_game->GetFrameAt(frame_seq_idx - 1);
     frame = m_current_game->GetFrameAt(frame_seq_idx);
 
+    // SLIPPITODO: document what is going on here
     *(s32*)(&playback_savestate_payload[0]) = Common::swap32(frame->frame);
 
     if (previous_frame && frame->frame <= previous_frame->frame)
@@ -1157,7 +1159,7 @@ void CEXISlippi::prepareFrameData(u8* payload)
   // Add frame rng seed to be restored at priority 0
   u8 rng_result = frame->randomSeedExists ? 1 : 0;
   m_read_queue.push_back(rng_result);
-  appendWordToBuffer(&m_read_queue, *(u32*)&frame->randomSeed);
+  appendWordToBuffer(&m_read_queue, static_cast<u32>(frame->randomSeed));
 
   // Add frame data for every character
   for (u8 port = 0; port < 4; port++)
@@ -2034,7 +2036,7 @@ void CEXISlippi::prepareOnlineMatchState()
 
   if (mm_state == SlippiMatchmaking::ProcessState::CONNECTION_SUCCESS)
   {
-    m_local_player_index = matchmaking->LocalPlayerIndex();
+    m_local_player_idx = matchmaking->LocalPlayerIndex();
 
     if (!slippi_netplay)
     {
@@ -2083,14 +2085,14 @@ void CEXISlippi::prepareOnlineMatchState()
       if (remote_player_count == 1)
       {
         auto is_decider = slippi_netplay->IsDecider();
-        m_local_player_index = is_decider ? 0 : 1;
-        m_remote_player_index = is_decider ? 1 : 0;
+        m_local_player_idx = is_decider ? 0 : 1;
+        m_remote_player_idx = is_decider ? 1 : 0;
       }
 #endif
 
       auto is_decider = slippi_netplay->IsDecider();
-      m_local_player_index = is_decider ? 0 : 1;
-      m_remote_player_index = is_decider ? 1 : 0;
+      m_local_player_idx = is_decider ? 0 : 1;
+      m_remote_player_idx = is_decider ? 1 : 0;
     }
     else
     {
@@ -2132,10 +2134,10 @@ void CEXISlippi::prepareOnlineMatchState()
   opp_name = p2_name = "Player 2";
 #endif
 
-  m_read_queue.push_back(local_player_ready);     // Local player ready
-  m_read_queue.push_back(remote_players_ready);   // Remote players ready
-  m_read_queue.push_back(m_local_player_index);   // Local player index
-  m_read_queue.push_back(m_remote_player_index);  // Remote player index
+  m_read_queue.push_back(local_player_ready);    // Local player ready
+  m_read_queue.push_back(remote_players_ready);  // Remote players ready
+  m_read_queue.push_back(m_local_player_idx);    // Local player index
+  m_read_queue.push_back(m_remote_player_idx);   // Remote player index
 
   // Set chat message if any
   if (slippi_netplay)
@@ -2159,13 +2161,12 @@ void CEXISlippi::prepareOnlineMatchState()
     }
     else
     {
-      chat_message_player_idx = m_local_player_index;
+      chat_message_player_idx = m_local_player_idx;
     }
 
     if (is_single_mode || !matchmaking)
     {
-      chat_message_player_idx =
-          sent_chat_message_id > 0 ? m_local_player_index : m_remote_player_index;
+      chat_message_player_idx = sent_chat_message_id > 0 ? m_local_player_idx : m_remote_player_idx;
     }
     // in CSS p1 is always current player and p2 is opponent
     local_player_name = p1_ame = user_info.display_name;
@@ -2437,14 +2438,14 @@ void CEXISlippi::prepareOnlineMatchState()
   std::vector<std::string> opponent_names = {};
   if (matchmaking->RemotePlayerCount() == 1)
   {
-    opponent_names.push_back(matchmaking->GetPlayerName(m_remote_player_index));
+    opponent_names.push_back(matchmaking->GetPlayerName(m_remote_player_idx));
   }
   else
   {
-    int team_idx = online_match_block[0x69 + m_local_player_index * 0x24];
+    int team_idx = online_match_block[0x69 + m_local_player_idx * 0x24];
     for (int i = 0; i < 4; i++)
     {
-      if (m_local_player_index == i || online_match_block[0x69 + i * 0x24] == team_idx)
+      if (m_local_player_idx == i || online_match_block[0x69 + i * 0x24] == team_idx)
         continue;
 
       opponent_names.push_back(matchmaking->GetPlayerName(i));
@@ -2847,8 +2848,8 @@ void CEXISlippi::handleReportGame(const SlippiExiTypes::ReportGameQuery& query)
   SlippiMatchmakingOnlinePlayMode online_mode =
       static_cast<SlippiMatchmakingOnlinePlayMode>(query.mode);
   u32 duration_frames = query.frame_length;
-  u32 game_idx = query.game_index;
-  u32 tiebreak_idx = query.tiebreak_index;
+  u32 game_idx = query.game_idx;
+  u32 tiebreak_idx = query.tiebreak_idx;
   s8 winner_idx = query.winner_idx;
   int stage_id = Common::FromBigEndian(*(u16*)&query.game_info_block[0xE]);
   u8 game_end_method = query.game_end_method;
@@ -2904,8 +2905,8 @@ void CEXISlippi::handleReportGame(const SlippiExiTypes::ReportGameQuery& query)
   {
     SlippiSyncedGameState s;
     s.match_id = match_id;
-    s.game_index = game_idx;
-    s.tiebreak_index = tiebreak_idx;
+    s.game_idx = game_idx;
+    s.tiebreak_idx = tiebreak_idx;
     s.seconds_remaining = query.synced_timer;
     for (int i = 0; i < 4; i++)
     {
