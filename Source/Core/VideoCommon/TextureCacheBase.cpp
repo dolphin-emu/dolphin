@@ -2347,9 +2347,21 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     {
       bool skip = false;
       GraphicsModActionData::EFB efb{tex_w, tex_h, &skip, &scaled_tex_w, &scaled_tex_h};
-      for (const auto& action : g_graphics_mod_manager->GetEFBActions(info))
+
+      auto& editor = system.GetGraphicsModEditor();
+      if (editor.IsEnabled())
       {
-        action->OnEFB(&efb);
+        for (const auto& action : editor.GetEFBActions(info))
+        {
+          action->OnEFB(&efb);
+        }
+      }
+      else
+      {
+        for (const auto& action : g_graphics_mod_manager->GetEFBActions(info))
+        {
+          action->OnEFB(&efb);
+        }
       }
       if (skip == true)
       {
