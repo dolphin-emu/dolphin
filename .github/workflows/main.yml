@@ -28,8 +28,6 @@ jobs:
           - build_type: Playback
             artifact_name: windows64-playback
             build_config: -G "Ninja" -DCMAKE_BUILD_TYPE="Release" -DSLIPPI_PLAYBACK=true
-    env:
-      DXSDK_DIR: "C:\\Program Files (x86)\\Microsoft DirectX SDK (June 2010)\\"
     name: "Windows ${{ matrix.build_type }}"
     runs-on: windows-2022
     steps:
@@ -209,15 +207,6 @@ jobs:
           echo "GIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
           echo "GIT_TAG=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
           echo "CURR_DATE=$(date +%Y-%m-%d)" >> $GITHUB_ENV
-      # - name: "Install 10.14 SDK"
-      #   if: success()
-      #   shell: bash
-      #   working-directory: ${{ github.workspace }}
-      #   run: |
-      #     wget https://github.com/phracker/MacOSX-SDKs/releases/download/10.15/MacOSX10.14.sdk.tar.xz
-      #     tar -xf MacOSX10.14.sdk.tar.xz
-      #     rm MacOSX10.14.sdk.tar.xz
-      #     sudo mv MacOSX10.14.sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/
       - name: "Download and Install prerequisites"
         if: success()
         shell: bash
