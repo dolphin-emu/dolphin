@@ -82,7 +82,7 @@ struct OverwriteSelectionsQuery
 
 struct PlayerSettings
 {
-  char chatMessages[16][51];
+  char chat_messages[16][51];
 };
 struct GetPlayerSettingsResponse
 {

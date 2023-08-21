@@ -3054,7 +3054,7 @@ void CEXISlippi::handleGetPlayerSettings()
     for (int j = 0; j < 16; j++)
     {
       auto str = ConvertStringForGame(messages_by_player[i][j], MAX_MESSAGE_LENGTH);
-      sprintf(resp.settings[i].chatMessages[j], "%s", str.c_str());
+      sprintf(resp.settings[i].chat_messages[j], "%s", str.c_str());
     }
   }
 
