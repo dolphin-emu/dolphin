@@ -48,6 +48,7 @@ u32 SlippiGameFileLoader::LoadFile(std::string file_name, std::string& data)
   }
 
   std::string file_contents;
+  File::ReadFileToString(game_file_path, file_contents);
 
   // If the file was a diff file and the game is running, load the main file from ISO and apply
   // patch
