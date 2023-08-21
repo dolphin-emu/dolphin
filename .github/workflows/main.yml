@@ -3,30 +3,42 @@ name: Builds
 on:
   push:
     branches:
-        - master
+        - "**"
     paths-ignore:
         - "**.md"
-        - "**.ini"
   pull_request:
     branches:
-      - master
-      - task/update
+      - slippi
     paths-ignore:
       - "**.md"
-      - "**.ini"
 
 jobs:
+  pre_build:
+    name: Pre Build Checks
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+      rust_ver: ${{ steps.rust_ver.outputs.rust_ver }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@master
+        with:
+          concurrent_skipping: "same_content"
+          do_not_skip: '["push", "workflow_dispatch", "schedule"]'
+
   windows:
+    needs: [pre_build]
+    if: ${{ needs.pre_build.outputs.should_skip != 'true' }}
     strategy:
       fail-fast: false
       matrix:
         build_type: [Netplay, Playback]
         include:
           - build_type: Netplay
-            artifact_name: windows64-netplay
+            artifact_name: mainline-windows-netplay
             build_config: -G "Ninja" -DCMAKE_BUILD_TYPE="Release" -DSLIPPI_PLAYBACK=false
           - build_type: Playback
-            artifact_name: windows64-playback
+            artifact_name: mainline-windows-playback
             build_config: -G "Ninja" -DCMAKE_BUILD_TYPE="Release" -DSLIPPI_PLAYBACK=true
     name: "Windows ${{ matrix.build_type }}"
     runs-on: windows-2022
@@ -35,6 +47,15 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: recursive
+      - id: rust_ver
+        name: Grab Rust Version
+        shell: bash
+        run: echo "rust_ver=$(sed -rn 's/^channel = "(.*)"/\1/p' ./Externals/SlippiRustExtensions/rust-toolchain.toml)" >> "$GITHUB_OUTPUT"
+      - name: "Install Rust"
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: ${{ steps.rust_ver.outputs.rust_ver }}  # Pin to our specific Rust version.
+          rustflags: ""  # Disable default injection of warnings = errors.
       - name: 'Fetch Git Tags'
         shell: bash
         if: success()
@@ -53,25 +74,29 @@ jobs:
           cd build
           cmake ${{ matrix.build_config }} ..
           cmake --build . --target dolphin-emu
-      - name: "Package ${{ matrix.build_type }}"
+      - name: "Prep ${{ matrix.build_type }} Artifact"
         working-directory: ${{ github.workspace }}
         run: |
           Xcopy /Y /E /I .\Data\Sys .\Binary\x64\Sys
-          cd .\Binary\x64\
-          fsutil file createnew FIX-VCRUNTIME140-ERROR.txt 0
-          echo "Download and install this: https://aka.ms/vs/16/release/vc_redist.x64.exe" > .\FIX-VCRUNTIME140-ERROR.txt
       - name: "Add Playback codes"
         working-directory: ${{ github.workspace }}
         if: matrix.build_type == 'Playback'
         run: |
-          Xcopy /Y /E /I .\Data\Sys .\Binary\x64\Sys
           Xcopy /Y /E /I .\Data\PlaybackGeckoCodes\* .\Binary\x64\Sys\GameSettings\
+      - name: "Codesign ${{ matrix.build_type}} Dolphin"
+        working-directory: ${{ github.workspace }}
+        if: env.CERTIFICATE_WINDOWS_APPLICATION != null
+        run: |
+          echo ${{ secrets.CERTIFICATE_WINDOWS_APPLICATION }} > slippi_llc.b64
+          certutil -decode slippi_llc.b64 slippi_llc.p12
+          signtool sign /f slippi_llc.p12 /p ${{ secrets.CERTIFICATE_WINDOWS_PASSWORD }} /fd SHA256 /tr http://ts.ssl.com /td SHA256 "Binary\x64\Slippi_Dolphin.exe"
       - name: Package Artifact
         working-directory: ${{ github.workspace }}
         run: |
           $FILE_NAME="${{ env.CURR_DATE }}-${{ env.GIT_HASH }}-${{ env.GIT_TAG }}-${{ matrix.artifact_name }}.zip"
           mkdir artifact
           cd .\Binary\x64\
+          attrib +r Sys\*.* /s
           fsutil file createnew portable.txt 0
           7z a $FILE_NAME .\*
           move $FILE_NAME ..\..\artifact\
@@ -82,6 +107,8 @@ jobs:
           name: ${{ matrix.artifact_name }}
           path: "./artifact/"
   linux:
+    needs: [pre_build]
+    if: ${{ needs.pre_build.outputs.should_skip != 'true' }}
     strategy:
       fail-fast: false
       matrix:
@@ -100,6 +127,15 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: recursive
+      - id: rust_ver
+        name: Grab Rust Version
+        shell: bash
+        run: echo "rust_ver=$(sed -rn 's/^channel = "(.*)"/\1/p' ./Externals/SlippiRustExtensions/rust-toolchain.toml)" >> "$GITHUB_OUTPUT"
+      - name: "Install Rust"
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: ${{ steps.rust_ver.outputs.rust_ver }}  # Pin to our specific Rust version.
+          rustflags: ""  # Disable default injection of warnings = errors.
       - name: 'Fetch Git Tags'
         if: success()
         run: |
@@ -181,6 +217,8 @@ jobs:
           name: ${{ matrix.artifact_name }}
           path: "./artifact/"
   macOS:
+    needs: [pre_build]
+    if: ${{ needs.pre_build.outputs.should_skip != 'true' }}
     strategy:
       fail-fast: false
       matrix:
@@ -199,6 +237,15 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: recursive
+      - id: rust_ver
+        name: Grab Rust Version
+        shell: bash
+        run: echo "rust_ver=$(sed -rn 's/^channel = "(.*)"/\1/p' ./Externals/SlippiRustExtensions/rust-toolchain.toml)" >> "$GITHUB_OUTPUT"
+      - name: "Install Rust"
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: ${{ steps.rust_ver.outputs.rust_ver }}  # Pin to our specific Rust version.
+          rustflags: ""  # Disable default injection of warnings = errors.
       - name: 'Fetch Git Tags'
         if: success()
         run: |
@@ -234,6 +281,18 @@ jobs:
           mkdir artifact
           FILE_NAME=${{ env.CURR_DATE }}-${{ env.GIT_HASH }}-${{ env.GIT_TAG }}-${{ matrix.artifact_name }}
           echo "FILE_NAME=$FILE_NAME" >> $GITHUB_ENV
+      - name: "Codesign ${{ matrix.build_type}} Dolphin"
+        if: success() && env.CERTIFICATE_MACOS_APPLICATION != null
+        shell: bash
+        working-directory: ${{ github.workspace }}
+        env:
+          CERTIFICATE_MACOS_APPLICATION: ${{ secrets.CERTIFICATE_MACOS_APPLICATION }}
+          CERTIFICATE_MACOS_PASSWORD: ${{ secrets.CERTIFICATE_MACOS_PASSWORD }}
+        run: |
+          chmod +x Tools/load-macos-certs-ci.sh && ./Tools/load-macos-certs-ci.sh
+          mkdir -p ~/private_keys/
+          echo '${{ secrets.APPLE_CONNECT_API_KEY }}' > ~/private_keys/AuthKey_${{ secrets.APPLE_API_KEY_ID }}.p8
+          /usr/bin/codesign -f -s "${{ secrets.APPLE_IDENTITY_HASH }}" --deep --options runtime --entitlements Source\Core\DolphinQt\DolphinEmu.entitlements ./build/Binaries/Slippi_Dolphin.app
       - name: "Package, Sign and Notarize Netplay Release DMG"
         if: success() && env.CERTIFICATE_MACOS_APPLICATION != null
         shell: bash
@@ -259,6 +318,15 @@ jobs:
             "${{ env.FILE_NAME }}.dmg" \
             "./build/Binaries/"
           mv "${{ env.FILE_NAME }}.dmg" artifact/
+      - name: "Sign and Notarize ${{ matrix.build_type }} Release DMG"
+        if: success() && env.CERTIFICATE_MACOS_APPLICATION != null
+        shell: bash
+        working-directory: ${{ github.workspace }}
+        env:
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_ISSUER_ID: ${{ secrets.APPLE_ISSUER_ID }}
+          CERTIFICATE_MACOS_APPLICATION: ${{ secrets.CERTIFICATE_MACOS_APPLICATION }}
+        run: |
           /usr/bin/codesign -f -s "${{ secrets.APPLE_IDENTITY_HASH }}" --deep --options runtime ./artifact/${{ env.FILE_NAME }}.dmg
           chmod +x Tools/notarize_netplay.sh && ./Tools/notarize_netplay.sh ./artifact/${{ env.FILE_NAME }}.dmg
       - name: "Publish"
