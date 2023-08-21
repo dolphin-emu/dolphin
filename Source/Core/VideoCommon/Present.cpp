@@ -30,6 +30,11 @@ static float AspectToWidescreen(float aspect)
   return aspect * ((16.0f / 9.0f) / (4.0f / 3.0f));
 }
 
+static float AspectToMelee(float aspect)
+{
+  return aspect * ((73.0f / 60.0f) / (4.0f / 3.0f));
+}
+
 Presenter::Presenter()
 {
   m_config_changed =
@@ -257,6 +262,11 @@ float Presenter::CalculateDrawAspectRatio() const
       (aspect_mode == AspectMode::Auto && g_widescreen->IsGameWidescreen()))
   {
     return AspectToWidescreen(aspect_ratio);
+  }
+
+  if (aspect_mode == AspectMode::Melee)
+  {
+    return AspectToMelee(aspect_ratio);
   }
 
   return aspect_ratio;
