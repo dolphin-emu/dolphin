@@ -3260,7 +3260,6 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
       break;
     }
     default:
-      WARN_LOG_FMT(SLIPPI, "default command byte case: {}", byte);
       writeToFileAsync(&mem_ptr[buf_loc], payload_len + 1, "");
       SlippiSpectateServer::getInstance().write(&mem_ptr[buf_loc], payload_len + 1);
       slprs_exi_device_reporter_push_replay_data(slprs_exi_device_ptr, &mem_ptr[buf_loc],
