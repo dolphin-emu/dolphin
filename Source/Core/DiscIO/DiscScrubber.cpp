@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DiscIO/DiscScrubber.h"
 
@@ -16,7 +15,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 
-#include "DiscIO/DiscExtractor.h"
+#include "DiscIO/DiscUtils.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 
@@ -31,7 +30,7 @@ bool DiscScrubber::SetupScrub(const Volume* disc)
     return false;
   m_disc = disc;
 
-  m_file_size = m_disc->GetSize();
+  m_file_size = m_disc->GetDataSize();
 
   // Round up when diving by CLUSTER_SIZE, otherwise MarkAsUsed might write out of bounds
   const size_t num_clusters = static_cast<size_t>((m_file_size + CLUSTER_SIZE - 1) / CLUSTER_SIZE);
@@ -48,7 +47,11 @@ bool DiscScrubber::SetupScrub(const Volume* disc)
 
 bool DiscScrubber::CanBlockBeScrubbed(u64 offset) const
 {
-  return m_is_scrubbing && m_free_table[offset / CLUSTER_SIZE];
+  if (!m_is_scrubbing)
+    return false;
+
+  const u64 cluster_index = offset / CLUSTER_SIZE;
+  return cluster_index >= m_free_table.size() || m_free_table[cluster_index];
 }
 
 void DiscScrubber::MarkAsUsed(u64 offset, u64 size)
@@ -93,7 +96,7 @@ void DiscScrubber::MarkAsUsedE(u64 partition_data_offset, u64 offset, u64 size)
 // Compensate for 0x400 (SHA-1) per 0x8000 (cluster), and round to whole clusters
 u64 DiscScrubber::ToClusterOffset(u64 offset) const
 {
-  if (m_disc->IsEncryptedAndHashed())
+  if (m_disc->HasWiiHashes())
     return offset / 0x7c00 * CLUSTER_SIZE;
   else
     return Common::AlignDown(offset, CLUSTER_SIZE);
@@ -133,11 +136,16 @@ bool DiscScrubber::ParseDisc()
     u64 h3_offset;
     // The H3 size is always 0x18000
 
-    if (!ReadFromVolume(partition.offset + 0x2a4, tmd_size, PARTITION_NONE) ||
-        !ReadFromVolume(partition.offset + 0x2a8, tmd_offset, PARTITION_NONE) ||
-        !ReadFromVolume(partition.offset + 0x2ac, cert_chain_size, PARTITION_NONE) ||
-        !ReadFromVolume(partition.offset + 0x2b0, cert_chain_offset, PARTITION_NONE) ||
-        !ReadFromVolume(partition.offset + 0x2b4, h3_offset, PARTITION_NONE))
+    if (!ReadFromVolume(partition.offset + WII_PARTITION_TMD_SIZE_ADDRESS, tmd_size,
+                        PARTITION_NONE) ||
+        !ReadFromVolume(partition.offset + WII_PARTITION_TMD_OFFSET_ADDRESS, tmd_offset,
+                        PARTITION_NONE) ||
+        !ReadFromVolume(partition.offset + WII_PARTITION_CERT_CHAIN_SIZE_ADDRESS, cert_chain_size,
+                        PARTITION_NONE) ||
+        !ReadFromVolume(partition.offset + WII_PARTITION_CERT_CHAIN_OFFSET_ADDRESS,
+                        cert_chain_offset, PARTITION_NONE) ||
+        !ReadFromVolume(partition.offset + WII_PARTITION_H3_OFFSET_ADDRESS, h3_offset,
+                        PARTITION_NONE))
     {
       return false;
     }
@@ -146,7 +154,7 @@ bool DiscScrubber::ParseDisc()
 
     MarkAsUsed(partition.offset + tmd_offset, tmd_size);
     MarkAsUsed(partition.offset + cert_chain_offset, cert_chain_size);
-    MarkAsUsed(partition.offset + h3_offset, 0x18000);
+    MarkAsUsed(partition.offset + h3_offset, WII_PARTITION_H3_SIZE);
 
     // Parse Data! This is where the big gain is
     if (!ParsePartitionData(partition))

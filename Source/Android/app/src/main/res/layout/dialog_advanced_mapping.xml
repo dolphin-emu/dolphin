@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingHorizontal="@dimen/spacing_large"
+    android:paddingTop="@dimen/spacing_medlarge">
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/list_control"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/expression"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/device" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/device"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:hint="@string/input_device">
+
+        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+            android:id="@+id/dropdown_device"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="none" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/expression"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentStart="true"
+        android:hint="@string/input_expression">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/edit_expression"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="start"
+            android:importantForAutofill="no"
+            android:typeface="monospace" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+</RelativeLayout>

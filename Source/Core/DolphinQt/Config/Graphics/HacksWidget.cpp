@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Config/Graphics/HacksWidget.h"
 
@@ -88,6 +87,8 @@ void HacksWidget::CreateWidgets()
   m_store_xfb_copies = new GraphicsBool(tr("Store XFB Copies to Texture Only"),
                                         Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM);
   m_immediate_xfb = new GraphicsBool(tr("Immediately Present XFB"), Config::GFX_HACK_IMMEDIATE_XFB);
+  // Don't let people touch this
+  m_immediate_xfb->setEnabled(false);
   m_skip_duplicate_xfbs = new GraphicsBool(tr("Skip Presenting Duplicate Frames"),
                                            Config::GFX_HACK_SKIP_DUPLICATE_XFBS);
 
@@ -104,14 +105,16 @@ void HacksWidget::CreateWidgets()
       new GraphicsBool(tr("Fast Depth Calculation"), Config::GFX_FAST_DEPTH_CALC);
   m_disable_bounding_box =
       new GraphicsBool(tr("Disable Bounding Box"), Config::GFX_HACK_BBOX_ENABLE, true);
-  m_vertex_rounding = new GraphicsBool(tr("Vertex Rounding"), Config::GFX_HACK_VERTEX_ROUDING);
+  m_vertex_rounding = new GraphicsBool(tr("Vertex Rounding"), Config::GFX_HACK_VERTEX_ROUNDING);
   m_save_texture_cache_state =
       new GraphicsBool(tr("Save Texture Cache to State"), Config::GFX_SAVE_TEXTURE_CACHE_TO_STATE);
+  m_vi_skip = new GraphicsBool(tr("VBI Skip"), Config::GFX_HACK_VI_SKIP);
 
   other_layout->addWidget(m_fast_depth_calculation, 0, 0);
   other_layout->addWidget(m_disable_bounding_box, 0, 1);
   other_layout->addWidget(m_vertex_rounding, 1, 0);
   other_layout->addWidget(m_save_texture_cache_state, 1, 1);
+  other_layout->addWidget(m_vi_skip, 2, 0);
 
   main_layout->addWidget(efb_box);
   main_layout->addWidget(texture_cache_box);
@@ -133,7 +136,8 @@ void HacksWidget::OnBackendChanged(const QString& backend_name)
   m_gpu_texture_decoding->setEnabled(gpu_texture_decoding);
   m_disable_bounding_box->setEnabled(bbox);
 
-  const QString tooltip = tr("%1 doesn't support this feature on your system.").arg(backend_name);
+  const QString tooltip = tr("%1 doesn't support this feature on your system.")
+                              .arg(tr(backend_name.toStdString().c_str()));
 
   m_gpu_texture_decoding->setToolTip(!gpu_texture_decoding ? tooltip : QString{});
   m_disable_bounding_box->setToolTip(!bbox ? tooltip : QString{});
@@ -148,12 +152,17 @@ void HacksWidget::ConnectWidgets()
           [this](int) { UpdateDeferEFBCopiesEnabled(); });
   connect(m_immediate_xfb, &QCheckBox::stateChanged,
           [this](int) { UpdateSkipPresentingDuplicateFramesEnabled(); });
+  connect(m_vi_skip, &QCheckBox::stateChanged,
+          [this](int) { UpdateSkipPresentingDuplicateFramesEnabled(); });
 }
 
 void HacksWidget::LoadSettings()
 {
   const QSignalBlocker blocker(m_accuracy);
   auto samples = Config::Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
+
+  // Re-enable the slider in case it was disabled because of a custom value
+  m_accuracy->setEnabled(true);
 
   int slider_pos = 0;
 
@@ -273,10 +282,16 @@ void HacksWidget::AddDescriptions()
                  "states at the cost of additional save/load time.<br><br><dolphin_emphasis>If "
                  "unsure, leave this checked.</dolphin_emphasis>");
   static const char TR_VERTEX_ROUNDING_DESCRIPTION[] = QT_TR_NOOP(
-      "Rounds 2D vertices to whole pixels.<br><br>Fixes graphical problems in some games at "
-      "higher internal resolutions. This setting has no effect when native internal "
-      "resolution is used.<br><br><dolphin_emphasis>If unsure, leave this "
-      "unchecked.</dolphin_emphasis>");
+      "Rounds 2D vertices to whole pixels and rounds the viewport size to a whole number.<br><br>"
+      "Fixes graphical problems in some games at higher internal resolutions. This setting has no "
+      "effect when native internal resolution is used.<br><br>"
+      "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+  static const char TR_VI_SKIP_DESCRIPTION[] =
+      QT_TR_NOOP("Skips Vertical Blank Interrupts when lag is detected, allowing for "
+                 "smooth audio playback when emulation speed is not 100%. <br><br>"
+                 "<dolphin_emphasis>WARNING: Can cause freezes and compatibility "
+                 "issues.</dolphin_emphasis> <br><br>"
+                 "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
 
   m_skip_efb_cpu->SetDescription(tr(TR_SKIP_EFB_CPU_ACCESS_DESCRIPTION));
   m_ignore_format_changes->SetDescription(tr(TR_IGNORE_FORMAT_CHANGE_DESCRIPTION));
@@ -292,6 +307,7 @@ void HacksWidget::AddDescriptions()
   m_disable_bounding_box->SetDescription(tr(TR_DISABLE_BOUNDINGBOX_DESCRIPTION));
   m_save_texture_cache_state->SetDescription(tr(TR_SAVE_TEXTURE_CACHE_TO_STATE_DESCRIPTION));
   m_vertex_rounding->SetDescription(tr(TR_VERTEX_ROUNDING_DESCRIPTION));
+  m_vi_skip->SetDescription(tr(TR_VI_SKIP_DESCRIPTION));
 }
 
 void HacksWidget::UpdateDeferEFBCopiesEnabled()
@@ -306,5 +322,12 @@ void HacksWidget::UpdateSkipPresentingDuplicateFramesEnabled()
 {
   // If Immediate XFB is on, there's no point to skipping duplicate XFB copies as immediate presents
   // when the XFB is created, therefore all XFB copies will be unique.
-  m_skip_duplicate_xfbs->setEnabled(!m_immediate_xfb->isChecked());
+  // This setting is also required for VI skip to work.
+
+  const bool disabled = m_immediate_xfb->isChecked() || m_vi_skip->isChecked();
+
+  if (disabled)
+    m_skip_duplicate_xfbs->setChecked(true);
+
+  m_skip_duplicate_xfbs->setEnabled(!disabled);
 }

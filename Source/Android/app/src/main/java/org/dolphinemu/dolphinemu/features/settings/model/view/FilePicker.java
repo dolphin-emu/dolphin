@@ -1,10 +1,14 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.model.view;
+
+import android.content.Context;
+
+import androidx.annotation.Nullable;
 
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractStringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
-
-import androidx.annotation.Nullable;
 
 public final class FilePicker extends SettingsItem
 {
@@ -12,10 +16,10 @@ public final class FilePicker extends SettingsItem
   private int mRequestType;
   private String mDefaultPathRelativeToUserDirectory;
 
-  public FilePicker(AbstractStringSetting setting, int titleId, int descriptionId, int requestType,
-          @Nullable String defaultPathRelativeToUserDirectory)
+  public FilePicker(Context context, AbstractStringSetting setting, int titleId, int descriptionId,
+          int requestType, @Nullable String defaultPathRelativeToUserDirectory)
   {
-    super(titleId, descriptionId);
+    super(context, titleId, descriptionId);
     mSetting = setting;
     mRequestType = requestType;
     mDefaultPathRelativeToUserDirectory = defaultPathRelativeToUserDirectory;

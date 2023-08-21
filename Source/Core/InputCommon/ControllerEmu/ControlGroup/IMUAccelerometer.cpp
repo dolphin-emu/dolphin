@@ -1,16 +1,14 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.h"
 
+#include <algorithm>
 #include <memory>
 
 #include "Common/Common.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
-#include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
-#include "InputCommon/ControllerEmu/Control/Input.h"
 
 namespace ControllerEmu
 {
@@ -25,9 +23,15 @@ IMUAccelerometer::IMUAccelerometer(std::string name_, std::string ui_name_)
   AddInput(Translate, _trans("Backward"));
 }
 
+bool IMUAccelerometer::AreInputsBound() const
+{
+  return std::all_of(controls.begin(), controls.end(),
+                     [](const auto& control) { return control->control_ref->BoundCount() > 0; });
+}
+
 std::optional<IMUAccelerometer::StateData> IMUAccelerometer::GetState() const
 {
-  if (controls[0]->control_ref->BoundCount() == 0)
+  if (!AreInputsBound())
     return std::nullopt;
 
   StateData state;

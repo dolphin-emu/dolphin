@@ -1,8 +1,12 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.ui;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
+import androidx.core.app.ComponentActivity;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
@@ -20,12 +24,11 @@ public final class SettingsActivityPresenter
 
   private boolean mShouldSave;
 
-  private AfterDirectoryInitializationRunner mAfterDirectoryInitializationRunner;
-
-  private MenuTag menuTag;
-  private String gameId;
-  private int revision;
-  private Context context;
+  private MenuTag mMenuTag;
+  private String mGameId;
+  private int mRevision;
+  private boolean mIsWii;
+  private ComponentActivity mActivity;
 
   SettingsActivityPresenter(SettingsActivityView view, Settings settings)
   {
@@ -34,12 +37,13 @@ public final class SettingsActivityPresenter
   }
 
   public void onCreate(Bundle savedInstanceState, MenuTag menuTag, String gameId, int revision,
-          Context context)
+          boolean isWii, ComponentActivity activity)
   {
-    this.menuTag = menuTag;
-    this.gameId = gameId;
-    this.revision = revision;
-    this.context = context;
+    this.mMenuTag = menuTag;
+    this.mGameId = gameId;
+    this.mRevision = revision;
+    this.mIsWii = isWii;
+    this.mActivity = activity;
 
     mShouldSave = savedInstanceState != null && savedInstanceState.getBoolean(KEY_SHOULD_SAVE);
   }
@@ -60,11 +64,13 @@ public final class SettingsActivityPresenter
 
   private void loadSettingsUI()
   {
+    mView.hideLoading();
+
     if (mSettings.isEmpty())
     {
-      if (!TextUtils.isEmpty(gameId))
+      if (!TextUtils.isEmpty(mGameId))
       {
-        mSettings.loadSettings(gameId, revision, mView);
+        mSettings.loadSettings(mView, mGameId, mRevision, mIsWii);
 
         if (mSettings.gameIniContainsJunk())
         {
@@ -73,28 +79,19 @@ public final class SettingsActivityPresenter
       }
       else
       {
-        mSettings.loadSettings(mView);
+        mSettings.loadSettings(mView, mIsWii);
       }
     }
 
-    mView.showSettingsFragment(menuTag, null, false, gameId);
+    mView.showSettingsFragment(mMenuTag, null, false, mGameId);
     mView.onSettingsFileLoaded(mSettings);
   }
 
   private void prepareDolphinDirectoriesIfNeeded()
   {
-    if (DirectoryInitialization.areDolphinDirectoriesReady())
-    {
-      loadSettingsUI();
-    }
-    else
-    {
-      mView.showLoading();
+    mView.showLoading();
 
-      mAfterDirectoryInitializationRunner = new AfterDirectoryInitializationRunner();
-      mAfterDirectoryInitializationRunner.setFinishedCallback(mView::hideLoading);
-      mAfterDirectoryInitializationRunner.run(context, true, this::loadSettingsUI);
-    }
+    new AfterDirectoryInitializationRunner().runWithLifecycle(mActivity, this::loadSettingsUI);
   }
 
   public Settings getSettings()
@@ -110,28 +107,11 @@ public final class SettingsActivityPresenter
 
   public void onStop(boolean finishing)
   {
-    if (mAfterDirectoryInitializationRunner != null)
-    {
-      mAfterDirectoryInitializationRunner.cancel();
-      mAfterDirectoryInitializationRunner = null;
-    }
-
     if (mSettings != null && finishing && mShouldSave)
     {
       Log.debug("[SettingsActivity] Settings activity stopping. Saving settings to INI...");
-      mSettings.saveSettings(mView, context);
+      mSettings.saveSettings(mView, mActivity);
     }
-  }
-
-  public boolean handleOptionsItem(int itemId)
-  {
-    if (itemId == R.id.menu_save_exit)
-    {
-      mView.finish();
-      return true;
-    }
-
-    return false;
   }
 
   public void onSettingChanged()
@@ -149,37 +129,69 @@ public final class SettingsActivityPresenter
     return mShouldSave;
   }
 
-  public void onGcPadSettingChanged(MenuTag key, int value)
+  public void onMenuTagAction(@NonNull MenuTag menuTag, int value)
   {
-    if (value != 0) // Not disabled
+    if (menuTag.isSerialPort1Menu())
     {
-      Bundle bundle = new Bundle();
-      bundle.putInt(SettingsFragmentPresenter.ARG_CONTROLLER_TYPE, value / 6);
-      mView.showSettingsFragment(key, bundle, true, gameId);
+      if (value != 0 && value != 255) // Not disabled or dummy
+      {
+        Bundle bundle = new Bundle();
+        bundle.putInt(SettingsFragmentPresenter.ARG_SERIALPORT1_TYPE, value);
+        mView.showSettingsFragment(menuTag, bundle, true, mGameId);
+      }
+    }
+
+    if (menuTag.isGCPadMenu())
+    {
+      if (value != 0) // Not disabled
+      {
+        Bundle bundle = new Bundle();
+        bundle.putInt(SettingsFragmentPresenter.ARG_CONTROLLER_TYPE, value);
+        mView.showSettingsFragment(menuTag, bundle, true, mGameId);
+      }
+    }
+
+    if (menuTag.isWiimoteMenu())
+    {
+      if (value == 1) // Emulated Wii Remote
+      {
+        mView.showSettingsFragment(menuTag, null, true, mGameId);
+      }
+    }
+
+    if (menuTag.isWiimoteExtensionMenu())
+    {
+      if (value != 0) // Not disabled
+      {
+        Bundle bundle = new Bundle();
+        bundle.putInt(SettingsFragmentPresenter.ARG_CONTROLLER_TYPE, value);
+        mView.showSettingsFragment(menuTag, bundle, true, mGameId);
+      }
     }
   }
 
-  public void onWiimoteSettingChanged(MenuTag menuTag, int value)
+  public boolean hasMenuTagActionForValue(@NonNull MenuTag menuTag, int value)
   {
-    switch (value)
+    if (menuTag.isSerialPort1Menu())
     {
-      case 1:
-        mView.showSettingsFragment(menuTag, null, true, gameId);
-        break;
-
-      case 2:
-        mView.showToastMessage("Please make sure Continuous Scanning is enabled in Core Settings.");
-        break;
+      return (value != 0 && value != 255); // Not disabled or dummy
     }
-  }
 
-  public void onExtensionSettingChanged(MenuTag menuTag, int value)
-  {
-    if (value != 0) // None
+    if (menuTag.isGCPadMenu())
     {
-      Bundle bundle = new Bundle();
-      bundle.putInt(SettingsFragmentPresenter.ARG_CONTROLLER_TYPE, value);
-      mView.showSettingsFragment(menuTag, bundle, true, gameId);
+      return (value != 0); // Not disabled
     }
+
+    if (menuTag.isWiimoteMenu())
+    {
+      return (value == 1); // Emulated Wii Remote
+    }
+
+    if (menuTag.isWiimoteExtensionMenu())
+    {
+      return (value != 0); // Not disabled
+    }
+
+    return false;
   }
 }

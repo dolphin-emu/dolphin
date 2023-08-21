@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoBackends/Null/NullTexture.h"
 
@@ -22,7 +21,7 @@ void NullTexture::ResolveFromTexture(const AbstractTexture* src,
 }
 
 void NullTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
-                       size_t buffer_size)
+                       size_t buffer_size, u32 layer)
 {
 }
 

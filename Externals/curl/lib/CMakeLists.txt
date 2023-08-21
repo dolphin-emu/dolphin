@@ -11,7 +11,8 @@ add_library(
   curl
   STATIC
   ${SRCS}
-)
+  )
+dolphin_disable_warnings_msvc(curl)
 
-target_link_libraries(curl ${MBEDTLS_LIBRARIES})
+target_link_libraries(curl ${MBEDTLS_LIBRARIES} zlibstatic)
 target_compile_definitions(curl PUBLIC CURL_STATICLIB PRIVATE CURL_DISABLE_LDAP)

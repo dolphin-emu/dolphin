@@ -1,9 +1,11 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:tools="http://schemas.android.com/tools"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent"
-             android:keepScreenOn="true"
-             tools:context="org.dolphinemu.dolphinemu.fragments.EmulationFragment">
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/layout_emulation"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:keepScreenOn="true"
+    tools:context="org.dolphinemu.dolphinemu.fragments.EmulationFragment">
 
     <!-- This is what everything is rendered to during emulation -->
     <SurfaceView
@@ -11,7 +13,7 @@
         android:layout_height="match_parent"
         android:layout_width="match_parent"
         android:focusable="false"
-        android:focusableInTouchMode="false"/>
+        android:focusableInTouchMode="false" />
 
     <!-- This is the onscreen input overlay -->
     <org.dolphinemu.dolphinemu.overlay.InputOverlay
@@ -19,7 +21,7 @@
         android:layout_height="match_parent"
         android:layout_width="match_parent"
         android:focusable="true"
-        android:focusableInTouchMode="true"/>
+        android:focusableInTouchMode="true" />
 
     <Button
         android:id="@+id/done_control_config"
@@ -27,9 +29,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:padding="@dimen/spacing_small"
-        android:background="@color/dolphin_blue"
-        android:textColor="@color/lb_tv_white"
         android:text="@string/emulation_done"
-        android:visibility="gone"/>
+        android:visibility="gone" />
 
 </FrameLayout>

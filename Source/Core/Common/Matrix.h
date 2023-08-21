@@ -1,6 +1,5 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -23,6 +22,11 @@ union TVec3
   template <typename OtherT>
   constexpr explicit TVec3(const TVec3<OtherT>& other) : TVec3(other.x, other.y, other.z)
   {
+  }
+
+  constexpr bool operator==(const TVec3& other) const
+  {
+    return x == other.x && y == other.y && z == other.z;
   }
 
   constexpr TVec3 Cross(const TVec3& rhs) const
@@ -154,6 +158,11 @@ union TVec4
   constexpr TVec4(TVec3<T> _vec, T _w) : TVec4{_vec.x, _vec.y, _vec.z, _w} {}
   constexpr TVec4(T _x, T _y, T _z, T _w) : data{_x, _y, _z, _w} {}
 
+  constexpr bool operator==(const TVec4& other) const
+  {
+    return x == other.x && y == other.y && z == other.z && w == other.w;
+  }
+
   constexpr T Dot(const TVec4& other) const
   {
     return x * other.x + y * other.y + z * other.z + w * other.w;
@@ -216,6 +225,8 @@ union TVec2
   constexpr explicit TVec2(const TVec2<OtherT>& other) : TVec2(other.x, other.y)
   {
   }
+
+  constexpr bool operator==(const TVec2& other) const { return x == other.x && y == other.y; }
 
   constexpr T Cross(const TVec2& rhs) const { return (x * rhs.y) - (y * rhs.x); }
   constexpr T Dot(const TVec2& rhs) const { return (x * rhs.x) + (y * rhs.y); }
@@ -337,6 +348,10 @@ public:
   static Quaternion RotateY(float rad);
   static Quaternion RotateZ(float rad);
 
+  // Returns a quaternion with rotations about each axis simulatenously (e.g processing gyroscope
+  // input)
+  static Quaternion RotateXYZ(const Vec3& rads);
+
   static Quaternion Rotate(float rad, const Vec3& axis);
 
   Quaternion() = default;
@@ -354,6 +369,8 @@ public:
 
 Quaternion operator*(Quaternion lhs, const Quaternion& rhs);
 Vec3 operator*(const Quaternion& lhs, const Vec3& rhs);
+
+Vec3 FromQuaternionToEuler(const Quaternion& q);
 
 class Matrix33
 {
@@ -402,6 +419,7 @@ class Matrix44
 public:
   static Matrix44 Identity();
   static Matrix44 FromMatrix33(const Matrix33& m33);
+  static Matrix44 FromQuaternion(const Quaternion& q);
   static Matrix44 FromArray(const std::array<float, 16>& arr);
 
   static Matrix44 Translate(const Vec3& vec);

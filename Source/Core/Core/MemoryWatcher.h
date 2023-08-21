@@ -1,13 +1,20 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <map>
+#include <string>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <vector>
+
+namespace Core
+{
+class CPUThreadGuard;
+}
 
 // MemoryWatcher reads a file containing in-game memory addresses and outputs
 // changes to those memory addresses to a unix domain socket as the game runs.
@@ -22,15 +29,15 @@ class MemoryWatcher final
 public:
   MemoryWatcher();
   ~MemoryWatcher();
-  void Step();
+  void Step(const Core::CPUThreadGuard& guard);
 
 private:
   bool LoadAddresses(const std::string& path);
   bool OpenSocket(const std::string& path);
 
   void ParseLine(const std::string& line);
-  u32 ChasePointer(const std::string& line);
-  std::string ComposeMessages();
+  u32 ChasePointer(const Core::CPUThreadGuard& guard, const std::string& line);
+  std::string ComposeMessages(const Core::CPUThreadGuard& guard);
 
   bool m_running = false;
 

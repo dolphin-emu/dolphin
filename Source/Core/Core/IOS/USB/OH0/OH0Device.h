@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -12,7 +11,7 @@
 
 class PointerWrap;
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
 class OH0;
 class OH0Device final : public Device
@@ -20,10 +19,10 @@ class OH0Device final : public Device
 public:
   OH0Device(Kernel& ios, const std::string& device_name);
 
-  IPCCommandResult Open(const OpenRequest& request) override;
-  IPCCommandResult Close(u32 fd) override;
-  IPCCommandResult IOCtl(const IOCtlRequest& request) override;
-  IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
+  std::optional<IPCReply> Open(const OpenRequest& request) override;
+  std::optional<IPCReply> Close(u32 fd) override;
+  std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
+  std::optional<IPCReply> IOCtlV(const IOCtlVRequest& request) override;
   void DoState(PointerWrap& p) override;
 
 private:
@@ -32,4 +31,4 @@ private:
   u16 m_pid = 0;
   u64 m_device_id = 0;
 };
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

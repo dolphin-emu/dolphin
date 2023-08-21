@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 /* mksdcard.c
 **
@@ -43,16 +42,11 @@
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
+#include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 
 #ifndef _WIN32
 #include <unistd.h>  // for unlink()
-#endif
-
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4310)
 #endif
 
 namespace Common
@@ -289,7 +283,3 @@ FailWrite:
   return false;
 }
 }  // namespace Common
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif

@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/EXI/EXI_DeviceAD16.h"
 
@@ -10,7 +9,9 @@
 
 namespace ExpansionInterface
 {
-CEXIAD16::CEXIAD16() = default;
+CEXIAD16::CEXIAD16(Core::System& system) : IEXIDevice(system)
+{
+}
 
 void CEXIAD16::SetCS(int cs)
 {

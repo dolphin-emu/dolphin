@@ -1,0 +1,11 @@
+{
+ "Details": [
+  {
+   "InjectionAddress": "80394A68",
+   "Name": "Crash Output",
+   "Codetype": "Auto",
+   "Annotation": "Debugging/AdditionalCrashInfo/AdditionalCrashInfo.asm",
+   "Tags": ""
+  }
+ ]
+}

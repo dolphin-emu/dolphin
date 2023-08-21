@@ -1,11 +1,11 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "Core/PowerPC/Jit64/Jit.h"
 
 #include <array>
 
 #include "Core/PowerPC/Gekko.h"
-#include "Core/PowerPC/Jit64/Jit.h"
 
 namespace
 {
@@ -151,8 +151,8 @@ constexpr std::array<GekkoOPTemplate, 13> s_table19{{
 constexpr std::array<GekkoOPTemplate, 107> s_table31{{
     {266, &Jit64::addx},      // addx
     {778, &Jit64::addx},      // addox
-    {10, &Jit64::arithcx},    // addcx
-    {522, &Jit64::arithcx},   // addcox
+    {10, &Jit64::addx},       // addcx
+    {522, &Jit64::addx},      // addcox
     {138, &Jit64::arithXex},  // addex
     {650, &Jit64::arithXex},  // addeox
     {234, &Jit64::arithXex},  // addmex
@@ -171,8 +171,8 @@ constexpr std::array<GekkoOPTemplate, 107> s_table31{{
     {616, &Jit64::negx},      // negox
     {40, &Jit64::subfx},      // subfx
     {552, &Jit64::subfx},     // subfox
-    {8, &Jit64::arithcx},     // subfcx
-    {520, &Jit64::arithcx},   // subfcox
+    {8, &Jit64::subfx},       // subfcx
+    {520, &Jit64::subfx},     // subfcox
     {136, &Jit64::arithXex},  // subfex
     {648, &Jit64::arithXex},  // subfeox
     {232, &Jit64::arithXex},  // subfmex

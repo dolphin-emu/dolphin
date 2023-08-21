@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -37,13 +36,13 @@ struct LightingUidData
   u32 light_mask : 32;     // 4x8 bits
 };
 
-constexpr inline char s_lighting_struct[] = "struct Light {\n"
-                                            "\tint4 color;\n"
-                                            "\tfloat4 cosatt;\n"
-                                            "\tfloat4 distatt;\n"
-                                            "\tfloat4 pos;\n"
-                                            "\tfloat4 dir;\n"
-                                            "};\n";
+constexpr char s_lighting_struct[] = "struct Light {\n"
+                                     "\tint4 color;\n"
+                                     "\tfloat4 cosatt;\n"
+                                     "\tfloat4 distatt;\n"
+                                     "\tfloat4 pos;\n"
+                                     "\tfloat4 dir;\n"
+                                     "};\n";
 
 void GenerateLightingShaderCode(ShaderCode& object, const LightingUidData& uid_data,
                                 std::string_view in_color_name, std::string_view dest);

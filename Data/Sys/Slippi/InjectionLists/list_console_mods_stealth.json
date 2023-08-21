@@ -1,0 +1,39 @@
+{
+ "Details": [
+  {
+   "InjectionAddress": "8016E510",
+   "Name": "Stealth tournament codes",
+   "Codetype": "Auto",
+   "Annotation": "External/NeutralSpawn/NeutralSpawn.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "802FCCD8",
+   "Name": "Stealth tournament codes",
+   "Codetype": "Auto",
+   "Annotation": "External/Hide Nametag When Invisible/Hide Nametag When Invisible.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80261B1C",
+   "Name": "Stealth tournament codes",
+   "Codetype": "Auto",
+   "Annotation": "External/Closing CSS Door Preserves Nametag/On Window Close/Skip Nametag ID Reset.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80261B30",
+   "Name": "Stealth tournament codes",
+   "Codetype": "Auto",
+   "Annotation": "External/Closing CSS Door Preserves Nametag/On Window Close/Skip isUsingNametag Bool Reset.asm",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "802605FC",
+   "Name": "Stealth tournament codes",
+   "Codetype": "Auto",
+   "Annotation": "External/Unplugging Closes CSS Door/Unplugging Closes CSS Door.asm",
+   "Tags": ""
+  }
+ ]
+}

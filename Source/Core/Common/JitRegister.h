@@ -1,33 +1,33 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
-#include <stdarg.h>
+
 #include <string>
+
+#include <fmt/format.h>
+
 #include "Common/CommonTypes.h"
 
 namespace JitRegister
 {
 void Init(const std::string& perf_dir);
 void Shutdown();
-void RegisterV(const void* base_address, u32 code_size, const char* format, va_list args);
+void Register(const void* base_address, u32 code_size, const std::string& symbol_name);
 bool IsEnabled();
 
-inline void Register(const void* base_address, u32 code_size, const char* format, ...)
+template <typename... Args>
+inline void Register(const void* base_address, u32 code_size, fmt::format_string<Args...> format,
+                     Args&&... args)
 {
-  va_list args;
-  va_start(args, format);
-  RegisterV(base_address, code_size, format, args);
-  va_end(args);
+  Register(base_address, code_size, fmt::format(format, std::forward<Args>(args)...));
 }
 
-inline void Register(const void* start, const void* end, const char* format, ...)
+template <typename... Args>
+inline void Register(const void* start, const void* end, fmt::format_string<Args...> format,
+                     Args&&... args)
 {
-  va_list args;
-  va_start(args, format);
   u32 code_size = (u32)((const char*)end - (const char*)start);
-  RegisterV(start, code_size, format, args);
-  va_end(args);
+  Register(start, code_size, fmt::format(format, std::forward<Args>(args)...));
 }
 }  // namespace JitRegister

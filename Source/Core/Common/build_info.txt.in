@@ -1,0 +1,23 @@
+// Indicate the minimum OS version required for the binary to run properly.
+// Updater will fail the update if the user does not meet this requirement.
+OSMinimumVersionWin10=10.0.15063.0
+OSMinimumVersionWin11=10.0.22000.0
+
+// This is the runtime which was compiled against - providing a way for Updater to detect if update
+// is needed before executing this binary. Note that, annoyingly, the version in environment
+// variables does not match the "real" version. Consider:
+// VersionInfo    : File:             C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Redist\MSVC\14.32.31326\vc_redist.x64.exe
+//                  InternalName:     setup
+//                  OriginalFilename: VC_redist.x64.exe
+//                  FileVersion:      14.32.31332.0
+//                  FileDescription:  Microsoft Visual C++ 2015-2022 Redistributable (x64) - 14.32.31332
+//                  Product:          Microsoft Visual C++ 2015-2022 Redistributable (x64) - 14.32.31332
+//                  ProductVersion:   14.32.31332.0
+// Whereas the environment variables look like:
+//   VCToolsInstallDir=C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.33.31629\
+//   VCToolsRedistDir=C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Redist\MSVC\14.32.31326\
+//   VCToolsVersion=14.33.31629
+// We're really looking for "14.32.31332.0" (because that's what will appear in the registry once
+// installed), NOT the other values!
+VCToolsVersion=${VC_TOOLS_VERSION}
+VCToolsUpdateURL=https://aka.ms/vs/17/release/vc_redist.x64.exe

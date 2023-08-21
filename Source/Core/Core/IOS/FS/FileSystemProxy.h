@@ -1,12 +1,13 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <array>
 #include <map>
+#include <optional>
 #include <string>
+#include <utility>
 
 #include "Common/CommonTypes.h"
 #include "Core/IOS/Device.h"
@@ -15,31 +16,84 @@
 
 class PointerWrap;
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
-constexpr IOS::HLE::FS::Fd INVALID_FD = 0xffffffff;
+constexpr FS::Fd INVALID_FD = 0xffffffff;
 
-class FS : public Device
+class FSDevice : public Device
 {
 public:
-  FS(Kernel& ios, const std::string& device_name);
+  class ScopedFd
+  {
+  public:
+    ScopedFd(FSDevice* fs, s64 fd, Ticks tick_tracker = {})
+        : m_fs{fs}, m_fd{fd}, m_tick_tracker{tick_tracker}
+    {
+    }
+
+    ~ScopedFd()
+    {
+      if (m_fd >= 0)
+        m_fs->Close(m_fd, m_tick_tracker);
+    }
+
+    ScopedFd(const ScopedFd&) = delete;
+    ScopedFd(ScopedFd&&) = delete;
+    ScopedFd& operator=(const ScopedFd&) = delete;
+    ScopedFd& operator=(ScopedFd&&) = delete;
+
+    s64 Get() const { return m_fd; }
+    s64 Release() { return std::exchange(m_fd, -1); }
+
+  private:
+    FSDevice* m_fs{};
+    s64 m_fd = -1;
+    Ticks m_tick_tracker{};
+  };
+
+  FSDevice(Kernel& ios, const std::string& device_name);
+
+  // These are the equivalent of the IPC command handlers so IPC overhead is included
+  // in timing calculations.
+  ScopedFd Open(FS::Uid uid, FS::Gid gid, const std::string& path, FS::Mode mode,
+                std::optional<u32> ipc_fd = {}, Ticks ticks = {});
+  s32 Close(u64 fd, Ticks ticks = {});
+  s32 Read(u64 fd, u8* data, u32 size, std::optional<u32> ipc_buffer_addr = {}, Ticks ticks = {});
+  s32 Write(u64 fd, const u8* data, u32 size, std::optional<u32> ipc_buffer_addr = {},
+            Ticks ticks = {});
+  s32 Seek(u64 fd, u32 offset, FS::SeekMode mode, Ticks ticks = {});
+
+  FS::Result<FS::FileStatus> GetFileStatus(u64 fd, Ticks ticks = {});
+  FS::ResultCode RenameFile(FS::Uid uid, FS::Gid gid, const std::string& old_path,
+                            const std::string& new_path, Ticks ticks = {});
+  FS::ResultCode DeleteFile(FS::Uid uid, FS::Gid gid, const std::string& path, Ticks ticks = {});
+  FS::ResultCode CreateFile(FS::Uid uid, FS::Gid gid, const std::string& path,
+                            FS::FileAttribute attribute, FS::Modes modes, Ticks ticks = {});
+
+  template <typename T>
+  s32 Read(u64 fd, T* data, size_t count, Ticks ticks = {})
+  {
+    return Read(fd, reinterpret_cast<u8*>(data), static_cast<u32>(sizeof(T) * count), {}, ticks);
+  }
+
+  std::shared_ptr<FS::FileSystem> GetFS() const { return m_ios.GetFS(); }
 
   void DoState(PointerWrap& p) override;
 
-  IPCCommandResult Open(const OpenRequest& request) override;
-  IPCCommandResult Close(u32 fd) override;
-  IPCCommandResult Read(const ReadWriteRequest& request) override;
-  IPCCommandResult Write(const ReadWriteRequest& request) override;
-  IPCCommandResult Seek(const SeekRequest& request) override;
-  IPCCommandResult IOCtl(const IOCtlRequest& request) override;
-  IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
+  std::optional<IPCReply> Open(const OpenRequest& request) override;
+  std::optional<IPCReply> Close(u32 fd) override;
+  std::optional<IPCReply> Read(const ReadWriteRequest& request) override;
+  std::optional<IPCReply> Write(const ReadWriteRequest& request) override;
+  std::optional<IPCReply> Seek(const SeekRequest& request) override;
+  std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
+  std::optional<IPCReply> IOCtlV(const IOCtlVRequest& request) override;
 
 private:
   struct Handle
   {
     u16 gid = 0;
     u32 uid = 0;
-    IOS::HLE::FS::Fd fs_fd = INVALID_FD;
+    FS::Fd fs_fd = INVALID_FD;
     // We use a std::array to keep this savestate friendly.
     std::array<char, 64> name{};
     bool superblock_flush_needed = false;
@@ -62,28 +116,30 @@ private:
     ISFS_IOCTL_SHUTDOWN = 13,
   };
 
-  IPCCommandResult Format(const Handle& handle, const IOCtlRequest& request);
-  IPCCommandResult GetStats(const Handle& handle, const IOCtlRequest& request);
-  IPCCommandResult CreateDirectory(const Handle& handle, const IOCtlRequest& request);
-  IPCCommandResult ReadDirectory(const Handle& handle, const IOCtlVRequest& request);
-  IPCCommandResult SetAttribute(const Handle& handle, const IOCtlRequest& request);
-  IPCCommandResult GetAttribute(const Handle& handle, const IOCtlRequest& request);
-  IPCCommandResult DeleteFile(const Handle& handle, const IOCtlRequest& request);
-  IPCCommandResult RenameFile(const Handle& handle, const IOCtlRequest& request);
-  IPCCommandResult CreateFile(const Handle& handle, const IOCtlRequest& request);
-  IPCCommandResult SetFileVersionControl(const Handle& handle, const IOCtlRequest& request);
-  IPCCommandResult GetFileStats(const Handle& handle, const IOCtlRequest& request);
-  IPCCommandResult GetUsage(const Handle& handle, const IOCtlVRequest& request);
-  IPCCommandResult Shutdown(const Handle& handle, const IOCtlRequest& request);
+  IPCReply Format(const Handle& handle, const IOCtlRequest& request);
+  IPCReply GetStats(const Handle& handle, const IOCtlRequest& request);
+  IPCReply CreateDirectory(const Handle& handle, const IOCtlRequest& request);
+  IPCReply ReadDirectory(const Handle& handle, const IOCtlVRequest& request);
+  IPCReply SetAttribute(const Handle& handle, const IOCtlRequest& request);
+  IPCReply GetAttribute(const Handle& handle, const IOCtlRequest& request);
+  IPCReply DeleteFile(const Handle& handle, const IOCtlRequest& request);
+  IPCReply RenameFile(const Handle& handle, const IOCtlRequest& request);
+  IPCReply CreateFile(const Handle& handle, const IOCtlRequest& request);
+  IPCReply SetFileVersionControl(const Handle& handle, const IOCtlRequest& request);
+  IPCReply GetFileStats(const Handle& handle, const IOCtlRequest& request);
+  IPCReply GetUsage(const Handle& handle, const IOCtlVRequest& request);
+  IPCReply Shutdown(const Handle& handle, const IOCtlRequest& request);
 
-  u64 EstimateTicksForReadWrite(const Handle& handle, const ReadWriteRequest& request);
-  u64 SimulatePopulateFileCache(u32 fd, u32 offset, u32 file_size);
+  u64 EstimateTicksForReadWrite(const Handle& handle, u64 fd, IPCCommandType command, u32 size);
+  u64 SimulatePopulateFileCache(u64 fd, u32 offset, u32 file_size);
   u64 SimulateFlushFileCache();
-  bool HasCacheForFile(u32 fd, u32 offset) const;
+  bool HasCacheForFile(u64 fd, u32 offset) const;
 
-  std::map<u32, Handle> m_fd_map;
-  u32 m_cache_fd = INVALID_FD;
-  u16 m_cache_chain_index = 0;
   bool m_dirty_cache = false;
+  u16 m_cache_chain_index = 0;
+  std::optional<u64> m_cache_fd;
+  // The first 0x18 IDs are reserved for the PPC.
+  u64 m_next_fd = 0x18;
+  std::map<u64, Handle> m_fd_map;
 };
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

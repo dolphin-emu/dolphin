@@ -1,17 +1,20 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <array>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <QMenuBar>
 #include <QPointer>
 
+#include "Common/CommonTypes.h"
+
 class QMenu;
+class ParallelProgressDialog;
 
 namespace Core
 {
@@ -27,6 +30,9 @@ namespace UICommon
 {
 class GameFile;
 }
+
+using RSOPairEntry = std::pair<u32, std::string>;
+using RSOVector = std::vector<RSOPairEntry>;
 
 class MenuBar final : public QMenuBar
 {
@@ -48,8 +54,8 @@ signals:
   void Open();
   void Exit();
   void ChangeDisc();
-  void BootDVDBackup(const QString& backup);
   void EjectDisc();
+  void OpenUserFolder();
 
   // Emulation
   void Play();
@@ -83,6 +89,7 @@ signals:
   void ShowAboutDialog();
   void ShowCheatsManager();
   void ShowResourcePackManager();
+  void ShowSkylanderPortal();
   void ConnectWiiRemote(int id);
 
   // Options
@@ -91,6 +98,7 @@ signals:
   void ConfigureAudio();
   void ConfigureControllers();
   void ConfigureHotkeys();
+  void ConfigureFreelook();
 
   // View
   void ShowList();
@@ -119,7 +127,6 @@ private:
   void OnEmulationStateChanged(Core::State state);
 
   void AddFileMenu();
-  void AddDVDBackupMenu(QMenu* file_menu);
 
   void AddEmulationMenu();
   void AddStateLoadMenu(QMenu* emu_menu);
@@ -154,6 +161,7 @@ private:
   void GenerateSymbolsFromSignatureDB();
   void GenerateSymbolsFromRSO();
   void GenerateSymbolsFromRSOAuto();
+  RSOVector DetectRSOModules(ParallelProgressDialog& progress);
   void LoadSymbolMap();
   void LoadOtherSymbolMap();
   void LoadBadSymbolMap();
@@ -186,9 +194,9 @@ private:
   QAction* m_change_disc;
   QAction* m_eject_disc;
   QMenu* m_backup_menu;
+  QAction* m_open_user_folder;
 
   // Tools
-  QAction* m_show_cheat_manager;
   QAction* m_wad_install_action;
   QMenu* m_perform_online_update_menu;
   QAction* m_perform_online_update_for_current_region;
@@ -227,6 +235,7 @@ private:
   // Options
   QAction* m_boot_to_pause;
   QAction* m_automatic_start;
+  QAction* m_reset_ignore_panic_handler;
   QAction* m_change_font;
   QAction* m_controllers_action;
 

@@ -1,6 +1,5 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -10,17 +9,24 @@
 #define USE_SDL_HAPTIC
 #endif
 
+#if SDL_VERSION_ATLEAST(2, 0, 14)
+#define USE_SDL_GAMECONTROLLER
+#endif
+
 #ifdef USE_SDL_HAPTIC
 #include <SDL_haptic.h>
 #endif
 
-#include "InputCommon/ControllerInterface/Device.h"
+#ifdef USE_SDL_GAMECONTROLLER
+#include <SDL_gamecontroller.h>
+#endif
+
+#include "InputCommon/ControllerInterface/CoreDevice.h"
+#include "InputCommon/ControllerInterface/InputBackend.h"
 
 namespace ciface::SDL
 {
-void Init();
-void DeInit();
-void PopulateDevices();
+std::unique_ptr<ciface::InputBackend> CreateInputBackend(ControllerInterface* controller_interface);
 
 class Joystick : public Core::Device
 {
@@ -138,9 +144,43 @@ private:
   };
 #endif
 
-public:
-  void UpdateInput() override;
+#if SDL_VERSION_ATLEAST(2, 0, 9)
+  class Motor : public Output
+  {
+  public:
+    explicit Motor(SDL_Joystick* js) : m_js(js){};
+    std::string GetName() const override;
+    void SetState(ControlState state) override;
 
+  private:
+    SDL_Joystick* const m_js;
+  };
+#endif
+
+#ifdef USE_SDL_GAMECONTROLLER
+  class MotionInput : public Input
+  {
+  public:
+    MotionInput(std::string name, SDL_GameController* gc, SDL_SensorType type, int index,
+                ControlState scale)
+        : m_name(std::move(name)), m_gc(gc), m_type(type), m_index(index), m_scale(scale){};
+
+    std::string GetName() const override { return m_name; };
+    bool IsDetectable() const override { return false; };
+    ControlState GetState() const override;
+
+  private:
+    std::string m_name;
+
+    SDL_GameController* const m_gc;
+    SDL_SensorType const m_type;
+    int const m_index;
+
+    ControlState const m_scale;
+  };
+#endif
+
+public:
   Joystick(SDL_Joystick* const joystick, const int sdl_index);
   ~Joystick();
 
@@ -153,7 +193,11 @@ private:
   std::string m_name;
 
 #ifdef USE_SDL_HAPTIC
-  SDL_Haptic* m_haptic;
+  SDL_Haptic* m_haptic = nullptr;
+#endif
+
+#ifdef USE_SDL_GAMECONTROLLER
+  SDL_GameController* m_controller = nullptr;
 #endif
 };
 }  // namespace ciface::SDL

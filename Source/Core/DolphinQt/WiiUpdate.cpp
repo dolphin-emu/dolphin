@@ -1,10 +1,8 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/WiiUpdate.h"
 
-#include <cinttypes>
 #include <future>
 
 #include <QCloseEvent>
@@ -12,6 +10,7 @@
 #include <QProgressDialog>
 #include <QPushButton>
 
+#include "Common/Assert.h"
 #include "Common/FileUtil.h"
 #include "Common/Flag.h"
 
@@ -32,12 +31,12 @@ static void ShowResult(QWidget* parent, WiiUtils::UpdateResult result)
   case WiiUtils::UpdateResult::Succeeded:
     ModalMessageBox::information(parent, QObject::tr("Update completed"),
                                  QObject::tr("The emulated Wii console has been updated."));
-    DiscIO::NANDImporter().ExtractCertificates(File::GetUserPath(D_WIIROOT_IDX));
+    DiscIO::NANDImporter().ExtractCertificates();
     break;
   case WiiUtils::UpdateResult::AlreadyUpToDate:
     ModalMessageBox::information(parent, QObject::tr("Update completed"),
                                  QObject::tr("The emulated Wii console is already up-to-date."));
-    DiscIO::NANDImporter().ExtractCertificates(File::GetUserPath(D_WIIROOT_IDX));
+    DiscIO::NANDImporter().ExtractCertificates();
     break;
   case WiiUtils::UpdateResult::ServerFailed:
     ModalMessageBox::critical(parent, QObject::tr("Update failed"),
@@ -72,6 +71,9 @@ static void ShowResult(QWidget* parent, WiiUtils::UpdateResult result)
     ModalMessageBox::critical(parent, QObject::tr("Update failed"),
                               QObject::tr("The game disc does not contain any usable "
                                           "update information."));
+    break;
+  default:
+    ASSERT(false);
     break;
   }
 }

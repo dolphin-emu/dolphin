@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -11,14 +10,25 @@ namespace DSP::HLE
 {
 class DSPHLE;
 
-class CARDUCode : public UCodeInterface
+class CARDUCode final : public UCodeInterface
 {
 public:
   CARDUCode(DSPHLE* dsphle, u32 crc);
-  ~CARDUCode() override;
 
   void Initialize() override;
   void HandleMail(u32 mail) override;
   void Update() override;
+  void DoState(PointerWrap& p) override;
+
+private:
+  enum class State
+  {
+    WaitingForRequest,
+    WaitingForAddress,
+    WaitingForNextTask,
+  };
+
+  // Currently unused, will be used in a later version
+  State m_state = State::WaitingForRequest;
 };
 }  // namespace DSP::HLE

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+    <ItemDefinitionGroup>
+        <ClCompile>
+            <AdditionalIncludeDirectories>$(ExternalsDir)imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+            <AdditionalIncludeDirectories>$(ExternalsDir)implot/implot;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+        </ClCompile>
+    </ItemDefinitionGroup>
+    <ItemGroup>
+        <ProjectReference Include="$(ExternalsDir)implot\implot.vcxproj">
+            <Project>{A608225E-AE0A-4D1A-9B55-97F57C862391}</Project>
+        </ProjectReference>
+    </ItemGroup>
+</Project>

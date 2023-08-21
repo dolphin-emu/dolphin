@@ -1,22 +1,25 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "Common/Config/Config.h"
 
 #include <algorithm>
-#include <list>
+#include <atomic>
 #include <map>
 #include <mutex>
 #include <shared_mutex>
-
-#include "Common/Config/Config.h"
+#include <utility>
+#include <vector>
 
 namespace Config
 {
 using Layers = std::map<LayerType, std::shared_ptr<Layer>>;
 
 static Layers s_layers;
-static std::list<ConfigChangedCallback> s_callbacks;
+static std::vector<std::pair<size_t, ConfigChangedCallback>> s_callbacks;
+static size_t s_next_callback_id = 0;
 static u32 s_callback_guards = 0;
+static std::atomic<u64> s_config_version = 0;
 
 static std::shared_mutex s_layers_rw_lock;
 
@@ -31,7 +34,7 @@ static void AddLayerInternal(std::shared_ptr<Layer> layer)
     const Config::LayerType layer_type = layer->GetLayer();
     s_layers.insert_or_assign(layer_type, std::move(layer));
   }
-  InvokeConfigChangedCallbacks();
+  OnConfigChanged();
 }
 
 void AddLayer(std::unique_ptr<ConfigLayerLoader> loader)
@@ -59,21 +62,46 @@ void RemoveLayer(LayerType layer)
 
     s_layers.erase(layer);
   }
-  InvokeConfigChangedCallbacks();
+  OnConfigChanged();
 }
 
-void AddConfigChangedCallback(ConfigChangedCallback func)
+size_t AddConfigChangedCallback(ConfigChangedCallback func)
 {
-  s_callbacks.emplace_back(std::move(func));
+  const size_t callback_id = s_next_callback_id;
+  ++s_next_callback_id;
+  s_callbacks.emplace_back(std::make_pair(callback_id, std::move(func)));
+  return callback_id;
 }
 
-void InvokeConfigChangedCallbacks()
+void RemoveConfigChangedCallback(size_t callback_id)
 {
+  for (auto it = s_callbacks.begin(); it != s_callbacks.end(); ++it)
+  {
+    if (it->first == callback_id)
+    {
+      s_callbacks.erase(it);
+      return;
+    }
+  }
+}
+
+void OnConfigChanged()
+{
+  // Increment the config version to invalidate caches.
+  // To ensure that getters do not return stale data, this should always be done
+  // even when callbacks are suppressed.
+  s_config_version.fetch_add(1, std::memory_order_relaxed);
+
   if (s_callback_guards)
     return;
 
   for (const auto& callback : s_callbacks)
-    callback();
+    callback.second();
+}
+
+u64 GetConfigVersion()
+{
+  return s_config_version.load(std::memory_order_relaxed);
 }
 
 // Explicit load and save of layers
@@ -85,7 +113,7 @@ void Load()
     for (auto& layer : s_layers)
       layer.second->Load();
   }
-  InvokeConfigChangedCallbacks();
+  OnConfigChanged();
 }
 
 void Save()
@@ -96,7 +124,7 @@ void Save()
     for (auto& layer : s_layers)
       layer.second->Save();
   }
-  InvokeConfigChangedCallbacks();
+  OnConfigChanged();
 }
 
 void Init()
@@ -129,7 +157,9 @@ static const std::map<System, std::string> system_to_name = {
     {System::Logger, "Logger"},
     {System::Debugger, "Debugger"},
     {System::SYSCONF, "SYSCONF"},
-    {System::DualShockUDPClient, "DualShockUDPClient"}};
+    {System::DualShockUDPClient, "DualShockUDPClient"},
+    {System::FreeLook, "FreeLook"},
+    {System::Session, "Session"}};
 
 const std::string& GetSystemName(System system)
 {
@@ -207,7 +237,7 @@ ConfigChangeCallbackGuard::~ConfigChangeCallbackGuard()
   if (--s_callback_guards)
     return;
 
-  InvokeConfigChangedCallbacks();
+  OnConfigChanged();
 }
 
 }  // namespace Config

@@ -6,7 +6,7 @@
 /* @(#) $Id$ */
 
 #define ZLIB_INTERNAL
-#include "zlib.h"
+#include "zlib_old.h"
 
 #define BASE 65521UL    /* largest prime smaller than 65536 */
 #define NMAX 5552
@@ -94,7 +94,7 @@ void ZEXPORT adler32_range(min, max)
     *max = ((BASE-1) << 16) | (BASE-1);
 }
 
-uLong ZEXPORT adler32(adler, buf, len)
+uLong ZEXPORT adler32_old(adler, buf, len)
     uLong adler;
     const Bytef *buf;
     uInt len;
@@ -165,7 +165,7 @@ uLong ZEXPORT adler32(adler, buf, len)
 }
 
 /* ========================================================================= */
-uLong ZEXPORT adler32_combine(adler1, adler2, len2)
+uLong ZEXPORT adler32_combine_old(adler1, adler2, len2)
     uLong adler1;
     uLong adler2;
     z_off_t len2;

@@ -1,6 +1,5 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoBackends/Vulkan/ObjectCache.h"
 
@@ -18,10 +17,11 @@
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ShaderCompiler.h"
-#include "VideoBackends/Vulkan/StreamBuffer.h"
+#include "VideoBackends/Vulkan/VKStreamBuffer.h"
 #include "VideoBackends/Vulkan/VKTexture.h"
-#include "VideoBackends/Vulkan/VertexFormat.h"
+#include "VideoBackends/Vulkan/VKVertexFormat.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
+#include "VideoCommon/Constants.h"
 #include "VideoCommon/VideoCommon.h"
 
 namespace Vulkan
@@ -55,7 +55,7 @@ bool ObjectCache::Initialize()
       StreamBuffer::Create(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, TEXTURE_UPLOAD_BUFFER_SIZE);
   if (!m_texture_upload_buffer)
   {
-    PanicAlert("Failed to create texture upload buffer");
+    PanicAlertFmt("Failed to create texture upload buffer");
     return false;
   }
 
@@ -120,12 +120,14 @@ bool ObjectCache::CreateDescriptorSetLayouts()
   }};
 
   static const std::array<VkDescriptorSetLayoutBinding, 1> standard_sampler_bindings{{
-      {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, static_cast<u32>(NUM_PIXEL_SHADER_SAMPLERS),
-       VK_SHADER_STAGE_FRAGMENT_BIT},
+      {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+       static_cast<u32>(VideoCommon::MAX_PIXEL_SHADER_SAMPLERS), VK_SHADER_STAGE_FRAGMENT_BIT},
   }};
 
-  static const std::array<VkDescriptorSetLayoutBinding, 1> standard_ssbo_bindings{{
+  // The dynamic veretex loader's vertex buffer must be last here, for similar reasons
+  static const std::array<VkDescriptorSetLayoutBinding, 2> standard_ssbo_bindings{{
       {0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
+      {1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT},
   }};
 
   static const std::array<VkDescriptorSetLayoutBinding, 1> utility_ubo_bindings{{
@@ -155,9 +157,11 @@ bool ObjectCache::CreateDescriptorSetLayouts()
       {5, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1, VK_SHADER_STAGE_COMPUTE_BIT},
   }};
 
+  std::array<VkDescriptorSetLayoutBinding, 3> ubo_bindings = standard_ubo_bindings;
+
   std::array<VkDescriptorSetLayoutCreateInfo, NUM_DESCRIPTOR_SET_LAYOUTS> create_infos{{
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
-       static_cast<u32>(standard_ubo_bindings.size()), standard_ubo_bindings.data()},
+       static_cast<u32>(ubo_bindings.size()), ubo_bindings.data()},
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
        static_cast<u32>(standard_sampler_bindings.size()), standard_sampler_bindings.data()},
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
@@ -171,8 +175,21 @@ bool ObjectCache::CreateDescriptorSetLayouts()
   }};
 
   // Don't set the GS bit if geometry shaders aren't available.
-  if (!g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+  if (g_ActiveConfig.UseVSForLinePointExpand())
+  {
+    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+      ubo_bindings[UBO_DESCRIPTOR_SET_BINDING_GS].stageFlags |= VK_SHADER_STAGE_VERTEX_BIT;
+    else
+      ubo_bindings[UBO_DESCRIPTOR_SET_BINDING_GS].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+  }
+  else if (!g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+  {
     create_infos[DESCRIPTOR_SET_LAYOUT_STANDARD_UNIFORM_BUFFERS].bindingCount--;
+  }
+
+  // Remove the dynamic vertex loader's buffer if it'll never be needed
+  if (!g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader)
+    create_infos[DESCRIPTOR_SET_LAYOUT_STANDARD_SHADER_STORAGE_BUFFERS].bindingCount--;
 
   for (size_t i = 0; i < create_infos.size(); i++)
   {
@@ -207,6 +224,11 @@ bool ObjectCache::CreatePipelineLayouts()
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_STANDARD_SAMPLERS],
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_STANDARD_SHADER_STORAGE_BUFFERS],
   };
+  const std::array<VkDescriptorSetLayout, 3> uber_sets{
+      m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_STANDARD_UNIFORM_BUFFERS],
+      m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_STANDARD_SAMPLERS],
+      m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_STANDARD_SHADER_STORAGE_BUFFERS],
+  };
   const std::array<VkDescriptorSetLayout, 2> utility_sets{
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_UTILITY_UNIFORM_BUFFER],
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_UTILITY_SAMPLERS],
@@ -221,6 +243,10 @@ bool ObjectCache::CreatePipelineLayouts()
       {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
        static_cast<u32>(standard_sets.size()), standard_sets.data(), 0, nullptr},
 
+      // Uber
+      {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
+       static_cast<u32>(uber_sets.size()), uber_sets.data(), 0, nullptr},
+
       // Utility
       {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
        static_cast<u32>(utility_sets.size()), utility_sets.data(), 0, nullptr},
@@ -230,9 +256,15 @@ bool ObjectCache::CreatePipelineLayouts()
        static_cast<u32>(compute_sets.size()), compute_sets.data(), 0, nullptr},
   }};
 
+  const bool ssbos_in_standard =
+      g_ActiveConfig.backend_info.bSupportsBBox || g_ActiveConfig.UseVSForLinePointExpand();
+
   // If bounding box is unsupported, don't bother with the SSBO descriptor set.
-  if (!g_ActiveConfig.backend_info.bSupportsBBox)
+  if (!ssbos_in_standard)
     pipeline_layout_info[PIPELINE_LAYOUT_STANDARD].setLayoutCount--;
+  // If neither SSBO-using feature is supported, skip in ubershaders too
+  if (!ssbos_in_standard && !g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader)
+    pipeline_layout_info[PIPELINE_LAYOUT_UBER].setLayoutCount--;
 
   for (size_t i = 0; i < pipeline_layout_info.size(); i++)
   {
@@ -316,28 +348,28 @@ VkSampler ObjectCache::GetSampler(const SamplerState& info)
        VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT}};
 
   VkSamplerCreateInfo create_info = {
-      VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,               // VkStructureType         sType
-      nullptr,                                             // const void*             pNext
-      0,                                                   // VkSamplerCreateFlags    flags
-      filters[static_cast<u32>(info.mag_filter.Value())],  // VkFilter                magFilter
-      filters[static_cast<u32>(info.min_filter.Value())],  // VkFilter                minFilter
-      mipmap_modes[static_cast<u32>(info.mipmap_filter.Value())],  // VkSamplerMipmapMode mipmapMode
-      address_modes[static_cast<u32>(info.wrap_u.Value())],  // VkSamplerAddressMode    addressModeU
-      address_modes[static_cast<u32>(info.wrap_v.Value())],  // VkSamplerAddressMode    addressModeV
-      VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,                 // VkSamplerAddressMode    addressModeW
-      info.lod_bias / 256.0f,                                // float                   mipLodBias
+      VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,              // VkStructureType         sType
+      nullptr,                                            // const void*             pNext
+      0,                                                  // VkSamplerCreateFlags    flags
+      filters[u32(info.tm0.mag_filter.Value())],          // VkFilter                magFilter
+      filters[u32(info.tm0.min_filter.Value())],          // VkFilter                minFilter
+      mipmap_modes[u32(info.tm0.mipmap_filter.Value())],  // VkSamplerMipmapMode mipmapMode
+      address_modes[u32(info.tm0.wrap_u.Value())],        // VkSamplerAddressMode    addressModeU
+      address_modes[u32(info.tm0.wrap_v.Value())],        // VkSamplerAddressMode    addressModeV
+      VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,              // VkSamplerAddressMode    addressModeW
+      info.tm0.lod_bias / 256.0f,                         // float                   mipLodBias
       VK_FALSE,                                 // VkBool32                anisotropyEnable
       0.0f,                                     // float                   maxAnisotropy
       VK_FALSE,                                 // VkBool32                compareEnable
       VK_COMPARE_OP_ALWAYS,                     // VkCompareOp             compareOp
-      info.min_lod / 16.0f,                     // float                   minLod
-      info.max_lod / 16.0f,                     // float                   maxLod
+      info.tm1.min_lod / 16.0f,                 // float                   minLod
+      info.tm1.max_lod / 16.0f,                 // float                   maxLod
       VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK,  // VkBorderColor           borderColor
       VK_FALSE                                  // VkBool32                unnormalizedCoordinates
   };
 
   // Can we use anisotropic filtering with this sampler?
-  if (info.anisotropic_filtering && g_vulkan_context->SupportsAnisotropicFiltering())
+  if (info.tm0.anisotropic_filtering && g_vulkan_context->SupportsAnisotropicFiltering())
   {
     // Cap anisotropy to device limits.
     create_info.anisotropyEnable = VK_TRUE;

@@ -165,22 +165,31 @@ void TConstTraverser::visitConstantUnion(TIntermConstantUnion* node)
                     }
                 }
             } else {
-                // matrix from vector
-                int count = 0;
-                const int startIndex = index;
+                // matrix from vector or scalar
                 int nodeComps = node->getType().computeNumComponents();
-                for (int i = startIndex; i < endIndex; i++) {
-                    if (i >= instanceSize)
-                        return;
-                    if (i == startIndex || (i - startIndex) % (matrixRows + 1) == 0 )
+                if (nodeComps == 1) {
+                    for (int c = 0; c < matrixCols; ++c) {
+                        for (int r = 0; r < matrixRows; ++r) {
+                            if (r == c)
+                                leftUnionArray[index] = rightUnionArray[0];
+                            else
+                                leftUnionArray[index].setDConst(0.0);
+                            index++;
+                        }
+                    }
+                } else {
+                    int count = 0;
+                    for (int i = index; i < endIndex; i++) {
+                        if (i >= instanceSize)
+                            return;
+
+                        // construct the matrix in column-major order, from
+                        // the components provided, in order
                         leftUnionArray[i] = rightUnionArray[count];
-                    else
-                        leftUnionArray[i].setDConst(0.0);
 
-                    index++;
-
-                    if (nodeComps > 1)
+                        index++;
                         count++;
+                    }
                 }
             }
         }

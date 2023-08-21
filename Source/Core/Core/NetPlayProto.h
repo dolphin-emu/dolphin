@@ -1,14 +1,24 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <array>
+#include <string>
 #include <vector>
-#include "Common/CommonTypes.h"
-#include "Core/HW/EXI/EXI_Device.h"
 
+#include "Common/CommonTypes.h"
+#include "Common/EnumMap.h"
+#include "Core/Config/SYSCONFSettings.h"
+#include "Core/HW/EXI/EXI.h"
+#include "Core/HW/EXI/EXI_Device.h"
+#include "Core/HW/Sram.h"
+#include "VideoCommon/VideoConfig.h"
+
+namespace DiscIO
+{
+enum class Region;
+}
 namespace IOS::HLE::FS
 {
 class FileSystem;
@@ -22,71 +32,85 @@ namespace NetPlay
 {
 struct NetSettings
 {
-  bool m_CPUthread;
-  PowerPC::CPUCore m_CPUcore;
-  bool m_EnableCheats;
-  int m_SelectedLanguage;
-  bool m_OverrideRegionSettings;
-  bool m_ProgressiveScan;
-  bool m_PAL60;
-  bool m_DSPHLE;
-  bool m_DSPEnableJIT;
-  bool m_WriteToMemcard;
-  bool m_CopyWiiSave;
-  bool m_OCEnable;
-  float m_OCFactor;
-  std::array<ExpansionInterface::TEXIDevices, 3> m_EXIDevice;
-  bool m_EFBAccessEnable;
-  bool m_BBoxEnable;
-  bool m_ForceProgressive;
-  bool m_EFBToTextureEnable;
-  bool m_XFBToTextureEnable;
-  bool m_DisableCopyToVRAM;
-  bool m_ImmediateXFBEnable;
-  bool m_EFBEmulateFormatChanges;
-  int m_SafeTextureCacheColorSamples;
-  bool m_PerfQueriesEnable;
-  bool m_FPRF;
-  bool m_AccurateNaNs;
-  bool m_SyncOnSkipIdle;
-  bool m_SyncGPU;
-  int m_SyncGpuMaxDistance;
-  int m_SyncGpuMinDistance;
-  float m_SyncGpuOverclock;
-  bool m_JITFollowBranch;
-  bool m_FastDiscSpeed;
-  bool m_MMU;
-  bool m_Fastmem;
-  bool m_SkipIPL;
-  bool m_LoadIPLDump;
-  bool m_VertexRounding;
-  int m_InternalResolution;
-  bool m_EFBScaledCopy;
-  bool m_FastDepthCalc;
-  bool m_EnablePixelLighting;
-  bool m_WidescreenHack;
-  bool m_ForceFiltering;
-  int m_MaxAnisotropy;
-  bool m_ForceTrueColor;
-  bool m_DisableCopyFilter;
-  bool m_DisableFog;
-  bool m_ArbitraryMipmapDetection;
-  float m_ArbitraryMipmapDetectionThreshold;
-  bool m_EnableGPUTextureDecoding;
-  bool m_DeferEFBCopies;
-  bool m_EFBAccessTileSize;
-  bool m_EFBAccessDeferInvalidation;
-  bool m_StrictSettingsSync;
-  bool m_SyncSaveData;
-  bool m_SyncCodes;
-  std::string m_SaveDataRegion;
-  bool m_SyncAllWiiSaves;
-  std::array<int, 4> m_WiimoteExtension;
-  bool m_GolfMode;
+  bool cpu_thread = false;
+  PowerPC::CPUCore cpu_core{};
+  bool enable_cheats = false;
+  int selected_language = 0;
+  bool override_region_settings = false;
+  bool dsp_hle = false;
+  bool dsp_enable_jit = false;
+  bool ram_override_enable = false;
+  u32 mem1_size = 0;
+  u32 mem2_size = 0;
+  DiscIO::Region fallback_region{};
+  bool allow_sd_writes = false;
+  bool oc_enable = false;
+  float oc_factor = 0;
+  Common::EnumMap<ExpansionInterface::EXIDeviceType, ExpansionInterface::MAX_SLOT> exi_device{};
+  int memcard_size_override = -1;
+
+  std::array<u32, Config::SYSCONF_SETTINGS.size()> sysconf_settings{};
+
+  bool efb_access_enable = false;
+  bool bbox_enable = false;
+  bool force_progressive = false;
+  bool efb_to_texture_enable = false;
+  bool xfb_to_texture_enable = false;
+  bool disable_copy_to_vram = false;
+  bool immediate_xfb_enable = false;
+  bool efb_emulate_format_changes = false;
+  int safe_texture_cache_color_samples = 0;
+  bool perf_queries_enable = false;
+  bool float_exceptions = false;
+  bool divide_by_zero_exceptions = false;
+  bool fprf = false;
+  bool accurate_nans = false;
+  bool disable_icache = false;
+  bool sync_on_skip_idle = false;
+  bool sync_gpu = false;
+  int sync_gpu_max_distance = 0;
+  int sync_gpu_min_distance = 0;
+  float sync_gpu_overclock = 0;
+  bool jit_follow_branch = false;
+  bool fast_disc_speed = false;
+  bool mmu = false;
+  bool fastmem = false;
+  bool skip_ipl = false;
+  bool load_ipl_dump = false;
+  bool vertex_rounding = false;
+  int internal_resolution = 0;
+  bool efb_scaled_copy = false;
+  bool fast_depth_calc = false;
+  bool enable_pixel_lighting = false;
+  bool widescreen_hack = false;
+  TextureFilteringMode force_texture_filtering = TextureFilteringMode::Default;
+  int max_anisotropy = 0;
+  bool force_true_color = false;
+  bool disable_copy_filter = false;
+  bool disable_fog = false;
+  bool arbitrary_mipmap_detection = false;
+  float arbitrary_mipmap_detection_threshold = 0;
+  bool enable_gpu_texture_decoding = false;
+  bool defer_efb_copies = false;
+  int efb_access_tile_size = 0;
+  bool efb_access_defer_invalidation = false;
+
+  bool savedata_load = false;
+  bool savedata_write = false;
+  bool savedata_sync_all_wii = false;
+
+  bool strict_settings_sync = false;
+  bool sync_codes = false;
+  std::string save_data_region;
+  bool golf_mode = false;
+  bool use_fma = false;
+  bool hide_remote_gbas = false;
+
+  Sram sram;
 
   // These aren't sent over the network directly
-  bool m_IsHosting;
-  bool m_HostInputAuthority;
+  bool is_hosting = false;
+  std::array<std::string, 4> gba_rom_paths{};
 };
 
 struct NetTraversalConfig
@@ -103,133 +127,143 @@ struct NetTraversalConfig
   u16 traversal_port = 0;
 };
 
-struct Rpt : public std::vector<u8>
+enum class MessageID : u8
 {
-  u16 channel;
+  ConnectionSuccessful = 0,
+
+  PlayerJoin = 0x10,
+  PlayerLeave = 0x11,
+
+  ChatMessage = 0x30,
+
+  ChunkedDataStart = 0x40,
+  ChunkedDataEnd = 0x41,
+  ChunkedDataPayload = 0x42,
+  ChunkedDataProgress = 0x43,
+  ChunkedDataComplete = 0x44,
+  ChunkedDataAbort = 0x45,
+
+  PadData = 0x60,
+  PadMapping = 0x61,
+  PadBuffer = 0x62,
+  PadHostData = 0x63,
+  GBAConfig = 0x64,
+
+  WiimoteData = 0x70,
+  WiimoteMapping = 0x71,
+
+  SLIPPI_PAD = 0x80,
+  SLIPPI_PAD_ACK = 0x81,
+  SLIPPI_MATCH_SELECTIONS = 0x82,
+  SLIPPI_CONN_SELECTED = 0x83,
+  SLIPPI_CHAT_MESSAGE = 0x84,
+  SLIPPI_COMPLETE_STEP = 0x85,
+  SLIPPI_SYNCED_STATE = 0x86,
+
+  GolfRequest = 0x90,
+  GolfSwitch = 0x91,
+  GolfAcquire = 0x92,
+  GolfRelease = 0x93,
+  GolfPrepare = 0x94,
+
+  StartGame = 0xA0,
+  ChangeGame = 0xA1,
+  StopGame = 0xA2,
+  DisableGame = 0xA3,
+  GameStatus = 0xA4,
+  ClientCapabilities = 0xA5,
+  HostInputAuthority = 0xA6,
+  PowerButton = 0xA7,
+
+  TimeBase = 0xB0,
+  DesyncDetected = 0xB1,
+
+  ComputeGameDigest = 0xC0,
+  GameDigestProgress = 0xC1,
+  GameDigestResult = 0xC2,
+  GameDigestAbort = 0xC3,
+  GameDigestError = 0xC4,
+
+  Ready = 0xD0,
+  NotReady = 0xD1,
+
+  Ping = 0xE0,
+  Pong = 0xE1,
+  PlayerPingData = 0xE2,
+
+  SyncSaveData = 0xF1,
+  SyncCodes = 0xF2,
 };
 
-// messages
-enum
+enum class ConnectionError : u8
 {
-  NP_MSG_PLAYER_JOIN = 0x10,
-  NP_MSG_PLAYER_LEAVE = 0x11,
-
-  NP_MSG_CHAT_MESSAGE = 0x30,
-
-  NP_MSG_CHUNKED_DATA_START = 0x40,
-  NP_MSG_CHUNKED_DATA_END = 0x41,
-  NP_MSG_CHUNKED_DATA_PAYLOAD = 0x42,
-  NP_MSG_CHUNKED_DATA_PROGRESS = 0x43,
-  NP_MSG_CHUNKED_DATA_COMPLETE = 0x44,
-  NP_MSG_CHUNKED_DATA_ABORT = 0x45,
-
-  NP_MSG_PAD_DATA = 0x60,
-  NP_MSG_PAD_MAPPING = 0x61,
-  NP_MSG_PAD_BUFFER = 0x62,
-  NP_MSG_PAD_HOST_DATA = 0x63,
-
-  NP_MSG_WIIMOTE_DATA = 0x70,
-  NP_MSG_WIIMOTE_MAPPING = 0x71,
-
-  NP_MSG_SLIPPI_PAD = 0x80,
-  NP_MSG_SLIPPI_PAD_ACK = 0x81,
-  NP_MSG_SLIPPI_MATCH_SELECTIONS = 0x82,
-  NP_MSG_SLIPPI_CONN_SELECTED = 0x83,
-
-  NP_MSG_GOLF_REQUEST = 0x90,
-  NP_MSG_GOLF_SWITCH = 0x91,
-  NP_MSG_GOLF_ACQUIRE = 0x92,
-  NP_MSG_GOLF_RELEASE = 0x93,
-  NP_MSG_GOLF_PREPARE = 0x94,
-
-  NP_MSG_START_GAME = 0xA0,
-  NP_MSG_CHANGE_GAME = 0xA1,
-  NP_MSG_STOP_GAME = 0xA2,
-  NP_MSG_DISABLE_GAME = 0xA3,
-  NP_MSG_GAME_STATUS = 0xA4,
-  NP_MSG_IPL_STATUS = 0xA5,
-  NP_MSG_HOST_INPUT_AUTHORITY = 0xA6,
-  NP_MSG_POWER_BUTTON = 0xA7,
-
-  NP_MSG_TIMEBASE = 0xB0,
-  NP_MSG_DESYNC_DETECTED = 0xB1,
-
-  NP_MSG_COMPUTE_MD5 = 0xC0,
-  NP_MSG_MD5_PROGRESS = 0xC1,
-  NP_MSG_MD5_RESULT = 0xC2,
-  NP_MSG_MD5_ABORT = 0xC3,
-  NP_MSG_MD5_ERROR = 0xC4,
-
-  NP_MSG_READY = 0xD0,
-  NP_MSG_NOT_READY = 0xD1,
-
-  NP_MSG_PING = 0xE0,
-  NP_MSG_PONG = 0xE1,
-  NP_MSG_PLAYER_PING_DATA = 0xE2,
-
-  NP_MSG_SYNC_GC_SRAM = 0xF0,
-  NP_MSG_SYNC_SAVE_DATA = 0xF1,
-  NP_MSG_SYNC_CODES = 0xF2,
+  NoError = 0,
+  ServerFull = 1,
+  GameRunning = 2,
+  VersionMismatch = 3,
+  NameTooLong = 4
 };
 
-enum
+enum class SyncSaveDataID : u8
 {
-  CON_ERR_SERVER_FULL = 1,
-  CON_ERR_GAME_RUNNING = 2,
-  CON_ERR_VERSION_MISMATCH = 3,
-  CON_ERR_NAME_TOO_LONG = 4
+  Notify = 0,
+  Success = 1,
+  Failure = 2,
+  RawData = 3,
+  GCIData = 4,
+  WiiData = 5,
+  GBAData = 6
 };
 
-enum
+enum class SyncCodeID : u8
 {
-  SYNC_SAVE_DATA_NOTIFY = 0,
-  SYNC_SAVE_DATA_SUCCESS = 1,
-  SYNC_SAVE_DATA_FAILURE = 2,
-  SYNC_SAVE_DATA_RAW = 3,
-  SYNC_SAVE_DATA_GCI = 4,
-  SYNC_SAVE_DATA_WII = 5
+  Notify = 0,
+  NotifyGecko = 1,
+  NotifyAR = 2,
+  GeckoData = 3,
+  ARData = 4,
+  Success = 5,
+  Failure = 6,
 };
 
-enum
-{
-  SYNC_CODES_NOTIFY = 0,
-  SYNC_CODES_NOTIFY_GECKO = 1,
-  SYNC_CODES_NOTIFY_AR = 2,
-  SYNC_CODES_DATA_GECKO = 3,
-  SYNC_CODES_DATA_AR = 4,
-  SYNC_CODES_SUCCESS = 5,
-  SYNC_CODES_FAILURE = 6,
-};
-
-constexpr u32 NETPLAY_LZO_IN_LEN = 1024 * 64;
-constexpr u32 NETPLAY_LZO_OUT_LEN = NETPLAY_LZO_IN_LEN + (NETPLAY_LZO_IN_LEN / 16) + 64 + 3;
 constexpr u32 MAX_NAME_LENGTH = 30;
 constexpr size_t CHUNKED_DATA_UNIT_SIZE = 16384;
-constexpr u8 CHANNEL_COUNT = 2;
-constexpr u8 DEFAULT_CHANNEL = 0;
-constexpr u8 CHUNKED_DATA_CHANNEL = 1;
 
-struct WiimoteInput
+enum : u8
 {
-  u8 report_id;
-  std::vector<u8> data;
+  DEFAULT_CHANNEL,
+  CHUNKED_DATA_CHANNEL,
+  CHANNEL_COUNT
 };
-using MessageId = u8;
+
 using PlayerId = u8;
 using FrameNum = u32;
 using PadIndex = s8;
 using PadMappingArray = std::array<PlayerId, 4>;
+struct GBAConfig
+{
+  bool enabled = false;
+  bool has_rom = false;
+  std::string title;
+  std::array<u8, 20> hash{};
+};
+using GBAConfigArray = std::array<GBAConfig, 4>;
 
+struct PadDetails
+{
+  std::string player_name{};
+  bool is_local = false;
+  int local_pad = 0;
+  bool hide_gba = false;
+};
+
+std::string GetPlayerMappingString(PlayerId pid, const PadMappingArray& pad_map,
+                                   const GBAConfigArray& gba_config,
+                                   const PadMappingArray& wiimote_map);
 bool IsNetPlayRunning();
-// Precondition: A netplay client instance must be present. In other words,
-//               IsNetPlayRunning() must be true before calling this.
-const NetSettings& GetNetSettings();
-IOS::HLE::FS::FileSystem* GetWiiSyncFS();
-const std::vector<u64>& GetWiiSyncTitles();
-void SetWiiSyncData(std::unique_ptr<IOS::HLE::FS::FileSystem> fs, const std::vector<u64>& titles);
-void ClearWiiSyncData();
 void SetSIPollBatching(bool state);
 void SendPowerButtonEvent();
-bool IsSyncingAllWiiSaves();
-void SetupWiimotes();
+std::string GetGBASavePath(int pad_num);
+PadDetails GetPadDetails(int pad_num);
+int NumLocalWiimotes();
 }  // namespace NetPlay

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ExternalsDir)zlib-ng;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)zlib-ng\zlib-ng.vcxproj">
+      <Project>{F6EA7144-8D64-4EBB-A13E-76DFBD911EAE}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

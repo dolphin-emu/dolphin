@@ -1,0 +1,25 @@
+{
+ "Details": [
+  {
+   "InjectionAddress": "800DB880",
+   "Name": "Disable Wobbling",
+   "Codetype": "Auto",
+   "Annotation": "External/PreventWobbling/Init Wobble Count Air.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "800DBBD4",
+   "Name": "Disable Wobbling",
+   "Codetype": "Auto",
+   "Annotation": "External/PreventWobbling/Init Wobble Count Ground.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
+   "InjectionAddress": "8008F090",
+   "Name": "Disable Wobbling",
+   "Codetype": "Auto",
+   "Annotation": "External/PreventWobbling/Wobble Check.asm",
+   "Tags": "[affects-gameplay]"
+  }
+ ]
+}

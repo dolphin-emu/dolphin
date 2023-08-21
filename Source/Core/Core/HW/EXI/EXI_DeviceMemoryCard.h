@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -15,6 +14,10 @@
 class MemoryCardBase;
 class PointerWrap;
 
+namespace Core
+{
+class System;
+}
 namespace Memcard
 {
 struct HeaderData;
@@ -22,6 +25,8 @@ struct HeaderData;
 
 namespace ExpansionInterface
 {
+enum class Slot : int;
+
 enum class AllowMovieFolder
 {
   Yes,
@@ -31,14 +36,14 @@ enum class AllowMovieFolder
 class CEXIMemoryCard : public IEXIDevice
 {
 public:
-  CEXIMemoryCard(int index, bool gci_folder, const Memcard::HeaderData& header_data);
+  CEXIMemoryCard(Core::System& system, Slot slot, bool gci_folder,
+                 const Memcard::HeaderData& header_data);
   ~CEXIMemoryCard() override;
   void SetCS(int cs) override;
   bool IsInterruptSet() override;
   bool UseDelayedTransferCompletion() const override;
   bool IsPresent() const override;
   void DoState(PointerWrap& p) override;
-  IEXIDevice* FindDevice(TEXIDevices device_type, int custom_index) override;
   void DMARead(u32 addr, u32 size) override;
   void DMAWrite(u32 addr, u32 size) override;
 
@@ -49,19 +54,19 @@ public:
   static void Shutdown();
 
   static std::pair<std::string /* path */, bool /* migrate */>
-  GetGCIFolderPath(int card_index, AllowMovieFolder allow_movie_folder);
+  GetGCIFolderPath(Slot card_slot, AllowMovieFolder allow_movie_folder);
 
 private:
   void SetupGciFolder(const Memcard::HeaderData& header_data);
   void SetupRawMemcard(u16 size_mb);
-  static void EventCompleteFindInstance(u64 userdata,
+  static void EventCompleteFindInstance(Core::System& system, u64 userdata,
                                         std::function<void(CEXIMemoryCard*)> callback);
 
   // Scheduled when a command that required delayed end signaling is done.
-  static void CmdDoneCallback(u64 userdata, s64 cyclesLate);
+  static void CmdDoneCallback(Core::System& system, u64 userdata, s64 cyclesLate);
 
   // Scheduled when memory card is done transferring data
-  static void TransferCompleteCallback(u64 userdata, s64 cyclesLate);
+  static void TransferCompleteCallback(Core::System& system, u64 userdata, s64 cyclesLate);
 
   // Signals that the command that was previously executed is now done.
   void CmdDone();
@@ -91,7 +96,7 @@ private:
     ChipErase = 0xF4,
   };
 
-  int m_card_index;
+  Slot m_card_slot;
   //! memory card state
 
   // STATE_TO_SAVE

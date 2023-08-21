@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -9,7 +8,7 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
+#include "Common/IOFile.h"
 #include "DiscIO/Blob.h"
 
 namespace DiscIO
@@ -39,14 +38,13 @@ public:
   BlobType GetBlobType() const override { return BlobType::CISO; }
 
   u64 GetRawSize() const override;
-  // The CISO format does not save the original file size.
-  // This function returns an upper bound.
   u64 GetDataSize() const override;
-  bool IsDataSizeAccurate() const override { return false; }
+  DataSizeType GetDataSizeType() const override { return DataSizeType::UpperBound; }
 
   u64 GetBlockSize() const override { return m_block_size; }
   bool HasFastRandomAccessInBlock() const override { return true; }
   std::string GetCompressionMethod() const override { return {}; }
+  std::optional<int> GetCompressionLevel() const override { return std::nullopt; }
 
   bool Read(u64 offset, u64 nbytes, u8* out_ptr) override;
 

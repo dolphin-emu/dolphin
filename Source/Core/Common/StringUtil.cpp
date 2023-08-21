@@ -1,10 +1,10 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/StringUtil.h"
 
 #include <algorithm>
+#include <array>
 #include <codecvt>
 #include <cstdarg>
 #include <cstddef>
@@ -36,12 +36,16 @@
 constexpr u32 CODEPAGE_SHIFT_JIS = 932;
 constexpr u32 CODEPAGE_WINDOWS_1252 = 1252;
 #else
+#if defined(__NetBSD__)
+#define LIBICONV_PLUG
+#endif
 #include <errno.h>
 #include <iconv.h>
 #include <locale.h>
 #endif
 
-#if !defined(_WIN32) && !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__)
+#if !defined(_WIN32) && !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__) &&       \
+    !defined(__NetBSD__)
 static locale_t GetCLocale()
 {
   static locale_t c_locale = newlocale(LC_ALL_MASK, "C", nullptr);
@@ -74,31 +78,12 @@ std::string HexDump(const u8* data, size_t size)
       if (row_start + i < size)
       {
         char c = static_cast<char>(data[row_start + i]);
-        out += IsPrintableCharacter(c) ? c : '.';
+        out += Common::IsPrintableCharacter(c) ? c : '.';
       }
     }
     out += "\n";
   }
   return out;
-}
-
-// faster than sscanf
-bool AsciiToHex(const std::string& _szValue, u32& result)
-{
-  // Set errno to a good state.
-  errno = 0;
-
-  char* endptr = nullptr;
-  const u32 value = strtoul(_szValue.c_str(), &endptr, 16);
-
-  if (!endptr || *endptr)
-    return false;
-
-  if (errno == ERANGE)
-    return false;
-
-  result = value;
-  return true;
 }
 
 bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list args)
@@ -134,11 +119,11 @@ bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list ar
     c_locale = _create_locale(LC_ALL, "C");
   writtenCount = _vsnprintf_l(out, outsize, format, c_locale, args);
 #else
-#if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__)
+#if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__) && !defined(__NetBSD__)
   locale_t previousLocale = uselocale(GetCLocale());
 #endif
   writtenCount = vsnprintf(out, outsize, format, args);
-#if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__)
+#if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__) && !defined(__NetBSD__)
   uselocale(previousLocale);
 #endif
 #endif
@@ -175,7 +160,7 @@ std::string StringFromFormatV(const char* format, va_list args)
   std::string temp = buf;
   delete[] buf;
 #else
-#if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__)
+#if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__) && !defined(__NetBSD__)
   locale_t previousLocale = uselocale(GetCLocale());
 #endif
   if (vasprintf(&buf, format, args) < 0)
@@ -184,7 +169,7 @@ std::string StringFromFormatV(const char* format, va_list args)
     buf = nullptr;
   }
 
-#if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__)
+#if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__) && !defined(__NetBSD__)
   uselocale(previousLocale);
 #endif
 
@@ -216,26 +201,51 @@ std::string ArrayToString(const u8* data, u32 size, int line_len, bool spaces)
   return oss.str();
 }
 
-// Turns "  hello " into "hello". Also handles tabs.
-std::string_view StripSpaces(std::string_view str)
+template <typename T>
+static std::string_view StripEnclosingChars(std::string_view str, T chars)
 {
-  const size_t s = str.find_first_not_of(" \t\r\n");
+  const size_t s = str.find_first_not_of(chars);
 
   if (str.npos != s)
-    return str.substr(s, str.find_last_not_of(" \t\r\n") - s + 1);
+    return str.substr(s, str.find_last_not_of(chars) - s + 1);
   else
     return "";
 }
 
+// Turns "\n\r\t hello " into "hello" (trims at the start and end but not inside).
+std::string_view StripWhitespace(std::string_view str)
+{
+  return StripEnclosingChars(str, " \t\r\n");
+}
+
+std::string_view StripSpaces(std::string_view str)
+{
+  return StripEnclosingChars(str, ' ');
+}
+
 // "\"hello\"" is turned to "hello"
 // This one assumes that the string has already been space stripped in both
-// ends, as done by StripSpaces above, for example.
+// ends, as done by StripWhitespace above, for example.
 std::string_view StripQuotes(std::string_view s)
 {
   if (!s.empty() && '\"' == s[0] && '\"' == *s.rbegin())
     return s.substr(1, s.size() - 2);
   else
     return s;
+}
+
+// Turns "\n\rhello" into "  hello".
+void ReplaceBreaksWithSpaces(std::string& str)
+{
+  std::replace(str.begin(), str.end(), '\r', ' ');
+  std::replace(str.begin(), str.end(), '\n', ' ');
+}
+
+void TruncateToCString(std::string* s)
+{
+  const size_t terminator = s->find_first_of('\0');
+  if (terminator != s->npos)
+    s->resize(terminator);
 }
 
 bool TryParse(const std::string& str, bool* const output)
@@ -269,12 +279,12 @@ std::string ValueToString(u64 value)
 
 std::string ValueToString(float value)
 {
-  return fmt::format("{:#.9g}", value);
+  return fmt::format("{:#}", value);
 }
 
 std::string ValueToString(double value)
 {
-  return fmt::format("{:#.17g}", value);
+  return fmt::format("{:#}", value);
 }
 
 std::string ValueToString(int value)
@@ -325,24 +335,28 @@ bool SplitPath(std::string_view full_path, std::string* path, std::string* filen
   return true;
 }
 
+void UnifyPathSeparators(std::string& path)
+{
+#ifdef _WIN32
+  for (char& c : path)
+  {
+    if (c == '\\')
+      c = '/';
+  }
+#endif
+}
+
+std::string WithUnifiedPathSeparators(std::string path)
+{
+  UnifyPathSeparators(path);
+  return path;
+}
+
 std::string PathToFileName(std::string_view path)
 {
   std::string file_name, extension;
   SplitPath(path, nullptr, &file_name, &extension);
   return file_name + extension;
-}
-
-void BuildCompleteFilename(std::string& complete_filename, std::string_view path,
-                           std::string_view filename)
-{
-  complete_filename = path;
-
-  // check for seperator
-  if (DIR_SEP_CHR != *complete_filename.rbegin())
-    complete_filename += DIR_SEP_CHR;
-
-  // add the filename
-  complete_filename += filename;
 }
 
 std::vector<std::string> SplitString(const std::string& str, const char delim)
@@ -399,16 +413,6 @@ std::string ReplaceAll(std::string result, std::string_view src, std::string_vie
   return result;
 }
 
-bool StringBeginsWith(std::string_view str, std::string_view begin)
-{
-  return str.size() >= begin.size() && std::equal(begin.begin(), begin.end(), str.begin());
-}
-
-bool StringEndsWith(std::string_view str, std::string_view end)
-{
-  return str.size() >= end.size() && std::equal(end.rbegin(), end.rend(), str.rbegin());
-}
-
 void StringPopBackIf(std::string* s, char c)
 {
   if (!s->empty() && s->back() == c)
@@ -418,17 +422,20 @@ void StringPopBackIf(std::string* s, char c)
 // SLIPPITODO: look into boost locale maybe
 void ConvertNarrowSpecialSHIFTJIS(std::string& input)
 {
-  // Melee doesn't correctly display special characters in narrow form We need to convert them to wide form.
-  // I couldn't find a library to do this so for now let's just do it manually
+  // Melee doesn't correctly display special characters in narrow form We need to convert them to
+  // wide form. I couldn't find a library to do this so for now let's just do it manually
   static std::unordered_map<char, char16_t> specialCharConvert = {
-      {'!', (char16_t)0x8149}, {'"', (char16_t)0x8168}, {'#', (char16_t)0x8194},  {'$', (char16_t)0x8190},
-      {'%', (char16_t)0x8193}, {'&', (char16_t)0x8195}, {'\'', (char16_t)0x8166}, {'(', (char16_t)0x8169},
-      {')', (char16_t)0x816a}, {'*', (char16_t)0x8196}, {'+', (char16_t)0x817b},  {',', (char16_t)0x8143},
-      {'-', (char16_t)0x817c}, {'.', (char16_t)0x8144}, {'/', (char16_t)0x815e},  {':', (char16_t)0x8146},
-      {';', (char16_t)0x8147}, {'<', (char16_t)0x8183}, {'=', (char16_t)0x8181},  {'>', (char16_t)0x8184},
-      {'?', (char16_t)0x8148}, {'@', (char16_t)0x8197}, {'[', (char16_t)0x816d},  {'\\', (char16_t)0x815f},
-      {']', (char16_t)0x816e}, {'^', (char16_t)0x814f}, {'_', (char16_t)0x8151},  {'`', (char16_t)0x814d},
-      {'{', (char16_t)0x816f}, {'|', (char16_t)0x8162}, {'}', (char16_t)0x8170},  {'~', (char16_t)0x8160},
+      {'!', (char16_t)0x8149},  {'"', (char16_t)0x8168}, {'#', (char16_t)0x8194},
+      {'$', (char16_t)0x8190},  {'%', (char16_t)0x8193}, {'&', (char16_t)0x8195},
+      {'\'', (char16_t)0x8166}, {'(', (char16_t)0x8169}, {')', (char16_t)0x816a},
+      {'*', (char16_t)0x8196},  {'+', (char16_t)0x817b}, {',', (char16_t)0x8143},
+      {'-', (char16_t)0x817c},  {'.', (char16_t)0x8144}, {'/', (char16_t)0x815e},
+      {':', (char16_t)0x8146},  {';', (char16_t)0x8147}, {'<', (char16_t)0x8183},
+      {'=', (char16_t)0x8181},  {'>', (char16_t)0x8184}, {'?', (char16_t)0x8148},
+      {'@', (char16_t)0x8197},  {'[', (char16_t)0x816d}, {'\\', (char16_t)0x815f},
+      {']', (char16_t)0x816e},  {'^', (char16_t)0x814f}, {'_', (char16_t)0x8151},
+      {'`', (char16_t)0x814d},  {'{', (char16_t)0x816f}, {'|', (char16_t)0x8162},
+      {'}', (char16_t)0x8170},  {'~', (char16_t)0x8160},
   };
 
   int pos = 0;
@@ -453,13 +460,13 @@ void ConvertNarrowSpecialSHIFTJIS(std::string& input)
     input.erase(pos, 1);
 
     // Add new chars to pos to replace
-    auto newChars = (char*)& specialCharConvert[c];
+    auto newChars = (char*)&specialCharConvert[c];
     input.insert(input.begin() + pos, 1, newChars[0]);
     input.insert(input.begin() + pos, 1, newChars[1]);
   }
 }
 
-std::string ConvertStringForGame(const std::string& input, int length)
+std::string TruncateLengthChar(const std::string& input, int length)
 {
   auto utf32 = UTF8ToUTF32(input);
 
@@ -469,7 +476,12 @@ std::string ConvertStringForGame(const std::string& input, int length)
     utf32.resize(length);
   }
 
-  auto utf8 = UTF32toUTF8(utf32);
+  return UTF32toUTF8(utf32);
+}
+
+std::string ConvertStringForGame(const std::string& input, int length)
+{
+  auto utf8 = TruncateLengthChar(input, length);
   auto shiftJis = UTF8ToSHIFTJIS(utf8);
   ConvertNarrowSpecialSHIFTJIS(shiftJis);
 
@@ -478,7 +490,7 @@ std::string ConvertStringForGame(const std::string& input, int length)
   return shiftJis;
 }
 
-size_t StringUTF8CodePointCount(const std::string& str)
+size_t StringUTF8CodePointCount(std::string_view str)
 {
   return str.size() -
          std::count_if(str.begin(), str.end(), [](char c) -> bool { return (c & 0xC0) == 0x80; });
@@ -580,11 +592,25 @@ std::string UTF16BEToUTF8(const char16_t* str, size_t max_size)
 #else
 
 template <typename T>
+#ifdef __APPLE__
+std::string CodeToWithFallbacks(const char* tocode, const char* fromcode,
+                                const std::basic_string_view<T> input, iconv_fallbacks* fallbacks)
+#else
 std::string CodeTo(const char* tocode, const char* fromcode, std::basic_string_view<T> input)
+#endif
 {
   std::string result;
 
   iconv_t const conv_desc = iconv_open(tocode, fromcode);
+
+  // Only on OS X can we call iconvctl, it isn't found on Linux
+#ifdef __APPLE__
+  if (fallbacks)
+  {
+    iconvctl(conv_desc, ICONV_SET_FALLBACKS, fallbacks);
+  }
+#endif
+
   if ((iconv_t)-1 == conv_desc)
   {
     ERROR_LOG_FMT(COMMON, "Iconv initialization failure [{}]: {}", fromcode, strerror(errno));
@@ -605,8 +631,13 @@ std::string CodeTo(const char* tocode, const char* fromcode, std::basic_string_v
     while (src_bytes != 0)
     {
       size_t const iconv_result =
-          iconv(conv_desc, (char**)(&src_buffer), &src_bytes, &dst_buffer, &dst_bytes);
-
+#if defined(__NetBSD__)
+          iconv(conv_desc, reinterpret_cast<const char**>(&src_buffer), &src_bytes, &dst_buffer,
+                &dst_bytes);
+#else
+          iconv(conv_desc, const_cast<char**>(reinterpret_cast<const char**>(&src_buffer)),
+                &src_bytes, &dst_buffer, &dst_bytes);
+#endif
       if ((size_t)-1 == iconv_result)
       {
         if (EILSEQ == errno || EINVAL == errno)
@@ -635,6 +666,14 @@ std::string CodeTo(const char* tocode, const char* fromcode, std::basic_string_v
   return result;
 }
 
+#ifdef __APPLE__
+template <typename T>
+std::string CodeTo(const char* tocode, const char* fromcode, std::basic_string_view<T> input)
+{
+    return CodeToWithFallbacks(tocode, fromcode, input, nullptr);
+}
+#endif
+
 template <typename T>
 std::string CodeToUTF8(const char* fromcode, std::basic_string_view<T> input)
 {
@@ -654,9 +693,74 @@ std::string SHIFTJISToUTF8(std::string_view input)
   return CodeToUTF8("SJIS", input);
 }
 
+#ifdef __APPLE__
+void uc_to_mb_fb(unsigned int code,
+                 void (*write_replacement)(const char* buf, size_t buflen, void* callback_arg),
+                 void* callback_arg, void* data)
+{
+  static std::unordered_map<unsigned int, const char*> specialCharConvert = {
+      {'!', (const char*)"\x81\x49"},
+      {'"', (const char*)"\x81\x68"},
+      {'#', (const char*)"\x81\x94"},
+      {'$', (const char*)"\x81\x90"},
+      {'%', (const char*)"\x81\x93"},
+      {'&', (const char*)"\x81\x95"},
+      {'\'', (const char*)"\x81\x66"},
+      {'(', (const char*)"\x81\x69"},
+      {')', (const char*)"\x81\x6a"},
+      {'*', (const char*)"\x81\x96"},
+      {'+', (const char*)"\x81\x7b"},
+      {',', (const char*)"\x81\x43"},
+      {'-', (const char*)"\x81\x7c"},
+      {'.', (const char*)"\x81\x44"},
+      {'/', (const char*)"\x81\x5e"},
+      {':', (const char*)"\x81\x46"},
+      {';', (const char*)"\x81\x47"},
+      {'<', (const char*)"\x81\x83"},
+      {'=', (const char*)"\x81\x81"},
+      {'>', (const char*)"\x81\x84"},
+      {'?', (const char*)"\x81\x48"},
+      {'@', (const char*)"\x81\x97"},
+      {'[', (const char*)"\x81\x6d"},
+      {'\\', (const char*)"\x81\x5f"},
+      {']', (const char*)"\x81\x6e"},
+      {'^', (const char*)"\x81\x4f"},
+      {'_', (const char*)"\x81\x51"},
+      {'`', (const char*)"\x81\x4d"},
+      {'{', (const char*)"\x81\x6f"},
+      {'|', (const char*)"\x81\x62"},
+      {'}', (const char*)"\x81\x70"},
+      {'~', (const char*)"\x81\x60"},
+      {U'¥', "\x81\x8f"},
+      {U'•', "\x81\x45"},
+      {U'—', "\x81\x7C"}};
+
+  bool hasConversion = specialCharConvert.count(code);
+  if (!hasConversion)
+    return;
+
+  auto newChar = specialCharConvert[code];
+  // Add new chars to pos to replace
+  write_replacement(newChar, 2, callback_arg);
+}
+#endif
+
 std::string UTF8ToSHIFTJIS(std::string_view input)
 {
-  return CodeTo("SJIS", "UTF-8", input);
+#ifdef __APPLE__
+  // Set SHIFTJIS callbacks only if converting to shift jis
+  auto fallbacks = new iconv_fallbacks();
+  fallbacks->uc_to_mb_fallback = uc_to_mb_fb;
+  fallbacks->mb_to_uc_fallback = nullptr;
+  fallbacks->mb_to_wc_fallback = nullptr;
+  fallbacks->wc_to_mb_fallback = nullptr;
+  fallbacks->data = nullptr;
+  auto str = CodeToWithFallbacks("SJIS", "UTF-8", std::string_view(input), fallbacks);
+  free(fallbacks);
+#else
+  auto str = CodeTo("SJIS", "UTF-8", std::string_view(input));
+#endif
+  return str;
 }
 
 std::string WStringToUTF8(std::wstring_view input)
@@ -702,7 +806,6 @@ std::u16string UTF8ToUTF16(std::string_view input)
   return converter.from_bytes(input.data(), input.data() + input.size());
 }
 
-#ifdef HAS_STD_FILESYSTEM
 // This is a replacement for path::u8path, which is deprecated starting with C++20.
 std::filesystem::path StringToPath(std::string_view path)
 {
@@ -723,8 +826,9 @@ std::string PathToString(const std::filesystem::path& path)
   return path.native();
 #endif
 }
-#endif
 
+namespace Common
+{
 #ifdef _WIN32
 std::vector<std::string> CommandLineToUtf8Argv(const wchar_t* command_line)
 {
@@ -743,3 +847,41 @@ std::vector<std::string> CommandLineToUtf8Argv(const wchar_t* command_line)
   return argv;
 }
 #endif
+
+std::string GetEscapedHtml(std::string html)
+{
+  static constexpr std::array<std::array<const char*, 2>, 5> replacements{{
+      // Escape ampersand first to avoid escaping the ampersands in other replacements
+      {{"&", "&amp;"}},
+      {{"<", "&lt;"}},
+      {{">", "&gt;"}},
+      {{"\"", "&quot;"}},
+      {{"'", "&apos;"}},
+  }};
+
+  for (const auto& [unescaped, escaped] : replacements)
+  {
+    html = ReplaceAll(html, unescaped, escaped);
+  }
+  return html;
+}
+
+void ToLower(std::string* str)
+{
+  std::transform(str->begin(), str->end(), str->begin(), [](char c) { return Common::ToLower(c); });
+}
+
+void ToUpper(std::string* str)
+{
+  std::transform(str->begin(), str->end(), str->begin(), [](char c) { return Common::ToUpper(c); });
+}
+
+bool CaseInsensitiveEquals(std::string_view a, std::string_view b)
+{
+  if (a.size() != b.size())
+    return false;
+  return std::equal(a.begin(), a.end(), b.begin(),
+                    [](char ca, char cb) { return Common::ToLower(ca) == Common::ToLower(cb); });
+}
+}  // namespace Common
+

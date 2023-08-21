@@ -1,10 +1,13 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <thread>
+
+#ifndef _WIN32
+#include <tuple>
+#endif
 
 // Don't include Common.h here as it will break LogManager
 #include "Common/CommonTypes.h"
@@ -35,5 +38,10 @@ inline void YieldCPU()
 }
 
 void SetCurrentThreadName(const char* name);
+
+#ifndef _WIN32
+// Returns the lowest address of the stack and the size of the stack
+std::tuple<void*, size_t> GetCurrentThreadStack();
+#endif
 
 }  // namespace Common

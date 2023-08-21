@@ -9,9 +9,9 @@
 class SlippiGameFileLoader
 {
 public:
-  u32 LoadFile(std::string fileName, std::string& contents);
+  u32 LoadFile(std::string file_name, std::string& contents);
 
 protected:
-  std::unordered_map<std::string, std::string> fileCache;
+  std::unordered_map<std::string, std::string> file_cache;
   open_vcdiff::VCDiffDecoder decoder;
 };

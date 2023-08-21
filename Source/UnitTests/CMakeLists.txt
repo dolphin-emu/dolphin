@@ -4,6 +4,8 @@ add_custom_command(TARGET unittests POST_BUILD COMMAND ${CMAKE_CTEST_COMMAND})
 
 string(APPEND CMAKE_RUNTIME_OUTPUT_DIRECTORY "/Tests")
 
+add_library(unittests_main OBJECT UnitTestsMain.cpp)
+target_link_libraries(unittests_main PUBLIC fmt::fmt gtest)
 # Since this is a Core dependency, it can't be linked as a normal library.
 # Otherwise CMake inserts the library after core, but before other core
 # dependencies like videocommon which also use Host_ functions, which makes the
@@ -16,7 +18,7 @@ macro(add_dolphin_test target)
     $<TARGET_OBJECTS:unittests_stubhost>
   )
   set_target_properties(${target} PROPERTIES FOLDER Tests)
-  target_link_libraries(${target} PRIVATE core uicommon gtest_main)
+  target_link_libraries(${target} PRIVATE core uicommon unittests_main)
   add_dependencies(unittests ${target})
   add_test(NAME ${target} COMMAND ${target})
 endmacro()

@@ -1,17 +1,18 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/WiimoteEmu/Extension/Guitar.h"
 
 #include <array>
-#include <cassert>
 #include <cstring>
 #include <map>
 
+#include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
+
+#include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 #include "InputCommon/ControllerEmu/Control/Input.h"
@@ -94,22 +95,25 @@ Guitar::Guitar() : Extension1stParty(_trans("Guitar"))
   groups.emplace_back(m_slider_bar = new ControllerEmu::Slider(_trans("Slider Bar")));
 }
 
-void Guitar::Update()
+void Guitar::BuildDesiredExtensionState(DesiredExtensionState* target_state)
 {
   DataFormat guitar_data = {};
 
   // stick
   {
-    const ControllerEmu::AnalogStick::StateData stick_state = m_stick->GetState();
+    const ControllerEmu::AnalogStick::StateData stick_state =
+        m_stick->GetState(m_input_override_function);
 
-    guitar_data.sx = static_cast<u8>((stick_state.x * STICK_RADIUS) + STICK_CENTER);
-    guitar_data.sy = static_cast<u8>((stick_state.y * STICK_RADIUS) + STICK_CENTER);
+    guitar_data.sx = MapFloat<u8>(stick_state.x, STICK_CENTER, 0, STICK_RANGE);
+    guitar_data.sy = MapFloat<u8>(stick_state.y, STICK_CENTER, 0, STICK_RANGE);
   }
 
   // slider bar
-  if (m_slider_bar->controls[0]->control_ref->BoundCount())
+  if (m_slider_bar->controls[0]->control_ref->BoundCount() &&
+      m_slider_bar->controls[1]->control_ref->BoundCount())
   {
-    const ControllerEmu::Slider::StateData slider_data = m_slider_bar->GetState();
+    const ControllerEmu::Slider::StateData slider_data =
+        m_slider_bar->GetState(m_input_override_function);
 
     guitar_data.sb = s_slider_bar_control_codes.lower_bound(slider_data.value)->second;
   }
@@ -120,22 +124,28 @@ void Guitar::Update()
   }
 
   // whammy bar
-  const ControllerEmu::Triggers::StateData whammy_state = m_whammy->GetState();
-  guitar_data.whammy = static_cast<u8>(whammy_state.data[0] * 0x1F);
+  const ControllerEmu::Triggers::StateData whammy_state =
+      m_whammy->GetState(m_input_override_function);
+  guitar_data.whammy = MapFloat<u8>(whammy_state.data[0], 0, 0, 0x1F);
 
   // buttons
-  m_buttons->GetState(&guitar_data.bt, guitar_button_bitmasks.data());
+  m_buttons->GetState(&guitar_data.bt, guitar_button_bitmasks.data(), m_input_override_function);
 
   // frets
-  m_frets->GetState(&guitar_data.bt, guitar_fret_bitmasks.data());
+  m_frets->GetState(&guitar_data.bt, guitar_fret_bitmasks.data(), m_input_override_function);
 
   // strum
-  m_strum->GetState(&guitar_data.bt, guitar_strum_bitmasks.data());
+  m_strum->GetState(&guitar_data.bt, guitar_strum_bitmasks.data(), m_input_override_function);
 
   // flip button bits
   guitar_data.bt ^= 0xFFFF;
 
-  Common::BitCastPtr<DataFormat>(&m_reg.controller_data) = guitar_data;
+  target_state->data = guitar_data;
+}
+
+void Guitar::Update(const DesiredExtensionState& target_state)
+{
+  DefaultExtensionUpdate<DataFormat>(&m_reg, target_state);
 }
 
 void Guitar::Reset()
@@ -164,7 +174,7 @@ ControllerEmu::ControlGroup* Guitar::GetGroup(GuitarGroup group)
   case GuitarGroup::SliderBar:
     return m_slider_bar;
   default:
-    assert(false);
+    ASSERT(false);
     return nullptr;
   }
 }

@@ -53,7 +53,7 @@ void main()
   float offsetAdd;
 
   // layer0 = left eye, layer1 = right eye
-  if (layer == 1)
+  if (src_layer == 1)
   {
     offsetAdd = stereoOffset;
   }
@@ -63,7 +63,7 @@ void main()
   }
 
   // convert coordinates to NDC space
-  float2 fragPos = (GetCoordinates() - 0.5f - vec2(offsetAdd, 0.0f)) * 2.0f;
+  float2 fragPos = (GetCoordinates() - 0.5f - float2(offsetAdd, 0.0f)) * 2.0f;
 
   // Calculate the source location "radius" (distance from the centre of the viewport)
   float destR = length(fragPos);
@@ -72,16 +72,16 @@ void main()
   float srcR = destR * sizeAdjust + ( ka * pow(destR, 2.0) + kb * pow(destR, 4.0));
 
   // Calculate the source vector (radial)
-  vec2 correctedRadial = normalize(fragPos) * srcR;
+  float2 correctedRadial = normalize(fragPos) * srcR;
 
   // fix aspect ratio
-  vec2 widenedRadial = correctedRadial * vec2(aspectAdjustment, 1.0f);
+  float2 widenedRadial = correctedRadial * float2(aspectAdjustment, 1.0f);
 
   // Transform the coordinates (from [-1,1]^2 to [0, 1]^2)
-  vec2 uv = (widenedRadial/2.0f) + vec2(0.5f) + vec2(offsetAdd, 0.0f);
+  float2 uv = (widenedRadial/2.0f) + float2(0.5f, 0.5f) + float2(offsetAdd, 0.0f);
 
   // Sample the texture at the source location
-  if(clamp(uv, 0.0, 1.0) != uv)
+  if(any(clamp(uv, 0.0, 1.0) != uv))
   {
     // black if beyond bounds
     SetOutput(float4(0.0, 0.0, 0.0, 0.0));

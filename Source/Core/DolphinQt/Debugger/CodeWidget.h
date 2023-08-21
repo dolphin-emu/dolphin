@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -8,6 +7,7 @@
 #include <QString>
 
 #include "Common/CommonTypes.h"
+#include "DolphinQt/Debugger/CodeDiffDialog.h"
 #include "DolphinQt/Debugger/CodeViewWidget.h"
 
 class QCloseEvent;
@@ -15,6 +15,7 @@ class QLineEdit;
 class QShowEvent;
 class QSplitter;
 class QListWidget;
+class QPushButton;
 class QTableWidget;
 
 namespace Common
@@ -36,6 +37,7 @@ public:
   void ShowPC();
   void SetPC();
 
+  void OnDiff();
   void ToggleBreakpoint();
   void AddBreakpoint();
   void SetAddress(u32 address, CodeViewWidget::SetAddressUpdate update);
@@ -64,12 +66,17 @@ private:
   void closeEvent(QCloseEvent*) override;
   void showEvent(QShowEvent* event) override;
 
+  CodeDiffDialog* m_diff_dialog = nullptr;
   QLineEdit* m_search_address;
-  QLineEdit* m_search_symbols;
+  QPushButton* m_code_diff;
 
+  QLineEdit* m_search_callstack;
   QListWidget* m_callstack_list;
+  QLineEdit* m_search_symbols;
   QListWidget* m_symbols_list;
+  QLineEdit* m_search_calls;
   QListWidget* m_function_calls_list;
+  QLineEdit* m_search_callers;
   QListWidget* m_function_callers_list;
   CodeViewWidget* m_code_view;
   QSplitter* m_box_splitter;

@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -12,9 +11,8 @@
 #include <string>
 #include <vector>
 
-#include <mbedtls/sha1.h>
-
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/SHA1.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/IOS/ES/Formats.h"
@@ -24,6 +22,7 @@ namespace DiscIO
 {
 class BlobReader;
 enum class BlobType;
+enum class DataSizeType;
 class FileSystem;
 class VolumeDisc;
 class VolumeWAD;
@@ -65,7 +64,8 @@ public:
     return static_cast<u64>(*temp) << GetOffsetShift();
   }
 
-  virtual bool IsEncryptedAndHashed() const { return false; }
+  virtual bool HasWiiHashes() const { return false; }
+  virtual bool HasWiiEncryption() const { return false; }
   virtual std::vector<Partition> GetPartitions() const { return {}; }
   virtual Partition GetGamePartition() const { return PARTITION_NONE; }
   virtual std::optional<u32> GetPartitionType(const Partition& partition) const
@@ -124,9 +124,8 @@ public:
   virtual Platform GetVolumeType() const = 0;
   virtual bool IsDatelDisc() const = 0;
   virtual bool IsNKit() const = 0;
-  virtual bool SupportsIntegrityCheck() const { return false; }
   virtual bool CheckH3TableIntegrity(const Partition& partition) const { return false; }
-  virtual bool CheckBlockIntegrity(u64 block_index, const std::vector<u8>& encrypted_data,
+  virtual bool CheckBlockIntegrity(u64 block_index, const u8* encrypted_data,
                                    const Partition& partition) const
   {
     return false;
@@ -139,8 +138,8 @@ public:
   virtual Country GetCountry(const Partition& partition = PARTITION_NONE) const = 0;
   virtual BlobType GetBlobType() const = 0;
   // Size of virtual disc (may be inaccurate depending on the blob type)
-  virtual u64 GetSize() const = 0;
-  virtual bool IsSizeAccurate() const = 0;
+  virtual u64 GetDataSize() const = 0;
+  virtual DataSizeType GetDataSizeType() const = 0;
   // Size on disc (compressed size)
   virtual u64 GetRawSize() const = 0;
   virtual const BlobReader& GetBlobReader() const = 0;
@@ -151,6 +150,8 @@ public:
   // 3. Much faster than hashing the entire disc
   // The way the hash is calculated may change with updates to Dolphin.
   virtual std::array<u8, 20> GetSyncHash() const = 0;
+
+  bool FileExists(std::string file_name);
 
 protected:
   template <u32 N>
@@ -165,9 +166,9 @@ protected:
       return CP1252ToUTF8(string);
   }
 
-  void ReadAndAddToSyncHash(mbedtls_sha1_context* context, u64 offset, u64 length,
+  void ReadAndAddToSyncHash(Common::SHA1::Context* context, u64 offset, u64 length,
                             const Partition& partition) const;
-  void AddTMDToSyncHash(mbedtls_sha1_context* context, const Partition& partition) const;
+  void AddTMDToSyncHash(Common::SHA1::Context* context, const Partition& partition) const;
 
   virtual u32 GetOffsetShift() const { return 0; }
   static std::map<Language, std::string> ReadWiiNames(const std::vector<char16_t>& data);
@@ -183,8 +184,11 @@ protected:
   static const std::vector<u8> INVALID_CERT_CHAIN;
 };
 
+std::unique_ptr<VolumeDisc> CreateDisc(std::unique_ptr<BlobReader> reader);
 std::unique_ptr<VolumeDisc> CreateDisc(const std::string& path);
+std::unique_ptr<VolumeWAD> CreateWAD(std::unique_ptr<BlobReader> reader);
 std::unique_ptr<VolumeWAD> CreateWAD(const std::string& path);
+std::unique_ptr<Volume> CreateVolume(std::unique_ptr<BlobReader> reader);
 std::unique_ptr<Volume> CreateVolume(const std::string& path);
 
 }  // namespace DiscIO

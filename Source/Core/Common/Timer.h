@@ -1,10 +1,8 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
-#include <string>
 #include "Common/CommonTypes.h"
 
 namespace Common
@@ -12,43 +10,26 @@ namespace Common
 class Timer
 {
 public:
-  Timer();
+  static u64 NowUs();
+  static u64 NowMs();
 
   void Start();
+  // Start(), then decrement start time by the offset.
+  // Effectively "resumes" a timer
+  void StartWithOffset(u64 offset);
   void Stop();
-  void Update();
+  u64 ElapsedMs() const;
 
-  // The time difference is always returned in milliseconds, regardless of alternative internal
-  // representation
-  u64 GetTimeDifference();
-  void AddTimeDifference();
-
-  bool IsRunning() const { return m_Running; }
+  // The rest of these functions probably belong somewhere else
+  static u64 GetLocalTimeSinceJan1970();
 
   static void IncreaseResolution();
   static void RestoreResolution();
-  static u64 GetTimeSinceJan1970();
-  static u64 GetLocalTimeSinceJan1970();
-  // Returns a timestamp with decimals for precise time comparisons
-  static double GetDoubleTime();
-
-  static std::string GetTimeFormatted();
-  // Formats a timestamp from GetDoubleTime() into a date and time string
-  static std::string GetDateTimeFormatted(double time);
-  std::string GetTimeElapsedFormatted() const;
-  u64 GetTimeElapsed();
-
-  static u32 GetTimeMs();
-  static u64 GetTimeUs();
-
-  // Arbitrarily chosen value (38 years) that is subtracted in GetDoubleTime()
-  // to increase sub-second precision of the resulting double timestamp
-  static constexpr int DOUBLE_TIME_OFFSET = (38 * 365 * 24 * 60 * 60);
 
 private:
-  u64 m_LastTime;
-  u64 m_StartTime;
-  bool m_Running;
+  u64 m_start_ms{0};
+  u64 m_end_ms{0};
+  bool m_running{false};
 };
 
 }  // Namespace Common

@@ -1,14 +1,12 @@
 #pragma once
 
-#include <SlippiGame.h>
 #include <limits.h>
-#include <nlohmann/json.hpp>
 #include <queue>
 #include <string>
 
 #include <Common/CommonTypes.h>
 
-using json = nlohmann::json;
+#include "SlippiGame.h"
 
 class SlippiReplayComm
 {
@@ -16,10 +14,10 @@ public:
   typedef struct WatchSettings
   {
     std::string path;
-    int startFrame = Slippi::GAME_FIRST_FRAME;
-    int endFrame = INT_MAX;
-    std::string gameStartAt = "";
-    std::string gameStation = "";
+    int start_frame = Slippi::GAME_FIRST_FRAME;
+    int end_frame = INT_MAX;
+    std::string game_start_at = "";
+    std::string game_station = "";
     int index = 0;
   } WatchSettings;
 
@@ -27,13 +25,14 @@ public:
   typedef struct CommSettings
   {
     std::string mode;
-    std::string replayPath;
-    int startFrame = Slippi::GAME_FIRST_FRAME;
-    int endFrame = INT_MAX;
-    bool outputOverlayFiles;
-    bool isRealTimeMode;
-    std::string rollbackDisplayMethod;  // off, normal, visible
-    std::string commandId;
+    std::string replay_path;
+    int start_frame = Slippi::GAME_FIRST_FRAME;
+    int end_frame = INT_MAX;
+    bool output_overlay_files;
+    bool is_real_time_mode;
+    bool should_resync;                   // If true, logic will attempt to resync games
+    std::string rollback_display_method;  // off, normal, visible
+    std::string command_id;
     std::queue<WatchSettings> queue;
   } CommSettings;
 
@@ -51,18 +50,15 @@ private:
   void loadFile();
   std::string getReplayPath();
 
-  std::string configFilePath;
-  json fileData;
-  std::string previousReplayLoaded;
-  std::string previousCommandId;
-  int previousIndex;
+  std::string m_config_file_path;
+  std::string m_previous_replay_loaded;
+  std::string m_previous_command_id;
+  int m_previous_idx;
 
-  u64 configLastLoadModTime;
+  u64 m_config_last_load_mod_time;
 
   // Queue stuff
-  bool isFirstLoad = true;
-  bool provideNew = false;
-  int queuePos = 0;
+  bool m_queue_was_empty = true;
 
-  CommSettings commFileSettings;
+  CommSettings m_comm_file_settings;
 };

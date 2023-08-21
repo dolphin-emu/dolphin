@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // Most of the code in this file is from:
 // GCNcrypt - GameCube AR Crypto Program
@@ -10,6 +9,7 @@
 
 #include <algorithm>
 #include <array>
+#include <bit>
 #include <cstring>
 #include <string>
 #include <vector>
@@ -18,9 +18,9 @@
 #include <windows.h>
 #endif
 
-#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
 #include "Common/Swap.h"
 
 namespace ActionReplay
@@ -249,26 +249,26 @@ static void unscramble1(u32* addr, u32* val)
 {
   u32 tmp;
 
-  *val = Common::RotateLeft(*val, 4);
+  *val = std::rotl(*val, 4);
 
   tmp = ((*addr ^ *val) & 0xF0F0F0F0);
   *addr ^= tmp;
-  *val = Common::RotateRight((*val ^ tmp), 0x14);
+  *val = std::rotr((*val ^ tmp), 0x14);
 
   tmp = ((*addr ^ *val) & 0xFFFF0000);
   *addr ^= tmp;
-  *val = Common::RotateRight((*val ^ tmp), 0x12);
+  *val = std::rotr((*val ^ tmp), 0x12);
 
   tmp = ((*addr ^ *val) & 0x33333333);
   *addr ^= tmp;
-  *val = Common::RotateRight((*val ^ tmp), 6);
+  *val = std::rotr((*val ^ tmp), 6);
 
   tmp = ((*addr ^ *val) & 0x00FF00FF);
   *addr ^= tmp;
-  *val = Common::RotateLeft((*val ^ tmp), 9);
+  *val = std::rotl((*val ^ tmp), 9);
 
   tmp = ((*addr ^ *val) & 0xAAAAAAAA);
-  *addr = Common::RotateLeft((*addr ^ tmp), 1);
+  *addr = std::rotl((*addr ^ tmp), 1);
   *val ^= tmp;
 }
 
@@ -276,27 +276,27 @@ static void unscramble2(u32* addr, u32* val)
 {
   u32 tmp;
 
-  *val = Common::RotateRight(*val, 1);
+  *val = std::rotr(*val, 1);
 
   tmp = ((*addr ^ *val) & 0xAAAAAAAA);
   *val ^= tmp;
-  *addr = Common::RotateRight((*addr ^ tmp), 9);
+  *addr = std::rotr((*addr ^ tmp), 9);
 
   tmp = ((*addr ^ *val) & 0x00FF00FF);
   *val ^= tmp;
-  *addr = Common::RotateLeft((*addr ^ tmp), 6);
+  *addr = std::rotl((*addr ^ tmp), 6);
 
   tmp = ((*addr ^ *val) & 0x33333333);
   *val ^= tmp;
-  *addr = Common::RotateLeft((*addr ^ tmp), 0x12);
+  *addr = std::rotl((*addr ^ tmp), 0x12);
 
   tmp = ((*addr ^ *val) & 0xFFFF0000);
   *val ^= tmp;
-  *addr = Common::RotateLeft((*addr ^ tmp), 0x14);
+  *addr = std::rotl((*addr ^ tmp), 0x14);
 
   tmp = ((*addr ^ *val) & 0xF0F0F0F0);
   *val ^= tmp;
-  *addr = Common::RotateRight((*addr ^ tmp), 4);
+  *addr = std::rotr((*addr ^ tmp), 4);
 }
 
 static void decryptcode(const u32* seeds, u32* code)
@@ -309,13 +309,13 @@ static void decryptcode(const u32* seeds, u32* code)
   unscramble1(&addr, &val);
   while (i < 32)
   {
-    tmp = (Common::RotateRight(val, 4) ^ seeds[i++]);
+    tmp = (std::rotr(val, 4) ^ seeds[i++]);
     tmp2 = (val ^ seeds[i++]);
     addr ^= (table6[tmp & 0x3F] ^ table4[(tmp >> 8) & 0x3F] ^ table2[(tmp >> 16) & 0x3F] ^
              table0[(tmp >> 24) & 0x3F] ^ table7[tmp2 & 0x3F] ^ table5[(tmp2 >> 8) & 0x3F] ^
              table3[(tmp2 >> 16) & 0x3F] ^ table1[(tmp2 >> 24) & 0x3F]);
 
-    tmp = (Common::RotateRight(addr, 4) ^ seeds[i++]);
+    tmp = (std::rotr(addr, 4) ^ seeds[i++]);
     tmp2 = (addr ^ seeds[i++]);
     val ^= (table6[tmp & 0x3F] ^ table4[(tmp >> 8) & 0x3F] ^ table2[(tmp >> 16) & 0x3F] ^
             table0[(tmp >> 24) & 0x3F] ^ table7[tmp2 & 0x3F] ^ table5[(tmp2 >> 8) & 0x3F] ^
@@ -463,7 +463,7 @@ void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry>* ops)
 
   for (std::string& s : vCodes)
   {
-    std::transform(s.begin(), s.end(), s.begin(), toupper);
+    Common::ToUpper(&s);
   }
 
   const u32 ret = alphatobin(uCodes.data(), vCodes, (int)vCodes.size());
@@ -477,14 +477,15 @@ void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry>* ops)
   else if (!batchdecrypt(uCodes.data(), (u16)vCodes.size() << 1))
   {
     // Commented out since we just send the code anyways and hope for the best XD
-    // PanicAlert("Action Replay Code Decryption Error:\nCRC Check Failed\n\n"
-    // "First Code in Block(should be verification code):\n%s", vCodes[0].c_str());
+    // PanicAlertFmt("Action Replay Code Decryption Error:\nCRC Check Failed\n\n"
+    //               "First Code in Block (should be verification code):\n{}",
+    //               vCodes[0]);
 
     for (size_t i = 0; i < (vCodes.size() << 1); i += 2)
     {
       ops->emplace_back(uCodes[i], uCodes[i + 1]);
-      // PanicAlert("Decrypted AR Code without verification code:\n%08X %08X", uCodes[i],
-      // uCodes[i+1]);
+      // PanicAlertFmt("Decrypted AR Code without verification code:\n{:08X} {:08X}", uCodes[i],
+      //               uCodes[i + 1]);
     }
   }
   else
@@ -493,7 +494,7 @@ void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry>* ops)
     for (size_t i = 2; i < (vCodes.size() << 1); i += 2)
     {
       ops->emplace_back(uCodes[i], uCodes[i + 1]);
-      // PanicAlert("Decrypted AR Code:\n%08X %08X", uCodes[i], uCodes[i+1]);
+      // PanicAlertFmt("Decrypted AR Code:\n{:08X} {:08X}", uCodes[i], uCodes[i+1]);
     }
   }
 }

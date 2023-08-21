@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ExternalsDir)FatFs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)FatFs\FatFs.vcxproj">
+      <Project>{3F17D282-A77D-4931-B844-903AD0809A5E}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

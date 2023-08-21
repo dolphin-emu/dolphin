@@ -1,21 +1,27 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.ui.platform;
+
+import org.dolphinemu.dolphinemu.R;
 
 /**
  * Enum to represent platform (eg GameCube, Wii).
  */
 public enum Platform
 {
-  GAMECUBE(0, "GameCube Games"),
-  WII(1, "Wii Games"),
-  WIIWARE(2, "WiiWare Games");
+  GAMECUBE(0, R.string.platform_gamecube, "GameCube Games"),
+  WII(1, R.string.platform_wii, "Wii Games"),
+  WIIWARE(2, R.string.platform_wiiware, "WiiWare Games");
 
   private final int value;
-  private final String headerName;
+  private final int headerName;
+  private final String idString;
 
-  Platform(int value, String headerName)
+  Platform(int value, int headerName, String idString)
   {
     this.value = value;
     this.headerName = headerName;
+    this.idString = idString;
   }
 
   public static Platform fromInt(int i)
@@ -40,8 +46,13 @@ public enum Platform
     return value;
   }
 
-  public String getHeaderName()
+  public int getHeaderName()
   {
     return headerName;
+  }
+
+  public String getIdString()
+  {
+    return idString;
   }
 }

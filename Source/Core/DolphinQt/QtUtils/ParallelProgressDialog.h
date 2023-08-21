@@ -1,3 +1,6 @@
+// Copyright 2020 Dolphin Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 #pragma once
 
 #include <utility>
@@ -13,6 +16,11 @@ class ParallelProgressDialog final : public QObject
   Q_OBJECT
 
 public:
+  ParallelProgressDialog(const ParallelProgressDialog&) = delete;
+  ParallelProgressDialog& operator=(const ParallelProgressDialog&) = delete;
+  ParallelProgressDialog(ParallelProgressDialog&&) = delete;
+  ParallelProgressDialog& operator=(ParallelProgressDialog&&) = delete;
+
   // Only use this from the main thread
   template <typename... Args>
   ParallelProgressDialog(Args&&... args) : m_dialog{std::forward<Args>(args)...}

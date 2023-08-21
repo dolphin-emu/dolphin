@@ -1,68 +1,69 @@
 #include "SlippiGameFileLoader.h"
 
-#include "Common/File.h"
 #include "Common/FileUtil.h"
+#include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Core/Boot/Boot.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/DVD/DVDThread.h"
+#include "Core/System.h"
 
-std::string getFilePath(std::string fileName)
+std::string getFilePath(std::string file_name)
 {
-  std::string dirPath = File::GetSysDirectory();
+  std::string dir_path = File::GetSysDirectory();
 
-  std::string filePath = dirPath + "GameFiles/GALE01/" + fileName;  // TODO: Handle other games?
+  std::string file_path = dir_path + "GameFiles/GALE01/" + file_name;  // TODO: Handle other games?
 
-  if (File::Exists(filePath))
+  if (File::Exists(file_path))
   {
-    return filePath;
+    return file_path;
   }
 
-  filePath = filePath + ".diff";
-  if (File::Exists(filePath))
+  file_path = file_path + ".diff";
+  if (File::Exists(file_path))
   {
-    return filePath;
+    return file_path;
   }
 
   return "";
 }
 
-u32 SlippiGameFileLoader::LoadFile(std::string fileName, std::string& data)
+u32 SlippiGameFileLoader::LoadFile(std::string file_name, std::string& data)
 {
-  if (fileCache.count(fileName))
+  if (file_cache.count(file_name))
   {
-    data = fileCache[fileName];
-    return (u32)data.size();
+    data = file_cache[file_name];
+    return static_cast<u32>(data.size());
   }
 
-  INFO_LOG(SLIPPI, "Loading file: %s", fileName.c_str());
+  INFO_LOG_FMT(SLIPPI, "Loading file: {}", file_name.c_str());
 
-  std::string gameFilePath = getFilePath(fileName);
-  if (gameFilePath.empty())
+  std::string game_file_path = getFilePath(file_name);
+  if (game_file_path.empty())
   {
-    fileCache[fileName] = "";
+    file_cache[file_name] = "";
     data = "";
     return 0;
   }
 
-  std::string fileContents;
-  File::ReadFileToString(gameFilePath, fileContents);
+  std::string file_contents;
+  File::ReadFileToString(game_file_path, file_contents);
 
   // If the file was a diff file and the game is running, load the main file from ISO and apply
   // patch
-  if (gameFilePath.substr(gameFilePath.length() - 5) == ".diff" &&
+  if (game_file_path.substr(game_file_path.length() - 5) == ".diff" &&
       Core::GetState() == Core::State::Running)
   {
     std::vector<u8> buf;
-    INFO_LOG(SLIPPI, "Will process diff");
-    DVDThread::ReadFile(fileName, buf);
-    std::string diffContents = fileContents;
-    decoder.Decode((char*)buf.data(), buf.size(), diffContents, &fileContents);
+    INFO_LOG_FMT(SLIPPI, "Will process diff");
+    Core::System::GetInstance().GetDVDThread().ReadFile(file_name, buf);
+    std::string diff_contents = file_contents;
+    decoder.Decode((char*)buf.data(), buf.size(), diff_contents, &file_contents);
   }
 
-  fileCache[fileName] = fileContents;
-  data = fileCache[fileName];
-  INFO_LOG(SLIPPI, "File size: %d", (u32)data.size());
-  return (u32)data.size();
+  file_cache[file_name] = file_contents;
+  data = file_cache[file_name];
+  INFO_LOG_FMT(SLIPPI, "File size: {}", static_cast<u32>(data.size()));
+  return static_cast<u32>(data.size());
 }

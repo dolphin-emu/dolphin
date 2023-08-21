@@ -1,24 +1,30 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include "DolphinQt/TAS/TASInputWindow.h"
 
 class QGroupBox;
+class QHideEvent;
+class QShowEvent;
 class QSpinBox;
 class TASCheckBox;
-struct GCPadStatus;
 
 class GCTASInputWindow : public TASInputWindow
 {
   Q_OBJECT
 public:
-  explicit GCTASInputWindow(QWidget* parent, int num);
-  void GetValues(GCPadStatus* pad);
+  explicit GCTASInputWindow(QWidget* parent, int controller_id);
+
+  void hideEvent(QHideEvent* event) override;
+  void showEvent(QShowEvent* event) override;
 
 private:
+  int m_controller_id;
+
+  InputOverrider m_overrider;
+
   TASCheckBox* m_a_button;
   TASCheckBox* m_b_button;
   TASCheckBox* m_x_button;
@@ -31,12 +37,6 @@ private:
   TASCheckBox* m_up_button;
   TASCheckBox* m_down_button;
   TASCheckBox* m_right_button;
-  QSpinBox* m_l_trigger_value;
-  QSpinBox* m_r_trigger_value;
-  QSpinBox* m_x_main_stick_value;
-  QSpinBox* m_y_main_stick_value;
-  QSpinBox* m_x_c_stick_value;
-  QSpinBox* m_y_c_stick_value;
   QGroupBox* m_main_stick_box;
   QGroupBox* m_c_stick_box;
   QGroupBox* m_triggers_box;

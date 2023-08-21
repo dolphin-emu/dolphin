@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // High-level emulation for the AX GameCube UCode.
 //
@@ -12,10 +11,15 @@
 
 #pragma once
 
+#include <array>
+#include <optional>
+
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
+#include "Core/HW/Memmap.h"
+#include "Core/System.h"
 
 namespace DSP::HLE
 {
@@ -26,40 +30,43 @@ class DSPHLE;
 // mixer_control value to an AXMixControl bitfield.
 enum AXMixControl
 {
-  MIX_L = 0x000001,
-  MIX_L_RAMP = 0x000002,
-  MIX_R = 0x000004,
-  MIX_R_RAMP = 0x000008,
-  MIX_S = 0x000010,
-  MIX_S_RAMP = 0x000020,
+  // clang-format off
+  MIX_MAIN_L      = 0x000001,
+  MIX_MAIN_L_RAMP = 0x000002,
+  MIX_MAIN_R      = 0x000004,
+  MIX_MAIN_R_RAMP = 0x000008,
+  MIX_MAIN_S      = 0x000010,
+  MIX_MAIN_S_RAMP = 0x000020,
 
-  MIX_AUXA_L = 0x000040,
+  MIX_AUXA_L      = 0x000040,
   MIX_AUXA_L_RAMP = 0x000080,
-  MIX_AUXA_R = 0x000100,
+  MIX_AUXA_R      = 0x000100,
   MIX_AUXA_R_RAMP = 0x000200,
-  MIX_AUXA_S = 0x000400,
+  MIX_AUXA_S      = 0x000400,
   MIX_AUXA_S_RAMP = 0x000800,
 
-  MIX_AUXB_L = 0x001000,
+  MIX_AUXB_L      = 0x001000,
   MIX_AUXB_L_RAMP = 0x002000,
-  MIX_AUXB_R = 0x004000,
+  MIX_AUXB_R      = 0x004000,
   MIX_AUXB_R_RAMP = 0x008000,
-  MIX_AUXB_S = 0x010000,
+  MIX_AUXB_S      = 0x010000,
   MIX_AUXB_S_RAMP = 0x020000,
 
-  MIX_AUXC_L = 0x040000,
+  MIX_AUXC_L      = 0x040000,
   MIX_AUXC_L_RAMP = 0x080000,
-  MIX_AUXC_R = 0x100000,
+  MIX_AUXC_R      = 0x100000,
   MIX_AUXC_R_RAMP = 0x200000,
-  MIX_AUXC_S = 0x400000,
-  MIX_AUXC_S_RAMP = 0x800000
+  MIX_AUXC_S      = 0x400000,
+  MIX_AUXC_S_RAMP = 0x800000,
+
+  MIX_ALL_RAMPS   = 0xAAAAAA,
+  // clang-format on
 };
 
-class AXUCode : public UCodeInterface
+class AXUCode /* not final: subclassed by AXWiiUCode */ : public UCodeInterface
 {
 public:
   AXUCode(DSPHLE* dsphle, u32 crc);
-  ~AXUCode() override;
 
   void Initialize() override;
   void HandleMail(u32 mail) override;
@@ -67,39 +74,33 @@ public:
   void DoState(PointerWrap& p) override;
 
 protected:
-  enum MailType
-  {
-    MAIL_RESUME = 0xCDD10000,
-    MAIL_NEW_UCODE = 0xCDD10001,
-    MAIL_RESET = 0xCDD10002,
-    MAIL_CONTINUE = 0xCDD10003,
-
-    // CPU sends 0xBABE0000 | cmdlist_size to the DSP
-    MAIL_CMDLIST = 0xBABE0000,
-    MAIL_CMDLIST_MASK = 0xFFFF0000
-  };
+  // CPU sends 0xBABE0000 | cmdlist_size to the DSP
+  static constexpr u32 MAIL_CMDLIST = 0xBABE0000;
+  static constexpr u32 MAIL_CMDLIST_MASK = 0xFFFF0000;
 
   // 32 * 5 because 32 samples per millisecond, for max 5 milliseconds.
-  int m_samples_left[32 * 5];
-  int m_samples_right[32 * 5];
-  int m_samples_surround[32 * 5];
-  int m_samples_auxA_left[32 * 5];
-  int m_samples_auxA_right[32 * 5];
-  int m_samples_auxA_surround[32 * 5];
-  int m_samples_auxB_left[32 * 5];
-  int m_samples_auxB_right[32 * 5];
-  int m_samples_auxB_surround[32 * 5];
+  int m_samples_main_left[32 * 5]{};
+  int m_samples_main_right[32 * 5]{};
+  int m_samples_main_surround[32 * 5]{};
+  int m_samples_auxA_left[32 * 5]{};
+  int m_samples_auxA_right[32 * 5]{};
+  int m_samples_auxA_surround[32 * 5]{};
+  int m_samples_auxB_left[32 * 5]{};
+  int m_samples_auxB_right[32 * 5]{};
+  int m_samples_auxB_surround[32 * 5]{};
 
-  u16 m_cmdlist[512];
-  u32 m_cmdlist_size;
+  u16 m_cmdlist[512]{};
+  u32 m_cmdlist_size = 0;
 
   // Table of coefficients for polyphase sample rate conversion.
   // The coefficients aren't always available (they are part of the DSP DROM)
   // so we also need to know if they are valid or not.
-  bool m_coeffs_available;
-  s16 m_coeffs[0x800];
+  std::optional<u32> m_coeffs_checksum = std::nullopt;
+  std::array<s16, 0x800> m_coeffs{};
 
-  void LoadResamplingCoefficients();
+  u16 m_compressor_pos = 0;
+
+  bool LoadResamplingCoefficients(bool require_same_checksum, u32 desired_checksum);
 
   // Copy a command list from memory to our temp buffer
   void CopyCmdList(u32 addr, u16 size);
@@ -133,12 +134,42 @@ protected:
   virtual void HandleCommandList();
   void SignalWorkEnd();
 
+  struct BufferDesc
+  {
+    int* ptr;
+    int samples_per_milli;
+  };
+
+  template <int Millis, size_t BufCount>
+  void InitMixingBuffers(u32 init_addr, const std::array<BufferDesc, BufCount>& buffers)
+  {
+    auto& system = Core::System::GetInstance();
+    auto& memory = system.GetMemory();
+    std::array<u16, 3 * BufCount> init_array;
+    memory.CopyFromEmuSwapped(init_array.data(), init_addr, sizeof(init_array));
+    for (size_t i = 0; i < BufCount; ++i)
+    {
+      const BufferDesc& buf = buffers[i];
+      s32 value = s32((u32(init_array[3 * i]) << 16) | init_array[3 * i + 1]);
+      s16 delta = init_array[3 * i + 2];
+      if (value == 0)
+      {
+        memset(buf.ptr, 0, Millis * buf.samples_per_milli * sizeof(int));
+      }
+      else
+      {
+        for (int j = 0; j < Millis * buf.samples_per_milli; ++j)
+          buf.ptr[j] = value + j * delta;
+      }
+    }
+  }
   void SetupProcessing(u32 init_addr);
   void DownloadAndMixWithVolume(u32 addr, u16 vol_main, u16 vol_auxa, u16 vol_auxb);
   void ProcessPBList(u32 pb_addr);
   void MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr);
   void UploadLRS(u32 dst_addr);
   void SetMainLR(u32 src_addr);
+  void RunCompressor(u16 threshold, u16 release_stages, u32 table_addr, u32 millis);
   void OutputSamples(u32 out_addr, u32 surround_addr);
   void MixAUXBLR(u32 ul_addr, u32 dl_addr);
   void SetOppositeLR(u32 src_addr);
@@ -161,7 +192,7 @@ private:
     CMD_SET_LR = 0x07,
     CMD_UNK_08 = 0x08,
     CMD_MIX_AUXB_NOWRITE = 0x09,
-    CMD_COMPRESSOR_TABLE_ADDR = 0x0A,
+    CMD_UNK_0A = 0x0A,
     CMD_UNK_0B = 0x0B,
     CMD_UNK_0C = 0x0C,
     CMD_MORE = 0x0D,
@@ -169,8 +200,17 @@ private:
     CMD_END = 0x0F,
     CMD_MIX_AUXB_LR = 0x10,
     CMD_SET_OPPOSITE_LR = 0x11,
-    CMD_UNK_12 = 0x12,
+    CMD_COMPRESSOR = 0x12,
     CMD_SEND_AUX_AND_MIX = 0x13,
   };
+
+  enum class MailState
+  {
+    WaitingForCmdListSize,
+    WaitingForCmdListAddress,
+    WaitingForNextTask,
+  };
+
+  MailState m_mail_state = MailState::WaitingForCmdListSize;
 };
 }  // namespace DSP::HLE

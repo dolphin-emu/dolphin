@@ -1,36 +1,32 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.ui.viewholder;
 
 import android.text.TextUtils;
 import android.view.View;
-import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.databinding.ListItemSettingBinding;
 import org.dolphinemu.dolphinemu.features.settings.model.view.FilePicker;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
+import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 
 public final class FilePickerViewHolder extends SettingViewHolder
 {
   private FilePicker mFilePicker;
   private SettingsItem mItem;
 
-  private TextView mTextSettingName;
-  private TextView mTextSettingDescription;
+  private final ListItemSettingBinding mBinding;
 
-  public FilePickerViewHolder(View itemView, SettingsAdapter adapter)
+  public FilePickerViewHolder(ListItemSettingBinding binding, SettingsAdapter adapter)
   {
-    super(itemView, adapter);
-  }
-
-  @Override
-  protected void findViews(View root)
-  {
-    mTextSettingName = root.findViewById(R.id.text_setting_name);
-    mTextSettingDescription = root.findViewById(R.id.text_setting_description);
+    super(binding.getRoot(), adapter);
+    mBinding = binding;
   }
 
   @Override
@@ -39,16 +35,25 @@ public final class FilePickerViewHolder extends SettingViewHolder
     mFilePicker = (FilePicker) item;
     mItem = item;
 
-    mTextSettingName.setText(item.getNameId());
+    String path = mFilePicker.getSelectedValue(getAdapter().getSettings());
 
-    if (item.getDescriptionId() > 0)
+    if (FileBrowserHelper.isPathEmptyOrValid(path))
     {
-      mTextSettingDescription.setText(item.getDescriptionId());
+      itemView.setBackground(mBinding.getRoot().getBackground());
     }
     else
     {
-      String path = mFilePicker.getSelectedValue(getAdapter().getSettings());
+      itemView.setBackgroundResource(R.drawable.invalid_setting_background);
+    }
 
+    mBinding.textSettingName.setText(item.getName());
+
+    if (!TextUtils.isEmpty(item.getDescription()))
+    {
+      mBinding.textSettingDescription.setText(item.getDescription());
+    }
+    else
+    {
       if (TextUtils.isEmpty(path))
       {
         String defaultPathRelative = mFilePicker.getDefaultPathRelativeToUserDirectory();
@@ -58,10 +63,10 @@ public final class FilePickerViewHolder extends SettingViewHolder
         }
       }
 
-      mTextSettingDescription.setText(path);
+      mBinding.textSettingDescription.setText(path);
     }
 
-    setStyle(mTextSettingName, mItem);
+    setStyle(mBinding.textSettingName, mItem);
   }
 
   @Override
@@ -73,16 +78,17 @@ public final class FilePickerViewHolder extends SettingViewHolder
       return;
     }
 
+    int position = getBindingAdapterPosition();
     if (mFilePicker.getRequestType() == MainPresenter.REQUEST_DIRECTORY)
     {
-      getAdapter().onFilePickerDirectoryClick(mItem);
+      getAdapter().onFilePickerDirectoryClick(mItem, position);
     }
     else
     {
-      getAdapter().onFilePickerFileClick(mItem);
+      getAdapter().onFilePickerFileClick(mItem, position);
     }
 
-    setStyle(mTextSettingName, mItem);
+    setStyle(mBinding.textSettingName, mItem);
   }
 
   @Nullable @Override

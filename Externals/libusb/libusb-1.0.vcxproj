@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <Import Project="..\..\Source\VSProps\Base.Macros.props" />
+  <Import Project="$(VSPropsDir)Base.Targets.props" />
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{349EE8F9-7D25-4909-AAF5-FF3FADE72187}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <Import Project="$(VSPropsDir)Configuration.StaticLibrary.props" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VSPropsDir)Base.props" />
+    <Import Project="$(VSPropsDir)ClDisableAllWarnings.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <!-- Ensure libusb sees it's own config.h first... -->
+      <AdditionalIncludeDirectories>libusb\msvc;libusb\libusb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="libusb\libusb\core.c" />
+    <ClCompile Include="libusb\libusb\descriptor.c" />
+    <ClCompile Include="libusb\libusb\hotplug.c" />
+    <ClCompile Include="libusb\libusb\io.c" />
+    <ClCompile Include="libusb\libusb\os\events_windows.c" />
+    <ClCompile Include="libusb\libusb\os\threads_windows.c" />
+    <ClCompile Include="libusb\libusb\os\windows_common.c" />
+    <ClCompile Include="libusb\libusb\os\windows_usbdk.c" />
+    <ClCompile Include="libusb\libusb\os\windows_winusb.c" />
+    <ClCompile Include="libusb\libusb\strerror.c" />
+    <ClCompile Include="libusb\libusb\sync.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="libusb\libusb\hotplug.h" />
+    <ClInclude Include="libusb\libusb\libusb.h" />
+    <ClInclude Include="libusb\libusb\libusbi.h" />
+    <ClInclude Include="libusb\libusb\os\events_windows.h" />
+    <ClInclude Include="libusb\libusb\os\threads_windows.h" />
+    <ClInclude Include="libusb\libusb\os\windows_common.h" />
+    <ClInclude Include="libusb\libusb\os\windows_nt_common.h" />
+    <ClInclude Include="libusb\libusb\os\windows_usbdk.h" />
+    <ClInclude Include="libusb\libusb\os\windows_winusb.h" />
+    <ClInclude Include="libusb\libusb\version_nano.h" />
+    <ClInclude Include="libusb\libusb\version.h" />
+    <ClInclude Include="libusb\msvc\config.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

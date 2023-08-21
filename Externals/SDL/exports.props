@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ExternalsDir)SDL\SDL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)SDL\SDL2.vcxproj">
+      <Project>{8DC244EE-A0BD-4038-BAF7-CFAFA5EB2BAA}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

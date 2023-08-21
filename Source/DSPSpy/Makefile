@@ -23,7 +23,7 @@ include $(DEVKITPPC)/$(HW_TYPE)_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	$(notdir $(CURDIR))_$(HW_TYPE)
 BUILD		:=	build
-SOURCES		:=	. emu
+SOURCES		:=	.
 DATA		:=	data
 INCLUDES	:=	include ../Core/Common .
 

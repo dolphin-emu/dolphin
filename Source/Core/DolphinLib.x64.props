@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ItemGroup>
+    <ClInclude Include="Common\x64ABI.h" />
+    <ClInclude Include="Common\x64Emitter.h" />
+    <ClInclude Include="Common\x64Reg.h" />
+    <ClInclude Include="Core\DSP\Jit\x64\DSPEmitter.h" />
+    <ClInclude Include="Core\DSP\Jit\x64\DSPJitRegCache.h" />
+    <ClInclude Include="Core\DSP\Jit\x64\DSPJitTables.h" />
+    <ClInclude Include="Core\PowerPC\Jit64\Jit.h" />
+    <ClInclude Include="Core\PowerPC\Jit64\JitAsm.h" />
+    <ClInclude Include="Core\PowerPC\Jit64\RegCache\CachedReg.h" />
+    <ClInclude Include="Core\PowerPC\Jit64\RegCache\FPURegCache.h" />
+    <ClInclude Include="Core\PowerPC\Jit64\RegCache\GPRRegCache.h" />
+    <ClInclude Include="Core\PowerPC\Jit64\RegCache\JitRegCache.h" />
+    <ClInclude Include="Core\PowerPC\Jit64\RegCache\RCMode.h" />
+    <ClInclude Include="Core\PowerPC\Jit64Common\BlockCache.h" />
+    <ClInclude Include="Core\PowerPC\Jit64Common\ConstantPool.h" />
+    <ClInclude Include="Core\PowerPC\Jit64Common\EmuCodeBlock.h" />
+    <ClInclude Include="Core\PowerPC\Jit64Common\FarCodeCache.h" />
+    <ClInclude Include="Core\PowerPC\Jit64Common\Jit64AsmCommon.h" />
+    <ClInclude Include="Core\PowerPC\Jit64Common\Jit64Constants.h" />
+    <ClInclude Include="Core\PowerPC\Jit64Common\Jit64PowerPCState.h" />
+    <ClInclude Include="Core\PowerPC\Jit64Common\TrampolineCache.h" />
+    <ClInclude Include="Core\PowerPC\Jit64Common\TrampolineInfo.h" />
+    <ClInclude Include="VideoCommon\VertexLoaderX64.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Common\x64ABI.cpp" />
+    <ClCompile Include="Common\x64CPUDetect.cpp" />
+    <ClCompile Include="Common\x64Emitter.cpp" />
+    <ClCompile Include="Common\x64FPURoundMode.cpp" />
+    <ClCompile Include="Core\DSP\Jit\x64\DSPEmitter.cpp" />
+    <ClCompile Include="Core\DSP\Jit\x64\DSPJitArithmetic.cpp" />
+    <ClCompile Include="Core\DSP\Jit\x64\DSPJitBranch.cpp" />
+    <ClCompile Include="Core\DSP\Jit\x64\DSPJitCCUtil.cpp" />
+    <ClCompile Include="Core\DSP\Jit\x64\DSPJitExtOps.cpp" />
+    <ClCompile Include="Core\DSP\Jit\x64\DSPJitLoadStore.cpp" />
+    <ClCompile Include="Core\DSP\Jit\x64\DSPJitMisc.cpp" />
+    <ClCompile Include="Core\DSP\Jit\x64\DSPJitMultiplier.cpp" />
+    <ClCompile Include="Core\DSP\Jit\x64\DSPJitRegCache.cpp" />
+    <ClCompile Include="Core\DSP\Jit\x64\DSPJitTables.cpp" />
+    <ClCompile Include="Core\DSP\Jit\x64\DSPJitUtil.cpp" />
+    <ClCompile Include="Core\PowerPC\Jit64\Jit_Branch.cpp" />
+    <ClCompile Include="Core\PowerPC\Jit64\Jit_FloatingPoint.cpp" />
+    <ClCompile Include="Core\PowerPC\Jit64\Jit_Integer.cpp" />
+    <ClCompile Include="Core\PowerPC\Jit64\Jit_LoadStore.cpp" />
+    <ClCompile Include="Core\PowerPC\Jit64\Jit_LoadStoreFloating.cpp" />
+    <ClCompile Include="Core\PowerPC\Jit64\Jit_LoadStorePaired.cpp" />
+    <ClCompile Include="Core\PowerPC\Jit64\Jit_Paired.cpp" />
+    <ClCompile Include="Core\PowerPC\Jit64\Jit_SystemRegisters.cpp" />
+    <ClCompile Include="Core\PowerPC\Jit64\Jit.cpp" />
+    <ClCompile Include="Core\PowerPC\Jit64\Jit64_Tables.cpp" />
+    <ClCompile Include="Core\PowerPC\Jit64\JitAsm.cpp" />
+    <ClCompile Include="Core\PowerPC\Jit64\RegCache\FPURegCache.cpp" />
+    <ClCompile Include="Core\PowerPC\Jit64\RegCache\GPRRegCache.cpp" />
+    <ClCompile Include="Core\PowerPC\Jit64\RegCache\JitRegCache.cpp" />
+    <ClCompile Include="Core\PowerPC\Jit64Common\BlockCache.cpp" />
+    <ClCompile Include="Core\PowerPC\Jit64Common\ConstantPool.cpp" />
+    <ClCompile Include="Core\PowerPC\Jit64Common\EmuCodeBlock.cpp" />
+    <ClCompile Include="Core\PowerPC\Jit64Common\FarCodeCache.cpp" />
+    <ClCompile Include="Core\PowerPC\Jit64Common\Jit64AsmCommon.cpp" />
+    <ClCompile Include="Core\PowerPC\Jit64Common\TrampolineCache.cpp" />
+    <ClCompile Include="VideoCommon\TextureDecoder_x64.cpp" />
+    <ClCompile Include="VideoCommon\VertexLoaderX64.cpp" />
+  </ItemGroup>
+</Project>

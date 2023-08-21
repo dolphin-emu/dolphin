@@ -1,6 +1,5 @@
 // Copyright 2020 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DiscIO/WIACompression.h"
 
@@ -14,11 +13,11 @@
 
 #include <bzlib.h>
 #include <lzma.h>
-#include <mbedtls/sha1.h>
 #include <zstd.h>
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/MathUtil.h"
 #include "Common/Swap.h"
 #include "DiscIO/LaggedFibonacciGenerator.h"
 
@@ -48,7 +47,6 @@ bool NoneDecompressor::Decompress(const DecompressionBuffer& in, DecompressionBu
 
 PurgeDecompressor::PurgeDecompressor(u64 decompressed_size) : m_decompressed_size(decompressed_size)
 {
-  mbedtls_sha1_init(&m_sha1_context);
 }
 
 bool PurgeDecompressor::Decompress(const DecompressionBuffer& in, DecompressionBuffer* out,
@@ -56,10 +54,10 @@ bool PurgeDecompressor::Decompress(const DecompressionBuffer& in, DecompressionB
 {
   if (!m_started)
   {
-    mbedtls_sha1_starts_ret(&m_sha1_context);
+    m_sha1_context = Common::SHA1::CreateContext();
 
     // Include the exception lists in the SHA-1 calculation (but not in the compression...)
-    mbedtls_sha1_update_ret(&m_sha1_context, in.data.data(), *in_bytes_read);
+    m_sha1_context->Update(in.data.data(), *in_bytes_read);
 
     m_started = true;
   }
@@ -67,7 +65,7 @@ bool PurgeDecompressor::Decompress(const DecompressionBuffer& in, DecompressionB
   while (!m_done && in.bytes_written != *in_bytes_read &&
          (m_segment_bytes_written < sizeof(m_segment) || out->data.size() != out->bytes_written))
   {
-    if (m_segment_bytes_written == 0 && *in_bytes_read == in.data.size() - sizeof(SHA1))
+    if (m_segment_bytes_written == 0 && *in_bytes_read == in.data.size() - Common::SHA1::DIGEST_LEN)
     {
       const size_t zeroes_to_write = std::min<size_t>(m_decompressed_size - m_out_bytes_written,
                                                       out->data.size() - out->bytes_written);
@@ -79,10 +77,9 @@ bool PurgeDecompressor::Decompress(const DecompressionBuffer& in, DecompressionB
 
       if (m_out_bytes_written == m_decompressed_size && in.bytes_written == in.data.size())
       {
-        SHA1 actual_hash;
-        mbedtls_sha1_finish_ret(&m_sha1_context, actual_hash.data());
+        const auto actual_hash = m_sha1_context->Finish();
 
-        SHA1 expected_hash;
+        Common::SHA1::Digest expected_hash;
         std::memcpy(expected_hash.data(), in.data.data() + *in_bytes_read, expected_hash.size());
 
         *in_bytes_read += expected_hash.size();
@@ -102,7 +99,7 @@ bool PurgeDecompressor::Decompress(const DecompressionBuffer& in, DecompressionB
 
       std::memcpy(reinterpret_cast<u8*>(&m_segment) + m_segment_bytes_written,
                   in.data.data() + *in_bytes_read, bytes_to_copy);
-      mbedtls_sha1_update_ret(&m_sha1_context, in.data.data() + *in_bytes_read, bytes_to_copy);
+      m_sha1_context->Update(in.data.data() + *in_bytes_read, bytes_to_copy);
 
       *in_bytes_read += bytes_to_copy;
       m_bytes_read += bytes_to_copy;
@@ -134,7 +131,7 @@ bool PurgeDecompressor::Decompress(const DecompressionBuffer& in, DecompressionB
 
       std::memcpy(out->data.data() + out->bytes_written, in.data.data() + *in_bytes_read,
                   bytes_to_copy);
-      mbedtls_sha1_update_ret(&m_sha1_context, in.data.data() + *in_bytes_read, bytes_to_copy);
+      m_sha1_context->Update(in.data.data() + *in_bytes_read, bytes_to_copy);
 
       *in_bytes_read += bytes_to_copy;
       m_bytes_read += bytes_to_copy;
@@ -166,18 +163,13 @@ bool Bzip2Decompressor::Decompress(const DecompressionBuffer& in, DecompressionB
     m_started = true;
   }
 
-  constexpr auto clamped_cast = [](size_t x) {
-    return static_cast<unsigned int>(
-        std::min<size_t>(std::numeric_limits<unsigned int>().max(), x));
-  };
-
   char* const in_ptr = reinterpret_cast<char*>(const_cast<u8*>(in.data.data() + *in_bytes_read));
   m_stream.next_in = in_ptr;
-  m_stream.avail_in = clamped_cast(in.bytes_written - *in_bytes_read);
+  m_stream.avail_in = MathUtil::SaturatingCast<u32>(in.bytes_written - *in_bytes_read);
 
   char* const out_ptr = reinterpret_cast<char*>(out->data.data() + out->bytes_written);
   m_stream.next_out = out_ptr;
-  m_stream.avail_out = clamped_cast(out->data.size() - out->bytes_written);
+  m_stream.avail_out = MathUtil::SaturatingCast<u32>(out->data.size() - out->bytes_written);
 
   const int result = BZ2_bzDecompress(&m_stream);
 
@@ -440,10 +432,7 @@ bool RVZPackDecompressor::Done() const
 
 Compressor::~Compressor() = default;
 
-PurgeCompressor::PurgeCompressor()
-{
-  mbedtls_sha1_init(&m_sha1_context);
-}
+PurgeCompressor::PurgeCompressor() = default;
 
 PurgeCompressor::~PurgeCompressor() = default;
 
@@ -452,14 +441,14 @@ bool PurgeCompressor::Start(std::optional<u64> size)
   m_buffer.clear();
   m_bytes_written = 0;
 
-  mbedtls_sha1_starts_ret(&m_sha1_context);
+  m_sha1_context = Common::SHA1::CreateContext();
 
   return true;
 }
 
 bool PurgeCompressor::AddPrecedingDataOnlyForPurgeHashing(const u8* data, size_t size)
 {
-  mbedtls_sha1_update_ret(&m_sha1_context, data, size);
+  m_sha1_context->Update(data, size);
   return true;
 }
 
@@ -470,7 +459,7 @@ bool PurgeCompressor::Compress(const u8* data, size_t size)
   ASSERT_MSG(DISCIO, m_bytes_written == 0,
              "Calling PurgeCompressor::Compress() twice is not supported");
 
-  m_buffer.resize(size + sizeof(PurgeSegment) + sizeof(SHA1));
+  m_buffer.resize(size + sizeof(PurgeSegment) + Common::SHA1::DIGEST_LEN);
 
   size_t bytes_read = 0;
 
@@ -522,10 +511,12 @@ bool PurgeCompressor::Compress(const u8* data, size_t size)
 
 bool PurgeCompressor::End()
 {
-  mbedtls_sha1_update_ret(&m_sha1_context, m_buffer.data(), m_bytes_written);
+  m_sha1_context->Update(m_buffer.data(), m_bytes_written);
 
-  mbedtls_sha1_finish_ret(&m_sha1_context, m_buffer.data() + m_bytes_written);
-  m_bytes_written += sizeof(SHA1);
+  const auto digest = m_sha1_context->Finish();
+  std::memcpy(m_buffer.data() + m_bytes_written, digest.data(), sizeof(digest));
+
+  m_bytes_written += sizeof(digest);
 
   ASSERT(m_bytes_written <= m_buffer.size());
 

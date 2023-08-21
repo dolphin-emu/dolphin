@@ -1,6 +1,7 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "InputCommon/ControllerInterface/Pipes/Pipes.h"
 
 #include <algorithm>
 #include <array>
@@ -14,10 +15,14 @@
 #include <sys/stat.h>
 #include <vector>
 
+#include <Core/Config/MainSettings.h>
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
+#include "Core/ConfigManager.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
-#include "InputCommon/ControllerInterface/Pipes/Pipes.h"
+
+// SLIPPITODO: Do we need to make this extern?
+bool g_need_input_for_frame;
 
 namespace ciface::Pipes
 {
@@ -48,15 +53,14 @@ void PopulateDevices()
   for (uint32_t i = 0; i < 4; i++)
   {
     std::string pipename = "\\\\.\\pipe\\slippibot" + std::to_string(i + 1);
-    pipes[i] = CreateNamedPipeA(
-      pipename.data(),              // pipe name
-      PIPE_ACCESS_INBOUND,          // read access, inward only
-      PIPE_TYPE_BYTE | PIPE_NOWAIT, // byte mode, nonblocking
-      1,                            // number of clients
-      256,                          // output buffer size
-      256,                          // input buffer size
-      0,                            // timeout value
-      NULL                          // security attributes
+    pipes[i] = CreateNamedPipeA(pipename.data(),               // pipe name
+                                PIPE_ACCESS_INBOUND,           // read access, inward only
+                                PIPE_TYPE_BYTE | PIPE_NOWAIT,  // byte mode, nonblocking
+                                1,                             // number of clients
+                                256,                           // output buffer size
+                                256,                           // input buffer size
+                                0,                             // timeout value
+                                NULL                           // security attributes
     );
 
     // We're in nonblocking mode, so this won't wait for clients
@@ -121,14 +125,8 @@ s32 PipeDevice::readFromPipe(PIPE_FD file_descriptor, char* in_buffer, size_t si
 
   u32 bytes_available = 0;
   DWORD bytesread = 0;
-  bool peek_success = PeekNamedPipe(
-    file_descriptor,
-    NULL,
-    0,
-    NULL,
-    (LPDWORD)&bytes_available,
-    NULL
-  );
+  bool peek_success =
+      PeekNamedPipe(file_descriptor, NULL, 0, NULL, (LPDWORD)&bytes_available, NULL);
 
   if (!peek_success && (GetLastError() == ERROR_BROKEN_PIPE))
   {
@@ -139,18 +137,28 @@ s32 PipeDevice::readFromPipe(PIPE_FD file_descriptor, char* in_buffer, size_t si
 
   if (peek_success && (bytes_available > 0))
   {
-    bool success = ReadFile(
-      file_descriptor,    // pipe handle
-      in_buffer,          // buffer to receive reply
-      (DWORD)std::min(bytes_available, (u32)size),        // size of buffer
-      &bytesread,         // number of bytes read
-      NULL);              // not overlapped
+    bool success = ReadFile(file_descriptor,                              // pipe handle
+                            in_buffer,                                    // buffer to receive reply
+                            (DWORD)std::min(bytes_available, (u32)size),  // size of buffer
+                            &bytesread,                                   // number of bytes read
+                            NULL);                                        // not overlapped
     if (!success)
     {
       return -1;
     }
   }
   return (s32)bytesread;
+#ifndef _WIN32
+  if (SConfig::GetInstance().m_blockingPipes)
+  {
+    fd_set set;
+    FD_ZERO(&set);
+    FD_SET(file_descriptor, &set);
+
+    // Wait for activity on the socket
+    select(1, &set, NULL, NULL, NULL);
+  }
+#endif
 #else
   return read(file_descriptor, in_buffer, size);
 #endif
@@ -158,23 +166,32 @@ s32 PipeDevice::readFromPipe(PIPE_FD file_descriptor, char* in_buffer, size_t si
 
 void PipeDevice::UpdateInput()
 {
-  // Read any pending characters off the pipe. If we hit a newline,
-  // then dequeue a command off the front of m_buf and parse it.
-  char buf[32];
-  s32 bytes_read = readFromPipe(m_fd, buf, sizeof buf);
-  while (bytes_read > 0)
+  bool finished = false;
+  do
   {
-    m_buf.append(buf, bytes_read);
-    bytes_read = readFromPipe(m_fd, buf, sizeof buf);
-  }
-  std::size_t newline = m_buf.find("\n");
-  while (newline != std::string::npos)
-  {
-    std::string command = m_buf.substr(0, newline);
-    ParseCommand(command);
-    m_buf.erase(0, newline + 1);
-    newline = m_buf.find("\n");
-  }
+    // Read any pending characters off the pipe. If we hit a newline,
+    // then dequeue a command off the front of m_buf and parse it.
+    char buf[32];
+    s32 bytes_read = readFromPipe(m_fd, buf, sizeof buf);
+    if (bytes_read == 0)
+    {
+      // Pipe died, so just quit out
+      return;
+    }
+    while (bytes_read > 0)
+    {
+      m_buf.append(buf, bytes_read);
+      bytes_read = readFromPipe(m_fd, buf, sizeof buf);
+    }
+    std::size_t newline = m_buf.find("\n");
+    while (newline != std::string::npos)
+    {
+      std::string command = m_buf.substr(0, newline);
+      ParseCommand(command);
+      m_buf.erase(0, newline + 1);
+      newline = m_buf.find("\n");
+    }
+  } while (!finished && Config::Get(Config::SLIPPI_BLOCKING_PIPES));
 }
 
 void PipeDevice::AddAxis(const std::string& name, double value)
@@ -202,11 +219,16 @@ void PipeDevice::SetAxis(const std::string& entry, double value)
     search_lo->second->SetState(lo);
 }
 
-void PipeDevice::ParseCommand(const std::string& command)
+bool PipeDevice::ParseCommand(const std::string& command)
 {
   const std::vector<std::string> tokens = SplitString(command, ' ');
   if (tokens.size() < 2 || tokens.size() > 4)
-    return;
+    return false;
+  if (tokens[0] == "FLUSH")
+  {
+    g_need_input_for_frame = false;
+    return true;
+  }
   if (tokens[0] == "PRESS" || tokens[0] == "RELEASE")
   {
     auto search = m_buttons.find(tokens[1]);
@@ -228,5 +250,6 @@ void PipeDevice::ParseCommand(const std::string& command)
       SetAxis(tokens[1] + " Y", y);
     }
   }
+  return false;
 }
 }  // namespace ciface::Pipes

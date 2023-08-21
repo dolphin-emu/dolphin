@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ExternalsDir)discord-rpc\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)discord-rpc\src\discord-rpc.vcxproj">
+      <Project>{4482fd2a-ec43-3ffb-ac20-2e5c54b05ead}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

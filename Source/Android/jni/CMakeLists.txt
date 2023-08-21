@@ -1,10 +1,34 @@
 add_library(main SHARED
+  Cheats/ARCheat.cpp
+  Cheats/Cheats.h
+  Cheats/GeckoCheat.cpp
+  Cheats/GraphicsMod.cpp
+  Cheats/GraphicsModGroup.cpp
+  Cheats/PatchCheat.cpp
+  Config/NativeConfig.cpp
+  Config/PostProcessing.cpp
   GameList/GameFile.cpp
   GameList/GameFile.h
   GameList/GameFileCache.cpp
+  Input/Control.cpp
+  Input/Control.h
+  Input/ControlGroup.cpp
+  Input/ControlGroup.h
+  Input/ControlReference.cpp
+  Input/ControlReference.h
+  Input/CoreDevice.cpp
+  Input/CoreDevice.h
+  Input/EmulatedController.cpp
+  Input/EmulatedController.h
+  Input/InputOverrider.cpp
+  Input/MappingCommon.cpp
+  Input/NumericSetting.cpp
+  Input/NumericSetting.h
   IniFile.cpp
   MainAndroid.cpp
-  NativeConfig.cpp
+  RiivolutionPatches.cpp
+  SkylanderConfig.cpp
+  WiiUtils.cpp
 )
 
 target_link_libraries(main
@@ -12,6 +36,7 @@ PRIVATE
   androidcommon
   common
   core
+  inputcommon
   uicommon
 )
 

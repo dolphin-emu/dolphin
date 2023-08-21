@@ -1,13 +1,14 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "DolphinQt/Config/Mapping/GCKeyboardEmu.h"
 
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
+#include <QLabel>
+#include <QStyle>
 #include <QVBoxLayout>
-
-#include "DolphinQt/Config/Mapping/GCKeyboardEmu.h"
 
 #include "InputCommon/InputConfig.h"
 
@@ -21,26 +22,32 @@ GCKeyboardEmu::GCKeyboardEmu(MappingWindow* window) : MappingWidget(window)
 
 void GCKeyboardEmu::CreateMainLayout()
 {
-  m_main_layout = new QHBoxLayout();
+  const auto vbox_layout = new QVBoxLayout;
 
-  m_main_layout->addWidget(
-      CreateGroupBox(QString{}, Keyboard::GetGroup(GetPort(), KeyboardGroup::Kb0x)));
-  m_main_layout->addWidget(
-      CreateGroupBox(QString{}, Keyboard::GetGroup(GetPort(), KeyboardGroup::Kb1x)));
-  m_main_layout->addWidget(
-      CreateGroupBox(QString{}, Keyboard::GetGroup(GetPort(), KeyboardGroup::Kb2x)));
-  m_main_layout->addWidget(
-      CreateGroupBox(QString{}, Keyboard::GetGroup(GetPort(), KeyboardGroup::Kb3x)));
-  m_main_layout->addWidget(
-      CreateGroupBox(QString{}, Keyboard::GetGroup(GetPort(), KeyboardGroup::Kb4x)));
+  const auto warning_layout = new QHBoxLayout;
+  vbox_layout->addLayout(warning_layout);
 
-  auto* vbox_layout = new QVBoxLayout();
-  vbox_layout->addWidget(
-      CreateGroupBox(QString{}, Keyboard::GetGroup(GetPort(), KeyboardGroup::Kb5x)));
+  const auto warning_icon = new QLabel;
+  const auto size = QFontMetrics(font()).height() * 3 / 2;
+  warning_icon->setPixmap(style()->standardIcon(QStyle::SP_MessageBoxWarning).pixmap(size, size));
+  warning_layout->addWidget(warning_icon);
 
-  m_main_layout->addLayout(vbox_layout);
+  const auto warning_text =
+      new QLabel(tr("You are configuring a \"Keyboard Controller\". "
+                    "This device is exclusively for \"Phantasy Star Online Episode I & II\". "
+                    "If you are unsure, turn back now and configure a \"Standard Controller\"."));
+  warning_text->setWordWrap(true);
+  warning_layout->addWidget(warning_text, 1);
 
-  setLayout(m_main_layout);
+  const auto layout = new QHBoxLayout;
+
+  using KG = KeyboardGroup;
+  for (auto kbg : {KG::Kb0x, KG::Kb1x, KG::Kb2x, KG::Kb3x, KG::Kb4x, KG::Kb5x})
+    layout->addWidget(CreateGroupBox(QString{}, Keyboard::GetGroup(GetPort(), kbg)));
+
+  vbox_layout->addLayout(layout);
+
+  setLayout(vbox_layout);
 }
 
 void GCKeyboardEmu::LoadSettings()

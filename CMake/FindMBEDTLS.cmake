@@ -10,7 +10,7 @@ set(MBEDTLS_LIBRARIES ${MBEDTLS_LIBRARY} ${MBEDX509_LIBRARY} ${MBEDCRYPTO_LIBRAR
 set(CMAKE_REQUIRED_INCLUDES ${MBEDTLS_INCLUDE_DIRS})
 check_cxx_source_compiles("
 	#include <mbedtls/version.h>
-	#if MBEDTLS_VERSION_NUMBER < 0x02040000
+	#if MBEDTLS_VERSION_NUMBER < 0x021C0000
 	#error \"Your mbed TLS version is too old.\"
 	#endif
 	int main() {}"

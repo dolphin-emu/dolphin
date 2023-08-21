@@ -1,0 +1,1 @@
+Replace GALE01r2.ini in this directory with whatever build type you're doing

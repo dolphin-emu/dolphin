@@ -1,6 +1,5 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/IOS/Network/NCD/WiiNetConfig.h"
 
@@ -13,6 +12,7 @@
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/Uids.h"
+#include "Core/System.h"
 
 namespace IOS::HLE::Net
 {
@@ -54,11 +54,15 @@ void WiiNetConfig::ResetConfig(FS::FileSystem* fs)
 
 void WiiNetConfig::WriteToMem(const u32 address) const
 {
-  Memory::CopyToEmu(address, &m_data, sizeof(m_data));
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  memory.CopyToEmu(address, &m_data, sizeof(m_data));
 }
 
 void WiiNetConfig::ReadFromMem(const u32 address)
 {
-  Memory::CopyFromEmu(&m_data, address, sizeof(m_data));
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  memory.CopyFromEmu(&m_data, address, sizeof(m_data));
 }
 }  // namespace IOS::HLE::Net

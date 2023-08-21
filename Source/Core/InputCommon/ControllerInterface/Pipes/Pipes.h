@@ -1,6 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -12,6 +11,8 @@
 #else
 #include <unistd.h>
 #endif
+
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace ciface::Pipes
 {
@@ -57,7 +58,7 @@ private:
   };
 
   void AddAxis(const std::string& name, double value);
-  void ParseCommand(const std::string& command);
+  bool ParseCommand(const std::string& command);
   void SetAxis(const std::string& entry, double value);
   s32 readFromPipe(PIPE_FD file_descriptor, char* in_buffer, size_t size);
 

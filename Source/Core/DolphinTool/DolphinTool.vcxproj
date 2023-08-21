@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <Import Project="..\..\VSProps\Base.Macros.props" />
+  <Import Project="$(VSPropsDir)Base.Targets.props" />
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{8F91523C-5C5E-4B22-A1F1-67560B6DC714}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <Import Project="$(VSPropsDir)Configuration.Application.props" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VSPropsDir)Base.props" />
+    <Import Project="$(VSPropsDir)Base.Dolphin.props" />
+    <Import Project="$(VSPropsDir)PCHUse.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemGroup>
+    <ProjectReference Include="$(CoreDir)DolphinLib.vcxproj">
+      <Project>{D79392F7-06D6-4B4B-A39F-4D587C215D3A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)Common\SCMRevGen.vcxproj">
+      <Project>{41279555-f94f-4ebc-99de-af863c10c5c4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(DolphinRootDir)Languages\Languages.vcxproj">
+      <Project>{0e033be3-2e08-428e-9ae9-bc673efa12b5}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ConvertCommand.cpp" />
+    <ClCompile Include="VerifyCommand.cpp" />
+    <ClCompile Include="HeaderCommand.cpp" />
+    <ClCompile Include="ToolHeadlessPlatform.cpp" />
+    <ClCompile Include="ToolMain.cpp" />
+  </ItemGroup>
+  <Import Project="$(ExternalsDir)bzip2\exports.props" />
+  <Import Project="$(ExternalsDir)cpp-optparse\exports.props" />
+  <Import Project="$(ExternalsDir)fmt\exports.props" />
+  <Import Project="$(ExternalsDir)liblzma\exports.props" />
+  <Import Project="$(ExternalsDir)mbedtls\exports.props" />
+  <Import Project="$(ExternalsDir)zstd\exports.props" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <!--Copy the .exe to binary output folder-->
+  <ItemGroup>
+    <SourceFiles Include="$(TargetPath)" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Command.h" />
+    <ClInclude Include="ConvertCommand.h" />
+    <ClInclude Include="VerifyCommand.h" />
+    <ClInclude Include="HeaderCommand.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="DolphinTool.exe.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="DolphinTool.rc" />
+  </ItemGroup>
+  <Target Name="AfterBuild" Inputs="@(SourceFiles)" Outputs="@(SourceFiles -> '$(BinaryOutputDir)%(Filename)%(Extension)')">
+    <Message Text="Copy: @(SourceFiles) -&gt; $(BinaryOutputDir)" Importance="High" />
+    <Copy SourceFiles="@(SourceFiles)" DestinationFolder="$(BinaryOutputDir)" />
+  </Target>
+</Project>

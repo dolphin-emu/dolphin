@@ -1,6 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/GCMemcard/GCMemcardRaw.h"
 
@@ -16,25 +15,29 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
 #include "Common/FileUtil.h"
+#include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
 
+#include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
 #include "Core/HW/Sram.h"
+#include "Core/System.h"
 
 #define SIZE_TO_Mb (1024 * 8 * 16)
 #define MC_HDR_SIZE 0xA000
 
-MemoryCard::MemoryCard(const std::string& filename, int card_index, u16 size_mbits)
-    : MemoryCardBase(card_index, size_mbits), m_filename(filename)
+MemoryCard::MemoryCard(const std::string& filename, ExpansionInterface::Slot card_slot,
+                       u16 size_mbits)
+    : MemoryCardBase(card_slot, size_mbits), m_filename(filename)
 {
   File::IOFile file(m_filename, "rb");
   if (file)
@@ -57,10 +60,11 @@ MemoryCard::MemoryCard(const std::string& filename, int card_index, u16 size_mbi
     m_memcard_data = std::make_unique<u8[]>(m_memory_card_size);
 
     // Fills in the first 5 blocks (MC_HDR_SIZE bytes)
-    const CardFlashId& flash_id = g_SRAM.settings_ex.flash_id[Memcard::SLOT_A];
+    auto& sram = Core::System::GetInstance().GetSRAM();
+    const CardFlashId& flash_id = sram.settings_ex.flash_id[Memcard::SLOT_A];
     const bool shift_jis = m_filename.find(".JAP.raw") != std::string::npos;
-    const u32 rtc_bias = g_SRAM.settings.rtc_bias;
-    const u32 sram_language = static_cast<u32>(g_SRAM.settings.language);
+    const u32 rtc_bias = sram.settings.rtc_bias;
+    const u32 sram_language = static_cast<u32>(sram.settings.language);
     const u64 format_time =
         Common::Timer::GetLocalTimeSinceJan1970() - ExpansionInterface::CEXIIPL::GC_EPOCH;
     Memcard::GCMemcard::Format(&m_memcard_data[0], flash_id, size_mbits, shift_jis, rtc_bias,
@@ -88,61 +92,14 @@ MemoryCard::~MemoryCard()
   }
 }
 
-void MemoryCard::CheckPath(std::string& memcardPath, const std::string& gameRegion, bool isSlotA)
-{
-  std::string ext("." + gameRegion + ".raw");
-  if (memcardPath.empty())
-  {
-    // Use default memcard path if there is no user defined name
-    std::string defaultFilename = isSlotA ? GC_MEMCARDA : GC_MEMCARDB;
-    memcardPath = File::GetUserPath(D_GCUSER_IDX) + defaultFilename + ext;
-  }
-  else
-  {
-    std::string filename = memcardPath;
-    std::string region = filename.substr(filename.size() - 7, 3);
-    bool hasregion = false;
-    hasregion |= region.compare(USA_DIR) == 0;
-    hasregion |= region.compare(JAP_DIR) == 0;
-    hasregion |= region.compare(EUR_DIR) == 0;
-    if (!hasregion)
-    {
-      // filename doesn't have region in the extension
-      if (File::Exists(filename))
-      {
-        // If the old file exists we are polite and ask if we should copy it
-        std::string oldFilename = filename;
-        filename.replace(filename.size() - 4, 4, ext);
-        if (PanicYesNoFmtT("Memory Card filename in Slot {0} is incorrect\n"
-                           "Region not specified\n\n"
-                           "Slot {1} path was changed to\n"
-                           "{2}\n"
-                           "Would you like to copy the old file to this new location?\n",
-                           isSlotA ? 'A' : 'B', isSlotA ? 'A' : 'B', filename))
-        {
-          if (!File::Copy(oldFilename, filename))
-            PanicAlertFmtT("Copy failed");
-        }
-      }
-      memcardPath = filename;  // Always correct the path!
-    }
-    else if (region.compare(gameRegion) != 0)
-    {
-      // filename has region, but it's not == gameRegion
-      // Just set the correct filename, the EXI Device will create it if it doesn't exist
-      memcardPath = filename.replace(filename.size() - ext.size(), ext.size(), ext);
-    }
-  }
-}
-
 void MemoryCard::FlushThread()
 {
-  if (!SConfig::GetInstance().bEnableMemcardSdWriting)
+  if (!Config::Get(Config::SESSION_SAVE_DATA_WRITABLE))
   {
     return;
   }
 
-  Common::SetCurrentThreadName(fmt::format("Memcard {} flushing thread", m_card_index).c_str());
+  Common::SetCurrentThreadName(fmt::format("Memcard {} flushing thread", m_card_slot).c_str());
 
   const auto flush_interval = std::chrono::seconds(15);
 
@@ -191,7 +148,7 @@ void MemoryCard::FlushThread()
     }
 
     {
-      std::unique_lock<std::mutex> l(m_flush_mutex);
+      std::unique_lock l(m_flush_mutex);
       memcpy(&m_flush_buffer[0], &m_memcard_data[0], m_memory_card_size);
     }
     file.WriteBytes(&m_flush_buffer[0], m_memory_card_size);
@@ -199,9 +156,9 @@ void MemoryCard::FlushThread()
     if (do_exit)
       return;
 
-    Core::DisplayMessage(
-        fmt::format("Wrote memory card {} contents to {}", m_card_index ? 'B' : 'A', m_filename),
-        4000);
+    Core::DisplayMessage(fmt::format("Wrote to Memory Card {}",
+                                     m_card_slot == ExpansionInterface::Slot::A ? 'A' : 'B'),
+                         4000);
   }
 }
 
@@ -232,7 +189,7 @@ s32 MemoryCard::Write(u32 dest_address, s32 length, const u8* src_address)
   }
 
   {
-    std::unique_lock<std::mutex> l(m_flush_mutex);
+    std::unique_lock l(m_flush_mutex);
     memcpy(&m_memcard_data[dest_address], src_address, length);
   }
   MakeDirty();
@@ -248,7 +205,7 @@ void MemoryCard::ClearBlock(u32 address)
   }
   else
   {
-    std::unique_lock<std::mutex> l(m_flush_mutex);
+    std::unique_lock l(m_flush_mutex);
     memset(&m_memcard_data[address], 0xFF, Memcard::BLOCK_SIZE);
   }
   MakeDirty();
@@ -257,7 +214,7 @@ void MemoryCard::ClearBlock(u32 address)
 void MemoryCard::ClearAll()
 {
   {
-    std::unique_lock<std::mutex> l(m_flush_mutex);
+    std::unique_lock l(m_flush_mutex);
     memset(&m_memcard_data[0], 0xFF, m_memory_card_size);
   }
   MakeDirty();
@@ -265,7 +222,7 @@ void MemoryCard::ClearAll()
 
 void MemoryCard::DoState(PointerWrap& p)
 {
-  p.Do(m_card_index);
+  p.Do(m_card_slot);
   p.Do(m_memory_card_size);
   p.DoArray(&m_memcard_data[0], m_memory_card_size);
 }

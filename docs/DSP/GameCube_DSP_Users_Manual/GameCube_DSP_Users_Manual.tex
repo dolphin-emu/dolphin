@@ -46,10 +46,10 @@
 % Document front page material
 \title{\textbf{\Huge GameCube DSP User's Manual}}
 \author{Reverse-engineered and documented by Duddie \\ \href{mailto:duddie@walla.com}{duddie@walla.com}}
-\date{\today\\v0.0.6}
+\date{\today\\v0.1.5}
 
 % Title formatting commands
-\newcommand{\OpcodeTitle}[1]{\subsection{\textbf{\Large #1}}}
+\newcommand{\OpcodeTitle}[1]{\subsection{#1}\label{instruction:#1}}
 
 % Formatting/self-documenting commands
 \newcommand{\Address}[1]{\texttt{#1}}
@@ -58,7 +58,7 @@
 \newcommand{\Flag}[1]{\texttt{#1}}
 \newcommand{\Function}[1]{\texttt{#1}}
 \newcommand{\InlineExpression}[1]{\texttt{#1}}
-\newcommand{\Opcode}[1]{\texttt{#1}}
+\newcommand{\Opcode}[1]{\texttt{\nameref{instruction:#1}}}
 \newcommand{\Register}[1]{\texttt{#1}}
 \newcommand{\RegisterField}[1]{\texttt{#1}}
 \newcommand{\Value}[1]{\texttt{#1}}
@@ -72,10 +72,10 @@
 \newcommand{\RegisterBitOverview}[4]{
   \begin{table}[H]
   \centering
-  \begin{tabular}{|lcl|}
+  \begin{tabular}{|lcr|}
   \hline
-  \Address{#1} & \Register{#2} & \multicolumn{1}{r|}{#3} \\ \hline
-               & \texttt{#4}   &                         \\ \hline
+  \Address{#1} & \Register{#2} & {#3} \\ \hline
+  \multicolumn{3}{|c|}{\texttt{#4}}   \\ \hline
   \end{tabular}
   \end{table}
 }
@@ -178,7 +178,7 @@
 {
 }
 
-% Environment for describing a not for a DSP opcode
+% Environment for describing a note for a DSP opcode
 \newenvironment{DSPOpcodeNote}
 {
   \textbf{Note:}
@@ -197,6 +197,23 @@
 {
   \end{description}
 }
+
+% Command to show flags.
+\newcommand{\DSPOpcodeFlags}[8]
+{
+  \textbf{Flags:}
+  \begin{description}
+  \item \begin{tabular}{|c|c|c|c|c|c|c|c|}
+    \hline
+    OS & LZ & TB & S32 & S  & AZ & O  & C \\
+    \hline
+    #1 & #2 & #3 & #4  & #5 & #6 & #7 & #8 \\
+    \hline
+  \end{tabular}
+  \end{description}
+}
+
+\newcommand{\DSPOpcodeFlagsUnchanged}[0]{\DSPOpcodeFlags{-}{-}{-}{-}{-}{-}{-}{-}}
 
 \makeatother
 \begin{document}
@@ -230,7 +247,7 @@ The purpose of this documentation is purely academic and it aims at understandin
 
 \begin{table}[htb]
 \centering
-\begin{tabular}{|l|l|l|l|}
+\begin{tabular}{|p{.5in}|p{.75in}|p{.75in}|p{3.5in}|}
 \hline
 \textbf{Version} & \textbf{Date} & \textbf{Author} & \textbf{Change}                                                                          \\ \hline
 0.0.1            & 2005.05.08    & Duddie          & Initial release                                                                          \\ \hline
@@ -239,6 +256,13 @@ The purpose of this documentation is purely academic and it aims at understandin
 0.0.4            & 2005.05.12    & Duddie          & Added preliminary DSP memory map and opcode syntax.                                      \\ \hline
 0.0.5            & 2018.04.09    & Lioncache       & Converted document over to LaTeX.                                                        \\ \hline
 0.0.6            & 2018.04.13    & BhaaL           & Updated register tables, fixed opcode operations                                         \\ \hline
+0.0.7            & Mid 2020      & Tilka           & Fixed typos and register names, and improved readability.                                \\ \hline
+0.1.0            & 2021.08.21    & Pokechu22       & Added missing instructions, improved documentation of hardware registers, documented additional behaviors, and improved formatting. \\ \hline
+0.1.1            & 2022.05.14    & xperia64        & Added tested DSP bootloading transfer size                                               \\ \hline
+0.1.2            & 2022.05.21    & Pokechu22       & Fixed ``ILLR'' typo in Instruction Memory section                                        \\ \hline
+0.1.3            & 2022.05.27    & Pokechu22       & Renamed \texttt{CMPAR} instruction to \texttt{CMPAXH}                                    \\ \hline
+0.1.4            & 2022.06.02    & Pokechu22       & Fixed typos; added sections on 16-bit and 40-bit modes and on main and extended opcode writing to the same register. \\ \hline
+0.1.5            & 2022.09.29    & vpelletier      & Fixed \texttt{BLOOP} and \texttt{BLOOPI} suboperation order \\ \hline
 \end{tabular}
 \end{table}
 
@@ -371,13 +395,14 @@ Each version of the License is given a distinguishing version number. If the Doc
 
 \section{DSP Memory Map}
 
-The DSP accesses memory in words, so all addresses refer to words. A DSP word is 16 bits in size.
+The DSP has two address spaces, one for data and one for instructions.  The DSP accesses memory in words, so all addresses refer to words. A DSP word is 16 bits in size.
 
+\subsection{Instruction Memory}
 Instruction Memory (IMEM) is divided into instruction RAM (IRAM) and instruction ROM (IROM).
 
-Exception vectors are located at the top of the RAM and occupy the first 8 words.
+Exception vectors are located at the top of the RAM and occupy the first 16 words, with 2 words available for each exception (enough for a \Opcode{JMP} instruction for each exception).
 
-DSP IRAM is mapped through as first 8KB of ARAM (Accelerator RAM), therefore the CPU can DMA DSP code to DSP IRAM. This usually occurs during boot time, as the DSP ROM is not enabled at cold reset and needs to be reenabled by a small stub executed in IRAM.
+There are no DSP instructions that write to IMEM; however, the \Opcode{ILRR} family of instructions can read from it.  This is sometimes used for jump tables or indexing into a list of pointers (which may point into either IMEM or DMEM).
 
 \begin{table}[htb]
 \centering
@@ -388,6 +413,42 @@ DSP IRAM is mapped through as first 8KB of ARAM (Accelerator RAM), therefore the
 \begin{tabular}[c]{@{}l@{}}\texttt{0x8000}\\ \\ \\ \\ \\ \\ \\ \\ \texttt{0x8FFF}\end{tabular} & \texttt{IROM} \\ \hline
 \end{tabular}
 \end{table}
+
+\pagebreak{}
+
+\subsection{Data Memory}
+Data Memory (DMEM) is divided into data RAM (DRAM) and resampling coefficient data (COEF).  Hardware registers (IFX) are also mapped into this space.
+
+It is possible to both read and write to DMEM, but coefficient data cannot be written to.
+
+\begin{table}[htb]
+\centering
+\begin{tabular}{|l|l|}
+\hline
+\begin{tabular}[c]{@{}l@{}}\texttt{0x0000}\\ \\ \\ \\ \\ \\ \\ \\ \texttt{0x0FFF}\end{tabular} & \texttt{DRAM} \\ \hline
+ &  \\ \hline
+\begin{tabular}[c]{@{}l@{}}\texttt{0x1000}\\ \\ \\ \\ \\ \\ \\ \\ \texttt{0x17FF}\end{tabular} & \texttt{COEF} \\ \hline
+ &  \\ \hline
+\begin{tabular}[c]{@{}l@{}}\texttt{0xFF00}\\ \\ \\ \\\\ \\ \\ \\  \texttt{0xFFFF}\end{tabular} & \texttt{IFX} \\ \hline
+\end{tabular}
+\end{table}
+
+\pagebreak{}
+
+\section{Initialization}
+
+The DSP is initialized before it is used.  This is done by copying a small program to physical address \Address{0x01000000} (virtual \Address{0x81000000}) in GameCube/Wii main memory, and then writing to \Register{DSP\_CONTROL\_STATUS} at \texttt{0xCC00500A} with the 11th and 0th bits set (SDK titles write \Value{0x08ad}).  The 11th bit being set appears to cause data from \Address{0x01000000} to be DMAd to the start of IMEM; a basic hardware test (sending increasingly larger payloads until they fail) indicates 1024 bytes of data (512 DSP words) are transferred.  (None of this has been extensively hardware tested, and is instead based on libogc's \Code{\_\_dsp\_bootstrap}.)
+
+The program that SDK titles send does the following:
+\begin{enumerate}
+\item Reads all \Value{0x1000} words of IROM from \Address{0x8000} through \Address{0x8FFF} (using \Opcode{ILRRI})
+\item Writes zero to all \Value{0x1000} words of DRAM from \Address{0x0000} through \Address{0x0FFF} (using \Opcode{SRRI})
+\item Reads all \Value{0x0800} words of COEF data from \Address{0x1000} through \Address{0x17FF} (using \Opcode{LRRI})
+\item Waits for the top bit of \Register{DMBH} to be clear (indicating the CPU is ready to receive mail)
+\item Writes \Value{0x0054} to \Register{DMBH} and \Value{0x4348} to \Register{DMBL}, sending \Value{0x00543448} (``TCH''?) to the CPU.  The CPU does not check for this value, but it does wait for mail to be sent.
+\end{enumerate}
+
+It is not clear why this is done, as the values read from IROM and COEF are not used; perhaps it works around a hardware bug where incorrect values are read from ROM initially.
 
 \pagebreak{}
 
@@ -442,7 +503,11 @@ The DSP has 32 16-bit registers, although their individual purpose and their fun
 The DSP has two long 40-bit accumulators (\Register{\$acX}) and their short 24-bit forms (\Register{\$acsX}) that reflect the
 upper part of 40-bit accumulator. There are additional two 32-bit accumulators (\Register{\$axX}).
 
-\textbf{Accumulators \Register{\$acX}:}
+The high parts of the 40-bit accumulators (\Register{acX.h}) are sign-extended 8-bit registers.  Writes to the upper 8 bits are ignored,
+and the upper 8 bits read the same as the 7th bit.  For instance, \Value{0x007F} reads back as \Value{0x007F}, but \Value{0x0080} reads
+back as \Value{0xFF80}.
+
+\subsection{Accumulators \Register{\$acX}}
 
 40-bit accumulator \Register{\$acX} (\Register{\$acX.hml}) consists of registers:
 
@@ -450,7 +515,7 @@ upper part of 40-bit accumulator. There are additional two 32-bit accumulators (
 $acX = $acX.h << 32 | $acX.m << 16 | $acX.l
 \end{lstlisting}
 
-\textbf{Short accumulators \Register{\$acs.X}:}
+\subsection{Short accumulators \Register{\$acsX}}
 
 24-bit accumulator \Register{\$acsX} (\Register{\$acX.hm}) consists of the upper 24 bits of accumulator \Register{\$acX}.
 
@@ -458,11 +523,29 @@ $acX = $acX.h << 32 | $acX.m << 16 | $acX.l
 $acsX = $acX.h << 16 | $acX.m
 \end{lstlisting}
 
-\textbf{Additional accumulators \Register{\$axX}:}
+\subsection{Additional accumulators \Register{\$axX}}
+
+32-bit accumulators \Register{\$axX} (\Register{\$axX.hl}) consist of registers:
 
 \begin{lstlisting}[language=C++]
 $axX = $axX.h << 16 | $axX.l
 \end{lstlisting}
+
+\subsection{16-bit and 40-bit modes}\label{subsec:SET40}
+
+Depending on the value of \RegisterField{\$sr.SXM} (bit 14), loading to \Register{\$acX.m} may also update \Register{\$acX.h} and \Register{\$acX.l}, and stores from \Register{\$acX.m} may experience saturation based on \Register{\$acX.h}. Regardless of the value of \RegisterField{\$sr.SXM}, arithmetic operations such as \Opcode{ADDI}, \Opcode{INCM}, \Opcode{MOVR}, and \Opcode{LSRN} will still affect the entire accumulator.
+
+If \RegisterField{\$sr.SXM} is set to 0, then 16-bit mode (\Opcode{SET16}) is in use. Loads to \Register{\$acX.m} will only change \Register{\$acX.m}, and storing \Register{\$acX.m} will use the value directly contained in \Register{\$acX.m}; the same applies to loads to and stores from \Register{\$acX.h} or \Register{\$acX.l} or any other register.
+
+If \RegisterField{\$sr.SXM} is set to 1, then 40-bit mode (\Opcode{SET40}) is in use. Loads to \Register{\$acX.m} will set \Register{\$acX.l} to 0 and will sign-extend into \Register{\$acX.h} (setting it to \Value{0xFF} if the sign bit is set (\InlineExpression{\$acX.m \& 0x8000 != 0}), and to 0 otherwise).  This means that in 40-bit mode, loads to \Register{\$acX.m} are effectively loads to the whole accumulator \Register{\$acX}. Loads to \Register{\$acX.h} and \Register{\$acX.l} do not have this special behavior; they only modify the specified register (as in 16-bit mode).
+
+Additionally, if \RegisterField{\$sr.SXM} is set to 1, then moving or storing from \Register{\$acX.m} may instead result in \Value{0x7fff} or \Value{0x8000} being used. This happens if \Register{\$acX.hml} is not the same as sign-extending \Register{\$acX.ml}; \Value{0x7fff} is used if \Register{\$acX} is positive and \Value{0x8000} is used if \Register{\$acX} is negative.
+
+The conditions for this saturation are the same as the conditions for \RegisterField{\$sr.AS} (bit 4, above s32) to be set when flags are updated. (This does not mean that the saturation happens if and only if \RegisterField{\$sr.AS} is set, as the flags might have been set after an operation on a different register.)
+
+The following instructions perform sign-extension when writing to \Register{\$acX.m}: \Opcode{ILRR}, \Opcode{ILRRD}, \Opcode{ILRRI}, and \Opcode{ILRRN}; \Opcode{LR}; \Opcode{LRI}; \Opcode{LRIS}; \Opcode{LRR}, \Opcode{LRRD}, \Opcode{LRRI}, and \Opcode{LRRN}; \Opcode{LRS}; \Opcode{MRR}; and \Opcode{'L} and \Opcode{'LN}.
+
+The following instructions experience saturation when reading from \Register{\$acX.m}: \Opcode{BLOOP}; \Opcode{LOOP}; \Opcode{MRR}; \Opcode{SR}; \Opcode{SRR}, \Opcode{SRRD}, \Opcode{SRRI}, and \Opcode{SRRN}; \Opcode{SRS}; \Opcode{'LS}, \Opcode{'LSM}, \Opcode{'LSM}, and \Opcode{'LSNM}; \Opcode{'MV}; \Opcode{'SL}, \Opcode{'SLM}, \Opcode{'SLN}, and \Opcode{'SLNM}; and \Opcode{'S} and \Opcode{'SN}.
 
 \pagebreak{}
 
@@ -490,7 +573,9 @@ If the value is not zero, then the PC is modified by the value from call stack \
 
 \section{Config register}
 
-Its purpose is unknown at this time. It is written with \Value{0x00FF} and \Value{0x0004} values.
+Serves as a base offset for \Opcode{SRS}, \Opcode{SRSH}, and \Opcode{LRS}.  Zelda uCode writes it with \Value{0x0004}, but otherwise it is usually \Value{0x00FF}.
+
+This is an 8-bit register.  Writes to the upper 8 bits are ignored and those bits always read back as 0.
 
 \pagebreak{}
 
@@ -504,17 +589,17 @@ Furthermore, it also contains control bits to configure the flow of certain oper
 \begin{tabular}{|l|l|l|}
 \hline
 \textbf{Bit} & \textbf{Name} & \textbf{Comment}                                              \\ \hline
-\texttt{15}  & \texttt{SU}   & Operands are signed (1 = unsigned)                            \\ \hline
-\texttt{14}  & \texttt{SXM}  & Sign extension mode (0 = \texttt{set16}, 1 = \texttt{set40})  \\ \hline
+\texttt{15}  & \texttt{SU}   & Multiplication operands are signed (1 = unsigned)             \\ \hline
+\texttt{14}  & \texttt{SXM}  & Sign extension mode (1 = 40-bit, see \nameref{subsec:SET40})  \\ \hline
 \texttt{13}  & \texttt{AM}   & Product multiply result by 2 (when \texttt{AM = 0})           \\ \hline
 \texttt{12}  &               &                                                               \\ \hline
 \texttt{11}  & \texttt{EIE}  & External interrupt enable                                     \\ \hline
 \texttt{10}  &               &                                                               \\ \hline
 \texttt{9}   & \texttt{IE}   & Interrupt enable                                              \\ \hline
-\texttt{8}   & \texttt{0}    & Hardwired to 0?                                               \\ \hline
+\texttt{8}   &               & Unknown, always reads back as 0                               \\ \hline
 \texttt{7}   & \texttt{OS}   & Overflow (sticky)                                             \\ \hline
-\texttt{6}   & \texttt{LZ}   & Logic zero                                                    \\ \hline
-\texttt{5}   &               & Top two bits are equal                                        \\ \hline
+\texttt{6}   & \texttt{LZ}   & Logic zero (used by \Opcode{ANDCF} and \Opcode{ANDF})         \\ \hline
+\texttt{5}   & \texttt{TB}   & Top two bits are equal                                        \\ \hline
 \texttt{4}   & \texttt{AS}   & Above s32                                                     \\ \hline
 \texttt{3}   & \texttt{S}    & Sign                                                          \\ \hline
 \texttt{2}   & \texttt{Z}    & Arithmetic zero                                               \\ \hline
@@ -528,7 +613,7 @@ Furthermore, it also contains control bits to configure the flow of certain oper
 \section{Product register}
 
 The product register is a register containing the intermediate product of a multiply or multiply and accumulation operation.
-It's result should never be used for calculation although the register can be read or written.
+Its result should never be used for calculation although the register can be read or written.
 It reflects the state of the internal multiply unit. The product is 40 bits with 1 bit of overflow.
 
 \begin{lstlisting}[language=C++]
@@ -539,6 +624,8 @@ It needs to be noted that \InlineExpression{\$prod.m1 + \$prod.m2} overflow bit 
 
 Bit \RegisterField{\$sr.AM} affects the result of the multiply unit.
 If \RegisterField{\$sr.AM} is equal 0 then the result of every multiply operation will be multiplied by two.
+
+\Register{prod.h} is 8 bits.  The upper 8 bits always read back as 0.
 
 \pagebreak{}
 
@@ -586,36 +673,206 @@ Exception vectors are located at address \Address{0x0000} in Instruction RAM.
 
 \section{Hardware registers}
 
-Hardware registers occupy the address space at \Address{0xFFxx} in DSP memory space. Each register is 16 bits in width.
+Hardware registers (IFX) occupy the address space at \Address{0xFFxx} in the Data Memory space. Each register is 16 bits in width.
 
 \begin{table}[htb]
 \centering
 \begin{tabular}{|l|l|l|}
 \hline
-\textbf{Address} & \textbf{Name}    & \textbf{Description}          \\ \hline
-\multicolumn{3}{|l|}{\textit{Mailboxes}}                            \\ \hline
-\Address{0xFFFE} & \Register{CMBH}  & CPU Mailbox H                 \\ \hline
-\Address{0xFFFF} & \Register{CMBL}  & CPU Mailbox L                 \\ \hline
-\Address{0xFFFC} & \Register{DMBH}  & DSP Mailbox H                 \\ \hline
-\Address{0xFFFD} & \Register{DMBL}  & DSP Mailbox L                 \\ \hline
-\multicolumn{3}{|l|}{\textit{DMA Interface}}                        \\ \hline
-\Address{0xFFCE} & \Register{DSMAH} & Memory address H              \\ \hline
-\Address{0xFFCF} & \Register{DSMAL} & Memory address L              \\ \hline
-\Address{0xFFCD} & \Register{DSPA}  & DSP memory address            \\ \hline
-\Address{0xFFC9} & \Register{DSCR}  & DMA control                   \\ \hline
-\Address{0xFFCB} & \Register{DSBL}  & Block size                    \\ \hline
-\multicolumn{3}{|l|}{\textit{Accelerator}}                          \\ \hline
-\Address{0xFFD4} & \Register{ACSAH} & Accelerator start address H   \\ \hline
-\Address{0xFFD5} & \Register{ACSAL} & Accelerator start address L   \\ \hline
-\Address{0xFFD6} & \Register{ACEAH} & Accelerator end address H     \\ \hline
-\Address{0xFFD7} & \Register{ACEAL} & Accelerator end address L     \\ \hline
-\Address{0xFFD8} & \Register{ACCAH} & Accelerator current address H \\ \hline
-\Address{0xFFD9} & \Register{ACCAL} & Accelerator current address L \\ \hline
-\Address{0xFFDD} & \Register{ACDAT} & Accelerator data              \\ \hline
-\multicolumn{3}{|l|}{\textit{Interrupts}}                           \\ \hline
-\Address{0xFFFB} & \Register{DIRQ}  & IRQ request                   \\ \hline
+\textbf{Address} & \textbf{Name}      & \textbf{Description}          \\ \hline
+\multicolumn{3}{|l|}{\textit{ADPCM Coefficients}}                     \\ \hline
+\Address{0xFFA0} & \Register{COEF\_A1\_0} & A1 Coefficient \# 0 \\ \hline
+\Address{0xFFA1} & \Register{COEF\_A2\_0} & A2 Coefficient \# 0 \\ \hline
+\multicolumn{3}{|c|}{$\vdots$}                                  \\ \hline
+\Address{0xFFAE} & \Register{COEF\_A1\_7} & A1 Coefficient \# 7 \\ \hline
+\Address{0xFFAF} & \Register{COEF\_A2\_7} & A2 Coefficient \# 7 \\ \hline
+\multicolumn{3}{|l|}{\textit{DMA Interface}}                          \\ \hline
+\Address{0xFFC9} & \Register{DSCR}    & DMA control                   \\ \hline
+\Address{0xFFCB} & \Register{DSBL}    & Block length                  \\ \hline
+\Address{0xFFCD} & \Register{DSPA}    & DSP memory address            \\ \hline
+\Address{0xFFCE} & \Register{DSMAH}   & Memory address H              \\ \hline
+\Address{0xFFCF} & \Register{DSMAL}   & Memory address L              \\ \hline
+\multicolumn{3}{|l|}{\textit{Accelerator}}                            \\ \hline
+\Address{0xFFD1} & \Register{FORMAT}  & Accelerator sample format     \\ \hline
+\Address{0xFFD2} & \Register{ACUNK1}  & Unknown, usually 3            \\ \hline
+\Address{0xFFD3} & \Register{ACDATA1} & Alternative ARAM interface    \\ \hline
+\Address{0xFFD4} & \Register{ACSAH}   & Accelerator start address H   \\ \hline
+\Address{0xFFD5} & \Register{ACSAL}   & Accelerator start address L   \\ \hline
+\Address{0xFFD6} & \Register{ACEAH}   & Accelerator end address H     \\ \hline
+\Address{0xFFD7} & \Register{ACEAL}   & Accelerator end address L     \\ \hline
+\Address{0xFFD8} & \Register{ACCAH}   & Accelerator current address H \\ \hline
+\Address{0xFFD9} & \Register{ACCAL}   & Accelerator current address L \\ \hline
+\Address{0xFFDA} & \Register{SCALE}   & ADPCM predictor and scale     \\ \hline
+\Address{0xFFDB} & \Register{YN1}     & ADPCM YN1                     \\ \hline
+\Address{0xFFDC} & \Register{YN2}     & ADPCM YN2                     \\ \hline
+\Address{0xFFDD} & \Register{ACDAT}   & Accelerator data              \\ \hline
+\Address{0xFFDE} & \Register{GAIN}    & Gain                          \\ \hline
+\Address{0xFFDF} & \Register{ACUNK2}  & Unknown, usually \Value{0x0C} \\ \hline
+\Address{0xFFED} & \Register{AMDM}    & ARAM DMA Request Mask         \\ \hline
+\multicolumn{3}{|l|}{\textit{Interrupts}}                             \\ \hline
+\Address{0xFFFB} & \Register{DIRQ}    & IRQ request                   \\ \hline
+\multicolumn{3}{|l|}{\textit{Mailboxes}}                              \\ \hline
+\Address{0xFFFC} & \Register{DMBH}    & DSP Mailbox H                 \\ \hline
+\Address{0xFFFD} & \Register{DMBL}    & DSP Mailbox L                 \\ \hline
+\Address{0xFFFE} & \Register{CMBH}    & CPU Mailbox H                 \\ \hline
+\Address{0xFFFF} & \Register{CMBL}    & CPU Mailbox L                 \\ \hline
 \end{tabular}
 \end{table}
+
+\pagebreak{}
+
+\section{DMA}
+
+The GameCube DSP is connected to the memory bus through a DMA channel. DMA can be used to transfer data between DSP memory (both instruction and data) and main memory.
+
+\RegisterBitOverview{0xFFC9}{DSCR}{DMA Control}{---- ---- ---- -tid}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{2}{t}{R}{Transfer currently in progress if set}
+\RegisterBitDescription{1}{i}{R/W}{\begin{tabular}[c]{@{}l@{}}\Value{1} - DMA to/from IMEM\\ \Value{0} - DMA to/from DMEM\end{tabular}}
+\RegisterBitDescription{0}{d}{R/W}{\begin{tabular}[c]{@{}l@{}}\Value{1} - DMA to CPU from DSP\\ \Value{0} - DMA from CPU to DSP\end{tabular}}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFCB}{DSBL}{Block length}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{W}{Length in bytes to transfer. Writing to this register starts a DMA transfer.}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFCD}{DSPA}{DSP Address}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R/W}{Bits 15--0 of the DSP memory address}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFCE}{DSMAH}{Memory Address H}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R/W}{Bits 31--16 of the main memory address}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFCF}{DSMAL}{Memory Address L}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R/W}{Bits 15--0 of the main memory address}
+\end{RegisterBitDescriptions}
+
+\pagebreak{}
+
+\section{Accelerator}
+
+The accelerator is used to transfer data from accelerator memory (ARAM) to DSP memory. The accelerator area can be marked with \Register{ACSA} (start) and \Register{ACEA} (end) addresses.
+Current address for the accelerator can be set or read from the \Register{ACCA} register. Reading from accelerator memory is done by reading from the \Register{ACDAT} register.
+This register contains data from ARAM pointed to by the \Register{ACCA} register.
+After reading the data, \Register{ACCA} is incremented by one.
+After \Register{ACCA} grows bigger than the area pointed to by \Register{ACEA}, it gets reset to a value from \Register{ACSA} and the \Exception{ACCOV} interrupt is generated.
+
+\RegisterBitOverview{0xFFD1}{FORMAT}{Accelerator sample format}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R/W}{\begin{tabular}[c]{@{}l@{}}
+\Value{0x00} - ADPCM audio \\
+\Value{0x05} - u8 reads (D3) \\
+\Value{0x06} - u16 reads (D3) \\
+\Value{0x0A} - 16-bit PCM audio, u16 writes (D3) \\
+\Value{0x19} - 8-bit PCM audio
+\end{tabular}}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFD2}{ACUNK1}{Unknown 1}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R/W}{Usually 3}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFD3}{ACDATA1}{Alternative ARAM interface}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R/W}{Reads from or writes to data pointed to by current accelerator address, and then increments the current address.  It is unclear whether this respects the start and end addresses.}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFD4}{ACSAH}{Accelerator Start Address H}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R/W}{Bits 31--16 of the accelerator start address}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFD5}{ACSAL}{Accelerator Start Address L}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R/W}{Bits 15--0 of the accelerator start address}
+\end{RegisterBitDescriptions}
+
+\pagebreak{}
+
+\RegisterBitOverview{0xFFD6}{ACEAH}{Accelerator End Address H}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R/W}{Bits 31--16 of the accelerator end address}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFD7}{ACEAL}{Accelerator End Address L}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R/W}{Bits 15--0 of the accelerator end address}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFD8}{ACCAH}{Accelerator Current Address H}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R/W}{Bits 31--16 of the accelerator current address}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFD9}{ACSAH}{Accelerator Current Address L}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R/W}{Bits 15--0 of the accelerator current address}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFDA}{SCALE}{ADPCM predictor and scale}{---- ---- -ppp ssss}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{6--4}{d}{R/W}{Used to decide which pair of coefficients to use (\Register{COEF\_A1\_p} and \Register{COEF\_A2\_p}, at $\Address{0xFFA0} + 2p$ and $\Address{0xFFA0} + 2p + 1$)}
+\RegisterBitDescription{3--0}{s}{R/W}{The scale to use, as $2^s$}
+\end{RegisterBitDescriptions}
+
+\pagebreak{}
+
+\RegisterBitOverview{0xFFDB}{YN1}{ADPCM YN1}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R/W}{Last value read by the accelerator, updated to the new value of \Register{ACDAT} when \Register{ACDAT} is read.  Used when calculating ADPCM, but updated for all sample formats.}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFDC}{YN1}{ADPCM YN2}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R/W}{Second-last value read by the accelerator, updated to the previous value of \Register{YN1} when \Register{ACDAT} is read.  Used when calculating ADPCM, but updated for all sample formats.  Writing this value starts the accelerator.}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFDD}{ACDAT}{Accelerator data}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R}{Reads new data from the accelerator.  When there is no data left, returns 0.}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFDE}{GAIN}{Gain}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R/W}{Exact behavior unknown}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFDF}{ACUNK2}{Unknown 2}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R/W}{Usually \Value{0x0C}}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFEF}{AMDM}{ARAM DMA Request Mask}{---- ---- ---- ---m}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{0}{m}{R/W}{\begin{tabular}[c]{@{}l@{}}\Value{0} - DMA with ARAM unmasked\\ \Value{1} - masked\end{tabular}}
+\end{RegisterBitDescriptions}
 
 \pagebreak{}
 
@@ -632,40 +889,6 @@ The DSP can raise interrupts at the CPU. Interrupts are usually used to signal t
 \pagebreak{}
 
 \section{Mailboxes}
-
-\subsection{CPU Mailbox}
-
-The CPU Mailbox (CMB) is a register that allows sending 31 bits of information from the CPU to the DSP.
-
-\RegisterBitOverview{0xFFFE}{CMBH}{CPU Mailbox H}{Mddd dddd dddd dddd}
-
-\begin{RegisterBitDescriptions}
-\RegisterBitDescription{15}{M}{R}{
-  \begin{tabular}[c]{@{}l@{}}
-    \Value{1} - Mailbox contains mail from the CPU\\ \Value{0} - Mailbox empty
-  \end{tabular}
-}
-\RegisterBitDescription{14--0}{d}{R}{Bits 30--16 of the mail sent from the CPU}
-\end{RegisterBitDescriptions}
-
-\RegisterBitOverview{0xFFFF}{CMBL}{CPU Mailbox L}{dddd dddd dddd dddd}
-
-\begin{RegisterBitDescriptions}
-\RegisterBitDescription{15--0}{d}{R}{
-  Bits 15--0 of mail sent from the CPU. Reading of this register by the DSP causes the \RegisterField{CMBH.M}
-  bit to be cleared.
-}
-\end{RegisterBitDescriptions}
-
-\textbf{Operation:}
-
-From the CPU side, software usually checks the \RegisterField{M} bit of \Register{CMBH}. It takes action only in the case that this bit is \Value{0}.
-Said action is to write \Register{CMBH} first and then \Register{CMBL}. After writing to \Register{CMBL}, the mail is ready to be received by the DSP.
-
-From the DSP side, the DSP loops by probing the \RegisterField{M} bit. When this bit is \Value{1}, the DSP reads \Register{CMBH} first and then \Register{CMBL}.
-After reading \Register{CMBL}, \RegisterField{CMBH.M} will be cleared.
-
-\pagebreak{}
 
 \subsection{DSP Mailbox}
 
@@ -702,49 +925,37 @@ If the DSP does processing when the CPU receives a mail, then it waits for the \
 
 \pagebreak{}
 
-\subsection{DMA}
+\subsection{CPU Mailbox}
 
-The GameCube DSP is connected to the memory bus through a DMA channel. DMA can be used to transfer data between DSP memory (both instruction and data) and main memory.
+The CPU Mailbox (CMB) is a register that allows sending 31 bits of information from the CPU to the DSP.
 
-\RegisterBitOverview{0xFFCE}{DSMAH}{Memory Address H}{dddd dddd dddd dddd}
-
-\begin{RegisterBitDescriptions}
-\RegisterBitDescription{15--0}{d}{R}{Bits 31--16 of the main memory address}
-\end{RegisterBitDescriptions}
-
-\RegisterBitOverview{0xFFCF}{DSMAL}{Memory Address L}{dddd dddd dddd dddd}
+\RegisterBitOverview{0xFFFE}{CMBH}{CPU Mailbox H}{Mddd dddd dddd dddd}
 
 \begin{RegisterBitDescriptions}
-\RegisterBitDescription{15--0}{d}{R}{Bits 15--0 of the main memory address}
+\RegisterBitDescription{15}{M}{R}{
+  \begin{tabular}[c]{@{}l@{}}
+    \Value{1} - Mailbox contains mail from the CPU\\ \Value{0} - Mailbox empty
+  \end{tabular}
+}
+\RegisterBitDescription{14--0}{d}{R}{Bits 30--16 of the mail sent from the CPU}
 \end{RegisterBitDescriptions}
 
-\RegisterBitOverview{0xFFCD}{DSPA}{DSP Address}{dddd dddd dddd dddd}
+\RegisterBitOverview{0xFFFF}{CMBL}{CPU Mailbox L}{dddd dddd dddd dddd}
 
 \begin{RegisterBitDescriptions}
-\RegisterBitDescription{15--0}{d}{W}{Bits 15--0 of the DSP memory address}
+\RegisterBitDescription{15--0}{d}{R}{
+  Bits 15--0 of mail sent from the CPU. Reading of this register by the DSP causes the \RegisterField{CMBH.M}
+  bit to be cleared.
+}
 \end{RegisterBitDescriptions}
 
-\RegisterBitOverview{0xFFCB}{DSBL}{DSP Address}{dddd dddd dddd dddd}
+\textbf{Operation:}
 
-\begin{RegisterBitDescriptions}
-\RegisterBitDescription{15--0}{d}{W}{Length in bytes to transfer. Writing to this register starts a DMA transfer.}
-\end{RegisterBitDescriptions}
+From the CPU side, software usually checks the \RegisterField{M} bit of \Register{CMBH}. It takes action only in the case that this bit is \Value{0}.
+Said action is to write \Register{CMBH} first and then \Register{CMBL}. After writing to \Register{CMBL}, the mail is ready to be received by the DSP.
 
-\RegisterBitOverview{0xFFC9}{DSCR}{DSP Address}{---- ---- ---- ----}
-
-\begin{RegisterBitDescriptions}
-\RegisterBitDescription{15--0}{d}{W}{}
-\end{RegisterBitDescriptions}
-
-\pagebreak{}
-
-\section{Accelerator}
-
-The accelerator is used to transfer data from accelerator memory (ARAM) to DSP memory. The accelerator area can be marked with \Register{ACSA} (start) and \Register{ACEA} (end) addresses.
-Current address for the accelerator can be set or read from the \Register{ACCA} register. Reading from accelerator memory is done by reading from the \Register{ACDAT} register.
-This register contains data from ARAM pointed to by the \Register{ACCA} register.
-After reading the data, \Register{ACCA} is incremented by one.
-After \Register{ACCA} grows bigger than the area pointed to by \Register{ACEA}, it gets reset to a value from \Register{ACSA} and the \Exception{ACCOV} interrupt is generated.
+From the DSP side, the DSP loops by probing the \RegisterField{M} bit. When this bit is \Value{1}, the DSP reads \Register{CMBH} first and then \Register{CMBL}.
+After reading \Register{CMBL}, \RegisterField{CMBH.M} will be cleared.
 
 \pagebreak{}
 
@@ -858,42 +1069,83 @@ Opcode decoding uses special naming for bits and their decimal representations t
 \section{Conditional opcodes}
 
 Conditional opcodes are executed only when the condition described by their encoded conditional field has been met.
-The groups of conditional instructions are, \Opcode{CALL}, \Opcode{JMP}, \Opcode{IF}, and \Opcode{RET}.
+The groups of conditional instructions are: \Opcode{CALLcc}, \Opcode{Jcc}, \Opcode{IFcc}, \Opcode{RETcc}, \Opcode{RTIcc}, \Opcode{JRcc}, and \Opcode{CALLRcc}.
 
 \begin{table}[H]
 \centering
 \begin{tabular}{|l|l|l|l|}
 \hline
 \textbf{Bits} & \textbf{\texttt{cc}} & \textbf{Name}                & \textbf{Evaluated expression} \\ \hline
-\texttt{0b0000}        & \texttt{GE} & Greater than or equal        &                               \\ \hline
-\texttt{0b0001}        & \texttt{L}  & Less than                    &                               \\ \hline
-\texttt{0b0010}        & \texttt{G}  & Greater than                 &                               \\ \hline
-\texttt{0b0011}        & \texttt{LE} & Less than or equal           &                               \\ \hline
-\texttt{0b0100}        & \texttt{NE} & Not equal                    & \texttt{(\$sr \& 0x4) == 0}   \\ \hline
-\texttt{0b0101}        & \texttt{EQ} & Equal                        & \texttt{(\$sr \& 0x4) != 0}   \\ \hline
-\texttt{0b0110}        & \texttt{NC} & Not carry                    & \texttt{(\$sr \& 0x1) == 0}   \\ \hline
-\texttt{0b0111}        & \texttt{C}  & Carry                        & \texttt{(\$sr \& 0x1) != 0}   \\ \hline
-\texttt{0b1000}        &             & Below s32                    & \texttt{(\$sr \& 0x10) == 0}  \\ \hline
-\texttt{0b1001}        &             & Above s32                    & \texttt{(\$sr \& 0x10) != 0}  \\ \hline
-\texttt{0b1010}        &             &                              &                               \\ \hline
-\texttt{0b1011}        &             &                              &                               \\ \hline
-\texttt{0b1100}        & \texttt{NZ} & Not zero                     & \texttt{(\$sr \& 0x40) == 0}  \\ \hline
-\texttt{0b1101}        & \texttt{ZR} & Zero                         & \texttt{(\$sr \& 0x40) != 0}  \\ \hline
-\texttt{0b1110}        & \texttt{O}  & Overflow                     & \texttt{(\$sr \& 0x2) != 0}   \\ \hline
-\texttt{0b1111}        &             & \textless always\textgreater &                               \\ \hline
+\texttt{0b0000}       & \texttt{GE}  & Greater than or equal        & \Code{\$sr.O == \$sr.S}       \\ \hline
+\texttt{0b0001}       & \texttt{L}   & Less than                    & \Code{\$sr.O != \$sr.S}       \\ \hline
+\texttt{0b0010}       & \texttt{G}   & Greater than                 & \Code{(\$sr.O == \$sr.S) \&\& (\$sr.Z == 0)} \\ \hline
+\texttt{0b0011}       & \texttt{LE}  & Less than or equal           & \Code{(\$sr.O != \$sr.S)  ||  (\$sr.Z != 0)} \\ \hline
+\texttt{0b0100}       & \texttt{NZ}  & Not zero                     & \Code{\$sr.Z == 0}            \\ \hline
+\texttt{0b0101}       & \texttt{Z}   & Zero                         & \Code{\$sr.Z != 0}            \\ \hline
+\texttt{0b0110}       & \texttt{NC}  & Not carry                    & \Code{\$sr.C == 0}            \\ \hline
+\texttt{0b0111}       & \texttt{C}   & Carry                        & \Code{\$sr.C != 0}            \\ \hline
+\texttt{0b1000}       & \texttt{x8}  & Below s32                    & \Code{\$sr.AS == 0}           \\ \hline
+\texttt{0b1001}       & \texttt{x9}  & Above s32                    & \Code{\$sr.AS != 0}           \\ \hline
+\texttt{0b1010}       & \texttt{xA}  &                              & \Code{((\$sr.AS != 0)  ||  (\$sr.TB != 0)) \&\& (\$sr.Z == 0)} \\ \hline
+\texttt{0b1011}       & \texttt{xB}  &                              & \Code{((\$sr.AS == 0) \&\& (\$sr.TB == 0))  ||  (\$sr.Z != 0)} \\ \hline
+\texttt{0b1100}       & \texttt{LNZ} & Not logic zero               & \Code{\$sr.LZ == 0}           \\ \hline
+\texttt{0b1101}       & \texttt{LZ}  & Logic zero                   & \Code{\$sr.LZ != 0}           \\ \hline
+\texttt{0b1110}       & \texttt{O}   & Overflow                     & \Code{\$sr.O != 0}            \\ \hline
+\texttt{0b1111}       &              & \textless always\textgreater &                               \\ \hline
 \end{tabular}
 \end{table}
 
 \textbf{Note:}
 
-There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and \texttt{ZR}/\texttt{NZ}.
-\texttt{EQ}/\texttt{NE} pair operates on arithmetic zero flag (arithmetic 0) while \texttt{ZR}/\texttt{NZ} pair operates on logic zero flag (logic 0).
+There are two pairs of conditions that work similarly: \texttt{Z}/\texttt{NZ} and \texttt{LZ}/\texttt{LNZ}.
+\texttt{Z}/\texttt{NZ} pair operates on arithmetic zero flag (arithmetic 0) while \texttt{LZ}/\texttt{LNZ} pair operates on logic zero flag (logic 0).
+The logic zero flag is only set by \Opcode{ANDCF} and \Opcode{ANDF}.
+
+\pagebreak{}
+
+\section{Flags}
+
+Most opcodes update flags in the status register (\Register{\$sr}) based on their result.  (Extended opcodes do not update flags.)
+
+Overflow (\texttt{O}) occurs when the result has wrapped around.  The expression $C = A + B$ has overflown if $A > 0$ and $B > 0$ but $C \le 0$ or if $A < 0$ and $B < 0$ but $C \ge 0$.  Any instruction that sets the \texttt{O} flag will also set the \texttt{OS} flag; when the \texttt{O} flag is set, \texttt{OS} is also set, but \texttt{OS} is not cleared when \texttt{O} is cleared.
+
+Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to the next most significant word.  The expression $C = A + B$ generates a carry if $A > C$.  The DSP uses different logic for subtraction: the expression $C = A - B$ generates a carry if $A \ge C$ (so if $B = 0$, a carry is generated for all $A$).  This is because the DSP uses a carry flag, not a borrow flag.
+
+Each instruction has a table showing what flags it updates, such as this:
+
+\DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
+
+A ``-'' indicates that the flag retains its previous value, a ``0'' indicates that the flag is set to 0, and a ``X'' indicates that the value of the flag changes depending on what the instruction did.
 
 \pagebreak{}
 
 \section{Alphabetical list of opcodes}
 
 \pagebreak{}
+
+\begin{DSPOpcode}{ABS}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1010} & \monobitbox{4}{d001} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    ABS $acD
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Sets \Register{\$acD} to the absolute value of \Register{\$acD}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    IF $acD < 0
+        $acD = -$acD
+    ENDIF
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
+\end{DSPOpcode}
 
 \begin{DSPOpcode}{ADD}
   \begin{DSPOpcodeBytefield}{16}
@@ -913,6 +1165,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ADDARN}
@@ -932,6 +1186,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     $arD += $ixS
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ADDAX}
@@ -952,6 +1208,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ADDAXL}
@@ -965,6 +1223,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
 
   \begin{DSPOpcodeDescription}
     \item Adds secondary accumulator \Register{\$axS.l} to accumulator register \Register{\$acD}.
+          \Register{\$axS.l} is treated as an unsigned value.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -972,16 +1231,18 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ADDI}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0000} & \monobitbox{4}{001r} & \monobitbox{4}{0000} & \monobitbox{4}{0000} \\
+    \monobitbox{4}{0000} & \monobitbox{4}{001d} & \monobitbox{4}{0000} & \monobitbox{4}{0000} \\
     \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
-    ADDI $amR, #I
+    ADDI $acD, #I
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
@@ -993,6 +1254,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     FLAGS($acD)
     $pc += 2
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ADDIS}
@@ -1013,6 +1276,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ADDP}
@@ -1033,6 +1298,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ADDPAXZ}
@@ -1055,6 +1322,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ADDR}
@@ -1071,15 +1340,17 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    $acD += $(0x18+S)
+    $acD += ($(0x18+S) << 16)
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ANDC}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0011} & \monobitbox{4}{110d} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+    \monobitbox{4}{0011} & \monobitbox{4}{110d} & \monobitbox{4}{0xxx} & \monobitbox{4}{xxxx}
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
@@ -1095,11 +1366,17 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item The main opcode is 9 bits and the extension opcode is 7 bits.  The extension opcode is treated as if the 8th bit was 0 (i.e. it is \texttt{0xxxxxxx}).
+  \end{DSPOpcodeNote}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ANDCF}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0000} & \monobitbox{4}{001r} & \monobitbox{4}{1010} & \monobitbox{4}{0000} \\
+    \monobitbox{4}{0000} & \monobitbox{4}{001d} & \monobitbox{4}{1100} & \monobitbox{4}{0000} \\
     \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
   \end{DSPOpcodeBytefield}
 
@@ -1121,11 +1398,13 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     ENDIF
     $pc += 2
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{X}{-}{-}{-}{-}{-}{-}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ANDF}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0000} & \monobitbox{4}{001r} & \monobitbox{4}{1100} & \monobitbox{4}{0000} \\
+    \monobitbox{4}{0000} & \monobitbox{4}{001d} & \monobitbox{4}{1010} & \monobitbox{4}{0000} \\
     \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
   \end{DSPOpcodeBytefield}
 
@@ -1147,11 +1426,13 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     ENDIF
     $pc += 2
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{X}{-}{-}{-}{-}{-}{-}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ANDI}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0000} & \monobitbox{4}{001r} & \monobitbox{4}{0100} & \monobitbox{4}{0000} \\
+    \monobitbox{4}{0000} & \monobitbox{4}{001d} & \monobitbox{4}{0100} & \monobitbox{4}{0000} \\
     \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
   \end{DSPOpcodeBytefield}
 
@@ -1168,11 +1449,13 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     FLAGS($acD)
     $pc += 2
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ANDR}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0011} & \monobitbox{4}{01sd} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+    \monobitbox{4}{0011} & \monobitbox{4}{01sd} & \monobitbox{4}{0xxx} & \monobitbox{4}{xxxx}
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
@@ -1188,6 +1471,12 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item The main opcode is 9 bits and the extension opcode is 7 bits.  The extension opcode is treated as if the 8th bit was 0 (i.e. it is \texttt{0xxxxxxx}).
+  \end{DSPOpcodeNote}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ASL}
@@ -1205,9 +1494,11 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
 
   \begin{DSPOpcodeOperation}
     $acR <<= I
-    FLAGS($acD)
+    FLAGS($acR)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ASR}
@@ -1224,10 +1515,106 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    $acR >>= I
+    IF I != 0
+        $acR >>= (64 - I)
+    ENDIF
+    FLAGS($acR)
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{ASRN}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{0010} & \monobitbox{4}{1101} & \monobitbox{4}{1011}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    ASRN
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Arithmetically shifts accumulator \Register{\$ac0} either left or right based on \Register{\$ac1.m}: if bit 6 is set, a right by the amount calculated by negating sign-extended bits 0--5 occurs, while if bit 6 is clear, a left shift occurs by bits 0--5.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    IF ($ac1.m & 64)
+        IF ($ac1.m & 63) != 0
+            $ac0 >>= (64 - ($ac1.m & 63))
+        ENDIF
+    ELSE
+        $ac0 <<= $ac1.m
+    ENDIF
+    FLAGS($ac0)
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{ASRNR}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0011} & \monobitbox{4}{111d} & \monobitbox{4}{1xxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    ASRNR $acD
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Arithmetically shifts accumulator \Register{\$acD} either left or right based on \Register{\$ac(1-D).m}: if bit 6 is set, a right by the amount calculated by negating sign-extended bits 0--5 occurs, while if bit 6 is clear, a left shift occurs by bits 0--5.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    IF ($ac(1-D).m & 64)
+        IF ($ac(1-D).m & 63) != 0
+            $acD >>= (64 - ($ac(1-D).m & 63))
+        ENDIF
+    ELSE
+        $acD <<= $ac(1-D).m
+    ENDIF
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item The main opcode is 9 bits and the extension opcode is 7 bits.  The extension opcode is treated as if the 8th bit was 0 (i.e. it is \texttt{0xxxxxxx}).
+  \end{DSPOpcodeNote}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{ASRNRX}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0011} & \monobitbox{4}{10sd} & \monobitbox{4}{1xxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    ASRNRX $acD, $axS.h
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Arithmetically shifts accumulator \Register{\$acD} either left or right based on \Register{\$axS.h}: if bit 6 is set, a right by the amount calculated by negating sign-extended bits 0--5 occurs, while if bit 6 is clear, a left shift occurs by bits 0--5.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    IF ($axS.h & 64)
+        IF ($axS.h & 63) != 0
+            $acD >>= (64 - ($axS.h & 63))
+        ENDIF
+    ELSE
+        $acD <<= $axS.h
+    ENDIF
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item The main opcode is 9 bits and the extension opcode is 7 bits.  The extension opcode is treated as if the 8th bit was 0 (i.e. it is \texttt{0xxxxxxx}).
+  \end{DSPOpcodeNote}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ASR16}
@@ -1245,9 +1632,11 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
 
   \begin{DSPOpcodeOperation}
     $acR >>= 16
-    FLAGS($acD)
+    FLAGS($acR)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{BLOOP}
@@ -1265,6 +1654,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
           \Register{\$R} reaches zero. Block ends at specified address \Address{addrA} inclusive. i.e. opcode at \Address{addrA} is the last
           opcode included in loop. Counter is pushed on loop stack \Register{\$st3}, end of block address is pushed on loop stack
           \Register{\$st2} and the repeat address is pushed on call stack \Register{\$st0}. Up to 4 nested loops are allowed.
+    \item When using \Register{\$ac0.m} or \Register{\$ac1.m} as the initial counter value, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -1275,15 +1665,18 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
 
     // On real hardware, the below does not happen,
     // this opcode only sets stack registers
-    WHILE ($st3--)
+    WHILE ($st3)
         DO
             EXECUTE_OPCODE($pc)
         WHILE($pc != $st2)
+        $st3--
         $pc = $st0
     END
     $pc = addrA + 1
     // Remove values from stack
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{BLOOPI}
@@ -1311,15 +1704,18 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
 
     // On real hardware, the below does not happen,
     // this opcode only sets stack registers
-    WHILE ($st3--)
+    WHILE ($st3)
         DO
             EXECUTE_OPCODE($pc)
         WHILE($pc != $st2)
+        $st3--
         $pc = $st0
     END
     $pc = addrA + 1
     // Remove values from stack
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{CALL}
@@ -1343,6 +1739,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     $st0 = $pc + 2
     $pc = addressA
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{CALLcc}
@@ -1371,6 +1769,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
         $pc += 2
     ENDIF
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{CALLR}
@@ -1392,6 +1792,61 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     $st0 = $pc + 1
     $pc = $R
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{CALLRcc}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0001} & \monobitbox{4}{0111} & \monobitbox{4}{rrr1} & \monobitbox{4}{cccc}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    CALLRcc $R
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Call function if condition \Flag{cc} has been met. Push program counter of the instruction following ``call'' to call stack \Register{\$st0}.
+          Set program counter to register \Register{\$R}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    IF (cc)
+        PUSH_STACK($st0)
+        $st0 = $pc + 1
+        $pc = $R
+    ELSE
+        $pc++
+    ENDIF
+  \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
+\end{DSPOpcode}
+
+
+\begin{DSPOpcode}{CLR15}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1000} & \monobitbox{4}{1100} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    CLR15
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Sets \RegisterField{\$sr.SU} (bit 15) to 0, causing multiplication to treat its operands as signed.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $sr &= ~0x8000
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeSeeAlso}
+    \item \Opcode{SET15}
+  \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{CLR}
@@ -1412,6 +1867,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     FLAGS($acR)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{1}{0}{0}{1}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{CLRL}
@@ -1424,14 +1881,24 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
-    \item Clears \Register{\$acR.l} - low 16 bits of accumulator \Register{\$acR}.
+    \item Rounds \Register{\$acR} such that \Register{\$acR.l} is 0.  This is a round-to-even operation.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    $acR.l = 0
+    IF ($acR & 0x10000) != 0
+        $acR = ($acR + 0x8000) & ~0xffff
+    ELSE
+        $acR = ($acR + 0x7fff) & ~0xffff
+    ENDIF
     FLAGS($acR)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item An alternative interpretation is that if \Register{\$acR.m} is odd, then increment \Register{\$acsR} if \Register{\$acR.l} is greater than or equal to \Value{0x8000}; if \Register{\$acR.m} is even, then increment \Register{\$acsR} if \Register{\$acR.l} is greater than or equal to \Value{0x7fff}.  Afterwards set \Register{\$acR.l} to 0.
+  \end{DSPOpcodeNote}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{CLRP}
@@ -1461,6 +1928,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
       $prod.m2 = 0x0010
     \end{lstlisting}
   \end{DSPOpcodeNote}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{CMP}
@@ -1480,28 +1949,52 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     $sr = FLAGS($ac0 - $ac1)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{CMPAXH}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{110r} & \monobitbox{4}{s001} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    CMPAXH $acS, $axR.h
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Compares accumulator \Register{\$acS} with high part of secondary accumulator \Register{\$axR.h}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $sr = FLAGS($acS - ($axR.h << 16))
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{CMPI}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0000} & \monobitbox{4}{001r} & \monobitbox{4}{1000} & \monobitbox{4}{0000} \\
+    \monobitbox{4}{0000} & \monobitbox{4}{001d} & \monobitbox{4}{1000} & \monobitbox{4}{0000} \\
     \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
-    CMPI $amD, #I
+    CMPI $acD, #I
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
-    \item Compares mid accumulator \Register{\$acD.hm} (\Register{\$amD}) with sign-extended immediate value \Value{I}.
-          However, flags are set with regards to the whole accumulator register.
+    \item Compares accumulator with immediate. Comparison is performed by subtracting the immediate (16-bit sign-extended)
+          from mid accumulator \Register{\$acD.hm} and computing flags based on whole accumulator \Register{\$acD}.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    res = ($acD.hm - I) | $acD.l
-    FLAGS(res)
+    FLAGS($acD - (I << 16))
     $pc += 2
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{CMPIS}
@@ -1519,9 +2012,11 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    FLAGS($acD - #I)
+    FLAGS($acD - (I << 16))
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{DAR}
@@ -1541,6 +2036,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     $arD--
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{DEC}
@@ -1561,6 +2058,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{DECM}
@@ -1581,11 +2080,13 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{HALT}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0000} & \monobitbox{4}{0000} & \monobitbox{4}{0020} & \monobitbox{4}{0001}
+    \monobitbox{4}{0000} & \monobitbox{4}{0000} & \monobitbox{4}{0010} & \monobitbox{4}{0001}
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
@@ -1599,6 +2100,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeOperation}
     DREG_CR |= DSP_CR_HALT;
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{IAR}
@@ -1618,6 +2121,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     $arD++
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{IFcc}
@@ -1640,6 +2145,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
         $pc += 2
     ENDIF
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ILRR}
@@ -1654,12 +2161,15 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeDescription}
     \item Move value from instruction memory pointed by addressing register \Register{\$arS}
           to mid accumulator register \Register{\$acD.m}.
+    \item Optionally perform sign extension depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
     $acD.m = MEM[$arS]
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ILRRD}
@@ -1674,6 +2184,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeDescription}
     \item Move value from instruction memory pointed by addressing register \Register{\$arS}
           to mid accumulator register \Register{\$acD.m}. Decrement addressing register \Register{\$arS}.
+    \item Optionally perform sign extension depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -1681,6 +2192,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     $arS--
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ILRRI}
@@ -1695,6 +2208,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeDescription}
     \item Move value from instruction memory pointed by addressing register \Register{\$arS} to
           mid accumulator register \Register{\$acD.m}. Increment addressing register \Register{\$arS}.
+    \item Optionally perform sign extension depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -1702,6 +2216,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     $arS++
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ILRRN}
@@ -1717,6 +2233,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     \item Move value from instruction memory pointed by addressing register \Register{\$arS}
           to mid accumulator register \Register{\$acD.m}. Add corresponding indexing register
           \Register{\$ixS} to addressing register \Register{\$arS}.
+    \item Optionally perform sign extension depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -1724,6 +2241,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     $arS += $ixS
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{INC}
@@ -1744,6 +2263,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{INCM}
@@ -1764,6 +2285,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{JMP}
@@ -1784,6 +2307,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeOperation}
     $pc = addressA
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{Jcc}
@@ -1808,6 +2333,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
         $pc += 2
     ENDIF
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{JMPR}
@@ -1826,6 +2353,32 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeOperation}
     $pc = $R
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{JRcc}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0001} & \monobitbox{4}{0111} & \monobitbox{4}{rrr0} & \monobitbox{4}{cccc}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    JRcc $R
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Jump to address if condition \Flag{cc} has been met; set program counter to a value from register \Register{\$R}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    IF (cc)
+        $pc = $R
+    ELSE
+        $pc++
+    ENDIF
+  \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{LOOP}
@@ -1841,6 +2394,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     \item Repeatedly execute the following opcode until the counter specified by the value from register \Register{\$R} reaches zero.
           Each execution decrements the counter. Register \Register{\$R} remains unchanged. If register \Register{\$R} is set to zero at the
           beginning of loop then the looped instruction will not get executed.
+    \item When using \Register{\$ac0.m} or \Register{\$ac1.m} as the initial counter value, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -1850,6 +2404,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     END
     $pc += 2
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{LOOPI}
@@ -1874,6 +2430,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     END
     $pc += 2
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{LR}
@@ -1888,13 +2446,15 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
 
   \begin{DSPOpcodeDescription}
     \item Move value from data memory pointed by address \Address{M} to register \Register{\$D}.
-          Perform an additional operation depending on destination register.
+    \item When loading to \Register{\$ac0.m} or \Register{\$ac1.m}, optionally perform sign extension depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
     $D = MEM[M]
     $pc += 2
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{LRI}
@@ -1909,13 +2469,15 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
 
   \begin{DSPOpcodeDescription}
     \item Load immediate value \Value{I} to register \Register{\$D}.
-          Perform and additional operation depending on destination register.
+    \item When loading to \Register{\$ac0.m} or \Register{\$ac1.m}, optionally perform sign extension depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
     $D = I
     $pc += 2
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{LRIS}
@@ -1929,13 +2491,15 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
 
   \begin{DSPOpcodeDescription}
     \item Load immediate value \Value{I} (8-bit sign-extended) to accumulator register \Register{\$(0x18+D)}.
-          Perform an additional operation depending on destination register.
+    \item When loading to \Register{\$ac0.m} or \Register{\$ac1.m}, optionally perform sign extension depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
     $(0x18+D) = I
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{LRR}
@@ -1949,13 +2513,15 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
 
   \begin{DSPOpcodeDescription}
     \item Move value from data memory pointed by addressing register \Register{\$arS} to register \Register{\$D}.
-          Perform an additional operation depending on destination register.
+    \item When loading to \Register{\$ac0.m} or \Register{\$ac1.m}, optionally perform sign extension depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
     $D = MEM[$arS]
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{LRRD}
@@ -1970,7 +2536,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeDescription}
     \item Move value from data memory pointed by addressing register \Register{\$arS} to register \Register{\$D}.
           Decrements register \Register{\$arS}.
-          Perform additional operation depending on destination register.
+    \item When loading to \Register{\$ac0.m} or \Register{\$ac1.m}, optionally perform sign extension depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -1978,6 +2544,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     $arS--
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{LRRI}
@@ -1992,7 +2560,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeDescription}
     \item Move value from data memory pointed by addressing register \Register{\$arS} to register \Register{\$D}.
           Increments register \Register{\$arS}.
-          Perform additional operation depending on destination register.
+    \item When loading to \Register{\$ac0.m} or \Register{\$ac1.m}, optionally perform sign extension depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -2000,6 +2568,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     $arS++
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{LRRN}
@@ -2014,7 +2584,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeDescription}
     \item Move value from data memory pointed by addressing register \Register{\$arS} to register \Register{\$D}.
           Add indexing register \Register{\$ixS} to register \Register{\$arS}.
-          Perform additional operation depending on destination register.
+    \item When loading to \Register{\$ac0.m} or \Register{\$ac1.m}, optionally perform sign extension depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -2022,6 +2592,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     $arS += $ixS
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{LRS}
@@ -2034,14 +2606,20 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
-    \item Move value from data memory pointed by address \Address{M} (8-bit sign-extended) to register \Register{\$(0x18+D)}.
-          Perform additional operation depending on destination register.
+    \item Move value from data memory pointed by address \Address{(\$cr << 8) | M} to register \Register{\$(0x18+D)}.
+    \item When loading to \Register{\$ac0.m} or \Register{\$ac1.m}, optionally perform sign extension depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    $(0x18+D) = MEM[M]
+    $(0x18+D) = MEM[($cr << 8) | M]
     $pc++
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item \Opcode{LRS} can use \Register{\$axD}, but cannot use \Register{\$acD.h}, while \Opcode{SRS} and \Opcode{SRSH} only work on \Register{\$acS}.
+  \end{DSPOpcodeNote}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{LSL}
@@ -2059,9 +2637,11 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
 
   \begin{DSPOpcodeOperation}
     $acR <<= I
-    FLAGS($acD)
+    FLAGS($acR)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{LSL16}
@@ -2079,9 +2659,11 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
 
   \begin{DSPOpcodeOperation}
     $acR <<= 16
-    FLAGS($acD)
+    FLAGS($acR)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{LSR}
@@ -2098,10 +2680,106 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    $acR >>= I
+    IF I != 0
+        $acR >>= (64 - I)
+    ENDIF
+    FLAGS($acR)
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{LSRN}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{0010} & \monobitbox{4}{1100} & \monobitbox{4}{1010}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    LSRN
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Logically shifts accumulator \Register{\$ac0} either left or right based on \Register{\$ac1.m}: if bit 6 is set, a right by the amount calculated by negating sign-extended bits 0--5 occurs, while if bit 6 is clear, a left shift occurs by bits 0--5.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    IF ($ac1.m & 64)
+        IF ($ac1.m & 63) != 0
+            $ac0 >>= (64 - ($ac1.m & 63))
+        ENDIF
+    ELSE
+        $ac0 <<= $ac1.m
+    ENDIF
+    FLAGS($ac0)
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{LSRNR}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0011} & \monobitbox{4}{110d} & \monobitbox{4}{1xxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    LSRNR $acD
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Logically shifts accumulator \Register{\$acD} either left or right based on \Register{\$ac(1-D).m}: if bit 6 is set, a right by the amount calculated by negating sign-extended bits 0--5 occurs, while if bit 6 is clear, a left shift occurs by bits 0--5.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    IF ($ac(1-D).m & 64)
+        IF ($ac(1-D).m & 63) != 0
+            $acD >>= (64 - ($ac(1-D).m & 63))
+        ENDIF
+    ELSE
+        $acD <<= $ac(1-D).m
+    ENDIF
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item The main opcode is 9 bits and the extension opcode is 7 bits.  The extension opcode is treated as if the 8th bit was 0 (i.e. it is \texttt{0xxxxxxx}).
+  \end{DSPOpcodeNote}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{LSRNRX}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0011} & \monobitbox{4}{01sd} & \monobitbox{4}{1xxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    LSRNRX $acD, $axS.h
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Logically shifts accumulator \Register{\$acD} either left or right based on \Register{\$axS.h}: if bit 6 is set, a right by the amount calculated by negating sign-extended bits 0--5 occurs, while if bit 6 is clear, a left shift occurs by bits 0--5.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    IF ($axS.h & 64)
+        IF ($axS.h & 63) != 0
+            $acD >>= (64 - ($axS.h & 63))
+        ENDIF
+    ELSE
+        $acD <<= $axS.h
+    ENDIF
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item The main opcode is 9 bits and the extension opcode is 7 bits.  The extension opcode is treated as if the 8th bit was 0 (i.e. it is \texttt{0xxxxxxx}).
+  \end{DSPOpcodeNote}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{LSR16}
@@ -2119,9 +2797,61 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
 
   \begin{DSPOpcodeOperation}
     $acR >>= 16
-    FLAGS($acD)
+    FLAGS($acR)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{M0}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1000} & \monobitbox{4}{1011} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    M0
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Sets \RegisterField{\$sr.AM} (bit 13) to 1, \textbf{disabling} the functionality that doubles the result of every multiply operation.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $sr |= 0x2000
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeSeeAlso}
+    \item \Opcode{M2}
+  \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlagsUnchanged
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{M2}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1000} & \monobitbox{4}{1010} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    M2
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Sets \RegisterField{\$sr.AM} (bit 13) to 0, \textbf{enabling} the functionality that doubles the result of every multiply operation.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $sr &= ~0x2000
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeSeeAlso}
+    \item \Opcode{M0}
+  \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MADD}
@@ -2146,6 +2876,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MADDC}
@@ -2154,7 +2886,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
-    MADDC $acS.l, $axT.h
+    MADDC $acS.m, $axT.h
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
@@ -2163,13 +2895,15 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    $prod += $acS.l * $axT.h
+    $prod += $acS.m * $axT.h
     $pc++
   \end{DSPOpcodeOperation}
 
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MADDX}
@@ -2194,6 +2928,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MOV}
@@ -2206,14 +2942,16 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
-    \item Moves accumulator \Register{\$ax(1-D)} to accumulator \Register{\$axD}.
+    \item Moves accumulator \Register{\$ac(1-D)} to accumulator \Register{\$acD}.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    $acD = $ax(1-D)
+    $acD = $ac(1-D)
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{0}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MOVAX}
@@ -2226,7 +2964,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
-    \item Moves secondary accumulator \Register{\$axS} to accumulator \Register{\$axD}.
+    \item Moves secondary accumulator \Register{\$axS} to accumulator \Register{\$acD}.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -2234,6 +2972,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MOVNP}
@@ -2254,6 +2994,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MOVP}
@@ -2274,6 +3016,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MOVPZ}
@@ -2295,6 +3039,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MOVR}
@@ -2316,6 +3062,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MRR}
@@ -2329,13 +3077,16 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
 
   \begin{DSPOpcodeDescription}
     \item Move value from register \Register{\$S} to register \Register{\$D}.
-          Perform additional operation depending on destination register.
+    \item When moving to \Register{\$ac0.m} or \Register{\$ac1.m}, optionally perform sign extension depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
+    \item When moving from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
     $D = $S
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MSUB}
@@ -2361,6 +3112,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MSUBC}
@@ -2385,6 +3138,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MSUBX}
@@ -2409,6 +3164,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MUL}
@@ -2433,6 +3190,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MULAC}
@@ -2459,6 +3218,33 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{X}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{MULAXH}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1000} & \monobitbox{4}{0011} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    MULAXH
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Multiplies \Register{\$ax0.h} by itself.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $prod = $ax0.h * $ax0.h
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeSeeAlso}
+    \item \RegisterField{\$sr.AM} bit affects multiply result.
+  \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MULC}
@@ -2483,6 +3269,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MULCAC}
@@ -2510,6 +3298,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MULCMV}
@@ -2522,14 +3312,14 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
-    \item Multiply mid part of accumulator register \Register{\$acS.m} by high part \Register{\$axS.h} of
-          secondary accumulator \Register{\$axS} (treat them both as signed).
+    \item Multiply mid part of accumulator register \Register{\$acS.m} by high part \Register{\$axT.h} of
+          secondary accumulator \Register{\$axT} (treat them both as signed).
           Move product register before multiplication to accumulator \Register{\$acR}.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
     temp = $prod
-    $prod = $acS.m * $axS.h
+    $prod = $acS.m * $axT.h
     $acR = temp
     $pc++
   \end{DSPOpcodeOperation}
@@ -2537,6 +3327,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MULCMVZ}
@@ -2549,15 +3341,15 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
-    \item Multiply mid part of accumulator register \Register{\$acS.m} by high part \Register{\$axS.h} of
-          secondary accumulator \Register{\$axS} (treat them both as signed).
+    \item Multiply mid part of accumulator register \Register{\$acS.m} by high part \Register{\$aTS.h} of
+          secondary accumulator \Register{\$axT} (treat them both as signed).
           Move product register before multiplication to accumulator \Register{\$acR}.
           Set low part of accumulator \Register{\$acR.l} to zero.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
     temp = $prod
-    $prod = $acS.m * $axS.h
+    $prod = $acS.m * $axT.h
     $acR.hm = temp.hm
     $acR.l = 0
     $pc++
@@ -2566,6 +3358,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MULMV}
@@ -2592,6 +3386,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MULMVZ}
@@ -2620,6 +3416,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MULX}
@@ -2644,11 +3442,13 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MULXAC}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{101s} & \monobitbox{4}{t01r} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+    \monobitbox{4}{101s} & \monobitbox{4}{t10r} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
@@ -2671,6 +3471,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MULXMV}
@@ -2698,6 +3500,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MULXMVZ}
@@ -2727,6 +3531,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{NEG}
@@ -2743,10 +3549,45 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    $acD =- $acD
+    $acD = 0 - $acD
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item The carry flag is set only if \Register{\$acD} was zero.
+          The overflow flag is set only if \Register{\$acD} was \Value{0x8000000000} (the minimum value),
+          as \Code{-INT\_MIN} is \Code{INT\_MIN} in two's complement.
+          In both of these cases, the value of \Register{\$acD} after the operation is the same as it was before.
+  \end{DSPOpcodeNote}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{NOT}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0011} & \monobitbox{4}{001d} & \monobitbox{4}{1xxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    NOT $acD.m
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Invert all bits in the middle part of accumulator \Register{\$acD.m} (i.e. XOR with \Value{0xffff}).
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD.m = ~acD.m
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item The main opcode is 9 bits and the extension opcode is 7 bits.  The extension opcode is treated as if the 8th bit was 0 (i.e. it is \texttt{0xxxxxxx}).
+  \end{DSPOpcodeNote}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{NOP}
@@ -2765,6 +3606,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeOperation}
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{NX}
@@ -2783,11 +3626,13 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeOperation}
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ORC}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0011} & \monobitbox{4}{111d} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+    \monobitbox{4}{0011} & \monobitbox{4}{111d} & \monobitbox{4}{0xxx} & \monobitbox{4}{xxxx}
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
@@ -2803,11 +3648,17 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item The main opcode is 9 bits and the extension opcode is 7 bits.  The extension opcode is treated as if the 8th bit was 0 (i.e. it is \texttt{0xxxxxxx}).
+  \end{DSPOpcodeNote}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ORI}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0000} & \monobitbox{4}{001r} & \monobitbox{4}{0110} & \monobitbox{4}{0000} \\
+    \monobitbox{4}{0000} & \monobitbox{4}{001d} & \monobitbox{4}{0110} & \monobitbox{4}{0000} \\
     \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
   \end{DSPOpcodeBytefield}
 
@@ -2824,11 +3675,13 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     FLAGS($acD)
     $pc += 2
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ORR}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0011} & \monobitbox{4}{10sd} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+    \monobitbox{4}{0011} & \monobitbox{4}{10sd} & \monobitbox{4}{0xxx} & \monobitbox{4}{xxxx}
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
@@ -2844,6 +3697,12 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item The main opcode is 9 bits and the extension opcode is 7 bits.  The extension opcode is treated as if the 8th bit was 0 (i.e. it is \texttt{0xxxxxxx}).
+  \end{DSPOpcodeNote}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{RET}
@@ -2863,6 +3722,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     $pc = $st0
     POP_STACK($st0)
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{RETcc}
@@ -2883,9 +3744,11 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     IF (cc)
         POP_STACK($st0)
     ELSE
-        $pc += 2
+        $pc++
     ENDIF
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{RTI}
@@ -2908,30 +3771,41 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     $pc = $st0
     POP_STACK($st0)
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
-\begin{DSPOpcode}{SBSET}
+\begin{DSPOpcode}{RTIcc}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0001} & \monobitbox{4}{0010} & \monobitbox{4}{0000} & \monobitbox{4}{0iii}
+    \monobitbox{4}{0000} & \monobitbox{4}{0010} & \monobitbox{4}{1111} & \monobitbox{4}{cccc}
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
-    SBSET #I
+    RTIcc
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
-    \item Set bit of status register \Register{\$sr}. Bit number is calculated by adding 6 to immediate value \Value{I}.
+    \item Return from exception if condition \Flag{cc} has been met. Pops stored status register \Register{\$sr} from data stack \Register{\$st1} and
+          program counter PC from call stack \Register{\$st0} and sets \Register{\$pc} to this location.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    $sr |= (I + 6)
-    $pc++
+    IF (cc)
+        $sr = $st1
+        POP_STACK($st1)
+        $pc = $st0
+        POP_STACK($st0)
+    ELSE
+        $pc++
+    ENDIF
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{SBCLR}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0001} & \monobitbox{4}{0011} & \monobitbox{4}{0000} & \monobitbox{4}{0iii}
+    \monobitbox{4}{0001} & \monobitbox{4}{0010} & \monobitbox{4}{0000} & \monobitbox{4}{0iii}
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
@@ -2939,13 +3813,113 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
-    \item Clear bit of status register \Register{\$sr}. Bit number is calculated by adding 6 to immediate value \Value{I}.
+    \item Clear bit of status register \Register{\$sr}. Bit number is calculated by adding 6 to immediate value \Value{I}; thus, bits 6 through 13 (\texttt{LZ} through \texttt{AM}) can be cleared with this instruction.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    $sr &= ~(I + 6)
+    $sr &= ~(1 << (I + 6))
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{SBSET}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0001} & \monobitbox{4}{0011} & \monobitbox{4}{0000} & \monobitbox{4}{0iii}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    SBSET #I
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Set bit of status register \Register{\$sr}. Bit number is calculated by adding 6 to immediate value \Value{I}; thus, bits 6 through 13 (\texttt{LZ} through \texttt{AM}) can be set with this instruction.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $sr |= 1 << (I + 6)
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{SET15}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1000} & \monobitbox{4}{1101} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    SET15
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Sets \RegisterField{\$sr.SU} (bit 15) to 1, causing multiplication to treat its operands as unsigned.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $sr |= 0x8000
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeSeeAlso}
+    \item \Opcode{CLR15}
+  \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlagsUnchanged
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{SET16}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1000} & \monobitbox{4}{1110} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    SET16
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Sets \RegisterField{\$sr.SXM} (bit 14) to 0, resulting in 16-bit sign extension.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $sr &= ~0x4000
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeSeeAlso}
+    \item \Opcode{SET40}
+    \item \nameref{subsec:SET40}
+  \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlagsUnchanged
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{SET40}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1000} & \monobitbox{4}{1111} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    SET40
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Sets \RegisterField{\$sr.SXM} (bit 14) to 1, resulting in 40-bit sign extension.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $sr |= 0x4000
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeSeeAlso}
+    \item \Opcode{SET16}
+    \item \nameref{subsec:SET40}
+  \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{SI}
@@ -2959,13 +3933,19 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
-    \item Store 16-bit immediate value \Value{I} to a memory location pointed by address \Address{M} (\Address{M} is an 8-bit sign-extended value).
+    \item Store 16-bit immediate value \Value{I} to a memory location pointed by address \Address{0xFF00 | M}.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    MEM[M] = I
+    MEM[0xFF00 | M] = I
     $pc += 2
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item Unlike \Opcode{SRS}, \Opcode{SRSH}, and \Opcode{LRS}, \Opcode{SI} does not use \Register{\$cr} to decide the base address and instead always uses \Address{0xFF00}.
+  \end{DSPOpcodeNote}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{SR}
@@ -2980,13 +3960,15 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
 
   \begin{DSPOpcodeDescription}
     \item Store value from register \Register{\$S} to a memory pointed by address \Address{M}.
-          Perform additional operation depending on destination register.
+    \item When storing from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
     MEM[M] = $S
     $pc += 2
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{SRR}
@@ -3000,13 +3982,16 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
 
   \begin{DSPOpcodeDescription}
     \item Store value from source register \Register{\$S} to a memory location pointed by addressing
-          register \Register{\$arD}. Perform additional operation depending on source register.
+          register \Register{\$arD}.
+    \item When storing from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
     MEM[$arD] = $S
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{SRRD}
@@ -3020,7 +4005,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
 
   \begin{DSPOpcodeDescription}
     \item Store value from source register \Register{\$S} to a memory location pointed by addressing
-          register \Register{\$arD}. Decrement register \Register{\$arD}. Perform additional operation depending on source register.
+          register \Register{\$arD}. Decrement register \Register{\$arD}.
+    \item When storing from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -3028,6 +4014,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     $arD--
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{SRRI}
@@ -3041,7 +4029,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
 
   \begin{DSPOpcodeDescription}
     \item Store value from source register \Register{\$S} to a memory location pointed by addressing
-          register \Register{\$arD}. Increment register \Register{\$arD}. Perform additional operation depending on source register.
+          register \Register{\$arD}. Increment register \Register{\$arD}.
+    \item When storing from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -3049,6 +4038,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     $arD++
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{SRRN}
@@ -3063,7 +4054,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeDescription}
     \item Store value from source register \Register{\$S} to a memory location pointed by addressing
           register \Register{\$arD}. Add indexing register \Register{\$ixD} to register \Register{\$arD}.
-          Perform additional operation depending on source register.
+    \item When storing from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -3071,26 +4062,61 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     $arD += $ixD
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{SRS}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0010} & \monobitbox{4}{1sss} & \monobitbox{4}{mmmm} & \monobitbox{4}{mmmm}
+    \monobitbox{4}{0010} & \monobitbox{4}{11ss} & \monobitbox{4}{mmmm} & \monobitbox{4}{mmmm}
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
-    SRS @M, $(0x18+S)
+    SRS @M, $(0x1C+S)
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
-    \item Store value from register \Register{\$(0x18+S)} to a memory pointed by address \Address{M} (8-bit sign-extended).
-          Perform additional operation depending on destination register.
+    \item Store value from register \Register{\$(0x1C+S)} to a memory pointed by address \Address{(\$cr << 8) | M}.
+    \item When storing from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    MEM[M] = $(0x18+S)
+    MEM[($cr << 8) | M] = $(0x1C+S)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item Unlike \Opcode{LRS}, \Opcode{SRS} and \Opcode{SRSH} only work on \Register{\$acS}.
+          The pattern \Value{101s} is unused and does not perform any write.
+  \end{DSPOpcodeNote}
+
+  \DSPOpcodeFlagsUnchanged
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{SRSH}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0010} & \monobitbox{4}{100s} & \monobitbox{4}{mmmm} & \monobitbox{4}{mmmm}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    SRSH @M, $acS.h
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Store value from register \Register{\$acS.h} to a memory pointed by address \Address{(\$cr << 8) | M}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    MEM[($cr << 8) | M] = $acS.h
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item Unlike \Opcode{LRS}, \Opcode{SRS} and \Opcode{SRSH} only work on \Register{\$acS}.
+          The pattern \Value{101s} is unused and does not perform any write.
+  \end{DSPOpcodeNote}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{SUB}
@@ -3111,6 +4137,29 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{SUBARN}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{0000} & \monobitbox{4}{0000} & \monobitbox{4}{11dd}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    SUBARN $arD
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Subtracts indexing register \Register{\$ixD} from addressing register \Register{\$arD}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $arD -= $ixD
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{SUBAX}
@@ -3131,6 +4180,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{SUBP}
@@ -3151,6 +4202,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{SUBR}
@@ -3167,10 +4220,12 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    $acD -= $(0x18+S)
+    $acD -= ($(0x18+S) << 16)
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{TST}
@@ -3190,6 +4245,8 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     FLAGS($acR)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{TSTAXH}
@@ -3202,18 +4259,67 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
-    \item Test hight part of secondary accumulator \Register{\$axR.h}.
+    \item Test high part of secondary accumulator \Register{\$axR.h}.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
     FLAGS($axR.h)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{0}{X}{X}{0}{0}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{TSTPROD}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1000} & \monobitbox{4}{0101} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    TSTPROD
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Test the product register \Register{\$prod}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    FLAGS($prod)
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{0}{X}{X}{0}{X}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{XORC}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0011} & \monobitbox{4}{000d} & \monobitbox{4}{1xxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    XORC $acD.m, $ac(1-D).m
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Logical XOR (exclusive OR) middle part of accumulator \Register{\$acD.m} with middle part of accumulator \Register{\$ac(1-D).m}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD.m ^= $ac(1-D).m
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item The main opcode is 9 bits and the extension opcode is 7 bits.  The extension opcode is treated as if the 8th bit was 0 (i.e. it is \texttt{0xxxxxxx}).
+  \end{DSPOpcodeNote}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{XORI}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0000} & \monobitbox{4}{001r} & \monobitbox{4}{0010} & \monobitbox{4}{0000} \\
+    \monobitbox{4}{0000} & \monobitbox{4}{001d} & \monobitbox{4}{0010} & \monobitbox{4}{0000} \\
     \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
   \end{DSPOpcodeBytefield}
 
@@ -3230,11 +4336,13 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     FLAGS($acD)
     $pc += 2
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{XORR}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0011} & \monobitbox{4}{00sd} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+    \monobitbox{4}{0011} & \monobitbox{4}{00sd} & \monobitbox{4}{0xxx} & \monobitbox{4}{xxxx}
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
@@ -3250,12 +4358,29 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item The main opcode is 9 bits and the extension opcode is 7 bits.  The extension opcode is treated as if the 8th bit was 0 (i.e. it is \texttt{0xxxxxxx}).
+  \end{DSPOpcodeNote}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \section{Extended opcodes}
 
-Extended opcodes do not exist on their own. These opcodes can only be attached to opcodes that
-allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do not modify the program counter (\Register{\$pc} register.
+Extended opcodes do not exist on their own. These opcodes can only be attached to opcodes that allow extending.
+Specifically, opcodes where the first nybble is 0, 1, or 2 cannot be extended.
+Opcodes where the first nybble is 4 or higher can be extended, using the 8 lower bits.
+Opcodes where the first nybble is 3 can also be extended, but the main opcode is 9 bits and the extension opcode is 7 bits.  For these instructions, the extension opcode is treated as if the first bit were 0 (i.e. \texttt{0xxxxxxx}).
+(\Opcode{NX} has no behavior of its own, so it can be used to get an extended opcode's behavior on its own.)
+
+Extended opcodes do not modify the program counter (\Register{\$pc} register).
+
+Extended opcodes are run \textit{in parallel} with the main opcode; they see the same register state as the input. (For instance, \texttt{\Opcode{MOVR}\Opcode{'MV} \Register{\$ac1}, \Register{\$ax0.l} : \Register{\$ax0.l}, \Register{\$ac1.m}} (encoded as \Value{0x6113}) \textit{swaps} the values of \Register{\$ac1.m} and \Register{\$ax0.l} (and also extends the new value of \Register{\$ac1.m} into \Register{\$ac1.l} and \Register{\$ac1.h}).)
+
+Since they are executed in parallel, the main and extension opcodes could theoretically write to the same registers. All opcodes that support extension only modify a main accumulator \Register{\$acD}, as well as \Register{\$prod}, \Register{\$sr}, and/or \Register{\$pc}, while the extension opcodes themselves generally only modify an additional accumulator \Register{\$axD} and addressing registers \Register{\$arS}. The exception is \Opcode{'L} and \Opcode{'LN}, which has the option of writing to \Register{\$acD}. Thus, \texttt{\Opcode{INC}\Opcode{'L} \Register{\$ac0} : \Register{\$ac0.l}, @\Register{\$ar0}} (encoded as \Value{0x7660}) increments \Register{\$ac0} (and thus \Register{\$ac0.l}), but also sets \Register{\$ac0.l} to the value in data memory at address \Register{\$ar0} and increments \Register{\$ar0}.
+
+When the main and extension opcodes write to the same register, the register is set to the two values bitwise-or'd together. For the above example, \Register{\$ar0.l} would be set to \InlineExpression{(\Register{\$ar0.l} + 1) | MEM[\Register{\$ar0}]}. \textbf{Note that no official uCode writes to the same register twice like this.}
 
 \pagebreak{}
 
@@ -3311,6 +4436,7 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
   \begin{DSPOpcodeDescription}
     \item Load register \Register{\$(0x18+D)} with value from memory pointed by register \Register{\$arS}.
           Post increment register \Register{\$arS}.
+    \item When loading to \Register{\$ac0.m} or \Register{\$ac1.m}, optionally perform sign extension depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -3331,6 +4457,7 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
   \begin{DSPOpcodeDescription}
     \item Load register \Register{\$(0x18+D)} with value from memory pointed by register \Register{\$arS}.
           Add indexing register \Register{\$ixS} to register \Register{\$arS}.
+    \item When loading to \Register{\$ac0.m} or \Register{\$ac1.m}, optionally perform sign extension depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -3339,9 +4466,227 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
+\begin{DSPOpcode}{'LD}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{11dr} & \monobitbox{4}{00ss}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    'LD $ax0.D, $ax1.R, @$arS
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Load register \Register{\$ax0.D} (either \Register{\$ax0.l} or \Register{\$ax0.h}, as \Register{\$(0x18+D*2)}) with value from memory pointed by register \Register{\$arS}.
+          Load register \Register{\$ax1.R} (either \Register{\$ax1.l} or \Register{\$ax1.h}, as \Register{\$(0x19+R*2)}) with value from memory pointed by register \Register{\$ar3}.
+          Increment both \Register{\$arS} and \Register{\$ar3}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $ax0.D = MEM[$arS]
+    $ax1.R = MEM[$ar3]
+    $arS++
+    $ar3++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item \texttt{S} cannot be 3, as that instead encodes \Opcode{'LDAX}.  Thus, \Register{\$arS} is guaranteed to be distinct from \Register{\$ar3}.
+  \end{DSPOpcodeNote}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{'LDM}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{11dr} & \monobitbox{4}{10ss}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    'LDM $ax0.D, $ax1.R, @$arS
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Load register \Register{\$ax0.D} (either \Register{\$ax0.l} or \Register{\$ax0.h}, as \Register{\$(0x18+D*2)}) with value from memory pointed by register \Register{\$arS}.
+          Load register \Register{\$ax1.R} (either \Register{\$ax1.l} or \Register{\$ax1.h}, as \Register{\$(0x19+R*2)}) with value from memory pointed by register \Register{\$ar3}.
+          Add corresponding indexing register \Register{\$ix3} to addressing register \Register{\$ar3} and increment \Register{\$arS}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $ax0.D = MEM[$arS]
+    $ax1.R = MEM[$ar3]
+    $arS++
+    $ar3 += $ix3
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item \texttt{S} cannot be 3, as that instead encodes \Opcode{'LDAXM}.  Thus, \Register{\$arS} is guaranteed to be distinct from \Register{\$ar3}.
+  \end{DSPOpcodeNote}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{'LDNM}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{11dr} & \monobitbox{4}{11ss}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    'LDNM $ax0.D, $ax1.R, @$arS
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Load register \Register{\$ax0.D} (either \Register{\$ax0.l} or \Register{\$ax0.h}, as \Register{\$(0x18+D*2)}) with value from memory pointed by register \Register{\$arS}.
+          Load register \Register{\$ax1.R} (either \Register{\$ax1.l} or \Register{\$ax1.h}, as \Register{\$(0x19+R*2)}) with value from memory pointed by register \Register{\$ar3}.
+          Add corresponding indexing register \Register{\$ixS} to addressing register \Register{\$arS} and add corresponding
+          indexing register \Register{\$ix3} to addressing register \Register{\$ar3}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $ax0.D = MEM[$arS]
+    $ax1.R = MEM[$ar3]
+    $arS += $ixS
+    $ar3 += $ix3
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item \texttt{S} cannot be 3, as that instead encodes \Opcode{'LDAXNM}.  Thus, \Register{\$arS} is guaranteed to be distinct from \Register{\$ar3}.
+  \end{DSPOpcodeNote}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{'LDN}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{11dr} & \monobitbox{4}{01ss}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    'LDN $ax0.D, $ax1.R, @$arS
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Load register \Register{\$ax0.D} (either \Register{\$ax0.l} or \Register{\$ax0.h}, as \Register{\$(0x18+D*2)}) with value from memory pointed by register \Register{\$arS}.
+          Load register \Register{\$ax1.R} (either \Register{\$ax1.l} or \Register{\$ax1.h}, as \Register{\$(0x19+R*2)}) with value from memory pointed by register \Register{\$ar3}.
+          Add corresponding indexing register \Register{\$ixS} to addressing register \Register{\$arS} and increment \Register{\$ar3}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $ax0.D = MEM[$arS]
+    $ax1.R = MEM[$ar3]
+    $arS += $ixS
+    $ar3++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item \texttt{S} cannot be 3, as that instead encodes \Opcode{'LDAXN}.  Thus, \Register{\$arS} is guaranteed to be distinct from \Register{\$ar3}.
+  \end{DSPOpcodeNote}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{'LDAX}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{11sr} & \monobitbox{4}{0011}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    'LDAX $axR, @$arS
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Load register \Register{\$axR.h} with value from memory pointed by register \Register{\$arS}.
+          Load register \Register{\$axR.l} with value from memory pointed by register \Register{\$ar3}.
+          Increment both \Register{\$arS} and \Register{\$ar3}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $axR.h = MEM[$arS]
+    $axR.l = MEM[$ar3]
+    $arS++
+    $ar3++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item \texttt{S} can be either 0 or 1, corresponding to \Register{\$ar0} or \Register{\$ar1}.  Thus, \Register{\$arS} is guaranteed to be distinct from \Register{\$ar3}.  \Register{\$ar2} cannot be used with this instruction.
+  \end{DSPOpcodeNote}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{'LDAXM}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{11sr} & \monobitbox{4}{0011}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    'LDAXM $axR, @$arS
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Load register \Register{\$axR.h} with value from memory pointed by register \Register{\$arS}.
+          Load register \Register{\$axR.l} with value from memory pointed by register \Register{\$ar3}.
+          Add corresponding indexing register \Register{\$ix3} to addressing register \Register{\$ar3} and increment \Register{\$arS}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $axR.h = MEM[$arS]
+    $axR.l = MEM[$ar3]
+    $arS++
+    $ar3 += $ix3
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item \texttt{S} can be either 0 or 1, corresponding to \Register{\$ar0} or \Register{\$ar1}.  Thus, \Register{\$arS} is guaranteed to be distinct from \Register{\$ar3}.  \Register{\$ar2} cannot be used with this instruction.
+  \end{DSPOpcodeNote}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{'LDAXNM}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{11sr} & \monobitbox{4}{0011}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    'LDAXNM $axR, @$arS
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Load register \Register{\$axR.h} with value from memory pointed by register \Register{\$arS}.
+          Load register \Register{\$axR.l} with value from memory pointed by register \Register{\$ar3}.
+          Add corresponding indexing register \Register{\$ixS} to addressing register \Register{\$arS} and add corresponding
+          indexing register \Register{\$ix3} to addressing register \Register{\$ar3}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $axR.h = MEM[$arS]
+    $axR.l = MEM[$ar3]
+    $arS += $ixS
+    $ar3 += $ix3
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item \texttt{S} can be either 0 or 1, corresponding to \Register{\$ar0} or \Register{\$ar1}.  Thus, \Register{\$arS} is guaranteed to be distinct from \Register{\$ar3}.  \Register{\$ar2} cannot be used with this instruction.
+  \end{DSPOpcodeNote}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{'LDAXN}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{11sr} & \monobitbox{4}{0011}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    'LDAXN $axR, @$arS
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Load register \Register{\$axR.h} with value from memory pointed by register \Register{\$arS}.
+          Load register \Register{\$axR.l} with value from memory pointed by register \Register{\$ar3}.
+          Add corresponding indexing register \Register{\$ixS} to addressing register \Register{\$arS} and increment \Register{\$ar3}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $axR.h = MEM[$arS]
+    $axR.l = MEM[$ar3]
+    $arS += $ixS
+    $ar3++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item \texttt{S} can be either 0 or 1, corresponding to \Register{\$ar0} or \Register{\$ar1}.  Thus, \Register{\$arS} is guaranteed to be distinct from \Register{\$ar3}.  \Register{\$ar2} cannot be used with this instruction.
+  \end{DSPOpcodeNote}
+\end{DSPOpcode}
+
 \begin{DSPOpcode}{'LS}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{01dd} & \monobitbox{4}{d1ss}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{10dd} & \monobitbox{4}{000s}
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
@@ -3352,6 +4697,7 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
     \item Load register \Register{\$(0x18+D)} with value from memory pointed by register \Register{\$ar0}.
           Store value from register \Register{\$acS.m} to memory location pointed by register \Register{\$ar3}.
           Increment both \Register{\$ar0} and \Register{\$ar3}.
+    \item When storing from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -3360,6 +4706,10 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
     $ar0++
     $ar3++
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item Differs from \Opcode{'SL} in that \Register{\$(0x18+D)} is associated with \Register{\$ar0} instead of \Register{\$ar3} and \Register{\$acS.m} is associated with \Register{\$ar3} instead of \Register{\$ar0}. In both cases, \Register{\$(0x18+D)} is loaded and \Register{\$acS.m} is stored.
+  \end{DSPOpcodeNote}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{'LSM}
@@ -3375,6 +4725,7 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
     \item Load register \Register{\$(0x18+D)} with value from memory pointed by register \Register{\$ar0}.
           Store value from register \Register{\$acS.m} to memory location pointed by register \Register{\$ar3}.
           Add corresponding indexing register \Register{\$ix3} to addressing register \Register{\$ar3} and increment \Register{\$ar0}.
+    \item When storing from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -3383,6 +4734,10 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
     $ar0++
     $ar3 += $ix3
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item Differs from \Opcode{'SLM} in that \Register{\$(0x18+D)} is associated with \Register{\$ar0} instead of \Register{\$ar3} and \Register{\$acS.m} is associated with \Register{\$ar3} instead of \Register{\$ar0}. In both cases, \Register{\$(0x18+D)} is loaded and \Register{\$acS.m} is stored.
+  \end{DSPOpcodeNote}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{'LSNM}
@@ -3399,6 +4754,7 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
           Store value from register \Register{\$acS.m} to memory location pointed by register \Register{\$ar3}.
           Add corresponding indexing register \Register{\$ix0} to addressing register \Register{\$ar0} and add corresponding
           indexing register \Register{\$ix3} to addressing register \Register{\$ar3}.
+    \item When storing from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -3407,6 +4763,10 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
     $ar0 += $ix0
     $ar3 += $ix3
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item Differs from \Opcode{'SLNM} in that \Register{\$(0x18+D)} is associated with \Register{\$ar0} instead of \Register{\$ar3} and \Register{\$acS.m} is associated with \Register{\$ar3} instead of \Register{\$ar0}. In both cases, \Register{\$(0x18+D)} is loaded and \Register{\$acS.m} is stored.
+  \end{DSPOpcodeNote}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{'LSN}
@@ -3422,6 +4782,7 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
     \item Load register \Register{\$(0x18+D)} with value from memory pointed by register \Register{\$ar0}.
           Store value from register \Register{\$acS.m} to memory location pointed by register \Register{\$ar3}.
           Add corresponding indexing register \Register{\$ix0} to addressing register \Register{\$ar0} and increment \Register{\$ar3}.
+    \item When storing from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -3430,6 +4791,10 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
     $ar0 += $ix0
     $ar3++
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item Differs from \Opcode{'SLN} in that \Register{\$(0x18+D)} is associated with \Register{\$ar0} instead of \Register{\$ar3} and \Register{\$acS.m} is associated with \Register{\$ar3} instead of \Register{\$ar0}. In both cases, \Register{\$(0x18+D)} is loaded and \Register{\$acS.m} is stored.
+  \end{DSPOpcodeNote}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{'MV}
@@ -3443,11 +4808,30 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
 
   \begin{DSPOpcodeDescription}
     \item Move value of register \Register{\$(0x1c+S)} to the register \Register{\$(0x18+D)}.
+    \item When moving from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
     $(0x18+D) = $(0x1c+S)
   \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{'NOP}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{0000} & \monobitbox{4}{00xx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    'NOP
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item No operation.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeNote}
+     \item Generally written by not including any extension operation, such as writing \texttt{INC \$ac0} instead of writing \texttt{INC'NOP \$ac0}.
+  \end{DSPOpcodeNote}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{'NR}
@@ -3474,12 +4858,13 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
-    'S @$D, $(0x1c+S)
+    'S @$arD, $(0x1c+S)
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
     \item Store value of register \Register{\$(0x1c+S)} in the memory pointed by register \Register{\$arD}.
           Post increment register \Register{\$arD}.
+    \item When storing from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -3501,6 +4886,7 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
     \item Store value from register \Register{\$acS.m} to memory location pointed by register \Register{\$ar0}.
           Load register \Register{\$(0x18+D)} with value from memory pointed by register \Register{\$ar3}.
           Increment both \Register{\$ar0} and \Register{\$ar3}.
+    \item When storing from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -3509,6 +4895,10 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
     $ar0++
     $ar3++
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item Differs from \Opcode{'LS} in that \Register{\$(0x18+D)} is associated with \Register{\$ar3} instead of \Register{\$ar0} and \Register{\$acS.m} is associated with \Register{\$ar0} instead of \Register{\$ar3}. In both cases, \Register{\$(0x18+D)} is loaded and \Register{\$acS.m} is stored.
+  \end{DSPOpcodeNote}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{'SLM}
@@ -3524,6 +4914,7 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
     \item Store value from register \Register{\$acS.m} to memory location pointed by register \Register{\$ar0}.
           Load register \Register{\$(0x18+D)} with value from memory pointed by register \Register{\$ar3}.
           Add corresponding indexing register \Register{\$ix3} to addressing register \Register{\$ar3} and increment \Register{\$ar0}.
+    \item When storing from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -3532,15 +4923,19 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
     $ar0++
     $ar3 += $ix3
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item Differs from \Opcode{'LSM} in that \Register{\$(0x18+D)} is associated with \Register{\$ar3} instead of \Register{\$ar0} and \Register{\$acS.m} is associated with \Register{\$ar0} instead of \Register{\$ar3}. In both cases, \Register{\$(0x18+D)} is loaded and \Register{\$acS.m} is stored.
+  \end{DSPOpcodeNote}
 \end{DSPOpcode}
 
-\begin{DSPOpcode}{'SLMN}
+\begin{DSPOpcode}{'SLNM}
   \begin{DSPOpcodeBytefield}{16}
     \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{10dd} & \monobitbox{4}{111s}
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
-    'SLMN $acS.m, $(0x18+D)
+    'SLNM $acS.m, $(0x18+D)
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
@@ -3548,6 +4943,7 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
           Load register \Register{\$(0x18+D)} with value from memory pointed by register \Register{\$ar3}.
           Add corresponding indexing register \Register{\$ix0} to addressing register \Register{\$ar0} and add corresponding
           indexing register \Register{\$ix3} to addressing register \Register{\$ar3}.
+    \item When storing from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -3556,6 +4952,10 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
     $ar0 += $ix0
     $ar3 += $ix3
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item Differs from \Opcode{'LSNM} in that \Register{\$(0x18+D)} is associated with \Register{\$ar3} instead of \Register{\$ar0} and \Register{\$acS.m} is associated with \Register{\$ar0} instead of \Register{\$ar3}. In both cases, \Register{\$(0x18+D)} is loaded and \Register{\$acS.m} is stored.
+  \end{DSPOpcodeNote}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{'SLN}
@@ -3571,6 +4971,7 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
     \item Store value from register \Register{\$acS.m} to memory location pointed by register \Register{\$ar0}.
           Load register \Register{\$(0x18+D)} with value from memory pointed by register \Register{\$ar3}.
           Add corresponding indexing register \Register{\$ix0} to addressing register \Register{\$ar0} and increment \Register{\$ar3}.
+    \item When storing from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -3579,6 +4980,10 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
     $ar0 += $ix0
     $ar3++
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item Differs from \Opcode{'LSN} in that \Register{\$(0x18+D)} is associated with \Register{\$ar3} instead of \Register{\$ar0} and \Register{\$acS.m} is associated with \Register{\$ar0} instead of \Register{\$ar3}. In both cases, \Register{\$(0x18+D)} is loaded and \Register{\$acS.m} is stored.
+  \end{DSPOpcodeNote}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{'SN}
@@ -3593,6 +4998,7 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
   \begin{DSPOpcodeDescription}
     \item Store value of register \Register{\$(0x1c+S)} in the memory pointed by register \Register{\$arD}.
           Add indexing register \Register{\$ixD} to register \Register{\$arD}.
+    \item When storing from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -3603,144 +5009,201 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
 
 \section{Instructions sorted by opcode}
 
-
-\newcolumntype{T}{>{\ttfamily}l}
+\newcommand{\OpcodeRow}[2]{\Opcode{#2} & \texttt{#1} & \pageref{instruction:#2} \\*}
+\newcommand{\OpcodeRowUnk}[1]{Unknown & \texttt{#1} \\*}
+\newcommand{\OpcodeRowSkip}[0]{\\}
 
 \begin{center}
-\begin{longtable}{TllT}
-NOP         &          & *  & 0000 0000 0000 0000                     \\
-DAR         &          & *  & 0000 0000 0000 01aa                     \\
-IAR         &          & *  & 0000 0000 0000 10aa                     \\
-XXX         & NOT USED &    & 0000 0000 0000 11xx                     \\
-ADDARN      &          & *  & 0000 0000 0001 bbaa                     \\
-HALT        &          & *  & 0000 0000 0010 0001                     \\
-            &          &    &                                         \\
-LOOP        &          & *  & 0000 0000 010r rrrr                     \\
-BLOOP       &          & *  & 00000 0000 011r rrrr                    \\
-            &          &    &                                         \\
-LRI         &          & *  & 0000 0000 100r rrrr iiii iiii iiii iiii \\
-XXX         & NOT USED & *  & 0000 0000 101x xxxx                     \\
-LR          &          & *  & 0000 0000 110r rrrr mmmm mmmm mmmm mmmm \\
-SR          &          & *  & 0000 0000 111r rrrr mmmm mmmm mmmm mmmm \\
-            &          &    &                                         \\
-IF cc       &          & *  & 0000 0010 0111 cccc                     \\
-JMP cc      &          & *  & 0000 0010 1001 cccc                     \\
-CALL cc     &          & *  & 0000 0010 1011 cccc                     \\
-RET cc      &          & *  & 0000 0010 1101 cccc                     \\
-            &          &    &                                         \\
-ADDI        &          & *  & 0000 001r 0000 0000 iiii iiii iiii iiii \\
-XORI        &          & *  & 0000 001r 0010 0000 iiii iiii iiii iiii \\
-ANDI        &          & *  & 0000 001r 0100 0000 iiii iiii iiii iiii \\
-ORI         &          & *  & 0000 001r 0110 0000 iiii iiii iiii iiii \\
-CMPI        &          & *  & 0000 001r 1000 0000 iiii iiii iiii iiii \\
-ANDCF       &          & *  & 0000 001r 1010 0000 iiii iiii iiii iiii \\
-ANDF        &          & *  & 0000 001r 1100 0000 iiii iiii iiii iiii \\
-            &          &    &                                         \\
-ILRR        &          & *  & 0000 001r 0001 mmaa                     \\
-            &          &    &                                         \\
-ADDIS       &          & *  & 0000 010d iiii iiii                     \\
-CMPIS       &          & *  & 0000 011d iiii iiii                     \\
-LRIS        &          & *  & 0000 1rrr iiii iiii                     \\
-            &          &    &                                         \\
-LOOPI       &          & *  & 0001 0000 iiii iiii aaaa aaaa aaaa aaaa \\
-BLOOPI      &          & *  & 0001 0001 iiii iiii aaaa aaaa aaaa aaaa \\
-SBSET       &          & *  & 0001 0010 ???? ?iii                     \\
-SBCLR       &          & *  & 0001 0011 ???? ?iii                     \\
-LSL/LSR     &          & *  & 0001 010r 0sss ssss                     \\
-ASL/ASR     &          & *  & 0001 010r 1sss ssss                     \\
-SI          &          & *  & 0001 0110 iiii iiii mmmm mmmm mmmm mmmm \\
-CALLR       &          & *  & 0001 0111 rrr1 1111                     \\
-JMPR        &          & *  & 0001 0111 rrr0 1111                     \\
-LRR(I|D|X)  &          & *  & 0001 100x xaar rrrr                     \\
-SRR(I|D|X)  &          & *  & 0001 101x xaar rrrr                     \\
-MRR         &          & *  & 0001 11dd ddds ssss                     \\
-            &          &    &                                         \\
-LRS         &          & *  & 0010 0rrr mmmm mmmm                     \\
-SRS         &          & *  & 0010 1rrr mmmm mmmm                     \\
-            &          &    &                                         \\
-XORR        &          & *  & 0011 00sr xxxx xxxx                     \\
-ANDR        &          & *  & 0011 01sr xxxx xxxx                     \\
-ORR         &          & *  & 0011 10sr xxxx xxxx                     \\
-ANDC        &          & *  & 0011 110r xxxx xxxx                     \\
-ORC         &          & *  & 0011 111r xxxx xxxx                     \\
-            &          &    &                                         \\
-ADDR        &          & *  & 0100 0ssd xxxx xxxx                     \\
-ADDAX       &          & *  & 0100 10sd xxxx xxxx                     \\
-ADD         &          & *  & 0100 110d xxxx xxxx                     \\
-ADDP        &          & *  & 0100 111d xxxx xxxx                     \\
-            &          &    &                                         \\
-SUBR        &          & *  & 0101 0ssd xxxx xxxx                     \\
-SUBAX       &          & *  & 0101 10sd xxxx xxxx                     \\
-SUB         &          & *  & 0101 110d xxxx xxxx                     \\
-SUBP        &          & *  & 0101 111d xxxx xxxx                     \\
-            &          &    &                                         \\
-MOVR        &          & *  & 0110 0ssd xxxx xxxx                     \\
-MOVAX       &          & *  & 0110 10sd xxxx xxxx                     \\
-MOV         &          & *  & 0110 110d xxxx xxxx                     \\
-MOVP        &          & *  & 0110 111d xxxx xxxx                     \\
-            &          &    &                                         \\
-ADDAXL      &          & *  & 0111 00sr xxxx xxxx                     \\
-INCM        &          & *  & 0111 010r xxxx xxxx                     \\
-INC         &          & *  & 0111 011r xxxx xxxx                     \\
-DECM        &          & *  & 0111 100r xxxx xxxx                     \\
-DEC         &          & *  & 0111 101r xxxx xxxx                     \\
-NEG         &          & *  & 0111 110r xxxx xxxx                     \\
-MOVNP       &          & *  & 0111 111r xxxx xxxx                     \\
-            &          &    &                                         \\
-NX          &          & *  & 1000 x000 xxxx xxxx                     \\
-CLR         &          & *  & 1000 x001 xxxx xxxx                     \\
-CMP         &          & *  & 1000 0010 xxxx xxxx                     \\
-???         & UNUSED   & *  & 1000 0011 xxxx xxxx                     \\
-CLRP        &          & *  & 1000 0100 xxxx xxxx                     \\
-TSTAXH      &          & *  & 1000 011x xxxx xxxx                     \\
-M0/M2       &          &    & 1000 101x xxxx xxxx                     \\
-CLR15/SET15 &          &    & 1000 110x xxxx xxxx                     \\
-SET40/16    &          &    & 1000 111x xxxx xxxx                     \\
-            &          &    &                                         \\
-MUL         &          & *  & 1001 a000 xxxx xxxx                     \\
-ASR16       &          & *  & 1001 r001 xxxx xxxx                     \\
-MULMVZ      &          & *  & 1001 a01r xxxx xxxx                     \\
-MULAC       &          & *  & 1001 a10r xxxx xxxx                     \\
-MULMV       &          & *  & 1001 a11r xxxx xxxx                     \\
-            &          &    &                                         \\
-MULX        &          & *  & 101b a000 xxxx xxxx                     \\
-???         &          &    & 1010 r001 xxxx xxxx                     \\
-MULXMVZ     &          & *  & 101b a01r xxxx xxxx                     \\
-MULXAC      &          & *  & 101b a10r xxxx xxxx                     \\
-MULXMV      &          & *  & 101b a11r xxxx xxxx                     \\
-            &          &    &                                         \\
-MULC        &          & *  & 110s a000 xxxx xxxx                     \\
-CMP         &          & *  & 110x r001 xxxx xxxx                     \\
-MULCMVZ     &          & *  & 110s a01r xxxx xxxx                     \\
-MULCAC      &          & *  & 110s a10r xxxx xxxx                     \\
-MULCMV      &          & *  & 110s a11r xxxx xxxx                     \\
-            &          &    &                                         \\
-MADDX       &          & ** & 1110 00st xxxx xxxx                     \\
-MSUBX       &          & ** & 1110 01st xxxx xxxx                     \\
-MADDC       &          & ** & 1110 10st xxxx xxxx                     \\
-MSUBC       &          & ** & 1110 11st xxxx xxxx                     \\
-            &          &    &                                         \\
-LSL16       &          & *  & 1111 000r xxxx xxxx                     \\
-MADD        &          & *  & 1111 001s xxxx xxxx                     \\
-LSR16       &          & *  & 1111 010r xxxx xxxx                     \\
-MSUB        &          & *  & 1111 011s xxxx xxxx                     \\
-ADDPAXZ     &          & *  & 1111 10ar xxxx xxxx                     \\
-CLRL        &          & *  & 1111 110r xxxx xxxx                     \\
-MOVPZ       &          & *  & 1111 111r xxxx xxxx
+\begin{longtable}{llr}
+Instruction & Opcode & Page \\ \hline
+\endhead
+\OpcodeRow{0000 0000 0000 0000}{NOP}
+\OpcodeRow{0000 0000 0000 01dd}{DAR}
+\OpcodeRow{0000 0000 0000 10dd}{IAR}
+\OpcodeRow{0000 0000 0000 11dd}{SUBARN}
+\OpcodeRow{0000 0000 0001 ssdd}{ADDARN}
+\OpcodeRow{0000 0000 0010 0001}{HALT}
+\OpcodeRowSkip
+\OpcodeRow{0000 0000 010r rrrr}{LOOP}
+\OpcodeRow{0000 0000 011r rrrr aaaa aaaa aaaa aaaa}{BLOOP}
+\OpcodeRowSkip
+\OpcodeRow{0000 0000 100d dddd iiii iiii iiii iiii}{LRI}
+\OpcodeRowUnk{0000 0000 101x xxxx}
+\OpcodeRow{0000 0000 110d dddd mmmm mmmm mmmm mmmm}{LR}
+\OpcodeRow{0000 0000 111s ssss mmmm mmmm mmmm mmmm}{SR}
+\OpcodeRowSkip
+\OpcodeRow{0000 0010 0111 cccc}{IFcc}
+\OpcodeRow{0000 0010 1001 cccc aaaa aaaa aaaa aaaa}{Jcc}
+\OpcodeRow{0000 0010 1011 cccc aaaa aaaa aaaa aaaa}{CALLcc}
+\OpcodeRow{0000 0010 1101 cccc}{RETcc}
+\OpcodeRow{0000 0010 1111 cccc}{RTIcc}
+\OpcodeRowSkip
+\OpcodeRow{0000 001d 0000 0000 iiii iiii iiii iiii}{ADDI}
+\OpcodeRow{0000 001d 0010 0000 iiii iiii iiii iiii}{XORI}
+\OpcodeRow{0000 001d 0100 0000 iiii iiii iiii iiii}{ANDI}
+\OpcodeRow{0000 001d 0110 0000 iiii iiii iiii iiii}{ORI}
+\OpcodeRow{0000 001d 1000 0000 iiii iiii iiii iiii}{CMPI}
+\OpcodeRow{0000 001d 1010 0000 iiii iiii iiii iiii}{ANDF}
+\OpcodeRow{0000 001d 1100 0000 iiii iiii iiii iiii}{ANDCF}
+\OpcodeRowSkip
+\OpcodeRow{0000 0010 1100 1010}{LSRN}
+\OpcodeRow{0000 0010 1100 1011}{ASRN}
+\OpcodeRowSkip
+\OpcodeRow{0000 001d 0001 00ss}{ILRR}
+\OpcodeRow{0000 001d 0001 01ss}{ILRRD}
+\OpcodeRow{0000 001d 0001 10ss}{ILRRI}
+\OpcodeRow{0000 001d 0001 11ss}{ILRRN}
+\OpcodeRowSkip
+\OpcodeRow{0000 010d iiii iiii}{ADDIS}
+\OpcodeRow{0000 011d iiii iiii}{CMPIS}
+\OpcodeRow{0000 1ddd iiii iiii}{LRIS}
+\OpcodeRowSkip
+\OpcodeRow{0001 0000 iiii iiii}{LOOPI}
+\OpcodeRow{0001 0001 iiii iiii aaaa aaaa aaaa aaaa}{BLOOPI}
+\OpcodeRow{0001 0010 xxxx xiii}{SBCLR}
+\OpcodeRow{0001 0011 xxxx xiii}{SBSET}
+\OpcodeRowSkip
+\OpcodeRow{0001 010r 00ii iiii}{LSL}
+\OpcodeRow{0001 010r 01ii iiii}{LSR}
+\OpcodeRow{0001 010r 10ii iiii}{ASL}
+\OpcodeRow{0001 010r 11ii iiii}{ASR}
+\OpcodeRow{0001 0110 mmmm mmmm iiii iiii iiii iiii}{SI}
+\OpcodeRow{0001 0111 rrr0 cccc}{JRcc}
+\OpcodeRow{0001 0111 rrr1 cccc}{CALLRcc}
+\OpcodeRowSkip
+\OpcodeRow{0001 1000 0ssd dddd}{LRR}
+\OpcodeRow{0001 1000 1ssd dddd}{LRRD}
+\OpcodeRow{0001 1001 0ssd dddd}{LRRI}
+\OpcodeRow{0001 1001 1ssd dddd}{LRRN}
+\OpcodeRow{0001 1010 0dds ssss}{SRR}
+\OpcodeRow{0001 1010 1dds ssss}{SRRD}
+\OpcodeRow{0001 1011 0dds ssss}{SRRI}
+\OpcodeRow{0001 1011 1dds ssss}{SRRN}
+\OpcodeRow{0001 11dd ddds ssss}{MRR}
+\OpcodeRowSkip
+\OpcodeRow{0010 0ddd mmmm mmmm}{LRS}
+\OpcodeRow{0010 100s mmmm mmmm}{SRSH}
+\OpcodeRowUnk{0010 101x mmmm mmmm}
+\OpcodeRow{0010 11ss mmmm mmmm}{SRS}
+\OpcodeRowSkip
+\OpcodeRow{0011 00sd 0xxx xxxx}{XORR}
+\OpcodeRow{0011 01sd 0xxx xxxx}{ANDR}
+\OpcodeRow{0011 10sd 0xxx xxxx}{ORR}
+\OpcodeRow{0011 110d 0xxx xxxx}{ANDC}
+\OpcodeRow{0011 111d 0xxx xxxx}{ORC}
+\OpcodeRowSkip
+\OpcodeRow{0011 000d 1xxx xxxx}{XORC}
+\OpcodeRow{0011 001d 1xxx xxxx}{NOT}
+\OpcodeRow{0011 01sd 1xxx xxxx}{LSRNRX}
+\OpcodeRow{0011 10sd 1xxx xxxx}{ASRNRX}
+\OpcodeRow{0011 110d 1xxx xxxx}{LSRNR}
+\OpcodeRow{0011 111d 1xxx xxxx}{ASRNR}
+\OpcodeRowSkip
+\OpcodeRow{0100 0ssd xxxx xxxx}{ADDR}
+\OpcodeRow{0100 10sd xxxx xxxx}{ADDAX}
+\OpcodeRow{0100 110d xxxx xxxx}{ADD}
+\OpcodeRow{0100 111d xxxx xxxx}{ADDP}
+\OpcodeRowSkip
+\OpcodeRow{0101 0ssd xxxx xxxx}{SUBR}
+\OpcodeRow{0101 10sd xxxx xxxx}{SUBAX}
+\OpcodeRow{0101 110d xxxx xxxx}{SUB}
+\OpcodeRow{0101 111d xxxx xxxx}{SUBP}
+\OpcodeRowSkip
+\OpcodeRow{0110 0ssd xxxx xxxx}{MOVR}
+\OpcodeRow{0110 10sd xxxx xxxx}{MOVAX}
+\OpcodeRow{0110 110d xxxx xxxx}{MOV}
+\OpcodeRow{0110 111d xxxx xxxx}{MOVP}
+\OpcodeRowSkip
+\OpcodeRow{0111 00sd xxxx xxxx}{ADDAXL}
+\OpcodeRow{0111 010d xxxx xxxx}{INCM}
+\OpcodeRow{0111 011d xxxx xxxx}{INC}
+\OpcodeRow{0111 100d xxxx xxxx}{DECM}
+\OpcodeRow{0111 101d xxxx xxxx}{DEC}
+\OpcodeRow{0111 110d xxxx xxxx}{NEG}
+\OpcodeRow{0111 111d xxxx xxxx}{MOVNP}
+\OpcodeRowSkip
+\OpcodeRow{1000 x000 xxxx xxxx}{NX}
+\OpcodeRow{1000 r001 xxxx xxxx}{CLR}
+\OpcodeRow{1000 0010 xxxx xxxx}{CMP}
+\OpcodeRow{1000 0011 xxxx xxxx}{MULAXH}
+\OpcodeRow{1000 0100 xxxx xxxx}{CLRP}
+\OpcodeRow{1000 0101 xxxx xxxx}{TSTPROD}
+\OpcodeRow{1000 011r xxxx xxxx}{TSTAXH}
+\OpcodeRowSkip
+\OpcodeRow{1000 1010 xxxx xxxx}{M2}
+\OpcodeRow{1000 1011 xxxx xxxx}{M0}
+\OpcodeRow{1000 1100 xxxx xxxx}{CLR15}
+\OpcodeRow{1000 1101 xxxx xxxx}{SET15}
+\OpcodeRow{1000 1110 xxxx xxxx}{SET16}
+\OpcodeRow{1000 1111 xxxx xxxx}{SET40}
+\OpcodeRowSkip
+\OpcodeRow{1001 s000 xxxx xxxx}{MUL}
+\OpcodeRow{1001 r001 xxxx xxxx}{ASR16}
+\OpcodeRow{1001 s01r xxxx xxxx}{MULMVZ}
+\OpcodeRow{1001 s10r xxxx xxxx}{MULAC}
+\OpcodeRow{1001 s11r xxxx xxxx}{MULMV}
+\OpcodeRowSkip
+\OpcodeRow{101s t000 xxxx xxxx}{MULX}
+\OpcodeRow{1010 d001 xxxx xxxx}{ABS}
+\OpcodeRow{1011 r001 xxxx xxxx}{TST}
+\OpcodeRow{101s t01r xxxx xxxx}{MULXMVZ}
+\OpcodeRow{101s t10r xxxx xxxx}{MULXAC}
+\OpcodeRow{101s t11r xxxx xxxx}{MULXMV}
+\OpcodeRowSkip
+\OpcodeRow{110s t000 xxxx xxxx}{MULC}
+\OpcodeRow{110r s001 xxxx xxxx}{CMPAXH}
+\OpcodeRow{110s t01r xxxx xxxx}{MULCMVZ}
+\OpcodeRow{110s t10r xxxx xxxx}{MULCAC}
+\OpcodeRow{110s t11r xxxx xxxx}{MULCMV}
+\OpcodeRowSkip
+\OpcodeRow{1110 00st xxxx xxxx}{MADDX}
+\OpcodeRow{1110 01st xxxx xxxx}{MSUBX}
+\OpcodeRow{1110 10st xxxx xxxx}{MADDC}
+\OpcodeRow{1110 11st xxxx xxxx}{MSUBC}
+\OpcodeRowSkip
+\OpcodeRow{1111 000r xxxx xxxx}{LSL16}
+\OpcodeRow{1111 001s xxxx xxxx}{MADD}
+\OpcodeRow{1111 010r xxxx xxxx}{LSR16}
+\OpcodeRow{1111 011s xxxx xxxx}{MSUB}
+\OpcodeRow{1111 10sd xxxx xxxx}{ADDPAXZ}
+\OpcodeRow{1111 110r xxxx xxxx}{CLRL}
+\OpcodeRow{1111 111d xxxx xxxx}{MOVPZ}
 \end{longtable}
 \end{center}
 
+\pagebreak
+
 \begin{center}
 Extension Opcodes
-\begin{longtable}{TllT}
-[D|I|N]R    &          & *  & xxxx xxxx 0000 nnaa \\
-MV          &          & *  & xxxx xxxx 0001 ddss \\
-S[N]        &          & *  & xxxx xxxx 001r rnaa \\
-L[N]        &          & *  & xxxx xxxx 01dd diss \\
-LS[NM|M|N]  &          & *  & xxxx xxxx 10dd ba0r \\
-SL          &          & *  & xxxx xxxx 10dd ba1r \\
-LD[NM|M|N]  &          &    & xxxx xxxx 11mn barr \\
-LD2[NM|M|N] &          &    & xxxx xxxx 11rm ba11
+\begin{longtable}{llr}
+Instruction & Opcode & Page \\ \hline
+\OpcodeRow{xxxx xxxx 0000 00xx}{'NOP}
+\OpcodeRow{xxxx xxxx 0000 01rr}{'DR}
+\OpcodeRow{xxxx xxxx 0000 10rr}{'IR}
+\OpcodeRow{xxxx xxxx 0000 11rr}{'NR}
+\OpcodeRow{xxxx xxxx 0001 ddss}{'MV}
+\OpcodeRow{xxxx xxxx 001s s0dd}{'S}
+\OpcodeRow{xxxx xxxx 001s s1dd}{'SN}
+\OpcodeRow{xxxx xxxx 01dd d0ss}{'L}
+\OpcodeRow{xxxx xxxx 01dd d1ss}{'LN}
+\OpcodeRowSkip
+\OpcodeRow{xxxx xxxx 10dd 000s}{'LS}
+\OpcodeRow{xxxx xxxx 10dd 001s}{'SL}
+\OpcodeRow{xxxx xxxx 10dd 010s}{'LSN}
+\OpcodeRow{xxxx xxxx 10dd 011s}{'SLN}
+\OpcodeRow{xxxx xxxx 10dd 100s}{'LSM}
+\OpcodeRow{xxxx xxxx 10dd 101s}{'SLM}
+\OpcodeRow{xxxx xxxx 10dd 110s}{'LSNM}
+\OpcodeRow{xxxx xxxx 10dd 111s}{'SLNM}
+\OpcodeRowSkip
+\OpcodeRow{xxxx xxxx 11dr 00ss}{'LD}
+\OpcodeRow{xxxx xxxx 11sr 0011}{'LDAX}
+\OpcodeRow{xxxx xxxx 11dr 01ss}{'LDN}
+\OpcodeRow{xxxx xxxx 11sr 0111}{'LDAXN}
+\OpcodeRow{xxxx xxxx 11dr 10ss}{'LDM}
+\OpcodeRow{xxxx xxxx 11sr 1011}{'LDAXM}
+\OpcodeRow{xxxx xxxx 11dr 11ss}{'LDNM}
+\OpcodeRow{xxxx xxxx 11dr 1111}{'LDAXNM}
 \end{longtable}
 \end{center}
 

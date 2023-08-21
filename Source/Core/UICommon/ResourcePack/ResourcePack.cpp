@@ -1,16 +1,18 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "UICommon/ResourcePack/ResourcePack.h"
 
 #include <algorithm>
+#include <memory>
 
-#include <unzip.h>
+#include <mz_compat.h>
+#include <mz_os.h>
 
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
+#include "Common/IOFile.h"
 #include "Common/MinizipUtil.h"
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
@@ -41,8 +43,8 @@ ResourcePack::ResourcePack(const std::string& path) : m_path(path)
     return;
   }
 
-  unz_file_info manifest_info;
-  unzGetCurrentFileInfo(file, &manifest_info, nullptr, 0, nullptr, 0, nullptr, 0);
+  unz_file_info64 manifest_info{};
+  unzGetCurrentFileInfo64(file, &manifest_info, nullptr, 0, nullptr, 0, nullptr, 0);
 
   std::string manifest_contents(manifest_info.uncompressed_size, '\0');
   if (!Common::ReadFileFromZip(file, &manifest_contents))
@@ -63,9 +65,8 @@ ResourcePack::ResourcePack(const std::string& path) : m_path(path)
 
   if (unzLocateFile(file, "logo.png", 0) != UNZ_END_OF_LIST_OF_FILE)
   {
-    unz_file_info logo_info;
-
-    unzGetCurrentFileInfo(file, &logo_info, nullptr, 0, nullptr, 0, nullptr, 0);
+    unz_file_info64 logo_info{};
+    unzGetCurrentFileInfo64(file, &logo_info, nullptr, 0, nullptr, 0, nullptr, 0);
 
     m_logo_data.resize(logo_info.uncompressed_size);
 
@@ -83,9 +84,9 @@ ResourcePack::ResourcePack(const std::string& path) : m_path(path)
   {
     std::string filename(256, '\0');
 
-    unz_file_info texture_info;
-    unzGetCurrentFileInfo(file, &texture_info, filename.data(), static_cast<u16>(filename.size()),
-                          nullptr, 0, nullptr, 0);
+    unz_file_info64 texture_info{};
+    unzGetCurrentFileInfo64(file, &texture_info, filename.data(), static_cast<u16>(filename.size()),
+                            nullptr, 0, nullptr, 0);
 
     if (filename.compare(0, 9, "textures/") != 0 || texture_info.uncompressed_size == 0)
       continue;
@@ -141,13 +142,44 @@ bool ResourcePack::Install(const std::string& path)
   }
 
   auto file = unzOpen(m_path.c_str());
+  if (file == nullptr)
+  {
+    m_valid = false;
+    m_error = "Failed to open resource pack";
+    return false;
+  }
   Common::ScopeGuard file_guard{[&] { unzClose(file); }};
 
-  for (const auto& texture : m_textures)
+  if (unzGoToFirstFile(file) != MZ_OK)
+    return false;
+
+  std::string texture_zip_path;
+  do
   {
-    bool provided_by_other_pack = false;
+    texture_zip_path.resize(UINT16_MAX + 1, '\0');
+    unz_file_info64 texture_info{};
+    if (unzGetCurrentFileInfo64(file, &texture_info, texture_zip_path.data(), UINT16_MAX, nullptr,
+                                0, nullptr, 0) != MZ_OK)
+    {
+      return false;
+    }
+    TruncateToCString(&texture_zip_path);
+
+    const std::string texture_zip_path_prefix = "textures/";
+    if (!texture_zip_path.starts_with(texture_zip_path_prefix))
+      continue;
+    const std::string texture_name = texture_zip_path.substr(texture_zip_path_prefix.size());
+
+    auto texture_it = std::find_if(
+        m_textures.cbegin(), m_textures.cend(), [&texture_name](const std::string& texture) {
+          return mz_path_compare_wc(texture.c_str(), texture_name.c_str(), 1) == MZ_OK;
+        });
+    if (texture_it == m_textures.cend())
+      continue;
+    const auto texture = *texture_it;
 
     // Check if a higher priority pack already provides a given texture, don't overwrite it
+    bool provided_by_other_pack = false;
     for (const auto& pack : GetHigherPriorityPacks(*this))
     {
       if (std::find(pack->GetTextures().begin(), pack->GetTextures().end(), texture) !=
@@ -157,47 +189,40 @@ bool ResourcePack::Install(const std::string& path)
         break;
       }
     }
-
     if (provided_by_other_pack)
       continue;
 
-    if (unzLocateFile(file, ("textures/" + texture).c_str(), 0) != UNZ_OK)
-    {
-      m_error = "Failed to locate texture " + texture;
-      return false;
-    }
-
     const std::string texture_path = path + TEXTURE_PATH + texture;
-    std::string m_full_dir;
-    SplitPath(texture_path, &m_full_dir, nullptr, nullptr);
+    std::string texture_full_dir;
+    if (!SplitPath(texture_path, &texture_full_dir, nullptr, nullptr))
+      continue;
 
-    if (!File::CreateFullPath(m_full_dir))
+    if (!File::CreateFullPath(texture_full_dir))
     {
-      m_error = "Failed to create full path " + m_full_dir;
+      m_error = "Failed to create full path " + texture_full_dir;
       return false;
     }
 
-    unz_file_info texture_info;
-    unzGetCurrentFileInfo(file, &texture_info, nullptr, 0, nullptr, 0, nullptr, 0);
-
-    std::vector<char> data(texture_info.uncompressed_size);
-    if (!Common::ReadFileFromZip(file, &data))
+    const size_t data_size = static_cast<size_t>(texture_info.uncompressed_size);
+    auto data = std::make_unique<u8[]>(data_size);
+    if (!Common::ReadFileFromZip(file, data.get(), data_size))
     {
       m_error = "Failed to read texture " + texture;
       return false;
     }
 
-    std::ofstream out(texture_path, std::ios::trunc | std::ios::binary);
-
-    if (!out.good())
+    File::IOFile out(texture_path, "wb");
+    if (!out)
+    {
+      m_error = "Failed to open " + texture;
+      return false;
+    }
+    if (!out.WriteBytes(data.get(), data_size))
     {
       m_error = "Failed to write " + texture;
       return false;
     }
-
-    out.write(data.data(), data.size());
-    out.flush();
-  }
+  } while (unzGoToNextFile(file) == MZ_OK);
 
   SetInstalled(*this, true);
   return true;

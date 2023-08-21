@@ -1,36 +1,36 @@
 add_library(videovulkan
-  BoundingBox.cpp
-  BoundingBox.h
   CommandBufferManager.cpp
   CommandBufferManager.h
   Constants.h
-  main.cpp
   ObjectCache.cpp
   ObjectCache.h
-  PerfQuery.cpp
-  PerfQuery.h
-  Renderer.cpp
-  Renderer.h
   ShaderCompiler.cpp
   ShaderCompiler.h
-  StateTracker.cpp
-  StateTracker.h
   StagingBuffer.cpp
   StagingBuffer.h
-  StreamBuffer.cpp
-  StreamBuffer.h
-  SwapChain.cpp
-  SwapChain.h
-  VertexFormat.cpp
-  VertexFormat.h
-  VertexManager.cpp
-  VertexManager.h
+  StateTracker.cpp
+  StateTracker.h
+  VKBoundingBox.cpp
+  VKBoundingBox.h
+  VKMain.cpp
+  VKPerfQuery.cpp
+  VKPerfQuery.h
   VKPipeline.cpp
   VKPipeline.h
+  VKGfx.cpp
+  VKGfx.h
   VKShader.cpp
   VKShader.h
+  VKStreamBuffer.cpp
+  VKStreamBuffer.h
+  VKSwapChain.cpp
+  VKSwapChain.h
   VKTexture.cpp
   VKTexture.h
+  VKVertexFormat.cpp
+  VKVertexFormat.h
+  VKVertexManager.cpp
+  VKVertexManager.h
   VulkanContext.cpp
   VulkanContext.h
   VulkanLoader.cpp
@@ -52,13 +52,10 @@ PRIVATE
 target_include_directories(videovulkan
 PRIVATE
   ${CMAKE_SOURCE_DIR}/Externals/Vulkan/Include
+  ${CMAKE_SOURCE_DIR}/Externals/VulkanMemoryAllocator/include
 )
 
-# Silence warnings on glslang by flagging it as a system include
-target_include_directories(videovulkan
-SYSTEM PRIVATE
-  ${CMAKE_SOURCE_DIR}/Externals/glslang/StandAlone
-  ${CMAKE_SOURCE_DIR}/Externals/glslang/glslang/Public
-  ${CMAKE_SOURCE_DIR}/Externals/glslang/SPIRV
-  ${CMAKE_SOURCE_DIR}/Externals/glslang
-)
+if(MSVC)
+  # Add precompiled header
+  target_link_libraries(videovulkan PRIVATE use_pch)
+endif()

@@ -1,0 +1,53 @@
+{
+ "Details": [
+  {
+   "InjectionAddress": "801A4D98",
+   "Name": "Polling Drift + Half Visual Buffer Fixes",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801A5050",
+   "Name": "Polling Drift + Half Visual Buffer Fixes",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801A4BEC",
+   "Name": "Polling Drift + Half Visual Buffer Fixes",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80158268",
+   "Name": "Polling Drift + Half Visual Buffer Fixes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8034EB60",
+   "Name": "Polling Drift + Half Visual Buffer Fixes",
+   "Codetype": "C2",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "80397878",
+   "Name": "Polling Drift + Half Visual Buffer Fixes",
+   "Codetype": "04",
+   "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "801A4570",
+   "Name": "Polling Drift + Half Visual Buffer Fixes",
+   "Codetype": "Auto",
+   "Annotation": "External/Lag Reduction/Force HD/480pDeflickerOff.asm",
+   "Tags": ""
+  }
+ ]
+}

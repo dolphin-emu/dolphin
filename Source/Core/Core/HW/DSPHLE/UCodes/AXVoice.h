@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // This file is UGLY (full of #ifdef) so that it can be used with both GC and
 // Wii version of AX. Maybe it would be better to abstract away the parts that
@@ -18,10 +17,12 @@
 
 #include "Common/CommonTypes.h"
 #include "Core/DSP/DSPAccelerator.h"
+#include "Core/DolphinAnalytics.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DSPHLE/UCodes/AX.h"
 #include "Core/HW/DSPHLE/UCodes/AXStructs.h"
 #include "Core/HW/Memmap.h"
+#include "Core/System.h"
 
 namespace DSP::HLE
 {
@@ -33,21 +34,27 @@ namespace DSP::HLE
 #define MAX_SAMPLES_PER_FRAME 96
 #endif
 
-// Put all of that in an anonymous namespace to avoid stupid compilers merging
+// Use an inline namespace to prevent stupid compilers and debuggers from merging
 // functions from AX GC and AX Wii.
+#ifdef AX_GC
+inline namespace AXGC
+#else
+inline namespace AXWii
+#endif
+{
 namespace
 {
 // Useful macro to convert xxx_hi + xxx_lo to xxx for 32 bits.
-#define HILO_TO_32(name) ((name##_hi << 16) | name##_lo)
+#define HILO_TO_32(name) ((u32(name##_hi) << 16) | name##_lo)
 
 // Used to pass a large amount of buffers to the mixing function.
 union AXBuffers
 {
   struct
   {
-    int* left;
-    int* right;
-    int* surround;
+    int* main_left;
+    int* main_right;
+    int* main_surround;
 
     int* auxA_left;
     int* auxA_right;
@@ -95,10 +102,13 @@ bool HasLpf(u32 crc)
 // Read a PB from MRAM/ARAM
 void ReadPB(u32 addr, PB_TYPE& pb, u32 crc)
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   if (HasLpf(crc))
   {
     u16* dst = (u16*)&pb;
-    Memory::CopyFromEmuSwapped<u16>(dst, addr, sizeof(pb));
+    memory.CopyFromEmuSwapped<u16>(dst, addr, sizeof(pb));
   }
   else
   {
@@ -110,19 +120,22 @@ void ReadPB(u32 addr, PB_TYPE& pb, u32 crc)
     constexpr size_t lpf_off = offsetof(AXPB, lpf);
     constexpr size_t lc_off = offsetof(AXPB, loop_counter);
 
-    Memory::CopyFromEmuSwapped<u16>((u16*)dst, addr, lpf_off);
+    memory.CopyFromEmuSwapped<u16>((u16*)dst, addr, lpf_off);
     memset(dst + lpf_off, 0, lc_off - lpf_off);
-    Memory::CopyFromEmuSwapped<u16>((u16*)(dst + lc_off), addr + lpf_off, sizeof(pb) - lc_off);
+    memory.CopyFromEmuSwapped<u16>((u16*)(dst + lc_off), addr + lpf_off, sizeof(pb) - lc_off);
   }
 }
 
 // Write a PB back to MRAM/ARAM
 void WritePB(u32 addr, const PB_TYPE& pb, u32 crc)
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   if (HasLpf(crc))
   {
     const u16* src = (const u16*)&pb;
-    Memory::CopyToEmuSwapped<u16>(addr, src, sizeof(pb));
+    memory.CopyToEmuSwapped<u16>(addr, src, sizeof(pb));
   }
   else
   {
@@ -134,14 +147,13 @@ void WritePB(u32 addr, const PB_TYPE& pb, u32 crc)
     constexpr size_t lpf_off = offsetof(AXPB, lpf);
     constexpr size_t lc_off = offsetof(AXPB, loop_counter);
 
-    Memory::CopyToEmuSwapped<u16>(addr, (const u16*)src, lpf_off);
-    Memory::CopyToEmuSwapped<u16>(addr + lpf_off, (const u16*)(src + lc_off), sizeof(pb) - lc_off);
+    memory.CopyToEmuSwapped<u16>(addr, (const u16*)src, lpf_off);
+    memory.CopyToEmuSwapped<u16>(addr + lpf_off, (const u16*)(src + lc_off), sizeof(pb) - lc_off);
   }
 }
 
 // Simulated accelerator state.
 static PB_TYPE* acc_pb;
-static bool acc_end_reached;
 
 class HLEAccelerator final : public Accelerator
 {
@@ -152,7 +164,7 @@ protected:
     {
       // Set the ADPCM info to continue processing at loop_addr.
       SetPredScale(acc_pb->adpcm_loop_info.pred_scale);
-      if (!acc_pb->is_stream)
+      if (acc_pb->is_stream != 1)
       {
         SetYn1(acc_pb->adpcm_loop_info.yn1);
         SetYn2(acc_pb->adpcm_loop_info.yn2);
@@ -172,20 +184,17 @@ protected:
     {
       // Non looping voice reached the end -> running = 0.
       acc_pb->running = 0;
-
-#ifdef AX_WII
-      // One of the few meaningful differences between AXGC and AXWii:
-      // while AXGC handles non looping voices ending by relying on the
-      // accelerator to stop reads once the loop address is reached,
-      // AXWii has the 0000 samples internally in DRAM and use an internal
-      // pointer to it (loop addr does not contain 0000 samples on AXWii!).
-      acc_end_reached = true;
-#endif
     }
   }
 
-  u8 ReadMemory(u32 address) override { return ReadARAM(address); }
-  void WriteMemory(u32 address, u8 value) override { WriteARAM(value, address); }
+  u8 ReadMemory(u32 address) override
+  {
+    return Core::System::GetInstance().GetDSP().ReadARAM(address);
+  }
+  void WriteMemory(u32 address, u8 value) override
+  {
+    Core::System::GetInstance().GetDSP().WriteARAM(value, address);
+  }
 };
 
 static std::unique_ptr<Accelerator> s_accelerator = std::make_unique<HLEAccelerator>();
@@ -201,7 +210,6 @@ void AcceleratorSetup(PB_TYPE* pb)
   s_accelerator->SetYn1(pb->adpcm.yn1);
   s_accelerator->SetYn2(pb->adpcm.yn2);
   s_accelerator->SetPredScale(pb->adpcm.pred_scale);
-  acc_end_reached = false;
 }
 
 // Reads a sample from the accelerator. Also handles looping and
@@ -209,10 +217,6 @@ void AcceleratorSetup(PB_TYPE* pb)
 // by the accelerator on real hardware).
 u16 AcceleratorGetSample()
 {
-  // See below for explanations about acc_end_reached.
-  if (acc_end_reached)
-    return 0;
-
   return s_accelerator->Read(acc_pb->adpcm.coefs);
 }
 
@@ -241,11 +245,8 @@ u32 ResampleAudio(std::function<s16(u32)> input_callback, s16* output, u32 count
 {
   int read_samples_count = 0;
 
-  // TODO(delroth): find out why the polyphase resampling algorithm causes
-  // audio glitches in Wii games with non integral ratios.
-
   // If DSP DROM coefficients are available, support polyphase resampling.
-  if (0)  // if (coeffs && srctype == SRCTYPE_POLYPHASE)
+  if (coeffs && srctype == SRCTYPE_POLYPHASE)
   {
     s16 temp[4];
     u32 idx = 0;
@@ -274,7 +275,7 @@ u32 ResampleAudio(std::function<s16(u32)> input_callback, s16* output, u32 count
 
       s64 samp = (t0 * c[0] + t1 * c[1] + t2 * c[2] + t3 * c[3]) >> 15;
 
-      output[i] = (s16)samp;
+      output[i] = MathUtil::SaturatingCast<s16>(samp);
     }
 
     last_samples[3] = temp[--idx & 3];
@@ -373,10 +374,10 @@ void GetInputSamples(PB_TYPE& pb, s16* samples, u16 count, const s16* coeffs)
 }
 
 // Add samples to an output buffer, with optional volume ramping.
-void MixAdd(int* out, const s16* input, u32 count, u16* pvol, s16* dpop, bool ramp)
+void MixAdd(int* out, const s16* input, u32 count, VolumeData* vd, s16* dpop, bool ramp)
 {
-  u16& volume = pvol[0];
-  u16 volume_delta = pvol[1];
+  u16& volume = vd->volume;
+  u16 volume_delta = vd->volume_delta;
 
   // If volume ramping is disabled, set volume_delta to 0. That way, the
   // mixing loop can avoid testing if volume ramping is enabled at each step,
@@ -413,7 +414,7 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl
                   const s16* coeffs)
 {
   // If the voice is not running, nothing to do.
-  if (!pb.running)
+  if (pb.running != 1)
     return;
 
   // Read input samples, performing sample rate conversion if needed.
@@ -423,15 +424,13 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl
   // Apply a global volume ramp using the volume envelope parameters.
   for (u32 i = 0; i < count; ++i)
   {
-    samples[i] = std::clamp(((s32)samples[i] * pb.vol_env.cur_volume) >> 15, -32767,
-                            32767);  // -32768 ?
+    const s32 sample = ((s32)samples[i] * pb.vol_env.cur_volume) >> 15;
+    samples[i] = std::clamp(sample, -32767, 32767);  // -32768 ?
     pb.vol_env.cur_volume += pb.vol_env.cur_volume_delta;
   }
 
   // Optionally, execute a low pass filter
-  // TODO: LPF code is currently broken, causing Super Monkey Ball sound
-  // corruption. Disabled until someone figures out what is wrong with it.
-  if (0 && pb.lpf.enabled)
+  if (pb.lpf.enabled)
   {
     pb.lpf.yn1 = LowPassFilter(samples, count, pb.lpf.yn1, pb.lpf.a0, pb.lpf.b0);
   }
@@ -442,43 +441,70 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl
 #define MIX_ON(C) (0 != (mctrl & MIX_##C))
 #define RAMP_ON(C) (0 != (mctrl & MIX_##C##_RAMP))
 
-  if (MIX_ON(L))
-    MixAdd(buffers.left, samples, count, &pb.mixer.left, &pb.dpop.left, RAMP_ON(L));
-  if (MIX_ON(R))
-    MixAdd(buffers.right, samples, count, &pb.mixer.right, &pb.dpop.right, RAMP_ON(R));
-  if (MIX_ON(S))
-    MixAdd(buffers.surround, samples, count, &pb.mixer.surround, &pb.dpop.surround, RAMP_ON(S));
+  if (MIX_ON(MAIN_L))
+  {
+    MixAdd(buffers.main_left, samples, count, &pb.mixer.main_left, &pb.dpop.main_left,
+           RAMP_ON(MAIN_L));
+  }
+  if (MIX_ON(MAIN_R))
+  {
+    MixAdd(buffers.main_right, samples, count, &pb.mixer.main_right, &pb.dpop.main_right,
+           RAMP_ON(MAIN_R));
+  }
+  if (MIX_ON(MAIN_S))
+  {
+    MixAdd(buffers.main_surround, samples, count, &pb.mixer.main_surround, &pb.dpop.main_surround,
+           RAMP_ON(MAIN_S));
+  }
 
   if (MIX_ON(AUXA_L))
+  {
     MixAdd(buffers.auxA_left, samples, count, &pb.mixer.auxA_left, &pb.dpop.auxA_left,
            RAMP_ON(AUXA_L));
+  }
   if (MIX_ON(AUXA_R))
+  {
     MixAdd(buffers.auxA_right, samples, count, &pb.mixer.auxA_right, &pb.dpop.auxA_right,
            RAMP_ON(AUXA_R));
+  }
   if (MIX_ON(AUXA_S))
+  {
     MixAdd(buffers.auxA_surround, samples, count, &pb.mixer.auxA_surround, &pb.dpop.auxA_surround,
            RAMP_ON(AUXA_S));
+  }
 
   if (MIX_ON(AUXB_L))
+  {
     MixAdd(buffers.auxB_left, samples, count, &pb.mixer.auxB_left, &pb.dpop.auxB_left,
            RAMP_ON(AUXB_L));
+  }
   if (MIX_ON(AUXB_R))
+  {
     MixAdd(buffers.auxB_right, samples, count, &pb.mixer.auxB_right, &pb.dpop.auxB_right,
            RAMP_ON(AUXB_R));
+  }
   if (MIX_ON(AUXB_S))
+  {
     MixAdd(buffers.auxB_surround, samples, count, &pb.mixer.auxB_surround, &pb.dpop.auxB_surround,
            RAMP_ON(AUXB_S));
+  }
 
 #ifdef AX_WII
   if (MIX_ON(AUXC_L))
+  {
     MixAdd(buffers.auxC_left, samples, count, &pb.mixer.auxC_left, &pb.dpop.auxC_left,
            RAMP_ON(AUXC_L));
+  }
   if (MIX_ON(AUXC_R))
+  {
     MixAdd(buffers.auxC_right, samples, count, &pb.mixer.auxC_right, &pb.dpop.auxC_right,
            RAMP_ON(AUXC_R));
+  }
   if (MIX_ON(AUXC_S))
+  {
     MixAdd(buffers.auxC_surround, samples, count, &pb.mixer.auxC_surround, &pb.dpop.auxC_surround,
            RAMP_ON(AUXC_S));
+  }
 #endif
 
 #undef MIX_ON
@@ -488,6 +514,7 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl
   if (pb.initial_time_delay.on)
   {
     // TODO
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_AX_INITIAL_TIME_DELAY);
   }
 
 #ifdef AX_WII
@@ -542,4 +569,5 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl
 }
 
 }  // namespace
+}  // inline namespace AXGC/AXWii
 }  // namespace DSP::HLE

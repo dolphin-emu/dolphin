@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/OnScreenDisplay.h"
 
@@ -20,6 +19,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Slippi/SlippiPlayback.h"
+#include "Core/System.h"
 
 #ifdef IS_PLAYBACK
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
@@ -30,16 +30,18 @@
 #include "Common/Logging/Log.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
-#include "VideoCommon/IconsFontAwesome4.h"
+#include "VideoCommon/IconsMaterialDesign.h"
 
-extern std::unique_ptr<SlippiPlaybackStatus> g_playbackStatus;
+extern std::unique_ptr<SlippiPlaybackStatus> g_playback_status;
 #endif
 
 namespace OSD
 {
-constexpr float LEFT_MARGIN = 10.0f;    // Pixels to the left of OSD messages.
-constexpr float TOP_MARGIN = 10.0f;     // Pixels above the first OSD message.
-constexpr float WINDOW_PADDING = 4.0f;  // Pixels between subsequent OSD messages.
+constexpr float LEFT_MARGIN = 10.0f;         // Pixels to the left of OSD messages.
+constexpr float TOP_MARGIN = 10.0f;          // Pixels above the first OSD message.
+constexpr float WINDOW_PADDING = 4.0f;       // Pixels between subsequent OSD messages.
+constexpr float MESSAGE_FADE_TIME = 1000.f;  // Ms to fade OSD messages at the end of their life.
+constexpr float MESSAGE_DROP_TIME = 5000.f;  // Ms to drop OSD messages that has yet to ever render.
 
 static std::atomic<int> s_obscured_pixels_left = 0;
 static std::atomic<int> s_obscured_pixels_top = 0;
@@ -47,12 +49,16 @@ static std::atomic<int> s_obscured_pixels_top = 0;
 struct Message
 {
   Message() = default;
-  Message(std::string text_, u32 timestamp_, u32 color_)
-      : text(std::move(text_)), timestamp(timestamp_), color(color_)
+  Message(std::string text_, u32 duration_, u32 color_)
+      : text(std::move(text_)), duration(duration_), color(color_)
   {
+    timer.Start();
   }
+  s64 TimeRemaining() const { return duration - timer.ElapsedMs(); }
   std::string text;
-  u32 timestamp = 0;
+  Common::Timer timer;
+  u32 duration = 0;
+  bool ever_drawn = false;
   u32 color = 0;
 };
 static std::multimap<MessageType, Message> s_messages;
@@ -66,7 +72,7 @@ static ImVec4 ARGBToImVec4(const u32 argb)
                 static_cast<float>((argb >> 24) & 0xFF) / 255.0f);
 }
 
-static float DrawMessage(int index, const Message& msg, const ImVec2& position, int time_left)
+static float DrawMessage(int index, Message& msg, const ImVec2& position, int time_left)
 {
   // We have to provide a window name, and these shouldn't be duplicated.
   // So instead, we generate a name based on the number of messages drawn.
@@ -76,9 +82,10 @@ static float DrawMessage(int index, const Message& msg, const ImVec2& position, 
   ImGui::SetNextWindowPos(position);
   ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
 
-  // Gradually fade old messages away.
-  const float alpha = std::min(1.0f, std::max(0.0f, time_left / 1024.0f));
-  ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
+  // Gradually fade old messages away (except in their first frame)
+  const float fade_time = std::max(std::min(MESSAGE_FADE_TIME, (float)msg.duration), 1.f);
+  const float alpha = std::clamp(time_left / fade_time, 0.f, 1.f);
+  ImGui::PushStyleVar(ImGuiStyleVar_Alpha, msg.ever_drawn ? alpha : 1.0);
 
   float window_height = 0.0f;
   if (ImGui::Begin(window_name.c_str(), nullptr,
@@ -96,6 +103,8 @@ static float DrawMessage(int index, const Message& msg, const ImVec2& position, 
   ImGui::End();
   ImGui::PopStyleVar();
 
+  msg.ever_drawn = true;
+
   return window_height;
 }
 
@@ -103,20 +112,18 @@ void AddTypedMessage(MessageType type, std::string message, u32 ms, u32 argb)
 {
   std::lock_guard lock{s_messages_mutex};
   s_messages.erase(type);
-  s_messages.emplace(type, Message(std::move(message), Common::Timer::GetTimeMs() + ms, argb));
+  s_messages.emplace(type, Message(std::move(message), ms, argb));
 }
 
 void AddMessage(std::string message, u32 ms, u32 argb)
 {
   std::lock_guard lock{s_messages_mutex};
-  s_messages.emplace(MessageType::Typeless,
-                     Message(std::move(message), Common::Timer::GetTimeMs() + ms, argb));
+  s_messages.emplace(MessageType::Typeless, Message(std::move(message), ms, argb));
 }
 
 void DrawMessages()
 {
   const bool draw_messages = Config::Get(Config::MAIN_OSD_MESSAGES);
-  const u32 now = Common::Timer::GetTimeMs();
   const float current_x =
       LEFT_MARGIN * ImGui::GetIO().DisplayFramebufferScale.x + s_obscured_pixels_left;
   float current_y = TOP_MARGIN * ImGui::GetIO().DisplayFramebufferScale.y + s_obscured_pixels_top;
@@ -126,10 +133,12 @@ void DrawMessages()
 
   for (auto it = s_messages.begin(); it != s_messages.end();)
   {
-    const Message& msg = it->second;
-    const int time_left = static_cast<int>(msg.timestamp - now);
+    Message& msg = it->second;
+    const s64 time_left = msg.TimeRemaining();
 
-    if (time_left <= 0)
+    // Make sure we draw them at least once if they were printed with 0ms,
+    // unless enough time has expired, in that case, we drop them
+    if (time_left <= 0 && (msg.ever_drawn || -time_left >= MESSAGE_DROP_TIME))
     {
       it = s_messages.erase(it);
       continue;
@@ -179,15 +188,13 @@ static std::string GetTimeForFrame(s32 currFrame)
 
 bool show_help = false;
 bool show_settings = false;
-u32 idle_tick = Common::Timer::GetTimeMs();
+u32 idle_tick = Common::Timer::NowMs();
 ImVec2 prev_mouse(0, 0);
 
-bool ButtonCustom(
-  const char* label,
-  const ImVec2& size_arg,
-  ImU32 fill = ImGui::GetColorU32(ImVec4(0.0f, 0.0f, 0.0f, 0.0f)),
-  ImU32 hover_fill = ImGui::GetColorU32(ImVec4(0.0f, 0.0f, 0.0f, 0.0f)),
-  ImGuiButtonFlags flags = 0)
+bool ButtonCustom(const char* label, const ImVec2& size_arg,
+                  ImU32 fill = ImGui::GetColorU32(ImVec4(0.0f, 0.0f, 0.0f, 0.0f)),
+                  ImU32 hover_fill = ImGui::GetColorU32(ImVec4(0.0f, 0.0f, 0.0f, 0.0f)),
+                  ImGuiButtonFlags flags = 0)
 {
   // ImGui::GetWindowDrawList()->AddRectFilled(
   //  ImGui::GetCurrentWindow()->DC.CursorPos,
@@ -206,11 +213,10 @@ bool ButtonCustom(
   ImVec2 pos = window->DC.CursorPos;
   if ((flags & ImGuiButtonFlags_AlignTextBaseLine) &&
       style.FramePadding.y <
-          window->DC
-              .CurrentLineTextBaseOffset)  // Try to vertically align buttons that are smaller/have
-                                           // no padding so that text baseline matches (bit hacky,
-                                           // since it shouldn't be a flag)
-    pos.y += window->DC.CurrentLineTextBaseOffset - style.FramePadding.y;
+          window->DC.CurrLineTextBaseOffset)  // Try to vertically align buttons that are
+                                              // smaller/have no padding so that text baseline
+                                              // matches (bit hacky, since it shouldn't be a flag)
+    pos.y += window->DC.CurrLineTextBaseOffset - style.FramePadding.y;
   ImVec2 size = ImGui::CalcItemSize(size_arg, label_size.x + style.FramePadding.x * 2.0f,
                                     label_size.y + style.FramePadding.y * 2.0f);
 
@@ -219,7 +225,7 @@ bool ButtonCustom(
   if (!ImGui::ItemAdd(bb, id))
     return false;
 
-  if (window->DC.ItemFlags & ImGuiItemFlags_ButtonRepeat)
+  if (g.CurrentItemFlags & ImGuiItemFlags_ButtonRepeat)
     flags |= ImGuiButtonFlags_Repeat;
   bool hovered, held;
   bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, flags);
@@ -246,7 +252,7 @@ bool ButtonCustom(
   // ImGuiWindowFlags_Popup))
   //    CloseCurrentPopup();
 
-  IMGUI_TEST_ENGINE_ITEM_INFO(id, label, window->DC.LastItemStatusFlags);
+  IMGUI_TEST_ENGINE_ITEM_INFO(id, label, g.LastItemData.StatusFlags);
   return pressed;
 }
 
@@ -344,16 +350,16 @@ bool SeekBarBehavior(const ImRect& bb, ImGuiID id, int* v, int v_min, int v_max,
     if (!isHeld)
     {
       value_changed = true;
-      g_playbackStatus->targetFrameNum = *v;
+      g_playback_status->target_frame_num = *v;
     }
   }
   else
     isHeld = hovered && isDown;
 
-  float new_grab_t = ImGui::SliderCalcRatioFromValueT<int, float>(
-      ImGuiDataType_S32, new_value, v_min, v_max, power, linear_zero_pos);
-  float curr_grab_t = ImGui::SliderCalcRatioFromValueT<int, float>(ImGuiDataType_S32, *v, v_min,
-                                                                   v_max, power, linear_zero_pos);
+  float new_grab_t = ImGui::ScaleRatioFromValueT<int, int, float>(
+      ImGuiDataType_S32, new_value, v_min, v_max, false, linear_zero_pos, 0.0f);
+  float curr_grab_t = ImGui::ScaleRatioFromValueT<int, int, float>(
+      ImGuiDataType_S32, *v, v_min, v_max, false, linear_zero_pos, 0.0f);
 
   if (axis == ImGuiAxis_Y)
   {
@@ -409,8 +415,9 @@ bool SeekBarBehavior(const ImRect& bb, ImGuiID id, int* v, int v_min, int v_max,
   // Progress bar
   if (!isHeld)
   {
-    frame = (g_playbackStatus->targetFrameNum == INT_MAX) ? g_playbackStatus->currentPlaybackFrame :
-                                                            g_playbackStatus->targetFrameNum;
+    frame = (g_playback_status->target_frame_num == INT_MAX) ?
+                g_playback_status->current_playback_frame :
+                g_playback_status->target_frame_num;
     window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y - scaled_height * 0.002f),
                               ImVec2(curr_grab_pos, bb.Min.y - scaled_height * 0.002f),
                               ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, style.Alpha)),
@@ -505,8 +512,8 @@ bool VolumeBarBehavior(const ImRect& bb, ImGuiID id, int* v, int v_min, int v_ma
 
   isHeld = isHeld ? isHeld && isDown : hovered && isDown;
 
-  float grab_t = ImGui::SliderCalcRatioFromValueT<int, float>(ImGuiDataType_S32, *v, v_min, v_max,
-                                                              power, linear_zero_pos);
+  float grab_t = ImGui::ScaleRatioFromValueT<int, int, float>(ImGuiDataType_S32, *v, v_min, v_max,
+                                                              power, linear_zero_pos, 0.0f);
   if (axis == ImGuiAxis_Y)
   {
     grab_t = 1.0f - grab_t;
@@ -553,6 +560,7 @@ bool SeekBar(const char* label, ImVec4 color, int* v, int v_min, int v_max, floa
   char value_buf[64];
   const char* value_buf_end =
       value_buf + ImFormatString(value_buf, IM_ARRAYSIZE(value_buf), format, *v);
+  // SLIPPI TODO: rewrite with https://github.com/ocornut/imgui/blob/master/imgui_widgets.cpp#L2987
   const bool value_changed =
       SeekBarBehavior(frame_bb, id, v, v_min, v_max, power, ImGuiSliderFlags_None, color,
                       ImGui::CalcTextSize(value_buf, NULL, true), value_buf_end, value_buf);
@@ -587,7 +595,7 @@ void DrawSlippiPlaybackControls()
 
   auto mousePos = ImGui::GetMousePos();
 
-  auto currTime = Common::Timer::GetTimeMs();
+  auto currTime = Common::Timer::NowMs();
   if (!(mousePos[0] == prev_mouse[0] && mousePos[1] == prev_mouse[1]))
   {
     idle_tick = currTime;
@@ -621,7 +629,7 @@ void DrawSlippiPlaybackControls()
     ImGui::SetWindowFontScale(scaled_height / 2000.0f);
 
     if (SeekBar("SlippiSeek", ImVec4(1.0f, 0.0f, 0.0f, 1.0f), &frame, Slippi::PLAYBACK_FIRST_SAVE,
-                g_playbackStatus->lastFrame, 1.0, "%d"))
+                g_playback_status->last_frame, 1.0, "%d"))
     {
       Host_PlaybackSeek();
     }
@@ -632,14 +640,14 @@ void DrawSlippiPlaybackControls()
     ImGui::SetCursorPos(ImVec2(0.0f, height - scaled_height * 0.0265f));
     ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.5f, 0.45f));
     // if (ButtonCustom(paused ? ICON_FA_PLAY : ICON_FA_PAUSE, ImVec2(40.0f, BUTTON_WIDTH))) {
-    //  INFO_LOG(SLIPPI, "playing");
+    //  INFO_LOG_FMT(SLIPPI, "playing");
     //}
     // ImGui::SameLine(0.0f, 5.0f);
-    if (ButtonCustom(ICON_FA_FAST_BACKWARD, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
+    if (ButtonCustom(ICON_MD_FAST_REWIND, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
     {
-      if (g_playbackStatus->targetFrameNum == INT_MAX)
+      if (g_playback_status->target_frame_num == INT_MAX)
       {
-        g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame - 1200;
+        g_playback_status->target_frame_num = g_playback_status->current_playback_frame - 1200;
         Host_PlaybackSeek();
       }
     }
@@ -655,11 +663,11 @@ void DrawSlippiPlaybackControls()
 
     // Step back
     ImGui::SetCursorPos(ImVec2(BUTTON_WIDTH, height - scaled_height * 0.0265f));
-    if (ButtonCustom(ICON_FA_STEP_BACKWARD, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
+    if (ButtonCustom(ICON_MD_FIRST_PAGE, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
     {
-      if (g_playbackStatus->targetFrameNum == INT_MAX)
+      if (g_playback_status->target_frame_num == INT_MAX)
       {
-        g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame - 300;
+        g_playback_status->target_frame_num = g_playback_status->current_playback_frame - 300;
         Host_PlaybackSeek();
       }
     }
@@ -675,11 +683,11 @@ void DrawSlippiPlaybackControls()
 
     // Step forward
     ImGui::SetCursorPos(ImVec2(BUTTON_WIDTH * 2, height - scaled_height * 0.0265f));
-    if (ButtonCustom(ICON_FA_STEP_FORWARD, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
+    if (ButtonCustom(ICON_MD_LAST_PAGE, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
     {
-      if (g_playbackStatus->targetFrameNum == INT_MAX)
+      if (g_playback_status->target_frame_num == INT_MAX)
       {
-        g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame + 300;
+        g_playback_status->target_frame_num = g_playback_status->current_playback_frame + 300;
         Host_PlaybackSeek();
       }
     }
@@ -695,11 +703,11 @@ void DrawSlippiPlaybackControls()
 
     // Jump forward
     ImGui::SetCursorPos(ImVec2(BUTTON_WIDTH * 3, height - scaled_height * 0.0265f));
-    if (ButtonCustom(ICON_FA_FAST_FORWARD, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
+    if (ButtonCustom(ICON_MD_FAST_FORWARD, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
     {
-      if (g_playbackStatus->targetFrameNum == INT_MAX)
+      if (g_playback_status->target_frame_num == INT_MAX)
       {
-        g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame + 1200;
+        g_playback_status->target_frame_num = g_playback_status->current_playback_frame + 1200;
         Host_PlaybackSeek();
       }
     }
@@ -716,32 +724,34 @@ void DrawSlippiPlaybackControls()
     // Volume
     static bool isIconHovered = false;
     static bool isVolumeVisible = false;
-    int* volume = &SConfig::GetInstance().m_Volume;
+    int volume = Config::Get(Config::MAIN_AUDIO_VOLUME);
     static int prev;
     ImGui::SetCursorPos(ImVec2(BUTTON_WIDTH * 4, height - scaled_height * 0.0265f));
-    if (ButtonCustom(*volume == 0 ? ICON_FA_VOLUME_OFF : ICON_FA_VOLUME_UP,
+    if (ButtonCustom(volume == 0 ? ICON_MD_VOLUME_OFF : ICON_MD_VOLUME_UP,
                      ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
     {
-      if (*volume == 0)
+      if (volume == 0)
       {
-        *volume = prev == 0 ? 30 : prev;  // todo: find good default value
+        volume = prev == 0 ? 30 : prev;  // todo: find good default value
       }
       else
       {
-        prev = *volume;
-        *volume = 0;
+        prev = volume;
+        volume = 0;
       }
-      AudioCommon::UpdateSoundStream();
+      Config::SetBaseOrCurrent(Config::MAIN_AUDIO_VOLUME, volume);
+      AudioCommon::UpdateSoundStream(Core::System::GetInstance());
     }
 
-    if (VolumeBar("SlippiVolume", ImVec4(1.0f, 0.0f, 0.0f, 1.0f), volume, 0, 100, 1.0))
+    if (VolumeBar("SlippiVolume", ImVec4(1.0f, 0.0f, 0.0f, 1.0f), &volume, 0, 100, 1.0))
     {
-      AudioCommon::UpdateSoundStream();
+      Config::SetBaseOrCurrent(Config::MAIN_AUDIO_VOLUME, volume);
+      AudioCommon::UpdateSoundStream(Core::System::GetInstance());
     }
 
     // Help
     ImGui::SetCursorPos(ImVec2(width - BUTTON_WIDTH * 3, height - scaled_height * 0.0265f));
-    if (ButtonCustom(ICON_FA_QUESTION_CIRCLE, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
+    if (ButtonCustom(ICON_MD_HELP, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
     {
       show_help = !show_help;
       show_settings = false;
@@ -749,53 +759,53 @@ void DrawSlippiPlaybackControls()
     if (show_help)
     {
       ImGui::GetWindowDrawList()->AddRectFilled(
-        ImVec2(width - BUTTON_WIDTH * 10.0f, height - scaled_height * 0.21f),
-        ImVec2(width - BUTTON_WIDTH, LABEL_BOX_BOTTOM),
-        ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.8f * style.Alpha)));
+          ImVec2(width - BUTTON_WIDTH * 10.0f, height - scaled_height * 0.21f),
+          ImVec2(width - BUTTON_WIDTH, LABEL_BOX_BOTTOM),
+          ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.8f * style.Alpha)));
       auto divide =
-        (height - scaled_height * 0.2f - LABEL_BOX_BOTTOM - 0.01f * scaled_height) / 7.0f;
+          (height - scaled_height * 0.2f - LABEL_BOX_BOTTOM - 0.01f * scaled_height) / 7.0f;
       ImGui::SetCursorPos(ImVec2(width - BUTTON_WIDTH * 10.0f + scaled_height * 0.005f,
-        LABEL_BOX_BOTTOM + 0.005f * scaled_height + divide * 7.0f));
+                                 LABEL_BOX_BOTTOM + 0.005f * scaled_height + divide * 7.0f));
       ImGui::Text("Play/Pause: Spacebar");
       ImGui::SetCursorPos(ImVec2(width - BUTTON_WIDTH * 10.0f + scaled_height * 0.005f,
-        LABEL_BOX_BOTTOM + 0.005f * scaled_height + divide * 6.0f));
+                                 LABEL_BOX_BOTTOM + 0.005f * scaled_height + divide * 6.0f));
       ImGui::Text("Step Back (5s): Left Arrow");
       ImGui::SetCursorPos(ImVec2(width - BUTTON_WIDTH * 10.0f + scaled_height * 0.005f,
-        LABEL_BOX_BOTTOM + 0.005f * scaled_height + divide * 5.0f));
+                                 LABEL_BOX_BOTTOM + 0.005f * scaled_height + divide * 5.0f));
       ImGui::Text("Step Forward (5s): Right Arrow");
       ImGui::SetCursorPos(ImVec2(width - BUTTON_WIDTH * 10.0f + scaled_height * 0.005f,
-        LABEL_BOX_BOTTOM + 0.005f * scaled_height + divide * 4.0f));
+                                 LABEL_BOX_BOTTOM + 0.005f * scaled_height + divide * 4.0f));
       ImGui::Text("Jump Back (20s): Shift + Left Arrow");
       ImGui::SetCursorPos(ImVec2(width - BUTTON_WIDTH * 10.0f + scaled_height * 0.005f,
-        LABEL_BOX_BOTTOM + 0.005f * scaled_height + divide * 3.0f));
+                                 LABEL_BOX_BOTTOM + 0.005f * scaled_height + divide * 3.0f));
       ImGui::Text("Jump Forward (20s): Shift + Right Arrow");
       ImGui::SetCursorPos(ImVec2(width - BUTTON_WIDTH * 10.0f + scaled_height * 0.005f,
-        LABEL_BOX_BOTTOM + 0.005f * scaled_height + divide * 2.0f));
+                                 LABEL_BOX_BOTTOM + 0.005f * scaled_height + divide * 2.0f));
       ImGui::Text("Frame Advance: Period");
       ImGui::SetCursorPos(ImVec2(width - BUTTON_WIDTH * 10.0f + scaled_height * 0.005f,
-        LABEL_BOX_BOTTOM + 0.005f * scaled_height + divide));
+                                 LABEL_BOX_BOTTOM + 0.005f * scaled_height + divide));
       ImGui::Text("Big jumps may take several seconds.");
     }
     if (ImGui::IsItemHovered() && !show_help)
     {
       ImGui::GetWindowDrawList()->AddRectFilled(
-        ImVec2(width - scaled_height * 0.095f, LABEL_BOX_TOP),
-        ImVec2(width - (scaled_height * 0.005f + BUTTON_WIDTH), LABEL_BOX_BOTTOM),
-        ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.9f)));
+          ImVec2(width - scaled_height * 0.095f, LABEL_BOX_TOP),
+          ImVec2(width - (scaled_height * 0.005f + BUTTON_WIDTH), LABEL_BOX_BOTTOM),
+          ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.9f)));
       ImGui::SetCursorPos(ImVec2(width - (scaled_height * 0.09f), LABEL_TEXT_HEIGHT));
       ImGui::Text("View Help");
     }
 
     // Settings
     ImGui::SetCursorPos(ImVec2(width - BUTTON_WIDTH * 2, height - scaled_height * 0.0265f));
-    if (ButtonCustom(ICON_FA_COG, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
+    if (ButtonCustom(ICON_MD_SETTINGS, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
     {
       show_settings = !show_settings;
       show_help = false;
     }
     if (show_settings)
     {
-      //bool show_speed_options = false;
+      // bool show_speed_options = false;
       auto option_height = (scaled_height * 0.05f) / 2.0f;
 
       ImGui::GetWindowDrawList()->AddRectFilled(
@@ -803,64 +813,62 @@ void DrawSlippiPlaybackControls()
           ImVec2(width - BUTTON_WIDTH, LABEL_BOX_BOTTOM),
           ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.8f * style.Alpha)));
 
-      ImGui::SetCursorPos(ImVec2(width - BUTTON_WIDTH * 5.0f + 0.005 * scaled_height, LABEL_BOX_BOTTOM - option_height * 4.0f + 0.005 * scaled_height));
+      ImGui::SetCursorPos(ImVec2(width - BUTTON_WIDTH * 5.0f + 0.005 * scaled_height,
+                                 LABEL_BOX_BOTTOM - option_height * 4.0f + 0.005 * scaled_height));
       ImGui::Text("Playback Speed");
-      auto quarter_speed = ImRect(
-        ImVec2(width - BUTTON_WIDTH * 5.0f, LABEL_BOX_BOTTOM - option_height * 3.0f),
-        ImVec2(width - BUTTON_WIDTH, LABEL_BOX_BOTTOM - option_height * 2.0));
-      auto half_speed = ImRect(
-        ImVec2(width - BUTTON_WIDTH * 5.0f, LABEL_BOX_BOTTOM - option_height * 2.0f),
-        ImVec2(width - BUTTON_WIDTH, LABEL_BOX_BOTTOM - option_height));
-      auto normal_speed = ImRect(
-        ImVec2(width - BUTTON_WIDTH * 5.0f, LABEL_BOX_BOTTOM - option_height),
-        ImVec2(width - BUTTON_WIDTH, LABEL_BOX_BOTTOM));
+      auto quarter_speed =
+          ImRect(ImVec2(width - BUTTON_WIDTH * 5.0f, LABEL_BOX_BOTTOM - option_height * 3.0f),
+                 ImVec2(width - BUTTON_WIDTH, LABEL_BOX_BOTTOM - option_height * 2.0));
+      auto half_speed =
+          ImRect(ImVec2(width - BUTTON_WIDTH * 5.0f, LABEL_BOX_BOTTOM - option_height * 2.0f),
+                 ImVec2(width - BUTTON_WIDTH, LABEL_BOX_BOTTOM - option_height));
+      auto normal_speed =
+          ImRect(ImVec2(width - BUTTON_WIDTH * 5.0f, LABEL_BOX_BOTTOM - option_height),
+                 ImVec2(width - BUTTON_WIDTH, LABEL_BOX_BOTTOM));
 
-      ImGui::SetCursorPos(ImVec2(width - BUTTON_WIDTH * 5.0f, LABEL_BOX_BOTTOM - option_height * 3.0f));
+      ImGui::SetCursorPos(
+          ImVec2(width - BUTTON_WIDTH * 5.0f, LABEL_BOX_BOTTOM - option_height * 3.0f));
       if (ButtonCustom(
-        "0.25",
-        ImVec2(quarter_speed.GetWidth(), quarter_speed.GetHeight()),
-        ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.0f)),
-        ImGui::ColorConvertFloat4ToU32(ImVec4(255.0f, 255.0f, 255.0f, 0.3f * style.Alpha))
-      ))
+              "0.25", ImVec2(quarter_speed.GetWidth(), quarter_speed.GetHeight()),
+              ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.0f)),
+              ImGui::ColorConvertFloat4ToU32(ImVec4(255.0f, 255.0f, 255.0f, 0.3f * style.Alpha))))
       {
-        SConfig::GetInstance().m_EmulationSpeed = 0.25f;
+        Config::SetCurrent(Config::MAIN_EMULATION_SPEED, 0.25f);
       }
 
-      ImGui::SetCursorPos(ImVec2(width - BUTTON_WIDTH * 5.0f, LABEL_BOX_BOTTOM - option_height * 2.0f));
+      ImGui::SetCursorPos(
+          ImVec2(width - BUTTON_WIDTH * 5.0f, LABEL_BOX_BOTTOM - option_height * 2.0f));
       if (ButtonCustom(
-        "0.5",
-        ImVec2(half_speed.GetWidth(), half_speed.GetHeight()),
-        ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.0f)),
-        ImGui::ColorConvertFloat4ToU32(ImVec4(255.0f, 255.0f, 255.0f, 0.3f * style.Alpha))
-      ))
+              "0.5", ImVec2(half_speed.GetWidth(), half_speed.GetHeight()),
+              ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.0f)),
+              ImGui::ColorConvertFloat4ToU32(ImVec4(255.0f, 255.0f, 255.0f, 0.3f * style.Alpha))))
       {
-        SConfig::GetInstance().m_EmulationSpeed = 0.5f;
+        Config::SetCurrent(Config::MAIN_EMULATION_SPEED, 0.5f);
       }
 
-      ImGui::SetCursorPos(ImVec2(width - BUTTON_WIDTH * 5.0f, LABEL_BOX_BOTTOM - option_height * 1.0f));
+      ImGui::SetCursorPos(
+          ImVec2(width - BUTTON_WIDTH * 5.0f, LABEL_BOX_BOTTOM - option_height * 1.0f));
       if (ButtonCustom(
-        "Normal",
-        ImVec2(normal_speed.GetWidth(), normal_speed.GetHeight()),
-        ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.0f)),
-        ImGui::ColorConvertFloat4ToU32(ImVec4(255.0f, 255.0f, 255.0f, 0.3f * style.Alpha))
-      ))
+              "Normal", ImVec2(normal_speed.GetWidth(), normal_speed.GetHeight()),
+              ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.0f)),
+              ImGui::ColorConvertFloat4ToU32(ImVec4(255.0f, 255.0f, 255.0f, 0.3f * style.Alpha))))
       {
-        SConfig::GetInstance().m_EmulationSpeed = 1.0f;
+        Config::SetCurrent(Config::MAIN_EMULATION_SPEED, 1.0f);
       }
     }
     if (ImGui::IsItemHovered() && !show_settings)
     {
       ImGui::GetWindowDrawList()->AddRectFilled(
-        ImVec2(width - scaled_height * 0.087f, LABEL_BOX_TOP),
-        ImVec2(width - (scaled_height * 0.005f + BUTTON_WIDTH), LABEL_BOX_BOTTOM),
-        ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.9f)));
+          ImVec2(width - scaled_height * 0.087f, LABEL_BOX_TOP),
+          ImVec2(width - (scaled_height * 0.005f + BUTTON_WIDTH), LABEL_BOX_BOTTOM),
+          ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.9f)));
       ImGui::SetCursorPos(ImVec2(width - (scaled_height * 0.082f), LABEL_TEXT_HEIGHT));
       ImGui::Text("Settings");
     }
 
     // Fullscreen
     ImGui::SetCursorPos(ImVec2(width - BUTTON_WIDTH, height - scaled_height * 0.0265f));
-    if (ButtonCustom(ICON_FA_EXPAND, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
+    if (ButtonCustom(ICON_MD_OPEN_IN_FULL, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
     {
       Host_Fullscreen();
     }
@@ -879,8 +887,8 @@ void DrawSlippiPlaybackControls()
 
     // Time text
     ImGui::SetCursorPos(ImVec2(BUTTON_WIDTH * 8, height - scaled_height * 0.024f));
-    auto playbackTime = GetTimeForFrame(g_playbackStatus->currentPlaybackFrame);
-    auto endTime = GetTimeForFrame(g_playbackStatus->lastFrame);
+    auto playbackTime = GetTimeForFrame(g_playback_status->current_playback_frame);
+    auto endTime = GetTimeForFrame(g_playback_status->last_frame);
     auto timeString = playbackTime + " / " + endTime;
     ImGui::Text("%s", timeString.c_str());
   }

@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/TitleDatabase.h"
 
@@ -17,7 +16,7 @@
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/IOS/ES/Formats.h"
 #include "DiscIO/Enums.h"
 
@@ -44,9 +43,9 @@ static Map LoadMap(const std::string& file_path)
     if (equals_index != std::string::npos)
     {
       const std::string_view line_view(line);
-      const std::string_view game_id = StripSpaces(line_view.substr(0, equals_index));
+      const std::string_view game_id = StripWhitespace(line_view.substr(0, equals_index));
       if (game_id.length() >= 4)
-        map.emplace(game_id, StripSpaces(line_view.substr(equals_index + 1)));
+        map.emplace(game_id, StripWhitespace(line_view.substr(equals_index + 1)));
     }
   }
   return map;
@@ -98,7 +97,7 @@ const std::string& TitleDatabase::GetTitleName(const std::string& gametdb_id,
   if (it != m_user_title_map.end())
     return it->second;
 
-  if (!SConfig::GetInstance().m_use_builtin_title_database)
+  if (!Config::Get(Config::MAIN_USE_BUILT_IN_TITLE_DATABASE))
     return EMPTY_STRING;
 
   const Map& map = *m_title_maps.at(language);

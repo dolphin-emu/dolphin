@@ -1,8 +1,8 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/GameList/ListProxyModel.h"
+
 #include "DolphinQt/GameList/GameListModel.h"
 
 ListProxyModel::ListProxyModel(QObject* parent) : QSortFilterProxyModel(parent)
@@ -22,10 +22,14 @@ bool ListProxyModel::lessThan(const QModelIndex& left, const QModelIndex& right)
     return QSortFilterProxyModel::lessThan(left, right);
 
   // If two items are otherwise equal, compare them by their title
-  const auto right_title =
-      sourceModel()->index(right.row(), GameListModel::COL_TITLE).data().toString();
-  const auto left_title =
-      sourceModel()->index(left.row(), GameListModel::COL_TITLE).data().toString();
+  const auto right_title = sourceModel()
+                               ->index(right.row(), static_cast<int>(GameListModel::Column::Title))
+                               .data()
+                               .toString();
+  const auto left_title = sourceModel()
+                              ->index(left.row(), static_cast<int>(GameListModel::Column::Title))
+                              .data()
+                              .toString();
 
   if (sortOrder() == Qt::AscendingOrder)
     return left_title < right_title;

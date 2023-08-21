@@ -1,6 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -8,12 +7,17 @@
 
 #include "Common/CommonTypes.h"
 
+struct WindowSystemInfo;
+
 namespace UICommon
 {
 void Init();
 void Shutdown();
 
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
+void InitControllers(const WindowSystemInfo& wsi);
+void ShutdownControllers();
+
+#ifdef HAVE_X11
 void InhibitScreenSaver(unsigned long win, bool enable);
 #else
 void InhibitScreenSaver(bool enable);
@@ -24,11 +28,9 @@ void InhibitScreenSaver(bool enable);
 void SetLocale(std::string locale_name);
 
 void CreateDirectories();
-void SetUserDirectory(const std::string& custom_path);
+void SetUserDirectory(std::string custom_path);
 
 bool TriggerSTMPowerEvent();
-
-void SaveWiimoteSources();
 
 // Return a pretty file size string from byte count.
 // e.g. 1134278 -> "1.08 MiB"

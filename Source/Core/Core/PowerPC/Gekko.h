@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // Gekko related unions, structs, ...
 
@@ -8,6 +7,7 @@
 
 #include "Common/BitField.h"
 #include "Common/CommonTypes.h"
+#include "Common/FPURoundMode.h"
 
 // --- Gekko Instruction ---
 
@@ -350,16 +350,14 @@ union UGQR
 // XER
 union UReg_XER
 {
-  struct
-  {
-    u32 BYTE_COUNT : 7;
-    u32 : 1;
-    u32 BYTE_CMP : 8;
-    u32 : 13;
-    u32 CA : 1;
-    u32 OV : 1;
-    u32 SO : 1;
-  };
+  BitField<0, 7, u32> BYTE_COUNT;
+  BitField<7, 1, u32> reserved_1;
+  BitField<8, 8, u32> BYTE_CMP;
+  BitField<16, 13, u32> reserved_2;
+  BitField<29, 1, u32> CA;
+  BitField<30, 1, u32> OV;
+  BitField<31, 1, u32> SO;
+
   u32 Hex = 0;
 
   UReg_XER() = default;
@@ -369,29 +367,27 @@ union UReg_XER
 // Machine State Register
 union UReg_MSR
 {
-  struct
-  {
-    u32 LE : 1;
-    u32 RI : 1;
-    u32 PM : 1;
-    u32 : 1;  // res28
-    u32 DR : 1;
-    u32 IR : 1;
-    u32 IP : 1;
-    u32 : 1;  // res24
-    u32 FE1 : 1;
-    u32 BE : 1;
-    u32 SE : 1;
-    u32 FE0 : 1;
-    u32 MCHECK : 1;
-    u32 FP : 1;
-    u32 PR : 1;
-    u32 EE : 1;
-    u32 ILE : 1;
-    u32 : 1;  // res14
-    u32 POW : 1;
-    u32 res : 13;
-  };
+  BitField<0, 1, u32> LE;
+  BitField<1, 1, u32> RI;
+  BitField<2, 1, u32> PM;
+  BitField<3, 1, u32> reserved_1;
+  BitField<4, 1, u32> DR;
+  BitField<5, 1, u32> IR;
+  BitField<6, 1, u32> IP;
+  BitField<7, 1, u32> reserved_2;
+  BitField<8, 1, u32> FE1;
+  BitField<9, 1, u32> BE;
+  BitField<10, 1, u32> SE;
+  BitField<11, 1, u32> FE0;
+  BitField<12, 1, u32> MCHECK;
+  BitField<13, 1, u32> FP;
+  BitField<14, 1, u32> PR;
+  BitField<15, 1, u32> EE;
+  BitField<16, 1, u32> ILE;
+  BitField<17, 1, u32> reserved_3;
+  BitField<18, 1, u32> POW;
+  BitField<19, 13, u32> reserved_4;
+
   u32 Hex = 0;
 
   UReg_MSR() = default;
@@ -399,7 +395,9 @@ union UReg_MSR
 };
 
 #define FPRF_SHIFT 12
+#define FPRF_WIDTH 5
 #define FPRF_MASK (0x1F << FPRF_SHIFT)
+#define FPCC_MASK (0xF << FPRF_SHIFT)
 
 // FPSCR exception flags
 enum FPSCRExceptionFlag : u32
@@ -421,74 +419,78 @@ enum FPSCRExceptionFlag : u32
   FPSCR_VXSQRT = 1U << (31 - 22),
   FPSCR_VXCVI = 1U << (31 - 23),
   FPSCR_VE = 1U << (31 - 24),
+  FPSCR_OE = 1U << (31 - 25),
+  FPSCR_UE = 1U << (31 - 26),
+  FPSCR_ZE = 1U << (31 - 27),
+  FPSCR_XE = 1U << (31 - 28),
 
   FPSCR_VX_ANY = FPSCR_VXSNAN | FPSCR_VXISI | FPSCR_VXIDI | FPSCR_VXZDZ | FPSCR_VXIMZ | FPSCR_VXVC |
                  FPSCR_VXSOFT | FPSCR_VXSQRT | FPSCR_VXCVI,
 
   FPSCR_ANY_X = FPSCR_OX | FPSCR_UX | FPSCR_ZX | FPSCR_XX | FPSCR_VX_ANY,
+
+  FPSCR_ANY_E = FPSCR_VE | FPSCR_OE | FPSCR_UE | FPSCR_ZE | FPSCR_XE,
 };
 
 // Floating Point Status and Control Register
 union UReg_FPSCR
 {
-  struct
-  {
-    // Rounding mode (towards: nearest, zero, +inf, -inf)
-    u32 RN : 2;
-    // Non-IEEE mode enable (aka flush-to-zero)
-    u32 NI : 1;
-    // Inexact exception enable
-    u32 XE : 1;
-    // IEEE division by zero exception enable
-    u32 ZE : 1;
-    // IEEE underflow exception enable
-    u32 UE : 1;
-    // IEEE overflow exception enable
-    u32 OE : 1;
-    // Invalid operation exception enable
-    u32 VE : 1;
-    // Invalid operation exception for integer conversion (sticky)
-    u32 VXCVI : 1;
-    // Invalid operation exception for square root (sticky)
-    u32 VXSQRT : 1;
-    // Invalid operation exception for software request (sticky)
-    u32 VXSOFT : 1;
-    // reserved
-    u32 : 1;
-    // Floating point result flags (includes FPCC) (not sticky)
-    // from more to less significand: class, <, >, =, ?
-    u32 FPRF : 5;
-    // Fraction inexact (not sticky)
-    u32 FI : 1;
-    // Fraction rounded (not sticky)
-    u32 FR : 1;
-    // Invalid operation exception for invalid comparison (sticky)
-    u32 VXVC : 1;
-    // Invalid operation exception for inf * 0 (sticky)
-    u32 VXIMZ : 1;
-    // Invalid operation exception for 0 / 0 (sticky)
-    u32 VXZDZ : 1;
-    // Invalid operation exception for inf / inf (sticky)
-    u32 VXIDI : 1;
-    // Invalid operation exception for inf - inf (sticky)
-    u32 VXISI : 1;
-    // Invalid operation exception for SNaN (sticky)
-    u32 VXSNAN : 1;
-    // Inexact exception (sticky)
-    u32 XX : 1;
-    // Division by zero exception (sticky)
-    u32 ZX : 1;
-    // Underflow exception (sticky)
-    u32 UX : 1;
-    // Overflow exception (sticky)
-    u32 OX : 1;
-    // Invalid operation exception summary (not sticky)
-    u32 VX : 1;
-    // Enabled exception summary (not sticky)
-    u32 FEX : 1;
-    // Exception summary (sticky)
-    u32 FX : 1;
-  };
+  // Rounding mode (towards: nearest, zero, +inf, -inf)
+  BitField<0, 2, FPURoundMode::RoundMode> RN;
+  // Non-IEEE mode enable (aka flush-to-zero)
+  BitField<2, 1, u32> NI;
+  // Inexact exception enable
+  BitField<3, 1, u32> XE;
+  // IEEE division by zero exception enable
+  BitField<4, 1, u32> ZE;
+  // IEEE underflow exception enable
+  BitField<5, 1, u32> UE;
+  // IEEE overflow exception enable
+  BitField<6, 1, u32> OE;
+  // Invalid operation exception enable
+  BitField<7, 1, u32> VE;
+  // Invalid operation exception for integer conversion (sticky)
+  BitField<8, 1, u32> VXCVI;
+  // Invalid operation exception for square root (sticky)
+  BitField<9, 1, u32> VXSQRT;
+  // Invalid operation exception for software request (sticky)
+  BitField<10, 1, u32> VXSOFT;
+  // reserved
+  BitField<11, 1, u32> reserved;
+  // Floating point result flags (includes FPCC) (not sticky)
+  // from more to less significand: class, <, >, =, ?
+  BitField<12, 5, u32> FPRF;
+  // Fraction inexact (not sticky)
+  BitField<17, 1, u32> FI;
+  // Fraction rounded (not sticky)
+  BitField<18, 1, u32> FR;
+  // Invalid operation exception for invalid comparison (sticky)
+  BitField<19, 1, u32> VXVC;
+  // Invalid operation exception for inf * 0 (sticky)
+  BitField<20, 1, u32> VXIMZ;
+  // Invalid operation exception for 0 / 0 (sticky)
+  BitField<21, 1, u32> VXZDZ;
+  // Invalid operation exception for inf / inf (sticky)
+  BitField<22, 1, u32> VXIDI;
+  // Invalid operation exception for inf - inf (sticky)
+  BitField<23, 1, u32> VXISI;
+  // Invalid operation exception for SNaN (sticky)
+  BitField<24, 1, u32> VXSNAN;
+  // Inexact exception (sticky)
+  BitField<25, 1, u32> XX;
+  // Division by zero exception (sticky)
+  BitField<26, 1, u32> ZX;
+  // Underflow exception (sticky)
+  BitField<27, 1, u32> UX;
+  // Overflow exception (sticky)
+  BitField<28, 1, u32> OX;
+  // Invalid operation exception summary (not sticky)
+  BitField<29, 1, u32> VX;
+  // Enabled exception summary (not sticky)
+  BitField<30, 1, u32> FEX;
+  // Exception summary (sticky)
+  BitField<31, 1, u32> FX;
+
   u32 Hex = 0;
 
   // The FPSCR's 20th bit (11th from a little endian perspective)
@@ -533,62 +535,58 @@ union UReg_FPSCR
 // Hardware Implementation-Dependent Register 0
 union UReg_HID0
 {
-  struct
-  {
-    u32 NOOPTI : 1;
-    u32 : 1;
-    u32 BHT : 1;
-    u32 ABE : 1;
-    u32 : 1;
-    u32 BTIC : 1;
-    u32 DCFA : 1;
-    u32 SGE : 1;
-    u32 IFEM : 1;
-    u32 SPD : 1;
-    u32 DCFI : 1;
-    u32 ICFI : 1;
-    u32 DLOCK : 1;
-    u32 ILOCK : 1;
-    u32 DCE : 1;
-    u32 ICE : 1;
-    u32 NHR : 1;
-    u32 : 3;
-    u32 DPM : 1;
-    u32 SLEEP : 1;
-    u32 NAP : 1;
-    u32 DOZE : 1;
-    u32 PAR : 1;
-    u32 ECLK : 1;
-    u32 : 1;
-    u32 BCLK : 1;
-    u32 EBD : 1;
-    u32 EBA : 1;
-    u32 DBP : 1;
-    u32 EMCP : 1;
-  };
+  BitField<0, 1, u32> NOOPTI;
+  BitField<1, 1, u32> reserved_1;
+  BitField<2, 1, u32> BHT;
+  BitField<3, 1, u32> ABE;
+  BitField<4, 1, u32> reserved_2;
+  BitField<5, 1, u32> BTIC;
+  BitField<6, 1, u32> DCFA;
+  BitField<7, 1, u32> SGE;
+  BitField<8, 1, u32> IFEM;
+  BitField<9, 1, u32> SPD;
+  BitField<10, 1, u32> DCFI;
+  BitField<11, 1, u32> ICFI;
+  BitField<12, 1, u32> DLOCK;
+  BitField<13, 1, u32> ILOCK;
+  BitField<14, 1, u32> DCE;
+  BitField<15, 1, u32> ICE;
+  BitField<16, 1, u32> NHR;
+  BitField<17, 3, u32> reserved_3;
+  BitField<20, 1, u32> DPM;
+  BitField<21, 1, u32> SLEEP;
+  BitField<22, 1, u32> NAP;
+  BitField<23, 1, u32> DOZE;
+  BitField<24, 1, u32> PAR;
+  BitField<25, 1, u32> ECLK;
+  BitField<26, 1, u32> reserved_4;
+  BitField<27, 1, u32> BCLK;
+  BitField<28, 1, u32> EBD;
+  BitField<29, 1, u32> EBA;
+  BitField<30, 1, u32> DBP;
+  BitField<31, 1, u32> EMCP;
+
   u32 Hex = 0;
 };
 
 // Hardware Implementation-Dependent Register 2
 union UReg_HID2
 {
-  struct
-  {
-    u32 : 16;
-    u32 DQOEE : 1;
-    u32 DCMEE : 1;
-    u32 DNCEE : 1;
-    u32 DCHEE : 1;
-    u32 DQOERR : 1;
-    u32 DCMERR : 1;
-    u32 DNCERR : 1;
-    u32 DCHERR : 1;
-    u32 DMAQL : 4;
-    u32 LCE : 1;
-    u32 PSE : 1;
-    u32 WPE : 1;
-    u32 LSQE : 1;
-  };
+  BitField<0, 16, u32> reserved;
+  BitField<16, 1, u32> DQOEE;
+  BitField<17, 1, u32> DCMEE;
+  BitField<18, 1, u32> DNCEE;
+  BitField<19, 1, u32> DCHEE;
+  BitField<20, 1, u32> DQOERR;
+  BitField<21, 1, u32> DCMERR;
+  BitField<22, 1, u32> DNCERR;
+  BitField<23, 1, u32> DCHERR;
+  BitField<24, 4, u32> DMAQL;
+  BitField<28, 1, u32> LCE;
+  BitField<29, 1, u32> PSE;
+  BitField<30, 1, u32> WPE;
+  BitField<31, 1, u32> LSQE;
+
   u32 Hex = 0;
 
   UReg_HID2() = default;
@@ -598,83 +596,76 @@ union UReg_HID2
 // Hardware Implementation-Dependent Register 4
 union UReg_HID4
 {
-  struct
-  {
-    u32 : 20;
-    u32 L2CFI : 1;
-    u32 L2MUM : 1;
-    u32 DBP : 1;
-    u32 LPE : 1;
-    u32 ST0 : 1;
-    u32 SBE : 1;
-    u32 : 1;
-    u32 BPD : 2;
-    u32 L2FM : 2;
-    u32 : 1;
-  };
+  BitField<0, 20, u32> reserved_1;
+  BitField<20, 1, u32> L2CFI;
+  BitField<21, 1, u32> L2MUM;
+  BitField<22, 1, u32> DBP;
+  BitField<23, 1, u32> LPE;
+  BitField<24, 1, u32> ST0;
+  BitField<25, 1, u32> SBE;
+  BitField<26, 1, u32> reserved_2;
+  BitField<27, 2, u32> BPD;
+  BitField<29, 2, u32> L2FM;
+  BitField<31, 1, u32> reserved_3;
+
   u32 Hex = 0;
 
   UReg_HID4() = default;
   explicit UReg_HID4(u32 hex_) : Hex{hex_} {}
 };
 
-// SPR1 - Page Table format
-union UReg_SPR1
+// SDR1 - Page Table format
+union UReg_SDR1
 {
-  u32 Hex;
-  struct
-  {
-    u32 htaborg : 16;
-    u32 : 7;
-    u32 htabmask : 9;
-  };
+  BitField<0, 9, u32> htabmask;
+  BitField<9, 7, u32> reserved;
+  BitField<16, 16, u32> htaborg;
+
+  u32 Hex = 0;
+
+  UReg_SDR1() = default;
+  explicit UReg_SDR1(u32 hex_) : Hex{hex_} {}
 };
 
 // MMCR0 - Monitor Mode Control Register 0 format
 union UReg_MMCR0
 {
-  u32 Hex;
-  struct
-  {
-    u32 PMC2SELECT : 6;
-    u32 PMC1SELECT : 7;
-    u32 PMCTRIGGER : 1;
-    u32 PMCINTCONTROL : 1;
-    u32 PMC1INTCONTROL : 1;
-    u32 THRESHOLD : 6;
-    u32 INTONBITTRANS : 1;
-    u32 RTCSELECT : 2;
-    u32 DISCOUNT : 1;
-    u32 ENINT : 1;
-    u32 DMR : 1;
-    u32 DMS : 1;
-    u32 DU : 1;
-    u32 DP : 1;
-    u32 DIS : 1;
-  };
+  BitField<0, 6, u32> PMC2SELECT;
+  BitField<6, 7, u32> PMC1SELECT;
+  BitField<13, 1, u32> PMCTRIGGER;
+  BitField<14, 1, u32> PMCINTCONTROL;
+  BitField<15, 1, u32> PMC1INTCONTROL;
+  BitField<16, 6, u32> THRESHOLD;
+  BitField<22, 1, u32> INTONBITTRANS;
+  BitField<23, 2, u32> RTCSELECT;
+  BitField<25, 1, u32> DISCOUNT;
+  BitField<26, 1, u32> ENINT;
+  BitField<27, 1, u32> DMR;
+  BitField<28, 1, u32> DMS;
+  BitField<29, 1, u32> DU;
+  BitField<30, 1, u32> DP;
+  BitField<31, 1, u32> DIS;
+
+  u32 Hex = 0;
 };
 
 // MMCR1 - Monitor Mode Control Register 1 format
 union UReg_MMCR1
 {
-  u32 Hex;
-  struct
-  {
-    u32 : 22;
-    u32 PMC4SELECT : 5;
-    u32 PMC3SELECT : 5;
-  };
+  BitField<0, 22, u32> reserved;
+  BitField<22, 5, u32> PMC4SELECT;
+  BitField<27, 5, u32> PMC3SELECT;
+
+  u32 Hex = 0;
 };
 
 // Write Pipe Address Register
 union UReg_WPAR
 {
-  struct
-  {
-    u32 BNE : 1;
-    u32 : 4;
-    u32 GB_ADDR : 27;
-  };
+  BitField<0, 1, u32> BNE;
+  BitField<1, 4, u32> reserved;
+  BitField<5, 27, u32> GB_ADDR;
+
   u32 Hex = 0;
 
   UReg_WPAR() = default;
@@ -684,11 +675,9 @@ union UReg_WPAR
 // Direct Memory Access Upper register
 union UReg_DMAU
 {
-  struct
-  {
-    u32 DMA_LEN_U : 5;
-    u32 MEM_ADDR : 27;
-  };
+  BitField<0, 5, u32> DMA_LEN_U;
+  BitField<5, 27, u32> MEM_ADDR;
+
   u32 Hex = 0;
 
   UReg_DMAU() = default;
@@ -698,14 +687,12 @@ union UReg_DMAU
 // Direct Memory Access Lower (DMAL) register
 union UReg_DMAL
 {
-  struct
-  {
-    u32 DMA_F : 1;
-    u32 DMA_T : 1;
-    u32 DMA_LEN_L : 2;
-    u32 DMA_LD : 1;
-    u32 LC_ADDR : 27;
-  };
+  BitField<0, 1, u32> DMA_F;
+  BitField<1, 1, u32> DMA_T;
+  BitField<2, 2, u32> DMA_LEN_L;
+  BitField<4, 1, u32> DMA_LD;
+  BitField<5, 27, u32> LC_ADDR;
+
   u32 Hex = 0;
 
   UReg_DMAL() = default;
@@ -714,14 +701,12 @@ union UReg_DMAL
 
 union UReg_BAT_Up
 {
-  struct
-  {
-    u32 VP : 1;
-    u32 VS : 1;
-    u32 BL : 11;  // Block length (aka block size mask)
-    u32 : 4;
-    u32 BEPI : 15;
-  };
+  BitField<0, 1, u32> VP;
+  BitField<1, 1, u32> VS;
+  BitField<2, 11, u32> BL;  // Block length (aka block size mask)
+  BitField<13, 4, u32> reserved;
+  BitField<17, 15, u32> BEPI;
+
   u32 Hex = 0;
 
   UReg_BAT_Up() = default;
@@ -730,32 +715,49 @@ union UReg_BAT_Up
 
 union UReg_BAT_Lo
 {
-  struct
-  {
-    u32 PP : 2;
-    u32 : 1;
-    u32 WIMG : 4;
-    u32 : 10;
-    u32 BRPN : 15;  // Physical Block Number
-  };
+  BitField<0, 2, u32> PP;
+  BitField<2, 1, u32> reserved_1;
+  BitField<3, 4, u32> WIMG;
+  BitField<7, 10, u32> reserved_2;
+  BitField<17, 15, u32> BRPN;  // Physical Block Number
+
   u32 Hex = 0;
 
   UReg_BAT_Lo() = default;
   explicit UReg_BAT_Lo(u32 hex_) : Hex{hex_} {}
 };
 
+// Segment register
+union UReg_SR
+{
+  BitField<0, 24, u32> VSID;      // Virtual segment ID
+  BitField<24, 4, u32> reserved;  // Reserved
+  BitField<28, 1, u32> N;         // No-execute protection
+  BitField<29, 1, u32> Kp;        // User-state protection
+  BitField<30, 1, u32> Ks;        // Supervisor-state protection
+  BitField<31, 1, u32> T;         // Segment register format selector
+
+  // These override other fields if T = 1
+
+  BitField<0, 20, u32> CNTLR_SPEC;  // Device-specific data for I/O controller
+  BitField<20, 9, u32> BUID;        // Bus unit ID
+
+  u32 Hex = 0;
+
+  UReg_SR() = default;
+  explicit UReg_SR(u32 hex_) : Hex{hex_} {}
+};
+
 union UReg_THRM12
 {
-  struct
-  {
-    u32 V : 1;    // Valid
-    u32 TIE : 1;  // Thermal Interrupt Enable
-    u32 TID : 1;  // Thermal Interrupt Direction
-    u32 : 20;
-    u32 THRESHOLD : 7;  // Temperature Threshold, 0-127°C
-    u32 TIV : 1;        // Thermal Interrupt Valid
-    u32 TIN : 1;        // Thermal Interrupt
-  };
+  BitField<0, 1, u32> V;    // Valid
+  BitField<1, 1, u32> TIE;  // Thermal Interrupt Enable
+  BitField<2, 1, u32> TID;  // Thermal Interrupt Direction
+  BitField<3, 20, u32> reserved;
+  BitField<23, 7, u32> THRESHOLD;  // Temperature Threshold, 0-127°C
+  BitField<30, 1, u32> TIV;        // Thermal Interrupt Valid
+  BitField<31, 1, u32> TIN;        // Thermal Interrupt
+
   u32 Hex = 0;
 
   UReg_THRM12() = default;
@@ -764,37 +766,43 @@ union UReg_THRM12
 
 union UReg_THRM3
 {
-  struct
-  {
-    u32 E : 1;      // Enable
-    u32 SITV : 13;  // Sample Interval Timer Value
-    u32 : 18;
-  };
+  BitField<0, 1, u32> E;      // Enable
+  BitField<1, 13, u32> SITV;  // Sample Interval Timer Value
+  BitField<14, 18, u32> reserved;
+
   u32 Hex = 0;
 
   UReg_THRM3() = default;
   explicit UReg_THRM3(u32 hex_) : Hex{hex_} {}
 };
 
-union UReg_PTE
+union UPTE_Lo
 {
-  struct
-  {
-    u64 API : 6;
-    u64 H : 1;
-    u64 VSID : 24;
-    u64 V : 1;
-    u64 PP : 2;
-    u64 : 1;
-    u64 WIMG : 4;
-    u64 C : 1;
-    u64 R : 1;
-    u64 : 3;
-    u64 RPN : 20;
-  };
+  BitField<0, 6, u32> API;
+  BitField<6, 1, u32> H;
+  BitField<7, 24, u32> VSID;
+  BitField<31, 1, u32> V;
 
-  u64 Hex = 0;
-  u32 Hex32[2];
+  u32 Hex = 0;
+
+  UPTE_Lo() = default;
+  explicit UPTE_Lo(u32 hex_) : Hex{hex_} {}
+};
+
+union UPTE_Hi
+{
+  BitField<0, 2, u32> PP;
+  BitField<2, 1, u32> reserved_1;
+  BitField<3, 4, u32> WIMG;
+  BitField<7, 1, u32> C;
+  BitField<8, 1, u32> R;
+  BitField<9, 3, u32> reserved_2;
+  BitField<12, 20, u32> RPN;
+
+  u32 Hex = 0;
+
+  UPTE_Hi() = default;
+  explicit UPTE_Hi(u32 hex_) : Hex{hex_} {}
 };
 
 //
@@ -826,6 +834,7 @@ enum
   SPR_TU = 269,
   SPR_TL_W = 284,
   SPR_TU_W = 285,
+  SPR_ASR = 280,
   SPR_PVR = 287,
   SPR_SPRG0 = 272,
   SPR_SPRG1 = 273,
@@ -869,13 +878,22 @@ enum
   SPR_HID1 = 1009,
   SPR_HID2 = 920,
   SPR_HID4 = 1011,
+  SPR_IABR = 1010,
+  SPR_DABR = 1013,
   SPR_WPAR = 921,
   SPR_DMAU = 922,
   SPR_DMAL = 923,
   SPR_ECID_U = 924,
   SPR_ECID_M = 925,
   SPR_ECID_L = 926,
+  SPR_UPMC1 = 937,
+  SPR_UPMC2 = 938,
+  SPR_UPMC3 = 941,
+  SPR_UPMC4 = 942,
+  SPR_USIA = 939,
+  SPR_SIA = 955,
   SPR_L2CR = 1017,
+  SPR_ICTC = 1019,
 
   SPR_UMMCR0 = 936,
   SPR_MMCR0 = 952,

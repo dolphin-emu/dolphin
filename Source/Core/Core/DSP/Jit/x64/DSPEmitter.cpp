@@ -1,6 +1,5 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/DSP/Jit/x64/DSPEmitter.h"
 
@@ -17,9 +16,9 @@
 #include "Core/DSP/DSPAnalyzer.h"
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPHost.h"
-#include "Core/DSP/DSPMemoryMap.h"
 #include "Core/DSP/DSPTables.h"
 #include "Core/DSP/Interpreter/DSPIntTables.h"
+#include "Core/DSP/Interpreter/DSPInterpreter.h"
 #include "Core/DSP/Jit/x64/DSPJitTables.h"
 
 using namespace Gen;
@@ -30,9 +29,9 @@ constexpr size_t COMPILED_CODE_SIZE = 2097152;
 constexpr size_t MAX_BLOCK_SIZE = 250;
 constexpr u16 DSP_IDLE_SKIP_CYCLES = 0x1000;
 
-DSPEmitter::DSPEmitter()
+DSPEmitter::DSPEmitter(DSPCore& dsp)
     : m_compile_status_register{SR_INT_ENABLE | SR_EXT_INT_ENABLE}, m_blocks(MAX_BLOCKS),
-      m_block_size(MAX_BLOCKS), m_block_links(MAX_BLOCKS)
+      m_block_size(MAX_BLOCKS), m_block_links(MAX_BLOCKS), m_dsp_core{dsp}
 {
   x64::InitInstructionTables();
   AllocCodeSpace(COMPILED_CODE_SIZE);
@@ -51,18 +50,17 @@ DSPEmitter::~DSPEmitter()
 
 u16 DSPEmitter::RunCycles(u16 cycles)
 {
-  if (g_dsp.external_interrupt_waiting)
+  if (m_dsp_core.DSPState().external_interrupt_waiting.exchange(false, std::memory_order_acquire))
   {
-    DSPCore_CheckExternalInterrupt();
-    DSPCore_CheckExceptions();
-    DSPCore_SetExternalInterrupt(false);
+    m_dsp_core.CheckExternalInterrupt();
+    m_dsp_core.CheckExceptions();
   }
 
   m_cycles_left = cycles;
   auto exec_addr = (DSPCompiledCode)m_enter_dispatcher;
   exec_addr();
 
-  if (g_dsp.reset_dspjit_codespace)
+  if (m_dsp_core.DSPState().reset_dspjit_codespace)
     ClearIRAMandDSPJITCodespaceReset();
 
   return m_cycles_left;
@@ -82,7 +80,7 @@ void DSPEmitter::ClearIRAM()
     m_block_size[i] = 0;
     m_unresolved_jumps[i].clear();
   }
-  g_dsp.reset_dspjit_codespace = true;
+  m_dsp_core.DSPState().reset_dspjit_codespace = true;
 }
 
 void DSPEmitter::ClearIRAMandDSPJITCodespaceReset()
@@ -98,7 +96,12 @@ void DSPEmitter::ClearIRAMandDSPJITCodespaceReset()
     m_block_size[i] = 0;
     m_unresolved_jumps[i].clear();
   }
-  g_dsp.reset_dspjit_codespace = false;
+  m_dsp_core.DSPState().reset_dspjit_codespace = false;
+}
+
+static void CheckExceptionsThunk(DSPCore& dsp)
+{
+  dsp.CheckExceptions();
 }
 
 // Must go out of block if exception is detected
@@ -112,7 +115,7 @@ void DSPEmitter::checkExceptions(u32 retval)
 
   DSPJitRegCache c(m_gpr);
   m_gpr.SaveRegs();
-  ABI_CallFunction(DSPCore_CheckExceptions);
+  ABI_CallFunctionP(CheckExceptionsThunk, &m_dsp_core);
   MOV(32, R(EAX), Imm32(retval));
   JMP(m_return_dispatcher, true);
   m_gpr.LoadRegs(false);
@@ -123,9 +126,14 @@ void DSPEmitter::checkExceptions(u32 retval)
 
 bool DSPEmitter::FlagsNeeded() const
 {
-  const u8 flags = Analyzer::GetCodeFlags(m_compile_pc);
+  const auto& analyzer = m_dsp_core.DSPState().GetAnalyzer();
 
-  return !(flags & Analyzer::CODE_START_OF_INST) || (flags & Analyzer::CODE_UPDATE_SR);
+  return !analyzer.IsStartOfInstruction(m_compile_pc) || analyzer.IsUpdateSR(m_compile_pc);
+}
+
+static void FallbackThunk(Interpreter::Interpreter& interpreter, UDSPInstruction inst)
+{
+  (interpreter.*Interpreter::GetOp(inst))(inst);
 }
 
 void DSPEmitter::FallBackToInterpreter(UDSPInstruction inst)
@@ -145,9 +153,19 @@ void DSPEmitter::FallBackToInterpreter(UDSPInstruction inst)
   const auto interpreter_function = Interpreter::GetOp(inst);
 
   m_gpr.PushRegs();
-  ASSERT_MSG(DSPLLE, interpreter_function != nullptr, "No function for %04x", inst);
-  ABI_CallFunctionC16(interpreter_function, inst);
+  ASSERT_MSG(DSPLLE, interpreter_function != nullptr, "No function for {:04x}", inst);
+  ABI_CallFunctionPC(FallbackThunk, &m_dsp_core.GetInterpreter(), inst);
   m_gpr.PopRegs();
+}
+
+static void FallbackExtThunk(Interpreter::Interpreter& interpreter, UDSPInstruction inst)
+{
+  (interpreter.*Interpreter::GetExtOp(inst))(inst);
+}
+
+static void ApplyWriteBackLogThunk(Interpreter::Interpreter& interpreter)
+{
+  interpreter.ApplyWriteBackLog();
 }
 
 void DSPEmitter::EmitInstruction(UDSPInstruction inst)
@@ -168,10 +186,8 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
     else
     {
       // Fall back to interpreter
-      const auto interpreter_function = Interpreter::GetExtOp(inst);
-
       m_gpr.PushRegs();
-      ABI_CallFunctionC16(interpreter_function, inst);
+      ABI_CallFunctionPC(FallbackExtThunk, &m_dsp_core.GetInterpreter(), inst);
       m_gpr.PopRegs();
       INFO_LOG_FMT(DSPLLE, "Instruction not JITed(ext part): {:04x}", inst);
       ext_is_jit = false;
@@ -198,7 +214,7 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
       // need to call the online cleanup function because
       // the writeBackLog gets populated at runtime
       m_gpr.PushRegs();
-      ABI_CallFunction(ApplyWriteBackLog);
+      ABI_CallFunctionP(ApplyWriteBackLogThunk, &m_dsp_core.GetInterpreter());
       m_gpr.PopRegs();
     }
     else
@@ -224,12 +240,13 @@ void DSPEmitter::Compile(u16 start_addr)
   bool fixup_pc = false;
   m_block_size[start_addr] = 0;
 
+  auto& analyzer = m_dsp_core.DSPState().GetAnalyzer();
   while (m_compile_pc < start_addr + MAX_BLOCK_SIZE)
   {
-    if (Analyzer::GetCodeFlags(m_compile_pc) & Analyzer::CODE_CHECK_INT)
+    if (analyzer.IsCheckExceptions(m_compile_pc))
       checkExceptions(m_block_size[start_addr]);
 
-    UDSPInstruction inst = dsp_imem_read(m_compile_pc);
+    const UDSPInstruction inst = m_dsp_core.DSPState().ReadIMEM(m_compile_pc);
     const DSPOPCTemplate* opcode = GetOpTemplate(inst);
 
     EmitInstruction(inst);
@@ -244,7 +261,7 @@ void DSPEmitter::Compile(u16 start_addr)
 
     // Handle loop condition, only if current instruction was flagged as a loop destination
     // by the analyzer.
-    if (Analyzer::GetCodeFlags(static_cast<u16>(m_compile_pc - 1u)) & Analyzer::CODE_LOOP_END)
+    if (analyzer.IsLoopEnd(static_cast<u16>(m_compile_pc - 1u)))
     {
       MOVZX(32, 16, EAX, M_SDSP_r_st(2));
       TEST(32, R(EAX), R(EAX));
@@ -265,7 +282,7 @@ void DSPEmitter::Compile(u16 start_addr)
       DSPJitRegCache c(m_gpr);
       HandleLoop();
       m_gpr.SaveRegs();
-      if (!Host::OnThread() && Analyzer::GetCodeFlags(start_addr) & Analyzer::CODE_IDLE_SKIP)
+      if (!Host::OnThread() && analyzer.IsIdleSkip(start_addr))
       {
         MOV(16, R(EAX), Imm16(DSP_IDLE_SKIP_CYCLES));
       }
@@ -301,7 +318,7 @@ void DSPEmitter::Compile(u16 start_addr)
         DSPJitRegCache c(m_gpr);
         // don't update g_dsp.pc -- the branch insn already did
         m_gpr.SaveRegs();
-        if (!Host::OnThread() && Analyzer::GetCodeFlags(start_addr) & Analyzer::CODE_IDLE_SKIP)
+        if (!Host::OnThread() && analyzer.IsIdleSkip(start_addr))
         {
           MOV(16, R(EAX), Imm16(DSP_IDLE_SKIP_CYCLES));
         }
@@ -318,7 +335,7 @@ void DSPEmitter::Compile(u16 start_addr)
     }
 
     // End the block if we're before an idle skip address
-    if (Analyzer::GetCodeFlags(m_compile_pc) & Analyzer::CODE_IDLE_SKIP)
+    if (analyzer.IsIdleSkip(m_compile_pc))
     {
       break;
     }
@@ -364,7 +381,7 @@ void DSPEmitter::Compile(u16 start_addr)
   }
 
   m_gpr.SaveRegs();
-  if (!Host::OnThread() && Analyzer::GetCodeFlags(start_addr) & Analyzer::CODE_IDLE_SKIP)
+  if (!Host::OnThread() && analyzer.IsIdleSkip(start_addr))
   {
     MOV(16, R(EAX), Imm16(DSP_IDLE_SKIP_CYCLES));
   }
@@ -377,7 +394,7 @@ void DSPEmitter::Compile(u16 start_addr)
 
 void DSPEmitter::CompileCurrent(DSPEmitter& emitter)
 {
-  emitter.Compile(g_dsp.pc);
+  emitter.Compile(emitter.m_dsp_core.DSPState().pc);
 
   bool retry = true;
 
@@ -414,7 +431,7 @@ void DSPEmitter::CompileDispatcher()
   BitSet32 registers_used = ABI_ALL_CALLEE_SAVED & BitSet32(0xffff);
   ABI_PushRegistersAndAdjustStack(registers_used, 8);
 
-  MOV(64, R(R15), ImmPtr(&g_dsp));
+  MOV(64, R(R15), ImmPtr(&m_dsp_core.DSPState()));
 
   const u8* dispatcherLoop = GetCodePtr();
 
@@ -426,7 +443,7 @@ void DSPEmitter::CompileDispatcher()
   }
 
   // Check for DSP halt
-  TEST(8, M_SDSP_cr(), Imm8(CR_HALT));
+  TEST(8, M_SDSP_control_reg(), Imm8(CR_HALT));
   FixupBranch _halt = J_CC(CC_NE);
 
   // Execute block. Cycles executed returned in EAX.
@@ -453,6 +470,10 @@ void DSPEmitter::CompileDispatcher()
   RET();
 }
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Winvalid-offsetof"
+#endif
 Gen::OpArg DSPEmitter::M_SDSP_pc()
 {
   return MDisp(R15, static_cast<int>(offsetof(SDSP, pc)));
@@ -463,24 +484,31 @@ Gen::OpArg DSPEmitter::M_SDSP_exceptions()
   return MDisp(R15, static_cast<int>(offsetof(SDSP, exceptions)));
 }
 
-Gen::OpArg DSPEmitter::M_SDSP_cr()
+Gen::OpArg DSPEmitter::M_SDSP_control_reg()
 {
-  return MDisp(R15, static_cast<int>(offsetof(SDSP, cr)));
+  return MDisp(R15, static_cast<int>(offsetof(SDSP, control_reg)));
 }
 
 Gen::OpArg DSPEmitter::M_SDSP_external_interrupt_waiting()
 {
+  static_assert(decltype(SDSP::external_interrupt_waiting)::is_always_lock_free &&
+                sizeof(SDSP::external_interrupt_waiting) == sizeof(u8));
+
   return MDisp(R15, static_cast<int>(offsetof(SDSP, external_interrupt_waiting)));
 }
 
 Gen::OpArg DSPEmitter::M_SDSP_r_st(size_t index)
 {
-  return MDisp(R15, static_cast<int>(offsetof(SDSP, r.st[index])));
+  return MDisp(R15, static_cast<int>(offsetof(SDSP, r.st) + sizeof(SDSP::r.st[0]) * index));
 }
 
 Gen::OpArg DSPEmitter::M_SDSP_reg_stack_ptrs(size_t index)
 {
-  return MDisp(R15, static_cast<int>(offsetof(SDSP, reg_stack_ptrs[index])));
+  return MDisp(R15, static_cast<int>(offsetof(SDSP, reg_stack_ptrs) +
+                                     sizeof(SDSP::reg_stack_ptrs[0]) * index));
 }
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
 }  // namespace DSP::JIT::x64

@@ -86,11 +86,11 @@ WARNPC 0x8b
 ORG 0x8b
 ; called by GBA ucode
 dram_to_cpu:
-    srs @DSMAH, $AX0.H
-    srs @DSMAL, $AX0.L
+    sr @DSMAH, $AX0.H
+    sr @DSMAL, $AX0.L
     si @DSCR, #0x1
-    srs @DSPA, $AX1.H
-    srs @DSBL, $AX1.L
+    sr @DSPA, $AX1.H
+    sr @DSBL, $AX1.L
     call wait_dma+#IROM_BASE
     ret
 
@@ -108,11 +108,11 @@ ORG 0xbc
 ; called by GBA ucode
 bootucode_ax:
     lris $AC0.M, #0
-    srs  @DSCR, $AC0.M
-    srs  @DSMAH, $AX0.H
-    srs  @DSMAL, $AX0.L
-    srs  @DSPA, $AX1.H
-    srs  @DSBL, $AX1.L
+    srs @DSCR, $AC0.M
+    sr  @DSMAH, $AX0.H
+    sr  @DSMAL, $AX0.L
+    sr  @DSPA, $AX1.H
+    sr  @DSBL, $AX1.L
     call wait_dma+#IROM_BASE
 
 bootucode_ix:
@@ -145,9 +145,15 @@ ORG 0xe7
 ; Returns:
 ; AX0.L is the value of the last sample from input 1
 ; AX1.H is the value of the last sample from input 2
+;
+; for i = 0..31:
+;   ar3[i] = ((ar2[i] << 16) + ar0[i] * ar1[0]) >> 16
+; for i = 0..31:
+;   ix1[i] = ((ix1[i] << 16) + ix0[i] * ar1[2]) >> 16
+; ax0.l = ar0[31] * ar1[0]
+; ax1.h = ix0[31] * ar1[2]
 mix_two_add:
     call mix_add+#IROM_BASE
-    iar $AR1
     mrr $AR0, $IX0
     mrr $AR2, $IX1
     mrr $AR3, $IX1
@@ -183,8 +189,14 @@ ORG 0x1f9
 ; Returns:
 ; AX0.L is the value of the last sample
 ; AX1.H is the first address after the output
+;
+; for i = 0..31:
+;   ar3[i] = ((ar2[i] << 16) + ar0[i] * ar1[0]) >> 16
+; ax0.l = ar0[31] * ar1[0]
+; ax1.h = ar3 + 32 // assuming ar3 is a s32 pointer
 mix_add:
     lrri $AX1.L, @$AR1
+    iar $AR1
     bloopi #32, ____mix_add_end_loop+#IROM_BASE
         lrri $AC0.M, @$AR2
         lrri $AC0.L, @$AR2
@@ -203,6 +215,13 @@ ____mix_add_end_loop:
 
 WARNPC 0x282
 ORG 0x282
+; for i = 0..31:
+;   ar3[i] = ar1[0] + i * ar1[1]
+;   ar2[i] = ((ar2[i] << 16) + ar0[i] * ar3[i]) >> 16
+;   ar3[i+32] = ar1[2] + i * ar1[3]
+;   ix1[i] = ((ix1[i] << 16) + ix0[i] * ar3[i+32]) >> 16
+; ax0.l = ar0[31] * ar3[31]
+; ax1.h = ix0[31] * ar3[63]
 mix_two_add_ramp:
     call mix_add_ramp+#IROM_BASE
     mrr $AR0, $IX0
@@ -227,6 +246,10 @@ sub_8458:
 
 WARNPC 0x45d
 ORG 0x45d
+; for i = 0..31:
+;   ar3[i] = ar1[0] + i * ar1[1]
+;   ar2[i] = ((ar2[i] << 16) + ar0[i] * ar3[i]) >> 16
+; ax0.l = ar0[31] * ar3[31]
 mix_add_ramp:
     clr $ACC0
     clr $ACC1
@@ -259,7 +282,6 @@ ____mix_add_ramp_end_loop:
         srri @$AR3, $AC0.L
     movp $ACC0
     mrr $AX0.L, $AC0.M
-    mrr $AX1.H, $AR3
     mrr $AR1, $IX3
     mrr $AR3, $IX2
     ret

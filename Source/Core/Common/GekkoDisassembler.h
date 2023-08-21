@@ -1,6 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 /* $VER: ppc_disasm.h V1.6 (09.12.2011)
  *
@@ -57,7 +56,7 @@ private:
 
   static std::string ra_rb(u32 in);
   static std::string rd_ra_rb(u32 in, int mask);
-  static std::string fd_ra_rb(u32 in, int mask);
+  static std::string fd_ra_rb(u32 in);
 
   static void trapi(u32 in, unsigned char dmode);
   static void cmpi(u32 in, int uimm);
@@ -85,7 +84,7 @@ private:
   static void ldst(u32 in, std::string_view name, char reg, unsigned char dmode);
   static void fdabc(u32 in, std::string_view name, int mask, unsigned char dmode);
   static void fmr(u32 in);
-  static void fdab(u32 in, std::string_view name, int mask);
+  static void fdab(u32 in, std::string_view name);
   static void fcmp(u32 in, char c);
   static void mtfsb(u32 in, int n);
   static void ps(u32 inst);

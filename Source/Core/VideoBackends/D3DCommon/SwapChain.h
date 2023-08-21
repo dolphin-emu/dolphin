@@ -1,6 +1,5 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -9,7 +8,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/WindowSystemInfo.h"
-#include "VideoBackends/D3DCommon/Common.h"
+#include "VideoBackends/D3DCommon/D3DCommon.h"
 #include "VideoCommon/TextureConfig.h"
 
 namespace D3DCommon
@@ -30,9 +29,6 @@ public:
   AbstractTextureFormat GetFormat() const { return m_texture_format; }
   u32 GetWidth() const { return m_width; }
   u32 GetHeight() const { return m_height; }
-  u32 GetLayers() const { return m_stereo ? 2u : 1u; }
-  bool IsStereoEnabled() const { return m_stereo; }
-  bool HasExclusiveFullscreen() const { return m_has_fullscreen; }
 
   // Mode switches.
   bool GetFullscreen() const;

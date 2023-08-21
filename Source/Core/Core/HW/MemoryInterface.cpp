@@ -1,9 +1,13 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/MemoryInterface.h"
 
+#include <array>
+#include <cstring>
+#include <type_traits>
+
+#include "Common/BitField.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Core/HW/MMIO.h"
@@ -50,151 +54,81 @@ enum
   MI_UNKNOWN2 = 0x05A,
 };
 
-union MIRegion
-{
-  u32 hex;
-  struct
-  {
-    u16 first_page;
-    u16 last_page;
-  };
-};
+MemoryInterfaceManager::MemoryInterfaceManager() = default;
 
-union MIProtType
-{
-  u16 hex;
-  struct
-  {
-    u16 reg0 : 2;
-    u16 reg1 : 2;
-    u16 reg2 : 2;
-    u16 reg3 : 2;
-    u16 : 8;
-  };
-};
+MemoryInterfaceManager::~MemoryInterfaceManager() = default;
 
-union MIIRQMask
+void MemoryInterfaceManager::Init()
 {
-  u16 hex;
-  struct
-  {
-    u16 reg0 : 1;
-    u16 reg1 : 1;
-    u16 reg2 : 1;
-    u16 reg3 : 1;
-    u16 all_regs : 1;
-    u16 : 11;
-  };
-};
-
-union MIIRQFlag
-{
-  u16 hex;
-  struct
-  {
-    u16 reg0 : 1;
-    u16 reg1 : 1;
-    u16 reg2 : 1;
-    u16 reg3 : 1;
-    u16 all_regs : 1;
-    u16 : 11;
-  };
-};
-
-union MIProtAddr
-{
-  u32 hex;
-  struct
-  {
-    u16 lo;
-    u16 hi;
-  };
-  struct
-  {
-    u32 : 5;
-    u32 addr : 25;
-    u32 : 2;
-  };
-};
-
-union MITimer
-{
-  u32 hex;
-  struct
-  {
-    u16 lo;
-    u16 hi;
-  };
-};
-
-struct MIMemStruct
-{
-  MIRegion regions[4];
-  MIProtType prot_type;
-  MIIRQMask irq_mask;
-  MIIRQFlag irq_flag;
-  u16 unknown1;
-  MIProtAddr prot_addr;
-  MITimer timers[10];
-  u16 unknown2;
-};
-
-// STATE_TO_SAVE
-static MIMemStruct g_mi_mem;
-
-void DoState(PointerWrap& p)
-{
-  p.Do(g_mi_mem);
+  static_assert(std::is_trivially_copyable_v<MIMemStruct>);
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
+#endif
+  std::memset(&m_mi_mem, 0, sizeof(MIMemStruct));
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 }
 
-void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
+void MemoryInterfaceManager::Shutdown()
 {
-  for (int i = MI_REGION0_FIRST; i <= MI_REGION3_LAST; i += 4)
+  Init();
+}
+
+void MemoryInterfaceManager::DoState(PointerWrap& p)
+{
+  p.Do(m_mi_mem);
+}
+
+void MemoryInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
+{
+  for (u32 i = MI_REGION0_FIRST; i <= MI_REGION3_LAST; i += 4)
   {
-    auto& region = g_mi_mem.regions[i / 4];
+    auto& region = m_mi_mem.regions[i / 4];
     mmio->Register(base | i, MMIO::DirectRead<u16>(&region.first_page),
                    MMIO::DirectWrite<u16>(&region.first_page));
     mmio->Register(base | (i + 2), MMIO::DirectRead<u16>(&region.last_page),
                    MMIO::DirectWrite<u16>(&region.last_page));
   }
 
-  mmio->Register(base | MI_PROT_TYPE, MMIO::DirectRead<u16>(&g_mi_mem.prot_type.hex),
-                 MMIO::DirectWrite<u16>(&g_mi_mem.prot_type.hex));
+  mmio->Register(base | MI_PROT_TYPE, MMIO::DirectRead<u16>(&m_mi_mem.prot_type.hex),
+                 MMIO::DirectWrite<u16>(&m_mi_mem.prot_type.hex));
 
-  mmio->Register(base | MI_IRQMASK, MMIO::DirectRead<u16>(&g_mi_mem.irq_mask.hex),
-                 MMIO::DirectWrite<u16>(&g_mi_mem.irq_mask.hex));
+  mmio->Register(base | MI_IRQMASK, MMIO::DirectRead<u16>(&m_mi_mem.irq_mask.hex),
+                 MMIO::DirectWrite<u16>(&m_mi_mem.irq_mask.hex));
 
-  mmio->Register(base | MI_IRQFLAG, MMIO::DirectRead<u16>(&g_mi_mem.irq_flag.hex),
-                 MMIO::DirectWrite<u16>(&g_mi_mem.irq_flag.hex));
+  mmio->Register(base | MI_IRQFLAG, MMIO::DirectRead<u16>(&m_mi_mem.irq_flag.hex),
+                 MMIO::DirectWrite<u16>(&m_mi_mem.irq_flag.hex));
 
-  mmio->Register(base | MI_UNKNOWN1, MMIO::DirectRead<u16>(&g_mi_mem.unknown1),
-                 MMIO::DirectWrite<u16>(&g_mi_mem.unknown1));
+  mmio->Register(base | MI_UNKNOWN1, MMIO::DirectRead<u16>(&m_mi_mem.unknown1),
+                 MMIO::DirectWrite<u16>(&m_mi_mem.unknown1));
 
-  // The naming is confusing here: the registed contains the lower part of
+  // The naming is confusing here: the register contains the lower part of
   // the address (hence MI_..._LO but this is still the high part of the
   // overall register.
-  mmio->Register(base | MI_PROT_ADDR_LO, MMIO::DirectRead<u16>(&g_mi_mem.prot_addr.hi),
-                 MMIO::DirectWrite<u16>(&g_mi_mem.prot_addr.hi));
-  mmio->Register(base | MI_PROT_ADDR_HI, MMIO::DirectRead<u16>(&g_mi_mem.prot_addr.lo),
-                 MMIO::DirectWrite<u16>(&g_mi_mem.prot_addr.lo));
+  mmio->Register(base | MI_PROT_ADDR_LO, MMIO::DirectRead<u16>(&m_mi_mem.prot_addr.hi),
+                 MMIO::DirectWrite<u16>(&m_mi_mem.prot_addr.hi));
+  mmio->Register(base | MI_PROT_ADDR_HI, MMIO::DirectRead<u16>(&m_mi_mem.prot_addr.lo),
+                 MMIO::DirectWrite<u16>(&m_mi_mem.prot_addr.lo));
 
-  for (int i = 0; i < 10; ++i)
+  for (u32 i = 0; i < m_mi_mem.timers.size(); ++i)
   {
-    auto& timer = g_mi_mem.timers[i];
+    auto& timer = m_mi_mem.timers[i];
     mmio->Register(base | (MI_TIMER0_HI + 4 * i), MMIO::DirectRead<u16>(&timer.hi),
                    MMIO::DirectWrite<u16>(&timer.hi));
     mmio->Register(base | (MI_TIMER0_LO + 4 * i), MMIO::DirectRead<u16>(&timer.lo),
                    MMIO::DirectWrite<u16>(&timer.lo));
   }
 
-  mmio->Register(base | MI_UNKNOWN2, MMIO::DirectRead<u16>(&g_mi_mem.unknown2),
-                 MMIO::DirectWrite<u16>(&g_mi_mem.unknown2));
+  mmio->Register(base | MI_UNKNOWN2, MMIO::DirectRead<u16>(&m_mi_mem.unknown2),
+                 MMIO::DirectWrite<u16>(&m_mi_mem.unknown2));
 
-  for (int i = 0; i < 0x1000; i += 4)
+  for (u32 i = 0; i < 0x1000; i += 4)
   {
     mmio->Register(base | i, MMIO::ReadToSmaller<u32>(mmio, base | i, base | (i + 2)),
                    MMIO::WriteToSmaller<u32>(mmio, base | i, base | (i + 2)));
   }
 }
 
-}  // end of namespace MemoryInterface
+}  // namespace MemoryInterface

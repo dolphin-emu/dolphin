@@ -1,6 +1,5 @@
 // Copyright 2020 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -23,7 +22,7 @@ public:
 
   u64 GetRawSize() const override { return m_blob_reader->GetRawSize(); }
   u64 GetDataSize() const override { return m_blob_reader->GetDataSize(); }
-  bool IsDataSizeAccurate() const override { return m_blob_reader->IsDataSizeAccurate(); }
+  DataSizeType GetDataSizeType() const override { return m_blob_reader->GetDataSizeType(); }
 
   u64 GetBlockSize() const override { return m_blob_reader->GetBlockSize(); }
   bool HasFastRandomAccessInBlock() const override
@@ -33,6 +32,10 @@ public:
   std::string GetCompressionMethod() const override
   {
     return m_blob_reader->GetCompressionMethod();
+  }
+  std::optional<int> GetCompressionLevel() const override
+  {
+    return m_blob_reader->GetCompressionLevel();
   }
 
   bool Read(u64 offset, u64 size, u8* out_ptr) override;

@@ -1,6 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -13,16 +12,18 @@
 #include "Core/HW/GCMemcard/GCIFile.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
 #include "Core/HW/GCMemcard/GCMemcardBase.h"
+#include "DiscIO/Enums.h"
 
 // Uncomment this to write the system data of the memorycard from directory to disc
 //#define _WRITE_MC_HEADER 1
-void MigrateFromMemcardFile(const std::string& directory_name, int card_index);
+void MigrateFromMemcardFile(const std::string& directory_name, ExpansionInterface::Slot card_slot,
+                            DiscIO::Region region);
 
 class GCMemcardDirectory : public MemoryCardBase
 {
 public:
-  GCMemcardDirectory(const std::string& directory, int slot, const Memcard::HeaderData& header_data,
-                     u32 game_id);
+  GCMemcardDirectory(const std::string& directory, ExpansionInterface::Slot slot,
+                     const Memcard::HeaderData& header_data, u32 game_id);
   ~GCMemcardDirectory();
 
   GCMemcardDirectory(const GCMemcardDirectory&) = delete;

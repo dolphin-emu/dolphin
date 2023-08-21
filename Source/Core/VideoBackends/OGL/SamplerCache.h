@@ -1,6 +1,5 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -10,7 +9,8 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/GL/GLUtil.h"
-#include "VideoBackends/OGL/Render.h"
+#include "VideoCommon/Constants.h"
+#include "VideoCommon/RenderState.h"
 
 namespace OGL
 {
@@ -36,7 +36,8 @@ private:
   static void SetParameters(GLuint sampler_id, const SamplerState& params);
 
   std::map<SamplerState, GLuint> m_cache;
-  std::array<std::pair<SamplerState, GLuint>, 8> m_active_samplers{};
+  std::array<std::pair<SamplerState, GLuint>, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS>
+      m_active_samplers{};
 
   GLuint m_point_sampler;
   GLuint m_linear_sampler;

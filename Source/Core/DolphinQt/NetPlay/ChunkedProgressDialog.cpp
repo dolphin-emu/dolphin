@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/NetPlay/ChunkedProgressDialog.h"
 
@@ -8,14 +7,14 @@
 #include <cmath>
 #include <functional>
 
+#include <fmt/format.h>
+
 #include <QDialogButtonBox>
 #include <QGroupBox>
 #include <QLabel>
 #include <QProgressBar>
 #include <QPushButton>
 #include <QVBoxLayout>
-
-#include "Common/StringUtil.h"
 
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayServer.h"
@@ -135,8 +134,8 @@ void ChunkedProgressDialog::SetProgress(const int pid, const u64 progress)
 
   m_status_labels[pid]->setText(tr("%1[%2]: %3/%4 MiB")
                                     .arg(player_name, QString::number(pid),
-                                         QString::fromStdString(StringFromFormat("%.2f", acquired)),
-                                         QString::fromStdString(StringFromFormat("%.2f", total))));
+                                         QString::fromStdString(fmt::format("{:.2f}", acquired)),
+                                         QString::fromStdString(fmt::format("{:.2f}", total))));
   m_progress_bars[pid]->setValue(prog);
 }
 

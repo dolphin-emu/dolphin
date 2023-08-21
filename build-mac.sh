@@ -1,8 +1,8 @@
 #!/bin/bash -e
 # build-mac.sh
 
-QT_BREW_PATH=$(brew --prefix qt@5)
-CMAKE_FLAGS="-DQt5_DIR=${QT_BREW_PATH}/lib/cmake/Qt5 -DENABLE_NOGUI=false"
+QT_BREW_PATH=$(brew --prefix qt@6)
+CMAKE_FLAGS="-DQT_DIR=${QT_BREW_PATH}/lib/cmake/Qt5 -DENABLE_NOGUI=false"
 
 PLAYBACK_CODES_PATH="./Data/PlaybackGeckoCodes/"
 
@@ -32,7 +32,7 @@ fi
 mkdir -p build
 pushd build
 cmake ${CMAKE_FLAGS} ..
-make -j7
+cmake --build . --target dolphin-emu -- -j$(nproc)
 popd
 
 # Copy the Sys folder in

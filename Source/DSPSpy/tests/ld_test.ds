@@ -2,6 +2,7 @@
 incdir  "tests"
 include "dsp_base.inc"
 
+test_main:
 lri $AR0, #0x001c
 lri $AR1, #0x001d
 lri $AR2, #0x001e
@@ -243,5 +244,5 @@ lri $AX1.L, #0x13
 nx'ldnm  : $AX0.L, $AX1.L, @$AR0
 call send_back  ; 20
 
-
-
+; We're done, DO NOT DELETE THIS LINE
+jmp end_of_test

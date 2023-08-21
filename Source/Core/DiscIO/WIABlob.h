@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -13,7 +12,8 @@
 #include <utility>
 
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
+#include "Common/Crypto/SHA1.h"
+#include "Common/IOFile.h"
 #include "Common/Swap.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/MultithreadedCompressor.h"
@@ -35,7 +35,7 @@ enum class WIARVZCompressionType : u32
   Zstd = 5,
 };
 
-std::pair<int, int> GetAllowedCompressionLevels(WIARVZCompressionType compression_type);
+std::pair<int, int> GetAllowedCompressionLevels(WIARVZCompressionType compression_type, bool gui);
 
 constexpr u32 WIA_MAGIC = 0x01414957;  // "WIA\x1" (byteswapped to little endian)
 constexpr u32 RVZ_MAGIC = 0x015A5652;  // "RVZ\x1" (byteswapped to little endian)
@@ -52,11 +52,15 @@ public:
 
   u64 GetRawSize() const override { return Common::swap64(m_header_1.wia_file_size); }
   u64 GetDataSize() const override { return Common::swap64(m_header_1.iso_file_size); }
-  bool IsDataSizeAccurate() const override { return true; }
+  DataSizeType GetDataSizeType() const override { return DataSizeType::Accurate; }
 
   u64 GetBlockSize() const override { return Common::swap32(m_header_2.chunk_size); }
   bool HasFastRandomAccessInBlock() const override { return false; }
   std::string GetCompressionMethod() const override;
+  std::optional<int> GetCompressionLevel() const override
+  {
+    return static_cast<int>(static_cast<s32>(Common::swap32(m_header_2.compression_level)));
+  }
 
   bool Read(u64 offset, u64 size, u8* out_ptr) override;
   bool SupportsReadWiiDecrypted(u64 offset, u64 size, u64 partition_data_offset) const override;
@@ -67,10 +71,9 @@ public:
                                       int compression_level, int chunk_size, CompressCB callback);
 
 private:
-  using SHA1 = std::array<u8, 20>;
   using WiiKey = std::array<u8, 16>;
 
-  // See docs/WIA.md for details about the format
+  // See docs/WiaAndRvz.md for details about the format
 
 #pragma pack(push, 1)
   struct WIAHeader1
@@ -79,10 +82,10 @@ private:
     u32 version;
     u32 version_compatible;
     u32 header_2_size;
-    SHA1 header_2_hash;
+    Common::SHA1::Digest header_2_hash;
     u64 iso_file_size;
     u64 wia_file_size;
-    SHA1 header_1_hash;
+    Common::SHA1::Digest header_1_hash;
   };
   static_assert(sizeof(WIAHeader1) == 0x48, "Wrong size for WIA header 1");
 
@@ -90,7 +93,7 @@ private:
   {
     u32 disc_type;
     u32 compression_type;
-    u32 compression_level;  // Informative only
+    s32 compression_level;  // Informative only
     u32 chunk_size;
 
     std::array<u8, 0x80> disc_header;
@@ -98,7 +101,7 @@ private:
     u32 number_of_partition_entries;
     u32 partition_entry_size;
     u64 partition_entries_offset;
-    SHA1 partition_entries_hash;
+    Common::SHA1::Digest partition_entries_hash;
 
     u32 number_of_raw_data_entries;
     u64 raw_data_entries_offset;
@@ -158,7 +161,7 @@ private:
   struct HashExceptionEntry
   {
     u16 offset;
-    SHA1 hash;
+    Common::SHA1::Digest hash;
   };
   static_assert(sizeof(HashExceptionEntry) == 0x16, "Wrong size for WIA hash exception entry");
 #pragma pack(pop)
@@ -169,7 +172,10 @@ private:
     bool is_partition;
     u8 partition_data_index;
 
-    DataEntry(size_t index_) : index(static_cast<u32>(index_)), is_partition(false) {}
+    DataEntry(size_t index_)
+        : index(static_cast<u32>(index_)), is_partition(false), partition_data_index(0)
+    {
+    }
     DataEntry(size_t index_, size_t partition_data_index_)
         : index(static_cast<u32>(index_)), is_partition(true),
           partition_data_index(static_cast<u8>(partition_data_index_))
@@ -201,6 +207,8 @@ private:
     bool Decompress();
     bool HandleExceptions(const u8* data, size_t bytes_allocated, size_t bytes_written,
                           size_t* bytes_used, bool align);
+
+    size_t GetOutBytesWrittenExcludingExceptions() const;
 
     DecompressionBuffer m_in;
     DecompressionBuffer m_out;
@@ -254,11 +262,12 @@ private:
       return std::tie(partition_key, data_size, encrypted, value) >
              std::tie(other.partition_key, other.data_size, other.encrypted, other.value);
     }
+
     bool operator!=(const ReuseID& other) const { return !operator==(other); }
     bool operator>=(const ReuseID& other) const { return !operator<(other); }
     bool operator<=(const ReuseID& other) const { return !operator>(other); }
 
-    const WiiKey* partition_key;
+    WiiKey partition_key;
     u64 data_size;
     bool encrypted;
     u8 value;
@@ -279,11 +288,11 @@ private:
 
   struct CompressParameters
   {
-    std::vector<u8> data;
-    const DataEntry* data_entry;
-    u64 data_offset;
-    u64 bytes_read;
-    size_t group_index;
+    std::vector<u8> data{};
+    const DataEntry* data_entry = nullptr;
+    u64 data_offset = 0;
+    u64 bytes_read = 0;
+    size_t group_index = 0;
   };
 
   struct WIAOutputParametersEntry
@@ -310,8 +319,8 @@ private:
   struct OutputParameters
   {
     std::vector<OutputParametersEntry> entries;
-    u64 bytes_read;
-    size_t group_index;
+    u64 bytes_read = 0;
+    size_t group_index = 0;
   };
 
   static bool PadTo4(File::IOFile* file, u64* bytes_written);

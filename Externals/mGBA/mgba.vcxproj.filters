@@ -1,0 +1,451 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ItemGroup>
+    <ClCompile Include="mgba\src\core\bitmap-cache.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\core\cache-set.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\core\cheats.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\core\config.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\core\core.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\core\directories.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\core\input.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\core\interface.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\core\library.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\core\lockstep.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\core\log.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\core\map-cache.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\core\mem-search.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\core\rewind.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\core\serialize.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\core\sync.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\core\thread.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\core\tile-cache.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\core\timing.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\sm83\decoder.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\sm83\isa-sm83.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\sm83\sm83.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gb\audio.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gb\cheats.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gb\core.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gb\gb.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gb\input.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gb\io.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gb\mbc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gb\mbc\huc-3.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gb\mbc\licensed.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gb\mbc\mbc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gb\mbc\pocket-cam.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gb\mbc\tama5.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gb\mbc\unlicensed.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gb\memory.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gb\overrides.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gb\serialize.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gb\renderers\cache-set.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gb\renderers\software.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gb\sio.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gb\timer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gb\video.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\arm\arm.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\arm\decoder-arm.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\arm\decoder.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\arm\decoder-thumb.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\arm\isa-arm.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\arm\isa-thumb.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\audio.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\bios.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\cart\ereader.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\cart\gpio.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\cart\matrix.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\cart\vfame.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\cheats.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\cheats\codebreaker.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\cheats\gameshark.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\cheats\parv3.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\core.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\dma.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\gba.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\hle-bios.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\input.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\io.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\memory.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\overrides.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\renderers\cache-set.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\renderers\common.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\renderers\gl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\renderers\software-bg.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\renderers\software-mode0.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\renderers\software-obj.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\renderers\video-software.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\savedata.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\serialize.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\sharkport.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\sio.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\sio\gbp.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\sio\joybus.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\timer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\video.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\circle-buffer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\configuration.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\crc32.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\formatting.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\gbk-table.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\hash.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\string.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\table.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\vector.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\vfs.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\convolve.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\elf-read.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\export.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\patch.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\patch-fast.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\patch-ips.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\patch-ups.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\png-io.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\ring-fifo.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\sfo.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\text-codec.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="version.c">
+      <Filter>Generated sources</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\vfs\vfs-mem.c">
+      <Filter>Virtual files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\vfs\vfs-fifo.c">
+      <Filter>Virtual files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\vfs\vfs-fd.c">
+      <Filter>Virtual files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\platform\windows\vfs-w32.c">
+      <Filter>Virtual files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\platform\windows\memory.c">
+      <Filter>Windows-specific code</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\third-party\inih\ini.c">
+      <Filter>Third-party code</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\third-party\blip_buf\blip_buf.c">
+      <Filter>Third-party code</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\vfs\vfs-lzma.c">
+      <Filter>Virtual files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\third-party\lzma\7zAlloc.c">
+      <Filter>Virtual files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\third-party\lzma\7zArcIn.c">
+      <Filter>Virtual files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\third-party\lzma\7zBuf.c">
+      <Filter>Virtual files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\third-party\lzma\7zBuf2.c">
+      <Filter>Virtual files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\third-party\lzma\7zCrc.c">
+      <Filter>Virtual files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\third-party\lzma\7zCrcOpt.c">
+      <Filter>Virtual files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\third-party\lzma\7zDec.c">
+      <Filter>Virtual files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\third-party\lzma\CpuArch.c">
+      <Filter>Virtual files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\third-party\lzma\Delta.c">
+      <Filter>Virtual files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\third-party\lzma\LzmaDec.c">
+      <Filter>Virtual files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\third-party\lzma\Lzma2Dec.c">
+      <Filter>Virtual files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\third-party\lzma\Bra.c">
+      <Filter>Virtual files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\third-party\lzma\Bra86.c">
+      <Filter>Virtual files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\third-party\lzma\BraIA64.c">
+      <Filter>Virtual files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\third-party\lzma\Bcj2.c">
+      <Filter>Virtual files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\third-party\lzma\Ppmd7.c">
+      <Filter>Virtual files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\third-party\lzma\Ppmd7Dec.c">
+      <Filter>Virtual files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\third-party\lzma\7zFile.c">
+      <Filter>Virtual files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\third-party\lzma\7zStream.c">
+      <Filter>Virtual files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\sio\dolphin.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\sio\lockstep.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gb\sio\lockstep.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gb\sio\printer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\extra\audio-mixer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\extra\battlechip.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gba\extra\proxy.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\gb\extra\proxy.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\feature\commandline.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\feature\thread-proxy.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\feature\updater.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\feature\video-logger.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Generated sources">
+      <UniqueIdentifier>{57438DCC-46E8-3FBA-90F2-185F80CEBE2C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{C0CFD641-7357-3B1D-B2A3-B2477AEF3147}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Third-party code">
+      <UniqueIdentifier>{6C07F537-79D5-3651-A634-9E523B9936B2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Virtual files">
+      <UniqueIdentifier>{AFF59D0C-C624-393F-8703-2FB3784928C8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Windows-specific code">
+      <UniqueIdentifier>{37E5D4D5-B263-3B94-8968-21228F26DF67}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

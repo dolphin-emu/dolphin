@@ -6,13 +6,14 @@ include "dsp_base.inc"
         
 ;  We can call send_back at any time to send data back to the PowerPC.
 
-       lri $AC0.M, #0x1000	
-	call send_back
+test_main:
+  lri $AC0.M, #0x1000
+  call send_back
 
-       set40
-       lri $AC0.M, #0x1000
-       set16
-	call send_back
+  set40
+  lri $AC0.M, #0x1000
+  set16
+  call send_back
 
 ; We're done, DO NOT DELETE THIS LINE
-	jmp end_of_test
+  jmp end_of_test

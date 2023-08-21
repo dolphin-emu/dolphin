@@ -1,10 +1,10 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "UpdaterCommon/UpdaterCommon.h"
 
 #include <array>
+#include <memory>
 #include <optional>
 
 #include <OptionParser.h>
@@ -13,11 +13,13 @@
 #include <mbedtls/sha256.h>
 #include <zlib.h>
 
+#include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/HttpRequest.h"
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
+#include "UpdaterCommon/Platform.h"
 #include "UpdaterCommon/UI.h"
 
 #ifndef _WIN32
@@ -25,52 +27,20 @@
 #include <sys/types.h>
 #endif
 
-namespace
-{
+#ifdef _WIN32
+#include <Windows.h>
+#include <filesystem>
+#endif
+
+// Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
+
 // Where to log updater output.
-FILE* log_fp = stderr;
+static FILE* log_fp = stderr;
 
 // Public key used to verify update manifests.
 const std::array<u8, 32> UPDATE_PUB_KEY = {
     0x2a, 0xb3, 0xd1, 0xdc, 0x6e, 0xf5, 0x07, 0xf6, 0xa0, 0x6c, 0x7c, 0x54, 0xdf, 0x54, 0xf4, 0x42,
     0x80, 0xa6, 0x28, 0x8b, 0x6d, 0x70, 0x14, 0xb5, 0x4c, 0x34, 0x95, 0x20, 0x4d, 0xd4, 0xd3, 0x5d};
-
-const char UPDATE_TEMP_DIR[] = "TempUpdate";
-
-struct Manifest
-{
-  using Filename = std::string;
-  using Hash = std::array<u8, 16>;
-  std::map<Filename, Hash> entries;
-};
-
-// Represent the operations to be performed by the updater.
-struct TodoList
-{
-  struct DownloadOp
-  {
-    Manifest::Filename filename;
-    Manifest::Hash hash;
-  };
-  std::vector<DownloadOp> to_download;
-
-  struct UpdateOp
-  {
-    Manifest::Filename filename;
-    std::optional<Manifest::Hash> old_hash;
-    Manifest::Hash new_hash;
-  };
-  std::vector<UpdateOp> to_update;
-
-  struct DeleteOp
-  {
-    Manifest::Filename filename;
-    Manifest::Hash old_hash;
-  };
-  std::vector<DeleteOp> to_delete;
-
-  void Log() const;
-};
 
 bool ProgressCallback(double total, double now, double, double)
 {
@@ -133,16 +103,17 @@ std::optional<std::string> GzipInflate(const std::string& data)
   inflateInit2(&zstrm, 16 + MAX_WBITS);
 
   std::string out;
-  char buffer[4096];
+  const size_t buf_len = 20 * 1024 * 1024;
+  auto buffer = std::make_unique<char[]>(buf_len);
   int ret;
 
   do
   {
-    zstrm.avail_out = sizeof(buffer);
-    zstrm.next_out = reinterpret_cast<u8*>(buffer);
+    zstrm.avail_out = buf_len;
+    zstrm.next_out = reinterpret_cast<u8*>(buffer.get());
 
     ret = inflate(&zstrm, 0);
-    out.append(buffer, sizeof(buffer) - zstrm.avail_out);
+    out.append(buffer.get(), buf_len - zstrm.avail_out);
   } while (ret == Z_OK);
 
   inflateEnd(&zstrm);
@@ -277,6 +248,13 @@ bool DownloadContent(const std::vector<TodoList::DownloadOp>& to_download,
   return true;
 }
 
+bool PlatformVersionCheck(const std::vector<TodoList::UpdateOp>& to_update,
+                          const std::string& install_base_path, const std::string& temp_dir)
+{
+  UI::SetDescription("Checking platform...");
+  return Platform::VersionCheck(to_update, install_base_path, temp_dir, log_fp);
+}
+
 TodoList ComputeActionsToDo(Manifest this_manifest, Manifest next_manifest)
 {
   TodoList todo;
@@ -321,33 +299,6 @@ TodoList ComputeActionsToDo(Manifest this_manifest, Manifest next_manifest)
   return todo;
 }
 
-std::optional<std::string> FindOrCreateTempDir(const std::string& base_path)
-{
-  std::string temp_path = base_path + DIR_SEP + UPDATE_TEMP_DIR;
-  int counter = 0;
-
-  File::DeleteDirRecursively(temp_path);
-
-  do
-  {
-    if (File::CreateDir(temp_path))
-    {
-      return temp_path;
-    }
-    else
-    {
-      fprintf(log_fp, "Couldn't create temp directory.\n");
-
-      // Try again with a counter appended to the path.
-      std::string suffix = UPDATE_TEMP_DIR + std::to_string(counter);
-      temp_path = base_path + DIR_SEP + suffix;
-    }
-  } while (counter++ < 10);
-
-  fprintf(log_fp, "Could not find an appropriate temp directory name. Giving up.\n");
-  return {};
-}
-
 void CleanUpTempDir(const std::string& temp_dir, const TodoList& todo)
 {
   // This is best-effort cleanup, we ignore most errors.
@@ -359,7 +310,7 @@ void CleanUpTempDir(const std::string& temp_dir, const TodoList& todo)
 bool BackupFile(const std::string& path)
 {
   std::string backup_path = path + ".bak";
-  fprintf(log_fp, "Backing up unknown pre-existing %s to .bak.\n", path.c_str());
+  fprintf(log_fp, "Backing up existing %s to .bak.\n", path.c_str());
   if (!File::Rename(path, backup_path))
   {
     fprintf(log_fp, "Cound not rename %s to %s for backup.\n", path.c_str(), backup_path.c_str());
@@ -404,6 +355,11 @@ bool DeleteObsoleteFiles(const std::vector<TodoList::DeleteOp>& to_delete,
 bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
                  const std::string& install_base_path, const std::string& temp_path)
 {
+#ifdef _WIN32
+  const auto self_path = std::filesystem::path(GetModuleName(nullptr).value());
+  const auto self_filename = self_path.filename();
+#endif
+
   for (const auto& op : to_update)
   {
     std::string path = install_base_path + DIR_SEP + op.filename;
@@ -435,6 +391,20 @@ bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
 
       permission = file_stats.st_mode;
 #endif
+
+#ifdef _WIN32
+      // If incoming file would overwrite the currently executing file, rename ourself to allow the
+      // overwrite to complete. Renaming ourself while executing is fine, but deleting ourself is
+      // rather tricky. The best way to handle that would be to execute the newly-placed Updater.exe
+      // after entire update has completed, and have it delete our relocated executable. For now we
+      // just let the relocated file hang around.
+      // It is enough to match based on filename, don't need File/VolumeId etc.
+      const bool is_self = op.filename == self_filename;
+#else
+      // On other platforms, the renaming is handled by Dolphin before running the Updater.
+      const bool is_self = false;
+#endif
+
       std::string contents;
       if (!File::ReadFileToString(path, contents))
       {
@@ -447,7 +417,7 @@ bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
         fprintf(log_fp, "File %s was already up to date. Partial update?\n", op.filename.c_str());
         continue;
       }
-      else if (!op.old_hash || contents_hash != *op.old_hash)
+      else if (!op.old_hash || contents_hash != *op.old_hash || is_self)
       {
         if (!BackupFile(path))
           return false;
@@ -458,7 +428,27 @@ bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
     std::string content_filename = HexEncode(op.new_hash.data(), op.new_hash.size());
     fprintf(log_fp, "Updating file %s from content %s...\n", op.filename.c_str(),
             content_filename.c_str());
-    if (!File::Copy(temp_path + DIR_SEP + content_filename, path))
+#ifdef __APPLE__
+    // macOS caches the code signature of Mach-O executables when they're first loaded.
+    // Unfortunately, there is a quirk in the kernel with how it handles the cache: if the file is
+    // simply overwritten, the cache isn't invalidated and the old code signature is used to verify
+    // the new file. This causes macOS to kill the process with a code signing error. To workaround
+    // this, we use File::Rename() instead of File::CopyRegularFile(). However, this also means that
+    // if two files have the same hash, the first file will succeed, but the second file will fail
+    // because the source file no longer exists. To deal with this, we copy the content file to a
+    // temporary file and then rename the temporary file to the destination path.
+    const std::string temporary_file = temp_path + DIR_SEP + "temporary_file";
+    if (!File::CopyRegularFile(temp_path + DIR_SEP + content_filename, temporary_file))
+    {
+      fprintf(log_fp, "Could not copy %s to %s.\n", content_filename.c_str(),
+              temporary_file.c_str());
+      return false;
+    }
+
+    if (!File::Rename(temporary_file, path))
+#else
+    if (!File::CopyRegularFile(temp_path + DIR_SEP + content_filename, path))
+#endif
     {
       fprintf(log_fp, "Could not update file %s.\n", op.filename.c_str());
       return false;
@@ -479,6 +469,11 @@ bool PerformUpdate(const TodoList& todo, const std::string& install_base_path,
   if (!DownloadContent(todo.to_download, content_base_url, temp_path))
     return false;
   fprintf(log_fp, "Download step completed.\n");
+
+  fprintf(log_fp, "Starting platform version check step...\n");
+  if (!PlatformVersionCheck(todo.to_update, install_base_path, temp_path))
+    return false;
+  fprintf(log_fp, "Platform version check step completed.\n");
 
   fprintf(log_fp, "Starting update step...\n");
   if (!UpdateFiles(todo.to_update, install_base_path, temp_path))
@@ -672,7 +667,6 @@ std::optional<Options> ParseCommandLine(std::vector<std::string>& args)
 
   return opts;
 }
-};  // namespace
 
 bool RunUpdater(std::vector<std::string> args)
 {
@@ -747,10 +741,12 @@ bool RunUpdater(std::vector<std::string> args)
   TodoList todo = ComputeActionsToDo(this_manifest, next_manifest);
   todo.Log();
 
-  std::optional<std::string> maybe_temp_dir = FindOrCreateTempDir(opts.install_base_path);
-  if (!maybe_temp_dir)
+  std::string temp_dir = File::CreateTempDir();
+  if (temp_dir.empty())
+  {
+    FatalError("Could not create temporary directory. Aborting.");
     return false;
-  std::string temp_dir = std::move(*maybe_temp_dir);
+  }
 
   UI::SetDescription("Performing Update...");
 

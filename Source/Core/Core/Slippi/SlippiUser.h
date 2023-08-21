@@ -19,6 +19,10 @@ public:
     std::string connect_code = "";
     std::string latest_version = "";
     std::string file_contents = "";
+
+    int port;
+
+    std::vector<std::string> chat_messages;
   };
 
   SlippiUser();
@@ -33,6 +37,8 @@ public:
   UserInfo GetUserInfo();
   bool IsLoggedIn();
   void FileListenThread();
+
+  const static std::vector<std::string> default_chat_messages;
 
 protected:
   std::string getUserFilePath();

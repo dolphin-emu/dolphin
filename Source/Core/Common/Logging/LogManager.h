@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -10,6 +9,7 @@
 #include <string>
 
 #include "Common/BitSet.h"
+#include "Common/EnumMap.h"
 #include "Common/Logging/Log.h"
 
 namespace Common::Log
@@ -19,7 +19,7 @@ class LogListener
 {
 public:
   virtual ~LogListener() = default;
-  virtual void Log(LOG_LEVELS level, const char* msg) = 0;
+  virtual void Log(LogLevel level, const char* msg) = 0;
 
   enum LISTENER
   {
@@ -38,18 +38,21 @@ public:
   static void Init();
   static void Shutdown();
 
-  void Log(LOG_LEVELS level, LOG_TYPE type, const char* file, int line, const char* message);
+  void LogPreformatted(LogLevel level, LogType type, const char* msg);
+  void Log(LogLevel level, LogType type, const char* file, int line, const char* message);
+  void LogWithFullPath(LogLevel level, LogType type, const char* file, int line,
+                       const char* message);
 
-  LOG_LEVELS GetLogLevel() const;
-  void SetLogLevel(LOG_LEVELS level);
+  LogLevel GetLogLevel() const;
+  void SetLogLevel(LogLevel level);
 
-  void SetEnable(LOG_TYPE type, bool enable);
-  bool IsEnabled(LOG_TYPE type, LOG_LEVELS level = LNOTICE) const;
+  void SetEnable(LogType type, bool enable);
+  bool IsEnabled(LogType type, LogLevel level = LogLevel::LNOTICE) const;
 
   std::map<std::string, std::string> GetLogTypes();
 
-  const char* GetShortName(LOG_TYPE type) const;
-  const char* GetFullName(LOG_TYPE type) const;
+  const char* GetShortName(LogType type) const;
+  const char* GetFullName(LogType type) const;
 
   void RegisterListener(LogListener::LISTENER id, LogListener* listener);
   void EnableListener(LogListener::LISTENER id, bool enable);
@@ -63,6 +66,7 @@ private:
     const char* m_short_name;
     const char* m_full_name;
     bool m_enable = false;
+    bool m_is_rust_log = false;
   };
 
   LogManager();
@@ -73,11 +77,10 @@ private:
   LogManager(LogManager&&) = delete;
   LogManager& operator=(LogManager&&) = delete;
 
-  void LogWithFullPath(LOG_LEVELS level, LOG_TYPE type, const char* file, int line,
-                       const char* message);
+  static std::string GetTimestamp();
 
-  LOG_LEVELS m_level;
-  std::array<LogContainer, NUMBER_OF_LOGS> m_log{};
+  LogLevel m_level;
+  EnumMap<LogContainer, LAST_LOG_TYPE> m_log{};
   std::array<LogListener*, LogListener::NUMBER_OF_LISTENERS> m_listeners{};
   BitSet32 m_listener_ids;
   size_t m_path_cutoff_point = 0;

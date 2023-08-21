@@ -9,9 +9,12 @@ class SlippiPad
 {
 public:
   SlippiPad(int32_t frame);
-  SlippiPad(int32_t frame, u8* padBuf);
+  SlippiPad(int32_t frame, u8* pad_buf);
+  SlippiPad(int32_t frame, s32 checksum_frame, u32 checksum, u8* pad_buf);
   ~SlippiPad();
 
-  int32_t frame;
-  u8 padBuf[SLIPPI_PAD_FULL_SIZE];
+  s32 frame;
+  s32 checksum_frame;
+  u32 checksum;
+  u8 pad_buf[SLIPPI_PAD_FULL_SIZE];
 };

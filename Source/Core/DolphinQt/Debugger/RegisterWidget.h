@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -27,6 +26,7 @@ signals:
   void RequestViewInCode(u32 addr);
   void RequestViewInMemory(u32 addr);
   void RequestMemoryBreakpoint(u32 addr);
+  void RequestWatch(QString name, u32 addr);
   void UpdateTable();
   void UpdateValue(QTableWidgetItem* item);
   void UpdateValueType(QTableWidgetItem* item);
@@ -46,6 +46,7 @@ private:
   void AddRegister(int row, int column, RegisterType type, std::string register_name,
                    std::function<u64()> get_reg, std::function<void(u64)> set_reg);
 
+  void AutoStep(const std::string& reg) const;
   void Update();
 
   QTableWidget* m_table;

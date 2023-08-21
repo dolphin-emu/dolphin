@@ -1,15 +1,13 @@
 // Copyright 2020 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <optional>
 #include <string>
 
-#include <mbedtls/sha1.h>
-
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/SHA1.h"
 #include "DiscIO/Volume.h"
 
 namespace DiscIO
@@ -28,7 +26,7 @@ public:
 
 protected:
   Region RegionCodeToRegion(std::optional<u32> region_code) const;
-  void AddGamePartitionToSyncHash(mbedtls_sha1_context* context) const;
+  void AddGamePartitionToSyncHash(Common::SHA1::Context* context) const;
 };
 
 }  // namespace DiscIO

@@ -28,7 +28,7 @@
     **
     *****************************************************************************
 -->
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project>
   <Target Name="QtMocOverrideCpp" DependsOnTargets="QtMocPrepare;QtGetDefaultClCompile"
     Inputs="%(QtMoc.Identity)" Outputs="@(QtMoc->'####### Don't skip this target #######')">
 

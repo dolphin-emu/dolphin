@@ -1,14 +1,14 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoBackends/Software/SWTexture.h"
-#include "VideoBackends/Software/SWRenderer.h"
 
 #include <cstring>
+
 #include "Common/Assert.h"
 
 #include "VideoBackends/Software/CopyRegion.h"
+#include "VideoBackends/Software/SWGfx.h"
 
 namespace SW
 {
@@ -25,17 +25,17 @@ struct Pixel
 #pragma pack(pop)
 
 void CopyTextureData(const TextureConfig& src_config, const u8* src_ptr, u32 src_x, u32 src_y,
-                     u32 width, u32 height, const TextureConfig& dst_config, u8* dst_ptr, u32 dst_x,
-                     u32 dst_y)
+                     u32 width, u32 height, u32 src_level, const TextureConfig& dst_config,
+                     u8* dst_ptr, u32 dst_x, u32 dst_y, u32 dst_level)
 {
-  size_t texel_size = AbstractTexture::GetTexelSizeForFormat(src_config.format);
-  size_t src_stride = src_config.GetStride();
-  size_t src_offset =
+  const size_t texel_size = AbstractTexture::GetTexelSizeForFormat(src_config.format);
+  const size_t src_stride = src_config.GetMipStride(src_level);
+  const size_t src_offset =
       static_cast<size_t>(src_y) * src_stride + static_cast<size_t>(src_x) * texel_size;
-  size_t dst_stride = dst_config.GetStride();
-  size_t dst_offset =
+  const size_t dst_stride = dst_config.GetMipStride(dst_level);
+  const size_t dst_offset =
       static_cast<size_t>(dst_y) * dst_stride + static_cast<size_t>(dst_x) * texel_size;
-  size_t copy_len = static_cast<size_t>(width) * texel_size;
+  const size_t copy_len = static_cast<size_t>(width) * texel_size;
 
   src_ptr += src_offset;
   dst_ptr += dst_offset;
@@ -48,28 +48,32 @@ void CopyTextureData(const TextureConfig& src_config, const u8* src_ptr, u32 src
 }
 }  // namespace
 
-void SWRenderer::ScaleTexture(AbstractFramebuffer* dst_framebuffer,
-                              const MathUtil::Rectangle<int>& dst_rect,
-                              const AbstractTexture* src_texture,
-                              const MathUtil::Rectangle<int>& src_rect)
+void SWGfx::ScaleTexture(AbstractFramebuffer* dst_framebuffer,
+                         const MathUtil::Rectangle<int>& dst_rect,
+                         const AbstractTexture* src_texture,
+                         const MathUtil::Rectangle<int>& src_rect)
 {
   const SWTexture* software_source_texture = static_cast<const SWTexture*>(src_texture);
   SWTexture* software_dest_texture = static_cast<SWTexture*>(dst_framebuffer->GetColorAttachment());
 
-  std::vector<Pixel> source_pixels;
-  source_pixels.resize(src_rect.GetHeight() * src_rect.GetWidth() * 4);
-  memcpy(source_pixels.data(), software_source_texture->GetData(), source_pixels.size());
-
-  std::vector<Pixel> destination_pixels;
-  destination_pixels.resize(dst_rect.GetHeight() * dst_rect.GetWidth() * 4);
-
-  CopyRegion(source_pixels.data(), src_rect, destination_pixels.data(), dst_rect);
-  memcpy(software_dest_texture->GetData(), destination_pixels.data(), destination_pixels.size());
+  CopyRegion(reinterpret_cast<const Pixel*>(software_source_texture->GetData(0, 0)), src_rect,
+             src_texture->GetWidth(), src_texture->GetHeight(),
+             reinterpret_cast<Pixel*>(software_dest_texture->GetData(0, 0)), dst_rect,
+             dst_framebuffer->GetWidth(), dst_framebuffer->GetHeight());
 }
 
 SWTexture::SWTexture(const TextureConfig& tex_config) : AbstractTexture(tex_config)
 {
-  m_data.resize(tex_config.width * tex_config.height * 4);
+  m_data.resize(tex_config.layers);
+  for (u32 layer = 0; layer < tex_config.layers; layer++)
+  {
+    m_data[layer].resize(tex_config.levels);
+    for (u32 level = 0; level < tex_config.levels; level++)
+    {
+      m_data[layer][level].resize(std::max(tex_config.width >> level, 1u) *
+                                  std::max(tex_config.height >> level, 1u) * sizeof(Pixel));
+    }
+  }
 }
 
 void SWTexture::CopyRectangleFromTexture(const AbstractTexture* src,
@@ -77,10 +81,10 @@ void SWTexture::CopyRectangleFromTexture(const AbstractTexture* src,
                                          u32 src_level, const MathUtil::Rectangle<int>& dst_rect,
                                          u32 dst_layer, u32 dst_level)
 {
-  ASSERT(src_level == 0 && src_layer == 0 && dst_layer == 0 && dst_level == 0);
-  CopyTextureData(src->GetConfig(), static_cast<const SWTexture*>(src)->m_data.data(),
-                  src_rect.left, src_rect.top, src_rect.GetWidth(), src_rect.GetHeight(), m_config,
-                  m_data.data(), dst_rect.left, dst_rect.top);
+  CopyTextureData(src->GetConfig(),
+                  static_cast<const SWTexture*>(src)->GetData(src_layer, src_level), src_rect.left,
+                  src_rect.top, src_rect.GetWidth(), src_rect.GetHeight(), src_level, m_config,
+                  GetData(dst_layer, dst_level), dst_rect.left, dst_rect.top, dst_level);
 }
 void SWTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& rect,
                                    u32 layer, u32 level)
@@ -88,19 +92,24 @@ void SWTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::R
 }
 
 void SWTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
-                     size_t buffer_size)
+                     size_t buffer_size, u32 layer)
 {
-  m_data.assign(buffer, buffer + buffer_size);
+  u8* data = GetData(layer, level);
+  for (u32 y = 0; y < height; y++)
+  {
+    memcpy(&data[width * y * sizeof(Pixel)], &buffer[y * row_length * sizeof(Pixel)],
+           width * sizeof(Pixel));
+  }
 }
 
-const u8* SWTexture::GetData() const
+const u8* SWTexture::GetData(u32 layer, u32 level) const
 {
-  return m_data.data();
+  return m_data[layer][level].data();
 }
 
-u8* SWTexture::GetData()
+u8* SWTexture::GetData(u32 layer, u32 level)
 {
-  return m_data.data();
+  return m_data[layer][level].data();
 }
 
 SWStagingTexture::SWStagingTexture(StagingTextureType type, const TextureConfig& config)
@@ -117,10 +126,10 @@ void SWStagingTexture::CopyFromTexture(const AbstractTexture* src,
                                        const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
                                        u32 src_level, const MathUtil::Rectangle<int>& dst_rect)
 {
-  ASSERT(src_level == 0 && src_layer == 0);
-  CopyTextureData(src->GetConfig(), static_cast<const SWTexture*>(src)->GetData(), src_rect.left,
-                  src_rect.top, src_rect.GetWidth(), src_rect.GetHeight(), m_config, m_data.data(),
-                  dst_rect.left, dst_rect.top);
+  CopyTextureData(src->GetConfig(),
+                  static_cast<const SWTexture*>(src)->GetData(src_layer, src_level), src_rect.left,
+                  src_rect.top, src_rect.GetWidth(), src_rect.GetHeight(), src_level, m_config,
+                  m_data.data(), dst_rect.left, dst_rect.top, 0);
   m_needs_flush = true;
 }
 
@@ -128,10 +137,10 @@ void SWStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, A
                                      const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer,
                                      u32 dst_level)
 {
-  ASSERT(dst_level == 0 && dst_layer == 0);
   CopyTextureData(m_config, m_data.data(), src_rect.left, src_rect.top, src_rect.GetWidth(),
-                  src_rect.GetHeight(), dst->GetConfig(), static_cast<SWTexture*>(dst)->GetData(),
-                  dst_rect.left, dst_rect.top);
+                  src_rect.GetHeight(), 0, dst->GetConfig(),
+                  static_cast<SWTexture*>(dst)->GetData(dst_layer, dst_level), dst_rect.left,
+                  dst_rect.top, dst_level);
   m_needs_flush = true;
 }
 

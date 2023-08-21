@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.12)
 
 project(enet)
 
@@ -72,6 +72,7 @@ add_library(enet STATIC
         unix.c
         win32.c
     )
+dolphin_disable_warnings_msvc(enet)
 if(HAIKU)
   target_link_libraries(enet network)
 endif(HAIKU)

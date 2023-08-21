@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -27,14 +26,14 @@ public:
                                 u32 dst_layer, u32 dst_level) override;
   void ResolveFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& rect,
                           u32 layer, u32 level) override;
-  void Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
-            size_t buffer_size) override;
+  void Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer, size_t buffer_size,
+            u32 layer) override;
 
-  const u8* GetData() const;
-  u8* GetData();
+  const u8* GetData(u32 layer, u32 level) const;
+  u8* GetData(u32 layer, u32 level);
 
 private:
-  std::vector<u8> m_data;
+  std::vector<std::vector<std::vector<u8>>> m_data;
 };
 
 class SWStagingTexture final : public AbstractStagingTexture

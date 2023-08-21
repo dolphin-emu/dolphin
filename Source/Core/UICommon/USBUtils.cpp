@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "UICommon/USBUtils.h"
 
@@ -12,6 +11,7 @@
 #endif
 
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 #include "Core/LibusbUtils.h"
 
 // Because opening and getting the device name from devices is slow, especially on Windows
@@ -26,11 +26,12 @@ static const std::map<std::pair<u16, u16>, std::string_view> s_wii_peripherals{{
     {{0x1430, 0x0100}, "Tony Hawk Ride Skateboard"},
     {{0x1430, 0x0150}, "Skylanders Portal"},
     {{0x1bad, 0x0004}, "Harmonix Guitar Controller"},
-    {{0x1bad, 0x3110}, "Rock Band 3 Mustang Guitar Dongle"},
+    {{0x1bad, 0x3110}, "Rock Band Drum Set"},
     {{0x1bad, 0x3138}, "Harmonix Drum Controller for Nintendo Wii"},
+    {{0x1bad, 0x3330}, "Harmonix RB3 Keyboard for Nintendo Wii"},
     {{0x1bad, 0x3338}, "Harmonix RB3 MIDI Keyboard Interface for Nintendo Wii"},
+    {{0x1bad, 0x3430}, "Harmonix RB3 Mustang Guitar for Nintendo Wii"},
     {{0x1bad, 0x3538}, "Harmonix RB3 MIDI Guitar Interface for Nintendo Wii"},
-    {{0x1bad, 0x3430}, "Rock Band Drum Set"},
     {{0x21a4, 0xac40}, "EA Active NFL"},
 }};
 
@@ -45,13 +46,15 @@ std::map<std::pair<u16, u16>, std::string> GetInsertedDevices()
   if (!context.IsValid())
     return devices;
 
-  context.GetDeviceList([&](libusb_device* device) {
+  const int ret = context.GetDeviceList([&](libusb_device* device) {
     libusb_device_descriptor descr;
     libusb_get_device_descriptor(device, &descr);
     const std::pair<u16, u16> vid_pid{descr.idVendor, descr.idProduct};
     devices[vid_pid] = GetDeviceName(vid_pid);
     return true;
   });
+  if (ret != LIBUSB_SUCCESS)
+    WARN_LOG_FMT(COMMON, "GetDeviceList failed: {}", LibusbUtils::ErrorWrap(ret));
 #endif
 
   return devices;

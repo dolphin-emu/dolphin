@@ -22,6 +22,28 @@
 #include <json.hpp>
 using json = nlohmann::json;
 
+const std::vector<std::string> SlippiUser::default_chat_messages = {
+    "ggs",
+    "one more",
+    "brb",
+    "good luck",
+
+    "well played",
+    "that was fun",
+    "thanks",
+    "too good",
+
+    "sorry",
+    "my b",
+    "lol",
+    "wow",
+
+    "gotta go",
+    "one sec",
+    "let's play again later",
+    "bad connection",
+};
+
 #ifdef _WIN32
 #define MAX_SYSTEM_PROGRAM (4096)
 static void system_hidden(const char* cmd)
@@ -58,7 +80,7 @@ static void RunSystemCommand(const std::string& command)
 static size_t receive(char* ptr, size_t size, size_t nmemb, void* rcvBuf)
 {
   size_t len = size * nmemb;
-  INFO_LOG(SLIPPI_ONLINE, "[User] Received data: %d", len);
+  INFO_LOG_FMT(SLIPPI_ONLINE, "[User] Received data: {}", len);
 
   std::string* buf = (std::string*)rcvBuf;
 
@@ -106,27 +128,21 @@ bool SlippiUser::AttemptLogin()
 {
   std::string user_file_path = getUserFilePath();
 
-  INFO_LOG(SLIPPI_ONLINE, "Looking for file at: %s", user_file_path.c_str());
-
+  // TODO: Remove a couple updates after ranked
+#ifndef __APPLE__
   {
-    // Put the filename here in its own scope because we don't really need it elsewhere
-    std::string user_file_path_txt = user_file_path + ".txt";
-    if (File::Exists(user_file_path_txt))
+#ifdef _WIN32
+    std::string old_user_file_path = File::GetExeDirectory() + DIR_SEP + "user.json";
+#else
+    std::string old_user_file_path = File::GetUserPath(D_USER_IDX) + DIR_SEP + "user.json";
+#endif
+    if (File::Exists(old_user_file_path) && !File::Rename(old_user_file_path, user_file_path))
     {
-      // If both files exist we just log they exist and take no further action
-      if (File::Exists(user_file_path))
-      {
-        INFO_LOG(SLIPPI_ONLINE, "Found both .json.txt and .json file for user data. Using .json "
-                                "and ignoring the .json.txt");
-      }
-      // If only the .txt file exists move the contents to a json file and log if it fails
-      else if (!File::Rename(user_file_path_txt, user_file_path))
-      {
-        WARN_LOG(SLIPPI_ONLINE, "Could not move file %s to %s", user_file_path_txt.c_str(),
-                 user_file_path.c_str());
-      }
+      WARN_LOG_FMT(SLIPPI_ONLINE, "Could not move file {} to {}", old_user_file_path,
+                   user_file_path);
     }
   }
+#endif
 
   // Get user file
   std::string user_file_contents;
@@ -138,8 +154,7 @@ bool SlippiUser::AttemptLogin()
   if (m_is_logged_in)
   {
     overwriteFromServer();
-    WARN_LOG(SLIPPI_ONLINE, "Found user %s (%s)", m_user_info.display_name.c_str(),
-             m_user_info.uid.c_str());
+    WARN_LOG_FMT(SLIPPI_ONLINE, "Found user {} ({})", m_user_info.display_name, m_user_info.uid);
   }
 
   return m_is_logged_in;
@@ -158,14 +173,14 @@ void SlippiUser::OpenLogInPage()
 #endif
 
 #ifndef __APPLE__
-  char* escaped_path = curl_easy_escape(nullptr, path.c_str(), (int)path.length());
+  char* escaped_path = curl_easy_escape(nullptr, path.c_str(), static_cast<int>(path.length()));
   path = std::string(escaped_path);
   curl_free(escaped_path);
 #endif
 
   std::string full_url = url + "?path=" + path;
 
-  INFO_LOG(SLIPPI_ONLINE, "[User] Login at path: %s", full_url.c_str());
+  INFO_LOG_FMT(SLIPPI_ONLINE, "[User] Login at path: {}", full_url);
 
 #ifdef _WIN32
   std::string command = "explorer \"" + full_url + "\"";
@@ -180,36 +195,17 @@ void SlippiUser::OpenLogInPage()
 
 void SlippiUser::UpdateApp()
 {
-#ifdef _WIN32
-  auto isoPath = SConfig::GetInstance().m_strIsoPath;
+  std::string url = "https://slippi.gg/downloads?update=true";
 
-  std::string path = File::GetExeDirectory() + "/dolphin-slippi-tools.exe";
-  std::string echo_msg =
-      "echo Starting update process. If nothing happen after a few "
-      "minutes, you may need to update manually from https://slippi.gg/netplay ...";
-  // std::string command =
-  //    "start /b cmd /c " + echo_msg + " && \"" + path + "\" app-update -launch -iso \"" + isoPath +
-  //    "\"";
-  std::string command = "start /b cmd /c " + echo_msg + " && \"" + path +
-                        "\" app-update -launch -iso \"" + isoPath + "\" -version \"" +
-                        Common::scm_slippi_semver_str + "\"";
-  WARN_LOG(SLIPPI, "Executing app update command: %s", command.c_str());
-  RunSystemCommand(command);
+#ifdef _WIN32
+  std::string command = "explorer \"" + url + "\"";
 #elif defined(__APPLE__)
+  std::string command = "open \"" + url + "\"";
 #else
-  const char* appimage_path = getenv("APPIMAGE");
-  const char* appmount_path = getenv("APPDIR");
-  if (!appimage_path)
-  {
-    CriticalAlertT("Automatic updates are not available for non-AppImage Linux builds.");
-    return;
-  }
-  std::string path(appimage_path);
-  std::string mount_path(appmount_path);
-  std::string command = mount_path + "/usr/bin/appimageupdatetool " + path;
-  WARN_LOG(SLIPPI, "Executing app update command: %s", command.c_str());
-  RunSystemCommand(command);
+  std::string command = "xdg-open \"" + url + "\"";       // Linux
 #endif
+
+  RunSystemCommand(command);
 }
 
 void SlippiUser::ListenForLogIn()
@@ -271,10 +267,9 @@ std::string SlippiUser::getUserFilePath()
 #if defined(__APPLE__)
   std::string user_file_path =
       File::GetBundleDirectory() + "/Contents/Resources" + DIR_SEP + "user.json";
-#elif defined(_WIN32)
-  std::string user_file_path = File::GetExeDirectory() + DIR_SEP + "user.json";
 #else
   std::string user_file_path = File::GetUserPath(F_USERJSON_IDX);
+  INFO_LOG_FMT(SLIPPI, "{}", user_file_path);
 #endif
   return user_file_path;
 }
@@ -306,6 +301,15 @@ SlippiUser::UserInfo SlippiUser::parseFile(std::string file_contents)
   info.play_key = readString(res, "playKey");
   info.connect_code = readString(res, "connectCode");
   info.latest_version = readString(res, "latestVersion");
+  info.chat_messages = SlippiUser::default_chat_messages;
+  if (res["chatMessages"].is_array())
+  {
+    info.chat_messages = res.value("chatMessages", SlippiUser::default_chat_messages);
+    if (info.chat_messages.size() != 16)
+    {
+      info.chat_messages = SlippiUser::default_chat_messages;
+    }
+  }
 
   return info;
 }
@@ -323,13 +327,15 @@ void SlippiUser::overwriteFromServer()
 
   // Perform curl request
   std::string resp;
-  curl_easy_setopt(m_curl, CURLOPT_URL, (URL_START + "/" + m_user_info.uid).c_str());
+  curl_easy_setopt(m_curl, CURLOPT_URL,
+                   (URL_START + "/" + m_user_info.uid + "?additionalFields=chatMessages").c_str());
   curl_easy_setopt(m_curl, CURLOPT_WRITEDATA, &resp);
   CURLcode res = curl_easy_perform(m_curl);
 
   if (res != 0)
   {
-    ERROR_LOG(SLIPPI, "[User] Error fetching user info from server, code: %d", res);
+    ERROR_LOG_FMT(SLIPPI, "[User] Error fetching user info from server, code: {}",
+                  static_cast<u8>(res));
     return;
   }
 
@@ -337,15 +343,21 @@ void SlippiUser::overwriteFromServer()
   curl_easy_getinfo(m_curl, CURLINFO_RESPONSE_CODE, &response_code);
   if (response_code != 200)
   {
-    ERROR_LOG(SLIPPI, "[User] Server responded with non-success status: %d", response_code);
+    ERROR_LOG_FMT(SLIPPI, "[User] Server responded with non-success status: {}", response_code);
     return;
   }
 
   // Overwrite user info with data from server
-  auto r = json::parse(resp);
+  auto r = json::parse(resp, nullptr, false);
   m_user_info.connect_code = r.value("connectCode", m_user_info.connect_code);
   m_user_info.latest_version = r.value("latestVersion", m_user_info.latest_version);
-
-  // TODO: Once it's possible to change Display name from website, uncomment below
-  // m_user_info.display_name = r.value("displayName", m_user_info.display_name);
+  m_user_info.display_name = r.value("displayName", m_user_info.display_name);
+  if (r["chatMessages"].is_array())
+  {
+    m_user_info.chat_messages = r.value("chatMessages", SlippiUser::default_chat_messages);
+    if (m_user_info.chat_messages.size() != 16)
+    {
+      m_user_info.chat_messages = SlippiUser::default_chat_messages;
+    }
+  }
 }

@@ -1,0 +1,202 @@
+; This test covers the behavior of 40-bit mode with various instructions.
+incdir  "tests"
+include "dsp_base.inc"
+
+positive_value: EQU #0x1234
+negative_value: EQU #0x9876
+
+negative_imem_value_addr:
+CW negative_value
+
+; DSPSpy doesn't pre-populating DMEM currently, so instead use these addresses to store values.
+positive_dmem_value_addr: EQU #0x100
+negative_dmem_value_addr: EQU #0x101
+readback_dmem_addr: EQU #0x102
+
+test_main:
+	LRI $ar0, #positive_dmem_value_addr
+	LRI $ar1, #negative_dmem_value_addr
+	LRI $ar2, #negative_imem_value_addr
+	LRI $ar3, #readback_dmem_addr
+	LRI $ix0, #0
+	LRI $ix1, #0
+	LRI $ix2, #0
+	LRI $ix3, #0
+
+	LRI $ax0.h, #positive_value
+	LRI $ax1.h, #negative_value
+
+	SR @positive_dmem_value_addr, $ax0.h
+	SR @negative_dmem_value_addr, $ax1.h
+
+	LRI $cr, #(positive_dmem_value_addr / 256)
+
+	SET40
+	; Instructions that perform sign-extension
+	; $acc0 should alternate between being positive and negative here
+	; (though none of these instructions update $sr)
+
+	; [1] ILRR (also ILRRD/ILRRI/ILRRN, not covered)
+	ILRR $ac0.m, @$ar2 ; -
+	CALL send_back
+	; [2] LR
+	LR $ac0.m, @positive_dmem_value_addr ; +
+	CALL send_back
+	; [3] LRI
+	LRI $ac0.m, #negative_value ; -
+	CALL send_back
+	; [4] LRIS
+	LRIS $ac0.m, #42 ; +
+	CALL send_back
+	; [5] LRR (also LRRD/LRRI/LRRN)
+	LRR $ac0.m, @$ar1 ; -
+	CALL send_back
+	; [6] LRS
+	LRS $ac0.m, @(positive_dmem_value_addr & 0xff) ; +
+	CALL send_back
+	; [7] MRR
+	MRR $ac0.m, $ax1.h ; -
+	CALL send_back
+	; [8] 'LN (and 'L, but 'LN lets us set $ix0 to not increment $ar0)
+	NX'LN : $ac0.m, @$ar0 ; +
+	CALL send_back
+
+	; Instructions that experience saturation
+	; $ax1.l should alternate between 0x8000 and 0x7fff.
+	LRI $ac0.m, #0x4231
+	LRI $ac0.h, #0x12 ; positive
+	LRI $ac1.m, #0x2816
+	LRI $ac1.h, #0x99 ; negative
+	; [9] MRR (again)
+	MRR $ax1.l, $ac1.m ; -
+	CALL send_back
+	; [10] SR
+	SR @readback_dmem_addr, $ac0.m
+	LR $ax1.l, @readback_dmem_addr ; +
+	CALL send_back
+	; [11] SRRN (also SRR/SRRD/SRRI)
+	SRRN @$ar3, $ac1.m
+	LR $ax1.l, @readback_dmem_addr ; -
+	CALL send_back
+	; [12] SRS
+	SRS @(readback_dmem_addr & 0xff), $ac0.m
+	LR $ax1.l, @readback_dmem_addr ; +
+	CALL send_back
+	; [13] 'LSNM (also 'LS/'LSM/'LSN) - the $ax0.l read is not relevant
+	NX'LSNM : $ax0.l, $ac1.m
+	LR $ax1.l, @readback_dmem_addr ; -
+	CALL send_back
+	; [14] 'MV
+	NX'MV : $ax1.l, $ac0.m ; +
+	CALL send_back
+	; [15] 'SLNM (also 'SL/'SLM/'SLN) - the $ax0.l read is not relevant
+	; Note that 'SL stores to @$ar0, while 'LS stores to @$ar3
+	LRI $ar0, #readback_dmem_addr
+	NX'SLNM : $ac1.m, $ax0.l
+	LR $ax1.l, @readback_dmem_addr ; -
+	CALL send_back
+	LRI $ar0, #positive_dmem_value_addr
+	; [16] 'SN (also 'S)
+	NX'SN : @$ar3, $ac0.m
+	LR $ax1.l, @readback_dmem_addr ; +
+	CALL send_back
+
+	; Instructions that are not affected
+	; [17] ADDI
+	ADDI $ac0.m, #8
+	CALL send_back
+	; [18] ADDIS
+	ADDIS $ac0.m, #-8
+	CALL send_back
+	; [19] ANDC
+	ANDC $ac1.m, $ac0.m
+	CALL send_back
+	; [20] ANDI
+	ANDI $ac0.m, #0x6666
+	CALL send_back
+	; [21] ANDR
+	ANDR $ac0.m, $ax0.h
+	CALL send_back
+	; [22] ORC
+	ORC $ac0.m, $ac1.m
+	CALL send_back
+	; [23] ORI
+	ORI $ac0.m, #0xfeed
+	CALL send_back
+	; [24] ORR
+	ORR $ac1.m, $ax0.h
+	CALL send_back
+	; [25] NOT
+	NOT $ac1.m
+	CALL send_back
+	; [26] XORC
+	XORC $ac0.m, $ac1.m
+	CALL send_back
+	; [27] XORI
+	XORI $ac0.m, #0x5555
+	CALL send_back
+	; [28] XORR
+	XORR $ac1.m, $ax1.h
+	CALL send_back
+
+	; [29] MOVR always sign extends...
+	MOVR $acc1, $ax0.h
+	CALL send_back
+	; [30] ... even in SET16 mode
+	SET16
+	MOVR $acc1, $ax1.h
+	CALL send_back
+	SET40
+
+	; Shift instructions - do these see saturated $ac1.m?
+	LRI $ac0.m, #positive_value
+	LRI $ac1.m, #2
+	LRI $ac1.h, #1
+	; [31] - for diffs only
+	CALL send_back
+	; [32]
+	LSRNR $acc0, $ac1.m
+	CALL send_back
+	; [33] Shifts $acc0 by $ac1.m (in the other direction)
+	LSRN
+	CALL send_back
+
+	; Does LOOP experience saturation?
+	CLR $acc0
+	LRI $ac1.m, #0x1234
+	LRI $ac1.h, #1
+	; [34] - for diffs only
+	CALL send_back
+	; [35] LOOP
+	LOOP $ac1.m
+	INC $acc0
+	CALL send_back
+	LRI $ac1.h, #0x99
+	; [36] BLOOP
+	BLOOP $ac1.m, bloop_last_ins
+	INCM $ac0.m
+bloop_last_ins:
+	NOP
+	CALL send_back
+
+	; For the sake of clarity, the same LOOP/BLOOP calls in SET16 mode don't have saturation:
+	SET16
+	CLR $acc0
+	LRI $ac1.m, #0x1234
+	LRI $ac1.h, #1
+	; [37] - for diffs only
+	CALL send_back
+	; [38] LOOP
+	LOOP $ac1.m
+	INC $acc0
+	CALL send_back
+	LRI $ac1.h, #0x99
+	; [39] BLOOP
+	BLOOP $ac1.m, bloop2_last_ins
+	INCM $ac0.m
+bloop2_last_ins:
+	NOP
+	CALL send_back
+
+	; We're done, DO NOT DELETE THIS LINE
+	JMP end_of_test

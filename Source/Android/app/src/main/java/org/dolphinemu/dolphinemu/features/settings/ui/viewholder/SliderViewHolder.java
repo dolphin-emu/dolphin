@@ -1,37 +1,34 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.ui.viewholder;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.view.View;
-import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.databinding.ListItemSettingBinding;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SliderSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
 
 public final class SliderViewHolder extends SettingViewHolder
 {
-  private Context mContext;
+  private final Context mContext;
 
   private SliderSetting mItem;
 
-  private TextView mTextSettingName;
-  private TextView mTextSettingDescription;
+  private final ListItemSettingBinding mBinding;
 
-  public SliderViewHolder(View itemView, SettingsAdapter adapter, Context context)
+  public SliderViewHolder(@NonNull ListItemSettingBinding binding, SettingsAdapter adapter,
+          Context context)
   {
-    super(itemView, adapter);
-
+    super(binding.getRoot(), adapter);
+    mBinding = binding;
     mContext = context;
-  }
-
-  @Override
-  protected void findViews(View root)
-  {
-    mTextSettingName = root.findViewById(R.id.text_setting_name);
-    mTextSettingDescription = root.findViewById(R.id.text_setting_description);
   }
 
   @Override
@@ -39,20 +36,20 @@ public final class SliderViewHolder extends SettingViewHolder
   {
     mItem = (SliderSetting) item;
 
-    mTextSettingName.setText(item.getNameId());
+    mBinding.textSettingName.setText(item.getName());
 
-    if (item.getDescriptionId() > 0)
+    if (!TextUtils.isEmpty(item.getDescription()))
     {
-      mTextSettingDescription.setText(item.getDescriptionId());
+      mBinding.textSettingDescription.setText(item.getDescription());
     }
     else
     {
-      mTextSettingDescription.setText(mContext
+      mBinding.textSettingDescription.setText(mContext
               .getString(R.string.slider_setting_value,
                       mItem.getSelectedValue(getAdapter().getSettings()), mItem.getUnits()));
     }
 
-    setStyle(mTextSettingName, mItem);
+    setStyle(mBinding.textSettingName, mItem);
   }
 
   @Override
@@ -64,9 +61,9 @@ public final class SliderViewHolder extends SettingViewHolder
       return;
     }
 
-    getAdapter().onSliderClick(mItem, getAdapterPosition());
+    getAdapter().onSliderClick(mItem, getBindingAdapterPosition());
 
-    setStyle(mTextSettingName, mItem);
+    setStyle(mBinding.textSettingName, mItem);
   }
 
   @Nullable @Override

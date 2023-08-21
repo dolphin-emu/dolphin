@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/IOS/USB/Common.h"
 
@@ -12,6 +11,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
 #include "Core/HW/Memmap.h"
+#include "Core/System.h"
 
 namespace IOS::HLE::USB
 {
@@ -19,14 +19,18 @@ std::unique_ptr<u8[]> TransferCommand::MakeBuffer(const size_t size) const
 {
   ASSERT_MSG(IOS_USB, data_address != 0, "Invalid data_address");
   auto buffer = std::make_unique<u8[]>(size);
-  Memory::CopyFromEmu(buffer.get(), data_address, size);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  memory.CopyFromEmu(buffer.get(), data_address, size);
   return buffer;
 }
 
 void TransferCommand::FillBuffer(const u8* src, const size_t size) const
 {
   ASSERT_MSG(IOS_USB, size == 0 || data_address != 0, "Invalid data_address");
-  Memory::CopyToEmu(data_address, src, size);
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  memory.CopyToEmu(data_address, src, size);
 }
 
 void TransferCommand::OnTransferComplete(s32 return_value) const
@@ -34,9 +38,18 @@ void TransferCommand::OnTransferComplete(s32 return_value) const
   m_ios.EnqueueIPCReply(ios_request, return_value, 0, CoreTiming::FromThread::NON_CPU);
 }
 
+void TransferCommand::ScheduleTransferCompletion(s32 return_value, u32 expected_time_us) const
+{
+  auto ticks = SystemTimers::GetTicksPerSecond();
+  s64 cycles_in_future = static_cast<s64>((static_cast<u64>(ticks) * expected_time_us) / 1'000'000);
+  m_ios.EnqueueIPCReply(ios_request, return_value, cycles_in_future, CoreTiming::FromThread::ANY);
+}
+
 void IsoMessage::SetPacketReturnValue(const size_t packet_num, const u16 return_value) const
 {
-  Memory::Write_U16(return_value, static_cast<u32>(packet_sizes_addr + packet_num * sizeof(u16)));
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+  memory.Write_U16(return_value, static_cast<u32>(packet_sizes_addr + packet_num * sizeof(u16)));
 }
 
 Device::~Device() = default;

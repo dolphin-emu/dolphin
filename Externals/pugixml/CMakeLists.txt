@@ -1,6 +1,6 @@
 project(pugixml)
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.12)
 
 option(BUILD_SHARED_LIBS "Build shared instead of static library" OFF)
 
@@ -35,6 +35,7 @@ if(BUILD_SHARED_LIBS)
 else()
 	add_library(pugixml STATIC ${SOURCES})
 endif()
+dolphin_disable_warnings_msvc(pugixml)
 
 set_target_properties(pugixml PROPERTIES VERSION 1.8 SOVERSION 1)
 get_target_property(PUGIXML_VERSION_STRING pugixml VERSION)

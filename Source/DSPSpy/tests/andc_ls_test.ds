@@ -5,7 +5,7 @@ include "dsp_base.inc"
 ;    
 ;    3d80      andc'ls     $AC1.M : $AX0.L, $AC0.M
 
-
+test_main:
 	clr $ACC0
 	clr $ACC1
 	lri $AX0.L, #0x0000
@@ -14,7 +14,7 @@ include "dsp_base.inc"
 
 	lri $AC0.M, #0x0004
 	lri $AC1.M, #0x1234
-	andc'ls $AC1.M : $AX0.L, $AC0.M
+	cw 0x3d80 ; andc'ls $AC1.M : $AX0.L, $AC0.M
 
 	call send_back
 

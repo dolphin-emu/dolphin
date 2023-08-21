@@ -1,6 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <gtest/gtest.h>
 #include <string>
@@ -9,6 +8,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
+#include "Core/HW/GPFifo.h"
 #include "Core/HW/MMIO.h"
 #include "UICommon/UICommon.h"
 
@@ -34,13 +34,14 @@ TEST(UniqueID, UniqueEnough)
 TEST(IsMMIOAddress, SpecialAddresses)
 {
   const std::string profile_path = File::CreateTempDir();
+  ASSERT_FALSE(profile_path.empty());
   UICommon::SetUserDirectory(profile_path);
   Config::Init();
   SConfig::Init();
   SConfig::GetInstance().bWii = true;
 
   // WG Pipe address, should not be handled by MMIO.
-  EXPECT_FALSE(MMIO::IsMMIOAddress(0x0C008000));
+  EXPECT_FALSE(MMIO::IsMMIOAddress(GPFifo::GATHER_PIPE_PHYSICAL_ADDRESS));
 
   // Locked L1 cache allocation.
   EXPECT_FALSE(MMIO::IsMMIOAddress(0xE0000000));
@@ -52,8 +53,8 @@ TEST(IsMMIOAddress, SpecialAddresses)
   // addresses.
   EXPECT_FALSE(MMIO::IsMMIOAddress(0xCC0000E0));
 
-  // And lets check some valid addresses too
-  EXPECT_TRUE(MMIO::IsMMIOAddress(0x0C0000E0));  // Gamecube MMIOs
+  // And let's check some valid addresses too
+  EXPECT_TRUE(MMIO::IsMMIOAddress(0x0C0000E0));  // GameCube MMIOs
   EXPECT_TRUE(MMIO::IsMMIOAddress(0x0D00008C));  // Wii MMIOs
   EXPECT_TRUE(MMIO::IsMMIOAddress(0x0D800F10));  // Mirror of Wii MMIOs
 
@@ -67,7 +68,7 @@ class MappingTest : public testing::Test
 protected:
   virtual void SetUp() override { m_mapping = new MMIO::Mapping(); }
   virtual void TearDown() override { delete m_mapping; }
-  MMIO::Mapping* m_mapping;
+  MMIO::Mapping* m_mapping = nullptr;
 };
 
 TEST_F(MappingTest, ReadConstant)
@@ -120,12 +121,12 @@ TEST_F(MappingTest, ReadWriteComplex)
 {
   bool read_called = false, write_called = false;
 
-  m_mapping->Register(0x0C001234, MMIO::ComplexRead<u8>([&read_called](u32 addr) {
+  m_mapping->Register(0x0C001234, MMIO::ComplexRead<u8>([&read_called](Core::System&, u32 addr) {
                         EXPECT_EQ(0x0C001234u, addr);
                         read_called = true;
                         return 0x12;
                       }),
-                      MMIO::ComplexWrite<u8>([&write_called](u32 addr, u8 val) {
+                      MMIO::ComplexWrite<u8>([&write_called](Core::System&, u32 addr, u8 val) {
                         EXPECT_EQ(0x0C001234u, addr);
                         EXPECT_EQ(0x34, val);
                         write_called = true;

@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/IOS/ES/Formats.h"
 
@@ -15,11 +14,11 @@
 #include <vector>
 
 #include <fmt/format.h>
-#include <mbedtls/sha1.h>
 
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/SHA1.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
@@ -27,6 +26,7 @@
 #include "Core/CommonTitles.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/FS/FileSystem.h"
+#include "Core/IOS/FS/FileSystemProxy.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/IOSC.h"
 #include "Core/IOS/Uids.h"
@@ -109,10 +109,8 @@ static size_t GetIssuerOffset(SignatureType signature_type)
 
 std::array<u8, 20> SignedBlobReader::GetSha1() const
 {
-  std::array<u8, 20> sha1;
   const size_t skip = GetIssuerOffset(GetSignatureType());
-  mbedtls_sha1_ret(m_bytes.data() + skip, m_bytes.size() - skip, sha1.data());
-  return sha1;
+  return Common::SHA1::CalculateDigest(m_bytes.data() + skip, m_bytes.size() - skip);
 }
 
 bool SignedBlobReader::IsSignatureValid() const
@@ -293,13 +291,18 @@ DiscIO::Region TMDReader::GetRegion() const
   return region <= DiscIO::Region::NTSC_K ? region : DiscIO::Region::Unknown;
 }
 
+bool TMDReader::IsvWii() const
+{
+  return *(m_bytes.data() + offsetof(TMDHeader, is_vwii));
+}
+
 std::string TMDReader::GetGameID() const
 {
   char game_id[6];
   std::memcpy(game_id, m_bytes.data() + offsetof(TMDHeader, title_id) + 4, 4);
   std::memcpy(game_id + 4, m_bytes.data() + offsetof(TMDHeader, group_id), 2);
 
-  if (std::all_of(std::begin(game_id), std::end(game_id), IsPrintableCharacter))
+  if (std::all_of(std::begin(game_id), std::end(game_id), Common::IsPrintableCharacter))
     return std::string(game_id, sizeof(game_id));
 
   return fmt::format("{:016x}", GetTitleId());
@@ -310,7 +313,7 @@ std::string TMDReader::GetGameTDBID() const
   const u8* begin = m_bytes.data() + offsetof(TMDHeader, title_id) + 4;
   const u8* end = begin + 4;
 
-  if (std::all_of(begin, end, IsPrintableCharacter))
+  if (std::all_of(begin, end, Common::IsPrintableCharacter))
     return std::string(begin, end);
 
   return fmt::format("{:016x}", GetTitleId());
@@ -368,22 +371,49 @@ TicketReader::TicketReader(std::vector<u8> bytes) : SignedBlobReader(std::move(b
 
 bool TicketReader::IsValid() const
 {
-  return IsSignatureValid() && !m_bytes.empty() && m_bytes.size() % sizeof(Ticket) == 0;
+  if (!IsSignatureValid() || m_bytes.empty())
+    return false;
+
+  if (IsV1Ticket())
+    return m_bytes.size() == GetTicketSize();
+
+  return m_bytes.size() % sizeof(Ticket) == 0;
+}
+
+bool TicketReader::IsV1Ticket() const
+{
+  // Version can only be 0 or 1.
+  return GetVersion() == 1;
 }
 
 size_t TicketReader::GetNumberOfTickets() const
 {
+  if (IsV1Ticket())
+    return 1;
+
   return m_bytes.size() / sizeof(Ticket);
+}
+
+u32 TicketReader::GetTicketSize() const
+{
+  if (IsV1Ticket())
+  {
+    return Common::swap32(m_bytes.data() + sizeof(Ticket) +
+                          offsetof(V1TicketHeader, v1_ticket_size)) +
+           sizeof(Ticket);
+  }
+
+  return sizeof(Ticket);
 }
 
 std::vector<u8> TicketReader::GetRawTicket(u64 ticket_id_to_find) const
 {
   for (size_t i = 0; i < GetNumberOfTickets(); ++i)
   {
-    const auto ticket_begin = m_bytes.begin() + sizeof(IOS::ES::Ticket) * i;
-    const u64 ticket_id = Common::swap64(&*ticket_begin + offsetof(IOS::ES::Ticket, ticket_id));
+    const auto ticket_begin = m_bytes.begin() + GetTicketSize() * i;
+    const u64 ticket_id = Common::swap64(&*ticket_begin + offsetof(ES::Ticket, ticket_id));
     if (ticket_id == ticket_id_to_find)
-      return std::vector<u8>(ticket_begin, ticket_begin + sizeof(IOS::ES::Ticket));
+      return {ticket_begin, ticket_begin + GetTicketSize()};
   }
   return {};
 }
@@ -394,16 +424,19 @@ std::vector<u8> TicketReader::GetRawTicketView(u32 ticket_num) const
   const auto ticket_start = m_bytes.cbegin() + sizeof(Ticket) * ticket_num;
   const auto view_start = ticket_start + offsetof(Ticket, ticket_id);
 
-  // Copy the ticket version to the buffer (a single byte extended to 4).
-  std::vector<u8> view(sizeof(TicketView::version));
-  const u32 version = Common::swap32(m_bytes.at(offsetof(Ticket, version)));
-  std::memcpy(view.data(), &version, sizeof(version));
+  std::vector<u8> view(sizeof(u32));
+  view[0] = GetVersion();
 
   // Copy the rest of the ticket view structure from the ticket.
-  view.insert(view.end(), view_start, view_start + (sizeof(TicketView) - sizeof(version)));
+  view.insert(view.end(), view_start, view_start + (sizeof(TicketView) - sizeof(u32)));
   ASSERT(view.size() == sizeof(TicketView));
 
   return view;
+}
+
+u8 TicketReader::GetVersion() const
+{
+  return m_bytes[offsetof(Ticket, version)];
 }
 
 u32 TicketReader::GetDeviceId() const
@@ -458,10 +491,10 @@ void TicketReader::DeleteTicket(u64 ticket_id_to_delete)
   const size_t num_tickets = GetNumberOfTickets();
   for (size_t i = 0; i < num_tickets; ++i)
   {
-    const auto ticket_start = m_bytes.cbegin() + sizeof(Ticket) * i;
+    const auto ticket_start = m_bytes.cbegin() + GetTicketSize() * i;
     const u64 ticket_id = Common::swap64(&*ticket_start + offsetof(Ticket, ticket_id));
     if (ticket_id != ticket_id_to_delete)
-      new_ticket.insert(new_ticket.end(), ticket_start, ticket_start + sizeof(Ticket));
+      new_ticket.insert(new_ticket.end(), ticket_start, ticket_start + GetTicketSize());
   }
 
   m_bytes = std::move(new_ticket);
@@ -521,13 +554,17 @@ struct SharedContentMap::Entry
 };
 
 constexpr char CONTENT_MAP_PATH[] = "/shared1/content.map";
-SharedContentMap::SharedContentMap(std::shared_ptr<HLE::FS::FileSystem> fs) : m_fs{fs}
+SharedContentMap::SharedContentMap(std::shared_ptr<HLE::FSDevice> fs)
+    : m_fs_device{fs}, m_fs{fs->GetFS()}
 {
   static_assert(sizeof(Entry) == 28, "SharedContentMap::Entry has the wrong size");
 
   Entry entry;
-  const auto file = fs->OpenFile(PID_KERNEL, PID_KERNEL, CONTENT_MAP_PATH, HLE::FS::Mode::Read);
-  while (file && file->Read(&entry, 1))
+  const auto fd =
+      fs->Open(PID_KERNEL, PID_KERNEL, CONTENT_MAP_PATH, HLE::FS::Mode::Read, {}, &m_ticks);
+  if (fd.Get() < 0)
+    return;
+  while (fs->Read(fd.Get(), &entry, 1, &m_ticks) == sizeof(entry))
   {
     m_entries.push_back(entry);
     m_last_id++;
@@ -600,27 +637,29 @@ bool SharedContentMap::WriteEntries() const
          HLE::FS::ResultCode::Success;
 }
 
-static std::pair<u32, u64> ReadUidSysEntry(const HLE::FS::FileHandle& file)
+static std::pair<u32, u64> ReadUidSysEntry(HLE::FSDevice& fs, u64 fd, u64* ticks)
 {
   u64 title_id = 0;
-  if (!file.Read(&title_id, 1))
+  if (fs.Read(fd, &title_id, 1, ticks) != sizeof(title_id))
     return {};
 
   u32 uid = 0;
-  if (!file.Read(&uid, 1))
+  if (fs.Read(fd, &uid, 1, ticks) != sizeof(uid))
     return {};
 
   return {Common::swap32(uid), Common::swap64(title_id)};
 }
 
 constexpr char UID_MAP_PATH[] = "/sys/uid.sys";
-UIDSys::UIDSys(std::shared_ptr<HLE::FS::FileSystem> fs) : m_fs{fs}
+UIDSys::UIDSys(std::shared_ptr<HLE::FSDevice> fs) : m_fs_device{fs}, m_fs{fs->GetFS()}
 {
-  if (const auto file = fs->OpenFile(PID_KERNEL, PID_KERNEL, UID_MAP_PATH, HLE::FS::Mode::Read))
+  if (const auto fd =
+          fs->Open(PID_KERNEL, PID_KERNEL, UID_MAP_PATH, HLE::FS::Mode::Read, {}, &m_ticks);
+      fd.Get() >= 0)
   {
     while (true)
     {
-      std::pair<u32, u64> entry = ReadUidSysEntry(*file);
+      std::pair<u32, u64> entry = ReadUidSysEntry(*fs, fd.Get(), &m_ticks);
       if (!entry.first && !entry.second)
         break;
 

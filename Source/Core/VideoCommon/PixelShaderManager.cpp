@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/PixelShaderManager.h"
 
@@ -8,26 +7,18 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
-
-bool PixelShaderManager::s_bFogRangeAdjustChanged;
-bool PixelShaderManager::s_bViewPortChanged;
-bool PixelShaderManager::s_bIndirectDirty;
-bool PixelShaderManager::s_bDestAlphaDirty;
-
-PixelShaderConstants PixelShaderManager::constants;
-bool PixelShaderManager::dirty;
 
 void PixelShaderManager::Init()
 {
   constants = {};
 
   // Init any intial constants which aren't zero when bpmem is zero.
-  s_bFogRangeAdjustChanged = true;
-  s_bViewPortChanged = false;
+  m_fog_range_adjusted_changed = true;
+  m_viewport_changed = false;
 
   SetIndMatrixChanged(0);
   SetIndMatrixChanged(1);
@@ -74,16 +65,17 @@ void PixelShaderManager::Init()
     }
   }
 
-  dirty = true;
+  Dirty();
 }
 
 void PixelShaderManager::Dirty()
 {
   // This function is called after a savestate is loaded.
   // Any constants that can changed based on settings should be re-calculated
-  s_bFogRangeAdjustChanged = true;
+  m_fog_range_adjusted_changed = true;
 
-  SetEfbScaleChanged(g_renderer->EFBToScaledXf(1), g_renderer->EFBToScaledYf(1));
+  SetEfbScaleChanged(g_framebuffer_manager->EFBToScaledXf(1),
+                     g_framebuffer_manager->EFBToScaledYf(1));
   SetFogParamChanged();
 
   dirty = true;
@@ -91,7 +83,7 @@ void PixelShaderManager::Dirty()
 
 void PixelShaderManager::SetConstants()
 {
-  if (s_bFogRangeAdjustChanged)
+  if (m_fog_range_adjusted_changed)
   {
     // set by two components, so keep changed flag here
     // TODO: try to split both registers and move this logic to the shader
@@ -111,8 +103,8 @@ void PixelShaderManager::SetConstants()
       // so to simplify I use the hi coefficient as K in the shader taking 256 as the scale
       // TODO: Shouldn't this be EFBToScaledXf?
       constants.fogf[2] = ScreenSpaceCenter;
-      constants.fogf[3] =
-          static_cast<float>(g_renderer->EFBToScaledX(static_cast<int>(2.0f * xfmem.viewport.wd)));
+      constants.fogf[3] = static_cast<float>(
+          g_framebuffer_manager->EFBToScaledX(static_cast<int>(2.0f * xfmem.viewport.wd)));
 
       for (size_t i = 0, vec_index = 0; i < std::size(bpmem.fogRange.K); i++)
       {
@@ -130,59 +122,48 @@ void PixelShaderManager::SetConstants()
     }
     dirty = true;
 
-    s_bFogRangeAdjustChanged = false;
+    m_fog_range_adjusted_changed = false;
   }
 
-  if (s_bViewPortChanged)
+  if (m_viewport_changed)
   {
     constants.zbias[1][0] = (s32)xfmem.viewport.farZ;
     constants.zbias[1][1] = (s32)xfmem.viewport.zRange;
     dirty = true;
-    s_bViewPortChanged = false;
+    m_viewport_changed = false;
   }
 
-  if (s_bIndirectDirty)
+  if (m_indirect_dirty)
   {
     for (int i = 0; i < 4; i++)
       constants.pack1[i][3] = 0;
 
     for (u32 i = 0; i < (bpmem.genMode.numtevstages + 1); ++i)
     {
-      u32 stage = bpmem.tevind[i].bt;
-      if (stage < bpmem.genMode.numindstages)
-      {
-        // We set some extra bits so the ubershader can quickly check if these
-        // features are in use.
-        if (bpmem.tevind[i].IsActive())
-          constants.pack1[stage][3] =
-              bpmem.tevindref.getTexCoord(stage) | bpmem.tevindref.getTexMap(stage) << 8 | 1 << 16;
-        // Note: a tevind of zero just happens to be a passthrough, so no need
-        // to set an extra bit.
-        constants.pack1[i][2] = bpmem.tevind[i].hex;  // TODO: This match shadergen, but videosw
-                                                      // will always wrap.
+      // Note: a tevind of zero just happens to be a passthrough, so no need
+      // to set an extra bit.  Furthermore, wrap and add to previous apply even if there is no
+      // indirect stage.
+      constants.pack1[i][2] = bpmem.tevind[i].hex;
 
-        // The ubershader uses tevind != 0 as a condition whether to calculate texcoords,
-        // even when texture is disabled, instead of the stage < bpmem.genMode.numindstages.
-        // We set an unused bit here to indicate that the stage is active, even if it
-        // is just a pass-through.
-        constants.pack1[i][2] |= 0x80000000;
-      }
-      else
-      {
-        constants.pack1[i][2] = 0;
-      }
+      u32 stage = bpmem.tevind[i].bt;
+
+      // We use an extra bit (1 << 16) to provide a fast way of testing if this feature is in use.
+      // Note also that this is indexed by indirect stage, not by TEV stage.
+      if (bpmem.tevind[i].IsActive() && stage < bpmem.genMode.numindstages)
+        constants.pack1[stage][3] =
+            bpmem.tevindref.getTexCoord(stage) | bpmem.tevindref.getTexMap(stage) << 8 | 1 << 16;
     }
 
     dirty = true;
-    s_bIndirectDirty = false;
+    m_indirect_dirty = false;
   }
 
-  if (s_bDestAlphaDirty)
+  if (m_dest_alpha_dirty)
   {
     // Destination alpha is only enabled if alpha writes are enabled. Force entire uniform to zero
     // when disabled.
     u32 dstalpha = bpmem.blendmode.alphaupdate && bpmem.dstalpha.enable &&
-                           bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24 ?
+                           bpmem.zcontrol.pixel_format == PixelFormat::RGBA6_Z24 ?
                        bpmem.dstalpha.hex :
                        0;
 
@@ -252,7 +233,7 @@ void PixelShaderManager::SetTevCombiner(int index, int alpha, u32 combiner)
 
 void PixelShaderManager::SetTevIndirectChanged()
 {
-  s_bIndirectDirty = true;
+  m_indirect_dirty = true;
 }
 
 void PixelShaderManager::SetAlpha()
@@ -270,7 +251,7 @@ void PixelShaderManager::SetAlphaTestChanged()
   // TODO: we could optimize this further and check the actual constants,
   // i.e. "a <= 0" and "a >= 255" will always pass.
   u32 alpha_test =
-      bpmem.alpha_test.TestResult() != AlphaTest::PASS ? bpmem.alpha_test.hex | 1 << 31 : 0;
+      bpmem.alpha_test.TestResult() != AlphaTestResult::Pass ? bpmem.alpha_test.hex | 1 << 31 : 0;
   if (constants.alphaTest != alpha_test)
   {
     constants.alphaTest = alpha_test;
@@ -280,21 +261,27 @@ void PixelShaderManager::SetAlphaTestChanged()
 
 void PixelShaderManager::SetDestAlphaChanged()
 {
-  s_bDestAlphaDirty = true;
+  m_dest_alpha_dirty = true;
 }
 
 void PixelShaderManager::SetTexDims(int texmapid, u32 width, u32 height)
 {
-  float rwidth = 1.0f / (width * 128.0f);
-  float rheight = 1.0f / (height * 128.0f);
-
   // TODO: move this check out to callee. There we could just call this function on texture changes
   // or better, use textureSize() in glsl
-  if (constants.texdims[texmapid][0] != rwidth || constants.texdims[texmapid][1] != rheight)
+  if (constants.texdims[texmapid][0] != width || constants.texdims[texmapid][1] != height)
     dirty = true;
 
-  constants.texdims[texmapid][0] = rwidth;
-  constants.texdims[texmapid][1] = rheight;
+  constants.texdims[texmapid][0] = width;
+  constants.texdims[texmapid][1] = height;
+}
+
+void PixelShaderManager::SetSamplerState(int texmapid, u32 tm0, u32 tm1)
+{
+  if (constants.pack2[texmapid][2] != tm0 || constants.pack2[texmapid][3] != tm1)
+    dirty = true;
+
+  constants.pack2[texmapid][2] = tm0;
+  constants.pack2[texmapid][3] = tm1;
 }
 
 void PixelShaderManager::SetZTextureBias()
@@ -305,8 +292,8 @@ void PixelShaderManager::SetZTextureBias()
 
 void PixelShaderManager::SetViewportChanged()
 {
-  s_bViewPortChanged = true;
-  s_bFogRangeAdjustChanged =
+  m_viewport_changed = true;
+  m_fog_range_adjusted_changed =
       true;  // TODO: Shouldn't be necessary with an accurate fog range adjust implementation
 }
 
@@ -336,9 +323,7 @@ void PixelShaderManager::SetIndTexScaleChanged(bool high)
 
 void PixelShaderManager::SetIndMatrixChanged(int matrixidx)
 {
-  int scale = ((u32)bpmem.indmtx[matrixidx].col0.s0 << 0) |
-              ((u32)bpmem.indmtx[matrixidx].col1.s1 << 2) |
-              ((u32)bpmem.indmtx[matrixidx].col2.s2 << 4);
+  const u8 scale = bpmem.indmtx[matrixidx].GetScale();
 
   // xyz - static matrix
   // w - dynamic matrix scale / 128
@@ -362,25 +347,26 @@ void PixelShaderManager::SetZTextureTypeChanged()
 {
   switch (bpmem.ztex2.type)
   {
-  case TEV_ZTEX_TYPE_U8:
+  case ZTexFormat::U8:
     constants.zbias[0][0] = 0;
     constants.zbias[0][1] = 0;
     constants.zbias[0][2] = 0;
     constants.zbias[0][3] = 1;
     break;
-  case TEV_ZTEX_TYPE_U16:
+  case ZTexFormat::U16:
     constants.zbias[0][0] = 1;
     constants.zbias[0][1] = 0;
     constants.zbias[0][2] = 0;
     constants.zbias[0][3] = 256;
     break;
-  case TEV_ZTEX_TYPE_U24:
+  case ZTexFormat::U24:
     constants.zbias[0][0] = 65536;
     constants.zbias[0][1] = 256;
     constants.zbias[0][2] = 1;
     constants.zbias[0][3] = 0;
     break;
   default:
+    PanicAlertFmt("Invalid ztex format {}", bpmem.ztex2.type);
     break;
   }
   dirty = true;
@@ -395,8 +381,8 @@ void PixelShaderManager::SetZTextureOpChanged()
 void PixelShaderManager::SetTexCoordChanged(u8 texmapid)
 {
   TCoordInfo& tc = bpmem.texcoords[texmapid];
-  constants.texdims[texmapid][2] = (float)(tc.s.scale_minus_1 + 1) * 128.0f;
-  constants.texdims[texmapid][3] = (float)(tc.t.scale_minus_1 + 1) * 128.0f;
+  constants.texdims[texmapid][2] = tc.s.scale_minus_1 + 1;
+  constants.texdims[texmapid][3] = tc.t.scale_minus_1 + 1;
   dirty = true;
 }
 
@@ -437,7 +423,7 @@ void PixelShaderManager::SetFogRangeAdjustChanged()
   if (g_ActiveConfig.bDisableFog)
     return;
 
-  s_bFogRangeAdjustChanged = true;
+  m_fog_range_adjusted_changed = true;
 
   if (constants.fogRangeBase != bpmem.fogRange.Base.hex)
   {
@@ -449,16 +435,17 @@ void PixelShaderManager::SetFogRangeAdjustChanged()
 void PixelShaderManager::SetGenModeChanged()
 {
   constants.genmode = bpmem.genMode.hex;
-  s_bIndirectDirty = true;
+  m_indirect_dirty = true;
   dirty = true;
 }
 
 void PixelShaderManager::SetZModeControl()
 {
-  u32 late_ztest = bpmem.UseLateDepthTest();
+  u32 late_ztest = bpmem.GetEmulatedZ() == EmulatedZ::Late;
   u32 rgba6_format =
-      (bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24 && !g_ActiveConfig.bForceTrueColor) ? 1 :
-                                                                                                 0;
+      (bpmem.zcontrol.pixel_format == PixelFormat::RGBA6_Z24 && !g_ActiveConfig.bForceTrueColor) ?
+          1 :
+          0;
   u32 dither = rgba6_format && bpmem.blendmode.dither;
   if (constants.late_ztest != late_ztest || constants.rgba6_format != rgba6_format ||
       constants.dither != dither)
@@ -468,7 +455,7 @@ void PixelShaderManager::SetZModeControl()
     constants.dither = dither;
     dirty = true;
   }
-  s_bDestAlphaDirty = true;
+  m_dest_alpha_dirty = true;
 }
 
 void PixelShaderManager::SetBlendModeChanged()
@@ -516,7 +503,17 @@ void PixelShaderManager::SetBlendModeChanged()
     constants.blend_subtract_alpha = state.subtractAlpha;
     dirty = true;
   }
-  s_bDestAlphaDirty = true;
+  if (constants.logic_op_enable != state.logicopenable)
+  {
+    constants.logic_op_enable = state.logicopenable;
+    dirty = true;
+  }
+  if (constants.logic_op_mode != state.logicmode)
+  {
+    constants.logic_op_mode = state.logicmode;
+    dirty = true;
+  }
+  m_dest_alpha_dirty = true;
 }
 
 void PixelShaderManager::SetBoundingBoxActive(bool active)
@@ -531,14 +528,14 @@ void PixelShaderManager::SetBoundingBoxActive(bool active)
 
 void PixelShaderManager::DoState(PointerWrap& p)
 {
-  p.Do(s_bFogRangeAdjustChanged);
-  p.Do(s_bViewPortChanged);
-  p.Do(s_bIndirectDirty);
-  p.Do(s_bDestAlphaDirty);
+  p.Do(m_fog_range_adjusted_changed);
+  p.Do(m_viewport_changed);
+  p.Do(m_indirect_dirty);
+  p.Do(m_dest_alpha_dirty);
 
   p.Do(constants);
 
-  if (p.GetMode() == PointerWrap::MODE_READ)
+  if (p.IsReadMode())
   {
     // Fixup the current state from global GPU state
     // NOTE: This requires that all GPU memory has been loaded already.

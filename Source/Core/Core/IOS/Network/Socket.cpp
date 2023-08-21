@@ -1,6 +1,5 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // No Wii socket support while using NetPlay or TAS
 #include "Core/IOS/Network/Socket.h"
@@ -17,13 +16,17 @@
 #include <sys/select.h>
 #endif
 
-#include "Common/File.h"
+#include "Common/BitUtils.h"
 #include "Common/FileUtil.h"
+#include "Common/IOFile.h"
+#include "Common/Network.h"
+#include "Common/ScopeGuard.h"
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 #ifdef _WIN32
 #define ERRORCODE(name) WSA##name
@@ -36,23 +39,6 @@
 
 namespace IOS::HLE
 {
-char* WiiSockMan::DecodeError(s32 ErrorCode)
-{
-#ifdef _WIN32
-  // NOT THREAD SAFE
-  static char Message[1024];
-
-  FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS |
-                     FORMAT_MESSAGE_MAX_WIDTH_MASK,
-                 nullptr, ErrorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), Message,
-                 sizeof(Message), nullptr);
-
-  return Message;
-#else
-  return strerror(ErrorCode);
-#endif
-}
-
 // The following functions can return
 //  - EAGAIN / EWOULDBLOCK: send(to), recv(from), accept
 //  - EINPROGRESS: connect, bind
@@ -115,7 +101,7 @@ s32 WiiSockMan::GetNetErrorCode(s32 ret, std::string_view caller, bool is_rw)
   }
 
   ERROR_LOG_FMT(IOS_NET, "{} failed with error {}: {}, ret= {}", caller, error_code,
-                DecodeError(error_code), ret);
+                Common::DecodeNetworkError(error_code), ret);
 
   const s32 return_value = TranslateErrorCode(error_code, is_rw);
   WiiSockMan::GetInstance().SetLastNetError(return_value);
@@ -225,6 +211,7 @@ s32 WiiSocket::CloseFd()
     GetIOS()->EnqueueIPCReply(it->request, -SO_ENOTCONN);
     it = pending_sockops.erase(it);
   }
+  connecting_state = ConnectingState::None;
   return ReturnValue;
 }
 
@@ -258,6 +245,9 @@ s32 WiiSocket::FCntl(u32 cmd, u32 arg)
 
 void WiiSocket::Update(bool read, bool write, bool except)
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   auto it = pending_sockops.begin();
   while (it != pending_sockops.end())
   {
@@ -271,16 +261,16 @@ void WiiSocket::Update(bool read, bool write, bool except)
       {
       case IOCTL_SO_FCNTL:
       {
-        u32 cmd = Memory::Read_U32(ioctl.buffer_in + 4);
-        u32 arg = Memory::Read_U32(ioctl.buffer_in + 8);
+        u32 cmd = memory.Read_U32(ioctl.buffer_in + 4);
+        u32 arg = memory.Read_U32(ioctl.buffer_in + 8);
         ReturnValue = FCntl(cmd, arg);
         break;
       }
       case IOCTL_SO_BIND:
       {
         sockaddr_in local_name;
-        WiiSockAddrIn* wii_name = (WiiSockAddrIn*)Memory::GetPointer(ioctl.buffer_in + 8);
-        WiiSockMan::Convert(*wii_name, local_name);
+        const u8* addr = memory.GetPointer(ioctl.buffer_in + 8);
+        WiiSockMan::ToNativeAddrIn(addr, &local_name);
 
         int ret = bind(fd, (sockaddr*)&local_name, sizeof(local_name));
         ReturnValue = WiiSockMan::GetNetErrorCode(ret, "SO_BIND", false);
@@ -292,11 +282,12 @@ void WiiSocket::Update(bool read, bool write, bool except)
       case IOCTL_SO_CONNECT:
       {
         sockaddr_in local_name;
-        WiiSockAddrIn* wii_name = (WiiSockAddrIn*)Memory::GetPointer(ioctl.buffer_in + 8);
-        WiiSockMan::Convert(*wii_name, local_name);
+        const u8* addr = memory.GetPointer(ioctl.buffer_in + 8);
+        WiiSockMan::ToNativeAddrIn(addr, &local_name);
 
         int ret = connect(fd, (sockaddr*)&local_name, sizeof(local_name));
         ReturnValue = WiiSockMan::GetNetErrorCode(ret, "SO_CONNECT", false);
+        UpdateConnectingState(ReturnValue);
 
         INFO_LOG_FMT(IOS_NET, "IOCTL_SO_CONNECT ({:08x}, {}:{}) = {}", wii_fd,
                      inet_ntoa(local_name.sin_addr), Common::swap16(local_name.sin_port), ret);
@@ -308,13 +299,13 @@ void WiiSocket::Update(bool read, bool write, bool except)
         if (ioctl.buffer_out_size > 0)
         {
           sockaddr_in local_name;
-          WiiSockAddrIn* wii_name = (WiiSockAddrIn*)Memory::GetPointer(ioctl.buffer_out);
-          WiiSockMan::Convert(*wii_name, local_name);
+          u8* addr = memory.GetPointer(ioctl.buffer_out);
+          WiiSockMan::ToNativeAddrIn(addr, &local_name);
 
           socklen_t addrlen = sizeof(sockaddr_in);
           ret = static_cast<s32>(accept(fd, (sockaddr*)&local_name, &addrlen));
 
-          WiiSockMan::Convert(local_name, *wii_name, addrlen);
+          WiiSockMan::ToWiiAddrIn(local_name, addr, addrlen);
         }
         else
         {
@@ -323,7 +314,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
 
         ReturnValue = WiiSockMan::GetInstance().AddSocket(ret, true);
 
-        ioctl.Log("IOCTL_SO_ACCEPT", Common::Log::IOS_NET);
+        ioctl.Log("IOCTL_SO_ACCEPT", Common::Log::LogType::IOS_NET);
         break;
       }
       default:
@@ -331,11 +322,26 @@ void WiiSocket::Update(bool read, bool write, bool except)
       }
 
       // Fix blocking error codes
-      if (!nonBlock)
+      if (!nonBlock && it->net_type == IOCTL_SO_CONNECT)
       {
-        if (it->net_type == IOCTL_SO_CONNECT && ReturnValue == -SO_EISCONN)
+        switch (ReturnValue)
         {
+        case -SO_EAGAIN:
+        case -SO_EALREADY:
+        case -SO_EINPROGRESS:
+          if (std::chrono::steady_clock::now() > GetTimeout())
+          {
+            ReturnValue = -SO_ENETUNREACH;
+            ResetTimeout();
+            connecting_state = ConnectingState::Error;
+          }
+          break;
+        case -SO_EISCONN:
           ReturnValue = SO_SUCCESS;
+          connecting_state = ConnectingState::Connected;
+          [[fallthrough]];
+        default:
+          ResetTimeout();
         }
       }
     }
@@ -373,14 +379,32 @@ void WiiSocket::Update(bool read, bool write, bool except)
 
       if (it->is_ssl)
       {
-        int sslID = Memory::Read_U32(BufferOut) - 1;
-        if (IOS::HLE::Device::IsSSLIDValid(sslID))
+        int sslID = memory.Read_U32(BufferOut) - 1;
+        if (IsSSLIDValid(sslID))
         {
           switch (it->ssl_type)
           {
           case IOCTLV_NET_SSL_DOHANDSHAKE:
           {
-            mbedtls_ssl_context* ctx = &Device::NetSSL::_SSL[sslID].ctx;
+            // The Wii allows a socket with an in-progress connection to
+            // perform the SSL handshake. MbedTLS doesn't support it so
+            // we have to check it manually.
+            connecting_state = GetConnectingState();
+            if (connecting_state == ConnectingState::Connecting)
+            {
+              WriteReturnValue(SSL_ERR_RAGAIN, BufferIn);
+              ReturnValue = SSL_ERR_RAGAIN;
+              break;
+            }
+            else if (connecting_state == ConnectingState::None ||
+                     connecting_state == ConnectingState::Error)
+            {
+              WriteReturnValue(SSL_ERR_SYSCALL, BufferIn);
+              ReturnValue = SSL_ERR_SYSCALL;
+              break;
+            }
+
+            mbedtls_ssl_context* ctx = &NetSSLDevice::_SSL[sslID].ctx;
             const int ret = mbedtls_ssl_handshake(ctx);
             if (ret != 0)
             {
@@ -457,18 +481,14 @@ void WiiSocket::Update(bool read, bool write, bool except)
           }
           case IOCTLV_NET_SSL_WRITE:
           {
-            int ret = mbedtls_ssl_write(&Device::NetSSL::_SSL[sslID].ctx,
-                                        Memory::GetPointer(BufferOut2), BufferOutSize2);
-
-            if (Config::Get(Config::MAIN_NETWORK_SSL_DUMP_WRITE) && ret > 0)
-            {
-              std::string filename = File::GetUserPath(D_DUMPSSL_IDX) +
-                                     SConfig::GetInstance().GetGameID() + "_write.bin";
-              File::IOFile(filename, "ab").WriteBytes(Memory::GetPointer(BufferOut2), ret);
-            }
+            WII_SSL* ssl = &NetSSLDevice::_SSL[sslID];
+            const int ret =
+                mbedtls_ssl_write(&ssl->ctx, memory.GetPointer(BufferOut2), BufferOutSize2);
 
             if (ret >= 0)
             {
+              PowerPC::debug_interface.NetworkLogger()->LogSSLWrite(memory.GetPointer(BufferOut2),
+                                                                    ret, ssl->hostfd);
               // Return bytes written or SSL_ERR_ZERO if none
               WriteReturnValue((ret == 0) ? SSL_ERR_ZERO : ret, BufferIn);
             }
@@ -495,18 +515,14 @@ void WiiSocket::Update(bool read, bool write, bool except)
           }
           case IOCTLV_NET_SSL_READ:
           {
-            int ret = mbedtls_ssl_read(&Device::NetSSL::_SSL[sslID].ctx,
-                                       Memory::GetPointer(BufferIn2), BufferInSize2);
-
-            if (Config::Get(Config::MAIN_NETWORK_SSL_DUMP_READ) && ret > 0)
-            {
-              std::string filename = File::GetUserPath(D_DUMPSSL_IDX) +
-                                     SConfig::GetInstance().GetGameID() + "_read.bin";
-              File::IOFile(filename, "ab").WriteBytes(Memory::GetPointer(BufferIn2), ret);
-            }
+            WII_SSL* ssl = &NetSSLDevice::_SSL[sslID];
+            const int ret =
+                mbedtls_ssl_read(&ssl->ctx, memory.GetPointer(BufferIn2), BufferInSize2);
 
             if (ret >= 0)
             {
+              PowerPC::debug_interface.NetworkLogger()->LogSSLRead(memory.GetPointer(BufferIn2),
+                                                                   ret, ssl->hostfd);
               // Return bytes read or SSL_ERR_ZERO if none
               WriteReturnValue((ret == 0) ? SSL_ERR_ZERO : ret, BufferIn);
             }
@@ -546,11 +562,21 @@ void WiiSocket::Update(bool read, bool write, bool except)
         {
         case IOCTLV_SO_SENDTO:
         {
-          u32 flags = Memory::Read_U32(BufferIn2 + 0x04);
-          u32 has_destaddr = Memory::Read_U32(BufferIn2 + 0x08);
+          // The Wii allows a socket with a connection in progress to use
+          // sendto(). This might not be supported by the operating system.
+          // We have to enforce it manually.
+          connecting_state = GetConnectingState();
+          if (nonBlock && IsTCP() && connecting_state == ConnectingState::Connecting)
+          {
+            ReturnValue = -SO_EAGAIN;
+            break;
+          }
+
+          u32 flags = memory.Read_U32(BufferIn2 + 0x04);
+          u32 has_destaddr = memory.Read_U32(BufferIn2 + 0x08);
 
           // Not a string, Windows requires a const char* for sendto
-          const char* data = (const char*)Memory::GetPointer(BufferIn);
+          const char* data = (const char*)memory.GetPointer(BufferIn);
 
           // Act as non blocking when SO_MSG_NONBLOCK is specified
           forceNonBlock = ((flags & SO_MSG_NONBLOCK) == SO_MSG_NONBLOCK);
@@ -560,14 +586,16 @@ void WiiSocket::Update(bool read, bool write, bool except)
           sockaddr_in local_name = {0};
           if (has_destaddr)
           {
-            WiiSockAddrIn* wii_name = (WiiSockAddrIn*)Memory::GetPointer(BufferIn2 + 0x0C);
-            WiiSockMan::Convert(*wii_name, local_name);
+            const u8* addr = memory.GetPointer(BufferIn2 + 0x0C);
+            WiiSockMan::ToNativeAddrIn(addr, &local_name);
           }
 
-          const int ret = sendto(fd, data, BufferInSize, flags,
-                                 has_destaddr ? (struct sockaddr*)&local_name : nullptr,
-                                 has_destaddr ? sizeof(sockaddr) : 0);
+          auto* to = has_destaddr ? reinterpret_cast<sockaddr*>(&local_name) : nullptr;
+          socklen_t tolen = has_destaddr ? sizeof(sockaddr) : 0;
+          const int ret = sendto(fd, data, BufferInSize, flags, to, tolen);
           ReturnValue = WiiSockMan::GetNetErrorCode(ret, "SO_SENDTO", true);
+          if (ret > 0)
+            PowerPC::debug_interface.NetworkLogger()->LogWrite(data, ret, fd, to);
 
           INFO_LOG_FMT(IOS_NET,
                        "{} = {} Socket: {:08x}, BufferIn: ({:08x}, {}), BufferIn2: ({:08x}, {}), "
@@ -581,9 +609,19 @@ void WiiSocket::Update(bool read, bool write, bool except)
         }
         case IOCTLV_SO_RECVFROM:
         {
-          u32 flags = Memory::Read_U32(BufferIn + 0x04);
+          // The Wii allows a socket with a connection in progress to use
+          // recvfrom(). This might not be supported by the operating system.
+          // We have to enforce it manually.
+          connecting_state = GetConnectingState();
+          if (nonBlock && IsTCP() && connecting_state == ConnectingState::Connecting)
+          {
+            ReturnValue = -SO_EAGAIN;
+            break;
+          }
+
+          u32 flags = memory.Read_U32(BufferIn + 0x04);
           // Not a string, Windows requires a char* for recvfrom
-          char* data = (char*)Memory::GetPointer(BufferOut);
+          char* data = (char*)memory.GetPointer(BufferOut);
           int data_len = BufferOutSize;
 
           sockaddr_in local_name;
@@ -591,8 +629,8 @@ void WiiSocket::Update(bool read, bool write, bool except)
 
           if (BufferOutSize2 != 0)
           {
-            WiiSockAddrIn* wii_name = (WiiSockAddrIn*)Memory::GetPointer(BufferOut2);
-            WiiSockMan::Convert(*wii_name, local_name);
+            const u8* addr = memory.GetPointer(BufferOut2);
+            WiiSockMan::ToNativeAddrIn(addr, &local_name);
           }
 
           // Act as non blocking when SO_MSG_NONBLOCK is specified
@@ -610,11 +648,13 @@ void WiiSocket::Update(bool read, bool write, bool except)
           }
 #endif
           socklen_t addrlen = sizeof(sockaddr_in);
-          const int ret = recvfrom(fd, data, data_len, flags,
-                                   BufferOutSize2 ? (struct sockaddr*)&local_name : nullptr,
-                                   BufferOutSize2 ? &addrlen : nullptr);
+          auto* from = BufferOutSize2 ? reinterpret_cast<sockaddr*>(&local_name) : nullptr;
+          socklen_t* fromlen = BufferOutSize2 ? &addrlen : nullptr;
+          const int ret = recvfrom(fd, data, data_len, flags, from, fromlen);
           ReturnValue =
               WiiSockMan::GetNetErrorCode(ret, BufferOutSize2 ? "SO_RECVFROM" : "SO_RECV", true);
+          if (ret > 0)
+            PowerPC::debug_interface.NetworkLogger()->LogRead(data, ret, fd, from);
 
           INFO_LOG_FMT(IOS_NET,
                        "{}({}, {}) Socket: {:08X}, Flags: {:08X}, "
@@ -626,8 +666,8 @@ void WiiSocket::Update(bool read, bool write, bool except)
 
           if (BufferOutSize2 != 0)
           {
-            WiiSockAddrIn* wii_name = (WiiSockAddrIn*)Memory::GetPointer(BufferOut2);
-            WiiSockMan::Convert(local_name, *wii_name, addrlen);
+            u8* addr = memory.GetPointer(BufferOut2);
+            WiiSockMan::ToWiiAddrIn(local_name, addr, addrlen);
           }
           break;
         }
@@ -662,6 +702,126 @@ void WiiSocket::Update(bool read, bool write, bool except)
       ++it;
     }
   }
+}
+
+void WiiSocket::UpdateConnectingState(s32 connect_rv)
+{
+  if (connect_rv == -SO_EAGAIN || connect_rv == -SO_EALREADY || connect_rv == -SO_EINPROGRESS)
+  {
+    connecting_state = ConnectingState::Connecting;
+  }
+  else if (connect_rv >= 0)
+  {
+    connecting_state = ConnectingState::Connected;
+  }
+  else
+  {
+    connecting_state = ConnectingState::Error;
+  }
+}
+
+WiiSocket::ConnectingState WiiSocket::GetConnectingState() const
+{
+  const auto state = Common::SaveNetworkErrorState();
+  Common::ScopeGuard guard([&state] { Common::RestoreNetworkErrorState(state); });
+
+#ifdef _WIN32
+  constexpr int (*get_errno)() = &WSAGetLastError;
+#else
+  constexpr int (*get_errno)() = []() { return errno; };
+#endif
+
+  switch (connecting_state)
+  {
+  case ConnectingState::Error:
+  case ConnectingState::Connected:
+  case ConnectingState::None:
+    break;
+  case ConnectingState::Connecting:
+  {
+    const s32 nfds = fd + 1;
+    fd_set read_fds;
+    fd_set write_fds;
+    fd_set except_fds;
+    struct timeval t = {0, 0};
+    FD_ZERO(&read_fds);
+    FD_ZERO(&write_fds);
+    FD_ZERO(&except_fds);
+    FD_SET(fd, &write_fds);
+    FD_SET(fd, &except_fds);
+
+    if (select(nfds, &read_fds, &write_fds, &except_fds, &t) < 0)
+    {
+      const s32 error = get_errno();
+      ERROR_LOG_FMT(IOS_SSL, "Failed to get socket (fd={}) connection state (err={}): {}", wii_fd,
+                    error, Common::DecodeNetworkError(error));
+      return ConnectingState::Error;
+    }
+
+    if (FD_ISSET(fd, &write_fds) == 0 && FD_ISSET(fd, &except_fds) == 0)
+      break;
+
+    s32 error = 0;
+    socklen_t len = sizeof(error);
+    if (getsockopt(fd, SOL_SOCKET, SO_ERROR, reinterpret_cast<char*>(&error), &len) != 0)
+    {
+      error = get_errno();
+      ERROR_LOG_FMT(IOS_SSL, "Failed to get socket (fd={}) error state (err={}): {}", wii_fd, error,
+                    Common::DecodeNetworkError(error));
+      return ConnectingState::Error;
+    }
+
+    if (error != 0)
+    {
+      ERROR_LOG_FMT(IOS_SSL, "Non-blocking connect (fd={}) failed (err={}): {}", wii_fd, error,
+                    Common::DecodeNetworkError(error));
+      return ConnectingState::Error;
+    }
+
+    // Get peername to ensure the socket is connected
+    sockaddr_in peer;
+    socklen_t peer_len = sizeof(peer);
+    if (getpeername(fd, reinterpret_cast<sockaddr*>(&peer), &peer_len) != 0)
+    {
+      error = get_errno();
+      ERROR_LOG_FMT(IOS_SSL, "Non-blocking connect (fd={}) failed to get peername (err={}): {}",
+                    wii_fd, error, Common::DecodeNetworkError(error));
+      return ConnectingState::Error;
+    }
+
+    INFO_LOG_FMT(IOS_SSL, "Non-blocking connect (fd={}) succeeded", wii_fd);
+    return ConnectingState::Connected;
+  }
+  }
+
+  return connecting_state;
+}
+
+bool WiiSocket::IsTCP() const
+{
+  const auto state = Common::SaveNetworkErrorState();
+  Common::ScopeGuard guard([&state] { Common::RestoreNetworkErrorState(state); });
+
+  int socket_type;
+  socklen_t option_length = sizeof(socket_type);
+  return getsockopt(fd, SOL_SOCKET, SO_TYPE, reinterpret_cast<char*>(&socket_type),
+                    &option_length) == 0 &&
+         socket_type == SOCK_STREAM;
+}
+
+const WiiSocket::Timeout& WiiSocket::GetTimeout()
+{
+  if (!timeout.has_value())
+  {
+    timeout = std::chrono::steady_clock::now() +
+              std::chrono::seconds(Config::Get(Config::MAIN_NETWORK_TIMEOUT));
+  }
+  return *timeout;
+}
+
+void WiiSocket::ResetTimeout()
+{
+  timeout.reset();
 }
 
 void WiiSocket::DoSock(Request request, NET_IOCTL type)
@@ -705,12 +865,33 @@ s32 WiiSockMan::AddSocket(s32 fd, bool is_rw)
     WiiSocket& sock = WiiSockets[wii_fd];
     sock.SetFd(fd);
     sock.SetWiiFd(wii_fd);
+    PowerPC::debug_interface.NetworkLogger()->OnNewSocket(fd);
 
 #ifdef __APPLE__
     int opt_no_sigpipe = 1;
     if (setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &opt_no_sigpipe, sizeof(opt_no_sigpipe)) < 0)
       ERROR_LOG_FMT(IOS_NET, "Failed to set SO_NOSIGPIPE on socket");
 #endif
+
+    // Wii UDP sockets can use broadcast address by default
+    if (!is_rw)
+    {
+      const auto state = Common::SaveNetworkErrorState();
+      Common::ScopeGuard guard([&state] { Common::RestoreNetworkErrorState(state); });
+
+      int socket_type;
+      socklen_t option_length = sizeof(socket_type);
+      const bool is_udp = getsockopt(fd, SOL_SOCKET, SO_TYPE, reinterpret_cast<char*>(&socket_type),
+                                     &option_length) == 0 &&
+                          socket_type == SOCK_DGRAM;
+      const int opt_broadcast = 1;
+      if (is_udp &&
+          setsockopt(fd, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<const char*>(&opt_broadcast),
+                     sizeof(opt_broadcast)) != 0)
+      {
+        ERROR_LOG_FMT(IOS_NET, "Failed to set SO_BROADCAST on socket");
+      }
+    }
   }
 
   SetLastNetError(wii_fd);
@@ -725,12 +906,31 @@ bool WiiSockMan::IsSocketBlocking(s32 wii_fd) const
 
 s32 WiiSockMan::NewSocket(s32 af, s32 type, s32 protocol)
 {
-  if (af != 2 && af != 23)  // AF_INET && AF_INET6
+  if (af == 2)
+  {
+    // AF_INET == 2 is true on all systems I've seen,
+    // but it's not guaranteed. Better set this again.
+    af = AF_INET;
+  }
+  else if (af == 23)
+  {
+    // AF_INET6 == 23 is only true on Wii and on Windows.
+    // On other OSes, AF_INET6 can have a different value.
+    // For example, on Linux it's 10 and on MacOS/iOS it's 30.
+    af = AF_INET6;
+  }
+  else
+  {
+    // Neither an AF_INET nor an AF_INET6 socket.
+    // Unsupported.
     return -SO_EAFNOSUPPORT;
+  }
+
   if (protocol != 0)  // IPPROTO_IP
     return -SO_EPROTONOSUPPORT;
   if (type != 1 && type != 2)  // SOCK_STREAM && SOCK_DGRAM
     return -SO_EPROTOTYPE;
+
   s32 fd = static_cast<s32>(socket(af, type, protocol));
   return AddSocket(fd, false);
 }
@@ -832,10 +1032,13 @@ void WiiSockMan::UpdatePollCommands()
       pcmd.timeout = std::max<s64>(0, pcmd.timeout - elapsed);
   }
 
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   pending_polls.erase(
       std::remove_if(
           pending_polls.begin(), pending_polls.end(),
-          [this](PollCommand& pcmd) {
+          [&memory, this](PollCommand& pcmd) {
             const auto request = Request(pcmd.request_addr);
             auto& pfds = pcmd.wii_fds;
             int ret = 0;
@@ -854,7 +1057,7 @@ void WiiSockMan::UpdatePollCommands()
               std::iota(original_order.begin(), original_order.end(), 0);
               // Select indices with valid fds
               auto mid = std::partition(original_order.begin(), original_order.end(), [&](auto i) {
-                return GetHostSocket(Memory::Read_U32(pcmd.buffer_out + 0xc * i)) >= 0;
+                return GetHostSocket(memory.Read_U32(pcmd.buffer_out + 0xc * i)) >= 0;
               });
               const auto n_valid = std::distance(original_order.begin(), mid);
 
@@ -881,9 +1084,9 @@ void WiiSockMan::UpdatePollCommands()
               const int revents = ConvertEvents(pfds[i].revents, ConvertDirection::NativeToWii);
 
               // No need to change fd or events as they are input only.
-              // Memory::Write_U32(ufds[i].fd, request.buffer_out + 0xc*i); //fd
-              // Memory::Write_U32(events, request.buffer_out + 0xc*i + 4); //events
-              Memory::Write_U32(revents, pcmd.buffer_out + 0xc * i + 8);  // revents
+              // memory.Write_U32(ufds[i].fd, request.buffer_out + 0xc*i); //fd
+              // memory.Write_U32(events, request.buffer_out + 0xc*i + 4); //events
+              memory.Write_U32(revents, pcmd.buffer_out + 0xc * i + 8);  // revents
               DEBUG_LOG_FMT(IOS_NET,
                             "IOCTL_SO_POLL socket {} wevents {:08X} events {:08X} revents {:08X}",
                             i, revents, pfds[i].events, pfds[i].revents);
@@ -894,11 +1097,12 @@ void WiiSockMan::UpdatePollCommands()
       pending_polls.end());
 }
 
-void WiiSockMan::Convert(WiiSockAddrIn const& from, sockaddr_in& to)
+void WiiSockMan::ToNativeAddrIn(const u8* addr, sockaddr_in* to)
 {
-  to.sin_addr.s_addr = from.addr.addr;
-  to.sin_family = from.family;
-  to.sin_port = from.port;
+  const WiiSockAddrIn from = Common::BitCastPtr<WiiSockAddrIn>(addr);
+  to->sin_addr.s_addr = from.addr.addr;
+  to->sin_family = from.family;
+  to->sin_port = from.port;
 }
 
 s32 WiiSockMan::ConvertEvents(s32 events, ConvertDirection dir)
@@ -938,21 +1142,20 @@ s32 WiiSockMan::ConvertEvents(s32 events, ConvertDirection dir)
   return converted_events;
 }
 
-void WiiSockMan::Convert(sockaddr_in const& from, WiiSockAddrIn& to, s32 addrlen)
+void WiiSockMan::ToWiiAddrIn(const sockaddr_in& from, u8* to, socklen_t addrlen)
 {
-  to.addr.addr = from.sin_addr.s_addr;
-  to.family = from.sin_family & 0xFF;
-  to.port = from.sin_port;
-  if (addrlen < 0 || addrlen > static_cast<s32>(sizeof(WiiSockAddrIn)))
-    to.len = sizeof(WiiSockAddrIn);
-  else
-    to.len = addrlen;
+  to[offsetof(WiiSockAddrIn, len)] =
+      u8(addrlen > sizeof(WiiSockAddrIn) ? sizeof(WiiSockAddrIn) : addrlen);
+  to[offsetof(WiiSockAddrIn, family)] = u8(from.sin_family & 0xFF);
+  const u16& from_port = from.sin_port;
+  memcpy(to + offsetof(WiiSockAddrIn, port), &from_port, sizeof(from_port));
+  const u32& from_addr = from.sin_addr.s_addr;
+  memcpy(to + offsetof(WiiSockAddrIn, addr.addr), &from_addr, sizeof(from_addr));
 }
 
 void WiiSockMan::DoState(PointerWrap& p)
 {
-  bool saving =
-      p.mode == PointerWrap::Mode::MODE_WRITE || p.mode == PointerWrap::Mode::MODE_MEASURE;
+  bool saving = p.IsWriteMode() || p.IsMeasureMode();
   auto size = pending_polls.size();
   p.Do(size);
   if (!saving)

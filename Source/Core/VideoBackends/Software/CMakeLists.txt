@@ -2,8 +2,6 @@ add_library(videosoftware
   Clipper.cpp
   Clipper.h
   CopyRegion.h
-  DebugUtil.cpp
-  DebugUtil.h
   EfbCopy.cpp
   EfbCopy.h
   EfbInterface.cpp
@@ -14,6 +12,10 @@ add_library(videosoftware
   SetupUnit.cpp
   SetupUnit.h
   SWmain.cpp
+  SWBoundingBox.cpp
+  SWBoundingBox.h
+  SWGfx.cpp
+  SWGfx.h
   SWOGLWindow.cpp
   SWOGLWindow.h
   SWRenderer.cpp
@@ -39,3 +41,8 @@ PUBLIC
   common
   videocommon
 )
+
+if(MSVC)
+  # Add precompiled header
+  target_link_libraries(videosoftware PRIVATE use_pch)
+endif()

@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Config/LogWidget.h"
 
@@ -81,21 +80,21 @@ void LogWidget::UpdateLog()
   for (auto& line : elements_to_push)
   {
     const char* color = "white";
-    switch (std::get<Common::Log::LOG_LEVELS>(line))
+    switch (std::get<Common::Log::LogLevel>(line))
     {
-    case Common::Log::LOG_LEVELS::LERROR:
+    case Common::Log::LogLevel::LERROR:
       color = "red";
       break;
-    case Common::Log::LOG_LEVELS::LWARNING:
+    case Common::Log::LogLevel::LWARNING:
       color = "yellow";
       break;
-    case Common::Log::LOG_LEVELS::LNOTICE:
+    case Common::Log::LogLevel::LNOTICE:
       color = "lime";
       break;
-    case Common::Log::LOG_LEVELS::LINFO:
+    case Common::Log::LogLevel::LINFO:
       color = "cyan";
       break;
-    case Common::Log::LOG_LEVELS::LDEBUG:
+    case Common::Log::LogLevel::LDEBUG:
       color = "lightgrey";
       break;
     }
@@ -103,7 +102,7 @@ void LogWidget::UpdateLog()
     const std::string_view str_view(std::get<std::string>(line));
 
     m_log_text->appendHtml(
-        QStringLiteral("%1 <span style=\"color: %2; white-space: pre\">%3</span>")
+        QStringLiteral("%1<span style=\"color: %2; white-space: pre\">%3</span>")
             .arg(QStringFromStringView(str_view.substr(0, TIMESTAMP_LENGTH)),
                  QString::fromUtf8(color),
                  QStringFromStringView(str_view.substr(TIMESTAMP_LENGTH)).toHtmlEscaped()));
@@ -211,7 +210,7 @@ void LogWidget::SaveSettings()
   UpdateFont();
 }
 
-void LogWidget::Log(Common::Log::LOG_LEVELS level, const char* text)
+void LogWidget::Log(Common::Log::LogLevel level, const char* text)
 {
   size_t text_length = strlen(text);
   while (text_length > 0 && text[text_length - 1] == '\n')

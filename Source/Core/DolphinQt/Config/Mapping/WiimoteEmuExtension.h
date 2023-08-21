@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -34,6 +33,7 @@ private:
   void CreateUDrawTabletLayout();
   void CreateDrawsomeTabletLayout();
   void CreateTaTaConLayout();
+  void CreateShinkansenLayout();
   void CreateMainLayout();
 
   // Main
@@ -47,4 +47,5 @@ private:
   QGroupBox* m_udraw_tablet_box;
   QGroupBox* m_drawsome_tablet_box;
   QGroupBox* m_tatacon_box;
+  QGroupBox* m_shinkansen_box;
 };

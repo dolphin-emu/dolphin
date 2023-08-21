@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -31,16 +30,16 @@ enum PadButton
 
 struct GCPadStatus
 {
-  u16 button;       // Or-ed PAD_BUTTON_* and PAD_TRIGGER_* bits
-  u8 stickX;        // 0 <= stickX       <= 255
-  u8 stickY;        // 0 <= stickY       <= 255
-  u8 substickX;     // 0 <= substickX    <= 255
-  u8 substickY;     // 0 <= substickY    <= 255
-  u8 triggerLeft;   // 0 <= triggerLeft  <= 255
-  u8 triggerRight;  // 0 <= triggerRight <= 255
-  u8 analogA;       // 0 <= analogA      <= 255
-  u8 analogB;       // 0 <= analogB      <= 255
-  bool isConnected{true};
+  u16 button = 0;       // Or-ed PAD_BUTTON_* and PAD_TRIGGER_* bits
+  u8 stickX = 0;        // 0 <= stickX       <= 255
+  u8 stickY = 0;        // 0 <= stickY       <= 255
+  u8 substickX = 0;     // 0 <= substickX    <= 255
+  u8 substickY = 0;     // 0 <= substickY    <= 255
+  u8 triggerLeft = 0;   // 0 <= triggerLeft  <= 255
+  u8 triggerRight = 0;  // 0 <= triggerRight <= 255
+  u8 analogA = 0;       // 0 <= analogA      <= 255
+  u8 analogB = 0;       // 0 <= analogB      <= 255
+  bool isConnected = true;
 
   static const u8 MAIN_STICK_CENTER_X = 0x80;
   static const u8 MAIN_STICK_CENTER_Y = 0x80;

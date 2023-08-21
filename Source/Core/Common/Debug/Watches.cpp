@@ -1,10 +1,10 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/Debug/Watches.h"
 
 #include <algorithm>
+#include <locale>
 #include <sstream>
 
 namespace Common::Debug
@@ -62,6 +62,11 @@ void Watches::UpdateWatchName(std::size_t index, std::string name)
   m_watches[index].name = std::move(name);
 }
 
+void Watches::UpdateWatchLockedState(std::size_t index, bool locked)
+{
+  m_watches[index].locked = locked;
+}
+
 void Watches::EnableWatch(std::size_t index)
 {
   m_watches[index].is_enabled = Watch::State::Enabled;
@@ -88,11 +93,11 @@ void Watches::LoadFromStrings(const std::vector<std::string>& watches)
 {
   for (const std::string& watch : watches)
   {
-    std::stringstream ss;
+    std::istringstream ss(watch);
+    ss.imbue(std::locale::classic());
     u32 address;
     std::string name;
-    ss << std::hex << watch;
-    ss >> address;
+    ss >> std::hex >> address;
     ss >> std::ws;
     std::getline(ss, name);
     SetWatch(address, name);
@@ -105,6 +110,7 @@ std::vector<std::string> Watches::SaveToStrings() const
   for (const auto& watch : m_watches)
   {
     std::ostringstream ss;
+    ss.imbue(std::locale::classic());
     ss << std::hex << watch.address << " " << watch.name;
     watches.push_back(ss.str());
   }

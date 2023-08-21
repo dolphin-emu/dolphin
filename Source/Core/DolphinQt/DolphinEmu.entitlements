@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>com.apple.security.cs.allow-jit</key>
+	<true/>
+	<!-- Needed for GameCube microphone emulation -->
+	<key>com.apple.security.device.audio-input</key>
+	<true/>
+	<!-- TODO: It is likely this requirement is coming from Qt, but should confirm -->
+  	<key>com.apple.security.automation.apple-events</key>
+  	<true/>
+	<!-- This is needed to use adhoc signed linked libraries -->
+ 	<key>com.apple.security.cs.disable-library-validation</key> 
+  	<true/>
+	<!-- Allows the Steam overlay library to be injected into our process -->
+	<key>com.apple.security.cs.allow-dyld-environment-variables</key>
+	<true/>
+</dict>
+</plist>

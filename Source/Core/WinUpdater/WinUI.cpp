@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "UpdaterCommon/UI.h"
 
@@ -180,11 +179,13 @@ void ResetCurrentProgress()
 
 void Error(const std::string& text)
 {
-  auto wide_text = UTF8ToWString(text);
+  auto message = L"A fatal error occurred and the updater cannot continue:\n " +
+                 UTF8ToWString(text) + L"\n" +
+                 L"If the issue persists, please manually download the latest version from "
+                 L"dolphin-emu.org/download and extract it overtop your existing installation.\n" +
+                 L"Also consider filing a bug at bugs.dolphin-emu.org/projects/emulator";
 
-  MessageBox(nullptr,
-             (L"A fatal error occured and the updater cannot continue:\n " + wide_text).c_str(),
-             L"Error", MB_ICONERROR);
+  MessageBox(nullptr, message.c_str(), L"Error", MB_ICONERROR);
 
   if (taskbar_list)
   {
@@ -254,8 +255,8 @@ void Stop()
 
 void LaunchApplication(std::string path)
 {
-  // Hack: Launching the updater over the explorer ensures that admin priviliges are dropped. Why?
-  // Ask Microsoft.
+  // Indirectly start the application via explorer. This effectively drops admin priviliges because
+  // explorer is running as current user.
   ShellExecuteW(nullptr, nullptr, L"explorer.exe", UTF8ToWString(path).c_str(), nullptr, SW_SHOW);
 }
 

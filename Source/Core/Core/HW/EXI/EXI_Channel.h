@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -21,23 +20,24 @@ class Mapping;
 namespace ExpansionInterface
 {
 class IEXIDevice;
-enum TEXIDevices : int;
+enum class EXIDeviceType : int;
 
 class CEXIChannel
 {
 public:
-  explicit CEXIChannel(u32 channel_id, const Memcard::HeaderData& memcard_header_data);
+  explicit CEXIChannel(Core::System& system, u32 channel_id,
+                       const Memcard::HeaderData& memcard_header_data,
+                       std::string current_file_name);
   ~CEXIChannel();
 
   // get device
   IEXIDevice* GetDevice(u8 chip_select);
-  IEXIDevice* FindDevice(TEXIDevices device_type, int custom_index = -1);
 
   void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
   void SendTransferComplete();
 
-  void AddDevice(TEXIDevices device_type, int device_num);
+  void AddDevice(EXIDeviceType device_type, int device_num);
   void AddDevice(std::unique_ptr<IEXIDevice> device, int device_num,
                  bool notify_presence_changed = true);
 
@@ -102,6 +102,8 @@ private:
     };
   };
 
+  Core::System& m_system;
+
   // STATE_TO_SAVE
   UEXI_STATUS m_status;
   u32 m_dma_memory_address = 0;
@@ -117,6 +119,9 @@ private:
   // this data is only vaguely related to the EXI_Channel, this seems to be the best place to store
   // it, as this class creates the CEXIMemoryCard instances.
   Memcard::HeaderData m_memcard_header_data;
+
+  // used by game_reporter (rust) for calculating the md5 and Slippi Jukebox (rust) for playback
+  std::string m_current_file_name;
 
   // Devices
   enum

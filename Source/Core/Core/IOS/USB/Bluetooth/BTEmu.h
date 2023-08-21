@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -33,21 +32,19 @@ struct SQueuedEvent
   SQueuedEvent() = default;
 };
 
-namespace Device
-{
 // Important to remember that this class is for /dev/usb/oh1/57e/305 ONLY
 // /dev/usb/oh1 -> internal usb bus
 // 57e/305 -> VendorID/ProductID of device on usb bus
 // This device is ONLY the internal Bluetooth module (based on BCM2045 chip)
-class BluetoothEmu final : public BluetoothBase
+class BluetoothEmuDevice final : public BluetoothBaseDevice
 {
 public:
-  BluetoothEmu(Kernel& ios, const std::string& device_name);
+  BluetoothEmuDevice(Kernel& ios, const std::string& device_name);
 
-  virtual ~BluetoothEmu();
+  virtual ~BluetoothEmuDevice();
 
-  IPCCommandResult Close(u32 fd) override;
-  IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
+  std::optional<IPCReply> Close(u32 fd) override;
+  std::optional<IPCReply> IOCtlV(const IOCtlVRequest& request) override;
 
   void Update() override;
 
@@ -63,7 +60,7 @@ public:
   void DoState(PointerWrap& p) override;
 
 private:
-  std::vector<std::unique_ptr<WiimoteDevice>> m_wiimotes;
+  std::array<std::unique_ptr<WiimoteDevice>, MAX_BBMOTES> m_wiimotes;
 
   bdaddr_t m_controller_bd{{0x11, 0x02, 0x19, 0x79, 0x00, 0xff}};
 
@@ -199,5 +196,4 @@ private:
   };
 #pragma pack(pop)
 };
-}  // namespace Device
 }  // namespace IOS::HLE

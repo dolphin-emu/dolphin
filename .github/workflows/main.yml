@@ -8,104 +8,79 @@ on:
         - "**.md"
         - "**.ini"
   pull_request:
-    branches: [ master ]
+    branches:
+      - master
+      - task/update
     paths-ignore:
       - "**.md"
       - "**.ini"
 
 jobs:
-  # windows:
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       build_type: [Netplay, Playback]
-  #       include:
-  #         - build_type: Netplay
-  #           artifact_name: windows64-netplay
-  #           build_config: -G "Ninja" -DCMAKE_BUILD_TYPE="Release" -DQt5_DIR:STRING="D:\a\dolphin\dolphin\Externals\Qt\Qt5.15.0\msvc2019_64\lib\cmake\Qt5" -DSLIPPI_PLAYBACK=false
-  #         - build_type: Playback
-  #           artifact_name: windows64-playback
-  #           build_config: -G "Ninja" -DCMAKE_BUILD_TYPE="Release" -DQt5_DIR:STRING="D:\a\dolphin\dolphin\Externals\Qt\Qt5.15.0\msvc2019_64\lib\cmake\Qt5"
-  #   env:
-  #     DXSDK_DIR: "C:\\Program Files (x86)\\Microsoft DirectX SDK (June 2010)\\"
-  #   name: "Windows ${{ matrix.build_type }}"
-  #   runs-on: windows-2019
-  #   steps:
-  #     - name: "Checkout"
-  #       uses: actions/checkout@v2
-  #       with:
-  #         submodules: recursive
-  #     # - name: "Remove Redistributable"
-  #     #   shell: cmd
-  #     #   run: |
-  #     #     MsiExec.exe /passive /X{F0C3E5D1-1ADE-321E-8167-68EF0DE699A5}
-  #     #     MsiExec.exe /passive /X{1D8E6291-B0D5-35EC-8441-6616F567A0F7}
-  #     #     mkdir .\Tools\DX
-  #     # - name: "Setup MSBuild"
-  #     #   uses: microsoft/setup-msbuild@v1
-  #     # - name: Cache DXSDK_Jun10.exe
-  #     #   uses: actions/cache@v2
-  #     #   with:
-  #     #     path: ./Tools/DX/
-  #     #     key: ${{ runner.os }}
-  #     # - name: "Download DirectX SDK"
-  #     #   working-directory: ${{ github.workspace }}
-  #     #   shell: powershell
-  #     #   run: |
-  #     #     if (!(Test-Path ".\Tools\DX\DXSDK_Jun10.exe" -PathType Leaf)) { Invoke-WebRequest -Uri https://github.com/project-slippi/Ishiiruka/releases/download/v2.2.5/DXSDK_Jun10.exe -UseBasicParsing -OutFile ".\Tools\DX\DXSDK_Jun10.exe" }
-  #     # - name: "Install DirectX SDK"
-  #     #   working-directory: ${{ github.workspace }}
-  #     #   shell: cmd
-  #     #   run: |
-  #     #     .\Tools\DX\DXSDK_Jun10.exe /U /F
-  #     - name: 'Fetch Git Tags'
-  #       shell: bash
-  #       if: success()
-  #       run: |
-  #         git fetch --prune --unshallow
-  #         echo "GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_ENV
-  #         echo "GIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-  #         echo "GIT_TAG=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
-  #         echo "CURR_DATE=$(date +%Y-%m-%d)" >> $GITHUB_ENV
-  #     - uses: seanmiddleditch/gha-setup-ninja@master
-  #     - uses: egor-tensin/vs-shell@v2
-  #     - name: "Build ${{ matrix.build_type }} Dolphin"
-  #       shell: cmd
-  #       working-directory: ${{ github.workspace }}
-  #       run: |
-  #         mkdir build
-  #         cd build
-  #         dir ..\Externals\Qt\Qt5.15.0\msvc2019_64\lib\cmake\Qt5
-  #         cmake ${{ matrix.build_config }} ..
-  #         ninja
-  #     - name: "Package ${{ matrix.build_type }}"
-  #       working-directory: ${{ github.workspace }}
-  #       run: |
-  #         Xcopy /Y /E /I .\Data\Sys .\Binary\x64\Sys
-  #         cd .\Binary\x64\
-  #         fsutil file createnew FIX-VCRUNTIME140-ERROR.txt 0
-  #         echo "Download and install this: https://aka.ms/vs/16/release/vc_redist.x64.exe" > .\FIX-VCRUNTIME140-ERROR.txt
-  #     - name: "Add Playback codes"
-  #       working-directory: ${{ github.workspace }}
-  #       if: matrix.build_type == 'Playback'
-  #       run: |
-  #         Xcopy /Y /E /I .\Data\Sys .\Binary\x64\Sys
-  #         Xcopy /Y /E /I .\Data\PlaybackGeckoCodes\* .\Binary\x64\Sys\GameSettings\
-  #     - name: Package Artifact
-  #       working-directory: ${{ github.workspace }}
-  #       run: |
-  #         $FILE_NAME="${{ env.CURR_DATE }}-${{ env.GIT_HASH }}-${{ env.GIT_TAG }}-${{ matrix.artifact_name }}.zip"
-  #         mkdir artifact
-  #         cd .\Binary\x64\
-  #         fsutil file createnew portable.txt 0
-  #         7z a $FILE_NAME .\*
-  #         move $FILE_NAME ..\..\artifact\
-  #     - name: "Publish"
-  #       if: success()
-  #       uses: actions/upload-artifact@v2-preview
-  #       with:
-  #         name: ${{ matrix.artifact_name }}
-  #         path: "./artifact/"
+  windows:
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: [Netplay, Playback]
+        include:
+          - build_type: Netplay
+            artifact_name: windows64-netplay
+            build_config: -G "Ninja" -DCMAKE_BUILD_TYPE="Release" -DSLIPPI_PLAYBACK=false
+          - build_type: Playback
+            artifact_name: windows64-playback
+            build_config: -G "Ninja" -DCMAKE_BUILD_TYPE="Release" -DSLIPPI_PLAYBACK=true
+    name: "Windows ${{ matrix.build_type }}"
+    runs-on: windows-2022
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: 'Fetch Git Tags'
+        shell: bash
+        if: success()
+        run: |
+          git fetch --prune --unshallow
+          echo "GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_ENV
+          echo "GIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+          echo "GIT_TAG=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
+          echo "CURR_DATE=$(date +%Y-%m-%d)" >> $GITHUB_ENV
+      - uses: egor-tensin/vs-shell@v2
+      - name: "Build ${{ matrix.build_type }} Dolphin"
+        shell: cmd
+        working-directory: ${{ github.workspace }}
+        run: |
+          mkdir build
+          cd build
+          cmake ${{ matrix.build_config }} ..
+          cmake --build . --target dolphin-emu
+      - name: "Package ${{ matrix.build_type }}"
+        working-directory: ${{ github.workspace }}
+        run: |
+          Xcopy /Y /E /I .\Data\Sys .\Binary\x64\Sys
+          cd .\Binary\x64\
+          fsutil file createnew FIX-VCRUNTIME140-ERROR.txt 0
+          echo "Download and install this: https://aka.ms/vs/16/release/vc_redist.x64.exe" > .\FIX-VCRUNTIME140-ERROR.txt
+      - name: "Add Playback codes"
+        working-directory: ${{ github.workspace }}
+        if: matrix.build_type == 'Playback'
+        run: |
+          Xcopy /Y /E /I .\Data\Sys .\Binary\x64\Sys
+          Xcopy /Y /E /I .\Data\PlaybackGeckoCodes\* .\Binary\x64\Sys\GameSettings\
+      - name: Package Artifact
+        working-directory: ${{ github.workspace }}
+        run: |
+          $FILE_NAME="${{ env.CURR_DATE }}-${{ env.GIT_HASH }}-${{ env.GIT_TAG }}-${{ matrix.artifact_name }}.zip"
+          mkdir artifact
+          cd .\Binary\x64\
+          fsutil file createnew portable.txt 0
+          7z a $FILE_NAME .\*
+          move $FILE_NAME ..\..\artifact\
+      - name: "Publish"
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: "./artifact/"
   linux:
     strategy:
       fail-fast: false
@@ -119,10 +94,10 @@ jobs:
             artifact_name: linux-playback
             build_config: playback
     name: "Linux ${{ matrix.build_type }}"
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           submodules: recursive
       - name: 'Fetch Git Tags'
@@ -174,7 +149,8 @@ jobs:
           libpng-dev \
           qtbase5-private-dev \
           libxxf86vm-dev \
-          x11proto-xinerama-dev
+          x11proto-xinerama-dev \
+          libfuse2
       - name: "Build ${{ matrix.build_type }} Dolphin"
         if: success()
         working-directory: ${{ github.workspace }}
@@ -193,10 +169,14 @@ jobs:
           FILE_NAME=${{ env.CURR_DATE }}-${{ env.GIT_HASH }}-${{ env.GIT_TAG }}-${{ matrix.artifact_name }}.zip
           chmod +x ./*.AppImage
           zip -r "${FILE_NAME}" ./*.AppImage*
+          zip -r -j "${FILE_NAME}" ./*.AppImage*
+          pushd ./AppDir/usr/bin/
+          zip -r -u "../../../${FILE_NAME}" ./Sys
+          popd
           mv "${FILE_NAME}" ./artifact/
       - name: "Publish"
         if: success()
-        uses: actions/upload-artifact@v2-preview
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.artifact_name }}
           path: "./artifact/"
@@ -213,10 +193,10 @@ jobs:
             artifact_name: macOS-playback
             build_config: playback
     name: "macOS ${{ matrix.build_type }}"
-    runs-on: macos-10.15
+    runs-on: macos-11
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           submodules: recursive
       - name: 'Fetch Git Tags'
@@ -227,15 +207,6 @@ jobs:
           echo "GIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
           echo "GIT_TAG=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
           echo "CURR_DATE=$(date +%Y-%m-%d)" >> $GITHUB_ENV
-      - name: "Install 10.14 SDK"
-        if: success()
-        shell: bash
-        working-directory: ${{ github.workspace }}
-        run: |
-          wget https://github.com/phracker/MacOSX-SDKs/releases/download/10.15/MacOSX10.14.sdk.tar.xz
-          tar -xf MacOSX10.14.sdk.tar.xz
-          rm MacOSX10.14.sdk.tar.xz
-          sudo mv MacOSX10.14.sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/
       - name: "Download and Install prerequisites"
         if: success()
         shell: bash
@@ -244,14 +215,13 @@ jobs:
           echo "HOMEBREW_NO_AUTO_UPDATE=1" >> $GITHUB_ENV
           brew upgrade cmake
           brew install \
-          ffmpeg \
+          ffmpeg@2.8 \
           libpng \
-          libav \
           pkgconfig \
           libao \
           sound-touch \
           hidapi \
-          qt@5
+          qt@6
       - name: "Build ${{ matrix.build_type }} Dolphin"
         if: success()
         shell: bash
@@ -270,7 +240,7 @@ jobs:
           mv "${FILE_NAME}" ../../artifact/
       - name: "Publish"
         if: success()
-        uses: actions/upload-artifact@v2-preview
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.artifact_name }}
           path: "./artifact/"

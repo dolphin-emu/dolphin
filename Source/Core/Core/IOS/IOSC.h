@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // Implementation of an IOSC-like API, but much simpler since we only support actual keys.
 
@@ -137,7 +136,7 @@ public:
   // More information on default handles: https://wiibrew.org/wiki/IOS/Syscalls
   enum DefaultHandle : u32
   {
-    // ECC-233 private signing key (per-console)
+    // NG private key. ECC-233 private signing key (per-console)
     HANDLE_CONSOLE_KEY = 0,
     // Console ID
     HANDLE_CONSOLE_ID = 1,
@@ -214,8 +213,8 @@ public:
   ReturnCode VerifyPublicKeySign(const std::array<u8, 20>& sha1, Handle signer_handle,
                                  const std::vector<u8>& signature, u32 pid) const;
   // Import a certificate (signed by the certificate in signer_handle) into dest_handle.
-  ReturnCode ImportCertificate(const IOS::ES::CertReader& cert, Handle signer_handle,
-                               Handle dest_handle, u32 pid);
+  ReturnCode ImportCertificate(const ES::CertReader& cert, Handle signer_handle, Handle dest_handle,
+                               u32 pid);
 
   // Ownership
   ReturnCode GetOwnership(Handle handle, u32* owner) const;
@@ -238,8 +237,8 @@ private:
     void DoState(PointerWrap& p);
 
     bool in_use = false;
-    ObjectType type;
-    ObjectSubType subtype;
+    ObjectType type{};
+    ObjectSubType subtype{};
     std::vector<u8> data;
     u32 misc_data = 0;
     u32 owner_mask = 0;
@@ -253,7 +252,7 @@ private:
     ExcludeRootKey,
   };
 
-  void LoadDefaultEntries(ConsoleType console_type);
+  void LoadDefaultEntries();
   void LoadEntries();
 
   KeyEntries::iterator FindFreeEntry();
@@ -266,12 +265,12 @@ private:
   ReturnCode DecryptEncrypt(Common::AES::Mode mode, Handle key_handle, u8* iv, const u8* input,
                             size_t size, u8* output, u32 pid) const;
 
+  ConsoleType m_console_type{ConsoleType::Retail};
   KeyEntries m_key_entries;
   KeyEntry m_root_key_entry;
   Common::ec::Signature m_console_signature{};
-  // Retail keyblob are issued by CA00000001. Default to 1 even though IOSC actually defaults to 2.
-  u32 m_ms_id = 2;
-  u32 m_ca_id = 1;
+  u32 m_ms_id = 0;
+  u32 m_ca_id = 0;
   u32 m_console_key_id = 0;
 };
 }  // namespace HLE

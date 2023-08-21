@@ -1,11 +1,11 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <map>
 #include "VideoBackends/D3D12/DescriptorHeapManager.h"
+#include "VideoCommon/Constants.h"
 
 namespace DX12
 {
@@ -35,8 +35,7 @@ protected:
 
 struct SamplerStateSet final
 {
-  static const u32 NUM_SAMPLERS_PER_GROUP = 8;
-  SamplerState states[NUM_SAMPLERS_PER_GROUP];
+  SamplerState states[VideoCommon::MAX_PIXEL_SHADER_SAMPLERS];
 };
 
 bool operator==(const SamplerStateSet& lhs, const SamplerStateSet& rhs);

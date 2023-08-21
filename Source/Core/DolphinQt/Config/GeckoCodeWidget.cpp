@@ -1,8 +1,9 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Config/GeckoCodeWidget.h"
+
+#include <utility>
 
 #include <QCursor>
 #include <QFontDatabase>
@@ -25,24 +26,29 @@
 #include "DolphinQt/Config/CheatCodeEditor.h"
 #include "DolphinQt/Config/CheatWarningWidget.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 
 #include "UICommon/GameFile.h"
 
-GeckoCodeWidget::GeckoCodeWidget(const UICommon::GameFile& game, bool restart_required)
-    : m_game(game), m_game_id(game.GetGameID()), m_gametdb_id(game.GetGameTDBID()),
-      m_game_revision(game.GetRevision()), m_restart_required(restart_required)
+GeckoCodeWidget::GeckoCodeWidget(std::string game_id, std::string gametdb_id, u16 game_revision,
+                                 bool restart_required)
+    : m_game_id(std::move(game_id)), m_gametdb_id(std::move(gametdb_id)),
+      m_game_revision(game_revision), m_restart_required(restart_required)
 {
   CreateWidgets();
   ConnectWidgets();
 
-  IniFile game_ini_local;
+  if (!m_game_id.empty())
+  {
+    IniFile game_ini_local;
 
-  // We don't use LoadLocalGameIni() here because user cheat codes that are installed via the UI
-  // will always be stored in GS/${GAMEID}.ini
-  game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
+    // We don't use LoadLocalGameIni() here because user cheat codes that are installed via the UI
+    // will always be stored in GS/${GAMEID}.ini
+    game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
 
-  const IniFile game_ini_default = SConfig::LoadDefaultGameIni(m_game_id, m_game_revision);
-  m_gecko_codes = Gecko::LoadCodes(game_ini_default, game_ini_local);
+    const IniFile game_ini_default = SConfig::LoadDefaultGameIni(m_game_id, m_game_revision);
+    m_gecko_codes = Gecko::LoadCodes(game_ini_default, game_ini_local);
+  }
 
   UpdateList();
 }
@@ -72,14 +78,17 @@ void GeckoCodeWidget::CreateWidgets()
   m_code_view->setReadOnly(true);
   m_code_view->setFixedHeight(line_height * 10);
 
-  m_add_code = new QPushButton(tr("&Add New Code..."));
-  m_edit_code = new QPushButton(tr("&Edit Code..."));
-  m_remove_code = new QPushButton(tr("&Remove Code"));
-  m_download_codes = new QPushButton(tr("Download Codes"));
+  m_add_code = new NonDefaultQPushButton(tr("&Add New Code..."));
+  m_edit_code = new NonDefaultQPushButton(tr("&Edit Code..."));
+  m_remove_code = new NonDefaultQPushButton(tr("&Remove Code"));
 
-  m_download_codes->setToolTip(tr("Download Codes from the WiiRD Database"));
+  m_code_list->setEnabled(!m_game_id.empty());
+  m_name_label->setEnabled(!m_game_id.empty());
+  m_creator_label->setEnabled(!m_game_id.empty());
+  m_code_description->setEnabled(!m_game_id.empty());
+  m_code_view->setEnabled(!m_game_id.empty());
 
-  m_download_codes->setEnabled(!m_game_id.empty());
+  m_add_code->setEnabled(!m_game_id.empty());
   m_edit_code->setEnabled(false);
   m_remove_code->setEnabled(false);
 
@@ -111,7 +120,6 @@ void GeckoCodeWidget::CreateWidgets()
   btn_layout->addWidget(m_add_code);
   btn_layout->addWidget(m_edit_code);
   btn_layout->addWidget(m_remove_code);
-  btn_layout->addWidget(m_download_codes);
 
   layout->addLayout(btn_layout);
 
@@ -131,7 +139,6 @@ void GeckoCodeWidget::ConnectWidgets()
   connect(m_add_code, &QPushButton::clicked, this, &GeckoCodeWidget::AddCode);
   connect(m_remove_code, &QPushButton::clicked, this, &GeckoCodeWidget::RemoveCode);
   connect(m_edit_code, &QPushButton::clicked, this, &GeckoCodeWidget::EditCode);
-  connect(m_download_codes, &QPushButton::clicked, this, &GeckoCodeWidget::DownloadCodes);
   connect(m_warning, &CheatWarningWidget::OpenCheatEnableSettings, this,
           &GeckoCodeWidget::OpenGeneralSettings);
 }
@@ -165,11 +172,7 @@ void GeckoCodeWidget::OnSelectionChanged()
   m_code_view->clear();
 
   for (const auto& c : code.codes)
-  {
-    m_code_view->append(QStringLiteral("%1 %2")
-                            .arg(c.address, 8, 16, QLatin1Char('0'))
-                            .arg(c.data, 8, 16, QLatin1Char('0')));
-  }
+    m_code_view->append(QString::fromStdString(c.original_line));
 }
 
 void GeckoCodeWidget::OnItemChanged(QListWidgetItem* item)
@@ -230,6 +233,9 @@ void GeckoCodeWidget::RemoveCode()
 
 void GeckoCodeWidget::SaveCodes()
 {
+  if (m_game_id.empty())
+    return;
+
   const auto ini_path =
       std::string(File::GetUserPath(D_GAMESETTINGS_IDX)).append(m_game_id).append(".ini");
 
@@ -294,44 +300,4 @@ void GeckoCodeWidget::UpdateList()
   }
 
   m_code_list->setDragDropMode(QAbstractItemView::InternalMove);
-}
-
-void GeckoCodeWidget::DownloadCodes()
-{
-  bool success;
-
-  std::vector<Gecko::GeckoCode> codes = Gecko::DownloadCodes(m_gametdb_id, &success);
-
-  if (!success)
-  {
-    ModalMessageBox::critical(this, tr("Error"), tr("Failed to download codes."));
-    return;
-  }
-
-  if (codes.empty())
-  {
-    ModalMessageBox::critical(this, tr("Error"), tr("File contained no codes."));
-    return;
-  }
-
-  size_t added_count = 0;
-
-  for (const auto& code : codes)
-  {
-    auto it = std::find(m_gecko_codes.begin(), m_gecko_codes.end(), code);
-
-    if (it == m_gecko_codes.end())
-    {
-      m_gecko_codes.push_back(code);
-      added_count++;
-    }
-  }
-
-  UpdateList();
-  SaveCodes();
-
-  ModalMessageBox::information(
-      this, tr("Download complete"),
-      tr("Downloaded %1 codes. (added %2)")
-          .arg(QString::number(codes.size()), QString::number(added_count)));
 }

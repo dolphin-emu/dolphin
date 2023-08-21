@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/ResourcePackManager.h"
 
@@ -14,6 +13,7 @@
 
 #include "Common/FileUtil.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "UICommon/ResourcePack/Manager.h"
 
 ResourcePackManager::ResourcePackManager(QWidget* widget) : QDialog(widget)
@@ -35,12 +35,12 @@ void ResourcePackManager::CreateWidgets()
   m_table_widget = new QTableWidget;
   m_table_widget->setTabKeyNavigation(false);
 
-  m_open_directory_button = new QPushButton(tr("Open Directory..."));
-  m_change_button = new QPushButton(tr("Install"));
-  m_remove_button = new QPushButton(tr("Remove"));
-  m_refresh_button = new QPushButton(tr("Refresh"));
-  m_priority_up_button = new QPushButton(tr("Up"));
-  m_priority_down_button = new QPushButton(tr("Down"));
+  m_open_directory_button = new NonDefaultQPushButton(tr("Open Directory..."));
+  m_change_button = new NonDefaultQPushButton(tr("Install"));
+  m_remove_button = new NonDefaultQPushButton(tr("Remove"));
+  m_refresh_button = new NonDefaultQPushButton(tr("Refresh"));
+  m_priority_up_button = new NonDefaultQPushButton(tr("Up"));
+  m_priority_down_button = new NonDefaultQPushButton(tr("Down"));
 
   auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok);
 
@@ -109,13 +109,14 @@ void ResourcePackManager::RepopulateTable()
   for (int i = 0; i < size; i++)
   {
     const auto& pack = ResourcePack::GetPacks()[size - 1 - i];
-    auto* manifest = pack.GetManifest();
+    const auto* manifest = pack.GetManifest();
+    const auto& authors = manifest->GetAuthors();
 
     auto* logo_item = new QTableWidgetItem;
     auto* name_item = new QTableWidgetItem(QString::fromStdString(manifest->GetName()));
     auto* version_item = new QTableWidgetItem(QString::fromStdString(manifest->GetVersion()));
-    auto* author_item = new QTableWidgetItem(
-        QString::fromStdString(manifest->GetAuthors().value_or("Unknown author")));
+    auto* author_item =
+        new QTableWidgetItem(authors ? QString::fromStdString(*authors) : tr("Unknown author"));
     auto* description_item =
         new QTableWidgetItem(QString::fromStdString(manifest->GetDescription().value_or("")));
     auto* website_item =

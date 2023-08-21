@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // Modified code taken from libogc
 /*-------------------------------------------------------------
@@ -35,8 +34,15 @@ distribution.
 #pragma once
 
 #include <array>
+#include <string>
+
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
+
+namespace ExpansionInterface
+{
+enum class Slot : int;
+};
 
 using CardFlashId = std::array<u8, 12>;
 
@@ -116,9 +122,9 @@ struct SramSettingsEx
 
 struct Sram
 {
-  Common::BigEndianValue<u32> rtc;
-  SramSettings settings;
-  SramSettingsEx settings_ex;
+  Common::BigEndianValue<u32> rtc{};
+  SramSettings settings{};
+  SramSettingsEx settings_ex{};
   // Allow access to this entire structure as a raw blob
   // Typical union-with-byte-array method can't be used here on GCC
   u8& operator[](size_t offset) { return reinterpret_cast<u8*>(&rtc)[offset]; }
@@ -128,9 +134,6 @@ static_assert(sizeof(Sram) == 0x44);
 
 #pragma pack(pop)
 
-void InitSRAM();
-void SetCardFlashID(const u8* buffer, u8 card_index);
-void FixSRAMChecksums();
-
-extern Sram g_SRAM;
-extern bool g_SRAM_netplay_initialized;
+void InitSRAM(Sram* sram, const std::string& filename);
+void SetCardFlashID(Sram* sram, const u8* buffer, ExpansionInterface::Slot card_slot);
+void FixSRAMChecksums(Sram* sram);

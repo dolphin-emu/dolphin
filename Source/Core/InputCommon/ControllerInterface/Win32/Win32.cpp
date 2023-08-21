@@ -1,149 +1,108 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "InputCommon/ControllerInterface/Win32/Win32.h"
 
-#include <windows.h>
+#include <Windows.h>
+#include <cfgmgr32.h>
+// must be before hidclass
+#include <initguid.h>
 
-#include <array>
-#include <future>
-#include <thread>
+#include <hidclass.h>
 
-#include "Common/Event.h"
+#include <mutex>
+
+#include "Common/Flag.h"
 #include "Common/Logging/Log.h"
-#include "Common/ScopeGuard.h"
-#include "Common/Thread.h"
 #include "InputCommon/ControllerInterface/DInput/DInput.h"
+#include "InputCommon/ControllerInterface/WGInput/WGInput.h"
 #include "InputCommon/ControllerInterface/XInput/XInput.h"
 
-constexpr UINT WM_DOLPHIN_STOP = WM_USER;
+#pragma comment(lib, "OneCoreUAP.Lib")
 
-static Common::Event s_done_populating;
-static std::atomic<HWND> s_hwnd;
-static HWND s_message_window;
-static std::thread s_thread;
+// Dolphin's render window
+static HWND s_hwnd;
+static std::mutex s_populate_mutex;
+// TODO is this really needed?
+static Common::Flag s_first_populate_devices_asked;
+static HCMNOTIFICATION s_notify_handle;
 
-static LRESULT CALLBACK WindowProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
+_Pre_satisfies_(EventDataSize >= sizeof(CM_NOTIFY_EVENT_DATA)) static DWORD CALLBACK
+    OnDevicesChanged(_In_ HCMNOTIFICATION hNotify, _In_opt_ PVOID Context,
+                     _In_ CM_NOTIFY_ACTION Action,
+                     _In_reads_bytes_(EventDataSize) PCM_NOTIFY_EVENT_DATA EventData,
+                     _In_ DWORD EventDataSize)
 {
-  if (message == WM_INPUT_DEVICE_CHANGE)
+  if (Action == CM_NOTIFY_ACTION_DEVICEINTERFACEARRIVAL ||
+      Action == CM_NOTIFY_ACTION_DEVICEINTERFACEREMOVAL)
   {
-    ciface::DInput::PopulateDevices(s_hwnd);
-    ciface::XInput::PopulateDevices();
-    s_done_populating.Set();
+    // Windows automatically sends this message before we ask for it and before we are "ready" to
+    // listen for it.
+    if (s_first_populate_devices_asked.IsSet())
+    {
+      std::lock_guard lk_population(s_populate_mutex);
+      // TODO: we could easily use the message passed alongside this event, which tells
+      // whether a device was added or removed, to avoid removing old, still connected, devices
+      g_controller_interface.PlatformPopulateDevices([] {
+        ciface::DInput::PopulateDevices(s_hwnd);
+        ciface::XInput::PopulateDevices();
+      });
+    }
   }
-
-  return DefWindowProc(hwnd, message, wparam, lparam);
+  return ERROR_SUCCESS;
 }
 
 void ciface::Win32::Init(void* hwnd)
 {
   s_hwnd = static_cast<HWND>(hwnd);
+
   XInput::Init();
+  WGInput::Init();
 
-  std::promise<HWND> message_window_promise;
-
-  s_thread = std::thread([&message_window_promise] {
-    Common::SetCurrentThreadName("ciface::Win32 Message Loop");
-
-    HWND message_window = nullptr;
-    Common::ScopeGuard promise_guard([&] { message_window_promise.set_value(message_window); });
-
-    if (FAILED(CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED)))
-    {
-      ERROR_LOG_FMT(SERIALINTERFACE, "CoInitializeEx failed: {}", GetLastError());
-      return;
-    }
-    Common::ScopeGuard uninit([] { CoUninitialize(); });
-
-    WNDCLASSEX window_class_info{};
-    window_class_info.cbSize = sizeof(window_class_info);
-    window_class_info.lpfnWndProc = WindowProc;
-    window_class_info.hInstance = GetModuleHandle(nullptr);
-    window_class_info.lpszClassName = L"Message";
-
-    ATOM window_class = RegisterClassEx(&window_class_info);
-    if (!window_class)
-    {
-      NOTICE_LOG_FMT(SERIALINTERFACE, "RegisterClassEx failed: {}", GetLastError());
-      return;
-    }
-    Common::ScopeGuard unregister([&window_class] {
-      if (!UnregisterClass(MAKEINTATOM(window_class), GetModuleHandle(nullptr)))
-        ERROR_LOG_FMT(SERIALINTERFACE, "UnregisterClass failed: {}", GetLastError());
-    });
-
-    message_window = CreateWindowEx(0, L"Message", nullptr, 0, 0, 0, 0, 0, HWND_MESSAGE, nullptr,
-                                    nullptr, nullptr);
-    promise_guard.Exit();
-    if (!message_window)
-    {
-      ERROR_LOG_FMT(SERIALINTERFACE, "CreateWindowEx failed: {}", GetLastError());
-      return;
-    }
-    Common::ScopeGuard destroy([&] {
-      if (!DestroyWindow(message_window))
-        ERROR_LOG_FMT(SERIALINTERFACE, "DestroyWindow failed: {}", GetLastError());
-    });
-
-    std::array<RAWINPUTDEVICE, 2> devices;
-    // game pad devices
-    devices[0].usUsagePage = 0x01;
-    devices[0].usUsage = 0x05;
-    devices[0].dwFlags = RIDEV_DEVNOTIFY;
-    devices[0].hwndTarget = message_window;
-    // joystick devices
-    devices[1].usUsagePage = 0x01;
-    devices[1].usUsage = 0x04;
-    devices[1].dwFlags = RIDEV_DEVNOTIFY;
-    devices[1].hwndTarget = message_window;
-
-    if (!RegisterRawInputDevices(devices.data(), static_cast<UINT>(devices.size()),
-                                 static_cast<UINT>(sizeof(decltype(devices)::value_type))))
-    {
-      ERROR_LOG_FMT(SERIALINTERFACE, "RegisterRawInputDevices failed: {}", GetLastError());
-      return;
-    }
-
-    MSG msg;
-    while (GetMessage(&msg, nullptr, 0, 0) > 0)
-    {
-      TranslateMessage(&msg);
-      DispatchMessage(&msg);
-      if (msg.message == WM_DOLPHIN_STOP)
-        break;
-    }
-  });
-
-  s_message_window = message_window_promise.get_future().get();
+  CM_NOTIFY_FILTER notify_filter{.cbSize = sizeof(notify_filter),
+                                 .FilterType = CM_NOTIFY_FILTER_TYPE_DEVICEINTERFACE,
+                                 .u{.DeviceInterface{.ClassGuid = GUID_DEVINTERFACE_HID}}};
+  const CONFIGRET cfg_rv =
+      CM_Register_Notification(&notify_filter, nullptr, OnDevicesChanged, &s_notify_handle);
+  if (cfg_rv != CR_SUCCESS)
+  {
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "CM_Register_Notification failed: {:x}", cfg_rv);
+  }
 }
 
 void ciface::Win32::PopulateDevices(void* hwnd)
 {
-  if (s_thread.joinable())
-  {
-    s_hwnd = static_cast<HWND>(hwnd);
-    s_done_populating.Reset();
-    PostMessage(s_message_window, WM_INPUT_DEVICE_CHANGE, 0, 0);
-    if (!s_done_populating.WaitFor(std::chrono::seconds(10)))
-      ERROR_LOG_FMT(SERIALINTERFACE, "win32 timed out when trying to populate devices");
-  }
-  else
-  {
-    ERROR_LOG_FMT(SERIALINTERFACE,
-                  "win32 asked to populate devices, but device thread isn't running");
-  }
+  s_hwnd = static_cast<HWND>(hwnd);
+  std::lock_guard lk_population(s_populate_mutex);
+  s_first_populate_devices_asked.Set();
+  ciface::DInput::PopulateDevices(s_hwnd);
+  ciface::XInput::PopulateDevices();
+  ciface::WGInput::PopulateDevices();
+}
+
+void ciface::Win32::ChangeWindow(void* hwnd)
+{
+  s_hwnd = static_cast<HWND>(hwnd);
+  std::lock_guard lk_population(s_populate_mutex);
+  ciface::DInput::ChangeWindow(s_hwnd);
 }
 
 void ciface::Win32::DeInit()
 {
-  NOTICE_LOG_FMT(SERIALINTERFACE, "win32 DeInit");
-  if (s_thread.joinable())
+  s_first_populate_devices_asked.Clear();
+  DInput::DeInit();
+  s_hwnd = nullptr;
+
+  if (s_notify_handle)
   {
-    PostMessage(s_message_window, WM_DOLPHIN_STOP, 0, 0);
-    s_thread.join();
-    s_message_window = nullptr;
+    const CONFIGRET cfg_rv = CM_Unregister_Notification(s_notify_handle);
+    if (cfg_rv != CR_SUCCESS)
+    {
+      ERROR_LOG_FMT(CONTROLLERINTERFACE, "CM_Unregister_Notification failed: {:x}", cfg_rv);
+    }
+    s_notify_handle = nullptr;
   }
 
   XInput::DeInit();
+  WGInput::DeInit();
 }
