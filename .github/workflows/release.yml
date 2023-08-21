@@ -23,9 +23,9 @@ jobs:
           rm -rf *playback*
           find ./ -mindepth 2 -type f -exec mv -t ./ -i '{}' +
           find . -type d -empty -delete
-          unzip *linux* && rm -rf Sys && mv *linux* "FM-Slippi-${{ env.VERSION }}-Linux.zip"
-          mv *.dmg "FM-Slippi-${{ env.VERSION }}-Mac.dmg"
-          mv *windows* "FM-Slippi-${{ env.VERSION }}-Win.zip"
+          unzip *linux* && rm -rf Sys && mv *linux* "Mainline-Slippi-${{ env.VERSION }}-Linux.zip"
+          mv *.dmg "Mainline-Slippi-${{ env.VERSION }}-Mac.dmg"
+          mv *windows* "Mainline-Slippi-${{ env.VERSION }}-Win.zip"
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
         with:
