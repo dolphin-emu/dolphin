@@ -163,7 +163,7 @@ CEXISlippi::CEXISlippi(Core::System& system, const std::string current_file_name
   local_selections.Reset();
 
   // Forces savestate to re-init regions when a new ISO is loaded
-  SlippiSavestate::shouldForceInit = true;
+  SlippiSavestate::should_force_init = true;
 
   // Update user file and then listen for User
 #ifndef IS_PLAYBACK
