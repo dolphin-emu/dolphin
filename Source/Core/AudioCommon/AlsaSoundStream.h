@@ -30,11 +30,8 @@ public:
 private:
   void SoundLoop();
 
-  // minimum number of frames to deliver in one transfer
-  static constexpr u32 FRAME_COUNT_MIN = 64;
-
-  // number of channels per frame
-  static constexpr u32 CHANNEL_COUNT = 2;
+  // target number of frames to deliver in one transfer
+  static constexpr u32 FRAME_COUNT_MIN = 96;
 
   enum class ALSAThreadStatus
   {
@@ -52,8 +49,9 @@ private:
   std::condition_variable cv;
   std::mutex cv_m;
 
-  snd_pcm_t* handle;
+  snd_pcm_t* m_handle;
   bool m_stereo;
-  unsigned int frames_to_deliver;
+  snd_pcm_uframes_t m_period_size;
+  snd_pcm_uframes_t m_buffer_size;
 #endif
 };

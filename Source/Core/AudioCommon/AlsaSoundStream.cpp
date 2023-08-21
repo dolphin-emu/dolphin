@@ -11,8 +11,7 @@
 #include "Core/Config/MainSettings.h"
 
 AlsaSound::AlsaSound()
-    : m_thread_status(ALSAThreadStatus::STOPPED), handle(nullptr),
-      frames_to_deliver(FRAME_COUNT_MIN)
+    : m_thread_status(ALSAThreadStatus::STOPPED), m_handle(nullptr), m_period_size(FRAME_COUNT_MIN)
 {
 }
 
@@ -49,68 +48,134 @@ void AlsaSound::SoundLoop()
   Common::SetCurrentThreadName("Audio thread - alsa");
   while (m_thread_status.load() != ALSAThreadStatus::STOPPING)
   {
+    int err;
+    const snd_pcm_channel_area_t* areas;
+    snd_pcm_uframes_t frames;
+    snd_pcm_uframes_t offset;
+    snd_pcm_uframes_t avail;
+    snd_pcm_uframes_t size;
+    snd_pcm_state_t state;
+
     while (m_thread_status.load() == ALSAThreadStatus::RUNNING)
     {
-      int rc;
-      const snd_pcm_channel_area_t* areas;
-      snd_pcm_uframes_t frames;
-      snd_pcm_uframes_t offset;
-      snd_pcm_uframes_t avail;
-      snd_pcm_state_t state;
-      avail = snd_pcm_avail(handle);
-      frames = avail;
-      rc = snd_pcm_mmap_begin(handle, &areas, &offset, &frames);
-      if (rc == -EPIPE)
-      {
-        WARN_LOG_FMT(AUDIO, "Underrun");
-        snd_pcm_prepare(handle);
-      }
-      else if (rc < 0)
-      {
-        WARN_LOG_FMT(AUDIO, "Mmap begin error: {}", snd_strerror(rc));
-      }
-      if (m_stereo)
-      {
-        s16* buf;
-        buf = reinterpret_cast<s16*>(areas[0].addr) + (offset * 2);
-        m_mixer->Mix(buf, frames);
-      }
-      else
-      {
-        float* buf;
-        buf = reinterpret_cast<float*>(areas[0].addr) + (offset * 6);
-        m_mixer->MixSurround(buf, frames);
-      }
-      rc = snd_pcm_mmap_commit(handle, offset, frames);
-      if (rc < 0)
-      {
-        WARN_LOG_FMT(AUDIO, "Mmap commit error: {}", snd_strerror(rc));
-      }
-
-      state = snd_pcm_state(handle);
+      state = snd_pcm_state(m_handle);
       switch (state)
       {
-      case SND_PCM_STATE_SETUP:
-      case SND_PCM_STATE_PREPARED:
-        snd_pcm_start(handle);
-        break;
       case SND_PCM_STATE_XRUN:
         WARN_LOG_FMT(AUDIO, "Underrun");
-        snd_pcm_prepare(handle);
+        err = snd_pcm_prepare(m_handle);
+        if (err < 0)
+        {
+          ERROR_LOG_FMT(AUDIO, "Underrun recovery failed: {}", snd_strerror(err));
+          return;
+        }
+        break;
+      case SND_PCM_STATE_SUSPENDED:
+        while ((err = snd_pcm_resume(m_handle)) == -EAGAIN)
+        {
+        }
+        if (err < 0)
+        {
+          err = snd_pcm_prepare(m_handle);
+          if (err < 0)
+          {
+            ERROR_LOG_FMT(AUDIO, "Suspend recovery failed: {}", snd_strerror(err));
+            return;
+          }
+        }
         break;
       default:
         break;
       }
+
+      avail = snd_pcm_avail_update(m_handle);
+      // Only write when we can fill the next period
+      if (avail < m_buffer_size - m_period_size)
+      {
+        continue;
+      }
+
+      size = m_period_size;
+      while (size > 0)
+      {
+        frames = size;
+        err = snd_pcm_mmap_begin(m_handle, &areas, &offset, &frames);
+        if (err == -EPIPE)
+        {
+          WARN_LOG_FMT(AUDIO, "Underrun");
+          err = snd_pcm_prepare(m_handle);
+          if (err < 0)
+          {
+            ERROR_LOG_FMT(AUDIO, "Prepare error: {}", snd_strerror(err));
+            return;
+          }
+          break;
+        }
+        else if (err < 0)
+        {
+          ERROR_LOG_FMT(AUDIO, "Mmap begin error: {}", snd_strerror(err));
+          break;
+        }
+
+        if (m_stereo)
+        {
+          s16* buf;
+          buf = reinterpret_cast<s16*>(areas[0].addr) + offset * 2;
+          m_mixer->Mix(buf, frames);
+        }
+        else
+        {
+          float* buf;
+          buf = reinterpret_cast<float*>(areas[0].addr) + offset * 6;
+          m_mixer->MixSurround(buf, frames);
+        }
+
+        err = snd_pcm_mmap_commit(m_handle, offset, frames);
+        if (err == -EPIPE)
+        {
+          WARN_LOG_FMT(AUDIO, "Underrun");
+          snd_pcm_prepare(m_handle);
+          if (err < 0)
+          {
+            ERROR_LOG_FMT(AUDIO, "Prepare error: {}", snd_strerror(err));
+            return;
+          }
+        }
+        else if (err < 0)
+        {
+          ERROR_LOG_FMT(AUDIO, "Mmap commit error: {}", snd_strerror(err));
+          return;
+        }
+        if (err != frames)
+        {
+          WARN_LOG_FMT(AUDIO, "Short write ({}/{})", err, frames);
+        }
+
+        size -= frames;
+      }
+
+      state = snd_pcm_state(m_handle);
+      if (state == SND_PCM_STATE_SETUP || state == SND_PCM_STATE_PREPARED)
+      {
+        err = snd_pcm_start(m_handle);
+        if (err < 0)
+        {
+          ERROR_LOG_FMT(AUDIO, "Could not start PCM: {}", snd_strerror(err));
+          return;
+        }
+      }
     }
     if (m_thread_status.load() == ALSAThreadStatus::PAUSED)
     {
-      snd_pcm_drop(handle);  // Stop sound output
+      // Stop sound output
+      snd_pcm_drop(m_handle);
 
       // Block until thread status changes.
       std::unique_lock<std::mutex> lock(cv_m);
       cv.wait(lock, [this] { return m_thread_status.load() != ALSAThreadStatus::PAUSED; });
 
-      snd_pcm_prepare(handle);  // resume sound output
+      // Resume sound output
+      snd_pcm_prepare(m_handle);
     }
   }
   AlsaShutdown();
@@ -133,23 +198,24 @@ bool AlsaSound::AlsaInit()
 {
   int err;
   int dir;
-  // snd_pcm_sw_params_t* sw_params;
   snd_pcm_hw_params_t* hw_params;
+  const char* device;
   snd_pcm_format_t format;
   unsigned int channels;
   unsigned int sample_rate;
-  snd_pcm_uframes_t period_size;
-  snd_pcm_uframes_t buffer_size;
   unsigned int periods;
+
+  m_period_size = FRAME_COUNT_MIN;
+  sample_rate = m_mixer->GetSampleRate();
 
   m_stereo = !Config::ShouldUseDPL2Decoder();
   channels = m_stereo ? 2 : 6;
-  sample_rate = m_mixer->GetSampleRate();
   format = m_stereo ? SND_PCM_FORMAT_S16 : SND_PCM_FORMAT_FLOAT;
-  period_size = FRAME_COUNT_MIN;
-  periods = 2;
+  // Enable automatic format conversion for surround since soundcards don't
+  // usually support float format
+  device = m_stereo ? "default" : "plug:default";
 
-  err = snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK, 0);
+  err = snd_pcm_open(&m_handle, device, SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK);
   if (err < 0)
   {
     ERROR_LOG_FMT(AUDIO, "Audio open error: {}", snd_strerror(err));
@@ -158,21 +224,21 @@ bool AlsaSound::AlsaInit()
 
   snd_pcm_hw_params_alloca(&hw_params);
 
-  err = snd_pcm_hw_params_any(handle, hw_params);
+  err = snd_pcm_hw_params_any(m_handle, hw_params);
   if (err < 0)
   {
     ERROR_LOG_FMT(AUDIO, "Broken configuration for this PCM: {}", snd_strerror(err));
     return false;
   }
 
-  err = snd_pcm_hw_params_set_access(handle, hw_params, SND_PCM_ACCESS_MMAP_INTERLEAVED);
+  err = snd_pcm_hw_params_set_access(m_handle, hw_params, SND_PCM_ACCESS_MMAP_INTERLEAVED);
   if (err < 0)
   {
     ERROR_LOG_FMT(AUDIO, "Access type not available: {}", snd_strerror(err));
     return false;
   }
 
-  err = snd_pcm_hw_params_set_format(handle, hw_params, format);
+  err = snd_pcm_hw_params_set_format(m_handle, hw_params, format);
   if (err < 0)
   {
     ERROR_LOG_FMT(AUDIO, "Sample format not available: {}", snd_strerror(err));
@@ -180,14 +246,14 @@ bool AlsaSound::AlsaInit()
   }
 
   dir = 0;
-  err = snd_pcm_hw_params_set_rate(handle, hw_params, sample_rate, dir);
+  err = snd_pcm_hw_params_set_rate(m_handle, hw_params, sample_rate, dir);
   if (err < 0)
   {
     ERROR_LOG_FMT(AUDIO, "Rate not available: {}", snd_strerror(err));
     return false;
   }
 
-  err = snd_pcm_hw_params_set_channels(handle, hw_params, channels);
+  err = snd_pcm_hw_params_set_channels(m_handle, hw_params, channels);
   if (err < 0)
   {
     ERROR_LOG_FMT(AUDIO, "Channel count not available: {}", snd_strerror(err));
@@ -195,63 +261,36 @@ bool AlsaSound::AlsaInit()
   }
 
   dir = 0;
-  err = snd_pcm_hw_params_set_period_size(handle, hw_params, period_size, dir);
+  err = snd_pcm_hw_params_set_period_size_near(m_handle, hw_params, &m_period_size, &dir);
   if (err < 0)
   {
     ERROR_LOG_FMT(AUDIO, "Cannot set period size: {}", snd_strerror(err));
     return false;
   }
 
-  err = snd_pcm_hw_params_set_periods(handle, hw_params, periods, 0);
+  dir = 0;
+  err = snd_pcm_hw_params_set_periods_last(m_handle, hw_params, &periods, &dir);
   if (err < 0)
   {
     ERROR_LOG_FMT(AUDIO, "Cannot set period count: {}", snd_strerror(err));
     return false;
   }
 
-  err = snd_pcm_hw_params(handle, hw_params);
+  err = snd_pcm_hw_params(m_handle, hw_params);
   if (err < 0)
   {
     ERROR_LOG_FMT(AUDIO, "Unable to install hw params: {}", snd_strerror(err));
     return false;
   }
 
-  // periods is the number of fragments alsa can wait for during one
-  // buffer_size
-  frames_to_deliver = period_size;
-  buffer_size = periods * period_size;
+  m_buffer_size = periods * m_period_size;
 
   NOTICE_LOG_FMT(AUDIO,
                  "ALSA gave us a {} sample \"hardware\" buffer with {} periods. Will send {} "
                  "samples per fragments.",
-                 buffer_size, periods, frames_to_deliver);
+                 m_buffer_size, periods, m_period_size);
 
-  /*
-  snd_pcm_sw_params_alloca(&sw_params);
-
-  err = snd_pcm_sw_params_current(handle, sw_params);
-  if (err < 0)
-  {
-    ERROR_LOG_FMT(AUDIO, "cannot init sw params: {}", snd_strerror(err));
-    return false;
-  }
-
-  err = snd_pcm_sw_params_set_start_threshold(handle, sw_params, 0U);
-  if (err < 0)
-  {
-    ERROR_LOG_FMT(AUDIO, "cannot set start thresh: {}", snd_strerror(err));
-    return false;
-  }
-
-  err = snd_pcm_sw_params(handle, sw_params);
-  if (err < 0)
-  {
-    ERROR_LOG_FMT(AUDIO, "cannot set sw params: {}", snd_strerror(err));
-    return false;
-  }
-  */
-
-  err = snd_pcm_prepare(handle);
+  err = snd_pcm_prepare(m_handle);
   if (err < 0)
   {
     ERROR_LOG_FMT(AUDIO, "Unable to prepare: {}", snd_strerror(err));
@@ -263,10 +302,10 @@ bool AlsaSound::AlsaInit()
 
 void AlsaSound::AlsaShutdown()
 {
-  if (handle != nullptr)
+  if (m_handle != nullptr)
   {
-    snd_pcm_drop(handle);
-    snd_pcm_close(handle);
-    handle = nullptr;
+    snd_pcm_drop(m_handle);
+    snd_pcm_close(m_handle);
+    m_handle = nullptr;
   }
 }
