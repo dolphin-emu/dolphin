@@ -146,7 +146,7 @@ void AlsaSound::SoundLoop()
           ERROR_LOG_FMT(AUDIO, "Mmap commit error: {}", snd_strerror(err));
           return;
         }
-        if (err != frames)
+        if (static_cast<snd_pcm_uframes_t>(err) != frames)
         {
           WARN_LOG_FMT(AUDIO, "Short write ({}/{})", err, frames);
         }
