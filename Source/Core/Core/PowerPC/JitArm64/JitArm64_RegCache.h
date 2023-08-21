@@ -25,10 +25,23 @@ constexpr Arm64Gen::ARM64Reg PPC_REG = Arm64Gen::ARM64Reg::X29;
 // PC register when calling the dispatcher
 constexpr Arm64Gen::ARM64Reg DISPATCHER_PC = Arm64Gen::ARM64Reg::W26;
 
+#ifdef __GNUC__
+#define PPCSTATE_OFF(elem)                                                                         \
+  ([]() consteval {                                                                                \
+    _Pragma("GCC diagnostic push")                                                                 \
+        _Pragma("GCC diagnostic ignored \"-Winvalid-offsetof\"") return offsetof(                  \
+            PowerPC::PowerPCState, elem);                                                          \
+    _Pragma("GCC diagnostic pop")                                                                  \
+  }())
+
+#define PPCSTATE_OFF_ARRAY(elem, i)                                                                \
+  (PPCSTATE_OFF(elem[0]) + sizeof(PowerPC::PowerPCState::elem[0]) * (i))
+#else
 #define PPCSTATE_OFF(elem) (offsetof(PowerPC::PowerPCState, elem))
 
 #define PPCSTATE_OFF_ARRAY(elem, i)                                                                \
   (offsetof(PowerPC::PowerPCState, elem[0]) + sizeof(PowerPC::PowerPCState::elem[0]) * (i))
+#endif
 
 #define PPCSTATE_OFF_GPR(i) PPCSTATE_OFF_ARRAY(gpr, i)
 #define PPCSTATE_OFF_CR(i) PPCSTATE_OFF_ARRAY(cr.fields, i)
