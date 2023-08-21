@@ -50,15 +50,15 @@ private:
   void loadFile();
   std::string getReplayPath();
 
-  std::string config_file_path;
-  std::string previous_replay_loaded;
-  std::string previous_command_id;
-  int previous_idx;
+  std::string m_config_file_path;
+  std::string m_previous_replay_loaded;
+  std::string m_previous_command_id;
+  int m_previous_idx;
 
-  u64 config_last_load_mod_time;
+  u64 m_config_last_load_mod_time;
 
   // Queue stuff
-  bool queue_was_empty = true;
+  bool m_queue_was_empty = true;
 
-  CommSettings comm_file_settings;
+  CommSettings m_comm_file_settings;
 };
