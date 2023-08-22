@@ -150,7 +150,10 @@ void Jit64::ComputeRC(preg_t preg, bool needs_test, bool needs_sext)
 
   if (arg.IsImm())
   {
-    MOV(64, PPCSTATE_CR(0), Imm32(arg.SImm32()));
+    const s32 value = arg.SImm32();
+    arg.Unlock();
+    FinalizeImmediateRC(value);
+    return;
   }
   else if (needs_sext)
   {
@@ -164,31 +167,30 @@ void Jit64::ComputeRC(preg_t preg, bool needs_test, bool needs_sext)
 
   if (CheckMergedBranch(0))
   {
-    if (arg.IsImm())
+    if (needs_test)
     {
-      s32 offset = arg.SImm32();
+      TEST(32, arg, arg);
       arg.Unlock();
-      DoMergedBranchImmediate(offset);
     }
     else
     {
-      if (needs_test)
-      {
-        TEST(32, arg, arg);
-        arg.Unlock();
-      }
-      else
-      {
-        // If an operand to the cmp/rc op we're merging with the branch isn't used anymore, it'd be
-        // better to flush it here so that we don't have to flush it on both sides of the branch.
-        // We don't want to do this if a test is needed though, because it would interrupt macro-op
-        // fusion.
-        arg.Unlock();
-        gpr.Flush(~js.op->gprInUse);
-      }
-      DoMergedBranchCondition();
+      // If an operand to the cmp/rc op we're merging with the branch isn't used anymore, it'd be
+      // better to flush it here so that we don't have to flush it on both sides of the branch.
+      // We don't want to do this if a test is needed though, because it would interrupt macro-op
+      // fusion.
+      arg.Unlock();
+      gpr.Flush(~js.op->gprInUse);
     }
+    DoMergedBranchCondition();
   }
+}
+
+void Jit64::FinalizeImmediateRC(s32 value)
+{
+  MOV(64, PPCSTATE_CR(0), Imm32(value));
+
+  if (CheckMergedBranch(0))
+    DoMergedBranchImmediate(value);
 }
 
 // we can't do this optimization in the emitter because MOVZX and AND have different effects on
