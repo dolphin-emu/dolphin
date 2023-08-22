@@ -29,7 +29,8 @@ using PixelShaderUid = ShaderUid<pixel_ubershader_uid_data>;
 PixelShaderUid GetPixelShaderUid();
 
 ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
-                          const pixel_ubershader_uid_data* uid_data);
+                          const pixel_ubershader_uid_data* uid_data,
+                          const CustomPixelShaderContents& custom_details);
 
 void EnumeratePixelShaderUids(const std::function<void(const PixelShaderUid&)>& callback);
 void ClearUnusedPixelShaderUidBits(APIType api_type, const ShaderHostConfig& host_config,

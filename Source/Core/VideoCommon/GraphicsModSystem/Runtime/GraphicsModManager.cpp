@@ -13,7 +13,9 @@
 
 #include "Core/ConfigManager.h"
 
+#include "VideoCommon/Assets/DirectFilesystemAssetLibrary.h"
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsMod.h"
+#include "VideoCommon/GraphicsModSystem/Config/GraphicsModAsset.h"
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsModGroup.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionFactory.h"
 #include "VideoCommon/TextureInfo.h"
@@ -187,6 +189,8 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
 
   const auto& mods = config.GetMods();
 
+  auto filesystem_library = std::make_shared<VideoCommon::DirectFilesystemAssetLibrary>();
+
   std::map<std::string, std::vector<GraphicsTargetConfig>> group_to_targets;
   for (const auto& mod : mods)
   {
@@ -208,6 +212,29 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
         group_to_targets[internal_group].push_back(target);
       }
     }
+
+    std::string base_path;
+    SplitPath(mod.GetAbsolutePath(), &base_path, nullptr, nullptr);
+    for (const GraphicsModAssetConfig& asset : mod.m_assets)
+    {
+      auto asset_map = asset.m_map;
+      for (auto& [k, v] : asset_map)
+      {
+        if (v.is_absolute())
+        {
+          WARN_LOG_FMT(VIDEO,
+                       "Specified graphics mod asset '{}' for mod '{}' has an absolute path, you "
+                       "shouldn't release this to users.",
+                       asset.m_name, mod.m_title);
+        }
+        else
+        {
+          v = std::filesystem::path{base_path} / v;
+        }
+      }
+
+      filesystem_library->SetAssetIDMapData(asset.m_name, std::move(asset_map));
+    }
   }
 
   for (const auto& mod : mods)
@@ -215,12 +242,11 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
     for (const GraphicsModFeatureConfig& feature : mod.m_features)
     {
       const auto create_action =
-          [](const std::string_view& action_name, const picojson::value& json_data,
-             GraphicsModConfig mod_config) -> std::unique_ptr<GraphicsModAction> {
-        std::string base_path;
-        SplitPath(mod_config.GetAbsolutePath(), &base_path, nullptr, nullptr);
-
-        auto action = GraphicsModActionFactory::Create(action_name, json_data, base_path);
+          [filesystem_library](const std::string_view& action_name,
+                               const picojson::value& json_data,
+                               GraphicsModConfig mod_config) -> std::unique_ptr<GraphicsModAction> {
+        auto action =
+            GraphicsModActionFactory::Create(action_name, json_data, std::move(filesystem_library));
         if (action == nullptr)
         {
           return nullptr;

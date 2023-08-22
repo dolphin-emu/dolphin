@@ -178,6 +178,27 @@ bool GraphicsModConfig::DeserializeFromConfig(const picojson::value& value)
     }
   }
 
+  const auto& assets = value.get("assets");
+  if (assets.is<picojson::array>())
+  {
+    for (const auto& asset_val : assets.get<picojson::array>())
+    {
+      if (!asset_val.is<picojson::object>())
+      {
+        ERROR_LOG_FMT(
+            VIDEO, "Failed to load mod configuration file, specified asset is not a json object");
+        return false;
+      }
+      GraphicsModAssetConfig asset;
+      if (!asset.DeserializeFromConfig(asset_val.get<picojson::object>()))
+      {
+        return false;
+      }
+
+      m_assets.push_back(std::move(asset));
+    }
+  }
+
   return true;
 }
 
