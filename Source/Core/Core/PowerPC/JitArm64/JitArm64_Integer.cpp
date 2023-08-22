@@ -162,40 +162,16 @@ void JitArm64::FlushCarry()
   js.carryFlag = CarryFlag::InPPCState;
 }
 
-void JitArm64::reg_imm(u32 d, u32 a, u32 value, u32 (*do_op)(u32, u32),
+void JitArm64::reg_imm(u32 d, u32 a, u32 value,
                        void (ARM64XEmitter::*op)(ARM64Reg, ARM64Reg, u64, ARM64Reg), bool Rc)
 {
-  if (gpr.IsImm(a))
-  {
-    gpr.SetImmediate(d, do_op(gpr.GetImm(a), value));
-    if (Rc)
-      ComputeRC0(gpr.GetImm(d));
-  }
-  else
-  {
-    gpr.BindToRegister(d, d == a);
-    ARM64Reg WA = gpr.GetReg();
-    (this->*op)(gpr.R(d), gpr.R(a), value, WA);
-    gpr.Unlock(WA);
+  gpr.BindToRegister(d, d == a);
+  ARM64Reg WA = gpr.GetReg();
+  (this->*op)(gpr.R(d), gpr.R(a), value, WA);
+  gpr.Unlock(WA);
 
-    if (Rc)
-      ComputeRC0(gpr.R(d));
-  }
-}
-
-static constexpr u32 BitOR(u32 a, u32 b)
-{
-  return a | b;
-}
-
-static constexpr u32 BitAND(u32 a, u32 b)
-{
-  return a & b;
-}
-
-static constexpr u32 BitXOR(u32 a, u32 b)
-{
-  return a ^ b;
+  if (Rc)
+    ComputeRC0(gpr.R(d));
 }
 
 void JitArm64::arith_imm(UGeckoInstruction inst)
@@ -209,34 +185,21 @@ void JitArm64::arith_imm(UGeckoInstruction inst)
   case 24:  // ori
   case 25:  // oris
   {
-    // check for nop
-    if (a == s && inst.UIMM == 0)
-    {
-      // NOP
-      return;
-    }
-
     const u32 immediate = inst.OPCD == 24 ? inst.UIMM : inst.UIMM << 16;
-    reg_imm(a, s, immediate, BitOR, &ARM64XEmitter::ORRI2R);
+    reg_imm(a, s, immediate, &ARM64XEmitter::ORRI2R);
     break;
   }
   case 28:  // andi
-    reg_imm(a, s, inst.UIMM, BitAND, &ARM64XEmitter::ANDI2R, true);
+    reg_imm(a, s, inst.UIMM, &ARM64XEmitter::ANDI2R, true);
     break;
   case 29:  // andis
-    reg_imm(a, s, inst.UIMM << 16, BitAND, &ARM64XEmitter::ANDI2R, true);
+    reg_imm(a, s, inst.UIMM << 16, &ARM64XEmitter::ANDI2R, true);
     break;
   case 26:  // xori
   case 27:  // xoris
   {
-    if (a == s && inst.UIMM == 0)
-    {
-      // NOP
-      return;
-    }
-
     const u32 immediate = inst.OPCD == 26 ? inst.UIMM : inst.UIMM << 16;
-    reg_imm(a, s, immediate, BitXOR, &ARM64XEmitter::EORI2R);
+    reg_imm(a, s, immediate, &ARM64XEmitter::EORI2R);
     break;
   }
   }

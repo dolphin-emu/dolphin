@@ -359,7 +359,7 @@ protected:
   void LoadCarry();
   void FlushCarry();
 
-  void reg_imm(u32 d, u32 a, u32 value, u32 (*do_op)(u32, u32),
+  void reg_imm(u32 d, u32 a, u32 value,
                void (ARM64XEmitter::*op)(Arm64Gen::ARM64Reg, Arm64Gen::ARM64Reg, u64,
                                          Arm64Gen::ARM64Reg),
                bool Rc = false);
