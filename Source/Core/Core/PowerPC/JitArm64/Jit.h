@@ -16,6 +16,7 @@
 #include "Core/PowerPC/JitArm64/JitArm64Cache.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 #include "Core/PowerPC/JitArmCommon/BackPatch.h"
+#include "Core/PowerPC/JitCommon/ConstantPropagation.h"
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/PPCAnalyst.h"
@@ -371,6 +372,8 @@ protected:
   std::map<const u8*, FastmemArea> m_fault_to_handler{};
   Arm64GPRCache gpr;
   Arm64FPRCache fpr;
+
+  JitCommon::ConstantPropagation m_constant_propagation;
 
   JitArm64BlockCache blocks{*this};
 
