@@ -134,7 +134,7 @@ void AlsaSound::SoundLoop()
         if (err == -EPIPE)
         {
           WARN_LOG_FMT(AUDIO, "Underrun");
-          snd_pcm_prepare(m_handle);
+          err = snd_pcm_prepare(m_handle);
           if (err < 0)
           {
             ERROR_LOG_FMT(AUDIO, "Prepare error: {}", snd_strerror(err));
