@@ -68,6 +68,7 @@ public:
   void Clear() { m_gpr_values_known = BitSet32{}; }
 
 private:
+  ConstantPropagationResult EvaluateAddImm(UGeckoInstruction inst) const;
   ConstantPropagationResult EvaluateBitwiseImm(UGeckoInstruction inst,
                                                u32 (*do_op)(u32, u32)) const;
 

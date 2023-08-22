@@ -24,6 +24,9 @@ ConstantPropagationResult ConstantPropagation::EvaluateInstruction(UGeckoInstruc
 {
   switch (inst.OPCD)
   {
+  case 14:  // addi
+  case 15:  // addis
+    return EvaluateAddImm(inst);
   case 24:  // ori
   case 25:  // oris
     return EvaluateBitwiseImm(inst, BitOR);
@@ -36,6 +39,19 @@ ConstantPropagationResult ConstantPropagation::EvaluateInstruction(UGeckoInstruc
   default:
     return {};
   }
+}
+
+ConstantPropagationResult ConstantPropagation::EvaluateAddImm(UGeckoInstruction inst) const
+{
+  const s32 immediate = inst.OPCD & 1 ? inst.SIMM_16 << 16 : inst.SIMM_16;
+
+  if (inst.RA == 0)
+    return ConstantPropagationResult(inst.RD, immediate);
+
+  if (!HasGPR(inst.RA))
+    return {};
+
+  return ConstantPropagationResult(inst.RD, m_gpr_values[inst.RA] + immediate);
 }
 
 ConstantPropagationResult ConstantPropagation::EvaluateBitwiseImm(UGeckoInstruction inst,
