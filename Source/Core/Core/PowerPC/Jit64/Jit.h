@@ -113,6 +113,7 @@ public:
   void FinalizeCarry(Gen::CCFlags cond);
   void FinalizeCarry(bool ca);
   void ComputeRC(preg_t preg, bool needs_test = true, bool needs_sext = true);
+  void FinalizeImmediateRC(s32 value);
 
   void AndWithMask(Gen::X64Reg reg, u32 mask);
   void RotateLeft(int bits, Gen::X64Reg regOp, const Gen::OpArg& arg, u8 rotate);
