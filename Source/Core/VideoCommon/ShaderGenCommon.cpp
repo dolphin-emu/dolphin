@@ -370,13 +370,13 @@ void WriteCustomShaderStructDef(ShaderCode* out, u32 numtexgens)
   out->Write("#define CUSTOM_SHADER_API_VERSION 1;\n");
 
   // CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE "enum" values
-  out->Write("const uint CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_NONE = {};\n",
+  out->Write("const uint CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_NONE = {}u;\n",
              static_cast<u32>(AttenuationFunc::None));
-  out->Write("const uint CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_POINT = {};\n",
+  out->Write("const uint CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_POINT = {}u;\n",
              static_cast<u32>(AttenuationFunc::Spec));
-  out->Write("const uint CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_DIR = {};\n",
+  out->Write("const uint CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_DIR = {}u;\n",
              static_cast<u32>(AttenuationFunc::Dir));
-  out->Write("const uint CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_SPOT = {};\n",
+  out->Write("const uint CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_SPOT = {}u;\n",
              static_cast<u32>(AttenuationFunc::Spot));
 
   out->Write("struct CustomShaderLightData\n");
@@ -390,13 +390,13 @@ void WriteCustomShaderStructDef(ShaderCode* out, u32 numtexgens)
   out->Write("}};\n\n");
 
   // CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE "enum" values
-  out->Write("const uint CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_PREV = 0;\n");
-  out->Write("const uint CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_COLOR = 1;\n");
-  out->Write("const uint CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_TEX = 2;\n");
-  out->Write("const uint CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_RAS = 3;\n");
-  out->Write("const uint CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_KONST = 4;\n");
-  out->Write("const uint CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_NUMERIC = 5;\n");
-  out->Write("const uint CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_UNUSED = 6;\n");
+  out->Write("const uint CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_PREV = 0u;\n");
+  out->Write("const uint CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_COLOR = 1u;\n");
+  out->Write("const uint CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_TEX = 2u;\n");
+  out->Write("const uint CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_RAS = 3u;\n");
+  out->Write("const uint CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_KONST = 4u;\n");
+  out->Write("const uint CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_NUMERIC = 5u;\n");
+  out->Write("const uint CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_UNUSED = 6u;\n");
 
   out->Write("struct CustomShaderTevStageInputColor\n");
   out->Write("{{\n");
