@@ -219,18 +219,11 @@ void JitArm64::addix(UGeckoInstruction inst)
 
   if (a)
   {
-    if (gpr.IsImm(a))
-    {
-      gpr.SetImmediate(d, gpr.GetImm(a) + imm);
-    }
-    else
-    {
-      gpr.BindToRegister(d, d == a);
+    gpr.BindToRegister(d, d == a);
 
-      ARM64Reg WA = gpr.GetReg();
-      ADDI2R(gpr.R(d), gpr.R(a), imm, WA);
-      gpr.Unlock(WA);
-    }
+    ARM64Reg WA = gpr.GetReg();
+    ADDI2R(gpr.R(d), gpr.R(a), imm, WA);
+    gpr.Unlock(WA);
   }
   else
   {
