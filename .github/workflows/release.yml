@@ -16,7 +16,7 @@ jobs:
         uses: dawidd6/action-download-artifact@v2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          workflow: pr-build.yml
+          workflow: main.yml
           branch: slippi
       - name: Organize release files"
         run: |
