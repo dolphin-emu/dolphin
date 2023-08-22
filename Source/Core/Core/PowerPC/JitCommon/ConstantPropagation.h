@@ -68,6 +68,15 @@ public:
   void Clear() { m_gpr_values_known = BitSet32{}; }
 
 private:
+  ConstantPropagationResult EvaluateBitwiseImm(UGeckoInstruction inst,
+                                               u32 (*do_op)(u32, u32)) const;
+
+  static constexpr ConstantPropagationResult DO_NOTHING = [] {
+    ConstantPropagationResult result;
+    result.instruction_fully_executed = true;
+    return result;
+  }();
+
   static constexpr size_t GPR_COUNT = 32;
 
   std::array<u32, GPR_COUNT> m_gpr_values;
