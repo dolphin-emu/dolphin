@@ -260,25 +260,18 @@ void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop,
   if (a || binary || carry)
   {
     carry &= js.op->wantsCA;
-    if (gpr.IsImm(a) && !carry)
+    RCOpArg Ra = gpr.Use(a, RCMode::Read);
+    RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
+    RegCache::Realize(Ra, Rd);
+    if (doop == Add && Ra.IsSimpleReg() && !carry && d != a)
     {
-      gpr.SetImmediate32(d, doop(gpr.Imm32(a), value));
+      LEA(32, Rd, MDisp(Ra.GetSimpleReg(), value));
     }
     else
     {
-      RCOpArg Ra = gpr.Use(a, RCMode::Read);
-      RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
-      RegCache::Realize(Ra, Rd);
-      if (doop == Add && Ra.IsSimpleReg() && !carry && d != a)
-      {
-        LEA(32, Rd, MDisp(Ra.GetSimpleReg(), value));
-      }
-      else
-      {
-        if (d != a)
-          MOV(32, Rd, Ra);
-        (this->*op)(32, Rd, Imm32(value));  // m_GPR[d] = m_GPR[_inst.RA] + _inst.SIMM_16;
-      }
+      if (d != a)
+        MOV(32, Rd, Ra);
+      (this->*op)(32, Rd, Imm32(value));  // m_GPR[d] = m_GPR[_inst.RA] + _inst.SIMM_16;
     }
     if (carry)
       FinalizeCarry(CC_C);
@@ -304,12 +297,8 @@ void Jit64::reg_imm(UGeckoInstruction inst)
   switch (inst.OPCD)
   {
   case 14:  // addi
-    // occasionally used as MOV - emulate, with immediate propagation
-    if (a != 0 && d != a && gpr.IsImm(a))
-    {
-      gpr.SetImmediate32(d, gpr.Imm32(a) + (u32)(s32)inst.SIMM_16);
-    }
-    else if (a != 0 && d != a && inst.SIMM_16 == 0)
+    // occasionally used as MOV
+    if (a != 0 && d != a && inst.SIMM_16 == 0)
     {
       RCOpArg Ra = gpr.Use(a, RCMode::Read);
       RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
