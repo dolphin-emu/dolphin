@@ -24,6 +24,7 @@
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
+#include "Core/PowerPC/JitCommon/ConstantPropagation.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Profiler.h"
@@ -910,6 +911,8 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   gpr.Start(js.gpa);
   fpr.Start(js.fpa);
 
+  m_constant_propagation.Clear();
+
   if (js.noSpeculativeConstantsAddresses.find(js.blockStart) ==
       js.noSpeculativeConstantsAddresses.end())
   {
@@ -1095,9 +1098,34 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         FlushCarry();
         gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
         fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
-      }
 
-      CompileInstruction(op);
+        CompileInstruction(op);
+      }
+      else
+      {
+        const JitCommon::ConstantPropagationResult constant_propagation_result =
+            m_constant_propagation.EvaluateInstruction(op.inst);
+
+        if (!constant_propagation_result.instruction_fully_executed)
+          CompileInstruction(op);
+
+        m_constant_propagation.Apply(constant_propagation_result, op.regsOut);
+
+        if (constant_propagation_result.gpr >= 0)
+          gpr.SetImmediate(constant_propagation_result.gpr, constant_propagation_result.gpr_value);
+
+        if (constant_propagation_result.instruction_fully_executed)
+        {
+          if (constant_propagation_result.compute_rc)
+            ComputeRC0(constant_propagation_result.gpr_value);
+
+          if (constant_propagation_result.carry)
+            ComputeCarry(*constant_propagation_result.carry);
+
+          if (constant_propagation_result.overflow)
+            GenerateConstantOverflow(*constant_propagation_result.overflow);
+        }
+      }
 
       js.fpr_is_store_safe = op.fprIsStoreSafeAfterInst;
 
