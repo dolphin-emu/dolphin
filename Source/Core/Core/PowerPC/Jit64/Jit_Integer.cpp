@@ -680,29 +680,7 @@ void Jit64::boolX(UGeckoInstruction inst)
   bool needs_test = false;
   DEBUG_ASSERT_MSG(DYNA_REC, inst.OPCD == 31, "Invalid boolX");
 
-  if (gpr.IsImm(s, b))
-  {
-    const u32 rs_offset = gpr.Imm32(s);
-    const u32 rb_offset = gpr.Imm32(b);
-
-    if (inst.SUBOP10 == 28)  // andx
-      gpr.SetImmediate32(a, rs_offset & rb_offset);
-    else if (inst.SUBOP10 == 476)  // nandx
-      gpr.SetImmediate32(a, ~(rs_offset & rb_offset));
-    else if (inst.SUBOP10 == 60)  // andcx
-      gpr.SetImmediate32(a, rs_offset & (~rb_offset));
-    else if (inst.SUBOP10 == 444)  // orx
-      gpr.SetImmediate32(a, rs_offset | rb_offset);
-    else if (inst.SUBOP10 == 124)  // norx
-      gpr.SetImmediate32(a, ~(rs_offset | rb_offset));
-    else if (inst.SUBOP10 == 412)  // orcx
-      gpr.SetImmediate32(a, rs_offset | (~rb_offset));
-    else if (inst.SUBOP10 == 316)  // xorx
-      gpr.SetImmediate32(a, rs_offset ^ rb_offset);
-    else if (inst.SUBOP10 == 284)  // eqvx
-      gpr.SetImmediate32(a, ~(rs_offset ^ rb_offset));
-  }
-  else if (gpr.IsImm(s) || gpr.IsImm(b))
+  if (gpr.IsImm(s) || gpr.IsImm(b))
   {
     const auto [i, j] = gpr.IsImm(s) ? std::pair(s, b) : std::pair(b, s);
     u32 imm = gpr.Imm32(i);
@@ -756,53 +734,46 @@ void Jit64::boolX(UGeckoInstruction inst)
     }
     else if (is_and)
     {
-      if (imm == 0)
+      RCOpArg Rj = gpr.Use(j, RCMode::Read);
+      RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
+      RegCache::Realize(Rj, Ra);
+
+      if (imm == 0xFFFFFFFF)
       {
-        gpr.SetImmediate32(a, final_not ? 0xFFFFFFFF : 0);
+        if (a != j)
+          MOV(32, Ra, Rj);
+        if (final_not || complement_b)
+          NOT(32, Ra);
+        needs_test = true;
+      }
+      else if (complement_b)
+      {
+        if (a != j)
+          MOV(32, Ra, Rj);
+        NOT(32, Ra);
+        AND(32, Ra, Imm32(imm));
       }
       else
       {
-        RCOpArg Rj = gpr.Use(j, RCMode::Read);
-        RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
-        RegCache::Realize(Rj, Ra);
-
-        if (imm == 0xFFFFFFFF)
+        if (a == j)
         {
-          if (a != j)
-            MOV(32, Ra, Rj);
-          if (final_not || complement_b)
-            NOT(32, Ra);
-          needs_test = true;
+          AND(32, Ra, Imm32(imm));
         }
-        else if (complement_b)
+        else if (s32(imm) >= -128 && s32(imm) <= 127)
         {
-          if (a != j)
-            MOV(32, Ra, Rj);
-          NOT(32, Ra);
+          MOV(32, Ra, Rj);
           AND(32, Ra, Imm32(imm));
         }
         else
         {
-          if (a == j)
-          {
-            AND(32, Ra, Imm32(imm));
-          }
-          else if (s32(imm) >= -128 && s32(imm) <= 127)
-          {
-            MOV(32, Ra, Rj);
-            AND(32, Ra, Imm32(imm));
-          }
-          else
-          {
-            MOV(32, Ra, Imm32(imm));
-            AND(32, Ra, Rj);
-          }
+          MOV(32, Ra, Imm32(imm));
+          AND(32, Ra, Rj);
+        }
 
-          if (final_not)
-          {
-            NOT(32, Ra);
-            needs_test = true;
-          }
+        if (final_not)
+        {
+          NOT(32, Ra);
+          needs_test = true;
         }
       }
     }
