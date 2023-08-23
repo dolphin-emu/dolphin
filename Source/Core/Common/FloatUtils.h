@@ -18,22 +18,16 @@ constexpr T SNANConstant()
 }
 
 // The most significant bit of the fraction is an is-quiet bit on all architectures we care about.
-enum : u64
-{
-  DOUBLE_SIGN = 0x8000000000000000ULL,
-  DOUBLE_EXP = 0x7FF0000000000000ULL,
-  DOUBLE_FRAC = 0x000FFFFFFFFFFFFFULL,
-  DOUBLE_ZERO = 0x0000000000000000ULL,
-  DOUBLE_QBIT = 0x0008000000000000ULL
-};
+static constexpr u64 DOUBLE_QBIT = 0x0008000000000000ULL;
+static constexpr u64 DOUBLE_SIGN = 0x8000000000000000ULL;
+static constexpr u64 DOUBLE_EXP = 0x7FF0000000000000ULL;
+static constexpr u64 DOUBLE_FRAC = 0x000FFFFFFFFFFFFFULL;
+static constexpr u64 DOUBLE_ZERO = 0x0000000000000000ULL;
 
-enum : u32
-{
-  FLOAT_SIGN = 0x80000000,
-  FLOAT_EXP = 0x7F800000,
-  FLOAT_FRAC = 0x007FFFFF,
-  FLOAT_ZERO = 0x00000000
-};
+static constexpr u32 FLOAT_SIGN = 0x80000000;
+static constexpr u32 FLOAT_EXP = 0x7F800000;
+static constexpr u32 FLOAT_FRAC = 0x007FFFFF;
+static constexpr u32 FLOAT_ZERO = 0x00000000;
 
 inline bool IsQNAN(double d)
 {
