@@ -192,7 +192,7 @@ void GraphicsModListWidget::OnModChanged(std::optional<std::string> absolute_pat
 
   if (!absolute_path)
   {
-    m_selected_mod_name->setText(QStringLiteral("No graphics mod selected"));
+    m_selected_mod_name->setText(tr("No graphics mod selected"));
     m_selected_mod_name->setAlignment(Qt::AlignCenter);
     return;
   }

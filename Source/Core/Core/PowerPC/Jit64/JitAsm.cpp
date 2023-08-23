@@ -65,6 +65,11 @@ void Jit64AsmRoutineManager::Generate()
   ABI_CallFunction(CoreTiming::GlobalAdvance);
   ABI_PopRegistersAndAdjustStack({}, 0);
 
+  // When we've just entered the jit we need to update the membase
+  // GlobalAdvance also checks exceptions after which we need to
+  // update the membase so it makes sense to do this here.
+  MOV(64, R(RMEM), PPCSTATE(mem_ptr));
+
   // skip the sync and compare first time
   FixupBranch skipToRealDispatch = J(enable_debugging ? Jump::Near : Jump::Short);
 
@@ -103,8 +108,6 @@ void Jit64AsmRoutineManager::Generate()
   SetJumpTarget(skipToRealDispatch);
 
   dispatcher_no_check = GetCodePtr();
-
-  auto& memory = system.GetMemory();
 
   // The following is a translation of JitBaseBlockCache::Dispatch into assembly.
   const bool assembly_dispatcher = true;
@@ -165,13 +168,6 @@ void Jit64AsmRoutineManager::Generate()
     FixupBranch state_mismatch = J_CC(CC_NE);
 
     // Success; branch to the block we found.
-    // Switch to the correct memory base, in case MSR.DR has changed.
-    TEST(32, PPCSTATE(msr), Imm32(1 << (31 - 27)));
-    FixupBranch physmem = J_CC(CC_Z);
-    MOV(64, R(RMEM), ImmPtr(memory.GetLogicalBase()));
-    JMPptr(MDisp(RSCRATCH, static_cast<s32>(offsetof(JitBlockData, normalEntry))));
-    SetJumpTarget(physmem);
-    MOV(64, R(RMEM), ImmPtr(memory.GetPhysicalBase()));
     JMPptr(MDisp(RSCRATCH, static_cast<s32>(offsetof(JitBlockData, normalEntry))));
 
     SetJumpTarget(not_found);
@@ -189,13 +185,7 @@ void Jit64AsmRoutineManager::Generate()
   TEST(64, R(ABI_RETURN), R(ABI_RETURN));
   FixupBranch no_block_available = J_CC(CC_Z);
 
-  // Switch to the correct memory base, in case MSR.DR has changed.
-  TEST(32, PPCSTATE(msr), Imm32(1 << (31 - 27)));
-  FixupBranch physmem = J_CC(CC_Z);
-  MOV(64, R(RMEM), ImmPtr(memory.GetLogicalBase()));
-  JMPptr(R(ABI_RETURN));
-  SetJumpTarget(physmem);
-  MOV(64, R(RMEM), ImmPtr(memory.GetPhysicalBase()));
+  // Jump to the block
   JMPptr(R(ABI_RETURN));
 
   SetJumpTarget(no_block_available);

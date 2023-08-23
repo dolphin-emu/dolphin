@@ -3,18 +3,23 @@
 
 #pragma once
 
+#include <array>
+#include <optional>
 #include <string_view>
 #include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/Matrix.h"
 #include "VideoCommon/Assets/TextureAsset.h"
+#include "VideoCommon/PixelShaderGen.h"
 
 namespace GraphicsModActionData
 {
 struct DrawStarted
 {
+  u32 texture_unit;
   bool* skip;
+  std::optional<CustomPixelShader>* custom_pixel_shader;
 };
 
 struct EFB

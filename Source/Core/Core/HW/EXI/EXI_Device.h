@@ -64,7 +64,6 @@ public:
   virtual bool IsPresent() const;
   virtual void SetCS(int cs);
   virtual void DoState(PointerWrap& p);
-  virtual void PauseAndLock(bool do_lock, bool resume_on_unlock = true);
 
   // Is generating interrupt ?
   virtual bool IsInterruptSet();

@@ -134,6 +134,7 @@ void VideoConfig::Refresh()
 
   texture_filtering_mode = Config::Get(Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING);
   iMaxAnisotropy = Config::Get(Config::GFX_ENHANCE_MAX_ANISOTROPY);
+  output_resampling_mode = Config::Get(Config::GFX_ENHANCE_OUTPUT_RESAMPLING);
   sPostProcessingShader = Config::Get(Config::GFX_ENHANCE_POST_SHADER);
   bForceTrueColor = Config::Get(Config::GFX_ENHANCE_FORCE_TRUE_COLOR);
   bDisableCopyFilter = Config::Get(Config::GFX_ENHANCE_DISABLE_COPY_FILTER);
@@ -353,6 +354,7 @@ void CheckForConfigChanges()
   {
     OSD::AddMessage("Video config changed, reloading shaders.", OSD::Duration::NORMAL);
     g_vertex_manager->InvalidatePipelineObject();
+    g_vertex_manager->NotifyCustomShaderCacheOfHostChange(new_host_config);
     g_shader_cache->SetHostConfig(new_host_config);
     g_shader_cache->Reload();
     g_framebuffer_manager->RecompileShaders();

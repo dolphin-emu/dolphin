@@ -6,6 +6,7 @@
 #include <array>
 #include <cstddef>
 #include <iosfwd>
+#include <span>
 #include <tuple>
 #include <type_traits>
 #include <vector>
@@ -169,6 +170,7 @@ struct PowerPCState
 
   // Storage for the stack pointer of the BLR optimization.
   u8* stored_stack_pointer = nullptr;
+  u8* mem_ptr = nullptr;
 
   std::array<std::array<TLBEntry, TLB_SIZE / TLB_WAYS>, NUM_TLBS> tlb;
 
@@ -238,7 +240,7 @@ static_assert(offsetof(PowerPC::PowerPCState, above_fits_in_first_0x100) <= 0x10
 #endif
 #endif
 
-const std::vector<CPUCore>& AvailableCPUCores();
+std::span<const CPUCore> AvailableCPUCores();
 CPUCore DefaultCPUCore();
 
 class PowerPCManager

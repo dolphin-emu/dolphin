@@ -818,8 +818,6 @@ static bool PauseAndLock(Core::System& system, bool do_lock, bool unpause_on_unl
     was_unpaused = system.GetCPU().PauseAndLock(true);
   }
 
-  system.GetExpansionInterface().PauseAndLock(do_lock, false);
-
   // audio has to come after CPU, because CPU thread can wait for audio thread (m_throttle).
   system.GetDSP().GetDSPEmulator()->PauseAndLock(do_lock);
 

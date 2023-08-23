@@ -11,6 +11,7 @@ enum class AspectMode : int;
 enum class ShaderCompilationMode : int;
 enum class StereoMode : int;
 enum class TextureFilteringMode : int;
+enum class OutputResamplingMode : int;
 enum class ColorCorrectionRegion : int;
 enum class TriState : int;
 
@@ -102,6 +103,7 @@ extern const Info<bool> GFX_MODS_ENABLE;
 
 extern const Info<TextureFilteringMode> GFX_ENHANCE_FORCE_TEXTURE_FILTERING;
 extern const Info<int> GFX_ENHANCE_MAX_ANISOTROPY;  // NOTE - this is x in (1 << x)
+extern const Info<OutputResamplingMode> GFX_ENHANCE_OUTPUT_RESAMPLING;
 extern const Info<std::string> GFX_ENHANCE_POST_SHADER;
 extern const Info<bool> GFX_ENHANCE_FORCE_TRUE_COLOR;
 extern const Info<bool> GFX_ENHANCE_DISABLE_COPY_FILTER;
@@ -118,7 +120,7 @@ static constexpr float GFX_CC_DISPLAY_GAMMA_MIN = 2.2f;
 static constexpr float GFX_CC_DISPLAY_GAMMA_MAX = 2.4f;
 
 static constexpr float GFX_CC_HDR_PAPER_WHITE_NITS_MIN = 80.f;
-static constexpr float GFX_CC_HDR_PAPER_WHITE_NITS_MAX = 400.f;
+static constexpr float GFX_CC_HDR_PAPER_WHITE_NITS_MAX = 500.f;
 
 extern const Info<bool> GFX_CC_CORRECT_COLOR_SPACE;
 extern const Info<ColorCorrectionRegion> GFX_CC_GAME_COLOR_SPACE;

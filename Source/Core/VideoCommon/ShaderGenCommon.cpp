@@ -10,6 +10,7 @@
 #include "Core/ConfigManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/XFMemory.h"
 
 ShaderHostConfig ShaderHostConfig::GetCurrent()
 {
@@ -361,4 +362,91 @@ const char* GetInterpolationQualifier(bool msaa, bool ssaa, bool in_glsl_interfa
     else
       return "sample";
   }
+}
+
+void WriteCustomShaderStructDef(ShaderCode* out, u32 numtexgens)
+{
+  // Bump this when there are breaking changes to the API
+  out->Write("#define CUSTOM_SHADER_API_VERSION 1;\n");
+
+  // CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE "enum" values
+  out->Write("const uint CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_NONE = {}u;\n",
+             static_cast<u32>(AttenuationFunc::None));
+  out->Write("const uint CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_POINT = {}u;\n",
+             static_cast<u32>(AttenuationFunc::Spec));
+  out->Write("const uint CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_DIR = {}u;\n",
+             static_cast<u32>(AttenuationFunc::Dir));
+  out->Write("const uint CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_SPOT = {}u;\n",
+             static_cast<u32>(AttenuationFunc::Spot));
+
+  out->Write("struct CustomShaderLightData\n");
+  out->Write("{{\n");
+  out->Write("\tfloat3 position;\n");
+  out->Write("\tfloat3 direction;\n");
+  out->Write("\tfloat3 color;\n");
+  out->Write("\tuint attenuation_type;\n");
+  out->Write("\tfloat4 cosatt;\n");
+  out->Write("\tfloat4 distatt;\n");
+  out->Write("}};\n\n");
+
+  // CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE "enum" values
+  out->Write("const uint CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_PREV = 0u;\n");
+  out->Write("const uint CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_COLOR = 1u;\n");
+  out->Write("const uint CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_TEX = 2u;\n");
+  out->Write("const uint CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_RAS = 3u;\n");
+  out->Write("const uint CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_KONST = 4u;\n");
+  out->Write("const uint CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_NUMERIC = 5u;\n");
+  out->Write("const uint CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_UNUSED = 6u;\n");
+
+  out->Write("struct CustomShaderTevStageInputColor\n");
+  out->Write("{{\n");
+  out->Write("\tuint input_type;\n");
+  out->Write("\tfloat3 value;\n");
+  out->Write("}};\n\n");
+
+  out->Write("struct CustomShaderTevStageInputAlpha\n");
+  out->Write("{{\n");
+  out->Write("\tuint input_type;\n");
+  out->Write("\tfloat value;\n");
+  out->Write("}};\n\n");
+
+  out->Write("struct CustomShaderTevStage\n");
+  out->Write("{{\n");
+  out->Write("\tCustomShaderTevStageInputColor[4] input_color;\n");
+  out->Write("\tCustomShaderTevStageInputAlpha[4] input_alpha;\n");
+  out->Write("\tuint texmap;\n");
+  out->Write("\tfloat4 output_color;\n");
+  out->Write("}};\n\n");
+
+  // Custom structure for data we pass to custom shader hooks
+  out->Write("struct CustomShaderData\n");
+  out->Write("{{\n");
+  out->Write("\tfloat3 position;\n");
+  out->Write("\tfloat3 normal;\n");
+  if (numtexgens == 0)
+  {
+    // Cheat so shaders compile
+    out->Write("\tfloat3[1] texcoord;\n");
+  }
+  else
+  {
+    out->Write("\tfloat3[{}] texcoord;\n", numtexgens);
+  }
+  out->Write("\tuint texcoord_count;\n");
+  out->Write("\tuint[8] texmap_to_texcoord_index;\n");
+  out->Write("\tCustomShaderLightData[8] lights_chan0_color;\n");
+  out->Write("\tCustomShaderLightData[8] lights_chan0_alpha;\n");
+  out->Write("\tCustomShaderLightData[8] lights_chan1_color;\n");
+  out->Write("\tCustomShaderLightData[8] lights_chan1_alpha;\n");
+  out->Write("\tfloat4[2] ambient_lighting;\n");
+  out->Write("\tfloat4[2] base_material;\n");
+  out->Write("\tuint light_chan0_color_count;\n");
+  out->Write("\tuint light_chan0_alpha_count;\n");
+  out->Write("\tuint light_chan1_color_count;\n");
+  out->Write("\tuint light_chan1_alpha_count;\n");
+  out->Write("\tCustomShaderTevStage[16] tev_stages;\n");
+  out->Write("\tuint tev_stage_count;\n");
+  out->Write("\tfloat4 final_color;\n");
+  out->Write("\tuint time_ms;\n");
+  out->Write("}};\n\n");
 }

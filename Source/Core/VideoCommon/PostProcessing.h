@@ -124,7 +124,8 @@ protected:
   size_t CalculateUniformsSize(bool user_post_process) const;
   void FillUniformBuffer(const MathUtil::Rectangle<int>& src, const AbstractTexture* src_tex,
                          int src_layer, const MathUtil::Rectangle<int>& dst,
-                         const MathUtil::Rectangle<int>& wnd, u8* buffer, bool user_post_process);
+                         const MathUtil::Rectangle<int>& wnd, u8* buffer, bool user_post_process,
+                         bool intermediary_buffer);
 
   // Timer for determining our time value
   Common::Timer m_timer;

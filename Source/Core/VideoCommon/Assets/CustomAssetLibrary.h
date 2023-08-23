@@ -20,14 +20,7 @@ struct PixelShaderData;
 class CustomAssetLibrary
 {
 public:
-  // TODO: this should be std::chrono::system_clock::time_point to
-  // support any type of loader where the time isn't from the filesystem
-  // but there's no way to convert filesystem times to system times
-  // without 'clock_cast', once our builders catch up
-  // to support 'clock_cast' we should update this
-  // For now, it's fine as a filesystem library is all that is
-  // available
-  using TimeType = std::filesystem::file_time_type;
+  using TimeType = std::chrono::system_clock::time_point;
 
   // The AssetID is a unique identifier for a particular asset
   using AssetID = std::string;

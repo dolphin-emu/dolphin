@@ -52,8 +52,8 @@ void AchievementSettingsWidget::CreateLayout()
   m_common_password_label = new QLabel(tr("Password"));
   m_common_password_input = new QLineEdit(QStringLiteral(""));
   m_common_password_input->setEchoMode(QLineEdit::Password);
-  m_common_login_button = new QPushButton(tr("Login"));
-  m_common_logout_button = new QPushButton(tr("Logout"));
+  m_common_login_button = new QPushButton(tr("Log In"));
+  m_common_logout_button = new QPushButton(tr("Log Out"));
   m_common_login_failed = new QLabel(tr("Login Failed"));
   m_common_login_failed->setStyleSheet(QStringLiteral("QLabel { color : red; }"));
   m_common_login_failed->setVisible(false);

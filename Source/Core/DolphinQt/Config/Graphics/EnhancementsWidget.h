@@ -16,6 +16,7 @@ class QComboBox;
 class QPushButton;
 class QSlider;
 class ToolTipComboBox;
+class ToolTipPushButton;
 
 class EnhancementsWidget final : public QWidget
 {
@@ -38,8 +39,9 @@ private:
   ConfigChoice* m_ir_combo;
   ToolTipComboBox* m_aa_combo;
   ToolTipComboBox* m_texture_filtering_combo;
+  ToolTipComboBox* m_output_resampling_combo;
   ToolTipComboBox* m_pp_effect;
-  QPushButton* m_configure_color_correction;
+  ToolTipPushButton* m_configure_color_correction;
   QPushButton* m_configure_pp_effect;
   ConfigBool* m_scaled_efb_copy;
   ConfigBool* m_per_pixel_lighting;
