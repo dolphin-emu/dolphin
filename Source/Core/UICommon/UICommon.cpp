@@ -204,6 +204,7 @@ void CreateDirectories()
   File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX) + ANAGLYPH_DIR DIR_SEP);
   File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
   File::CreateFullPath(File::GetUserPath(D_CITRUSREPLAYS_IDX));
+  //File::CreateFullPath(File::GetUserPath(D_PLAYBACK_IDX));
   /*
   // Create the Citrus Replays directory to ensure writing works (will not overwrite already created
   // dir)

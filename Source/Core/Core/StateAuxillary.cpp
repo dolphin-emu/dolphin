@@ -10,10 +10,14 @@
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "HW/Memmap.h"
+#include "Movie.h"
 
 static bool boolMatchStart = false;
 static bool boolMatchEnd = false;
 static bool wroteCodes = false;
+static bool overwroteHomeCaptainPosTraining = false;
+static bool customTrainingModeStart = false;
+static std::vector<u8> training_mode_buffer;
 
 static NetPlay::PadMappingArray netplayGCMap;
 // even if the player is using multiple netplay ports to play, say 1 and 3, the game only needs the first one to do proper playback
@@ -215,6 +219,16 @@ void StateAuxillary::saveState(const std::string& filename, bool wait) {
   t1.detach();
 }
 
+void StateAuxillary::saveStateToTrainingBuffer()
+{
+  State::SaveToBuffer(training_mode_buffer);
+}
+
+void StateAuxillary::loadStateFromTrainingBuffer()
+{
+  State::LoadFromBuffer(training_mode_buffer);
+}
+
 void StateAuxillary::startRecording()
 {
   Movie::SetReadOnly(false);
@@ -271,6 +285,7 @@ void StateAuxillary::stopRecording(const std::string replay_path, tm* matchDateT
   t3.detach();
 }
 
+// this should be updated to delete the files from where they came from which is not always the citrus replays dir
 void StateAuxillary::endPlayback()
 {
   /*
@@ -309,12 +324,6 @@ void StateAuxillary::setNetPlayControllers(NetPlay::PadMappingArray m_pad_map, N
       ourNetPlayPortsVector.at(i) = 0;
     }
   }
-}
-
-// old and should not be used
-int StateAuxillary::getOurNetPlayPort()
-{
-  return ourNetPlayPort;
 }
 
 std::vector<int> StateAuxillary::getOurNetPlayPorts()
@@ -356,4 +365,24 @@ void StateAuxillary::setPostPort()
   Config::SetBaseOrCurrent(Config::GetInfoForSIDevice(static_cast<int>(2)), preMoviePort2);
   Config::SetBaseOrCurrent(Config::GetInfoForSIDevice(static_cast<int>(3)), preMoviePort3);
   SConfig::GetInstance().SaveSettings();
+}
+
+bool StateAuxillary::getOverwriteHomeCaptainPositionTrainingMode()
+{
+  return overwroteHomeCaptainPosTraining;
+}
+
+void StateAuxillary::setOverwriteHomeCaptainPositionTrainingMode(bool boolValue)
+{
+  overwroteHomeCaptainPosTraining = boolValue;
+}
+
+bool StateAuxillary::getCustomTrainingModeStart()
+{
+  return customTrainingModeStart;
+}
+
+void StateAuxillary::setCustomTrainingModeStart(bool boolValue)
+{
+  customTrainingModeStart = boolValue;
 }

@@ -62,7 +62,7 @@ void Updater::OnUpdateAvailable(std::string info)
   INFO_LOG_FMT(CORE, "App data path is: {}", appDataString);
   if (File::Exists(appDataString))
   {
-    // citrus launcher exists so let's call it to update if they click of
+    // citrus launcher exists so let's call it to update if they click ok
     std::optional<int> choice = RunOnObject(m_parent, [&] {
       QDialog* dialog = new QDialog(m_parent);
       dialog->setWindowTitle(tr("Update available"));

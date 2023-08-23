@@ -108,6 +108,9 @@ namespace Core
 static bool boolMatchStart = false;
 static bool boolMatchEnd = false;
 static bool wroteCodes = false;
+static bool customTrainingModeStart = false;
+static int customTrainingCurrentWait = 0;
+static std::vector<u8> training_mode_buffer;
 static bool madeAccessor = false;
 static AddressSpace::Accessors* accessors;
 static int movieIndex = 0;
@@ -306,21 +309,61 @@ void OnFrameEnd()
 
   //match start
 
-  if (Memory::Read_U8(Metadata::addressMatchStart) == 1 && !StateAuxillary::getBoolMatchStart() &&
-      !Movie::IsPlayingInput() && !Movie::IsRecordingInput() && !StateAuxillary::isSpectator() &&
-      (Metadata::getMatchMode() == 1 || Metadata::getMatchMode() == 2) &&
-      Config::Get(Config::MAIN_REPLAYS))
+  if (Memory::Read_U8(Metadata::addressMatchStart) == 1)
   {
-    // Uncomment this in next version after revising spaces in names
-    // This version should be focused on the updater
-    // StateAuxillary::setMatchPlayerNames();
-    boolMatchStart = true;
-    StateAuxillary::setBoolMatchStart(true);
-    // begin recording
+    // training mode
+    if (Memory::Read_U8(Metadata::addressCustomTrainingModeEnabled) && Metadata::getMatchMode() == 1)
+    {
 
-    StateAuxillary::startRecording();
-    StateAuxillary::setBoolMatchEnd(false);
-    boolMatchEnd = false;
+      if (!StateAuxillary::getOverwriteHomeCaptainPositionTrainingMode())
+      {
+        auto homeCaptainPointer = Memory::Read_U32(0x8030d510);
+        // x pos 2. just moves them up a little for convenience sake
+        Memory::Write_U32(0x40000000, homeCaptainPointer + 0x520);
+        StateAuxillary::setOverwriteHomeCaptainPositionTrainingMode(true);
+        StateAuxillary::setCustomTrainingModeStart(false);
+        customTrainingCurrentWait = 0;
+        return;
+      }
+
+      // wait about two seconds before the save due to the input disable at the beginning of a match
+      customTrainingCurrentWait++;
+
+      // do not record replay, instead get a "base" training savestate to revert back to
+      if (!StateAuxillary::getCustomTrainingModeStart() && customTrainingCurrentWait > 130)
+      {
+        StateAuxillary::setCustomTrainingModeStart(true);
+        StateAuxillary::saveStateToTrainingBuffer();
+        // size is in bytes. so for every word we want, we need 4 bytes (32-bit)
+        //Memory::CopyFromEmu(trainingBufer.get(), 0x8160A9C0, 9694);
+        return;
+      }
+      if (Memory::Read_U8(Metadata::addressCustomTrainingModePossessionChange) == 1)
+      {
+        // reset possession change flag
+        Memory::Write_U8(0, Metadata::addressCustomTrainingModePossessionChange);
+        //Memory::CopyToEmu(0x8160A9C0, trainingBufer.get(), 9694);
+        StateAuxillary::loadStateFromTrainingBuffer();
+      }
+      return;
+    }
+    // standard grudge match/cup match replay
+    if (!StateAuxillary::getBoolMatchStart() && !Movie::IsPlayingInput() &&
+        !Movie::IsRecordingInput() && !StateAuxillary::isSpectator() &&
+        (Metadata::getMatchMode() == 1 || Metadata::getMatchMode() == 2) &&
+        Config::Get(Config::MAIN_REPLAYS))
+    {
+      // Uncomment this in next version after revising spaces in names
+      // This version should be focused on the updater
+      // StateAuxillary::setMatchPlayerNames();
+      boolMatchStart = true;
+      StateAuxillary::setBoolMatchStart(true);
+      // begin recording
+
+      StateAuxillary::startRecording();
+      StateAuxillary::setBoolMatchEnd(false);
+      boolMatchEnd = false;
+    }
     /*
     // generate random numbers and fill spots
     randomNumberVector.clear();
@@ -342,38 +385,76 @@ void OnFrameEnd()
 
   //match end
 
-  if (Memory::Read_U8(Metadata::addressMatchEnd) == 1 && !StateAuxillary::getBoolMatchEnd() &&
-      !Movie::IsPlayingInput() && Movie::IsRecordingInput())
+  if (Memory::Read_U8(Metadata::addressMatchEnd) == 1)
   {
-    StateAuxillary::setBoolMatchEnd(true);
-    boolMatchEnd = true;
-    time_t curr_time;
-    tm* curr_tm;
-    char date_string[100];
+    // training mode
+    if (Memory::Read_U8(Metadata::addressCustomTrainingModeEnabled))
+    {
+      StateAuxillary::setOverwriteHomeCaptainPositionTrainingMode(false);
+      StateAuxillary::setCustomTrainingModeStart(false);
+      return;
+    }
 
-    time(&curr_time);
-    curr_tm = localtime(&curr_time);
-    strftime(date_string, 50, "%B_%d_%Y_%OH_%OM_%OS", curr_tm);
-    /*
-    PWSTR path;
-    SHGetKnownFolderPath(FOLDERID_Documents, KF_FLAG_DEFAULT, NULL, &path);
-    std::wstring strpath(path);
-    CoTaskMemFree(path);
-    std::string documents_file_path(strpath.begin(), strpath.end());
-    std::string replays_path = "";
-    replays_path += documents_file_path;
-    replays_path += "\\Citrus Replays";
-    // C://Users//Brian//Documents//Citrus Replays
+    if (!StateAuxillary::getBoolMatchEnd() && !Movie::IsPlayingInput() && Movie::IsRecordingInput())
+    {
+      StateAuxillary::setBoolMatchEnd(true);
+      boolMatchEnd = true;
+      time_t curr_time;
+      tm* curr_tm;
+      char date_string[100];
 
-    std::string fileName = "\\output.dtm";
-    replays_path += fileName;
-    */
-    std::string uiFileName = File::GetUserPath(D_CITRUSREPLAYS_IDX) + "output.dtm";
+      time(&curr_time);
+      curr_tm = localtime(&curr_time);
+      strftime(date_string, 50, "%B_%d_%Y_%OH_%OM_%OS", curr_tm);
+      /*
+      PWSTR path;
+      SHGetKnownFolderPath(FOLDERID_Documents, KF_FLAG_DEFAULT, NULL, &path);
+      std::wstring strpath(path);
+      CoTaskMemFree(path);
+      std::string documents_file_path(strpath.begin(), strpath.end());
+      std::string replays_path = "";
+      replays_path += documents_file_path;
+      replays_path += "\\Citrus Replays";
+      // C://Users//Brian//Documents//Citrus Replays
 
-    StateAuxillary::stopRecording(uiFileName, curr_tm);
-    StateAuxillary::setBoolMatchStart(false);
-    boolMatchStart = false;
+      std::string fileName = "\\output.dtm";
+      replays_path += fileName;
+      */
+      std::string uiFileName = File::GetUserPath(D_CITRUSREPLAYS_IDX) + "output.dtm";
+
+      StateAuxillary::stopRecording(uiFileName, curr_tm);
+      StateAuxillary::setBoolMatchStart(false);
+      boolMatchStart = false;
+    }
+
   }
+
+  // TODO: build small save states every 5 seconds during playback
+
+  /*
+  if (Memory::Read_U8(Metadata::addressMatchStart) == 1 && Movie::IsPlayingInput())
+  {
+    // let's start with every 5 seconds (estimated to be 300 frames)
+    int framesBetweenSavestates = 300;
+    // 
+    // generate save state every five seconds by viewing movie frame number and dividing
+    // we load the .sav file later, not the .dtm.sav
+    u64 currentFrame = Movie::GetCurrentFrame();
+
+    if (currentFrame != 0)
+    {
+      if (currentFrame % framesBetweenSavestates == 0)
+      {
+        // WE NEED TO MAKE THE PLAYBACK FOLDER once and then not do it again
+        int secondsElapsed = currentFrame / 60;
+        std::stringstream ss;
+        ss << File::GetUserPath(D_PLAYBACK_IDX) << "playbackMarker_" << secondsElapsed << ".sav";
+        std::string saveStateFileName = ss.str();
+        StateAuxillary::saveState(saveStateFileName);
+      }
+    }
+  }
+  */
 }
 
 // Display messages and return values

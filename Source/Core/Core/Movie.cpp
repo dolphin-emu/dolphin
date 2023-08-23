@@ -561,7 +561,7 @@ bool BeginRecordingInput(const ControllerTypeArray& controllers,
     if (NetPlay::IsNetPlayRunning())
     {
       s_bNetPlay = true;
-      s_recordingStartTime = ExpansionInterface::CEXIIPL::NetPlay_GetEmulatedTime();
+      s_recordingStartTime = Common::Timer::GetTimeSinceJan1970();
     }
     else if (Config::Get(Config::MAIN_CUSTOM_RTC_ENABLE))
     {
@@ -655,6 +655,16 @@ static std::string Analog1DToString(u32 v, const std::string& prefix, u32 range 
   return fmt::format("{}:{}", prefix, v);
 }
 
+// L + R + Y resets to the default savestate
+static void handleCustomTrainingModeInput(ControllerState padState)
+{
+  if ((padState.TriggerL == 255 || padState.L) && (padState.TriggerR == 255 || padState.R) &&
+      padState.Y)
+  {
+    StateAuxillary::loadStateFromTrainingBuffer();
+  }
+}
+
 // NOTE: CPU Thread
 static void SetInputDisplayString(ControllerState padState, int controllerID)
 {
@@ -698,6 +708,12 @@ static void SetInputDisplayString(ControllerState padState, int controllerID)
 
     display_str += Analog2DToString(padState.AnalogStickX, padState.AnalogStickY, " ANA");
     display_str += Analog2DToString(padState.CStickX, padState.CStickY, " C");
+
+    // hook into buttons for manually resetting training mode
+    if (StateAuxillary::getCustomTrainingModeStart())
+    {
+      Movie::handleCustomTrainingModeInput(padState);
+    }
   }
   else
   {

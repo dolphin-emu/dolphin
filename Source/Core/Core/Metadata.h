@@ -56,6 +56,9 @@ public:
   static const u32 addressRightSideCupSidekickID = 0x8040000f;
   static const u32 addressCupStadiumID = 0x80400010;
 
+  static const u32 addressCustomTrainingModeEnabled = 0x80400011;
+  static const u32 addressCustomTrainingModePossessionChange = 0x80400012;
+
   //left team
   static const u32 addressLeftSideScore = 0x81536a56;
   static const u32 addressLeftSideShots = 0x81536a52;

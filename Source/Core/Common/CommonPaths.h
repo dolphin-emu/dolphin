@@ -45,6 +45,7 @@
 #define SHADERCACHE_DIR "Shaders"
 #define STATESAVES_DIR "StateSaves"
 #define CITRUS_REPLAYS_DIR "Citrus Replays"
+#define PLAYBACK_DIR "Playback"
 #define SCREENSHOTS_DIR "ScreenShots"
 #define LOAD_DIR "Load"
 #define HIRES_TEXTURES_DIR "Textures"

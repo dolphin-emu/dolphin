@@ -80,6 +80,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   StateAuxillary::setBoolMatchStart(false);
   StateAuxillary::setBoolMatchEnd(false);
   StateAuxillary::setBoolWroteCodes(false);
+  StateAuxillary::setOverwriteHomeCaptainPositionTrainingMode(false);
 
   // Movie settings
   if (Movie::IsPlayingInput() && Movie::IsConfigSaved())

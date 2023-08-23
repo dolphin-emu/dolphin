@@ -24,6 +24,7 @@
 #include "Core/System.h"
 
 #include "VideoCommon/VideoBackendBase.h"
+#include <Core/StateAuxillary.h>
 
 namespace PowerPC
 {
@@ -254,8 +255,10 @@ static T ReadFromHardware(u32 em_address)
     else
       return (T)Memory::mmio_mapping->Read<typename std::make_unsigned<T>::type>(em_address);
   }
-
-  PanicAlertFmt("Unable to resolve read address {:x} PC {:x}", em_address, PC);
+  if (!StateAuxillary::getCustomTrainingModeStart())
+  {
+    PanicAlertFmt("Unable to resolve read address {:x} PC {:x}", em_address, PC);
+  }
   return 0;
 }
 
@@ -408,8 +411,10 @@ static void WriteToHardware(u32 em_address, const u32 data, const u32 size)
     std::memcpy(&Memory::m_pFakeVMEM[em_address & Memory::GetFakeVMemMask()], &swapped_data, size);
     return;
   }
-
-  PanicAlertFmt("Unable to resolve write address {:x} PC {:x}", em_address, PC);
+  if (!StateAuxillary::getCustomTrainingModeStart())
+  {
+    PanicAlertFmt("Unable to resolve write address {:x} PC {:x}", em_address, PC);
+  }
 }
 // =====================
 
@@ -1148,7 +1153,7 @@ TranslateResult JitCache_TranslateAddress(u32 address)
 static void GenerateDSIException(u32 effective_address, bool write)
 {
   // DSI exceptions are only supported in MMU mode.
-  if (!Core::System::GetInstance().IsMMUMode())
+  if (!Core::System::GetInstance().IsMMUMode() && !StateAuxillary::getCustomTrainingModeStart())
   {
     PanicAlertFmt("Invalid {} {:#010x}, PC = {:#010x}", write ? "write to" : "read from",
                   effective_address, PC);
