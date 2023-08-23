@@ -43,6 +43,25 @@ void JitArm64::ComputeRC0(u32 imm)
   MOVI2R(gpr.CR(0), s64(s32(imm)));
 }
 
+void JitArm64::GenerateConstantOverflow(bool overflow)
+{
+  ARM64Reg WA = gpr.GetReg();
+
+  if (overflow)
+  {
+    MOVI2R(WA, XER_OV_MASK | XER_SO_MASK);
+    STRB(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(xer_so_ov));
+  }
+  else
+  {
+    LDRB(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(xer_so_ov));
+    AND(WA, WA, LogicalImm(~XER_OV_MASK, GPRSize::B32));
+    STRB(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(xer_so_ov));
+  }
+
+  gpr.Unlock(WA);
+}
+
 void JitArm64::ComputeCarry(ARM64Reg reg)
 {
   js.carryFlag = CarryFlag::InPPCState;
