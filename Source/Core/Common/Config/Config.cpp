@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <atomic>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <shared_mutex>
 #include <utility>
@@ -16,9 +17,22 @@ namespace Config
 using Layers = std::map<LayerType, std::shared_ptr<Layer>>;
 
 static Layers s_layers;
-static std::vector<std::pair<size_t, ConfigChangedCallback>> s_callbacks;
+
+static std::recursive_mutex s_callbacks_mutex;
+struct CallbackEntry
+{
+  size_t id;
+  ConfigChangedCallback callback;
+
+  CallbackEntry(size_t id_, ConfigChangedCallback callback_)
+      : id(id_), callback(std::move(callback_))
+  {
+  }
+};
+static std::vector<std::shared_ptr<CallbackEntry>> s_callbacks;
 static size_t s_next_callback_id = 0;
 static u32 s_callback_guards = 0;
+
 static std::atomic<u64> s_config_version = 0;
 
 static std::shared_mutex s_layers_rw_lock;
@@ -67,17 +81,21 @@ void RemoveLayer(LayerType layer)
 
 size_t AddConfigChangedCallback(ConfigChangedCallback func)
 {
+  std::lock_guard lock(s_callbacks_mutex);
+
   const size_t callback_id = s_next_callback_id;
   ++s_next_callback_id;
-  s_callbacks.emplace_back(std::make_pair(callback_id, std::move(func)));
+  s_callbacks.emplace_back(std::make_unique<CallbackEntry>(callback_id, std::move(func)));
   return callback_id;
 }
 
 void RemoveConfigChangedCallback(size_t callback_id)
 {
+  std::lock_guard lock(s_callbacks_mutex);
+
   for (auto it = s_callbacks.begin(); it != s_callbacks.end(); ++it)
   {
-    if (it->first == callback_id)
+    if ((*it)->id == callback_id)
     {
       s_callbacks.erase(it);
       return;
@@ -92,11 +110,31 @@ void OnConfigChanged()
   // even when callbacks are suppressed.
   s_config_version.fetch_add(1, std::memory_order_relaxed);
 
-  if (s_callback_guards)
-    return;
+  // Copy the callbacks so that s_callbacks may be modified while we're calling the callbacks.
+  // Weak pointers are used so that if a later callback is removed from the vector by a previous
+  // callback, it will not be triggered. This is important because the callback could point to a
+  // now-destructed object.
+  std::vector<std::weak_ptr<CallbackEntry>> callbacks;
 
-  for (const auto& callback : s_callbacks)
-    callback.second();
+  {
+    std::lock_guard lock(s_callbacks_mutex);
+
+    // If anyone currently holds a ConfigChangeCallbackGuard, ignore the current change.
+    // It will be re-triggered when the guard is destroyed.
+    if (s_callback_guards > 0)
+      return;
+
+    callbacks.reserve(s_callbacks.size());
+    for (auto& callback : s_callbacks)
+      callbacks.emplace_back(callback);
+  }
+
+  for (auto& callback : callbacks)
+  {
+    auto cb = callback.lock();
+    if (cb)
+      cb->callback();
+  }
 }
 
 u64 GetConfigVersion()
@@ -135,10 +173,15 @@ void Init()
 
 void Shutdown()
 {
-  WriteLock lock(s_layers_rw_lock);
+  {
+    WriteLock lock(s_layers_rw_lock);
+    s_layers.clear();
+  }
 
-  s_layers.clear();
-  s_callbacks.clear();
+  {
+    std::lock_guard lock(s_callbacks_mutex);
+    s_callbacks.clear();
+  }
 }
 
 void ClearCurrentRunLayer()
@@ -231,13 +274,17 @@ std::optional<std::string> GetAsString(const Location& config)
 
 ConfigChangeCallbackGuard::ConfigChangeCallbackGuard()
 {
+  std::lock_guard lock(s_callbacks_mutex);
   ++s_callback_guards;
 }
 
 ConfigChangeCallbackGuard::~ConfigChangeCallbackGuard()
 {
-  if (--s_callback_guards)
-    return;
+  {
+    std::lock_guard lock(s_callbacks_mutex);
+    if (--s_callback_guards)
+      return;
+  }
 
   OnConfigChanged();
 }
