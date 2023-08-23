@@ -80,6 +80,10 @@ private:
   ConstantPropagationResult EvaluateAddImm(UGeckoInstruction inst) const;
   ConstantPropagationResult EvaluateBitwiseImm(UGeckoInstruction inst,
                                                u32 (*do_op)(u32, u32)) const;
+  ConstantPropagationResult EvaluateTable31(UGeckoInstruction inst) const;
+  ConstantPropagationResult EvaluateTable31OneRegisterKnown(UGeckoInstruction inst, u32 value,
+                                                            bool known_reg_is_b) const;
+  ConstantPropagationResult EvaluateTable31IdenticalRegisters(UGeckoInstruction inst) const;
 
   static constexpr ConstantPropagationResult DO_NOTHING = [] {
     ConstantPropagationResult result;

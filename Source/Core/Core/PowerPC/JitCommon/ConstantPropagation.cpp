@@ -36,6 +36,8 @@ ConstantPropagationResult ConstantPropagation::EvaluateInstruction(UGeckoInstruc
   case 28:  // andi
   case 29:  // andis
     return EvaluateBitwiseImm(inst, BitAND);
+  case 31:
+    return EvaluateTable31(inst);
   default:
     return {};
   }
@@ -67,6 +69,132 @@ ConstantPropagationResult ConstantPropagation::EvaluateBitwiseImm(UGeckoInstruct
     return {};
 
   return ConstantPropagationResult(inst.RA, do_op(m_gpr_values[inst.RS], immediate), is_and);
+}
+
+ConstantPropagationResult ConstantPropagation::EvaluateTable31(UGeckoInstruction inst) const
+{
+  const bool has_s = HasGPR(inst.RS);
+  const bool has_b = HasGPR(inst.RB);
+  if (!has_s || !has_b)
+  {
+    if (has_s)
+      return EvaluateTable31OneRegisterKnown(inst, GetGPR(inst.RS), false);
+    else if (has_b)
+      return EvaluateTable31OneRegisterKnown(inst, GetGPR(inst.RB), true);
+    else if (inst.RS == inst.RB)
+      return EvaluateTable31IdenticalRegisters(inst);
+    else
+      return {};
+  }
+
+  u32 a;
+  const u32 s = GetGPR(inst.RS);
+  const u32 b = GetGPR(inst.RB);
+
+  switch (inst.SUBOP10)
+  {
+  case 28:  // andx
+    a = s & b;
+    break;
+  case 60:  // andcx
+    a = s & (~b);
+    break;
+  case 124:  // norx
+    a = ~(s | b);
+    break;
+  case 284:  // eqvx
+    a = ~(s ^ b);
+    break;
+  case 316:  // xorx
+    a = s ^ b;
+    break;
+  case 412:  // orcx
+    a = s | (~b);
+    break;
+  case 444:  // orx
+    a = s | b;
+    break;
+  case 476:  // nandx
+    a = ~(s & b);
+    break;
+  default:
+    return {};
+  }
+
+  return ConstantPropagationResult(inst.RA, a, inst.Rc);
+}
+
+ConstantPropagationResult
+ConstantPropagation::EvaluateTable31OneRegisterKnown(UGeckoInstruction inst, u32 value,
+                                                     bool known_reg_is_b) const
+{
+  u32 a;
+
+  switch (inst.SUBOP10)
+  {
+  case 60:  // andcx
+    if (known_reg_is_b)
+      value = ~value;
+    [[fallthrough]];
+  case 28:  // andx
+    if (value == 0)
+      a = 0;
+    else
+      return {};
+    break;
+  case 124:  // norx
+    if (value == 0xFFFFFFFF)
+      a = 0;
+    else
+      return {};
+    break;
+  case 412:  // orcx
+    if (known_reg_is_b)
+      value = ~value;
+    [[fallthrough]];
+  case 444:  // orx
+    if (value == 0xFFFFFFFF)
+      a = 0xFFFFFFFF;
+    else
+      return {};
+    break;
+  case 476:  // nandx
+    if (value == 0)
+      a = 0xFFFFFFFF;
+    else
+      return {};
+    break;
+  default:
+    return {};
+  }
+
+  return ConstantPropagationResult(inst.RA, a, inst.Rc);
+}
+
+ConstantPropagationResult
+ConstantPropagation::EvaluateTable31IdenticalRegisters(UGeckoInstruction inst) const
+{
+  u32 a;
+
+  switch (inst.SUBOP10)
+  {
+  case 60:  // andcx
+    a = 0;
+    break;
+  case 284:  // eqvx
+    a = 0xFFFFFFFF;
+    break;
+  case 316:  // xorx
+    a = 0;
+    break;
+  case 412:  // orcx
+    a = 0xFFFFFFFF;
+    break;
+  default:
+    return {};
+  }
+
+  return ConstantPropagationResult(inst.RA, a, inst.Rc);
 }
 
 void ConstantPropagation::Apply(ConstantPropagationResult result)
