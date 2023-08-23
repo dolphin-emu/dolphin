@@ -238,29 +238,7 @@ void JitArm64::boolX(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
   int a = inst.RA, s = inst.RS, b = inst.RB;
 
-  if (gpr.IsImm(s) && gpr.IsImm(b))
-  {
-    if (inst.SUBOP10 == 28)  // andx
-      gpr.SetImmediate(a, (u32)gpr.GetImm(s) & (u32)gpr.GetImm(b));
-    else if (inst.SUBOP10 == 476)  // nandx
-      gpr.SetImmediate(a, ~((u32)gpr.GetImm(s) & (u32)gpr.GetImm(b)));
-    else if (inst.SUBOP10 == 60)  // andcx
-      gpr.SetImmediate(a, (u32)gpr.GetImm(s) & (~(u32)gpr.GetImm(b)));
-    else if (inst.SUBOP10 == 444)  // orx
-      gpr.SetImmediate(a, (u32)gpr.GetImm(s) | (u32)gpr.GetImm(b));
-    else if (inst.SUBOP10 == 124)  // norx
-      gpr.SetImmediate(a, ~((u32)gpr.GetImm(s) | (u32)gpr.GetImm(b)));
-    else if (inst.SUBOP10 == 412)  // orcx
-      gpr.SetImmediate(a, (u32)gpr.GetImm(s) | (~(u32)gpr.GetImm(b)));
-    else if (inst.SUBOP10 == 316)  // xorx
-      gpr.SetImmediate(a, (u32)gpr.GetImm(s) ^ (u32)gpr.GetImm(b));
-    else if (inst.SUBOP10 == 284)  // eqvx
-      gpr.SetImmediate(a, ~((u32)gpr.GetImm(s) ^ (u32)gpr.GetImm(b)));
-
-    if (inst.Rc)
-      ComputeRC0(gpr.GetImm(a));
-  }
-  else if (s == b)
+  if (s == b)
   {
     if ((inst.SUBOP10 == 28 /* andx */) || (inst.SUBOP10 == 444 /* orx */))
     {
