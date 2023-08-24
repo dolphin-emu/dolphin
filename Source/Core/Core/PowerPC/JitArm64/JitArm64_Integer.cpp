@@ -540,19 +540,10 @@ void JitArm64::negx(UGeckoInstruction inst)
 
   FALLBACK_IF(inst.OE);
 
-  if (gpr.IsImm(a))
-  {
-    gpr.SetImmediate(d, ~((u32)gpr.GetImm(a)) + 1);
-    if (inst.Rc)
-      ComputeRC0(gpr.GetImm(d));
-  }
-  else
-  {
-    gpr.BindToRegister(d, d == a);
-    SUB(gpr.R(d), ARM64Reg::WSP, gpr.R(a));
-    if (inst.Rc)
-      ComputeRC0(gpr.R(d));
-  }
+  gpr.BindToRegister(d, d == a);
+  SUB(gpr.R(d), ARM64Reg::WSP, gpr.R(a));
+  if (inst.Rc)
+    ComputeRC0(gpr.R(d));
 }
 
 void JitArm64::cmp(UGeckoInstruction inst)
