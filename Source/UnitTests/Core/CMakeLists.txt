@@ -15,6 +15,8 @@ add_dolphin_test(ESFormatsTest IOS/ES/FormatsTest.cpp)
 
 add_dolphin_test(FileSystemTest IOS/FS/FileSystemTest.cpp)
 
+add_dolphin_test(SkylandersTest IOS/USB/SkylandersTest.cpp)
+
 if(_M_X86)
   add_dolphin_test(PowerPCTest
     PowerPC/DivUtilsTest.cpp

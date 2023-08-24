@@ -339,6 +339,8 @@ add_executable(dolphin-emu
   Settings/USBDeviceAddToWhitelistDialog.h
   Settings/WiiPane.cpp
   Settings/WiiPane.h
+  SkylanderPortal/SkylanderModifyDialog.cpp
+  SkylanderPortal/SkylanderModifyDialog.h
   SkylanderPortal/SkylanderPortalWindow.cpp
   SkylanderPortal/SkylanderPortalWindow.h
   TAS/GCTASInputWindow.cpp

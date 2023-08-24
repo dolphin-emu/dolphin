@@ -1,7 +1,7 @@
 // Copyright 2022 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "Core/IOS/USB/Emulated/Skylander.h"
+#include "Core/IOS/USB/Emulated/Skylanders/Skylander.h"
 
 #include <map>
 #include <mutex>
@@ -14,6 +14,7 @@
 #include "Common/Timer.h"
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
+#include "Core/IOS/USB/Emulated/Skylanders/SkylanderCrypto.h"
 #include "Core/System.h"
 
 namespace IOS::HLE::USB
@@ -1030,15 +1031,6 @@ void SkylanderUSB::ScheduleTransfer(std::unique_ptr<TransferCommand> command,
   command->ScheduleTransferCompletion(expected_count, expected_time_us);
 }
 
-void Skylander::Save()
-{
-  if (!sky_file)
-    return;
-
-  sky_file.Seek(0, File::SeekOrigin::Begin);
-  sky_file.WriteBytes(data.data(), 0x40 * 0x10);
-}
-
 void SkylanderPortal::Activate()
 {
   std::lock_guard lock(sky_mutex);
@@ -1190,14 +1182,14 @@ void SkylanderPortal::QueryBlock(u8 sky_num, u8 block, u8* reply_buf)
 
   reply_buf[0] = 'Q';
   reply_buf[2] = block;
-  if (skylander.status & 1)
+  if (skylander.status & Skylander::READY)
   {
     reply_buf[1] = (0x10 | sky_num);
-    memcpy(reply_buf + 3, skylander.data.data() + (16 * block), 16);
+    skylander.figure->GetBlock(block, reply_buf + 3);
   }
   else
   {
-    reply_buf[1] = sky_num;
+    reply_buf[1] = 0x01;
   }
 }
 
@@ -1216,96 +1208,13 @@ void SkylanderPortal::WriteBlock(u8 sky_num, u8 block, const u8* to_write_buf, u
   if (skylander.status & 1)
   {
     reply_buf[1] = (0x10 | sky_num);
-    memcpy(skylander.data.data() + (block * 16), to_write_buf, 16);
-    skylander.Save();
+    skylander.figure->SetBlock(block, to_write_buf);
+    skylander.figure->Save();
   }
   else
   {
-    reply_buf[1] = sky_num;
+    reply_buf[1] = 0x01;
   }
-}
-
-static u16 SkylanderCRC16(u16 init_value, const u8* buffer, u32 size)
-{
-  static constexpr std::array<u16, 256> CRC_CCITT_TABLE{
-      0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50A5, 0x60C6, 0x70E7, 0x8108, 0x9129, 0xA14A,
-      0xB16B, 0xC18C, 0xD1AD, 0xE1CE, 0xF1EF, 0x1231, 0x0210, 0x3273, 0x2252, 0x52B5, 0x4294,
-      0x72F7, 0x62D6, 0x9339, 0x8318, 0xB37B, 0xA35A, 0xD3BD, 0xC39C, 0xF3FF, 0xE3DE, 0x2462,
-      0x3443, 0x0420, 0x1401, 0x64E6, 0x74C7, 0x44A4, 0x5485, 0xA56A, 0xB54B, 0x8528, 0x9509,
-      0xE5EE, 0xF5CF, 0xC5AC, 0xD58D, 0x3653, 0x2672, 0x1611, 0x0630, 0x76D7, 0x66F6, 0x5695,
-      0x46B4, 0xB75B, 0xA77A, 0x9719, 0x8738, 0xF7DF, 0xE7FE, 0xD79D, 0xC7BC, 0x48C4, 0x58E5,
-      0x6886, 0x78A7, 0x0840, 0x1861, 0x2802, 0x3823, 0xC9CC, 0xD9ED, 0xE98E, 0xF9AF, 0x8948,
-      0x9969, 0xA90A, 0xB92B, 0x5AF5, 0x4AD4, 0x7AB7, 0x6A96, 0x1A71, 0x0A50, 0x3A33, 0x2A12,
-      0xDBFD, 0xCBDC, 0xFBBF, 0xEB9E, 0x9B79, 0x8B58, 0xBB3B, 0xAB1A, 0x6CA6, 0x7C87, 0x4CE4,
-      0x5CC5, 0x2C22, 0x3C03, 0x0C60, 0x1C41, 0xEDAE, 0xFD8F, 0xCDEC, 0xDDCD, 0xAD2A, 0xBD0B,
-      0x8D68, 0x9D49, 0x7E97, 0x6EB6, 0x5ED5, 0x4EF4, 0x3E13, 0x2E32, 0x1E51, 0x0E70, 0xFF9F,
-      0xEFBE, 0xDFDD, 0xCFFC, 0xBF1B, 0xAF3A, 0x9F59, 0x8F78, 0x9188, 0x81A9, 0xB1CA, 0xA1EB,
-      0xD10C, 0xC12D, 0xF14E, 0xE16F, 0x1080, 0x00A1, 0x30C2, 0x20E3, 0x5004, 0x4025, 0x7046,
-      0x6067, 0x83B9, 0x9398, 0xA3FB, 0xB3DA, 0xC33D, 0xD31C, 0xE37F, 0xF35E, 0x02B1, 0x1290,
-      0x22F3, 0x32D2, 0x4235, 0x5214, 0x6277, 0x7256, 0xB5EA, 0xA5CB, 0x95A8, 0x8589, 0xF56E,
-      0xE54F, 0xD52C, 0xC50D, 0x34E2, 0x24C3, 0x14A0, 0x0481, 0x7466, 0x6447, 0x5424, 0x4405,
-      0xA7DB, 0xB7FA, 0x8799, 0x97B8, 0xE75F, 0xF77E, 0xC71D, 0xD73C, 0x26D3, 0x36F2, 0x0691,
-      0x16B0, 0x6657, 0x7676, 0x4615, 0x5634, 0xD94C, 0xC96D, 0xF90E, 0xE92F, 0x99C8, 0x89E9,
-      0xB98A, 0xA9AB, 0x5844, 0x4865, 0x7806, 0x6827, 0x18C0, 0x08E1, 0x3882, 0x28A3, 0xCB7D,
-      0xDB5C, 0xEB3F, 0xFB1E, 0x8BF9, 0x9BD8, 0xABBB, 0xBB9A, 0x4A75, 0x5A54, 0x6A37, 0x7A16,
-      0x0AF1, 0x1AD0, 0x2AB3, 0x3A92, 0xFD2E, 0xED0F, 0xDD6C, 0xCD4D, 0xBDAA, 0xAD8B, 0x9DE8,
-      0x8DC9, 0x7C26, 0x6C07, 0x5C64, 0x4C45, 0x3CA2, 0x2C83, 0x1CE0, 0x0CC1, 0xEF1F, 0xFF3E,
-      0xCF5D, 0xDF7C, 0xAF9B, 0xBFBA, 0x8FD9, 0x9FF8, 0x6E17, 0x7E36, 0x4E55, 0x5E74, 0x2E93,
-      0x3EB2, 0x0ED1, 0x1EF0};
-
-  u16 crc = init_value;
-
-  for (u32 i = 0; i < size; i++)
-  {
-    const u16 tmp = (crc >> 8) ^ buffer[i];
-    crc = (crc << 8) ^ CRC_CCITT_TABLE[tmp];
-  }
-
-  return crc;
-}
-
-bool SkylanderPortal::CreateSkylander(const std::string& file_path, u16 m_sky_id, u16 m_sky_var)
-{
-  File::IOFile sky_file(file_path, "w+b");
-  if (!sky_file)
-  {
-    return false;
-  }
-
-  std::array<u8, 0x40 * 0x10> buf{};
-  const auto file_data = buf.data();
-  // Set the block permissions
-  u32 first_block = 0x690F0F0F;
-  u32 other_blocks = 0x69080F7F;
-  memcpy(&file_data[0x36], &first_block, sizeof(first_block));
-  for (u32 index = 1; index < 0x10; index++)
-  {
-    memcpy(&file_data[(index * 0x40) + 0x36], &other_blocks, sizeof(other_blocks));
-  }
-
-  // Set the NUID of the figure
-  Common::Random::Generate(&file_data[0], 4);
-
-  // The BCC (Block Check Character)
-  file_data[4] = file_data[0] ^ file_data[1] ^ file_data[2] ^ file_data[3];
-
-  // ATQA
-  file_data[5] = 0x81;
-  file_data[6] = 0x01;
-
-  // SAK
-  file_data[7] = 0x0F;
-
-  // Set the skylander info
-  memcpy(&file_data[0x10], &m_sky_id, sizeof(m_sky_id));
-  memcpy(&file_data[0x1C], &m_sky_var, sizeof(m_sky_var));
-
-  // Set checksum
-  u16 checksum = SkylanderCRC16(0xFFFF, file_data, 0x1E);
-  memcpy(&file_data[0x1E], &checksum, sizeof(checksum));
-
-  sky_file.WriteBytes(buf.data(), buf.size());
-  return true;
 }
 
 bool SkylanderPortal::RemoveSkylander(u8 sky_num)
@@ -1317,13 +1226,13 @@ bool SkylanderPortal::RemoveSkylander(u8 sky_num)
   std::lock_guard lock(sky_mutex);
   auto& skylander = skylanders[sky_num];
 
-  if (skylander.sky_file.IsOpen())
+  if (skylander.figure->FileIsOpen())
   {
-    skylander.Save();
-    skylander.sky_file.Close();
+    skylander.figure->Save();
+    skylander.figure->Close();
   }
 
-  if (skylander.status & 1)
+  if (skylander.status & Skylander::READY)
   {
     skylander.status = Skylander::REMOVING;
     skylander.queued_status.push(Skylander::REMOVING);
@@ -1334,15 +1243,17 @@ bool SkylanderPortal::RemoveSkylander(u8 sky_num)
   return false;
 }
 
-u8 SkylanderPortal::LoadSkylander(u8* buf, File::IOFile in_file)
+u8 SkylanderPortal::LoadSkylander(std::unique_ptr<SkylanderFigure> figure)
 {
   std::lock_guard lock(sky_mutex);
 
   u32 sky_serial = 0;
+  std::array<u8, 0x10> block = {};
+  figure->GetBlock(0, block.data());
   for (int i = 3; i > -1; i--)
   {
     sky_serial <<= 8;
-    sky_serial |= buf[i];
+    sky_serial |= block[i];
   }
   u8 found_slot = 0xFF;
 
@@ -1370,10 +1281,7 @@ u8 SkylanderPortal::LoadSkylander(u8* buf, File::IOFile in_file)
   if (found_slot != 0xFF)
   {
     auto& skylander = skylanders[found_slot];
-    memcpy(skylander.data.data(), buf, skylander.data.size());
-    DEBUG_LOG_FMT(IOS_USB, "Skylander Data: \n{}",
-                  HexDump(skylander.data.data(), skylander.data.size()));
-    skylander.sky_file = std::move(in_file);
+    skylander.figure = std::move(figure);
     skylander.status = Skylander::ADDED;
     skylander.queued_status.push(Skylander::ADDED);
     skylander.queued_status.push(Skylander::READY);
@@ -1401,6 +1309,34 @@ std::pair<u16, u16> SkylanderPortal::CalculateIDs(const std::array<u8, 0x40 * 0x
   m_sky_id |= file_data[0x10];
   m_sky_var |= file_data[0x1C];
   return std::make_pair(m_sky_id, m_sky_var);
+}
+
+Skylander* SkylanderPortal::GetSkylander(u8 slot)
+{
+  return &skylanders[slot];
+}
+
+Type NormalizeSkylanderType(Type type)
+{
+  switch (type)
+  {
+  case Type::Skylander:
+  case Type::Giant:
+  case Type::Swapper:
+  case Type::TrapMaster:
+  case Type::Mini:
+    return Type::Skylander;
+  case Type::Trophy:
+    return Type::Trophy;
+  default:
+  case Type::Item:
+  case Type::Trap:
+  case Type::Vehicle:
+  case Type::Unknown:
+    // until these get seperate data logic (except unknown and item since items don't save data and
+    // unknown is unknown)
+    return Type::Unknown;
+  }
 }
 
 }  // namespace IOS::HLE::USB
