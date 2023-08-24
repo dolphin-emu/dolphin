@@ -18,9 +18,12 @@ bool mpn_update_discord()
   if (CurrentState.Scenes != NULL && CurrentState.Scene != NULL)
     RichPresence.state = CurrentState.Scene->Name.c_str();
 
+  if (mpn_read_value(CurrentState.Addresses->CurrentTurn, 1) == (mpn_read_value(CurrentState.Addresses->TotalTurns, 1) + 1))
+  {
+    State::Save(1);
+  }
   if (CurrentState.Addresses != NULL)
   {
-    StateMPN::Save(1);
     char Details[128] = "";
 
     if (CurrentState.Boards && CurrentState.Board)
