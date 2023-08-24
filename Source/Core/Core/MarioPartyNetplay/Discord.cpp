@@ -3,6 +3,7 @@
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Core.h"
 #include "Core/IOS/DolphinDevice.h"
+#include <Core/StateMPN.h>
 
 bool mpn_update_discord()
 {
@@ -19,6 +20,7 @@ bool mpn_update_discord()
 
   if (CurrentState.Addresses != NULL)
   {
+    StateMPN::Save(1);
     char Details[128] = "";
 
     if (CurrentState.Boards && CurrentState.Board)
