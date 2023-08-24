@@ -3,6 +3,8 @@
 
 #include "Core/PowerPC/JitCommon/ConstantPropagation.h"
 
+#include <bit>
+
 #include "Core/PowerPC/PPCTables.h"
 
 namespace JitCommon
@@ -107,6 +109,9 @@ ConstantPropagationResult ConstantPropagation::EvaluateTable31S(UGeckoInstructio
 
   switch (inst.SUBOP10)
   {
+  case 26:  // cntlzwx
+    a = std::countl_zero(s);
+    break;
   case 922:  // extshx
     a = s32(s16(s));
     break;
