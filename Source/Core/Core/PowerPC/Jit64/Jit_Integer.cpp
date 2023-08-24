@@ -1026,13 +1026,8 @@ void Jit64::extsXx(UGeckoInstruction inst)
   int a = inst.RA, s = inst.RS;
   int size = inst.SUBOP10 == 922 ? 16 : 8;
 
-  if (gpr.IsImm(s))
   {
-    gpr.SetImmediate32(a, (u32)(s32)(size == 16 ? (s16)gpr.Imm32(s) : (s8)gpr.Imm32(s)));
-  }
-  else
-  {
-    RCOpArg Rs = gpr.Use(s, RCMode::Read);
+    RCOpArg Rs = gpr.UseNoImm(s, RCMode::Read);
     RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
     RegCache::Realize(Rs, Ra);
     MOVSX(32, size, Ra, Rs);
