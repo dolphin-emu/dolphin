@@ -525,19 +525,10 @@ void JitArm64::cntlzwx(UGeckoInstruction inst)
   int a = inst.RA;
   int s = inst.RS;
 
-  if (gpr.IsImm(s))
-  {
-    gpr.SetImmediate(a, static_cast<u32>(std::countl_zero(gpr.GetImm(s))));
-    if (inst.Rc)
-      ComputeRC0(gpr.GetImm(a));
-  }
-  else
-  {
-    gpr.BindToRegister(a, a == s);
-    CLZ(gpr.R(a), gpr.R(s));
-    if (inst.Rc)
-      ComputeRC0(gpr.R(a));
-  }
+  gpr.BindToRegister(a, a == s);
+  CLZ(gpr.R(a), gpr.R(s));
+  if (inst.Rc)
+    ComputeRC0(gpr.R(a));
 }
 
 void JitArm64::negx(UGeckoInstruction inst)

@@ -2649,14 +2649,9 @@ void Jit64::cntlzwx(UGeckoInstruction inst)
   int s = inst.RS;
   bool needs_test = false;
 
-  if (gpr.IsImm(s))
-  {
-    gpr.SetImmediate32(a, static_cast<u32>(std::countl_zero(gpr.Imm32(s))));
-  }
-  else
   {
     RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
-    RCOpArg Rs = gpr.Use(s, RCMode::Read);
+    RCOpArg Rs = gpr.UseNoImm(s, RCMode::Read);
     RegCache::Realize(Ra, Rs);
 
     if (cpu_info.bLZCNT)
