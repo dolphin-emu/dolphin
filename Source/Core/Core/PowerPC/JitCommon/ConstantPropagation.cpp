@@ -94,9 +94,31 @@ ConstantPropagationResult ConstantPropagation::EvaluateTable31(UGeckoInstruction
   }
   else
   {
-    // input s -> output a
-    return EvaluateTable31S(inst);
+    switch (inst.SUBOP10)
+    {
+    case 104:  // negx
+    case 616:  // negox
+      // input a -> output d
+      return EvaluateTable31Negx(inst, flags);
+    default:
+      // input s -> output a
+      return EvaluateTable31S(inst);
+    }
   }
+}
+
+ConstantPropagationResult ConstantPropagation::EvaluateTable31Negx(UGeckoInstruction inst,
+                                                                   u64 flags) const
+{
+  if (!HasGPR(inst.RA))
+    return {};
+
+  const s64 out = -s64(s32(GetGPR(inst.RA)));
+
+  ConstantPropagationResult result(inst.RD, u32(out), inst.Rc);
+  if (flags & FL_SET_OE)
+    result.overflow = (out != s64(s32(out)));
+  return result;
 }
 
 ConstantPropagationResult ConstantPropagation::EvaluateTable31S(UGeckoInstruction inst) const

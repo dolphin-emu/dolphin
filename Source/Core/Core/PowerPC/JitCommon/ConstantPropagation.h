@@ -72,6 +72,7 @@ private:
   ConstantPropagationResult EvaluateBitwiseImm(UGeckoInstruction inst,
                                                u32 (*do_op)(u32, u32)) const;
   ConstantPropagationResult EvaluateTable31(UGeckoInstruction inst, u64 flags) const;
+  ConstantPropagationResult EvaluateTable31Negx(UGeckoInstruction inst, u64 flags) const;
   ConstantPropagationResult EvaluateTable31S(UGeckoInstruction inst) const;
   ConstantPropagationResult EvaluateTable31AB(UGeckoInstruction inst, u64 flags) const;
   ConstantPropagationResult EvaluateTable31SB(UGeckoInstruction inst) const;
