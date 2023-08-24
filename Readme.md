@@ -58,7 +58,7 @@ will inform you if a bundled library is used or if you need to install any
 missing packages yourself.
 
 ### Rust
-This fork includes a [Rust submodule](Externals/SlippiRustExtensions) that needs to be built and linked to the final executable.
+This fork includes a [Rust submodule](https://github.com/project-slippi/slippi-rust-extensions) that needs to be built and linked to the final executable.
 This means that you will need to install a Rust compiler for your current system; to do this, simply visit 
 [rustup.rs](https://rustup.rs). Once installed, CMake should be able to automatically handle the rest for you.
 
