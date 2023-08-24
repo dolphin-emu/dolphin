@@ -2283,15 +2283,8 @@ void Jit64::negx(UGeckoInstruction inst)
   int a = inst.RA;
   int d = inst.RD;
 
-  if (gpr.IsImm(a))
   {
-    gpr.SetImmediate32(d, ~(gpr.Imm32(a)) + 1);
-    if (inst.OE)
-      GenerateConstantOverflow(gpr.Imm32(d) == 0x80000000);
-  }
-  else
-  {
-    RCOpArg Ra = gpr.Use(a, RCMode::Read);
+    RCOpArg Ra = gpr.UseNoImm(a, RCMode::Read);
     RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
     RegCache::Realize(Ra, Rd);
 
