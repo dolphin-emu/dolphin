@@ -3,6 +3,8 @@
 
 #include "Core/PowerPC/JitCommon/ConstantPropagation.h"
 
+#include "Core/PowerPC/PPCTables.h"
+
 namespace JitCommon
 {
 static constexpr u32 BitOR(u32 a, u32 b)
@@ -20,7 +22,8 @@ static constexpr u32 BitXOR(u32 a, u32 b)
   return a ^ b;
 }
 
-ConstantPropagationResult ConstantPropagation::EvaluateInstruction(UGeckoInstruction inst) const
+ConstantPropagationResult ConstantPropagation::EvaluateInstruction(UGeckoInstruction inst,
+                                                                   u64 flags) const
 {
   switch (inst.OPCD)
   {
@@ -37,7 +40,7 @@ ConstantPropagationResult ConstantPropagation::EvaluateInstruction(UGeckoInstruc
   case 29:  // andis
     return EvaluateBitwiseImm(inst, BitAND);
   case 31:
-    return EvaluateTable31(inst);
+    return EvaluateTable31(inst, flags);
   default:
     return {};
   }
@@ -71,18 +74,65 @@ ConstantPropagationResult ConstantPropagation::EvaluateBitwiseImm(UGeckoInstruct
   return ConstantPropagationResult(inst.RA, do_op(m_gpr_values[inst.RS], immediate), is_and);
 }
 
-ConstantPropagationResult ConstantPropagation::EvaluateTable31(UGeckoInstruction inst) const
+ConstantPropagationResult ConstantPropagation::EvaluateTable31(UGeckoInstruction inst,
+                                                               u64 flags) const
+{
+  if (flags & FL_OUT_D)
+  {
+    // input a, b -> output d
+    return EvaluateTable31AB(inst, flags);
+  }
+  else
+  {
+    // input s, b -> output a
+    return EvaluateTable31SB(inst);
+  }
+}
+
+ConstantPropagationResult ConstantPropagation::EvaluateTable31AB(UGeckoInstruction inst,
+                                                                 u64 flags) const
+{
+  if (!HasGPR(inst.RA, inst.RB))
+    return {};
+
+  u64 d;
+  s64 d_overflow;
+  const u32 a = GetGPR(inst.RA);
+  const u32 b = GetGPR(inst.RB);
+
+  switch (inst.SUBOP10)
+  {
+  case 10:   // addcx
+  case 522:  // addcox
+  case 266:  // addx
+  case 778:  // addox
+    d = u64(a) + u64(b);
+    d_overflow = s64(s32(a)) + s64(s32(b));
+    break;
+  default:
+    return {};
+  }
+
+  ConstantPropagationResult result(inst.RD, u32(d), inst.Rc);
+  if (flags & FL_SET_CA)
+    result.carry = (d >> 32 != 0);
+  if (flags & FL_SET_OE)
+    result.overflow = (d_overflow != s64(s32(d_overflow)));
+  return result;
+}
+
+ConstantPropagationResult ConstantPropagation::EvaluateTable31SB(UGeckoInstruction inst) const
 {
   const bool has_s = HasGPR(inst.RS);
   const bool has_b = HasGPR(inst.RB);
   if (!has_s || !has_b)
   {
     if (has_s)
-      return EvaluateTable31OneRegisterKnown(inst, GetGPR(inst.RS), false);
+      return EvaluateTable31SBOneRegisterKnown(inst, GetGPR(inst.RS), false);
     else if (has_b)
-      return EvaluateTable31OneRegisterKnown(inst, GetGPR(inst.RB), true);
+      return EvaluateTable31SBOneRegisterKnown(inst, GetGPR(inst.RB), true);
     else if (inst.RS == inst.RB)
-      return EvaluateTable31IdenticalRegisters(inst);
+      return EvaluateTable31SBIdenticalRegisters(inst);
     else
       return {};
   }
@@ -125,8 +175,8 @@ ConstantPropagationResult ConstantPropagation::EvaluateTable31(UGeckoInstruction
 }
 
 ConstantPropagationResult
-ConstantPropagation::EvaluateTable31OneRegisterKnown(UGeckoInstruction inst, u32 value,
-                                                     bool known_reg_is_b) const
+ConstantPropagation::EvaluateTable31SBOneRegisterKnown(UGeckoInstruction inst, u32 value,
+                                                       bool known_reg_is_b) const
 {
   u32 a;
 
@@ -172,7 +222,7 @@ ConstantPropagation::EvaluateTable31OneRegisterKnown(UGeckoInstruction inst, u32
 }
 
 ConstantPropagationResult
-ConstantPropagation::EvaluateTable31IdenticalRegisters(UGeckoInstruction inst) const
+ConstantPropagation::EvaluateTable31SBIdenticalRegisters(UGeckoInstruction inst) const
 {
   u32 a;
 

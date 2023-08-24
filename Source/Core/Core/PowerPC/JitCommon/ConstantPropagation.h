@@ -46,7 +46,7 @@ struct ConstantPropagationResult final
 class ConstantPropagation final
 {
 public:
-  ConstantPropagationResult EvaluateInstruction(UGeckoInstruction inst) const;
+  ConstantPropagationResult EvaluateInstruction(UGeckoInstruction inst, u64 flags) const;
 
   void Apply(ConstantPropagationResult result);
 
@@ -80,10 +80,12 @@ private:
   ConstantPropagationResult EvaluateAddImm(UGeckoInstruction inst) const;
   ConstantPropagationResult EvaluateBitwiseImm(UGeckoInstruction inst,
                                                u32 (*do_op)(u32, u32)) const;
-  ConstantPropagationResult EvaluateTable31(UGeckoInstruction inst) const;
-  ConstantPropagationResult EvaluateTable31OneRegisterKnown(UGeckoInstruction inst, u32 value,
-                                                            bool known_reg_is_b) const;
-  ConstantPropagationResult EvaluateTable31IdenticalRegisters(UGeckoInstruction inst) const;
+  ConstantPropagationResult EvaluateTable31(UGeckoInstruction inst, u64 flags) const;
+  ConstantPropagationResult EvaluateTable31AB(UGeckoInstruction inst, u64 flags) const;
+  ConstantPropagationResult EvaluateTable31SB(UGeckoInstruction inst) const;
+  ConstantPropagationResult EvaluateTable31SBOneRegisterKnown(UGeckoInstruction inst, u32 value,
+                                                              bool known_reg_is_b) const;
+  ConstantPropagationResult EvaluateTable31SBIdenticalRegisters(UGeckoInstruction inst) const;
 
   static constexpr ConstantPropagationResult DO_NOTHING = [] {
     ConstantPropagationResult result;

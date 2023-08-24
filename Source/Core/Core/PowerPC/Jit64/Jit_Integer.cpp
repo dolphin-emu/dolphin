@@ -1826,16 +1826,7 @@ void Jit64::addx(UGeckoInstruction inst)
   int a = inst.RA, b = inst.RB, d = inst.RD;
   bool carry = !(inst.SUBOP10 & (1 << 8));
 
-  if (gpr.IsImm(a, b))
-  {
-    const s32 i = gpr.SImm32(a), j = gpr.SImm32(b);
-    gpr.SetImmediate32(d, i + j);
-    if (carry)
-      FinalizeCarry(Interpreter::Helper_Carry(i, j));
-    if (inst.OE)
-      GenerateConstantOverflow((s64)i + (s64)j);
-  }
-  else if (gpr.IsImm(a) || gpr.IsImm(b))
+  if (gpr.IsImm(a) || gpr.IsImm(b))
   {
     const auto [i, j] = gpr.IsImm(a) ? std::pair(a, b) : std::pair(b, a);
     const s32 imm = gpr.SImm32(i);
