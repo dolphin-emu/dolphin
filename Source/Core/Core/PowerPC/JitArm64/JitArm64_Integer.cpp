@@ -483,14 +483,7 @@ void JitArm64::addx(UGeckoInstruction inst)
 
   int a = inst.RA, b = inst.RB, d = inst.RD;
 
-  if (gpr.IsImm(a) && gpr.IsImm(b))
-  {
-    s32 i = (s32)gpr.GetImm(a), j = (s32)gpr.GetImm(b);
-    gpr.SetImmediate(d, i + j);
-    if (inst.Rc)
-      ComputeRC0(gpr.GetImm(d));
-  }
-  else if (gpr.IsImm(a) || gpr.IsImm(b))
+  if (gpr.IsImm(a) || gpr.IsImm(b))
   {
     int imm_reg = gpr.IsImm(a) ? a : b;
     int in_reg = gpr.IsImm(a) ? b : a;
@@ -1461,25 +1454,12 @@ void JitArm64::addcx(UGeckoInstruction inst)
 
   int a = inst.RA, b = inst.RB, d = inst.RD;
 
-  if (gpr.IsImm(a) && gpr.IsImm(b))
-  {
-    u32 i = gpr.GetImm(a), j = gpr.GetImm(b);
-    gpr.SetImmediate(d, i + j);
+  gpr.BindToRegister(d, d == a || d == b);
+  CARRY_IF_NEEDED(ADD, ADDS, gpr.R(d), gpr.R(a), gpr.R(b));
 
-    bool has_carry = Interpreter::Helper_Carry(i, j);
-    ComputeCarry(has_carry);
-    if (inst.Rc)
-      ComputeRC0(gpr.GetImm(d));
-  }
-  else
-  {
-    gpr.BindToRegister(d, d == a || d == b);
-    CARRY_IF_NEEDED(ADD, ADDS, gpr.R(d), gpr.R(a), gpr.R(b));
-
-    ComputeCarry();
-    if (inst.Rc)
-      ComputeRC0(gpr.R(d));
-  }
+  ComputeCarry();
+  if (inst.Rc)
+    ComputeRC0(gpr.R(d));
 }
 
 void JitArm64::divwux(UGeckoInstruction inst)
