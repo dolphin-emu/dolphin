@@ -77,16 +77,47 @@ ConstantPropagationResult ConstantPropagation::EvaluateBitwiseImm(UGeckoInstruct
 ConstantPropagationResult ConstantPropagation::EvaluateTable31(UGeckoInstruction inst,
                                                                u64 flags) const
 {
-  if (flags & FL_OUT_D)
+  if (flags & FL_IN_B)
   {
-    // input a, b -> output d
-    return EvaluateTable31AB(inst, flags);
+    if (flags & FL_OUT_D)
+    {
+      // input a, b -> output d
+      return EvaluateTable31AB(inst, flags);
+    }
+    else
+    {
+      // input s, b -> output a
+      return EvaluateTable31SB(inst);
+    }
   }
   else
   {
-    // input s, b -> output a
-    return EvaluateTable31SB(inst);
+    // input s -> output a
+    return EvaluateTable31S(inst);
   }
+}
+
+ConstantPropagationResult ConstantPropagation::EvaluateTable31S(UGeckoInstruction inst) const
+{
+  if (!HasGPR(inst.RS))
+    return {};
+
+  u32 a;
+  const u32 s = GetGPR(inst.RS);
+
+  switch (inst.SUBOP10)
+  {
+  case 922:  // extshx
+    a = s32(s16(s));
+    break;
+  case 954:  // extsbx
+    a = s32(s8(s));
+    break;
+  default:
+    return {};
+  }
+
+  return ConstantPropagationResult(inst.RA, a, inst.Rc);
 }
 
 ConstantPropagationResult ConstantPropagation::EvaluateTable31AB(UGeckoInstruction inst,

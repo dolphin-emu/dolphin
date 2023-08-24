@@ -512,19 +512,10 @@ void JitArm64::extsXx(UGeckoInstruction inst)
   int a = inst.RA, s = inst.RS;
   int size = inst.SUBOP10 == 922 ? 16 : 8;
 
-  if (gpr.IsImm(s))
-  {
-    gpr.SetImmediate(a, (u32)(s32)(size == 16 ? (s16)gpr.GetImm(s) : (s8)gpr.GetImm(s)));
-    if (inst.Rc)
-      ComputeRC0(gpr.GetImm(a));
-  }
-  else
-  {
-    gpr.BindToRegister(a, a == s);
-    SBFM(gpr.R(a), gpr.R(s), 0, size - 1);
-    if (inst.Rc)
-      ComputeRC0(gpr.R(a));
-  }
+  gpr.BindToRegister(a, a == s);
+  SBFM(gpr.R(a), gpr.R(s), 0, size - 1);
+  if (inst.Rc)
+    ComputeRC0(gpr.R(a));
 }
 
 void JitArm64::cntlzwx(UGeckoInstruction inst)
