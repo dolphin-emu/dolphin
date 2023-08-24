@@ -1348,7 +1348,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       else
       {
         const JitCommon::ConstantPropagationResult constant_propagation_result =
-            m_constant_propagation.EvaluateInstruction(op.inst);
+            m_constant_propagation.EvaluateInstruction(op.inst, opinfo->flags);
 
         if (!constant_propagation_result.instruction_fully_executed)
         {
