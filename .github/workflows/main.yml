@@ -18,13 +18,28 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
-      rust_ver: ${{ steps.rust_ver.outputs.rust_ver }}
     steps:
       - id: skip_check
         uses: fkirc/skip-duplicate-actions@master
         with:
           concurrent_skipping: "same_content"
           do_not_skip: '["push", "workflow_dispatch", "schedule"]'
+
+  # goal is to prevent merges when the commit is not from the main branch, builds should still succeed
+  check_rust_commit:
+    needs: [pre_build]
+    if: ${{ needs.pre_build.outputs.should_skip != 'true' }}
+    name: Verify SlippiRustExtensions Commit is in Main
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Main Branch Check
+        shell: bash
+        run: |
+          git submodule update --init Externals/SlippiRustExtensions
+          cd Externals/SlippiRustExtensions
+          commit_id=$(git rev-parse HEAD)
+          git branch --contains $commit_id | grep main
 
   windows:
     needs: [pre_build]
