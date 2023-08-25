@@ -1047,90 +1047,96 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       fpr_used[op.fregOut] = true;
     fpr.UpdateLastUsed(fpr_used);
 
-    // Gather pipe writes using a non-immediate address are discovered by profiling.
-    bool gatherPipeIntCheck = js.fifoWriteAddresses.find(op.address) != js.fifoWriteAddresses.end();
-
-    if (jo.optimizeGatherPipe &&
-        (js.fifoBytesSinceCheck >= GPFifo::GATHER_PIPE_SIZE || js.mustCheckFifo))
+    if (i != 0)
     {
-      js.fifoBytesSinceCheck = 0;
-      js.mustCheckFifo = false;
+      // Gather pipe writes using a non-immediate address are discovered by profiling.
+      const u32 prev_address = m_code_buffer[i - 1].address;
+      bool gatherPipeIntCheck =
+          js.fifoWriteAddresses.find(prev_address) != js.fifoWriteAddresses.end();
 
-      gpr.Lock(ARM64Reg::W30);
-      BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
-      BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
-      regs_in_use[DecodeReg(ARM64Reg::W30)] = 0;
+      if (jo.optimizeGatherPipe &&
+          (js.fifoBytesSinceCheck >= GPFifo::GATHER_PIPE_SIZE || js.mustCheckFifo))
+      {
+        js.fifoBytesSinceCheck = 0;
+        js.mustCheckFifo = false;
 
-      ABI_PushRegisters(regs_in_use);
-      m_float_emit.ABI_PushRegisters(fprs_in_use, ARM64Reg::X30);
-      MOVP2R(ARM64Reg::X8, &GPFifo::FastCheckGatherPipe);
-      MOVP2R(ARM64Reg::X0, &m_system.GetGPFifo());
-      BLR(ARM64Reg::X8);
-      m_float_emit.ABI_PopRegisters(fprs_in_use, ARM64Reg::X30);
-      ABI_PopRegisters(regs_in_use);
+        gpr.Lock(ARM64Reg::W30);
+        BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
+        BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
+        regs_in_use[DecodeReg(ARM64Reg::W30)] = 0;
 
-      // Inline exception check
-      LDR(IndexType::Unsigned, ARM64Reg::W30, PPC_REG, PPCSTATE_OFF(Exceptions));
-      FixupBranch no_ext_exception = TBZ(ARM64Reg::W30, MathUtil::IntLog2(EXCEPTION_EXTERNAL_INT));
-      FixupBranch exception = B();
-      SwitchToFarCode();
-      const u8* done_here = GetCodePtr();
-      FixupBranch exit = B();
-      SetJumpTarget(exception);
-      LDR(IndexType::Unsigned, ARM64Reg::W30, PPC_REG, PPCSTATE_OFF(msr));
-      TBZ(ARM64Reg::W30, 15, done_here);  // MSR.EE
-      LDR(IndexType::Unsigned, ARM64Reg::W30, ARM64Reg::X30,
-          MOVPage2R(ARM64Reg::X30, &m_system.GetProcessorInterface().m_interrupt_cause));
-      constexpr u32 cause_mask = ProcessorInterface::INT_CAUSE_CP |
-                                 ProcessorInterface::INT_CAUSE_PE_TOKEN |
-                                 ProcessorInterface::INT_CAUSE_PE_FINISH;
-      TST(ARM64Reg::W30, LogicalImm(cause_mask, 32));
-      B(CC_EQ, done_here);
+        ABI_PushRegisters(regs_in_use);
+        m_float_emit.ABI_PushRegisters(fprs_in_use, ARM64Reg::X30);
+        MOVP2R(ARM64Reg::X8, &GPFifo::FastCheckGatherPipe);
+        MOVP2R(ARM64Reg::X0, &m_system.GetGPFifo());
+        BLR(ARM64Reg::X8);
+        m_float_emit.ABI_PopRegisters(fprs_in_use, ARM64Reg::X30);
+        ABI_PopRegisters(regs_in_use);
 
-      gpr.Flush(FlushMode::MaintainState, ARM64Reg::W30);
-      fpr.Flush(FlushMode::MaintainState, ARM64Reg::INVALID_REG);
-      WriteExceptionExit(js.compilerPC, true, true);
-      SwitchToNearCode();
-      SetJumpTarget(no_ext_exception);
-      SetJumpTarget(exit);
-      gpr.Unlock(ARM64Reg::W30);
+        // Inline exception check
+        LDR(IndexType::Unsigned, ARM64Reg::W30, PPC_REG, PPCSTATE_OFF(Exceptions));
+        FixupBranch no_ext_exception =
+            TBZ(ARM64Reg::W30, MathUtil::IntLog2(EXCEPTION_EXTERNAL_INT));
+        FixupBranch exception = B();
+        SwitchToFarCode();
+        const u8* done_here = GetCodePtr();
+        FixupBranch exit = B();
+        SetJumpTarget(exception);
+        LDR(IndexType::Unsigned, ARM64Reg::W30, PPC_REG, PPCSTATE_OFF(msr));
+        TBZ(ARM64Reg::W30, 15, done_here);  // MSR.EE
+        LDR(IndexType::Unsigned, ARM64Reg::W30, ARM64Reg::X30,
+            MOVPage2R(ARM64Reg::X30, &m_system.GetProcessorInterface().m_interrupt_cause));
+        constexpr u32 cause_mask = ProcessorInterface::INT_CAUSE_CP |
+                                   ProcessorInterface::INT_CAUSE_PE_TOKEN |
+                                   ProcessorInterface::INT_CAUSE_PE_FINISH;
+        TST(ARM64Reg::W30, LogicalImm(cause_mask, 32));
+        B(CC_EQ, done_here);
 
-      // So we don't check exceptions twice
-      gatherPipeIntCheck = false;
-    }
-    // Gather pipe writes can generate an exception; add an exception check.
-    // TODO: This doesn't really match hardware; the CP interrupt is
-    // asynchronous.
-    if (jo.optimizeGatherPipe && gatherPipeIntCheck)
-    {
-      ARM64Reg WA = gpr.GetReg();
-      ARM64Reg XA = EncodeRegTo64(WA);
+        gpr.Flush(FlushMode::MaintainState, ARM64Reg::W30);
+        fpr.Flush(FlushMode::MaintainState, ARM64Reg::INVALID_REG);
+        WriteExceptionExit(js.compilerPC, true, true);
+        SwitchToNearCode();
+        SetJumpTarget(no_ext_exception);
+        SetJumpTarget(exit);
+        gpr.Unlock(ARM64Reg::W30);
 
-      LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
-      FixupBranch no_ext_exception = TBZ(WA, MathUtil::IntLog2(EXCEPTION_EXTERNAL_INT));
-      FixupBranch exception = B();
-      SwitchToFarCode();
-      const u8* done_here = GetCodePtr();
-      FixupBranch exit = B();
-      SetJumpTarget(exception);
-      LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(msr));
-      TBZ(WA, 15, done_here);  // MSR.EE
-      LDR(IndexType::Unsigned, WA, XA,
-          MOVPage2R(XA, &m_system.GetProcessorInterface().m_interrupt_cause));
-      constexpr u32 cause_mask = ProcessorInterface::INT_CAUSE_CP |
-                                 ProcessorInterface::INT_CAUSE_PE_TOKEN |
-                                 ProcessorInterface::INT_CAUSE_PE_FINISH;
-      TST(WA, LogicalImm(cause_mask, 32));
-      B(CC_EQ, done_here);
+        // So we don't check exceptions twice
+        gatherPipeIntCheck = false;
+      }
+      // Gather pipe writes can generate an exception; add an exception check.
+      // TODO: This doesn't really match hardware; the CP interrupt is
+      // asynchronous.
+      if (jo.optimizeGatherPipe && gatherPipeIntCheck)
+      {
+        ARM64Reg WA = gpr.GetReg();
+        ARM64Reg XA = EncodeRegTo64(WA);
 
-      gpr.Flush(FlushMode::MaintainState, WA);
-      fpr.Flush(FlushMode::MaintainState, ARM64Reg::INVALID_REG);
-      WriteExceptionExit(js.compilerPC, true, true);
-      SwitchToNearCode();
-      SetJumpTarget(no_ext_exception);
-      SetJumpTarget(exit);
+        LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
+        FixupBranch no_ext_exception = TBZ(WA, MathUtil::IntLog2(EXCEPTION_EXTERNAL_INT));
+        FixupBranch exception = B();
+        SwitchToFarCode();
+        const u8* done_here = GetCodePtr();
+        FixupBranch exit = B();
+        SetJumpTarget(exception);
+        LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(msr));
+        TBZ(WA, 15, done_here);  // MSR.EE
+        LDR(IndexType::Unsigned, WA, XA,
+            MOVPage2R(XA, &m_system.GetProcessorInterface().m_interrupt_cause));
+        constexpr u32 cause_mask = ProcessorInterface::INT_CAUSE_CP |
+                                   ProcessorInterface::INT_CAUSE_PE_TOKEN |
+                                   ProcessorInterface::INT_CAUSE_PE_FINISH;
+        TST(WA, LogicalImm(cause_mask, 32));
+        B(CC_EQ, done_here);
 
-      gpr.Unlock(WA);
+        gpr.Flush(FlushMode::MaintainState, WA);
+        fpr.Flush(FlushMode::MaintainState, ARM64Reg::INVALID_REG);
+        WriteExceptionExit(js.compilerPC, true, true);
+        SwitchToNearCode();
+        SetJumpTarget(no_ext_exception);
+        SetJumpTarget(exit);
+
+        gpr.Unlock(WA);
+      }
     }
 
     if (HandleFunctionHooking(op.address))
