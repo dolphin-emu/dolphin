@@ -421,7 +421,9 @@ void RegCache::Flush(BitSet32 pregs)
     switch (m_regs[i].GetLocationType())
     {
     case PPCCachedReg::LocationType::Default:
+      break;
     case PPCCachedReg::LocationType::Discarded:
+      ASSERT_MSG(DYNA_REC, false, "Attempted to flush discarded PPC reg {}", i);
       break;
     case PPCCachedReg::LocationType::SpeculativeImmediate:
       // We can have a cached value without a host register through speculative constants.
