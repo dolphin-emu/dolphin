@@ -757,6 +757,16 @@ bool PPCAnalyzer::IsBusyWaitLoop(CodeBlock* block, CodeOp* code, size_t instruct
   return false;
 }
 
+static bool CanCauseGatherPipeInterruptCheck(const CodeOp& op)
+{
+  // eieio
+  if (op.inst.OPCD == 31 && op.inst.SUBOP10 == 854)
+    return true;
+
+  return op.opinfo->type == OpType::Store || op.opinfo->type == OpType::StoreFP ||
+         op.opinfo->type == OpType::StorePS;
+}
+
 u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
                          std::size_t block_size) const
 {
@@ -951,6 +961,14 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
   for (int i = block->m_num_instructions - 1; i >= 0; i--)
   {
     CodeOp& op = code[i];
+
+    if (CanCauseGatherPipeInterruptCheck(op))
+    {
+      // If we're doing a gather pipe interrupt check after this instruction, we need to
+      // be able to flush all registers, so we can't have any discarded registers.
+      gprDiscardable = BitSet32{};
+      fprDiscardable = BitSet32{};
+    }
 
     const BitSet8 opWantsCR = op.wantsCR;
     const bool opWantsFPRF = op.wantsFPRF;
