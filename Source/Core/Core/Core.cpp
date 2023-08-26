@@ -41,6 +41,7 @@
 #include "Core/AchievementManager.h"
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
+#include "Core/CPUThreadConfigCallback.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
@@ -510,6 +511,9 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   // For a time this acts as the CPU thread...
   DeclareAsCPUThread();
   s_frame_step = false;
+
+  // If settings have changed since the previous run, notify callbacks.
+  CPUThreadConfigCallback::CheckForConfigChanges();
 
   // Switch the window used for inputs to the render window. This way, the cursor position
   // is relative to the render window, instead of the main window.

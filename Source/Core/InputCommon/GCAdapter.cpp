@@ -23,6 +23,7 @@
 #endif
 
 #include "Common/BitUtils.h"
+#include "Common/Config/Config.h"
 #include "Common/Event.h"
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
@@ -158,7 +159,7 @@ static u8 s_endpoint_out = 0;
 
 static u64 s_last_init = 0;
 
-static std::optional<size_t> s_config_callback_id = std::nullopt;
+static std::optional<Config::ConfigChangedCallbackID> s_config_callback_id = std::nullopt;
 
 static bool s_is_adapter_wanted = false;
 static std::array<bool, SerialInterface::MAX_SI_CHANNELS> s_config_rumble_enabled{};

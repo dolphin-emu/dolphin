@@ -6,7 +6,9 @@
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/FloatUtils.h"
+#include "Common/ScopeGuard.h"
 #include "Common/x64ABI.h"
+#include "Core/Core.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64Common/Jit64AsmCommon.h"
@@ -59,6 +61,9 @@ public:
 
 TEST(Jit64, Frsqrte)
 {
+  Core::DeclareAsCPUThread();
+  Common::ScopeGuard cpu_thread_guard([] { Core::UndeclareAsCPUThread(); });
+
   TestCommonAsmRoutines routines(Core::System::GetInstance());
 
   UReg_FPSCR fpscr;
