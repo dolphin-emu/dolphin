@@ -258,7 +258,7 @@ class SettingsAdapter(
     }
 
     fun onInputMappingClick(item: InputMappingControlSetting, position: Int) {
-        if (item.controller.defaultDevice.isEmpty() && !fragmentView.isMappingAllDevices) {
+        if (item.controller.getDefaultDevice().isEmpty() && !fragmentView.isMappingAllDevices) {
             MaterialAlertDialogBuilder(fragmentView.fragmentActivity)
                 .setMessage(R.string.input_binding_no_device)
                 .setPositiveButton(R.string.ok, this)
@@ -474,7 +474,7 @@ class SettingsAdapter(
                 val value = scSetting.getValueAt(which)
                 if (scSetting.selectedValue != value) fragmentView.onSettingChanged()
 
-                scSetting.setSelectedValue(settings, value)
+                scSetting.setSelectedValue(settings!!, value!!)
 
                 closeDialog()
             }

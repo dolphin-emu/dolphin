@@ -41,7 +41,7 @@ class SettingsFragmentPresenter(
     private val fragmentView: SettingsFragmentView,
     private val context: Context
 ) {
-    private var menuTag: MenuTag? = null
+    private lateinit var menuTag: MenuTag
     private var gameId: String? = null
 
     private var settingsList: ArrayList<SettingsItem>? = null
@@ -78,7 +78,7 @@ class SettingsFragmentPresenter(
         }
     }
 
-    fun onViewCreated(menuTag: MenuTag?, settings: Settings?) {
+    fun onViewCreated(menuTag: MenuTag, settings: Settings?) {
         this.menuTag = menuTag
 
         if (!TextUtils.isEmpty(gameId)) {
@@ -1339,13 +1339,8 @@ class SettingsFragmentPresenter(
         val shaderList =
             if (stereoModeValue == anaglyphMode) PostProcessing.anaglyphShaderList else PostProcessing.shaderList
 
-        val shaderListEntries = arrayOfNulls<String>(shaderList.size + 1)
-        shaderListEntries[0] = context.getString(R.string.off)
-        System.arraycopy(shaderList, 0, shaderListEntries, 1, shaderList.size)
-
-        val shaderListValues = arrayOfNulls<String>(shaderList.size + 1)
-        shaderListValues[0] = ""
-        System.arraycopy(shaderList, 0, shaderListValues, 1, shaderList.size)
+        val shaderListEntries = arrayOf(context.getString(R.string.off), *shaderList)
+        val shaderListValues = arrayOf("", *shaderList)
 
         sl.add(
             StringSingleChoiceSetting(
@@ -2153,7 +2148,7 @@ class SettingsFragmentPresenter(
         profileString: String,
         controllerNumber: Int
     ) {
-        val profiles = ProfileDialogPresenter(menuTag!!).getProfileNames(false)
+        val profiles = ProfileDialogPresenter(menuTag).getProfileNames(false)
         val profileKey = profileString + "Profile" + (controllerNumber + 1)
         sl.add(
             StringSingleChoiceSetting(
@@ -2232,7 +2227,7 @@ class SettingsFragmentPresenter(
                 0,
                 0,
                 true
-            ) { fragmentView.showDialogFragment(ProfileDialog.create(menuTag!!)) })
+            ) { fragmentView.showDialogFragment(ProfileDialog.create(menuTag)) })
 
         updateOldControllerSettingsWarningVisibility(controller)
     }
@@ -2251,15 +2246,15 @@ class SettingsFragmentPresenter(
     ) {
         updateOldControllerSettingsWarningVisibility(controller)
 
-        val groupCount = controller.groupCount
+        val groupCount = controller.getGroupCount()
         for (i in 0 until groupCount) {
             val group = controller.getGroup(i)
-            val groupType = group.groupType
+            val groupType = group.getGroupType()
             if (groupTypeFilter != null && !groupTypeFilter.contains(groupType)) continue
 
-            sl.add(HeaderSetting(group.uiName, ""))
+            sl.add(HeaderSetting(group.getUiName(), ""))
 
-            if (group.defaultEnabledValue != ControlGroup.DEFAULT_ENABLED_ALWAYS) {
+            if (group.getDefaultEnabledValue() != ControlGroup.DEFAULT_ENABLED_ALWAYS) {
                 sl.add(
                     SwitchSetting(
                         context,
@@ -2270,13 +2265,13 @@ class SettingsFragmentPresenter(
                 )
             }
 
-            val controlCount = group.controlCount
+            val controlCount = group.getControlCount()
             for (j in 0 until controlCount) {
                 sl.add(InputMappingControlSetting(group.getControl(j), controller))
             }
 
             if (groupType == ControlGroup.TYPE_ATTACHMENTS) {
-                val attachmentSetting = group.attachmentSetting
+                val attachmentSetting = group.getAttachmentSetting()
                 sl.add(
                     SingleChoiceSetting(
                         context, InputMappingIntSetting(attachmentSetting),
@@ -2287,7 +2282,7 @@ class SettingsFragmentPresenter(
                 )
             }
 
-            val numericSettingCount = group.numericSettingCount
+            val numericSettingCount = group.getNumericSettingCount()
             for (j in 0 until numericSettingCount) {
                 addNumericSetting(sl, group.getNumericSetting(j))
             }
@@ -2295,34 +2290,34 @@ class SettingsFragmentPresenter(
     }
 
     private fun addNumericSetting(sl: ArrayList<SettingsItem>, setting: NumericSetting) {
-        when (setting.type) {
+        when (setting.getType()) {
             NumericSetting.TYPE_DOUBLE -> sl.add(
                 FloatSliderSetting(
                     InputMappingDoubleSetting(setting),
-                    setting.uiName,
+                    setting.getUiName(),
                     "",
-                    ceil(setting.doubleMin).toInt(),
-                    floor(setting.doubleMax).toInt(),
-                    setting.uiSuffix
+                    ceil(setting.getDoubleMin()).toInt(),
+                    floor(setting.getDoubleMax()).toInt(),
+                    setting.getUiSuffix()
                 )
             )
 
             NumericSetting.TYPE_BOOLEAN -> sl.add(
                 SwitchSetting(
                     InputMappingBooleanSetting(setting),
-                    setting.uiName,
-                    setting.uiDescription
+                    setting.getUiName(),
+                    setting.getUiDescription()
                 )
             )
         }
     }
 
     fun updateOldControllerSettingsWarningVisibility() {
-        updateOldControllerSettingsWarningVisibility(menuTag!!.correspondingEmulatedController)
+        updateOldControllerSettingsWarningVisibility(menuTag.correspondingEmulatedController)
     }
 
     private fun updateOldControllerSettingsWarningVisibility(controller: EmulatedController) {
-        val defaultDevice = controller.defaultDevice
+        val defaultDevice = controller.getDefaultDevice()
 
         hasOldControllerSettings = defaultDevice.startsWith("Android/") &&
                 defaultDevice.endsWith("/Touchscreen")
