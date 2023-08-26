@@ -851,9 +851,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   js.numFloatingPointInst = 0;
 
   // TODO: Test if this or AlignCode16 make a difference from GetCodePtr
-  u8* const start = AlignCode4();
-  b->checkedEntry = start;
-  b->normalEntry = start;
+  b->normalEntry = AlignCode4();
 
   // Used to get a trace of the last few blocks before a crash, sometimes VERY useful
   if (m_im_here_debug)
@@ -1161,7 +1159,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     return false;
   }
 
-  b->codeSize = (u32)(GetCodePtr() - start);
+  b->codeSize = static_cast<u32>(GetCodePtr() - b->normalEntry);
   b->originalSize = code_block.m_num_instructions;
 
 #ifdef JIT_LOG_GENERATED_CODE

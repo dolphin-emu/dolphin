@@ -382,13 +382,32 @@ void JitArm64::WriteExit(u32 destination, bool LK, u32 exit_address_after_return
 
   LK &= m_enable_blr_optimization;
 
+  const u8* host_address_after_return;
   if (LK)
   {
-    // Push {ARM_PC+20; PPC_PC} on the stack
+    // Push {ARM_PC; PPC_PC} on the stack
     MOVI2R(ARM64Reg::X1, exit_address_after_return);
-    ADR(ARM64Reg::X0, 20);
+    constexpr s32 adr_offset = JitArm64BlockCache::BLOCK_LINK_SIZE + sizeof(u32) * 2;
+    host_address_after_return = GetCodePtr() + adr_offset;
+    ADR(ARM64Reg::X0, adr_offset);
     STP(IndexType::Pre, ARM64Reg::X0, ARM64Reg::X1, ARM64Reg::SP, -16);
   }
+
+  constexpr size_t primary_farcode_size = 3 * sizeof(u32);
+  const bool switch_to_far_code = !IsInFarCode();
+  const u8* primary_farcode_addr;
+  if (switch_to_far_code)
+  {
+    SwitchToFarCode();
+    primary_farcode_addr = GetCodePtr();
+    SwitchToNearCode();
+  }
+  else
+  {
+    primary_farcode_addr = GetCodePtr() + JitArm64BlockCache::BLOCK_LINK_SIZE +
+                           (LK ? JitArm64BlockCache::BLOCK_LINK_SIZE : 0);
+  }
+  const u8* return_farcode_addr = primary_farcode_addr + primary_farcode_size;
 
   JitBlock* b = js.curBlock;
   JitBlock::LinkData linkData;
@@ -396,21 +415,46 @@ void JitArm64::WriteExit(u32 destination, bool LK, u32 exit_address_after_return
   linkData.exitPtrs = GetWritableCodePtr();
   linkData.linkStatus = false;
   linkData.call = LK;
+  linkData.exitFarcode = primary_farcode_addr;
   b->linkData.push_back(linkData);
 
   blocks.WriteLinkBlock(*this, linkData);
 
   if (LK)
   {
+    DEBUG_ASSERT(GetCodePtr() == host_address_after_return || HasWriteFailed());
+
     // Write the regular exit node after the return.
     linkData.exitAddress = exit_address_after_return;
     linkData.exitPtrs = GetWritableCodePtr();
     linkData.linkStatus = false;
     linkData.call = false;
+    linkData.exitFarcode = return_farcode_addr;
     b->linkData.push_back(linkData);
 
     blocks.WriteLinkBlock(*this, linkData);
   }
+
+  if (switch_to_far_code)
+    SwitchToFarCode();
+  DEBUG_ASSERT(GetCodePtr() == primary_farcode_addr || HasWriteFailed());
+  MOVI2R(DISPATCHER_PC, destination);
+  if (LK)
+    BL(GetAsmRoutines()->do_timing);
+  else
+    B(GetAsmRoutines()->do_timing);
+
+  if (LK)
+  {
+    if (GetCodePtr() == return_farcode_addr - sizeof(u32))
+      BRK(101);
+    DEBUG_ASSERT(GetCodePtr() == return_farcode_addr || HasWriteFailed());
+    MOVI2R(DISPATCHER_PC, exit_address_after_return);
+    B(GetAsmRoutines()->do_timing);
+  }
+
+  if (switch_to_far_code)
+    SwitchToNearCode();
 }
 
 void JitArm64::WriteExit(Arm64Gen::ARM64Reg dest, bool LK, u32 exit_address_after_return)
@@ -432,10 +476,13 @@ void JitArm64::WriteExit(Arm64Gen::ARM64Reg dest, bool LK, u32 exit_address_afte
   {
     // Push {ARM_PC, PPC_PC} on the stack
     MOVI2R(ARM64Reg::X1, exit_address_after_return);
-    ADR(ARM64Reg::X0, 12);
+    constexpr s32 adr_offset = sizeof(u32) * 3;
+    const u8* host_address_after_return = GetCodePtr() + adr_offset;
+    ADR(ARM64Reg::X0, adr_offset);
     STP(IndexType::Pre, ARM64Reg::X0, ARM64Reg::X1, ARM64Reg::SP, -16);
 
     BL(dispatcher);
+    DEBUG_ASSERT(GetCodePtr() == host_address_after_return || HasWriteFailed());
 
     // Write the regular exit node after the return.
     JitBlock* b = js.curBlock;
@@ -444,9 +491,27 @@ void JitArm64::WriteExit(Arm64Gen::ARM64Reg dest, bool LK, u32 exit_address_afte
     linkData.exitPtrs = GetWritableCodePtr();
     linkData.linkStatus = false;
     linkData.call = false;
+    const bool switch_to_far_code = !IsInFarCode();
+    if (switch_to_far_code)
+    {
+      SwitchToFarCode();
+      linkData.exitFarcode = GetCodePtr();
+      SwitchToNearCode();
+    }
+    else
+    {
+      linkData.exitFarcode = GetCodePtr() + JitArm64BlockCache::BLOCK_LINK_SIZE;
+    }
     b->linkData.push_back(linkData);
 
     blocks.WriteLinkBlock(*this, linkData);
+
+    if (switch_to_far_code)
+      SwitchToFarCode();
+    MOVI2R(DISPATCHER_PC, exit_address_after_return);
+    B(GetAsmRoutines()->do_timing);
+    if (switch_to_far_code)
+      SwitchToNearCode();
   }
 }
 
@@ -461,11 +526,14 @@ void JitArm64::FakeLKExit(u32 exit_address_after_return)
   ARM64Reg after_reg = gpr.GetReg();
   ARM64Reg code_reg = gpr.GetReg();
   MOVI2R(after_reg, exit_address_after_return);
-  ADR(EncodeRegTo64(code_reg), 12);
+  constexpr s32 adr_offset = sizeof(u32) * 3;
+  const u8* host_address_after_return = GetCodePtr() + adr_offset;
+  ADR(EncodeRegTo64(code_reg), adr_offset);
   STP(IndexType::Pre, EncodeRegTo64(code_reg), EncodeRegTo64(after_reg), ARM64Reg::SP, -16);
   gpr.Unlock(after_reg, code_reg);
 
   FixupBranch skip_exit = BL();
+  DEBUG_ASSERT(GetCodePtr() == host_address_after_return || HasWriteFailed());
   gpr.Unlock(ARM64Reg::W30);
 
   // Write the regular exit node after the return.
@@ -475,9 +543,27 @@ void JitArm64::FakeLKExit(u32 exit_address_after_return)
   linkData.exitPtrs = GetWritableCodePtr();
   linkData.linkStatus = false;
   linkData.call = false;
+  const bool switch_to_far_code = !IsInFarCode();
+  if (switch_to_far_code)
+  {
+    SwitchToFarCode();
+    linkData.exitFarcode = GetCodePtr();
+    SwitchToNearCode();
+  }
+  else
+  {
+    linkData.exitFarcode = GetCodePtr() + JitArm64BlockCache::BLOCK_LINK_SIZE;
+  }
   b->linkData.push_back(linkData);
 
   blocks.WriteLinkBlock(*this, linkData);
+
+  if (switch_to_far_code)
+    SwitchToFarCode();
+  MOVI2R(DISPATCHER_PC, exit_address_after_return);
+  B(GetAsmRoutines()->do_timing);
+  if (switch_to_far_code)
+    SwitchToNearCode();
 
   SetJumpTarget(skip_exit);
 }
@@ -862,18 +948,6 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   js.numLoadStoreInst = 0;
   js.numFloatingPointInst = 0;
 
-  u8* const start = GetWritableCodePtr();
-  b->checkedEntry = start;
-
-  // Downcount flag check, Only valid for linked blocks
-  {
-    FixupBranch bail = B(CC_PL);
-    MOVI2R(DISPATCHER_PC, js.blockStart);
-    B(do_timing);
-    SetJumpTarget(bail);
-  }
-
-  // Normal entry doesn't need to check for downcount.
   b->normalEntry = GetWritableCodePtr();
 
   // Conditionally add profiling code.
@@ -1141,7 +1215,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     return false;
   }
 
-  b->codeSize = (u32)(GetCodePtr() - start);
+  b->codeSize = static_cast<u32>(GetCodePtr() - b->normalEntry);
   b->originalSize = code_block.m_num_instructions;
 
   FlushIcache();

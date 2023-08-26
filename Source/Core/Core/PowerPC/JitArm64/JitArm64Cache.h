@@ -29,6 +29,9 @@ public:
   void WriteLinkBlock(Arm64Gen::ARM64XEmitter& emit, const JitBlock::LinkData& source,
                       const JitBlock* dest = nullptr);
 
+  static constexpr size_t BLOCK_LINK_SIZE = 3 * sizeof(u32);
+  static constexpr size_t BLOCK_LINK_FAST_BL_OFFSET = BLOCK_LINK_SIZE - sizeof(u32);
+
 private:
   void WriteLinkBlock(const JitBlock::LinkData& source, const JitBlock* dest) override;
   void WriteDestroyBlock(const JitBlock& block) override;
