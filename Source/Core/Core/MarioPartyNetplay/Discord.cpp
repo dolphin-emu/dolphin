@@ -3,7 +3,6 @@
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Core.h"
 #include "Core/IOS/DolphinDevice.h"
-#include <Core/StateMPN.h>
 
 bool mpn_update_discord()
 {
