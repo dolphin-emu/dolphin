@@ -296,7 +296,6 @@ private:
   struct Entry;
   u32 m_last_id = 0;
   std::vector<Entry> m_entries;
-  HLE::FSCore& m_fs_core;
   std::shared_ptr<HLE::FS::FileSystem> m_fs;
   u64 m_ticks = 0;
 };
@@ -313,7 +312,6 @@ public:
   u64 GetTicks() const { return m_ticks; }
 
 private:
-  HLE::FSCore& m_fs_core;
   std::shared_ptr<HLE::FS::FileSystem> m_fs;
   std::map<u32, u64> m_entries;
   u64 m_ticks = 0;

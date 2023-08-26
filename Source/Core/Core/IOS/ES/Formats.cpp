@@ -554,7 +554,7 @@ struct SharedContentMap::Entry
 };
 
 constexpr char CONTENT_MAP_PATH[] = "/shared1/content.map";
-SharedContentMap::SharedContentMap(HLE::FSCore& fs_core) : m_fs_core{fs_core}, m_fs{fs_core.GetFS()}
+SharedContentMap::SharedContentMap(HLE::FSCore& fs_core) : m_fs{fs_core.GetFS()}
 {
   static_assert(sizeof(Entry) == 28, "SharedContentMap::Entry has the wrong size");
 
@@ -650,7 +650,7 @@ static std::pair<u32, u64> ReadUidSysEntry(HLE::FSCore& fs, u64 fd, u64* ticks)
 }
 
 constexpr char UID_MAP_PATH[] = "/sys/uid.sys";
-UIDSys::UIDSys(HLE::FSCore& fs_core) : m_fs_core{fs_core}, m_fs{fs_core.GetFS()}
+UIDSys::UIDSys(HLE::FSCore& fs_core) : m_fs{fs_core.GetFS()}
 {
   if (const auto fd =
           fs_core.Open(PID_KERNEL, PID_KERNEL, UID_MAP_PATH, HLE::FS::Mode::Read, {}, &m_ticks);
