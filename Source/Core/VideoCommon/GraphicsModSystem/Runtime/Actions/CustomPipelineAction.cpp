@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <array>
+#include <optional>
 
 #include <fmt/format.h>
 
@@ -185,7 +186,7 @@ void WriteDefines(ShaderCode* out, const std::vector<std::string>& texture_code_
     out->Write(
         "#define {0}_COORD_{{0}} float3(data.texcoord[data.texmap_to_texcoord_index[{1}]].xy, "
         "{2})\n",
-        code_name, texture_unit, i + 1);
+        code_name, texture_unit, i);
   }
 }
 
@@ -378,9 +379,12 @@ void CustomPipelineAction::OnTextureCreate(GraphicsModActionData::TextureCreate*
   }
 
   m_texture_code_names.clear();
+  std::optional<std::size_t> main_texture_offset = 0;
+  bool has_shared_texture = false;
   std::vector<VideoCommon::CachedAsset<VideoCommon::GameTextureAsset>> game_assets;
-  for (const auto& property : material_data->properties)
+  for (std::size_t index = 0; index < material_data->properties.size(); index++)
   {
+    auto& property = material_data->properties[index];
     const auto shader_it = shader_data->m_properties.find(property.m_code_name);
     if (shader_it == shader_data->m_properties.end())
     {
@@ -395,6 +399,30 @@ void CustomPipelineAction::OnTextureCreate(GraphicsModActionData::TextureCreate*
 
     if (property.m_type == VideoCommon::MaterialProperty::Type::Type_TextureAsset)
     {
+      if (shader_it->second.m_type ==
+          VideoCommon::ShaderProperty::Type::Type_SamplerArrayShared_Main)
+      {
+        main_texture_offset = index;
+      }
+      else if (shader_it->second.m_type ==
+               VideoCommon::ShaderProperty::Type::Type_SamplerArrayShared_Additional)
+      {
+        has_shared_texture = true;
+      }
+      else if (shader_it->second.m_type == VideoCommon::ShaderProperty::Type::Type_Sampler2D)
+      {
+        // nop for now
+      }
+      else
+      {
+        ERROR_LOG_FMT(VIDEO,
+                      "Custom pipeline for texture '{}', material asset '{}' has property texture "
+                      "for shader property '{}' that does not support textures!",
+                      create->texture_name, pass.m_pixel_material.m_asset->GetAssetId(),
+                      property.m_code_name);
+        m_valid = false;
+        return;
+      }
       if (property.m_value)
       {
         if (auto* value = std::get_if<std::string>(&*property.m_value))
@@ -405,53 +433,129 @@ void CustomPipelineAction::OnTextureCreate(GraphicsModActionData::TextureCreate*
             const auto loaded_time = asset->GetLastLoadedTime();
             game_assets.push_back(VideoCommon::CachedAsset<VideoCommon::GameTextureAsset>{
                 std::move(asset), loaded_time});
-            m_texture_code_names.push_back(property.m_code_name);
           }
         }
       }
     }
+  }
+
+  if (has_shared_texture && !main_texture_offset)
+  {
+    ERROR_LOG_FMT(
+        VIDEO,
+        "Custom pipeline for texture '{}' has shared texture sampler asset but no main texture!",
+        create->texture_name);
+    m_valid = false;
+    return;
   }
   // Note: we swap here instead of doing a clear + append of the member
   // variable so that any loaded assets from previous iterations
   // won't be let go
   std::swap(pass.m_game_textures, game_assets);
 
-  for (auto& game_texture : pass.m_game_textures)
+  if (main_texture_offset)
   {
-    if (game_texture.m_asset)
+    auto& main_texture_asset = pass.m_game_textures[*main_texture_offset];
+    const auto main_texture_data = main_texture_asset.m_asset->GetData();
+    if (!main_texture_data)
     {
-      auto data = game_texture.m_asset->GetData();
-      if (data)
+      create->additional_dependencies->push_back(VideoCommon::CachedAsset<VideoCommon::CustomAsset>{
+          main_texture_asset.m_asset, main_texture_asset.m_cached_write_time});
+      m_valid = false;
+      return;
+    }
+
+    if (main_texture_data->m_slices.empty() || main_texture_data->m_slices[0].m_levels.empty())
+    {
+      ERROR_LOG_FMT(VIDEO,
+                    "Custom pipeline for texture '{}' has main texture '{}' that does not have any "
+                    "texture data",
+                    create->texture_name, main_texture_asset.m_asset->GetAssetId());
+      create->additional_dependencies->push_back(VideoCommon::CachedAsset<VideoCommon::CustomAsset>{
+          main_texture_asset.m_asset, main_texture_asset.m_cached_write_time});
+      m_valid = false;
+      return;
+    }
+
+    // First loop, make sure all textures match the existing asset size
+    for (std::size_t index = 0; index < pass.m_game_textures.size(); index++)
+    {
+      if (index == *main_texture_offset)
+        continue;
+
+      auto& game_texture = pass.m_game_textures[index];
+      if (game_texture.m_asset)
       {
-        if (data->m_slices.empty() || data->m_slices[0].m_levels.empty())
+        auto data = game_texture.m_asset->GetData();
+        if (data)
         {
-          ERROR_LOG_FMT(
-              VIDEO,
-              "Custom pipeline for texture '{}' has asset '{}' that does not have any texture data",
-              create->texture_name, game_texture.m_asset->GetAssetId());
-          m_valid = false;
+          if (data->m_slices.empty() || data->m_slices[0].m_levels.empty())
+          {
+            ERROR_LOG_FMT(VIDEO,
+                          "Custom pipeline for texture '{}' has asset '{}' that does not have any "
+                          "texture data",
+                          create->texture_name, game_texture.m_asset->GetAssetId());
+            create->additional_dependencies->push_back(
+                VideoCommon::CachedAsset<VideoCommon::CustomAsset>{
+                    main_texture_asset.m_asset, main_texture_asset.m_cached_write_time});
+            create->additional_dependencies->push_back(
+                VideoCommon::CachedAsset<VideoCommon::CustomAsset>{
+                    game_texture.m_asset, game_texture.m_cached_write_time});
+            m_valid = false;
+            return;
+          }
+          else if (main_texture_data->m_slices[0].m_levels[0].width !=
+                       data->m_slices[0].m_levels[0].width ||
+                   main_texture_data->m_slices[0].m_levels[0].height !=
+                       data->m_slices[0].m_levels[0].height)
+          {
+            ERROR_LOG_FMT(VIDEO,
+                          "Custom pipeline for texture '{}' has asset '{}' that does not match "
+                          "the width/height of the main texture.  Texture {}x{} vs asset {}x{}",
+                          create->texture_name, game_texture.m_asset->GetAssetId(),
+                          main_texture_data->m_slices[0].m_levels[0].width,
+                          main_texture_data->m_slices[0].m_levels[0].height,
+                          data->m_slices[0].m_levels[0].width,
+                          data->m_slices[0].m_levels[0].height);
+            create->additional_dependencies->push_back(
+                VideoCommon::CachedAsset<VideoCommon::CustomAsset>{
+                    main_texture_asset.m_asset, main_texture_asset.m_cached_write_time});
+            create->additional_dependencies->push_back(
+                VideoCommon::CachedAsset<VideoCommon::CustomAsset>{
+                    game_texture.m_asset, game_texture.m_cached_write_time});
+            m_valid = false;
+            return;
+          }
         }
-        else if (create->texture_width != data->m_slices[0].m_levels[0].width ||
-                 create->texture_height != data->m_slices[0].m_levels[0].height)
+        else
         {
-          ERROR_LOG_FMT(VIDEO,
-                        "Custom pipeline for texture '{}' has asset '{}' that does not match "
-                        "the width/height of the texture loaded.  Texture {}x{} vs asset {}x{}",
-                        create->texture_name, game_texture.m_asset->GetAssetId(),
-                        create->texture_width, create->texture_height,
-                        data->m_slices[0].m_levels[0].width, data->m_slices[0].m_levels[0].height);
+          create->additional_dependencies->push_back(
+              VideoCommon::CachedAsset<VideoCommon::CustomAsset>{
+                  main_texture_asset.m_asset, main_texture_asset.m_cached_write_time});
+          create->additional_dependencies->push_back(
+              VideoCommon::CachedAsset<VideoCommon::CustomAsset>{game_texture.m_asset,
+                                                                 game_texture.m_cached_write_time});
           m_valid = false;
+          return;
         }
-      }
-      else
-      {
-        m_valid = false;
       }
     }
+
+    // Since all the shared textures are owned by this action, we can clear out any previous
+    // textures
+    create->custom_textures->clear();
+    create->custom_textures->push_back(main_texture_asset);
+    m_texture_code_names.push_back(material_data->properties[*main_texture_offset].m_code_name);
+
+    // Second loop, add all the other textures after the main texture
+    for (std::size_t index = 0; index < pass.m_game_textures.size(); index++)
+    {
+      if (index == *main_texture_offset)
+        continue;
+
+      auto& game_texture = pass.m_game_textures[index];
+      create->custom_textures->push_back(game_texture);
+      m_texture_code_names.push_back(material_data->properties[index].m_code_name);
+    }
   }
-
-  // TODO: compare game textures and shader requirements
-
-  create->custom_textures->insert(create->custom_textures->end(), pass.m_game_textures.begin(),
-                                  pass.m_game_textures.end());
 }
