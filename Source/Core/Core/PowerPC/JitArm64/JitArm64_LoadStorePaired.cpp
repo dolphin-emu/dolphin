@@ -23,7 +23,8 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
   JITDISABLE(bJITLoadStorePairedOff);
 
   // If fastmem is enabled, the asm routines assume address translation is on.
-  FALLBACK_IF(!js.assumeNoPairedQuantize && jo.fastmem && !m_ppc_state.msr.DR);
+  FALLBACK_IF(!js.assumeNoPairedQuantize && jo.fastmem &&
+              !(m_ppc_state.feature_flags & FEATURE_FLAG_MSR_DR));
 
   // X30 is LR
   // X0 is the address
@@ -153,7 +154,8 @@ void JitArm64::psq_stXX(UGeckoInstruction inst)
   JITDISABLE(bJITLoadStorePairedOff);
 
   // If fastmem is enabled, the asm routines assume address translation is on.
-  FALLBACK_IF(!js.assumeNoPairedQuantize && jo.fastmem && !m_ppc_state.msr.DR);
+  FALLBACK_IF(!js.assumeNoPairedQuantize && jo.fastmem &&
+              !(m_ppc_state.feature_flags & FEATURE_FLAG_MSR_DR));
 
   // X30 is LR
   // X0 contains the scale

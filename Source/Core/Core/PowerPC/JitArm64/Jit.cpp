@@ -276,7 +276,7 @@ void JitArm64::Cleanup()
     SetJumpTarget(exit);
   }
 
-  if (MMCR0(m_ppc_state).Hex || MMCR1(m_ppc_state).Hex)
+  if (m_ppc_state.feature_flags & FEATURE_FLAG_PERFMON)
   {
     ABI_CallFunction(&PowerPC::UpdatePerformanceMonitor, js.downcountAmount, js.numLoadStoreInst,
                      js.numFloatingPointInst, &m_ppc_state);

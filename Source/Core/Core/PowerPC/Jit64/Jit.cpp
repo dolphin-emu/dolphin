@@ -445,7 +445,7 @@ bool Jit64::Cleanup()
     did_something = true;
   }
 
-  if (MMCR0(m_ppc_state).Hex || MMCR1(m_ppc_state).Hex)
+  if (m_ppc_state.feature_flags & FEATURE_FLAG_PERFMON)
   {
     ABI_PushRegistersAndAdjustStack({}, 0);
     ABI_CallFunctionCCCP(PowerPC::UpdatePerformanceMonitor, js.downcountAmount, js.numLoadStoreInst,
