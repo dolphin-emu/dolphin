@@ -374,7 +374,8 @@ void JitArm64::EmitStoreMembase(const ARM64Reg& msr)
   gpr.Unlock(WD);
 }
 
-void JitArm64::WriteExit(u32 destination, bool LK, u32 exit_address_after_return)
+void JitArm64::WriteExit(u32 destination, bool LK, u32 exit_address_after_return,
+                         ARM64Reg exit_address_after_return_reg)
 {
   Cleanup();
   EndTimeProfile(js.curBlock);
@@ -386,11 +387,16 @@ void JitArm64::WriteExit(u32 destination, bool LK, u32 exit_address_after_return
   if (LK)
   {
     // Push {ARM_PC; PPC_PC} on the stack
-    MOVI2R(ARM64Reg::X1, exit_address_after_return);
+    ARM64Reg reg_to_push = exit_address_after_return_reg;
+    if (exit_address_after_return_reg == ARM64Reg::INVALID_REG)
+    {
+      MOVI2R(ARM64Reg::X1, exit_address_after_return);
+      reg_to_push = ARM64Reg::X1;
+    }
     constexpr s32 adr_offset = JitArm64BlockCache::BLOCK_LINK_SIZE + sizeof(u32) * 2;
     host_address_after_return = GetCodePtr() + adr_offset;
     ADR(ARM64Reg::X0, adr_offset);
-    STP(IndexType::Pre, ARM64Reg::X0, ARM64Reg::X1, ARM64Reg::SP, -16);
+    STP(IndexType::Pre, ARM64Reg::X0, reg_to_push, ARM64Reg::SP, -16);
   }
 
   constexpr size_t primary_farcode_size = 3 * sizeof(u32);
@@ -457,7 +463,8 @@ void JitArm64::WriteExit(u32 destination, bool LK, u32 exit_address_after_return
     SwitchToNearCode();
 }
 
-void JitArm64::WriteExit(Arm64Gen::ARM64Reg dest, bool LK, u32 exit_address_after_return)
+void JitArm64::WriteExit(Arm64Gen::ARM64Reg dest, bool LK, u32 exit_address_after_return,
+                         ARM64Reg exit_address_after_return_reg)
 {
   if (dest != DISPATCHER_PC)
     MOV(DISPATCHER_PC, dest);
@@ -475,11 +482,17 @@ void JitArm64::WriteExit(Arm64Gen::ARM64Reg dest, bool LK, u32 exit_address_afte
   else
   {
     // Push {ARM_PC, PPC_PC} on the stack
+    ARM64Reg reg_to_push = exit_address_after_return_reg;
+    if (exit_address_after_return_reg == ARM64Reg::INVALID_REG)
+    {
+      MOVI2R(ARM64Reg::X1, exit_address_after_return);
+      reg_to_push = ARM64Reg::X1;
+    }
     MOVI2R(ARM64Reg::X1, exit_address_after_return);
     constexpr s32 adr_offset = sizeof(u32) * 3;
     const u8* host_address_after_return = GetCodePtr() + adr_offset;
     ADR(ARM64Reg::X0, adr_offset);
-    STP(IndexType::Pre, ARM64Reg::X0, ARM64Reg::X1, ARM64Reg::SP, -16);
+    STP(IndexType::Pre, ARM64Reg::X0, reg_to_push, ARM64Reg::SP, -16);
 
     BL(dispatcher);
     DEBUG_ASSERT(GetCodePtr() == host_address_after_return || HasWriteFailed());
@@ -515,26 +528,43 @@ void JitArm64::WriteExit(Arm64Gen::ARM64Reg dest, bool LK, u32 exit_address_afte
   }
 }
 
-void JitArm64::FakeLKExit(u32 exit_address_after_return)
+void JitArm64::FakeLKExit(u32 exit_address_after_return, ARM64Reg exit_address_after_return_reg)
 {
   if (!m_enable_blr_optimization)
     return;
 
   // We may need to fake the BLR stack on inlined CALL instructions.
   // Else we can't return to this location any more.
-  gpr.Lock(ARM64Reg::W30);
-  ARM64Reg after_reg = gpr.GetReg();
+  if (exit_address_after_return_reg != ARM64Reg::W30)
+  {
+    // Do not lock W30 if it is the same as the exit address register, since
+    // it's already locked. It'll only get clobbered at the BL (below) where
+    // we do not need its value anymore.
+    // NOTE: This means W30 won't contain the return address anymore after this
+    // function has been called!
+    gpr.Lock(ARM64Reg::W30);
+  }
+  ARM64Reg after_reg = exit_address_after_return_reg;
+  if (exit_address_after_return_reg == ARM64Reg::INVALID_REG)
+  {
+    after_reg = gpr.GetReg();
+    MOVI2R(after_reg, exit_address_after_return);
+  }
   ARM64Reg code_reg = gpr.GetReg();
-  MOVI2R(after_reg, exit_address_after_return);
   constexpr s32 adr_offset = sizeof(u32) * 3;
   const u8* host_address_after_return = GetCodePtr() + adr_offset;
   ADR(EncodeRegTo64(code_reg), adr_offset);
   STP(IndexType::Pre, EncodeRegTo64(code_reg), EncodeRegTo64(after_reg), ARM64Reg::SP, -16);
-  gpr.Unlock(after_reg, code_reg);
+  gpr.Unlock(code_reg);
+  if (after_reg != exit_address_after_return_reg)
+    gpr.Unlock(after_reg);
 
   FixupBranch skip_exit = BL();
   DEBUG_ASSERT(GetCodePtr() == host_address_after_return || HasWriteFailed());
-  gpr.Unlock(ARM64Reg::W30);
+  if (exit_address_after_return_reg != ARM64Reg::W30)
+  {
+    gpr.Unlock(ARM64Reg::W30);
+  }
 
   // Write the regular exit node after the return.
   JitBlock* b = js.curBlock;

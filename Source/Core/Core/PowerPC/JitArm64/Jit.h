@@ -315,8 +315,12 @@ protected:
   void EmitStoreMembase(const Arm64Gen::ARM64Reg& msr);
 
   // Exits
-  void WriteExit(u32 destination, bool LK = false, u32 exit_address_after_return = 0);
-  void WriteExit(Arm64Gen::ARM64Reg dest, bool LK = false, u32 exit_address_after_return = 0);
+  void
+  WriteExit(u32 destination, bool LK = false, u32 exit_address_after_return = 0,
+            Arm64Gen::ARM64Reg exit_address_after_return_reg = Arm64Gen::ARM64Reg::INVALID_REG);
+  void
+  WriteExit(Arm64Gen::ARM64Reg dest, bool LK = false, u32 exit_address_after_return = 0,
+            Arm64Gen::ARM64Reg exit_address_after_return_reg = Arm64Gen::ARM64Reg::INVALID_REG);
   void WriteExceptionExit(u32 destination, bool only_external = false,
                           bool always_exception = false);
   void WriteExceptionExit(Arm64Gen::ARM64Reg dest, bool only_external = false,
@@ -325,7 +329,9 @@ protected:
   void WriteConditionalExceptionExit(int exception, Arm64Gen::ARM64Reg temp_gpr,
                                      Arm64Gen::ARM64Reg temp_fpr = Arm64Gen::ARM64Reg::INVALID_REG,
                                      u64 increment_sp_on_exit = 0);
-  void FakeLKExit(u32 exit_address_after_return);
+  void
+  FakeLKExit(u32 exit_address_after_return,
+             Arm64Gen::ARM64Reg exit_address_after_return_reg = Arm64Gen::ARM64Reg::INVALID_REG);
   void WriteBLRExit(Arm64Gen::ARM64Reg dest);
 
   Arm64Gen::FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set);
