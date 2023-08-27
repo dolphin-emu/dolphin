@@ -189,6 +189,17 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
     ABI_PushRegisters(gprs_to_push & ~gprs_to_push_early);
     m_float_emit.ABI_PushRegisters(fprs_to_push, ARM64Reg::X30);
 
+    // PC is used by memory watchpoints (if enabled), profiling where to insert gather pipe
+    // interrupt checks, and printing accurate PC locations in debug logs.
+    //
+    // In the case of JitAsm routines, we don't know the PC here,
+    // so the caller has to store the PC themselves.
+    if (!emitting_routine)
+    {
+      MOVI2R(ARM64Reg::W30, js.compilerPC);
+      STR(IndexType::Unsigned, ARM64Reg::W30, PPC_REG, PPCSTATE_OFF(pc));
+    }
+
     if (flags & BackPatchInfo::FLAG_STORE)
     {
       ARM64Reg src_reg = RS;
