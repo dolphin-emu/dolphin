@@ -50,7 +50,7 @@ void JitArm64::GenerateAsm()
   STR(IndexType::Unsigned, ARM64Reg::X0, PPC_REG, PPCSTATE_OFF(stored_stack_pointer));
 
   // Push {nullptr; -1} as invalid destination on the stack.
-  MOVI2R(ARM64Reg::X0, 0xFFFFFFFF);
+  MOVI2R(ARM64Reg::X0, 0xFFFF'FFFF'FFFF'FFFF);
   STP(IndexType::Pre, ARM64Reg::ZR, ARM64Reg::X0, ARM64Reg::SP, -16);
 
   // The PC will be loaded into DISPATCHER_PC after the call to CoreTiming::Advance().

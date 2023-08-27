@@ -445,10 +445,6 @@ void Jit64::mtmsr(UGeckoInstruction inst)
   gpr.Flush();
   fpr.Flush();
 
-  // Our jit cache also stores some MSR bits, as they have changed, we either
-  // have to validate them in the BLR/RET check, or just flush the stack here.
-  asm_routines.ResetStack(*this);
-
   // If some exceptions are pending and EE are now enabled, force checking
   // external exceptions when going out of mtmsr in order to execute delayed
   // interrupts as soon as possible.
