@@ -585,7 +585,7 @@ void AchievementManager::ActivateDeactivateAchievement(AchievementId id, bool en
     rc_runtime_deactivate_achievement(&m_runtime, id);
 }
 
-RichPresence AchievementManager::GenerateRichPresence()
+AchievementManager::RichPresence AchievementManager::GenerateRichPresence()
 {
   RichPresence rp_buffer;
   Core::RunAsCPUThread([&] {
@@ -716,9 +716,22 @@ void AchievementManager::HandleLeaderboardTriggeredEvent(const rc_runtime_event_
   {
     if (m_game_data.leaderboards[ix].id == runtime_event->id)
     {
-      OSD::AddMessage(fmt::format("Scored {} on leaderboard: {}", runtime_event->value,
-                                  m_game_data.leaderboards[ix].title),
-                      OSD::Duration::VERY_LONG, OSD::Color::YELLOW);
+      FormattedValue value{};
+      rc_runtime_format_lboard_value(value.data(), static_cast<int>(value.size()),
+                                     runtime_event->value, m_game_data.leaderboards[ix].format);
+      if (std::find(value.begin(), value.end(), '\0') == value.end())
+      {
+        OSD::AddMessage(fmt::format("Scored {} on leaderboard: {}",
+                                    std::string_view{value.data(), value.size()},
+                                    m_game_data.leaderboards[ix].title),
+                        OSD::Duration::VERY_LONG, OSD::Color::YELLOW);
+      }
+      else
+      {
+        OSD::AddMessage(fmt::format("Scored {} on leaderboard: {}", value.data(),
+                                    m_game_data.leaderboards[ix].title),
+                        OSD::Duration::VERY_LONG, OSD::Color::YELLOW);
+      }
       break;
     }
   }

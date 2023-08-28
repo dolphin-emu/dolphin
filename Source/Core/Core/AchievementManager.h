@@ -19,10 +19,6 @@
 #include "Common/Event.h"
 #include "Common/WorkQueueThread.h"
 
-using AchievementId = u32;
-constexpr size_t RP_SIZE = 256;
-using RichPresence = std::array<char, RP_SIZE>;
-
 namespace Core
 {
 class System;
@@ -52,6 +48,12 @@ public:
     u32 soft_unlocks;
     u32 soft_points;
   };
+
+  using AchievementId = u32;
+  static constexpr size_t FORMAT_SIZE = 24;
+  using FormattedValue = std::array<char, FORMAT_SIZE>;
+  static constexpr size_t RP_SIZE = 256;
+  using RichPresence = std::array<char, RP_SIZE>;
 
   struct UnlockStatus
   {
