@@ -135,6 +135,7 @@ class Settings : Closeable {
         const val SECTION_LOGGER_OPTIONS = "Options"
         const val SECTION_GFX_SETTINGS = "Settings"
         const val SECTION_GFX_ENHANCEMENTS = "Enhancements"
+        const val SECTION_GFX_COLOR_CORRECTION = "ColorCorrection"
         const val SECTION_GFX_HACKS = "Hacks"
         const val SECTION_DEBUG = "Debug"
         const val SECTION_EMULATED_USB_DEVICES = "EmulatedUSBDevices"

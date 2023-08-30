@@ -4,44 +4,50 @@ package org.dolphinemu.dolphinemu.features.settings.model.view
 
 import android.content.Context
 
-abstract class SliderSetting : SettingsItem {
+sealed class SliderSetting : SettingsItem {
     override val type: Int = TYPE_SLIDER
 
-    var min: Int
+    var min: Any
         private set
-    var max: Int
+    var max: Any
         private set
     var units: String?
         private set
-    var stepSize = 0
+    var stepSize: Any = 0
+        private set
+    var showDecimal: Boolean = false
         private set
 
     constructor(
         context: Context,
         nameId: Int,
         descriptionId: Int,
-        min: Int,
-        max: Int,
+        min: Any,
+        max: Any,
         units: String?,
-        stepSize: Int
+        stepSize: Any,
+        showDecimal: Boolean
     ) : super(context, nameId, descriptionId) {
         this.min = min
         this.max = max
         this.units = units
         this.stepSize = stepSize
+        this.showDecimal = showDecimal
     }
 
     constructor(
         name: CharSequence,
         description: CharSequence?,
-        min: Int,
-        max: Int,
-        units: String?
+        min: Any,
+        max: Any,
+        units: String?,
+        showDecimal: Boolean
     ) : super(name, description) {
         this.min = min
         this.max = max
         this.units = units
+        this.showDecimal = showDecimal
     }
 
-    abstract val selectedValue: Int
+    abstract val selectedValue: Any
 }

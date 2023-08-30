@@ -34,6 +34,7 @@ import org.dolphinemu.dolphinemu.model.GpuDriverMetadata
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter
 import org.dolphinemu.dolphinemu.utils.*
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.ceil
 import kotlin.math.floor
 
@@ -72,9 +73,8 @@ class SettingsFragmentPresenter(
             && GpuDriverHelper.supportsCustomDriverLoading()
         ) {
             this.gpuDriver =
-                GpuDriverHelper.getInstalledDriverMetadata() ?: GpuDriverHelper.getSystemDriverMetadata(
-                    context.applicationContext
-                )
+                GpuDriverHelper.getInstalledDriverMetadata()
+                    ?: GpuDriverHelper.getSystemDriverMetadata(context.applicationContext)
         }
     }
 
@@ -120,6 +120,7 @@ class SettingsFragmentPresenter(
             MenuTag.GCPAD_TYPE -> addGcPadSettings(sl)
             MenuTag.WIIMOTE -> addWiimoteSettings(sl)
             MenuTag.ENHANCEMENTS -> addEnhanceSettings(sl)
+            MenuTag.COLOR_CORRECTION -> addColorCorrectionSettings(sl)
             MenuTag.STEREOSCOPY -> addStereoSettings(sl)
             MenuTag.HACKS -> addHackSettings(sl)
             MenuTag.STATISTICS -> addStatisticsSettings(sl)
@@ -250,10 +251,11 @@ class SettingsFragmentPresenter(
                 FloatSetting.MAIN_EMULATION_SPEED,
                 R.string.speed_limit,
                 0,
-                0,
-                200,
+                0f,
+                200f,
                 "%",
-                1
+                1f,
+                false
             )
         )
         sl.add(
@@ -713,12 +715,12 @@ class SettingsFragmentPresenter(
             )
         )
         sl.add(
-          SwitchSetting(
-            context,
-            BooleanSetting.MAIN_WII_WIILINK_ENABLE,
-            R.string.wii_enable_wiilink,
-            R.string.wii_enable_wiilink_description
-          )
+            SwitchSetting(
+                context,
+                BooleanSetting.MAIN_WII_WIILINK_ENABLE,
+                R.string.wii_enable_wiilink,
+                R.string.wii_enable_wiilink_description
+            )
         )
         sl.add(
             SingleChoiceSetting(
@@ -1001,10 +1003,11 @@ class SettingsFragmentPresenter(
                 FloatSetting.MAIN_OVERCLOCK,
                 R.string.overclock_title,
                 R.string.overclock_title_description,
-                0,
-                400,
+                0f,
+                400f,
                 "%",
-                1
+                1f,
+                false
             )
         )
 
@@ -1333,6 +1336,13 @@ class SettingsFragmentPresenter(
                 R.array.textureFilteringValues
             )
         )
+        sl.add(
+            SubmenuSetting(
+                context,
+                R.string.color_correction_submenu,
+                MenuTag.COLOR_CORRECTION
+            )
+        )
 
         val stereoModeValue = IntSetting.GFX_STEREO_MODE.int
         val anaglyphMode = 3
@@ -1424,6 +1434,53 @@ class SettingsFragmentPresenter(
                     context,
                     R.string.stereoscopy_submenu,
                     MenuTag.STEREOSCOPY
+                )
+            )
+        }
+    }
+
+    private fun addColorCorrectionSettings(sl: ArrayList<SettingsItem>) {
+        sl.apply {
+            add(HeaderSetting(context, R.string.color_space, 0))
+            add(
+                SwitchSetting(
+                    context,
+                    BooleanSetting.GFX_CC_CORRECT_COLOR_SPACE,
+                    R.string.correct_color_space,
+                    R.string.correct_color_space_description
+                )
+            )
+            add(
+                SingleChoiceSetting(
+                    context,
+                    IntSetting.GFX_CC_GAME_COLOR_SPACE,
+                    R.string.game_color_space,
+                    0,
+                    R.array.colorSpaceEntries,
+                    R.array.colorSpaceValues
+                )
+            )
+
+            add(HeaderSetting(context, R.string.gamma, 0))
+            add(
+                FloatSliderSetting(
+                    context,
+                    FloatSetting.GFX_CC_GAME_GAMMA,
+                    R.string.game_gamma,
+                    R.string.game_gamma_description,
+                    2.2f,
+                    2.8f,
+                    "",
+                    0.01f,
+                    true
+                )
+            )
+            add(
+                SwitchSetting(
+                    context,
+                    BooleanSetting.GFX_CC_CORRECT_GAMMA,
+                    R.string.correct_sdr_gamma,
+                    0
                 )
             )
         }
@@ -2296,9 +2353,10 @@ class SettingsFragmentPresenter(
                     InputMappingDoubleSetting(setting),
                     setting.getUiName(),
                     "",
-                    ceil(setting.getDoubleMin()).toInt(),
-                    floor(setting.getDoubleMax()).toInt(),
-                    setting.getUiSuffix()
+                    ceil(setting.getDoubleMin()).toFloat(),
+                    floor(setting.getDoubleMax()).toFloat(),
+                    setting.getUiSuffix(),
+                    false
                 )
             )
 

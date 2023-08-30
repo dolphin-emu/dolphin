@@ -16,7 +16,7 @@ class IntSliderSetting(
     max: Int,
     units: String?,
     stepSize: Int
-) : SliderSetting(context, titleId, descriptionId, min, max, units, stepSize) {
+) : SliderSetting(context, titleId, descriptionId, min, max, units, stepSize, false) {
     override val setting: AbstractSetting
         get() = intSetting
 

@@ -6,7 +6,8 @@ import android.content.Context
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractFloatSetting
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting
 import org.dolphinemu.dolphinemu.features.settings.model.Settings
-import kotlin.math.roundToInt
+import java.math.BigDecimal
+import java.math.MathContext
 
 open class FloatSliderSetting : SliderSetting {
     var floatSetting: AbstractFloatSetting
@@ -19,11 +20,12 @@ open class FloatSliderSetting : SliderSetting {
         setting: AbstractFloatSetting,
         titleId: Int,
         descriptionId: Int,
-        min: Int,
-        max: Int,
+        min: Float,
+        max: Float,
         units: String?,
-        stepSize: Int
-    ) : super(context, titleId, descriptionId, min, max, units, stepSize) {
+        stepSize: Float,
+        showDecimal: Boolean
+    ) : super(context, titleId, descriptionId, min, max, units, stepSize, showDecimal) {
         floatSetting = setting
     }
 
@@ -31,17 +33,21 @@ open class FloatSliderSetting : SliderSetting {
         setting: AbstractFloatSetting,
         name: CharSequence,
         description: CharSequence?,
-        min: Int,
-        max: Int,
-        units: String?
-    ) : super(name, description, min, max, units) {
+        min: Float,
+        max: Float,
+        units: String?,
+        showDecimal: Boolean
+    ) : super(name, description, min, max, units, showDecimal) {
         floatSetting = setting
     }
 
-    override val selectedValue: Int
-        get() = floatSetting.float.roundToInt()
+    override val selectedValue: Float
+        get() = floatSetting.float
 
     open fun setSelectedValue(settings: Settings?, selection: Float) {
-        floatSetting.setFloat(settings!!, selection)
+        floatSetting.setFloat(
+            settings!!,
+            BigDecimal((selection).toDouble()).round(MathContext(3)).toFloat()
+        )
     }
 }
