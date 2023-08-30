@@ -69,7 +69,7 @@ void FifoRecorder::FifoRecordAnalyzer::OnIndexedLoad(CPArray array, u32 index, u
 {
   const u32 load_address = m_cpmem.array_bases[array] + m_cpmem.array_strides[array] * index;
 
-  m_owner->UseMemory(load_address, size * sizeof(u32), MemoryUpdate::XF_DATA);
+  m_owner->UseMemory(load_address, size * sizeof(u32), MemoryUpdate::Type::XFData);
 }
 
 // TODO: The following code is copied with modifications from VertexLoaderBase.
@@ -210,7 +210,7 @@ void FifoRecorder::FifoRecordAnalyzer::ProcessVertexComponent(
   const u32 array_start = m_cpmem.array_bases[array_index] + byte_offset;
   const u32 array_size = m_cpmem.array_strides[array_index] * max_index + component_size;
 
-  m_owner->UseMemory(array_start, array_size, MemoryUpdate::VERTEX_STREAM);
+  m_owner->UseMemory(array_start, array_size, MemoryUpdate::Type::VertexStream);
 }
 
 static FifoRecorder instance;
