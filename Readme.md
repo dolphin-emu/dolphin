@@ -1,6 +1,6 @@
 # Slippi Mainline
 
-This is a WIP effort to port the functionality of https://github.com/project-slippi/Ishiiruka to mainline Dolphin. Currently, we are nearly even with master upstream and close to on par with project-slippi/Ishii upstream. *Last updated 12/02/2020*
+This is a WIP effort to port the functionality of https://github.com/project-slippi/Ishiiruka to mainline Dolphin. Currently, we are close enough to upstream main and close to on par with project-slippi/Ishii main. Netplay functionality works everywhere except teams, playback is busted, rust code is hooked up *Last updated 2023-09-01*
 
 ## How can I contribute?
 
@@ -10,7 +10,7 @@ Read through the list of issues, and comment on one to claim it. You can also cr
 
 ### Other questions
 
-Ping or message @r2dliu in the Slippi Discord. http://discord.gg/pPfEaW5
+Ping or message nikki (metonym) in the Slippi Discord. https://slippi.gg/discord
 
 # Dolphin - A GameCube and Wii Emulator
 
