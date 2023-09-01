@@ -29,6 +29,7 @@ public:
 
   bool DoesEntryExist(u16 entry_index);
   bool IsEncrypted(u16 entry_index) const;
+  bool IsRSASigned(u16 entry_index) const;
   std::string GetVFFContentName(u16 entry_index, std::optional<u8> subtask_id) const;
   std::string GetDownloadURL(u16 entry_index, std::optional<u8> subtask_id) const;
   std::string GetVFFPath(u16 entry_index) const;
