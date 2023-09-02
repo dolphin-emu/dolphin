@@ -2308,21 +2308,23 @@ void CEXISlippi::prepareOnlineMatchState()
       {
         continue;
       }
+
+      auto team_id = s->team_id;
       if (are_all_same_team)
       {
         // Overwrite team_id. Color is overwritten by ASM
-        s->team_id = team_assignments[s->player_idx];
+        team_id = team_assignments[s->player_idx];
       }
 
       // Overwrite player character
       online_match_block[0x60 + (s->player_idx) * 0x24] = s->character_id;
       online_match_block[0x63 + (s->player_idx) * 0x24] = s->character_color;
       online_match_block[0x67 + (s->player_idx) * 0x24] = 0;
-      online_match_block[0x69 + (s->player_idx) * 0x24] = s->team_id;
+      online_match_block[0x69 + (s->player_idx) * 0x24] = team_id;
     }
 
     // Handle Singles/Teams specific logic
-    if (remote_player_count < 3)
+    if (remote_player_count <= 2)
     {
       online_match_block[0x8] = 0;  // is Teams = false
 
