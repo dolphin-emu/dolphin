@@ -6,6 +6,7 @@
 
 #include <jni.h>
 
+#include "Core/Config/MainSettings.h"
 #include "UICommon/GameFileCache.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
@@ -36,6 +37,18 @@ JNIEXPORT jobjectArray JNICALL Java_org_dolphinemu_dolphinemu_model_GameFileCach
 {
   return VectorToJStringArray(
       env, UICommon::FindAllGamePaths(JStringArrayToVector(env, folder_paths), recursive_scan));
+}
+
+JNIEXPORT jobjectArray JNICALL
+Java_org_dolphinemu_dolphinemu_model_GameFileCache_getIsoPaths(JNIEnv* env, jclass)
+{
+  return VectorToJStringArray(env, Config::GetIsoPaths());
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_model_GameFileCache_setIsoPaths(
+    JNIEnv* env, jclass, jobjectArray paths)
+{
+  Config::SetIsoPaths(JStringArrayToVector(env, paths));
 }
 
 JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFileCache_getSize(JNIEnv* env,
