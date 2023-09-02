@@ -10,7 +10,11 @@ import java.math.BigDecimal
 import java.math.MathContext
 
 open class FloatSliderSetting : SliderSetting {
-    var floatSetting: AbstractFloatSetting
+    protected val floatSetting: AbstractFloatSetting
+
+    val min: Float
+    val max: Float
+    val stepSize: Float
 
     override val setting: AbstractSetting
         get() = floatSetting
@@ -25,8 +29,11 @@ open class FloatSliderSetting : SliderSetting {
         units: String?,
         stepSize: Float,
         showDecimal: Boolean
-    ) : super(context, titleId, descriptionId, min, max, units, stepSize, showDecimal) {
+    ) : super(context, titleId, descriptionId, units, showDecimal) {
         floatSetting = setting
+        this.min = min
+        this.max = max
+        this.stepSize = stepSize
     }
 
     constructor(
@@ -38,11 +45,14 @@ open class FloatSliderSetting : SliderSetting {
         units: String?,
         stepSize: Float,
         showDecimal: Boolean
-    ) : super(name, description, min, max, units, stepSize, showDecimal) {
+    ) : super(name, description, units, showDecimal) {
         floatSetting = setting
+        this.min = min
+        this.max = max
+        this.stepSize = stepSize
     }
 
-    override val selectedValue: Float
+    open val selectedValue: Float
         get() = floatSetting.float
 
     open fun setSelectedValue(settings: Settings?, selection: Float) {
