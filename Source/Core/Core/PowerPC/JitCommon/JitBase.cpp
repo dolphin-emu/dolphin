@@ -18,6 +18,7 @@
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/CPU.h"
+#include "Core/MemTools.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
@@ -132,7 +133,8 @@ void JitBase::RefreshConfig()
   analyzer.SetDivByZeroExceptionsEnabled(m_enable_div_by_zero_exceptions);
 
   bool any_watchpoints = m_system.GetPowerPC().GetMemChecks().HasAny();
-  jo.fastmem = m_fastmem_enabled && jo.fastmem_arena && (m_ppc_state.msr.DR || !any_watchpoints);
+  jo.fastmem = m_fastmem_enabled && jo.fastmem_arena && (m_ppc_state.msr.DR || !any_watchpoints) &&
+               EMM::IsExceptionHandlerSupported();
   jo.memcheck = m_system.IsMMUMode() || m_system.IsPauseOnPanicMode() || any_watchpoints;
   jo.fp_exceptions = m_enable_float_exceptions;
   jo.div_by_zero_exceptions = m_enable_div_by_zero_exceptions;
@@ -140,7 +142,8 @@ void JitBase::RefreshConfig()
 
 void JitBase::InitBLROptimization()
 {
-  m_enable_blr_optimization = jo.enableBlocklink && m_fastmem_enabled && !m_enable_debugging;
+  m_enable_blr_optimization =
+      jo.enableBlocklink && !m_enable_debugging && EMM::IsExceptionHandlerSupported();
   m_cleanup_after_stackfault = false;
 }
 
@@ -151,7 +154,12 @@ void JitBase::ProtectStack()
 
 #ifdef _WIN32
   ULONG reserveSize = SAFE_STACK_SIZE;
-  SetThreadStackGuarantee(&reserveSize);
+  if (!SetThreadStackGuarantee(&reserveSize))
+  {
+    PanicAlertFmt("Failed to set thread stack guarantee");
+    m_enable_blr_optimization = false;
+    return;
+  }
 #else
   auto [stack_addr, stack_size] = Common::GetCurrentThreadStack();
 
@@ -184,7 +192,12 @@ void JitBase::ProtectStack()
   }
 
   m_stack_guard = reinterpret_cast<u8*>(stack_guard_addr);
-  Common::ReadProtectMemory(m_stack_guard, GUARD_SIZE);
+  if (!Common::ReadProtectMemory(m_stack_guard, GUARD_SIZE))
+  {
+    m_stack_guard = nullptr;
+    m_enable_blr_optimization = false;
+    return;
+  }
 #endif
 }
 
