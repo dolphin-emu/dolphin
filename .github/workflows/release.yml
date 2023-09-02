@@ -2,7 +2,7 @@ name: Upload Latest Artifacts to Release
 
 on:
   release:
-    types: [released]
+    types: [published]
 
 jobs:
   package:
