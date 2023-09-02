@@ -212,7 +212,7 @@ private:
   // This is used as a fast cache of block_map used in the assembly dispatcher.
   // It is implemented via a shm segment using m_block_map_arena.
   JitBlock** m_fast_block_map = 0;
-  Common::MemArena m_block_map_arena;
+  Common::LazyMemoryRegion m_block_map_arena;
 
   // An alternative for the above fast_block_map but without a shm segment
   // in case the shm memory region couldn't be allocated.
