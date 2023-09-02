@@ -2356,6 +2356,7 @@ class SettingsFragmentPresenter(
                     ceil(setting.getDoubleMin()).toFloat(),
                     floor(setting.getDoubleMax()).toFloat(),
                     setting.getUiSuffix(),
+                    1.0f,
                     false
                 )
             )

@@ -36,8 +36,9 @@ open class FloatSliderSetting : SliderSetting {
         min: Float,
         max: Float,
         units: String?,
+        stepSize: Float,
         showDecimal: Boolean
-    ) : super(name, description, min, max, units, showDecimal) {
+    ) : super(name, description, min, max, units, stepSize, showDecimal) {
         floatSetting = setting
     }
 

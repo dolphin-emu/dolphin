@@ -41,11 +41,13 @@ sealed class SliderSetting : SettingsItem {
         min: Any,
         max: Any,
         units: String?,
+        stepSize: Any,
         showDecimal: Boolean
     ) : super(name, description) {
         this.min = min
         this.max = max
         this.units = units
+        this.stepSize = stepSize
         this.showDecimal = showDecimal
     }
 
