@@ -1462,7 +1462,7 @@ bool CEXISlippi::shouldAdvanceOnlineFrame(s32 frame)
     // SConfig::GetInstance().m_EmulationSpeed = dynamic_emu_speed;
     //  SConfig::GetInstance().m_EmulationSpeed = 0.97f; // used for testing
 
-    INFO_LOG_FMT(SLIPPI_ONLINE, "[Frame {}] Offset for advance is: {} us. New speed: {.4}%", frame,
+    INFO_LOG_FMT(SLIPPI_ONLINE, "[Frame {}] Offset for advance is: {} us. New speed: {:.4}%", frame,
                  offset_us, dynamic_emu_speed * 100.0f);
 
     s32 frame_time = 16683;
@@ -2298,7 +2298,7 @@ void CEXISlippi::prepareOnlineMatchState()
     std::vector<std::vector<u8>> team_assignment_permutations = {
         {0, 0, 1, 1}, {1, 1, 0, 0}, {0, 1, 1, 0}, {1, 0, 0, 1}, {0, 1, 0, 1}, {1, 0, 1, 0},
     };
-    auto teamAssignments =
+    auto team_assignments =
         team_assignment_permutations[rng_offset % team_assignment_permutations.size()];
 
     // Overwrite player character choices
@@ -2311,7 +2311,7 @@ void CEXISlippi::prepareOnlineMatchState()
       if (are_all_same_team)
       {
         // Overwrite team_id. Color is overwritten by ASM
-        s->team_id = teamAssignments[s->player_idx];
+        s->team_id = team_assignments[s->player_idx];
       }
 
       // Overwrite player character
