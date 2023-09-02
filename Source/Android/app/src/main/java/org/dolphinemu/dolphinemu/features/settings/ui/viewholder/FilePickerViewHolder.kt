@@ -15,8 +15,8 @@ import org.dolphinemu.dolphinemu.utils.FileBrowserHelper
 
 class FilePickerViewHolder(
     private val binding: ListItemSettingBinding,
-    adapter: SettingsAdapter?
-) : SettingViewHolder(binding.getRoot(), adapter!!) {
+    adapter: SettingsAdapter
+) : SettingViewHolder(binding.getRoot(), adapter) {
     lateinit var setting: FilePicker
 
     override val item: SettingsItem

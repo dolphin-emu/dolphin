@@ -13,7 +13,7 @@ class InputDeviceSetting(
     titleId: Int,
     descriptionId: Int,
     private val controller: EmulatedController
-) : StringSingleChoiceSetting(context, null, titleId, descriptionId, null, null, null) {
+) : StringSingleChoiceSetting(context, null, titleId, descriptionId, arrayOf(), arrayOf(), null) {
     init {
         refreshChoicesAndValues()
     }

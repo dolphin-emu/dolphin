@@ -138,7 +138,7 @@ class SettingsAdapter(
         return getItem(position).type
     }
 
-    fun setSettings(settings: ArrayList<SettingsItem>?) {
+    fun setSettings(settings: ArrayList<SettingsItem>) {
         settingsList = settings
         notifyDataSetChanged()
     }
@@ -154,7 +154,7 @@ class SettingsAdapter(
     }
 
     fun onBooleanClick(item: SwitchSetting, checked: Boolean) {
-        item.setChecked(settings, checked)
+        item.setChecked(settings!!, checked)
         fragmentView.onSettingChanged()
     }
 
@@ -194,7 +194,7 @@ class SettingsAdapter(
         item.refreshChoicesAndValues()
         val choices = item.choices
         val noChoicesAvailableString = item.noChoicesAvailableString
-        dialog = if (noChoicesAvailableString != 0 && choices!!.isEmpty()) {
+        dialog = if (noChoicesAvailableString != 0 && choices.isEmpty()) {
             MaterialAlertDialogBuilder(fragmentView.fragmentActivity)
                 .setTitle(item.name)
                 .setMessage(noChoicesAvailableString)
@@ -355,7 +355,7 @@ class SettingsAdapter(
         dialog.show()
     }
 
-    fun onFilePickerDirectoryClick(item: SettingsItem?, position: Int) {
+    fun onFilePickerDirectoryClick(item: SettingsItem, position: Int) {
         clickedItem = item
         clickedPosition = position
 
@@ -442,9 +442,9 @@ class SettingsAdapter(
     }
 
     fun onFilePickerConfirmation(selectedFile: String) {
-        val filePicker = clickedItem as FilePicker?
+        val filePicker = clickedItem as FilePicker
 
-        if (filePicker!!.getSelectedValue() != selectedFile) {
+        if (filePicker.getSelectedValue() != selectedFile) {
             notifyItemChanged(clickedPosition)
             fragmentView.onSettingChanged()
         }
@@ -470,7 +470,7 @@ class SettingsAdapter(
                 val value = getValueForSingleChoiceSelection(scSetting, which)
                 if (scSetting.selectedValue != value) fragmentView.onSettingChanged()
 
-                scSetting.setSelectedValue(settings, value)
+                scSetting.setSelectedValue(settings!!, value)
 
                 closeDialog()
             }
@@ -490,7 +490,7 @@ class SettingsAdapter(
                 val value = scSetting.getValueAt(which)
                 if (scSetting.selectedValue != value) fragmentView.onSettingChanged()
 
-                scSetting.setSelectedValue(settings!!, value!!)
+                scSetting.setSelectedValue(settings!!, value)
 
                 closeDialog()
             }
@@ -499,7 +499,7 @@ class SettingsAdapter(
                 if (sliderSetting.selectedValue != seekbarProgress.toInt()) {
                     fragmentView.onSettingChanged()
                 }
-                sliderSetting.setSelectedValue(settings, seekbarProgress.toInt())
+                sliderSetting.setSelectedValue(settings!!, seekbarProgress.toInt())
                 closeDialog()
             }
             is FloatSliderSetting -> {
@@ -507,7 +507,7 @@ class SettingsAdapter(
 
                 if (sliderSetting.selectedValue != seekbarProgress) fragmentView.onSettingChanged()
 
-                sliderSetting.setSelectedValue(settings, seekbarProgress)
+                sliderSetting.setSelectedValue(settings!!, seekbarProgress)
 
                 closeDialog()
             }

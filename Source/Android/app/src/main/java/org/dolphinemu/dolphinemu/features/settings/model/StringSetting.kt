@@ -94,7 +94,7 @@ enum class StringSetting(
         NativeConfig.setString(settings.writeLayer, file, section, key, newValue)
     }
 
-    fun setString(layer: Int, newValue: String?) {
+    fun setString(layer: Int, newValue: String) {
         NativeConfig.setString(layer, file, section, key, newValue)
     }
 

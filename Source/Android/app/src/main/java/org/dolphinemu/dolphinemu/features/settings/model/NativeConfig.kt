@@ -75,7 +75,7 @@ object NativeConfig {
         file: String,
         section: String,
         key: String,
-        value: String?
+        value: String
     )
 
     @JvmStatic

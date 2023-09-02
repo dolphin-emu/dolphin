@@ -19,7 +19,7 @@ class InvertedSwitchSetting(
     override val isChecked: Boolean
         get() = !booleanSetting.boolean
 
-    override fun setChecked(settings: Settings?, checked: Boolean) {
-        booleanSetting.setBoolean(settings!!, !checked)
+    override fun setChecked(settings: Settings, checked: Boolean) {
+        booleanSetting.setBoolean(settings, !checked)
     }
 }

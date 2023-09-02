@@ -15,7 +15,7 @@ class PercentSliderSetting(
     descriptionId: Int,
     min: Float,
     max: Float,
-    units: String?,
+    units: String,
     stepSize: Float,
     showDecimal: Boolean
 ) : FloatSliderSetting(
@@ -32,9 +32,9 @@ class PercentSliderSetting(
     override val selectedValue: Float
         get() = (floatSetting.float * 100)
 
-    override fun setSelectedValue(settings: Settings?, selection: Float) {
+    override fun setSelectedValue(settings: Settings, selection: Float) {
         floatSetting.setFloat(
-            settings!!,
+            settings,
             BigDecimal((selection / 100).toDouble()).round(MathContext(3)).toFloat()
         )
     }

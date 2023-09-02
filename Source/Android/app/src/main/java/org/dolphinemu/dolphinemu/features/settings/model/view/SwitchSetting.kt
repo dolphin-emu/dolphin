@@ -26,16 +26,16 @@ open class SwitchSetting : SettingsItem {
 
     constructor(
         setting: AbstractBooleanSetting,
-        title: CharSequence?,
-        description: CharSequence?
-    ) : super(title!!, description) {
+        title: CharSequence,
+        description: CharSequence
+    ) : super(title, description) {
         booleanSetting = setting
     }
 
     open val isChecked: Boolean
         get() = booleanSetting.boolean
 
-    open fun setChecked(settings: Settings?, checked: Boolean) {
-        booleanSetting.setBoolean(settings!!, checked)
+    open fun setChecked(settings: Settings, checked: Boolean) {
+        booleanSetting.setBoolean(settings, checked)
     }
 }

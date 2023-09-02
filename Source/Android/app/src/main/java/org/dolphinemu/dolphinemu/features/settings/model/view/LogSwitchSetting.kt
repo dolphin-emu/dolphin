@@ -7,8 +7,8 @@ import org.dolphinemu.dolphinemu.features.settings.model.Settings
 
 class LogSwitchSetting(
     var key: String,
-    title: CharSequence?,
-    description: CharSequence?
+    title: CharSequence,
+    description: CharSequence
 ) : SwitchSetting(
     AdHocBooleanSetting(
         Settings.FILE_LOGGER,
