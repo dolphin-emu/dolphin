@@ -4,6 +4,7 @@
 #include "VideoCommon/TextureCacheBase.h"
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <cstring>
 #include <memory>
@@ -40,6 +41,7 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/GraphicsModEditor/EditorMain.h"
+#include "VideoCommon/GraphicsModEditor/EditorTypes.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/FBInfo.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionData.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
@@ -2328,7 +2330,6 @@ void TextureCacheBase::CopyRenderTargetToTexture(
   const u32 bytes_per_block = baseFormat == TextureFormat::RGBA8 ? 64 : 32;
 
   const u32 bytes_per_row = num_blocks_x * bytes_per_block;
-  const u32 covered_range = num_blocks_y * dstStride;
 
   if (g_ActiveConfig.bGraphicMods)
   {
@@ -2336,6 +2337,16 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     info.m_width = tex_w;
     info.m_height = tex_h;
     info.m_texture_format = baseFormat;
+
+    auto& editor = system.GetGraphicsModEditor();
+    if (editor.IsEnabled())
+    {
+      GraphicsModEditor::FBCallData call_data;
+      call_data.m_id = info;
+      call_data.m_texture = nullptr;
+      call_data.m_time = std::chrono::steady_clock::now();
+      editor.AddFBCall(std::move(call_data));
+    }
     if (is_xfb_copy)
     {
       for (const auto& action : g_graphics_mod_manager->GetXFBActions(info))
@@ -2348,7 +2359,6 @@ void TextureCacheBase::CopyRenderTargetToTexture(
       bool skip = false;
       GraphicsModActionData::EFB efb{tex_w, tex_h, &skip, &scaled_tex_w, &scaled_tex_h};
 
-      auto& editor = system.GetGraphicsModEditor();
       if (editor.IsEnabled())
       {
         for (const auto& action : editor.GetEFBActions(info))
@@ -2367,6 +2377,8 @@ void TextureCacheBase::CopyRenderTargetToTexture(
       {
         if (copy_to_ram)
           UninitializeEFBMemory(dst, dstStride, bytes_per_row, num_blocks_y);
+        InvalideOverlappingTextures(dstStride, dstAddr, bytes_per_row, num_blocks_y, copy_to_vram,
+                                    copy_to_ram);
         return;
       }
     }
@@ -2445,6 +2457,20 @@ void TextureCacheBase::CopyRenderTargetToTexture(
         if (g_ActiveConfig.bGraphicMods)
         {
           entry->texture_info_name = fmt::format("{}_{}", EFB_DUMP_PREFIX, id);
+          auto& editor = system.GetGraphicsModEditor();
+          if (editor.IsEnabled())
+          {
+            FBInfo info;
+            info.m_width = tex_w;
+            info.m_height = tex_h;
+            info.m_texture_format = baseFormat;
+
+            GraphicsModEditor::FBCallData call_data;
+            call_data.m_id = std::move(info);
+            call_data.m_time = std::chrono::steady_clock::now();
+            call_data.m_texture = entry->texture.get();
+            editor.AddFBCall(std::move(call_data));
+          }
         }
 
         if (g_ActiveConfig.bDumpEFBTarget)
@@ -2501,6 +2527,37 @@ void TextureCacheBase::CopyRenderTargetToTexture(
       UninitializeEFBMemory(dst, dstStride, bytes_per_row, num_blocks_y);
     }
   }
+
+  InvalideOverlappingTextures(dstStride, dstAddr, bytes_per_row, num_blocks_y, copy_to_vram,
+                              copy_to_ram);
+
+  if (OpcodeDecoder::g_record_fifo_data)
+  {
+    // Mark the memory behind this efb copy as dynamicly generated for the Fifo log
+    u32 address = dstAddr;
+    for (u32 i = 0; i < num_blocks_y; i++)
+    {
+      Core::System::GetInstance().GetFifoRecorder().UseMemory(address, bytes_per_row,
+                                                              MemoryUpdate::Type::TextureMap, true);
+      address += dstStride;
+    }
+  }
+
+  // Even if the copy is deferred, still compute the hash. This way if the copy is used as a texture
+  // in a subsequent draw before it is flushed, it will have the same hash.
+  if (entry)
+  {
+    const u64 hash = entry->CalculateHash();
+    entry->SetHashes(hash, hash);
+    m_textures_by_address.emplace(dstAddr, std::move(entry));
+  }
+}
+
+void TextureCacheBase::InvalideOverlappingTextures(u32 dstStride, u32 dstAddr, u32 bytes_per_row,
+                                                   u32 num_blocks_y, bool copy_to_vram,
+                                                   bool copy_to_ram)
+{
+  const u32 covered_range = num_blocks_y * dstStride;
 
   // Invalidate all textures, if they are either fully overwritten by our efb copy, or if they
   // have a different stride than our efb copy. Partly overwritten textures with the same stride
@@ -2563,27 +2620,6 @@ void TextureCacheBase::CopyRenderTargetToTexture(
       }
     }
     ++iter.first;
-  }
-
-  if (OpcodeDecoder::g_record_fifo_data)
-  {
-    // Mark the memory behind this efb copy as dynamicly generated for the Fifo log
-    u32 address = dstAddr;
-    for (u32 i = 0; i < num_blocks_y; i++)
-    {
-      Core::System::GetInstance().GetFifoRecorder().UseMemory(address, bytes_per_row,
-                                                              MemoryUpdate::Type::TextureMap, true);
-      address += dstStride;
-    }
-  }
-
-  // Even if the copy is deferred, still compute the hash. This way if the copy is used as a texture
-  // in a subsequent draw before it is flushed, it will have the same hash.
-  if (entry)
-  {
-    const u64 hash = entry->CalculateHash();
-    entry->SetHashes(hash, hash);
-    m_textures_by_address.emplace(dstAddr, std::move(entry));
   }
 }
 
