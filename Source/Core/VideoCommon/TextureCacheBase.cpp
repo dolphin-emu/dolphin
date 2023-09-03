@@ -1640,10 +1640,13 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
         auto data = asset->GetData();
         if (data)
         {
-          if (!data->m_levels.empty())
+          if (!data->m_slices.empty())
           {
-            height = data->m_levels[0].height;
-            width = data->m_levels[0].width;
+            if (!data->m_slices[0].m_levels.empty())
+            {
+              height = data->m_slices[0].m_levels[0].height;
+              width = data->m_slices[0].m_levels[0].width;
+            }
           }
         }
       }
@@ -1679,6 +1682,9 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
   return entry;
 }
 
+// Note: the following function assumes all CustomTextureData has a single slice.  This is verified
+// with the 'GameTexture::Validate' function after the data is loaded. Only a single slice is
+// expected because each texture is loaded into a texture array
 RcTcacheEntry TextureCacheBase::CreateTextureEntry(
     const TextureCreationInfo& creation_info, const TextureInfo& texture_info,
     const int safety_color_sample_size,
@@ -1697,12 +1703,12 @@ RcTcacheEntry TextureCacheBase::CreateTextureEntry(
     const auto calculate_max_levels = [&]() {
       const auto max_element = std::max_element(
           assets_data.begin(), assets_data.end(), [](const auto& lhs, const auto& rhs) {
-            return lhs->m_levels.size() < rhs->m_levels.size();
+            return lhs->m_slices[0].m_levels.size() < rhs->m_slices[0].m_levels.size();
           });
-      return max_element->get()->m_levels.size();
+      return max_element->get()->m_slices[0].m_levels.size();
     };
     const u32 texLevels = no_mips ? 1 : (u32)calculate_max_levels();
-    const auto& first_level = assets_data[0]->m_levels[0];
+    const auto& first_level = assets_data[0]->m_slices[0].m_levels[0];
     const TextureConfig config(first_level.width, first_level.height, texLevels,
                                static_cast<u32>(assets_data.size()), 1, first_level.format, 0);
     entry = AllocateCacheEntry(config);
@@ -1711,11 +1717,12 @@ RcTcacheEntry TextureCacheBase::CreateTextureEntry(
     for (u32 data_index = 0; data_index < static_cast<u32>(assets_data.size()); data_index++)
     {
       const auto asset = assets_data[data_index];
+      const auto& slice = asset->m_slices[0];
       for (u32 level_index = 0;
-           level_index < std::min(texLevels, static_cast<u32>(asset->m_levels.size()));
+           level_index < std::min(texLevels, static_cast<u32>(slice.m_levels.size()));
            ++level_index)
       {
-        const auto& level = asset->m_levels[level_index];
+        const auto& level = slice.m_levels[level_index];
         entry->texture->Load(level_index, level.width, level.height, level.row_length,
                              level.data.data(), level.data.size(), data_index);
       }

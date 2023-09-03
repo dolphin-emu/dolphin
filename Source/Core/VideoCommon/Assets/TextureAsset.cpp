@@ -47,7 +47,7 @@ bool GameTextureAsset::Validate(u32 native_width, u32 native_height) const
     return false;
   }
 
-  if (m_data->m_levels.empty())
+  if (m_data->m_slices.empty())
   {
     ERROR_LOG_FMT(VIDEO,
                   "Game texture can't be validated for asset '{}' because no data was available.",
@@ -55,9 +55,28 @@ bool GameTextureAsset::Validate(u32 native_width, u32 native_height) const
     return false;
   }
 
+  if (m_data->m_slices.size() > 1)
+  {
+    ERROR_LOG_FMT(
+        VIDEO,
+        "Game texture can't be validated for asset '{}' because it has more slices than expected.",
+        GetAssetId());
+    return false;
+  }
+
+  const auto& slice = m_data->m_slices[0];
+  if (slice.m_levels.empty())
+  {
+    ERROR_LOG_FMT(
+        VIDEO,
+        "Game texture can't be validated for asset '{}' because first slice has no data available.",
+        GetAssetId());
+    return false;
+  }
+
   // Verify that the aspect ratio of the texture hasn't changed, as this could have
   // side-effects.
-  const VideoCommon::CustomTextureData::Level& first_mip = m_data->m_levels[0];
+  const VideoCommon::CustomTextureData::ArraySlice::Level& first_mip = slice.m_levels[0];
   if (first_mip.width * native_height != first_mip.height * native_width)
   {
     // Note: this feels like this should return an error but
