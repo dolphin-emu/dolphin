@@ -385,7 +385,7 @@ u64 FifoDataFile::WriteMemoryUpdates(const std::vector<MemoryUpdate>& memUpdates
     dstUpdate.dataOffset = dataOffset;
     dstUpdate.dataSize = static_cast<u32>(srcUpdate.data.size());
     dstUpdate.fifoPosition = srcUpdate.fifoPosition;
-    dstUpdate.type = srcUpdate.type;
+    dstUpdate.type = static_cast<u8>(srcUpdate.type);
 
     u64 updateOffset = updateListOffset + (i * sizeof(FileMemoryUpdate));
     file.Seek(updateOffset, File::SeekOrigin::Begin);
