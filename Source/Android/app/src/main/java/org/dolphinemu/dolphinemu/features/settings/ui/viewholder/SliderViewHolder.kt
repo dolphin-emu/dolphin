@@ -14,9 +14,10 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.SliderSetting
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter
 
 class SliderViewHolder(
-    private val binding: ListItemSettingBinding, adapter: SettingsAdapter?,
+    private val binding: ListItemSettingBinding,
+    adapter: SettingsAdapter,
     private val context: Context
-) : SettingViewHolder(binding.root, adapter!!) {
+) : SettingViewHolder(binding.root, adapter) {
     private lateinit var setting: SliderSetting
 
     override val item: SettingsItem

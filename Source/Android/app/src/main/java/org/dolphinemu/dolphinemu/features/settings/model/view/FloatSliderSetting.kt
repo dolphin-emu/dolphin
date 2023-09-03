@@ -26,7 +26,7 @@ open class FloatSliderSetting : SliderSetting {
         descriptionId: Int,
         min: Float,
         max: Float,
-        units: String?,
+        units: String,
         stepSize: Float,
         showDecimal: Boolean
     ) : super(context, titleId, descriptionId, units, showDecimal) {
@@ -39,10 +39,10 @@ open class FloatSliderSetting : SliderSetting {
     constructor(
         setting: AbstractFloatSetting,
         name: CharSequence,
-        description: CharSequence?,
+        description: CharSequence,
         min: Float,
         max: Float,
-        units: String?,
+        units: String,
         stepSize: Float,
         showDecimal: Boolean
     ) : super(name, description, units, showDecimal) {
@@ -55,9 +55,9 @@ open class FloatSliderSetting : SliderSetting {
     open val selectedValue: Float
         get() = floatSetting.float
 
-    open fun setSelectedValue(settings: Settings?, selection: Float) {
+    open fun setSelectedValue(settings: Settings, selection: Float) {
         floatSetting.setFloat(
-            settings!!,
+            settings,
             BigDecimal((selection).toDouble()).round(MathContext(3)).toFloat()
         )
     }

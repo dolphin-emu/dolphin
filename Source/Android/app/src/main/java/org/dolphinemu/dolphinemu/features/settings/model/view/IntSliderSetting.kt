@@ -14,7 +14,7 @@ class IntSliderSetting(
     descriptionId: Int,
     val min: Int,
     val max: Int,
-    units: String?,
+    units: String,
     val stepSize: Int
 ) : SliderSetting(context, titleId, descriptionId, units, false) {
 
@@ -24,7 +24,7 @@ class IntSliderSetting(
     val selectedValue: Int
         get() = intSetting.int
 
-    fun setSelectedValue(settings: Settings?, selection: Int) {
-        intSetting.setInt(settings!!, selection)
+    fun setSelectedValue(settings: Settings, selection: Int) {
+        intSetting.setInt(settings, selection)
     }
 }

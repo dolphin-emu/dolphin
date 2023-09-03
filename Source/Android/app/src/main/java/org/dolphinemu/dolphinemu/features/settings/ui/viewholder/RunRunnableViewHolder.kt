@@ -14,9 +14,10 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter
 
 class RunRunnableViewHolder(
-    private val mBinding: ListItemSettingBinding, adapter: SettingsAdapter?,
+    private val mBinding: ListItemSettingBinding,
+    adapter: SettingsAdapter,
     private val mContext: Context
-) : SettingViewHolder(mBinding.getRoot(), adapter!!) {
+) : SettingViewHolder(mBinding.getRoot(), adapter) {
     private lateinit var setting: RunRunnable
 
     override val item: SettingsItem

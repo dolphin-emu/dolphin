@@ -90,8 +90,8 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
 
         setInsets()
 
-        val activity = activity as SettingsActivityView?
-        presenter.onViewCreated(menuTag, activity!!.settings)
+        val activity = requireActivity() as SettingsActivityView
+        presenter.onViewCreated(menuTag, activity.settings)
     }
 
     override fun onDestroyView() {
