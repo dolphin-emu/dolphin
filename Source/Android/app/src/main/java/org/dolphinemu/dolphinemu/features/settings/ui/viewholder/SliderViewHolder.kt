@@ -7,6 +7,7 @@ import android.text.TextUtils
 import android.view.View
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.databinding.ListItemSettingBinding
+import org.dolphinemu.dolphinemu.features.settings.model.view.FloatSliderSetting
 import org.dolphinemu.dolphinemu.features.settings.model.view.IntSliderSetting
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem
 import org.dolphinemu.dolphinemu.features.settings.model.view.SliderSetting
@@ -29,10 +30,9 @@ class SliderViewHolder(
         if (!TextUtils.isEmpty(item.description)) {
             binding.textSettingDescription.text = item.description
         } else {
-            val selectedValue: Float = if (item is IntSliderSetting) {
-                (setting.selectedValue as Int).toFloat()
-            } else {
-                setting.selectedValue as Float
+            val selectedValue: Float = when (item) {
+                is FloatSliderSetting -> item.selectedValue
+                is IntSliderSetting -> item.selectedValue.toFloat()
             }
 
             if (setting.showDecimal) {

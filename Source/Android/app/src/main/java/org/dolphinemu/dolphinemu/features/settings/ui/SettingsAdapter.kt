@@ -249,14 +249,14 @@ class SettingsAdapter(
         val slider = binding.slider
         when (item) {
             is FloatSliderSetting -> {
-                slider.valueFrom = item.min as Float
-                slider.valueTo = item.max as Float
-                slider.stepSize = item.stepSize as Float
+                slider.valueFrom = item.min
+                slider.valueTo = item.max
+                slider.stepSize = item.stepSize
             }
             is IntSliderSetting -> {
-                slider.valueFrom = (item.min as Int).toFloat()
-                slider.valueTo = (item.max as Int).toFloat()
-                slider.stepSize = (item.stepSize as Int).toFloat()
+                slider.valueFrom = item.min.toFloat()
+                slider.valueTo = item.max.toFloat()
+                slider.stepSize = item.stepSize.toFloat()
             }
         }
         slider.value = seekbarProgress
