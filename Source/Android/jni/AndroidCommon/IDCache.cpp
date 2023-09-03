@@ -36,12 +36,6 @@ static jclass s_hash_map_class;
 static jmethodID s_hash_map_init;
 static jmethodID s_hash_map_put;
 
-static jclass s_ini_file_class;
-static jfieldID s_ini_file_pointer;
-static jclass s_ini_file_section_class;
-static jfieldID s_ini_file_section_pointer;
-static jmethodID s_ini_file_section_constructor;
-
 static jclass s_compress_cb_class;
 static jmethodID s_compress_cb_run;
 
@@ -238,31 +232,6 @@ jmethodID GetHashMapInit()
 jmethodID GetHashMapPut()
 {
   return s_hash_map_put;
-}
-
-jclass GetIniFileClass()
-{
-  return s_ini_file_class;
-}
-
-jfieldID GetIniFilePointer()
-{
-  return s_ini_file_pointer;
-}
-
-jclass GetIniFileSectionClass()
-{
-  return s_ini_file_section_class;
-}
-
-jfieldID GetIniFileSectionPointer()
-{
-  return s_ini_file_section_pointer;
-}
-
-jmethodID GetIniFileSectionConstructor()
-{
-  return s_ini_file_section_constructor;
 }
 
 jclass GetCompressCallbackClass()
@@ -581,19 +550,6 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
                                                  "(Ljava/lang/String;)Ljava/lang/String;");
   env->DeleteLocalRef(analytics_class);
 
-  const jclass ini_file_class = env->FindClass("org/dolphinemu/dolphinemu/utils/IniFile");
-  s_ini_file_class = reinterpret_cast<jclass>(env->NewGlobalRef(ini_file_class));
-  s_ini_file_pointer = env->GetFieldID(ini_file_class, "mPointer", "J");
-  env->DeleteLocalRef(ini_file_class);
-
-  const jclass ini_file_section_class =
-      env->FindClass("org/dolphinemu/dolphinemu/utils/IniFile$Section");
-  s_ini_file_section_class = reinterpret_cast<jclass>(env->NewGlobalRef(ini_file_section_class));
-  s_ini_file_section_pointer = env->GetFieldID(ini_file_section_class, "mPointer", "J");
-  s_ini_file_section_constructor = env->GetMethodID(
-      ini_file_section_class, "<init>", "(Lorg/dolphinemu/dolphinemu/utils/IniFile;J)V");
-  env->DeleteLocalRef(ini_file_section_class);
-
   const jclass linked_hash_map_class = env->FindClass("java/util/LinkedHashMap");
   s_linked_hash_map_class = reinterpret_cast<jclass>(env->NewGlobalRef(linked_hash_map_class));
   s_linked_hash_map_init = env->GetMethodID(s_linked_hash_map_class, "<init>", "(I)V");
@@ -768,8 +724,6 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved)
   env->DeleteGlobalRef(s_analytics_class);
   env->DeleteGlobalRef(s_linked_hash_map_class);
   env->DeleteGlobalRef(s_hash_map_class);
-  env->DeleteGlobalRef(s_ini_file_class);
-  env->DeleteGlobalRef(s_ini_file_section_class);
   env->DeleteGlobalRef(s_compress_cb_class);
   env->DeleteGlobalRef(s_content_handler_class);
   env->DeleteGlobalRef(s_network_helper_class);

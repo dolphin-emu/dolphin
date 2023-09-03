@@ -3,12 +3,9 @@
 package org.dolphinemu.dolphinemu.model
 
 import androidx.annotation.Keep
-import org.dolphinemu.dolphinemu.NativeLibrary
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
-import org.dolphinemu.dolphinemu.features.settings.model.Settings
-import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile
+import org.dolphinemu.dolphinemu.features.settings.model.NativeConfig
 import org.dolphinemu.dolphinemu.utils.ContentHandler
-import org.dolphinemu.dolphinemu.utils.IniFile
 import java.io.File
 
 class GameFileCache {
@@ -57,89 +54,36 @@ class GameFileCache {
         private external fun newGameFileCache(): Long
 
         fun addGameFolder(path: String) {
-            val dolphinFile = SettingsFile.getSettingsFile(Settings.FILE_DOLPHIN)
-            val dolphinIni = IniFile(dolphinFile)
-            val pathSet = getPathSet(false)
-            val totalISOPaths =
-                dolphinIni.getInt(Settings.SECTION_INI_GENERAL, SettingsFile.KEY_ISO_PATHS, 0)
+            val paths = getIsoPaths()
 
-            if (!pathSet.contains(path)) {
-                dolphinIni.setInt(
-                    Settings.SECTION_INI_GENERAL,
-                    SettingsFile.KEY_ISO_PATHS,
-                    totalISOPaths + 1
-                )
-                dolphinIni.setString(
-                    Settings.SECTION_INI_GENERAL,
-                    SettingsFile.KEY_ISO_PATH_BASE + totalISOPaths,
-                    path
-                )
-                dolphinIni.save(dolphinFile)
-                NativeLibrary.ReloadConfig()
+            if (!paths.contains(path)) {
+                setIsoPaths(paths + path)
+                NativeConfig.save(NativeConfig.LAYER_BASE)
             }
         }
 
-        private fun getPathSet(removeNonExistentFolders: Boolean): LinkedHashSet<String> {
-            val dolphinFile = SettingsFile.getSettingsFile(Settings.FILE_DOLPHIN)
-            val dolphinIni = IniFile(dolphinFile)
-            val pathSet = LinkedHashSet<String>()
-            val totalISOPaths =
-                dolphinIni.getInt(Settings.SECTION_INI_GENERAL, SettingsFile.KEY_ISO_PATHS, 0)
+        private fun getFolderPaths(removeNonExistentFolders: Boolean): Array<String> {
+            val paths = getIsoPaths()
 
-            for (i in 0 until totalISOPaths) {
-                val path = dolphinIni.getString(
-                    Settings.SECTION_INI_GENERAL,
-                    SettingsFile.KEY_ISO_PATH_BASE + i,
-                    ""
-                )
-
-                val pathExists = if (ContentHandler.isContentUri(path))
+            val filteredPaths = paths.filter {path ->
+                if (ContentHandler.isContentUri(path))
                     ContentHandler.exists(path)
                 else
                     File(path).exists()
-                if (pathExists) {
-                    pathSet.add(path)
-                }
+            }.toTypedArray()
+
+            if (removeNonExistentFolders && paths.size > filteredPaths.size) {
+                setIsoPaths(filteredPaths)
+                NativeConfig.save(NativeConfig.LAYER_BASE)
             }
 
-            if (removeNonExistentFolders && totalISOPaths > pathSet.size) {
-                var setIndex = 0
-
-                dolphinIni.setInt(
-                    Settings.SECTION_INI_GENERAL,
-                    SettingsFile.KEY_ISO_PATHS,
-                    pathSet.size
-                )
-
-                // One or more folders have been removed.
-                for (entry in pathSet) {
-                    dolphinIni.setString(
-                        Settings.SECTION_INI_GENERAL,
-                        SettingsFile.KEY_ISO_PATH_BASE + setIndex,
-                        entry
-                    )
-                    setIndex++
-                }
-
-                // Delete known unnecessary keys. Ignore i values beyond totalISOPaths.
-                for (i in setIndex until totalISOPaths) {
-                    dolphinIni.deleteKey(
-                        Settings.SECTION_INI_GENERAL,
-                        SettingsFile.KEY_ISO_PATH_BASE + i
-                    )
-                }
-
-                dolphinIni.save(dolphinFile)
-                NativeLibrary.ReloadConfig()
-            }
-            return pathSet
+            return filteredPaths
         }
 
         @JvmStatic
         fun getAllGamePaths(): Array<String> {
             val recursiveScan = BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.boolean
-            val folderPathsSet = getPathSet(true)
-            val folderPaths = folderPathsSet.toTypedArray()
+            val folderPaths = getFolderPaths(true)
             return getAllGamePaths(folderPaths, recursiveScan)
         }
 
@@ -148,5 +92,11 @@ class GameFileCache {
             folderPaths: Array<String>,
             recursiveScan: Boolean
         ): Array<String>
+
+        @JvmStatic
+        external fun getIsoPaths(): Array<String>
+
+        @JvmStatic
+        external fun setIsoPaths(paths: Array<String>)
     }
 }
