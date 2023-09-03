@@ -290,10 +290,10 @@ void WiiIPC::Shutdown()
 {
 }
 
-static u32 ReadGPIOIn(Core::System& system)
+u32 WiiIPC::ReadGPIOIn()
 {
   Common::Flags<GPIO> gpio_in;
-  gpio_in[GPIO::SLOT_IN] = system.GetDVDInterface().IsDiscInside();
+  gpio_in[GPIO::SLOT_IN] = m_system.GetDVDInterface().IsDiscInside();
   gpio_in[GPIO::AVE_SCL] = i2c_state.GetSCL();
   gpio_in[GPIO::AVE_SDA] = i2c_state.GetSDA();
   return gpio_in.m_hex;
@@ -306,7 +306,7 @@ u32 WiiIPC::GetGPIOOut()
   // In practice this means that (at least for the AVE I²C pins) a 1 is output when the pin is an
   // input. (RVLoader depends on this.)
   // https://github.com/Aurelio92/RVLoader/blob/75732f248019f589deb1109bba7b5323a8afaadf/source/i2c.c#L101-L109
-  return (m_gpio_out.m_hex | ~(m_gpio_dir.m_hex)) & (ReadGPIOIn(m_system) | m_gpio_dir.m_hex);
+  return (m_gpio_out.m_hex | ~(m_gpio_dir.m_hex)) & (ReadGPIOIn() | m_gpio_dir.m_hex);
 }
 
 void WiiIPC::GPIOOutChanged(u32 old_value_hex)
@@ -389,7 +389,8 @@ void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    wii_ipc.GPIOOutChanged(old_out);
                  }));
   mmio->Register(base | GPIOB_IN, MMIO::ComplexRead<u32>([](Core::System& system, u32) {
-                   return ReadGPIOIn(system);
+                   auto& wii_ipc = system.GetWiiIPC();
+                   return wii_ipc.ReadGPIOIn();
                  }),
                  MMIO::Nop<u32>());
   // Starlet GPIO registers, not normally accessible by PPC (but they can be depending on how
@@ -420,7 +421,8 @@ void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    wii_ipc.GPIOOutChanged(old_out);
                  }));
   mmio->Register(base | GPIO_IN, MMIO::ComplexRead<u32>([](Core::System& system, u32) {
-                   return ReadGPIOIn(system);
+                   auto& wii_ipc = system.GetWiiIPC();
+                   return wii_ipc.ReadGPIOIn();
                  }),
                  MMIO::Nop<u32>());
 
