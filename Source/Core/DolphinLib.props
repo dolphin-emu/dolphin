@@ -35,6 +35,7 @@
     <ClInclude Include="Common\Crypto\AES.h" />
     <ClInclude Include="Common\Crypto\bn.h" />
     <ClInclude Include="Common\Crypto\ec.h" />
+    <ClInclude Include="Common\Crypto\HMAC.h" />
     <ClInclude Include="Common\Crypto\SHA1.h" />
     <ClInclude Include="Common\Debug\MemoryPatches.h" />
     <ClInclude Include="Common\Debug\Threads.h" />
@@ -362,6 +363,8 @@
     <ClInclude Include="Core\IOS\Network\KD\NWC24DL.h" />
     <ClInclude Include="Core\IOS\Network\KD\VFF\VFFUtil.h" />
     <ClInclude Include="Core\IOS\Network\KD\WC24File.h" />
+    <ClInclude Include="Core\IOS\Network\KD\Mail\MailCommon.h" />
+    <ClInclude Include="Core\IOS\Network\KD\Mail\WC24Send.h" />
     <ClInclude Include="Core\IOS\Network\MACUtils.h" />
     <ClInclude Include="Core\IOS\Network\NCD\Manage.h" />
     <ClInclude Include="Core\IOS\Network\NCD\WiiNetConfig.h" />
@@ -762,6 +765,7 @@
     <ClCompile Include="Common\Crypto\AES.cpp" />
     <ClCompile Include="Common\Crypto\bn.cpp" />
     <ClCompile Include="Common\Crypto\ec.cpp" />
+    <ClCompile Include="Common\Crypto\HMAC.cpp" />
     <ClCompile Include="Common\Crypto\SHA1.cpp" />
     <ClCompile Include="Common\Debug\MemoryPatches.cpp" />
     <ClCompile Include="Common\Debug\Watches.cpp" />
@@ -1005,6 +1009,7 @@
     <ClCompile Include="Core\IOS\Network\KD\NWC24Config.cpp" />
     <ClCompile Include="Core\IOS\Network\KD\NWC24DL.cpp" />
     <ClCompile Include="Core\IOS\Network\KD\VFF\VFFUtil.cpp" />
+    <ClCompile Include="Core\IOS\Network\KD\Mail\WC24Send.cpp" />
     <ClCompile Include="Core\IOS\Network\MACUtils.cpp" />
     <ClCompile Include="Core\IOS\Network\NCD\Manage.cpp" />
     <ClCompile Include="Core\IOS\Network\NCD\WiiNetConfig.cpp" />
