@@ -120,6 +120,11 @@ bool NWC24Dl::IsEncrypted(u16 entry_index) const
   return !!Common::ExtractBit(Common::swap32(m_data.entries[entry_index].flags), 3);
 }
 
+bool NWC24Dl::IsRSASigned(u16 entry_index) const
+{
+  return !Common::ExtractBit(Common::swap32(m_data.entries[entry_index].flags), 2);
+}
+
 u32 NWC24Dl::Magic() const
 {
   return Common::swap32(m_data.header.magic);

@@ -255,32 +255,48 @@ NWC24::ErrorCode NetKDRequestDevice::KDDownload(const u16 entry_index,
     return NWC24::WC24_ERR_SERVER;
   }
 
-  // Check if the filesize is smaller than the header size.
-  if (response->size() < sizeof(NWC24::WC24File))
+  if (!m_dl_list.IsRSASigned(entry_index))
   {
-    ERROR_LOG_FMT(IOS_WC24, "File at {} is too small to be a valid file.", url);
-    LogError(ErrorType::KD_Download, NWC24::WC24_ERR_BROKEN);
-    return NWC24::WC24_ERR_BROKEN;
-  }
+    // Data that is not signed with an RSA key will not have the WC24 header or 320 bytes before the
+    // actual data. We just have to make sure that the response is not empty.
+    if (response->empty())
+    {
+      ERROR_LOG_FMT(IOS_WC24, "File at {} is empty.", url);
+      LogError(ErrorType::KD_Download, NWC24::WC24_ERR_BROKEN);
+      return NWC24::WC24_ERR_BROKEN;
+    }
 
-  // Now we read the file
-  NWC24::WC24File wc24File;
-  std::memcpy(&wc24File, response->data(), sizeof(NWC24::WC24File));
-
-  std::vector<u8> temp_buffer(response->begin() + 320, response->end());
-
-  if (m_dl_list.IsEncrypted(entry_index))
-  {
-    NWC24::WC24PubkMod pubkMod = m_dl_list.GetWC24PubkMod(entry_index);
-
-    file_data = std::vector<u8>(response->size() - 320);
-
-    Common::AES::CryptOFB(pubkMod.aes_key, wc24File.iv, wc24File.iv, temp_buffer.data(),
-                          file_data.data(), temp_buffer.size());
+    file_data = *response;
   }
   else
   {
-    file_data = std::move(temp_buffer);
+    // Check if the filesize is smaller than the header size.
+    if (response->size() < sizeof(NWC24::WC24File))
+    {
+      ERROR_LOG_FMT(IOS_WC24, "File at {} is too small to be a valid file.", url);
+      LogError(ErrorType::KD_Download, NWC24::WC24_ERR_BROKEN);
+      return NWC24::WC24_ERR_BROKEN;
+    }
+
+    // Now we read the file
+    NWC24::WC24File wc24_file;
+    std::memcpy(&wc24_file, response->data(), sizeof(NWC24::WC24File));
+
+    std::vector<u8> temp_buffer(response->begin() + 320, response->end());
+
+    if (m_dl_list.IsEncrypted(entry_index))
+    {
+      NWC24::WC24PubkMod pubk_mod = m_dl_list.GetWC24PubkMod(entry_index);
+
+      file_data = std::vector<u8>(response->size() - 320);
+
+      Common::AES::CryptOFB(pubk_mod.aes_key, wc24_file.iv, wc24_file.iv, temp_buffer.data(),
+                            file_data.data(), temp_buffer.size());
+    }
+    else
+    {
+      file_data = std::move(temp_buffer);
+    }
   }
 
   NWC24::ErrorCode reply = IOS::HLE::NWC24::OpenVFF(m_dl_list.GetVFFPath(entry_index), content_name,
