@@ -88,6 +88,10 @@ void VideoConfig::Refresh()
   suggested_aspect_mode = Config::Get(Config::GFX_SUGGESTED_ASPECT_RATIO);
   widescreen_heuristic_transition_threshold =
       Config::Get(Config::GFX_WIDESCREEN_HEURISTIC_TRANSITION_THRESHOLD);
+  widescreen_heuristic_aspect_ratio_ideal =
+      Config::Get(Config::GFX_WIDESCREEN_HEURISTIC_ASPECT_RATIO_IDEAL);
+  widescreen_heuristic_aspect_ratio_slop =
+      Config::Get(Config::GFX_WIDESCREEN_HEURISTIC_ASPECT_RATIO_SLOP);
   bCrop = Config::Get(Config::GFX_CROP);
   iSafeTextureCache_ColorSamples = Config::Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
   bShowFPS = Config::Get(Config::GFX_SHOW_FPS);

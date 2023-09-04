@@ -76,26 +76,26 @@ constexpr Common::EnumMap<PrimitiveType, Primitive::GX_DRAW_POINTS> primitive_fr
 // by ~9% in opposite directions.
 // Just in case any game decides to take this into account, we do both these
 // tests with a large amount of slop.
-static constexpr float ASPECT_RATIO_SLOP = 0.11f;
 
-static bool IsAnamorphicProjection(const Projection::Raw& projection, const Viewport& viewport)
+static bool IsAnamorphicProjection(const Projection::Raw& projection, const Viewport& viewport,
+                                   const float ideal_ratio, const float slop)
 {
   // If ratio between our projection and viewport aspect ratios is similar to 16:9 / 4:3
-  // we have an anamorphic projection.
-  static constexpr float IDEAL_RATIO = (16 / 9.f) / (4 / 3.f);
+  // (the "ideal ratio"), we have an anamorphic projection. This value can be overridden
+  // by a GameINI.
 
   const float projection_ar = projection[2] / projection[0];
   const float viewport_ar = viewport.wd / viewport.ht;
 
-  return std::abs(std::abs(projection_ar / viewport_ar) - IDEAL_RATIO) <
-         IDEAL_RATIO * ASPECT_RATIO_SLOP;
+  return std::abs(std::abs(projection_ar / viewport_ar) - ideal_ratio) < ideal_ratio * slop;
 }
 
-static bool IsNormalProjection(const Projection::Raw& projection, const Viewport& viewport)
+static bool IsNormalProjection(const Projection::Raw& projection, const Viewport& viewport,
+                               const float slop)
 {
   const float projection_ar = projection[2] / projection[0];
   const float viewport_ar = viewport.wd / viewport.ht;
-  return std::abs(std::abs(projection_ar / viewport_ar) - 1) < ASPECT_RATIO_SLOP;
+  return std::abs(std::abs(projection_ar / viewport_ar) - 1) < slop;
 }
 
 VertexManagerBase::VertexManagerBase()
@@ -507,12 +507,15 @@ void VertexManagerBase::Flush()
     auto& counts =
         is_perspective ? m_flush_statistics.perspective : m_flush_statistics.orthographic;
 
-    if (IsAnamorphicProjection(xfmem.projection.rawProjection, xfmem.viewport))
+    const float ideal_ratio = g_ActiveConfig.widescreen_heuristic_aspect_ratio_ideal;
+    const float slop = g_ActiveConfig.widescreen_heuristic_aspect_ratio_slop;
+
+    if (IsAnamorphicProjection(xfmem.projection.rawProjection, xfmem.viewport, ideal_ratio, slop))
     {
       ++counts.anamorphic_flush_count;
       counts.anamorphic_vertex_count += m_index_generator.GetIndexLen();
     }
-    else if (IsNormalProjection(xfmem.projection.rawProjection, xfmem.viewport))
+    else if (IsNormalProjection(xfmem.projection.rawProjection, xfmem.viewport, slop))
     {
       ++counts.normal_flush_count;
       counts.normal_vertex_count += m_index_generator.GetIndexLen();

@@ -30,6 +30,8 @@ extern const Info<bool> GFX_WIDESCREEN_HACK;
 extern const Info<AspectMode> GFX_ASPECT_RATIO;
 extern const Info<AspectMode> GFX_SUGGESTED_ASPECT_RATIO;
 extern const Info<u32> GFX_WIDESCREEN_HEURISTIC_TRANSITION_THRESHOLD;
+extern const Info<float> GFX_WIDESCREEN_HEURISTIC_ASPECT_RATIO_IDEAL;
+extern const Info<float> GFX_WIDESCREEN_HEURISTIC_ASPECT_RATIO_SLOP;
 extern const Info<bool> GFX_CROP;
 extern const Info<int> GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES;
 extern const Info<bool> GFX_SHOW_FPS;

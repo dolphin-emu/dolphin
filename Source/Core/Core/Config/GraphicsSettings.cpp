@@ -25,6 +25,10 @@ const Info<AspectMode> GFX_SUGGESTED_ASPECT_RATIO{{System::GFX, "Settings", "Sug
                                                   AspectMode::Auto};
 const Info<u32> GFX_WIDESCREEN_HEURISTIC_TRANSITION_THRESHOLD{
     {System::GFX, "Settings", "WidescreenHeuristicTransitionThreshold"}, 3};
+const Info<float> GFX_WIDESCREEN_HEURISTIC_ASPECT_RATIO_IDEAL{
+    {System::GFX, "Settings", "WidescreenHeuristicAspectRatioIdeal"}, (16 / 9.f) / (4 / 3.f)};
+const Info<float> GFX_WIDESCREEN_HEURISTIC_ASPECT_RATIO_SLOP{
+    {System::GFX, "Settings", "WidescreenHeuristicAspectRatioSlop"}, 0.11f};
 const Info<bool> GFX_CROP{{System::GFX, "Settings", "Crop"}, false};
 const Info<int> GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES{
     {System::GFX, "Settings", "SafeTextureCacheColorSamples"}, 128};
