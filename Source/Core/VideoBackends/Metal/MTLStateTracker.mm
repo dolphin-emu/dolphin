@@ -107,12 +107,6 @@ Metal::StateTracker::StateTracker() : m_backref(std::make_shared<Backref>(this))
 {
   m_flags.should_apply_label = true;
   m_fence = MRCTransfer([g_device newFence]);
-  for (MRCOwned<MTLRenderPassDescriptor*>& rpdesc : m_render_pass_desc)
-  {
-    rpdesc = MRCTransfer([MTLRenderPassDescriptor new]);
-    [[rpdesc depthAttachment] setStoreAction:MTLStoreActionStore];
-    [[rpdesc stencilAttachment] setStoreAction:MTLStoreActionStore];
-  }
   m_resolve_pass_desc = MRCTransfer([MTLRenderPassDescriptor new]);
   auto color0 = [[m_resolve_pass_desc colorAttachments] objectAtIndexedSubscript:0];
   [color0 setLoadAction:MTLLoadActionLoad];
@@ -299,27 +293,8 @@ void Metal::StateTracker::SetCurrentFramebuffer(Framebuffer* framebuffer)
 MTLRenderPassDescriptor* Metal::StateTracker::GetRenderPassDescriptor(Framebuffer* framebuffer,
                                                                       MTLLoadAction load_action)
 {
-  const AbstractTextureFormat depth_fmt = framebuffer->GetDepthFormat();
-  MTLRenderPassDescriptor* desc;
-  if (depth_fmt == AbstractTextureFormat::Undefined)
-    desc = m_render_pass_desc[0];
-  else if (!Util::HasStencil(depth_fmt))
-    desc = m_render_pass_desc[1];
-  else
-    desc = m_render_pass_desc[2];
-  desc.colorAttachments[0].texture = framebuffer->GetColor();
-  desc.colorAttachments[0].loadAction = load_action;
-  if (depth_fmt != AbstractTextureFormat::Undefined)
-  {
-    desc.depthAttachment.texture = framebuffer->GetDepth();
-    desc.depthAttachment.loadAction = load_action;
-    if (Util::HasStencil(depth_fmt))
-    {
-      desc.stencilAttachment.texture = framebuffer->GetDepth();
-      desc.stencilAttachment.loadAction = load_action;
-    }
-  }
-  return desc;
+  framebuffer->SetLoadAction(load_action);
+  return framebuffer->PassDesc();
 }
 
 void Metal::StateTracker::BeginClearRenderPass(MTLClearColor color, float depth)
@@ -328,11 +303,9 @@ void Metal::StateTracker::BeginClearRenderPass(MTLClearColor color, float depth)
   MTLRenderPassDescriptor* desc = GetRenderPassDescriptor(framebuffer, MTLLoadActionClear);
   desc.colorAttachments[0].clearColor = color;
   if (framebuffer->GetDepthFormat() != AbstractTextureFormat::Undefined)
-  {
     desc.depthAttachment.clearDepth = depth;
-    if (Util::HasStencil(framebuffer->GetDepthFormat()))
-      desc.stencilAttachment.clearStencil = 0;
-  }
+  for (size_t i = 0; i < framebuffer->NumAdditionalColorTextures(); i++)
+    desc.colorAttachments[i + 1].clearColor = color;
   BeginRenderPass(desc);
 }
 

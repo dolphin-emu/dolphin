@@ -313,6 +313,8 @@ public:
       framebuffer.color_texture_format = cfg.framebuffer_state.color_texture_format.Value();
       framebuffer.depth_texture_format = cfg.framebuffer_state.depth_texture_format.Value();
       framebuffer.samples = cfg.framebuffer_state.samples.Value();
+      framebuffer.additional_color_attachment_count =
+          cfg.framebuffer_state.additional_color_attachment_count.Value();
       blend.colorupdate = cfg.blending_state.colorupdate.Value();
       blend.alphaupdate = cfg.blending_state.alphaupdate.Value();
       if (cfg.blending_state.blendenable)
@@ -426,6 +428,11 @@ public:
       }
       [desc setRasterSampleCount:fs.samples];
       [color0 setPixelFormat:Util::FromAbstract(fs.color_texture_format)];
+      if (u32 cnt = fs.additional_color_attachment_count)
+      {
+        for (u32 i = 0; i < cnt; i++)
+          [[desc colorAttachments] setObject:color0 atIndexedSubscript:i + 1];
+      }
       [desc setDepthAttachmentPixelFormat:Util::FromAbstract(fs.depth_texture_format)];
       if (Util::HasStencil(fs.depth_texture_format))
         [desc setStencilAttachmentPixelFormat:Util::FromAbstract(fs.depth_texture_format)];

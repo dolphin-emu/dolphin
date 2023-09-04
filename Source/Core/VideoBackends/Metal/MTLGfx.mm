@@ -94,12 +94,12 @@ Metal::Gfx::CreateStagingTexture(StagingTextureType type, const TextureConfig& c
 
 std::unique_ptr<AbstractFramebuffer>
 Metal::Gfx::CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
-                              std::vector<AbstractTexture*>)
+                              std::vector<AbstractTexture*> additional_color_attachments)
 {
   AbstractTexture* const either_attachment = color_attachment ? color_attachment : depth_attachment;
   return std::make_unique<Framebuffer>(
-      color_attachment, depth_attachment, either_attachment->GetWidth(),
-      either_attachment->GetHeight(), either_attachment->GetLayers(),
+      color_attachment, depth_attachment, std::move(additional_color_attachments),
+      either_attachment->GetWidth(), either_attachment->GetHeight(), either_attachment->GetLayers(),
       either_attachment->GetSamples());
 }
 
@@ -437,7 +437,7 @@ void Metal::Gfx::BindBackbuffer(const ClearColor& clear_color)
     CheckForSurfaceChange();
     CheckForSurfaceResize();
     m_drawable = MRCRetain([m_layer nextDrawable]);
-    m_bb_texture->SetMTLTexture(MRCRetain([m_drawable texture]));
+    m_backbuffer->UpdateBackbufferTexture([m_drawable texture]);
     SetAndClearFramebuffer(m_backbuffer.get(), clear_color);
   }
 }
@@ -460,7 +460,7 @@ void Metal::Gfx::PresentBackbuffer()
       else
         [g_state_tracker->GetRenderCmdBuf()
             addScheduledHandler:[drawable = std::move(m_drawable)](id) { [drawable present]; }];
-      m_bb_texture->SetMTLTexture(nullptr);
+      m_backbuffer->UpdateBackbufferTexture(nullptr);
       m_drawable = nullptr;
     }
     g_state_tracker->FlushEncoders();
@@ -491,8 +491,8 @@ void Metal::Gfx::SetupSurface()
   TextureConfig cfg(info.width, info.height, 1, 1, 1, info.format,
                     AbstractTextureFlag_RenderTarget);
   m_bb_texture = std::make_unique<Texture>(nullptr, cfg);
-  m_backbuffer = std::make_unique<Framebuffer>(m_bb_texture.get(), nullptr,  //
-                                               info.width, info.height, 1, 1);
+  m_backbuffer = std::make_unique<Framebuffer>(
+      m_bb_texture.get(), nullptr, std::vector<AbstractTexture*>{}, info.width, info.height, 1, 1);
 
   if (g_presenter)
     g_presenter->SetBackbuffer(info);
