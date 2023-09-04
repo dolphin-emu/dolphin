@@ -18,8 +18,7 @@
 
 namespace WC24PatchEngine
 {
-static std::array<u64, 12> s_wc24_channels{
-    // Nintendo Channel
+static constexpr std::array<u64, 15> s_wc24_channels{
     Titles::NINTENDO_CHANNEL_NTSC_U,
     Titles::NINTENDO_CHANNEL_NTSC_J,
     Titles::NINTENDO_CHANNEL_PAL,
@@ -32,6 +31,9 @@ static std::array<u64, 12> s_wc24_channels{
     Titles::EVERYBODY_VOTES_CHANNEL_NTSC_U,
     Titles::EVERYBODY_VOTES_CHANNEL_NTSC_J,
     Titles::EVERYBODY_VOTES_CHANNEL_PAL,
+    Titles::REGION_SELECT_CHANNEL_NTSC_U,
+    Titles::REGION_SELECT_CHANNEL_NTSC_J,
+    Titles::REGION_SELECT_CHANNEL_PAL,
 };
 
 static std::vector<NetworkPatch> s_patches;
