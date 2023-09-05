@@ -106,6 +106,9 @@ struct VideoConfig final
   bool bWidescreenHack = false;
   AspectMode aspect_mode{};
   AspectMode suggested_aspect_mode{};
+  u32 widescreen_heuristic_transition_threshold = 0;
+  float widescreen_heuristic_aspect_ratio_ideal = 0.f;
+  float widescreen_heuristic_aspect_ratio_slop = 0.f;
   bool bCrop = false;  // Aspect ratio controls.
   bool bShaderCache = false;
 
