@@ -305,17 +305,17 @@ u32 AchievementManager::MemoryPeeker(u32 address, u32 num_bytes, void* ud)
   {
   case 1:
     return m_system->GetMMU()
-        .HostTryReadU8(threadguard, address)
+        .HostTryReadU8(threadguard, address, PowerPC::RequestedAddressSpace::Physical)
         .value_or(PowerPC::ReadResult<u8>(false, 0u))
         .value;
   case 2:
     return m_system->GetMMU()
-        .HostTryReadU16(threadguard, address)
+        .HostTryReadU16(threadguard, address, PowerPC::RequestedAddressSpace::Physical)
         .value_or(PowerPC::ReadResult<u16>(false, 0u))
         .value;
   case 4:
     return m_system->GetMMU()
-        .HostTryReadU32(threadguard, address)
+        .HostTryReadU32(threadguard, address, PowerPC::RequestedAddressSpace::Physical)
         .value_or(PowerPC::ReadResult<u32>(false, 0u))
         .value;
   default:
