@@ -26,7 +26,8 @@ struct ShaderProperty
     Type_SamplerArrayShared_Main,
     Type_SamplerArrayShared_Additional,
     Type_Sampler2D,
-    Type_Max = Type_Sampler2D
+    Type_SamplerCube,
+    Type_Max = Type_SamplerCube
   };
   Type m_type;
   std::string m_description;

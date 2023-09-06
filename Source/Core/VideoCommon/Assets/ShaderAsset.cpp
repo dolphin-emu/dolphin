@@ -49,6 +49,10 @@ bool ParseShaderProperties(const VideoCommon::CustomAssetLibrary::AssetID& asset
     {
       property.m_type = ShaderProperty::Type::Type_Sampler2D;
     }
+    else if (type == "samplercube")
+    {
+      property.m_type = ShaderProperty::Type::Type_SamplerCube;
+    }
     else if (type == "samplerarrayshared_main")
     {
       property.m_type = ShaderProperty::Type::Type_SamplerArrayShared_Main;

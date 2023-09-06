@@ -136,6 +136,15 @@ bool TextureData::FromJson(const CustomAssetLibrary::AssetID& asset_id,
   if (type == "texture2d")
   {
     data->m_type = TextureData::Type::Type_Texture2D;
+
+    if (!ParseSampler(asset_id, json, &data->m_sampler))
+    {
+      return false;
+    }
+  }
+  else if (type == "texturecube")
+  {
+    data->m_type = TextureData::Type::Type_TextureCube;
   }
   else
   {
@@ -143,11 +152,6 @@ bool TextureData::FromJson(const CustomAssetLibrary::AssetID& asset_id,
                   "Asset '{}' failed to parse json, texture type '{}' "
                   "an invalid option",
                   asset_id, type);
-    return false;
-  }
-
-  if (!ParseSampler(asset_id, json, &data->m_sampler))
-  {
     return false;
   }
 
