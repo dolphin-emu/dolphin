@@ -118,6 +118,7 @@ public:
 private:
   hid_device* m_device;
   DeckInputReport m_latest_input;
+  int m_gyro_reenable = 0;
 };
 
 class InputBackend final : public ciface::InputBackend
@@ -280,6 +281,24 @@ std::string Device::GetSource() const
 
 void Device::UpdateInput()
 {
+  // As of a certain mid-2023 update to the Steam client,
+  // Steam will disable gyro data if gyro is not mapped in Steam Input.
+  // This disabling will happen every time the Steam overlay is closed.
+  // This command turns gyro data back on periodically.
+  if (++m_gyro_reenable == 250)
+  {
+    m_gyro_reenable = 0;
+    // Using names from Valve's contribution to SDL for the Steam Controller
+    // (and assuming this has not changed for the Deck), this packet decodes as:
+    // 0x00 = report ID
+    // 0x87 = ID_SET_SETTINGS_VALUES
+    // 0x03 = payload length
+    // 0x30 = SETTING_GYRO_MODE
+    // 0x18 0x00 = SETTING_GYRO_MODE_SEND_RAW_ACCEL | SETTING_GYRO_MODE_SEND_RAW_GYRO
+    const unsigned char pkt[] = {0x00, 0x87, 0x03, 0x30, 0x18, 0x00};
+    hid_send_feature_report(m_device, pkt, sizeof(pkt));
+  }
+
   DeckInputReport rpt;
   bool got_anything = false;
   // Read all available input reports (processing only the most recent one).
