@@ -1606,7 +1606,7 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
   }
 
   std::vector<VideoCommon::CachedAsset<VideoCommon::GameTextureAsset>> cached_game_assets;
-  std::vector<std::shared_ptr<VideoCommon::CustomTextureData>> data_for_assets;
+  std::vector<VideoCommon::CustomTextureData*> data_for_assets;
   bool has_arbitrary_mipmaps = false;
   bool skip_texture_dump = false;
   std::shared_ptr<HiresTexture> hires_texture;
@@ -1640,12 +1640,12 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
         auto data = asset->GetData();
         if (data)
         {
-          if (!data->m_slices.empty())
+          if (!data->m_texture.m_slices.empty())
           {
-            if (!data->m_slices[0].m_levels.empty())
+            if (!data->m_texture.m_slices[0].m_levels.empty())
             {
-              height = data->m_slices[0].m_levels[0].height;
-              width = data->m_slices[0].m_levels[0].width;
+              height = data->m_texture.m_slices[0].m_levels[0].height;
+              width = data->m_texture.m_slices[0].m_levels[0].width;
             }
           }
         }
@@ -1667,7 +1667,7 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
     {
       if (cached_asset.m_asset->Validate(texture_info.GetRawWidth(), texture_info.GetRawHeight()))
       {
-        data_for_assets.push_back(std::move(data));
+        data_for_assets.push_back(&data->m_texture);
       }
     }
   }
@@ -1687,8 +1687,7 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
 // expected because each texture is loaded into a texture array
 RcTcacheEntry TextureCacheBase::CreateTextureEntry(
     const TextureCreationInfo& creation_info, const TextureInfo& texture_info,
-    const int safety_color_sample_size,
-    std::vector<std::shared_ptr<VideoCommon::CustomTextureData>> assets_data,
+    const int safety_color_sample_size, std::vector<VideoCommon::CustomTextureData*> assets_data,
     const bool custom_arbitrary_mipmaps, bool skip_texture_dump)
 {
 #ifdef __APPLE__
@@ -1705,7 +1704,7 @@ RcTcacheEntry TextureCacheBase::CreateTextureEntry(
           assets_data.begin(), assets_data.end(), [](const auto& lhs, const auto& rhs) {
             return lhs->m_slices[0].m_levels.size() < rhs->m_slices[0].m_levels.size();
           });
-      return max_element->get()->m_slices[0].m_levels.size();
+      return (*max_element)->m_slices[0].m_levels.size();
     };
     const u32 texLevels = no_mips ? 1 : (u32)calculate_max_levels();
     const auto& first_level = assets_data[0]->m_slices[0].m_levels[0];
