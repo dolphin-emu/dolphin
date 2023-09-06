@@ -28,9 +28,10 @@ static constexpr int VIDEO_ENCODER_LCM = 4;
 
 namespace VideoCommon
 {
-static float AspectToWidescreen(float aspect)
+// Stretches the native/internal analog resolution aspect ratio from ~4:3 to ~16:9
+static float SourceAspectRatioToWidescreen(float source_aspect)
 {
-  return aspect * ((16.0f / 9.0f) / (4.0f / 3.0f));
+  return source_aspect * ((16.0f / 9.0f) / (4.0f / 3.0f));
 }
 
 static std::tuple<int, int> FindClosestIntegerResolution(float width, float height,
@@ -292,15 +293,22 @@ float Presenter::CalculateDrawAspectRatio(bool allow_stretch) const
     return (static_cast<float>(m_backbuffer_width) / static_cast<float>(m_backbuffer_height));
 
   auto& vi = Core::System::GetInstance().GetVideoInterface();
-  const float aspect_ratio = vi.GetAspectRatio();
+  const float source_aspect_ratio = vi.GetAspectRatio();
 
-  if (aspect_mode == AspectMode::AnalogWide ||
+  // This will scale up the source ~4:3 resolution to its equivalent ~16:9 resolution
+  if (aspect_mode == AspectMode::ForceWide ||
       (aspect_mode == AspectMode::Auto && g_widescreen->IsGameWidescreen()))
   {
-    return AspectToWidescreen(aspect_ratio);
+    return SourceAspectRatioToWidescreen(source_aspect_ratio);
+  }
+  // For the "custom" mode, we force the exact target aspect ratio, without
+  // acknowleding the difference between the source aspect ratio and 4:3.
+  else if (aspect_mode == AspectMode::Custom)
+  {
+    return g_ActiveConfig.GetCustomAspectRatio();
   }
 
-  return aspect_ratio;
+  return source_aspect_ratio;
 }
 
 void Presenter::AdjustRectanglesToFitBounds(MathUtil::Rectangle<int>* target_rect,
@@ -415,7 +423,7 @@ void Presenter::SetSuggestedWindowSize(int width, int height)
   Host_RequestRenderWindowSize(out_width, out_height);
 }
 
-// Crop to exactly 16:9 or 4:3 if enabled and not AspectMode::Stretch.
+// Crop to exact forced aspect ratios if enabled and not AspectMode::Stretch.
 std::tuple<float, float> Presenter::ApplyStandardAspectCrop(float width, float height,
                                                             bool allow_stretch) const
 {
@@ -427,13 +435,26 @@ std::tuple<float, float> Presenter::ApplyStandardAspectCrop(float width, float h
   if (!g_ActiveConfig.bCrop || aspect_mode == AspectMode::Stretch)
     return {width, height};
 
-  // Force 4:3 or 16:9 by cropping the image.
+  // Force aspect ratios by cropping the image.
   const float current_aspect = width / height;
-  const float expected_aspect =
-      (aspect_mode == AspectMode::AnalogWide ||
-       (aspect_mode == AspectMode::Auto && g_widescreen->IsGameWidescreen())) ?
-          (16.0f / 9.0f) :
-          (4.0f / 3.0f);
+  float expected_aspect;
+  switch (aspect_mode)
+  {
+  default:
+  case AspectMode::Auto:
+    expected_aspect = g_widescreen->IsGameWidescreen() ? (16.0f / 9.0f) : (4.0f / 3.0f);
+    break;
+  case AspectMode::ForceWide:
+    expected_aspect = 16.0f / 9.0f;
+    break;
+  case AspectMode::ForceStandard:
+    expected_aspect = 4.0f / 3.0f;
+    break;
+  case AspectMode::Custom:
+    expected_aspect = g_ActiveConfig.GetCustomAspectRatio();
+    break;
+  }
+
   if (current_aspect > expected_aspect)
   {
     // keep height, crop width
@@ -458,11 +479,13 @@ void Presenter::UpdateDrawRectangle()
   if (g_ActiveConfig.bWidescreenHack)
   {
     auto& vi = Core::System::GetInstance().GetVideoInterface();
-    float source_aspect = vi.GetAspectRatio();
+    float source_aspect_ratio = vi.GetAspectRatio();
+    // If the game is meant to be in widescreen (or forced to),
+    // scale the source aspect ratio to it.
     if (g_widescreen->IsGameWidescreen())
-      source_aspect = AspectToWidescreen(source_aspect);
+      source_aspect_ratio = SourceAspectRatioToWidescreen(source_aspect_ratio);
 
-    const float adjust = source_aspect / draw_aspect_ratio;
+    const float adjust = source_aspect_ratio / draw_aspect_ratio;
     if (adjust > 1)
     {
       // Vert+

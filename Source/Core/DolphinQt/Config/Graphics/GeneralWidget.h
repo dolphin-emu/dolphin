@@ -9,10 +9,12 @@
 
 class ConfigBool;
 class ConfigChoice;
+class ConfigInteger;
 class ConfigRadioInt;
 class GraphicsWindow;
 class QCheckBox;
 class QComboBox;
+class QLabel;
 class QRadioButton;
 class QGridLayout;
 class ToolTipComboBox;
@@ -41,6 +43,9 @@ private:
   ToolTipComboBox* m_backend_combo;
   ToolTipComboBox* m_adapter_combo;
   ConfigChoice* m_aspect_combo;
+  QLabel* m_custom_aspect_label;
+  ConfigInteger* m_custom_aspect_width;
+  ConfigInteger* m_custom_aspect_height;
   ConfigBool* m_enable_vsync;
   ConfigBool* m_enable_fullscreen;
 

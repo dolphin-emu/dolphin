@@ -400,11 +400,14 @@ void HotkeyScheduler::Run()
         case AspectMode::Stretch:
           OSD::AddMessage("Stretch");
           break;
-        case AspectMode::Analog:
+        case AspectMode::ForceStandard:
           OSD::AddMessage("Force 4:3");
           break;
-        case AspectMode::AnalogWide:
+        case AspectMode::ForceWide:
           OSD::AddMessage("Force 16:9");
+          break;
+        case AspectMode::Custom:
+          OSD::AddMessage("Custom");
           break;
         case AspectMode::Auto:
         default:
