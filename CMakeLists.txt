@@ -53,7 +53,7 @@ if(NOT WIN32 AND NOT APPLE AND NOT HAIKU)
 endif()
 
 if(NOT ANDROID)
-  option(ENABLE_CLI_TOOL "Enable dolphin-tool, a CLI-based utility for functions such as managing disc images" ON)
+  option(ENABLE_CLI_TOOL "Enable dolphin-tool, a CLI-based utility for functions such as managing disc images" OFF)
 endif()
 
 option(USE_SHARED_ENET "Use shared libenet if found rather than Dolphin's soon-to-compatibly-diverge version" OFF)
@@ -69,8 +69,8 @@ option(ENABLE_LLVM "Enables LLVM support, for disassembly" ON)
 option(ENABLE_TESTS "Enables building the unit tests" ON)
 option(ENABLE_VULKAN "Enables vulkan video backend" ON)
 option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence, show the current game on Discord" ON)
-option(USE_MGBA "Enables GBA controllers emulation using libmgba" ON)
-option(ENABLE_AUTOUPDATE "Enables support for automatic updates" ON)
+option(USE_MGBA "Enables GBA controllers emulation using libmgba" OFF)
+option(ENABLE_AUTOUPDATE "Enables support for automatic updates" OFF)
 option(STEAM "Creates a build for Steam" OFF)
 
 # Maintainers: if you consider blanket disabling this for your users, please
