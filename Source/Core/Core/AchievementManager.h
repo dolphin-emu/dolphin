@@ -94,6 +94,7 @@ public:
   rc_api_fetch_game_data_response_t* GetGameData();
   UnlockStatus GetUnlockStatus(AchievementId achievement_id) const;
   void GetAchievementProgress(AchievementId achievement_id, u32* value, u32* target);
+  RichPresence GetRichPresence();
 
   void CloseGame();
   void Logout();
@@ -111,7 +112,7 @@ private:
   ResponseType FetchUnlockData(bool hardcore);
 
   void ActivateDeactivateAchievement(AchievementId id, bool enabled, bool unofficial, bool encore);
-  RichPresence GenerateRichPresence();
+  void GenerateRichPresence();
 
   ResponseType AwardAchievement(AchievementId achievement_id);
   ResponseType SubmitLeaderboard(AchievementId leaderboard_id, int value);
@@ -137,6 +138,7 @@ private:
   u32 m_game_id = 0;
   rc_api_fetch_game_data_response_t m_game_data{};
   bool m_is_game_loaded = false;
+  RichPresence m_rich_presence;
   time_t m_last_ping_time = 0;
 
   std::unordered_map<AchievementId, UnlockStatus> m_unlock_map;

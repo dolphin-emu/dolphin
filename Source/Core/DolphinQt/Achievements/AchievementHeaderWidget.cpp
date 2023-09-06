@@ -20,6 +20,7 @@
 #include <rcheevos/include/rc_runtime.h>
 
 #include "Core/AchievementManager.h"
+#include "Core/Config/AchievementSettings.h"
 #include "Core/Core.h"
 
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
@@ -101,11 +102,9 @@ void AchievementHeaderWidget::UpdateData()
   m_game_progress_soft->setValue(point_spread.hard_unlocks);
   m_game_progress_soft->setRange(0, point_spread.total_count);
   m_game_progress_soft->setValue(point_spread.hard_unlocks + point_spread.soft_unlocks);
-  // TODO: RP needs a minor refactor to work here, will be a future PR
-  // m_rich_presence->setText(QString::fromStdString(AchievementManager::GetInstance()->GenerateRichPresence()));
-  // m_rich_presence->setVisible(Config::Get(Config::RA_RICH_PRESENCE_ENABLED));
-  m_rich_presence->setText(QString{});
-  m_rich_presence->setVisible(false);
+  m_rich_presence->setText(
+      QString::fromUtf8(AchievementManager::GetInstance()->GetRichPresence().data()));
+  m_rich_presence->setVisible(Config::Get(Config::RA_RICH_PRESENCE_ENABLED));
 
   m_user_box->setVisible(false);
   m_game_box->setVisible(true);
