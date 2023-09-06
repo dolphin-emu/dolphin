@@ -59,7 +59,7 @@ void NWC24Dl::WriteDlList() const
     ERROR_LOG_FMT(IOS_WC24, "Failed to open or write WC24 DL list file");
 }
 
-bool NWC24Dl::DoesEntryExist(u16 entry_index)
+bool NWC24Dl::DoesEntryExist(u16 entry_index) const
 {
   return m_data.entries[entry_index].low_title_id != 0;
 }
@@ -123,6 +123,76 @@ bool NWC24Dl::IsEncrypted(u16 entry_index) const
 bool NWC24Dl::IsRSASigned(u16 entry_index) const
 {
   return !Common::ExtractBit(Common::swap32(m_data.entries[entry_index].flags), 2);
+}
+
+bool NWC24Dl::SkipSchedulerDownload(u16 entry_index) const
+{
+  // Some entries can be set to not be downloaded by the scheduler.
+  return !!Common::ExtractBit(Common::swap32(m_data.entries[entry_index].flags), 5);
+}
+
+bool NWC24Dl::HasSubtask(u16 entry_index) const
+{
+  switch (m_data.entries[entry_index].subtask_type)
+  {
+  case 1:
+  case 2:
+  case 3:
+  case 4:
+    return true;
+  default:
+    return false;
+  }
+}
+
+bool NWC24Dl::IsSubtaskDownloadDisabled(u16 entry_index) const
+{
+  return !!Common::ExtractBit(Common::swap16(m_data.entries[entry_index].subtask_flags), 9);
+}
+
+bool NWC24Dl::IsValidSubtask(u16 entry_index, u8 subtask_id) const
+{
+  return !!Common::ExtractBit(m_data.entries[entry_index].subtask_bitmask, subtask_id);
+}
+
+u64 NWC24Dl::GetNextDownloadTime(u16 record_index) const
+{
+  // Timestamps are stored as a UNIX timestamp but in minutes. We want seconds.
+  return Common::swap32(m_data.records[record_index].next_dl_timestamp) * SECONDS_PER_MINUTE;
+}
+
+u64 NWC24Dl::GetRetryTime(u16 entry_index) const
+{
+  const u64 retry_time = Common::swap16(m_data.entries[entry_index].retry_frequency);
+  if (retry_time == 0)
+  {
+    return MINUTES_PER_DAY * SECONDS_PER_MINUTE;
+  }
+  return retry_time * SECONDS_PER_MINUTE;
+}
+
+u64 NWC24Dl::GetDownloadMargin(u16 entry_index) const
+{
+  return Common::swap16(m_data.entries[entry_index].dl_margin) * SECONDS_PER_MINUTE;
+}
+
+void NWC24Dl::SetNextDownloadTime(u16 record_index, u64 value, std::optional<u8> subtask_id)
+{
+  if (subtask_id)
+  {
+    m_data.entries[record_index].subtask_timestamps[*subtask_id] =
+        Common::swap32(static_cast<u32>(value / SECONDS_PER_MINUTE));
+  }
+
+  m_data.records[record_index].next_dl_timestamp =
+      Common::swap32(static_cast<u32>(value / SECONDS_PER_MINUTE));
+}
+
+u64 NWC24Dl::GetLastSubtaskDownloadTime(u16 entry_index, u8 subtask_id) const
+{
+  return Common::swap32(m_data.entries[entry_index].subtask_timestamps[subtask_id]) *
+             SECONDS_PER_MINUTE +
+         Common::swap32(m_data.entries[entry_index].server_dl_interval) * SECONDS_PER_MINUTE;
 }
 
 u32 NWC24Dl::Magic() const
