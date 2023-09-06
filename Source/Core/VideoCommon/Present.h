@@ -52,7 +52,7 @@ public:
   float GetBackbufferScale() const { return m_backbuffer_scale; }
   u32 AutoIntegralScale() const;
   AbstractTextureFormat GetBackbufferFormat() const { return m_backbuffer_format; }
-  void SetWindowSize(int width, int height);
+  void SetSuggestedWindowSize(int width, int height);
   void SetBackbuffer(int backbuffer_width, int backbuffer_height);
   void SetBackbuffer(SurfaceInfo info);
 
@@ -138,7 +138,7 @@ private:
   // Tracking of XFB textures so we don't render duplicate frames.
   u64 m_last_xfb_id = std::numeric_limits<u64>::max();
 
-  // These will be set on the first call to SetWindowSize.
+  // These will be set on the first call to SetSuggestedWindowSize.
   int m_last_window_request_width = 0;
   int m_last_window_request_height = 0;
 

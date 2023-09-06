@@ -396,7 +396,7 @@ u32 Presenter::AutoIntegralScale() const
   return std::max((width - 1) / EFB_WIDTH + 1, (height - 1) / EFB_HEIGHT + 1);
 }
 
-void Presenter::SetWindowSize(int width, int height)
+void Presenter::SetSuggestedWindowSize(int width, int height)
 {
   // While trying to guess the best window resolution, we can't allow it to use the
   // "AspectMode::Stretch" setting because that would self influence the output result,
@@ -652,7 +652,7 @@ void Presenter::Present()
 
       // Update the window size based on the frame that was just rendered.
       // Due to depending on guest state, we need to call this every frame.
-      SetWindowSize(m_xfb_rect.GetWidth(), m_xfb_rect.GetHeight());
+      SetSuggestedWindowSize(m_xfb_rect.GetWidth(), m_xfb_rect.GetHeight());
     }
     return;
   }
@@ -694,7 +694,7 @@ void Presenter::Present()
   {
     // Update the window size based on the frame that was just rendered.
     // Due to depending on guest state, we need to call this every frame.
-    SetWindowSize(m_xfb_rect.GetWidth(), m_xfb_rect.GetHeight());
+    SetSuggestedWindowSize(m_xfb_rect.GetWidth(), m_xfb_rect.GetHeight());
   }
 
   if (m_onscreen_ui)
