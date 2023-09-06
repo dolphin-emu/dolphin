@@ -13,6 +13,7 @@
 #include "Present.h"
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/FrameDumper.h"
+#include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/OnScreenUI.h"
 #include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/Statistics.h"
@@ -202,20 +203,46 @@ void Presenter::ProcessFrameDumping(u64 ticks) const
 
 void Presenter::SetBackbuffer(int backbuffer_width, int backbuffer_height)
 {
+  const bool is_first = m_backbuffer_width == 0 && m_backbuffer_height == 0;
+  const bool size_changed =
+      (m_backbuffer_width != backbuffer_width || m_backbuffer_height != backbuffer_height);
   m_backbuffer_width = backbuffer_width;
   m_backbuffer_height = backbuffer_height;
   UpdateDrawRectangle();
+
+  OnBackbufferSet(size_changed, is_first);
 }
 
 void Presenter::SetBackbuffer(SurfaceInfo info)
 {
+  const bool is_first = m_backbuffer_width == 0 && m_backbuffer_height == 0;
+  const bool size_changed =
+      (m_backbuffer_width != (int)info.width || m_backbuffer_height != (int)info.height);
   m_backbuffer_width = info.width;
   m_backbuffer_height = info.height;
   m_backbuffer_scale = info.scale;
   m_backbuffer_format = info.format;
   if (m_onscreen_ui)
     m_onscreen_ui->SetScale(info.scale);
+
+  OnBackbufferSet(size_changed, is_first);
+}
+
+void Presenter::OnBackbufferSet(bool size_changed, bool is_first_set)
+{
   UpdateDrawRectangle();
+
+  // Automatically update the resolution scale if the window size changed,
+  // or if the game XFB resolution changed.
+  if (size_changed && !is_first_set && g_ActiveConfig.iEFBScale == EFB_SCALE_AUTO_INTEGRAL &&
+      m_auto_resolution_scale != AutoIntegralScale())
+  {
+    g_framebuffer_manager->RecreateEFBFramebuffer();
+  }
+  if (size_changed || is_first_set)
+  {
+    m_auto_resolution_scale = AutoIntegralScale();
+  }
 }
 
 void Presenter::ConfigChanged(u32 changed_bits)

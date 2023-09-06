@@ -55,6 +55,7 @@ public:
   void SetSuggestedWindowSize(int width, int height);
   void SetBackbuffer(int backbuffer_width, int backbuffer_height);
   void SetBackbuffer(SurfaceInfo info);
+  void OnBackbufferSet(bool size_changed, bool is_first_set);
 
   void UpdateDrawRectangle();
 
@@ -104,6 +105,8 @@ private:
 
   void ProcessFrameDumping(u64 ticks) const;
 
+  void OnBackBufferSizeChanged();
+
   std::tuple<int, int> CalculateOutputDimensions(int width, int height,
                                                  bool allow_stretch = true) const;
   std::tuple<float, float> ApplyStandardAspectCrop(float width, float height,
@@ -131,6 +134,8 @@ private:
   // Width and height correspond to the final output resolution.
   // Offsets imply black borders (if the window aspect ratio doesn't match the game's one).
   MathUtil::Rectangle<int> m_target_rectangle = {};
+
+  u32 m_auto_resolution_scale = 1;
 
   RcTcacheEntry m_xfb_entry;
   MathUtil::Rectangle<int> m_xfb_rect;
