@@ -307,7 +307,7 @@ const Info<bool> MAIN_DUMP_AUDIO_SILENT{{System::Main, "DSP", "DumpAudioSilent"}
 const Info<bool> MAIN_DUMP_UCODE{{System::Main, "DSP", "DumpUCode"}, false};
 const Info<std::string> MAIN_AUDIO_BACKEND{{System::Main, "DSP", "Backend"},
                                            AudioCommon::GetDefaultSoundBackend()};
-const Info<int> MAIN_AUDIO_VOLUME{{System::Main, "DSP", "Volume"}, 100};
+const Info<int> MAIN_AUDIO_VOLUME{{System::Main, "DSP", "Volume"}, 10};
 const Info<bool> MAIN_AUDIO_MUTED{{System::Main, "DSP", "Muted"}, false};
 #ifdef _WIN32
 const Info<std::string> MAIN_WASAPI_DEVICE{{System::Main, "DSP", "WASAPIDevice"}, "Default"};
