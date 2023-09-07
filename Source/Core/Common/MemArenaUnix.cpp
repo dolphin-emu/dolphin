@@ -121,8 +121,11 @@ void* LazyMemoryRegion::Create(size_t size)
 {
   ASSERT(!m_memory);
 
+  if (size == 0)
+    return nullptr;
+
   void* memory = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-  if (!memory)
+  if (memory == MAP_FAILED)
   {
     NOTICE_LOG_FMT(MEMMAP, "Memory allocation of {} bytes failed.", size);
     return nullptr;
@@ -138,7 +141,9 @@ void LazyMemoryRegion::Clear()
 {
   ASSERT(m_memory);
 
-  mmap(m_memory, m_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
+  void* new_memory = mmap(m_memory, m_size, PROT_READ | PROT_WRITE,
+                          MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
+  ASSERT(new_memory == m_memory);
 }
 
 void LazyMemoryRegion::Release()

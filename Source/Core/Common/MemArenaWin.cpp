@@ -445,6 +445,9 @@ void* LazyMemoryRegion::Create(size_t size)
 {
   ASSERT(!m_memory);
 
+  if (size == 0)
+    return nullptr;
+
   void* memory = VirtualAlloc(nullptr, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
   if (!memory)
   {
