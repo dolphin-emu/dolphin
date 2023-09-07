@@ -42,7 +42,11 @@ void JitBaseBlockCache::Init()
 {
   Common::JitRegister::Init(Config::Get(Config::MAIN_PERF_MAP_DIR));
 
+#ifdef _ARCH_64
   m_fast_block_map = reinterpret_cast<JitBlock**>(m_block_map_arena.Create(FAST_BLOCK_MAP_SIZE));
+#else
+  m_fast_block_map = nullptr;
+#endif
   if (m_fast_block_map)
     m_fast_block_map_ptr = m_fast_block_map;
   else
