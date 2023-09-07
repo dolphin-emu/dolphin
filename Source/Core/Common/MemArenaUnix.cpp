@@ -121,6 +121,9 @@ void* LazyMemoryRegion::Create(size_t size)
 {
   ASSERT(!m_memory);
 
+  if (size == 0)
+    return nullptr;
+
   void* memory = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
   if (memory == MAP_FAILED)
   {
