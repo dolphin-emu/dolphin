@@ -553,8 +553,8 @@ void EnhancementsWidget::AddDescriptions()
       "causes slowdowns or graphical issues.<br><br><dolphin_emphasis>If unsure, leave "
       "this unchecked.</dolphin_emphasis>");
   static const char TR_WIDESCREEN_HACK_DESCRIPTION[] = QT_TR_NOOP(
-      "Forces the game to output graphics for any aspect ratio. Use with \"Aspect Ratio\" set to "
-      "\"Force 16:9\" to force 4:3-only games to run at 16:9.<br><br>Rarely produces good "
+      "Forces the game to output graphics for any aspect ratio. (e.g.) Use with \"Aspect Ratio\" "
+      "set to \"Force 16:9\" to force 4:3-only games to run at 16:9.<br><br>Rarely produces good "
       "results and "
       "often partially breaks graphics and game UIs. Unnecessary (and detrimental) if using any "
       "AR/Gecko-code widescreen patches.<br><br><dolphin_emphasis>If unsure, leave "

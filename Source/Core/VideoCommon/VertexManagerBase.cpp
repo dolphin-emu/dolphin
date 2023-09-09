@@ -90,8 +90,9 @@ static bool IsAnamorphicProjection(const Projection::Raw& projection, const View
                                    const VideoConfig& config)
 {
   // If ratio between our projection and viewport aspect ratios is similar to 16:9 / 4:3
-  // we have an anamorphic projection. This value can be overridden
-  // by a GameINI.
+  // we have an anamorphic projection. This value can be overridden by a GameINI.
+  // Game cheats that change the aspect ratio to natively unsupported ones
+  // won't be automatically recognized here.
 
   return std::abs(CalculateProjectionViewportRatio(projection, viewport) -
                   config.widescreen_heuristic_widescreen_ratio) <

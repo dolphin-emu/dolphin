@@ -53,6 +53,7 @@ void WidescreenManager::Update()
 }
 
 // Heuristic to detect if a GameCube game is in 16:9 anamorphic widescreen mode.
+// Cheats that change the game aspect ratio to natively unsupported ones won't be recognized here.
 void WidescreenManager::UpdateWidescreenHeuristic()
 {
   const auto flush_statistics = g_vertex_manager->ResetFlushAspectRatioCount();
