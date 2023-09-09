@@ -477,7 +477,7 @@ float VideoInterfaceManager::GetAspectRatio() const
   // signal (which would be 4:3)
 
   // This function only deals with standard aspect ratios. For widescreen aspect ratios,
-  // multiply the result by 1.33333..
+  // multiply the result by 1.33333... (the ratio between 16:9 and 4:3)
 
   // 1. Get our active area in BT.601 samples (more or less pixels)
   int active_lines = m_vertical_timing_register.ACV;

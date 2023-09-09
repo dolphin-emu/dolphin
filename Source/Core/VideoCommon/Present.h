@@ -46,7 +46,7 @@ public:
 
   void ConfigChanged(u32 changed_bits);
 
-  // Display resolution
+  // Window resolution (display resolution if fullscreen)
   int GetBackbufferWidth() const { return m_backbuffer_width; }
   int GetBackbufferHeight() const { return m_backbuffer_height; }
   float GetBackbufferScale() const { return m_backbuffer_scale; }
@@ -58,6 +58,7 @@ public:
 
   void UpdateDrawRectangle();
 
+  // Returns the target aspect ratio the XFB output should be drawn with.
   float CalculateDrawAspectRatio(bool allow_stretch = true) const;
 
   // Crops the target rectangle to the framebuffer dimensions, reducing the size of the source
@@ -126,6 +127,9 @@ private:
   Common::Flag m_surface_changed;
   Common::Flag m_surface_resized;
 
+  // The presentation rectangle.
+  // Width and height correspond to the final output resolution.
+  // Offsets imply black borders (if the window aspect ratio doesn't match the game's one).
   MathUtil::Rectangle<int> m_target_rectangle = {};
 
   RcTcacheEntry m_xfb_entry;

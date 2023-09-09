@@ -561,12 +561,11 @@ void EnhancementsWidget::AddDescriptions()
       "causes slowdowns or graphical issues.<br><br><dolphin_emphasis>If unsure, leave "
       "this unchecked.</dolphin_emphasis>");
   static const char TR_WIDESCREEN_HACK_DESCRIPTION[] = QT_TR_NOOP(
-      "Forces the game to output graphics for any aspect ratio. Use with \"Aspect Ratio\" set to "
-      "\"Force 16:9\" to force 4:3-only games to run at 16:9.<br><br>Rarely produces good "
-      "results and "
-      "often partially breaks graphics and game UIs. Unnecessary (and detrimental) if using any "
-      "AR/Gecko-code widescreen patches.<br><br><dolphin_emphasis>If unsure, leave "
-      "this unchecked.</dolphin_emphasis>");
+      "Forces the game to output graphics at any aspect ratio by expanding the view frustum "
+      "without stretching the image.<br>This is a hack, and its results will vary widely game "
+      "to game (it often causes the UI to stretch).<br>"
+      "Game-specific AR/Gecko-code aspect ratio patches are preferable over this if available."
+      "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_REMOVE_FOG_DESCRIPTION[] =
       QT_TR_NOOP("Makes distant objects more visible by removing fog, thus increasing the overall "
                  "detail.<br><br>Disabling fog will break some games which rely on proper fog "
