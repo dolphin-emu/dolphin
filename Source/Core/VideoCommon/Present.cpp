@@ -4,6 +4,7 @@
 #include "VideoCommon/Present.h"
 
 #include "Common/ChunkFile.h"
+#include "Core/Config/GraphicsSettings.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/Host.h"
 #include "Core/System.h"
@@ -417,7 +418,9 @@ u32 Presenter::AutoIntegralScale() const
       source_width > 0 ? ((target_width + (source_width - 1)) / source_width) : 1;
   const u32 height_scale =
       source_height > 0 ? ((target_height + (source_height - 1)) / source_height) : 1;
-  return std::max(width_scale, height_scale);
+  // Limit to the max to avoid creating textures larger than their max supported resolution.
+  return std::min(std::max(width_scale, height_scale),
+                  static_cast<u32>(Config::Get(Config::GFX_MAX_EFB_SCALE)));
 }
 
 void Presenter::SetSuggestedWindowSize(int width, int height)
