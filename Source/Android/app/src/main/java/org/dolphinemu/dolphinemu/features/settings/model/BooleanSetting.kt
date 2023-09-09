@@ -902,7 +902,6 @@ enum class BooleanSetting(
             MAIN_OVERRIDE_REGION_SETTINGS,
             MAIN_MMU,
             MAIN_PAUSE_ON_PANIC,
-            MAIN_ACCURATE_CPU_CACHE,
             MAIN_RAM_OVERRIDE_ENABLE,
             MAIN_CUSTOM_RTC_ENABLE,
             MAIN_DSP_JIT,
