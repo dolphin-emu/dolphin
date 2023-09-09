@@ -120,7 +120,6 @@ void Statistics::Display() const
   ImGui::End();
 }
 
-// Is this really needed?
 void Statistics::DisplayProj() const
 {
   if (!ImGui::Begin("Projection Statistics", nullptr, ImGuiWindowFlags_NoNavInputs))
