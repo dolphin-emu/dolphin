@@ -207,10 +207,16 @@ void JitArm64::GenerateAsm()
   // We can safely assume that downcount >= 1
   B(dispatcher_no_check);
 
+  if (enable_debugging)
+  {
+    SetJumpTarget(debug_exit);
+    static_assert(PPCSTATE_OFF(pc) <= 252);
+    static_assert(PPCSTATE_OFF(pc) + 4 == PPCSTATE_OFF(npc));
+    STP(IndexType::Signed, DISPATCHER_PC, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
+  }
+
   dispatcher_exit = GetCodePtr();
   SetJumpTarget(exit);
-  if (enable_debugging)
-    SetJumpTarget(debug_exit);
 
   // Reset the stack pointer, since the BLR optimization may have pushed things onto the stack
   // without popping them.
