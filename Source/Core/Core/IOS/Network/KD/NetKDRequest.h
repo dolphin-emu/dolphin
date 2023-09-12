@@ -85,6 +85,8 @@ private:
   void LogError(ErrorType error_type, s32 error_code);
   void SchedulerTimer();
   void SchedulerWorker(SchedulerEvent event);
+  NWC24::ErrorCode DetermineDownloadTask(u16* entry_index, std::optional<u8>* subtask_id) const;
+  NWC24::ErrorCode DetermineSubtask(u16 entry_index, std::optional<u8>* subtask_id) const;
 
   static std::string GetValueFromCGIResponse(const std::string& response, const std::string& key);
   static constexpr std::array<u8, 20> MAIL_CHECK_KEY = {0xce, 0x4c, 0xf2, 0x9a, 0x3d, 0x6b, 0xe1,

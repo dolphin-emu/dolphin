@@ -23,6 +23,7 @@
 #include "Core/CommonTitles.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/FS/FileSystem.h"
+#include "Core/IOS/Network/KD/NetKDTime.h"
 #include "Core/IOS/Network/KD/VFF/VFFUtil.h"
 #include "Core/IOS/Network/Socket.h"
 #include "Core/IOS/Uids.h"
@@ -239,8 +240,20 @@ void NetKDRequestDevice::SchedulerWorker(const SchedulerEvent event)
 {
   if (event == SchedulerEvent::Download)
   {
-    // TODO: Implement downloader part of scheduler
-    return;
+    u16 entry_index{};
+    std::optional<u8> subtask_id{};
+    NWC24::ErrorCode code = DetermineDownloadTask(&entry_index, &subtask_id);
+    if (code != NWC24::WC24_OK)
+    {
+      LogError(ErrorType::KD_Download, code);
+      return;
+    }
+
+    code = KDDownload(entry_index, subtask_id);
+    if (code != NWC24::WC24_OK)
+    {
+      LogError(ErrorType::KD_Download, code);
+    }
   }
   else
   {
@@ -400,9 +413,109 @@ NWC24::ErrorCode NetKDRequestDevice::KDCheckMail(u32* mail_flag, u32* interval)
   return NWC24::WC24_OK;
 }
 
+NWC24::ErrorCode NetKDRequestDevice::DetermineDownloadTask(u16* entry_index,
+                                                           std::optional<u8>* subtask_id) const
+{
+  // As the scheduler does not tell us which entry to download, we must determine that.
+  // A correct entry is one that hasn't been downloaded the longest compared to other entries.
+  // We first need current UTC.
+  const auto time_device =
+      std::static_pointer_cast<NetKDTimeDevice>(GetIOS()->GetDeviceByName("/dev/net/kd/time"));
+  const u64 current_utc = time_device->GetAdjustedUTC();
+  u64 lowest_timestamp = std::numeric_limits<u64>::max();
+
+  for (u16 i = 0; i < static_cast<u16>(NWC24::NWC24Dl::MAX_ENTRIES); i++)
+  {
+    if (!m_dl_list.DoesEntryExist(i))
+      continue;
+
+    if (m_dl_list.SkipSchedulerDownload(i))
+      continue;
+
+    const u64 next_dl_time = m_dl_list.GetNextDownloadTime(i);
+
+    // First determine if UTC is greater than the next download time.
+    if (current_utc < next_dl_time)
+      continue;
+
+    // If this task's next download time is less than the lowest_timestamp, this is the task we
+    // want. However, we must determine if this has a subtask and wants to be downloaded.
+    if (next_dl_time < lowest_timestamp)
+    {
+      if (m_dl_list.HasSubtask(i))
+      {
+        NWC24::ErrorCode code = DetermineSubtask(i, subtask_id);
+        if (code != NWC24::WC24_OK)
+        {
+          // No valid subtask found or downloading is disabled.
+          continue;
+        }
+      }
+
+      lowest_timestamp = next_dl_time;
+      *entry_index = i;
+    }
+  }
+
+  // Determine if we actually found an entry to download.
+  if (lowest_timestamp == std::numeric_limits<u64>::max())
+    return NWC24::WC24_ERR_NOT_FOUND;
+
+  return NWC24::WC24_OK;
+}
+
+NWC24::ErrorCode NetKDRequestDevice::DetermineSubtask(u16 entry_index,
+                                                      std::optional<u8>* subtask_id) const
+{
+  // Before we do anything, determine if this task wants to be downloaded
+  if (m_dl_list.IsSubtaskDownloadDisabled(entry_index))
+    return NWC24::WC24_ERR_DISABLED;
+
+  const auto time_device =
+      std::static_pointer_cast<NetKDTimeDevice>(GetIOS()->GetDeviceByName("/dev/net/kd/time"));
+  const u64 current_utc = time_device->GetAdjustedUTC();
+  for (u8 i = 0; i < 32; i++)
+  {
+    if (!m_dl_list.IsValidSubtask(entry_index, i))
+      continue;
+
+    // Unlike DetermineDownloadTask, DetermineSubtask gets the first download time lower than UTC.
+    const u64 last_download_time = m_dl_list.GetLastSubtaskDownloadTime(entry_index, i);
+    if (last_download_time < current_utc)
+    {
+      *subtask_id = i;
+      return NWC24::WC24_OK;
+    }
+  }
+
+  return NWC24::WC24_ERR_INVALID_VALUE;
+}
+
 NWC24::ErrorCode NetKDRequestDevice::KDDownload(const u16 entry_index,
                                                 const std::optional<u8> subtask_id)
 {
+  bool success = false;
+  Common::ScopeGuard state_guard([&] {
+    const auto time_device =
+        std::static_pointer_cast<NetKDTimeDevice>(GetIOS()->GetDeviceByName("/dev/net/kd/time"));
+    const u64 current_utc = time_device->GetAdjustedUTC();
+    if (success)
+    {
+      // Set the next download time to the dl_margin
+      m_dl_list.SetNextDownloadTime(
+          entry_index, current_utc + m_dl_list.GetDownloadMargin(entry_index), subtask_id);
+    }
+    else
+    {
+      // Else set it to the retry margin
+      m_dl_list.SetNextDownloadTime(entry_index, current_utc + m_dl_list.GetRetryTime(entry_index),
+                                    subtask_id);
+    }
+
+    // Finally flush
+    m_dl_list.WriteDlList();
+  });
+
   std::vector<u8> file_data;
 
   // Content metadata
@@ -492,8 +605,12 @@ NWC24::ErrorCode NetKDRequestDevice::KDDownload(const u16 entry_index,
                                                     m_ios.GetFS(), file_data);
 
   if (reply != NWC24::WC24_OK)
+  {
     LogError(ErrorType::KD_Download, reply);
+    return reply;
+  }
 
+  success = true;
   return reply;
 }
 
