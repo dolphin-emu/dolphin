@@ -28,7 +28,8 @@ struct TextureData
   {
     Type_Undefined,
     Type_Texture2D,
-    Type_Max = Type_Texture2D
+    Type_TextureCube,
+    Type_Max = Type_TextureCube
   };
   Type m_type;
   CustomTextureData m_data;
