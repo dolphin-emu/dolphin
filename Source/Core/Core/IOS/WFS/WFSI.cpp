@@ -351,7 +351,7 @@ std::optional<IPCReply> WFSIDevice::IOCtl(const IOCtlRequest& request)
     INFO_LOG_FMT(IOS_WFS, "IOCTL_WFSI_CHANGE_TITLE: {} (path_len: {:#x})", homedir_path,
                  homedir_path_len);
 
-    return_error_code = -3;
+    return_error_code = IPC_EINTR;
     if (homedir_path_len > 0x1FD)
       break;
     auto device = GetEmulationKernel().GetDeviceByName("/dev/usb/wfssrv");
