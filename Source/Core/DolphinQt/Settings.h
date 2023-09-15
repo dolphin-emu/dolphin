@@ -53,15 +53,27 @@ public:
   // UI
   void SetThemeName(const QString& theme_name);
   void InitDefaultPalette();
-  void UpdateSystemDark();
-  void SetSystemDark(bool dark);
-  bool IsSystemDark();
-  bool IsThemeDark();
-  void SetCurrentUserStyle(const QString& stylesheet_name);
-  QString GetCurrentUserStyle() const;
 
-  void SetUserStylesEnabled(bool enabled);
-  bool AreUserStylesEnabled() const;
+  void UpdateSystemDark();
+  bool IsSystemDark();
+  void SetSystemDark(bool dark);
+  bool IsThemeDark();
+
+  enum StyleType : uint8_t
+  {  // Move somewhere more appropriate? Dunno
+    System = 0,
+    Light,
+    Dark,
+    User
+  };
+
+  StyleType GetStyleType();
+  void SetStyleType(StyleType type);
+
+  QString GetUserStyle() const;
+  void SetUserStyle(const QString& name);
+
+  void UpdateStyle();
 
   void GetToolTipStyle(QColor& window_color, QColor& text_color, QColor& emphasis_text_color,
                        QColor& border_color, const QPalette& palette,
