@@ -133,13 +133,14 @@ void InterfacePane::CreateUI()
 
   // User Style Combobox
   m_combobox_userstyle = new QComboBox;
+  m_label_userstyle = new QLabel(tr("User Style:"));
   auto userstyle_search_results = Common::DoFileSearch({File::GetUserPath(D_STYLES_IDX)});
   for (const std::string& path : userstyle_search_results)
   {
     const QFileInfo file_info(QString::fromStdString(path));
     m_combobox_userstyle->addItem(file_info.completeBaseName(), file_info.fileName());
   }
-  combobox_layout->addRow(tr("User Style:"), m_combobox_userstyle);
+  combobox_layout->addRow(m_label_userstyle, m_combobox_userstyle);
 
   // Checkboxes
   m_checkbox_use_builtin_title_database = new QCheckBox(tr("Use Built-In Database of Game Names"));
@@ -261,7 +262,11 @@ void InterfacePane::LoadConfig()
 
   SignalBlocking(m_combobox_style)->setCurrentIndex(static_cast<int>(Settings::Instance().GetStyleType()));
   SignalBlocking(m_combobox_userstyle)->setCurrentText(Settings::Instance().GetUserStyle());
-  m_combobox_userstyle->setEnabled(Settings::Instance().GetStyleType() == Settings::StyleType::User);
+
+  bool combobox_userstyle_visible =
+      Settings::Instance().GetStyleType() == Settings::StyleType::User;
+  m_label_userstyle->setVisible(combobox_userstyle_visible);
+  m_combobox_userstyle->setVisible(combobox_userstyle_visible);
 
   // Render Window Options
   SignalBlocking(m_checkbox_top_window)
@@ -297,7 +302,10 @@ void InterfacePane::OnSaveConfig()
   Settings::Instance().SetUserStyle(m_combobox_userstyle->currentData().toString());
   Settings::Instance().UpdateStyle();
 
-  m_combobox_userstyle->setEnabled(Settings::Instance().GetStyleType() == Settings::StyleType::User);
+  bool combobox_userstyle_visible =
+      Settings::Instance().GetStyleType() == Settings::StyleType::User;
+  m_label_userstyle->setVisible(combobox_userstyle_visible);
+  m_combobox_userstyle->setVisible(combobox_userstyle_visible);
 
   // Render Window Options
   Settings::Instance().SetKeepWindowOnTop(m_checkbox_top_window->isChecked());
