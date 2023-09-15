@@ -76,6 +76,7 @@
 #include "Core/Metadata.h"
 #include <Core/ConfigLoaders/GameConfigLoader.h>
 #include <Core/GeckoCodeConfig.h>
+#include "CitrusUser.h"
 
 namespace NetPlay
 {
@@ -132,6 +133,17 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
     : m_dialog(dialog), m_player_name(name)
 {
   ClearBuffers();
+
+  CitrusUser ourUser;
+  auto logInResponse = ourUser.AttemptLogin(); 
+  if (logInResponse != CitrusRequest::NoError)
+  {
+    // more detailed error should be filled in via a map
+    m_dialog->OnLoginError(CitrusRequest::loginErrorMap.at(logInResponse));
+    return;
+  }
+
+  INFO_LOG_FMT(NETPLAY, "Authenticated Citrus User Id is {}", "ourUser");
 
   if (!traversal_config.use_traversal)
   {
@@ -294,6 +306,7 @@ bool NetPlayClient::Connect()
     player.name = m_player_name;
     player.pid = m_pid;
     player.revision = Common::GetNetplayDolphinVer();
+    player.discordId = m_player_discordId;
 
     // add self to player list
     m_players[m_pid] = player;
@@ -507,8 +520,9 @@ void NetPlayClient::OnPlayerJoin(sf::Packet& packet)
   packet >> player.pid;
   packet >> player.name;
   packet >> player.revision;
+  packet >> player.discordId;
 
-  INFO_LOG_FMT(NETPLAY, "Player {} ({}) using {} joined", player.name, player.pid, player.revision);
+  INFO_LOG_FMT(NETPLAY, "Player {} ({}) with a discord user id of {} using {} joined", player.name, player.pid, player.discordId, player.revision);
 
   {
     std::lock_guard lkp(m_crit.players);
@@ -838,6 +852,7 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
     std::lock_guard lkg(m_crit.game);
 
     INFO_LOG_FMT(NETPLAY, "Start of game {}", m_selected_game.game_id);
+    INFO_LOG_FMT(NETPLAY, "Current player discord ID is {}", m_player_discordId);
 
     packet >> m_current_game;
     packet >> m_net_settings.m_CPUthread;

@@ -45,7 +45,8 @@ public:
   Response Post(const std::string& url, const std::vector<u8>& payload, const Headers& headers = {},
                 AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only);
   Response Post(const std::string& url, const std::string& payload, const Headers& headers = {},
-                AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only);
+                AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only,
+                bool selfSignedCert = false);
 
 private:
   class Impl;

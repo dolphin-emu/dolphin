@@ -85,6 +85,7 @@ private:
     PlayerId pid{};
     std::string name;
     std::string revision;
+    std::string discordId;
     SyncIdentifierComparison game_status = SyncIdentifierComparison::Unknown;
     bool has_ipl_dump = false;
     bool has_hardware_fma = false;

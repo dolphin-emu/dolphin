@@ -435,7 +435,7 @@ ConnectionError NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
   // send join message to already connected clients
   sf::Packet spac;
   spac << MessageID::PlayerJoin;
-  spac << player.pid << player.name << player.revision;
+  spac << player.pid << player.name << player.revision << player.discordId;
   SendToClients(spac);
 
   // send new client success message with their ID
@@ -474,7 +474,7 @@ ConnectionError NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
   {
     spac.clear();
     spac << MessageID::PlayerJoin;
-    spac << p.second.pid << p.second.name << p.second.revision;
+    spac << p.second.pid << p.second.name << p.second.revision << p.second.discordId;
     Send(player.socket, spac);
 
     spac.clear();

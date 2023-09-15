@@ -31,7 +31,8 @@ public:
   void UseIPv4();
   void FollowRedirects(long max);
   Response Fetch(const std::string& url, Method method, const Headers& headers, const u8* payload,
-                 size_t size, AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only);
+                 size_t size, AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only,
+                 bool selfSignedCert = false);
 
   static int CurlProgressCallback(Impl* impl, double dlnow, double dltotal, double ulnow,
                                   double ultotal);
@@ -89,10 +90,11 @@ HttpRequest::Response HttpRequest::Post(const std::string& url, const std::vecto
 }
 
 HttpRequest::Response HttpRequest::Post(const std::string& url, const std::string& payload,
-                                        const Headers& headers, AllowedReturnCodes codes)
+                                        const Headers& headers, AllowedReturnCodes codes,
+                                        bool selfSignedCert)
 {
   return m_impl->Fetch(url, Impl::Method::POST, headers,
-                       reinterpret_cast<const u8*>(payload.data()), payload.size(), codes);
+                       reinterpret_cast<const u8*>(payload.data()), payload.size(), codes, selfSignedCert);
 }
 
 int HttpRequest::Impl::CurlProgressCallback(Impl* impl, double dlnow, double dltotal, double ulnow,
@@ -178,8 +180,13 @@ static size_t CurlWriteCallback(char* data, size_t size, size_t nmemb, void* use
 
 HttpRequest::Response HttpRequest::Impl::Fetch(const std::string& url, Method method,
                                                const Headers& headers, const u8* payload,
-                                               size_t size, AllowedReturnCodes codes)
+                                               size_t size, AllowedReturnCodes codes,
+                                               bool selfSignedCert)
 {
+  if (selfSignedCert)
+  {
+    curl_easy_setopt(m_curl.get(), CURLOPT_SSL_VERIFYPEER, 0L);
+  }
   curl_easy_setopt(m_curl.get(), CURLOPT_POST, method == Method::POST);
   curl_easy_setopt(m_curl.get(), CURLOPT_URL, url.c_str());
   if (method == Method::POST)

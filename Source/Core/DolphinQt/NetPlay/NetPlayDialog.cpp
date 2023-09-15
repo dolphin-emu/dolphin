@@ -1088,6 +1088,14 @@ void NetPlayDialog::OnGolferChanged(const bool is_golfer, const std::string& gol
     DisplayMessage(tr("%1 is now golfing").arg(QString::fromStdString(golfer_name)), "");
 }
 
+void NetPlayDialog::OnLoginError(const std::string& message)
+{
+  QueueOnObject(this, [this, message] {
+    ModalMessageBox::critical(this, tr("Error"),
+                              tr("Failed to login: %1").arg(tr(message.c_str())));
+  });
+}
+
 bool NetPlayDialog::IsRecording()
 {
   std::optional<bool> is_recording = RunOnObject(m_record_input_action, &QAction::isChecked);

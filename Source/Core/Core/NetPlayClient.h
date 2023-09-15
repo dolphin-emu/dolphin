@@ -66,6 +66,7 @@ public:
   virtual void OnTraversalStateChanged(TraversalClient::State state) = 0;
   virtual void OnGameStartAborted() = 0;
   virtual void OnGolferChanged(bool is_golfer, const std::string& golfer_name) = 0;
+  virtual void OnLoginError(const std::string& message) = 0;
 
   virtual void OnRankedEnabled(bool is_ranked) = 0;
 
@@ -99,6 +100,7 @@ public:
   PlayerId pid{};
   std::string name;
   std::string revision;
+  std::string discordId;
   u32 ping = 0;
   SyncIdentifierComparison game_status = SyncIdentifierComparison::Unknown;
 
@@ -316,6 +318,7 @@ private:
   std::map<PlayerId, Player> m_players;
   std::string m_host_spec;
   std::string m_player_name;
+  std::string m_player_discordId = "12345";
   bool m_connecting = false;
   TraversalClient* m_traversal_client = nullptr;
   std::thread m_MD5_thread;
