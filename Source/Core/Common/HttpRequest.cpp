@@ -159,9 +159,9 @@ bool HttpRequest::Impl::IsValid() const
 
 s32 HttpRequest::Impl::GetLastResponseCode()
 {
-  s32 response_code{};
+  long response_code{};
   curl_easy_getinfo(m_curl.get(), CURLINFO_RESPONSE_CODE, &response_code);
-  return response_code;
+  return static_cast<s32>(response_code);
 }
 
 void HttpRequest::Impl::SetCookies(const std::string& cookies)
