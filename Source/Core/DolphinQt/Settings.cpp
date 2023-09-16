@@ -201,10 +201,11 @@ void Settings::UpdateStyle()
     qApp->setStyleSheet(QStringLiteral(""));
   };
 
+#ifdef Q_OS_WIN
   auto LoadDarkStyle = [] {
-#ifdef _WIN32
     QFile file(QStringLiteral(":/dolphin_dark_win/dark.qss"));
-    if (file.open(QFile::ReadOnly)) {
+    if (file.open(QFile::ReadOnly))
+    {
       QString stylesheet_contents;
       stylesheet_contents = QString::fromUtf8(file.readAll().data());
 
@@ -225,21 +226,27 @@ void Settings::UpdateStyle()
       qApp->setPalette(palette);
       qApp->setStyleSheet(stylesheet_contents);
     }
-#else
-    LoadLightStyle();
-    // Something else should be done for other platforms.
-#endif
   };
-
+#elif Q_OS_MAC
+  // Something else should be done on macOS
+  auto LoadDarkStyle = [&LoadLightStyle] { LoadLightStyle(); };
+#else
+  // Don't try for Linux or BSD because on those platforms, dark theme is defined by a
+  // user-chosen style
+  auto LoadDarkStyle = [&LoadLightStyle] { LoadLightStyle(); };
+#endif
   auto LoadSystemStyle = [this, &LoadLightStyle, &LoadDarkStyle] {
-    if(IsSystemDark()) LoadDarkStyle();
-    else LoadLightStyle();
+    if (IsSystemDark())
+      LoadDarkStyle();
+    else
+      LoadLightStyle();
   };
 
   auto LoadUserStyle = [this, &LoadSystemStyle] {
     // If we haven't found one, we continue with an empty (default) style
     QString stylesheet_name = GetUserStyle();
-    if (stylesheet_name.isEmpty()) {
+    if (stylesheet_name.isEmpty())
+    {
       LoadSystemStyle();
       return;
     }
@@ -251,8 +258,10 @@ void Settings::UpdateStyle()
     if (stylesheet.open(QFile::ReadOnly))
       stylesheet_contents = QString::fromUtf8(stylesheet.readAll().data());
 
-    // We also continue with the default style if it's empty or unreadable (can't check for invalid unfortunately)
-    if(stylesheet_contents.isEmpty()) {
+    // We also continue with the default style if it's empty or unreadable (can't check for invalid
+    // unfortunately)
+    if (stylesheet_contents.isEmpty())
+    {
       LoadSystemStyle();
       return;
     }
@@ -282,7 +291,8 @@ void Settings::UpdateStyle()
     GetQSettings().setValue(QStringLiteral("userstyle/name"), stylesheet_name);
   };
 
-  switch(GetStyleType()) {
+  switch (GetStyleType())
+  {
   case StyleType::System:
     [[fallthrough]];
   default:

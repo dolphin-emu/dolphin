@@ -260,7 +260,8 @@ void InterfacePane::LoadConfig()
   if (index > 0)
     SignalBlocking(m_combobox_userstyle)->setCurrentIndex(index);
 
-  SignalBlocking(m_combobox_style)->setCurrentIndex(static_cast<int>(Settings::Instance().GetStyleType()));
+  SignalBlocking(m_combobox_style)
+      ->setCurrentIndex(static_cast<int>(Settings::Instance().GetStyleType()));
   SignalBlocking(m_combobox_userstyle)->setCurrentText(Settings::Instance().GetUserStyle());
 
   bool combobox_userstyle_visible =
@@ -298,7 +299,8 @@ void InterfacePane::OnSaveConfig()
   Config::SetBase(Config::MAIN_USE_BUILT_IN_TITLE_DATABASE,
                   m_checkbox_use_builtin_title_database->isChecked());
   Settings::Instance().SetDebugModeEnabled(m_checkbox_show_debugging_ui->isChecked());
-  Settings::Instance().SetStyleType(static_cast<Settings::StyleType>(m_combobox_style->currentIndex()));
+  Settings::Instance().SetStyleType(
+      static_cast<Settings::StyleType>(m_combobox_style->currentIndex()));
   Settings::Instance().SetUserStyle(m_combobox_userstyle->currentData().toString());
   Settings::Instance().UpdateStyle();
 

@@ -240,9 +240,7 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
   connect(QGuiApplication::styleHints(), &QStyleHints::colorSchemeChanged, this,
-          [](Qt::ColorScheme colorScheme) {
-            Settings::Instance().UpdateStyle();
-          });
+          [](Qt::ColorScheme colorScheme) { Settings::Instance().UpdateStyle(); });
 #endif
 
   connect(m_cheats_manager, &CheatsManager::OpenGeneralSettings, this,
