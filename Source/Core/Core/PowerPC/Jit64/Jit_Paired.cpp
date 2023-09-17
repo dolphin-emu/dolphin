@@ -130,7 +130,12 @@ void Jit64::ps_mergeXX(UGeckoInstruction inst)
     avx_op(&XEmitter::VUNPCKLPD, &XEmitter::UNPCKLPD, Rd, Ra, Rb);
     break;  // 00
   case 560:
-    avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, Rd, Ra, Rb, 2);
+    if (d != b)
+      avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, Rd, Ra, Rb, 2);
+    else if (Ra.IsSimpleReg())
+      MOVSD(Rd, Ra);
+    else
+      MOVLPD(Rd, Ra);
     break;  // 01
   case 592:
     avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, Rd, Ra, Rb, 1);
