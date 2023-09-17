@@ -43,14 +43,10 @@ void JitBaseBlockCache::Init()
   Common::JitRegister::Init(Config::Get(Config::MAIN_PERF_MAP_DIR));
 
 #ifdef _ARCH_64
-  m_fast_block_map = reinterpret_cast<JitBlock**>(m_block_map_arena.Create(FAST_BLOCK_MAP_SIZE));
+  m_entry_points_ptr = reinterpret_cast<u8**>(m_entry_points_arena.Create(FAST_BLOCK_MAP_SIZE));
 #else
-  m_fast_block_map = nullptr;
+  m_entry_points_ptr = nullptr;
 #endif
-  if (m_fast_block_map)
-    m_fast_block_map_ptr = m_fast_block_map;
-  else
-    m_fast_block_map_ptr = m_fast_block_map_fallback.data();
 
   Clear();
 }
@@ -59,7 +55,7 @@ void JitBaseBlockCache::Shutdown()
 {
   Common::JitRegister::Shutdown();
 
-  m_block_map_arena.Release();
+  m_entry_points_arena.Release();
 }
 
 // This clears the JIT cache. It's called from JitCache.cpp when the JIT cache
@@ -82,8 +78,8 @@ void JitBaseBlockCache::Clear()
 
   valid_block.ClearAll();
 
-  if (m_fast_block_map)
-    m_block_map_arena.Clear();
+  if (m_entry_points_ptr)
+    m_entry_points_arena.Clear();
 }
 
 void JitBaseBlockCache::Reset()
@@ -92,9 +88,9 @@ void JitBaseBlockCache::Reset()
   Init();
 }
 
-JitBlock** JitBaseBlockCache::GetFastBlockMap()
+u8** JitBaseBlockCache::GetEntryPoints()
 {
-  return m_fast_block_map;
+  return m_entry_points_ptr;
 }
 
 JitBlock** JitBaseBlockCache::GetFastBlockMapFallback()
@@ -123,8 +119,11 @@ JitBlock* JitBaseBlockCache::AllocateBlock(u32 em_address)
 void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link,
                                       const std::set<u32>& physical_addresses)
 {
-  size_t index = FastLookupIndexForAddress(block.effectiveAddress);
-  m_fast_block_map_ptr[index] = &block;
+  size_t index = FastLookupIndexForAddress(block.effectiveAddress, block.msrBits);
+  if (m_entry_points_ptr)
+    m_entry_points_ptr[index] = block.normalEntry;
+  else
+    m_fast_block_map_fallback[index] = &block;
   block.fast_block_map_index = index;
 
   block.physical_addresses = physical_addresses;
@@ -187,7 +186,28 @@ JitBlock* JitBaseBlockCache::GetBlockFromStartAddress(u32 addr, u32 msr)
 const u8* JitBaseBlockCache::Dispatch()
 {
   const auto& ppc_state = m_jit.m_ppc_state;
-  JitBlock* block = m_fast_block_map_ptr[FastLookupIndexForAddress(ppc_state.pc)];
+  if (m_entry_points_ptr)
+  {
+    u8* entry_point =
+        m_entry_points_ptr[FastLookupIndexForAddress(ppc_state.pc, ppc_state.msr.Hex)];
+    if (entry_point)
+    {
+      return entry_point;
+    }
+    else
+    {
+      JitBlock* block =
+          MoveBlockIntoFastCache(ppc_state.pc, ppc_state.msr.Hex & JIT_CACHE_MSR_MASK);
+
+      if (!block)
+        return nullptr;
+
+      return block->normalEntry;
+    }
+  }
+
+  JitBlock* block =
+      m_fast_block_map_fallback[FastLookupIndexForAddress(ppc_state.pc, ppc_state.msr.Hex)];
 
   if (!block || block->effectiveAddress != ppc_state.pc ||
       block->msrBits != (ppc_state.msr.Hex & JIT_CACHE_MSR_MASK))
@@ -408,8 +428,20 @@ void JitBaseBlockCache::UnlinkBlock(const JitBlock& block)
 
 void JitBaseBlockCache::DestroyBlock(JitBlock& block)
 {
-  if (m_fast_block_map_ptr[block.fast_block_map_index] == &block)
-    m_fast_block_map_ptr[block.fast_block_map_index] = nullptr;
+  if (m_entry_points_ptr)
+  {
+    if (m_entry_points_ptr[block.fast_block_map_index] == block.normalEntry)
+    {
+      m_entry_points_ptr[block.fast_block_map_index] = nullptr;
+    }
+  }
+  else
+  {
+    if (m_fast_block_map_fallback[block.fast_block_map_index] == &block)
+    {
+      m_fast_block_map_fallback[block.fast_block_map_index] = nullptr;
+    }
+  }
 
   UnlinkBlock(block);
 
@@ -436,22 +468,37 @@ JitBlock* JitBaseBlockCache::MoveBlockIntoFastCache(u32 addr, u32 msr)
     return nullptr;
 
   // Drop old fast block map entry
-  if (m_fast_block_map_ptr[block->fast_block_map_index] == block)
-    m_fast_block_map_ptr[block->fast_block_map_index] = nullptr;
+  if (m_entry_points_ptr)
+  {
+    if (m_entry_points_ptr[block->fast_block_map_index] == block->normalEntry)
+    {
+      m_entry_points_ptr[block->fast_block_map_index] = nullptr;
+    }
+  }
+  else
+  {
+    if (m_fast_block_map_fallback[block->fast_block_map_index] == block)
+    {
+      m_fast_block_map_fallback[block->fast_block_map_index] = nullptr;
+    }
+  }
 
   // And create a new one
-  size_t index = FastLookupIndexForAddress(addr);
-  m_fast_block_map_ptr[index] = block;
+  size_t index = FastLookupIndexForAddress(addr, msr);
+  if (m_entry_points_ptr)
+    m_entry_points_ptr[index] = block->normalEntry;
+  else
+    m_fast_block_map_fallback[index] = block;
   block->fast_block_map_index = index;
 
   return block;
 }
 
-size_t JitBaseBlockCache::FastLookupIndexForAddress(u32 address)
+size_t JitBaseBlockCache::FastLookupIndexForAddress(u32 address, u32 msr)
 {
-  if (m_fast_block_map)
+  if (m_entry_points_ptr)
   {
-    return address >> 2;
+    return ((msr & JIT_CACHE_MSR_MASK) << 26) | (address >> 2);
   }
   else
   {

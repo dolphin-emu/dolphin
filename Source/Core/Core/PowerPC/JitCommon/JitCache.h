@@ -133,8 +133,8 @@ public:
   static constexpr u32 JIT_CACHE_MSR_MASK = 0x30;
 
   // The value for the map is determined like this:
-  // ((4 GB guest memory space) / (4 bytes per address)) * sizeof(JitBlock*)
-  static constexpr u64 FAST_BLOCK_MAP_SIZE = 0x2'0000'0000;
+  // ((4 GB guest memory space) / (4 bytes per address) * sizeof(JitBlock*)) * (4 for 2 bits of msr)
+  static constexpr u64 FAST_BLOCK_MAP_SIZE = 0x8'0000'0000;
   static constexpr u32 FAST_BLOCK_MAP_FALLBACK_ELEMENTS = 0x10000;
   static constexpr u32 FAST_BLOCK_MAP_FALLBACK_MASK = FAST_BLOCK_MAP_FALLBACK_ELEMENTS - 1;
 
@@ -147,7 +147,7 @@ public:
   void Reset();
 
   // Code Cache
-  JitBlock** GetFastBlockMap();
+  u8** GetEntryPoints();
   JitBlock** GetFastBlockMapFallback();
   void RunOnBlocks(std::function<void(const JitBlock&)> f);
 
@@ -188,7 +188,7 @@ private:
   JitBlock* MoveBlockIntoFastCache(u32 em_address, u32 msr);
 
   // Fast but risky block lookup based on fast_block_map.
-  size_t FastLookupIndexForAddress(u32 address);
+  size_t FastLookupIndexForAddress(u32 address, u32 msr);
 
   // links_to hold all exit points of all valid blocks in a reverse way.
   // It is used to query all blocks which links to an address.
@@ -208,16 +208,14 @@ private:
   // It is used to provide a fast way to query if no icache invalidation is needed.
   ValidBlockBitSet valid_block;
 
-  // This array is indexed with the shifted PC and likely holds the correct block id.
-  // This is used as a fast cache of block_map used in the assembly dispatcher.
-  // It is implemented via a shm segment using m_block_map_arena.
-  JitBlock** m_fast_block_map = 0;
-  Common::LazyMemoryRegion m_block_map_arena;
+  // This contains the entry points for each block.
+  // It is used by the assembly dispatcher to quickly
+  // know where to jump based on pc and msr bits.
+  Common::LazyMemoryRegion m_entry_points_arena;
+  u8** m_entry_points_ptr = 0;
 
-  // An alternative for the above fast_block_map but without a shm segment
+  // An alternative for the above but without a shm segment
   // in case the shm memory region couldn't be allocated.
   std::array<JitBlock*, FAST_BLOCK_MAP_FALLBACK_ELEMENTS>
       m_fast_block_map_fallback{};  // start_addr & mask -> number
-
-  JitBlock** m_fast_block_map_ptr = 0;
 };
