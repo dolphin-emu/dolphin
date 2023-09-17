@@ -59,22 +59,9 @@ void Jit64::ps_sum(UGeckoInstruction inst)
     break;
   case 11:  // ps_sum1: {c.ps0, a.ps0 + b.ps1}
     if (Rc.IsSimpleReg())
-    {
-      if (cpu_info.bSSE4_1)
-      {
-        BLENDPD(tmp, Rc, 1);
-      }
-      else
-      {
-        MOVAPD(XMM0, Rc);
-        SHUFPD(XMM0, R(tmp), 2);
-        tmp = XMM0;
-      }
-    }
+      MOVSD(tmp, Rc);
     else
-    {
       MOVLPD(tmp, Rc);
-    }
     break;
   default:
     PanicAlertFmt("ps_sum WTF!!!");
