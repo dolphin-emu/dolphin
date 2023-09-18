@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     kotlin("plugin.serialization") version "1.8.21"
+    id("androidx.baselineprofile")
 }
 
 @Suppress("UnstableApiUsage")
@@ -115,6 +116,7 @@ android {
 }
 
 dependencies {
+    "baselineProfile"(project(":benchmark"))
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.3")
 
     implementation("androidx.core:core-ktx:1.10.1")
