@@ -69,20 +69,22 @@
   <ItemGroup>
     <Text Include="$(BuildInfoTemplate)" />
   </ItemGroup>
-  <UsingTask TaskName="GetProductVersion"
-    TaskFactory="CodeTaskFactory"
-    AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+  <ItemGroup>
+    <ClInclude Include="VideoCommon\OsdSubtitles\OsdSubtitles.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="VideoCommon\OsdSubtitles\OsdSubtitles.cpp" />
+  </ItemGroup>
+  <UsingTask TaskName="GetProductVersion" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
       <Path ParameterType="System.String" Required="true" />
       <ProductVersion ParameterType="System.String" Output="true" />
     </ParameterGroup>
     <Task>
-      <Using Namespace="System.Diagnostics"/>
-      <Code Type="Fragment" Language="cs">
-        <![CDATA[
+      <Using Namespace="System.Diagnostics" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
           ProductVersion = FileVersionInfo.GetVersionInfo(Path).ProductVersion;
-        ]]>
-      </Code>
+        ]]></Code>
     </Task>
   </UsingTask>
   <Target Name="WriteBuildInfo" AfterTargets="Build" Inputs="$(BuildInfoTemplate)" Outputs="$(BuildInfoOutput)">
@@ -90,10 +92,6 @@
       <Output PropertyName="VCToolsProductVersion" TaskParameter="ProductVersion" />
     </GetProductVersion>
     <Message Text="VCToolsProductVersion $(VCToolsProductVersion)" Importance="High" />
-    <WriteLinesToFile
-      File="$(BuildInfoOutput)"
-      Lines="$([System.IO.File]::ReadAllText($(BuildInfoTemplate)).Replace('${VC_TOOLS_VERSION}', $(VCToolsProductVersion)))"
-      Overwrite="true"
-    />
+    <WriteLinesToFile File="$(BuildInfoOutput)" Lines="$([System.IO.File]::ReadAllText($(BuildInfoTemplate)).Replace('${VC_TOOLS_VERSION}', $(VCToolsProductVersion)))" Overwrite="true" />
   </Target>
 </Project>

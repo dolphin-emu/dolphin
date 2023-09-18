@@ -97,6 +97,7 @@
 #ifdef ANDROID
 #include "jni/AndroidCommon/IDCache.h"
 #endif
+#include <VideoCommon\OsdSubtitles\OsdSubtitles.h>
 
 namespace Core
 {
@@ -581,6 +582,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
 
     // Clear on screen messages that haven't expired
     OSD::ClearMessages();
+    OSDSubtitles::ClearMessages();
 
     // The config must be restored only after the whole HW has shut down,
     // not when it is still running.

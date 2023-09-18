@@ -29,6 +29,7 @@
 
 #include <imgui.h>
 #include <implot.h>
+#include "OsdSubtitles\OsdSubtitles.h"
 
 namespace VideoCommon
 {
@@ -333,6 +334,7 @@ void OnScreenUI::Finalize()
   g_perf_metrics.DrawImGuiStats(m_backbuffer_scale);
   DrawDebugText();
   OSD::DrawMessages();
+  OSDSubtitles::DrawMessages();
   ImGui::Render();
 }
 

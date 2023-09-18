@@ -17,6 +17,7 @@
 
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
+#include <VideoCommon\OsdSubtitles\OsdSubtitles.h>
 
 namespace FileMonitor
 {
@@ -52,9 +53,12 @@ FileLogger::~FileLogger() = default;
 
 void FileLogger::Log(const DiscIO::Volume& volume, const DiscIO::Partition& partition, u64 offset)
 {
+  
   // Do nothing if the log isn't selected
-  if (!Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::LogType::FILEMON,
-                                                         Common::Log::LogLevel::LWARNING))
+  auto logEnabled = Common::Log::LogManager::GetInstance()->IsEnabled(
+      Common::Log::LogType::FILEMON, Common::Log::LogLevel::LWARNING);
+  auto subtitlesEnabled = true; //TODO settings for subtitles
+  if (!(logEnabled || subtitlesEnabled)) 
   {
     return;
   }
@@ -81,7 +85,13 @@ void FileLogger::Log(const DiscIO::Volume& volume, const DiscIO::Partition& part
   const std::string path = file_info->GetPath();
   const std::string log_string = fmt::format("{} kB {}", size_string, path);
   if (IsSoundFile(path))
+  {
     INFO_LOG_FMT(FILEMON, "{}", log_string);
+    if (subtitlesEnabled)
+    {
+      OSDSubtitles::AddSubtitle(path);
+    }
+  }
   else
     WARN_LOG_FMT(FILEMON, "{}", log_string);
 
