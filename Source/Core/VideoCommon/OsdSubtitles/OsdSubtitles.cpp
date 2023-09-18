@@ -212,7 +212,8 @@ void DrawMessages()
 
   std::lock_guard lock{subtitles_mutex};
 
-  for (auto it = currentSubtitles.begin(); it != currentSubtitles.end();)
+  for (auto it = currentSubtitles.rbegin();
+       it != currentSubtitles.rend();)
   {
     Subtitle& msg = it->second;
     const s64 time_left = msg.TimeRemaining();
@@ -221,7 +222,7 @@ void DrawMessages()
     // unless enough time has expired, in that case, we drop them
     if (time_left <= 0 && (msg.ever_drawn || -time_left >= MESSAGE_DROP_TIME))
     {
-      it = currentSubtitles.erase(it);
+      currentSubtitles.erase(std::next(it).base());
       continue;
     }
     else
