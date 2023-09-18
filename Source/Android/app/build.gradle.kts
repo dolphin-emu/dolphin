@@ -117,26 +117,25 @@ android {
 
 dependencies {
     "baselineProfile"(project(":benchmark"))
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.3")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 
-    implementation("androidx.core:core-ktx:1.10.1")
+    implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("androidx.exifinterface:exifinterface:1.3.6")
     implementation("androidx.cardview:cardview:1.0.0")
-    implementation("androidx.recyclerview:recyclerview:1.3.0")
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-    implementation("androidx.lifecycle:lifecycle-viewmodel:2.6.1")
-    implementation("androidx.fragment:fragment:1.6.0")
+    implementation("androidx.fragment:fragment-ktx:1.6.2")
     implementation("androidx.slidingpanelayout:slidingpanelayout:1.2.0")
-    implementation("com.google.android.material:material:1.9.0")
+    implementation("com.google.android.material:material:1.10.0")
     implementation("androidx.core:core-splashscreen:1.0.1")
-    implementation("androidx.preference:preference:1.2.0")
+    implementation("androidx.preference:preference-ktx:1.2.1")
     implementation("androidx.profileinstaller:profileinstaller:1.3.1")
 
     // Kotlin extensions for lifecycle components
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.1")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
 
     // Android TV UI libraries.
     implementation("androidx.leanback:leanback:1.0.0")
@@ -146,7 +145,7 @@ dependencies {
     implementation("com.android.volley:volley:1.2.1")
 
     // For loading game covers from disk and GameTDB
-    implementation("io.coil-kt:coil:2.2.2")
+    implementation("io.coil-kt:coil:2.5.0")
 
     // For loading custom GPU drivers
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
