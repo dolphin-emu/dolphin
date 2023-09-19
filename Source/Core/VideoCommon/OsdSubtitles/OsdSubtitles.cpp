@@ -15,6 +15,7 @@
 #include <iostream>
 #include <iterator>
 #include <picojson.h>
+#include <VideoCommon\OnScreenDisplay.h>
 
 // TODO unify with OSD, will require different positioning for specific messagetype?
 namespace OSDSubtitles
@@ -115,6 +116,29 @@ void AddSubtitle(std::string soundFile)
 {
   if (!isInitialized)
   {
+    auto stack = OSD::MessageStack(0, 0, OSD::MessageStackDirection::Upward, true, true, "subtitles");
+    OSD::AddMessageStack(stack);
+
+    auto stack2 = OSD::MessageStack(0, 100, OSD::MessageStackDirection::Leftward, false, true,
+                                    "leftward");
+    OSD::AddMessageStack(stack2);
+
+    auto stack3 = OSD::MessageStack(0, 200, OSD::MessageStackDirection::Rightward, false, false,
+                                    "rightward");
+    OSD::AddMessageStack(stack3);
+
+    isInitialized = true;
+  }
+  OSD::AddMessage("default log: " + soundFile, 10000, OSD::Color::GREEN, "");
+  OSD::AddMessage("subtitle zone: " + soundFile, 10000, OSD::Color::CYAN, "subtitles");
+  OSD::AddMessage("leftward", 10000, OSD::Color::YELLOW, "leftward");
+  OSD::AddMessage("rightward", 10000, OSD::Color::RED, "rightward");
+}
+
+void _AddSubtitle(std::string soundFile)
+{
+  if (!isInitialized)
+  {
     InitTranslations(TranslationFile);
   }
 
@@ -162,7 +186,7 @@ static float DrawMessage(int index, Subtitle& msg, const ImVec2& position, int t
   const std::string window_name = fmt::format("osd_subtitle_{}", index);
 
   // The size must be reset, otherwise the length of old messages could influence new ones.
-  //ImGui::SetNextWindowPos(position);
+  // ImGui::SetNextWindowPos(position);
   ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
 
   // Gradually fade old messages away (except in their first frame)
@@ -212,8 +236,7 @@ void DrawMessages()
 
   std::lock_guard lock{subtitles_mutex};
 
-  for (auto it = currentSubtitles.rbegin();
-       it != currentSubtitles.rend();)
+  for (auto it = currentSubtitles.rbegin(); it != currentSubtitles.rend();)
   {
     Subtitle& msg = it->second;
     const s64 time_left = msg.TimeRemaining();

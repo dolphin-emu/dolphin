@@ -7,9 +7,19 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
+#include "Common/Timer.h"
+#include <imgui.h>
+
 
 namespace OSD
 {
+enum class MessageStackDirection
+{
+  Downward = 1,
+  Upward = 2,
+  Rightward = 4,
+  Leftward = 8,
+};
 enum class MessageType
 {
   NetPlayPing,
@@ -18,6 +28,48 @@ enum class MessageType
   // This entry must be kept last so that persistent typed messages are
   // displayed before other messages
   Typeless,
+};
+//TODO clean this mess
+struct Message
+{
+  Message() = default;
+  Message(std::string text_, u32 duration_, u32 color_)
+      : text(std::move(text_)), duration(duration_), color(color_)
+  {
+    timer.Start();
+  }
+  s64 TimeRemaining() const { return duration - timer.ElapsedMs(); }
+  std::string text;
+  Common::Timer timer;
+  u32 duration = 0;
+  bool ever_drawn = false;
+  u32 color = 0;
+};
+struct MessageStack
+{
+  ImVec2 initialPosOffset;
+  MessageStackDirection dir;
+  bool centered;
+  bool reversed;
+  std::string name;
+
+  MessageStack() : MessageStack(0, 0, MessageStackDirection::Downward, false, false, "") {}
+  MessageStack(float _x_offset, float _y_offset, MessageStackDirection _dir, bool _centered,
+               bool _reversed, std::string _name)
+  {
+    initialPosOffset = ImVec2(_x_offset, _y_offset);
+    dir = _dir;
+    centered = _centered;
+    reversed = _reversed;
+    name = _name;
+  }
+
+  std::multimap<OSD::MessageType, OSD::Message> s_messages;
+
+  bool isVertical()
+  {
+    return dir == MessageStackDirection::Downward || dir == MessageStackDirection::Upward;
+  }
 };
 
 namespace Color
@@ -35,10 +87,13 @@ constexpr u32 NORMAL = 5000;
 constexpr u32 VERY_LONG = 10000;
 };  // namespace Duration
 
+void AddMessageStack(MessageStack info);
+
 // On-screen message display (colored yellow by default)
-void AddMessage(std::string message, u32 ms = Duration::SHORT, u32 argb = Color::YELLOW);
+void AddMessage(std::string message, u32 ms = Duration::SHORT, u32 argb = Color::YELLOW,
+                std::string messageStack = "");
 void AddTypedMessage(MessageType type, std::string message, u32 ms = Duration::SHORT,
-                     u32 argb = Color::YELLOW);
+                     u32 argb = Color::YELLOW, std::string messageStack = "");
 
 // Draw the current messages on the screen. Only call once per frame.
 void DrawMessages();
