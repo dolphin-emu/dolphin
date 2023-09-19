@@ -127,12 +127,42 @@ void AddSubtitle(std::string soundFile)
                                     "rightward");
     OSD::AddMessageStack(stack3);
 
+    InitTranslations(TranslationFile);
+
     isInitialized = true;
+  }  
+
+  auto tlnode = Translations.get(soundFile);
+  if (tlnode.is<picojson::object>() && tlnode.contains("Translation"))
+  {
+    auto tl = tlnode.get("Translation");
+    if (tl.is<std::string>())
+    {
+      std::lock_guard lock{subtitles_mutex};
+      {
+        bool allowDups = false;
+        auto dupsNode = tlnode.get("AllowDuplicate");
+        if (dupsNode.is<bool>())
+        {
+          allowDups = tlnode.get("AllowDuplicate").get<bool>();
+        }
+
+        auto msnode = tlnode.get("Miliseconds");
+        // TODO allow for text/hex color (web codes?)
+        auto colornode = tlnode.get("Color");
+
+        u32 ms = msnode.is<double>() ? msnode.get<double>() : 3000;
+        u32 argb = colornode.is<double>() ? colornode.get<double>() : 4294967040;
+
+        //currentSubtitles.emplace(tl.to_str(), Subtitle(std::move(tl.to_str()), ms, argb));
+
+        //OSD::AddMessage("default log: " + soundFile, 10000, OSD::Color::GREEN, "", true);
+        OSD::AddMessage(tl.to_str(), ms, argb, "subtitles", true);
+        //OSD::AddMessage("leftward", 10000, OSD::Color::YELLOW, "leftward", true);
+        //OSD::AddMessage("rightward", 10000, OSD::Color::RED, "rightward", true);
+      }
+    }
   }
-  OSD::AddMessage("default log: " + soundFile, 10000, OSD::Color::GREEN, "");
-  OSD::AddMessage("subtitle zone: " + soundFile, 10000, OSD::Color::CYAN, "subtitles");
-  OSD::AddMessage("leftward", 10000, OSD::Color::YELLOW, "leftward");
-  OSD::AddMessage("rightward", 10000, OSD::Color::RED, "rightward");
 }
 
 void _AddSubtitle(std::string soundFile)
@@ -150,20 +180,12 @@ void _AddSubtitle(std::string soundFile)
     {
       std::lock_guard lock{subtitles_mutex};
       {
-        // check if subtitle is still on screen
-        if (currentSubtitles.count(soundFile) > 0)
-        {
-          if (!tlnode.contains("AllowDuplicate"))
-          {
-            return;
-          }
 
-          auto dupsNode = tlnode.get("AllowDuplicate");
-          if (dupsNode.is<picojson::null>() ||
-              (dupsNode.is<bool>() && !tlnode.get("AllowDuplicate").get<bool>()))
-          {
-            return;
-          }
+        bool allowDups = false;
+        auto dupsNode = tlnode.get("AllowDuplicate");
+        if (dupsNode.is<bool>())
+        {
+          allowDups = tlnode.get("AllowDuplicate").get<bool>();
         }
 
         auto msnode = tlnode.get("Miliseconds");
@@ -173,7 +195,7 @@ void _AddSubtitle(std::string soundFile)
         u32 ms = msnode.is<double>() ? msnode.get<double>() : 3000;
         u32 argb = colornode.is<double>() ? colornode.get<double>() : 4294967040;
 
-        currentSubtitles.emplace(soundFile, Subtitle(std::move(tl.to_str()), ms, argb));
+        currentSubtitles.emplace(tl.to_str(), Subtitle(std::move(tl.to_str()), ms, argb));
       }
     }
   }

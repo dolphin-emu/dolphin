@@ -6,10 +6,9 @@
 #include <functional>
 #include <string>
 
+#include <imgui.h>
 #include "Common/CommonTypes.h"
 #include "Common/Timer.h"
-#include <imgui.h>
-
 
 namespace OSD
 {
@@ -29,7 +28,7 @@ enum class MessageType
   // displayed before other messages
   Typeless,
 };
-//TODO clean this mess
+// TODO clean this mess
 struct Message
 {
   Message() = default;
@@ -53,6 +52,8 @@ struct MessageStack
   bool reversed;
   std::string name;
 
+  std::multimap<OSD::MessageType, OSD::Message> s_messages;
+
   MessageStack() : MessageStack(0, 0, MessageStackDirection::Downward, false, false, "") {}
   MessageStack(float _x_offset, float _y_offset, MessageStackDirection _dir, bool _centered,
                bool _reversed, std::string _name)
@@ -64,11 +65,21 @@ struct MessageStack
     name = _name;
   }
 
-  std::multimap<OSD::MessageType, OSD::Message> s_messages;
-
   bool isVertical()
   {
     return dir == MessageStackDirection::Downward || dir == MessageStackDirection::Upward;
+  }
+
+  bool hasMessage(std::string message, MessageType type = OSD::MessageType::Typeless)
+  {
+    for (auto it = s_messages.begin(); it != s_messages.end(); ++it)
+    {
+      if (message == it->second.text)
+      {
+        return true;
+      }
+    }
+    return false;
   }
 };
 
@@ -91,9 +102,10 @@ void AddMessageStack(MessageStack info);
 
 // On-screen message display (colored yellow by default)
 void AddMessage(std::string message, u32 ms = Duration::SHORT, u32 argb = Color::YELLOW,
-                std::string messageStack = "");
+                std::string messageStack = "", bool preventDuplicate = false);
 void AddTypedMessage(MessageType type, std::string message, u32 ms = Duration::SHORT,
-                     u32 argb = Color::YELLOW, std::string messageStack = "");
+                     u32 argb = Color::YELLOW, std::string messageStack = "",
+                     bool preventDuplicate = false);
 
 // Draw the current messages on the screen. Only call once per frame.
 void DrawMessages();

@@ -102,7 +102,6 @@ static ImVec2 DrawMessage(int index, Message& msg, const ImVec2& position, int t
     }
 
     auto windowPos = ImVec2(x_pos, y_pos);
-    INFO_LOG_FMT(FILEMON, "Displaying message '{}' in '{}'", windowPos.x, windowPos.y);
     ImGui::SetWindowPos(window_name.c_str(), windowPos);
   }
 
@@ -115,33 +114,47 @@ static ImVec2 DrawMessage(int index, Message& msg, const ImVec2& position, int t
 }
 
 void AddTypedMessage(MessageType type, std::string message, u32 ms, u32 argb,
-                     std::string messageStack)
+                     std::string messageStack, bool preventDuplicate)
 {
   std::lock_guard lock{s_messages_mutex};
   if (messageStacks.find(messageStack) == messageStacks.end())
   {
+    if (preventDuplicate && messageStacks[messageStack].hasMessage(message, type))
+    {
+      return;
+    }
     defaultMessageStack.s_messages.erase(type);
     defaultMessageStack.s_messages.emplace(type, Message(std::move(message), ms, argb));
   }
   else
   {
+    if (preventDuplicate && messageStacks[messageStack].hasMessage(message, type))
+    {
+      return;
+    }
     messageStacks["messageStack"].s_messages.erase(type);
     messageStacks["messageStack"].s_messages.emplace(type, Message(std::move(message), ms, argb));
   }
 }
 
-void AddMessage(std::string message, u32 ms, u32 argb, std::string messageStack)
+void AddMessage(std::string message, u32 ms, u32 argb, std::string messageStack, bool preventDuplicate)
 {
   std::lock_guard lock{s_messages_mutex};
   if (messageStacks.contains(messageStack))
   {
-    INFO_LOG_FMT(FILEMON, "Displaying message '{}' in '{}'", message, messageStack);
+    if (preventDuplicate && messageStacks[messageStack].hasMessage(message, MessageType::Typeless))
+    {
+      return;
+    }
     messageStacks[messageStack].s_messages.emplace(MessageType::Typeless,
                                                    Message(std::move(message), ms, argb));
   }
   else
   {
-    INFO_LOG_FMT(FILEMON, "Displaying message '{}' in '{}'", message, "defaultMessageStack");
+    if (preventDuplicate && messageStacks[messageStack].hasMessage(message, MessageType::Typeless))
+    {
+      return;
+    }
     defaultMessageStack.s_messages.emplace(MessageType::Typeless,
                                            Message(std::move(message), ms, argb));
   }
