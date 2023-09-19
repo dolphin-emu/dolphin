@@ -12,6 +12,7 @@ namespace Common::Log
 {
 enum class LogType : int
 {
+  ACHIEVEMENTS,
   ACTIONREPLAY,
   AUDIO,
   AUDIO_INTERFACE,
