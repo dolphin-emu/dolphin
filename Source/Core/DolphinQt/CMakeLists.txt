@@ -715,3 +715,16 @@ endif()
 if(USE_DISCORD_PRESENCE)
   target_compile_definitions(dolphin-emu PRIVATE -DUSE_DISCORD_PRESENCE)
 endif()
+
+# Copy Playback Codes if needed
+if (SLIPPI_PLAYBACK)
+  #add_custom_command(TARGET dolphin-emu POST_BUILD
+  #  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/Data/PlaybackGeckoCodes/GALE01r2.ini" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Sys/GameSettings/GALE01r2.ini"
+  #)
+  #add_custom_command(TARGET dolphin-emu POST_BUILD
+  #  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/Data/PlaybackGeckoCodes/GALJ01r2.ini" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Sys/GameSettings/GALJ01r2.ini"
+  #)
+  add_custom_command(TARGET dolphin-emu POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/Data/PlaybackGeckoCodes/" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Sys/GameSettings/"
+  )
+endif()

@@ -658,9 +658,9 @@ endif()
 message("Using static Corrosion from Externals for Rust linking support")
 add_subdirectory(Externals/corrosion)
 
-set(SLIPPI_PLAYBACK TRUE)
 if(SLIPPI_PLAYBACK)
   # Slippi Playback build option
+  # message("Enabling Playback build")
   # add_definitions(-DIS_PLAYBACK=1)
 endif()
 
