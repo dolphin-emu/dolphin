@@ -24,6 +24,14 @@ VKPipeline::VKPipeline(const AbstractPipelineConfig& config, VkPipeline pipeline
     : AbstractPipeline(config), m_pipeline(pipeline), m_pipeline_layout(pipeline_layout),
       m_usage(usage)
 {
+  if (config.pixel_shader)
+    m_psHash = static_cast<const VKShader*>(config.pixel_shader)->GetHash();
+
+  if (config.vertex_shader)
+    m_vsHash = static_cast<const VKShader*>(config.vertex_shader)->GetHash();
+
+  if (config.geometry_shader)
+    m_gsHash = static_cast<const VKShader*>(config.geometry_shader)->GetHash();
 }
 
 VKPipeline::~VKPipeline()

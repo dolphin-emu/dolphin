@@ -16,15 +16,21 @@ namespace Vulkan::ShaderCompiler
 using SPIRVCodeType = u32;
 using SPIRVCodeVector = std::vector<SPIRVCodeType>;
 
+struct CompiledSPIRV
+{
+  SPIRVCodeVector code;
+  u64 hash;
+};
+
 // Compile a vertex shader to SPIR-V.
-std::optional<SPIRVCodeVector> CompileVertexShader(std::string_view source_code);
+std::optional<CompiledSPIRV> CompileVertexShader(std::string_view source_code);
 
 // Compile a geometry shader to SPIR-V.
-std::optional<SPIRVCodeVector> CompileGeometryShader(std::string_view source_code);
+std::optional<CompiledSPIRV> CompileGeometryShader(std::string_view source_code);
 
 // Compile a fragment shader to SPIR-V.
-std::optional<SPIRVCodeVector> CompileFragmentShader(std::string_view source_code);
+std::optional<CompiledSPIRV> CompileFragmentShader(std::string_view source_code);
 
 // Compile a compute shader to SPIR-V.
-std::optional<SPIRVCodeVector> CompileComputeShader(std::string_view source_code);
+std::optional<CompiledSPIRV> CompileComputeShader(std::string_view source_code);
 }  // namespace Vulkan::ShaderCompiler

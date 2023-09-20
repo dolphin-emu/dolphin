@@ -18,6 +18,10 @@ namespace Vulkan
 CommandBufferManager::CommandBufferManager(bool use_threaded_submission)
     : m_use_threaded_submission(use_threaded_submission)
 {
+  for (auto& frame_resource : m_frame_resources)
+  {
+    frame_resource.debug = std::make_unique<VkDebug>(g_ActiveConfig.bEnableBreadcrumbs);
+  }
 }
 
 CommandBufferManager::~CommandBufferManager()
@@ -27,6 +31,11 @@ CommandBufferManager::~CommandBufferManager()
   {
     WaitForWorkerThreadIdle();
     m_submit_thread.Shutdown();
+  }
+
+  for (auto& frame_resource : m_frame_resources)
+  {
+    frame_resource.debug.reset();
   }
 
   DestroyCommandBuffers();
@@ -62,6 +71,7 @@ bool CommandBufferManager::CreateCommandBuffers()
                               &resources.command_pool);
     if (res != VK_SUCCESS)
     {
+      PrintFaults();
       LOG_VULKAN_ERROR(res, "vkCreateCommandPool failed: ");
       return false;
     }
@@ -73,6 +83,7 @@ bool CommandBufferManager::CreateCommandBuffers()
     res = vkAllocateCommandBuffers(device, &buffer_info, resources.command_buffers.data());
     if (res != VK_SUCCESS)
     {
+      PrintFaults();
       LOG_VULKAN_ERROR(res, "vkAllocateCommandBuffers failed: ");
       return false;
     }
@@ -83,6 +94,7 @@ bool CommandBufferManager::CreateCommandBuffers()
     res = vkCreateFence(device, &fence_info, nullptr, &resources.fence);
     if (res != VK_SUCCESS)
     {
+      PrintFaults();
       LOG_VULKAN_ERROR(res, "vkCreateFence failed: ");
       return false;
     }
@@ -90,6 +102,7 @@ bool CommandBufferManager::CreateCommandBuffers()
     res = vkCreateSemaphore(device, &semaphore_create_info, nullptr, &resources.semaphore);
     if (res != VK_SUCCESS)
     {
+      PrintFaults();
       LOG_VULKAN_ERROR(res, "vkCreateSemaphore failed: ");
       return false;
     }
@@ -98,6 +111,7 @@ bool CommandBufferManager::CreateCommandBuffers()
   res = vkCreateSemaphore(device, &semaphore_create_info, nullptr, &m_present_semaphore);
   if (res != VK_SUCCESS)
   {
+    PrintFaults();
     LOG_VULKAN_ERROR(res, "vkCreateSemaphore failed: ");
     return false;
   }
@@ -175,6 +189,7 @@ VkDescriptorPool CommandBufferManager::CreateDescriptorPool(u32 max_descriptor_s
   VkResult res = vkCreateDescriptorPool(device, &pool_create_info, nullptr, &descriptor_pool);
   if (res != VK_SUCCESS)
   {
+    PrintFaults();
     LOG_VULKAN_ERROR(res, "vkCreateDescriptorPool failed: ");
     return VK_NULL_HANDLE;
   }
@@ -274,7 +289,10 @@ void CommandBufferManager::WaitForCommandBufferCompletion(u32 index)
   VkResult res =
       vkWaitForFences(g_vulkan_context->GetDevice(), 1, &resources.fence, VK_TRUE, UINT64_MAX);
   if (res != VK_SUCCESS)
+  {
+    PrintFaults();
     LOG_VULKAN_ERROR(res, "vkWaitForFences failed: ");
+  }
 
   // Clean up any resources for command buffers between the last known completed buffer and this
   // now-completed command buffer. If we use >2 buffers, this may be more than one buffer.
@@ -311,6 +329,7 @@ void CommandBufferManager::SubmitCommandBuffer(bool submit_on_worker_thread,
     VkResult res = vkEndCommandBuffer(command_buffer);
     if (res != VK_SUCCESS)
     {
+      PrintFaults();
       LOG_VULKAN_ERROR(res, "vkEndCommandBuffer failed: ");
       PanicAlertFmt("Failed to end command buffer: {} ({})", VkResultToString(res),
                     static_cast<int>(res));
@@ -354,12 +373,17 @@ void CommandBufferManager::SubmitCommandBuffer(bool submit_on_worker_thread,
     // Reset the descriptor pools
     FrameResources& frame_resources = GetCurrentFrameResources();
 
+    frame_resources.debug->Reset();
+
     if (frame_resources.descriptor_pools.size() == 1) [[likely]]
     {
       VkResult res = vkResetDescriptorPool(g_vulkan_context->GetDevice(),
                                            frame_resources.descriptor_pools[0], 0);
       if (res != VK_SUCCESS)
+      {
+        PrintFaults();
         LOG_VULKAN_ERROR(res, "vkResetDescriptorPool failed: ");
+      }
     }
     else [[unlikely]]
     {
@@ -421,6 +445,7 @@ void CommandBufferManager::SubmitCommandBuffer(u32 command_buffer_index,
       vkQueueSubmit(g_vulkan_context->GetGraphicsQueue(), 1, &submit_info, resources.fence);
   if (res != VK_SUCCESS)
   {
+    PrintFaults();
     LOG_VULKAN_ERROR(res, "vkQueueSubmit failed: ");
     PanicAlertFmt("Failed to submit command buffer: {} ({})", VkResultToString(res),
                   static_cast<int>(res));
@@ -448,6 +473,7 @@ void CommandBufferManager::SubmitCommandBuffer(u32 command_buffer_index,
           m_last_present_result != VK_SUBOPTIMAL_KHR &&
           m_last_present_result != VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT)
       {
+        PrintFaults();
         LOG_VULKAN_ERROR(m_last_present_result, "vkQueuePresentKHR failed: ");
       }
 
@@ -476,12 +502,18 @@ void CommandBufferManager::BeginCommandBuffer()
   // Reset fence to unsignaled before starting.
   VkResult res = vkResetFences(g_vulkan_context->GetDevice(), 1, &resources.fence);
   if (res != VK_SUCCESS)
+  {
+    PrintFaults();
     LOG_VULKAN_ERROR(res, "vkResetFences failed: ");
+  }
 
   // Reset command pools to beginning since we can re-use the memory now
   res = vkResetCommandPool(g_vulkan_context->GetDevice(), resources.command_pool, 0);
   if (res != VK_SUCCESS)
+  {
+    PrintFaults();
     LOG_VULKAN_ERROR(res, "vkResetCommandPool failed: ");
+  }
 
   // Enable commands to be recorded to the two buffers again.
   VkCommandBufferBeginInfo begin_info = {VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, nullptr,
@@ -490,7 +522,10 @@ void CommandBufferManager::BeginCommandBuffer()
   {
     res = vkBeginCommandBuffer(command_buffer, &begin_info);
     if (res != VK_SUCCESS)
+    {
+      PrintFaults();
       LOG_VULKAN_ERROR(res, "vkBeginCommandBuffer failed: ");
+    }
   }
 
   // Reset upload command buffer state
@@ -535,6 +570,14 @@ void CommandBufferManager::DeferImageViewDestruction(VkImageView object)
   CmdBufferResources& cmd_buffer_resources = GetCurrentCmdBufferResources();
   cmd_buffer_resources.cleanup_resources.push_back(
       [object]() { vkDestroyImageView(g_vulkan_context->GetDevice(), object, nullptr); });
+}
+
+void CommandBufferManager::PrintFaults()
+{
+  for (auto& frame_resource : m_frame_resources)
+  {
+    frame_resource.debug->PrintFault();
+  }
 }
 
 std::unique_ptr<CommandBufferManager> g_command_buffer_mgr;

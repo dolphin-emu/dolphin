@@ -20,6 +20,7 @@
 #include "Common/Semaphore.h"
 
 #include "VideoBackends/Vulkan/Constants.h"
+#include "VideoBackends/Vulkan/VKDebug.h"
 
 namespace Vulkan
 {
@@ -46,6 +47,8 @@ public:
   }
   // Allocates a descriptors set from the pool reserved for the current frame.
   VkDescriptorSet AllocateDescriptorSet(VkDescriptorSetLayout set_layout);
+
+  VkDebug& GetDebug() { return *GetCurrentFrameResources().debug; }
 
   // Fence "counters" are used to track which commands have been completed by the GPU.
   // If the last completed fence counter is greater or equal to N, it means that the work
@@ -94,6 +97,8 @@ public:
   void DeferImageDestruction(VkImage object, VmaAllocation alloc);
   void DeferImageViewDestruction(VkImageView object);
 
+  void PrintFaults();
+
 private:
   bool CreateCommandBuffers();
   void DestroyCommandBuffers();
@@ -129,6 +134,7 @@ private:
   {
     std::vector<VkDescriptorPool> descriptor_pools;
     u32 current_descriptor_pool_index = 0;
+    std::unique_ptr<VkDebug> debug = nullptr;
   };
 
   FrameResources& GetCurrentFrameResources() { return m_frame_resources[m_current_frame]; }
@@ -163,5 +169,12 @@ private:
 };
 
 extern std::unique_ptr<CommandBufferManager> g_command_buffer_mgr;
+
+DOLPHIN_FORCE_INLINE void EmitDebugMarker(VkDebugCommand command, u64 aux0 = 0, u64 aux1 = 0,
+                                          u64 aux2 = 0, u64 aux3 = 0)
+{
+  if (g_command_buffer_mgr->GetDebug().IsEnabled()) [[unlikely]]
+    g_command_buffer_mgr->GetDebug().EmitMarker(command, aux0, aux1, aux2, aux3);
+}
 
 }  // namespace Vulkan
