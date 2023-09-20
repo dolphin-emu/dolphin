@@ -1364,6 +1364,7 @@ bool CEXISlippi::shouldSkipOnlineFrame(s32 frame, s32 finalized_frame)
   // Only skip once for a given frame because our time detection method doesn't take into
   // consideration waiting for a frame. Also it's less jarring and it happens often enough that it
   // will smoothly get to the right place
+  // 9/18/23: Brought back frame skips when behind in the other location
   auto is_time_sync_frame =
       frame % SLIPPI_ONLINE_LOCKSTEP_INTERVAL;  // Only time sync every 30 frames
   if (is_time_sync_frame == 0 && !is_currently_skipping && frame <= 120)
@@ -1435,9 +1436,9 @@ bool CEXISlippi::shouldAdvanceOnlineFrame(s32 frame)
     // front instance as much because we want to prioritize performance for the fast PC
     float deviation = 0;
     float max_slow_down_amount = 0.005f;
-    float max_speed_up_amount = 0.05f;
+    float max_speed_up_amount = 0.01f;
     int slow_down_frame_window = 3;
-    int speed_up_frame_window = 6;
+    int speed_up_frame_window = 3;
     if (offset_us > -250 && offset_us < 8000)
     {
       // Do nothing, leave deviation at 0 for 100% emulation speed when ahead by 8 ms or less
@@ -1488,23 +1489,20 @@ bool CEXISlippi::shouldAdvanceOnlineFrame(s32 frame)
           10000, OSD::Color::RED);
     }
 
-    // 8/8/23: I want to disable forced frame advances for now. I think they're largely unnecessary
-    // because of the dynamic emulation speed and cause more jarring frame drops.
+    if (offset_us < -t2 && !is_currently_advancing)
+    {
+      is_currently_advancing = true;
 
-    // if (offset_us < -t2 && !is_currently_advancing)
-    // {
-    //   is_currently_advancing = true;
+      // On early frames, don't advance any frames. Let the stalling logic handle the initial sync
 
-    // On early frames, don't advance any frames. Let the stalling logic handle the initial sync
+      int max_adv_frames = frame > 120 ? 3 : 0;
+      frames_to_advance = ((-offset_us - t1) / frame_time) + 1;
+      frames_to_advance = frames_to_advance > max_adv_frames ? max_adv_frames : frames_to_advance;
 
-    //   int maxAdvFrames = frame > 120 ? 3 : 0; frames_to_advance = ((-offset_us - t1) /
-    //   frame_time) + 1; frames_to_advance = frames_to_advance > maxAdvFrames ? maxAdvFrames :
-    //   frames_to_advance;
-
-    //   WARN_LOG_FMT(SLIPPI_ONLINE,
-    //                "Advancing on frame {} due to time sync. Offset: {} us. Frames: {}...", frame,
-    //                offset_us, frames_to_advance);
-    // }
+      WARN_LOG_FMT(SLIPPI_ONLINE,
+                   "Advancing on frame {} due to time sync. Offset: {} us. Frames: {}...", frame,
+                   offset_us, frames_to_advance);
+    }
   }
 
   // Handle the skipped frames
