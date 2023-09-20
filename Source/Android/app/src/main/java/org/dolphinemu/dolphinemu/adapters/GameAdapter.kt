@@ -25,7 +25,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
 import org.dolphinemu.dolphinemu.utils.CoilUtils
 import java.util.ArrayList
 
-class GameAdapter(private val mActivity: FragmentActivity) : RecyclerView.Adapter<GameViewHolder>(),
+class GameAdapter : RecyclerView.Adapter<GameViewHolder>(),
     View.OnClickListener, OnLongClickListener {
     private var mGameFiles: List<GameFile> = ArrayList()
 
@@ -72,20 +72,7 @@ class GameAdapter(private val mActivity: FragmentActivity) : RecyclerView.Adapte
                 binding.textGameCaption.visibility = View.GONE
             }
         }
-
-        mActivity.lifecycleScope.launch {
-            withContext(Dispatchers.IO) {
-                val customCoverUri = CoilUtils.findCustomCover(gameFile)
-                withContext(Dispatchers.Main) {
-                    CoilUtils.loadGameCover(
-                        holder,
-                        holder.binding.imageGameScreen,
-                        gameFile,
-                        customCoverUri
-                    )
-                }
-            }
-        }
+        CoilUtils.loadGameCover(holder, holder.binding.imageGameScreen, gameFile)
 
         val animateIn = AnimationUtils.loadAnimation(context, R.anim.anim_card_game_in)
         animateIn.fillAfter = true

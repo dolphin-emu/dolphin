@@ -268,7 +268,7 @@ class TvMainActivity : FragmentActivity(), MainView, OnRefreshListener {
         }
 
         // Create an adapter for this row.
-        val row = ArrayObjectAdapter(GameRowPresenter(this))
+        val row = ArrayObjectAdapter(GameRowPresenter())
         row.addAll(0, gameFiles)
 
         // Keep a reference to the row in case we need to refresh it.
