@@ -644,6 +644,8 @@
     <ClInclude Include="VideoCommon\Assets\DirectFilesystemAssetLibrary.h" />
     <ClInclude Include="VideoCommon\Assets\MaterialAsset.h" />
     <ClInclude Include="VideoCommon\Assets\ShaderAsset.h" />
+    <ClInclude Include="VideoCommon\Assets\ShaderUniform.h" />
+    <ClInclude Include="VideoCommon\Assets\ShaderUniformTypes.h" />
     <ClInclude Include="VideoCommon\Assets\TextureAsset.h" />
     <ClInclude Include="VideoCommon\AsyncRequests.h" />
     <ClInclude Include="VideoCommon\AsyncShaderCompiler.h" />
