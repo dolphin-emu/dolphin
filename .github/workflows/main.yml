@@ -71,6 +71,12 @@ jobs:
         with:
           toolchain: ${{ steps.rust_ver.outputs.rust_ver }}  # Pin to our specific Rust version.
           rustflags: ""  # Disable default injection of warnings = errors.
+      - name: Cache Utils
+        uses: actions/cache@v3
+        with:
+          path: |
+            ./CodeSignTool/
+          key: ${{ runner.os }}-${{ secrets.CACHE_CONTROL }}
       - name: 'Fetch Git Tags'
         shell: bash
         run: |
@@ -99,13 +105,19 @@ jobs:
           Xcopy /Y /E /I .\Data\PlaybackGeckoCodes\* .\Binary\x64\Sys\GameSettings\
       - name: "Codesign ${{ matrix.build_type}} Dolphin"
         working-directory: ${{ github.workspace }}
+        shell: powershell
         env:
-          CERTIFICATE_WINDOWS_APPLICATION: ${{ secrets.CERTIFICATE_WINDOWS_APPLICATION }}
-        if: env.CERTIFICATE_WINDOWS_APPLICATION != null
+          ES_USERNAME: ${{ secrets.ES_USERNAME }}
+        if: env.ES_USERNAME != null
         run: |
-          echo "${{ secrets.CERTIFICATE_WINDOWS_APPLICATION }}" > slippi_llc.b64
-          certutil -decode slippi_llc.b64 slippi_llc.p12
-          signtool sign /f slippi_llc.p12 /p "${{ secrets.CERTIFICATE_WINDOWS_PASSWORD }}" /fd SHA256 /tr http://ts.ssl.com /td SHA256 "Binary\x64\Slippi_Dolphin.exe"
+          if (!(Test-Path ".\CodeSignTool\CodeSignTool.bat" -PathType Leaf)) { 
+            Invoke-WebRequest -Uri https://www.ssl.com/download/codesigntool-for-windows/ -UseBasicParsing -OutFile ".\CodeSignTool.zip"
+            7z x CodeSignTool.zip
+            Remove-Item CodeSignTool.zip
+            Get-ChildItem -Path . | Where-Object { $_.Name -like "CodeSignTool*" } | %{ Rename-Item -LiteralPath $_.FullName -NewName "CodeSignTool" }
+          }
+          cd .\CodeSignTool
+          ./CodeSignTool.bat sign -credential_id="${{ secrets.ES_CREDENTIAL_ID }}" -username="${{ secrets.ES_USERNAME }}" -password="${{ secrets.ES_PASSWORD }}" -totp_secret="${{ secrets.ES_TOTP_SECRET }}" -input_file_path="${{ github.workspace }}\Binary\x64\Slippi_Dolphin.exe" -override="true"
       - name: Package Artifact
         working-directory: ${{ github.workspace }}
         run: |
