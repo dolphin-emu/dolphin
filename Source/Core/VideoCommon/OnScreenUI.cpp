@@ -334,7 +334,6 @@ void OnScreenUI::Finalize()
   g_perf_metrics.DrawImGuiStats(m_backbuffer_scale);
   DrawDebugText();
   OSD::DrawMessages();
-  OSDSubtitles::DrawMessages();
   ImGui::Render();
 }
 
