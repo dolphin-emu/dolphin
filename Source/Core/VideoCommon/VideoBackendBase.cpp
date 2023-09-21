@@ -229,14 +229,11 @@ const std::vector<std::unique_ptr<VideoBackendBase>>& VideoBackendBase::GetAvail
     std::vector<std::unique_ptr<VideoBackendBase>> backends;
 
     // Mainline prefers OGL > D3D11 > D3D12 > Vulkan > SW > Null
-    // Slippi will instead prefer D3D11 > D3D12 > OGL > Vulkan > SW > Null
+    // Slippi will instead prefer D3D11 > D3D12 > Vulkan > OGL > SW > Null
     // SLIPPITODO: Check what works best in practice for each OS
 #ifdef _WIN32
     backends.push_back(std::make_unique<DX11::VideoBackend>());
     backends.push_back(std::make_unique<DX12::VideoBackend>());
-#endif
-#ifdef HAS_OPENGL
-    backends.push_back(std::make_unique<OGL::VideoBackend>());
 #endif
 #ifdef HAS_VULKAN
 #ifdef __APPLE__
@@ -250,6 +247,7 @@ const std::vector<std::unique_ptr<VideoBackendBase>>& VideoBackendBase::GetAvail
     backends.emplace(backends.begin(), std::make_unique<Metal::VideoBackend>());
 #endif
 #ifdef HAS_OPENGL
+    backends.push_back(std::make_unique<OGL::VideoBackend>());
     backends.push_back(std::make_unique<SW::VideoSoftware>());
 #endif
     backends.push_back(std::make_unique<Null::VideoBackend>());
