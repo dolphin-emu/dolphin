@@ -141,9 +141,17 @@ CEXISlippi::CEXISlippi(Core::System& system, const std::string current_file_name
 {
   INFO_LOG_FMT(SLIPPI, "EXI SLIPPI Constructor called.");
 
-  slprs_exi_device_ptr = slprs_exi_device_create(current_file_name.c_str(), OSDMessageHandler);
+  std::string user_file_path = File::GetUserPath(F_USERJSON_IDX);
 
-  user = std::make_unique<SlippiUser>();
+  SlippiRustEXIConfig slprs_exi_config;
+  slprs_exi_config.iso_path = current_file_name.c_str();
+  slprs_exi_config.user_json_path = user_file_path.c_str();
+  slprs_exi_config.scm_slippi_semver_str = Common::GetSemVerStr().c_str();
+  slprs_exi_config.osd_add_msg_fn = OSDMessageHandler;
+
+  slprs_exi_device_ptr = slprs_exi_device_create(slprs_exi_config);
+
+  user = std::make_unique<SlippiUser>(slprs_exi_device_ptr);
   g_playback_status = std::make_unique<SlippiPlaybackStatus>();
   matchmaking = std::make_unique<SlippiMatchmaking>(user.get());
   game_file_loader = std::make_unique<SlippiGameFileLoader>();
@@ -287,9 +295,7 @@ CEXISlippi::~CEXISlippi()
   if (active_match_id.find("mode.ranked") != std::string::npos)
   {
     ERROR_LOG_FMT(SLIPPI_ONLINE, "Exit during in-progress ranked game: {}", active_match_id);
-    auto user_info = user->GetUserInfo();
-    slprs_exi_device_report_match_abandonment(slprs_exi_device_ptr, user_info.uid.c_str(),
-                                              user_info.play_key.c_str(), active_match_id.c_str());
+    slprs_exi_device_report_match_abandonment(slprs_exi_device_ptr, active_match_id.c_str());
   }
   handleConnectionCleanup();
 
@@ -2714,7 +2720,6 @@ void CEXISlippi::handleChatMessage(u8* payload)
 
   if (slippi_netplay)
   {
-    auto user_info = user->GetUserInfo();
     auto packet = std::make_unique<sf::Packet>();
     //		OSD::AddMessage("[Me]: "+ msg, OSD::Duration::VERY_LONG, OSD::Color::YELLOW);
     slippi_netplay->remote_sent_chat_message_id = message_id;
@@ -3017,10 +3022,8 @@ void CEXISlippi::handleCompleteSet(const SlippiExiTypes::ReportSetCompletionQuer
   if (last_match_id.find("mode.ranked") != std::string::npos)
   {
     INFO_LOG_FMT(SLIPPI_ONLINE, "Reporting set completion: {}", last_match_id);
-    auto user_info = user->GetUserInfo();
 
-    slprs_exi_device_report_match_completion(slprs_exi_device_ptr, user_info.uid.c_str(),
-                                             user_info.play_key.c_str(), last_match_id.c_str(),
+    slprs_exi_device_report_match_completion(slprs_exi_device_ptr, last_match_id.c_str(),
                                              query.end_mode);
   }
 }
@@ -3031,12 +3034,10 @@ void CEXISlippi::handleGetPlayerSettings()
 
   SlippiExiTypes::GetPlayerSettingsResponse resp = {};
 
-  std::vector<std::vector<std::string>> messages_by_player = {
-      SlippiUser::default_chat_messages, SlippiUser::default_chat_messages,
-      SlippiUser::default_chat_messages, SlippiUser::default_chat_messages};
+  std::vector<std::vector<std::string>> messages_by_player = {{}, {}, {}, {}};
 
   // These chat messages will be used when previewing messages
-  auto user_chat_messages = user->GetUserInfo().chat_messages;
+  auto user_chat_messages = user->GetUserChatMessages();
   if (user_chat_messages.size() == 16)
   {
     messages_by_player[0] = user_chat_messages;
@@ -3051,6 +3052,13 @@ void CEXISlippi::handleGetPlayerSettings()
 
   for (int i = 0; i < 4; i++)
   {
+    // If any of the users in the chat messages vector have a payload that is incorrect,
+    // force that player to the default chat messages. A valid payload is 16 entries.
+    if (messages_by_player[i].size() != 16)
+    {
+      messages_by_player[i] = user->GetDefaultChatMessages();
+    }
+
     for (int j = 0; j < 16; j++)
     {
       auto str = ConvertStringForGame(messages_by_player[i][j], MAX_MESSAGE_LENGTH);

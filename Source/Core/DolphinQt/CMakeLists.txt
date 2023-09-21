@@ -565,7 +565,7 @@ endif()
 #endif()
 
 corrosion_import_crate(MANIFEST_PATH ${CMAKE_SOURCE_DIR}/Externals/SlippiRustExtensions/Cargo.toml ${RUST_FEATURES})
-target_link_libraries(dolphin-emu PUBLIC slippi_rust_extensions)
+target_link_libraries(dolphin-emu PUBLIC slippi-rust-extensions)
 
 if(APPLE)
   include(BundleUtilities)

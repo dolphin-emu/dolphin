@@ -410,9 +410,14 @@ void SetUserDirectory(std::string custom_path)
     std::string home_path = std::string(home) + DIR_SEP;
 
 #if defined(__APPLE__)
-    // Mainline Dolphin switched to storing things elsewhere some time ago.
-    // To get it working for now, let's just use the Slippi route.
-    user_path = File::GetBundleDirectory() + "/Contents/Resources/User" DIR_SEP;
+    // Since the Replays build shares the same identifier as the netplay build,
+    // we'll just have a netplay and playback folder inside the identifer similar to how
+    // the Launcher does it to keep with some convention.
+#ifdef IS_PLAYBACK
+    user_path = File::GetApplicationSupportDirectory() + "/playback/User" DIR_SEP;
+#else
+    user_path = File::GetApplicationSupportDirectory() + "/netplay/User" DIR_SEP;
+#endif
 #elif defined(ANDROID)
     if (env_path)
     {
@@ -513,7 +518,7 @@ bool TriggerSTMPowerEvent()
 #ifdef HAVE_X11
 void InhibitScreenSaver(Window win, bool inhibit)
 #else
-  void InhibitScreenSaver(bool inhibit)
+void InhibitScreenSaver(bool inhibit)
 #endif
 {
   // Inhibit the screensaver. Depending on the operating system this may also

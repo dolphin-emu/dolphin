@@ -234,6 +234,7 @@ void SetSysDirectory(const std::string& path);
 
 #ifdef __APPLE__
 std::string GetBundleDirectory();
+std::string GetApplicationSupportDirectory();
 #endif
 
 std::string GetExePath();

@@ -540,15 +540,19 @@ void SlippiMatchmaking::handleMatchmaking()
       player_info.display_name = el.value("displayName", "");
       player_info.connect_code = el.value("connectCode", "");
       player_info.port = el.value("port", 0);
-      player_info.chat_messages = SlippiUser::default_chat_messages;
       if (el["chatMessages"].is_array())
       {
-        player_info.chat_messages = el.value("chatMessages", SlippiUser::default_chat_messages);
+        player_info.chat_messages = el.value("chatMessages", m_user->GetDefaultChatMessages());
         if (player_info.chat_messages.size() != 16)
         {
-          player_info.chat_messages = SlippiUser::default_chat_messages;
+          player_info.chat_messages = m_user->GetDefaultChatMessages();
         }
       }
+      else
+      {
+        player_info.chat_messages = m_user->GetDefaultChatMessages();
+      }
+
       m_player_info.push_back(player_info);
 
       if (is_local)

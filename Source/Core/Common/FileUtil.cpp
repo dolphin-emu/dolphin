@@ -754,6 +754,19 @@ std::string GetBundleDirectory()
 
   return app_bundle_path;
 }
+
+std::string GetApplicationSupportDirectory()
+{
+  std::string dir =
+      File::GetHomeDirectory() + "/Library/Application Support/com.project-slippi.dolphin-beta";
+
+  if (!CreateDir(dir))
+  {
+    ERROR_LOG_FMT(COMMON, "Unable to create Application Support directory: {}", dir);
+  }
+
+  return dir;
+}
 #endif
 
 std::string GetExePath()

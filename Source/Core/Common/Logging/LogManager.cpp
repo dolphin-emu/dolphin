@@ -166,9 +166,7 @@ LogManager::LogManager()
   m_log[LogType::SLIPPI_ONLINE] = {"SLIPPI_ONLINE", "Slippi Online"};
   m_log[LogType::SLIPPI_RUST_DEPENDENCIES] = {"SLIPPI_RUST_DEPENDENCIES",
                                               "[Rust] Slippi Dependencies", false, true};
-  m_log[LogType::SLIPPI_RUST_EXI] = {"SLIPPI_RUST_EXI", "[Rust] Slippi EXI", false, true};
-  m_log[LogType::SLIPPI_RUST_GAME_REPORTER] = {"SLIPPI_RUST_GAME_REPORTER",
-                                               "[Rust] Slippi Game Reporter", false, true};
+  m_log[LogType::SLIPPI_RUST_ONLINE] = {"SLIPPI_RUST_ONLINE,", "[Rust] Slippi Online", false, true};
   m_log[LogType::SLIPPI_RUST_JUKEBOX] = {"SLIPPI_RUST_JUKEBOX", "[Rust] Slippi Jukebox", false,
                                          true};
   m_log[LogType::SP1] = {"SP1", "Serial Port 1"};
