@@ -111,7 +111,6 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
   ARM64Reg V0Q = ARM64Reg::INVALID_REG;
   ARM64Reg V1Q = ARM64Reg::INVALID_REG;
   ARM64Reg V2Q = ARM64Reg::INVALID_REG;
-  ARM64Reg V3Q = ARM64Reg::INVALID_REG;
 
   ARM64Reg rounded_c_reg = VC;
   if (round_c)
@@ -149,10 +148,8 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
     if (V0Q == ARM64Reg::INVALID_REG)
       V0Q = fpr.GetReg();
 
-    V2Q = fpr.GetReg();
-
     if (duplicated_c || VD == result_reg)
-      V3Q = fpr.GetReg();
+      V2Q = fpr.GetReg();
   }
 
   switch (op5)
@@ -239,8 +236,6 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
     const ARM64Reg nan_temp_reg = singles ? EncodeRegToSingle(V0Q) : EncodeRegToDouble(V0Q);
     const ARM64Reg nan_temp_reg_paired = reg_encoder(V0Q);
 
-    const ARM64Reg zero_reg = reg_encoder(V2Q);
-
     // Check if we need to handle NaNs
 
     m_float_emit.FMAXP(nan_temp_reg, result_reg);
@@ -254,17 +249,15 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
 
     // Pick the right NaNs
 
-    m_float_emit.MOVI(64, zero_reg, 0);
-
     const auto check_input = [&](ARM64Reg input) {
-      m_float_emit.FACGE(size, nan_temp_reg_paired, input, zero_reg);
+      m_float_emit.FCMEQ(size, nan_temp_reg_paired, input, input);
       m_float_emit.BIF(result_reg, input, nan_temp_reg_paired);
     };
 
     ARM64Reg c_reg_for_nan_purposes = VC;
     if (duplicated_c)
     {
-      c_reg_for_nan_purposes = reg_encoder(V3Q);
+      c_reg_for_nan_purposes = reg_encoder(V2Q);
       m_float_emit.DUP(size, c_reg_for_nan_purposes, VC, op5 & 0x1);
     }
 
@@ -279,10 +272,10 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
 
     // Make the NaNs quiet
 
-    const ARM64Reg quiet_bit_reg = VD == result_reg ? reg_encoder(V3Q) : VD;
+    const ARM64Reg quiet_bit_reg = VD == result_reg ? reg_encoder(V2Q) : VD;
     EmitQuietNaNBitConstant(quiet_bit_reg, singles, temp_gpr);
 
-    m_float_emit.FACGE(size, nan_temp_reg_paired, result_reg, zero_reg);
+    m_float_emit.FCMEQ(size, nan_temp_reg_paired, result_reg, result_reg);
     m_float_emit.ORR(quiet_bit_reg, quiet_bit_reg, result_reg);
     if (negate_result)
       m_float_emit.FNEG(size, result_reg, result_reg);
@@ -312,8 +305,6 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
     fpr.Unlock(V1Q);
   if (V2Q != ARM64Reg::INVALID_REG)
     fpr.Unlock(V2Q);
-  if (V3Q != ARM64Reg::INVALID_REG)
-    fpr.Unlock(V3Q);
   if (temp_gpr != ARM64Reg::INVALID_REG)
     gpr.Unlock(temp_gpr);
 
