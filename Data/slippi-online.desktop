@@ -8,3 +8,4 @@ Categories=Game;Emulator;
 Name=Slippi Online
 GenericName=Wii/GameCube Emulator
 Comment=A Wii/GameCube Emulator
+X-AppImage-Integrate=false
