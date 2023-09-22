@@ -37,7 +37,7 @@ class PlatformGamesFragment : Fragment(), PlatformGamesView {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         swipeRefresh = binding.swipeRefresh
-        val gameAdapter = GameAdapter(requireActivity())
+        val gameAdapter = GameAdapter()
         gameAdapter.stateRestorationPolicy =
             RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
 
