@@ -3307,13 +3307,16 @@ void CEXISlippi::DMARead(u32 addr, u32 size)
 void CEXISlippi::ConfigureJukebox()
 {
 #ifndef IS_PLAYBACK
-  // Exclusive WASAPI and the Jukebox do not play nicely, so we just don't bother enabling
-  // the Jukebox in that scenario
+  // Exclusive WASAPI will prevent Jukebox from running on the main device, relegating it to another
+  // device at random, so we will simply prevent Jukebox from running if the user is using WASAPI on
+  // the default device (assuming they don't select the default device directly).
 #ifdef _WIN32
   std::string backend = Config::Get(Config::MAIN_AUDIO_BACKEND);
-  if (backend.find(BACKEND_WASAPI) != std::string::npos)
+  std::string audio_device = Config::Get(Config::MAIN_WASAPI_DEVICE);
+  if (backend.find(BACKEND_WASAPI) != std::string::npos && audio_device == "default")
   {
-    OSD::AddMessage("Slippi Jukebox does not work with WASAPI mode. Music will not play.");
+    OSD::AddMessage(
+        "Slippi Jukebox does not work with WASAPI on the default device. Music will not play.");
     return;
   }
 #endif
