@@ -1,9 +1,8 @@
 #!/bin/bash -e
 # build-appimage.sh
 
-ZSYNC_STRING="gh-releases-zsync|project-slippi|Ishiiruka|latest|Slippi_Online-x86_64.AppImage.zsync"
-NETPLAY_APPIMAGE_STRING="Slippi_Online-x86_64.AppImage"
-PLAYBACK_APPIMAGE_STRING="Slippi_Playback-x86_64.AppImage"
+NETPLAY_APPIMAGE_STRING="Slippi_Online_Mainline-x86_64.AppImage"
+PLAYBACK_APPIMAGE_STRING="Slippi_Playback_Mainline-x86_64.AppImage"
 
 LINUXDEPLOY_PATH="https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous"
 LINUXDEPLOY_FILE="linuxdeploy-x86_64.AppImage"
@@ -81,8 +80,8 @@ else
 		cp ./Tools/appimageupdatetool ./AppDir/usr/bin/
 
 		# Bake an AppImage with the update metadata
-		UPDATE_INFORMATION="${ZSYNC_STRING}" \
-			./Tools/linuxdeploy-update-plugin --appdir=./AppDir/
+		OUTPUT="${NETPLAY_APPIMAGE_STRING}" \
+		./Tools/linuxdeploy-update-plugin --appdir=./AppDir/
 fi
 
 unset NO_STRIP
