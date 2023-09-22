@@ -146,8 +146,7 @@ struct EffectiveAddressSpaceAccessors : Accessors
 
       // For now, limit to only mem1 and mem2 regions
       // GetPointer can get confused by the locked dcache region that dolphin pins at 0xe0000000
-      u32 memory_area = (*page_physical_address) >> 24;
-      if ((memory_area != 0x00) && (memory_area != 0x01))
+      if (page_physical_address >= 0xE0000000)
       {
         return false;
       }
