@@ -103,13 +103,18 @@ jobs:
         if: matrix.build_type == 'Playback'
         run: |
           Xcopy /Y /E /I .\Data\PlaybackGeckoCodes\* .\Binary\x64\Sys\GameSettings\
-      - name: "Codesign ${{ matrix.build_type}} Dolphin"
+      - name: "Codesign ${{ matrix.build_type }} Dolphin"
         working-directory: ${{ github.workspace }}
         shell: powershell
         env:
           ES_USERNAME: ${{ secrets.ES_USERNAME }}
         if: env.ES_USERNAME != null
         run: |
+          $msg = git log -1 --no-merges --pretty=%B
+          if ($msg -notmatch "^release.*") {
+            echo "not release, skipping code signing"
+            exit 0;
+          }
           if (!(Test-Path ".\CodeSignTool\CodeSignTool.bat" -PathType Leaf)) { 
             Invoke-WebRequest -Uri https://www.ssl.com/download/codesigntool-for-windows/ -UseBasicParsing -OutFile ".\CodeSignTool.zip"
             7z x CodeSignTool.zip
