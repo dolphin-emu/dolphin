@@ -16,6 +16,8 @@
 #include <endian.h>
 #endif
 
+#include <fmt/format.h>
+
 #include "Common/CommonTypes.h"
 
 namespace Common
@@ -183,3 +185,15 @@ private:
   value_type raw;
 };
 }  // Namespace Common
+
+template <typename value_type>
+struct fmt::formatter<Common::BigEndianValue<value_type>>
+{
+  fmt::formatter<value_type> m_formatter;
+  constexpr auto parse(format_parse_context& ctx) { return m_formatter.parse(ctx); }
+  template <typename FormatContext>
+  auto format(const Common::BigEndianValue<value_type>& value, FormatContext& ctx) const
+  {
+    return m_formatter.format(value.operator value_type(), ctx);
+  }
+};

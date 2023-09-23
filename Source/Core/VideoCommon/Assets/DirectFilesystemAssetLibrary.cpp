@@ -4,7 +4,8 @@
 #include "VideoCommon/Assets/DirectFilesystemAssetLibrary.h"
 
 #include <algorithm>
-#include <fmt/os.h>
+
+#include <fmt/std.h>
 
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
