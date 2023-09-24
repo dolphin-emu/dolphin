@@ -630,7 +630,7 @@ if (_M_X86)
 endif()
 add_subdirectory(Externals/cpp-optparse)
 
-dolphin_find_optional_system_library(fmt Externals/fmt 8)
+dolphin_find_optional_system_library(fmt Externals/fmt 10.1)
 
 add_subdirectory(Externals/imgui)
 add_subdirectory(Externals/implot)
