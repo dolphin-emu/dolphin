@@ -107,12 +107,12 @@ Java_org_dolphinemu_dolphinemu_features_skylanders_SkylanderConfig_loadSkylander
     name = it->second.name;
   }
 
-  return env->NewObject(
-      pair_class, pair_init,
-      env->NewObject(integer_class, int_init,
-                     system.GetSkylanderPortal().LoadSkylander(
-                         std::make_unique<IOS::HLE::USB::SkylanderFigure>(std::move(sky_file)))),
-      ToJString(env, name));
+  return env->NewObject(pair_class, pair_init,
+                        env->NewObject(integer_class, int_init,
+                                       system.GetSkylanderPortal().LoadSkylander(
+                                           std::make_unique<IOS::HLE::USB::SkylanderFigure>(
+                                               std::move(sky_file), GetJString(env, file_name)))),
+                        ToJString(env, name));
 }
 
 JNIEXPORT jobject JNICALL
@@ -159,11 +159,11 @@ Java_org_dolphinemu_dolphinemu_features_skylanders_SkylanderConfig_createSkyland
     name = it->second.name;
   }
 
-  return env->NewObject(
-      pair_class, pair_init,
-      env->NewObject(integer_class, integer_init,
-                     system.GetSkylanderPortal().LoadSkylander(
-                         std::make_unique<IOS::HLE::USB::SkylanderFigure>(std::move(sky_file)))),
-      ToJString(env, name));
+  return env->NewObject(pair_class, pair_init,
+                        env->NewObject(integer_class, integer_init,
+                                       system.GetSkylanderPortal().LoadSkylander(
+                                           std::make_unique<IOS::HLE::USB::SkylanderFigure>(
+                                               std::move(sky_file), GetJString(env, fileName)))),
+                        ToJString(env, name));
 }
 }

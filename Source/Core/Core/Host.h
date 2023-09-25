@@ -59,6 +59,7 @@ void Host_NotifyMapLoaded();
 void Host_RefreshDSPDebuggerWindow();
 void Host_RequestRenderWindowSize(int width, int height);
 void Host_UpdateDisasmDialog();
+void Host_UpdateSkylanderWindow();
 void Host_UpdateMainFrame();
 void Host_UpdateTitle(const std::string& title);
 void Host_YieldToUI();

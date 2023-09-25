@@ -238,6 +238,12 @@ void Host_UpdateDisasmDialog()
   QueueOnObject(QApplication::instance(), [] { emit Host::GetInstance()->UpdateDisasmDialog(); });
 }
 
+void Host_UpdateSkylanderWindow()
+{
+  QueueOnObject(QApplication::instance(),
+                [] { emit Host::GetInstance()->UpdateSkylanderWindow(); });
+}
+
 void Host::RequestNotifyMapLoaded()
 {
   QueueOnObject(QApplication::instance(), [this] { emit NotifyMapLoaded(); });

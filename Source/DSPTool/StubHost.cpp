@@ -41,6 +41,9 @@ bool Host_UpdateDiscordPresenceRaw(const std::string& details, const std::string
 void Host_UpdateDisasmDialog()
 {
 }
+void Host_UpdateSkylanderWindow()
+{
+}
 void Host_UpdateMainFrame()
 {
 }

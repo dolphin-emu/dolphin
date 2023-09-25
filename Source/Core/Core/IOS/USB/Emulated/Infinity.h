@@ -49,6 +49,8 @@ public:
   int SubmitTransfer(std::unique_ptr<IntrMessage> message) override;
   int SubmitTransfer(std::unique_ptr<IsoMessage> message) override;
 
+  void DoState(PointerWrap& p) override;
+
 private:
   void ScheduleTransfer(std::unique_ptr<TransferCommand> command, const std::array<u8, 32>& data,
                         u64 expected_time_us);

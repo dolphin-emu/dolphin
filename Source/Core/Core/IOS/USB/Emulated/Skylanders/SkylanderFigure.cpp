@@ -53,10 +53,17 @@ void SkylanderFigure::PopulateKeys()
   }
 }
 
+SkylanderFigure::SkylanderFigure()
+{
+  m_data = {};
+  m_file_path = "";
+}
+
 SkylanderFigure::SkylanderFigure(const std::string& file_path)
 {
   m_sky_file = File::IOFile(file_path, "w+b");
   m_data = {};
+  m_file_path = file_path;
 }
 // Generate a AES key without the block filled in
 void SkylanderFigure::GenerateIncompleteHashIn(u8* dest) const
@@ -122,19 +129,18 @@ void SkylanderFigure::Encrypt(std::span<const u8, FIGURE_SIZE> input)
 
   DEBUG_LOG_FMT(IOS_USB, "Encrypted skylander data: \n{}", HexDump(encrypted.data(), FIGURE_SIZE));
 }
-SkylanderFigure::SkylanderFigure(File::IOFile file)
+SkylanderFigure::SkylanderFigure(File::IOFile file, std::string file_path)
 {
   m_sky_file = std::move(file);
   m_sky_file.Seek(0, File::SeekOrigin::Begin);
   m_sky_file.ReadBytes(m_data.data(), m_data.size());
+  m_file_path = file_path;
 }
 bool SkylanderFigure::Create(u16 sky_id, u16 sky_var,
                              std::optional<std::array<u8, 4>> requested_nuid)
 {
   if (!m_sky_file)
-  {
     return false;
-  }
 
   memset(m_data.data(), 0, m_data.size());
 
@@ -170,6 +176,19 @@ bool SkylanderFigure::Create(u16 sky_id, u16 sky_var,
 }
 void SkylanderFigure::Save()
 {
+  if (!m_sky_file)
+  {
+    if (m_file_path.empty())
+      return;
+
+    File::IOFile new_sky_file(m_file_path, "w+b");
+    if (!new_sky_file)
+      return;
+
+    else
+      m_sky_file = std::move(new_sky_file);
+  }
+
   m_sky_file.Seek(0, File::SeekOrigin::Begin);
   m_sky_file.WriteBytes(m_data.data(), FIGURE_SIZE);
 }
@@ -410,7 +429,8 @@ void SkylanderFigure::DecryptFigure(std::array<u8, FIGURE_SIZE>* dest) const
 }
 void SkylanderFigure::Close()
 {
-  m_sky_file.Close();
+  if (m_sky_file)
+    m_sky_file.Close();
 }
 void SkylanderFigure::SetBlock(u8 block, const u8* buf)
 {
@@ -418,6 +438,17 @@ void SkylanderFigure::SetBlock(u8 block, const u8* buf)
 }
 bool SkylanderFigure::FileIsOpen() const
 {
-  return m_sky_file.IsOpen();
+  if (m_sky_file)
+    return m_sky_file.IsOpen();
+
+  return false;
+}
+
+void SkylanderFigure::DoState(PointerWrap& p)
+{
+  p.DoArray(m_data);
+  p.Do(m_file_path);
+  if (p.IsReadMode())
+    m_sky_file = nullptr;
 }
 }  // namespace IOS::HLE::USB

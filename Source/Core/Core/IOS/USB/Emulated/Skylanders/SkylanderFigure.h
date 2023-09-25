@@ -10,6 +10,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
+#include "Core/IOS/USB/Common.h"
 
 namespace IOS::HLE::USB
 {
@@ -60,8 +61,9 @@ constexpr u32 FIGURE_SIZE = BLOCK_COUNT * BLOCK_SIZE;
 class SkylanderFigure
 {
 public:
+  SkylanderFigure();
   SkylanderFigure(const std::string& file_path);
-  SkylanderFigure(File::IOFile file);
+  SkylanderFigure(File::IOFile file, std::string file_path);
   bool Create(u16 sky_id, u16 sky_var,
               std::optional<std::array<u8, 4>> requested_nuid = std::nullopt);
   void Save();
@@ -73,6 +75,8 @@ public:
   FigureData GetData() const;
   void SetData(FigureData* data);
 
+  void DoState(PointerWrap& p);
+
 private:
   void PopulateSectorTrailers();
   void PopulateKeys();
@@ -81,5 +85,6 @@ private:
 
   File::IOFile m_sky_file;
   std::array<u8, FIGURE_SIZE> m_data;
+  std::string m_file_path = "";
 };
 }  // namespace IOS::HLE::USB

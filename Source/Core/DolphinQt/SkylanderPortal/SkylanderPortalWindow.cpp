@@ -34,6 +34,7 @@
 #include "Core/IOS/USB/Emulated/Skylanders/Skylander.h"
 #include "Core/System.h"
 
+#include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Resources.h"
@@ -53,6 +54,9 @@ SkylanderPortalWindow::SkylanderPortalWindow(QWidget* parent) : QWidget(parent)
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           &SkylanderPortalWindow::OnEmulationStateChanged);
+
+  connect(Host::GetInstance(), &Host::UpdateSkylanderWindow, this,
+          &SkylanderPortalWindow::OnWindowLoad);
 
   installEventFilter(this);
 
@@ -94,6 +98,8 @@ SkylanderPortalWindow::SkylanderPortalWindow(QWidget* parent) : QWidget(parent)
   m_collection_path = QDir::toNativeSeparators(skylanders_folder.path()) + QDir::separator();
   m_last_skylander_path = m_collection_path;
   m_path_edit->setText(m_collection_path);
+
+  OnWindowLoad();
 };
 
 SkylanderPortalWindow::~SkylanderPortalWindow() = default;
@@ -699,6 +705,24 @@ void SkylanderPortalWindow::OnEmulationStateChanged(Core::State state)
   m_enabled_checkbox->setEnabled(!running);
 }
 
+void SkylanderPortalWindow::OnWindowLoad()
+{
+  for (u8 i = 0; i < MAX_SKYLANDERS; i++)
+  {
+    std::pair<u16, u16> sky_id_var =
+        Core::System::GetInstance().GetSkylanderPortal().GetSkylanderFromSlot(i);
+    if (sky_id_var.first == 9999 && sky_id_var.second == 9999)
+    {
+      m_sky_slots[i].reset();
+    }
+    else
+    {
+      m_sky_slots[i] = {i, sky_id_var.first, sky_id_var.second};
+    }
+  }
+  UpdateSlotNames();
+}
+
 void SkylanderPortalWindow::UpdateCurrentIDs()
 {
   const u32 sky_info = m_skylander_list->currentItem()->data(1).toUInt();
@@ -835,7 +859,7 @@ void SkylanderPortalWindow::LoadSkyfilePath(u8 slot, const QString& path)
   auto& system = Core::System::GetInstance();
   const std::pair<u16, u16> id_var = system.GetSkylanderPortal().CalculateIDs(file_data);
   const u8 portal_slot = system.GetSkylanderPortal().LoadSkylander(
-      std::make_unique<IOS::HLE::USB::SkylanderFigure>(std::move(sky_file)));
+      std::make_unique<IOS::HLE::USB::SkylanderFigure>(std::move(sky_file), path.toStdString()));
   if (portal_slot == 0xFF)
   {
     QMessageBox::warning(this, tr("Failed to load the Skylander file!"),

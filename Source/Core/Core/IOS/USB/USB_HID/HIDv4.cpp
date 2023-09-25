@@ -153,6 +153,9 @@ void USB_HIDv4::DoState(PointerWrap& p)
   p.Do(m_ios_ids);
   p.Do(m_device_ids);
 
+  // Device ID of the Emulated Skylander Portal
+  GetDeviceById(22196413008129)->DoState(p);
+
   USBHost::DoState(p);
 }
 

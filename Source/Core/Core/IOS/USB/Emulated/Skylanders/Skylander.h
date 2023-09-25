@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <deque>
 #include <map>
 #include <mutex>
 #include <queue>
@@ -91,6 +92,8 @@ public:
   void ScheduleTransfer(std::unique_ptr<TransferCommand> command, const std::array<u8, 64>& data,
                         s32 expected_count, u64 expected_time_us);
 
+  void DoState(PointerWrap& p) override;
+
 private:
   EmulationKernel& m_ios;
   u16 m_vid = 0;
@@ -101,14 +104,14 @@ private:
   std::vector<ConfigDescriptor> m_config_descriptor;
   std::vector<InterfaceDescriptor> m_interface_descriptor;
   std::vector<EndpointDescriptor> m_endpoint_descriptor;
-  std::queue<std::array<u8, 64>> m_queries;
+  std::deque<std::array<u8, 64>> m_queries;
 };
 
 struct Skylander final
 {
   std::unique_ptr<SkylanderFigure> figure;
   u8 status = 0;
-  std::queue<u8> queued_status;
+  std::deque<u8> queued_status;
   u32 last_id = 0;
 
   enum : u8
@@ -135,6 +138,7 @@ public:
   bool IsActivated();
   void UpdateStatus();
   void SetLEDs(u8 side, u8 r, u8 g, u8 b);
+  void InitSkylanderVector();
 
   std::array<u8, 64> GetStatus();
   void QueryBlock(u8 sky_num, u8 block, u8* reply_buf);
@@ -144,6 +148,9 @@ public:
   u8 LoadSkylander(std::unique_ptr<SkylanderFigure> figure);
   Skylander* GetSkylander(u8 slot);
   std::pair<u16, u16> CalculateIDs(const std::array<u8, 0x40 * 0x10>& file_data);
+  std::pair<u16, u16> GetSkylanderFromSlot(u8 slot);
+
+  void DoState(PointerWrap& p);
 
 private:
   static bool IsSkylanderNumberValid(u8 sky_num);
@@ -158,7 +165,7 @@ private:
   SkylanderLEDColor m_color_left = {};
   SkylanderLEDColor m_color_trap = {};
 
-  std::array<Skylander, MAX_SKYLANDERS> skylanders;
+  std::vector<Skylander> skylanders;
 };
 
 }  // namespace IOS::HLE::USB

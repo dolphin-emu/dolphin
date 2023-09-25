@@ -69,6 +69,7 @@ private:
 
   // Behind the scenes
   void OnEmulationStateChanged(Core::State state);
+  void OnWindowLoad();
   void OnCollectionPathChanged();
   void UpdateCurrentIDs();
   void CreateSkyfile(const QString& path, bool load_after);

@@ -45,6 +45,8 @@ public:
   int SubmitTransfer(std::unique_ptr<IntrMessage> message) override;
   int SubmitTransfer(std::unique_ptr<IsoMessage> message) override;
 
+  void DoState(PointerWrap& p) override;
+
 private:
   EmulationKernel& m_ios;
 

@@ -336,9 +336,9 @@ void SkylanderModifyDialog::accept()
   if (m_allow_close)
   {
     auto* skylander = Core::System::GetInstance().GetSkylanderPortal().GetSkylander(m_slot);
-    skylander->queued_status.push(IOS::HLE::USB::Skylander::REMOVED);
-    skylander->queued_status.push(IOS::HLE::USB::Skylander::ADDED);
-    skylander->queued_status.push(IOS::HLE::USB::Skylander::READY);
+    skylander->queued_status.push_back(IOS::HLE::USB::Skylander::REMOVED);
+    skylander->queued_status.push_back(IOS::HLE::USB::Skylander::ADDED);
+    skylander->queued_status.push_back(IOS::HLE::USB::Skylander::READY);
     QDialog::accept();
   }
 }

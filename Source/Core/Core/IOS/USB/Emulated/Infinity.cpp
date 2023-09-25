@@ -412,6 +412,11 @@ int InfinityUSB::SubmitTransfer(std::unique_ptr<IsoMessage> cmd)
   return 0;
 }
 
+void InfinityUSB::DoState(PointerWrap& p)
+{
+  // TODO: Should be similar to Skylander Portal
+}
+
 void InfinityUSB::ScheduleTransfer(std::unique_ptr<TransferCommand> command,
                                    const std::array<u8, 32>& data, u64 expected_time_us)
 {
