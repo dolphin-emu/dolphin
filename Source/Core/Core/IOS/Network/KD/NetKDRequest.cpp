@@ -522,6 +522,14 @@ NWC24::ErrorCode NetKDRequestDevice::KDDownload(const u16 entry_index,
   const std::string content_name = m_dl_list.GetVFFContentName(entry_index, subtask_id);
   std::string url = m_dl_list.GetDownloadURL(entry_index, subtask_id);
 
+  if (content_name.empty())
+  {
+    // If a content has an empty name it is meant to be saved to the mailbox. We do not support
+    // saving mail to the mailbox yet and as a result must skip these entries.
+    success = true;
+    return NWC24::WC24_OK;
+  }
+
   // Reroute to custom server if enabled.
   const std::vector<std::string> parts = SplitString(url, '/');
   if (parts.size() < 3)
@@ -588,11 +596,17 @@ NWC24::ErrorCode NetKDRequestDevice::KDDownload(const u16 entry_index,
 
     if (m_dl_list.IsEncrypted(entry_index))
     {
-      NWC24::WC24PubkMod pubk_mod = m_dl_list.GetWC24PubkMod(entry_index);
+      std::optional<NWC24::WC24PubkMod> pubk_mod = m_dl_list.GetWC24PubkMod(entry_index);
+      if (!pubk_mod)
+      {
+        ERROR_LOG_FMT(IOS_WC24, "Failed to get wc24pubk.mod for the current task.");
+        LogError(ErrorType::KD_Download, NWC24::WC24_ERR_FILE_OPEN);
+        return NWC24::WC24_ERR_FILE_OPEN;
+      }
 
       file_data = std::vector<u8>(response->size() - 320);
 
-      Common::AES::CryptOFB(pubk_mod.aes_key, wc24_file.iv, wc24_file.iv, temp_buffer.data(),
+      Common::AES::CryptOFB(pubk_mod->aes_key, wc24_file.iv, wc24_file.iv, temp_buffer.data(),
                             file_data.data(), temp_buffer.size());
     }
     else

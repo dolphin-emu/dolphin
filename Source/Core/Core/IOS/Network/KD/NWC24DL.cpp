@@ -100,9 +100,9 @@ std::string NWC24Dl::GetVFFPath(u16 entry_index) const
   return fmt::format("/title/{0:08x}/{1:08x}/data/wc24dl.vff", lower_title_id, high_title_id);
 }
 
-WC24PubkMod NWC24Dl::GetWC24PubkMod(u16 entry_index) const
+std::optional<WC24PubkMod> NWC24Dl::GetWC24PubkMod(u16 entry_index) const
 {
-  WC24PubkMod pubkMod;
+  WC24PubkMod pubk_mod;
   const u32 lower_title_id = Common::swap32(m_data.entries[entry_index].low_title_id);
   const u32 high_title_id = Common::swap32(m_data.entries[entry_index].high_title_id);
 
@@ -110,9 +110,13 @@ WC24PubkMod NWC24Dl::GetWC24PubkMod(u16 entry_index) const
       fmt::format("/title/{0:08x}/{1:08x}/data/wc24pubk.mod", lower_title_id, high_title_id);
 
   const auto file = m_fs->OpenFile(PID_KD, PID_KD, path, IOS::HLE::FS::Mode::Read);
-  file->Read(&pubkMod, 1);
+  if (!file)
+    return std::nullopt;
 
-  return pubkMod;
+  if (!file->Read(&pubk_mod, 1))
+    return std::nullopt;
+
+  return pubk_mod;
 }
 
 bool NWC24Dl::IsEncrypted(u16 entry_index) const
