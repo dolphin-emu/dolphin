@@ -60,6 +60,8 @@
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeWad.h"
 
+#include "Plugins/PluginLoader.h"
+
 SConfig* SConfig::m_Instance;
 
 SConfig::SConfig()

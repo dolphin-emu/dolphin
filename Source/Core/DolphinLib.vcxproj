@@ -70,10 +70,12 @@
     <Text Include="$(BuildInfoTemplate)" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="VideoCommon\OsdSubtitles\OsdSubtitles.h" />
+    <ClInclude Include="VideoCommon\OnScreenDisplay.enum.h" />
+    <ClInclude Include="Plugins\PluginInterface.h" />
+    <ClInclude Include="Plugins\PluginLoader.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="VideoCommon\OsdSubtitles\OsdSubtitles.cpp" />
+    <ClCompile Include="Plugins\PluginLoader.cpp" />
   </ItemGroup>
   <UsingTask TaskName="GetProductVersion" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>

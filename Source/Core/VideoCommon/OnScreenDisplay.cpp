@@ -31,8 +31,8 @@ static std::atomic<int> s_obscured_pixels_top = 0;
 
 // default message stack
 // static std::multimap<MessageType, Message> s_messages;
-static MessageStack defaultMessageStack = MessageStack();
-static std::map<std::string, MessageStack> messageStacks;
+static OSDMessageStack defaultMessageStack = OSDMessageStack();
+static std::map<std::string, OSDMessageStack> messageStacks;
 
 static std::mutex s_messages_mutex;
 
@@ -45,7 +45,7 @@ static ImVec4 ARGBToImVec4(const u32 argb)
 }
 
 static ImVec2 DrawMessage(int index, Message& msg, const ImVec2& position, int time_left,
-                          MessageStack& messageStack)
+                          OSDMessageStack& messageStack)
 {
   // We have to provide a window name, and these shouldn't be duplicated.
   // So instead, we generate a name based on the number of messages drawn.
@@ -117,55 +117,35 @@ void AddTypedMessage(MessageType type, std::string message, u32 ms, u32 argb,
                      std::string messageStack, bool preventDuplicate)
 {
   std::lock_guard lock{s_messages_mutex};
-  if (messageStacks.find(messageStack) == messageStacks.end())
+
+  OSDMessageStack* stack = &defaultMessageStack;
+  if (messageStacks.contains(messageStack))
   {
-    if (preventDuplicate && messageStacks[messageStack].hasMessage(message, type))
-    {
-      return;
-    }
-    defaultMessageStack.s_messages.erase(type);
-    defaultMessageStack.s_messages.emplace(type, Message(std::move(message), ms, argb));
+    stack = &messageStacks[messageStack];
   }
-  else
+    
+  if (preventDuplicate && stack->hasMessage(message, type))
   {
-    if (preventDuplicate && messageStacks[messageStack].hasMessage(message, type))
-    {
-      return;
-    }
-    messageStacks["messageStack"].s_messages.erase(type);
-    messageStacks["messageStack"].s_messages.emplace(type, Message(std::move(message), ms, argb));
+    return;
   }
+  if (type != MessageType::Typeless)
+  {
+    stack->messages.erase(type);
+  }
+  stack->messages.emplace(type, Message(std::move(message), ms, argb));
 }
 
 void AddMessage(std::string message, u32 ms, u32 argb, std::string messageStack, bool preventDuplicate)
 {
-  std::lock_guard lock{s_messages_mutex};
-  if (messageStacks.contains(messageStack))
-  {
-    if (preventDuplicate && messageStacks[messageStack].hasMessage(message, MessageType::Typeless))
-    {
-      return;
-    }
-    messageStacks[messageStack].s_messages.emplace(MessageType::Typeless,
-                                                   Message(std::move(message), ms, argb));
-  }
-  else
-  {
-    if (preventDuplicate && messageStacks[messageStack].hasMessage(message, MessageType::Typeless))
-    {
-      return;
-    }
-    defaultMessageStack.s_messages.emplace(MessageType::Typeless,
-                                           Message(std::move(message), ms, argb));
-  }
+  AddTypedMessage(MessageType::Typeless, message, ms, argb, messageStack, preventDuplicate);
 }
 
-void AddMessageStack(MessageStack info)
+void AddMessageStack(OSDMessageStack info)
 {
   // TODO handle dups
   messageStacks[info.name] = info;
 }
-void DrawMessages(MessageStack& messageStack)
+void DrawMessages(OSDMessageStack& messageStack)
 {
   const bool draw_messages = Config::Get(Config::MAIN_OSD_MESSAGES);
   float current_x = LEFT_MARGIN * ImGui::GetIO().DisplayFramebufferScale.x +
@@ -184,10 +164,10 @@ void DrawMessages(MessageStack& messageStack)
   }
 
   std::lock_guard lock{s_messages_mutex};
-  for (auto it = (messageStack.reversed ? messageStack.s_messages.end() :
-                                          messageStack.s_messages.begin());
+  for (auto it = (messageStack.reversed ? messageStack.messages.end() :
+                                          messageStack.messages.begin());
        it !=
-       (messageStack.reversed ? messageStack.s_messages.begin() : messageStack.s_messages.end());)
+       (messageStack.reversed ? messageStack.messages.begin() : messageStack.messages.end());)
   {
     if (messageStack.reversed)
     {
@@ -201,7 +181,7 @@ void DrawMessages(MessageStack& messageStack)
     // unless enough time has expired, in that case, we drop them
     if (time_left <= 0 && (msg.ever_drawn || -time_left >= MESSAGE_DROP_TIME))
     {
-      it = messageStack.s_messages.erase(it);
+      it = messageStack.messages.erase(it);
       continue;
     }
     else if (!messageStack.reversed)
@@ -239,10 +219,10 @@ void DrawMessages()
 void ClearMessages()
 {
   std::lock_guard lock{s_messages_mutex};
-  defaultMessageStack.s_messages.clear();
+  defaultMessageStack.messages.clear();
   for (auto& [name, stack] : messageStacks)
   {
-    stack.s_messages.clear();
+    stack.messages.clear();
   }
 }
 

@@ -9,25 +9,10 @@
 #include <imgui.h>
 #include "Common/CommonTypes.h"
 #include "Common/Timer.h"
+#include "OnScreenDisplay.enum.h"
 
 namespace OSD
 {
-enum class MessageStackDirection
-{
-  Downward = 1,
-  Upward = 2,
-  Rightward = 4,
-  Leftward = 8,
-};
-enum class MessageType
-{
-  NetPlayPing,
-  NetPlayBuffer,
-
-  // This entry must be kept last so that persistent typed messages are
-  // displayed before other messages
-  Typeless,
-};
 // TODO clean this mess
 struct Message
 {
@@ -44,18 +29,18 @@ struct Message
   bool ever_drawn = false;
   u32 color = 0;
 };
-struct MessageStack
+class OSDMessageStack
 {
+public:
   ImVec2 initialPosOffset;
   MessageStackDirection dir;
   bool centered;
   bool reversed;
   std::string name;
-
-  std::multimap<OSD::MessageType, OSD::Message> s_messages;
-
-  MessageStack() : MessageStack(0, 0, MessageStackDirection::Downward, false, false, "") {}
-  MessageStack(float _x_offset, float _y_offset, MessageStackDirection _dir, bool _centered,
+  std::multimap<OSD::MessageType, OSD::Message> messages;
+  
+  OSDMessageStack() : OSDMessageStack(0, 0, MessageStackDirection::Downward, false, false, "") {}
+  OSDMessageStack(float _x_offset, float _y_offset, MessageStackDirection _dir, bool _centered,
                bool _reversed, std::string _name)
   {
     initialPosOffset = ImVec2(_x_offset, _y_offset);
@@ -72,7 +57,7 @@ struct MessageStack
 
   bool hasMessage(std::string message, MessageType type = OSD::MessageType::Typeless)
   {
-    for (auto it = s_messages.begin(); it != s_messages.end(); ++it)
+    for (auto it = messages.begin(); it != messages.end(); ++it)
     {
       if (message == it->second.text)
       {
@@ -98,7 +83,7 @@ constexpr u32 NORMAL = 5000;
 constexpr u32 VERY_LONG = 10000;
 };  // namespace Duration
 
-void AddMessageStack(MessageStack info);
+void AddMessageStack(OSDMessageStack info);
 
 // On-screen message display (colored yellow by default)
 void AddMessage(std::string message, u32 ms = Duration::SHORT, u32 argb = Color::YELLOW,

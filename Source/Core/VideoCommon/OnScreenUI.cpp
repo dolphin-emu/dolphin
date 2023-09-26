@@ -29,7 +29,6 @@
 
 #include <imgui.h>
 #include <implot.h>
-#include "OsdSubtitles\OsdSubtitles.h"
 
 namespace VideoCommon
 {
