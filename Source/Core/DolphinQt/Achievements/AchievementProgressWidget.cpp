@@ -49,6 +49,8 @@ AchievementProgressWidget::AchievementProgressWidget(QWidget* parent) : QWidget(
 QGroupBox*
 AchievementProgressWidget::CreateAchievementBox(const rc_api_achievement_definition_t* achievement)
 {
+  if (!AchievementManager::GetInstance()->IsGameLoaded())
+    return new QGroupBox();
   QLabel* a_title = new QLabel(QString::fromUtf8(achievement->title, strlen(achievement->title)));
   QLabel* a_description =
       new QLabel(QString::fromUtf8(achievement->description, strlen(achievement->description)));
@@ -91,6 +93,8 @@ void AchievementProgressWidget::UpdateData()
     delete item;
   }
 
+  if (!AchievementManager::GetInstance()->IsGameLoaded())
+    return;
   const auto* game_data = AchievementManager::GetInstance()->GetGameData();
   for (u32 ix = 0; ix < game_data->num_achievements; ix++)
   {
