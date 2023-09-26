@@ -447,14 +447,19 @@ void AchievementManager::CloseGame()
 {
   {
     std::lock_guard lg{m_lock};
-    m_is_game_loaded = false;
-    m_game_id = 0;
-    m_queue.Cancel();
-    m_unlock_map.clear();
-    m_system = nullptr;
-    ActivateDeactivateAchievements();
-    ActivateDeactivateLeaderboards();
-    ActivateDeactivateRichPresence();
+    if (m_is_game_loaded)
+    {
+      m_is_game_loaded = false;
+      ActivateDeactivateAchievements();
+      ActivateDeactivateLeaderboards();
+      ActivateDeactivateRichPresence();
+      m_game_id = 0;
+      m_unlock_map.clear();
+      rc_api_destroy_fetch_game_data_response(&m_game_data);
+      std::memset(&m_game_data, 0, sizeof(m_game_data));
+      m_queue.Cancel();
+      m_system = nullptr;
+    }
   }
   if (m_update_callback)
     m_update_callback();
