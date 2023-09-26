@@ -59,6 +59,8 @@ std::optional<IPCReply> USB_HIDv4::IOCtl(const IOCtlRequest& request)
     if (request.buffer_in == 0 || request.buffer_in_size != 32)
       return IPCReply(IPC_EINVAL);
     const auto device = GetDeviceByIOSID(memory.Read_U32(request.buffer_in + 16));
+    if (!device)
+      return IPCReply(IPC_ENOENT);
     if (!device->Attach())
       return IPCReply(IPC_EINVAL);
     return HandleTransfer(device, request.request,
