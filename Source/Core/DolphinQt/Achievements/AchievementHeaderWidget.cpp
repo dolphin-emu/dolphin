@@ -65,11 +65,11 @@ AchievementHeaderWidget::AchievementHeaderWidget(QWidget* parent) : QWidget(pare
   m_total->addWidget(m_user_box);
   m_total->addWidget(m_game_box);
 
-  UpdateData();
-
   m_total->setContentsMargins(0, 0, 0, 0);
   m_total->setAlignment(Qt::AlignTop);
   setLayout(m_total);
+
+  UpdateData();
 }
 
 void AchievementHeaderWidget::UpdateData()
