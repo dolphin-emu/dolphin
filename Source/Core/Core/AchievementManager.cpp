@@ -545,11 +545,16 @@ AchievementManager::ResolveHash(std::array<char, HASH_LENGTH> game_hash)
 
 AchievementManager::ResponseType AchievementManager::StartRASession()
 {
+  rc_api_start_session_request_t start_session_request;
   rc_api_start_session_response_t session_data{};
-  std::string username = Config::Get(Config::RA_USERNAME);
-  std::string api_token = Config::Get(Config::RA_API_TOKEN);
-  rc_api_start_session_request_t start_session_request = {
-      .username = username.c_str(), .api_token = api_token.c_str(), .game_id = m_game_id};
+  std::string username, api_token;
+  {
+    std::lock_guard lg{m_lock};
+    username = Config::Get(Config::RA_USERNAME);
+    api_token = Config::Get(Config::RA_API_TOKEN);
+    start_session_request = {
+        .username = username.c_str(), .api_token = api_token.c_str(), .game_id = m_game_id};
+  }
   ResponseType r_type = Request<rc_api_start_session_request_t, rc_api_start_session_response_t>(
       start_session_request, &session_data, rc_api_init_start_session_request,
       rc_api_process_start_session_response);
