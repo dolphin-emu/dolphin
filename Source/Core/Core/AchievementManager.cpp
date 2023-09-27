@@ -54,11 +54,7 @@ AchievementManager::ResponseType AchievementManager::Login(const std::string& pa
                                 "Achievement Manager initialized.");
     return AchievementManager::ResponseType::MANAGER_NOT_INITIALIZED;
   }
-  AchievementManager::ResponseType r_type = AchievementManager::ResponseType::UNKNOWN_FAILURE;
-  {
-    std::lock_guard lg{m_lock};
-    r_type = VerifyCredentials(password);
-  }
+  AchievementManager::ResponseType r_type = VerifyCredentials(password);
   if (m_update_callback)
     m_update_callback();
   return r_type;
@@ -74,10 +70,7 @@ void AchievementManager::LoginAsync(const std::string& password, const ResponseC
     return;
   }
   m_queue.EmplaceItem([this, password, callback] {
-    {
-      std::lock_guard lg{m_lock};
-      callback(VerifyCredentials(password));
-    }
+    callback(VerifyCredentials(password));
     if (m_update_callback)
       m_update_callback();
   });
@@ -488,22 +481,34 @@ void AchievementManager::Shutdown()
 AchievementManager::ResponseType AchievementManager::VerifyCredentials(const std::string& password)
 {
   rc_api_login_response_t login_data{};
-  std::string username = Config::Get(Config::RA_USERNAME);
-  std::string api_token = Config::Get(Config::RA_API_TOKEN);
+  std::string username, api_token;
+  {
+    std::lock_guard lg{m_lock};
+    username = Config::Get(Config::RA_USERNAME);
+    api_token = Config::Get(Config::RA_API_TOKEN);
+  }
   rc_api_login_request_t login_request = {
       .username = username.c_str(), .api_token = api_token.c_str(), .password = password.c_str()};
   ResponseType r_type = Request<rc_api_login_request_t, rc_api_login_response_t>(
       login_request, &login_data, rc_api_init_login_request, rc_api_process_login_response);
   if (r_type == ResponseType::SUCCESS)
   {
-    INFO_LOG_FMT(ACHIEVEMENTS, "Successfully logged in to RetroAchievements server.");
+    INFO_LOG_FMT(ACHIEVEMENTS, "Successfully logged in {} to RetroAchievements server.", username);
+    std::lock_guard lg{m_lock};
+    if (username != Config::Get(Config::RA_USERNAME))
+    {
+      INFO_LOG_FMT(ACHIEVEMENTS, "Attempted to login prior user {}; current user is {}.", username,
+                   Config::Get(Config::RA_USERNAME));
+      Config::SetBaseOrCurrent(Config::RA_API_TOKEN, "");
+      return ResponseType::EXPIRED_CONTEXT;
+    }
     Config::SetBaseOrCurrent(Config::RA_API_TOKEN, login_data.api_token);
     m_display_name = login_data.display_name;
     m_player_score = login_data.score;
   }
   else
   {
-    WARN_LOG_FMT(ACHIEVEMENTS, "Failed to login to RetroAchievements server.");
+    WARN_LOG_FMT(ACHIEVEMENTS, "Failed to login {} to RetroAchievements server.", username);
   }
   rc_api_destroy_login_response(&login_data);
   return r_type;
