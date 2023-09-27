@@ -518,8 +518,12 @@ AchievementManager::ResponseType
 AchievementManager::ResolveHash(std::array<char, HASH_LENGTH> game_hash)
 {
   rc_api_resolve_hash_response_t hash_data{};
-  std::string username = Config::Get(Config::RA_USERNAME);
-  std::string api_token = Config::Get(Config::RA_API_TOKEN);
+  std::string username, api_token;
+  {
+    std::lock_guard lg{m_lock};
+    username = Config::Get(Config::RA_USERNAME);
+    api_token = Config::Get(Config::RA_API_TOKEN);
+  }
   rc_api_resolve_hash_request_t resolve_hash_request = {
       .username = username.c_str(), .api_token = api_token.c_str(), .game_hash = game_hash.data()};
   ResponseType r_type = Request<rc_api_resolve_hash_request_t, rc_api_resolve_hash_response_t>(
@@ -527,6 +531,7 @@ AchievementManager::ResolveHash(std::array<char, HASH_LENGTH> game_hash)
       rc_api_process_resolve_hash_response);
   if (r_type == ResponseType::SUCCESS)
   {
+    std::lock_guard lg{m_lock};
     m_game_id = hash_data.game_id;
     INFO_LOG_FMT(ACHIEVEMENTS, "Hashed game ID {} for RetroAchievements.", m_game_id);
   }
