@@ -564,13 +564,73 @@ AchievementManager::ResponseType AchievementManager::StartRASession()
 
 AchievementManager::ResponseType AchievementManager::FetchGameData()
 {
-  std::string username = Config::Get(Config::RA_USERNAME);
-  std::string api_token = Config::Get(Config::RA_API_TOKEN);
-  rc_api_fetch_game_data_request_t fetch_data_request = {
-      .username = username.c_str(), .api_token = api_token.c_str(), .game_id = m_game_id};
-  return Request<rc_api_fetch_game_data_request_t, rc_api_fetch_game_data_response_t>(
-      fetch_data_request, &m_game_data, rc_api_init_fetch_game_data_request,
-      rc_api_process_fetch_game_data_response);
+  rc_api_fetch_game_data_request_t fetch_data_request;
+  rc_api_request_t api_request;
+  Common::HttpRequest http_request;
+  std::string username, api_token;
+  u32 game_id;
+  {
+    std::lock_guard lg{m_lock};
+    username = Config::Get(Config::RA_USERNAME);
+    api_token = Config::Get(Config::RA_API_TOKEN);
+    game_id = m_game_id;
+  }
+  fetch_data_request = {
+      .username = username.c_str(), .api_token = api_token.c_str(), .game_id = game_id};
+  if (rc_api_init_fetch_game_data_request(&api_request, &fetch_data_request) != RC_OK ||
+      !api_request.post_data)
+  {
+    ERROR_LOG_FMT(ACHIEVEMENTS, "Invalid API request for game data.");
+    return ResponseType::INVALID_REQUEST;
+  }
+  auto http_response = http_request.Post(api_request.url, api_request.post_data);
+  rc_api_destroy_request(&api_request);
+  if (!http_response.has_value() || http_response->size() == 0)
+  {
+    WARN_LOG_FMT(ACHIEVEMENTS,
+                 "RetroAchievements connection failed while fetching game data for ID {}. \nURL: "
+                 "{} \npost_data: {}",
+                 game_id, api_request.url,
+                 api_request.post_data == nullptr ? "NULL" : api_request.post_data);
+    return ResponseType::CONNECTION_FAILED;
+  }
+  std::lock_guard lg{m_lock};
+  const std::string response_str(http_response->begin(), http_response->end());
+  if (rc_api_process_fetch_game_data_response(&m_game_data, response_str.c_str()) != RC_OK)
+  {
+    ERROR_LOG_FMT(ACHIEVEMENTS,
+                  "Failed to process HTTP response fetching game data for ID {}. \nURL: {} "
+                  "\npost_data: {} \nresponse: {}",
+                  game_id, api_request.url,
+                  api_request.post_data == nullptr ? "NULL" : api_request.post_data, response_str);
+    rc_api_destroy_fetch_game_data_response(&m_game_data);
+    std::memset(&m_game_data, 0, sizeof(m_game_data));
+    return ResponseType::MALFORMED_OBJECT;
+  }
+  if (!m_game_data.response.succeeded)
+  {
+    WARN_LOG_FMT(
+        ACHIEVEMENTS,
+        "Invalid RetroAchievements credentials fetching game data for ID {}; logging out user {}",
+        game_id, username);
+    // Logout technically does this via a CloseGame call, but doing this now prevents the activate
+    // methods from thinking they have something to do.
+    rc_api_destroy_fetch_game_data_response(&m_game_data);
+    std::memset(&m_game_data, 0, sizeof(m_game_data));
+    Logout();
+    return ResponseType::INVALID_CREDENTIALS;
+  }
+  if (game_id != m_game_id)
+  {
+    INFO_LOG_FMT(ACHIEVEMENTS,
+                 "Attempted to retrieve game data for ID {}; running game is now ID {}", game_id,
+                 m_game_id);
+    rc_api_destroy_fetch_game_data_response(&m_game_data);
+    std::memset(&m_game_data, 0, sizeof(m_game_data));
+    return ResponseType::EXPIRED_CONTEXT;
+  }
+  INFO_LOG_FMT(ACHIEVEMENTS, "Retrieved game data for ID {}.", game_id);
+  return ResponseType::SUCCESS;
 }
 
 AchievementManager::ResponseType AchievementManager::FetchUnlockData(bool hardcore)
@@ -856,7 +916,14 @@ AchievementManager::ResponseType AchievementManager::Request(
   if (http_response.has_value() && http_response->size() > 0)
   {
     const std::string response_str(http_response->begin(), http_response->end());
-    process_response(rc_response, response_str.c_str());
+    if (process_response(rc_response, response_str.c_str()) != RC_OK)
+    {
+      ERROR_LOG_FMT(
+          ACHIEVEMENTS, "Failed to process HTTP response. \nURL: {} \npost_data: {} \nresponse: {}",
+          api_request.url, api_request.post_data == nullptr ? "NULL" : api_request.post_data,
+          response_str);
+      return ResponseType::MALFORMED_OBJECT;
+    }
     if (rc_response->response.succeeded)
     {
       return ResponseType::SUCCESS;
@@ -870,7 +937,9 @@ AchievementManager::ResponseType AchievementManager::Request(
   }
   else
   {
-    WARN_LOG_FMT(ACHIEVEMENTS, "RetroAchievements connection failed.");
+    WARN_LOG_FMT(ACHIEVEMENTS, "RetroAchievements connection failed. \nURL: {} \npost_data: {}",
+                 api_request.url,
+                 api_request.post_data == nullptr ? "NULL" : api_request.post_data);
     return ResponseType::CONNECTION_FAILED;
   }
 }
