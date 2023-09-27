@@ -34,6 +34,8 @@ public:
     INVALID_REQUEST,
     INVALID_CREDENTIALS,
     CONNECTION_FAILED,
+    MALFORMED_OBJECT,
+    EXPIRED_CONTEXT,
     UNKNOWN_FAILURE
   };
   using ResponseCallback = std::function<void(ResponseType)>;
