@@ -54,11 +54,7 @@ AchievementManager::ResponseType AchievementManager::Login(const std::string& pa
                                 "Achievement Manager initialized.");
     return AchievementManager::ResponseType::MANAGER_NOT_INITIALIZED;
   }
-  AchievementManager::ResponseType r_type = AchievementManager::ResponseType::UNKNOWN_FAILURE;
-  {
-    std::lock_guard lg{m_lock};
-    r_type = VerifyCredentials(password);
-  }
+  AchievementManager::ResponseType r_type = VerifyCredentials(password);
   if (m_update_callback)
     m_update_callback();
   return r_type;
@@ -74,10 +70,7 @@ void AchievementManager::LoginAsync(const std::string& password, const ResponseC
     return;
   }
   m_queue.EmplaceItem([this, password, callback] {
-    {
-      std::lock_guard lg{m_lock};
-      callback(VerifyCredentials(password));
-    }
+    callback(VerifyCredentials(password));
     if (m_update_callback)
       m_update_callback();
   });
@@ -447,14 +440,19 @@ void AchievementManager::CloseGame()
 {
   {
     std::lock_guard lg{m_lock};
-    m_is_game_loaded = false;
-    m_game_id = 0;
-    m_queue.Cancel();
-    m_unlock_map.clear();
-    m_system = nullptr;
-    ActivateDeactivateAchievements();
-    ActivateDeactivateLeaderboards();
-    ActivateDeactivateRichPresence();
+    if (m_is_game_loaded)
+    {
+      m_is_game_loaded = false;
+      ActivateDeactivateAchievements();
+      ActivateDeactivateLeaderboards();
+      ActivateDeactivateRichPresence();
+      m_game_id = 0;
+      m_unlock_map.clear();
+      rc_api_destroy_fetch_game_data_response(&m_game_data);
+      std::memset(&m_game_data, 0, sizeof(m_game_data));
+      m_queue.Cancel();
+      m_system = nullptr;
+    }
   }
   if (m_update_callback)
     m_update_callback();
@@ -483,22 +481,34 @@ void AchievementManager::Shutdown()
 AchievementManager::ResponseType AchievementManager::VerifyCredentials(const std::string& password)
 {
   rc_api_login_response_t login_data{};
-  std::string username = Config::Get(Config::RA_USERNAME);
-  std::string api_token = Config::Get(Config::RA_API_TOKEN);
+  std::string username, api_token;
+  {
+    std::lock_guard lg{m_lock};
+    username = Config::Get(Config::RA_USERNAME);
+    api_token = Config::Get(Config::RA_API_TOKEN);
+  }
   rc_api_login_request_t login_request = {
       .username = username.c_str(), .api_token = api_token.c_str(), .password = password.c_str()};
   ResponseType r_type = Request<rc_api_login_request_t, rc_api_login_response_t>(
       login_request, &login_data, rc_api_init_login_request, rc_api_process_login_response);
   if (r_type == ResponseType::SUCCESS)
   {
-    INFO_LOG_FMT(ACHIEVEMENTS, "Successfully logged in to RetroAchievements server.");
+    INFO_LOG_FMT(ACHIEVEMENTS, "Successfully logged in {} to RetroAchievements server.", username);
+    std::lock_guard lg{m_lock};
+    if (username != Config::Get(Config::RA_USERNAME))
+    {
+      INFO_LOG_FMT(ACHIEVEMENTS, "Attempted to login prior user {}; current user is {}.", username,
+                   Config::Get(Config::RA_USERNAME));
+      Config::SetBaseOrCurrent(Config::RA_API_TOKEN, "");
+      return ResponseType::EXPIRED_CONTEXT;
+    }
     Config::SetBaseOrCurrent(Config::RA_API_TOKEN, login_data.api_token);
     m_display_name = login_data.display_name;
     m_player_score = login_data.score;
   }
   else
   {
-    WARN_LOG_FMT(ACHIEVEMENTS, "Failed to login to RetroAchievements server.");
+    WARN_LOG_FMT(ACHIEVEMENTS, "Failed to login {} to RetroAchievements server.", username);
   }
   rc_api_destroy_login_response(&login_data);
   return r_type;
@@ -508,8 +518,12 @@ AchievementManager::ResponseType
 AchievementManager::ResolveHash(std::array<char, HASH_LENGTH> game_hash)
 {
   rc_api_resolve_hash_response_t hash_data{};
-  std::string username = Config::Get(Config::RA_USERNAME);
-  std::string api_token = Config::Get(Config::RA_API_TOKEN);
+  std::string username, api_token;
+  {
+    std::lock_guard lg{m_lock};
+    username = Config::Get(Config::RA_USERNAME);
+    api_token = Config::Get(Config::RA_API_TOKEN);
+  }
   rc_api_resolve_hash_request_t resolve_hash_request = {
       .username = username.c_str(), .api_token = api_token.c_str(), .game_hash = game_hash.data()};
   ResponseType r_type = Request<rc_api_resolve_hash_request_t, rc_api_resolve_hash_response_t>(
@@ -517,6 +531,7 @@ AchievementManager::ResolveHash(std::array<char, HASH_LENGTH> game_hash)
       rc_api_process_resolve_hash_response);
   if (r_type == ResponseType::SUCCESS)
   {
+    std::lock_guard lg{m_lock};
     m_game_id = hash_data.game_id;
     INFO_LOG_FMT(ACHIEVEMENTS, "Hashed game ID {} for RetroAchievements.", m_game_id);
   }
@@ -530,11 +545,16 @@ AchievementManager::ResolveHash(std::array<char, HASH_LENGTH> game_hash)
 
 AchievementManager::ResponseType AchievementManager::StartRASession()
 {
+  rc_api_start_session_request_t start_session_request;
   rc_api_start_session_response_t session_data{};
-  std::string username = Config::Get(Config::RA_USERNAME);
-  std::string api_token = Config::Get(Config::RA_API_TOKEN);
-  rc_api_start_session_request_t start_session_request = {
-      .username = username.c_str(), .api_token = api_token.c_str(), .game_id = m_game_id};
+  std::string username, api_token;
+  {
+    std::lock_guard lg{m_lock};
+    username = Config::Get(Config::RA_USERNAME);
+    api_token = Config::Get(Config::RA_API_TOKEN);
+    start_session_request = {
+        .username = username.c_str(), .api_token = api_token.c_str(), .game_id = m_game_id};
+  }
   ResponseType r_type = Request<rc_api_start_session_request_t, rc_api_start_session_response_t>(
       start_session_request, &session_data, rc_api_init_start_session_request,
       rc_api_process_start_session_response);
@@ -544,13 +564,73 @@ AchievementManager::ResponseType AchievementManager::StartRASession()
 
 AchievementManager::ResponseType AchievementManager::FetchGameData()
 {
-  std::string username = Config::Get(Config::RA_USERNAME);
-  std::string api_token = Config::Get(Config::RA_API_TOKEN);
-  rc_api_fetch_game_data_request_t fetch_data_request = {
-      .username = username.c_str(), .api_token = api_token.c_str(), .game_id = m_game_id};
-  return Request<rc_api_fetch_game_data_request_t, rc_api_fetch_game_data_response_t>(
-      fetch_data_request, &m_game_data, rc_api_init_fetch_game_data_request,
-      rc_api_process_fetch_game_data_response);
+  rc_api_fetch_game_data_request_t fetch_data_request;
+  rc_api_request_t api_request;
+  Common::HttpRequest http_request;
+  std::string username, api_token;
+  u32 game_id;
+  {
+    std::lock_guard lg{m_lock};
+    username = Config::Get(Config::RA_USERNAME);
+    api_token = Config::Get(Config::RA_API_TOKEN);
+    game_id = m_game_id;
+  }
+  fetch_data_request = {
+      .username = username.c_str(), .api_token = api_token.c_str(), .game_id = game_id};
+  if (rc_api_init_fetch_game_data_request(&api_request, &fetch_data_request) != RC_OK ||
+      !api_request.post_data)
+  {
+    ERROR_LOG_FMT(ACHIEVEMENTS, "Invalid API request for game data.");
+    return ResponseType::INVALID_REQUEST;
+  }
+  auto http_response = http_request.Post(api_request.url, api_request.post_data);
+  rc_api_destroy_request(&api_request);
+  if (!http_response.has_value() || http_response->size() == 0)
+  {
+    WARN_LOG_FMT(ACHIEVEMENTS,
+                 "RetroAchievements connection failed while fetching game data for ID {}. \nURL: "
+                 "{} \npost_data: {}",
+                 game_id, api_request.url,
+                 api_request.post_data == nullptr ? "NULL" : api_request.post_data);
+    return ResponseType::CONNECTION_FAILED;
+  }
+  std::lock_guard lg{m_lock};
+  const std::string response_str(http_response->begin(), http_response->end());
+  if (rc_api_process_fetch_game_data_response(&m_game_data, response_str.c_str()) != RC_OK)
+  {
+    ERROR_LOG_FMT(ACHIEVEMENTS,
+                  "Failed to process HTTP response fetching game data for ID {}. \nURL: {} "
+                  "\npost_data: {} \nresponse: {}",
+                  game_id, api_request.url,
+                  api_request.post_data == nullptr ? "NULL" : api_request.post_data, response_str);
+    rc_api_destroy_fetch_game_data_response(&m_game_data);
+    std::memset(&m_game_data, 0, sizeof(m_game_data));
+    return ResponseType::MALFORMED_OBJECT;
+  }
+  if (!m_game_data.response.succeeded)
+  {
+    WARN_LOG_FMT(
+        ACHIEVEMENTS,
+        "Invalid RetroAchievements credentials fetching game data for ID {}; logging out user {}",
+        game_id, username);
+    // Logout technically does this via a CloseGame call, but doing this now prevents the activate
+    // methods from thinking they have something to do.
+    rc_api_destroy_fetch_game_data_response(&m_game_data);
+    std::memset(&m_game_data, 0, sizeof(m_game_data));
+    Logout();
+    return ResponseType::INVALID_CREDENTIALS;
+  }
+  if (game_id != m_game_id)
+  {
+    INFO_LOG_FMT(ACHIEVEMENTS,
+                 "Attempted to retrieve game data for ID {}; running game is now ID {}", game_id,
+                 m_game_id);
+    rc_api_destroy_fetch_game_data_response(&m_game_data);
+    std::memset(&m_game_data, 0, sizeof(m_game_data));
+    return ResponseType::EXPIRED_CONTEXT;
+  }
+  INFO_LOG_FMT(ACHIEVEMENTS, "Retrieved game data for ID {}.", game_id);
+  return ResponseType::SUCCESS;
 }
 
 AchievementManager::ResponseType AchievementManager::FetchUnlockData(bool hardcore)
@@ -836,7 +916,14 @@ AchievementManager::ResponseType AchievementManager::Request(
   if (http_response.has_value() && http_response->size() > 0)
   {
     const std::string response_str(http_response->begin(), http_response->end());
-    process_response(rc_response, response_str.c_str());
+    if (process_response(rc_response, response_str.c_str()) != RC_OK)
+    {
+      ERROR_LOG_FMT(
+          ACHIEVEMENTS, "Failed to process HTTP response. \nURL: {} \npost_data: {} \nresponse: {}",
+          api_request.url, api_request.post_data == nullptr ? "NULL" : api_request.post_data,
+          response_str);
+      return ResponseType::MALFORMED_OBJECT;
+    }
     if (rc_response->response.succeeded)
     {
       return ResponseType::SUCCESS;
@@ -850,7 +937,9 @@ AchievementManager::ResponseType AchievementManager::Request(
   }
   else
   {
-    WARN_LOG_FMT(ACHIEVEMENTS, "RetroAchievements connection failed.");
+    WARN_LOG_FMT(ACHIEVEMENTS, "RetroAchievements connection failed. \nURL: {} \npost_data: {}",
+                 api_request.url,
+                 api_request.post_data == nullptr ? "NULL" : api_request.post_data);
     return ResponseType::CONNECTION_FAILED;
   }
 }
