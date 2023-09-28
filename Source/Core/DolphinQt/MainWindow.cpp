@@ -280,6 +280,9 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
     }
   }
 
+  m_state_slot =
+      std::clamp(Settings::Instance().GetStateSlot(), 1, static_cast<int>(State::NUM_STATES));
+
   QSettings& settings = Settings::GetQSettings();
 
   restoreState(settings.value(QStringLiteral("mainwindow/state")).toByteArray());
