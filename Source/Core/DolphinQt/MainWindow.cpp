@@ -42,6 +42,7 @@
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/CommonTitles.h"
+#include "Core/Config/AchievementSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Config/WiimoteSettings.h"
@@ -229,11 +230,6 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
 
   InitControllers();
 
-#ifdef USE_RETRO_ACHIEVEMENTS
-  // This has to be done before CreateComponents() so it's initialized.
-  AchievementManager::GetInstance()->Init();
-#endif  // USE_RETRO_ACHIEVEMENTS
-
   CreateComponents();
 
   ConnectGameList();
@@ -258,6 +254,10 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
 
   NetPlayInit();
 
+#ifdef USE_RETRO_ACHIEVEMENTS
+  AchievementManager::GetInstance()->Init();
+#endif  // USE_RETRO_ACHIEVEMENTS
+
 #if defined(__unix__) || defined(__unix) || defined(__APPLE__)
   auto* daemon = new SignalDaemon(this);
 
@@ -281,6 +281,9 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
       }
     }
   }
+
+  m_state_slot =
+      std::clamp(Settings::Instance().GetStateSlot(), 1, static_cast<int>(State::NUM_STATES));
 
   QSettings& settings = Settings::GetQSettings();
 

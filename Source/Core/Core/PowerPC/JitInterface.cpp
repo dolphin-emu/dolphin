@@ -206,7 +206,7 @@ JitInterface::GetHostCode(u32 address) const
   }
 
   GetHostCodeResult result;
-  result.code = block->checkedEntry;
+  result.code = block->normalEntry;
   result.code_size = block->codeSize;
   result.entry_address = block->effectiveAddress;
   return result;

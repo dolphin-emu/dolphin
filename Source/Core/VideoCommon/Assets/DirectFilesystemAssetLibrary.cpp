@@ -4,12 +4,12 @@
 #include "VideoCommon/Assets/DirectFilesystemAssetLibrary.h"
 
 #include <algorithm>
-#include <fmt/os.h>
+
+#include <fmt/std.h>
 
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-#include "VideoCommon/Assets/CustomTextureData.h"
 #include "VideoCommon/Assets/MaterialAsset.h"
 #include "VideoCommon/Assets/ShaderAsset.h"
 
@@ -34,9 +34,12 @@ std::chrono::system_clock::time_point FileTimeToSysTime(std::filesystem::file_ti
 std::size_t GetAssetSize(const CustomTextureData& data)
 {
   std::size_t total = 0;
-  for (const auto& level : data.m_levels)
+  for (const auto& slice : data.m_slices)
   {
-    total += level.data.size();
+    for (const auto& level : slice.m_levels)
+    {
+      total += level.data.size();
+    }
   }
   return total;
 }
@@ -247,24 +250,32 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const Ass
       return {};
     }
 
-    if (!LoadMips(asset_path, data))
+    if (data->m_slices.empty()) [[unlikely]]
+      data->m_slices.push_back({});
+
+    if (!LoadMips(asset_path, &data->m_slices[0]))
       return {};
 
     return LoadInfo{GetAssetSize(*data), FileTimeToSysTime(last_loaded_time)};
   }
   else if (ext == ".png")
   {
-    // If we have no levels, create one to pass into LoadPNGTexture
-    if (data->m_levels.empty())
-      data->m_levels.push_back({});
+    // If we have no slices, create one
+    if (data->m_slices.empty())
+      data->m_slices.push_back({});
 
-    if (!LoadPNGTexture(&data->m_levels[0], PathToString(asset_path)))
+    auto& slice = data->m_slices[0];
+    // If we have no levels, create one to pass into LoadPNGTexture
+    if (slice.m_levels.empty())
+      slice.m_levels.push_back({});
+
+    if (!LoadPNGTexture(&slice.m_levels[0], PathToString(asset_path)))
     {
       ERROR_LOG_FMT(VIDEO, "Asset '{}' error - could not load png texture!", asset_id);
       return {};
     }
 
-    if (!LoadMips(asset_path, data))
+    if (!LoadMips(asset_path, &slice))
       return {};
 
     return LoadInfo{GetAssetSize(*data), FileTimeToSysTime(last_loaded_time)};
@@ -282,7 +293,7 @@ void DirectFilesystemAssetLibrary::SetAssetIDMapData(const AssetID& asset_id,
 }
 
 bool DirectFilesystemAssetLibrary::LoadMips(const std::filesystem::path& asset_path,
-                                            CustomTextureData* data)
+                                            CustomTextureData::ArraySlice* data)
 {
   if (!data) [[unlikely]]
     return false;
@@ -304,7 +315,7 @@ bool DirectFilesystemAssetLibrary::LoadMips(const std::filesystem::path& asset_p
     if (!File::Exists(full_path))
       return true;
 
-    VideoCommon::CustomTextureData::Level level;
+    VideoCommon::CustomTextureData::ArraySlice::Level level;
     if (extension_lower == ".dds")
     {
       if (!LoadDDSTexture(&level, full_path, mip_level))

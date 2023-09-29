@@ -9,8 +9,8 @@ import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter
 
 open class HeaderViewHolder(
     private val binding: ListItemHeaderBinding,
-    adapter: SettingsAdapter?
-) : SettingViewHolder(binding.root, adapter!!) {
+    adapter: SettingsAdapter
+) : SettingViewHolder(binding.root, adapter) {
     override val item: SettingsItem? = null
 
     init {

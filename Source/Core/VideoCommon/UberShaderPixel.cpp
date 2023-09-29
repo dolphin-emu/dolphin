@@ -499,33 +499,33 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
       for (u32 i = 0; i < numTexgen; i++)
       {
         out.Write("  case {}u:\n"
-                  "    return {};\n",
+                  "    return {}u;\n",
                   i, i);
       }
       out.Write("  default:\n"
-                "    return 0;\n"
+                "    return 0u;\n"
                 "  }}\n");
     }
     else
     {
       out.Write("  if (texmap >= {}u) {{\n", numTexgen);
-      out.Write("    return 0;\n"
+      out.Write("    return 0u;\n"
                 "  }}\n");
       if (numTexgen > 4)
         out.Write("  if (texmap < 4u) {{\n");
       if (numTexgen > 2)
         out.Write("    if (texmap < 2u) {{\n");
       if (numTexgen > 1)
-        out.Write("      return (texmap == 0u) ? 0 : 1;\n");
+        out.Write("      return (texmap == 0u) ? 0u : 1u;\n");
       else
-        out.Write("      return 0;\n");
+        out.Write("      return 0u;\n");
       if (numTexgen > 2)
       {
         out.Write("    }} else {{\n");  // >= 2 < min(4, numTexgen)
         if (numTexgen > 3)
-          out.Write("      return (texmap == 2u) ? 2 : 3;\n");
+          out.Write("      return (texmap == 2u) ? 2u : 3u;\n");
         else
-          out.Write("      return 2;\n");
+          out.Write("      return 2u;\n");
         out.Write("    }}\n");
       }
       if (numTexgen > 4)
@@ -534,16 +534,16 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
         if (numTexgen > 6)
           out.Write("    if (texmap < 6u) {{\n");
         if (numTexgen > 5)
-          out.Write("      return (texmap == 4u) ? 4 : 5;\n");
+          out.Write("      return (texmap == 4u) ? 4u : 5u;\n");
         else
-          out.Write("      return 4;\n");
+          out.Write("      return 4u;\n");
         if (numTexgen > 6)
         {
           out.Write("    }} else {{\n");  // >= 6 < min(8, numTexgen)
           if (numTexgen > 7)
-            out.Write("      return (texmap == 6u) ? 6 : 7;\n");
+            out.Write("      return (texmap == 6u) ? 6u : 7u;\n");
           else
-            out.Write("      return 6;\n");
+            out.Write("      return 6u;\n");
           out.Write("    }}\n");
         }
         out.Write("  }}\n");

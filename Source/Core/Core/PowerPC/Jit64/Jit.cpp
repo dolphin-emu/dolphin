@@ -251,6 +251,8 @@ bool Jit64::BackPatch(SContext* ctx)
 
 void Jit64::Init()
 {
+  RefreshConfig();
+
   EnableBlockLink();
 
   auto& memory = m_system.GetMemory();
@@ -258,7 +260,6 @@ void Jit64::Init()
   jo.fastmem_arena = m_fastmem_enabled && memory.InitFastmemArena();
   jo.optimizeGatherPipe = true;
   jo.accurateSinglePrecision = true;
-  UpdateMemoryAndExceptionOptions();
   js.fastmemLoadStore = nullptr;
   js.compilerPC = 0;
 
@@ -306,7 +307,7 @@ void Jit64::ClearCache()
   m_const_pool.Clear();
   ClearCodeSpace();
   Clear();
-  UpdateMemoryAndExceptionOptions();
+  RefreshConfig();
   ResetFreeMemoryRanges();
 }
 
@@ -851,9 +852,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   js.numFloatingPointInst = 0;
 
   // TODO: Test if this or AlignCode16 make a difference from GetCodePtr
-  u8* const start = AlignCode4();
-  b->checkedEntry = start;
-  b->normalEntry = start;
+  b->normalEntry = AlignCode4();
 
   // Used to get a trace of the last few blocks before a crash, sometimes VERY useful
   if (m_im_here_debug)
@@ -950,53 +949,58 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       js.isLastInstruction = true;
     }
 
-    // Gather pipe writes using a non-immediate address are discovered by profiling.
-    bool gatherPipeIntCheck = js.fifoWriteAddresses.find(op.address) != js.fifoWriteAddresses.end();
-
-    // Gather pipe writes using an immediate address are explicitly tracked.
-    if (jo.optimizeGatherPipe &&
-        (js.fifoBytesSinceCheck >= GPFifo::GATHER_PIPE_SIZE || js.mustCheckFifo))
+    if (i != 0)
     {
-      js.fifoBytesSinceCheck = 0;
-      js.mustCheckFifo = false;
-      BitSet32 registersInUse = CallerSavedRegistersInUse();
-      ABI_PushRegistersAndAdjustStack(registersInUse, 0);
-      ABI_CallFunctionP(GPFifo::FastCheckGatherPipe, &m_system.GetGPFifo());
-      ABI_PopRegistersAndAdjustStack(registersInUse, 0);
-      gatherPipeIntCheck = true;
-    }
+      // Gather pipe writes using a non-immediate address are discovered by profiling.
+      const u32 prev_address = m_code_buffer[i - 1].address;
+      bool gatherPipeIntCheck =
+          js.fifoWriteAddresses.find(prev_address) != js.fifoWriteAddresses.end();
 
-    // Gather pipe writes can generate an exception; add an exception check.
-    // TODO: This doesn't really match hardware; the CP interrupt is
-    // asynchronous.
-    if (gatherPipeIntCheck)
-    {
-      TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_EXTERNAL_INT));
-      FixupBranch extException = J_CC(CC_NZ, Jump::Near);
-
-      SwitchToFarCode();
-      SetJumpTarget(extException);
-      TEST(32, PPCSTATE(msr), Imm32(0x0008000));
-      FixupBranch noExtIntEnable = J_CC(CC_Z, Jump::Near);
-      MOV(64, R(RSCRATCH), ImmPtr(&m_system.GetProcessorInterface().m_interrupt_cause));
-      TEST(32, MatR(RSCRATCH),
-           Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN |
-                 ProcessorInterface::INT_CAUSE_PE_FINISH));
-      FixupBranch noCPInt = J_CC(CC_Z, Jump::Near);
-
+      // Gather pipe writes using an immediate address are explicitly tracked.
+      if (jo.optimizeGatherPipe &&
+          (js.fifoBytesSinceCheck >= GPFifo::GATHER_PIPE_SIZE || js.mustCheckFifo))
       {
-        RCForkGuard gpr_guard = gpr.Fork();
-        RCForkGuard fpr_guard = fpr.Fork();
-
-        gpr.Flush();
-        fpr.Flush();
-
-        MOV(32, PPCSTATE(pc), Imm32(op.address));
-        WriteExternalExceptionExit();
+        js.fifoBytesSinceCheck = 0;
+        js.mustCheckFifo = false;
+        BitSet32 registersInUse = CallerSavedRegistersInUse();
+        ABI_PushRegistersAndAdjustStack(registersInUse, 0);
+        ABI_CallFunctionP(GPFifo::FastCheckGatherPipe, &m_system.GetGPFifo());
+        ABI_PopRegistersAndAdjustStack(registersInUse, 0);
+        gatherPipeIntCheck = true;
       }
-      SwitchToNearCode();
-      SetJumpTarget(noCPInt);
-      SetJumpTarget(noExtIntEnable);
+
+      // Gather pipe writes can generate an exception; add an exception check.
+      // TODO: This doesn't really match hardware; the CP interrupt is
+      // asynchronous.
+      if (gatherPipeIntCheck)
+      {
+        TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_EXTERNAL_INT));
+        FixupBranch extException = J_CC(CC_NZ, Jump::Near);
+
+        SwitchToFarCode();
+        SetJumpTarget(extException);
+        TEST(32, PPCSTATE(msr), Imm32(0x0008000));
+        FixupBranch noExtIntEnable = J_CC(CC_Z, Jump::Near);
+        MOV(64, R(RSCRATCH), ImmPtr(&m_system.GetProcessorInterface().m_interrupt_cause));
+        TEST(32, MatR(RSCRATCH),
+             Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN |
+                   ProcessorInterface::INT_CAUSE_PE_FINISH));
+        FixupBranch noCPInt = J_CC(CC_Z, Jump::Near);
+
+        {
+          RCForkGuard gpr_guard = gpr.Fork();
+          RCForkGuard fpr_guard = fpr.Fork();
+
+          gpr.Flush();
+          fpr.Flush();
+
+          MOV(32, PPCSTATE(pc), Imm32(op.address));
+          WriteExternalExceptionExit();
+        }
+        SwitchToNearCode();
+        SetJumpTarget(noCPInt);
+        SetJumpTarget(noExtIntEnable);
+      }
     }
 
     if (HandleFunctionHooking(op.address))
@@ -1161,7 +1165,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     return false;
   }
 
-  b->codeSize = (u32)(GetCodePtr() - start);
+  b->codeSize = static_cast<u32>(GetCodePtr() - b->normalEntry);
   b->originalSize = code_block.m_num_instructions;
 
 #ifdef JIT_LOG_GENERATED_CODE

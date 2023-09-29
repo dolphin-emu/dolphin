@@ -12,18 +12,19 @@ class IntSliderSetting(
     private val intSetting: AbstractIntSetting,
     titleId: Int,
     descriptionId: Int,
-    min: Int,
-    max: Int,
-    units: String?,
-    stepSize: Int
-) : SliderSetting(context, titleId, descriptionId, min, max, units, stepSize) {
+    val min: Int,
+    val max: Int,
+    units: String,
+    val stepSize: Int
+) : SliderSetting(context, titleId, descriptionId, units, false) {
+
     override val setting: AbstractSetting
         get() = intSetting
 
-    override val selectedValue: Int
+    val selectedValue: Int
         get() = intSetting.int
 
-    fun setSelectedValue(settings: Settings?, selection: Int) {
-        intSetting.setInt(settings!!, selection)
+    fun setSelectedValue(settings: Settings, selection: Int) {
+        intSetting.setInt(settings, selection)
     }
 }

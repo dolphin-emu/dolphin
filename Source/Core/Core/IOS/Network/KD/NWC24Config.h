@@ -32,6 +32,7 @@ enum ErrorCode : s32
   WC24_ERR_ID_NONEXISTANCE = -34,
   WC24_ERR_ID_GENERATED = -35,
   WC24_ERR_ID_REGISTERED = -36,
+  WC24_ERR_DISABLED = -39,
   WC24_ERR_ID_NOT_REGISTERED = -44,
 };
 
@@ -69,6 +70,9 @@ public:
   u32 Checksum() const;
   void SetChecksum(u32 checksum);
 
+  std::string_view GetMlchkid() const;
+  std::string GetCheckURL() const;
+
   NWC24CreationStage CreationStage() const;
   void SetCreationStage(NWC24CreationStage creation_stage);
 
@@ -92,6 +96,7 @@ private:
     MAX_URL_LENGTH = 0x80,
     MAX_EMAIL_LENGTH = 0x40,
     MAX_PASSWORD_LENGTH = 0x20,
+    MAX_MLCHKID_LENGTH = 0x24,
   };
 
 #pragma pack(push, 1)
@@ -104,7 +109,7 @@ private:
     NWC24CreationStage creation_stage;
     char email[MAX_EMAIL_LENGTH];
     char paswd[MAX_PASSWORD_LENGTH];
-    char mlchkid[0x24];
+    char mlchkid[MAX_MLCHKID_LENGTH];
     char http_urls[URL_COUNT][MAX_URL_LENGTH];
     u8 reserved[0xDC];
     u32 enable_booting;

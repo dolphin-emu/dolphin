@@ -73,7 +73,7 @@ class SingleChoiceViewHolder(
     }
 
     override fun onClick(clicked: View) {
-        if (!item?.isEditable!!) {
+        if (!item!!.isEditable) {
             showNotRuntimeEditableError()
             return
         }

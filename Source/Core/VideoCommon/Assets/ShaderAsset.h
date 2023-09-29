@@ -14,11 +14,20 @@ namespace VideoCommon
 {
 struct ShaderProperty
 {
+  // "SamplerShared" denotes that the sampler
+  // already exists outside of the shader source
+  // (ex: in the Dolphin defined pixel shader)
+  // "Main" is the first entry in a shared sampler array
+  // and "Additional" denotes a subsequent entry
+  // in the array
   enum class Type
   {
     Type_Undefined,
+    Type_SamplerArrayShared_Main,
+    Type_SamplerArrayShared_Additional,
     Type_Sampler2D,
-    Type_Max = Type_Sampler2D
+    Type_SamplerCube,
+    Type_Max = Type_SamplerCube
   };
   Type m_type;
   std::string m_description;

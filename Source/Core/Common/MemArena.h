@@ -122,4 +122,42 @@ private:
 #endif
 };
 
+// This class represents a single fixed-size memory region where the individual memory pages are
+// only actually allocated on first access. The memory will be zero on first access.
+class LazyMemoryRegion final
+{
+public:
+  LazyMemoryRegion();
+  ~LazyMemoryRegion();
+  LazyMemoryRegion(const LazyMemoryRegion&) = delete;
+  LazyMemoryRegion(LazyMemoryRegion&&) = delete;
+  LazyMemoryRegion& operator=(const LazyMemoryRegion&) = delete;
+  LazyMemoryRegion& operator=(LazyMemoryRegion&&) = delete;
+
+  ///
+  /// Reserve a memory region.
+  ///
+  /// @param size The size of the region.
+  ///
+  /// @return The address the region was mapped at. Returns nullptr on failure.
+  ///
+  void* Create(size_t size);
+
+  ///
+  /// Reset the memory region back to zero, throwing away any mapped pages.
+  /// This can only be called after a successful call to Create().
+  ///
+  void Clear();
+
+  ///
+  /// Release the memory previously reserved with Create(). After this call the pointer that was
+  /// returned by Create() will become invalid.
+  ///
+  void Release();
+
+private:
+  void* m_memory = nullptr;
+  size_t m_size = 0;
+};
+
 }  // namespace Common

@@ -123,7 +123,7 @@ class MainPresenter(private val mainView: MainView, private val activity: Fragme
 
     fun onResume() {
         if (dirToAdd != null) {
-            GameFileCache.addGameFolder(dirToAdd)
+            GameFileCache.addGameFolder(dirToAdd!!)
             dirToAdd = null
         }
 

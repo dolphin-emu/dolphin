@@ -210,7 +210,7 @@ class ConvertFragment : Fragment(), View.OnClickListener {
             R.array.convertFormatValues,
             format
         )
-        if (gameFile.blobType == BLOB_TYPE_ISO) {
+        if (gameFile.getBlobType() == BLOB_TYPE_ISO) {
             setDropdownSelection(
                 binding.dropdownFormat,
                 format,
@@ -240,6 +240,7 @@ class ConvertFragment : Fragment(), View.OnClickListener {
                     binding.dropdownBlockSize.adapter.getItem(0).toString(), false
                 )
             }
+
             BLOB_TYPE_WIA -> {
                 populateDropdown(
                     binding.blockSize,
@@ -253,6 +254,7 @@ class ConvertFragment : Fragment(), View.OnClickListener {
                     binding.dropdownBlockSize.adapter.getItem(0).toString(), false
                 )
             }
+
             BLOB_TYPE_RVZ -> {
                 populateDropdown(
                     binding.blockSize,
@@ -266,6 +268,7 @@ class ConvertFragment : Fragment(), View.OnClickListener {
                     binding.dropdownBlockSize.adapter.getItem(2).toString(), false
                 )
             }
+
             else -> clearDropdown(binding.blockSize, binding.dropdownBlockSize, blockSize)
         }
     }
@@ -285,6 +288,7 @@ class ConvertFragment : Fragment(), View.OnClickListener {
                     binding.dropdownCompression.adapter.getItem(0).toString(), false
                 )
             }
+
             BLOB_TYPE_WIA -> {
                 populateDropdown(
                     binding.compression,
@@ -298,6 +302,7 @@ class ConvertFragment : Fragment(), View.OnClickListener {
                     binding.dropdownCompression.adapter.getItem(0).toString(), false
                 )
             }
+
             BLOB_TYPE_RVZ -> {
                 populateDropdown(
                     binding.compression,
@@ -311,6 +316,7 @@ class ConvertFragment : Fragment(), View.OnClickListener {
                     binding.dropdownCompression.adapter.getItem(4).toString(), false
                 )
             }
+
             else -> clearDropdown(
                 binding.compression,
                 binding.dropdownCompression,
@@ -336,6 +342,7 @@ class ConvertFragment : Fragment(), View.OnClickListener {
                     ).toString(), false
                 )
             }
+
             COMPRESSION_ZSTD -> {
                 // TODO: Query DiscIO for the supported compression levels, like we do in DolphinQt?
                 populateDropdown(
@@ -352,6 +359,7 @@ class ConvertFragment : Fragment(), View.OnClickListener {
                     ).toString(), false
                 )
             }
+
             else -> clearDropdown(
                 binding.compressionLevel,
                 binding.dropdownCompressionLevel,
@@ -362,7 +370,7 @@ class ConvertFragment : Fragment(), View.OnClickListener {
 
     private fun populateRemoveJunkData() {
         val scrubbingAllowed = format.getValue(requireContext()) != BLOB_TYPE_RVZ &&
-                !gameFile.isDatelDisc
+                !gameFile.isDatelDisc()
 
         binding.switchRemoveJunkData.isEnabled = scrubbingAllowed
         if (!scrubbingAllowed) binding.switchRemoveJunkData.isChecked = false
@@ -374,11 +382,11 @@ class ConvertFragment : Fragment(), View.OnClickListener {
 
         var action = Runnable { showSavePrompt() }
 
-        if (gameFile.isNKit) {
+        if (gameFile.isNKit()) {
             action = addAreYouSureDialog(action, R.string.convert_warning_nkit)
         }
 
-        if (!scrub && format == BLOB_TYPE_GCZ && !gameFile.isDatelDisc && gameFile.platform == Platform.WII.toInt()) {
+        if (!scrub && format == BLOB_TYPE_GCZ && !gameFile.isDatelDisc() && gameFile.getPlatform() == Platform.WII.toInt()) {
             action = addAreYouSureDialog(action, R.string.convert_warning_gcz)
         }
 
@@ -401,7 +409,7 @@ class ConvertFragment : Fragment(), View.OnClickListener {
     }
 
     private fun showSavePrompt() {
-        val originalPath = gameFile.path
+        val originalPath = gameFile.getPath()
 
         val filename = StringBuilder(File(originalPath).name)
         val dotIndex = filename.lastIndexOf(".")
@@ -449,9 +457,9 @@ class ConvertFragment : Fragment(), View.OnClickListener {
 
         thread = Thread {
             val success = NativeLibrary.ConvertDiscImage(
-                gameFile.path,
+                gameFile.getPath(),
                 outPath,
-                gameFile.platform,
+                gameFile.getPlatform(),
                 format.getValue(context),
                 blockSize.getValueOr(context, 0),
                 compression.getValueOr(context, 0),

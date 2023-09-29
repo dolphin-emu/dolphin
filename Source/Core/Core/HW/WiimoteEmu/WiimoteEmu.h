@@ -9,6 +9,7 @@
 #include <string>
 
 #include "Common/Common.h"
+#include "Common/Config/Config.h"
 
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
 
@@ -343,6 +344,6 @@ private:
 
   IMUCursorState m_imu_cursor_state;
 
-  size_t m_config_changed_callback_id;
+  Config::ConfigChangedCallbackID m_config_changed_callback_id;
 };
 }  // namespace WiimoteEmu

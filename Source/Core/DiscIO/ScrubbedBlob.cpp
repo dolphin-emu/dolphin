@@ -27,7 +27,7 @@ std::unique_ptr<ScrubbedBlob> ScrubbedBlob::Create(const std::string& path)
     return nullptr;
 
   DiscScrubber scrubber;
-  if (!scrubber.SetupScrub(disc.get()))
+  if (!scrubber.SetupScrub(*disc))
     return nullptr;
 
   std::unique_ptr<BlobReader> blob = CreateBlobReader(path);

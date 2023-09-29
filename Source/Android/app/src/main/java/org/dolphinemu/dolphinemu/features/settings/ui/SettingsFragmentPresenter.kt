@@ -34,6 +34,7 @@ import org.dolphinemu.dolphinemu.model.GpuDriverMetadata
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter
 import org.dolphinemu.dolphinemu.utils.*
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.ceil
 import kotlin.math.floor
 
@@ -41,7 +42,7 @@ class SettingsFragmentPresenter(
     private val fragmentView: SettingsFragmentView,
     private val context: Context
 ) {
-    private var menuTag: MenuTag? = null
+    private lateinit var menuTag: MenuTag
     private var gameId: String? = null
 
     private var settingsList: ArrayList<SettingsItem>? = null
@@ -72,13 +73,12 @@ class SettingsFragmentPresenter(
             && GpuDriverHelper.supportsCustomDriverLoading()
         ) {
             this.gpuDriver =
-                GpuDriverHelper.getInstalledDriverMetadata() ?: GpuDriverHelper.getSystemDriverMetadata(
-                    context.applicationContext
-                )
+                GpuDriverHelper.getInstalledDriverMetadata()
+                    ?: GpuDriverHelper.getSystemDriverMetadata(context.applicationContext)
         }
     }
 
-    fun onViewCreated(menuTag: MenuTag?, settings: Settings?) {
+    fun onViewCreated(menuTag: MenuTag, settings: Settings?) {
         this.menuTag = menuTag
 
         if (!TextUtils.isEmpty(gameId)) {
@@ -120,6 +120,7 @@ class SettingsFragmentPresenter(
             MenuTag.GCPAD_TYPE -> addGcPadSettings(sl)
             MenuTag.WIIMOTE -> addWiimoteSettings(sl)
             MenuTag.ENHANCEMENTS -> addEnhanceSettings(sl)
+            MenuTag.COLOR_CORRECTION -> addColorCorrectionSettings(sl)
             MenuTag.STEREOSCOPY -> addStereoSettings(sl)
             MenuTag.HACKS -> addHackSettings(sl)
             MenuTag.STATISTICS -> addStatisticsSettings(sl)
@@ -250,10 +251,11 @@ class SettingsFragmentPresenter(
                 FloatSetting.MAIN_EMULATION_SPEED,
                 R.string.speed_limit,
                 0,
-                0,
-                200,
+                0f,
+                200f,
                 "%",
-                1
+                1f,
+                false
             )
         )
         sl.add(
@@ -713,12 +715,12 @@ class SettingsFragmentPresenter(
             )
         )
         sl.add(
-          SwitchSetting(
-            context,
-            BooleanSetting.MAIN_WII_WIILINK_ENABLE,
-            R.string.wii_enable_wiilink,
-            R.string.wii_enable_wiilink_description
-          )
+            SwitchSetting(
+                context,
+                BooleanSetting.MAIN_WII_WIILINK_ENABLE,
+                R.string.wii_enable_wiilink,
+                R.string.wii_enable_wiilink_description
+            )
         )
         sl.add(
             SingleChoiceSetting(
@@ -1001,10 +1003,11 @@ class SettingsFragmentPresenter(
                 FloatSetting.MAIN_OVERCLOCK,
                 R.string.overclock_title,
                 R.string.overclock_title_description,
-                0,
-                400,
+                0f,
+                400f,
                 "%",
-                1
+                1f,
+                false
             )
         )
 
@@ -1333,19 +1336,21 @@ class SettingsFragmentPresenter(
                 R.array.textureFilteringValues
             )
         )
+        sl.add(
+            SubmenuSetting(
+                context,
+                R.string.color_correction_submenu,
+                MenuTag.COLOR_CORRECTION
+            )
+        )
 
         val stereoModeValue = IntSetting.GFX_STEREO_MODE.int
         val anaglyphMode = 3
         val shaderList =
             if (stereoModeValue == anaglyphMode) PostProcessing.anaglyphShaderList else PostProcessing.shaderList
 
-        val shaderListEntries = arrayOfNulls<String>(shaderList.size + 1)
-        shaderListEntries[0] = context.getString(R.string.off)
-        System.arraycopy(shaderList, 0, shaderListEntries, 1, shaderList.size)
-
-        val shaderListValues = arrayOfNulls<String>(shaderList.size + 1)
-        shaderListValues[0] = ""
-        System.arraycopy(shaderList, 0, shaderListValues, 1, shaderList.size)
+        val shaderListEntries = arrayOf(context.getString(R.string.off), *shaderList)
+        val shaderListValues = arrayOf("", *shaderList)
 
         sl.add(
             StringSingleChoiceSetting(
@@ -1429,6 +1434,53 @@ class SettingsFragmentPresenter(
                     context,
                     R.string.stereoscopy_submenu,
                     MenuTag.STEREOSCOPY
+                )
+            )
+        }
+    }
+
+    private fun addColorCorrectionSettings(sl: ArrayList<SettingsItem>) {
+        sl.apply {
+            add(HeaderSetting(context, R.string.color_space, 0))
+            add(
+                SwitchSetting(
+                    context,
+                    BooleanSetting.GFX_CC_CORRECT_COLOR_SPACE,
+                    R.string.correct_color_space,
+                    R.string.correct_color_space_description
+                )
+            )
+            add(
+                SingleChoiceSetting(
+                    context,
+                    IntSetting.GFX_CC_GAME_COLOR_SPACE,
+                    R.string.game_color_space,
+                    0,
+                    R.array.colorSpaceEntries,
+                    R.array.colorSpaceValues
+                )
+            )
+
+            add(HeaderSetting(context, R.string.gamma, 0))
+            add(
+                FloatSliderSetting(
+                    context,
+                    FloatSetting.GFX_CC_GAME_GAMMA,
+                    R.string.game_gamma,
+                    R.string.game_gamma_description,
+                    2.2f,
+                    2.8f,
+                    "",
+                    0.01f,
+                    true
+                )
+            )
+            add(
+                SwitchSetting(
+                    context,
+                    BooleanSetting.GFX_CC_CORRECT_GAMMA,
+                    R.string.correct_sdr_gamma,
+                    0
                 )
             )
         }
@@ -2153,7 +2205,7 @@ class SettingsFragmentPresenter(
         profileString: String,
         controllerNumber: Int
     ) {
-        val profiles = ProfileDialogPresenter(menuTag!!).getProfileNames(false)
+        val profiles = ProfileDialogPresenter(menuTag).getProfileNames(false)
         val profileKey = profileString + "Profile" + (controllerNumber + 1)
         sl.add(
             StringSingleChoiceSetting(
@@ -2232,7 +2284,7 @@ class SettingsFragmentPresenter(
                 0,
                 0,
                 true
-            ) { fragmentView.showDialogFragment(ProfileDialog.create(menuTag!!)) })
+            ) { fragmentView.showDialogFragment(ProfileDialog.create(menuTag)) })
 
         updateOldControllerSettingsWarningVisibility(controller)
     }
@@ -2251,15 +2303,15 @@ class SettingsFragmentPresenter(
     ) {
         updateOldControllerSettingsWarningVisibility(controller)
 
-        val groupCount = controller.groupCount
+        val groupCount = controller.getGroupCount()
         for (i in 0 until groupCount) {
             val group = controller.getGroup(i)
-            val groupType = group.groupType
+            val groupType = group.getGroupType()
             if (groupTypeFilter != null && !groupTypeFilter.contains(groupType)) continue
 
-            sl.add(HeaderSetting(group.uiName, ""))
+            sl.add(HeaderSetting(group.getUiName(), ""))
 
-            if (group.defaultEnabledValue != ControlGroup.DEFAULT_ENABLED_ALWAYS) {
+            if (group.getDefaultEnabledValue() != ControlGroup.DEFAULT_ENABLED_ALWAYS) {
                 sl.add(
                     SwitchSetting(
                         context,
@@ -2270,13 +2322,13 @@ class SettingsFragmentPresenter(
                 )
             }
 
-            val controlCount = group.controlCount
+            val controlCount = group.getControlCount()
             for (j in 0 until controlCount) {
                 sl.add(InputMappingControlSetting(group.getControl(j), controller))
             }
 
             if (groupType == ControlGroup.TYPE_ATTACHMENTS) {
-                val attachmentSetting = group.attachmentSetting
+                val attachmentSetting = group.getAttachmentSetting()
                 sl.add(
                     SingleChoiceSetting(
                         context, InputMappingIntSetting(attachmentSetting),
@@ -2287,7 +2339,7 @@ class SettingsFragmentPresenter(
                 )
             }
 
-            val numericSettingCount = group.numericSettingCount
+            val numericSettingCount = group.getNumericSettingCount()
             for (j in 0 until numericSettingCount) {
                 addNumericSetting(sl, group.getNumericSetting(j))
             }
@@ -2295,34 +2347,36 @@ class SettingsFragmentPresenter(
     }
 
     private fun addNumericSetting(sl: ArrayList<SettingsItem>, setting: NumericSetting) {
-        when (setting.type) {
+        when (setting.getType()) {
             NumericSetting.TYPE_DOUBLE -> sl.add(
                 FloatSliderSetting(
                     InputMappingDoubleSetting(setting),
-                    setting.uiName,
+                    setting.getUiName(),
                     "",
-                    ceil(setting.doubleMin).toInt(),
-                    floor(setting.doubleMax).toInt(),
-                    setting.uiSuffix
+                    ceil(setting.getDoubleMin()).toFloat(),
+                    floor(setting.getDoubleMax()).toFloat(),
+                    setting.getUiSuffix(),
+                    0.5f,
+                    true
                 )
             )
 
             NumericSetting.TYPE_BOOLEAN -> sl.add(
                 SwitchSetting(
                     InputMappingBooleanSetting(setting),
-                    setting.uiName,
-                    setting.uiDescription
+                    setting.getUiName(),
+                    setting.getUiDescription()
                 )
             )
         }
     }
 
     fun updateOldControllerSettingsWarningVisibility() {
-        updateOldControllerSettingsWarningVisibility(menuTag!!.correspondingEmulatedController)
+        updateOldControllerSettingsWarningVisibility(menuTag.correspondingEmulatedController)
     }
 
     private fun updateOldControllerSettingsWarningVisibility(controller: EmulatedController) {
-        val defaultDevice = controller.defaultDevice
+        val defaultDevice = controller.getDefaultDevice()
 
         hasOldControllerSettings = defaultDevice.startsWith("Android/") &&
                 defaultDevice.endsWith("/Touchscreen")

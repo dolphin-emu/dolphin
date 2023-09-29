@@ -17,15 +17,15 @@ open class StringSingleChoiceSetting : SettingsItem {
     override val setting: AbstractSetting?
         get() = stringSetting
 
-    var choices: Array<String?>?
+    var choices: Array<String>
         protected set
-    var values: Array<String?>?
+    var values: Array<String>
         protected set
     val menuTag: MenuTag?
     var noChoicesAvailableString = 0
         private set
 
-    open val selectedChoice: String?
+    open val selectedChoice: String
         get() = getChoiceAt(selectedValueIndex)
 
     open val selectedValue: String
@@ -37,8 +37,8 @@ open class StringSingleChoiceSetting : SettingsItem {
         setting: AbstractStringSetting?,
         titleId: Int,
         descriptionId: Int,
-        choices: Array<String?>?,
-        values: Array<String?>?,
+        choices: Array<String>,
+        values: Array<String>,
         menuTag: MenuTag? = null
     ) : super(context, titleId, descriptionId) {
         stringSetting = setting
@@ -52,8 +52,8 @@ open class StringSingleChoiceSetting : SettingsItem {
         setting: AbstractStringSetting,
         titleId: Int,
         descriptionId: Int,
-        choices: Array<String?>,
-        values: Array<String?>,
+        choices: Array<String>,
+        values: Array<String>,
         noChoicesAvailableString: Int
     ) : this(context, setting, titleId, descriptionId, choices, values) {
         this.noChoicesAvailableString = noChoicesAvailableString
@@ -75,35 +75,31 @@ open class StringSingleChoiceSetting : SettingsItem {
         this.menuTag = menuTag
     }
 
-    fun getChoiceAt(index: Int): String? {
-        if (choices == null) return null
-
-        return if (index >= 0 && index < choices!!.size) {
-            choices!![index]
+    fun getChoiceAt(index: Int): String {
+        return if (index >= 0 && index < choices.size) {
+            choices[index]
         } else ""
     }
 
-    fun getValueAt(index: Int): String? {
-        if (values == null) return null
-
-        return if (index >= 0 && index < values!!.size) {
-            values!![index]
+    fun getValueAt(index: Int): String {
+        return if (index >= 0 && index < values.size) {
+            values[index]
         } else ""
     }
 
     val selectedValueIndex: Int
         get() {
             val selectedValue = selectedValue
-            for (i in values!!.indices) {
-                if (values!![i] == selectedValue) {
+            for (i in values.indices) {
+                if (values[i] == selectedValue) {
                     return i
                 }
             }
             return -1
         }
 
-    open fun setSelectedValue(settings: Settings?, selection: String?) {
-        stringSetting!!.setString(settings!!, selection!!)
+    open fun setSelectedValue(settings: Settings, selection: String) {
+        stringSetting!!.setString(settings, selection)
     }
 
     open fun refreshChoicesAndValues() {}

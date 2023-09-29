@@ -14,7 +14,7 @@ open class HeaderSetting : SettingsItem {
         descriptionId: Int
     ) : super(context, titleId, descriptionId)
 
-    constructor(title: CharSequence, description: CharSequence?) : super(title, description)
+    constructor(title: CharSequence, description: CharSequence) : super(title, description)
 
     override val type: Int = TYPE_HEADER
 }

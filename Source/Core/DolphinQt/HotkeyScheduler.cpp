@@ -359,8 +359,8 @@ void HotkeyScheduler::Run()
 
       // Graphics
       const auto efb_scale = Config::Get(Config::GFX_EFB_SCALE);
-      auto ShowEFBScale = []() {
-        switch (Config::Get(Config::GFX_EFB_SCALE))
+      const auto ShowEFBScale = [](int new_efb_scale) {
+        switch (new_efb_scale)
         {
         case EFB_SCALE_AUTO_INTEGRAL:
           OSD::AddMessage("Internal Resolution: Auto (integral)");
@@ -369,7 +369,7 @@ void HotkeyScheduler::Run()
           OSD::AddMessage("Internal Resolution: Native");
           break;
         default:
-          OSD::AddMessage(fmt::format("Internal Resolution: {}x", g_Config.iEFBScale));
+          OSD::AddMessage(fmt::format("Internal Resolution: {}x", new_efb_scale));
           break;
         }
       };
@@ -377,14 +377,14 @@ void HotkeyScheduler::Run()
       if (IsHotkey(HK_INCREASE_IR))
       {
         Config::SetCurrent(Config::GFX_EFB_SCALE, efb_scale + 1);
-        ShowEFBScale();
+        ShowEFBScale(efb_scale + 1);
       }
       if (IsHotkey(HK_DECREASE_IR))
       {
         if (efb_scale > EFB_SCALE_AUTO_INTEGRAL)
         {
           Config::SetCurrent(Config::GFX_EFB_SCALE, efb_scale - 1);
-          ShowEFBScale();
+          ShowEFBScale(efb_scale - 1);
         }
       }
 
@@ -470,8 +470,11 @@ void HotkeyScheduler::Run()
       if (IsHotkey(HK_DECREASE_EMULATION_SPEED))
       {
         auto speed = Config::Get(Config::MAIN_EMULATION_SPEED) - 0.1;
-        speed = (speed <= 0 || (speed >= 0.95 && speed <= 1.05)) ? 1.0 : speed;
-        Config::SetCurrent(Config::MAIN_EMULATION_SPEED, speed);
+        if (speed > 0)
+        {
+          speed = (speed >= 0.95 && speed <= 1.05) ? 1.0 : speed;
+          Config::SetCurrent(Config::MAIN_EMULATION_SPEED, speed);
+        }
         ShowEmulationSpeed();
       }
 

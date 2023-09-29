@@ -27,7 +27,6 @@ add_library(main SHARED
   Input/MappingCommon.cpp
   Input/NumericSetting.cpp
   Input/NumericSetting.h
-  IniFile.cpp
   MainAndroid.cpp
   RiivolutionPatches.cpp
   SkylanderConfig.cpp

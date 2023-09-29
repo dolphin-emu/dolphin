@@ -433,4 +433,50 @@ void MemArena::UnmapFromMemoryRegion(void* view, size_t size)
 
   UnmapViewOfFile(view);
 }
+
+LazyMemoryRegion::LazyMemoryRegion() = default;
+
+LazyMemoryRegion::~LazyMemoryRegion()
+{
+  Release();
+}
+
+void* LazyMemoryRegion::Create(size_t size)
+{
+  ASSERT(!m_memory);
+
+  if (size == 0)
+    return nullptr;
+
+  void* memory = VirtualAlloc(nullptr, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+  if (!memory)
+  {
+    NOTICE_LOG_FMT(MEMMAP, "Memory allocation of {} bytes failed.", size);
+    return nullptr;
+  }
+
+  m_memory = memory;
+  m_size = size;
+
+  return memory;
+}
+
+void LazyMemoryRegion::Clear()
+{
+  ASSERT(m_memory);
+
+  VirtualFree(m_memory, m_size, MEM_DECOMMIT);
+  VirtualAlloc(m_memory, m_size, MEM_COMMIT, PAGE_READWRITE);
+}
+
+void LazyMemoryRegion::Release()
+{
+  if (m_memory)
+  {
+    VirtualFree(m_memory, 0, MEM_RELEASE);
+    m_memory = nullptr;
+    m_size = 0;
+  }
+}
+
 }  // namespace Common

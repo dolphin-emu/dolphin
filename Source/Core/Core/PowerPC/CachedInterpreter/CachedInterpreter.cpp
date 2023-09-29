@@ -82,12 +82,13 @@ CachedInterpreter::~CachedInterpreter() = default;
 
 void CachedInterpreter::Init()
 {
+  RefreshConfig();
+
   m_code.reserve(CODE_SIZE / sizeof(Instruction));
 
   jo.enableBlocklink = false;
 
   m_block_cache.Init();
-  UpdateMemoryAndExceptionOptions();
 
   code_block.m_stats = &js.st;
   code_block.m_gpa = &js.gpa;
@@ -311,7 +312,6 @@ void CachedInterpreter::Jit(u32 address)
   js.numFloatingPointInst = 0;
   js.curBlock = b;
 
-  b->checkedEntry = GetCodePtr();
   b->normalEntry = GetCodePtr();
 
   for (u32 i = 0; i < code_block.m_num_instructions; i++)
@@ -374,7 +374,7 @@ void CachedInterpreter::Jit(u32 address)
   }
   m_code.emplace_back();
 
-  b->codeSize = (u32)(GetCodePtr() - b->checkedEntry);
+  b->codeSize = static_cast<u32>(GetCodePtr() - b->normalEntry);
   b->originalSize = code_block.m_num_instructions;
 
   m_block_cache.FinalizeBlock(*b, jo.enableBlocklink, code_block.m_physical_addresses);
@@ -384,5 +384,5 @@ void CachedInterpreter::ClearCache()
 {
   m_code.clear();
   m_block_cache.Clear();
-  UpdateMemoryAndExceptionOptions();
+  RefreshConfig();
 }

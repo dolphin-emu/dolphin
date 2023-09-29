@@ -9,6 +9,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 
+#include "Core/CPUThreadConfigCallback.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
@@ -19,6 +20,7 @@
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/DriverDetails.h"
+#include "VideoCommon/Fifo.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/FreeLookCamera.h"
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsMod.h"
@@ -57,14 +59,21 @@ void VideoConfig::Refresh()
   {
     // There was a race condition between the video thread and the host thread here, if
     // corrections need to be made by VerifyValidity(). Briefly, the config will contain
-    // invalid values. Instead, pause emulation first, which will flush the video thread,
-    // update the config and correct it, then resume emulation, after which the video
-    // thread will detect the config has changed and act accordingly.
-    Config::AddConfigChangedCallback([]() {
-      Core::RunAsCPUThread([]() {
-        g_Config.Refresh();
-        g_Config.VerifyValidity();
-      });
+    // invalid values. Instead, pause the video thread first, update the config and correct
+    // it, then resume emulation, after which the video thread will detect the config has
+    // changed and act accordingly.
+    CPUThreadConfigCallback::AddConfigChangedCallback([]() {
+      auto& system = Core::System::GetInstance();
+
+      const bool lock_gpu_thread = Core::IsRunningAndStarted();
+      if (lock_gpu_thread)
+        system.GetFifo().PauseAndLock(system, true, false);
+
+      g_Config.Refresh();
+      g_Config.VerifyValidity();
+
+      if (lock_gpu_thread)
+        system.GetFifo().PauseAndLock(system, false, true);
     });
     s_has_registered_callback = true;
   }
@@ -77,6 +86,14 @@ void VideoConfig::Refresh()
   bWidescreenHack = Config::Get(Config::GFX_WIDESCREEN_HACK);
   aspect_mode = Config::Get(Config::GFX_ASPECT_RATIO);
   suggested_aspect_mode = Config::Get(Config::GFX_SUGGESTED_ASPECT_RATIO);
+  widescreen_heuristic_transition_threshold =
+      Config::Get(Config::GFX_WIDESCREEN_HEURISTIC_TRANSITION_THRESHOLD);
+  widescreen_heuristic_aspect_ratio_slop =
+      Config::Get(Config::GFX_WIDESCREEN_HEURISTIC_ASPECT_RATIO_SLOP);
+  widescreen_heuristic_standard_ratio =
+      Config::Get(Config::GFX_WIDESCREEN_HEURISTIC_STANDARD_RATIO);
+  widescreen_heuristic_widescreen_ratio =
+      Config::Get(Config::GFX_WIDESCREEN_HEURISTIC_WIDESCREEN_RATIO);
   bCrop = Config::Get(Config::GFX_CROP);
   iSafeTextureCache_ColorSamples = Config::Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
   bShowFPS = Config::Get(Config::GFX_SHOW_FPS);

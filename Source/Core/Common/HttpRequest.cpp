@@ -27,6 +27,7 @@ public:
   explicit Impl(std::chrono::milliseconds timeout_ms, ProgressCallback callback);
 
   bool IsValid() const;
+  std::string GetHeaderValue(std::string_view name) const;
   void SetCookies(const std::string& cookies);
   void UseIPv4();
   void FollowRedirects(long max);
@@ -41,6 +42,7 @@ public:
 private:
   static inline std::once_flag s_curl_was_initialized;
   ProgressCallback m_callback;
+  Headers m_response_headers;
   std::unique_ptr<CURL, decltype(&curl_easy_cleanup)> m_curl{nullptr, curl_easy_cleanup};
   std::string m_error_string;
 };
@@ -80,6 +82,11 @@ std::string HttpRequest::EscapeComponent(const std::string& string)
 s32 HttpRequest::GetLastResponseCode() const
 {
   return m_impl->GetLastResponseCode();
+}
+
+std::string HttpRequest::GetHeaderValue(std::string_view name) const
+{
+  return m_impl->GetHeaderValue(name);
 }
 
 HttpRequest::Response HttpRequest::Get(const std::string& url, const Headers& headers,
@@ -152,9 +159,9 @@ bool HttpRequest::Impl::IsValid() const
 
 s32 HttpRequest::Impl::GetLastResponseCode()
 {
-  s32 response_code{};
+  long response_code{};
   curl_easy_getinfo(m_curl.get(), CURLINFO_RESPONSE_CODE, &response_code);
-  return response_code;
+  return static_cast<s32>(response_code);
 }
 
 void HttpRequest::Impl::SetCookies(const std::string& cookies)
@@ -171,6 +178,17 @@ void HttpRequest::Impl::FollowRedirects(long max)
 {
   curl_easy_setopt(m_curl.get(), CURLOPT_FOLLOWLOCATION, 1);
   curl_easy_setopt(m_curl.get(), CURLOPT_MAXREDIRS, max);
+}
+
+std::string HttpRequest::Impl::GetHeaderValue(std::string_view name) const
+{
+  for (const auto& [key, value] : m_response_headers)
+  {
+    if (key == name)
+      return value.value();
+  }
+
+  return {};
 }
 
 std::string HttpRequest::Impl::EscapeComponent(const std::string& string)
@@ -190,10 +208,26 @@ static size_t CurlWriteCallback(char* data, size_t size, size_t nmemb, void* use
   return actual_size;
 }
 
+static size_t header_callback(char* buffer, size_t size, size_t nitems, void* userdata)
+{
+  auto* headers = static_cast<HttpRequest::Headers*>(userdata);
+  std::string_view full_buffer = std::string_view{buffer, nitems};
+  const size_t colon_pos = full_buffer.find(':');
+  if (colon_pos == std::string::npos)
+    return nitems * size;
+
+  const std::string_view key = full_buffer.substr(0, colon_pos);
+  const std::string_view value = StripWhitespace(full_buffer.substr(colon_pos + 1));
+
+  headers->emplace(std::string{key}, std::string{value});
+  return nitems * size;
+}
+
 HttpRequest::Response HttpRequest::Impl::Fetch(const std::string& url, Method method,
                                                const Headers& headers, const u8* payload,
                                                size_t size, AllowedReturnCodes codes)
 {
+  m_response_headers.clear();
   curl_easy_setopt(m_curl.get(), CURLOPT_POST, method == Method::POST);
   curl_easy_setopt(m_curl.get(), CURLOPT_URL, url.c_str());
   if (method == Method::POST)
@@ -214,6 +248,9 @@ HttpRequest::Response HttpRequest::Impl::Fetch(const std::string& url, Method me
       list = curl_slist_append(list, (name + ": " + *value).c_str());
   }
   curl_easy_setopt(m_curl.get(), CURLOPT_HTTPHEADER, list);
+
+  curl_easy_setopt(m_curl.get(), CURLOPT_HEADERFUNCTION, header_callback);
+  curl_easy_setopt(m_curl.get(), CURLOPT_HEADERDATA, static_cast<void*>(&m_response_headers));
 
   std::vector<u8> buffer;
   curl_easy_setopt(m_curl.get(), CURLOPT_WRITEFUNCTION, CurlWriteCallback);

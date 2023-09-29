@@ -15,6 +15,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/SDCardUtil.h"
 
+#include "Core/CPUThreadConfigCallback.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SessionSettings.h"
 #include "Core/Core.h"
@@ -32,27 +33,23 @@ SDIOSlot0Device::SDIOSlot0Device(EmulationKernel& ios, const std::string& device
   if (!Config::Get(Config::MAIN_ALLOW_SD_WRITES))
     INFO_LOG_FMT(IOS_SD, "Writes to SD card disabled by user");
 
-  m_config_callback_id = Config::AddConfigChangedCallback([this] { RefreshConfig(); });
+  m_config_callback_id =
+      CPUThreadConfigCallback::AddConfigChangedCallback([this] { RefreshConfig(); });
   m_sd_card_inserted = Config::Get(Config::MAIN_WII_SD_CARD);
 }
 
 SDIOSlot0Device::~SDIOSlot0Device()
 {
-  Config::RemoveConfigChangedCallback(m_config_callback_id);
+  CPUThreadConfigCallback::RemoveConfigChangedCallback(m_config_callback_id);
 }
 
 void SDIOSlot0Device::RefreshConfig()
 {
-  if (m_sd_card_inserted != Config::Get(Config::MAIN_WII_SD_CARD))
+  const bool sd_card_inserted = Config::Get(Config::MAIN_WII_SD_CARD);
+  if (m_sd_card_inserted != sd_card_inserted)
   {
-    Core::RunAsCPUThread([this] {
-      const bool sd_card_inserted = Config::Get(Config::MAIN_WII_SD_CARD);
-      if (m_sd_card_inserted != sd_card_inserted)
-      {
-        m_sd_card_inserted = sd_card_inserted;
-        EventNotify();
-      }
-    });
+    m_sd_card_inserted = sd_card_inserted;
+    EventNotify();
   }
 }
 

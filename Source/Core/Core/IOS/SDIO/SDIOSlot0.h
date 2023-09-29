@@ -10,6 +10,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
+#include "Core/CPUThreadConfigCallback.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
 
@@ -166,7 +167,7 @@ private:
 
   File::IOFile m_card;
 
-  size_t m_config_callback_id;
+  CPUThreadConfigCallback::ConfigChangedCallbackID m_config_callback_id;
   bool m_sd_card_inserted = false;
 };
 }  // namespace IOS::HLE

@@ -90,8 +90,8 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
 
         setInsets()
 
-        val activity = activity as SettingsActivityView?
-        presenter.onViewCreated(menuTag, activity!!.settings)
+        val activity = requireActivity() as SettingsActivityView
+        presenter.onViewCreated(menuTag, activity.settings)
     }
 
     override fun onDestroyView() {
@@ -272,6 +272,7 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
             titles[MenuTag.DEBUG] = R.string.debug_submenu
             titles[MenuTag.GRAPHICS] = R.string.graphics_settings
             titles[MenuTag.ENHANCEMENTS] = R.string.enhancements_submenu
+            titles[MenuTag.COLOR_CORRECTION] = R.string.color_correction_submenu
             titles[MenuTag.STEREOSCOPY] = R.string.stereoscopy_submenu
             titles[MenuTag.HACKS] = R.string.hacks_submenu
             titles[MenuTag.STATISTICS] = R.string.statistics_submenu

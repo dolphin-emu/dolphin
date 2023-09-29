@@ -58,7 +58,7 @@ public:
 
   void UpdateDrawRectangle();
 
-  float CalculateDrawAspectRatio() const;
+  float CalculateDrawAspectRatio(bool allow_stretch = true) const;
 
   // Crops the target rectangle to the framebuffer dimensions, reducing the size of the source
   // rectangle if it is greater. Works even if the source and target rectangles don't have a
@@ -103,9 +103,12 @@ private:
 
   void ProcessFrameDumping(u64 ticks) const;
 
-  std::tuple<int, int> CalculateOutputDimensions(int width, int height) const;
-  std::tuple<float, float> ApplyStandardAspectCrop(float width, float height) const;
-  std::tuple<float, float> ScaleToDisplayAspectRatio(int width, int height) const;
+  std::tuple<int, int> CalculateOutputDimensions(int width, int height,
+                                                 bool allow_stretch = true) const;
+  std::tuple<float, float> ApplyStandardAspectCrop(float width, float height,
+                                                   bool allow_stretch = true) const;
+  std::tuple<float, float> ScaleToDisplayAspectRatio(int width, int height,
+                                                     bool allow_stretch = true) const;
 
   // Use this to convert a single target rectangle to two stereo rectangles
   std::tuple<MathUtil::Rectangle<int>, MathUtil::Rectangle<int>>

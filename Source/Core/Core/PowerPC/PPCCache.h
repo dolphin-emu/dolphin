@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 
 class PointerWrap;
 
@@ -61,7 +62,7 @@ struct Cache
 
 struct InstructionCache : public Cache
 {
-  std::optional<size_t> m_config_callback_id = std::nullopt;
+  std::optional<Config::ConfigChangedCallbackID> m_config_callback_id = std::nullopt;
 
   bool m_disable_icache = false;
 

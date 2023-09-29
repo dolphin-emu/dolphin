@@ -24,7 +24,7 @@ import org.dolphinemu.dolphinemu.utils.CoilUtils
  * The Leanback library / docs call this a Presenter, but it works very
  * similarly to a RecyclerView.Adapter.
  */
-class GameRowPresenter(private val mActivity: FragmentActivity) : Presenter() {
+class GameRowPresenter : Presenter() {
 
     override fun onCreateViewHolder(parent: ViewGroup): ViewHolder {
         // Create a new view.
@@ -48,7 +48,7 @@ class GameRowPresenter(private val mActivity: FragmentActivity) : Presenter() {
 
         holder.apply {
             imageScreenshot.setImageDrawable(null)
-            cardParent.titleText = gameFile.title
+            cardParent.titleText = gameFile.getTitle()
             holder.gameFile = gameFile
 
             // Set the background color of the card
@@ -64,25 +64,12 @@ class GameRowPresenter(private val mActivity: FragmentActivity) : Presenter() {
 
             if (GameFileCacheManager.findSecondDisc(gameFile) != null) {
                 holder.cardParent.contentText =
-                    context.getString(R.string.disc_number, gameFile.discNumber + 1)
+                    context.getString(R.string.disc_number, gameFile.getDiscNumber() + 1)
             } else {
-                holder.cardParent.contentText = gameFile.company
+                holder.cardParent.contentText = gameFile.getCompany()
             }
         }
-
-        mActivity.lifecycleScope.launch {
-            withContext(Dispatchers.IO) {
-                val customCoverUri = CoilUtils.findCustomCover(gameFile)
-                withContext(Dispatchers.Main) {
-                    CoilUtils.loadGameCover(
-                        null,
-                        holder.imageScreenshot,
-                        gameFile,
-                        customCoverUri
-                    )
-                }
-            }
-        }
+        CoilUtils.loadGameCover(null, holder.imageScreenshot, gameFile)
     }
 
     override fun onUnbindViewHolder(viewHolder: ViewHolder) {

@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "Common/Assert.h"
+#include "Common/Config/Config.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
 #include "Core/PowerPC/CPUCoreBase.h"
 #include "VideoCommon/CPMemory.h"
@@ -189,7 +190,7 @@ private:
 
   CallbackFunc m_FileLoadedCb = nullptr;
   CallbackFunc m_FrameWrittenCb = nullptr;
-  size_t m_config_changed_callback_id;
+  Config::ConfigChangedCallbackID m_config_changed_callback_id;
 
   std::unique_ptr<FifoDataFile> m_File;
 

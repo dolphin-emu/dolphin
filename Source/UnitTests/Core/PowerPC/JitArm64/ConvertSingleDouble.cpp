@@ -7,6 +7,8 @@
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/FPURoundMode.h"
+#include "Common/ScopeGuard.h"
+#include "Core/Core.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/System.h"
@@ -120,6 +122,9 @@ private:
 
 TEST(JitArm64, ConvertDoubleToSingle)
 {
+  Core::DeclareAsCPUThread();
+  Common::ScopeGuard cpu_thread_guard([] { Core::UndeclareAsCPUThread(); });
+
   TestConversion test(Core::System::GetInstance());
 
   for (const u64 input : double_test_values)
@@ -155,6 +160,9 @@ TEST(JitArm64, ConvertDoubleToSingle)
 
 TEST(JitArm64, ConvertSingleToDouble)
 {
+  Core::DeclareAsCPUThread();
+  Common::ScopeGuard cpu_thread_guard([] { Core::UndeclareAsCPUThread(); });
+
   TestConversion test(Core::System::GetInstance());
 
   for (const u32 input : single_test_values)

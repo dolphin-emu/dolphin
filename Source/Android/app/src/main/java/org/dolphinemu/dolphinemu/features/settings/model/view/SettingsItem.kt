@@ -14,7 +14,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.Settings
  */
 abstract class SettingsItem {
     val name: CharSequence
-    val description: CharSequence?
+    val description: CharSequence
 
     /**
      * Base constructor.
@@ -22,7 +22,7 @@ abstract class SettingsItem {
      * @param name        A text string to be displayed as this Setting's name.
      * @param description A text string to be displayed as this Setting's description.
      */
-    constructor(name: CharSequence, description: CharSequence?) {
+    constructor(name: CharSequence, description: CharSequence) {
         this.name = name
         this.description = description
     }

@@ -3,8 +3,11 @@
 
 #pragma once
 
+#include <picojson.h>
+
 #include "VideoCommon/Assets/CustomAsset.h"
 #include "VideoCommon/Assets/CustomTextureData.h"
+#include "VideoCommon/RenderState.h"
 
 namespace VideoCommon
 {
@@ -15,6 +18,22 @@ public:
 
 private:
   CustomAssetLibrary::LoadInfo LoadImpl(const CustomAssetLibrary::AssetID& asset_id) override;
+};
+
+struct TextureData
+{
+  static bool FromJson(const CustomAssetLibrary::AssetID& asset_id, const picojson::object& json,
+                       TextureData* data);
+  enum class Type
+  {
+    Type_Undefined,
+    Type_Texture2D,
+    Type_TextureCube,
+    Type_Max = Type_TextureCube
+  };
+  Type m_type;
+  CustomTextureData m_data;
+  SamplerState m_sampler;
 };
 
 class GameTextureAsset final : public CustomLoadableAsset<CustomTextureData>

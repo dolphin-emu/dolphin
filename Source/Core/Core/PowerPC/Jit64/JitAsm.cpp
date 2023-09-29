@@ -113,15 +113,22 @@ void Jit64AsmRoutineManager::Generate()
   const bool assembly_dispatcher = true;
   if (assembly_dispatcher)
   {
-    if (m_jit.GetBlockCache()->GetFastBlockMap())
+    if (m_jit.GetBlockCache()->GetEntryPoints())
     {
-      u64 icache = reinterpret_cast<u64>(m_jit.GetBlockCache()->GetFastBlockMap());
-      MOV(32, R(RSCRATCH), PPCSTATE(pc));
+      MOV(32, R(RSCRATCH2), PPCSTATE(msr));
+      AND(32, R(RSCRATCH2), Imm32(JitBaseBlockCache::JIT_CACHE_MSR_MASK));
+      SHL(64, R(RSCRATCH2), Imm8(28));
 
+      MOV(32, R(RSCRATCH_EXTRA), PPCSTATE(pc));
+      OR(64, R(RSCRATCH_EXTRA), R(RSCRATCH2));
+
+      u64 icache = reinterpret_cast<u64>(m_jit.GetBlockCache()->GetEntryPoints());
       MOV(64, R(RSCRATCH2), Imm64(icache));
-      // Each 4-byte offset of the PC register corresponds to a 8-byte offset
-      // in the lookup table due to host pointers being 8-bytes long.
-      MOV(64, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_2, 0));
+      // The entry points map is indexed by ((msrBits << 26) | (address >> 2)).
+      // The map contains 8 byte 64-bit pointers and that means we need to shift
+      // msr left by 29 bits and address left by 1 bit to get the correct offset
+      // in the map.
+      MOV(64, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH_EXTRA, SCALE_2, 0));
     }
     else
     {
@@ -146,49 +153,57 @@ void Jit64AsmRoutineManager::Generate()
     // Check if we found a block.
     TEST(64, R(RSCRATCH), R(RSCRATCH));
     FixupBranch not_found = J_CC(CC_Z);
+    FixupBranch state_mismatch;
 
-    // Check block.msrBits.
-    MOV(32, R(RSCRATCH2), PPCSTATE(msr));
-    AND(32, R(RSCRATCH2), Imm32(JitBaseBlockCache::JIT_CACHE_MSR_MASK));
-
-    if (m_jit.GetBlockCache()->GetFastBlockMap())
+    if (!m_jit.GetBlockCache()->GetEntryPoints())
     {
-      CMP(32, R(RSCRATCH2), MDisp(RSCRATCH, static_cast<s32>(offsetof(JitBlockData, msrBits))));
-    }
-    else
-    {
+      // Check block.msrBits.
+      MOV(32, R(RSCRATCH2), PPCSTATE(msr));
+      AND(32, R(RSCRATCH2), Imm32(JitBaseBlockCache::JIT_CACHE_MSR_MASK));
       // Also check the block.effectiveAddress
       SHL(64, R(RSCRATCH2), Imm8(32));
       // RSCRATCH_EXTRA still has the PC.
       OR(64, R(RSCRATCH2), R(RSCRATCH_EXTRA));
       CMP(64, R(RSCRATCH2),
           MDisp(RSCRATCH, static_cast<s32>(offsetof(JitBlockData, effectiveAddress))));
+
+      state_mismatch = J_CC(CC_NE);
+      // Success; branch to the block we found.
+      JMPptr(MDisp(RSCRATCH, static_cast<s32>(offsetof(JitBlockData, normalEntry))));
+    }
+    else
+    {
+      // Success; branch to the block we found.
+      JMPptr(R(RSCRATCH));
     }
 
-    FixupBranch state_mismatch = J_CC(CC_NE);
-
-    // Success; branch to the block we found.
-    JMPptr(MDisp(RSCRATCH, static_cast<s32>(offsetof(JitBlockData, normalEntry))));
-
     SetJumpTarget(not_found);
-    SetJumpTarget(state_mismatch);
+    if (!m_jit.GetBlockCache()->GetEntryPoints())
+    {
+      SetJumpTarget(state_mismatch);
+    }
 
     // Failure, fallback to the C++ dispatcher for calling the JIT.
   }
 
-  // Ok, no block, let's call the slow dispatcher
-  ABI_PushRegistersAndAdjustStack({}, 0);
-  MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(&m_jit)));
-  ABI_CallFunction(JitBase::Dispatch);
-  ABI_PopRegistersAndAdjustStack({}, 0);
+  // There is no point in calling the dispatcher in the fast lookup table
+  // case, since the assembly dispatcher would already have found a block.
+  if (!assembly_dispatcher || !m_jit.GetBlockCache()->GetEntryPoints())
+  {
+    // Ok, no block, let's call the slow dispatcher
+    ABI_PushRegistersAndAdjustStack({}, 0);
+    MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(&m_jit)));
+    ABI_CallFunction(JitBase::Dispatch);
+    ABI_PopRegistersAndAdjustStack({}, 0);
 
-  TEST(64, R(ABI_RETURN), R(ABI_RETURN));
-  FixupBranch no_block_available = J_CC(CC_Z);
+    TEST(64, R(ABI_RETURN), R(ABI_RETURN));
+    FixupBranch no_block_available = J_CC(CC_Z);
 
-  // Jump to the block
-  JMPptr(R(ABI_RETURN));
+    // Jump to the block
+    JMPptr(R(ABI_RETURN));
 
-  SetJumpTarget(no_block_available);
+    SetJumpTarget(no_block_available);
+  }
 
   // We reset the stack because Jit might clear the code cache.
   // Also if we are in the middle of disabling BLR optimization on windows

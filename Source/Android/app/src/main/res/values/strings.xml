@@ -222,6 +222,20 @@
     <string name="disable_copy_filter_description">Disables the blending of adjacent rows when copying the EFB. This is known in some games as \"deflickering\" or \"smoothing\". Disabling the filter is usually safe, and may result in a sharper image.</string>
     <string name="arbitrary_mipmap_detection">Arbitrary Mipmap Detection</string>
     <string name="arbitrary_mipmap_detection_description">Enables detection of arbitrary mipmaps, which some games use for special distance-based effects.\nMay have false positives that result in blurry textures at increased internal resolution, such as in games that use very low resolution mipmaps. Disabling this can also reduce stutter in games that frequently load new textures.\n\nIf unsure, leave this checked.</string>
+    <string name="color_correction_submenu">Color Correction</string>
+    <string name="color_space">Color Space</string>
+    <string name="correct_color_space">Correct Color Space</string>
+    <string name="correct_color_space_description">Converts the colors from the color spaces that GC/Wii were meant to work with to sRGB/Rec.709.</string>
+    <string name="game_color_space">Game Color Space</string>
+    <string name="ntscm_space">NTSC-M (SMPTE 170M)</string>
+    <string name="ntscj_space">NTSC-J (ARUB TR-89)</string>
+    <string name="pal_space">PAL (EBU)</string>
+    <string name="gamma">Gamma</string>
+    <string name="game_gamma">Game Gamma</string>
+    <string name="game_gamma_description">NTSC-M and NTSC-J target gamma ~2.2. PAL targets gamma ~2.8.\nNone of the two were necessarily followed by games or TVs. 2.35 is a good generic value for all regions.\nIf a game allows you to chose a gamma value, match it here.</string>
+    <string name="correct_sdr_gamma">Correct SDR Gamma</string>
+    <string name="sdr_display_gamma_target">SDR Display Gamma Target</string>
+    <string name="custom_gamma_target">Custom Gamma Target</string>
     <string name="stereoscopy_submenu">Stereoscopy</string>
     <string name="stereoscopy_submenu_description">Stereoscopy allows you to get a better feeling of depth if you have the necessary hardware.\nHeavily decreases emulation speed and sometimes causes issues</string>
     <string name="wide_screen_hack">Widescreen Hack</string>
@@ -571,6 +585,7 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="emulation_edit_layout">Edit Layout</string>
     <string name="emulation_done">Done</string>
     <string name="emulation_toggle_controls">Toggle Controls</string>
+    <string name="emulation_latching_controls">Latching Controls</string>
     <string name="emulation_toggle_all">Toggle All</string>
     <string name="emulation_control_scale">Scale</string>
     <string name="emulation_control_opacity">Opacity</string>
@@ -618,7 +633,8 @@ It can efficiently compress both junk data and encrypted Wii data.
     <!-- Misc -->
     <string name="enabled">Enabled</string>
     <string name="default_values">Default Values</string>
-    <string name="slider_setting_value">%1$d%2$s</string>
+    <string name="slider_setting_value">%.0f%2$s</string>
+    <string name="slider_setting_float_value">%.2f%2$s</string>
     <string name="disc_number">Disc %1$d</string>
     <string name="replug_gc_adapter">GameCube Adapter couldn\'t be opened. Please re-plug the device.</string>
     <string name="disabled_gc_overlay_notice">The selected GameCube controller is set to \"None\"</string>

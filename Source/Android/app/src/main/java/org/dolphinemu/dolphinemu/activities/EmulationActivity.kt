@@ -439,6 +439,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             MENU_ACTION_EDIT_CONTROLS_PLACEMENT -> editControlsPlacement()
             MENU_ACTION_RESET_OVERLAY -> resetOverlay()
             MENU_ACTION_TOGGLE_CONTROLS -> toggleControls()
+            MENU_ACTION_LATCHING_CONTROLS -> latchingControls()
             MENU_ACTION_ADJUST_SCALE -> adjustScale()
             MENU_ACTION_CHOOSE_CONTROLLER -> chooseController()
             MENU_ACTION_REFRESH_WIIMOTES -> NativeLibrary.RefreshWiimotes()
@@ -512,6 +513,85 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             }
         }
         return super.dispatchKeyEvent(event)
+    }
+
+    private fun latchingControls() {
+        val builder = MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.emulation_latching_controls)
+
+        when (InputOverlay.configuredControllerType) {
+            InputOverlay.OVERLAY_GAMECUBE -> {
+                val gcLatchingButtons = BooleanArray(8)
+                val gcSettingBase = "MAIN_BUTTON_LATCHING_GC_"
+
+                for (i in gcLatchingButtons.indices) {
+                    gcLatchingButtons[i] = BooleanSetting.valueOf(gcSettingBase + i).boolean
+                }
+
+                builder.setMultiChoiceItems(
+                    R.array.gcpadLatchableButtons, gcLatchingButtons
+                ) { _: DialogInterface?, indexSelected: Int, isChecked: Boolean ->
+                    BooleanSetting.valueOf(gcSettingBase + indexSelected)
+                        .setBoolean(settings, isChecked)
+                }
+            }
+            InputOverlay.OVERLAY_WIIMOTE_CLASSIC -> {
+                val wiiClassicLatchingButtons = BooleanArray(11)
+                val classicSettingBase = "MAIN_BUTTON_LATCHING_CLASSIC_"
+
+                for (i in wiiClassicLatchingButtons.indices) {
+                    wiiClassicLatchingButtons[i] = BooleanSetting.valueOf(classicSettingBase + i).boolean
+                }
+                builder.setMultiChoiceItems(
+                    R.array.classicLatchableButtons, wiiClassicLatchingButtons
+                ) { _: DialogInterface?, indexSelected: Int, isChecked: Boolean ->
+                    BooleanSetting.valueOf(classicSettingBase + indexSelected)
+                        .setBoolean(settings, isChecked)
+                }
+            }
+            InputOverlay.OVERLAY_WIIMOTE_NUNCHUK -> {
+                val nunchukLatchingButtons = BooleanArray(9)
+                val nunchukSettingBase = "MAIN_BUTTON_LATCHING_WII_"
+
+                // For OVERLAY_WIIMOTE_NUNCHUK, settings index 7 is the D-Pad (which cannot be
+                // latching). C and Z (settings indices 8 and 9) need to map to multichoice array
+                // indices 7 and 8 to avoid a gap.
+                fun translateToSettingsIndex(idx: Int): Int = if (idx >= 7) idx + 1 else idx
+
+                for (i in nunchukLatchingButtons.indices) {
+                    nunchukLatchingButtons[i] = BooleanSetting
+                        .valueOf(nunchukSettingBase + translateToSettingsIndex(i)).boolean
+                }
+
+                builder.setMultiChoiceItems(
+                    R.array.nunchukLatchableButtons, nunchukLatchingButtons
+                ) { _: DialogInterface?, indexSelected: Int, isChecked: Boolean ->
+                    BooleanSetting.valueOf(nunchukSettingBase + translateToSettingsIndex(indexSelected))
+                        .setBoolean(settings, isChecked)
+                }
+            }
+            else -> {
+                val wiimoteLatchingButtons = BooleanArray(7)
+                val wiimoteSettingBase = "MAIN_BUTTON_LATCHING_WII_"
+
+                for (i in wiimoteLatchingButtons.indices) {
+                    wiimoteLatchingButtons[i] = BooleanSetting.valueOf(wiimoteSettingBase + i).boolean
+                }
+
+                builder.setMultiChoiceItems(
+                      R.array.wiimoteLatchableButtons, wiimoteLatchingButtons
+                ) { _: DialogInterface?, indexSelected: Int, isChecked: Boolean ->
+                    BooleanSetting.valueOf(wiimoteSettingBase + indexSelected)
+                        .setBoolean(settings, isChecked)
+                }
+            }
+        }
+
+        builder
+            .setPositiveButton(R.string.ok) { _: DialogInterface?, _: Int ->
+                emulationFragment?.refreshInputOverlay()
+            }
+            .show()
     }
 
     private fun toggleControls() {
@@ -968,11 +1048,13 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
         const val MENU_ACTION_SETTINGS = 35
         const val MENU_ACTION_SKYLANDERS = 36
         const val MENU_ACTION_INFINITY_BASE = 37
+        const val MENU_ACTION_LATCHING_CONTROLS = 38
 
         init {
             buttonsActionsMap.apply {
                 append(R.id.menu_emulation_edit_layout, MENU_ACTION_EDIT_CONTROLS_PLACEMENT)
                 append(R.id.menu_emulation_toggle_controls, MENU_ACTION_TOGGLE_CONTROLS)
+                append(R.id.menu_emulation_latching_controls, MENU_ACTION_LATCHING_CONTROLS)
                 append(R.id.menu_emulation_adjust_scale, MENU_ACTION_ADJUST_SCALE)
                 append(R.id.menu_emulation_choose_controller, MENU_ACTION_CHOOSE_CONTROLLER)
                 append(R.id.menu_emulation_joystick_rel_center, MENU_ACTION_JOYSTICK_REL_CENTER)

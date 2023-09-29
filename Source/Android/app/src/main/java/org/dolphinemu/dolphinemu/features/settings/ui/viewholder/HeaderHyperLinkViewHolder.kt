@@ -11,7 +11,7 @@ import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter
 
 class HeaderHyperLinkViewHolder(
     private val binding: ListItemHeaderBinding,
-    adapter: SettingsAdapter?
+    adapter: SettingsAdapter
 ) : HeaderViewHolder(binding, adapter) {
     init {
         itemView.setOnClickListener(null)

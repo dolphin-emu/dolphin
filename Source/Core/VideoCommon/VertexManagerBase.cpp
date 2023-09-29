@@ -76,26 +76,34 @@ constexpr Common::EnumMap<PrimitiveType, Primitive::GX_DRAW_POINTS> primitive_fr
 // by ~9% in opposite directions.
 // Just in case any game decides to take this into account, we do both these
 // tests with a large amount of slop.
-static constexpr float ASPECT_RATIO_SLOP = 0.11f;
 
-static bool IsAnamorphicProjection(const Projection::Raw& projection, const Viewport& viewport)
+static float CalculateProjectionViewportRatio(const Projection::Raw& projection,
+                                              const Viewport& viewport)
 {
-  // If ratio between our projection and viewport aspect ratios is similar to 16:9 / 4:3
-  // we have an anamorphic projection.
-  static constexpr float IDEAL_RATIO = (16 / 9.f) / (4 / 3.f);
-
   const float projection_ar = projection[2] / projection[0];
   const float viewport_ar = viewport.wd / viewport.ht;
 
-  return std::abs(std::abs(projection_ar / viewport_ar) - IDEAL_RATIO) <
-         IDEAL_RATIO * ASPECT_RATIO_SLOP;
+  return std::abs(projection_ar / viewport_ar);
 }
 
-static bool IsNormalProjection(const Projection::Raw& projection, const Viewport& viewport)
+static bool IsAnamorphicProjection(const Projection::Raw& projection, const Viewport& viewport,
+                                   const VideoConfig& config)
 {
-  const float projection_ar = projection[2] / projection[0];
-  const float viewport_ar = viewport.wd / viewport.ht;
-  return std::abs(std::abs(projection_ar / viewport_ar) - 1) < ASPECT_RATIO_SLOP;
+  // If ratio between our projection and viewport aspect ratios is similar to 16:9 / 4:3
+  // we have an anamorphic projection. This value can be overridden
+  // by a GameINI.
+
+  return std::abs(CalculateProjectionViewportRatio(projection, viewport) -
+                  config.widescreen_heuristic_widescreen_ratio) <
+         config.widescreen_heuristic_aspect_ratio_slop;
+}
+
+static bool IsNormalProjection(const Projection::Raw& projection, const Viewport& viewport,
+                               const VideoConfig& config)
+{
+  return std::abs(CalculateProjectionViewportRatio(projection, viewport) -
+                  config.widescreen_heuristic_standard_ratio) <
+         config.widescreen_heuristic_aspect_ratio_slop;
 }
 
 VertexManagerBase::VertexManagerBase()
@@ -507,12 +515,15 @@ void VertexManagerBase::Flush()
     auto& counts =
         is_perspective ? m_flush_statistics.perspective : m_flush_statistics.orthographic;
 
-    if (IsAnamorphicProjection(xfmem.projection.rawProjection, xfmem.viewport))
+    // TODO: Potentially the viewport size could be used as weight for the flush count average.
+    // This way a small minimap would have less effect than a fullscreen projection.
+
+    if (IsAnamorphicProjection(xfmem.projection.rawProjection, xfmem.viewport, g_ActiveConfig))
     {
       ++counts.anamorphic_flush_count;
       counts.anamorphic_vertex_count += m_index_generator.GetIndexLen();
     }
-    else if (IsNormalProjection(xfmem.projection.rawProjection, xfmem.viewport))
+    else if (IsNormalProjection(xfmem.projection.rawProjection, xfmem.viewport, g_ActiveConfig))
     {
       ++counts.normal_flush_count;
       counts.normal_vertex_count += m_index_generator.GetIndexLen();

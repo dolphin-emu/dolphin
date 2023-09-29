@@ -29,6 +29,8 @@ add_library(common
   Crypto/bn.h
   Crypto/ec.cpp
   Crypto/ec.h
+  Crypto/HMAC.cpp
+  Crypto/HMAC.h
   Crypto/SHA1.cpp
   Crypto/SHA1.h
   Debug/MemoryPatches.cpp
@@ -110,6 +112,7 @@ add_library(common
   SettingsHandler.h
   SFMLHelper.cpp
   SFMLHelper.h
+  SmallVector.h
   SocketContext.cpp
   SocketContext.h
   SPSCQueue.h

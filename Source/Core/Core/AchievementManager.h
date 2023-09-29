@@ -19,10 +19,6 @@
 #include "Common/Event.h"
 #include "Common/WorkQueueThread.h"
 
-using AchievementId = u32;
-constexpr size_t RP_SIZE = 256;
-using RichPresence = std::array<char, RP_SIZE>;
-
 namespace Core
 {
 class System;
@@ -38,6 +34,8 @@ public:
     INVALID_REQUEST,
     INVALID_CREDENTIALS,
     CONNECTION_FAILED,
+    MALFORMED_OBJECT,
+    EXPIRED_CONTEXT,
     UNKNOWN_FAILURE
   };
   using ResponseCallback = std::function<void(ResponseType)>;
@@ -52,6 +50,12 @@ public:
     u32 soft_unlocks;
     u32 soft_points;
   };
+
+  using AchievementId = u32;
+  static constexpr size_t FORMAT_SIZE = 24;
+  using FormattedValue = std::array<char, FORMAT_SIZE>;
+  static constexpr size_t RP_SIZE = 256;
+  using RichPresence = std::array<char, RP_SIZE>;
 
   struct UnlockStatus
   {
@@ -92,6 +96,7 @@ public:
   rc_api_fetch_game_data_response_t* GetGameData();
   UnlockStatus GetUnlockStatus(AchievementId achievement_id) const;
   void GetAchievementProgress(AchievementId achievement_id, u32* value, u32* target);
+  RichPresence GetRichPresence();
 
   void CloseGame();
   void Logout();
@@ -109,7 +114,7 @@ private:
   ResponseType FetchUnlockData(bool hardcore);
 
   void ActivateDeactivateAchievement(AchievementId id, bool enabled, bool unofficial, bool encore);
-  RichPresence GenerateRichPresence();
+  void GenerateRichPresence();
 
   ResponseType AwardAchievement(AchievementId achievement_id);
   ResponseType SubmitLeaderboard(AchievementId leaderboard_id, int value);
@@ -135,6 +140,7 @@ private:
   u32 m_game_id = 0;
   rc_api_fetch_game_data_response_t m_game_data{};
   bool m_is_game_loaded = false;
+  RichPresence m_rich_presence;
   time_t m_last_ping_time = 0;
 
   std::unordered_map<AchievementId, UnlockStatus> m_unlock_map;

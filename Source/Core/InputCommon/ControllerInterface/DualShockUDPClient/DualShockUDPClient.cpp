@@ -219,7 +219,7 @@ private:
   SteadyClock::time_point m_next_listports_time;
   std::thread m_hotplug_thread;
   Common::Flag m_hotplug_thread_running;
-  std::size_t m_config_change_callback_id;
+  Config::ConfigChangedCallbackID m_config_change_callback_id;
 };
 
 std::unique_ptr<ciface::InputBackend> CreateInputBackend(ControllerInterface* controller_interface)

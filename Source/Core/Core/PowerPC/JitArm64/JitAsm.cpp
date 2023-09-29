@@ -97,32 +97,21 @@ void JitArm64::GenerateAsm()
 
   if (assembly_dispatcher)
   {
-    if (GetBlockCache()->GetFastBlockMap())
+    if (GetBlockCache()->GetEntryPoints())
     {
       // Check if there is a block
-      ARM64Reg pc_masked = ARM64Reg::X25;
-      ARM64Reg cache_base = ARM64Reg::X24;
+      ARM64Reg pc_and_msr = ARM64Reg::X25;
+      ARM64Reg cache_base = ARM64Reg::X27;
       ARM64Reg block = ARM64Reg::X30;
-      LSL(pc_masked, DISPATCHER_PC, 1);
-      MOVP2R(cache_base, GetBlockCache()->GetFastBlockMap());
-      LDR(block, cache_base, pc_masked);
+      LDR(IndexType::Unsigned, EncodeRegTo32(pc_and_msr), PPC_REG, PPCSTATE_OFF(msr));
+      MOVP2R(cache_base, GetBlockCache()->GetEntryPoints());
+      // The entry points map is indexed by ((msrBits << 26) | (address >> 2)).
+      UBFIZ(pc_and_msr, pc_and_msr, 26, 6);
+      BFXIL(pc_and_msr, EncodeRegTo64(DISPATCHER_PC), 2, 30);
+      LDR(block, cache_base, ArithOption(pc_and_msr, true));
       FixupBranch not_found = CBZ(block);
-
-      // b.msrBits != msr
-      ARM64Reg msr = ARM64Reg::W27;
-      ARM64Reg msr2 = ARM64Reg::W24;
-      LDR(IndexType::Unsigned, msr, PPC_REG, PPCSTATE_OFF(msr));
-      AND(msr, msr, LogicalImm(JitBaseBlockCache::JIT_CACHE_MSR_MASK, 32));
-      LDR(IndexType::Unsigned, msr2, block, offsetof(JitBlockData, msrBits));
-      CMP(msr, msr2);
-
-      FixupBranch msr_missmatch = B(CC_NEQ);
-
-      // return blocks[block_num].normalEntry;
-      LDR(IndexType::Unsigned, block, block, offsetof(JitBlockData, normalEntry));
       BR(block);
       SetJumpTarget(not_found);
-      SetJumpTarget(msr_missmatch);
     }
     else
     {
@@ -160,18 +149,25 @@ void JitArm64::GenerateAsm()
     }
   }
 
-  // Call C version of Dispatch().
   STR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-  MOVP2R(ARM64Reg::X8, reinterpret_cast<void*>(&JitBase::Dispatch));
-  MOVP2R(ARM64Reg::X0, this);
-  BLR(ARM64Reg::X8);
 
-  FixupBranch no_block_available = CBZ(ARM64Reg::X0);
+  // There is no point in calling the dispatcher in the fast lookup table
+  // case, since the assembly dispatcher would already have found a block.
+  if (!assembly_dispatcher || !GetBlockCache()->GetEntryPoints())
+  {
+    // Call C version of Dispatch().
+    MOVP2R(ARM64Reg::X8, reinterpret_cast<void*>(&JitBase::Dispatch));
+    MOVP2R(ARM64Reg::X0, this);
+    BLR(ARM64Reg::X8);
 
-  BR(ARM64Reg::X0);
+    FixupBranch no_block_available = CBZ(ARM64Reg::X0);
+
+    BR(ARM64Reg::X0);
+
+    SetJumpTarget(no_block_available);
+  }
 
   // Call JIT
-  SetJumpTarget(no_block_available);
   ResetStack();
   MOVP2R(ARM64Reg::X0, this);
   MOV(ARM64Reg::W1, DISPATCHER_PC);
@@ -207,10 +203,16 @@ void JitArm64::GenerateAsm()
   // We can safely assume that downcount >= 1
   B(dispatcher_no_check);
 
+  if (enable_debugging)
+  {
+    SetJumpTarget(debug_exit);
+    static_assert(PPCSTATE_OFF(pc) <= 252);
+    static_assert(PPCSTATE_OFF(pc) + 4 == PPCSTATE_OFF(npc));
+    STP(IndexType::Signed, DISPATCHER_PC, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
+  }
+
   dispatcher_exit = GetCodePtr();
   SetJumpTarget(exit);
-  if (enable_debugging)
-    SetJumpTarget(debug_exit);
 
   // Reset the stack pointer, since the BLR optimization may have pushed things onto the stack
   // without popping them.

@@ -11,6 +11,7 @@
 #include <iomanip>
 #include <limits>
 #include <locale>
+#include <span>
 #include <sstream>
 #include <string>
 #include <type_traits>
@@ -313,4 +314,5 @@ std::string GetEscapedHtml(std::string html);
 void ToLower(std::string* str);
 void ToUpper(std::string* str);
 bool CaseInsensitiveEquals(std::string_view a, std::string_view b);
+std::string BytesToHexString(std::span<const u8> bytes);
 }  // namespace Common

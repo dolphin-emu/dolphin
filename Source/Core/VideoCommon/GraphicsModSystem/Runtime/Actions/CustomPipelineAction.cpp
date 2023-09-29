@@ -282,27 +282,8 @@ void CustomPipelineAction::OnDrawStarted(GraphicsModActionData::DrawStarted* dra
   const auto shader_data = pass.m_pixel_shader.m_asset->GetData();
   if (shader_data)
   {
-    if (pass.m_pixel_shader.m_asset->GetLastLoadedTime() > pass.m_pixel_shader.m_cached_write_time)
+    if (m_last_generated_shader_code.GetBuffer().empty())
     {
-      const auto material = pass.m_pixel_material.m_asset->GetData();
-      if (!material)
-        return;
-
-      pass.m_pixel_shader.m_cached_write_time = pass.m_pixel_shader.m_asset->GetLastLoadedTime();
-
-      for (const auto& prop : material->properties)
-      {
-        if (!shader_data->m_properties.contains(prop.m_code_name))
-        {
-          ERROR_LOG_FMT(VIDEO,
-                        "Custom pipeline has material asset '{}' that has property '{}'"
-                        "that is not on shader asset '{}'",
-                        pass.m_pixel_material.m_asset->GetAssetId(), prop.m_code_name,
-                        pass.m_pixel_shader.m_asset->GetAssetId());
-          return;
-        }
-      }
-
       // Calculate shader details
       std::string color_shader_data =
           ReplaceAll(shader_data->m_shader_source, "custom_main", CUSTOM_PIXELSHADER_COLOR_FUNC);
@@ -336,7 +317,6 @@ void CustomPipelineAction::OnDrawStarted(GraphicsModActionData::DrawStarted* dra
                                        fmt::format("{}_UNIT_{{0}}", texture_code_name));
       }
 
-      m_last_generated_shader_code = ShaderCode{};
       WriteDefines(&m_last_generated_shader_code, m_texture_code_names, draw_started->texture_unit);
       m_last_generated_shader_code.Write("{}", color_shader_data);
     }
@@ -383,16 +363,36 @@ void CustomPipelineAction::OnTextureCreate(GraphicsModActionData::TextureCreate*
   if (!pass.m_pixel_shader.m_asset || pass.m_pixel_material.m_asset->GetLastLoadedTime() >
                                           pass.m_pixel_material.m_cached_write_time)
   {
+    m_last_generated_shader_code = ShaderCode{};
     pass.m_pixel_shader.m_asset = loader.LoadPixelShader(material_data->shader_asset, m_library);
-    // Note: the asset timestamp will be updated in the draw command
+    pass.m_pixel_shader.m_cached_write_time = pass.m_pixel_shader.m_asset->GetLastLoadedTime();
   }
   create->additional_dependencies->push_back(VideoCommon::CachedAsset<VideoCommon::CustomAsset>{
       pass.m_pixel_shader.m_asset, pass.m_pixel_shader.m_asset->GetLastLoadedTime()});
+
+  const auto shader_data = pass.m_pixel_shader.m_asset->GetData();
+  if (!shader_data)
+  {
+    m_valid = false;
+    return;
+  }
 
   m_texture_code_names.clear();
   std::vector<VideoCommon::CachedAsset<VideoCommon::GameTextureAsset>> game_assets;
   for (const auto& property : material_data->properties)
   {
+    const auto shader_it = shader_data->m_properties.find(property.m_code_name);
+    if (shader_it == shader_data->m_properties.end())
+    {
+      ERROR_LOG_FMT(VIDEO,
+                    "Custom pipeline for texture '{}' has material asset '{}' that uses a "
+                    "code name of '{}' but that can't be found on shader asset '{}'!",
+                    create->texture_name, pass.m_pixel_material.m_asset->GetAssetId(),
+                    property.m_code_name, pass.m_pixel_shader.m_asset->GetAssetId());
+      m_valid = false;
+      return;
+    }
+
     if (property.m_type == VideoCommon::MaterialProperty::Type::Type_TextureAsset)
     {
       if (property.m_value)
@@ -423,15 +423,23 @@ void CustomPipelineAction::OnTextureCreate(GraphicsModActionData::TextureCreate*
       auto data = game_texture.m_asset->GetData();
       if (data)
       {
-        if (create->texture_width != data->m_levels[0].width ||
-            create->texture_height != data->m_levels[0].height)
+        if (data->m_slices.empty() || data->m_slices[0].m_levels.empty())
+        {
+          ERROR_LOG_FMT(
+              VIDEO,
+              "Custom pipeline for texture '{}' has asset '{}' that does not have any texture data",
+              create->texture_name, game_texture.m_asset->GetAssetId());
+          m_valid = false;
+        }
+        else if (create->texture_width != data->m_slices[0].m_levels[0].width ||
+                 create->texture_height != data->m_slices[0].m_levels[0].height)
         {
           ERROR_LOG_FMT(VIDEO,
                         "Custom pipeline for texture '{}' has asset '{}' that does not match "
                         "the width/height of the texture loaded.  Texture {}x{} vs asset {}x{}",
                         create->texture_name, game_texture.m_asset->GetAssetId(),
-                        create->texture_width, create->texture_height, data->m_levels[0].width,
-                        data->m_levels[0].height);
+                        create->texture_width, create->texture_height,
+                        data->m_slices[0].m_levels[0].width, data->m_slices[0].m_levels[0].height);
           m_valid = false;
         }
       }

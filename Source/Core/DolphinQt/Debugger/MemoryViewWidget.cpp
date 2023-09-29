@@ -208,7 +208,7 @@ MemoryViewWidget::MemoryViewWidget(QWidget* parent)
 void MemoryViewWidget::UpdateFont()
 {
   const QFontMetrics fm(Settings::Instance().GetDebugFont());
-  m_font_vspace = fm.lineSpacing();
+  m_font_vspace = fm.lineSpacing() + 4;
   // BoundingRect is too unpredictable, a custom one would be needed for each view type. Different
   // fonts have wildly different spacing between two characters and horizontalAdvance includes
   // spacing.
@@ -283,8 +283,8 @@ void MemoryViewWidget::CreateTable()
 
   // This sets all row heights and determines horizontal ascii spacing.
   // Could be placed in UpdateFont() but doesn't apply correctly unless called more.
-  m_table->verticalHeader()->setDefaultSectionSize(m_font_vspace - 1);
-  m_table->verticalHeader()->setMinimumSectionSize(m_font_vspace - 1);
+  m_table->verticalHeader()->setDefaultSectionSize(m_font_vspace);
+  m_table->verticalHeader()->setMinimumSectionSize(m_font_vspace);
   m_table->horizontalHeader()->setMinimumSectionSize(m_font_width * 2);
 
   const QSignalBlocker blocker(m_table);

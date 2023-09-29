@@ -5,7 +5,9 @@
 #include <fmt/format.h>
 
 #include "Common/CommonTypes.h"
+#include "Common/ScopeGuard.h"
 #include "Common/Timer.h"
+#include "Core/Core.h"
 #include "Core/MemTools.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/JitInterface.h"
@@ -66,14 +68,15 @@ static void ASAN_DISABLE perform_invalid_access(void* data)
 TEST(PageFault, PageFault)
 {
   if (!EMM::IsExceptionHandlerSupported())
-  {
-    // TODO: Use GTEST_SKIP() instead when GTest is updated to 1.10+
-    return;
-  }
+    GTEST_SKIP() << "Skipping PageFault test because exception handler is unsupported.";
+
   EMM::InstallExceptionHandler();
   void* data = Common::AllocateMemoryPages(PAGE_GRAN);
   EXPECT_NE(data, nullptr);
   Common::WriteProtectMemory(data, PAGE_GRAN, false);
+
+  Core::DeclareAsCPUThread();
+  Common::ScopeGuard cpu_thread_guard([] { Core::UndeclareAsCPUThread(); });
 
   auto& system = Core::System::GetInstance();
   auto unique_pfjit = std::make_unique<PageFaultFakeJit>(system);

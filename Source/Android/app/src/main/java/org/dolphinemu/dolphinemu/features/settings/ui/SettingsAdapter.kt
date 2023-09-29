@@ -51,7 +51,7 @@ class SettingsAdapter(
     private var settingsList: ArrayList<SettingsItem>? = null
     private var clickedItem: SettingsItem? = null
     private var clickedPosition: Int = -1
-    private var seekbarProgress = 0
+    private var seekbarProgress: Float = 0f
     private var dialog: AlertDialog? = null
     private var textSliderValue: TextView? = null
 
@@ -138,7 +138,7 @@ class SettingsAdapter(
         return getItem(position).type
     }
 
-    fun setSettings(settings: ArrayList<SettingsItem>?) {
+    fun setSettings(settings: ArrayList<SettingsItem>) {
         settingsList = settings
         notifyDataSetChanged()
     }
@@ -154,7 +154,7 @@ class SettingsAdapter(
     }
 
     fun onBooleanClick(item: SwitchSetting, checked: Boolean) {
-        item.setChecked(settings, checked)
+        item.setChecked(settings!!, checked)
         fragmentView.onSettingChanged()
     }
 
@@ -194,7 +194,7 @@ class SettingsAdapter(
         item.refreshChoicesAndValues()
         val choices = item.choices
         val noChoicesAvailableString = item.noChoicesAvailableString
-        dialog = if (noChoicesAvailableString != 0 && choices!!.isEmpty()) {
+        dialog = if (noChoicesAvailableString != 0 && choices.isEmpty()) {
             MaterialAlertDialogBuilder(fragmentView.fragmentActivity)
                 .setTitle(item.name)
                 .setMessage(noChoicesAvailableString)
@@ -229,21 +229,37 @@ class SettingsAdapter(
     fun onSliderClick(item: SliderSetting, position: Int) {
         clickedItem = item
         clickedPosition = position
-        seekbarProgress = item.selectedValue
+        seekbarProgress = when (item) {
+            is FloatSliderSetting -> item.selectedValue
+            is IntSliderSetting -> item.selectedValue.toFloat()
+        }
 
         val inflater = LayoutInflater.from(fragmentView.fragmentActivity)
         val binding = DialogSliderBinding.inflate(inflater)
 
         textSliderValue = binding.textValue
-        textSliderValue!!.text = seekbarProgress.toString()
+        textSliderValue!!.text = if (item.showDecimal) {
+            String.format("%.2f", seekbarProgress)
+        } else {
+            seekbarProgress.toInt().toString()
+        }
 
         binding.textUnits.text = item.units
 
         val slider = binding.slider
-        slider.valueFrom = item.min.toFloat()
-        slider.valueTo = item.max.toFloat()
-        slider.value = seekbarProgress.toFloat()
-        slider.stepSize = item.stepSize.toFloat()
+        when (item) {
+            is FloatSliderSetting -> {
+                slider.valueFrom = item.min
+                slider.valueTo = item.max
+                slider.stepSize = item.stepSize
+            }
+            is IntSliderSetting -> {
+                slider.valueFrom = item.min.toFloat()
+                slider.valueTo = item.max.toFloat()
+                slider.stepSize = item.stepSize.toFloat()
+            }
+        }
+        slider.value = seekbarProgress
         slider.addOnChangeListener(this)
 
         dialog = MaterialAlertDialogBuilder(fragmentView.fragmentActivity)
@@ -258,7 +274,7 @@ class SettingsAdapter(
     }
 
     fun onInputMappingClick(item: InputMappingControlSetting, position: Int) {
-        if (item.controller.defaultDevice.isEmpty() && !fragmentView.isMappingAllDevices) {
+        if (item.controller.getDefaultDevice().isEmpty() && !fragmentView.isMappingAllDevices) {
             MaterialAlertDialogBuilder(fragmentView.fragmentActivity)
                 .setMessage(R.string.input_binding_no_device)
                 .setPositiveButton(R.string.ok, this)
@@ -339,7 +355,7 @@ class SettingsAdapter(
         dialog.show()
     }
 
-    fun onFilePickerDirectoryClick(item: SettingsItem?, position: Int) {
+    fun onFilePickerDirectoryClick(item: SettingsItem, position: Int) {
         clickedItem = item
         clickedPosition = position
 
@@ -426,9 +442,9 @@ class SettingsAdapter(
     }
 
     fun onFilePickerConfirmation(selectedFile: String) {
-        val filePicker = clickedItem as FilePicker?
+        val filePicker = clickedItem as FilePicker
 
-        if (filePicker!!.getSelectedValue() != selectedFile) {
+        if (filePicker.getSelectedValue() != selectedFile) {
             notifyItemChanged(clickedPosition)
             fragmentView.onSettingChanged()
         }
@@ -454,7 +470,7 @@ class SettingsAdapter(
                 val value = getValueForSingleChoiceSelection(scSetting, which)
                 if (scSetting.selectedValue != value) fragmentView.onSettingChanged()
 
-                scSetting.setSelectedValue(settings, value)
+                scSetting.setSelectedValue(settings!!, value)
 
                 closeDialog()
             }
@@ -474,14 +490,16 @@ class SettingsAdapter(
                 val value = scSetting.getValueAt(which)
                 if (scSetting.selectedValue != value) fragmentView.onSettingChanged()
 
-                scSetting.setSelectedValue(settings, value)
+                scSetting.setSelectedValue(settings!!, value)
 
                 closeDialog()
             }
             is IntSliderSetting -> {
                 val sliderSetting = clickedItem as IntSliderSetting
-                if (sliderSetting.selectedValue != seekbarProgress) fragmentView.onSettingChanged()
-                sliderSetting.setSelectedValue(settings, seekbarProgress)
+                if (sliderSetting.selectedValue != seekbarProgress.toInt()) {
+                    fragmentView.onSettingChanged()
+                }
+                sliderSetting.setSelectedValue(settings!!, seekbarProgress.toInt())
                 closeDialog()
             }
             is FloatSliderSetting -> {
@@ -489,13 +507,13 @@ class SettingsAdapter(
 
                 if (sliderSetting.selectedValue != seekbarProgress) fragmentView.onSettingChanged()
 
-                sliderSetting.setSelectedValue(settings, seekbarProgress.toFloat())
+                sliderSetting.setSelectedValue(settings!!, seekbarProgress)
 
                 closeDialog()
             }
         }
         clickedItem = null
-        seekbarProgress = -1
+        seekbarProgress = -1f
     }
 
     fun closeDialog() {
@@ -510,8 +528,12 @@ class SettingsAdapter(
     }
 
     override fun onValueChange(slider: Slider, progress: Float, fromUser: Boolean) {
-        seekbarProgress = progress.toInt()
-        textSliderValue!!.text = seekbarProgress.toString()
+        seekbarProgress = progress
+        textSliderValue!!.text = if ((clickedItem as SliderSetting).showDecimal) {
+            String.format("%.2f", seekbarProgress)
+        } else {
+            seekbarProgress.toInt().toString()
+        }
     }
 
     private fun getValueForSingleChoiceSelection(item: SingleChoiceSetting, which: Int): Int {

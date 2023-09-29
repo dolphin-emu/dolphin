@@ -18,6 +18,7 @@
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+#include "Common/SmallVector.h"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -1794,33 +1795,6 @@ void ARM64XEmitter::ADRP(ARM64Reg Rd, s64 imm)
   EncodeAddressInst(1, Rd, static_cast<s32>(imm >> 12));
 }
 
-template <typename T, size_t MaxSize>
-class SmallVector final
-{
-public:
-  SmallVector() = default;
-  explicit SmallVector(size_t size) : m_size(size) {}
-
-  void push_back(const T& x) { m_array[m_size++] = x; }
-  void push_back(T&& x) { m_array[m_size++] = std::move(x); }
-
-  template <typename... Args>
-  T& emplace_back(Args&&... args)
-  {
-    return m_array[m_size++] = T{std::forward<Args>(args)...};
-  }
-
-  T& operator[](size_t i) { return m_array[i]; }
-  const T& operator[](size_t i) const { return m_array[i]; }
-
-  size_t size() const { return m_size; }
-  bool empty() const { return m_size == 0; }
-
-private:
-  std::array<T, MaxSize> m_array{};
-  size_t m_size = 0;
-};
-
 template <typename T>
 void ARM64XEmitter::MOVI2RImpl(ARM64Reg Rd, T imm)
 {
@@ -1844,17 +1818,17 @@ void ARM64XEmitter::MOVI2RImpl(ARM64Reg Rd, T imm)
 
   constexpr size_t max_parts = sizeof(T) / 2;
 
-  SmallVector<Part, max_parts> best_parts;
+  Common::SmallVector<Part, max_parts> best_parts;
   Approach best_approach;
   u64 best_base;
 
-  const auto instructions_required = [](const SmallVector<Part, max_parts>& parts,
+  const auto instructions_required = [](const Common::SmallVector<Part, max_parts>& parts,
                                         Approach approach) {
     return parts.size() + (approach > Approach::MOVNBase);
   };
 
   const auto try_base = [&](T base, Approach approach, bool first_time) {
-    SmallVector<Part, max_parts> parts;
+    Common::SmallVector<Part, max_parts> parts;
 
     for (size_t i = 0; i < max_parts; ++i)
     {

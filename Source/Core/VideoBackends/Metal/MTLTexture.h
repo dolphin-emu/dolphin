@@ -29,7 +29,6 @@ public:
             u32 layer) override;
 
   id<MTLTexture> GetMTLTexture() const { return m_tex; }
-  void SetMTLTexture(MRCOwned<id<MTLTexture>> tex) { m_tex = std::move(tex); }
 
 private:
   MRCOwned<id<MTLTexture>> m_tex;
@@ -61,17 +60,30 @@ private:
 class Framebuffer final : public AbstractFramebuffer
 {
 public:
-  Framebuffer(AbstractTexture* color, AbstractTexture* depth, u32 width, u32 height, u32 layers,
-              u32 samples);
+  Framebuffer(AbstractTexture* color, AbstractTexture* depth,
+              std::vector<AbstractTexture*> additonal_color_textures,  //
+              u32 width, u32 height, u32 layers, u32 samples);
   ~Framebuffer();
 
-  id<MTLTexture> GetColor() const
+  MTLRenderPassDescriptor* PassDesc() const { return m_pass_descriptor; }
+
+  size_t NumAdditionalColorTextures() const { return m_additional_color_textures.size(); }
+
+  void SetLoadAction(MTLLoadAction action)
   {
-    return static_cast<Texture*>(GetColorAttachment())->GetMTLTexture();
+    if (m_current_load_action != action)
+      ActualSetLoadAction(action);
   }
-  id<MTLTexture> GetDepth() const
+
+  void UpdateBackbufferTexture(id<MTLTexture> tex)
   {
-    return static_cast<Texture*>(GetDepthAttachment())->GetMTLTexture();
+    [m_pass_descriptor colorAttachments][0].texture = tex;
   }
+
+private:
+  MRCOwned<MTLRenderPassDescriptor*> m_pass_descriptor;
+  std::vector<AbstractTexture*> m_additional_color_textures;
+  MTLLoadAction m_current_load_action = MTLLoadActionLoad;
+  void ActualSetLoadAction(MTLLoadAction action);
 };
 }  // namespace Metal
