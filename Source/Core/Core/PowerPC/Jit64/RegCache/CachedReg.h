@@ -51,7 +51,7 @@ public:
       if (location->IsImm())
         return LocationType::SpeculativeImmediate;
 
-      ASSERT(location == default_location);
+      ASSERT(*location == default_location);
       return LocationType::Default;
     }
 
