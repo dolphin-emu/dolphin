@@ -82,7 +82,7 @@ CachedInterpreter::~CachedInterpreter() = default;
 
 void CachedInterpreter::Init()
 {
-  RefreshConfig(InitFastmemArena::No);
+  RefreshConfig();
 
   m_code.reserve(CODE_SIZE / sizeof(Instruction));
 
@@ -384,5 +384,5 @@ void CachedInterpreter::ClearCache()
 {
   m_code.clear();
   m_block_cache.Clear();
-  RefreshConfig(InitFastmemArena::No);
+  RefreshConfig();
 }

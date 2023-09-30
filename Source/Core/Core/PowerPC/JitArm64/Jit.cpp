@@ -47,7 +47,10 @@ JitArm64::~JitArm64() = default;
 
 void JitArm64::Init()
 {
-  RefreshConfig(InitFastmemArena::Yes);
+  auto& memory = m_system.GetMemory();
+  jo.fastmem_arena = memory.InitFastmemArena();
+
+  RefreshConfig();
 
   const size_t child_code_size = jo.memcheck ? FARCODE_SIZE_MMU : FARCODE_SIZE;
   AllocCodeSpace(CODE_SIZE + child_code_size);
@@ -155,7 +158,7 @@ void JitArm64::ClearCache()
   const Common::ScopedJITPageWriteAndNoExecute enable_jit_page_writes;
   ClearCodeSpace();
   m_far_code.ClearCodeSpace();
-  RefreshConfig(InitFastmemArena::No);
+  RefreshConfig();
 
   GenerateAsm();
 

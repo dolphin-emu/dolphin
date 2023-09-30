@@ -115,7 +115,7 @@ bool JitBase::DoesConfigNeedRefresh()
   });
 }
 
-void JitBase::RefreshConfig(InitFastmemArena init_fastmem_arena)
+void JitBase::RefreshConfig()
 {
   for (const auto& [member, config_info] : JIT_SETTINGS)
     this->*member = Config::Get(*config_info);
@@ -131,12 +131,6 @@ void JitBase::RefreshConfig(InitFastmemArena init_fastmem_arena)
   analyzer.SetBranchFollowingEnabled(m_enable_branch_following);
   analyzer.SetFloatExceptionsEnabled(m_enable_float_exceptions);
   analyzer.SetDivByZeroExceptionsEnabled(m_enable_div_by_zero_exceptions);
-
-  if (init_fastmem_arena != InitFastmemArena::No)
-  {
-    auto& memory = m_system.GetMemory();
-    jo.fastmem_arena = m_fastmem_enabled && memory.InitFastmemArena();
-  }
 
   bool any_watchpoints = m_system.GetPowerPC().GetMemChecks().HasAny();
   jo.fastmem = m_fastmem_enabled && jo.fastmem_arena && (m_ppc_state.msr.DR || !any_watchpoints) &&
