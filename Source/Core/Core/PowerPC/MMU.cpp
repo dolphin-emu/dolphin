@@ -914,6 +914,9 @@ bool MMU::IsOptimizableRAMAddress(const u32 address) const
   if (!m_ppc_state.msr.DR)
     return false;
 
+  if (m_ppc_state.m_enable_dcache)
+    return false;
+
   // TODO: This API needs to take an access size
   //
   // We store whether an access can be optimized to an unchecked access
@@ -1209,6 +1212,9 @@ u32 MMU::IsOptimizableMMIOAccess(u32 address, u32 access_size) const
     return 0;
 
   if (!m_ppc_state.msr.DR)
+    return 0;
+
+  if (m_ppc_state.m_enable_dcache)
     return 0;
 
   // Translate address
