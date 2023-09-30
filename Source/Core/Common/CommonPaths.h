@@ -21,7 +21,8 @@
 #else
 #define USERDATA_DIR "user"
 #define DOLPHIN_DATA_DIR "SlippiOnline"
-#define PLAYBACK_DATA_DIR "SlippiPlayback"
+#define NETPLAY_USER_DIR "slippi-netplay-beta"
+#define PLAYBACK_USER_DIR "slippi-playback-beta"
 #define NORMAL_USER_DIR "dolphin-emu"
 #endif
 #else  // ifndef STEAM

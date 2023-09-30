@@ -464,32 +464,42 @@ void SetUserDirectory(std::string custom_path)
 #else
     else
     {
-      user_path = home_path + "." NORMAL_USER_DIR DIR_SEP;
+      const char* config_home = getenv("XDG_CONFIG_HOME");
+#ifndef IS_PLAYBACK
+      const auto config_dir_name = NETPLAY_USER_DIR;
+#else
+      const auto config_dir_name = PLAYBACK_USER_DIR;
+#endif
+      const auto config_path =
+          std::string(config_home && config_home[0] == '/' ? config_home : (home_path + ".config"));
+      user_path = config_path + DIR_SEP + config_dir_name + DIR_SEP;
+      // user_path = home_path + "." NORMAL_USER_DIR DIR_SEP;
 
-      if (!File::Exists(user_path))
-      {
-        const char* data_home = getenv("XDG_DATA_HOME");
-        std::string data_path =
-            std::string(data_home && data_home[0] == '/' ? data_home :
-                                                           (home_path + ".local" DIR_SEP "share")) +
-            DIR_SEP NORMAL_USER_DIR DIR_SEP;
+      // if (!File::Exists(user_path))
+      // {
+      //   const char* data_home = getenv("XDG_DATA_HOME");
+      //   std::string data_path =
+      //       std::string(data_home && data_home[0] == '/' ? data_home :
+      //                                                      (home_path + ".local" DIR_SEP
+      //                                                      "share")) +
+      //       DIR_SEP NORMAL_USER_DIR DIR_SEP;
 
-        const char* config_home = getenv("XDG_CONFIG_HOME");
-        std::string config_path =
-            std::string(config_home && config_home[0] == '/' ? config_home :
-                                                               (home_path + ".config")) +
-            DIR_SEP NORMAL_USER_DIR DIR_SEP;
+      //   const char* config_home = getenv("XDG_CONFIG_HOME");
+      //   std::string config_path =
+      //       std::string(config_home && config_home[0] == '/' ? config_home :
+      //                                                          (home_path + ".config")) +
+      //       DIR_SEP NORMAL_USER_DIR DIR_SEP;
 
-        const char* cache_home = getenv("XDG_CACHE_HOME");
-        std::string cache_path =
-            std::string(cache_home && cache_home[0] == '/' ? cache_home : (home_path + ".cache")) +
-            DIR_SEP NORMAL_USER_DIR DIR_SEP;
+      //   const char* cache_home = getenv("XDG_CACHE_HOME");
+      //   std::string cache_path =
+      //       std::string(cache_home && cache_home[0] == '/' ? cache_home : (home_path + ".cache"))
+      //       + DIR_SEP NORMAL_USER_DIR DIR_SEP;
 
-        File::SetUserPath(D_USER_IDX, data_path);
-        File::SetUserPath(D_CONFIG_IDX, config_path);
-        File::SetUserPath(D_CACHE_IDX, cache_path);
-        return;
-      }
+      //   File::SetUserPath(D_USER_IDX, data_path);
+      //   File::SetUserPath(D_CONFIG_IDX, config_path);
+      //   File::SetUserPath(D_CACHE_IDX, cache_path);
+      //   return;
+      // }
     }
 #endif
 #endif

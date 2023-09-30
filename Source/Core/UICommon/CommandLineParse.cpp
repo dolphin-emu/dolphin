@@ -123,13 +123,13 @@ std::unique_ptr<optparse::OptionParser> CreateParser(ParserOptions options)
       .help("Choose audio emulation from [%choices]");
 #ifdef IS_PLAYBACK
   parser->add_option("-i", "--slippi_input")
-    .action("store")
-    .metavar("<file>")
-    .type("string")
-    .help("Path to Slippi replay config file (default: Slippi/playback.txt)");
+      .action("store")
+      .metavar("<file>")
+      .type("string")
+      .help("Path to Slippi replay config file (default: Slippi/playback.txt)");
   parser->add_option("--hide-seekbar")
-    .action("store_true")
-    .help("Disable and hide seekbar during playback");
+      .action("store_true")
+      .help("Disable and hide seekbar during playback");
 #endif
 
   return parser;
