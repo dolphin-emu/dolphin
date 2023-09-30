@@ -49,7 +49,7 @@ VertexLoaderX64::VertexLoaderX64(const TVtxDesc& vtx_desc, const VAT& vtx_att)
   AllocCodeSpace(4096);
   ClearCodeSpace();
   GenerateVertexLoader();
-  WriteProtect();
+  WriteProtect(true);
 
   Common::JitRegister::Register(region, GetCodePtr(), "VertexLoaderX64\nVtx desc: \n{}\nVAT:\n{}",
                                 vtx_desc, vtx_att);

@@ -32,7 +32,15 @@ void Jit64AsmRoutineManager::Init()
 {
   m_const_pool.Init(AllocChildCodeSpace(4096), 4096);
   Generate();
-  WriteProtect();
+  WriteProtect(true);
+}
+
+void Jit64AsmRoutineManager::Regenerate()
+{
+  UnWriteProtect(false);
+  ResetCodePtr();
+  Generate();
+  WriteProtect(true);
 }
 
 // PLAN: no more block numbers - crazy opcodes just contain offset within

@@ -305,6 +305,7 @@ void Jit64::ClearCache()
   ClearCodeSpace();
   Clear();
   RefreshConfig(InitFastmemArena::No);
+  asm_routines.Regenerate();
   ResetFreeMemoryRanges();
 }
 
