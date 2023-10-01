@@ -68,6 +68,8 @@ static ImVec2 DrawMessage(int index, Message& msg, const ImVec2& position, int t
                        ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav |
                        ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing))
   {
+    //TODO fractional scaling based on viewport size instead of screen pixels?
+    ImGui::SetWindowFontScale(msg.scale);
     // Use %s in case message contains %.
     ImGui::TextColored(ARGBToImVec4(msg.color), "%s", msg.text.c_str());
     window_width =
@@ -114,7 +116,7 @@ static ImVec2 DrawMessage(int index, Message& msg, const ImVec2& position, int t
 }
 
 void AddTypedMessage(MessageType type, std::string message, u32 ms, u32 argb,
-                     std::string messageStack, bool preventDuplicate)
+                     std::string messageStack, bool preventDuplicate, float scale)
 {
   std::lock_guard lock{s_messages_mutex};
 
@@ -132,12 +134,12 @@ void AddTypedMessage(MessageType type, std::string message, u32 ms, u32 argb,
   {
     stack->messages.erase(type);
   }
-  stack->messages.emplace(type, Message(std::move(message), ms, argb));
+  stack->messages.emplace(type, Message(std::move(message), ms, argb, scale));
 }
 
-void AddMessage(std::string message, u32 ms, u32 argb, std::string messageStack, bool preventDuplicate)
+void AddMessage(std::string message, u32 ms, u32 argb, std::string messageStack, bool preventDuplicate, float scale)
 {
-  AddTypedMessage(MessageType::Typeless, message, ms, argb, messageStack, preventDuplicate);
+  AddTypedMessage(MessageType::Typeless, message, ms, argb, messageStack, preventDuplicate, scale);
 }
 
 void AddMessageStack(OSDMessageStack info)

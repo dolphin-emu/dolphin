@@ -24,9 +24,9 @@ public:
   virtual void AddOSDMessageStack(float x_offset, float y_offset, OSD::MessageStackDirection dir,
                                   bool centered, bool reversed, const char* name) = 0;
   virtual void AddMessage(const char* message, u32 ms, u32 argb, const char* messageStack,
-                          bool preventDuplicate) = 0;
+                          bool preventDuplicate, float scale) = 0;
   virtual void AddTypedMessage(OSD::MessageType type, char* message, u32 ms, u32 argb,
-                               const char* messageStack, bool preventDuplicate) = 0;
+                               const char* messageStack, bool preventDuplicate, float scale) = 0;
   virtual const char* GetGameId() = 0;
 };
 

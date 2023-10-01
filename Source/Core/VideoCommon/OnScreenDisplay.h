@@ -17,8 +17,8 @@ namespace OSD
 struct Message
 {
   Message() = default;
-  Message(std::string text_, u32 duration_, u32 color_)
-      : text(std::move(text_)), duration(duration_), color(color_)
+  Message(std::string text_, u32 duration_, u32 color_, float scale)
+      : text(std::move(text_)), duration(duration_), color(color_), scale(scale)
   {
     timer.Start();
   }
@@ -28,6 +28,7 @@ struct Message
   u32 duration = 0;
   bool ever_drawn = false;
   u32 color = 0;
+  float scale = 1;
 };
 class OSDMessageStack
 {
@@ -87,10 +88,10 @@ void AddMessageStack(OSDMessageStack info);
 
 // On-screen message display (colored yellow by default)
 void AddMessage(std::string message, u32 ms = Duration::SHORT, u32 argb = Color::YELLOW,
-                std::string messageStack = "", bool preventDuplicate = false);
+                std::string messageStack = "", bool preventDuplicate = false, float scale = 1);
 void AddTypedMessage(MessageType type, std::string message, u32 ms = Duration::SHORT,
                      u32 argb = Color::YELLOW, std::string messageStack = "",
-                     bool preventDuplicate = false);
+                     bool preventDuplicate = false, float scale = 1);
 
 // Draw the current messages on the screen. Only call once per frame.
 void DrawMessages();

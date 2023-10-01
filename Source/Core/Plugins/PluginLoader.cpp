@@ -5,10 +5,11 @@
 #include <DiscIO\Filesystem.h>
 #include <VideoCommon\OnScreenDisplay.enum.h>
 #include <VideoCommon\OnScreenDisplay.h>
+#include <exception>
 #include <filesystem>
 #include <string>
-#include "PluginInterface.h"
 #include "Common/FileUtil.h"
+#include "PluginInterface.h"
 
 // TODO multiplatform
 #include <windows.h>
@@ -18,7 +19,6 @@ namespace Plugins
 std::vector<IPluginInterface_Events*> EventPlugins;
 std::vector<HMODULE> DllHandles;
 
-
 class API : public IAPI
 {
 public:
@@ -26,28 +26,26 @@ public:
   API() : IAPI() { gameId = SConfig::GetInstance().GetGameID().c_str(); }
 
   virtual void AddOSDMessageStack(float x_offset, float y_offset, OSD::MessageStackDirection dir,
-                          bool centered, bool reversed, const char* name) override
+                                  bool centered, bool reversed, const char* name) override
   {
     auto stack = OSD::OSDMessageStack(x_offset, y_offset, dir, centered, reversed, std::move(name));
-    //auto stack = OSD::OSDMessageStack(0, 0, OSD::MessageStackDirection::Upward, true, true, "R79JAF_subtitles");
     OSD::AddMessageStack(stack);
   }
   virtual void AddMessage(const char* message, u32 ms, u32 argb, const char* messageStack,
-                  bool preventDuplicate) override
+                          bool preventDuplicate, float scale) override
   {
-    OSD::AddMessage(message, ms, argb, messageStack == 0 ? "" : messageStack, preventDuplicate);
-    //OSD::AddMessage(message, ms, argb, "R79JAF_subtitles", false);
+    OSD::AddMessage(message, ms, argb, messageStack == 0 ? "" : messageStack, preventDuplicate,
+                    scale);
   }
   virtual void AddTypedMessage(OSD::MessageType type, char* message, u32 ms, u32 argb,
-                       const char* messageStack, bool preventDuplicate) override
+                               const char* messageStack, bool preventDuplicate,
+                               float scale) override
   {
-    //NOTICE_LOG_FMT(BOOT, "Calling {}", "AddTypedMessage");
     OSD::AddTypedMessage(type, std::move(message), ms, argb, std::move(messageStack),
-                         preventDuplicate);
+                         preventDuplicate, scale);
   }
   virtual const char* GetGameId() override
-  {
-    //NOTICE_LOG_FMT(BOOT, "Calling {}", "GetGameId");
+  {;
     return gameId;
   }
 };
@@ -70,7 +68,6 @@ void Init()
   {
     if (entry.path().extension() == ".dll")
     {
-      OSD::AddMessage("Loading plugin library " + entry.path().string());
       HMODULE dllHandle = LoadLibrary(entry.path().c_str());
       DllHandles.push_back(dllHandle);
 
@@ -78,11 +75,9 @@ void Init()
           (GetPluginInterface_Events)GetProcAddress(dllHandle, "GetPluginInterface_Events");
       if (interfaceGetter)
       {
-        //OSD::AddMessage("found dll method");
         auto pluginInterface = interfaceGetter(apiInstance);
         if (pluginInterface != 0)
         {
-          //OSD::AddMessage("storing plugin interface");
           EventPlugins.push_back(pluginInterface);
         }
       }
@@ -91,11 +86,6 @@ void Init()
 }
 void Cleanup()
 {
-  if (apiInstance != 0)
-  {
-    delete apiInstance;
-  }
-
   EventPlugins.clear();
 
   for (auto dllHandle : DllHandles)
@@ -133,7 +123,7 @@ void OnFileAccess(const DiscIO::Volume& volume, const DiscIO::Partition& partiti
     const DiscIO::FileSystem* file_system = volume.GetFileSystem(partition);
     if (!file_system)
     {
-      //ignore invalid calls
+      // ignore invalid calls
       return;
     }
 
