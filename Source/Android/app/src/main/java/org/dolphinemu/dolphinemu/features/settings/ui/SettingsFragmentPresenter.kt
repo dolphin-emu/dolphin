@@ -2071,34 +2071,49 @@ class SettingsFragmentPresenter(
     }
 
     private fun addGcPadSubSettings(sl: ArrayList<SettingsItem>, gcPadNumber: Int, gcPadType: Int) {
-        if (gcPadType == 6) {
-            // Emulated
-            val gcPad = EmulatedController.getGcPad(gcPadNumber)
+        when (gcPadType) {
+            6, 8, 9, 10 -> {
+                // Emulated
+                val gcPad = EmulatedController.getGcPad(gcPadNumber)
 
-            if (!TextUtils.isEmpty(gameId)) {
-                addControllerPerGameSettings(sl, gcPad, gcPadNumber)
-            } else {
-                addControllerMetaSettings(sl, gcPad)
-                addControllerMappingSettings(sl, gcPad, null)
+                if (!TextUtils.isEmpty(gameId)) {
+                    addControllerPerGameSettings(sl, gcPad, gcPadNumber)
+                } else {
+                    addControllerMetaSettings(sl, gcPad)
+                    addControllerMappingSettings(sl, gcPad, null)
+                }
             }
-        } else if (gcPadType == 12) {
-            // Adapter
-            sl.add(
-                SwitchSetting(
-                    context,
-                    BooleanSetting.getSettingForAdapterRumble(gcPadNumber),
-                    R.string.gc_adapter_rumble,
-                    R.string.gc_adapter_rumble_description
+            7 -> {
+                // Emulated keyboard controller
+                val gcKeyboard = EmulatedController.getGcKeyboard(gcPadNumber)
+
+                if (!TextUtils.isEmpty(gameId)) {
+                    addControllerPerGameSettings(sl, gcKeyboard, gcPadNumber)
+                } else {
+                    sl.add(HeaderSetting(context, R.string.keyboard_controller_warning, 0))
+                    addControllerMetaSettings(sl, gcKeyboard)
+                    addControllerMappingSettings(sl, gcKeyboard, null)
+                }
+            }
+            12 -> {
+                // Adapter
+                sl.add(
+                    SwitchSetting(
+                        context,
+                        BooleanSetting.getSettingForAdapterRumble(gcPadNumber),
+                        R.string.gc_adapter_rumble,
+                        R.string.gc_adapter_rumble_description
+                    )
                 )
-            )
-            sl.add(
-                SwitchSetting(
-                    context,
-                    BooleanSetting.getSettingForSimulateKonga(gcPadNumber),
-                    R.string.gc_adapter_bongos,
-                    R.string.gc_adapter_bongos_description
+                sl.add(
+                    SwitchSetting(
+                        context,
+                        BooleanSetting.getSettingForSimulateKonga(gcPadNumber),
+                        R.string.gc_adapter_bongos,
+                        R.string.gc_adapter_bongos_description
+                    )
                 )
-            )
+            }
         }
     }
 
