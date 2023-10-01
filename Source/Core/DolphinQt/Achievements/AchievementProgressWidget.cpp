@@ -105,8 +105,9 @@ AchievementProgressWidget::CreateAchievementBox(const rc_api_achievement_definit
   a_progress_bar->setSizePolicy(sp_retain);
   unsigned int value = 0;
   unsigned int target = 0;
-  AchievementManager::GetInstance()->GetAchievementProgress(achievement->id, &value, &target);
-  if (target > 0)
+  if (AchievementManager::GetInstance()->GetAchievementProgress(achievement->id, &value, &target) ==
+          AchievementManager::ResponseType::SUCCESS &&
+      target > 0)
   {
     a_progress_bar->setRange(0, target);
     a_progress_bar->setValue(value);
