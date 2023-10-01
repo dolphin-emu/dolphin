@@ -22,6 +22,7 @@ public:
   Create(const Volume& volume, const Partition& partition, std::string_view file_path);
 
   BlobType GetBlobType() const override { return BlobType::PLAIN; }
+  std::unique_ptr<BlobReader> CopyReader() const override;
 
   u64 GetRawSize() const override;
   u64 GetDataSize() const override;
