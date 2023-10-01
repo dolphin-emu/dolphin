@@ -724,7 +724,7 @@ void JitArm64::GenerateQuantizedStores()
   // X0 is the scale
   // X1 is the address
   // X2 is a temporary
-  // X3 is a temporary if jo.fastmem_arena is false (used in EmitBackpatchRoutine)
+  // X3 is a temporary if jo.fastmem is false (used in EmitBackpatchRoutine)
   // X30 is LR
   // Q0 is the register
   // Q1 is a temporary
@@ -733,7 +733,7 @@ void JitArm64::GenerateQuantizedStores()
   BitSet32 gprs_to_push = CALLER_SAVED_GPRS & ~BitSet32{0, 2};
   if (!jo.memcheck)
     gprs_to_push &= ~BitSet32{1};
-  if (!jo.fastmem_arena)
+  if (!jo.fastmem)
     gprs_to_push &= ~BitSet32{3};
   BitSet32 fprs_to_push = BitSet32(0xFFFFFFFF) & ~BitSet32{0, 1};
   ARM64FloatEmitter float_emit(this);

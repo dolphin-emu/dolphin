@@ -74,7 +74,7 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
     ARM64Reg memory_base = MEM_REG;
     ARM64Reg memory_offset = addr;
 
-    if (!jo.fastmem_arena)
+    if (!jo.fastmem)
     {
       const ARM64Reg temp = emitting_routine ? ARM64Reg::W3 : ARM64Reg::W30;
 
@@ -158,7 +158,7 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
       in_far_code = true;
       SwitchToFarCode();
 
-      if (jo.fastmem_arena && !emitting_routine)
+      if (jo.fastmem && !emitting_routine)
       {
         FastmemArea* fastmem_area = &m_fault_to_handler[fastmem_end];
         fastmem_area->fastmem_code = fastmem_start;
