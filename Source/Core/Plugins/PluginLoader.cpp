@@ -72,6 +72,7 @@ void Init()
     {
       OSD::AddMessage("Loading plugin library " + entry.path().string());
       HMODULE dllHandle = LoadLibrary(entry.path().c_str());
+      DllHandles.push_back(dllHandle);
 
       auto interfaceGetter =
           (GetPluginInterface_Events)GetProcAddress(dllHandle, "GetPluginInterface_Events");
@@ -102,6 +103,12 @@ void Cleanup()
     FreeLibrary(dllHandle);
   }
   DllHandles.clear();
+
+  if (apiInstance != 0)
+  {
+    delete apiInstance;
+    apiInstance = 0;
+  }
 }
 
 void OnGameLoad(const char* path)
