@@ -47,8 +47,7 @@ JitArm64::~JitArm64() = default;
 
 void JitArm64::Init()
 {
-  auto& memory = m_system.GetMemory();
-  jo.fastmem_arena = memory.InitFastmemArena();
+  InitFastmemArena();
 
   RefreshConfig();
 

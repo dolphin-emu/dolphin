@@ -166,6 +166,8 @@ protected:
   bool DoesConfigNeedRefresh();
   void RefreshConfig();
 
+  void InitFastmemArena();
+
   void InitBLROptimization();
   void ProtectStack();
   void UnprotectStack();

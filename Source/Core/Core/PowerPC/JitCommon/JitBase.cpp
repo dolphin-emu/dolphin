@@ -140,6 +140,12 @@ void JitBase::RefreshConfig()
   jo.div_by_zero_exceptions = m_enable_div_by_zero_exceptions;
 }
 
+void JitBase::InitFastmemArena()
+{
+  auto& memory = m_system.GetMemory();
+  jo.fastmem_arena = Config::Get(Config::MAIN_FASTMEM_ARENA) && memory.InitFastmemArena();
+}
+
 void JitBase::InitBLROptimization()
 {
   m_enable_blr_optimization =

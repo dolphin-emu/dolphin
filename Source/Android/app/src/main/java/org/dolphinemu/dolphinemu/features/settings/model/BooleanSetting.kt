@@ -14,6 +14,7 @@ enum class BooleanSetting(
     MAIN_SKIP_IPL(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SkipIPL", true),
     MAIN_DSP_HLE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "DSPHLE", true),
     MAIN_FASTMEM(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "Fastmem", true),
+    MAIN_FASTMEM_ARENA(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "FastmemArena", true),
     MAIN_CPU_THREAD(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "CPUThread", true),
     MAIN_SYNC_ON_SKIP_IDLE(
         Settings.FILE_DOLPHIN,
@@ -897,6 +898,7 @@ enum class BooleanSetting(
     companion object {
         private val NOT_RUNTIME_EDITABLE_ARRAY = arrayOf(
             MAIN_DSP_HLE,
+            MAIN_FASTMEM_ARENA,
             MAIN_CPU_THREAD,
             MAIN_ENABLE_CHEATS,
             MAIN_OVERRIDE_REGION_SETTINGS,
