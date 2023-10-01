@@ -18,6 +18,7 @@
 
 #include "Common/Event.h"
 #include "Common/WorkQueueThread.h"
+#include "DiscIO/Volume.h"
 
 namespace Core
 {
@@ -51,6 +52,8 @@ public:
     u32 soft_points;
   };
 
+  static constexpr size_t HASH_SIZE = 33;
+  using Hash = std::array<char, HASH_SIZE>;
   using AchievementId = u32;
   static constexpr size_t FORMAT_SIZE = 24;
   using FormattedValue = std::array<char, FORMAT_SIZE>;
@@ -105,7 +108,8 @@ public:
   ResponseType Login(const std::string& password);
   void LoginAsync(const std::string& password, const ResponseCallback& callback);
   bool IsLoggedIn() const;
-  void LoadGameByFilenameAsync(const std::string& iso_path, const ResponseCallback& callback);
+  void HashGame(const std::string& file_path, const ResponseCallback& callback);
+  void HashGame(const DiscIO::Volume* volume, const ResponseCallback& callback);
   bool IsGameLoaded() const;
 
   void LoadUnlockData(const ResponseCallback& callback);
@@ -140,14 +144,28 @@ public:
 private:
   AchievementManager() = default;
 
-  static constexpr int HASH_LENGTH = 33;
+  struct FilereaderState
+  {
+    int64_t position = 0;
+    std::unique_ptr<DiscIO::Volume> volume;
+  };
+
+  static void* FilereaderOpenByFilepath(const char* path_utf8);
+  static void* FilereaderOpenByVolume(const char* path_utf8);
+  static void FilereaderSeek(void* file_handle, int64_t offset, int origin);
+  static int64_t FilereaderTell(void* file_handle);
+  static size_t FilereaderRead(void* file_handle, void* buffer, size_t requested_bytes);
+  static void FilereaderClose(void* file_handle);
 
   ResponseType VerifyCredentials(const std::string& password);
-  ResponseType ResolveHash(std::array<char, HASH_LENGTH> game_hash);
+  ResponseType ResolveHash(Hash game_hash);
+  void LoadGameSync(const ResponseCallback& callback);
   ResponseType StartRASession();
   ResponseType FetchGameData();
   ResponseType FetchUnlockData(bool hardcore);
   ResponseType FetchBoardInfo(AchievementId leaderboard_id);
+
+  std::unique_ptr<DiscIO::Volume>& GetLoadingVolume() { return m_loading_volume; };
 
   void ActivateDeactivateAchievement(AchievementId id, bool enabled, bool unofficial, bool encore);
   void GenerateRichPresence();
@@ -174,10 +192,11 @@ private:
   Core::System* m_system{};
   bool m_is_runtime_initialized = false;
   UpdateCallback m_update_callback;
+  std::unique_ptr<DiscIO::Volume> m_loading_volume;
   std::string m_display_name;
   u32 m_player_score = 0;
   BadgeStatus m_player_badge;
-  std::array<char, HASH_LENGTH> m_game_hash{};
+  Hash m_game_hash{};
   u32 m_game_id = 0;
   rc_api_fetch_game_data_response_t m_game_data{};
   bool m_is_game_loaded = false;
@@ -192,6 +211,7 @@ private:
   Common::WorkQueueThread<std::function<void()>> m_queue;
   Common::WorkQueueThread<std::function<void()>> m_image_queue;
   mutable std::recursive_mutex m_lock;
+  std::recursive_mutex m_filereader_lock;
 };  // class AchievementManager
 
 #endif  // USE_RETRO_ACHIEVEMENTS

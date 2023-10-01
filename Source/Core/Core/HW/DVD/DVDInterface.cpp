@@ -20,6 +20,7 @@
 #include "Common/Config/Config.h"
 #include "Common/Logging/Log.h"
 
+#include "Core/AchievementManager.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SessionSettings.h"
 #include "Core/CoreTiming.h"
@@ -395,6 +396,11 @@ void DVDInterface::SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
     m_auto_disc_change_paths = *auto_disc_change_paths;
     m_auto_disc_change_index = 0;
   }
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+  AchievementManager::GetInstance()->HashGame(disc.get(),
+                                              [](AchievementManager::ResponseType r_type) {});
+#endif  // USE_RETRO_ACHIEVEMENTS
 
   // Assume that inserting a disc requires having an empty disc before
   if (had_disc != has_disc)
