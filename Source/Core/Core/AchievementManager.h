@@ -138,6 +138,7 @@ private:
   ResponseType PingRichPresence(const RichPresence& rich_presence);
 
   void HandleAchievementTriggeredEvent(const rc_runtime_event_t* runtime_event);
+  void HandleAchievementProgressUpdatedEvent(const rc_runtime_event_t* runtime_event);
   void HandleLeaderboardStartedEvent(const rc_runtime_event_t* runtime_event);
   void HandleLeaderboardCanceledEvent(const rc_runtime_event_t* runtime_event);
   void HandleLeaderboardTriggeredEvent(const rc_runtime_event_t* runtime_event);
