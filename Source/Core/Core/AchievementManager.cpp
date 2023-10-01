@@ -688,12 +688,25 @@ AchievementManager::GetUnlockStatus(AchievementId achievement_id) const
   return m_unlock_map.at(achievement_id);
 }
 
-void AchievementManager::GetAchievementProgress(AchievementId achievement_id, u32* value,
-                                                u32* target)
+AchievementManager::ResponseType
+AchievementManager::GetAchievementProgress(AchievementId achievement_id, u32* value, u32* target)
 {
   if (!IsGameLoaded())
-    return;
-  rc_runtime_get_achievement_measured(&m_runtime, achievement_id, value, target);
+  {
+    ERROR_LOG_FMT(
+        ACHIEVEMENTS,
+        "Attempted to request measured data for achievement ID {} when no game is running.",
+        achievement_id);
+    return ResponseType::INVALID_REQUEST;
+  }
+  int result = rc_runtime_get_achievement_measured(&m_runtime, achievement_id, value, target);
+  if (result == 0)
+  {
+    WARN_LOG_FMT(ACHIEVEMENTS, "Failed to get measured data for achievement ID {}.",
+                 achievement_id);
+    return ResponseType::MALFORMED_OBJECT;
+  }
+  return ResponseType::SUCCESS;
 }
 
 AchievementManager::RichPresence AchievementManager::GetRichPresence()

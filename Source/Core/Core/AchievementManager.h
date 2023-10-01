@@ -111,7 +111,8 @@ public:
   rc_api_fetch_game_data_response_t* GetGameData();
   const BadgeStatus& GetGameBadge() const;
   const UnlockStatus& GetUnlockStatus(AchievementId achievement_id) const;
-  void GetAchievementProgress(AchievementId achievement_id, u32* value, u32* target);
+  AchievementManager::ResponseType GetAchievementProgress(AchievementId achievement_id, u32* value,
+                                                          u32* target);
   RichPresence GetRichPresence();
 
   void CloseGame();
