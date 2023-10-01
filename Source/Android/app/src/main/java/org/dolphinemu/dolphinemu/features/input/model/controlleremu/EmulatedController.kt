@@ -30,6 +30,8 @@ class EmulatedController private constructor(private val pointer: Long) {
 
     external fun saveProfile(path: String)
 
+    external fun getProfileName(): String
+
     companion object {
         @JvmStatic
         external fun getGcPad(controllerIndex: Int): EmulatedController

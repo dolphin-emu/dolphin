@@ -124,6 +124,13 @@ Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedContro
   ini.Save(path);
 }
 
+JNIEXPORT jstring JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_getProfileName(
+    JNIEnv* env, jobject obj)
+{
+  return ToJString(env, EmulatedControllerFromJava(env, obj)->GetConfig()->GetProfileName());
+}
+
 JNIEXPORT jobject JNICALL
 Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_getGcPad(
     JNIEnv* env, jclass, jint controller_index)

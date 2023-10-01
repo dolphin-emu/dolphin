@@ -2076,7 +2076,7 @@ class SettingsFragmentPresenter(
             val gcPad = EmulatedController.getGcPad(gcPadNumber)
 
             if (!TextUtils.isEmpty(gameId)) {
-                addControllerPerGameSettings(sl, "Pad", gcPadNumber)
+                addControllerPerGameSettings(sl, gcPad, gcPadNumber)
             } else {
                 addControllerMetaSettings(sl, gcPad)
                 addControllerMappingSettings(sl, gcPad, null)
@@ -2106,7 +2106,7 @@ class SettingsFragmentPresenter(
         val wiimote = EmulatedController.getWiimote(wiimoteNumber)
 
         if (!TextUtils.isEmpty(gameId)) {
-            addControllerPerGameSettings(sl, "Wiimote", wiimoteNumber)
+            addControllerPerGameSettings(sl, wiimote, wiimoteNumber)
         } else {
             addControllerMetaSettings(sl, wiimote)
 
@@ -2202,11 +2202,11 @@ class SettingsFragmentPresenter(
      */
     private fun addControllerPerGameSettings(
         sl: ArrayList<SettingsItem>,
-        profileString: String,
+        controller: EmulatedController,
         controllerNumber: Int
     ) {
         val profiles = ProfileDialogPresenter(menuTag).getProfileNames(false)
-        val profileKey = profileString + "Profile" + (controllerNumber + 1)
+        val profileKey = controller.getProfileName() + "Profile" + (controllerNumber + 1)
         sl.add(
             StringSingleChoiceSetting(
                 context,

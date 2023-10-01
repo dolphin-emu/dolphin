@@ -47,6 +47,7 @@ public:
   explicit FreeLookController(unsigned int index);
 
   std::string GetName() const override;
+  InputConfig* GetConfig() const override;
   void LoadDefaults(const ControllerInterface& ciface) override;
 
   ControllerEmu::ControlGroup* GetGroup(FreeLookGroup group) const;

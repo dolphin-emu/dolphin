@@ -8,6 +8,8 @@
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 
+#include "Core/HW/GCPad.h"
+
 #include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/Control/Output.h"
 #include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
@@ -15,7 +17,6 @@
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControlGroup/MixedTriggers.h"
 #include "InputCommon/ControllerEmu/StickGate.h"
-
 #include "InputCommon/GCPadStatus.h"
 
 static const u16 button_bitmasks[] = {
@@ -93,6 +94,11 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
 std::string GCPad::GetName() const
 {
   return std::string("GCPad") + char('1' + m_index);
+}
+
+InputConfig* GCPad::GetConfig() const
+{
+  return Pad::GetConfig();
 }
 
 ControllerEmu::ControlGroup* GCPad::GetGroup(PadGroup group)

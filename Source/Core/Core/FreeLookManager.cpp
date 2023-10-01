@@ -118,6 +118,11 @@ std::string FreeLookController::GetName() const
   return std::string("FreeLook") + char('1' + m_index);
 }
 
+InputConfig* FreeLookController::GetConfig() const
+{
+  return FreeLook::GetInputConfig();
+}
+
 void FreeLookController::LoadDefaults(const ControllerInterface& ciface)
 {
   EmulatedController::LoadDefaults(ciface);
