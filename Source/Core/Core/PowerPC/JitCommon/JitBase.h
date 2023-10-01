@@ -163,8 +163,14 @@ protected:
 
   static const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 22> JIT_SETTINGS;
 
+  enum class InitFastmemArena
+  {
+    No,
+    Yes,
+  };
+
   bool DoesConfigNeedRefresh();
-  void RefreshConfig();
+  void RefreshConfig(InitFastmemArena init_fastmem_arena);
 
   void InitBLROptimization();
   void ProtectStack();
