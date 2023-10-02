@@ -100,6 +100,13 @@ void AchievementManager::HashGame(const std::string& file_path, const ResponseCa
     callback(AchievementManager::ResponseType::MANAGER_NOT_INITIALIZED);
     return;
   }
+  if (m_disabled)
+  {
+    INFO_LOG_FMT(ACHIEVEMENTS, "Achievement Manager is disabled until core is rebooted.");
+    OSD::AddMessage("Achievements are disabled until you restart emulation.",
+                    OSD::Duration::VERY_LONG, OSD::Color::RED);
+    return;
+  }
   m_system = &Core::System::GetInstance();
   m_queue.EmplaceItem([this, callback, file_path] {
     Hash new_hash;
@@ -122,6 +129,12 @@ void AchievementManager::HashGame(const std::string& file_path, const ResponseCa
     }
     {
       std::lock_guard lg{m_lock};
+      if (m_disabled)
+      {
+        INFO_LOG_FMT(ACHIEVEMENTS, "Achievements disabled while hash was resolving.");
+        callback(AchievementManager::ResponseType::EXPIRED_CONTEXT);
+        return;
+      }
       m_game_hash = std::move(new_hash);
     }
     LoadGameSync(callback);
@@ -142,13 +155,32 @@ void AchievementManager::HashGame(const DiscIO::Volume* volume, const ResponseCa
     INFO_LOG_FMT(ACHIEVEMENTS, "New volume is empty.");
     return;
   }
+  if (m_disabled)
+  {
+    INFO_LOG_FMT(ACHIEVEMENTS, "Achievement Manager is disabled until core is rebooted.");
+    OSD::AddMessage("Achievements are disabled until core is rebooted.", OSD::Duration::VERY_LONG,
+                    OSD::Color::RED);
+    return;
+  }
+  // Need to SetDisabled outside a lock because it uses m_lock internally.
+  bool disable = false;
   {
     std::lock_guard lg{m_lock};
     if (m_loading_volume.get() != nullptr)
     {
-      return;
+      disable = true;
     }
-    m_loading_volume = DiscIO::CreateVolume(volume->GetBlobReader().CopyReader());
+    else
+    {
+      m_loading_volume = DiscIO::CreateVolume(volume->GetBlobReader().CopyReader());
+    }
+  }
+  if (disable)
+  {
+    INFO_LOG_FMT(ACHIEVEMENTS, "Disabling Achievement Manager due to hash spam.");
+    SetDisabled(true);
+    callback(AchievementManager::ResponseType::EXPIRED_CONTEXT);
+    return;
   }
   m_system = &Core::System::GetInstance();
   struct FilereaderState
@@ -177,6 +209,12 @@ void AchievementManager::HashGame(const DiscIO::Volume* volume, const ResponseCa
     }
     {
       std::lock_guard lg{m_lock};
+      if (m_disabled)
+      {
+        INFO_LOG_FMT(ACHIEVEMENTS, "Achievements disabled while hash was resolving.");
+        callback(AchievementManager::ResponseType::EXPIRED_CONTEXT);
+        return;
+      }
       m_game_hash = std::move(new_hash);
       m_loading_volume.reset();
     }
@@ -197,6 +235,7 @@ void AchievementManager::LoadGameSync(const ResponseCallback& callback)
     INFO_LOG_FMT(ACHIEVEMENTS, "No RetroAchievements data found for this game.");
     OSD::AddMessage("No RetroAchievements data found for this game.", OSD::Duration::VERY_LONG,
                     OSD::Color::RED);
+    SetDisabled(true);
     callback(resolve_hash_response);
     return;
   }
@@ -772,6 +811,25 @@ AchievementManager::RichPresence AchievementManager::GetRichPresence()
   RichPresence rich_presence = m_rich_presence;
   return rich_presence;
 }
+
+void AchievementManager::SetDisabled(bool disable)
+{
+  {
+    std::lock_guard lg{m_lock};
+    m_disabled = disable;
+  }
+  if (disable)
+  {
+    INFO_LOG_FMT(ACHIEVEMENTS, "Achievement Manager has been disabled.");
+    OSD::AddMessage("Please close all games to re-enable achievements.", OSD::Duration::VERY_LONG,
+                    OSD::Color::RED);
+    CloseGame();
+  }
+  else
+  {
+    INFO_LOG_FMT(ACHIEVEMENTS, "Achievement Manager has been re-enabled.");
+  }
+};
 
 void AchievementManager::CloseGame()
 {

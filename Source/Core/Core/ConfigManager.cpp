@@ -30,6 +30,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
 
+#include "Core/AchievementManager.h"
 #include "Core/Boot/Boot.h"
 #include "Core/CommonTitles.h"
 #include "Core/Config/DefaultLocale.h"
@@ -167,6 +168,10 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
 
   if (!was_changed)
     return;
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+  AchievementManager::GetInstance()->SetDisabled(true);
+#endif  // USE_RETRO_ACHIEVEMENTS
 
   if (game_id == "00000000")
   {

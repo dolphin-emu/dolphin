@@ -37,6 +37,11 @@ AchievementHeaderWidget::AchievementHeaderWidget(QWidget* parent) : QWidget(pare
   m_game_progress_hard = new QProgressBar();
   m_game_progress_soft = new QProgressBar();
   m_rich_presence = new QLabel();
+  m_locked_warning = new QLabel();
+
+  m_locked_warning->setText(tr("Achievements have been disabled.<br>Please close all running "
+                               "games to re-enable achievements."));
+  m_locked_warning->setStyleSheet(QStringLiteral("QLabel { color : red; }"));
 
   QSizePolicy sp_retain = m_game_progress_hard->sizePolicy();
   sp_retain.setRetainSizeWhenHidden(true);
@@ -54,6 +59,7 @@ AchievementHeaderWidget::AchievementHeaderWidget(QWidget* parent) : QWidget(pare
   text_col->addWidget(m_game_progress_hard);
   text_col->addWidget(m_game_progress_soft);
   text_col->addWidget(m_rich_presence);
+  text_col->addWidget(m_locked_warning);
   QHBoxLayout* header_layout = new QHBoxLayout();
   header_layout->addLayout(icon_col);
   header_layout->addLayout(text_col);
@@ -148,6 +154,7 @@ void AchievementHeaderWidget::UpdateData()
         QString::fromUtf8(AchievementManager::GetInstance()->GetRichPresence().data()));
     if (!m_rich_presence->isVisible())
       m_rich_presence->setVisible(Config::Get(Config::RA_RICH_PRESENCE_ENABLED));
+    m_locked_warning->setVisible(false);
   }
   else
   {
@@ -157,6 +164,10 @@ void AchievementHeaderWidget::UpdateData()
     m_game_progress_hard->setVisible(false);
     m_game_progress_soft->setVisible(false);
     m_rich_presence->setVisible(false);
+    if (AchievementManager::GetInstance()->IsDisabled())
+    {
+      m_locked_warning->setVisible(true);
+    }
   }
 }
 
