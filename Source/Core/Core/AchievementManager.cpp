@@ -224,13 +224,14 @@ void AchievementManager::HashGame(const DiscIO::Volume* volume, const ResponseCa
 
 void AchievementManager::LoadGameSync(const ResponseCallback& callback)
 {
+  u32 new_game_id = 0;
   Hash current_hash;
   {
     std::lock_guard lg{m_lock};
     current_hash = m_game_hash;
   }
-  const auto resolve_hash_response = ResolveHash(current_hash);
-  if (resolve_hash_response != ResponseType::SUCCESS || m_game_id == 0)
+  const auto resolve_hash_response = ResolveHash(current_hash, &new_game_id);
+  if (resolve_hash_response != ResponseType::SUCCESS || new_game_id == 0)
   {
     INFO_LOG_FMT(ACHIEVEMENTS, "No RetroAchievements data found for this game.");
     OSD::AddMessage("No RetroAchievements data found for this game.", OSD::Duration::VERY_LONG,
@@ -238,6 +239,31 @@ void AchievementManager::LoadGameSync(const ResponseCallback& callback)
     SetDisabled(true);
     callback(resolve_hash_response);
     return;
+  }
+  u32 old_game_id;
+  {
+    std::lock_guard lg{m_lock};
+    old_game_id = m_game_id;
+  }
+  if (new_game_id == old_game_id)
+  {
+    INFO_LOG_FMT(ACHIEVEMENTS, "Alternate hash resolved for current game {}.", old_game_id);
+    callback(ResponseType::SUCCESS);
+    return;
+  }
+  else if (old_game_id != 0)
+  {
+    INFO_LOG_FMT(ACHIEVEMENTS, "Swapping game {} for game {}; achievements disabled.", old_game_id,
+                 new_game_id);
+    OSD::AddMessage("Achievements are now disabled. Please close emulation to re-enable.",
+                    OSD::Duration::VERY_LONG, OSD::Color::RED);
+    SetDisabled(true);
+    callback(ResponseType::EXPIRED_CONTEXT);
+    return;
+  }
+  {
+    std::lock_guard lg{m_lock};
+    m_game_id = new_game_id;
   }
 
   const auto start_session_response = StartRASession();
@@ -979,7 +1005,8 @@ AchievementManager::ResponseType AchievementManager::VerifyCredentials(const std
   return r_type;
 }
 
-AchievementManager::ResponseType AchievementManager::ResolveHash(Hash game_hash)
+AchievementManager::ResponseType AchievementManager::ResolveHash(const Hash& game_hash,
+                                                                 u32* game_id)
 {
   rc_api_resolve_hash_response_t hash_data{};
   std::string username, api_token;
@@ -995,9 +1022,8 @@ AchievementManager::ResponseType AchievementManager::ResolveHash(Hash game_hash)
       rc_api_process_resolve_hash_response);
   if (r_type == ResponseType::SUCCESS)
   {
-    std::lock_guard lg{m_lock};
-    m_game_id = hash_data.game_id;
-    INFO_LOG_FMT(ACHIEVEMENTS, "Hashed game ID {} for RetroAchievements.", m_game_id);
+    *game_id = hash_data.game_id;
+    INFO_LOG_FMT(ACHIEVEMENTS, "Hashed game ID {} for RetroAchievements.", *game_id);
   }
   else
   {

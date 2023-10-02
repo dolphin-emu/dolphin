@@ -160,7 +160,7 @@ private:
   static void FilereaderClose(void* file_handle);
 
   ResponseType VerifyCredentials(const std::string& password);
-  ResponseType ResolveHash(Hash game_hash);
+  ResponseType ResolveHash(const Hash& game_hash, u32* game_id);
   void LoadGameSync(const ResponseCallback& callback);
   ResponseType StartRASession();
   ResponseType FetchGameData();
