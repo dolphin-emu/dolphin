@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ExternalsDir)lz4\lz4\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)LZ4\LZ4.vcxproj">
+      <Project>{9092C5CC-3E71-41B3-BF68-4A7BDD8A5476}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>
