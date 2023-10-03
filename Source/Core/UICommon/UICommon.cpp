@@ -414,9 +414,9 @@ void SetUserDirectory(std::string custom_path)
     // we'll just have a netplay and playback folder inside the identifer similar to how
     // the Launcher does it to keep with some convention.
 #ifdef IS_PLAYBACK
-    user_path = File::GetApplicationSupportDirectory() + "/playback/User" DIR_SEP;
+    user_path = File::GetApplicationSupportDirectory() + "/playback-beta/User" DIR_SEP;
 #else
-    user_path = File::GetApplicationSupportDirectory() + "/netplay/User" DIR_SEP;
+    user_path = File::GetApplicationSupportDirectory() + "/netplay-beta/User" DIR_SEP;
 #endif
 #elif defined(ANDROID)
     if (env_path)

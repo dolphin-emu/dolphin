@@ -758,7 +758,7 @@ std::string GetBundleDirectory()
 std::string GetApplicationSupportDirectory()
 {
   std::string dir =
-      File::GetHomeDirectory() + "/Library/Application Support/com.project-slippi.dolphin-beta";
+      File::GetHomeDirectory() + "/Library/Application Support/com.project-slippi.dolphin";
 
   if (!CreateDir(dir))
   {
