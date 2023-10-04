@@ -45,6 +45,19 @@ static bool IsSoundFile(const std::string& filename)
 
   return extensions.find(extension) != extensions.end();
 }
+// Filtered files
+static bool IsVideoFile(const std::string& filename)
+{
+  std::string extension;
+  SplitPath(filename, nullptr, nullptr, &extension);
+  Common::ToLower(&extension);
+
+  static const std::unordered_set<std::string> extensions = {
+      ".thp",  // 1Wii/Game Cube Video File
+  };
+
+  return extensions.find(extension) != extensions.end();
+}
 
 FileLogger::FileLogger() = default;
 
@@ -79,9 +92,16 @@ void FileLogger::Log(const DiscIO::Volume& volume, const DiscIO::Partition& part
 
   const std::string size_string = Common::ThousandSeparate(file_info->GetSize() / 1000, 7);
   const std::string path = file_info->GetPath();
-  const std::string log_string = fmt::format("{} kB {}", size_string, path);
+  const std::string log_string = fmt::format("{} kB {} offset {}", size_string, path, offset);
+
+  //if (path.contains("BGM") || path.contains("bgm"))
+  //  return;
+
+  //TODO just use colors instead of this horrid hack
   if (IsSoundFile(path))
     INFO_LOG_FMT(FILEMON, "{}", log_string);
+  else if (IsVideoFile(path))
+    NOTICE_LOG_FMT(FILEMON, "{}", log_string);
   else
     WARN_LOG_FMT(FILEMON, "{}", log_string);
 
