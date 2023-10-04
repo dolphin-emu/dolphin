@@ -20,9 +20,6 @@ constexpr u16 TCP_FLAG_PSH = 0x8;
 constexpr u16 TCP_FLAG_FIN = 0x1;
 constexpr u16 TCP_FLAG_RST = 0x4;
 
-constexpr u16 IP_PROTOCOL = 0x800;
-constexpr u16 ARP_PROTOCOL = 0x806;
-
 constexpr u8 MAX_TCP_BUFFER = 4;
 constexpr u16 MAX_UDP_LENGTH = 1500;
 constexpr u16 MAX_TCP_LENGTH = 440;
