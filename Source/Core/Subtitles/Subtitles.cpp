@@ -84,8 +84,6 @@ void DeserializeSubtitlesJson(std::string json)
 
     if (tl.Enabled)
     {
-      //TranslationEntryGroup group = Translations.find(tl.Filename)->second;
-      //group.Add(tl);
       Translations[tl.Filename].Add(tl);
     }
   }
@@ -159,98 +157,10 @@ void Reload()
 {
   std::string game_id = SConfig::GetInstance().GetGameID();
   LoadSubtitlesForGame(game_id);
-    
- /* auto group = Translations["str/0000.thp"];
-
-  INFO_LOG_FMT(SUBTITLES, "0 = {} {}", group.translationLines[0].Offset, group.translationLines[0].Text);
-  INFO_LOG_FMT(SUBTITLES, "1 = {} {}", group.translationLines[1].Offset, group.translationLines[1].Text);
-  INFO_LOG_FMT(SUBTITLES, "2 = {} {}", group.translationLines[2].Offset, group.translationLines[2].Text);
-  INFO_LOG_FMT(SUBTITLES, "3 = {} {}", group.translationLines[3].Offset, group.translationLines[3].Text);
-
-  auto tl = group.GetTLForRelativeOffset(3025152);
-  if (tl != 0)
-  {
-    INFO_LOG_FMT(SUBTITLES, "3025152 = {} {}", tl->Offset, tl->Text);
-  }
-  else
-  {
-    INFO_LOG_FMT(SUBTITLES, "1222025153 = is zero {}", tl == 0);
-  }
-  tl = group.GetTLForRelativeOffset(4025152);
-  if (tl != 0)
-  {
-    INFO_LOG_FMT(SUBTITLES, "4025152 = {} {}", tl->Offset, tl->Text);
-  }
-  else
-  {
-    INFO_LOG_FMT(SUBTITLES, "4025152 = is zero {}", tl == 0);
-  }
-  tl = group.GetTLForRelativeOffset(7025152);
-  if (tl != 0)
-  {
-    INFO_LOG_FMT(SUBTITLES, "7025152 = {} {}", tl->Offset, tl->Text);
-  }
-  else
-  {
-    INFO_LOG_FMT(SUBTITLES, "7025152 = is zero {}", tl == 0);
-  }
-  tl = group.GetTLForRelativeOffset(9025152);
-  if (tl != 0)
-  {
-    INFO_LOG_FMT(SUBTITLES, "9025152 = {} {}", tl->Offset, tl->Text);
-  }
-  else
-  {
-    INFO_LOG_FMT(SUBTITLES, "9025152 = is zero {}", tl == 0);
-  }
-  tl = group.GetTLForRelativeOffset(9025153);
-  if (tl != 0)
-  {
-    INFO_LOG_FMT(SUBTITLES, "9025153 = {} {}", tl->Offset, tl->Text);
-  }
-  else
-  {
-    INFO_LOG_FMT(SUBTITLES, "9025153 = is zero {}", tl == 0);
-  }
-  tl = group.GetTLForRelativeOffset(1222025153);
-  if (tl != 0)
-  {
-    INFO_LOG_FMT(SUBTITLES, "1222025153 = {} {}", tl->Offset, tl->Text);
-  }
-  else
-  {
-    INFO_LOG_FMT(SUBTITLES, "1222025153 = is zero {}", tl == 0);
-  }*/
 }
 
 void OnFileAccess(const DiscIO::Volume& volume, const DiscIO::Partition& partition, u64 offset)
 {
-  //return;
-  //auto group = Translations["str/0000.thp"];
-  ////INFO_LOG_FMT(SUBTITLES, "0 = {} {}", group.translationLines[0].Offset, group.translationLines[0].Text);
-  ////INFO_LOG_FMT(SUBTITLES, "1 = {} {}", group.translationLines[1].Offset, group.translationLines[1].Text);
-  ////INFO_LOG_FMT(SUBTITLES, "2 = {} {}", group.translationLines[2].Offset, group.translationLines[2].Text);
-  ////INFO_LOG_FMT(SUBTITLES, "3 = {} {}", group.translationLines[3].Offset, group.translationLines[3].Text);
-
-  //auto tl = group.GetTLForRelativeOffset(3025152);
-  //INFO_LOG_FMT(SUBTITLES, "0 = {} {}", tl->Offset, tl->Text);
-
-  //tl = group.GetTLForRelativeOffset(4025152);
-  //INFO_LOG_FMT(SUBTITLES, "1 = {} {}", tl->Offset, tl->Text);
-
-  //tl = group.GetTLForRelativeOffset(7025152);
-  //INFO_LOG_FMT(SUBTITLES, "2 = {} {}", tl->Offset, tl->Text);
-
-  //tl = group.GetTLForRelativeOffset(9025152);
-  //INFO_LOG_FMT(SUBTITLES, "5 = {} {}", tl->Offset, tl->Text);
-
-  //tl = group.GetTLForRelativeOffset(9025153);
-  //INFO_LOG_FMT(SUBTITLES, "6 = {} {}", tl->Offset, tl->Text);
-
-  //tl = group.GetTLForRelativeOffset(1222025153);
-  //INFO_LOG_FMT(SUBTITLES, "7 = is zero {}", tl==0);
-
-  //return;
   if (!_subtitlesInitialized)
     return;
 
@@ -266,25 +176,14 @@ void OnFileAccess(const DiscIO::Volume& volume, const DiscIO::Partition& partiti
   std::string path = file_info->GetPath();
 
   auto relativeOffset = offset - file_info->GetOffset();
-  INFO_LOG_FMT(SUBTITLES, "File {} File Offset {} Offset {} Relative offset {}", path,
-               file_info->GetOffset(),
-               offset, relativeOffset);
 
   if (Translations.count(path) == 0)
     return;           
 
-  auto tl = Translations[path].GetTLForRelativeOffset((u32)relativeOffset);   
-  INFO_LOG_FMT(SUBTITLES, "{} Lines count {}", tl!=0, Translations[path].translationLines.size());                    
-
+  auto tl = Translations[path].GetTLForRelativeOffset((u32)relativeOffset);  
   
   if (!tl)
     return;
-
-
-  //auto msg = fmt::format("offset {}", tl->Offset);
-  //OSD::AddMessage(msg, 5000, OSD::Color::GREEN,
-  //                BottomOSDStackName, true,
-  //                1);
 
   OSD::AddMessage(tl->Text, tl->Miliseconds, tl->Color,
                   tl->DisplayOnTop ? TopOSDStackName : BottomOSDStackName, !tl->AllowDuplicate,

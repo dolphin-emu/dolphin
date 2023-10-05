@@ -70,10 +70,6 @@
     <Text Include="$(BuildInfoTemplate)" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Subtitles\SubtitleLoader - Copy (2).h" />
-    <ClInclude Include="Subtitles\SubtitleLoader - Copy (3).h" />
-    <ClInclude Include="Subtitles\SubtitleLoader - Copy (4).h" />
-    <ClInclude Include="Subtitles\SubtitleLoader - Copy (5).h" />
     <ClInclude Include="Subtitles\TranslationEntry.h" />
     <ClInclude Include="Subtitles\Subtitles.h" />
     <ClInclude Include="VideoCommon\OnScreenDisplay.enum.h" />
