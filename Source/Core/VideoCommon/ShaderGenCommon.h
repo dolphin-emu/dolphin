@@ -333,8 +333,12 @@ constexpr std::string_view CUSTOM_PIXELSHADER_COLOR_FUNC = "customShaderColor";
 
 struct CustomPixelShader
 {
-  std::string custom_shader;
-  std::string material_uniform_block;
+  // A shared_ptr was chosen over a string_view as the string
+  // originates from a graphics mod action and might be
+  // living on a custom shader compile thread, when the action decides
+  // to change it
+  std::shared_ptr<std::string> custom_shader;
+  std::shared_ptr<std::string> material_uniform_block;
 
   bool operator==(const CustomPixelShader& other) const = default;
 };

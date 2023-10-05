@@ -118,8 +118,8 @@ void CustomPipelineAction::OnDrawStarted(GraphicsModActionData::DrawStarted* dra
   pass.UpdatePixelData(loader, m_library, draw_started->texture_units,
                        pass_config.m_pixel_material_asset);
   CustomPixelShader custom_pixel_shader;
-  custom_pixel_shader.custom_shader = pass.m_last_generated_shader_code.GetBuffer();
-  custom_pixel_shader.material_uniform_block = pass.m_last_generated_material_code.GetBuffer();
+  custom_pixel_shader.custom_shader = pass.m_shader_code;
+  custom_pixel_shader.material_uniform_block = pass.m_material_code;
   *draw_started->custom_pixel_shader = custom_pixel_shader;
   *draw_started->material_uniform_buffer = pass.m_material_data;
 }

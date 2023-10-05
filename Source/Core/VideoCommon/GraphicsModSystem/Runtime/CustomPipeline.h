@@ -41,8 +41,12 @@ struct CustomPipeline
   };
   std::vector<std::optional<CachedTextureAsset>> m_game_textures;
 
+  std::vector<u8> m_material_data;
+
+  std::shared_ptr<std::string> m_shader_code;
+  std::shared_ptr<std::string> m_material_code;
+
+private:
   ShaderCode m_last_generated_shader_code;
   ShaderCode m_last_generated_material_code;
-
-  std::vector<u8> m_material_data;
 };

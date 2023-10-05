@@ -427,11 +427,11 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
     out.Write("}};\n");
   }
 
-  if (!custom_details.shaders.empty() &&
-      !custom_details.shaders.back().material_uniform_block.empty())
+  if (!custom_details.shaders.empty() && custom_details.shaders.back().material_uniform_block &&
+      !custom_details.shaders.back().material_uniform_block->empty())
   {
     out.Write("UBO_BINDING(std140, 3) uniform CustomShaderBlock {{\n");
-    out.Write("{}", custom_details.shaders.back().material_uniform_block);
+    out.Write("{}", *custom_details.shaders.back().material_uniform_block);
     out.Write("}} custom_uniforms;\n");
   }
 
@@ -924,7 +924,8 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   for (std::size_t i = 0; i < custom_details.shaders.size(); i++)
   {
     const auto& shader_details = custom_details.shaders[i];
-    out.Write(fmt::runtime(shader_details.custom_shader), i);
+    if (shader_details.custom_shader)
+      out.Write(fmt::runtime(*shader_details.custom_shader), i);
   }
 
   out.Write("\n#define sampleTextureWrapper(texmap, uv, layer) "
@@ -1329,7 +1330,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   {
     const auto& shader_details = custom_details.shaders[i];
 
-    if (!shader_details.custom_shader.empty())
+    if (shader_details.custom_shader && !shader_details.custom_shader->empty())
     {
       out.Write("\t{{\n");
       if (uid_data->uint_output)

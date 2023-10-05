@@ -204,6 +204,7 @@ void CustomPipeline::UpdatePixelData(
         texture_count++;
       }
     }
+    m_material_code = std::make_shared<std::string>(m_last_generated_material_code.GetBuffer());
     m_material_data.resize(max_material_data_size);
     m_game_textures.resize(texture_count);
   }
@@ -403,5 +404,6 @@ void CustomPipeline::UpdatePixelData(
           texture_unit);
     }
     m_last_generated_shader_code.Write("{}", color_shader_data);
+    m_shader_code = std::make_shared<std::string>(m_last_generated_shader_code.GetBuffer());
   }
 }

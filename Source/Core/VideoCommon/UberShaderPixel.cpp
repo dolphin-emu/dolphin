@@ -338,7 +338,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   for (std::size_t i = 0; i < custom_details.shaders.size(); i++)
   {
     const auto& shader_details = custom_details.shaders[i];
-    out.Write(fmt::runtime(shader_details.custom_shader), i);
+    if (shader_details.custom_shader)
+      out.Write(fmt::runtime(*shader_details.custom_shader), i);
   }
   if (per_pixel_lighting)
     WriteLightingFunction(out);
@@ -1598,7 +1599,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   {
     const auto& shader_details = custom_details.shaders[i];
 
-    if (!shader_details.custom_shader.empty())
+    if (shader_details.custom_shader && !shader_details.custom_shader->empty())
     {
       out.Write("\t{{\n");
       if (uid_data->uint_output)
