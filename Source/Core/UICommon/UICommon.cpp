@@ -84,6 +84,7 @@ static void CreateLoadPath(std::string path)
   File::CreateFullPath(File::GetUserPath(D_RIIVOLUTION_IDX));
   File::CreateFullPath(File::GetUserPath(D_GRAPHICSMOD_IDX));
   File::CreateFullPath(File::GetUserPath(D_DYNAMICINPUT_IDX));
+  File::CreateFullPath(File::GetUserPath(D_SUBTITLES_IDX));
 }
 
 static void CreateResourcePackPath(std::string path)

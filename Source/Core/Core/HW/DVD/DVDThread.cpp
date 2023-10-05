@@ -33,7 +33,7 @@
 
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
-#include <Plugins\PluginLoader.h>
+#include <Subtitles\Subtitles.h>
 
 namespace DVD
 {
@@ -344,7 +344,7 @@ void DVDThread::DVDThreadMain()
     while (m_request_queue.Pop(request))
     {
       m_file_logger.Log(*m_disc, request.partition, request.dvd_offset);
-      Plugins::OnFileAccess(*m_disc, request.partition, request.dvd_offset);
+      Subtitles::OnFileAccess(*m_disc, request.partition, request.dvd_offset);
 
       std::vector<u8> buffer(request.length);
       if (!m_disc->Read(request.dvd_offset, request.length, buffer.data(), request.partition))

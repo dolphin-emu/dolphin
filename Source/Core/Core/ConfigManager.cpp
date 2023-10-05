@@ -60,7 +60,7 @@
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeWad.h"
 
-#include "Plugins/PluginLoader.h"
+#include <Subtitles\Subtitles.h>
 
 SConfig* SConfig::m_Instance;
 
@@ -211,6 +211,7 @@ void SConfig::OnNewTitleLoad(const Core::CPUThreadGuard& guard)
   PatchEngine::Reload();
   HiresTexture::Update();
   WC24PatchEngine::Reload();
+  Subtitles::Reload();
 }
 
 void SConfig::LoadDefaults()

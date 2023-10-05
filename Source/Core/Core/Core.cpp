@@ -97,7 +97,6 @@
 #ifdef ANDROID
 #include "jni/AndroidCommon/IDCache.h"
 #endif
-#include <Plugins\PluginLoader.h>
 
 namespace Core
 {
@@ -291,8 +290,6 @@ void Stop()  // - Hammertime!
 {
   if (GetState() == State::Stopping || GetState() == State::Uninitialized)
     return;
-
-  Plugins::Cleanup();
 
 #ifdef USE_RETRO_ACHIEVEMENTS
   AchievementManager::GetInstance()->CloseGame();

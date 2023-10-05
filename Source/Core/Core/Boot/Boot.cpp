@@ -56,7 +56,6 @@
 #include "DiscIO/RiivolutionPatcher.h"
 #include "DiscIO/VolumeDisc.h"
 #include "DiscIO/VolumeWad.h"
-#include <Plugins\PluginLoader.h>
 
 static std::vector<std::string> ReadM3UFile(const std::string& m3u_path,
                                             const std::string& folder_path)
@@ -522,8 +521,6 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
         return false;
 
       SConfig::OnNewTitleLoad(guard);
-      Plugins::Init();
-      Plugins::OnGameLoad(disc.path.c_str());
 
       return true;
     }
