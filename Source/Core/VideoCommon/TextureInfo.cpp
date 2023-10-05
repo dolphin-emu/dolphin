@@ -135,7 +135,9 @@ TextureInfo::NameDetails TextureInfo::CalculateTextureName() const
       const u32 texture_byte = m_ptr[i];
 
       min = std::min(min, texture_byte);
-      max = std::max(max, texture_byte);
+      // The value 255 can be used as a transparency flag if the tlut is smaller than 255.
+      if (texture_byte != 255 || max == 254)
+        max = std::max(max, texture_byte);
     }
     break;
   }
