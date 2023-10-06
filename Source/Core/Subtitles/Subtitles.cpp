@@ -1,5 +1,6 @@
 #include "Subtitles.h"
 #include "TranslationEntry.h"
+#include "WebColors.h"
 #include "picojson.h"
 
 #include <VideoCommon/OnScreenDisplay.h>
@@ -71,11 +72,55 @@ void DeserializeSubtitlesJson(std::string json)
       continue;
     }
 
+    u32 color = OSD::Color::CYAN;
+
+    if (Color.is<double>())
+      color = Color.get<double>();
+    else
+    {
+      auto str = Color.to_str();
+      Common::ToLower(&str);
+
+      if (str.starts_with("0x"))
+        //hex string
+        color = std::stoul(str, nullptr, 16);
+      else if (WebColors.count(str) == 1)
+        //html color name
+        color = WebColors[str];
+      else
+        //color noted with 3 or 4 base10 numers (rgb/argb)
+        try //string parsing suucks
+        {
+          // try parse (a)rgb space delimited color
+          u32 a, r, g, b;
+          auto parts = SplitString(str, ' ');
+          if (parts.size() == 4)
+          {
+            a = std::stoul(parts[0], nullptr, 10);
+            r = std::stoul(parts[1], nullptr, 10);
+            g = std::stoul(parts[2], nullptr, 10);
+            b = std::stoul(parts[3], nullptr, 10);
+            color = a << 24 | r << 16 | g << 8 | b;
+          }
+          else if (parts.size() == 3)
+          {
+            a = 255;
+            r = std::stoul(parts[0], nullptr, 10);
+            g = std::stoul(parts[1], nullptr, 10);
+            b = std::stoul(parts[2], nullptr, 10);
+            color = a << 24 | r << 16 | g << 8 | b;
+          }
+        }
+        catch (std::exception x)
+        {
+          Error("Invalid color: " + str);
+        }
+    }
+
     auto tl = TranslationEntry(FileName.to_str(), Translation.to_str(),
                                Miliseconds.is<double>() ? Miliseconds.get<double>() :
                                                           OSD::Duration::SHORT,
-                               Color.is<double>() ? Color.get<double>() : OSD::Color::CYAN,
-                               Enabled.is<bool>() ? Enabled.get<bool>() : true,
+                               color, Enabled.is<bool>() ? Enabled.get<bool>() : true,
                                AllowDuplicate.is<bool>() ? AllowDuplicate.get<bool>() : false,
                                Scale.is<double>() ? Scale.get<double>() : 1,
                                Offset.is<double>() ? Offset.get<double>() : 0,
@@ -125,8 +170,8 @@ void IniitalizeOSDMessageStacks()
   auto bottomstack = OSD::OSDMessageStack(0, 0, OSD::MessageStackDirection::Upward, true, true,
                                           BottomOSDStackName);
   OSD::AddMessageStack(bottomstack);
-  auto topstack =
-      OSD::OSDMessageStack(0, 0, OSD::MessageStackDirection::Downward, true, false, TopOSDStackName);
+  auto topstack = OSD::OSDMessageStack(0, 0, OSD::MessageStackDirection::Downward, true, false,
+                                       TopOSDStackName);
   OSD::AddMessageStack(topstack);
   _messageStacksInitialized = true;
 }
@@ -178,10 +223,10 @@ void OnFileAccess(const DiscIO::Volume& volume, const DiscIO::Partition& partiti
   auto relativeOffset = offset - file_info->GetOffset();
 
   if (Translations.count(path) == 0)
-    return;           
+    return;
 
-  auto tl = Translations[path].GetTLForRelativeOffset((u32)relativeOffset);  
-  
+  auto tl = Translations[path].GetTLForRelativeOffset((u32)relativeOffset);
+
   if (!tl)
     return;
 

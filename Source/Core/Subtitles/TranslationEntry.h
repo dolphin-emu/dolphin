@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include "Common/CommonTypes.h"
+#include <Common/CommonTypes.h>
 namespace Subtitles
 {
 struct TranslationEntry
