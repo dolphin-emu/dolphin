@@ -62,13 +62,17 @@ void EnhancementsWidget::CreateWidgets()
   auto* enhancements_layout = new QGridLayout();
   enhancements_box->setLayout(enhancements_layout);
 
-  // Only display the first 8 scales, which most users will not go beyond.
-  QStringList resolution_options{
-      tr("Auto (Multiple of 640x528)"),      tr("Native (640x528)"),
-      tr("2x Native (1280x1056) for 720p"),  tr("3x Native (1920x1584) for 1080p"),
-      tr("4x Native (2560x2112) for 1440p"), tr("5x Native (3200x2640)"),
-      tr("6x Native (3840x3168) for 4K"),    tr("7x Native (4480x3696)"),
-      tr("8x Native (5120x4224) for 5K")};
+  QStringList resolution_options{tr("Auto (Multiple of 640x528)"), tr("Native (640x528)")};
+  // From 2x up.
+  // To calculate the suggested internal resolution scale for each common output resolution,
+  // we find the minimum multiplier that results in an equal or greater resolution than the
+  // output one, on both width and height.
+  // Note that often games don't render to the full resolution, but have some black bars
+  // on the edges; this is not accounted for in the calculations.
+  const QStringList resolution_extra_options{
+      tr("720p"),         tr("1080p"),        tr("1440p"), QStringLiteral(""),
+      tr("4K"),           QStringLiteral(""), tr("5K"),    QStringLiteral(""),
+      QStringLiteral(""), QStringLiteral(""), tr("8K")};
   const int visible_resolution_option_count = static_cast<int>(resolution_options.size());
 
   // If the current scale is greater than the max scale in the ini, add sufficient options so that
@@ -77,10 +81,22 @@ void EnhancementsWidget::CreateWidgets()
       std::max(Config::Get(Config::GFX_EFB_SCALE), Config::Get(Config::GFX_MAX_EFB_SCALE));
   for (int scale = static_cast<int>(resolution_options.size()); scale <= max_efb_scale; scale++)
   {
-    resolution_options.append(tr("%1x Native (%2x%3)")
-                                  .arg(QString::number(scale),
-                                       QString::number(static_cast<int>(EFB_WIDTH) * scale),
-                                       QString::number(static_cast<int>(EFB_HEIGHT) * scale)));
+    const QString scale_text = QString::number(scale);
+    const QString width_text = QString::number(static_cast<int>(EFB_WIDTH) * scale);
+    const QString height_text = QString::number(static_cast<int>(EFB_HEIGHT) * scale);
+    const int extra_index = resolution_options.size() - 2;
+    const QString extra_text = resolution_extra_options.size() > extra_index ?
+                                   resolution_extra_options[extra_index] :
+                                   QStringLiteral("");
+    if (extra_text.isEmpty())
+    {
+      resolution_options.append(tr("%1x Native (%2x%3)").arg(scale_text, width_text, height_text));
+    }
+    else
+    {
+      resolution_options.append(
+          tr("%1x Native (%2x%3) for %4").arg(scale_text, width_text, height_text, extra_text));
+    }
   }
 
   m_ir_combo = new ConfigChoice(resolution_options, Config::GFX_EFB_SCALE);
