@@ -169,7 +169,7 @@ void MemoryCard::MakeDirty()
 
 s32 MemoryCard::Read(u32 src_address, s32 length, u8* dest_address)
 {
-  if (!IsAddressInBounds(src_address))
+  if (!IsAddressInBounds(src_address, length))
   {
     PanicAlertFmtT("MemoryCard: Read called with invalid source address ({0:#x})", src_address);
     return -1;
@@ -181,7 +181,7 @@ s32 MemoryCard::Read(u32 src_address, s32 length, u8* dest_address)
 
 s32 MemoryCard::Write(u32 dest_address, s32 length, const u8* src_address)
 {
-  if (!IsAddressInBounds(dest_address))
+  if (!IsAddressInBounds(dest_address, length))
   {
     PanicAlertFmtT("MemoryCard: Write called with invalid destination address ({0:#x})",
                    dest_address);
@@ -198,7 +198,7 @@ s32 MemoryCard::Write(u32 dest_address, s32 length, const u8* src_address)
 
 void MemoryCard::ClearBlock(u32 address)
 {
-  if (address & (Memcard::BLOCK_SIZE - 1) || !IsAddressInBounds(address))
+  if (address & (Memcard::BLOCK_SIZE - 1) || !IsAddressInBounds(address, Memcard::BLOCK_SIZE))
   {
     PanicAlertFmtT("MemoryCard: ClearBlock called on invalid address ({0:#x})", address);
     return;
