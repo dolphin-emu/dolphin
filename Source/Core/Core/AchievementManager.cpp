@@ -195,32 +195,11 @@ void AchievementManager::LoadGameByFilenameAsync(const std::string& iso_path,
     {
       std::lock_guard lg{m_lock};
       m_is_game_loaded = true;
+      m_framecount = 0;
       LoadUnlockData([](ResponseType r_type) {});
       ActivateDeactivateAchievements();
       ActivateDeactivateLeaderboards();
       ActivateDeactivateRichPresence();
-      PointSpread spread = TallyScore();
-      if (hardcore_mode_enabled)
-      {
-        OSD::AddMessage(
-            fmt::format("You have {}/{} achievements worth {}/{} points", spread.hard_unlocks,
-                        spread.total_count, spread.hard_points, spread.total_points),
-            OSD::Duration::VERY_LONG, OSD::Color::YELLOW,
-            (Config::Get(Config::RA_BADGES_ENABLED)) ? DecodeBadgeToOSDIcon(m_game_badge.badge) :
-                                                       nullptr);
-        OSD::AddMessage("Hardcore mode is ON", OSD::Duration::VERY_LONG, OSD::Color::YELLOW);
-      }
-      else
-      {
-        OSD::AddMessage(fmt::format("You have {}/{} achievements worth {}/{} points",
-                                    spread.hard_unlocks + spread.soft_unlocks, spread.total_count,
-                                    spread.hard_points + spread.soft_points, spread.total_points),
-                        OSD::Duration::VERY_LONG, OSD::Color::CYAN,
-                        (Config::Get(Config::RA_BADGES_ENABLED)) ?
-                            DecodeBadgeToOSDIcon(m_game_badge.badge) :
-                            nullptr);
-        OSD::AddMessage("Hardcore mode is OFF", OSD::Duration::VERY_LONG, OSD::Color::CYAN);
-      }
     }
     FetchBadges();
     // Reset this to zero so that RP immediately triggers on the first frame
@@ -562,6 +541,14 @@ void AchievementManager::DoFrame()
 {
   if (!m_is_game_loaded)
     return;
+  if (m_framecount == 0x200)
+  {
+    DisplayWelcomeMessage();
+  }
+  if (m_framecount <= 0x200)
+  {
+    m_framecount++;
+  }
   Core::RunAsCPUThread([&] {
     rc_runtime_do_frame(
         &m_runtime,
@@ -1192,6 +1179,33 @@ AchievementManager::PingRichPresence(const RichPresence& rich_presence)
       ping_request, &ping_response, rc_api_init_ping_request, rc_api_process_ping_response);
   rc_api_destroy_ping_response(&ping_response);
   return r_type;
+}
+
+void AchievementManager::DisplayWelcomeMessage()
+{
+  std::lock_guard lg{m_lock};
+  PointSpread spread = TallyScore();
+  if (hardcore_mode_enabled)
+  {
+    OSD::AddMessage(
+        fmt::format("You have {}/{} achievements worth {}/{} points", spread.hard_unlocks,
+                    spread.total_count, spread.hard_points, spread.total_points),
+        OSD::Duration::VERY_LONG, OSD::Color::YELLOW,
+        (Config::Get(Config::RA_BADGES_ENABLED)) ? DecodeBadgeToOSDIcon(m_game_badge.badge) :
+                                                   nullptr);
+    OSD::AddMessage("Hardcore mode is ON", OSD::Duration::VERY_LONG, OSD::Color::YELLOW);
+  }
+  else
+  {
+    OSD::AddMessage(fmt::format("You have {}/{} achievements worth {}/{} points",
+                                spread.hard_unlocks + spread.soft_unlocks, spread.total_count,
+                                spread.hard_points + spread.soft_points, spread.total_points),
+                    OSD::Duration::VERY_LONG, OSD::Color::CYAN,
+                    (Config::Get(Config::RA_BADGES_ENABLED)) ?
+                        DecodeBadgeToOSDIcon(m_game_badge.badge) :
+                        nullptr);
+    OSD::AddMessage("Hardcore mode is OFF", OSD::Duration::VERY_LONG, OSD::Color::CYAN);
+  }
 }
 
 void AchievementManager::HandleAchievementTriggeredEvent(const rc_runtime_event_t* runtime_event)
