@@ -5,12 +5,15 @@
 
 #include "Core/AchievementManager.h"
 
+#include <memory>
+
 #include <fmt/format.h>
 
 #include <rcheevos/include/rc_api_info.h>
 #include <rcheevos/include/rc_hash.h>
 
 #include "Common/HttpRequest.h"
+#include "Common/Image.h"
 #include "Common/Logging/Log.h"
 #include "Common/WorkQueueThread.h"
 #include "Core/Config/AchievementSettings.h"
@@ -22,6 +25,8 @@
 #include "VideoCommon/VideoEvents.h"
 
 static constexpr bool hardcore_mode_enabled = false;
+
+static std::unique_ptr<OSD::Icon> DecodeBadgeToOSDIcon(const AchievementManager::Badge& badge);
 
 AchievementManager* AchievementManager::GetInstance()
 {
@@ -197,10 +202,12 @@ void AchievementManager::LoadGameByFilenameAsync(const std::string& iso_path,
       PointSpread spread = TallyScore();
       if (hardcore_mode_enabled)
       {
-        OSD::AddMessage(fmt::format("You have {}/{} achievements worth {}/{} points",
-                                    spread.hard_unlocks, spread.total_count, spread.hard_points,
-                                    spread.total_points),
-                        OSD::Duration::VERY_LONG, OSD::Color::YELLOW);
+        OSD::AddMessage(
+            fmt::format("You have {}/{} achievements worth {}/{} points", spread.hard_unlocks,
+                        spread.total_count, spread.hard_points, spread.total_points),
+            OSD::Duration::VERY_LONG, OSD::Color::YELLOW,
+            (Config::Get(Config::RA_BADGES_ENABLED)) ? DecodeBadgeToOSDIcon(m_game_badge.badge) :
+                                                       nullptr);
         OSD::AddMessage("Hardcore mode is ON", OSD::Duration::VERY_LONG, OSD::Color::YELLOW);
       }
       else
@@ -208,7 +215,10 @@ void AchievementManager::LoadGameByFilenameAsync(const std::string& iso_path,
         OSD::AddMessage(fmt::format("You have {}/{} achievements worth {}/{} points",
                                     spread.hard_unlocks + spread.soft_unlocks, spread.total_count,
                                     spread.hard_points + spread.soft_points, spread.total_points),
-                        OSD::Duration::VERY_LONG, OSD::Color::CYAN);
+                        OSD::Duration::VERY_LONG, OSD::Color::CYAN,
+                        (Config::Get(Config::RA_BADGES_ENABLED)) ?
+                            DecodeBadgeToOSDIcon(m_game_badge.badge) :
+                            nullptr);
         OSD::AddMessage("Hardcore mode is OFF", OSD::Duration::VERY_LONG, OSD::Color::CYAN);
       }
     }
@@ -1199,19 +1209,26 @@ void AchievementManager::HandleAchievementTriggeredEvent(const rc_runtime_event_
   OSD::AddMessage(fmt::format("Unlocked: {} ({})", m_game_data.achievements[game_data_index].title,
                               m_game_data.achievements[game_data_index].points),
                   OSD::Duration::VERY_LONG,
-                  (hardcore_mode_enabled) ? OSD::Color::YELLOW : OSD::Color::CYAN);
+                  (hardcore_mode_enabled) ? OSD::Color::YELLOW : OSD::Color::CYAN,
+                  (Config::Get(Config::RA_BADGES_ENABLED)) ?
+                      DecodeBadgeToOSDIcon(it->second.unlocked_badge.badge) :
+                      nullptr);
   PointSpread spread = TallyScore();
   if (spread.hard_points == spread.total_points)
   {
     OSD::AddMessage(
         fmt::format("Congratulations! {} has mastered {}", m_display_name, m_game_data.title),
-        OSD::Duration::VERY_LONG, OSD::Color::YELLOW);
+        OSD::Duration::VERY_LONG, OSD::Color::YELLOW,
+        (Config::Get(Config::RA_BADGES_ENABLED)) ? DecodeBadgeToOSDIcon(m_game_badge.badge) :
+                                                   nullptr);
   }
   else if (spread.hard_points + spread.soft_points == spread.total_points)
   {
     OSD::AddMessage(
         fmt::format("Congratulations! {} has completed {}", m_display_name, m_game_data.title),
-        OSD::Duration::VERY_LONG, OSD::Color::CYAN);
+        OSD::Duration::VERY_LONG, OSD::Color::CYAN,
+        (Config::Get(Config::RA_BADGES_ENABLED)) ? DecodeBadgeToOSDIcon(m_game_badge.badge) :
+                                                   nullptr);
   }
   ActivateDeactivateAchievement(event_id, Config::Get(Config::RA_ACHIEVEMENTS_ENABLED),
                                 Config::Get(Config::RA_UNOFFICIAL_ENABLED),
@@ -1240,7 +1257,10 @@ void AchievementManager::HandleAchievementProgressUpdatedEvent(
   }
   OSD::AddMessage(
       fmt::format("{} {}", m_game_data.achievements[game_data_index].title, value.data()),
-      OSD::Duration::VERY_LONG, OSD::Color::GREEN);
+      OSD::Duration::VERY_LONG, OSD::Color::GREEN,
+      (Config::Get(Config::RA_BADGES_ENABLED)) ?
+          DecodeBadgeToOSDIcon(it->second.unlocked_badge.badge) :
+          nullptr);
 }
 
 void AchievementManager::HandleLeaderboardStartedEvent(const rc_runtime_event_t* runtime_event)
@@ -1386,6 +1406,20 @@ AchievementManager::RequestImage(rc_api_fetch_image_request_t rc_request, Badge*
     rc_api_destroy_request(&api_request);
     return ResponseType::CONNECTION_FAILED;
   }
+}
+
+static std::unique_ptr<OSD::Icon> DecodeBadgeToOSDIcon(const AchievementManager::Badge& badge)
+{
+  if (badge.empty())
+    return nullptr;
+
+  auto icon = std::make_unique<OSD::Icon>();
+  if (!Common::LoadPNG(badge, &icon->rgba_data, &icon->width, &icon->height))
+  {
+    ERROR_LOG_FMT(ACHIEVEMENTS, "Error decoding badge.");
+    return nullptr;
+  }
+  return icon;
 }
 
 #endif  // USE_RETRO_ACHIEVEMENTS
