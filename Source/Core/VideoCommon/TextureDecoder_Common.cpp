@@ -382,7 +382,7 @@ void TexDecoder_DecodeTexel(u8* dst, const u8* src, int s, int t, int imageWidth
     u16 blkT = t & 7;
     u32 blkOff = (blkT << 3) + blkS;
 
-    int rs = (blkOff & 1) ? 0 : 4;
+    int rs = (blkOff & 1) ? 4 : 0;
     u32 offset = base + (blkOff >> 1);
 
     u8 val = (*(src + offset) >> rs) & 0xF;

@@ -77,8 +77,8 @@ static inline void DecodeBytes_C4(u32* dst, const u8* src, const u8* tlut_, TLUT
   for (int x = 0; x < 4; x++)
   {
     u8 val = src[x];
-    *dst++ = DecodePixel_Paletted(tlut[val >> 4], tlutfmt);
     *dst++ = DecodePixel_Paletted(tlut[val & 0xF], tlutfmt);
+    *dst++ = DecodePixel_Paletted(tlut[val >> 4], tlutfmt);
   }
 }
 

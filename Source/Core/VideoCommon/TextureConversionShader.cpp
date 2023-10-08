@@ -379,7 +379,7 @@ static void WriteC4Encoder(ShaderCode& code, std::string_view comp, APIType api_
   WriteToBitDepth(code, 4, "color0", "color0");
   WriteToBitDepth(code, 4, "color1", "color1");
 
-  code.Write("  ocol0 = (color0 * 16.0 + color1) / 255.0;\n");
+  code.Write("  ocol0 = (color1 * 16.0 + color0) / 255.0;\n");
 }
 
 static void WriteC8Encoder(ShaderCode& code, std::string_view comp, APIType api_type,
@@ -969,7 +969,7 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
 
         // Select high nibble for odd texels, low for even.
         uint val = FETCH(buffer_pos);
-        uint index = ((coords.x & 1u) == 0u) ? (val >> 4) : (val & 0x0Fu);
+        uint index = ((coords.x & 1u) == 0u) ? (val & 0x0Fu) : (val >> 4);
         float4 norm_color = GetPaletteColorNormalized(index);
         imageStore(output_image, int3(int2(coords), 0), norm_color);
       }
