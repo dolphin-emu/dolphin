@@ -3,13 +3,15 @@
 
 #include "HRWrap.h"
 
-#include <winrt/base.h>
-
 namespace Common
 {
 std::string GetHResultMessage(HRESULT hr)
 {
   auto err = winrt::hresult_error(hr);
   return winrt::to_string(err.message());
+}
+std::string GetHResultMessage(const winrt::hresult& hr)
+{
+  return GetHResultMessage(hr.value);
 }
 }  // namespace Common

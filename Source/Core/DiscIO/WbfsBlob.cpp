@@ -29,7 +29,8 @@ WbfsFileReader::WbfsFileReader(File::IOFile file, const std::string& path)
 {
   if (!AddFileToList(std::move(file)))
     return;
-  OpenAdditionalFiles(path);
+  if (!path.empty())
+    OpenAdditionalFiles(path);
   if (!ReadHeader())
     return;
   m_good = true;
@@ -45,6 +46,15 @@ WbfsFileReader::WbfsFileReader(File::IOFile file, const std::string& path)
 
 WbfsFileReader::~WbfsFileReader()
 {
+}
+
+std::unique_ptr<BlobReader> WbfsFileReader::CopyReader() const
+{
+  auto retval =
+      std::unique_ptr<WbfsFileReader>(new WbfsFileReader(m_files[0].file.Duplicate("rb")));
+  for (size_t ix = 1; ix < m_files.size(); ix++)
+    retval->AddFileToList(m_files[ix].file.Duplicate("rb"));
+  return retval;
 }
 
 u64 WbfsFileReader::GetDataSize() const

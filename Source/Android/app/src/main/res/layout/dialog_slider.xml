@@ -1,41 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginTop="24dp">
+
+        <TextView
+            android:id="@+id/text_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            tools:text="10000" />
+
+        <TextView
+            android:id="@+id/text_units"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="%" />
+
+    </LinearLayout>
+
     <com.google.android.material.slider.Slider
         android:id="@+id/slider"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        app:layout_constraintEnd_toStartOf="@id/text_value"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginBottom="24dp" />
 
-    <TextView
-        android:id="@+id/text_value"
-        android:layout_width="40dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/spacing_medlarge"
-        android:gravity="end"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/text_units"
-        app:layout_constraintStart_toEndOf="@id/slider"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:text="10000" />
-
-    <TextView
-        android:id="@+id/text_units"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="24dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/text_value"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:text="%" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

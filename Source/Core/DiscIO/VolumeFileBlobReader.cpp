@@ -33,6 +33,12 @@ VolumeFileBlobReader::VolumeFileBlobReader(const Volume& volume, const Partition
 {
 }
 
+std::unique_ptr<BlobReader> VolumeFileBlobReader::CopyReader() const
+{
+  ASSERT_MSG(DISCIO, false, "Unimplemented");
+  return nullptr;
+}
+
 u64 VolumeFileBlobReader::GetDataSize() const
 {
   return m_file_info->GetSize();

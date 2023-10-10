@@ -27,16 +27,14 @@ private:
   QGroupBox* m_common_box;
   QVBoxLayout* m_common_layout;
 
-  QLabel* m_user_name;
-  QLabel* m_user_points;
-  QLabel* m_game_name;
-  QLabel* m_game_points;
+  QLabel* m_user_icon;
+  QLabel* m_game_icon;
+  QLabel* m_name;
+  QLabel* m_points;
   QProgressBar* m_game_progress_hard;
   QProgressBar* m_game_progress_soft;
   QLabel* m_rich_presence;
-
-  QGroupBox* m_user_box;
-  QGroupBox* m_game_box;
+  QGroupBox* m_header_box;
 };
 
 #endif  // USE_RETRO_ACHIEVEMENTS

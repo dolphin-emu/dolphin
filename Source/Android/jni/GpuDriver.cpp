@@ -7,6 +7,7 @@
 
 #include <jni.h>
 
+#include "Common/EnumUtils.h"
 #include "Common/IniFile.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
@@ -69,7 +70,7 @@ Java_org_dolphinemu_dolphinemu_utils_GpuDriverHelper_00024Companion_getSystemDri
     properties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
     properties2.pNext = &driverProperties;
     vkGetPhysicalDeviceProperties2(gpu_list.front(), &properties2);
-    driverId = fmt::format("{}", driverProperties.driverID);
+    driverId = fmt::format("{}", Common::ToUnderlying(driverProperties.driverID));
   }
   else
   {
