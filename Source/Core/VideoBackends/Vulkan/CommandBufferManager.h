@@ -93,6 +93,7 @@ public:
   void DeferFramebufferDestruction(VkFramebuffer object);
   void DeferImageDestruction(VkImage object, VmaAllocation alloc);
   void DeferImageViewDestruction(VkImageView object);
+  void DeferPipelineDestruction(VkPipeline object);
 
 private:
   bool CreateCommandBuffers();

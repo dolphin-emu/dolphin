@@ -537,5 +537,12 @@ void CommandBufferManager::DeferImageViewDestruction(VkImageView object)
       [object]() { vkDestroyImageView(g_vulkan_context->GetDevice(), object, nullptr); });
 }
 
+void CommandBufferManager::DeferPipelineDestruction(VkPipeline object)
+{
+  CmdBufferResources& cmd_buffer_resources = GetCurrentCmdBufferResources();
+  cmd_buffer_resources.cleanup_resources.push_back(
+      [object]() { vkDestroyPipeline(g_vulkan_context->GetDevice(), object, nullptr); });
+}
+
 std::unique_ptr<CommandBufferManager> g_command_buffer_mgr;
 }  // namespace Vulkan

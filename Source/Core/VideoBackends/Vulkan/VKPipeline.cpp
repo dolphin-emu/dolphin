@@ -8,6 +8,7 @@
 #include "Common/Assert.h"
 #include "Common/MsgHandler.h"
 
+#include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/VKShader.h"
 #include "VideoBackends/Vulkan/VKTexture.h"
@@ -27,7 +28,7 @@ VKPipeline::VKPipeline(const AbstractPipelineConfig& config, VkPipeline pipeline
 
 VKPipeline::~VKPipeline()
 {
-  vkDestroyPipeline(g_vulkan_context->GetDevice(), m_pipeline, nullptr);
+  g_command_buffer_mgr->DeferPipelineDestruction(m_pipeline);
 }
 
 static bool IsStripPrimitiveTopology(VkPrimitiveTopology topology)
@@ -68,8 +69,8 @@ static VkPipelineMultisampleStateCreateInfo GetVulkanMultisampleState(const Fram
 {
   return {
       VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,  // VkStructureType sType
-      nullptr,  // const void*                              pNext
-      0,        // VkPipelineMultisampleStateCreateFlags    flags
+      nullptr,                                                   // const void* pNext
+      0,                           // VkPipelineMultisampleStateCreateFlags flags
       static_cast<VkSampleCountFlagBits>(
           state.samples.Value()),  // VkSampleCountFlagBits                    rasterizationSamples
       static_cast<bool>(state.per_sample_shading),  // VkBool32 sampleShadingEnable
