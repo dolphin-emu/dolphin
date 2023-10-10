@@ -150,14 +150,13 @@ void CommonAsmRoutines::GenFrsqrte()
   AND(32, R(RSCRATCH), Imm32(0x7FF));
   IMUL(32, RSCRATCH,
        MComplex(RSCRATCH2, RSCRATCH_EXTRA, SCALE_8, offsetof(Common::BaseAndDec, m_dec)));
-  MOV(32, R(RSCRATCH_EXTRA),
+  ADD(32, R(RSCRATCH),
       MComplex(RSCRATCH2, RSCRATCH_EXTRA, SCALE_8, offsetof(Common::BaseAndDec, m_base)));
-  SUB(32, R(RSCRATCH_EXTRA), R(RSCRATCH));
-  SHL(64, R(RSCRATCH_EXTRA), Imm8(26));
+  SHL(64, R(RSCRATCH), Imm8(26));
 
   POP(RSCRATCH2);
-  OR(64, R(RSCRATCH2), R(RSCRATCH_EXTRA));  // vali |= (s64)(frsqrte_expected_base[index] -
-                                            // frsqrte_expected_dec[index] * (i % 2048)) << 26;
+  OR(64, R(RSCRATCH2), R(RSCRATCH));  // vali |= (s64)(frsqrte_expected_base[index] +
+                                      // frsqrte_expected_dec[index] * (i % 2048)) << 26;
   MOVQ_xmm(XMM0, R(RSCRATCH2));
   RET();
 
