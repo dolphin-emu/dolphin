@@ -97,20 +97,6 @@ bool ParseSampler(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
   return true;
 }
 }  // namespace
-CustomAssetLibrary::LoadInfo RawTextureAsset::LoadImpl(const CustomAssetLibrary::AssetID& asset_id)
-{
-  auto potential_data = std::make_shared<CustomTextureData>();
-  const auto loaded_info = m_owning_library->LoadTexture(asset_id, potential_data.get());
-  if (loaded_info.m_bytes_loaded == 0)
-    return {};
-  {
-    std::lock_guard lk(m_data_lock);
-    m_loaded = true;
-    m_data = std::move(potential_data);
-  }
-  return loaded_info;
-}
-
 bool TextureData::FromJson(const CustomAssetLibrary::AssetID& asset_id,
                            const picojson::object& json, TextureData* data)
 {
@@ -160,7 +146,7 @@ bool TextureData::FromJson(const CustomAssetLibrary::AssetID& asset_id,
 
 CustomAssetLibrary::LoadInfo GameTextureAsset::LoadImpl(const CustomAssetLibrary::AssetID& asset_id)
 {
-  auto potential_data = std::make_shared<CustomTextureData>();
+  auto potential_data = std::make_shared<TextureData>();
   const auto loaded_info = m_owning_library->LoadGameTexture(asset_id, potential_data.get());
   if (loaded_info.m_bytes_loaded == 0)
     return {};
@@ -184,7 +170,7 @@ bool GameTextureAsset::Validate(u32 native_width, u32 native_height) const
     return false;
   }
 
-  if (m_data->m_slices.empty())
+  if (m_data->m_texture.m_slices.empty())
   {
     ERROR_LOG_FMT(VIDEO,
                   "Game texture can't be validated for asset '{}' because no data was available.",
@@ -192,7 +178,7 @@ bool GameTextureAsset::Validate(u32 native_width, u32 native_height) const
     return false;
   }
 
-  if (m_data->m_slices.size() > 1)
+  if (m_data->m_texture.m_slices.size() > 1)
   {
     ERROR_LOG_FMT(
         VIDEO,
@@ -201,7 +187,7 @@ bool GameTextureAsset::Validate(u32 native_width, u32 native_height) const
     return false;
   }
 
-  const auto& slice = m_data->m_slices[0];
+  const auto& slice = m_data->m_texture.m_slices[0];
   if (slice.m_levels.empty())
   {
     ERROR_LOG_FMT(
