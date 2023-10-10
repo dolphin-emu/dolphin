@@ -53,7 +53,7 @@ static bool IsVideoFile(const std::string& filename)
   Common::ToLower(&extension);
 
   static const std::unordered_set<std::string> extensions = {
-      ".thp",  // 1Wii/Game Cube Video File
+      ".thp",  // Wii/Game Cube Video File
   };
 
   return extensions.find(extension) != extensions.end();
@@ -93,9 +93,6 @@ void FileLogger::Log(const DiscIO::Volume& volume, const DiscIO::Partition& part
   const std::string size_string = Common::ThousandSeparate(file_info->GetSize() / 1000, 7);
   const std::string path = file_info->GetPath();
   const std::string log_string = fmt::format("{} kB {} offset {}", size_string, path, offset);
-
-  //if (path.contains("BGM") || path.contains("bgm"))
-  //  return;
 
   //TODO just use colors instead of this horrid hack
   if (IsSoundFile(path))

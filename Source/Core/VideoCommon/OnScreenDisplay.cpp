@@ -30,7 +30,6 @@ static std::atomic<int> s_obscured_pixels_left = 0;
 static std::atomic<int> s_obscured_pixels_top = 0;
 
 // default message stack
-// static std::multimap<MessageType, Message> s_messages;
 static OSDMessageStack defaultMessageStack = OSDMessageStack();
 static std::map<std::string, OSDMessageStack> messageStacks;
 
@@ -52,7 +51,6 @@ static ImVec2 DrawMessage(int index, Message& msg, const ImVec2& position, int t
   const std::string window_name = fmt::format("osd_{}_{}", messageStack.name, index);
 
   // The size must be reset, otherwise the length of old messages could influence new ones.
-  //ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
   ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
 
   // Gradually fade old messages away (except in their first frame)

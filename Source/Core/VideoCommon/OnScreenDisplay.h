@@ -60,14 +60,11 @@ public:
   std::multimap<OSD::MessageType, OSD::Message> messages;
 
   OSDMessageStack() : OSDMessageStack(0, 0, MessageStackDirection::Downward, false, false, "") {}
-  OSDMessageStack(float _x_offset, float _y_offset, MessageStackDirection _dir, bool _centered,
-                  bool _reversed, std::string _name)
+  OSDMessageStack(float x_offset, float y_offset, MessageStackDirection dir, bool centered,
+                  bool reversed, std::string name)
+      : dir(dir), centered(centered), reversed(reversed), name(name)
   {
-    initialPosOffset = ImVec2(_x_offset, _y_offset);
-    dir = _dir;
-    centered = _centered;
-    reversed = _reversed;
-    name = _name;
+    initialPosOffset = ImVec2(x_offset, y_offset);
   }
 
   bool isVertical()

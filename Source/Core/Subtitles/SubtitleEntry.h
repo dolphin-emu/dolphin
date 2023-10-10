@@ -69,9 +69,13 @@ struct SubtitleEntryGroup
       {
         // if range is open, or offset is in range
         if (subtitleLines[i].OffsetEnd == 0 || subtitleLines[i].OffsetEnd >= offset)
+        {
           return &subtitleLines[i];
+        }
         else
+        {
           return 0;
+        }
       }
     }
 
