@@ -452,7 +452,7 @@ FSTEntry ScanDirectoryTree(std::string directory, bool recursive)
   auto dirent_to_fstent = [&](const fs::directory_entry& entry) {
     return FSTEntry{
         .isDirectory = entry.is_directory(),
-        .size = entry.is_directory() ? 0 : entry.file_size(),
+        .size = entry.is_directory() || entry.is_fifo() ? 0 : entry.file_size(),
         .physicalName = path_to_physical_name(entry.path()),
         .virtualName = PathToString(entry.path().filename()),
     };

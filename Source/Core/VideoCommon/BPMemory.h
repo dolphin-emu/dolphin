@@ -1863,7 +1863,7 @@ enum class ColorChannel : u32
 template <>
 struct fmt::formatter<ColorChannel> : EnumFormatter<ColorChannel::Alpha>
 {
-  formatter() : EnumFormatter({"Red", "Green", "Blue", "Alpha"}) {}
+  constexpr formatter() : EnumFormatter({"Red", "Green", "Blue", "Alpha"}) {}
 };
 
 enum class KonstSel : u32

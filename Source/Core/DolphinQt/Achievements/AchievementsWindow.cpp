@@ -25,6 +25,8 @@ AchievementsWindow::AchievementsWindow(QWidget* parent) : QDialog(parent)
   ConnectWidgets();
   AchievementManager::GetInstance()->SetUpdateCallback(
       [this] { QueueOnObject(this, &AchievementsWindow::UpdateData); });
+
+  UpdateData();
 }
 
 void AchievementsWindow::showEvent(QShowEvent* event)
@@ -44,7 +46,6 @@ void AchievementsWindow::CreateMainLayout()
       GetWrappedWidget(new AchievementSettingsWidget(m_tab_widget, this), this, 125, 100),
       tr("Settings"));
   m_tab_widget->addTab(GetWrappedWidget(m_progress_widget, this, 125, 100), tr("Progress"));
-  m_tab_widget->setTabVisible(1, AchievementManager::GetInstance()->IsGameLoaded());
 
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Close);
 

@@ -47,6 +47,8 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::RA_ACHIEVEMENTS_ENABLED.GetLocation(),
       &Config::RA_LEADERBOARDS_ENABLED.GetLocation(),
       &Config::RA_RICH_PRESENCE_ENABLED.GetLocation(),
+      &Config::RA_PROGRESS_ENABLED.GetLocation(),
+      &Config::RA_BADGES_ENABLED.GetLocation(),
       &Config::RA_UNOFFICIAL_ENABLED.GetLocation(),
       &Config::RA_ENCORE_ENABLED.GetLocation(),
   };

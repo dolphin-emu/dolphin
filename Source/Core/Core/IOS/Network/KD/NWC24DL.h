@@ -37,7 +37,7 @@ public:
   std::string GetVFFContentName(u16 entry_index, std::optional<u8> subtask_id) const;
   std::string GetDownloadURL(u16 entry_index, std::optional<u8> subtask_id) const;
   std::string GetVFFPath(u16 entry_index) const;
-  WC24PubkMod GetWC24PubkMod(u16 entry_index) const;
+  std::optional<WC24PubkMod> GetWC24PubkMod(u16 entry_index) const;
 
   u64 GetNextDownloadTime(u16 record_index) const;
   u64 GetDownloadMargin(u16 entry_index) const;

@@ -22,7 +22,6 @@
 namespace DiscIO
 {
 DiscScrubber::DiscScrubber() = default;
-DiscScrubber::~DiscScrubber() = default;
 
 bool DiscScrubber::SetupScrub(const Volume& disc)
 {

@@ -60,3 +60,6 @@
 [submodule "Externals/curl/curl"]
 	path = Externals/curl/curl
 	url = https://github.com/curl/curl.git
+[submodule "Externals/fmt/fmt"]
+	path = Externals/fmt/fmt
+	url = https://github.com/fmtlib/fmt.git

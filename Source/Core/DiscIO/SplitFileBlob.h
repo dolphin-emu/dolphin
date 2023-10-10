@@ -21,6 +21,7 @@ public:
   static std::unique_ptr<SplitPlainFileReader> Create(std::string_view first_file_path);
 
   BlobType GetBlobType() const override { return BlobType::SPLIT_PLAIN; }
+  std::unique_ptr<BlobReader> CopyReader() const override;
 
   u64 GetRawSize() const override { return m_size; }
   u64 GetDataSize() const override { return m_size; }
