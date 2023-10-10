@@ -73,7 +73,8 @@ void EnhancementsWidget::CreateWidgets()
       tr("720p"),         tr("1080p"),        tr("1440p"), QStringLiteral(""),
       tr("4K"),           QStringLiteral(""), tr("5K"),    QStringLiteral(""),
       QStringLiteral(""), QStringLiteral(""), tr("8K")};
-  const int visible_resolution_option_count = static_cast<int>(resolution_options.size());
+  const int visible_resolution_option_count = static_cast<int>(resolution_options.size()) +
+                                              static_cast<int>(resolution_extra_options.size());
 
   // If the current scale is greater than the max scale in the ini, add sufficient options so that
   // when the settings are saved we don't lose the user-modified value from the ini.
