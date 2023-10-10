@@ -369,6 +369,7 @@ void CheckForConfigChanges()
   if (changed_bits & (CONFIG_CHANGE_BIT_HOST_CONFIG | CONFIG_CHANGE_BIT_MULTISAMPLES))
   {
     OSD::AddMessage("Video config changed, reloading shaders.", OSD::Duration::NORMAL);
+    g_gfx->WaitForGPUIdle();
     g_vertex_manager->InvalidatePipelineObject();
     g_vertex_manager->NotifyCustomShaderCacheOfHostChange(new_host_config);
     g_shader_cache->SetHostConfig(new_host_config);
