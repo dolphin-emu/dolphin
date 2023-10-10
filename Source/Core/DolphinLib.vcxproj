@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project>
   <Import Project="..\VSProps\Base.Macros.props" />
   <Import Project="$(VSPropsDir)Base.Targets.props" />
@@ -69,25 +69,20 @@
   <ItemGroup>
     <Text Include="$(BuildInfoTemplate)" />
   </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Subtitles\Helpers.h" />
-    <ClInclude Include="Subtitles\WebColors.h" />
-    <ClInclude Include="Subtitles\SubtitleEntry.h" />
-    <ClInclude Include="Subtitles\Subtitles.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="Subtitles\Subtitles.cpp" />
-  </ItemGroup>
-  <UsingTask TaskName="GetProductVersion" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+  <UsingTask TaskName="GetProductVersion"
+    TaskFactory="CodeTaskFactory"
+    AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
       <Path ParameterType="System.String" Required="true" />
       <ProductVersion ParameterType="System.String" Output="true" />
     </ParameterGroup>
     <Task>
-      <Using Namespace="System.Diagnostics" />
-      <Code Type="Fragment" Language="cs"><![CDATA[
+      <Using Namespace="System.Diagnostics"/>
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
           ProductVersion = FileVersionInfo.GetVersionInfo(Path).ProductVersion;
-        ]]></Code>
+        ]]>
+      </Code>
     </Task>
   </UsingTask>
   <Target Name="WriteBuildInfo" AfterTargets="Build" Inputs="$(BuildInfoTemplate)" Outputs="$(BuildInfoOutput)">
@@ -95,6 +90,10 @@
       <Output PropertyName="VCToolsProductVersion" TaskParameter="ProductVersion" />
     </GetProductVersion>
     <Message Text="VCToolsProductVersion $(VCToolsProductVersion)" Importance="High" />
-    <WriteLinesToFile File="$(BuildInfoOutput)" Lines="$([System.IO.File]::ReadAllText($(BuildInfoTemplate)).Replace('${VC_TOOLS_VERSION}', $(VCToolsProductVersion)))" Overwrite="true" />
+    <WriteLinesToFile
+      File="$(BuildInfoOutput)"
+      Lines="$([System.IO.File]::ReadAllText($(BuildInfoTemplate)).Replace('${VC_TOOLS_VERSION}', $(VCToolsProductVersion)))"
+      Overwrite="true"
+    />
   </Target>
 </Project>
