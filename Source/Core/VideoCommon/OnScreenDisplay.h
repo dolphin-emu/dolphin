@@ -7,12 +7,30 @@
 #include <string>
 
 #include <imgui.h>
+
 #include "Common/CommonTypes.h"
 #include "Common/Timer.h"
-#include "OnScreenDisplay.enum.h"
 
 namespace OSD
 {
+enum class MessageStackDirection
+{
+  Downward = 1,
+  Upward = 2,
+  Rightward = 4,
+  Leftward = 8,
+};
+
+enum class MessageType
+{
+  NetPlayPing,
+  NetPlayBuffer,
+
+  // This entry must be kept last so that persistent typed messages are
+  // displayed before other messages
+  Typeless,
+};
+
 struct Message
 {
   Message() = default;
@@ -39,10 +57,10 @@ public:
   bool reversed;
   std::string name;
   std::multimap<OSD::MessageType, OSD::Message> messages;
-  
+
   OSDMessageStack() : OSDMessageStack(0, 0, MessageStackDirection::Downward, false, false, "") {}
   OSDMessageStack(float _x_offset, float _y_offset, MessageStackDirection _dir, bool _centered,
-               bool _reversed, std::string _name)
+                  bool _reversed, std::string _name)
   {
     initialPosOffset = ImVec2(_x_offset, _y_offset);
     dir = _dir;

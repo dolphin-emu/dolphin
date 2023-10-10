@@ -72,9 +72,8 @@
   <ItemGroup>
     <ClInclude Include="Subtitles\Helpers.h" />
     <ClInclude Include="Subtitles\WebColors.h" />
-    <ClInclude Include="Subtitles\TranslationEntry.h" />
+    <ClInclude Include="Subtitles\SubtitleEntry.h" />
     <ClInclude Include="Subtitles\Subtitles.h" />
-    <ClInclude Include="VideoCommon\OnScreenDisplay.enum.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Subtitles\Subtitles.cpp" />

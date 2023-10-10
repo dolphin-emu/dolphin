@@ -1,10 +1,16 @@
+// Copyright 2023 Dolphin Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 #pragma once
+
 #include <string>
-#include <Common/CommonTypes.h>
-#include <Common/StringUtil.h>
-#include <VideoCommon/OnScreenDisplay.h>
+
 #include <picojson.h>
-#include "WebColors.h"
+
+#include "Common/CommonTypes.h"
+#include "Common/StringUtil.h"
+#include "Subtitles/WebColors.h"
+#include "VideoCommon/OnScreenDisplay.h"
 
 namespace Subtitles
 {

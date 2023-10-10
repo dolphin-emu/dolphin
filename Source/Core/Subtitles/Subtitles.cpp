@@ -1,15 +1,9 @@
-#include "Subtitles.h"
-#include "TranslationEntry.h"
-#include "WebColors.h"
-#include "Helpers.h"
+// Copyright 2023 Dolphin Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <picojson.h>
+#pragma once
 
-#include <VideoCommon/OnScreenDisplay.h>
-#include <Core/ConfigManager.h>
-
-#include <Common/FileUtil.h>
-#include <DiscIO/Filesystem.h>
+#include "Subtitles/Subtitles.h"
 
 #include <fstream>
 #include <iostream>
@@ -17,18 +11,26 @@
 #include <string>
 #include <vector>
 
+#include <picojson.h>
+
+#include "Common/FileUtil.h"
+#include "Core/ConfigManager.h"
+#include "DiscIO/Filesystem.h"
+#include "Subtitles/Helpers.h"
+#include "Subtitles/SubtitleEntry.h"
+#include "Subtitles/WebColors.h"
+#include "VideoCommon/OnScreenDisplay.h"
+
 namespace Subtitles
 {
 bool _messageStacksInitialized = false;
 bool _subtitlesInitialized = false;
-std::map<std::string, TranslationEntryGroup> Translations;
+std::map<std::string, SubtitleEntryGroup> Translations;
 
 void DeserializeSubtitlesJson(std::string json)
 {
   if (json == "")
-  {
     return;
-  }
 
   picojson::value v;
   std::string err = picojson::parse(v, json);
@@ -58,14 +60,13 @@ void DeserializeSubtitlesJson(std::string json)
     auto OffsetEnd = item.get("OffsetEnd");
     auto DisplayOnTop = item.get("DisplayOnTop");
 
+    // FileName and Translation are required fields
     if (!FileName.is<std::string>() || !Translation.is<std::string>())
-    {
       continue;
-    }
 
     u32 color = TryParsecolor(Color, OSD::Color::CYAN);
 
-    auto tl = TranslationEntry(FileName.to_str(), Translation.to_str(),
+    auto tl = SubtitleEntry(FileName.to_str(), Translation.to_str(),
                                Miliseconds.is<double>() ? Miliseconds.get<double>() :
                                                           OSD::Duration::SHORT,
                                color, Enabled.is<bool>() ? Enabled.get<bool>() : true,
@@ -75,10 +76,9 @@ void DeserializeSubtitlesJson(std::string json)
                                OffsetEnd.is<double>() ? OffsetEnd.get<double>() : 0,
                                DisplayOnTop.is<bool>() ? DisplayOnTop.get<bool>() : false);
 
+    //fitler out disabled entries, tp lighten lookup load
     if (tl.Enabled)
-    {
       Translations[tl.Filename].Add(tl);
-    }
   }
 }
 
@@ -118,9 +118,11 @@ void IniitalizeOSDMessageStacks()
   auto bottomstack = OSD::OSDMessageStack(0, 0, OSD::MessageStackDirection::Upward, true, true,
                                           BottomOSDStackName);
   OSD::AddMessageStack(bottomstack);
+
   auto topstack = OSD::OSDMessageStack(0, 0, OSD::MessageStackDirection::Downward, true, false,
                                        TopOSDStackName);
   OSD::AddMessageStack(topstack);
+
   _messageStacksInitialized = true;
 }
 
@@ -137,9 +139,9 @@ void LoadSubtitlesForGame(std::string gameId)
   if (Translations.empty())
     return;
 
-  // ensure stuff is sorted, can't trust crap people will do in text files :)
+  // ensure stuff is sorted, you never know what mess people will make in text files :)
   std::for_each(Translations.begin(), Translations.end(),
-                [](std::pair<const std::string, TranslationEntryGroup>& t) { t.second.Sort(); });
+                [](std::pair<const std::string, SubtitleEntryGroup>& t) { t.second.Sort(); });
 
   IniitalizeOSDMessageStacks();
 
