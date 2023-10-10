@@ -36,7 +36,7 @@ struct TranslationEntryGroup
 {
   std::vector<TranslationEntry> translationLines;
 
-  // Ensure lines are sorted for performance when querying
+  // Ensure lines are sorted to simplify querying
   void Sort()
   {
     std::sort(translationLines.begin(), translationLines.end(),
@@ -49,14 +49,20 @@ struct TranslationEntryGroup
       return 0;
     }
 
+    //if there is entry with offset=0 or offset=null
     if (!translationLines[translationLines.size() - 1].IsOffset())
     {
+      //use it by default
       return &translationLines[translationLines.size() - 1];
     }
+
+    //from latest to earliest
     for (auto i = 0; i < translationLines.size(); i++)
     {
+      //find first translation that covers current offset
       if (offset >= translationLines[i].Offset)
       {
+        //if range is open, or offset is in range
         if (translationLines[i].OffsetEnd == 0 || translationLines[i].OffsetEnd >= offset)
         {
           return &translationLines[i];

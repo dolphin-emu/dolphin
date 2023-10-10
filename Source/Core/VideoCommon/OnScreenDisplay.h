@@ -13,7 +13,6 @@
 
 namespace OSD
 {
-// TODO clean this mess
 struct Message
 {
   Message() = default;
@@ -30,6 +29,7 @@ struct Message
   u32 color = 0;
   float scale = 1;
 };
+
 class OSDMessageStack
 {
 public:
@@ -60,7 +60,7 @@ public:
   {
     for (auto it = messages.begin(); it != messages.end(); ++it)
     {
-      if (message == it->second.text)
+      if (type == it->first && message == it->second.text)
       {
         return true;
       }
