@@ -937,7 +937,7 @@ ReturnCode ESCore::SetUpStreamKey(const u32 uid, const u8* ticket_view, const ES
   std::array<u8, 16> iv{};
   std::memcpy(iv.data(), &title_id, sizeof(title_id));
   ret = m_ios.GetIOSC().CreateObject(handle, IOSC::ObjectType::TYPE_SECRET_KEY,
-                                     IOSC::ObjectSubType::SUBTYPE_AES128, PID_ES);
+                                     IOSC::ObjectSubType::AES128, PID_ES);
   if (ret != IPC_SUCCESS)
     return ret;
 
@@ -1094,7 +1094,7 @@ ReturnCode ESCore::VerifyContainer(VerifyContainerType type, VerifyMode mode,
 
   // Create and initialise a handle for the CA cert and the issuer cert.
   ReturnCode ret =
-      iosc.CreateObject(&ca_handle, IOSC::TYPE_PUBLIC_KEY, IOSC::SUBTYPE_RSA2048, PID_ES);
+      iosc.CreateObject(&ca_handle, IOSC::TYPE_PUBLIC_KEY, IOSC::ObjectSubType::RSA2048, PID_ES);
   if (ret != IPC_SUCCESS)
     return ret;
   Common::ScopeGuard ca_guard{[&] { iosc.DeleteObject(ca_handle, PID_ES); }};
@@ -1107,8 +1107,9 @@ ReturnCode ESCore::VerifyContainer(VerifyContainerType type, VerifyMode mode,
   }
 
   IOSC::Handle issuer_handle;
-  const IOSC::ObjectSubType subtype =
-      type == VerifyContainerType::Device ? IOSC::SUBTYPE_ECC233 : IOSC::SUBTYPE_RSA2048;
+  const IOSC::ObjectSubType subtype = type == VerifyContainerType::Device ?
+                                          IOSC::ObjectSubType::ECC233 :
+                                          IOSC::ObjectSubType::RSA2048;
   ret = iosc.CreateObject(&issuer_handle, IOSC::TYPE_PUBLIC_KEY, subtype, PID_ES);
   if (ret != IPC_SUCCESS)
     return ret;

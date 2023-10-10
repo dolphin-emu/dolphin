@@ -174,15 +174,15 @@ public:
     TYPE_DATA = 3,
   };
 
-  enum ObjectSubType : u8
+  enum class ObjectSubType : u8
   {
-    SUBTYPE_AES128 = 0,
-    SUBTYPE_MAC = 1,
-    SUBTYPE_RSA2048 = 2,
-    SUBTYPE_RSA4096 = 3,
-    SUBTYPE_ECC233 = 4,
-    SUBTYPE_DATA = 5,
-    SUBTYPE_VERSION = 6
+    AES128 = 0,
+    MAC = 1,
+    RSA2048 = 2,
+    RSA4096 = 3,
+    ECC233 = 4,
+    Data = 5,
+    Version = 6
   };
 
   IOSC(ConsoleType console_type = ConsoleType::Retail);
