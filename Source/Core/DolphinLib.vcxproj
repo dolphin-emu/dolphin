@@ -46,6 +46,7 @@
   <Import Project="$(ExternalsDir)libspng\exports.props" />
   <Import Project="$(ExternalsDir)libusb\exports.props" />
   <Import Project="$(ExternalsDir)LZO\exports.props" />
+  <Import Project="$(ExternalsDir)LZ4\exports.props" />
   <Import Project="$(ExternalsDir)mbedtls\exports.props" />
   <Import Project="$(ExternalsDir)mGBA\exports.props" />
   <Import Project="$(ExternalsDir)miniupnpc\exports.props" />
