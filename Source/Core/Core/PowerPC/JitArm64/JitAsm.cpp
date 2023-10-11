@@ -327,11 +327,10 @@ void JitArm64::GenerateFrsqrte()
   CMP(ARM64Reg::X2, ARM64Reg::X3);
   FixupBranch nan_or_inf = B(CCFlags::CC_EQ);
   FixupBranch negative = TBNZ(ARM64Reg::X1, 63);
-  AND(ARM64Reg::X3, ARM64Reg::X1, LogicalImm(Common::DOUBLE_FRAC, 64));
   FixupBranch normal = CBNZ(ARM64Reg::X2);
 
   // "Normalize" denormal values
-  CLZ(ARM64Reg::X3, ARM64Reg::X3);
+  CLZ(ARM64Reg::X3, ARM64Reg::X1);
   MOVI2R(ARM64Reg::X2, 12);
   LSLV(ARM64Reg::X1, ARM64Reg::X1, ARM64Reg::X3);
   LSR(ARM64Reg::X1, ARM64Reg::X1, 11);
