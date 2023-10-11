@@ -329,12 +329,12 @@ void JitArm64::GenerateFrsqrte()
   FixupBranch negative = TBNZ(ARM64Reg::X1, 63);
   FixupBranch normal = CBNZ(ARM64Reg::X2);
 
-  // "Normalize" denormal values
+  // "Normalize" denormal values.
+  // The simplified calculation used here results in the upper 11 bits being incorrect,
+  // but that's fine, because the code below never reads those bits.
   CLZ(ARM64Reg::X3, ARM64Reg::X1);
-  MOVI2R(ARM64Reg::X2, 12);
   LSLV(ARM64Reg::X1, ARM64Reg::X1, ARM64Reg::X3);
   LSR(ARM64Reg::X1, ARM64Reg::X1, 11);
-  SUB(ARM64Reg::X3, ARM64Reg::X2, ARM64Reg::X3);
   BFI(ARM64Reg::X1, ARM64Reg::X3, 52, 12);
 
   SetJumpTarget(normal);
