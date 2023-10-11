@@ -25,7 +25,8 @@ struct SubtitleEntry
 
 public:
   SubtitleEntry();
-  SubtitleEntry(std::string filename, std::string text, u32 miliseconds, u32 color, bool enabled,
+  SubtitleEntry(const std::string& filename, const std::string& text, u32 miliseconds, u32 color,
+                bool enabled,
                 bool allowDuplicates, float scale, u32 offset, u32 offsetEnd, bool displayOnTop);
   bool IsOffset();
 };
@@ -40,6 +41,6 @@ struct SubtitleEntryGroup
   // Ensure lines are sorted in reverse to simplify querying
   void Sort();
   SubtitleEntry* GetTLForRelativeOffset(u32 offset);
-  void Add(SubtitleEntry tl);
+  void Add(SubtitleEntry& tl);
 };
 }  // namespace Subtitles

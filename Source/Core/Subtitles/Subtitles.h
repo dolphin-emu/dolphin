@@ -9,6 +9,7 @@
 
 namespace Subtitles
 {
+const std::string SubtitleFileExtension = ".json";
 const std::string BottomOSDStackName = "subtitles-bottom";
 const std::string TopOSDStackName = "subtitles-top";
 void Reload();

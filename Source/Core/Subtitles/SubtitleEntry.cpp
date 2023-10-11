@@ -47,7 +47,7 @@ SubtitleEntry* SubtitleEntryGroup::GetTLForRelativeOffset(u32 offset)
 
   return 0;
 }
-void SubtitleEntryGroup::Add(SubtitleEntry tl)
+void SubtitleEntryGroup::Add(SubtitleEntry& tl)
 {
   subtitleLines.push_back(tl);
 }
@@ -57,7 +57,7 @@ SubtitleEntry::SubtitleEntry()
       Scale(1), Offset(0), OffsetEnd(0), DisplayOnTop(false)
 {
 }
-SubtitleEntry::SubtitleEntry(std::string filename, std::string text, u32 miliseconds,
+SubtitleEntry::SubtitleEntry(const std::string& filename, const std::string& text, u32 miliseconds,
                                     u32 color, bool enabled, bool allowDuplicates, float scale,
                                     u32 offset, u32 offsetEnd, bool displayOnTop)
     : Filename(filename), Text(text), Miliseconds(miliseconds), Color(color), Enabled(enabled),

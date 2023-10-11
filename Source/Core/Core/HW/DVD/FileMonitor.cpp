@@ -94,7 +94,7 @@ void FileLogger::Log(const DiscIO::Volume& volume, const DiscIO::Partition& part
   const std::string path = file_info->GetPath();
   const std::string log_string = fmt::format("{} kB {} offset {}", size_string, path, offset);
 
-  //TODO just use colors instead of this horrid hack
+  //TODO maybe just replace with map<extension, color>?
   if (IsSoundFile(path))
     INFO_LOG_FMT(FILEMON, "{}", log_string);
   else if (IsVideoFile(path))

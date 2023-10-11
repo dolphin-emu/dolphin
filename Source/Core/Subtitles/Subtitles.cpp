@@ -27,7 +27,7 @@ bool _messageStacksInitialized = false;
 bool _subtitlesInitialized = false;
 std::map<std::string, SubtitleEntryGroup> Translations;
 
-void DeserializeSubtitlesJson(std::string json)
+void DeserializeSubtitlesJson(std::string& json)
 {
   if (json == "")
     return;
@@ -36,7 +36,7 @@ void DeserializeSubtitlesJson(std::string json)
   std::string err = picojson::parse(v, json);
   if (!err.empty())
   {
-    Error("Subtitle JSON Error: " + err);
+    Error(fmt::format("Subtitle JSON Error: {}", err));
     return;
   }
 
@@ -66,23 +66,25 @@ void DeserializeSubtitlesJson(std::string json)
 
     u32 color = TryParsecolor(Color, OSD::Color::CYAN);
 
-    auto tl = SubtitleEntry(FileName.to_str(), Translation.to_str(),
-                               Miliseconds.is<double>() ? Miliseconds.get<double>() :
-                                                          OSD::Duration::SHORT,
-                               color, Enabled.is<bool>() ? Enabled.get<bool>() : true,
-                               AllowDuplicate.is<bool>() ? AllowDuplicate.get<bool>() : false,
-                               Scale.is<double>() ? Scale.get<double>() : 1,
-                               Offset.is<double>() ? Offset.get<double>() : 0,
-                               OffsetEnd.is<double>() ? OffsetEnd.get<double>() : 0,
-                               DisplayOnTop.is<bool>() ? DisplayOnTop.get<bool>() : false);
+    const std::string filename = FileName.to_str();
+    const std::string translation = Translation.to_str();
+    auto tl =
+        SubtitleEntry(filename, translation,
+                      Miliseconds.is<double>() ? Miliseconds.get<double>() : OSD::Duration::SHORT,
+                      color, Enabled.is<bool>() ? Enabled.get<bool>() : true,
+                      AllowDuplicate.is<bool>() ? AllowDuplicate.get<bool>() : false,
+                      Scale.is<double>() ? Scale.get<double>() : 1,
+                      Offset.is<double>() ? Offset.get<double>() : 0,
+                      OffsetEnd.is<double>() ? OffsetEnd.get<double>() : 0,
+                      DisplayOnTop.is<bool>() ? DisplayOnTop.get<bool>() : false);
 
-    //fitler out disabled entries, tp lighten lookup load
+    // fitler out disabled entries, tp lighten lookup load
     if (tl.Enabled)
       Translations[tl.Filename].Add(tl);
   }
 }
 
-void RecursivelyReadTranslationJsons(const File::FSTEntry& folder, std::string filter)
+void RecursivelyReadTranslationJsons(const File::FSTEntry& folder, const std::string& filter)
 {
   for (const auto& child : folder.children)
   {
@@ -126,21 +128,21 @@ void IniitalizeOSDMessageStacks()
   _messageStacksInitialized = true;
 }
 
-void LoadSubtitlesForGame(std::string gameId)
+void LoadSubtitlesForGame(std::string& gameId)
 {
   _subtitlesInitialized = false;
   Translations.clear();
 
   auto subtitleDir = File::GetUserPath(D_SUBTITLES_IDX) + gameId;
-    
+
   if (Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::LogType::SUBTITLES,
-                                                         Common::Log::LogLevel::LWARNING))
+                                                        Common::Log::LogLevel::LWARNING))
   {
     Info(fmt::format("Loading subtitles for {} from {}", gameId, subtitleDir));
   }
 
   auto fileEnumerator = File::ScanDirectoryTree(subtitleDir, true);
-  RecursivelyReadTranslationJsons(fileEnumerator, ".json");
+  RecursivelyReadTranslationJsons(fileEnumerator, SubtitleFileExtension);
 
   if (Translations.empty())
     return;

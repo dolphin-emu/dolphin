@@ -11,7 +11,7 @@
 
 namespace Subtitles
 {
-void Info(std::string msg);
-void Error(std::string err);
-u32 TryParsecolor(picojson::value raw, u32 defaultColor);
+inline void Info(std::string msg);
+inline void Error(std::string err);
+u32 TryParsecolor(picojson::value& raw, u32 defaultColor);
 }  // namespace Subtitles
