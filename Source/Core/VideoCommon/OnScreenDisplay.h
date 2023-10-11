@@ -66,12 +66,12 @@ struct OSDMessageStack
     initialPosOffset = ImVec2(x_offset, y_offset);
   }
 
-  bool isVertical()
+  bool IsVertical()
   {
     return dir == MessageStackDirection::Downward || dir == MessageStackDirection::Upward;
   }
 
-  bool hasMessage(std::string message, MessageType type = OSD::MessageType::Typeless)
+  bool HasMessage(std::string message, MessageType type = OSD::MessageType::Typeless)
   {
     for (auto it = messages.begin(); it != messages.end(); ++it)
     {
@@ -103,10 +103,10 @@ void AddMessageStack(OSDMessageStack& info);
 
 // On-screen message display (colored yellow by default)
 void AddMessage(std::string message, u32 ms = Duration::SHORT, u32 argb = Color::YELLOW,
-                std::string messageStack = "", bool preventDuplicate = false, float scale = 1);
+                std::string message_stack = "", bool prevent_duplicate = false, float scale = 1);
 void AddTypedMessage(MessageType type, std::string message, u32 ms = Duration::SHORT,
-                     u32 argb = Color::YELLOW, std::string messageStack = "",
-                     bool preventDuplicate = false, float scale = 1);
+                     u32 argb = Color::YELLOW, std::string message_stack = "",
+                     bool prevent_duplicate = false, float scale = 1);
 
 // Draw the current messages on the screen. Only call once per frame.
 void DrawMessages();

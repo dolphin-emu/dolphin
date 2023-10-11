@@ -30,7 +30,7 @@ static std::atomic<int> s_obscured_pixels_left = 0;
 static std::atomic<int> s_obscured_pixels_top = 0;
 
 // default message stack
-static OSDMessageStack defaultMessageStack = OSDMessageStack();
+static OSDMessageStack s_defaultMessageStack = OSDMessageStack();
 static std::map<std::string, OSDMessageStack> messageStacks;
 
 static std::mutex s_messages_mutex;
@@ -80,14 +80,14 @@ static ImVec2 DrawMessage(int index, Message& msg, const ImVec2& position, int t
 
     if (message_Stack.centered)
     {
-      if (message_Stack.isVertical())
+      if (message_Stack.IsVertical())
       {
-        float x_center = ImGui::GetIO().DisplaySize.x / 2.0;
+        const float x_center = ImGui::GetIO().DisplaySize.x / 2.0;
         x_pos = x_center - window_width / 2;
       }
       else
       {
-        float y_center = ImGui::GetIO().DisplaySize.y / 2.0;
+        const float y_center = ImGui::GetIO().DisplaySize.y / 2.0;
         y_pos = y_center - window_height / 2;
       }
     }
@@ -101,7 +101,7 @@ static ImVec2 DrawMessage(int index, Message& msg, const ImVec2& position, int t
       y_pos -= window_height;
     }
 
-    auto windowPos = ImVec2(x_pos, y_pos);
+    const auto windowPos = ImVec2(x_pos, y_pos);
     ImGui::SetWindowPos(window_name.c_str(), windowPos);
   }
 
@@ -114,17 +114,17 @@ static ImVec2 DrawMessage(int index, Message& msg, const ImVec2& position, int t
 }
 
 void AddTypedMessage(MessageType type, std::string message, u32 ms, u32 argb,
-                     std::string messageStack, bool preventDuplicate, float scale)
+                     std::string message_stack, bool prevent_duplicate, float scale)
 {
   std::lock_guard lock{s_messages_mutex};
 
-  OSDMessageStack* stack = &defaultMessageStack;
-  if (messageStacks.contains(messageStack))
+  OSDMessageStack* stack = &s_defaultMessageStack;
+  if (messageStacks.contains(message_stack))
   {
-    stack = &messageStacks[messageStack];
+    stack = &messageStacks[message_stack];
   }
     
-  if (preventDuplicate && stack->hasMessage(message, type))
+  if (prevent_duplicate && stack->HasMessage(message, type))
   {
     return;
   }
@@ -135,9 +135,10 @@ void AddTypedMessage(MessageType type, std::string message, u32 ms, u32 argb,
   stack->messages.emplace(type, Message(std::move(message), ms, argb, scale));
 }
 
-void AddMessage(std::string message, u32 ms, u32 argb, std::string messageStack, bool preventDuplicate, float scale)
+void AddMessage(std::string message, u32 ms, u32 argb, std::string message_stack, bool prevent_duplicate, float scale)
 {
-  AddTypedMessage(MessageType::Typeless, message, ms, argb, messageStack, preventDuplicate, scale);
+  AddTypedMessage(MessageType::Typeless, message, ms, argb, message_stack, prevent_duplicate,
+                  scale);
 }
 
 void AddMessageStack(OSDMessageStack& info)
@@ -190,10 +191,10 @@ void DrawMessages(OSDMessageStack& messageStack)
 
     if (draw_messages)
     {
-      auto messageSize =
+      const auto messageSize =
           DrawMessage(index++, msg, ImVec2(current_x, current_y), time_left, messageStack);
 
-      if (messageStack.isVertical())
+      if (messageStack.IsVertical())
       {
         current_y +=
             messageStack.dir == OSD::MessageStackDirection::Upward ? -messageSize.y : messageSize.y;
@@ -208,7 +209,7 @@ void DrawMessages(OSDMessageStack& messageStack)
 }
 void DrawMessages()
 {
-  DrawMessages(defaultMessageStack);
+  DrawMessages(s_defaultMessageStack);
   for (auto& [name, stack] : messageStacks)
   {
     DrawMessages(stack);
@@ -218,7 +219,7 @@ void DrawMessages()
 void ClearMessages()
 {
   std::lock_guard lock{s_messages_mutex};
-  defaultMessageStack.messages.clear();
+  s_defaultMessageStack.messages.clear();
   for (auto& [name, stack] : messageStacks)
   {
     stack.messages.clear();

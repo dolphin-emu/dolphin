@@ -23,8 +23,8 @@
 
 namespace Subtitles
 {
-bool _messageStacksInitialized = false;
-bool _subtitlesInitialized = false;
+bool g_messageStacksInitialized = false;
+bool g_subtitlesInitialized = false;
 std::map<std::string, SubtitleEntryGroup> Translations;
 
 void DeserializeSubtitlesJson(std::string& json)
@@ -116,7 +116,7 @@ void RecursivelyReadTranslationJsons(const File::FSTEntry& folder, const std::st
 
 void IniitalizeOSDMessageStacks()
 {
-  if (_messageStacksInitialized)
+  if (g_messageStacksInitialized)
     return;
 
   auto bottomstack = OSD::OSDMessageStack(0, 0, OSD::MessageStackDirection::Upward, true, true,
@@ -127,12 +127,12 @@ void IniitalizeOSDMessageStacks()
                                        TopOSDStackName);
   OSD::AddMessageStack(topstack);
 
-  _messageStacksInitialized = true;
+  g_messageStacksInitialized = true;
 }
 
 void LoadSubtitlesForGame(const std::string& gameId)
 {
-  _subtitlesInitialized = false;
+  g_subtitlesInitialized = false;
   Translations.clear();
 
   auto subtitleDir = File::GetUserPath(D_SUBTITLES_IDX) + gameId;
@@ -155,7 +155,7 @@ void LoadSubtitlesForGame(const std::string& gameId)
 
   IniitalizeOSDMessageStacks();
 
-  _subtitlesInitialized = true;
+  g_subtitlesInitialized = true;
 }
 
 void Reload()
@@ -165,7 +165,7 @@ void Reload()
 
 void OnFileAccess(const DiscIO::Volume& volume, const DiscIO::Partition& partition, u64 offset)
 {
-  if (!_subtitlesInitialized)
+  if (!g_subtitlesInitialized)
     return;
 
   const DiscIO::FileSystem* file_system = volume.GetFileSystem(partition);
