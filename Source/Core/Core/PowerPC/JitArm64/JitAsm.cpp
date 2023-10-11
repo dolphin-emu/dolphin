@@ -311,7 +311,7 @@ void JitArm64::GenerateFres()
 }
 
 // Input: X1 contains input, and D0 contains result of running the input through AArch64 FRSQRTE.
-// Output in X0 and memory (PPCState). Clobbers X0-X4 and flags.
+// Output in X0 and memory (PPCState). Clobbers X0-X3 and flags.
 void JitArm64::GenerateFrsqrte()
 {
   // The idea behind this implementation: AArch64's frsqrte instruction calculates the exponent and
@@ -332,16 +332,16 @@ void JitArm64::GenerateFrsqrte()
 
   // "Normalize" denormal values
   CLZ(ARM64Reg::X3, ARM64Reg::X3);
-  SUB(ARM64Reg::X4, ARM64Reg::X3, 11);
   MOVI2R(ARM64Reg::X2, 12);
-  LSLV(ARM64Reg::X1, ARM64Reg::X1, ARM64Reg::X4);
+  LSLV(ARM64Reg::X1, ARM64Reg::X1, ARM64Reg::X3);
+  LSR(ARM64Reg::X1, ARM64Reg::X1, 11);
   SUB(ARM64Reg::X3, ARM64Reg::X2, ARM64Reg::X3);
   BFI(ARM64Reg::X1, ARM64Reg::X3, 52, 12);
 
   SetJumpTarget(normal);
   UBFX(ARM64Reg::X2, ARM64Reg::X1, 48, 5);
-  MOVP2R(ARM64Reg::X4, &Common::frsqrte_expected);
-  ADD(ARM64Reg::X2, ARM64Reg::X4, ARM64Reg::X2, ArithOption(ARM64Reg::X2, ShiftType::LSL, 3));
+  MOVP2R(ARM64Reg::X3, &Common::frsqrte_expected);
+  ADD(ARM64Reg::X2, ARM64Reg::X3, ARM64Reg::X2, ArithOption(ARM64Reg::X2, ShiftType::LSL, 3));
   LDP(IndexType::Signed, ARM64Reg::W3, ARM64Reg::W2, ARM64Reg::X2, 0);
   UBFX(ARM64Reg::X1, ARM64Reg::X1, 37, 11);
   AND(ARM64Reg::X0, ARM64Reg::X0, LogicalImm(Common::DOUBLE_SIGN | Common::DOUBLE_EXP, 64));
@@ -350,10 +350,10 @@ void JitArm64::GenerateFrsqrte()
   RET();
 
   SetJumpTarget(zero);
-  LDR(IndexType::Unsigned, ARM64Reg::W4, PPC_REG, PPCSTATE_OFF(fpscr));
-  FixupBranch skip_set_zx = TBNZ(ARM64Reg::W4, 26);
-  ORRI2R(ARM64Reg::W4, ARM64Reg::W4, FPSCR_FX | FPSCR_ZX, ARM64Reg::W2);
-  STR(IndexType::Unsigned, ARM64Reg::W4, PPC_REG, PPCSTATE_OFF(fpscr));
+  LDR(IndexType::Unsigned, ARM64Reg::W3, PPC_REG, PPCSTATE_OFF(fpscr));
+  FixupBranch skip_set_zx = TBNZ(ARM64Reg::W3, 26);
+  ORRI2R(ARM64Reg::W3, ARM64Reg::W3, FPSCR_FX | FPSCR_ZX, ARM64Reg::W2);
+  STR(IndexType::Unsigned, ARM64Reg::W3, PPC_REG, PPCSTATE_OFF(fpscr));
   SetJumpTarget(skip_set_zx);
   RET();
 
@@ -363,10 +363,10 @@ void JitArm64::GenerateFrsqrte()
   FixupBranch nan_or_positive_inf = B(CCFlags::CC_NEQ);
 
   SetJumpTarget(negative);
-  LDR(IndexType::Unsigned, ARM64Reg::W4, PPC_REG, PPCSTATE_OFF(fpscr));
-  FixupBranch skip_set_vxsqrt = TBNZ(ARM64Reg::W4, 9);
-  ORRI2R(ARM64Reg::W4, ARM64Reg::W4, FPSCR_FX | FPSCR_VXSQRT, ARM64Reg::W2);
-  STR(IndexType::Unsigned, ARM64Reg::W4, PPC_REG, PPCSTATE_OFF(fpscr));
+  LDR(IndexType::Unsigned, ARM64Reg::W3, PPC_REG, PPCSTATE_OFF(fpscr));
+  FixupBranch skip_set_vxsqrt = TBNZ(ARM64Reg::W3, 9);
+  ORRI2R(ARM64Reg::W3, ARM64Reg::W3, FPSCR_FX | FPSCR_VXSQRT, ARM64Reg::W2);
+  STR(IndexType::Unsigned, ARM64Reg::W3, PPC_REG, PPCSTATE_OFF(fpscr));
   SetJumpTarget(skip_set_vxsqrt);
   SetJumpTarget(nan_or_positive_inf);
   RET();
