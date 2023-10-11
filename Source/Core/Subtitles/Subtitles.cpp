@@ -49,38 +49,40 @@ void DeserializeSubtitlesJson(std::string& json)
   auto arr = v.get<picojson::array>();
   for (auto item : arr)
   {
-    auto FileName = item.get("FileName");
-    auto Translation = item.get("Translation");
-    auto Miliseconds = item.get("Miliseconds");
-    auto Color = item.get("Color");
-    auto Enabled = item.get("Enabled");
-    auto AllowDuplicate = item.get("AllowDuplicate");
-    auto Scale = item.get("Scale");
-    auto Offset = item.get("Offset");
-    auto OffsetEnd = item.get("OffsetEnd");
-    auto DisplayOnTop = item.get("DisplayOnTop");
+    const auto FileName = item.get("FileName");
+    const auto Translation = item.get("Translation");
+    const auto Miliseconds = item.get("Miliseconds");
+    const auto Color = item.get("Color");
+    const auto Enabled = item.get("Enabled");
+    const auto AllowDuplicate = item.get("AllowDuplicate");
+    const auto Scale = item.get("Scale");
+    const auto Offset = item.get("Offset");
+    const auto OffsetEnd = item.get("OffsetEnd");
+    const auto DisplayOnTop = item.get("DisplayOnTop");
+
+    bool enabled = Enabled.is<bool>() ? Enabled.get<bool>() : true;
+    if (!enabled)
+      return;
 
     // FileName and Translation are required fields
     if (!FileName.is<std::string>() || !Translation.is<std::string>())
       continue;
 
-    u32 color = TryParsecolor(Color, OSD::Color::CYAN);
+    const u32 color = TryParsecolor(Color, OSD::Color::CYAN);
 
-    const std::string filename = FileName.to_str();
-    const std::string translation = Translation.to_str();
-    auto tl =
-        SubtitleEntry(filename, translation,
-                      Miliseconds.is<double>() ? Miliseconds.get<double>() : OSD::Duration::SHORT,
-                      color, Enabled.is<bool>() ? Enabled.get<bool>() : true,
-                      AllowDuplicate.is<bool>() ? AllowDuplicate.get<bool>() : false,
-                      Scale.is<double>() ? Scale.get<double>() : 1,
-                      Offset.is<double>() ? Offset.get<double>() : 0,
-                      OffsetEnd.is<double>() ? OffsetEnd.get<double>() : 0,
-                      DisplayOnTop.is<bool>() ? DisplayOnTop.get<bool>() : false);
+    std::string filename = FileName.to_str();
+    std::string translation = Translation.to_str();
+
+    auto tl = SubtitleEntry(
+        filename, translation,
+        Miliseconds.is<double>() ? Miliseconds.get<double>() : OSD::Duration::SHORT, color, enabled,
+        AllowDuplicate.is<bool>() ? AllowDuplicate.get<bool>() : false,
+        Scale.is<double>() ? Scale.get<double>() : 1,
+        Offset.is<double>() ? Offset.get<double>() : 0,
+        OffsetEnd.is<double>() ? OffsetEnd.get<double>() : 0,
+        DisplayOnTop.is<bool>() ? DisplayOnTop.get<bool>() : false);
 
     // fitler out disabled entries, tp lighten lookup load
-    if (tl.Enabled)
-      Translations[tl.Filename].Add(tl);
   }
 }
 
@@ -128,7 +130,7 @@ void IniitalizeOSDMessageStacks()
   _messageStacksInitialized = true;
 }
 
-void LoadSubtitlesForGame(std::string& gameId)
+void LoadSubtitlesForGame(const std::string& gameId)
 {
   _subtitlesInitialized = false;
   Translations.clear();
@@ -158,8 +160,7 @@ void LoadSubtitlesForGame(std::string& gameId)
 
 void Reload()
 {
-  std::string game_id = SConfig::GetInstance().GetGameID();
-  LoadSubtitlesForGame(game_id);
+  LoadSubtitlesForGame(SConfig::GetInstance().GetGameID());
 }
 
 void OnFileAccess(const DiscIO::Volume& volume, const DiscIO::Partition& partition, u64 offset)

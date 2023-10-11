@@ -17,19 +17,19 @@
 namespace Subtitles
 {
 
-inline void Info(std::string msg)
+void Info(std::string msg)
 {
   OSD::AddMessage(msg, 5000, OSD::Color::GREEN);
   INFO_LOG_FMT(SUBTITLES, "{}", msg);
 }
 
-inline void Error(std::string err)
+void Error(std::string err)
 {
   OSD::AddMessage(err, 5000, OSD::Color::RED);
   ERROR_LOG_FMT(SUBTITLES, "{}", err);
 }
 
-u32 TryParsecolor(picojson::value& raw, u32 defaultColor)
+u32 TryParsecolor(const picojson::value& raw, u32 defaultColor)
 {
   if (raw.is<double>())
   {

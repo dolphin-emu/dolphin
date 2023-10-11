@@ -33,7 +33,8 @@
 
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
-#include <Subtitles\Subtitles.h>
+
+#include "Subtitles/Subtitles.h"
 
 namespace DVD
 {

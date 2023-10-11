@@ -49,9 +49,8 @@ struct Message
   float scale = 1;
 };
 
-class OSDMessageStack
+struct OSDMessageStack
 {
-public:
   ImVec2 initialPosOffset;
   MessageStackDirection dir;
   bool centered;
@@ -100,7 +99,7 @@ constexpr u32 NORMAL = 5000;
 constexpr u32 VERY_LONG = 10000;
 };  // namespace Duration
 
-void AddMessageStack(OSDMessageStack info);
+void AddMessageStack(OSDMessageStack& info);
 
 // On-screen message display (colored yellow by default)
 void AddMessage(std::string message, u32 ms = Duration::SHORT, u32 argb = Color::YELLOW,

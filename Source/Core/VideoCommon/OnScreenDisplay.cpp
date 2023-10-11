@@ -44,11 +44,11 @@ static ImVec4 ARGBToImVec4(const u32 argb)
 }
 
 static ImVec2 DrawMessage(int index, Message& msg, const ImVec2& position, int time_left,
-                          OSDMessageStack& messageStack)
+                          OSDMessageStack& message_Stack)
 {
   // We have to provide a window name, and these shouldn't be duplicated.
   // So instead, we generate a name based on the number of messages drawn.
-  const std::string window_name = fmt::format("osd_{}_{}", messageStack.name, index);
+  const std::string window_name = fmt::format("osd_{}_{}", message_Stack.name, index);
 
   // The size must be reset, otherwise the length of old messages could influence new ones.
   ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
@@ -78,9 +78,9 @@ static ImVec2 DrawMessage(int index, Message& msg, const ImVec2& position, int t
     float x_pos = position.x;
     float y_pos = position.y;
 
-    if (messageStack.centered)
+    if (message_Stack.centered)
     {
-      if (messageStack.isVertical())
+      if (message_Stack.isVertical())
       {
         float x_center = ImGui::GetIO().DisplaySize.x / 2.0;
         x_pos = x_center - window_width / 2;
@@ -92,11 +92,11 @@ static ImVec2 DrawMessage(int index, Message& msg, const ImVec2& position, int t
       }
     }
 
-    if (messageStack.dir == MessageStackDirection::Leftward)
+    if (message_Stack.dir == MessageStackDirection::Leftward)
     {
       x_pos -= window_width;
     }
-    if (messageStack.dir == MessageStackDirection::Upward)
+    if (message_Stack.dir == MessageStackDirection::Upward)
     {
       y_pos -= window_height;
     }
@@ -140,9 +140,8 @@ void AddMessage(std::string message, u32 ms, u32 argb, std::string messageStack,
   AddTypedMessage(MessageType::Typeless, message, ms, argb, messageStack, preventDuplicate, scale);
 }
 
-void AddMessageStack(OSDMessageStack info)
+void AddMessageStack(OSDMessageStack& info)
 {
-  // TODO handle dups
   messageStacks[info.name] = info;
 }
 void DrawMessages(OSDMessageStack& messageStack)

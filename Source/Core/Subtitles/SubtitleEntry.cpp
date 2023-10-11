@@ -21,7 +21,7 @@ void SubtitleEntryGroup::Sort()
 SubtitleEntry* SubtitleEntryGroup::GetTLForRelativeOffset(u32 offset)
 {
   if (subtitleLines.empty())
-    return 0;
+    return nullptr;
 
   // entry with offset=0 or offset=null is used by default
   if (!subtitleLines[subtitleLines.size() - 1].IsOffset())
@@ -40,7 +40,7 @@ SubtitleEntry* SubtitleEntryGroup::GetTLForRelativeOffset(u32 offset)
       }
       else
       {
-        return 0;
+        return nullptr;
       }
     }
   }
@@ -57,7 +57,7 @@ SubtitleEntry::SubtitleEntry()
       Scale(1), Offset(0), OffsetEnd(0), DisplayOnTop(false)
 {
 }
-SubtitleEntry::SubtitleEntry(const std::string& filename, const std::string& text, u32 miliseconds,
+SubtitleEntry::SubtitleEntry(std::string& filename, std::string& text, u32 miliseconds,
                                     u32 color, bool enabled, bool allowDuplicates, float scale,
                                     u32 offset, u32 offsetEnd, bool displayOnTop)
     : Filename(filename), Text(text), Miliseconds(miliseconds), Color(color), Enabled(enabled),

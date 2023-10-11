@@ -25,7 +25,7 @@ struct SubtitleEntry
 
 public:
   SubtitleEntry();
-  SubtitleEntry(const std::string& filename, const std::string& text, u32 miliseconds, u32 color,
+  SubtitleEntry(std::string& filename, std::string& text, u32 miliseconds, u32 color,
                 bool enabled,
                 bool allowDuplicates, float scale, u32 offset, u32 offsetEnd, bool displayOnTop);
   bool IsOffset();
