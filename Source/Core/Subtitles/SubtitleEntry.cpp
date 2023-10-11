@@ -6,27 +6,62 @@
 #include "Subtitles/SubtitleEntry.h"
 
 #include <algorithm>
+#include <fmt/format.h>
 #include <string>
 
 #include "Common/CommonTypes.h"
+#include "Subtitles/Helpers.h"
 
 namespace Subtitles
 {
 // Ensure lines are sorted in reverse to simplify querying
-void SubtitleEntryGroup::Sort()
+void SubtitleEntryGroup::Preprocess()
 {
-  std::sort(subtitleLines.begin(), subtitleLines.end(),
-            [](const auto& lhs, const auto& rhs) { return lhs.Offset > rhs.Offset; });
+  for (auto i = 0; i < subtitleLines.size(); i++)
+  {
+    hasOffsets |= subtitleLines[i].Offset > 0;
+    hasTimestamps |= subtitleLines[i].Timestamp > 0;
+  }
+
+  // Info(fmt::format("HasOffsets: {} HasTimestamps {} File: {}", hasOffsets, hasTimestamps));
+
+  if (hasOffsets)
+  {
+    std::sort(subtitleLines.begin(), subtitleLines.end(),
+              [](const auto& lhs, const auto& rhs) { return lhs.Offset > rhs.Offset; });
+  }
+  // Offsets override Timestamps
+  else if (hasTimestamps)
+  {
+    std::sort(subtitleLines.begin(), subtitleLines.end(),
+              [](const auto& lhs, const auto& rhs) { return lhs.Timestamp > rhs.Timestamp; });
+  }
 }
-SubtitleEntry* SubtitleEntryGroup::GetTLForRelativeOffset(u32 offset)
+SubtitleEntry* SubtitleEntryGroup::GetSubtitle(u32 offset)
 {
   if (subtitleLines.empty())
     return nullptr;
 
-  // entry with offset=0 or offset=null is used by default
-  if (!subtitleLines[subtitleLines.size() - 1].IsOffset())
-    return &subtitleLines[subtitleLines.size() - 1];
+  if (hasOffsets)
+  {
+    return GetSubtitleForRelativeOffset(offset);
+  }
+  if (hasTimestamps)
+  {
+    if (offset == 0)
+    {
+      // restart timer if file is being read from start
+      timer.Start();
+    }
+    // TODO do sync emulated time with real time, or just ingore this issue?
+    auto timestamp = timer.ElapsedMs();
+    return GetSubtitleForRelativeTimestamp(timestamp);
+  }
 
+  return &subtitleLines[0];
+}
+SubtitleEntry* SubtitleEntryGroup::GetSubtitleForRelativeOffset(u32 offset)
+{
   // from latest to earliest
   for (auto i = 0; i < subtitleLines.size(); i++)
   {
@@ -47,6 +82,29 @@ SubtitleEntry* SubtitleEntryGroup::GetTLForRelativeOffset(u32 offset)
 
   return 0;
 }
+SubtitleEntry* SubtitleEntryGroup::GetSubtitleForRelativeTimestamp(u64 timestamp)
+{
+  // from latest to earliest
+  for (auto i = 0; i < subtitleLines.size(); i++)
+  {
+    // find first translation that covers current offset
+    if (timestamp >= subtitleLines[i].Timestamp)
+    {
+      // use display time as treshold
+      auto endstamp = subtitleLines[i].Timestamp + subtitleLines[i].Miliseconds;
+      if (endstamp >= timestamp)
+      {
+        return &subtitleLines[i];
+      }
+      else
+      {
+        return nullptr;
+      }
+    }
+  }
+
+  return 0;
+}
 void SubtitleEntryGroup::Add(SubtitleEntry& tl)
 {
   subtitleLines.push_back(tl);
@@ -54,15 +112,15 @@ void SubtitleEntryGroup::Add(SubtitleEntry& tl)
 
 SubtitleEntry::SubtitleEntry()
     : Filename(""), Text(""), Miliseconds(0), Color(0), Enabled(false), AllowDuplicate(false),
-      Scale(1), Offset(0), OffsetEnd(0), DisplayOnTop(false)
+      Scale(1), Offset(0), OffsetEnd(0), DisplayOnTop(false), Timestamp(0)
 {
 }
-SubtitleEntry::SubtitleEntry(std::string& filename, std::string& text, u32 miliseconds,
-                                    u32 color, bool enabled, bool allowDuplicates, float scale,
-                                    u32 offset, u32 offsetEnd, bool displayOnTop)
+SubtitleEntry::SubtitleEntry(std::string& filename, std::string& text, u32 miliseconds, u32 color,
+                             bool enabled, bool allowDuplicates, float scale, u32 offset,
+                             u32 offsetEnd, bool displayOnTop, u64 timestamp)
     : Filename(filename), Text(text), Miliseconds(miliseconds), Color(color), Enabled(enabled),
       AllowDuplicate(allowDuplicates), Scale(scale), Offset(offset), OffsetEnd(offsetEnd),
-      DisplayOnTop(displayOnTop)
+      DisplayOnTop(displayOnTop), Timestamp(timestamp)
 {
 }
 bool SubtitleEntry::IsOffset()

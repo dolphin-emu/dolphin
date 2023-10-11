@@ -59,10 +59,12 @@ void DeserializeSubtitlesJson(std::string& json)
     const auto Offset = item.get("Offset");
     const auto OffsetEnd = item.get("OffsetEnd");
     const auto DisplayOnTop = item.get("DisplayOnTop");
+    const auto Timestamp = item.get("Timestamp");
 
+    // fitler out disabled entries, to lighten lookup load
     bool enabled = Enabled.is<bool>() ? Enabled.get<bool>() : true;
     if (!enabled)
-      return;
+      continue;
 
     // FileName and Translation are required fields
     if (!FileName.is<std::string>() || !Translation.is<std::string>())
@@ -80,9 +82,10 @@ void DeserializeSubtitlesJson(std::string& json)
         Scale.is<double>() ? Scale.get<double>() : 1,
         Offset.is<double>() ? Offset.get<double>() : 0,
         OffsetEnd.is<double>() ? OffsetEnd.get<double>() : 0,
-        DisplayOnTop.is<bool>() ? DisplayOnTop.get<bool>() : false);
+        DisplayOnTop.is<bool>() ? DisplayOnTop.get<bool>() : false,
+        Timestamp.is<double>() ? Timestamp.get<double>() : 0);
 
-    // fitler out disabled entries, tp lighten lookup load
+    Translations[tl.Filename].Add(tl);
   }
 }
 
@@ -146,16 +149,18 @@ void LoadSubtitlesForGame(const std::string& gameId)
   auto fileEnumerator = File::ScanDirectoryTree(subtitleDir, true);
   RecursivelyReadTranslationJsons(fileEnumerator, SubtitleFileExtension);
 
+  Info(fmt::format("Translations.empty() = {}", Translations.empty()));
   if (Translations.empty())
     return;
 
   // ensure stuff is sorted, you never know what mess people will make in text files :)
   std::for_each(Translations.begin(), Translations.end(),
-                [](std::pair<const std::string, SubtitleEntryGroup>& t) { t.second.Sort(); });
+                [](std::pair<const std::string, SubtitleEntryGroup>& t) { t.second.Preprocess(); });
 
   IniitalizeOSDMessageStacks();
 
   g_subtitlesInitialized = true;
+  Info(fmt::format("Subtitles loaded for {}", gameId));
 }
 
 void Reload()
@@ -184,7 +189,7 @@ void OnFileAccess(const DiscIO::Volume& volume, const DiscIO::Partition& partiti
   if (Translations.count(path) == 0)
     return;
 
-  auto tl = Translations[path].GetTLForRelativeOffset((u32)relativeOffset);
+  auto tl = Translations[path].GetSubtitle((u32)relativeOffset);
 
   if (!tl)
     return;
