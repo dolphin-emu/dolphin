@@ -14,11 +14,11 @@
 #include <picojson.h>
 
 #include "Common/FileUtil.h"
+#include "Common/Logging/LogManager.h"
 #include "Core/ConfigManager.h"
 #include "DiscIO/Filesystem.h"
 #include "Subtitles/Helpers.h"
 #include "Subtitles/SubtitleEntry.h"
-#include "Subtitles/WebColors.h"
 #include "VideoCommon/OnScreenDisplay.h"
 
 namespace Subtitles
@@ -132,6 +132,12 @@ void LoadSubtitlesForGame(std::string gameId)
   Translations.clear();
 
   auto subtitleDir = File::GetUserPath(D_SUBTITLES_IDX) + gameId;
+    
+  if (Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::LogType::SUBTITLES,
+                                                         Common::Log::LogLevel::LWARNING))
+  {
+    Info(fmt::format("Loading subtitles for {} from {}", gameId, subtitleDir));
+  }
 
   auto fileEnumerator = File::ScanDirectoryTree(subtitleDir, true);
   RecursivelyReadTranslationJsons(fileEnumerator, ".json");
