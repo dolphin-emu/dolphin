@@ -343,11 +343,11 @@ void JitArm64::GenerateFrsqrte()
   UBFX(ARM64Reg::X2, ARM64Reg::X1, 48, 5);
   MOVP2R(ARM64Reg::X4, &Common::frsqrte_expected);
   ADD(ARM64Reg::X2, ARM64Reg::X4, ARM64Reg::X2, ArithOption(ARM64Reg::X2, ShiftType::LSL, 3));
-  LDP(IndexType::Signed, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::X2, 0);
-  UBFX(ARM64Reg::X3, ARM64Reg::X3, 37, 11);
+  LDP(IndexType::Signed, ARM64Reg::W3, ARM64Reg::W2, ARM64Reg::X2, 0);
+  UBFX(ARM64Reg::X1, ARM64Reg::X1, 37, 11);
   AND(ARM64Reg::X0, ARM64Reg::X0, LogicalImm(Common::DOUBLE_SIGN | Common::DOUBLE_EXP, 64));
-  MADD(ARM64Reg::W3, ARM64Reg::W3, ARM64Reg::W2, ARM64Reg::W1);
-  ORR(ARM64Reg::X0, ARM64Reg::X0, ARM64Reg::X3, ArithOption(ARM64Reg::X3, ShiftType::LSL, 26));
+  MADD(ARM64Reg::W1, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3);
+  ORR(ARM64Reg::X0, ARM64Reg::X0, ARM64Reg::X1, ArithOption(ARM64Reg::X1, ShiftType::LSL, 26));
   RET();
 
   SetJumpTarget(zero);
