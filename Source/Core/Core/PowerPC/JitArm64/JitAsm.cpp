@@ -333,11 +333,10 @@ void JitArm64::GenerateFrsqrte()
   // "Normalize" denormal values
   CLZ(ARM64Reg::X3, ARM64Reg::X3);
   SUB(ARM64Reg::X4, ARM64Reg::X3, 11);
-  MOVI2R(ARM64Reg::X2, 0x00C0'0000'0000'0000);
-  LSLV(ARM64Reg::X4, ARM64Reg::X1, ARM64Reg::X4);
-  SUB(ARM64Reg::X2, ARM64Reg::X2, ARM64Reg::X3, ArithOption(ARM64Reg::X3, ShiftType::LSL, 52));
-  AND(ARM64Reg::X3, ARM64Reg::X4, LogicalImm(Common::DOUBLE_FRAC - 1, 64));
-  ORR(ARM64Reg::X1, ARM64Reg::X2, ARM64Reg::X3);
+  MOVI2R(ARM64Reg::X2, 12);
+  LSLV(ARM64Reg::X1, ARM64Reg::X1, ARM64Reg::X4);
+  SUB(ARM64Reg::X3, ARM64Reg::X2, ARM64Reg::X3);
+  BFI(ARM64Reg::X1, ARM64Reg::X3, 52, 12);
 
   SetJumpTarget(normal);
   UBFX(ARM64Reg::X2, ARM64Reg::X1, 48, 5);
