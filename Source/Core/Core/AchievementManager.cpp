@@ -191,6 +191,8 @@ void AchievementManager::LoadGameByFilenameAsync(const std::string& iso_path,
       m_is_game_loaded = true;
       LoadUnlockData([](ResponseType r_type) {});
       ActivateDeactivateAchievements();
+      ActivateDeactivateLeaderboards();
+      ActivateDeactivateRichPresence();
       PointSpread spread = TallyScore();
       if (hardcore_mode_enabled)
       {
@@ -209,8 +211,6 @@ void AchievementManager::LoadGameByFilenameAsync(const std::string& iso_path,
         OSD::AddMessage("Hardcore mode is OFF", OSD::Duration::VERY_LONG, OSD::Color::CYAN);
       }
     }
-    ActivateDeactivateLeaderboards();
-    ActivateDeactivateRichPresence();
     FetchBadges();
     // Reset this to zero so that RP immediately triggers on the first frame
     m_last_ping_time = 0;
