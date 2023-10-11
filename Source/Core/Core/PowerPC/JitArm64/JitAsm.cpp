@@ -337,13 +337,12 @@ void JitArm64::GenerateFrsqrte()
   LSLV(ARM64Reg::X4, ARM64Reg::X1, ARM64Reg::X4);
   SUB(ARM64Reg::X2, ARM64Reg::X2, ARM64Reg::X3, ArithOption(ARM64Reg::X3, ShiftType::LSL, 52));
   AND(ARM64Reg::X3, ARM64Reg::X4, LogicalImm(Common::DOUBLE_FRAC - 1, 64));
+  ORR(ARM64Reg::X1, ARM64Reg::X2, ARM64Reg::X3);
 
   SetJumpTarget(normal);
-  LSR(ARM64Reg::X2, ARM64Reg::X2, 48);
-  AND(ARM64Reg::X2, ARM64Reg::X2, LogicalImm(0x10, 64));
-  MOVP2R(ARM64Reg::X1, &Common::frsqrte_expected);
-  ORR(ARM64Reg::X2, ARM64Reg::X2, ARM64Reg::X3, ArithOption(ARM64Reg::X3, ShiftType::LSR, 48));
-  ADD(ARM64Reg::X2, ARM64Reg::X1, ARM64Reg::X2, ArithOption(ARM64Reg::X2, ShiftType::LSL, 3));
+  UBFX(ARM64Reg::X2, ARM64Reg::X1, 48, 5);
+  MOVP2R(ARM64Reg::X4, &Common::frsqrte_expected);
+  ADD(ARM64Reg::X2, ARM64Reg::X4, ARM64Reg::X2, ArithOption(ARM64Reg::X2, ShiftType::LSL, 3));
   LDP(IndexType::Signed, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::X2, 0);
   UBFX(ARM64Reg::X3, ARM64Reg::X3, 37, 11);
   AND(ARM64Reg::X0, ARM64Reg::X0, LogicalImm(Common::DOUBLE_SIGN | Common::DOUBLE_EXP, 64));
