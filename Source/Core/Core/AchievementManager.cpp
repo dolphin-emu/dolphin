@@ -1088,15 +1088,15 @@ AchievementManager::PingRichPresence(const RichPresence& rich_presence)
 
 void AchievementManager::HandleAchievementTriggeredEvent(const rc_runtime_event_t* runtime_event)
 {
-  auto it = m_unlock_map.find(runtime_event->id);
+  const auto event_id = runtime_event->id;
+  auto it = m_unlock_map.find(event_id);
   if (it == m_unlock_map.end())
   {
-    ERROR_LOG_FMT(ACHIEVEMENTS, "Invalid achievement triggered event with id {}.",
-                  runtime_event->id);
+    ERROR_LOG_FMT(ACHIEVEMENTS, "Invalid achievement triggered event with id {}.", event_id);
     return;
   }
   it->second.session_unlock_count++;
-  m_queue.EmplaceItem([this, runtime_event] { AwardAchievement(runtime_event->id); });
+  m_queue.EmplaceItem([this, event_id] { AwardAchievement(event_id); });
   AchievementId game_data_index = it->second.game_data_index;
   OSD::AddMessage(fmt::format("Unlocked: {} ({})", m_game_data.achievements[game_data_index].title,
                               m_game_data.achievements[game_data_index].points),
@@ -1115,7 +1115,7 @@ void AchievementManager::HandleAchievementTriggeredEvent(const rc_runtime_event_
         fmt::format("Congratulations! {} has completed {}", m_display_name, m_game_data.title),
         OSD::Duration::VERY_LONG, OSD::Color::CYAN);
   }
-  ActivateDeactivateAchievement(runtime_event->id, Config::Get(Config::RA_ACHIEVEMENTS_ENABLED),
+  ActivateDeactivateAchievement(event_id, Config::Get(Config::RA_ACHIEVEMENTS_ENABLED),
                                 Config::Get(Config::RA_UNOFFICIAL_ENABLED),
                                 Config::Get(Config::RA_ENCORE_ENABLED));
 }
@@ -1175,15 +1175,16 @@ void AchievementManager::HandleLeaderboardCanceledEvent(const rc_runtime_event_t
 
 void AchievementManager::HandleLeaderboardTriggeredEvent(const rc_runtime_event_t* runtime_event)
 {
-  m_queue.EmplaceItem(
-      [this, runtime_event] { SubmitLeaderboard(runtime_event->id, runtime_event->value); });
+  const auto event_id = runtime_event->id;
+  const auto event_value = runtime_event->value;
+  m_queue.EmplaceItem([this, event_id, event_value] { SubmitLeaderboard(event_id, event_value); });
   for (u32 ix = 0; ix < m_game_data.num_leaderboards; ix++)
   {
-    if (m_game_data.leaderboards[ix].id == runtime_event->id)
+    if (m_game_data.leaderboards[ix].id == event_id)
     {
       FormattedValue value{};
-      rc_runtime_format_lboard_value(value.data(), static_cast<int>(value.size()),
-                                     runtime_event->value, m_game_data.leaderboards[ix].format);
+      rc_runtime_format_lboard_value(value.data(), static_cast<int>(value.size()), event_value,
+                                     m_game_data.leaderboards[ix].format);
       if (std::find(value.begin(), value.end(), '\0') == value.end())
       {
         OSD::AddMessage(fmt::format("Scored {} on leaderboard: {}",
@@ -1200,7 +1201,7 @@ void AchievementManager::HandleLeaderboardTriggeredEvent(const rc_runtime_event_
       return;
     }
   }
-  ERROR_LOG_FMT(ACHIEVEMENTS, "Invalid leaderboard triggered event with id {}.", runtime_event->id);
+  ERROR_LOG_FMT(ACHIEVEMENTS, "Invalid leaderboard triggered event with id {}.", event_id);
 }
 
 // Every RetroAchievements API call, with only a partial exception for fetch_image, follows
