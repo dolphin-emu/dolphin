@@ -15,6 +15,16 @@ struct SDSP;
 
 namespace DSP::Symbols
 {
+class DSPSymbolDB : public Common::SymbolDB
+{
+public:
+  DSPSymbolDB() {}
+  ~DSPSymbolDB() {}
+  Common::Symbol* GetSymbolFromAddr(u32 addr) override;
+};
+
+extern DSPSymbolDB g_dsp_symbol_db;
+
 void AutoDisassembly(const SDSP& dsp, u16 start_addr, u16 end_addr);
 
 void Clear();

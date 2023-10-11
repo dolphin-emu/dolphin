@@ -70,12 +70,21 @@ public:
   {
     return "NODEBUGGER";
   }
+  virtual std::optional<u32> GetOffsetAddress(u32 address, s32 offset) const
+  {
+    return address + offset;
+  }
+  virtual std::optional<s32> GetOffsetBetween(u32 cur_address, u32 other_address) const
+  {
+    return static_cast<s32>(other_address - cur_address);
+  }
   virtual bool IsAlive() const { return true; }
   virtual bool IsBreakpoint(u32 /*address*/) const { return false; }
   virtual void SetBreakpoint(u32 /*address*/) {}
   virtual void ClearBreakpoint(u32 /*address*/) {}
   virtual void ClearAllBreakpoints() {}
   virtual void ToggleBreakpoint(u32 /*address*/) {}
+  virtual bool IsBreakpointEnabled(u32 address) const { return IsBreakpoint(address); }
   virtual void ClearAllMemChecks() {}
   virtual bool IsMemCheck(u32 /*address*/, size_t /*size*/) const { return false; }
   virtual void ToggleMemCheck(u32 /*address*/, bool /*read*/, bool /*write*/, bool /*log*/) {}
@@ -90,8 +99,24 @@ public:
     return 0;
   }
   virtual u32 ReadInstruction(const CPUThreadGuard& /*guard*/, u32 /*address*/) const { return 0; }
-  virtual std::optional<u32>
-  GetMemoryAddressFromInstruction(const std::string& /*instruction*/) const
+  virtual std::optional<u32> GetBranchTarget(const CPUThreadGuard* /*guard*/, u32 /*address*/) const
+  {
+    return std::nullopt;
+  }
+  virtual bool IsCallInstruction(const CPUThreadGuard* /*guard*/, u32 /*address*/) const
+  {
+    return false;
+  }
+  virtual bool IsReturnInstruction(const CPUThreadGuard* /*guard*/, u32 /*address*/) const
+  {
+    return false;
+  }
+  virtual bool IsLoadStoreInstruction(const CPUThreadGuard* /*guard*/, u32 /*address*/) const
+  {
+    return false;
+  }
+  virtual std::optional<u32> GetMemoryAddressFromInstruction(const CPUThreadGuard* /*guard*/,
+                                                             u32 /* address */) const
   {
     return std::nullopt;
   }

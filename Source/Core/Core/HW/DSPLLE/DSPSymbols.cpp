@@ -15,6 +15,8 @@
 
 namespace DSP::Symbols
 {
+DSPSymbolDB g_dsp_symbol_db;
+
 static std::map<u16, int> addr_to_line;
 static std::map<int, u16> line_to_addr;
 static std::vector<std::string> lines;
@@ -50,11 +52,28 @@ const char* GetLineText(int line)
   }
 }
 
+Common::Symbol* DSPSymbolDB::GetSymbolFromAddr(u32 addr)
+{
+  auto it = m_functions.find(addr);
+
+  if (it != m_functions.end())
+    return &it->second;
+
+  for (auto& func : m_functions)
+  {
+    if (addr >= func.second.address && addr < func.second.address + func.second.size)
+      return &func.second;
+  }
+
+  return nullptr;
+}
+
 void AutoDisassembly(const SDSP& dsp, u16 start_addr, u16 end_addr)
 {
   AssemblerSettings settings;
-  settings.show_pc = true;
-  settings.show_hex = true;
+  settings.show_pc = false;
+  settings.show_hex = false;
+  settings.print_tabs = true;
   DSPDisassembler disasm(settings);
 
   u16 addr = start_addr;
