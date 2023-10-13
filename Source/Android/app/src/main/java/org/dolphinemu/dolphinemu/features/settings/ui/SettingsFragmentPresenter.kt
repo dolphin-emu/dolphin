@@ -1111,7 +1111,6 @@ class SettingsFragmentPresenter(
                     R.string.bba_tapserver_destination_description
                 )
             )
-        }
         } else if (serialPort1Type == 12) {
             // Broadband Adapter (Built In)
             sl.add(
