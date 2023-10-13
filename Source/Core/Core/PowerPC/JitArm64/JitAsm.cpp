@@ -441,8 +441,7 @@ void JitArm64::GenerateFPRF(bool single)
   const auto reg_encoder = single ? EncodeRegTo32 : EncodeRegTo64;
 
   const ARM64Reg input_reg = reg_encoder(ARM64Reg::W0);
-  const ARM64Reg cls_reg = reg_encoder(ARM64Reg::W1);
-  const ARM64Reg exp_and_frac_reg = reg_encoder(ARM64Reg::W2);
+  const ARM64Reg cls_reg = reg_encoder(ARM64Reg::W2);
 
   constexpr ARM64Reg fprf_reg = ARM64Reg::W3;
   constexpr ARM64Reg fpscr_reg = ARM64Reg::W4;
@@ -455,19 +454,14 @@ void JitArm64::GenerateFPRF(bool single)
   // First of all, start the load of the old FPSCR value, in case it takes a while
   LDR(IndexType::Unsigned, fpscr_reg, PPC_REG, PPCSTATE_OFF(fpscr));
 
-  // Most branches handle the sign in the same way. Perform that handling before branching
-  MOVI2R(ARM64Reg::W3, Common::PPC_FPCLASS_PN);
-  MOVI2R(ARM64Reg::W1, Common::PPC_FPCLASS_NN);
   CMP(input_reg, 0);  // Grab sign bit (conveniently the same bit for floats as for integers)
-  LSL(exp_and_frac_reg, input_reg, 1);
-  CSEL(fprf_reg, ARM64Reg::W1, ARM64Reg::W3, CCFlags::CC_LT);
-  CLS(cls_reg, exp_and_frac_reg);
-  FixupBranch not_zero = CBNZ(exp_and_frac_reg);
+  LSL(cls_reg, input_reg, 1);
+  FixupBranch not_zero = CBNZ(cls_reg);
 
   // exp == 0 && frac == 0
-  LSR(ARM64Reg::W1, fprf_reg, 3);
-  MOVI2R(fprf_reg, Common::PPC_FPCLASS_PZ & ~output_sign_mask);
-  BFI(fprf_reg, ARM64Reg::W1, 4, 1);
+  MOVI2R(ARM64Reg::W3, Common::PPC_FPCLASS_PZ);
+  MOVI2R(ARM64Reg::W1, Common::PPC_FPCLASS_NZ);
+  CSEL(fprf_reg, ARM64Reg::W1, ARM64Reg::W3, CCFlags::CC_LT);
 
   const u8* write_fprf_and_ret = GetCodePtr();
   BFI(fpscr_reg, fprf_reg, FPRF_SHIFT, FPRF_WIDTH);
@@ -476,6 +470,14 @@ void JitArm64::GenerateFPRF(bool single)
 
   // exp != 0 || frac != 0
   SetJumpTarget(not_zero);
+  CLS(cls_reg, cls_reg);
+
+  // All branches except the zero branch handle the sign in the same way.
+  // Perform that handling before branching further
+  MOVI2R(ARM64Reg::W3, Common::PPC_FPCLASS_PN);
+  MOVI2R(ARM64Reg::W1, Common::PPC_FPCLASS_NN);
+  CSEL(fprf_reg, ARM64Reg::W1, ARM64Reg::W3, CCFlags::CC_LT);
+
   CMP(cls_reg, input_exp_size - 1);
   B(CCFlags::CC_LO, write_fprf_and_ret);  // Branch if input is normal
 
