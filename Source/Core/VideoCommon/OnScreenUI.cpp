@@ -11,6 +11,8 @@
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Movie.h"
 
+#include "InputCommon/GCAdapter.h"
+
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/AbstractPipeline.h"
 #include "VideoCommon/AbstractShader.h"
@@ -321,6 +323,23 @@ void OnScreenUI::DrawDebugText()
   const std::string profile_output = Common::Profiler::ToString();
   if (!profile_output.empty())
     ImGui::TextUnformatted(profile_output.c_str());
+
+  // SLIPPITODO: make this cleaner
+  if (GCAdapter::IsReadingAtReducedRate())
+  {
+    ImGui::TextWrapped(
+        "Your GameCube Controller Adapter is reading inputs at a reduced rate.\n"
+        "You can still play normally but you will experience higher input lag.\n"
+        "This indicates a potential hardware issue.\n"
+        "\n"
+        "Go to the Dolphin -> Controllers page, click 'Configure' next to your "
+        "controller's port, then check what your pollrate is."
+        "\n"
+        "If it is considerably lower than 125 hz, keep trying different USB ports until it "
+        "is around 125 hz."
+        "\n"
+        "For more help, please ask in the official Slippi Discord server.");
+  }
 }
 
 void OnScreenUI::Finalize()
