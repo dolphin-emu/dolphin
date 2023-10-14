@@ -38,7 +38,7 @@ enum DESCRIPTOR_SET_LAYOUT
 
 // We use four pipeline layouts:
 //   - Standard
-//       - Per-stage UBO (VS/GS/PS, VS constants accessible from PS) [set=0, binding=0-2]
+//       - Per-stage UBO (VS/GS/PS, VS constants accessible from PS) [set=0, binding=0-3]
 //       - 8 combined image samplers (accessible from PS) [set=1, binding=0-7]
 //       - 1 SSBO accessible from PS if supported [set=2, binding=0]
 //   - Uber
@@ -70,6 +70,7 @@ enum UNIFORM_BUFFER_DESCRIPTOR_SET_BINDING
 {
   UBO_DESCRIPTOR_SET_BINDING_PS,
   UBO_DESCRIPTOR_SET_BINDING_VS,
+  UBO_DESCRIPTOR_SET_BINDING_PS_CUST,
   UBO_DESCRIPTOR_SET_BINDING_GS,
   NUM_UBO_DESCRIPTOR_SET_BINDINGS
 };

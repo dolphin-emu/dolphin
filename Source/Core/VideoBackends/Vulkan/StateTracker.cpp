@@ -494,6 +494,12 @@ void StateTracker::UpdateGXDescriptorSet()
         continue;
       }
 
+      // If custom pixel shaders haven't been used, their buffer range is 0
+      if (i == UBO_DESCRIPTOR_SET_BINDING_PS_CUST && m_bindings.gx_ubo_bindings[i].range == 0)
+      {
+        continue;
+      }
+
       writes[num_writes++] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                               nullptr,
                               m_gx_descriptor_sets[0],

@@ -96,14 +96,14 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
 
   if (uid_data->vs_expand != VSExpand::None)
   {
-    out.Write("UBO_BINDING(std140, 3) uniform GSBlock {{\n");
+    out.Write("UBO_BINDING(std140, 4) uniform GSBlock {{\n");
     out.Write("{}", s_geometry_shader_uniforms);
     out.Write("}};\n");
 
     if (api_type == APIType::D3D)
     {
       // D3D doesn't include the base vertex in SV_VertexID
-      out.Write("UBO_BINDING(std140, 4) uniform DX_Constants {{\n"
+      out.Write("UBO_BINDING(std140, 5) uniform DX_Constants {{\n"
                 "  uint base_vertex;\n"
                 "}};\n\n");
     }

@@ -458,7 +458,7 @@ std::optional<std::string> Metal::Util::TranslateShaderToMSL(ShaderStage stage,
   static const spirv_cross::MSLResourceBinding resource_bindings[] = {
       MakeResourceBinding(spv::ExecutionModelVertex,    0, 0, 1, 0, 0), // vs/ubo
       MakeResourceBinding(spv::ExecutionModelVertex,    0, 1, 1, 0, 0), // vs/ubo
-      MakeResourceBinding(spv::ExecutionModelVertex,    0, 2, 2, 0, 0), // vs/ubo
+      MakeResourceBinding(spv::ExecutionModelVertex,    0, 3, 2, 0, 0), // vs/ubo
       MakeResourceBinding(spv::ExecutionModelVertex,    2, 1, 0, 0, 0), // vs/ssbo
       MakeResourceBinding(spv::ExecutionModelFragment,  0, 0, 0, 0, 0), // vs/ubo
       MakeResourceBinding(spv::ExecutionModelFragment,  0, 1, 1, 0, 0), // vs/ubo
