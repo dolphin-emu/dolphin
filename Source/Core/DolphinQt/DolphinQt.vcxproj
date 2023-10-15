@@ -181,6 +181,7 @@
     </ClCompile>
     <ClCompile Include="QtUtils\AspectRatioWidget.cpp" />
     <ClCompile Include="QtUtils\BlockUserInputFilter.cpp" />
+    <ClCompile Include="QtUtils\ClearLayoutRecursively.cpp" />
     <ClCompile Include="QtUtils\DolphinFileDialog.cpp" />
     <ClCompile Include="QtUtils\DoubleClickEventFilter.cpp" />
     <ClCompile Include="QtUtils\ElidedButton.cpp" />
@@ -240,6 +241,7 @@
     <ClInclude Include="Debugger\RegisterColumn.h" />
     <ClInclude Include="GBAHost.h" />
     <ClInclude Include="QtUtils\ActionHelper.h" />
+    <ClInclude Include="QtUtils\ClearLayoutRecursively.h" />
     <ClInclude Include="QtUtils\DolphinFileDialog.h" />
     <ClInclude Include="QtUtils\ImageConverter.h" />
     <ClInclude Include="QtUtils\ModalMessageBox.h" />
