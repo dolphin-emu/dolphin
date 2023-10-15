@@ -54,6 +54,7 @@ public:
   using AchievementId = u32;
   static constexpr size_t FORMAT_SIZE = 24;
   using FormattedValue = std::array<char, FORMAT_SIZE>;
+  using LeaderboardRank = u32;
   static constexpr size_t RP_SIZE = 256;
   using RichPresence = std::array<char, RP_SIZE>;
   using Badge = std::vector<u8>;
@@ -82,6 +83,21 @@ public:
   static constexpr std::string_view GRAY = "transparent";
   static constexpr std::string_view GOLD = "#FFD700";
   static constexpr std::string_view BLUE = "#0B71C1";
+
+  struct LeaderboardEntry
+  {
+    std::string username;
+    FormattedValue score;
+    LeaderboardRank rank;
+  };
+
+  struct LeaderboardStatus
+  {
+    std::string name;
+    std::string description;
+    u32 player_index = 0;
+    std::unordered_map<u32, LeaderboardEntry> entries;
+  };
 
   static AchievementManager* GetInstance();
   void Init();
@@ -113,6 +129,7 @@ public:
   const UnlockStatus& GetUnlockStatus(AchievementId achievement_id) const;
   AchievementManager::ResponseType GetAchievementProgress(AchievementId achievement_id, u32* value,
                                                           u32* target);
+  const std::unordered_map<AchievementId, LeaderboardStatus>& GetLeaderboardsInfo() const;
   RichPresence GetRichPresence();
 
   void CloseGame();
@@ -129,6 +146,7 @@ private:
   ResponseType StartRASession();
   ResponseType FetchGameData();
   ResponseType FetchUnlockData(bool hardcore);
+  ResponseType FetchBoardInfo(AchievementId leaderboard_id);
 
   void ActivateDeactivateAchievement(AchievementId id, bool enabled, bool unofficial, bool encore);
   void GenerateRichPresence();
@@ -165,6 +183,7 @@ private:
   time_t m_last_ping_time = 0;
 
   std::unordered_map<AchievementId, UnlockStatus> m_unlock_map;
+  std::unordered_map<AchievementId, LeaderboardStatus> m_leaderboard_map;
 
   Common::WorkQueueThread<std::function<void()>> m_queue;
   Common::WorkQueueThread<std::function<void()>> m_image_queue;
