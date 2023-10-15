@@ -187,6 +187,10 @@ add_library(core
   HW/DVD/DVDThread.h
   HW/DVD/FileMonitor.cpp
   HW/DVD/FileMonitor.h
+  HW/EXI/BBA/TAPServer.cpp
+  HW/EXI/BBA/XLINK_KAI_BBA.cpp
+  HW/EXI/BBA/BuiltIn.cpp
+  HW/EXI/BBA/BuiltIn.h
   HW/EXI/EXI_Channel.cpp
   HW/EXI/EXI_Channel.h
   HW/EXI/EXI_Device.cpp
@@ -692,10 +696,6 @@ if(WIN32)
   target_sources(core PRIVATE
     HW/EXI/BBA/TAP_Win32.cpp
     HW/EXI/BBA/TAP_Win32.h
-    HW/EXI/BBA/TAPServer.cpp
-    HW/EXI/BBA/XLINK_KAI_BBA.cpp
-    HW/EXI/BBA/BuiltIn.cpp
-    HW/EXI/BBA/BuiltIn.h
     HW/WiimoteReal/IOWin.cpp
     HW/WiimoteReal/IOWin.h
   )
@@ -709,19 +709,11 @@ if(WIN32)
 elseif(APPLE)
   target_sources(core PRIVATE
     HW/EXI/BBA/TAP_Apple.cpp
-    HW/EXI/BBA/TAPServer.cpp
-    HW/EXI/BBA/XLINK_KAI_BBA.cpp
-    HW/EXI/BBA/BuiltIn.cpp
-    HW/EXI/BBA/BuiltIn.h
   )
   target_link_libraries(core PUBLIC ${IOB_LIBRARY})
 elseif(UNIX)
   target_sources(core PRIVATE
     HW/EXI/BBA/TAP_Unix.cpp
-    HW/EXI/BBA/TAPServer.cpp
-    HW/EXI/BBA/XLINK_KAI_BBA.cpp
-    HW/EXI/BBA/BuiltIn.cpp
-    HW/EXI/BBA/BuiltIn.h
   )
   if(ANDROID)
     target_sources(core PRIVATE
