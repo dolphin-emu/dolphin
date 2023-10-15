@@ -3,6 +3,11 @@
 
 #include "VideoCommon/Assets/ShaderAsset.h"
 
+#include <algorithm>
+#include <array>
+#include <string_view>
+#include <utility>
+
 #include "Common/Logging/Log.h"
 #include "VideoCommon/Assets/CustomAssetLibrary.h"
 
@@ -45,28 +50,38 @@ bool ParseShaderProperties(const VideoCommon::CustomAssetLibrary::AssetID& asset
     std::transform(type.begin(), type.end(), type.begin(),
                    [](unsigned char c) { return std::tolower(c); });
 
-    if (type == "sampler2d")
+    static constexpr std::array<std::pair<std::string_view, ShaderProperty::Type>,
+                                static_cast<int>(ShaderProperty::Type::Type_Max)>
+        pairs = {{
+            {"sampler2d", ShaderProperty::Type::Type_Sampler2D},
+            {"samplercube", ShaderProperty::Type::Type_SamplerCube},
+            {"samplerarrayshared_main", ShaderProperty::Type::Type_SamplerArrayShared_Main},
+            {"samplerarrayshared_additional",
+             ShaderProperty::Type::Type_SamplerArrayShared_Additional},
+            {"int", ShaderProperty::Type::Type_Int},
+            {"int2", ShaderProperty::Type::Type_Int2},
+            {"int3", ShaderProperty::Type::Type_Int3},
+            {"int4", ShaderProperty::Type::Type_Int4},
+            {"float", ShaderProperty::Type::Type_Float},
+            {"float2", ShaderProperty::Type::Type_Float2},
+            {"float3", ShaderProperty::Type::Type_Float3},
+            {"float4", ShaderProperty::Type::Type_Float4},
+            {"rgb", ShaderProperty::Type::Type_RGB},
+            {"rgba", ShaderProperty::Type::Type_RGBA},
+            {"bool", ShaderProperty::Type::Type_Bool},
+        }};
+    if (const auto it = std::find_if(pairs.begin(), pairs.end(),
+                                     [&](const auto& pair) { return pair.first == type; });
+        it != pairs.end())
     {
-      property.m_type = ShaderProperty::Type::Type_Sampler2D;
-    }
-    else if (type == "samplercube")
-    {
-      property.m_type = ShaderProperty::Type::Type_SamplerCube;
-    }
-    else if (type == "samplerarrayshared_main")
-    {
-      property.m_type = ShaderProperty::Type::Type_SamplerArrayShared_Main;
-    }
-    else if (type == "samplerarrayshared_additional")
-    {
-      property.m_type = ShaderProperty::Type::Type_SamplerArrayShared_Additional;
+      property.m_type = it->second;
     }
     else
     {
       ERROR_LOG_FMT(VIDEO,
-                    "Asset '{}' failed to parse json, property entry 'description' is "
+                    "Asset '{}' failed to parse json, property entry type '{}' is "
                     "an invalid option",
-                    asset_id);
+                    asset_id, type_iter->second.to_str());
       return false;
     }
 
