@@ -49,13 +49,19 @@ void BroadbandAdapterSettingsDialog::InitControls()
     break;
 
   case Type::TapServer:
-    address_label = new QLabel(tr("UNIX socket path or netloc (address:port):"));
-    address_placeholder = QStringLiteral("/tmp/dolphin-tap");
     current_address = QString::fromStdString(Config::Get(Config::MAIN_BBA_TAPSERVER_DESTINATION));
-    description =
-        new QLabel(tr("On macOS and Linux, the default value \"/tmp/dolphin-tap\" will work with "
-                      "tapserver and newserv. On Windows, you must enter an IP address and port."));
-
+#ifdef _WIN32
+    address_label = new QLabel(tr("Destination (address:port):"));
+    address_placeholder = QStringLiteral("");
+    description = new QLabel(
+        tr("Enter the IP address and port of the tapserver instance you want to connect to."));
+#else
+    address_label = new QLabel(tr("Destination (UNIX socket path or address:port):"));
+    address_placeholder = QStringLiteral("/tmp/dolphin-tap");
+    description = new QLabel(tr(
+        "The default value \"/tmp/dolphin-tap\" will work with a local tapserver and newserv. You "
+        "can also enter a network location (address:port) to connect to a remote tapserver."));
+#endif
     window_title = tr("BBA destination address");
     break;
 

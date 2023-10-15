@@ -17,6 +17,7 @@
 
 #include "Common/Flag.h"
 #include "Common/Network.h"
+#include "Common/SocketContext.h"
 #include "Core/HW/EXI/BBA/BuiltIn.h"
 #include "Core/HW/EXI/EXI_Device.h"
 
@@ -362,21 +363,42 @@ private:
 #endif
   };
 
-  class TAPServerNetworkInterface : public TAPNetworkInterface
+  class TAPServerNetworkInterface : public NetworkInterface
   {
   public:
     explicit TAPServerNetworkInterface(CEXIETHERNET* eth_ref, const std::string& destination)
-        : TAPNetworkInterface(eth_ref), m_destination(destination)
+        : NetworkInterface(eth_ref), m_destination(destination)
     {
     }
 
   public:
     bool Activate() override;
+    void Deactivate() override;
+    bool IsActivated() override;
     bool SendFrame(const u8* frame, u32 size) override;
     bool RecvInit() override;
+    void RecvStart() override;
+    void RecvStop() override;
 
   private:
+    enum class ReadState
+    {
+      Size,
+      SizeHigh,
+      Data,
+      Skip,
+    };
+
     std::string m_destination;
+    Common::SocketContext m_socket_context;
+
+    int m_fd = -1;
+    ReadState m_read_state = ReadState::Size;
+    u16 m_read_packet_offset;
+    u16 m_read_packet_bytes_remaining;
+    std::thread m_read_thread;
+    Common::Flag m_read_enabled;
+    Common::Flag m_read_shutdown;
 
     void ReadThreadHandler();
   };
