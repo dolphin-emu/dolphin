@@ -393,21 +393,15 @@ void CustomPipelineAction::OnTextureCreate(GraphicsModActionData::TextureCreate*
       return;
     }
 
-    if (property.m_type == VideoCommon::MaterialProperty::Type::Type_TextureAsset)
+    if (auto* value = std::get_if<std::string>(&property.m_value))
     {
-      if (property.m_value)
+      auto asset = loader.LoadGameTexture(*value, m_library);
+      if (asset)
       {
-        if (auto* value = std::get_if<std::string>(&*property.m_value))
-        {
-          auto asset = loader.LoadGameTexture(*value, m_library);
-          if (asset)
-          {
-            const auto loaded_time = asset->GetLastLoadedTime();
-            game_assets.push_back(VideoCommon::CachedAsset<VideoCommon::GameTextureAsset>{
-                std::move(asset), loaded_time});
-            m_texture_code_names.push_back(property.m_code_name);
-          }
-        }
+        const auto loaded_time = asset->GetLastLoadedTime();
+        game_assets.push_back(
+            VideoCommon::CachedAsset<VideoCommon::GameTextureAsset>{std::move(asset), loaded_time});
+        m_texture_code_names.push_back(property.m_code_name);
       }
     }
   }
