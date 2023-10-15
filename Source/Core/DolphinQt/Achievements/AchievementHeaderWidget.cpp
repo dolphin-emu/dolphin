@@ -139,7 +139,7 @@ void AchievementHeaderWidget::UpdateData()
     m_game_progress_hard->setRange(0, point_spread.total_count);
     if (!m_game_progress_hard->isVisible())
       m_game_progress_hard->setVisible(true);
-    m_game_progress_soft->setValue(point_spread.hard_unlocks);
+    m_game_progress_hard->setValue(point_spread.hard_unlocks);
     m_game_progress_soft->setRange(0, point_spread.total_count);
     m_game_progress_soft->setValue(point_spread.hard_unlocks + point_spread.soft_unlocks);
     if (!m_game_progress_soft->isVisible())
