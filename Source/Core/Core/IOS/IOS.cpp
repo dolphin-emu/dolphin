@@ -28,6 +28,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/WII_IPC.h"
+#include "Core/IOS/Crypto/AesDevice.h"
 #include "Core/IOS/Crypto/Sha.h"
 #include "Core/IOS/DI/DI.h"
 #include "Core/IOS/Device.h"
@@ -334,7 +335,8 @@ EmulationKernel::EmulationKernel(Core::System& system, u64 title_id)
 
   m_fs = FS::MakeFileSystem(IOS::HLE::FS::Location::Session, Core::GetActiveNandRedirects());
   ASSERT(m_fs);
-  
+
+  AddDevice(std::make_unique<AesDevice>(*this, "/dev/aes"));
   AddDevice(std::make_unique<ShaDevice>(*this, "/dev/sha"));
 
   m_fs_core = std::make_unique<FSCore>(*this);
@@ -659,6 +661,8 @@ std::shared_ptr<Device> EmulationKernel::GetDeviceByFileDescriptor(const int fd)
 
   switch (fd)
   {
+  case 0x10000:
+    return GetDeviceByName("/dev/aes");
   case 0x10001:
     return GetDeviceByName("/dev/sha");
   default:
