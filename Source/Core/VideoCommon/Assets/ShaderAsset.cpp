@@ -9,6 +9,7 @@
 #include <utility>
 
 #include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
 #include "VideoCommon/Assets/CustomAssetLibrary.h"
 
 namespace VideoCommon
@@ -47,8 +48,7 @@ bool ParseShaderProperties(const VideoCommon::CustomAssetLibrary::AssetID& asset
       return false;
     }
     std::string type = type_iter->second.to_str();
-    std::transform(type.begin(), type.end(), type.begin(),
-                   [](unsigned char c) { return std::tolower(c); });
+    Common::ToLower(&type);
 
     static constexpr std::array<std::pair<std::string_view, ShaderProperty::Type>,
                                 static_cast<int>(ShaderProperty::Type::Type_Max)>

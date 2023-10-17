@@ -4,6 +4,7 @@
 #include "VideoCommon/Assets/TextureAsset.h"
 
 #include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
 #include "VideoCommon/BPMemory.h"
 
 namespace VideoCommon
@@ -31,8 +32,7 @@ bool ParseSampler(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
     return false;
   }
   std::string sampler_state_mode = sampler_state_mode_iter->second.to_str();
-  std::transform(sampler_state_mode.begin(), sampler_state_mode.end(), sampler_state_mode.begin(),
-                 [](unsigned char c) { return std::tolower(c); });
+  Common::ToLower(&sampler_state_mode);
 
   if (sampler_state_mode == "clamp")
   {
@@ -71,8 +71,7 @@ bool ParseSampler(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
     return false;
   }
   std::string sampler_state_filter = sampler_state_filter_iter->second.to_str();
-  std::transform(sampler_state_filter.begin(), sampler_state_filter.end(),
-                 sampler_state_filter.begin(), [](unsigned char c) { return std::tolower(c); });
+  Common::ToLower(&sampler_state_filter);
   if (sampler_state_filter == "linear")
   {
     sampler->tm0.min_filter = FilterMode::Linear;
@@ -116,8 +115,7 @@ bool TextureData::FromJson(const CustomAssetLibrary::AssetID& asset_id,
     return false;
   }
   std::string type = type_iter->second.to_str();
-  std::transform(type.begin(), type.end(), type.begin(),
-                 [](unsigned char c) { return std::tolower(c); });
+  Common::ToLower(&type);
 
   if (type == "texture2d")
   {
