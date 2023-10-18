@@ -10,12 +10,22 @@
 #include <picojson.h>
 
 #include "Common/CommonTypes.h"
+#include "Common/Logging/LogManager.h"
 #include "Common/StringUtil.h"
 #include "Subtitles/WebColors.h"
 #include "VideoCommon/OnScreenDisplay.h"
 
 namespace Subtitles
 {
+
+void OSDInfo(std::string msg)
+{
+  if (Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::LogType::SUBTITLES,
+                                                        Common::Log::LogLevel::LWARNING))
+  {
+    OSD::AddMessage(msg, 5000, OSD::Color::GREEN);
+  }
+}
 
 void Info(std::string msg)
 {

@@ -11,6 +11,7 @@
 
 namespace Subtitles
 {
+void OSDInfo(std::string msg);
 void Info(std::string msg);
 void Error(std::string err);
 u32 TryParsecolor(const picojson::value& raw, u32 defaultColor);

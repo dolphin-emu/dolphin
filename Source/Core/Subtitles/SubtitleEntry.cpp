@@ -23,8 +23,6 @@ void SubtitleEntryGroup::Preprocess()
     hasTimestamps |= subtitleLines[i].Timestamp > 0;
   }
 
-  // Info(fmt::format("HasOffsets: {} HasTimestamps {} File: {}", hasOffsets, hasTimestamps));
-
   if (hasOffsets)
   {
     std::sort(subtitleLines.begin(), subtitleLines.end(),
@@ -80,10 +78,13 @@ SubtitleEntry* SubtitleEntryGroup::GetSubtitleForRelativeOffset(u32 offset)
     }
   }
 
-  return 0;
+  return nullptr;
 }
 SubtitleEntry* SubtitleEntryGroup::GetSubtitleForRelativeTimestamp(u64 timestamp)
 {
+  //if Subttile log is enabled, display timestamp for easier subtitle time aligning
+  OSDInfo(fmt::format("Timestamp: {}", timestamp));
+
   // from latest to earliest
   for (auto i = 0; i < subtitleLines.size(); i++)
   {
@@ -103,7 +104,7 @@ SubtitleEntry* SubtitleEntryGroup::GetSubtitleForRelativeTimestamp(u64 timestamp
     }
   }
 
-  return 0;
+  return nullptr;
 }
 void SubtitleEntryGroup::Add(SubtitleEntry& tl)
 {

@@ -21,7 +21,7 @@
 namespace FileMonitor
 {
 // Filtered files
-static bool IsSoundFile(const std::string& filename)
+static bool IsSoundOrVideoFile(const std::string& filename)
 {
   std::string extension;
   SplitPath(filename, nullptr, nullptr, &extension);
@@ -41,19 +41,8 @@ static bool IsSoundFile(const std::string& filename)
       ".song",   // Tales of Symphonia
       ".ssm",    // Custom Robo, Kirby Air Ride, etc.
       ".str",    // Harry Potter & the Sorcerer's Stone
-  };
 
-  return extensions.find(extension) != extensions.end();
-}
-// Filtered files
-static bool IsVideoFile(const std::string& filename)
-{
-  std::string extension;
-  SplitPath(filename, nullptr, nullptr, &extension);
-  Common::ToLower(&extension);
-
-  static const std::unordered_set<std::string> extensions = {
-      ".thp",  // Wii/Game Cube Video File
+      ".thp",    // Wii/Game Cube Video File
   };
 
   return extensions.find(extension) != extensions.end();
@@ -94,11 +83,8 @@ void FileLogger::Log(const DiscIO::Volume& volume, const DiscIO::Partition& part
   const std::string path = file_info->GetPath();
   const std::string log_string = fmt::format("{} kB {} offset {}", size_string, path, offset);
 
-  // Current logger system does not support colors, so we abuse log levels instead
-  if (IsSoundFile(path))
+  if (IsSoundOrVideoFile(path))
     INFO_LOG_FMT(FILEMON, "{}", log_string);
-  else if (IsVideoFile(path))
-    NOTICE_LOG_FMT(FILEMON, "{}", log_string);
   else
     WARN_LOG_FMT(FILEMON, "{}", log_string);
 

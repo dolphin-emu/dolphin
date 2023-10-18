@@ -106,7 +106,7 @@ void RecursivelyReadTranslationJsons(const File::FSTEntry& folder, const std::st
 
       if (extension == filter)
       {
-        Info("Reading translations from: " + filepath);
+        OSDInfo(fmt::format("Reading translations from: {}", filepath));
 
         std::string json;
         File::ReadFileToString(filepath, json);
@@ -140,16 +140,11 @@ void LoadSubtitlesForGame(const std::string& gameId)
 
   auto subtitleDir = File::GetUserPath(D_SUBTITLES_IDX) + gameId;
 
-  if (Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::LogType::SUBTITLES,
-                                                        Common::Log::LogLevel::LWARNING))
-  {
-    Info(fmt::format("Loading subtitles for {} from {}", gameId, subtitleDir));
-  }
+  OSDInfo(fmt::format("Loading subtitles for {} from {}", gameId, subtitleDir));
 
   auto fileEnumerator = File::ScanDirectoryTree(subtitleDir, true);
   RecursivelyReadTranslationJsons(fileEnumerator, SubtitleFileExtension);
 
-  Info(fmt::format("Translations.empty() = {}", Translations.empty()));
   if (Translations.empty())
     return;
 
