@@ -14,6 +14,7 @@
 #include <QInputDialog>
 #include <QMap>
 #include <QUrl>
+#include <QToolButton>
 
 #include "Common/Align.h"
 #include "Common/CommonPaths.h"
@@ -88,6 +89,9 @@ MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
   AddJITMenu();
   AddSymbolsMenu();
   AddHelpMenu();
+  QToolButton *toolbar_visibilty = new QToolButton(this);
+  toolbar_visibilty->setArrowType(Qt::DownArrow);
+  setCornerWidget(toolbar_visibilty);
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           [=, this](Core::State state) { OnEmulationStateChanged(state); });
@@ -100,6 +104,7 @@ MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
   connect(this, &MenuBar::SelectionChanged, this, &MenuBar::OnSelectionChanged);
   connect(this, &MenuBar::RecordingStatusChanged, this, &MenuBar::OnRecordingStatusChanged);
   connect(this, &MenuBar::ReadOnlyModeChanged, this, &MenuBar::OnReadOnlyModeChanged);
+  connect(toolbar_visibilty, &QToolButton::clicked, this, [this]() { SetToolBarVisibility(); });
 }
 
 void MenuBar::OnEmulationStateChanged(Core::State state)

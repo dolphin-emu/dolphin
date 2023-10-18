@@ -128,6 +128,8 @@ signals:
   // Synbols
   void NotifySymbolsUpdated();
 
+  void SetToolBarVisibility();
+
 private:
   void OnEmulationStateChanged(Core::State state);
 

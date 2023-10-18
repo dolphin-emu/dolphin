@@ -590,6 +590,8 @@ void MainWindow::ConnectMenuBar()
     m_code_widget->UpdateSymbols();
     m_code_widget->Update();
   });
+  connect(m_menu_bar, &MenuBar::SetToolBarVisibility, this,
+          [this]() { m_tool_bar->setVisible(!m_tool_bar->isVisible()); });
 }
 
 void MainWindow::ConnectHotkeys()
