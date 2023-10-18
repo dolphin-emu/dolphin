@@ -464,14 +464,17 @@ void WiiSocket::Update(bool read, bool write, bool except)
             // mbedtls_ssl_get_peer_cert(ctx) seems not to work if handshake failed
             // Below is an alternative to dump the peer certificate
             if (Config::Get(Config::MAIN_NETWORK_SSL_DUMP_PEER_CERT) &&
-                ctx->session_negotiate != nullptr)
+                ctx->MBEDTLS_PRIVATE(session_negotiate) != nullptr)
             {
-              const mbedtls_x509_crt* cert = ctx->session_negotiate->peer_cert;
+              const mbedtls_x509_crt* cert =
+                  ctx->MBEDTLS_PRIVATE(session_negotiate)->MBEDTLS_PRIVATE(peer_cert);
               if (cert != nullptr)
               {
-                std::string filename = File::GetUserPath(D_DUMPSSL_IDX) +
-                                       ((ctx->hostname != nullptr) ? ctx->hostname : "") +
-                                       "_peercert.der";
+                std::string filename =
+                    File::GetUserPath(D_DUMPSSL_IDX) +
+                    ((ctx->MBEDTLS_PRIVATE(hostname) != nullptr) ? ctx->MBEDTLS_PRIVATE(hostname) :
+                                                                   "") +
+                    "_peercert.der";
                 File::IOFile(filename, "wb").WriteBytes(cert->raw.p, cert->raw.len);
               }
             }

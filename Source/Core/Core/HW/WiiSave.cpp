@@ -126,7 +126,7 @@ public:
     header.banner[7] &= ~1;
 
     Md5 md5_calc;
-    mbedtls_md5_ret(reinterpret_cast<const u8*>(&header), sizeof(Header), md5_calc.data());
+    mbedtls_md5(reinterpret_cast<const u8*>(&header), sizeof(Header), md5_calc.data());
     header.md5 = std::move(md5_calc);
     return header;
   }
@@ -303,7 +303,7 @@ public:
     Md5 md5_file = header.md5;
     header.md5 = s_md5_blanker;
     Md5 md5_calc;
-    mbedtls_md5_ret(reinterpret_cast<const u8*>(&header), sizeof(Header), md5_calc.data());
+    mbedtls_md5(reinterpret_cast<const u8*>(&header), sizeof(Header), md5_calc.data());
     if (md5_file != md5_calc)
     {
       ERROR_LOG_FMT(CONSOLE, "MD5 mismatch\n {:016x}{:016x} != {:016x}{:016x}",

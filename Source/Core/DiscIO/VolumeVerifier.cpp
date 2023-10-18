@@ -1071,7 +1071,7 @@ void VolumeVerifier::SetUpHashing()
   if (m_hashes_to_calculate.md5)
   {
     mbedtls_md5_init(&m_md5_context);
-    mbedtls_md5_starts_ret(&m_md5_context);
+    mbedtls_md5_starts(&m_md5_context);
   }
 
   if (m_hashes_to_calculate.sha1)
@@ -1214,7 +1214,7 @@ void VolumeVerifier::Process()
     if (m_hashes_to_calculate.md5)
     {
       m_md5_future = std::async(std::launch::async, [this, byte_increment] {
-        mbedtls_md5_update_ret(&m_md5_context, m_data.data(), byte_increment);
+        mbedtls_md5_update(&m_md5_context, m_data.data(), byte_increment);
       });
     }
 
@@ -1308,7 +1308,7 @@ void VolumeVerifier::Finish()
     if (m_hashes_to_calculate.md5)
     {
       m_result.hashes.md5 = std::vector<u8>(16);
-      mbedtls_md5_finish_ret(&m_md5_context, m_result.hashes.md5.data());
+      mbedtls_md5_finish(&m_md5_context, m_result.hashes.md5.data());
     }
 
     if (m_hashes_to_calculate.sha1)

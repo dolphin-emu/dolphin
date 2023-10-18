@@ -12,7 +12,6 @@
 #include <vector>
 
 #include <fmt/format.h>
-#include <mbedtls/md.h>
 #include <mbedtls/rsa.h>
 
 #include "Common/Assert.h"
@@ -395,15 +394,20 @@ ReturnCode IOSC::VerifyPublicKeySign(const std::array<u8, 20>& sha1, Handle sign
     ASSERT(signature.size() == expected_key_size);
 
     mbedtls_rsa_context rsa;
-    mbedtls_rsa_init(&rsa, MBEDTLS_RSA_PKCS_V15, 0);
+    mbedtls_mpi N, E;
+    mbedtls_rsa_init(&rsa);
+    mbedtls_mpi_init(&N);
+    mbedtls_mpi_init(&E);
     Common::ScopeGuard context_guard{[&rsa] { mbedtls_rsa_free(&rsa); }};
+    Common::ScopeGuard N_guard{[&N] { mbedtls_mpi_free(&N); }};
+    Common::ScopeGuard E_guard{[&E] { mbedtls_mpi_free(&E); }};
 
-    mbedtls_mpi_read_binary(&rsa.N, entry->data.data(), entry->data.size());
-    mbedtls_mpi_read_binary(&rsa.E, reinterpret_cast<const u8*>(&entry->misc_data), 4);
-    rsa.len = entry->data.size();
+    mbedtls_mpi_read_binary(&N, entry->data.data(), entry->data.size());
+    mbedtls_mpi_read_binary(&E, reinterpret_cast<const u8*>(&entry->misc_data), 4);
+    mbedtls_rsa_import(&rsa, &N, nullptr, nullptr, nullptr, &E);
 
-    int ret = mbedtls_rsa_pkcs1_verify(&rsa, nullptr, nullptr, MBEDTLS_RSA_PUBLIC, MBEDTLS_MD_SHA1,
-                                       0, sha1.data(), signature.data());
+    int ret =
+        mbedtls_rsa_pkcs1_verify(&rsa, MBEDTLS_MD_SHA1, sha1.size(), sha1.data(), signature.data());
     if (ret != 0 && m_console_type == ConsoleType::RVT)
     {
       // Some dev signatures do not have proper PKCS#1 padding. Just powmod and check it ends with

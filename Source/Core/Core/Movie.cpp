@@ -9,7 +9,6 @@
 #include <cstring>
 #include <iomanip>
 #include <iterator>
-#include <mbedtls/config.h>
 #include <mbedtls/md.h>
 #include <mutex>
 #include <sstream>

@@ -57,7 +57,7 @@ int SSLSendWithoutSNI(void* ctx, const unsigned char* buf, size_t len)
   auto* ssl = static_cast<WII_SSL*>(ctx);
   auto* fd = &ssl->hostfd;
 
-  if (ssl->ctx.state == MBEDTLS_SSL_SERVER_HELLO)
+  if (ssl->ctx.MBEDTLS_PRIVATE(state) == MBEDTLS_SSL_SERVER_HELLO)
     mbedtls_ssl_set_hostname(&ssl->ctx, ssl->hostname.c_str());
   const int ret = mbedtls_net_send(fd, buf, len);
 
@@ -172,7 +172,7 @@ static std::vector<u8> ReadCertFile(const std::string& path, const std::array<u8
   }
 
   std::array<u8, 32> hash;
-  mbedtls_sha256_ret(bytes.data(), bytes.size(), hash.data(), 0);
+  mbedtls_sha256(bytes.data(), bytes.size(), hash.data(), 0);
   if (hash != correct_hash)
   {
     ERROR_LOG_FMT(IOS_SSL, "Wrong hash for {}", path);
@@ -268,8 +268,8 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
       mbedtls_ssl_conf_rng(&ssl->config, mbedtls_ctr_drbg_random, &ssl->ctr_drbg);
 
       // For some reason we can't use TLSv1.2, v1.1 and below are fine!
-      mbedtls_ssl_conf_max_version(&ssl->config, MBEDTLS_SSL_MAJOR_VERSION_3,
-                                   MBEDTLS_SSL_MINOR_VERSION_2);
+      // mbedtls_ssl_conf_max_version(&ssl->config, MBEDTLS_SSL_MAJOR_VERSION_3,
+      //                             MBEDTLS_SSL_MINOR_VERSION_2);
       mbedtls_ssl_conf_cert_profile(&ssl->config, &mbedtls_x509_crt_profile_wii);
       mbedtls_ssl_set_session(&ssl->ctx, &ssl->session);
 
@@ -402,7 +402,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
         m_cert_error_shown = true;
 
       int ret = mbedtls_x509_crt_parse(&ssl->clicert, client_cert.data(), client_cert.size());
-      int pk_ret = mbedtls_pk_parse_key(&ssl->pk, client_key.data(), client_key.size(), nullptr, 0);
+      int pk_ret = mbedtls_pk_parse_key(&ssl->pk, client_key.data(), client_key.size(), nullptr, 0, nullptr, nullptr);
       if (ret || pk_ret)
       {
         mbedtls_x509_crt_free(&ssl->clicert);
