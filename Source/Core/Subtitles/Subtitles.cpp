@@ -27,8 +27,13 @@ bool g_messageStacksInitialized = false;
 bool g_subtitlesInitialized = false;
 std::map<std::string, SubtitleEntryGroup> Translations;
 
-void DeserializeSubtitlesJson(std::string& json)
+void DeserializeSubtitlesJson(std::string& filepath)
 {
+  OSDInfo(fmt::format("Reading translations from: {}", filepath));
+
+  std::string json;
+  File::ReadFileToString(filepath, json);
+
   if (json == "")
     return;
 
@@ -36,13 +41,13 @@ void DeserializeSubtitlesJson(std::string& json)
   std::string err = picojson::parse(v, json);
   if (!err.empty())
   {
-    Error(fmt::format("Subtitle JSON Error: {}", err));
+    Error(fmt::format("Subtitle JSON Error: {} in {}", err, filepath));
     return;
   }
 
   if (!v.is<picojson::array>())
   {
-    Error("Subtitle JSON Error: Not an array");
+    Error(fmt::format("Subtitle JSON Error: Not an array in {}", filepath));
     return;
   }
 
@@ -106,12 +111,7 @@ void RecursivelyReadTranslationJsons(const File::FSTEntry& folder, const std::st
 
       if (extension == filter)
       {
-        OSDInfo(fmt::format("Reading translations from: {}", filepath));
-
-        std::string json;
-        File::ReadFileToString(filepath, json);
-
-        DeserializeSubtitlesJson(json);
+        DeserializeSubtitlesJson(filepath);
       }
     }
   }
