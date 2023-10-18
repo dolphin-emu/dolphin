@@ -336,6 +336,8 @@ add_library(core
   IOS/Device.h
   IOS/DeviceStub.cpp
   IOS/DeviceStub.h
+  IOS/Crypto/Sha.cpp
+  IOS/Crypto/Sha.h
   IOS/DI/DI.cpp
   IOS/DI/DI.h
   IOS/DolphinDevice.cpp
