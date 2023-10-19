@@ -4,13 +4,17 @@
 #pragma once
 
 #include <functional>
-#include <string>
 #include <map>
+#include <memory>
+#include <string>
+#include <vector>
 
 #include <imgui.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/Timer.h"
+
+#include "VideoCommon/AbstractTexture.h"
 
 namespace OSD
 {
@@ -32,11 +36,18 @@ enum class MessageType
   Typeless,
 };
 
+struct Icon
+{
+  std::vector<u8> rgba_data;
+  u32 width = 0;
+  u32 height = 0;
+};  // struct Icon
+
 struct Message
 {
   Message() = default;
-  Message(std::string text_, u32 duration_, u32 color_, float scale)
-      : text(std::move(text_)), duration(duration_), color(color_), scale(scale)
+  Message(std::string text_, u32 duration_, u32 color_, std::unique_ptr<Icon> icon_ = nullptr, float scale_ = 1)
+      : text(std::move(text_)), duration(duration_), color(color_), icon(std::move(icon_)), scale(scale_)
   {
     timer.Start();
   }
@@ -45,12 +56,17 @@ struct Message
   Common::Timer timer;
   u32 duration = 0;
   bool ever_drawn = false;
+  bool should_discard = false;
   u32 color = 0;
+  std::unique_ptr<Icon> icon;
+  std::unique_ptr<AbstractTexture> texture;
   float scale = 1;
 };
 
 struct OSDMessageStack
 {
+  OSDMessageStack(OSDMessageStack& t) {}
+
   ImVec2 initialPosOffset;
   MessageStackDirection dir;
   bool centered;
@@ -103,10 +119,12 @@ void AddMessageStack(OSDMessageStack& info);
 
 // On-screen message display (colored yellow by default)
 void AddMessage(std::string message, u32 ms = Duration::SHORT, u32 argb = Color::YELLOW,
-                std::string message_stack = "", bool prevent_duplicate = false, float scale = 1);
+                std::unique_ptr<Icon> icon = nullptr, std::string message_stack = "",
+                bool prevent_duplicate = false, float scale = 1);
 void AddTypedMessage(MessageType type, std::string message, u32 ms = Duration::SHORT,
-                     u32 argb = Color::YELLOW, std::string message_stack = "",
-                     bool prevent_duplicate = false, float scale = 1);
+                     u32 argb = Color::YELLOW, std::unique_ptr<Icon> icon = nullptr,
+                     std::string message_stack = "", bool prevent_duplicate = false,
+                     float scale = 1);
 
 // Draw the current messages on the screen. Only call once per frame.
 void DrawMessages();

@@ -189,14 +189,14 @@ constexpr Common::ec::Signature DEFAULT_SIGNATURE = {{
 // clang-format on
 
 const std::map<std::pair<IOSC::ObjectType, IOSC::ObjectSubType>, size_t> s_type_to_size_map = {{
-    {{IOSC::TYPE_SECRET_KEY, IOSC::SUBTYPE_AES128}, 16},
-    {{IOSC::TYPE_SECRET_KEY, IOSC::SUBTYPE_MAC}, 20},
-    {{IOSC::TYPE_SECRET_KEY, IOSC::SUBTYPE_ECC233}, 30},
-    {{IOSC::TYPE_PUBLIC_KEY, IOSC::SUBTYPE_RSA2048}, 256},
-    {{IOSC::TYPE_PUBLIC_KEY, IOSC::SUBTYPE_RSA4096}, 512},
-    {{IOSC::TYPE_PUBLIC_KEY, IOSC::SUBTYPE_ECC233}, 60},
-    {{IOSC::TYPE_DATA, IOSC::SUBTYPE_DATA}, 0},
-    {{IOSC::TYPE_DATA, IOSC::SUBTYPE_VERSION}, 0},
+    {{IOSC::TYPE_SECRET_KEY, IOSC::ObjectSubType::AES128}, 16},
+    {{IOSC::TYPE_SECRET_KEY, IOSC::ObjectSubType::MAC}, 20},
+    {{IOSC::TYPE_SECRET_KEY, IOSC::ObjectSubType::ECC233}, 30},
+    {{IOSC::TYPE_PUBLIC_KEY, IOSC::ObjectSubType::RSA2048}, 256},
+    {{IOSC::TYPE_PUBLIC_KEY, IOSC::ObjectSubType::RSA4096}, 512},
+    {{IOSC::TYPE_PUBLIC_KEY, IOSC::ObjectSubType::ECC233}, 60},
+    {{IOSC::TYPE_DATA, IOSC::ObjectSubType::Data}, 0},
+    {{IOSC::TYPE_DATA, IOSC::ObjectSubType::Version}, 0},
 }};
 
 static size_t GetSizeForType(IOSC::ObjectType type, IOSC::ObjectSubType subtype)
@@ -264,7 +264,7 @@ ReturnCode IOSC::ImportSecretKey(Handle dest_handle, const u8* decrypted_key, u3
     return IOSC_EINVAL;
 
   // TODO: allow other secret key subtypes
-  if (dest_entry->type != TYPE_SECRET_KEY || dest_entry->subtype != SUBTYPE_AES128)
+  if (dest_entry->type != TYPE_SECRET_KEY || dest_entry->subtype != ObjectSubType::AES128)
     return IOSC_INVALID_OBJTYPE;
 
   dest_entry->data = std::vector<u8>(decrypted_key, decrypted_key + AES128_KEY_SIZE);
@@ -290,7 +290,8 @@ ReturnCode IOSC::ImportPublicKey(Handle dest_handle, const u8* public_key,
 
   dest_entry->data.assign(public_key, public_key + size);
 
-  if (dest_entry->subtype == SUBTYPE_RSA2048 || dest_entry->subtype == SUBTYPE_RSA4096)
+  if (dest_entry->subtype == ObjectSubType::RSA2048 ||
+      dest_entry->subtype == ObjectSubType::RSA4096)
   {
     ASSERT(public_key_exponent);
     std::memcpy(&dest_entry->misc_data, public_key_exponent, 4);
@@ -312,9 +313,9 @@ ReturnCode IOSC::ComputeSharedKey(Handle dest_handle, Handle private_handle, Han
   const KeyEntry* public_entry = FindEntry(public_handle);
   if (!dest_entry || !private_entry || !public_entry)
     return IOSC_EINVAL;
-  if (dest_entry->type != TYPE_SECRET_KEY || dest_entry->subtype != SUBTYPE_AES128 ||
-      private_entry->type != TYPE_SECRET_KEY || private_entry->subtype != SUBTYPE_ECC233 ||
-      public_entry->type != TYPE_PUBLIC_KEY || public_entry->subtype != SUBTYPE_ECC233)
+  if (dest_entry->type != TYPE_SECRET_KEY || dest_entry->subtype != ObjectSubType::AES128 ||
+      private_entry->type != TYPE_SECRET_KEY || private_entry->subtype != ObjectSubType::ECC233 ||
+      public_entry->type != TYPE_PUBLIC_KEY || public_entry->subtype != ObjectSubType::ECC233)
   {
     return IOSC_INVALID_OBJTYPE;
   }
@@ -339,7 +340,7 @@ ReturnCode IOSC::DecryptEncrypt(Common::AES::Mode mode, Handle key_handle, u8* i
   const KeyEntry* entry = FindEntry(key_handle);
   if (!entry)
     return IOSC_EINVAL;
-  if (entry->type != TYPE_SECRET_KEY || entry->subtype != SUBTYPE_AES128)
+  if (entry->type != TYPE_SECRET_KEY || entry->subtype != ObjectSubType::AES128)
     return IOSC_INVALID_OBJTYPE;
 
   if (entry->data.size() != AES128_KEY_SIZE)
@@ -386,10 +387,10 @@ ReturnCode IOSC::VerifyPublicKeySign(const std::array<u8, 20>& sha1, Handle sign
 
   switch (entry->subtype)
   {
-  case SUBTYPE_RSA2048:
-  case SUBTYPE_RSA4096:
+  case ObjectSubType::RSA2048:
+  case ObjectSubType::RSA4096:
   {
-    const size_t expected_key_size = entry->subtype == SUBTYPE_RSA2048 ? 0x100 : 0x200;
+    const size_t expected_key_size = entry->subtype == ObjectSubType::RSA2048 ? 0x100 : 0x200;
     ASSERT(entry->data.size() == expected_key_size);
     ASSERT(signature.size() == expected_key_size);
 
@@ -423,7 +424,7 @@ ReturnCode IOSC::VerifyPublicKeySign(const std::array<u8, 20>& sha1, Handle sign
 
     return IPC_SUCCESS;
   }
-  case SUBTYPE_ECC233:
+  case ObjectSubType::ECC233:
   {
     ASSERT(entry->data.size() == sizeof(CertECC::public_key));
 
@@ -560,24 +561,27 @@ void IOSC::LoadDefaultEntries()
   // Dolphin does not use the same "default" values as IOS does, as we do not emulate unblown
   // scenario.
 
-  m_key_entries[HANDLE_CONSOLE_KEY] = {
-      TYPE_SECRET_KEY, SUBTYPE_ECC233, {DEFAULT_PRIVATE_KEY.begin(), DEFAULT_PRIVATE_KEY.end()}, 3};
+  m_key_entries[HANDLE_CONSOLE_KEY] = {TYPE_SECRET_KEY,
+                                       ObjectSubType::ECC233,
+                                       {DEFAULT_PRIVATE_KEY.begin(), DEFAULT_PRIVATE_KEY.end()},
+                                       3};
   m_console_signature = DEFAULT_SIGNATURE;
   m_console_key_id = DEFAULT_KEY_ID;
-  m_key_entries[HANDLE_CONSOLE_ID] = {TYPE_DATA, SUBTYPE_DATA, {}, DEFAULT_DEVICE_ID, 0xFFFFFFF};
-  m_key_entries[HANDLE_FS_KEY] = {TYPE_SECRET_KEY, SUBTYPE_AES128, std::vector<u8>(AES128_KEY_SIZE),
-                                  5};
-  m_key_entries[HANDLE_FS_MAC] = {TYPE_SECRET_KEY, SUBTYPE_MAC, std::vector<u8>(20), 5};
+  m_key_entries[HANDLE_CONSOLE_ID] = {
+      TYPE_DATA, ObjectSubType::Data, {}, DEFAULT_DEVICE_ID, 0xFFFFFFF};
+  m_key_entries[HANDLE_FS_KEY] = {TYPE_SECRET_KEY, ObjectSubType::AES128,
+                                  std::vector<u8>(AES128_KEY_SIZE), 5};
+  m_key_entries[HANDLE_FS_MAC] = {TYPE_SECRET_KEY, ObjectSubType::MAC, std::vector<u8>(20), 5};
 
   switch (m_console_type)
   {
   case ConsoleType::Retail:
     m_key_entries[HANDLE_COMMON_KEY] = {TYPE_SECRET_KEY,
-                                        SUBTYPE_AES128,
+                                        ObjectSubType::AES128,
                                         {{0xeb, 0xe4, 0x2a, 0x22, 0x5e, 0x85, 0x93, 0xe4, 0x48,
                                           0xd9, 0xc5, 0x45, 0x73, 0x81, 0xaa, 0xf7}},
                                         3};
-    m_root_key_entry = {TYPE_PUBLIC_KEY, SUBTYPE_RSA4096,
+    m_root_key_entry = {TYPE_PUBLIC_KEY, ObjectSubType::RSA4096,
                         std::vector<u8>(ROOT_PUBLIC_KEY.begin(), ROOT_PUBLIC_KEY.end()),
                         Common::swap32(0x00010001), 0};
     // Retail keyblob are issued by CA00000001. Default to 1 even though IOSC actually defaults
@@ -587,11 +591,11 @@ void IOSC::LoadDefaultEntries()
     break;
   case ConsoleType::RVT:
     m_key_entries[HANDLE_COMMON_KEY] = {TYPE_SECRET_KEY,
-                                        SUBTYPE_AES128,
+                                        ObjectSubType::AES128,
                                         {{0xa1, 0x60, 0x4a, 0x6a, 0x71, 0x23, 0xb5, 0x29, 0xae,
                                           0x8b, 0xec, 0x32, 0xc8, 0x16, 0xfc, 0xaa}},
                                         3};
-    m_root_key_entry = {TYPE_PUBLIC_KEY, SUBTYPE_RSA4096,
+    m_root_key_entry = {TYPE_PUBLIC_KEY, ObjectSubType::RSA4096,
                         std::vector<u8>(ROOT_PUBLIC_KEY_DEV.begin(), ROOT_PUBLIC_KEY_DEV.end()),
                         Common::swap32(0x00010001), 0};
     m_ms_id = 3;
@@ -599,22 +603,22 @@ void IOSC::LoadDefaultEntries()
     break;
   }
 
-  m_key_entries[HANDLE_PRNG_KEY] = {TYPE_SECRET_KEY, SUBTYPE_AES128,
+  m_key_entries[HANDLE_PRNG_KEY] = {TYPE_SECRET_KEY, ObjectSubType::AES128,
                                     std::vector<u8>(AES128_KEY_SIZE), 3};
 
   m_key_entries[HANDLE_SD_KEY] = {TYPE_SECRET_KEY,
-                                  SUBTYPE_AES128,
+                                  ObjectSubType::AES128,
                                   {{0xab, 0x01, 0xb9, 0xd8, 0xe1, 0x62, 0x2b, 0x08, 0xaf, 0xba,
                                     0xd8, 0x4d, 0xbf, 0xc2, 0xa5, 0x5d}},
                                   3};
 
-  m_key_entries[HANDLE_BOOT2_VERSION] = {TYPE_DATA, SUBTYPE_VERSION, {}, 3};
-  m_key_entries[HANDLE_UNKNOWN_8] = {TYPE_DATA, SUBTYPE_VERSION, {}, 3};
-  m_key_entries[HANDLE_UNKNOWN_9] = {TYPE_DATA, SUBTYPE_VERSION, {}, 3};
-  m_key_entries[HANDLE_FS_VERSION] = {TYPE_DATA, SUBTYPE_VERSION, {}, 3};
+  m_key_entries[HANDLE_BOOT2_VERSION] = {TYPE_DATA, ObjectSubType::Version, {}, 3};
+  m_key_entries[HANDLE_UNKNOWN_8] = {TYPE_DATA, ObjectSubType::Version, {}, 3};
+  m_key_entries[HANDLE_UNKNOWN_9] = {TYPE_DATA, ObjectSubType::Version, {}, 3};
+  m_key_entries[HANDLE_FS_VERSION] = {TYPE_DATA, ObjectSubType::Version, {}, 3};
 
   m_key_entries[HANDLE_NEW_COMMON_KEY] = {TYPE_SECRET_KEY,
-                                          SUBTYPE_AES128,
+                                          ObjectSubType::AES128,
                                           {{0x63, 0xb8, 0x2b, 0xb4, 0xf4, 0x61, 0x4e, 0x2e, 0x13,
                                             0xf2, 0xfe, 0xfb, 0xba, 0x4c, 0x9b, 0x7e}},
                                           3};

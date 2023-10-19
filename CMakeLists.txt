@@ -682,6 +682,8 @@ dolphin_find_optional_system_library_pkgconfig(MINIZIP minizip>=3.0.0 minizip::m
 
 dolphin_find_optional_system_library(LZO Externals/LZO)
 
+dolphin_find_optional_system_library_pkgconfig(lz4 liblz4>=1.8 LZ4::LZ4 Externals/lz4)
+
 dolphin_find_optional_system_library_pkgconfig(SPNG spng spng::spng Externals/libspng)
 
 # Using static FreeSurround from Externals

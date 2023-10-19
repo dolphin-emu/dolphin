@@ -10,6 +10,7 @@
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 
 class AchievementHeaderWidget;
+class AchievementLeaderboardWidget;
 class AchievementProgressWidget;
 class QDialogButtonBox;
 class QTabWidget;
@@ -30,6 +31,7 @@ private:
   AchievementHeaderWidget* m_header_widget;
   QTabWidget* m_tab_widget;
   AchievementProgressWidget* m_progress_widget;
+  AchievementLeaderboardWidget* m_leaderboard_widget;
   QDialogButtonBox* m_button_box;
 };
 

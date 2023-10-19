@@ -129,7 +129,8 @@ static ReturnCode InitBackupKey(u64 tid, u32 title_flags, IOSC& iosc, IOSC::Hand
   }
 
   // Otherwise, use a null key.
-  ReturnCode ret = iosc.CreateObject(key, IOSC::TYPE_SECRET_KEY, IOSC::SUBTYPE_AES128, PID_ES);
+  ReturnCode ret =
+      iosc.CreateObject(key, IOSC::TYPE_SECRET_KEY, IOSC::ObjectSubType::AES128, PID_ES);
   return ret == IPC_SUCCESS ? iosc.ImportSecretKey(*key, NULL_KEY.data(), PID_ES) : ret;
 }
 
@@ -206,7 +207,8 @@ IPCReply ESDevice::ImportTmd(Context& context, const IOCtlVRequest& request)
 static ReturnCode InitTitleImportKey(const std::vector<u8>& ticket_bytes, IOSC& iosc,
                                      IOSC::Handle* handle)
 {
-  ReturnCode ret = iosc.CreateObject(handle, IOSC::TYPE_SECRET_KEY, IOSC::SUBTYPE_AES128, PID_ES);
+  ReturnCode ret =
+      iosc.CreateObject(handle, IOSC::TYPE_SECRET_KEY, IOSC::ObjectSubType::AES128, PID_ES);
   if (ret != IPC_SUCCESS)
     return ret;
 

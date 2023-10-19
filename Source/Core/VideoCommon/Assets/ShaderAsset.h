@@ -8,6 +8,7 @@
 
 #include <picojson.h>
 
+#include "Common/EnumFormatter.h"
 #include "VideoCommon/Assets/CustomAsset.h"
 
 namespace VideoCommon
@@ -27,7 +28,18 @@ struct ShaderProperty
     Type_SamplerArrayShared_Additional,
     Type_Sampler2D,
     Type_SamplerCube,
-    Type_Max = Type_SamplerCube
+    Type_Int,
+    Type_Int2,
+    Type_Int3,
+    Type_Int4,
+    Type_Float,
+    Type_Float2,
+    Type_Float3,
+    Type_Float4,
+    Type_RGB,
+    Type_RGBA,
+    Type_Bool,
+    Type_Max = Type_Bool
   };
   Type m_type;
   std::string m_description;
@@ -54,3 +66,15 @@ private:
   CustomAssetLibrary::LoadInfo LoadImpl(const CustomAssetLibrary::AssetID& asset_id) override;
 };
 }  // namespace VideoCommon
+
+template <>
+struct fmt::formatter<VideoCommon::ShaderProperty::Type>
+    : EnumFormatter<VideoCommon::ShaderProperty::Type::Type_Max>
+{
+  constexpr formatter()
+      : EnumFormatter({"Undefined", "DolphinSamplerArray_Main", "DolphinSamplerArray_Additional",
+                       "2DSampler", "CubeSampler", "Int", "Int2", "Int3", "Int4", "Float", "Float2",
+                       "Float3", "Float4", "RGB", "RGBA", "Bool"})
+  {
+  }
+};

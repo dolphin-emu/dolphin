@@ -30,6 +30,8 @@ add_executable(dolphin-emu
   CheatsManager.h
   Achievements/AchievementHeaderWidget.cpp
   Achievements/AchievementHeaderWidget.h
+  Achievements/AchievementLeaderboardWidget.cpp
+  Achievements/AchievementLeaderboardWidget.h
   Achievements/AchievementProgressWidget.cpp
   Achievements/AchievementProgressWidget.h
   Achievements/AchievementSettingsWidget.cpp
@@ -279,6 +281,8 @@ add_executable(dolphin-emu
   QtUtils/AspectRatioWidget.h
   QtUtils/BlockUserInputFilter.cpp
   QtUtils/BlockUserInputFilter.h
+  QtUtils/ClearLayoutRecursively.cpp
+  QtUtils/ClearLayoutRecursively.h
   QtUtils/DolphinFileDialog.cpp
   QtUtils/DolphinFileDialog.h
   QtUtils/DoubleClickEventFilter.cpp

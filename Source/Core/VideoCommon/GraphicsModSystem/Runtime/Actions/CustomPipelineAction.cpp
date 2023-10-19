@@ -423,7 +423,7 @@ void CustomPipelineAction::OnTextureCreate(GraphicsModActionData::TextureCreate*
       auto data = game_texture.m_asset->GetData();
       if (data)
       {
-        if (data->m_slices.empty() || data->m_slices[0].m_levels.empty())
+        if (data->m_texture.m_slices.empty() || data->m_texture.m_slices[0].m_levels.empty())
         {
           ERROR_LOG_FMT(
               VIDEO,
@@ -431,15 +431,16 @@ void CustomPipelineAction::OnTextureCreate(GraphicsModActionData::TextureCreate*
               create->texture_name, game_texture.m_asset->GetAssetId());
           m_valid = false;
         }
-        else if (create->texture_width != data->m_slices[0].m_levels[0].width ||
-                 create->texture_height != data->m_slices[0].m_levels[0].height)
+        else if (create->texture_width != data->m_texture.m_slices[0].m_levels[0].width ||
+                 create->texture_height != data->m_texture.m_slices[0].m_levels[0].height)
         {
           ERROR_LOG_FMT(VIDEO,
                         "Custom pipeline for texture '{}' has asset '{}' that does not match "
                         "the width/height of the texture loaded.  Texture {}x{} vs asset {}x{}",
                         create->texture_name, game_texture.m_asset->GetAssetId(),
                         create->texture_width, create->texture_height,
-                        data->m_slices[0].m_levels[0].width, data->m_slices[0].m_levels[0].height);
+                        data->m_texture.m_slices[0].m_levels[0].width,
+                        data->m_texture.m_slices[0].m_levels[0].height);
           m_valid = false;
         }
       }

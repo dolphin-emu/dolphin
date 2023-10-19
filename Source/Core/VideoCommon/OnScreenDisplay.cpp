@@ -18,6 +18,10 @@
 
 #include "Core/Config/MainSettings.h"
 
+#include "VideoCommon/AbstractGfx.h"
+#include "VideoCommon/AbstractTexture.h"
+#include "VideoCommon/TextureConfig.h"
+
 namespace OSD
 {
 constexpr float LEFT_MARGIN = 10.0f;         // Pixels to the left of OSD messages.
@@ -29,6 +33,7 @@ constexpr float MESSAGE_DROP_TIME = 5000.f;  // Ms to drop OSD messages that has
 static std::atomic<int> s_obscured_pixels_left = 0;
 static std::atomic<int> s_obscured_pixels_top = 0;
 
+static std::multimap<MessageType, Message> s_messages;
 // default message stack
 static OSDMessageStack s_defaultMessageStack = OSDMessageStack();
 static std::map<std::string, OSDMessageStack> messageStacks;
@@ -66,6 +71,33 @@ static ImVec2 DrawMessage(int index, Message& msg, const ImVec2& position, int t
                        ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav |
                        ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing))
   {
+    if (msg.icon)
+    {
+      if (!msg.texture)
+      {
+        const u32 width = msg.icon->width;
+        const u32 height = msg.icon->height;
+        TextureConfig tex_config(width, height, 1, 1, 1, AbstractTextureFormat::RGBA8, 0);
+        msg.texture = g_gfx->CreateTexture(tex_config);
+        if (msg.texture)
+        {
+          msg.texture->Load(0, width, height, width, msg.icon->rgba_data.data(),
+                            sizeof(u32) * width * height);
+        }
+        else
+        {
+          // don't try again next time
+          msg.icon.reset();
+        }
+      }
+
+      if (msg.texture)
+      {
+        ImGui::Image(msg.texture.get(), ImVec2(static_cast<float>(msg.icon->width),
+                                               static_cast<float>(msg.icon->height)));
+      }
+    }
+
     //TODO fractional scaling based on viewport size instead of screen pixels?
     ImGui::SetWindowFontScale(msg.scale);
     // Use %s in case message contains %.
@@ -113,7 +145,7 @@ static ImVec2 DrawMessage(int index, Message& msg, const ImVec2& position, int t
   return ImVec2(window_width, window_height);
 }
 
-void AddTypedMessage(MessageType type, std::string message, u32 ms, u32 argb,
+void AddTypedMessage(MessageType type, std::string message, u32 ms, u32 argb, std::unique_ptr<Icon> icon,
                      std::string message_stack, bool prevent_duplicate, float scale)
 {
   std::lock_guard lock{s_messages_mutex};
@@ -130,20 +162,28 @@ void AddTypedMessage(MessageType type, std::string message, u32 ms, u32 argb,
   }
   if (type != MessageType::Typeless)
   {
+    // A message may hold a reference to a texture that can only be destroyed on the video thread, so
+    // only mark the old typed message (if any) for removal. It will be discarded on the next call to
+    // DrawMessages().
+    auto range = s_messages.equal_range(type);
+    for (auto it = range.first; it != range.second; ++it)
+        it->second.should_discard = true;
+
     stack->messages.erase(type);
   }
-  stack->messages.emplace(type, Message(std::move(message), ms, argb, scale));
+  stack->messages.emplace(type, Message(std::move(message), ms, argb, std::move(icon), scale));
 }
 
-void AddMessage(std::string message, u32 ms, u32 argb, std::string message_stack, bool prevent_duplicate, float scale)
+void AddMessage(std::string message, u32 ms, u32 argb, std::unique_ptr<Icon> icon, std::string message_stack, bool prevent_duplicate, float scale)
 {
-  AddTypedMessage(MessageType::Typeless, message, ms, argb, message_stack, prevent_duplicate,
+  AddTypedMessage(MessageType::Typeless, message, ms, argb, std::move(icon), message_stack,
+                  prevent_duplicate,
                   scale);
 }
 
 void AddMessageStack(OSDMessageStack& info)
 {
-  messageStacks[info.name] = info;
+  messageStacks.emplace(info.name, info);
 }
 void DrawMessages(OSDMessageStack& messageStack)
 {
@@ -175,6 +215,12 @@ void DrawMessages(OSDMessageStack& messageStack)
     }
 
     Message& msg = it->second;
+    if (msg.should_discard)
+    {
+      it = s_messages.erase(it);
+      continue;
+    }
+
     const s64 time_left = msg.TimeRemaining();
 
     // Make sure we draw them at least once if they were printed with 0ms,

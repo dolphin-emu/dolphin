@@ -141,7 +141,6 @@ void CommonAsmRoutines::GenFrsqrte()
   MOV(64, R(RSCRATCH_EXTRA), R(RSCRATCH));
   SHR(64, R(RSCRATCH_EXTRA), Imm8(48));
   AND(32, R(RSCRATCH_EXTRA), Imm8(0x1F));
-  XOR(32, R(RSCRATCH_EXTRA), Imm8(0x10));  // int index = i / 2048 + (odd_exponent ? 16 : 0);
 
   PUSH(RSCRATCH2);
   MOV(64, R(RSCRATCH2), ImmPtr(GetConstantFromPool(Common::frsqrte_expected)));

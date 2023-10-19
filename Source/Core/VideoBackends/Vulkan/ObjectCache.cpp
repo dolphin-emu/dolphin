@@ -110,11 +110,13 @@ bool ObjectCache::CreateDescriptorSetLayouts()
 {
   // The geometry shader buffer must be last in this binding set, as we don't include it
   // if geometry shaders are not supported by the device. See the decrement below.
-  static const std::array<VkDescriptorSetLayoutBinding, 3> standard_ubo_bindings{{
+  static const std::array<VkDescriptorSetLayoutBinding, 4> standard_ubo_bindings{{
       {UBO_DESCRIPTOR_SET_BINDING_PS, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
        VK_SHADER_STAGE_FRAGMENT_BIT},
       {UBO_DESCRIPTOR_SET_BINDING_VS, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT},
+      {UBO_DESCRIPTOR_SET_BINDING_PS_CUST, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
+       VK_SHADER_STAGE_FRAGMENT_BIT},
       {UBO_DESCRIPTOR_SET_BINDING_GS, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
        VK_SHADER_STAGE_GEOMETRY_BIT},
   }};
@@ -170,7 +172,7 @@ bool ObjectCache::CreateDescriptorSetLayouts()
       {18, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1, VK_SHADER_STAGE_COMPUTE_BIT},
   }};
 
-  std::array<VkDescriptorSetLayoutBinding, 3> ubo_bindings = standard_ubo_bindings;
+  std::array<VkDescriptorSetLayoutBinding, 4> ubo_bindings = standard_ubo_bindings;
 
   std::array<VkDescriptorSetLayoutCreateInfo, NUM_DESCRIPTOR_SET_LAYOUTS> create_infos{{
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,

@@ -25,6 +25,7 @@
 #include "Core/Core.h"
 
 #include "DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.h"
+#include "DolphinQt/QtUtils/ClearLayoutRecursively.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
@@ -133,12 +134,7 @@ AchievementProgressWidget::CreateAchievementBox(const rc_api_achievement_definit
 
 void AchievementProgressWidget::UpdateData()
 {
-  QLayoutItem* item;
-  while ((item = m_common_layout->layout()->takeAt(0)) != nullptr)
-  {
-    delete item->widget();
-    delete item;
-  }
+  ClearLayoutRecursively(m_common_layout);
 
   if (!AchievementManager::GetInstance()->IsGameLoaded())
     return;

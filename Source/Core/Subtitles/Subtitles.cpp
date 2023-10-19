@@ -189,7 +189,7 @@ void OnFileAccess(const DiscIO::Volume& volume, const DiscIO::Partition& partiti
   if (!tl)
     return;
 
-  OSD::AddMessage(tl->Text, tl->Miliseconds, tl->Color,
+  OSD::AddMessage(tl->Text, tl->Miliseconds, tl->Color, nullptr,
                   tl->DisplayOnTop ? TopOSDStackName : BottomOSDStackName, !tl->AllowDuplicate,
                   tl->Scale);
 }

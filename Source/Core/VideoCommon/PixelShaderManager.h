@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <span>
+
 #include "Common/CommonTypes.h"
 #include "VideoCommon/ConstantManager.h"
 
@@ -51,6 +53,10 @@ public:
 
   PixelShaderConstants constants{};
   bool dirty = false;
+
+  // Constants for custom shaders
+  std::span<u8> custom_constants;
+  bool custom_constants_dirty = false;
 
 private:
   bool m_fog_range_adjusted_changed = false;

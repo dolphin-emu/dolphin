@@ -595,6 +595,7 @@ void VertexManagerBase::Flush()
     CustomPixelShaderContents custom_pixel_shader_contents;
     std::optional<CustomPixelShader> custom_pixel_shader;
     std::vector<std::string> custom_pixel_texture_names;
+    std::span<u8> custom_pixel_shader_uniforms;
     for (int i = 0; i < texture_names.size(); i++)
     {
       const std::string& texture_name = texture_names[i];
@@ -644,6 +645,12 @@ void VertexManagerBase::Flush()
     // Now we can upload uniforms, as nothing else will override them.
     geometry_shader_manager.SetConstants(m_current_primitive_type);
     pixel_shader_manager.SetConstants();
+    if (!custom_pixel_shader_uniforms.empty() &&
+        pixel_shader_manager.custom_constants.data() != custom_pixel_shader_uniforms.data())
+    {
+      pixel_shader_manager.custom_constants_dirty = true;
+    }
+    pixel_shader_manager.custom_constants = custom_pixel_shader_uniforms;
     UploadUniforms();
 
     // Update the pipeline, or compile one if needed.
@@ -1052,7 +1059,8 @@ void VertexManagerBase::OnEndFrame()
     return;
 
   // In order to reduce CPU readback latency, we want to kick a command buffer roughly halfway
-  // between the draw counters that invoked the readback, or every 250 draws, whichever is smaller.
+  // between the draw counters that invoked the readback, or every 250 draws, whichever is
+  // smaller.
   if (g_ActiveConfig.iCommandBufferExecuteInterval > 0)
   {
     u32 last_draw_counter = 0;

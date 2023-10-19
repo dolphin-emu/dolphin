@@ -51,6 +51,7 @@
     <ClCompile Include="CheatSearchWidget.cpp" />
     <ClCompile Include="CheatsManager.cpp" />
     <ClCompile Include="Achievements\AchievementHeaderWidget.cpp" />
+    <ClCompile Include="Achievements\AchievementLeaderboardWidget.cpp" />
     <ClCompile Include="Achievements\AchievementProgressWidget.cpp" />
     <ClCompile Include="Achievements\AchievementSettingsWidget.cpp" />
     <ClCompile Include="Achievements\AchievementsWindow.cpp" />
@@ -181,6 +182,7 @@
     </ClCompile>
     <ClCompile Include="QtUtils\AspectRatioWidget.cpp" />
     <ClCompile Include="QtUtils\BlockUserInputFilter.cpp" />
+    <ClCompile Include="QtUtils\ClearLayoutRecursively.cpp" />
     <ClCompile Include="QtUtils\DolphinFileDialog.cpp" />
     <ClCompile Include="QtUtils\DoubleClickEventFilter.cpp" />
     <ClCompile Include="QtUtils\ElidedButton.cpp" />
@@ -240,6 +242,7 @@
     <ClInclude Include="Debugger\RegisterColumn.h" />
     <ClInclude Include="GBAHost.h" />
     <ClInclude Include="QtUtils\ActionHelper.h" />
+    <ClInclude Include="QtUtils\ClearLayoutRecursively.h" />
     <ClInclude Include="QtUtils\DolphinFileDialog.h" />
     <ClInclude Include="QtUtils\ImageConverter.h" />
     <ClInclude Include="QtUtils\ModalMessageBox.h" />
@@ -259,6 +262,7 @@
     <QtMoc Include="CheatSearchWidget.h" />
     <QtMoc Include="CheatsManager.h" />
     <QtMoc Include="Achievements\AchievementHeaderWidget.h" />
+    <QtMoc Include="Achievements\AchievementLeaderboardWidget.h" />
     <QtMoc Include="Achievements\AchievementProgressWidget.h" />
     <QtMoc Include="Achievements\AchievementSettingsWidget.h" />
     <QtMoc Include="Achievements\AchievementsWindow.h" />
