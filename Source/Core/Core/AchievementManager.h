@@ -155,6 +155,8 @@ private:
   ResponseType SubmitLeaderboard(AchievementId leaderboard_id, int value);
   ResponseType PingRichPresence(const RichPresence& rich_presence);
 
+  void DisplayWelcomeMessage();
+
   void HandleAchievementTriggeredEvent(const rc_runtime_event_t* runtime_event);
   void HandleAchievementProgressUpdatedEvent(const rc_runtime_event_t* runtime_event);
   void HandleLeaderboardStartedEvent(const rc_runtime_event_t* runtime_event);
@@ -178,6 +180,7 @@ private:
   u32 m_game_id = 0;
   rc_api_fetch_game_data_response_t m_game_data{};
   bool m_is_game_loaded = false;
+  u32 m_framecount = 0;
   BadgeStatus m_game_badge;
   RichPresence m_rich_presence;
   time_t m_last_ping_time = 0;
