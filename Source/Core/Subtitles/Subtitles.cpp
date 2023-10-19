@@ -122,13 +122,9 @@ void IniitalizeOSDMessageStacks()
   if (g_messageStacksInitialized)
     return;
 
-  auto bottomstack = OSD::OSDMessageStack(0, 0, OSD::MessageStackDirection::Upward, true, true,
-                                          BottomOSDStackName);
-  OSD::AddMessageStack(bottomstack);
+  OSD::AddMessageStack(0, 0, OSD::MessageStackDirection::Upward, true, true, BottomOSDStackName);
 
-  auto topstack = OSD::OSDMessageStack(0, 0, OSD::MessageStackDirection::Downward, true, false,
-                                       TopOSDStackName);
-  OSD::AddMessageStack(topstack);
+  OSD::AddMessageStack(0, 0, OSD::MessageStackDirection::Downward, true, false, TopOSDStackName);
 
   g_messageStacksInitialized = true;
 }

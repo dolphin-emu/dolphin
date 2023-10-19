@@ -33,7 +33,63 @@ constexpr float MESSAGE_DROP_TIME = 5000.f;  // Ms to drop OSD messages that has
 static std::atomic<int> s_obscured_pixels_left = 0;
 static std::atomic<int> s_obscured_pixels_top = 0;
 
-static std::multimap<MessageType, Message> s_messages;
+struct Message
+{
+  Message() = default;
+  Message(std::string text_, u32 duration_, u32 color_, std::unique_ptr<Icon> icon_ = nullptr,
+          float scale_ = 1)
+      : text(std::move(text_)), duration(duration_), color(color_), icon(std::move(icon_)),
+        scale(scale_)
+  {
+    timer.Start();
+  }
+  s64 TimeRemaining() const { return duration - timer.ElapsedMs(); }
+  std::string text;
+  Common::Timer timer;
+  u32 duration = 0;
+  bool ever_drawn = false;
+  bool should_discard = false;
+  u32 color = 0;
+  std::unique_ptr<Icon> icon;
+  std::unique_ptr<AbstractTexture> texture;
+  float scale = 1;
+};
+
+struct OSDMessageStack
+{
+  ImVec2 initialPosOffset;
+  MessageStackDirection dir;
+  bool centered;
+  bool reversed;
+  std::string name;
+  std::multimap<OSD::MessageType, OSD::Message> messages;
+
+  OSDMessageStack() : OSDMessageStack(0, 0, MessageStackDirection::Downward, false, false, "") {}
+  OSDMessageStack(float x_offset, float y_offset, MessageStackDirection dir, bool centered,
+                  bool reversed, std::string name)
+      : dir(dir), centered(centered), reversed(reversed), name(name)
+  {
+    initialPosOffset = ImVec2(x_offset, y_offset);
+  }
+
+  bool IsVertical()
+  {
+    return dir == MessageStackDirection::Downward || dir == MessageStackDirection::Upward;
+  }
+
+  bool HasMessage(std::string message, MessageType type = OSD::MessageType::Typeless)
+  {
+    for (auto it = messages.begin(); it != messages.end(); ++it)
+    {
+      if (type == it->first && message == it->second.text)
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+};
+
 // default message stack
 static OSDMessageStack s_defaultMessageStack = OSDMessageStack();
 static std::map<std::string, OSDMessageStack> messageStacks;
@@ -165,11 +221,9 @@ void AddTypedMessage(MessageType type, std::string message, u32 ms, u32 argb, st
     // A message may hold a reference to a texture that can only be destroyed on the video thread, so
     // only mark the old typed message (if any) for removal. It will be discarded on the next call to
     // DrawMessages().
-    auto range = s_messages.equal_range(type);
+    auto range = stack->messages.equal_range(type);
     for (auto it = range.first; it != range.second; ++it)
         it->second.should_discard = true;
-
-    stack->messages.erase(type);
   }
   stack->messages.emplace(type, Message(std::move(message), ms, argb, std::move(icon), scale));
 }
@@ -181,9 +235,10 @@ void AddMessage(std::string message, u32 ms, u32 argb, std::unique_ptr<Icon> ico
                   scale);
 }
 
-void AddMessageStack(OSDMessageStack& info)
+void AddMessageStack(float x_offset, float y_offset, MessageStackDirection dir, bool centered,
+                     bool reversed, std::string name)
 {
-  messageStacks.emplace(info.name, info);
+  messageStacks.emplace(name, OSDMessageStack(x_offset, y_offset, dir, centered, reversed, name));
 }
 void DrawMessages(OSDMessageStack& messageStack)
 {
@@ -217,7 +272,7 @@ void DrawMessages(OSDMessageStack& messageStack)
     Message& msg = it->second;
     if (msg.should_discard)
     {
-      it = s_messages.erase(it);
+      it = messageStack.messages.erase(it);
       continue;
     }
 
