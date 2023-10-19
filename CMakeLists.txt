@@ -716,7 +716,7 @@ if(USE_UPNP)
   add_definitions(-DUSE_UPNP)
 endif()
 
-dolphin_find_optional_system_library(MBEDTLS Externals/mbedtls 2.28)
+dolphin_find_optional_system_library(MbedTLS Externals/mbedtls 3.5.0)
 
 dolphin_find_optional_system_library(CURL Externals/curl)
 
