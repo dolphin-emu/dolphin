@@ -274,11 +274,11 @@ void Jit64::dcbx(UGeckoInstruction inst)
     // the upper bits for the DIV instruction in the downcount > 0 case.
     XOR(32, R(RSCRATCH2), R(RSCRATCH2));
 
-    MOV(32, R(reg_downcount), PPCSTATE(downcount));
-    TEST(32, R(reg_downcount), R(reg_downcount));             // if (downcount <= 0)
+    MOV(32, R(RSCRATCH), PPCSTATE(downcount));
+    TEST(32, R(RSCRATCH), R(RSCRATCH));                       // if (downcount <= 0)
     FixupBranch downcount_is_zero_or_negative = J_CC(CC_LE);  // only do 1 invalidation; else:
     MOV(32, R(loop_counter), PPCSTATE_CTR);
-    MOV(32, R(RSCRATCH), R(reg_downcount));
+    MOV(32, R(reg_downcount), R(RSCRATCH));
     MOV(32, R(reg_cycle_count), Imm32(cycle_count_per_loop));
     DIV(32, R(reg_cycle_count));                  // RSCRATCH = downcount / cycle_count
     LEA(32, RSCRATCH2, MDisp(loop_counter, -1));  // RSCRATCH2 = CTR - 1
