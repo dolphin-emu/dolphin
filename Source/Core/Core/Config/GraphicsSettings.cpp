@@ -113,9 +113,9 @@ const Info<TriState> GFX_MTL_USE_PRESENT_DRAWABLE{
 const Info<bool> GFX_EFB_BLOOM_FIX_ENABLED{{System::GFX, "Settings", "EFBBloomFixEnabled"}, false};
 const Info<int> GFX_EFB_BLOOM_FIX_WIDTH{{System::GFX, "Settings", "EFBBloomFixWidth"}, 0};
 const Info<bool> GFX_EFB_BLOOM_FIX_DOWNSCALE{{System::GFX, "Settings", "EFBBloomFixDownscale"},
-                                            false};
+                                             false};
 const Info<bool> GFX_EFB_BLOOM_FIX_ALT_FILTER{{System::GFX, "Settings", "EFBBloomFixAltFilter"},
-                                               false};
+                                              false};
 const Info<bool> GFX_EFB_BLOOM_FIX_SKIP_FIRST{{System::GFX, "Settings", "EFBBloomFixSkipFirst"},
                                               false};
 const Info<bool> GFX_SW_DUMP_OBJECTS{{System::GFX, "Settings", "SWDumpObjects"}, false};
