@@ -291,10 +291,9 @@ void Jit64::dcbx(UGeckoInstruction inst)
     // registers.
     SUB(32, R(loop_counter), R(RSCRATCH2));
     MOV(32, PPCSTATE_CTR, R(loop_counter));  // CTR -= RSCRATCH2
-    MOV(32, R(RSCRATCH), R(RSCRATCH2));
-    IMUL(32, RSCRATCH, R(reg_cycle_count));
+    IMUL(32, reg_cycle_count, R(RSCRATCH2));
     // ^ Note that this cannot overflow because it's limited by (downcount/cycle_count).
-    SUB(32, R(reg_downcount), R(RSCRATCH));
+    SUB(32, R(reg_downcount), R(reg_cycle_count));
     MOV(32, PPCSTATE(downcount), R(reg_downcount));  // downcount -= (RSCRATCH2 * reg_cycle_count)
 
     SetJumpTarget(downcount_is_zero_or_negative);
