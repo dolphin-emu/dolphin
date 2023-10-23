@@ -414,7 +414,7 @@ void TextureCacheBase::BlurCopy(RcTcacheEntry& existing_entry)
 
     // Causes serious issues if not done.
     auto config = blur_entry->texture->GetConfig();
-    texture_pool.emplace(
+    m_texture_pool.emplace(
         config, TexPoolEntry(std::move(blur_entry->texture), std::move(blur_entry->framebuffer)));
   }
 }
