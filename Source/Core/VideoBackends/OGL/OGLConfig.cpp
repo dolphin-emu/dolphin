@@ -287,10 +287,6 @@ bool PopulateConfig(GLContext* m_main_gl_context)
   g_Config.backend_info.bSupportsPrimitiveRestart =
       !DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVE_RESTART) &&
       ((GLExtensions::Version() >= 310) || GLExtensions::Supports("GL_NV_primitive_restart"));
-  g_Config.backend_info.bSupportsFragmentStoresAndAtomics =
-      GLExtensions::Supports("GL_ARB_shader_storage_buffer_object");
-  g_Config.backend_info.bSupportsVSLinePointExpand =
-      GLExtensions::Supports("GL_ARB_shader_storage_buffer_object");
   g_Config.backend_info.bSupportsGSInstancing = GLExtensions::Supports("GL_ARB_gpu_shader5");
   g_Config.backend_info.bSupportsSSAA = GLExtensions::Supports("GL_ARB_gpu_shader5") &&
                                         GLExtensions::Supports("GL_ARB_sample_shading");
@@ -350,6 +346,21 @@ bool PopulateConfig(GLContext* m_main_gl_context)
       GLExtensions::Supports("GL_ARB_derivative_control") || GLExtensions::Version() >= 450;
   g_Config.backend_info.bSupportsTextureQueryLevels =
       GLExtensions::Supports("GL_ARB_texture_query_levels") || GLExtensions::Version() >= 430;
+
+  if (GLExtensions::Supports("GL_ARB_shader_storage_buffer_object"))
+  {
+    GLint fs = 0;
+    GLint vs = 0;
+    glGetIntegerv(GL_MAX_FRAGMENT_SHADER_STORAGE_BLOCKS, &fs);
+    glGetIntegerv(GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS, &vs);
+    g_Config.backend_info.bSupportsFragmentStoresAndAtomics = fs >= 1;
+    g_Config.backend_info.bSupportsVSLinePointExpand = vs >= 1;
+  }
+  else
+  {
+    g_Config.backend_info.bSupportsFragmentStoresAndAtomics = false;
+    g_Config.backend_info.bSupportsVSLinePointExpand = false;
+  }
 
   if (GLExtensions::Supports("GL_EXT_shader_framebuffer_fetch"))
   {
