@@ -614,17 +614,15 @@ std::unique_ptr<Cheats::CheatSearchSessionBase> Cheats::CheatSearchSession<T>::C
 
 template <typename T>
 std::unique_ptr<Cheats::CheatSearchSessionBase>
-Cheats::CheatSearchSession<T>::ClonePartial(const std::vector<size_t>& result_indices) const
+Cheats::CheatSearchSession<T>::ClonePartial(const size_t begin_index, const size_t end_index) const
 {
-  const auto& results = m_search_results;
-  std::vector<SearchResult<T>> partial_results;
-  partial_results.reserve(result_indices.size());
-  for (size_t idx : result_indices)
-    partial_results.push_back(results[idx]);
+  if (begin_index == 0 && end_index >= m_search_results.size())
+    return Clone();
 
   auto c =
       std::make_unique<Cheats::CheatSearchSession<T>>(m_memory_ranges, m_address_space, m_aligned);
-  c->m_search_results = std::move(partial_results);
+  c->m_search_results.assign(m_search_results.begin() + begin_index,
+                             m_search_results.begin() + end_index);
   c->m_compare_type = this->m_compare_type;
   c->m_filter_type = this->m_filter_type;
   c->m_value = this->m_value;

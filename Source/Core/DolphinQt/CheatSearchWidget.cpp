@@ -373,28 +373,15 @@ void CheatSearchWidget::OnNextScanClicked()
 
 bool CheatSearchWidget::RefreshValues()
 {
-  const size_t result_count = m_session->GetResultCount();
-  if (result_count == 0)
+  const size_t displayed_result_count = std::min(TABLE_MAX_ROWS, m_session->GetResultCount());
+  if (displayed_result_count == 0)
   {
     m_info_label_1->setText(tr("Cannot refresh without results."));
     return false;
   }
 
-  const bool too_many_results = result_count > TABLE_MAX_ROWS;
-  std::unique_ptr<Cheats::CheatSearchSessionBase> tmp;
-  if (too_many_results)
-  {
-    std::vector<size_t> value_indices;
-    value_indices.reserve(TABLE_MAX_ROWS);
-    for (size_t i = 0; i < TABLE_MAX_ROWS; ++i)
-      value_indices.push_back(i);
-    tmp = m_session->ClonePartial(value_indices);
-  }
-  else
-  {
-    tmp = m_session->Clone();
-  }
-
+  std::unique_ptr<Cheats::CheatSearchSessionBase> tmp =
+      m_session->ClonePartial(0, displayed_result_count);
   tmp->SetFilterType(Cheats::FilterType::DoNotFilter);
 
   const Cheats::SearchErrorCode error_code = [&tmp] {
