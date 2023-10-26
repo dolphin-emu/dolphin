@@ -560,7 +560,8 @@ static bool GetVersionFromLZO(StateHeader& header, File::IOFile& f)
   return true;
 }
 
-static bool ReadStateHeaderFromFile(StateHeader& header, File::IOFile& f)
+static bool ReadStateHeaderFromFile(StateHeader& header, File::IOFile& f,
+                                    bool get_version_header = true)
 {
   if (!f.IsOpen())
   {
@@ -573,6 +574,11 @@ static bool ReadStateHeaderFromFile(StateHeader& header, File::IOFile& f)
     Core::DisplayMessage("Failed to read state legacy header", 2000);
     return false;
   }
+
+  // Bail out if we only care for retrieving the legacy header.
+  // This is the case with ReadHeader() calls.
+  if (!get_version_header)
+    return true;
 
   if (header.legacy_header.lzo_size != 0)
   {
@@ -608,7 +614,8 @@ bool ReadHeader(const std::string& filename, StateHeader& header)
   std::lock_guard lk(s_save_thread_mutex);
 
   File::IOFile f(filename, "rb");
-  return ReadStateHeaderFromFile(header, f);
+  bool get_version_header = false;
+  return ReadStateHeaderFromFile(header, f, get_version_header);
 }
 
 std::string GetInfoStringOfSlot(int slot, bool translate)
