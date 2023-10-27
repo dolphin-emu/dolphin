@@ -2752,6 +2752,7 @@ void Jit64::twX(UGeckoInstruction inst)
     gpr.Flush();
     fpr.Flush();
 
+    MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
     WriteExceptionExit();
 
     SwitchToNearCode();
