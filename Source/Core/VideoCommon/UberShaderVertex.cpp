@@ -101,7 +101,7 @@ SSBO_BINDING(1) readonly restrict buffer Vertices {{
     out.Write(R"(
 uint4 load_input_uint4_ubyte4(uint vtx_offset, uint attr_offset) {{
   uint value = vertex_buffer[vtx_offset + attr_offset];
-  return uint4(value & 0xff, (value >> 8) & 0xff, (value >> 16) & 0xff, value >> 24);
+  return uint4(value & 0xffu, (value >> 8) & 0xffu, (value >> 16) & 0xffu, value >> 24);
 }}
 
 float4 load_input_float4_ubyte4(uint vtx_offset, uint attr_offset) {{
