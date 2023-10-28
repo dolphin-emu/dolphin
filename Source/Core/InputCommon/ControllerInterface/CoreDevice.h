@@ -163,6 +163,7 @@ protected:
     FullAnalogSurface(Input* low, Input* high) : m_low(*low), m_high(*high) {}
     ControlState GetState() const override;
     std::string GetName() const override;
+    bool IsDetectable() const override;
     bool IsMatchingName(std::string_view name) const override;
 
   private:

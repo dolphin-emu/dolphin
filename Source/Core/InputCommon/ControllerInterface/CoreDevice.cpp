@@ -136,6 +136,11 @@ std::string Device::FullAnalogSurface::GetName() const
   return "Full " + m_high.GetName();
 }
 
+bool Device::FullAnalogSurface::IsDetectable() const
+{
+  return m_low.IsDetectable() && m_high.IsDetectable();
+}
+
 bool Device::FullAnalogSurface::IsMatchingName(std::string_view name) const
 {
   if (Control::IsMatchingName(name))
