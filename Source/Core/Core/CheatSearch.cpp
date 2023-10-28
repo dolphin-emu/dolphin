@@ -424,17 +424,17 @@ MakeCompareFunctionForLastValue(Cheats::CompareType op)
   switch (op)
   {
   case Cheats::CompareType::Equal:
-    return [](const T& new_value, const T& old_value) { return new_value == old_value; };
+    return std::equal_to<T>();
   case Cheats::CompareType::NotEqual:
-    return [](const T& new_value, const T& old_value) { return new_value != old_value; };
+    return std::not_equal_to<T>();
   case Cheats::CompareType::Less:
-    return [](const T& new_value, const T& old_value) { return new_value < old_value; };
+    return std::less<T>();
   case Cheats::CompareType::LessOrEqual:
-    return [](const T& new_value, const T& old_value) { return new_value <= old_value; };
+    return std::less_equal<T>();
   case Cheats::CompareType::Greater:
-    return [](const T& new_value, const T& old_value) { return new_value > old_value; };
+    return std::greater<T>();
   case Cheats::CompareType::GreaterOrEqual:
-    return [](const T& new_value, const T& old_value) { return new_value >= old_value; };
+    return std::greater_equal<T>();
   default:
     DEBUG_ASSERT(false);
     return nullptr;
