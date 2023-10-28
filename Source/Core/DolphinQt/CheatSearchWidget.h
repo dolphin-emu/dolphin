@@ -39,6 +39,9 @@ public:
   explicit CheatSearchWidget(std::unique_ptr<Cheats::CheatSearchSessionBase> session);
   ~CheatSearchWidget() override;
 
+  bool UpdateTableAllCurrentValues();
+  void UpdateTableVisibleCurrentValues();
+
 signals:
   void ActionReplayCodeGenerated(const ActionReplay::ARCode& ar_code);
   void RequestWatch(QString name, u32 address);
@@ -56,11 +59,13 @@ private:
   void OnValueSourceChanged();
   void OnDisplayHexCheckboxStateChanged();
 
-  bool RefreshValues();
   void RefreshCurrentValueTableItem(QTableWidgetItem* current_value_table_item);
-  void RefreshGUICurrentValues();
+  void RefreshGUICurrentValues(size_t begin_index, size_t end_index);
+  bool UpdateTableRows(const Core::CPUThreadGuard& guard, size_t begin_index, size_t end_index);
   void RecreateGUITable();
   void GenerateARCode();
+  int GetVisibleRowsBeginIndex() const;
+  int GetVisibleRowsEndIndex() const;
 
   std::unique_ptr<Cheats::CheatSearchSessionBase> m_session;
 

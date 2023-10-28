@@ -33,6 +33,7 @@
 
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VideoEvents.h"
 
 namespace VideoInterface
 {
@@ -839,6 +840,7 @@ void VideoInterfaceManager::EndField(FieldType field, u64 ticks)
     OutputField(field, ticks);
 
   g_perf_metrics.CountVBlank();
+  VIEndFieldEvent::Trigger();
   Core::OnFrameEnd();
 }
 
