@@ -21,4 +21,7 @@ using ENetHostPtr = std::unique_ptr<ENetHost, ENetHostDeleter>;
 void WakeupThread(ENetHost* host);
 int ENET_CALLBACK InterceptCallback(ENetHost* host, ENetEvent* event);
 bool SendPacket(ENetPeer* socket, const sf::Packet& packet, u8 channel_id);
+
+// used for traversal packets and wake-up packets
+constexpr ENetEventType SKIPPABLE_EVENT = ENetEventType(42);
 }  // namespace Common::ENet
