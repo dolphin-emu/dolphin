@@ -737,12 +737,12 @@ void Presenter::DoState(PointerWrap& p)
   p.Do(m_last_xfb_stride);
   p.Do(m_last_xfb_height);
 
-  if (p.IsReadMode())
+  // If we're loading and there is a last XFB, re-display it.
+  if (p.IsReadMode() && m_last_xfb_stride != 0)
   {
     // This technically counts as the end of the frame
     AfterFrameEvent::Trigger();
 
-    // re-display the most recent XFB
     ImmediateSwap(m_last_xfb_addr, m_last_xfb_width, m_last_xfb_stride, m_last_xfb_height,
                   m_last_xfb_ticks);
   }
