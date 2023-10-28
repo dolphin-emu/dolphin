@@ -61,7 +61,7 @@ CheatSearchWidget::CheatSearchWidget(std::unique_ptr<Cheats::CheatSearchSessionB
   CreateWidgets();
   ConnectWidgets();
   OnValueSourceChanged();
-  UpdateGuiTable();
+  RecreateGUITable();
 }
 
 CheatSearchWidget::~CheatSearchWidget()
@@ -347,7 +347,7 @@ void CheatSearchWidget::OnNextScanClicked()
           m_session->GetResultValueAsString(i, show_in_hex);
     }
 
-    UpdateGuiTable();
+    RecreateGUITable();
   }
   else
   {
@@ -404,7 +404,7 @@ bool CheatSearchWidget::RefreshValues()
         tmp->GetResultValueAsString(i, show_in_hex);
   }
 
-  UpdateGuiTable();
+  RefreshGUICurrentValues();
   m_info_label_1->setText(tr("Refreshed current values."));
   return true;
 }
@@ -419,7 +419,7 @@ void CheatSearchWidget::OnResetClicked()
   m_session->ResetResults();
   m_address_table_current_values.clear();
 
-  UpdateGuiTable();
+  RecreateGUITable();
   m_info_label_1->setText(tr("Waiting for first scan..."));
   m_info_label_2->clear();
 }
@@ -475,7 +475,7 @@ void CheatSearchWidget::OnDisplayHexCheckboxStateChanged()
     return;
 
   if (!RefreshValues())
-    UpdateGuiTable();
+    RefreshGUICurrentValues();
 }
 
 void CheatSearchWidget::GenerateARCode()
@@ -511,7 +511,28 @@ void CheatSearchWidget::GenerateARCode()
   }
 }
 
-void CheatSearchWidget::UpdateGuiTable()
+void CheatSearchWidget::RefreshCurrentValueTableItem(
+    QTableWidgetItem* const current_value_table_item)
+{
+  const auto address = current_value_table_item->data(ADDRESS_TABLE_ADDRESS_ROLE).toUInt();
+  const auto curr_val_iter = m_address_table_current_values.find(address);
+  if (curr_val_iter != m_address_table_current_values.end())
+    current_value_table_item->setText(QString::fromStdString(curr_val_iter->second));
+  else
+    current_value_table_item->setText(QStringLiteral("---"));
+}
+
+void CheatSearchWidget::RefreshGUICurrentValues()
+{
+  for (size_t i = 0; i < m_session->GetResultCount(); ++i)
+  {
+    QTableWidgetItem* const current_value_table_item =
+        m_address_table->item(static_cast<int>(i), ADDRESS_TABLE_COLUMN_INDEX_CURRENT_VALUE);
+    RefreshCurrentValueTableItem(current_value_table_item);
+  }
+}
+
+void CheatSearchWidget::RecreateGUITable()
 {
   const QSignalBlocker blocker(m_address_table);
 
@@ -557,13 +578,9 @@ void CheatSearchWidget::UpdateGuiTable()
 
     auto* current_value_item = new QTableWidgetItem();
     current_value_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-    const auto curr_val_it = m_address_table_current_values.find(address);
-    if (curr_val_it != m_address_table_current_values.end())
-      current_value_item->setText(QString::fromStdString(curr_val_it->second));
-    else
-      current_value_item->setText(QStringLiteral("---"));
     current_value_item->setData(ADDRESS_TABLE_ADDRESS_ROLE, address);
     current_value_item->setData(ADDRESS_TABLE_RESULT_INDEX_ROLE, static_cast<u32>(i));
     m_address_table->setItem(i, ADDRESS_TABLE_COLUMN_INDEX_CURRENT_VALUE, current_value_item);
+    RefreshCurrentValueTableItem(current_value_item);
   }
 }

@@ -57,7 +57,9 @@ private:
   void OnDisplayHexCheckboxStateChanged();
 
   bool RefreshValues();
-  void UpdateGuiTable();
+  void RefreshCurrentValueTableItem(QTableWidgetItem* current_value_table_item);
+  void RefreshGUICurrentValues();
+  void RecreateGUITable();
   void GenerateARCode();
 
   std::unique_ptr<Cheats::CheatSearchSessionBase> m_session;
