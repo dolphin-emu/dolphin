@@ -145,7 +145,10 @@ public:
   u8 LoadSkylander(u8* buf, File::IOFile in_file);
   std::pair<u16, u16> CalculateIDs(const std::array<u8, 0x40 * 0x10>& file_data);
 
-protected:
+private:
+  static bool IsSkylanderNumberValid(u8 sky_num);
+  static bool IsBlockNumberValid(u8 block);
+
   std::mutex sky_mutex;
 
   bool m_activated = true;
@@ -156,10 +159,6 @@ protected:
   SkylanderLEDColor m_color_trap = {};
 
   std::array<Skylander, MAX_SKYLANDERS> skylanders;
-
-private:
-  static bool IsSkylanderNumberValid(u8 sky_num);
-  static bool IsBlockNumberValid(u8 block);
 };
 
 }  // namespace IOS::HLE::USB
