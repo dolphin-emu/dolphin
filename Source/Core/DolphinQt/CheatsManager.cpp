@@ -62,7 +62,10 @@ void CheatsManager::OnFrameEnd()
   auto* const selected_cheat_search_widget =
       qobject_cast<CheatSearchWidget*>(m_tab_widget->currentWidget());
   if (selected_cheat_search_widget != nullptr)
-    selected_cheat_search_widget->UpdateTableVisibleCurrentValues();
+  {
+    selected_cheat_search_widget->UpdateTableVisibleCurrentValues(
+        CheatSearchWidget::UpdateSource::Auto);
+  }
 }
 
 void CheatsManager::UpdateAllCheatSearchWidgetCurrentValues()
@@ -71,7 +74,7 @@ void CheatsManager::UpdateAllCheatSearchWidgetCurrentValues()
   {
     auto* const cheat_search_widget = qobject_cast<CheatSearchWidget*>(m_tab_widget->widget(i));
     if (cheat_search_widget != nullptr)
-      cheat_search_widget->UpdateTableAllCurrentValues();
+      cheat_search_widget->UpdateTableAllCurrentValues(CheatSearchWidget::UpdateSource::Auto);
   }
 }
 

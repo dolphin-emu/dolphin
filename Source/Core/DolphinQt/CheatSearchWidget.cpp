@@ -69,6 +69,9 @@ CheatSearchWidget::~CheatSearchWidget()
   auto& settings = Settings::GetQSettings();
   settings.setValue(QStringLiteral("cheatsearchwidget/displayhex"),
                     m_display_values_in_hex_checkbox->isChecked());
+  settings.setValue(QStringLiteral("cheatsearchwidget/autoupdatecurrentvalues"),
+                    m_autoupdate_current_values->isChecked());
+
   if (m_session->IsIntegerType())
   {
     settings.setValue(QStringLiteral("cheatsearchwidget/parsehex"),
@@ -229,16 +232,25 @@ void CheatSearchWidget::CreateWidgets()
   m_info_label_1 = new QLabel(tr("Waiting for first scan..."));
   m_info_label_2 = new QLabel();
 
+  auto* const checkboxes_layout = new QHBoxLayout();
   m_display_values_in_hex_checkbox = new QCheckBox(tr("Display values in Hex"));
   m_display_values_in_hex_checkbox->setChecked(
       settings.value(QStringLiteral("cheatsearchwidget/displayhex")).toBool());
+  checkboxes_layout->addWidget(m_display_values_in_hex_checkbox);
+  checkboxes_layout->setStretchFactor(m_display_values_in_hex_checkbox, 1);
+
+  m_autoupdate_current_values = new QCheckBox(tr("Automatically update Current Values"));
+  m_autoupdate_current_values->setChecked(
+      settings.value(QStringLiteral("cheatsearchwidget/autoupdatecurrentvalues"), true).toBool());
+  checkboxes_layout->addWidget(m_autoupdate_current_values);
+  checkboxes_layout->setStretchFactor(m_autoupdate_current_values, 2);
 
   QVBoxLayout* layout = new QVBoxLayout();
   layout->addWidget(session_info_label);
   layout->addWidget(instructions_label);
   layout->addLayout(value_layout);
   layout->addLayout(button_layout);
-  layout->addWidget(m_display_values_in_hex_checkbox);
+  layout->addLayout(checkboxes_layout);
   layout->addWidget(m_info_label_1);
   layout->addWidget(m_info_label_2);
   layout->addWidget(m_address_table);
@@ -372,8 +384,10 @@ void CheatSearchWidget::OnNextScanClicked()
 }
 
 bool CheatSearchWidget::UpdateTableRows(const Core::CPUThreadGuard& guard, const size_t begin_index,
-                                        const size_t end_index)
+                                        const size_t end_index, const UpdateSource source)
 {
+  const bool update_status_text = source == UpdateSource::User;
+
   std::unique_ptr<Cheats::CheatSearchSessionBase> tmp =
       m_session->ClonePartial(begin_index, end_index);
   tmp->SetFilterType(Cheats::FilterType::DoNotFilter);
@@ -385,7 +399,8 @@ bool CheatSearchWidget::UpdateTableRows(const Core::CPUThreadGuard& guard, const
 
   if (error_code != Cheats::SearchErrorCode::Success)
   {
-    m_info_label_1->setText(tr("Refresh failed. Please run the game for a bit and try again."));
+    if (update_status_text)
+      m_info_label_1->setText(tr("Refresh failed. Please run the game for a bit and try again."));
     return false;
   }
 
@@ -398,35 +413,43 @@ bool CheatSearchWidget::UpdateTableRows(const Core::CPUThreadGuard& guard, const
   }
 
   RefreshGUICurrentValues(begin_index, end_index);
-  m_info_label_1->setText(tr("Refreshed current values."));
+  if (update_status_text)
+    m_info_label_1->setText(tr("Refreshed current values."));
   return true;
 }
 
-void CheatSearchWidget::UpdateTableVisibleCurrentValues()
+void CheatSearchWidget::UpdateTableVisibleCurrentValues(const UpdateSource source)
 {
+  if (source == UpdateSource::Auto && !m_autoupdate_current_values->isChecked())
+    return;
+
   Core::CPUThreadGuard guard(Core::System::GetInstance());
   if (m_address_table->rowCount() == 0)
     return;
 
-  UpdateTableRows(guard, GetVisibleRowsBeginIndex(), GetVisibleRowsEndIndex());
+  UpdateTableRows(guard, GetVisibleRowsBeginIndex(), GetVisibleRowsEndIndex(), source);
 }
 
-bool CheatSearchWidget::UpdateTableAllCurrentValues()
+bool CheatSearchWidget::UpdateTableAllCurrentValues(const UpdateSource source)
 {
+  if (source == UpdateSource::Auto && !m_autoupdate_current_values->isChecked())
+    return false;
+
   Core::CPUThreadGuard guard(Core::System::GetInstance());
   const size_t result_count = m_address_table->rowCount();
   if (result_count == 0)
   {
-    m_info_label_1->setText(tr("Cannot refresh without results."));
+    if (source == UpdateSource::User)
+      m_info_label_1->setText(tr("Cannot refresh without results."));
     return false;
   }
 
-  return UpdateTableRows(guard, 0, result_count);
+  return UpdateTableRows(guard, 0, result_count, source);
 }
 
 void CheatSearchWidget::OnRefreshClicked()
 {
-  UpdateTableAllCurrentValues();
+  UpdateTableAllCurrentValues(UpdateSource::User);
 }
 
 void CheatSearchWidget::OnResetClicked()
@@ -504,7 +527,7 @@ void CheatSearchWidget::OnDisplayHexCheckboxStateChanged()
 
   // If the game is running CheatsManager::OnFrameEnd will update values automatically.
   if (Core::GetState() != Core::State::Running)
-    UpdateTableAllCurrentValues();
+    UpdateTableAllCurrentValues(UpdateSource::User);
 }
 
 void CheatSearchWidget::GenerateARCode()
