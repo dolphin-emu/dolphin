@@ -2437,7 +2437,7 @@ struct BPMemory
   TEXSCALE texscale[2];            // 0x25,0x26: GXSetIndTexCoordScale
   RAS1_IREF tevindref;             // 0x27: GXSetIndTexOrder
   TwoTevStageOrders tevorders[8];  // 0x28-0x2f
-  TCoordInfo texcoords[8];         // 0x30-0x4f: s,t,s,t,s,t,s,t...
+  TCoordInfo texcoords[8];         // 0x30-0x3f: s,t,s,t,s,t,s,t...
   ZMode zmode;                     // 0x40
   BlendMode blendmode;             // 0x41
   ConstantAlpha dstalpha;          // 0x42
