@@ -3,6 +3,7 @@
 
 #include "Core/State.h"
 
+#include <algorithm>
 #include <atomic>
 #include <condition_variable>
 #include <filesystem>
@@ -230,21 +231,23 @@ void SaveToBuffer(std::vector<u8>& buffer)
       true);
 }
 
-// return state number not in map
-static int GetEmptySlot(std::map<double, int> m)
+namespace
+{
+struct SlotWithTimestamp
+{
+  int slot;
+  double timestamp;
+};
+}  // namespace
+
+// returns first slot number not in the vector, or -1 if all are in the vector
+static int GetEmptySlot(const std::vector<SlotWithTimestamp>& used_slots)
 {
   for (int i = 1; i <= (int)NUM_STATES; i++)
   {
-    bool found = false;
-    for (auto& p : m)
-    {
-      if (p.second == i)
-      {
-        found = true;
-        break;
-      }
-    }
-    if (!found)
+    const auto it = std::find_if(used_slots.begin(), used_slots.end(),
+                                 [i](const SlotWithTimestamp& slot) { return slot.slot == i; });
+    if (it == used_slots.end())
       return i;
   }
   return -1;
@@ -284,11 +287,10 @@ static std::string SystemTimeAsDoubleToString(double time)
 
 static std::string MakeStateFilename(int number);
 
-// read state timestamps
-static std::map<double, int> GetSavedStates()
+static std::vector<SlotWithTimestamp> GetUsedSlotsWithTimestamp()
 {
+  std::vector<SlotWithTimestamp> result;
   StateHeader header;
-  std::map<double, int> m;
   for (int i = 1; i <= (int)NUM_STATES; i++)
   {
     std::string filename = MakeStateFilename(i);
@@ -296,17 +298,16 @@ static std::map<double, int> GetSavedStates()
     {
       if (ReadHeader(filename, header))
       {
-        double d = GetSystemTimeAsDouble() - header.legacy_header.time;
-
-        // increase time until unique value is obtained
-        while (m.find(d) != m.end())
-          d += .001;
-
-        m.emplace(d, i);
+        result.emplace_back(SlotWithTimestamp{.slot = i, .timestamp = header.legacy_header.time});
       }
     }
   }
-  return m;
+  return result;
+}
+
+static bool CompareTimestamp(const SlotWithTimestamp& lhs, const SlotWithTimestamp& rhs)
+{
+  return lhs.timestamp < rhs.timestamp;
 }
 
 static void CompressBufferToFile(const u8* raw_buffer, u64 size, File::IOFile& f)
@@ -957,33 +958,37 @@ void Load(int slot)
 
 void LoadLastSaved(int i)
 {
-  std::map<double, int> savedStates = GetSavedStates();
-
-  if (i > (int)savedStates.size())
-    Core::DisplayMessage("State doesn't exist", 2000);
-  else
+  if (i <= 0)
   {
-    std::map<double, int>::iterator it = savedStates.begin();
-    std::advance(it, i - 1);
-    Load(it->second);
+    Core::DisplayMessage("State doesn't exist", 2000);
+    return;
   }
+
+  std::vector<SlotWithTimestamp> used_slots = GetUsedSlotsWithTimestamp();
+  if (static_cast<size_t>(i) > used_slots.size())
+  {
+    Core::DisplayMessage("State doesn't exist", 2000);
+    return;
+  }
+
+  std::stable_sort(used_slots.begin(), used_slots.end(), CompareTimestamp);
+  Load((used_slots.end() - i)->slot);
 }
 
 // must wait for state to be written because it must know if all slots are taken
 void SaveFirstSaved()
 {
-  std::map<double, int> savedStates = GetSavedStates();
-
-  // save to an empty slot
-  if (savedStates.size() < NUM_STATES)
-    Save(GetEmptySlot(savedStates), true);
-  // overwrite the oldest state
-  else
+  std::vector<SlotWithTimestamp> used_slots = GetUsedSlotsWithTimestamp();
+  if (used_slots.size() < NUM_STATES)
   {
-    std::map<double, int>::iterator it = savedStates.begin();
-    std::advance(it, savedStates.size() - 1);
-    Save(it->second, true);
+    // save to an empty slot
+    Save(GetEmptySlot(used_slots), true);
+    return;
   }
+
+  // overwrite the oldest state
+  std::stable_sort(used_slots.begin(), used_slots.end(), CompareTimestamp);
+  Save(used_slots.front().slot, true);
 }
 
 // Load the last state before loading the state
