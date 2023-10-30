@@ -444,7 +444,7 @@ std::string PPCDebugInterface::GetDescription(u32 address) const
 std::optional<u32>
 PPCDebugInterface::GetMemoryAddressFromInstruction(const std::string& instruction) const
 {
-  static const std::regex re(",[^r0-]*(-?)(0[xX]?[0-9a-fA-F]*|r\\d+)[^r^s]*.(p|toc|\\d+)");
+  static const std::regex re(",[^r0-]*(-?)(?:0[xX])?([0-9a-fA-F]+|r\\d+)[^r^s]*.(p|toc|\\d+)");
   std::smatch match;
 
   // Instructions should be identified as a load or store before using this function. This error
