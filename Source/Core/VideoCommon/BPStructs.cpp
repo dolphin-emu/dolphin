@@ -246,7 +246,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager,
     // this function
 
     u32 destAddr = bpmem.copyTexDest << 5;
-    u32 destStride = bpmem.copyMipMapStrideChannels << 5;
+    u32 destStride = bpmem.copyDestStride << 5;
 
     MathUtil::Rectangle<s32> srcRect;
     srcRect.left = bpmem.copyTexSrcXY.x;
@@ -515,8 +515,8 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager,
     pixel_shader_manager.SetZModeControl();
     return;
 
-  case BPMEM_MIPMAP_STRIDE:  // MipMap Stride Channel
-  case BPMEM_COPYYSCALE:     // Display Copy Y Scale
+  case BPMEM_EFB_STRIDE:  // Display Copy Stride
+  case BPMEM_COPYYSCALE:  // Display Copy Y Scale
 
   /* 24 RID
    * 21 BC3 - Ind. Tex Stage 3 NTexCoord
@@ -982,8 +982,8 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
         RegName(BPMEM_EFB_ADDR),
         fmt::format("EFB Target address (32 byte aligned): 0x{:06X}", cmddata << 5));
 
-  case BPMEM_MIPMAP_STRIDE:  // 0x4D
-    return DescriptionlessReg(BPMEM_MIPMAP_STRIDE);
+  case BPMEM_EFB_STRIDE:  // 0x4D
+    return DescriptionlessReg(BPMEM_EFB_STRIDE);
     // TODO: Description
 
   case BPMEM_COPYYSCALE:  // 0x4E

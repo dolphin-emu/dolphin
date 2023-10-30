@@ -231,7 +231,7 @@ static void SetSpans(int sBlkSize, int tBlkSize, s32* tSpan, s32* sBlkSpan, s32*
   *tBlkSpan = ((640 * tBlkSize) - alignedWidth) *
               readStride;  // bytes to advance src pointer after each row of blocks
 
-  *writeStride = bpmem.copyMipMapStrideChannels * 32;
+  *writeStride = bpmem.copyDestStride << 5;
 }
 
 #define ENCODE_LOOP_BLOCKS                                                                         \

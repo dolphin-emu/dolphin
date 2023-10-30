@@ -56,7 +56,7 @@ enum
   BPMEM_EFB_TL = 0x49,
   BPMEM_EFB_WH = 0x4A,
   BPMEM_EFB_ADDR = 0x4B,
-  BPMEM_MIPMAP_STRIDE = 0x4D,
+  BPMEM_EFB_STRIDE = 0x4D,
   BPMEM_COPYYSCALE = 0x4E,
   BPMEM_CLEAR_AR = 0x4F,
   BPMEM_CLEAR_GB = 0x50,
@@ -2426,35 +2426,32 @@ struct BPMemory
   // the 3 offset matrices can either be indirect type, S-type, or T-type
   // 6bit scale factor s is distributed across IND_MTXA/B/C.
   // before using matrices scale by 2^-(s-17)
-  IND_MTX indmtx[3];               // 0x06-0x0e: GXSetIndTexMtx, 2x3 matrices
-  IND_IMASK imask;                 // 0x0f
-  TevStageIndirect tevind[16];     // 0x10-0x1f: GXSetTevIndirect
-  ScissorPos scissorTL;            // 0x20
-  ScissorPos scissorBR;            // 0x21
-  LPSize lineptwidth;              // 0x22
-  u32 sucounter;                   // 0x23
-  u32 rascounter;                  // 0x24
-  TEXSCALE texscale[2];            // 0x25,0x26: GXSetIndTexCoordScale
-  RAS1_IREF tevindref;             // 0x27: GXSetIndTexOrder
-  TwoTevStageOrders tevorders[8];  // 0x28-0x2f
-  TCoordInfo texcoords[8];         // 0x30-0x3f: s,t,s,t,s,t,s,t...
-  ZMode zmode;                     // 0x40
-  BlendMode blendmode;             // 0x41
-  ConstantAlpha dstalpha;          // 0x42
-  PEControl zcontrol;              // 0x43: GXSetZCompLoc, GXPixModeSync
-  FieldMask fieldmask;             // 0x44
-  u32 drawdone;                    // 0x45: bit1=1 if end of list
-  u32 unknown5;                    // 0x46: clock?
-  u32 petoken;                     // 0x47
-  u32 petokenint;                  // 0x48
-  X10Y10 copyTexSrcXY;             // 0x49
-  X10Y10 copyTexSrcWH;             // 0x4a
-  u32 copyTexDest;                 // 0x4b: CopyAddress (GXDispCopy and GXTexCopy use it)
-  u32 unknown6;                    // 0x4c
-  // usually set to 4 when dest is single channel, 8 when dest is 2 channel, 16 when dest is RGBA
-  // also, doubles whenever mipmap box filter option is set (excent on RGBA). Probably to do
-  // with number of bytes to look at when smoothing
-  u32 copyMipMapStrideChannels;       // 0x4d
+  IND_MTX indmtx[3];                  // 0x06-0x0e: GXSetIndTexMtx, 2x3 matrices
+  IND_IMASK imask;                    // 0x0f
+  TevStageIndirect tevind[16];        // 0x10-0x1f: GXSetTevIndirect
+  ScissorPos scissorTL;               // 0x20
+  ScissorPos scissorBR;               // 0x21
+  LPSize lineptwidth;                 // 0x22
+  u32 sucounter;                      // 0x23
+  u32 rascounter;                     // 0x24
+  TEXSCALE texscale[2];               // 0x25,0x26: GXSetIndTexCoordScale
+  RAS1_IREF tevindref;                // 0x27: GXSetIndTexOrder
+  TwoTevStageOrders tevorders[8];     // 0x28-0x2f
+  TCoordInfo texcoords[8];            // 0x30-0x3f: s,t,s,t,s,t,s,t...
+  ZMode zmode;                        // 0x40
+  BlendMode blendmode;                // 0x41
+  ConstantAlpha dstalpha;             // 0x42
+  PEControl zcontrol;                 // 0x43: GXSetZCompLoc, GXPixModeSync
+  FieldMask fieldmask;                // 0x44
+  u32 drawdone;                       // 0x45: bit1=1 if end of list
+  u32 unknown5;                       // 0x46: clock?
+  u32 petoken;                        // 0x47
+  u32 petokenint;                     // 0x48
+  X10Y10 copyTexSrcXY;                // 0x49
+  X10Y10 copyTexSrcWH;                // 0x4a
+  u32 copyTexDest;                    // 0x4b: CopyAddress (GXDispCopy and GXTexCopy use it)
+  u32 unknown6;                       // 0x4c
+  u32 copyDestStride;                 // 0x4d
   u32 dispcopyyscale;                 // 0x4e
   u32 clearcolorAR;                   // 0x4f
   u32 clearcolorGB;                   // 0x50
