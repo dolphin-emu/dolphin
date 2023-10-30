@@ -2218,7 +2218,7 @@ union CopyFilterCoefficients
 union BPU_PreloadTileInfo
 {
   BitField<0, 15, u32> count;
-  BitField<15, 2, u32> type;
+  BitField<15, 2, u32> type;  // TODO: enum for this?
   u32 hex;
 };
 template <>
@@ -2228,7 +2228,15 @@ struct fmt::formatter<BPU_PreloadTileInfo>
   template <typename FormatContext>
   auto format(const BPU_PreloadTileInfo& info, FormatContext& ctx) const
   {
-    return fmt::format_to(ctx.out(), "Type: {}\nCount: {}", info.type, info.count);
+    if (info.count == 0 && info.type == 0)
+    {
+      return fmt::format_to(ctx.out(), "GX_TexModeSync (type and count are both 0)");
+    }
+    else
+    {
+      return fmt::format_to(ctx.out(), "Type: {}\nCount: 0x{:x} lines (0x{:x} bytes)", info.type,
+                            info.count, info.count * 32);
+    }
   }
 };
 
