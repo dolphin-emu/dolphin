@@ -1037,12 +1037,12 @@ struct fmt::formatter<TexImage1>
   auto format(const TexImage1& teximg, FormatContext& ctx) const
   {
     return fmt::format_to(ctx.out(),
-                          "Even TMEM Offset: {:x}\n"
+                          "Even TMEM Line: 0x{:04x} (byte 0x{:05x})\n"
                           "Even TMEM Width: {}\n"
                           "Even TMEM Height: {}\n"
                           "Cache is manually managed: {}",
-                          teximg.tmem_even, teximg.cache_width, teximg.cache_height,
-                          teximg.cache_manually_managed ? "Yes" : "No");
+                          teximg.tmem_even, teximg.tmem_even * 32, teximg.cache_width,
+                          teximg.cache_height, teximg.cache_manually_managed ? "Yes" : "No");
   }
 };
 
@@ -1061,10 +1061,11 @@ struct fmt::formatter<TexImage2>
   auto format(const TexImage2& teximg, FormatContext& ctx) const
   {
     return fmt::format_to(ctx.out(),
-                          "Odd TMEM Offset: {:x}\n"
+                          "Odd TMEM Line: 0x{:04x} (byte 0x{:05x})\n"
                           "Odd TMEM Width: {}\n"
                           "Odd TMEM Height: {}",
-                          teximg.tmem_odd, teximg.cache_width, teximg.cache_height);
+                          teximg.tmem_odd, teximg.tmem_odd * 32, teximg.cache_width,
+                          teximg.cache_height);
   }
 };
 
@@ -1080,7 +1081,7 @@ struct fmt::formatter<TexImage3>
   template <typename FormatContext>
   auto format(const TexImage3& teximg, FormatContext& ctx) const
   {
-    return fmt::format_to(ctx.out(), "Source address (32 byte aligned): 0x{:06X}",
+    return fmt::format_to(ctx.out(), "Source address (32 byte aligned): 0x{:06x}",
                           teximg.image_base << 5);
   }
 };
@@ -1098,7 +1099,7 @@ struct fmt::formatter<TexTLUT>
   template <typename FormatContext>
   auto format(const TexTLUT& tlut, FormatContext& ctx) const
   {
-    return fmt::format_to(ctx.out(), "Address: {:08x}\nFormat: {}", tlut.tmem_offset << 9,
+    return fmt::format_to(ctx.out(), "Tmem address: 0x{:05x}\nFormat: {}", tlut.tmem_offset << 9,
                           tlut.tlut_format);
   }
 };
