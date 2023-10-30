@@ -18,11 +18,13 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
+#include "Common/SPSCQueue.h"
 #include "Common/Timer.h"
 #include "Common/TraversalClient.h"
 #include "Core/NetPlayProto.h"
 #include "Core/Slippi/SlippiPad.h"
 #include "InputCommon/GCPadStatus.h"
+
 #ifdef _WIN32
 #include <Qos2.h>
 #endif
@@ -207,7 +209,8 @@ protected:
     std::recursive_mutex async_queue_write;
   } m_crit;
 
-  std::queue<std::unique_ptr<sf::Packet>> m_async_queue;
+  // SLIPPITODO: consider using AsyncQueueEntry like in NetPlayServer.h
+  Common::SPSCQueue<std::unique_ptr<sf::Packet>, false> m_async_queue;
 
   ENetHost* m_client = nullptr;
   std::vector<ENetPeer*> m_server;

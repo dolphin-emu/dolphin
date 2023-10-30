@@ -7,6 +7,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
+#include "Common/SPSCQueue.h"
 #include "Core/Slippi/SlippiDirectCodes.h"
 #include "Core/Slippi/SlippiExiTypes.h"
 #include "Core/Slippi/SlippiGame.h"
@@ -247,7 +248,7 @@ private:
 
   void FileWriteThread(void);
 
-  std::queue<std::unique_ptr<WriteMessage>> file_write_queue;
+  Common::SPSCQueue<std::unique_ptr<WriteMessage>, false> file_write_queue;
   bool write_thread_running = false;
   std::thread m_file_write_thread;
 

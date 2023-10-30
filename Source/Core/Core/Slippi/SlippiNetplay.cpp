@@ -724,7 +724,7 @@ void SlippiNetplayClient::SendAsync(std::unique_ptr<sf::Packet> packet)
 {
   {
     std::lock_guard<std::recursive_mutex> lkq(m_crit.async_queue_write);
-    m_async_queue.emplace(std::move(packet));
+    m_async_queue.Push(std::move(packet));
   }
   ENetUtil::WakeupThread(m_client);
 }
@@ -951,10 +951,10 @@ void SlippiNetplayClient::ThreadFunc()
     ENetEvent net_event;
     int net;
     net = enet_host_service(m_client, &net_event, 250);
-    while (!m_async_queue.empty())
+    while (!m_async_queue.Empty())
     {
-      Send(*(m_async_queue.front().get()));
-      m_async_queue.pop();
+      Send(*(m_async_queue.Front().get()));
+      m_async_queue.Pop();
     }
     if (net > 0)
     {
