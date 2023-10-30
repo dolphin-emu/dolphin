@@ -258,7 +258,7 @@ protected:
   int32_t last_frame_acked[SLIPPI_REMOTE_PLAYER_MAX];
   FrameOffsetData frame_offset_data[SLIPPI_REMOTE_PLAYER_MAX];
   FrameTiming last_frame_timing[SLIPPI_REMOTE_PLAYER_MAX];
-  std::array<std::queue<FrameTiming>, SLIPPI_REMOTE_PLAYER_MAX> ack_timers;
+  std::array<Common::SPSCQueue<FrameTiming, false>, SLIPPI_REMOTE_PLAYER_MAX> ack_timers;
 
   SlippiConnectStatus slippi_connect_status = SlippiConnectStatus::NET_CONNECT_STATUS_UNSET;
   std::vector<int> failed_connections;

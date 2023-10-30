@@ -399,19 +399,19 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet, ENetPeer* peer)
     last_frame_acked[p_idx] = frame > last_frame_acked[p_idx] ? frame : last_frame_acked[p_idx];
 
     // Remove old timings
-    while (!ack_timers[p_idx].empty() && ack_timers[p_idx].front().frame < frame)
+    while (!ack_timers[p_idx].Empty() && ack_timers[p_idx].Front().frame < frame)
     {
-      ack_timers[p_idx].pop();
+      ack_timers[p_idx].Pop();
     }
 
     // Don't get a ping if we do not have the right ack frame
-    if (ack_timers[p_idx].empty() || ack_timers[p_idx].front().frame != frame)
+    if (ack_timers[p_idx].Empty() || ack_timers[p_idx].Front().frame != frame)
     {
       break;
     }
 
-    auto send_time = ack_timers[p_idx].front().time_us;
-    ack_timers[p_idx].pop();
+    auto send_time = ack_timers[p_idx].Front().time_us;
+    ack_timers[p_idx].Pop();
 
     ping_us[p_idx] = Common::Timer::NowUs() - send_time;
     if (g_ActiveConfig.bShowNetPlayPing && frame % SLIPPI_PING_DISPLAY_INTERVAL == 0 && p_idx == 0)
@@ -1072,8 +1072,7 @@ void SlippiNetplayClient::StartSlippiGame()
     last_frame_acked[i] = 0;
 
     // Reset ack timers
-    std::queue<SlippiNetplayClient::FrameTiming> empty;
-    std::swap(ack_timers[i], empty);
+    ack_timers[i].Clear();
   }
 
   is_desync_recovery = false;
@@ -1161,7 +1160,7 @@ void SlippiNetplayClient::SendSlippiPad(std::unique_ptr<SlippiPad> pad)
     FrameTiming send_time;
     send_time.frame = frame;
     send_time.time_us = time;
-    ack_timers[i].emplace(send_time);
+    ack_timers[i].Push(send_time);
   }
 }
 
