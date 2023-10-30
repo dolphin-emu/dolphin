@@ -380,24 +380,32 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager,
 
     return;
   }
-  case BPMEM_LOADTLUT0:  // This one updates bpmem.tlutXferSrc, no need to do anything here.
+  case BPMEM_LOADTLUT0:  // This updates bpmem.tmem_config.tlut_src, no need to do anything here.
     return;
   case BPMEM_LOADTLUT1:  // Load a Texture Look Up Table
   {
-    u32 tlutTMemAddr = (bp.newvalue & 0x3FF) << 9;
-    u32 tlutXferCount = (bp.newvalue & 0x1FFC00) >> 5;
+    u32 tmem_addr = bpmem.tmem_config.tlut_dest.tmem_addr << 9;
+    u32 tmem_transfer_count = bpmem.tmem_config.tlut_dest.tmem_line_count * TMEM_LINE_SIZE;
     u32 addr = bpmem.tmem_config.tlut_src << 5;
 
     // The GameCube ignores the upper bits of this address. Some games (WW, MKDD) set them.
     if (!SConfig::GetInstance().bWii)
       addr = addr & 0x01FFFFFF;
 
+    // The copy below will always be in bounds as tmem is bigger than the maximum address a TLUT can
+    // be loaded to.
+    static constexpr u32 MAX_LOADABLE_TMEM_ADDR =
+        (1 << bpmem.tmem_config.tlut_dest.tmem_addr.NumBits()) << 9;
+    static constexpr u32 MAX_TMEM_LINE_COUNT =
+        (1 << bpmem.tmem_config.tlut_dest.tmem_line_count.NumBits()) * TMEM_LINE_SIZE;
+    static_assert(MAX_LOADABLE_TMEM_ADDR + MAX_TMEM_LINE_COUNT < TMEM_SIZE);
+
     auto& system = Core::System::GetInstance();
     auto& memory = system.GetMemory();
-    memory.CopyFromEmu(texMem + tlutTMemAddr, addr, tlutXferCount);
+    memory.CopyFromEmu(texMem + tmem_addr, addr, tmem_transfer_count);
 
     if (OpcodeDecoder::g_record_fifo_data)
-      FifoRecorder::GetInstance().UseMemory(addr, tlutXferCount, MemoryUpdate::Type::TMEM);
+      FifoRecorder::GetInstance().UseMemory(addr, tmem_transfer_count, MemoryUpdate::Type::TMEM);
 
     TMEM::InvalidateAll();
 

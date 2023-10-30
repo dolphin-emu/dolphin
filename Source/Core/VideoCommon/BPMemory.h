@@ -2240,6 +2240,13 @@ struct fmt::formatter<BPU_PreloadTileInfo>
   }
 };
 
+union BPU_LoadTlutInfo
+{
+  BitField<0, 10, u32> tmem_addr;
+  BitField<10, 11, u32> tmem_line_count;
+  u32 hex;
+};
+
 struct BPS_TmemConfig
 {
   u32 preload_addr;
@@ -2247,7 +2254,7 @@ struct BPS_TmemConfig
   u32 preload_tmem_odd;
   BPU_PreloadTileInfo preload_tile_info;
   u32 tlut_src;
-  u32 tlut_dest;
+  BPU_LoadTlutInfo tlut_dest;
   u32 texinvalidate;
 };
 
