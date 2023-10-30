@@ -265,16 +265,19 @@ static double GetSystemTimeAsDouble()
 static std::string SystemTimeAsDoubleToString(double time)
 {
   // revert adjustments from GetSystemTimeAsDouble() to get a normal Unix timestamp again
-  time_t seconds = (time_t)time + DOUBLE_TIME_OFFSET;
-  tm* localTime = localtime(&seconds);
+  time_t seconds = static_cast<time_t>(time) + DOUBLE_TIME_OFFSET;
+  errno = 0;
+  tm* local_time = localtime(&seconds);
+  if (errno != 0 || !local_time)
+    return "";
 
 #ifdef _WIN32
   wchar_t tmp[32] = {};
-  wcsftime(tmp, std::size(tmp), L"%x %X", localTime);
+  wcsftime(tmp, std::size(tmp), L"%x %X", local_time);
   return WStringToUTF8(tmp);
 #else
   char tmp[32] = {};
-  strftime(tmp, sizeof(tmp), "%x %X", localTime);
+  strftime(tmp, sizeof(tmp), "%x %X", local_time);
   return tmp;
 #endif
 }
