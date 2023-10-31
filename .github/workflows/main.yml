@@ -108,10 +108,12 @@ jobs:
         shell: powershell
         env:
           ES_USERNAME: ${{ secrets.ES_USERNAME }}
+          SLIPPI_BUILD_TYPE: ${{ matrix.build_type }}
         if: env.ES_USERNAME != null
         run: |
           $msg = git log -1 --no-merges --pretty=%B
-          if ($msg -notmatch "^release.*") {
+          $build_type = $env:SLIPPI_BUILD_TYPE.ToLower()
+          if ($msg -notmatch "^release:.*" -And $msg -notmatch "^release\($build_type\):.*") {
             echo "not release, skipping code signing"
             exit 0;
           }
