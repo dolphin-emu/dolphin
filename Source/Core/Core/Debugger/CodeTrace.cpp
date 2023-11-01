@@ -1,4 +1,4 @@
-// Copyright 2022 Dolphin Emulator Project
+// Copyright 2023 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/Debugger/CodeTrace.h"
@@ -19,10 +19,10 @@ namespace
 {
 bool IsInstructionLoadStore(std::string_view ins)
 {
-  // return (ins.starts_with('l') && !ins.starts_with("li")) || ins.starts_with("st") ||
-  //       ins.starts_with("psq_l") || ins.starts_with("psq_s");
-  // Easier version if no issues:
-  return ins.find("(r") != std::string::npos;
+  // Easier version, but doesn't work for lwzx etc:
+  // return ins.find("(r") != std::string::npos;
+  return (ins.starts_with('l') && !ins.starts_with("li")) || ins.starts_with("st") ||
+         ins.starts_with("psq_l") || ins.starts_with("psq_s");
 }
 
 bool CompareInstruction(std::string_view instr, const std::vector<std::string>& compare)
@@ -63,16 +63,10 @@ double RegisterValue(const Core::CPUThreadGuard& guard, std::string_view reg)
 {
   auto& ppc_state = guard.GetSystem().GetPowerPC().GetPPCState();
 
-  if (!reg.empty())
-  {
-    if (reg.starts_with("r"))
-      return static_cast<double>(ppc_state.gpr[stoi(std::string{reg.begin() + 1, reg.end()})]);
-    else if (reg.starts_with("f"))
-      return ppc_state.ps[stoi(std::string{reg.begin() + 1, reg.end()})].PS0AsDouble();
-  }
-
-  // debug value
-  return (double)10.0;
+  if (reg.starts_with("f"))
+    return ppc_state.ps[stoi(std::string{reg.begin() + 1, reg.end()})].PS0AsDouble();
+  else
+    return static_cast<double>(ppc_state.gpr[std::stoi(std::string{reg.begin() + 1, reg.end()})]);
 }
 
 bool CompareMemoryTargetToTracked(const std::string& instr, const u32 mem_target,
@@ -131,7 +125,12 @@ InstructionAttributes CodeTrace::GetInstructionAttributes(const TraceOutput& ins
     for (int i = 0; i <= 3; i++)
     {
       if (match[i + 1].matched)
-        tmp_attributes.reg[i] = match.str(i + 1);
+      {
+        if (i == 0)
+          tmp_attributes.target_reg = match.str(i + 1);
+        else
+          tmp_attributes.regs.insert(match.str(i + 1));
+      }
     }
 
     if (instruction.memory_target)
@@ -206,17 +205,20 @@ AutoStepResults CodeTrace::AutoStepping(const Core::CPUThreadGuard& guard,
     // contains() is always true when initiated from CodeViewWidget. RegisterWidget needs to use
     // first hit logic when we need to Step() before we can find the register. Code and Register
     // autostep are identical if contains() is true.
-    if (!m_reg_tracked.contains(instr.reg[0]))
+    if (!m_reg_tracked.contains(instr.target_reg))
     {
       first_hit = true;
 
       // If the Trace is starting and RegisterWidget's target is referenced in the PC instruction's
       // arguments, update m_reg_tracked by calling TraceLogic.
-      if (m_reg_tracked.contains(instr.reg[1]) || m_reg_tracked.contains(instr.reg[2]) ||
-          m_reg_tracked.contains(instr.reg[3]))
+      for (auto& reg : instr.regs)
       {
-        hit = TraceLogic(pc_instr, first_hit);
-        first_hit = false;
+        if (m_reg_tracked.contains(reg))
+        {
+          hit = TraceLogic(pc_instr, first_hit);
+          first_hit = false;
+          break;
+        }
       }
     }
   }
@@ -251,17 +253,18 @@ AutoStepResults CodeTrace::AutoStepping(const Core::CPUThreadGuard& guard,
     {
       attrib = GetInstructionAttributes(output);
 
-      for (int i = 1; i <= 3; i++)
-        output.value[i] = RegisterValue(guard, attrib.reg[i]);
+      for (auto& reg : attrib.regs)
+        output.regdata.emplace_back(reg, RegisterValue(guard, reg));
     }
 
     power_pc.SingleStep();
 
-    // Check log limit
+    // Check log limit?
     if (log_trace)
     {
-      output.value[0] = RegisterValue(guard, attrib.reg[0]);
-      output.regs = {attrib.reg[0], attrib.reg[1], attrib.reg[2], attrib.reg[3]};
+      // Must be done after the SingleStep for correct value.
+      if (!attrib.target_reg.empty())
+        output.regdata.emplace_back(attrib.target_reg, RegisterValue(guard, attrib.target_reg));
 
       output_trace->emplace_back(output);
     }
@@ -337,13 +340,13 @@ bool CodeTrace::RecordTrace(const Core::CPUThreadGuard& guard,
     TraceOutput output = SaveCurrentInstruction(guard);
     InstructionAttributes attrib = GetInstructionAttributes(output);
 
-    for (int i = 1; i <= 3; i++)
-      output.value[i] = RegisterValue(guard, attrib.reg[i]);
+    for (auto& reg : attrib.regs)
+      output.regdata.emplace_back(reg, RegisterValue(guard, reg));
 
     power_pc.SingleStep();
 
-    output.value[0] = RegisterValue(guard, attrib.reg[0]);
-    output.regs = {attrib.reg[0], attrib.reg[1], attrib.reg[2], attrib.reg[3]};
+    if (!attrib.target_reg.empty())
+      output.regdata.emplace_back(attrib.target_reg, RegisterValue(guard, attrib.target_reg));
 
     output_trace->emplace_back(output);
 
@@ -379,10 +382,10 @@ std::optional<HitType> CodeTrace::SpecialInstruction(const InstructionAttributes
   static const std::array<std::string_view, 2> compare{"c", "fc"};
 
   // Move to / Move from special registers.
-  if (instr.instruction.starts_with("mf") && match.reg[0])
+  if (instr.instruction.starts_with("mf") && match.target_reg)
     return HitType::OVERWRITE;
 
-  if (instr.instruction.starts_with("mt") && match.reg[0])
+  if (instr.instruction.starts_with("mt") && match.target_reg)
     return HitType::MOVED;
 
   if (CompareInstr(instr.instruction, exclude))
@@ -391,7 +394,7 @@ std::optional<HitType> CodeTrace::SpecialInstruction(const InstructionAttributes
   if (CompareInstr(instr.instruction, compare))
     return HitType::PASSIVE;
 
-  if (match.reg123 && !match.reg[0] && (instr.is_store || instr.is_load))
+  if (match.passive_reg && !match.target_reg && (instr.is_store || instr.is_load))
     return HitType::POINTER;
 
   return std::nullopt;
@@ -427,16 +430,19 @@ HitType CodeTrace::TraceLogic(const TraceOutput& current_instr, bool first_hit,
   const InstructionAttributes instr = GetInstructionAttributes(current_instr);
 
   // Not an instruction we care about (branches).
-  if (instr.reg[0].empty())
+  if (instr.target_reg.empty())
     return HitType::SKIP;
 
-  match.reg[0] = m_reg_tracked.contains(instr.reg[0]);
-  match.reg[1] = m_reg_tracked.contains(instr.reg[1]);
-  match.reg[2] = m_reg_tracked.contains(instr.reg[2]);
-  match.reg[3] = m_reg_tracked.contains(instr.reg[3]);
-  match.reg123 = match.reg[1] || match.reg[2] || match.reg[3];
+  for (auto& reg : instr.regs)
+  {
+    if (m_reg_tracked.contains(reg))
+      match.regs.insert(reg);
+  }
 
-  if (!match.reg[0] && !match.reg123 && !match.mem)
+  match.target_reg = m_reg_tracked.contains(instr.target_reg);
+  match.passive_reg = !match.regs.empty();
+
+  if (!match.target_reg && !match.passive_reg && !match.mem)
     return HitType::SKIP;
 
   const std::optional<HitType> type = SpecialInstruction(instr, match);
@@ -445,7 +451,7 @@ HitType CodeTrace::TraceLogic(const TraceOutput& current_instr, bool first_hit,
   if (type)
   {
     if (type.value() == HitType::OVERWRITE && !first_hit)
-      m_reg_tracked.erase(instr.reg[0]);
+      m_reg_tracked.erase(instr.target_reg);
 
     return_type = type.value();
   }
@@ -463,18 +469,18 @@ HitType CodeTrace::TraceLogic(const TraceOutput& current_instr, bool first_hit,
   if (regs == nullptr)
     return return_type;
 
-  for (int i = 0; auto& matched : match.reg)
+  // Combining for easy output
+  if (match.target_reg)
+    match.regs.insert(instr.target_reg);
+
+  for (auto& reg : match.regs)
   {
-    if (matched)
-    {
-      if (instr.reg[i] == "r1")
-        regs->insert("sp");
-      else if (instr.reg[i] == "r2")
-        regs->insert("rtoc");
-      else
-        regs->insert(instr.reg[i]);
-    }
-    i++;
+    if (reg == "r1")
+      regs->insert("sp");
+    else if (reg == "r2")
+      regs->insert("rtoc");
+    else
+      regs->insert(reg);
   }
 
   return return_type;
@@ -492,12 +498,12 @@ HitType CodeTrace::ForwardTrace(const InstructionAttributes& instr, const Matche
       // If hit tracked memory. Load -> Add register to tracked.  Store -> Remove tracked memory
       // if overwritten.
 
-      if (instr.is_load && !match.reg[0])
+      if (instr.is_load && !match.target_reg)
       {
-        m_reg_tracked.insert(instr.reg[0]);
+        m_reg_tracked.insert(instr.target_reg);
         return HitType::LOADSTORE;
       }
-      else if (instr.is_store && !match.reg[0])
+      else if (instr.is_store && !match.target_reg)
       {
         // On First Hit it wouldn't necessarily be wrong to track the register, which contains the
         // same value. A matter of preference.
@@ -515,7 +521,7 @@ HitType CodeTrace::ForwardTrace(const InstructionAttributes& instr, const Matche
         return HitType::LOADSTORE;
       }
     }
-    else if (instr.is_store && match.reg[0])
+    else if (instr.is_store && match.target_reg)
     {
       // If store to untracked memory, then track memory.
       for (u32 i = 0; i < instr.memory_target_size; i++)
@@ -523,23 +529,23 @@ HitType CodeTrace::ForwardTrace(const InstructionAttributes& instr, const Matche
 
       return HitType::LOADSTORE;
     }
-    else if (instr.is_load && match.reg[0])
+    else if (instr.is_load && match.target_reg)
     {
       // Not wrong to track load memory_target here. Preference.
       if (first_hit)
         return HitType::LOADSTORE;
 
       // If untracked load is overwriting tracked register, then remove register
-      m_reg_tracked.erase(instr.reg[0]);
+      m_reg_tracked.erase(instr.target_reg);
       return HitType::OVERWRITE;
     }
   }
   else
   {
     // If tracked register data is being stored in a new register, save new register.
-    if (match.reg123 && !match.reg[0])
+    if (match.passive_reg && !match.target_reg)
     {
-      m_reg_tracked.insert(instr.reg[0]);
+      m_reg_tracked.insert(instr.target_reg);
 
       // This should include any instruction that can reach this point and is not ACTIVE. Can only
       // think of mr at this time.
@@ -549,15 +555,15 @@ HitType CodeTrace::ForwardTrace(const InstructionAttributes& instr, const Matche
       return HitType::ACTIVE;
     }
     // If tracked register is overwritten, stop tracking.
-    else if (match.reg[0] && !match.reg123)
+    else if (match.target_reg && !match.passive_reg)
     {
       if (instr.instruction.starts_with("rlwimi") || first_hit)
         return HitType::UPDATED;
 
-      m_reg_tracked.erase(instr.reg[0]);
+      m_reg_tracked.erase(instr.target_reg);
       return HitType::OVERWRITE;
     }
-    else if (match.reg[0] && match.reg123)
+    else if (match.target_reg && match.passive_reg)
     {
       // Or moved
       return HitType::UPDATED;
@@ -580,18 +586,18 @@ HitType CodeTrace::Backtrace(const InstructionAttributes& instr, const Matches& 
     // Memory Load: Erase register and track the memory it was loaded from.
     if (match.mem)
     {
-      if (instr.is_store && !match.reg[0])
+      if (instr.is_store && !match.target_reg)
       {
-        m_reg_tracked.insert(instr.reg[0]);
+        m_reg_tracked.insert(instr.target_reg);
         for (u32 i = 0; i < instr.memory_target_size; i++)
           m_mem_tracked.erase(*instr.memory_target + i);
 
         return HitType::LOADSTORE;
       }
     }
-    else if (instr.is_load && match.reg[0])
+    else if (instr.is_load && match.target_reg)
     {
-      m_reg_tracked.erase(instr.reg[0]);
+      m_reg_tracked.erase(instr.target_reg);
       for (u32 i = 0; i < instr.memory_target_size; i++)
         m_mem_tracked.insert(*instr.memory_target + i);
 
@@ -608,19 +614,18 @@ HitType CodeTrace::Backtrace(const InstructionAttributes& instr, const Matches& 
     // Other instructions
     // Skip if we aren't watching output register. Happens most often.
     // Else: Erase tracked register and save what wrote to it.
-    if (!match.reg[0])
+    if (!match.target_reg)
       return HitType::PASSIVE;
 
     const bool updater = instr.instruction.starts_with("rlwimi");
 
-    if (instr.reg[0] != instr.reg[1] && instr.reg[0] != instr.reg[2] && !updater)
-      m_reg_tracked.erase(instr.reg[0]);
+    // Tracked reg was created here, so delete it from tracking.
+    if (!instr.regs.contains(instr.target_reg) && !updater)
+      m_reg_tracked.erase(instr.target_reg);
 
-    // If tracked register is written, track r1 / r2.
-    if (!match.reg[1] && !instr.reg[1].empty())
-      m_reg_tracked.insert(instr.reg[1]);
-    if (!match.reg[2] && !instr.reg[2].empty())
-      m_reg_tracked.insert(instr.reg[2]);
+    // If tracked register is written, track other regs.
+    for (auto& reg : match.regs)
+      m_reg_tracked.insert(reg);
 
     if (CompareInstruction(instr.instruction, mover))
       return HitType::MOVED;

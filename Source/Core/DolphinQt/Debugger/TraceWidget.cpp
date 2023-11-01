@@ -1,6 +1,5 @@
-// Copyright 2020 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// Copyright 2023 Dolphin Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Debugger/TraceWidget.h"
 
@@ -801,33 +800,29 @@ void TraceWidget::DisplayTrace()
       if (m_show_values->isChecked())
       {
         // Replace registers with values.
-        for (int i = 0; i <= 3; i++)
+        for (auto& regval : out.regdata)
         {
-          if (!out.regs[i].empty())
-          {
-            const int index = item->text().indexOf(QString::fromStdString(out.regs[i]));
-            const size_t length = out.regs[i].length();
+          const int index = item->text().indexOf(QString::fromStdString(regval.reg));
+          const size_t length = regval.reg.length();
 
-            // Skip if r2 matches r21
-            if (index != -1 && (length == 3 || !item->text()[index + length].isDigit()))
+          // Skip if r2 matches r21
+          if (index != -1 && (length == 3 || !item->text()[index + length].isDigit()))
+          {
+            if (item->text()[index] == QLatin1Char('f') || item->text()[index] == QLatin1Char('p'))
             {
-              if (item->text()[index] == QLatin1Char('f') ||
-                  item->text()[index] == QLatin1Char('p'))
-              {
-                // If nan, could display hex, but would be unsure if it's a double or single float.
-                // Displaying a double would be too long probably.
-                const QString value = QString::number(out.value[i], 'g', 4);
-                item->setText(item->text().replace(index, length, value));
-              }
-              else
-              {
-                // Assuming hex.
-                const QString value = QString::number(static_cast<u32>(out.value[i]), 16);
-                item->setText(item->text().replace(index, length, value));
-              }
-              if (!colored)
-                item->setForeground(m_value_color);
+              // If nan, could display hex, but would be unsure if it's a double or single float.
+              // Displaying a double would be too long probably.
+              const QString value = QString::number(regval.value, 'g', 4);
+              item->setText(item->text().replace(index, length, value));
             }
+            else
+            {
+              // Assuming hex.
+              const QString value = QString::number(static_cast<u32>(regval.value), 16);
+              item->setText(item->text().replace(index, length, value));
+            }
+            if (!colored)
+              item->setForeground(m_value_color);
           }
         }
       }
@@ -893,7 +888,7 @@ void TraceWidget::InfoDisp()
 {
   // i18n: Here, PC is an acronym for program counter, not personal computer.
   auto* info = new QTableWidgetItem(QStringLiteral(
-      "Used to \"track the value in a target register or memory address and its uses.\n\n"
+      "Used to track the value in a target register or memory address and its uses.\n\n"
       "Record Trace: Records each executed instruction while stepping from PC to selected "
       "Breakpoint. Required before tracking a target. If backtracing, set PC to how far back you "
       "want to trace to and breakpoint the instruction you want to trace backwards.\n\n"

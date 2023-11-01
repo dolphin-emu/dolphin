@@ -631,15 +631,15 @@ void CodeViewWidget::OnContextMenu()
   auto* run_until_menu = menu->addMenu(tr("Run until (ignoring breakpoints)"));
   // i18n: One of the options shown below "Run until (ignoring breakpoints)"
   run_until_menu->addAction(tr("%1's value is hit").arg(reg_qstr), this, [this, reg_str]() {
-    emit(DoAutoStep(CodeTrace::AutoStop::Always, reg_str));
+    emit DoAutoStep(CodeTrace::AutoStop::Always, reg_str);
   });
   // i18n: One of the options shown below "Run until (ignoring breakpoints)"
   run_until_menu->addAction(tr("%1's value is used").arg(reg_qstr), this, [this, reg_str]() {
-    emit(DoAutoStep(CodeTrace::AutoStop::Used, reg_str));
+    emit DoAutoStep(CodeTrace::AutoStop::Used, reg_str) ;
   });
   // i18n: One of the options shown below "Run until (ignoring breakpoints)"
   run_until_menu->addAction(tr("%1's value is changed").arg(reg_qstr), [this, reg_str]() {
-    emit(DoAutoStep(CodeTrace::AutoStop::Changed, reg_str));
+    emit DoAutoStep(CodeTrace::AutoStop::Changed, reg_str);
   });
 
   run_until_menu->setEnabled(!reg_qstr.isEmpty());

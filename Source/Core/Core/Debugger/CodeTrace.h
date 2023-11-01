@@ -1,4 +1,4 @@
-// Copyright 2022 Dolphin Emulator Project
+// Copyright 2023 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -11,29 +11,41 @@
 
 #include "Common/CommonTypes.h"
 
+#define MAX_REGISTERS 4
+
 namespace Core
 {
 class CPUThreadGuard;
 }
 
+struct RegisterData
+{
+  std::string reg;
+  double value;
+};
+
+// target_reg is first reg (lhs) and determines where things move to/from.
+// regs are all other registers in the instruction, and are a set because duplicates don't matter.
 struct InstructionAttributes
 {
   u32 address = 0;
   std::string instruction = "";
-  std::array<std::string, 4> reg{"", "", "", ""};
+  std::string target_reg;
+  std::set<std::string> regs;
   std::optional<u32> memory_target = std::nullopt;
   u32 memory_target_size = 4;
   bool is_store = false;
   bool is_load = false;
 };
 
+// regdata is only used for showing values in the UI. InstructionAttributes does register trace
+// logic.
 struct TraceOutput
 {
   u32 address;
   std::optional<u32> memory_target = std::nullopt;
   std::string instruction;
-  std::array<double, 4> value{10, 10, 10, 10};
-  std::array<std::string, 4> regs{"", "", "", ""};
+  std::vector<RegisterData> regdata;
 };
 
 struct AutoStepResults
@@ -47,8 +59,9 @@ struct AutoStepResults
 
 struct Matches
 {
-  std::array<bool, 4> reg;
-  bool reg123 = false;
+  std::set<std::string> regs;
+  bool target_reg = false;
+  bool passive_reg = false;
   bool loadstore = false;
   bool mem = false;
 };
