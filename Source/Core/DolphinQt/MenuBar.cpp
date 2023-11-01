@@ -139,6 +139,7 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   m_jit_interpreter_core->setEnabled(running);
   m_jit_block_linking->setEnabled(!running);
   m_jit_disable_cache->setEnabled(!running);
+  m_jit_disable_fastmem_arena->setEnabled(!running);
   m_jit_clear_cache->setEnabled(running);
   m_jit_log_coverage->setEnabled(!running);
   m_jit_search_instruction->setEnabled(running);
@@ -846,6 +847,12 @@ void MenuBar::AddJITMenu()
   m_jit_disable_fastmem->setChecked(!Config::Get(Config::MAIN_FASTMEM));
   connect(m_jit_disable_fastmem, &QAction::toggled,
           [](bool enabled) { Config::SetBaseOrCurrent(Config::MAIN_FASTMEM, !enabled); });
+
+  m_jit_disable_fastmem_arena = m_jit->addAction(tr("Disable Fastmem Arena"));
+  m_jit_disable_fastmem_arena->setCheckable(true);
+  m_jit_disable_fastmem_arena->setChecked(!Config::Get(Config::MAIN_FASTMEM_ARENA));
+  connect(m_jit_disable_fastmem_arena, &QAction::toggled,
+          [](bool enabled) { Config::SetBaseOrCurrent(Config::MAIN_FASTMEM_ARENA, !enabled); });
 
   m_jit_clear_cache = m_jit->addAction(tr("Clear Cache"), this, &MenuBar::ClearCache);
 

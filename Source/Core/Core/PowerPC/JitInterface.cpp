@@ -105,15 +105,21 @@ void JitInterface::UpdateMembase()
 
   auto& ppc_state = m_system.GetPPCState();
   auto& memory = m_system.GetMemory();
+#ifdef _M_ARM_64
+  // JitArm64 is currently using the no fastmem arena code path even when only fastmem is off.
+  const bool fastmem_arena = m_jit->jo.fastmem;
+#else
+  const bool fastmem_arena = m_jit->jo.fastmem_arena;
+#endif
   if (ppc_state.msr.DR)
   {
     ppc_state.mem_ptr =
-        m_jit->jo.fastmem_arena ? memory.GetLogicalBase() : memory.GetLogicalPageMappingsBase();
+        fastmem_arena ? memory.GetLogicalBase() : memory.GetLogicalPageMappingsBase();
   }
   else
   {
     ppc_state.mem_ptr =
-        m_jit->jo.fastmem_arena ? memory.GetPhysicalBase() : memory.GetPhysicalPageMappingsBase();
+        fastmem_arena ? memory.GetPhysicalBase() : memory.GetPhysicalPageMappingsBase();
   }
 }
 

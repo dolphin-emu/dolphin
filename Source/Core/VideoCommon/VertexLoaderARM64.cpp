@@ -56,7 +56,7 @@ VertexLoaderARM64::VertexLoaderARM64(const TVtxDesc& vtx_desc, const VAT& vtx_at
   const Common::ScopedJITPageWriteAndNoExecute enable_jit_page_writes;
   ClearCodeSpace();
   GenerateVertexLoader();
-  WriteProtect();
+  WriteProtect(true);
 }
 
 // Returns the register to use as the base and an offset from that register.

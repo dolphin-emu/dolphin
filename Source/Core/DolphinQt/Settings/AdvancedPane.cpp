@@ -255,7 +255,6 @@ void AdvancedPane::Update()
   m_cpu_emulation_engine_combobox->setEnabled(!running);
   m_enable_mmu_checkbox->setEnabled(!running);
   m_pause_on_panic_checkbox->setEnabled(!running);
-  m_accurate_cpu_cache_checkbox->setEnabled(!running);
 
   {
     QFont bf = font();

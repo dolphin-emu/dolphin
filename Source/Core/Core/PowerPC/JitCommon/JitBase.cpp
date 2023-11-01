@@ -115,7 +115,7 @@ bool JitBase::DoesConfigNeedRefresh()
   });
 }
 
-void JitBase::RefreshConfig(InitFastmemArena init_fastmem_arena)
+void JitBase::RefreshConfig()
 {
   for (const auto& [member, config_info] : JIT_SETTINGS)
     this->*member = Config::Get(*config_info);
@@ -132,18 +132,18 @@ void JitBase::RefreshConfig(InitFastmemArena init_fastmem_arena)
   analyzer.SetFloatExceptionsEnabled(m_enable_float_exceptions);
   analyzer.SetDivByZeroExceptionsEnabled(m_enable_div_by_zero_exceptions);
 
-  if (init_fastmem_arena != InitFastmemArena::No)
-  {
-    auto& memory = m_system.GetMemory();
-    jo.fastmem_arena = m_fastmem_enabled && memory.InitFastmemArena();
-  }
-
   bool any_watchpoints = m_system.GetPowerPC().GetMemChecks().HasAny();
   jo.fastmem = m_fastmem_enabled && jo.fastmem_arena && (m_ppc_state.msr.DR || !any_watchpoints) &&
                EMM::IsExceptionHandlerSupported();
   jo.memcheck = m_system.IsMMUMode() || m_system.IsPauseOnPanicMode() || any_watchpoints;
   jo.fp_exceptions = m_enable_float_exceptions;
   jo.div_by_zero_exceptions = m_enable_div_by_zero_exceptions;
+}
+
+void JitBase::InitFastmemArena()
+{
+  auto& memory = m_system.GetMemory();
+  jo.fastmem_arena = Config::Get(Config::MAIN_FASTMEM_ARENA) && memory.InitFastmemArena();
 }
 
 void JitBase::InitBLROptimization()

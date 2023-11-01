@@ -233,7 +233,7 @@ protected:
     // Only emits fast access code. Must only be used if the guest address is known in advance
     // and IsOptimizableRAMAddress returns true for it, otherwise Dolphin will likely crash!
     AlwaysUnsafe,
-    // Best in most cases. If backpatching is possible (!emitting_routine && jo.fastmem_arena):
+    // Best in most cases. If backpatching is possible (!emitting_routine && jo.fastmem):
     // Tries to run fast access code, and if that fails, uses backpatching to replace the code
     // with a call to the slow C++ code. Otherwise: Checks whether the fast access code will work,
     // then branches to either the fast access code or the slow C++ code.
@@ -259,10 +259,10 @@ protected:
   //
   // emitting_routine && mode == Auto:                                            X2
   // emitting_routine && mode == Auto && !(flags & BackPatchInfo::FLAG_STORE):    X3
-  // emitting_routine && mode != AlwaysSafe && !jo.fastmem_arena:                 X3
-  // mode != AlwaysSafe && !jo.fastmem_arena:                                     X2
-  // !emitting_routine && mode != AlwaysSafe && !jo.fastmem_arena:                X30
-  // !emitting_routine && mode == Auto && jo.fastmem_arena:                       X30
+  // emitting_routine && mode != AlwaysSafe && !jo.fastmem:                       X3
+  // mode != AlwaysSafe && !jo.fastmem:                                           X2
+  // !emitting_routine && mode != AlwaysSafe && !jo.fastmem:                      X30
+  // !emitting_routine && mode == Auto && jo.fastmem:                             X30
   //
   // Furthermore, any callee-saved register which isn't marked in gprs_to_push/fprs_to_push
   // may be clobbered if mode != AlwaysUnsafe.

@@ -251,7 +251,9 @@ bool Jit64::BackPatch(SContext* ctx)
 
 void Jit64::Init()
 {
-  RefreshConfig(InitFastmemArena::Yes);
+  InitFastmemArena();
+
+  RefreshConfig();
 
   EnableBlockLink();
 
@@ -304,7 +306,8 @@ void Jit64::ClearCache()
   m_const_pool.Clear();
   ClearCodeSpace();
   Clear();
-  RefreshConfig(InitFastmemArena::No);
+  RefreshConfig();
+  asm_routines.Regenerate();
   ResetFreeMemoryRanges();
 }
 

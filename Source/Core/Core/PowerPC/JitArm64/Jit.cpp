@@ -47,7 +47,9 @@ JitArm64::~JitArm64() = default;
 
 void JitArm64::Init()
 {
-  RefreshConfig(InitFastmemArena::Yes);
+  InitFastmemArena();
+
+  RefreshConfig();
 
   const size_t child_code_size = jo.memcheck ? FARCODE_SIZE_MMU : FARCODE_SIZE;
   AllocCodeSpace(CODE_SIZE + child_code_size);
@@ -155,7 +157,7 @@ void JitArm64::ClearCache()
   const Common::ScopedJITPageWriteAndNoExecute enable_jit_page_writes;
   ClearCodeSpace();
   m_far_code.ClearCodeSpace();
-  RefreshConfig(InitFastmemArena::No);
+  RefreshConfig();
 
   GenerateAsm();
 
@@ -364,8 +366,8 @@ void JitArm64::EmitStoreMembase(const ARM64Reg& msr)
   auto& memory = m_system.GetMemory();
   ARM64Reg WD = gpr.GetReg();
   ARM64Reg XD = EncodeRegTo64(WD);
-  MOVP2R(MEM_REG, jo.fastmem_arena ? memory.GetLogicalBase() : memory.GetLogicalPageMappingsBase());
-  MOVP2R(XD, jo.fastmem_arena ? memory.GetPhysicalBase() : memory.GetPhysicalPageMappingsBase());
+  MOVP2R(MEM_REG, jo.fastmem ? memory.GetLogicalBase() : memory.GetLogicalPageMappingsBase());
+  MOVP2R(XD, jo.fastmem ? memory.GetPhysicalBase() : memory.GetPhysicalPageMappingsBase());
   TST(msr, LogicalImm(1 << (31 - 27), 32));
   CSEL(MEM_REG, MEM_REG, XD, CCFlags::CC_NEQ);
   STR(IndexType::Unsigned, MEM_REG, PPC_REG, PPCSTATE_OFF(mem_ptr));

@@ -18,6 +18,7 @@
 #include "Common/FloatUtils.h"
 #include "Common/Logging/Log.h"
 
+#include "Core/CPUThreadConfigCallback.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -262,8 +263,25 @@ CPUCore DefaultCPUCore()
 #endif
 }
 
+void PowerPCManager::RefreshConfig()
+{
+  const bool old_enable_dcache = m_ppc_state.m_enable_dcache;
+
+  m_ppc_state.m_enable_dcache = Config::Get(Config::MAIN_ACCURATE_CPU_CACHE);
+
+  if (old_enable_dcache && !m_ppc_state.m_enable_dcache)
+  {
+    INFO_LOG_FMT(POWERPC, "Flushing data cache");
+    m_ppc_state.dCache.FlushAll();
+  }
+}
+
 void PowerPCManager::Init(CPUCore cpu_core)
 {
+  m_registered_config_callback_id =
+      CPUThreadConfigCallback::AddConfigChangedCallback([this] { RefreshConfig(); });
+  RefreshConfig();
+
   m_invalidate_cache_thread_safe =
       m_system.GetCoreTiming().RegisterEvent("invalidateEmulatedCache", InvalidateCacheThreadSafe);
 
@@ -272,8 +290,6 @@ void PowerPCManager::Init(CPUCore cpu_core)
   InitializeCPUCore(cpu_core);
   m_ppc_state.iCache.Init();
   m_ppc_state.dCache.Init();
-
-  m_ppc_state.m_enable_dcache = Config::Get(Config::MAIN_ACCURATE_CPU_CACHE);
 
   if (Config::Get(Config::MAIN_ENABLE_DEBUGGING))
     m_breakpoints.ClearAllTemporary();
@@ -307,6 +323,7 @@ void PowerPCManager::ScheduleInvalidateCacheThreadSafe(u32 address)
 
 void PowerPCManager::Shutdown()
 {
+  CPUThreadConfigCallback::RemoveConfigChangedCallback(m_registered_config_callback_id);
   InjectExternalCPUCore(nullptr);
   m_system.GetJitInterface().Shutdown();
   m_system.GetInterpreter().Shutdown();

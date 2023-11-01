@@ -35,6 +35,7 @@ public:
   explicit Jit64AsmRoutineManager(Jit64& jit);
 
   void Init();
+  void Regenerate();
 
   void ResetStack(Gen::X64CodeBlock& emitter);
 

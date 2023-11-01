@@ -13,6 +13,7 @@
 
 #include "Common/CommonTypes.h"
 
+#include "Core/CPUThreadConfigCallback.h"
 #include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/PowerPC/BreakPoints.h"
 #include "Core/PowerPC/ConditionRegister.h"
@@ -297,6 +298,7 @@ private:
   void InitializeCPUCore(CPUCore cpu_core);
   void ApplyMode();
   void ResetRegisters();
+  void RefreshConfig();
 
   PowerPCState m_ppc_state;
 
@@ -307,6 +309,8 @@ private:
   BreakPoints m_breakpoints;
   MemChecks m_memchecks;
   PPCDebugInterface m_debug_interface;
+
+  CPUThreadConfigCallback::ConfigChangedCallbackID m_registered_config_callback_id;
 
   CoreTiming::EventType* m_invalidate_cache_thread_safe = nullptr;
 
