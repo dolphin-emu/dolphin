@@ -1,17 +1,32 @@
-# <a name="main-heading"></a>Dolphin Coding Style & Licensing
+# <a name="main-section-overview"></a>Dolphin Coding Style & Legal Requirements
 
-If you make any contributions to Dolphin after December 1st, 2014, you are agreeing that any code you have contributed will be licensed under the GNU GPL version 2 (or any later version).
-
-# <a name="main-section-overview"></a>Main sections
-
-- [Introduction](#introduction)
+- [Legal](#legal)
+- [Coding style introduction](#introduction)
 - [C++ coding style and formatting](#cpp-coding-style-and-formatting)
 - [C++ code-specific guidelines](#cpp-code-specific-guidelines)
 - [Android](#android)
 - [Help](#help)
 
+# <a name="legal"></a>Legal
 
-# <a name="introduction"></a>Introduction
+Summary:
+
+- [Trade secrets](#trade-secrets)
+- [Code licensing](#code-licensing)
+
+## <a name="trade-secrets"></a>Trade secrets
+
+Following all relevant laws is of utmost importance for an emulation project like Dolphin.
+
+If you know any confidential information related to the GameCube, Wii, or Triforce, either because you signed a non-disclosure agreement or because you looked at leaked materials, we ask that you don't contribute code to Dolphin **at all**. While accepting code from contributors who know confidential information is legal if the code is unrelated to the confidential information, we refuse to accept code from such contributors because it greatly increases our review burden and increases the legal risk we take.
+
+Also, this probably goes without saying, but piracy is strictly forbidden both on GitHub and in all other Dolphin channels.
+
+## <a name="code-licensing"></a>Code licensing
+
+If you make any contributions to Dolphin after December 1st, 2014, you are agreeing that any code you have contributed will be licensed under the GNU GPL version 2 (or any later version).
+
+# <a name="introduction"></a>Coding style introduction
 
 Summary:
 
