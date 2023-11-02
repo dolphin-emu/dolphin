@@ -52,9 +52,10 @@ protected:
 private:
   void CreateWidgets();
   void ConnectWidgets();
+  void DisableButtons(bool enabled);
   void ClearAll();
   u32 GetVerbosity() const;
-  void OnRecordTrace(bool checked);
+  void OnRecordTrace();
   void LogCreated(std::optional<QString> target_register = std::nullopt);
   std::vector<TraceResults> CodePath(u32 start, u32 end, size_t results_limit);
   std::vector<TraceResults> MakeTraceFromLog();
@@ -78,12 +79,12 @@ private:
   QCheckBox* m_filter_active;
   QCheckBox* m_clear_on_loop;
   QCheckBox* m_change_range;
-  QPushButton* m_reprocess;
+  QPushButton* m_filter_btn;
   QLabel* m_record_limit_label;
   QLabel* m_results_limit_label;
   QSpinBox* m_record_limit_input;
   QSpinBox* m_results_limit_input;
-  QPushButton* m_record_trace;
+  QPushButton* m_record_btn;
 
   QColor m_tracked_color = Qt::blue;
   QColor m_overwritten_color = Qt::red;
@@ -95,5 +96,6 @@ private:
   size_t m_record_limit = 150000;
   std::vector<QString> m_error_msg;
   int m_font_vspace = 0;
-  bool m_recording = false;
+  bool m_running = false;
+  bool m_updating = false;
 };

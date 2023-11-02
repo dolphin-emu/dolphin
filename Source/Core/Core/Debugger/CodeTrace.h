@@ -11,8 +11,6 @@
 
 #include "Common/CommonTypes.h"
 
-#define MAX_REGISTERS 4
-
 namespace Core
 {
 class CPUThreadGuard;

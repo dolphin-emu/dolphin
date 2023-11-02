@@ -146,8 +146,8 @@ void TraceWidget::CreateWidgets()
   m_record_stop_addr = new QComboBox();
   m_record_stop_addr->setEditable(true);
   m_record_stop_addr->lineEdit()->setPlaceholderText(tr("Stop at BP or address"));
-  m_record_trace = new QPushButton(tr("Record Trace"));
-  m_record_trace->setCheckable(true);
+  m_record_btn = new QPushButton(tr("Record Trace"));
+  m_record_btn->setCheckable(true);
 
   auto* record_options_box = new QGroupBox(tr("Recording options"));
   auto* record_options_layout = new QGridLayout;
@@ -170,7 +170,7 @@ void TraceWidget::CreateWidgets()
 
   auto* results_options_box = new QGroupBox(tr("Result Options"));
   auto* results_options_layout = new QGridLayout;
-  m_reprocess = new QPushButton(tr("Apply and Update"));
+  m_filter_btn = new QPushButton(tr("Apply and Update"));
 
   QLabel* trace_target_label = new QLabel(tr("Trace value in"));
   m_trace_target = new QLineEdit();
@@ -209,7 +209,7 @@ void TraceWidget::CreateWidgets()
   results_options_layout->addWidget(m_show_values, 2, 1);
   results_options_layout->addWidget(m_change_range, 3, 0);
   results_options_layout->addLayout(range_layout, 4, 0, 1, 2);
-  results_options_layout->addWidget(m_reprocess, 5, 0, 1, 2);
+  results_options_layout->addWidget(m_filter_btn, 5, 0, 1, 2);
 
   results_options_box->setLayout(results_options_layout);
 
@@ -239,7 +239,7 @@ void TraceWidget::CreateWidgets()
 
   input_layout->setSpacing(1);
   input_layout->addItem(new QSpacerItem(1, 20));
-  input_layout->addWidget(m_record_trace);
+  input_layout->addWidget(m_record_btn);
   input_layout->addWidget(record_options_box);
   input_layout->addItem(new QSpacerItem(1, 32));
   input_layout->addWidget(results_options_box);
@@ -251,9 +251,13 @@ void TraceWidget::CreateWidgets()
   m_output_table->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
   m_output_table->setShowGrid(false);
   m_output_table->verticalHeader()->setVisible(false);
-  m_output_table->setColumnCount(1);
-  m_output_table->setRowCount(1);
+  m_output_table->setColumnCount(7);
+  m_output_table->setRowCount(100);
   m_output_table->setContextMenuPolicy(Qt::CustomContextMenu);
+  m_output_table->setEditTriggers(QAbstractItemView::EditTrigger::NoEditTriggers);
+  m_output_table->setSelectionMode(QAbstractItemView::NoSelection);
+  m_output_table->setHorizontalHeaderLabels({tr("Address"), tr("Instr"), tr("Reg"), tr("Arg1"),
+                                             tr("Arg2"), tr("Arg3 / Info"), tr("Symbol")});
 
   auto* splitter = new QSplitter(Qt::Horizontal);
   auto* sidebar_scroll = new QScrollArea;
@@ -268,8 +272,6 @@ void TraceWidget::CreateWidgets()
   splitter->addWidget(sidebar_scroll);
   layout->addWidget(splitter);
 
-  InfoDisp();
-
   auto* widget = new QWidget;
   widget->setLayout(layout);
   setWidget(widget);
@@ -278,13 +280,13 @@ void TraceWidget::CreateWidgets()
 
 void TraceWidget::ConnectWidgets()
 {
-  connect(m_record_trace, &QPushButton::clicked, [this](bool record) {
+  connect(m_record_btn, &QPushButton::clicked, [this](bool record) {
     if (record)
-      OnRecordTrace(record);
+      OnRecordTrace();
     else
       ClearAll();
   });
-  connect(m_reprocess, &QPushButton::clicked, this, &TraceWidget::DisplayTrace);
+  connect(m_filter_btn, &QPushButton::clicked, this, &TraceWidget::DisplayTrace);
   connect(m_change_range, &QCheckBox::stateChanged, this, [this](bool checked) {
     m_range_start->setEnabled(checked);
     m_range_end->setEnabled(checked);
@@ -293,7 +295,7 @@ void TraceWidget::ConnectWidgets()
   // Useful when both widgets are visible. There's also a right-click option to switch to the code
   // tab.
   connect(m_output_table, &QTableWidget::itemClicked, [this](QTableWidgetItem* item) {
-    if (m_record_trace->isChecked())
+    if (m_record_btn->isChecked() && item->column() == 0)
     {
       emit ShowCode(item->data(ADDRESS_ROLE).toUInt());
       raise();
@@ -304,24 +306,38 @@ void TraceWidget::ConnectWidgets()
           &TraceWidget::OnContextMenu);
 }
 
+void TraceWidget::DisableButtons(bool enabled)
+{
+  // Will queue one click on a disabled button without this.
+  qApp->processEvents();
+
+  m_record_btn->setDisabled(enabled);
+  m_filter_btn->setDisabled(enabled);
+
+  // Required for UI update if function takes a long time to execute.
+  repaint();
+  qApp->processEvents();
+
+  m_running = enabled;
+}
+
 void TraceWidget::ClearAll()
 {
   std::vector<TraceOutput>().swap(m_code_trace);
   m_output_table->clear();
+  m_output_table->setHorizontalHeaderLabels({tr("Address"), tr("Instr"), tr("Reg"), tr("Arg1"),
+                                             tr("Arg2"), tr("Arg3 / Info"), tr("Symbol")});
   m_output_table->setWordWrap(true);
-  m_output_table->setColumnCount(1);
-  m_output_table->setRowCount(1);
   m_record_stop_addr->setEnabled(true);
   m_record_stop_addr->setCurrentText(tr("Stop at BP or address"));
   m_change_range->setChecked(false);
   m_change_range->setDisabled(true);
-  m_record_trace->setText(tr("Record Trace"));
-  m_record_trace->setChecked(false);
+  m_record_btn->setText(tr("Record Trace"));
+  m_record_btn->setChecked(false);
   m_record_limit_input->setDisabled(false);
   m_record_limit_label->setText(tr("Maximum to record"));
   m_results_limit_label->setText(tr("Maximum results"));
   UpdateBreakpoints();
-  InfoDisp();
 }
 
 void TraceWidget::LogCreated(std::optional<QString> target_register)
@@ -339,21 +355,17 @@ void TraceWidget::LogCreated(std::optional<QString> target_register)
   // Update UI
   m_record_stop_addr->setDisabled(true);
   m_change_range->setEnabled(true);
-  m_record_trace->setDisabled(false);
-  m_reprocess->setDisabled(false);
-  m_recording = false;
-  m_record_trace->setChecked(true);
-  m_record_trace->setText(tr("Delete log and reset"));
+  m_record_btn->setChecked(true);
+  m_record_btn->setText(tr("Delete log and reset"));
   m_record_limit_input->setDisabled(true);
   m_output_table->setWordWrap(false);
-  m_output_table->setColumnCount(7);
-  m_output_table->setRowCount(100);
 
   // Set register from autostepping
   if (target_register)
     m_trace_target->setText(target_register.value());
 
-  TraceWidget::DisplayTrace();
+  m_running = false;
+  DisplayTrace();
 }
 
 u32 TraceWidget::GetVerbosity() const
@@ -381,10 +393,10 @@ void TraceWidget::AutoStep(CodeTrace::AutoStop option, const std::string reg)
   // silently follows target through reshuffles in memory and registers and stops on use or update.
   // Note: This records a log of all instructions executed, which is later re-processed to display
   // the register trace. No log is created if one already exists.
-  if (!m_system.GetCPU().IsStepping() || m_recording)
+  if (!m_system.GetCPU().IsStepping() || m_running)
     return;
 
-  m_recording = true;
+  DisableButtons(true);
 
   CodeTrace code_trace;
   bool repeat = false;
@@ -474,16 +486,18 @@ void TraceWidget::AutoStep(CodeTrace::AutoStop option, const std::string reg)
   if (log_trace)
     LogCreated(target_register);
   else
-    m_recording = false;
+    m_running = false;
 }
 
-void TraceWidget::OnRecordTrace(bool checked)
+void TraceWidget::OnRecordTrace()
 {
-  m_record_trace->setChecked(false);
+  // Fix not using checked
+  m_record_btn->setChecked(false);
 
-  if (!m_system.GetCPU().IsStepping() || m_recording)
+  if (!m_system.GetCPU().IsStepping() || m_running)
     return;
 
+  DisableButtons(true);
   // Try to get end_bp based on editable input text, then on combo box selection.
   bool good;
   u32 end_bp = m_record_stop_addr->currentText().toUInt(&good, 16);
@@ -493,9 +507,6 @@ void TraceWidget::OnRecordTrace(bool checked)
     end_bp = 0;
 
   CodeTrace codetrace;
-  m_recording = true;
-  m_record_trace->setDisabled(true);
-  m_reprocess->setDisabled(true);
 
   m_record_limit = m_record_limit_input->value();
 
@@ -686,10 +697,13 @@ std::vector<TraceResults> TraceWidget::MakeTraceFromLog()
 
 void TraceWidget::DisplayTrace()
 {
-  if (m_code_trace.empty())
+  if (m_code_trace.empty() || m_running)
     return;
 
-  m_output_table->clear();
+  DisableButtons(true);
+
+  // Clear old data
+  m_output_table->setRowCount(0);
 
   const std::vector<TraceResults> trace_results = MakeTraceFromLog();
 
@@ -709,23 +723,9 @@ void TraceWidget::DisplayTrace()
   std::regex reg("(\\S*)\\s+(?:(\\S{0,12})\\s*)?(?:(\\S{0,8})\\s*)?(?:(\\S{0,8})\\s*)?(.*)");
 
   std::smatch match;
-  m_output_table->setColumnCount(7);
   m_output_table->setRowCount(static_cast<int>(trace_results.size() + m_error_msg.size() + 1));
 
   int row = 0;
-
-  for (auto& error : m_error_msg)
-  {
-    auto* error_item = new QTableWidgetItem(error);
-    m_output_table->setItem(row, 0, error_item);
-    m_output_table->setSpan(row, 0, 1, m_output_table->columnCount());
-    row++;
-  }
-
-  if (!m_error_msg.empty())
-    row++;
-
-  m_error_msg.clear();
 
   for (auto& result : trace_results)
   {
@@ -769,10 +769,6 @@ void TraceWidget::DisplayTrace()
     // Allow ->0x80123456 to overflow into next column.
     if (match.str(2).length() == 12)
       m_output_table->setSpan(row, 2, 1, 2);
-
-    addr_item->setData(ADDRESS_ROLE, out.address);
-    if (out.memory_target)
-      arg3_item->setData(MEM_ADDRESS_ROLE, *out.memory_target);
 
     // Colors and show values.
     for (auto* item : {target_item, arg1_item, arg2_item, arg3_item})
@@ -832,6 +828,11 @@ void TraceWidget::DisplayTrace()
         item->setText(item->text().prepend(QLatin1Char(' ')));
     }
 
+    // Just manage all data in column 0.
+    addr_item->setData(ADDRESS_ROLE, out.address);
+    if (out.memory_target)
+      addr_item->setData(MEM_ADDRESS_ROLE, *out.memory_target);
+
     m_output_table->setItem(row, 0, addr_item);
     m_output_table->setItem(row, 1, instr_item);
     m_output_table->setItem(row, 2, target_item);
@@ -843,17 +844,30 @@ void TraceWidget::DisplayTrace()
     row++;
   }
 
-  // Unlike other TableWidgets, new columns will not be created while scrolling, so resizing to
+  // Unlike other TableWidgets, new rows will not be created while scrolling, so resizing to
   // contents works here.
-  m_output_table->verticalHeader()->setMaximumSectionSize(m_font_vspace);
   m_output_table->resizeColumnsToContents();
+
+  // ResizeColumnsToContents() has problems with sizing spans, so adding error msg last.
+  for (auto& error : m_error_msg)
+  {
+    auto* error_item = new QTableWidgetItem(error);
+    m_output_table->insertRow(0);
+    m_output_table->setItem(0, 0, error_item);
+    m_output_table->setSpan(0, 0, 1, m_output_table->columnCount());
+    row++;
+  }
+
+  m_error_msg.clear();
   m_output_table->resizeRowsToContents();
+  m_output_table->verticalHeader()->setMaximumSectionSize(m_font_vspace);
+  DisableButtons(false);
 }
 
 void TraceWidget::UpdateBreakpoints()
 {
   // Leave the recorded end intact.
-  if (m_record_trace->isChecked())
+  if (m_record_btn->isChecked())
   {
     for (int i = m_record_stop_addr->count(); i > 1; i--)
       m_record_stop_addr->removeItem(1);
@@ -880,10 +894,10 @@ void TraceWidget::UpdateBreakpoints()
   }
 
   // User typically wants the most recently placed breakpoint.
-  if (!m_record_trace->isChecked())
+  if (!m_record_btn->isChecked())
     m_record_stop_addr->setCurrentIndex(index);
 }
-
+/*
 void TraceWidget::InfoDisp()
 {
   // i18n: Here, PC is an acronym for program counter, not personal computer.
@@ -923,25 +937,31 @@ void TraceWidget::InfoDisp()
   m_output_table->resizeRowsToContents();
   m_output_table->setWordWrap(true);
 }
-
+*/
 void TraceWidget::OnContextMenu()
 {
+  // Use column 0 to manage data, eveything in the row does the same thing.
+  auto* item = m_output_table->item(m_output_table->currentItem()->row(), 0);
+  const u32 addr = item->data(ADDRESS_ROLE).toUInt();
+  const u32 mem_addr = item->data(MEM_ADDRESS_ROLE).toUInt();
+
   QMenu* menu = new QMenu(this);
-  menu->addAction(tr("Copy &address"), this, [this]() {
-    const u32 addr = m_output_table->currentItem()->data(ADDRESS_ROLE).toUInt();
-    QApplication::clipboard()->setText(QStringLiteral("%1").arg(addr, 8, 16, QLatin1Char('0')));
-  });
-  menu->addAction(tr("Show &code address"), this, [this]() {
-    const u32 addr = m_output_table->currentItem()->data(ADDRESS_ROLE).toUInt();
-    emit ShowCode(addr);
-  });
-  menu->addAction(tr("Copy &memory address"), this, [this]() {
-    const u32 addr = m_output_table->currentItem()->data(MEM_ADDRESS_ROLE).toUInt();
-    QApplication::clipboard()->setText(QStringLiteral("%1").arg(addr, 8, 16, QLatin1Char('0')));
-  });
-  menu->addAction(tr("&Show memory address"), this, [this]() {
-    const u32 addr = m_output_table->currentItem()->data(MEM_ADDRESS_ROLE).toUInt();
-    emit ShowMemory(addr);
-  });
+  if (addr != 0)
+  {
+    menu->addAction(tr("Copy &address"), this, [this, addr]() {
+      QApplication::clipboard()->setText(QStringLiteral("%1").arg(addr, 8, 16, QLatin1Char('0')));
+    });
+    menu->addAction(tr("Show &code address"), this, [this, addr]() { emit ShowCode(addr); });
+  }
+
+  if (mem_addr != 0)
+  {
+    menu->addAction(tr("Copy &memory address"), this, [this, mem_addr]() {
+      QApplication::clipboard()->setText(
+          QStringLiteral("%1").arg(mem_addr, 8, 16, QLatin1Char('0')));
+    });
+    menu->addAction(tr("&Show memory address"), this,
+                    [this, mem_addr]() { emit ShowMemory(mem_addr); });
+  }
   menu->exec(QCursor::pos());
 }

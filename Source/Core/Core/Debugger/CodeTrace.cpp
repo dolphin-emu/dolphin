@@ -405,7 +405,7 @@ HitType CodeTrace::TraceLogic(const TraceOutput& current_instr, bool first_hit,
 {
   // Tracks the original value that is in the targeted register or memory through loads, stores,
   // register moves, and value changes. Also finds when it is used. ps operations are not fully
-  // supported. -ux memory instructions may need special cases.
+  // supported. -ux and -m memory instructions may need special cases.
   // Should not be called if reg and mem tracked are empty.
 
   // Using a std::set because it can easily insert the items being accessed without causing
