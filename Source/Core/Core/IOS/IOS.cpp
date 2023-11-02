@@ -28,6 +28,8 @@
 #include "Core/CoreTiming.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/WII_IPC.h"
+#include "Core/IOS/Crypto/AesDevice.h"
+#include "Core/IOS/Crypto/Sha.h"
 #include "Core/IOS/DI/DI.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/DeviceStub.h"
@@ -333,6 +335,9 @@ EmulationKernel::EmulationKernel(Core::System& system, u64 title_id)
 
   m_fs = FS::MakeFileSystem(IOS::HLE::FS::Location::Session, Core::GetActiveNandRedirects());
   ASSERT(m_fs);
+
+  AddDevice(std::make_unique<AesDevice>(*this, "/dev/aes"));
+  AddDevice(std::make_unique<ShaDevice>(*this, "/dev/sha"));
 
   m_fs_core = std::make_unique<FSCore>(*this);
   AddDevice(std::make_unique<FSDevice>(*this, *m_fs_core, "/dev/fs"));
@@ -649,6 +654,22 @@ std::shared_ptr<Device> EmulationKernel::GetDeviceByName(std::string_view device
   return iterator != m_device_map.end() ? iterator->second : nullptr;
 }
 
+std::shared_ptr<Device> EmulationKernel::GetDeviceByFileDescriptor(const int fd)
+{
+  if (fd < IPC_MAX_FDS)
+    return m_fdmap[fd];
+
+  switch (fd)
+  {
+  case 0x10000:
+    return GetDeviceByName("/dev/aes");
+  case 0x10001:
+    return GetDeviceByName("/dev/sha");
+  default:
+    return nullptr;
+  }
+}
+
 // Returns the FD for the newly opened device (on success) or an error code.
 std::optional<IPCReply> EmulationKernel::OpenDevice(OpenRequest& request)
 {
@@ -703,7 +724,7 @@ std::optional<IPCReply> EmulationKernel::HandleIPCCommand(const Request& request
     return OpenDevice(open_request);
   }
 
-  const auto device = (request.fd < IPC_MAX_FDS) ? m_fdmap[request.fd] : nullptr;
+  const auto device = GetDeviceByFileDescriptor(request.fd);
   if (!device)
     return IPCReply{IPC_EINVAL, 550_tbticks};
 
@@ -713,7 +734,9 @@ std::optional<IPCReply> EmulationKernel::HandleIPCCommand(const Request& request
   switch (request.command)
   {
   case IPC_CMD_CLOSE:
-    m_fdmap[request.fd].reset();
+    // if the fd is not a special IOS FD, we need to reset it too
+    if (request.fd < IPC_MAX_FDS)
+      m_fdmap[request.fd].reset();
     ret = device->Close(request.fd);
     break;
   case IPC_CMD_READ:

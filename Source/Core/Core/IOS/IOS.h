@@ -154,6 +154,7 @@ public:
   // Get a resource manager by name.
   // This only works for devices which are part of the device map.
   std::shared_ptr<Device> GetDeviceByName(std::string_view device_name);
+  std::shared_ptr<Device> GetDeviceByFileDescriptor(const int fd);
 
   std::shared_ptr<FSDevice> GetFSDevice();
   std::shared_ptr<ESDevice> GetESDevice();
