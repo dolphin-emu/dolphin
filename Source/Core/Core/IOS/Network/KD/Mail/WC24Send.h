@@ -26,9 +26,10 @@ class WC24SendList final
 public:
   explicit WC24SendList(std::shared_ptr<FS::FileSystem> fs);
 
-  void ReadSendList();
+  bool ReadSendList();
   bool CheckSendList() const;
   void WriteSendList() const;
+  bool IsDisabled() const;
 
   std::string_view GetMailFlag() const;
 
@@ -47,6 +48,7 @@ private:
 
   SendList m_data;
   std::shared_ptr<FS::FileSystem> m_fs;
+  bool m_is_disabled = false;
 };
 }  // namespace NWC24::Mail
 }  // namespace IOS::HLE
