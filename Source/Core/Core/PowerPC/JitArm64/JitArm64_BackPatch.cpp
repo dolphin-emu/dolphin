@@ -60,16 +60,16 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
   const u32 access_size = BackPatchInfo::GetFlagSize(flags);
 
   if (m_accurate_cpu_cache_enabled)
-    mode = MemAccessMode::AlwaysSafe;
+    mode = MemAccessMode::AlwaysSlowAccess;
 
-  const bool emit_fastmem = mode != MemAccessMode::AlwaysSafe;
-  const bool emit_slowmem = mode != MemAccessMode::AlwaysUnsafe;
+  const bool emit_fast_access = mode != MemAccessMode::AlwaysSlowAccess;
+  const bool emit_slow_access = mode != MemAccessMode::AlwaysFastAccess;
 
   bool in_far_code = false;
-  const u8* fastmem_start = GetCodePtr();
-  std::optional<FixupBranch> slowmem_fixup;
+  const u8* fast_access_start = GetCodePtr();
+  std::optional<FixupBranch> slow_access_fixup;
 
-  if (emit_fastmem)
+  if (emit_fast_access)
   {
     ARM64Reg memory_base = MEM_REG;
     ARM64Reg memory_offset = addr;
@@ -84,21 +84,21 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
       LSR(temp, addr, PowerPC::BAT_INDEX_SHIFT);
       LDR(memory_base, MEM_REG, ArithOption(temp, true));
 
-      if (emit_slowmem)
+      if (emit_slow_access)
       {
         FixupBranch pass = CBNZ(memory_base);
-        slowmem_fixup = B();
+        slow_access_fixup = B();
         SetJumpTarget(pass);
       }
 
       AND(memory_offset, addr, LogicalImm(PowerPC::BAT_PAGE_SIZE - 1, 64));
     }
-    else if (emit_slowmem && emitting_routine)
+    else if (emit_slow_access && emitting_routine)
     {
       const ARM64Reg temp1 = flags & BackPatchInfo::FLAG_STORE ? ARM64Reg::W0 : ARM64Reg::W3;
       const ARM64Reg temp2 = ARM64Reg::W2;
 
-      slowmem_fixup = CheckIfSafeAddress(addr, temp1, temp2);
+      slow_access_fixup = CheckIfSafeAddress(addr, temp1, temp2);
     }
 
     if ((flags & BackPatchInfo::FLAG_STORE) && (flags & BackPatchInfo::FLAG_FLOAT))
@@ -147,27 +147,27 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
       ByteswapAfterLoad(this, &m_float_emit, RS, RS, flags, true, false);
     }
   }
-  const u8* fastmem_end = GetCodePtr();
+  const u8* fast_access_end = GetCodePtr();
 
-  if (emit_slowmem)
+  if (emit_slow_access)
   {
     const bool memcheck = jo.memcheck && !emitting_routine;
 
-    if (emit_fastmem)
+    if (emit_fast_access)
     {
       in_far_code = true;
       SwitchToFarCode();
 
       if (jo.fastmem && !emitting_routine)
       {
-        FastmemArea* fastmem_area = &m_fault_to_handler[fastmem_end];
-        fastmem_area->fastmem_code = fastmem_start;
-        fastmem_area->slowmem_code = GetCodePtr();
+        FastmemArea* fastmem_area = &m_fault_to_handler[fast_access_end];
+        fastmem_area->fast_access_code = fast_access_start;
+        fastmem_area->slow_access_code = GetCodePtr();
       }
     }
 
-    if (slowmem_fixup)
-      SetJumpTarget(*slowmem_fixup);
+    if (slow_access_fixup)
+      SetJumpTarget(*slow_access_fixup);
 
     const ARM64Reg temp_gpr = flags & BackPatchInfo::FLAG_LOAD ? ARM64Reg::W30 : ARM64Reg::W0;
     const int temp_gpr_index = DecodeReg(temp_gpr);
@@ -304,7 +304,7 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
 
   if (in_far_code)
   {
-    if (slowmem_fixup)
+    if (slow_access_fixup)
     {
       FixupBranch done = B();
       SwitchToNearCode();
@@ -327,7 +327,7 @@ bool JitArm64::HandleFastmemFault(SContext* ctx)
   if (slow_handler_iter == m_fault_to_handler.end())
     return false;
 
-  const u8* fastmem_area_start = slow_handler_iter->second.fastmem_code;
+  const u8* fastmem_area_start = slow_handler_iter->second.fast_access_code;
   const u8* fastmem_area_end = slow_handler_iter->first;
 
   // no overlapping fastmem area found
@@ -337,7 +337,7 @@ bool JitArm64::HandleFastmemFault(SContext* ctx)
   const Common::ScopedJITPageWriteAndNoExecute enable_jit_page_writes;
   ARM64XEmitter emitter(const_cast<u8*>(fastmem_area_start), const_cast<u8*>(fastmem_area_end));
 
-  emitter.BL(slow_handler_iter->second.slowmem_code);
+  emitter.BL(slow_handler_iter->second.slow_access_code);
 
   while (emitter.GetCodePtr() < fastmem_area_end)
     emitter.NOP();

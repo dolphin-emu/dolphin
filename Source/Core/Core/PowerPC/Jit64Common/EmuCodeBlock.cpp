@@ -319,12 +319,12 @@ void EmuCodeBlock::MMIOLoadToReg(MMIO::Mapping* mmio, Gen::X64Reg reg_value,
 void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, int accessSize,
                                  s32 offset, BitSet32 registersInUse, bool signExtend, int flags)
 {
-  bool slowmem = (flags & SAFE_LOADSTORE_FORCE_SLOWMEM) != 0;
+  bool force_slow_access = (flags & SAFE_LOADSTORE_FORCE_SLOW_ACCESS) != 0;
 
   auto& js = m_jit.js;
   registersInUse[reg_value] = false;
   if (m_jit.jo.fastmem && !(flags & (SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_UPDATE_PC)) &&
-      !slowmem)
+      !force_slow_access)
   {
     u8* backpatchStart = GetWritableCodePtr();
     MovInfo mov;
@@ -373,7 +373,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
   FixupBranch exit;
   const bool dr_set = (flags & SAFE_LOADSTORE_DR_ON) || m_jit.m_ppc_state.msr.DR;
   const bool fast_check_address =
-      !slowmem && dr_set && m_jit.jo.fastmem_arena && !m_jit.m_ppc_state.m_enable_dcache;
+      !force_slow_access && dr_set && m_jit.jo.fastmem_arena && !m_jit.m_ppc_state.m_enable_dcache;
   if (fast_check_address)
   {
     FixupBranch slow = CheckIfSafeAddress(R(reg_value), reg_addr, registersInUse);
@@ -491,14 +491,14 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
                                      BitSet32 registersInUse, int flags)
 {
   bool swap = !(flags & SAFE_LOADSTORE_NO_SWAP);
-  bool slowmem = (flags & SAFE_LOADSTORE_FORCE_SLOWMEM) != 0;
+  bool force_slow_access = (flags & SAFE_LOADSTORE_FORCE_SLOW_ACCESS) != 0;
 
   // set the correct immediate format
   reg_value = FixImmediate(accessSize, reg_value);
 
   auto& js = m_jit.js;
   if (m_jit.jo.fastmem && !(flags & (SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_UPDATE_PC)) &&
-      !slowmem)
+      !force_slow_access)
   {
     u8* backpatchStart = GetWritableCodePtr();
     MovInfo mov;
@@ -543,7 +543,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
   FixupBranch exit;
   const bool dr_set = (flags & SAFE_LOADSTORE_DR_ON) || m_jit.m_ppc_state.msr.DR;
   const bool fast_check_address =
-      !slowmem && dr_set && m_jit.jo.fastmem_arena && !m_jit.m_ppc_state.m_enable_dcache;
+      !force_slow_access && dr_set && m_jit.jo.fastmem_arena && !m_jit.m_ppc_state.m_enable_dcache;
   if (fast_check_address)
   {
     FixupBranch slow = CheckIfSafeAddress(reg_value, reg_addr, registersInUse);

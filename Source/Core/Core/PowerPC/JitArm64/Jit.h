@@ -189,8 +189,8 @@ public:
 protected:
   struct FastmemArea
   {
-    const u8* fastmem_code;
-    const u8* slowmem_code;
+    const u8* fast_access_code;
+    const u8* slow_access_code;
   };
 
   void SetBlockLinkingEnabled(bool enabled);
@@ -229,10 +229,10 @@ protected:
   {
     // Always calls the slow C++ code. For performance reasons, should generally only be used if
     // the guest address is known in advance and IsOptimizableRAMAddress returns false for it.
-    AlwaysSafe,
+    AlwaysSlowAccess,
     // Only emits fast access code. Must only be used if the guest address is known in advance
     // and IsOptimizableRAMAddress returns true for it, otherwise Dolphin will likely crash!
-    AlwaysUnsafe,
+    AlwaysFastAccess,
     // Best in most cases. If backpatching is possible (!emitting_routine && jo.fastmem):
     // Tries to run fast access code, and if that fails, uses backpatching to replace the code
     // with a call to the slow C++ code. Otherwise: Checks whether the fast access code will work,
@@ -252,20 +252,20 @@ protected:
   // Store float:    X1       Q0
   // Load float:     X0
   //
-  // If mode == AlwaysUnsafe, the addr argument can be any register.
+  // If mode == AlwaysFastAccess, the addr argument can be any register.
   // Otherwise it must be the register listed in the table above.
   //
   // Additional scratch registers are used in the following situations:
   //
   // emitting_routine && mode == Auto:                                            X2
   // emitting_routine && mode == Auto && !(flags & BackPatchInfo::FLAG_STORE):    X3
-  // emitting_routine && mode != AlwaysSafe && !jo.fastmem:                       X3
-  // mode != AlwaysSafe && !jo.fastmem:                                           X2
-  // !emitting_routine && mode != AlwaysSafe && !jo.fastmem:                      X30
+  // emitting_routine && mode != AlwaysSlowAccess && !jo.fastmem:                 X3
+  // mode != AlwaysSlowAccess && !jo.fastmem:                                     X2
+  // !emitting_routine && mode != AlwaysSlowAccess && !jo.fastmem:                X30
   // !emitting_routine && mode == Auto && jo.fastmem:                             X30
   //
   // Furthermore, any callee-saved register which isn't marked in gprs_to_push/fprs_to_push
-  // may be clobbered if mode != AlwaysUnsafe.
+  // may be clobbered if mode != AlwaysFastAccess.
   void EmitBackpatchRoutine(u32 flags, MemAccessMode mode, Arm64Gen::ARM64Reg RS,
                             Arm64Gen::ARM64Reg addr, BitSet32 gprs_to_push = BitSet32(0),
                             BitSet32 fprs_to_push = BitSet32(0), bool emitting_routine = false);
@@ -356,7 +356,7 @@ protected:
   void SetFPRFIfNeeded(bool single, Arm64Gen::ARM64Reg reg);
   void Force25BitPrecision(Arm64Gen::ARM64Reg output, Arm64Gen::ARM64Reg input);
 
-  // <Fastmem fault location, slowmem handler location>
+  // <Fast path fault location, slow path handler location>
   std::map<const u8*, FastmemArea> m_fault_to_handler{};
   Arm64GPRCache gpr;
   Arm64FPRCache fpr;

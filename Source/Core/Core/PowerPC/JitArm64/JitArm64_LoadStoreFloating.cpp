@@ -176,7 +176,7 @@ void JitArm64::lfXX(UGeckoInstruction inst)
 
   if (is_immediate && m_mmu.IsOptimizableRAMAddress(imm_addr))
   {
-    EmitBackpatchRoutine(flags, MemAccessMode::AlwaysUnsafe, VD, XA, regs_in_use, fprs_in_use);
+    EmitBackpatchRoutine(flags, MemAccessMode::AlwaysFastAccess, VD, XA, regs_in_use, fprs_in_use);
   }
   else
   {
@@ -402,12 +402,14 @@ void JitArm64::stfXX(UGeckoInstruction inst)
     else if (m_mmu.IsOptimizableRAMAddress(imm_addr))
     {
       set_addr_reg_if_needed();
-      EmitBackpatchRoutine(flags, MemAccessMode::AlwaysUnsafe, V0, XA, regs_in_use, fprs_in_use);
+      EmitBackpatchRoutine(flags, MemAccessMode::AlwaysFastAccess, V0, XA, regs_in_use,
+                           fprs_in_use);
     }
     else
     {
       set_addr_reg_if_needed();
-      EmitBackpatchRoutine(flags, MemAccessMode::AlwaysSafe, V0, XA, regs_in_use, fprs_in_use);
+      EmitBackpatchRoutine(flags, MemAccessMode::AlwaysSlowAccess, V0, XA, regs_in_use,
+                           fprs_in_use);
     }
   }
   else
