@@ -32,9 +32,9 @@
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings.h"
 
-static const QString RECORD_BUTTON_STYLESHEET =
-    QStringLiteral("QPushButton:checked { background-color: rgb(150, 0, 0); border-style: solid; "
-                   "border-width: 3px; border-color: rgb(150,0,0); color: rgb(255, 255, 255);}");
+static const QString RECORD_BUTTON_STYLESHEET = QStringLiteral(
+    "QPushButton:checked { background-color: rgb(150, 0, 0); border-style: solid;"
+    "padding: 0px; border-width: 3px; border-color: rgb(150,0,0); color: rgb(255, 255, 255);}");
 
 CodeDiffDialog::CodeDiffDialog(CodeWidget* parent) : QDialog(parent), m_code_widget(parent)
 {
@@ -61,7 +61,6 @@ void CodeDiffDialog::CreateWidgets()
   m_record_btn = new QPushButton(tr("Start Recording"));
   m_record_btn->setCheckable(true);
   m_record_btn->setStyleSheet(RECORD_BUTTON_STYLESHEET);
-
   m_exclude_btn->setEnabled(false);
   m_include_btn->setEnabled(false);
 
@@ -89,6 +88,7 @@ void CodeDiffDialog::CreateWidgets()
   m_matching_results_table->setColumnWidth(2, 4);
   m_matching_results_table->setColumnWidth(3, 210);
   m_matching_results_table->setColumnWidth(4, 65);
+  m_matching_results_table->setCornerButtonEnabled(false);
   m_reset_btn = new QPushButton(tr("Reset All"));
   m_reset_btn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   m_help_btn = new QPushButton(tr("Help"));
