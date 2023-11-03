@@ -299,7 +299,7 @@ int ENET_CALLBACK TraversalClient::InterceptCallback(ENetHost* host, ENetEvent* 
                                   &host->receivedAddress) ||
       (host->receivedDataLength == 1 && host->receivedData[0] == 0))
   {
-    event->type = Common::ENet::SKIPPABLE_EVENT;
+    event->type = static_cast<ENetEventType>(Common::ENet::SKIPPABLE_EVENT);
     return 1;
   }
   return 0;
