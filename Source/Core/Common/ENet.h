@@ -3,7 +3,9 @@
 //
 #pragma once
 
+#include <bit>
 #include <memory>
+#include <type_traits>
 
 #include <SFML/Network/Packet.hpp>
 #include <enet/enet.h>
@@ -23,5 +25,6 @@ int ENET_CALLBACK InterceptCallback(ENetHost* host, ENetEvent* event);
 bool SendPacket(ENetPeer* socket, const sf::Packet& packet, u8 channel_id);
 
 // used for traversal packets and wake-up packets
-constexpr ENetEventType SKIPPABLE_EVENT = ENetEventType(42);
+constexpr ENetEventType SKIPPABLE_EVENT =
+    std::bit_cast<ENetEventType>(std::underlying_type_t<ENetEventType>(42));
 }  // namespace Common::ENet
