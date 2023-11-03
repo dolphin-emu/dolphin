@@ -167,7 +167,7 @@ NetKDRequestDevice::NetKDRequestDevice(EmulationKernel& ios, const std::string& 
     }
   });
 
-  m_handle_mail = !ios.GetIOSC().IsUsingDefaultId();
+  m_handle_mail = !ios.GetIOSC().IsUsingDefaultId() && !m_send_list.IsDisabled();
   m_scheduler_work_queue.Reset("WiiConnect24 Scheduler Worker",
                                [](std::function<void()> task) { task(); });
 
@@ -220,7 +220,7 @@ void NetKDRequestDevice::SchedulerTimer()
         mail_time_state = 0;
       }
 
-      if (m_download_span <= download_time_state)
+      if (m_download_span <= download_time_state && !m_dl_list.IsDisabled())
       {
         INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: Dispatching Download Task from Scheduler");
         m_scheduler_work_queue.EmplaceItem([this] { SchedulerWorker(SchedulerEvent::Download); });
@@ -630,6 +630,13 @@ NWC24::ErrorCode NetKDRequestDevice::KDDownload(const u16 entry_index,
 
 IPCReply NetKDRequestDevice::HandleNWC24CheckMailNow(const IOCtlRequest& request)
 {
+  if (!m_handle_mail)
+  {
+    LogError(ErrorType::CheckMail, NWC24::WC24_ERR_BROKEN);
+    WriteReturnValue(NWC24::WC24_ERR_BROKEN, request.buffer_out);
+    return IPCReply(IPC_SUCCESS);
+  }
+
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
@@ -645,7 +652,14 @@ IPCReply NetKDRequestDevice::HandleNWC24CheckMailNow(const IOCtlRequest& request
 
 IPCReply NetKDRequestDevice::HandleNWC24DownloadNowEx(const IOCtlRequest& request)
 {
-  m_dl_list.ReadDlList();
+  if (m_dl_list.IsDisabled() || !m_dl_list.ReadDlList())
+  {
+    // Signal that the DL List is broken.
+    LogError(ErrorType::KD_Download, NWC24::WC24_ERR_BROKEN);
+    WriteReturnValue(NWC24::WC24_ERR_BROKEN, request.buffer_out);
+    return IPCReply(IPC_SUCCESS);
+  }
+
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
   const u32 flags = memory.Read_U32(request.buffer_in);
