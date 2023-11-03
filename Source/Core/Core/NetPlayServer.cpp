@@ -387,7 +387,7 @@ void NetPlayServer::ThreadFunc()
       break;
       default:
         // not a valid switch case due to not technically being part of the enum
-        if (netEvent.type == Common::ENet::SKIPPABLE_EVENT)
+        if (static_cast<int>(netEvent.type) == Common::ENet::SKIPPABLE_EVENT)
           INFO_LOG_FMT(NETPLAY, "enet_host_service: skippable packet event");
         else
           ERROR_LOG_FMT(NETPLAY, "enet_host_service: unknown event type: {}", int(netEvent.type));
