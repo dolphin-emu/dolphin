@@ -51,7 +51,7 @@ public:
   static QSettings& GetQSettings();
 
   // UI
-  void SetThemeName(const QString& theme_name);
+  void TriggerThemeChanged();
   void InitDefaultPalette();
   void UpdateSystemDark();
   void SetSystemDark(bool dark);

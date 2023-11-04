@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include <string>
+#include <vector>
+
 #include "DolphinQt/Config/ToolTipControls/ToolTipComboBox.h"
 
 #include "Common/Config/Config.h"
@@ -17,4 +20,19 @@ private:
   void Update(int choice);
 
   Config::Info<int> m_setting;
+};
+
+class ConfigStringChoice : public ToolTipComboBox
+{
+  Q_OBJECT
+public:
+  ConfigStringChoice(const std::vector<std::string>& options,
+                     const Config::Info<std::string>& setting);
+
+private:
+  void Connect();
+  void Update(int index);
+  void Load();
+
+  Config::Info<std::string> m_setting;
 };

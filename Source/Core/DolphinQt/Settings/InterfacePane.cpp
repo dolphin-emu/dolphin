@@ -24,6 +24,7 @@
 #include "Core/Config/UISettings.h"
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
+#include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
@@ -120,18 +121,17 @@ void InterfacePane::CreateUI()
   m_combobox_language = MakeLanguageComboBox();
   combobox_layout->addRow(tr("&Language:"), m_combobox_language);
 
-  // Theme Combobox
-  m_combobox_theme = new QComboBox;
-  combobox_layout->addRow(tr("&Theme:"), m_combobox_theme);
-
   // List avalable themes
-  auto theme_search_results =
+  auto theme_paths =
       Common::DoFileSearch({File::GetUserPath(D_THEMES_IDX), File::GetSysDirectory() + THEMES_DIR});
-  for (const std::string& path : theme_search_results)
-  {
-    const QString qt_name = QString::fromStdString(PathToFileName(path));
-    m_combobox_theme->addItem(qt_name);
-  }
+  std::vector<std::string> theme_names;
+  theme_names.reserve(theme_paths.size());
+  std::transform(theme_paths.cbegin(), theme_paths.cend(), std::back_inserter(theme_names),
+                 PathToFileName);
+
+  // Theme Combobox
+  m_combobox_theme = new ConfigStringChoice(theme_names, Config::MAIN_THEME_NAME);
+  combobox_layout->addRow(tr("&Theme:"), m_combobox_theme);
 
   // User Style Combobox
   m_combobox_userstyle = new QComboBox;
@@ -229,9 +229,8 @@ void InterfacePane::ConnectLayout()
   connect(m_checkbox_disable_screensaver, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_show_debugging_ui, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_focused_hotkeys, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
-  connect(m_combobox_theme, &QComboBox::currentIndexChanged, this, [this](int index) {
-    Settings::Instance().SetThemeName(m_combobox_theme->itemText(index));
-  });
+  connect(m_combobox_theme, &QComboBox::currentIndexChanged, this,
+          [this](int index) { Settings::Instance().TriggerThemeChanged(); });
   connect(m_combobox_userstyle, &QComboBox::currentIndexChanged, this,
           &InterfacePane::OnSaveConfig);
   connect(m_combobox_language, &QComboBox::currentIndexChanged, this, &InterfacePane::OnSaveConfig);
@@ -273,9 +272,6 @@ void InterfacePane::LoadConfig()
   SignalBlocking(m_combobox_language)
       ->setCurrentIndex(m_combobox_language->findData(
           QString::fromStdString(Config::Get(Config::MAIN_INTERFACE_LANGUAGE))));
-  SignalBlocking(m_combobox_theme)
-      ->setCurrentIndex(
-          m_combobox_theme->findText(QString::fromStdString(Config::Get(Config::MAIN_THEME_NAME))));
 
   const Settings::StyleType style_type = Settings::Instance().GetStyleType();
   const QString userstyle = Settings::Instance().GetUserStyleName();
@@ -375,6 +371,12 @@ void InterfacePane::AddDescriptions()
   static constexpr char TR_TITLE_DATABASE_DESCRIPTION[] = QT_TR_NOOP(
       "Uses Dolphin's database of properly formatted names in the Game List Title column."
       "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
+  static constexpr char TR_THEME_DESCRIPTION[] =
+      QT_TR_NOOP("Changes the appearance and color of Dolphin's buttons."
+                 "<br><br><dolphin_emphasis>If unsure, select Clean.</dolphin_emphasis>");
 
   m_checkbox_use_builtin_title_database->SetDescription(tr(TR_TITLE_DATABASE_DESCRIPTION));
+
+  m_combobox_theme->SetTitle(tr("Theme"));
+  m_combobox_theme->SetDescription(tr(TR_THEME_DESCRIPTION));
 }
