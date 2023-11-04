@@ -70,8 +70,8 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   visual->SetX(ir_x_center);
   visual->SetY(ir_y_center);
 
-  connect(m_ir_x_value, qOverload<int>(&QSpinBox::valueChanged), visual, &IRWidget::SetX);
-  connect(m_ir_y_value, qOverload<int>(&QSpinBox::valueChanged), visual, &IRWidget::SetY);
+  connect(m_ir_x_value, &QSpinBox::valueChanged, visual, &IRWidget::SetX);
+  connect(m_ir_y_value, &QSpinBox::valueChanged, visual, &IRWidget::SetY);
   connect(visual, &IRWidget::ChangedX, m_ir_x_value, &QSpinBox::setValue);
   connect(visual, &IRWidget::ChangedY, m_ir_y_value, &QSpinBox::setValue);
 

@@ -163,8 +163,7 @@ void LogWidget::ConnectWidgets()
     m_log_ring_buffer.clear();
   });
   connect(m_log_wrap, &QCheckBox::toggled, this, &LogWidget::SaveSettings);
-  connect(m_log_font, qOverload<int>(&QComboBox::currentIndexChanged), this,
-          &LogWidget::SaveSettings);
+  connect(m_log_font, &QComboBox::currentIndexChanged, this, &LogWidget::SaveSettings);
   connect(this, &QDockWidget::topLevelChanged, this, &LogWidget::SaveSettings);
   connect(&Settings::Instance(), &Settings::LogVisibilityChanged, this, &LogWidget::setVisible);
 }

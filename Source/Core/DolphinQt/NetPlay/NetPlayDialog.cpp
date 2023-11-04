@@ -319,8 +319,7 @@ void NetPlayDialog::CreatePlayersLayout()
 void NetPlayDialog::ConnectWidgets()
 {
   // Players
-  connect(m_room_box, qOverload<int>(&QComboBox::currentIndexChanged), this,
-          &NetPlayDialog::UpdateGUI);
+  connect(m_room_box, &QComboBox::currentIndexChanged, this, &NetPlayDialog::UpdateGUI);
   connect(m_hostcode_action_button, &QPushButton::clicked, [this] {
     if (m_is_copy_button_retry)
       Common::g_TraversalClient->ReconnectToServer();
@@ -352,7 +351,7 @@ void NetPlayDialog::ConnectWidgets()
           [this] { m_chat_send_button->setEnabled(!m_chat_type_edit->text().isEmpty()); });
 
   // Other
-  connect(m_buffer_size_box, qOverload<int>(&QSpinBox::valueChanged), [this](int value) {
+  connect(m_buffer_size_box, &QSpinBox::valueChanged, [this](int value) {
     if (value == m_buffer_size)
       return;
 
@@ -413,8 +412,7 @@ void NetPlayDialog::ConnectWidgets()
 
   // SaveSettings() - Save Hosting-Dialog Settings
 
-  connect(m_buffer_size_box, qOverload<int>(&QSpinBox::valueChanged), this,
-          &NetPlayDialog::SaveSettings);
+  connect(m_buffer_size_box, &QSpinBox::valueChanged, this, &NetPlayDialog::SaveSettings);
   connect(m_savedata_none_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_savedata_load_only_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_savedata_load_and_write_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);

@@ -56,14 +56,12 @@ void PadMappingDialog::ConnectWidgets()
   {
     for (const auto& combo : combo_group)
     {
-      connect(combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
-              &PadMappingDialog::OnMappingChanged);
+      connect(combo, &QComboBox::currentIndexChanged, this, &PadMappingDialog::OnMappingChanged);
     }
   }
   for (const auto& checkbox : m_gba_boxes)
   {
-    connect(checkbox, qOverload<int>(&QCheckBox::stateChanged), this,
-            &PadMappingDialog::OnMappingChanged);
+    connect(checkbox, &QCheckBox::stateChanged, this, &PadMappingDialog::OnMappingChanged);
   }
 }
 

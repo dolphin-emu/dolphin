@@ -109,12 +109,9 @@ void WiiPane::CreateLayout()
 void WiiPane::ConnectLayout()
 {
   // Misc Settings
-  connect(m_aspect_ratio_choice, qOverload<int>(&QComboBox::currentIndexChanged), this,
-          &WiiPane::OnSaveConfig);
-  connect(m_system_language_choice, qOverload<int>(&QComboBox::currentIndexChanged), this,
-          &WiiPane::OnSaveConfig);
-  connect(m_sound_mode_choice, qOverload<int>(&QComboBox::currentIndexChanged), this,
-          &WiiPane::OnSaveConfig);
+  connect(m_aspect_ratio_choice, &QComboBox::currentIndexChanged, this, &WiiPane::OnSaveConfig);
+  connect(m_system_language_choice, &QComboBox::currentIndexChanged, this, &WiiPane::OnSaveConfig);
+  connect(m_sound_mode_choice, &QComboBox::currentIndexChanged, this, &WiiPane::OnSaveConfig);
   connect(m_screensaver_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
   connect(m_pal60_mode_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
   connect(m_connect_keyboard_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
@@ -128,8 +125,7 @@ void WiiPane::ConnectLayout()
   connect(m_sd_card_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
   connect(m_allow_sd_writes_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
   connect(m_sync_sd_folder_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
-  connect(m_sd_card_size_combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
-          &WiiPane::OnSaveConfig);
+  connect(m_sd_card_size_combo, &QComboBox::currentIndexChanged, this, &WiiPane::OnSaveConfig);
 
   // Whitelisted USB Passthrough Devices
   connect(m_whitelist_usb_list, &QListWidget::itemClicked, this, &WiiPane::ValidateSelectionState);
@@ -139,7 +135,7 @@ void WiiPane::ConnectLayout()
           &WiiPane::OnUSBWhitelistRemoveButton);
 
   // Wii Remote Settings
-  connect(m_wiimote_ir_sensor_position, qOverload<int>(&QComboBox::currentIndexChanged), this,
+  connect(m_wiimote_ir_sensor_position, &QComboBox::currentIndexChanged, this,
           &WiiPane::OnSaveConfig);
   connect(m_wiimote_ir_sensitivity, &QSlider::valueChanged, this, &WiiPane::OnSaveConfig);
   connect(m_wiimote_speaker_volume, &QSlider::valueChanged, this, &WiiPane::OnSaveConfig);
