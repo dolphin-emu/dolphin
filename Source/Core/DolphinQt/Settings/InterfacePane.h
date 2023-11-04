@@ -5,6 +5,7 @@
 
 #include <QWidget>
 
+class ConfigBool;
 class QCheckBox;
 class QComboBox;
 class QLabel;
@@ -22,6 +23,7 @@ private:
   void CreateLayout();
   void CreateUI();
   void CreateInGame();
+  void AddDescriptions();
   void ConnectLayout();
   void LoadConfig();
   void OnSaveConfig();
@@ -36,8 +38,7 @@ private:
   QComboBox* m_combobox_userstyle;
   QLabel* m_label_userstyle;
   QCheckBox* m_checkbox_top_window;
-  QCheckBox* m_checkbox_use_builtin_title_database;
-  QCheckBox* m_checkbox_use_userstyle;
+  ConfigBool* m_checkbox_use_builtin_title_database;
   ToolTipCheckBox* m_checkbox_show_debugging_ui;
   QCheckBox* m_checkbox_focused_hotkeys;
   QCheckBox* m_checkbox_use_covers;
