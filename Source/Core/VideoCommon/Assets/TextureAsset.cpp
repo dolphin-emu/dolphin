@@ -142,6 +142,26 @@ bool TextureData::FromJson(const CustomAssetLibrary::AssetID& asset_id,
   return true;
 }
 
+void TextureData::ToJson(picojson::object* obj, const TextureData& data)
+{
+  if (!obj) [[unlikely]]
+    return;
+
+  auto& json_obj = *obj;
+  switch (data.m_type)
+  {
+  case TextureData::Type::Type_Texture2D:
+    json_obj["type"] = picojson::value{"texture2d"};
+    break;
+  case TextureData::Type::Type_TextureCube:
+    json_obj["type"] = picojson::value{"texturecube"};
+    break;
+  case TextureData::Type::Type_Undefined:
+    break;
+  };
+  // TODO: sampler
+}
+
 CustomAssetLibrary::LoadInfo GameTextureAsset::LoadImpl(const CustomAssetLibrary::AssetID& asset_id)
 {
   auto potential_data = std::make_shared<TextureData>();
