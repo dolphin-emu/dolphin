@@ -260,7 +260,8 @@ void InterfacePane::LoadConfig()
   if (index > 0)
     SignalBlocking(m_combobox_userstyle)->setCurrentIndex(index);
 
-  SignalBlocking(m_checkbox_use_userstyle)->setChecked(Settings::Instance().AreUserStylesEnabled());
+  SignalBlocking(m_checkbox_use_userstyle)
+      ->setChecked(Settings::Instance().GetStyleType() == Settings::StyleType::User);
 
   const bool visible = m_checkbox_use_userstyle->isChecked();
 
@@ -297,7 +298,9 @@ void InterfacePane::OnSaveConfig()
   Config::SetBase(Config::MAIN_USE_BUILT_IN_TITLE_DATABASE,
                   m_checkbox_use_builtin_title_database->isChecked());
   Settings::Instance().SetDebugModeEnabled(m_checkbox_show_debugging_ui->isChecked());
-  Settings::Instance().SetUserStylesEnabled(m_checkbox_use_userstyle->isChecked());
+  Settings::Instance().SetStyleType(m_checkbox_use_userstyle->isChecked() ?
+                                        Settings::StyleType::User :
+                                        Settings::StyleType::System);
   Settings::Instance().SetUserStyleName(m_combobox_userstyle->currentData().toString());
   Settings::Instance().ApplyStyle();
 

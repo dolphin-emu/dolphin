@@ -176,11 +176,12 @@ bool Settings::IsThemeDark()
 // Calling this before the main window has been created breaks the style of some widgets.
 void Settings::ApplyStyle()
 {
+  const StyleType style_type = GetStyleType();
   const QString stylesheet_name = GetUserStyleName();
   QString stylesheet_contents;
 
   // If we haven't found one, we continue with an empty (default) style
-  if (!stylesheet_name.isEmpty() && AreUserStylesEnabled())
+  if (!stylesheet_name.isEmpty() && style_type == StyleType::User)
   {
     // Load custom user stylesheet
     QDir directory = QDir(QString::fromStdString(File::GetUserPath(D_STYLES_IDX)));
@@ -197,7 +198,7 @@ void Settings::ApplyStyle()
     // which would select Qt's default theme, but unlike other OSes we don't automatically get a
     // default dark theme on Windows when the user has selected dark mode in the Windows settings.
     // So manually check if the user wants dark mode and, if yes, load our embedded dark theme.
-    if (IsSystemDark())
+    if (style_type == StyleType::Dark || (style_type != StyleType::Light && IsSystemDark()))
     {
       QFile file(QStringLiteral(":/dolphin_dark_win/dark.qss"));
       if (file.open(QFile::ReadOnly))
@@ -251,14 +252,30 @@ void Settings::ApplyStyle()
   qApp->setStyleSheet(stylesheet_contents);
 }
 
-bool Settings::AreUserStylesEnabled() const
+Settings::StyleType Settings::GetStyleType() const
 {
-  return GetQSettings().value(QStringLiteral("userstyle/enabled"), false).toBool();
+  if (GetQSettings().contains(QStringLiteral("userstyle/styletype")))
+  {
+    bool ok = false;
+    const int type_int = GetQSettings().value(QStringLiteral("userstyle/styletype")).toInt(&ok);
+    if (ok && type_int >= static_cast<int>(StyleType::MinValue) &&
+        type_int <= static_cast<int>(StyleType::MaxValue))
+    {
+      return static_cast<StyleType>(type_int);
+    }
+  }
+
+  // if the style type is unset or invalid, try the old enabled flag instead
+  const bool enabled = GetQSettings().value(QStringLiteral("userstyle/enabled"), false).toBool();
+  return enabled ? StyleType::User : StyleType::System;
 }
 
-void Settings::SetUserStylesEnabled(bool enabled)
+void Settings::SetStyleType(StyleType type)
 {
-  GetQSettings().setValue(QStringLiteral("userstyle/enabled"), enabled);
+  GetQSettings().setValue(QStringLiteral("userstyle/styletype"), static_cast<int>(type));
+
+  // also set the old setting so that the config is correctly intepreted by older Dolphin builds
+  GetQSettings().setValue(QStringLiteral("userstyle/enabled"), type == StyleType::User);
 }
 
 void Settings::GetToolTipStyle(QColor& window_color, QColor& text_color,

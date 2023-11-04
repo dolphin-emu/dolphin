@@ -60,8 +60,20 @@ public:
 
   void SetUserStyleName(const QString& stylesheet_name);
   QString GetUserStyleName() const;
-  void SetUserStylesEnabled(bool enabled);
-  bool AreUserStylesEnabled() const;
+
+  enum class StyleType : int
+  {
+    System = 0,
+    Light = 1,
+    Dark = 2,
+    User = 3,
+
+    MinValue = 0,
+    MaxValue = 3,
+  };
+
+  void SetStyleType(StyleType type);
+  StyleType GetStyleType() const;
 
   // this evaluates the current stylesheet settings and refreshes the GUI with them
   void ApplyStyle();
