@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/MoveAction.h"
+#include "VideoCommon/GraphicsModEditor/EditorEvents.h"
 
 #include <imgui.h>
 
@@ -39,9 +40,18 @@ MoveAction::MoveAction(Common::Vec3 position_offset) : m_position_offset(positio
 
 void MoveAction::DrawImGui()
 {
-  ImGui::InputFloat("X", &m_position_offset.x);
-  ImGui::InputFloat("Y", &m_position_offset.y);
-  ImGui::InputFloat("Z", &m_position_offset.z);
+  if (ImGui::InputFloat("X", &m_position_offset.x))
+  {
+    GraphicsModEditor::EditorEvents::ChangeOccurredEvent::Trigger();
+  }
+  if (ImGui::InputFloat("Y", &m_position_offset.y))
+  {
+    GraphicsModEditor::EditorEvents::ChangeOccurredEvent::Trigger();
+  }
+  if (ImGui::InputFloat("Z", &m_position_offset.z))
+  {
+    GraphicsModEditor::EditorEvents::ChangeOccurredEvent::Trigger();
+  }
 }
 
 void MoveAction::OnProjection(GraphicsModActionData::Projection* projection)
@@ -66,4 +76,20 @@ void MoveAction::OnProjectionAndTexture(GraphicsModActionData::Projection* proje
 
   auto& matrix = *projection->matrix;
   matrix = matrix * Common::Matrix44::Translate(m_position_offset);
+}
+
+void MoveAction::SerializeToConfig(picojson::object* obj)
+{
+  if (!obj) [[unlikely]]
+    return;
+
+  auto& json_obj = *obj;
+  json_obj["X"] = picojson::value{static_cast<double>(m_position_offset.x)};
+  json_obj["Y"] = picojson::value{static_cast<double>(m_position_offset.y)};
+  json_obj["Z"] = picojson::value{static_cast<double>(m_position_offset.z)};
+}
+
+std::string MoveAction::GetFactoryName() const
+{
+  return "move";
 }
