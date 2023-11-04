@@ -6,6 +6,7 @@
 #include <QWidget>
 
 class ConfigBool;
+class ConfigStringChoice;
 class QCheckBox;
 class QComboBox;
 class QLabel;
@@ -34,7 +35,7 @@ private:
   QVBoxLayout* m_main_layout;
   QComboBox* m_combobox_language;
 
-  QComboBox* m_combobox_theme;
+  ConfigStringChoice* m_combobox_theme;
   QComboBox* m_combobox_userstyle;
   QLabel* m_label_userstyle;
   QCheckBox* m_checkbox_top_window;

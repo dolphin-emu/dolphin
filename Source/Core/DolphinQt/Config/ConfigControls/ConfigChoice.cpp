@@ -30,3 +30,39 @@ void ConfigChoice::Update(int choice)
 {
   Config::SetBaseOrCurrent(m_setting, choice);
 }
+
+ConfigStringChoice::ConfigStringChoice(const std::vector<std::string>& options,
+                                       const Config::Info<std::string>& setting)
+    : m_setting(setting)
+{
+  for (const auto& op : options)
+    addItem(QString::fromStdString(op));
+
+  Connect();
+  Load();
+}
+
+void ConfigStringChoice::Connect()
+{
+  const auto on_config_changed = [this]() {
+    QFont bf = font();
+    bf.setBold(Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
+    setFont(bf);
+
+    Load();
+  };
+
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this, on_config_changed);
+  connect(this, &QComboBox::currentIndexChanged, this, &ConfigStringChoice::Update);
+}
+
+void ConfigStringChoice::Update(int index)
+{
+  Config::SetBaseOrCurrent(m_setting, itemText(index).toStdString());
+}
+
+void ConfigStringChoice::Load()
+{
+  const QSignalBlocker blocker(this);
+  setCurrentIndex(findText(QString::fromStdString(Config::Get(m_setting))));
+}
