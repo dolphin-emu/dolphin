@@ -31,6 +31,7 @@ void CustomAssetLoader::Init()
       std::this_thread::sleep_for(TIME_BETWEEN_ASSET_MONITOR_CHECKS);
 
       std::lock_guard lk(m_asset_load_lock);
+      std::vector<CustomAssetLibrary::AssetID> dead_asset_ids;
       for (auto& [asset_id, asset_to_monitor] : m_assets_to_monitor)
       {
         if (auto ptr = asset_to_monitor.lock())
@@ -41,6 +42,15 @@ void CustomAssetLoader::Init()
             (void)ptr->Load();
           }
         }
+        else
+        {
+          dead_asset_ids.push_back(asset_id);
+        }
+      }
+
+      for (const auto& dead_asset_id : dead_asset_ids)
+      {
+        m_assets_to_monitor.erase(dead_asset_id);
       }
     }
   });
@@ -55,7 +65,7 @@ void CustomAssetLoader::Init()
         if (m_max_memory_available >= m_total_bytes_loaded + asset_memory_size)
         {
           m_total_bytes_loaded += asset_memory_size;
-          m_assets_to_monitor.try_emplace(ptr->GetAssetId(), ptr);
+          m_assets_to_monitor.insert_or_assign(ptr->GetAssetId(), ptr);
         }
         else
         {
