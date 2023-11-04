@@ -23,6 +23,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/UISettings.h"
 
+#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
@@ -97,6 +98,7 @@ void InterfacePane::CreateLayout()
   // Create layout here
   CreateUI();
   CreateInGame();
+  AddDescriptions();
 
   m_main_layout->addStretch(1);
   setLayout(m_main_layout);
@@ -153,7 +155,8 @@ void InterfacePane::CreateUI()
   }
 
   // Checkboxes
-  m_checkbox_use_builtin_title_database = new QCheckBox(tr("Use Built-In Database of Game Names"));
+  m_checkbox_use_builtin_title_database = new ConfigBool(tr("Use Built-In Database of Game Names"),
+                                                         Config::MAIN_USE_BUILT_IN_TITLE_DATABASE);
   m_checkbox_use_covers =
       new QCheckBox(tr("Download Game Covers from GameTDB.com for Use in Grid Mode"));
   m_checkbox_show_debugging_ui = new ToolTipCheckBox(tr("Enable Debugging UI"));
@@ -220,8 +223,8 @@ void InterfacePane::CreateInGame()
 
 void InterfacePane::ConnectLayout()
 {
-  connect(m_checkbox_use_builtin_title_database, &QCheckBox::toggled, this,
-          &InterfacePane::OnSaveConfig);
+  connect(m_checkbox_use_builtin_title_database, &QCheckBox::toggled, &Settings::Instance(),
+          &Settings::GameListRefreshRequested);
   connect(m_checkbox_use_covers, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_disable_screensaver, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_show_debugging_ui, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
@@ -250,8 +253,6 @@ void InterfacePane::ConnectLayout()
 
 void InterfacePane::LoadConfig()
 {
-  SignalBlocking(m_checkbox_use_builtin_title_database)
-      ->setChecked(Config::Get(Config::MAIN_USE_BUILT_IN_TITLE_DATABASE));
   SignalBlocking(m_checkbox_show_debugging_ui)
       ->setChecked(Settings::Instance().IsDebugModeEnabled());
 
@@ -312,8 +313,6 @@ void InterfacePane::LoadConfig()
 
 void InterfacePane::OnSaveConfig()
 {
-  Config::SetBase(Config::MAIN_USE_BUILT_IN_TITLE_DATABASE,
-                  m_checkbox_use_builtin_title_database->isChecked());
   Settings::Instance().SetDebugModeEnabled(m_checkbox_show_debugging_ui->isChecked());
   const auto selected_style = m_combobox_userstyle->currentData();
   bool is_builtin_type = false;
@@ -369,4 +368,13 @@ void InterfacePane::OnCursorVisibleNever()
 void InterfacePane::OnCursorVisibleAlways()
 {
   Settings::Instance().SetCursorVisibility(Config::ShowCursor::Constantly);
+}
+
+void InterfacePane::AddDescriptions()
+{
+  static constexpr char TR_TITLE_DATABASE_DESCRIPTION[] = QT_TR_NOOP(
+      "Uses Dolphin's database of properly formatted names in the Game List Title column."
+      "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
+
+  m_checkbox_use_builtin_title_database->SetDescription(tr(TR_TITLE_DATABASE_DESCRIPTION));
 }
