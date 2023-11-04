@@ -123,13 +123,18 @@ void Settings::SetThemeName(const QString& theme_name)
   emit ThemeChanged();
 }
 
-QString Settings::GetCurrentUserStyle() const
+QString Settings::GetUserStyleName() const
 {
   if (GetQSettings().contains(QStringLiteral("userstyle/name")))
     return GetQSettings().value(QStringLiteral("userstyle/name")).toString();
 
   // Migration code for the old way of storing this setting
   return QFileInfo(GetQSettings().value(QStringLiteral("userstyle/path")).toString()).fileName();
+}
+
+void Settings::SetUserStyleName(const QString& stylesheet_name)
+{
+  GetQSettings().setValue(QStringLiteral("userstyle/name"), stylesheet_name);
 }
 
 void Settings::InitDefaultPalette()
@@ -169,8 +174,9 @@ bool Settings::IsThemeDark()
 }
 
 // Calling this before the main window has been created breaks the style of some widgets.
-void Settings::SetCurrentUserStyle(const QString& stylesheet_name)
+void Settings::ApplyStyle()
 {
+  const QString stylesheet_name = GetUserStyleName();
   QString stylesheet_contents;
 
   // If we haven't found one, we continue with an empty (default) style
@@ -243,8 +249,6 @@ void Settings::SetCurrentUserStyle(const QString& stylesheet_name)
   }
 
   qApp->setStyleSheet(stylesheet_contents);
-
-  GetQSettings().setValue(QStringLiteral("userstyle/name"), stylesheet_name);
 }
 
 bool Settings::AreUserStylesEnabled() const

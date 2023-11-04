@@ -57,11 +57,14 @@ public:
   void SetSystemDark(bool dark);
   bool IsSystemDark();
   bool IsThemeDark();
-  void SetCurrentUserStyle(const QString& stylesheet_name);
-  QString GetCurrentUserStyle() const;
 
+  void SetUserStyleName(const QString& stylesheet_name);
+  QString GetUserStyleName() const;
   void SetUserStylesEnabled(bool enabled);
   bool AreUserStylesEnabled() const;
+
+  // this evaluates the current stylesheet settings and refreshes the GUI with them
+  void ApplyStyle();
 
   void GetToolTipStyle(QColor& window_color, QColor& text_color, QColor& emphasis_text_color,
                        QColor& border_color, const QPalette& palette,

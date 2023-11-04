@@ -254,7 +254,7 @@ void InterfacePane::LoadConfig()
       ->setCurrentIndex(
           m_combobox_theme->findText(QString::fromStdString(Config::Get(Config::MAIN_THEME_NAME))));
 
-  const QString userstyle = Settings::Instance().GetCurrentUserStyle();
+  const QString userstyle = Settings::Instance().GetUserStyleName();
   const int index = m_combobox_userstyle->findData(QFileInfo(userstyle).fileName());
 
   if (index > 0)
@@ -298,7 +298,8 @@ void InterfacePane::OnSaveConfig()
                   m_checkbox_use_builtin_title_database->isChecked());
   Settings::Instance().SetDebugModeEnabled(m_checkbox_show_debugging_ui->isChecked());
   Settings::Instance().SetUserStylesEnabled(m_checkbox_use_userstyle->isChecked());
-  Settings::Instance().SetCurrentUserStyle(m_combobox_userstyle->currentData().toString());
+  Settings::Instance().SetUserStyleName(m_combobox_userstyle->currentData().toString());
+  Settings::Instance().ApplyStyle();
 
   const bool visible = m_checkbox_use_userstyle->isChecked();
 
