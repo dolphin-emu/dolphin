@@ -121,7 +121,7 @@ void Arm64RegCache::FlushMostStaleRegister()
     }
   }
 
-  FlushRegister(most_stale_preg, FlushMode::All, ARM64Reg::INVALID_REG);
+  FlushRegister(most_stale_preg, FlushMode::Full, ARM64Reg::INVALID_REG);
 }
 
 void Arm64RegCache::DiscardRegister(size_t preg)
@@ -206,10 +206,14 @@ void Arm64GPRCache::FlushRegister(size_t index, FlushMode mode, ARM64Reg tmp_reg
     if (!reg.IsInPPCState())
       m_emit->STR(IndexType::Unsigned, host_reg, PPC_REG, u32(guest_reg.ppc_offset));
 
-    if (mode == FlushMode::All)
+    if (mode == FlushMode::Full)
     {
       UnlockRegister(EncodeRegTo32(host_reg));
       reg.Flush();
+    }
+    else if (mode == FlushMode::Undirty)
+    {
+      reg.SetDirty(false);
     }
   }
   else if (is_gpr && IsImm(index - GUEST_GPR_OFFSET))
@@ -247,8 +251,10 @@ void Arm64GPRCache::FlushRegister(size_t index, FlushMode mode, ARM64Reg tmp_reg
       }
     }
 
-    if (mode == FlushMode::All)
+    if (mode == FlushMode::Full)
       reg.Flush();
+    else if (mode == FlushMode::Undirty)
+      reg.SetDirty(false);
   }
 }
 
@@ -273,10 +279,10 @@ void Arm64GPRCache::FlushRegisters(BitSet32 regs, FlushMode mode, ARM64Reg tmp_r
       const bool reg2_imm = IsImm(i + 1);
       const bool reg1_zero = reg1_imm && GetImm(i) == 0;
       const bool reg2_zero = reg2_imm && GetImm(i + 1) == 0;
-      const bool flush_all = mode == FlushMode::All;
+      const bool can_allocate_reg = mode != FlushMode::MaintainState;
       if (!reg1.IsInPPCState() && !reg2.IsInPPCState() &&
-          (reg1.IsInHostRegister() || (reg1_imm && (reg1_zero || flush_all))) &&
-          (reg2.IsInHostRegister() || (reg2_imm && (reg2_zero || flush_all))))
+          (reg1.IsInHostRegister() || (reg1_imm && (reg1_zero || can_allocate_reg))) &&
+          (reg2.IsInHostRegister() || (reg2_imm && (reg2_zero || can_allocate_reg))))
       {
         const size_t ppc_offset = GetGuestByIndex(i).ppc_offset;
         if (ppc_offset <= 252)
@@ -284,7 +290,7 @@ void Arm64GPRCache::FlushRegisters(BitSet32 regs, FlushMode mode, ARM64Reg tmp_r
           ARM64Reg RX1 = reg1_zero ? ARM64Reg::WZR : BindForRead(i);
           ARM64Reg RX2 = reg2_zero ? ARM64Reg::WZR : BindForRead(i + 1);
           m_emit->STP(IndexType::Signed, RX1, RX2, PPC_REG, u32(ppc_offset));
-          if (flush_all)
+          if (mode == FlushMode::Full)
           {
             if (reg1.IsInHostRegister())
               UnlockRegister(reg1.GetReg());
@@ -292,6 +298,11 @@ void Arm64GPRCache::FlushRegisters(BitSet32 regs, FlushMode mode, ARM64Reg tmp_r
               UnlockRegister(reg2.GetReg());
             reg1.Flush();
             reg2.Flush();
+          }
+          else if (mode == FlushMode::Undirty)
+          {
+            reg1.SetDirty(false);
+            reg2.SetDirty(false);
           }
           ++iter;
           continue;
@@ -500,7 +511,7 @@ void Arm64GPRCache::FlushByHost(ARM64Reg host_reg, ARM64Reg tmp_reg)
     const OpArg& reg = m_guest_registers[i];
     if (reg.IsInHostRegister() && DecodeReg(reg.GetReg()) == DecodeReg(host_reg))
     {
-      FlushRegister(i, FlushMode::All, tmp_reg);
+      FlushRegister(i, FlushMode::Full, tmp_reg);
       return;
     }
   }
@@ -791,7 +802,7 @@ void Arm64FPRCache::FlushByHost(ARM64Reg host_reg, ARM64Reg tmp_reg)
 
     if (reg.IsInHostRegister() && reg.GetReg() == host_reg)
     {
-      FlushRegister(i, FlushMode::All, tmp_reg);
+      FlushRegister(i, FlushMode::Full, tmp_reg);
       return;
     }
   }
@@ -819,6 +830,22 @@ void Arm64FPRCache::FlushRegister(size_t preg, FlushMode mode, ARM64Reg tmp_reg)
   const ARM64Reg host_reg = reg.GetReg();
   const bool dirty = !reg.IsInPPCState();
   RegType type = reg.GetFPRType();
+
+  if (mode == FlushMode::Undirty)
+  {
+    switch (type)
+    {
+    case RegType::Single:
+    case RegType::DuplicatedSingle:
+    case RegType::LowerPairSingle:
+      // In this situation, skip flushing. It's usually better to wait until later instead to avoid
+      // extra conversions. We can revisit this decision in the future if the register cache gets
+      // the ability to store both the single and double versions of a value simultaneously.
+      return;
+    default:
+      break;
+    }
+  }
 
   bool allocated_tmp_reg = false;
   if (tmp_reg != ARM64Reg::INVALID_REG)
@@ -871,10 +898,14 @@ void Arm64FPRCache::FlushRegister(size_t preg, FlushMode mode, ARM64Reg tmp_reg)
                         static_cast<s32>(PPCSTATE_OFF_PS0(preg)));
     }
 
-    if (mode == FlushMode::All)
+    if (mode == FlushMode::Full)
     {
       UnlockRegister(host_reg);
       reg.Flush();
+    }
+    else if (mode == FlushMode::Undirty)
+    {
+      reg.SetDirty(false);
     }
   }
   else if (type == RegType::Duplicated)
@@ -895,10 +926,14 @@ void Arm64FPRCache::FlushRegister(size_t preg, FlushMode mode, ARM64Reg tmp_reg)
       }
     }
 
-    if (mode == FlushMode::All)
+    if (mode == FlushMode::Full)
     {
       UnlockRegister(host_reg);
       reg.Flush();
+    }
+    else if (mode == FlushMode::Undirty)
+    {
+      reg.SetDirty(false);
     }
   }
 

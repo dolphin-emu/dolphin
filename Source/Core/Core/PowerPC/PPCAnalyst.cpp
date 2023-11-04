@@ -986,8 +986,9 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
   // wants flags, to be safe.
   bool wantsFPRF = true;
   bool wantsCA = true;
-  BitSet8 crInUse, crDiscardable;
-  BitSet32 gprBlockInputs, gprInUse, fprInUse, gprDiscardable, fprDiscardable, fprInXmm;
+  BitSet8 crWillBeRead, crWillBeWritten, crDiscardable;
+  BitSet32 gprWillBeRead, gprWillBeWritten, fprWillBeRead, fprWillBeWritten, gprDiscardable,
+      fprDiscardable, fprInXmm;
   for (int i = block->m_num_instructions - 1; i >= 0; i--)
   {
     CodeOp& op = code[i];
@@ -1014,28 +1015,38 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
     wantsCA |= opWantsCA || may_exit_block;
     wantsFPRF &= !op.outputFPRF || opWantsFPRF;
     wantsCA &= !op.outputCA || opWantsCA;
-    op.gprInUse = gprInUse;
-    op.fprInUse = fprInUse;
-    op.crInUse = crInUse;
+    op.gprWillBeRead = gprWillBeRead;
+    op.gprWillBeWritten = gprWillBeWritten;
+    op.fprWillBeRead = fprWillBeRead;
+    op.fprWillBeWritten = fprWillBeWritten;
+    op.crWillBeRead = crWillBeRead;
+    op.crWillBeWritten = crWillBeWritten;
     op.gprDiscardable = gprDiscardable;
     op.fprDiscardable = fprDiscardable;
     op.crDiscardable = crDiscardable;
     op.fprInXmm = fprInXmm;
-    gprBlockInputs &= ~op.regsOut;
-    gprBlockInputs |= op.regsIn;
-    gprInUse |= op.regsIn | op.regsOut;
-    fprInUse |= op.fregsIn | op.GetFregsOut();
-    crInUse |= op.crIn | op.crOut;
+    gprWillBeRead &= ~op.regsOut;
+    gprWillBeRead |= op.regsIn;
+    gprWillBeWritten |= op.regsOut;
+    fprWillBeRead &= ~op.GetFregsOut();
+    fprWillBeRead |= op.fregsIn;
+    fprWillBeWritten |= op.GetFregsOut();
+    crWillBeRead &= ~op.crOut;
+    crWillBeRead |= op.crIn;
+    crWillBeWritten |= op.crOut;
 
     if (strncmp(op.opinfo->opname, "stfd", 4))
       fprInXmm |= op.fregsIn;
 
     if (hle || breakpoint)
     {
-      gprInUse = BitSet32{};
-      fprInUse = BitSet32{};
+      gprWillBeRead = BitSet32{};
+      gprWillBeWritten = BitSet32{};
+      fprWillBeRead = BitSet32{};
+      fprWillBeWritten = BitSet32{};
       fprInXmm = BitSet32{};
-      crInUse = BitSet8{};
+      crWillBeRead = BitSet8{};
+      crWillBeWritten = BitSet8{};
       gprDiscardable = BitSet32{};
       fprDiscardable = BitSet32{};
       crDiscardable = BitSet8{};
@@ -1151,7 +1162,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
   }
   block->m_gqr_used = gqrUsed;
   block->m_gqr_modified = gqrModified;
-  block->m_gpr_inputs = gprBlockInputs;
+  block->m_gpr_inputs = gprWillBeRead;
   return address;
 }
 
