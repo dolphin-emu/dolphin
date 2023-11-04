@@ -118,9 +118,8 @@ QSettings& Settings::GetQSettings()
   return settings;
 }
 
-void Settings::SetThemeName(const QString& theme_name)
+void Settings::TriggerThemeChanged()
 {
-  Config::SetBaseOrCurrent(Config::MAIN_THEME_NAME, theme_name.toStdString());
   emit ThemeChanged();
 }
 
