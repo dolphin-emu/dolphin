@@ -25,6 +25,9 @@ public:
   void OnProjection(GraphicsModActionData::Projection* projection) override;
   void OnProjectionAndTexture(GraphicsModActionData::Projection* projection) override;
 
+  void SerializeToConfig(picojson::object* obj) override;
+  std::string GetFactoryName() const override;
+
 private:
   Common::Vec3 m_position_offset;
 };

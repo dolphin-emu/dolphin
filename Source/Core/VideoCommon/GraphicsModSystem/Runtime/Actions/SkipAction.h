@@ -11,4 +11,5 @@ public:
   static constexpr std::string_view factory_name = "skip";
   void OnDrawStarted(GraphicsModActionData::DrawStarted*) override;
   void OnEFB(GraphicsModActionData::EFB*) override;
+  std::string GetFactoryName() const override;
 };
