@@ -115,7 +115,7 @@ void GPRRegCache::SetImmediate32(preg_t preg, u32 imm_value, bool dirty)
 
 BitSet32 GPRRegCache::GetRegUtilization() const
 {
-  return m_jit.js.op->gprInUse;
+  return m_jit.js.op->gprWillBeRead | m_jit.js.op->gprWillBeWritten;
 }
 
 BitSet32 GPRRegCache::CountRegsIn(preg_t preg, u32 lookahead) const
