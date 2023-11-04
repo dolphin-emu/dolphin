@@ -3,6 +3,7 @@
 
 #include "VideoCommon/Assets/TextureAsset.h"
 
+#include "Common/JsonUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "VideoCommon/BPMemory.h"
@@ -140,6 +141,44 @@ bool TextureData::FromJson(const CustomAssetLibrary::AssetID& asset_id,
   }
 
   return true;
+}
+
+void TextureData::ToJson(picojson::object* obj, const TextureData& data)
+{
+  if (!obj) [[unlikely]]
+    return;
+
+  auto& json_obj = *obj;
+  switch (data.m_type)
+  {
+  case TextureData::Type::Type_Texture2D:
+    json_obj.emplace("type", "texture2d");
+    break;
+  case TextureData::Type::Type_TextureCube:
+    json_obj.emplace("type", "texturecube");
+    break;
+  case TextureData::Type::Type_Undefined:
+    break;
+  };
+
+  auto wrap_mode_to_string = [](WrapMode mode) {
+    auto str = fmt::to_string(mode);
+    Common::ToLower(&str);
+    return str;
+  };
+  auto filter_mode_to_string = [](FilterMode mode) {
+    auto str = fmt::to_string(mode);
+    Common::ToLower(&str);
+    return str;
+  };
+
+  picojson::object texture_mode;
+  texture_mode.emplace("u", wrap_mode_to_string(data.m_sampler.tm0.wrap_u));
+  texture_mode.emplace("v", wrap_mode_to_string(data.m_sampler.tm0.wrap_v));
+
+  texture_mode.emplace("min", filter_mode_to_string(data.m_sampler.tm0.min_filter));
+  texture_mode.emplace("mag", filter_mode_to_string(data.m_sampler.tm0.mag_filter));
+  texture_mode.emplace("mipmap", filter_mode_to_string(data.m_sampler.tm0.mipmap_filter));
 }
 
 CustomAssetLibrary::LoadInfo GameTextureAsset::LoadImpl(const CustomAssetLibrary::AssetID& asset_id)
