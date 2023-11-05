@@ -121,7 +121,7 @@ struct PBDpopWM
 
 struct PBVolumeEnvelope
 {
-  u16 cur_volume;        // Volume at start of frame
+  s16 cur_volume;        // Volume at start of frame
   s16 cur_volume_delta;  // Signed per sample delta (96 samples per frame)
 };
 
