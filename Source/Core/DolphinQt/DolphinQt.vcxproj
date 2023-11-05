@@ -210,6 +210,7 @@
     <ClCompile Include="Settings\PathPane.cpp" />
     <ClCompile Include="Settings\USBDeviceAddToWhitelistDialog.cpp" />
     <ClCompile Include="Settings\WiiPane.cpp" />
+    <ClCompile Include="SkylanderPortal\SkylanderModifyDialog.cpp" />
     <ClCompile Include="SkylanderPortal\SkylanderPortalWindow.cpp" />
     <ClCompile Include="TAS\GCTASInputWindow.cpp" />
     <ClCompile Include="TAS\GBATASInputWindow.cpp" />
@@ -253,6 +254,7 @@
     <ClInclude Include="QtUtils\WrapInScrollArea.h" />
     <ClInclude Include="ResourcePackManager.h" />
     <ClInclude Include="Resources.h" />
+    <ClInclude Include="SkylanderPortal\SkylanderModifyDialog.h" />
     <ClInclude Include="TAS\TASControlState.h" />
     <ClInclude Include="TAS\TASSlider.h" />
     <ClInclude Include="Translation.h" />

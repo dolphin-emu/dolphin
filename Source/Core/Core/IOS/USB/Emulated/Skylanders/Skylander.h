@@ -11,6 +11,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
 #include "Core/IOS/USB/Common.h"
+#include "Core/IOS/USB/Emulated/Skylanders/SkylanderFigure.h"
 
 // The maximum possible characters the portal can handle.
 // The status array is 32 bits and every character takes 2 bits.
@@ -30,7 +31,7 @@ enum class Game
   TrapTeam,
   Superchargers
 };
-enum class Type
+enum class Type : u8
 {
   Skylander = 1,
   Giant,
@@ -43,6 +44,7 @@ enum class Type
   Trap,
   Unknown
 };
+Type NormalizeSkylanderType(Type type);
 enum class Element
 {
   Magic = 1,
@@ -104,12 +106,10 @@ private:
 
 struct Skylander final
 {
-  File::IOFile sky_file;
+  std::unique_ptr<SkylanderFigure> figure;
   u8 status = 0;
   std::queue<u8> queued_status;
-  std::array<u8, 0x40 * 0x10> data{};
   u32 last_id = 0;
-  void Save();
 
   enum : u8
   {
@@ -140,9 +140,9 @@ public:
   void QueryBlock(u8 sky_num, u8 block, u8* reply_buf);
   void WriteBlock(u8 sky_num, u8 block, const u8* to_write_buf, u8* reply_buf);
 
-  bool CreateSkylander(const std::string& file_path, u16 m_sky_id, u16 m_sky_var);
   bool RemoveSkylander(u8 sky_num);
-  u8 LoadSkylander(u8* buf, File::IOFile in_file);
+  u8 LoadSkylander(std::unique_ptr<SkylanderFigure> figure);
+  Skylander* GetSkylander(u8 slot);
   std::pair<u16, u16> CalculateIDs(const std::array<u8, 0x40 * 0x10>& file_data);
 
 private:

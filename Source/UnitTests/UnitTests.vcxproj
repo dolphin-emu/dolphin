@@ -66,6 +66,7 @@
     <ClCompile Include="Core\DSP\HermesText.cpp" />
     <ClCompile Include="Core\IOS\ES\FormatsTest.cpp" />
     <ClCompile Include="Core\IOS\FS\FileSystemTest.cpp" />
+    <ClCompile Include="Core\IOS\USB\SkylandersTest.cpp" />
     <ClCompile Include="Core\MMIOTest.cpp" />
     <ClCompile Include="Core\PageFaultTest.cpp" />
     <ClCompile Include="Core\PowerPC\DivUtilsTest.cpp" />

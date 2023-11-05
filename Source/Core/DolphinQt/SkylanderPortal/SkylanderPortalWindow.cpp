@@ -22,6 +22,7 @@
 #include <QScrollArea>
 #include <QStackedWidget>
 #include <QString>
+#include <QStringConverter>
 #include <QStringList>
 #include <QThread>
 #include <QVBoxLayout>
@@ -30,13 +31,14 @@
 
 #include "Common/FileUtil.h"
 #include "Core/Config/MainSettings.h"
-#include "Core/IOS/USB/Emulated/Skylander.h"
+#include "Core/IOS/USB/Emulated/Skylanders/Skylander.h"
 #include "Core/System.h"
 
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
+#include "SkylanderModifyDialog.h"
 
 SkylanderPortalWindow::SkylanderPortalWindow(QWidget* parent) : QWidget(parent)
 {
@@ -124,15 +126,18 @@ void SkylanderPortalWindow::CreateMainWindow()
   auto* load_file_btn = new QPushButton(tr("Load File"));
   auto* clear_btn = new QPushButton(tr("Clear Slot"));
   auto* load_btn = new QPushButton(tr("Load Slot"));
+  auto* modify_btn = new QPushButton(tr("Modify Slot"));
   connect(create_btn, &QAbstractButton::clicked, this,
           &SkylanderPortalWindow::CreateSkylanderAdvanced);
   connect(clear_btn, &QAbstractButton::clicked, this, [this]() { ClearSlot(GetCurrentSlot()); });
   connect(load_btn, &QAbstractButton::clicked, this, &SkylanderPortalWindow::LoadSelected);
   connect(load_file_btn, &QAbstractButton::clicked, this, &SkylanderPortalWindow::LoadFromFile);
+  connect(modify_btn, &QAbstractButton::clicked, this, &SkylanderPortalWindow::ModifySkylander);
   command_layout->addWidget(create_btn);
   command_layout->addWidget(load_file_btn);
   command_layout->addWidget(clear_btn);
   command_layout->addWidget(load_btn);
+  command_layout->addWidget(modify_btn);
   m_command_buttons->setLayout(command_layout);
   main_layout->addWidget(m_command_buttons);
 
@@ -647,6 +652,20 @@ void SkylanderPortalWindow::CreateSkylanderAdvanced()
   create_window->raise();
 }
 
+void SkylanderPortalWindow::ModifySkylander()
+{
+  if (auto sky_slot = m_sky_slots[GetCurrentSlot()])
+  {
+    new SkylanderModifyDialog(this, sky_slot.value().portal_slot);
+  }
+  else
+  {
+    QMessageBox::warning(this, tr("Failed to modify Skylander!"),
+                         tr("Make sure there is a Skylander in slot %1!").arg(GetCurrentSlot()),
+                         QMessageBox::Ok);
+  }
+}
+
 void SkylanderPortalWindow::ClearSlot(u8 slot)
 {
   auto& system = Core::System::GetInstance();
@@ -771,16 +790,18 @@ void SkylanderPortalWindow::RefreshList()
 
 void SkylanderPortalWindow::CreateSkyfile(const QString& path, bool load_after)
 {
-  auto& system = Core::System::GetInstance();
-
-  if (!system.GetSkylanderPortal().CreateSkylander(path.toStdString(), m_sky_id, m_sky_var))
   {
-    QMessageBox::warning(
-        this, tr("Failed to create Skylander file!"),
-        tr("Failed to create Skylander file:\n%1\n(Skylander may already be on the portal)")
-            .arg(path),
-        QMessageBox::Ok);
-    return;
+    IOS::HLE::USB::SkylanderFigure figure(path.toStdString());
+    if (!figure.Create(m_sky_id, m_sky_var))
+    {
+      QMessageBox::warning(
+          this, tr("Failed to create Skylander file!"),
+          tr("Failed to create Skylander file:\n%1\n(Skylander may already be on the portal)")
+              .arg(path),
+          QMessageBox::Ok);
+      return;
+    }
+    figure.Close();
   }
   m_last_skylander_path = QFileInfo(path).absolutePath() + QString::fromStdString("/");
 
@@ -814,8 +835,8 @@ void SkylanderPortalWindow::LoadSkyfilePath(u8 slot, const QString& path)
 
   auto& system = Core::System::GetInstance();
   const std::pair<u16, u16> id_var = system.GetSkylanderPortal().CalculateIDs(file_data);
-  const u8 portal_slot =
-      system.GetSkylanderPortal().LoadSkylander(file_data.data(), std::move(sky_file));
+  const u8 portal_slot = system.GetSkylanderPortal().LoadSkylander(
+      std::make_unique<IOS::HLE::USB::SkylanderFigure>(std::move(sky_file)));
   if (portal_slot == 0xFF)
   {
     QMessageBox::warning(this, tr("Failed to load the Skylander file!"),

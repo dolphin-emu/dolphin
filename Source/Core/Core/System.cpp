@@ -26,7 +26,7 @@
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "IOS/USB/Emulated/Infinity.h"
-#include "IOS/USB/Emulated/Skylander.h"
+#include "IOS/USB/Emulated/Skylanders/Skylander.h"
 #include "VideoCommon/Assets/CustomAssetLoader.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
