@@ -14,7 +14,7 @@
 void SetQWidgetWindowDecorations(QWidget* widget)
 {
 #ifdef _WIN32
-  if (!Settings::Instance().IsSystemDark())
+  if (!Settings::Instance().IsThemeDark())
     return;
 
   BOOL use_dark_title_bar = TRUE;
