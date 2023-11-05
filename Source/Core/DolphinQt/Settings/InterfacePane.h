@@ -38,7 +38,7 @@ private:
   ConfigStringChoice* m_combobox_theme;
   QComboBox* m_combobox_userstyle;
   QLabel* m_label_userstyle;
-  QCheckBox* m_checkbox_top_window;
+  ConfigBool* m_checkbox_top_window;
   ConfigBool* m_checkbox_use_builtin_title_database;
   ToolTipCheckBox* m_checkbox_show_debugging_ui;
   QCheckBox* m_checkbox_focused_hotkeys;

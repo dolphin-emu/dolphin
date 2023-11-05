@@ -177,7 +177,7 @@ void InterfacePane::CreateInGame()
   groupbox->setLayout(groupbox_layout);
   m_main_layout->addWidget(groupbox);
 
-  m_checkbox_top_window = new QCheckBox(tr("Keep Window on Top"));
+  m_checkbox_top_window = new ConfigBool(tr("Keep Window on Top"), Config::MAIN_KEEP_WINDOW_ON_TOP);
   m_checkbox_confirm_on_stop = new QCheckBox(tr("Confirm on Stop"));
   m_checkbox_use_panic_handlers = new QCheckBox(tr("Use Panic Handlers"));
   m_checkbox_enable_osd = new QCheckBox(tr("Show On-Screen Display Messages"));
@@ -234,7 +234,8 @@ void InterfacePane::ConnectLayout()
   connect(m_combobox_userstyle, &QComboBox::currentIndexChanged, this,
           &InterfacePane::OnSaveConfig);
   connect(m_combobox_language, &QComboBox::currentIndexChanged, this, &InterfacePane::OnSaveConfig);
-  connect(m_checkbox_top_window, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
+  connect(m_checkbox_top_window, &QCheckBox::toggled, &Settings::Instance(),
+          &Settings::KeepWindowOnTopChanged);
   connect(m_checkbox_confirm_on_stop, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_use_panic_handlers, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_show_active_title, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
@@ -283,8 +284,6 @@ void InterfacePane::LoadConfig()
     SignalBlocking(m_combobox_userstyle)->setCurrentIndex(index);
 
   // Render Window Options
-  SignalBlocking(m_checkbox_top_window)
-      ->setChecked(Settings::Instance().IsKeepWindowOnTopEnabled());
   SignalBlocking(m_checkbox_confirm_on_stop)->setChecked(Config::Get(Config::MAIN_CONFIRM_ON_STOP));
   SignalBlocking(m_checkbox_use_panic_handlers)
       ->setChecked(Config::Get(Config::MAIN_USE_PANIC_HANDLERS));
@@ -321,7 +320,6 @@ void InterfacePane::OnSaveConfig()
   Settings::Instance().ApplyStyle();
 
   // Render Window Options
-  Settings::Instance().SetKeepWindowOnTop(m_checkbox_top_window->isChecked());
   Config::SetBase(Config::MAIN_CONFIRM_ON_STOP, m_checkbox_confirm_on_stop->isChecked());
   Config::SetBase(Config::MAIN_USE_PANIC_HANDLERS, m_checkbox_use_panic_handlers->isChecked());
   Config::SetBase(Config::MAIN_OSD_MESSAGES, m_checkbox_enable_osd->isChecked());
@@ -374,9 +372,14 @@ void InterfacePane::AddDescriptions()
   static constexpr char TR_THEME_DESCRIPTION[] =
       QT_TR_NOOP("Changes the appearance and color of Dolphin's buttons."
                  "<br><br><dolphin_emphasis>If unsure, select Clean.</dolphin_emphasis>");
+  static constexpr char TR_TOP_WINDOW_DESCRIPTION[] =
+      QT_TR_NOOP("Forces the render window to stay on top of other windows and applications."
+                 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
 
   m_checkbox_use_builtin_title_database->SetDescription(tr(TR_TITLE_DATABASE_DESCRIPTION));
 
   m_combobox_theme->SetTitle(tr("Theme"));
   m_combobox_theme->SetDescription(tr(TR_THEME_DESCRIPTION));
+
+  m_checkbox_top_window->SetDescription(tr(TR_TOP_WINDOW_DESCRIPTION));
 }
