@@ -317,7 +317,6 @@ ARM64Reg Arm64GPRCache::R(const GuestRegInfo& guest_reg)
     ARM64Reg host_reg = bitsize != 64 ? GetReg() : EncodeRegTo64(GetReg());
     m_emit->MOVI2R(host_reg, reg.GetImm());
     reg.Load(host_reg);
-    reg.SetDirty(true);
     return host_reg;
   }
   break;
