@@ -516,6 +516,48 @@ add_library(core
   PowerPC/SignatureDB/MEGASignatureDB.h
   PowerPC/SignatureDB/SignatureDB.cpp
   PowerPC/SignatureDB/SignatureDB.h
+  Scripting/CoreScriptInterface/Enums/ArgTypeEnum.h
+  Scripting/CoreScriptInterface/Enums/GCButtonNameEnum.h
+  Scripting/CoreScriptInterface/Enums/ScriptCallLocationsEnum.h
+  Scripting/CoreScriptInterface/Enums/ScriptReturnCodesEnum.h
+  Scripting/CoreScriptInterface/InternalScriptAPIs/ArgHolder_APIs.h
+  Scripting/CoreScriptInterface/InternalScriptAPIs/ClassFunctionsResolver_APIs.h
+  Scripting/CoreScriptInterface/InternalScriptAPIs/ClassMetadata_APIs.h
+  Scripting/CoreScriptInterface/InternalScriptAPIs/FileUtility_APIs.h
+  Scripting/CoreScriptInterface/InternalScriptAPIs/FunctionMetadata_APIs.h
+  Scripting/CoreScriptInterface/InternalScriptAPIs/GCButton_APIs.h
+  Scripting/CoreScriptInterface/InternalScriptAPIs/ModuleLists_APIs.h
+  Scripting/CoreScriptInterface/InternalScriptAPIs/ScriptContext_APIs.h
+  Scripting/CoreScriptInterface/InternalScriptAPIs/VectorOfArgHolders_APIs.h
+  Scripting/HelperClasses/ArgHolder.cpp
+  Scripting/HelperClasses/ArgHolder.h
+  Scripting/HelperClasses/ArgHolder_API_Implementations.cpp
+  Scripting/HelperClasses/ArgHolder_API_Implementations.h
+  Scripting/HelperClasses/ClassFunctionsResolver_API_Implementations.cpp
+  Scripting/HelperClasses/ClassFunctionsResolver_API_Implementations.h
+  Scripting/HelperClasses/ClassMetadata.cpp
+  Scripting/HelperClasses/ClassMetadata.h
+  Scripting/HelperClasses/FileUtility_API_Implementations.cpp
+  Scripting/HelperClasses/FileUtility_API_Implementations.h
+  Scripting/HelperClasses/FunctionMetadata.cpp
+  Scripting/HelperClasses/FunctionMetadata.h
+  Scripting/HelperClasses/GCButton_API_Implementations.cpp
+  Scripting/HelperClasses/GCButton_API_Implementations.h
+  Scripting/HelperClasses/InstructionBreakpointsHolder.cpp
+  Scripting/HelperClasses/InstructionBreakpointsHolder.h
+  Scripting/HelperClasses/MemoryAddressBreakpointsHolder.cpp
+  Scripting/HelperClasses/MemoryAddressBreakpointsHolder.h
+  Scripting/HelperClasses/ModuleLists_API_Implementations.cpp
+  Scripting/HelperClasses/ModuleLists_API_Implementations.h
+  Scripting/HelperClasses/ScriptContext.cpp
+  Scripting/HelperClasses/ScriptContext.h
+  Scripting/HelperClasses/VectorOfArgHolders_API_Implementations.cpp
+  Scripting/HelperClasses/VectorOfArgHolders_API_Implementations.h
+  Scripting/HelperClasses/VersionComparisonFunctions.cpp
+  Scripting/HelperClasses/VersionComparisonFunctions.h
+  Scripting/HelperClasses/VersionResolver.h
+  Scripting/ScriptUtilities.cpp
+  Scripting/ScriptUtilities.h
   State.cpp
   State.h
   SyncIdentifier.h
@@ -618,6 +660,8 @@ PUBLIC
   enet::enet
   expr
   inputcommon
+  imgui
+  implot
   MbedTLS::mbedtls
   pugixml
   RangeSet::RangeSet
