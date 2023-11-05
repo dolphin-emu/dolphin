@@ -232,10 +232,10 @@ void Arm64GPRCache::FlushRegister(size_t index, bool maintain_state, ARM64Reg tm
         if (allocated_tmp_reg)
           UnlockRegister(tmp_reg);
       }
-
-      if (!maintain_state)
-        reg.Flush();
     }
+
+    if (!maintain_state)
+      reg.Flush();
   }
 }
 
