@@ -437,8 +437,7 @@ DirectoryBlobReader::DirectoryBlobReader(
     std::vector<u8> header_bin(WII_NONPARTITION_DISCHEADER_SIZE);
     if (!m_wrapped_volume->Read(WII_NONPARTITION_DISCHEADER_ADDRESS,
                                 WII_NONPARTITION_DISCHEADER_SIZE, header_bin.data(),
-                                PARTITION_NONE),
-        m_wrapped_volume.get())
+                                PARTITION_NONE))
     {
       header_bin.clear();
     }
