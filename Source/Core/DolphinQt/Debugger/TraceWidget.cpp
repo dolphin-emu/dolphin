@@ -40,6 +40,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 #include "DolphinQt/Host.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings.h"
 
 constexpr int ADDRESS_ROLE = Qt::UserRole;
@@ -152,13 +153,13 @@ void TraceWidget::CreateWidgets()
   auto* record_options_box = new QGroupBox(tr("Recording options"));
   auto* record_options_layout = new QGridLayout;
   QLabel* record_stop_addr_label = new QLabel(tr("Stop recording at:"));
-  m_record_limit_label = new QLabel(tr("Maximum to record"));
+  m_record_limit_label = new QLabel(tr("Timeout (seconds)"));
   m_record_limit_input = new QSpinBox();
-  m_record_limit_input->setMinimum(1000);
-  m_record_limit_input->setMaximum(200000);
-  m_record_limit_input->setValue(10000);
-  m_record_limit_input->setSingleStep(10000);
-  m_record_limit_input->setMinimumSize(70, 0);
+  m_record_limit_input->setMinimum(1);
+  m_record_limit_input->setMaximum(30);
+  m_record_limit_input->setValue(4);
+  m_record_limit_input->setSingleStep(1);
+  m_record_limit_input->setMinimumSize(40, 0);
   m_clear_on_loop = new QCheckBox(tr("Reset on loopback"));
 
   record_options_layout->addWidget(m_record_limit_label, 0, 0);
@@ -237,6 +238,9 @@ void TraceWidget::CreateWidgets()
 
   filter_options_box->setLayout(filter_options_layout);
 
+  m_help_btn = new QPushButton(tr("Help"));
+  m_help_btn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+
   input_layout->setSpacing(1);
   input_layout->addItem(new QSpacerItem(1, 20));
   input_layout->addWidget(m_record_btn);
@@ -246,6 +250,7 @@ void TraceWidget::CreateWidgets()
   input_layout->addItem(new QSpacerItem(1, 32));
   input_layout->addWidget(filter_options_box);
   input_layout->addItem(new QSpacerItem(0, 0, QSizePolicy::Maximum, QSizePolicy::Expanding));
+  input_layout->addWidget(m_help_btn);
 
   m_output_table = new QTableWidget();
   m_output_table->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
@@ -259,27 +264,36 @@ void TraceWidget::CreateWidgets()
   m_output_table->setHorizontalHeaderLabels({tr("Address"), tr("Instr"), tr("Reg"), tr("Arg1"),
                                              tr("Arg2"), tr("Arg3 / Info"), tr("Symbol")});
 
-  auto* splitter = new QSplitter(Qt::Horizontal);
   auto* sidebar_scroll = new QScrollArea;
   sidebar->setLayout(input_layout);
   sidebar_scroll->setWidget(sidebar);
   sidebar_scroll->setWidgetResizable(true);
   // Need to make this variable without letting the sidebar become too big.
-  sidebar_scroll->setFixedWidth(225);
+  sidebar_scroll->setFixedWidth(235);
 
-  auto* layout = new QHBoxLayout();
+  auto* splitter = new QSplitter(Qt::Horizontal);
   splitter->addWidget(m_output_table);
   splitter->addWidget(sidebar_scroll);
-  layout->addWidget(splitter);
 
+  auto* layout = new QHBoxLayout();
   auto* widget = new QWidget;
+  layout->addWidget(splitter);
   widget->setLayout(layout);
   setWidget(widget);
   update();
+
+  if (Core::GetState() != Core::State::Paused)
+    DisableButtons(true);
 }
 
 void TraceWidget::ConnectWidgets()
 {
+  // Capturing the state was causing bugs with the wrong state being reported.
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
+          [this]() { DisableButtons(Core::GetState() != Core::State::Paused); });
+  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this,
+          [this] { DisableButtons(Core::GetState() != Core::State::Paused); });
+  connect(m_help_btn, &QPushButton::pressed, this, &TraceWidget::InfoDisp);
   connect(m_record_btn, &QPushButton::clicked, [this](bool record) {
     if (record)
       OnRecordTrace();
@@ -317,8 +331,6 @@ void TraceWidget::DisableButtons(bool enabled)
   // Required for UI update if function takes a long time to execute.
   repaint();
   qApp->processEvents();
-
-  m_running = enabled;
 }
 
 void TraceWidget::ClearAll()
@@ -393,10 +405,12 @@ void TraceWidget::AutoStep(CodeTrace::AutoStop option, const std::string reg)
   // silently follows target through reshuffles in memory and registers and stops on use or update.
   // Note: This records a log of all instructions executed, which is later re-processed to display
   // the register trace. No log is created if one already exists.
+
   if (!m_system.GetCPU().IsStepping() || m_running)
     return;
 
   DisableButtons(true);
+  m_running = true;
 
   CodeTrace code_trace;
   bool repeat = false;
@@ -419,10 +433,6 @@ void TraceWidget::AutoStep(CodeTrace::AutoStop option, const std::string reg)
     const AutoStepResults results = code_trace.AutoStepping(guard, log_output, repeat, option);
     emit Host::GetInstance()->UpdateDisasmDialog();
     repeat = true;
-
-    // Stop recording if the record limit surpassed. The limit is allow to overflow once.
-    if (m_code_trace.size() >= m_record_limit)
-      log_output = nullptr;
 
     // Invalid instruction, 0 means no step executed.
     if (results.count == 0)
@@ -484,20 +494,26 @@ void TraceWidget::AutoStep(CodeTrace::AutoStop option, const std::string reg)
   } while (msgbox.clickedButton() == (QAbstractButton*)run_button);
 
   if (log_trace)
+  {
     LogCreated(target_register);
+  }
   else
+  {
+    DisableButtons(false);
     m_running = false;
+  }
 }
 
 void TraceWidget::OnRecordTrace()
 {
-  // Fix not using checked
   m_record_btn->setChecked(false);
 
   if (!m_system.GetCPU().IsStepping() || m_running)
     return;
 
   DisableButtons(true);
+  m_running = true;
+
   // Try to get end_bp based on editable input text, then on combo box selection.
   bool good;
   u32 end_bp = m_record_stop_addr->currentText().toUInt(&good, 16);
@@ -508,11 +524,9 @@ void TraceWidget::OnRecordTrace()
 
   CodeTrace codetrace;
 
-  m_record_limit = m_record_limit_input->value();
-
   Core::CPUThreadGuard guard(m_system);
-  bool timed_out = codetrace.RecordTrace(guard, &m_code_trace, m_record_limit, 10, end_bp,
-                                         m_clear_on_loop->isChecked());
+  bool timed_out = codetrace.RecordTrace(guard, &m_code_trace, m_record_limit_input->value(),
+                                         end_bp, m_clear_on_loop->isChecked());
   emit Host::GetInstance()->UpdateDisasmDialog();
 
   // Errors
@@ -701,21 +715,20 @@ void TraceWidget::DisplayTrace()
     return;
 
   DisableButtons(true);
+  m_running = true;
 
   // Clear old data
   m_output_table->setRowCount(0);
 
   const std::vector<TraceResults> trace_results = MakeTraceFromLog();
 
-  if (m_code_trace.size() >= m_record_limit)
-    m_error_msg.emplace_back(tr("Max recorded lines reached, tracing stopped."));
+  m_error_msg.emplace_back(
+      QStringLiteral("Recorded %1 instructions").arg(QString::number(m_code_trace.size())));
 
   if (trace_results.size() >= static_cast<size_t>(m_results_limit_input->value()))
-    m_error_msg.emplace_back(tr("Max output size reached, stopped early"));
+    m_error_msg.emplace_back(tr("Max table size reached."));
 
   // Update UI
-  m_record_limit_label->setText(
-      QStringLiteral("Recorded: %1 of").arg(QString::number(m_code_trace.size())));
   m_results_limit_label->setText(
       QStringLiteral("Results: %1 of").arg(QString::number(trace_results.size())));
 
@@ -862,6 +875,7 @@ void TraceWidget::DisplayTrace()
   m_output_table->resizeRowsToContents();
   m_output_table->verticalHeader()->setMaximumSectionSize(m_font_vspace);
   DisableButtons(false);
+  m_running = false;
 }
 
 void TraceWidget::UpdateBreakpoints()
@@ -871,6 +885,7 @@ void TraceWidget::UpdateBreakpoints()
   {
     for (int i = m_record_stop_addr->count(); i > 1; i--)
       m_record_stop_addr->removeItem(1);
+    return;
   }
   else
   {
@@ -880,8 +895,10 @@ void TraceWidget::UpdateBreakpoints()
   auto& breakpoints = power_pc.GetBreakPoints();
   Core::CPUThreadGuard guard(m_system);
 
-  int index = -1;
+  // Allow no breakpoint
+  m_record_stop_addr->addItem(QStringLiteral(""));
 
+  int index = 0;
   for (const auto& bp : breakpoints.GetBreakPoints())
   {
     QString instr =
@@ -894,53 +911,98 @@ void TraceWidget::UpdateBreakpoints()
   }
 
   // User typically wants the most recently placed breakpoint.
-  if (!m_record_btn->isChecked())
-    m_record_stop_addr->setCurrentIndex(index);
+  m_record_stop_addr->setCurrentIndex(index);
 }
-/*
+
 void TraceWidget::InfoDisp()
 {
+  ModalMessageBox::information(
+      this, tr("Trace Widget Help"),
+      tr("Provides recording and filtering of executed instructions.  Filtering is completely "
+         "separate from recording; it won't affect what's recorded and it can be applied then "
+         "removed without losing any recorded data. Filtering can trace a value starting in a "
+         "register through multiple registers and memory addresses.\n"
+         "Recording a normal, forward trace:\n"
+         "Example: Paused on ' mr  r23, r3 '. Trace where the value in r3 is going\n"
+         "\n"
+         "Simple:\n"
+         "Go to register widget, right click r3, and click Run until...\n"
+         "Value is hit: next occurrence of value showing up.\n"
+         "Value is used: value does something other than move around (math, compare, pointer).\n"
+         "Value is changed:  Value either gets updated or overwritten.\n"
+         "Information will also appear in the Trace Widget.\n"
+         "\n"
+         "Using the Trace Widget, where it can record multiple hits without stopping:\n"
+         "1. Pause the emulator on the instruction.\n"
+         "1b. (optional) Set a breakpoint where the recording should stop. Select it in the "
+         "\"Stop Recording\" box. If not set, it will run until a limit is reached.\n"
+         "2. Hit Record Trace. Once it finishes, the recording log is locked in and won't change "
+         "until \"Delete Log and Reset\" is clicked.\n"
+         "3. This step can be done at any time. Place r3 in the Trace Value box, then click "
+         "\"Apply and update\" if needed. Instructions where the value in r3 show up in bold. As "
+         "it is moving between registers, the register number may change, and it may show up in "
+         "RAM addresses too.\n"
+         "\n"
+         "Backtracing:\n"
+         "Example: r3 = r4 + r5;  Find where the value in r5 came from. To do this, earlier "
+         "instructions must be recorded.\n"
+         "\n"
+         "1. Set a breakpoint at the instruction to backtrace. Select it in \"Stop recording at\". "
+         "With a backtrace, the target instruction must be the last recorded.\n"
+         "2. Set a breakpoint somewhere earlier than the instruction, where the recording will "
+         "likely be able to capture instructions related to r5. Usually going back 1-3 times in "
+         "the Callstack (code widget) and breakpointing on the branch will work.\n"
+         "3. Pause the game on the breakpoint in step 2.\n"
+         "4. Record Trace. If successful, the game will pause on the instruction Breakpoint in "
+         "step 1.\n"
+         "4b. If the game is not stopped on the instruction to backtrace, then too many "
+         "instructions caused the trace to stop early. Return to step 2 and set a closer "
+         "breakpoint.\n"
+         "5. This step can be done at any time. Check Backtrace in the filter menu, and input r5 "
+         "in \"Trace value in\"."));
+
   // i18n: Here, PC is an acronym for program counter, not personal computer.
-  auto* info = new QTableWidgetItem(QStringLiteral(
-      "Used to track the value in a target register or memory address and its uses.\n\n"
-      "Record Trace: Records each executed instruction while stepping from PC to selected "
-      "Breakpoint. Required before tracking a target. If backtracing, set PC to how far back you "
-      "want to trace to and breakpoint the instruction you want to trace backwards.\n\n"
-      "Register: Input examples: r5, f31, use f for ps registers or 80000000 for memory. Only "
-      "takes one value at a time. Leave blank to view complete code path.\n\n"
-      "Starting Address: Used to change range before tracking a value. Record Trace's starting "
-      "address is always the PC. Can change freely after recording trace.\n\n"
-      "Ending breakpoint: Where the trace will stop. If backtracing, should be the line you want "
-      "to backtrace from.\n\n"
-      "Backtrace: A reverse trace that shows where a value came from, the first output line is "
-      "the "
-      "most recent executed.\n\n"
-      "Verbose: Will record all references to what is being tracked, rather than just where it "
-      "is "
-      "moving to or from.\n\n"
-      "Reset on loopback: Will clear the trace if starting address is looped through, ensuring "
-      "only the final loop to the end breakpoint is recorded.\n\n"
-      "Change Range: Change the start and end points of the trace for tracking. Loops may make "
-      "certain ranges buggy.\n\n"
-      "Track target: Follows the register or memory value through the recorded trace. You don't "
-      "have to record a trace multiple times if the first trace recorded the area of code you "
-      "need. You can change any value or option and press track target again. Changing the "
-      "second "
-      "breakpoint will let you backtrace from a new location."));
-  // QFont fixedfont = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-  // fixedfont.setPointSize(11);
-  // info->setFont(fixedfont);
-  m_output_table->setItem(0, 0, info);
-  m_output_table->verticalHeader()->setMaximumSectionSize(-1);
-  m_output_table->horizontalHeader()->setMaximumSectionSize(m_output_table->width());
-  m_output_table->resizeColumnsToContents();
-  m_output_table->resizeRowsToContents();
-  m_output_table->setWordWrap(true);
+  ModalMessageBox::information(
+      this, tr("Trace Widget Help"),
+      tr("PC = Current instruction game is paused on.\n"
+         "\n"
+         "Record Trace: Records each executed instruction while stepping from PC to selected "
+         "Breakpoint. If backtracing, set PC to where trace should begin from and breakpoint the "
+         "instruction to backtrace, so the recording will end on it.\n"
+         "\n"
+         "Stop recording at: Instruction to stop recording and pause at. Can be left blank to use "
+         "the recording limit. If backtracing, must be set to instruction being backtraced.\n"
+         "\n"
+         "Timeout: How long in seconds before recording forcefully stops.\n"
+         "\n"
+         "Result options and filters: Filters information displayed. Does not affect actual "
+         "recording or recorded logs. Can be changed or undone at any time.\n"
+         "\n"
+         "Trace value in: Traces value (target) in given location from its first appearance in \n"
+         "the trace log.\n"
+         "\n"
+         "Change range: Changes the effective start and end address of a trace log. Instead of "
+         "creating a new recording, this can be used to change the instruction for the \"Trace "
+         "value in\" target, or to change the backtracing target.\n"
+         "\n"
+         "Maximum Results: Number of results to show in the table.\n"
+         "\n"
+         "Show Values: Shows the values in the registers, instead of the register's number.\n"
+         "\n"
+         "Result Filters: Hides certain results from cluttering the table. Only applicable when "
+         "tracing a target.\n"
+         "Active: Target is changed.\n"
+         "Passive: Target is used but not changed (compares, math)\n"
+         "Overwritten: Not an actual hit, shows where target was overwritten by an unrelated "
+         "value.\n"
+         "Memory Op: Target was loaded from memory or stored to it.\n"
+         "Pointer: Target used as memory pointer.\n"
+         "Move: Target moves registers.\n"));
 }
-*/
+
 void TraceWidget::OnContextMenu()
 {
-  // Use column 0 to manage data, eveything in the row does the same thing.
+  // Use column 0 to manage data, everything in the row does the same thing.
   auto* item = m_output_table->item(m_output_table->currentItem()->row(), 0);
   const u32 addr = item->data(ADDRESS_ROLE).toUInt();
   const u32 mem_addr = item->data(MEM_ADDRESS_ROLE).toUInt();

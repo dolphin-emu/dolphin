@@ -234,7 +234,7 @@ AutoStepResults CodeTrace::AutoStepping(const Core::CPUThreadGuard& guard,
 
   power_pc.GetBreakPoints().ClearAllTemporary();
   using clock = std::chrono::steady_clock;
-  clock::time_point timeout = clock::now() + std::chrono::seconds(4);
+  clock::time_point timeout = clock::now() + std::chrono::seconds(5);
 
   PowerPC::CoreMode old_mode = power_pc.GetMode();
   power_pc.SetMode(PowerPC::CoreMode::Interpreter);
@@ -254,7 +254,7 @@ AutoStepResults CodeTrace::AutoStepping(const Core::CPUThreadGuard& guard,
       attrib = GetInstructionAttributes(output);
 
       for (auto& reg : attrib.regs)
-        output.regdata.emplace_back(reg, RegisterValue(guard, reg));
+        output.regdata.emplace_back(RegisterData(reg, RegisterValue(guard, reg)));
     }
 
     power_pc.SingleStep();
@@ -264,7 +264,8 @@ AutoStepResults CodeTrace::AutoStepping(const Core::CPUThreadGuard& guard,
     {
       // Must be done after the SingleStep for correct value.
       if (!attrib.target_reg.empty())
-        output.regdata.emplace_back(attrib.target_reg, RegisterValue(guard, attrib.target_reg));
+        output.regdata.emplace_back(
+            RegisterData(attrib.target_reg, RegisterValue(guard, attrib.target_reg)));
 
       output_trace->emplace_back(output);
     }
@@ -303,8 +304,8 @@ AutoStepResults CodeTrace::AutoStepping(const Core::CPUThreadGuard& guard,
 }
 
 bool CodeTrace::RecordTrace(const Core::CPUThreadGuard& guard,
-                            std::vector<TraceOutput>* output_trace, size_t record_limit,
-                            u32 time_limit, u32 end_bp, bool clear_on_loop)
+                            std::vector<TraceOutput>* output_trace, u32 time_limit, u32 end_bp,
+                            bool clear_on_loop)
 {
   auto& system = guard.GetSystem();
   auto& power_pc = system.GetPowerPC();
@@ -320,7 +321,7 @@ bool CodeTrace::RecordTrace(const Core::CPUThreadGuard& guard,
 
   // Using swap instead of clear in case the reserve size is smaller than before.
   std::vector<TraceOutput>().swap(*output_trace);
-  output_trace->reserve(record_limit);
+  output_trace->reserve(40000 * time_limit);
 
   u32 start_bp = ppc_state.pc;
   bool timed_out = false;
@@ -328,7 +329,7 @@ bool CodeTrace::RecordTrace(const Core::CPUThreadGuard& guard,
   // Keep stepping until the end_bp or timeout
   power_pc.GetBreakPoints().ClearAllTemporary();
   using clock = std::chrono::steady_clock;
-  clock::time_point timeout = clock::now() + std::chrono::seconds(4);
+  clock::time_point timeout = clock::now() + std::chrono::seconds(time_limit);
 
   PowerPC::CoreMode old_mode = power_pc.GetMode();
   power_pc.SetMode(PowerPC::CoreMode::Interpreter);
@@ -350,8 +351,7 @@ bool CodeTrace::RecordTrace(const Core::CPUThreadGuard& guard,
 
     output_trace->emplace_back(output);
 
-  } while (clock::now() < timeout && ppc_state.pc != end_bp &&
-           output_trace->size() < record_limit - 1);
+  } while (clock::now() < timeout && ppc_state.pc != end_bp);
 
   // Saved instructions are one step behind when loop ends.
   output_trace->emplace_back(SaveCurrentInstruction(guard));

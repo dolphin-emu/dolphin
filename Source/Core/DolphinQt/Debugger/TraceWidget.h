@@ -85,6 +85,7 @@ private:
   QSpinBox* m_record_limit_input;
   QSpinBox* m_results_limit_input;
   QPushButton* m_record_btn;
+  QPushButton* m_help_btn;
 
   QColor m_tracked_color = Qt::blue;
   QColor m_overwritten_color = Qt::red;

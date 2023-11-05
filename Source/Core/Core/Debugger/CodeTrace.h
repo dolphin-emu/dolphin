@@ -93,7 +93,7 @@ public:
                                std::vector<TraceOutput>* output_trace, bool continue_previous,
                                AutoStop stop_on);
   bool RecordTrace(const Core::CPUThreadGuard& guard, std::vector<TraceOutput>* output_trace,
-                   size_t record_limit, u32 time_limit, u32 end_bp, bool clear_on_loop);
+                   u32 time_limit, u32 end_bp, bool clear_on_loop);
   HitType TraceLogic(const TraceOutput& current_instr, bool first_hit = false,
                      std::set<std::string>* regs = nullptr, bool backtrace = false);
 
