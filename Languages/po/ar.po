@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-25 22:42+0200\n"
+"POT-Creation-Date: 2023-11-07 20:00+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: mansoor <asseryma@hotmail.com>, 2013,2015-2023\n"
 "Language-Team: Arabic (http://app.transifex.com/delroth/dolphin-emu/language/"
@@ -152,11 +152,11 @@ msgstr ""
 msgid "%1 Graphics Configuration"
 msgstr "%1 إعداد الرسومات"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:300
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:299
 msgid "%1 MB (MEM1)"
 msgstr "%1 MB (MEM1)"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:314
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:313
 msgid "%1 MB (MEM2)"
 msgstr "%1 MB (MEM2)"
 
@@ -234,7 +234,7 @@ msgstr "%1 الجلسات التي تم العثور عليها"
 msgid "%1%"
 msgstr "%1%"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:283
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:282
 msgid "%1% (%2 MHz)"
 msgstr "%1% (%2 MHz)"
 
@@ -334,7 +334,7 @@ msgstr "&3x"
 msgid "&4x"
 msgstr "&4x"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:607
+#: Source/Core/DolphinQt/MenuBar.cpp:608
 msgid "&About"
 msgstr "&حول"
 
@@ -355,7 +355,7 @@ msgstr "&إضافة وظيفة"
 msgid "&Add..."
 msgstr "&إضافة"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:533
+#: Source/Core/DolphinQt/MenuBar.cpp:534
 msgid "&Audio Settings"
 msgstr "&إعدادات الصوت"
 
@@ -363,7 +363,7 @@ msgstr "&إعدادات الصوت"
 msgid "&Auto Update:"
 msgstr "&التحديث التلقائي"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:549
+#: Source/Core/DolphinQt/MenuBar.cpp:550
 msgid "&Automatic Start"
 msgstr "&بدء تلقائي"
 
@@ -371,11 +371,11 @@ msgstr "&بدء تلقائي"
 msgid "&Borderless Window"
 msgstr "&نافذة بلا حدود"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:465
+#: Source/Core/DolphinQt/MenuBar.cpp:466
 msgid "&Breakpoints"
 msgstr "&نقاط التوقف"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:590
+#: Source/Core/DolphinQt/MenuBar.cpp:591
 msgid "&Bug Tracker"
 msgstr "&تتبع اخطاء المحاكي"
 
@@ -383,15 +383,15 @@ msgstr "&تتبع اخطاء المحاكي"
 msgid "&Cancel"
 msgstr "&إلغاء"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:217
+#: Source/Core/DolphinQt/MenuBar.cpp:218
 msgid "&Cheats Manager"
 msgstr "&مدير الأسرار"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:600
+#: Source/Core/DolphinQt/MenuBar.cpp:601
 msgid "&Check for Updates..."
 msgstr "&تحقق من وجود تحديثات"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:957
+#: Source/Core/DolphinQt/MenuBar.cpp:964
 msgid "&Clear Symbols"
 msgstr "&مسح الرموز"
 
@@ -399,7 +399,7 @@ msgstr "&مسح الرموز"
 msgid "&Clone..."
 msgstr "&استنساخ"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:430
+#: Source/Core/DolphinQt/MenuBar.cpp:431
 msgid "&Code"
 msgstr "&رمز"
 
@@ -407,9 +407,9 @@ msgstr "&رمز"
 msgid "&Connected"
 msgstr "&متصل"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:535
+#: Source/Core/DolphinQt/MenuBar.cpp:536
 msgid "&Controller Settings"
-msgstr "&إعدادات وحدة التحكم"
+msgstr "&إعدادات ذراع التحكم"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:570
 msgid "&Copy address"
@@ -446,11 +446,11 @@ msgstr "&تحرير الرمز"
 msgid "&Edit..."
 msgstr "&تحرير"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:197
+#: Source/Core/DolphinQt/MenuBar.cpp:198
 msgid "&Eject Disc"
 msgstr "&إخراج القرص"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:308
+#: Source/Core/DolphinQt/MenuBar.cpp:309
 msgid "&Emulation"
 msgstr "&محاكاة"
 
@@ -470,27 +470,27 @@ msgstr "&تصدير الحالة"
 msgid "&Export as .gci..."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:187
+#: Source/Core/DolphinQt/MenuBar.cpp:188
 msgid "&File"
 msgstr "&ملف"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:562
+#: Source/Core/DolphinQt/MenuBar.cpp:563
 msgid "&Font..."
 msgstr "&الخط"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:314
+#: Source/Core/DolphinQt/MenuBar.cpp:315
 msgid "&Frame Advance"
 msgstr "&الإطار المسبق"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:537
+#: Source/Core/DolphinQt/MenuBar.cpp:538
 msgid "&Free Look Settings"
 msgstr "&إعدادات المظهر الحر"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:959
+#: Source/Core/DolphinQt/MenuBar.cpp:966
 msgid "&Generate Symbols From"
 msgstr "&إنشاء رموز من"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:586
+#: Source/Core/DolphinQt/MenuBar.cpp:587
 msgid "&GitHub Repository"
 msgstr "&GitHub مستودع "
 
@@ -498,15 +498,15 @@ msgstr "&GitHub مستودع "
 msgid "&Go to start of function"
 msgstr "&انتقل إلى بدء الوظيفة"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:532
+#: Source/Core/DolphinQt/MenuBar.cpp:533
 msgid "&Graphics Settings"
 msgstr "&إعدادات الرسومات"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:577
+#: Source/Core/DolphinQt/MenuBar.cpp:578
 msgid "&Help"
 msgstr "&مساعدة"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:536
+#: Source/Core/DolphinQt/MenuBar.cpp:537
 msgid "&Hotkey Settings"
 msgstr "&إعدادات مفاتيح الاختصار"
 
@@ -526,7 +526,7 @@ msgstr "&استيراد الحالة"
 msgid "&Import..."
 msgstr "&استيراد"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:223
+#: Source/Core/DolphinQt/MenuBar.cpp:224
 msgid "&Infinity Base"
 msgstr "&Infinity قاعدة"
 
@@ -538,7 +538,7 @@ msgstr "&blr إدراج"
 msgid "&Interframe Blending"
 msgstr "&مزج الإطارات"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:490
+#: Source/Core/DolphinQt/MenuBar.cpp:491
 msgid "&JIT"
 msgstr "&JIT"
 
@@ -546,11 +546,11 @@ msgstr "&JIT"
 msgid "&Language:"
 msgstr "&اللغة"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:331
+#: Source/Core/DolphinQt/MenuBar.cpp:332
 msgid "&Load State"
 msgstr "&تحميل الحالة"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:965
+#: Source/Core/DolphinQt/MenuBar.cpp:972
 msgid "&Load Symbol Map"
 msgstr "&Load Symbol Map"
 
@@ -564,15 +564,15 @@ msgstr "&تحميل الملف إلى العنوان الحالي"
 msgid "&Lock Watches"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:422
+#: Source/Core/DolphinQt/MenuBar.cpp:423
 msgid "&Lock Widgets In Place"
 msgstr "&تأمين المصغرات في القائمة"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:474
+#: Source/Core/DolphinQt/MenuBar.cpp:475
 msgid "&Memory"
 msgstr "&الذاكرة"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:736
+#: Source/Core/DolphinQt/MenuBar.cpp:737
 msgid "&Movie"
 msgstr "&فيلم"
 
@@ -580,7 +580,7 @@ msgstr "&فيلم"
 msgid "&Mute"
 msgstr "&صامت"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:482
+#: Source/Core/DolphinQt/MenuBar.cpp:483
 msgid "&Network"
 msgstr "&شبكة الاتصال"
 
@@ -589,23 +589,23 @@ msgid "&No"
 msgstr "&لا"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:136
-#: Source/Core/DolphinQt/MenuBar.cpp:189 Source/Core/DolphinQt/MenuBar.cpp:191
+#: Source/Core/DolphinQt/MenuBar.cpp:190 Source/Core/DolphinQt/MenuBar.cpp:192
 msgid "&Open..."
 msgstr "&فتح"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:523
+#: Source/Core/DolphinQt/MenuBar.cpp:524
 msgid "&Options"
 msgstr "&خيارات"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:985
+#: Source/Core/DolphinQt/MenuBar.cpp:992
 msgid "&Patch HLE Functions"
 msgstr "&HLE وظائف تصحيح"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:310
+#: Source/Core/DolphinQt/MenuBar.cpp:311
 msgid "&Pause"
 msgstr "&إيقاف مؤقت"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:309
+#: Source/Core/DolphinQt/MenuBar.cpp:310
 msgid "&Play"
 msgstr "&تشغيل"
 
@@ -613,7 +613,7 @@ msgstr "&تشغيل"
 msgid "&Properties"
 msgstr "&خصائص"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:751
+#: Source/Core/DolphinQt/MenuBar.cpp:752
 msgid "&Read-Only Mode"
 msgstr "&وضع للقراءة فقط"
 
@@ -621,7 +621,7 @@ msgstr "&وضع للقراءة فقط"
 msgid "&Refresh List"
 msgstr "&تحديث القائمة"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:438
+#: Source/Core/DolphinQt/MenuBar.cpp:439
 msgid "&Registers"
 msgstr "&تسجل"
 
@@ -639,15 +639,15 @@ msgid "&Rename symbol"
 msgstr "&إعادة تسمية الرمز"
 
 #: Source/Core/DolphinQt/GBAWidget.cpp:405
-#: Source/Core/DolphinQt/MenuBar.cpp:312
+#: Source/Core/DolphinQt/MenuBar.cpp:313
 msgid "&Reset"
 msgstr "&إعادة"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:214
+#: Source/Core/DolphinQt/MenuBar.cpp:215
 msgid "&Resource Pack Manager"
 msgstr "&أدارة حزمة الموارد"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:966
+#: Source/Core/DolphinQt/MenuBar.cpp:973
 msgid "&Save Symbol Map"
 msgstr "&Save Symbol Map"
 
@@ -655,7 +655,7 @@ msgstr "&Save Symbol Map"
 msgid "&Scan e-Reader Card(s)..."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:222
+#: Source/Core/DolphinQt/MenuBar.cpp:223
 msgid "&Skylanders Portal"
 msgstr "&Skylanders منفذ"
 
@@ -663,7 +663,7 @@ msgstr "&Skylanders منفذ"
 msgid "&Speed Limit:"
 msgstr "&حد السرعة"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:311
+#: Source/Core/DolphinQt/MenuBar.cpp:312
 msgid "&Stop"
 msgstr "&إيقاف "
 
@@ -671,11 +671,11 @@ msgstr "&إيقاف "
 msgid "&Theme:"
 msgstr "&المظهر"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:447
+#: Source/Core/DolphinQt/MenuBar.cpp:448
 msgid "&Threads"
 msgstr "&المواضيع"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:212
+#: Source/Core/DolphinQt/MenuBar.cpp:213
 msgid "&Tools"
 msgstr "&أدوات"
 
@@ -689,17 +689,17 @@ msgstr "&إلغاء تحميل القرص"
 msgid "&Unlock Watches"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:396
+#: Source/Core/DolphinQt/MenuBar.cpp:397
 msgid "&View"
 msgstr "&عرض"
 
 #. i18n: This kind of "watch" is used for watching emulated memory.
 #. It's not related to timekeeping devices.
-#: Source/Core/DolphinQt/MenuBar.cpp:457
+#: Source/Core/DolphinQt/MenuBar.cpp:458
 msgid "&Watch"
 msgstr "&مشاهدة"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:579
+#: Source/Core/DolphinQt/MenuBar.cpp:580
 msgid "&Website"
 msgstr "&الموقع"
 
@@ -711,17 +711,25 @@ msgstr "&معلومات عن اللعبة"
 msgid "&Yes"
 msgstr "&نعم"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1264
+#: Source/Core/DolphinQt/MenuBar.cpp:1271
 msgid "'%1' not found, no symbol names generated"
 msgstr "'%1' لم يتم العثور على أي أسماء رموز تم إنشاؤها"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1486
+#: Source/Core/DolphinQt/MenuBar.cpp:1493
 msgid "'%1' not found, scanning for common functions instead"
 msgstr "'%1' لم يتم العثور على المسح بحثًا عن الوظائف الشائعة بدلاً من ذلك"
 
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:141
+msgid "(Dark)"
+msgstr ""
+
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:140
+msgid "(Light)"
+msgstr ""
+
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:136
-msgid "(None)"
-msgstr "(لا شيء)"
+msgid "(System)"
+msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:142
 msgid "(host)"
@@ -770,8 +778,8 @@ msgstr "..."
 msgid "/ Divide"
 msgstr "/ تقسيم"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:585
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:586
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:590
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:591
 msgid "0"
 msgstr "0"
 
@@ -781,7 +789,7 @@ msgstr "1 GiB"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:73
 msgid "1080p"
-msgstr ""
+msgstr "1080p"
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:31
 msgid "128 Mbit (2043 blocks)"
@@ -793,7 +801,7 @@ msgstr "128 MiB"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:73
 msgid "1440p"
-msgstr ""
+msgstr "1440p"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:209
 msgid "16 Bytes"
@@ -911,7 +919,7 @@ msgstr "4:3"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:74
 msgid "4K"
-msgstr ""
+msgstr "4K"
 
 #: Source/Core/Core/HotkeyManager.cpp:196
 msgid "4x"
@@ -927,7 +935,7 @@ msgstr "512 MiB"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:74
 msgid "5K"
-msgstr ""
+msgstr "5K"
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:30
 msgid "64 Mbit (1019 blocks)"
@@ -954,7 +962,7 @@ msgstr "64-bit عدد صحيح غير موقع"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:73
 msgid "720p"
-msgstr ""
+msgstr "720p"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:208
 msgid "8 Bytes"
@@ -984,7 +992,7 @@ msgstr "8-bit عدد صحيح غير موقع"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:75
 msgid "8K"
-msgstr ""
+msgstr "8K"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:112
 msgid "8x Anisotropic"
@@ -1027,8 +1035,8 @@ msgstr ""
 msgid "> Greater-than"
 msgstr "> أكثر-من"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1517
-#: Source/Core/DolphinQt/MainWindow.cpp:1584
+#: Source/Core/DolphinQt/MainWindow.cpp:1515
+#: Source/Core/DolphinQt/MainWindow.cpp:1582
 msgid "A NetPlay Session is already in progress!"
 msgstr "جلسة لعب الشبكة جارية بالفعل!"
 
@@ -1065,7 +1073,7 @@ msgstr ""
 msgid "A save state cannot be loaded without specifying a game to launch."
 msgstr "لا يمكن تحميل حالة الحفظ دون تحديد لعبة لتشغيلها"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:934
+#: Source/Core/DolphinQt/MainWindow.cpp:932
 msgid ""
 "A shutdown is already in progress. Unsaved data may be lost if you stop the "
 "current emulation before it completes. Force stop?"
@@ -1156,7 +1164,7 @@ msgid "Accuracy:"
 msgstr "ضبط"
 
 #: Source/Core/DolphinQt/Achievements/AchievementsWindow.cpp:22
-#: Source/Core/DolphinQt/MenuBar.cpp:236
+#: Source/Core/DolphinQt/MenuBar.cpp:237
 msgid "Achievements"
 msgstr "الإنجازات"
 
@@ -1322,7 +1330,7 @@ msgstr "أضف"
 #: Source/Core/DolphinQt/Debugger/BreakpointDialog.cpp:288
 #: Source/Core/DolphinQt/Debugger/BreakpointDialog.cpp:300
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:167
-#: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:82
+#: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:81
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:144
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:375
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:155
@@ -1330,7 +1338,7 @@ msgstr "أضف"
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:181
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:233
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:91
-#: Source/Core/DolphinQt/MenuBar.cpp:960
+#: Source/Core/DolphinQt/MenuBar.cpp:967
 msgid "Address"
 msgstr "عنوان"
 
@@ -1450,7 +1458,7 @@ msgstr "أفريقيا"
 
 #. i18n: One of the elements in the Skylanders games. Japanese: 風. For official translations
 #. in other languages, check the SuperChargers manual at https://support.activision.com/manuals
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:353
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:358
 msgid "Air"
 msgstr "هواء"
 
@@ -1458,8 +1466,8 @@ msgstr "هواء"
 msgid "Aligned to data type length"
 msgstr "محاذاة لطول نوع البيانات"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:331
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:409
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:336
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:414
 msgid "All"
 msgstr "الكل"
 
@@ -1471,7 +1479,7 @@ msgstr "كل مزدوج"
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:363
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:440
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:591
-#: Source/Core/DolphinQt/MainWindow.cpp:772
+#: Source/Core/DolphinQt/MainWindow.cpp:770
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:121
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:328
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:51
@@ -1488,7 +1496,7 @@ msgstr "(*) كل الملفات"
 msgid "All Float"
 msgstr "كل تعويم"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:771
+#: Source/Core/DolphinQt/MainWindow.cpp:769
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:50
 msgid "All GC/Wii files"
 msgstr "GC/Wii جميع ملفات"
@@ -1497,8 +1505,8 @@ msgstr "GC/Wii جميع ملفات"
 msgid "All Hexadecimal"
 msgstr "كل سداسي عشري"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1384
-#: Source/Core/DolphinQt/MainWindow.cpp:1393
+#: Source/Core/DolphinQt/MainWindow.cpp:1382
+#: Source/Core/DolphinQt/MainWindow.cpp:1391
 msgid "All Save States (*.sav *.s##);; All Files (*)"
 msgstr "جميع حالات الحفظ (*.sav *.s##);; كل الملفات (*)"
 
@@ -1514,11 +1522,11 @@ msgstr "جميع الأعداد الصحيحة غير الموقعة"
 msgid "All files (*)"
 msgstr "(*) جميع الملفات"
 
-#: Source/Core/Core/NetPlayServer.cpp:1205
+#: Source/Core/Core/NetPlayServer.cpp:1209
 msgid "All players' codes synchronized."
 msgstr "جميع رموز اللاعبين متزامنة."
 
-#: Source/Core/Core/NetPlayServer.cpp:1147
+#: Source/Core/Core/NetPlayServer.cpp:1151
 msgid "All players' saves synchronized."
 msgstr "حفظ جميع اللاعبين متزامنة."
 
@@ -1548,7 +1556,7 @@ msgstr ""
 msgid "Alternate Input Sources"
 msgstr "مصادر الإدخال البديلة"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:185
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:189
 msgid "Always"
 msgstr "دائما"
 
@@ -1596,15 +1604,15 @@ msgstr "التنعيم"
 msgid "Any Region"
 msgstr "أي منطقة"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1635
+#: Source/Core/DolphinQt/MenuBar.cpp:1642
 msgid "Append signature to"
 msgstr "إلحاق التوقيع ل"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:978
+#: Source/Core/DolphinQt/MenuBar.cpp:985
 msgid "Append to &Existing Signature File..."
 msgstr "إلحاق ب & ملف التوقيع الموجود"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:982
+#: Source/Core/DolphinQt/MenuBar.cpp:989
 msgid "Appl&y Signature File..."
 msgstr "تطبيق ملف التوقيع"
 
@@ -1622,7 +1630,7 @@ msgstr "تاريخ الإصدار"
 msgid "Apply"
 msgstr "تطبيق"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1658
+#: Source/Core/DolphinQt/MenuBar.cpp:1665
 msgid "Apply signature file"
 msgstr "تطبيق ملف التوقيع"
 
@@ -1665,11 +1673,11 @@ msgstr "تناسب الأبعاد"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:295
 msgid "Assign Controller Ports"
-msgstr "تعيين منافذ وحدة التحكم"
+msgstr "تعيين منافذ ذراع التحكم"
 
 #: Source/Core/DolphinQt/NetPlay/PadMappingDialog.cpp:21
 msgid "Assign Controllers"
-msgstr "تعيين وحدات تحكم"
+msgstr "تعيين ذراع التحكم"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:536
 msgid ""
@@ -1737,7 +1745,7 @@ msgstr "ضبط تلقائي لحجم النافذة"
 msgid "Auto-Hide"
 msgstr "إخفاء تلقائي"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1274
+#: Source/Core/DolphinQt/MenuBar.cpp:1281
 msgid "Auto-detect RSO modules?"
 msgstr "RSO الكشف التلقائي عن وحدات"
 
@@ -1840,7 +1848,7 @@ msgstr "قيمة غير صالحة المقدمة"
 #: Source/Core/DolphinQt/GameList/GameList.cpp:996
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:217
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:152
-#: Source/Core/DolphinQt/MenuBar.cpp:634
+#: Source/Core/DolphinQt/MenuBar.cpp:635
 msgid "Banner"
 msgstr "الشعار"
 
@@ -1928,7 +1936,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:1006
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:231
-#: Source/Core/DolphinQt/MenuBar.cpp:644
+#: Source/Core/DolphinQt/MenuBar.cpp:645
 msgid "Block Size"
 msgstr "حجم الكتلة"
 
@@ -1966,15 +1974,15 @@ msgstr ""
 "libusb تم تمكين وضع عبور البلوتوث ولكن تم تصميم دولفين بدون\n"
 "لا يمكن استخدام وضع العبور"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:542
+#: Source/Core/DolphinQt/MenuBar.cpp:543
 msgid "Boot to Pause"
 msgstr "التمهيد لإيقاف مؤقت"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1777
+#: Source/Core/DolphinQt/MainWindow.cpp:1775
 msgid "BootMii NAND backup file (*.bin);;All Files (*)"
 msgstr "BootMii NAND backup file (*.bin);;All Files (*)"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1803
+#: Source/Core/DolphinQt/MainWindow.cpp:1801
 msgid "BootMii keys file (*.bin);;All Files (*)"
 msgstr "BootMii keys file (*.bin);;All Files (*)"
 
@@ -2043,7 +2051,7 @@ msgstr "خطأ محول النطاق العريض"
 msgid "Broadband Adapter MAC Address"
 msgstr "عنوان ماك لمحول النطاق العريض"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:229
+#: Source/Core/DolphinQt/MenuBar.cpp:230
 msgid "Browse &NetPlay Sessions...."
 msgstr "مستعرض جلسات اللعب عبر الشبكة"
 
@@ -2105,7 +2113,7 @@ msgstr "بواسطة:  "
 msgid "C Stick"
 msgstr "C عصا"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:977
+#: Source/Core/DolphinQt/MenuBar.cpp:984
 msgid "C&reate Signature File..."
 msgstr "إنشاء ملف التوقيع"
 
@@ -2190,18 +2198,26 @@ msgstr ""
 msgid "Can only generate AR code for values in virtual memory."
 msgstr ""
 
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:99
+msgid "Can't be modified yet!"
+msgstr ""
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:291
+msgid "Can't edit villains for this trophy!"
+msgstr ""
+
 #: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:1828
 msgid "Can't find Wii Remote by connection handle {0:02x}"
 msgstr "{0:02x} لا يمكن العثور على ريموت وي من خلال مقبض الاتصال"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1510
-#: Source/Core/DolphinQt/MainWindow.cpp:1577
+#: Source/Core/DolphinQt/MainWindow.cpp:1508
+#: Source/Core/DolphinQt/MainWindow.cpp:1575
 msgid "Can't start a NetPlay Session while a game is still running!"
 msgstr "لا يمكن بدء جلسة اللعب عبر الشبكة بينما لا تزال اللعبة قيد التشغيل! "
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp:57
 #: Source/Core/DolphinQt/Config/VerifyWidget.cpp:158
-#: Source/Core/DolphinQt/MenuBar.cpp:1306
+#: Source/Core/DolphinQt/MenuBar.cpp:1313
 #: Source/Core/DolphinQt/NKitWarningDialog.cpp:62
 #: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:50
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:283
@@ -2252,6 +2268,10 @@ msgstr "لا يمكن ضبط بطاقة الذاكرة على مسار فارغ"
 msgid "Cannot start the game, because the GC IPL could not be found."
 msgstr "Cannot start the game, because the GC IPL could not be found."
 
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:312
+msgid "Captured villain %1:"
+msgstr ""
+
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:41
 msgid "Card Size"
 msgstr "حجم البطاقة"
@@ -2274,7 +2294,7 @@ msgstr "المركز و المعايرة"
 msgid "Change &Disc"
 msgstr "تغيير &القرص"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:196
+#: Source/Core/DolphinQt/MenuBar.cpp:197
 msgid "Change &Disc..."
 msgstr "تغيير &القرص"
 
@@ -2339,7 +2359,7 @@ msgstr "بحث عن اسرار"
 msgid "Cheats Manager"
 msgstr "مدير الأسرار"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:261
+#: Source/Core/DolphinQt/MenuBar.cpp:262
 msgid "Check NAND..."
 msgstr "NAND تحقق من"
 
@@ -2367,7 +2387,7 @@ msgstr "اختباري"
 msgid "China"
 msgstr "الصين"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:226
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:231
 msgid "Choose"
 msgstr "اختر"
 
@@ -2379,11 +2399,11 @@ msgstr "اختيار ملف لفتح"
 msgid "Choose a file to open or create"
 msgstr "اختر ملفًا لفتحه أو إنشائه"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1680
+#: Source/Core/DolphinQt/MenuBar.cpp:1687
 msgid "Choose priority input file"
 msgstr "اختيار ملف الإدخال ذي الأولوية"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1685
+#: Source/Core/DolphinQt/MenuBar.cpp:1692
 msgid "Choose secondary input file"
 msgstr "اختر ملف الإدخال الثانوي"
 
@@ -2418,11 +2438,11 @@ msgstr "Classic Controller"
 msgid "Clear"
 msgstr "مسح"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:850
+#: Source/Core/DolphinQt/MenuBar.cpp:857
 msgid "Clear Cache"
 msgstr "مسح ذاكرة التخزين المؤقت"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:125
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:127
 msgid "Clear Slot"
 msgstr "مسح الفتحه "
 
@@ -2439,7 +2459,7 @@ msgstr "استنساخ و &تحرير الرمز"
 msgid "Close"
 msgstr "إغلاق"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:525 Source/Core/DolphinQt/MenuBar.cpp:528
+#: Source/Core/DolphinQt/MenuBar.cpp:526 Source/Core/DolphinQt/MenuBar.cpp:529
 msgid "Co&nfiguration"
 msgstr "الإعدادات العامة"
 
@@ -2470,13 +2490,13 @@ msgstr "تم تنفيذ التعليمات البرمجية"
 msgid "Code:"
 msgstr "رمز"
 
-#: Source/Core/Core/NetPlayClient.cpp:1860
+#: Source/Core/Core/NetPlayClient.cpp:1864
 msgid "Codes received!"
 msgstr "الرموز الواردة!"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:625
 msgid "Color Correction"
-msgstr ""
+msgstr "تصحيح الألوان"
 
 #: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:24
 msgid "Color Correction Configuration"
@@ -2490,7 +2510,7 @@ msgstr "تصحيح الألوان"
 msgid "Color Space"
 msgstr "مساحة اللون"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:980
+#: Source/Core/DolphinQt/MenuBar.cpp:987
 msgid "Combine &Two Signature Files..."
 msgstr "دمج اثنين من ملفات التوقيع"
 
@@ -2530,7 +2550,7 @@ msgstr "تجميع التظليل"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:1007
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:233
-#: Source/Core/DolphinQt/MenuBar.cpp:645
+#: Source/Core/DolphinQt/MenuBar.cpp:646
 msgid "Compression"
 msgstr "نوع الضغط"
 
@@ -2632,7 +2652,7 @@ msgstr "إعدادات"
 
 #: Source/Core/DolphinQt/Config/FreeLookWidget.cpp:39
 msgid "Configure Controller"
-msgstr "إعدادات وحدة تحكم"
+msgstr "إعدادات ذراع التحكم"
 
 #: Source/Core/DolphinQt/Config/CheatWarningWidget.cpp:43
 #: Source/Core/DolphinQt/Config/GraphicsModWarningWidget.cpp:35
@@ -2652,8 +2672,8 @@ msgstr "إعداد الإخراج"
 #: Source/Core/DolphinQt/ConvertDialog.cpp:408
 #: Source/Core/DolphinQt/GameList/GameList.cpp:642
 #: Source/Core/DolphinQt/GameList/GameList.cpp:828
-#: Source/Core/DolphinQt/MainWindow.cpp:933
-#: Source/Core/DolphinQt/MainWindow.cpp:1713
+#: Source/Core/DolphinQt/MainWindow.cpp:931
+#: Source/Core/DolphinQt/MainWindow.cpp:1711
 #: Source/Core/DolphinQt/WiiUpdate.cpp:142
 msgid "Confirm"
 msgstr "تأكيد "
@@ -2662,11 +2682,11 @@ msgstr "تأكيد "
 msgid "Confirm backend change"
 msgstr "تأكيد تغيير الخلفية"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:169
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:173
 msgid "Confirm on Stop"
 msgstr "تأكيد على التوقف"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1219
+#: Source/Core/DolphinQt/MenuBar.cpp:1226
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:500
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:240
 msgid "Confirmation"
@@ -2677,7 +2697,7 @@ msgstr "التأكيد"
 msgid "Connect"
 msgstr "اتصال"
 
-#: Source/Core/Core/HotkeyManager.cpp:85 Source/Core/DolphinQt/MenuBar.cpp:302
+#: Source/Core/Core/HotkeyManager.cpp:85 Source/Core/DolphinQt/MenuBar.cpp:303
 msgid "Connect Balance Board"
 msgstr "ربط لوح الميزان"
 
@@ -2685,7 +2705,7 @@ msgstr "ربط لوح الميزان"
 msgid "Connect USB Keyboard"
 msgstr "ربط لوحة مفاتيح يو إس بي"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:294
+#: Source/Core/DolphinQt/MenuBar.cpp:295
 msgid "Connect Wii Remote %1"
 msgstr "%1 ربط ريموت وي"
 
@@ -2705,7 +2725,7 @@ msgstr "ربط ريموت وي 3"
 msgid "Connect Wii Remote 4"
 msgstr "ربط ريموت وي 4"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:287
+#: Source/Core/DolphinQt/MenuBar.cpp:288
 msgid "Connect Wii Remotes"
 msgstr "ربط ريموت وي "
 
@@ -2748,31 +2768,31 @@ msgstr "عصا التحكم"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:456
 msgid "Controller Profile"
-msgstr "ملف تعريف وحدة التحكم"
+msgstr "ملف تعريف ذراع التحكم"
 
 #: Source/Core/Core/HotkeyManager.cpp:342
 msgid "Controller Profile 1"
-msgstr "ملف تعريف وحدة التحكم 1"
+msgstr "ملف تعريف ذراع التحكم 1"
 
 #: Source/Core/Core/HotkeyManager.cpp:343
 msgid "Controller Profile 2"
-msgstr "ملف تعريف وحدة التحكم 2"
+msgstr "ملف تعريف ذراع التحكم 2"
 
 #: Source/Core/Core/HotkeyManager.cpp:344
 msgid "Controller Profile 3"
-msgstr "ملف تعريف وحدة التحكم 3"
+msgstr "ملف تعريف ذراع التحكم 3"
 
 #: Source/Core/Core/HotkeyManager.cpp:345
 msgid "Controller Profile 4"
-msgstr "ملف تعريف وحدة التحكم 4"
+msgstr "ملف تعريف ذراع التحكم 4"
 
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:16
 msgid "Controller Settings"
-msgstr "إعدادات وحدة التحكم"
+msgstr "إعدادات ذراع التحكم"
 
 #: Source/Core/DolphinQt/ToolBar.cpp:131
 msgid "Controllers"
-msgstr "وحدات التحكم"
+msgstr "ذراع التحكم"
 
 #: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:51
 msgid ""
@@ -3071,6 +3091,10 @@ msgstr ""
 msgid "Could not recognize file {0}"
 msgstr "{0} تعذر التعرف على الملف"
 
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:273
+msgid "Could not save your changes!"
+msgstr ""
+
 #: Source/Core/UICommon/AutoUpdate.cpp:303
 #: Source/Core/UICommon/AutoUpdate.cpp:309
 msgid "Could not start updater process: {0}"
@@ -3106,7 +3130,7 @@ msgstr "الدولة"
 
 #: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:108
 #: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:244
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:598
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:603
 msgid "Create"
 msgstr "انشاء"
 
@@ -3119,12 +3143,12 @@ msgstr "Infinity قم بإنشاء ملف"
 msgid "Create New Memory Card"
 msgstr "إنشاء بطاقة ذاكرة جديدة"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:529
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:633
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:534
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:638
 msgid "Create Skylander File"
 msgstr "Skylander قم بإنشاء ملف"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:81
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:83
 msgid "Create Skylander Folder"
 msgstr "Skylander إنشاء مجلد"
 
@@ -3183,7 +3207,7 @@ msgid ""
 "leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:271
+#: Source/Core/DolphinQt/MenuBar.cpp:272
 msgid "Current Region"
 msgstr "المنطقة الحالية"
 
@@ -3215,7 +3239,7 @@ msgstr "خيارات تخصيص وقت النظام "
 msgid "Custom:"
 msgstr "مخصص:"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:123
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:125
 msgid "Customize"
 msgstr "تخصيص"
 
@@ -3279,7 +3303,7 @@ msgid ""
 msgstr ""
 "DSU يتيح بروتوكول \n"
 "استخدام بيانات الإدخال والحركة من مصادر متوافقة ، مثل بلاي ستيشن و نينتندو "
-"سويتش و وحدات تحكم ستيم.<br><br>للحصول على إرشادات الإعداد, <a href="
+"سويتش و وذراع تحكم ستيم.<br><br>للحصول على إرشادات الإعداد, <a href="
 "\"https://wiki.dolphin-emu.org/index.php?title=DSU_Client\">راجع هذه الصفحة</"
 "a>."
 
@@ -3289,9 +3313,9 @@ msgstr "بساط الرقص"
 
 #. i18n: One of the elements in the Skylanders games. For official translations
 #. in other languages, check the SuperChargers manual at https://support.activision.com/manuals
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:360
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:365
 msgid "Dark"
-msgstr ""
+msgstr "مظلم"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:138
 msgid "Data"
@@ -3322,7 +3346,7 @@ msgid "Data inconsistency in GCMemcardManager, aborting action."
 msgstr ""
 "عدم تناسق البيانات في بطاقة ذاكرة جيم كيوب ، مما يؤدي إلى إلغاء الإجراء"
 
-#: Source/Core/Core/NetPlayClient.cpp:1818
+#: Source/Core/Core/NetPlayClient.cpp:1822
 msgid "Data received!"
 msgstr "البيانات المتلقية!"
 
@@ -3465,7 +3489,7 @@ msgstr "العمق"
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:233
 #: Source/Core/DolphinQt/GameList/GameList.cpp:998
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:219
-#: Source/Core/DolphinQt/MenuBar.cpp:636
+#: Source/Core/DolphinQt/MenuBar.cpp:637
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:92
 msgid "Description"
 msgstr "الوصف"
@@ -3487,7 +3511,7 @@ msgstr "منفصل"
 msgid "Detect"
 msgstr "كشف"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1307
+#: Source/Core/DolphinQt/MenuBar.cpp:1314
 msgid "Detecting RSO Modules"
 msgstr ""
 
@@ -3566,15 +3590,19 @@ msgstr "Disable EFB VRAM Copies"
 msgid "Disable Emulation Speed Limit"
 msgstr "تعطيل محاكاة الحد الأقصى للسرعة"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:844
+#: Source/Core/DolphinQt/MenuBar.cpp:845
 msgid "Disable Fastmem"
 msgstr "Fastmem تعطيل"
+
+#: Source/Core/DolphinQt/MenuBar.cpp:851
+msgid "Disable Fastmem Arena"
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:150
 msgid "Disable Fog"
 msgstr "تعطيل الضباب"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:836
+#: Source/Core/DolphinQt/MenuBar.cpp:837
 msgid "Disable JIT Cache"
 msgstr "Disable JIT Cache"
 
@@ -3643,11 +3671,11 @@ msgstr "Distance of travel from neutral position."
 msgid "Do you authorize Dolphin to report information to Dolphin's developers?"
 msgstr "هل تسمح لشركة دولفين بالإبلاغ عن معلومات لمطوري دولفين؟"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1714
+#: Source/Core/DolphinQt/MainWindow.cpp:1712
 msgid "Do you want to add \"%1\" to the list of Game Paths?"
 msgstr "هل تريد إضافة \"%1\" إلى قائمة مسارات الألعاب؟"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1220
+#: Source/Core/DolphinQt/MenuBar.cpp:1227
 msgid "Do you want to clear the list of symbol names?"
 msgstr "هل تريد مسح قائمه أسماء الرموز ؟"
 
@@ -3657,7 +3685,7 @@ msgctxt ""
 msgid "Do you want to delete the %n selected save file(s)?"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:937
+#: Source/Core/DolphinQt/MainWindow.cpp:935
 msgid "Do you want to stop the current emulation?"
 msgstr "هل تريد إيقاف المحاكاة الحالية؟"
 
@@ -3678,9 +3706,9 @@ msgstr "Dolphin FIFO Log (*.dff)"
 msgid "Dolphin Game Mod Preset"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1516
-#: Source/Core/DolphinQt/MenuBar.cpp:1533
-#: Source/Core/DolphinQt/MenuBar.cpp:1552
+#: Source/Core/DolphinQt/MenuBar.cpp:1523
+#: Source/Core/DolphinQt/MenuBar.cpp:1540
+#: Source/Core/DolphinQt/MenuBar.cpp:1559
 msgid "Dolphin Map File (*.map)"
 msgstr "Dolphin Map File (*.map)"
 
@@ -3692,8 +3720,8 @@ msgstr "CSV توقيع دولفين ملف"
 msgid "Dolphin Signature File"
 msgstr "دولفين توقيع الملف"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1825
-#: Source/Core/DolphinQt/MainWindow.cpp:1896
+#: Source/Core/DolphinQt/MainWindow.cpp:1823
+#: Source/Core/DolphinQt/MainWindow.cpp:1894
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "Dolphin TAS Movies (*.dtm)"
 
@@ -3802,7 +3830,7 @@ msgstr "تحميل الرموز"
 msgid "Download Codes from the WiiRD Database"
 msgstr "WiiRD تحميل رموز من قاعدة بيانات"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:148
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:153
 msgid "Download Game Covers from GameTDB.com for Use in Grid Mode"
 msgstr "للإستخدام في وضع الشبكة GameTDB.com تحميل أغلفة الألعاب من"
 
@@ -3853,7 +3881,7 @@ msgstr "Dump &FakeVMEM"
 msgid "Dump &MRAM"
 msgstr "Dump &MRAM"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:805
+#: Source/Core/DolphinQt/MenuBar.cpp:806
 msgid "Dump Audio"
 msgstr "تفريغ الصوت"
 
@@ -3865,7 +3893,7 @@ msgstr "تفريغ القوام الأساسي"
 msgid "Dump EFB Target"
 msgstr "EFB التفريغ المستهدف"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:799
+#: Source/Core/DolphinQt/MenuBar.cpp:800
 msgid "Dump Frames"
 msgstr "تفريغ الإطارات"
 
@@ -3943,7 +3971,7 @@ msgstr ""
 msgid "Dutch"
 msgstr "الهولندية"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:206
+#: Source/Core/DolphinQt/MenuBar.cpp:207
 msgid "E&xit"
 msgstr "خروج"
 
@@ -3977,7 +4005,7 @@ msgstr "بداية تحديث الذاكرة"
 
 #. i18n: One of the elements in the Skylanders games. Japanese: 土. For official translations
 #. in other languages, check the SuperChargers manual at https://support.activision.com/manuals
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:347
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:352
 msgid "Earth"
 msgstr "أرض"
 
@@ -4024,7 +4052,7 @@ msgstr "إخراج القرص"
 
 #. i18n: Elements are a trait of Skylanders figures. For official translations of this term,
 #. check the Skylanders SuperChargers manual at https://support.activision.com/manuals
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:295
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:300
 msgid "Element"
 msgstr "عنصر"
 
@@ -4032,7 +4060,7 @@ msgstr "عنصر"
 msgid "Embedded Frame Buffer (EFB)"
 msgstr "(EFB) مخزن مؤقت للإطار المضمن"
 
-#: Source/Core/Core/State.cpp:618
+#: Source/Core/Core/State.cpp:629
 msgid "Empty"
 msgstr "فارغة"
 
@@ -4048,7 +4076,7 @@ msgstr "محاكاة سرعة القرص"
 msgid "Emulate Infinity Base"
 msgstr "Infinity محاكاة قاعدة"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:152
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:157
 msgid "Emulate Skylander Portal"
 msgstr "Skylander محاكاة بوابة"
 
@@ -4062,7 +4090,7 @@ msgid ""
 "Defaults to <b>True</b>"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:221
+#: Source/Core/DolphinQt/MenuBar.cpp:222
 msgid "Emulated USB Devices"
 msgstr "تمت محاكاة أجهزة يو إس بي"
 
@@ -4120,13 +4148,13 @@ msgstr "تمكين الأسرار"
 
 #: Source/Core/DolphinQt/TAS/TASInputWindow.cpp:53
 msgid "Enable Controller Inpu&t"
-msgstr ""
+msgstr "تمكين إدخال ذراع التحكم"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:161
 msgid "Enable Custom RTC"
 msgstr "تمكين وقت مخصص"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:149
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:154
 msgid "Enable Debugging UI"
 msgstr "تمكين واجهة مستخدم التصحيح"
 
@@ -4169,7 +4197,7 @@ msgstr "MMU تمكين"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:78
 msgid "Enable Progress Notifications"
-msgstr ""
+msgstr "تمكين إشعارات التقدم"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:156
 msgid "Enable Progressive Scan"
@@ -4442,7 +4470,7 @@ msgstr "أدخل كلمة المرور"
 msgid "Enter the DNS server to use:"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1279
+#: Source/Core/DolphinQt/MenuBar.cpp:1286
 msgid "Enter the RSO module address:"
 msgstr "Enter the RSO module address:"
 
@@ -4481,26 +4509,26 @@ msgstr "Enter the RSO module address:"
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:347
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:377
 #: Source/Core/DolphinQt/Main.cpp:211 Source/Core/DolphinQt/Main.cpp:227
-#: Source/Core/DolphinQt/Main.cpp:234 Source/Core/DolphinQt/MainWindow.cpp:299
-#: Source/Core/DolphinQt/MainWindow.cpp:307
-#: Source/Core/DolphinQt/MainWindow.cpp:1112
-#: Source/Core/DolphinQt/MainWindow.cpp:1509
-#: Source/Core/DolphinQt/MainWindow.cpp:1516
-#: Source/Core/DolphinQt/MainWindow.cpp:1576
-#: Source/Core/DolphinQt/MainWindow.cpp:1583
-#: Source/Core/DolphinQt/MainWindow.cpp:1692
-#: Source/Core/DolphinQt/MenuBar.cpp:1183
-#: Source/Core/DolphinQt/MenuBar.cpp:1263
-#: Source/Core/DolphinQt/MenuBar.cpp:1286
-#: Source/Core/DolphinQt/MenuBar.cpp:1300
-#: Source/Core/DolphinQt/MenuBar.cpp:1332
-#: Source/Core/DolphinQt/MenuBar.cpp:1356
-#: Source/Core/DolphinQt/MenuBar.cpp:1577
-#: Source/Core/DolphinQt/MenuBar.cpp:1588
-#: Source/Core/DolphinQt/MenuBar.cpp:1600
-#: Source/Core/DolphinQt/MenuBar.cpp:1622
-#: Source/Core/DolphinQt/MenuBar.cpp:1648
-#: Source/Core/DolphinQt/MenuBar.cpp:1702
+#: Source/Core/DolphinQt/Main.cpp:234 Source/Core/DolphinQt/MainWindow.cpp:297
+#: Source/Core/DolphinQt/MainWindow.cpp:305
+#: Source/Core/DolphinQt/MainWindow.cpp:1110
+#: Source/Core/DolphinQt/MainWindow.cpp:1507
+#: Source/Core/DolphinQt/MainWindow.cpp:1514
+#: Source/Core/DolphinQt/MainWindow.cpp:1574
+#: Source/Core/DolphinQt/MainWindow.cpp:1581
+#: Source/Core/DolphinQt/MainWindow.cpp:1690
+#: Source/Core/DolphinQt/MenuBar.cpp:1190
+#: Source/Core/DolphinQt/MenuBar.cpp:1270
+#: Source/Core/DolphinQt/MenuBar.cpp:1293
+#: Source/Core/DolphinQt/MenuBar.cpp:1307
+#: Source/Core/DolphinQt/MenuBar.cpp:1339
+#: Source/Core/DolphinQt/MenuBar.cpp:1363
+#: Source/Core/DolphinQt/MenuBar.cpp:1584
+#: Source/Core/DolphinQt/MenuBar.cpp:1595
+#: Source/Core/DolphinQt/MenuBar.cpp:1607
+#: Source/Core/DolphinQt/MenuBar.cpp:1629
+#: Source/Core/DolphinQt/MenuBar.cpp:1655
+#: Source/Core/DolphinQt/MenuBar.cpp:1709
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:317
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:481
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:742
@@ -4528,13 +4556,13 @@ msgstr "خطأ"
 msgid "Error Opening Adapter: %1"
 msgstr "%1 :  خطأ في فتح المحول"
 
-#: Source/Core/Core/NetPlayServer.cpp:1493
+#: Source/Core/Core/NetPlayServer.cpp:1497
 msgid "Error collecting save data!"
 msgstr "خطأ في جمع البيانات المحفوظة"
 
 #: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:262
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:608
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:615
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:613
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:620
 msgid "Error converting value"
 msgstr "خطأ في تحويل القيمة"
 
@@ -4546,15 +4574,15 @@ msgstr "خطأ في تحميل اللغة المحددة. العودة إلى ا
 msgid "Error obtaining session list: %1"
 msgstr "خطأ في الحصول على قائمة الجلسة: 1%"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:300
+#: Source/Core/DolphinQt/MainWindow.cpp:298
 msgid "Error occurred while loading some texture packs"
 msgstr "حدث خطأ أثناء تحميل بعض حزم النسيج"
 
-#: Source/Core/Core/NetPlayClient.cpp:1847
+#: Source/Core/Core/NetPlayClient.cpp:1851
 msgid "Error processing codes."
 msgstr "خطأ معالجة الرموز"
 
-#: Source/Core/Core/NetPlayClient.cpp:1819
+#: Source/Core/Core/NetPlayClient.cpp:1823
 msgid "Error processing data."
 msgstr "خطأ في معالجة البيانات."
 
@@ -4562,11 +4590,11 @@ msgstr "خطأ في معالجة البيانات."
 msgid "Error reading file: {0}"
 msgstr "{0} خطأ في قراءة الملف"
 
-#: Source/Core/Core/NetPlayServer.cpp:1529
+#: Source/Core/Core/NetPlayServer.cpp:1533
 msgid "Error synchronizing cheat codes!"
 msgstr "خطأ في مزامنة الرموز"
 
-#: Source/Core/Core/NetPlayServer.cpp:1515
+#: Source/Core/Core/NetPlayServer.cpp:1519
 msgid "Error synchronizing save data!"
 msgstr "حدث خطا اثناء مزامنة حفظ البيانات!"
 
@@ -4610,7 +4638,7 @@ msgstr ""
 
 #: Source/Core/Core/HW/SI/SI_Device.cpp:199
 msgid "Error: This build does not support emulated GBA controllers"
-msgstr "خطأ: لا يدعم هذا الإصدار وحدات تحكم جيم بوي أدفانس التي تمت مضاهاتها"
+msgstr "خطأ: لا يدعم هذا الإصدار وذراع تحكم جيم بوي أدفانس التي تمت مضاهاتها"
 
 #: Source/Core/Core/HW/EXI/EXI_DeviceIPL.cpp:335
 msgid ""
@@ -4641,7 +4669,7 @@ msgstr ""
 msgid "Euphoria"
 msgstr "Euphoria"
 
-#: Source/Core/DiscIO/Enums.cpp:24 Source/Core/DolphinQt/MenuBar.cpp:273
+#: Source/Core/DiscIO/Enums.cpp:24 Source/Core/DolphinQt/MenuBar.cpp:274
 #: Source/Core/UICommon/NetPlayIndex.cpp:249
 msgid "Europe"
 msgstr "أوروبا"
@@ -4670,7 +4698,7 @@ msgstr ""
 msgid "Excluded: %1"
 msgstr "مستثني: %1"
 
-#: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:73
+#: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:72
 msgid "Excluded: 0"
 msgstr "مستثني: 0"
 
@@ -4722,7 +4750,7 @@ msgstr "اسم المتغير المتوقع"
 msgid "Experimental"
 msgstr "تجريبي"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:285
+#: Source/Core/DolphinQt/MenuBar.cpp:286
 msgid "Export All Wii Saves"
 msgstr "تصدير جميع حفظ وي"
 
@@ -4737,7 +4765,7 @@ msgstr "فشل التصدير"
 msgid "Export Recording"
 msgstr "تصدير تسجيل"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:744
+#: Source/Core/DolphinQt/MenuBar.cpp:745
 msgid "Export Recording..."
 msgstr "تصدير تسجيل"
 
@@ -4765,7 +4793,7 @@ msgstr ""
 msgid "Export as .&sav..."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1108
+#: Source/Core/DolphinQt/MenuBar.cpp:1115
 #, c-format
 msgctxt ""
 msgid "Exported %n save(s)"
@@ -4793,7 +4821,7 @@ msgstr "خارجي"
 msgid "External Frame Buffer (XFB)"
 msgstr "(XFB) مخزن مؤقت للإطار الخارجي"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:262
+#: Source/Core/DolphinQt/MenuBar.cpp:263
 msgid "Extract Certificates from NAND"
 msgstr "NAND استخراج الشهادات من"
 
@@ -4831,7 +4859,7 @@ msgid "FD"
 msgstr "FD"
 
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:37
-#: Source/Core/DolphinQt/MenuBar.cpp:219
+#: Source/Core/DolphinQt/MenuBar.cpp:220
 msgid "FIFO Player"
 msgstr "FIFO Player"
 
@@ -4851,7 +4879,7 @@ msgstr ""
 msgid "Failed to add this session to the NetPlay index: %1"
 msgstr "فشل في إضافة هذه الجلسة إلى فهرس اللعب عبر الشبكة: 1%"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1649
+#: Source/Core/DolphinQt/MenuBar.cpp:1656
 msgid "Failed to append to signature file '%1'"
 msgstr "Failed to append to signature file '%1'"
 
@@ -4859,11 +4887,11 @@ msgstr "Failed to append to signature file '%1'"
 msgid "Failed to claim interface for BT passthrough: {0}"
 msgstr ""
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:657
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:676
 msgid "Failed to clear Skylander!"
 msgstr "Skylander فشل في مسح"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:658
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:677
 msgid "Failed to clear the Skylander from slot(%1)!"
 msgstr ""
 
@@ -4896,11 +4924,11 @@ msgstr "Failed to create DXGI factory"
 msgid "Failed to create Infinity file"
 msgstr "Infinity فشل إنشاء ملف"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:779
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:798
 msgid "Failed to create Skylander file!"
 msgstr "Skylander فشل إنشاء ملف"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:780
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:799
 msgid ""
 "Failed to create Skylander file:\n"
 "%1\n"
@@ -4946,7 +4974,7 @@ msgstr ""
 msgid "Failed to export the following save files:"
 msgstr "فشل تصدير ملفات الحفظ التالية:"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1183
+#: Source/Core/DolphinQt/MenuBar.cpp:1190
 msgid "Failed to extract certificates from NAND"
 msgstr "NAND فشل استخراج شهادات من"
 
@@ -4976,27 +5004,27 @@ msgstr "D3D فشل في العثور على واحد أو أكثر من رموز
 msgid "Failed to import \"%1\"."
 msgstr "\"%1\" فشل الاستيراد"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1084
+#: Source/Core/DolphinQt/MenuBar.cpp:1091
 msgid ""
 "Failed to import save file. Please launch the game once, then try again."
 msgstr ""
 "فشل استيراد ملف الحفظ. الرجاء تشغيل اللعبة مرة واحدة ، ثم المحاولة مرة أخرى"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1078
+#: Source/Core/DolphinQt/MenuBar.cpp:1085
 msgid ""
 "Failed to import save file. The given file appears to be corrupted or is not "
 "a valid Wii save."
 msgstr ""
 "فشل استيراد ملف الحفظ. يبدو أن الملف المحدد تالف أو أنه ليس حفظ وي صالحًا"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1091
+#: Source/Core/DolphinQt/MenuBar.cpp:1098
 msgid ""
 "Failed to import save file. Your NAND may be corrupt, or something is "
 "preventing access to files within it. Try repairing your NAND (Tools -> "
 "Manage NAND -> Check NAND...), then import the save again."
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1112
+#: Source/Core/DolphinQt/MainWindow.cpp:1110
 msgid "Failed to init core"
 msgstr "فشل في التهيئة الأساسية"
 
@@ -5016,11 +5044,11 @@ msgid "Failed to install pack: %1"
 msgstr "%1 :فشل تثبيت الحزمة"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:628
-#: Source/Core/DolphinQt/MenuBar.cpp:1049
+#: Source/Core/DolphinQt/MenuBar.cpp:1056
 msgid "Failed to install this title to the NAND."
 msgstr "NAND فشل تثبيت هذا العنوان على"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1609
+#: Source/Core/DolphinQt/MainWindow.cpp:1607
 msgid ""
 "Failed to listen on port %1. Is another instance of the NetPlay server "
 "running?"
@@ -5028,8 +5056,8 @@ msgstr ""
 "Failed to listen on port %1. Is another instance of the NetPlay server "
 "running?"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1300
-#: Source/Core/DolphinQt/MenuBar.cpp:1356
+#: Source/Core/DolphinQt/MenuBar.cpp:1307
+#: Source/Core/DolphinQt/MenuBar.cpp:1363
 msgid "Failed to load RSO module at %1"
 msgstr "Failed to load RSO module at %1"
 
@@ -5041,15 +5069,15 @@ msgstr "d3d11.dll فشل تحميل"
 msgid "Failed to load dxgi.dll"
 msgstr "dxgi.dll فشل تحميل"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1588
+#: Source/Core/DolphinQt/MenuBar.cpp:1595
 msgid "Failed to load map file '%1'"
 msgstr "Failed to load map file '%1'"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:821
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:842
 msgid "Failed to load the Skylander file!"
 msgstr "Skylander فشل تحميل ملف"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:822
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:843
 msgid "Failed to load the Skylander file(%1)!\n"
 msgstr ""
 
@@ -5063,8 +5091,12 @@ msgid ""
 "update package."
 msgstr ""
 
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:663
+msgid "Failed to modify Skylander!"
+msgstr ""
+
 #: Source/Core/DolphinQt/GBAWidget.cpp:578
-#: Source/Core/DolphinQt/MainWindow.cpp:1692
+#: Source/Core/DolphinQt/MainWindow.cpp:1690
 #: Source/Core/DolphinQt/RenderWidget.cpp:123
 msgid "Failed to open '%1'"
 msgstr "'%1' فشل في الفتح"
@@ -5097,7 +5129,7 @@ msgstr ""
 msgid "Failed to open file."
 msgstr "فشل فتح ملف"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1608
+#: Source/Core/DolphinQt/MainWindow.cpp:1606
 msgid "Failed to open server"
 msgstr "فشل في فتح الخادم"
 
@@ -5111,11 +5143,11 @@ msgid ""
 "File may already be in use on the base."
 msgstr ""
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:797
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:818
 msgid "Failed to open the Skylander file!"
 msgstr ""
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:798
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:819
 msgid ""
 "Failed to open the Skylander file(%1)!\n"
 "File may already be in use on the portal."
@@ -5172,11 +5204,11 @@ msgid ""
 "File was too small."
 msgstr ""
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:807
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:828
 msgid "Failed to read the Skylander file!"
 msgstr ""
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:808
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:829
 msgid ""
 "Failed to read the Skylander file(%1)!\n"
 "File was too small."
@@ -5222,19 +5254,19 @@ msgstr ""
 msgid "Failed to save FIFO log."
 msgstr "Failed to save FIFO log."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1578
+#: Source/Core/DolphinQt/MenuBar.cpp:1585
 msgid "Failed to save code map to path '%1'"
 msgstr "Failed to save code map to path '%1'"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1622
+#: Source/Core/DolphinQt/MenuBar.cpp:1629
 msgid "Failed to save signature file '%1'"
 msgstr "Failed to save signature file '%1'"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1601
+#: Source/Core/DolphinQt/MenuBar.cpp:1608
 msgid "Failed to save symbol map to path '%1'"
 msgstr "Failed to save symbol map to path '%1'"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1703
+#: Source/Core/DolphinQt/MenuBar.cpp:1710
 msgid "Failed to save to signature file '%1'"
 msgstr "Failed to save to signature file '%1'"
 
@@ -5291,7 +5323,7 @@ msgstr ""
 #: Source/Core/DolphinQt/GameList/GameList.cpp:626
 #: Source/Core/DolphinQt/GameList/GameList.cpp:656
 #: Source/Core/DolphinQt/GameList/GameList.cpp:853
-#: Source/Core/DolphinQt/MenuBar.cpp:1049
+#: Source/Core/DolphinQt/MenuBar.cpp:1056
 msgid "Failure"
 msgstr "فشل"
 
@@ -5331,9 +5363,9 @@ msgstr "مجال الرؤية"
 msgid "Figure Number:"
 msgstr "رقم الشكل:"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:375
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:380
 msgid "Figure type"
-msgstr ""
+msgstr "نوع الشكل"
 
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:46
 msgid "File Details"
@@ -5341,7 +5373,7 @@ msgstr "تفاصيل الملف"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:1005
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:229
-#: Source/Core/DolphinQt/MenuBar.cpp:643
+#: Source/Core/DolphinQt/MenuBar.cpp:644
 msgid "File Format"
 msgstr "تنسيق الملف"
 
@@ -5355,18 +5387,18 @@ msgstr "معلومات الملف"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:1000
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:223
-#: Source/Core/DolphinQt/MenuBar.cpp:638
+#: Source/Core/DolphinQt/MenuBar.cpp:639
 msgid "File Name"
 msgstr "اسم الملف"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:1001
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:225
-#: Source/Core/DolphinQt/MenuBar.cpp:639
+#: Source/Core/DolphinQt/MenuBar.cpp:640
 msgid "File Path"
 msgstr "مسار الملف"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:1004
-#: Source/Core/DolphinQt/MenuBar.cpp:642
+#: Source/Core/DolphinQt/MenuBar.cpp:643
 msgid "File Size"
 msgstr "حجم الملف"
 
@@ -5430,7 +5462,7 @@ msgstr ""
 
 #. i18n: One of the elements in the Skylanders games. Japanese: 火. For official translations
 #. in other languages, check the SuperChargers manual at https://support.activision.com/manuals
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:344
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:349
 msgid "Fire"
 msgstr "نار"
 
@@ -5824,7 +5856,7 @@ msgid ""
 "GPU: Does your video card support OpenGL 3?"
 msgstr ""
 
-#: Source/Core/VideoBackends/OGL/OGLConfig.cpp:456
+#: Source/Core/VideoBackends/OGL/OGLConfig.cpp:467
 msgid ""
 "GPU: OGL ERROR: Need at least GLSL 1.30\n"
 "GPU: Does your video card support OpenGL 3.0?\n"
@@ -5838,7 +5870,7 @@ msgid ""
 msgstr ""
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:225
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:251
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:256
 msgid "Game"
 msgstr "اللعبة"
 
@@ -5886,7 +5918,7 @@ msgid "Game Gamma:"
 msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:1002
-#: Source/Core/DolphinQt/MenuBar.cpp:640
+#: Source/Core/DolphinQt/MenuBar.cpp:641
 msgid "Game ID"
 msgstr "معرف اللعبة"
 
@@ -5919,7 +5951,7 @@ msgstr "تحتوي اللعبة على رقم قرص مختلف"
 msgid "Game has a different revision"
 msgstr "اللعبة لديها مراجعة مختلفة"
 
-#: Source/Core/Core/NetPlayClient.cpp:1745
+#: Source/Core/Core/NetPlayClient.cpp:1749
 msgid "Game is already running!"
 msgstr "لعبة تستخدم بالفعل!"
 
@@ -5944,7 +5976,7 @@ msgstr "جيم كيوب"
 
 #: Source/Core/DolphinQt/Config/GamecubeControllersWidget.cpp:37
 msgid "GameCube Adapter for Wii U"
-msgstr "محول وي يو لوحدة تحكم جيم كيوب"
+msgstr "محول وي يو لذراع تحكم جيم كيوب"
 
 #: Source/Core/DolphinQt/Config/Mapping/GCPadWiiUConfigDialog.cpp:35
 msgid "GameCube Adapter for Wii U at Port %1"
@@ -5952,7 +5984,7 @@ msgstr "محول تحكم جيم كيوب لجهاز وي يو في منفذ %1"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:418
 msgid "GameCube Controller"
-msgstr "تحكم جيم كيوب "
+msgstr "تحكم جيم كيوب"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:417
 msgid "GameCube Controller at Port %1"
@@ -6031,7 +6063,7 @@ msgstr "إنشاء هوية جديد للحصائيات "
 msgid "Generated AR code."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1257
+#: Source/Core/DolphinQt/MenuBar.cpp:1264
 msgid "Generated symbol names from '%1'"
 msgstr "أسماء الرموز التي تم إنشاؤها من '%1'"
 
@@ -6054,13 +6086,13 @@ msgid "GiB"
 msgstr "غيغابايت"
 
 #. i18n: One of the figure types in the Skylanders games.
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:413
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:418
 msgid "Giant"
 msgstr ""
 
 #. i18n: Figures for the game Skylanders: Giants. The game has the same title in all countries
 #. it was released in. It was not released in Japan.
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:273
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:278
 msgid "Giants"
 msgstr "العمالقة"
 
@@ -6113,7 +6145,7 @@ msgstr "اليسار أخضر"
 msgid "Green Right"
 msgstr "اليمين أخضر"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:615
+#: Source/Core/DolphinQt/MenuBar.cpp:616
 msgid "Grid View"
 msgstr "شبكة"
 
@@ -6159,6 +6191,10 @@ msgstr "رأس"
 msgid "Help"
 msgstr "مساعدة"
 
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:128
+msgid "Hero level:"
+msgstr ""
+
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:120
 msgid "Hex"
 msgstr "Hex"
@@ -6188,7 +6224,7 @@ msgstr "ست عشرية"
 msgid "Hide"
 msgstr "إخفاء"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:710
+#: Source/Core/DolphinQt/MenuBar.cpp:711
 msgid "Hide All"
 msgstr "إخفاء الكل"
 
@@ -6218,7 +6254,7 @@ msgstr "الأعلى"
 msgid "Hit Strength"
 msgstr "ضرب بقوة"
 
-#: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:82
+#: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:81
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:144
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:375
 msgid "Hits"
@@ -6284,7 +6320,7 @@ msgstr "إعدادات مفاتيح الاختصار"
 msgid "Hotkeys"
 msgstr "مفاتيح الاختصار"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:150
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:155
 msgid "Hotkeys Require Window Focus"
 msgstr "تتطلب مفاتيح الاختصار التركيز على النافذة"
 
@@ -6307,11 +6343,11 @@ msgstr "أنا على دراية بالمخاطر وأريد الاستمرار"
 msgid "ID"
 msgstr "المعرف"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:608
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:613
 msgid "ID entered is invalid!"
 msgstr "المعرف الذي تم إدخاله غير صالح"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:583
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:588
 msgid "ID:"
 msgstr "معرف:"
 
@@ -6491,7 +6527,7 @@ msgid ""
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:259
+#: Source/Core/DolphinQt/MenuBar.cpp:260
 msgid "Import BootMii NAND Backup..."
 msgstr "النسخة الاحتياطية BootMii NAND استيراد"
 
@@ -6506,15 +6542,15 @@ msgstr "فشل الاستيراد"
 msgid "Import Save File(s)"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:284
+#: Source/Core/DolphinQt/MenuBar.cpp:285
 msgid "Import Wii Save..."
 msgstr "استيراد حفظ وي"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1786
+#: Source/Core/DolphinQt/MainWindow.cpp:1784
 msgid "Importing NAND backup"
 msgstr " NAND استيراد النسخ الاحتياطي"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1796
+#: Source/Core/DolphinQt/MainWindow.cpp:1794
 #, c-format
 msgid ""
 "Importing NAND backup\n"
@@ -6532,7 +6568,7 @@ msgstr "في اللعبة؟"
 msgid "Included: %1"
 msgstr "متضمن: %1"
 
-#: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:74
+#: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:73
 msgid "Included: 0"
 msgstr "متضمن: 0"
 
@@ -6542,6 +6578,30 @@ msgid ""
 "copies in save states. Fixes missing and/or non-upscaled textures/objects "
 "when loading states at the cost of additional save/load time."
 "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>"
+msgstr ""
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:218
+msgid "Incorrect hero level value!"
+msgstr ""
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:241
+msgid "Incorrect last placed time!"
+msgstr ""
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:235
+msgid "Incorrect last reset time!"
+msgstr ""
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:212
+msgid "Incorrect money value!"
+msgstr ""
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:224
+msgid "Incorrect nickname!"
+msgstr ""
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:230
+msgid "Incorrect playtime value!"
 msgstr ""
 
 #: Source/Core/Core/FreeLookManager.cpp:98
@@ -6613,20 +6673,20 @@ msgstr "معلومات"
 #: Source/Core/Common/MsgHandler.cpp:59
 #: Source/Core/DolphinQt/GameList/GameList.cpp:712
 #: Source/Core/DolphinQt/GameList/GameList.cpp:774
-#: Source/Core/DolphinQt/MenuBar.cpp:1256
-#: Source/Core/DolphinQt/MenuBar.cpp:1496
+#: Source/Core/DolphinQt/MenuBar.cpp:1263
+#: Source/Core/DolphinQt/MenuBar.cpp:1503
 msgid "Information"
 msgstr "معلومات"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:151
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:156
 msgid "Inhibit Screensaver During Emulation"
 msgstr "منع شاشة التوقف أثناء المحاكاة"
 
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:275
-#: Source/Core/DolphinQt/MenuBar.cpp:1279
-#: Source/Core/DolphinQt/MenuBar.cpp:1338
-#: Source/Core/DolphinQt/MenuBar.cpp:1607
-#: Source/Core/DolphinQt/MenuBar.cpp:1632
+#: Source/Core/DolphinQt/MenuBar.cpp:1286
+#: Source/Core/DolphinQt/MenuBar.cpp:1345
+#: Source/Core/DolphinQt/MenuBar.cpp:1614
+#: Source/Core/DolphinQt/MenuBar.cpp:1639
 msgid "Input"
 msgstr "إدخال"
 
@@ -6648,7 +6708,7 @@ msgstr "Insert &nop"
 msgid "Insert SD Card"
 msgstr "SD Card ادرج"
 
-#: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:82
+#: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:81
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:144
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:375
 msgid "Inspected"
@@ -6667,7 +6727,7 @@ msgstr "(%1) تثبيت القسم"
 msgid "Install Update"
 msgstr "تثبيت التحديث"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:257
+#: Source/Core/DolphinQt/MenuBar.cpp:258
 msgid "Install WAD..."
 msgstr "WAD تثبيت"
 
@@ -6687,7 +6747,7 @@ msgstr "تعليمات"
 msgid "Instruction Breakpoint"
 msgstr "نقطة توقف التعليمات"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1730
+#: Source/Core/DolphinQt/MenuBar.cpp:1737
 msgid "Instruction:"
 msgstr "التعليمات"
 
@@ -6712,19 +6772,19 @@ msgstr "كثافة"
 msgid "Interface"
 msgstr "الواجهة"
 
-#: Source/Core/Core/State.cpp:654
+#: Source/Core/Core/State.cpp:665
 msgid "Internal LZ4 Error - Tried decompressing {0} bytes"
 msgstr ""
 
-#: Source/Core/Core/State.cpp:327
+#: Source/Core/Core/State.cpp:331
 msgid "Internal LZ4 Error - compression failed"
 msgstr ""
 
-#: Source/Core/Core/State.cpp:674
+#: Source/Core/Core/State.cpp:685
 msgid "Internal LZ4 Error - decompression failed ({0}, {1}, {2})"
 msgstr ""
 
-#: Source/Core/Core/State.cpp:687
+#: Source/Core/Core/State.cpp:698
 msgid "Internal LZ4 Error - payload size mismatch ({0} / {1}))"
 msgstr ""
 
@@ -6737,19 +6797,19 @@ msgstr "Internal LZO Error - compression failed"
 msgid "Internal LZO Error - decompression failed"
 msgstr "Internal LZO Error - decompression failed"
 
-#: Source/Core/Core/State.cpp:525
+#: Source/Core/Core/State.cpp:529
 msgid ""
 "Internal LZO Error - decompression failed ({0}) ({1}) \n"
 "Unable to retrieve outdated savestate version info."
 msgstr ""
 
-#: Source/Core/Core/State.cpp:538
+#: Source/Core/Core/State.cpp:542
 msgid ""
 "Internal LZO Error - failed to parse decompressed version cookie and version "
 "string length ({0})"
 msgstr ""
 
-#: Source/Core/Core/State.cpp:555
+#: Source/Core/Core/State.cpp:559
 msgid ""
 "Internal LZO Error - failed to parse decompressed version string ({0} / {1})"
 msgstr ""
@@ -6772,7 +6832,7 @@ msgstr ""
 msgid "Interpreter (slowest)"
 msgstr "Interpreter (بطيء)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:816
+#: Source/Core/DolphinQt/MenuBar.cpp:817
 msgid "Interpreter Core"
 msgstr "Interpreter Core"
 
@@ -6788,7 +6848,7 @@ msgstr ""
 msgid "Invalid Mixed Code"
 msgstr "رمز مختلط غير صالح"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:308
+#: Source/Core/DolphinQt/MainWindow.cpp:306
 msgid "Invalid Pack %1 provided: %2"
 msgstr "حزمة غير صالحة 1% مقدمة :2%"
 
@@ -6797,7 +6857,7 @@ msgstr "حزمة غير صالحة 1% مقدمة :2%"
 msgid "Invalid Player ID"
 msgstr "معرف لاعب غير صالح"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1286
+#: Source/Core/DolphinQt/MenuBar.cpp:1293
 msgid "Invalid RSO module address: %1"
 msgstr "Invalid RSO module address: %1"
 
@@ -6813,7 +6873,7 @@ msgstr "المجموع الاختباري غير صالح."
 msgid "Invalid game."
 msgstr "لعبة غير صالحة"
 
-#: Source/Core/Core/NetPlayClient.cpp:1979
+#: Source/Core/Core/NetPlayClient.cpp:1983
 msgid "Invalid host"
 msgstr "المضيف غير صالح"
 
@@ -6873,15 +6933,15 @@ msgid "Italy"
 msgstr "إيطاليا"
 
 #. i18n: One of the figure types in the Skylanders games.
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:421
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:426
 msgid "Item"
-msgstr ""
+msgstr "عنصر"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:814
+#: Source/Core/DolphinQt/MenuBar.cpp:815
 msgid "JIT"
 msgstr "JIT"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:828
+#: Source/Core/DolphinQt/MenuBar.cpp:829
 msgid "JIT Block Linking Off"
 msgstr "JIT Block Linking Off"
 
@@ -6889,47 +6949,47 @@ msgstr "JIT Block Linking Off"
 msgid "JIT Blocks"
 msgstr "JIT Blocks"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:938
+#: Source/Core/DolphinQt/MenuBar.cpp:945
 msgid "JIT Branch Off"
 msgstr "JIT Branch Off"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:910
+#: Source/Core/DolphinQt/MenuBar.cpp:917
 msgid "JIT FloatingPoint Off"
 msgstr "JIT FloatingPoint Off"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:917
+#: Source/Core/DolphinQt/MenuBar.cpp:924
 msgid "JIT Integer Off"
 msgstr "JIT Integer Off"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:895
+#: Source/Core/DolphinQt/MenuBar.cpp:902
 msgid "JIT LoadStore Floating Off"
 msgstr "JIT LoadStore Floating Off"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:867
+#: Source/Core/DolphinQt/MenuBar.cpp:874
 msgid "JIT LoadStore Off"
 msgstr "JIT LoadStore Off"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:903
+#: Source/Core/DolphinQt/MenuBar.cpp:910
 msgid "JIT LoadStore Paired Off"
 msgstr "JIT LoadStore Paired Off"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:881
+#: Source/Core/DolphinQt/MenuBar.cpp:888
 msgid "JIT LoadStore lXz Off"
 msgstr "JIT LoadStore lXz Off"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:874
+#: Source/Core/DolphinQt/MenuBar.cpp:881
 msgid "JIT LoadStore lbzx Off"
 msgstr "JIT LoadStore lbzx Off"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:888
+#: Source/Core/DolphinQt/MenuBar.cpp:895
 msgid "JIT LoadStore lwz Off"
 msgstr "JIT LoadStore lwz Off"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:861
+#: Source/Core/DolphinQt/MenuBar.cpp:868
 msgid "JIT Off (JIT Core)"
 msgstr "JIT Off (JIT Core)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:924
+#: Source/Core/DolphinQt/MenuBar.cpp:931
 msgid "JIT Paired Off"
 msgstr "JIT Paired Off"
 
@@ -6941,22 +7001,22 @@ msgstr "JIT Recompiler for ARM64 (موصى به)"
 msgid "JIT Recompiler for x86-64 (recommended)"
 msgstr "JIT Recompiler for x86-64 (موصى به)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:945
+#: Source/Core/DolphinQt/MenuBar.cpp:952
 msgid "JIT Register Cache Off"
 msgstr "JIT Register Cache Off"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:931
+#: Source/Core/DolphinQt/MenuBar.cpp:938
 msgid "JIT SystemRegisters Off"
 msgstr "JIT SystemRegisters Off"
 
-#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:812
-#: Source/Core/Core/PowerPC/JitArm64/Jit.cpp:934
+#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:815
+#: Source/Core/Core/PowerPC/JitArm64/Jit.cpp:936
 msgid ""
 "JIT failed to find code space after a cache clear. This should never happen. "
 "Please report this incident on the bug tracker. Dolphin will now exit."
 msgstr ""
 
-#: Source/Core/DiscIO/Enums.cpp:27 Source/Core/DolphinQt/MenuBar.cpp:275
+#: Source/Core/DiscIO/Enums.cpp:27 Source/Core/DolphinQt/MenuBar.cpp:276
 msgid "Japan"
 msgstr "اليابان"
 
@@ -6972,12 +7032,18 @@ msgstr "اليابانية"
 msgid "Japanese (Shift-JIS)"
 msgstr "(Shift-JIS) اليابانية"
 
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:292
+msgid ""
+"Kaos is the only villain for this trophy and is always unlocked. No need to "
+"edit anything!"
+msgstr ""
+
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:672
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:296
 msgid "Keep Running"
 msgstr "استمر في الجري"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:168
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:172
 msgid "Keep Window on Top"
 msgstr "إبقاء النافذة في المقدمة"
 
@@ -7015,7 +7081,7 @@ msgstr "كيلوبايت"
 msgid "Kick Player"
 msgstr "طرد لاعب"
 
-#: Source/Core/DiscIO/Enums.cpp:45 Source/Core/DolphinQt/MenuBar.cpp:277
+#: Source/Core/DiscIO/Enums.cpp:45 Source/Core/DolphinQt/MenuBar.cpp:278
 msgid "Korea"
 msgstr "كوريا"
 
@@ -7053,6 +7119,14 @@ msgstr "ضع الكلمة المناسبة"
 msgid "Last Value"
 msgstr "آخر قيمة"
 
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:153
+msgid "Last placed:"
+msgstr ""
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:144
+msgid "Last reset:"
+msgstr ""
+
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:87
 msgid "Latency:"
 msgstr "وقت الإستجابة"
@@ -7079,7 +7153,7 @@ msgstr "قد يؤدي تشغيل هذه العناوين أيضا إلى حل ا
 
 #: Source/Core/DolphinQt/Achievements/AchievementsWindow.cpp:52
 msgid "Leaderboards"
-msgstr ""
+msgstr "المتصدرين"
 
 #: Source/Core/Core/FreeLookManager.cpp:90
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Shinkansen.cpp:36
@@ -7151,7 +7225,7 @@ msgstr "ترخيص"
 
 #. i18n: One of the elements in the Skylanders games. Japanese: ライフ. For official translations
 #. in other languages, check the SuperChargers manual at https://support.activision.com/manuals
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:350
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:355
 msgid "Life"
 msgstr "حياة"
 
@@ -7165,7 +7239,7 @@ msgstr ""
 #. in other languages, check the SuperChargers manual at https://support.activision.com/manuals
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Shinkansen.cpp:52
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:239
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:363
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:368
 msgid "Light"
 msgstr "ضوء"
 
@@ -7173,11 +7247,11 @@ msgstr "ضوء"
 msgid "Limit Chunked Upload Speed:"
 msgstr "الحد من سرعة الرفع المقسم:"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:649
+#: Source/Core/DolphinQt/MenuBar.cpp:650
 msgid "List Columns"
 msgstr "قائمة الأعمدة"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:612
+#: Source/Core/DolphinQt/MenuBar.cpp:613
 msgid "List View"
 msgstr "قائمة"
 
@@ -7193,11 +7267,11 @@ msgstr "الاستماع"
 msgid "Load"
 msgstr "تحميل"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:970
+#: Source/Core/DolphinQt/MenuBar.cpp:977
 msgid "Load &Bad Map File..."
 msgstr "Load &Bad Map File..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:969
+#: Source/Core/DolphinQt/MenuBar.cpp:976
 msgid "Load &Other Map File..."
 msgstr "Load &Other Map File..."
 
@@ -7205,11 +7279,11 @@ msgstr "Load &Other Map File..."
 msgid "Load Custom Textures"
 msgstr "تحميل النسيج المخصص"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:124
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:126
 msgid "Load File"
 msgstr "تحميل الملف"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:242
+#: Source/Core/DolphinQt/MenuBar.cpp:243
 msgid "Load GameCube Main Menu"
 msgstr "تحميل قائمة جيم كيوب الرئيسية "
 
@@ -7230,7 +7304,7 @@ msgstr "مسار التحميل"
 msgid "Load ROM"
 msgstr "تحميل القرص"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:126
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:128
 msgid "Load Slot"
 msgstr "فتحة التحميل"
 
@@ -7319,19 +7393,19 @@ msgstr "تحميل الحالة فتحة 8"
 msgid "Load State Slot 9"
 msgstr "تحميل الحالة فتحة 9"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:332
+#: Source/Core/DolphinQt/MenuBar.cpp:333
 msgid "Load State from File"
 msgstr "تحميل الحالة من الملف"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:333
+#: Source/Core/DolphinQt/MenuBar.cpp:334
 msgid "Load State from Selected Slot"
 msgstr "تحميل الحالة من الفتحة المحددة"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:334
+#: Source/Core/DolphinQt/MenuBar.cpp:335
 msgid "Load State from Slot"
 msgstr "تحميل الحالة من الفتحة"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1009
+#: Source/Core/DolphinQt/MenuBar.cpp:1016
 msgid "Load Wii System Menu %1"
 msgstr "%1 تحميل قائمة نظام وي"
 
@@ -7343,16 +7417,16 @@ msgstr "تحميل وكتابة بيانات حفظ المضيف"
 msgid "Load from Selected Slot"
 msgstr "تحميل من الفتحة المحددة"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:388
+#: Source/Core/DolphinQt/MenuBar.cpp:389
 msgid "Load from Slot %1 - %2"
 msgstr "%1 - %2 تحميل من الفتحة"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1515
-#: Source/Core/DolphinQt/MenuBar.cpp:1532
+#: Source/Core/DolphinQt/MenuBar.cpp:1522
+#: Source/Core/DolphinQt/MenuBar.cpp:1539
 msgid "Load map file"
 msgstr "Load map file"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1008
+#: Source/Core/DolphinQt/MenuBar.cpp:1015
 msgid "Load vWii System Menu %1"
 msgstr "%1 تحميل قائمة نظام وي"
 
@@ -7360,7 +7434,7 @@ msgstr "%1 تحميل قائمة نظام وي"
 msgid "Load..."
 msgstr "تحميل"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1497
+#: Source/Core/DolphinQt/MenuBar.cpp:1504
 msgid "Loaded symbols from '%1'"
 msgstr "الرموز المحملة من '%1'"
 
@@ -7381,7 +7455,7 @@ msgstr ""
 msgid "Local"
 msgstr "محلي"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:193
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:197
 msgid "Lock Mouse Cursor"
 msgstr "قفل مؤشر الماوس"
 
@@ -7401,15 +7475,15 @@ msgstr "إعداد السجل"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:55
 msgid "Log In"
-msgstr ""
+msgstr "تسجيل الدخول"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:855
+#: Source/Core/DolphinQt/MenuBar.cpp:862
 msgid "Log JIT Instruction Coverage"
 msgstr "Log JIT Instruction Coverage"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:56
 msgid "Log Out"
-msgstr ""
+msgstr "تسجيل الخروج"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:63
 msgid "Log Render Time to File"
@@ -7469,7 +7543,7 @@ msgstr "ملفات MadCatz Gameshark"
 
 #. i18n: One of the elements in the Skylanders games. Japanese: まほう. For official translations
 #. in other languages, check the SuperChargers manual at https://support.activision.com/manuals
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:335
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:340
 msgid "Magic"
 msgstr "سحر"
 
@@ -7477,16 +7551,44 @@ msgstr "سحر"
 msgid "Main Stick"
 msgstr "العصا الرئيسية"
 
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:219
+msgid "Make sure that the hero level value is between 0 and 100!"
+msgstr ""
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:242
+msgid "Make sure that the last placed datetime value is valid!"
+msgstr ""
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:236
+msgid "Make sure that the last reset datetime value is valid!"
+msgstr ""
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:213
+msgid "Make sure that the money value is between 0 and 65000!"
+msgstr ""
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:225
+msgid "Make sure that the nickname is between 0 and 15 characters long!"
+msgstr ""
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:231
+msgid "Make sure that the playtime value is valid!"
+msgstr ""
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:664
+msgid "Make sure there is a Skylander in slot %1!"
+msgstr ""
+
 #: Source/Core/DolphinQt/GameList/GameList.cpp:999
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:221
-#: Source/Core/DolphinQt/MenuBar.cpp:637
+#: Source/Core/DolphinQt/MenuBar.cpp:638
 msgid "Maker"
-msgstr "المطور"
+msgstr "الناشر"
 
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:124
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:157
 msgid "Maker:"
-msgstr "المطور"
+msgstr "الناشر"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:565
 msgid ""
@@ -7496,7 +7598,7 @@ msgid ""
 "unchecked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:258
+#: Source/Core/DolphinQt/MenuBar.cpp:259
 msgid "Manage NAND"
 msgstr "NAND إدارة"
 
@@ -7551,7 +7653,7 @@ msgstr "نقطة توقف الذاكرة"
 msgid "Memory Card"
 msgstr "بطاقة الذاكرة"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:251
+#: Source/Core/DolphinQt/MenuBar.cpp:252
 msgid "Memory Card Manager"
 msgstr "مدير بطاقة الذاكرة"
 
@@ -7579,7 +7681,7 @@ msgstr ""
 msgid "MemoryCard: Write called with invalid destination address ({0:#x})"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1767
+#: Source/Core/DolphinQt/MainWindow.cpp:1765
 msgid ""
 "Merging a new NAND over your currently selected NAND will overwrite any "
 "channels and savegames that already exist. This process is not reversible, "
@@ -7602,9 +7704,9 @@ msgid "Microphone"
 msgstr "ميكروفون"
 
 #. i18n: One of the figure types in the Skylanders games.
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:419
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:424
 msgid "Mini"
-msgstr ""
+msgstr "مصغره "
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:151
 msgid "Misc"
@@ -7647,10 +7749,18 @@ msgid ""
 "unchecked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1306
-#: Source/Core/DolphinQt/MenuBar.cpp:1456
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:129
+msgid "Modify Slot"
+msgstr ""
+
+#: Source/Core/DolphinQt/MenuBar.cpp:1313
+#: Source/Core/DolphinQt/MenuBar.cpp:1463
 msgid "Modules found: %1"
 msgstr "%1 تم العثور على وحدات"
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:124
+msgid "Money:"
+msgstr ""
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:185
 msgid "Mono"
@@ -7677,20 +7787,20 @@ msgstr "محاكاة الحركة"
 msgid "Motor"
 msgstr "محرك"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:175
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:179
 msgid "Mouse Cursor Visibility"
 msgstr "رؤية مؤشر الماوس"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:181
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:185
 msgid ""
 "Mouse Cursor hides after inactivity and returns upon Mouse Cursor movement."
 msgstr "يختفي مؤشر الماوس بعد الخمول ويظهر عند حركة مؤشر الماوس"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:186
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:190
 msgid "Mouse Cursor will always be visible."
 msgstr "سيكون مؤشر الماوس مرئيًا دائمًا"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:184
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:188
 msgid "Mouse Cursor will never be visible while a game is running."
 msgstr "لن يكون مؤشر الماوس مرئيًا أبدًا أثناء تشغيل اللعبة"
 
@@ -7719,10 +7829,10 @@ msgstr "مضاعف"
 msgid "N&o to All"
 msgstr "لا للكل"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1138
-#: Source/Core/DolphinQt/MenuBar.cpp:1147
-#: Source/Core/DolphinQt/MenuBar.cpp:1165
-#: Source/Core/DolphinQt/MenuBar.cpp:1169
+#: Source/Core/DolphinQt/MenuBar.cpp:1145
+#: Source/Core/DolphinQt/MenuBar.cpp:1154
+#: Source/Core/DolphinQt/MenuBar.cpp:1172
+#: Source/Core/DolphinQt/MenuBar.cpp:1176
 #: Source/Core/DolphinQt/NANDRepairDialog.cpp:29
 msgid "NAND Check"
 msgstr "NAND تحقق"
@@ -7731,7 +7841,7 @@ msgstr "NAND تحقق"
 msgid "NKit Warning"
 msgstr "NKit تحذير"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:244
+#: Source/Core/DolphinQt/MenuBar.cpp:245
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:213
 msgid "NTSC-J"
 msgstr "NTSC-J"
@@ -7757,7 +7867,7 @@ msgid ""
 "dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:246
+#: Source/Core/DolphinQt/MenuBar.cpp:247
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:213
 msgid "NTSC-U"
 msgstr "NTSC-U"
@@ -7845,7 +7955,7 @@ msgstr "شبكة الاتصال"
 msgid "Network dump format:"
 msgstr "تنسيق تفريغ الشبكة"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:182
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:186
 msgid "Never"
 msgstr "أبدا"
 
@@ -7901,6 +8011,7 @@ msgid "Nickname is too long."
 msgstr "الاسم المستعار طويل جدا"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:195
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:134
 msgid "Nickname:"
 msgstr "الاسم المستعار"
 
@@ -7936,6 +8047,10 @@ msgstr "لا تطابق"
 msgid "No Save Data"
 msgstr "لا يوجد حفظ للبيانات"
 
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:82
+msgid "No data to modify!"
+msgstr ""
+
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:542
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:559
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:574
@@ -7961,7 +8076,7 @@ msgstr "لا يوجد ملف تحميل / مسجل."
 msgid "No game is running."
 msgstr "لا توجد لعبة قيد التشغيل"
 
-#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:163
+#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:165
 msgid "No game running."
 msgstr "لا توجد لعبة قيد التشغيل"
 
@@ -7969,7 +8084,7 @@ msgstr "لا توجد لعبة قيد التشغيل"
 msgid "No graphics mod selected"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1149
+#: Source/Core/DolphinQt/MenuBar.cpp:1156
 msgid "No issues have been detected."
 msgstr "لم يتم اكتشاف أية مشكلات."
 
@@ -8012,7 +8127,7 @@ msgstr "لم يتم تحميل التسجيل"
 msgid "No save data found."
 msgstr "لم يتم العثور على حفظ البيانات"
 
-#: Source/Core/Core/State.cpp:995
+#: Source/Core/Core/State.cpp:1010
 msgid "No undo.dtm found, aborting undo load state to prevent movie desyncs"
 msgstr "No undo.dtm found, aborting undo load state to prevent movie desyncs"
 
@@ -8023,7 +8138,7 @@ msgstr "No undo.dtm found, aborting undo load state to prevent movie desyncs"
 #: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:112
 #: Source/Core/DolphinQt/InfinityBase/InfinityBaseWindow.cpp:130
 #: Source/Core/DolphinQt/NetPlay/PadMappingDialog.cpp:82
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:850
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:871
 msgid "None"
 msgstr "لا شيء"
 
@@ -8142,7 +8257,7 @@ msgstr ""
 msgid "On"
 msgstr "تمكين"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:179
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:183
 msgid "On Movement"
 msgstr "عند الحركة"
 
@@ -8153,15 +8268,15 @@ msgid ""
 "job.  May affect performance.<br><br>%1"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:582
+#: Source/Core/DolphinQt/MenuBar.cpp:583
 msgid "Online &Documentation"
 msgstr "وثائق على الانترنت"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:48
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:50
 msgid "Only Show Collection"
 msgstr "عرض المجموعة فقط"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1632
+#: Source/Core/DolphinQt/MenuBar.cpp:1639
 msgid ""
 "Only append symbols with prefix:\n"
 "(Blank for all symbols)"
@@ -8169,7 +8284,7 @@ msgstr ""
 "إلحاق رموز فقط بالبادية:\n"
 "(فارغ لكل الرموز)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1607
+#: Source/Core/DolphinQt/MenuBar.cpp:1614
 msgid ""
 "Only export symbols with prefix:\n"
 "(Blank for all symbols)"
@@ -8186,7 +8301,7 @@ msgstr "فتح"
 msgid "Open &Containing Folder"
 msgstr "فتح موقع الملف"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:202
+#: Source/Core/DolphinQt/MenuBar.cpp:203
 msgid "Open &User Folder"
 msgstr "فتح مجلد المستخدم"
 
@@ -8266,8 +8381,8 @@ msgstr "Orbital"
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:98
 #: Source/Core/DolphinQt/Config/Mapping/FreeLookGeneral.cpp:29
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:228
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:364
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:439
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:369
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:444
 msgid "Other"
 msgstr "أخرى"
 
@@ -8290,21 +8405,21 @@ msgstr "لعبة أخرى"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:622
 msgid "Output Resampling"
-msgstr ""
+msgstr "إعادة تشكيل الإخراج"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:172
 msgid "Output Resampling:"
-msgstr ""
+msgstr "إعادة تشكيل الإخراج"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:691
 msgid "Overwritten"
 msgstr "الكتابة فوق"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:740
+#: Source/Core/DolphinQt/MenuBar.cpp:741
 msgid "P&lay Input Recording..."
 msgstr "تشغيل تسجيل الإدخال"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:249
+#: Source/Core/DolphinQt/MenuBar.cpp:250
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:213
 msgid "PAL"
 msgstr "PAL"
@@ -8406,11 +8521,11 @@ msgstr "مسارات"
 msgid "Pause"
 msgstr "إيقاف مؤقت"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:760
+#: Source/Core/DolphinQt/MenuBar.cpp:761
 msgid "Pause at End of Movie"
 msgstr "وقفة في نهاية الفيلم"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:173
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:177
 msgid "Pause on Focus Loss"
 msgstr "توقف عند فقدان التركيز"
 
@@ -8445,7 +8560,7 @@ msgstr "سرعة الذروة لحركات التأرجح الخارجية."
 msgid "Per-Pixel Lighting"
 msgstr "لكل بكسل إضاءة"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:269
+#: Source/Core/DolphinQt/MenuBar.cpp:270
 msgid "Perform Online System Update"
 msgstr "تحديث النظام عبر الإنترنت"
 
@@ -8479,7 +8594,7 @@ msgstr "مساحة العنوان الفعلي"
 msgid "PiB"
 msgstr "بيتابايت"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1211
+#: Source/Core/DolphinQt/MenuBar.cpp:1218
 msgid "Pick a debug font"
 msgstr "debug اختر خط"
 
@@ -8496,7 +8611,7 @@ msgid "Pitch Up"
 msgstr "Pitch Up"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:995
-#: Source/Core/DolphinQt/MenuBar.cpp:633
+#: Source/Core/DolphinQt/MenuBar.cpp:634
 msgid "Platform"
 msgstr "المنصة"
 
@@ -8553,6 +8668,10 @@ msgstr "اللاعب الثاني القدرة الثانية"
 msgid "Players"
 msgstr "اللاعبين"
 
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:139
+msgid "Playtime:"
+msgstr ""
+
 #. i18n: Please leave SyncOnSkipIdle and True untranslated.
 #. The user needs to enter these terms as-is in an INI file.
 #: Source/Core/VideoCommon/CommandProcessor.cpp:717
@@ -8561,7 +8680,7 @@ msgid ""
 "disabled, which makes this problem very likely to happen."
 msgstr ""
 
-#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:164
+#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:166
 msgid ""
 "Please start a game before starting a search with standard memory regions."
 msgstr "يرجى بدء لعبة قبل بدء البحث باستخدام مناطق الذاكرة القياسية"
@@ -8586,7 +8705,7 @@ msgstr ""
 msgid "Port:"
 msgstr "منفذ"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:169
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:174
 msgid "Portal Slots"
 msgstr "فتحات البوابة"
 
@@ -8735,7 +8854,7 @@ msgstr "التقدم"
 msgid "Public"
 msgstr "عامة"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:507
+#: Source/Core/DolphinQt/MenuBar.cpp:508
 msgid "Purge Game List Cache"
 msgstr "أزالة ذاكره التخزين المؤقت لقائمة الألعاب"
 
@@ -8768,7 +8887,7 @@ msgstr ""
 #: Source/Core/Common/MsgHandler.cpp:60
 #: Source/Core/DolphinQt/ConvertDialog.cpp:455
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:661
-#: Source/Core/DolphinQt/MainWindow.cpp:1766
+#: Source/Core/DolphinQt/MainWindow.cpp:1764
 msgid "Question"
 msgstr "مشكلة"
 
@@ -8793,11 +8912,11 @@ msgstr "R-قوة ضغطة"
 msgid "READY"
 msgstr "جاهز"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:962
+#: Source/Core/DolphinQt/MenuBar.cpp:969
 msgid "RSO Modules"
 msgstr "RSO Modules"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1274
+#: Source/Core/DolphinQt/MenuBar.cpp:1281
 msgid "RSO auto-detection"
 msgstr "RSO الكشف التلقائي"
 
@@ -8955,7 +9074,7 @@ msgid "Refreshing..."
 msgstr "تحديث..."
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:1003
-#: Source/Core/DolphinQt/MenuBar.cpp:641
+#: Source/Core/DolphinQt/MenuBar.cpp:642
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:224
 msgid "Region"
 msgstr "المنطقة"
@@ -9020,7 +9139,7 @@ msgstr ""
 msgid "Rename symbol"
 msgstr "إعادة تسمية الرمز"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:163
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:167
 msgid "Render Window"
 msgstr "نافذة العرض"
 
@@ -9056,7 +9175,7 @@ msgstr "إعادة تعيين"
 msgid "Reset All"
 msgstr "إعادة تعيين الكل"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:556
+#: Source/Core/DolphinQt/MenuBar.cpp:557
 msgid "Reset Ignore Panic Handler"
 msgstr "إعادة تعيين تجاهل معالج الذعر"
 
@@ -9096,7 +9215,7 @@ msgstr "أدارة حزمة الموارد"
 msgid "Resource Pack Path:"
 msgstr "مسار حزمة الموارد"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:321
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:322
 msgid "Restart Required"
 msgstr "مطلوب إعادة تشغيل"
 
@@ -9288,11 +9407,11 @@ msgstr "SSL سياق"
 msgid "START"
 msgstr "START"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:974
+#: Source/Core/DolphinQt/MenuBar.cpp:981
 msgid "Sa&ve Code"
 msgstr "حفظ الرموز"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:347
+#: Source/Core/DolphinQt/MenuBar.cpp:348
 msgid "Sa&ve State"
 msgstr "حفظ الحالة"
 
@@ -9315,7 +9434,7 @@ msgstr "حفظ الكل"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:583
 #: Source/Core/DolphinQt/GameList/GameList.cpp:588
-#: Source/Core/DolphinQt/MenuBar.cpp:1107
+#: Source/Core/DolphinQt/MenuBar.cpp:1114
 msgid "Save Export"
 msgstr "حفظ التصدير"
 
@@ -9336,11 +9455,11 @@ msgstr "حفظ اللعبة"
 msgid "Save Game Files (*.sav);;All Files (*)"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1065
-#: Source/Core/DolphinQt/MenuBar.cpp:1074
-#: Source/Core/DolphinQt/MenuBar.cpp:1077
-#: Source/Core/DolphinQt/MenuBar.cpp:1083
+#: Source/Core/DolphinQt/MenuBar.cpp:1072
+#: Source/Core/DolphinQt/MenuBar.cpp:1081
+#: Source/Core/DolphinQt/MenuBar.cpp:1084
 #: Source/Core/DolphinQt/MenuBar.cpp:1090
+#: Source/Core/DolphinQt/MenuBar.cpp:1097
 msgid "Save Import"
 msgstr "حفظ الاستيراد"
 
@@ -9352,7 +9471,7 @@ msgstr "حفظ الحالة الأقدم"
 msgid "Save Preset"
 msgstr "حفظ الإعداد المسبق"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1896
+#: Source/Core/DolphinQt/MainWindow.cpp:1894
 msgid "Save Recording File As"
 msgstr "حفظ ملف التسجيل باسم"
 
@@ -9402,23 +9521,23 @@ msgstr "حفظ الحالة فتحة 8"
 msgid "Save State Slot 9"
 msgstr "حفظ الحالة فتحة 9"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:348
+#: Source/Core/DolphinQt/MenuBar.cpp:349
 msgid "Save State to File"
 msgstr "حفظ الحالة في ملف"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:350
+#: Source/Core/DolphinQt/MenuBar.cpp:351
 msgid "Save State to Oldest Slot"
 msgstr "حفظ الحالة في أقدم فتحة"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:349
+#: Source/Core/DolphinQt/MenuBar.cpp:350
 msgid "Save State to Selected Slot"
 msgstr "حفظ الحالة في الفتحة المحددة"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:351
+#: Source/Core/DolphinQt/MenuBar.cpp:352
 msgid "Save State to Slot"
 msgstr "حفظ الحالة في الفتحة"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:971
+#: Source/Core/DolphinQt/MenuBar.cpp:978
 msgid "Save Symbol Map &As..."
 msgstr "Save Symbol Map &As..."
 
@@ -9438,11 +9557,11 @@ msgstr "حفظ كإعداد مسبق"
 msgid "Save as..."
 msgstr "حفظ بأسم"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1690
+#: Source/Core/DolphinQt/MenuBar.cpp:1697
 msgid "Save combined output file as"
 msgstr "حفظ ملف الإخراج المجمع بأسم"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1066
+#: Source/Core/DolphinQt/MenuBar.cpp:1073
 msgid ""
 "Save data for this title already exists in the NAND. Consider backing up the "
 "current data before overwriting.\n"
@@ -9456,11 +9575,11 @@ msgstr ""
 msgid "Save in Same Directory as the ROM"
 msgstr "Save in Same Directory as the ROM"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1550
+#: Source/Core/DolphinQt/MenuBar.cpp:1557
 msgid "Save map file"
 msgstr "Save map file"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1610
+#: Source/Core/DolphinQt/MenuBar.cpp:1617
 msgid "Save signature file"
 msgstr "احفظ ملف التوقيع"
 
@@ -9468,7 +9587,7 @@ msgstr "احفظ ملف التوقيع"
 msgid "Save to Selected Slot"
 msgstr "حفظ في الفتحة المحددة"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:389
+#: Source/Core/DolphinQt/MenuBar.cpp:390
 msgid "Save to Slot %1 - %2"
 msgstr "%1 - %2 حفظ في الفتحة"
 
@@ -9502,7 +9621,7 @@ msgstr "لقطة للشاشة"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:148
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:86
-#: Source/Core/DolphinQt/MenuBar.cpp:515 Source/Core/DolphinQt/MenuBar.cpp:517
+#: Source/Core/DolphinQt/MenuBar.cpp:516 Source/Core/DolphinQt/MenuBar.cpp:518
 msgid "Search"
 msgstr "بحث"
 
@@ -9531,7 +9650,7 @@ msgstr ""
 "البحث غير ممكن حاليا في مساحة العنوان الافتراضية. يرجى تشغيل اللعبة قليلا "
 "والمحاولة مرة أخرى."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:857
+#: Source/Core/DolphinQt/MenuBar.cpp:864
 msgid "Search for an Instruction"
 msgstr "ابحث عن تعليمات"
 
@@ -9539,11 +9658,11 @@ msgstr "ابحث عن تعليمات"
 msgid "Search games..."
 msgstr "بحث عن الالعاب"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1730
+#: Source/Core/DolphinQt/MenuBar.cpp:1737
 msgid "Search instruction"
 msgstr "تعليمات البحث"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:242
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:247
 msgid "Search:"
 msgstr "بحث:"
 
@@ -9576,7 +9695,7 @@ msgid "Select Dump Path"
 msgstr "تحديد مسار التفريغ"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:563
-#: Source/Core/DolphinQt/MenuBar.cpp:1101
+#: Source/Core/DolphinQt/MenuBar.cpp:1108
 msgid "Select Export Directory"
 msgstr "حدد ملف تصدير "
 
@@ -9612,15 +9731,15 @@ msgstr "حدد مسار حزمة الموارد"
 msgid "Select Riivolution XML file"
 msgstr "Riivolution XML حدد ملف"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:492
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:497
 msgid "Select Skylander Collection"
 msgstr "Skylander حدد مجموعة"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:563
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:568
 msgid "Select Skylander File"
 msgstr "حدد ملف Skylander"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:390
+#: Source/Core/DolphinQt/MenuBar.cpp:391
 msgid "Select Slot %1 - %2"
 msgstr "%1 - %2 حدد الفتحة"
 
@@ -9628,7 +9747,7 @@ msgstr "%1 - %2 حدد الفتحة"
 msgid "Select State"
 msgstr "اختر الحالة"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:364
+#: Source/Core/DolphinQt/MenuBar.cpp:365
 msgid "Select State Slot"
 msgstr "حدد فتحة الحالة"
 
@@ -9688,9 +9807,9 @@ msgstr "اختر الملف"
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:194
 #: Source/Core/DolphinQt/GBAWidget.cpp:214
 #: Source/Core/DolphinQt/GBAWidget.cpp:245
-#: Source/Core/DolphinQt/MainWindow.cpp:767
-#: Source/Core/DolphinQt/MainWindow.cpp:1383
-#: Source/Core/DolphinQt/MainWindow.cpp:1392
+#: Source/Core/DolphinQt/MainWindow.cpp:765
+#: Source/Core/DolphinQt/MainWindow.cpp:1381
+#: Source/Core/DolphinQt/MainWindow.cpp:1390
 msgid "Select a File"
 msgstr "حدد ملف"
 
@@ -9714,7 +9833,7 @@ msgstr "حدد ملف"
 msgid "Select a game"
 msgstr "اختر لعبة"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1036
+#: Source/Core/DolphinQt/MenuBar.cpp:1043
 msgid "Select a title to install to NAND"
 msgstr "NAND حدد عنوانًا لتثبيته إلى"
 
@@ -9722,11 +9841,11 @@ msgstr "NAND حدد عنوانًا لتثبيته إلى"
 msgid "Select e-Reader Cards"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1338
+#: Source/Core/DolphinQt/MenuBar.cpp:1345
 msgid "Select the RSO module address:"
 msgstr "RSO حدد عنوان وحدة"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1825
+#: Source/Core/DolphinQt/MainWindow.cpp:1823
 msgid "Select the Recording File to Play"
 msgstr "حدد ملف التسجيل للتشغيل"
 
@@ -9734,12 +9853,12 @@ msgstr "حدد ملف التسجيل للتشغيل"
 msgid "Select the Virtual SD Card Root"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1802
+#: Source/Core/DolphinQt/MainWindow.cpp:1800
 msgid "Select the keys file (OTP/SEEPROM dump)"
 msgstr "(OTP/SEEPROM dump) حدد ملف المفاتيح"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1776
-#: Source/Core/DolphinQt/MenuBar.cpp:1056
+#: Source/Core/DolphinQt/MainWindow.cpp:1774
+#: Source/Core/DolphinQt/MenuBar.cpp:1063
 msgid "Select the save file"
 msgstr "حدد حفظ الملف"
 
@@ -9759,9 +9878,9 @@ msgstr "الخط المحدد"
 msgid "Selected controller profile does not exist"
 msgstr "اختيار الملف التحكم الشخصي غير موجود "
 
-#: Source/Core/Core/NetPlayServer.cpp:1331
-#: Source/Core/Core/NetPlayServer.cpp:1705
-#: Source/Core/Core/NetPlayServer.cpp:2033
+#: Source/Core/Core/NetPlayServer.cpp:1335
+#: Source/Core/Core/NetPlayServer.cpp:1709
+#: Source/Core/Core/NetPlayServer.cpp:2037
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:490
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:892
 msgid "Selected game doesn't exist in game list!"
@@ -9841,7 +9960,7 @@ msgstr "IP عنوان"
 msgid "Server Port"
 msgstr "منفذ الخادم"
 
-#: Source/Core/Core/NetPlayClient.cpp:1976
+#: Source/Core/Core/NetPlayClient.cpp:1980
 msgid "Server rejected traversal attempt"
 msgstr "الخادم رفض محاولة الاجتياز"
 
@@ -9940,7 +10059,7 @@ msgstr "هزة"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:136
 msgid "Sharp Bilinear"
-msgstr ""
+msgstr "Sharp Bilinear"
 
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:232
 msgid "Shinkansen"
@@ -9955,23 +10074,23 @@ msgstr "Shinkansen Controller"
 msgid "Show % Speed"
 msgstr "عرض السرعة"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:397
+#: Source/Core/DolphinQt/MenuBar.cpp:398
 msgid "Show &Log"
 msgstr "السجل"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:410
+#: Source/Core/DolphinQt/MenuBar.cpp:411
 msgid "Show &Toolbar"
 msgstr "شريط الأدوات"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:172
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:176
 msgid "Show Active Title in Window Title"
 msgstr "عرض العنوان النشط في عنوان النافذة"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:709
+#: Source/Core/DolphinQt/MenuBar.cpp:710
 msgid "Show All"
 msgstr "عرض الكل"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:696
+#: Source/Core/DolphinQt/MenuBar.cpp:697
 msgid "Show Australia"
 msgstr "أستراليا"
 
@@ -9984,7 +10103,7 @@ msgstr "عرض اللعبة الحالية على ديسكورد"
 msgid "Show Disabled Codes First"
 msgstr "عرض الرموز المعطلة أولاً"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:671
+#: Source/Core/DolphinQt/MenuBar.cpp:672
 msgid "Show ELF/DOL"
 msgstr "ELF/DOL"
 
@@ -9997,7 +10116,7 @@ msgstr "عرض الرموز الممكّنة أولاً"
 msgid "Show FPS"
 msgstr "FPS عرض"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:778
+#: Source/Core/DolphinQt/MenuBar.cpp:779
 msgid "Show Frame Counter"
 msgstr "عرض عداد الإطار"
 
@@ -10005,15 +10124,15 @@ msgstr "عرض عداد الإطار"
 msgid "Show Frame Times"
 msgstr "عرض أوقات الإطار"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:697
+#: Source/Core/DolphinQt/MenuBar.cpp:698
 msgid "Show France"
 msgstr "فرنسا"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:669
+#: Source/Core/DolphinQt/MenuBar.cpp:670
 msgid "Show GameCube"
 msgstr "جيم كيوب"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:698
+#: Source/Core/DolphinQt/MenuBar.cpp:699
 msgid "Show Germany"
 msgstr "ألمانيا"
 
@@ -10025,23 +10144,23 @@ msgstr "Show Golf Mode Overlay"
 msgid "Show Infinity Base"
 msgstr "Infinity عرض قاعدة"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:784
+#: Source/Core/DolphinQt/MenuBar.cpp:785
 msgid "Show Input Display"
 msgstr "عرض مدخلات العرض"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:699
+#: Source/Core/DolphinQt/MenuBar.cpp:700
 msgid "Show Italy"
 msgstr "ايطاليا"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:693
+#: Source/Core/DolphinQt/MenuBar.cpp:694
 msgid "Show JPN"
 msgstr "اليابان"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:700
+#: Source/Core/DolphinQt/MenuBar.cpp:701
 msgid "Show Korea"
 msgstr "كوريا"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:772
+#: Source/Core/DolphinQt/MenuBar.cpp:773
 msgid "Show Lag Counter"
 msgstr "عرض عداد التأخر"
 
@@ -10049,7 +10168,7 @@ msgstr "عرض عداد التأخر"
 msgid "Show Language:"
 msgstr "عرض اللغة"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:403
+#: Source/Core/DolphinQt/MenuBar.cpp:404
 msgid "Show Log &Configuration"
 msgstr "إعداد السجل"
 
@@ -10061,15 +10180,15 @@ msgstr "عرض رسائل اللعب عبر الشبكة"
 msgid "Show NetPlay Ping"
 msgstr "في اللعب عبر الشبكة Ping عرض الـ"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:701
+#: Source/Core/DolphinQt/MenuBar.cpp:702
 msgid "Show Netherlands"
 msgstr "هولندا"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:171
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:175
 msgid "Show On-Screen Display Messages"
 msgstr "عرض الرسائل المعروضة على الشاشة"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:694
+#: Source/Core/DolphinQt/MenuBar.cpp:695
 msgid "Show PAL"
 msgstr "أوروبا"
 
@@ -10082,19 +10201,19 @@ msgstr "عرض الكمبيوتر"
 msgid "Show Performance Graphs"
 msgstr "عرض الرسوم البيانية للأداء"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:674
+#: Source/Core/DolphinQt/MenuBar.cpp:675
 msgid "Show Platforms"
 msgstr "عرض المنصات"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:708
+#: Source/Core/DolphinQt/MenuBar.cpp:709
 msgid "Show Regions"
 msgstr "عرض المناطق"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:766
+#: Source/Core/DolphinQt/MenuBar.cpp:767
 msgid "Show Rerecord Counter"
 msgstr "عرض عداد إعادة التسجيل"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:702
+#: Source/Core/DolphinQt/MenuBar.cpp:703
 msgid "Show Russia"
 msgstr "روسيا"
 
@@ -10102,7 +10221,7 @@ msgstr "روسيا"
 msgid "Show Skylanders Portal"
 msgstr "Skylanders عرض بوابة"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:703
+#: Source/Core/DolphinQt/MenuBar.cpp:704
 msgid "Show Spain"
 msgstr "اسبانيا"
 
@@ -10114,19 +10233,19 @@ msgstr "عرض ألوان السرعة"
 msgid "Show Statistics"
 msgstr "عرض الإحصاءات"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:791
+#: Source/Core/DolphinQt/MenuBar.cpp:792
 msgid "Show System Clock"
 msgstr "عرض ساعة النظام"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:704
+#: Source/Core/DolphinQt/MenuBar.cpp:705
 msgid "Show Taiwan"
 msgstr "تايوان"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:695
+#: Source/Core/DolphinQt/MenuBar.cpp:696
 msgid "Show USA"
 msgstr "امريكا"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:706
+#: Source/Core/DolphinQt/MenuBar.cpp:707
 msgid "Show Unknown"
 msgstr "غير معروف"
 
@@ -10138,15 +10257,15 @@ msgstr "VBlank عرض أوقات"
 msgid "Show VPS"
 msgstr "VPS عرض "
 
-#: Source/Core/DolphinQt/MenuBar.cpp:670
+#: Source/Core/DolphinQt/MenuBar.cpp:671
 msgid "Show WAD"
 msgstr "WAD"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:668
+#: Source/Core/DolphinQt/MenuBar.cpp:669
 msgid "Show Wii"
 msgstr "وي"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:705
+#: Source/Core/DolphinQt/MenuBar.cpp:706
 msgid "Show World"
 msgstr "العالم"
 
@@ -10255,7 +10374,7 @@ msgstr "جانبية"
 msgid "Sideways Wii Remote"
 msgstr "انحراف ريموت وي"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:961
+#: Source/Core/DolphinQt/MenuBar.cpp:968
 msgid "Signature Database"
 msgstr "قاعدة بيانات التوقيع"
 
@@ -10343,32 +10462,32 @@ msgid ""
 msgstr ""
 
 #. i18n: One of the figure types in the Skylanders games.
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:411
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:416
 msgid "Skylander"
-msgstr ""
+msgstr "Skylander"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:183
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:188
 msgid "Skylander %1"
 msgstr "Skylander %1"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:564
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:633
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:569
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:638
 msgid "Skylander (*.sky);;All Files (*)"
 msgstr ""
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:223
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:228
 msgid "Skylander Collection Path:"
 msgstr "مسار مجموعة Skylander"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:530
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:535
 msgid "Skylander not found in this collection. Create new file?"
 msgstr "Skylander غير موجود في هذه المجموعة. إنشاء ملف جديد؟"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:43
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:45
 msgid "Skylanders Manager"
 msgstr "Skylanders مدير"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:82
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:84
 msgid "Skylanders folder not found for this user. Create new folder?"
 msgstr "Skylanders لم يتم العثور على مجلد لهذا المستخدم. إنشاء مجلد جديد؟"
 
@@ -10485,7 +10604,7 @@ msgstr "سرعة"
 
 #. i18n: Figures for the game Skylanders: Spyro's Adventure. The game has the same title in all
 #. countries it was released in, except Japan, where it's named スカイランダーズ スパイロの大冒険.
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:270
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:275
 msgid "Spyro's Adventure"
 msgstr "Spyro's Adventure"
 
@@ -10499,14 +10618,14 @@ msgstr "بداية المكدس"
 
 #: Source/Core/DolphinQt/Config/GamecubeControllersWidget.cpp:36
 msgid "Standard Controller"
-msgstr "وحدة تحكم القياسية"
+msgstr "ذراع تحكم القياسية"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:131
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:61
 msgid "Start"
 msgstr "تشغيل"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:228
+#: Source/Core/DolphinQt/MenuBar.cpp:229
 msgid "Start &NetPlay..."
 msgstr "بدء &اللعب عبر الشبكة"
 
@@ -10514,7 +10633,7 @@ msgstr "بدء &اللعب عبر الشبكة"
 msgid "Start New Cheat Search"
 msgstr "بدء بحث أسرار جديدة"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:738
+#: Source/Core/DolphinQt/MenuBar.cpp:739
 msgid "Start Re&cording Input"
 msgstr "بدء التسجيل"
 
@@ -10630,7 +10749,7 @@ msgstr "عصا"
 msgid "Stop"
 msgstr "إيقاف"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:741
+#: Source/Core/DolphinQt/MenuBar.cpp:742
 msgid "Stop Playing/Recording Input"
 msgstr "إيقاف تشغيل / تسجيل الإدخال"
 
@@ -10688,6 +10807,10 @@ msgstr "سلسلة"
 msgid "Strum"
 msgstr "داعب الأ وتار"
 
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:131
+msgid "Style:"
+msgstr ""
+
 #: Source/Core/Core/HW/WiimoteEmu/Extension/DrawsomeTablet.cpp:29
 #: Source/Core/Core/HW/WiimoteEmu/Extension/UDrawTablet.cpp:48
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:192
@@ -10701,8 +10824,8 @@ msgstr "مرقم"
 #: Source/Core/DolphinQt/ConvertDialog.cpp:538
 #: Source/Core/DolphinQt/GameList/GameList.cpp:626
 #: Source/Core/DolphinQt/GameList/GameList.cpp:656
-#: Source/Core/DolphinQt/MenuBar.cpp:1044
-#: Source/Core/DolphinQt/MenuBar.cpp:1178
+#: Source/Core/DolphinQt/MenuBar.cpp:1051
+#: Source/Core/DolphinQt/MenuBar.cpp:1185
 msgid "Success"
 msgstr "ناجح"
 
@@ -10729,7 +10852,7 @@ msgstr ""
 msgid "Successfully exported save files"
 msgstr "تم تصدير ملفات الحفظ بنجاح"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1179
+#: Source/Core/DolphinQt/MenuBar.cpp:1186
 msgid "Successfully extracted certificates from NAND"
 msgstr "تم استخراج الشهادات بنجاح من NAND"
 
@@ -10741,12 +10864,12 @@ msgstr "تم استخراج الملف بنجاح."
 msgid "Successfully extracted system data."
 msgstr "استخرجت بنجاح بيانات النظام."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1074
+#: Source/Core/DolphinQt/MenuBar.cpp:1081
 msgid "Successfully imported save file."
 msgstr "تم استيراد ملف الحفظ بنجاح"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:627
-#: Source/Core/DolphinQt/MenuBar.cpp:1045
+#: Source/Core/DolphinQt/MenuBar.cpp:1052
 msgid "Successfully installed this title to the NAND."
 msgstr "تم بنجاح تثبيت هذا العنوان على NAND."
 
@@ -10757,7 +10880,7 @@ msgstr "تمت إزالة هذا العنوان بنجاح من NAND."
 #. i18n: Figures for the games Skylanders: SuperChargers (not available for the Wii) and
 #. Skylanders: SuperChargers Racing (available for the Wii). The games have the same titles in
 #. all countries they were released in. They were not released in Japan.
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:283
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:288
 msgid "SuperChargers"
 msgstr ""
 
@@ -10788,12 +10911,12 @@ msgstr "Swap Eyes"
 
 #. i18n: Figures for the game Skylanders: Swap Force. The game has the same title in all countries
 #. it was released in. It was not released in Japan.
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:276
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:281
 msgid "Swap Force"
 msgstr ""
 
 #. i18n: One of the figure types in the Skylanders games.
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:415
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:420
 msgid "Swapper"
 msgstr ""
 
@@ -10818,7 +10941,7 @@ msgid "Switch to B"
 msgstr "B التبديل إلى"
 
 #. i18n: The symbolic name of a code block
-#: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:82
+#: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:81
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:144
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:375
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:84
@@ -10844,7 +10967,7 @@ msgstr "اسم الرمز"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:158
 #: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:136
-#: Source/Core/DolphinQt/MenuBar.cpp:955
+#: Source/Core/DolphinQt/MenuBar.cpp:962
 msgid "Symbols"
 msgstr "رموز"
 
@@ -10895,7 +11018,7 @@ msgstr "جارٍ مزامنة حفظ البيانات"
 msgid "System Language:"
 msgstr "لغة النظام"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:756
+#: Source/Core/DolphinQt/MenuBar.cpp:757
 msgid "TAS Input"
 msgstr "الإدخال"
 
@@ -10908,7 +11031,7 @@ msgstr "TAS أدوات"
 #: Source/Core/DolphinQt/GameList/GameList.cpp:501
 #: Source/Core/DolphinQt/GameList/GameList.cpp:1008
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:235
-#: Source/Core/DolphinQt/MenuBar.cpp:646
+#: Source/Core/DolphinQt/MenuBar.cpp:647
 msgid "Tags"
 msgstr "العلامات"
 
@@ -10926,7 +11049,7 @@ msgstr ""
 msgid "Taiwan"
 msgstr "تايوان"
 
-#: Source/Core/Core/HotkeyManager.cpp:35 Source/Core/DolphinQt/MenuBar.cpp:316
+#: Source/Core/Core/HotkeyManager.cpp:35 Source/Core/DolphinQt/MenuBar.cpp:317
 msgid "Take Screenshot"
 msgstr "لقطة للشاشة"
 
@@ -10942,7 +11065,7 @@ msgstr ""
 
 #. i18n: One of the elements in the Skylanders games. Japanese: マシン. For official translations
 #. in other languages, check the SuperChargers manual at https://support.activision.com/manuals
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:341
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:346
 msgid "Tech"
 msgstr "تقنية"
 
@@ -11008,7 +11131,7 @@ msgstr ""
 msgid "The Masterpiece partitions are missing."
 msgstr "أقسام نادرة مفقودة."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1170
+#: Source/Core/DolphinQt/MenuBar.cpp:1177
 msgid ""
 "The NAND could not be repaired. It is recommended to back up your current "
 "data and start over with a fresh NAND."
@@ -11016,7 +11139,7 @@ msgstr ""
 "NAND لا يمكن إصلاح\n"
 "يوصى بعمل نسخة احتياطية من بياناتك الحالية والبدء من جديد"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1165
+#: Source/Core/DolphinQt/MenuBar.cpp:1172
 msgid "The NAND has been repaired."
 msgstr "NAND تم اصلاح"
 
@@ -11025,6 +11148,10 @@ msgid ""
 "The TMD is not correctly signed. If you move or copy this title to the SD "
 "Card, the Wii System Menu will not launch it anymore and will also refuse to "
 "copy or move it back to the NAND."
+msgstr ""
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:170
+msgid "The amount of money this skylander should have. Between 0 and 65000"
 msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:278
@@ -11138,6 +11265,12 @@ msgstr ""
 "الملف 1% موجود بالفعل.\n"
 "هل ترغب في استبدالها؟"
 
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:274
+msgid ""
+"The file associated to this file was closed! Did you clear the slot before "
+"saving?"
+msgstr ""
+
 #: Source/Core/AudioCommon/WaveFile.cpp:60
 msgid ""
 "The file {0} could not be opened for writing. Please check if it's already "
@@ -11201,7 +11334,7 @@ msgstr ""
 "منطقة اللعبة لا تتطابق مع وحدة التحكم الخاصة بك. لتجنب حدوث مشكلات في قائمة "
 "النظام ، لا يمكن تحديث وحدة التحكم التي تمت محاكاتها باستخدام هذا القرص."
 
-#: Source/Core/VideoBackends/OGL/OGLConfig.cpp:704
+#: Source/Core/VideoBackends/OGL/OGLConfig.cpp:715
 msgid ""
 "The graphics driver is forcibly enabling anti-aliasing for Dolphin. You need "
 "to turn this off in the graphics driver's settings in order for Dolphin to "
@@ -11218,6 +11351,12 @@ msgstr "لا تتطابق التجزئة!"
 msgid "The hashes match!"
 msgstr "تطابق التجزئة"
 
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:171
+msgid ""
+"The hero level of this skylander. Only seen in Skylanders: Spyro's "
+"Adventures. Between 0 and 100"
+msgstr ""
+
 #: Source/Core/Core/NetPlayClient.cpp:184
 msgid ""
 "The host code is too long.\n"
@@ -11230,12 +11369,26 @@ msgstr ""
 msgid "The install partition is missing."
 msgstr "قسم التثبيت مفقود."
 
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:178
+msgid "The last time the figure has been placed on a portal"
+msgstr ""
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:176
+msgid ""
+"The last time the figure has been reset. If the figure has never been reset, "
+"the first time the figure was placed on a portal"
+msgstr ""
+
 #: Source/Core/Core/HW/EXI/EXI.cpp:48
 msgid ""
 "The movie indicates that a memory card should be inserted into {0:n}, but "
 "one is not currently inserted (instead, {1} is inserted).  For the movie to "
 "sync properly, please change the selected device to Memory Card or GCI "
 "Folder."
+msgstr ""
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:173
+msgid "The nickname for this skylander. Limited to 15 characters"
 msgstr ""
 
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:141
@@ -11309,7 +11462,7 @@ msgstr ""
 msgid "The specified file \"{0}\" does not exist"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1128
+#: Source/Core/DolphinQt/MenuBar.cpp:1135
 msgid ""
 "The system-reserved part of your NAND contains %1 blocks (%2 KiB) of data, "
 "out of an allowed maximum of %3 blocks (%4 KiB)."
@@ -11324,9 +11477,30 @@ msgstr "\"%1\" تحتوي بطاقة الذاكرة المستهدفة بالف�
 msgid "The ticket is not correctly signed."
 msgstr "لم يتم توقيع التذكرة بشكل صحيح"
 
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:175
+msgid "The total time this figure has been used inside a game in seconds"
+msgstr ""
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:169
+msgid "The toy code for this figure. Only available for real figures."
+msgstr ""
+
 #: Source/Core/DiscIO/VolumeVerifier.cpp:523
 msgid "The type of a partition could not be read."
 msgstr "لا يمكن قراءة نوع القسم."
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:83
+msgid "The type of this Skylander does not have any data that can be modified!"
+msgstr ""
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:90
+msgid "The type of this Skylander is unknown!"
+msgstr ""
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:97
+msgid ""
+"The type of this Skylander is unknown, or can't be modified at this time!"
+msgstr ""
 
 #: Source/Core/DolphinQt/WiiUpdate.cpp:60
 msgid ""
@@ -11347,7 +11521,7 @@ msgstr "قسم التحديث مفقود"
 msgid "The update partition is not at its normal position."
 msgstr "قسم التحديث ليس في وضعه الطبيعي"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1120
+#: Source/Core/DolphinQt/MenuBar.cpp:1127
 msgid ""
 "The user-accessible part of your NAND contains %1 blocks (%2 KiB) of data, "
 "out of an allowed maximum of %3 blocks (%4 KiB)."
@@ -11373,7 +11547,7 @@ msgstr "لم تتم محاذاة القسم {0} بشكل صحيح"
 msgid "There are too many partitions in the first partition table."
 msgstr "هناك الكثير من الأقسام في جدول القسم الأول."
 
-#: Source/Core/Core/State.cpp:1005
+#: Source/Core/Core/State.cpp:1020
 msgid "There is nothing to undo!"
 msgstr "لا يوجد شيء للتراجع !"
 
@@ -11415,6 +11589,10 @@ msgid ""
 msgstr ""
 "يتم تعيين هذا العنوان الكوري لاستخدام نظام التشغيل الذي عاده لا يتم استخدامه "
 "علي وحدات التحكم الكورية. هذا من المحتمل ان يؤدي إلى خطا #002."
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:100
+msgid "This Skylander type can't be modified yet!"
+msgstr ""
 
 #: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:152
 msgid "This USB device is already whitelisted."
@@ -11676,7 +11854,7 @@ msgstr "انتهت مهله"
 #: Source/Core/DolphinQt/GameList/GameList.cpp:997
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:213
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:154
-#: Source/Core/DolphinQt/MenuBar.cpp:635
+#: Source/Core/DolphinQt/MenuBar.cpp:636
 msgid "Title"
 msgstr "العنوان"
 
@@ -11690,7 +11868,7 @@ msgstr "إلى"
 msgid "To:"
 msgstr "إلى"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:313
+#: Source/Core/DolphinQt/MenuBar.cpp:314
 msgid "Toggle &Fullscreen"
 msgstr "ملء الشاشة"
 
@@ -11783,7 +11961,7 @@ msgstr "اعلى"
 msgid "Top-and-Bottom"
 msgstr "Top-and-Bottom"
 
-#: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:82
+#: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:81
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:144
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:375
 msgid "Total Hits"
@@ -11822,24 +12000,28 @@ msgstr "Total travel distance."
 msgid "Touch"
 msgstr "لمس"
 
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:119
+msgid "Toy code:"
+msgstr ""
+
 #: Source/Core/DiscIO/Enums.cpp:101
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:180
 msgid "Traditional Chinese"
 msgstr "الصينية التقليدية"
 
 #. i18n: One of the figure types in the Skylanders games.
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:428
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:433
 msgid "Trap"
 msgstr ""
 
 #. i18n: One of the figure types in the Skylanders games.
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:417
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:422
 msgid "Trap Master"
 msgstr ""
 
 #. i18n: Figures for the game Skylanders: Trap Team. The game has the same title in all countries
 #. it was released in. It was not released in Japan.
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:279
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:284
 msgid "Trap Team"
 msgstr ""
 
@@ -11852,7 +12034,7 @@ msgstr "خطأ الاجتياز"
 msgid "Traversal Server"
 msgstr "اجتياز الخادم"
 
-#: Source/Core/Core/NetPlayClient.cpp:1973
+#: Source/Core/Core/NetPlayClient.cpp:1977
 msgid "Traversal server timed out connecting to the host"
 msgstr "انتهت مهلة خادم الاجتياز للاتصال بالمضيف"
 
@@ -11878,7 +12060,7 @@ msgid "Triggers"
 msgstr "أزرار الكتف"
 
 #. i18n: One of the figure types in the Skylanders games.
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:423
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:428
 msgid "Trophy"
 msgstr ""
 
@@ -11951,7 +12133,7 @@ msgid ""
 "behavior."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1332
+#: Source/Core/DolphinQt/MenuBar.cpp:1339
 msgid "Unable to auto-detect RSO module"
 msgstr "RSO تعذر الكشف التلقائي عن وحدة"
 
@@ -11962,6 +12144,10 @@ msgstr "غير قادر على الاتصال بخادم التحديث"
 #: Source/Core/UICommon/AutoUpdate.cpp:276
 msgid "Unable to create updater copy."
 msgstr "غير قادر على إنشاء نسخة محدث"
+
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:96
+msgid "Unable to modify Skylander!"
+msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:705
 msgid "Unable to open file."
@@ -12014,15 +12200,15 @@ msgstr "غير مضغوطة GC/Wii صورة (*.iso *.gcm)"
 #. i18n: One of the elements in the Skylanders games. Japanese: アンデッド. For official
 #. translations in other languages, check the SuperChargers manual at
 #. https://support.activision.com/manuals
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:357
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:362
 msgid "Undead"
 msgstr "ميت حي"
 
-#: Source/Core/Core/HotkeyManager.cpp:178 Source/Core/DolphinQt/MenuBar.cpp:335
+#: Source/Core/Core/HotkeyManager.cpp:178 Source/Core/DolphinQt/MenuBar.cpp:336
 msgid "Undo Load State"
 msgstr "تراجع عن تحميل الحالة"
 
-#: Source/Core/Core/HotkeyManager.cpp:179 Source/Core/DolphinQt/MenuBar.cpp:352
+#: Source/Core/Core/HotkeyManager.cpp:179 Source/Core/DolphinQt/MenuBar.cpp:353
 msgid "Undo Save State"
 msgstr "تراجع عن حفظ الحالة"
 
@@ -12043,11 +12229,15 @@ msgstr ""
 "NAND إلى إزالة الإصدار المثبت حاليًا من هذا العنوان من\n"
 "دون حذف بيانات الحفظ الخاصة به. استمر؟"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:279
+#: Source/Core/DolphinQt/MenuBar.cpp:280
 msgid "United States"
 msgstr "امريكا"
 
-#: Source/Core/Core/State.cpp:622 Source/Core/DiscIO/Enums.cpp:63
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:89
+msgid "Unknow Skylander type!"
+msgstr ""
+
+#: Source/Core/Core/State.cpp:633 Source/Core/DiscIO/Enums.cpp:63
 #: Source/Core/DiscIO/Enums.cpp:107
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:85
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:45
@@ -12058,7 +12248,8 @@ msgstr "امريكا"
 msgid "Unknown"
 msgstr "غير معروف"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:845
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:56
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:866
 msgid "Unknown (Id:%1 Var:%2)"
 msgstr "(Id:%1 Var:%2) مجهول"
 
@@ -12070,7 +12261,7 @@ msgstr ""
 msgid "Unknown SYNC_CODES message received with id: {0}"
 msgstr ""
 
-#: Source/Core/Core/NetPlayServer.cpp:1234
+#: Source/Core/Core/NetPlayServer.cpp:1238
 msgid ""
 "Unknown SYNC_GECKO_CODES message with id:{0} received from player:{1} "
 "Kicking player!"
@@ -12080,7 +12271,7 @@ msgstr ""
 msgid "Unknown SYNC_SAVE_DATA message received with id: {0}"
 msgstr ""
 
-#: Source/Core/Core/NetPlayServer.cpp:1177
+#: Source/Core/Core/NetPlayServer.cpp:1181
 msgid ""
 "Unknown SYNC_SAVE_DATA message with id:{0} received from player:{1} Kicking "
 "player!"
@@ -12106,7 +12297,7 @@ msgstr "قرص غير معروف"
 msgid "Unknown error occurred."
 msgstr "حدث خطأ غير معروف"
 
-#: Source/Core/Core/NetPlayClient.cpp:1982
+#: Source/Core/Core/NetPlayClient.cpp:1986
 msgid "Unknown error {0:x}"
 msgstr "{0:x} خطأ غير معروف"
 
@@ -12118,12 +12309,12 @@ msgstr "خطأ غير معروف"
 msgid "Unknown message received with id : {0}"
 msgstr "{0} تم استلام رسالة غير معروفة بالمعرف"
 
-#: Source/Core/Core/NetPlayServer.cpp:1242
+#: Source/Core/Core/NetPlayServer.cpp:1246
 msgid "Unknown message with id:{0} received from player:{1} Kicking player!"
 msgstr ""
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:544
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:628
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:549
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:633
 msgid "Unknown(%1 %2).sky"
 msgstr ""
 
@@ -12262,13 +12453,9 @@ msgstr ""
 msgid "Use All Wii Save Data"
 msgstr "استخدام جميع بيانات حفظ وي"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:145
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:151
 msgid "Use Built-In Database of Game Names"
 msgstr "استخدم قاعدة بيانات مدمجة لأسماء الألعاب"
-
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:146
-msgid "Use Custom User Style"
-msgstr "استخدم نمط المستخدم المخصص"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:136
 msgid "Use Lossless Codec (FFV1)"
@@ -12278,7 +12465,7 @@ msgstr "Use Lossless Codec (FFV1)"
 msgid "Use PAL60 Mode (EuRGB60)"
 msgstr "(EuRGB60) PAL60 استخدام وضع "
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:170
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:174
 msgid "Use Panic Handlers"
 msgstr "Use Panic Handlers"
 
@@ -12342,10 +12529,6 @@ msgstr "إعداد المستخدم"
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:102
 msgid "User Interface"
 msgstr "واجهة المستخدم"
-
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:131
-msgid "User Style:"
-msgstr "نمط المستخدم"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:328
 msgid "User Variables"
@@ -12438,17 +12621,17 @@ msgstr "القيمة تتبع التعليمات الحالية"
 msgid "Value:"
 msgstr "القيمة"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:615
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:620
 msgid "Variant entered is invalid!"
 msgstr "المتغير الذي تم إدخاله غير صالح"
 
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:584
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:589
 msgid "Variant:"
 msgstr "متغير"
 
 #. i18n: One of the figure types in the Skylanders games. For official translations
 #. in other languages, check the SuperChargers manual at https://support.activision.com/manuals
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:426
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:431
 msgid "Vehicle"
 msgstr ""
 
@@ -12541,7 +12724,7 @@ msgstr "رفع مستوى الصوت"
 msgid "Vulkan"
 msgstr "Vulkan"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1036
+#: Source/Core/DolphinQt/MenuBar.cpp:1043
 msgid "WAD files (*.wad)"
 msgstr "(*.wad) ملفات"
 
@@ -12652,7 +12835,7 @@ msgstr ""
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:47
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:216
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:232
-#: Source/Core/DolphinQt/MenuBar.cpp:1485
+#: Source/Core/DolphinQt/MenuBar.cpp:1492
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:473
 msgid "Warning"
 msgstr "تحذير"
@@ -12726,7 +12909,7 @@ msgstr "راقب"
 
 #. i18n: One of the elements in the Skylanders games. Japanese: 水. For official translations
 #. in other languages, check the SuperChargers manual at https://support.activision.com/manuals
-#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:338
+#: Source/Core/DolphinQt/SkylanderPortal/SkylanderPortalWindow.cpp:343
 msgid "Water"
 msgstr "ماء"
 
@@ -12837,7 +13020,7 @@ msgstr "وي و ريموت وي"
 msgid "Wii data is not public yet"
 msgstr "بيانات وي ليست عامة بعد"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1057
+#: Source/Core/DolphinQt/MenuBar.cpp:1064
 msgid "Wii save files (*.bin);;All Files (*)"
 msgstr "ملفات حفظ وي (*.bin);;كل الملفات (*)"
 
@@ -12845,7 +13028,7 @@ msgstr "ملفات حفظ وي (*.bin);;كل الملفات (*)"
 msgid "WiiTools Signature MEGA File"
 msgstr "WiiTools Signature MEGA File"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:194
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:198
 msgid ""
 "Will lock the Mouse Cursor to the Render Widget as long as it has focus. You "
 "can set a hotkey to unlock it."
@@ -13047,7 +13230,7 @@ msgstr "يجب تقديم اسم لجلستك!"
 msgid "You must provide a region for your session!"
 msgstr "يجب عليك توفير منطقة لجلستك!"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:322
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:323
 msgid "You must restart Dolphin in order for the change to take effect."
 msgstr "يجب إعادة تشغيل دولفين حتى يسري التغيير."
 
@@ -13067,7 +13250,7 @@ msgid ""
 "If you select \"No\", audio might be garbled."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1140
+#: Source/Core/DolphinQt/MenuBar.cpp:1147
 msgid ""
 "Your NAND contains more data than allowed. Wii software may behave "
 "incorrectly or not allow saving."
@@ -13245,11 +13428,11 @@ msgstr "{0} (NKit)"
 msgid "{0} IPL found in {1} directory. The disc might not be recognized"
 msgstr ""
 
-#: Source/Core/Core/NetPlayServer.cpp:1226
+#: Source/Core/Core/NetPlayServer.cpp:1230
 msgid "{0} failed to synchronize codes."
 msgstr "{0} فشل في مزامنة الرموز"
 
-#: Source/Core/Core/NetPlayServer.cpp:1168
+#: Source/Core/Core/NetPlayServer.cpp:1172
 msgid "{0} failed to synchronize."
 msgstr "{0} فشل في المزامنة"
 
