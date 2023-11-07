@@ -74,14 +74,16 @@ void FileLogger::Log(const DiscIO::Volume& volume, const DiscIO::Partition& part
     return;
 
   const u64 file_offset = file_info->GetOffset();
+  const u64 relativeOffset = offset - file_info->GetOffset();
 
+  // TODO add last_log time to keep logging streamed asset offsets without spamming logs? Or another LogType so user can enable nonstop logging?
   // Do nothing if we found the same file again
   if (m_previous_partition == partition && m_previous_file_offset == file_offset)
     return;
 
   const std::string size_string = Common::ThousandSeparate(file_info->GetSize() / 1000, 7);
   const std::string path = file_info->GetPath();
-  const std::string log_string = fmt::format("{} kB {} offset {}", size_string, path, offset);
+  const std::string log_string = fmt::format("{} kB {} offset {} fileOffset {} relativeOffset {}", size_string, path, offset, file_offset, relativeOffset);
 
   if (IsSoundOrVideoFile(path))
     INFO_LOG_FMT(FILEMON, "{}", log_string);
