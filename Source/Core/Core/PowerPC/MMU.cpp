@@ -1283,7 +1283,7 @@ void MMU::GenerateDSIException(u32 effective_address, bool write)
   constexpr u32 dsisr_page = 1U << 30;
   constexpr u32 dsisr_store = 1U << 25;
 
-  if (effective_address != 0)
+  if (write)
     m_ppc_state.spr[SPR_DSISR] = dsisr_page | dsisr_store;
   else
     m_ppc_state.spr[SPR_DSISR] = dsisr_page;
