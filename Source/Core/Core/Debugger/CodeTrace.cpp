@@ -254,7 +254,7 @@ AutoStepResults CodeTrace::AutoStepping(const Core::CPUThreadGuard& guard,
       attrib = GetInstructionAttributes(output);
 
       for (auto& reg : attrib.regs)
-        output.regdata.emplace_back(RegisterData(reg, RegisterValue(guard, reg)));
+        output.regdata.emplace_back(RegisterData{reg, RegisterValue(guard, reg)});
     }
 
     power_pc.SingleStep();
@@ -265,7 +265,7 @@ AutoStepResults CodeTrace::AutoStepping(const Core::CPUThreadGuard& guard,
       // Must be done after the SingleStep for correct value.
       if (!attrib.target_reg.empty())
         output.regdata.emplace_back(
-            RegisterData(attrib.target_reg, RegisterValue(guard, attrib.target_reg)));
+            RegisterData{attrib.target_reg, RegisterValue(guard, attrib.target_reg)});
 
       output_trace->emplace_back(output);
     }
@@ -342,12 +342,13 @@ bool CodeTrace::RecordTrace(const Core::CPUThreadGuard& guard,
     InstructionAttributes attrib = GetInstructionAttributes(output);
 
     for (auto& reg : attrib.regs)
-      output.regdata.emplace_back(reg, RegisterValue(guard, reg));
+      output.regdata.emplace_back(RegisterData{reg, RegisterValue(guard, reg)});
 
     power_pc.SingleStep();
 
     if (!attrib.target_reg.empty())
-      output.regdata.emplace_back(attrib.target_reg, RegisterValue(guard, attrib.target_reg));
+      output.regdata.emplace_back(
+          RegisterData{attrib.target_reg, RegisterValue(guard, attrib.target_reg)});
 
     output_trace->emplace_back(output);
 
@@ -624,7 +625,7 @@ HitType CodeTrace::Backtrace(const InstructionAttributes& instr, const Matches& 
       m_reg_tracked.erase(instr.target_reg);
 
     // If tracked register is written, track other regs.
-    for (auto& reg : match.regs)
+    for (auto& reg : instr.regs)
       m_reg_tracked.insert(reg);
 
     if (CompareInstruction(instr.instruction, mover))

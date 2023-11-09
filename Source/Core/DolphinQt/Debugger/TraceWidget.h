@@ -25,7 +25,8 @@ class System;
 
 struct TraceResults
 {
-  TraceOutput trace_output;
+  // Index of TraceOutput vector
+  u32 index;
   HitType type;
   std::set<std::string> regs;
 };
@@ -57,12 +58,14 @@ private:
   u32 GetVerbosity() const;
   void OnRecordTrace();
   void LogCreated(std::optional<QString> target_register = std::nullopt);
-  std::vector<TraceResults> CodePath(u32 start, u32 end, size_t results_limit);
+  std::vector<TraceResults> CodePath(const u32 start, u32 range, const bool backtrace);
   std::vector<TraceResults> MakeTraceFromLog();
   void DisplayTrace();
+  u32 GetCustomIndex(const QString& str, const bool find_last = false);
   void InfoDisp();
 
   void OnContextMenu();
+  const QString ElideText(const QString& text) const;
   void OnSetColor(QColor* text_color);
   QTableWidget* m_output_table;
   QLineEdit* m_trace_target;

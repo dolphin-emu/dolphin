@@ -3,7 +3,9 @@
 
 #include "DolphinQt/Debugger/TraceWidget.h"
 
+#include <algorithm>
 #include <optional>
+#include <ranges>
 #include <regex>
 #include <vector>
 
@@ -45,8 +47,7 @@
 
 constexpr int ADDRESS_ROLE = Qt::UserRole;
 constexpr int MEM_ADDRESS_ROLE = Qt::UserRole + 1;
-#define ElidedText(text)                                                                           \
-  fontMetrics().elidedText(text, Qt::ElideRight, m_record_stop_addr->lineEdit()->rect().width() - 5)
+constexpr int INDEX_ROLE = Qt::UserRole + 2;
 
 TraceWidget::TraceWidget(QWidget* parent)
     : QDockWidget(parent), m_system(Core::System::GetInstance())
@@ -118,6 +119,12 @@ void TraceWidget::UpdateFont()
   m_output_table->resizeRowsToContents();
 
   update();
+}
+
+const QString TraceWidget::ElideText(const QString& text) const
+{
+  return fontMetrics().elidedText(text, Qt::ElideRight,
+                                  m_record_stop_addr->lineEdit()->rect().width() - 5);
 }
 
 void TraceWidget::OnSetColor(QColor* text_color)
@@ -360,7 +367,7 @@ void TraceWidget::LogCreated(std::optional<QString> target_register)
 
   m_record_stop_addr->insertItem(
       0,
-      ElidedText(QStringLiteral("End %1 : %2").arg((end_addr), 8, 16, QLatin1Char('0')).arg(instr)),
+      ElideText(QStringLiteral("End %1 : %2").arg((end_addr), 8, 16, QLatin1Char('0')).arg(instr)),
       end_addr);
   m_record_stop_addr->setCurrentIndex(0);
 
@@ -540,92 +547,56 @@ void TraceWidget::OnRecordTrace()
   LogCreated();
 }
 
-std::vector<TraceResults> TraceWidget::CodePath(u32 start, u32 end, size_t results_limit)
+std::vector<TraceResults> TraceWidget::CodePath(const u32 start, u32 range, const bool backtrace)
 {
   // Shows entire trace (limited by results limit) without filtering if target input is blank.
-  std::vector<TraceOutput> tmp_out;
-  auto begin_itr = m_code_trace.begin();
-  auto end_itr = m_code_trace.end();
-  size_t trace_size = m_code_trace.size();
-
-  if (m_change_range->isChecked())
-  {
-    auto begin_itr_temp = find_if(m_code_trace.begin(), m_code_trace.end(),
-                                  [start](const TraceOutput& t) { return t.address == start; });
-    auto end_itr_temp =
-        find_if(m_code_trace.rbegin(), m_code_trace.rend(), [end](const TraceOutput& t) {
-          return t.address == end;
-        }).base();
-
-    if (begin_itr_temp == m_code_trace.end() || end_itr_temp == m_code_trace.begin())
-    {
-      m_error_msg.emplace_back(tr("Change Range using invalid addresses. Using full range."));
-    }
-    else
-    {
-      begin_itr = begin_itr_temp;
-      end_itr = end_itr_temp;
-      trace_size = std::distance(begin_itr, end_itr);
-    }
-  }
-
   std::vector<TraceResults> tmp_results;
-  if (m_backtrace->isChecked())
+  const u32 result_limit = m_results_limit_input->value();
+
+  if (range > result_limit)
   {
-    auto rend_itr = std::reverse_iterator(begin_itr);
-    auto rbegin_itr = std::reverse_iterator(end_itr);
-
-    if (results_limit < trace_size)
-      rend_itr = std::next(rbegin_itr, results_limit);
-
-    for (auto& i = rbegin_itr; i != rend_itr; i++)
-      tmp_results.emplace_back(TraceResults{*i, HitType::ACTIVE, {}});
-
-    return tmp_results;
+    range = result_limit - 1;
+    m_error_msg.emplace_back(tr("Output exceeds results limit. Not all lines will be shown."));
   }
-  else
+
+  u32 index = start;
+  for (u32 i = 0; i <= range; i++)
   {
-    if (results_limit < trace_size)
-      end_itr = std::next(begin_itr, results_limit);
-
-    for (auto& i = begin_itr; i != end_itr; i++)
-      tmp_results.emplace_back(TraceResults{*i, HitType::ACTIVE, {}});
-
-    return tmp_results;
+    tmp_results.emplace_back(TraceResults{index, HitType::ACTIVE, {}});
+    backtrace ? index-- : index++;
   }
+
+  return tmp_results;
 }
 
 std::vector<TraceResults> TraceWidget::MakeTraceFromLog()
 {
-  // Setup start and end for a changed range, 0 means use full range.
   u32 start = 0;
-  u32 end = 0;
+  const u32 size = static_cast<u32>(m_code_trace.size());
+  u32 end = size - 1;
 
   if (m_change_range->isChecked())
   {
-    if (!m_range_start->text().isEmpty())
-    {
-      bool good;
-      start = m_range_start->text().toUInt(&good, 16);
+    // Returns 0 if invalid or unset, which is effectively correct
+    start = GetCustomIndex(m_range_start->text());
+    bool find_last = true;
+    end = GetCustomIndex(m_range_end->text(), find_last);
 
-      if (!good)
-        m_error_msg.emplace_back(tr("Input error with starting address."));
-    }
-    if (!m_range_end->text().isEmpty())
+    if (end <= start)
     {
-      bool good;
-      end = m_range_end->text().toUInt(&good, 16);
-
-      if (!good)
-        m_error_msg.emplace_back(tr("Input error with ending address."));
+      end = size - 1;
+      m_error_msg.emplace_back(tr("Custom range places the end before the start. Ignoring."));
     }
   }
 
-  const size_t results_limit = static_cast<size_t>(m_results_limit_input->value());
+  const bool backtrace = m_backtrace->isChecked();
+  const u32 range = end - start;
+  if (backtrace)
+    std::swap(start, end);
 
   // If no trace target, display the recorded log without tracing
   if (m_trace_target->text().isEmpty())
-    return CodePath(start, end, results_limit);
+    return CodePath(start, range, backtrace);
 
   CodeTrace codetrace;
 
@@ -660,51 +631,39 @@ std::vector<TraceResults> TraceWidget::MakeTraceFromLog()
   std::vector<TraceResults> trace_results;
   HitType type;
   const u32 verbosity_flags = GetVerbosity();
-  bool trace_running = false;
-  const bool backtrace = m_backtrace->isChecked();
-
-  if (backtrace)
-    std::reverse(m_code_trace.begin(), m_code_trace.end());
-
-  if (start == 0)
-    trace_running = true;
+  const u32 results_limit = m_results_limit_input->value();
+  u32 result_count = 0;
 
   // If the first instance of a tracked target is it being destroyed, we probably wanted to track
   // it from that point onwards. Make the first hit a special exclusion case.
   bool first_hit = true;
+  u32 index = start;
 
-  for (TraceOutput& current : m_code_trace)
+  for (u32 i = 0; i <= range; i++)
   {
-    if (!trace_running)
-    {
-      if (current.address != start)
-        continue;
-      else
-        trace_running = true;
-    }
+    const auto& current = m_code_trace[index];
 
     TraceResults tmp_results;
-
     type = codetrace.TraceLogic(current, first_hit, &tmp_results.regs, backtrace);
 
     if (type != HitType::SKIP && type != HitType::STOP)
     {
       if (static_cast<u32>(type) & verbosity_flags)
       {
-        tmp_results.trace_output = current;
+        tmp_results.index = index;
         tmp_results.type = type;
-        trace_results.emplace_back(tmp_results);
+        trace_results.push_back(std::move(tmp_results));
+        result_count++;
       }
       first_hit = false;
     }
 
     // Stop if we run out of things to track
-    if (type == HitType::STOP || trace_results.size() >= results_limit || current.address == end)
+    if (type == HitType::STOP || result_count >= results_limit)
       break;
-  }
 
-  if (backtrace)
-    std::reverse(m_code_trace.begin(), m_code_trace.end());
+    backtrace ? index-- : index++;
+  }
 
   return trace_results;
 }
@@ -736,13 +695,13 @@ void TraceWidget::DisplayTrace()
   std::regex reg("(\\S*)\\s+(?:(\\S{0,12})\\s*)?(?:(\\S{0,8})\\s*)?(?:(\\S{0,8})\\s*)?(.*)");
 
   std::smatch match;
-  m_output_table->setRowCount(static_cast<int>(trace_results.size() + m_error_msg.size() + 1));
+  m_output_table->setRowCount(static_cast<int>(trace_results.size() + 1));
 
   int row = 0;
 
   for (auto& result : trace_results)
   {
-    auto out = result.trace_output;
+    auto& out = m_code_trace[result.index];
     const QString fix_sym = QString::fromStdString(g_symbolDB.GetDescription(out.address))
                                 .replace(QStringLiteral("\t"), QStringLiteral("  "));
 
@@ -841,8 +800,10 @@ void TraceWidget::DisplayTrace()
         item->setText(item->text().prepend(QLatin1Char(' ')));
     }
 
-    // Just manage all data in column 0.
+    // Just manage all data in column 0. Add 1 to index so position 0 reads as 1 in the UI. Possibly
+    // move +1 to menu actions if index data is used for other things.
     addr_item->setData(ADDRESS_ROLE, out.address);
+    addr_item->setData(INDEX_ROLE, result.index + 1);
     if (out.memory_target)
       addr_item->setData(MEM_ADDRESS_ROLE, *out.memory_target);
 
@@ -905,13 +866,61 @@ void TraceWidget::UpdateBreakpoints()
         QString::fromStdString(power_pc.GetDebugInterface().Disassemble(&guard, bp.address));
     instr.replace(QStringLiteral("\t"), QStringLiteral(" "));
     m_record_stop_addr->addItem(
-        ElidedText(QStringLiteral("%1 : %2").arg(bp.address, 8, 16, QLatin1Char('0')).arg(instr)),
+        ElideText(QStringLiteral("%1 : %2").arg(bp.address, 8, 16, QLatin1Char('0')).arg(instr)),
         bp.address);
     index++;
   }
 
   // User typically wants the most recently placed breakpoint.
   m_record_stop_addr->setCurrentIndex(index);
+}
+
+u32 TraceWidget::GetCustomIndex(const QString& str, const bool find_last)
+{
+  // #number input starts and ends from those lines of the recording. Inputting addresses searches
+  // for the first/last occurrence of the address for start/end.
+  u32 index = 0;
+
+  if (!str.isEmpty())
+  {
+    bool good;
+
+    if (str.startsWith(QLatin1Char('#')))
+    {
+      index = str.mid(1).toUInt(&good, 10);
+      good = (index <= m_code_trace.size()) && good;
+
+      // index 1 in the UI is position 0. TraceResults stores position.
+      if (index > 0)
+        index--;
+    }
+    else if (find_last)
+    {
+      // Find last occurrence
+      u32 addr = str.toUInt(&good, 16);
+      auto it = find_if(m_code_trace.rbegin(), m_code_trace.rend(), [addr](const TraceOutput& t) {
+                  return t.address == addr;
+                }).base();
+      good = it != m_code_trace.begin();
+      index = it - m_code_trace.begin();
+    }
+    else
+    {
+      u32 addr = str.toUInt(&good, 16);
+      auto it = find_if(m_code_trace.begin(), m_code_trace.end(),
+                        [addr](const TraceOutput& line) { return line.address == addr; });
+      good = it != m_code_trace.end();
+      index = it - m_code_trace.begin();
+    }
+
+    if (!good)
+    {
+      m_error_msg.emplace_back(tr("Input error with starting address."));
+      index = 0;
+    }
+  }
+
+  return index;
 }
 
 void TraceWidget::InfoDisp()
@@ -947,7 +956,8 @@ void TraceWidget::InfoDisp()
          "Example: r3 = r4 + r5;  Find where the value in r5 came from. To do this, earlier "
          "instructions must be recorded.\n"
          "\n"
-         "1. Set a breakpoint at the instruction to backtrace. Select it in \"Stop recording at\". "
+         "1. Set a breakpoint at the instruction to backtrace. Select it in \"Stop recording "
+         "at\". "
          "With a backtrace, the target instruction must be the last recorded.\n"
          "2. Set a breakpoint somewhere earlier than the instruction, where the recording will "
          "likely be able to capture instructions related to r5. Usually going back 1-3 times in "
@@ -970,7 +980,8 @@ void TraceWidget::InfoDisp()
          "Breakpoint. If backtracing, set PC to where trace should begin from and breakpoint the "
          "instruction to backtrace, so the recording will end on it.\n"
          "\n"
-         "Stop recording at: Instruction to stop recording and pause at. Can be left blank to use "
+         "Stop recording at: Instruction to stop recording and pause at. Can be left blank to "
+         "use "
          "the recording limit. If backtracing, must be set to instruction being backtraced.\n"
          "\n"
          "Timeout: How long in seconds before recording forcefully stops.\n"
@@ -978,12 +989,14 @@ void TraceWidget::InfoDisp()
          "Result options and filters: Filters information displayed. Does not affect actual "
          "recording or recorded logs. Can be changed or undone at any time.\n"
          "\n"
-         "Trace value in: Traces value (target) in given location from its first appearance in \n"
+         "Trace value in: Traces value (target) in given location from its first appearance in "
          "the trace log.\n"
          "\n"
          "Change range: Changes the effective start and end address of a trace log. Instead of "
          "creating a new recording, this can be used to change the instruction for the \"Trace "
-         "value in\" target, or to change the backtracing target.\n"
+         "value in\" target, or to change the backtracing target. Using #number points at a "
+         "specific log index. i.e. #100 is the 100th instruction that ran. Right-click a table "
+         "entry to copy its index to change range.\n"
          "\n"
          "Maximum Results: Number of results to show in the table.\n"
          "\n"
@@ -1006,24 +1019,33 @@ void TraceWidget::OnContextMenu()
   auto* item = m_output_table->item(m_output_table->currentItem()->row(), 0);
   const u32 addr = item->data(ADDRESS_ROLE).toUInt();
   const u32 mem_addr = item->data(MEM_ADDRESS_ROLE).toUInt();
-
+  const u32 index = item->data(INDEX_ROLE).toUInt();
   QMenu* menu = new QMenu(this);
+
   if (addr != 0)
   {
-    menu->addAction(tr("Copy &address"), this, [this, addr]() {
+    menu->addAction(tr("Copy &address"), this, [addr]() {
       QApplication::clipboard()->setText(QStringLiteral("%1").arg(addr, 8, 16, QLatin1Char('0')));
     });
     menu->addAction(tr("Show &code address"), this, [this, addr]() { emit ShowCode(addr); });
+
+    if (mem_addr != 0)
+    {
+      menu->addAction(tr("Copy &memory address"), this, [mem_addr]() {
+        QApplication::clipboard()->setText(
+            QStringLiteral("%1").arg(mem_addr, 8, 16, QLatin1Char('0')));
+      });
+      menu->addAction(tr("&Show memory address"), this,
+                      [this, mem_addr]() { emit ShowMemory(mem_addr); });
+    }
+
+    menu->addAction(tr("Set to start of range"), this, [this, index]() {
+      m_range_start->setText(QLatin1Char('#') + QString::number(index));
+    });
+    menu->addAction(tr("Set to end of range."), this, [this, index]() {
+      m_range_end->setText(QLatin1Char('#') + QString::number(index));
+    });
   }
 
-  if (mem_addr != 0)
-  {
-    menu->addAction(tr("Copy &memory address"), this, [this, mem_addr]() {
-      QApplication::clipboard()->setText(
-          QStringLiteral("%1").arg(mem_addr, 8, 16, QLatin1Char('0')));
-    });
-    menu->addAction(tr("&Show memory address"), this,
-                    [this, mem_addr]() { emit ShowMemory(mem_addr); });
-  }
   menu->exec(QCursor::pos());
 }
