@@ -182,10 +182,10 @@ class WiiSocket
 public:
   explicit WiiSocket(WiiSockMan& socket_manager) : m_socket_manager(socket_manager) {}
   WiiSocket(const WiiSocket&) = delete;
-  WiiSocket(WiiSocket&&) = default;
+  WiiSocket(WiiSocket&&) = delete;
   ~WiiSocket();
   WiiSocket& operator=(const WiiSocket&) = delete;
-  WiiSocket& operator=(WiiSocket&&) = default;
+  WiiSocket& operator=(WiiSocket&&) = delete;
 
 private:
   using Timeout = std::chrono::time_point<std::chrono::steady_clock>;
