@@ -156,6 +156,7 @@ static void EnableSDLLogging()
           log_level = Common::Log::LogLevel::LERROR;
           break;
         case SDL_LOG_PRIORITY_CRITICAL:
+        default:
           log_level = Common::Log::LogLevel::LNOTICE;
           break;
         }
