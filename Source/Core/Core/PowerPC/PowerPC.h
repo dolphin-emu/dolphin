@@ -62,6 +62,7 @@ struct TLBEntry
 
   WayArray tag{INVALID_TAG, INVALID_TAG};
   WayArray paddr{};
+  WayArray vsid{};
   WayArray pte{};
   u32 recent = 0;
 
