@@ -616,8 +616,8 @@ NWC24::ErrorCode NetKDRequestDevice::KDDownload(const u16 entry_index,
     }
   }
 
-  NWC24::ErrorCode reply = IOS::HLE::NWC24::OpenVFF(m_dl_list.GetVFFPath(entry_index), content_name,
-                                                    m_ios.GetFS(), file_data);
+  NWC24::ErrorCode reply = IOS::HLE::NWC24::WriteToVFF(m_dl_list.GetVFFPath(entry_index),
+                                                       content_name, m_ios.GetFS(), file_data);
 
   if (reply != NWC24::WC24_OK)
   {
