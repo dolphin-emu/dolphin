@@ -470,8 +470,8 @@ HitType CodeTrace::TraceLogic(const TraceOutput& current_instr, bool first_hit,
   if (regs == nullptr)
     return return_type;
 
-  // Combining for easy output
-  if (match.target_reg)
+  // Combining for easy output if target_reg was hit or just now added.
+  if (match.target_reg || m_reg_tracked.contains(instr.target_reg))
     match.regs.insert(instr.target_reg);
 
   for (auto& reg : match.regs)

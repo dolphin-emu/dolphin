@@ -16,6 +16,8 @@ class QLineEdit;
 class QLabel;
 class QComboBox;
 class QTableWidget;
+class QTableWidgetItem;
+class QToolButton;
 class QSpinBox;
 
 namespace Core
@@ -41,7 +43,6 @@ public:
   void UpdateFont();
   void AutoStep(CodeTrace::AutoStop option, const std::string reg);
   void UpdateBreakpoints();
-  void resizeEvent(QResizeEvent* event) override;
 
 signals:
   void ShowCode(u32 address);
@@ -51,8 +52,17 @@ protected:
   void closeEvent(QCloseEvent*) override;
 
 private:
+  enum class HighlightType
+  {
+    TARGET,
+    OVERWRITE,
+    VALUE,
+  };
+
+  const QString ElideText(const QString& text) const;
   void CreateWidgets();
   void ConnectWidgets();
+  void OnSetColor(QColor* text_color);
   void DisableButtons(bool enabled);
   void ClearAll();
   u32 GetVerbosity() const;
@@ -62,36 +72,44 @@ private:
   std::vector<TraceResults> MakeTraceFromLog();
   void DisplayTrace();
   u32 GetCustomIndex(const QString& str, const bool find_last = false);
+  void HighlightText(QTableWidgetItem* const item, const HighlightType type);
   void InfoDisp();
-
   void OnContextMenu();
-  const QString ElideText(const QString& text) const;
-  void OnSetColor(QColor* text_color);
+
   QTableWidget* m_output_table;
   QLineEdit* m_trace_target;
   QLineEdit* m_range_start;
   QLineEdit* m_range_end;
-  QComboBox* m_record_stop_addr;
-  QCheckBox* m_backtrace;
-  QCheckBox* m_show_values;
+  QComboBox* m_record_stop_addr_combo;
+  QCheckBox* m_backtrace_check;
+  QCheckBox* m_show_values_check;
   QCheckBox* m_filter_overwrite;
   QCheckBox* m_filter_move;
   QCheckBox* m_filter_loadstore;
   QCheckBox* m_filter_pointer;
   QCheckBox* m_filter_passive;
   QCheckBox* m_filter_active;
-  QCheckBox* m_clear_on_loop;
-  QCheckBox* m_change_range;
+  QCheckBox* m_clear_on_loop_check;
+  QCheckBox* m_change_range_check;
   QPushButton* m_filter_btn;
   QLabel* m_record_limit_label;
   QLabel* m_results_limit_label;
   QSpinBox* m_record_limit_input;
   QSpinBox* m_results_limit_input;
+  QCheckBox* m_target_text_check;
+  QCheckBox* m_overwrite_text_check;
+  QCheckBox* m_value_text_check;
+  QToolButton* m_target_color_tb;
+  QToolButton* m_overwrite_color_tb;
+  QToolButton* m_value_color_tb;
+  QCheckBox* m_target_bold_check;
+  QCheckBox* m_overwrite_italic_check;
+  QCheckBox* m_value_italic_check;
   QPushButton* m_record_btn;
   QPushButton* m_help_btn;
 
-  QColor m_tracked_color = Qt::blue;
-  QColor m_overwritten_color = Qt::red;
+  QColor m_target_color = Qt::blue;
+  QColor m_overwrite_color = Qt::red;
   QColor m_value_color = Qt::darkGreen;
 
   Core::System& m_system;

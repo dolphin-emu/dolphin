@@ -3,9 +3,7 @@
 
 #include "DolphinQt/Debugger/TraceWidget.h"
 
-#include <algorithm>
 #include <optional>
-#include <ranges>
 #include <regex>
 #include <vector>
 
@@ -22,7 +20,6 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QMenu>
-#include <QMenuBar>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QScrollArea>
@@ -30,6 +27,7 @@
 #include <QSpinBox>
 #include <QSplitter>
 #include <QTableWidget>
+#include <QToolButton>
 #include <QVBoxLayout>
 #include <QWidget>
 
@@ -77,14 +75,16 @@ TraceWidget::TraceWidget(QWidget* parent)
 
   ConnectWidgets();
   UpdateFont();
+  OnSetColor(nullptr);
   UpdateBreakpoints();
+
+  if (Core::GetState() != Core::State::Paused)
+    DisableButtons(true);
 }
 
 TraceWidget::~TraceWidget()
 {
   auto& settings = Settings::GetQSettings();
-  // Not sure if we want to clear it.
-  // ClearAll();
   settings.setValue(QStringLiteral("tracewidget/geometry"), saveGeometry());
   settings.setValue(QStringLiteral("tracewidget/floating"), isFloating());
 }
@@ -94,20 +94,9 @@ void TraceWidget::closeEvent(QCloseEvent*)
   Settings::Instance().SetTraceVisible(false);
 }
 
-void TraceWidget::resizeEvent(QResizeEvent* event)
-{
-  // Basically just for the help message.
-  m_output_table->horizontalHeader()->setMaximumSectionSize(m_output_table->width());
-  if (m_output_table->columnCount() == 1)
-  {
-    m_output_table->resizeColumnsToContents();
-    m_output_table->resizeRowsToContents();
-  }
-}
-
 void TraceWidget::UpdateFont()
 {
-  // Probably don't require font width, because resizeColumnsToContents works here.
+  // Doesn't require font width, because resizeColumnsToContents works here.
   const QFontMetrics fm(Settings::Instance().GetDebugFont());
   m_font_vspace = fm.lineSpacing();
   m_output_table->setFont(Settings::Instance().GetDebugFont());
@@ -124,42 +113,21 @@ void TraceWidget::UpdateFont()
 const QString TraceWidget::ElideText(const QString& text) const
 {
   return fontMetrics().elidedText(text, Qt::ElideRight,
-                                  m_record_stop_addr->lineEdit()->rect().width() - 5);
-}
-
-void TraceWidget::OnSetColor(QColor* text_color)
-{
-  *text_color = QColorDialog::getColor(*text_color);
+                                  m_record_stop_addr_combo->lineEdit()->rect().width() - 5);
 }
 
 void TraceWidget::CreateWidgets()
 {
-  auto* sidebar = new QWidget;
-
-  // Sidebar top menu
-  QMenuBar* menubar = new QMenuBar(sidebar);
-  menubar->setNativeMenuBar(false);
-  QMenu* menu_actions = new QMenu(tr("&View"));
-
-  menu_actions->addAction(tr("Change color of &tracked items"), this,
-                          [this]() { OnSetColor(&m_tracked_color); });
-  menu_actions->addAction(tr("Change color of &overwritten items"), this,
-                          [this]() { OnSetColor(&m_overwritten_color); });
-  menu_actions->addAction(tr("Change color of registers displayed as &values"), this,
-                          [this]() { OnSetColor(&m_value_color); });
-
-  menubar->addMenu(menu_actions);
-  auto* input_layout = new QVBoxLayout;
-
-  m_record_stop_addr = new QComboBox();
-  m_record_stop_addr->setEditable(true);
-  m_record_stop_addr->lineEdit()->setPlaceholderText(tr("Stop at BP or address"));
+  // Sidebar
   m_record_btn = new QPushButton(tr("Record Trace"));
   m_record_btn->setCheckable(true);
 
   auto* record_options_box = new QGroupBox(tr("Recording options"));
-  auto* record_options_layout = new QGridLayout;
+  auto* record_options_layout = new QGridLayout(record_options_box);
   QLabel* record_stop_addr_label = new QLabel(tr("Stop recording at:"));
+  m_record_stop_addr_combo = new QComboBox();
+  m_record_stop_addr_combo->setEditable(true);
+  m_record_stop_addr_combo->lineEdit()->setPlaceholderText(tr("Stop at BP or address"));
   m_record_limit_label = new QLabel(tr("Timeout (seconds)"));
   m_record_limit_input = new QSpinBox();
   m_record_limit_input->setMinimum(1);
@@ -167,17 +135,16 @@ void TraceWidget::CreateWidgets()
   m_record_limit_input->setValue(4);
   m_record_limit_input->setSingleStep(1);
   m_record_limit_input->setMinimumSize(40, 0);
-  m_clear_on_loop = new QCheckBox(tr("Reset on loopback"));
+  m_clear_on_loop_check = new QCheckBox(tr("Reset on loopback"));
 
   record_options_layout->addWidget(m_record_limit_label, 0, 0);
   record_options_layout->addWidget(m_record_limit_input, 0, 1);
   record_options_layout->addWidget(record_stop_addr_label, 1, 0);
-  record_options_layout->addWidget(m_record_stop_addr, 2, 0, 1, 2);
-  record_options_layout->addWidget(m_clear_on_loop, 3, 0, 1, 2);
-  record_options_box->setLayout(record_options_layout);
+  record_options_layout->addWidget(m_record_stop_addr_combo, 2, 0, 1, 2);
+  record_options_layout->addWidget(m_clear_on_loop_check, 3, 0, 1, 2);
 
   auto* results_options_box = new QGroupBox(tr("Result Options"));
-  auto* results_options_layout = new QGridLayout;
+  auto* results_options_layout = new QGridLayout(results_options_box);
   m_filter_btn = new QPushButton(tr("Apply and Update"));
 
   QLabel* trace_target_label = new QLabel(tr("Trace value in"));
@@ -192,10 +159,10 @@ void TraceWidget::CreateWidgets()
   m_results_limit_input->setSingleStep(250);
   m_results_limit_input->setMinimumSize(50, 0);
 
-  m_backtrace = new QCheckBox(tr("Backtrace"));
-  m_show_values = new QCheckBox(tr("Show values"));
-  m_change_range = new QCheckBox(tr("Change Range"));
-  m_change_range->setDisabled(true);
+  m_backtrace_check = new QCheckBox(tr("Backtrace"));
+  m_show_values_check = new QCheckBox(tr("Show values"));
+  m_change_range_check = new QCheckBox(tr("Change Range"));
+  m_change_range_check->setDisabled(true);
 
   // Two QLineEdits next to each other aren't managed correctly by QGridLayout, so they are put in a
   // HLayout first.
@@ -213,16 +180,14 @@ void TraceWidget::CreateWidgets()
   results_options_layout->addWidget(m_trace_target, 0, 1);
   results_options_layout->addWidget(m_results_limit_label, 1, 0);
   results_options_layout->addWidget(m_results_limit_input, 1, 1);
-  results_options_layout->addWidget(m_backtrace, 2, 0);
-  results_options_layout->addWidget(m_show_values, 2, 1);
-  results_options_layout->addWidget(m_change_range, 3, 0);
+  results_options_layout->addWidget(m_backtrace_check, 2, 0);
+  results_options_layout->addWidget(m_show_values_check, 2, 1);
+  results_options_layout->addWidget(m_change_range_check, 3, 0);
   results_options_layout->addLayout(range_layout, 4, 0, 1, 2);
   results_options_layout->addWidget(m_filter_btn, 5, 0, 1, 2);
 
-  results_options_box->setLayout(results_options_layout);
-
   auto* filter_options_box = new QGroupBox(tr("Result Filters"));
-  auto* filter_options_layout = new QGridLayout;
+  auto* filter_options_layout = new QGridLayout(filter_options_box);
   m_filter_overwrite = new QCheckBox(tr("Overwritten"));
   m_filter_move = new QCheckBox(tr("Move"));
   m_filter_loadstore = new QCheckBox(tr("Memory Op"));
@@ -243,21 +208,44 @@ void TraceWidget::CreateWidgets()
   filter_options_layout->addWidget(m_filter_overwrite, 2, 0);
   filter_options_layout->addWidget(m_filter_move, 2, 1);
 
-  filter_options_box->setLayout(filter_options_layout);
+  auto* highlight_options_box = new QGroupBox(tr("Highlight options"));
+  auto* highlight_options_layout = new QGridLayout(highlight_options_box);
+  m_target_text_check = new QCheckBox(tr("Trace target"));
+  m_overwrite_text_check = new QCheckBox(tr("Overwrite target"));
+  m_value_text_check = new QCheckBox(tr("Value Shown"));
+  m_target_color_tb = new QToolButton();
+  m_overwrite_color_tb = new QToolButton();
+  m_value_color_tb = new QToolButton();
+  m_target_bold_check = new QCheckBox(tr("Bold"));
+  m_overwrite_italic_check = new QCheckBox(tr("Italic"));
+  m_value_italic_check = new QCheckBox(tr("Italic"));
+
+  highlight_options_layout->addWidget(m_target_text_check, 0, 0);
+  highlight_options_layout->addWidget(m_overwrite_text_check, 1, 0);
+  highlight_options_layout->addWidget(m_value_text_check, 2, 0);
+  highlight_options_layout->addWidget(m_target_color_tb, 0, 1);
+  highlight_options_layout->addWidget(m_overwrite_color_tb, 1, 1);
+  highlight_options_layout->addWidget(m_value_color_tb, 2, 1);
+  highlight_options_layout->addWidget(m_target_bold_check, 0, 2);
+  highlight_options_layout->addWidget(m_overwrite_italic_check, 1, 2);
+  highlight_options_layout->addWidget(m_value_italic_check, 2, 2);
 
   m_help_btn = new QPushButton(tr("Help"));
   m_help_btn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
-  input_layout->setSpacing(1);
-  input_layout->addItem(new QSpacerItem(1, 20));
-  input_layout->addWidget(m_record_btn);
-  input_layout->addWidget(record_options_box);
-  input_layout->addItem(new QSpacerItem(1, 32));
-  input_layout->addWidget(results_options_box);
-  input_layout->addItem(new QSpacerItem(1, 32));
-  input_layout->addWidget(filter_options_box);
-  input_layout->addItem(new QSpacerItem(0, 0, QSizePolicy::Maximum, QSizePolicy::Expanding));
-  input_layout->addWidget(m_help_btn);
+  auto* sidebar_layout = new QVBoxLayout;
+  sidebar_layout->setSpacing(1);
+  sidebar_layout->addWidget(m_record_btn);
+  sidebar_layout->addWidget(record_options_box);
+  sidebar_layout->addItem(new QSpacerItem(1, 32));
+  sidebar_layout->addWidget(results_options_box);
+  sidebar_layout->addItem(new QSpacerItem(1, 32));
+  sidebar_layout->addWidget(filter_options_box);
+  sidebar_layout->addItem(new QSpacerItem(1, 32));
+  sidebar_layout->addWidget(highlight_options_box);
+  sidebar_layout->addItem(new QSpacerItem(0, 0, QSizePolicy::Maximum, QSizePolicy::Expanding));
+  sidebar_layout->addWidget(m_help_btn);
+  sidebar_layout->setAlignment(m_help_btn, Qt::AlignHCenter);
 
   m_output_table = new QTableWidget();
   m_output_table->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
@@ -270,17 +258,17 @@ void TraceWidget::CreateWidgets()
   m_output_table->setSelectionMode(QAbstractItemView::NoSelection);
   m_output_table->setHorizontalHeaderLabels({tr("Address"), tr("Instr"), tr("Reg"), tr("Arg1"),
                                              tr("Arg2"), tr("Arg3 / Info"), tr("Symbol")});
-
+  auto* sidebar = new QWidget();
   auto* sidebar_scroll = new QScrollArea;
-  sidebar->setLayout(input_layout);
+  sidebar->setLayout(sidebar_layout);
   sidebar_scroll->setWidget(sidebar);
   sidebar_scroll->setWidgetResizable(true);
-  // Need to make this variable without letting the sidebar become too big.
-  sidebar_scroll->setFixedWidth(235);
 
   auto* splitter = new QSplitter(Qt::Horizontal);
   splitter->addWidget(m_output_table);
   splitter->addWidget(sidebar_scroll);
+  splitter->setStretchFactor(0, 1);
+  splitter->setStretchFactor(1, 0);
 
   auto* layout = new QHBoxLayout();
   auto* widget = new QWidget;
@@ -288,18 +276,18 @@ void TraceWidget::CreateWidgets()
   widget->setLayout(layout);
   setWidget(widget);
   update();
-
-  if (Core::GetState() != Core::State::Paused)
-    DisableButtons(true);
 }
 
 void TraceWidget::ConnectWidgets()
 {
-  // Capturing the state was causing bugs with the wrong state being reported.
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
-          [this]() { DisableButtons(Core::GetState() != Core::State::Paused); });
-  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this,
-          [this] { DisableButtons(Core::GetState() != Core::State::Paused); });
+  auto disabler = [this]() {
+    bool disabled = Core::GetState() != Core::State::Paused && !m_record_btn->isChecked();
+    m_record_btn->setDisabled(disabled);
+    m_filter_btn->setDisabled(disabled);
+  };
+
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, disabler);
+  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, disabler);
   connect(m_help_btn, &QPushButton::pressed, this, &TraceWidget::InfoDisp);
   connect(m_record_btn, &QPushButton::clicked, [this](bool record) {
     if (record)
@@ -308,13 +296,12 @@ void TraceWidget::ConnectWidgets()
       ClearAll();
   });
   connect(m_filter_btn, &QPushButton::clicked, this, &TraceWidget::DisplayTrace);
-  connect(m_change_range, &QCheckBox::stateChanged, this, [this](bool checked) {
+  connect(m_change_range_check, &QCheckBox::stateChanged, this, [this](bool checked) {
     m_range_start->setEnabled(checked);
     m_range_end->setEnabled(checked);
   });
-  // When clicking on an item, we want the code widget to update without hiding the trace widget.
-  // Useful when both widgets are visible. There's also a right-click option to switch to the code
-  // tab.
+  // When clicking on an item, update code widget without hiding the trace widget.Useful when both
+  // widgets are visible. There's also a right-click option to switch to the code tab.
   connect(m_output_table, &QTableWidget::itemClicked, [this](QTableWidgetItem* item) {
     if (m_record_btn->isChecked() && item->column() == 0)
     {
@@ -323,15 +310,37 @@ void TraceWidget::ConnectWidgets()
       activateWindow();
     }
   });
+  connect(m_target_color_tb, &QPushButton::clicked, this,
+          [this]() { OnSetColor(&m_target_color); });
+  connect(m_overwrite_color_tb, &QPushButton::clicked, this,
+          [this]() { OnSetColor(&m_overwrite_color); });
+  connect(m_value_color_tb, &QPushButton::clicked, this, [this]() { OnSetColor(&m_value_color); });
   connect(m_output_table, &TraceWidget::customContextMenuRequested, this,
           &TraceWidget::OnContextMenu);
 }
 
+void TraceWidget::OnSetColor(QColor* text_color)
+{
+  if (text_color != nullptr)
+    *text_color = QColorDialog::getColor(*text_color);
+
+  QPixmap px(20, 20);
+  px.fill(m_target_color);
+  m_target_color_tb->setIcon(px);
+  px.fill(m_overwrite_color);
+  m_overwrite_color_tb->setIcon(px);
+  px.fill(m_value_color);
+  m_value_color_tb->setIcon(px);
+}
+
 void TraceWidget::DisableButtons(bool enabled)
 {
+  // Required when pushing buttons to prevent multi-clicks from causing multi-presses.
   // Will queue one click on a disabled button without this.
   qApp->processEvents();
 
+  // There are times when these two have different states. This function is mainly called as a
+  // guard.
   m_record_btn->setDisabled(enabled);
   m_filter_btn->setDisabled(enabled);
 
@@ -347,10 +356,11 @@ void TraceWidget::ClearAll()
   m_output_table->setHorizontalHeaderLabels({tr("Address"), tr("Instr"), tr("Reg"), tr("Arg1"),
                                              tr("Arg2"), tr("Arg3 / Info"), tr("Symbol")});
   m_output_table->setWordWrap(true);
-  m_record_stop_addr->setEnabled(true);
-  m_record_stop_addr->setCurrentText(tr("Stop at BP or address"));
-  m_change_range->setChecked(false);
-  m_change_range->setDisabled(true);
+  m_record_stop_addr_combo->setEnabled(true);
+  m_filter_btn->setEnabled(false);
+  m_record_stop_addr_combo->setCurrentText(tr("Stop at BP or address"));
+  m_change_range_check->setChecked(false);
+  m_change_range_check->setDisabled(true);
   m_record_btn->setText(tr("Record Trace"));
   m_record_btn->setChecked(false);
   m_record_limit_input->setDisabled(false);
@@ -365,15 +375,14 @@ void TraceWidget::LogCreated(std::optional<QString> target_register)
   QString instr = QString::fromStdString(m_code_trace.back().instruction);
   instr.replace(QStringLiteral("\t"), QStringLiteral(" "));
 
-  m_record_stop_addr->insertItem(
+  m_record_stop_addr_combo->insertItem(
       0,
       ElideText(QStringLiteral("End %1 : %2").arg((end_addr), 8, 16, QLatin1Char('0')).arg(instr)),
       end_addr);
-  m_record_stop_addr->setCurrentIndex(0);
-
-  // Update UI
-  m_record_stop_addr->setDisabled(true);
-  m_change_range->setEnabled(true);
+  m_record_stop_addr_combo->setCurrentIndex(0);
+  m_filter_btn->setEnabled(true);
+  m_record_stop_addr_combo->setDisabled(true);
+  m_change_range_check->setEnabled(true);
   m_record_btn->setChecked(true);
   m_record_btn->setText(tr("Delete log and reset"));
   m_record_limit_input->setDisabled(true);
@@ -523,9 +532,9 @@ void TraceWidget::OnRecordTrace()
 
   // Try to get end_bp based on editable input text, then on combo box selection.
   bool good;
-  u32 end_bp = m_record_stop_addr->currentText().toUInt(&good, 16);
+  u32 end_bp = m_record_stop_addr_combo->currentText().toUInt(&good, 16);
   if (!good)
-    end_bp = m_record_stop_addr->currentData().toUInt(&good);
+    end_bp = m_record_stop_addr_combo->currentData().toUInt(&good);
   if (!good)
     end_bp = 0;
 
@@ -533,10 +542,9 @@ void TraceWidget::OnRecordTrace()
 
   Core::CPUThreadGuard guard(m_system);
   bool timed_out = codetrace.RecordTrace(guard, &m_code_trace, m_record_limit_input->value(),
-                                         end_bp, m_clear_on_loop->isChecked());
+                                         end_bp, m_clear_on_loop_check->isChecked());
   emit Host::GetInstance()->UpdateDisasmDialog();
 
-  // Errors
   m_error_msg.clear();
 
   if (m_code_trace.empty())
@@ -575,7 +583,7 @@ std::vector<TraceResults> TraceWidget::MakeTraceFromLog()
   const u32 size = static_cast<u32>(m_code_trace.size());
   u32 end = size - 1;
 
-  if (m_change_range->isChecked())
+  if (m_change_range_check->isChecked())
   {
     // Returns 0 if invalid or unset, which is effectively correct
     start = GetCustomIndex(m_range_start->text());
@@ -589,7 +597,7 @@ std::vector<TraceResults> TraceWidget::MakeTraceFromLog()
     }
   }
 
-  const bool backtrace = m_backtrace->isChecked();
+  const bool backtrace = m_backtrace_check->isChecked();
   const u32 range = end - start;
   if (backtrace)
     std::swap(start, end);
@@ -673,8 +681,9 @@ void TraceWidget::DisplayTrace()
   if (m_code_trace.empty() || m_running)
     return;
 
-  DisableButtons(true);
   m_running = true;
+  if (m_filter_btn->isEnabled())
+    DisableButtons(true);
 
   // Clear old data
   m_output_table->setRowCount(0);
@@ -713,7 +722,7 @@ void TraceWidget::DisplayTrace()
 
     if (out.memory_target)
     {
-      if (!m_show_values->isChecked())
+      if (!m_show_values_check->isChecked())
         str_end = fmt::format("{:08x}", *out.memory_target);
 
       // There's an extra comma for psq read/writes.
@@ -742,39 +751,35 @@ void TraceWidget::DisplayTrace()
     if (match.str(2).length() == 12)
       m_output_table->setSpan(row, 2, 1, 2);
 
-    // Colors and show values.
-    for (auto* item : {target_item, arg1_item, arg2_item, arg3_item})
+    // Highlight and show values.
+    bool overwrite_target_reg = false;
+
+    for (auto item : {target_item, arg1_item, arg2_item, arg3_item})
     {
-      bool colored = false;
-
-      for (auto& r : result.regs)
+      for (auto& regval : out.regdata)
       {
-        const int index = item->text().indexOf(QString::fromStdString(r));
+        const int index = item->text().indexOf(QString::fromStdString(regval.reg));
+        const size_t length = regval.reg.length();
 
-        // Be careful r2 doesn't match r21.
-        if (index != -1)
+        // Skip if r2 matches r21
+        if (index != -1 && (length == 3 || !item->text()[index + length].isDigit()))
         {
-          if ((r.length() == 3 || !item->text()[index + 2].isDigit()))
+          // Highlight
+          if (result.regs.contains(regval.reg))
           {
-            colored = true;
             if (result.type == HitType::OVERWRITE && item == target_item)
-              item->setForeground(m_overwritten_color);
+            {
+              overwrite_target_reg = true;
+              HighlightText(item, HighlightType::OVERWRITE);
+            }
             else
-              item->setForeground(m_tracked_color);
+            {
+              HighlightText(item, HighlightType::TARGET);
+            }
           }
-        }
-      }
 
-      if (m_show_values->isChecked())
-      {
-        // Replace registers with values.
-        for (auto& regval : out.regdata)
-        {
-          const int index = item->text().indexOf(QString::fromStdString(regval.reg));
-          const size_t length = regval.reg.length();
-
-          // Skip if r2 matches r21
-          if (index != -1 && (length == 3 || !item->text()[index + length].isDigit()))
+          // Values
+          if (m_show_values_check->isChecked())
           {
             if (item->text()[index] == QLatin1Char('f') || item->text()[index] == QLatin1Char('p'))
             {
@@ -789,11 +794,20 @@ void TraceWidget::DisplayTrace()
               const QString value = QString::number(static_cast<u32>(regval.value), 16);
               item->setText(item->text().replace(index, length, value));
             }
-            if (!colored)
-              item->setForeground(m_value_color);
+
+            HighlightText(item, HighlightType::VALUE);
           }
+
+          // Should only be one hit per item.
+          break;
         }
       }
+
+      // Memory coloring is largely unimplemented. The following check would be completely uncolored
+      // most of the time, so including it as a special case. Colors memory address red if it's
+      // overwritten.
+      if (result.type == HitType::OVERWRITE && !overwrite_target_reg && item == arg3_item)
+        HighlightText(item, HighlightType::OVERWRITE);
 
       // Align to first digit.
       if (!item->text().startsWith(QLatin1Char('-')))
@@ -844,20 +858,20 @@ void TraceWidget::UpdateBreakpoints()
   // Leave the recorded end intact.
   if (m_record_btn->isChecked())
   {
-    for (int i = m_record_stop_addr->count(); i > 1; i--)
-      m_record_stop_addr->removeItem(1);
+    for (int i = m_record_stop_addr_combo->count(); i > 1; i--)
+      m_record_stop_addr_combo->removeItem(1);
     return;
   }
   else
   {
-    m_record_stop_addr->clear();
+    m_record_stop_addr_combo->clear();
   }
   auto& power_pc = m_system.GetPowerPC();
   auto& breakpoints = power_pc.GetBreakPoints();
   Core::CPUThreadGuard guard(m_system);
 
   // Allow no breakpoint
-  m_record_stop_addr->addItem(QStringLiteral(""));
+  m_record_stop_addr_combo->addItem(QStringLiteral(""));
 
   int index = 0;
   for (const auto& bp : breakpoints.GetBreakPoints())
@@ -865,14 +879,14 @@ void TraceWidget::UpdateBreakpoints()
     QString instr =
         QString::fromStdString(power_pc.GetDebugInterface().Disassemble(&guard, bp.address));
     instr.replace(QStringLiteral("\t"), QStringLiteral(" "));
-    m_record_stop_addr->addItem(
+    m_record_stop_addr_combo->addItem(
         ElideText(QStringLiteral("%1 : %2").arg(bp.address, 8, 16, QLatin1Char('0')).arg(instr)),
         bp.address);
     index++;
   }
 
   // User typically wants the most recently placed breakpoint.
-  m_record_stop_addr->setCurrentIndex(index);
+  m_record_stop_addr_combo->setCurrentIndex(index);
 }
 
 u32 TraceWidget::GetCustomIndex(const QString& str, const bool find_last)
@@ -915,12 +929,62 @@ u32 TraceWidget::GetCustomIndex(const QString& str, const bool find_last)
 
     if (!good)
     {
-      m_error_msg.emplace_back(tr("Input error with starting address."));
+      m_error_msg.emplace_back(tr("Input error in change range."));
       index = 0;
     }
   }
 
   return index;
+}
+
+void TraceWidget::HighlightText(QTableWidgetItem* const item, const HighlightType type)
+{
+  switch (type)
+  {
+  case HighlightType::OVERWRITE:
+    if (m_overwrite_italic_check->isChecked())
+    {
+      QFont font = item->font();
+      font.setStyle(QFont::StyleItalic);
+      item->setFont(font);
+    }
+
+    if (m_overwrite_text_check->isChecked())
+      item->setForeground(m_overwrite_color);
+
+    break;
+  case HighlightType::TARGET:
+    if (m_target_bold_check->isChecked())
+    {
+      QFont font = item->font();
+      font.setWeight(QFont::Black);
+      item->setFont(font);
+    }
+
+    if (m_target_text_check->isChecked())
+      item->setForeground(m_target_color);
+
+    break;
+  case HighlightType::VALUE:
+  {
+    const auto color = item->foreground().color();
+    if (color == m_target_color || color == m_overwrite_color)
+      break;
+  }
+    if (m_value_italic_check->isChecked())
+    {
+      QFont font = item->font();
+      font.setStyle(QFont::StyleItalic);
+      item->setFont(font);
+    }
+
+    if (m_value_text_check->isChecked())
+      item->setForeground(m_value_color);
+
+    break;
+  default:
+    break;
+  }
 }
 
 void TraceWidget::InfoDisp()
