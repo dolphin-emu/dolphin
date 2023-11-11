@@ -31,9 +31,10 @@ private:
   void OnCursorVisibleMovement();
   void OnCursorVisibleNever();
   void OnCursorVisibleAlways();
+  void OnLanguageChanged();
 
   QVBoxLayout* m_main_layout;
-  QComboBox* m_combobox_language;
+  ConfigStringChoice* m_combobox_language;
 
   ConfigStringChoice* m_combobox_theme;
   QComboBox* m_combobox_userstyle;
