@@ -32,48 +32,49 @@
 
 #include "UICommon/GameFile.h"
 
-static QComboBox* MakeLanguageComboBox()
+static ConfigStringChoice* MakeLanguageComboBox()
 {
-  static const struct
-  {
-    const QString name;
-    const char* id;
-  } languages[] = {
-      {QStringLiteral(u"Bahasa Melayu"), "ms"},               // Malay
-      {QStringLiteral(u"Catal\u00E0"), "ca"},                 // Catalan
-      {QStringLiteral(u"\u010Ce\u0161tina"), "cs"},           // Czech
-      {QStringLiteral(u"Dansk"), "da"},                       // Danish
-      {QStringLiteral(u"Deutsch"), "de"},                     // German
-      {QStringLiteral(u"English"), "en"},                     // English
-      {QStringLiteral(u"Espa\u00F1ol"), "es"},                // Spanish
-      {QStringLiteral(u"Fran\u00E7ais"), "fr"},               // French
-      {QStringLiteral(u"Hrvatski"), "hr"},                    // Croatian
-      {QStringLiteral(u"Italiano"), "it"},                    // Italian
-      {QStringLiteral(u"Magyar"), "hu"},                      // Hungarian
-      {QStringLiteral(u"Nederlands"), "nl"},                  // Dutch
-      {QStringLiteral(u"Norsk bokm\u00E5l"), "nb"},           // Norwegian
-      {QStringLiteral(u"Polski"), "pl"},                      // Polish
-      {QStringLiteral(u"Portugu\u00EAs"), "pt"},              // Portuguese
-      {QStringLiteral(u"Portugu\u00EAs (Brasil)"), "pt_BR"},  // Portuguese (Brazil)
-      {QStringLiteral(u"Rom\u00E2n\u0103"), "ro"},            // Romanian
-      {QStringLiteral(u"Srpski"), "sr"},                      // Serbian
-      {QStringLiteral(u"Suomi"), "fi"},                       // Finnish
-      {QStringLiteral(u"Svenska"), "sv"},                     // Swedish
-      {QStringLiteral(u"T\u00FCrk\u00E7e"), "tr"},            // Turkish
-      {QStringLiteral(u"\u0395\u03BB\u03BB\u03B7\u03BD\u03B9\u03BA\u03AC"), "el"},  // Greek
-      {QStringLiteral(u"\u0420\u0443\u0441\u0441\u043A\u0438\u0439"), "ru"},        // Russian
-      {QStringLiteral(u"\u0627\u0644\u0639\u0631\u0628\u064A\u0629"), "ar"},        // Arabic
-      {QStringLiteral(u"\u0641\u0627\u0631\u0633\u06CC"), "fa"},                    // Farsi
-      {QStringLiteral(u"\uD55C\uAD6D\uC5B4"), "ko"},                                // Korean
-      {QStringLiteral(u"\u65E5\u672C\u8A9E"), "ja"},                                // Japanese
-      {QStringLiteral(u"\u7B80\u4F53\u4E2D\u6587"), "zh_CN"},  // Simplified Chinese
-      {QStringLiteral(u"\u7E41\u9AD4\u4E2D\u6587"), "zh_TW"},  // Traditional Chinese
+  using QPair = std::pair<QString, QString>;
+  std::vector<QPair> languages = {
+      QPair{QObject::tr("<System Language>"), QString{}},
+      QPair{QStringLiteral(u"Bahasa Melayu"), QStringLiteral("ms")},      // Malay
+      QPair{QStringLiteral(u"Catal\u00E0"), QStringLiteral("ca")},        // Catalan
+      QPair{QStringLiteral(u"\u010Ce\u0161tina"), QStringLiteral("cs")},  // Czech
+      QPair{QStringLiteral(u"Dansk"), QStringLiteral("da")},              // Danish
+      QPair{QStringLiteral(u"Deutsch"), QStringLiteral("de")},            // German
+      QPair{QStringLiteral(u"English"), QStringLiteral("en")},            // English
+      QPair{QStringLiteral(u"Espa\u00F1ol"), QStringLiteral("es")},       // Spanish
+      QPair{QStringLiteral(u"Fran\u00E7ais"), QStringLiteral("fr")},      // French
+      QPair{QStringLiteral(u"Hrvatski"), QStringLiteral("hr")},           // Croatian
+      QPair{QStringLiteral(u"Italiano"), QStringLiteral("it")},           // Italian
+      QPair{QStringLiteral(u"Magyar"), QStringLiteral("hu")},             // Hungarian
+      QPair{QStringLiteral(u"Nederlands"), QStringLiteral("nl")},         // Dutch
+      QPair{QStringLiteral(u"Norsk bokm\u00E5l"), QStringLiteral("nb")},  // Norwegian
+      QPair{QStringLiteral(u"Polski"), QStringLiteral("pl")},             // Polish
+      QPair{QStringLiteral(u"Portugu\u00EAs"), QStringLiteral("pt")},     // Portuguese
+      QPair{QStringLiteral(u"Portugu\u00EAs (Brasil)"),
+            QStringLiteral("pt_BR")},                                    // Portuguese (Brazil)
+      QPair{QStringLiteral(u"Rom\u00E2n\u0103"), QStringLiteral("ro")},  // Romanian
+      QPair{QStringLiteral(u"Srpski"), QStringLiteral("sr")},            // Serbian
+      QPair{QStringLiteral(u"Suomi"), QStringLiteral("fi")},             // Finnish
+      QPair{QStringLiteral(u"Svenska"), QStringLiteral("sv")},           // Swedish
+      QPair{QStringLiteral(u"T\u00FCrk\u00E7e"), QStringLiteral("tr")},  // Turkish
+      QPair{QStringLiteral(u"\u0395\u03BB\u03BB\u03B7\u03BD\u03B9\u03BA\u03AC"),
+            QStringLiteral("el")},  // Greek
+      QPair{QStringLiteral(u"\u0420\u0443\u0441\u0441\u043A\u0438\u0439"),
+            QStringLiteral("ru")},  // Russian
+      QPair{QStringLiteral(u"\u0627\u0644\u0639\u0631\u0628\u064A\u0629"),
+            QStringLiteral("ar")},                                                     // Arabic
+      QPair{QStringLiteral(u"\u0641\u0627\u0631\u0633\u06CC"), QStringLiteral("fa")},  // Farsi
+      QPair{QStringLiteral(u"\uD55C\uAD6D\uC5B4"), QStringLiteral("ko")},              // Korean
+      QPair{QStringLiteral(u"\u65E5\u672C\u8A9E"), QStringLiteral("ja")},              // Japanese
+      QPair{QStringLiteral(u"\u7B80\u4F53\u4E2D\u6587"),
+            QStringLiteral("zh_CN")},  // Simplified Chinese
+      QPair{QStringLiteral(u"\u7E41\u9AD4\u4E2D\u6587"),
+            QStringLiteral("zh_TW")},  // Traditional Chinese
   };
 
-  auto* combobox = new QComboBox();
-  combobox->addItem(QObject::tr("<System Language>"), QString{});
-  for (const auto& lang : languages)
-    combobox->addItem(lang.name, QString::fromLatin1(lang.id));
+  auto* const combobox = new ConfigStringChoice(languages, Config::MAIN_INTERFACE_LANGUAGE);
 
   // The default, QComboBox::AdjustToContentsOnFirstShow, causes a noticeable pause when opening the
   // SettingWindow for the first time. The culprit seems to be non-Latin graphemes in the above
@@ -233,7 +234,8 @@ void InterfacePane::ConnectLayout()
           [this](int index) { Settings::Instance().TriggerThemeChanged(); });
   connect(m_combobox_userstyle, &QComboBox::currentIndexChanged, this,
           &InterfacePane::OnSaveConfig);
-  connect(m_combobox_language, &QComboBox::currentIndexChanged, this, &InterfacePane::OnSaveConfig);
+  connect(m_combobox_language, &QComboBox::currentIndexChanged, this,
+          [this]() { OnLanguageChanged(); });
   connect(m_checkbox_top_window, &QCheckBox::toggled, &Settings::Instance(),
           &Settings::KeepWindowOnTopChanged);
   connect(m_checkbox_confirm_on_stop, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
@@ -269,10 +271,6 @@ void InterfacePane::LoadConfig()
     m_checkbox_show_debugging_ui->SetDescription({});
   }
 #endif  // USE_RETRO_ACHIEVEMENTS
-
-  SignalBlocking(m_combobox_language)
-      ->setCurrentIndex(m_combobox_language->findData(
-          QString::fromStdString(Config::Get(Config::MAIN_INTERFACE_LANGUAGE))));
 
   const Settings::StyleType style_type = Settings::Instance().GetStyleType();
   const QString userstyle = Settings::Instance().GetUserStyleName();
@@ -326,15 +324,6 @@ void InterfacePane::OnSaveConfig()
   Config::SetBase(Config::MAIN_SHOW_ACTIVE_TITLE, m_checkbox_show_active_title->isChecked());
   Config::SetBase(Config::MAIN_PAUSE_ON_FOCUS_LOST, m_checkbox_pause_on_focus_lost->isChecked());
 
-  auto new_language = m_combobox_language->currentData().toString().toStdString();
-  if (new_language != Config::Get(Config::MAIN_INTERFACE_LANGUAGE))
-  {
-    Config::SetBase(Config::MAIN_INTERFACE_LANGUAGE, new_language);
-    ModalMessageBox::information(
-        this, tr("Restart Required"),
-        tr("You must restart Dolphin in order for the change to take effect."));
-  }
-
   const bool use_covers = m_checkbox_use_covers->isChecked();
 
   if (use_covers != Config::Get(Config::MAIN_USE_GAME_COVERS))
@@ -364,6 +353,13 @@ void InterfacePane::OnCursorVisibleAlways()
   Settings::Instance().SetCursorVisibility(Config::ShowCursor::Constantly);
 }
 
+void InterfacePane::OnLanguageChanged()
+{
+  ModalMessageBox::information(
+      this, tr("Restart Required"),
+      tr("You must restart Dolphin in order for the change to take effect."));
+}
+
 void InterfacePane::AddDescriptions()
 {
   static constexpr char TR_TITLE_DATABASE_DESCRIPTION[] = QT_TR_NOOP(
@@ -375,6 +371,10 @@ void InterfacePane::AddDescriptions()
   static constexpr char TR_TOP_WINDOW_DESCRIPTION[] =
       QT_TR_NOOP("Forces the render window to stay on top of other windows and applications."
                  "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+  static constexpr char TR_LANGUAGE_DESCRIPTION[] = QT_TR_NOOP(
+      "Sets the language displayed by Dolphin's User Interface."
+      "<br><br>Changes to this setting only take effect once Dolphin is restarted."
+      "<br><br><dolphin_emphasis>If unsure, select &lt;System Language&gt;.</dolphin_emphasis>");
 
   m_checkbox_use_builtin_title_database->SetDescription(tr(TR_TITLE_DATABASE_DESCRIPTION));
 
@@ -382,4 +382,7 @@ void InterfacePane::AddDescriptions()
   m_combobox_theme->SetDescription(tr(TR_THEME_DESCRIPTION));
 
   m_checkbox_top_window->SetDescription(tr(TR_TOP_WINDOW_DESCRIPTION));
+
+  m_combobox_language->SetTitle(tr("Language"));
+  m_combobox_language->SetDescription(tr(TR_LANGUAGE_DESCRIPTION));
 }

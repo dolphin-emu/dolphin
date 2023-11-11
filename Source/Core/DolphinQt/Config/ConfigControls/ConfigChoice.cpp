@@ -33,10 +33,21 @@ void ConfigChoice::Update(int choice)
 
 ConfigStringChoice::ConfigStringChoice(const std::vector<std::string>& options,
                                        const Config::Info<std::string>& setting)
-    : m_setting(setting)
+    : m_setting(setting), m_text_is_data(true)
 {
   for (const auto& op : options)
     addItem(QString::fromStdString(op));
+
+  Connect();
+  Load();
+}
+
+ConfigStringChoice::ConfigStringChoice(const std::vector<std::pair<QString, QString>>& options,
+                                       const Config::Info<std::string>& setting)
+    : m_setting(setting), m_text_is_data(false)
+{
+  for (const auto& [option_text, option_data] : options)
+    addItem(option_text, option_data);
 
   Connect();
   Load();
@@ -58,11 +69,21 @@ void ConfigStringChoice::Connect()
 
 void ConfigStringChoice::Update(int index)
 {
-  Config::SetBaseOrCurrent(m_setting, itemText(index).toStdString());
+  if (m_text_is_data)
+  {
+    Config::SetBaseOrCurrent(m_setting, itemText(index).toStdString());
+  }
+  else
+  {
+    Config::SetBaseOrCurrent(m_setting, itemData(index).toString().toStdString());
+  }
 }
 
 void ConfigStringChoice::Load()
 {
+  const QString setting_value = QString::fromStdString(Config::Get(m_setting));
+
+  const int index = m_text_is_data ? findText(setting_value) : findData(setting_value);
   const QSignalBlocker blocker(this);
-  setCurrentIndex(findText(QString::fromStdString(Config::Get(m_setting))));
+  setCurrentIndex(index);
 }
