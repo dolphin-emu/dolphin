@@ -888,9 +888,8 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   js.constantGqrValid = BitSet8();
 
   // Assume that GQR values don't change often at runtime. Many paired-heavy games use largely float
-  // loads and stores,
-  // which are significantly faster when inlined (especially in MMU mode, where this lets them use
-  // fastmem).
+  // loads and stores, which are significantly faster when inlined (especially in MMU mode, where
+  // this lets them use fastmem).
   if (js.pairedQuantizeAddresses.find(js.blockStart) == js.pairedQuantizeAddresses.end())
   {
     // If there are GQRs used but not set, we'll treat those as constant and optimize them

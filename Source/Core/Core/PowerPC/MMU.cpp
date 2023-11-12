@@ -1565,7 +1565,8 @@ void MMU::UpdateBATs(BatTable& bat_table, u32 base_spr)
           valid_bit |= BAT_WI_BIT;
 
         // Enable fastmem mappings for cached memory. There are quirks related to uncached memory
-        // that fastmem doesn't emulate properly (though no normal games are known to rely on them).
+        // that can't be correctly emulated by fast accesses, so we don't map uncached memory.
+        // (No normal games are known to rely on the quirks, though.)
         if (!wi)
         {
           if (m_memory.GetFakeVMEM() && (physical_address & 0xFE000000) == 0x7E000000)
@@ -1588,7 +1589,8 @@ void MMU::UpdateBATs(BatTable& bat_table, u32 base_spr)
           }
         }
 
-        // Fastmem doesn't support memchecks, so disable it for all overlapping virtual pages.
+        // Fast accesses don't support memchecks, so force slow accesses by removing fastmem
+        // mappings for all overlapping virtual pages.
         if (m_power_pc.GetMemChecks().OverlapsMemcheck(virtual_address, BAT_PAGE_SIZE))
           valid_bit &= ~BAT_PHYSICAL_BIT;
 
