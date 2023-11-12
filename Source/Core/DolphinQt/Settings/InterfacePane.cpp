@@ -164,7 +164,8 @@ void InterfacePane::CreateUI()
   m_checkbox_show_debugging_ui = new ToolTipCheckBox(tr("Enable Debugging UI"));
   m_checkbox_focused_hotkeys =
       new ConfigBool(tr("Hotkeys Require Window Focus"), Config::MAIN_FOCUSED_HOTKEYS);
-  m_checkbox_disable_screensaver = new QCheckBox(tr("Inhibit Screensaver During Emulation"));
+  m_checkbox_disable_screensaver =
+      new ConfigBool(tr("Inhibit Screensaver During Emulation"), Config::MAIN_DISABLE_SCREENSAVER);
 
   groupbox_layout->addWidget(m_checkbox_use_builtin_title_database);
   groupbox_layout->addWidget(m_checkbox_use_covers);
@@ -230,7 +231,6 @@ void InterfacePane::ConnectLayout()
           &Settings::GameListRefreshRequested);
   connect(m_checkbox_use_covers, &QCheckBox::toggled, &Settings::Instance(),
           &Settings::RefreshMetadata);
-  connect(m_checkbox_disable_screensaver, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_show_debugging_ui, &QCheckBox::toggled, &Settings::Instance(),
           &Settings::SetDebugModeEnabled);
   connect(m_combobox_theme, &QComboBox::currentIndexChanged, this,
@@ -316,8 +316,6 @@ void InterfacePane::LoadConfig()
       ->setChecked(Settings::Instance().GetCursorVisibility() == Config::ShowCursor::Never);
 
   SignalBlocking(m_checkbox_lock_mouse)->setChecked(Settings::Instance().GetLockCursor());
-  SignalBlocking(m_checkbox_disable_screensaver)
-      ->setChecked(Config::Get(Config::MAIN_DISABLE_SCREENSAVER));
 }
 
 void InterfacePane::OnSaveConfig()
@@ -338,7 +336,6 @@ void InterfacePane::OnSaveConfig()
   Config::SetBase(Config::MAIN_OSD_MESSAGES, m_checkbox_enable_osd->isChecked());
   Config::SetBase(Config::MAIN_SHOW_ACTIVE_TITLE, m_checkbox_show_active_title->isChecked());
   Config::SetBase(Config::MAIN_PAUSE_ON_FOCUS_LOST, m_checkbox_pause_on_focus_lost->isChecked());
-  Config::SetBase(Config::MAIN_DISABLE_SCREENSAVER, m_checkbox_disable_screensaver->isChecked());
 
   Config::Save();
 }
@@ -390,6 +387,9 @@ void InterfacePane::AddDescriptions()
                  "banner instead."
                  "<br><br>List View will always use the save file banners."
                  "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
+  static constexpr char TR_DISABLE_SCREENSAVER_DESCRIPTION[] =
+      QT_TR_NOOP("Disables your screensaver while running a game."
+                 "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
 
   m_checkbox_use_builtin_title_database->SetDescription(tr(TR_TITLE_DATABASE_DESCRIPTION));
 
@@ -404,4 +404,6 @@ void InterfacePane::AddDescriptions()
   m_checkbox_focused_hotkeys->SetDescription(tr(TR_FOCUSED_HOTKEYS_DESCRIPTION));
 
   m_checkbox_use_covers->SetDescription(tr(TR_USE_COVERS_DESCRIPTION));
+
+  m_checkbox_disable_screensaver->SetDescription(tr(TR_DISABLE_SCREENSAVER_DESCRIPTION));
 }

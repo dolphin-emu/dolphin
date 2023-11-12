@@ -45,7 +45,7 @@ private:
   ToolTipCheckBox* m_checkbox_show_debugging_ui;
   ConfigBool* m_checkbox_focused_hotkeys;
   ConfigBool* m_checkbox_use_covers;
-  QCheckBox* m_checkbox_disable_screensaver;
+  ConfigBool* m_checkbox_disable_screensaver;
 
   QCheckBox* m_checkbox_confirm_on_stop;
   QCheckBox* m_checkbox_use_panic_handlers;
