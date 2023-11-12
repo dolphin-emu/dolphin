@@ -1109,6 +1109,16 @@ union ZTex1
   BitField<0, 24, u32> bias;
   u32 hex;
 };
+template <>
+struct fmt::formatter<ZTex1>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const ZTex1& ztex1, FormatContext& ctx) const
+  {
+    return fmt::format_to(ctx.out(), "Bias: 0x{:06x}", ztex1.bias);
+  }
+};
 
 union ZTex2
 {
@@ -2246,6 +2256,17 @@ union BPU_LoadTlutInfo
   BitField<0, 10, u32> tmem_addr;
   BitField<10, 11, u32> tmem_line_count;
   u32 hex;
+};
+template <>
+struct fmt::formatter<BPU_LoadTlutInfo>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const BPU_LoadTlutInfo& info, FormatContext& ctx) const
+  {
+    return fmt::format_to(ctx.out(), "Tmem address: 0x{:05x}\nCount: 0x{:x} lines (0x{:x} bytes)",
+                          info.tmem_addr << 9, info.tmem_line_count, info.tmem_line_count * 32);
+  }
 };
 
 struct BPS_TmemConfig

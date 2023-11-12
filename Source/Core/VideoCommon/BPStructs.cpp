@@ -991,8 +991,9 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
         fmt::format("EFB Target address (32 byte aligned): 0x{:06X}", cmddata << 5));
 
   case BPMEM_EFB_STRIDE:  // 0x4D
-    return DescriptionlessReg(BPMEM_EFB_STRIDE);
-    // TODO: Description
+    return std::make_pair(
+        RegName(BPMEM_EFB_STRIDE),
+        fmt::format("EFB destination stride (32 byte aligned): 0x{:06X}", cmddata << 5));
 
   case BPMEM_COPYYSCALE:  // 0x4E
     return std::make_pair(
@@ -1038,12 +1039,14 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
   }
 
   case BPMEM_CLEARBBOX1:  // 0x55
-    return DescriptionlessReg(BPMEM_CLEARBBOX1);
-    // TODO: Description
+    return std::make_pair(RegName(BPMEM_CLEARBBOX1),
+                          fmt::format("Bounding Box index 0: {}\nBounding Box index 1: {}",
+                                      cmddata & 0x3ff, (cmddata >> 10) & 0x3ff));
 
   case BPMEM_CLEARBBOX2:  // 0x56
-    return DescriptionlessReg(BPMEM_CLEARBBOX2);
-    // TODO: Description
+    return std::make_pair(RegName(BPMEM_CLEARBBOX2),
+                          fmt::format("Bounding Box index 2: {}\nBounding Box index 3: {}",
+                                      cmddata & 0x3ff, (cmddata >> 10) & 0x3ff));
 
   case BPMEM_CLEAR_PIXEL_PERF:  // 0x57
     return DescriptionlessReg(BPMEM_CLEAR_PIXEL_PERF);
@@ -1058,28 +1061,33 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
                           fmt::to_string(ScissorOffset{.hex = cmddata}));
 
   case BPMEM_PRELOAD_ADDR:  // 0x60
-    return DescriptionlessReg(BPMEM_PRELOAD_ADDR);
-    // TODO: Description
+    return std::make_pair(
+        RegName(BPMEM_PRELOAD_ADDR),
+        fmt::format("Tmem preload address (32 byte aligned, in main memory): 0x{:06x}",
+                    cmddata << 5));
 
   case BPMEM_PRELOAD_TMEMEVEN:  // 0x61
-    return DescriptionlessReg(BPMEM_PRELOAD_TMEMEVEN);
-    // TODO: Description
+    return std::make_pair(RegName(BPMEM_PRELOAD_TMEMEVEN),
+                          fmt::format("Tmem preload even line: 0x{:04x} (byte 0x{:05x})", cmddata,
+                                      cmddata * TMEM_LINE_SIZE));
 
   case BPMEM_PRELOAD_TMEMODD:  // 0x62
-    return DescriptionlessReg(BPMEM_PRELOAD_TMEMODD);
-    // TODO: Description
+    return std::make_pair(RegName(BPMEM_PRELOAD_TMEMODD),
+                          fmt::format("Tmem preload odd line: 0x{:04x} (byte 0x{:05x})", cmddata,
+                                      cmddata * TMEM_LINE_SIZE));
 
   case BPMEM_PRELOAD_MODE:  // 0x63
     return std::make_pair(RegName(BPMEM_PRELOAD_MODE),
                           fmt::to_string(BPU_PreloadTileInfo{.hex = cmddata}));
 
   case BPMEM_LOADTLUT0:  // 0x64
-    return DescriptionlessReg(BPMEM_LOADTLUT0);
-    // TODO: Description
+    return std::make_pair(
+        RegName(BPMEM_LOADTLUT0),
+        fmt::format("TLUT load address (32 byte aligned, in main memory): 0x{:06x}", cmddata << 5));
 
   case BPMEM_LOADTLUT1:  // 0x65
-    return DescriptionlessReg(BPMEM_LOADTLUT1);
-    // TODO: Description
+    return std::make_pair(RegName(BPMEM_LOADTLUT1),
+                          fmt::to_string(BPU_LoadTlutInfo{.hex = cmddata}));
 
   case BPMEM_TEXINVALIDATE:  // 0x66
     return DescriptionlessReg(BPMEM_TEXINVALIDATE);
@@ -1277,12 +1285,11 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
     return std::make_pair(RegName(BPMEM_FOGPARAM0), fmt::to_string(FogParam0{.hex = cmddata}));
 
   case BPMEM_FOGBMAGNITUDE:  // 0xEF
-    return DescriptionlessReg(BPMEM_FOGBMAGNITUDE);
-    // TODO: Description
+    return std::make_pair(RegName(BPMEM_FOGBMAGNITUDE), fmt::format("B magnitude: {}", cmddata));
 
   case BPMEM_FOGBEXPONENT:  // 0xF0
-    return DescriptionlessReg(BPMEM_FOGBEXPONENT);
-    // TODO: Description
+    return std::make_pair(RegName(BPMEM_FOGBEXPONENT),
+                          fmt::format("B shift: 1>>{} (1/{})", cmddata, 1 << cmddata));
 
   case BPMEM_FOGPARAM3:  // 0xF1
     return std::make_pair(RegName(BPMEM_FOGPARAM3), fmt::to_string(FogParam3{.hex = cmddata}));
@@ -1295,8 +1302,7 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
     return std::make_pair(RegName(BPMEM_ALPHACOMPARE), fmt::to_string(AlphaTest{.hex = cmddata}));
 
   case BPMEM_BIAS:  // 0xF4
-    return DescriptionlessReg(BPMEM_BIAS);
-    // TODO: Description
+    return std::make_pair(RegName(BPMEM_BIAS), fmt::to_string(ZTex1{.hex = cmddata}));
 
   case BPMEM_ZTEX2:  // 0xF5
     return std::make_pair(RegName(BPMEM_ZTEX2), fmt::to_string(ZTex2{.hex = cmddata}));
