@@ -51,7 +51,7 @@ private:
   ConfigBool* m_checkbox_use_panic_handlers;
   ConfigBool* m_checkbox_enable_osd;
   ConfigBool* m_checkbox_show_active_title;
-  QCheckBox* m_checkbox_pause_on_focus_lost;
+  ConfigBool* m_checkbox_pause_on_focus_lost;
   QRadioButton* m_radio_cursor_visible_movement;
   QRadioButton* m_radio_cursor_visible_never;
   QRadioButton* m_radio_cursor_visible_always;
