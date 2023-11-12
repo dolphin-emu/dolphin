@@ -182,7 +182,7 @@ void InterfacePane::CreateInGame()
   m_main_layout->addWidget(groupbox);
 
   m_checkbox_top_window = new ConfigBool(tr("Keep Window on Top"), Config::MAIN_KEEP_WINDOW_ON_TOP);
-  m_checkbox_confirm_on_stop = new QCheckBox(tr("Confirm on Stop"));
+  m_checkbox_confirm_on_stop = new ConfigBool(tr("Confirm on Stop"), Config::MAIN_CONFIRM_ON_STOP);
   m_checkbox_use_panic_handlers = new QCheckBox(tr("Use Panic Handlers"));
   m_checkbox_enable_osd = new QCheckBox(tr("Show On-Screen Display Messages"));
   m_checkbox_show_active_title = new QCheckBox(tr("Show Active Title in Window Title"));
@@ -241,7 +241,6 @@ void InterfacePane::ConnectLayout()
           [this]() { OnLanguageChanged(); });
   connect(m_checkbox_top_window, &QCheckBox::toggled, &Settings::Instance(),
           &Settings::KeepWindowOnTopChanged);
-  connect(m_checkbox_confirm_on_stop, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_use_panic_handlers, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_show_active_title, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_enable_osd, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
@@ -300,7 +299,6 @@ void InterfacePane::LoadConfig()
     SignalBlocking(m_combobox_userstyle)->setCurrentIndex(index);
 
   // Render Window Options
-  SignalBlocking(m_checkbox_confirm_on_stop)->setChecked(Config::Get(Config::MAIN_CONFIRM_ON_STOP));
   SignalBlocking(m_checkbox_use_panic_handlers)
       ->setChecked(Config::Get(Config::MAIN_USE_PANIC_HANDLERS));
   SignalBlocking(m_checkbox_enable_osd)->setChecked(Config::Get(Config::MAIN_OSD_MESSAGES));
@@ -331,7 +329,6 @@ void InterfacePane::OnSaveConfig()
   Settings::Instance().ApplyStyle();
 
   // Render Window Options
-  Config::SetBase(Config::MAIN_CONFIRM_ON_STOP, m_checkbox_confirm_on_stop->isChecked());
   Config::SetBase(Config::MAIN_USE_PANIC_HANDLERS, m_checkbox_use_panic_handlers->isChecked());
   Config::SetBase(Config::MAIN_OSD_MESSAGES, m_checkbox_enable_osd->isChecked());
   Config::SetBase(Config::MAIN_SHOW_ACTIVE_TITLE, m_checkbox_show_active_title->isChecked());
@@ -390,6 +387,9 @@ void InterfacePane::AddDescriptions()
   static constexpr char TR_DISABLE_SCREENSAVER_DESCRIPTION[] =
       QT_TR_NOOP("Disables your screensaver while running a game."
                  "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
+  static constexpr char TR_CONFIRM_ON_STOP_DESCRIPTION[] =
+      QT_TR_NOOP("Prompts you to confirm that you want to end emulation when you press Stop."
+                 "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
 
   m_checkbox_use_builtin_title_database->SetDescription(tr(TR_TITLE_DATABASE_DESCRIPTION));
 
@@ -406,4 +406,6 @@ void InterfacePane::AddDescriptions()
   m_checkbox_use_covers->SetDescription(tr(TR_USE_COVERS_DESCRIPTION));
 
   m_checkbox_disable_screensaver->SetDescription(tr(TR_DISABLE_SCREENSAVER_DESCRIPTION));
+
+  m_checkbox_confirm_on_stop->SetDescription(tr(TR_CONFIRM_ON_STOP_DESCRIPTION));
 }
