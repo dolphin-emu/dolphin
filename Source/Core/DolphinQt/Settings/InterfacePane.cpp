@@ -185,7 +185,8 @@ void InterfacePane::CreateInGame()
   m_checkbox_confirm_on_stop = new ConfigBool(tr("Confirm on Stop"), Config::MAIN_CONFIRM_ON_STOP);
   m_checkbox_use_panic_handlers =
       new ConfigBool(tr("Use Panic Handlers"), Config::MAIN_USE_PANIC_HANDLERS);
-  m_checkbox_enable_osd = new QCheckBox(tr("Show On-Screen Display Messages"));
+  m_checkbox_enable_osd =
+      new ConfigBool(tr("Show On-Screen Display Messages"), Config::MAIN_OSD_MESSAGES);
   m_checkbox_show_active_title = new QCheckBox(tr("Show Active Title in Window Title"));
   m_checkbox_pause_on_focus_lost = new QCheckBox(tr("Pause on Focus Loss"));
 
@@ -243,7 +244,6 @@ void InterfacePane::ConnectLayout()
   connect(m_checkbox_top_window, &QCheckBox::toggled, &Settings::Instance(),
           &Settings::KeepWindowOnTopChanged);
   connect(m_checkbox_show_active_title, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
-  connect(m_checkbox_enable_osd, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_pause_on_focus_lost, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_radio_cursor_visible_movement, &QRadioButton::toggled, this,
           &InterfacePane::OnCursorVisibleMovement);
@@ -299,7 +299,6 @@ void InterfacePane::LoadConfig()
     SignalBlocking(m_combobox_userstyle)->setCurrentIndex(index);
 
   // Render Window Options
-  SignalBlocking(m_checkbox_enable_osd)->setChecked(Config::Get(Config::MAIN_OSD_MESSAGES));
   SignalBlocking(m_checkbox_show_active_title)
       ->setChecked(Config::Get(Config::MAIN_SHOW_ACTIVE_TITLE));
   SignalBlocking(m_checkbox_pause_on_focus_lost)
@@ -327,7 +326,6 @@ void InterfacePane::OnSaveConfig()
   Settings::Instance().ApplyStyle();
 
   // Render Window Options
-  Config::SetBase(Config::MAIN_OSD_MESSAGES, m_checkbox_enable_osd->isChecked());
   Config::SetBase(Config::MAIN_SHOW_ACTIVE_TITLE, m_checkbox_show_active_title->isChecked());
   Config::SetBase(Config::MAIN_PAUSE_ON_FOCUS_LOST, m_checkbox_pause_on_focus_lost->isChecked());
 
@@ -392,6 +390,10 @@ void InterfacePane::AddDescriptions()
                  "present choices on how to proceed. With this option disabled, Dolphin will "
                  "\"ignore\" all errors. Emulation will not be halted and you will not be notified."
                  "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
+  static constexpr char TR_ENABLE_OSD_DESCRIPTION[] =
+      QT_TR_NOOP("Shows on-screen display messages over the render window. These messages "
+                 "disappear after several seconds."
+                 "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
 
   m_checkbox_use_builtin_title_database->SetDescription(tr(TR_TITLE_DATABASE_DESCRIPTION));
 
@@ -412,4 +414,6 @@ void InterfacePane::AddDescriptions()
   m_checkbox_confirm_on_stop->SetDescription(tr(TR_CONFIRM_ON_STOP_DESCRIPTION));
 
   m_checkbox_use_panic_handlers->SetDescription(tr(TR_USE_PANIC_HANDLERS_DESCRIPTION));
+
+  m_checkbox_enable_osd->SetDescription(tr(TR_ENABLE_OSD_DESCRIPTION));
 }
