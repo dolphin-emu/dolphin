@@ -43,7 +43,7 @@ private:
   ConfigBool* m_checkbox_top_window;
   ConfigBool* m_checkbox_use_builtin_title_database;
   ToolTipCheckBox* m_checkbox_show_debugging_ui;
-  QCheckBox* m_checkbox_focused_hotkeys;
+  ConfigBool* m_checkbox_focused_hotkeys;
   QCheckBox* m_checkbox_use_covers;
   QCheckBox* m_checkbox_disable_screensaver;
 

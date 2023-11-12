@@ -161,7 +161,8 @@ void InterfacePane::CreateUI()
   m_checkbox_use_covers =
       new QCheckBox(tr("Download Game Covers from GameTDB.com for Use in Grid Mode"));
   m_checkbox_show_debugging_ui = new ToolTipCheckBox(tr("Enable Debugging UI"));
-  m_checkbox_focused_hotkeys = new QCheckBox(tr("Hotkeys Require Window Focus"));
+  m_checkbox_focused_hotkeys =
+      new ConfigBool(tr("Hotkeys Require Window Focus"), Config::MAIN_FOCUSED_HOTKEYS);
   m_checkbox_disable_screensaver = new QCheckBox(tr("Inhibit Screensaver During Emulation"));
 
   groupbox_layout->addWidget(m_checkbox_use_builtin_title_database);
@@ -230,7 +231,6 @@ void InterfacePane::ConnectLayout()
   connect(m_checkbox_disable_screensaver, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_show_debugging_ui, &QCheckBox::toggled, &Settings::Instance(),
           &Settings::SetDebugModeEnabled);
-  connect(m_checkbox_focused_hotkeys, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_combobox_theme, &QComboBox::currentIndexChanged, this,
           [this](int index) { Settings::Instance().TriggerThemeChanged(); });
   connect(m_combobox_userstyle, &QComboBox::currentIndexChanged, this,
@@ -307,7 +307,6 @@ void InterfacePane::LoadConfig()
   SignalBlocking(m_checkbox_pause_on_focus_lost)
       ->setChecked(Config::Get(Config::MAIN_PAUSE_ON_FOCUS_LOST));
   SignalBlocking(m_checkbox_use_covers)->setChecked(Config::Get(Config::MAIN_USE_GAME_COVERS));
-  SignalBlocking(m_checkbox_focused_hotkeys)->setChecked(Config::Get(Config::MAIN_FOCUSED_HOTKEYS));
   SignalBlocking(m_radio_cursor_visible_movement)
       ->setChecked(Settings::Instance().GetCursorVisibility() == Config::ShowCursor::OnMovement);
   SignalBlocking(m_radio_cursor_visible_always)
@@ -347,7 +346,6 @@ void InterfacePane::OnSaveConfig()
     Settings::Instance().RefreshMetadata();
   }
 
-  Config::SetBase(Config::MAIN_FOCUSED_HOTKEYS, m_checkbox_focused_hotkeys->isChecked());
   Config::SetBase(Config::MAIN_DISABLE_SCREENSAVER, m_checkbox_disable_screensaver->isChecked());
 
   Config::Save();
@@ -390,6 +388,9 @@ void InterfacePane::AddDescriptions()
       "Sets the language displayed by Dolphin's User Interface."
       "<br><br>Changes to this setting only take effect once Dolphin is restarted."
       "<br><br><dolphin_emphasis>If unsure, select &lt;System Language&gt;.</dolphin_emphasis>");
+  static constexpr char TR_FOCUSED_HOTKEYS_DESCRIPTION[] =
+      QT_TR_NOOP("Requires the render window to be focused for hotkeys to take effect."
+                 "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
 
   m_checkbox_use_builtin_title_database->SetDescription(tr(TR_TITLE_DATABASE_DESCRIPTION));
 
@@ -400,4 +401,6 @@ void InterfacePane::AddDescriptions()
 
   m_combobox_language->SetTitle(tr("Language"));
   m_combobox_language->SetDescription(tr(TR_LANGUAGE_DESCRIPTION));
+
+  m_checkbox_focused_hotkeys->SetDescription(tr(TR_FOCUSED_HOTKEYS_DESCRIPTION));
 }
