@@ -1330,13 +1330,13 @@ enum class TLBLookupResult
 };
 
 static TLBLookupResult LookupTLBPageAddress(PowerPC::PowerPCState& ppc_state,
-                                            const XCheckTLBFlag flag, const u32 vpa, u32* paddr,
-                                            bool* wi)
+                                            const XCheckTLBFlag flag, const u32 vpa, const u32 vsid,
+                                            u32* paddr, bool* wi)
 {
   const u32 tag = vpa >> HW_PAGE_INDEX_SHIFT;
   TLBEntry& tlbe = ppc_state.tlb[IsOpcodeFlag(flag)][tag & HW_PAGE_INDEX_MASK];
 
-  if (tlbe.tag[0] == tag)
+  if (tlbe.tag[0] == tag && tlbe.vsid[0] == vsid)
   {
     UPTE_Hi pte2(tlbe.pte[0]);
 
@@ -1359,7 +1359,7 @@ static TLBLookupResult LookupTLBPageAddress(PowerPC::PowerPCState& ppc_state,
 
     return TLBLookupResult::Found;
   }
-  if (tlbe.tag[1] == tag)
+  if (tlbe.tag[1] == tag && tlbe.vsid[1] == vsid)
   {
     UPTE_Hi pte2(tlbe.pte[1]);
 
@@ -1386,7 +1386,7 @@ static TLBLookupResult LookupTLBPageAddress(PowerPC::PowerPCState& ppc_state,
 }
 
 static void UpdateTLBEntry(PowerPC::PowerPCState& ppc_state, const XCheckTLBFlag flag, UPTE_Hi pte2,
-                           const u32 address)
+                           const u32 address, const u32 vsid)
 {
   if (IsNoExceptionFlag(flag))
     return;
@@ -1398,6 +1398,7 @@ static void UpdateTLBEntry(PowerPC::PowerPCState& ppc_state, const XCheckTLBFlag
   tlbe.paddr[index] = pte2.RPN << HW_PAGE_INDEX_SHIFT;
   tlbe.pte[index] = pte2.Hex;
   tlbe.tag[index] = tag;
+  tlbe.vsid[index] = vsid;
 }
 
 void MMU::InvalidateTLBEntry(u32 address)
@@ -1412,19 +1413,20 @@ void MMU::InvalidateTLBEntry(u32 address)
 template <const XCheckTLBFlag flag>
 MMU::TranslateAddressResult MMU::TranslatePageAddress(const EffectiveAddress address, bool* wi)
 {
+  const auto sr = UReg_SR{m_ppc_state.sr[address.SR]};
+  const u32 VSID = sr.VSID;  // 24 bit
+
   // TLB cache
   // This catches 99%+ of lookups in practice, so the actual page table entry code below doesn't
   // benefit much from optimization.
   u32 translated_address = 0;
   const TLBLookupResult res =
-      LookupTLBPageAddress(m_ppc_state, flag, address.Hex, &translated_address, wi);
+      LookupTLBPageAddress(m_ppc_state, flag, address.Hex, VSID, &translated_address, wi);
   if (res == TLBLookupResult::Found)
   {
     return TranslateAddressResult{TranslateAddressResultEnum::PAGE_TABLE_TRANSLATED,
                                   translated_address};
   }
-
-  const auto sr = UReg_SR{m_ppc_state.sr[address.SR]};
 
   if (sr.T != 0)
     return TranslateAddressResult{TranslateAddressResultEnum::DIRECT_STORE_SEGMENT, 0};
@@ -1439,7 +1441,6 @@ MMU::TranslateAddressResult MMU::TranslatePageAddress(const EffectiveAddress add
 
   const u32 offset = address.offset;          // 12 bit
   const u32 page_index = address.page_index;  // 16 bit
-  const u32 VSID = sr.VSID;                   // 24 bit
   const u32 api = address.API;                //  6 bit (part of page_index)
 
   // hash function no 1 "xor" .360
@@ -1494,7 +1495,7 @@ MMU::TranslateAddressResult MMU::TranslatePageAddress(const EffectiveAddress add
 
         // We already updated the TLB entry if this was caused by a C bit.
         if (res != TLBLookupResult::UpdateC)
-          UpdateTLBEntry(m_ppc_state, flag, pte2, address.Hex);
+          UpdateTLBEntry(m_ppc_state, flag, pte2, address.Hex, VSID);
 
         *wi = (pte2.WIMG & 0b1100) != 0;
 
