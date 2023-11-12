@@ -118,15 +118,9 @@ void CEXIMic::StreamStart()
     params.channels = 1;
     params.layout = CUBEB_LAYOUT_MONO;
 
-    u32 minimum_latency;
-    if (cubeb_get_min_latency(m_cubeb_ctx.get(), &params, &minimum_latency) != CUBEB_OK)
-    {
-      WARN_LOG_FMT(EXPANSIONINTERFACE, "Error getting minimum latency");
-    }
-
     if (cubeb_stream_init(m_cubeb_ctx.get(), &m_cubeb_stream,
                           "Dolphin Emulated GameCube Microphone", nullptr, &params, nullptr,
-                          nullptr, std::max<u32>(buff_size_samples, minimum_latency), DataCallback,
+                          nullptr, buff_size_samples, DataCallback,
                           state_callback, this) != CUBEB_OK)
     {
       ERROR_LOG_FMT(EXPANSIONINTERFACE, "Error initializing cubeb stream");
