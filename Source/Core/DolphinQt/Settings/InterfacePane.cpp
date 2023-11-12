@@ -159,7 +159,8 @@ void InterfacePane::CreateUI()
   m_checkbox_use_builtin_title_database = new ConfigBool(tr("Use Built-In Database of Game Names"),
                                                          Config::MAIN_USE_BUILT_IN_TITLE_DATABASE);
   m_checkbox_use_covers =
-      new QCheckBox(tr("Download Game Covers from GameTDB.com for Use in Grid Mode"));
+      new ConfigBool(tr("Download Game Covers from GameTDB.com for Use in Grid Mode"),
+                     Config::MAIN_USE_GAME_COVERS);
   m_checkbox_show_debugging_ui = new ToolTipCheckBox(tr("Enable Debugging UI"));
   m_checkbox_focused_hotkeys =
       new ConfigBool(tr("Hotkeys Require Window Focus"), Config::MAIN_FOCUSED_HOTKEYS);
@@ -227,7 +228,8 @@ void InterfacePane::ConnectLayout()
 {
   connect(m_checkbox_use_builtin_title_database, &QCheckBox::toggled, &Settings::Instance(),
           &Settings::GameListRefreshRequested);
-  connect(m_checkbox_use_covers, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
+  connect(m_checkbox_use_covers, &QCheckBox::toggled, &Settings::Instance(),
+          &Settings::RefreshMetadata);
   connect(m_checkbox_disable_screensaver, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_show_debugging_ui, &QCheckBox::toggled, &Settings::Instance(),
           &Settings::SetDebugModeEnabled);
@@ -306,7 +308,6 @@ void InterfacePane::LoadConfig()
       ->setChecked(Config::Get(Config::MAIN_SHOW_ACTIVE_TITLE));
   SignalBlocking(m_checkbox_pause_on_focus_lost)
       ->setChecked(Config::Get(Config::MAIN_PAUSE_ON_FOCUS_LOST));
-  SignalBlocking(m_checkbox_use_covers)->setChecked(Config::Get(Config::MAIN_USE_GAME_COVERS));
   SignalBlocking(m_radio_cursor_visible_movement)
       ->setChecked(Settings::Instance().GetCursorVisibility() == Config::ShowCursor::OnMovement);
   SignalBlocking(m_radio_cursor_visible_always)
@@ -337,15 +338,6 @@ void InterfacePane::OnSaveConfig()
   Config::SetBase(Config::MAIN_OSD_MESSAGES, m_checkbox_enable_osd->isChecked());
   Config::SetBase(Config::MAIN_SHOW_ACTIVE_TITLE, m_checkbox_show_active_title->isChecked());
   Config::SetBase(Config::MAIN_PAUSE_ON_FOCUS_LOST, m_checkbox_pause_on_focus_lost->isChecked());
-
-  const bool use_covers = m_checkbox_use_covers->isChecked();
-
-  if (use_covers != Config::Get(Config::MAIN_USE_GAME_COVERS))
-  {
-    Config::SetBase(Config::MAIN_USE_GAME_COVERS, use_covers);
-    Settings::Instance().RefreshMetadata();
-  }
-
   Config::SetBase(Config::MAIN_DISABLE_SCREENSAVER, m_checkbox_disable_screensaver->isChecked());
 
   Config::Save();
@@ -391,6 +383,13 @@ void InterfacePane::AddDescriptions()
   static constexpr char TR_FOCUSED_HOTKEYS_DESCRIPTION[] =
       QT_TR_NOOP("Requires the render window to be focused for hotkeys to take effect."
                  "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
+  static constexpr char TR_USE_COVERS_DESCRIPTION[] =
+      QT_TR_NOOP("Downloads full game covers from GameTDB.com to display in the Game List's Grid "
+                 "View. If this setting is unchecked the Game List displays a banner generated "
+                 "from the game's save files, and if the game has no save file displays a generic "
+                 "banner instead."
+                 "<br><br>List View will always use the save file banners."
+                 "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
 
   m_checkbox_use_builtin_title_database->SetDescription(tr(TR_TITLE_DATABASE_DESCRIPTION));
 
@@ -403,4 +402,6 @@ void InterfacePane::AddDescriptions()
   m_combobox_language->SetDescription(tr(TR_LANGUAGE_DESCRIPTION));
 
   m_checkbox_focused_hotkeys->SetDescription(tr(TR_FOCUSED_HOTKEYS_DESCRIPTION));
+
+  m_checkbox_use_covers->SetDescription(tr(TR_USE_COVERS_DESCRIPTION));
 }
