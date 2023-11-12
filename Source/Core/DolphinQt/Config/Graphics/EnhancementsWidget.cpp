@@ -228,15 +228,13 @@ void EnhancementsWidget::CreateWidgets()
 
 void EnhancementsWidget::ConnectWidgets()
 {
-  connect(m_aa_combo, qOverload<int>(&QComboBox::currentIndexChanged),
+  connect(m_aa_combo, &QComboBox::currentIndexChanged, [this](int) { SaveSettings(); });
+  connect(m_texture_filtering_combo, &QComboBox::currentIndexChanged,
           [this](int) { SaveSettings(); });
-  connect(m_texture_filtering_combo, qOverload<int>(&QComboBox::currentIndexChanged),
+  connect(m_output_resampling_combo, &QComboBox::currentIndexChanged,
           [this](int) { SaveSettings(); });
-  connect(m_output_resampling_combo, qOverload<int>(&QComboBox::currentIndexChanged),
-          [this](int) { SaveSettings(); });
-  connect(m_pp_effect, qOverload<int>(&QComboBox::currentIndexChanged),
-          [this](int) { SaveSettings(); });
-  connect(m_3d_mode, qOverload<int>(&QComboBox::currentIndexChanged), [this] {
+  connect(m_pp_effect, &QComboBox::currentIndexChanged, [this](int) { SaveSettings(); });
+  connect(m_3d_mode, &QComboBox::currentIndexChanged, [this] {
     m_block_save = true;
     m_configure_color_correction->setEnabled(g_Config.backend_info.bSupportsPostProcessing);
     LoadPPShaders();

@@ -204,14 +204,13 @@ void RiivolutionBootWidget::MakeGUIForParsedFile(std::string path, std::string r
       if (option.m_selected_choice <= option.m_choices.size())
         selection->setCurrentIndex(static_cast<int>(option.m_selected_choice));
 
-      connect(selection, qOverload<int>(&QComboBox::currentIndexChanged), this,
-              [this, selection](int idx) {
-                const auto gui_index = selection->currentData().value<GuiRiivolutionPatchIndex>();
-                auto& selected_disc = m_discs[gui_index.m_disc_index].disc;
-                auto& selected_section = selected_disc.m_sections[gui_index.m_section_index];
-                auto& selected_option = selected_section.m_options[gui_index.m_option_index];
-                selected_option.m_selected_choice = static_cast<u32>(gui_index.m_choice_index);
-              });
+      connect(selection, &QComboBox::currentIndexChanged, this, [this, selection](int idx) {
+        const auto gui_index = selection->currentData().value<GuiRiivolutionPatchIndex>();
+        auto& selected_disc = m_discs[gui_index.m_disc_index].disc;
+        auto& selected_section = selected_disc.m_sections[gui_index.m_section_index];
+        auto& selected_option = selected_section.m_options[gui_index.m_option_index];
+        selected_option.m_selected_choice = static_cast<u32>(gui_index.m_choice_index);
+      });
 
       grid_layout->addWidget(label, row, 0, 1, 1);
       grid_layout->addWidget(selection, row, 1, 1, 1);

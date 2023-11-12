@@ -197,7 +197,7 @@ void WiimoteControllersWidget::ConnectWidgets()
 
   for (size_t i = 0; i < m_wiimote_groups.size(); i++)
   {
-    connect(m_wiimote_boxes[i], qOverload<int>(&QComboBox::currentIndexChanged), this, [this] {
+    connect(m_wiimote_boxes[i], &QComboBox::currentIndexChanged, this, [this] {
       SaveSettings();
       LoadSettings(Core::GetState());
     });

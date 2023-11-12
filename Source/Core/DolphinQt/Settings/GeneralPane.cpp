@@ -105,20 +105,20 @@ void GeneralPane::ConnectLayout()
 
   if (AutoUpdateChecker::SystemSupportsAutoUpdates())
   {
-    connect(m_combobox_update_track, qOverload<int>(&QComboBox::currentIndexChanged), this,
+    connect(m_combobox_update_track, &QComboBox::currentIndexChanged, this,
             &GeneralPane::OnSaveConfig);
     connect(&Settings::Instance(), &Settings::AutoUpdateTrackChanged, this,
             &GeneralPane::LoadConfig);
   }
 
   // Advanced
-  connect(m_combobox_speedlimit, qOverload<int>(&QComboBox::currentIndexChanged), [this]() {
+  connect(m_combobox_speedlimit, &QComboBox::currentIndexChanged, [this]() {
     Config::SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED,
                              m_combobox_speedlimit->currentIndex() * 0.1f);
     Config::Save();
   });
 
-  connect(m_combobox_fallback_region, qOverload<int>(&QComboBox::currentIndexChanged), this,
+  connect(m_combobox_fallback_region, &QComboBox::currentIndexChanged, this,
           &GeneralPane::OnSaveConfig);
   connect(&Settings::Instance(), &Settings::FallbackRegionChanged, this, &GeneralPane::LoadConfig);
 

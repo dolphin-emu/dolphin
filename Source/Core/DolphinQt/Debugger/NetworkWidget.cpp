@@ -207,7 +207,7 @@ void NetworkWidget::CreateWidgets()
 
 void NetworkWidget::ConnectWidgets()
 {
-  connect(m_dump_format_combo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+  connect(m_dump_format_combo, &QComboBox::currentIndexChanged, this,
           &NetworkWidget::OnDumpFormatComboChanged);
   connect(m_dump_ssl_read_checkbox, &QCheckBox::stateChanged, [](int state) {
     Config::SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_DUMP_READ, state == Qt::Checked);

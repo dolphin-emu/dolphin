@@ -221,13 +221,12 @@ void InterfacePane::ConnectLayout()
   connect(m_checkbox_disable_screensaver, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_show_debugging_ui, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_focused_hotkeys, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
-  connect(
-      m_combobox_theme, qOverload<int>(&QComboBox::currentIndexChanged), this,
-      [this](int index) { Settings::Instance().SetThemeName(m_combobox_theme->itemText(index)); });
-  connect(m_combobox_userstyle, qOverload<int>(&QComboBox::currentIndexChanged), this,
+  connect(m_combobox_theme, &QComboBox::currentIndexChanged, this, [this](int index) {
+    Settings::Instance().SetThemeName(m_combobox_theme->itemText(index));
+  });
+  connect(m_combobox_userstyle, &QComboBox::currentIndexChanged, this,
           &InterfacePane::OnSaveConfig);
-  connect(m_combobox_language, qOverload<int>(&QComboBox::currentIndexChanged), this,
-          &InterfacePane::OnSaveConfig);
+  connect(m_combobox_language, &QComboBox::currentIndexChanged, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_top_window, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_confirm_on_stop, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_use_panic_handlers, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);

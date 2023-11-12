@@ -87,7 +87,7 @@ void NewPatchDialog::CreateWidgets()
 
 void NewPatchDialog::ConnectWidgets()
 {
-  connect(m_name_edit, qOverload<const QString&>(&QLineEdit::textEdited),
+  connect(m_name_edit, &QLineEdit::textEdited,
           [this](const QString& name) { m_patch.name = name.toStdString(); });
 
   connect(m_add_button, &QPushButton::clicked, this, &NewPatchDialog::AddEntry);
@@ -162,20 +162,17 @@ QGroupBox* NewPatchDialog::CreateEntry(const PatchEngine::PatchEntry& entry)
   layout->addWidget(remove, 5, 0, 1, -1);
   box->setLayout(layout);
 
-  connect(address, qOverload<const QString&>(&QLineEdit::textEdited),
-          [new_entry](const QString& text) {
-            new_entry->entry.address = OnTextEdited(new_entry->address, text);
-          });
+  connect(address, &QLineEdit::textEdited, [new_entry](const QString& text) {
+    new_entry->entry.address = OnTextEdited(new_entry->address, text);
+  });
 
-  connect(value, qOverload<const QString&>(&QLineEdit::textEdited),
-          [new_entry](const QString& text) {
-            new_entry->entry.value = OnTextEdited(new_entry->value, text);
-          });
+  connect(value, &QLineEdit::textEdited, [new_entry](const QString& text) {
+    new_entry->entry.value = OnTextEdited(new_entry->value, text);
+  });
 
-  connect(comparand, qOverload<const QString&>(&QLineEdit::textEdited),
-          [new_entry](const QString& text) {
-            new_entry->entry.comparand = OnTextEdited(new_entry->comparand, text);
-          });
+  connect(comparand, &QLineEdit::textEdited, [new_entry](const QString& text) {
+    new_entry->entry.comparand = OnTextEdited(new_entry->comparand, text);
+  });
 
   connect(remove, &QPushButton::clicked, [this, box, new_entry] {
     if (m_entries.size() > 1)
