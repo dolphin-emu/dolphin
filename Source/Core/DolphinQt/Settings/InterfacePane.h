@@ -48,7 +48,7 @@ private:
   ConfigBool* m_checkbox_disable_screensaver;
 
   ConfigBool* m_checkbox_confirm_on_stop;
-  QCheckBox* m_checkbox_use_panic_handlers;
+  ConfigBool* m_checkbox_use_panic_handlers;
   QCheckBox* m_checkbox_enable_osd;
   QCheckBox* m_checkbox_show_active_title;
   QCheckBox* m_checkbox_pause_on_focus_lost;
