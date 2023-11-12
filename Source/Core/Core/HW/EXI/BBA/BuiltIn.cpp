@@ -143,6 +143,12 @@ void CEXIETHERNET::BuiltInBBAInterface::WriteToQueue(const std::vector<u8>& data
 void CEXIETHERNET::BuiltInBBAInterface::HandleARP(const Common::ARPPacket& packet)
 {
   const auto& [hwdata, arpdata] = packet;
+  if (arpdata.sender_address == m_current_mac && arpdata.sender_ip == 0 &&
+      arpdata.target_ip == m_current_ip)
+  {
+    // Ignore ARP probe to itself (RFC 5227) sometimes used to prevent IP collision
+    return;
+  }
   Common::ARPPacket response(m_current_mac, m_router_mac);
   response.arp_header = Common::ARPHeader(arpdata.target_ip, ResolveAddress(arpdata.target_ip),
                                           m_current_ip, m_current_mac);
