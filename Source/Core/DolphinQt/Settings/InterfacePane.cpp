@@ -189,7 +189,8 @@ void InterfacePane::CreateInGame()
       new ConfigBool(tr("Show On-Screen Display Messages"), Config::MAIN_OSD_MESSAGES);
   m_checkbox_show_active_title =
       new ConfigBool(tr("Show Active Title in Window Title"), Config::MAIN_SHOW_ACTIVE_TITLE);
-  m_checkbox_pause_on_focus_lost = new QCheckBox(tr("Pause on Focus Loss"));
+  m_checkbox_pause_on_focus_lost =
+      new ConfigBool(tr("Pause on Focus Loss"), Config::MAIN_PAUSE_ON_FOCUS_LOST);
 
   auto* mouse_groupbox = new QGroupBox(tr("Mouse Cursor Visibility"));
   auto* m_vboxlayout_hide_mouse = new QVBoxLayout;
@@ -244,7 +245,6 @@ void InterfacePane::ConnectLayout()
           [this]() { OnLanguageChanged(); });
   connect(m_checkbox_top_window, &QCheckBox::toggled, &Settings::Instance(),
           &Settings::KeepWindowOnTopChanged);
-  connect(m_checkbox_pause_on_focus_lost, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_radio_cursor_visible_movement, &QRadioButton::toggled, this,
           &InterfacePane::OnCursorVisibleMovement);
   connect(m_radio_cursor_visible_never, &QRadioButton::toggled, this,
@@ -299,8 +299,6 @@ void InterfacePane::LoadConfig()
     SignalBlocking(m_combobox_userstyle)->setCurrentIndex(index);
 
   // Render Window Options
-  SignalBlocking(m_checkbox_pause_on_focus_lost)
-      ->setChecked(Config::Get(Config::MAIN_PAUSE_ON_FOCUS_LOST));
   SignalBlocking(m_radio_cursor_visible_movement)
       ->setChecked(Settings::Instance().GetCursorVisibility() == Config::ShowCursor::OnMovement);
   SignalBlocking(m_radio_cursor_visible_always)
@@ -322,9 +320,6 @@ void InterfacePane::OnSaveConfig()
   if (!is_builtin_type)
     Settings::Instance().SetUserStyleName(selected_style.toString());
   Settings::Instance().ApplyStyle();
-
-  // Render Window Options
-  Config::SetBase(Config::MAIN_PAUSE_ON_FOCUS_LOST, m_checkbox_pause_on_focus_lost->isChecked());
 
   Config::Save();
 }
@@ -394,6 +389,9 @@ void InterfacePane::AddDescriptions()
   static constexpr char TR_SHOW_ACTIVE_TITLE_DESCRIPTION[] =
       QT_TR_NOOP("Shows the active game title in the render window's title bar."
                  "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
+  static constexpr char TR_PAUSE_ON_FOCUS_LOST_DESCRIPTION[] =
+      QT_TR_NOOP("Pauses the game whenever the render window isn't focused."
+                 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
 
   m_checkbox_use_builtin_title_database->SetDescription(tr(TR_TITLE_DATABASE_DESCRIPTION));
 
@@ -418,4 +416,6 @@ void InterfacePane::AddDescriptions()
   m_checkbox_enable_osd->SetDescription(tr(TR_ENABLE_OSD_DESCRIPTION));
 
   m_checkbox_show_active_title->SetDescription(tr(TR_SHOW_ACTIVE_TITLE_DESCRIPTION));
+
+  m_checkbox_pause_on_focus_lost->SetDescription(tr(TR_PAUSE_ON_FOCUS_LOST_DESCRIPTION));
 }
