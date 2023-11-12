@@ -429,12 +429,6 @@ Config::ShowCursor Settings::GetCursorVisibility() const
   return Config::Get(Config::MAIN_SHOW_CURSOR);
 }
 
-void Settings::SetLockCursor(bool lock_cursor)
-{
-  Config::SetBaseOrCurrent(Config::MAIN_LOCK_CURSOR, lock_cursor);
-  emit LockCursorChanged();
-}
-
 bool Settings::GetLockCursor() const
 {
   return Config::Get(Config::MAIN_LOCK_CURSOR);
