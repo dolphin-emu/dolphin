@@ -525,6 +525,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager,
 
   case BPMEM_EFB_STRIDE:  // Display Copy Stride
   case BPMEM_COPYYSCALE:  // Display Copy Y Scale
+    return;
 
   /* 24 RID
    * 21 BC3 - Ind. Tex Stage 3 NTexCoord
