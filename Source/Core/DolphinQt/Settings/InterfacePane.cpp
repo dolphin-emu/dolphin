@@ -209,10 +209,9 @@ void InterfacePane::CreateInGame()
   m_vboxlayout_hide_mouse->addWidget(m_radio_cursor_visible_never);
   m_vboxlayout_hide_mouse->addWidget(m_radio_cursor_visible_always);
 
+  m_checkbox_lock_mouse = new ConfigBool(tr("Lock Mouse Cursor"), Config::MAIN_LOCK_CURSOR);
   // this ends up not being managed unless _WIN32, so lets not leak
-  m_checkbox_lock_mouse = new QCheckBox(tr("Lock Mouse Cursor"), this);
-  m_checkbox_lock_mouse->setToolTip(tr("Will lock the Mouse Cursor to the Render Widget as long as "
-                                       "it has focus. You can set a hotkey to unlock it."));
+  m_checkbox_lock_mouse->setParent(this);
 
   mouse_groupbox->setLayout(m_vboxlayout_hide_mouse);
   groupbox_layout->addWidget(m_checkbox_top_window);
@@ -252,7 +251,7 @@ void InterfacePane::ConnectLayout()
   connect(m_radio_cursor_visible_always, &QRadioButton::toggled, this,
           &InterfacePane::OnCursorVisibleAlways);
   connect(m_checkbox_lock_mouse, &QCheckBox::toggled, &Settings::Instance(),
-          &Settings::SetLockCursor);
+          [this]() { Settings::Instance().LockCursorChanged(); });
 }
 
 void InterfacePane::UpdateShowDebuggingCheckbox()
@@ -305,8 +304,6 @@ void InterfacePane::LoadConfig()
       ->setChecked(Settings::Instance().GetCursorVisibility() == Config::ShowCursor::Constantly);
   SignalBlocking(m_radio_cursor_visible_never)
       ->setChecked(Settings::Instance().GetCursorVisibility() == Config::ShowCursor::Never);
-
-  SignalBlocking(m_checkbox_lock_mouse)->setChecked(Settings::Instance().GetLockCursor());
 }
 
 void InterfacePane::OnSaveConfig()
@@ -392,6 +389,10 @@ void InterfacePane::AddDescriptions()
   static constexpr char TR_PAUSE_ON_FOCUS_LOST_DESCRIPTION[] =
       QT_TR_NOOP("Pauses the game whenever the render window isn't focused."
                  "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+  static constexpr char TR_LOCK_MOUSE_DESCRIPTION[] =
+      QT_TR_NOOP("Locks the Mouse Cursor to the Render Widget as long as it has focus. You can "
+                 "set a hotkey to unlock it."
+                 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
 
   m_checkbox_use_builtin_title_database->SetDescription(tr(TR_TITLE_DATABASE_DESCRIPTION));
 
@@ -418,4 +419,6 @@ void InterfacePane::AddDescriptions()
   m_checkbox_show_active_title->SetDescription(tr(TR_SHOW_ACTIVE_TITLE_DESCRIPTION));
 
   m_checkbox_pause_on_focus_lost->SetDescription(tr(TR_PAUSE_ON_FOCUS_LOST_DESCRIPTION));
+
+  m_checkbox_lock_mouse->SetDescription(tr(TR_LOCK_MOUSE_DESCRIPTION));
 }

@@ -124,7 +124,6 @@ public:
   // Graphics
   void SetCursorVisibility(Config::ShowCursor hideCursor);
   Config::ShowCursor GetCursorVisibility() const;
-  void SetLockCursor(bool lock_cursor);
   bool GetLockCursor() const;
   void SetKeepWindowOnTop(bool top);
   bool IsKeepWindowOnTopEnabled() const;
