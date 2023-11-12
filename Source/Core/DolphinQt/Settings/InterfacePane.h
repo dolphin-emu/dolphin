@@ -7,7 +7,6 @@
 
 class ConfigBool;
 class ConfigStringChoice;
-class QCheckBox;
 class QComboBox;
 class QLabel;
 class QRadioButton;
@@ -55,5 +54,5 @@ private:
   QRadioButton* m_radio_cursor_visible_movement;
   QRadioButton* m_radio_cursor_visible_never;
   QRadioButton* m_radio_cursor_visible_always;
-  QCheckBox* m_checkbox_lock_mouse;
+  ConfigBool* m_checkbox_lock_mouse;
 };
