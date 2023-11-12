@@ -898,3 +898,12 @@ void Jit64::mtfsfx(UGeckoInstruction inst)
   if (inst.FM & 1)
     UpdateMXCSR();
 }
+
+void Jit64::isync(UGeckoInstruction inst)
+{
+  INSTRUCTION_START
+  JITDISABLE(bJITSystemRegistersOff);
+
+  MOV(32, R(RSCRATCH), Imm32(js.compilerPC + 4));
+  WriteExitDestInRSCRATCH();
+}

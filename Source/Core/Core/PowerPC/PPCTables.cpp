@@ -233,7 +233,7 @@ constexpr std::array<GekkoOPTemplate, 13> s_table19{{
     {417, "crorc", OpType::CR, 1, FL_EVIL},
     {193, "crxor", OpType::CR, 1, FL_EVIL},
 
-    {150, "isync", OpType::InstructionCache, 1, FL_EVIL},
+    {150, "isync", OpType::InstructionCache, 150, FL_EVIL | FL_ENDBLOCK},
     {0, "mcrf", OpType::System, 1, FL_EVIL | FL_SET_CRn | FL_READ_CRn},
 
     {50, "rfi", OpType::System, 2, FL_ENDBLOCK | FL_CHECKEXCEPTIONS | FL_PROGRAMEXCEPTION},

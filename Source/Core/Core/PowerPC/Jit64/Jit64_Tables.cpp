@@ -144,8 +144,8 @@ constexpr std::array<Jit64OpTemplate, 13> s_table19{{
     {417, &Jit64::crXXX},   // crorc
     {193, &Jit64::crXXX},   // crxor
 
-    {150, &Jit64::DoNothing},  // isync
-    {0, &Jit64::mcrf},         // mcrf
+    {150, &Jit64::isync},  // isync
+    {0, &Jit64::mcrf},     // mcrf
 
     {50, &Jit64::rfi},  // rfi
 }};

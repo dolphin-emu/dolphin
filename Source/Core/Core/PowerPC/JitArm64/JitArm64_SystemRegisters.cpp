@@ -970,3 +970,13 @@ void JitArm64::mtfsfx(UGeckoInstruction inst)
   if (inst.FM & 1)
     UpdateRoundingMode();
 }
+
+void JitArm64::isync(UGeckoInstruction inst)
+{
+  INSTRUCTION_START
+  JITDISABLE(bJITSystemRegistersOff);
+
+  gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
+  fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
+  WriteExit(js.compilerPC + 4);
+}

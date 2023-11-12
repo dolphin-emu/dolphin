@@ -194,6 +194,8 @@ public:
   void mtfsfix(UGeckoInstruction inst);
   void mtfsfx(UGeckoInstruction inst);
 
+  void isync(UGeckoInstruction inst);
+
   void boolX(UGeckoInstruction inst);
   void crXXX(UGeckoInstruction inst);
 
