@@ -26,6 +26,7 @@ private:
   void CreateInGame();
   void AddDescriptions();
   void ConnectLayout();
+  void UpdateShowDebuggingCheckbox();
   void LoadConfig();
   void OnSaveConfig();
   void OnCursorVisibleMovement();
