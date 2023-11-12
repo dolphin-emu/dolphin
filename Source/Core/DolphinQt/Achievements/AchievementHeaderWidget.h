@@ -11,7 +11,6 @@
 class QGroupBox;
 class QLabel;
 class QProgressBar;
-class QVBoxLayout;
 
 class AchievementHeaderWidget final : public QWidget
 {
@@ -23,9 +22,6 @@ public:
 private:
   QString GetPointsString(const QString& user_name,
                           const AchievementManager::PointSpread& point_spread) const;
-
-  QGroupBox* m_common_box;
-  QVBoxLayout* m_common_layout;
 
   QLabel* m_user_icon;
   QLabel* m_game_icon;
