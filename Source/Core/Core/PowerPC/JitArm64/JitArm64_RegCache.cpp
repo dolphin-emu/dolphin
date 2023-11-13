@@ -280,7 +280,7 @@ void Arm64GPRCache::FlushRegisters(BitSet32 regs, bool maintain_state, ARM64Reg 
   }
 }
 
-void Arm64GPRCache::FlushCRRegisters(BitSet32 regs, bool maintain_state, ARM64Reg tmp_reg)
+void Arm64GPRCache::FlushCRRegisters(BitSet8 regs, bool maintain_state, ARM64Reg tmp_reg)
 {
   for (size_t i = 0; i < GUEST_CR_COUNT; ++i)
   {
@@ -296,8 +296,8 @@ void Arm64GPRCache::FlushCRRegisters(BitSet32 regs, bool maintain_state, ARM64Re
 
 void Arm64GPRCache::Flush(FlushMode mode, ARM64Reg tmp_reg)
 {
-  FlushRegisters(BitSet32(~0U), mode == FlushMode::MaintainState, tmp_reg);
-  FlushCRRegisters(BitSet32(~0U), mode == FlushMode::MaintainState, tmp_reg);
+  FlushRegisters(BitSet32(0xFFFFFFFF), mode == FlushMode::MaintainState, tmp_reg);
+  FlushCRRegisters(BitSet8(0xFF), mode == FlushMode::MaintainState, tmp_reg);
 }
 
 ARM64Reg Arm64GPRCache::R(const GuestRegInfo& guest_reg)
