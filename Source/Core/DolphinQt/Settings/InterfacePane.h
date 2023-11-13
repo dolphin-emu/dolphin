@@ -6,10 +6,10 @@
 #include <QWidget>
 
 class ConfigBool;
+class ConfigRadioInt;
 class ConfigStringChoice;
 class QComboBox;
 class QLabel;
-class QRadioButton;
 class QVBoxLayout;
 class ToolTipCheckBox;
 
@@ -28,9 +28,6 @@ private:
   void UpdateShowDebuggingCheckbox();
   void LoadConfig();
   void OnSaveConfig();
-  void OnCursorVisibleMovement();
-  void OnCursorVisibleNever();
-  void OnCursorVisibleAlways();
   void OnLanguageChanged();
 
   QVBoxLayout* m_main_layout;
@@ -51,8 +48,8 @@ private:
   ConfigBool* m_checkbox_enable_osd;
   ConfigBool* m_checkbox_show_active_title;
   ConfigBool* m_checkbox_pause_on_focus_lost;
-  QRadioButton* m_radio_cursor_visible_movement;
-  QRadioButton* m_radio_cursor_visible_never;
-  QRadioButton* m_radio_cursor_visible_always;
+  ConfigRadioInt* m_radio_cursor_visible_movement;
+  ConfigRadioInt* m_radio_cursor_visible_never;
+  ConfigRadioInt* m_radio_cursor_visible_always;
   ConfigBool* m_checkbox_lock_mouse;
 };
