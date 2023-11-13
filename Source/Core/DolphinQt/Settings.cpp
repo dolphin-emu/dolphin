@@ -418,12 +418,6 @@ void Settings::SetStateSlot(int slot)
   GetQSettings().setValue(QStringLiteral("Emulation/StateSlot"), slot);
 }
 
-void Settings::SetCursorVisibility(Config::ShowCursor hideCursor)
-{
-  Config::SetBaseOrCurrent(Config::MAIN_SHOW_CURSOR, hideCursor);
-  emit CursorVisibilityChanged();
-}
-
 Config::ShowCursor Settings::GetCursorVisibility() const
 {
   return Config::Get(Config::MAIN_SHOW_CURSOR);

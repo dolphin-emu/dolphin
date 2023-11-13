@@ -122,7 +122,6 @@ public:
   void SetUSBKeyboardConnected(bool connected);
 
   // Graphics
-  void SetCursorVisibility(Config::ShowCursor hideCursor);
   Config::ShowCursor GetCursorVisibility() const;
   bool GetLockCursor() const;
   void SetKeepWindowOnTop(bool top);
