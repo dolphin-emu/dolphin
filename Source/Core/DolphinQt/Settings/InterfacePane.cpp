@@ -27,6 +27,7 @@
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
 #include "DolphinQt/Config/ConfigControls/ConfigRadio.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
+#include "DolphinQt/Config/ToolTipControls/ToolTipComboBox.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
@@ -88,7 +89,8 @@ static ConfigStringChoice* MakeLanguageComboBox()
 InterfacePane::InterfacePane(QWidget* parent) : QWidget(parent)
 {
   CreateLayout();
-  LoadConfig();
+  UpdateShowDebuggingCheckbox();
+  LoadUserStyle();
   ConnectLayout();
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
@@ -136,7 +138,7 @@ void InterfacePane::CreateUI()
   combobox_layout->addRow(tr("&Theme:"), m_combobox_theme);
 
   // User Style Combobox
-  m_combobox_userstyle = new QComboBox;
+  m_combobox_userstyle = new ToolTipComboBox;
   m_label_userstyle = new QLabel(tr("Style:"));
   combobox_layout->addRow(m_label_userstyle, m_combobox_userstyle);
 
@@ -239,7 +241,7 @@ void InterfacePane::ConnectLayout()
   connect(m_combobox_theme, &QComboBox::currentIndexChanged, this,
           [this](int index) { Settings::Instance().TriggerThemeChanged(); });
   connect(m_combobox_userstyle, &QComboBox::currentIndexChanged, this,
-          &InterfacePane::OnSaveConfig);
+          &InterfacePane::OnUserStyleChanged);
   connect(m_combobox_language, &QComboBox::currentIndexChanged, this,
           [this]() { OnLanguageChanged(); });
   connect(m_checkbox_top_window, &QCheckBox::toggled, &Settings::Instance(),
@@ -284,10 +286,8 @@ void InterfacePane::UpdateShowDebuggingCheckbox()
 #endif  // USE_RETRO_ACHIEVEMENTS
 }
 
-void InterfacePane::LoadConfig()
+void InterfacePane::LoadUserStyle()
 {
-  UpdateShowDebuggingCheckbox();
-
   const Settings::StyleType style_type = Settings::Instance().GetStyleType();
   const QString userstyle = Settings::Instance().GetUserStyleName();
   const int index = style_type == Settings::StyleType::User ?
@@ -298,7 +298,7 @@ void InterfacePane::LoadConfig()
     SignalBlocking(m_combobox_userstyle)->setCurrentIndex(index);
 }
 
-void InterfacePane::OnSaveConfig()
+void InterfacePane::OnUserStyleChanged()
 {
   const auto selected_style = m_combobox_userstyle->currentData();
   bool is_builtin_type = false;
@@ -309,8 +309,6 @@ void InterfacePane::OnSaveConfig()
   if (!is_builtin_type)
     Settings::Instance().SetUserStyleName(selected_style.toString());
   Settings::Instance().ApplyStyle();
-
-  Config::Save();
 }
 
 void InterfacePane::OnLanguageChanged()
@@ -380,6 +378,10 @@ void InterfacePane::AddDescriptions()
   static constexpr char TR_CURSOR_VISIBLE_ALWAYS_DESCRIPTION[] = QT_TR_NOOP(
       "Shows the Mouse Cursor at all times."
       "<br><br><dolphin_emphasis>If unsure, select &quot;On Movement&quot;.</dolphin_emphasis>");
+  static constexpr char TR_USER_STYLE_DESCRIPTION[] =
+      QT_TR_NOOP("Sets the style of Dolphin's User Interface. Any Custom User Styles that you have "
+                 "loaded will be presented here, allowing you to switch to them."
+                 "<br><br><dolphin_emphasis>If unsure, select (System).</dolphin_emphasis>");
 
   m_checkbox_use_builtin_title_database->SetDescription(tr(TR_TITLE_DATABASE_DESCRIPTION));
 
@@ -414,4 +416,7 @@ void InterfacePane::AddDescriptions()
   m_radio_cursor_visible_never->SetDescription(tr(TR_CURSOR_VISIBLE_NEVER_DESCRIPTION));
 
   m_radio_cursor_visible_always->SetDescription(tr(TR_CURSOR_VISIBLE_ALWAYS_DESCRIPTION));
+
+  m_combobox_userstyle->SetTitle(tr("Style"));
+  m_combobox_userstyle->SetDescription(tr(TR_USER_STYLE_DESCRIPTION));
 }
