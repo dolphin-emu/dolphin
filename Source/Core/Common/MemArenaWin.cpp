@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <cstdint>
 #include <cstdlib>
 #include <string>
 
@@ -12,6 +13,7 @@
 
 #include <windows.h>
 
+#include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
@@ -441,6 +443,51 @@ LazyMemoryRegion::~LazyMemoryRegion()
   Release();
 }
 
+// On Windows, it's not possible to tell the OS to allocate a memory region without reserving space
+// for it in either physical memory or the pagefile. This unfortunately leads to the pagefile
+// growing by up to 32 GB whenever the new JIT entry point lookup table optimization is used (see
+// m_entry_points_ptr in JitBaseBlockCache). So as a workaround, we only reserve the memory space
+// for it, and actually allocate the individual pages on first access via a segfault handler.
+
+// FIXME: This allows only a single LazyMemoryRegion to exist in the entire process at any given
+// point in time because there is no good way to pass userdata to an exception handler. As of
+// writing this isn't really a problem -- fastmem has the same problem, in fact -- but it might
+// become one in the future. This construct needs to be refectored in that case.
+
+LazyMemoryRegion* s_lazy_region = nullptr;
+
+static LONG NTAPI LazyMemoryRegionExceptionHandler(PEXCEPTION_POINTERS pPtrs)
+{
+  if (pPtrs->ExceptionRecord->ExceptionCode != EXCEPTION_ACCESS_VIOLATION)
+    return EXCEPTION_CONTINUE_SEARCH;
+
+  const ULONG_PTR access_type = pPtrs->ExceptionRecord->ExceptionInformation[0];
+  if (access_type == 8)  // Rule out DEP
+    return EXCEPTION_CONTINUE_SEARCH;
+
+  if (s_lazy_region->HandleException(
+          static_cast<uintptr_t>(pPtrs->ExceptionRecord->ExceptionInformation[1])))
+  {
+    return EXCEPTION_CONTINUE_EXECUTION;
+  }
+
+  return EXCEPTION_CONTINUE_SEARCH;
+}
+
+bool LazyMemoryRegion::HandleException(uintptr_t address)
+{
+  const uintptr_t start = reinterpret_cast<uintptr_t>(m_memory);
+  const uintptr_t end = start + m_size;
+  if (address < start || address >= end)
+    return false;
+
+  // VirtualAlloc will always allocate one or more full pages, even if you pass an address/length
+  // combination that doesn't entirely fill that. So we don't need to know the page size and this
+  // will just do the right thing.
+  void* result = VirtualAlloc(reinterpret_cast<void*>(address), 1, MEM_COMMIT, PAGE_READWRITE);
+  return (result != nullptr);
+}
+
 void* LazyMemoryRegion::Create(size_t size)
 {
   ASSERT(!m_memory);
@@ -448,15 +495,28 @@ void* LazyMemoryRegion::Create(size_t size)
   if (size == 0)
     return nullptr;
 
-  void* memory = VirtualAlloc(nullptr, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+  void* memory = VirtualAlloc(nullptr, size, MEM_RESERVE, PAGE_READWRITE);
   if (!memory)
   {
     NOTICE_LOG_FMT(MEMMAP, "Memory allocation of {} bytes failed.", size);
     return nullptr;
   }
 
+  ASSERT(s_lazy_region == nullptr);
+  s_lazy_region = this;
+  void* handler = AddVectoredExceptionHandler(0, LazyMemoryRegionExceptionHandler);
+  if (!handler)
+  {
+    s_lazy_region = nullptr;
+    NOTICE_LOG_FMT(MEMMAP, "Installing exception handler for LazyMemoryRegion failed.");
+    const BOOL memory_freed = VirtualFree(memory, 0, MEM_RELEASE);
+    ASSERT(memory_freed != 0);
+    return nullptr;
+  }
+
   m_memory = memory;
   m_size = size;
+  m_exception_handler = handler;
 
   return memory;
 }
@@ -466,14 +526,21 @@ void LazyMemoryRegion::Clear()
   ASSERT(m_memory);
 
   VirtualFree(m_memory, m_size, MEM_DECOMMIT);
-  VirtualAlloc(m_memory, m_size, MEM_COMMIT, PAGE_READWRITE);
 }
 
 void LazyMemoryRegion::Release()
 {
   if (m_memory)
   {
-    VirtualFree(m_memory, 0, MEM_RELEASE);
+    const ULONG handler_uninstalled = RemoveVectoredExceptionHandler(m_exception_handler);
+    ASSERT(handler_uninstalled != 0);
+    m_exception_handler = nullptr;
+
+    ASSERT(s_lazy_region != nullptr);
+    s_lazy_region = nullptr;
+
+    const BOOL memory_freed = VirtualFree(m_memory, 0, MEM_RELEASE);
+    ASSERT(memory_freed != 0);
     m_memory = nullptr;
     m_size = 0;
   }

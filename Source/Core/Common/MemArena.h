@@ -4,6 +4,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <string_view>
 #include <vector>
 
@@ -155,9 +156,17 @@ public:
   ///
   void Release();
 
+#ifdef _WIN32
+  bool HandleException(uintptr_t address);
+#endif
+
 private:
   void* m_memory = nullptr;
   size_t m_size = 0;
+
+#ifdef _WIN32
+  void* m_exception_handler = nullptr;
+#endif
 };
 
 }  // namespace Common
