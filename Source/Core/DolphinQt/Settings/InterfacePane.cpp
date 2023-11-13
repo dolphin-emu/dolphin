@@ -25,6 +25,7 @@
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
+#include "DolphinQt/Config/ConfigControls/ConfigRadio.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
@@ -196,14 +197,13 @@ void InterfacePane::CreateInGame()
   auto* m_vboxlayout_hide_mouse = new QVBoxLayout;
   mouse_groupbox->setLayout(m_vboxlayout_hide_mouse);
 
-  m_radio_cursor_visible_movement = new QRadioButton(tr("On Movement"));
-  m_radio_cursor_visible_movement->setToolTip(
-      tr("Mouse Cursor hides after inactivity and returns upon Mouse Cursor movement."));
-  m_radio_cursor_visible_never = new QRadioButton(tr("Never"));
-  m_radio_cursor_visible_never->setToolTip(
-      tr("Mouse Cursor will never be visible while a game is running."));
-  m_radio_cursor_visible_always = new QRadioButton(tr("Always"));
-  m_radio_cursor_visible_always->setToolTip(tr("Mouse Cursor will always be visible."));
+  m_radio_cursor_visible_movement =
+      new ConfigRadioInt(tr("On Movement"), Config::MAIN_SHOW_CURSOR,
+                         static_cast<int>(Config::ShowCursor::OnMovement));
+  m_radio_cursor_visible_never = new ConfigRadioInt(tr("Never"), Config::MAIN_SHOW_CURSOR,
+                                                    static_cast<int>(Config::ShowCursor::Never));
+  m_radio_cursor_visible_always = new ConfigRadioInt(
+      tr("Always"), Config::MAIN_SHOW_CURSOR, static_cast<int>(Config::ShowCursor::Constantly));
 
   m_vboxlayout_hide_mouse->addWidget(m_radio_cursor_visible_movement);
   m_vboxlayout_hide_mouse->addWidget(m_radio_cursor_visible_never);
@@ -244,12 +244,12 @@ void InterfacePane::ConnectLayout()
           [this]() { OnLanguageChanged(); });
   connect(m_checkbox_top_window, &QCheckBox::toggled, &Settings::Instance(),
           &Settings::KeepWindowOnTopChanged);
-  connect(m_radio_cursor_visible_movement, &QRadioButton::toggled, this,
-          &InterfacePane::OnCursorVisibleMovement);
-  connect(m_radio_cursor_visible_never, &QRadioButton::toggled, this,
-          &InterfacePane::OnCursorVisibleNever);
-  connect(m_radio_cursor_visible_always, &QRadioButton::toggled, this,
-          &InterfacePane::OnCursorVisibleAlways);
+  connect(m_radio_cursor_visible_movement, &ConfigRadioInt::OnSelected, &Settings::Instance(),
+          &Settings::CursorVisibilityChanged);
+  connect(m_radio_cursor_visible_never, &ConfigRadioInt::OnSelected, &Settings::Instance(),
+          &Settings::CursorVisibilityChanged);
+  connect(m_radio_cursor_visible_always, &ConfigRadioInt::OnSelected, &Settings::Instance(),
+          &Settings::CursorVisibilityChanged);
   connect(m_checkbox_lock_mouse, &QCheckBox::toggled, &Settings::Instance(),
           [this]() { Settings::Instance().LockCursorChanged(); });
 }
@@ -296,14 +296,6 @@ void InterfacePane::LoadConfig()
 
   if (index > 0)
     SignalBlocking(m_combobox_userstyle)->setCurrentIndex(index);
-
-  // Render Window Options
-  SignalBlocking(m_radio_cursor_visible_movement)
-      ->setChecked(Settings::Instance().GetCursorVisibility() == Config::ShowCursor::OnMovement);
-  SignalBlocking(m_radio_cursor_visible_always)
-      ->setChecked(Settings::Instance().GetCursorVisibility() == Config::ShowCursor::Constantly);
-  SignalBlocking(m_radio_cursor_visible_never)
-      ->setChecked(Settings::Instance().GetCursorVisibility() == Config::ShowCursor::Never);
 }
 
 void InterfacePane::OnSaveConfig()
@@ -319,21 +311,6 @@ void InterfacePane::OnSaveConfig()
   Settings::Instance().ApplyStyle();
 
   Config::Save();
-}
-
-void InterfacePane::OnCursorVisibleMovement()
-{
-  Settings::Instance().SetCursorVisibility(Config::ShowCursor::OnMovement);
-}
-
-void InterfacePane::OnCursorVisibleNever()
-{
-  Settings::Instance().SetCursorVisibility(Config::ShowCursor::Never);
-}
-
-void InterfacePane::OnCursorVisibleAlways()
-{
-  Settings::Instance().SetCursorVisibility(Config::ShowCursor::Constantly);
 }
 
 void InterfacePane::OnLanguageChanged()
@@ -393,6 +370,16 @@ void InterfacePane::AddDescriptions()
       QT_TR_NOOP("Locks the Mouse Cursor to the Render Widget as long as it has focus. You can "
                  "set a hotkey to unlock it."
                  "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+  static constexpr char TR_CURSOR_VISIBLE_MOVEMENT_DESCRIPTION[] =
+      QT_TR_NOOP("Shows the Mouse Cursor briefly whenever it has recently moved, then hides it."
+                 "<br><br><dolphin_emphasis>If unsure, select this mode.</dolphin_emphasis>");
+  static constexpr char TR_CURSOR_VISIBLE_NEVER_DESCRIPTION[] = QT_TR_NOOP(
+      "Hides the Mouse Cursor whenever it is inside the render window and the render window is "
+      "focused."
+      "<br><br><dolphin_emphasis>If unsure, select &quot;On Movement&quot;.</dolphin_emphasis>");
+  static constexpr char TR_CURSOR_VISIBLE_ALWAYS_DESCRIPTION[] = QT_TR_NOOP(
+      "Shows the Mouse Cursor at all times."
+      "<br><br><dolphin_emphasis>If unsure, select &quot;On Movement&quot;.</dolphin_emphasis>");
 
   m_checkbox_use_builtin_title_database->SetDescription(tr(TR_TITLE_DATABASE_DESCRIPTION));
 
@@ -421,4 +408,10 @@ void InterfacePane::AddDescriptions()
   m_checkbox_pause_on_focus_lost->SetDescription(tr(TR_PAUSE_ON_FOCUS_LOST_DESCRIPTION));
 
   m_checkbox_lock_mouse->SetDescription(tr(TR_LOCK_MOUSE_DESCRIPTION));
+
+  m_radio_cursor_visible_movement->SetDescription(tr(TR_CURSOR_VISIBLE_MOVEMENT_DESCRIPTION));
+
+  m_radio_cursor_visible_never->SetDescription(tr(TR_CURSOR_VISIBLE_NEVER_DESCRIPTION));
+
+  m_radio_cursor_visible_always->SetDescription(tr(TR_CURSOR_VISIBLE_ALWAYS_DESCRIPTION));
 }
