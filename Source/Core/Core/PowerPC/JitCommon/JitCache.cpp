@@ -42,7 +42,7 @@ void JitBaseBlockCache::Init()
 {
   Common::JitRegister::Init(Config::Get(Config::MAIN_PERF_MAP_DIR));
 
-#ifdef _ARCH_64
+#if defined(_ARCH_64) && !defined(_WIN32)
   m_entry_points_ptr = reinterpret_cast<u8**>(m_entry_points_arena.Create(FAST_BLOCK_MAP_SIZE));
 #else
   m_entry_points_ptr = nullptr;
