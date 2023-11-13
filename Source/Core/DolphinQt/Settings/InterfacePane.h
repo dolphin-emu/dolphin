@@ -8,10 +8,10 @@
 class ConfigBool;
 class ConfigRadioInt;
 class ConfigStringChoice;
-class QComboBox;
 class QLabel;
 class QVBoxLayout;
 class ToolTipCheckBox;
+class ToolTipComboBox;
 
 class InterfacePane final : public QWidget
 {
@@ -26,15 +26,15 @@ private:
   void AddDescriptions();
   void ConnectLayout();
   void UpdateShowDebuggingCheckbox();
-  void LoadConfig();
-  void OnSaveConfig();
+  void LoadUserStyle();
+  void OnUserStyleChanged();
   void OnLanguageChanged();
 
   QVBoxLayout* m_main_layout;
   ConfigStringChoice* m_combobox_language;
 
   ConfigStringChoice* m_combobox_theme;
-  QComboBox* m_combobox_userstyle;
+  ToolTipComboBox* m_combobox_userstyle;
   QLabel* m_label_userstyle;
   ConfigBool* m_checkbox_top_window;
   ConfigBool* m_checkbox_use_builtin_title_database;
