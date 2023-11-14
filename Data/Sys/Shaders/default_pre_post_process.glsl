@@ -239,8 +239,8 @@ float4 AreaSampling(float3 uvw, float gamma)
 	avg_color += area_se * QuickSampleByPixel(float2(f_end.x, f_end.y) + offset, uvw.z, gamma);
 
 	// Determine the size of the pixel box.
-	int x_range = int(f_end.x - f_beg.x + 0.5);
-	int y_range = int(f_end.y - f_beg.y + 0.5);
+	int x_range = int(f_end.x - f_beg.x - 0.5);
+	int y_range = int(f_end.y - f_beg.y - 0.5);
 
 	// Workaround to compile the shader with DX11/12.
 	// If this isn't done, it will complain that the loop could have too many iterations.
