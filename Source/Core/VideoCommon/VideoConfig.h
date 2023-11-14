@@ -142,8 +142,9 @@ struct VideoConfig final
     float fSDRDisplayCustomGamma = 2.2f;
 
     // HDR:
-    // 200 is a good default value that matches the brightness of many SDR screens
-    float fHDRPaperWhiteNits = 200.f;
+    // 203 is a good default value that matches the brightness of many SDR screens.
+    // It's also the value recommended by the ITU.
+    float fHDRPaperWhiteNits = 203.f;
   } color_correction;
 
   // Information
