@@ -401,13 +401,12 @@ void* Presenter::GetNewSurfaceHandle()
 
 u32 Presenter::AutoIntegralScale() const
 {
+#if 0
   const float efb_aspect_ratio = static_cast<float>(EFB_WIDTH) / EFB_HEIGHT;
   const float target_aspect_ratio =
       static_cast<float>(m_target_rectangle.GetWidth()) / m_target_rectangle.GetHeight();
-
   u32 target_width;
   u32 target_height;
-
   // Instead of using the entire window (back buffer) resolution,
   // find the portion of it that will actually contain the EFB output,
   // and ignore the portion that will likely have black bars.
@@ -425,13 +424,31 @@ u32 Presenter::AutoIntegralScale() const
         std::round((static_cast<float>(m_target_rectangle.GetHeight()) * target_aspect_ratio) /
                    efb_aspect_ratio));
   }
-
   // Calculate a scale based on the adjusted window size
   u32 width = EFB_WIDTH * target_width / m_last_xfb_width;
   u32 height = EFB_HEIGHT * target_height / m_last_xfb_height;
   // Limit to the max to avoid creating textures larger than their max supported resolution.
   return std::min(std::max((width - 1) / EFB_WIDTH + 1, (height - 1) / EFB_HEIGHT + 1),
                   (u32)Config::Get(Config::GFX_MAX_EFB_SCALE));
+#else
+  // Take the source resolution (XFB) and stretch it on the target aspect ratio.
+  // If the target resolution is larger (on either x or y), we scale the source
+  // by a integer multiplier until it won't have to be scaled up anymore.
+  u32 source_width = m_last_xfb_width;
+  u32 source_height = m_last_xfb_height;
+  const u32 target_width = m_target_rectangle.GetWidth();
+  const u32 target_height = m_target_rectangle.GetHeight();
+  const float source_aspect_ratio = (float)source_width / source_height;
+  const float target_aspect_ratio = (float)target_width / target_height;
+  if (source_aspect_ratio >= target_aspect_ratio)
+    source_width = std::round(source_height * target_aspect_ratio);
+  else
+    source_height = std::round(source_width / target_aspect_ratio);
+  const u32 width_scale = (target_width + (source_width - 1)) / source_width;
+  const u32 height_scale = (target_height + (source_height - 1)) / source_height;
+  // Limit to the max to avoid creating textures larger than their max supported resolution.
+  return std::min(std::max(width_scale, height_scale), (u32)Config::Get(Config::GFX_MAX_EFB_SCALE));
+#endif
 }
 
 void Presenter::SetSuggestedWindowSize(int width, int height)
