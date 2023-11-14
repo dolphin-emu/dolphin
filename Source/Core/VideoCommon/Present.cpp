@@ -419,7 +419,7 @@ u32 Presenter::AutoIntegralScale() const
   const u32 height_scale =
       source_height > 0 ? ((target_height + (source_height - 1)) / source_height) : 1;
   // Limit to the max to avoid creating textures larger than their max supported resolution.
-  return std::max(width_scale, height_scale);
+  return std::min(std::max(width_scale, height_scale), (u32)Config::Get(Config::GFX_MAX_EFB_SCALE));
 }
 
 void Presenter::SetSuggestedWindowSize(int width, int height)
