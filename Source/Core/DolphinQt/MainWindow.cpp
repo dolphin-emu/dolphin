@@ -1971,6 +1971,12 @@ void MainWindow::ShowAchievementsWindow()
   m_achievements_window->raise();
   m_achievements_window->activateWindow();
 }
+
+void MainWindow::ShowAchievementSettings()
+{
+  ShowAchievementsWindow();
+  m_achievements_window->ForceSettingsTab();
+}
 #endif  // USE_RETRO_ACHIEVEMENTS
 
 void MainWindow::ShowMemcardManager()

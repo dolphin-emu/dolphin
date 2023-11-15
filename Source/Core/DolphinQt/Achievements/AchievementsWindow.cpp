@@ -81,4 +81,9 @@ void AchievementsWindow::UpdateData()
   update();
 }
 
+void AchievementsWindow::ForceSettingsTab()
+{
+  m_tab_widget->setCurrentIndex(0);
+}
+
 #endif  // USE_RETRO_ACHIEVEMENTS
