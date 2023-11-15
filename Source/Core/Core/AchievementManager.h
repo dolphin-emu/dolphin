@@ -119,6 +119,7 @@ public:
   void AchievementEventHandler(const rc_runtime_event_t* runtime_event);
 
   std::recursive_mutex* GetLock();
+  bool IsHardcoreModeActive() const;
   std::string GetPlayerDisplayName() const;
   u32 GetPlayerScore() const;
   const BadgeStatus& GetPlayerBadge() const;
@@ -190,7 +191,7 @@ private:
 
   Common::WorkQueueThread<std::function<void()>> m_queue;
   Common::WorkQueueThread<std::function<void()>> m_image_queue;
-  std::recursive_mutex m_lock;
+  mutable std::recursive_mutex m_lock;
 };  // class AchievementManager
 
 #endif  // USE_RETRO_ACHIEVEMENTS

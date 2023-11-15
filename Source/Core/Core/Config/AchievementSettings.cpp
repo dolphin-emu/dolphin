@@ -1,6 +1,7 @@
 // Copyright 2023 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#ifdef USE_RETRO_ACHIEVEMENTS
 #include "Core/Config/AchievementSettings.h"
 
 #include <string>
@@ -19,6 +20,8 @@ const Info<bool> RA_LEADERBOARDS_ENABLED{
     {System::Achievements, "Achievements", "LeaderboardsEnabled"}, false};
 const Info<bool> RA_RICH_PRESENCE_ENABLED{
     {System::Achievements, "Achievements", "RichPresenceEnabled"}, false};
+const Info<bool> RA_HARDCORE_ENABLED{{System::Achievements, "Achievements", "HardcoreEnabled"},
+                                     false};
 const Info<bool> RA_PROGRESS_ENABLED{{System::Achievements, "Achievements", "ProgressEnabled"},
                                      false};
 const Info<bool> RA_BADGES_ENABLED{{System::Achievements, "Achievements", "BadgesEnabled"}, false};
@@ -26,3 +29,5 @@ const Info<bool> RA_UNOFFICIAL_ENABLED{{System::Achievements, "Achievements", "U
                                        false};
 const Info<bool> RA_ENCORE_ENABLED{{System::Achievements, "Achievements", "EncoreEnabled"}, false};
 }  // namespace Config
+
+#endif  // USE_RETRO_ACHIEVEMENTS
