@@ -26,6 +26,7 @@
 #include "DiscIO/GameModDescriptor.h"
 #include "DiscIO/RiivolutionParser.h"
 #include "DiscIO/RiivolutionPatcher.h"
+#include "DolphinQt/Config/HardcoreWarningWidget.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 struct GuiRiivolutionPatchIndex
@@ -48,6 +49,7 @@ RiivolutionBootWidget::RiivolutionBootWidget(std::string game_id, std::optional<
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   CreateWidgets();
+  ConnectWidgets();
   LoadMatchingXMLs();
 
   resize(QSize(400, 600));
@@ -57,6 +59,9 @@ RiivolutionBootWidget::~RiivolutionBootWidget() = default;
 
 void RiivolutionBootWidget::CreateWidgets()
 {
+#ifdef USE_RETRO_ACHIEVEMENTS
+  m_hc_warning = new HardcoreWarningWidget(this);
+#endif  // USE_RETRO_ACHIEVEMENTS
   auto* open_xml_button = new QPushButton(tr("Open Riivolution XML..."));
   auto* boot_game_button = new QPushButton(tr("Start"));
   boot_game_button->setDefault(true);
@@ -79,6 +84,9 @@ void RiivolutionBootWidget::CreateWidgets()
   button_layout->addWidget(boot_game_button, 0, Qt::AlignRight);
 
   auto* layout = new QVBoxLayout();
+#ifdef USE_RETRO_ACHIEVEMENTS
+  layout->addWidget(m_hc_warning);
+#endif  // USE_RETRO_ACHIEVEMENTS
   layout->addWidget(scroll_area);
   layout->addLayout(button_layout);
   setLayout(layout);
@@ -86,6 +94,16 @@ void RiivolutionBootWidget::CreateWidgets()
   connect(open_xml_button, &QPushButton::clicked, this, &RiivolutionBootWidget::OpenXML);
   connect(boot_game_button, &QPushButton::clicked, this, &RiivolutionBootWidget::BootGame);
   connect(save_preset_button, &QPushButton::clicked, this, &RiivolutionBootWidget::SaveAsPreset);
+}
+
+void RiivolutionBootWidget::ConnectWidgets()
+{
+#ifdef USE_RETRO_ACHIEVEMENTS
+  connect(m_hc_warning, &HardcoreWarningWidget::OpenAchievementSettings, this,
+          &RiivolutionBootWidget::OpenAchievementSettings);
+  connect(m_hc_warning, &HardcoreWarningWidget::OpenAchievementSettings, this,
+          &RiivolutionBootWidget::reject);
+#endif  // USE_RETRO_ACHIEVEMENTS
 }
 
 void RiivolutionBootWidget::LoadMatchingXMLs()

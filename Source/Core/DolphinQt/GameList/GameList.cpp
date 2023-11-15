@@ -552,6 +552,10 @@ void GameList::OpenProperties()
   connect(properties, &PropertiesDialog::OpenGeneralSettings, this, &GameList::OpenGeneralSettings);
   connect(properties, &PropertiesDialog::OpenGraphicsSettings, this,
           &GameList::OpenGraphicsSettings);
+#ifdef USE_RETRO_ACHIEVEMENTS
+  connect(properties, &PropertiesDialog::OpenAchievementSettings, this,
+          &GameList::OpenAchievementSettings);
+#endif  // USE_RETRO_ACHIEVEMENTS
 
   SetQWidgetWindowDecorations(properties);
   properties->show();
