@@ -361,8 +361,6 @@ private:
                                         TLUTFormat tlutfmt);
   void StitchXFBCopy(RcTcacheEntry& entry_to_update);
 
-  void DumpTexture(RcTcacheEntry& entry, std::string basename, unsigned int level,
-                   bool is_arbitrary);
   void CheckTempSize(size_t required_size);
 
   RcTcacheEntry AllocateCacheEntry(const TextureConfig& config);
