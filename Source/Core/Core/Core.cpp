@@ -750,7 +750,7 @@ State GetState()
   if (s_hardware_initialized)
   {
     auto& system = Core::System::GetInstance();
-    if (system.GetCPU().IsStepping() || s_frame_step)
+    if (system.GetCPU().IsStepping())
       return State::Paused;
 
     return State::Running;
