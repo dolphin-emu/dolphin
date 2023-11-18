@@ -783,7 +783,7 @@ static struct expr *expr_create(const char *s, size_t len,
             struct expr *p = &root;
             /* Assign macro parameters */
             for (int j = 0; j < vec_len(&arg.args); j++) {
-              char varname[12];
+              char varname[13];
               snprintf(varname, sizeof(varname), "$%d", (j + 1));
               struct expr_var *v = expr_get_var(vars, varname, strlen(varname));
               struct expr ev = expr_varref(v);
