@@ -3,10 +3,13 @@
 
 #include "Core/PowerPC/JitArm64/Jit.h"
 
+#include <array>
+
 #include "Common/Arm64Emitter.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+#include "Common/SmallVector.h"
 
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -231,10 +234,10 @@ void JitArm64::twx(UGeckoInstruction inst)
     CMP(gpr.R(a), gpr.R(inst.RB));
   }
 
-  std::vector<FixupBranch> fixups;
-  CCFlags conditions[] = {CC_LT, CC_GT, CC_EQ, CC_VC, CC_VS};
+  constexpr std::array<CCFlags, 5> conditions{{CC_LT, CC_GT, CC_EQ, CC_VC, CC_VS}};
+  Common::SmallVector<FixupBranch, conditions.size()> fixups;
 
-  for (int i = 0; i < 5; i++)
+  for (int i = 0; i < conditions.size(); i++)
   {
     if (inst.TO & (1 << i))
     {
