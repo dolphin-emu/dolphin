@@ -106,10 +106,13 @@ void Interpreter::Trace(const UGeckoInstruction& inst)
 
 bool Interpreter::HandleFunctionHooking(u32 address)
 {
-  return HLE::ReplaceFunctionIfPossible(address, [this](u32 hook_index, HLE::HookType type) {
-    HLEFunction(*this, hook_index);
-    return type != HLE::HookType::Start;
-  });
+  const auto result = HLE::TryReplaceFunction(address);
+  if (!result)
+    return false;
+
+  HLEFunction(*this, result.hook_index);
+
+  return result.type != HLE::HookType::Start;
 }
 
 int Interpreter::SingleStepInner()

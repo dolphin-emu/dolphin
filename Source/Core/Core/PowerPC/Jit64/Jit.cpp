@@ -1238,17 +1238,19 @@ void Jit64::IntializeSpeculativeConstants()
 
 bool Jit64::HandleFunctionHooking(u32 address)
 {
-  return HLE::ReplaceFunctionIfPossible(address, [&](u32 hook_index, HLE::HookType type) {
-    HLEFunction(hook_index);
+  const auto result = HLE::TryReplaceFunction(address);
+  if (!result)
+    return false;
 
-    if (type != HLE::HookType::Replace)
-      return false;
+  HLEFunction(result.hook_index);
 
-    MOV(32, R(RSCRATCH), PPCSTATE(npc));
-    js.downcountAmount += js.st.numCycles;
-    WriteExitDestInRSCRATCH();
-    return true;
-  });
+  if (result.type != HLE::HookType::Replace)
+    return false;
+
+  MOV(32, R(RSCRATCH), PPCSTATE(npc));
+  js.downcountAmount += js.st.numCycles;
+  WriteExitDestInRSCRATCH();
+  return true;
 }
 
 void LogGeneratedX86(size_t size, const PPCAnalyst::CodeBuffer& code_buffer, const u8* normalEntry,

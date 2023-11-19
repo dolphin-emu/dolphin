@@ -696,17 +696,19 @@ void JitArm64::WriteConditionalExceptionExit(int exception, ARM64Reg temp_gpr, A
 
 bool JitArm64::HandleFunctionHooking(u32 address)
 {
-  return HLE::ReplaceFunctionIfPossible(address, [&](u32 hook_index, HLE::HookType type) {
-    HLEFunction(hook_index);
+  const auto result = HLE::TryReplaceFunction(address);
+  if (!result)
+    return false;
 
-    if (type != HLE::HookType::Replace)
-      return false;
+  HLEFunction(result.hook_index);
 
-    LDR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
-    js.downcountAmount += js.st.numCycles;
-    WriteExit(DISPATCHER_PC);
-    return true;
-  });
+  if (result.type != HLE::HookType::Replace)
+    return false;
+
+  LDR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
+  js.downcountAmount += js.st.numCycles;
+  WriteExit(DISPATCHER_PC);
+  return true;
 }
 
 void JitArm64::DumpCode(const u8* start, const u8* end)

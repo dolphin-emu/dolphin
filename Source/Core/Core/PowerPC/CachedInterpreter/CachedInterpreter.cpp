@@ -269,17 +269,19 @@ bool CachedInterpreter::CheckIdle(CachedInterpreter& cached_interpreter, u32 idl
 
 bool CachedInterpreter::HandleFunctionHooking(u32 address)
 {
-  return HLE::ReplaceFunctionIfPossible(address, [&](u32 hook_index, HLE::HookType type) {
-    m_code.emplace_back(WritePC, address);
-    m_code.emplace_back(Interpreter::HLEFunction, hook_index);
+  const auto result = HLE::TryReplaceFunction(address);
+  if (!result)
+    return false;
 
-    if (type != HLE::HookType::Replace)
-      return false;
+  m_code.emplace_back(WritePC, address);
+  m_code.emplace_back(Interpreter::HLEFunction, result.hook_index);
 
-    m_code.emplace_back(EndBlock, js.downcountAmount);
-    m_code.emplace_back();
-    return true;
-  });
+  if (result.type != HLE::HookType::Replace)
+    return false;
+
+  m_code.emplace_back(EndBlock, js.downcountAmount);
+  m_code.emplace_back();
+  return true;
 }
 
 void CachedInterpreter::Jit(u32 address)

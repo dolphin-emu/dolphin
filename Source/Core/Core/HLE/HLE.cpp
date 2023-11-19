@@ -200,6 +200,23 @@ HookFlag GetHookFlagsByIndex(u32 index)
   return os_patches[index].flags;
 }
 
+TryReplaceFunctionResult TryReplaceFunction(u32 address)
+{
+  const u32 hook_index = GetHookByFunctionAddress(address);
+  if (hook_index == 0)
+    return {};
+
+  const HookType type = GetHookTypeByIndex(hook_index);
+  if (type != HookType::Start && type != HookType::Replace)
+    return {};
+
+  const HookFlag flags = GetHookFlagsByIndex(hook_index);
+  if (!IsEnabled(flags))
+    return {};
+
+  return {type, hook_index};
+}
+
 bool IsEnabled(HookFlag flag)
 {
   return flag != HLE::HookFlag::Debug || Config::Get(Config::MAIN_ENABLE_DEBUGGING) ||
