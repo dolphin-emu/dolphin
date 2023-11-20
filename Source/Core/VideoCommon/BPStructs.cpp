@@ -625,9 +625,8 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager,
 
       if (OpcodeDecoder::g_record_fifo_data)
         FifoRecorder::GetInstance().UseMemory(src_addr, bytes_read, MemoryUpdate::Type::TMEM);
-
-      TMEM::InvalidateAll();
     }
+    TMEM::InvalidateAll();
     return;
 
   // ---------------------------------------------------
