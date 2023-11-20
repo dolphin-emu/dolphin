@@ -9,6 +9,7 @@
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
+#include "Common/SmallVector.h"
 #include "Common/StringUtil.h"
 
 #include "Core/Config/SessionSettings.h"
@@ -189,7 +190,7 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
     break;
   }
 
-  std::vector<FixupBranch> nan_fixups;
+  Common::SmallVector<FixupBranch, 4> nan_fixups;
   if (m_accurate_nans)
   {
     // Check if we need to handle NaNs
@@ -205,7 +206,7 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
 
     EmitQuietNaNBitConstant(quiet_bit_reg, inputs_are_singles && output_is_single, temp_gpr);
 
-    std::vector<ARM64Reg> inputs;
+    Common::SmallVector<ARM64Reg, 3> inputs;
     inputs.push_back(VA);
     if (use_b && VA != VB)
       inputs.push_back(VB);

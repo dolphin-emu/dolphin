@@ -7,12 +7,12 @@
 #include <cmath>
 #include <limits>
 #include <optional>
-#include <vector>
 
 #include "Common/Assert.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
+#include "Common/SmallVector.h"
 #include "Common/x64Emitter.h"
 #include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
@@ -119,7 +119,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber, std::
     SetJumpTarget(handle_nan);
 
     // If any inputs are NaNs, pick the first NaN of them
-    std::vector<FixupBranch> fixups;
+    Common::SmallVector<FixupBranch, 3> fixups;
     const auto check_input = [&](const OpArg& Rx) {
       MOVDDUP(xmm, Rx);
       UCOMISD(xmm, R(xmm));
