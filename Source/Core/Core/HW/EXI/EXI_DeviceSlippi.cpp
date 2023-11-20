@@ -113,10 +113,10 @@ void appendHalfToBuffer(std::vector<u8>* buf, u16 word)
 std::string ConvertConnectCodeForGame(const std::string& input)
 {
   // Shift-Jis '#' symbol is two bytes (0x8194), followed by 0x00 null terminator
-  char full_width_shift_jis_hashtag[] = {-127, -108, 0};  // 0x81, 0x94, 0x00
+  signed char full_width_shift_jis_hashtag[] = {-127, -108, 0};  // 0x81, 0x94, 0x00
   std::string connect_code(input);
   // SLIPPITODO：Not the best use of ReplaceAll. potential bug if more than one '#' found.
-  connect_code = ReplaceAll(connect_code, "#", std::string(full_width_shift_jis_hashtag));
+  connect_code = ReplaceAll(connect_code, "#", std::string(reinterpret_cast<const char*>(full_width_shift_jis_hashtag)));
   // fixed length + full width (two byte) hashtag +1, null terminator +1
   connect_code.resize(CONNECT_CODE_LENGTH + 2);
   return connect_code;
