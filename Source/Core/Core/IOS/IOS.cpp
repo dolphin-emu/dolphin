@@ -654,7 +654,7 @@ std::shared_ptr<Device> EmulationKernel::GetDeviceByName(std::string_view device
   return iterator != m_device_map.end() ? iterator->second : nullptr;
 }
 
-std::shared_ptr<Device> EmulationKernel::GetDeviceByFileDescriptor(const int fd)
+std::shared_ptr<Device> EmulationKernel::GetDeviceByFileDescriptor(const u32 fd)
 {
   if (fd < IPC_MAX_FDS)
     return m_fdmap[fd];
