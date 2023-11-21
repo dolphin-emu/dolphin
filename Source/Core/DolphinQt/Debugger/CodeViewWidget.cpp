@@ -575,7 +575,6 @@ void CodeViewWidget::OnContextMenu()
 {
   QMenu* menu = new QMenu(this);
 
-  const bool running = Core::GetState() != Core::State::Uninitialized;
   const bool paused = Core::GetState() == Core::State::Paused;
 
   const u32 addr = GetContextAddress();
@@ -675,7 +674,7 @@ void CodeViewWidget::OnContextMenu()
   for (auto* action : {copy_address_action, copy_line_action, copy_hex_action, function_action,
                        ppc_action, insert_blr_action, insert_nop_action, replace_action})
   {
-    action->setEnabled(running);
+    action->setEnabled(paused);
   }
 
   symbol_edit_action->setEnabled(has_symbol);
@@ -686,7 +685,7 @@ void CodeViewWidget::OnContextMenu()
     action->setEnabled(valid_load_store);
   }
 
-  restore_action->setEnabled(running &&
+  restore_action->setEnabled(paused &&
                              m_system.GetPowerPC().GetDebugInterface().HasEnabledPatch(addr));
 
   menu->exec(QCursor::pos());
