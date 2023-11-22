@@ -114,6 +114,7 @@ void CodeWidget::CreateWidgets()
   m_search_address->setInsertPolicy(QComboBox::InsertAtTop);
   m_search_address->setDuplicatesEnabled(false);
   m_search_address->setEditable(true);
+  m_search_address->lineEdit()->setPlaceholderText(tr("Search Address"));
   m_search_address->setMaxVisibleItems(16);
   m_search_address->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred);
 

@@ -106,11 +106,11 @@ void MemoryWidget::CreateWidgets()
   m_search_address->setInsertPolicy(QComboBox::InsertAtTop);
   m_search_address->setDuplicatesEnabled(false);
   m_search_address->setEditable(true);
+  m_search_address->lineEdit()->setPlaceholderText(tr("Search Address"));
   m_search_address->setMaxVisibleItems(8);
   m_search_offset = new QLineEdit;
 
   m_search_offset->setMaxLength(9);
-  m_search_address->setPlaceholderText(tr("Search Address"));
   m_search_offset->setPlaceholderText(tr("Offset"));
 
   m_address_splitter->addWidget(m_search_address);
