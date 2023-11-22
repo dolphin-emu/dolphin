@@ -18,8 +18,9 @@ endif()
 
 if (NOT MSVC)
   set(CMAKE_C_STANDARD 99)
-  set(CMAKE_CXX_STANDARD 11)
+  set(CMAKE_CXX_STANDARD 17)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
+  set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 endif()
 
 if(USE_SANITIZERS)
@@ -56,8 +57,8 @@ if(NOT MSVC)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wno-unused-parameter")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-unused-parameter -fno-exceptions -fno-rtti")
 else()
-  #string(REPLACE "/GR" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}) # Disable RTTI
-  #string(REPLACE "/EHsc" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}) # Disable Exceptions
+  #string(REPLACE "/GR" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}") # Disable RTTI
+  #string(REPLACE "/EHsc" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}") # Disable Exceptions
 endif()
 
 add_library(cubeb
@@ -157,6 +158,10 @@ if(LAZY_LOAD_LIBS)
 
   if(USE_PULSE OR USE_ALSA OR USE_JACK OR USE_SNDIO OR USE_AAUDIO)
     target_link_libraries(cubeb PRIVATE ${CMAKE_DL_LIBS})
+
+    if(ANDROID)
+      target_compile_definitions(cubeb PRIVATE __ANDROID_UNAVAILABLE_SYMBOLS_ARE_WEAK__)
+    endif()
   endif()
 
 else()
@@ -262,7 +267,7 @@ endif()
 check_include_files(SLES/OpenSLES.h USE_OPENSL)
 if(USE_OPENSL)
   target_sources(cubeb PRIVATE
-    cubeb/src/cubeb_opensl.c
+    cubeb/src/cubeb_opensl.cpp
     cubeb/src/cubeb-jni.cpp)
   target_compile_definitions(cubeb PRIVATE USE_OPENSL)
   target_link_libraries(cubeb PRIVATE OpenSLES)

@@ -12,6 +12,7 @@
     <ClInclude Include="..\cubeb\src\cubeb_ring_array.h" />
     <ClInclude Include="..\cubeb\src\cubeb_ringbuffer.h" />
     <ClInclude Include="..\cubeb\src\cubeb_strings.h" />
+    <ClInclude Include="..\cubeb\src\cubeb_triple_buffer.h" />
     <ClInclude Include="..\cubeb\src\cubeb_utils.h" />
     <ClInclude Include="..\cubeb\src\cubeb_utils_unix.h" />
     <ClInclude Include="..\cubeb\src\cubeb_utils_win.h" />
