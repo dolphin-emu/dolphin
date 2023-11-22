@@ -11,12 +11,14 @@
 #include "DolphinQt/Debugger/CodeViewWidget.h"
 
 class QCloseEvent;
+class QComboBox;
 class QLineEdit;
 class QShowEvent;
 class QSplitter;
 class QListWidget;
 class QPushButton;
 class QTableWidget;
+class QToolButton;
 
 namespace Common
 {
@@ -76,7 +78,9 @@ private:
   Core::System& m_system;
 
   CodeDiffDialog* m_diff_dialog = nullptr;
-  QLineEdit* m_search_address;
+  QComboBox* m_search_address;
+  QToolButton* m_save_address_btn;
+  QToolButton* m_lock_btn;
   QPushButton* m_code_diff;
 
   QLineEdit* m_search_callstack;

@@ -176,11 +176,13 @@ CodeViewWidget::CodeViewWidget() : m_system(Core::System::GetInstance())
           &CodeViewWidget::FontBasedSizing);
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this] {
-    m_address = m_system.GetPPCState().pc;
+    if (!m_lock_address && Core::GetState() == Core::State::Paused)
+      m_address = m_system.GetPPCState().pc;
     Update();
   });
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, [this] {
-    m_address = m_system.GetPPCState().pc;
+    if (!m_lock_address && Core::GetState() == Core::State::Paused)
+      m_address = m_system.GetPPCState().pc;
     Update();
   });
 
@@ -531,6 +533,11 @@ void CodeViewWidget::CalculateBranchIndentation()
 u32 CodeViewWidget::GetAddress() const
 {
   return m_address;
+}
+
+void CodeViewWidget::OnLockAddress(bool lock)
+{
+  m_lock_address = lock;
 }
 
 void CodeViewWidget::SetAddress(u32 address, SetAddressUpdate update)

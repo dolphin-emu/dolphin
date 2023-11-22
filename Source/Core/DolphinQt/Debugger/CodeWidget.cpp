@@ -7,6 +7,7 @@
 
 #include <fmt/format.h>
 
+#include <QComboBox>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QGuiApplication>
@@ -18,6 +19,7 @@
 #include <QStyleHints>
 #include <QTabWidget>
 #include <QTableWidget>
+#include <QToolButton>
 #include <QVBoxLayout>
 #include <QWidget>
 
@@ -31,6 +33,7 @@
 #include "Core/System.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
+#include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
 static const QString BOX_SPLITTER_STYLESHEET = QStringLiteral(
@@ -59,7 +62,7 @@ CodeWidget::CodeWidget(QWidget* parent) : QDockWidget(parent), m_system(Core::Sy
           [this](bool visible) { setHidden(!visible); });
 
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, [this] {
-    if (Core::GetState() == Core::State::Paused)
+    if (!m_lock_btn->isChecked() && Core::GetState() == Core::State::Paused)
       SetAddress(m_system.GetPPCState().pc, CodeViewWidget::SetAddressUpdate::WithoutUpdate);
     Update();
   });
@@ -107,8 +110,28 @@ void CodeWidget::CreateWidgets()
   layout->setSpacing(0);
 
   auto* top_layout = new QHBoxLayout;
+  m_search_address = new QComboBox;
+  m_search_address->setInsertPolicy(QComboBox::InsertAtTop);
+  m_search_address->setDuplicatesEnabled(false);
+  m_search_address->setEditable(true);
+  m_search_address->setMaxVisibleItems(16);
+  m_search_address->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred);
+
+  m_save_address_btn = new QToolButton();
+  m_save_address_btn->setIcon(Resources::GetThemeIcon("debugger_save"));
+  // 24 is a standard button height.
+  m_save_address_btn->setMinimumSize(24, 24);
+
+  m_lock_btn = new QToolButton();
+  m_lock_btn->setIcon(Resources::GetThemeIcon("pause"));
+  m_lock_btn->setCheckable(true);
+  m_lock_btn->setMinimumSize(24, 24);
+
   m_code_diff = new QPushButton(tr("Diff"));
+
   top_layout->addWidget(m_search_address);
+  top_layout->addWidget(m_save_address_btn);
+  top_layout->addWidget(m_lock_btn);
   top_layout->addWidget(m_code_diff);
 
   auto* right_layout = new QVBoxLayout;
@@ -188,9 +211,16 @@ void CodeWidget::ConnectWidgets()
           });
 #endif
 
-  connect(m_search_address, &QLineEdit::textChanged, this, &CodeWidget::OnSearchAddress);
-  connect(m_search_address, &QLineEdit::returnPressed, this, &CodeWidget::OnSearchAddress);
+  connect(m_search_address, &QComboBox::currentTextChanged, this, &CodeWidget::OnSearchAddress);
+  connect(m_search_address, &QComboBox::activated, this, &CodeWidget::OnSearchAddress);
   connect(m_search_symbols, &QLineEdit::textChanged, this, &CodeWidget::OnSearchSymbols);
+  connect(m_save_address_btn, &QPushButton::pressed, this, [this]() {
+    const QString address = QString::number(m_code_view->GetAddress(), 16);
+    if (m_search_address->findText(address) == -1)
+      m_search_address->insertItem(0, address);
+  });
+  connect(m_lock_btn, &QPushButton::toggled, this,
+          [this](bool checked) { m_code_view->OnLockAddress(checked); });
   connect(m_search_calls, &QLineEdit::textChanged, this, [this]() {
     const Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(m_code_view->GetAddress());
     if (symbol)
@@ -247,12 +277,12 @@ void CodeWidget::OnDiff()
 void CodeWidget::OnSearchAddress()
 {
   bool good = true;
-  u32 address = m_search_address->text().toUInt(&good, 16);
+  u32 address = m_search_address->currentText().toUInt(&good, 16);
 
   QPalette palette;
   QFont font;
 
-  if (!good && !m_search_address->text().isEmpty())
+  if (!good && !m_search_address->currentText().isEmpty())
   {
     font.setBold(true);
     palette.setColor(QPalette::Text, Qt::red);
