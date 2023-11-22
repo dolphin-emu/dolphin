@@ -160,7 +160,7 @@ void CodeDiffDialog::ClearBlockCache()
   Core::State old_state = Core::GetState();
 
   if (old_state == Core::State::Running)
-    Core::SetState(Core::State::Paused);
+    Core::SetState(Core::State::Paused, false);
 
   Core::System::GetInstance().GetJitInterface().ClearCache();
 
@@ -349,7 +349,7 @@ void CodeDiffDialog::Update(bool include)
   // Wrap everything in a pause
   Core::State old_state = Core::GetState();
   if (old_state == Core::State::Running)
-    Core::SetState(Core::State::Paused);
+    Core::SetState(Core::State::Paused, false);
 
   // Main process
   if (include)

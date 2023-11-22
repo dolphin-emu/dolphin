@@ -712,7 +712,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
 
 // Set or get the running state
 
-void SetState(State state)
+void SetState(State state, bool report_state_change)
 {
   // State cannot be controlled until the CPU Thread is operational
   if (!IsRunningAndStarted())
@@ -739,7 +739,10 @@ void SetState(State state)
     break;
   }
 
-  CallOnStateChangedCallbacks(GetState());
+  // Certain callers only change the state momentarily. Sending a callback for them causes
+  // unwanted updates, such as the Pause/Play button flickering between states on frame advance.
+  if (report_state_change)
+    CallOnStateChangedCallbacks(GetState());
 }
 
 State GetState()
@@ -750,7 +753,7 @@ State GetState()
   if (s_hardware_initialized)
   {
     auto& system = Core::System::GetInstance();
-    if (system.GetCPU().IsStepping() || s_frame_step)
+    if (system.GetCPU().IsStepping())
       return State::Paused;
 
     return State::Running;
@@ -1083,7 +1086,7 @@ void DoFrameStep()
     // if already paused, frame advance for 1 frame
     s_stop_frame_step = false;
     s_frame_step = true;
-    SetState(State::Running);
+    SetState(State::Running, false);
   }
   else if (!s_frame_step)
   {
