@@ -7,10 +7,11 @@
 #include <QClipboard>
 #include <QHBoxLayout>
 #include <QHeaderView>
+#include <QLineEdit>
 #include <QMenu>
 #include <QMouseEvent>
 #include <QScrollBar>
-#include <QSignalBlocker>
+#include <QStyledItemDelegate>
 #include <QTableWidget>
 #include <QtGlobal>
 
@@ -49,6 +50,15 @@ constexpr int SCROLLBAR_CENTER = SCROLLBAR_MAXIMUM / 2;
 
 const QString INVALID_MEMORY = QStringLiteral("-");
 
+void TableEditDelegate::setModelData(QWidget* editor, QAbstractItemModel* model,
+                                     const QModelIndex& index) const
+{
+  // Triggers on placing data into a cell. Editor has the text to be input, index has the
+  // location.
+  const QString input = qobject_cast<QLineEdit*>(editor)->text();
+  emit editFinished(index.row(), index.column(), input);
+}
+
 class MemoryViewTable final : public QTableWidget
 {
 public:
@@ -63,6 +73,11 @@ public:
     setSelectionMode(NoSelection);
     setTextElideMode(Qt::TextElideMode::ElideNone);
 
+    // Route user's direct cell inputs to an editFinished signal. Much better than an itemChanged
+    // signal and QSignalBlock juggling.
+    TableEditDelegate* table_edit_delegate = new TableEditDelegate(this);
+    setItemDelegate(table_edit_delegate);
+
     // Prevent colors from changing based on focus.
     QPalette palette(m_view->palette());
     palette.setBrush(QPalette::Inactive, QPalette::Highlight, palette.brush(QPalette::Highlight));
@@ -75,7 +90,8 @@ public:
 
     connect(this, &MemoryViewTable::customContextMenuRequested, m_view,
             &MemoryViewWidget::OnContextMenu);
-    connect(this, &MemoryViewTable::itemChanged, this, &MemoryViewTable::OnItemChanged);
+    connect(table_edit_delegate, &TableEditDelegate::editFinished, this,
+            &MemoryViewTable::OnDirectTableEdit);
   }
 
   void resizeEvent(QResizeEvent* event) override
@@ -143,9 +159,9 @@ public:
     }
   }
 
-  void OnItemChanged(QTableWidgetItem* item)
+  void OnDirectTableEdit(const int row, const int column, const QString& text)
   {
-    QString text = item->text();
+    QTableWidgetItem* item = this->item(row, column);
     MemoryViewWidget::Type type =
         static_cast<MemoryViewWidget::Type>(item->data(USER_ROLE_VALUE_TYPE).toInt());
     std::vector<u8> bytes = m_view->ConvertTextToBytes(type, text);
@@ -154,13 +170,15 @@ public:
     u32 end_address = address + static_cast<u32>(bytes.size()) - 1;
     AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_view->GetAddressSpace());
 
-    Core::CPUThreadGuard guard(Core::System::GetInstance());
-
-    if (!bytes.empty() && accessors->IsValidAddress(guard, address) &&
-        accessors->IsValidAddress(guard, end_address))
     {
-      for (const u8 c : bytes)
-        accessors->WriteU8(guard, address++, c);
+      Core::CPUThreadGuard guard(Core::System::GetInstance());
+
+      if (!bytes.empty() && accessors->IsValidAddress(guard, address) &&
+          accessors->IsValidAddress(guard, end_address))
+      {
+        for (const u8 c : bytes)
+          accessors->WriteU8(guard, address++, c);
+      }
     }
 
     m_view->Update();
@@ -287,8 +305,6 @@ void MemoryViewWidget::CreateTable()
   m_table->verticalHeader()->setMinimumSectionSize(m_font_vspace);
   m_table->horizontalHeader()->setMinimumSectionSize(m_font_width * 2);
 
-  const QSignalBlocker blocker(m_table);
-
   // Set column and row parameters.
   // Span is the number of unique memory values covered in one row.
   const int data_span = m_bytes_per_row / GetTypeSize(m_type);
@@ -393,7 +409,6 @@ void MemoryViewWidget::Update()
   if (m_table->item(1, 1) == nullptr)
     return;
 
-  const QSignalBlocker blocker(m_table);
   m_table->clearSelection();
 
   // Update addresses
@@ -458,8 +473,6 @@ void MemoryViewWidget::UpdateColumns(const Core::CPUThreadGuard* guard)
   // Check if table is created
   if (m_table->item(1, 1) == nullptr)
     return;
-
-  const QSignalBlocker blocker(m_table);
 
   for (int i = 0; i < m_table->rowCount(); i++)
   {
