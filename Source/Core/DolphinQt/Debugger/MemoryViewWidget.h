@@ -81,6 +81,8 @@ public:
   void SetAddressSpace(AddressSpace::Type address_space);
   AddressSpace::Type GetAddressSpace() const;
   void SetDisplay(Type type, int bytes_per_row, int alignment, bool dual_view);
+  void ToggleHighlights(bool enabled);
+  void SetHighlightColor();
   void SetBPType(BPType type);
   void SetAddress(u32 address);
   void SetFocus() const;
@@ -101,7 +103,7 @@ private:
   void UpdateColumns(const Core::CPUThreadGuard* guard);
   void ScrollbarActionTriggered(int action);
   void ScrollbarSliderReleased();
-  QString ValueToString(const Core::CPUThreadGuard& guard, u32 address, Type type);
+  std::optional<QString> ValueToString(const Core::CPUThreadGuard& guard, u32 address, Type type);
 
   Core::System& m_system;
 
@@ -120,6 +122,7 @@ private:
   int m_data_columns;
   bool m_dual_view = false;
   bool m_updating = false;
+  QColor m_highlight_color = QColor(120, 255, 255, 100);
 
   friend class MemoryViewTable;
 };

@@ -114,4 +114,6 @@ private:
   QRadioButton* m_bp_write_only;
   QCheckBox* m_bp_log_check;
   Common::EventHook m_VI_end_field_event;
+
+  bool m_auto_update_enabled = true;
 };

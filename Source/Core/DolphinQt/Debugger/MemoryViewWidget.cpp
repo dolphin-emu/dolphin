@@ -5,6 +5,7 @@
 
 #include <QApplication>
 #include <QClipboard>
+#include <QColorDialog>
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QLineEdit>
@@ -40,6 +41,7 @@ constexpr int MISC_COLUMNS = 2;
 constexpr auto USER_ROLE_IS_ROW_BREAKPOINT_CELL = Qt::UserRole;
 constexpr auto USER_ROLE_CELL_ADDRESS = Qt::UserRole + 1;
 constexpr auto USER_ROLE_VALUE_TYPE = Qt::UserRole + 2;
+constexpr auto USER_ROLE_VALID_ADDRESS = Qt::UserRole + 3;
 
 // Numbers for the scrollbar. These affect how much big the draggable part of the scrollbar is, how
 // smooth it scrolls, and how much memory it traverses while dragging.
@@ -441,6 +443,10 @@ void MemoryViewWidget::Update()
         item_address = row_address + c * GetTypeSize(m_type);
 
       item->setData(USER_ROLE_CELL_ADDRESS, item_address);
+
+      // Reset highlighting.
+      item->setBackground(Qt::transparent);
+      item->setData(USER_ROLE_VALID_ADDRESS, false);
     }
   }
 
@@ -502,11 +508,48 @@ void MemoryViewWidget::UpdateColumns(const Core::CPUThreadGuard* guard)
       const u32 cell_address = cell_item->data(USER_ROLE_CELL_ADDRESS).toUInt();
       const Type type = static_cast<Type>(cell_item->data(USER_ROLE_VALUE_TYPE).toInt());
 
-      cell_item->setText(guard ? ValueToString(*guard, cell_address, type) : INVALID_MEMORY);
+      std::optional<QString> new_text =
+          guard ? ValueToString(*guard, cell_address, type) : std::nullopt;
 
       // Set search address to selected / colored
       if (cell_address == m_address_highlight)
         cell_item->setSelected(true);
+
+      // Color recently changed items.
+      QColor bcolor = cell_item->background().color();
+      const bool valid = cell_item->data(USER_ROLE_VALID_ADDRESS).toBool();
+
+      // It gets a bit complicated, because invalid addresses becoming valid should not be
+      // colored.
+      if (!new_text.has_value())
+      {
+        cell_item->setBackground(Qt::transparent);
+        cell_item->setData(USER_ROLE_VALID_ADDRESS, false);
+        cell_item->setText(INVALID_MEMORY);
+      }
+      else if (!valid)
+      {
+        // Wasn't valid on last update, is valid now.
+        cell_item->setData(USER_ROLE_VALID_ADDRESS, true);
+        cell_item->setText(new_text.value());
+      }
+      else if (bcolor.rgb() != m_highlight_color.rgb() && bcolor != Qt::transparent)
+      {
+        // Filter out colors that shouldn't change, such as breakpoints.
+        cell_item->setText(new_text.value());
+      }
+      else if (cell_item->text() != new_text.value())
+      {
+        // Cell changed, apply highlighting.
+        cell_item->setBackground(m_highlight_color);
+        cell_item->setText(new_text.value());
+      }
+      else if (bcolor.alpha() > 0)
+      {
+        // Fade out highlighting each frame.
+        bcolor.setAlpha(bcolor.alpha() - 1);
+        cell_item->setBackground(bcolor);
+      }
     }
   }
 
@@ -514,11 +557,12 @@ void MemoryViewWidget::UpdateColumns(const Core::CPUThreadGuard* guard)
 }
 
 // May only be called if we have taken on the role of the CPU thread
-QString MemoryViewWidget::ValueToString(const Core::CPUThreadGuard& guard, u32 address, Type type)
+std::optional<QString> MemoryViewWidget::ValueToString(const Core::CPUThreadGuard& guard,
+                                                       u32 address, Type type)
 {
   const AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_address_space);
   if (!accessors->IsValidAddress(guard, address))
-    return INVALID_MEMORY;
+    return std::nullopt;
 
   switch (type)
   {
@@ -580,7 +624,7 @@ QString MemoryViewWidget::ValueToString(const Core::CPUThreadGuard& guard, u32 a
     return string;
   }
   default:
-    return INVALID_MEMORY;
+    return std::nullopt;
   }
 }
 
@@ -607,10 +651,6 @@ void MemoryViewWidget::UpdateBreakpointTags()
       {
         row_breakpoint = true;
         cell->setBackground(Qt::red);
-      }
-      else
-      {
-        cell->setBackground(Qt::transparent);
       }
     }
 
@@ -808,6 +848,54 @@ void MemoryViewWidget::SetDisplay(Type type, int bytes_per_row, int alignment, b
     m_alignment = alignment;
 
   CreateTable();
+}
+
+void MemoryViewWidget::ToggleHighlights(bool enabled)
+{
+  // m_highlight_color should hold the current highlight color even when disabled, so it can
+  // be used if re-enabled. If modifying the enabled alpha, change in .h file as well.
+  if (enabled)
+  {
+    m_highlight_color.setAlpha(100);
+  }
+  else
+  {
+    // Treated as being interchangable with Qt::transparent.
+    m_highlight_color.setAlpha(0);
+
+    // Immediately remove highlights when paused.
+    for (int i = 0; i < m_table->rowCount(); i++)
+    {
+      for (int c = 0; c < m_data_columns; c++)
+        m_table->item(i, c + MISC_COLUMNS)->setBackground(m_highlight_color);
+    }
+  }
+}
+
+void MemoryViewWidget::SetHighlightColor()
+{
+  // Could allow custom alphas to be set, which would change fade-out rate.
+  QColor color = QColorDialog::getColor(m_highlight_color);
+  if (!color.isValid())
+    return;
+
+  const bool enabled = m_highlight_color.alpha() != 0;
+  m_highlight_color = color;
+  m_highlight_color.setAlpha(enabled ? 100 : 0);
+  if (!enabled)
+    return;
+
+  // Immediately update colors. Only useful for playing with colors while paused.
+  for (int i = 0; i < m_table->rowCount(); i++)
+  {
+    for (int c = 0; c < m_data_columns; c++)
+    {
+      auto* item = m_table->item(i, c + MISC_COLUMNS);
+      // Get current cell alpha state.
+      color.setAlpha(item->background().color().alpha());
+      m_table->item(i, c + MISC_COLUMNS)->setBackground(color);
+    }
+  }
 }
 
 void MemoryViewWidget::SetBPType(BPType type)
