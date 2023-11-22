@@ -215,8 +215,13 @@ MemoryViewWidget::MemoryViewWidget(QWidget* parent)
   connect(&Settings::Instance(), &Settings::DebugFontChanged, this, &MemoryViewWidget::UpdateFont);
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           qOverload<>(&MemoryViewWidget::UpdateColumns));
-  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this,
-          qOverload<>(&MemoryViewWidget::UpdateColumns));
+  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, [this] {
+    // Disasm spam will break updates while running. Only need it for things like steps when paused
+    // and breaks which trigger a pause.
+    if (Core::GetState() != Core::State::Running)
+      UpdateColumns();
+  });
+
   connect(&Settings::Instance(), &Settings::ThemeChanged, this, &MemoryViewWidget::Update);
 
   // Also calls create table.
@@ -447,23 +452,36 @@ void MemoryViewWidget::Update()
   update();
 }
 
+void MemoryViewWidget::UpdateOnFrameEnd()
+{
+  if (!isVisible() || m_updating)
+    return;
+
+  if (m_table->item(1, 1) == nullptr)
+    return;
+
+  Core::CPUThreadGuard guard(Core::System::GetInstance());
+  UpdateColumns(&guard);
+}
+
 void MemoryViewWidget::UpdateColumns()
 {
-  if (!isVisible())
+  if (!isVisible() || m_updating)
     return;
 
   // Check if table is created
   if (m_table->item(1, 1) == nullptr)
     return;
 
-  if (Core::GetState() == Core::State::Paused)
+  Core::State state = Core::GetState();
+  if (state == Core::State::Paused)
   {
     Core::CPUThreadGuard guard(Core::System::GetInstance());
     UpdateColumns(&guard);
   }
-  else
+  else if (state != Core::State::Running)
   {
-    // If the core is running, blank out the view of memory instead of reading anything.
+    // Blank out memory.
     UpdateColumns(nullptr);
   }
 }
@@ -471,8 +489,10 @@ void MemoryViewWidget::UpdateColumns()
 void MemoryViewWidget::UpdateColumns(const Core::CPUThreadGuard* guard)
 {
   // Check if table is created
-  if (m_table->item(1, 1) == nullptr)
+  if (m_table->item(1, 1) == nullptr || m_updating)
     return;
+
+  m_updating = true;
 
   for (int i = 0; i < m_table->rowCount(); i++)
   {
@@ -489,6 +509,8 @@ void MemoryViewWidget::UpdateColumns(const Core::CPUThreadGuard* guard)
         cell_item->setSelected(true);
     }
   }
+
+  m_updating = false;
 }
 
 // May only be called if we have taken on the role of the CPU thread
