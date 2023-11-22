@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <QStyledItemDelegate>
 #include <QWidget>
 
 #include "Common/CommonTypes.h"
@@ -21,6 +22,21 @@ namespace Core
 class CPUThreadGuard;
 class System;
 }  // namespace Core
+
+// Captures direct editing of the table.
+class TableEditDelegate : public QStyledItemDelegate
+{
+  Q_OBJECT
+
+public:
+  explicit TableEditDelegate(QObject* parent) : QStyledItemDelegate(parent) {}
+
+  void setModelData(QWidget* editor, QAbstractItemModel* model,
+                    const QModelIndex& index) const override;
+
+signals:
+  void editFinished(const int row, const int column, const QString& text) const;
+};
 
 class MemoryViewTable;
 
