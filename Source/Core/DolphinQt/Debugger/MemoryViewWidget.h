@@ -73,6 +73,7 @@ public:
 
   void CreateTable();
   void Update();
+  void UpdateOnFrameEnd();
   void UpdateFont();
   void ToggleBreakpoint(u32 addr, bool row);
 
@@ -118,6 +119,7 @@ private:
   int m_alignment = 16;
   int m_data_columns;
   bool m_dual_view = false;
+  bool m_updating = false;
 
   friend class MemoryViewTable;
 };
