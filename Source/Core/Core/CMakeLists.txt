@@ -794,3 +794,7 @@ endif()
 if(NOT MSVC)
   target_compile_options(core PRIVATE -Wno-invalid-offsetof)
 endif()
+
+if(USE_ASAN)
+  set_source_files_properties(MemTools.cpp PROPERTIES COMPILE_DEFINITIONS USE_ASAN)
+endif()

@@ -102,7 +102,11 @@ static LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 void InstallExceptionHandler()
 {
   ASSERT(!s_veh_handle);
+#ifdef USE_ASAN
+  s_veh_handle = AddVectoredExceptionHandler(FALSE, Handler);
+#else
   s_veh_handle = AddVectoredExceptionHandler(TRUE, Handler);
+#endif
   ASSERT(s_veh_handle);
 }
 
