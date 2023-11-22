@@ -106,11 +106,15 @@ void CodeWidget::CreateWidgets()
   layout->setContentsMargins(2, 2, 2, 2);
   layout->setSpacing(0);
 
-  m_search_address = new QLineEdit;
+  auto* top_layout = new QHBoxLayout;
   m_code_diff = new QPushButton(tr("Diff"));
-  m_code_view = new CodeViewWidget;
+  top_layout->addWidget(m_search_address);
+  top_layout->addWidget(m_code_diff);
 
-  m_search_address->setPlaceholderText(tr("Search Address"));
+  auto* right_layout = new QVBoxLayout;
+  m_code_view = new CodeViewWidget;
+  right_layout->addLayout(top_layout);
+  right_layout->addWidget(m_code_view);
 
   m_box_splitter = new QSplitter(Qt::Vertical);
   m_box_splitter->setStyleSheet(BOX_SPLITTER_STYLESHEET);
@@ -161,12 +165,14 @@ void CodeWidget::CreateWidgets()
 
   m_code_splitter = new QSplitter(Qt::Horizontal);
 
-  m_code_splitter->addWidget(m_box_splitter);
-  m_code_splitter->addWidget(m_code_view);
+  // Wrap to widget for splitter
+  QWidget* right_widget = new QWidget;
+  right_widget->setLayout(right_layout);
 
-  layout->addWidget(m_search_address, 0, 0);
-  layout->addWidget(m_code_diff, 0, 2);
-  layout->addWidget(m_code_splitter, 1, 0, -1, -1);
+  m_code_splitter->addWidget(m_box_splitter);
+  m_code_splitter->addWidget(right_widget);
+
+  layout->addWidget(m_code_splitter, 0, 0, -1, -1);
 
   QWidget* widget = new QWidget(this);
   widget->setLayout(layout);
