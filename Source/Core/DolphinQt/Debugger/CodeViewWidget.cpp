@@ -201,18 +201,6 @@ CodeViewWidget::CodeViewWidget() : m_system(Core::System::GetInstance())
   connect(&Settings::Instance(), &Settings::DebugFontChanged, this,
           &CodeViewWidget::FontBasedSizing);
 
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this] {
-    if (!m_lock_address && Core::GetState() == Core::State::Paused)
-      m_address = m_system.GetPPCState().pc;
-    m_refresh = true;
-    Update();
-  });
-  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, [this] {
-    if (!m_lock_address && Core::GetState() == Core::State::Paused)
-      m_address = m_system.GetPPCState().pc;
-    Update();
-  });
-
   connect(&Settings::Instance(), &Settings::ThemeChanged, this,
           qOverload<>(&CodeViewWidget::Update));
 }
@@ -294,7 +282,8 @@ void CodeViewWidget::Update()
   if (m_updating)
     return;
 
-  if (Core::GetState() == Core::State::Paused)
+  Core::State state = Core::GetState();
+  if (state == Core::State::Paused || state == Core::State::Running)
   {
     Core::CPUThreadGuard guard(m_system);
     Update(&guard);

@@ -62,9 +62,12 @@ CodeWidget::CodeWidget(QWidget* parent) : QDockWidget(parent), m_system(Core::Sy
           [this](bool visible) { setHidden(!visible); });
 
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, [this] {
-    if (!m_lock_btn->isChecked() && Core::GetState() == Core::State::Paused)
-      SetAddress(m_system.GetPPCState().pc, CodeViewWidget::SetAddressUpdate::WithoutUpdate);
-    Update();
+    if (Core::GetState() != Core::State::Running)
+    {
+      if (!m_lock_btn->isChecked())
+        SetAddress(m_system.GetPPCState().pc, CodeViewWidget::SetAddressUpdate::WithoutUpdate);
+      Update();
+    }
   });
 
   connect(Host::GetInstance(), &Host::NotifyMapLoaded, this, &CodeWidget::UpdateSymbols);
@@ -72,7 +75,14 @@ CodeWidget::CodeWidget(QWidget* parent) : QDockWidget(parent), m_system(Core::Sy
   connect(&Settings::Instance(), &Settings::DebugModeToggled, this,
           [this](bool enabled) { setHidden(!enabled || !Settings::Instance().IsCodeVisible()); });
 
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, &CodeWidget::Update);
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this] {
+    if (Core::GetState() == Core::State::Paused)
+    {
+      if (!m_lock_btn->isChecked())
+        SetAddress(m_system.GetPPCState().pc, CodeViewWidget::SetAddressUpdate::WithoutUpdate);
+      Update();
+    }
+  });
 
   ConnectWidgets();
 
@@ -117,6 +127,7 @@ void CodeWidget::CreateWidgets()
   m_search_address->lineEdit()->setPlaceholderText(tr("Search Address"));
   m_search_address->setMaxVisibleItems(16);
   m_search_address->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred);
+  m_search_address->lineEdit()->setPlaceholderText(tr("Search Address"));
 
   m_save_address_btn = new QToolButton();
   m_save_address_btn->setIcon(Resources::GetThemeIcon("debugger_save"));
