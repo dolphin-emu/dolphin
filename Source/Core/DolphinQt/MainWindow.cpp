@@ -227,9 +227,6 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
   setAcceptDrops(true);
   setAttribute(Qt::WA_NativeWindow);
 
-  m_debug_enabled = Settings::Instance().IsDebugModeEnabled();
-  Settings::Instance().SetDebugModeEnabled(false);
-
   InitControllers();
   CreateComponents();
 
@@ -294,7 +291,12 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
   QSettings& settings = Settings::GetQSettings();
 
   restoreState(settings.value(QStringLiteral("mainwindow/state")).toByteArray());
-  restoreGeometry(settings.value(QStringLiteral("mainwindow/geometry")).toByteArray());
+  QRect geometry =
+      settings.value(QStringLiteral("mainwindow/geometry"), QRect{0, 0, 0, 0}).toRect();
+  if (geometry == QRect{0, 0, 0, 0})
+    showMaximized();
+  else
+    setGeometry(geometry);
 
   m_render_widget_geometry = settings.value(QStringLiteral("renderwidget/geometry")).toByteArray();
 
@@ -348,7 +350,7 @@ MainWindow::~MainWindow()
   QSettings& settings = Settings::GetQSettings();
 
   settings.setValue(QStringLiteral("mainwindow/state"), saveState());
-  settings.setValue(QStringLiteral("mainwindow/geometry"), saveGeometry());
+  settings.setValue(QStringLiteral("mainwindow/geometry"), geometry());
 
   settings.setValue(QStringLiteral("renderwidget/geometry"), m_render_widget_geometry);
 
@@ -2067,8 +2069,6 @@ void MainWindow::Show()
     SetQWidgetWindowDecorations(this);
     QWidget::show();
   }
-
-  Settings::Instance().SetDebugModeEnabled(m_debug_enabled);
 
   // If the booting of a game was requested on start up, do that now
   if (m_pending_boot != nullptr)
