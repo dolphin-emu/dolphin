@@ -235,6 +235,7 @@ private:
   bool m_exit_requested = false;
   bool m_fullscreen_requested = false;
   bool m_is_screensaver_inhibited = false;
+  bool m_debug_enabled = true;
   u32 m_state_slot = 1;
   std::unique_ptr<BootParameters> m_pending_boot;
 

@@ -227,8 +227,10 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
   setAcceptDrops(true);
   setAttribute(Qt::WA_NativeWindow);
 
-  InitControllers();
+  m_debug_enabled = Settings::Instance().IsDebugModeEnabled();
+  Settings::Instance().SetDebugModeEnabled(false);
 
+  InitControllers();
   CreateComponents();
 
   ConnectGameList();
@@ -2065,6 +2067,8 @@ void MainWindow::Show()
     SetQWidgetWindowDecorations(this);
     QWidget::show();
   }
+
+  Settings::Instance().SetDebugModeEnabled(m_debug_enabled);
 
   // If the booting of a game was requested on start up, do that now
   if (m_pending_boot != nullptr)
