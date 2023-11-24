@@ -231,7 +231,7 @@ void CodeViewWidget::FontBasedSizing()
   horizontalHeader()->setMinimumSectionSize(rowh + 5);
   setColumnWidth(CODE_VIEW_COLUMN_BREAKPOINT, rowh + 5);
   setColumnWidth(CODE_VIEW_COLUMN_ADDRESS,
-                 fm.boundingRect(QStringLiteral("80000000")).width() + extra_text_width);
+                 fm.boundingRect(QStringLiteral("80000000 ")).width() + extra_text_width);
 
   // The longest instruction is technically 'ps_merge00' (0x10000420u), but those instructions are
   // very rare and would needlessly increase the column size, so let's go with 'rlwinm.' instead.
