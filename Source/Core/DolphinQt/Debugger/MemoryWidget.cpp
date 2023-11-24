@@ -117,7 +117,8 @@ void MemoryWidget::CreateWidgets()
   m_address_splitter->addWidget(m_search_offset);
   m_address_splitter->setHandleWidth(1);
   m_address_splitter->setCollapsible(0, false);
-  m_address_splitter->setStretchFactor(1, 2);
+  m_address_splitter->setStretchFactor(0, 3);
+  m_address_splitter->setStretchFactor(1, 1);
 
   auto* input_layout = new QHBoxLayout;
   m_data_edit = new QLineEdit;
