@@ -442,9 +442,15 @@ void MemoryWidget::LoadSettings()
   m_address_space_auxiliary->setChecked(address_space_auxiliary);
   m_address_space_physical->setChecked(address_space_physical);
 
-  const int display_index = settings.value(QStringLiteral("memorywidget/display_type"), 1).toInt();
+  const int display_index = settings.value(QStringLiteral("memorywidget/display_type"), 2).toInt();
+  const int length_index = settings.value(QStringLiteral("memorywidget/row_length"), 0).toUInt();
+  const int align_index = settings.value(QStringLiteral("memorywidget/alignment"), 2).toUInt();
+  const bool dual_view_index = settings.value(QStringLiteral("memorywidget/dual_view"), 0).toBool();
 
   m_display_combo->setCurrentIndex(display_index);
+  m_row_length_combo->setCurrentIndex(length_index);
+  m_align_combo->setCurrentIndex(align_index);
+  m_dual_check->setChecked(dual_view_index);
 
   bool bp_rw = settings.value(QStringLiteral("memorywidget/bpreadwrite"), true).toBool();
   bool bp_r = settings.value(QStringLiteral("memorywidget/bpread"), false).toBool();
@@ -478,6 +484,9 @@ void MemoryWidget::SaveSettings()
                     m_address_space_physical->isChecked());
 
   settings.setValue(QStringLiteral("memorywidget/display_type"), m_display_combo->currentIndex());
+  settings.setValue(QStringLiteral("memorywidget/row_length"), m_row_length_combo->currentIndex());
+  settings.setValue(QStringLiteral("memorywidget/alignment"), m_align_combo->currentIndex());
+  settings.setValue(QStringLiteral("memorywidget/dual_view"), m_dual_check->isChecked());
 
   settings.setValue(QStringLiteral("memorywidget/bpreadwrite"), m_bp_read_write->isChecked());
   settings.setValue(QStringLiteral("memorywidget/bpread"), m_bp_read_only->isChecked());
