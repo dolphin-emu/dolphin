@@ -36,6 +36,10 @@
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
+static const QString LOCK_BUTTON_STYLESHEET = QStringLiteral(
+    "QToolButton:checked { background-color: rgb(150, 0, 0); border-style: solid;"
+    "padding: 0px; border-width: 3px; border-color: rgb(150,0,0); color: rgb(255, 255, 255);}");
+
 static const QString BOX_SPLITTER_STYLESHEET = QStringLiteral(
     "QSplitter::handle { border-top: 1px dashed black; width: 1px; margin-left: 10px; "
     "margin-right: 10px; }");
@@ -138,7 +142,7 @@ void CodeWidget::CreateWidgets()
   m_lock_btn->setIcon(Resources::GetThemeIcon("pause"));
   m_lock_btn->setCheckable(true);
   m_lock_btn->setMinimumSize(24, 24);
-
+  m_lock_btn->setStyleSheet(LOCK_BUTTON_STYLESHEET);
   m_code_diff = new QPushButton(tr("Diff"));
 
   top_layout->addWidget(m_search_address);
