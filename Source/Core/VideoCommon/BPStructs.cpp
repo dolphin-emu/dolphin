@@ -38,11 +38,11 @@
 #include "VideoCommon/TMEM.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureDecoder.h"
-#include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoEvents.h"
+#include "VideoCommon/XFStateManager.h"
 
 using namespace BPFunctions;
 
@@ -55,8 +55,7 @@ void BPInit()
   bpmem.bpMask = 0xFFFFFF;
 }
 
-static void BPWritten(PixelShaderManager& pixel_shader_manager,
-                      VertexShaderManager& vertex_shader_manager,
+static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& xf_state_manager,
                       GeometryShaderManager& geometry_shader_manager, const BPCmd& bp,
                       int cycles_into_future)
 {
@@ -139,7 +138,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager,
   case BPMEM_SCISSORTL:      // Scissor Rectable Top, Left
   case BPMEM_SCISSORBR:      // Scissor Rectable Bottom, Right
   case BPMEM_SCISSOROFFSET:  // Scissor Offset
-    vertex_shader_manager.SetViewportChanged();
+    xf_state_manager.SetViewportChanged();
     geometry_shader_manager.SetViewportChanged();
     return;
   case BPMEM_LINEPTWIDTH:  // Line Width
@@ -790,7 +789,7 @@ void LoadBPReg(u8 reg, u32 value, int cycles_into_future)
   if (reg != BPMEM_BP_MASK)
     bpmem.bpMask = 0xFFFFFF;
 
-  BPWritten(system.GetPixelShaderManager(), system.GetVertexShaderManager(),
+  BPWritten(system.GetPixelShaderManager(), system.GetXFStateManager(),
             system.GetGeometryShaderManager(), bp, cycles_into_future);
 }
 
