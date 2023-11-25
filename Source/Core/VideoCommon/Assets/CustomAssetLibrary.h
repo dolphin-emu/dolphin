@@ -31,6 +31,8 @@ public:
     CustomAssetLibrary::TimeType m_load_time = {};
   };
 
+  virtual ~CustomAssetLibrary() = default;
+
   // Loads a texture, if there are no levels, bytes loaded will be empty
   virtual LoadInfo LoadTexture(const AssetID& asset_id, TextureData* data) = 0;
 
