@@ -27,10 +27,6 @@ bool IsSettingSaveable(const Config::Location& config_location)
   }
 
   static const auto s_setting_saveable = {
-      // UI.General
-
-      &Config::MAIN_USE_DISCORD_PRESENCE.GetLocation(),
-
       // Wiimote
 
       &Config::WIIMOTE_1_SOURCE.GetLocation(),
