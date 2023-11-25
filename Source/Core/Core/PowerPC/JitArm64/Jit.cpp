@@ -199,10 +199,7 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
   }
 
   Interpreter::Instruction instr = Interpreter::GetInterpreterOp(inst);
-  MOVP2R(ARM64Reg::X8, instr);
-  MOVP2R(ARM64Reg::X0, &m_system.GetInterpreter());
-  MOVI2R(ARM64Reg::W1, inst.hex);
-  BLR(ARM64Reg::X8);
+  ABI_CallFunction(instr, &m_system.GetInterpreter(), inst.hex);
 
   // If the instruction wrote to any registers which were marked as discarded,
   // we must mark them as no longer discarded
@@ -250,10 +247,7 @@ void JitArm64::HLEFunction(u32 hook_index)
   gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
   fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
 
-  MOVP2R(ARM64Reg::X8, &HLE::ExecuteFromJIT);
-  MOVI2R(ARM64Reg::W0, js.compilerPC);
-  MOVI2R(ARM64Reg::W1, hook_index);
-  BLR(ARM64Reg::X8);
+  ABI_CallFunction(&HLE::ExecuteFromJIT, js.compilerPC, hook_index);
 }
 
 void JitArm64::DoNothing(UGeckoInstruction inst)
@@ -277,21 +271,15 @@ void JitArm64::Cleanup()
     SUB(ARM64Reg::X0, ARM64Reg::X0, ARM64Reg::X1);
     CMP(ARM64Reg::X0, GPFifo::GATHER_PIPE_SIZE);
     FixupBranch exit = B(CC_LT);
-    MOVP2R(ARM64Reg::X1, &GPFifo::UpdateGatherPipe);
-    MOVP2R(ARM64Reg::X0, &m_system.GetGPFifo());
-    BLR(ARM64Reg::X1);
+    ABI_CallFunction(&GPFifo::UpdateGatherPipe, &m_system.GetGPFifo());
     SetJumpTarget(exit);
   }
 
   // SPEED HACK: MMCR0/MMCR1 should be checked at run-time, not at compile time.
   if (MMCR0(m_ppc_state).Hex || MMCR1(m_ppc_state).Hex)
   {
-    MOVP2R(ARM64Reg::X8, &PowerPC::UpdatePerformanceMonitor);
-    MOVI2R(ARM64Reg::X0, js.downcountAmount);
-    MOVI2R(ARM64Reg::X1, js.numLoadStoreInst);
-    MOVI2R(ARM64Reg::X2, js.numFloatingPointInst);
-    MOVP2R(ARM64Reg::X3, &m_ppc_state);
-    BLR(ARM64Reg::X8);
+    ABI_CallFunction(&PowerPC::UpdatePerformanceMonitor, js.downcountAmount, js.numLoadStoreInst,
+                     js.numFloatingPointInst, &m_ppc_state);
   }
 }
 
@@ -333,10 +321,8 @@ void JitArm64::IntializeSpeculativeConstants()
         fail = GetCodePtr();
         MOVI2R(DISPATCHER_PC, js.blockStart);
         STR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-        MOVP2R(ARM64Reg::X8, &JitInterface::CompileExceptionCheckFromJIT);
-        MOVP2R(ARM64Reg::X0, &m_system.GetJitInterface());
-        MOVI2R(ARM64Reg::W1, static_cast<u32>(JitInterface::ExceptionType::SpeculativeConstants));
-        BLR(ARM64Reg::X8);
+        ABI_CallFunction(&JitInterface::CompileExceptionCheckFromJIT, &m_system.GetJitInterface(),
+                         static_cast<u32>(JitInterface::ExceptionType::SpeculativeConstants));
         B(dispatcher_no_check);
         SwitchToNearCode();
       }
@@ -654,12 +640,10 @@ void JitArm64::WriteExceptionExit(ARM64Reg dest, bool only_external, bool always
   static_assert(PPCSTATE_OFF(pc) + 4 == PPCSTATE_OFF(npc));
   STP(IndexType::Signed, DISPATCHER_PC, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
 
-  MOVP2R(ARM64Reg::X0, &m_system.GetPowerPC());
-  if (only_external)
-    MOVP2R(EncodeRegTo64(DISPATCHER_PC), &PowerPC::CheckExternalExceptionsFromJIT);
-  else
-    MOVP2R(EncodeRegTo64(DISPATCHER_PC), &PowerPC::CheckExceptionsFromJIT);
-  BLR(EncodeRegTo64(DISPATCHER_PC));
+  const auto f =
+      only_external ? &PowerPC::CheckExternalExceptionsFromJIT : &PowerPC::CheckExceptionsFromJIT;
+  ABI_CallFunction(f, &m_system.GetPowerPC());
+
   EmitUpdateMembase();
 
   LDR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
@@ -1000,10 +984,8 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       SetJumpTarget(fail);
       MOVI2R(DISPATCHER_PC, js.blockStart);
       STR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-      MOVP2R(ARM64Reg::X0, &m_system.GetJitInterface());
-      MOVI2R(ARM64Reg::W1, static_cast<u32>(JitInterface::ExceptionType::PairedQuantize));
-      MOVP2R(ARM64Reg::X2, &JitInterface::CompileExceptionCheckFromJIT);
-      BLR(ARM64Reg::X2);
+      ABI_CallFunction(&JitInterface::CompileExceptionCheckFromJIT, &m_system.GetJitInterface(),
+                       static_cast<u32>(JitInterface::ExceptionType::PairedQuantize));
       B(dispatcher_no_check);
       SwitchToNearCode();
       SetJumpTarget(no_fail);
@@ -1066,9 +1048,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
         ABI_PushRegisters(regs_in_use);
         m_float_emit.ABI_PushRegisters(fprs_in_use, ARM64Reg::X30);
-        MOVP2R(ARM64Reg::X8, &GPFifo::FastCheckGatherPipe);
-        MOVP2R(ARM64Reg::X0, &m_system.GetGPFifo());
-        BLR(ARM64Reg::X8);
+        ABI_CallFunction(&GPFifo::FastCheckGatherPipe, &m_system.GetGPFifo());
         m_float_emit.ABI_PopRegisters(fprs_in_use, ARM64Reg::X30);
         ABI_PopRegisters(regs_in_use);
 
@@ -1184,9 +1164,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
         MOVI2R(DISPATCHER_PC, op.address);
         STP(IndexType::Signed, DISPATCHER_PC, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-        MOVP2R(ARM64Reg::X0, &m_system.GetPowerPC());
-        MOVP2R(ARM64Reg::X1, &PowerPC::CheckBreakPointsFromJIT);
-        BLR(ARM64Reg::X1);
+        ABI_CallFunction(&PowerPC::CheckBreakPointsFromJIT, &m_system.GetPowerPC());
 
         LDR(IndexType::Unsigned, ARM64Reg::W0, ARM64Reg::X0,
             MOVPage2R(ARM64Reg::X0, cpu.GetStatePtr()));

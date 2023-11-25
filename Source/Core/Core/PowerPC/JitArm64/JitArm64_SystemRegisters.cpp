@@ -81,9 +81,7 @@ void JitArm64::UpdateRoundingMode()
 
   ABI_PushRegisters(gprs_to_save);
   m_float_emit.ABI_PushRegisters(fprs_to_save, ARM64Reg::X8);
-  MOVP2R(ARM64Reg::X0, &m_ppc_state);
-  MOVP2R(ARM64Reg::X8, &PowerPC::RoundingModeUpdated);
-  BLR(ARM64Reg::X8);
+  ABI_CallFunction(&PowerPC::RoundingModeUpdated, &m_ppc_state);
   m_float_emit.ABI_PopRegisters(fprs_to_save, ARM64Reg::X8);
   ABI_PopRegisters(gprs_to_save);
 }

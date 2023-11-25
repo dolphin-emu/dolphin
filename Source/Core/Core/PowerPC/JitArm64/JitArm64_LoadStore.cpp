@@ -770,13 +770,17 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   ABI_PushRegisters(gprs_to_push);
   m_float_emit.ABI_PushRegisters(fprs_to_push, WA);
 
-  MOVP2R(ARM64Reg::X0, &m_system.GetJitInterface());
-  // effective_address and loop_counter are already in W1 and W2 respectively
+  // For efficiency, effective_addr and loop_counter are already in W1 and W2 respectively
   if (make_loop)
-    MOVP2R(ARM64Reg::X8, &JitInterface::InvalidateICacheLinesFromJIT);
+  {
+    ABI_CallFunction(&JitInterface::InvalidateICacheLinesFromJIT, &m_system.GetJitInterface(),
+                     effective_addr, loop_counter);
+  }
   else
-    MOVP2R(ARM64Reg::X8, &JitInterface::InvalidateICacheLineFromJIT);
-  BLR(ARM64Reg::X8);
+  {
+    ABI_CallFunction(&JitInterface::InvalidateICacheLineFromJIT, &m_system.GetJitInterface(),
+                     effective_addr);
+  }
 
   m_float_emit.ABI_PopRegisters(fprs_to_push, WA);
   ABI_PopRegisters(gprs_to_push);

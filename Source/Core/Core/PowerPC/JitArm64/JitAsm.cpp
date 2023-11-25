@@ -169,10 +169,7 @@ void JitArm64::GenerateAsm()
 
   // Call JIT
   ResetStack();
-  MOVP2R(ARM64Reg::X0, this);
-  MOV(ARM64Reg::W1, DISPATCHER_PC);
-  MOVP2R(ARM64Reg::X8, reinterpret_cast<void*>(&JitTrampoline));
-  BLR(ARM64Reg::X8);
+  ABI_CallFunction(&JitTrampoline, this, DISPATCHER_PC);
   LDR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
   B(dispatcher_no_check);
 
@@ -189,8 +186,7 @@ void JitArm64::GenerateAsm()
   FixupBranch exit = CBNZ(ARM64Reg::W0);
 
   SetJumpTarget(to_start_of_timing_slice);
-  MOVP2R(ARM64Reg::X8, &CoreTiming::GlobalAdvance);
-  BLR(ARM64Reg::X8);
+  ABI_CallFunction(&CoreTiming::GlobalAdvance);
 
   // When we've just entered the jit we need to update the membase
   // GlobalAdvance also checks exceptions after which we need to
