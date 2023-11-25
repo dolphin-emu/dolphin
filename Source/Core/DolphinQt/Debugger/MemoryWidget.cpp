@@ -35,6 +35,7 @@
 #include "Core/Core.h"
 #include "Core/HW/AddressSpace.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 #include "DolphinQt/Debugger/MemoryViewWidget.h"
 #include "DolphinQt/Host.h"
@@ -42,6 +43,14 @@
 #include "DolphinQt/Settings.h"
 
 using Type = MemoryViewWidget::Type;
+
+static bool IsInstructionLoadStore(std::string_view ins)
+{
+  // Could add check for context address being near PC, because we need gprs to be correct for the
+  // load/store.
+  return (ins.starts_with('l') && !ins.starts_with("li")) || ins.starts_with("st") ||
+         ins.starts_with("psq_l") || ins.starts_with("psq_s");
+}
 
 MemoryWidget::MemoryWidget(QWidget* parent) : QDockWidget(parent)
 {
@@ -70,7 +79,7 @@ MemoryWidget::MemoryWidget(QWidget* parent) : QDockWidget(parent)
 
   // Not really necessary
   // connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, &MemoryWidget::Update);
-  // connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, &MemoryWidget::Update);
+  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, &MemoryWidget::DisasmUpdate);
 
   LoadSettings();
 
@@ -133,6 +142,16 @@ void MemoryWidget::CreateWidgets()
 
   input_layout->addWidget(m_data_edit);
   input_layout->addWidget(m_base_check);
+
+  auto* target_layout = new QHBoxLayout;
+  QLabel* target_label = new QLabel(tr("PC Target:   "), this);
+  m_target_address = new QComboBox();
+  m_target_address->setDuplicatesEnabled(false);
+  m_target_address->setEditable(false);
+  m_target_address->setMaxCount(10);
+  m_target_address->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+  target_layout->addWidget(target_label);
+  target_layout->addWidget(m_target_address);
 
   // Input types
   m_input_combo = new QComboBox;
@@ -308,6 +327,7 @@ void MemoryWidget::CreateWidgets()
   sidebar_layout->addItem(new QSpacerItem(1, 10));
   sidebar_layout->addWidget(m_data_preview);
   sidebar_layout->addWidget(m_set_value);
+  sidebar_layout->addLayout(target_layout);
   sidebar_layout->addItem(new QSpacerItem(1, 10));
   sidebar_layout->addWidget(search_group);
   sidebar_layout->addItem(new QSpacerItem(1, 10));
@@ -350,7 +370,12 @@ void MemoryWidget::ConnectWidgets()
   connect(m_input_combo, &QComboBox::currentIndexChanged, this,
           &MemoryWidget::ValidateAndPreviewInputValue);
   connect(m_set_value, &QPushButton::clicked, this, &MemoryWidget::OnSetValue);
-
+  connect(m_target_address, &QComboBox::activated, this, [this] {
+    bool ok = false;
+    const u32 addr = m_target_address->currentData().toUInt(&ok);
+    if (ok)
+      m_memory_view->SetAddress(addr);
+  });
   connect(m_find_next, &QPushButton::clicked, this, &MemoryWidget::OnFindNextValue);
   connect(m_find_previous, &QPushButton::clicked, this, &MemoryWidget::OnFindPreviousValue);
 
@@ -413,6 +438,43 @@ void MemoryWidget::AutoUpdateTable()
     return;
 
   m_memory_view->UpdateOnFrameEnd();
+}
+
+void MemoryWidget::DisasmUpdate()
+{
+  if (Core::GetState() != Core::State::Paused)
+    return;
+
+  auto& system = Core::System::GetInstance();
+  auto& power_pc = system.GetPowerPC();
+  auto& ppc_state = system.GetPPCState();
+  Core::CPUThreadGuard guard(system);
+
+  const u32 address = ppc_state.pc;
+  const std::string inst_str = power_pc.GetDebugInterface().Disassemble(&guard, address);
+
+  if (!IsInstructionLoadStore(inst_str))
+  {
+    m_target_address->setCurrentIndex(-1);
+    return;
+  }
+
+  std::optional<u32> target_memory =
+      power_pc.GetDebugInterface().GetMemoryAddressFromInstruction(inst_str);
+
+  if (!target_memory.has_value())
+  {
+    m_target_address->setCurrentText(QStringLiteral("-"));
+    return;
+  }
+
+  const QString addr_str = QString::number(target_memory.value(), 16);
+  const int index = m_target_address->findText(addr_str);
+  if (index != -1)
+    m_target_address->removeItem(index);
+
+  m_target_address->insertItem(0, addr_str, target_memory.value());
+  m_target_address->setCurrentIndex(0);
 }
 
 void MemoryWidget::Update()

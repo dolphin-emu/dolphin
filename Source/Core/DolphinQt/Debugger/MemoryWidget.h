@@ -60,6 +60,7 @@ private:
   void RegisterAfterFrameEventCallback();
   void RemoveAfterFrameEventCallback();
   void AutoUpdateTable();
+  void DisasmUpdate();
 
   void LoadSettings();
   void SaveSettings();
@@ -93,6 +94,7 @@ private:
   MemoryViewWidget* m_memory_view;
   QSplitter* m_splitter;
   QComboBox* m_search_address;
+  QComboBox* m_target_address;
   QLineEdit* m_search_offset;
   QLineEdit* m_data_edit;
   QCheckBox* m_base_check;
