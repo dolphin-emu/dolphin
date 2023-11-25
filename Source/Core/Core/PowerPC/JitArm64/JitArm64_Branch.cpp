@@ -157,10 +157,6 @@ void JitArm64::bcx(UGeckoInstruction inst)
         JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3), !(inst.BO_2 & BO_BRANCH_IF_TRUE));
   }
 
-  FixupBranch far_addr = B();
-  SwitchToFarCode();
-  SetJumpTarget(far_addr);
-
   if (inst.LK)
   {
     MOVI2R(WA, js.compilerPC + 4);
@@ -184,8 +180,6 @@ void JitArm64::bcx(UGeckoInstruction inst)
   {
     WriteExit(js.op->branchTo, inst.LK, js.compilerPC + 4, inst.LK ? WA : ARM64Reg::INVALID_REG);
   }
-
-  SwitchToNearCode();
 
   if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
     SetJumpTarget(pConditionDontBranch);
@@ -275,13 +269,6 @@ void JitArm64::bclrx(UGeckoInstruction inst)
         JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3), !(inst.BO_2 & BO_BRANCH_IF_TRUE));
   }
 
-  if (conditional)
-  {
-    FixupBranch far_addr = B();
-    SwitchToFarCode();
-    SetJumpTarget(far_addr);
-  }
-
   LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF_SPR(SPR_LR));
   AND(WA, WA, LogicalImm(~0x3, 32));
 
@@ -308,9 +295,6 @@ void JitArm64::bclrx(UGeckoInstruction inst)
   {
     WriteBLRExit(WA);
   }
-
-  if (conditional)
-    SwitchToNearCode();
 
   if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
     SetJumpTarget(pConditionDontBranch);
