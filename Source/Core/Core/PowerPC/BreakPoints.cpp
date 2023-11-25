@@ -329,15 +329,15 @@ void MemChecks::Clear()
 
 void MemChecks::Update()
 {
-   Core::RunAsCPUThread([&] {
-  // Clear the JIT cache so it can switch the watchpoint-compatible code.
-  if (m_breakpoints_set != HasAny())
-  {
-    m_system.GetJitInterface().ClearCache();
-    m_breakpoints_set = HasAny();
-  }
+  Core::RunAsCPUThread([&] {
+    // Clear the JIT cache so it can switch the watchpoint-compatible code.
+    if (m_breakpoints_set != HasAny())
+    {
+      m_system.GetJitInterface().ClearCache();
+      m_breakpoints_set = HasAny();
+    }
 
-  m_system.GetMMU().DBATUpdated();
+    m_system.GetMMU().DBATUpdated();
   });
 }
 
