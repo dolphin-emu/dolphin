@@ -600,8 +600,9 @@ void CodeViewWidget::ReplaceAddress(u32 address, ReplaceWith replace)
 void CodeViewWidget::OnContextMenu()
 {
   QMenu* menu = new QMenu(this);
-
-  const bool paused = Core::GetState() == Core::State::Paused;
+  const auto state = Core::GetState();
+  const bool paused = state == Core::State::Paused;
+  const bool playing = paused || state == Core::State::Running;
 
   const u32 addr = GetContextAddress();
 
@@ -704,7 +705,7 @@ void CodeViewWidget::OnContextMenu()
   for (auto* action : {copy_address_action, copy_line_action, copy_hex_action, function_action,
                        ppc_action, insert_blr_action, insert_nop_action, replace_action})
   {
-    action->setEnabled(paused);
+    action->setEnabled(playing);
   }
 
   symbol_edit_action->setEnabled(has_symbol);
@@ -715,7 +716,7 @@ void CodeViewWidget::OnContextMenu()
     action->setEnabled(valid_load_store);
   }
 
-  restore_action->setEnabled(paused &&
+  restore_action->setEnabled(playing &&
                              m_system.GetPowerPC().GetDebugInterface().HasEnabledPatch(addr));
 
   menu->exec(QCursor::pos());
@@ -1035,24 +1036,31 @@ void CodeViewWidget::OnDeleteNote()
 
 void CodeViewWidget::OnReplaceInstruction()
 {
-  Core::CPUThreadGuard guard(m_system);
-
-  const u32 addr = GetContextAddress();
-
-  if (!PowerPC::MMU::HostIsInstructionRAMAddress(guard, addr))
-    return;
-
-  const PowerPC::TryReadInstResult read_result =
-      guard.GetSystem().GetMMU().TryReadInstruction(addr);
-  if (!read_result.valid)
-    return;
-
   auto& debug_interface = m_system.GetPowerPC().GetDebugInterface();
-  PatchInstructionDialog dialog(this, addr, debug_interface.ReadInstruction(guard, addr));
+  const u32 addr = GetContextAddress();
+  u32 mem_val = 0;
 
+  {
+    Core::CPUThreadGuard guard(m_system);
+
+    if (!PowerPC::MMU::HostIsInstructionRAMAddress(guard, addr))
+      return;
+
+    const PowerPC::TryReadInstResult read_result =
+        guard.GetSystem().GetMMU().TryReadInstruction(addr);
+    if (!read_result.valid)
+      return;
+
+    mem_val = debug_interface.ReadInstruction(guard, addr);
+  }
+
+  // Don't think dialogs should be in a guard.
+  PatchInstructionDialog dialog(this, addr, mem_val);
   SetQWidgetWindowDecorations(&dialog);
+
   if (dialog.exec() == QDialog::Accepted)
   {
+    Core::CPUThreadGuard guard(m_system);
     debug_interface.SetPatch(guard, addr, dialog.GetCode());
     Update(&guard);
   }
