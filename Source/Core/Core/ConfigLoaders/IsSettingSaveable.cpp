@@ -4,7 +4,7 @@
 #include "Core/ConfigLoaders/IsSettingSaveable.h"
 
 #include <algorithm>
-#include <vector>
+#include <array>
 
 #include "Common/Config/Config.h"
 #include "Core/Config/AchievementSettings.h"
@@ -17,22 +17,19 @@ namespace ConfigLoaders
 {
 bool IsSettingSaveable(const Config::Location& config_location)
 {
-  for (Config::System system :
-       {Config::System::SYSCONF, Config::System::GFX, Config::System::DualShockUDPClient,
-        Config::System::Logger, Config::System::FreeLook, Config::System::Main,
-        Config::System::GameSettingsOnly, Config::System::Achievements})
+  static constexpr std::array<Config::System, 4> systems_not_saveable = {
+      Config::System::GCPad, Config::System::WiiPad, Config::System::GCKeyboard,
+      Config::System::Debugger};
+
+  if (std::find(begin(systems_not_saveable), end(systems_not_saveable), config_location.system) ==
+      end(systems_not_saveable))
   {
-    if (config_location.system == system)
-      return true;
+    return true;
   }
 
   static const auto s_setting_saveable = {
-      // Wiimote
-
-      &Config::WIIMOTE_1_SOURCE.GetLocation(),
-      &Config::WIIMOTE_2_SOURCE.GetLocation(),
-      &Config::WIIMOTE_3_SOURCE.GetLocation(),
-      &Config::WIIMOTE_4_SOURCE.GetLocation(),
+      &Config::WIIMOTE_1_SOURCE.GetLocation(),  &Config::WIIMOTE_2_SOURCE.GetLocation(),
+      &Config::WIIMOTE_3_SOURCE.GetLocation(),  &Config::WIIMOTE_4_SOURCE.GetLocation(),
       &Config::WIIMOTE_BB_SOURCE.GetLocation(),
   };
 
