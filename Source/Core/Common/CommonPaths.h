@@ -108,7 +108,6 @@
 #define WIIPAD_CONFIG "WiimoteNew.ini"
 #define GCKEYBOARD_CONFIG "GCKeyNew.ini"
 #define GFX_CONFIG "GFX.ini"
-#define DEBUGGER_CONFIG "Debugger.ini"
 #define LOGGER_CONFIG "Logger.ini"
 #define DUALSHOCKUDPCLIENT_CONFIG "DSUClient.ini"
 #define FREELOOK_CONFIG "FreeLook.ini"
