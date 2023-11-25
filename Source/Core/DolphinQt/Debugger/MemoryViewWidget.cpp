@@ -144,11 +144,17 @@ public:
 
   void mousePressEvent(QMouseEvent* event) override
   {
-    if (event->button() != Qt::LeftButton)
-      return;
-
     auto* item = this->itemAt(event->pos());
     if (!item)
+      return;
+
+    if (column(item) >= 1 && event->button() == Qt::RightButton)
+    {
+      clearSelection();
+      item->setSelected(true);
+    }
+
+    if (event->button() != Qt::LeftButton)
       return;
 
     if (item->data(USER_ROLE_IS_ROW_BREAKPOINT_CELL).toBool())
