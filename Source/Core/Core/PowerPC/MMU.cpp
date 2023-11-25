@@ -1681,100 +1681,51 @@ std::optional<u32> MMU::GetTranslatedAddress(u32 address)
   return std::optional<u32>(result.address);
 }
 
-void ClearDCacheLineFromJit64(MMU& mmu, u32 address)
+void ClearDCacheLineFromJit(MMU& mmu, u32 address)
 {
   mmu.ClearDCacheLine(address);
 }
-u32 ReadU8ZXFromJit64(MMU& mmu, u32 address)
+u32 ReadU8FromJit(MMU& mmu, u32 address)
 {
   return mmu.Read_U8(address);
 }
-u32 ReadU16ZXFromJit64(MMU& mmu, u32 address)
+u32 ReadU16FromJit(MMU& mmu, u32 address)
 {
   return mmu.Read_U16(address);
 }
-u32 ReadU32FromJit64(MMU& mmu, u32 address)
+u32 ReadU32FromJit(MMU& mmu, u32 address)
 {
   return mmu.Read_U32(address);
 }
-u64 ReadU64FromJit64(MMU& mmu, u32 address)
+u64 ReadU64FromJit(MMU& mmu, u32 address)
 {
   return mmu.Read_U64(address);
 }
-void WriteU8FromJit64(MMU& mmu, u32 var, u32 address)
+void WriteU8FromJit(MMU& mmu, u32 var, u32 address)
 {
   mmu.Write_U8(var, address);
 }
-void WriteU16FromJit64(MMU& mmu, u32 var, u32 address)
+void WriteU16FromJit(MMU& mmu, u32 var, u32 address)
 {
   mmu.Write_U16(var, address);
 }
-void WriteU32FromJit64(MMU& mmu, u32 var, u32 address)
+void WriteU32FromJit(MMU& mmu, u32 var, u32 address)
 {
   mmu.Write_U32(var, address);
 }
-void WriteU64FromJit64(MMU& mmu, u64 var, u32 address)
+void WriteU64FromJit(MMU& mmu, u64 var, u32 address)
 {
   mmu.Write_U64(var, address);
 }
-void WriteU16SwapFromJit64(MMU& mmu, u32 var, u32 address)
+void WriteU16SwapFromJit(MMU& mmu, u32 var, u32 address)
 {
   mmu.Write_U16_Swap(var, address);
 }
-void WriteU32SwapFromJit64(MMU& mmu, u32 var, u32 address)
+void WriteU32SwapFromJit(MMU& mmu, u32 var, u32 address)
 {
   mmu.Write_U32_Swap(var, address);
 }
-void WriteU64SwapFromJit64(MMU& mmu, u64 var, u32 address)
-{
-  mmu.Write_U64_Swap(var, address);
-}
-
-void ClearDCacheLineFromJitArm64(u32 address, MMU& mmu)
-{
-  mmu.ClearDCacheLine(address);
-}
-u8 ReadU8FromJitArm64(u32 address, MMU& mmu)
-{
-  return mmu.Read_U8(address);
-}
-u16 ReadU16FromJitArm64(u32 address, MMU& mmu)
-{
-  return mmu.Read_U16(address);
-}
-u32 ReadU32FromJitArm64(u32 address, MMU& mmu)
-{
-  return mmu.Read_U32(address);
-}
-u64 ReadU64FromJitArm64(u32 address, MMU& mmu)
-{
-  return mmu.Read_U64(address);
-}
-void WriteU8FromJitArm64(u32 var, u32 address, MMU& mmu)
-{
-  mmu.Write_U8(var, address);
-}
-void WriteU16FromJitArm64(u32 var, u32 address, MMU& mmu)
-{
-  mmu.Write_U16(var, address);
-}
-void WriteU32FromJitArm64(u32 var, u32 address, MMU& mmu)
-{
-  mmu.Write_U32(var, address);
-}
-void WriteU64FromJitArm64(u64 var, u32 address, MMU& mmu)
-{
-  mmu.Write_U64(var, address);
-}
-void WriteU16SwapFromJitArm64(u32 var, u32 address, MMU& mmu)
-{
-  mmu.Write_U16_Swap(var, address);
-}
-void WriteU32SwapFromJitArm64(u32 var, u32 address, MMU& mmu)
-{
-  mmu.Write_U32_Swap(var, address);
-}
-void WriteU64SwapFromJitArm64(u64 var, u32 address, MMU& mmu)
+void WriteU64SwapFromJit(MMU& mmu, u64 var, u32 address)
 {
   mmu.Write_U64_Swap(var, address);
 }

@@ -79,7 +79,7 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
       const ARM64Reg temp = emitting_routine ? ARM64Reg::W3 : ARM64Reg::W30;
 
       memory_base = EncodeRegTo64(temp);
-      memory_offset = ARM64Reg::W2;
+      memory_offset = ARM64Reg::W0;
 
       LSR(temp, addr, PowerPC::BAT_INDEX_SHIFT);
       LDR(memory_base, MEM_REG, ArithOption(temp, true));
@@ -95,8 +95,8 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
     }
     else if (emit_slow_access && emitting_routine)
     {
-      const ARM64Reg temp1 = flags & BackPatchInfo::FLAG_STORE ? ARM64Reg::W0 : ARM64Reg::W3;
-      const ARM64Reg temp2 = ARM64Reg::W2;
+      const ARM64Reg temp1 = flags & BackPatchInfo::FLAG_STORE ? ARM64Reg::W1 : ARM64Reg::W3;
+      const ARM64Reg temp2 = ARM64Reg::W0;
 
       slow_access_fixup = CheckIfSafeAddress(addr, temp1, temp2);
     }
@@ -117,7 +117,7 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
     }
     else if (flags & BackPatchInfo::FLAG_STORE)
     {
-      ARM64Reg temp = ARM64Reg::W0;
+      ARM64Reg temp = ARM64Reg::W1;
       temp = ByteswapBeforeStore(this, &m_float_emit, temp, RS, flags, true);
 
       if (flags & BackPatchInfo::FLAG_SIZE_32)
@@ -169,7 +169,7 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
     if (slow_access_fixup)
       SetJumpTarget(*slow_access_fixup);
 
-    const ARM64Reg temp_gpr = flags & BackPatchInfo::FLAG_LOAD ? ARM64Reg::W30 : ARM64Reg::W0;
+    const ARM64Reg temp_gpr = ARM64Reg::W1;
     const int temp_gpr_index = DecodeReg(temp_gpr);
 
     BitSet32 gprs_to_push_early = {};
@@ -181,8 +181,8 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
     // If we're already pushing one register in the first PushRegisters call, we can push a
     // second one for free. Let's do so, since it might save one instruction in the second
     // PushRegisters call. (Do not do this for caller-saved registers which may be in the register
-    // cache, or else EmitMemcheck will not be able to flush the register cache correctly!)
-    if (gprs_to_push & gprs_to_push_early)
+    // cache, or WriteConditionalExceptionExit won't be able to flush the register cache correctly!)
+    if ((gprs_to_push & gprs_to_push_early).Count() & 1)
       gprs_to_push_early[30] = true;
 
     ABI_PushRegisters(gprs_to_push & gprs_to_push_early);
@@ -192,7 +192,7 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
     if (flags & BackPatchInfo::FLAG_STORE)
     {
       ARM64Reg src_reg = RS;
-      const ARM64Reg dst_reg = access_size == 64 ? ARM64Reg::X0 : ARM64Reg::W0;
+      const ARM64Reg dst_reg = access_size == 64 ? ARM64Reg::X1 : ARM64Reg::W1;
 
       if (flags & BackPatchInfo::FLAG_FLOAT)
       {
@@ -215,41 +215,38 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
 
       if (access_size == 64)
       {
-        ABI_CallFunction(reverse ? &PowerPC::WriteU64SwapFromJitArm64 :
-                                   &PowerPC::WriteU64FromJitArm64,
-                         src_reg, ARM64Reg::W1, &m_mmu);
+        ABI_CallFunction(reverse ? &PowerPC::WriteU64SwapFromJit : &PowerPC::WriteU64FromJit,
+                         &m_mmu, src_reg, ARM64Reg::W2);
       }
       else if (access_size == 32)
       {
-        ABI_CallFunction(reverse ? &PowerPC::WriteU32SwapFromJitArm64 :
-                                   &PowerPC::WriteU32FromJitArm64,
-                         src_reg, ARM64Reg::W1, &m_mmu);
+        ABI_CallFunction(reverse ? &PowerPC::WriteU32SwapFromJit : &PowerPC::WriteU32FromJit,
+                         &m_mmu, src_reg, ARM64Reg::W2);
       }
       else if (access_size == 16)
       {
-        ABI_CallFunction(reverse ? &PowerPC::WriteU16SwapFromJitArm64 :
-                                   &PowerPC::WriteU16FromJitArm64,
-                         src_reg, ARM64Reg::W1, &m_mmu);
+        ABI_CallFunction(reverse ? &PowerPC::WriteU16SwapFromJit : &PowerPC::WriteU16FromJit,
+                         &m_mmu, src_reg, ARM64Reg::W2);
       }
       else
       {
-        ABI_CallFunction(&PowerPC::WriteU8FromJitArm64, src_reg, ARM64Reg::W1, &m_mmu);
+        ABI_CallFunction(&PowerPC::WriteU8FromJit, &m_mmu, src_reg, ARM64Reg::W2);
       }
     }
     else if (flags & BackPatchInfo::FLAG_ZERO_256)
     {
-      ABI_CallFunction(&PowerPC::ClearDCacheLineFromJitArm64, ARM64Reg::W0, &m_mmu);
+      ABI_CallFunction(&PowerPC::ClearDCacheLineFromJit, &m_mmu, ARM64Reg::W1);
     }
     else
     {
       if (access_size == 64)
-        ABI_CallFunction(&PowerPC::ReadU64FromJitArm64, ARM64Reg::W0, &m_mmu);
+        ABI_CallFunction(&PowerPC::ReadU64FromJit, &m_mmu, ARM64Reg::W1);
       else if (access_size == 32)
-        ABI_CallFunction(&PowerPC::ReadU32FromJitArm64, ARM64Reg::W0, &m_mmu);
+        ABI_CallFunction(&PowerPC::ReadU32FromJit, &m_mmu, ARM64Reg::W1);
       else if (access_size == 16)
-        ABI_CallFunction(&PowerPC::ReadU16FromJitArm64, ARM64Reg::W0, &m_mmu);
+        ABI_CallFunction(&PowerPC::ReadU16FromJit, &m_mmu, ARM64Reg::W1);
       else
-        ABI_CallFunction(&PowerPC::ReadU8FromJitArm64, ARM64Reg::W0, &m_mmu);
+        ABI_CallFunction(&PowerPC::ReadU8FromJit, &m_mmu, ARM64Reg::W1);
     }
 
     m_float_emit.ABI_PopRegisters(fprs_to_push, ARM64Reg::X30);

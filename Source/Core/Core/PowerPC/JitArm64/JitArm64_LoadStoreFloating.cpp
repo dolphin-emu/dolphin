@@ -77,13 +77,13 @@ void JitArm64::lfXX(UGeckoInstruction inst)
   const RegType type =
       (flags & BackPatchInfo::FLAG_SIZE_64) != 0 ? RegType::LowerPair : RegType::DuplicatedSingle;
 
-  gpr.Lock(ARM64Reg::W0, ARM64Reg::W30);
+  gpr.Lock(ARM64Reg::W1, ARM64Reg::W30);
   fpr.Lock(ARM64Reg::Q0);
-  if (!jo.fastmem)
-    gpr.Lock(ARM64Reg::W2);
+  if (jo.memcheck || !jo.fastmem)
+    gpr.Lock(ARM64Reg::W0);
 
   const ARM64Reg VD = fpr.RW(inst.FD, type, false);
-  ARM64Reg addr_reg = ARM64Reg::W0;
+  ARM64Reg addr_reg = ARM64Reg::W1;
 
   if (update)
   {
@@ -167,9 +167,9 @@ void JitArm64::lfXX(UGeckoInstruction inst)
   BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
   BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
   if (!update || early_update)
+    regs_in_use[DecodeReg(ARM64Reg::W1)] = 0;
+  if (jo.memcheck || !jo.fastmem)
     regs_in_use[DecodeReg(ARM64Reg::W0)] = 0;
-  if (!jo.fastmem)
-    regs_in_use[DecodeReg(ARM64Reg::W2)] = 0;
   fprs_in_use[DecodeReg(ARM64Reg::Q0)] = 0;
   if (!jo.memcheck)
     fprs_in_use[DecodeReg(VD)] = 0;
@@ -192,10 +192,10 @@ void JitArm64::lfXX(UGeckoInstruction inst)
     MOV(gpr.R(a), addr_reg);
   }
 
-  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W30);
+  gpr.Unlock(ARM64Reg::W1, ARM64Reg::W30);
   fpr.Unlock(ARM64Reg::Q0);
-  if (!jo.fastmem)
-    gpr.Unlock(ARM64Reg::W2);
+  if (jo.memcheck || !jo.fastmem)
+    gpr.Unlock(ARM64Reg::W0);
 }
 
 void JitArm64::stfXX(UGeckoInstruction inst)
@@ -278,11 +278,11 @@ void JitArm64::stfXX(UGeckoInstruction inst)
     V0 = single_reg;
   }
 
-  gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W30);
+  gpr.Lock(ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
   if (!jo.fastmem)
-    gpr.Lock(ARM64Reg::W2);
+    gpr.Lock(ARM64Reg::W0);
 
-  ARM64Reg addr_reg = ARM64Reg::W1;
+  ARM64Reg addr_reg = ARM64Reg::W2;
 
   if (update)
   {
@@ -369,11 +369,11 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 
   BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
   BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
-  regs_in_use[DecodeReg(ARM64Reg::W0)] = 0;
+  regs_in_use[DecodeReg(ARM64Reg::W1)] = 0;
   if (!update || early_update)
-    regs_in_use[DecodeReg(ARM64Reg::W1)] = 0;
-  if (!jo.fastmem)
     regs_in_use[DecodeReg(ARM64Reg::W2)] = 0;
+  if (!jo.fastmem)
+    regs_in_use[DecodeReg(ARM64Reg::W0)] = 0;
   fprs_in_use[DecodeReg(ARM64Reg::Q0)] = 0;
 
   if (is_immediate)
@@ -386,7 +386,7 @@ void JitArm64::stfXX(UGeckoInstruction inst)
       else
         accessSize = 32;
 
-      LDR(IndexType::Unsigned, ARM64Reg::X0, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
+      LDR(IndexType::Unsigned, ARM64Reg::X2, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
 
       if (flags & BackPatchInfo::FLAG_SIZE_64)
         m_float_emit.REV64(8, ARM64Reg::Q0, V0);
@@ -394,9 +394,9 @@ void JitArm64::stfXX(UGeckoInstruction inst)
         m_float_emit.REV32(8, ARM64Reg::D0, V0);
 
       m_float_emit.STR(accessSize, IndexType::Post, accessSize == 64 ? ARM64Reg::Q0 : ARM64Reg::D0,
-                       ARM64Reg::X0, accessSize >> 3);
+                       ARM64Reg::X2, accessSize >> 3);
 
-      STR(IndexType::Unsigned, ARM64Reg::X0, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
+      STR(IndexType::Unsigned, ARM64Reg::X2, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
       js.fifoBytesSinceCheck += accessSize >> 3;
     }
     else if (m_mmu.IsOptimizableRAMAddress(imm_addr))
@@ -428,8 +428,8 @@ void JitArm64::stfXX(UGeckoInstruction inst)
   if (want_single && !have_single)
     fpr.Unlock(V0);
 
-  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W30);
+  gpr.Unlock(ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
   fpr.Unlock(ARM64Reg::Q0);
   if (!jo.fastmem)
-    gpr.Unlock(ARM64Reg::W2);
+    gpr.Unlock(ARM64Reg::W0);
 }
