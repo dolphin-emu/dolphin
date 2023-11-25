@@ -20,7 +20,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
   for (Config::System system :
        {Config::System::SYSCONF, Config::System::GFX, Config::System::DualShockUDPClient,
         Config::System::Logger, Config::System::FreeLook, Config::System::Main,
-        Config::System::GameSettingsOnly})
+        Config::System::GameSettingsOnly, Config::System::Achievements})
   {
     if (config_location.system == system)
       return true;
@@ -34,19 +34,6 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::WIIMOTE_3_SOURCE.GetLocation(),
       &Config::WIIMOTE_4_SOURCE.GetLocation(),
       &Config::WIIMOTE_BB_SOURCE.GetLocation(),
-
-      // Achievements
-
-      &Config::RA_ENABLED.GetLocation(),
-      &Config::RA_USERNAME.GetLocation(),
-      &Config::RA_API_TOKEN.GetLocation(),
-      &Config::RA_ACHIEVEMENTS_ENABLED.GetLocation(),
-      &Config::RA_LEADERBOARDS_ENABLED.GetLocation(),
-      &Config::RA_RICH_PRESENCE_ENABLED.GetLocation(),
-      &Config::RA_PROGRESS_ENABLED.GetLocation(),
-      &Config::RA_BADGES_ENABLED.GetLocation(),
-      &Config::RA_UNOFFICIAL_ENABLED.GetLocation(),
-      &Config::RA_ENCORE_ENABLED.GetLocation(),
   };
 
   return std::any_of(begin(s_setting_saveable), end(s_setting_saveable),
