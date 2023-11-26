@@ -57,7 +57,7 @@ SkylanderModifyDialog::SkylanderModifyDialog(QWidget* parent, u8 slot)
     }
   }
 
-  auto* label_name = new QLabel(QString::fromStdString("Modifying Skylander %1").arg(name));
+  auto* label_name = new QLabel(tr("Modifying Skylander: %1").arg(name));
 
   hbox_name->addWidget(label_name);
 
@@ -86,7 +86,7 @@ SkylanderModifyDialog::SkylanderModifyDialog(QWidget* parent, u8 slot)
   else if (m_figure_data.normalized_type == IOS::HLE::USB::Type::Unknown)
   {
     should_show = false;
-    QMessageBox::warning(this, tr("Unknow Skylander type!"),
+    QMessageBox::warning(this, tr("Unknown Skylander type!"),
                          tr("The type of this Skylander is unknown!"), QMessageBox::Ok);
   }
   else
