@@ -160,11 +160,11 @@ void SkylanderModifyDialog::PopulateSkylanderOptions(QVBoxLayout* layout)
 
   edit_money->setValidator(new QIntValidator(0, 65000, this));
   edit_hero->setValidator(new QIntValidator(0, 100, this));
-  edit_nick->setValidator(new QRegularExpressionValidator(
-      QRegularExpression(QString::fromStdString("^\\p{L}{0,15}$")), this));
+  edit_nick->setValidator(
+      new QRegularExpressionValidator(QRegularExpression(QStringLiteral("^\\p{L}{0,15}$")), this));
   edit_playtime->setValidator(new QIntValidator(0, INT_MAX, this));
-  edit_last_reset->setDisplayFormat(QString::fromStdString("dd/MM/yyyy hh:mm"));
-  edit_last_placed->setDisplayFormat(QString::fromStdString("dd/MM/yyyy hh:mm"));
+  edit_last_reset->setDisplayFormat(QStringLiteral("dd/MM/yyyy hh:mm"));
+  edit_last_placed->setDisplayFormat(QStringLiteral("dd/MM/yyyy hh:mm"));
 
   edit_toy_code->setToolTip(tr("The toy code for this figure. Only available for real figures."));
   edit_money->setToolTip(tr("The amount of money this skylander should have. Between 0 and 65000"));
