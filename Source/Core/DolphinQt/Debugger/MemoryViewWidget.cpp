@@ -98,10 +98,15 @@ public:
             &MemoryViewTable::OnDirectTableEdit);
   }
 
+private:
   void resizeEvent(QResizeEvent* event) override
   {
     QTableWidget::resizeEvent(event);
-    m_view->CreateTable();
+
+    // Recreate for more/less rows when height changes.
+    const int rows = std::round((height() / static_cast<float>(rowHeight(0))) - 0.25);
+    if (rows != rowCount())
+      m_view->CreateTable();
   }
 
   void keyPressEvent(QKeyEvent* event) override
@@ -194,7 +199,6 @@ public:
     m_view->Update();
   }
 
-private:
   MemoryViewWidget* m_view;
 };
 
@@ -312,6 +316,11 @@ constexpr int GetCharacterCount(MemoryViewWidget::Type type)
 
 void MemoryViewWidget::CreateTable()
 {
+  // May attempt to create table multiple times before it's ready/visible, which will not produce a
+  // table..
+  if (!isVisible())
+    return;
+
   m_table->clearContents();
 
   // This sets all row heights and determines horizontal ascii spacing.
@@ -365,6 +374,7 @@ void MemoryViewWidget::CreateTable()
   auto item = QTableWidgetItem(INVALID_MEMORY);
   item.setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
   item.setData(USER_ROLE_IS_ROW_BREAKPOINT_CELL, false);
+  item.setData(USER_ROLE_VALID_ADDRESS, false);
 
   for (int i = 0; i < rows; i++)
   {
@@ -432,7 +442,7 @@ void MemoryViewWidget::CreateTable()
 void MemoryViewWidget::Update()
 {
   // Check if table is created
-  if (m_table->item(1, 1) == nullptr)
+  if (m_table->item(2, 1) == nullptr || m_updating)
     return;
 
   m_table->clearSelection();
@@ -485,6 +495,7 @@ void MemoryViewWidget::Update()
     description_item->setData(USER_ROLE_CELL_ADDRESS, row_address);
   }
 
+  // Sends resizeEvent signals that I don't know how to block. Logic in resizeEvent prevents errors.
   if (m_show_symbols)
     m_table->resizeColumnToContents(m_table->columnCount() - 1);
 
@@ -501,7 +512,7 @@ void MemoryViewWidget::UpdateOnFrameEnd()
   if (!isVisible() || m_updating)
     return;
 
-  if (m_table->item(1, 1) == nullptr)
+  if (m_table->item(2, 1) == nullptr)
     return;
 
   Core::CPUThreadGuard guard(Core::System::GetInstance());
@@ -513,8 +524,8 @@ void MemoryViewWidget::UpdateColumns()
   if (!isVisible() || m_updating)
     return;
 
-  // Check if table is created
-  if (m_table->item(1, 1) == nullptr)
+  // Check if table is created. Had issue where only first row was created, so checking second row.
+  if (m_table->item(2, 1) == nullptr)
     return;
 
   Core::State state = Core::GetState();
@@ -533,7 +544,7 @@ void MemoryViewWidget::UpdateColumns()
 void MemoryViewWidget::UpdateColumns(const Core::CPUThreadGuard* guard)
 {
   // Check if table is created
-  if (m_table->item(1, 1) == nullptr || m_updating)
+  if (m_table->item(2, 1) == nullptr || m_updating)
     return;
 
   m_updating = true;
@@ -543,6 +554,12 @@ void MemoryViewWidget::UpdateColumns(const Core::CPUThreadGuard* guard)
     for (int c = 0; c < m_data_columns; c++)
     {
       auto* cell_item = m_table->item(i, c + MISC_COLUMNS);
+      if (cell_item == nullptr)
+      {
+        m_updating = false;
+        return;
+      }
+
       const u32 cell_address = cell_item->data(USER_ROLE_CELL_ADDRESS).toUInt();
       const Type type = static_cast<Type>(cell_item->data(USER_ROLE_VALUE_TYPE).toInt());
 
