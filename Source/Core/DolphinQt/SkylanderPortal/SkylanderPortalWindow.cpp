@@ -875,7 +875,7 @@ void SkylanderPortalWindow::UpdateSlotNames()
 }
 
 // Helpers
-bool SkylanderPortalWindow::PassesFilter(QString name, u16 id, u16 var)
+bool SkylanderPortalWindow::PassesFilter(const QString& name, u16 id, u16 var) const
 {
   const auto skypair = IOS::HLE::USB::list_skylanders.find(std::make_pair(id, var));
   IOS::HLE::USB::SkyData character;
@@ -916,7 +916,7 @@ bool SkylanderPortalWindow::PassesFilter(QString name, u16 id, u16 var)
   return true;
 }
 
-QString SkylanderPortalWindow::GetFilePath(u16 id, u16 var)
+QString SkylanderPortalWindow::GetFilePath(u16 id, u16 var) const
 {
   const QDir collection = QDir(m_collection_path);
   auto& system = Core::System::GetInstance();
@@ -938,12 +938,12 @@ QString SkylanderPortalWindow::GetFilePath(u16 id, u16 var)
       return file.filePath();
     }
   }
-  return QString();
+  return {};
 }
 
-u8 SkylanderPortalWindow::GetCurrentSlot()
+u8 SkylanderPortalWindow::GetCurrentSlot() const
 {
-  for (auto radio : m_slot_radios)
+  for (const auto* radio : m_slot_radios)
   {
     if (radio->isChecked())
     {
@@ -953,9 +953,9 @@ u8 SkylanderPortalWindow::GetCurrentSlot()
   return 0;
 }
 
-int SkylanderPortalWindow::GetElementRadio()
+int SkylanderPortalWindow::GetElementRadio() const
 {
-  for (auto radio : m_element_filter)
+  for (const auto* radio : m_element_filter)
   {
     if (radio->isChecked())
     {
@@ -965,9 +965,9 @@ int SkylanderPortalWindow::GetElementRadio()
   return -1;
 }
 
-int SkylanderPortalWindow::GetTypeRadio()
+int SkylanderPortalWindow::GetTypeRadio() const
 {
-  for (auto radio : m_type_filter)
+  for (const auto* radio : m_type_filter)
   {
     if (radio->isChecked())
     {
@@ -984,7 +984,7 @@ QBrush SkylanderPortalWindow::GetBaseColor(std::pair<const u16, const u16> ids, 
   if (skylander == IOS::HLE::USB::list_skylanders.end())
     return QBrush(dark_theme ? QColor(32, 32, 32) : QColor(255, 255, 255));
 
-  switch ((*skylander).second.game)
+  switch (skylander->second.game)
   {
   case Game::SpyrosAdv:
     return QBrush(dark_theme ? QColor(10, 42, 90) : QColor(240, 255, 240));
