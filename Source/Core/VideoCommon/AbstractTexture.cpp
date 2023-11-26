@@ -19,7 +19,7 @@ void AbstractTexture::FinishedRendering()
 {
 }
 
-bool AbstractTexture::Save(const std::string& filename, unsigned int level, int compression)
+bool AbstractTexture::Save(const std::string& filename, unsigned int level, int compression) const
 {
   // We can't dump compressed textures currently (it would mean drawing them to a RGBA8
   // framebuffer, and saving that). TextureCache does not call Save for custom textures

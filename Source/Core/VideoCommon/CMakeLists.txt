@@ -155,6 +155,8 @@ add_library(videocommon
   TextureDecoder_Util.h
   TextureInfo.cpp
   TextureInfo.h
+  TextureUtils.cpp
+  TextureUtils.h
   TMEM.cpp
   TMEM.h
   UberShaderCommon.cpp
