@@ -24,12 +24,21 @@ public:
 private:
   void enterEvent(QEnterEvent* event) override
   {
-    if (m_timer_id)
+    // If the cursor is reentering the ToolTipWidget after having hovered over the BalloonTip don't
+    // do anything.
+    if (m_timer_id || BalloonTip::IsWidgetBalloonTipActive(this))
       return;
     m_timer_id = this->startTimer(TOOLTIP_DELAY);
   }
 
-  void leaveEvent(QEvent* event) override { KillAndHide(); }
+  void leaveEvent(QEvent* event) override
+  {
+    // If the cursor would still be inside the ToolTipWidget but the BalloonTip is covering that
+    // part of it, keep the BalloonTip open. In that case the BalloonTip will then track the cursor
+    // and close itself if it leaves the bounding box of this ToolTipWidget.
+    if (!BalloonTip::IsCursorInsideWidgetBoundingBox(this))
+      KillAndHide();
+  }
   void hideEvent(QHideEvent* event) override { KillAndHide(); }
 
   void timerEvent(QTimerEvent* event) override

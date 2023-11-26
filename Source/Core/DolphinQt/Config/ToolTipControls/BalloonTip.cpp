@@ -24,11 +24,17 @@
 
 #include "Core/Config/MainSettings.h"
 
+#include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/Settings.h"
 
 namespace
 {
 std::unique_ptr<BalloonTip> s_the_balloon_tip = nullptr;
+// Remember the parent ToolTipWidget so cursor-related events can see whether the cursor is inside
+// the parent's bounding box or not. Use this variable instead of BalloonTip's parent() member
+// because the ToolTipWidget isn't responsible for deleting the BalloonTip and so doesn't set its
+// parent member.
+QWidget* s_parent = nullptr;
 }  // namespace
 
 void BalloonTip::ShowBalloon(const QIcon& icon, const QString& title, const QString& message,
@@ -51,6 +57,7 @@ void BalloonTip::ShowBalloon(const QIcon& icon, const QString& title, const QStr
 
 void BalloonTip::HideBalloon()
 {
+  s_parent = nullptr;
 #if defined(__APPLE__)
   QToolTip::hideText();
 #else
@@ -65,6 +72,9 @@ BalloonTip::BalloonTip(PrivateTag, const QIcon& icon, QString title, QString mes
                        QWidget* parent)
     : QWidget(nullptr, Qt::ToolTip)
 {
+  s_parent = parent;
+  setMouseTracking(true);
+
   setAttribute(Qt::WA_DeleteOnClose);
   setAutoFillBackground(true);
 
@@ -115,6 +125,45 @@ BalloonTip::BalloonTip(PrivateTag, const QIcon& icon, QString title, QString mes
   layout->addWidget(message_label, 1, 0, 1, 3);
   layout->setSizeConstraint(QLayout::SetMinimumSize);
   setLayout(layout);
+}
+
+bool BalloonTip::IsCursorInsideWidgetBoundingBox(QWidget* const widget)
+{
+  if (widget == nullptr)
+    return false;
+  QPoint local_cursor_position = widget->mapFromGlobal(QCursor::pos());
+  return widget->rect().contains(local_cursor_position);
+}
+
+bool BalloonTip::IsWidgetBalloonTipActive(QWidget* const widget)
+{
+  return widget != nullptr && widget == s_parent;
+}
+
+// Hiding the balloon causes the BalloonTip widget to be deleted. Triggering that deletion while
+// inside a BalloonTip event handler leads to a use-after-free crash or worse, so queue the deletion
+// for later.
+static void QueueHideBalloon()
+{
+  QueueOnObject(s_parent, BalloonTip::HideBalloon);
+}
+
+void BalloonTip::enterEvent(QEnterEvent*)
+{
+  if (!IsCursorInsideWidgetBoundingBox(s_parent))
+    QueueHideBalloon();
+}
+
+void BalloonTip::mouseMoveEvent(QMouseEvent*)
+{
+  if (!IsCursorInsideWidgetBoundingBox(s_parent))
+    QueueHideBalloon();
+}
+
+void BalloonTip::leaveEvent(QEvent*)
+{
+  if (!IsCursorInsideWidgetBoundingBox(s_parent))
+    QueueHideBalloon();
 }
 
 void BalloonTip::paintEvent(QPaintEvent*)
