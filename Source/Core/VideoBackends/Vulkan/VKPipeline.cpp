@@ -6,6 +6,7 @@
 #include <array>
 
 #include "Common/Assert.h"
+#include "Common/EnumMap.h"
 #include "Common/MsgHandler.h"
 
 #include "VideoBackends/Vulkan/ObjectCache.h"
@@ -146,40 +147,44 @@ GetVulkanAttachmentBlendState(const BlendingState& state, AbstractPipelineUsage 
 
   if (use_dual_source)
   {
-    static constexpr std::array<VkBlendFactor, 8> src_factors = {
-        {VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_DST_COLOR,
-         VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR, VK_BLEND_FACTOR_SRC1_ALPHA,
-         VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA, VK_BLEND_FACTOR_DST_ALPHA,
-         VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA}};
-    static constexpr std::array<VkBlendFactor, 8> dst_factors = {
-        {VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_SRC_COLOR,
-         VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR, VK_BLEND_FACTOR_SRC1_ALPHA,
-         VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA, VK_BLEND_FACTOR_DST_ALPHA,
-         VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA}};
+    static constexpr Common::EnumMap<VkBlendFactor, SrcBlendFactor::InvDstAlpha> src_factors{
+        VK_BLEND_FACTOR_ZERO,       VK_BLEND_FACTOR_ONE,
+        VK_BLEND_FACTOR_DST_COLOR,  VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR,
+        VK_BLEND_FACTOR_SRC1_ALPHA, VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA,
+        VK_BLEND_FACTOR_DST_ALPHA,  VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA,
+    };
+    static constexpr Common::EnumMap<VkBlendFactor, DstBlendFactor::InvDstAlpha> dst_factors{
+        VK_BLEND_FACTOR_ZERO,       VK_BLEND_FACTOR_ONE,
+        VK_BLEND_FACTOR_SRC_COLOR,  VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR,
+        VK_BLEND_FACTOR_SRC1_ALPHA, VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA,
+        VK_BLEND_FACTOR_DST_ALPHA,  VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA,
+    };
 
-    vk_state.srcColorBlendFactor = src_factors[u32(state.srcfactor.Value())];
-    vk_state.srcAlphaBlendFactor = src_factors[u32(state.srcfactoralpha.Value())];
-    vk_state.dstColorBlendFactor = dst_factors[u32(state.dstfactor.Value())];
-    vk_state.dstAlphaBlendFactor = dst_factors[u32(state.dstfactoralpha.Value())];
+    vk_state.srcColorBlendFactor = src_factors[state.srcfactor];
+    vk_state.srcAlphaBlendFactor = src_factors[state.srcfactoralpha];
+    vk_state.dstColorBlendFactor = dst_factors[state.dstfactor];
+    vk_state.dstAlphaBlendFactor = dst_factors[state.dstfactoralpha];
   }
   else
   {
-    static constexpr std::array<VkBlendFactor, 8> src_factors = {
-        {VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_DST_COLOR,
-         VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR, VK_BLEND_FACTOR_SRC_ALPHA,
-         VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, VK_BLEND_FACTOR_DST_ALPHA,
-         VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA}};
+    static constexpr Common::EnumMap<VkBlendFactor, SrcBlendFactor::InvDstAlpha> src_factors{
+        VK_BLEND_FACTOR_ZERO,      VK_BLEND_FACTOR_ONE,
+        VK_BLEND_FACTOR_DST_COLOR, VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR,
+        VK_BLEND_FACTOR_SRC_ALPHA, VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+        VK_BLEND_FACTOR_DST_ALPHA, VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA,
+    };
 
-    static constexpr std::array<VkBlendFactor, 8> dst_factors = {
-        {VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_SRC_COLOR,
-         VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR, VK_BLEND_FACTOR_SRC_ALPHA,
-         VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, VK_BLEND_FACTOR_DST_ALPHA,
-         VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA}};
+    static constexpr Common::EnumMap<VkBlendFactor, DstBlendFactor::InvDstAlpha> dst_factors{
+        VK_BLEND_FACTOR_ZERO,      VK_BLEND_FACTOR_ONE,
+        VK_BLEND_FACTOR_SRC_COLOR, VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR,
+        VK_BLEND_FACTOR_SRC_ALPHA, VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+        VK_BLEND_FACTOR_DST_ALPHA, VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA,
+    };
 
-    vk_state.srcColorBlendFactor = src_factors[u32(state.srcfactor.Value())];
-    vk_state.srcAlphaBlendFactor = src_factors[u32(state.srcfactoralpha.Value())];
-    vk_state.dstColorBlendFactor = dst_factors[u32(state.dstfactor.Value())];
-    vk_state.dstAlphaBlendFactor = dst_factors[u32(state.dstfactoralpha.Value())];
+    vk_state.srcColorBlendFactor = src_factors[state.srcfactor];
+    vk_state.srcAlphaBlendFactor = src_factors[state.srcfactoralpha];
+    vk_state.dstColorBlendFactor = dst_factors[state.dstfactor];
+    vk_state.dstAlphaBlendFactor = dst_factors[state.dstfactoralpha];
   }
 
   if (state.colorupdate)
