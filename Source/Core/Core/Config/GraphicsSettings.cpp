@@ -153,7 +153,7 @@ const Info<bool> GFX_CC_SDR_DISPLAY_GAMMA_SRGB{
 const Info<float> GFX_CC_SDR_DISPLAY_CUSTOM_GAMMA{
     {System::GFX, "ColorCorrection", "SDRDisplayCustomGamma"}, 2.2f};
 const Info<float> GFX_CC_HDR_PAPER_WHITE_NITS{{System::GFX, "ColorCorrection", "HDRPaperWhiteNits"},
-                                              200.f};
+                                              203.f};
 
 // Graphics.Stereoscopy
 
