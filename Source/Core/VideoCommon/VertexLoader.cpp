@@ -77,9 +77,6 @@ VertexLoader::VertexLoader(const TVtxDesc& vtx_desc, const VAT& vtx_attr)
 
 void VertexLoader::CompileVertexTranslator()
 {
-  // Reset pipeline
-  m_numPipelineStages = 0;
-
   // Position in pc vertex format.
   int nat_offset = 0;
 
@@ -253,7 +250,7 @@ void VertexLoader::CompileVertexTranslator()
 
 void VertexLoader::WriteCall(TPipelineFunction func)
 {
-  m_PipelineStages[m_numPipelineStages++] = func;
+  m_PipelineStages.push_back(func);
 }
 
 int VertexLoader::RunVertices(const u8* src, u8* dst, int count)
@@ -269,8 +266,8 @@ int VertexLoader::RunVertices(const u8* src, u8* dst, int count)
     m_tcIndex = 0;
     m_colIndex = 0;
     m_texmtxwrite = m_texmtxread = 0;
-    for (int i = 0; i < m_numPipelineStages; i++)
-      m_PipelineStages[i](this);
+    for (TPipelineFunction& func : m_PipelineStages)
+      func(this);
     PRIM_LOG("\n");
   }
 
