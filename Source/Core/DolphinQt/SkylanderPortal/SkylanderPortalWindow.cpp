@@ -157,7 +157,7 @@ QVBoxLayout* SkylanderPortalWindow::CreateSlotLayout()
   m_enabled_checkbox = new QCheckBox(tr("Emulate Skylander Portal"), this);
   m_enabled_checkbox->setChecked(Config::Get(Config::MAIN_EMULATE_SKYLANDER_PORTAL));
   m_emulating = Config::Get(Config::MAIN_EMULATE_SKYLANDER_PORTAL);
-  connect(m_enabled_checkbox, &QCheckBox::toggled, [&](bool checked) { EmulatePortal(checked); });
+  connect(m_enabled_checkbox, &QCheckBox::toggled, this, &SkylanderPortalWindow::EmulatePortal);
   checkbox_layout->addWidget(m_enabled_checkbox);
   slot_layout->addLayout(checkbox_layout);
 
