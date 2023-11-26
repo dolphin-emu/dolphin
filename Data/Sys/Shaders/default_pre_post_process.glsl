@@ -293,6 +293,33 @@ float4 AreaSampling(float3 uvw, float gamma)
 	return avg_color / (area_corners + area_edges + area_center);
 }
 
+/***** 4x Rotated Grid SuperSampling *****/
+
+// Based on 4-Rook Antialiasing (RGSS) by Alan Wolfe
+// https://www.shadertoy.com/view/llj3Dw
+// https://blog.demofox.org/2015/04/23/4-rook-antialiasing-rgss/
+
+float4 RGSS(float3 uvw, float gamma)
+{
+	float2 step = GetInvWindowResolution();
+	float4 color = float4(0);
+
+	// | | |*| |
+	// |*| | | |
+	// | | | |*|
+	// | |*| | |
+
+	float s = 1.0/8.0;
+	float l = 3.0/8.0;
+
+	color += QuickSample(uvw.xy + float2( s, l) * step, uvw.z, gamma);
+	color += QuickSample(uvw.xy + float2( l,-s) * step, uvw.z, gamma);
+	color += QuickSample(uvw.xy + float2(-s,-l) * step, uvw.z, gamma);
+	color += QuickSample(uvw.xy + float2(-l, s) * step, uvw.z, gamma);
+
+	return color * 0.25;
+}
+
 /***** Main Functions *****/
 
 // Returns an accurate (gamma corrected) sample of a gamma space space texture.
@@ -326,11 +353,15 @@ float4 LinearGammaCorrectedSample(float gamma)
 	{
 		color = AreaSampling(uvw, gamma);
 	}
-	else if (resampling_method == 7) // Nearest Neighbor
+	else if (resampling_method == 7) // 4xRGSS
+	{
+		color = RGSS(uvw, gamma);
+	}
+	else if (resampling_method == 8) // Nearest Neighbor
 	{
 		color = QuickSample(uvw, gamma);
 	}
-	else if (resampling_method == 8) // Bicubic: Hermite
+	else if (resampling_method == 9) // Bicubic: Hermite
 	{
 		color = BicubicSample(uvw, gamma, CUBIC_COEFF_GEN(0.0, 0.0));
 	}

@@ -137,6 +137,7 @@ void EnhancementsWidget::CreateWidgets()
                                      static_cast<int>(OutputResamplingMode::SharpBilinear));
   m_output_resampling_combo->addItem(tr("Area Sampling"),
                                      static_cast<int>(OutputResamplingMode::AreaSampling));
+  m_output_resampling_combo->addItem(tr("4xRGSS"), static_cast<int>(OutputResamplingMode::RGSS));
 
   m_configure_color_correction = new ToolTipPushButton(tr("Configure"));
 
@@ -533,6 +534,10 @@ void EnhancementsWidget::AddDescriptions()
                  "<br><br><b>Area Sampling</b> - [up to 324 samples]"
                  "<br>Weights pixels by the percentage of area they occupy. Gamma corrected."
                  "<br>Best for down scaling by more than 2x."
+
+                 "<br><br><b>4xRGSS</b> - [4 samples]"
+                 "<br>Rotated Grid SuperSampling, common antialiasing method with smooth results."
+                 "<br>Best for down scaling by more than 2x, useless for up scaling."
 
                  "<br><br><dolphin_emphasis>If unsure, select 'Default'.</dolphin_emphasis>");
   static const char TR_COLOR_CORRECTION_DESCRIPTION[] =
