@@ -220,12 +220,13 @@ void VertexLoader::CompileVertexTranslator()
     {
       // if there's more tex coords later, have to write a dummy call
       bool has_more = false;
-      for (size_t j = 0; j < m_VtxDesc.high.TexCoord.Size(); ++j)
+      for (size_t j = i + 1; j < m_VtxDesc.high.TexCoord.Size(); ++j)
       {
         if (m_VtxDesc.high.TexCoord[j] != VertexComponentFormat::NotPresent)
         {
           has_more = true;
-          WriteCall(VertexLoader_TextCoord::GetDummyFunction());  // important to get indices right!
+          // Keep tcIndex in sync so that the correct array is used later
+          WriteCall(VertexLoader_TextCoord::GetDummyFunction());
           break;
         }
         else if (m_VtxDesc.low.TexMatIdx[j])
