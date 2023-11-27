@@ -545,7 +545,7 @@ bool BeginRecordingInput(const ControllerTypeArray& controllers,
       (controllers == ControllerTypeArray{} && wiimotes == WiimoteEnabledArray{}))
     return false;
 
-  Core::RunAsCPUThread([controllers, wiimotes] {
+  const auto start_recording = [controllers, wiimotes] {
     s_controllers = controllers;
     s_wiimotes = wiimotes;
     s_currentFrame = s_totalFrames = 0;
@@ -615,7 +615,8 @@ bool BeginRecordingInput(const ControllerTypeArray& controllers,
 
     if (Core::IsRunning())
       Core::UpdateWantDeterminism();
-  });
+  };
+  Core::RunOnCPUThread(start_recording, true);
 
   Core::DisplayMessage("Starting movie recording", 2000);
   return true;
