@@ -39,6 +39,10 @@ EnhancementsWidget::EnhancementsWidget(GraphicsWindow* parent) : m_block_save(fa
   AddDescriptions();
   connect(parent, &GraphicsWindow::BackendChanged,
           [this](const QString& backend) { LoadSettings(); });
+  connect(parent, &GraphicsWindow::UseFastTextureSamplingChanged, this,
+          &EnhancementsWidget::LoadSettings);
+  connect(parent, &GraphicsWindow::UseGPUTextureDecodingChanged, this,
+          &EnhancementsWidget::LoadSettings);
 }
 
 constexpr int TEXTURE_FILTERING_DEFAULT = 0;
@@ -307,6 +311,9 @@ void EnhancementsWidget::LoadPPShaders()
 void EnhancementsWidget::LoadSettings()
 {
   m_block_save = true;
+  m_texture_filtering_combo->setEnabled(Config::Get(Config::GFX_HACK_FAST_TEXTURE_SAMPLING));
+  m_arbitrary_mipmap_detection->setEnabled(!Config::Get(Config::GFX_ENABLE_GPU_TEXTURE_DECODING));
+
   // Anti-Aliasing
 
   const u32 aa_selection = Config::Get(Config::GFX_MSAA);
@@ -503,7 +510,8 @@ void EnhancementsWidget::AddDescriptions()
       "that are at oblique viewing angles. Force Nearest and Force Linear override the texture "
       "scaling filter selected by the game.<br><br>Any option except 'Default' will alter the look "
       "of the game's textures and might cause issues in a small number of "
-      "games.<br><br><dolphin_emphasis>If unsure, select 'Default'.</dolphin_emphasis>");
+      "games.<br><br>This option is incompatible with Manual Texture Sampling.<br><br>"
+      "<dolphin_emphasis>If unsure, select 'Default'.</dolphin_emphasis>");
   static const char TR_OUTPUT_RESAMPLING_DESCRIPTION[] =
       QT_TR_NOOP("Affects how the game output is scaled to the window resolution."
                  "<br>The performance mostly depends on the number of samples each method uses."

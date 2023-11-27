@@ -31,6 +31,10 @@ HacksWidget::HacksWidget(GraphicsWindow* parent)
   connect(parent, &GraphicsWindow::BackendChanged, this, &HacksWidget::OnBackendChanged);
   OnBackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
   connect(&Settings::Instance(), &Settings::ConfigChanged, this, &HacksWidget::LoadSettings);
+  connect(m_gpu_texture_decoding, &QCheckBox::toggled, [this, parent] {
+    SaveSettings();
+    emit parent->UseGPUTextureDecodingChanged();
+  });
 }
 
 void HacksWidget::CreateWidgets()
@@ -264,8 +268,8 @@ void HacksWidget::AddDescriptions()
   static const char TR_GPU_DECODING_DESCRIPTION[] = QT_TR_NOOP(
       "Enables texture decoding using the GPU instead of the CPU.<br><br>This may result in "
       "performance gains in some scenarios, or on systems where the CPU is the "
-      "bottleneck.<br><br><dolphin_emphasis>If unsure, leave this "
-      "unchecked.</dolphin_emphasis>");
+      "bottleneck.<br><br>This option is incompatible with Arbitrary Mipmap Detection.<br><br>"
+      "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_FAST_DEPTH_CALC_DESCRIPTION[] = QT_TR_NOOP(
       "Uses a less accurate algorithm to calculate depth values.<br><br>Causes issues in a few "
       "games, but can result in a decent speed increase depending on the game and/or "
