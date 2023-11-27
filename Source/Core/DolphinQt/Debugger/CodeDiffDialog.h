@@ -11,6 +11,7 @@
 class CodeWidget;
 class QLabel;
 class QPushButton;
+class QCheckBox;
 class QTableWidget;
 
 struct Diff
@@ -32,8 +33,17 @@ public:
   void reject() override;
 
 private:
+  enum class UpdateType
+  {
+    Include,
+    Exclude,
+    Backup
+  };
+
   void CreateWidgets();
   void ConnectWidgets();
+  void SaveDataBackup();
+  void LoadDataBackup();
   void ClearData();
   void ClearBlockCache();
   void OnClickItem();
@@ -43,7 +53,7 @@ private:
   void OnExclude();
   void RemoveMissingSymbolsFromIncludes(const std::vector<Diff>& symbol_diff);
   void RemoveMatchingSymbolsFromIncludes(const std::vector<Diff>& symbol_list);
-  void Update(bool include);
+  void Update(UpdateType type);
   void InfoDisp();
 
   void OnContextMenu();
@@ -52,15 +62,20 @@ private:
   void OnDelete();
   void OnSetBLR();
 
+  void MarkRowBLR(int row);
   void UpdateItem();
+  void UpdateButtons(bool running);
 
   QTableWidget* m_matching_results_table;
+  QCheckBox* m_autosave_check;
   QLabel* m_exclude_size_label;
   QLabel* m_include_size_label;
   QPushButton* m_exclude_btn;
   QPushButton* m_include_btn;
   QPushButton* m_record_btn;
   QPushButton* m_reset_btn;
+  QPushButton* m_save_btn;
+  QPushButton* m_load_btn;
   QPushButton* m_help_btn;
   CodeWidget* m_code_widget;
 
