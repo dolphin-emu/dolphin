@@ -160,9 +160,34 @@ public:
   ///
   void Release();
 
+  ///
+  /// Ensure that the memory page at the given byte offset from the start of the memory region is
+  /// writable. We use this on Windows as a workaround to only actually commit pages as they are
+  /// written to. On other OSes this does nothing.
+  ///
+  /// @param offset The offset into the memory region that should be made writable if it isn't.
+  ///
+  void EnsureMemoryPageWritable(size_t offset)
+  {
+#ifdef _WIN32
+    const size_t block_index = offset / BLOCK_SIZE;
+    if (m_writable_block_handles[block_index] == nullptr)
+      MakeMemoryBlockWritable(block_index);
+#endif
+  }
+
 private:
   void* m_memory = nullptr;
   size_t m_size = 0;
+
+#ifdef _WIN32
+  void* m_zero_block = nullptr;
+  constexpr static size_t BLOCK_SIZE = 8 * 1024 * 1024;  // size of allocated memory blocks
+  WindowsMemoryFunctions m_memory_functions;
+  std::vector<void*> m_writable_block_handles;
+
+  void MakeMemoryBlockWritable(size_t offset);
+#endif
 };
 
 }  // namespace Common
