@@ -18,6 +18,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/HLE/HLE.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
@@ -970,15 +971,18 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
       fprDiscardable = BitSet32{};
     }
 
+    const bool hle = !!HLE::TryReplaceFunction(op.address);
+    const bool may_exit_block = hle || op.canEndBlock || op.canCauseException;
+
     const BitSet8 opWantsCR = op.wantsCR;
     const bool opWantsFPRF = op.wantsFPRF;
     const bool opWantsCA = op.wantsCA;
-    op.wantsCR = wantsCR | BitSet8(op.canEndBlock || op.canCauseException ? 0xFF : 0);
-    op.wantsFPRF = wantsFPRF || op.canEndBlock || op.canCauseException;
-    op.wantsCA = wantsCA || op.canEndBlock || op.canCauseException;
-    wantsCR |= opWantsCR | BitSet8(op.canEndBlock || op.canCauseException ? 0xFF : 0);
-    wantsFPRF |= opWantsFPRF || op.canEndBlock || op.canCauseException;
-    wantsCA |= opWantsCA || op.canEndBlock || op.canCauseException;
+    op.wantsCR = wantsCR | BitSet8(may_exit_block ? 0xFF : 0);
+    op.wantsFPRF = wantsFPRF || may_exit_block;
+    op.wantsCA = wantsCA || may_exit_block;
+    wantsCR |= opWantsCR | BitSet8(may_exit_block ? 0xFF : 0);
+    wantsFPRF |= opWantsFPRF || may_exit_block;
+    wantsCA |= opWantsCA || may_exit_block;
     wantsCR &= ~op.outputCR | opWantsCR;
     wantsFPRF &= !op.outputFPRF || opWantsFPRF;
     wantsCA &= !op.outputCA || opWantsCA;
@@ -989,7 +993,19 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
     op.fprInXmm = fprInXmm;
     gprInUse |= op.regsIn | op.regsOut;
     fprInUse |= op.fregsIn | op.GetFregsOut();
-    if (op.canEndBlock || op.canCauseException)
+
+    if (strncmp(op.opinfo->opname, "stfd", 4))
+      fprInXmm |= op.fregsIn;
+
+    if (hle)
+    {
+      gprInUse = BitSet32{};
+      fprInUse = BitSet32{};
+      fprInXmm = BitSet32{};
+      gprDiscardable = BitSet32{};
+      fprDiscardable = BitSet32{};
+    }
+    else if (op.canEndBlock || op.canCauseException)
     {
       gprDiscardable = BitSet32{};
       fprDiscardable = BitSet32{};
@@ -1001,8 +1017,6 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
       fprDiscardable |= op.GetFregsOut();
       fprDiscardable &= ~op.fregsIn;
     }
-    if (strncmp(op.opinfo->opname, "stfd", 4))
-      fprInXmm |= op.fregsIn;
   }
 
   // Forward scan, for flags that need the other direction for calculation.
