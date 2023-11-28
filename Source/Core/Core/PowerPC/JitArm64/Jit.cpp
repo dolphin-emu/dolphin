@@ -382,12 +382,21 @@ void JitArm64::WriteExit(u32 destination, bool LK, u32 exit_address_after_return
   const u8* host_address_after_return;
   if (LK)
   {
-    // Push {ARM_PC; PPC_PC} on the stack
-    ARM64Reg reg_to_push = exit_address_after_return_reg;
+    // Push {ARM_PC (64-bit); PPC_PC (32-bit); MSR_BITS (32-bit)} on the stack
+    ARM64Reg reg_to_push = ARM64Reg::X1;
+    const u64 msr_bits = m_ppc_state.msr.Hex & JitBaseBlockCache::JIT_CACHE_MSR_MASK;
     if (exit_address_after_return_reg == ARM64Reg::INVALID_REG)
     {
-      MOVI2R(ARM64Reg::X1, exit_address_after_return);
-      reg_to_push = ARM64Reg::X1;
+      MOVI2R(ARM64Reg::X1, msr_bits << 32 | exit_address_after_return);
+    }
+    else if (msr_bits == 0)
+    {
+      reg_to_push = EncodeRegTo64(exit_address_after_return_reg);
+    }
+    else
+    {
+      ORRI2R(ARM64Reg::X1, EncodeRegTo64(exit_address_after_return_reg), msr_bits << 32,
+             ARM64Reg::X1);
     }
     constexpr s32 adr_offset = JitArm64BlockCache::BLOCK_LINK_SIZE + sizeof(u32) * 2;
     host_address_after_return = GetCodePtr() + adr_offset;
@@ -477,14 +486,22 @@ void JitArm64::WriteExit(Arm64Gen::ARM64Reg dest, bool LK, u32 exit_address_afte
   }
   else
   {
-    // Push {ARM_PC, PPC_PC} on the stack
-    ARM64Reg reg_to_push = exit_address_after_return_reg;
+    // Push {ARM_PC (64-bit); PPC_PC (32-bit); MSR_BITS (32-bit)} on the stack
+    ARM64Reg reg_to_push = ARM64Reg::X1;
+    const u64 msr_bits = m_ppc_state.msr.Hex & JitBaseBlockCache::JIT_CACHE_MSR_MASK;
     if (exit_address_after_return_reg == ARM64Reg::INVALID_REG)
     {
-      MOVI2R(ARM64Reg::X1, exit_address_after_return);
-      reg_to_push = ARM64Reg::X1;
+      MOVI2R(ARM64Reg::X1, msr_bits << 32 | exit_address_after_return);
     }
-    MOVI2R(ARM64Reg::X1, exit_address_after_return);
+    else if (msr_bits == 0)
+    {
+      reg_to_push = EncodeRegTo64(exit_address_after_return_reg);
+    }
+    else
+    {
+      ORRI2R(ARM64Reg::X1, EncodeRegTo64(exit_address_after_return_reg), msr_bits << 32,
+             ARM64Reg::X1);
+    }
     constexpr s32 adr_offset = sizeof(u32) * 3;
     const u8* host_address_after_return = GetCodePtr() + adr_offset;
     ADR(ARM64Reg::X0, adr_offset);
@@ -540,19 +557,33 @@ void JitArm64::FakeLKExit(u32 exit_address_after_return, ARM64Reg exit_address_a
     // function has been called!
     gpr.Lock(ARM64Reg::W30);
   }
-  ARM64Reg after_reg = exit_address_after_return_reg;
+  // Push {ARM_PC (64-bit); PPC_PC (32-bit); MSR_BITS (32-bit)} on the stack
+  ARM64Reg after_reg = ARM64Reg::INVALID_REG;
+  ARM64Reg reg_to_push;
+  const u64 msr_bits = m_ppc_state.msr.Hex & JitBaseBlockCache::JIT_CACHE_MSR_MASK;
   if (exit_address_after_return_reg == ARM64Reg::INVALID_REG)
   {
     after_reg = gpr.GetReg();
-    MOVI2R(after_reg, exit_address_after_return);
+    reg_to_push = EncodeRegTo64(after_reg);
+    MOVI2R(reg_to_push, msr_bits << 32 | exit_address_after_return);
+  }
+  else if (msr_bits == 0)
+  {
+    reg_to_push = EncodeRegTo64(exit_address_after_return_reg);
+  }
+  else
+  {
+    after_reg = gpr.GetReg();
+    reg_to_push = EncodeRegTo64(after_reg);
+    ORRI2R(reg_to_push, EncodeRegTo64(exit_address_after_return_reg), msr_bits << 32, reg_to_push);
   }
   ARM64Reg code_reg = gpr.GetReg();
   constexpr s32 adr_offset = sizeof(u32) * 3;
   const u8* host_address_after_return = GetCodePtr() + adr_offset;
   ADR(EncodeRegTo64(code_reg), adr_offset);
-  STP(IndexType::Pre, EncodeRegTo64(code_reg), EncodeRegTo64(after_reg), ARM64Reg::SP, -16);
+  STP(IndexType::Pre, EncodeRegTo64(code_reg), reg_to_push, ARM64Reg::SP, -16);
   gpr.Unlock(code_reg);
-  if (after_reg != exit_address_after_return_reg)
+  if (after_reg != ARM64Reg::INVALID_REG)
     gpr.Unlock(after_reg);
 
   FixupBranch skip_exit = BL();
@@ -608,9 +639,18 @@ void JitArm64::WriteBLRExit(Arm64Gen::ARM64Reg dest)
   Cleanup();
   EndTimeProfile(js.curBlock);
 
-  // Check if {ARM_PC, PPC_PC} matches the current state.
+  // Check if {PPC_PC, MSR_BITS} matches the current state, then RET to ARM_PC.
   LDP(IndexType::Post, ARM64Reg::X2, ARM64Reg::X1, ARM64Reg::SP, 16);
-  CMP(ARM64Reg::W1, DISPATCHER_PC);
+  const u64 msr_bits = m_ppc_state.msr.Hex & JitBaseBlockCache::JIT_CACHE_MSR_MASK;
+  if (msr_bits == 0)
+  {
+    CMP(ARM64Reg::X1, EncodeRegTo64(DISPATCHER_PC));
+  }
+  else
+  {
+    ORRI2R(ARM64Reg::X0, EncodeRegTo64(DISPATCHER_PC), msr_bits << 32, ARM64Reg::X0);
+    CMP(ARM64Reg::X1, ARM64Reg::X0);
+  }
   FixupBranch no_match = B(CC_NEQ);
 
   DoDownCount();  // overwrites X0 + X1

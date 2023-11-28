@@ -104,10 +104,6 @@ void JitArm64::mtmsr(UGeckoInstruction inst)
   gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
   fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
 
-  // Our jit cache also stores some MSR bits, as they have changed, we either
-  // have to validate them in the BLR/RET check, or just flush the stack here.
-  ResetStack();
-
   WriteExceptionExit(js.compilerPC + 4, true);
 }
 

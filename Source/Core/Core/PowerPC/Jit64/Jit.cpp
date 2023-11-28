@@ -483,7 +483,8 @@ void Jit64::FakeBLCall(u32 after)
 
   // We may need to fake the BLR stack on inlined CALL instructions.
   // Else we can't return to this location any more.
-  MOV(32, R(RSCRATCH2), Imm32(after));
+  MOV(64, R(RSCRATCH2),
+      Imm64(u64(m_ppc_state.msr.Hex & JitBaseBlockCache::JIT_CACHE_MSR_MASK) << 32 | after));
   PUSH(RSCRATCH2);
   FixupBranch skip_exit = CALL();
   POP(RSCRATCH2);
@@ -523,7 +524,8 @@ void Jit64::WriteExit(u32 destination, bool bl, u32 after)
 
   if (bl)
   {
-    MOV(32, R(RSCRATCH2), Imm32(after));
+    MOV(64, R(RSCRATCH2),
+        Imm64(u64(m_ppc_state.msr.Hex & JitBaseBlockCache::JIT_CACHE_MSR_MASK) << 32 | after));
     PUSH(RSCRATCH2);
   }
 
@@ -580,7 +582,8 @@ void Jit64::WriteExitDestInRSCRATCH(bool bl, u32 after)
 
   if (bl)
   {
-    MOV(32, R(RSCRATCH2), Imm32(after));
+    MOV(64, R(RSCRATCH2),
+        Imm64(u64(m_ppc_state.msr.Hex & JitBaseBlockCache::JIT_CACHE_MSR_MASK) << 32 | after));
     PUSH(RSCRATCH2);
   }
 
@@ -608,6 +611,13 @@ void Jit64::WriteBLRExit()
   bool disturbed = Cleanup();
   if (disturbed)
     MOV(32, R(RSCRATCH), PPCSTATE(pc));
+  const u64 msr_bits = m_ppc_state.msr.Hex & JitBaseBlockCache::JIT_CACHE_MSR_MASK;
+  if (msr_bits != 0)
+  {
+    MOV(32, R(RSCRATCH2), Imm32(msr_bits));
+    SHL(64, R(RSCRATCH2), Imm8(32));
+    OR(64, R(RSCRATCH), R(RSCRATCH2));
+  }
   MOV(32, R(RSCRATCH2), Imm32(js.downcountAmount));
   CMP(64, R(RSCRATCH), MDisp(RSP, 8));
   J_CC(CC_NE, asm_routines.dispatcher_mispredicted_blr);
