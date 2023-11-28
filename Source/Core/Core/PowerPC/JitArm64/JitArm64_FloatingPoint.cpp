@@ -137,12 +137,6 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
 
   const ARM64Reg temp_gpr = m_accurate_nans && !single ? gpr.GetReg() : ARM64Reg::INVALID_REG;
 
-  if (m_accurate_nans)
-  {
-    if (V0Q == ARM64Reg::INVALID_REG)
-      V0Q = fpr.GetReg();
-  }
-
   switch (op5)
   {
   case 18:
@@ -202,10 +196,6 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
     SwitchToFarCode();
     SetJumpTarget(nan);
 
-    const ARM64Reg quiet_bit_reg = reg_encoder(V0Q);
-
-    EmitQuietNaNBitConstant(quiet_bit_reg, inputs_are_singles && output_is_single, temp_gpr);
-
     Common::SmallVector<ARM64Reg, 3> inputs;
     inputs.push_back(VA);
     if (use_b && VA != VB)
@@ -213,7 +203,7 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
     if (use_c && VA != VC && (!use_b || VB != VC))
       inputs.push_back(VC);
 
-    // If any inputs are NaNs, pick the first NaN of them and OR it with the quiet bit
+    // If any inputs are NaNs, pick the first NaN of them and set its quiet bit
     for (size_t i = 0; i < inputs.size(); ++i)
     {
       // Skip checking if the input is a NaN if it's the last input and we're guaranteed to have at
@@ -228,8 +218,9 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
         skip = B(CCFlags::CC_VC);
       }
 
-      m_float_emit.ORR(EncodeRegToDouble(VD), EncodeRegToDouble(input),
-                       EncodeRegToDouble(quiet_bit_reg));
+      // Make the NaN quiet
+      m_float_emit.FADD(VD, input, input);
+
       nan_fixups.push_back(B());
 
       if (check_input)
@@ -883,29 +874,6 @@ void JitArm64::ConvertSingleToDoublePair(size_t guest_reg, ARM64Reg dest_reg, AR
     m_float_emit.FCVTL(64, EncodeRegToDouble(dest_reg), EncodeRegToDouble(src_reg));
 
     SetJumpTarget(continue1);
-  }
-}
-
-void JitArm64::EmitQuietNaNBitConstant(ARM64Reg dest_reg, bool single, ARM64Reg temp_gpr)
-{
-  // dest_reg = QNaN & ~SNaN
-  //
-  // (Alternatively, dest_reg = QNaN would also work, but that would take
-  // two instructions to emit even for singles)
-
-  if (single)
-  {
-    m_float_emit.MOVI(32, dest_reg, 0x40, 16);
-  }
-  else
-  {
-    ASSERT(temp_gpr != ARM64Reg::INVALID_REG);
-
-    MOVI2R(EncodeRegTo64(temp_gpr), 0x0008'0000'0000'0000);
-    if (IsQuad(dest_reg))
-      m_float_emit.DUP(64, dest_reg, EncodeRegTo64(temp_gpr));
-    else
-      m_float_emit.FMOV(dest_reg, EncodeRegTo64(temp_gpr));
   }
 }
 
