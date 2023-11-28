@@ -817,29 +817,36 @@ void MemoryViewWidget::ToggleBreakpoint(u32 addr, bool row)
   if (row && memchecks.OverlapsMemcheck(addr, m_bytes_per_row))
     overlap = true;
 
-  for (int i = 0; i < breaks; i++)
   {
-    u32 address = addr + length * i;
-    TMemCheck* check_ptr = memchecks.GetMemCheck(address, length);
+    const Core::CPUThreadGuard guard(m_system);
 
-    if (check_ptr == nullptr && !overlap)
+    for (int i = 0; i < breaks; i++)
     {
-      TMemCheck check;
-      check.start_address = address;
-      check.end_address = check.start_address + length - 1;
-      check.is_ranged = length > 0;
-      check.is_break_on_read = (m_bp_type == BPType::ReadOnly || m_bp_type == BPType::ReadWrite);
-      check.is_break_on_write = (m_bp_type == BPType::WriteOnly || m_bp_type == BPType::ReadWrite);
-      check.log_on_hit = m_do_log;
-      check.break_on_hit = true;
+      u32 address = addr + length * i;
+      TMemCheck* check_ptr = memchecks.GetMemCheck(address, length);
 
-      memchecks.Add(std::move(check));
+      if (check_ptr == nullptr && !overlap)
+      {
+        TMemCheck check;
+        check.start_address = address;
+        check.end_address = check.start_address + length - 1;
+        check.is_ranged = length > 0;
+        check.is_break_on_read = (m_bp_type == BPType::ReadOnly || m_bp_type == BPType::ReadWrite);
+        check.is_break_on_write =
+            (m_bp_type == BPType::WriteOnly || m_bp_type == BPType::ReadWrite);
+        check.log_on_hit = m_do_log;
+        check.break_on_hit = true;
+
+        memchecks.Add(std::move(check), false);
+      }
+      else if (check_ptr != nullptr)
+      {
+        // Using the pointer fixes misaligned breakpoints (0x11 breakpoint in 0x10 aligned view).
+        memchecks.Remove(check_ptr->start_address, false);
+      }
     }
-    else if (check_ptr != nullptr)
-    {
-      // Using the pointer fixes misaligned breakpoints (0x11 breakpoint in 0x10 aligned view).
-      memchecks.Remove(check_ptr->start_address);
-    }
+
+    memchecks.Update();
   }
 
   emit Host::GetInstance()->PPCBreakpointsChanged();
