@@ -828,14 +828,16 @@ void MemoryViewWidget::ToggleBreakpoint(u32 addr, bool row)
       check.log_on_hit = m_do_log;
       check.break_on_hit = true;
 
-      memchecks.Add(std::move(check));
+      memchecks.Add(std::move(check), false);
     }
     else if (check_ptr != nullptr)
     {
       // Using the pointer fixes misaligned breakpoints (0x11 breakpoint in 0x10 aligned view).
-      memchecks.Remove(check_ptr->start_address);
+      memchecks.Remove(check_ptr->start_address, false);
     }
   }
+
+  memchecks.Update();
 
   emit BreakpointsChanged();
   Update();
