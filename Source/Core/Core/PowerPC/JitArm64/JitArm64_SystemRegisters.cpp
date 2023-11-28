@@ -184,13 +184,14 @@ void JitArm64::mfsrin(UGeckoInstruction inst)
   u32 b = inst.RB, d = inst.RD;
   gpr.BindToRegister(d, d == b);
 
-  ARM64Reg index = gpr.GetReg();
-  ARM64Reg index64 = EncodeRegTo64(index);
   ARM64Reg RB = gpr.R(b);
+  ARM64Reg RD = gpr.R(d);
+  ARM64Reg index = gpr.GetReg();
+  ARM64Reg addr = EncodeRegTo64(RD);
 
   UBFM(index, RB, 28, 31);
-  ADD(index64, PPC_REG, index64, ArithOption(index64, ShiftType::LSL, 2));
-  LDR(IndexType::Unsigned, gpr.R(d), index64, PPCSTATE_OFF_SR(0));
+  ADDI2R(addr, PPC_REG, PPCSTATE_OFF_SR(0), addr);
+  LDR(RD, addr, ArithOption(EncodeRegTo64(index), true));
 
   gpr.Unlock(index);
 }
@@ -203,15 +204,16 @@ void JitArm64::mtsrin(UGeckoInstruction inst)
   u32 b = inst.RB, d = inst.RD;
   gpr.BindToRegister(d, d == b);
 
-  ARM64Reg index = gpr.GetReg();
-  ARM64Reg index64 = EncodeRegTo64(index);
   ARM64Reg RB = gpr.R(b);
+  ARM64Reg RD = gpr.R(d);
+  ARM64Reg index = gpr.GetReg();
+  ARM64Reg addr = gpr.GetReg();
 
   UBFM(index, RB, 28, 31);
-  ADD(index64, PPC_REG, index64, ArithOption(index64, ShiftType::LSL, 2));
-  STR(IndexType::Unsigned, gpr.R(d), index64, PPCSTATE_OFF_SR(0));
+  ADDI2R(addr, PPC_REG, PPCSTATE_OFF_SR(0), addr);
+  STR(RD, addr, ArithOption(EncodeRegTo64(index), true));
 
-  gpr.Unlock(index);
+  gpr.Unlock(index, addr);
 }
 
 void JitArm64::twx(UGeckoInstruction inst)
