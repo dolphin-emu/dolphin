@@ -10,7 +10,7 @@
 #include <string>
 #include <utility>
 #include <vector>
-#if defined(_M_X86) || defined(_M_X86_64)
+#if defined(_M_X86_64)
 #include <pmmintrin.h>
 #endif
 
@@ -2654,7 +2654,7 @@ void TextureCacheBase::UninitializeXFBMemory(u8* dst, u32 stride, u32 bytes_per_
   // (Y=1,U=254,V=254) instead of dark green (Y=0,U=0,V=0) in YUV
   // like is done in the EFB path.
 
-#if defined(_M_X86) || defined(_M_X86_64)
+#if defined(_M_X86_64)
   __m128i sixteenBytes = _mm_set1_epi16((s16)(u16)0xFE01);
 #endif
 
@@ -2662,7 +2662,7 @@ void TextureCacheBase::UninitializeXFBMemory(u8* dst, u32 stride, u32 bytes_per_
   {
     u32 size = bytes_per_row;
     u8* rowdst = dst;
-#if defined(_M_X86) || defined(_M_X86_64)
+#if defined(_M_X86_64)
     while (size >= 16)
     {
       _mm_storeu_si128((__m128i*)rowdst, sixteenBytes);

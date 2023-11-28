@@ -53,7 +53,7 @@ JITWidget::JITWidget(QWidget* parent) : QDockWidget(parent)
 
   ConnectWidgets();
 
-#if defined(_M_X86)
+#if defined(_M_X86_64)
   m_disassembler = GetNewDisassembler("x86");
 #elif defined(_M_ARM_64)
   m_disassembler = GetNewDisassembler("aarch64");
