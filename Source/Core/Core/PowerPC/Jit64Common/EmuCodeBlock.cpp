@@ -385,8 +385,11 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
     SetJumpTarget(slow);
   }
 
-  // Helps external systems know which instruction triggered the read.
-  // Invalid for calls from Jit64AsmCommon routines
+  // PC is used by memory watchpoints (if enabled), profiling where to insert gather pipe
+  // interrupt checks, and printing accurate PC locations in debug logs.
+  //
+  // In the case of Jit64AsmCommon routines, we don't know the PC here,
+  // so the caller has to store the PC themselves.
   if (!(flags & SAFE_LOADSTORE_NO_UPDATE_PC))
   {
     MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
@@ -555,8 +558,11 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
     SetJumpTarget(slow);
   }
 
-  // PC is used by memory watchpoints (if enabled) or to print accurate PC locations in debug logs
-  // Invalid for calls from Jit64AsmCommon routines
+  // PC is used by memory watchpoints (if enabled), profiling where to insert gather pipe
+  // interrupt checks, and printing accurate PC locations in debug logs.
+  //
+  // In the case of Jit64AsmCommon routines, we don't know the PC here,
+  // so the caller has to store the PC themselves.
   if (!(flags & SAFE_LOADSTORE_NO_UPDATE_PC))
   {
     MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
