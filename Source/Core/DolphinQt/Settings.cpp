@@ -539,15 +539,6 @@ bool Settings::GetCheatsEnabled() const
   return Config::Get(Config::MAIN_ENABLE_CHEATS);
 }
 
-void Settings::SetCheatsEnabled(bool enabled)
-{
-  if (Config::Get(Config::MAIN_ENABLE_CHEATS) != enabled)
-  {
-    Config::SetBaseOrCurrent(Config::MAIN_ENABLE_CHEATS, enabled);
-    emit EnableCheatsChanged(enabled);
-  }
-}
-
 void Settings::SetDebugModeEnabled(bool enabled)
 {
   if (AchievementManager::GetInstance().IsHardcoreModeActive())

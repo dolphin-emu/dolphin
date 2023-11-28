@@ -99,7 +99,8 @@ void GeneralPane::OnEmulationStateChanged(Core::State state)
 
 void GeneralPane::ConnectLayout()
 {
-  connect(m_checkbox_cheats, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
+  connect(m_checkbox_cheats, &QCheckBox::toggled, &Settings::Instance(),
+          &Settings::EnableCheatsChanged);
   connect(m_checkbox_override_region_settings, &QCheckBox::stateChanged, this,
           &GeneralPane::OnSaveConfig);
   connect(m_checkbox_auto_disc_change, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
@@ -144,7 +145,7 @@ void GeneralPane::CreateBasic()
   m_checkbox_dualcore = new ConfigBool(tr("Enable Dual Core (speedhack)"), Config::MAIN_CPU_THREAD);
   basic_group_layout->addWidget(m_checkbox_dualcore);
 
-  m_checkbox_cheats = new QCheckBox(tr("Enable Cheats"));
+  m_checkbox_cheats = new ConfigBool(tr("Enable Cheats"), Config::MAIN_ENABLE_CHEATS);
   basic_group_layout->addWidget(m_checkbox_cheats);
 
   m_checkbox_override_region_settings = new QCheckBox(tr("Allow Mismatched Region Settings"));
@@ -262,7 +263,6 @@ void GeneralPane::LoadConfig()
   SignalBlocking(m_checkbox_enable_analytics)
       ->setChecked(Settings::Instance().IsAnalyticsEnabled());
 #endif
-  SignalBlocking(m_checkbox_cheats)->setChecked(Settings::Instance().GetCheatsEnabled());
   SignalBlocking(m_checkbox_override_region_settings)
       ->setChecked(Config::Get(Config::MAIN_OVERRIDE_REGION_SETTINGS));
   SignalBlocking(m_checkbox_auto_disc_change)
@@ -353,11 +353,9 @@ void GeneralPane::OnSaveConfig()
   Settings::Instance().SetAnalyticsEnabled(m_checkbox_enable_analytics->isChecked());
   DolphinAnalytics::Instance().ReloadConfig();
 #endif
-  Settings::Instance().SetCheatsEnabled(m_checkbox_cheats->isChecked());
   Config::SetBaseOrCurrent(Config::MAIN_OVERRIDE_REGION_SETTINGS,
                            m_checkbox_override_region_settings->isChecked());
   Config::SetBase(Config::MAIN_AUTO_DISC_CHANGE, m_checkbox_auto_disc_change->isChecked());
-  Config::SetBaseOrCurrent(Config::MAIN_ENABLE_CHEATS, m_checkbox_cheats->isChecked());
   Settings::Instance().SetFallbackRegion(
       UpdateFallbackRegionFromIndex(m_combobox_fallback_region->currentIndex()));
 
@@ -386,6 +384,13 @@ void GeneralPane::AddDescriptions()
                  "improves performance. However, it can result in glitches and crashes."
                  "<br><br>This setting cannot be changed while emulation is active."
                  "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
+  static constexpr char TR_CHEATS_DESCRIPTION[] = QT_TR_NOOP(
+      "Enables the use of AR and Gecko cheat codes which can be used to modify games' behavior. "
+      "These codes can be configured with the Cheats Manager in the Tools menu."
+      "<br><br>This setting cannot be changed while emulation is active."
+      "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
 
   m_checkbox_dualcore->SetDescription(tr(TR_DUALCORE_DESCRIPTION));
+
+  m_checkbox_cheats->SetDescription(tr(TR_CHEATS_DESCRIPTION));
 }
