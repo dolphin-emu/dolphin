@@ -14,6 +14,15 @@ namespace Common
 {
 #ifdef _WIN32
 struct WindowsMemoryRegion;
+
+struct WindowsMemoryFunctions
+{
+  Common::DynamicLibrary m_kernel32_handle;
+  Common::DynamicLibrary m_api_ms_win_core_memory_l1_1_6_handle;
+  void* m_address_UnmapViewOfFileEx = nullptr;
+  void* m_address_VirtualAlloc2 = nullptr;
+  void* m_address_MapViewOfFile3 = nullptr;
+};
 #endif
 
 // This class lets you create a block of anonymous RAM, and then arbitrarily map views into it.
@@ -110,11 +119,7 @@ private:
   std::vector<WindowsMemoryRegion> m_regions;
   void* m_reserved_region = nullptr;
   void* m_memory_handle = nullptr;
-  Common::DynamicLibrary m_kernel32_handle;
-  Common::DynamicLibrary m_api_ms_win_core_memory_l1_1_6_handle;
-  void* m_address_UnmapViewOfFileEx = nullptr;
-  void* m_address_VirtualAlloc2 = nullptr;
-  void* m_address_MapViewOfFile3 = nullptr;
+  WindowsMemoryFunctions m_memory_functions;
 #else
   int m_shm_fd = 0;
   void* m_reserved_region = nullptr;

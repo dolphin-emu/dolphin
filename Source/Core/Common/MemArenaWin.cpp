@@ -49,48 +49,55 @@ struct WindowsMemoryRegion
   }
 };
 
+static bool InitWindowsMemoryFunctions(WindowsMemoryFunctions* functions)
+{
+  DynamicLibrary kernelBase{"KernelBase.dll"};
+  if (!kernelBase.IsOpen())
+    return false;
+
+  void* const ptr_IsApiSetImplemented = kernelBase.GetSymbolAddress("IsApiSetImplemented");
+  if (!ptr_IsApiSetImplemented)
+    return false;
+  if (!static_cast<PIsApiSetImplemented>(ptr_IsApiSetImplemented)("api-ms-win-core-memory-l1-1-6"))
+    return false;
+
+  functions->m_api_ms_win_core_memory_l1_1_6_handle.Open("api-ms-win-core-memory-l1-1-6.dll");
+  functions->m_kernel32_handle.Open("Kernel32.dll");
+  if (!functions->m_api_ms_win_core_memory_l1_1_6_handle.IsOpen() ||
+      !functions->m_kernel32_handle.IsOpen())
+  {
+    functions->m_api_ms_win_core_memory_l1_1_6_handle.Close();
+    functions->m_kernel32_handle.Close();
+    return false;
+  }
+
+  void* const address_VirtualAlloc2 =
+      functions->m_api_ms_win_core_memory_l1_1_6_handle.GetSymbolAddress("VirtualAlloc2FromApp");
+  void* const address_MapViewOfFile3 =
+      functions->m_api_ms_win_core_memory_l1_1_6_handle.GetSymbolAddress("MapViewOfFile3FromApp");
+  void* const address_UnmapViewOfFileEx =
+      functions->m_kernel32_handle.GetSymbolAddress("UnmapViewOfFileEx");
+  if (address_VirtualAlloc2 && address_MapViewOfFile3 && address_UnmapViewOfFileEx)
+  {
+    functions->m_address_VirtualAlloc2 = address_VirtualAlloc2;
+    functions->m_address_MapViewOfFile3 = address_MapViewOfFile3;
+    functions->m_address_UnmapViewOfFileEx = address_UnmapViewOfFileEx;
+    return true;
+  }
+
+  // at least one function is not available, use legacy logic
+  functions->m_api_ms_win_core_memory_l1_1_6_handle.Close();
+  functions->m_kernel32_handle.Close();
+  return false;
+}
+
 MemArena::MemArena()
 {
   // Check if VirtualAlloc2 and MapViewOfFile3 are available, which provide functionality to reserve
   // a memory region no other allocation may occupy while still allowing us to allocate and map
   // stuff within it. If they're not available we'll instead fall back to the 'legacy' logic and
   // just hope that nothing allocates in our address range.
-  DynamicLibrary kernelBase{"KernelBase.dll"};
-  if (!kernelBase.IsOpen())
-    return;
-
-  void* const ptr_IsApiSetImplemented = kernelBase.GetSymbolAddress("IsApiSetImplemented");
-  if (!ptr_IsApiSetImplemented)
-    return;
-  if (!static_cast<PIsApiSetImplemented>(ptr_IsApiSetImplemented)("api-ms-win-core-memory-l1-1-6"))
-    return;
-
-  m_api_ms_win_core_memory_l1_1_6_handle.Open("api-ms-win-core-memory-l1-1-6.dll");
-  m_kernel32_handle.Open("Kernel32.dll");
-  if (!m_api_ms_win_core_memory_l1_1_6_handle.IsOpen() || !m_kernel32_handle.IsOpen())
-  {
-    m_api_ms_win_core_memory_l1_1_6_handle.Close();
-    m_kernel32_handle.Close();
-    return;
-  }
-
-  void* const address_VirtualAlloc2 =
-      m_api_ms_win_core_memory_l1_1_6_handle.GetSymbolAddress("VirtualAlloc2FromApp");
-  void* const address_MapViewOfFile3 =
-      m_api_ms_win_core_memory_l1_1_6_handle.GetSymbolAddress("MapViewOfFile3FromApp");
-  void* const address_UnmapViewOfFileEx = m_kernel32_handle.GetSymbolAddress("UnmapViewOfFileEx");
-  if (address_VirtualAlloc2 && address_MapViewOfFile3 && address_UnmapViewOfFileEx)
-  {
-    m_address_VirtualAlloc2 = address_VirtualAlloc2;
-    m_address_MapViewOfFile3 = address_MapViewOfFile3;
-    m_address_UnmapViewOfFileEx = address_UnmapViewOfFileEx;
-  }
-  else
-  {
-    // at least one function is not available, use legacy logic
-    m_api_ms_win_core_memory_l1_1_6_handle.Close();
-    m_kernel32_handle.Close();
-  }
+  InitWindowsMemoryFunctions(&m_memory_functions);
 }
 
 MemArena::~MemArena()
@@ -146,9 +153,9 @@ u8* MemArena::ReserveMemoryRegion(size_t memory_size)
   }
 
   u8* base;
-  if (m_api_ms_win_core_memory_l1_1_6_handle.IsOpen())
+  if (m_memory_functions.m_api_ms_win_core_memory_l1_1_6_handle.IsOpen())
   {
-    base = static_cast<u8*>(static_cast<PVirtualAlloc2>(m_address_VirtualAlloc2)(
+    base = static_cast<u8*>(static_cast<PVirtualAlloc2>(m_memory_functions.m_address_VirtualAlloc2)(
         nullptr, nullptr, memory_size, MEM_RESERVE | MEM_RESERVE_PLACEHOLDER, PAGE_NOACCESS,
         nullptr, 0));
     if (base)
@@ -177,7 +184,7 @@ u8* MemArena::ReserveMemoryRegion(size_t memory_size)
 
 void MemArena::ReleaseMemoryRegion()
 {
-  if (m_api_ms_win_core_memory_l1_1_6_handle.IsOpen() && m_reserved_region)
+  if (m_memory_functions.m_api_ms_win_core_memory_l1_1_6_handle.IsOpen() && m_reserved_region)
   {
     // user should have unmapped everything by this point, check if that's true and yell if not
     // (it indicates a bug in the emulated memory mapping logic)
@@ -314,7 +321,7 @@ WindowsMemoryRegion* MemArena::EnsureSplitRegionForMapping(void* start_address, 
 
 void* MemArena::MapInMemoryRegion(s64 offset, size_t size, void* base)
 {
-  if (m_api_ms_win_core_memory_l1_1_6_handle.IsOpen())
+  if (m_memory_functions.m_api_ms_win_core_memory_l1_1_6_handle.IsOpen())
   {
     WindowsMemoryRegion* const region = EnsureSplitRegionForMapping(base, size);
     if (!region)
@@ -323,7 +330,7 @@ void* MemArena::MapInMemoryRegion(s64 offset, size_t size, void* base)
       return nullptr;
     }
 
-    void* rv = static_cast<PMapViewOfFile3>(m_address_MapViewOfFile3)(
+    void* rv = static_cast<PMapViewOfFile3>(m_memory_functions.m_address_MapViewOfFile3)(
         m_memory_handle, nullptr, base, offset, size, MEM_REPLACE_PLACEHOLDER, PAGE_READWRITE,
         nullptr, 0);
     if (rv)
@@ -416,10 +423,10 @@ bool MemArena::JoinRegionsAfterUnmap(void* start_address, size_t size)
 
 void MemArena::UnmapFromMemoryRegion(void* view, size_t size)
 {
-  if (m_api_ms_win_core_memory_l1_1_6_handle.IsOpen())
+  if (m_memory_functions.m_api_ms_win_core_memory_l1_1_6_handle.IsOpen())
   {
-    if (static_cast<PUnmapViewOfFileEx>(m_address_UnmapViewOfFileEx)(view,
-                                                                     MEM_PRESERVE_PLACEHOLDER))
+    if (static_cast<PUnmapViewOfFileEx>(m_memory_functions.m_address_UnmapViewOfFileEx)(
+            view, MEM_PRESERVE_PLACEHOLDER))
     {
       if (!JoinRegionsAfterUnmap(view, size))
         PanicAlertFmt("Joining memory region failed.");
