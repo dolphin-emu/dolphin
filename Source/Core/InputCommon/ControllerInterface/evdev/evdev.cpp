@@ -8,6 +8,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <fcntl.h>
 #include <libudev.h>
@@ -43,6 +44,30 @@ private:
   void StartHotplugThread();
   void StopHotplugThread();
   void HotplugThreadFunc();
+
+  // Linux has the strange behavior that closing file descriptors of event devices can be
+  // surprisingly slow, in the range of 20-70 milliseconds. For modern systems that have maybe 30
+  // event devices this can quickly add up, leading to visibly slow startup. So we close FDs on a
+  // separate thread *shrug*
+  friend evdevDevice;
+  void DeferredClose(int fd) { m_cleanup_queue.emplace_back(fd); }
+  void CleanUp()
+  {
+    if (m_cleanup_queue.empty())
+      return;
+    std::vector<int> work;
+    m_cleanup_queue.swap(work);
+    std::thread(
+        [](std::vector<int> vec) {
+          Common::SetCurrentThreadName("evdev cleanup");
+          for (int fd : vec)
+            close(fd);
+        },
+        std::move(work))
+        .detach();
+  }
+
+  std::vector<int> m_cleanup_queue;
 
   std::thread m_hotplug_thread;
   Common::Flag m_hotplug_thread_running;
@@ -273,7 +298,7 @@ void InputBackend::AddDeviceNode(const char* devnode)
   if (libevdev_new_from_fd(fd, &dev) != 0)
   {
     // This usually fails because the device node isn't an evdev device, such as /dev/input/js0
-    close(fd);
+    DeferredClose(fd);
     return;
   }
 
@@ -376,8 +401,10 @@ void InputBackend::HotplugThreadFunc()
     }
     else if (strcmp(action, "add") == 0)
     {
-      GetControllerInterface().PlatformPopulateDevices(
-          [&devnode, this] { AddDeviceNode(devnode); });
+      GetControllerInterface().PlatformPopulateDevices([&devnode, this] {
+        AddDeviceNode(devnode);
+        CleanUp();
+      });
     }
   }
   NOTICE_LOG_FMT(CONTROLLERINTERFACE, "evdev hotplug thread stopped");
@@ -455,6 +482,7 @@ void InputBackend::PopulateDevices()
 
     udev_device_unref(dev);
   }
+  CleanUp();
   udev_enumerate_unref(enumerate);
   udev_unref(udev);
 }
@@ -665,7 +693,7 @@ evdevDevice::~evdevDevice()
   {
     m_input_backend.RemoveDevnodeObject(node.devnode);
     libevdev_free(node.device);
-    close(node.fd);
+    m_input_backend.DeferredClose(node.fd);
   }
 }
 
