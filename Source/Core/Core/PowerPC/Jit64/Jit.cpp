@@ -499,10 +499,18 @@ void Jit64::EmitUpdateMembase()
 void Jit64::EmitStoreMembase(const OpArg& msr, X64Reg scratch_reg)
 {
   auto& memory = m_system.GetMemory();
-  MOV(64, R(RMEM), ImmPtr(memory.GetLogicalBase()));
-  MOV(64, R(scratch_reg), ImmPtr(memory.GetPhysicalBase()));
-  TEST(32, msr, Imm32(1 << (31 - 27)));
-  CMOVcc(64, RMEM, R(scratch_reg), CC_Z);
+  if (msr.IsImm())
+  {
+    MOV(64, R(RMEM),
+        ImmPtr(UReg_MSR(msr.Imm32()).DR ? memory.GetLogicalBase() : memory.GetPhysicalBase()));
+  }
+  else
+  {
+    MOV(64, R(RMEM), ImmPtr(memory.GetLogicalBase()));
+    MOV(64, R(scratch_reg), ImmPtr(memory.GetPhysicalBase()));
+    TEST(32, msr, Imm32(1 << (31 - 27)));
+    CMOVcc(64, RMEM, R(scratch_reg), CC_Z);
+  }
   MOV(64, PPCSTATE(mem_ptr), R(RMEM));
 }
 
