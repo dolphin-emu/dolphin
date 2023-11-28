@@ -3,6 +3,8 @@
 
 #include "DolphinQt/Config/Mapping/MappingWidget.h"
 
+#include <fmt/core.h>
+
 #include <QCheckBox>
 #include <QDialogButtonBox>
 #include <QFormLayout>
@@ -25,6 +27,7 @@
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerEmu/StickGate.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 MappingWidget::MappingWidget(MappingWindow* parent) : m_parent(parent)
 {
@@ -158,6 +161,26 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
     form_layout->addRow(advanced_button);
     connect(advanced_button, &QPushButton::clicked,
             [this, group] { ShowAdvancedControlGroupDialog(group); });
+  }
+
+  if (group->type == ControllerEmu::GroupType::Cursor)
+  {
+    QPushButton* mouse_button = new QPushButton(tr("Use Mouse Controlled Pointing"));
+    form_layout->insertRow(2, mouse_button);
+    connect(mouse_button, &QCheckBox::clicked, [this, group] {
+      std::string default_device = g_controller_interface.GetDefaultDeviceString() + ":";
+      const std::string controller_device = GetController()->GetDefaultDevice().ToString() + ":";
+      if (default_device == controller_device)
+      {
+        default_device.clear();
+      }
+      group->SetControlExpression(0, fmt::format("`{}Cursor Y-`", default_device));
+      group->SetControlExpression(1, fmt::format("`{}Cursor Y+`", default_device));
+      group->SetControlExpression(2, fmt::format("`{}Cursor X-`", default_device));
+      group->SetControlExpression(3, fmt::format("`{}Cursor X+`", default_device));
+      emit ConfigChanged();
+      GetController()->UpdateReferences(g_controller_interface);
+    });
   }
 
   return group_box;
