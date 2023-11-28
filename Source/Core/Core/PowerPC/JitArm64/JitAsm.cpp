@@ -307,7 +307,7 @@ void JitArm64::GenerateFres()
 }
 
 // Input: X1 contains input, and D0 contains result of running the input through AArch64 FRSQRTE.
-// Output in X0 and memory (PPCState). Clobbers X0-X4 and flags.
+// Output in X0 and memory (PPCState). Clobbers X0-X3 and flags.
 void JitArm64::GenerateFrsqrte()
 {
   // The idea behind this implementation: AArch64's frsqrte instruction calculates the exponent and
@@ -323,35 +323,32 @@ void JitArm64::GenerateFrsqrte()
   CMP(ARM64Reg::X2, ARM64Reg::X3);
   FixupBranch nan_or_inf = B(CCFlags::CC_EQ);
   FixupBranch negative = TBNZ(ARM64Reg::X1, 63);
-  AND(ARM64Reg::X3, ARM64Reg::X1, LogicalImm(Common::DOUBLE_FRAC, 64));
   FixupBranch normal = CBNZ(ARM64Reg::X2);
 
-  // "Normalize" denormal values
-  CLZ(ARM64Reg::X3, ARM64Reg::X3);
-  SUB(ARM64Reg::X4, ARM64Reg::X3, 11);
-  MOVI2R(ARM64Reg::X2, 0x00C0'0000'0000'0000);
-  LSLV(ARM64Reg::X4, ARM64Reg::X1, ARM64Reg::X4);
-  SUB(ARM64Reg::X2, ARM64Reg::X2, ARM64Reg::X3, ArithOption(ARM64Reg::X3, ShiftType::LSL, 52));
-  AND(ARM64Reg::X3, ARM64Reg::X4, LogicalImm(Common::DOUBLE_FRAC - 1, 64));
+  // "Normalize" denormal values.
+  // The simplified calculation used here results in the upper 11 bits being incorrect,
+  // but that's fine, because the code below never reads those bits.
+  CLZ(ARM64Reg::X3, ARM64Reg::X1);
+  LSLV(ARM64Reg::X1, ARM64Reg::X1, ARM64Reg::X3);
+  LSR(ARM64Reg::X1, ARM64Reg::X1, 11);
+  BFI(ARM64Reg::X1, ARM64Reg::X3, 52, 12);
 
   SetJumpTarget(normal);
-  LSR(ARM64Reg::X2, ARM64Reg::X2, 48);
-  AND(ARM64Reg::X2, ARM64Reg::X2, LogicalImm(0x10, 64));
-  MOVP2R(ARM64Reg::X1, &Common::frsqrte_expected);
-  ORR(ARM64Reg::X2, ARM64Reg::X2, ARM64Reg::X3, ArithOption(ARM64Reg::X3, ShiftType::LSR, 48));
-  ADD(ARM64Reg::X2, ARM64Reg::X1, ARM64Reg::X2, ArithOption(ARM64Reg::X2, ShiftType::LSL, 3));
-  LDP(IndexType::Signed, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::X2, 0);
-  UBFX(ARM64Reg::X3, ARM64Reg::X3, 37, 11);
+  UBFX(ARM64Reg::X2, ARM64Reg::X1, 48, 5);
+  MOVP2R(ARM64Reg::X3, &Common::frsqrte_expected);
+  ADD(ARM64Reg::X2, ARM64Reg::X3, ARM64Reg::X2, ArithOption(ARM64Reg::X2, ShiftType::LSL, 3));
+  LDP(IndexType::Signed, ARM64Reg::W3, ARM64Reg::W2, ARM64Reg::X2, 0);
+  UBFX(ARM64Reg::X1, ARM64Reg::X1, 37, 11);
   AND(ARM64Reg::X0, ARM64Reg::X0, LogicalImm(Common::DOUBLE_SIGN | Common::DOUBLE_EXP, 64));
-  MADD(ARM64Reg::W3, ARM64Reg::W3, ARM64Reg::W2, ARM64Reg::W1);
-  ORR(ARM64Reg::X0, ARM64Reg::X0, ARM64Reg::X3, ArithOption(ARM64Reg::X3, ShiftType::LSL, 26));
+  MADD(ARM64Reg::W1, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3);
+  ORR(ARM64Reg::X0, ARM64Reg::X0, ARM64Reg::X1, ArithOption(ARM64Reg::X1, ShiftType::LSL, 26));
   RET();
 
   SetJumpTarget(zero);
-  LDR(IndexType::Unsigned, ARM64Reg::W4, PPC_REG, PPCSTATE_OFF(fpscr));
-  FixupBranch skip_set_zx = TBNZ(ARM64Reg::W4, 26);
-  ORRI2R(ARM64Reg::W4, ARM64Reg::W4, FPSCR_FX | FPSCR_ZX, ARM64Reg::W2);
-  STR(IndexType::Unsigned, ARM64Reg::W4, PPC_REG, PPCSTATE_OFF(fpscr));
+  LDR(IndexType::Unsigned, ARM64Reg::W3, PPC_REG, PPCSTATE_OFF(fpscr));
+  FixupBranch skip_set_zx = TBNZ(ARM64Reg::W3, 26);
+  ORRI2R(ARM64Reg::W3, ARM64Reg::W3, FPSCR_FX | FPSCR_ZX, ARM64Reg::W2);
+  STR(IndexType::Unsigned, ARM64Reg::W3, PPC_REG, PPCSTATE_OFF(fpscr));
   SetJumpTarget(skip_set_zx);
   RET();
 
@@ -361,10 +358,10 @@ void JitArm64::GenerateFrsqrte()
   FixupBranch nan_or_positive_inf = B(CCFlags::CC_NEQ);
 
   SetJumpTarget(negative);
-  LDR(IndexType::Unsigned, ARM64Reg::W4, PPC_REG, PPCSTATE_OFF(fpscr));
-  FixupBranch skip_set_vxsqrt = TBNZ(ARM64Reg::W4, 9);
-  ORRI2R(ARM64Reg::W4, ARM64Reg::W4, FPSCR_FX | FPSCR_VXSQRT, ARM64Reg::W2);
-  STR(IndexType::Unsigned, ARM64Reg::W4, PPC_REG, PPCSTATE_OFF(fpscr));
+  LDR(IndexType::Unsigned, ARM64Reg::W3, PPC_REG, PPCSTATE_OFF(fpscr));
+  FixupBranch skip_set_vxsqrt = TBNZ(ARM64Reg::W3, 9);
+  ORRI2R(ARM64Reg::W3, ARM64Reg::W3, FPSCR_FX | FPSCR_VXSQRT, ARM64Reg::W2);
+  STR(IndexType::Unsigned, ARM64Reg::W3, PPC_REG, PPCSTATE_OFF(fpscr));
   SetJumpTarget(skip_set_vxsqrt);
   SetJumpTarget(nan_or_positive_inf);
   RET();

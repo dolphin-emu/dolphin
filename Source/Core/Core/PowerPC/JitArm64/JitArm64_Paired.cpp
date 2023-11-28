@@ -514,7 +514,7 @@ void JitArm64::ps_rsqrte(UGeckoInstruction inst)
   const u32 b = inst.FB;
   const u32 d = inst.FD;
 
-  gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W4, ARM64Reg::W30);
+  gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W30);
   fpr.Lock(ARM64Reg::Q0);
 
   const ARM64Reg VB = fpr.R(b, RegType::Register);
@@ -529,7 +529,7 @@ void JitArm64::ps_rsqrte(UGeckoInstruction inst)
   BL(GetAsmRoutines()->frsqrte);
   m_float_emit.INS(64, EncodeRegToQuad(VD), 1, ARM64Reg::X0);
 
-  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W4, ARM64Reg::W30);
+  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W30);
   fpr.Unlock(ARM64Reg::Q0);
 
   fpr.FixSinglePrecision(d);
