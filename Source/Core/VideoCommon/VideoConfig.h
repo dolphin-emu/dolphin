@@ -61,7 +61,7 @@ enum class OutputResamplingMode : int
   CatmullRom,
   SharpBilinear,
   AreaSampling,
-  RGSS
+  RGSS,
 };
 
 enum class ColorCorrectionRegion : int
