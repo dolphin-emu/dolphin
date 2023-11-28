@@ -1054,35 +1054,8 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         m_float_emit.ABI_PopRegisters(fprs_in_use, ARM64Reg::X30);
         ABI_PopRegisters(regs_in_use);
 
-        // Inline exception check
-        LDR(IndexType::Unsigned, ARM64Reg::W30, PPC_REG, PPCSTATE_OFF(Exceptions));
-        FixupBranch no_ext_exception =
-            TBZ(ARM64Reg::W30, MathUtil::IntLog2(EXCEPTION_EXTERNAL_INT));
-        FixupBranch exception = B();
-        SwitchToFarCode();
-        const u8* done_here = GetCodePtr();
-        FixupBranch exit = B();
-        SetJumpTarget(exception);
-        LDR(IndexType::Unsigned, ARM64Reg::W30, PPC_REG, PPCSTATE_OFF(msr));
-        TBZ(ARM64Reg::W30, 15, done_here);  // MSR.EE
-        LDR(IndexType::Unsigned, ARM64Reg::W30, ARM64Reg::X30,
-            MOVPage2R(ARM64Reg::X30, &m_system.GetProcessorInterface().m_interrupt_cause));
-        constexpr u32 cause_mask = ProcessorInterface::INT_CAUSE_CP |
-                                   ProcessorInterface::INT_CAUSE_PE_TOKEN |
-                                   ProcessorInterface::INT_CAUSE_PE_FINISH;
-        TST(ARM64Reg::W30, LogicalImm(cause_mask, 32));
-        B(CC_EQ, done_here);
-
-        gpr.Flush(FlushMode::MaintainState, ARM64Reg::W30);
-        fpr.Flush(FlushMode::MaintainState, ARM64Reg::INVALID_REG);
-        WriteExceptionExit(js.compilerPC, true, true);
-        SwitchToNearCode();
-        SetJumpTarget(no_ext_exception);
-        SetJumpTarget(exit);
         gpr.Unlock(ARM64Reg::W30);
-
-        // So we don't check exceptions twice
-        gatherPipeIntCheck = false;
+        gatherPipeIntCheck = true;
       }
       // Gather pipe writes can generate an exception; add an exception check.
       // TODO: This doesn't really match hardware; the CP interrupt is
