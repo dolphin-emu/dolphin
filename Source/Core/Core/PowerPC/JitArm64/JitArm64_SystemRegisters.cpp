@@ -144,7 +144,7 @@ void JitArm64::mcrxr(UGeckoInstruction inst)
   LDRB(IndexType::Unsigned, WB, PPC_REG, PPCSTATE_OFF(xer_so_ov));
 
   // [0 SO OV CA]
-  ADD(WA, WA, WB, ArithOption(WB, ShiftType::LSL, 2));
+  BFI(WA, WB, 1, 2);
   // [SO OV CA 0] << 3
   LSL(WA, WA, 4);
 
@@ -152,8 +152,8 @@ void JitArm64::mcrxr(UGeckoInstruction inst)
   LDR(XB, XB, XA);
 
   // Clear XER[0-3]
-  STRB(IndexType::Unsigned, ARM64Reg::WZR, PPC_REG, PPCSTATE_OFF(xer_ca));
-  STRB(IndexType::Unsigned, ARM64Reg::WZR, PPC_REG, PPCSTATE_OFF(xer_so_ov));
+  static_assert(PPCSTATE_OFF(xer_ca) + 1 == PPCSTATE_OFF(xer_so_ov));
+  STRH(IndexType::Unsigned, ARM64Reg::WZR, PPC_REG, PPCSTATE_OFF(xer_ca));
 
   gpr.Unlock(WA);
 }
