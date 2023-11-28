@@ -101,7 +101,6 @@ void GeneralPane::ConnectLayout()
 {
   connect(m_checkbox_cheats, &QCheckBox::toggled, &Settings::Instance(),
           &Settings::EnableCheatsChanged);
-  connect(m_checkbox_auto_disc_change, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
 #ifdef USE_DISCORD_PRESENCE
   connect(m_checkbox_discord_presence, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
 #endif
@@ -150,7 +149,8 @@ void GeneralPane::CreateBasic()
       new ConfigBool(tr("Allow Mismatched Region Settings"), Config::MAIN_OVERRIDE_REGION_SETTINGS);
   basic_group_layout->addWidget(m_checkbox_override_region_settings);
 
-  m_checkbox_auto_disc_change = new QCheckBox(tr("Change Discs Automatically"));
+  m_checkbox_auto_disc_change =
+      new ConfigBool(tr("Change Discs Automatically"), Config::MAIN_AUTO_DISC_CHANGE);
   basic_group_layout->addWidget(m_checkbox_auto_disc_change);
 
 #ifdef USE_DISCORD_PRESENCE
@@ -262,8 +262,6 @@ void GeneralPane::LoadConfig()
   SignalBlocking(m_checkbox_enable_analytics)
       ->setChecked(Settings::Instance().IsAnalyticsEnabled());
 #endif
-  SignalBlocking(m_checkbox_auto_disc_change)
-      ->setChecked(Config::Get(Config::MAIN_AUTO_DISC_CHANGE));
 
 #ifdef USE_DISCORD_PRESENCE
   SignalBlocking(m_checkbox_discord_presence)
@@ -350,7 +348,6 @@ void GeneralPane::OnSaveConfig()
   Settings::Instance().SetAnalyticsEnabled(m_checkbox_enable_analytics->isChecked());
   DolphinAnalytics::Instance().ReloadConfig();
 #endif
-  Config::SetBase(Config::MAIN_AUTO_DISC_CHANGE, m_checkbox_auto_disc_change->isChecked());
   Settings::Instance().SetFallbackRegion(
       UpdateFallbackRegionFromIndex(m_combobox_fallback_region->currentIndex()));
 
@@ -389,10 +386,20 @@ void GeneralPane::AddDescriptions()
                  "be designed for. May cause various crashes and bugs."
                  "<br><br>This setting cannot be changed while emulation is active."
                  "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+  static constexpr char TR_AUTO_DISC_CHANGE_DESCRIPTION[] = QT_TR_NOOP(
+      "Automatically changes the game disc when requested by games with two discs. This feature "
+      "requires the game to be launched in one of the following ways:"
+      "<br>- From the game list, with both discs being present in the game list."
+      "<br>- With File > Open or the command line interface, with the paths to both discs being "
+      "provided."
+      "<br>- By launching an M3U file with File > Open or the command line interface."
+      "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
 
   m_checkbox_dualcore->SetDescription(tr(TR_DUALCORE_DESCRIPTION));
 
   m_checkbox_cheats->SetDescription(tr(TR_CHEATS_DESCRIPTION));
 
   m_checkbox_override_region_settings->SetDescription(tr(TR_OVERRIDE_REGION_SETTINGS_DESCRIPTION));
+
+  m_checkbox_auto_disc_change->SetDescription(tr(TR_AUTO_DISC_CHANGE_DESCRIPTION));
 }

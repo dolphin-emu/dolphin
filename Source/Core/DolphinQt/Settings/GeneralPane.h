@@ -45,7 +45,7 @@ private:
   ConfigBool* m_checkbox_dualcore;
   ConfigBool* m_checkbox_cheats;
   ConfigBool* m_checkbox_override_region_settings;
-  QCheckBox* m_checkbox_auto_disc_change;
+  ConfigBool* m_checkbox_auto_disc_change;
 #ifdef USE_DISCORD_PRESENCE
   QCheckBox* m_checkbox_discord_presence;
 #endif
