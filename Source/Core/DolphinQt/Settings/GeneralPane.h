@@ -5,6 +5,7 @@
 
 #include <QWidget>
 
+class ConfigBool;
 class QCheckBox;
 class QComboBox;
 class QLabel;
@@ -30,6 +31,7 @@ private:
   void CreateBasic();
   void CreateAutoUpdate();
   void CreateFallbackRegion();
+  void AddDescriptions();
 
   void LoadConfig();
   void OnSaveConfig();
@@ -40,7 +42,7 @@ private:
   QComboBox* m_combobox_speedlimit;
   QComboBox* m_combobox_update_track;
   QComboBox* m_combobox_fallback_region;
-  QCheckBox* m_checkbox_dualcore;
+  ConfigBool* m_checkbox_dualcore;
   QCheckBox* m_checkbox_cheats;
   QCheckBox* m_checkbox_override_region_settings;
   QCheckBox* m_checkbox_auto_disc_change;

@@ -24,6 +24,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 
+#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
@@ -52,6 +53,7 @@ GeneralPane::GeneralPane(QWidget* parent) : QWidget(parent)
 {
   CreateLayout();
   LoadConfig();
+  AddDescriptions();
 
   ConnectLayout();
 
@@ -97,7 +99,6 @@ void GeneralPane::OnEmulationStateChanged(Core::State state)
 
 void GeneralPane::ConnectLayout()
 {
-  connect(m_checkbox_dualcore, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
   connect(m_checkbox_cheats, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
   connect(m_checkbox_override_region_settings, &QCheckBox::stateChanged, this,
           &GeneralPane::OnSaveConfig);
@@ -140,7 +141,7 @@ void GeneralPane::CreateBasic()
   basic_group->setLayout(basic_group_layout);
   m_main_layout->addWidget(basic_group);
 
-  m_checkbox_dualcore = new QCheckBox(tr("Enable Dual Core (speedhack)"));
+  m_checkbox_dualcore = new ConfigBool(tr("Enable Dual Core (speedhack)"), Config::MAIN_CPU_THREAD);
   basic_group_layout->addWidget(m_checkbox_dualcore);
 
   m_checkbox_cheats = new QCheckBox(tr("Enable Cheats"));
@@ -261,7 +262,6 @@ void GeneralPane::LoadConfig()
   SignalBlocking(m_checkbox_enable_analytics)
       ->setChecked(Settings::Instance().IsAnalyticsEnabled());
 #endif
-  SignalBlocking(m_checkbox_dualcore)->setChecked(Config::Get(Config::MAIN_CPU_THREAD));
   SignalBlocking(m_checkbox_cheats)->setChecked(Settings::Instance().GetCheatsEnabled());
   SignalBlocking(m_checkbox_override_region_settings)
       ->setChecked(Config::Get(Config::MAIN_OVERRIDE_REGION_SETTINGS));
@@ -353,7 +353,6 @@ void GeneralPane::OnSaveConfig()
   Settings::Instance().SetAnalyticsEnabled(m_checkbox_enable_analytics->isChecked());
   DolphinAnalytics::Instance().ReloadConfig();
 #endif
-  Config::SetBaseOrCurrent(Config::MAIN_CPU_THREAD, m_checkbox_dualcore->isChecked());
   Settings::Instance().SetCheatsEnabled(m_checkbox_cheats->isChecked());
   Config::SetBaseOrCurrent(Config::MAIN_OVERRIDE_REGION_SETTINGS,
                            m_checkbox_override_region_settings->isChecked());
@@ -378,3 +377,15 @@ void GeneralPane::GenerateNewIdentity()
   message_box.exec();
 }
 #endif
+
+void GeneralPane::AddDescriptions()
+{
+  static constexpr char TR_DUALCORE_DESCRIPTION[] =
+      QT_TR_NOOP("Separates CPU and GPU emulation work to separate threads. Reduces single-thread "
+                 "burden by spreading Dolphin's heaviest load across two cores, which usually "
+                 "improves performance. However, it can result in glitches and crashes."
+                 "<br><br>This setting cannot be changed while emulation is active."
+                 "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
+
+  m_checkbox_dualcore->SetDescription(tr(TR_DUALCORE_DESCRIPTION));
+}
