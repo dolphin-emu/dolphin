@@ -241,63 +241,57 @@ void Arm64GPRCache::FlushRegister(size_t index, bool maintain_state, ARM64Reg tm
 
 void Arm64GPRCache::FlushRegisters(BitSet32 regs, bool maintain_state, ARM64Reg tmp_reg)
 {
-  for (size_t i = 0; i < GUEST_GPR_COUNT; ++i)
+  for (int i : regs)
   {
-    if (regs[i])
-    {
-      ASSERT_MSG(DYNA_REC, m_guest_registers[GUEST_GPR_OFFSET + i].GetType() != RegType::Discarded,
-                 "Attempted to flush discarded register");
+    ASSERT_MSG(DYNA_REC, m_guest_registers[GUEST_GPR_OFFSET + i].GetType() != RegType::Discarded,
+               "Attempted to flush discarded register");
 
-      if (i + 1 < GUEST_GPR_COUNT && regs[i + 1])
+    if (i + 1 < GUEST_GPR_COUNT && regs[i + 1])
+    {
+      // We've got two guest registers in a row to store
+      OpArg& reg1 = m_guest_registers[GUEST_GPR_OFFSET + i];
+      OpArg& reg2 = m_guest_registers[GUEST_GPR_OFFSET + i + 1];
+      if (reg1.IsDirty() && reg2.IsDirty() && reg1.GetType() == RegType::Register &&
+          reg2.GetType() == RegType::Register)
       {
-        // We've got two guest registers in a row to store
-        OpArg& reg1 = m_guest_registers[GUEST_GPR_OFFSET + i];
-        OpArg& reg2 = m_guest_registers[GUEST_GPR_OFFSET + i + 1];
-        if (reg1.IsDirty() && reg2.IsDirty() && reg1.GetType() == RegType::Register &&
-            reg2.GetType() == RegType::Register)
+        const size_t ppc_offset = GetGuestByIndex(i).ppc_offset;
+        if (ppc_offset <= 252)
         {
-          const size_t ppc_offset = GetGuestByIndex(i).ppc_offset;
-          if (ppc_offset <= 252)
+          ARM64Reg RX1 = R(GetGuestByIndex(i));
+          ARM64Reg RX2 = R(GetGuestByIndex(i + 1));
+          m_emit->STP(IndexType::Signed, RX1, RX2, PPC_REG, u32(ppc_offset));
+          if (!maintain_state)
           {
-            ARM64Reg RX1 = R(GetGuestByIndex(i));
-            ARM64Reg RX2 = R(GetGuestByIndex(i + 1));
-            m_emit->STP(IndexType::Signed, RX1, RX2, PPC_REG, u32(ppc_offset));
-            if (!maintain_state)
-            {
-              UnlockRegister(EncodeRegTo32(RX1));
-              UnlockRegister(EncodeRegTo32(RX2));
-              reg1.Flush();
-              reg2.Flush();
-            }
-            ++i;
-            continue;
+            UnlockRegister(EncodeRegTo32(RX1));
+            UnlockRegister(EncodeRegTo32(RX2));
+            reg1.Flush();
+            reg2.Flush();
           }
+          ++i;
+          continue;
         }
       }
-
-      FlushRegister(GUEST_GPR_OFFSET + i, maintain_state, tmp_reg);
     }
+
+    FlushRegister(GUEST_GPR_OFFSET + i, maintain_state, tmp_reg);
   }
 }
 
-void Arm64GPRCache::FlushCRRegisters(BitSet32 regs, bool maintain_state, ARM64Reg tmp_reg)
+void Arm64GPRCache::FlushCRRegisters(BitSet8 regs, bool maintain_state, ARM64Reg tmp_reg)
 {
-  for (size_t i = 0; i < GUEST_CR_COUNT; ++i)
+  for (int i : regs)
   {
-    if (regs[i])
-    {
-      ASSERT_MSG(DYNA_REC, m_guest_registers[GUEST_CR_OFFSET + i].GetType() != RegType::Discarded,
-                 "Attempted to flush discarded register");
+    ASSERT_MSG(DYNA_REC, m_guest_registers[GUEST_CR_OFFSET + i].GetType() != RegType::Discarded,
+               "Attempted to flush discarded register");
 
-      FlushRegister(GUEST_CR_OFFSET + i, maintain_state, tmp_reg);
-    }
+    FlushRegister(GUEST_CR_OFFSET + i, maintain_state, tmp_reg);
   }
 }
 
 void Arm64GPRCache::Flush(FlushMode mode, ARM64Reg tmp_reg)
 {
-  FlushRegisters(BitSet32(~0U), mode == FlushMode::MaintainState, tmp_reg);
-  FlushCRRegisters(BitSet32(~0U), mode == FlushMode::MaintainState, tmp_reg);
+  FlushRegisters(BitSet32(0xFFFFFFFF), mode == FlushMode::MaintainState, tmp_reg);
+  FlushCRRegisters(BitSet8(0xFF), mode == FlushMode::MaintainState, tmp_reg);
 }
 
 ARM64Reg Arm64GPRCache::R(const GuestRegInfo& guest_reg)
