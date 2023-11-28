@@ -27,6 +27,7 @@
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/Widescreen.h"
 #include "VideoCommon/XFMemory.h"
+#include "VideoCommon/XFStateManager.h"
 
 void VideoCommon_DoState(PointerWrap& p)
 {
@@ -104,6 +105,9 @@ void VideoCommon_DoState(PointerWrap& p)
 
   g_widescreen->DoState(p);
   p.DoMarker("Widescreen");
+
+  system.GetXFStateManager().DoState(p);
+  p.DoMarker("XFStateManager");
 
   // Refresh state.
   if (p.IsReadMode())

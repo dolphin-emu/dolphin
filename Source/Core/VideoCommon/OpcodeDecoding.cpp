@@ -27,8 +27,8 @@
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderBase.h"
 #include "VideoCommon/VertexLoaderManager.h"
-#include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/XFMemory.h"
+#include "VideoCommon/XFStateManager.h"
 #include "VideoCommon/XFStructs.h"
 
 namespace OpcodeDecoder
@@ -60,13 +60,13 @@ public:
       {
         VertexLoaderManager::g_needs_cp_xf_consistency_check = true;
         auto& system = Core::System::GetInstance();
-        system.GetVertexShaderManager().SetTexMatrixChangedA(value);
+        system.GetXFStateManager().SetTexMatrixChangedA(value);
       }
       else if (sub_command == MATINDEX_B)
       {
         VertexLoaderManager::g_needs_cp_xf_consistency_check = true;
         auto& system = Core::System::GetInstance();
-        system.GetVertexShaderManager().SetTexMatrixChangedB(value);
+        system.GetXFStateManager().SetTexMatrixChangedB(value);
       }
       else if (sub_command == VCD_LO || sub_command == VCD_HI)
       {

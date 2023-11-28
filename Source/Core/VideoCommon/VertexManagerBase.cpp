@@ -42,6 +42,7 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
+#include "VideoCommon/XFStateManager.h"
 
 std::unique_ptr<VertexManagerBase> g_vertex_manager;
 
@@ -539,6 +540,7 @@ void VertexManagerBase::Flush()
   auto& pixel_shader_manager = system.GetPixelShaderManager();
   auto& geometry_shader_manager = system.GetGeometryShaderManager();
   auto& vertex_shader_manager = system.GetVertexShaderManager();
+  auto& xf_state_manager = system.GetXFStateManager();
 
   if (g_ActiveConfig.bGraphicMods)
   {
@@ -578,7 +580,7 @@ void VertexManagerBase::Flush()
       }
     }
   }
-  vertex_shader_manager.SetConstants(texture_names);
+  vertex_shader_manager.SetConstants(texture_names, xf_state_manager);
   if (!bpmem.genMode.zfreeze)
   {
     // Must be done after VertexShaderManager::SetConstants()

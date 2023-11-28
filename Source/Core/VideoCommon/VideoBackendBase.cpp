@@ -66,6 +66,7 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoState.h"
 #include "VideoCommon/Widescreen.h"
+#include "VideoCommon/XFStateManager.h"
 
 VideoBackendBase* g_video_backend = nullptr;
 
@@ -385,6 +386,7 @@ bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
   system.GetVertexShaderManager().Init();
   system.GetGeometryShaderManager().Init();
   system.GetPixelShaderManager().Init();
+  system.GetXFStateManager().Init();
   TMEM::Init();
 
   g_Config.VerifyValidity();

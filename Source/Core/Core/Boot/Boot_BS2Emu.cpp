@@ -39,8 +39,8 @@
 #include "DiscIO/VolumeDisc.h"
 
 #include "VideoCommon/VertexManagerBase.h"
-#include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/XFMemory.h"
+#include "VideoCommon/XFStateManager.h"
 
 namespace
 {
@@ -285,8 +285,8 @@ bool CBoot::EmulatedBS2_GC(Core::System& system, const Core::CPUThreadGuard& gua
   xfmem.postMatrices[0x3e * 4 + 1] = 1.0f;
   xfmem.postMatrices[0x3f * 4 + 2] = 1.0f;
   g_vertex_manager->Flush();
-  auto& vertex_shader_manager = system.GetVertexShaderManager();
-  vertex_shader_manager.InvalidateXFRange(XFMEM_POSTMATRICES + 0x3d * 4, XFMEM_POSTMATRICES_END);
+  auto& xf_state_manager = system.GetXFStateManager();
+  xf_state_manager.InvalidateXFRange(XFMEM_POSTMATRICES + 0x3d * 4, XFMEM_POSTMATRICES_END);
 
   DVDReadDiscID(system, volume, 0x00000000);
 

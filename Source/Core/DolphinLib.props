@@ -747,6 +747,7 @@
     <ClInclude Include="VideoCommon\VideoState.h" />
     <ClInclude Include="VideoCommon\Widescreen.h" />
     <ClInclude Include="VideoCommon\XFMemory.h" />
+    <ClInclude Include="VideoCommon\XFStateManager.h" />
     <ClInclude Include="VideoCommon\XFStructs.h" />
   </ItemGroup>
   <ItemGroup>
@@ -1358,6 +1359,7 @@
     <ClCompile Include="VideoCommon\VideoState.cpp" />
     <ClCompile Include="VideoCommon\Widescreen.cpp" />
     <ClCompile Include="VideoCommon\XFMemory.cpp" />
+    <ClCompile Include="VideoCommon\XFStateManager.cpp" />
     <ClCompile Include="VideoCommon\XFStructs.cpp" />
   </ItemGroup>
   <ItemGroup>
