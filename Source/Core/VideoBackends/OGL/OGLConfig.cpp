@@ -739,21 +739,27 @@ bool PopulateConfig(GLContext* m_main_gl_context)
 
   INFO_LOG_FMT(VIDEO, "Video Info: {}, {}, {}", g_ogl_config.gl_vendor, g_ogl_config.gl_renderer,
                g_ogl_config.gl_version);
-  WARN_LOG_FMT(VIDEO, "Missing OGL Extensions: {}{}{}{}{}{}{}{}{}{}{}{}{}{}",
-               g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
-               g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ? "" : "PrimitiveRestart ",
-               g_ActiveConfig.backend_info.bSupportsEarlyZ ? "" : "EarlyZ ",
-               g_ogl_config.bSupportsGLPinnedMemory ? "" : "PinnedMemory ",
-               supports_glsl_cache ? "" : "ShaderCache ",
-               g_ogl_config.bSupportsGLBaseVertex ? "" : "BaseVertex ",
-               g_ogl_config.bSupportsGLBufferStorage ? "" : "BufferStorage ",
-               g_ogl_config.bSupportsGLSync ? "" : "Sync ",
-               g_ogl_config.bSupportsMSAA ? "" : "MSAA ",
-               g_ActiveConfig.backend_info.bSupportsSSAA ? "" : "SSAA ",
-               g_ActiveConfig.backend_info.bSupportsGSInstancing ? "" : "GSInstancing ",
-               g_ActiveConfig.backend_info.bSupportsClipControl ? "" : "ClipControl ",
-               g_ogl_config.bSupportsCopySubImage ? "" : "CopyImageSubData ",
-               g_ActiveConfig.backend_info.bSupportsDepthClamp ? "" : "DepthClamp ");
+
+  const std::string missing_extensions = fmt::format(
+      "{}{}{}{}{}{}{}{}{}{}{}{}{}{}",
+      g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
+      g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ? "" : "PrimitiveRestart ",
+      g_ActiveConfig.backend_info.bSupportsEarlyZ ? "" : "EarlyZ ",
+      g_ogl_config.bSupportsGLPinnedMemory ? "" : "PinnedMemory ",
+      supports_glsl_cache ? "" : "ShaderCache ",
+      g_ogl_config.bSupportsGLBaseVertex ? "" : "BaseVertex ",
+      g_ogl_config.bSupportsGLBufferStorage ? "" : "BufferStorage ",
+      g_ogl_config.bSupportsGLSync ? "" : "Sync ", g_ogl_config.bSupportsMSAA ? "" : "MSAA ",
+      g_ActiveConfig.backend_info.bSupportsSSAA ? "" : "SSAA ",
+      g_ActiveConfig.backend_info.bSupportsGSInstancing ? "" : "GSInstancing ",
+      g_ActiveConfig.backend_info.bSupportsClipControl ? "" : "ClipControl ",
+      g_ogl_config.bSupportsCopySubImage ? "" : "CopyImageSubData ",
+      g_ActiveConfig.backend_info.bSupportsDepthClamp ? "" : "DepthClamp ");
+
+  if (missing_extensions.empty())
+    INFO_LOG_FMT(VIDEO, "All used OGL Extensions are available.");
+  else
+    WARN_LOG_FMT(VIDEO, "Missing OGL Extensions: {}", missing_extensions);
 
   return true;
 }
