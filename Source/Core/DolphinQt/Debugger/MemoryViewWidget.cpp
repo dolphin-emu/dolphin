@@ -99,7 +99,9 @@ public:
   void resizeEvent(QResizeEvent* event) override
   {
     QTableWidget::resizeEvent(event);
-    m_view->CreateTable();
+    const int rows = std::round((height() / static_cast<float>(rowHeight(0))) - 0.25);
+    if (rows != rowCount())
+      m_view->CreateTable();
   }
 
   void keyPressEvent(QKeyEvent* event) override
@@ -108,24 +110,21 @@ public:
     {
     case Qt::Key_Up:
       m_view->m_address -= m_view->m_bytes_per_row;
-      m_view->Update();
-      return;
+      break;
     case Qt::Key_Down:
       m_view->m_address += m_view->m_bytes_per_row;
-      m_view->Update();
-      return;
+      break;
     case Qt::Key_PageUp:
       m_view->m_address -= this->rowCount() * m_view->m_bytes_per_row;
-      m_view->Update();
-      return;
+      break;
     case Qt::Key_PageDown:
       m_view->m_address += this->rowCount() * m_view->m_bytes_per_row;
-      m_view->Update();
-      return;
+      break;
     default:
       QWidget::keyPressEvent(event);
-      break;
+      return;
     }
+    m_view->Update();
   }
 
   void wheelEvent(QWheelEvent* event) override
@@ -183,7 +182,7 @@ public:
       }
     }
 
-    m_view->Update();
+    m_view->UpdateColumns();
   }
 
 private:
@@ -304,6 +303,9 @@ constexpr int GetCharacterCount(MemoryViewWidget::Type type)
 
 void MemoryViewWidget::CreateTable()
 {
+  if (!isVisible())
+    return;
+
   m_table->clearContents();
 
   // This sets all row heights and determines horizontal ascii spacing.
@@ -357,6 +359,7 @@ void MemoryViewWidget::CreateTable()
   auto item = QTableWidgetItem(INVALID_MEMORY);
   item.setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
   item.setData(USER_ROLE_IS_ROW_BREAKPOINT_CELL, false);
+  item.setData(USER_ROLE_VALID_ADDRESS, false);
 
   for (int i = 0; i < rows; i++)
   {
@@ -412,10 +415,8 @@ void MemoryViewWidget::CreateTable()
 
 void MemoryViewWidget::Update()
 {
-  // Check if table is created
-  if (m_table->item(1, 1) == nullptr)
+  if (m_table->item(2, 1) == nullptr)
     return;
-
   m_table->clearSelection();
 
   // Update addresses
@@ -463,9 +464,6 @@ void MemoryViewWidget::UpdateOnFrameEnd()
   if (!isVisible() || m_updating)
     return;
 
-  if (m_table->item(1, 1) == nullptr)
-    return;
-
   Core::CPUThreadGuard guard(Core::System::GetInstance());
   UpdateColumns(&guard);
 }
@@ -473,10 +471,6 @@ void MemoryViewWidget::UpdateOnFrameEnd()
 void MemoryViewWidget::UpdateColumns()
 {
   if (!isVisible() || m_updating)
-    return;
-
-  // Check if table is created
-  if (m_table->item(1, 1) == nullptr)
     return;
 
   Core::State state = Core::GetState();
@@ -491,20 +485,23 @@ void MemoryViewWidget::UpdateColumns()
     UpdateColumns(nullptr);
   }
 }
-
 void MemoryViewWidget::UpdateColumns(const Core::CPUThreadGuard* guard)
 {
-  // Check if table is created
-  if (m_table->item(1, 1) == nullptr || m_updating)
+  if (m_updating)
     return;
 
   m_updating = true;
-
   for (int i = 0; i < m_table->rowCount(); i++)
   {
     for (int c = 0; c < m_data_columns; c++)
     {
       auto* cell_item = m_table->item(i, c + MISC_COLUMNS);
+      if (!cell_item)
+      {
+        m_updating = false;
+        return;
+      }
+
       const u32 cell_address = cell_item->data(USER_ROLE_CELL_ADDRESS).toUInt();
       const Type type = static_cast<Type>(cell_item->data(USER_ROLE_VALUE_TYPE).toInt());
 
@@ -961,7 +958,8 @@ void MemoryViewWidget::ToggleBreakpoint(u32 addr, bool row)
   }
 
   emit BreakpointsChanged();
-  Update();
+
+  UpdateBreakpointTags();
 }
 
 void MemoryViewWidget::OnCopyAddress(u32 addr)
