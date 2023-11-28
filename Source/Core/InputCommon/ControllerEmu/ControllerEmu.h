@@ -19,6 +19,7 @@
 #include "InputCommon/ControllerInterface/CoreDevice.h"
 
 class ControllerInterface;
+class InputConfig;
 
 constexpr const char* DIRECTION_UP = _trans("Up");
 constexpr const char* DIRECTION_DOWN = _trans("Down");
@@ -179,6 +180,8 @@ public:
 
   virtual std::string GetName() const = 0;
   virtual std::string GetDisplayName() const;
+
+  virtual InputConfig* GetConfig() const = 0;
 
   virtual void LoadDefaults(const ControllerInterface& ciface);
 

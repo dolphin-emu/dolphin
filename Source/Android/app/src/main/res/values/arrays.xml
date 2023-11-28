@@ -367,11 +367,19 @@
     <string-array name="gcpadTypeEntries">
         <item>@string/gcpad_disabled</item>
         <item>@string/gcpad_emulated</item>
+        <item>@string/gcpad_keyboard</item>
+        <item>@string/gcpad_steering_wheel</item>
+        <item>@string/gcpad_dance_mat</item>
+        <item>@string/gcpad_taru_konga</item>
         <item>@string/gcpad_gc_adapter</item>
     </string-array>
     <integer-array name="gcpadTypeValues">
         <item>0</item>
         <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
         <item>12</item>
     </integer-array>
 
