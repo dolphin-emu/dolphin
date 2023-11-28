@@ -101,8 +101,6 @@ void GeneralPane::ConnectLayout()
 {
   connect(m_checkbox_cheats, &QCheckBox::toggled, &Settings::Instance(),
           &Settings::EnableCheatsChanged);
-  connect(m_checkbox_override_region_settings, &QCheckBox::stateChanged, this,
-          &GeneralPane::OnSaveConfig);
   connect(m_checkbox_auto_disc_change, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
 #ifdef USE_DISCORD_PRESENCE
   connect(m_checkbox_discord_presence, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
@@ -148,7 +146,8 @@ void GeneralPane::CreateBasic()
   m_checkbox_cheats = new ConfigBool(tr("Enable Cheats"), Config::MAIN_ENABLE_CHEATS);
   basic_group_layout->addWidget(m_checkbox_cheats);
 
-  m_checkbox_override_region_settings = new QCheckBox(tr("Allow Mismatched Region Settings"));
+  m_checkbox_override_region_settings =
+      new ConfigBool(tr("Allow Mismatched Region Settings"), Config::MAIN_OVERRIDE_REGION_SETTINGS);
   basic_group_layout->addWidget(m_checkbox_override_region_settings);
 
   m_checkbox_auto_disc_change = new QCheckBox(tr("Change Discs Automatically"));
@@ -263,8 +262,6 @@ void GeneralPane::LoadConfig()
   SignalBlocking(m_checkbox_enable_analytics)
       ->setChecked(Settings::Instance().IsAnalyticsEnabled());
 #endif
-  SignalBlocking(m_checkbox_override_region_settings)
-      ->setChecked(Config::Get(Config::MAIN_OVERRIDE_REGION_SETTINGS));
   SignalBlocking(m_checkbox_auto_disc_change)
       ->setChecked(Config::Get(Config::MAIN_AUTO_DISC_CHANGE));
 
@@ -353,8 +350,6 @@ void GeneralPane::OnSaveConfig()
   Settings::Instance().SetAnalyticsEnabled(m_checkbox_enable_analytics->isChecked());
   DolphinAnalytics::Instance().ReloadConfig();
 #endif
-  Config::SetBaseOrCurrent(Config::MAIN_OVERRIDE_REGION_SETTINGS,
-                           m_checkbox_override_region_settings->isChecked());
   Config::SetBase(Config::MAIN_AUTO_DISC_CHANGE, m_checkbox_auto_disc_change->isChecked());
   Settings::Instance().SetFallbackRegion(
       UpdateFallbackRegionFromIndex(m_combobox_fallback_region->currentIndex()));
@@ -389,8 +384,15 @@ void GeneralPane::AddDescriptions()
       "These codes can be configured with the Cheats Manager in the Tools menu."
       "<br><br>This setting cannot be changed while emulation is active."
       "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+  static constexpr char TR_OVERRIDE_REGION_SETTINGS_DESCRIPTION[] =
+      QT_TR_NOOP("Lets you use languages and other region-related settings that the game may not "
+                 "be designed for. May cause various crashes and bugs."
+                 "<br><br>This setting cannot be changed while emulation is active."
+                 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
 
   m_checkbox_dualcore->SetDescription(tr(TR_DUALCORE_DESCRIPTION));
 
   m_checkbox_cheats->SetDescription(tr(TR_CHEATS_DESCRIPTION));
+
+  m_checkbox_override_region_settings->SetDescription(tr(TR_OVERRIDE_REGION_SETTINGS_DESCRIPTION));
 }
