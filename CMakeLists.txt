@@ -663,10 +663,7 @@ dolphin_find_optional_system_library(pugixml Externals/pugixml)
 
 dolphin_find_optional_system_library_pkgconfig(ENET libenet>=1.3.8 enet::enet Externals/enet)
 
-if(NOT XXHASH_FOUND)
-  message(STATUS "Using static xxhash from Externals")
-  add_subdirectory(Externals/xxhash)
-endif()
+dolphin_find_optional_system_library_pkgconfig(xxhash libxxhash>=0.8.2 xxhash::xxhash Externals/xxhash)
 
 dolphin_find_optional_system_library(BZip2 Externals/bzip2)
 
