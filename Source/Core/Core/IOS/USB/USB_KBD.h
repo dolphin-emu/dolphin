@@ -4,9 +4,9 @@
 #pragma once
 
 #include <array>
+#include <optional>
 #include <queue>
 #include <string>
-#include <type_traits>
 
 #include "Common/CommonTypes.h"
 #include "Core/IOS/Device.h"
@@ -22,6 +22,7 @@ public:
   std::optional<IPCReply> Open(const OpenRequest& request) override;
   std::optional<IPCReply> Write(const ReadWriteRequest& request) override;
   std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
+  void DoState(PointerWrap& p) override;
   void Update() override;
 
 private:
@@ -62,5 +63,7 @@ private:
     KBD_LAYOUT_AZERTY = 1
   };
   int m_keyboard_layout = KBD_LAYOUT_QWERTY;
+
+  std::optional<u32> m_pending_request{};
 };
 }  // namespace IOS::HLE
