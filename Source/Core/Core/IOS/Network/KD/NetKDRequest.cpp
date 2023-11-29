@@ -17,6 +17,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
 #include "Common/SettingsHandler.h"
+#include "Common/StringUtil.h"
 
 #include "Common/Random.h"
 #include "Common/ScopeGuard.h"
@@ -719,6 +720,103 @@ IPCReply NetKDRequestDevice::HandleNWC24DownloadNowEx(const IOCtlRequest& reques
   return IPCReply(IPC_SUCCESS);
 }
 
+IPCReply NetKDRequestDevice::HandleRequestRegisterUserId(const IOS::HLE::IOCtlRequest& request)
+{
+  auto& system = GetSystem();
+  auto& memory = system.GetMemory();
+
+  INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_REQUEST_REGISTER_USER_ID");
+  // Always 0 for some reason, never modified anywhere else
+  memory.Write_U32(0, request.buffer_out + 4);
+
+  // First check if the message config file is in the correct state to handle this.
+  if (m_config.IsRegistered())
+  {
+    WriteReturnValue(NWC24::WC24_ERR_ID_REGISTERED, request.buffer_out);
+    LogError(ErrorType::Account, NWC24::WC24_ERR_ID_REGISTERED);
+    return IPCReply{IPC_SUCCESS};
+  }
+
+  if (!m_config.IsGenerated())
+  {
+    WriteReturnValue(NWC24::WC24_ERR_ID_NOT_GENERATED, request.buffer_out);
+    LogError(ErrorType::Account, NWC24::WC24_ERR_ID_NOT_GENERATED);
+    return IPCReply{IPC_SUCCESS};
+  }
+
+  // We require the user's serial number.
+  const std::string settings_file_path =
+      Common::GetTitleDataPath(Titles::SYSTEM_MENU) + "/" WII_SETTING;
+  const auto file = m_ios.GetFS()->OpenFile(PID_KD, PID_KD, settings_file_path, FS::Mode::Read);
+  if (!file)
+  {
+    WriteReturnValue(NWC24::WC24_ERR_FILE_OPEN, request.buffer_out);
+    LogError(ErrorType::Account, NWC24::WC24_ERR_FILE_OPEN);
+    return IPCReply{IPC_SUCCESS};
+  }
+
+  Common::SettingsHandler::Buffer data;
+  if (!file->Read(data.data(), data.size()))
+  {
+    WriteReturnValue(NWC24::WC24_ERR_FILE_READ, request.buffer_out);
+    LogError(ErrorType::Account, NWC24::WC24_ERR_FILE_READ);
+    return IPCReply{IPC_SUCCESS};
+  }
+
+  const Common::SettingsHandler gen{std::move(data)};
+  const std::string serno = gen.GetValue("SERNO");
+  const std::string form_data =
+      fmt::format("mlid=w{}&hdid={}&rgncd={}", m_config.Id(), m_ios.GetIOSC().GetDeviceId(), serno);
+  const Common::HttpRequest::Response response = m_http.Post(m_config.GetAccountURL(), form_data);
+
+  if (!response)
+  {
+    ERROR_LOG_FMT(IOS_WC24,
+                  "NET_KD_REQ: IOCTL_NWC24_REQUEST_REGISTER_USER_ID: Failed to request data at {}.",
+                  m_config.GetAccountURL());
+    WriteReturnValue(NWC24::WC24_ERR_SERVER, request.buffer_out);
+    LogError(ErrorType::Account, NWC24::WC24_ERR_SERVER);
+    return IPCReply{IPC_SUCCESS};
+  }
+
+  const std::string response_str = {response->begin(), response->end()};
+  const std::string code = GetValueFromCGIResponse(response_str, "cd");
+  if (code != "100")
+  {
+    ERROR_LOG_FMT(IOS_WC24,
+                  "NET_KD_REQ: IOCTL_NWC24_REQUEST_REGISTER_USER_ID: Mail server returned "
+                  "non-success code: {}",
+                  code);
+    WriteReturnValue(NWC24::WC24_ERR_SERVER, request.buffer_out);
+    LogError(ErrorType::Account, NWC24::WC24_ERR_SERVER);
+    return IPCReply{IPC_SUCCESS};
+  }
+
+  const std::string password = GetValueFromCGIResponse(response_str, "passwd");
+  const std::string mail_check_id = GetValueFromCGIResponse(response_str, "mlchkid");
+  if (mail_check_id.size() != 32)
+  {
+    ERROR_LOG_FMT(IOS_WC24,
+                  "NET_KD_REQ: IOCTL_NWC24_REQUEST_REGISTER_USER_ID: Mail server returned invalid "
+                  "mlchkid: {}",
+                  mail_check_id);
+    WriteReturnValue(NWC24::WC24_ERR_SERVER, request.buffer_out);
+    LogError(ErrorType::Account, NWC24::WC24_ERR_SERVER);
+    return IPCReply{IPC_SUCCESS};
+  }
+
+  // Now write to the config.
+  m_config.SetCreationStage(NWC24::NWC24CreationStage::Registered);
+  m_config.SetPassword(password);
+  m_config.SetMailCheckID(mail_check_id);
+  m_config.WriteConfig();
+  m_config.WriteCBK();
+
+  WriteReturnValue(NWC24::WC24_OK, request.buffer_out);
+
+  return IPCReply{IPC_SUCCESS};
+}
+
 std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
 {
   enum : u32
@@ -788,10 +886,7 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
     break;
 
   case IOCTL_NWC24_REQUEST_REGISTER_USER_ID:
-    INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_REQUEST_REGISTER_USER_ID");
-    WriteReturnValue(0, request.buffer_out);
-    memory.Write_U32(0, request.buffer_out + 4);
-    break;
+    return LaunchAsyncTask(&NetKDRequestDevice::HandleRequestRegisterUserId, request);
 
   case IOCTL_NWC24_REQUEST_GENERATED_USER_ID:  // (Input: none, Output: 32 bytes)
     INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_REQUEST_GENERATED_USER_ID");

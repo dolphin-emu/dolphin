@@ -81,7 +81,7 @@ private:
   };
 
   NWC24::ErrorCode KDCheckMail(u32* mail_flag, u32* interval);
-
+  IPCReply HandleRequestRegisterUserId(const IOCtlRequest& request);
   void LogError(ErrorType error_type, s32 error_code);
   void SchedulerTimer();
   void SchedulerWorker(SchedulerEvent event);
