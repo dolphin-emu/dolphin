@@ -222,25 +222,12 @@ bool PPCAnalyzer::CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b) const
   // [1] https://bugs.dolphin-emu.org/issues/5864#note-7
   if (a.canCauseException || b.canCauseException)
     return false;
-  if (a_flags & FL_ENDBLOCK)
+  if (a_flags & (FL_ENDBLOCK | FL_TIMER | FL_NO_REORDER | FL_SET_OE))
     return false;
-  if (b_flags & (FL_SET_CRx | FL_ENDBLOCK | FL_TIMER | FL_EVIL | FL_SET_OE))
-    return false;
-  if ((b_flags & (FL_RC_BIT | FL_RC_BIT_F)) && (b.inst.Rc))
+  if (b_flags & (FL_ENDBLOCK | FL_TIMER | FL_NO_REORDER | FL_SET_OE))
     return false;
   if ((a_flags & (FL_SET_CA | FL_READ_CA)) && (b_flags & (FL_SET_CA | FL_READ_CA)))
     return false;
-
-  switch (b.inst.OPCD)
-  {
-  case 16:
-  case 18:
-  // branches. Do not swap.
-  case 17:  // sc
-  case 46:  // lmw
-  case 19:  // table19 - lots of tricky stuff
-    return false;
-  }
 
   // For now, only integer ops are acceptable.
   if (b_info->type != OpType::Integer)
@@ -249,15 +236,21 @@ bool PPCAnalyzer::CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b) const
   // Check that we have no register collisions.
   // That is, check that none of b's outputs matches any of a's inputs,
   // and that none of a's outputs matches any of b's inputs.
-  // The latter does not apply if a is a cmp, of course, but doesn't hurt to check.
+
   // register collision: b outputs to one of a's inputs
   if (b.regsOut & a.regsIn)
+    return false;
+  if (b.crOut & a.crIn)
     return false;
   // register collision: a outputs to one of b's inputs
   if (a.regsOut & b.regsIn)
     return false;
+  if (a.crOut & b.crIn)
+    return false;
   // register collision: b outputs to one of a's outputs (overwriting it)
   if (b.regsOut & a.regsOut)
+    return false;
+  if (b.crOut & a.crOut)
     return false;
 
   return true;
@@ -451,12 +444,6 @@ void FindFunctions(const Core::CPUThreadGuard& guard, u32 startAddr, u32 endAddr
                unniceSize);
 }
 
-static bool isCmp(const CodeOp& a)
-{
-  return (a.inst.OPCD == 10 || a.inst.OPCD == 11) ||
-         (a.inst.OPCD == 31 && (a.inst.SUBOP10 == 0 || a.inst.SUBOP10 == 32));
-}
-
 static bool isCarryOp(const CodeOp& a)
 {
   return (a.opinfo->flags & FL_SET_CA) && !(a.opinfo->flags & FL_SET_OE) &&
@@ -506,7 +493,7 @@ void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool r
     // Reorder integer compares, rlwinm., and carry-affecting ops
     // (if we add more merged branch instructions, add them here!)
     if ((type == ReorderType::CROR && isCror(a)) || (type == ReorderType::Carry && isCarryOp(a)) ||
-        (type == ReorderType::CMP && (isCmp(a) || a.outputCR[0])))
+        (type == ReorderType::CMP && (type == ReorderType::CMP && a.crOut)))
     {
       // once we're next to a carry instruction, don't move away!
       if (type == ReorderType::Carry && i != start)
@@ -544,11 +531,6 @@ void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool r
 
 void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp* code) const
 {
-  // Reorder cror instructions upwards (e.g. towards an fcmp). Technically we should be more
-  // picky about this, but cror seems to almost solely be used for this purpose in real code.
-  // Additionally, the other boolean ops seem to almost never be used.
-  if (HasOption(OPTION_CROR_MERGE))
-    ReorderInstructionsCore(instructions, code, true, ReorderType::CROR);
   // For carry, bubble instructions *towards* each other; one direction often isn't enough
   // to get pairs like addc/adde next to each other.
   if (HasOption(OPTION_CARRY_MERGE))
@@ -556,8 +538,16 @@ void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp* code) const
     ReorderInstructionsCore(instructions, code, false, ReorderType::Carry);
     ReorderInstructionsCore(instructions, code, true, ReorderType::Carry);
   }
+
+  // Reorder instructions which write to CR (typically compare instructions) towards branches.
   if (HasOption(OPTION_BRANCH_MERGE))
     ReorderInstructionsCore(instructions, code, false, ReorderType::CMP);
+
+  // Reorder cror instructions upwards (e.g. towards an fcmp). Technically we should be more
+  // picky about this, but cror seems to almost solely be used for this purpose in real code.
+  // Additionally, the other boolean ops seem to almost never be used.
+  if (HasOption(OPTION_CROR_MERGE))
+    ReorderInstructionsCore(instructions, code, true, ReorderType::CROR);
 }
 
 void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code,
@@ -570,23 +560,40 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code,
     block->m_fpa->any = true;
   }
 
-  code->wantsCR = BitSet8(0);
+  code->crIn = BitSet8(0);
   if (opinfo->flags & FL_READ_ALL_CR)
-    code->wantsCR = BitSet8(0xFF);
+  {
+    code->crIn = BitSet8(0xFF);
+  }
   else if (opinfo->flags & FL_READ_CRn)
-    code->wantsCR[code->inst.CRFS] = true;
+  {
+    code->crIn[code->inst.CRFS] = true;
+  }
   else if (opinfo->flags & FL_READ_CR_BI)
-    code->wantsCR[code->inst.BI] = true;
+  {
+    code->crIn[code->inst.BI] = true;
+  }
+  else if (opinfo->type == OpType::CR)
+  {
+    code->crIn[code->inst.CRBA >> 2] = true;
+    code->crIn[code->inst.CRBB >> 2] = true;
 
-  code->outputCR = BitSet8(0);
+    // CR instructions only write to one bit of the destination CR,
+    // so treat the other three bits of the destination as inputs
+    code->crIn[code->inst.CRBD >> 2] = true;
+  }
+
+  code->crOut = BitSet8(0);
   if (opinfo->flags & FL_SET_ALL_CR)
-    code->outputCR = BitSet8(0xFF);
+    code->crOut = BitSet8(0xFF);
   else if (opinfo->flags & FL_SET_CRn)
-    code->outputCR[code->inst.CRFD] = true;
+    code->crOut[code->inst.CRFD] = true;
   else if ((opinfo->flags & FL_SET_CR0) || ((opinfo->flags & FL_RC_BIT) && code->inst.Rc))
-    code->outputCR[0] = true;
+    code->crOut[0] = true;
   else if ((opinfo->flags & FL_SET_CR1) || ((opinfo->flags & FL_RC_BIT_F) && code->inst.Rc))
-    code->outputCR[1] = true;
+    code->crOut[1] = true;
+  else if (opinfo->type == OpType::CR)
+    code->crOut[code->inst.CRBD >> 2] = true;
 
   code->wantsFPRF = (opinfo->flags & FL_READ_FPRF) != 0;
   code->outputFPRF = (opinfo->flags & FL_SET_FPRF) != 0;
@@ -955,9 +962,9 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
 
   // Scan for flag dependencies; assume the next block (or any branch that can leave the block)
   // wants flags, to be safe.
-  BitSet8 wantsCR = BitSet8(0xFF);
   bool wantsFPRF = true;
   bool wantsCA = true;
+  BitSet8 crInUse, crDiscardable;
   BitSet32 gprBlockInputs, gprInUse, fprInUse, gprDiscardable, fprDiscardable, fprInXmm;
   for (int i = block->m_num_instructions - 1; i >= 0; i--)
   {
@@ -974,27 +981,26 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
     const bool hle = !!HLE::TryReplaceFunction(op.address);
     const bool may_exit_block = hle || op.canEndBlock || op.canCauseException;
 
-    const BitSet8 opWantsCR = op.wantsCR;
     const bool opWantsFPRF = op.wantsFPRF;
     const bool opWantsCA = op.wantsCA;
-    op.wantsCR = wantsCR | BitSet8(may_exit_block ? 0xFF : 0);
     op.wantsFPRF = wantsFPRF || may_exit_block;
     op.wantsCA = wantsCA || may_exit_block;
-    wantsCR |= opWantsCR | BitSet8(may_exit_block ? 0xFF : 0);
     wantsFPRF |= opWantsFPRF || may_exit_block;
     wantsCA |= opWantsCA || may_exit_block;
-    wantsCR &= ~op.outputCR | opWantsCR;
     wantsFPRF &= !op.outputFPRF || opWantsFPRF;
     wantsCA &= !op.outputCA || opWantsCA;
     op.gprInUse = gprInUse;
     op.fprInUse = fprInUse;
+    op.crInUse = crInUse;
     op.gprDiscardable = gprDiscardable;
     op.fprDiscardable = fprDiscardable;
+    op.crDiscardable = crDiscardable;
     op.fprInXmm = fprInXmm;
     gprBlockInputs &= ~op.regsOut;
     gprBlockInputs |= op.regsIn;
     gprInUse |= op.regsIn | op.regsOut;
     fprInUse |= op.fregsIn | op.GetFregsOut();
+    crInUse |= op.crIn | op.crOut;
 
     if (strncmp(op.opinfo->opname, "stfd", 4))
       fprInXmm |= op.fregsIn;
@@ -1006,11 +1012,13 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
       fprInXmm = BitSet32{};
       gprDiscardable = BitSet32{};
       fprDiscardable = BitSet32{};
+      crDiscardable = BitSet8{};
     }
     else if (op.canEndBlock || op.canCauseException)
     {
       gprDiscardable = BitSet32{};
       fprDiscardable = BitSet32{};
+      crDiscardable = BitSet8{};
     }
     else
     {
@@ -1018,6 +1026,8 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
       gprDiscardable &= ~op.regsIn;
       fprDiscardable |= op.GetFregsOut();
       fprDiscardable &= ~op.fregsIn;
+      crDiscardable |= op.crOut;
+      crDiscardable &= ~op.crIn;
     }
   }
 

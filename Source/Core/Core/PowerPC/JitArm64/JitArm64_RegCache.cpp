@@ -129,6 +129,8 @@ void Arm64RegCache::DiscardRegister(size_t preg)
 {
   OpArg& reg = m_guest_registers[preg];
   ARM64Reg host_reg = reg.GetReg();
+  if (!IsVector(host_reg))
+    host_reg = EncodeRegTo32(host_reg);
 
   reg.Discard();
   if (host_reg != ARM64Reg::INVALID_REG)
@@ -285,6 +287,25 @@ void Arm64GPRCache::FlushCRRegisters(BitSet8 regs, bool maintain_state, ARM64Reg
                "Attempted to flush discarded register");
 
     FlushRegister(GUEST_CR_OFFSET + i, maintain_state, tmp_reg);
+  }
+}
+
+void Arm64GPRCache::DiscardCRRegisters(BitSet8 regs)
+{
+  for (int i : regs)
+    DiscardRegister(GUEST_CR_OFFSET + i);
+}
+
+void Arm64GPRCache::ResetCRRegisters(BitSet8 regs)
+{
+  for (int i : regs)
+  {
+    OpArg& reg = m_guest_registers[GUEST_CR_OFFSET + i];
+    ARM64Reg host_reg = reg.GetReg();
+
+    ASSERT_MSG(DYNA_REC, host_reg == ARM64Reg::INVALID_REG,
+               "Attempted to reset a loaded register (did you mean to flush it?)");
+    reg.Flush();
   }
 }
 
