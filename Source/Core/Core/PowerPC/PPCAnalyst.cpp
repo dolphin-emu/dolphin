@@ -976,6 +976,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
       // be able to flush all registers, so we can't have any discarded registers.
       gprDiscardable = BitSet32{};
       fprDiscardable = BitSet32{};
+      crDiscardable = BitSet8{};
     }
 
     const bool hle = !!HLE::TryReplaceFunction(op.address);
