@@ -45,6 +45,9 @@ AudioPane::AudioPane()
 
 void AudioPane::CreateWidgets()
 {
+  QFontMetrics fm(font());
+  const int sliderh = fm.height() * 1.5;
+
   auto* dsp_box = new QGroupBox(tr("DSP Emulation Engine"));
   auto* dsp_layout = new QVBoxLayout;
 
@@ -61,13 +64,14 @@ void AudioPane::CreateWidgets()
 
   auto* volume_box = new QGroupBox(tr("Volume"));
   auto* volume_layout = new QVBoxLayout;
-  m_volume_slider = new QSlider;
+  m_volume_slider = new QSlider(Qt::Vertical);
   m_volume_indicator = new QLabel();
 
   volume_box->setLayout(volume_layout);
 
   m_volume_slider->setMinimum(0);
   m_volume_slider->setMaximum(100);
+  m_volume_slider->setMinimumWidth(sliderh);
 
   m_volume_indicator->setAlignment(Qt::AlignVCenter | Qt::AlignHCenter);
   m_volume_indicator->setFixedWidth(QFontMetrics(font()).boundingRect(tr("%1 %").arg(100)).width());
@@ -104,6 +108,7 @@ void AudioPane::CreateWidgets()
   m_dolby_quality_slider->setMinimum(0);
   m_dolby_quality_slider->setMaximum(3);
   m_dolby_quality_slider->setPageStep(1);
+  m_dolby_quality_slider->setMinimumHeight(sliderh);
   m_dolby_quality_slider->setTickPosition(QSlider::TicksBelow);
   m_dolby_quality_slider->setToolTip(
       tr("Quality of the DPLII decoder. Audio latency increases with quality."));
@@ -147,6 +152,13 @@ void AudioPane::CreateWidgets()
 
   m_stretching_buffer_slider->setMinimum(5);
   m_stretching_buffer_slider->setMaximum(300);
+  m_stretching_buffer_slider->setMinimumHeight(sliderh);
+  m_stretching_buffer_slider->setTickPosition(QSlider::TicksBelow);
+  m_stretching_buffer_slider->setTickInterval(49);
+
+  const int label_width = fm.boundingRect(QStringLiteral(" 300 ms ")).width();
+  m_stretching_buffer_indicator->setMinimumWidth(label_width);
+  m_stretching_buffer_indicator->setAlignment(Qt::AlignRight);
 
   m_stretching_enable->setToolTip(tr("Enables stretching of the audio to match emulation speed."));
   m_stretching_buffer_slider->setToolTip(tr("Size of stretch buffer in milliseconds. "
