@@ -585,7 +585,7 @@ void Jit64::mcrxr(UGeckoInstruction inst)
 
   // Clear XER[0-3]
   static_assert(PPCSTATE_OFF(xer_ca) + 1 == PPCSTATE_OFF(xer_so_ov));
-  MOV(16, PPCSTATE(xer_ca), Imm8(0));
+  MOV(16, PPCSTATE(xer_ca), Imm16(0));
 }
 
 void Jit64::crXXX(UGeckoInstruction inst)
