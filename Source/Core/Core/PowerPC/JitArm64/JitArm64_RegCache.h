@@ -325,6 +325,8 @@ public:
 
   BitSet32 GetCallerSavedUsed() const override;
 
+  BitSet32 GetDirtyGPRs() const;
+
   void StoreRegisters(BitSet32 regs, Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG)
   {
     FlushRegisters(regs, false, tmp_reg);

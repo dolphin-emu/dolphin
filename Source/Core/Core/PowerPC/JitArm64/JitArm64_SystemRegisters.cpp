@@ -704,6 +704,16 @@ void JitArm64::mfcr(UGeckoInstruction inst)
     ORR(WC, WA, LogicalImm(1 << PowerPC::CR_GT_BIT, 32));
     CMP(CR, ARM64Reg::ZR);
     CSEL(WA, WC, WA, CC_GT);
+
+    // To reduce register pressure and to avoid getting a pipeline-unfriendly long run of stores
+    // after this instruction, flush registers that would be flushed after this instruction anyway.
+    //
+    // There's no point in ensuring we flush two registers at the same time, because the offset in
+    // ppcState for CRs is too large to be encoded into an STP instruction.
+    if (js.op->crDiscardable[i])
+      gpr.DiscardCRRegisters(BitSet8{i});
+    else if (!js.op->crInUse[i])
+      gpr.StoreCRRegisters(BitSet8{i}, WC);
   }
 
   gpr.Unlock(WB, WC);

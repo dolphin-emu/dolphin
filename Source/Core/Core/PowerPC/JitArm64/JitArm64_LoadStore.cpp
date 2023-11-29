@@ -3,6 +3,8 @@
 
 #include "Core/PowerPC/JitArm64/Jit.h"
 
+#include <bit>
+
 #include "Common/Arm64Emitter.h"
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
@@ -539,6 +541,27 @@ void JitArm64::lmw(UGeckoInstruction inst)
   if (!a_is_addr_base_reg)
     MOV(addr_base_reg, addr_reg);
 
+  BitSet32 gprs_to_flush = ~js.op->gprInUse & BitSet32(0xFFFFFFFFU << d);
+  if (!js.op->gprInUse[a])
+  {
+    if (!a_is_addr_base_reg)
+    {
+      gprs_to_flush[a] = true;
+    }
+    else
+    {
+      gprs_to_flush[a] = false;
+
+      if (a + 1 == d && (std::countr_one((~js.op->gprInUse).m_val >> a) & 1) == 0)
+      {
+        // In this situation, we can save one store instruction by flushing GPR d together with GPR
+        // a, but we shouldn't flush GPR a until the end of the PPC instruction. Therefore, let's
+        // also wait with flushing GPR d until the end of the PPC instruction.
+        gprs_to_flush[d] = false;
+      }
+    }
+  }
+
   // TODO: This doesn't handle rollback on DSI correctly
   constexpr u32 flags = BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_SIZE_32;
   for (u32 i = d; i < 32; i++)
@@ -564,6 +587,28 @@ void JitArm64::lmw(UGeckoInstruction inst)
 
     gpr.BindToRegister(i, false, true);
     ASSERT(dest_reg == gpr.R(i));
+
+    // To reduce register pressure and to avoid getting a pipeline-unfriendly long run of stores
+    // after this instruction, flush registers that would be flushed after this instruction anyway.
+    //
+    // We try to store two registers at a time when possible to let the register cache use STP.
+    if (!jo.memcheck && js.op->gprDiscardable[i])
+    {
+      gpr.DiscardRegisters(BitSet32{int(i)});
+    }
+    else if (gprs_to_flush[i])
+    {
+      BitSet32 gprs_to_flush_this_time{};
+      if (i != 0 && gprs_to_flush[i - 1])
+        gprs_to_flush_this_time = BitSet32{int(i - 1), int(i)};
+      else if (i == 31 || !gprs_to_flush[i + 1])
+        gprs_to_flush_this_time = BitSet32{int(i)};
+      else
+        continue;
+
+      gpr.StoreRegisters(gprs_to_flush_this_time);
+      gprs_to_flush &= ~gprs_to_flush_this_time;
+    }
   }
 
   gpr.Unlock(ARM64Reg::W1, ARM64Reg::W30);
@@ -600,6 +645,28 @@ void JitArm64::stmw(UGeckoInstruction inst)
   if (!a_is_addr_base_reg)
     MOV(addr_base_reg, addr_reg);
 
+  const BitSet32 dirty_gprs_to_flush_unmasked = ~js.op->gprInUse & gpr.GetDirtyGPRs();
+  BitSet32 dirty_gprs_to_flush = dirty_gprs_to_flush_unmasked & BitSet32(0xFFFFFFFFU << s);
+  if (dirty_gprs_to_flush_unmasked[a])
+  {
+    if (!a_is_addr_base_reg)
+    {
+      dirty_gprs_to_flush[a] = true;
+    }
+    else
+    {
+      dirty_gprs_to_flush[a] = false;
+
+      if (a + 1 == s && (std::countr_one((~js.op->gprInUse).m_val >> a) & 1) == 0)
+      {
+        // In this situation, we can save one store instruction by flushing GPR s together with GPR
+        // a, but we shouldn't flush GPR a until the end of the PPC instruction. Therefore, let's
+        // also wait with flushing GPR s until the end of the PPC instruction.
+        dirty_gprs_to_flush[s] = false;
+      }
+    }
+  }
+
   // TODO: This doesn't handle rollback on DSI correctly
   constexpr u32 flags = BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_SIZE_32;
   for (u32 i = s; i < 32; i++)
@@ -620,6 +687,35 @@ void JitArm64::stmw(UGeckoInstruction inst)
 
     EmitBackpatchRoutine(flags, MemAccessMode::Auto, src_reg, EncodeRegTo64(addr_reg), regs_in_use,
                          fprs_in_use);
+
+    // To reduce register pressure and to avoid getting a pipeline-unfriendly long run of stores
+    // after this instruction, flush registers that would be flushed after this instruction anyway.
+    //
+    // We try to store two registers at a time when possible to let the register cache use STP.
+    if (!jo.memcheck && js.op->gprDiscardable[i])
+    {
+      gpr.DiscardRegisters(BitSet32{int(i)});
+    }
+    else if (dirty_gprs_to_flush[i])
+    {
+      BitSet32 gprs_to_flush_this_time{};
+      if (i != 0 && dirty_gprs_to_flush[i - 1])
+        gprs_to_flush_this_time = BitSet32{int(i - 1), int(i)};
+      else if (i == 31 || !dirty_gprs_to_flush[i + 1])
+        gprs_to_flush_this_time = BitSet32{int(i)};
+      else
+        continue;
+
+      gpr.StoreRegisters(gprs_to_flush_this_time);
+      dirty_gprs_to_flush &= ~gprs_to_flush_this_time;
+    }
+    else if (!js.op->gprInUse[i])
+    {
+      // If this register can be flushed but it isn't dirty, no store instruction will be emitted
+      // when flushing it, so it doesn't matter if we flush it together with another register or
+      // not. Let's just flush it in the simplest way possible.
+      gpr.StoreRegisters(BitSet32{int(i)});
+    }
   }
 
   gpr.Unlock(ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
