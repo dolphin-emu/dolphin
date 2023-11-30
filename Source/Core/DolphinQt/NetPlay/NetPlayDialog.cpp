@@ -1039,6 +1039,11 @@ void NetPlayDialog::OnGolferChanged(const bool is_golfer, const std::string& gol
     DisplayMessage(tr("%1 is now golfing").arg(QString::fromStdString(golfer_name)), "");
 }
 
+void NetPlayDialog::OnTtlDetermined(u8 ttl)
+{
+  DisplayMessage(tr("Using TTL %1 for probe packet").arg(QString::number(ttl)), "");
+}
+
 bool NetPlayDialog::IsRecording()
 {
   std::optional<bool> is_recording = RunOnObject(m_record_input_action, &QAction::isChecked);
