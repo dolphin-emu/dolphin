@@ -90,7 +90,6 @@ public:
   void SetViewport(float x, float y, float width, float height, float near_depth, float far_depth);
   void SetTexture(u32 idx, id<MTLTexture> texture);
   void SetSampler(u32 idx, const SamplerState& sampler);
-  void SetComputeTexture(const Texture* texture);
   void InvalidateUniforms(bool vertex, bool geometry, bool fragment);
   void SetUtilityUniform(const void* buffer, size_t size);
   void SetTexelBuffer(id<MTLBuffer> buffer, u32 offset0, u32 offset1);
@@ -191,11 +190,18 @@ private:
 
   MRCOwned<id<MTLTexture>> m_dummy_texture;
 
+  // Compute has a set of samplers and a set of writable images
+  static constexpr u32 MAX_COMPUTE_TEXTURES = VideoCommon::MAX_COMPUTE_SHADER_SAMPLERS * 2;
+  static constexpr u32 MAX_PIXEL_TEXTURES = VideoCommon::MAX_PIXEL_SHADER_SAMPLERS;
+  static constexpr u32 MAX_TEXTURES = std::max(MAX_PIXEL_TEXTURES, MAX_COMPUTE_TEXTURES);
+  static constexpr u32 MAX_SAMPLERS =
+      std::max(VideoCommon::MAX_PIXEL_SHADER_SAMPLERS, VideoCommon::MAX_COMPUTE_SHADER_SAMPLERS);
+
   // MARK: State
-  u8 m_dirty_textures;
+  u16 m_dirty_textures;
   u8 m_dirty_samplers;
-  static_assert(sizeof(m_dirty_textures) * 8 >= VideoCommon::MAX_PIXEL_SHADER_SAMPLERS,
-                "Make these bigger");
+  static_assert(sizeof(m_dirty_textures) * 8 >= MAX_TEXTURES, "Make this bigger");
+  static_assert(sizeof(m_dirty_samplers) * 8 >= MAX_SAMPLERS, "Make this bigger");
   union Flags
   {
     struct
@@ -206,7 +212,6 @@ private:
       bool has_gx_ps_uniform      : 1;
       bool has_utility_vs_uniform : 1;
       bool has_utility_ps_uniform : 1;
-      bool has_compute_texture    : 1;
       bool has_pipeline           : 1;
       bool has_scissor            : 1;
       bool has_viewport           : 1;
@@ -251,11 +256,11 @@ private:
     Util::Viewport viewport;
     const Pipeline* render_pipeline = nullptr;
     const ComputePipeline* compute_pipeline = nullptr;
-    std::array<id<MTLTexture>, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS> textures = {};
-    std::array<id<MTLSamplerState>, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS> samplers = {};
-    std::array<float, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS> sampler_min_lod;
-    std::array<float, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS> sampler_max_lod;
-    std::array<SamplerState, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS> sampler_states;
+    std::array<id<MTLTexture>, MAX_TEXTURES> textures = {};
+    std::array<id<MTLSamplerState>, MAX_SAMPLERS> samplers = {};
+    std::array<float, MAX_SAMPLERS> sampler_min_lod;
+    std::array<float, MAX_SAMPLERS> sampler_max_lod;
+    std::array<SamplerState, MAX_SAMPLERS> sampler_states;
     const Texture* compute_texture = nullptr;
     std::unique_ptr<u8[]> utility_uniform;
     u32 utility_uniform_size = 0;

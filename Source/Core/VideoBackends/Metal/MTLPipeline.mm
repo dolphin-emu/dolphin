@@ -67,5 +67,5 @@ Metal::ComputePipeline::ComputePipeline(ShaderStage stage, MTLComputePipelineRef
                                         MRCOwned<id<MTLComputePipelineState>> pipeline)
     : Shader(stage, std::move(msl), std::move(shader)), m_compute_pipeline(std::move(pipeline))
 {
-  GetArguments([reflection arguments], &m_textures, nullptr, &m_buffers);
+  GetArguments([reflection arguments], &m_textures, &m_samplers, &m_buffers);
 }
