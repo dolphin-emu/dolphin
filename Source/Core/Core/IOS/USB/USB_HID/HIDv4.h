@@ -32,7 +32,7 @@ private:
 
   IPCReply CancelInterrupt(const IOCtlRequest& request);
   std::optional<IPCReply> GetDeviceChange(const IOCtlRequest& request);
-  IPCReply Shutdown(const IOCtlRequest& request);
+  IPCReply Shutdown();
   s32 SubmitTransfer(USB::Device& device, const IOCtlRequest& request);
 
   void TriggerDeviceChangeReply();
@@ -46,7 +46,7 @@ private:
 
   bool m_has_pending_changes = true;
   std::mutex m_devicechange_hook_address_mutex;
-  std::unique_ptr<IOCtlRequest> m_devicechange_hook_request;
+  std::optional<u32> m_devicechange_hook_request;
 
   mutable std::mutex m_id_map_mutex;
   // IOS device IDs <=> USB device IDs
