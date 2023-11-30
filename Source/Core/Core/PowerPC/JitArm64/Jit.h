@@ -242,21 +242,23 @@ protected:
   // Registers used:
   //
   //                 addr     scratch
-  // Store:          X1       X0
-  // Load:           X0
-  // Zero 256:       X0       X30
-  // Store float:    X1       Q0
-  // Load float:     X0
+  // Store:          X2       X1
+  // Load:           X1
+  // Zero 256:       X1       X30
+  // Store float:    X2       Q0
+  // Load float:     X1
   //
   // If mode == AlwaysFastAccess, the addr argument can be any register.
   // Otherwise it must be the register listed in the table above.
   //
   // Additional scratch registers are used in the following situations:
   //
-  // emitting_routine && mode == Auto:                                            X2
+  // emitting_routine && mode == Auto:                                            X0
   // emitting_routine && mode == Auto && !(flags & BackPatchInfo::FLAG_STORE):    X3
   // emitting_routine && mode != AlwaysSlowAccess && !jo.fastmem:                 X3
-  // mode != AlwaysSlowAccess && !jo.fastmem:                                     X2
+  // mode != AlwaysSlowAccess && !jo.fastmem:                                     X0
+  // !emitting_routine && mode != AlwaysFastAccess && jo.memcheck &&
+  //         (flags & BackPatchInfo::FLAG_LOAD):                                  X0
   // !emitting_routine && mode != AlwaysSlowAccess && !jo.fastmem:                X30
   // !emitting_routine && mode == Auto && jo.fastmem:                             X30
   //
