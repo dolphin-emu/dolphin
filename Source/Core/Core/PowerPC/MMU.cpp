@@ -148,6 +148,12 @@ static void EFB_Write(u32 data, u32 addr)
 template <XCheckTLBFlag flag, typename T, bool never_translate>
 T MMU::ReadFromHardware(u32 em_address)
 {
+  // ReadFromHardware is currently used with XCheckTLBFlag::OpcodeNoException by host instruction
+  // functions. Actual instruction decoding (which can raise exceptions and uses icache) is handled
+  // by TryReadInstruction.
+  static_assert(flag == XCheckTLBFlag::NoException || flag == XCheckTLBFlag::Read ||
+                flag == XCheckTLBFlag::OpcodeNoException);
+
   const u32 em_address_start_page = em_address & ~HW_PAGE_MASK;
   const u32 em_address_end_page = (em_address + sizeof(T) - 1) & ~HW_PAGE_MASK;
   if (em_address_start_page != em_address_end_page)
@@ -258,6 +264,8 @@ T MMU::ReadFromHardware(u32 em_address)
 template <XCheckTLBFlag flag, bool never_translate>
 void MMU::WriteToHardware(u32 em_address, const u32 data, const u32 size)
 {
+  static_assert(flag == XCheckTLBFlag::NoException || flag == XCheckTLBFlag::Write);
+
   DEBUG_ASSERT(size <= 4);
 
   const u32 em_address_start_page = em_address & ~HW_PAGE_MASK;
