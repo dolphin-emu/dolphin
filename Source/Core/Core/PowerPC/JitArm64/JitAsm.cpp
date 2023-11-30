@@ -133,7 +133,7 @@ void JitArm64::GenerateAsm()
       // b.effectiveAddress != addr || b.msrBits != msr
       static_assert(offsetof(JitBlockData, msrBits) + 4 ==
                     offsetof(JitBlockData, effectiveAddress));
-      LDP(IndexType::Signed, msr, pc, block, offsetof(JitBlockData, effectiveAddress));
+      LDP(IndexType::Signed, msr, pc, block, offsetof(JitBlockData, msrBits));
       LDR(IndexType::Unsigned, msr2, PPC_REG, PPCSTATE_OFF(msr));
       CMP(pc, DISPATCHER_PC);
       FixupBranch pc_mismatch = B(CC_NEQ);
