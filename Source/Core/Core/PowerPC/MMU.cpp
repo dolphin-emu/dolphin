@@ -1464,11 +1464,13 @@ MMU::TranslateAddressResult MMU::TranslatePageAddress(const EffectiveAddress add
 
     for (int i = 0; i < 8; i++, pteg_addr += 8)
     {
-      const u32 pteg = ReadFromHardware<flag, u32, true>(pteg_addr);
+      constexpr XCheckTLBFlag pte_read_flag =
+          IsNoExceptionFlag(flag) ? XCheckTLBFlag::NoException : XCheckTLBFlag::Read;
+      const u32 pteg = ReadFromHardware<pte_read_flag, u32, true>(pteg_addr);
 
       if (pte1.Hex == pteg)
       {
-        UPTE_Hi pte2(ReadFromHardware<flag, u32, true>(pteg_addr + 4));
+        UPTE_Hi pte2(ReadFromHardware<pte_read_flag, u32, true>(pteg_addr + 4));
 
         // set the access bits
         switch (flag)
