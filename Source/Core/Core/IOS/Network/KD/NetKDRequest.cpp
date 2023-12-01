@@ -246,6 +246,12 @@ void NetKDRequestDevice::SchedulerWorker(const SchedulerEvent event)
     NWC24::ErrorCode code = DetermineDownloadTask(&entry_index, &subtask_id);
     if (code != NWC24::WC24_OK)
     {
+      if (code == NWC24::WC24_ERR_NOT_FOUND)
+      {
+        std::lock_guard lg(m_scheduler_lock);
+        m_download_span = DEFAULT_SCHEDULER_SPAN_MINUTES;
+      }
+
       LogError(ErrorType::KD_Download, code);
       return;
     }
