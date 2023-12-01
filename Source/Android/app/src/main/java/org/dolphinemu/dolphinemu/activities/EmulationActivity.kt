@@ -1066,16 +1066,16 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
         }
 
         @JvmStatic
-        fun launch(activity: FragmentActivity, filePaths: Array<String>, riivolution: Boolean) {
+        fun launch(activity: FragmentActivity, filePaths: Array<String>, riivolution: Boolean, fromIntent: Boolean = false) {
             if (ignoreLaunchRequests)
                 return
 
-            performLaunchChecks(activity) { launchWithoutChecks(activity, filePaths, riivolution) }
+            performLaunchChecks(activity, fromIntent) { launchWithoutChecks(activity, filePaths, riivolution) }
         }
 
         @JvmStatic
-        fun launch(activity: FragmentActivity, filePath: String, riivolution: Boolean) =
-            launch(activity, arrayOf(filePath), riivolution)
+        fun launch(activity: FragmentActivity, filePath: String, riivolution: Boolean, fromIntent: Boolean = false) =
+            launch(activity, arrayOf(filePath), riivolution, fromIntent)
 
         private fun launchWithoutChecks(
             activity: FragmentActivity,
@@ -1089,8 +1089,11 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             activity.startActivity(launcher)
         }
 
-        private fun performLaunchChecks(activity: FragmentActivity, continueCallback: Runnable) {
+        private fun performLaunchChecks(activity: FragmentActivity, fromIntent: Boolean, continueCallback: Runnable) {
             AfterDirectoryInitializationRunner().runWithLifecycle(activity) {
+                if (fromIntent) {
+                    activity.finish()
+                }
                 if (!FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_DEFAULT_ISO) ||
                     !FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_FS_PATH) ||
                     !FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_DUMP_PATH) ||
@@ -1129,7 +1132,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             if (ignoreLaunchRequests)
                 return
 
-            performLaunchChecks(activity) { launchSystemMenuWithoutChecks(activity) }
+            performLaunchChecks(activity, false) { launchSystemMenuWithoutChecks(activity) }
         }
 
         private fun launchSystemMenuWithoutChecks(activity: FragmentActivity) {
