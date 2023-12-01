@@ -4125,6 +4125,9 @@ void ARM64XEmitter::AddImmediate(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool shift, 
 void ARM64XEmitter::ADDI2R_internal(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool negative, bool flags,
                                     ARM64Reg scratch)
 {
+  if (!Is64Bit(Rd))
+    imm &= 0xFFFFFFFFULL;
+
   bool has_scratch = scratch != ARM64Reg::INVALID_REG;
   u64 imm_neg = Is64Bit(Rd) ? u64(-s64(imm)) : u64(-s64(imm)) & 0xFFFFFFFFuLL;
   bool neg_neg = negative ? false : true;
