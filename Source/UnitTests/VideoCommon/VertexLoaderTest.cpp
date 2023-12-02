@@ -859,6 +859,184 @@ TEST_P(VertexLoaderSkippedColorsTest, SkippedColors)
     EXPECT_EQ((m_dst.Read<u32, true>()), 0x08090a0bu);
 }
 
+class VertexLoaderSkippedTexCoordsTest : public VertexLoaderTest,
+                                         public ::testing::WithParamInterface<u32>
+{
+public:
+  static constexpr u32 NUM_COMPONENTS_TO_TEST = 3;
+  static constexpr u32 NUM_PARAMETERS_PER_COMPONENT = 3;
+  static constexpr u32 NUM_COMBINATIONS =
+      1 << (NUM_COMPONENTS_TO_TEST * NUM_PARAMETERS_PER_COMPONENT);
+};
+INSTANTIATE_TEST_SUITE_P(AllCombinations, VertexLoaderSkippedTexCoordsTest,
+                         ::testing::Range(0u, VertexLoaderSkippedTexCoordsTest::NUM_COMBINATIONS));
+
+TEST_P(VertexLoaderSkippedTexCoordsTest, SkippedTextures)
+{
+  std::array<bool, NUM_COMPONENTS_TO_TEST> enable_tex, enable_matrix, use_st;
+  const u32 param = GetParam();
+  for (u32 component = 0; component < NUM_COMPONENTS_TO_TEST; component++)
+  {
+    const u32 bits = param >> (component * NUM_PARAMETERS_PER_COMPONENT);
+    enable_tex[component] = (bits & 1);
+    enable_matrix[component] = (bits & 2);
+    use_st[component] = (bits & 4);
+  }
+
+  size_t input_size = 1;
+  size_t output_size = 3 * sizeof(float);
+
+  std::array<bool, NUM_COMPONENTS_TO_TEST> component_enabled{};
+  std::array<size_t, NUM_COMPONENTS_TO_TEST> component_offset{};
+
+  m_vtx_desc.low.Position = VertexComponentFormat::Index8;
+  m_vtx_attr.g0.PosElements = CoordComponentCount::XYZ;
+  m_vtx_attr.g0.PosFormat = ComponentFormat::Float;
+
+  for (size_t i = 0; i < NUM_COMPONENTS_TO_TEST; i++)
+  {
+    if (enable_matrix[i] || enable_tex[i])
+    {
+      component_enabled[i] = true;
+      component_offset[i] = output_size;
+      if (enable_matrix[i])
+      {
+        output_size += 3 * sizeof(float);
+      }
+      else
+      {
+        if (use_st[i])
+        {
+          output_size += 2 * sizeof(float);
+        }
+        else
+        {
+          output_size += sizeof(float);
+        }
+      }
+    }
+    if (enable_matrix[i])
+    {
+      m_vtx_desc.low.TexMatIdx[i] = enable_matrix[i];
+      input_size++;
+    }
+    if (enable_tex[i])
+    {
+      m_vtx_desc.high.TexCoord[i] = VertexComponentFormat::Index8;
+      input_size++;
+    }
+
+    m_vtx_attr.SetTexElements(i, use_st[i] ? TexComponentCount::ST : TexComponentCount::S);
+    m_vtx_attr.SetTexFormat(i, ComponentFormat::Float);
+    m_vtx_attr.SetTexFrac(i, 0);
+  }
+
+  CreateAndCheckSizes(input_size, output_size);
+
+  // Vertex 0
+  for (size_t i = 0; i < NUM_COMPONENTS_TO_TEST; i++)
+  {
+    if (enable_matrix[i])
+      Input<u8>(u8(20 + i));
+  }
+  Input<u8>(1);  // Position
+  for (size_t i = 0; i < NUM_COMPONENTS_TO_TEST; i++)
+  {
+    if (enable_tex[i])
+      Input<u8>(1);
+  }
+  // Vertex 1
+  for (size_t i = 0; i < NUM_COMPONENTS_TO_TEST; i++)
+  {
+    if (enable_matrix[i])
+      Input<u8>(u8(10 + i));
+  }
+  Input<u8>(0);  // Position
+  for (size_t i = 0; i < NUM_COMPONENTS_TO_TEST; i++)
+  {
+    if (enable_tex[i])
+      Input<u8>(0);
+  }
+  // Position array
+  VertexLoaderManager::cached_arraybases[CPArray::Position] = m_src.GetPointer();
+  g_main_cp_state.array_strides[CPArray::Position] =
+      sizeof(float);  // so 1, 2, 3 for index 0; 2, 3, 4 for index 1
+  Input(1.f);
+  Input(2.f);
+  Input(3.f);
+  Input(4.f);
+  // Texture coord arrays
+  for (u8 i = 0; i < NUM_COMPONENTS_TO_TEST; i++)
+  {
+    VertexLoaderManager::cached_arraybases[CPArray::TexCoord0 + i] = m_src.GetPointer();
+    g_main_cp_state.array_strides[CPArray::TexCoord0 + i] = 2 * sizeof(float);
+    Input<float>(i * 100 + 11);
+    Input<float>(i * 100 + 12);
+    Input<float>(i * 100 + 21);
+    Input<float>(i * 100 + 22);
+  }
+
+  for (size_t i = 0; i < NUM_COMPONENTS_TO_TEST; i++)
+  {
+    ASSERT_EQ(m_loader->m_native_vtx_decl.texcoords[i].enable, component_enabled[i]);
+    if (component_enabled[i])
+      ASSERT_EQ(m_loader->m_native_vtx_decl.texcoords[i].offset, component_offset[i]);
+  }
+
+  RunVertices(2);
+
+  // Vertex 0
+  ExpectOut(2);
+  ExpectOut(3);
+  ExpectOut(4);
+  for (size_t i = 0; i < NUM_COMPONENTS_TO_TEST; i++)
+  {
+    size_t num_read = 0;
+    if (enable_tex[i])
+    {
+      ExpectOut(i * 100 + 21);
+      num_read++;
+      if (use_st[i])
+      {
+        ExpectOut(i * 100 + 22);
+        num_read++;
+      }
+    }
+    if (enable_matrix[i])
+    {
+      // With a matrix there are always 3 components; otherwise-unused components should be 0
+      while (num_read++ < 2)
+        ExpectOut(0);
+      ExpectOut(20 + i);
+    }
+  }
+  // Vertex 1
+  ExpectOut(1);
+  ExpectOut(2);
+  ExpectOut(3);
+  for (size_t i = 0; i < NUM_COMPONENTS_TO_TEST; i++)
+  {
+    size_t num_read = 0;
+    if (enable_tex[i])
+    {
+      ExpectOut(i * 100 + 11);
+      num_read++;
+      if (use_st[i])
+      {
+        ExpectOut(i * 100 + 12);
+        num_read++;
+      }
+    }
+    if (enable_matrix[i])
+    {
+      // With a matrix there are always 3 components; otherwise-unused components should be 0
+      while (num_read++ < 2)
+        ExpectOut(0);
+      ExpectOut(10 + i);
+    }
+  }
+}
+
 // For gtest, which doesn't know about our fmt::formatters by default
 static void PrintTo(const VertexComponentFormat& t, std::ostream* os)
 {
