@@ -410,28 +410,15 @@ void Arm64GPRCache::BindForWrite(size_t index, bool will_read, bool will_write)
 
   if (!reg.IsInHostRegister())
   {
-    if (is_gpr && IsImm(index - GUEST_GPR_OFFSET))
-    {
-      const ARM64Reg host_reg = bitsize != 64 ? GetReg() : EncodeRegTo64(GetReg());
-      if (will_read || !will_write)
-      {
-        // TODO: Emitting this instruction when (!will_read && !will_write) would be unnecessary if
-        // we had some way to indicate to Flush that the immediate value should be written to
-        // ppcState even though there is a host register allocated
-        m_emit->MOVI2R(host_reg, GetImm(index - GUEST_GPR_OFFSET));
-      }
-      reg.Load(host_reg);
-    }
+    // TODO: This special case would be unnecessary if we had some way to indicate to Flush that
+    // an immediate value should be written to m_ppc_state even though a host register is allocated
+    const bool is_imm = is_gpr && IsImm(index - GUEST_GPR_OFFSET);
+    const bool special_case = is_imm && !will_write;
+
+    if (will_read || special_case)
+      BindForRead(index);
     else
-    {
-      ASSERT_MSG(DYNA_REC, !will_read || reg.IsInPPCState(), "Attempted to load a discarded value");
-      const ARM64Reg host_reg = bitsize != 64 ? GetReg() : EncodeRegTo64(GetReg());
-      reg.Load(host_reg);
-      reg.SetDirty(will_write);
-      if (will_read)
-        m_emit->LDR(IndexType::Unsigned, host_reg, PPC_REG, u32(guest_reg.ppc_offset));
-      return;
-    }
+      reg.Load(bitsize != 64 ? GetReg() : EncodeRegTo64(GetReg()));
   }
 
   if (will_write)
