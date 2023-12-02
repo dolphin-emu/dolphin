@@ -759,6 +759,106 @@ TEST_P(VertexLoaderNormalTest, NormalAll)
   }
 }
 
+class VertexLoaderSkippedColorsTest : public VertexLoaderTest,
+                                      public ::testing::WithParamInterface<std::tuple<bool, bool>>
+{
+};
+INSTANTIATE_TEST_SUITE_P(AllCombinations, VertexLoaderSkippedColorsTest,
+                         ::testing::Combine(::testing::Values(false, true),
+                                            ::testing::Values(false, true)));
+
+TEST_P(VertexLoaderSkippedColorsTest, SkippedColors)
+{
+  bool enable_color_0, enable_color_1;
+  std::tie(enable_color_0, enable_color_1) = GetParam();
+
+  size_t input_size = 1;
+  size_t output_size = 3 * sizeof(float);
+  size_t color_0_offset = 0;
+  size_t color_1_offset = 0;
+
+  m_vtx_desc.low.Position = VertexComponentFormat::Index8;
+  if (enable_color_0)
+  {
+    m_vtx_desc.low.Color0 = VertexComponentFormat::Index8;
+    input_size++;
+    color_0_offset = output_size;
+    output_size += sizeof(u32);
+  }
+  if (enable_color_1)
+  {
+    m_vtx_desc.low.Color1 = VertexComponentFormat::Index8;
+    input_size++;
+    color_1_offset = output_size;
+    output_size += sizeof(u32);
+  }
+
+  m_vtx_attr.g0.PosElements = CoordComponentCount::XYZ;
+  m_vtx_attr.g0.PosFormat = ComponentFormat::Float;
+  m_vtx_attr.g0.Color0Elements = ColorComponentCount::RGBA;
+  m_vtx_attr.g0.Color0Comp = ColorFormat::RGBA8888;
+  m_vtx_attr.g0.Color1Elements = ColorComponentCount::RGBA;
+  m_vtx_attr.g0.Color1Comp = ColorFormat::RGBA8888;
+
+  CreateAndCheckSizes(input_size, output_size);
+
+  // Vertex 0
+  Input<u8>(1);
+  if (enable_color_0)
+    Input<u8>(1);
+  if (enable_color_1)
+    Input<u8>(1);
+  // Vertex 1
+  Input<u8>(0);
+  if (enable_color_0)
+    Input<u8>(0);
+  if (enable_color_1)
+    Input<u8>(0);
+  // Position array
+  VertexLoaderManager::cached_arraybases[CPArray::Position] = m_src.GetPointer();
+  g_main_cp_state.array_strides[CPArray::Position] =
+      sizeof(float);  // so 1, 2, 3 for index 0; 2, 3, 4 for index 1
+  Input(1.f);
+  Input(2.f);
+  Input(3.f);
+  Input(4.f);
+  // Color array 0
+  VertexLoaderManager::cached_arraybases[CPArray::Color0] = m_src.GetPointer();
+  g_main_cp_state.array_strides[CPArray::Color0] = sizeof(u32);
+  Input<u32>(0x00010203u);
+  Input<u32>(0x04050607u);
+  // Color array 1
+  VertexLoaderManager::cached_arraybases[CPArray::Color1] = m_src.GetPointer();
+  g_main_cp_state.array_strides[CPArray::Color1] = sizeof(u32);
+  Input<u32>(0x08090a0bu);
+  Input<u32>(0x0c0d0e0fu);
+
+  ASSERT_EQ(m_loader->m_native_vtx_decl.colors[0].enable, enable_color_0);
+  if (enable_color_0)
+    ASSERT_EQ(m_loader->m_native_vtx_decl.colors[0].offset, color_0_offset);
+  ASSERT_EQ(m_loader->m_native_vtx_decl.colors[1].enable, enable_color_1);
+  if (enable_color_1)
+    ASSERT_EQ(m_loader->m_native_vtx_decl.colors[1].offset, color_1_offset);
+
+  RunVertices(2);
+  // Vertex 0
+  ExpectOut(2);
+  ExpectOut(3);
+  ExpectOut(4);
+  if (enable_color_0)
+    EXPECT_EQ((m_dst.Read<u32, true>()), 0x04050607u);
+  if (enable_color_1)
+    EXPECT_EQ((m_dst.Read<u32, true>()), 0x0c0d0e0fu);
+  // Vertex 1
+  ExpectOut(1);
+  ExpectOut(2);
+  ExpectOut(3);
+  if (enable_color_0)
+    EXPECT_EQ((m_dst.Read<u32, true>()), 0x00010203u);
+  if (enable_color_1)
+    EXPECT_EQ((m_dst.Read<u32, true>()), 0x08090a0bu);
+}
+
 // For gtest, which doesn't know about our fmt::formatters by default
 static void PrintTo(const VertexComponentFormat& t, std::ostream* os)
 {
