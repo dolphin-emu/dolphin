@@ -13,6 +13,7 @@
 #include "Common/HttpRequest.h"
 #include "Common/WorkQueueThread.h"
 #include "Core/IOS/Device.h"
+#include "Core/IOS/Network/KD/Mail/WC24FriendList.h"
 #include "Core/IOS/Network/KD/Mail/WC24Send.h"
 #include "Core/IOS/Network/KD/NWC24Config.h"
 #include "Core/IOS/Network/KD/NWC24DL.h"
@@ -72,6 +73,9 @@ private:
     Client,
     Server,
     CheckMail,
+    SendMail,
+    ReceiveMail,
+    CGI,
   };
 
   enum class SchedulerEvent
@@ -80,14 +84,18 @@ private:
     Download,
   };
 
+  IPCReply HandleNWC24SendMailNow(const IOCtlRequest& request);
   NWC24::ErrorCode KDCheckMail(u32* mail_flag, u32* interval);
   IPCReply HandleRequestRegisterUserId(const IOCtlRequest& request);
+  NWC24::ErrorCode KDSendMail();
+
   void LogError(ErrorType error_type, s32 error_code);
   void SchedulerTimer();
   void SchedulerWorker(SchedulerEvent event);
   NWC24::ErrorCode DetermineDownloadTask(u16* entry_index, std::optional<u8>* subtask_id) const;
   NWC24::ErrorCode DetermineSubtask(u16 entry_index, std::optional<u8>* subtask_id) const;
 
+  static constexpr u32 MAX_MAIL_SIZE = 208952;
   static std::string GetValueFromCGIResponse(const std::string& response, const std::string& key);
   static constexpr std::array<u8, 20> MAIL_CHECK_KEY = {0xce, 0x4c, 0xf2, 0x9a, 0x3d, 0x6b, 0xe1,
                                                         0xc2, 0x61, 0x91, 0x72, 0xb5, 0xcb, 0x29,
@@ -98,6 +106,7 @@ private:
   NWC24::NWC24Config m_config;
   NWC24::NWC24Dl m_dl_list;
   NWC24::Mail::WC24SendList m_send_list;
+  NWC24::Mail::WC24FriendList m_friend_list;
   Common::WorkQueueThread<AsyncTask> m_work_queue;
   Common::WorkQueueThread<std::function<void()>> m_scheduler_work_queue;
   std::mutex m_async_reply_lock;

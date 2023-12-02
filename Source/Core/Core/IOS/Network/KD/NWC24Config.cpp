@@ -246,4 +246,16 @@ void NWC24Config::SetPassword(std::string_view password)
   std::strncpy(m_data.paswd, password.data(), std::size(m_data.paswd));
   m_data.paswd[MAX_PASSWORD_LENGTH - 1] = '\0';
 }
+
+std::string NWC24Config::GetSendURL() const
+{
+  const size_t size = strnlen(m_data.http_urls[4], MAX_URL_LENGTH);
+  return {m_data.http_urls[4], size};
+}
+
+std::string_view NWC24Config::GetPassword() const
+{
+  const size_t size = strnlen(m_data.paswd, MAX_PASSWORD_LENGTH);
+  return {m_data.paswd, size};
+}
 }  // namespace IOS::HLE::NWC24
