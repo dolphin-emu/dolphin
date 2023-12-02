@@ -383,6 +383,53 @@ ARM64Reg Arm64GPRCache::BindForRead(size_t index)
     ARM64Reg host_reg = bitsize != 64 ? GetReg() : EncodeRegTo64(GetReg());
     reg.Load(host_reg);
     reg.SetDirty(false);
+
+    // Load two registers at once if we have an opportunity to
+    if (index >= GUEST_GPR_OFFSET && index < GUEST_GPR_OFFSET + GUEST_GPR_COUNT &&
+        GetUnlockedRegisterCount() > 0)
+    {
+      const size_t gpr_index = index - GUEST_GPR_OFFSET;
+      const BitSet32 gpr_will_be_read = m_jit->js.op->gprWillBeRead | m_jit->js.op->regsIn;
+
+      if (gpr_index != 0 && m_reg_stats->load_pairs[gpr_index - 1] &&
+          gpr_will_be_read[gpr_index - 1])
+      {
+        const GuestRegInfo& guest_reg_2 = GetGuestGPR(gpr_index - 1);
+        OpArg& reg_2 = guest_reg_2.reg;
+        DEBUG_ASSERT(guest_reg_2.bitsize == bitsize);
+
+        if (!reg_2.IsInHostRegister() && reg_2.IsInPPCState() && guest_reg_2.ppc_offset <= 252)
+        {
+          ARM64Reg host_reg_2 = bitsize != 64 ? GetReg() : EncodeRegTo64(GetReg());
+          reg_2.Load(host_reg_2);
+          reg_2.SetDirty(false);
+
+          m_emit->LDP(IndexType::Signed, host_reg_2, host_reg, PPC_REG,
+                      u32(guest_reg_2.ppc_offset));
+          return host_reg;
+        }
+      }
+
+      if (gpr_index + 1 < GUEST_GPR_COUNT && m_reg_stats->load_pairs[gpr_index] &&
+          gpr_will_be_read[gpr_index + 1] && guest_reg.ppc_offset <= 252)
+      {
+        const GuestRegInfo& guest_reg_2 = GetGuestGPR(gpr_index + 1);
+        OpArg& reg_2 = guest_reg_2.reg;
+        DEBUG_ASSERT(guest_reg_2.bitsize == bitsize);
+
+        if (!reg_2.IsInHostRegister() && reg_2.IsInPPCState())
+        {
+          ARM64Reg host_reg_2 = bitsize != 64 ? GetReg() : EncodeRegTo64(GetReg());
+          reg_2.Load(host_reg_2);
+          reg_2.SetDirty(false);
+
+          m_emit->LDP(IndexType::Signed, host_reg, host_reg_2, PPC_REG, u32(guest_reg.ppc_offset));
+          return host_reg;
+        }
+      }
+    }
+
+    // Otherwise, just load this register
     m_emit->LDR(IndexType::Unsigned, host_reg, PPC_REG, u32(guest_reg.ppc_offset));
     return host_reg;
   }
