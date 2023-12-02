@@ -149,9 +149,16 @@ void VertexLoader::CompileVertexTranslator()
         VertexLoader_Color::GetFunction(m_VtxDesc.low.Color[i], m_VtxAttr.GetColorFormat(i));
 
     if (pFunc != nullptr)
+    {
       WriteCall(pFunc);
+    }
     else
+    {
       ASSERT(m_VtxDesc.low.Color[i] == VertexComponentFormat::NotPresent);
+      // Keep colIndex in sync if color 0 is absent but color 1 is present
+      if (i == 0 && m_VtxDesc.low.Color[1] != VertexComponentFormat::NotPresent)
+        WriteCall(VertexLoader_Color::GetDummyFunction());
+    }
 
     if (m_VtxDesc.low.Color[i] != VertexComponentFormat::NotPresent)
     {
