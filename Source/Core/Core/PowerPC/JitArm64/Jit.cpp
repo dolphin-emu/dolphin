@@ -353,8 +353,8 @@ void JitArm64::EmitStoreMembase(u32 msr)
   auto& memory = m_system.GetMemory();
   MOVP2R(MEM_REG,
          UReg_MSR(msr).DR ?
-             (jo.fastmem_arena ? memory.GetLogicalBase() : memory.GetLogicalPageMappingsBase()) :
-             (jo.fastmem_arena ? memory.GetPhysicalBase() : memory.GetPhysicalPageMappingsBase()));
+             (jo.fastmem ? memory.GetLogicalBase() : memory.GetLogicalPageMappingsBase()) :
+             (jo.fastmem ? memory.GetPhysicalBase() : memory.GetPhysicalPageMappingsBase()));
   STR(IndexType::Unsigned, MEM_REG, PPC_REG, PPCSTATE_OFF(mem_ptr));
 }
 
