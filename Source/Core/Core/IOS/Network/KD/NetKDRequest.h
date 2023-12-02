@@ -93,6 +93,8 @@ private:
                                                         0xc2, 0x61, 0x91, 0x72, 0xb5, 0xcb, 0x29,
                                                         0x8c, 0x89, 0x72, 0xd4, 0x50, 0xad};
 
+  static constexpr u32 DEFAULT_SCHEDULER_SPAN_MINUTES = 11;
+
   NWC24::NWC24Config m_config;
   NWC24::NWC24Dl m_dl_list;
   NWC24::Mail::WC24SendList m_send_list;
