@@ -10,5 +10,6 @@ class SkipAction final : public GraphicsModAction
 public:
   void OnDrawStarted(GraphicsModActionData::DrawStarted*) override;
   void OnEFB(GraphicsModActionData::EFB*) override;
+  void OnLight(GraphicsModActionData::Light*) override;
   std::string GetFactoryName() const override;
 };
