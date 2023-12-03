@@ -139,6 +139,21 @@ struct CodeBlock
   // Which GPRs this block reads from before writing to, if any.
   BitSet32 m_gpr_inputs;
 
+  // Which GPRs this block writes to, if any.
+  BitSet32 m_gpr_outputs;
+
+  // Which FPRs this block reads from before writing to, if any.
+  BitSet32 m_fpr_inputs;
+
+  // Which FPRs this block writes to, if any.
+  BitSet32 m_fpr_outputs;
+
+  // Which CRs this block reads from before writing to, if any.
+  BitSet8 m_cr_inputs;
+
+  // Which CRs this block writes to, if any.
+  BitSet8 m_cr_outputs;
+
   // Which memory locations are occupied by this block.
   std::set<u32> m_physical_addresses;
 };

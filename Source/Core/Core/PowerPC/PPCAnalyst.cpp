@@ -1186,6 +1186,12 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
     }
 
 #ifdef _M_ARM_64
+    // Make JitArm64 wait with storing one half of a pair until the other half is ready to be stored
+    op.gprWillBeWritten |= (op.gprWillBeWritten & block->m_gpa->store_pairs) << 1 |
+                           ((op.gprWillBeWritten >> 1) & block->m_gpa->store_pairs);
+    // Equivalent calculations for fprWillBeWritten and crWillBeWritten are left out because
+    // JitArm64 isn't able to use STP when flushing those
+
     // As a tie-break for odd-length runs of registers to assign load pairs for, if an instruction
     // that's early in a block has two adjacent registers as inputs, prefer putting those registers
     // in the same load pair. This is intended to let the host CPU start doing useful work as soon
@@ -1208,6 +1214,11 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
   block->m_gqr_used = gqrUsed;
   block->m_gqr_modified = gqrModified;
   block->m_gpr_inputs = gprWillBeRead;
+  block->m_gpr_outputs = gprWillBeWritten;
+  block->m_fpr_inputs = fprWillBeRead;
+  block->m_fpr_outputs = fprWillBeWritten;
+  block->m_cr_inputs = crWillBeRead;
+  block->m_cr_outputs = crWillBeWritten;
 
 #ifdef _M_ARM_64
   OddLengthRunsToEvenLengthRuns(&fpr_load_pair_candidates);

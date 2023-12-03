@@ -1180,6 +1180,13 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     IntializeSpeculativeConstants();
   }
 
+  BitSet32 previous_op_gpr_will_be_written = code_block.m_gpr_outputs;
+  BitSet32 previous_op_gpr_will_be_used = code_block.m_gpr_inputs | previous_op_gpr_will_be_written;
+  BitSet32 previous_op_fpr_will_be_written = code_block.m_fpr_outputs;
+  BitSet32 previous_op_fpr_will_be_used = code_block.m_fpr_inputs | previous_op_fpr_will_be_written;
+  BitSet8 previous_op_cr_will_be_written = code_block.m_cr_outputs;
+  BitSet8 previous_op_cr_will_be_used = code_block.m_cr_inputs | previous_op_cr_will_be_written;
+
   // Translate instructions
   for (u32 i = 0; i < code_block.m_num_instructions; i++)
   {
@@ -1390,22 +1397,34 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       //
       // To improve JIT-time performance, we use some extra bitwise math to skip trying to flush
       // registers that can't have changed state during the current PPC instruction.
+
       if (!bJITRegisterCacheOff)
       {
         gpr.DiscardRegisters(op.gprDiscardable);
         fpr.DiscardRegisters(op.fprDiscardable);
         gpr.DiscardCRRegisters(op.crDiscardable);
       }
-      gpr.FlushRegisters(~(op.gprWillBeRead | op.gprWillBeWritten) & (op.regsIn | op.regsOut),
-                         FlushMode::Full);
-      fpr.FlushRegisters(~(op.fprWillBeRead | op.fprWillBeWritten) &
-                             (op.fregsIn | op.GetFregsOut()),
-                         FlushMode::Full);
-      gpr.FlushCRRegisters(~(op.crWillBeRead | op.crWillBeWritten) & (op.crIn | op.crOut),
-                           FlushMode::Full);
-      gpr.FlushRegisters(~op.gprWillBeWritten & op.regsOut, FlushMode::Undirty);
-      fpr.FlushRegisters(~op.fprWillBeWritten & op.GetFregsOut(), FlushMode::Undirty);
-      gpr.FlushCRRegisters(~op.crWillBeWritten & op.crOut, FlushMode::Undirty);
+
+      const BitSet32 gpr_will_be_used = op.gprWillBeRead | op.gprWillBeWritten;
+      const BitSet32 fpr_will_be_used = op.fprWillBeRead | op.fprWillBeWritten;
+      const BitSet8 cr_will_be_used = op.crWillBeRead | op.crWillBeWritten;
+
+      gpr.FlushRegisters(~op.gprWillBeWritten & previous_op_gpr_will_be_written,
+                         FlushMode::Undirty);
+      fpr.FlushRegisters(~op.fprWillBeWritten & previous_op_fpr_will_be_written,
+                         FlushMode::Undirty);
+      gpr.FlushCRRegisters(~op.crWillBeWritten & previous_op_cr_will_be_written,
+                           FlushMode::Undirty);
+      gpr.FlushRegisters(~gpr_will_be_used & previous_op_gpr_will_be_used, FlushMode::Full);
+      fpr.FlushRegisters(~fpr_will_be_used & previous_op_fpr_will_be_used, FlushMode::Full);
+      gpr.FlushCRRegisters(~cr_will_be_used & previous_op_cr_will_be_used, FlushMode::Full);
+
+      previous_op_gpr_will_be_written = op.gprWillBeWritten;
+      previous_op_gpr_will_be_used = gpr_will_be_used;
+      previous_op_fpr_will_be_written = op.fprWillBeWritten;
+      previous_op_fpr_will_be_used = fpr_will_be_used;
+      previous_op_cr_will_be_written = op.crWillBeWritten;
+      previous_op_cr_will_be_used = cr_will_be_used;
 
       if (opinfo->flags & FL_LOADSTORE)
         ++js.numLoadStoreInst;
