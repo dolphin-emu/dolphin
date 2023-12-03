@@ -25,6 +25,17 @@ void SkipAction::OnEFB(GraphicsModActionData::EFB* efb)
   *efb->skip = true;
 }
 
+void SkipAction::OnLight(GraphicsModActionData::Light* light)
+{
+  if (!light) [[unlikely]]
+    return;
+
+  if (!light->skip) [[unlikely]]
+    return;
+
+  *light->skip = true;
+}
+
 std::string SkipAction::GetFactoryName() const
 {
   return "skip";
