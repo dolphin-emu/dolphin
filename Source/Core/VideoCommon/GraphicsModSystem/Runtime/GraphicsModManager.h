@@ -12,6 +12,7 @@
 
 #include "VideoCommon/GraphicsModSystem/Runtime/FBInfo.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModAction.h"
+#include "VideoCommon/GraphicsModSystem/Types.h"
 #include "VideoCommon/TextureInfo.h"
 #include "VideoCommon/VideoEvents.h"
 #include "VideoCommon/XFMemory.h"
@@ -27,7 +28,7 @@ public:
   GetProjectionTextureActions(ProjectionType projection_type,
                               const std::string& texture_name) const;
   const std::vector<GraphicsModAction*>&
-  GetDrawStartedActions(const std::string& texture_name) const;
+  GetDrawStartedActions(GraphicsMods::DrawCallID draw_call_id) const;
   const std::vector<GraphicsModAction*>&
   GetTextureLoadActions(const std::string& texture_name) const;
   const std::vector<GraphicsModAction*>&
@@ -45,11 +46,8 @@ private:
 
   static inline const std::vector<GraphicsModAction*> m_default = {};
   std::list<std::unique_ptr<GraphicsModAction>> m_actions;
-  std::unordered_map<ProjectionType, std::vector<GraphicsModAction*>>
-      m_projection_target_to_actions;
-  std::unordered_map<std::string, std::vector<GraphicsModAction*>>
-      m_projection_texture_target_to_actions;
-  std::unordered_map<std::string, std::vector<GraphicsModAction*>> m_draw_started_target_to_actions;
+  std::unordered_map<GraphicsMods::DrawCallID, std::vector<GraphicsModAction*>>
+      m_draw_started_target_to_actions;
   std::unordered_map<std::string, std::vector<GraphicsModAction*>> m_load_texture_target_to_actions;
   std::unordered_map<std::string, std::vector<GraphicsModAction*>>
       m_create_texture_target_to_actions;

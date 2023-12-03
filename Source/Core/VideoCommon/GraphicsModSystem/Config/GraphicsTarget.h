@@ -10,6 +10,7 @@
 #include <picojson.h>
 
 #include "Common/CommonTypes.h"
+#include "VideoCommon/GraphicsModSystem/Types.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/XFMemory.h"
 
@@ -18,8 +19,10 @@ struct TextureTarget
   std::string m_texture_info_string;
 };
 
-struct DrawStartedTextureTarget final : public TextureTarget
+struct DrawStartedTarget final
 {
+  GraphicsMods::DrawCallID m_draw_call_id;
+  GraphicsMods::MeshID m_mesh_id;
 };
 
 struct LoadTextureTarget final : public TextureTarget
@@ -45,15 +48,8 @@ struct XFBTarget final : public FBTarget
 {
 };
 
-struct ProjectionTarget
-{
-  std::optional<std::string> m_texture_info_string;
-  ProjectionType m_projection_type = ProjectionType::Perspective;
-};
-
 using GraphicsTargetConfig =
-    std::variant<DrawStartedTextureTarget, LoadTextureTarget, CreateTextureTarget, EFBTarget,
-                 XFBTarget, ProjectionTarget>;
+    std::variant<DrawStartedTarget, LoadTextureTarget, CreateTextureTarget, EFBTarget, XFBTarget>;
 
 void SerializeTargetToConfig(picojson::object& json_obj, const GraphicsTargetConfig& target);
 std::optional<GraphicsTargetConfig> DeserializeTargetFromConfig(const picojson::object& obj);
