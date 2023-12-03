@@ -1121,6 +1121,16 @@ class SettingsFragmentPresenter(
                     R.string.bba_builtin_dns_description
                 )
             )
+        } else if (serialPort1Type == 13) {
+            // Modem Adapter (tapserver)
+            sl.add(
+                InputStringSetting(
+                    context,
+                    StringSetting.MAIN_MODEM_TAPSERVER_DESTINATION,
+                    R.string.modem_tapserver_destination,
+                    R.string.modem_tapserver_destination_description
+                )
+            )
         }
     }
 

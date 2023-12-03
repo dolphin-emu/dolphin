@@ -29,6 +29,12 @@ enum class StringSetting(
         "BBA_TAPSERVER_DESTINATION",
         "/tmp/dolphin-tap"
     ),
+    MAIN_MODEM_TAPSERVER_DESTINATION(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_INI_CORE,
+        "MODEM_TAPSERVER_DESTINATION",
+        "/tmp/dolphin-modem-tap"
+    ),
     MAIN_CUSTOM_RTC_VALUE(
         Settings.FILE_DOLPHIN,
         Settings.SECTION_INI_CORE,

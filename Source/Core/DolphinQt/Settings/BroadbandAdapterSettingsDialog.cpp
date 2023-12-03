@@ -49,7 +49,12 @@ void BroadbandAdapterSettingsDialog::InitControls()
     break;
 
   case Type::TapServer:
-    current_address = QString::fromStdString(Config::Get(Config::MAIN_BBA_TAPSERVER_DESTINATION));
+  case Type::ModemTapServer:
+  {
+    bool is_modem = (m_bba_type == Type::ModemTapServer);
+    current_address =
+        QString::fromStdString(Config::Get(is_modem ? Config::MAIN_MODEM_TAPSERVER_DESTINATION :
+                                                      Config::MAIN_BBA_TAPSERVER_DESTINATION));
 #ifdef _WIN32
     address_label = new QLabel(tr("Destination (address:port):"));
     address_placeholder = QStringLiteral("");
@@ -58,12 +63,24 @@ void BroadbandAdapterSettingsDialog::InitControls()
 #else
     address_label = new QLabel(tr("Destination (UNIX socket path or address:port):"));
     address_placeholder = QStringLiteral("/tmp/dolphin-tap");
-    description = new QLabel(tr(
-        "The default value \"/tmp/dolphin-tap\" will work with a local tapserver and newserv. You "
-        "can also enter a network location (address:port) to connect to a remote tapserver."));
+    if (is_modem)
+    {
+      description = new QLabel(
+          tr("The default value \"/tmp/dolphin-modem-tap\" will work with a local tapserver and "
+             "newserv. You "
+             "can also enter a network location (address:port) to connect to a remote tapserver."));
+    }
+    else
+    {
+      description = new QLabel(
+          tr("The default value \"/tmp/dolphin-tap\" will work with a local tapserver and newserv. "
+             "You "
+             "can also enter a network location (address:port) to connect to a remote tapserver."));
+    }
 #endif
     window_title = tr("BBA destination address");
     break;
+  }
 
   case Type::BuiltIn:
     address_label = new QLabel(tr("Enter the DNS server to use:"));
@@ -133,6 +150,9 @@ void BroadbandAdapterSettingsDialog::SaveAddress()
   }
   case Type::TapServer:
     Config::SetBaseOrCurrent(Config::MAIN_BBA_TAPSERVER_DESTINATION, bba_new_address);
+    break;
+  case Type::ModemTapServer:
+    Config::SetBaseOrCurrent(Config::MAIN_MODEM_TAPSERVER_DESTINATION, bba_new_address);
     break;
   case Type::BuiltIn:
     Config::SetBaseOrCurrent(Config::MAIN_BBA_BUILTIN_DNS, bba_new_address);
