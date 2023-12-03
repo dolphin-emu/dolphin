@@ -1011,6 +1011,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
       gprInUse = BitSet32{};
       fprInUse = BitSet32{};
       fprInXmm = BitSet32{};
+      crInUse = BitSet8{};
       gprDiscardable = BitSet32{};
       fprDiscardable = BitSet32{};
       crDiscardable = BitSet8{};
