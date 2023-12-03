@@ -164,7 +164,7 @@ public:
 
   void Init(JitArm64* jit);
 
-  virtual void Start(PPCAnalyst::BlockRegStats& stats) {}
+  virtual void Start(const PPCAnalyst::BlockRegStats& stats) {}
   void DiscardRegisters(BitSet32 regs);
   void ResetRegisters(BitSet32 regs);
   // Flushes the register cache in different ways depending on the mode.
@@ -304,7 +304,7 @@ protected:
   std::vector<OpArg> m_guest_registers;
 
   // Register stats for the current block
-  PPCAnalyst::BlockRegStats* m_reg_stats = nullptr;
+  const PPCAnalyst::BlockRegStats* m_reg_stats = nullptr;
 };
 
 class Arm64GPRCache : public Arm64RegCache
@@ -312,7 +312,7 @@ class Arm64GPRCache : public Arm64RegCache
 public:
   Arm64GPRCache();
 
-  void Start(PPCAnalyst::BlockRegStats& stats) override;
+  void Start(const PPCAnalyst::BlockRegStats& stats) override;
 
   // Flushes the register cache in different ways depending on the mode.
   // A temporary register must be supplied when flushing GPRs with FlushMode::MaintainState,
@@ -435,6 +435,8 @@ class Arm64FPRCache : public Arm64RegCache
 {
 public:
   Arm64FPRCache();
+
+  void Start(const PPCAnalyst::BlockRegStats& stats) override;
 
   // Flushes the register cache in different ways depending on the mode.
   // The temporary register can be set to ARM64Reg::INVALID_REG when convenient for the caller.
