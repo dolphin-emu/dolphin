@@ -408,27 +408,39 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
     // Check if this is a valid entry.
     if (strlen(name) > 0)
     {
-      // Can't compute the checksum if not in RAM
-      bool good = !bad && PowerPC::MMU::HostIsInstructionRAMAddress(guard, vaddress) &&
-                  PowerPC::MMU::HostIsInstructionRAMAddress(guard, vaddress + size - 4);
-      if (!good)
+      bool good;
+      const Common::Symbol::Type type = section_name == ".text" || section_name == ".init" ?
+                                            Common::Symbol::Type::Function :
+                                            Common::Symbol::Type::Data;
+
+      if (type == Common::Symbol::Type::Function)
       {
-        // check for BLR before function
-        PowerPC::TryReadInstResult read_result =
-            guard.GetSystem().GetMMU().TryReadInstruction(vaddress - 4);
-        if (read_result.valid && read_result.hex == 0x4e800020)
+        // Can't compute the checksum if not in RAM
+        good = !bad && PowerPC::MMU::HostIsInstructionRAMAddress(guard, vaddress) &&
+               PowerPC::MMU::HostIsInstructionRAMAddress(guard, vaddress + size - 4);
+        if (!good)
         {
-          // check for BLR at end of function
-          read_result = guard.GetSystem().GetMMU().TryReadInstruction(vaddress + size - 4);
-          good = read_result.valid && read_result.hex == 0x4e800020;
+          // check for BLR before function
+          PowerPC::TryReadInstResult read_result =
+              guard.GetSystem().GetMMU().TryReadInstruction(vaddress - 4);
+          if (read_result.valid && read_result.hex == 0x4e800020)
+          {
+            // check for BLR at end of function
+            read_result = guard.GetSystem().GetMMU().TryReadInstruction(vaddress + size - 4);
+            good = read_result.valid && read_result.hex == 0x4e800020;
+          }
         }
       }
+      else
+      {
+        // Data type, can have any length.
+        good = !bad && PowerPC::MMU::HostIsRAMAddress(guard, vaddress) &&
+               PowerPC::MMU::HostIsRAMAddress(guard, vaddress + size - 1);
+      }
+
       if (good)
       {
         ++good_count;
-        const Common::Symbol::Type type = section_name == ".text" || section_name == ".init" ?
-                                              Common::Symbol::Type::Function :
-                                              Common::Symbol::Type::Data;
         AddKnownSymbol(guard, vaddress, size, name, type);
       }
       else
