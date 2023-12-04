@@ -211,6 +211,7 @@ std::optional<Disc> ParseString(std::string_view xml, std::string xml_path)
         memory.m_original = ReadHexString(patch_subnode.attribute("original").as_string());
         memory.m_ocarina = patch_subnode.attribute("ocarina").as_bool(false);
         memory.m_search = patch_subnode.attribute("search").as_bool(false);
+        memory.m_search_count = patch_subnode.attribute("search_count").as_uint(1);
         memory.m_align = patch_subnode.attribute("align").as_uint(1);
       }
     }

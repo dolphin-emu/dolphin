@@ -565,17 +565,21 @@ static void ApplyMemoryPatch(const Core::CPUThreadGuard& guard, const Patch& pat
 static void ApplySearchMemoryPatch(const Core::CPUThreadGuard& guard, const Patch& patch,
                                    const Memory& memory_patch, u32 ram_start, u32 length)
 {
-  if (memory_patch.m_original.empty() || memory_patch.m_align == 0)
+  if (memory_patch.m_original.empty() || memory_patch.m_align == 0 || memory_patch.m_search_count == 0)
     return;
 
   const u32 stride = memory_patch.m_align;
+  u32 times = memory_patch.m_search_count;
   for (u32 i = 0; i < length - (stride - 1); i += stride)
   {
     const u32 address = ram_start + i;
     if (MemoryMatchesAt(guard, address, memory_patch.m_original))
     {
-      ApplyMemoryPatch(guard, address, GetMemoryPatchValue(patch, memory_patch), {});
-      break;
+      const std::vector<u8> value = GetMemoryPatchValue(patch, memory_patch);
+      INFO_LOG_FMT(BOOT, "Applying memory patch at [0x{:08X}, 0x{:08X})", address, address + value.size());
+      ApplyMemoryPatch(guard, address, value, {});
+      if (--times == 0)
+        break;
     }
   }
 }
