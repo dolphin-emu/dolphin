@@ -77,9 +77,6 @@ VertexLoader::VertexLoader(const TVtxDesc& vtx_desc, const VAT& vtx_attr)
 
 void VertexLoader::CompileVertexTranslator()
 {
-  // Reset pipeline
-  m_numPipelineStages = 0;
-
   // Position in pc vertex format.
   int nat_offset = 0;
 
@@ -149,9 +146,16 @@ void VertexLoader::CompileVertexTranslator()
         VertexLoader_Color::GetFunction(m_VtxDesc.low.Color[i], m_VtxAttr.GetColorFormat(i));
 
     if (pFunc != nullptr)
+    {
       WriteCall(pFunc);
+    }
     else
+    {
       ASSERT(m_VtxDesc.low.Color[i] == VertexComponentFormat::NotPresent);
+      // Keep colIndex in sync if color 0 is absent but color 1 is present
+      if (i == 0 && m_VtxDesc.low.Color[1] != VertexComponentFormat::NotPresent)
+        WriteCall(VertexLoader_Color::GetDummyFunction());
+    }
 
     if (m_VtxDesc.low.Color[i] != VertexComponentFormat::NotPresent)
     {
@@ -213,12 +217,13 @@ void VertexLoader::CompileVertexTranslator()
     {
       // if there's more tex coords later, have to write a dummy call
       bool has_more = false;
-      for (size_t j = 0; j < m_VtxDesc.high.TexCoord.Size(); ++j)
+      for (size_t j = i + 1; j < m_VtxDesc.high.TexCoord.Size(); ++j)
       {
         if (m_VtxDesc.high.TexCoord[j] != VertexComponentFormat::NotPresent)
         {
           has_more = true;
-          WriteCall(VertexLoader_TextCoord::GetDummyFunction());  // important to get indices right!
+          // Keep tcIndex in sync so that the correct array is used later
+          WriteCall(VertexLoader_TextCoord::GetDummyFunction());
           break;
         }
         else if (m_VtxDesc.low.TexMatIdx[j])
@@ -245,7 +250,7 @@ void VertexLoader::CompileVertexTranslator()
 
 void VertexLoader::WriteCall(TPipelineFunction func)
 {
-  m_PipelineStages[m_numPipelineStages++] = func;
+  m_PipelineStages.push_back(func);
 }
 
 int VertexLoader::RunVertices(const u8* src, u8* dst, int count)
@@ -261,8 +266,8 @@ int VertexLoader::RunVertices(const u8* src, u8* dst, int count)
     m_tcIndex = 0;
     m_colIndex = 0;
     m_texmtxwrite = m_texmtxread = 0;
-    for (int i = 0; i < m_numPipelineStages; i++)
-      m_PipelineStages[i](this);
+    for (TPipelineFunction& func : m_PipelineStages)
+      func(this);
     PRIM_LOG("\n");
   }
 
