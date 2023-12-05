@@ -16,6 +16,7 @@
 #include "Common/NandPaths.h"
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
+#include "Core/AchievementManager.h"
 #include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -475,6 +476,12 @@ bool ESDevice::LaunchPPCTitle(u64 title_id)
   m_pending_ppc_boot_content_path = m_core.GetContentPath(tmd.GetTitleId(), content);
   if (!Core::IsRunningAndStarted())
     return BootstrapPPC();
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+  INFO_LOG_FMT(ACHIEVEMENTS,
+               "WAD and NAND formats not currently supported by Achievement Manager.");
+  AchievementManager::GetInstance()->SetDisabled(true);
+#endif  // USE_RETRO_ACHIEVEMENTS
 
   core_timing.RemoveEvent(s_bootstrap_ppc_for_launch_event);
   core_timing.ScheduleEvent(ticks, s_bootstrap_ppc_for_launch_event);

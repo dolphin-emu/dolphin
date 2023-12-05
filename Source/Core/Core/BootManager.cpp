@@ -165,13 +165,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   }
 
 #ifdef USE_RETRO_ACHIEVEMENTS
-  std::string path = "";
-  if (std::holds_alternative<BootParameters::Disc>(boot->parameters))
-  {
-    path = std::get<BootParameters::Disc>(boot->parameters).path;
-  }
-  AchievementManager::GetInstance()->LoadGameByFilenameAsync(
-      path, [](AchievementManager::ResponseType r_type) {});
+  AchievementManager::GetInstance()->SetDisabled(false);
 #endif  // USE_RETRO_ACHIEVEMENTS
 
   const bool load_ipl = !StartUp.bWii && !Config::Get(Config::MAIN_SKIP_IPL) &&

@@ -30,6 +30,7 @@ private:
   QProgressBar* m_game_progress_hard;
   QProgressBar* m_game_progress_soft;
   QLabel* m_rich_presence;
+  QLabel* m_locked_warning;
   QGroupBox* m_header_box;
 };
 
