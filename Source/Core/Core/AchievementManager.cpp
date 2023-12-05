@@ -633,6 +633,18 @@ std::recursive_mutex* AchievementManager::GetLock()
   return &m_lock;
 }
 
+bool AchievementManager::IsHardcoreModeActive() const
+{
+  std::lock_guard lg{m_lock};
+  if (!Config::Get(Config::RA_HARDCORE_ENABLED))
+    return false;
+  if (!Core::IsRunning())
+    return true;
+  if (!IsGameLoaded())
+    return false;
+  return (m_runtime.trigger_count + m_runtime.lboard_count > 0);
+}
+
 std::string AchievementManager::GetPlayerDisplayName() const
 {
   return IsLoggedIn() ? m_display_name : "";

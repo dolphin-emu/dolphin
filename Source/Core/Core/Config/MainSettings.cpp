@@ -18,6 +18,7 @@
 #include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
+#include "Core/Config/AchievementSettings.h"
 #include "Core/Config/DefaultLocale.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_Device.h"
@@ -738,4 +739,24 @@ bool IsDefaultGCIFolderPathConfigured(ExpansionInterface::Slot slot)
 {
   return Config::Get(GetInfoForGCIPath(slot)).empty();
 }
+
+bool AreCheatsEnabled()
+{
+#ifdef USE_RETRO_ACHIEVEMENTS
+  return Config::Get(::Config::MAIN_ENABLE_CHEATS) && !::Config::Get(::Config::RA_HARDCORE_ENABLED);
+#else   // USE_RETRO_ACHIEVEMENTS
+  return Config::Get(::Config::MAIN_ENABLE_CHEATS);
+#endif  // USE_RETRO_ACHIEVEMENTS
+}
+
+bool IsDebuggingEnabled()
+{
+#ifdef USE_RETRO_ACHIEVEMENTS
+  return Config::Get(::Config::MAIN_ENABLE_DEBUGGING) &&
+         !::Config::Get(::Config::RA_HARDCORE_ENABLED);
+#else   // USE_RETRO_ACHIEVEMENTS
+  return Config::Get(::Config::MAIN_ENABLE_DEBUGGING);
+#endif  // USE_RETRO_ACHIEVEMENTS
+}
+
 }  // namespace Config

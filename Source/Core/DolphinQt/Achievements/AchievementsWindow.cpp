@@ -16,6 +16,7 @@
 #include "DolphinQt/Achievements/AchievementSettingsWidget.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
+#include "DolphinQt/Settings.h"
 
 AchievementsWindow::AchievementsWindow(QWidget* parent) : QDialog(parent)
 {
@@ -26,6 +27,8 @@ AchievementsWindow::AchievementsWindow(QWidget* parent) : QDialog(parent)
   ConnectWidgets();
   AchievementManager::GetInstance()->SetUpdateCallback(
       [this] { QueueOnObject(this, &AchievementsWindow::UpdateData); });
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
+          &AchievementsWindow::UpdateData);
 
   UpdateData();
 }
@@ -42,11 +45,10 @@ void AchievementsWindow::CreateMainLayout()
 
   m_header_widget = new AchievementHeaderWidget(this);
   m_tab_widget = new QTabWidget();
+  m_settings_widget = new AchievementSettingsWidget(m_tab_widget);
   m_progress_widget = new AchievementProgressWidget(m_tab_widget);
   m_leaderboard_widget = new AchievementLeaderboardWidget(m_tab_widget);
-  m_tab_widget->addTab(
-      GetWrappedWidget(new AchievementSettingsWidget(m_tab_widget, this), this, 125, 100),
-      tr("Settings"));
+  m_tab_widget->addTab(GetWrappedWidget(m_settings_widget, this, 125, 100), tr("Settings"));
   m_tab_widget->addTab(GetWrappedWidget(m_progress_widget, this, 125, 100), tr("Progress"));
   m_tab_widget->setTabVisible(1, AchievementManager::GetInstance()->IsGameLoaded());
   m_tab_widget->addTab(GetWrappedWidget(m_leaderboard_widget, this, 125, 100), tr("Leaderboards"));
@@ -72,13 +74,18 @@ void AchievementsWindow::UpdateData()
     std::lock_guard lg{*AchievementManager::GetInstance()->GetLock()};
     m_header_widget->UpdateData();
     m_header_widget->setVisible(AchievementManager::GetInstance()->IsLoggedIn());
-    // Settings tab handles its own updates ... indeed, that calls this
+    m_settings_widget->UpdateData();
     m_progress_widget->UpdateData();
     m_tab_widget->setTabVisible(1, AchievementManager::GetInstance()->IsGameLoaded());
     m_leaderboard_widget->UpdateData();
     m_tab_widget->setTabVisible(2, AchievementManager::GetInstance()->IsGameLoaded());
   }
   update();
+}
+
+void AchievementsWindow::ForceSettingsTab()
+{
+  m_tab_widget->setCurrentIndex(0);
 }
 
 #endif  // USE_RETRO_ACHIEVEMENTS

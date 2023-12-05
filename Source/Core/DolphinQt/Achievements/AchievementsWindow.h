@@ -11,6 +11,7 @@
 
 class AchievementHeaderWidget;
 class AchievementLeaderboardWidget;
+class AchievementSettingsWidget;
 class AchievementProgressWidget;
 class QDialogButtonBox;
 class QTabWidget;
@@ -22,6 +23,7 @@ class AchievementsWindow : public QDialog
 public:
   explicit AchievementsWindow(QWidget* parent);
   void UpdateData();
+  void ForceSettingsTab();
 
 private:
   void CreateMainLayout();
@@ -30,6 +32,7 @@ private:
 
   AchievementHeaderWidget* m_header_widget;
   QTabWidget* m_tab_widget;
+  AchievementSettingsWidget* m_settings_widget;
   AchievementProgressWidget* m_progress_widget;
   AchievementLeaderboardWidget* m_leaderboard_widget;
   QDialogButtonBox* m_button_box;

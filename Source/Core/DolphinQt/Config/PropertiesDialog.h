@@ -19,4 +19,7 @@ public:
 signals:
   void OpenGeneralSettings();
   void OpenGraphicsSettings();
+#ifdef USE_RETRO_ACHIEVEMENTS
+  void OpenAchievementSettings();
+#endif  // USE_RETRO_ACHIEVEMENTS
 };

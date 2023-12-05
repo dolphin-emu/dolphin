@@ -14,6 +14,7 @@
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/StringUtil.h"
+#include "Core/Config/AchievementSettings.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/FS/FileSystem.h"
@@ -522,6 +523,11 @@ static bool MemoryMatchesAt(const Core::CPUThreadGuard& guard, u32 offset,
 static void ApplyMemoryPatch(const Core::CPUThreadGuard& guard, u32 offset,
                              const std::vector<u8>& value, const std::vector<u8>& original)
 {
+#ifdef USE_RETRO_ACHIEVEMENTS
+  if (::Config::Get(::Config::RA_HARDCORE_ENABLED))
+    return;
+#endif  // USE_RETRO_ACHIEVEMENTS
+
   if (value.empty())
     return;
 

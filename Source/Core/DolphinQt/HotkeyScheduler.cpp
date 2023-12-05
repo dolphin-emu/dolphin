@@ -17,6 +17,8 @@
 #include "Common/Config/Config.h"
 #include "Common/Thread.h"
 
+#include "Core/AchievementManager.h"
+#include "Core/Config/AchievementSettings.h"
 #include "Core/Config/FreeLookSettings.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
@@ -257,7 +259,7 @@ void HotkeyScheduler::Run()
       if (auto bt = WiiUtils::GetBluetoothRealDevice())
         bt->UpdateSyncButtonState(IsHotkey(HK_TRIGGER_SYNC_BUTTON, true));
 
-      if (Config::Get(Config::MAIN_ENABLE_DEBUGGING))
+      if (Config::IsDebuggingEnabled())
       {
         CheckDebuggingHotkeys();
       }
@@ -579,7 +581,15 @@ void HotkeyScheduler::Run()
     {
       const bool new_value = !Config::Get(Config::FREE_LOOK_ENABLED);
       Config::SetCurrent(Config::FREE_LOOK_ENABLED, new_value);
+#ifdef USE_RETRO_ACHIEVEMENTS
+      bool hardcore = AchievementManager::GetInstance()->IsHardcoreModeActive();
+      if (hardcore)
+        OSD::AddMessage("Free Look is Disabled in Hardcore Mode");
+      else
+        OSD::AddMessage(fmt::format("Free Look: {}", new_value ? "Enabled" : "Disabled"));
+#else   // USE_RETRO_ACHIEVEMENTS
       OSD::AddMessage(fmt::format("Free Look: {}", new_value ? "Enabled" : "Disabled"));
+#endif  // USE_RETRO_ACHIEVEMENTS
     }
 
     // Savestates

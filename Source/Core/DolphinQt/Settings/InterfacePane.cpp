@@ -19,9 +19,11 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Config/AchievementSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/UISettings.h"
 
+#include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
@@ -84,6 +86,9 @@ InterfacePane::InterfacePane(QWidget* parent) : QWidget(parent)
   CreateLayout();
   LoadConfig();
   ConnectLayout();
+
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
+          &InterfacePane::LoadConfig);
 }
 
 void InterfacePane::CreateLayout()
@@ -151,7 +156,7 @@ void InterfacePane::CreateUI()
   m_checkbox_use_builtin_title_database = new QCheckBox(tr("Use Built-In Database of Game Names"));
   m_checkbox_use_covers =
       new QCheckBox(tr("Download Game Covers from GameTDB.com for Use in Grid Mode"));
-  m_checkbox_show_debugging_ui = new QCheckBox(tr("Enable Debugging UI"));
+  m_checkbox_show_debugging_ui = new ToolTipCheckBox(tr("Enable Debugging UI"));
   m_checkbox_focused_hotkeys = new QCheckBox(tr("Hotkeys Require Window Focus"));
   m_checkbox_disable_screensaver = new QCheckBox(tr("Inhibit Screensaver During Emulation"));
 
@@ -249,6 +254,21 @@ void InterfacePane::LoadConfig()
       ->setChecked(Config::Get(Config::MAIN_USE_BUILT_IN_TITLE_DATABASE));
   SignalBlocking(m_checkbox_show_debugging_ui)
       ->setChecked(Settings::Instance().IsDebugModeEnabled());
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+  bool hardcore = Config::Get(Config::RA_HARDCORE_ENABLED);
+  SignalBlocking(m_checkbox_show_debugging_ui)->setEnabled(!hardcore);
+  if (hardcore)
+  {
+    m_checkbox_show_debugging_ui->SetDescription(
+        tr("<dolphin_emphasis>Disabled in Hardcore Mode.</dolphin_emphasis>"));
+  }
+  else
+  {
+    m_checkbox_show_debugging_ui->SetDescription({});
+  }
+#endif  // USE_RETRO_ACHIEVEMENTS
+
   SignalBlocking(m_combobox_language)
       ->setCurrentIndex(m_combobox_language->findData(
           QString::fromStdString(Config::Get(Config::MAIN_INTERFACE_LANGUAGE))));

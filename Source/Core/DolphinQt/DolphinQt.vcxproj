@@ -31,10 +31,8 @@
       <AdditionalIncludeDirectories>$(ProjectDir)Settings;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ProjectDir)TAS;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ProjectDir)VideoInterface;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-
       <!--Qt 6.3.0 headers use std::aligned_storage instead of alignas-->
       <PreprocessorDefinitions>_SILENCE_CXX23_ALIGNED_STORAGE_DEPRECATION_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-
       <!--Jump through some hoops to generate a pch file local to this project-->
       <AdditionalIncludeDirectories>$(SourceDir)PCH;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -87,6 +85,7 @@
     <ClCompile Include="Config\Graphics\PostProcessingConfigWindow.cpp" />
     <ClCompile Include="Config\GraphicsModListWidget.cpp" />
     <ClCompile Include="Config\GraphicsModWarningWidget.cpp" />
+    <ClCompile Include="Config\HardcoreWarningWidget.cpp" />
     <ClCompile Include="Config\InfoWidget.cpp" />
     <ClCompile Include="Config\LogConfigWidget.cpp" />
     <ClCompile Include="Config\LogWidget.cpp" />
@@ -239,7 +238,7 @@
     <ClInclude Include="Config\Mapping\MappingIndicator.h" />
     <ClInclude Include="Config\Mapping\MappingNumeric.h" />
     <ClInclude Include="Config\NewPatchDialog.h" />
-    <ClInclude Include="Config\PatchesWidget.h" />
+    <QtMoc Include="Config\PatchesWidget.h" />
     <ClInclude Include="Debugger\RegisterColumn.h" />
     <ClInclude Include="GBAHost.h" />
     <ClInclude Include="QtUtils\ActionHelper.h" />
@@ -298,6 +297,7 @@
     <QtMoc Include="Config\Graphics\PostProcessingConfigWindow.h" />
     <QtMoc Include="Config\GraphicsModListWidget.h" />
     <QtMoc Include="Config\GraphicsModWarningWidget.h" />
+    <QtMoc Include="Config\HardcoreWarningWidget.h" />
     <QtMoc Include="Config\InfoWidget.h" />
     <QtMoc Include="Config\LogConfigWidget.h" />
     <QtMoc Include="Config\LogWidget.h" />

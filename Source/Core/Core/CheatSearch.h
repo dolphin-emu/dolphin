@@ -99,6 +99,11 @@ enum class SearchErrorCode
   // This is returned if PowerPC::RequestedAddressSpace::Virtual is given but the MSR.DR flag is
   // currently off in the emulated game.
   VirtualAddressesCurrentlyNotAccessible,
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+  // Cheats and memory reading are disabled in RetroAchievements hardcore mode.
+  DisabledInHardcoreMode,
+#endif  // USE_RETRO_ACHIEVEMENTS
 };
 
 // Returns the corresponding DataType enum for the value currently held by the given SearchValue.

@@ -26,6 +26,7 @@
 
 #include "DolphinQt/Config/CheatCodeEditor.h"
 #include "DolphinQt/Config/CheatWarningWidget.h"
+#include "DolphinQt/Config/HardcoreWarningWidget.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
@@ -61,6 +62,9 @@ GeckoCodeWidget::~GeckoCodeWidget() = default;
 void GeckoCodeWidget::CreateWidgets()
 {
   m_warning = new CheatWarningWidget(m_game_id, m_restart_required, this);
+#ifdef USE_RETRO_ACHIEVEMENTS
+  m_hc_warning = new HardcoreWarningWidget(this);
+#endif  // USE_RETRO_ACHIEVEMENTS
   m_code_list = new QListWidget;
   m_name_label = new QLabel;
   m_creator_label = new QLabel;
@@ -102,6 +106,9 @@ void GeckoCodeWidget::CreateWidgets()
   auto* layout = new QVBoxLayout;
 
   layout->addWidget(m_warning);
+#ifdef USE_RETRO_ACHIEVEMENTS
+  layout->addWidget(m_hc_warning);
+#endif  // USE_RETRO_ACHIEVEMENTS
   layout->addWidget(m_code_list);
 
   auto* info_layout = new QFormLayout;
@@ -150,6 +157,10 @@ void GeckoCodeWidget::ConnectWidgets()
   connect(m_download_codes, &QPushButton::clicked, this, &GeckoCodeWidget::DownloadCodes);
   connect(m_warning, &CheatWarningWidget::OpenCheatEnableSettings, this,
           &GeckoCodeWidget::OpenGeneralSettings);
+#ifdef USE_RETRO_ACHIEVEMENTS
+  connect(m_hc_warning, &HardcoreWarningWidget::OpenAchievementSettings, this,
+          &GeckoCodeWidget::OpenAchievementSettings);
+#endif  // USE_RETRO_ACHIEVEMENTS
 }
 
 void GeckoCodeWidget::OnSelectionChanged()
