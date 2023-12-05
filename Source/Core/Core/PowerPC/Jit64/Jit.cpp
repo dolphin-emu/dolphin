@@ -337,7 +337,7 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
   gpr.Flush();
   fpr.Flush();
 
-  if (js.op->opinfo->flags & FL_ENDBLOCK)
+  if (js.op->canEndBlock)
   {
     MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
     MOV(32, PPCSTATE(npc), Imm32(js.compilerPC + 4));
@@ -353,7 +353,7 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
   gpr.Reset(js.op->regsOut);
   fpr.Reset(js.op->GetFregsOut());
 
-  if (js.op->opinfo->flags & FL_ENDBLOCK)
+  if (js.op->canEndBlock)
   {
     if (js.isLastInstruction)
     {
@@ -445,8 +445,7 @@ bool Jit64::Cleanup()
     did_something = true;
   }
 
-  // SPEED HACK: MMCR0/MMCR1 should be checked at run-time, not at compile time.
-  if (MMCR0(m_ppc_state).Hex || MMCR1(m_ppc_state).Hex)
+  if (m_ppc_state.feature_flags & FEATURE_FLAG_PERFMON)
   {
     ABI_PushRegistersAndAdjustStack({}, 0);
     ABI_CallFunctionCCCP(PowerPC::UpdatePerformanceMonitor, js.downcountAmount, js.numLoadStoreInst,
@@ -483,8 +482,7 @@ void Jit64::FakeBLCall(u32 after)
 
   // We may need to fake the BLR stack on inlined CALL instructions.
   // Else we can't return to this location any more.
-  MOV(64, R(RSCRATCH2),
-      Imm64(u64(m_ppc_state.msr.Hex & JitBaseBlockCache::JIT_CACHE_MSR_MASK) << 32 | after));
+  MOV(64, R(RSCRATCH2), Imm64(u64(m_ppc_state.feature_flags) << 32 | after));
   PUSH(RSCRATCH2);
   FixupBranch skip_exit = CALL();
   POP(RSCRATCH2);
@@ -497,8 +495,11 @@ void Jit64::EmitUpdateMembase()
   MOV(64, R(RMEM), PPCSTATE(mem_ptr));
 }
 
-void Jit64::EmitStoreMembase(const OpArg& msr, X64Reg scratch_reg)
+void Jit64::MSRUpdated(const OpArg& msr, X64Reg scratch_reg)
 {
+  ASSERT(!msr.IsSimpleReg(scratch_reg));
+
+  // Update mem_ptr
   auto& memory = m_system.GetMemory();
   if (msr.IsImm())
   {
@@ -513,6 +514,26 @@ void Jit64::EmitStoreMembase(const OpArg& msr, X64Reg scratch_reg)
     CMOVcc(64, RMEM, R(scratch_reg), CC_Z);
   }
   MOV(64, PPCSTATE(mem_ptr), R(RMEM));
+
+  // Update feature_flags
+  static_assert(UReg_MSR{}.DR.StartBit() == 4);
+  static_assert(UReg_MSR{}.IR.StartBit() == 5);
+  static_assert(FEATURE_FLAG_MSR_DR == 1 << 0);
+  static_assert(FEATURE_FLAG_MSR_IR == 1 << 1);
+  const u32 other_feature_flags = m_ppc_state.feature_flags & ~0x3;
+  if (msr.IsImm())
+  {
+    MOV(32, PPCSTATE(feature_flags), Imm32(other_feature_flags | ((msr.Imm32() >> 4) & 0x3)));
+  }
+  else
+  {
+    MOV(32, R(scratch_reg), msr);
+    SHR(32, R(scratch_reg), Imm8(4));
+    AND(32, R(scratch_reg), Imm32(0x3));
+    if (other_feature_flags != 0)
+      OR(32, R(scratch_reg), Imm32(other_feature_flags));
+    MOV(32, PPCSTATE(feature_flags), R(scratch_reg));
+  }
 }
 
 void Jit64::WriteExit(u32 destination, bool bl, u32 after)
@@ -524,8 +545,7 @@ void Jit64::WriteExit(u32 destination, bool bl, u32 after)
 
   if (bl)
   {
-    MOV(64, R(RSCRATCH2),
-        Imm64(u64(m_ppc_state.msr.Hex & JitBaseBlockCache::JIT_CACHE_MSR_MASK) << 32 | after));
+    MOV(64, R(RSCRATCH2), Imm64(u64(m_ppc_state.feature_flags) << 32 | after));
     PUSH(RSCRATCH2);
   }
 
@@ -582,8 +602,7 @@ void Jit64::WriteExitDestInRSCRATCH(bool bl, u32 after)
 
   if (bl)
   {
-    MOV(64, R(RSCRATCH2),
-        Imm64(u64(m_ppc_state.msr.Hex & JitBaseBlockCache::JIT_CACHE_MSR_MASK) << 32 | after));
+    MOV(64, R(RSCRATCH2), Imm64(u64(m_ppc_state.feature_flags) << 32 | after));
     PUSH(RSCRATCH2);
   }
 
@@ -611,10 +630,9 @@ void Jit64::WriteBLRExit()
   bool disturbed = Cleanup();
   if (disturbed)
     MOV(32, R(RSCRATCH), PPCSTATE(pc));
-  const u64 msr_bits = m_ppc_state.msr.Hex & JitBaseBlockCache::JIT_CACHE_MSR_MASK;
-  if (msr_bits != 0)
+  if (m_ppc_state.feature_flags != 0)
   {
-    MOV(32, R(RSCRATCH2), Imm32(msr_bits));
+    MOV(32, R(RSCRATCH2), Imm32(m_ppc_state.feature_flags));
     SHL(64, R(RSCRATCH2), Imm8(32));
     OR(64, R(RSCRATCH), R(RSCRATCH2));
   }

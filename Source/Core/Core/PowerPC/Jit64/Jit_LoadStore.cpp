@@ -320,7 +320,7 @@ void Jit64::dcbx(UGeckoInstruction inst)
   FixupBranch bat_lookup_failed;
   MOV(32, R(effective_address), R(addr));
   const u8* loop_start = GetCodePtr();
-  if (m_ppc_state.msr.IR)
+  if (m_ppc_state.feature_flags & FEATURE_FLAG_MSR_IR)
   {
     // Translate effective address to physical address.
     bat_lookup_failed = BATAddressLookup(addr, tmp, m_jit.m_mmu.GetIBATTable().data());
@@ -349,7 +349,7 @@ void Jit64::dcbx(UGeckoInstruction inst)
 
   SwitchToFarCode();
   SetJumpTarget(invalidate_needed);
-  if (m_ppc_state.msr.IR)
+  if (m_ppc_state.feature_flags & FEATURE_FLAG_MSR_IR)
     SetJumpTarget(bat_lookup_failed);
 
   BitSet32 registersInUse = CallerSavedRegistersInUse();
@@ -421,7 +421,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
     end_dcbz_hack = J_CC(CC_L);
   }
 
-  bool emit_fast_path = m_ppc_state.msr.DR && m_jit.jo.fastmem_arena;
+  bool emit_fast_path = (m_ppc_state.feature_flags & FEATURE_FLAG_MSR_DR) && m_jit.jo.fastmem_arena;
 
   if (emit_fast_path)
   {

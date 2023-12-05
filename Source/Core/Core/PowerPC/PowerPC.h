@@ -141,6 +141,8 @@ struct PowerPCState
   UReg_MSR msr;      // machine state register
   UReg_FPSCR fpscr;  // floating point flags/status bits
 
+  CPUEmuFeatureFlags feature_flags;
+
   // Exception management.
   u32 Exceptions = 0;
 
@@ -346,5 +348,8 @@ void CheckBreakPointsFromJIT(PowerPCManager& power_pc);
 #define TU(ppc_state) (ppc_state).spr[SPR_TU]
 
 void RoundingModeUpdated(PowerPCState& ppc_state);
+void MSRUpdated(PowerPCState& ppc_state);
+void MMCRUpdated(PowerPCState& ppc_state);
+void RecalculateAllFeatureFlags(PowerPCState& ppc_state);
 
 }  // namespace PowerPC

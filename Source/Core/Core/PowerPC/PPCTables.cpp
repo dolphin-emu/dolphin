@@ -374,7 +374,7 @@ constexpr std::array<GekkoOPTemplate, 107> s_table31{{
     {210, "mtsr", OpType::System, 1, FL_IN_S | FL_PROGRAMEXCEPTION},
     {242, "mtsrin", OpType::System, 1, FL_IN_SB | FL_PROGRAMEXCEPTION},
     {339, "mfspr", OpType::SPR, 1, FL_OUT_D | FL_PROGRAMEXCEPTION},
-    {467, "mtspr", OpType::SPR, 2, FL_IN_S | FL_PROGRAMEXCEPTION},
+    {467, "mtspr", OpType::SPR, 2, FL_IN_S | FL_ENDBLOCK | FL_PROGRAMEXCEPTION},
     {371, "mftb", OpType::System, 1, FL_OUT_D | FL_TIMER | FL_PROGRAMEXCEPTION},
     {512, "mcrxr", OpType::System, 1, FL_SET_CRn | FL_READ_CA | FL_SET_CA},
     {595, "mfsr", OpType::System, 3, FL_OUT_D | FL_PROGRAMEXCEPTION},

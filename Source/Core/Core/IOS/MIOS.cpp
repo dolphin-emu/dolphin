@@ -84,10 +84,15 @@ bool Load()
   }
 
   auto& power_pc = system.GetPowerPC();
+
   const PowerPC::CoreMode core_mode = power_pc.GetMode();
   power_pc.SetMode(PowerPC::CoreMode::Interpreter);
-  power_pc.GetPPCState().msr.Hex = 0;
-  power_pc.GetPPCState().pc = 0x3400;
+
+  PowerPC::PowerPCState& ppc_state = power_pc.GetPPCState();
+  ppc_state.msr.Hex = 0;
+  ppc_state.pc = 0x3400;
+  PowerPC::MSRUpdated(ppc_state);
+
   NOTICE_LOG_FMT(IOS, "Loaded MIOS and bootstrapped PPC.");
 
   // IOS writes 0 to 0x30f8 before bootstrapping the PPC. Once started, the IPL eventually writes

@@ -651,6 +651,8 @@ void FifoPlayer::LoadMemory()
   ppc_state.spr[SPR_DBAT1U] = 0xc0001fff;
   ppc_state.spr[SPR_DBAT1L] = 0x0000002a;
 
+  PowerPC::MSRUpdated(ppc_state);
+
   auto& mmu = system.GetMMU();
   mmu.DBATUpdated();
   mmu.IBATUpdated();

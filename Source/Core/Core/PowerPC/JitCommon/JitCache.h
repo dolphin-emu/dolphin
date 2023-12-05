@@ -17,6 +17,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Core/HW/Memmap.h"
+#include "Core/PowerPC/Gekko.h"
 
 class JitBase;
 
@@ -33,8 +34,8 @@ struct JitBlockData
   // The normal entry point for the block, returned by Dispatch().
   u8* normalEntry;
 
-  // The MSR bits expected for this block to be valid; see JIT_CACHE_MSR_MASK.
-  u32 msrBits;
+  // The features that this block was compiled with support for.
+  CPUEmuFeatureFlags feature_flags;
   // The effective address (PC) for the beginning of the block.
   u32 effectiveAddress;
   // The physical address of the code represented by this block.
@@ -48,8 +49,8 @@ struct JitBlockData
   // The number of PPC instructions represented by this block. Mostly
   // useful for logging.
   u32 originalSize;
-  // This tracks the position if this block within the fast block cache.
-  // We allow each block to have only one map entry.
+  // This tracks the position of this block within the fast block cache.
+  // We only allow each block to have one map entry.
   size_t fast_block_map_index;
 };
 static_assert(std::is_standard_layout_v<JitBlockData>, "JitBlockData must have a standard layout");
@@ -128,13 +129,9 @@ public:
 class JitBaseBlockCache
 {
 public:
-  // Mask for the MSR bits which determine whether a compiled block
-  // is valid (MSR.IR and MSR.DR, the address translation bits).
-  static constexpr u32 JIT_CACHE_MSR_MASK = 0x30;
-
-  // The value for the map is determined like this:
-  // ((4 GB guest memory space) / (4 bytes per address) * sizeof(JitBlock*)) * (4 for 2 bits of msr)
-  static constexpr u64 FAST_BLOCK_MAP_SIZE = 0x8'0000'0000;
+  // The size of the fast map is determined like this:
+  // ((4 GiB guest memory space) / (4-byte alignment) * sizeof(JitBlock*)) << (3 feature flag bits)
+  static constexpr u64 FAST_BLOCK_MAP_SIZE = 0x10'0000'0000;
   static constexpr u32 FAST_BLOCK_MAP_FALLBACK_ELEMENTS = 0x10000;
   static constexpr u32 FAST_BLOCK_MAP_FALLBACK_MASK = FAST_BLOCK_MAP_FALLBACK_ELEMENTS - 1;
 
@@ -157,7 +154,7 @@ public:
   // Look for the block in the slow but accurate way.
   // This function shall be used if FastLookupIndexForAddress() failed.
   // This might return nullptr if there is no such block.
-  JitBlock* GetBlockFromStartAddress(u32 em_address, u32 msr);
+  JitBlock* GetBlockFromStartAddress(u32 em_address, CPUEmuFeatureFlags feature_flags);
 
   // Get the normal entry for the block associated with the current program
   // counter. This will JIT code if necessary. (This is the reference
@@ -185,7 +182,7 @@ private:
   void UnlinkBlock(const JitBlock& block);
   void InvalidateICacheInternal(u32 physical_address, u32 address, u32 length, bool forced);
 
-  JitBlock* MoveBlockIntoFastCache(u32 em_address, u32 msr);
+  JitBlock* MoveBlockIntoFastCache(u32 em_address, CPUEmuFeatureFlags feature_flags);
 
   // Fast but risky block lookup based on fast_block_map.
   size_t FastLookupIndexForAddress(u32 address, u32 msr);

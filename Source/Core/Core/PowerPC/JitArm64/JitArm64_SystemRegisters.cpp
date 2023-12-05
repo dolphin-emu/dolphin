@@ -94,12 +94,12 @@ void JitArm64::mtmsr(UGeckoInstruction inst)
 
   const bool imm_value = gpr.IsImm(inst.RS);
   if (imm_value)
-    EmitStoreMembase(gpr.GetImm(inst.RS));
+    MSRUpdated(gpr.GetImm(inst.RS));
 
   STR(IndexType::Unsigned, gpr.R(inst.RS), PPC_REG, PPCSTATE_OFF(msr));
 
   if (!imm_value)
-    EmitStoreMembase(gpr.R(inst.RS));
+    MSRUpdated(gpr.R(inst.RS));
 
   gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
   fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);

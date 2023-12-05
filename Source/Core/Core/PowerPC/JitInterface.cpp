@@ -187,12 +187,14 @@ JitInterface::GetHostCode(u32 address) const
   }
 
   auto& ppc_state = m_system.GetPPCState();
-  JitBlock* block = m_jit->GetBlockCache()->GetBlockFromStartAddress(address, ppc_state.msr.Hex);
+  JitBlock* block =
+      m_jit->GetBlockCache()->GetBlockFromStartAddress(address, ppc_state.feature_flags);
   if (!block)
   {
     for (int i = 0; i < 500; i++)
     {
-      block = m_jit->GetBlockCache()->GetBlockFromStartAddress(address - 4 * i, ppc_state.msr.Hex);
+      block = m_jit->GetBlockCache()->GetBlockFromStartAddress(address - 4 * i,
+                                                               ppc_state.feature_flags);
       if (block)
         break;
     }

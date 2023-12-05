@@ -137,6 +137,7 @@ void PowerPCManager::DoState(PointerWrap& p)
     }
 
     RoundingModeUpdated(m_ppc_state);
+    RecalculateAllFeatureFlags(m_ppc_state);
 
     auto& mmu = m_system.GetMMU();
     mmu.IBATUpdated();
@@ -194,8 +195,6 @@ void PowerPCManager::ResetRegisters()
   }
   m_ppc_state.SetXER({});
 
-  RoundingModeUpdated(m_ppc_state);
-
   auto& mmu = m_system.GetMMU();
   mmu.DBATUpdated();
   mmu.IBATUpdated();
@@ -208,6 +207,9 @@ void PowerPCManager::ResetRegisters()
   m_ppc_state.msr.Hex = 0;
   m_ppc_state.spr[SPR_DEC] = 0xFFFFFFFF;
   SystemTimers::DecrementerSet();
+
+  RoundingModeUpdated(m_ppc_state);
+  RecalculateAllFeatureFlags(m_ppc_state);
 }
 
 void PowerPCManager::InitializeCPUCore(CPUCore cpu_core)
@@ -581,15 +583,15 @@ void PowerPCManager::CheckExceptions()
     DEBUG_LOG_FMT(POWERPC, "EXCEPTION_ALIGNMENT");
     m_ppc_state.Exceptions &= ~EXCEPTION_ALIGNMENT;
   }
-
-  // EXTERNAL INTERRUPT
   else
   {
+    // EXTERNAL INTERRUPT
     CheckExternalExceptions();
     return;
   }
 
   m_system.GetJitInterface().UpdateMembase();
+  MSRUpdated(m_ppc_state);
 }
 
 void PowerPCManager::CheckExternalExceptions()
@@ -642,6 +644,7 @@ void PowerPCManager::CheckExternalExceptions()
       ERROR_LOG_FMT(POWERPC, "Unknown EXTERNAL INTERRUPT exception: Exceptions == {:08x}",
                     exceptions);
     }
+    MSRUpdated(m_ppc_state);
   }
 
   m_system.GetJitInterface().UpdateMembase();
@@ -698,6 +701,36 @@ void RoundingModeUpdated(PowerPCState& ppc_state)
   ASSERT(Core::IsCPUThread());
 
   Common::FPU::SetSIMDMode(ppc_state.fpscr.RN, ppc_state.fpscr.NI);
+}
+
+void MSRUpdated(PowerPCState& ppc_state)
+{
+  static_assert(UReg_MSR{}.DR.StartBit() == 4);
+  static_assert(UReg_MSR{}.IR.StartBit() == 5);
+  static_assert(FEATURE_FLAG_MSR_DR == 1 << 0);
+  static_assert(FEATURE_FLAG_MSR_IR == 1 << 1);
+
+  ppc_state.feature_flags = static_cast<CPUEmuFeatureFlags>(
+      (ppc_state.feature_flags & FEATURE_FLAG_PERFMON) | ((ppc_state.msr.Hex >> 4) & 0x3));
+}
+
+void MMCRUpdated(PowerPCState& ppc_state)
+{
+  const bool perfmon = ppc_state.spr[SPR_MMCR0] || ppc_state.spr[SPR_MMCR1];
+  ppc_state.feature_flags = static_cast<CPUEmuFeatureFlags>(
+      (ppc_state.feature_flags & ~FEATURE_FLAG_PERFMON) | (perfmon ? FEATURE_FLAG_PERFMON : 0));
+}
+
+void RecalculateAllFeatureFlags(PowerPCState& ppc_state)
+{
+  static_assert(UReg_MSR{}.DR.StartBit() == 4);
+  static_assert(UReg_MSR{}.IR.StartBit() == 5);
+  static_assert(FEATURE_FLAG_MSR_DR == 1 << 0);
+  static_assert(FEATURE_FLAG_MSR_IR == 1 << 1);
+
+  const bool perfmon = ppc_state.spr[SPR_MMCR0] || ppc_state.spr[SPR_MMCR1];
+  ppc_state.feature_flags = static_cast<CPUEmuFeatureFlags>(((ppc_state.msr.Hex >> 4) & 0x3) |
+                                                            (perfmon ? FEATURE_FLAG_PERFMON : 0));
 }
 
 void CheckExceptionsFromJIT(PowerPCManager& power_pc)
