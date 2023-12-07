@@ -15,6 +15,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
+#include "Core/Debugger/BranchWatch.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
@@ -300,6 +301,40 @@ void Jit64::dcbx(UGeckoInstruction inst)
 
     // Load the loop_counter register with the amount of invalidations to execute.
     LEA(32, loop_counter, MDisp(RSCRATCH2, 1));
+
+    if (IsDebuggingEnabled())
+    {
+      const X64Reg bw_reg_a = reg_cycle_count, bw_reg_b = reg_downcount;
+      const BitSet32 bw_caller_save = (CallerSavedRegistersInUse() | BitSet32{RSCRATCH2}) &
+                                      ~BitSet32{int(bw_reg_a), int(bw_reg_b)};
+
+      MOV(64, R(bw_reg_a), ImmPtr(&m_branch_watch));
+      MOVZX(32, 8, bw_reg_b, MDisp(bw_reg_a, Core::BranchWatch::GetOffsetOfRecordingActive()));
+      TEST(32, R(bw_reg_b), R(bw_reg_b));
+
+      FixupBranch branch_in = J_CC(CC_NZ, Jump::Near);
+      SwitchToFarCode();
+      SetJumpTarget(branch_in);
+
+      // Assert RSCRATCH2 won't be clobbered before it is moved from.
+      static_assert(RSCRATCH2 != ABI_PARAM1);
+
+      ABI_PushRegistersAndAdjustStack(bw_caller_save, 0);
+      MOV(64, R(ABI_PARAM1), R(bw_reg_a));
+      // RSCRATCH2 holds the amount of faked branch watch hits. Move RSCRATCH2 first, because
+      // ABI_PARAM2 clobbers RSCRATCH2 on Windows and ABI_PARAM3 clobbers RSCRATCH2 on Linux!
+      MOV(32, R(ABI_PARAM4), R(RSCRATCH2));
+      const PPCAnalyst::CodeOp& op = js.op[2];
+      MOV(64, R(ABI_PARAM2), Imm64(Core::FakeBranchWatchCollectionKey{op.address, op.branchTo}));
+      MOV(32, R(ABI_PARAM3), Imm32(op.inst.hex));
+      ABI_CallFunction(m_ppc_state.msr.IR ? &Core::BranchWatch::HitVirtualTrue_fk_n :
+                                            &Core::BranchWatch::HitPhysicalTrue_fk_n);
+      ABI_PopRegistersAndAdjustStack(bw_caller_save, 0);
+
+      FixupBranch branch_out = J(Jump::Near);
+      SwitchToNearCode();
+      SetJumpTarget(branch_out);
+    }
   }
 
   X64Reg addr = RSCRATCH;
