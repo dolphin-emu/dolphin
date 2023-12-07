@@ -108,4 +108,6 @@ jclass GetCoreDeviceControlClass();
 jfieldID GetCoreDeviceControlPointer();
 jmethodID GetCoreDeviceControlConstructor();
 
+jmethodID GetRunnableRun();
+
 }  // namespace IDCache
