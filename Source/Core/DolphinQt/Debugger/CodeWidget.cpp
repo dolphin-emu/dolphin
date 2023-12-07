@@ -31,6 +31,7 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
+#include "DolphinQt/Debugger/BranchWatchDialog.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Resources.h"
@@ -44,7 +45,9 @@ static const QString BOX_SPLITTER_STYLESHEET = QStringLiteral(
     "QSplitter::handle { border-top: 1px dashed black; width: 1px; margin-left: 10px; "
     "margin-right: 10px; }");
 
-CodeWidget::CodeWidget(QWidget* parent) : QDockWidget(parent), m_system(Core::System::GetInstance())
+CodeWidget::CodeWidget(QWidget* parent)
+    : QDockWidget(parent), m_system(Core::System::GetInstance()),
+      m_diff_dialog(new BranchWatchDialog(m_system, m_system.GetPowerPC().GetBranchWatch(), this))
 {
   setWindowTitle(tr("Code"));
   setObjectName(QStringLiteral("code"));
@@ -143,12 +146,11 @@ void CodeWidget::CreateWidgets()
   m_lock_btn->setCheckable(true);
   m_lock_btn->setMinimumSize(24, 24);
   m_lock_btn->setStyleSheet(LOCK_BUTTON_STYLESHEET);
-  m_code_diff = new QPushButton(tr("Diff"));
 
   top_layout->addWidget(m_search_address);
   top_layout->addWidget(m_save_address_btn);
   top_layout->addWidget(m_lock_btn);
-  top_layout->addWidget(m_code_diff);
+  top_layout->addWidget(m_branch_watch_dialog);
 
   auto* right_layout = new QVBoxLayout;
   m_code_view = new CodeViewWidget;
@@ -238,19 +240,18 @@ void CodeWidget::ConnectWidgets()
   connect(m_lock_btn, &QPushButton::toggled, this,
           [this](bool checked) { m_code_view->OnLockAddress(checked); });
   connect(m_search_calls, &QLineEdit::textChanged, this, [this]() {
-    const Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(m_code_view->GetAddress());
-    if (symbol)
+    if (const Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(m_code_view->GetAddress()))
       UpdateFunctionCalls(symbol);
   });
   connect(m_search_callers, &QLineEdit::textChanged, this, [this]() {
-    const Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(m_code_view->GetAddress());
-    if (symbol)
+    if (const Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(m_code_view->GetAddress()))
       UpdateFunctionCallers(symbol);
   });
   connect(m_search_callstack, &QLineEdit::textChanged, this, &CodeWidget::UpdateCallstack);
 
-  connect(m_code_diff, &QPushButton::pressed, this, &CodeWidget::OnDiff);
   connect(m_note_list, &QListWidget::itemPressed, this, &CodeWidget::OnSelectNote);
+  connect(m_branch_watch_dialog, &QPushButton::pressed, this, &CodeWidget::OnBranchWatchDialog);
+
   connect(m_symbols_list, &QListWidget::itemPressed, this, &CodeWidget::OnSelectSymbol);
   connect(m_callstack_list, &QListWidget::itemPressed, this, &CodeWidget::OnSelectCallstack);
   connect(m_function_calls_list, &QListWidget::itemPressed, this,
@@ -261,8 +262,7 @@ void CodeWidget::ConnectWidgets()
   connect(m_code_view, &CodeViewWidget::SymbolsChanged, this, [this]() {
     UpdateCallstack();
     UpdateSymbols();
-    const Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(m_code_view->GetAddress());
-    if (symbol)
+    if (const Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(m_code_view->GetAddress()))
     {
       UpdateFunctionCalls(symbol);
       UpdateFunctionCallers(symbol);
@@ -279,13 +279,11 @@ void CodeWidget::ConnectWidgets()
   connect(m_code_view, &CodeViewWidget::DoAutoStep, this, &CodeWidget::DoAutoStep);
 }
 
-void CodeWidget::OnDiff()
+void CodeWidget::OnBranchWatchDialog()
 {
-  if (!m_diff_dialog)
-    m_diff_dialog = new CodeDiffDialog(this);
   m_diff_dialog->setWindowFlag(Qt::WindowMinimizeButtonHint);
   SetQWidgetWindowDecorations(m_diff_dialog);
-  m_diff_dialog->show();
+  m_diff_dialog->open();
   m_diff_dialog->raise();
   m_diff_dialog->activateWindow();
 }
@@ -476,6 +474,8 @@ void CodeWidget::UpdateSymbols()
   }
 
   m_symbols_list->sortItems();
+
+  m_diff_dialog->UpdateSymbols();
 }
 
 void CodeWidget::UpdateNotes()
@@ -570,6 +570,8 @@ void CodeWidget::Step()
   power_pc.SetMode(old_mode);
   Core::DisplayMessage(tr("Step successful!").toStdString(), 2000);
   // Will get a UpdateDisasmDialog(), don't update the GUI here.
+
+  m_diff_dialog->Update();
 }
 
 void CodeWidget::StepOver()

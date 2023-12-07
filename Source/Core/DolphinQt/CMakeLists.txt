@@ -206,12 +206,18 @@ add_executable(dolphin-emu
   Debugger/AssemblerWidget.h
   Debugger/AssemblyEditor.cpp
   Debugger/AssemblyEditor.h
+  Debugger/BranchWatchDialog.cpp
+  Debugger/BranchWatchDialog.h
+  Debugger/BranchWatchProxyModel.cpp
+  Debugger/BranchWatchProxyModel.h
+  Debugger/BranchWatchTableModel.cpp
+  Debugger/BranchWatchTableModel.h
+  Debugger/BranchWatchTableView.cpp
+  Debugger/BranchWatchTableView.h
   Debugger/BreakpointDialog.cpp
   Debugger/BreakpointDialog.h
   Debugger/BreakpointWidget.cpp
   Debugger/BreakpointWidget.h
-  Debugger/CodeDiffDialog.cpp
-  Debugger/CodeDiffDialog.h
   Debugger/CodeViewWidget.cpp
   Debugger/CodeViewWidget.h
   Debugger/CodeWidget.cpp
