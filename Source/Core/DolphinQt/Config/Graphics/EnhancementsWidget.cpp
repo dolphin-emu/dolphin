@@ -297,7 +297,7 @@ void EnhancementsWidget::LoadPPShaders()
                                   .arg(tr(g_video_backend->GetDisplayName().c_str())));
 
   VideoCommon::PostProcessingConfiguration pp_shader;
-  if (selected_shader != "(off)" && supports_postprocessing)
+  if (selected_shader != "" && supports_postprocessing)
   {
     pp_shader.LoadShader(selected_shader);
     m_configure_pp_effect->setEnabled(pp_shader.HasOptions());
@@ -473,11 +473,11 @@ void EnhancementsWidget::SaveSettings()
   const bool passive = g_Config.stereo_mode == StereoMode::Passive;
   Config::SetBaseOrCurrent(Config::GFX_ENHANCE_POST_SHADER,
                            (!anaglyph && !passive && m_pp_effect->currentIndex() == 0) ?
-                               "(off)" :
+                               "" :
                                m_pp_effect->currentText().toStdString());
 
   VideoCommon::PostProcessingConfiguration pp_shader;
-  if (Config::Get(Config::GFX_ENHANCE_POST_SHADER) != "(off)")
+  if (Config::Get(Config::GFX_ENHANCE_POST_SHADER) != "")
   {
     pp_shader.LoadShader(Config::Get(Config::GFX_ENHANCE_POST_SHADER));
     m_configure_pp_effect->setEnabled(pp_shader.HasOptions());
