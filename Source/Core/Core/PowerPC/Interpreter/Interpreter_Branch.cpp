@@ -7,6 +7,7 @@
 #include "Common/CommonTypes.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/Debugger/BranchWatch.h"
 #include "Core/HLE/HLE.h"
 #include "Core/PowerPC/Interpreter/ExceptionUtils.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -19,12 +20,11 @@ void Interpreter::bx(Interpreter& interpreter, UGeckoInstruction inst)
   if (inst.LK)
     LR(ppc_state) = ppc_state.pc + 4;
 
-  const auto address = u32(SignExt26(inst.LI << 2));
+  const u32 destination_addr = u32(SignExt26(inst.LI << 2)) + !inst.AA * ppc_state.pc;
+  ppc_state.npc = destination_addr;
 
-  if (inst.AA)
-    ppc_state.npc = address;
-  else
-    ppc_state.npc = ppc_state.pc + address;
+  if (auto& branch_watch = interpreter.m_branch_watch; branch_watch.IsRecordingActive())
+    branch_watch.Hit(ppc_state.pc, destination_addr, inst, ppc_state.msr.IR);
 
   interpreter.m_end_block = true;
 }
@@ -49,12 +49,11 @@ void Interpreter::bcx(Interpreter& interpreter, UGeckoInstruction inst)
     if (inst.LK)
       LR(ppc_state) = ppc_state.pc + 4;
 
-    const auto address = u32(SignExt16(s16(inst.BD << 2)));
+    const u32 destination_addr = u32(SignExt16(s16(inst.BD << 2))) + !inst.AA * ppc_state.pc;
+    ppc_state.npc = destination_addr;
 
-    if (inst.AA)
-      ppc_state.npc = address;
-    else
-      ppc_state.npc = ppc_state.pc + address;
+    if (auto& branch_watch = interpreter.m_branch_watch; branch_watch.IsRecordingActive())
+      branch_watch.Hit(ppc_state.pc, destination_addr, inst, ppc_state.msr.IR);
   }
 
   interpreter.m_end_block = true;
@@ -72,9 +71,13 @@ void Interpreter::bcctrx(Interpreter& interpreter, UGeckoInstruction inst)
 
   if (condition != 0)
   {
-    ppc_state.npc = CTR(ppc_state) & (~3);
+    const u32 destination_addr = CTR(ppc_state) & (~3);
+    ppc_state.npc = destination_addr;
     if (inst.LK_3)
       LR(ppc_state) = ppc_state.pc + 4;
+
+    if (auto& branch_watch = interpreter.m_branch_watch; branch_watch.IsRecordingActive())
+      branch_watch.Hit(ppc_state.pc, destination_addr, inst, ppc_state.msr.IR);
   }
 
   interpreter.m_end_block = true;
@@ -93,9 +96,13 @@ void Interpreter::bclrx(Interpreter& interpreter, UGeckoInstruction inst)
 
   if ((counter & condition) != 0)
   {
-    ppc_state.npc = LR(ppc_state) & (~3);
+    const u32 destination_addr = LR(ppc_state) & (~3);
+    ppc_state.npc = destination_addr;
     if (inst.LK_3)
       LR(ppc_state) = ppc_state.pc + 4;
+
+    if (auto& branch_watch = interpreter.m_branch_watch; branch_watch.IsRecordingActive())
+      branch_watch.Hit(ppc_state.pc, destination_addr, inst, ppc_state.msr.IR);
   }
 
   interpreter.m_end_block = true;
