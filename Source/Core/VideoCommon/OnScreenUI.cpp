@@ -7,6 +7,7 @@
 #include "Common/Profiler.h"
 #include "Common/Timer.h"
 
+#include "Core/AchievementManager.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Movie.h"
@@ -326,6 +327,65 @@ void OnScreenUI::DrawDebugText()
     ImGui::TextUnformatted(profile_output.c_str());
 }
 
+#ifdef USE_RETRO_ACHIEVEMENTS
+void OnScreenUI::DrawChallenges()
+{
+  std::lock_guard lg{*AchievementManager::GetInstance()->GetLock()};
+  const AchievementManager::NamedIconMap& challenge_icons =
+      AchievementManager::GetInstance()->GetChallengeIcons();
+
+  const std::string window_name = "Challenges";
+
+  u32 sum_of_icon_heights = 0;
+  u32 max_icon_width = 0;
+  for (const auto& [name, icon] : challenge_icons)
+  {
+    // These *should* all be the same square size but you never know.
+    if (icon->width > max_icon_width)
+      max_icon_width = icon->width;
+    sum_of_icon_heights += icon->height;
+  }
+  ImGui::SetNextWindowPos(
+      ImVec2(ImGui::GetIO().DisplaySize.x - 20.f * m_backbuffer_scale - max_icon_width,
+             ImGui::GetIO().DisplaySize.y - 20.f * m_backbuffer_scale - sum_of_icon_heights));
+  ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
+  if (ImGui::Begin(window_name.c_str(), nullptr,
+                   ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs |
+                       ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
+                       ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav |
+                       ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing))
+  {
+    for (const auto& [name, icon] : challenge_icons)
+    {
+      if (m_challenge_texture_map.find(name) != m_challenge_texture_map.end())
+        continue;
+      const u32 width = icon->width;
+      const u32 height = icon->height;
+      TextureConfig tex_config(width, height, 1, 1, 1, AbstractTextureFormat::RGBA8, 0);
+      auto res = m_challenge_texture_map.insert_or_assign(name, g_gfx->CreateTexture(tex_config));
+      res.first->second->Load(0, width, height, width, icon->rgba_data.data(),
+                              sizeof(u32) * width * height);
+    }
+    for (auto& [name, texture] : m_challenge_texture_map)
+    {
+      auto icon_itr = challenge_icons.find(name);
+      if (icon_itr == challenge_icons.end())
+      {
+        m_challenge_texture_map.erase(name);
+        continue;
+      }
+      if (texture)
+      {
+        ImGui::Image(texture.get(), ImVec2(static_cast<float>(icon_itr->second->width),
+                                           static_cast<float>(icon_itr->second->height)));
+      }
+    }
+  }
+
+  ImGui::End();
+}
+#endif  // USE_RETRO_ACHIEVEMENTS
+
 void OnScreenUI::Finalize()
 {
   auto lock = GetImGuiLock();
@@ -333,6 +393,9 @@ void OnScreenUI::Finalize()
   g_perf_metrics.DrawImGuiStats(m_backbuffer_scale);
   DrawDebugText();
   OSD::DrawMessages();
+#ifdef USE_RETRO_ACHIEVEMENTS
+  DrawChallenges();
+#endif  // USE_RETRO_ACHIEVEMENTS
   ImGui::Render();
 }
 

@@ -710,6 +710,12 @@ void AchievementManager::AchievementEventHandler(const rc_runtime_event_t* runti
     case RC_RUNTIME_EVENT_ACHIEVEMENT_PROGRESS_UPDATED:
       HandleAchievementProgressUpdatedEvent(runtime_event);
       break;
+    case RC_RUNTIME_EVENT_ACHIEVEMENT_PRIMED:
+      HandleAchievementPrimedEvent(runtime_event);
+      break;
+    case RC_RUNTIME_EVENT_ACHIEVEMENT_UNPRIMED:
+      HandleAchievementUnprimedEvent(runtime_event);
+      break;
     case RC_RUNTIME_EVENT_LBOARD_STARTED:
       HandleLeaderboardStartedEvent(runtime_event);
       break;
@@ -856,6 +862,11 @@ void AchievementManager::SetDisabled(bool disable)
     INFO_LOG_FMT(ACHIEVEMENTS, "Achievement Manager has been re-enabled.");
   }
 };
+
+const AchievementManager::NamedIconMap& AchievementManager::GetChallengeIcons() const
+{
+  return m_active_challenges;
+}
 
 void AchievementManager::CloseGame()
 {
@@ -1465,6 +1476,34 @@ void AchievementManager::HandleAchievementProgressUpdatedEvent(
       (Config::Get(Config::RA_BADGES_ENABLED)) ?
           DecodeBadgeToOSDIcon(it->second.unlocked_badge.badge) :
           nullptr);
+}
+
+void AchievementManager::HandleAchievementPrimedEvent(const rc_runtime_event_t* runtime_event)
+{
+  if (!Config::Get(Config::RA_BADGES_ENABLED))
+    return;
+  auto it = m_unlock_map.find(runtime_event->id);
+  if (it == m_unlock_map.end())
+  {
+    ERROR_LOG_FMT(ACHIEVEMENTS, "Invalid achievement primed event with id {}.", runtime_event->id);
+    return;
+  }
+  m_active_challenges[it->second.unlocked_badge.name] =
+      DecodeBadgeToOSDIcon(it->second.unlocked_badge.badge);
+}
+
+void AchievementManager::HandleAchievementUnprimedEvent(const rc_runtime_event_t* runtime_event)
+{
+  if (!Config::Get(Config::RA_BADGES_ENABLED))
+    return;
+  auto it = m_unlock_map.find(runtime_event->id);
+  if (it == m_unlock_map.end())
+  {
+    ERROR_LOG_FMT(ACHIEVEMENTS, "Invalid achievement unprimed event with id {}.",
+                  runtime_event->id);
+    return;
+  }
+  m_active_challenges.erase(it->second.unlocked_badge.name);
 }
 
 void AchievementManager::HandleLeaderboardStartedEvent(const rc_runtime_event_t* runtime_event)
