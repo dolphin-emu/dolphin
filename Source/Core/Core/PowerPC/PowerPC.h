@@ -14,6 +14,7 @@
 #include "Common/CommonTypes.h"
 
 #include "Core/CPUThreadConfigCallback.h"
+#include "Core/Debugger/BranchWatch.h"
 #include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/PowerPC/BreakPoints.h"
 #include "Core/PowerPC/ConditionRegister.h"
@@ -296,6 +297,8 @@ public:
   const MemChecks& GetMemChecks() const { return m_memchecks; }
   PPCDebugInterface& GetDebugInterface() { return m_debug_interface; }
   const PPCDebugInterface& GetDebugInterface() const { return m_debug_interface; }
+  Core::BranchWatch& GetBranchWatch() { return m_branch_watch; }
+  const Core::BranchWatch& GetBranchWatch() const { return m_branch_watch; }
 
 private:
   void InitializeCPUCore(CPUCore cpu_core);
@@ -312,6 +315,7 @@ private:
   BreakPoints m_breakpoints;
   MemChecks m_memchecks;
   PPCDebugInterface m_debug_interface;
+  Core::BranchWatch m_branch_watch;
 
   CPUThreadConfigCallback::ConfigChangedCallbackID m_registered_config_callback_id;
 

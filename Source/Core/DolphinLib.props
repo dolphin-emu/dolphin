@@ -200,6 +200,7 @@
     <ClInclude Include="Core\Core.h" />
     <ClInclude Include="Core\CoreTiming.h" />
     <ClInclude Include="Core\CPUThreadConfigCallback.h" />
+    <ClInclude Include="Core\Debugger\BranchWatch.h" />
     <ClInclude Include="Core\Debugger\CodeTrace.h" />
     <ClInclude Include="Core\Debugger\DebugInterface.h" />
     <ClInclude Include="Core\Debugger\Debugger_SymbolMap.h" />
@@ -863,6 +864,7 @@
     <ClCompile Include="Core\Core.cpp" />
     <ClCompile Include="Core\CoreTiming.cpp" />
     <ClCompile Include="Core\CPUThreadConfigCallback.cpp" />
+    <ClCompile Include="Core\Debugger\BranchWatch.cpp" />
     <ClCompile Include="Core\Debugger\CodeTrace.cpp" />
     <ClCompile Include="Core\Debugger\Debugger_SymbolMap.cpp" />
     <ClCompile Include="Core\Debugger\Dump.cpp" />
