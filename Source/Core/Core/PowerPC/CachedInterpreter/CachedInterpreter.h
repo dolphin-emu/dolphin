@@ -50,6 +50,7 @@ private:
                                                  UGeckoInstruction data);
   static void WritePC(CachedInterpreter& cached_interpreter, UGeckoInstruction data);
   static void WriteBrokenBlockNPC(CachedInterpreter& cached_interpreter, UGeckoInstruction data);
+  static void DoBranchWatchHit(CachedInterpreter& cached_interpreter, UGeckoInstruction n);
   static bool CheckFPU(CachedInterpreter& cached_interpreter, u32 data);
   static bool CheckDSI(CachedInterpreter& cached_interpreter, u32 data);
   static bool CheckProgramException(CachedInterpreter& cached_interpreter, u32 data);

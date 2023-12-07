@@ -3,6 +3,7 @@
 
 #include "Core/PowerPC/CachedInterpreter/CachedInterpreter.h"
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
@@ -210,6 +211,15 @@ void CachedInterpreter::WriteBrokenBlockNPC(CachedInterpreter& cached_interprete
   cached_interpreter.m_ppc_state.npc = data.hex;
 }
 
+void CachedInterpreter::DoBranchWatchHit(CachedInterpreter& cached_interpreter, UGeckoInstruction n)
+{
+  if (auto& branch_watch = cached_interpreter.m_branch_watch; branch_watch.IsRecordingActive())
+  {
+    const PPCAnalyst::CodeOp& op = cached_interpreter.m_code_buffer[n.hex];
+    branch_watch.Hit(op.address, op.branchTo, op.inst, cached_interpreter.m_ppc_state.msr.IR);
+  }
+}
+
 bool CachedInterpreter::CheckFPU(CachedInterpreter& cached_interpreter, u32 data)
 {
   auto& ppc_state = cached_interpreter.m_ppc_state;
@@ -365,6 +375,13 @@ void CachedInterpreter::Jit(u32 address)
         m_code.emplace_back(UpdateNumLoadStoreInstructions, js.numLoadStoreInst);
         m_code.emplace_back(UpdateNumFloatingPointInstructions, js.numFloatingPointInst);
       }
+    }
+    else if (m_enable_debugging)
+    {
+      // The only thing that currently sets op.skip is the BLR following optimization.
+      // If any non-branch instruction starts setting that too, this will need changed.
+      DEBUG_ASSERT(op.inst.hex == 0x4e800020);
+      m_code.emplace_back(DoBranchWatchHit, i);
     }
   }
   if (code_block.m_broken)
