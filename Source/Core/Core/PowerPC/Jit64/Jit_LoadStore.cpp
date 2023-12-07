@@ -8,6 +8,7 @@
 
 #include "Common/Assert.h"
 #include "Common/BitSet.h"
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "Common/x64ABI.h"
@@ -15,6 +16,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
+#include "Core/Debugger/BranchWatch.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
@@ -300,6 +302,29 @@ void Jit64::dcbx(UGeckoInstruction inst)
 
     // Load the loop_counter register with the amount of invalidations to execute.
     LEA(32, loop_counter, MDisp(RSCRATCH2, 1));
+
+    // This is a modification of Jit64::WriteBranchWatch to track the number of faked branch hits.
+    if (m_enable_debugging)
+    {
+      MOV(64, R(ABI_PARAM1), ImmPtr(&m_branch_watch));
+      MOVZX(32, 8, RSCRATCH,
+            MDisp(ABI_PARAM1, static_cast<int>(Core::BranchWatch::GetOffsetOfRecordingActive())));
+      TEST(32, R(RSCRATCH), R(RSCRATCH));
+      FixupBranch branch = J_CC(CC_Z, Jump::Near);
+
+      const BitSet32 registersInUse = CallerSavedRegistersInUse();
+      ABI_PushRegistersAndAdjustStack(registersInUse, 0);
+      const auto& op = js.op[2];
+      // Win64 fastcall ABI only supports up to ABI_PARAM4, so pack this into a u64.
+      MOV(64, R(ABI_PARAM2),
+          Imm64(Common::BitCast<u64>(Core::FakeBranchWatchKey{op.address, op.branchTo})));
+      MOV(32, R(ABI_PARAM3), Imm32(op.inst.hex));
+      LEA(32, ABI_PARAM4, MDisp(loop_counter, -1));
+      ABI_CallFunction(m_ppc_state.msr.IR ? &Core::BranchWatch::HitV_n :
+                                            &Core::BranchWatch::HitP_n);
+      ABI_PopRegistersAndAdjustStack(registersInUse, 0);
+      SetJumpTarget(branch);
+    }
   }
 
   X64Reg addr = RSCRATCH;

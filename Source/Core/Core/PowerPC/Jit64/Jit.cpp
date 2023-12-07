@@ -1171,6 +1171,15 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       if (opinfo->flags & FL_USE_FPU)
         ++js.numFloatingPointInst;
     }
+    else if (m_enable_debugging)
+    {
+      // The only thing that currently sets op.skip is the BLR following optimization.
+      // If any non-branch instruction starts setting that too, this will need changed.
+      DEBUG_ASSERT(op.inst.hex == 0x4e800020);
+      gpr.Flush();
+      fpr.Flush();
+      WriteBranchWatch(op.address, Imm32(op.branchTo), op.inst);
+    }
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
     if (!gpr.SanityCheck() || !fpr.SanityCheck())

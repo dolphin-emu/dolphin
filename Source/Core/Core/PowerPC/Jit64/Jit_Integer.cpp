@@ -394,30 +394,42 @@ void Jit64::DoMergedBranch()
     if (next.LK)
       MOV(32, PPCSTATE_SPR(SPR_LR), Imm32(nextPC + 4));
 
-    WriteIdleExit(js.op[1].branchTo);
+    const u32 destination = js.op[1].branchTo;
+
+    if (m_enable_debugging)
+      WriteBranchWatch(nextPC, Imm32(destination), next);
+
+    WriteIdleExit(destination);
   }
   else if (next.OPCD == 16)  // bcx
   {
     if (next.LK)
       MOV(32, PPCSTATE_SPR(SPR_LR), Imm32(nextPC + 4));
 
-    u32 destination;
-    if (next.AA)
-      destination = SignExt16(next.BD << 2);
-    else
-      destination = nextPC + SignExt16(next.BD << 2);
+    const u32 destination = SignExt16(next.BD << 2) + !next.AA * nextPC;
+
+    if (m_enable_debugging)
+      WriteBranchWatch(nextPC, Imm32(destination), next);
+
     WriteExit(destination, next.LK, nextPC + 4);
   }
   else if ((next.OPCD == 19) && (next.SUBOP10 == 528))  // bcctrx
   {
     if (next.LK)
       MOV(32, PPCSTATE_SPR(SPR_LR), Imm32(nextPC + 4));
+
+    if (m_enable_debugging)
+      WriteBranchWatch(nextPC, PPCSTATE_SPR(SPR_CTR), next);
+
     MOV(32, R(RSCRATCH), PPCSTATE_SPR(SPR_CTR));
     AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
     WriteExitDestInRSCRATCH(next.LK, nextPC + 4);
   }
   else if ((next.OPCD == 19) && (next.SUBOP10 == 16))  // bclrx
   {
+    if (m_enable_debugging)
+      WriteBranchWatch(nextPC, PPCSTATE_SPR(SPR_LR), next);
+
     MOV(32, R(RSCRATCH), PPCSTATE_SPR(SPR_LR));
     if (!m_enable_blr_optimization)
       AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
