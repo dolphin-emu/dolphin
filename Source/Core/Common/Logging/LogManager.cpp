@@ -115,6 +115,7 @@ LogManager::LogManager()
   m_log[LogType::DYNA_REC] = {"JIT", "JIT Dynamic Recompiler"};
   m_log[LogType::EXPANSIONINTERFACE] = {"EXI", "Expansion Interface"};
   m_log[LogType::FILEMON] = {"FileMon", "File Monitor"};
+  m_log[LogType::SUBTITLES] = {"Subtitles", "Subtitles"};
   m_log[LogType::FRAMEDUMP] = {"FRAMEDUMP", "FrameDump"};
   m_log[LogType::GDB_STUB] = {"GDB_STUB", "GDB Stub"};
   m_log[LogType::GPFIFO] = {"GP", "GatherPipe FIFO"};
