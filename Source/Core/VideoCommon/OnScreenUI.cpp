@@ -333,6 +333,8 @@ void OnScreenUI::DrawChallenges()
   std::lock_guard lg{*AchievementManager::GetInstance()->GetLock()};
   const AchievementManager::NamedIconMap& challenge_icons =
       AchievementManager::GetInstance()->GetChallengeIcons();
+  if (challenge_icons.size() == 0)
+    return;
 
   const std::string window_name = "Challenges";
 
