@@ -240,8 +240,11 @@ void CEXIIPL::LoadFontFile(const std::string& filename, u32 offset)
   INFO_LOG_FMT(BOOT, "Found IPL dump, loading {} font from {}",
                (offset == 0x1aff00) ? "Shift JIS" : "Windows-1252", ipl_rom_path);
 
-  stream.Seek(offset, File::SeekOrigin::Begin);
-  stream.ReadBytes(&m_rom[offset], fontsize);
+  if (!stream.Seek(offset, File::SeekOrigin::Begin) || !stream.ReadBytes(&m_rom[offset], fontsize))
+  {
+    WARN_LOG_FMT(BOOT, "Failed to read font from IPL dump.");
+    return;
+  }
 
   m_fonts_loaded = true;
 }
