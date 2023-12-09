@@ -121,10 +121,24 @@ bool ObjectCache::CreateDescriptorSetLayouts()
        VK_SHADER_STAGE_GEOMETRY_BIT},
   }};
 
-  static const std::array<VkDescriptorSetLayoutBinding, 1> standard_sampler_bindings{{
-      {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-       static_cast<u32>(VideoCommon::MAX_PIXEL_SHADER_SAMPLERS), VK_SHADER_STAGE_FRAGMENT_BIT},
-  }};
+  constexpr u32 MAX_PIXEL_SAMPLER_ARRAY_SIZE = 8;
+  constexpr u32 TOTAL_PIXEL_SAMPLER_BINDINGS =
+      1 + (VideoCommon::MAX_PIXEL_SHADER_SAMPLERS - MAX_PIXEL_SAMPLER_ARRAY_SIZE);
+  static_assert(VideoCommon::MAX_PIXEL_SHADER_SAMPLERS == 16, "Update descriptor sampler bindings");
+
+  static const std::array<VkDescriptorSetLayoutBinding, TOTAL_PIXEL_SAMPLER_BINDINGS>
+      standard_sampler_bindings{{
+          {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_PIXEL_SAMPLER_ARRAY_SIZE,
+           VK_SHADER_STAGE_FRAGMENT_BIT},
+          {8, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
+          {9, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
+          {10, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
+          {11, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
+          {12, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
+          {13, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
+          {14, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
+          {15, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
+      }};
 
   // The dynamic veretex loader's vertex buffer must be last here, for similar reasons
   static const std::array<VkDescriptorSetLayoutBinding, 2> standard_ssbo_bindings{{

@@ -199,7 +199,7 @@ private:
 
   // MARK: State
   u16 m_dirty_textures;
-  u8 m_dirty_samplers;
+  u16 m_dirty_samplers;
   static_assert(sizeof(m_dirty_textures) * 8 >= MAX_TEXTURES, "Make this bigger");
   static_assert(sizeof(m_dirty_samplers) * 8 >= MAX_SAMPLERS, "Make this bigger");
   union Flags
