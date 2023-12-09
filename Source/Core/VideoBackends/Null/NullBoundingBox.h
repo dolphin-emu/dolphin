@@ -19,7 +19,7 @@ protected:
   {
     return std::vector<BBoxType>(length);
   }
-  void Write(u32 index, const std::vector<BBoxType>& values) override {}
+  void Write(u32 index, std::span<const BBoxType> values) override {}
 };
 
 }  // namespace Null

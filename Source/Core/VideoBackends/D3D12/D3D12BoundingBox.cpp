@@ -56,9 +56,9 @@ std::vector<BBoxType> D3D12BoundingBox::Read(u32 index, u32 length)
   return values;
 }
 
-void D3D12BoundingBox::Write(u32 index, const std::vector<BBoxType>& values)
+void D3D12BoundingBox::Write(u32 index, std::span<const BBoxType> values)
 {
-  const u32 copy_size = static_cast<u32>(values.size()) * sizeof(BBoxType);
+  const u32 copy_size = static_cast<u32>(values.size() * sizeof(BBoxType));
   if (!m_upload_buffer.ReserveMemory(copy_size, sizeof(BBoxType)))
   {
     WARN_LOG_FMT(VIDEO, "Executing command list while waiting for space in bbox stream buffer");
