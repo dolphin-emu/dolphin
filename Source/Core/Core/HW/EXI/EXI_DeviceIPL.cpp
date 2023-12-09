@@ -111,8 +111,9 @@ CEXIIPL::CEXIIPL(Core::System& system) : IEXIDevice(system)
   {
     // Descramble the encrypted section (contains BS1 and BS2)
     Descrambler(&m_rom[0x100], 0x1afe00);
-    // yay for null-terminated strings
-    const std::string_view name{reinterpret_cast<char*>(m_rom.get())};
+
+    const std::string_view name{reinterpret_cast<char*>(m_rom.get()),
+                                strnlen(reinterpret_cast<char*>(m_rom.get()), 0x100)};
     INFO_LOG_FMT(BOOT, "Loaded bootrom: {}", name);
   }
   else
