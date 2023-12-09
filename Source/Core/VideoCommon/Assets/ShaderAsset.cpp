@@ -4,19 +4,176 @@
 #include "VideoCommon/Assets/ShaderAsset.h"
 
 #include <algorithm>
-#include <array>
-#include <string_view>
 #include <utility>
 
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
+#include "Common/VariantUtil.h"
 #include "VideoCommon/Assets/CustomAssetLibrary.h"
 
 namespace VideoCommon
 {
-static bool ParseShaderProperties(const CustomAssetLibrary::AssetID& asset_id,
-                                  const picojson::array& properties_data,
-                                  std::map<std::string, ShaderProperty>* shader_properties)
+template <typename ElementType, std::size_t ElementCount, typename PropertyType>
+bool ParseNumeric(const CustomAssetLibrary::AssetID& asset_id, const picojson::value& json_value,
+                  std::string_view code_name, PropertyType* value)
+{
+  static_assert(ElementCount <= 4, "Numeric data expected to be four elements or less");
+  if constexpr (ElementCount == 1)
+  {
+    if (!json_value.is<double>())
+    {
+      ERROR_LOG_FMT(VIDEO,
+                    "Asset id '{}' shader has attribute '{}' where "
+                    "a double was expected but not provided.",
+                    asset_id, code_name);
+      return false;
+    }
+
+    *value = static_cast<ElementType>(json_value.get<double>());
+  }
+  else
+  {
+    if (!json_value.is<picojson::array>())
+    {
+      ERROR_LOG_FMT(VIDEO,
+                    "Asset id '{}' shader has attribute '{}' where "
+                    "an array was expected but not provided.",
+                    asset_id, code_name);
+      return false;
+    }
+
+    const auto json_data = json_value.get<picojson::array>();
+
+    if (json_data.size() != ElementCount)
+    {
+      ERROR_LOG_FMT(VIDEO,
+                    "Asset id '{}' shader has attribute '{}' with incorrect number "
+                    "of elements, expected {}",
+                    asset_id, code_name, ElementCount);
+      return false;
+    }
+
+    if (!std::all_of(json_data.begin(), json_data.end(),
+                     [](const picojson::value& v) { return v.is<double>(); }))
+    {
+      ERROR_LOG_FMT(VIDEO,
+                    "Asset id '{}' shader has attribute '{}' where "
+                    "all elements are not of type double.",
+                    asset_id, code_name);
+      return false;
+    }
+
+    std::array<ElementType, ElementCount> data;
+    for (std::size_t i = 0; i < ElementCount; i++)
+    {
+      data[i] = static_cast<ElementType>(json_data[i].get<double>());
+    }
+    *value = std::move(data);
+  }
+
+  return true;
+}
+
+static bool ParseShaderValue(const CustomAssetLibrary::AssetID& asset_id,
+                             const picojson::value& json_value, std::string_view code_name,
+                             std::string_view type, ShaderProperty::Value* value)
+{
+  if (type == "int")
+  {
+    return ParseNumeric<s32, 1>(asset_id, json_value, code_name, value);
+  }
+  else if (type == "int2")
+  {
+    return ParseNumeric<s32, 2>(asset_id, json_value, code_name, value);
+  }
+  else if (type == "int3")
+  {
+    return ParseNumeric<s32, 3>(asset_id, json_value, code_name, value);
+  }
+  else if (type == "int4")
+  {
+    return ParseNumeric<s32, 4>(asset_id, json_value, code_name, value);
+  }
+  else if (type == "float")
+  {
+    return ParseNumeric<float, 1>(asset_id, json_value, code_name, value);
+  }
+  else if (type == "float2")
+  {
+    return ParseNumeric<float, 2>(asset_id, json_value, code_name, value);
+  }
+  else if (type == "float3")
+  {
+    return ParseNumeric<float, 3>(asset_id, json_value, code_name, value);
+  }
+  else if (type == "float4")
+  {
+    return ParseNumeric<float, 4>(asset_id, json_value, code_name, value);
+  }
+  else if (type == "rgb")
+  {
+    ShaderProperty::RGB rgb;
+    if (!ParseNumeric<float, 3>(asset_id, json_value, code_name, &rgb.value))
+      return false;
+    *value = std::move(rgb);
+    return true;
+  }
+  else if (type == "rgba")
+  {
+    ShaderProperty::RGBA rgba;
+    if (!ParseNumeric<float, 4>(asset_id, json_value, code_name, &rgba.value))
+      return false;
+    *value = std::move(rgba);
+    return true;
+  }
+  else if (type == "bool")
+  {
+    if (json_value.is<bool>())
+    {
+      *value = json_value.get<bool>();
+      return true;
+    }
+  }
+  else if (type == "sampler2d")
+  {
+    if (json_value.is<std::string>())
+    {
+      ShaderProperty::Sampler2D sampler2d;
+      sampler2d.value = json_value.get<std::string>();
+      *value = std::move(sampler2d);
+      return true;
+    }
+  }
+  else if (type == "sampler2darray")
+  {
+    if (json_value.is<std::string>())
+    {
+      ShaderProperty::Sampler2DArray sampler2darray;
+      sampler2darray.value = json_value.get<std::string>();
+      *value = std::move(sampler2darray);
+      return true;
+    }
+  }
+  else if (type == "samplercube")
+  {
+    if (json_value.is<std::string>())
+    {
+      ShaderProperty::SamplerCube samplercube;
+      samplercube.value = json_value.get<std::string>();
+      *value = std::move(samplercube);
+      return true;
+    }
+  }
+
+  ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse the json, value is not valid for type '{}'",
+                asset_id, type);
+  return false;
+}
+
+static bool
+ParseShaderProperties(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
+                      const picojson::array& properties_data,
+                      std::map<std::string, VideoCommon::ShaderProperty>* shader_properties)
 {
   if (!shader_properties) [[unlikely]]
     return false;
@@ -49,41 +206,6 @@ static bool ParseShaderProperties(const CustomAssetLibrary::AssetID& asset_id,
     }
     std::string type = type_iter->second.to_str();
     Common::ToLower(&type);
-
-    static constexpr std::array<std::pair<std::string_view, ShaderProperty::Type>,
-                                static_cast<int>(ShaderProperty::Type::Type_Max)>
-        pairs = {{
-            {"sampler2d", ShaderProperty::Type::Type_Sampler2D},
-            {"samplercube", ShaderProperty::Type::Type_SamplerCube},
-            {"samplerarrayshared_main", ShaderProperty::Type::Type_SamplerArrayShared_Main},
-            {"samplerarrayshared_additional",
-             ShaderProperty::Type::Type_SamplerArrayShared_Additional},
-            {"int", ShaderProperty::Type::Type_Int},
-            {"int2", ShaderProperty::Type::Type_Int2},
-            {"int3", ShaderProperty::Type::Type_Int3},
-            {"int4", ShaderProperty::Type::Type_Int4},
-            {"float", ShaderProperty::Type::Type_Float},
-            {"float2", ShaderProperty::Type::Type_Float2},
-            {"float3", ShaderProperty::Type::Type_Float3},
-            {"float4", ShaderProperty::Type::Type_Float4},
-            {"rgb", ShaderProperty::Type::Type_RGB},
-            {"rgba", ShaderProperty::Type::Type_RGBA},
-            {"bool", ShaderProperty::Type::Type_Bool},
-        }};
-    if (const auto it = std::find_if(pairs.begin(), pairs.end(),
-                                     [&](const auto& pair) { return pair.first == type; });
-        it != pairs.end())
-    {
-      property.m_type = it->second;
-    }
-    else
-    {
-      ERROR_LOG_FMT(VIDEO,
-                    "Asset '{}' failed to parse json, property entry type '{}' is "
-                    "an invalid option",
-                    asset_id, type_iter->second.to_str());
-      return false;
-    }
 
     const auto description_iter = property_data_obj.find("description");
     if (description_iter == property_data_obj.end())
@@ -118,7 +240,18 @@ static bool ParseShaderProperties(const CustomAssetLibrary::AssetID& asset_id,
                     asset_id);
       return false;
     }
-    shader_properties->try_emplace(code_name_iter->second.to_str(), std::move(property));
+    std::string code_name = code_name_iter->second.to_str();
+
+    const auto default_iter = property_data_obj.find("default");
+    if (default_iter != property_data_obj.end())
+    {
+      if (!ParseShaderValue(asset_id, default_iter->second, code_name, type, &property.m_default))
+      {
+        return false;
+      }
+    }
+
+    shader_properties->try_emplace(std::move(code_name), std::move(property));
   }
 
   return true;
