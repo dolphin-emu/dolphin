@@ -159,13 +159,18 @@ void CEXIIPL::DoState(PointerWrap& p)
 
 bool CEXIIPL::LoadFileToIPL(const std::string& filename, u32 offset)
 {
+  if (offset >= ROM_SIZE)
+    return false;
+
   File::IOFile stream(filename, "rb");
   if (!stream)
     return false;
 
-  u64 filesize = stream.GetSize();
+  const u64 filesize = stream.GetSize();
+  if (offset >= filesize)
+    return false;
 
-  if (!stream.ReadBytes(&m_rom[offset], filesize))
+  if (!stream.ReadBytes(&m_rom[offset], std::min<u64>(filesize, ROM_SIZE) - offset))
     return false;
 
   m_fonts_loaded = true;
