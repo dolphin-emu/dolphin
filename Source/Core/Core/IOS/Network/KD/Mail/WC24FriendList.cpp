@@ -2,6 +2,16 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/IOS/Network/KD/Mail/WC24FriendList.h"
+
+#include <algorithm>
+#include <memory>
+#include <string_view>
+#include <vector>
+
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
+#include "Common/Swap.h"
+
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/Uids.h"
 
