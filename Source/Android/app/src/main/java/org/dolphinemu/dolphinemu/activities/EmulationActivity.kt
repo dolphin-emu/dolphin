@@ -56,6 +56,7 @@ import org.dolphinemu.dolphinemu.overlay.InputOverlayPointer
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter
 import org.dolphinemu.dolphinemu.ui.main.ThemeProvider
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper
 import org.dolphinemu.dolphinemu.utils.ThemeHelper
 import kotlin.math.roundToInt
@@ -108,8 +109,6 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
 
         settings = Settings()
         settings.loadSettings()
-
-        updateOrientation()
 
         // Set these options now so that the SurfaceView the game renders into is the right size.
         enableFullscreenImmersive()
@@ -203,21 +202,19 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
 
         super.onResume()
 
-        // Only android 9+ support this feature.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            val attributes = window.attributes
-
-            attributes.layoutInDisplayCutoutMode =
-                if (BooleanSetting.MAIN_EXPAND_TO_CUTOUT_AREA.boolean) {
-                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-                } else {
-                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER
-                }
-
-            window.attributes = attributes
+        // If the whole app process was recreated, directory initialization might not be done yet.
+        // If that's the case, we can't read settings, so skip reading the settings for now and do
+        // it once onTitleChanged runs instead.
+        if (DirectoryInitialization.areDolphinDirectoriesReady()) {
+            updateDisplaySettings();
+        } else {
+            // If the process was recreated and DolphinApplication.onStart didn't think it should
+            // start directory initialization, we have to start it, otherwise emulation will never
+            // start. Technically it would be nicer to ask the user for write permission first,
+            // but because this problem can only happen in very convoluted situations, this code is
+            // going to get essentially no testing, so let's go with the simplest possible fix.
+            DirectoryInitialization.start(this);
         }
-
-        updateOrientation()
 
         DolphinSensorEventListener.setDeviceRotation(windowManager.defaultDisplay.rotation)
     }
@@ -238,6 +235,8 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             title = NativeLibrary.GetCurrentTitleDescription()
 
             emulationFragment?.refreshInputOverlay()
+
+            updateDisplaySettings()
         } catch (_: IllegalStateException) {
             // Most likely the core delivered an onTitleChanged while emulation was shutting down.
             // Let's just ignore it, since we're about to shut down anyway.
@@ -338,7 +337,20 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
     }
 
-    private fun updateOrientation() {
+    private fun updateDisplaySettings() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val attributes = window.attributes
+
+            attributes.layoutInDisplayCutoutMode =
+                if (BooleanSetting.MAIN_EXPAND_TO_CUTOUT_AREA.boolean) {
+                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+                } else {
+                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER
+                }
+
+            window.attributes = attributes
+        }
+
         requestedOrientation = IntSetting.MAIN_EMULATION_ORIENTATION.int
     }
 
