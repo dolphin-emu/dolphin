@@ -54,3 +54,7 @@ function(configure_source_file path)
 endfunction()
 
 configure_source_file("Source/Core/Common/scmrev.h")
+
+if(APPLE)
+  configure_source_file("Source/Core/DolphinQt/Info.plist")
+endif()
