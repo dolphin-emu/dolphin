@@ -34,9 +34,26 @@ public:
   GLuint GetGLTextureId() const { return m_texId; }
   GLenum GetGLTarget() const
   {
-    return m_config.IsCubeMap() ? GL_TEXTURE_CUBE_MAP :
-           IsMultisampled()     ? GL_TEXTURE_2D_MULTISAMPLE_ARRAY :
-                                  GL_TEXTURE_2D_ARRAY;
+    if (m_config.type == AbstractTextureType::Texture_2DArray)
+    {
+      if (m_config.IsMultisampled())
+        return GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
+      else
+        return GL_TEXTURE_2D_ARRAY;
+    }
+    else if (m_config.type == AbstractTextureType::Texture_2D)
+    {
+      if (m_config.IsMultisampled())
+        return GL_TEXTURE_2D_MULTISAMPLE;
+      else
+        return GL_TEXTURE_2D;
+    }
+    else if (m_config.type == AbstractTextureType::Texture_CubeMap)
+    {
+      return GL_TEXTURE_CUBE_MAP;
+    }
+
+    return GL_TEXTURE_2D_ARRAY;
   }
   static GLenum GetGLInternalFormatForTextureFormat(AbstractTextureFormat format, bool storage);
   GLenum GetGLFormatForImageTexture() const;

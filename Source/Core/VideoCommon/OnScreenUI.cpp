@@ -77,7 +77,8 @@ bool OnScreenUI::Initialize(u32 width, u32 height, float scale)
     io.Fonts->GetTexDataAsRGBA32(&font_tex_pixels, &font_tex_width, &font_tex_height);
 
     TextureConfig font_tex_config(font_tex_width, font_tex_height, 1, 1, 1,
-                                  AbstractTextureFormat::RGBA8, 0);
+                                  AbstractTextureFormat::RGBA8, 0,
+                                  AbstractTextureType::Texture_2DArray);
     std::unique_ptr<AbstractTexture> font_tex =
         g_gfx->CreateTexture(font_tex_config, "ImGui font texture");
     if (!font_tex)
@@ -362,7 +363,8 @@ void OnScreenUI::DrawChallenges()
         continue;
       const u32 width = icon->width;
       const u32 height = icon->height;
-      TextureConfig tex_config(width, height, 1, 1, 1, AbstractTextureFormat::RGBA8, 0);
+      TextureConfig tex_config(width, height, 1, 1, 1, AbstractTextureFormat::RGBA8, 0,
+                               AbstractTextureType::Texture_2DArray);
       auto res = m_challenge_texture_map.insert_or_assign(name, g_gfx->CreateTexture(tex_config));
       res.first->second->Load(0, width, height, width, icon->rgba_data.data(),
                               sizeof(u32) * width * height);

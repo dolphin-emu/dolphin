@@ -90,7 +90,8 @@ static float DrawMessage(int index, Message& msg, const ImVec2& position, int ti
       {
         const u32 width = msg.icon->width;
         const u32 height = msg.icon->height;
-        TextureConfig tex_config(width, height, 1, 1, 1, AbstractTextureFormat::RGBA8, 0);
+        TextureConfig tex_config(width, height, 1, 1, 1, AbstractTextureFormat::RGBA8, 0,
+                                 AbstractTextureType::Texture_2DArray);
         msg.texture = g_gfx->CreateTexture(tex_config);
         if (msg.texture)
         {
