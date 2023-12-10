@@ -57,6 +57,7 @@ extern const Info<PowerPC::CPUCore> MAIN_CPU_CORE;
 extern const Info<bool> MAIN_JIT_FOLLOW_BRANCH;
 extern const Info<bool> MAIN_FASTMEM;
 extern const Info<bool> MAIN_FASTMEM_ARENA;
+extern const Info<bool> MAIN_LARGE_ENTRY_POINTS_MAP;
 extern const Info<bool> MAIN_ACCURATE_CPU_CACHE;
 // Should really be in the DSP section, but we're kind of stuck with bad decisions made in the past.
 extern const Info<bool> MAIN_DSP_HLE;

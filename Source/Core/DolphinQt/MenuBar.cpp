@@ -153,6 +153,7 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   m_jit_block_linking->setEnabled(!running);
   m_jit_disable_cache->setEnabled(!running);
   m_jit_disable_fastmem_arena->setEnabled(!running);
+  m_jit_disable_large_entry_points_map->setEnabled(!running);
   m_jit_clear_cache->setEnabled(running);
   m_jit_log_coverage->setEnabled(!running);
   m_jit_search_instruction->setEnabled(running);
@@ -866,6 +867,14 @@ void MenuBar::AddJITMenu()
   m_jit_disable_fastmem_arena->setChecked(!Config::Get(Config::MAIN_FASTMEM_ARENA));
   connect(m_jit_disable_fastmem_arena, &QAction::toggled,
           [](bool enabled) { Config::SetBaseOrCurrent(Config::MAIN_FASTMEM_ARENA, !enabled); });
+
+  m_jit_disable_large_entry_points_map = m_jit->addAction(tr("Disable Large Entry Points Map"));
+  m_jit_disable_large_entry_points_map->setCheckable(true);
+  m_jit_disable_large_entry_points_map->setChecked(
+      !Config::Get(Config::MAIN_LARGE_ENTRY_POINTS_MAP));
+  connect(m_jit_disable_large_entry_points_map, &QAction::toggled, [](bool enabled) {
+    Config::SetBaseOrCurrent(Config::MAIN_LARGE_ENTRY_POINTS_MAP, !enabled);
+  });
 
   m_jit_clear_cache = m_jit->addAction(tr("Clear Cache"), this, &MenuBar::ClearCache);
 

@@ -265,6 +265,7 @@ private:
   QAction* m_jit_disable_cache;
   QAction* m_jit_disable_fastmem;
   QAction* m_jit_disable_fastmem_arena;
+  QAction* m_jit_disable_large_entry_points_map;
   QAction* m_jit_clear_cache;
   QAction* m_jit_log_coverage;
   QAction* m_jit_search_instruction;
