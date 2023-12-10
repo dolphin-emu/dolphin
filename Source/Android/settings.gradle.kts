@@ -5,6 +5,8 @@ pluginManagement {
         mavenCentral()
     }
 }
+
+@Suppress("UnstableApiUsage")
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
@@ -12,5 +14,6 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-include ':app'
-include ':benchmark'
+
+include(":app")
+include(":benchmark")

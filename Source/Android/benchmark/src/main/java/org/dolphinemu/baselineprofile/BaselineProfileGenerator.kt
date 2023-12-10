@@ -1,24 +1,25 @@
-package com.dolphin.benchmark
+// SPDX-License-Identifier: GPL-2.0-or-later
 
-import androidx.benchmark.macro.ExperimentalBaselineProfilesApi
+package org.dolphinemu.baselineprofile
+
 import androidx.benchmark.macro.junit4.BaselineProfileRule
-import androidx.test.internal.runner.junit4.AndroidJUnit4ClassRunner
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.filters.LargeTest
 import androidx.test.uiautomator.UiSelector
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-@OptIn(ExperimentalBaselineProfilesApi::class)
-@RunWith(AndroidJUnit4ClassRunner::class)
+@RunWith(AndroidJUnit4::class)
+@LargeTest
 class BaselineProfileGenerator {
 
     @get:Rule
     val rule = BaselineProfileRule()
 
     @Test
-    fun generate() = rule.collectBaselineProfile(
-        packageName = "org.dolphinemu.dolphinemu.benchmark",
-        profileBlock = {
+    fun generate() {
+        rule.collect("org.dolphinemu.dolphinemu") {
             pressHome()
             startActivityAndWait()
 
@@ -26,7 +27,7 @@ class BaselineProfileGenerator {
             device.pressBack()
 
             // Navigate through activities that don't require games
-            // TODO: Make all activities testable without having games available
+            // TODO: Make all activities testable without having games available (or use homebrew)
             // TODO: Use resource strings to support more languages
 
             // Navigate to the Settings Activity
@@ -38,6 +39,6 @@ class BaselineProfileGenerator {
             config.click()
             val userData = device.findObject(UiSelector().textContains("User Data"))
             userData.clickAndWaitForNewWindow(30_000)
-        },
-    )
+        }
+    }
 }
