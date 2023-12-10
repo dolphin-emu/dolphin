@@ -1949,6 +1949,14 @@ class SettingsFragmentPresenter(
                 0
             )
         )
+        sl.add(
+            InvertedSwitchSetting(
+                context,
+                BooleanSetting.MAIN_LARGE_ENTRY_POINTS_MAP,
+                R.string.debug_large_entry_points_map,
+                0
+            )
+        )
 
         sl.add(HeaderSetting(context, R.string.debug_jit_header, 0))
         sl.add(
