@@ -1228,7 +1228,11 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       gpr.Commit();
       fpr.Commit();
 
-      // If we have a register that will never be used again, discard or flush it.
+      // If a register won't be used again in this block, or its value will never be needed again,
+      // flush or discard it respectively.
+      //
+      // To improve JIT-time performance, we use some extra bitwise math to skip trying to flush
+      // registers that can't have changed state during the current PPC instruction.
       if (!bJITRegisterCacheOff)
       {
         gpr.Discard(op.gprDiscardable);
