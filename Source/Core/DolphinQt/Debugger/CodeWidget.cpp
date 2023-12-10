@@ -147,6 +147,8 @@ void CodeWidget::CreateWidgets()
   m_lock_btn->setMinimumSize(24, 24);
   m_lock_btn->setStyleSheet(LOCK_BUTTON_STYLESHEET);
 
+  m_branch_watch_dialog = new QPushButton(tr("Branch Watch"));
+
   top_layout->addWidget(m_search_address);
   top_layout->addWidget(m_save_address_btn);
   top_layout->addWidget(m_lock_btn);
