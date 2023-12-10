@@ -541,6 +541,19 @@ void JitArm64::lmw(UGeckoInstruction inst)
   if (!a_is_addr_base_reg)
     MOV(addr_base_reg, addr_reg);
 
+  BitSet32 gprs_to_discard{};
+  if (!jo.memcheck)
+  {
+    gprs_to_discard = js.op->gprDiscardable;
+    if (gprs_to_discard[a])
+    {
+      if (a_is_addr_base_reg)
+        gprs_to_discard[a] = false;
+      else
+        gpr.DiscardRegisters(BitSet32{int(a)});
+    }
+  }
+
   BitSet32 gprs_to_flush = ~js.op->gprInUse & BitSet32(0xFFFFFFFFU << d);
   if (!js.op->gprInUse[a])
   {
@@ -592,7 +605,7 @@ void JitArm64::lmw(UGeckoInstruction inst)
     // after this instruction, flush registers that would be flushed after this instruction anyway.
     //
     // We try to store two registers at a time when possible to let the register cache use STP.
-    if (!jo.memcheck && js.op->gprDiscardable[i])
+    if (gprs_to_discard[i])
     {
       gpr.DiscardRegisters(BitSet32{int(i)});
     }
@@ -645,6 +658,19 @@ void JitArm64::stmw(UGeckoInstruction inst)
   if (!a_is_addr_base_reg)
     MOV(addr_base_reg, addr_reg);
 
+  BitSet32 gprs_to_discard{};
+  if (!jo.memcheck)
+  {
+    gprs_to_discard = js.op->gprDiscardable;
+    if (gprs_to_discard[a])
+    {
+      if (a_is_addr_base_reg)
+        gprs_to_discard[a] = false;
+      else
+        gpr.DiscardRegisters(BitSet32{int(a)});
+    }
+  }
+
   const BitSet32 dirty_gprs_to_flush_unmasked = ~js.op->gprInUse & gpr.GetDirtyGPRs();
   BitSet32 dirty_gprs_to_flush = dirty_gprs_to_flush_unmasked & BitSet32(0xFFFFFFFFU << s);
   if (dirty_gprs_to_flush_unmasked[a])
@@ -692,7 +718,7 @@ void JitArm64::stmw(UGeckoInstruction inst)
     // after this instruction, flush registers that would be flushed after this instruction anyway.
     //
     // We try to store two registers at a time when possible to let the register cache use STP.
-    if (!jo.memcheck && js.op->gprDiscardable[i])
+    if (gprs_to_discard[i])
     {
       gpr.DiscardRegisters(BitSet32{int(i)});
     }
