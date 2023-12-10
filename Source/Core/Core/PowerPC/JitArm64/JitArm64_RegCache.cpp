@@ -458,6 +458,17 @@ BitSet32 Arm64GPRCache::GetCallerSavedUsed() const
   return registers;
 }
 
+BitSet32 Arm64GPRCache::GetDirtyGPRs() const
+{
+  BitSet32 registers(0);
+  for (size_t i = 0; i < GUEST_GPR_COUNT; ++i)
+  {
+    const OpArg& arg = m_guest_registers[GUEST_GPR_OFFSET + i];
+    registers[i] = arg.GetType() != RegType::NotLoaded && arg.IsDirty();
+  }
+  return registers;
+}
+
 void Arm64GPRCache::FlushByHost(ARM64Reg host_reg, ARM64Reg tmp_reg)
 {
   for (size_t i = 0; i < m_guest_registers.size(); ++i)
