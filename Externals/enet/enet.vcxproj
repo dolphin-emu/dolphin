@@ -17,37 +17,37 @@
   <PropertyGroup Label="UserMacros" />
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>enet\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="include\enet\callbacks.h" />
-    <ClInclude Include="include\enet\enet.h" />
-    <ClInclude Include="include\enet\list.h" />
-    <ClInclude Include="include\enet\protocol.h" />
-    <ClInclude Include="include\enet\time.h" />
-    <ClInclude Include="include\enet\types.h" />
-    <ClInclude Include="include\enet\unix.h" />
-    <ClInclude Include="include\enet\utility.h" />
-    <ClInclude Include="include\enet\win32.h" />
+    <ClInclude Include="enet\include\enet\callbacks.h" />
+    <ClInclude Include="enet\include\enet\enet.h" />
+    <ClInclude Include="enet\include\enet\list.h" />
+    <ClInclude Include="enet\include\enet\protocol.h" />
+    <ClInclude Include="enet\include\enet\time.h" />
+    <ClInclude Include="enet\include\enet\types.h" />
+    <ClInclude Include="enet\include\enet\unix.h" />
+    <ClInclude Include="enet\include\enet\utility.h" />
+    <ClInclude Include="enet\include\enet\win32.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="callbacks.c" />
-    <ClCompile Include="compress.c" />
-    <ClCompile Include="host.c" />
-    <ClCompile Include="list.c" />
-    <ClCompile Include="packet.c" />
-    <ClCompile Include="peer.c" />
-    <ClCompile Include="protocol.c" />
-    <ClCompile Include="unix.c" />
-    <ClCompile Include="win32.c" />
+    <ClCompile Include="enet\callbacks.c" />
+    <ClCompile Include="enet\compress.c" />
+    <ClCompile Include="enet\host.c" />
+    <ClCompile Include="enet\list.c" />
+    <ClCompile Include="enet\packet.c" />
+    <ClCompile Include="enet\peer.c" />
+    <ClCompile Include="enet\protocol.c" />
+    <ClCompile Include="enet\unix.c" />
+    <ClCompile Include="enet\win32.c" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="LICENSE" />
-    <None Include="README" />
+    <None Include="enet\LICENSE" />
+    <None Include="enet\README" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
