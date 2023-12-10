@@ -121,9 +121,14 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link,
 {
   size_t index = FastLookupIndexForAddress(block.effectiveAddress, block.feature_flags);
   if (m_entry_points_ptr)
+  {
+    m_entry_points_arena.EnsureMemoryPageWritable(index * sizeof(u8*));
     m_entry_points_ptr[index] = block.normalEntry;
+  }
   else
+  {
     m_fast_block_map_fallback[index] = &block;
+  }
   block.fast_block_map_index = index;
 
   block.physical_addresses = physical_addresses;
@@ -485,9 +490,14 @@ JitBlock* JitBaseBlockCache::MoveBlockIntoFastCache(u32 addr, CPUEmuFeatureFlags
   // And create a new one
   size_t index = FastLookupIndexForAddress(addr, feature_flags);
   if (m_entry_points_ptr)
+  {
+    m_entry_points_arena.EnsureMemoryPageWritable(index * sizeof(u8*));
     m_entry_points_ptr[index] = block->normalEntry;
+  }
   else
+  {
     m_fast_block_map_fallback[index] = block;
+  }
   block->fast_block_map_index = index;
 
   return block;
