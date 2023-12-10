@@ -189,7 +189,7 @@ static DRESULT vff_ioctl(IOS::HLE::FS::FileHandle* vff, BYTE pdrv, BYTE cmd, voi
 
 namespace IOS::HLE::NWC24
 {
-static ErrorCode WriteFile(const std::string& filename, const std::vector<u8>& tmp_buffer)
+static ErrorCode WriteFile(const std::string& filename, std::span<const u8> tmp_buffer)
 {
   FIL dst{};
   const auto open_error_code = f_open(&dst, filename.c_str(), FA_CREATE_ALWAYS | FA_WRITE);
@@ -301,7 +301,7 @@ public:
 }  // namespace
 
 ErrorCode WriteToVFF(const std::string& path, const std::string& filename,
-                     const std::shared_ptr<FS::FileSystem>& fs, const std::vector<u8>& data)
+                     const std::shared_ptr<FS::FileSystem>& fs, std::span<const u8> data)
 {
   VffFatFsCallbacks callbacks;
   ErrorCode return_value;
