@@ -402,8 +402,7 @@ void Presenter::SetWindowSize(int width, int height)
   // "AspectMode::Stretch" setting because that would self influence the output result,
   // given it would be based on the previous frame resolution
   const bool allow_stretch = false;
-  const auto [out_width, out_height] =
-      g_presenter->CalculateOutputDimensions(width, height, allow_stretch);
+  const auto [out_width, out_height] = CalculateOutputDimensions(width, height, allow_stretch);
 
   // Track the last values of width/height to avoid sending a window resize event every frame.
   if (out_width == m_last_window_request_width && out_height == m_last_window_request_height)
