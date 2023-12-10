@@ -846,21 +846,24 @@ AchievementManager::RichPresence AchievementManager::GetRichPresence()
 
 void AchievementManager::SetDisabled(bool disable)
 {
+  bool previously_disabled;
   {
     std::lock_guard lg{m_lock};
+    previously_disabled = m_disabled;
     m_disabled = disable;
+    if (disable && m_is_game_loaded)
+      CloseGame();
   }
-  if (disable)
+
+  if (!previously_disabled && disable && Config::Get(Config::RA_ENABLED))
   {
     INFO_LOG_FMT(ACHIEVEMENTS, "Achievement Manager has been disabled.");
     OSD::AddMessage("Please close all games to re-enable achievements.", OSD::Duration::VERY_LONG,
                     OSD::Color::RED);
-    CloseGame();
   }
-  else
-  {
+
+  if (previously_disabled && !disable)
     INFO_LOG_FMT(ACHIEVEMENTS, "Achievement Manager has been re-enabled.");
-  }
 };
 
 const AchievementManager::NamedIconMap& AchievementManager::GetChallengeIcons() const
