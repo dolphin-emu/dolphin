@@ -92,12 +92,12 @@ void SettingsHandler::Reset()
   m_buffer = {};
 }
 
-void SettingsHandler::AddSetting(const std::string& key, const std::string& value)
+void SettingsHandler::AddSetting(std::string_view key, std::string_view value)
 {
-  WriteLine(key + '=' + value + "\r\n");
+  WriteLine(fmt::format("{}={}\r\n", key, value));
 }
 
-void SettingsHandler::WriteLine(const std::string& str)
+void SettingsHandler::WriteLine(std::string_view str)
 {
   const u32 old_position = m_position;
   const u32 old_key = m_key;
