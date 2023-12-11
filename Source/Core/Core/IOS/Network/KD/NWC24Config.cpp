@@ -258,4 +258,14 @@ std::string_view NWC24Config::GetPassword() const
   const size_t size = strnlen(m_data.paswd, MAX_PASSWORD_LENGTH);
   return {m_data.paswd, size};
 }
+
+std::string NWC24Config::GetDeleteURL() const
+{
+  return {m_data.http_urls[3]};
+}
+
+std::string NWC24Config::GetReceiveURL() const
+{
+  return {m_data.http_urls[2]};
+}
 }  // namespace IOS::HLE::NWC24

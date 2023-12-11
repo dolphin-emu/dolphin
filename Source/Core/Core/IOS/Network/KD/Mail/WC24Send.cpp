@@ -24,8 +24,8 @@
 
 namespace IOS::HLE::NWC24::Mail
 {
-constexpr const char SEND_LIST_PATH[] = "/" WII_WC24CONF_DIR "/mbox"
-                                        "/wc24send.ctl";
+constexpr char SEND_LIST_PATH[] = "/" WII_WC24CONF_DIR "/mbox"
+                                  "/wc24send.ctl";
 
 WC24SendList::WC24SendList(std::shared_ptr<FS::FileSystem> fs) : m_fs{std::move(fs)}
 {
