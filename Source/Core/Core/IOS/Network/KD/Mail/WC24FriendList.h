@@ -33,7 +33,7 @@ public:
   bool CheckFriendList() const;
   void WriteFriendList() const;
 
-  bool DoesFriendExist(u64 friend_id) const;
+  bool IsFriend(u64 friend_id) const;
   std::vector<u64> GetUnconfirmedFriends() const;
 
 private:
