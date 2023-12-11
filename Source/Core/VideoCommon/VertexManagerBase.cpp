@@ -598,7 +598,7 @@ void VertexManagerBase::Flush()
     std::optional<CustomPixelShader> custom_pixel_shader;
     std::vector<std::string> custom_pixel_texture_names;
     std::span<u8> custom_pixel_shader_uniforms;
-    for (int i = 0; i < texture_names.size(); i++)
+    for (size_t i = 0; i < texture_names.size(); i++)
     {
       const std::string& texture_name = texture_names[i];
       const u32 texture_unit = texture_units[i];
