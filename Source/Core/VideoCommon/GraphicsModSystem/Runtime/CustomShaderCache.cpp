@@ -95,8 +95,8 @@ void CustomShaderCache::AsyncCreatePipeline(const VideoCommon::GXPipelineUid& ui
     PipelineWorkItem(CustomShaderCache* shader_cache, const VideoCommon::GXPipelineUid& uid,
                      const CustomShaderInstance& custom_shaders, PipelineIterator iterator,
                      const AbstractPipelineConfig& pipeline_config)
-        : m_shader_cache(shader_cache), m_uid(uid), m_iterator(iterator),
-          m_custom_shaders(custom_shaders), m_config(pipeline_config)
+        : m_shader_cache(shader_cache), m_uid(uid), m_iterator(iterator), m_config(pipeline_config),
+          m_custom_shaders(custom_shaders)
     {
       SetStagesReady();
     }
@@ -179,8 +179,8 @@ void CustomShaderCache::AsyncCreatePipeline(const VideoCommon::GXUberPipelineUid
     PipelineWorkItem(CustomShaderCache* shader_cache, const VideoCommon::GXUberPipelineUid& uid,
                      const CustomShaderInstance& custom_shaders, UberPipelineIterator iterator,
                      const AbstractPipelineConfig& pipeline_config)
-        : m_shader_cache(shader_cache), m_uid(uid), m_iterator(iterator),
-          m_custom_shaders(custom_shaders), m_config(pipeline_config)
+        : m_shader_cache(shader_cache), m_uid(uid), m_iterator(iterator), m_config(pipeline_config),
+          m_custom_shaders(custom_shaders)
     {
       SetStagesReady();
     }
