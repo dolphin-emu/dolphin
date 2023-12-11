@@ -81,7 +81,7 @@ void LoadPatchSection(const Common::IniFile& ini)
   ReadEnabledAndDisabled(ini, "WC24Patch", &s_patches);
 }
 
-void LoadPatches()
+static void LoadPatches()
 {
   const auto& sconfig = SConfig::GetInstance();
   // We can only load WC24 Channels.
