@@ -549,7 +549,7 @@ void JitArm64::lmw(UGeckoInstruction inst)
     {
       if (a_is_addr_base_reg)
         gprs_to_discard[a] = false;
-      else
+      else if (a < d)
         gpr.DiscardRegisters(BitSet32{int(a)});
     }
   }
@@ -666,7 +666,7 @@ void JitArm64::stmw(UGeckoInstruction inst)
     {
       if (a_is_addr_base_reg)
         gprs_to_discard[a] = false;
-      else
+      else if (a < s)
         gpr.DiscardRegisters(BitSet32{int(a)});
     }
   }
