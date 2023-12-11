@@ -210,14 +210,14 @@ void GraphicsModListWidget::OnModChanged(std::optional<std::string> absolute_pat
 
   if (!mod->m_author.empty())
   {
-    auto* author_label = new QLabel(tr("By:  ") + QString::fromStdString(mod->m_author));
+    auto* author_label = new QLabel(tr("By: %1").arg(QString::fromStdString(mod->m_author)));
     m_mod_meta_layout->addWidget(author_label);
   }
 
   if (!mod->m_description.empty())
   {
     auto* description_label =
-        new QLabel(tr("Description:  ") + QString::fromStdString(mod->m_description));
+        new QLabel(tr("Description: %1").arg(QString::fromStdString(mod->m_description)));
     description_label->setWordWrap(true);
     m_mod_meta_layout->addWidget(description_label);
   }
