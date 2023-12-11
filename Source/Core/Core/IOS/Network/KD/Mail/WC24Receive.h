@@ -38,6 +38,7 @@ public:
   u32 GetNextEntryIndex() const;
   u32 GetAppID(u32 index) const;
   u16 GetAppGroup(u32 index) const;
+  u32 GetWiiCmd(u32 index) const;
 
   void FinalizeEntry(u32 index);
   void ClearEntry(u32 index);

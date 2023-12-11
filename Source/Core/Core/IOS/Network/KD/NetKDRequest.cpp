@@ -272,7 +272,13 @@ void NetKDRequestDevice::SchedulerWorker(const SchedulerEvent event)
     u32 mail_flag{};
     u32 interval{};
 
-    NWC24::ErrorCode code = KDCheckMail(&mail_flag, &interval);
+    NWC24::ErrorCode code = KDSendMail();
+    if (code != NWC24::WC24_OK)
+    {
+      LogError(ErrorType::SendMail, code);
+    }
+
+    code = KDCheckMail(&mail_flag, &interval);
     if (code != NWC24::WC24_OK)
     {
       LogError(ErrorType::CheckMail, code);
@@ -286,12 +292,6 @@ void NetKDRequestDevice::SchedulerWorker(const SchedulerEvent event)
       code = KDSaveMail();
       if (code != NWC24::WC24_OK)
         LogError(ErrorType::ReceiveMail, code);
-    }
-
-    code = KDSendMail();
-    if (code != NWC24::WC24_OK)
-    {
-      LogError(ErrorType::SendMail, code);
     }
   }
 }
@@ -542,6 +542,7 @@ NWC24::ErrorCode NetKDRequestDevice::KDSendMail()
     m_scheduler_buffer[4] = Common::swap32(static_cast<u32>(CurrentFunction::Send));
   }
 
+  m_send_list.AddRegistrationMessages(m_friend_list, m_config.Id(), m_config.GetEmail());
   m_send_list.ReadSendList();
   const std::string auth =
       fmt::format("mlid=w{:016}\r\npasswd={}", m_config.Id(), m_config.GetPassword());
@@ -761,10 +762,65 @@ NWC24::ErrorCode NetKDRequestDevice::KDSaveMail()
     m_receive_list.SetHeaderLength(entry_index, header_len);
     m_receive_list.SetMessageOffset(entry_index, header_len);
 
+    reply = parser.ParseWiiAppId(i, entry_index);
+    if (reply != NWC24::WC24_OK)
+    {
+      ERROR_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_SAVE_MAIL_NOW: Failed to parse Wii App ID.");
+      continue;
+    }
+
+    if (m_receive_list.GetAppID(entry_index) == 0 || m_receive_list.GetAppGroup(entry_index) == 0)
+    {
+      if (m_receive_list.GetAppID(entry_index) == 0)
+      {
+        m_receive_list.SetWiiCmd(entry_index, 0x44001);
+      }
+      else
+      {
+        m_receive_list.SetWiiCmd(entry_index, 0x80000);
+      }
+      m_receive_list.UpdateFlag(entry_index, 2, NWC24::Mail::FlagOP::Or);
+    }
+    else
+    {
+      m_receive_list.UpdateFlag(entry_index, 1, NWC24::Mail::FlagOP::Or);
+    }
+
+    reply = parser.ParseWiiCmd(i, entry_index);
+    if (reply != NWC24::WC24_OK)
+    {
+      ERROR_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_SAVE_MAIL_NOW: Failed to parse command.");
+      continue;
+    }
+
     reply = parser.ParseFrom(i, entry_index, m_friend_list);
     if (reply != NWC24::WC24_OK)
     {
       ERROR_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_SAVE_MAIL_NOW: Failed to parse From field.");
+      continue;
+    }
+
+    // Handle registration is needed.
+    if (!m_friend_list.IsFriendEstablished(Common::swap64(parser.GetSender())))
+    {
+      // We use the parsed Wii Command to determine if this is a registration message.
+      const u32 wii_cmd = m_receive_list.GetWiiCmd(entry_index);
+      if (wii_cmd == 0x80010001 || wii_cmd == 0x80010002)
+      {
+        // Set the Wii as a registered friend.
+        m_friend_list.SetFriendStatus(parser.GetSender(),
+                                      NWC24::Mail::WC24FriendList::FriendStatus::Confirmed);
+        NOTICE_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_SAVE_MAIL_NOW: Registered friend {}",
+                       parser.GetSender());
+      }
+      else if (wii_cmd == 0x80010003)
+      {
+        // Wii declined the friend request
+        m_friend_list.SetFriendStatus(parser.GetSender(),
+                                      NWC24::Mail::WC24FriendList::FriendStatus::Declined);
+        WARN_LOG_FMT(IOS_WC24,
+                     "NET_KD_REQ: IOCTL_NWC24_SAVE_MAIL_NOW: Wii declined a friend request.");
+      }
       continue;
     }
 
@@ -797,37 +853,6 @@ NWC24::ErrorCode NetKDRequestDevice::KDSaveMail()
       continue;
     }
 
-    reply = parser.ParseWiiAppId(i, entry_index);
-    if (reply != NWC24::WC24_OK)
-    {
-      ERROR_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_SAVE_MAIL_NOW: Failed to parse Wii App ID.");
-      continue;
-    }
-
-    if (m_receive_list.GetAppID(entry_index) == 0 || m_receive_list.GetAppGroup(entry_index) == 0)
-    {
-      if (m_receive_list.GetAppID(entry_index) == 0)
-      {
-        m_receive_list.SetWiiCmd(entry_index, 0x44001);
-      }
-      else
-      {
-        m_receive_list.SetWiiCmd(entry_index, 0x80000);
-      }
-      m_receive_list.UpdateFlag(entry_index, 2, NWC24::Mail::FlagOP::Or);
-    }
-    else
-    {
-      m_receive_list.UpdateFlag(entry_index, 1, NWC24::Mail::FlagOP::Or);
-    }
-
-    reply = parser.ParseWiiCmd(i, entry_index);
-    if (reply != NWC24::WC24_OK)
-    {
-      ERROR_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_SAVE_MAIL_NOW: Failed to parse command.");
-      continue;
-    }
-
     reply =
         NWC24::WriteToVFF(NWC24::Mail::RECEIVE_BOX_PATH,
                           NWC24::Mail::WC24ReceiveList::GetMailPath(msg_id), m_ios.GetFS(), data);
@@ -843,6 +868,7 @@ NWC24::ErrorCode NetKDRequestDevice::KDSaveMail()
   }
 
   m_receive_list.WriteReceiveList();
+  m_friend_list.WriteFriendList();
   m_scheduler_buffer[13] = Common::swap32(Common::swap32(m_scheduler_buffer[13]) + 1);
   m_scheduler_buffer[4] = 0;
   return NWC24::WC24_OK;

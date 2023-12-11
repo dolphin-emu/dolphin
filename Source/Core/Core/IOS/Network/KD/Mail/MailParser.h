@@ -51,7 +51,7 @@ public:
   ErrorCode ParseContentType(u32 index, u32 receive_index,
                              IsMultipart is_multipart = IsMultipart{false});
   void ParseDate(u32 index, u32 receive_index) const;
-  ErrorCode ParseFrom(u32 index, u32 receive_index, WC24FriendList& friend_list) const;
+  ErrorCode ParseFrom(u32 index, u32 receive_index, WC24FriendList& friend_list);
   void ParseSubject(u32 index, u32 receive_index) const;
   ErrorCode ParseTo(u32 index, u32 receive_index) const;
   ErrorCode ParseWiiAppId(u32 index, u32 receive_index) const;
@@ -63,6 +63,7 @@ public:
   std::string GetHeaderValue(u32 index, std::string_view key,
                              IsMultipart is_multipart = IsMultipart{false}) const;
   u32 GetHeaderLength(u32 index) const;
+  u64 GetSender() const;
 
 private:
   static void EmptyCallback(const char* buffer, size_t start, size_t end, void* user_data){};
@@ -93,8 +94,9 @@ private:
   std::vector<std::string> m_message_data;
   std::vector<Headers> m_headers;
   std::regex m_wii_number_regex{"w\\d{16}"};
-  u32 current_index{};
-  u32 current_header{};
+  u32 m_current_index{};
+  u32 m_current_header{};
+  u64 m_sender{};
   std::string m_charset{};
   std::string m_content_type_str{};
   ContentType m_content_type{};

@@ -50,7 +50,8 @@ public:
   u32 GetNextEntryIndex() const;
   std::optional<u32> GetNextFreeEntryIndex() const;
 
-  ErrorCode AddRegistrationMessages(const WC24FriendList& friend_list, u64 sender);
+  void AddRegistrationMessages(const WC24FriendList& friend_list, u64 sender,
+                               std::string_view email);
 
 private:
   static constexpr u32 MAX_ENTRIES = 127;
@@ -62,12 +63,12 @@ private:
   // just 128 bytes of base64 encoded 0 bytes. That file is supposed to be friend profile data which
   // is written to nwc24fl.bin, although it has been observed to always be 0.
   static constexpr char MAIL_REGISTRATION_STRING[] =
-      "MAIL FROM: {0:016d}@wii.com\r\n"
-      "RCPT TO: {1:016d}wii.com\r\n"
+      "MAIL FROM: w{0:016d}{2}\r\n"
+      "RCPT TO: w{1:016d}{2}\r\n"
       "DATA\r\n"
-      "Date: {2:%a, %d %b %Y %X} GMT\r\n"
-      "From: {0:016d}@wii.com\r\n"
-      "To: {1:016d}@wii.com\r\n"
+      "Date: {3:%a, %d %b %Y %X} GMT\r\n"
+      "From: w{0:016d}{2}\r\n"
+      "To: w{1:016d}{2}\r\n"
       "Message-Id: <00002000B0DF6BB47FE0303E0DB0D@wii.com>\r\n"
       "Subject: WC24 Cmd Message\r\n"
       "X-Wii-AppId: 0-00000001-0001\r\n"
