@@ -731,9 +731,9 @@ void AchievementManager::AchievementEventHandler(const rc_runtime_event_t* runti
     m_update_callback();
 }
 
-std::recursive_mutex* AchievementManager::GetLock()
+std::recursive_mutex& AchievementManager::GetLock()
 {
-  return &m_lock;
+  return m_lock;
 }
 
 bool AchievementManager::IsHardcoreModeActive() const
@@ -934,7 +934,7 @@ void* AchievementManager::FilereaderOpenByVolume(const char* path_utf8)
   auto state = std::make_unique<FilereaderState>();
   {
     auto& instance = GetInstance();
-    std::lock_guard lg{*instance.GetLock()};
+    std::lock_guard lg{instance.GetLock()};
     state->volume = std::move(instance.GetLoadingVolume());
   }
   if (!state->volume)

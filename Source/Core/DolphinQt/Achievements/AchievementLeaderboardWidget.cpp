@@ -25,7 +25,7 @@ AchievementLeaderboardWidget::AchievementLeaderboardWidget(QWidget* parent) : QW
   m_common_layout = new QGridLayout();
 
   {
-    std::lock_guard lg{*AchievementManager::GetInstance().GetLock()};
+    std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
     UpdateData();
   }
 

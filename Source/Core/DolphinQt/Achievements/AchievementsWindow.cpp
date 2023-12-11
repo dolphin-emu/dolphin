@@ -75,7 +75,7 @@ void AchievementsWindow::UpdateData()
 {
   {
     auto& instance = AchievementManager::GetInstance();
-    std::lock_guard lg{*instance.GetLock()};
+    std::lock_guard lg{instance.GetLock()};
     const bool is_game_loaded = instance.IsGameLoaded();
 
     m_header_widget->UpdateData();

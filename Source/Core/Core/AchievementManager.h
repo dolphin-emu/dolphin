@@ -129,7 +129,7 @@ public:
   u32 MemoryPeeker(u32 address, u32 num_bytes, void* ud);
   void AchievementEventHandler(const rc_runtime_event_t* runtime_event);
 
-  std::recursive_mutex* GetLock();
+  std::recursive_mutex& GetLock();
   bool IsHardcoreModeActive() const;
   std::string GetPlayerDisplayName() const;
   u32 GetPlayerScore() const;

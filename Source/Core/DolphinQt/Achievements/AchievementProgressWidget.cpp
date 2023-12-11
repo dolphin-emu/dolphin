@@ -29,7 +29,7 @@ AchievementProgressWidget::AchievementProgressWidget(QWidget* parent) : QWidget(
   m_common_layout = new QVBoxLayout();
 
   {
-    std::lock_guard lg{*AchievementManager::GetInstance().GetLock()};
+    std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
     UpdateData();
   }
 
