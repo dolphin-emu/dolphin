@@ -373,7 +373,7 @@ void TraversalClient::HandleTraversalTest()
           waitCondition = 0;
           break;
         }
-        else if (rv < sizeof(packet) || raddr.host != m_ServerAddress.host ||
+        else if (rv < int(sizeof(packet)) || raddr.host != m_ServerAddress.host ||
                  raddr.host != m_portAlt || packet.requestId != m_TestRequestId)
         {
           // irrelevant packet, ignore
