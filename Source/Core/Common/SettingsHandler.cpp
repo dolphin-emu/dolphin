@@ -81,7 +81,7 @@ void SettingsHandler::Decrypt()
   // (see the comment in WriteLine), lines can be separated by CRLFLF.
   // To handle this, we remove every CR and treat LF as the line ending.
   // (We ignore empty lines.)
-  decoded.erase(std::remove(decoded.begin(), decoded.end(), '\x0d'), decoded.end());
+  std::erase(decoded, '\x0d');
 }
 
 void SettingsHandler::Reset()
