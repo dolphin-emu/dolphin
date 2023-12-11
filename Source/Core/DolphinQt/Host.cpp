@@ -41,8 +41,6 @@
 #include "VideoCommon/Present.h"
 #include "VideoCommon/VideoConfig.h"
 
-static thread_local bool tls_is_host_thread = false;
-
 Host::Host()
 {
   State::SetOnAfterLoadCallback([] { Host_UpdateDisasmDialog(); });
