@@ -125,7 +125,7 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   m_state_save_menu->setEnabled(running);
 
 #ifdef USE_RETRO_ACHIEVEMENTS
-  bool hardcore = AchievementManager::GetInstance()->IsHardcoreModeActive();
+  const bool hardcore = AchievementManager::GetInstance().IsHardcoreModeActive();
   m_state_load_menu->setEnabled(running && !hardcore);
   m_frame_advance_action->setEnabled(running && !hardcore);
 #else   // USE_RETRO_ACHIEVEMENTS

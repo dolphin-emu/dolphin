@@ -480,7 +480,7 @@ bool ESDevice::LaunchPPCTitle(u64 title_id)
 #ifdef USE_RETRO_ACHIEVEMENTS
   INFO_LOG_FMT(ACHIEVEMENTS,
                "WAD and NAND formats not currently supported by Achievement Manager.");
-  AchievementManager::GetInstance()->SetDisabled(true);
+  AchievementManager::GetInstance().SetDisabled(true);
 #endif  // USE_RETRO_ACHIEVEMENTS
 
   core_timing.RemoveEvent(s_bootstrap_ppc_for_launch_event);

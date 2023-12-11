@@ -39,7 +39,7 @@ void FreeLookWidget::CreateLayout()
       tr("Allows manipulation of the in-game camera.<br><br><dolphin_emphasis>If unsure, "
          "leave this unchecked.</dolphin_emphasis>"));
 #ifdef USE_RETRO_ACHIEVEMENTS
-  bool hardcore = AchievementManager::GetInstance()->IsHardcoreModeActive();
+  const bool hardcore = AchievementManager::GetInstance().IsHardcoreModeActive();
   m_enable_freelook->setEnabled(!hardcore);
 #endif  // USE_RETRO_ACHIEVEMENTS
   m_freelook_controller_configure_button = new NonDefaultQPushButton(tr("Configure Controller"));
@@ -113,7 +113,7 @@ void FreeLookWidget::LoadSettings()
   const bool checked = Config::Get(Config::FREE_LOOK_ENABLED);
   m_enable_freelook->setChecked(checked);
 #ifdef USE_RETRO_ACHIEVEMENTS
-  bool hardcore = AchievementManager::GetInstance()->IsHardcoreModeActive();
+  const bool hardcore = AchievementManager::GetInstance().IsHardcoreModeActive();
   m_enable_freelook->setEnabled(!hardcore);
 #endif  // USE_RETRO_ACHIEVEMENTS
   m_freelook_control_type->setEnabled(checked);

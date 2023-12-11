@@ -582,7 +582,7 @@ void HotkeyScheduler::Run()
       const bool new_value = !Config::Get(Config::FREE_LOOK_ENABLED);
       Config::SetCurrent(Config::FREE_LOOK_ENABLED, new_value);
 #ifdef USE_RETRO_ACHIEVEMENTS
-      bool hardcore = AchievementManager::GetInstance()->IsHardcoreModeActive();
+      const bool hardcore = AchievementManager::GetInstance().IsHardcoreModeActive();
       if (hardcore)
         OSD::AddMessage("Free Look is Disabled in Hardcore Mode");
       else

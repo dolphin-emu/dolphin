@@ -207,7 +207,7 @@ void LoadFromBuffer(std::vector<u8>& buffer)
   }
 
 #ifdef USE_RETRO_ACHIEVEMENTS
-  if (AchievementManager::GetInstance()->IsHardcoreModeActive())
+  if (AchievementManager::GetInstance().IsHardcoreModeActive())
   {
     OSD::AddMessage("Loading savestates is disabled in RetroAchievements hardcore mode");
     return;
@@ -853,7 +853,7 @@ void LoadAs(const std::string& filename)
   }
 
 #ifdef USE_RETRO_ACHIEVEMENTS
-  if (AchievementManager::GetInstance()->IsHardcoreModeActive())
+  if (AchievementManager::GetInstance().IsHardcoreModeActive())
   {
     OSD::AddMessage("Loading savestates is disabled in RetroAchievements hardcore mode");
     return;

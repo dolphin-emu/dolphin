@@ -109,7 +109,7 @@ public:
     std::unordered_map<u32, LeaderboardEntry> entries;
   };
 
-  static AchievementManager* GetInstance();
+  static AchievementManager& GetInstance();
   void Init();
   void SetUpdateCallback(UpdateCallback callback);
   ResponseType Login(const std::string& password);

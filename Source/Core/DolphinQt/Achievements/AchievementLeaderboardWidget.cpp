@@ -37,7 +37,7 @@ AchievementLeaderboardWidget::AchievementLeaderboardWidget(QWidget* parent) : QW
   m_common_layout = new QGridLayout();
 
   {
-    std::lock_guard lg{*AchievementManager::GetInstance()->GetLock()};
+    std::lock_guard lg{*AchievementManager::GetInstance().GetLock()};
     UpdateData();
   }
 
@@ -54,9 +54,9 @@ void AchievementLeaderboardWidget::UpdateData()
 {
   ClearLayoutRecursively(m_common_layout);
 
-  if (!AchievementManager::GetInstance()->IsGameLoaded())
+  if (!AchievementManager::GetInstance().IsGameLoaded())
     return;
-  const auto& leaderboards = AchievementManager::GetInstance()->GetLeaderboardsInfo();
+  const auto& leaderboards = AchievementManager::GetInstance().GetLeaderboardsInfo();
   int row = 0;
   for (const auto& board_row : leaderboards)
   {

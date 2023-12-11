@@ -39,7 +39,7 @@ AchievementProgressWidget::AchievementProgressWidget(QWidget* parent) : QWidget(
   m_common_layout = new QVBoxLayout();
 
   {
-    std::lock_guard lg{*AchievementManager::GetInstance()->GetLock()};
+    std::lock_guard lg{*AchievementManager::GetInstance().GetLock()};
     UpdateData();
   }
 
@@ -55,10 +55,12 @@ AchievementProgressWidget::AchievementProgressWidget(QWidget* parent) : QWidget(
 QGroupBox*
 AchievementProgressWidget::CreateAchievementBox(const rc_api_achievement_definition_t* achievement)
 {
-  if (!AchievementManager::GetInstance()->IsGameLoaded())
+  const auto& instance = AchievementManager::GetInstance();
+  if (!instance.IsGameLoaded())
     return new QGroupBox();
+
   QLabel* a_badge = new QLabel();
-  const auto unlock_status = AchievementManager::GetInstance()->GetUnlockStatus(achievement->id);
+  const auto unlock_status = instance.GetUnlockStatus(achievement->id);
   const AchievementManager::BadgeStatus* badge = &unlock_status.locked_badge;
   std::string_view color = AchievementManager::GRAY;
   if (unlock_status.remote_unlock_status == AchievementManager::UnlockStatus::UnlockType::HARDCORE)
@@ -106,7 +108,7 @@ AchievementProgressWidget::CreateAchievementBox(const rc_api_achievement_definit
   a_progress_bar->setSizePolicy(sp_retain);
   unsigned int value = 0;
   unsigned int target = 0;
-  if (AchievementManager::GetInstance()->GetAchievementProgress(achievement->id, &value, &target) ==
+  if (AchievementManager::GetInstance().GetAchievementProgress(achievement->id, &value, &target) ==
           AchievementManager::ResponseType::SUCCESS &&
       target > 0)
   {
@@ -136,9 +138,11 @@ void AchievementProgressWidget::UpdateData()
 {
   ClearLayoutRecursively(m_common_layout);
 
-  if (!AchievementManager::GetInstance()->IsGameLoaded())
+  auto& instance = AchievementManager::GetInstance();
+  if (!instance.IsGameLoaded())
     return;
-  const auto* game_data = AchievementManager::GetInstance()->GetGameData();
+
+  const auto* game_data = instance.GetGameData();
   for (u32 ix = 0; ix < game_data->num_achievements; ix++)
   {
     m_common_layout->addWidget(CreateAchievementBox(game_data->achievements + ix));
@@ -147,7 +151,7 @@ void AchievementProgressWidget::UpdateData()
 
 QString AchievementProgressWidget::GetStatusString(u32 achievement_id) const
 {
-  const auto unlock_status = AchievementManager::GetInstance()->GetUnlockStatus(achievement_id);
+  const auto unlock_status = AchievementManager::GetInstance().GetUnlockStatus(achievement_id);
   if (unlock_status.session_unlock_count > 0)
   {
     if (Config::Get(Config::RA_ENCORE_ENABLED))
