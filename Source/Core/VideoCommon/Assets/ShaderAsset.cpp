@@ -14,9 +14,9 @@
 
 namespace VideoCommon
 {
-bool ParseShaderProperties(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
-                           const picojson::array& properties_data,
-                           std::map<std::string, VideoCommon::ShaderProperty>* shader_properties)
+static bool ParseShaderProperties(const CustomAssetLibrary::AssetID& asset_id,
+                                  const picojson::array& properties_data,
+                                  std::map<std::string, ShaderProperty>* shader_properties)
 {
   if (!shader_properties) [[unlikely]]
     return false;
