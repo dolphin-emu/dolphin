@@ -24,7 +24,7 @@ public:
 
 private:
   void CreateMainLayout();
-  void showEvent(QShowEvent* event);
+  void showEvent(QShowEvent* event) override;
   void ConnectWidgets();
 
   AchievementHeaderWidget* m_header_widget;
