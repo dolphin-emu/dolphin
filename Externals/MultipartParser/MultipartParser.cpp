@@ -1,0 +1,1 @@
+// For CMake to detect this is C++
