@@ -4,28 +4,17 @@
 #ifdef USE_RETRO_ACHIEVEMENTS
 #include "DolphinQt/Achievements/AchievementHeaderWidget.h"
 
-#include <QCheckBox>
 #include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
 #include <QProgressBar>
-#include <QPushButton>
 #include <QString>
 #include <QVBoxLayout>
-
-#include <fmt/format.h>
-
-#include <rcheevos/include/rc_api_runtime.h>
-#include <rcheevos/include/rc_api_user.h>
-#include <rcheevos/include/rc_runtime.h>
 
 #include "Core/AchievementManager.h"
 #include "Core/Config/AchievementSettings.h"
 #include "Core/Core.h"
 
-#include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
-#include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 
 AchievementHeaderWidget::AchievementHeaderWidget(QWidget* parent) : QWidget(parent)
@@ -73,33 +62,31 @@ AchievementHeaderWidget::AchievementHeaderWidget(QWidget* parent) : QWidget(pare
   m_total->setAlignment(Qt::AlignTop);
   setLayout(m_total);
 
-  std::lock_guard lg{*AchievementManager::GetInstance()->GetLock()};
+  std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
   UpdateData();
 }
 
 void AchievementHeaderWidget::UpdateData()
 {
-  if (!AchievementManager::GetInstance()->IsLoggedIn())
+  auto& instance = AchievementManager::GetInstance();
+  if (!instance.IsLoggedIn())
   {
     m_header_box->setVisible(false);
     return;
   }
 
-  AchievementManager::PointSpread point_spread = AchievementManager::GetInstance()->TallyScore();
-  QString user_name =
-      QString::fromStdString(AchievementManager::GetInstance()->GetPlayerDisplayName());
-  QString game_name =
-      QString::fromStdString(AchievementManager::GetInstance()->GetGameDisplayName());
-  AchievementManager::BadgeStatus player_badge =
-      AchievementManager::GetInstance()->GetPlayerBadge();
-  AchievementManager::BadgeStatus game_badge = AchievementManager::GetInstance()->GetGameBadge();
+  AchievementManager::PointSpread point_spread = instance.TallyScore();
+  QString user_name = QString::fromStdString(instance.GetPlayerDisplayName());
+  QString game_name = QString::fromStdString(instance.GetGameDisplayName());
+  AchievementManager::BadgeStatus player_badge = instance.GetPlayerBadge();
+  AchievementManager::BadgeStatus game_badge = instance.GetGameBadge();
 
   m_user_icon->setVisible(false);
   m_user_icon->clear();
   m_user_icon->setText({});
   if (Config::Get(Config::RA_BADGES_ENABLED))
   {
-    if (player_badge.name != "")
+    if (!player_badge.name.empty())
     {
       QImage i_user_icon{};
       if (i_user_icon.loadFromData(&player_badge.badge.front(), (int)player_badge.badge.size()))
@@ -117,7 +104,7 @@ void AchievementHeaderWidget::UpdateData()
   m_game_icon->setText({});
   if (Config::Get(Config::RA_BADGES_ENABLED))
   {
-    if (game_badge.name != "")
+    if (!game_badge.name.empty())
     {
       QImage i_game_icon{};
       if (i_game_icon.loadFromData(&game_badge.badge.front(), (int)game_badge.badge.size()))
@@ -150,8 +137,7 @@ void AchievementHeaderWidget::UpdateData()
     m_game_progress_soft->setValue(point_spread.hard_unlocks + point_spread.soft_unlocks);
     if (!m_game_progress_soft->isVisible())
       m_game_progress_soft->setVisible(true);
-    m_rich_presence->setText(
-        QString::fromUtf8(AchievementManager::GetInstance()->GetRichPresence().data()));
+    m_rich_presence->setText(QString::fromUtf8(instance.GetRichPresence().data()));
     if (!m_rich_presence->isVisible())
       m_rich_presence->setVisible(Config::Get(Config::RA_RICH_PRESENCE_ENABLED));
     m_locked_warning->setVisible(false);
@@ -159,12 +145,12 @@ void AchievementHeaderWidget::UpdateData()
   else
   {
     m_name->setText(user_name);
-    m_points->setText(tr("%1 points").arg(AchievementManager::GetInstance()->GetPlayerScore()));
+    m_points->setText(tr("%1 points").arg(instance.GetPlayerScore()));
 
     m_game_progress_hard->setVisible(false);
     m_game_progress_soft->setVisible(false);
     m_rich_presence->setVisible(false);
-    if (AchievementManager::GetInstance()->IsDisabled())
+    if (instance.IsDisabled())
     {
       m_locked_warning->setVisible(true);
     }

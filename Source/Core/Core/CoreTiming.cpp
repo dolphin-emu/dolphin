@@ -139,7 +139,7 @@ void CoreTimingManager::RefreshConfig()
   m_max_variance = std::chrono::duration_cast<DT>(DT_ms(Config::Get(Config::MAIN_TIMING_VARIANCE)));
 
 #ifdef USE_RETRO_ACHIEVEMENTS
-  if (AchievementManager::GetInstance()->IsHardcoreModeActive() &&
+  if (AchievementManager::GetInstance().IsHardcoreModeActive() &&
       Config::Get(Config::MAIN_EMULATION_SPEED) < 1.0f &&
       Config::Get(Config::MAIN_EMULATION_SPEED) > 0.0f)
   {

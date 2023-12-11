@@ -10,6 +10,8 @@
 #include <QTabWidget>
 #include <QVBoxLayout>
 
+#include "Core/AchievementManager.h"
+
 #include "DolphinQt/Achievements/AchievementHeaderWidget.h"
 #include "DolphinQt/Achievements/AchievementLeaderboardWidget.h"
 #include "DolphinQt/Achievements/AchievementProgressWidget.h"
@@ -25,7 +27,7 @@ AchievementsWindow::AchievementsWindow(QWidget* parent) : QDialog(parent)
 
   CreateMainLayout();
   ConnectWidgets();
-  AchievementManager::GetInstance()->SetUpdateCallback(
+  AchievementManager::GetInstance().SetUpdateCallback(
       [this] { QueueOnObject(this, &AchievementsWindow::UpdateData); });
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           &AchievementsWindow::UpdateData);
@@ -41,7 +43,7 @@ void AchievementsWindow::showEvent(QShowEvent* event)
 
 void AchievementsWindow::CreateMainLayout()
 {
-  auto* layout = new QVBoxLayout();
+  const auto is_game_loaded = AchievementManager::GetInstance().IsGameLoaded();
 
   m_header_widget = new AchievementHeaderWidget(this);
   m_tab_widget = new QTabWidget();
@@ -50,12 +52,13 @@ void AchievementsWindow::CreateMainLayout()
   m_leaderboard_widget = new AchievementLeaderboardWidget(m_tab_widget);
   m_tab_widget->addTab(GetWrappedWidget(m_settings_widget, this, 125, 100), tr("Settings"));
   m_tab_widget->addTab(GetWrappedWidget(m_progress_widget, this, 125, 100), tr("Progress"));
-  m_tab_widget->setTabVisible(1, AchievementManager::GetInstance()->IsGameLoaded());
+  m_tab_widget->setTabVisible(1, is_game_loaded);
   m_tab_widget->addTab(GetWrappedWidget(m_leaderboard_widget, this, 125, 100), tr("Leaderboards"));
-  m_tab_widget->setTabVisible(2, AchievementManager::GetInstance()->IsGameLoaded());
+  m_tab_widget->setTabVisible(2, is_game_loaded);
 
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Close);
 
+  auto* layout = new QVBoxLayout();
   layout->addWidget(m_header_widget);
   layout->addWidget(m_tab_widget);
   layout->addWidget(m_button_box);
@@ -71,14 +74,17 @@ void AchievementsWindow::ConnectWidgets()
 void AchievementsWindow::UpdateData()
 {
   {
-    std::lock_guard lg{*AchievementManager::GetInstance()->GetLock()};
+    auto& instance = AchievementManager::GetInstance();
+    std::lock_guard lg{instance.GetLock()};
+    const bool is_game_loaded = instance.IsGameLoaded();
+
     m_header_widget->UpdateData();
-    m_header_widget->setVisible(AchievementManager::GetInstance()->IsLoggedIn());
+    m_header_widget->setVisible(instance.IsLoggedIn());
     m_settings_widget->UpdateData();
     m_progress_widget->UpdateData();
-    m_tab_widget->setTabVisible(1, AchievementManager::GetInstance()->IsGameLoaded());
+    m_tab_widget->setTabVisible(1, is_game_loaded);
     m_leaderboard_widget->UpdateData();
-    m_tab_widget->setTabVisible(2, AchievementManager::GetInstance()->IsGameLoaded());
+    m_tab_widget->setTabVisible(2, is_game_loaded);
   }
   update();
 }

@@ -170,7 +170,7 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
     return;
 
 #ifdef USE_RETRO_ACHIEVEMENTS
-  AchievementManager::GetInstance()->SetDisabled(true);
+  AchievementManager::GetInstance().SetDisabled(true);
 #endif  // USE_RETRO_ACHIEVEMENTS
 
   if (game_id == "00000000")

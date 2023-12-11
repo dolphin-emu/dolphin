@@ -28,10 +28,10 @@ static constexpr bool hardcore_mode_enabled = false;
 
 static std::unique_ptr<OSD::Icon> DecodeBadgeToOSDIcon(const AchievementManager::Badge& badge);
 
-AchievementManager* AchievementManager::GetInstance()
+AchievementManager& AchievementManager::GetInstance()
 {
   static AchievementManager s_instance;
-  return &s_instance;
+  return s_instance;
 }
 
 void AchievementManager::Init()
@@ -650,7 +650,7 @@ void AchievementManager::DoFrame()
     rc_runtime_do_frame(
         &m_runtime,
         [](const rc_runtime_event_t* runtime_event) {
-          AchievementManager::GetInstance()->AchievementEventHandler(runtime_event);
+          GetInstance().AchievementEventHandler(runtime_event);
         },
         [](unsigned address, unsigned num_bytes, void* ud) {
           return static_cast<AchievementManager*>(ud)->MemoryPeeker(address, num_bytes, ud);
@@ -731,9 +731,9 @@ void AchievementManager::AchievementEventHandler(const rc_runtime_event_t* runti
     m_update_callback();
 }
 
-std::recursive_mutex* AchievementManager::GetLock()
+std::recursive_mutex& AchievementManager::GetLock()
 {
-  return &m_lock;
+  return m_lock;
 }
 
 bool AchievementManager::IsHardcoreModeActive() const
@@ -933,8 +933,9 @@ void* AchievementManager::FilereaderOpenByVolume(const char* path_utf8)
 {
   auto state = std::make_unique<FilereaderState>();
   {
-    std::lock_guard lg{*AchievementManager::GetInstance()->GetLock()};
-    state->volume = std::move(AchievementManager::GetInstance()->GetLoadingVolume());
+    auto& instance = GetInstance();
+    std::lock_guard lg{instance.GetLock()};
+    state->volume = std::move(instance.GetLoadingVolume());
   }
   if (!state->volume)
     return nullptr;

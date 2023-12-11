@@ -6,9 +6,6 @@
 #ifdef USE_RETRO_ACHIEVEMENTS
 #include <QDialog>
 
-#include "Core/AchievementManager.h"
-#include "DolphinQt/QtUtils/QueueOnObject.h"
-
 class AchievementHeaderWidget;
 class AchievementLeaderboardWidget;
 class AchievementSettingsWidget;
@@ -27,7 +24,7 @@ public:
 
 private:
   void CreateMainLayout();
-  void showEvent(QShowEvent* event);
+  void showEvent(QShowEvent* event) override;
   void ConnectWidgets();
 
   AchievementHeaderWidget* m_header_widget;

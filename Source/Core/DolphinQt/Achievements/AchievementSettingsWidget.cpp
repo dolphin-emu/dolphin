@@ -4,10 +4,8 @@
 #ifdef USE_RETRO_ACHIEVEMENTS
 #include "DolphinQt/Achievements/AchievementSettingsWidget.h"
 
-#include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
-#include <QPushButton>
 #include <QString>
 #include <QVBoxLayout>
 
@@ -20,7 +18,6 @@
 
 #include "DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
-#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
@@ -244,16 +241,18 @@ void AchievementSettingsWidget::SaveSettings()
 void AchievementSettingsWidget::ToggleRAIntegration()
 {
   SaveSettings();
+
+  auto& instance = AchievementManager::GetInstance();
   if (Config::Get(Config::RA_ENABLED))
-    AchievementManager::GetInstance()->Init();
+    instance.Init();
   else
-    AchievementManager::GetInstance()->Shutdown();
+    instance.Shutdown();
 }
 
 void AchievementSettingsWidget::Login()
 {
   Config::SetBaseOrCurrent(Config::RA_USERNAME, m_common_username_input->text().toStdString());
-  AchievementManager::GetInstance()->Login(m_common_password_input->text().toStdString());
+  AchievementManager::GetInstance().Login(m_common_password_input->text().toStdString());
   m_common_password_input->setText(QString());
   m_common_login_failed->setVisible(Config::Get(Config::RA_API_TOKEN).empty());
   SaveSettings();
@@ -261,26 +260,26 @@ void AchievementSettingsWidget::Login()
 
 void AchievementSettingsWidget::Logout()
 {
-  AchievementManager::GetInstance()->Logout();
+  AchievementManager::GetInstance().Logout();
   SaveSettings();
 }
 
 void AchievementSettingsWidget::ToggleAchievements()
 {
   SaveSettings();
-  AchievementManager::GetInstance()->ActivateDeactivateAchievements();
+  AchievementManager::GetInstance().ActivateDeactivateAchievements();
 }
 
 void AchievementSettingsWidget::ToggleLeaderboards()
 {
   SaveSettings();
-  AchievementManager::GetInstance()->ActivateDeactivateLeaderboards();
+  AchievementManager::GetInstance().ActivateDeactivateLeaderboards();
 }
 
 void AchievementSettingsWidget::ToggleRichPresence()
 {
   SaveSettings();
-  AchievementManager::GetInstance()->ActivateDeactivateRichPresence();
+  AchievementManager::GetInstance().ActivateDeactivateRichPresence();
 }
 
 void AchievementSettingsWidget::ToggleHardcore()
@@ -305,19 +304,19 @@ void AchievementSettingsWidget::ToggleProgress()
 void AchievementSettingsWidget::ToggleBadges()
 {
   SaveSettings();
-  AchievementManager::GetInstance()->FetchBadges();
+  AchievementManager::GetInstance().FetchBadges();
 }
 
 void AchievementSettingsWidget::ToggleUnofficial()
 {
   SaveSettings();
-  AchievementManager::GetInstance()->ActivateDeactivateAchievements();
+  AchievementManager::GetInstance().ActivateDeactivateAchievements();
 }
 
 void AchievementSettingsWidget::ToggleEncore()
 {
   SaveSettings();
-  AchievementManager::GetInstance()->ActivateDeactivateAchievements();
+  AchievementManager::GetInstance().ActivateDeactivateAchievements();
 }
 
 #endif  // USE_RETRO_ACHIEVEMENTS

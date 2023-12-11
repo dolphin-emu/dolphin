@@ -330,10 +330,9 @@ void OnScreenUI::DrawDebugText()
 #ifdef USE_RETRO_ACHIEVEMENTS
 void OnScreenUI::DrawChallenges()
 {
-  std::lock_guard lg{*AchievementManager::GetInstance()->GetLock()};
-  const AchievementManager::NamedIconMap& challenge_icons =
-      AchievementManager::GetInstance()->GetChallengeIcons();
-  if (challenge_icons.size() == 0)
+  std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
+  const auto& challenge_icons = AchievementManager::GetInstance().GetChallengeIcons();
+  if (challenge_icons.empty())
     return;
 
   const std::string window_name = "Challenges";

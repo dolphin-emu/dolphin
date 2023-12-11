@@ -398,8 +398,8 @@ void DVDInterface::SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
   }
 
 #ifdef USE_RETRO_ACHIEVEMENTS
-  AchievementManager::GetInstance()->HashGame(disc.get(),
-                                              [](AchievementManager::ResponseType r_type) {});
+  AchievementManager::GetInstance().HashGame(disc.get(),
+                                             [](AchievementManager::ResponseType r_type) {});
 #endif  // USE_RETRO_ACHIEVEMENTS
 
   // Assume that inserting a disc requires having an empty disc before
