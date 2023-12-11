@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <functional>
 #include <memory>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -46,7 +47,7 @@ public:
   std::shared_ptr<const GameFile> AddOrGet(const std::string& path, bool* cache_changed);
 
   // These functions return true if the call modified the cache.
-  bool Update(const std::vector<std::string>& all_game_paths,
+  bool Update(std::span<const std::string> all_game_paths,
               const GameAddedToCacheFn& game_added_to_cache = {},
               const GameRemovedFromCacheFn& game_removed_from_cache = {},
               const std::atomic_bool& processing_halted = false);

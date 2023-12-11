@@ -83,7 +83,7 @@ std::shared_ptr<const GameFile> GameFileCache::AddOrGet(const std::string& path,
   return result;
 }
 
-bool GameFileCache::Update(const std::vector<std::string>& all_game_paths,
+bool GameFileCache::Update(std::span<const std::string> all_game_paths,
                            const GameAddedToCacheFn& game_added_to_cache,
                            const GameRemovedFromCacheFn& game_removed_from_cache,
                            const std::atomic_bool& processing_halted)
