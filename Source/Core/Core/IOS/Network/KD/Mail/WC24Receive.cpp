@@ -145,6 +145,12 @@ u16 WC24ReceiveList::GetAppGroup(u32 index) const
   return Common::swap16(m_data.entries[index].app_group);
 }
 
+u32 WC24ReceiveList::GetWiiCmd(u32 index) const
+{
+  ASSERT(!IsDisabled());
+  return Common::swap32(m_data.entries[index].wii_cmd);
+}
+
 void WC24ReceiveList::UpdateFlag(u32 index, u32 value, FlagOP op)
 {
   ASSERT(!IsDisabled());
