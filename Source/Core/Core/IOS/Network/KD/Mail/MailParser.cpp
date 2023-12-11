@@ -21,20 +21,20 @@ MailParser::MailParser(const std::string& boundary, const u32 num_of_mail,
   m_parser.onPartBegin = EmptyCallback;
   m_parser.onHeaderField = [&](const char* buf, size_t start, size_t end, void* user_data) {
     const Header header_key = std::make_pair(std::string(buf + start, end - start), std::string());
-    m_headers[current_index].push_back(header_key);
+    m_headers[m_current_index].push_back(header_key);
   };
   m_parser.onHeaderValue = [&](const char* buf, size_t start, size_t end, void* user_data) {
-    m_headers[current_index][current_header].second = std::string(buf + start, end - start);
+    m_headers[m_current_index][m_current_header].second = std::string(buf + start, end - start);
   };
   m_parser.onHeaderEnd = [&](const char* buf, size_t start, size_t end, void* user_data) {
-    current_header++;
+    m_current_header++;
   };
   m_parser.onPartData = [&](const char* buf, size_t start, size_t end, void* user_data) {
-    m_message_data[current_index].append(std::string(buf + start, end - start));
+    m_message_data[m_current_index].append(std::string(buf + start, end - start));
   };
   m_parser.onPartEnd = [&](const char* buf, size_t start, size_t end, void* user_data) {
-    current_index++;
-    current_header = 0;
+    m_current_index++;
+    m_current_header = 0;
   };
   m_parser.onEnd = EmptyCallback;
 }
@@ -363,9 +363,8 @@ void MailParser::ParseDate(u32 index, u32 receive_index) const
   m_receive_list->SetTime(receive_index, static_cast<u32>(std::floor(seconds_since_1900 / 60)));
 }
 
-ErrorCode MailParser::ParseFrom(u32 index, u32 receive_index, WC24FriendList& friend_list) const
+ErrorCode MailParser::ParseFrom(u32 index, u32 receive_index, WC24FriendList& friend_list)
 {
-  u64 friend_code{};
   u64 value{};
   const std::string str_friend = GetHeaderValue(index, "From");
   if (str_friend.empty())
@@ -374,17 +373,17 @@ ErrorCode MailParser::ParseFrom(u32 index, u32 receive_index, WC24FriendList& fr
   // Determine if this is a Wii sender or email.
   if (std::regex_search(str_friend, m_wii_number_regex))
   {
-    friend_code = std::stoull(str_friend.substr(1, 16), nullptr, 10);
-    value = friend_code;
+    m_sender = std::stoull(str_friend.substr(1, 16), nullptr, 10);
+    value = m_sender;
   }
   else
   {
     // For emails, the friend code stored in the nwc24fl.bin differs from the value we need to set.
-    friend_code = WC24FriendList::ConvertEmailToFriendCode(str_friend);
+    m_sender = WC24FriendList::ConvertEmailToFriendCode(str_friend);
     value = u64{GetFullMessage(index).find("From") + 2} << 32 | static_cast<u64>(str_friend.size());
   }
 
-  if (!friend_list.IsFriend(Common::swap64(friend_code)) && friend_code != NINTENDO_FRIEND_CODE)
+  if (!friend_list.IsFriend(Common::swap64(m_sender)) && m_sender != NINTENDO_FRIEND_CODE)
   {
     WARN_LOG_FMT(IOS_WC24, "Received message from someone who is not a friend, discarding.");
     return WC24_ERR_NOT_FOUND;
@@ -469,5 +468,10 @@ ErrorCode MailParser::ParseWiiCmd(u32 index, u32 receive_index) const
   m_receive_list->SetWiiCmd(receive_index, cmd);
 
   return WC24_OK;
+}
+
+u64 MailParser::GetSender() const
+{
+  return m_sender;
 }
 }  // namespace IOS::HLE::NWC24::Mail

@@ -94,7 +94,7 @@ public:
   u64 Id() const;
   void SetId(u64 nwc24_id);
 
-  const char* Email() const;
+  std::string_view GetEmail() const;
   void SetEmail(const char* email);
 
   std::string GetAccountURL() const;

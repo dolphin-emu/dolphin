@@ -206,9 +206,10 @@ void NWC24Config::SetId(u64 nwc24_id)
   m_data.nwc24_id = Common::swap64(nwc24_id);
 }
 
-const char* NWC24Config::Email() const
+std::string_view NWC24Config::GetEmail() const
 {
-  return m_data.email;
+  const size_t size = strnlen(m_data.email, MAX_EMAIL_LENGTH);
+  return {m_data.email, size};
 }
 
 void NWC24Config::SetEmail(const char* email)
