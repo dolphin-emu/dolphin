@@ -1574,7 +1574,7 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
   }
 
   std::vector<VideoCommon::CachedAsset<VideoCommon::GameTextureAsset>> cached_game_assets;
-  std::vector<VideoCommon::CustomTextureData*> data_for_assets;
+  std::vector<std::shared_ptr<VideoCommon::TextureData>> data_for_assets;
   bool has_arbitrary_mipmaps = false;
   bool skip_texture_dump = false;
   std::shared_ptr<HiresTexture> hires_texture;
@@ -1628,6 +1628,7 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
     }
   }
 
+  data_for_assets.reserve(cached_game_assets.size());
   for (auto& cached_asset : cached_game_assets)
   {
     auto data = cached_asset.m_asset->GetData();
@@ -1635,7 +1636,7 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
     {
       if (cached_asset.m_asset->Validate(texture_info.GetRawWidth(), texture_info.GetRawHeight()))
       {
-        data_for_assets.push_back(&data->m_texture);
+        data_for_assets.push_back(data);
       }
     }
   }
@@ -1655,7 +1656,8 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
 // expected because each texture is loaded into a texture array
 RcTcacheEntry TextureCacheBase::CreateTextureEntry(
     const TextureCreationInfo& creation_info, const TextureInfo& texture_info,
-    const int safety_color_sample_size, std::vector<VideoCommon::CustomTextureData*> assets_data,
+    const int safety_color_sample_size,
+    std::vector<std::shared_ptr<VideoCommon::TextureData>> assets_data,
     const bool custom_arbitrary_mipmaps, bool skip_texture_dump)
 {
 #ifdef __APPLE__
@@ -1670,12 +1672,13 @@ RcTcacheEntry TextureCacheBase::CreateTextureEntry(
     const auto calculate_max_levels = [&]() {
       const auto max_element = std::max_element(
           assets_data.begin(), assets_data.end(), [](const auto& lhs, const auto& rhs) {
-            return lhs->m_slices[0].m_levels.size() < rhs->m_slices[0].m_levels.size();
+            return lhs->m_texture.m_slices[0].m_levels.size() <
+                   rhs->m_texture.m_slices[0].m_levels.size();
           });
-      return (*max_element)->m_slices[0].m_levels.size();
+      return (*max_element)->m_texture.m_slices[0].m_levels.size();
     };
     const u32 texLevels = no_mips ? 1 : (u32)calculate_max_levels();
-    const auto& first_level = assets_data[0]->m_slices[0].m_levels[0];
+    const auto& first_level = assets_data[0]->m_texture.m_slices[0].m_levels[0];
     const TextureConfig config(first_level.width, first_level.height, texLevels,
                                static_cast<u32>(assets_data.size()), 1, first_level.format, 0);
     entry = AllocateCacheEntry(config);
@@ -1683,8 +1686,8 @@ RcTcacheEntry TextureCacheBase::CreateTextureEntry(
       return entry;
     for (u32 data_index = 0; data_index < static_cast<u32>(assets_data.size()); data_index++)
     {
-      const auto asset = assets_data[data_index];
-      const auto& slice = asset->m_slices[0];
+      const auto& asset = assets_data[data_index];
+      const auto& slice = asset->m_texture.m_slices[0];
       for (u32 level_index = 0;
            level_index < std::min(texLevels, static_cast<u32>(slice.m_levels.size()));
            ++level_index)
