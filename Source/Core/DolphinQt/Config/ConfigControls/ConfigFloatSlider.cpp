@@ -11,7 +11,7 @@
 
 ConfigFloatSlider::ConfigFloatSlider(float minimum, float maximum,
                                      const Config::Info<float>& setting, float step)
-    : ToolTipSlider(Qt::Horizontal), m_minimum(minimum), m_setting(setting), m_step(step)
+    : ToolTipSlider(Qt::Horizontal), m_minimum(minimum), m_step(step), m_setting(setting)
 {
   const float range = maximum - minimum;
   const int steps = std::round(range / step);
