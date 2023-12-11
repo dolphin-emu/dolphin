@@ -1,6 +1,7 @@
 // Copyright 2023 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/IOS/Network/KD/Mail/MailCommon.h"
 #include "Core/IOS/Network/KD/Mail/WC24FriendList.h"
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/Uids.h"
@@ -46,10 +47,26 @@ bool WC24FriendList::CheckFriendList() const
   return true;
 }
 
-bool WC24FriendList::DoesFriendExist(u64 friend_id) const
+bool WC24FriendList::IsFriend(u64 friend_id) const
 {
   return std::any_of(m_data.friend_codes.cbegin(), m_data.friend_codes.cend(),
                      [&friend_id](const u64 v) { return v == friend_id; });
+}
+
+bool WC24FriendList::IsFriendEstablished(u64 code) const
+{
+  if (code == Common::swap64(NINTENDO_FRIEND_CODE))
+    return true;
+
+  for (u32 i = 0; i < MAX_ENTRIES; i++)
+  {
+    if (Common::swap64(m_data.friend_codes[i]) == code)
+    {
+      return m_data.entries[i].status == Common::swap32(static_cast<u32>(FriendStatus::Confirmed));
+    }
+  }
+
+  return false;
 }
 
 std::vector<u64> WC24FriendList::GetUnconfirmedFriends() const
@@ -90,4 +107,15 @@ u64 WC24FriendList::ConvertEmailToFriendCode(std::string_view email)
   return u64{lower} << 32 | upper;
 }
 
+void WC24FriendList::SetFriendStatus(u64 code, FriendStatus status)
+{
+  for (u32 i = 0; i < MAX_ENTRIES; i++)
+  {
+    if (Common::swap64(m_data.friend_codes[i]) == code)
+    {
+      m_data.entries[i].status = Common::swap32(static_cast<u32>(status));
+      return;
+    }
+  }
+}
 }  // namespace IOS::HLE::NWC24::Mail
