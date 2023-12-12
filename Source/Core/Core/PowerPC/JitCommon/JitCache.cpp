@@ -507,7 +507,7 @@ size_t JitBaseBlockCache::FastLookupIndexForAddress(u32 address, u32 feature_fla
 {
   if (m_entry_points_ptr)
   {
-    return (feature_flags << 30) | (address >> 2);
+    return (static_cast<size_t>(feature_flags) << 30) | (address >> 2);
   }
   else
   {
