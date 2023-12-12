@@ -15,6 +15,7 @@
 #include "Common/IOFile.h"
 #include "Common/StringUtil.h"
 #include "Core/Config/AchievementSettings.h"
+#include "Core/Core.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/FS/FileSystem.h"
@@ -534,7 +535,7 @@ static void ApplyMemoryPatch(const Core::CPUThreadGuard& guard, u32 offset,
   if (!original.empty() && !MemoryMatchesAt(guard, offset, original))
     return;
 
-  auto& system = Core::System::GetInstance();
+  auto& system = guard.GetSystem();
   const u32 size = static_cast<u32>(value.size());
   for (u32 i = 0; i < size; ++i)
     PowerPC::MMU::HostTryWriteU8(guard, value[i], offset + i);
@@ -590,7 +591,7 @@ static void ApplyOcarinaMemoryPatch(const Core::CPUThreadGuard& guard, const Pat
   if (value.empty())
     return;
 
-  auto& system = Core::System::GetInstance();
+  auto& system = guard.GetSystem();
   for (u32 i = 0; i < length; i += 4)
   {
     // first find the pattern
@@ -624,7 +625,7 @@ static void ApplyOcarinaMemoryPatch(const Core::CPUThreadGuard& guard, const Pat
 
 void ApplyGeneralMemoryPatches(const Core::CPUThreadGuard& guard, std::span<const Patch> patches)
 {
-  const auto& system = Core::System::GetInstance();
+  const auto& system = guard.GetSystem();
   const auto& system_memory = system.GetMemory();
 
   for (const auto& patch : patches)
