@@ -14,7 +14,7 @@ void I2CBus::AddSlave(I2CSlave* slave)
 
 void I2CBus::RemoveSlave(I2CSlave* slave)
 {
-  m_slaves.erase(std::remove(m_slaves.begin(), m_slaves.end(), slave), m_slaves.end());
+  std::erase(m_slaves, slave);
 }
 
 void I2CBus::Reset()
