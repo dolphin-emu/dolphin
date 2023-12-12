@@ -16,42 +16,13 @@
 
 namespace Core
 {
-bool BranchWatch::Start()
+void BranchWatch::Clear(const Core::CPUThreadGuard&)
 {
-  if (m_recording_phase != Phase::Disabled)
-    return false;
-
+  m_selection.clear();
   m_collection_v.clear();
   m_collection_p.clear();
   m_recording_phase = Phase::Blacklist;
   m_blacklist_size = 0;
-  m_recording_active = true;
-  return true;
-}
-
-void BranchWatch::Stop()
-{
-  m_recording_active = false;
-  m_recording_phase = Phase::Disabled;
-  m_selection.clear();
-}
-
-bool BranchWatch::Pause()
-{
-  if (m_recording_phase == Phase::Disabled)
-    return false;
-
-  m_recording_active = false;
-  return true;
-}
-
-bool BranchWatch::Resume()
-{
-  if (m_recording_phase == Phase::Disabled)
-    return false;
-
-  m_recording_active = true;
-  return true;
 }
 
 void BranchWatch::Save(const Core::CPUThreadGuard&, std::FILE* file) const
@@ -79,9 +50,9 @@ void BranchWatch::Load(const Core::CPUThreadGuard&, std::FILE* file)
   if (file == nullptr)
     return;
 
+  m_selection.clear();
   m_collection_v.clear();
   m_collection_p.clear();
-  m_selection.clear();
   m_blacklist_size = 0;
 
   u32 origin_addr, destin_addr, hex, total_hits, hits_snapshot, is_selected, is_translated;
@@ -116,9 +87,6 @@ void BranchWatch::IsolateHasExecuted(const Core::CPUThreadGuard&)
 {
   switch (m_recording_phase)
   {
-  case Phase::Disabled:
-    ASSERT_MSG(CORE, false, "BranchWatch is currently disabled.");
-    return;
   case Phase::Blacklist:
     m_selection.reserve(GetCollectionSize() - m_blacklist_size);
     for (Collection::value_type& kv : m_collection_v)
@@ -151,9 +119,6 @@ void BranchWatch::IsolateNotExecuted(const Core::CPUThreadGuard&)
 {
   switch (m_recording_phase)
   {
-  case Phase::Disabled:
-    ASSERT_MSG(CORE, false, "BranchWatch is currently disabled.");
-    return;
   case Phase::Blacklist:
     for (Collection::value_type& kv : m_collection_v)
       kv.second.hits_snapshot = kv.second.total_hits;
@@ -182,9 +147,6 @@ void BranchWatch::IsolateWasOverwritten(const Core::CPUThreadGuard& guard)
   }
   switch (m_recording_phase)
   {
-  case Phase::Disabled:
-    ASSERT_MSG(CORE, false, "BranchWatch is currently disabled.");
-    return;
   case Phase::Blacklist:
     // This is a dirty hack of the assumptions that make the blacklist phase work. If the
     // hits_snapshot is non-zero while in the blacklist phase, that means it has been marked
@@ -233,9 +195,6 @@ void BranchWatch::IsolateNotOverwritten(const Core::CPUThreadGuard& guard)
   }
   switch (m_recording_phase)
   {
-  case Phase::Disabled:
-    ASSERT_MSG(CORE, false, "BranchWatch is currently disabled.");
-    return;
   case Phase::Blacklist:
     // Same dirty hack with != rather than ==, see above for details
     for (Collection::value_type& kv : m_collection_v)
@@ -273,23 +232,16 @@ void BranchWatch::IsolateNotOverwritten(const Core::CPUThreadGuard& guard)
   }
 }
 
-void BranchWatch::ResetSelection(const Core::CPUThreadGuard&)
+void BranchWatch::UpdateHitsSnapshot(const Core::CPUThreadGuard& guard)
 {
   switch (m_recording_phase)
   {
-  case Phase::Disabled:
-    ASSERT_MSG(CORE, false, "BranchWatch is currently disabled.");
-    return;
   case Phase::Reduction:
-    m_selection.clear();
-    m_recording_phase = Phase::Blacklist;
+    for (Selection::value_type& pair : m_selection)
+      pair.first->second.hits_snapshot = pair.first->second.total_hits;
     [[fallthrough]];
   case Phase::Blacklist:
-    for (Collection::value_type& kv : m_collection_v)
-      kv.second.hits_snapshot = 0;
-    for (Collection::value_type& kv : m_collection_p)
-      kv.second.hits_snapshot = 0;
-    m_blacklist_size = 0;
+    return;
   }
 }
 

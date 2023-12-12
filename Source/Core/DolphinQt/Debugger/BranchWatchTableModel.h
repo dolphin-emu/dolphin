@@ -46,7 +46,7 @@ public:
   using SymbolList = QList<QPair<QVariant, u32>>;
 
   explicit BranchWatchTableModel(Core::System& system, Core::BranchWatch& branch_watch,
-                              QObject* parent = nullptr)
+                                 QObject* parent = nullptr)
       : QAbstractTableModel(parent), m_system(system), m_branch_watch(branch_watch)
   {
   }
@@ -57,13 +57,15 @@ public:
   int columnCount(const QModelIndex& parent = QModelIndex{}) const override;
   bool removeRows(int row, int count, const QModelIndex& parent = QModelIndex{}) override;
 
+  void OnClearWatch(const Core::CPUThreadGuard& guard);
   void OnBranchHasExecuted(const Core::CPUThreadGuard& guard);
   void OnBranchNotExecuted(const Core::CPUThreadGuard& guard);
   void OnBranchWasOverwritten(const Core::CPUThreadGuard& guard);
   void OnBranchNotOverwritten(const Core::CPUThreadGuard& guard);
-  void OnRestartSelection(const Core::CPUThreadGuard& guard);
+  void OnWipeRecentHits(const Core::CPUThreadGuard& guard);
   void OnDelete(const QModelIndex& index);
   void OnDelete(QModelIndexList index_list);
+  void OnToggleDestinationSymbols(bool enabled);
 
   const SymbolList& GetSymbolList() const { return m_symbol_list; }
 
@@ -84,4 +86,5 @@ private:
   Core::BranchWatch& m_branch_watch;
 
   SymbolList m_symbol_list;
+  bool m_destination_symbols = false;
 };

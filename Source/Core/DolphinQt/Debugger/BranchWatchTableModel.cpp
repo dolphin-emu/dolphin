@@ -35,6 +35,9 @@ QVariant BranchWatchTableModel::headerData(int section, Qt::Orientation orientat
   if (orientation == Qt::Vertical || role != Qt::DisplayRole)
     return QVariant();
 
+  if (section == Column::Symbol)
+    return m_destination_symbols ? tr("Destination Symbol") : tr("Origin Symbol");
+
   static const std::array<QString, Column::NumberOfColumns> headers = {
       tr("Instr."),      tr("Origin"),     tr("Destination"),
       tr("Recent Hits"), tr("Total Hits"), tr("Symbol")};
@@ -70,44 +73,51 @@ bool BranchWatchTableModel::removeRows(int row, int count, const QModelIndex& pa
   return true;
 }
 
+void BranchWatchTableModel::OnClearWatch(const Core::CPUThreadGuard& guard)
+{
+  emit layoutAboutToBeChanged();
+  m_branch_watch.Clear(guard);
+  PrefetchSymbols();
+  emit layoutChanged();
+}
+
 void BranchWatchTableModel::OnBranchHasExecuted(const Core::CPUThreadGuard& guard)
 {
-  layoutAboutToBeChanged();
+  emit layoutAboutToBeChanged();
   m_branch_watch.IsolateHasExecuted(guard);
   PrefetchSymbols();
-  layoutChanged();
+  emit layoutChanged();
 }
 
 void BranchWatchTableModel::OnBranchNotExecuted(const Core::CPUThreadGuard& guard)
 {
-  layoutAboutToBeChanged();
+  emit layoutAboutToBeChanged();
   m_branch_watch.IsolateNotExecuted(guard);
   PrefetchSymbols();
-  layoutChanged();
+  emit layoutChanged();
 }
 
 void BranchWatchTableModel::OnBranchWasOverwritten(const Core::CPUThreadGuard& guard)
 {
-  layoutAboutToBeChanged();
+  emit layoutAboutToBeChanged();
   m_branch_watch.IsolateWasOverwritten(guard);
   PrefetchSymbols();
-  layoutChanged();
+  emit layoutChanged();
 }
 
 void BranchWatchTableModel::OnBranchNotOverwritten(const Core::CPUThreadGuard& guard)
 {
-  layoutAboutToBeChanged();
+  emit layoutAboutToBeChanged();
   m_branch_watch.IsolateNotOverwritten(guard);
   PrefetchSymbols();
-  layoutChanged();
+  emit layoutChanged();
 }
 
-void BranchWatchTableModel::OnRestartSelection(const Core::CPUThreadGuard& guard)
+void BranchWatchTableModel::OnWipeRecentHits(const Core::CPUThreadGuard& guard)
 {
-  layoutAboutToBeChanged();
-  m_branch_watch.ResetSelection(guard);
-  PrefetchSymbols();
-  layoutChanged();
+  m_branch_watch.UpdateHitsSnapshot(guard);
+  emit dataChanged(createIndex(0, Column::RecentHits),
+                   createIndex(rowCount() - 1, Column::RecentHits));
 }
 
 void BranchWatchTableModel::OnDelete(const QModelIndex& index)
@@ -125,6 +135,14 @@ void BranchWatchTableModel::OnDelete(QModelIndexList index_list)
     OnDelete(*iter);
 }
 
+void BranchWatchTableModel::OnToggleDestinationSymbols(bool enabled)
+{
+  m_destination_symbols = enabled;
+  PrefetchSymbols();
+  emit dataChanged(createIndex(0, Column::Symbol), createIndex(rowCount() - 1, Column::Symbol));
+  emit headerDataChanged(Qt::Horizontal, Column::Symbol, Column::Symbol);
+}
+
 void BranchWatchTableModel::Save(const Core::CPUThreadGuard& guard, File::IOFile& file) const
 {
   m_branch_watch.Save(guard, file.GetHandle());
@@ -132,10 +150,10 @@ void BranchWatchTableModel::Save(const Core::CPUThreadGuard& guard, File::IOFile
 
 void BranchWatchTableModel::Load(const Core::CPUThreadGuard& guard, File::IOFile& file)
 {
-  layoutAboutToBeChanged();
+  emit layoutAboutToBeChanged();
   m_branch_watch.Load(guard, file.GetHandle());
   PrefetchSymbols();
-  layoutChanged();
+  emit layoutChanged();
 }
 
 void BranchWatchTableModel::UpdateSymbols()
@@ -157,9 +175,13 @@ void BranchWatchTableModel::PrefetchSymbols()
   const auto& selection = m_branch_watch.GetSelection();
   m_symbol_list.clear();
   m_symbol_list.reserve(selection.size());
+
+  const u32 Core::BranchWatchKey::*member = m_destination_symbols ?
+                                                &Core::BranchWatchKey::destin_addr :
+                                                &Core::BranchWatchKey::origin_addr;
   for (const Core::BranchWatch::Selection::value_type& pair : selection)
   {
-    if (const Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(pair.first->first.origin_addr))
+    if (const Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(pair.first->first.*member))
       m_symbol_list.emplace_back(QString::fromStdString(symbol->name), symbol->address);
     else
       m_symbol_list.emplace_back();

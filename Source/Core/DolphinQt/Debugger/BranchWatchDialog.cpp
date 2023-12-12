@@ -35,7 +35,7 @@
 #include "DolphinQt/Settings.h"
 
 static constexpr int CODE_DIFF_TIMER_DELAY_MS = 100;
-static constexpr int CODE_DIFF_TIMER_PAUSE_ONESHOT_MS = 500;
+static constexpr int CODE_DIFF_TIMER_PAUSE_ONESHOT_MS = 200;
 
 static bool TimerCondition(const Core::BranchWatch& branch_watch, Core::State state)
 {
@@ -96,9 +96,10 @@ QLayout* BranchWatchDialog::CreateLayout()
     QMenu* menu_tool = new QMenu(tr("&Tool"), menu_bar);
     menu_tool->addAction(tr("Hide &Controls"), this, &BranchWatchDialog::OnHideShowControls)
         ->setCheckable(true);
-    m_act_autopause = menu_tool->addAction(tr("&Pause On Cold Load"));
-    m_act_autopause->setCheckable(true);
-    m_act_autopause->setChecked(true);
+    menu_tool
+        ->addAction(tr("Destination &Symbols"), this,
+                    &BranchWatchDialog::OnToggleDestinationSymbols)
+        ->setCheckable(true);
     menu_tool->addAction(tr("&Help"), this, &BranchWatchDialog::OnHelp);
 
     menu_bar->addMenu(menu_tool);
@@ -158,28 +159,24 @@ QLayout* BranchWatchDialog::CreateLayout()
   m_control_toolbar->addWidget([this]() {
     auto* layout = new QGridLayout;
 
-    layout->addWidget(m_btn_start_stop = new QPushButton(tr("Start Recording")), 0, 0);
-    connect(m_btn_start_stop, &QPushButton::toggled, this, &BranchWatchDialog::OnStartStop);
-    m_btn_start_stop->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
-    m_btn_start_stop->setCheckable(true);
+    layout->addWidget(m_btn_start_pause = new QPushButton(tr("Start Branch Watch")), 0, 0);
+    connect(m_btn_start_pause, &QPushButton::toggled, this, &BranchWatchDialog::OnStartPause);
+    m_btn_start_pause->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+    m_btn_start_pause->setCheckable(true);
 
-    layout->addWidget(m_btn_pause_resume = new QPushButton(tr("Pause Recording")), 1, 0);
-    connect(m_btn_pause_resume, &QPushButton::toggled, this, &BranchWatchDialog::OnPauseResume);
-    m_btn_pause_resume->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
-    m_btn_pause_resume->setCheckable(true);
-    m_btn_pause_resume->setEnabled(false);
+    layout->addWidget(m_btn_clear_watch = new QPushButton(tr("Clear Branch Watch")), 1, 0);
+    connect(m_btn_clear_watch, &QPushButton::pressed, this, &BranchWatchDialog::OnClearWatch);
+    m_btn_clear_watch->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
     layout->addWidget(m_btn_has_executed = new QPushButton(tr("Branch Has Executed")), 0, 1);
     connect(m_btn_has_executed, &QPushButton::pressed, this,
             &BranchWatchDialog::OnBranchHasExecuted);
     m_btn_has_executed->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
-    m_btn_has_executed->setEnabled(false);
 
     layout->addWidget(m_btn_not_executed = new QPushButton(tr("Branch Not Executed")), 1, 1);
     connect(m_btn_not_executed, &QPushButton::pressed, this,
             &BranchWatchDialog::OnBranchNotExecuted);
     m_btn_not_executed->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
-    m_btn_not_executed->setEnabled(false);
 
     auto* group_box = new QGroupBox(tr("Branch Watch Controls"));
     group_box->setLayout(layout);
@@ -271,17 +268,17 @@ QLayout* BranchWatchDialog::CreateLayout()
     layout->addWidget(m_btn_was_overwritten = new QPushButton(tr("Branch Was Overwritten")));
     connect(m_btn_was_overwritten, &QPushButton::pressed, this,
             &BranchWatchDialog::OnBranchWasOverwritten);
-    m_btn_was_overwritten->setEnabled(false);
+    m_btn_was_overwritten->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
     layout->addWidget(m_btn_not_overwritten = new QPushButton(tr("Branch Not Overwritten")));
     connect(m_btn_not_overwritten, &QPushButton::pressed, this,
             &BranchWatchDialog::OnBranchNotOverwritten);
-    m_btn_not_overwritten->setEnabled(false);
+    m_btn_not_overwritten->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
-    layout->addWidget(m_btn_clear_selection = new QPushButton(tr("Restart Without Clear")));
-    connect(m_btn_clear_selection, &QPushButton::pressed, this,
-            &BranchWatchDialog::OnRestartSelection);
-    m_btn_clear_selection->setEnabled(false);
+    layout->addWidget(m_btn_wipe_recent_hits = new QPushButton(tr("Wipe Recent Hits")));
+    connect(m_btn_wipe_recent_hits, &QPushButton::pressed, this,
+            &BranchWatchDialog::OnWipeRecentHits);
+    m_btn_not_overwritten->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
     auto* group_box = new QGroupBox(tr("Misc. Branch Watch Controls"));
     group_box->setLayout(layout);
@@ -299,20 +296,40 @@ QLayout* BranchWatchDialog::CreateLayout()
   return layout;
 }
 
-void BranchWatchDialog::OnStartStop(bool checked)
+void BranchWatchDialog::OnStartPause(bool checked)
 {
   if (checked)
-    StartRecording();
+  {
+    m_branch_watch.Start();
+    m_btn_start_pause->setText(tr("Pause Branch Watch"));
+    if (Core::GetState() > Core::State::Paused)
+    {
+      m_timer->setSingleShot(false);
+      m_timer->start(CODE_DIFF_TIMER_DELAY_MS);
+    }
+  }
   else
-    StopRecording();
+  {
+    m_branch_watch.Pause();
+    m_btn_start_pause->setText(tr("Start Branch Watch"));
+    if (Core::GetState() > Core::State::Paused)
+    {
+      // Schedule one last update in case Branch Watch in the middle of a hit.
+      m_timer->setInterval(CODE_DIFF_TIMER_PAUSE_ONESHOT_MS);
+      m_timer->setSingleShot(true);
+    }
+  }
+  Update();
 }
 
-void BranchWatchDialog::OnPauseResume(bool checked)
+void BranchWatchDialog::OnClearWatch()
 {
-  if (checked)
-    PauseRecording();
-  else
-    ResumeRecording();
+  {
+    const Core::CPUThreadGuard guard{m_system};
+    m_table_model->OnClearWatch(guard);
+    AutoSave(guard);
+  }
+  UpdateStatus();
 }
 
 static std::string GetSnapshotDefaultFilepath()
@@ -417,14 +434,9 @@ void BranchWatchDialog::OnBranchNotOverwritten()
   UpdateStatus();
 }
 
-void BranchWatchDialog::OnRestartSelection()
+void BranchWatchDialog::OnWipeRecentHits()
 {
-  {
-    const Core::CPUThreadGuard guard{m_system};
-    m_table_model->OnRestartSelection(guard);
-    AutoSave(guard);
-  }
-  UpdateStatus();
+  m_table_model->OnWipeRecentHits(Core::CPUThreadGuard{m_system});
 }
 
 void BranchWatchDialog::OnTimeout()
@@ -455,9 +467,8 @@ void BranchWatchDialog::OnHelp()
          "progress can be saved to and loaded from the User Directory to persist after Dolphin "
          "Emulator is closed. \"Save As...\" and \"Load From...\" actions are also available, and "
          "auto-saving can be enabled to save a snapshot at every step of the search. The \"Pause "
-         "Recording\" and \"Resume Recording\" buttons will pause Branch Watch from tracking "
-         "further branch hits until it is told to resume. Press the \"Stop Recording\" button to "
-         "start over."));
+         "Recording\" button will halt Branch Watch from tracking further branch hits until it is "
+         "told to resume. Press the \"Clear Branch Watch\" button to start over."));
   ModalMessageBox::information(
       this, tr("Branch Watch Tool Help (2/4)"),
       tr("Branch Watch starts in the blacklist phase, meaning no candidates have been chosen yet, "
@@ -516,67 +527,9 @@ void BranchWatchDialog::OnHideShowControls(bool checked)
     m_control_toolbar->show();
 }
 
-void BranchWatchDialog::StartRecording()
+void BranchWatchDialog::OnToggleDestinationSymbols(bool checked)
 {
-  if (!m_branch_watch.Start())
-  {
-    ModalMessageBox::information(this, tr("Branch Watch Tool"), tr("Failed to start recording."));
-    m_btn_start_stop->setChecked(false);
-    return;
-  }
-  m_btn_pause_resume->setEnabled(true);
-  m_btn_clear_selection->setEnabled(true);
-  m_btn_has_executed->setEnabled(true);
-  m_btn_not_executed->setEnabled(true);
-  m_btn_was_overwritten->setEnabled(true);
-  m_btn_not_overwritten->setEnabled(true);
-  m_btn_start_stop->setText(tr("Stop Recording"));
-  if (Core::GetState() > Core::State::Paused)
-    m_timer->start(CODE_DIFF_TIMER_DELAY_MS);
-  Update();
-}
-
-void BranchWatchDialog::StopRecording()
-{
-  m_table_model->layoutAboutToBeChanged();
-  m_branch_watch.Stop();
-  m_table_model->layoutChanged();
-  m_btn_pause_resume->setChecked(false);
-  m_btn_pause_resume->setEnabled(false);
-  m_btn_clear_selection->setEnabled(false);
-  m_btn_has_executed->setEnabled(false);
-  m_btn_not_executed->setEnabled(false);
-  m_btn_was_overwritten->setEnabled(false);
-  m_btn_not_overwritten->setEnabled(false);
-  m_btn_start_stop->setText(tr("Start Recording"));
-  if (m_timer->isActive())
-    m_timer->stop();
-  Update();
-}
-
-void BranchWatchDialog::PauseRecording()
-{
-  m_branch_watch.Pause();
-  m_btn_pause_resume->setText(tr("Resume Recording"));
-  if (Core::GetState() > Core::State::Paused)
-  {
-    // Schedule one last update in case Branch Watch in the middle of a hit.
-    m_timer->setInterval(CODE_DIFF_TIMER_PAUSE_ONESHOT_MS);
-    m_timer->setSingleShot(true);
-  }
-  Update();
-}
-
-void BranchWatchDialog::ResumeRecording()
-{
-  m_branch_watch.Resume();
-  m_btn_pause_resume->setText(tr("Pause Recording"));
-  if (Core::GetState() > Core::State::Paused)
-  {
-    m_timer->setSingleShot(false);
-    m_timer->start(CODE_DIFF_TIMER_DELAY_MS);
-  }
-  Update();
+  m_table_model->OnToggleDestinationSymbols(checked);
 }
 
 void BranchWatchDialog::Update()
@@ -595,9 +548,6 @@ void BranchWatchDialog::UpdateStatus()
 {
   switch (m_branch_watch.GetRecordingPhase())
   {
-  case Core::BranchWatch::Phase::Disabled:
-    m_status_bar->showMessage(tr("Ready"));
-    return;
   case Core::BranchWatch::Phase::Blacklist:
   {
     const std::size_t candidate_size = m_branch_watch.GetCollectionSize();
@@ -652,16 +602,10 @@ void BranchWatchDialog::Load(const Core::CPUThreadGuard& guard, const std::strin
   {
     ModalMessageBox::warning(
         this, tr("Error"),
-        tr("Failed to load Branch Watch snapshot \"%1\"").arg(QString::fromStdString(filepath)));
+        tr("Failed to open Branch Watch snapshot \"%1\"").arg(QString::fromStdString(filepath)));
     return;
   }
 
-  if (!m_btn_start_stop->isChecked())
-  {
-    m_btn_start_stop->setChecked(true);
-    if (m_act_autopause->isChecked())
-      m_btn_pause_resume->setChecked(true);
-  }
   m_table_model->Load(guard, file);
 }
 

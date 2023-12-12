@@ -47,8 +47,8 @@ public:
 private:
   [[nodiscard]] QLayout* CreateLayout();
 
-  void OnStartStop(bool checked);
-  void OnPauseResume(bool checked);
+  void OnStartPause(bool checked);
+  void OnClearWatch();
   void OnSave();
   void OnSaveAs();
   void OnLoad();
@@ -57,17 +57,14 @@ private:
   void OnBranchNotExecuted();
   void OnBranchWasOverwritten();
   void OnBranchNotOverwritten();
-  void OnRestartSelection();
+  void OnWipeRecentHits();
   void OnTimeout();
   void OnEmulationStateChanged(Core::State new_state);
   void OnHelp();
   void OnToggleAutoSave(bool checked);
   void OnHideShowControls(bool checked);
+  void OnToggleDestinationSymbols(bool checked);
 
-  void StartRecording();
-  void StopRecording();
-  void PauseRecording();
-  void ResumeRecording();
   void Update();
   void UpdateSymbols();
   void UpdateStatus();
@@ -80,9 +77,9 @@ private:
 
   CodeWidget* m_code_widget;
 
-  QPushButton *m_btn_start_stop, *m_btn_pause_resume, *m_btn_clear_selection, *m_btn_has_executed,
-      *m_btn_not_executed, *m_btn_was_overwritten, *m_btn_not_overwritten;
-  QAction *m_act_autosave, *m_act_autopause;
+  QPushButton *m_btn_start_pause, *m_btn_clear_watch, *m_btn_has_executed, *m_btn_not_executed,
+      *m_btn_was_overwritten, *m_btn_not_overwritten, *m_btn_wipe_recent_hits;
+  QAction* m_act_autosave;
 
   QToolBar* m_control_toolbar;
   BranchWatchTableView* m_table_view;

@@ -264,7 +264,8 @@ void CodeWidget::ConnectWidgets()
   connect(m_code_view, &CodeViewWidget::SymbolsChanged, this, [this]() {
     UpdateCallstack();
     UpdateSymbols();
-    if (const Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(m_code_view->GetAddress()))
+    const Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(m_code_view->GetAddress());
+    if (symbol)
     {
       UpdateFunctionCalls(symbol);
       UpdateFunctionCallers(symbol);

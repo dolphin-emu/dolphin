@@ -57,9 +57,8 @@ inline bool operator==(const BranchWatchKey& lhs, const BranchWatchKey& rhs) noe
 class BranchWatch
 {
 public:
-  enum class Phase
+  enum class Phase : bool
   {
-    Disabled,
     Blacklist,
     Reduction,
   };
@@ -67,11 +66,9 @@ public:
   using Collection = std::unordered_map<BranchWatchKey, BranchWatchValue>;
   using Selection = std::vector<std::pair<Collection::value_type*, bool>>;
 
-  // Start() is not CPUThread safe if Stop() was called very recently (microseconds)
-  bool Start();
-  void Stop();
-  bool Pause();
-  bool Resume();
+  void Start() { m_recording_active = true; }
+  void Pause() { m_recording_active = false; }
+  void Clear(const Core::CPUThreadGuard& guard);
 
   void Save(const Core::CPUThreadGuard& guard, std::FILE* file) const;
   void Load(const Core::CPUThreadGuard& guard, std::FILE* file);
@@ -80,7 +77,7 @@ public:
   void IsolateNotExecuted(const Core::CPUThreadGuard& guard);
   void IsolateWasOverwritten(const Core::CPUThreadGuard& guard);
   void IsolateNotOverwritten(const Core::CPUThreadGuard& guard);
-  void ResetSelection(const Core::CPUThreadGuard& guard);
+  void UpdateHitsSnapshot(const Core::CPUThreadGuard& guard);
 
   Selection& GetSelection() { return m_selection; }
   const Selection& GetSelection() const { return m_selection; }
@@ -90,12 +87,8 @@ public:
   Phase GetRecordingPhase() const { return m_recording_phase; };
   bool IsRecordingActive() const { return m_recording_active; }
 
-  // There are some corner cases which can not be reconstructed when loading from a file.
-  bool CanSave() const
-  {
-    return m_recording_phase != Phase::Disabled &&
-           !(m_recording_phase == Phase::Reduction && m_selection.empty());
-  }
+  // An empty selection in reduction mode can't be reconstructed when loading from a file.
+  bool CanSave() const { return !(m_recording_phase == Phase::Reduction && m_selection.empty()); }
 
   // CPUThread only
   void Hit(u32 origin, u32 destination, UGeckoInstruction inst, bool translate)
@@ -140,8 +133,8 @@ private:
   Collection m_collection_v;  // Virtual memory
   Collection m_collection_p;  // Physical memory
   Selection m_selection;
-  std::size_t m_blacklist_size;
-  Phase m_recording_phase = Phase::Disabled;
+  std::size_t m_blacklist_size = 0;
+  Phase m_recording_phase = Phase::Blacklist;
   bool m_recording_active = false;
 };
 }  // namespace Core

@@ -22,7 +22,7 @@ public:
   using UserRole = BranchWatchTableModel::UserRole;
 
   explicit BranchWatchTableView(Core::System& system, CodeWidget* code_widget,
-                             QWidget* parent = nullptr)
+                                QWidget* parent = nullptr)
       : QTableView(parent), m_system(system), m_code_widget(code_widget)
   {
   }
