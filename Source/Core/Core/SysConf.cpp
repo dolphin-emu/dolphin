@@ -250,9 +250,7 @@ SysConf::Entry* SysConf::GetOrAddEntry(std::string_view key, Entry::Type type)
 
 void SysConf::RemoveEntry(std::string_view key)
 {
-  m_entries.erase(std::remove_if(m_entries.begin(), m_entries.end(),
-                                 [&key](const auto& entry) { return entry.name == key; }),
-                  m_entries.end());
+  std::erase_if(m_entries, [&key](const auto& entry) { return entry.name == key; });
 }
 
 void SysConf::InsertDefaultEntries()
