@@ -325,8 +325,7 @@ void AddMemoryPatch(std::size_t index)
 void RemoveMemoryPatch(std::size_t index)
 {
   std::lock_guard lock(s_on_frame_memory_mutex);
-  s_on_frame_memory.erase(std::remove(s_on_frame_memory.begin(), s_on_frame_memory.end(), index),
-                          s_on_frame_memory.end());
+  std::erase(s_on_frame_memory, index);
 }
 
 bool ApplyFramePatches()

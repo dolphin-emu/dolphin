@@ -556,7 +556,7 @@ NWC24::ErrorCode NetKDRequestDevice::KDSendMail()
       {
         LogError(ErrorType::SendMail, res);
       }
-      mails.erase(std::remove(mails.begin(), mails.end(), file_index), mails.end());
+      std::erase(mails, file_index);
       continue;
     }
 
@@ -574,7 +574,7 @@ NWC24::ErrorCode NetKDRequestDevice::KDSendMail()
         LogError(ErrorType::SendMail, res);
       }
 
-      mails.erase(std::remove(mails.begin(), mails.end(), file_index), mails.end());
+      std::erase(mails, file_index);
       continue;
     }
 

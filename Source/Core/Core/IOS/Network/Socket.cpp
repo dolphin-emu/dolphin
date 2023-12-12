@@ -1047,66 +1047,61 @@ void WiiSockMan::UpdatePollCommands()
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
 
-  pending_polls.erase(
-      std::remove_if(
-          pending_polls.begin(), pending_polls.end(),
-          [&system, &memory, this](PollCommand& pcmd) {
-            const auto request = Request(system, pcmd.request_addr);
-            auto& pfds = pcmd.wii_fds;
-            int ret = 0;
+  std::erase_if(pending_polls, [&system, &memory, this](PollCommand& pcmd) {
+    const auto request = Request(system, pcmd.request_addr);
+    auto& pfds = pcmd.wii_fds;
+    int ret = 0;
 
-            // Happens only on savestate load
-            if (pfds[0].revents & error_event)
-            {
-              ret = static_cast<int>(pfds.size());
-            }
-            else
-            {
-              // Make the behavior of poll consistent across platforms by not passing:
-              //  - Set with invalid fds, revents is set to 0 (Linux) or POLLNVAL (Windows)
-              //  - Set without a valid socket, raises an error on Windows
-              std::vector<int> original_order(pfds.size());
-              std::iota(original_order.begin(), original_order.end(), 0);
-              // Select indices with valid fds
-              auto mid = std::partition(original_order.begin(), original_order.end(), [&](auto i) {
-                return GetHostSocket(memory.Read_U32(pcmd.buffer_out + 0xc * i)) >= 0;
-              });
-              const auto n_valid = std::distance(original_order.begin(), mid);
+    // Happens only on savestate load
+    if (pfds[0].revents & error_event)
+    {
+      ret = static_cast<int>(pfds.size());
+    }
+    else
+    {
+      // Make the behavior of poll consistent across platforms by not passing:
+      //  - Set with invalid fds, revents is set to 0 (Linux) or POLLNVAL (Windows)
+      //  - Set without a valid socket, raises an error on Windows
+      std::vector<int> original_order(pfds.size());
+      std::iota(original_order.begin(), original_order.end(), 0);
+      // Select indices with valid fds
+      auto mid = std::partition(original_order.begin(), original_order.end(), [&](auto i) {
+        return GetHostSocket(memory.Read_U32(pcmd.buffer_out + 0xc * i)) >= 0;
+      });
+      const auto n_valid = std::distance(original_order.begin(), mid);
 
-              // Move all the valid pollfds to the front of the vector
-              for (auto i = 0; i < n_valid; ++i)
-                std::swap(pfds[i], pfds[original_order[i]]);
+      // Move all the valid pollfds to the front of the vector
+      for (auto i = 0; i < n_valid; ++i)
+        std::swap(pfds[i], pfds[original_order[i]]);
 
-              if (n_valid > 0)
-                ret = poll(pfds.data(), n_valid, 0);
-              if (ret < 0)
-                ret = GetNetErrorCode(ret, "UpdatePollCommands", false);
+      if (n_valid > 0)
+        ret = poll(pfds.data(), n_valid, 0);
+      if (ret < 0)
+        ret = GetNetErrorCode(ret, "UpdatePollCommands", false);
 
-              // Move everything back to where they were
-              for (auto i = 0; i < n_valid; ++i)
-                std::swap(pfds[i], pfds[original_order[i]]);
-            }
+      // Move everything back to where they were
+      for (auto i = 0; i < n_valid; ++i)
+        std::swap(pfds[i], pfds[original_order[i]]);
+    }
 
-            if (ret == 0 && pcmd.timeout)
-              return false;
+    if (ret == 0 && pcmd.timeout)
+      return false;
 
-            // Translate native to Wii events,
-            for (u32 i = 0; i < pfds.size(); ++i)
-            {
-              const int revents = ConvertEvents(pfds[i].revents, ConvertDirection::NativeToWii);
+    // Translate native to Wii events,
+    for (u32 i = 0; i < pfds.size(); ++i)
+    {
+      const int revents = ConvertEvents(pfds[i].revents, ConvertDirection::NativeToWii);
 
-              // No need to change fd or events as they are input only.
-              // memory.Write_U32(ufds[i].fd, request.buffer_out + 0xc*i); //fd
-              // memory.Write_U32(events, request.buffer_out + 0xc*i + 4); //events
-              memory.Write_U32(revents, pcmd.buffer_out + 0xc * i + 8);  // revents
-              DEBUG_LOG_FMT(IOS_NET,
-                            "IOCTL_SO_POLL socket {} wevents {:08X} events {:08X} revents {:08X}",
-                            i, revents, pfds[i].events, pfds[i].revents);
-            }
-            GetIOS()->EnqueueIPCReply(request, ret);
-            return true;
-          }),
-      pending_polls.end());
+      // No need to change fd or events as they are input only.
+      // memory.Write_U32(ufds[i].fd, request.buffer_out + 0xc*i); //fd
+      // memory.Write_U32(events, request.buffer_out + 0xc*i + 4); //events
+      memory.Write_U32(revents, pcmd.buffer_out + 0xc * i + 8);  // revents
+      DEBUG_LOG_FMT(IOS_NET, "IOCTL_SO_POLL socket {} wevents {:08X} events {:08X} revents {:08X}",
+                    i, revents, pfds[i].events, pfds[i].revents);
+    }
+    GetIOS()->EnqueueIPCReply(request, ret);
+    return true;
+  });
 }
 
 void WiiSockMan::ToNativeAddrIn(const u8* addr, sockaddr_in* to)

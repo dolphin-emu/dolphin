@@ -997,13 +997,11 @@ void RunAllActive(const Core::CPUThreadGuard& cpu_guard)
   // are only atomic ops unless contested. It should be rare for this to
   // be contested.
   std::lock_guard guard(s_lock);
-  s_active_codes.erase(std::remove_if(s_active_codes.begin(), s_active_codes.end(),
-                                      [&cpu_guard](const ARCode& code) {
-                                        bool success = RunCodeLocked(cpu_guard, code);
-                                        LogInfo("\n");
-                                        return !success;
-                                      }),
-                       s_active_codes.end());
+  std::erase_if(s_active_codes, [&cpu_guard](const ARCode& code) {
+    const bool success = RunCodeLocked(cpu_guard, code);
+    LogInfo("\n");
+    return !success;
+  });
   s_disable_logging = true;
 }
 

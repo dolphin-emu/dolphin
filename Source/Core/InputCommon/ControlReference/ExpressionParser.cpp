@@ -963,11 +963,9 @@ static ParseResult ParseComplexExpression(const std::string& str)
 
 void RemoveInertTokens(std::vector<Token>* tokens)
 {
-  tokens->erase(std::remove_if(tokens->begin(), tokens->end(),
-                               [](const Token& tok) {
-                                 return tok.type == TOK_COMMENT || tok.type == TOK_WHITESPACE;
-                               }),
-                tokens->end());
+  std::erase_if(*tokens, [](const Token& tok) {
+    return tok.type == TOK_COMMENT || tok.type == TOK_WHITESPACE;
+  });
 }
 
 static std::unique_ptr<Expression> ParseBarewordExpression(const std::string& str)
