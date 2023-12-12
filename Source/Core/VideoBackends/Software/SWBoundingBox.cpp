@@ -55,7 +55,7 @@ std::vector<BBoxType> SWBoundingBox::Read(u32 index, u32 length)
   return values;
 }
 
-void SWBoundingBox::Write(u32 index, const std::vector<BBoxType>& values)
+void SWBoundingBox::Write(u32 index, std::span<const BBoxType> values)
 {
   for (size_t i = 0; i < values.size(); i++)
   {

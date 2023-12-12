@@ -88,12 +88,12 @@ std::vector<BBoxType> D3DBoundingBox::Read(u32 index, u32 length)
   return values;
 }
 
-void D3DBoundingBox::Write(u32 index, const std::vector<BBoxType>& values)
+void D3DBoundingBox::Write(u32 index, std::span<const BBoxType> values)
 {
   D3D11_BOX box{index * sizeof(BBoxType),
                 0,
                 0,
-                static_cast<u32>(index + values.size()) * sizeof(BBoxType),
+                static_cast<u32>((index + values.size()) * sizeof(BBoxType)),
                 1,
                 1};
   D3D::context->UpdateSubresource(m_buffer.Get(), 0, &box, values.data(), 0, 0);

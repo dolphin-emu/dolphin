@@ -21,7 +21,7 @@ public:
 
 protected:
   std::vector<BBoxType> Read(u32 index, u32 length) override;
-  void Write(u32 index, const std::vector<BBoxType>& values) override;
+  void Write(u32 index, std::span<const BBoxType> values) override;
 
 private:
   static constexpr u32 BUFFER_SIZE = sizeof(BBoxType) * NUM_BBOX_VALUES;

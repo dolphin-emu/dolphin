@@ -42,7 +42,7 @@ std::vector<BBoxType> Metal::BoundingBox::Read(u32 index, u32 length)
   }
 }
 
-void Metal::BoundingBox::Write(u32 index, const std::vector<BBoxType>& values)
+void Metal::BoundingBox::Write(u32 index, std::span<const BBoxType> values)
 {
   const u32 size = values.size() * sizeof(BBoxType);
   if (!g_state_tracker->HasUnflushedData() && !g_state_tracker->GPUBusy())
