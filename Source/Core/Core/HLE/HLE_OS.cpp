@@ -215,8 +215,8 @@ namespace
 class HLEPrintArgsVAList final : public HLEPrintArgs
 {
 public:
-  HLEPrintArgsVAList(const Core::CPUThreadGuard& guard, HLE::SystemVABI::VAList* va_list)
-      : m_guard(guard), m_va_list(va_list)
+  HLEPrintArgsVAList(const Core::CPUThreadGuard& guard, HLE::SystemVABI::VAList* list)
+      : m_guard(guard), m_va_list(list)
   {
   }
 
@@ -305,15 +305,15 @@ std::string GetStringVA(HLEPrintArgs* args, std::string_view string)
       if (string[i] == '*')
       {
         ++i;
-        const s32 result = Common::BitCast<s32>(args->GetU32());
-        if (result >= 0)
-          return static_cast<u32>(result);
+        const s32 result_tmp = Common::BitCast<s32>(args->GetU32());
+        if (result_tmp >= 0)
+          return static_cast<u32>(result_tmp);
 
         if (left_justified_flag_ptr)
         {
           // field width; this results in positive field width and left_justified flag set
           *left_justified_flag_ptr = true;
-          return static_cast<u32>(-static_cast<s64>(result));
+          return static_cast<u32>(-static_cast<s64>(result_tmp));
         }
 
         // precision; this is ignored
@@ -329,10 +329,10 @@ std::string GetStringVA(HLEPrintArgs* args, std::string_view string)
           ++start;
         if (start == i)
           return 0;
-        u32 result = 0;
+        u32 result_tmp = 0;
         const std::string tmp(string, start, i - start);
-        if (TryParse(tmp, &result, 10))
-          return result;
+        if (TryParse(tmp, &result_tmp, 10))
+          return result_tmp;
       }
 
       return std::nullopt;

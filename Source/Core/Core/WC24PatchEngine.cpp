@@ -116,8 +116,8 @@ void Reload()
 std::optional<std::string> GetNetworkPatch(const std::string& source, IsKD is_kd)
 {
   const auto patch =
-      std::find_if(s_patches.begin(), s_patches.end(), [&source, &is_kd](NetworkPatch& patch) {
-        return patch.source == source && patch.is_kd == is_kd && patch.enabled;
+      std::find_if(s_patches.begin(), s_patches.end(), [&source, &is_kd](const NetworkPatch& p) {
+        return p.source == source && p.is_kd == is_kd && p.enabled;
       });
   if (patch == s_patches.end())
     return std::nullopt;
