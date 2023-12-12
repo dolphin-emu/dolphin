@@ -31,8 +31,8 @@ ConfigFloatSlider::ConfigFloatSlider(float minimum, float maximum,
     setFont(bf);
 
     const QSignalBlocker blocker(this);
-    const int current_value = std::round((Config::Get(m_setting) - m_minimum) / m_step);
-    setValue(current_value);
+    const int value = std::round((Config::Get(m_setting) - m_minimum) / m_step);
+    setValue(value);
   });
 }
 
