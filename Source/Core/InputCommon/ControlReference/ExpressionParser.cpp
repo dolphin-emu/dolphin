@@ -438,7 +438,7 @@ protected:
 class LiteralReal : public LiteralExpression
 {
 public:
-  LiteralReal(ControlState value) : m_value(value) {}
+  explicit LiteralReal(ControlState value) : m_value(value) {}
 
   ControlState GetValue() const override { return m_value; }
 
@@ -460,7 +460,7 @@ static ParseResult MakeLiteralExpression(Token token)
 class VariableExpression : public Expression
 {
 public:
-  VariableExpression(std::string name) : m_name(name) {}
+  explicit VariableExpression(std::string name) : m_name(name) {}
 
   ControlState GetValue() const override { return m_variable_ptr ? *m_variable_ptr : 0; }
 
@@ -485,7 +485,7 @@ protected:
 class HotkeyExpression : public Expression
 {
 public:
-  HotkeyExpression(std::vector<std::unique_ptr<ControlExpression>> inputs)
+  explicit HotkeyExpression(std::vector<std::unique_ptr<ControlExpression>> inputs)
       : m_modifiers(std::move(inputs))
   {
     m_final_input = std::move(m_modifiers.back());
