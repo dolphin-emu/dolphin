@@ -21,10 +21,11 @@ constexpr int EFB_SCALE_AUTO_INTEGRAL = 0;
 
 enum class AspectMode : int
 {
-  Auto,
-  AnalogWide,
-  Analog,
+  Auto,           // 4:3 or 16:9
+  ForceWide,      // 16:9
+  ForceStandard,  // 4:3
   Stretch,
+  Custom,
 };
 
 enum class StereoMode : int
@@ -105,6 +106,8 @@ struct VideoConfig final
   bool bVSyncActive = false;
   bool bWidescreenHack = false;
   AspectMode aspect_mode{};
+  int custom_aspect_width = 1;
+  int custom_aspect_height = 1;
   AspectMode suggested_aspect_mode{};
   u32 widescreen_heuristic_transition_threshold = 0;
   float widescreen_heuristic_aspect_ratio_slop = 0.f;
@@ -365,6 +368,8 @@ struct VideoConfig final
   bool UsingUberShaders() const;
   u32 GetShaderCompilerThreads() const;
   u32 GetShaderPrecompilerThreads() const;
+
+  float GetCustomAspectRatio() const { return (float)custom_aspect_width / custom_aspect_height; }
 };
 
 extern VideoConfig g_Config;

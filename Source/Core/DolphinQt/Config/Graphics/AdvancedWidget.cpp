@@ -359,8 +359,9 @@ void AdvancedWidget::AddDescriptions()
                  "level 9 but finish in significantly less time.<br><br>"
                  "<dolphin_emphasis>If unsure, leave this at 6.</dolphin_emphasis>");
   static const char TR_CROPPING_DESCRIPTION[] = QT_TR_NOOP(
-      "Crops the picture from its native aspect ratio to 4:3 or "
-      "16:9.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+      "Crops the picture from its native aspect ratio (which rarely exactly matches 4:3 or 16:9),"
+      " to the specific user target aspect ratio (e.g. 4:3 or 16:9).<br><br>"
+      "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_PROGRESSIVE_SCAN_DESCRIPTION[] = QT_TR_NOOP(
       "Enables progressive scan if supported by the emulated software. Most games don't have "
       "any issue with this.<br><br><dolphin_emphasis>If unsure, leave this "
