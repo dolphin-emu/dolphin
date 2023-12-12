@@ -85,7 +85,7 @@ TEST(FloatUtils, ApproximateReciprocalSquareRoot)
       0x7FF8'0000'0000'0000, 0x7FF8'0000'0000'0000, 0x3FEA'2040'0000'0000, 0x3FA0'3108'0000'0000,
       0x7FF8'0000'0000'0000};
 
-  for (int i = 0; i < double_test_values.size(); ++i)
+  for (size_t i = 0; i < double_test_values.size(); ++i)
   {
     u64 ivalue = double_test_values[i];
     double dvalue = Common::BitCast<double>(ivalue);

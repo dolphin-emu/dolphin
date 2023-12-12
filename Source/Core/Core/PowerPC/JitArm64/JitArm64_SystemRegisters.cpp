@@ -236,9 +236,9 @@ void JitArm64::twx(UGeckoInstruction inst)
   constexpr std::array<CCFlags, 5> conditions{{CC_LT, CC_GT, CC_EQ, CC_VC, CC_VS}};
   Common::SmallVector<FixupBranch, conditions.size()> fixups;
 
-  for (int i = 0; i < conditions.size(); i++)
+  for (size_t i = 0; i < conditions.size(); i++)
   {
-    if (inst.TO & (1 << i))
+    if (inst.TO & (1U << i))
     {
       FixupBranch f = B(conditions[i]);
       fixups.push_back(f);
