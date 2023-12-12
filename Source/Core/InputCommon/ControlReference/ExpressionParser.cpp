@@ -248,7 +248,7 @@ ParseStatus Lexer::Tokenize(std::vector<Token>& tokens)
 class ControlExpression : public Expression
 {
 public:
-  explicit ControlExpression(ControlQualifier qualifier) : m_qualifier(qualifier) {}
+  explicit ControlExpression(ControlQualifier qualifier) : m_qualifier(std::move(qualifier)) {}
 
   ControlState GetValue() const override
   {
@@ -448,7 +448,7 @@ private:
   const ControlState m_value{};
 };
 
-static ParseResult MakeLiteralExpression(Token token)
+static ParseResult MakeLiteralExpression(const Token& token)
 {
   ControlState val{};
   if (TryParse(token.data, &val))
@@ -460,7 +460,7 @@ static ParseResult MakeLiteralExpression(Token token)
 class VariableExpression : public Expression
 {
 public:
-  explicit VariableExpression(std::string name) : m_name(name) {}
+  explicit VariableExpression(std::string name) : m_name(std::move(name)) {}
 
   ControlState GetValue() const override { return m_variable_ptr ? *m_variable_ptr : 0; }
 
