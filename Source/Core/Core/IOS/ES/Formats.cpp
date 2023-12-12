@@ -614,9 +614,7 @@ std::string SharedContentMap::AddSharedContent(const std::array<u8, 20>& sha1)
 
 bool SharedContentMap::DeleteSharedContent(const std::array<u8, 20>& sha1)
 {
-  m_entries.erase(std::remove_if(m_entries.begin(), m_entries.end(),
-                                 [&sha1](const auto& entry) { return entry.sha1 == sha1; }),
-                  m_entries.end());
+  std::erase_if(m_entries, [&sha1](const auto& entry) { return entry.sha1 == sha1; });
   return WriteEntries();
 }
 
