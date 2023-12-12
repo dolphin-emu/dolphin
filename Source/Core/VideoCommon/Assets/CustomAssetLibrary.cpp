@@ -10,21 +10,6 @@
 
 namespace VideoCommon
 {
-namespace
-{
-std::size_t GetAssetSize(const CustomTextureData& data)
-{
-  std::size_t total = 0;
-  for (const auto& slice : data.m_slices)
-  {
-    for (const auto& level : slice.m_levels)
-    {
-      total += level.data.size();
-    }
-  }
-  return total;
-}
-}  // namespace
 CustomAssetLibrary::LoadInfo CustomAssetLibrary::LoadGameTexture(const AssetID& asset_id,
                                                                  TextureData* data)
 {
