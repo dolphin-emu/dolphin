@@ -467,7 +467,7 @@ PPCDebugInterface::GetMemoryAddressFromInstruction(const std::string& instructio
 
   if (is_reg == offset_match[0])
   {
-    unsigned register_index;
+    unsigned register_index = 0;
     Common::FromChars(offset_match.substr(1), register_index, 10);
     offset = (register_index == 0 ? 0 : m_system.GetPPCState().gpr[register_index]);
   }
