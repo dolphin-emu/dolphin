@@ -835,10 +835,14 @@ TEST_P(VertexLoaderSkippedColorsTest, SkippedColors)
 
   ASSERT_EQ(m_loader->m_native_vtx_decl.colors[0].enable, enable_color_0);
   if (enable_color_0)
+  {
     ASSERT_EQ(m_loader->m_native_vtx_decl.colors[0].offset, color_0_offset);
+  }
   ASSERT_EQ(m_loader->m_native_vtx_decl.colors[1].enable, enable_color_1);
   if (enable_color_1)
+  {
     ASSERT_EQ(m_loader->m_native_vtx_decl.colors[1].offset, color_1_offset);
+  }
 
   RunVertices(2);
   // Vertex 0
@@ -846,17 +850,25 @@ TEST_P(VertexLoaderSkippedColorsTest, SkippedColors)
   ExpectOut(3);
   ExpectOut(4);
   if (enable_color_0)
+  {
     EXPECT_EQ((m_dst.Read<u32, true>()), 0x04050607u);
+  }
   if (enable_color_1)
+  {
     EXPECT_EQ((m_dst.Read<u32, true>()), 0x0c0d0e0fu);
+  }
   // Vertex 1
   ExpectOut(1);
   ExpectOut(2);
   ExpectOut(3);
   if (enable_color_0)
+  {
     EXPECT_EQ((m_dst.Read<u32, true>()), 0x00010203u);
+  }
   if (enable_color_1)
+  {
     EXPECT_EQ((m_dst.Read<u32, true>()), 0x08090a0bu);
+  }
 }
 
 class VertexLoaderSkippedTexCoordsTest : public VertexLoaderTest,
@@ -980,7 +992,9 @@ TEST_P(VertexLoaderSkippedTexCoordsTest, SkippedTextures)
   {
     ASSERT_EQ(m_loader->m_native_vtx_decl.texcoords[i].enable, component_enabled[i]);
     if (component_enabled[i])
+    {
       ASSERT_EQ(m_loader->m_native_vtx_decl.texcoords[i].offset, component_offset[i]);
+    }
   }
 
   RunVertices(2);
