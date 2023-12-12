@@ -490,8 +490,8 @@ static void ApplyFolderPatchToFST(const Patch& patch, const Folder& folder,
   ApplyFolderPatchToFST(patch, folder, fst, dol_node, folder.m_disc, folder.m_external);
 }
 
-void ApplyPatchesToFiles(const std::vector<Patch>& patches, PatchIndex index,
-                         std::vector<DiscIO::FSTBuilderNode>* fst, DiscIO::FSTBuilderNode* dol_node)
+void ApplyPatchesToFiles(std::span<const Patch> patches, PatchIndex index,
+                         std::vector<FSTBuilderNode>* fst, FSTBuilderNode* dol_node)
 {
   for (const auto& patch : patches)
   {
@@ -509,7 +509,7 @@ void ApplyPatchesToFiles(const std::vector<Patch>& patches, PatchIndex index,
 }
 
 static bool MemoryMatchesAt(const Core::CPUThreadGuard& guard, u32 offset,
-                            const std::vector<u8>& value)
+                            std::span<const u8> value)
 {
   for (u32 i = 0; i < value.size(); ++i)
   {
@@ -521,7 +521,7 @@ static bool MemoryMatchesAt(const Core::CPUThreadGuard& guard, u32 offset,
 }
 
 static void ApplyMemoryPatch(const Core::CPUThreadGuard& guard, u32 offset,
-                             const std::vector<u8>& value, const std::vector<u8>& original)
+                             std::span<const u8> value, std::span<const u8> original)
 {
 #ifdef USE_RETRO_ACHIEVEMENTS
   if (::Config::Get(::Config::RA_HARDCORE_ENABLED))
@@ -622,10 +622,10 @@ static void ApplyOcarinaMemoryPatch(const Core::CPUThreadGuard& guard, const Pat
   }
 }
 
-void ApplyGeneralMemoryPatches(const Core::CPUThreadGuard& guard, const std::vector<Patch>& patches)
+void ApplyGeneralMemoryPatches(const Core::CPUThreadGuard& guard, std::span<const Patch> patches)
 {
-  auto& system = Core::System::GetInstance();
-  auto& system_memory = system.GetMemory();
+  const auto& system = Core::System::GetInstance();
+  const auto& system_memory = system.GetMemory();
 
   for (const auto& patch : patches)
   {
@@ -642,8 +642,8 @@ void ApplyGeneralMemoryPatches(const Core::CPUThreadGuard& guard, const std::vec
   }
 }
 
-void ApplyApploaderMemoryPatches(const Core::CPUThreadGuard& guard,
-                                 const std::vector<Patch>& patches, u32 ram_address, u32 ram_length)
+void ApplyApploaderMemoryPatches(const Core::CPUThreadGuard& guard, std::span<const Patch> patches,
+                                 u32 ram_address, u32 ram_length)
 {
   for (const auto& patch : patches)
   {
@@ -660,8 +660,7 @@ void ApplyApploaderMemoryPatches(const Core::CPUThreadGuard& guard,
   }
 }
 
-std::optional<SavegameRedirect>
-ExtractSavegameRedirect(const std::vector<Patch>& riivolution_patches)
+std::optional<SavegameRedirect> ExtractSavegameRedirect(std::span<const Patch> riivolution_patches)
 {
   for (const auto& patch : riivolution_patches)
   {
