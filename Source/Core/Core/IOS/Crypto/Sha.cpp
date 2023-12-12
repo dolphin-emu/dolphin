@@ -93,6 +93,10 @@ std::optional<IPCReply> ShaDevice::IOCtlV(const IOCtlVRequest& request)
       break;
 
     return_code = ProcessShaCommand(command, request);
+    break;
+
+  case ShaIoctlv::ShaCommandUnknown:
+    break;
   }
 
   return IPCReply(return_code);
