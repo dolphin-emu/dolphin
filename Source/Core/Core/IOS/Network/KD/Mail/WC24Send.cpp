@@ -219,13 +219,13 @@ ErrorCode WC24SendList::AddRegistrationMessages(const WC24FriendList& friend_lis
     const u32 msg_id = GetNextEntryId();
     m_data.entries[entry_index].id = Common::swap32(msg_id);
 
-    std::time_t t = std::time(nullptr);
+    const std::time_t t = std::time(nullptr);
 
     const std::string formatted_message =
         fmt::format(MAIL_REGISTRATION_STRING, sender, code, fmt::gmtime(t));
-    std::vector<u8> message{formatted_message.begin(), formatted_message.end()};
-    NWC24::ErrorCode reply =
-        NWC24::WriteToVFF(NWC24::Mail::SEND_BOX_PATH, GetMailPath(entry_index), m_fs, message);
+    const std::span message{reinterpret_cast<const u8*>(formatted_message.data()),
+                            formatted_message.size()};
+    const ErrorCode reply = WriteToVFF(SEND_BOX_PATH, GetMailPath(entry_index), m_fs, message);
 
     if (reply != WC24_OK)
     {
