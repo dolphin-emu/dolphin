@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <optional>
+#include <array>
 #include <string>
 #include <variant>
 #include <vector>
@@ -14,20 +14,20 @@
 #include "Common/EnumFormatter.h"
 #include "VideoCommon/Assets/CustomAsset.h"
 
+class ShaderCode;
+
 namespace VideoCommon
 {
 struct MaterialProperty
 {
-  using Value = std::variant<std::string>;
-  enum class Type
-  {
-    Type_Undefined,
-    Type_TextureAsset,
-    Type_Max = Type_TextureAsset
-  };
+  static void WriteToMemory(u8*& buffer, const MaterialProperty& property);
+  static std::size_t GetMemorySize(const MaterialProperty& property);
+  static void WriteAsShaderCode(ShaderCode& shader_source, const MaterialProperty& property);
+  using Value = std::variant<CustomAssetLibrary::AssetID, s32, std::array<s32, 2>,
+                             std::array<s32, 3>, std::array<s32, 4>, float, std::array<float, 2>,
+                             std::array<float, 3>, std::array<float, 4>, bool>;
   std::string m_code_name;
-  Type m_type = Type::Type_Undefined;
-  std::optional<Value> m_value;
+  Value m_value;
 };
 
 struct MaterialData
@@ -52,10 +52,3 @@ private:
 };
 
 }  // namespace VideoCommon
-
-template <>
-struct fmt::formatter<VideoCommon::MaterialProperty::Type>
-    : EnumFormatter<VideoCommon::MaterialProperty::Type::Type_Max>
-{
-  constexpr formatter() : EnumFormatter({"Undefined", "Texture"}) {}
-};
