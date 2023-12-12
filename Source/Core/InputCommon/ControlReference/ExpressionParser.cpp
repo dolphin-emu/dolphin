@@ -600,7 +600,7 @@ private:
   std::unique_ptr<Expression> m_rhs;
 };
 
-std::shared_ptr<Device> ControlEnvironment::FindDevice(ControlQualifier qualifier) const
+std::shared_ptr<Device> ControlEnvironment::FindDevice(const ControlQualifier& qualifier) const
 {
   if (qualifier.has_device)
     return container.FindDevice(qualifier.device_qualifier);
@@ -608,7 +608,7 @@ std::shared_ptr<Device> ControlEnvironment::FindDevice(ControlQualifier qualifie
     return container.FindDevice(default_device);
 }
 
-Device::Input* ControlEnvironment::FindInput(ControlQualifier qualifier) const
+Device::Input* ControlEnvironment::FindInput(const ControlQualifier& qualifier) const
 {
   const std::shared_ptr<Device> device = FindDevice(qualifier);
   if (!device)
@@ -617,7 +617,7 @@ Device::Input* ControlEnvironment::FindInput(ControlQualifier qualifier) const
   return device->FindInput(qualifier.control_name);
 }
 
-Device::Output* ControlEnvironment::FindOutput(ControlQualifier qualifier) const
+Device::Output* ControlEnvironment::FindOutput(const ControlQualifier& qualifier) const
 {
   const std::shared_ptr<Device> device = FindDevice(qualifier);
   if (!device)
