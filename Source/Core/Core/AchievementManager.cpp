@@ -183,11 +183,6 @@ void AchievementManager::HashGame(const DiscIO::Volume* volume, const ResponseCa
     return;
   }
   m_system = &Core::System::GetInstance();
-  struct FilereaderState
-  {
-    int64_t position = 0;
-    std::unique_ptr<DiscIO::Volume> volume;
-  };
   m_queue.EmplaceItem([this, callback] {
     Hash new_hash;
     {
@@ -480,19 +475,22 @@ void AchievementManager::FetchBadges()
   for (size_t index = 0; index < num_achievements; index++)
   {
     std::lock_guard lg{m_lock};
+
     // In case the number of achievements changes since the loop started; I just don't want
     // to lock for the ENTIRE loop so instead I reclaim the lock each cycle
     if (num_achievements != m_game_data.num_achievements)
       break;
-    rc_api_achievement_definition_t& achievement = m_game_data.achievements[index];
-    std::string name_to_fetch(achievement.badge_name);
-    const UnlockStatus& unlock_status = m_unlock_map[achievement.id];
-    if (unlock_status.unlocked_badge.name != name_to_fetch)
+
+    const auto& initial_achievement = m_game_data.achievements[index];
+    const std::string badge_name_to_fetch(initial_achievement.badge_name);
+    const UnlockStatus& unlock_status = m_unlock_map[initial_achievement.id];
+
+    if (unlock_status.unlocked_badge.name != badge_name_to_fetch)
     {
       m_image_queue.EmplaceItem([this, index] {
         std::string current_name, name_to_fetch;
         {
-          std::lock_guard lg{m_lock};
+          std::lock_guard lock{m_lock};
           if (m_game_data.num_achievements <= index)
           {
             INFO_LOG_FMT(
@@ -501,8 +499,8 @@ void AchievementManager::FetchBadges()
                 index);
             return;
           }
-          rc_api_achievement_definition_t& achievement = m_game_data.achievements[index];
-          auto unlock_itr = m_unlock_map.find(achievement.id);
+          const auto& achievement = m_game_data.achievements[index];
+          const auto unlock_itr = m_unlock_map.find(achievement.id);
           if (unlock_itr == m_unlock_map.end())
           {
             ERROR_LOG_FMT(
@@ -523,7 +521,7 @@ void AchievementManager::FetchBadges()
         {
           INFO_LOG_FMT(ACHIEVEMENTS, "Successfully downloaded unlocked achievement badge id {}.",
                        name_to_fetch);
-          std::lock_guard lg{m_lock};
+          std::lock_guard lock{m_lock};
           if (m_game_data.num_achievements <= index)
           {
             INFO_LOG_FMT(ACHIEVEMENTS,
@@ -531,8 +529,8 @@ void AchievementManager::FetchBadges()
                          index);
             return;
           }
-          rc_api_achievement_definition_t& achievement = m_game_data.achievements[index];
-          auto unlock_itr = m_unlock_map.find(achievement.id);
+          const auto& achievement = m_game_data.achievements[index];
+          const auto unlock_itr = m_unlock_map.find(achievement.id);
           if (unlock_itr == m_unlock_map.end())
           {
             ERROR_LOG_FMT(ACHIEVEMENTS,
@@ -559,12 +557,12 @@ void AchievementManager::FetchBadges()
           m_update_callback();
       });
     }
-    if (unlock_status.locked_badge.name != name_to_fetch)
+    if (unlock_status.locked_badge.name != badge_name_to_fetch)
     {
       m_image_queue.EmplaceItem([this, index] {
         std::string current_name, name_to_fetch;
         {
-          std::lock_guard lg{m_lock};
+          std::lock_guard lock{m_lock};
           if (m_game_data.num_achievements <= index)
           {
             INFO_LOG_FMT(
@@ -573,8 +571,8 @@ void AchievementManager::FetchBadges()
                 index);
             return;
           }
-          rc_api_achievement_definition_t& achievement = m_game_data.achievements[index];
-          auto unlock_itr = m_unlock_map.find(achievement.id);
+          const auto& achievement = m_game_data.achievements[index];
+          const auto unlock_itr = m_unlock_map.find(achievement.id);
           if (unlock_itr == m_unlock_map.end())
           {
             ERROR_LOG_FMT(
@@ -594,7 +592,7 @@ void AchievementManager::FetchBadges()
         {
           INFO_LOG_FMT(ACHIEVEMENTS, "Successfully downloaded locked achievement badge id {}.",
                        name_to_fetch);
-          std::lock_guard lg{m_lock};
+          std::lock_guard lock{m_lock};
           if (m_game_data.num_achievements <= index)
           {
             INFO_LOG_FMT(ACHIEVEMENTS,
@@ -602,8 +600,8 @@ void AchievementManager::FetchBadges()
                          index);
             return;
           }
-          rc_api_achievement_definition_t& achievement = m_game_data.achievements[index];
-          auto unlock_itr = m_unlock_map.find(achievement.id);
+          const auto& achievement = m_game_data.achievements[index];
+          const auto unlock_itr = m_unlock_map.find(achievement.id);
           if (unlock_itr == m_unlock_map.end())
           {
             ERROR_LOG_FMT(ACHIEVEMENTS,
