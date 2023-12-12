@@ -388,15 +388,10 @@ bool CheatSearchWidget::UpdateTableRows(const Core::CPUThreadGuard& guard, const
 {
   const bool update_status_text = source == UpdateSource::User;
 
-  std::unique_ptr<Cheats::CheatSearchSessionBase> tmp =
-      m_session->ClonePartial(begin_index, end_index);
+  auto tmp = m_session->ClonePartial(begin_index, end_index);
   tmp->SetFilterType(Cheats::FilterType::DoNotFilter);
 
-  const Cheats::SearchErrorCode error_code = [&tmp] {
-    Core::CPUThreadGuard guard(Core::System::GetInstance());
-    return tmp->RunSearch(guard);
-  }();
-
+  const Cheats::SearchErrorCode error_code = tmp->RunSearch(guard);
   if (error_code != Cheats::SearchErrorCode::Success)
   {
     if (update_status_text)
