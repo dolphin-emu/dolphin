@@ -166,7 +166,20 @@ public:
   }
 
 private:
-  using WorkBlock = CyclicArray<__m128i, 4>;
+  struct XmmReg
+  {
+    // Allows aliasing attributes to be respected in the
+    // face of templates.
+    __m128i data;
+
+    XmmReg& operator=(const __m128i& d)
+    {
+      data = d;
+      return *this;
+    }
+    operator __m128i() const { return data; }
+  };
+  using WorkBlock = CyclicArray<XmmReg, 4>;
 
   ATTRIBUTE_TARGET("ssse3")
   static inline __m128i byterev_16B(__m128i x)
@@ -244,7 +257,7 @@ private:
 
   virtual bool HwAccelerated() const override { return true; }
 
-  std::array<__m128i, 2> state{};
+  std::array<XmmReg, 2> state{};
 };
 
 #endif
