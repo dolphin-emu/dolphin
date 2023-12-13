@@ -5,6 +5,7 @@
 
 #include <memory>
 #include <optional>
+#include <span>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -37,7 +38,7 @@ public:
   ~GBAWidget();
 
   void GameChanged(const HW::GBA::CoreInfo& info);
-  void SetVideoBuffer(std::vector<u32> video_buffer);
+  void SetVideoBuffer(std::span<const u32> video_buffer);
 
   void SetVolume(int volume);
   void VolumeDown();
@@ -106,7 +107,7 @@ public:
 
   void Create(std::weak_ptr<HW::GBA::Core> core, const HW::GBA::CoreInfo& info);
   void GameChanged(const HW::GBA::CoreInfo& info);
-  void FrameEnded(std::vector<u32> video_buffer);
+  void FrameEnded(std::span<const u32> video_buffer);
 
 private:
   GBAWidget* m_widget{};
