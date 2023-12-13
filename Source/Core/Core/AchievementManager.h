@@ -37,6 +37,7 @@ public:
   enum class ResponseType
   {
     SUCCESS,
+    NOT_ENABLED,
     MANAGER_NOT_INITIALIZED,
     INVALID_REQUEST,
     INVALID_CREDENTIALS,
