@@ -30,12 +30,11 @@
 
 namespace IOS::HLE::MIOS
 {
-static void ReinitHardware()
+static void ReinitHardware(Core::System& system)
 {
   SConfig::GetInstance().bWii = false;
 
   // IOS clears mem2 and overwrites it with pseudo-random data (for security).
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   std::memset(memory.GetEXRAM(), 0, memory.GetExRamSizeReal());
   // MIOS appears to only reset the DI and the PPC.
@@ -56,9 +55,8 @@ static void ReinitHardware()
 
 constexpr u32 ADDRESS_INIT_SEMAPHORE = 0x30f8;
 
-bool Load()
+bool Load(Core::System& system)
 {
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
 
   ASSERT(Core::IsCPUThread());
@@ -67,7 +65,7 @@ bool Load()
   memory.Write_U32(0x00000000, ADDRESS_INIT_SEMAPHORE);
   memory.Write_U32(0x09142001, 0x3180);
 
-  ReinitHardware();
+  ReinitHardware(system);
   NOTICE_LOG_FMT(IOS, "Reinitialised hardware.");
 
   // Load symbols for the IPL if they exist.
