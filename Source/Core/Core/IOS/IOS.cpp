@@ -329,7 +329,7 @@ EmulationKernel::EmulationKernel(Core::System& system, u64 title_id)
 
   if (title_id == Titles::MIOS)
   {
-    MIOS::Load();
+    MIOS::Load(m_system);
     return;
   }
 
