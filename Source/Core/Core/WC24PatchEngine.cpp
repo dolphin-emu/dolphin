@@ -4,17 +4,19 @@
 // WC24PatchEngine
 // Allows for replacing URLs used in WC24 requests
 
+#include "Core/WC24PatchEngine.h"
+
 #include <algorithm>
 #include <array>
 #include <fmt/format.h>
 
+#include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 
 #include "Core/CheatCodes.h"
 #include "Core/CommonTitles.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
-#include "Core/WC24PatchEngine.h"
 
 namespace WC24PatchEngine
 {
@@ -38,7 +40,7 @@ static constexpr std::array<u64, 15> s_wc24_channels{
 
 static std::vector<NetworkPatch> s_patches;
 
-bool DeserializeLine(const std::string& line, NetworkPatch* patch)
+static bool DeserializeLine(const std::string& line, NetworkPatch* patch)
 {
   const std::vector<std::string> items = SplitString(line, ':');
 
@@ -54,13 +56,13 @@ bool DeserializeLine(const std::string& line, NetworkPatch* patch)
   return patch;
 }
 
-void LoadPatchSection(const Common::IniFile& ini)
+static void LoadPatchSection(const Common::IniFile& ini)
 {
   std::vector<std::string> lines;
   NetworkPatch patch;
   ini.GetLines("WC24Patch", &lines);
 
-  for (std::string& line : lines)
+  for (const std::string& line : lines)
   {
     if (line.empty())
       continue;
@@ -81,6 +83,15 @@ void LoadPatchSection(const Common::IniFile& ini)
   ReadEnabledAndDisabled(ini, "WC24Patch", &s_patches);
 }
 
+static bool IsWC24Channel()
+{
+  const auto& sconfig = SConfig::GetInstance();
+  const auto found =
+      std::find(s_wc24_channels.begin(), s_wc24_channels.end(), sconfig.GetTitleID());
+
+  return found != s_wc24_channels.end();
+}
+
 static void LoadPatches()
 {
   const auto& sconfig = SConfig::GetInstance();
@@ -96,15 +107,6 @@ static void LoadPatches()
     ini = sconfig.LoadLocalGameIni();
 
   LoadPatchSection(ini);
-}
-
-bool IsWC24Channel()
-{
-  const auto& sconfig = SConfig::GetInstance();
-  const auto found =
-      std::find(s_wc24_channels.begin(), s_wc24_channels.end(), sconfig.GetTitleID());
-
-  return found != s_wc24_channels.end();
 }
 
 void Reload()
