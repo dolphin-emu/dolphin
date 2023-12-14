@@ -21,6 +21,6 @@ struct NetworkPatch final
 
 void Reload();
 
-std::optional<std::string> GetNetworkPatch(const std::string& source, IsKD is_kd);
+std::optional<std::string> GetNetworkPatch(std::string_view source, IsKD is_kd);
 std::optional<std::string> GetNetworkPatchByPayload(std::string_view source);
 }  // namespace WC24PatchEngine
