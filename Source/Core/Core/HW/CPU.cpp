@@ -175,11 +175,10 @@ void CPUManager::Run()
 void CPUManager::RunAdjacentSystems(bool running)
 {
   // NOTE: We're assuming these will not try to call Break or EnableStepping.
-  auto& system = Core::System::GetInstance();
-  system.GetFifo().EmulatorState(running);
+  m_system.GetFifo().EmulatorState(running);
   // Core is responsible for shutting down the sound stream.
   if (m_state != State::PowerDown)
-    AudioCommon::SetSoundStreamRunning(Core::System::GetInstance(), running);
+    AudioCommon::SetSoundStreamRunning(m_system, running);
 }
 
 void CPUManager::Stop()
