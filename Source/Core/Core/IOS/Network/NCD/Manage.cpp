@@ -87,24 +87,24 @@ std::optional<IPCReply> NetNCDManageDevice::IOCtlV(const IOCtlVRequest& request)
 
   case IOCTLV_NCD_GETCONFIG:
     INFO_LOG_FMT(IOS_NET, "NET_NCD_MANAGE: IOCTLV_NCD_GETCONFIG");
-    config.WriteToMem(request.io_vectors.at(0).address);
+    config.WriteToMem(memory, request.io_vectors.at(0).address);
     common_vector = 1;
     break;
 
   case IOCTLV_NCD_SETCONFIG:
     INFO_LOG_FMT(IOS_NET, "NET_NCD_MANAGE: IOCTLV_NCD_SETCONFIG");
-    config.ReadFromMem(request.in_vectors.at(0).address);
+    config.ReadFromMem(memory, request.in_vectors.at(0).address);
     break;
 
   case IOCTLV_NCD_READCONFIG:
     INFO_LOG_FMT(IOS_NET, "NET_NCD_MANAGE: IOCTLV_NCD_READCONFIG");
     config.ReadConfig(m_ios.GetFS().get());
-    config.WriteToMem(request.io_vectors.at(0).address);
+    config.WriteToMem(memory, request.io_vectors.at(0).address);
     break;
 
   case IOCTLV_NCD_WRITECONFIG:
     INFO_LOG_FMT(IOS_NET, "NET_NCD_MANAGE: IOCTLV_NCD_WRITECONFIG");
-    config.ReadFromMem(request.in_vectors.at(0).address);
+    config.ReadFromMem(memory, request.in_vectors.at(0).address);
     config.WriteConfig(m_ios.GetFS().get());
     break;
 
