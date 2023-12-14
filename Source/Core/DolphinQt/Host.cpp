@@ -25,6 +25,7 @@
 #include "Core/NetPlayProto.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/State.h"
+#include "Core/System.h"
 
 #ifdef HAS_LIBMGBA
 #include "DolphinQt/GBAWidget.h"
@@ -37,7 +38,7 @@
 #include "UICommon/DiscordPresence.h"
 
 #include "VideoCommon/AbstractGfx.h"
-#include "VideoCommon/Fifo.cpp"
+#include "VideoCommon/Fifo.h"
 #include "VideoCommon/Present.h"
 #include "VideoCommon/VideoConfig.h"
 
