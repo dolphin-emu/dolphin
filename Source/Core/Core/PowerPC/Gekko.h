@@ -930,7 +930,8 @@ enum CPUEmuFeatureFlags : u32
 {
   FEATURE_FLAG_MSR_DR = 1 << 0,
   FEATURE_FLAG_MSR_IR = 1 << 1,
-  FEATURE_FLAG_PERFMON = 1 << 2,
+  FEATURE_FLAG_MSR_PR = 1 << 2,
+  FEATURE_FLAG_PERFMON = 1 << 3,
 };
 
 constexpr s32 SignExt16(s16 x)

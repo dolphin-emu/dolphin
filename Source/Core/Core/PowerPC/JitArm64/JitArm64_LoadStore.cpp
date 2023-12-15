@@ -134,9 +134,9 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
   u32 access_size = BackPatchInfo::GetFlagSize(flags);
   u32 mmio_address = 0;
   if (is_immediate)
-    mmio_address = m_mmu.IsOptimizableMMIOAccess(imm_addr, access_size);
+    mmio_address = m_mmu.IsOptimizableMMIOAccess(imm_addr, access_size, false);
 
-  if (is_immediate && m_mmu.IsOptimizableRAMAddress(imm_addr))
+  if (is_immediate && m_mmu.IsOptimizableRAMAddress(imm_addr, false))
   {
     set_addr_reg_if_needed();
     EmitBackpatchRoutine(flags, MemAccessMode::AlwaysFastAccess, dest_reg, XA, regs_in_use,
@@ -280,7 +280,7 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
   u32 access_size = BackPatchInfo::GetFlagSize(flags);
   u32 mmio_address = 0;
   if (is_immediate)
-    mmio_address = m_mmu.IsOptimizableMMIOAccess(imm_addr, access_size);
+    mmio_address = m_mmu.IsOptimizableMMIOAccess(imm_addr, access_size, true);
 
   if (is_immediate && jo.optimizeGatherPipe && m_mmu.IsOptimizableGatherPipeWrite(imm_addr))
   {
@@ -308,7 +308,7 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
 
     js.fifoBytesSinceCheck += accessSize >> 3;
   }
-  else if (is_immediate && m_mmu.IsOptimizableRAMAddress(imm_addr))
+  else if (is_immediate && m_mmu.IsOptimizableRAMAddress(imm_addr, true))
   {
     set_addr_reg_if_needed();
     EmitBackpatchRoutine(flags, MemAccessMode::AlwaysFastAccess, RS, XA, regs_in_use, fprs_in_use);

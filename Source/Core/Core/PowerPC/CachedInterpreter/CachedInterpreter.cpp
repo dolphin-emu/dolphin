@@ -294,11 +294,12 @@ void CachedInterpreter::Jit(u32 address)
 
   const u32 nextPC =
       analyzer.Analyze(m_ppc_state.pc, &code_block, &m_code_buffer, m_code_buffer.size());
-  if (code_block.m_memory_exception)
+  if (code_block.m_memory_exception != 0)
   {
     // Address of instruction could not be translated
     m_ppc_state.npc = nextPC;
     m_ppc_state.Exceptions |= EXCEPTION_ISI;
+    SRR1(m_ppc_state) = code_block.m_memory_exception;
     m_system.GetPowerPC().CheckExceptions();
     WARN_LOG_FMT(POWERPC, "ISI exception at {:#010x}", nextPC);
     return;

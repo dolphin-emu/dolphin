@@ -179,7 +179,7 @@ T MMU::ReadFromHardware(u32 em_address)
     if (!translated_addr.Success())
     {
       if (flag == XCheckTLBFlag::Read)
-        GenerateDSIException(em_address, false);
+        GenerateDSIException(em_address, false, translated_addr.type);
       return 0;
     }
     em_address = translated_addr.address;
@@ -292,7 +292,7 @@ void MMU::WriteToHardware(u32 em_address, const u32 data, const u32 size)
     if (!translated_addr.Success())
     {
       if (flag == XCheckTLBFlag::Write)
-        GenerateDSIException(em_address, true);
+        GenerateDSIException(em_address, true, translated_addr.type);
       return;
     }
     em_address = translated_addr.address;
@@ -462,7 +462,7 @@ u32 MMU::Read_Opcode(u32 address)
   TryReadInstResult result = TryReadInstruction(address);
   if (!result.valid)
   {
-    GenerateISIException(address);
+    GenerateISIException(address, result.error);
     return 0;
   }
   return result.hex;
@@ -476,7 +476,7 @@ TryReadInstResult MMU::TryReadInstruction(u32 address)
     auto tlb_addr = TranslateAddress<XCheckTLBFlag::Opcode>(address);
     if (!tlb_addr.Success())
     {
-      return TryReadInstResult{false, false, 0, 0};
+      return TryReadInstResult{false, false, 0, 0, tlb_addr.type};
     }
     else
     {
@@ -495,7 +495,7 @@ TryReadInstResult MMU::TryReadInstruction(u32 address)
   {
     hex = m_ppc_state.iCache.ReadInstruction(address);
   }
-  return TryReadInstResult{true, from_bat, hex, address};
+  return TryReadInstResult{true, from_bat, hex, address, MemoryExceptionType::None};
 }
 
 u32 MMU::HostRead_Instruction(const Core::CPUThreadGuard& guard, const u32 address)
@@ -915,7 +915,39 @@ std::optional<ReadResult<std::string>> MMU::HostTryReadString(const Core::CPUThr
   return ReadResult<std::string>(c->translated, std::move(s));
 }
 
-bool MMU::IsOptimizableRAMAddress(const u32 address) const
+template <bool IsBAT>
+static MemoryExceptionType CalculateExceptionType(PowerPC::PowerPCState& ppc_state,
+                                                  PageProtectionBits pp, const XCheckTLBFlag flag,
+                                                  const PageProtectionEnableBits vsvp)
+{
+  bool usermode = (ppc_state.feature_flags & FEATURE_FLAG_MSR_PR) != 0;
+  bool enabled = (usermode && ((vsvp & PAGE_PROTECTION_ALLOW_USER) != 0)) ||
+                 (!usermode && (vsvp & PAGE_PROTECTION_ALLOW_SUPERVISOR) != 0);
+  // technically incorrect, but this is only for fastmem checks;
+  // (the actual access will perform its own check and return false for that)
+  // so if the BAT would be ignored, fastmem will not be used.
+  if (IsBAT && !enabled)
+    return MemoryExceptionType::ProtectionViolation;
+
+  if (!IsBAT)
+  {
+    if (!enabled && pp < PageProtectionBits::ReadWrite)
+      pp = PageProtectionBits::ReadWrite;
+  }
+
+  if (pp == PageProtectionBits::ReadWrite)
+    return MemoryExceptionType::None;
+  if (pp == PageProtectionBits::NoAccess)
+    return MemoryExceptionType::ProtectionViolation;
+  // must be readonly pp bits
+  if (flag == XCheckTLBFlag::Write)
+  {
+    return MemoryExceptionType::ProtectionViolation;
+  }
+  return MemoryExceptionType::None;
+}
+
+bool MMU::IsOptimizableRAMAddress(const u32 address, const bool write) const
 {
   if (m_power_pc.GetMemChecks().HasAny())
     return false;
@@ -931,7 +963,18 @@ bool MMU::IsOptimizableRAMAddress(const u32 address) const
   // We store whether an access can be optimized to an unchecked access
   // in dbat_table.
   u32 bat_result = m_dbat_table[address >> BAT_INDEX_SHIFT];
-  return (bat_result & BAT_PHYSICAL_BIT) != 0;
+  if ((bat_result & BAT_PHYSICAL_BIT) == 0)
+    return false;
+
+  // Check page protection and page protection enable bits.
+  PageProtectionBits pp =
+      static_cast<PageProtectionBits>((bat_result >> BAT_PP_SHIFT) & BAT_PROT_MASK);
+  PageProtectionEnableBits vsvp =
+      static_cast<PageProtectionEnableBits>((bat_result >> BAT_PPE_SHIFT) & BAT_PROT_MASK);
+
+  XCheckTLBFlag flag = write ? XCheckTLBFlag::Write : XCheckTLBFlag::Read;
+  MemoryExceptionType exception = CalculateExceptionType<true>(m_ppc_state, pp, flag, vsvp);
+  return (exception == MemoryExceptionType::None);
 }
 
 template <XCheckTLBFlag flag>
@@ -1083,13 +1126,37 @@ void MMU::DMA_MemoryToLC(const u32 cache_address, const u32 mem_address, const u
   memcpy(dst, src, 32 * num_blocks);
 }
 
-static bool TranslateBatAddress(const BatTable& bat_table, u32* address, bool* wi)
+static bool TranslateBatAddress(const BatTable& bat_table, PowerPC::PowerPCState& ppcstate,
+                                const bool write, u32* address, bool* wi,
+                                MemoryExceptionType* exception)
 {
   u32 bat_result = bat_table[*address >> BAT_INDEX_SHIFT];
   if ((bat_result & BAT_MAPPED_BIT) == 0)
     return false;
+
+  // Get the page protection bits,
+  // and calculate the XCheckTLB flag used for CalculateExceptionType().
+  PageProtectionBits pp =
+      static_cast<PageProtectionBits>((bat_result >> BAT_PP_SHIFT) & BAT_PROT_MASK);
+  PageProtectionEnableBits vsvp =
+      static_cast<PageProtectionEnableBits>((bat_result >> BAT_PPE_SHIFT) & BAT_PROT_MASK);
+
+  XCheckTLBFlag flag = write ? XCheckTLBFlag::Write : XCheckTLBFlag::Read;
+
+  // Check if the BAT is enabled for this protection mode.
+  // If the corresponding mode is disabled for this BAT, then the BAT is effectively invalid.
+  // (and thus, page table entries are used instead if present.)
+  // See PowerPC Microprocessor Family: The Programming Environments;
+  // and in particular, section 7.4.2, and table 7-12.
+  bool usermode = (ppcstate.feature_flags & FEATURE_FLAG_MSR_PR) != 0;
+  bool enabled = (usermode && ((vsvp & PAGE_PROTECTION_ALLOW_USER) != 0)) ||
+                 (!usermode && ((vsvp & PAGE_PROTECTION_ALLOW_SUPERVISOR) != 0));
+  if (!enabled)
+    return false;  // BAT is not valid for this mode, so ignore it
+
   *address = (bat_result & BAT_RESULT_MASK) | (*address & (BAT_PAGE_SIZE - 1));
   *wi = (bat_result & BAT_WI_BIT) != 0;
+  *exception = CalculateExceptionType<true>(ppcstate, pp, flag, vsvp);
   return true;
 }
 
@@ -1109,7 +1176,7 @@ void MMU::ClearDCacheLine(u32 address)
     if (translated_address.result == TranslateAddressResultEnum::PAGE_FAULT)
     {
       // If translation fails, generate a DSI.
-      GenerateDSIException(address, true);
+      GenerateDSIException(address, true, translated_address.type);
       return;
     }
     address = translated_address.address;
@@ -1135,7 +1202,7 @@ void MMU::StoreDCacheLine(u32 address)
     if (translated_address.result == TranslateAddressResultEnum::PAGE_FAULT)
     {
       // If translation fails, generate a DSI.
-      GenerateDSIException(address, true);
+      GenerateDSIException(address, true, translated_address.type);
       return;
     }
     address = translated_address.address;
@@ -1181,7 +1248,7 @@ void MMU::FlushDCacheLine(u32 address)
     if (translated_address.result == TranslateAddressResultEnum::PAGE_FAULT)
     {
       // If translation fails, generate a DSI.
-      GenerateDSIException(address, true);
+      GenerateDSIException(address, true, translated_address.type);
       return;
     }
     address = translated_address.address;
@@ -1205,7 +1272,7 @@ void MMU::TouchDCacheLine(u32 address, bool store)
     if (translated_address.result == TranslateAddressResultEnum::PAGE_FAULT)
     {
       // If translation fails, generate a DSI.
-      GenerateDSIException(address, true);
+      GenerateDSIException(address, true, translated_address.type);
       return;
     }
     address = translated_address.address;
@@ -1215,7 +1282,7 @@ void MMU::TouchDCacheLine(u32 address, bool store)
     m_ppc_state.dCache.Touch(address, store);
 }
 
-u32 MMU::IsOptimizableMMIOAccess(u32 address, u32 access_size) const
+u32 MMU::IsOptimizableMMIOAccess(u32 address, u32 access_size, bool write) const
 {
   if (m_power_pc.GetMemChecks().HasAny())
     return 0;
@@ -1229,8 +1296,12 @@ u32 MMU::IsOptimizableMMIOAccess(u32 address, u32 access_size) const
   // Translate address
   // If we also optimize for TLB mappings, we'd have to clear the
   // JitCache on each TLB invalidation.
+  MemoryExceptionType exception;
   bool wi = false;
-  if (!TranslateBatAddress(m_dbat_table, &address, &wi))
+  if (!TranslateBatAddress(m_dbat_table, m_ppc_state, write, &address, &wi, &exception))
+    return 0;
+
+  if (exception != MemoryExceptionType::None)
     return 0;
 
   // Check whether the address is an aligned address of an MMIO register.
@@ -1252,8 +1323,12 @@ bool MMU::IsOptimizableGatherPipeWrite(u32 address) const
   // Translate address, only check BAT mapping.
   // If we also optimize for TLB mappings, we'd have to clear the
   // JitCache on each TLB invalidation.
+  MemoryExceptionType exception;
   bool wi = false;
-  if (!TranslateBatAddress(m_dbat_table, &address, &wi))
+  if (!TranslateBatAddress(m_dbat_table, m_ppc_state, true, &address, &wi, &exception))
+    return false;
+
+  if (exception != MemoryExceptionType::None)
     return false;
 
   // Check whether the translated address equals the address in WPAR.
@@ -1268,13 +1343,13 @@ TranslateResult MMU::JitCache_TranslateAddress(u32 address)
   // TODO: We shouldn't use FLAG_OPCODE if the caller is the debugger.
   const auto tlb_addr = TranslateAddress<XCheckTLBFlag::Opcode>(address);
   if (!tlb_addr.Success())
-    return TranslateResult{};
+    return TranslateResult{tlb_addr.type};
 
   const bool from_bat = tlb_addr.result == TranslateAddressResultEnum::BAT_TRANSLATED;
   return TranslateResult{from_bat, tlb_addr.address};
 }
 
-void MMU::GenerateDSIException(u32 effective_address, bool write)
+void MMU::GenerateDSIException(u32 effective_address, bool write, MemoryExceptionType type)
 {
   // DSI exceptions are only supported in MMU mode.
   if (!m_system.IsMMUMode())
@@ -1289,21 +1364,39 @@ void MMU::GenerateDSIException(u32 effective_address, bool write)
     return;
   }
 
-  constexpr u32 dsisr_page = 1U << 30;
+  if (type == MemoryExceptionType::None)
+  {
+    // Assume page fault.
+    type = MemoryExceptionType::PageFault;
+  }
+
   constexpr u32 dsisr_store = 1U << 25;
 
+  // Calculate the DSISR value.
+  u32 dsisr = static_cast<u32>(type);
   if (write)
-    m_ppc_state.spr[SPR_DSISR] = dsisr_page | dsisr_store;
-  else
-    m_ppc_state.spr[SPR_DSISR] = dsisr_page;
+    dsisr |= dsisr_store;
+
+  m_ppc_state.spr[SPR_DSISR] = dsisr;
 
   m_ppc_state.spr[SPR_DAR] = effective_address;
 
   m_ppc_state.Exceptions |= EXCEPTION_DSI;
 }
 
-void MMU::GenerateISIException(u32 effective_address)
+void MMU::GenerateISIException(u32 effective_address, MemoryExceptionType type)
 {
+  if (type == MemoryExceptionType::None)
+  {
+    // Assume page fault.
+    type = MemoryExceptionType::PageFault;
+  }
+
+  // Set SRR1 as the memory exception type,
+  // see PowerPC Microprocessor Family: The Programming Environments;
+  // Table 7-6
+  SRR1(m_ppc_state) = static_cast<u32>(type);
+
   // Address of instruction could not be translated
   m_ppc_state.npc = effective_address;
 
@@ -1340,12 +1433,19 @@ enum class TLBLookupResult
 
 static TLBLookupResult LookupTLBPageAddress(PowerPC::PowerPCState& ppc_state,
                                             const XCheckTLBFlag flag, const u32 vpa, const u32 vsid,
-                                            u32* paddr, bool* wi)
+                                            u32* paddr, bool* wi, MemoryExceptionType* exception)
 {
   const u32 tag = vpa >> HW_PAGE_INDEX_SHIFT;
   TLBEntry& tlbe = ppc_state.tlb[IsOpcodeFlag(flag)][tag & HW_PAGE_INDEX_MASK];
 
-  if (tlbe.tag[0] == tag && tlbe.vsid[0] == vsid)
+  // VSID is only 24 bits long;
+  // The page protection bits are thus stored in bits 24-25,
+  // and the page protection enable bits are stored in bits 25-26.
+  constexpr u32 vsid_mask = ((1U << 24) - 1);
+  // Both of the values stashed in the upper part of VSID are 2 bits long.
+  constexpr u32 upper_mask = ((1U << 2) - 1);
+
+  if (tlbe.tag[0] == tag && (tlbe.vsid[0] & vsid_mask) == vsid)
   {
     UPTE_Hi pte2(tlbe.pte[0]);
 
@@ -1366,9 +1466,15 @@ static TLBLookupResult LookupTLBPageAddress(PowerPC::PowerPCState& ppc_state,
     *paddr = tlbe.paddr[0] | (vpa & 0xfff);
     *wi = (pte2.WIMG & 0b1100) != 0;
 
+    // Calculate the exception type from the pp/vsvp bits in upper part of vsid
+    PageProtectionBits pp = static_cast<PageProtectionBits>((tlbe.vsid[0] >> 24) & upper_mask);
+    PageProtectionEnableBits vsvp =
+        static_cast<PageProtectionEnableBits>((tlbe.vsid[0] >> 26) & upper_mask);
+    *exception = CalculateExceptionType<false>(ppc_state, pp, flag, vsvp);
+
     return TLBLookupResult::Found;
   }
-  if (tlbe.tag[1] == tag && tlbe.vsid[1] == vsid)
+  if (tlbe.tag[1] == tag && (tlbe.vsid[1] & vsid_mask) == vsid)
   {
     UPTE_Hi pte2(tlbe.pte[1]);
 
@@ -1389,13 +1495,20 @@ static TLBLookupResult LookupTLBPageAddress(PowerPC::PowerPCState& ppc_state,
     *paddr = tlbe.paddr[1] | (vpa & 0xfff);
     *wi = (pte2.WIMG & 0b1100) != 0;
 
+    // Calculate the exception type from the pp/vsvp bits in upper part of vsid
+    PageProtectionBits pp = static_cast<PageProtectionBits>((tlbe.vsid[1] >> 24) & upper_mask);
+    PageProtectionEnableBits vsvp =
+        static_cast<PageProtectionEnableBits>((tlbe.vsid[1] >> 26) & upper_mask);
+    *exception = CalculateExceptionType<false>(ppc_state, pp, flag, vsvp);
+
     return TLBLookupResult::Found;
   }
   return TLBLookupResult::NotFound;
 }
 
 static void UpdateTLBEntry(PowerPC::PowerPCState& ppc_state, const XCheckTLBFlag flag, UPTE_Hi pte2,
-                           const u32 address, const u32 vsid)
+                           const u32 address, const u32 vsid, const PageProtectionBits pp,
+                           const PageProtectionEnableBits vsvp)
 {
   if (IsNoExceptionFlag(flag))
     return;
@@ -1407,7 +1520,8 @@ static void UpdateTLBEntry(PowerPC::PowerPCState& ppc_state, const XCheckTLBFlag
   tlbe.paddr[index] = pte2.RPN << HW_PAGE_INDEX_SHIFT;
   tlbe.pte[index] = pte2.Hex;
   tlbe.tag[index] = tag;
-  tlbe.vsid[index] = vsid;
+  // VSID is 24 bits. The pp and vsvp bits can be inserted in the upper bits.
+  tlbe.vsid[index] = vsid | (static_cast<u32>(pp) << 24) | (static_cast<u32>(vsvp) << 26);
 }
 
 void MMU::InvalidateTLBEntry(u32 address)
@@ -1425,32 +1539,47 @@ MMU::TranslateAddressResult MMU::TranslatePageAddress(const EffectiveAddress add
   const auto sr = UReg_SR{m_ppc_state.sr[address.SR]};
   const u32 VSID = sr.VSID;  // 24 bit
 
-  // TLB cache
-  // This catches 99%+ of lookups in practice, so the actual page table entry code below doesn't
-  // benefit much from optimization.
-  u32 translated_address = 0;
-  const TLBLookupResult res =
-      LookupTLBPageAddress(m_ppc_state, flag, address.Hex, VSID, &translated_address, wi);
-  if (res == TLBLookupResult::Found)
-  {
-    return TranslateAddressResult{TranslateAddressResultEnum::PAGE_TABLE_TRANSLATED,
-                                  translated_address};
-  }
-
+  // Do the segment register checks before checking the TLB cache.
+  // Especially no-execute might have an entry in the TLB cache for data.
   if (sr.T != 0)
-    return TranslateAddressResult{TranslateAddressResultEnum::DIRECT_STORE_SEGMENT, 0};
+  {
+    if (flag == XCheckTLBFlag::Opcode)
+    {
+      // As per PowerPC Microprocessor Family: The Programming Environments; Table 7-5
+      return TranslateAddressResult{MemoryExceptionType::InvalidInstructionFetch};
+    }
 
-  // TODO: Handle KS/KP segment register flags.
+    return TranslateAddressResult{TranslateAddressResultEnum::DIRECT_STORE_SEGMENT, 0};
+  }
 
   // No-execute segment register flag.
   if ((flag == XCheckTLBFlag::Opcode || flag == XCheckTLBFlag::OpcodeNoException) && sr.N != 0)
   {
-    return TranslateAddressResult{TranslateAddressResultEnum::PAGE_FAULT, 0};
+    return TranslateAddressResult{MemoryExceptionType::InvalidInstructionFetch};
+  }
+
+  // TLB cache
+  // This catches 99%+ of lookups in practice, so the actual page table entry code below doesn't
+  // benefit much from optimization.
+  u32 translated_address = 0;
+  MemoryExceptionType exception;
+  const TLBLookupResult res = LookupTLBPageAddress(m_ppc_state, flag, address.Hex, VSID,
+                                                   &translated_address, wi, &exception);
+  if (res == TLBLookupResult::Found)
+  {
+    if (exception != MemoryExceptionType::None)
+    {
+      return TranslateAddressResult{exception};
+    }
+    return TranslateAddressResult{TranslateAddressResultEnum::PAGE_TABLE_TRANSLATED,
+                                  translated_address};
   }
 
   const u32 offset = address.offset;          // 12 bit
   const u32 page_index = address.page_index;  // 16 bit
   const u32 api = address.API;                //  6 bit (part of page_index)
+  PageProtectionEnableBits vsvp =
+      static_cast<PageProtectionEnableBits>((sr.Ks << 0) | (sr.Kp << 1));
 
   // hash function no 1 "xor" .360
   u32 hash = (VSID ^ page_index);
@@ -1504,24 +1633,30 @@ MMU::TranslateAddressResult MMU::TranslatePageAddress(const EffectiveAddress add
           m_memory.Write_U32(pte2.Hex, pteg_addr + 4);
         }
 
+        PageProtectionBits pp = static_cast<PageProtectionBits>(pte2.PP.Value());
+
         // We already updated the TLB entry if this was caused by a C bit.
         if (res != TLBLookupResult::UpdateC)
-          UpdateTLBEntry(m_ppc_state, flag, pte2, address.Hex, VSID);
+          UpdateTLBEntry(m_ppc_state, flag, pte2, address.Hex, VSID, pp, vsvp);
 
         *wi = (pte2.WIMG & 0b1100) != 0;
+
+        exception = CalculateExceptionType<false>(m_ppc_state, pp, flag, vsvp);
+        if (exception != MemoryExceptionType::None)
+        {
+          return TranslateAddressResult{exception};
+        }
 
         return TranslateAddressResult{TranslateAddressResultEnum::PAGE_TABLE_TRANSLATED,
                                       (pte2.RPN << 12) | offset};
       }
     }
   }
-  return TranslateAddressResult{TranslateAddressResultEnum::PAGE_FAULT, 0};
+  return TranslateAddressResult{MemoryExceptionType::PageFault};
 }
 
 void MMU::UpdateBATs(BatTable& bat_table, u32 base_spr)
 {
-  // TODO: Separate BATs for MSR.PR==0 and MSR.PR==1
-  // TODO: Handle PP settings.
   // TODO: Check how hardware reacts to overlapping BATs (including
   // BATs which should cause a DSI).
   // TODO: Check how hardware reacts to invalid BATs (bad mask etc).
@@ -1569,6 +1704,8 @@ void MMU::UpdateBATs(BatTable& bat_table, u32 base_spr)
         // BAT_MAPPED_BIT is whether the translation is valid
         // BAT_PHYSICAL_BIT is whether we can use the fastmem arena
         // BAT_WI_BIT is whether either W or I (of WIMG) is set
+        // BAT_PP_MASK is the page protection bits
+        // BAT_PPE_MASK is the page protection enable bits (Vs/Vp)
         u32 valid_bit = BAT_MAPPED_BIT;
 
         const bool wi = (batl.WIMG & 0b1100) != 0;
@@ -1605,6 +1742,18 @@ void MMU::UpdateBATs(BatTable& bat_table, u32 base_spr)
         if (m_power_pc.GetMemChecks().OverlapsMemcheck(virtual_address, BAT_PAGE_SIZE))
           valid_bit &= ~BAT_PHYSICAL_BIT;
 
+        u32 ppe = PAGE_PROTECTION_DISABLED;
+        if (batu.VS)
+        {
+          ppe |= PAGE_PROTECTION_ALLOW_SUPERVISOR;
+        }
+        if (batu.VP)
+        {
+          ppe |= PAGE_PROTECTION_ALLOW_USER;
+        }
+        valid_bit |= (ppe << BAT_PPE_SHIFT);
+        valid_bit |= (batl.PP << BAT_PP_SHIFT);
+
         // (BEPI | j) == (BEPI & ~BL) | (j & BL).
         bat_table[virtual_address >> BAT_INDEX_SHIFT] = physical_address | valid_bit;
       }
@@ -1620,7 +1769,9 @@ void MMU::UpdateFakeMMUBat(BatTable& bat_table, u32 start_addr)
     // [0x7E000000,0x80000000).
     u32 e_address = i + (start_addr >> BAT_INDEX_SHIFT);
     u32 p_address = 0x7E000000 | (i << BAT_INDEX_SHIFT & m_memory.GetFakeVMemMask());
-    u32 flags = BAT_MAPPED_BIT | BAT_PHYSICAL_BIT;
+    // Allow all access read/write.
+    u32 flags = BAT_MAPPED_BIT | BAT_PHYSICAL_BIT | (PAGE_PROTECTION_ALLOW_ALL << BAT_PPE_SHIFT) |
+                (static_cast<u32>(PageProtectionBits::ReadWrite) << BAT_PP_SHIFT);
 
     if (m_power_pc.GetMemChecks().OverlapsMemcheck(e_address << BAT_INDEX_SHIFT, BAT_PAGE_SIZE))
       flags &= ~BAT_PHYSICAL_BIT;
@@ -1676,8 +1827,18 @@ MMU::TranslateAddressResult MMU::TranslateAddress(u32 address)
 {
   bool wi = false;
 
-  if (TranslateBatAddress(IsOpcodeFlag(flag) ? m_ibat_table : m_dbat_table, &address, &wi))
+  MemoryExceptionType exception;
+  if (TranslateBatAddress(IsOpcodeFlag(flag) ? m_ibat_table : m_dbat_table, m_ppc_state,
+                          flag == XCheckTLBFlag::Write, &address, &wi, &exception))
+  {
+    if (exception != MemoryExceptionType::None)
+    {
+      // BAT is valid for this mode (supervisor/user), but faulted.
+      // The fault must be raised, as a valid BAT was found.
+      return TranslateAddressResult{exception};
+    }
     return TranslateAddressResult{TranslateAddressResultEnum::BAT_TRANSLATED, address, wi};
+  }
 
   return TranslatePageAddress<flag>(EffectiveAddress{address}, &wi);
 }

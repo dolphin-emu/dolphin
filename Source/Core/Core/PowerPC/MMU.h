@@ -58,19 +58,51 @@ struct WriteResult
   explicit WriteResult(bool translated_) : translated(translated_) {}
 };
 
+constexpr int BAT_PP_SHIFT = 3;
+constexpr int BAT_PPE_SHIFT = 5;
 constexpr int BAT_INDEX_SHIFT = 17;
 constexpr u32 BAT_PAGE_SIZE = 1 << BAT_INDEX_SHIFT;
 constexpr u32 BAT_PAGE_COUNT = 1 << (32 - BAT_INDEX_SHIFT);
 constexpr u32 BAT_MAPPED_BIT = 0x1;
 constexpr u32 BAT_PHYSICAL_BIT = 0x2;
 constexpr u32 BAT_WI_BIT = 0x4;
-constexpr u32 BAT_RESULT_MASK = UINT32_C(~0x7);
+constexpr u32 BAT_PROT_MASK = ((1u << 2) - 1);
+constexpr u32 BAT_PP_MASK = (BAT_PROT_MASK << BAT_PP_SHIFT);
+constexpr u32 BAT_PPE_MASK = (BAT_PROT_MASK << BAT_PPE_SHIFT);
+constexpr u32 BAT_RESULT_MASK = UINT32_C(~0x7F);
 using BatTable = std::array<u32, BAT_PAGE_COUNT>;  // 128 KB
 
 constexpr size_t HW_PAGE_SIZE = 4096;
 constexpr size_t HW_PAGE_MASK = HW_PAGE_SIZE - 1;
 constexpr u32 HW_PAGE_INDEX_SHIFT = 12;
 constexpr u32 HW_PAGE_INDEX_MASK = 0x3f;
+
+// Type of memory exception. Matches the bit set in DSISR (for DSI), or SRR1 (for ISI)
+enum class MemoryExceptionType : u32
+{
+  None = 0,
+  PageFault = (1U << 30),
+  ProtectionViolation = (1U << 27),
+  InvalidInstructionFetch = (1U << 28)
+};
+
+// Definition of PP bits in BAT and page tables
+enum class PageProtectionBits : u8
+{
+  NoAccess = 0,
+  ReadOnlySR = 1,
+  ReadWrite = 2,
+  ReadOnly = 3
+};
+
+// Enable protection bits for kernel and usermode in BAT and page tables
+enum PageProtectionEnableBits : u8
+{
+  PAGE_PROTECTION_DISABLED = 0,
+  PAGE_PROTECTION_ALLOW_SUPERVISOR = (1 << 0),
+  PAGE_PROTECTION_ALLOW_USER = (1 << 1),
+  PAGE_PROTECTION_ALLOW_ALL = PAGE_PROTECTION_ALLOW_SUPERVISOR | PAGE_PROTECTION_ALLOW_USER
+};
 
 // Return value of MMU::TryReadInstruction().
 struct TryReadInstResult
@@ -79,6 +111,7 @@ struct TryReadInstResult
   bool from_bat;
   u32 hex;
   u32 physical_address;
+  MemoryExceptionType error;
 };
 
 // Return value of MMU::JitCache_TranslateAddress().
@@ -88,9 +121,13 @@ struct TranslateResult
   bool translated = false;
   bool from_bat = false;
   u32 address = 0;
+  MemoryExceptionType error = MemoryExceptionType::None;
 
   TranslateResult() = default;
   explicit TranslateResult(u32 address_) : valid(true), address(address_) {}
+  TranslateResult(MemoryExceptionType error) : valid(false), error(MemoryExceptionType::PageFault)
+  {
+  }
   TranslateResult(bool from_bat_, u32 address_)
       : valid(true), translated(true), from_bat(from_bat_), address(address_)
   {
@@ -245,8 +282,8 @@ public:
   // Result changes based on the BAT registers and MSR.DR.  Returns whether
   // it's safe to optimize a read or write to this address to an unguarded
   // memory access.  Does not consider page tables.
-  bool IsOptimizableRAMAddress(u32 address) const;
-  u32 IsOptimizableMMIOAccess(u32 address, u32 access_size) const;
+  bool IsOptimizableRAMAddress(u32 address, bool write) const;
+  u32 IsOptimizableMMIOAccess(u32 address, u32 access_size, bool write) const;
   bool IsOptimizableGatherPipeWrite(u32 address) const;
 
   TranslateResult JitCache_TranslateAddress(u32 address);
@@ -269,12 +306,21 @@ private:
   {
     u32 address;
     TranslateAddressResultEnum result;
+    MemoryExceptionType type;
     bool wi;  // Set to true if the view of memory is either write-through or cache-inhibited
 
     TranslateAddressResult(TranslateAddressResultEnum result_, u32 address_, bool wi_ = false)
         : address(address_), result(result_), wi(wi_)
     {
     }
+
+    TranslateAddressResult(MemoryExceptionType type_)
+        : type(type_), result(TranslateAddressResultEnum::PAGE_FAULT), address(0), wi(false)
+    {
+      // specifying MemoryExceptionType::None here is equal to page fault to preserve prior
+      // behaviour
+    }
+
     bool Success() const { return result <= TranslateAddressResultEnum::PAGE_TABLE_TRANSLATED; }
   };
 
@@ -297,8 +343,8 @@ private:
   template <const XCheckTLBFlag flag>
   TranslateAddressResult TranslatePageAddress(const EffectiveAddress address, bool* wi);
 
-  void GenerateDSIException(u32 effective_address, bool write);
-  void GenerateISIException(u32 effective_address);
+  void GenerateDSIException(u32 effective_address, bool write, MemoryExceptionType type);
+  void GenerateISIException(u32 effective_address, MemoryExceptionType type);
 
   void Memcheck(u32 address, u64 var, bool write, size_t size);
 

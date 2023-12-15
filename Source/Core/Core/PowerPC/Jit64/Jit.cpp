@@ -796,11 +796,12 @@ void Jit64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
   // instructions.
   const u32 nextPC = analyzer.Analyze(em_address, &code_block, &m_code_buffer, block_size);
 
-  if (code_block.m_memory_exception)
+  if (code_block.m_memory_exception != 0)
   {
     // Address of instruction could not be translated
     m_ppc_state.npc = nextPC;
     m_ppc_state.Exceptions |= EXCEPTION_ISI;
+    SRR1(m_ppc_state) = code_block.m_memory_exception;
     m_system.GetPowerPC().CheckExceptions();
     m_system.GetJitInterface().UpdateMembase();
     WARN_LOG_FMT(POWERPC, "ISI exception at {:#010x}", nextPC);

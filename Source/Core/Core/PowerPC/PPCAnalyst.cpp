@@ -809,7 +809,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
 
   // Reset our block state
   block->m_broken = false;
-  block->m_memory_exception = false;
+  block->m_memory_exception = 0;
   block->m_num_instructions = 0;
   block->m_gqr_used = BitSet8(0);
   block->m_physical_addresses.clear();
@@ -831,7 +831,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
     if (!result.valid)
     {
       if (i == 0)
-        block->m_memory_exception = true;
+        block->m_memory_exception = static_cast<u32>(result.error);
       break;
     }
 

@@ -510,8 +510,8 @@ void PowerPCManager::CheckExceptions()
   if (exceptions & EXCEPTION_ISI)
   {
     SRR0(m_ppc_state) = m_ppc_state.npc;
-    // Page fault occurred
-    SRR1(m_ppc_state) = (m_ppc_state.msr.Hex & 0x87C0FFFF) | (1 << 30);
+    // SRR1 was partially set by MMU or JIT, so bitwise or is used here
+    SRR1(m_ppc_state) |= (m_ppc_state.msr.Hex & 0x87C0FFFF);
     m_ppc_state.msr.LE = m_ppc_state.msr.ILE;
     m_ppc_state.msr.Hex &= ~0x04EF36;
     m_ppc_state.pc = m_ppc_state.npc = 0x00000400;
@@ -709,9 +709,11 @@ void MSRUpdated(PowerPCState& ppc_state)
   static_assert(UReg_MSR{}.IR.StartBit() == 5);
   static_assert(FEATURE_FLAG_MSR_DR == 1 << 0);
   static_assert(FEATURE_FLAG_MSR_IR == 1 << 1);
+  static_assert(FEATURE_FLAG_MSR_PR == 1 << 2);
 
-  ppc_state.feature_flags = static_cast<CPUEmuFeatureFlags>(
-      (ppc_state.feature_flags & FEATURE_FLAG_PERFMON) | ((ppc_state.msr.Hex >> 4) & 0x3));
+  ppc_state.feature_flags =
+      static_cast<CPUEmuFeatureFlags>((ppc_state.feature_flags & FEATURE_FLAG_PERFMON) |
+                                      ((ppc_state.msr.PR) << 2) | ((ppc_state.msr.Hex >> 4) & 0x3));
 }
 
 void MMCRUpdated(PowerPCState& ppc_state)
@@ -727,10 +729,12 @@ void RecalculateAllFeatureFlags(PowerPCState& ppc_state)
   static_assert(UReg_MSR{}.IR.StartBit() == 5);
   static_assert(FEATURE_FLAG_MSR_DR == 1 << 0);
   static_assert(FEATURE_FLAG_MSR_IR == 1 << 1);
+  static_assert(FEATURE_FLAG_MSR_PR == 1 << 2);
 
   const bool perfmon = ppc_state.spr[SPR_MMCR0] || ppc_state.spr[SPR_MMCR1];
-  ppc_state.feature_flags = static_cast<CPUEmuFeatureFlags>(((ppc_state.msr.Hex >> 4) & 0x3) |
-                                                            (perfmon ? FEATURE_FLAG_PERFMON : 0));
+  ppc_state.feature_flags =
+      static_cast<CPUEmuFeatureFlags>(((ppc_state.msr.Hex >> 4) & 0x3) | ((ppc_state.msr.PR) << 2) |
+                                      (perfmon ? FEATURE_FLAG_PERFMON : 0));
 }
 
 void CheckExceptionsFromJIT(PowerPCManager& power_pc)
