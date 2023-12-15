@@ -237,7 +237,7 @@ private:
     NSString* label;
     id<MTLRenderPipelineState> pipeline;
     std::array<id<MTLBuffer>, 2> vertex_buffers;
-    std::array<id<MTLBuffer>, 2> fragment_buffers;
+    std::array<id<MTLBuffer>, 3> fragment_buffers;
     u32 width;
     u32 height;
     MathUtil::Rectangle<int> scissor_rect;
