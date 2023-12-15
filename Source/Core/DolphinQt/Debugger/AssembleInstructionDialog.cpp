@@ -17,9 +17,10 @@ namespace
 {
 QString HtmlFormatErrorLoc(const Common::GekkoAssembler::AssemblerError& err)
 {
-  return QObject::tr("<span style=\"color: red; font-weight: bold\">Error</span> on line %1 col %2")
-      .arg(err.line + 1)
-      .arg(err.col + 1);
+  const QString error = QStringLiteral("<span style=\"color: red; font-weight: bold\">%1</span>")
+                            .arg(QObject::tr("Error"));
+  // i18n: '%1' is the translation of 'Error'
+  return QObject::tr("%1 in column %2").arg(error).arg(err.col + 1);
 }
 
 QString HtmlFormatErrorLine(const Common::GekkoAssembler::AssemblerError& err)
@@ -31,7 +32,7 @@ QString HtmlFormatErrorLine(const Common::GekkoAssembler::AssemblerError& err)
   const QString line_post_error =
       QString::fromStdString(std::string(err.error_line.substr(err.col + err.len))).toHtmlEscaped();
 
-  return QObject::tr("%1<u><span style=\"color:red; font-weight:bold\">%2</span></u>%3")
+  return QStringLiteral("%1<u><span style=\"color:red; font-weight:bold\">%2</span></u>%3")
       .arg(line_pre_error)
       .arg(line_error)
       .arg(line_post_error);
@@ -61,7 +62,6 @@ void AssembleInstructionDialog::CreateWidgets()
 
   m_error_line_label->setFont(QFont(QFontDatabase::systemFont(QFontDatabase::FixedFont).family()));
   m_input_edit->setFont(QFont(QFontDatabase::systemFont(QFontDatabase::FixedFont).family()));
-  layout->addWidget(new QLabel(tr("Inline Assembler")));
   layout->addWidget(m_error_loc_label);
   layout->addWidget(m_input_edit);
   layout->addWidget(m_error_line_label);
@@ -102,7 +102,8 @@ void AssembleInstructionDialog::OnEditChanged()
   {
     m_button_box->button(QDialogButtonBox::Ok)->setEnabled(false);
 
-    m_error_loc_label->setText(tr("<span style=\"color: red; font-weight: bold\">Error</span>"));
+    m_error_loc_label->setText(
+        QStringLiteral("<span style=\"color: red; font-weight: bold\">%1</span>").arg(tr("Error")));
     m_error_line_label->clear();
     m_msg_label->setText(tr("No input"));
   }
@@ -117,7 +118,8 @@ void AssembleInstructionDialog::OnEditChanged()
       m_code = (m_code << 8) | block_bytes[i];
     }
 
-    m_error_loc_label->setText(tr("<span style=\"color: green; font-weight: bold\">Ok</span>"));
+    m_error_loc_label->setText(
+        QStringLiteral("<span style=\"color: green; font-weight: bold\">%1</span>").arg(tr("OK")));
     m_error_line_label->clear();
     m_msg_label->setText(tr("Instruction: %1").arg(m_code, 8, 16, QLatin1Char('0')));
   }

@@ -48,9 +48,10 @@ using namespace Common::GekkoAssembler;
 
 QString HtmlFormatErrorLoc(const AssemblerError& err)
 {
-  return QObject::tr("<span style=\"color: red; font-weight: bold\">Error</span> on line %1 col %2")
-      .arg(err.line + 1)
-      .arg(err.col + 1);
+  const QString error = QStringLiteral("<span style=\"color: red; font-weight: bold\">%1</span>")
+                            .arg(QObject::tr("Error"));
+  // i18n: '%1' is the translation of 'Error'
+  return QObject::tr("%1 on line %1 column %2").arg(error).arg(err.line + 1).arg(err.col + 1);
 }
 
 QString HtmlFormatErrorLine(const AssemblerError& err)
@@ -62,9 +63,9 @@ QString HtmlFormatErrorLine(const AssemblerError& err)
   const QString line_post_error =
       QString::fromStdString(std::string(err.error_line.substr(err.col + err.len))).toHtmlEscaped();
 
-  return QObject::tr("<span style=\"font-family:'monospace';font-size:16px\">"
-                     "<pre>%1<u><span style=\"color:red;font-weight:bold\">%2</span></u>%3</pre>"
-                     "</span>")
+  return QStringLiteral("<span style=\"font-family:'monospace';font-size:16px\">"
+                        "<pre>%1<u><span style=\"color:red;font-weight:bold\">%2</span></u>%3</pre>"
+                        "</span>")
       .arg(line_pre_error)
       .arg(line_error)
       .arg(line_post_error);
@@ -72,7 +73,7 @@ QString HtmlFormatErrorLine(const AssemblerError& err)
 
 QString HtmlFormatMessage(const AssemblerError& err)
 {
-  return QObject::tr("<span>%1</span>").arg(QString::fromStdString(err.message).toHtmlEscaped());
+  return QStringLiteral("<span>%1</span>").arg(QString::fromStdString(err.message).toHtmlEscaped());
 }
 
 void DeserializeBlock(const CodeBlock& blk, std::ostringstream& out_str, bool pad4)
@@ -524,8 +525,10 @@ void AssemblerWidget::OnAssemble(std::vector<CodeBlock>* asm_out)
   if (!good)
   {
     base_address = 0;
-    m_error_box->append(
-        tr("<span style=\"color:#ffcc00\">Warning</span> invalid base address, defaulting to 0"));
+    const QString warning =
+        QStringLiteral("<span style=\"color:#ffcc00\">%1</span>").arg(tr("Warning"));
+    // i18n: '%1' is the translation of 'Warning'
+    m_error_box->append(tr("%1 invalid base address, defaulting to 0").arg(warning));
   }
 
   const std::string contents = active_editor->toPlainText().toStdString();
