@@ -607,7 +607,7 @@ void EnhancementsWidget::AddDescriptions()
       "resolution, such as in games that use very low resolution mipmaps. Disabling this can also "
       "reduce stutter in games that frequently load new textures. This feature is not compatible "
       "with GPU Texture Decoding.<br><br><dolphin_emphasis>If unsure, leave this "
-      "checked.</dolphin_emphasis>");
+      "unchecked.</dolphin_emphasis>");
   static const char TR_HDR_DESCRIPTION[] = QT_TR_NOOP(
       "Enables scRGB HDR output (if supported by your graphics backend and monitor)."
       " Fullscreen might be required."

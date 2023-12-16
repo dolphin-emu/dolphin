@@ -135,7 +135,7 @@ const Info<bool> GFX_ENHANCE_FORCE_TRUE_COLOR{{System::GFX, "Enhancements", "For
 const Info<bool> GFX_ENHANCE_DISABLE_COPY_FILTER{{System::GFX, "Enhancements", "DisableCopyFilter"},
                                                  true};
 const Info<bool> GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION{
-    {System::GFX, "Enhancements", "ArbitraryMipmapDetection"}, true};
+    {System::GFX, "Enhancements", "ArbitraryMipmapDetection"}, false};
 const Info<float> GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_THRESHOLD{
     {System::GFX, "Enhancements", "ArbitraryMipmapDetectionThreshold"}, 14.0f};
 const Info<bool> GFX_ENHANCE_HDR_OUTPUT{{System::GFX, "Enhancements", "HDROutput"}, false};
