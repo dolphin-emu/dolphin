@@ -213,6 +213,8 @@ private:
   QAction* m_check_nand;
   QAction* m_extract_certificates;
   std::array<QAction*, 5> m_wii_remotes;
+  QAction* m_import_wii_save;
+  QAction* m_export_wii_saves;
 
   // Emulation
   QAction* m_play_action;
