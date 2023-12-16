@@ -323,10 +323,10 @@ void JitArm64::boolX(UGeckoInstruction inst)
       PanicAlertFmt("WTF!");
     }
   }
-  else if ((gpr.IsImm(s) &&
-            (gpr.GetImm(s) == 0 || gpr.GetImm(s) == 0xFFFFFFFF || LogicalImm(gpr.GetImm(s), 32))) ||
-           (gpr.IsImm(b) &&
-            (gpr.GetImm(b) == 0 || gpr.GetImm(b) == 0xFFFFFFFF || LogicalImm(gpr.GetImm(b), 32))))
+  else if ((gpr.IsImm(s) && (gpr.GetImm(s) == 0 || gpr.GetImm(s) == 0xFFFFFFFF ||
+                             LogicalImm(gpr.GetImm(s), GPRSize::B32))) ||
+           (gpr.IsImm(b) && (gpr.GetImm(b) == 0 || gpr.GetImm(b) == 0xFFFFFFFF ||
+                             LogicalImm(gpr.GetImm(b), GPRSize::B32))))
   {
     int i, j;
     if (gpr.IsImm(s))
@@ -358,7 +358,7 @@ void JitArm64::boolX(UGeckoInstruction inst)
     const bool is_zero = imm == 0;
     const bool is_ones = imm == 0xFFFFFFFF;
     // If imm can be represented as LogicalImm, so can ~imm.
-    const auto log_imm = LogicalImm(imm, 32);
+    const auto log_imm = LogicalImm(imm, GPRSize::B32);
 
     if (is_xor)
     {
@@ -782,7 +782,7 @@ void JitArm64::rlwinmx(UGeckoInstruction inst)
   else if (!inst.SH)
   {
     // Immediate mask
-    AND(gpr.R(a), gpr.R(s), LogicalImm(mask, 32));
+    AND(gpr.R(a), gpr.R(s), LogicalImm(mask, GPRSize::B32));
   }
   else if (inst.ME == 31 && 31 < inst.SH + inst.MB)
   {

@@ -458,7 +458,7 @@ void JitArm64::FloatCompare(UGeckoInstruction inst, bool upper)
   {
     fpscr_reg = gpr.GetReg();
     LDR(IndexType::Unsigned, fpscr_reg, PPC_REG, PPCSTATE_OFF(fpscr));
-    AND(fpscr_reg, fpscr_reg, LogicalImm(~FPCC_MASK, 32));
+    AND(fpscr_reg, fpscr_reg, LogicalImm(~FPCC_MASK, GPRSize::B32));
   }
 
   ARM64Reg V0Q = ARM64Reg::INVALID_REG;
@@ -506,14 +506,14 @@ void JitArm64::FloatCompare(UGeckoInstruction inst, bool upper)
   // A == B
   MOVI2R(XA, 0);
   if (fprf)
-    ORR(fpscr_reg, fpscr_reg, LogicalImm(PowerPC::CR_EQ << FPRF_SHIFT, 32));
+    ORR(fpscr_reg, fpscr_reg, LogicalImm(PowerPC::CR_EQ << FPRF_SHIFT, GPRSize::B32));
 
   continue1 = B();
 
   SetJumpTarget(pNaN);
   MOVI2R(XA, ~(1ULL << PowerPC::CR_EMU_LT_BIT));
   if (fprf)
-    ORR(fpscr_reg, fpscr_reg, LogicalImm(PowerPC::CR_SO << FPRF_SHIFT, 32));
+    ORR(fpscr_reg, fpscr_reg, LogicalImm(PowerPC::CR_SO << FPRF_SHIFT, GPRSize::B32));
 
   if (a != b)
   {
@@ -522,14 +522,14 @@ void JitArm64::FloatCompare(UGeckoInstruction inst, bool upper)
     SetJumpTarget(pGreater);
     MOVI2R(XA, 1);
     if (fprf)
-      ORR(fpscr_reg, fpscr_reg, LogicalImm(PowerPC::CR_GT << FPRF_SHIFT, 32));
+      ORR(fpscr_reg, fpscr_reg, LogicalImm(PowerPC::CR_GT << FPRF_SHIFT, GPRSize::B32));
 
     continue3 = B();
 
     SetJumpTarget(pLesser);
     MOVI2R(XA, ~(1ULL << PowerPC::CR_EMU_SO_BIT));
     if (fprf)
-      ORR(fpscr_reg, fpscr_reg, LogicalImm(PowerPC::CR_LT << FPRF_SHIFT, 32));
+      ORR(fpscr_reg, fpscr_reg, LogicalImm(PowerPC::CR_LT << FPRF_SHIFT, GPRSize::B32));
 
     SetJumpTarget(continue2);
     SetJumpTarget(continue3);
@@ -610,7 +610,7 @@ void JitArm64::fctiwx(UGeckoInstruction inst)
       m_float_emit.FCVTS(WA, EncodeRegToDouble(VD), RoundingMode::Z);
     }
 
-    ORR(EncodeRegTo64(WA), EncodeRegTo64(WA), LogicalImm(0xFFF8'0000'0000'0000ULL, 64));
+    ORR(EncodeRegTo64(WA), EncodeRegTo64(WA), LogicalImm(0xFFF8'0000'0000'0000ULL, GPRSize::B64));
     m_float_emit.FMOV(EncodeRegToDouble(VD), EncodeRegTo64(WA));
 
     gpr.Unlock(WA);
