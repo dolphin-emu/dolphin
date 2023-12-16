@@ -398,7 +398,7 @@ void JitArm64::MSRUpdated(ARM64Reg msr)
   const u32 other_feature_flags = m_ppc_state.feature_flags & ~0x3;
   UBFX(WA, msr, 4, 2);
   if (other_feature_flags != 0)
-    ORR(WA, WA, LogicalImm(32, other_feature_flags));
+    ORR(WA, WA, LogicalImm(other_feature_flags, 32));
   STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(feature_flags));
 
   gpr.Unlock(WA);
