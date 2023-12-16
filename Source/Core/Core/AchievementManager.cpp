@@ -43,7 +43,8 @@ void AchievementManager::Init()
     m_queue.Reset("AchievementManagerQueue", [](const std::function<void()>& func) { func(); });
     m_image_queue.Reset("AchievementManagerImageQueue",
                         [](const std::function<void()>& func) { func(); });
-    LoginAsync("", [](ResponseType r_type) {});
+    if (IsLoggedIn())
+      LoginAsync("", [](ResponseType r_type) {});
     INFO_LOG_FMT(ACHIEVEMENTS, "Achievement Manager Initialized");
   }
 }
@@ -93,6 +94,11 @@ bool AchievementManager::IsLoggedIn() const
 
 void AchievementManager::HashGame(const std::string& file_path, const ResponseCallback& callback)
 {
+  if (!Config::Get(Config::RA_ENABLED) || !IsLoggedIn())
+  {
+    callback(AchievementManager::ResponseType::NOT_ENABLED);
+    return;
+  }
   if (!m_is_runtime_initialized)
   {
     ERROR_LOG_FMT(ACHIEVEMENTS,
@@ -143,6 +149,11 @@ void AchievementManager::HashGame(const std::string& file_path, const ResponseCa
 
 void AchievementManager::HashGame(const DiscIO::Volume* volume, const ResponseCallback& callback)
 {
+  if (!Config::Get(Config::RA_ENABLED) || !IsLoggedIn())
+  {
+    callback(AchievementManager::ResponseType::NOT_ENABLED);
+    return;
+  }
   if (!m_is_runtime_initialized)
   {
     ERROR_LOG_FMT(ACHIEVEMENTS,
@@ -219,6 +230,11 @@ void AchievementManager::HashGame(const DiscIO::Volume* volume, const ResponseCa
 
 void AchievementManager::LoadGameSync(const ResponseCallback& callback)
 {
+  if (!Config::Get(Config::RA_ENABLED) || !IsLoggedIn())
+  {
+    callback(AchievementManager::ResponseType::NOT_ENABLED);
+    return;
+  }
   u32 new_game_id = 0;
   Hash current_hash;
   {
@@ -311,6 +327,11 @@ bool AchievementManager::IsGameLoaded() const
 
 void AchievementManager::LoadUnlockData(const ResponseCallback& callback)
 {
+  if (!Config::Get(Config::RA_ENABLED) || !IsLoggedIn())
+  {
+    callback(AchievementManager::ResponseType::NOT_ENABLED);
+    return;
+  }
   m_queue.EmplaceItem([this, callback] {
     const auto hardcore_unlock_response = FetchUnlockData(true);
     if (hardcore_unlock_response != ResponseType::SUCCESS)
@@ -329,6 +350,8 @@ void AchievementManager::LoadUnlockData(const ResponseCallback& callback)
 
 void AchievementManager::ActivateDeactivateAchievements()
 {
+  if (!Config::Get(Config::RA_ENABLED) || !IsLoggedIn())
+    return;
   bool enabled = Config::Get(Config::RA_ACHIEVEMENTS_ENABLED);
   bool unofficial = Config::Get(Config::RA_UNOFFICIAL_ENABLED);
   bool encore = Config::Get(Config::RA_ENCORE_ENABLED);
@@ -346,6 +369,8 @@ void AchievementManager::ActivateDeactivateAchievements()
 
 void AchievementManager::ActivateDeactivateLeaderboards()
 {
+  if (!Config::Get(Config::RA_ENABLED) || !IsLoggedIn())
+    return;
   bool leaderboards_enabled = Config::Get(Config::RA_LEADERBOARDS_ENABLED);
   for (u32 ix = 0; ix < m_game_data.num_leaderboards; ix++)
   {
@@ -370,6 +395,8 @@ void AchievementManager::ActivateDeactivateLeaderboards()
 
 void AchievementManager::ActivateDeactivateRichPresence()
 {
+  if (!Config::Get(Config::RA_ENABLED) || !IsLoggedIn())
+    return;
   rc_runtime_activate_richpresence(
       &m_runtime,
       (m_is_game_loaded && Config::Get(Config::RA_RICH_PRESENCE_ENABLED)) ?
