@@ -49,7 +49,7 @@ void JitArm64::FixGTBeforeSettingCRFieldBit(Arm64Gen::ARM64Reg reg)
   // intending to. This can break actual games, so fix it up.
   ARM64Reg WA = gpr.GetReg();
   ARM64Reg XA = EncodeRegTo64(WA);
-  ORR(XA, reg, LogicalImm(1ULL << 63, 64));
+  ORR(XA, reg, LogicalImm(1ULL << 63, GPRSize::B64));
   CMP(reg, ARM64Reg::ZR);
   CSEL(reg, reg, XA, CC_NEQ);
   gpr.Unlock(WA);
@@ -66,7 +66,7 @@ void JitArm64::UpdateFPExceptionSummary(ARM64Reg fpscr)
   BFI(fpscr, WA, MathUtil::IntLog2(FPSCR_VX), 1);
 
   // fpscr.FEX = ((fpscr >> 22) & (fpscr & FPSCR_ANY_E)) != 0
-  AND(WA, fpscr, LogicalImm(FPSCR_ANY_E, 32));
+  AND(WA, fpscr, LogicalImm(FPSCR_ANY_E, GPRSize::B32));
   TST(WA, fpscr, ArithOption(fpscr, ShiftType::LSR, 22));
   CSET(WA, CCFlags::CC_NEQ);
   BFI(fpscr, WA, MathUtil::IntLog2(FPSCR_FEX), 1);
@@ -259,7 +259,7 @@ void JitArm64::twx(UGeckoInstruction inst)
   fpr.Flush(FlushMode::MaintainState, ARM64Reg::INVALID_REG);
 
   LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
-  ORR(WA, WA, LogicalImm(EXCEPTION_PROGRAM, 32));
+  ORR(WA, WA, LogicalImm(EXCEPTION_PROGRAM, GPRSize::B32));
   STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
 
   MOVI2R(WA, static_cast<u32>(ProgramExceptionCause::Trap));
@@ -337,7 +337,7 @@ void JitArm64::mfspr(UGeckoInstruction inst)
     SUB(Xresult, Xresult, XB);
 
     // a / 12 = (a * 0xAAAAAAAAAAAAAAAB) >> 67
-    ORR(XB, ARM64Reg::ZR, LogicalImm(0xAAAAAAAAAAAAAAAA, 64));
+    ORR(XB, ARM64Reg::ZR, LogicalImm(0xAAAAAAAAAAAAAAAA, GPRSize::B64));
     ADD(XB, XB, 1);
     UMULH(Xresult, Xresult, XB);
 
@@ -462,7 +462,7 @@ void JitArm64::mtspr(UGeckoInstruction inst)
   {
     ARM64Reg RD = gpr.R(inst.RD);
     ARM64Reg WA = gpr.GetReg();
-    AND(WA, RD, LogicalImm(0xFFFFFF7F, 32));
+    AND(WA, RD, LogicalImm(0xFFFFFF7F, GPRSize::B32));
     STRH(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(xer_stringctrl));
     UBFM(WA, RD, XER_CA_SHIFT, XER_CA_SHIFT + 1);
     STRB(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
@@ -497,20 +497,20 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     switch (bit)
     {
     case PowerPC::CR_SO_BIT:
-      AND(XA, XA, LogicalImm(~(u64(1) << PowerPC::CR_EMU_SO_BIT), 64));
+      AND(XA, XA, LogicalImm(~(u64(1) << PowerPC::CR_EMU_SO_BIT), GPRSize::B64));
       break;
 
     case PowerPC::CR_EQ_BIT:
       FixGTBeforeSettingCRFieldBit(XA);
-      ORR(XA, XA, LogicalImm(1, 64));
+      ORR(XA, XA, LogicalImm(1, GPRSize::B64));
       break;
 
     case PowerPC::CR_GT_BIT:
-      ORR(XA, XA, LogicalImm(u64(1) << 63, 64));
+      ORR(XA, XA, LogicalImm(u64(1) << 63, GPRSize::B64));
       break;
 
     case PowerPC::CR_LT_BIT:
-      AND(XA, XA, LogicalImm(~(u64(1) << PowerPC::CR_EMU_LT_BIT), 64));
+      AND(XA, XA, LogicalImm(~(u64(1) << PowerPC::CR_EMU_LT_BIT), GPRSize::B64));
       break;
     }
     return;
@@ -532,23 +532,23 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     switch (bit)
     {
     case PowerPC::CR_SO_BIT:
-      ORR(XA, XA, LogicalImm(u64(1) << PowerPC::CR_EMU_SO_BIT, 64));
+      ORR(XA, XA, LogicalImm(u64(1) << PowerPC::CR_EMU_SO_BIT, GPRSize::B64));
       break;
 
     case PowerPC::CR_EQ_BIT:
-      AND(XA, XA, LogicalImm(0xFFFF'FFFF'0000'0000, 64));
+      AND(XA, XA, LogicalImm(0xFFFF'FFFF'0000'0000, GPRSize::B64));
       break;
 
     case PowerPC::CR_GT_BIT:
-      AND(XA, XA, LogicalImm(~(u64(1) << 63), 64));
+      AND(XA, XA, LogicalImm(~(u64(1) << 63), GPRSize::B64));
       break;
 
     case PowerPC::CR_LT_BIT:
-      ORR(XA, XA, LogicalImm(u64(1) << PowerPC::CR_EMU_LT_BIT, 64));
+      ORR(XA, XA, LogicalImm(u64(1) << PowerPC::CR_EMU_LT_BIT, GPRSize::B64));
       break;
     }
 
-    ORR(XA, XA, LogicalImm(u64(1) << 32, 64));
+    ORR(XA, XA, LogicalImm(u64(1) << 32, GPRSize::B64));
     return;
   }
 
@@ -578,7 +578,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     case PowerPC::CR_SO_BIT:  // check bit 59 set
       UBFX(out, XC, PowerPC::CR_EMU_SO_BIT, 1);
       if (negate)
-        EOR(out, out, LogicalImm(1, 64));
+        EOR(out, out, LogicalImm(1, GPRSize::B64));
       break;
 
     case PowerPC::CR_EQ_BIT:  // check bits 31-0 == 0
@@ -594,7 +594,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     case PowerPC::CR_LT_BIT:  // check bit 62 set
       UBFX(out, XC, PowerPC::CR_EMU_LT_BIT, 1);
       if (negate)
-        EOR(out, out, LogicalImm(1, 64));
+        EOR(out, out, LogicalImm(1, GPRSize::B64));
       break;
 
     default:
@@ -642,13 +642,13 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     break;
 
   case PowerPC::CR_EQ_BIT:  // clear low 32 bits, set bit 0 to !input
-    AND(XB, XB, LogicalImm(0xFFFF'FFFF'0000'0000, 64));
-    EOR(XA, XA, LogicalImm(1, 64));
+    AND(XB, XB, LogicalImm(0xFFFF'FFFF'0000'0000, GPRSize::B64));
+    EOR(XA, XA, LogicalImm(1, GPRSize::B64));
     ORR(XB, XB, XA);
     break;
 
   case PowerPC::CR_GT_BIT:  // set bit 63 to !input
-    EOR(XA, XA, LogicalImm(1, 64));
+    EOR(XA, XA, LogicalImm(1, GPRSize::B64));
     BFI(XB, XA, 63, 1);
     break;
 
@@ -657,7 +657,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     break;
   }
 
-  ORR(XB, XB, LogicalImm(1ULL << 32, 64));
+  ORR(XB, XB, LogicalImm(1ULL << 32, GPRSize::B64));
 
   gpr.Unlock(WA);
 }
@@ -696,12 +696,12 @@ void JitArm64::mfcr(UGeckoInstruction inst)
     }
 
     // EQ
-    ORR(WC, WA, LogicalImm(1 << PowerPC::CR_EQ_BIT, 32));
+    ORR(WC, WA, LogicalImm(1 << PowerPC::CR_EQ_BIT, GPRSize::B32));
     CMP(WCR, ARM64Reg::WZR);
     CSEL(WA, WC, WA, CC_EQ);
 
     // GT
-    ORR(WC, WA, LogicalImm(1 << PowerPC::CR_GT_BIT, 32));
+    ORR(WC, WA, LogicalImm(1 << PowerPC::CR_GT_BIT, GPRSize::B32));
     CMP(CR, ARM64Reg::ZR);
     CSEL(WA, WC, WA, CC_GT);
 
@@ -780,7 +780,7 @@ void JitArm64::mcrfs(UGeckoInstruction inst)
   if (mask != 0)
   {
     const u32 inverted_mask = ~mask;
-    AND(WA, WA, LogicalImm(inverted_mask, 32));
+    AND(WA, WA, LogicalImm(inverted_mask, GPRSize::B32));
 
     UpdateFPExceptionSummary(WA);
     STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(fpscr));
@@ -805,7 +805,7 @@ void JitArm64::mffsx(UGeckoInstruction inst)
 
   ARM64Reg VD = fpr.RW(inst.FD, RegType::LowerPair);
 
-  ORR(XA, XA, LogicalImm(0xFFF8'0000'0000'0000, 64));
+  ORR(XA, XA, LogicalImm(0xFFF8'0000'0000'0000, GPRSize::B64));
   m_float_emit.FMOV(EncodeRegToDouble(VD), XA);
 
   gpr.Unlock(WA);
@@ -827,7 +827,7 @@ void JitArm64::mtfsb0x(UGeckoInstruction inst)
 
   LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(fpscr));
 
-  AND(WA, WA, LogicalImm(inverted_mask, 32));
+  AND(WA, WA, LogicalImm(inverted_mask, GPRSize::B32));
 
   if ((mask & (FPSCR_ANY_X | FPSCR_ANY_E)) != 0)
     UpdateFPExceptionSummary(WA);
@@ -858,12 +858,12 @@ void JitArm64::mtfsb1x(UGeckoInstruction inst)
   if ((mask & FPSCR_ANY_X) != 0)
   {
     ARM64Reg WB = gpr.GetReg();
-    TST(WA, LogicalImm(mask, 32));
-    ORR(WB, WA, LogicalImm(1 << 31, 32));
+    TST(WA, LogicalImm(mask, GPRSize::B32));
+    ORR(WB, WA, LogicalImm(1 << 31, GPRSize::B32));
     CSEL(WA, WA, WB, CCFlags::CC_NEQ);
     gpr.Unlock(WB);
   }
-  ORR(WA, WA, LogicalImm(mask, 32));
+  ORR(WA, WA, LogicalImm(mask, GPRSize::B32));
 
   if ((mask & (FPSCR_ANY_X | FPSCR_ANY_E)) != 0)
     UpdateFPExceptionSummary(WA);
@@ -892,7 +892,7 @@ void JitArm64::mtfsfix(UGeckoInstruction inst)
 
   if (imm == 0xF)
   {
-    ORR(WA, WA, LogicalImm(mask, 32));
+    ORR(WA, WA, LogicalImm(mask, GPRSize::B32));
   }
   else if (imm == 0x0)
   {
@@ -952,10 +952,10 @@ void JitArm64::mtfsfx(UGeckoInstruction inst)
     LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(fpscr));
     m_float_emit.FMOV(WB, EncodeRegToSingle(VB));
 
-    if (LogicalImm imm = LogicalImm(mask, 32))
+    if (LogicalImm imm = LogicalImm(mask, GPRSize::B32))
     {
       const u32 inverted_mask = ~mask;
-      AND(WA, WA, LogicalImm(inverted_mask, 32));
+      AND(WA, WA, LogicalImm(inverted_mask, GPRSize::B32));
       AND(WB, WB, imm);
     }
     else

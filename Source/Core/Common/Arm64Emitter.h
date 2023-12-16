@@ -350,6 +350,12 @@ enum class RoundingMode
   Z,  // round towards zero
 };
 
+enum class GPRSize
+{
+  B32,
+  B64,
+};
+
 struct FixupBranch
 {
   enum class Type : u32
@@ -522,7 +528,7 @@ struct LogicalImm
 
   constexpr LogicalImm(u8 r_, u8 s_, bool n_) : r(r_), s(s_), n(n_), valid(true) {}
 
-  constexpr LogicalImm(u64 value, u32 width)
+  constexpr LogicalImm(u64 value, GPRSize size)
   {
     // Logical immediates are encoded using parameters n, imm_s and imm_r using
     // the following table:
@@ -540,17 +546,14 @@ struct LogicalImm
     // are set. The pattern is rotated right by R, and repeated across a 32 or
     // 64-bit value, depending on destination register width.
 
-    constexpr int kWRegSizeInBits = 32;
-
-    if (width == kWRegSizeInBits)
+    if (size == GPRSize::B32)
     {
       // To handle 32-bit logical immediates, the very easiest thing is to repeat
       // the input value twice to make a 64-bit word. The correct encoding of that
       // as a logical immediate will also be the correct encoding of the 32-bit
       // value.
 
-      value <<= kWRegSizeInBits;
-      value |= value >> kWRegSizeInBits;
+      value = (value << 32) | (value & 0xFFFFFFFF);
     }
 
     if (value == 0 || (~value) == 0)

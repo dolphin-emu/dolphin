@@ -386,7 +386,7 @@ void JitArm64::MSRUpdated(ARM64Reg msr)
   auto& memory = m_system.GetMemory();
   MOVP2R(MEM_REG, jo.fastmem ? memory.GetLogicalBase() : memory.GetLogicalPageMappingsBase());
   MOVP2R(XA, jo.fastmem ? memory.GetPhysicalBase() : memory.GetPhysicalPageMappingsBase());
-  TST(msr, LogicalImm(1 << (31 - 27), 32));
+  TST(msr, LogicalImm(1 << (31 - 27), GPRSize::B32));
   CSEL(MEM_REG, MEM_REG, XA, CCFlags::CC_NEQ);
   STR(IndexType::Unsigned, MEM_REG, PPC_REG, PPCSTATE_OFF(mem_ptr));
 
@@ -398,7 +398,7 @@ void JitArm64::MSRUpdated(ARM64Reg msr)
   const u32 other_feature_flags = m_ppc_state.feature_flags & ~0x3;
   UBFX(WA, msr, 4, 2);
   if (other_feature_flags != 0)
-    ORR(WA, WA, LogicalImm(32, other_feature_flags));
+    ORR(WA, WA, LogicalImm(other_feature_flags, GPRSize::B32));
   STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(feature_flags));
 
   gpr.Unlock(WA);
@@ -1164,7 +1164,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         constexpr u32 cause_mask = ProcessorInterface::INT_CAUSE_CP |
                                    ProcessorInterface::INT_CAUSE_PE_TOKEN |
                                    ProcessorInterface::INT_CAUSE_PE_FINISH;
-        TST(WA, LogicalImm(cause_mask, 32));
+        TST(WA, LogicalImm(cause_mask, GPRSize::B32));
         B(CC_EQ, done_here);
 
         gpr.Flush(FlushMode::MaintainState, WA);
@@ -1198,7 +1198,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         fpr.Flush(FlushMode::MaintainState, ARM64Reg::INVALID_REG);
 
         LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
-        ORR(WA, WA, LogicalImm(EXCEPTION_FPU_UNAVAILABLE, 32));
+        ORR(WA, WA, LogicalImm(EXCEPTION_FPU_UNAVAILABLE, GPRSize::B32));
         STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
 
         gpr.Unlock(WA);

@@ -988,14 +988,14 @@ void JitArm64::dcbz(UGeckoInstruction inst)
       u32 imm_offset = is_imm_a ? gpr.GetImm(a) : gpr.GetImm(b);
       ADDI2R(addr_reg, base, imm_offset, addr_reg);
       emit_low_dcbz_hack(addr_reg);
-      AND(addr_reg, addr_reg, LogicalImm(~31, 32));
+      AND(addr_reg, addr_reg, LogicalImm(~31, GPRSize::B32));
     }
     else
     {
       // Both are registers
       ADD(addr_reg, gpr.R(a), gpr.R(b));
       emit_low_dcbz_hack(addr_reg);
-      AND(addr_reg, addr_reg, LogicalImm(~31, 32));
+      AND(addr_reg, addr_reg, LogicalImm(~31, GPRSize::B32));
     }
   }
   else
@@ -1011,7 +1011,7 @@ void JitArm64::dcbz(UGeckoInstruction inst)
     else
     {
       emit_low_dcbz_hack(gpr.R(b));
-      AND(addr_reg, gpr.R(b), LogicalImm(~31, 32));
+      AND(addr_reg, gpr.R(b), LogicalImm(~31, GPRSize::B32));
     }
   }
 

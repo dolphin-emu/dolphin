@@ -91,7 +91,7 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
         SetJumpTarget(pass);
       }
 
-      AND(memory_offset, addr, LogicalImm(PowerPC::BAT_PAGE_SIZE - 1, 64));
+      AND(memory_offset, addr, LogicalImm(PowerPC::BAT_PAGE_SIZE - 1, GPRSize::B64));
     }
     else if (emit_slow_access && emitting_routine)
     {

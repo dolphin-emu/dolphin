@@ -26,7 +26,7 @@ void JitArm64::sc(UGeckoInstruction inst)
   ARM64Reg WA = gpr.GetReg();
 
   LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
-  ORR(WA, WA, LogicalImm(EXCEPTION_SYSCALL, 32));
+  ORR(WA, WA, LogicalImm(EXCEPTION_SYSCALL, GPRSize::B32));
   STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
 
   gpr.Unlock(WA);
@@ -229,7 +229,7 @@ void JitArm64::bcctrx(UGeckoInstruction inst)
   ARM64Reg WA = gpr.GetReg();
 
   LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF_SPR(SPR_CTR));
-  AND(WA, WA, LogicalImm(~0x3, 32));
+  AND(WA, WA, LogicalImm(~0x3, GPRSize::B32));
 
   WriteExit(WA, inst.LK_3, js.compilerPC + 4, inst.LK_3 ? WB : ARM64Reg::INVALID_REG);
 
@@ -270,7 +270,7 @@ void JitArm64::bclrx(UGeckoInstruction inst)
   }
 
   LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF_SPR(SPR_LR));
-  AND(WA, WA, LogicalImm(~0x3, 32));
+  AND(WA, WA, LogicalImm(~0x3, GPRSize::B32));
 
   if (inst.LK)
   {
