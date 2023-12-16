@@ -209,8 +209,8 @@ void JitArm64::mtsrin(UGeckoInstruction inst)
   ARM64Reg addr = gpr.GetReg();
 
   UBFM(index, RB, 28, 31);
-  ADDI2R(addr, PPC_REG, PPCSTATE_OFF_SR(0), addr);
-  STR(RD, addr, ArithOption(EncodeRegTo64(index), true));
+  ADDI2R(EncodeRegTo64(addr), PPC_REG, PPCSTATE_OFF_SR(0), EncodeRegTo64(addr));
+  STR(RD, EncodeRegTo64(addr), ArithOption(EncodeRegTo64(index), true));
 
   gpr.Unlock(index, addr);
 }
