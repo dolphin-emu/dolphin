@@ -530,7 +530,8 @@ void PostProcessing::BlitFromTexture(const MathUtil::Rectangle<int>& dst,
     {
       const TextureConfig intermediary_color_texture_config(
           target_width, target_height, 1, target_layers, src_tex->GetSamples(),
-          s_intermediary_buffer_format, AbstractTextureFlag_RenderTarget);
+          s_intermediary_buffer_format, AbstractTextureFlag_RenderTarget,
+          AbstractTextureType::Texture_2DArray);
       m_intermediary_color_texture = g_gfx->CreateTexture(intermediary_color_texture_config,
                                                           "Intermediary post process texture");
 

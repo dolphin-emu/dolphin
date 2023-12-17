@@ -39,16 +39,22 @@ enum AbstractTextureFlag : u32
 {
   AbstractTextureFlag_RenderTarget = (1 << 0),  // Texture is used as a framebuffer.
   AbstractTextureFlag_ComputeImage = (1 << 1),  // Texture is used as a compute image.
-  AbstractTextureFlag_CubeMap = (1 << 2),       // Texture is used as a cube map.
+};
+
+enum class AbstractTextureType
+{
+  Texture_2DArray,  // Used as a 2D texture array
+  Texture_2D,       // Used as a normal 2D texture
+  Texture_CubeMap,  // Used as a cube map texture
 };
 
 struct TextureConfig
 {
   constexpr TextureConfig() = default;
   constexpr TextureConfig(u32 width_, u32 height_, u32 levels_, u32 layers_, u32 samples_,
-                          AbstractTextureFormat format_, u32 flags_)
+                          AbstractTextureFormat format_, u32 flags_, AbstractTextureType type_)
       : width(width_), height(height_), levels(levels_), layers(layers_), samples(samples_),
-        format(format_), flags(flags_)
+        format(format_), flags(flags_), type(type_)
   {
   }
 
@@ -62,7 +68,6 @@ struct TextureConfig
   bool IsMultisampled() const { return samples > 1; }
   bool IsRenderTarget() const { return (flags & AbstractTextureFlag_RenderTarget) != 0; }
   bool IsComputeImage() const { return (flags & AbstractTextureFlag_ComputeImage) != 0; }
-  bool IsCubeMap() const { return (flags & AbstractTextureFlag_CubeMap) != 0; }
 
   u32 width = 0;
   u32 height = 0;
@@ -71,6 +76,7 @@ struct TextureConfig
   u32 samples = 1;
   AbstractTextureFormat format = AbstractTextureFormat::RGBA8;
   u32 flags = 0;
+  AbstractTextureType type = AbstractTextureType::Texture_2DArray;
 };
 
 namespace std
