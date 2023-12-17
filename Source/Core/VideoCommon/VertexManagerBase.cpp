@@ -603,7 +603,8 @@ void VertexManagerBase::Flush()
       const std::string& texture_name = texture_names[i];
       const u32 texture_unit = texture_units[i];
       bool skip = false;
-      GraphicsModActionData::DrawStarted draw_started{texture_unit, &skip, &custom_pixel_shader};
+      GraphicsModActionData::DrawStarted draw_started{texture_unit, &skip, &custom_pixel_shader,
+                                                      &custom_pixel_shader_uniforms};
       for (const auto& action : g_graphics_mod_manager->GetDrawStartedActions(texture_name))
       {
         action->OnDrawStarted(&draw_started);

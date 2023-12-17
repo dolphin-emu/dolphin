@@ -345,7 +345,8 @@ void ClearUnusedPixelShaderUidBits(APIType api_type, const ShaderHostConfig& hos
 }
 
 void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
-                                  const ShaderHostConfig& host_config, bool bounding_box)
+                                  const ShaderHostConfig& host_config, bool bounding_box,
+                                  const CustomPixelShaderContents& custom_details)
 {
   // dot product for integer vectors
   out.Write("int idot(int3 x, int3 y)\n"
@@ -424,6 +425,14 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
 
     out.Write("{}", s_shader_uniforms);
     out.Write("}};\n");
+  }
+
+  if (!custom_details.shaders.empty() &&
+      !custom_details.shaders.back().material_uniform_block.empty())
+  {
+    out.Write("UBO_BINDING(std140, 3) uniform CustomShaderBlock {{\n");
+    out.Write("{}", custom_details.shaders.back().material_uniform_block);
+    out.Write("}} custom_uniforms;\n");
   }
 
   if (bounding_box)
@@ -907,7 +916,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   // Stuff that is shared between ubershaders and pixelgen.
   WriteBitfieldExtractHeader(out, api_type, host_config);
 
-  WritePixelShaderCommonHeader(out, api_type, host_config, uid_data->bounding_box);
+  WritePixelShaderCommonHeader(out, api_type, host_config, uid_data->bounding_box, custom_details);
 
   // Custom shader details
   WriteCustomShaderStructDef(&out, uid_data->genMode_numtexgens);
