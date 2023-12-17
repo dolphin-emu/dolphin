@@ -339,9 +339,8 @@ void AdvancedWidget::AddDescriptions()
       QT_TR_NOOP("Loads graphics mods from User/Load/GraphicsMods/.<br><br><dolphin_emphasis>If "
                  "unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_INTERNAL_RESOLUTION_FRAME_DUMPING_DESCRIPTION[] = QT_TR_NOOP(
-      "Creates frame dumps and screenshots at the internal resolution of the renderer, rather than "
-      "the size of the window it is displayed within.<br><br>If the aspect ratio is widescreen, "
-      "the output image will be scaled horizontally to preserve the vertical resolution.<br><br>"
+      "Creates frame dumps and screenshots at the raw internal resolution of the renderer,"
+      "rather than using the size it is displayed within the window.<br><br>"
       "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
 #if defined(HAVE_FFMPEG)
   static const char TR_USE_FFV1_DESCRIPTION[] =

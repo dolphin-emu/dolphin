@@ -214,14 +214,17 @@ void Presenter::ProcessFrameDumping(u64 ticks) const
     MathUtil::Rectangle<int> target_rect;
     if (!g_ActiveConfig.bInternalResolutionFrameDumps && !g_gfx->IsHeadless())
     {
+      // This is already scaled by "VIDEO_ENCODER_LCM"
       target_rect = GetTargetRectangle();
     }
     else
     {
-      int width, height;
-      std::tie(width, height) =
-          CalculateOutputDimensions(m_xfb_rect.GetWidth(), m_xfb_rect.GetHeight());
-      target_rect = MathUtil::Rectangle<int>(0, 0, width, height);
+      target_rect = m_xfb_rect;
+      ASSERT(target_rect.top == 0 && target_rect.left == 0);
+      // Scale positively to make sure the least amount of information is lost.
+      // TODO: this should be added as black padding on the edges by the frame dumper
+      target_rect.right += VIDEO_ENCODER_LCM - (target_rect.GetWidth() % VIDEO_ENCODER_LCM);
+      target_rect.bottom += VIDEO_ENCODER_LCM - (target_rect.GetHeight() % VIDEO_ENCODER_LCM);
     }
 
     g_frame_dumper->DumpCurrentFrame(m_xfb_entry->texture.get(), m_xfb_rect, target_rect, ticks,
