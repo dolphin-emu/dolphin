@@ -4045,6 +4045,10 @@ void ARM64XEmitter::ANDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
   {
     // Do nothing
   }
+  else if (imm == 0)
+  {
+    MOVZ(Rd, 0);
+  }
   else if (const auto result = LogicalImm(imm, Is64Bit(Rn) ? GPRSize::B64 : GPRSize::B32))
   {
     AND(Rd, Rn, result);
@@ -4064,6 +4068,10 @@ void ARM64XEmitter::ORRI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
   if (imm == 0)
   {
     // Do nothing
+  }
+  else if (imm == (Is64Bit(Rn) ? 0xFFFF'FFFF'FFFF'FFFF : 0xFFFF'FFFF))
+  {
+    MOVN(Rd, 0);
   }
   else if (const auto result = LogicalImm(imm, Is64Bit(Rn) ? GPRSize::B64 : GPRSize::B32))
   {
@@ -4085,6 +4093,10 @@ void ARM64XEmitter::EORI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
   {
     // Do nothing
   }
+  else if (imm == (Is64Bit(Rn) ? 0xFFFF'FFFF'FFFF'FFFF : 0xFFFF'FFFF))
+  {
+    MVN(Rd, Rn);
+  }
   else if (const auto result = LogicalImm(imm, Is64Bit(Rn) ? GPRSize::B64 : GPRSize::B32))
   {
     EOR(Rd, Rn, result);
@@ -4101,7 +4113,16 @@ void ARM64XEmitter::EORI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 
 void ARM64XEmitter::ANDSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
-  if (const auto result = LogicalImm(imm, Is64Bit(Rn) ? GPRSize::B64 : GPRSize::B32))
+  if (imm == 0)
+  {
+    ANDS(Rd, Is64Bit(Rn) ? ARM64Reg::ZR : ARM64Reg::WZR,
+         Is64Bit(Rn) ? ARM64Reg::ZR : ARM64Reg::WZR);
+  }
+  else if (imm == (Is64Bit(Rn) ? 0xFFFF'FFFF'FFFF'FFFF : 0xFFFF'FFFF))
+  {
+    ANDS(Rd, Rn, Rn);
+  }
+  else if (const auto result = LogicalImm(imm, Is64Bit(Rn) ? GPRSize::B64 : GPRSize::B32))
   {
     ANDS(Rd, Rn, result);
   }
