@@ -182,6 +182,8 @@ public:
 
   bool IsFPRStoreSafe(size_t guest_reg) const;
 
+  void rlwinmx_internal(UGeckoInstruction inst, u32 sh);
+
 protected:
   struct FastmemArea
   {
