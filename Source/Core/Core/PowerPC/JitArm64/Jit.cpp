@@ -413,7 +413,7 @@ void JitArm64::WriteExit(u32 destination, bool LK, u32 exit_address_after_return
 
   LK &= m_enable_blr_optimization;
 
-  const u8* host_address_after_return;
+  const u8* host_address_after_return = nullptr;
   if (LK)
   {
     // Push {ARM_PC (64-bit); PPC_PC (32-bit); feature_flags (32-bit)} on the stack
