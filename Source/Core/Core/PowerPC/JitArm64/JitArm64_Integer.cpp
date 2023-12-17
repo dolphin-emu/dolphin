@@ -784,6 +784,10 @@ void JitArm64::rlwinmx(UGeckoInstruction inst)
     // Immediate mask
     AND(gpr.R(a), gpr.R(s), LogicalImm(mask, GPRSize::B32));
   }
+  else if (mask == 0xFFFFFFFF)
+  {
+    ROR(gpr.R(a), gpr.R(s), 32 - inst.SH);
+  }
   else if (inst.ME == 31 && 31 < inst.SH + inst.MB)
   {
     // Bit select of the upper part
