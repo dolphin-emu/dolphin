@@ -659,7 +659,7 @@ void Gfx::UpdateDescriptorTables()
 bool Gfx::UpdateSRVDescriptorTable()
 {
   static constexpr std::array<UINT, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS> src_sizes = {
-      1, 1, 1, 1, 1, 1, 1, 1};
+      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
   DescriptorHandle dst_base_handle;
   const UINT dst_handle_sizes = VideoCommon::MAX_PIXEL_SHADER_SAMPLERS;
   if (!g_dx_context->GetDescriptorAllocator()->Allocate(VideoCommon::MAX_PIXEL_SHADER_SAMPLERS,
