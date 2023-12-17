@@ -173,7 +173,7 @@ float4 SharpBilinearSample(float3 uvw, float gamma)
 	float2 texel = uvw.xy * source_size;
 	float2 texel_floored = floor(texel);
 	float2 s = fract(texel);
-	float scale = ceil(max(target_size.x * inverted_source_size.x, target_size.y * inverted_source_size.y));
+	float scale = max(floor(max(target_size.x * inverted_source_size.x, target_size.y * inverted_source_size.y)), 1.f);
 	float region_range = 0.5 - (0.5 / scale);
 
 	// Figure out where in the texel to sample to get correct pre-scaled bilinear.
