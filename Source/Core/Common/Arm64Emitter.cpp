@@ -4039,9 +4039,27 @@ void ARM64FloatEmitter::ABI_PopRegisters(BitSet32 registers, ARM64Reg tmp)
 void ARM64XEmitter::ANDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
   if (!Is64Bit(Rn))
-    imm &= 0xFFFFFFFF;
+  {
+    // To handle 32-bit logical immediates, the very easiest thing is to repeat
+    // the input value twice to make a 64-bit word. The correct encoding of that
+    // as a logical immediate will also be the correct encoding of the 32-bit
+    // value.
+    //
+    // Doing this here instead of in the LogicalImm constructor makes it easier
+    // to check if the input is all ones.
 
-  if (const auto result = LogicalImm(imm, Is64Bit(Rn) ? GPRSize::B64 : GPRSize::B32))
+    imm = (imm << 32) | (imm & 0xFFFFFFFF);
+  }
+
+  if ((~imm) == 0)
+  {
+    // Do nothing
+  }
+  else if (imm == 0)
+  {
+    MOVZ(Rd, 0);
+  }
+  else if (const auto result = LogicalImm(imm, GPRSize::B64))
   {
     AND(Rd, Rn, result);
   }
@@ -4057,7 +4075,28 @@ void ARM64XEmitter::ANDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 
 void ARM64XEmitter::ORRI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
-  if (const auto result = LogicalImm(imm, Is64Bit(Rn) ? GPRSize::B64 : GPRSize::B32))
+  if (!Is64Bit(Rn))
+  {
+    // To handle 32-bit logical immediates, the very easiest thing is to repeat
+    // the input value twice to make a 64-bit word. The correct encoding of that
+    // as a logical immediate will also be the correct encoding of the 32-bit
+    // value.
+    //
+    // Doing this here instead of in the LogicalImm constructor makes it easier
+    // to check if the input is all ones.
+
+    imm = (imm << 32) | (imm & 0xFFFFFFFF);
+  }
+
+  if (imm == 0)
+  {
+    // Do nothing
+  }
+  else if ((~imm) == 0)
+  {
+    MOVN(Rd, 0);
+  }
+  else if (const auto result = LogicalImm(imm, GPRSize::B64))
   {
     ORR(Rd, Rn, result);
   }
@@ -4073,7 +4112,28 @@ void ARM64XEmitter::ORRI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 
 void ARM64XEmitter::EORI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
-  if (const auto result = LogicalImm(imm, Is64Bit(Rn) ? GPRSize::B64 : GPRSize::B32))
+  if (!Is64Bit(Rn))
+  {
+    // To handle 32-bit logical immediates, the very easiest thing is to repeat
+    // the input value twice to make a 64-bit word. The correct encoding of that
+    // as a logical immediate will also be the correct encoding of the 32-bit
+    // value.
+    //
+    // Doing this here instead of in the LogicalImm constructor makes it easier
+    // to check if the input is all ones.
+
+    imm = (imm << 32) | (imm & 0xFFFFFFFF);
+  }
+
+  if (imm == 0)
+  {
+    // Do nothing
+  }
+  else if ((~imm) == 0)
+  {
+    MVN(Rd, Rn);
+  }
+  else if (const auto result = LogicalImm(imm, GPRSize::B64))
   {
     EOR(Rd, Rn, result);
   }
@@ -4089,7 +4149,29 @@ void ARM64XEmitter::EORI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 
 void ARM64XEmitter::ANDSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
-  if (const auto result = LogicalImm(imm, Is64Bit(Rn) ? GPRSize::B64 : GPRSize::B32))
+  if (!Is64Bit(Rn))
+  {
+    // To handle 32-bit logical immediates, the very easiest thing is to repeat
+    // the input value twice to make a 64-bit word. The correct encoding of that
+    // as a logical immediate will also be the correct encoding of the 32-bit
+    // value.
+    //
+    // Doing this here instead of in the LogicalImm constructor makes it easier
+    // to check if the input is all ones.
+
+    imm = (imm << 32) | (imm & 0xFFFFFFFF);
+  }
+
+  if (imm == 0)
+  {
+    ANDS(Rd, Is64Bit(Rn) ? ARM64Reg::ZR : ARM64Reg::WZR,
+         Is64Bit(Rn) ? ARM64Reg::ZR : ARM64Reg::WZR);
+  }
+  else if ((~imm) == 0)
+  {
+    ANDS(Rd, Rn, Rn);
+  }
+  else if (const auto result = LogicalImm(imm, GPRSize::B64))
   {
     ANDS(Rd, Rn, result);
   }
