@@ -667,10 +667,11 @@ IPCReply NetIPTopDevice::HandleInetNToPRequest(const IOCtlRequest& request)
   // u32 validAddress = memory.Read_U32(request.buffer_in + 4);
   // u32 src = memory.Read_U32(request.buffer_in + 8);
 
-  char ip_s[16];
-  sprintf(ip_s, "%i.%i.%i.%i", memory.Read_U8(request.buffer_in + 8),
-          memory.Read_U8(request.buffer_in + 8 + 1), memory.Read_U8(request.buffer_in + 8 + 2),
-          memory.Read_U8(request.buffer_in + 8 + 3));
+  char ip_s[16]{};
+  fmt::format_to_n(ip_s, sizeof(ip_s) - 1, "{}.{}.{}.{}", memory.Read_U8(request.buffer_in + 8),
+                   memory.Read_U8(request.buffer_in + 8 + 1),
+                   memory.Read_U8(request.buffer_in + 8 + 2),
+                   memory.Read_U8(request.buffer_in + 8 + 3));
 
   INFO_LOG_FMT(IOS_NET, "IOCTL_SO_INETNTOP {}", ip_s);
   memory.CopyToEmu(request.buffer_out, reinterpret_cast<u8*>(ip_s), std::strlen(ip_s));
