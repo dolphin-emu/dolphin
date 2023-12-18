@@ -61,26 +61,28 @@ bool GetCallstack(const Core::CPUThreadGuard& guard, std::vector<CallstackEntry>
 
   if (LR(ppc_state) == 0)
   {
-    CallstackEntry entry;
-    entry.Name = "(error: LR=0)";
-    entry.vAddress = 0x0;
-    output.push_back(entry);
+    output.push_back({
+        .Name = "(error: LR=0)",
+        .vAddress = 0,
+    });
     return false;
   }
 
-  CallstackEntry entry;
-  entry.Name = fmt::format(" * {} [ LR = {:08x} ]\n", g_symbolDB.GetDescription(LR(ppc_state)),
-                           LR(ppc_state) - 4);
-  entry.vAddress = LR(ppc_state) - 4;
-  output.push_back(entry);
+  output.push_back({
+      .Name = fmt::format(" * {} [ LR = {:08x} ]\n", g_symbolDB.GetDescription(LR(ppc_state)),
+                          LR(ppc_state) - 4),
+      .vAddress = LR(ppc_state) - 4,
+  });
 
-  WalkTheStack(guard, [&entry, &output](u32 func_addr) {
+  WalkTheStack(guard, [&output](u32 func_addr) {
     std::string func_desc = g_symbolDB.GetDescription(func_addr);
     if (func_desc.empty() || func_desc == "Invalid")
       func_desc = "(unknown)";
-    entry.Name = fmt::format(" * {} [ addr = {:08x} ]\n", func_desc, func_addr - 4);
-    entry.vAddress = func_addr - 4;
-    output.push_back(entry);
+
+    output.push_back({
+        .Name = fmt::format(" * {} [ addr = {:08x} ]\n", func_desc, func_addr - 4),
+        .vAddress = func_addr - 4,
+    });
   });
 
   return true;
