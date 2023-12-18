@@ -18,6 +18,8 @@
 #include <utility>
 #include <vector>
 
+#include <fmt/format.h>
+
 #ifdef HAVE_LIBSYSTEMD
 #include <systemd/sd-daemon.h>
 #endif
@@ -177,17 +179,17 @@ static sockaddr_in6 MakeSinAddr(const Common::TraversalInetAddress& addr)
 
 static void GetRandomHostId(Common::TraversalHostId* hostId)
 {
-  char buf[9];
+  char buf[9]{};
   const u32 num = Common::Random::GenerateValue<u32>();
-  sprintf(buf, "%08x", num);
+  fmt::format_to_n(buf, sizeof(buf) - 1, "{:08x}", num);
   memcpy(hostId->data(), buf, 8);
 }
 
 static const char* SenderName(sockaddr_in6* addr)
 {
-  static char buf[INET6_ADDRSTRLEN + 10];
+  static char buf[INET6_ADDRSTRLEN + 10]{};
   inet_ntop(PF_INET6, &addr->sin6_addr, buf, sizeof(buf));
-  sprintf(buf + strlen(buf), ":%d", ntohs(addr->sin6_port));
+  fmt::format_to(buf + strlen(buf), ":{}", ntohs(addr->sin6_port));
   return buf;
 }
 
