@@ -505,12 +505,12 @@ std::string pdname(u16 val)
   return fmt::format("0x{:04x}", val);
 }
 
-const char* pdregname(int val)
+std::string pdregname(int val)
 {
   return regnames[val].name;
 }
 
-const char* pdregnamelong(int val)
+std::string pdregnamelong(int val)
 {
   return regnames[val].description;
 }

@@ -94,8 +94,8 @@ extern const std::array<pdlabel_t, 36> regnames;
 extern const std::array<pdlabel_t, 96> pdlabels;
 
 std::string pdname(u16 val);
-const char* pdregname(int val);
-const char* pdregnamelong(int val);
+std::string pdregname(int val);
+std::string pdregnamelong(int val);
 
 void InitInstructionTable();
 
