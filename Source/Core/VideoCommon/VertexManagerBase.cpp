@@ -12,6 +12,7 @@
 #include "Common/EnumMap.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
+#include "Common/SmallVector.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/DolphinAnalytics.h"
@@ -554,7 +555,7 @@ void VertexManagerBase::Flush()
   // Calculate ZSlope for zfreeze
   const auto used_textures = UsedTextures();
   std::vector<std::string> texture_names;
-  std::vector<u32> texture_units;
+  Common::SmallVector<u32, 8> texture_units;
   if (!m_cull_all)
   {
     if (!g_ActiveConfig.bGraphicMods)
@@ -599,20 +600,18 @@ void VertexManagerBase::Flush()
     std::optional<CustomPixelShader> custom_pixel_shader;
     std::vector<std::string> custom_pixel_texture_names;
     std::span<u8> custom_pixel_shader_uniforms;
+    bool skip = false;
     for (size_t i = 0; i < texture_names.size(); i++)
     {
-      const std::string& texture_name = texture_names[i];
-      const u32 texture_unit = texture_units[i];
-      bool skip = false;
-      GraphicsModActionData::DrawStarted draw_started{texture_unit, &skip, &custom_pixel_shader,
+      GraphicsModActionData::DrawStarted draw_started{texture_units, &skip, &custom_pixel_shader,
                                                       &custom_pixel_shader_uniforms};
-      for (const auto& action : g_graphics_mod_manager->GetDrawStartedActions(texture_name))
+      for (const auto& action : g_graphics_mod_manager->GetDrawStartedActions(texture_names[i]))
       {
         action->OnDrawStarted(&draw_started);
         if (custom_pixel_shader)
         {
           custom_pixel_shader_contents.shaders.push_back(*custom_pixel_shader);
-          custom_pixel_texture_names.push_back(texture_name);
+          custom_pixel_texture_names.push_back(texture_names[i]);
         }
         custom_pixel_shader = std::nullopt;
       }
