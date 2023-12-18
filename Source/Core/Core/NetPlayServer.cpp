@@ -2294,8 +2294,9 @@ std::unordered_set<std::string> NetPlayServer::GetInterfaceSet() const
 // called from ---GUI--- thread
 std::string NetPlayServer::GetInterfaceHost(const std::string& inter) const
 {
-  char buf[16];
-  sprintf(buf, ":%d", GetPort());
+  char buf[16]{};
+  fmt::format_to_n(buf, sizeof(buf) - 1, ":{}", GetPort());
+
   auto lst = GetInterfaceListInternal();
   for (const auto& list_entry : lst)
   {
