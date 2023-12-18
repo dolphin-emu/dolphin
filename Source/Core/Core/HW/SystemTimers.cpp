@@ -170,7 +170,7 @@ void PatchEngineCallback(Core::System& system, u64 userdata, s64 cycles_late)
   s64 next_schedule = 0;
 
   // Try to patch mem and run the Action Replay
-  if (PatchEngine::ApplyFramePatches())
+  if (PatchEngine::ApplyFramePatches(system))
   {
     next_schedule = vi_interval - cycles_pruned;
     cycles_pruned = 0;
