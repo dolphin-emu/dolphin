@@ -294,21 +294,22 @@ static void ApplyMemoryPatches(const Core::CPUThreadGuard& guard,
 // We require at least 2 stack frames, if the stack is shallower than that then it won't work.
 static bool IsStackValid(const Core::CPUThreadGuard& guard)
 {
-  auto& system = Core::System::GetInstance();
-  auto& ppc_state = system.GetPPCState();
+  const auto& ppc_state = guard.GetSystem().GetPPCState();
 
   DEBUG_ASSERT(ppc_state.msr.DR && ppc_state.msr.IR);
 
   // Check the stack pointer
-  u32 SP = ppc_state.gpr[1];
+  const u32 SP = ppc_state.gpr[1];
   if (!PowerPC::MMU::HostIsRAMAddress(guard, SP))
     return false;
 
   // Read the frame pointer from the stack (find 2nd frame from top), assert that it makes sense
-  u32 next_SP = PowerPC::MMU::HostRead_U32(guard, SP);
+  const u32 next_SP = PowerPC::MMU::HostRead_U32(guard, SP);
   if (next_SP <= SP || !PowerPC::MMU::HostIsRAMAddress(guard, next_SP) ||
       !PowerPC::MMU::HostIsRAMAddress(guard, next_SP + 4))
+  {
     return false;
+  }
 
   // Check the link register makes sense (that it points to a valid IBAT address)
   const u32 address = PowerPC::MMU::HostRead_U32(guard, next_SP + 4);
@@ -328,10 +329,9 @@ void RemoveMemoryPatch(std::size_t index)
   std::erase(s_on_frame_memory, index);
 }
 
-bool ApplyFramePatches()
+bool ApplyFramePatches(Core::System& system)
 {
-  auto& system = Core::System::GetInstance();
-  auto& ppc_state = system.GetPPCState();
+  const auto& ppc_state = system.GetPPCState();
 
   ASSERT(Core::IsCPUThread());
   Core::CPUThreadGuard guard(system);
