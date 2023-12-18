@@ -17,7 +17,7 @@
 #define BACKEND_NULLSOUND _trans("No Audio Output")
 #define BACKEND_ALSA "ALSA"
 #define BACKEND_CUBEB "Cubeb"
-#define BACKEND_OPENAL "OpenAL"
+#define BACKEND_OPENAL _trans("OpenAL (Deprecated)")
 #define BACKEND_PULSEAUDIO "Pulse"
 #define BACKEND_OPENSLES "OpenSLES"
 #define BACKEND_WASAPI _trans("WASAPI (Exclusive Mode)")
