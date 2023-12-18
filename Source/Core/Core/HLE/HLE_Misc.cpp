@@ -5,6 +5,7 @@
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
+#include "Core/Core.h"
 #include "Core/GeckoCode.h"
 #include "Core/HW/CPU.h"
 #include "Core/Host.h"
@@ -16,24 +17,24 @@ namespace HLE_Misc
 {
 // If you just want to kill a function, one of the three following are usually appropriate.
 // According to the PPC ABI, the return value is always in r3.
-void UnimplementedFunction(const Core::CPUThreadGuard&)
+void UnimplementedFunction(const Core::CPUThreadGuard& guard)
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = guard.GetSystem();
   auto& ppc_state = system.GetPPCState();
   ppc_state.npc = LR(ppc_state);
 }
 
-void HBReload(const Core::CPUThreadGuard&)
+void HBReload(const Core::CPUThreadGuard& guard)
 {
   // There isn't much we can do. Just stop cleanly.
-  auto& system = Core::System::GetInstance();
+  auto& system = guard.GetSystem();
   system.GetCPU().Break();
   Host_Message(HostMessageID::WMUserStop);
 }
 
 void GeckoCodeHandlerICacheFlush(const Core::CPUThreadGuard& guard)
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = guard.GetSystem();
   auto& ppc_state = system.GetPPCState();
 
   // Work around the codehandler not properly invalidating the icache, but
@@ -62,11 +63,11 @@ void GeckoCodeHandlerICacheFlush(const Core::CPUThreadGuard& guard)
 // and PC before the magic, invisible BL instruction happened.
 void GeckoReturnTrampoline(const Core::CPUThreadGuard& guard)
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = guard.GetSystem();
   auto& ppc_state = system.GetPPCState();
 
   // Stack frame is built in GeckoCode.cpp, Gecko::RunCodeHandler.
-  u32 SP = ppc_state.gpr[1];
+  const u32 SP = ppc_state.gpr[1];
   ppc_state.gpr[1] = PowerPC::MMU::HostRead_U32(guard, SP + 8);
   ppc_state.npc = PowerPC::MMU::HostRead_U32(guard, SP + 12);
   LR(ppc_state) = PowerPC::MMU::HostRead_U32(guard, SP + 16);
