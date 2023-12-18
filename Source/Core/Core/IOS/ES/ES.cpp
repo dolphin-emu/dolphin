@@ -9,6 +9,8 @@
 #include <utility>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include "Common/ChunkFile.h"
 #include "Common/EnumUtils.h"
 #include "Common/Logging/Log.h"
@@ -218,10 +220,11 @@ IPCReply ESDevice::GetTitleDirectory(const IOCtlVRequest& request)
   auto& memory = system.GetMemory();
 
   const u64 title_id = memory.Read_U64(request.in_vectors[0].address);
+  const auto path = fmt::format("/title/{:08x}/{:08x}/data", static_cast<u32>(title_id >> 32),
+                                static_cast<u32>(title_id));
 
-  char* path = reinterpret_cast<char*>(memory.GetPointer(request.io_vectors[0].address));
-  sprintf(path, "/title/%08x/%08x/data", static_cast<u32>(title_id >> 32),
-          static_cast<u32>(title_id));
+  const auto path_dst = request.io_vectors[0].address;
+  memory.CopyToEmu(path_dst, path.data(), path.size());
 
   INFO_LOG_FMT(IOS_ES, "IOCTL_ES_GETTITLEDIR: {}", path);
   return IPCReply(IPC_SUCCESS);
