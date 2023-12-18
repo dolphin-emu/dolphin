@@ -18,6 +18,10 @@ namespace Core
 {
 class System;
 }
+namespace CoreTiming
+{
+class CoreTimingManager;
+}
 namespace Memcard
 {
 struct HeaderData;
@@ -50,7 +54,7 @@ public:
   // CoreTiming events need to be registered during boot since CoreTiming is DoState()-ed
   // before ExpansionInterface so we'll lose the save stated events if the callbacks are
   // not already registered first.
-  static void Init();
+  static void Init(CoreTiming::CoreTimingManager& core_timing);
   static void Shutdown();
 
   static std::pair<std::string /* path */, bool /* migrate */>
