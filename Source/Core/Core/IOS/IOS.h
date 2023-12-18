@@ -115,7 +115,7 @@ enum class HangPPC : bool
 
 void RAMOverrideForIOSMemoryValues(Memory::MemoryManager& memory, MemorySetupType setup_type);
 
-void WriteReturnValue(s32 value, u32 address);
+void WriteReturnValue(Memory::MemoryManager& memory, s32 value, u32 address);
 
 // HLE for the IOS kernel: IPC, device management, syscalls, and Dolphin-specific, IOS-wide calls.
 class Kernel

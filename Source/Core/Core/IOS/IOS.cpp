@@ -275,10 +275,8 @@ void RAMOverrideForIOSMemoryValues(Memory::MemoryManager& memory, MemorySetupTyp
   memory.Write_U32(ios_reserved_end, ADDR_IOS_RESERVED_END);
 }
 
-void WriteReturnValue(s32 value, u32 address)
+void WriteReturnValue(Memory::MemoryManager& memory, s32 value, u32 address)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
   memory.Write_U32(static_cast<u32>(value), address);
 }
 

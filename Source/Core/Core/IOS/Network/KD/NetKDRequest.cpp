@@ -779,21 +779,21 @@ NWC24::ErrorCode NetKDRequestDevice::KDDownload(const u16 entry_index,
 
 IPCReply NetKDRequestDevice::HandleNWC24CheckMailNow(const IOCtlRequest& request)
 {
+  auto& system = GetSystem();
+  auto& memory = system.GetMemory();
+
   if (!m_handle_mail)
   {
     LogError(ErrorType::CheckMail, NWC24::WC24_ERR_BROKEN);
-    WriteReturnValue(NWC24::WC24_ERR_BROKEN, request.buffer_out);
+    WriteReturnValue(memory, NWC24::WC24_ERR_BROKEN, request.buffer_out);
     return IPCReply(IPC_SUCCESS);
   }
-
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
 
   u32 mail_flag{};
   u32 interval{};
   const NWC24::ErrorCode reply = KDCheckMail(&mail_flag, &interval);
 
-  WriteReturnValue(reply, request.buffer_out);
+  WriteReturnValue(memory, reply, request.buffer_out);
   memory.Write_U32(mail_flag, request.buffer_out + 4);
   memory.Write_U32(interval, request.buffer_out + 8);
   return IPCReply(IPC_SUCCESS);
@@ -801,23 +801,26 @@ IPCReply NetKDRequestDevice::HandleNWC24CheckMailNow(const IOCtlRequest& request
 
 IPCReply NetKDRequestDevice::HandleNWC24SendMailNow(const IOCtlRequest& request)
 {
+  auto& memory = GetSystem().GetMemory();
+
   const NWC24::ErrorCode reply = KDSendMail();
-  WriteReturnValue(reply, request.buffer_out);
+  WriteReturnValue(memory, reply, request.buffer_out);
   return IPCReply(IPC_SUCCESS);
 }
 
 IPCReply NetKDRequestDevice::HandleNWC24DownloadNowEx(const IOCtlRequest& request)
 {
+  auto& system = GetSystem();
+  auto& memory = system.GetMemory();
+
   if (m_dl_list.IsDisabled() || !m_dl_list.ReadDlList())
   {
     // Signal that the DL List is broken.
     LogError(ErrorType::KD_Download, NWC24::WC24_ERR_BROKEN);
-    WriteReturnValue(NWC24::WC24_ERR_BROKEN, request.buffer_out);
+    WriteReturnValue(memory, NWC24::WC24_ERR_BROKEN, request.buffer_out);
     return IPCReply(IPC_SUCCESS);
   }
 
-  auto& system = GetSystem();
-  auto& memory = system.GetMemory();
   const u32 flags = memory.Read_U32(request.buffer_in);
   // Nintendo converts the entry ID between a u32 and u16
   // several times, presumably for alignment purposes.
@@ -833,7 +836,7 @@ IPCReply NetKDRequestDevice::HandleNWC24DownloadNowEx(const IOCtlRequest& reques
   {
     ERROR_LOG_FMT(IOS_WC24, "NET_KD_REQ: Entry index out of range.");
     LogError(ErrorType::KD_Download, NWC24::WC24_ERR_INVALID_VALUE);
-    WriteReturnValue(NWC24::WC24_ERR_INVALID_VALUE, request.buffer_out);
+    WriteReturnValue(memory, NWC24::WC24_ERR_INVALID_VALUE, request.buffer_out);
     return IPCReply(IPC_SUCCESS);
   }
 
@@ -841,7 +844,7 @@ IPCReply NetKDRequestDevice::HandleNWC24DownloadNowEx(const IOCtlRequest& reques
   {
     ERROR_LOG_FMT(IOS_WC24, "NET_KD_REQ: Requested entry does not exist in download list!");
     LogError(ErrorType::KD_Download, NWC24::WC24_ERR_NOT_FOUND);
-    WriteReturnValue(NWC24::WC24_ERR_NOT_FOUND, request.buffer_out);
+    WriteReturnValue(memory, NWC24::WC24_ERR_NOT_FOUND, request.buffer_out);
     return IPCReply(IPC_SUCCESS);
   }
 
@@ -871,7 +874,7 @@ IPCReply NetKDRequestDevice::HandleNWC24DownloadNowEx(const IOCtlRequest& reques
     reply = KDDownload(entry_index, std::nullopt);
   }
 
-  WriteReturnValue(reply, request.buffer_out);
+  WriteReturnValue(memory, reply, request.buffer_out);
   return IPCReply(IPC_SUCCESS);
 }
 
@@ -887,14 +890,14 @@ IPCReply NetKDRequestDevice::HandleRequestRegisterUserId(const IOS::HLE::IOCtlRe
   // First check if the message config file is in the correct state to handle this.
   if (m_config.IsRegistered())
   {
-    WriteReturnValue(NWC24::WC24_ERR_ID_REGISTERED, request.buffer_out);
+    WriteReturnValue(memory, NWC24::WC24_ERR_ID_REGISTERED, request.buffer_out);
     LogError(ErrorType::Account, NWC24::WC24_ERR_ID_REGISTERED);
     return IPCReply{IPC_SUCCESS};
   }
 
   if (!m_config.IsGenerated())
   {
-    WriteReturnValue(NWC24::WC24_ERR_ID_NOT_GENERATED, request.buffer_out);
+    WriteReturnValue(memory, NWC24::WC24_ERR_ID_NOT_GENERATED, request.buffer_out);
     LogError(ErrorType::Account, NWC24::WC24_ERR_ID_NOT_GENERATED);
     return IPCReply{IPC_SUCCESS};
   }
@@ -905,7 +908,7 @@ IPCReply NetKDRequestDevice::HandleRequestRegisterUserId(const IOS::HLE::IOCtlRe
   const auto file = m_ios.GetFS()->OpenFile(PID_KD, PID_KD, settings_file_path, FS::Mode::Read);
   if (!file)
   {
-    WriteReturnValue(NWC24::WC24_ERR_FILE_OPEN, request.buffer_out);
+    WriteReturnValue(memory, NWC24::WC24_ERR_FILE_OPEN, request.buffer_out);
     LogError(ErrorType::Account, NWC24::WC24_ERR_FILE_OPEN);
     return IPCReply{IPC_SUCCESS};
   }
@@ -913,7 +916,7 @@ IPCReply NetKDRequestDevice::HandleRequestRegisterUserId(const IOS::HLE::IOCtlRe
   Common::SettingsHandler::Buffer data;
   if (!file->Read(data.data(), data.size()))
   {
-    WriteReturnValue(NWC24::WC24_ERR_FILE_READ, request.buffer_out);
+    WriteReturnValue(memory, NWC24::WC24_ERR_FILE_READ, request.buffer_out);
     LogError(ErrorType::Account, NWC24::WC24_ERR_FILE_READ);
     return IPCReply{IPC_SUCCESS};
   }
@@ -929,7 +932,7 @@ IPCReply NetKDRequestDevice::HandleRequestRegisterUserId(const IOS::HLE::IOCtlRe
     ERROR_LOG_FMT(IOS_WC24,
                   "NET_KD_REQ: IOCTL_NWC24_REQUEST_REGISTER_USER_ID: Failed to request data at {}.",
                   m_config.GetAccountURL());
-    WriteReturnValue(NWC24::WC24_ERR_SERVER, request.buffer_out);
+    WriteReturnValue(memory, NWC24::WC24_ERR_SERVER, request.buffer_out);
     LogError(ErrorType::Account, NWC24::WC24_ERR_SERVER);
     return IPCReply{IPC_SUCCESS};
   }
@@ -942,7 +945,7 @@ IPCReply NetKDRequestDevice::HandleRequestRegisterUserId(const IOS::HLE::IOCtlRe
                   "NET_KD_REQ: IOCTL_NWC24_REQUEST_REGISTER_USER_ID: Mail server returned "
                   "non-success code: {}",
                   code);
-    WriteReturnValue(NWC24::WC24_ERR_SERVER, request.buffer_out);
+    WriteReturnValue(memory, NWC24::WC24_ERR_SERVER, request.buffer_out);
     LogError(ErrorType::Account, NWC24::WC24_ERR_SERVER);
     return IPCReply{IPC_SUCCESS};
   }
@@ -955,7 +958,7 @@ IPCReply NetKDRequestDevice::HandleRequestRegisterUserId(const IOS::HLE::IOCtlRe
                   "NET_KD_REQ: IOCTL_NWC24_REQUEST_REGISTER_USER_ID: Mail server returned invalid "
                   "mlchkid: {}",
                   mail_check_id);
-    WriteReturnValue(NWC24::WC24_ERR_SERVER, request.buffer_out);
+    WriteReturnValue(memory, NWC24::WC24_ERR_SERVER, request.buffer_out);
     LogError(ErrorType::Account, NWC24::WC24_ERR_SERVER);
     return IPCReply{IPC_SUCCESS};
   }
@@ -967,7 +970,7 @@ IPCReply NetKDRequestDevice::HandleRequestRegisterUserId(const IOS::HLE::IOCtlRe
   m_config.WriteConfig();
   m_config.WriteCBK();
 
-  WriteReturnValue(NWC24::WC24_OK, request.buffer_out);
+  WriteReturnValue(memory, NWC24::WC24_OK, request.buffer_out);
 
   return IPCReply{IPC_SUCCESS};
 }
@@ -1008,7 +1011,7 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
   case IOCTL_NWC24_SUSPEND_SCHEDULER:
     // NWC24iResumeForCloseLib  from NWC24SuspendScheduler (Input: none, Output: 32 bytes)
     INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_SUSPEND_SCHEDULER - NI");
-    WriteReturnValue(0, request.buffer_out);  // no error
+    WriteReturnValue(memory, 0, request.buffer_out);  // no error
     break;
 
   case IOCTL_NWC24_EXEC_TRY_SUSPEND_SCHEDULER:  // NWC24iResumeForCloseLib
@@ -1017,11 +1020,11 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
 
   case IOCTL_NWC24_EXEC_RESUME_SCHEDULER:  // NWC24iResumeForCloseLib
     INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_EXEC_RESUME_SCHEDULER - NI");
-    WriteReturnValue(0, request.buffer_out);  // no error
+    WriteReturnValue(memory, 0, request.buffer_out);  // no error
     break;
 
   case IOCTL_NWC24_STARTUP_SOCKET:  // NWC24iStartupSocket
-    WriteReturnValue(0, request.buffer_out);
+    WriteReturnValue(memory, 0, request.buffer_out);
     memory.Write_U32(0, request.buffer_out + 4);
     return_value = 0;
     INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_STARTUP_SOCKET - NI");
@@ -1080,21 +1083,21 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
         m_config.WriteConfig();
         m_config.WriteCBK();
 
-        WriteReturnValue(ret, request.buffer_out);
+        WriteReturnValue(memory, ret, request.buffer_out);
       }
       else
       {
         LogError(ErrorType::Account, NWC24::WC24_ERR_INVALID_VALUE);
-        WriteReturnValue(NWC24::WC24_ERR_FATAL, request.buffer_out);
+        WriteReturnValue(memory, NWC24::WC24_ERR_FATAL, request.buffer_out);
       }
     }
     else if (m_config.IsGenerated())
     {
-      WriteReturnValue(NWC24::WC24_ERR_ID_GENERATED, request.buffer_out);
+      WriteReturnValue(memory, NWC24::WC24_ERR_ID_GENERATED, request.buffer_out);
     }
     else if (m_config.IsRegistered())
     {
-      WriteReturnValue(NWC24::WC24_ERR_ID_REGISTERED, request.buffer_out);
+      WriteReturnValue(memory, NWC24::WC24_ERR_ID_REGISTERED, request.buffer_out);
     }
     memory.Write_U64(m_config.Id(), request.buffer_out + 4);
     memory.Write_U32(u32(m_config.CreationStage()), request.buffer_out + 0xC);
