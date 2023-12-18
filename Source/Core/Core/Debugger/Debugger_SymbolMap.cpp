@@ -20,24 +20,6 @@
 
 namespace Dolphin_Debugger
 {
-void AddAutoBreakpoints()
-{
-#if defined(_DEBUG) || defined(DEBUGFAST)
-#if 1
-  const char* bps[] = {
-      "PPCHalt",
-  };
-
-  for (const char* bp : bps)
-  {
-    Common::Symbol* symbol = g_symbolDB.GetSymbolFromName(bp);
-    if (symbol)
-      Core::System::GetInstance().GetPowerPC().GetBreakPoints().Add(symbol->address, false);
-  }
-#endif
-#endif
-}
-
 // Returns true if the address is not a valid RAM address or NULL.
 static bool IsStackBottom(const Core::CPUThreadGuard& guard, u32 addr)
 {

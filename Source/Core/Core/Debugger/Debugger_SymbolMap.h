@@ -30,6 +30,4 @@ void PrintCallstack(Core::System& system, const Core::CPUThreadGuard& guard,
                     Common::Log::LogType type, Common::Log::LogLevel level);
 void PrintDataBuffer(Common::Log::LogType type, const u8* data, size_t size,
                      std::string_view title);
-void AddAutoBreakpoints();
-
 }  // namespace Dolphin_Debugger
