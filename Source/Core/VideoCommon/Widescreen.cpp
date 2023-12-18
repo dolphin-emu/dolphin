@@ -4,6 +4,7 @@
 #include "VideoCommon/Widescreen.h"
 
 #include "Common/ChunkFile.h"
+#include "Common/Logging/Log.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/System.h"
 
@@ -13,12 +14,34 @@ std::unique_ptr<WidescreenManager> g_widescreen;
 
 WidescreenManager::WidescreenManager()
 {
-  Update();
+  std::optional<bool> is_game_widescreen = GetWidescreenOverride();
+  if (is_game_widescreen.has_value())
+    m_is_game_widescreen = is_game_widescreen.value();
+
+  // Throw a warning as unsupported aspect ratio modes have no specific behavior to them
+  const bool is_valid_suggested_aspect_mode =
+      g_ActiveConfig.suggested_aspect_mode == AspectMode::Auto ||
+      g_ActiveConfig.suggested_aspect_mode == AspectMode::ForceStandard ||
+      g_ActiveConfig.suggested_aspect_mode == AspectMode::ForceWide;
+  if (!is_valid_suggested_aspect_mode)
+  {
+    WARN_LOG_FMT(VIDEO,
+                 "Invalid suggested aspect ratio mode: only Auto, 4:3 and 16:9 are supported");
+  }
 
   m_config_changed = ConfigChangedEvent::Register(
       [this](u32 bits) {
         if (bits & (CONFIG_CHANGE_BIT_ASPECT_RATIO))
-          Update();
+        {
+          std::optional<bool> is_game_widescreen = GetWidescreenOverride();
+          // If the widescreen flag isn't being overridden by any settings,
+          // reset it to default if heuristic aren't running or to the last
+          // heuristic value if they were running.
+          if (!is_game_widescreen.has_value())
+            is_game_widescreen = (m_heuristic_state == HeuristicState::Active_Found_Anamorphic);
+          if (is_game_widescreen.has_value())
+            m_is_game_widescreen = is_game_widescreen.value();
+        }
       },
       "Widescreen");
 
@@ -31,7 +54,7 @@ WidescreenManager::WidescreenManager()
   }
 }
 
-void WidescreenManager::Update()
+std::optional<bool> WidescreenManager::GetWidescreenOverride() const
 {
   std::optional<bool> is_game_widescreen;
 
@@ -53,79 +76,78 @@ void WidescreenManager::Update()
       is_game_widescreen = false;
     else if (aspect_mode == AspectMode::ForceWide)
       is_game_widescreen = true;
-
-    // Reset settings to default if heuristics aren't currently running and
-    // the user selected the automatic aspect ratio.
-    if (!is_game_widescreen.has_value() && !m_widescreen_heuristics_active_and_successful &&
-        aspect_mode == AspectMode::Auto)
-    {
-      is_game_widescreen = false;
-    }
   }
 
-  if (is_game_widescreen.has_value())
-  {
-    m_is_game_widescreen = is_game_widescreen.value();
-  }
+  return is_game_widescreen;
 }
 
 // Heuristic to detect if a GameCube game is in 16:9 anamorphic widescreen mode.
 // Cheats that change the game aspect ratio to natively unsupported ones won't be recognized here.
 void WidescreenManager::UpdateWidescreenHeuristic()
 {
+  // Reset to baseline state before the update
   const auto flush_statistics = g_vertex_manager->ResetFlushAspectRatioCount();
+  const bool was_orthographically_anamorphic = m_was_orthographically_anamorphic;
+  m_heuristic_state = HeuristicState::Inactive;
+  m_was_orthographically_anamorphic = false;
 
   // If suggested_aspect_mode (GameINI) is configured don't use heuristic.
+  // We also don't need to check "GetWidescreenOverride()" in this case as
+  // nothing would have changed there.
   if (g_ActiveConfig.suggested_aspect_mode != AspectMode::Auto)
-  {
-    m_widescreen_heuristics_active_and_successful = false;
     return;
-  }
 
-  Update();
-
-  m_widescreen_heuristics_active_and_successful = false;
+  std::optional<bool> is_game_widescreen = GetWidescreenOverride();
 
   // If widescreen hack isn't active and aspect_mode (UI) is 4:3 or 16:9 don't use heuristic.
-  if (!g_ActiveConfig.bWidescreenHack && (g_ActiveConfig.aspect_mode == AspectMode::ForceStandard ||
-                                          g_ActiveConfig.aspect_mode == AspectMode::ForceWide))
-    return;
-
-  // Modify the threshold based on which aspect ratio we're already using:
-  // If the game's in 4:3, it probably won't switch to anamorphic, and vice-versa.
-  const u32 transition_threshold = g_ActiveConfig.widescreen_heuristic_transition_threshold;
-
-  const auto looks_normal = [transition_threshold](auto& counts) {
-    return counts.normal_vertex_count > counts.anamorphic_vertex_count * transition_threshold;
-  };
-  const auto looks_anamorphic = [transition_threshold](auto& counts) {
-    return counts.anamorphic_vertex_count > counts.normal_vertex_count * transition_threshold;
-  };
-
-  const auto& persp = flush_statistics.perspective;
-  const auto& ortho = flush_statistics.orthographic;
-
-  const auto ortho_looks_anamorphic = looks_anamorphic(ortho);
-
-  if (looks_anamorphic(persp) || ortho_looks_anamorphic)
+  if (g_ActiveConfig.bWidescreenHack || (g_ActiveConfig.aspect_mode != AspectMode::ForceStandard &&
+                                         g_ActiveConfig.aspect_mode != AspectMode::ForceWide))
   {
-    // If either perspective or orthographic projections look anamorphic, it's a safe bet.
-    m_is_game_widescreen = true;
-    m_widescreen_heuristics_active_and_successful = true;
-  }
-  else if (looks_normal(persp) || (m_was_orthographically_anamorphic && looks_normal(ortho)))
-  {
-    // Many widescreen games (or AR/GeckoCodes) use anamorphic perspective projections
-    // with NON-anamorphic orthographic projections.
-    // This can cause incorrect changes to 4:3 when perspective projections are temporarily not
-    // shown. e.g. Animal Crossing's inventory menu.
-    // Unless we were in a situation which was orthographically anamorphic
-    // we won't consider orthographic data for changes from 16:9 to 4:3.
-    m_is_game_widescreen = false;
-    m_widescreen_heuristics_active_and_successful = true;
+    // Modify the threshold based on which aspect ratio we're already using:
+    // If the game's in 4:3, it probably won't switch to anamorphic, and vice-versa.
+    const u32 transition_threshold = g_ActiveConfig.widescreen_heuristic_transition_threshold;
+
+    const auto looks_normal = [transition_threshold](auto& counts) {
+      return counts.normal_vertex_count > counts.anamorphic_vertex_count * transition_threshold;
+    };
+    const auto looks_anamorphic = [transition_threshold](auto& counts) {
+      return counts.anamorphic_vertex_count > counts.normal_vertex_count * transition_threshold;
+    };
+
+    const auto& persp = flush_statistics.perspective;
+    const auto& ortho = flush_statistics.orthographic;
+
+    const auto ortho_looks_anamorphic = looks_anamorphic(ortho);
+    const auto persp_looks_normal = looks_normal(persp);
+
+    if (looks_anamorphic(persp) || ortho_looks_anamorphic)
+    {
+      // If either perspective or orthographic projections look anamorphic, it's a safe bet.
+      is_game_widescreen = true;
+      m_heuristic_state = HeuristicState::Active_Found_Anamorphic;
+    }
+    else if (persp_looks_normal || looks_normal(ortho))
+    {
+      // Many widescreen games (or AR/GeckoCodes) use anamorphic perspective projections
+      // with NON-anamorphic orthographic projections.
+      // This can cause incorrect changes to 4:3 when perspective projections are temporarily not
+      // shown. e.g. Animal Crossing's inventory menu.
+      // Unless we were in a situation which was orthographically anamorphic
+      // we won't consider orthographic data for changes from 16:9 to 4:3.
+      if (persp_looks_normal || was_orthographically_anamorphic)
+        is_game_widescreen = false;
+      m_heuristic_state = HeuristicState::Active_Found_Normal;
+    }
+    else
+    {
+      m_heuristic_state = HeuristicState::Active_NotFound;
+    }
+
+    m_was_orthographically_anamorphic = ortho_looks_anamorphic;
   }
 
-  m_was_orthographically_anamorphic = ortho_looks_anamorphic;
+  if (is_game_widescreen.has_value())
+    m_is_game_widescreen = is_game_widescreen.value();
 }
 
 void WidescreenManager::DoState(PointerWrap& p)
@@ -135,6 +157,6 @@ void WidescreenManager::DoState(PointerWrap& p)
   if (p.IsReadMode())
   {
     m_was_orthographically_anamorphic = false;
-    m_widescreen_heuristics_active_and_successful = false;
+    m_heuristic_state = HeuristicState::Inactive;
   }
 }
