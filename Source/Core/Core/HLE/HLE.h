@@ -61,7 +61,7 @@ void Patch(Core::System& system, u32 pc, std::string_view func_name);
 u32 UnPatch(Core::System& system, std::string_view patch_name);
 u32 UnpatchRange(Core::System& system, u32 start_addr, u32 end_addr);
 void Execute(const Core::CPUThreadGuard& guard, u32 current_pc, u32 hook_index);
-void ExecuteFromJIT(u32 current_pc, u32 hook_index);
+void ExecuteFromJIT(u32 current_pc, u32 hook_index, Core::System& system);
 
 // Returns the HLE hook index of the address
 u32 GetHookByAddress(u32 address);
