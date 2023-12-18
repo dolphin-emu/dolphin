@@ -38,7 +38,7 @@ void HLE_LogFPrint(const Core::CPUThreadGuard& guard, ParameterType parameter_ty
 
 void HLE_OSPanic(const Core::CPUThreadGuard& guard)
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = guard.GetSystem();
   auto& ppc_state = system.GetPPCState();
 
   std::string error = GetStringVA(system, guard);
@@ -57,8 +57,8 @@ void HLE_OSPanic(const Core::CPUThreadGuard& guard)
 // Generalized function for printing formatted string.
 void HLE_GeneralDebugPrint(const Core::CPUThreadGuard& guard, ParameterType parameter_type)
 {
-  auto& system = Core::System::GetInstance();
-  auto& ppc_state = system.GetPPCState();
+  auto& system = guard.GetSystem();
+  const auto& ppc_state = system.GetPPCState();
 
   std::string report_message;
 
@@ -114,7 +114,7 @@ void HLE_GeneralDebugVPrint(const Core::CPUThreadGuard& guard)
 void HLE_write_console(const Core::CPUThreadGuard& guard)
 {
   auto& system = guard.GetSystem();
-  auto& ppc_state = system.GetPPCState();
+  const auto& ppc_state = system.GetPPCState();
 
   std::string report_message = GetStringVA(system, guard, 4);
   if (PowerPC::MMU::HostIsRAMAddress(guard, ppc_state.gpr[5]))
@@ -141,8 +141,8 @@ void HLE_write_console(const Core::CPUThreadGuard& guard)
 // Log (v)dprintf message if fd is 1 (stdout) or 2 (stderr)
 void HLE_LogDPrint(const Core::CPUThreadGuard& guard, ParameterType parameter_type)
 {
-  auto& system = Core::System::GetInstance();
-  auto& ppc_state = system.GetPPCState();
+  auto& system = guard.GetSystem();
+  const auto& ppc_state = system.GetPPCState();
 
   if (ppc_state.gpr[3] != 1 && ppc_state.gpr[3] != 2)
     return;
@@ -170,8 +170,8 @@ void HLE_LogVDPrint(const Core::CPUThreadGuard& guard)
 // Log (v)fprintf message if FILE is stdout or stderr
 void HLE_LogFPrint(const Core::CPUThreadGuard& guard, ParameterType parameter_type)
 {
-  auto& system = Core::System::GetInstance();
-  auto& ppc_state = system.GetPPCState();
+  auto& system = guard.GetSystem();
+  const auto& ppc_state = system.GetPPCState();
 
   // The structure FILE is implementation defined.
   // Both libogc and Dolphin SDK seem to store the fd at the same address.
