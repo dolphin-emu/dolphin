@@ -269,7 +269,9 @@ bool CachedInterpreter::CheckIdle(CachedInterpreter& cached_interpreter, u32 idl
 
 bool CachedInterpreter::HandleFunctionHooking(u32 address)
 {
-  const auto result = HLE::TryReplaceFunction(address);
+  // CachedInterpreter inherits from JitBase and is considered a JIT by relevant code.
+  // (see JitInterface and how m_mode is set within PowerPC.cpp)
+  const auto result = HLE::TryReplaceFunction(address, PowerPC::CoreMode::JIT);
   if (!result)
     return false;
 

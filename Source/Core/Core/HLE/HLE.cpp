@@ -200,7 +200,7 @@ HookFlag GetHookFlagsByIndex(u32 index)
   return os_patches[index].flags;
 }
 
-TryReplaceFunctionResult TryReplaceFunction(u32 address)
+TryReplaceFunctionResult TryReplaceFunction(u32 address, PowerPC::CoreMode mode)
 {
   const u32 hook_index = GetHookByFunctionAddress(address);
   if (hook_index == 0)
@@ -211,16 +211,16 @@ TryReplaceFunctionResult TryReplaceFunction(u32 address)
     return {};
 
   const HookFlag flags = GetHookFlagsByIndex(hook_index);
-  if (!IsEnabled(flags))
+  if (!IsEnabled(flags, mode))
     return {};
 
   return {type, hook_index};
 }
 
-bool IsEnabled(HookFlag flag)
+bool IsEnabled(HookFlag flag, PowerPC::CoreMode mode)
 {
   return flag != HLE::HookFlag::Debug || Config::IsDebuggingEnabled() ||
-         Core::System::GetInstance().GetPowerPC().GetMode() == PowerPC::CoreMode::Interpreter;
+         mode == PowerPC::CoreMode::Interpreter;
 }
 
 u32 UnPatch(Core::System& system, std::string_view patch_name)
