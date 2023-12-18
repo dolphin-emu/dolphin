@@ -388,9 +388,9 @@ public:
   u32 GetTicksPerHalfLine() const;
   u32 GetTicksPerField() const;
 
-  // Get the aspect ratio of VI's active area.
+  // Get the aspect ratio of VI's active area (rarely matching pure 4:3).
   // This function only deals with standard aspect ratios. For widescreen aspect ratios, multiply
-  // the result by 1.33333..
+  // the result by 1.33333... (the ratio between 16:9 and 4:3)
   float GetAspectRatio() const;
 
   // Create a fake VI mode for a fifolog

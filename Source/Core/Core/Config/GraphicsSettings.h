@@ -28,6 +28,8 @@ extern const Info<int> GFX_ADAPTER;
 
 extern const Info<bool> GFX_WIDESCREEN_HACK;
 extern const Info<AspectMode> GFX_ASPECT_RATIO;
+extern const Info<int> GFX_CUSTOM_ASPECT_RATIO_WIDTH;
+extern const Info<int> GFX_CUSTOM_ASPECT_RATIO_HEIGHT;
 extern const Info<AspectMode> GFX_SUGGESTED_ASPECT_RATIO;
 extern const Info<u32> GFX_WIDESCREEN_HEURISTIC_TRANSITION_THRESHOLD;
 extern const Info<float> GFX_WIDESCREEN_HEURISTIC_ASPECT_RATIO_SLOP;

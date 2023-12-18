@@ -85,6 +85,8 @@ void VideoConfig::Refresh()
 
   bWidescreenHack = Config::Get(Config::GFX_WIDESCREEN_HACK);
   aspect_mode = Config::Get(Config::GFX_ASPECT_RATIO);
+  custom_aspect_width = Config::Get(Config::GFX_CUSTOM_ASPECT_RATIO_WIDTH);
+  custom_aspect_height = Config::Get(Config::GFX_CUSTOM_ASPECT_RATIO_HEIGHT);
   suggested_aspect_mode = Config::Get(Config::GFX_SUGGESTED_ASPECT_RATIO);
   widescreen_heuristic_transition_threshold =
       Config::Get(Config::GFX_WIDESCREEN_HEURISTIC_TRANSITION_THRESHOLD);
@@ -287,6 +289,7 @@ void CheckForConfigChanges()
   const u32 old_game_mod_changes =
       g_ActiveConfig.graphics_mod_config ? g_ActiveConfig.graphics_mod_config->GetChangeCount() : 0;
   const bool old_graphics_mods_enabled = g_ActiveConfig.bGraphicMods;
+  const AspectMode old_aspect_mode = g_ActiveConfig.aspect_mode;
   const AspectMode old_suggested_aspect_mode = g_ActiveConfig.suggested_aspect_mode;
   const bool old_widescreen_hack = g_ActiveConfig.bWidescreenHack;
   const auto old_post_processing_shader = g_ActiveConfig.sPostProcessingShader;
@@ -336,6 +339,8 @@ void CheckForConfigChanges()
     changed_bits |= CONFIG_CHANGE_BIT_BBOX;
   if (old_efb_scale != g_ActiveConfig.iEFBScale)
     changed_bits |= CONFIG_CHANGE_BIT_TARGET_SIZE;
+  if (old_aspect_mode != g_ActiveConfig.aspect_mode)
+    changed_bits |= CONFIG_CHANGE_BIT_ASPECT_RATIO;
   if (old_suggested_aspect_mode != g_ActiveConfig.suggested_aspect_mode)
     changed_bits |= CONFIG_CHANGE_BIT_ASPECT_RATIO;
   if (old_widescreen_hack != g_ActiveConfig.bWidescreenHack)

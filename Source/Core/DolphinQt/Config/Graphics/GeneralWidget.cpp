@@ -20,6 +20,7 @@
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
+#include "DolphinQt/Config/ConfigControls/ConfigInteger.h"
 #include "DolphinQt/Config/ConfigControls/ConfigRadio.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipComboBox.h"
@@ -54,9 +55,20 @@ void GeneralWidget::CreateWidgets()
   m_video_layout = new QGridLayout();
 
   m_backend_combo = new ToolTipComboBox();
-  m_aspect_combo =
-      new ConfigChoice({tr("Auto"), tr("Force 16:9"), tr("Force 4:3"), tr("Stretch to Window")},
-                       Config::GFX_ASPECT_RATIO);
+  m_aspect_combo = new ConfigChoice(
+      {tr("Auto"), tr("Force 16:9"), tr("Force 4:3"), tr("Stretch to Window"), tr("Custom")},
+      Config::GFX_ASPECT_RATIO);
+  m_custom_aspect_label = new QLabel(tr("Custom Aspect Ratio:"));
+  m_custom_aspect_label->setHidden(true);
+  constexpr int MAX_CUSTOM_ASPECT_RATIO_RESOLUTION = 10000;
+  m_custom_aspect_width = new ConfigInteger(1, MAX_CUSTOM_ASPECT_RATIO_RESOLUTION,
+                                            Config::GFX_CUSTOM_ASPECT_RATIO_WIDTH);
+  m_custom_aspect_width->setEnabled(false);
+  m_custom_aspect_width->setHidden(true);
+  m_custom_aspect_height = new ConfigInteger(1, MAX_CUSTOM_ASPECT_RATIO_RESOLUTION,
+                                             Config::GFX_CUSTOM_ASPECT_RATIO_HEIGHT);
+  m_custom_aspect_height->setEnabled(false);
+  m_custom_aspect_height->setHidden(true);
   m_adapter_combo = new ToolTipComboBox;
   m_enable_vsync = new ConfigBool(tr("V-Sync"), Config::GFX_VSYNC);
   m_enable_fullscreen = new ConfigBool(tr("Start in Fullscreen"), Config::MAIN_FULLSCREEN);
@@ -70,16 +82,20 @@ void GeneralWidget::CreateWidgets()
   }
 
   m_video_layout->addWidget(new QLabel(tr("Backend:")), 0, 0);
-  m_video_layout->addWidget(m_backend_combo, 0, 1);
+  m_video_layout->addWidget(m_backend_combo, 0, 1, 1, -1);
 
   m_video_layout->addWidget(new QLabel(tr("Adapter:")), 1, 0);
-  m_video_layout->addWidget(m_adapter_combo, 1, 1);
+  m_video_layout->addWidget(m_adapter_combo, 1, 1, 1, -1);
 
   m_video_layout->addWidget(new QLabel(tr("Aspect Ratio:")), 3, 0);
-  m_video_layout->addWidget(m_aspect_combo, 3, 1);
+  m_video_layout->addWidget(m_aspect_combo, 3, 1, 1, -1);
 
-  m_video_layout->addWidget(m_enable_vsync, 4, 0);
-  m_video_layout->addWidget(m_enable_fullscreen, 4, 1);
+  m_video_layout->addWidget(m_custom_aspect_label, 4, 0);
+  m_video_layout->addWidget(m_custom_aspect_width, 4, 1);
+  m_video_layout->addWidget(m_custom_aspect_height, 4, 2);
+
+  m_video_layout->addWidget(m_enable_vsync, 5, 0);
+  m_video_layout->addWidget(m_enable_fullscreen, 5, 1, 1, -1);
 
   // Other
   auto* m_options_box = new QGroupBox(tr("Other"));
@@ -138,6 +154,14 @@ void GeneralWidget::ConnectWidgets()
     Config::SetBaseOrCurrent(Config::GFX_ADAPTER, index);
     emit BackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
   });
+  connect(m_aspect_combo, qOverload<int>(&QComboBox::currentIndexChanged), this, [&](int index) {
+    const bool is_custom_aspect_ratio = (index == static_cast<int>(AspectMode::Custom));
+    m_custom_aspect_width->setEnabled(is_custom_aspect_ratio);
+    m_custom_aspect_height->setEnabled(is_custom_aspect_ratio);
+    m_custom_aspect_label->setHidden(!is_custom_aspect_ratio);
+    m_custom_aspect_width->setHidden(!is_custom_aspect_ratio);
+    m_custom_aspect_height->setHidden(!is_custom_aspect_ratio);
+  });
 }
 
 void GeneralWidget::LoadSettings()
@@ -145,6 +169,13 @@ void GeneralWidget::LoadSettings()
   // Video Backend
   m_backend_combo->setCurrentIndex(m_backend_combo->findData(
       QVariant(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)))));
+
+  const bool is_custom_aspect_ratio = (Config::Get(Config::GFX_ASPECT_RATIO) == AspectMode::Custom);
+  m_custom_aspect_width->setEnabled(is_custom_aspect_ratio);
+  m_custom_aspect_height->setEnabled(is_custom_aspect_ratio);
+  m_custom_aspect_label->setHidden(!is_custom_aspect_ratio);
+  m_custom_aspect_width->setHidden(!is_custom_aspect_ratio);
+  m_custom_aspect_height->setHidden(!is_custom_aspect_ratio);
 }
 
 void GeneralWidget::SaveSettings()
@@ -207,11 +238,15 @@ void GeneralWidget::AddDescriptions()
       QT_TR_NOOP("Uses the main Dolphin window for rendering rather than "
                  "a separate render window.<br><br><dolphin_emphasis>If unsure, leave "
                  "this unchecked.</dolphin_emphasis>");
-  static const char TR_ASPECT_RATIO_DESCRIPTION[] = QT_TR_NOOP(
-      "Selects which aspect ratio to use when rendering.<br><br>Auto: Uses the native aspect "
-      "ratio<br>Force 16:9: Mimics an analog TV with a widescreen aspect ratio.<br>Force 4:3: "
-      "Mimics a standard 4:3 analog TV.<br>Stretch to Window: Stretches the picture to the "
-      "window size.<br><br><dolphin_emphasis>If unsure, select Auto.</dolphin_emphasis>");
+  static const char TR_ASPECT_RATIO_DESCRIPTION[] =
+      QT_TR_NOOP("Selects which aspect ratio to use when rendering.<br>"
+                 "Each game can have a slightly different native aspect ratio."
+                 "<br><br>Auto: Uses the native aspect ratio"
+                 "<br>Force 16:9: Mimics an analog TV with a widescreen aspect ratio."
+                 "<br>Force 4:3: Mimics a standard 4:3 analog TV."
+                 "<br>Stretch to Window: Stretches the picture to the window size."
+                 "<br>Custom: For games running with specific custom aspect ratio cheats.<br><br>"
+                 "<dolphin_emphasis>If unsure, select Auto.</dolphin_emphasis>");
   static const char TR_VSYNC_DESCRIPTION[] = QT_TR_NOOP(
       "Waits for vertical blanks in order to prevent tearing.<br><br>Decreases performance "
       "if emulation speed is below 100%.<br><br><dolphin_emphasis>If unsure, leave "
@@ -259,6 +294,9 @@ void GeneralWidget::AddDescriptions()
 
   m_aspect_combo->SetTitle(tr("Aspect Ratio"));
   m_aspect_combo->SetDescription(tr(TR_ASPECT_RATIO_DESCRIPTION));
+
+  m_custom_aspect_width->SetTitle(tr("Custom Aspect Ratio Width"));
+  m_custom_aspect_height->SetTitle(tr("Custom Aspect Ratio Height"));
 
   m_enable_vsync->SetDescription(tr(TR_VSYNC_DESCRIPTION));
 

@@ -11,11 +11,14 @@
 class PointerWrap;
 
 // This class is responsible for tracking the game's aspect ratio.
+// This exclusively supports 4:3 or 16:9 detection by default.
 class WidescreenManager
 {
 public:
   WidescreenManager();
 
+  // Just a helper to tell whether the game seems to be running in widescreen,
+  // or if it's being forced to.
   bool IsGameWidescreen() const { return m_is_game_widescreen; }
 
   void DoState(PointerWrap& p);
