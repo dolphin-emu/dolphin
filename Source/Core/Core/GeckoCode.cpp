@@ -17,6 +17,7 @@
 
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
@@ -206,10 +207,8 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
   // Turn on codes
   PowerPC::MMU::HostWrite_U8(guard, 1, INSTALLER_BASE_ADDRESS + 7);
 
-  auto& system = Core::System::GetInstance();
-  auto& ppc_state = system.GetPPCState();
-
   // Invalidate the icache and any asm codes
+  auto& ppc_state = guard.GetSystem().GetPPCState();
   for (unsigned int j = 0; j < (INSTALLER_END_ADDRESS - INSTALLER_BASE_ADDRESS); j += 32)
   {
     ppc_state.iCache.Invalidate(INSTALLER_BASE_ADDRESS + j);
@@ -258,8 +257,7 @@ void RunCodeHandler(const Core::CPUThreadGuard& guard)
     }
   }
 
-  auto& system = Core::System::GetInstance();
-  auto& ppc_state = system.GetPPCState();
+  auto& ppc_state = guard.GetSystem().GetPPCState();
 
   // We always do this to avoid problems with the stack since we're branching in random locations.
   // Even with function call return hooks (PC == LR), hand coded assembler won't necessarily
