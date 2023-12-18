@@ -349,7 +349,7 @@ EmulationKernel::EmulationKernel(Core::System& system, u64 title_id)
 
 EmulationKernel::~EmulationKernel()
 {
-  Core::System::GetInstance().GetCoreTiming().RemoveAllEvents(s_event_enqueue);
+  m_system.GetCoreTiming().RemoveAllEvents(s_event_enqueue);
 
   m_device_map.clear();
   m_socket_manager.reset();
