@@ -146,7 +146,7 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
     PowerPC::MMU::HostWrite_U8(guard, data[i], INSTALLER_BASE_ADDRESS + i);
 
   // Patch the code handler to the current system type (Gamecube/Wii)
-  for (unsigned int h = 0; h < data.length(); h += 4)
+  for (u32 h = 0; h < data.length(); h += 4)
   {
     // Patch MMIO address
     if (PowerPC::MMU::HostRead_U32(guard, INSTALLER_BASE_ADDRESS + h) ==
@@ -209,7 +209,7 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
 
   // Invalidate the icache and any asm codes
   auto& ppc_state = guard.GetSystem().GetPPCState();
-  for (unsigned int j = 0; j < (INSTALLER_END_ADDRESS - INSTALLER_BASE_ADDRESS); j += 32)
+  for (u32 j = 0; j < (INSTALLER_END_ADDRESS - INSTALLER_BASE_ADDRESS); j += 32)
   {
     ppc_state.iCache.Invalidate(INSTALLER_BASE_ADDRESS + j);
   }
