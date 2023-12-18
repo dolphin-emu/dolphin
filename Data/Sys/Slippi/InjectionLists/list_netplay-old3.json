@@ -1,0 +1,11 @@
+{
+ "Details": [
+  {
+   "InjectionAddress": "8006B0DC",
+   "Name": "Required: Slippi Recording",
+   "Codetype": "Auto",
+   "Annotation": "Recording/SendGamePreFrame.asm",
+   "Tags": ""
+  }
+ ]
+}
