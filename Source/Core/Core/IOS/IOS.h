@@ -216,7 +216,7 @@ private:
 };
 
 // Used for controlling and accessing an IOS instance that is tied to emulation.
-void Init();
+void Init(Core::System& system);
 void Shutdown();
 EmulationKernel* GetIOS();
 

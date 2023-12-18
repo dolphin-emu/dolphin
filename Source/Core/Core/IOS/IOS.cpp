@@ -949,9 +949,8 @@ static void FinishPPCBootstrap(Core::System& system, u64 userdata, s64 cycles_la
   INFO_LOG_FMT(IOS, "Bootstrapping done.");
 }
 
-void Init()
+void Init(Core::System& system)
 {
-  auto& system = Core::System::GetInstance();
   auto& core_timing = system.GetCoreTiming();
 
   s_event_enqueue =

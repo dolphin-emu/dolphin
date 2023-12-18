@@ -57,7 +57,7 @@ void Init(Core::System& system, const Sram* override_sram)
   if (SConfig::GetInstance().bWii)
   {
     IOS::Init();
-    IOS::HLE::Init();  // Depends on Memory
+    IOS::HLE::Init(system);  // Depends on Memory
   }
 }
 
