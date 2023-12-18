@@ -279,7 +279,7 @@ void RunCodeHandler(const Core::CPUThreadGuard& guard)
   PowerPC::MMU::HostWrite_U32(guard, LR(ppc_state), SP + 16);
   PowerPC::MMU::HostWrite_U32(guard, ppc_state.cr.Get(), SP + 20);
   // Registers FPR0->13 are volatile
-  for (int i = 0; i < 14; ++i)
+  for (u32 i = 0; i < 14; ++i)
   {
     PowerPC::MMU::HostWrite_U64(guard, ppc_state.ps[i].PS0AsU64(), SP + 24 + 2 * i * sizeof(u64));
     PowerPC::MMU::HostWrite_U64(guard, ppc_state.ps[i].PS1AsU64(),
