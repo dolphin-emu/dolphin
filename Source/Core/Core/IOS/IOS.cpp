@@ -140,8 +140,7 @@ static bool SetupMemory(Memory::MemoryManager& memory, u64 ios_title_id, MemoryS
     memory.Write_U32(target_imv->ios_reserved_begin, ADDR_IOS_RESERVED_BEGIN);
     memory.Write_U32(target_imv->ios_reserved_end, ADDR_IOS_RESERVED_END);
 
-    RAMOverrideForIOSMemoryValues(setup_type);
-
+    RAMOverrideForIOSMemoryValues(memory, setup_type);
     return true;
   }
 
@@ -184,8 +183,7 @@ static bool SetupMemory(Memory::MemoryManager& memory, u64 ios_title_id, MemoryS
   memory.Write_U32(target_imv->mem1_arena_end, ADDR_LEGACY_ARENA_HIGH);
   memory.Write_U32(target_imv->mem1_simulated_size, ADDR_LEGACY_MEM_SIM_SIZE);
 
-  RAMOverrideForIOSMemoryValues(setup_type);
-
+  RAMOverrideForIOSMemoryValues(memory, setup_type);
   return true;
 }
 
@@ -225,14 +223,11 @@ static void ReleasePPCAncast(Core::System& system)
   system.GetPPCState().pc = ESPRESSO_ANCAST_LOCATION_VIRT + sizeof(EspressoAncastHeader);
 }
 
-void RAMOverrideForIOSMemoryValues(MemorySetupType setup_type)
+void RAMOverrideForIOSMemoryValues(Memory::MemoryManager& memory, MemorySetupType setup_type)
 {
   // Don't touch anything if the feature isn't enabled.
   if (!Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE))
     return;
-
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
 
   // Some unstated constants that can be inferred.
   const u32 ipc_buffer_size =

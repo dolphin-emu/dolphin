@@ -23,6 +23,10 @@ namespace Core
 {
 class System;
 }
+namespace Memory
+{
+class MemoryManager;
+}
 
 namespace IOS::HLE
 {
@@ -109,7 +113,7 @@ enum class HangPPC : bool
   Yes = true,
 };
 
-void RAMOverrideForIOSMemoryValues(MemorySetupType setup_type);
+void RAMOverrideForIOSMemoryValues(Memory::MemoryManager& memory, MemorySetupType setup_type);
 
 void WriteReturnValue(s32 value, u32 address);
 
