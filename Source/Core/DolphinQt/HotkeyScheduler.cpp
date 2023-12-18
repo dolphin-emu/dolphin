@@ -410,6 +410,12 @@ void HotkeyScheduler::Run()
         case AspectMode::Custom:
           OSD::AddMessage("Custom");
           break;
+        case AspectMode::CustomStretch:
+          OSD::AddMessage("Custom (Stretch)");
+          break;
+        case AspectMode::Raw:
+          OSD::AddMessage("Raw (Square Pixels)");
+          break;
         case AspectMode::Auto:
         default:
           OSD::AddMessage("Auto");

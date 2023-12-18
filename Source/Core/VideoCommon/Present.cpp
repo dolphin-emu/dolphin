@@ -356,11 +356,19 @@ float Presenter::CalculateDrawAspectRatio(bool allow_stretch) const
   {
     return SourceAspectRatioToWidescreen(source_aspect_ratio);
   }
-  // For the "custom" mode, we force the exact target aspect ratio, without
-  // acknowleding the difference between the source aspect ratio and 4:3.
   else if (aspect_mode == AspectMode::Custom)
   {
+    return source_aspect_ratio * (g_ActiveConfig.GetCustomAspectRatio() / (4.0f / 3.0f));
+  }
+  // For the "custom stretch" mode, we force the exact target aspect ratio, without
+  // acknowleding the difference between the source aspect ratio and 4:3.
+  else if (aspect_mode == AspectMode::CustomStretch)
+  {
     return g_ActiveConfig.GetCustomAspectRatio();
+  }
+  else if (aspect_mode == AspectMode::Raw)
+  {
+    return m_xfb_entry ? (static_cast<float>(m_last_xfb_width) / m_last_xfb_height) : 1.f;
   }
 
   return source_aspect_ratio;
@@ -428,9 +436,11 @@ void* Presenter::GetNewSurfaceHandle()
 
 u32 Presenter::AutoIntegralScale() const
 {
-  // Take the source resolution (XFB) and stretch it on the target aspect ratio.
+  // Take the source/native resolution (XFB) and stretch it on the target (window) aspect ratio.
   // If the target resolution is larger (on either x or y), we scale the source
   // by a integer multiplier until it won't have to be scaled up anymore.
+  // NOTE: this might conflict with "Config::MAIN_RENDER_WINDOW_AUTOSIZE",
+  // as they mutually influence each other.
   u32 source_width = m_last_xfb_width;
   u32 source_height = m_last_xfb_height;
   const u32 target_width = m_target_rectangle.GetWidth();
@@ -477,7 +487,7 @@ std::tuple<float, float> Presenter::ApplyStandardAspectCrop(float width, float h
   if (!allow_stretch && aspect_mode == AspectMode::Stretch)
     aspect_mode = AspectMode::Auto;
 
-  if (!g_ActiveConfig.bCrop || aspect_mode == AspectMode::Stretch)
+  if (!g_ActiveConfig.bCrop || aspect_mode == AspectMode::Stretch || aspect_mode == AspectMode::Raw)
     return {width, height};
 
   // Force aspect ratios by cropping the image.
@@ -495,9 +505,12 @@ std::tuple<float, float> Presenter::ApplyStandardAspectCrop(float width, float h
   case AspectMode::ForceStandard:
     expected_aspect = 4.0f / 3.0f;
     break;
-  // There should be no cropping needed in the custom case,
-  // as output should always exactly match the target aspect ratio
+  // For the custom (relative) case, we want to crop from the native aspect ratio
+  // to the specific target one, as they likely have a small difference
   case AspectMode::Custom:
+  // There should be no cropping needed in the custom strech case,
+  // as output should always exactly match the target aspect ratio
+  case AspectMode::CustomStretch:
     expected_aspect = g_ActiveConfig.GetCustomAspectRatio();
     break;
   }
@@ -602,9 +615,10 @@ void Presenter::UpdateDrawRectangle()
     int_draw_width = static_cast<int>(draw_width);
     int_draw_height = static_cast<int>(draw_height);
   }
-  else
+  else if (g_ActiveConfig.aspect_mode != AspectMode::Raw || !m_xfb_entry)
   {
-    // Find the best integer resolution: the closest aspect ratio with the least black bars
+    // Find the best integer resolution: the closest aspect ratio with the least black bars.
+    // This should have no influence if "AspectMode::Stretch" is active.
     const float updated_draw_aspect_ratio = draw_width / draw_height;
     const auto int_draw_res =
         FindClosestIntegerResolution(draw_width, draw_height, updated_draw_aspect_ratio);
@@ -612,12 +626,20 @@ void Presenter::UpdateDrawRectangle()
     int_draw_height = std::get<1>(int_draw_res);
     if (!g_ActiveConfig.bCrop)
     {
-      TryToSnapToXFBSize(int_draw_width, int_draw_height, m_xfb_rect.GetWidth(),
-                         m_xfb_rect.GetHeight());
+      if (g_ActiveConfig.aspect_mode != AspectMode::Stretch)
+      {
+        TryToSnapToXFBSize(int_draw_width, int_draw_height, m_xfb_rect.GetWidth(),
+                           m_xfb_rect.GetHeight());
+      }
       // We can't draw something bigger than the window, it will crop
       int_draw_width = std::min(int_draw_width, static_cast<int>(win_width));
       int_draw_height = std::min(int_draw_height, static_cast<int>(win_height));
     }
+  }
+  else
+  {
+    int_draw_width = m_xfb_rect.GetWidth();
+    int_draw_height = m_xfb_rect.GetHeight();
   }
 
   m_target_rectangle.left = static_cast<int>(std::round(win_width / 2.0 - int_draw_width / 2.0));
@@ -665,7 +687,10 @@ std::tuple<int, int> Presenter::CalculateOutputDimensions(int width, int height,
     const float draw_aspect_ratio = CalculateDrawAspectRatio(allow_stretch);
     auto [int_width, int_height] =
         FindClosestIntegerResolution(scaled_width, scaled_height, draw_aspect_ratio);
-    TryToSnapToXFBSize(int_width, int_height, m_xfb_rect.GetWidth(), m_xfb_rect.GetHeight());
+    if (aspect_mode != AspectMode::Raw)
+    {
+      TryToSnapToXFBSize(int_width, int_height, m_xfb_rect.GetWidth(), m_xfb_rect.GetHeight());
+    }
     width = int_width;
     height = int_height;
   }
