@@ -93,7 +93,7 @@ struct pdlabel_t
 extern const std::array<pdlabel_t, 36> regnames;
 extern const std::array<pdlabel_t, 96> pdlabels;
 
-const char* pdname(u16 val);
+std::string pdname(u16 val);
 const char* pdregname(int val);
 const char* pdregnamelong(int val);
 
