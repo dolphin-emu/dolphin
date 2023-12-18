@@ -333,7 +333,7 @@ u32 PPCDebugInterface::ReadExtraMemory(const Core::CPUThreadGuard& guard, int me
     return PowerPC::MMU::HostRead_U32(guard, address);
   case 1:
   {
-    auto& dsp = Core::System::GetInstance().GetDSP();
+    const auto& dsp = guard.GetSystem().GetDSP();
     return (dsp.ReadARAM(address) << 24) | (dsp.ReadARAM(address + 1) << 16) |
            (dsp.ReadARAM(address + 2) << 8) | (dsp.ReadARAM(address + 3));
   }
