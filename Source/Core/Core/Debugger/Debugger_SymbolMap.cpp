@@ -26,10 +26,10 @@ static bool IsStackBottom(const Core::CPUThreadGuard& guard, u32 addr)
   return !addr || !PowerPC::MMU::HostIsRAMAddress(guard, addr);
 }
 
-static void WalkTheStack(Core::System& system, const Core::CPUThreadGuard& guard,
+static void WalkTheStack(const Core::CPUThreadGuard& guard,
                          const std::function<void(u32)>& stack_step)
 {
-  auto& ppc_state = system.GetPPCState();
+  const auto& ppc_state = guard.GetSystem().GetPPCState();
 
   if (!IsStackBottom(guard, ppc_state.gpr[1]))
   {
@@ -52,10 +52,9 @@ static void WalkTheStack(Core::System& system, const Core::CPUThreadGuard& guard
 // Returns callstack "formatted for debugging" - meaning that it
 // includes LR as the last item, and all items are the last step,
 // instead of "pointing ahead"
-bool GetCallstack(Core::System& system, const Core::CPUThreadGuard& guard,
-                  std::vector<CallstackEntry>& output)
+bool GetCallstack(const Core::CPUThreadGuard& guard, std::vector<CallstackEntry>& output)
 {
-  auto& ppc_state = system.GetPPCState();
+  const auto& ppc_state = guard.GetSystem().GetPPCState();
 
   if (!Core::IsRunning() || !PowerPC::MMU::HostIsRAMAddress(guard, ppc_state.gpr[1]))
     return false;
@@ -75,7 +74,7 @@ bool GetCallstack(Core::System& system, const Core::CPUThreadGuard& guard,
   entry.vAddress = LR(ppc_state) - 4;
   output.push_back(entry);
 
-  WalkTheStack(system, guard, [&entry, &output](u32 func_addr) {
+  WalkTheStack(guard, [&entry, &output](u32 func_addr) {
     std::string func_desc = g_symbolDB.GetDescription(func_addr);
     if (func_desc.empty() || func_desc == "Invalid")
       func_desc = "(unknown)";
@@ -87,10 +86,10 @@ bool GetCallstack(Core::System& system, const Core::CPUThreadGuard& guard,
   return true;
 }
 
-void PrintCallstack(Core::System& system, const Core::CPUThreadGuard& guard,
-                    Common::Log::LogType type, Common::Log::LogLevel level)
+void PrintCallstack(const Core::CPUThreadGuard& guard, Common::Log::LogType type,
+                    Common::Log::LogLevel level)
 {
-  auto& ppc_state = system.GetPPCState();
+  const auto& ppc_state = guard.GetSystem().GetPPCState();
 
   GENERIC_LOG_FMT(type, level, "== STACK TRACE - SP = {:08x} ==", ppc_state.gpr[1]);
 
@@ -105,7 +104,7 @@ void PrintCallstack(Core::System& system, const Core::CPUThreadGuard& guard,
                     LR(ppc_state));
   }
 
-  WalkTheStack(system, guard, [type, level](u32 func_addr) {
+  WalkTheStack(guard, [type, level](u32 func_addr) {
     std::string func_desc = g_symbolDB.GetDescription(func_addr);
     if (func_desc.empty() || func_desc == "Invalid")
       func_desc = "(unknown)";

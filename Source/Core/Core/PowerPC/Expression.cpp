@@ -115,9 +115,8 @@ static double CallstackFunc(expr_func* f, vec_expr_t* args, void* c)
 
   std::vector<Dolphin_Debugger::CallstackEntry> stack;
   {
-    auto& system = Core::System::GetInstance();
-    Core::CPUThreadGuard guard(system);
-    bool success = Dolphin_Debugger::GetCallstack(system, guard, stack);
+    Core::CPUThreadGuard guard(Core::System::GetInstance());
+    const bool success = Dolphin_Debugger::GetCallstack(guard, stack);
     if (!success)
       return 0;
   }

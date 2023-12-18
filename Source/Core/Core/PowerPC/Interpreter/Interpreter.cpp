@@ -323,7 +323,7 @@ void Interpreter::unknown_instruction(Interpreter& interpreter, UGeckoInstructio
   const u32 opcode = PowerPC::MMU::HostRead_U32(guard, last_pc);
   const std::string disasm = Common::GekkoDisassembler::Disassemble(opcode, last_pc);
   NOTICE_LOG_FMT(POWERPC, "Last PC = {:08x} : {}", last_pc, disasm);
-  Dolphin_Debugger::PrintCallstack(system, guard, Common::Log::LogType::POWERPC,
+  Dolphin_Debugger::PrintCallstack(guard, Common::Log::LogType::POWERPC,
                                    Common::Log::LogLevel::LNOTICE);
 
   const auto& ppc_state = interpreter.m_ppc_state;
