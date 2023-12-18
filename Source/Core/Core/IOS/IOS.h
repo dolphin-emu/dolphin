@@ -23,6 +23,10 @@ namespace Core
 {
 class System;
 }
+namespace Memory
+{
+class MemoryManager;
+}
 
 namespace IOS::HLE
 {
@@ -109,9 +113,9 @@ enum class HangPPC : bool
   Yes = true,
 };
 
-void RAMOverrideForIOSMemoryValues(MemorySetupType setup_type);
+void RAMOverrideForIOSMemoryValues(Memory::MemoryManager& memory, MemorySetupType setup_type);
 
-void WriteReturnValue(s32 value, u32 address);
+void WriteReturnValue(Memory::MemoryManager& memory, s32 value, u32 address);
 
 // HLE for the IOS kernel: IPC, device management, syscalls, and Dolphin-specific, IOS-wide calls.
 class Kernel
@@ -177,8 +181,8 @@ public:
   void SetGidForPPC(u16 gid);
   u16 GetGidForPPC() const;
 
-  bool BootstrapPPC(Core::System& system, const std::string& boot_content_path);
-  bool BootIOS(Core::System& system, u64 ios_title_id, HangPPC hang_ppc = HangPPC::No,
+  bool BootstrapPPC(const std::string& boot_content_path);
+  bool BootIOS(u64 ios_title_id, HangPPC hang_ppc = HangPPC::No,
                const std::string& boot_content_path = {});
   void InitIPC();
 
@@ -212,7 +216,7 @@ private:
 };
 
 // Used for controlling and accessing an IOS instance that is tied to emulation.
-void Init();
+void Init(Core::System& system);
 void Shutdown();
 EmulationKernel* GetIOS();
 

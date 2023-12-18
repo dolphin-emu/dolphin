@@ -572,7 +572,7 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
         // Because there is no TMD to get the requested system (IOS) version from,
         // we default to IOS58, which is the version used by the Homebrew Channel.
         SetupWiiMemory(system, IOS::HLE::IOSC::ConsoleType::Retail);
-        IOS::HLE::GetIOS()->BootIOS(system, Titles::IOS(58));
+        IOS::HLE::GetIOS()->BootIOS(Titles::IOS(58));
       }
       else
       {

@@ -105,11 +105,8 @@ constexpr u32 ADDR_DEVKIT_BOOT_PROGRAM_VERSION = 0x315e;
 constexpr u32 ADDR_SYSMENU_SYNC = 0x3160;
 constexpr u32 PLACEHOLDER = 0xDEADBEEF;
 
-static bool SetupMemory(u64 ios_title_id, MemorySetupType setup_type)
+static bool SetupMemory(Memory::MemoryManager& memory, u64 ios_title_id, MemorySetupType setup_type)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
-
   auto target_imv = std::find_if(
       GetMemoryValues().begin(), GetMemoryValues().end(),
       [&](const MemoryValues& imv) { return imv.ios_number == (ios_title_id & 0xffff); });
@@ -143,8 +140,7 @@ static bool SetupMemory(u64 ios_title_id, MemorySetupType setup_type)
     memory.Write_U32(target_imv->ios_reserved_begin, ADDR_IOS_RESERVED_BEGIN);
     memory.Write_U32(target_imv->ios_reserved_end, ADDR_IOS_RESERVED_END);
 
-    RAMOverrideForIOSMemoryValues(setup_type);
-
+    RAMOverrideForIOSMemoryValues(memory, setup_type);
     return true;
   }
 
@@ -187,8 +183,7 @@ static bool SetupMemory(u64 ios_title_id, MemorySetupType setup_type)
   memory.Write_U32(target_imv->mem1_arena_end, ADDR_LEGACY_ARENA_HIGH);
   memory.Write_U32(target_imv->mem1_simulated_size, ADDR_LEGACY_MEM_SIM_SIZE);
 
-  RAMOverrideForIOSMemoryValues(setup_type);
-
+  RAMOverrideForIOSMemoryValues(memory, setup_type);
   return true;
 }
 
@@ -196,22 +191,21 @@ static bool SetupMemory(u64 ios_title_id, MemorySetupType setup_type)
 // by asserting the PPC's HRESET signal (via HW_RESETS).
 // We will simulate that by resetting MSR and putting the PPC into an infinite loop.
 // The memory write will not be observable since the PPC is not running any code...
-static void ResetAndPausePPC()
+static void ResetAndPausePPC(Core::System& system)
 {
   // This should be cleared when the PPC is released so that the write is not observable.
-  auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
-  memory.Write_U32(0x48000000, 0x00000000);  // b 0x0
   auto& power_pc = system.GetPowerPC();
+
+  memory.Write_U32(0x48000000, 0x00000000);  // b 0x0
   power_pc.Reset();
   power_pc.GetPPCState().pc = 0;
 }
 
-static void ReleasePPC()
+static void ReleasePPC(Core::System& system)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
-  memory.Write_U32(0, 0);
+  system.GetMemory().Write_U32(0, 0);
+
   // HLE the bootstub that jumps to 0x3400.
   // NAND titles start with address translation off at 0x3400 (via the PPC bootstub)
   // The state of other CPU registers (like the BAT registers) doesn't matter much
@@ -219,25 +213,21 @@ static void ReleasePPC()
   system.GetPPCState().pc = 0x3400;
 }
 
-static void ReleasePPCAncast()
+static void ReleasePPCAncast(Core::System& system)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
-  memory.Write_U32(0, 0);
+  system.GetMemory().Write_U32(0, 0);
+
   // On a real console the Espresso verifies and decrypts the Ancast image,
   // then jumps to the decrypted ancast body.
   // The Ancast loader already did this, so just jump to the decrypted body.
   system.GetPPCState().pc = ESPRESSO_ANCAST_LOCATION_VIRT + sizeof(EspressoAncastHeader);
 }
 
-void RAMOverrideForIOSMemoryValues(MemorySetupType setup_type)
+void RAMOverrideForIOSMemoryValues(Memory::MemoryManager& memory, MemorySetupType setup_type)
 {
   // Don't touch anything if the feature isn't enabled.
   if (!Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE))
     return;
-
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
 
   // Some unstated constants that can be inferred.
   const u32 ipc_buffer_size =
@@ -285,10 +275,8 @@ void RAMOverrideForIOSMemoryValues(MemorySetupType setup_type)
   memory.Write_U32(ios_reserved_end, ADDR_IOS_RESERVED_END);
 }
 
-void WriteReturnValue(s32 value, u32 address)
+void WriteReturnValue(Memory::MemoryManager& memory, s32 value, u32 address)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
   memory.Write_U32(static_cast<u32>(value), address);
 }
 
@@ -324,7 +312,7 @@ EmulationKernel::EmulationKernel(Core::System& system, u64 title_id)
 {
   INFO_LOG_FMT(IOS, "Starting IOS {:016x}", title_id);
 
-  if (!SetupMemory(title_id, MemorySetupType::IOSReload))
+  if (!SetupMemory(m_system.GetMemory(), title_id, MemorySetupType::IOSReload))
     WARN_LOG_FMT(IOS, "No information about this IOS -- cannot set up memory values");
 
   if (title_id == Titles::MIOS)
@@ -349,7 +337,7 @@ EmulationKernel::EmulationKernel(Core::System& system, u64 title_id)
 
 EmulationKernel::~EmulationKernel()
 {
-  Core::System::GetInstance().GetCoreTiming().RemoveAllEvents(s_event_enqueue);
+  m_system.GetCoreTiming().RemoveAllEvents(s_event_enqueue);
 
   m_device_map.clear();
   m_socket_manager.reset();
@@ -434,7 +422,7 @@ static std::vector<u8> ReadBootContent(FSCore& fs, const std::string& path, size
 
 // This corresponds to syscall 0x41, which loads a binary from the NAND and bootstraps the PPC.
 // Unlike 0x42, IOS will set up some constants in memory before booting the PPC.
-bool EmulationKernel::BootstrapPPC(Core::System& system, const std::string& boot_content_path)
+bool EmulationKernel::BootstrapPPC(const std::string& boot_content_path)
 {
   // Seeking and processing overhead is ignored as most time is spent reading from the NAND.
   u64 ticks = 0;
@@ -444,20 +432,20 @@ bool EmulationKernel::BootstrapPPC(Core::System& system, const std::string& boot
   if (!dol.IsValid())
     return false;
 
-  if (!SetupMemory(m_title_id, MemorySetupType::Full))
+  if (!SetupMemory(m_system.GetMemory(), m_title_id, MemorySetupType::Full))
     return false;
 
   // Reset the PPC and pause its execution until we're ready.
-  ResetAndPausePPC();
+  ResetAndPausePPC(m_system);
 
   if (dol.IsAncast())
     INFO_LOG_FMT(IOS, "BootstrapPPC: Loading ancast image");
 
-  if (!dol.LoadIntoMemory(system))
+  if (!dol.LoadIntoMemory(m_system))
     return false;
 
   INFO_LOG_FMT(IOS, "BootstrapPPC: {}", boot_content_path);
-  system.GetCoreTiming().ScheduleEvent(ticks, s_event_finish_ppc_bootstrap, dol.IsAncast());
+  m_system.GetCoreTiming().ScheduleEvent(ticks, s_event_finish_ppc_bootstrap, dol.IsAncast());
   return true;
 }
 
@@ -508,7 +496,7 @@ static constexpr SystemTimers::TimeBaseTick GetIOSBootTicks(u32 version)
 // Passing a boot content path is optional because we do not require IOSes
 // to be installed at the moment. If one is passed, the boot binary must exist
 // on the NAND, or the call will fail like on a Wii.
-bool EmulationKernel::BootIOS(Core::System& system, const u64 ios_title_id, HangPPC hang_ppc,
+bool EmulationKernel::BootIOS(const u64 ios_title_id, HangPPC hang_ppc,
                               const std::string& boot_content_path)
 {
   // IOS suspends regular PPC<->ARM IPC before loading a new IOS.
@@ -525,21 +513,21 @@ bool EmulationKernel::BootIOS(Core::System& system, const u64 ios_title_id, Hang
       return false;
 
     ElfReader elf{binary.GetElf()};
-    if (!elf.LoadIntoMemory(system, true))
+    if (!elf.LoadIntoMemory(m_system, true))
       return false;
   }
 
   if (hang_ppc == HangPPC::Yes)
-    ResetAndPausePPC();
+    ResetAndPausePPC(m_system);
 
   if (Core::IsRunningAndStarted())
   {
-    system.GetCoreTiming().ScheduleEvent(GetIOSBootTicks(GetVersion()), s_event_finish_ios_boot,
-                                         ios_title_id);
+    m_system.GetCoreTiming().ScheduleEvent(GetIOSBootTicks(GetVersion()), s_event_finish_ios_boot,
+                                           ios_title_id);
   }
   else
   {
-    FinishIOSBoot(system, ios_title_id);
+    FinishIOSBoot(m_system, ios_title_id);
   }
 
   return true;
@@ -950,9 +938,9 @@ static void FinishPPCBootstrap(Core::System& system, u64 userdata, s64 cycles_la
   // See Kernel::BootstrapPPC
   const bool is_ancast = userdata == 1;
   if (is_ancast)
-    ReleasePPCAncast();
+    ReleasePPCAncast(system);
   else
-    ReleasePPC();
+    ReleasePPC(system);
 
   ASSERT(Core::IsCPUThread());
   Core::CPUThreadGuard guard(system);
@@ -961,9 +949,8 @@ static void FinishPPCBootstrap(Core::System& system, u64 userdata, s64 cycles_la
   INFO_LOG_FMT(IOS, "Bootstrapping done.");
 }
 
-void Init()
+void Init(Core::System& system)
 {
-  auto& system = Core::System::GetInstance();
   auto& core_timing = system.GetCoreTiming();
 
   s_event_enqueue =
@@ -991,7 +978,7 @@ void Init()
   // This means that the constants in the 0x3100 region are always set up by the time
   // a game is launched. This is necessary because booting games from the game list skips
   // a significant part of a Wii's boot process.
-  SetupMemory(Titles::SYSTEM_MENU_IOS, MemorySetupType::Full);
+  SetupMemory(system.GetMemory(), Titles::SYSTEM_MENU_IOS, MemorySetupType::Full);
 }
 
 void Shutdown()

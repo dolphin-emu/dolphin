@@ -397,14 +397,14 @@ void WiiSocket::Update(bool read, bool write, bool except)
             connecting_state = GetConnectingState();
             if (connecting_state == ConnectingState::Connecting)
             {
-              WriteReturnValue(SSL_ERR_RAGAIN, BufferIn);
+              WriteReturnValue(memory, SSL_ERR_RAGAIN, BufferIn);
               ReturnValue = SSL_ERR_RAGAIN;
               break;
             }
             else if (connecting_state == ConnectingState::None ||
                      connecting_state == ConnectingState::Error)
             {
-              WriteReturnValue(SSL_ERR_SYSCALL, BufferIn);
+              WriteReturnValue(memory, SSL_ERR_SYSCALL, BufferIn);
               ReturnValue = SSL_ERR_SYSCALL;
               break;
             }
@@ -420,15 +420,15 @@ void WiiSocket::Update(bool read, bool write, bool except)
             switch (ret)
             {
             case 0:
-              WriteReturnValue(SSL_OK, BufferIn);
+              WriteReturnValue(memory, SSL_OK, BufferIn);
               break;
             case MBEDTLS_ERR_SSL_WANT_READ:
-              WriteReturnValue(SSL_ERR_RAGAIN, BufferIn);
+              WriteReturnValue(memory, SSL_ERR_RAGAIN, BufferIn);
               if (!nonBlock)
                 ReturnValue = SSL_ERR_RAGAIN;
               break;
             case MBEDTLS_ERR_SSL_WANT_WRITE:
-              WriteReturnValue(SSL_ERR_WAGAIN, BufferIn);
+              WriteReturnValue(memory, SSL_ERR_WAGAIN, BufferIn);
               if (!nonBlock)
                 ReturnValue = SSL_ERR_WAGAIN;
               break;
@@ -451,13 +451,13 @@ void WiiSocket::Update(bool read, bool write, bool except)
               else
                 res = SSL_ERR_FAILED;
 
-              WriteReturnValue(res, BufferIn);
+              WriteReturnValue(memory, res, BufferIn);
               if (!nonBlock)
                 ReturnValue = res;
               break;
             }
             default:
-              WriteReturnValue(SSL_ERR_FAILED, BufferIn);
+              WriteReturnValue(memory, SSL_ERR_FAILED, BufferIn);
               break;
             }
 
@@ -495,24 +495,24 @@ void WiiSocket::Update(bool read, bool write, bool except)
               system.GetPowerPC().GetDebugInterface().NetworkLogger()->LogSSLWrite(
                   memory.GetPointer(BufferOut2), ret, ssl->hostfd);
               // Return bytes written or SSL_ERR_ZERO if none
-              WriteReturnValue((ret == 0) ? SSL_ERR_ZERO : ret, BufferIn);
+              WriteReturnValue(memory, (ret == 0) ? SSL_ERR_ZERO : ret, BufferIn);
             }
             else
             {
               switch (ret)
               {
               case MBEDTLS_ERR_SSL_WANT_READ:
-                WriteReturnValue(SSL_ERR_RAGAIN, BufferIn);
+                WriteReturnValue(memory, SSL_ERR_RAGAIN, BufferIn);
                 if (!nonBlock)
                   ReturnValue = SSL_ERR_RAGAIN;
                 break;
               case MBEDTLS_ERR_SSL_WANT_WRITE:
-                WriteReturnValue(SSL_ERR_WAGAIN, BufferIn);
+                WriteReturnValue(memory, SSL_ERR_WAGAIN, BufferIn);
                 if (!nonBlock)
                   ReturnValue = SSL_ERR_WAGAIN;
                 break;
               default:
-                WriteReturnValue(SSL_ERR_FAILED, BufferIn);
+                WriteReturnValue(memory, SSL_ERR_FAILED, BufferIn);
                 break;
               }
             }
@@ -529,24 +529,24 @@ void WiiSocket::Update(bool read, bool write, bool except)
               system.GetPowerPC().GetDebugInterface().NetworkLogger()->LogSSLRead(
                   memory.GetPointer(BufferIn2), ret, ssl->hostfd);
               // Return bytes read or SSL_ERR_ZERO if none
-              WriteReturnValue((ret == 0) ? SSL_ERR_ZERO : ret, BufferIn);
+              WriteReturnValue(memory, (ret == 0) ? SSL_ERR_ZERO : ret, BufferIn);
             }
             else
             {
               switch (ret)
               {
               case MBEDTLS_ERR_SSL_WANT_READ:
-                WriteReturnValue(SSL_ERR_RAGAIN, BufferIn);
+                WriteReturnValue(memory, SSL_ERR_RAGAIN, BufferIn);
                 if (!nonBlock)
                   ReturnValue = SSL_ERR_RAGAIN;
                 break;
               case MBEDTLS_ERR_SSL_WANT_WRITE:
-                WriteReturnValue(SSL_ERR_WAGAIN, BufferIn);
+                WriteReturnValue(memory, SSL_ERR_WAGAIN, BufferIn);
                 if (!nonBlock)
                   ReturnValue = SSL_ERR_WAGAIN;
                 break;
               default:
-                WriteReturnValue(SSL_ERR_FAILED, BufferIn);
+                WriteReturnValue(memory, SSL_ERR_FAILED, BufferIn);
                 break;
               }
             }
@@ -558,7 +558,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
         }
         else
         {
-          WriteReturnValue(SSL_ERR_ID, BufferIn);
+          WriteReturnValue(memory, SSL_ERR_ID, BufferIn);
         }
       }
       else
