@@ -30,11 +30,9 @@ enum class ParameterType : bool
   VariableArgumentList = true
 };
 
-std::string GetStringVA(Core::System& system, const Core::CPUThreadGuard& guard, u32 str_reg = 3,
-                        ParameterType parameter_type = ParameterType::ParameterList);
-void HLE_GeneralDebugPrint(const Core::CPUThreadGuard& guard, ParameterType parameter_type);
-void HLE_LogDPrint(const Core::CPUThreadGuard& guard, ParameterType parameter_type);
-void HLE_LogFPrint(const Core::CPUThreadGuard& guard, ParameterType parameter_type);
+static std::string GetStringVA(Core::System& system, const Core::CPUThreadGuard& guard,
+                               u32 str_reg = 3,
+                               ParameterType parameter_type = ParameterType::ParameterList);
 
 void HLE_OSPanic(const Core::CPUThreadGuard& guard)
 {
@@ -55,7 +53,7 @@ void HLE_OSPanic(const Core::CPUThreadGuard& guard)
 }
 
 // Generalized function for printing formatted string.
-void HLE_GeneralDebugPrint(const Core::CPUThreadGuard& guard, ParameterType parameter_type)
+static void HLE_GeneralDebugPrint(const Core::CPUThreadGuard& guard, ParameterType parameter_type)
 {
   auto& system = guard.GetSystem();
   const auto& ppc_state = system.GetPPCState();
@@ -139,7 +137,7 @@ void HLE_write_console(const Core::CPUThreadGuard& guard)
 }
 
 // Log (v)dprintf message if fd is 1 (stdout) or 2 (stderr)
-void HLE_LogDPrint(const Core::CPUThreadGuard& guard, ParameterType parameter_type)
+static void HLE_LogDPrint(const Core::CPUThreadGuard& guard, ParameterType parameter_type)
 {
   auto& system = guard.GetSystem();
   const auto& ppc_state = system.GetPPCState();
@@ -168,7 +166,7 @@ void HLE_LogVDPrint(const Core::CPUThreadGuard& guard)
 }
 
 // Log (v)fprintf message if FILE is stdout or stderr
-void HLE_LogFPrint(const Core::CPUThreadGuard& guard, ParameterType parameter_type)
+static void HLE_LogFPrint(const Core::CPUThreadGuard& guard, ParameterType parameter_type)
 {
   auto& system = guard.GetSystem();
   const auto& ppc_state = system.GetPPCState();
@@ -242,8 +240,8 @@ private:
 };
 }  // namespace
 
-std::string GetStringVA(Core::System& system, const Core::CPUThreadGuard& guard, u32 str_reg,
-                        ParameterType parameter_type)
+static std::string GetStringVA(Core::System& system, const Core::CPUThreadGuard& guard, u32 str_reg,
+                               ParameterType parameter_type)
 {
   auto& ppc_state = system.GetPPCState();
 
