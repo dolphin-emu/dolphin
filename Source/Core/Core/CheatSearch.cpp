@@ -222,8 +222,7 @@ Cheats::NewSearch(const Core::CPUThreadGuard& guard,
       return;
     }
 
-    auto& system = Core::System::GetInstance();
-    auto& ppc_state = system.GetPPCState();
+    const auto& ppc_state = guard.GetSystem().GetPPCState();
     if (address_space == PowerPC::RequestedAddressSpace::Virtual && !ppc_state.msr.DR)
     {
       error_code = Cheats::SearchErrorCode::VirtualAddressesCurrentlyNotAccessible;
@@ -288,8 +287,7 @@ Cheats::NextSearch(const Core::CPUThreadGuard& guard,
       return;
     }
 
-    auto& system = Core::System::GetInstance();
-    auto& ppc_state = system.GetPPCState();
+    const auto& ppc_state = guard.GetSystem().GetPPCState();
     if (address_space == PowerPC::RequestedAddressSpace::Virtual && !ppc_state.msr.DR)
     {
       error_code = Cheats::SearchErrorCode::VirtualAddressesCurrentlyNotAccessible;
