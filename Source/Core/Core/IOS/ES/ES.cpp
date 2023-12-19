@@ -125,10 +125,8 @@ ESDevice::ESDevice(EmulationKernel& ios, ESCore& core, const std::string& device
 
 ESDevice::~ESDevice() = default;
 
-void ESDevice::InitializeEmulationState()
+void ESDevice::InitializeEmulationState(CoreTiming::CoreTimingManager& core_timing)
 {
-  auto& system = Core::System::GetInstance();
-  auto& core_timing = system.GetCoreTiming();
   s_finish_init_event =
       core_timing.RegisterEvent("IOS-ESFinishInit", [](Core::System& system_, u64, s64) {
         GetIOS()->GetESDevice()->FinishInit();

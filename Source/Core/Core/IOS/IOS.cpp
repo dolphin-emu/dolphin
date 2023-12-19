@@ -959,7 +959,7 @@ void Init(Core::System& system)
           s_ios->HandleIPCEvent(userdata);
       });
 
-  ESDevice::InitializeEmulationState();
+  ESDevice::InitializeEmulationState(core_timing);
 
   s_event_finish_ppc_bootstrap =
       core_timing.RegisterEvent("IOSFinishPPCBootstrap", FinishPPCBootstrap);
