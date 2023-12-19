@@ -51,21 +51,6 @@ namespace Clipper
 {
 enum
 {
-  NUM_CLIPPED_VERTICES = 33,
-  NUM_INDICES = NUM_CLIPPED_VERTICES + 3
-};
-
-static std::array<OutputVertexData, NUM_CLIPPED_VERTICES> ClippedVertices;
-static std::array<OutputVertexData*, NUM_INDICES> Vertices;
-
-void Init()
-{
-  for (int i = 0; i < NUM_CLIPPED_VERTICES; ++i)
-    Vertices[i + 3] = &ClippedVertices[i];
-}
-
-enum
-{
   SKIP_FLAG = -1,
   CLIP_POS_X_BIT = 0x01,
   CLIP_NEG_X_BIT = 0x02,
@@ -74,6 +59,17 @@ enum
   CLIP_POS_Z_BIT = 0x10,
   CLIP_NEG_Z_BIT = 0x20
 };
+
+Clipper::Clipper()
+{
+  Init();
+}
+
+void Clipper::Init()
+{
+  for (int i = 0; i < NUM_CLIPPED_VERTICES; ++i)
+    Vertices[i + 3] = &ClippedVertices[i];
+}
 
 static inline int CalcClipMask(const OutputVertexData* v)
 {
@@ -147,9 +143,9 @@ static void PerspectiveDivide(OutputVertexData* vertex)
   screen.z = projected.z * wInverse * xfmem.viewport.zRange + xfmem.viewport.farZ;
 }
 
-static inline void AddInterpolatedVertex(float t, int out, int in, int* numVertices)
+void Clipper::AddInterpolatedVertex(float t, int out, int in, int* num_vertices)
 {
-  Vertices[(*numVertices)++]->Lerp(t, Vertices[out], Vertices[in]);
+  Vertices[(*num_vertices)++]->Lerp(t, Vertices[out], Vertices[in]);
 }
 
 #define DIFFERENT_SIGNS(x, y) ((x <= 0 && y > 0) || (x > 0 && y <= 0))
@@ -234,7 +230,7 @@ static inline void AddInterpolatedVertex(float t, int out, int in, int* numVerti
     }                                                                                              \
   }
 
-static void ClipTriangle(int* indices, int* numIndices)
+void Clipper::ClipTriangle(int* indices, int* num_indices)
 {
   int mask = 0;
 
@@ -276,15 +272,15 @@ static void ClipTriangle(int* indices, int* numIndices)
       indices[2] = inlist[2];
       for (int j = 3; j < n; ++j)
       {
-        indices[(*numIndices)++] = inlist[0];
-        indices[(*numIndices)++] = inlist[j - 1];
-        indices[(*numIndices)++] = inlist[j];
+        indices[(*num_indices)++] = inlist[0];
+        indices[(*num_indices)++] = inlist[j - 1];
+        indices[(*num_indices)++] = inlist[j];
       }
     }
   }
 }
 
-static void ClipLine(int* indices)
+void Clipper::ClipLine(int* indices)
 {
   int mask = 0;
   int clip_mask[2] = {0, 0};
@@ -333,7 +329,7 @@ static void ClipLine(int* indices)
   }
 }
 
-void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexData* v2)
+void Clipper::ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexData* v2)
 {
   INCSTAT(g_stats.this_frame.num_triangles_in);
 
@@ -459,7 +455,7 @@ static void CopyLineVertex(OutputVertexData* dst, const OutputVertexData* src, i
   }
 }
 
-void ProcessLine(OutputVertexData* lineV0, OutputVertexData* lineV1)
+void Clipper::ProcessLine(OutputVertexData* lineV0, OutputVertexData* lineV1)
 {
   int indices[4] = {0, 1, SKIP_FLAG, SKIP_FLAG};
 
@@ -542,7 +538,7 @@ static void CopyPointVertex(OutputVertexData* dst, const OutputVertexData* src, 
   }
 }
 
-void ProcessPoint(OutputVertexData* center)
+void Clipper::ProcessPoint(OutputVertexData* center)
 {
   // TODO: This isn't actually doing any clipping
   PerspectiveDivide(center);

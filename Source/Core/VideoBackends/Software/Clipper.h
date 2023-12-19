@@ -3,15 +3,36 @@
 
 #pragma once
 
-struct OutputVertexData;
+#include <array>
+
+#include "VideoBackends/Software/NativeVertexFormat.h"
 
 namespace Clipper
 {
-void Init();
+class Clipper
+{
+public:
+  Clipper();
 
-void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexData* v2);
+  void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexData* v2);
+  void ProcessLine(OutputVertexData* lineV0, OutputVertexData* lineV1);
+  void ProcessPoint(OutputVertexData* center);
 
-void ProcessLine(OutputVertexData* v0, OutputVertexData* v1);
+private:
+  enum
+  {
+    NUM_CLIPPED_VERTICES = 33,
+    NUM_INDICES = NUM_CLIPPED_VERTICES + 3
+  };
 
-void ProcessPoint(OutputVertexData* v);
+  void Init();
+
+  void AddInterpolatedVertex(float t, int out, int in, int* num_vertices);
+
+  void ClipTriangle(int* indices, int* num_indices);
+  void ClipLine(int* indices);
+
+  std::array<OutputVertexData, NUM_CLIPPED_VERTICES> ClippedVertices{};
+  std::array<OutputVertexData*, NUM_INDICES> Vertices{};
+};
 }  // namespace Clipper
