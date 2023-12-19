@@ -68,7 +68,7 @@ Clipper::Clipper()
 void Clipper::Init()
 {
   for (int i = 0; i < NUM_CLIPPED_VERTICES; ++i)
-    Vertices[i + 3] = &ClippedVertices[i];
+    m_vertices[i + 3] = &m_clipped_vertices[i];
 }
 
 static inline int CalcClipMask(const OutputVertexData* v)
@@ -145,14 +145,14 @@ static void PerspectiveDivide(OutputVertexData* vertex)
 
 void Clipper::AddInterpolatedVertex(float t, int out, int in, int* num_vertices)
 {
-  Vertices[(*num_vertices)++]->Lerp(t, Vertices[out], Vertices[in]);
+  m_vertices[(*num_vertices)++]->Lerp(t, m_vertices[out], m_vertices[in]);
 }
 
 #define DIFFERENT_SIGNS(x, y) ((x <= 0 && y > 0) || (x > 0 && y <= 0))
 
 #define CLIP_DOTPROD(I, A, B, C, D)                                                                \
-  (Vertices[I]->projectedPosition.x * A + Vertices[I]->projectedPosition.y * B +                   \
-   Vertices[I]->projectedPosition.z * C + Vertices[I]->projectedPosition.w * D)
+  (m_vertices[I]->projectedPosition.x * A + m_vertices[I]->projectedPosition.y * B +               \
+   m_vertices[I]->projectedPosition.z * C + m_vertices[I]->projectedPosition.w * D)
 
 #define POLY_CLIP(PLANE_BIT, A, B, C, D)                                                           \
   {                                                                                                \
@@ -234,9 +234,9 @@ void Clipper::ClipTriangle(int* indices, int* num_indices)
 {
   int mask = 0;
 
-  mask |= CalcClipMask(Vertices[0]);
-  mask |= CalcClipMask(Vertices[1]);
-  mask |= CalcClipMask(Vertices[2]);
+  mask |= CalcClipMask(m_vertices[0]);
+  mask |= CalcClipMask(m_vertices[1]);
+  mask |= CalcClipMask(m_vertices[2]);
 
   if (mask != 0)
   {
@@ -287,7 +287,7 @@ void Clipper::ClipLine(int* indices)
 
   for (int i = 0; i < 2; ++i)
   {
-    clip_mask[i] = CalcClipMask(Vertices[i]);
+    clip_mask[i] = CalcClipMask(m_vertices[i]);
     mask |= clip_mask[i];
   }
 
@@ -378,15 +378,15 @@ void Clipper::ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, Output
 
   if (backface)
   {
-    Vertices[0] = v0;
-    Vertices[1] = v2;
-    Vertices[2] = v1;
+    m_vertices[0] = v0;
+    m_vertices[1] = v2;
+    m_vertices[2] = v1;
   }
   else
   {
-    Vertices[0] = v0;
-    Vertices[1] = v1;
-    Vertices[2] = v2;
+    m_vertices[0] = v0;
+    m_vertices[1] = v1;
+    m_vertices[2] = v2;
   }
 
   // TODO: behavior when disable_clipping_detection is set doesn't quite match actual hardware;
@@ -400,8 +400,8 @@ void Clipper::ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, Output
     // If any w coordinate is negative, then the perspective divide will flip coordinates, breaking
     // various assumptions (including backface).  So, we still need to do clipping in that case.
     // This isn't the actual condition hardware uses.
-    if (Vertices[0]->projectedPosition.w >= 0 && Vertices[1]->projectedPosition.w >= 0 &&
-        Vertices[2]->projectedPosition.w >= 0)
+    if (m_vertices[0]->projectedPosition.w >= 0 && m_vertices[1]->projectedPosition.w >= 0 &&
+        m_vertices[2]->projectedPosition.w >= 0)
       skip_clipping = true;
   }
 
@@ -413,12 +413,12 @@ void Clipper::ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, Output
     ASSERT(i < NUM_INDICES);
     if (indices[i] != SKIP_FLAG)
     {
-      PerspectiveDivide(Vertices[indices[i]]);
-      PerspectiveDivide(Vertices[indices[i + 1]]);
-      PerspectiveDivide(Vertices[indices[i + 2]]);
+      PerspectiveDivide(m_vertices[indices[i]]);
+      PerspectiveDivide(m_vertices[indices[i + 1]]);
+      PerspectiveDivide(m_vertices[indices[i + 2]]);
 
-      Rasterizer::DrawTriangleFrontFace(Vertices[indices[i]], Vertices[indices[i + 1]],
-                                        Vertices[indices[i + 2]]);
+      Rasterizer::DrawTriangleFrontFace(m_vertices[indices[i]], m_vertices[indices[i + 1]],
+                                        m_vertices[indices[i + 2]]);
     }
   }
 }
@@ -459,18 +459,18 @@ void Clipper::ProcessLine(OutputVertexData* lineV0, OutputVertexData* lineV1)
 {
   int indices[4] = {0, 1, SKIP_FLAG, SKIP_FLAG};
 
-  Vertices[0] = lineV0;
-  Vertices[1] = lineV1;
+  m_vertices[0] = lineV0;
+  m_vertices[1] = lineV1;
 
   // point to a valid vertex to store to when clipping
-  Vertices[2] = &ClippedVertices[17];
+  m_vertices[2] = &m_clipped_vertices[17];
 
   ClipLine(indices);
 
   if (indices[0] != SKIP_FLAG)
   {
-    OutputVertexData* v0 = Vertices[indices[0]];
-    OutputVertexData* v1 = Vertices[indices[1]];
+    OutputVertexData* v0 = m_vertices[indices[0]];
+    OutputVertexData* v1 = m_vertices[indices[1]];
 
     PerspectiveDivide(v0);
     PerspectiveDivide(v1);

@@ -32,7 +32,7 @@ private:
   void ClipTriangle(int* indices, int* num_indices);
   void ClipLine(int* indices);
 
-  std::array<OutputVertexData, NUM_CLIPPED_VERTICES> ClippedVertices{};
-  std::array<OutputVertexData*, NUM_INDICES> Vertices{};
+  std::array<OutputVertexData, NUM_CLIPPED_VERTICES> m_clipped_vertices{};
+  std::array<OutputVertexData*, NUM_INDICES> m_vertices{};
 };
 }  // namespace Clipper
