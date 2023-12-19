@@ -36,6 +36,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "VideoBackends/Software/Clipper.h"
 
+#include <array>
+
 #include "Common/Assert.h"
 
 #include "VideoBackends/Software/NativeVertexFormat.h"
@@ -53,8 +55,8 @@ enum
   NUM_INDICES = NUM_CLIPPED_VERTICES + 3
 };
 
-static OutputVertexData ClippedVertices[NUM_CLIPPED_VERTICES];
-static OutputVertexData* Vertices[NUM_INDICES];
+static std::array<OutputVertexData, NUM_CLIPPED_VERTICES> ClippedVertices;
+static std::array<OutputVertexData*, NUM_INDICES> Vertices;
 
 void Init()
 {
