@@ -99,6 +99,52 @@ static inline int CalcClipMask(const OutputVertexData* v)
   return cmask;
 }
 
+static bool IsTriviallyRejected(const OutputVertexData* v0, const OutputVertexData* v1,
+                                const OutputVertexData* v2)
+{
+  int mask = CalcClipMask(v0);
+  mask &= CalcClipMask(v1);
+  mask &= CalcClipMask(v2);
+
+  return mask != 0;
+}
+
+static bool IsBackface(const OutputVertexData* v0, const OutputVertexData* v1,
+                       const OutputVertexData* v2)
+{
+  float x0 = v0->projectedPosition.x;
+  float x1 = v1->projectedPosition.x;
+  float x2 = v2->projectedPosition.x;
+  float y1 = v1->projectedPosition.y;
+  float y0 = v0->projectedPosition.y;
+  float y2 = v2->projectedPosition.y;
+  float w0 = v0->projectedPosition.w;
+  float w1 = v1->projectedPosition.w;
+  float w2 = v2->projectedPosition.w;
+
+  float normalZDir = (x0 * w2 - x2 * w0) * y1 + (x2 * y0 - x0 * y2) * w1 + (y2 * w0 - y0 * w2) * x1;
+
+  bool backface = normalZDir <= 0.0f;
+  // Jimmie Johnson's Anything with an Engine has a positive viewport, while other games have a
+  // negative viewport.  The positive viewport does not require vertices to be vertically mirrored,
+  // but the backface test does need to be inverted for things to be drawn.
+  if (xfmem.viewport.ht > 0)
+    backface = !backface;
+
+  return backface;
+}
+
+static void PerspectiveDivide(OutputVertexData* vertex)
+{
+  Vec4& projected = vertex->projectedPosition;
+  Vec3& screen = vertex->screenPosition;
+
+  float wInverse = 1.0f / projected.w;
+  screen.x = projected.x * wInverse * xfmem.viewport.wd + xfmem.viewport.xOrig;
+  screen.y = projected.y * wInverse * xfmem.viewport.ht + xfmem.viewport.yOrig;
+  screen.z = projected.z * wInverse * xfmem.viewport.zRange + xfmem.viewport.farZ;
+}
+
 static inline void AddInterpolatedVertex(float t, int out, int in, int* numVertices)
 {
   Vertices[(*numVertices)++]->Lerp(t, Vertices[out], Vertices[in]);
@@ -508,50 +554,5 @@ void ProcessPoint(OutputVertexData* center)
 
   Rasterizer::DrawTriangleFrontFace(&ll, &ul, &lr);
   Rasterizer::DrawTriangleFrontFace(&ur, &lr, &ul);
-}
-
-bool IsTriviallyRejected(const OutputVertexData* v0, const OutputVertexData* v1,
-                         const OutputVertexData* v2)
-{
-  int mask = CalcClipMask(v0);
-  mask &= CalcClipMask(v1);
-  mask &= CalcClipMask(v2);
-
-  return mask != 0;
-}
-
-bool IsBackface(const OutputVertexData* v0, const OutputVertexData* v1, const OutputVertexData* v2)
-{
-  float x0 = v0->projectedPosition.x;
-  float x1 = v1->projectedPosition.x;
-  float x2 = v2->projectedPosition.x;
-  float y1 = v1->projectedPosition.y;
-  float y0 = v0->projectedPosition.y;
-  float y2 = v2->projectedPosition.y;
-  float w0 = v0->projectedPosition.w;
-  float w1 = v1->projectedPosition.w;
-  float w2 = v2->projectedPosition.w;
-
-  float normalZDir = (x0 * w2 - x2 * w0) * y1 + (x2 * y0 - x0 * y2) * w1 + (y2 * w0 - y0 * w2) * x1;
-
-  bool backface = normalZDir <= 0.0f;
-  // Jimmie Johnson's Anything with an Engine has a positive viewport, while other games have a
-  // negative viewport.  The positive viewport does not require vertices to be vertically mirrored,
-  // but the backface test does need to be inverted for things to be drawn.
-  if (xfmem.viewport.ht > 0)
-    backface = !backface;
-
-  return backface;
-}
-
-void PerspectiveDivide(OutputVertexData* vertex)
-{
-  Vec4& projected = vertex->projectedPosition;
-  Vec3& screen = vertex->screenPosition;
-
-  float wInverse = 1.0f / projected.w;
-  screen.x = projected.x * wInverse * xfmem.viewport.wd + xfmem.viewport.xOrig;
-  screen.y = projected.y * wInverse * xfmem.viewport.ht + xfmem.viewport.yOrig;
-  screen.z = projected.z * wInverse * xfmem.viewport.zRange + xfmem.viewport.farZ;
 }
 }  // namespace Clipper
