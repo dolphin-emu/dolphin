@@ -191,12 +191,12 @@ vec4 custom_main( in CustomShaderData data )
 
 ### Reading a texture
 
-The following shader displays the contents of the texture denoted in the shader asset as `MY_TEX`:
+The following shader displays the contents of the texture denoted in the shader asset as `MY_TEX` with the first texture coordinate data:
 
 ```glsl
 vec4 custom_main( in CustomShaderData data )
 {
-	return texture(samp[MY_TEX_UNIT], MY_TEX_COORD);
+	return texture(samp_MY_TEX, TEX_COORD0);
 }
 ```
 
