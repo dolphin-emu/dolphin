@@ -109,7 +109,7 @@ void GPFifoManager::UpdateGatherPipe()
       processor_interface.m_fifo_cpu_write_pointer += GATHER_PIPE_SIZE;
     }
 
-    system.GetCommandProcessor().GatherPipeBursted(system);
+    system.GetCommandProcessor().GatherPipeBursted();
   }
 
   // move back the spill bytes

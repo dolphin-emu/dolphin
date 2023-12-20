@@ -41,8 +41,8 @@ namespace Core
 struct System::Impl
 {
   explicit Impl(System& system)
-      : m_audio_interface(system), m_core_timing(system), m_cpu(system), m_dsp(system),
-        m_dvd_interface(system), m_dvd_thread(system),
+      : m_audio_interface(system), m_core_timing(system), m_command_processor{system},
+        m_cpu(system), m_dsp(system), m_dvd_interface(system), m_dvd_thread(system),
         m_expansion_interface(system), m_fifo{system}, m_gp_fifo(system), m_memory(system),
         m_power_pc(system), m_mmu(system, m_memory, m_power_pc), m_processor_interface(system),
         m_serial_interface(system), m_video_interface(system),
