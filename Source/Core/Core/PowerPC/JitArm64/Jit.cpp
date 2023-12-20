@@ -248,7 +248,7 @@ void JitArm64::HLEFunction(u32 hook_index)
   gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
   fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
 
-  ABI_CallFunction(&HLE::ExecuteFromJIT, js.compilerPC, hook_index);
+  ABI_CallFunction(&HLE::ExecuteFromJIT, js.compilerPC, hook_index, &m_system);
 }
 
 void JitArm64::DoNothing(UGeckoInstruction inst)
@@ -781,7 +781,7 @@ void JitArm64::WriteConditionalExceptionExit(int exception, ARM64Reg temp_gpr, A
 
 bool JitArm64::HandleFunctionHooking(u32 address)
 {
-  const auto result = HLE::TryReplaceFunction(address);
+  const auto result = HLE::TryReplaceFunction(address, PowerPC::CoreMode::JIT);
   if (!result)
     return false;
 

@@ -13,6 +13,11 @@ class CPUThreadGuard;
 class System;
 }  // namespace Core
 
+namespace PowerPC
+{
+enum class CoreMode;
+}
+
 namespace HLE
 {
 using HookFunction = void (*)(const Core::CPUThreadGuard&);
@@ -56,7 +61,7 @@ void Patch(Core::System& system, u32 pc, std::string_view func_name);
 u32 UnPatch(Core::System& system, std::string_view patch_name);
 u32 UnpatchRange(Core::System& system, u32 start_addr, u32 end_addr);
 void Execute(const Core::CPUThreadGuard& guard, u32 current_pc, u32 hook_index);
-void ExecuteFromJIT(u32 current_pc, u32 hook_index);
+void ExecuteFromJIT(u32 current_pc, u32 hook_index, Core::System& system);
 
 // Returns the HLE hook index of the address
 u32 GetHookByAddress(u32 address);
@@ -65,10 +70,10 @@ u32 GetHookByFunctionAddress(u32 address);
 HookType GetHookTypeByIndex(u32 index);
 HookFlag GetHookFlagsByIndex(u32 index);
 
-bool IsEnabled(HookFlag flag);
+bool IsEnabled(HookFlag flag, PowerPC::CoreMode mode);
 
 // Performs the backend-independent preliminary checking for whether a function
 // can be HLEd. If it can be, the information needed for HLEing it is returned.
-TryReplaceFunctionResult TryReplaceFunction(u32 address);
+TryReplaceFunctionResult TryReplaceFunction(u32 address, PowerPC::CoreMode mode);
 
 }  // namespace HLE

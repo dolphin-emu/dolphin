@@ -998,7 +998,8 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
       crDiscardable = BitSet8{};
     }
 
-    const bool hle = !!HLE::TryReplaceFunction(op.address);
+    const auto ppc_mode = Core::System::GetInstance().GetPowerPC().GetMode();
+    const bool hle = !!HLE::TryReplaceFunction(op.address, ppc_mode);
     const bool may_exit_block = hle || op.canEndBlock || op.canCauseException;
 
     const bool opWantsFPRF = op.wantsFPRF;

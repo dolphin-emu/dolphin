@@ -396,7 +396,7 @@ void Jit64::HLEFunction(u32 hook_index)
   gpr.Flush();
   fpr.Flush();
   ABI_PushRegistersAndAdjustStack({}, 0);
-  ABI_CallFunctionCC(HLE::ExecuteFromJIT, js.compilerPC, hook_index);
+  ABI_CallFunctionCCP(HLE::ExecuteFromJIT, js.compilerPC, hook_index, &m_system);
   ABI_PopRegistersAndAdjustStack({}, 0);
 }
 
@@ -1274,7 +1274,7 @@ void Jit64::IntializeSpeculativeConstants()
 
 bool Jit64::HandleFunctionHooking(u32 address)
 {
-  const auto result = HLE::TryReplaceFunction(address);
+  const auto result = HLE::TryReplaceFunction(address, PowerPC::CoreMode::JIT);
   if (!result)
     return false;
 

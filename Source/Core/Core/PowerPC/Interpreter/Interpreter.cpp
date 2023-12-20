@@ -106,7 +106,7 @@ void Interpreter::Trace(const UGeckoInstruction& inst)
 
 bool Interpreter::HandleFunctionHooking(u32 address)
 {
-  const auto result = HLE::TryReplaceFunction(address);
+  const auto result = HLE::TryReplaceFunction(address, PowerPC::CoreMode::Interpreter);
   if (!result)
     return false;
 
