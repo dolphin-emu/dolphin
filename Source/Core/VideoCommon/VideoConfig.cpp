@@ -67,13 +67,13 @@ void VideoConfig::Refresh()
 
       const bool lock_gpu_thread = Core::IsRunningAndStarted();
       if (lock_gpu_thread)
-        system.GetFifo().PauseAndLock(system, true, false);
+        system.GetFifo().PauseAndLock(true, false);
 
       g_Config.Refresh();
       g_Config.VerifyValidity();
 
       if (lock_gpu_thread)
-        system.GetFifo().PauseAndLock(system, false, true);
+        system.GetFifo().PauseAndLock(false, true);
     });
     s_has_registered_callback = true;
   }

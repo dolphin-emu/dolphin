@@ -41,19 +41,19 @@ enum class SyncGPUReason
 class FifoManager final
 {
 public:
-  FifoManager();
+  explicit FifoManager(Core::System& system);
   FifoManager(const FifoManager& other) = delete;
   FifoManager(FifoManager&& other) = delete;
   FifoManager& operator=(const FifoManager& other) = delete;
   FifoManager& operator=(FifoManager&& other) = delete;
   ~FifoManager();
 
-  void Init(Core::System& system);
+  void Init();
   void Shutdown();
-  void Prepare(Core::System& system);  // Must be called from the CPU thread.
+  void Prepare();  // Must be called from the CPU thread.
   void DoState(PointerWrap& f);
-  void PauseAndLock(Core::System& system, bool doLock, bool unpauseOnUnlock);
-  void UpdateWantDeterminism(Core::System& system, bool want);
+  void PauseAndLock(bool do_lock, bool unpause_on_unlock);
+  void UpdateWantDeterminism(bool want);
   bool UseDeterministicGPUThread() const { return m_use_deterministic_gpu_thread; }
   bool UseSyncGPU() const { return m_config_sync_gpu; }
 
@@ -62,25 +62,25 @@ public:
 
   // In single core mode, this runs the GPU for a single slice.
   // In dual core mode, this synchronizes with the GPU thread.
-  void SyncGPUForRegisterAccess(Core::System& system);
+  void SyncGPUForRegisterAccess();
 
   void PushFifoAuxBuffer(const void* ptr, size_t size);
   void* PopFifoAuxBuffer(size_t size);
 
-  void FlushGpu(Core::System& system);
-  void RunGpu(Core::System& system);
+  void FlushGpu();
+  void RunGpu();
   void GpuMaySleep();
-  void RunGpuLoop(Core::System& system);
-  void ExitGpuLoop(Core::System& system);
+  void RunGpuLoop();
+  void ExitGpuLoop();
   void EmulatorState(bool running);
   void ResetVideoBuffer();
 
 private:
   void RefreshConfig();
-  void ReadDataFromFifo(Core::System& system, u32 readPtr);
-  void ReadDataFromFifoOnCPU(Core::System& system, u32 readPtr);
-  int RunGpuOnCpu(Core::System& system, int ticks);
-  int WaitForGpuThread(Core::System& system, int ticks);
+  void ReadDataFromFifo(u32 read_ptr);
+  void ReadDataFromFifoOnCPU(u32 read_ptr);
+  int RunGpuOnCpu(int ticks);
+  int WaitForGpuThread(int ticks);
   static void SyncGPUCallback(Core::System& system, u64 ticks, s64 cyclesLate);
 
   static constexpr u32 FIFO_SIZE = 2 * 1024 * 1024;
@@ -127,6 +127,8 @@ private:
   int m_config_sync_gpu_max_distance = 0;
   int m_config_sync_gpu_min_distance = 0;
   float m_config_sync_gpu_overclock = 0.0f;
+
+  Core::System& m_system;
 };
 
 bool AtBreakpoint(Core::System& system);
