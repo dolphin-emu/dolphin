@@ -190,6 +190,8 @@ NetKDRequestDevice::~NetKDRequestDevice()
   }
 
   m_scheduler_timer_thread.join();
+  m_scheduler_work_queue.Shutdown();
+  m_work_queue.Shutdown();
 }
 
 void NetKDRequestDevice::Update()
