@@ -18,6 +18,8 @@
 #include <utility>
 #include <vector>
 
+#include <fmt/format.h>
+
 #ifdef HAVE_LIBSYSTEMD
 #include <systemd/sd-daemon.h>
 #endif
@@ -85,12 +87,12 @@ retry:
     }
   }
 #if DEBUG
-  printf("failed to find key '");
+  fmt::print("failed to find key '");
   for (size_t i = 0; i < sizeof(key); i++)
   {
-    printf("%02x", ((u8*)&key)[i]);
+    fmt::print("{:02x}", ((u8*)&key)[i]);
   }
-  printf("'\n");
+  fmt::print("'\n");
 #endif
   result.found = false;
   return result;
@@ -131,7 +133,7 @@ static Common::TraversalInetAddress MakeInetAddress(const sockaddr_in6& addr)
 {
   if (addr.sin6_family != AF_INET6)
   {
-    fprintf(stderr, "bad sockaddr_in6\n");
+    fmt::print(stderr, "bad sockaddr_in6\n");
     exit(1);
   }
   u32* words = (u32*)addr.sin6_addr.s6_addr;
@@ -177,17 +179,17 @@ static sockaddr_in6 MakeSinAddr(const Common::TraversalInetAddress& addr)
 
 static void GetRandomHostId(Common::TraversalHostId* hostId)
 {
-  char buf[9];
+  char buf[9]{};
   const u32 num = Common::Random::GenerateValue<u32>();
-  sprintf(buf, "%08x", num);
+  fmt::format_to_n(buf, sizeof(buf) - 1, "{:08x}", num);
   memcpy(hostId->data(), buf, 8);
 }
 
 static const char* SenderName(sockaddr_in6* addr)
 {
-  static char buf[INET6_ADDRSTRLEN + 10];
+  static char buf[INET6_ADDRSTRLEN + 10]{};
   inet_ntop(PF_INET6, &addr->sin6_addr, buf, sizeof(buf));
-  sprintf(buf + strlen(buf), ":%d", ntohs(addr->sin6_port));
+  fmt::format_to(buf + strlen(buf), ":{}", ntohs(addr->sin6_port));
   return buf;
 }
 
@@ -195,8 +197,8 @@ static void TrySend(const void* buffer, size_t size, sockaddr_in6* addr, bool fr
 {
 #if DEBUG
   const auto* packet = static_cast<const Common::TraversalPacket*>(buffer);
-  printf("%s-> %d %llu %s\n", fromAlt ? "alt " : "", static_cast<int>(packet->type),
-         static_cast<long long>(packet->requestId), SenderName(addr));
+  fmt::print("{}-> {} {} {}\n", fromAlt ? "alt " : "", static_cast<int>(packet->type),
+             static_cast<long long>(packet->requestId), SenderName(addr));
 #endif
   if ((size_t)sendto(fromAlt ? sockAlt : sock, buffer, size, 0, (sockaddr*)addr, sizeof(*addr)) !=
       size)
@@ -269,8 +271,8 @@ static void ResendPackets()
 static void HandlePacket(Common::TraversalPacket* packet, sockaddr_in6* addr, bool toAlt)
 {
 #if DEBUG
-  printf("<- %d %llu %s\n", static_cast<int>(packet->type),
-         static_cast<long long>(packet->requestId), SenderName(addr));
+  fmt::print("<- {} {} {}\n", static_cast<int>(packet->type),
+             static_cast<long long>(packet->requestId), SenderName(addr));
 #endif
   bool packetOk = true;
   switch (packet->type)
@@ -375,8 +377,8 @@ static void HandlePacket(Common::TraversalPacket* packet, sockaddr_in6* addr, bo
     break;
   }
   default:
-    fprintf(stderr, "received unknown packet type %d from %s\n", static_cast<int>(packet->type),
-            SenderName(addr));
+    fmt::print(stderr, "received unknown packet type {} from {}\n", static_cast<int>(packet->type),
+               SenderName(addr));
     break;
   }
   if (packet->type != Common::TraversalPacketType::Ack)
@@ -514,7 +516,7 @@ int main()
     }
     else if ((size_t)rv < sizeof(packet))
     {
-      fprintf(stderr, "received short packet from %s\n", SenderName(&raddr));
+      fmt::print(stderr, "received short packet from {}\n", SenderName(&raddr));
     }
     else
     {

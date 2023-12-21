@@ -10,6 +10,8 @@
 #include <cstddef>
 #include <cstdio>
 
+#include <fmt/format.h>
+
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 
@@ -492,26 +494,23 @@ const std::array<pdlabel_t, 36> regnames =
 }};
 // clang-format on
 
-const char* pdname(u16 val)
+std::string pdname(u16 val)
 {
-  static char tmpstr[12];  // nasty
-
   for (const pdlabel_t& pdlabel : pdlabels)
   {
     if (pdlabel.addr == val)
       return pdlabel.name;
   }
 
-  sprintf(tmpstr, "0x%04x", val);
-  return tmpstr;
+  return fmt::format("0x{:04x}", val);
 }
 
-const char* pdregname(int val)
+std::string pdregname(int val)
 {
   return regnames[val].name;
 }
 
-const char* pdregnamelong(int val)
+std::string pdregnamelong(int val)
 {
   return regnames[val].description;
 }
