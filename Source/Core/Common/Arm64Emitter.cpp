@@ -4051,13 +4051,14 @@ void ARM64XEmitter::ANDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
     imm = (imm << 32) | (imm & 0xFFFFFFFF);
   }
 
-  if ((~imm) == 0)
-  {
-    // Do nothing
-  }
-  else if (imm == 0)
+  if (imm == 0)
   {
     MOVZ(Rd, 0);
+  }
+  else if ((~imm) == 0)
+  {
+    if (Rd != Rn)
+      MOV(Rd, Rn);
   }
   else if (const auto result = LogicalImm(imm, GPRSize::B64))
   {
@@ -4090,7 +4091,8 @@ void ARM64XEmitter::ORRI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 
   if (imm == 0)
   {
-    // Do nothing
+    if (Rd != Rn)
+      MOV(Rd, Rn);
   }
   else if ((~imm) == 0)
   {
@@ -4127,7 +4129,8 @@ void ARM64XEmitter::EORI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 
   if (imm == 0)
   {
-    // Do nothing
+    if (Rd != Rn)
+      MOV(Rd, Rn);
   }
   else if ((~imm) == 0)
   {
