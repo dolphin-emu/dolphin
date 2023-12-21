@@ -160,24 +160,26 @@ u32 GetPhysicalAddressMask();
 class CommandProcessorManager
 {
 public:
-  void Init(Core::System& system);
+  explicit CommandProcessorManager(Core::System& system);
+
+  void Init();
   void DoState(PointerWrap& p);
 
-  void RegisterMMIO(Core::System& system, MMIO::Mapping* mmio, u32 base);
+  void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
-  void SetCPStatusFromGPU(Core::System& system);
-  void SetCPStatusFromCPU(Core::System& system);
-  void GatherPipeBursted(Core::System& system);
-  void UpdateInterrupts(Core::System& system, u64 userdata);
-  void UpdateInterruptsFromVideoBackend(Core::System& system, u64 userdata);
+  void SetCPStatusFromGPU();
+  void SetCPStatusFromCPU();
+  void GatherPipeBursted();
+  void UpdateInterrupts(u64 userdata);
+  void UpdateInterruptsFromVideoBackend(u64 userdata);
 
   bool IsInterruptWaiting() const;
 
   void SetCpClearRegister();
-  void SetCpControlRegister(Core::System& system);
-  void SetCpStatusRegister(Core::System& system);
+  void SetCpControlRegister();
+  void SetCpStatusRegister();
 
-  void HandleUnknownOpcode(Core::System& system, u8 cmd_byte, const u8* buffer, bool preprocess);
+  void HandleUnknownOpcode(u8 cmd_byte, const u8* buffer, bool preprocess);
 
   // This one is shared between gfx thread and emulator thread.
   // It is only used by the Fifo and by the CommandProcessor.
@@ -203,6 +205,8 @@ private:
   Common::Flag m_interrupt_waiting;
 
   bool m_is_fifo_error_seen = false;
+
+  Core::System& m_system;
 };
 
 }  // namespace CommandProcessor

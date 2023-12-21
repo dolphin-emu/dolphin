@@ -316,7 +316,7 @@ void FifoManager::RunGpuLoop()
         {
           auto& command_processor = m_system.GetCommandProcessor();
           auto& fifo = command_processor.GetFifo();
-          command_processor.SetCPStatusFromGPU(m_system);
+          command_processor.SetCPStatusFromGPU();
 
           // check if we are able to run this buffer
           while (!command_processor.IsInterruptWaiting() &&
@@ -356,7 +356,7 @@ void FifoManager::RunGpuLoop()
                                            std::memory_order_relaxed);
             }
 
-            command_processor.SetCPStatusFromGPU(m_system);
+            command_processor.SetCPStatusFromGPU();
 
             if (m_config_sync_gpu)
             {
@@ -484,7 +484,7 @@ int FifoManager::RunGpuOnCpu(int ticks)
     fifo.CPReadWriteDistance.fetch_sub(GPFifo::GATHER_PIPE_SIZE, std::memory_order_relaxed);
   }
 
-  command_processor.SetCPStatusFromGPU(m_system);
+  command_processor.SetCPStatusFromGPU();
 
   if (reset_simd_state)
   {
