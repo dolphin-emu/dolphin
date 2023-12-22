@@ -380,7 +380,7 @@ bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
   auto& command_processor = system.GetCommandProcessor();
   command_processor.Init();
   system.GetFifo().Init();
-  system.GetPixelEngine().Init(system);
+  system.GetPixelEngine().Init();
   BPInit();
   VertexLoaderManager::Init();
   system.GetVertexShaderManager().Init();

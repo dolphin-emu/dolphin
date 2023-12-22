@@ -190,7 +190,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
       g_framebuffer_manager->RefreshPeekCache();
       auto& system = Core::System::GetInstance();
       if (!system.GetFifo().UseDeterministicGPUThread())
-        system.GetPixelEngine().SetFinish(system, cycles_into_future);  // may generate interrupt
+        system.GetPixelEngine().SetFinish(cycles_into_future);  // may generate interrupt
       DEBUG_LOG_FMT(VIDEO, "GXSetDrawDone SetPEFinish (value: {:#04X})", bp.newvalue & 0xFFFF);
       return;
     }
@@ -210,7 +210,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
     auto& system = Core::System::GetInstance();
     if (!system.GetFifo().UseDeterministicGPUThread())
     {
-      system.GetPixelEngine().SetToken(system, static_cast<u16>(bp.newvalue & 0xFFFF), false,
+      system.GetPixelEngine().SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), false,
                                        cycles_into_future);
     }
     DEBUG_LOG_FMT(VIDEO, "SetPEToken {:#06X}", bp.newvalue & 0xFFFF);
@@ -226,7 +226,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
     auto& system = Core::System::GetInstance();
     if (!system.GetFifo().UseDeterministicGPUThread())
     {
-      system.GetPixelEngine().SetToken(system, static_cast<u16>(bp.newvalue & 0xFFFF), true,
+      system.GetPixelEngine().SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), true,
                                        cycles_into_future);
     }
     DEBUG_LOG_FMT(VIDEO, "SetPEToken + INT {:#06X}", bp.newvalue & 0xFFFF);
@@ -803,13 +803,13 @@ void LoadBPRegPreprocess(u8 reg, u32 value, int cycles_into_future)
   {
   case BPMEM_SETDRAWDONE:
     if ((newval & 0xff) == 0x02)
-      system.GetPixelEngine().SetFinish(system, cycles_into_future);
+      system.GetPixelEngine().SetFinish(cycles_into_future);
     break;
   case BPMEM_PE_TOKEN_ID:
-    system.GetPixelEngine().SetToken(system, newval & 0xffff, false, cycles_into_future);
+    system.GetPixelEngine().SetToken(newval & 0xffff, false, cycles_into_future);
     break;
   case BPMEM_PE_TOKEN_INT_ID:  // Pixel Engine Interrupt Token ID
-    system.GetPixelEngine().SetToken(system, newval & 0xffff, true, cycles_into_future);
+    system.GetPixelEngine().SetToken(newval & 0xffff, true, cycles_into_future);
     break;
   }
 }
