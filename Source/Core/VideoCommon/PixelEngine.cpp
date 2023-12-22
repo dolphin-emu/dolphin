@@ -179,7 +179,7 @@ void PixelEngineManager::SetTokenFinish_OnMainThread_Static(Core::System& system
 
 void PixelEngineManager::SetTokenFinish_OnMainThread(u64 userdata, s64 cycles_late)
 {
-  std::unique_lock<std::mutex> lk(m_token_finish_mutex);
+  std::unique_lock lk(m_token_finish_mutex);
   m_event_raised = false;
 
   m_token = m_token_pending;
@@ -230,7 +230,7 @@ void PixelEngineManager::SetToken(const u16 token, const bool interrupt, int cyc
 {
   DEBUG_LOG_FMT(PIXELENGINE, "VIDEO Backend raises INT_CAUSE_PE_TOKEN (btw, token: {:04x})", token);
 
-  std::lock_guard<std::mutex> lk(m_token_finish_mutex);
+  std::lock_guard lk(m_token_finish_mutex);
 
   m_token_pending = token;
   m_token_interrupt_pending |= interrupt;
@@ -244,7 +244,7 @@ void PixelEngineManager::SetFinish(int cycles_into_future)
 {
   DEBUG_LOG_FMT(PIXELENGINE, "VIDEO Set Finish");
 
-  std::lock_guard<std::mutex> lk(m_token_finish_mutex);
+  std::lock_guard lk(m_token_finish_mutex);
 
   m_finish_interrupt_pending |= true;
 
