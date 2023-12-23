@@ -9,8 +9,10 @@
 package org.dolphinemu.dolphinemu.features
 
 import android.annotation.TargetApi
+import android.content.Context
 import android.database.Cursor
 import android.database.MatrixCursor
+import android.net.Uri
 import android.os.Build
 import android.os.CancellationSignal
 import android.os.ParcelFileDescriptor
@@ -93,6 +95,8 @@ class DocumentProvider : DocumentsProvider() {
                 appendDocument(file, result)
             }
         }
+        result.setNotificationUri(context!!.contentResolver, DocumentsContract.buildChildDocumentsUri(
+                "${context!!.packageName}.user", parentDocumentId))
         return result
     }
 
@@ -121,6 +125,7 @@ class DocumentProvider : DocumentsProvider() {
         } else {
             file.createNewFile()
         }
+        refreshDocument(parentDocumentId)
         return pathToDocumentId(file)
     }
 
@@ -128,7 +133,9 @@ class DocumentProvider : DocumentsProvider() {
         rootDirectory ?: return
 
         val file = documentIdToPath(documentId)
+        val fileParent = file.parentFile
         file.deleteRecursively()
+        refreshDocument(pathToDocumentId(fileParent!!))
     }
 
     override fun renameDocument(documentId: String, displayName: String): String? {
@@ -137,7 +144,17 @@ class DocumentProvider : DocumentsProvider() {
         val file = documentIdToPath(documentId)
         val dest = findFileNameForNewFile(File(file.parentFile, displayName))
         file.renameTo(dest)
+        refreshDocument(pathToDocumentId(file.parentFile!!))
         return pathToDocumentId(dest)
+    }
+
+    private fun refreshDocument(parentDocumentId: String) {
+        val parentUri: Uri =
+                DocumentsContract.buildChildDocumentsUri(
+                        "${context!!.packageName}.user",
+                        parentDocumentId
+                )
+        context!!.contentResolver.notifyChange(parentUri, null)
     }
 
     override fun isChildDocument(parentDocumentId: String, documentId: String): Boolean
