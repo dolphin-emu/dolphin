@@ -9,9 +9,10 @@
 package org.dolphinemu.dolphinemu.features
 
 import android.annotation.TargetApi
-import android.content.Context
+import android.content.res.AssetFileDescriptor
 import android.database.Cursor
 import android.database.MatrixCursor
+import android.graphics.Point
 import android.net.Uri
 import android.os.Build
 import android.os.CancellationSignal
@@ -29,7 +30,7 @@ class DocumentProvider : DocumentsProvider() {
     private var rootDirectory: File? = null
 
     companion object {
-        public const val ROOT_ID = "root"
+        const val ROOT_ID = "root"
 
         private val DEFAULT_ROOT_PROJECTION = arrayOf(
             DocumentsContract.Root.COLUMN_ROOT_ID,
@@ -111,6 +112,16 @@ class DocumentProvider : DocumentsProvider() {
         return ParcelFileDescriptor.open(file, ParcelFileDescriptor.parseMode(mode))
     }
 
+    override fun openDocumentThumbnail(
+            documentId: String,
+            sizeHint: Point,
+            signal: CancellationSignal
+    ): AssetFileDescriptor {
+        val file = documentIdToPath(documentId)
+        val pfd = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
+        return AssetFileDescriptor(pfd, 0, AssetFileDescriptor.UNKNOWN_LENGTH)
+    }
+
     override fun createDocument(
         parentDocumentId: String,
         mimeType: String,
@@ -177,6 +188,10 @@ class DocumentProvider : DocumentsProvider() {
             context!!.getString(R.string.app_name_suffixed)
         } else {
             file.name
+        }
+        val mimeType = getTypeForFile(file)
+        if (file.exists() && mimeType.startsWith("image/")) {
+            flags = flags or DocumentsContract.Document.FLAG_SUPPORTS_THUMBNAIL
         }
         cursor.newRow().apply {
             add(DocumentsContract.Document.COLUMN_DOCUMENT_ID, pathToDocumentId(file))
