@@ -86,7 +86,9 @@ static s32 TranslateErrorCode(s32 native_error, bool is_rw)
   }
 }
 
-WiiSockMan::WiiSockMan() = default;
+WiiSockMan::WiiSockMan(EmulationKernel& ios) : m_ios(ios)
+{
+}
 
 WiiSockMan::~WiiSockMan() = default;
 
@@ -176,19 +178,19 @@ s32 WiiSocket::Shutdown(u32 how)
     {
     case IOCTL_SO_ACCEPT:
       if (shut_write)
-        op.Abort(-SO_EINVAL);
+        Abort(&op, -SO_EINVAL);
       break;
     case IOCTL_SO_CONNECT:
       if (shut_write && !nonBlock)
-        op.Abort(-SO_ENETUNREACH);
+        Abort(&op, -SO_ENETUNREACH);
       break;
     case IOCTLV_SO_RECVFROM:
       if (shut_read)
-        op.Abort(-SO_ENOTCONN);
+        Abort(&op, -SO_ENOTCONN);
       break;
     case IOCTLV_SO_SENDTO:
       if (shut_write)
-        op.Abort(-SO_ENOTCONN);
+        Abort(&op, -SO_ENOTCONN);
       break;
     default:
       break;
@@ -213,7 +215,7 @@ s32 WiiSocket::CloseFd()
 
   for (auto it = pending_sockops.begin(); it != pending_sockops.end();)
   {
-    GetIOS()->EnqueueIPCReply(it->request, -SO_ENOTCONN);
+    m_socket_manager.EnqueueIPCReply(it->request, -SO_ENOTCONN);
     it = pending_sockops.erase(it);
   }
   connecting_state = ConnectingState::None;
@@ -705,8 +707,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
           wii_fd, it->is_ssl ? static_cast<int>(it->ssl_type) : static_cast<int>(it->net_type),
           ReturnValue, nonBlock, forceNonBlock);
 
-      // TODO: remove the dependency on a running IOS instance.
-      GetIOS()->EnqueueIPCReply(it->request, ReturnValue);
+      m_socket_manager.EnqueueIPCReply(it->request, ReturnValue);
       it = pending_sockops.erase(it);
     }
     else
@@ -974,6 +975,11 @@ s32 WiiSockMan::DeleteSocket(s32 wii_fd)
   return ReturnValue;
 }
 
+void WiiSockMan::EnqueueIPCReply(const Request& request, s32 return_value) const
+{
+  m_ios.EnqueueIPCReply(request, return_value);
+}
+
 void WiiSockMan::Update()
 {
   s32 nfds = 0;
@@ -1099,7 +1105,7 @@ void WiiSockMan::UpdatePollCommands()
       DEBUG_LOG_FMT(IOS_NET, "IOCTL_SO_POLL socket {} wevents {:08X} events {:08X} revents {:08X}",
                     i, revents, pfds[i].events, pfds[i].revents);
     }
-    GetIOS()->EnqueueIPCReply(request, ret);
+    EnqueueIPCReply(request, ret);
     return true;
   });
 }
@@ -1195,10 +1201,10 @@ void WiiSockMan::UpdateWantDeterminism(bool want)
     Clean();
 }
 
-void WiiSocket::sockop::Abort(s32 value)
+void WiiSocket::Abort(WiiSocket::sockop* op, s32 value) const
 {
-  is_aborted = true;
-  GetIOS()->EnqueueIPCReply(request, value);
+  op->is_aborted = true;
+  m_socket_manager.EnqueueIPCReply(op->request, value);
 }
 #undef ERRORCODE
 #undef EITHER

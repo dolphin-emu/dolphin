@@ -573,7 +573,7 @@ void EmulationKernel::AddStaticDevices()
   if (HasFeature(features, Feature::KD) || HasFeature(features, Feature::SO) ||
       HasFeature(features, Feature::SSL))
   {
-    m_socket_manager = std::make_shared<IOS::HLE::WiiSockMan>();
+    m_socket_manager = std::make_shared<IOS::HLE::WiiSockMan>(*this);
   }
   if (HasFeature(features, Feature::KD))
   {
