@@ -181,6 +181,8 @@ void Interpreter::mtmsr(Interpreter& interpreter, UGeckoInstruction inst)
 
   ppc_state.msr.Hex = ppc_state.gpr[inst.RS];
 
+  PowerPC::MSRUpdated(ppc_state);
+
   // FE0/FE1 may have been set
   CheckFPExceptions(ppc_state);
 
@@ -487,6 +489,11 @@ void Interpreter::mtspr(Interpreter& interpreter, UGeckoInstruction inst)
       INFO_LOG_FMT(POWERPC, "IBAT updated {} {:x} {:x}", index, old_value, ppc_state.spr[index]);
       interpreter.m_mmu.IBATUpdated();
     }
+    break;
+
+  case SPR_MMCR0:
+  case SPR_MMCR1:
+    MMCRUpdated(ppc_state);
     break;
 
   case SPR_THRM1:

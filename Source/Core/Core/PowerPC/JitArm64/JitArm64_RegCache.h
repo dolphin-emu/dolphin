@@ -325,15 +325,20 @@ public:
 
   BitSet32 GetCallerSavedUsed() const override;
 
+  BitSet32 GetDirtyGPRs() const;
+
   void StoreRegisters(BitSet32 regs, Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG)
   {
     FlushRegisters(regs, false, tmp_reg);
   }
 
-  void StoreCRRegisters(BitSet32 regs, Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG)
+  void StoreCRRegisters(BitSet8 regs, Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG)
   {
     FlushCRRegisters(regs, false, tmp_reg);
   }
+
+  void DiscardCRRegisters(BitSet8 regs);
+  void ResetCRRegisters(BitSet8 regs);
 
 protected:
   // Get the order of the host registers
@@ -365,7 +370,7 @@ private:
   void BindToRegister(const GuestRegInfo& guest_reg, bool will_read, bool will_write = true);
 
   void FlushRegisters(BitSet32 regs, bool maintain_state, Arm64Gen::ARM64Reg tmp_reg);
-  void FlushCRRegisters(BitSet32 regs, bool maintain_state, Arm64Gen::ARM64Reg tmp_reg);
+  void FlushCRRegisters(BitSet8 regs, bool maintain_state, Arm64Gen::ARM64Reg tmp_reg);
 };
 
 class Arm64FPRCache : public Arm64RegCache

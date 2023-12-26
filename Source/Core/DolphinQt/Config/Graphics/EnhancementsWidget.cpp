@@ -39,6 +39,10 @@ EnhancementsWidget::EnhancementsWidget(GraphicsWindow* parent) : m_block_save(fa
   AddDescriptions();
   connect(parent, &GraphicsWindow::BackendChanged,
           [this](const QString& backend) { LoadSettings(); });
+  connect(parent, &GraphicsWindow::UseFastTextureSamplingChanged, this,
+          &EnhancementsWidget::LoadSettings);
+  connect(parent, &GraphicsWindow::UseGPUTextureDecodingChanged, this,
+          &EnhancementsWidget::LoadSettings);
 }
 
 constexpr int TEXTURE_FILTERING_DEFAULT = 0;
@@ -62,14 +66,19 @@ void EnhancementsWidget::CreateWidgets()
   auto* enhancements_layout = new QGridLayout();
   enhancements_box->setLayout(enhancements_layout);
 
-  // Only display the first 8 scales, which most users will not go beyond.
-  QStringList resolution_options{
-      tr("Auto (Multiple of 640x528)"),      tr("Native (640x528)"),
-      tr("2x Native (1280x1056) for 720p"),  tr("3x Native (1920x1584) for 1080p"),
-      tr("4x Native (2560x2112) for 1440p"), tr("5x Native (3200x2640)"),
-      tr("6x Native (3840x3168) for 4K"),    tr("7x Native (4480x3696)"),
-      tr("8x Native (5120x4224) for 5K")};
-  const int visible_resolution_option_count = static_cast<int>(resolution_options.size());
+  QStringList resolution_options{tr("Auto (Multiple of 640x528)"), tr("Native (640x528)")};
+  // From 2x up.
+  // To calculate the suggested internal resolution scale for each common output resolution,
+  // we find the minimum multiplier that results in an equal or greater resolution than the
+  // output one, on both width and height.
+  // Note that often games don't render to the full resolution, but have some black bars
+  // on the edges; this is not accounted for in the calculations.
+  const QStringList resolution_extra_options{
+      tr("720p"),         tr("1080p"),        tr("1440p"), QStringLiteral(""),
+      tr("4K"),           QStringLiteral(""), tr("5K"),    QStringLiteral(""),
+      QStringLiteral(""), QStringLiteral(""), tr("8K")};
+  const int visible_resolution_option_count = static_cast<int>(resolution_options.size()) +
+                                              static_cast<int>(resolution_extra_options.size());
 
   // If the current scale is greater than the max scale in the ini, add sufficient options so that
   // when the settings are saved we don't lose the user-modified value from the ini.
@@ -77,10 +86,22 @@ void EnhancementsWidget::CreateWidgets()
       std::max(Config::Get(Config::GFX_EFB_SCALE), Config::Get(Config::GFX_MAX_EFB_SCALE));
   for (int scale = static_cast<int>(resolution_options.size()); scale <= max_efb_scale; scale++)
   {
-    resolution_options.append(tr("%1x Native (%2x%3)")
-                                  .arg(QString::number(scale),
-                                       QString::number(static_cast<int>(EFB_WIDTH) * scale),
-                                       QString::number(static_cast<int>(EFB_HEIGHT) * scale)));
+    const QString scale_text = QString::number(scale);
+    const QString width_text = QString::number(static_cast<int>(EFB_WIDTH) * scale);
+    const QString height_text = QString::number(static_cast<int>(EFB_HEIGHT) * scale);
+    const int extra_index = resolution_options.size() - 2;
+    const QString extra_text = resolution_extra_options.size() > extra_index ?
+                                   resolution_extra_options[extra_index] :
+                                   QStringLiteral("");
+    if (extra_text.isEmpty())
+    {
+      resolution_options.append(tr("%1x Native (%2x%3)").arg(scale_text, width_text, height_text));
+    }
+    else
+    {
+      resolution_options.append(
+          tr("%1x Native (%2x%3) for %4").arg(scale_text, width_text, height_text, extra_text));
+    }
   }
 
   m_ir_combo = new ConfigChoice(resolution_options, Config::GFX_EFB_SCALE);
@@ -211,15 +232,13 @@ void EnhancementsWidget::CreateWidgets()
 
 void EnhancementsWidget::ConnectWidgets()
 {
-  connect(m_aa_combo, qOverload<int>(&QComboBox::currentIndexChanged),
+  connect(m_aa_combo, &QComboBox::currentIndexChanged, [this](int) { SaveSettings(); });
+  connect(m_texture_filtering_combo, &QComboBox::currentIndexChanged,
           [this](int) { SaveSettings(); });
-  connect(m_texture_filtering_combo, qOverload<int>(&QComboBox::currentIndexChanged),
+  connect(m_output_resampling_combo, &QComboBox::currentIndexChanged,
           [this](int) { SaveSettings(); });
-  connect(m_output_resampling_combo, qOverload<int>(&QComboBox::currentIndexChanged),
-          [this](int) { SaveSettings(); });
-  connect(m_pp_effect, qOverload<int>(&QComboBox::currentIndexChanged),
-          [this](int) { SaveSettings(); });
-  connect(m_3d_mode, qOverload<int>(&QComboBox::currentIndexChanged), [this] {
+  connect(m_pp_effect, &QComboBox::currentIndexChanged, [this](int) { SaveSettings(); });
+  connect(m_3d_mode, &QComboBox::currentIndexChanged, [this] {
     m_block_save = true;
     m_configure_color_correction->setEnabled(g_Config.backend_info.bSupportsPostProcessing);
     LoadPPShaders();
@@ -278,7 +297,7 @@ void EnhancementsWidget::LoadPPShaders()
                                   .arg(tr(g_video_backend->GetDisplayName().c_str())));
 
   VideoCommon::PostProcessingConfiguration pp_shader;
-  if (selected_shader != "(off)" && supports_postprocessing)
+  if (selected_shader != "" && supports_postprocessing)
   {
     pp_shader.LoadShader(selected_shader);
     m_configure_pp_effect->setEnabled(pp_shader.HasOptions());
@@ -292,6 +311,9 @@ void EnhancementsWidget::LoadPPShaders()
 void EnhancementsWidget::LoadSettings()
 {
   m_block_save = true;
+  m_texture_filtering_combo->setEnabled(Config::Get(Config::GFX_HACK_FAST_TEXTURE_SAMPLING));
+  m_arbitrary_mipmap_detection->setEnabled(!Config::Get(Config::GFX_ENABLE_GPU_TEXTURE_DECODING));
+
   // Anti-Aliasing
 
   const u32 aa_selection = Config::Get(Config::GFX_MSAA);
@@ -451,11 +473,11 @@ void EnhancementsWidget::SaveSettings()
   const bool passive = g_Config.stereo_mode == StereoMode::Passive;
   Config::SetBaseOrCurrent(Config::GFX_ENHANCE_POST_SHADER,
                            (!anaglyph && !passive && m_pp_effect->currentIndex() == 0) ?
-                               "(off)" :
+                               "" :
                                m_pp_effect->currentText().toStdString());
 
   VideoCommon::PostProcessingConfiguration pp_shader;
-  if (Config::Get(Config::GFX_ENHANCE_POST_SHADER) != "(off)")
+  if (Config::Get(Config::GFX_ENHANCE_POST_SHADER) != "")
   {
     pp_shader.LoadShader(Config::Get(Config::GFX_ENHANCE_POST_SHADER));
     m_configure_pp_effect->setEnabled(pp_shader.HasOptions());
@@ -488,7 +510,8 @@ void EnhancementsWidget::AddDescriptions()
       "that are at oblique viewing angles. Force Nearest and Force Linear override the texture "
       "scaling filter selected by the game.<br><br>Any option except 'Default' will alter the look "
       "of the game's textures and might cause issues in a small number of "
-      "games.<br><br><dolphin_emphasis>If unsure, select 'Default'.</dolphin_emphasis>");
+      "games.<br><br>This option is incompatible with Manual Texture Sampling.<br><br>"
+      "<dolphin_emphasis>If unsure, select 'Default'.</dolphin_emphasis>");
   static const char TR_OUTPUT_RESAMPLING_DESCRIPTION[] =
       QT_TR_NOOP("Affects how the game output is scaled to the window resolution."
                  "<br>The performance mostly depends on the number of samples each method uses."
@@ -538,12 +561,11 @@ void EnhancementsWidget::AddDescriptions()
       "causes slowdowns or graphical issues.<br><br><dolphin_emphasis>If unsure, leave "
       "this unchecked.</dolphin_emphasis>");
   static const char TR_WIDESCREEN_HACK_DESCRIPTION[] = QT_TR_NOOP(
-      "Forces the game to output graphics for any aspect ratio. Use with \"Aspect Ratio\" set to "
-      "\"Force 16:9\" to force 4:3-only games to run at 16:9.<br><br>Rarely produces good "
-      "results and "
-      "often partially breaks graphics and game UIs. Unnecessary (and detrimental) if using any "
-      "AR/Gecko-code widescreen patches.<br><br><dolphin_emphasis>If unsure, leave "
-      "this unchecked.</dolphin_emphasis>");
+      "Forces the game to output graphics at any aspect ratio by expanding the view frustum "
+      "without stretching the image.<br>This is a hack, and its results will vary widely game "
+      "to game (it often causes the UI to stretch).<br>"
+      "Game-specific AR/Gecko-code aspect ratio patches are preferable over this if available."
+      "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_REMOVE_FOG_DESCRIPTION[] =
       QT_TR_NOOP("Makes distant objects more visible by removing fog, thus increasing the overall "
                  "detail.<br><br>Disabling fog will break some games which rely on proper fog "
@@ -584,7 +606,7 @@ void EnhancementsWidget::AddDescriptions()
       "resolution, such as in games that use very low resolution mipmaps. Disabling this can also "
       "reduce stutter in games that frequently load new textures. This feature is not compatible "
       "with GPU Texture Decoding.<br><br><dolphin_emphasis>If unsure, leave this "
-      "checked.</dolphin_emphasis>");
+      "unchecked.</dolphin_emphasis>");
   static const char TR_HDR_DESCRIPTION[] = QT_TR_NOOP(
       "Enables scRGB HDR output (if supported by your graphics backend and monitor)."
       " Fullscreen might be required."

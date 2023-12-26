@@ -334,6 +334,7 @@ constexpr std::string_view CUSTOM_PIXELSHADER_COLOR_FUNC = "customShaderColor";
 struct CustomPixelShader
 {
   std::string custom_shader;
+  std::string material_uniform_block;
 
   bool operator==(const CustomPixelShader& other) const = default;
 };

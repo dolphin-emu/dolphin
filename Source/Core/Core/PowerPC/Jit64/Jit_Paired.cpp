@@ -59,22 +59,9 @@ void Jit64::ps_sum(UGeckoInstruction inst)
     break;
   case 11:  // ps_sum1: {c.ps0, a.ps0 + b.ps1}
     if (Rc.IsSimpleReg())
-    {
-      if (cpu_info.bSSE4_1)
-      {
-        BLENDPD(tmp, Rc, 1);
-      }
-      else
-      {
-        MOVAPD(XMM0, Rc);
-        SHUFPD(XMM0, R(tmp), 2);
-        tmp = XMM0;
-      }
-    }
+      MOVSD(tmp, Rc);
     else
-    {
       MOVLPD(tmp, Rc);
-    }
     break;
   default:
     PanicAlertFmt("ps_sum WTF!!!");
@@ -143,7 +130,12 @@ void Jit64::ps_mergeXX(UGeckoInstruction inst)
     avx_op(&XEmitter::VUNPCKLPD, &XEmitter::UNPCKLPD, Rd, Ra, Rb);
     break;  // 00
   case 560:
-    avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, Rd, Ra, Rb, 2);
+    if (d != b)
+      avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, Rd, Ra, Rb, 2);
+    else if (Ra.IsSimpleReg())
+      MOVSD(Rd, Ra);
+    else
+      MOVLPD(Rd, Ra);
     break;  // 01
   case 592:
     avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, Rd, Ra, Rb, 1);

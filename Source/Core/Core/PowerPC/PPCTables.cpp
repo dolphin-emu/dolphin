@@ -87,8 +87,8 @@ constexpr std::array<GekkoOPTemplate, 54> s_primary_table{{
     {38, "stb", OpType::Store, 1, FL_IN_A0 | FL_IN_S | FL_LOADSTORE},
     {39, "stbu", OpType::Store, 1, FL_OUT_A | FL_IN_A | FL_IN_S | FL_LOADSTORE},
 
-    {46, "lmw", OpType::System, 11, FL_EVIL | FL_IN_A0 | FL_LOADSTORE},
-    {47, "stmw", OpType::System, 11, FL_EVIL | FL_IN_A0 | FL_LOADSTORE},
+    {46, "lmw", OpType::System, 11, FL_IN_A0 | FL_LOADSTORE},
+    {47, "stmw", OpType::System, 11, FL_IN_A0 | FL_LOADSTORE},
 
     {48, "lfs", OpType::LoadFP, 1, FL_OUT_FLOAT_D | FL_IN_A | FL_USE_FPU | FL_LOADSTORE},
     {49, "lfsu", OpType::LoadFP, 1,
@@ -224,17 +224,17 @@ constexpr std::array<GekkoOPTemplate, 4> s_table4_3{{
 constexpr std::array<GekkoOPTemplate, 13> s_table19{{
     {528, "bcctrx", OpType::Branch, 1, FL_ENDBLOCK | FL_READ_CR_BI},
     {16, "bclrx", OpType::Branch, 1, FL_ENDBLOCK | FL_READ_CR_BI},
-    {257, "crand", OpType::CR, 1, FL_EVIL},
-    {129, "crandc", OpType::CR, 1, FL_EVIL},
-    {289, "creqv", OpType::CR, 1, FL_EVIL},
-    {225, "crnand", OpType::CR, 1, FL_EVIL},
-    {33, "crnor", OpType::CR, 1, FL_EVIL},
-    {449, "cror", OpType::CR, 1, FL_EVIL},
-    {417, "crorc", OpType::CR, 1, FL_EVIL},
-    {193, "crxor", OpType::CR, 1, FL_EVIL},
+    {257, "crand", OpType::CR, 1, 0},
+    {129, "crandc", OpType::CR, 1, 0},
+    {289, "creqv", OpType::CR, 1, 0},
+    {225, "crnand", OpType::CR, 1, 0},
+    {33, "crnor", OpType::CR, 1, 0},
+    {449, "cror", OpType::CR, 1, 0},
+    {417, "crorc", OpType::CR, 1, 0},
+    {193, "crxor", OpType::CR, 1, 0},
 
-    {150, "isync", OpType::InstructionCache, 1, FL_EVIL},
-    {0, "mcrf", OpType::System, 1, FL_EVIL | FL_SET_CRn | FL_READ_CRn},
+    {150, "isync", OpType::InstructionCache, 1, FL_NO_REORDER},
+    {0, "mcrf", OpType::System, 1, FL_SET_CRn | FL_READ_CRn},
 
     {50, "rfi", OpType::System, 2, FL_ENDBLOCK | FL_CHECKEXCEPTIONS | FL_PROGRAMEXCEPTION},
 }};
@@ -324,12 +324,12 @@ constexpr std::array<GekkoOPTemplate, 107> s_table31{{
     {790, "lhbrx", OpType::Load, 1, FL_OUT_D | FL_IN_A0B | FL_LOADSTORE},
 
     // Conditional load/store (Wii SMP)
-    {150, "stwcxd", OpType::Store, 1, FL_EVIL | FL_IN_S | FL_IN_A0B | FL_SET_CR0 | FL_LOADSTORE},
-    {20, "lwarx", OpType::Load, 1, FL_EVIL | FL_OUT_D | FL_IN_A0B | FL_SET_CR0 | FL_LOADSTORE},
+    {150, "stwcxd", OpType::Store, 1, FL_IN_S | FL_IN_A0B | FL_SET_CR0 | FL_LOADSTORE},
+    {20, "lwarx", OpType::Load, 1, FL_OUT_D | FL_IN_A0B | FL_SET_CR0 | FL_LOADSTORE},
 
     // load string (Inst these)
-    {533, "lswx", OpType::Load, 1, FL_EVIL | FL_IN_A0B | FL_OUT_D | FL_LOADSTORE},
-    {597, "lswi", OpType::Load, 1, FL_EVIL | FL_IN_A0 | FL_OUT_D | FL_LOADSTORE},
+    {533, "lswx", OpType::Load, 1, FL_IN_A0B | FL_OUT_D | FL_LOADSTORE},
+    {597, "lswi", OpType::Load, 1, FL_IN_A0 | FL_OUT_D | FL_LOADSTORE},
 
     // store word
     {151, "stwx", OpType::Store, 1, FL_IN_S | FL_IN_A0B | FL_LOADSTORE},
@@ -347,8 +347,8 @@ constexpr std::array<GekkoOPTemplate, 107> s_table31{{
     {662, "stwbrx", OpType::Store, 1, FL_IN_S | FL_IN_A0B | FL_LOADSTORE},
     {918, "sthbrx", OpType::Store, 1, FL_IN_S | FL_IN_A0B | FL_LOADSTORE},
 
-    {661, "stswx", OpType::Store, 1, FL_EVIL | FL_IN_A0B | FL_LOADSTORE},
-    {725, "stswi", OpType::Store, 1, FL_EVIL | FL_IN_A0 | FL_LOADSTORE},
+    {661, "stswx", OpType::Store, 1, FL_IN_A0B | FL_LOADSTORE},
+    {725, "stswi", OpType::Store, 1, FL_IN_A0 | FL_LOADSTORE},
 
     // fp load/store
     {535, "lfsx", OpType::LoadFP, 1, FL_OUT_FLOAT_D | FL_IN_A0B | FL_USE_FPU | FL_LOADSTORE},
@@ -374,7 +374,7 @@ constexpr std::array<GekkoOPTemplate, 107> s_table31{{
     {210, "mtsr", OpType::System, 1, FL_IN_S | FL_PROGRAMEXCEPTION},
     {242, "mtsrin", OpType::System, 1, FL_IN_SB | FL_PROGRAMEXCEPTION},
     {339, "mfspr", OpType::SPR, 1, FL_OUT_D | FL_PROGRAMEXCEPTION},
-    {467, "mtspr", OpType::SPR, 2, FL_IN_S | FL_PROGRAMEXCEPTION},
+    {467, "mtspr", OpType::SPR, 2, FL_IN_S | FL_ENDBLOCK | FL_PROGRAMEXCEPTION},
     {371, "mftb", OpType::System, 1, FL_OUT_D | FL_TIMER | FL_PROGRAMEXCEPTION},
     {512, "mcrxr", OpType::System, 1, FL_SET_CRn | FL_READ_CA | FL_SET_CA},
     {595, "mfsr", OpType::System, 3, FL_OUT_D | FL_PROGRAMEXCEPTION},

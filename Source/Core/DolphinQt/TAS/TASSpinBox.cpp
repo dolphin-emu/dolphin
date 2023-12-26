@@ -7,7 +7,7 @@
 
 TASSpinBox::TASSpinBox(QWidget* parent) : QSpinBox(parent)
 {
-  connect(this, QOverload<int>::of(&TASSpinBox::valueChanged), this, &TASSpinBox::OnUIValueChanged);
+  connect(this, &TASSpinBox::valueChanged, this, &TASSpinBox::OnUIValueChanged);
 }
 
 int TASSpinBox::GetValue() const

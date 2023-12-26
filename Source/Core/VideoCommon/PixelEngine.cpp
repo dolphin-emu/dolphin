@@ -30,6 +30,10 @@ enum
   INT_CAUSE_PE_FINISH = 0x400,  // GP Finished
 };
 
+PixelEngineManager::PixelEngineManager(Core::System& system) : m_system{system}
+{
+}
+
 void PixelEngineManager::DoState(PointerWrap& p)
 {
   p.Do(m_z_conf);
@@ -49,7 +53,7 @@ void PixelEngineManager::DoState(PointerWrap& p)
   p.Do(m_signal_finish_interrupt);
 }
 
-void PixelEngineManager::Init(Core::System& system)
+void PixelEngineManager::Init()
 {
   m_control.hex = 0;
   m_z_conf.hex = 0;
@@ -68,7 +72,7 @@ void PixelEngineManager::Init(Core::System& system)
   m_signal_finish_interrupt = false;
 
   m_event_type_set_token_finish =
-      system.GetCoreTiming().RegisterEvent("SetTokenFinish", SetTokenFinish_OnMainThread_Static);
+      m_system.GetCoreTiming().RegisterEvent("SetTokenFinish", SetTokenFinish_OnMainThread_Static);
 }
 
 void PixelEngineManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
@@ -156,8 +160,7 @@ void PixelEngineManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 void PixelEngineManager::UpdateInterrupts()
 {
-  auto& system = Core::System::GetInstance();
-  auto& processor_interface = system.GetProcessorInterface();
+  auto& processor_interface = m_system.GetProcessorInterface();
 
   // check if there is a token-interrupt
   processor_interface.SetInterrupt(INT_CAUSE_PE_TOKEN,
@@ -171,13 +174,12 @@ void PixelEngineManager::UpdateInterrupts()
 void PixelEngineManager::SetTokenFinish_OnMainThread_Static(Core::System& system, u64 userdata,
                                                             s64 cycles_late)
 {
-  system.GetPixelEngine().SetTokenFinish_OnMainThread(system, userdata, cycles_late);
+  system.GetPixelEngine().SetTokenFinish_OnMainThread(userdata, cycles_late);
 }
 
-void PixelEngineManager::SetTokenFinish_OnMainThread(Core::System& system, u64 userdata,
-                                                     s64 cycles_late)
+void PixelEngineManager::SetTokenFinish_OnMainThread(u64 userdata, s64 cycles_late)
 {
-  std::unique_lock<std::mutex> lk(m_token_finish_mutex);
+  std::unique_lock lk(m_token_finish_mutex);
   m_event_raised = false;
 
   m_token = m_token_pending;
@@ -202,7 +204,7 @@ void PixelEngineManager::SetTokenFinish_OnMainThread(Core::System& system, u64 u
 // Raise the event handler above on the CPU thread.
 // m_token_finish_mutex must be locked.
 // THIS IS EXECUTED FROM VIDEO THREAD
-void PixelEngineManager::RaiseEvent(Core::System& system, int cycles_into_future)
+void PixelEngineManager::RaiseEvent(int cycles_into_future)
 {
   if (m_event_raised)
     return;
@@ -211,7 +213,7 @@ void PixelEngineManager::RaiseEvent(Core::System& system, int cycles_into_future
 
   CoreTiming::FromThread from = CoreTiming::FromThread::NON_CPU;
   s64 cycles = 0;  // we don't care about timings for dual core mode.
-  if (!system.IsDualCoreMode() || system.GetFifo().UseDeterministicGPUThread())
+  if (!m_system.IsDualCoreMode() || m_system.GetFifo().UseDeterministicGPUThread())
   {
     from = CoreTiming::FromThread::CPU;
 
@@ -219,35 +221,34 @@ void PixelEngineManager::RaiseEvent(Core::System& system, int cycles_into_future
     //       games time to setup any interrupt state
     cycles = std::max(500, cycles_into_future);
   }
-  system.GetCoreTiming().ScheduleEvent(cycles, m_event_type_set_token_finish, 0, from);
+  m_system.GetCoreTiming().ScheduleEvent(cycles, m_event_type_set_token_finish, 0, from);
 }
 
 // SetToken
 // THIS IS EXECUTED FROM VIDEO THREAD
-void PixelEngineManager::SetToken(Core::System& system, const u16 token, const bool interrupt,
-                                  int cycles_into_future)
+void PixelEngineManager::SetToken(const u16 token, const bool interrupt, int cycles_into_future)
 {
   DEBUG_LOG_FMT(PIXELENGINE, "VIDEO Backend raises INT_CAUSE_PE_TOKEN (btw, token: {:04x})", token);
 
-  std::lock_guard<std::mutex> lk(m_token_finish_mutex);
+  std::lock_guard lk(m_token_finish_mutex);
 
   m_token_pending = token;
   m_token_interrupt_pending |= interrupt;
 
-  RaiseEvent(system, cycles_into_future);
+  RaiseEvent(cycles_into_future);
 }
 
 // SetFinish
 // THIS IS EXECUTED FROM VIDEO THREAD (BPStructs.cpp) when a new frame has been drawn
-void PixelEngineManager::SetFinish(Core::System& system, int cycles_into_future)
+void PixelEngineManager::SetFinish(int cycles_into_future)
 {
   DEBUG_LOG_FMT(PIXELENGINE, "VIDEO Set Finish");
 
-  std::lock_guard<std::mutex> lk(m_token_finish_mutex);
+  std::lock_guard lk(m_token_finish_mutex);
 
   m_finish_interrupt_pending |= true;
 
-  RaiseEvent(system, cycles_into_future);
+  RaiseEvent(cycles_into_future);
 }
 
 }  // namespace PixelEngine

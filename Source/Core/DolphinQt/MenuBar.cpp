@@ -20,6 +20,7 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
+#include "Core/AchievementManager.h"
 #include "Core/Boot/Boot.h"
 #include "Core/CommonTitles.h"
 #include "Core/Config/AchievementSettings.h"
@@ -121,10 +122,17 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   m_stop_action->setVisible(running);
   m_reset_action->setEnabled(running);
   m_fullscreen_action->setEnabled(running);
-  m_frame_advance_action->setEnabled(running);
   m_screenshot_action->setEnabled(running);
-  m_state_load_menu->setEnabled(running);
   m_state_save_menu->setEnabled(running);
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+  const bool hardcore = AchievementManager::GetInstance().IsHardcoreModeActive();
+  m_state_load_menu->setEnabled(running && !hardcore);
+  m_frame_advance_action->setEnabled(running && !hardcore);
+#else   // USE_RETRO_ACHIEVEMENTS
+  m_state_load_menu->setEnabled(running);
+  m_frame_advance_action->setEnabled(running);
+#endif  // USE_RETRO_ACHIEVEMENTS
 
   // Movie
   m_recording_read_only->setEnabled(running);
@@ -134,12 +142,19 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
     m_recording_export->setEnabled(false);
   }
   m_recording_play->setEnabled(m_game_selected && !running);
+#ifdef USE_RETRO_ACHIEVEMENTS
+  m_recording_play->setEnabled(m_game_selected && !running && !hardcore);
+#else   // USE_RETRO_ACHIEVEMENTS
+  m_recording_play->setEnabled(m_game_selected && !running);
+#endif  // USE_RETRO_ACHIEVEMENTS
   m_recording_start->setEnabled((m_game_selected || running) && !Movie::IsPlayingInput());
 
   // JIT
   m_jit_interpreter_core->setEnabled(running);
   m_jit_block_linking->setEnabled(!running);
   m_jit_disable_cache->setEnabled(!running);
+  m_jit_disable_fastmem_arena->setEnabled(!running);
+  m_jit_disable_large_entry_points_map->setEnabled(!running);
   m_jit_clear_cache->setEnabled(running);
   m_jit_log_coverage->setEnabled(!running);
   m_jit_search_instruction->setEnabled(running);
@@ -277,8 +292,10 @@ void MenuBar::AddToolsMenu()
 
   tools_menu->addSeparator();
 
-  tools_menu->addAction(tr("Import Wii Save..."), this, &MenuBar::ImportWiiSave);
-  tools_menu->addAction(tr("Export All Wii Saves"), this, &MenuBar::ExportWiiSaves);
+  m_import_wii_save =
+      tools_menu->addAction(tr("Import Wii Save..."), this, &MenuBar::ImportWiiSave);
+  m_export_wii_saves =
+      tools_menu->addAction(tr("Export All Wii Saves"), this, &MenuBar::ExportWiiSaves);
 
   QMenu* menu = new QMenu(tr("Connect Wii Remotes"), tools_menu);
 
@@ -488,6 +505,14 @@ void MenuBar::AddViewMenu()
   m_show_jit->setChecked(Settings::Instance().IsJITVisible());
   connect(m_show_jit, &QAction::toggled, &Settings::Instance(), &Settings::SetJITVisible);
   connect(&Settings::Instance(), &Settings::JITVisibilityChanged, m_show_jit, &QAction::setChecked);
+
+  m_show_assembler = view_menu->addAction(tr("&Assembler"));
+  m_show_assembler->setCheckable(true);
+  m_show_assembler->setChecked(Settings::Instance().IsAssemblerVisible());
+  connect(m_show_assembler, &QAction::toggled, &Settings::Instance(),
+          &Settings::SetAssemblerVisible);
+  connect(&Settings::Instance(), &Settings::AssemblerVisibilityChanged, m_show_assembler,
+          &QAction::setChecked);
 
   view_menu->addSeparator();
 
@@ -826,6 +851,20 @@ void MenuBar::AddJITMenu()
   connect(m_jit_disable_fastmem, &QAction::toggled,
           [](bool enabled) { Config::SetBaseOrCurrent(Config::MAIN_FASTMEM, !enabled); });
 
+  m_jit_disable_fastmem_arena = m_jit->addAction(tr("Disable Fastmem Arena"));
+  m_jit_disable_fastmem_arena->setCheckable(true);
+  m_jit_disable_fastmem_arena->setChecked(!Config::Get(Config::MAIN_FASTMEM_ARENA));
+  connect(m_jit_disable_fastmem_arena, &QAction::toggled,
+          [](bool enabled) { Config::SetBaseOrCurrent(Config::MAIN_FASTMEM_ARENA, !enabled); });
+
+  m_jit_disable_large_entry_points_map = m_jit->addAction(tr("Disable Large Entry Points Map"));
+  m_jit_disable_large_entry_points_map->setCheckable(true);
+  m_jit_disable_large_entry_points_map->setChecked(
+      !Config::Get(Config::MAIN_LARGE_ENTRY_POINTS_MAP));
+  connect(m_jit_disable_large_entry_points_map, &QAction::toggled, [](bool enabled) {
+    Config::SetBaseOrCurrent(Config::MAIN_LARGE_ENTRY_POINTS_MAP, !enabled);
+  });
+
   m_jit_clear_cache = m_jit->addAction(tr("Clear Cache"), this, &MenuBar::ClearCache);
 
   m_jit->addSeparator();
@@ -971,8 +1010,11 @@ void MenuBar::UpdateToolsMenu(bool emulation_started)
   m_ntscj_ipl->setEnabled(!emulation_started && File::Exists(Config::GetBootROMPath(JAP_DIR)));
   m_ntscu_ipl->setEnabled(!emulation_started && File::Exists(Config::GetBootROMPath(USA_DIR)));
   m_pal_ipl->setEnabled(!emulation_started && File::Exists(Config::GetBootROMPath(EUR_DIR)));
+  m_wad_install_action->setEnabled(!emulation_started);
   m_import_backup->setEnabled(!emulation_started);
   m_check_nand->setEnabled(!emulation_started);
+  m_import_wii_save->setEnabled(!emulation_started);
+  m_export_wii_saves->setEnabled(!emulation_started);
 
   if (!emulation_started)
   {

@@ -7,7 +7,7 @@
 
 #include <jni.h>
 
-#include "Common/EnumUtils.h"`
+#include "Common/EnumUtils.h"
 #include "Common/IniFile.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"

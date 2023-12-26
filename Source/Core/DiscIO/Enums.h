@@ -70,6 +70,7 @@ enum class Language
 
 std::string GetName(Country country, bool translate);
 std::string GetName(Language language, bool translate);
+std::string GetName(Region region, bool translate);
 
 bool IsDisc(Platform volume_type);
 bool IsWii(Platform volume_type);

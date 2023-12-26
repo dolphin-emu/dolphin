@@ -13,6 +13,7 @@
 
 #include "Common/CommonTypes.h"
 
+#include "Core/CPUThreadConfigCallback.h"
 #include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/PowerPC/BreakPoints.h"
 #include "Core/PowerPC/ConditionRegister.h"
@@ -61,6 +62,7 @@ struct TLBEntry
 
   WayArray tag{INVALID_TAG, INVALID_TAG};
   WayArray paddr{};
+  WayArray vsid{};
   WayArray pte{};
   u32 recent = 0;
 
@@ -138,6 +140,8 @@ struct PowerPCState
 
   UReg_MSR msr;      // machine state register
   UReg_FPSCR fpscr;  // floating point flags/status bits
+
+  CPUEmuFeatureFlags feature_flags;
 
   // Exception management.
   u32 Exceptions = 0;
@@ -297,6 +301,7 @@ private:
   void InitializeCPUCore(CPUCore cpu_core);
   void ApplyMode();
   void ResetRegisters();
+  void RefreshConfig();
 
   PowerPCState m_ppc_state;
 
@@ -307,6 +312,8 @@ private:
   BreakPoints m_breakpoints;
   MemChecks m_memchecks;
   PPCDebugInterface m_debug_interface;
+
+  CPUThreadConfigCallback::ConfigChangedCallbackID m_registered_config_callback_id;
 
   CoreTiming::EventType* m_invalidate_cache_thread_safe = nullptr;
 
@@ -341,5 +348,8 @@ void CheckBreakPointsFromJIT(PowerPCManager& power_pc);
 #define TU(ppc_state) (ppc_state).spr[SPR_TU]
 
 void RoundingModeUpdated(PowerPCState& ppc_state);
+void MSRUpdated(PowerPCState& ppc_state);
+void MMCRUpdated(PowerPCState& ppc_state);
+void RecalculateAllFeatureFlags(PowerPCState& ppc_state);
 
 }  // namespace PowerPC

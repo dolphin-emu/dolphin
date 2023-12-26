@@ -16,6 +16,7 @@ import org.dolphinemu.dolphinemu.databinding.FragmentEmulationBinding
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
 import org.dolphinemu.dolphinemu.features.settings.model.Settings
 import org.dolphinemu.dolphinemu.overlay.InputOverlay
+import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner
 import org.dolphinemu.dolphinemu.utils.Log
 import java.io.File
 
@@ -100,7 +101,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         if (NativeLibrary.IsGameMetadataValid())
             inputOverlay?.refreshControls()
 
-        run(emulationActivity!!.isActivityRecreated)
+        AfterDirectoryInitializationRunner().runWithLifecycle(this) {
+            run(emulationActivity!!.isActivityRecreated)
+        }
     }
 
     override fun onPause() {

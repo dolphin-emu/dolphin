@@ -190,12 +190,11 @@ void AdvancedPane::CreateLayout()
 
 void AdvancedPane::ConnectLayout()
 {
-  connect(m_cpu_emulation_engine_combobox, qOverload<int>(&QComboBox::currentIndexChanged),
-          [](int index) {
-            const auto cpu_cores = PowerPC::AvailableCPUCores();
-            if (index >= 0 && static_cast<size_t>(index) < cpu_cores.size())
-              Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, cpu_cores[index]);
-          });
+  connect(m_cpu_emulation_engine_combobox, &QComboBox::currentIndexChanged, [](int index) {
+    const auto cpu_cores = PowerPC::AvailableCPUCores();
+    if (index >= 0 && static_cast<size_t>(index) < cpu_cores.size())
+      Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, cpu_cores[index]);
+  });
 
   connect(m_cpu_clock_override_checkbox, &QCheckBox::toggled, [this](bool enable_clock_override) {
     Config::SetBaseOrCurrent(Config::MAIN_OVERCLOCK_ENABLE, enable_clock_override);
@@ -255,7 +254,6 @@ void AdvancedPane::Update()
   m_cpu_emulation_engine_combobox->setEnabled(!running);
   m_enable_mmu_checkbox->setEnabled(!running);
   m_pause_on_panic_checkbox->setEnabled(!running);
-  m_accurate_cpu_cache_checkbox->setEnabled(!running);
 
   {
     QFont bf = font();

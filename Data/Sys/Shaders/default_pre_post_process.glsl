@@ -199,15 +199,16 @@ float4 AreaSampling(float3 uvw, float gamma)
 {
 	// Determine the sizes of the source and target images.
 	float2 source_size = GetResolution();
+	float2 target_size = GetWindowResolution();
 	float2 inverted_target_size = GetInvWindowResolution();
 
-	// Determine the range of the source image that the target pixel will cover.
-	// Workaround: shift the resolution by 1/4 pixel to align the results with other sampling algorithms,
-	// otherwise the results would be offsetted, and we'd be sampling from coordinates outside the valid range.
-	float2 adjusted_source_size = source_size - 0.25;
-	float2 range = adjusted_source_size * inverted_target_size;
-	float2 beg = (uvw.xy * adjusted_source_size) - (range * 0.5);
-	float2 end = beg + range;
+	// Compute the top-left and bottom-right corners of the target pixel box.
+	float2 t_beg = floor(uvw.xy * target_size);
+	float2 t_end = t_beg + float2(1.0, 1.0);
+
+	// Convert the target pixel box to source pixel box.
+	float2 beg = t_beg * inverted_target_size * source_size;
+	float2 end = t_end * inverted_target_size * source_size;
 
 	// Compute the top-left and bottom-right corners of the pixel box.
 	float2 f_beg = floor(beg);
@@ -236,10 +237,10 @@ float4 AreaSampling(float3 uvw, float gamma)
 	avg_color += area_ne * QuickSampleByPixel(float2(f_end.x, f_beg.y) + offset, uvw.z, gamma);
 	avg_color += area_sw * QuickSampleByPixel(float2(f_beg.x, f_end.y) + offset, uvw.z, gamma);
 	avg_color += area_se * QuickSampleByPixel(float2(f_end.x, f_end.y) + offset, uvw.z, gamma);
-	
+
 	// Determine the size of the pixel box.
-	int x_range = int(f_end.x - f_beg.x + 0.5);
-	int y_range = int(f_end.y - f_beg.y + 0.5);
+	int x_range = int(f_end.x - f_beg.x - 0.5);
+	int y_range = int(f_end.y - f_beg.y - 0.5);
 
 	// Workaround to compile the shader with DX11/12.
 	// If this isn't done, it will complain that the loop could have too many iterations.

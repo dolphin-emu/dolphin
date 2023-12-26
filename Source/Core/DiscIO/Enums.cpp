@@ -111,6 +111,32 @@ std::string GetName(Language language, bool translate)
   return translate ? Common::GetStringT(name.c_str()) : name;
 }
 
+std::string GetName(Region region, bool translate)
+{
+  std::string name;
+
+  switch (region)
+  {
+  case DiscIO::Region::NTSC_J:
+    name = _trans("NTSC-J");
+    break;
+  case DiscIO::Region::NTSC_U:
+    name = _trans("NTSC-U");
+    break;
+  case DiscIO::Region::PAL:
+    name = _trans("PAL");
+    break;
+  case DiscIO::Region::NTSC_K:
+    name = _trans("NTSC-K");
+    break;
+  default:
+    name = _trans("Unknown");
+    break;
+  }
+
+  return translate ? Common::GetStringT(name.c_str()) : name;
+}
+
 bool IsDisc(Platform volume_type)
 {
   return volume_type == Platform::GameCubeDisc || volume_type == Platform::WiiDisc;

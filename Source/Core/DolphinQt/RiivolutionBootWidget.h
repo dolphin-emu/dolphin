@@ -11,6 +11,9 @@
 #include "Common/CommonTypes.h"
 #include "DiscIO/RiivolutionParser.h"
 
+#ifdef USE_RETRO_ACHIEVEMENTS
+class HardcoreWarningWidget;
+#endif  // USE_RETRO_ACHIEVEMENTS
 class QPushButton;
 class QVBoxLayout;
 
@@ -26,8 +29,14 @@ public:
   bool ShouldBoot() const { return m_should_boot; }
   std::vector<DiscIO::Riivolution::Patch>& GetPatches() { return m_patches; }
 
+#ifdef USE_RETRO_ACHIEVEMENTS
+signals:
+  void OpenAchievementSettings();
+#endif  // USE_RETRO_ACHIEVEMENTS
+
 private:
   void CreateWidgets();
+  void ConnectWidgets();
 
   void LoadMatchingXMLs();
   void OpenXML();
@@ -38,6 +47,9 @@ private:
   void BootGame();
   void SaveAsPreset();
 
+#ifdef USE_RETRO_ACHIEVEMENTS
+  HardcoreWarningWidget* m_hc_warning;
+#endif  // USE_RETRO_ACHIEVEMENTS
   std::string m_game_id;
   std::optional<u16> m_revision;
   std::optional<u8> m_disc_number;

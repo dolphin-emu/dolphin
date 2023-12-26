@@ -26,7 +26,7 @@
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "IOS/USB/Emulated/Infinity.h"
-#include "IOS/USB/Emulated/Skylander.h"
+#include "IOS/USB/Emulated/Skylanders/Skylander.h"
 #include "VideoCommon/Assets/CustomAssetLoader.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
@@ -34,15 +34,17 @@
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/XFStateManager.h"
 
 namespace Core
 {
 struct System::Impl
 {
   explicit Impl(System& system)
-      : m_audio_interface(system), m_core_timing(system), m_cpu(system), m_dsp(system),
-        m_dvd_interface(system), m_dvd_thread(system), m_expansion_interface(system),
-        m_gp_fifo(system), m_memory(system), m_power_pc(system),
+      : m_audio_interface(system), m_core_timing(system), m_command_processor{system},
+        m_cpu(system), m_dsp(system), m_dvd_interface(system), m_dvd_thread(system),
+        m_expansion_interface(system), m_fifo{system}, m_gp_fifo(system),
+        m_memory(system), m_pixel_engine{system}, m_power_pc(system),
         m_mmu(system, m_memory, m_power_pc), m_processor_interface(system),
         m_serial_interface(system), m_video_interface(system),
         m_interpreter(system, m_power_pc.GetPPCState(), m_mmu), m_jit_interface(system)
@@ -77,6 +79,7 @@ struct System::Impl
   SerialInterface::SerialInterfaceManager m_serial_interface;
   Sram m_sram;
   VertexShaderManager m_vertex_shader_manager;
+  XFStateManager m_xf_state_manager;
   VideoInterface::VideoInterfaceManager m_video_interface;
   Interpreter m_interpreter;
   JitInterface m_jit_interface;
@@ -259,6 +262,11 @@ Sram& System::GetSRAM() const
 VertexShaderManager& System::GetVertexShaderManager() const
 {
   return m_impl->m_vertex_shader_manager;
+}
+
+XFStateManager& System::GetXFStateManager() const
+{
+  return m_impl->m_xf_state_manager;
 }
 
 VideoInterface::VideoInterfaceManager& System::GetVideoInterface() const

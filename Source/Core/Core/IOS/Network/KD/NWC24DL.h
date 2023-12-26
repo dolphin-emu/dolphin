@@ -22,10 +22,11 @@ class NWC24Dl final
 public:
   explicit NWC24Dl(std::shared_ptr<FS::FileSystem> fs);
 
-  void ReadDlList();
+  bool ReadDlList();
   void WriteDlList() const;
 
-  s32 CheckNwc24DlList() const;
+  bool CheckNwc24DlList() const;
+  bool IsDisabled() const;
 
   bool DoesEntryExist(u16 entry_index) const;
   bool IsEncrypted(u16 entry_index) const;
@@ -130,6 +131,7 @@ private:
 
   std::shared_ptr<FS::FileSystem> m_fs;
   DLList m_data;
+  bool m_is_disabled = false;
 };
 }  // namespace NWC24
 }  // namespace IOS::HLE

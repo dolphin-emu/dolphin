@@ -32,7 +32,7 @@
 #include "Core/PowerPC/Profiler.h"
 #include "Core/System.h"
 
-#if _M_X86
+#if _M_X86_64
 #include "Core/PowerPC/Jit64/Jit.h"
 #endif
 
@@ -61,7 +61,7 @@ CPUCoreBase* JitInterface::InitJitCore(PowerPC::CPUCore core)
 {
   switch (core)
   {
-#if _M_X86
+#if _M_X86_64
   case PowerPC::CPUCore::JIT64:
     m_jit = std::make_unique<Jit64>(m_system);
     break;
@@ -105,15 +105,21 @@ void JitInterface::UpdateMembase()
 
   auto& ppc_state = m_system.GetPPCState();
   auto& memory = m_system.GetMemory();
+#ifdef _M_ARM_64
+  // JitArm64 is currently using the no fastmem arena code path even when only fastmem is off.
+  const bool fastmem_arena = m_jit->jo.fastmem;
+#else
+  const bool fastmem_arena = m_jit->jo.fastmem_arena;
+#endif
   if (ppc_state.msr.DR)
   {
     ppc_state.mem_ptr =
-        m_jit->jo.fastmem_arena ? memory.GetLogicalBase() : memory.GetLogicalPageMappingsBase();
+        fastmem_arena ? memory.GetLogicalBase() : memory.GetLogicalPageMappingsBase();
   }
   else
   {
     ppc_state.mem_ptr =
-        m_jit->jo.fastmem_arena ? memory.GetPhysicalBase() : memory.GetPhysicalPageMappingsBase();
+        fastmem_arena ? memory.GetPhysicalBase() : memory.GetPhysicalPageMappingsBase();
   }
 }
 
@@ -181,12 +187,14 @@ JitInterface::GetHostCode(u32 address) const
   }
 
   auto& ppc_state = m_system.GetPPCState();
-  JitBlock* block = m_jit->GetBlockCache()->GetBlockFromStartAddress(address, ppc_state.msr.Hex);
+  JitBlock* block =
+      m_jit->GetBlockCache()->GetBlockFromStartAddress(address, ppc_state.feature_flags);
   if (!block)
   {
     for (int i = 0; i < 500; i++)
     {
-      block = m_jit->GetBlockCache()->GetBlockFromStartAddress(address - 4 * i, ppc_state.msr.Hex);
+      block = m_jit->GetBlockCache()->GetBlockFromStartAddress(address - 4 * i,
+                                                               ppc_state.feature_flags);
       if (block)
         break;
     }

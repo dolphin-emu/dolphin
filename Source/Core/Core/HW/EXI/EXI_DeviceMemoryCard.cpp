@@ -83,12 +83,11 @@ void CEXIMemoryCard::TransferCompleteCallback(Core::System& system, u64 userdata
                             [](CEXIMemoryCard* instance) { instance->TransferComplete(); });
 }
 
-void CEXIMemoryCard::Init()
+void CEXIMemoryCard::Init(CoreTiming::CoreTimingManager& core_timing)
 {
   static_assert(s_et_cmd_done.size() == s_et_transfer_complete.size(), "Event array size differs");
   static_assert(s_et_cmd_done.size() == MEMCARD_SLOTS.size(), "Event array size differs");
-  auto& system = Core::System::GetInstance();
-  auto& core_timing = system.GetCoreTiming();
+
   for (Slot slot : MEMCARD_SLOTS)
   {
     s_et_cmd_done[slot] = core_timing.RegisterEvent(

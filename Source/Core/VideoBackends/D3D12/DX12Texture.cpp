@@ -140,7 +140,8 @@ std::unique_ptr<DXTexture> DXTexture::CreateAdopted(ID3D12Resource* resource)
   }
 
   TextureConfig config(static_cast<u32>(desc.Width), desc.Height, desc.MipLevels,
-                       desc.DepthOrArraySize, desc.SampleDesc.Count, format, 0);
+                       desc.DepthOrArraySize, desc.SampleDesc.Count, format, 0,
+                       AbstractTextureType::Texture_2DArray);
   if (desc.Flags &
       (D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET | D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL))
   {
@@ -165,14 +166,34 @@ bool DXTexture::CreateSRVDescriptor()
     return false;
   }
 
-  D3D12_SHADER_RESOURCE_VIEW_DESC desc = {
-      D3DCommon::GetSRVFormatForAbstractFormat(m_config.format),
-      m_config.IsCubeMap()      ? D3D12_SRV_DIMENSION_TEXTURECUBE :
-      m_config.IsMultisampled() ? D3D12_SRV_DIMENSION_TEXTURE2DMSARRAY :
-                                  D3D12_SRV_DIMENSION_TEXTURE2DARRAY,
-      D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING};
+  D3D12_SRV_DIMENSION dimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+  if (m_config.type == AbstractTextureType::Texture_2DArray)
+  {
+    if (m_config.IsMultisampled())
+      dimension = D3D12_SRV_DIMENSION_TEXTURE2DMSARRAY;
+    else
+      dimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+  }
+  else if (m_config.type == AbstractTextureType::Texture_2D)
+  {
+    if (m_config.IsMultisampled())
+      dimension = D3D12_SRV_DIMENSION_TEXTURE2DMS;
+    else
+      dimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+  }
+  else if (m_config.type == AbstractTextureType::Texture_CubeMap)
+  {
+    dimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
+  }
+  else
+  {
+    PanicAlertFmt("Failed to allocate SRV - unhandled type");
+    return false;
+  }
+  D3D12_SHADER_RESOURCE_VIEW_DESC desc = {D3DCommon::GetSRVFormatForAbstractFormat(m_config.format),
+                                          dimension, D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING};
 
-  if (m_config.IsCubeMap())
+  if (m_config.type == AbstractTextureType::Texture_CubeMap)
   {
     desc.TextureCube.MostDetailedMip = 0;
     desc.TextureCube.MipLevels = m_config.levels;

@@ -67,6 +67,7 @@
     <ClCompile Include="Core\DSP\HermesText.cpp" />
     <ClCompile Include="Core\IOS\ES\FormatsTest.cpp" />
     <ClCompile Include="Core\IOS\FS\FileSystemTest.cpp" />
+    <ClCompile Include="Core\IOS\USB\SkylandersTest.cpp" />
     <ClCompile Include="Core\MMIOTest.cpp" />
     <ClCompile Include="Core\PageFaultTest.cpp" />
     <ClCompile Include="Core\PowerPC\DivUtilsTest.cpp" />
@@ -80,6 +81,7 @@
     <ClCompile Include="Core\PowerPC\Jit64Common\Frsqrte.cpp" />
   </ItemGroup>
   <ItemGroup Condition="'$(Platform)'=='ARM64'">
+    <ClCompile Include="Common\Arm64EmitterTest.cpp" />
     <ClCompile Include="Core\PowerPC\JitArm64\ConvertSingleDouble.cpp" />
     <ClCompile Include="Core\PowerPC\JitArm64\FPRF.cpp" />
     <ClCompile Include="Core\PowerPC\JitArm64\Fres.cpp" />

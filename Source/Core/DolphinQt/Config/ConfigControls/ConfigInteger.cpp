@@ -18,7 +18,7 @@ ConfigInteger::ConfigInteger(int minimum, int maximum, const Config::Info<int>& 
 
   setValue(Config::Get(setting));
 
-  connect(this, qOverload<int>(&ConfigInteger::valueChanged), this, &ConfigInteger::Update);
+  connect(this, &ConfigInteger::valueChanged, this, &ConfigInteger::Update);
   connect(&Settings::Instance(), &Settings::ConfigChanged, this, [this] {
     QFont bf = font();
     bf.setBold(Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);

@@ -52,7 +52,7 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
 
   if (vertex_loader)
   {
-    out.Write("UBO_BINDING(std140, 3) uniform GSBlock {{\n");
+    out.Write("UBO_BINDING(std140, 4) uniform GSBlock {{\n");
     out.Write("{}", s_geometry_shader_uniforms);
     out.Write("}};\n");
   }
@@ -84,7 +84,7 @@ SSBO_BINDING(1) readonly restrict buffer Vertices {{
       // D3D12 uses a root constant for this uniform, since it changes with every draw.
       // D3D11 doesn't currently support dynamic vertex loader, and we'll have to figure something
       // out for it if we want to support it in the future.
-      out.Write("UBO_BINDING(std140, 4) uniform DX_Constants {{\n"
+      out.Write("UBO_BINDING(std140, 5) uniform DX_Constants {{\n"
                 "  uint base_vertex;\n"
                 "}};\n\n"
                 "uint GetVertexBaseOffset(uint vertex_id) {{\n"
@@ -101,7 +101,7 @@ SSBO_BINDING(1) readonly restrict buffer Vertices {{
     out.Write(R"(
 uint4 load_input_uint4_ubyte4(uint vtx_offset, uint attr_offset) {{
   uint value = vertex_buffer[vtx_offset + attr_offset];
-  return uint4(value & 0xff, (value >> 8) & 0xff, (value >> 16) & 0xff, value >> 24);
+  return uint4(value & 0xffu, (value >> 8) & 0xffu, (value >> 16) & 0xffu, value >> 24);
 }}
 
 float4 load_input_float4_ubyte4(uint vtx_offset, uint attr_offset) {{

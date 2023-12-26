@@ -38,9 +38,6 @@ public:
   // Loads happen asynchronously where the data will be set now or in the future
   // Callees are expected to query the underlying data with 'GetData()'
   // from the 'CustomLoadableAsset' class to determine if the data is ready for use
-  std::shared_ptr<RawTextureAsset> LoadTexture(const CustomAssetLibrary::AssetID& asset_id,
-                                               std::shared_ptr<CustomAssetLibrary> library);
-
   std::shared_ptr<GameTextureAsset> LoadGameTexture(const CustomAssetLibrary::AssetID& asset_id,
                                                     std::shared_ptr<CustomAssetLibrary> library);
 
@@ -80,7 +77,6 @@ private:
 
   static constexpr auto TIME_BETWEEN_ASSET_MONITOR_CHECKS = std::chrono::milliseconds{500};
 
-  std::map<CustomAssetLibrary::AssetID, std::weak_ptr<RawTextureAsset>> m_textures;
   std::map<CustomAssetLibrary::AssetID, std::weak_ptr<GameTextureAsset>> m_game_textures;
   std::map<CustomAssetLibrary::AssetID, std::weak_ptr<PixelShaderAsset>> m_pixel_shaders;
   std::map<CustomAssetLibrary::AssetID, std::weak_ptr<MaterialAsset>> m_materials;

@@ -60,15 +60,17 @@ void StateTracker::DestroyInstance()
 bool StateTracker::Initialize()
 {
   // Create a dummy texture which can be used in place of a real binding.
-  m_dummy_texture =
-      VKTexture::Create(TextureConfig(1, 1, 1, 1, 1, AbstractTextureFormat::RGBA8, 0), "");
+  m_dummy_texture = VKTexture::Create(TextureConfig(1, 1, 1, 1, 1, AbstractTextureFormat::RGBA8, 0,
+                                                    AbstractTextureType::Texture_2DArray),
+                                      "");
   if (!m_dummy_texture)
     return false;
   m_dummy_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
                                       VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   // Create a dummy compute texture which can be used in place of a real binding
   m_dummy_compute_texture = VKTexture::Create(
-      TextureConfig(1, 1, 1, 1, 1, AbstractTextureFormat::RGBA8, AbstractTextureFlag_ComputeImage),
+      TextureConfig(1, 1, 1, 1, 1, AbstractTextureFormat::RGBA8, AbstractTextureFlag_ComputeImage,
+                    AbstractTextureType::Texture_2DArray),
       "");
   if (!m_dummy_compute_texture)
     return false;
@@ -490,6 +492,12 @@ void StateTracker::UpdateGXDescriptorSet()
     for (size_t i = 0; i < NUM_UBO_DESCRIPTOR_SET_BINDINGS; i++)
     {
       if (i == UBO_DESCRIPTOR_SET_BINDING_GS && !needs_gs_ubo)
+      {
+        continue;
+      }
+
+      // If custom pixel shaders haven't been used, their buffer range is 0
+      if (i == UBO_DESCRIPTOR_SET_BINDING_PS_CUST && m_bindings.gx_ubo_bindings[i].range == 0)
       {
         continue;
       }

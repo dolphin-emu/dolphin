@@ -30,6 +30,11 @@ DefaultValue = 2.5
 [/configuration]
 */
 
+float luminance(float3 color)
+{
+	return dot(color, float3(0.2126f, 0.7152f, 0.0722f));
+}
+
 void main()
 {
 	float4 color = Sample();
@@ -46,8 +51,8 @@ void main()
 	// Restore the original SDR (0-1) brightness (we might or might not restore it later)
 	color.rgb /= hdr_paper_white;
 
-	// Find the color average
-	float sdr_ratio = (color.r + color.g + color.b) / 3.0;
+	// Find the color luminance (it works better than average)
+	float sdr_ratio = luminance(color.rgb);
 
 	const float auto_hdr_max_white = max(HDR_DISPLAY_MAX_NITS / (hdr_paper_white_nits / hdr_sdr_white_nits), hdr_sdr_white_nits) / hdr_sdr_white_nits;
 	if (sdr_ratio > AUTO_HDR_SHOULDER_START_ALPHA && AUTO_HDR_SHOULDER_START_ALPHA < 1.0)

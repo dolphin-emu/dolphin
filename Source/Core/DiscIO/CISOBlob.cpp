@@ -40,6 +40,11 @@ std::unique_ptr<CISOFileReader> CISOFileReader::Create(File::IOFile file)
   return nullptr;
 }
 
+std::unique_ptr<BlobReader> CISOFileReader::CopyReader() const
+{
+  return Create(m_file.Duplicate("rb"));
+}
+
 u64 CISOFileReader::GetDataSize() const
 {
   return static_cast<u64>(CISO_MAP_SIZE) * m_block_size;

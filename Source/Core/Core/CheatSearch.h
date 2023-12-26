@@ -99,6 +99,11 @@ enum class SearchErrorCode
   // This is returned if PowerPC::RequestedAddressSpace::Virtual is given but the MSR.DR flag is
   // currently off in the emulated game.
   VirtualAddressesCurrentlyNotAccessible,
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+  // Cheats and memory reading are disabled in RetroAchievements hardcore mode.
+  DisabledInHardcoreMode,
+#endif  // USE_RETRO_ACHIEVEMENTS
 };
 
 // Returns the corresponding DataType enum for the value currently held by the given SearchValue.
@@ -165,11 +170,11 @@ public:
   // Create a complete copy of this search session.
   virtual std::unique_ptr<CheatSearchSessionBase> Clone() const = 0;
 
-  // Create a partial copy of this search session. Only the results with the passed indices are
-  // copied. This is useful if you want to run a next search on only partial result data of a
+  // Create a partial copy of this search session. Only the results with indices in the given range
+  // are copied. This is useful if you want to run a next search on only partial result data of a
   // previous search.
-  virtual std::unique_ptr<CheatSearchSessionBase>
-  ClonePartial(const std::vector<size_t>& result_indices) const = 0;
+  virtual std::unique_ptr<CheatSearchSessionBase> ClonePartial(size_t begin_index,
+                                                               size_t end_index) const = 0;
 };
 
 template <typename T>
@@ -210,8 +215,8 @@ public:
   bool WasFirstSearchDone() const override;
 
   std::unique_ptr<CheatSearchSessionBase> Clone() const override;
-  std::unique_ptr<CheatSearchSessionBase>
-  ClonePartial(const std::vector<size_t>& result_indices) const override;
+  std::unique_ptr<CheatSearchSessionBase> ClonePartial(size_t begin_index,
+                                                       size_t end_index) const override;
 
 private:
   std::vector<SearchResult<T>> m_search_results;

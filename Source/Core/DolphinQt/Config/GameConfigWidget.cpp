@@ -215,12 +215,10 @@ void GameConfigWidget::ConnectWidgets()
         m_use_dsp_hle, m_manual_texture_sampling, m_use_monoscopic_shadows})
     connect(box, &QCheckBox::stateChanged, this, &GameConfigWidget::SaveSettings);
 
-  connect(m_deterministic_dual_core, qOverload<int>(&QComboBox::currentIndexChanged), this,
+  connect(m_deterministic_dual_core, &QComboBox::currentIndexChanged, this,
           &GameConfigWidget::SaveSettings);
-  connect(m_depth_slider, qOverload<int>(&QSlider::valueChanged), this,
-          &GameConfigWidget::SaveSettings);
-  connect(m_convergence_spin, qOverload<int>(&QSpinBox::valueChanged), this,
-          &GameConfigWidget::SaveSettings);
+  connect(m_depth_slider, &QSlider::valueChanged, this, &GameConfigWidget::SaveSettings);
+  connect(m_convergence_spin, &QSpinBox::valueChanged, this, &GameConfigWidget::SaveSettings);
 }
 
 void GameConfigWidget::LoadCheckBox(QCheckBox* checkbox, const std::string& section,

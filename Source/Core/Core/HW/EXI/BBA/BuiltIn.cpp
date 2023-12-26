@@ -13,6 +13,7 @@
 #include "Common/BitUtils.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/Network.h"
 #include "Common/ScopeGuard.h"
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/EXI/EXI_DeviceEthernet.h"
@@ -142,6 +143,12 @@ void CEXIETHERNET::BuiltInBBAInterface::WriteToQueue(const std::vector<u8>& data
 void CEXIETHERNET::BuiltInBBAInterface::HandleARP(const Common::ARPPacket& packet)
 {
   const auto& [hwdata, arpdata] = packet;
+  if (arpdata.sender_address == m_current_mac && arpdata.sender_ip == 0 &&
+      arpdata.target_ip == m_current_ip)
+  {
+    // Ignore ARP probe to itself (RFC 5227) sometimes used to prevent IP collision
+    return;
+  }
   Common::ARPPacket response(m_current_mac, m_router_mac);
   response.arp_header = Common::ARPHeader(arpdata.target_ip, ResolveAddress(arpdata.target_ip),
                                           m_current_ip, m_current_mac);
@@ -746,7 +753,7 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInB
       u8* buffer = reinterpret_cast<u8*>(self->m_eth_ref->mRecvBuffer.get());
       Common::PacketView packet(buffer, datasize);
       const auto packet_type = packet.GetEtherType();
-      if (packet_type.has_value() && packet_type == IP_PROTOCOL)
+      if (packet_type.has_value() && packet_type == Common::IPV4_ETHERTYPE)
       {
         SetIPIdentification(buffer, datasize, ++self->m_ip_frame_id);
       }

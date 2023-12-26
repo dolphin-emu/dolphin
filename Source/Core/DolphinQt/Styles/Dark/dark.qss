@@ -82,19 +82,20 @@ QColumnView::item:focus, QListView::item:focus, QTableView::item:focus, QTableWi
 	background-color: #606060;
 }
 */
+
+/*
+Qt is extremely convinced that the sort arrow belongs on the right side
+of the header and will reserve space for it there. The padding is to deal with this fact.
+*/
 QHeaderView::section {
 	background-color: #202020;
 	border: 0px;
 	border-right: 1px solid #7e7e7e;
-	padding: 0px;
-	text-align: right;
-
-	/*
-	this is a hack, Qt is extremely convinced that the sort arrow belongs on the right side
-	of the header and will reserve space for it there. so this applies that same space to the left
-	so the text is still centered correctly.
-	*/
+	padding-right: -10px;
+}
+QHeaderView::section::vertical { 
 	padding-left: 10px;
+	padding-right: 0px;
 }
 QHeaderView::section:last {
 	border-right: 0px;
@@ -484,4 +485,11 @@ QTabBar QToolButton::left-arrow {
 }
 QTabBar QToolButton::right-arrow {
 	image: url(:/dolphin_dark_win/right-triangle-tabbar.svg);
+}
+QTableCornerButton::section {
+    background-color: #202020;
+    border: 1px solid #7e7e7e;
+    border-top: 0px;
+    border-left: 0px;
+    border-bottom: 0px;
 }

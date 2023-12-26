@@ -26,7 +26,7 @@ void JitArm64::sc(UGeckoInstruction inst)
   ARM64Reg WA = gpr.GetReg();
 
   LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
-  ORR(WA, WA, LogicalImm(EXCEPTION_SYSCALL, 32));
+  ORR(WA, WA, LogicalImm(EXCEPTION_SYSCALL, GPRSize::B32));
   STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
 
   gpr.Unlock(WA);
@@ -64,11 +64,11 @@ void JitArm64::rfi(UGeckoInstruction inst)
   ORR(WA, WA, WC);                        // rB = Masked MSR OR masked SRR1
 
   STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(msr));  // STR rB in to rA
+  gpr.Unlock(WB, WC);
 
-  EmitStoreMembase(WA);
+  MSRUpdated(WA);
 
   LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF_SPR(SPR_SRR0));
-  gpr.Unlock(WB, WC);
 
   WriteExceptionExit(WA);
   gpr.Unlock(WA);
@@ -157,10 +157,6 @@ void JitArm64::bcx(UGeckoInstruction inst)
         JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3), !(inst.BO_2 & BO_BRANCH_IF_TRUE));
   }
 
-  FixupBranch far_addr = B();
-  SwitchToFarCode();
-  SetJumpTarget(far_addr);
-
   if (inst.LK)
   {
     MOVI2R(WA, js.compilerPC + 4);
@@ -184,8 +180,6 @@ void JitArm64::bcx(UGeckoInstruction inst)
   {
     WriteExit(js.op->branchTo, inst.LK, js.compilerPC + 4, inst.LK ? WA : ARM64Reg::INVALID_REG);
   }
-
-  SwitchToNearCode();
 
   if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
     SetJumpTarget(pConditionDontBranch);
@@ -235,7 +229,7 @@ void JitArm64::bcctrx(UGeckoInstruction inst)
   ARM64Reg WA = gpr.GetReg();
 
   LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF_SPR(SPR_CTR));
-  AND(WA, WA, LogicalImm(~0x3, 32));
+  AND(WA, WA, LogicalImm(~0x3, GPRSize::B32));
 
   WriteExit(WA, inst.LK_3, js.compilerPC + 4, inst.LK_3 ? WB : ARM64Reg::INVALID_REG);
 
@@ -275,15 +269,8 @@ void JitArm64::bclrx(UGeckoInstruction inst)
         JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3), !(inst.BO_2 & BO_BRANCH_IF_TRUE));
   }
 
-  if (conditional)
-  {
-    FixupBranch far_addr = B();
-    SwitchToFarCode();
-    SetJumpTarget(far_addr);
-  }
-
   LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF_SPR(SPR_LR));
-  AND(WA, WA, LogicalImm(~0x3, 32));
+  AND(WA, WA, LogicalImm(~0x3, GPRSize::B32));
 
   if (inst.LK)
   {
@@ -308,9 +295,6 @@ void JitArm64::bclrx(UGeckoInstruction inst)
   {
     WriteBLRExit(WA);
   }
-
-  if (conditional)
-    SwitchToNearCode();
 
   if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
     SetJumpTarget(pConditionDontBranch);

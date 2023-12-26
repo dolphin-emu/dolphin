@@ -324,6 +324,11 @@ std::string Wiimote::GetName() const
   return fmt::format("Wiimote{}", 1 + m_index);
 }
 
+InputConfig* Wiimote::GetConfig() const
+{
+  return ::Wiimote::GetConfig();
+}
+
 ControllerEmu::ControlGroup* Wiimote::GetWiimoteGroup(WiimoteGroup group) const
 {
   switch (group)

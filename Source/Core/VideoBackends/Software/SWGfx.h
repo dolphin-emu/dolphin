@@ -12,7 +12,8 @@ namespace SW
 class SWGfx final : public AbstractGfx
 {
 public:
-  SWGfx(std::unique_ptr<SWOGLWindow> window);
+  explicit SWGfx(std::unique_ptr<SWOGLWindow> window);
+  ~SWGfx() override;
 
   bool IsHeadless() const override;
   virtual bool SupportsUtilityDrawing() const override;

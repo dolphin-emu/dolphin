@@ -19,7 +19,7 @@ public:
 
 protected:
   std::vector<BBoxType> Read(u32 index, u32 length) override;
-  void Write(u32 index, const std::vector<BBoxType>& values) override;
+  void Write(u32 index, std::span<const BBoxType> values) override;
 
 private:
   ComPtr<ID3D11Buffer> m_buffer;

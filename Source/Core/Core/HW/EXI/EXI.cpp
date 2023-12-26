@@ -110,7 +110,8 @@ void ExpansionInterfaceManager::Init(const Sram* override_sram)
     m_using_overridden_sram = false;
   }
 
-  CEXIMemoryCard::Init();
+  auto& core_timing = m_system.GetCoreTiming();
+  CEXIMemoryCard::Init(core_timing);
 
   {
     u16 size_mbits = Memcard::MBIT_SIZE_MEMORY_CARD_2043;
@@ -142,7 +143,6 @@ void ExpansionInterfaceManager::Init(const Sram* override_sram)
                                                      SlotToEXIDevice(Slot::SP1));
   m_channels[2]->AddDevice(EXIDeviceType::AD16, 0);
 
-  auto& core_timing = m_system.GetCoreTiming();
   m_event_type_change_device = core_timing.RegisterEvent("ChangeEXIDevice", ChangeDeviceCallback);
   m_event_type_update_interrupts =
       core_timing.RegisterEvent("EXIUpdateInterrupts", UpdateInterruptsCallback);

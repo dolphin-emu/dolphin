@@ -69,12 +69,18 @@ void StateManager::Apply()
   if (dirtyConstants)
   {
     if (m_current.pixelConstants[0] != m_pending.pixelConstants[0] ||
-        m_current.pixelConstants[1] != m_pending.pixelConstants[1])
+        m_current.pixelConstants[1] != m_pending.pixelConstants[1] ||
+        m_current.pixelConstants[2] != m_pending.pixelConstants[2])
     {
-      D3D::context->PSSetConstantBuffers(0, m_pending.pixelConstants[1] ? 2 : 1,
-                                         m_pending.pixelConstants.data());
+      u32 count = 1;
+      if (m_pending.pixelConstants[1])
+        count++;
+      if (m_pending.pixelConstants[2])
+        count++;
+      D3D::context->PSSetConstantBuffers(0, count, m_pending.pixelConstants.data());
       m_current.pixelConstants[0] = m_pending.pixelConstants[0];
       m_current.pixelConstants[1] = m_pending.pixelConstants[1];
+      m_current.pixelConstants[2] = m_pending.pixelConstants[2];
     }
 
     if (m_current.vertexConstants != m_pending.vertexConstants)

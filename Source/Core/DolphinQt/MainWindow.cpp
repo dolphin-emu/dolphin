@@ -82,6 +82,7 @@
 #include "DolphinQt/Config/LogWidget.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 #include "DolphinQt/Config/SettingsWindow.h"
+#include "DolphinQt/Debugger/AssemblerWidget.h"
 #include "DolphinQt/Debugger/BreakpointWidget.h"
 #include "DolphinQt/Debugger/CodeViewWidget.h"
 #include "DolphinQt/Debugger/CodeWidget.h"
@@ -242,20 +243,25 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
   connect(QGuiApplication::styleHints(), &QStyleHints::colorSchemeChanged, this,
-          [](Qt::ColorScheme colorScheme) {
-            Settings::Instance().SetCurrentUserStyle(Settings::Instance().GetCurrentUserStyle());
-          });
+          [](Qt::ColorScheme colorScheme) { Settings::Instance().ApplyStyle(); });
 #endif
 
   connect(m_cheats_manager, &CheatsManager::OpenGeneralSettings, this,
           &MainWindow::ShowGeneralWindow);
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+  connect(m_cheats_manager, &CheatsManager::OpenAchievementSettings, this,
+          &MainWindow::ShowAchievementSettings);
+  connect(m_game_list, &GameList::OpenAchievementSettings, this,
+          &MainWindow::ShowAchievementSettings);
+#endif  // USE_RETRO_ACHIEVEMENTS
 
   InitCoreCallbacks();
 
   NetPlayInit();
 
 #ifdef USE_RETRO_ACHIEVEMENTS
-  AchievementManager::GetInstance()->Init();
+  AchievementManager::GetInstance().Init();
 #endif  // USE_RETRO_ACHIEVEMENTS
 
 #if defined(__unix__) || defined(__unix) || defined(__APPLE__)
@@ -324,7 +330,7 @@ MainWindow::~MainWindow()
   Settings::Instance().ResetNetPlayServer();
 
 #ifdef USE_RETRO_ACHIEVEMENTS
-  AchievementManager::GetInstance()->Shutdown();
+  AchievementManager::GetInstance().Shutdown();
 #endif  // USE_RETRO_ACHIEVEMENTS
 
   delete m_render_widget;
@@ -453,6 +459,7 @@ void MainWindow::CreateComponents()
   m_breakpoint_widget = new BreakpointWidget(this);
   m_code_widget = new CodeWidget(this);
   m_cheats_manager = new CheatsManager(this);
+  m_assembler_widget = new AssemblerWidget(this);
 
   const auto request_watch = [this](QString name, u32 addr) {
     m_watch_widget->AddWatch(name, addr);
@@ -744,6 +751,7 @@ void MainWindow::ConnectStack()
   addDockWidget(Qt::LeftDockWidgetArea, m_memory_widget);
   addDockWidget(Qt::LeftDockWidgetArea, m_network_widget);
   addDockWidget(Qt::LeftDockWidgetArea, m_jit_widget);
+  addDockWidget(Qt::LeftDockWidgetArea, m_assembler_widget);
 
   tabifyDockWidget(m_log_widget, m_log_config_widget);
   tabifyDockWidget(m_log_widget, m_code_widget);
@@ -754,6 +762,7 @@ void MainWindow::ConnectStack()
   tabifyDockWidget(m_log_widget, m_memory_widget);
   tabifyDockWidget(m_log_widget, m_network_widget);
   tabifyDockWidget(m_log_widget, m_jit_widget);
+  tabifyDockWidget(m_log_widget, m_assembler_widget);
 }
 
 void MainWindow::RefreshGameList()
@@ -876,7 +885,16 @@ void MainWindow::OnStopComplete()
   SetFullScreenResolution(false);
 
   if (m_exit_requested || Settings::Instance().IsBatchModeEnabled())
-    QGuiApplication::exit(0);
+  {
+    if (m_assembler_widget->ApplicationCloseRequest())
+    {
+      QGuiApplication::exit(0);
+    }
+    else
+    {
+      m_exit_requested = false;
+    }
+  }
 
   // If the current emulation prevented the booting of another, do that now
   if (m_pending_boot != nullptr)
@@ -1347,6 +1365,11 @@ void MainWindow::ShowFreeLookWindow()
   {
     m_freelook_window = new FreeLookWindow(this);
     InstallHotkeyFilter(m_freelook_window);
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+    connect(m_freelook_window, &FreeLookWindow::OpenAchievementSettings, this,
+            &MainWindow::ShowAchievementSettings);
+#endif  // USE_RETRO_ACHIEVEMENTS
   }
 
   SetQWidgetWindowDecorations(m_freelook_window);
@@ -1700,14 +1723,16 @@ bool MainWindow::NetPlayHost(const UICommon::GameFile& game)
 
   const std::string traversal_host = Config::Get(Config::NETPLAY_TRAVERSAL_SERVER);
   const u16 traversal_port = Config::Get(Config::NETPLAY_TRAVERSAL_PORT);
+  const u16 traversal_port_alt = Config::Get(Config::NETPLAY_TRAVERSAL_PORT_ALT);
 
   if (is_traversal)
     host_port = Config::Get(Config::NETPLAY_LISTEN_PORT);
 
   // Create Server
-  Settings::Instance().ResetNetPlayServer(new NetPlay::NetPlayServer(
-      host_port, use_upnp, m_netplay_dialog,
-      NetPlay::NetTraversalConfig{is_traversal, traversal_host, traversal_port}));
+  Settings::Instance().ResetNetPlayServer(
+      new NetPlay::NetPlayServer(host_port, use_upnp, m_netplay_dialog,
+                                 NetPlay::NetTraversalConfig{is_traversal, traversal_host,
+                                                             traversal_port, traversal_port_alt}));
 
   if (!Settings::Instance().GetNetPlayServer()->is_connected)
   {
@@ -1846,7 +1871,7 @@ bool MainWindow::nativeEvent(const QByteArray& eventType, void* message, qintptr
     settings.UpdateSystemDark();
     if (settings.IsSystemDark() != was_dark_before)
     {
-      settings.SetCurrentUserStyle(settings.GetCurrentUserStyle());
+      settings.ApplyStyle();
 
       // force the colors in the Skylander window to update
       if (m_skylander_window)
@@ -2078,6 +2103,12 @@ void MainWindow::ShowAchievementsWindow()
   m_achievements_window->raise();
   m_achievements_window->activateWindow();
 }
+
+void MainWindow::ShowAchievementSettings()
+{
+  ShowAchievementsWindow();
+  m_achievements_window->ForceSettingsTab();
+}
 #endif  // USE_RETRO_ACHIEVEMENTS
 
 void MainWindow::ShowMemcardManager()
@@ -2118,6 +2149,12 @@ void MainWindow::ShowRiivolutionBootWidget(const UICommon::GameFile& game)
   RiivolutionBootWidget w(disc.volume->GetGameID(), disc.volume->GetRevision(),
                           disc.volume->GetDiscNumber(), game.GetFilePath(), this);
   SetQWidgetWindowDecorations(&w);
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+  connect(&w, &RiivolutionBootWidget::OpenAchievementSettings, this,
+          &MainWindow::ShowAchievementSettings);
+#endif  // USE_RETRO_ACHIEVEMENTS
+
   w.exec();
   if (!w.ShouldBoot())
     return;

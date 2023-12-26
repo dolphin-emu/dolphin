@@ -23,6 +23,7 @@ public:
   static std::unique_ptr<WbfsFileReader> Create(File::IOFile file, const std::string& path);
 
   BlobType GetBlobType() const override { return BlobType::WBFS; }
+  std::unique_ptr<BlobReader> CopyReader() const override;
 
   u64 GetRawSize() const override { return m_size; }
   u64 GetDataSize() const override;
@@ -36,7 +37,7 @@ public:
   bool Read(u64 offset, u64 nbytes, u8* out_ptr) override;
 
 private:
-  WbfsFileReader(File::IOFile file, const std::string& path);
+  WbfsFileReader(File::IOFile file, const std::string& path = "");
 
   void OpenAdditionalFiles(const std::string& path);
   bool AddFileToList(File::IOFile file);

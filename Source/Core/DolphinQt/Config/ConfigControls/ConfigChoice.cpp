@@ -13,7 +13,7 @@ ConfigChoice::ConfigChoice(const QStringList& options, const Config::Info<int>& 
     : m_setting(setting)
 {
   addItems(options);
-  connect(this, qOverload<int>(&QComboBox::currentIndexChanged), this, &ConfigChoice::Update);
+  connect(this, &QComboBox::currentIndexChanged, this, &ConfigChoice::Update);
   setCurrentIndex(Config::Get(m_setting));
 
   connect(&Settings::Instance(), &Settings::ConfigChanged, this, [this] {

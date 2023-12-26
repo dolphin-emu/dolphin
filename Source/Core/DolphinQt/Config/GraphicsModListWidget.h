@@ -56,8 +56,6 @@ private:
 
   void SaveModList();
 
-  void ClearLayoutRecursively(QLayout* layout);
-
   void OpenGraphicsModDir();
 
   void CalculateGameRunning(Core::State state);

@@ -4,6 +4,7 @@
 #include "VideoCommon/Assets/TextureAsset.h"
 
 #include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
 #include "VideoCommon/BPMemory.h"
 
 namespace VideoCommon
@@ -31,8 +32,7 @@ bool ParseSampler(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
     return false;
   }
   std::string sampler_state_mode = sampler_state_mode_iter->second.to_str();
-  std::transform(sampler_state_mode.begin(), sampler_state_mode.end(), sampler_state_mode.begin(),
-                 [](unsigned char c) { return std::tolower(c); });
+  Common::ToLower(&sampler_state_mode);
 
   if (sampler_state_mode == "clamp")
   {
@@ -71,8 +71,7 @@ bool ParseSampler(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
     return false;
   }
   std::string sampler_state_filter = sampler_state_filter_iter->second.to_str();
-  std::transform(sampler_state_filter.begin(), sampler_state_filter.end(),
-                 sampler_state_filter.begin(), [](unsigned char c) { return std::tolower(c); });
+  Common::ToLower(&sampler_state_filter);
   if (sampler_state_filter == "linear")
   {
     sampler->tm0.min_filter = FilterMode::Linear;
@@ -97,20 +96,6 @@ bool ParseSampler(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
   return true;
 }
 }  // namespace
-CustomAssetLibrary::LoadInfo RawTextureAsset::LoadImpl(const CustomAssetLibrary::AssetID& asset_id)
-{
-  auto potential_data = std::make_shared<CustomTextureData>();
-  const auto loaded_info = m_owning_library->LoadTexture(asset_id, potential_data.get());
-  if (loaded_info.m_bytes_loaded == 0)
-    return {};
-  {
-    std::lock_guard lk(m_data_lock);
-    m_loaded = true;
-    m_data = std::move(potential_data);
-  }
-  return loaded_info;
-}
-
 bool TextureData::FromJson(const CustomAssetLibrary::AssetID& asset_id,
                            const picojson::object& json, TextureData* data)
 {
@@ -130,8 +115,7 @@ bool TextureData::FromJson(const CustomAssetLibrary::AssetID& asset_id,
     return false;
   }
   std::string type = type_iter->second.to_str();
-  std::transform(type.begin(), type.end(), type.begin(),
-                 [](unsigned char c) { return std::tolower(c); });
+  Common::ToLower(&type);
 
   if (type == "texture2d")
   {
@@ -160,7 +144,7 @@ bool TextureData::FromJson(const CustomAssetLibrary::AssetID& asset_id,
 
 CustomAssetLibrary::LoadInfo GameTextureAsset::LoadImpl(const CustomAssetLibrary::AssetID& asset_id)
 {
-  auto potential_data = std::make_shared<CustomTextureData>();
+  auto potential_data = std::make_shared<TextureData>();
   const auto loaded_info = m_owning_library->LoadGameTexture(asset_id, potential_data.get());
   if (loaded_info.m_bytes_loaded == 0)
     return {};
@@ -184,7 +168,7 @@ bool GameTextureAsset::Validate(u32 native_width, u32 native_height) const
     return false;
   }
 
-  if (m_data->m_slices.empty())
+  if (m_data->m_texture.m_slices.empty())
   {
     ERROR_LOG_FMT(VIDEO,
                   "Game texture can't be validated for asset '{}' because no data was available.",
@@ -192,7 +176,7 @@ bool GameTextureAsset::Validate(u32 native_width, u32 native_height) const
     return false;
   }
 
-  if (m_data->m_slices.size() > 1)
+  if (m_data->m_texture.m_slices.size() > 1)
   {
     ERROR_LOG_FMT(
         VIDEO,
@@ -201,7 +185,7 @@ bool GameTextureAsset::Validate(u32 native_width, u32 native_height) const
     return false;
   }
 
-  const auto& slice = m_data->m_slices[0];
+  const auto& slice = m_data->m_texture.m_slices[0];
   if (slice.m_levels.empty())
   {
     ERROR_LOG_FMT(

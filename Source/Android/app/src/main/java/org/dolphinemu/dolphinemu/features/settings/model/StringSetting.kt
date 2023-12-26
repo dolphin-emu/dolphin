@@ -21,7 +21,7 @@ enum class StringSetting(
         Settings.FILE_DOLPHIN,
         Settings.SECTION_INI_CORE,
         "BBA_BUILTIN_DNS",
-        "149.56.167.128"
+        "3.18.217.27"
     ),
     MAIN_CUSTOM_RTC_VALUE(
         Settings.FILE_DOLPHIN,

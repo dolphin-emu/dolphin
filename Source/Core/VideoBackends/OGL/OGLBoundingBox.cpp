@@ -66,7 +66,7 @@ std::vector<BBoxType> OGLBoundingBox::Read(u32 index, u32 length)
   return values;
 }
 
-void OGLBoundingBox::Write(u32 index, const std::vector<BBoxType>& values)
+void OGLBoundingBox::Write(u32 index, std::span<const BBoxType> values)
 {
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_buffer_id);
   glBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(BBoxType) * index,

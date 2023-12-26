@@ -108,11 +108,10 @@ void GamecubeControllersWidget::ConnectWidgets()
 {
   for (size_t i = 0; i < m_gc_controller_boxes.size(); ++i)
   {
-    connect(m_gc_controller_boxes[i], qOverload<int>(&QComboBox::currentIndexChanged), this,
-            [this, i] {
-              OnGCTypeChanged(i);
-              SaveSettings();
-            });
+    connect(m_gc_controller_boxes[i], &QComboBox::currentIndexChanged, this, [this, i] {
+      OnGCTypeChanged(i);
+      SaveSettings();
+    });
     connect(m_gc_buttons[i], &QPushButton::clicked, this, [this, i] { OnGCPadConfigure(i); });
   }
 }

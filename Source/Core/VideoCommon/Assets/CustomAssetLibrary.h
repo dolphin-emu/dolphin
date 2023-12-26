@@ -10,9 +10,9 @@
 
 namespace VideoCommon
 {
-class CustomTextureData;
 struct MaterialData;
 struct PixelShaderData;
+struct TextureData;
 
 // This class provides functionality to load
 // specific data (like textures).  Where this data
@@ -28,18 +28,20 @@ public:
   struct LoadInfo
   {
     std::size_t m_bytes_loaded = 0;
-    CustomAssetLibrary::TimeType m_load_time = {};
+    TimeType m_load_time = {};
   };
 
+  virtual ~CustomAssetLibrary() = default;
+
   // Loads a texture, if there are no levels, bytes loaded will be empty
-  virtual LoadInfo LoadTexture(const AssetID& asset_id, CustomTextureData* data) = 0;
+  virtual LoadInfo LoadTexture(const AssetID& asset_id, TextureData* data) = 0;
 
   // Gets the last write time for a given asset id
   virtual TimeType GetLastAssetWriteTime(const AssetID& asset_id) const = 0;
 
   // Loads a texture as a game texture, providing additional checks like confirming
   // each mip level size is correct and that the format is consistent across the data
-  LoadInfo LoadGameTexture(const AssetID& asset_id, CustomTextureData* data);
+  LoadInfo LoadGameTexture(const AssetID& asset_id, TextureData* data);
 
   // Loads a pixel shader
   virtual LoadInfo LoadPixelShader(const AssetID& asset_id, PixelShaderData* data) = 0;

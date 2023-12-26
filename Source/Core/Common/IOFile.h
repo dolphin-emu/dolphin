@@ -51,6 +51,8 @@ public:
             SharedAccess sh = SharedAccess::Default);
   bool Close();
 
+  IOFile Duplicate(const char openmode[]) const;
+
   template <typename T>
   bool ReadArray(T* elements, size_t count, size_t* num_read = nullptr)
   {

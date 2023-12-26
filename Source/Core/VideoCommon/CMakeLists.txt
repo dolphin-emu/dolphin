@@ -155,6 +155,8 @@ add_library(videocommon
   TextureDecoder_Util.h
   TextureInfo.cpp
   TextureInfo.h
+  TextureUtils.cpp
+  TextureUtils.h
   TMEM.cpp
   TMEM.h
   UberShaderCommon.cpp
@@ -196,6 +198,8 @@ add_library(videocommon
   Widescreen.h
   XFMemory.cpp
   XFMemory.h
+  XFStateManager.cpp
+  XFStateManager.h
   XFStructs.cpp
   XFStructs.h
 )
@@ -212,7 +216,7 @@ PRIVATE
   glslang
 )
 
-if(_M_X86)
+if(_M_X86_64)
   target_sources(videocommon PRIVATE
     TextureDecoder_x64.cpp
     VertexLoaderX64.cpp

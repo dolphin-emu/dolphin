@@ -424,7 +424,14 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl
   // Apply a global volume ramp using the volume envelope parameters.
   for (u32 i = 0; i < count; ++i)
   {
-    const s32 sample = ((s32)samples[i] * pb.vol_env.cur_volume) >> 15;
+#ifdef AX_GC
+    // signed on GameCube
+    const s32 volume = (s16)pb.vol_env.cur_volume;
+#else
+    // unsigned on Wii
+    const s32 volume = (u16)pb.vol_env.cur_volume;
+#endif
+    const s32 sample = ((s32)samples[i] * volume) >> 15;
     samples[i] = std::clamp(sample, -32767, 32767);  // -32768 ?
     pb.vol_env.cur_volume += pb.vol_env.cur_volume_delta;
   }

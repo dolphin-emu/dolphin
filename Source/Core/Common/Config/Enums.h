@@ -29,7 +29,6 @@ enum class System
   GCKeyboard,
   GFX,
   Logger,
-  Debugger,
   DualShockUDPClient,
   FreeLook,
   Session,

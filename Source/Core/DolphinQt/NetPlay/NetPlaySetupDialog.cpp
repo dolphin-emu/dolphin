@@ -176,7 +176,7 @@ void NetPlaySetupDialog::CreateMainLayout()
   connection_layout->addWidget(
       new QLabel(
           tr("ALERT:\n\n"
-             "All players must use the same Dolphin version, unless Orange Dolphin is used to host\n"
+             "All players must use the same Dolphin version, unless MPN Dolphin is used to host\n"
              "If enabled, SD cards must be identical between players.\n"
              "If DSP LLE is used, DSP ROMs must be identical between players.\n"
              "If a game is hanging on boot, it may not support Dual Core Netplay."
@@ -250,18 +250,16 @@ NetPlaySetupDialog::~NetPlaySetupDialog()
 
 void NetPlaySetupDialog::ConnectWidgets()
 {
-  connect(m_connection_type, qOverload<int>(&QComboBox::currentIndexChanged), this,
+  connect(m_connection_type, &QComboBox::currentIndexChanged, this,
           &NetPlaySetupDialog::OnConnectionTypeChanged);
   connect(m_nickname_edit, &QLineEdit::textChanged, this, &NetPlaySetupDialog::SaveSettings);
 
   // Connect widget
   connect(m_ip_edit, &QLineEdit::textChanged, this, &NetPlaySetupDialog::SaveSettings);
-  connect(m_connect_port_box, qOverload<int>(&QSpinBox::valueChanged), this,
-          &NetPlaySetupDialog::SaveSettings);
+  connect(m_connect_port_box, &QSpinBox::valueChanged, this, &NetPlaySetupDialog::SaveSettings);
   // Host widget
-  connect(m_host_port_box, qOverload<int>(&QSpinBox::valueChanged), this,
-          &NetPlaySetupDialog::SaveSettings);
-  connect(m_host_games, qOverload<int>(&QListWidget::currentRowChanged), [this](int index) {
+  connect(m_host_port_box, &QSpinBox::valueChanged, this, &NetPlaySetupDialog::SaveSettings);
+  connect(m_host_games, &QListWidget::currentRowChanged, [this](int index) {
     Settings::GetQSettings().setValue(QStringLiteral("netplay/hostgame"),
                                       m_host_games->item(index)->text());
   });
@@ -271,6 +269,16 @@ void NetPlaySetupDialog::ConnectWidgets()
 
   connect(m_host_games, &QListWidget::itemDoubleClicked, this, &NetPlaySetupDialog::accept);
 
+  connect(m_host_force_port_check, &QCheckBox::toggled,
+          [this](bool value) { m_host_force_port_box->setEnabled(value); });
+  connect(m_host_chunked_upload_limit_check, &QCheckBox::toggled, this, [this](bool value) {
+    m_host_chunked_upload_limit_box->setEnabled(value);
+    SaveSettings();
+  });
+  connect(m_host_chunked_upload_limit_box, &QSpinBox::valueChanged, this,
+          &NetPlaySetupDialog::SaveSettings);
+
+  connect(m_host_server_browser, &QCheckBox::toggled, this, &NetPlaySetupDialog::SaveSettings);
   connect(m_host_server_name, &QLineEdit::textChanged, this, &NetPlaySetupDialog::SaveSettings);
 
 #ifdef USE_UPNP

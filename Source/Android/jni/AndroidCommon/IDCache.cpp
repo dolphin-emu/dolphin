@@ -109,6 +109,8 @@ static jclass s_core_device_control_class;
 static jfieldID s_core_device_control_pointer;
 static jmethodID s_core_device_control_constructor;
 
+static jmethodID s_runnable_run;
+
 namespace IDCache
 {
 JNIEnv* GetEnvForThread()
@@ -504,6 +506,11 @@ jmethodID GetCoreDeviceControlConstructor()
   return s_core_device_control_constructor;
 }
 
+jmethodID GetRunnableRun()
+{
+  return s_runnable_run;
+}
+
 }  // namespace IDCache
 
 extern "C" {
@@ -708,6 +715,10 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
       env->GetMethodID(core_device_control_class, "<init>",
                        "(Lorg/dolphinemu/dolphinemu/features/input/model/CoreDevice;J)V");
   env->DeleteLocalRef(core_device_control_class);
+
+  const jclass runnable_class = env->FindClass("java/lang/Runnable");
+  s_runnable_run = env->GetMethodID(runnable_class, "run", "()V");
+  env->DeleteLocalRef(runnable_class);
 
   return JNI_VERSION;
 }

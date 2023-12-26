@@ -16,6 +16,11 @@
 
 namespace
 {
+void Color_Read_Dummy(VertexLoader* loader)
+{
+  loader->m_colIndex++;
+}
+
 constexpr u32 alpha_mask = 0xFF000000;
 
 void SetCol(VertexLoader* loader, u32 val)
@@ -200,4 +205,9 @@ TPipelineFunction VertexLoader_Color::GetFunction(VertexComponentFormat type, Co
     return nullptr;
   }
   return s_table_read_color[type][format];
+}
+
+TPipelineFunction VertexLoader_Color::GetDummyFunction()
+{
+  return Color_Read_Dummy;
 }
