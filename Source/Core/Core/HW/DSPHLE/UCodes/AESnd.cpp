@@ -72,13 +72,13 @@ constexpr u32 ACCELERATOR_GAIN_16_BIT = 0x0800;
 bool AESndUCode::SwapLeftRight() const
 {
   return m_crc == HASH_2012 || m_crc == HASH_EDUKE32 || m_crc == HASH_2020 ||
-         m_crc == HASH_2020_PAD || m_crc == HASH_2022_PAD;
+         m_crc == HASH_2020_PAD || m_crc == HASH_2022_PAD || m_crc == HASH_2023;
 }
 
 bool AESndUCode::UseNewFlagMasks() const
 {
   return m_crc == HASH_EDUKE32 || m_crc == HASH_2020 || m_crc == HASH_2020_PAD ||
-         m_crc == HASH_2022_PAD;
+         m_crc == HASH_2022_PAD || m_crc == HASH_2023;
 }
 
 AESndUCode::AESndUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
@@ -164,7 +164,7 @@ void AESndUCode::HandleMail(u32 mail)
       break;
     case MAIL_TERMINATE:
       INFO_LOG_FMT(DSPHLE, "AESndUCode - MAIL_TERMINATE: {:08x}", mail);
-      if (m_crc != HASH_2022_PAD)
+      if (m_crc != HASH_2022_PAD && m_crc != HASH_2023)
       {
         // The relevant code looks like this:
         //
@@ -181,9 +181,6 @@ void AESndUCode::HandleMail(u32 mail)
         // AESND_Reset never returns, resulting in a hang. We always send the mail to avoid this
         // hang. (It's possible to exit without calling AESND_Reset, so most homebrew probably
         // isn't affected by this bug in the first place.)
-        //
-        // A fix exists, but has not yet been added to mainline libogc:
-        // https://github.com/extremscorner/libogc2/commit/38edc9db93232faa612f680c91be1eb4d95dd1c6
         WARN_LOG_FMT(DSPHLE, "AESndUCode - MAIL_TERMINATE is broken in this version of the "
                              "uCode; this will hang on real hardware or with DSP LLE");
       }

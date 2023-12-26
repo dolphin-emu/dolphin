@@ -45,9 +45,10 @@ std::unique_ptr<DXTexture> DXTexture::Create(const TextureConfig& config, std::s
   if (config.IsComputeImage())
     bindflags |= D3D11_BIND_UNORDERED_ACCESS;
 
-  CD3D11_TEXTURE2D_DESC desc(tex_format, config.width, config.height, config.layers, config.levels,
-                             bindflags, D3D11_USAGE_DEFAULT, 0, config.samples, 0,
-                             config.IsCubeMap() ? D3D11_RESOURCE_MISC_TEXTURECUBE : 0);
+  CD3D11_TEXTURE2D_DESC desc(
+      tex_format, config.width, config.height, config.layers, config.levels, bindflags,
+      D3D11_USAGE_DEFAULT, 0, config.samples, 0,
+      config.type == AbstractTextureType::Texture_CubeMap ? D3D11_RESOURCE_MISC_TEXTURECUBE : 0);
   ComPtr<ID3D11Texture2D> d3d_texture;
   HRESULT hr = D3D::device->CreateTexture2D(&desc, nullptr, d3d_texture.GetAddressOf());
   if (FAILED(hr))
@@ -72,7 +73,8 @@ std::unique_ptr<DXTexture> DXTexture::CreateAdopted(ComPtr<ID3D11Texture2D> text
   // Convert to our texture config format.
   TextureConfig config(desc.Width, desc.Height, desc.MipLevels, desc.ArraySize,
                        desc.SampleDesc.Count,
-                       D3DCommon::GetAbstractFormatForDXGIFormat(desc.Format), 0);
+                       D3DCommon::GetAbstractFormatForDXGIFormat(desc.Format), 0,
+                       AbstractTextureType::Texture_2DArray);
   if (desc.BindFlags & D3D11_BIND_RENDER_TARGET)
     config.flags |= AbstractTextureFlag_RenderTarget;
   if (desc.BindFlags & D3D11_BIND_UNORDERED_ACCESS)
@@ -89,13 +91,33 @@ std::unique_ptr<DXTexture> DXTexture::CreateAdopted(ComPtr<ID3D11Texture2D> text
 
 bool DXTexture::CreateSRV()
 {
+  D3D_SRV_DIMENSION dimension = D3D_SRV_DIMENSION_TEXTURE2DARRAY;
+  if (m_config.type == AbstractTextureType::Texture_2DArray)
+  {
+    if (m_config.IsMultisampled())
+      dimension = D3D_SRV_DIMENSION_TEXTURE2DMSARRAY;
+    else
+      dimension = D3D_SRV_DIMENSION_TEXTURE2DARRAY;
+  }
+  else if (m_config.type == AbstractTextureType::Texture_2D)
+  {
+    if (m_config.IsMultisampled())
+      dimension = D3D_SRV_DIMENSION_TEXTURE2DMS;
+    else
+      dimension = D3D_SRV_DIMENSION_TEXTURE2D;
+  }
+  else if (m_config.type == AbstractTextureType::Texture_CubeMap)
+  {
+    dimension = D3D_SRV_DIMENSION_TEXTURECUBE;
+  }
+  else
+  {
+    PanicAlertFmt("Failed to create D3D SRV - unhandled type");
+    return false;
+  }
   const CD3D11_SHADER_RESOURCE_VIEW_DESC desc(
-      m_texture.Get(),
-      m_config.IsCubeMap()      ? D3D11_SRV_DIMENSION_TEXTURECUBE :
-      m_config.IsMultisampled() ? D3D11_SRV_DIMENSION_TEXTURE2DMSARRAY :
-                                  D3D11_SRV_DIMENSION_TEXTURE2DARRAY,
-      D3DCommon::GetSRVFormatForAbstractFormat(m_config.format), 0, m_config.levels, 0,
-      m_config.layers);
+      m_texture.Get(), dimension, D3DCommon::GetSRVFormatForAbstractFormat(m_config.format), 0,
+      m_config.levels, 0, m_config.layers);
   DEBUG_ASSERT(!m_srv);
   HRESULT hr = D3D::device->CreateShaderResourceView(m_texture.Get(), &desc, m_srv.GetAddressOf());
   if (FAILED(hr))

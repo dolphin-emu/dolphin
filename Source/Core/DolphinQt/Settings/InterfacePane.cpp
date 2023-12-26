@@ -19,9 +19,11 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Config/AchievementSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/UISettings.h"
 
+#include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
@@ -84,6 +86,9 @@ InterfacePane::InterfacePane(QWidget* parent) : QWidget(parent)
   CreateLayout();
   LoadConfig();
   ConnectLayout();
+
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
+          &InterfacePane::LoadConfig);
 }
 
 void InterfacePane::CreateLayout()
@@ -133,7 +138,13 @@ void InterfacePane::CreateUI()
 
   auto userstyle_search_results = Common::DoFileSearch({File::GetUserPath(D_STYLES_IDX)});
 
-  m_combobox_userstyle->addItem(tr("(None)"), QString{});
+  m_combobox_userstyle->addItem(tr("(System)"), static_cast<int>(Settings::StyleType::System));
+
+  // TODO: Support forcing light/dark on other OSes too.
+#ifdef _WIN32
+  m_combobox_userstyle->addItem(tr("(Light)"), static_cast<int>(Settings::StyleType::Light));
+  m_combobox_userstyle->addItem(tr("(Dark)"), static_cast<int>(Settings::StyleType::Dark));
+#endif
 
   for (const std::string& path : userstyle_search_results)
   {
@@ -143,15 +154,13 @@ void InterfacePane::CreateUI()
 
   // Checkboxes
   m_checkbox_use_builtin_title_database = new QCheckBox(tr("Use Built-In Database of Game Names"));
-  m_checkbox_use_userstyle = new QCheckBox(tr("Use Custom User Style"));
   m_checkbox_use_covers =
       new QCheckBox(tr("Download Game Covers from GameTDB.com for Use in Grid Mode"));
-  m_checkbox_show_debugging_ui = new QCheckBox(tr("Enable Debugging UI"));
+  m_checkbox_show_debugging_ui = new ToolTipCheckBox(tr("Enable Debugging UI"));
   m_checkbox_focused_hotkeys = new QCheckBox(tr("Hotkeys Require Window Focus"));
   m_checkbox_disable_screensaver = new QCheckBox(tr("Inhibit Screensaver During Emulation"));
 
   groupbox_layout->addWidget(m_checkbox_use_builtin_title_database);
-  groupbox_layout->addWidget(m_checkbox_use_userstyle);
   groupbox_layout->addWidget(m_checkbox_use_covers);
   groupbox_layout->addWidget(m_checkbox_show_debugging_ui);
   groupbox_layout->addWidget(m_checkbox_focused_hotkeys);
@@ -218,13 +227,12 @@ void InterfacePane::ConnectLayout()
   connect(m_checkbox_disable_screensaver, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_show_debugging_ui, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_focused_hotkeys, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
-  connect(
-      m_combobox_theme, qOverload<int>(&QComboBox::currentIndexChanged), this,
-      [this](int index) { Settings::Instance().SetThemeName(m_combobox_theme->itemText(index)); });
-  connect(m_combobox_userstyle, qOverload<int>(&QComboBox::currentIndexChanged), this,
+  connect(m_combobox_theme, &QComboBox::currentIndexChanged, this, [this](int index) {
+    Settings::Instance().SetThemeName(m_combobox_theme->itemText(index));
+  });
+  connect(m_combobox_userstyle, &QComboBox::currentIndexChanged, this,
           &InterfacePane::OnSaveConfig);
-  connect(m_combobox_language, qOverload<int>(&QComboBox::currentIndexChanged), this,
-          &InterfacePane::OnSaveConfig);
+  connect(m_combobox_language, &QComboBox::currentIndexChanged, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_top_window, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_confirm_on_stop, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_use_panic_handlers, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
@@ -239,7 +247,6 @@ void InterfacePane::ConnectLayout()
           &InterfacePane::OnCursorVisibleAlways);
   connect(m_checkbox_lock_mouse, &QCheckBox::toggled, &Settings::Instance(),
           &Settings::SetLockCursor);
-  connect(m_checkbox_use_userstyle, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
 }
 
 void InterfacePane::LoadConfig()
@@ -248,6 +255,21 @@ void InterfacePane::LoadConfig()
       ->setChecked(Config::Get(Config::MAIN_USE_BUILT_IN_TITLE_DATABASE));
   SignalBlocking(m_checkbox_show_debugging_ui)
       ->setChecked(Settings::Instance().IsDebugModeEnabled());
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+  bool hardcore = Config::Get(Config::RA_HARDCORE_ENABLED);
+  SignalBlocking(m_checkbox_show_debugging_ui)->setEnabled(!hardcore);
+  if (hardcore)
+  {
+    m_checkbox_show_debugging_ui->SetDescription(
+        tr("<dolphin_emphasis>Disabled in Hardcore Mode.</dolphin_emphasis>"));
+  }
+  else
+  {
+    m_checkbox_show_debugging_ui->SetDescription({});
+  }
+#endif  // USE_RETRO_ACHIEVEMENTS
+
   SignalBlocking(m_combobox_language)
       ->setCurrentIndex(m_combobox_language->findData(
           QString::fromStdString(Config::Get(Config::MAIN_INTERFACE_LANGUAGE))));
@@ -255,18 +277,14 @@ void InterfacePane::LoadConfig()
       ->setCurrentIndex(
           m_combobox_theme->findText(QString::fromStdString(Config::Get(Config::MAIN_THEME_NAME))));
 
-  const QString userstyle = Settings::Instance().GetCurrentUserStyle();
-  const int index = m_combobox_userstyle->findData(QFileInfo(userstyle).fileName());
+  const Settings::StyleType style_type = Settings::Instance().GetStyleType();
+  const QString userstyle = Settings::Instance().GetUserStyleName();
+  const int index = style_type == Settings::StyleType::User ?
+                        m_combobox_userstyle->findData(userstyle) :
+                        m_combobox_userstyle->findData(static_cast<int>(style_type));
 
   if (index > 0)
     SignalBlocking(m_combobox_userstyle)->setCurrentIndex(index);
-
-  SignalBlocking(m_checkbox_use_userstyle)->setChecked(Settings::Instance().AreUserStylesEnabled());
-
-  const bool visible = m_checkbox_use_userstyle->isChecked();
-
-  m_combobox_userstyle->setVisible(visible);
-  m_label_userstyle->setVisible(visible);
 
   // Render Window Options
   SignalBlocking(m_checkbox_top_window)
@@ -298,13 +316,15 @@ void InterfacePane::OnSaveConfig()
   Config::SetBase(Config::MAIN_USE_BUILT_IN_TITLE_DATABASE,
                   m_checkbox_use_builtin_title_database->isChecked());
   Settings::Instance().SetDebugModeEnabled(m_checkbox_show_debugging_ui->isChecked());
-  Settings::Instance().SetUserStylesEnabled(m_checkbox_use_userstyle->isChecked());
-  Settings::Instance().SetCurrentUserStyle(m_combobox_userstyle->currentData().toString());
-
-  const bool visible = m_checkbox_use_userstyle->isChecked();
-
-  m_combobox_userstyle->setVisible(visible);
-  m_label_userstyle->setVisible(visible);
+  const auto selected_style = m_combobox_userstyle->currentData();
+  bool is_builtin_type = false;
+  const int style_type_int = selected_style.toInt(&is_builtin_type);
+  Settings::Instance().SetStyleType(is_builtin_type ?
+                                        static_cast<Settings::StyleType>(style_type_int) :
+                                        Settings::StyleType::User);
+  if (!is_builtin_type)
+    Settings::Instance().SetUserStyleName(selected_style.toString());
+  Settings::Instance().ApplyStyle();
 
   // Render Window Options
   Settings::Instance().SetKeepWindowOnTop(m_checkbox_top_window->isChecked());

@@ -6,7 +6,6 @@
 #ifdef USE_RETRO_ACHIEVEMENTS
 #include <QWidget>
 
-class AchievementsWindow;
 class QGroupBox;
 class QVBoxLayout;
 class QLabel;
@@ -18,7 +17,8 @@ class AchievementSettingsWidget final : public QWidget
 {
   Q_OBJECT
 public:
-  explicit AchievementSettingsWidget(QWidget* parent, AchievementsWindow* parent_window);
+  explicit AchievementSettingsWidget(QWidget* parent);
+  void UpdateData();
 
 private:
   void OnControllerInterfaceConfigure();
@@ -36,11 +36,10 @@ private:
   void ToggleLeaderboards();
   void ToggleRichPresence();
   void ToggleHardcore();
-  void ToggleBadgeIcons();
+  void ToggleProgress();
+  void ToggleBadges();
   void ToggleUnofficial();
   void ToggleEncore();
-
-  AchievementsWindow* parent_window;
 
   QGroupBox* m_common_box;
   QVBoxLayout* m_common_layout;
@@ -55,6 +54,9 @@ private:
   ToolTipCheckBox* m_common_achievements_enabled_input;
   ToolTipCheckBox* m_common_leaderboards_enabled_input;
   ToolTipCheckBox* m_common_rich_presence_enabled_input;
+  ToolTipCheckBox* m_common_hardcore_enabled_input;
+  ToolTipCheckBox* m_common_progress_enabled_input;
+  ToolTipCheckBox* m_common_badges_enabled_input;
   ToolTipCheckBox* m_common_unofficial_enabled_input;
   ToolTipCheckBox* m_common_encore_enabled_input;
 };

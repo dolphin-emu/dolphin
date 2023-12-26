@@ -174,13 +174,11 @@ void AudioPane::CreateWidgets()
 
 void AudioPane::ConnectWidgets()
 {
-  connect(m_backend_combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
-          &AudioPane::SaveSettings);
+  connect(m_backend_combo, &QComboBox::currentIndexChanged, this, &AudioPane::SaveSettings);
   connect(m_volume_slider, &QSlider::valueChanged, this, &AudioPane::SaveSettings);
   if (m_latency_control_supported)
   {
-    connect(m_latency_spin, qOverload<int>(&QSpinBox::valueChanged), this,
-            &AudioPane::SaveSettings);
+    connect(m_latency_spin, &QSpinBox::valueChanged, this, &AudioPane::SaveSettings);
   }
   connect(m_stretching_buffer_slider, &QSlider::valueChanged, this, &AudioPane::SaveSettings);
   connect(m_dolby_pro_logic, &QCheckBox::toggled, this, &AudioPane::SaveSettings);
@@ -191,8 +189,7 @@ void AudioPane::ConnectWidgets()
   connect(m_dsp_interpreter, &QRadioButton::toggled, this, &AudioPane::SaveSettings);
 
 #ifdef _WIN32
-  connect(m_wasapi_device_combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
-          &AudioPane::SaveSettings);
+  connect(m_wasapi_device_combo, &QComboBox::currentIndexChanged, this, &AudioPane::SaveSettings);
 #endif
 }
 

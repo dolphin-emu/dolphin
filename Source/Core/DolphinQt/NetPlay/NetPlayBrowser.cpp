@@ -76,8 +76,7 @@ void NetPlayBrowser::CreateWidgets()
 
 void NetPlayBrowser::ConnectWidgets()
 {
-  connect(m_region_combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
-          &NetPlayBrowser::Refresh);
+  connect(m_region_combo, &QComboBox::currentIndexChanged, this, &NetPlayBrowser::Refresh);
 
   connect(m_button_box, &QDialogButtonBox::accepted, this, &NetPlayBrowser::accept);
   connect(m_button_box, &QDialogButtonBox::rejected, this, &NetPlayBrowser::reject);

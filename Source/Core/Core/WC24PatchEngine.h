@@ -6,8 +6,6 @@
 #include <optional>
 #include <string>
 
-#include "Common/IniFile.h"
-
 namespace WC24PatchEngine
 {
 enum class IsKD : bool;
@@ -22,9 +20,7 @@ struct NetworkPatch final
 };
 
 void Reload();
-bool DeserializeLine(const std::string& line, NetworkPatch* patch);
-bool IsWC24Channel();
-void LoadPatchSection(const Common::IniFile& ini);
-std::optional<std::string> GetNetworkPatch(const std::string& source, IsKD is_kd);
+
+std::optional<std::string> GetNetworkPatch(std::string_view source, IsKD is_kd);
 std::optional<std::string> GetNetworkPatchByPayload(std::string_view source);
 }  // namespace WC24PatchEngine

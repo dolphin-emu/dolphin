@@ -5,6 +5,9 @@
 
 #include <QDialog>
 
+#ifdef USE_RETRO_ACHIEVEMENTS
+class HardcoreWarningWidget;
+#endif  // USE_RETRO_ACHIEVEMENTS
 class QDialogButtonBox;
 
 class FreeLookWindow final : public QDialog
@@ -13,8 +16,17 @@ class FreeLookWindow final : public QDialog
 public:
   explicit FreeLookWindow(QWidget* parent);
 
+#ifdef USE_RETRO_ACHIEVEMENTS
+signals:
+  void OpenAchievementSettings();
+#endif  // USE_RETRO_ACHIEVEMENTS
+
 private:
   void CreateMainLayout();
+  void ConnectWidgets();
 
+#ifdef USE_RETRO_ACHIEVEMENTS
+  HardcoreWarningWidget* m_hc_warning;
+#endif  // USE_RETRO_ACHIEVEMENTS
   QDialogButtonBox* m_button_box;
 };

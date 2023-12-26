@@ -88,7 +88,7 @@ public:
   // Utilities for use by opcodes
 
   void EmitUpdateMembase();
-  void EmitStoreMembase(const Gen::OpArg& msr, Gen::X64Reg scratch_reg);
+  void MSRUpdated(const Gen::OpArg& msr, Gen::X64Reg scratch_reg);
   void FakeBLCall(u32 after);
   void WriteExit(u32 destination, bool bl = false, u32 after = 0);
   void JustWriteExit(u32 destination, bool bl, u32 after);

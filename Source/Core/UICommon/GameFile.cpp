@@ -70,16 +70,6 @@ DiscIO::Language GameFile::GetConfigLanguage() const
   return SConfig::GetInstance().GetLanguageAdjustedForRegion(DiscIO::IsWii(m_platform), m_region);
 }
 
-bool operator==(const GameBanner& lhs, const GameBanner& rhs)
-{
-  return std::tie(lhs.buffer, lhs.width, lhs.height) == std::tie(rhs.buffer, rhs.width, rhs.height);
-}
-
-bool operator!=(const GameBanner& lhs, const GameBanner& rhs)
-{
-  return !operator==(lhs, rhs);
-}
-
 const std::string& GameFile::Lookup(DiscIO::Language language,
                                     const std::map<DiscIO::Language, std::string>& strings)
 {

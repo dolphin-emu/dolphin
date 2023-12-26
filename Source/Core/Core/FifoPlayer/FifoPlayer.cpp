@@ -605,7 +605,7 @@ void FifoPlayer::ClearEfb()
   wh.x = EFB_WIDTH - 1;
   wh.y = EFB_HEIGHT - 1;
   LoadBPReg(BPMEM_EFB_WH, wh.hex);
-  LoadBPReg(BPMEM_MIPMAP_STRIDE, 0x140);
+  LoadBPReg(BPMEM_EFB_STRIDE, 0x140);
   // The clear color and Z value have already been loaded via LoadRegisters()
   LoadBPReg(BPMEM_EFB_ADDR, 0);
   UPE_Copy copy = bpmem.triggerEFBCopy;
@@ -627,7 +627,7 @@ void FifoPlayer::ClearEfb()
   // probably a good idea.
   LoadBPReg(BPMEM_EFB_TL, m_File->GetBPMem()[BPMEM_EFB_TL]);
   LoadBPReg(BPMEM_EFB_WH, m_File->GetBPMem()[BPMEM_EFB_WH]);
-  LoadBPReg(BPMEM_MIPMAP_STRIDE, m_File->GetBPMem()[BPMEM_MIPMAP_STRIDE]);
+  LoadBPReg(BPMEM_EFB_STRIDE, m_File->GetBPMem()[BPMEM_EFB_STRIDE]);
   LoadBPReg(BPMEM_EFB_ADDR, m_File->GetBPMem()[BPMEM_EFB_ADDR]);
   // Wait for the EFB copy to finish.  That way, the EFB copy (which will be performed at a later
   // time) won't clobber any memory updates.
@@ -650,6 +650,8 @@ void FifoPlayer::LoadMemory()
   ppc_state.spr[SPR_DBAT0L] = 0x00000002;
   ppc_state.spr[SPR_DBAT1U] = 0xc0001fff;
   ppc_state.spr[SPR_DBAT1L] = 0x0000002a;
+
+  PowerPC::MSRUpdated(ppc_state);
 
   auto& mmu = system.GetMMU();
   mmu.DBATUpdated();

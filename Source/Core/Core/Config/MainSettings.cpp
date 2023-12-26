@@ -18,6 +18,7 @@
 #include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
+#include "Core/Config/AchievementSettings.h"
 #include "Core/Config/DefaultLocale.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_Device.h"
@@ -38,6 +39,8 @@ const Info<PowerPC::CPUCore> MAIN_CPU_CORE{{System::Main, "Core", "CPUCore"},
                                            PowerPC::DefaultCPUCore()};
 const Info<bool> MAIN_JIT_FOLLOW_BRANCH{{System::Main, "Core", "JITFollowBranch"}, true};
 const Info<bool> MAIN_FASTMEM{{System::Main, "Core", "Fastmem"}, true};
+const Info<bool> MAIN_FASTMEM_ARENA{{System::Main, "Core", "FastmemArena"}, true};
+const Info<bool> MAIN_LARGE_ENTRY_POINTS_MAP{{System::Main, "Core", "LargeEntryPointsMap"}, true};
 const Info<bool> MAIN_ACCURATE_CPU_CACHE{{System::Main, "Core", "AccurateCPUCache"}, false};
 const Info<bool> MAIN_DSP_HLE{{System::Main, "Core", "DSPHLE"}, true};
 const Info<int> MAIN_MAX_FALLBACK{{System::Main, "Core", "MaxFallback"}, 100};
@@ -133,7 +136,7 @@ const Info<bool> MAIN_BBA_XLINK_CHAT_OSD{{System::Main, "Core", "BBA_XLINK_CHAT_
 
 // Schthack PSO Server - https://schtserv.com/
 const Info<std::string> MAIN_BBA_BUILTIN_DNS{{System::Main, "Core", "BBA_BUILTIN_DNS"},
-                                             "149.56.167.128"};
+                                             "3.18.217.27"};
 const Info<std::string> MAIN_BBA_BUILTIN_IP{{System::Main, "Core", "BBA_BUILTIN_IP"}, ""};
 
 const Info<SerialInterface::SIDevices>& GetInfoForSIDevice(int channel)
@@ -737,4 +740,24 @@ bool IsDefaultGCIFolderPathConfigured(ExpansionInterface::Slot slot)
 {
   return Config::Get(GetInfoForGCIPath(slot)).empty();
 }
+
+bool AreCheatsEnabled()
+{
+#ifdef USE_RETRO_ACHIEVEMENTS
+  return Config::Get(::Config::MAIN_ENABLE_CHEATS) && !::Config::Get(::Config::RA_HARDCORE_ENABLED);
+#else   // USE_RETRO_ACHIEVEMENTS
+  return Config::Get(::Config::MAIN_ENABLE_CHEATS);
+#endif  // USE_RETRO_ACHIEVEMENTS
+}
+
+bool IsDebuggingEnabled()
+{
+#ifdef USE_RETRO_ACHIEVEMENTS
+  return Config::Get(::Config::MAIN_ENABLE_DEBUGGING) &&
+         !::Config::Get(::Config::RA_HARDCORE_ENABLED);
+#else   // USE_RETRO_ACHIEVEMENTS
+  return Config::Get(::Config::MAIN_ENABLE_DEBUGGING);
+#endif  // USE_RETRO_ACHIEVEMENTS
+}
+
 }  // namespace Config

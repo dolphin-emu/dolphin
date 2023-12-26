@@ -123,6 +123,9 @@ void PCAPSSLCaptureLogger::LogBBA(const void* data, std::size_t length)
 {
   if (!Config::Get(Config::MAIN_NETWORK_DUMP_BBA))
     return;
+
+  // Concurrency between CEXIETHERNET's RecvHandlePacket and SendFromDirectFIFO
+  const std::lock_guard lock(m_io_mutex);
   m_file->AddPacket(static_cast<const u8*>(data), length);
 }
 

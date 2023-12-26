@@ -5,6 +5,7 @@
 
 #include <array>
 #include <optional>
+#include <span>
 #include <string_view>
 #include <vector>
 
@@ -20,6 +21,7 @@ struct DrawStarted
   u32 texture_unit;
   bool* skip;
   std::optional<CustomPixelShader>* custom_pixel_shader;
+  std::span<u8>* material_uniform_buffer;
 };
 
 struct EFB

@@ -257,7 +257,7 @@ bool NetPlayClient::Connect()
   ENetEvent netEvent;
   int net;
   while ((net = enet_host_service(m_client, &netEvent, 5000)) > 0 &&
-         netEvent.type == ENetEventType(42))  // See PR #11381 and ENetUtil::InterceptCallback
+         static_cast<int>(netEvent.type) == Common::ENet::SKIPPABLE_EVENT)
   {
     // ignore packets from traversal server
   }
@@ -1644,7 +1644,11 @@ void NetPlayClient::ThreadFunc()
 
         break;
       default:
-        ERROR_LOG_FMT(NETPLAY, "enet_host_service: unknown event type: {}", int(netEvent.type));
+        // not a valid switch case due to not technically being part of the enum
+        if (static_cast<int>(netEvent.type) == Common::ENet::SKIPPABLE_EVENT)
+          INFO_LOG_FMT(NETPLAY, "enet_host_service: skippable packet event");
+        else
+          ERROR_LOG_FMT(NETPLAY, "enet_host_service: unknown event type: {}", int(netEvent.type));
         break;
       }
     }

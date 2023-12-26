@@ -150,9 +150,9 @@ public:
   {
   }
 
-  std::shared_ptr<Core::Device> FindDevice(ControlQualifier qualifier) const;
-  Core::Device::Input* FindInput(ControlQualifier qualifier) const;
-  Core::Device::Output* FindOutput(ControlQualifier qualifier) const;
+  std::shared_ptr<Core::Device> FindDevice(const ControlQualifier& qualifier) const;
+  Core::Device::Input* FindInput(const ControlQualifier& qualifier) const;
+  Core::Device::Output* FindOutput(const ControlQualifier& qualifier) const;
   // Returns an existing variable by the specified name if already existing. Creates it otherwise.
   std::shared_ptr<ControlState> GetVariablePtr(const std::string& name);
 

@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <cstring>
 #include <memory>
 #include <numeric>
@@ -25,6 +26,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
+#include "Core/AchievementManager.h"
 #include "Core/Boot/DolReader.h"
 #include "Core/Boot/ElfReader.h"
 #include "Core/CommonTitles.h"
@@ -399,12 +401,20 @@ bool CBoot::Load_BS2(Core::System& system, const std::string& boot_rom_filename)
   constexpr u32 PAL_v1_0 = 0x4F319F43;
   constexpr u32 PAL_v1_2 = 0xAD1B7F16;
 
-  // Load the whole ROM dump
-  std::string data;
-  if (!File::ReadFileToString(boot_rom_filename, data))
-    return false;
+  // Load the IPL ROM dump, limited to 2MiB which is the size of the official IPLs.
+  constexpr size_t max_ipl_size = 2 * 1024 * 1024;
+  std::vector<u8> data;
+  {
+    File::IOFile file(boot_rom_filename, "rb");
+    if (!file)
+      return false;
 
-  const u32 ipl_hash = Common::ComputeCRC32(data);
+    data.resize(static_cast<size_t>(std::min<u64>(file.GetSize(), max_ipl_size)));
+    if (!file.ReadArray(data.data(), data.size()))
+      return false;
+  }
+
+  const u32 ipl_hash = Common::ComputeCRC32(data.data(), data.size());
   bool known_ipl = false;
   bool pal_ipl = false;
   switch (ipl_hash)
@@ -433,15 +443,26 @@ bool CBoot::Load_BS2(Core::System& system, const std::string& boot_rom_filename)
   }
 
   // Run the descrambler over the encrypted section containing BS1/BS2
-  ExpansionInterface::CEXIIPL::Descrambler((u8*)data.data() + 0x100, 0x1AFE00);
+  if (data.size() > 0x100)
+  {
+    ExpansionInterface::CEXIIPL::Descrambler(
+        data.data() + 0x100, static_cast<u32>(std::min<size_t>(data.size() - 0x100, 0x1AFE00)));
+  }
 
   // TODO: Execution is supposed to start at 0xFFF00000, not 0x81200000;
   // copying the initial boot code to 0x81200000 is a hack.
   // For now, HLE the first few instructions and start at 0x81200150
   // to work around this.
   auto& memory = system.GetMemory();
-  memory.CopyToEmu(0x01200000, data.data() + 0x100, 0x700);
-  memory.CopyToEmu(0x01300000, data.data() + 0x820, 0x1AFE00);
+  if (data.size() > 0x100)
+  {
+    memory.CopyToEmu(0x01200000, data.data() + 0x100, std::min<size_t>(data.size() - 0x100, 0x700));
+  }
+  if (data.size() > 0x820)
+  {
+    memory.CopyToEmu(0x01300000, data.data() + 0x820,
+                     std::min<size_t>(data.size() - 0x820, 0x1AFE00));
+  }
 
   auto& ppc_state = system.GetPPCState();
   ppc_state.gpr[3] = 0xfff0001f;
@@ -460,6 +481,9 @@ bool CBoot::Load_BS2(Core::System& system, const std::string& boot_rom_filename)
   SetupBAT(system, /*is_wii*/ false);
 
   ppc_state.pc = 0x81200150;
+
+  PowerPC::MSRUpdated(ppc_state);
+
   return true;
 }
 
@@ -548,12 +572,17 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
         // Because there is no TMD to get the requested system (IOS) version from,
         // we default to IOS58, which is the version used by the Homebrew Channel.
         SetupWiiMemory(system, IOS::HLE::IOSC::ConsoleType::Retail);
-        IOS::HLE::GetIOS()->BootIOS(system, Titles::IOS(58));
+        IOS::HLE::GetIOS()->BootIOS(Titles::IOS(58));
       }
       else
       {
         SetupGCMemory(system, guard);
       }
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+      AchievementManager::GetInstance().HashGame(executable.path,
+                                                 [](AchievementManager::ResponseType r_type) {});
+#endif  // USE_RETRO_ACHIEVEMENTS
 
       if (!executable.reader->LoadIntoMemory(system))
       {

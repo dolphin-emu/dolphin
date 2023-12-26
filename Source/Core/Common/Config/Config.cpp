@@ -154,7 +154,6 @@ static const std::map<System, std::string> system_to_name = {
     {System::GCKeyboard, "GCKeyboard"},
     {System::GFX, "Graphics"},
     {System::Logger, "Logger"},
-    {System::Debugger, "Debugger"},
     {System::SYSCONF, "SYSCONF"},
     {System::DualShockUDPClient, "DualShockUDPClient"},
     {System::FreeLook, "FreeLook"},

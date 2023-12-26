@@ -14,6 +14,7 @@
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
+#include "VideoCommon/XFStateManager.h"
 
 // We really want things like c.w * a.x - a.w * c.x to stay symmetric, so they cancel to zero on
 // degenerate triangles.  Make sure the compiler doesn't optimize in fmas where not requested.
@@ -153,7 +154,8 @@ bool CPUCull::AreAllVerticesCulled(VertexLoaderBase* loader, OpcodeDecoder::Prim
   }
 
   // transform functions need the projection matrix to tranform to clip space
-  Core::System::GetInstance().GetVertexShaderManager().SetProjectionMatrix();
+  auto& system = Core::System::GetInstance();
+  system.GetVertexShaderManager().SetProjectionMatrix(system.GetXFStateManager());
 
   static constexpr Common::EnumMap<CullMode, CullMode::All> cullmode_invert = {
       CullMode::None, CullMode::Front, CullMode::Back, CullMode::All};

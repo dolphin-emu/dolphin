@@ -249,15 +249,14 @@ void GameCubePane::ConnectWidgets()
 {
   // IPL Settings
   connect(m_skip_main_menu, &QCheckBox::stateChanged, this, &GameCubePane::SaveSettings);
-  connect(m_language_combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
-          &GameCubePane::SaveSettings);
+  connect(m_language_combo, &QComboBox::currentIndexChanged, this, &GameCubePane::SaveSettings);
 
   // Device Settings
   for (ExpansionInterface::Slot slot : ExpansionInterface::SLOTS)
   {
-    connect(m_slot_combos[slot], qOverload<int>(&QComboBox::currentIndexChanged), this,
+    connect(m_slot_combos[slot], &QComboBox::currentIndexChanged, this,
             [this, slot] { UpdateButton(slot); });
-    connect(m_slot_combos[slot], qOverload<int>(&QComboBox::currentIndexChanged), this,
+    connect(m_slot_combos[slot], &QComboBox::currentIndexChanged, this,
             &GameCubePane::SaveSettings);
     connect(m_slot_buttons[slot], &QPushButton::clicked, [this, slot] { OnConfigPressed(slot); });
   }

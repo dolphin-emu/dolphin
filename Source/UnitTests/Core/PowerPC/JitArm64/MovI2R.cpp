@@ -98,12 +98,12 @@ TEST(JitArm64, MovI2R_LogImm)
       for (unsigned rotation = 0; rotation < size; ++rotation)
       {
         test.Check64(imm);
-        EXPECT_EQ(static_cast<bool>(LogicalImm(imm, 64)), true);
+        EXPECT_EQ(static_cast<bool>(LogicalImm(imm, GPRSize::B64)), true);
 
         if (size < 64)
         {
           test.Check32(imm);
-          EXPECT_EQ(static_cast<bool>(LogicalImm(static_cast<u32>(imm), 32)), true);
+          EXPECT_EQ(static_cast<bool>(LogicalImm(static_cast<u32>(imm), GPRSize::B32)), true);
         }
 
         imm = (imm >> 63) | (imm << 1);

@@ -344,7 +344,7 @@ void CodeWidget::UpdateCallstack()
 
   const bool success = [this, &stack] {
     Core::CPUThreadGuard guard(m_system);
-    return Dolphin_Debugger::GetCallstack(m_system, guard, stack);
+    return Dolphin_Debugger::GetCallstack(guard, stack);
   }();
 
   if (!success)

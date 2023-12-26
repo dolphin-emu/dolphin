@@ -26,6 +26,7 @@
 
 #include "Core/ActionReplay.h"
 #include "Core/CheatCodes.h"
+#include "Core/Config/AchievementSettings.h"
 #include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -233,6 +234,10 @@ void LoadPatches()
 
 static void ApplyPatches(const Core::CPUThreadGuard& guard, const std::vector<Patch>& patches)
 {
+#ifdef USE_RETRO_ACHIEVEMENTS
+  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+    return;
+#endif  // USE_RETRO_ACHIEVEMENTS
   for (const Patch& patch : patches)
   {
     if (patch.enabled)
@@ -274,6 +279,10 @@ static void ApplyPatches(const Core::CPUThreadGuard& guard, const std::vector<Pa
 static void ApplyMemoryPatches(const Core::CPUThreadGuard& guard,
                                std::span<const std::size_t> memory_patch_indices)
 {
+#ifdef USE_RETRO_ACHIEVEMENTS
+  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+    return;
+#endif  // USE_RETRO_ACHIEVEMENTS
   std::lock_guard lock(s_on_frame_memory_mutex);
   for (std::size_t index : memory_patch_indices)
   {
@@ -286,21 +295,22 @@ static void ApplyMemoryPatches(const Core::CPUThreadGuard& guard,
 // We require at least 2 stack frames, if the stack is shallower than that then it won't work.
 static bool IsStackValid(const Core::CPUThreadGuard& guard)
 {
-  auto& system = Core::System::GetInstance();
-  auto& ppc_state = system.GetPPCState();
+  const auto& ppc_state = guard.GetSystem().GetPPCState();
 
   DEBUG_ASSERT(ppc_state.msr.DR && ppc_state.msr.IR);
 
   // Check the stack pointer
-  u32 SP = ppc_state.gpr[1];
+  const u32 SP = ppc_state.gpr[1];
   if (!PowerPC::MMU::HostIsRAMAddress(guard, SP))
     return false;
 
   // Read the frame pointer from the stack (find 2nd frame from top), assert that it makes sense
-  u32 next_SP = PowerPC::MMU::HostRead_U32(guard, SP);
+  const u32 next_SP = PowerPC::MMU::HostRead_U32(guard, SP);
   if (next_SP <= SP || !PowerPC::MMU::HostIsRAMAddress(guard, next_SP) ||
       !PowerPC::MMU::HostIsRAMAddress(guard, next_SP + 4))
+  {
     return false;
+  }
 
   // Check the link register makes sense (that it points to a valid IBAT address)
   const u32 address = PowerPC::MMU::HostRead_U32(guard, next_SP + 4);
@@ -317,14 +327,12 @@ void AddMemoryPatch(std::size_t index)
 void RemoveMemoryPatch(std::size_t index)
 {
   std::lock_guard lock(s_on_frame_memory_mutex);
-  s_on_frame_memory.erase(std::remove(s_on_frame_memory.begin(), s_on_frame_memory.end(), index),
-                          s_on_frame_memory.end());
+  std::erase(s_on_frame_memory, index);
 }
 
-bool ApplyFramePatches()
+bool ApplyFramePatches(Core::System& system)
 {
-  auto& system = Core::System::GetInstance();
-  auto& ppc_state = system.GetPPCState();
+  const auto& ppc_state = system.GetPPCState();
 
   ASSERT(Core::IsCPUThread());
   Core::CPUThreadGuard guard(system);

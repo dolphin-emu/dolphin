@@ -36,6 +36,7 @@ public:
   static std::unique_ptr<CISOFileReader> Create(File::IOFile file);
 
   BlobType GetBlobType() const override { return BlobType::CISO; }
+  std::unique_ptr<BlobReader> CopyReader() const override;
 
   u64 GetRawSize() const override;
   u64 GetDataSize() const override;

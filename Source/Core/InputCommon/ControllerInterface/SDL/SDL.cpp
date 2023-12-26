@@ -156,6 +156,7 @@ static void EnableSDLLogging()
           log_level = Common::Log::LogLevel::LERROR;
           break;
         case SDL_LOG_PRIORITY_CRITICAL:
+        default:
           log_level = Common::Log::LogLevel::LNOTICE;
           break;
         }
@@ -318,28 +319,6 @@ static constexpr SDLMotionAxisList SDL_AXES_GYRO = {{
 Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index)
     : m_joystick(joystick), m_name(StripWhitespace(GetJoystickName(sdl_index)))
 {
-  // really bad HACKS:
-  // to not use SDL for an XInput device
-  // too many people on the forums pick the SDL device and ask:
-  // "why don't my 360 gamepad triggers/rumble work correctly"
-  // XXX x360 controllers _should_ work on modern SDL2, so it's unclear why they're
-  // still broken. Perhaps it's because we're not pumping window messages, which SDL seems to
-  // expect.
-#ifdef _WIN32
-  // checking the name is probably good (and hacky) enough
-  // but I'll double check with the num of buttons/axes
-  std::string lcasename = GetName();
-  Common::ToLower(&lcasename);
-
-  if ((std::string::npos != lcasename.find("xbox 360")) &&
-      (11 == SDL_JoystickNumButtons(joystick)) && (6 == SDL_JoystickNumAxes(joystick)) &&
-      (1 == SDL_JoystickNumHats(joystick)) && (0 == SDL_JoystickNumBalls(joystick)))
-  {
-    // this device won't be used
-    return;
-  }
-#endif
-
   if (SDL_JoystickNumButtons(joystick) > 255 || SDL_JoystickNumAxes(joystick) > 255 ||
       SDL_JoystickNumHats(joystick) > 255 || SDL_JoystickNumBalls(joystick) > 255)
   {

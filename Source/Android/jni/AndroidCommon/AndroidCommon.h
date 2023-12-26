@@ -19,8 +19,9 @@ jobjectArray VectorToJStringArray(JNIEnv* env, const std::vector<std::string>& v
 template <typename T, typename F>
 jobjectArray VectorToJObjectArray(JNIEnv* env, const std::vector<T>& vector, jclass clazz, F f)
 {
-  jobjectArray result = env->NewObjectArray(vector.size(), clazz, nullptr);
-  for (jsize i = 0; i < vector.size(); ++i)
+  const auto vector_size = static_cast<jsize>(vector.size());
+  jobjectArray result = env->NewObjectArray(vector_size, clazz, nullptr);
+  for (jsize i = 0; i < vector_size; ++i)
   {
     jobject obj = f(env, vector[i]);
     env->SetObjectArrayElement(result, i, obj);

@@ -111,8 +111,9 @@ CEXIIPL::CEXIIPL(Core::System& system) : IEXIDevice(system)
   {
     // Descramble the encrypted section (contains BS1 and BS2)
     Descrambler(&m_rom[0x100], 0x1afe00);
-    // yay for null-terminated strings
-    const std::string_view name{reinterpret_cast<char*>(m_rom.get())};
+
+    const std::string_view name{reinterpret_cast<char*>(m_rom.get()),
+                                strnlen(reinterpret_cast<char*>(m_rom.get()), 0x100)};
     INFO_LOG_FMT(BOOT, "Loaded bootrom: {}", name);
   }
   else
@@ -159,13 +160,15 @@ void CEXIIPL::DoState(PointerWrap& p)
 
 bool CEXIIPL::LoadFileToIPL(const std::string& filename, u32 offset)
 {
+  if (offset >= ROM_SIZE)
+    return false;
+
   File::IOFile stream(filename, "rb");
   if (!stream)
     return false;
 
-  u64 filesize = stream.GetSize();
-
-  if (!stream.ReadBytes(&m_rom[offset], filesize))
+  const u64 filesize = stream.GetSize();
+  if (!stream.ReadBytes(&m_rom[offset], std::min<u64>(filesize, ROM_SIZE - offset)))
     return false;
 
   m_fonts_loaded = true;
@@ -234,8 +237,11 @@ void CEXIIPL::LoadFontFile(const std::string& filename, u32 offset)
   INFO_LOG_FMT(BOOT, "Found IPL dump, loading {} font from {}",
                (offset == 0x1aff00) ? "Shift JIS" : "Windows-1252", ipl_rom_path);
 
-  stream.Seek(offset, File::SeekOrigin::Begin);
-  stream.ReadBytes(&m_rom[offset], fontsize);
+  if (!stream.Seek(offset, File::SeekOrigin::Begin) || !stream.ReadBytes(&m_rom[offset], fontsize))
+  {
+    WARN_LOG_FMT(BOOT, "Failed to read font from IPL dump.");
+    return;
+  }
 
   m_fonts_loaded = true;
 }

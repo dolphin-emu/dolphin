@@ -16,6 +16,7 @@
 #include "Common/BitUtils.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Config/AchievementSettings.h"
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/MMU.h"
@@ -206,6 +207,10 @@ Cheats::NewSearch(const Core::CPUThreadGuard& guard,
                   PowerPC::RequestedAddressSpace address_space, bool aligned,
                   const std::function<bool(const T& value)>& validator)
 {
+#ifdef USE_RETRO_ACHIEVEMENTS
+  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+    return Cheats::SearchErrorCode::DisabledInHardcoreMode;
+#endif  // USE_RETRO_ACHIEVEMENTS
   const u32 data_size = sizeof(T);
   std::vector<Cheats::SearchResult<T>> results;
   Cheats::SearchErrorCode error_code = Cheats::SearchErrorCode::Success;
@@ -217,8 +222,7 @@ Cheats::NewSearch(const Core::CPUThreadGuard& guard,
       return;
     }
 
-    auto& system = Core::System::GetInstance();
-    auto& ppc_state = system.GetPPCState();
+    const auto& ppc_state = guard.GetSystem().GetPPCState();
     if (address_space == PowerPC::RequestedAddressSpace::Virtual && !ppc_state.msr.DR)
     {
       error_code = Cheats::SearchErrorCode::VirtualAddressesCurrentlyNotAccessible;
@@ -269,6 +273,10 @@ Cheats::NextSearch(const Core::CPUThreadGuard& guard,
                    PowerPC::RequestedAddressSpace address_space,
                    const std::function<bool(const T& new_value, const T& old_value)>& validator)
 {
+#ifdef USE_RETRO_ACHIEVEMENTS
+  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+    return Cheats::SearchErrorCode::DisabledInHardcoreMode;
+#endif  // USE_RETRO_ACHIEVEMENTS
   std::vector<Cheats::SearchResult<T>> results;
   Cheats::SearchErrorCode error_code = Cheats::SearchErrorCode::Success;
   Core::RunAsCPUThread([&] {
@@ -279,8 +287,7 @@ Cheats::NextSearch(const Core::CPUThreadGuard& guard,
       return;
     }
 
-    auto& system = Core::System::GetInstance();
-    auto& ppc_state = system.GetPPCState();
+    const auto& ppc_state = guard.GetSystem().GetPPCState();
     if (address_space == PowerPC::RequestedAddressSpace::Virtual && !ppc_state.msr.DR)
     {
       error_code = Cheats::SearchErrorCode::VirtualAddressesCurrentlyNotAccessible;
@@ -424,17 +431,17 @@ MakeCompareFunctionForLastValue(Cheats::CompareType op)
   switch (op)
   {
   case Cheats::CompareType::Equal:
-    return [](const T& new_value, const T& old_value) { return new_value == old_value; };
+    return std::equal_to<T>();
   case Cheats::CompareType::NotEqual:
-    return [](const T& new_value, const T& old_value) { return new_value != old_value; };
+    return std::not_equal_to<T>();
   case Cheats::CompareType::Less:
-    return [](const T& new_value, const T& old_value) { return new_value < old_value; };
+    return std::less<T>();
   case Cheats::CompareType::LessOrEqual:
-    return [](const T& new_value, const T& old_value) { return new_value <= old_value; };
+    return std::less_equal<T>();
   case Cheats::CompareType::Greater:
-    return [](const T& new_value, const T& old_value) { return new_value > old_value; };
+    return std::greater<T>();
   case Cheats::CompareType::GreaterOrEqual:
-    return [](const T& new_value, const T& old_value) { return new_value >= old_value; };
+    return std::greater_equal<T>();
   default:
     DEBUG_ASSERT(false);
     return nullptr;
@@ -444,6 +451,10 @@ MakeCompareFunctionForLastValue(Cheats::CompareType op)
 template <typename T>
 Cheats::SearchErrorCode Cheats::CheatSearchSession<T>::RunSearch(const Core::CPUThreadGuard& guard)
 {
+#ifdef USE_RETRO_ACHIEVEMENTS
+  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+    return Cheats::SearchErrorCode::DisabledInHardcoreMode;
+#endif  // USE_RETRO_ACHIEVEMENTS
   Common::Result<SearchErrorCode, std::vector<SearchResult<T>>> result =
       Cheats::SearchErrorCode::InvalidParameters;
   if (m_filter_type == FilterType::CompareAgainstSpecificValue)
@@ -614,17 +625,15 @@ std::unique_ptr<Cheats::CheatSearchSessionBase> Cheats::CheatSearchSession<T>::C
 
 template <typename T>
 std::unique_ptr<Cheats::CheatSearchSessionBase>
-Cheats::CheatSearchSession<T>::ClonePartial(const std::vector<size_t>& result_indices) const
+Cheats::CheatSearchSession<T>::ClonePartial(const size_t begin_index, const size_t end_index) const
 {
-  const auto& results = m_search_results;
-  std::vector<SearchResult<T>> partial_results;
-  partial_results.reserve(result_indices.size());
-  for (size_t idx : result_indices)
-    partial_results.push_back(results[idx]);
+  if (begin_index == 0 && end_index >= m_search_results.size())
+    return Clone();
 
   auto c =
       std::make_unique<Cheats::CheatSearchSession<T>>(m_memory_ranges, m_address_space, m_aligned);
-  c->m_search_results = std::move(partial_results);
+  c->m_search_results.assign(m_search_results.begin() + begin_index,
+                             m_search_results.begin() + end_index);
   c->m_compare_type = this->m_compare_type;
   c->m_filter_type = this->m_filter_type;
   c->m_value = this->m_value;

@@ -114,7 +114,7 @@ struct ARAddr
 // AR Remote Functions
 void ApplyCodes(std::span<const ARCode> codes)
 {
-  if (!Config::Get(Config::MAIN_ENABLE_CHEATS))
+  if (!Config::AreCheatsEnabled())
     return;
 
   std::lock_guard guard(s_lock);
@@ -143,7 +143,7 @@ void UpdateSyncedCodes(std::span<const ARCode> codes)
 
 std::vector<ARCode> ApplyAndReturnCodes(std::span<const ARCode> codes)
 {
-  if (Config::Get(Config::MAIN_ENABLE_CHEATS))
+  if (Config::AreCheatsEnabled())
   {
     std::lock_guard guard(s_lock);
     s_disable_logging = false;
@@ -158,7 +158,7 @@ std::vector<ARCode> ApplyAndReturnCodes(std::span<const ARCode> codes)
 
 void AddCode(ARCode code)
 {
-  if (!Config::Get(Config::MAIN_ENABLE_CHEATS))
+  if (!Config::AreCheatsEnabled())
     return;
 
   if (code.enabled)
@@ -990,20 +990,18 @@ static bool RunCodeLocked(const Core::CPUThreadGuard& guard, const ARCode& arcod
 
 void RunAllActive(const Core::CPUThreadGuard& cpu_guard)
 {
-  if (!Config::Get(Config::MAIN_ENABLE_CHEATS))
+  if (!Config::AreCheatsEnabled())
     return;
 
   // If the mutex is idle then acquiring it should be cheap, fast mutexes
   // are only atomic ops unless contested. It should be rare for this to
   // be contested.
   std::lock_guard guard(s_lock);
-  s_active_codes.erase(std::remove_if(s_active_codes.begin(), s_active_codes.end(),
-                                      [&cpu_guard](const ARCode& code) {
-                                        bool success = RunCodeLocked(cpu_guard, code);
-                                        LogInfo("\n");
-                                        return !success;
-                                      }),
-                       s_active_codes.end());
+  std::erase_if(s_active_codes, [&cpu_guard](const ARCode& code) {
+    const bool success = RunCodeLocked(cpu_guard, code);
+    LogInfo("\n");
+    return !success;
+  });
   s_disable_logging = true;
 }
 

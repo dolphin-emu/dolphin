@@ -100,15 +100,14 @@ class ProfileDialogPresenter {
             .show()
     }
 
-    private val profileDirectoryName: String
-        get() = if (menuTag.isGCPadMenu) "GCPad" else if (menuTag.isWiimoteMenu) "Wiimote" else throw UnsupportedOperationException()
-
-    private fun getProfileDirectoryPath(stock: Boolean): String =
-        if (stock) {
+    private fun getProfileDirectoryPath(stock: Boolean): String {
+        val profileDirectoryName = menuTag.correspondingEmulatedController.getProfileName()
+        return if (stock) {
             "${DirectoryInitialization.getSysDirectory()}/Profiles/$profileDirectoryName/"
         } else {
             "${DirectoryInitialization.getUserDirectory()}/Config/Profiles/$profileDirectoryName/"
         }
+    }
 
     private fun getProfilePath(profileName: String, stock: Boolean): String =
         getProfileDirectoryPath(stock) + profileName + EXTENSION

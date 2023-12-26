@@ -30,38 +30,18 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
+#include "VideoCommon/XFStateManager.h"
 
 void VertexShaderManager::Init()
 {
   // Initialize state tracking variables
-  m_minmax_transform_matrices_changed.fill(-1);
-  m_minmax_normal_matrices_changed.fill(-1);
-  m_minmax_post_transform_matrices_changed.fill(-1);
-  m_minmax_lights_changed.fill(-1);
-  m_materials_changed = BitSet32(0);
-  m_tex_matrices_changed.fill(false);
-  m_pos_normal_matrix_changed = false;
-  m_projection_changed = true;
-  m_viewport_changed = false;
-  m_tex_mtx_info_changed = false;
-  m_lighting_config_changed = false;
   m_projection_graphics_mod_change = false;
 
-  std::memset(static_cast<void*>(&xfmem), 0, sizeof(xfmem));
   constants = {};
 
   // TODO: should these go inside ResetView()?
   m_viewport_correction = Common::Matrix44::Identity();
   m_projection_matrix = Common::Matrix44::Identity().data;
-
-  dirty = true;
-}
-
-void VertexShaderManager::Dirty()
-{
-  // This function is called after a savestate is loaded.
-  // Any constants that can changed based on settings should be re-calculated
-  m_projection_changed = true;
 
   dirty = true;
 }
@@ -147,11 +127,11 @@ Common::Matrix44 VertexShaderManager::LoadProjectionMatrix()
   return corrected_matrix;
 }
 
-void VertexShaderManager::SetProjectionMatrix()
+void VertexShaderManager::SetProjectionMatrix(XFStateManager& xf_state_manager)
 {
-  if (m_projection_changed || g_freelook_camera.GetController()->IsDirty())
+  if (xf_state_manager.DidProjectionChange() || g_freelook_camera.GetController()->IsDirty())
   {
-    m_projection_changed = false;
+    xf_state_manager.ResetProjection();
     auto corrected_matrix = LoadProjectionMatrix();
     memcpy(constants.projection.data(), corrected_matrix.data.data(), 4 * sizeof(float4));
   }
@@ -178,7 +158,8 @@ bool VertexShaderManager::UseVertexDepthRange()
 
 // Syncs the shader constant buffers with xfmem
 // TODO: A cleaner way to control the matrices without making a mess in the parameters field
-void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
+void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
+                                       XFStateManager& xf_state_manager)
 {
   if (constants.missing_color_hex != g_ActiveConfig.iMissingColorValue)
   {
@@ -192,44 +173,50 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
     dirty = true;
   }
 
-  if (m_minmax_transform_matrices_changed[0] >= 0)
+  const auto per_vertex_transform_matrix_changes =
+      xf_state_manager.GetPerVertexTransformMatrixChanges();
+  if (per_vertex_transform_matrix_changes[0] >= 0)
   {
-    int startn = m_minmax_transform_matrices_changed[0] / 4;
-    int endn = (m_minmax_transform_matrices_changed[1] + 3) / 4;
+    int startn = per_vertex_transform_matrix_changes[0] / 4;
+    int endn = (per_vertex_transform_matrix_changes[1] + 3) / 4;
     memcpy(constants.transformmatrices[startn].data(), &xfmem.posMatrices[startn * 4],
            (endn - startn) * sizeof(float4));
     dirty = true;
-    m_minmax_transform_matrices_changed[0] = m_minmax_transform_matrices_changed[1] = -1;
+    xf_state_manager.ResetPerVertexTransformMatrixChanges();
   }
 
-  if (m_minmax_normal_matrices_changed[0] >= 0)
+  const auto per_vertex_normal_matrices_changed =
+      xf_state_manager.GetPerVertexNormalMatrixChanges();
+  if (per_vertex_normal_matrices_changed[0] >= 0)
   {
-    int startn = m_minmax_normal_matrices_changed[0] / 3;
-    int endn = (m_minmax_normal_matrices_changed[1] + 2) / 3;
+    int startn = per_vertex_normal_matrices_changed[0] / 3;
+    int endn = (per_vertex_normal_matrices_changed[1] + 2) / 3;
     for (int i = startn; i < endn; i++)
     {
       memcpy(constants.normalmatrices[i].data(), &xfmem.normalMatrices[3 * i], 12);
     }
     dirty = true;
-    m_minmax_normal_matrices_changed[0] = m_minmax_normal_matrices_changed[1] = -1;
+    xf_state_manager.ResetPerVertexNormalMatrixChanges();
   }
 
-  if (m_minmax_post_transform_matrices_changed[0] >= 0)
+  const auto post_transform_matrices_changed = xf_state_manager.GetPostTransformMatrixChanges();
+  if (post_transform_matrices_changed[0] >= 0)
   {
-    int startn = m_minmax_post_transform_matrices_changed[0] / 4;
-    int endn = (m_minmax_post_transform_matrices_changed[1] + 3) / 4;
+    int startn = post_transform_matrices_changed[0] / 4;
+    int endn = (post_transform_matrices_changed[1] + 3) / 4;
     memcpy(constants.posttransformmatrices[startn].data(), &xfmem.postMatrices[startn * 4],
            (endn - startn) * sizeof(float4));
     dirty = true;
-    m_minmax_post_transform_matrices_changed[0] = m_minmax_post_transform_matrices_changed[1] = -1;
+    xf_state_manager.ResetPostTransformMatrixChanges();
   }
 
-  if (m_minmax_lights_changed[0] >= 0)
+  const auto light_changes = xf_state_manager.GetLightsChanged();
+  if (light_changes[0] >= 0)
   {
     // TODO: Outdated comment
     // lights don't have a 1 to 1 mapping, the color component needs to be converted to 4 floats
-    int istart = m_minmax_lights_changed[0] / 0x10;
-    int iend = (m_minmax_lights_changed[1] + 15) / 0x10;
+    const int istart = light_changes[0] / 0x10;
+    const int iend = (light_changes[1] + 15) / 0x10;
 
     for (int i = istart; i < iend; ++i)
     {
@@ -282,10 +269,10 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
     }
     dirty = true;
 
-    m_minmax_lights_changed[0] = m_minmax_lights_changed[1] = -1;
+    xf_state_manager.ResetLightsChanged();
   }
 
-  for (int i : m_materials_changed)
+  for (int i : xf_state_manager.GetMaterialChanges())
   {
     u32 data = i >= 2 ? xfmem.matColor[i - 2] : xfmem.ambColor[i];
     constants.materials[i][0] = (data >> 24) & 0xFF;
@@ -294,12 +281,11 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
     constants.materials[i][3] = data & 0xFF;
     dirty = true;
   }
-  m_materials_changed = BitSet32(0);
+  xf_state_manager.ResetMaterialChanges();
 
-  if (m_pos_normal_matrix_changed)
+  if (xf_state_manager.DidPosNormalChange())
   {
-    m_pos_normal_matrix_changed = false;
-
+    xf_state_manager.ResetPosNormalChange();
     const float* pos = &xfmem.posMatrices[g_main_cp_state.matrix_index_a.PosNormalMtxIdx * 4];
     const float* norm =
         &xfmem.normalMatrices[3 * (g_main_cp_state.matrix_index_a.PosNormalMtxIdx & 31)];
@@ -311,9 +297,9 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
     dirty = true;
   }
 
-  if (m_tex_matrices_changed[0])
+  if (xf_state_manager.DidTexMatrixAChange())
   {
-    m_tex_matrices_changed[0] = false;
+    xf_state_manager.ResetTexMatrixAChange();
     const std::array<const float*, 4> pos_matrix_ptrs{
         &xfmem.posMatrices[g_main_cp_state.matrix_index_a.Tex0MtxIdx * 4],
         &xfmem.posMatrices[g_main_cp_state.matrix_index_a.Tex1MtxIdx * 4],
@@ -328,9 +314,9 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
     dirty = true;
   }
 
-  if (m_tex_matrices_changed[1])
+  if (xf_state_manager.DidTexMatrixBChange())
   {
-    m_tex_matrices_changed[1] = false;
+    xf_state_manager.ResetTexMatrixBChange();
     const std::array<const float*, 4> pos_matrix_ptrs{
         &xfmem.posMatrices[g_main_cp_state.matrix_index_b.Tex4MtxIdx * 4],
         &xfmem.posMatrices[g_main_cp_state.matrix_index_b.Tex5MtxIdx * 4],
@@ -345,9 +331,9 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
     dirty = true;
   }
 
-  if (m_viewport_changed)
+  if (xf_state_manager.DidViewportChange())
   {
-    m_viewport_changed = false;
+    xf_state_manager.ResetViewportChange();
 
     // The console GPU places the pixel center at 7/12 unless antialiasing
     // is enabled, while D3D and OpenGL place it at 0.5. See the comment
@@ -421,10 +407,10 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
     }
   }
 
-  if (m_projection_changed || g_freelook_camera.GetController()->IsDirty() ||
+  if (xf_state_manager.DidProjectionChange() || g_freelook_camera.GetController()->IsDirty() ||
       !projection_actions.empty() || m_projection_graphics_mod_change)
   {
-    m_projection_changed = false;
+    xf_state_manager.ResetProjection();
     m_projection_graphics_mod_change = !projection_actions.empty();
 
     auto corrected_matrix = LoadProjectionMatrix();
@@ -436,13 +422,12 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
     }
 
     memcpy(constants.projection.data(), corrected_matrix.data.data(), 4 * sizeof(float4));
-
     dirty = true;
   }
 
-  if (m_tex_mtx_info_changed)
+  if (xf_state_manager.DidTexMatrixInfoChange())
   {
-    m_tex_mtx_info_changed = false;
+    xf_state_manager.ResetTexMatrixInfoChange();
     constants.xfmem_dualTexInfo = xfmem.dualTexTrans.enabled;
     for (size_t i = 0; i < std::size(xfmem.texMtxInfo); i++)
       constants.xfmem_pack1[i][0] = xfmem.texMtxInfo[i].hex;
@@ -452,9 +437,9 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
     dirty = true;
   }
 
-  if (m_lighting_config_changed)
+  if (xf_state_manager.DidLightingConfigChange())
   {
-    m_lighting_config_changed = false;
+    xf_state_manager.ResetLightingConfigChange();
 
     for (size_t i = 0; i < 2; i++)
     {
@@ -464,173 +449,6 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
     constants.xfmem_numColorChans = xfmem.numChan.numColorChans;
     dirty = true;
   }
-}
-
-void VertexShaderManager::InvalidateXFRange(int start, int end)
-{
-  if (((u32)start >= (u32)g_main_cp_state.matrix_index_a.PosNormalMtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_a.PosNormalMtxIdx * 4 + 12) ||
-      ((u32)start >=
-           XFMEM_NORMALMATRICES + ((u32)g_main_cp_state.matrix_index_a.PosNormalMtxIdx & 31) * 3 &&
-       (u32)start < XFMEM_NORMALMATRICES +
-                        ((u32)g_main_cp_state.matrix_index_a.PosNormalMtxIdx & 31) * 3 + 9))
-  {
-    m_pos_normal_matrix_changed = true;
-  }
-
-  if (((u32)start >= (u32)g_main_cp_state.matrix_index_a.Tex0MtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_a.Tex0MtxIdx * 4 + 12) ||
-      ((u32)start >= (u32)g_main_cp_state.matrix_index_a.Tex1MtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_a.Tex1MtxIdx * 4 + 12) ||
-      ((u32)start >= (u32)g_main_cp_state.matrix_index_a.Tex2MtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_a.Tex2MtxIdx * 4 + 12) ||
-      ((u32)start >= (u32)g_main_cp_state.matrix_index_a.Tex3MtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_a.Tex3MtxIdx * 4 + 12))
-  {
-    m_tex_matrices_changed[0] = true;
-  }
-
-  if (((u32)start >= (u32)g_main_cp_state.matrix_index_b.Tex4MtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_b.Tex4MtxIdx * 4 + 12) ||
-      ((u32)start >= (u32)g_main_cp_state.matrix_index_b.Tex5MtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_b.Tex5MtxIdx * 4 + 12) ||
-      ((u32)start >= (u32)g_main_cp_state.matrix_index_b.Tex6MtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_b.Tex6MtxIdx * 4 + 12) ||
-      ((u32)start >= (u32)g_main_cp_state.matrix_index_b.Tex7MtxIdx * 4 &&
-       (u32)start < (u32)g_main_cp_state.matrix_index_b.Tex7MtxIdx * 4 + 12))
-  {
-    m_tex_matrices_changed[1] = true;
-  }
-
-  if (start < XFMEM_POSMATRICES_END)
-  {
-    if (m_minmax_transform_matrices_changed[0] == -1)
-    {
-      m_minmax_transform_matrices_changed[0] = start;
-      m_minmax_transform_matrices_changed[1] =
-          end > XFMEM_POSMATRICES_END ? XFMEM_POSMATRICES_END : end;
-    }
-    else
-    {
-      if (m_minmax_transform_matrices_changed[0] > start)
-        m_minmax_transform_matrices_changed[0] = start;
-
-      if (m_minmax_transform_matrices_changed[1] < end)
-        m_minmax_transform_matrices_changed[1] =
-            end > XFMEM_POSMATRICES_END ? XFMEM_POSMATRICES_END : end;
-    }
-  }
-
-  if (start < XFMEM_NORMALMATRICES_END && end > XFMEM_NORMALMATRICES)
-  {
-    int _start = start < XFMEM_NORMALMATRICES ? 0 : start - XFMEM_NORMALMATRICES;
-    int _end = end < XFMEM_NORMALMATRICES_END ? end - XFMEM_NORMALMATRICES :
-                                                XFMEM_NORMALMATRICES_END - XFMEM_NORMALMATRICES;
-
-    if (m_minmax_normal_matrices_changed[0] == -1)
-    {
-      m_minmax_normal_matrices_changed[0] = _start;
-      m_minmax_normal_matrices_changed[1] = _end;
-    }
-    else
-    {
-      if (m_minmax_normal_matrices_changed[0] > _start)
-        m_minmax_normal_matrices_changed[0] = _start;
-
-      if (m_minmax_normal_matrices_changed[1] < _end)
-        m_minmax_normal_matrices_changed[1] = _end;
-    }
-  }
-
-  if (start < XFMEM_POSTMATRICES_END && end > XFMEM_POSTMATRICES)
-  {
-    int _start = start < XFMEM_POSTMATRICES ? XFMEM_POSTMATRICES : start - XFMEM_POSTMATRICES;
-    int _end = end < XFMEM_POSTMATRICES_END ? end - XFMEM_POSTMATRICES :
-                                              XFMEM_POSTMATRICES_END - XFMEM_POSTMATRICES;
-
-    if (m_minmax_post_transform_matrices_changed[0] == -1)
-    {
-      m_minmax_post_transform_matrices_changed[0] = _start;
-      m_minmax_post_transform_matrices_changed[1] = _end;
-    }
-    else
-    {
-      if (m_minmax_post_transform_matrices_changed[0] > _start)
-        m_minmax_post_transform_matrices_changed[0] = _start;
-
-      if (m_minmax_post_transform_matrices_changed[1] < _end)
-        m_minmax_post_transform_matrices_changed[1] = _end;
-    }
-  }
-
-  if (start < XFMEM_LIGHTS_END && end > XFMEM_LIGHTS)
-  {
-    int _start = start < XFMEM_LIGHTS ? XFMEM_LIGHTS : start - XFMEM_LIGHTS;
-    int _end = end < XFMEM_LIGHTS_END ? end - XFMEM_LIGHTS : XFMEM_LIGHTS_END - XFMEM_LIGHTS;
-
-    if (m_minmax_lights_changed[0] == -1)
-    {
-      m_minmax_lights_changed[0] = _start;
-      m_minmax_lights_changed[1] = _end;
-    }
-    else
-    {
-      if (m_minmax_lights_changed[0] > _start)
-        m_minmax_lights_changed[0] = _start;
-
-      if (m_minmax_lights_changed[1] < _end)
-        m_minmax_lights_changed[1] = _end;
-    }
-  }
-}
-
-void VertexShaderManager::SetTexMatrixChangedA(u32 Value)
-{
-  if (g_main_cp_state.matrix_index_a.Hex != Value)
-  {
-    g_vertex_manager->Flush();
-    if (g_main_cp_state.matrix_index_a.PosNormalMtxIdx != (Value & 0x3f))
-      m_pos_normal_matrix_changed = true;
-    m_tex_matrices_changed[0] = true;
-    g_main_cp_state.matrix_index_a.Hex = Value;
-  }
-}
-
-void VertexShaderManager::SetTexMatrixChangedB(u32 Value)
-{
-  if (g_main_cp_state.matrix_index_b.Hex != Value)
-  {
-    g_vertex_manager->Flush();
-    m_tex_matrices_changed[1] = true;
-    g_main_cp_state.matrix_index_b.Hex = Value;
-  }
-}
-
-void VertexShaderManager::SetViewportChanged()
-{
-  m_viewport_changed = true;
-}
-
-void VertexShaderManager::SetProjectionChanged()
-{
-  m_projection_changed = true;
-}
-
-void VertexShaderManager::SetMaterialColorChanged(int index)
-{
-  m_materials_changed[index] = true;
-}
-
-void VertexShaderManager::SetTexMatrixInfoChanged(int index)
-{
-  // TODO: Should we track this with more precision, like which indices changed?
-  // The whole vertex constants are probably going to be uploaded regardless.
-  m_tex_mtx_info_changed = true;
-}
-
-void VertexShaderManager::SetLightingConfigChanged()
-{
-  m_lighting_config_changed = true;
 }
 
 void VertexShaderManager::TransformToClipSpace(const float* data, float* out, u32 MtxIdx)
@@ -662,23 +480,10 @@ void VertexShaderManager::DoState(PointerWrap& p)
   p.Do(m_viewport_correction);
   g_freelook_camera.DoState(p);
 
-  p.DoArray(m_minmax_transform_matrices_changed);
-  p.DoArray(m_minmax_normal_matrices_changed);
-  p.DoArray(m_minmax_post_transform_matrices_changed);
-  p.DoArray(m_minmax_lights_changed);
-
-  p.Do(m_materials_changed);
-  p.DoArray(m_tex_matrices_changed);
-  p.Do(m_pos_normal_matrix_changed);
-  p.Do(m_projection_changed);
-  p.Do(m_viewport_changed);
-  p.Do(m_tex_mtx_info_changed);
-  p.Do(m_lighting_config_changed);
-
   p.Do(constants);
 
   if (p.IsReadMode())
   {
-    Dirty();
+    dirty = true;
   }
 }

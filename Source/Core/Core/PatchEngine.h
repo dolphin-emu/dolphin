@@ -13,6 +13,10 @@ namespace Common
 {
 class IniFile;
 }
+namespace Core
+{
+class System;
+}
 
 namespace PatchEngine
 {
@@ -57,7 +61,7 @@ void LoadPatches();
 void AddMemoryPatch(std::size_t index);
 void RemoveMemoryPatch(std::size_t index);
 
-bool ApplyFramePatches();
+bool ApplyFramePatches(Core::System& system);
 void Shutdown();
 void Reload();
 

@@ -3,8 +3,10 @@
 
 #pragma once
 
+#include <array>
 #include <map>
 #include <string>
+#include <variant>
 
 #include <picojson.h>
 
@@ -14,22 +16,36 @@ namespace VideoCommon
 {
 struct ShaderProperty
 {
-  // "SamplerShared" denotes that the sampler
-  // already exists outside of the shader source
-  // (ex: in the Dolphin defined pixel shader)
-  // "Main" is the first entry in a shared sampler array
-  // and "Additional" denotes a subsequent entry
-  // in the array
-  enum class Type
+  struct RGB
   {
-    Type_Undefined,
-    Type_SamplerArrayShared_Main,
-    Type_SamplerArrayShared_Additional,
-    Type_Sampler2D,
-    Type_SamplerCube,
-    Type_Max = Type_SamplerCube
+    std::array<float, 3> value;
   };
-  Type m_type;
+
+  struct RGBA
+  {
+    std::array<float, 4> value;
+  };
+
+  struct Sampler2D
+  {
+    CustomAssetLibrary::AssetID value;
+  };
+
+  struct Sampler2DArray
+  {
+    CustomAssetLibrary::AssetID value;
+  };
+
+  struct SamplerCube
+  {
+    CustomAssetLibrary::AssetID value;
+  };
+
+  using Value = std::variant<s32, std::array<s32, 2>, std::array<s32, 3>, std::array<s32, 4>, float,
+                             std::array<float, 2>, std::array<float, 3>, std::array<float, 4>, bool,
+                             RGB, RGBA, Sampler2D, Sampler2DArray, SamplerCube>;
+
+  Value m_default;
   std::string m_description;
 };
 struct PixelShaderData

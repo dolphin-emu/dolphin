@@ -95,6 +95,8 @@ private:
   void OnInsertBLR();
   void OnInsertNOP();
   void OnReplaceInstruction();
+  void OnAssembleInstruction();
+  void DoPatchInstruction(bool assemble);
   void OnRestoreInstruction();
 
   void CalculateBranchIndentation();

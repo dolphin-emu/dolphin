@@ -6,13 +6,13 @@
 #include <array>
 #include <bit>
 #include <limits>
-#include <vector>
 
 #include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+#include "Common/SmallVector.h"
 #include "Common/x64Emitter.h"
 
 #include "Core/CoreTiming.h"
@@ -2723,7 +2723,7 @@ void Jit64::twX(UGeckoInstruction inst)
   }
 
   constexpr std::array<CCFlags, 5> conditions{{CC_A, CC_B, CC_E, CC_G, CC_L}};
-  std::vector<FixupBranch> fixups;
+  Common::SmallVector<FixupBranch, conditions.size()> fixups;
 
   for (size_t i = 0; i < conditions.size(); i++)
   {
@@ -2752,6 +2752,7 @@ void Jit64::twX(UGeckoInstruction inst)
     gpr.Flush();
     fpr.Flush();
 
+    MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
     WriteExceptionExit();
 
     SwitchToNearCode();

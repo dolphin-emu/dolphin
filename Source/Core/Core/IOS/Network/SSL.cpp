@@ -281,12 +281,12 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
 
       ssl->hostname = hostname;
       ssl->active = true;
-      WriteReturnValue(freeSSL, BufferIn);
+      WriteReturnValue(memory, freeSSL, BufferIn);
     }
     else
     {
     _SSL_NEW_ERROR:
-      WriteReturnValue(SSL_ERR_FAILED, BufferIn);
+      WriteReturnValue(memory, SSL_ERR_FAILED, BufferIn);
     }
 
     INFO_LOG_FMT(IOS_SSL,
@@ -321,11 +321,11 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
 
       ssl->active = false;
 
-      WriteReturnValue(SSL_OK, BufferIn);
+      WriteReturnValue(memory, SSL_OK, BufferIn);
     }
     else
     {
-      WriteReturnValue(SSL_ERR_ID, BufferIn);
+      WriteReturnValue(memory, SSL_ERR_ID, BufferIn);
     }
     INFO_LOG_FMT(IOS_SSL,
                  "IOCTLV_NET_SSL_SHUTDOWN "
@@ -361,19 +361,19 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
 
       if (ret)
       {
-        WriteReturnValue(SSL_ERR_FAILED, BufferIn);
+        WriteReturnValue(memory, SSL_ERR_FAILED, BufferIn);
       }
       else
       {
         mbedtls_ssl_conf_ca_chain(&ssl->config, &ssl->cacert, nullptr);
-        WriteReturnValue(SSL_OK, BufferIn);
+        WriteReturnValue(memory, SSL_OK, BufferIn);
       }
 
       INFO_LOG_FMT(IOS_SSL, "IOCTLV_NET_SSL_SETROOTCA = {}", ret);
     }
     else
     {
-      WriteReturnValue(SSL_ERR_ID, BufferIn);
+      WriteReturnValue(memory, SSL_ERR_ID, BufferIn);
     }
     break;
   }
@@ -407,19 +407,19 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
       {
         mbedtls_x509_crt_free(&ssl->clicert);
         mbedtls_pk_free(&ssl->pk);
-        WriteReturnValue(SSL_ERR_FAILED, BufferIn);
+        WriteReturnValue(memory, SSL_ERR_FAILED, BufferIn);
       }
       else
       {
         mbedtls_ssl_conf_own_cert(&ssl->config, &ssl->clicert, &ssl->pk);
-        WriteReturnValue(SSL_OK, BufferIn);
+        WriteReturnValue(memory, SSL_OK, BufferIn);
       }
 
       INFO_LOG_FMT(IOS_SSL, "IOCTLV_NET_SSL_SETBUILTINCLIENTCERT = ({}, {})", ret, pk_ret);
     }
     else
     {
-      WriteReturnValue(SSL_ERR_ID, BufferIn);
+      WriteReturnValue(memory, SSL_ERR_ID, BufferIn);
       INFO_LOG_FMT(IOS_SSL, "IOCTLV_NET_SSL_SETBUILTINCLIENTCERT invalid sslID = {}", sslID);
     }
     break;
@@ -442,11 +442,11 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
       mbedtls_pk_free(&ssl->pk);
 
       mbedtls_ssl_conf_own_cert(&ssl->config, nullptr, nullptr);
-      WriteReturnValue(SSL_OK, BufferIn);
+      WriteReturnValue(memory, SSL_OK, BufferIn);
     }
     else
     {
-      WriteReturnValue(SSL_ERR_ID, BufferIn);
+      WriteReturnValue(memory, SSL_ERR_ID, BufferIn);
       INFO_LOG_FMT(IOS_SSL, "IOCTLV_NET_SSL_SETBUILTINCLIENTCERT invalid sslID = {}", sslID);
     }
     break;
@@ -467,18 +467,18 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
       if (ret)
       {
         mbedtls_x509_crt_free(&ssl->clicert);
-        WriteReturnValue(SSL_ERR_FAILED, BufferIn);
+        WriteReturnValue(memory, SSL_ERR_FAILED, BufferIn);
       }
       else
       {
         mbedtls_ssl_conf_ca_chain(&ssl->config, &ssl->cacert, nullptr);
-        WriteReturnValue(SSL_OK, BufferIn);
+        WriteReturnValue(memory, SSL_OK, BufferIn);
       }
       INFO_LOG_FMT(IOS_SSL, "IOCTLV_NET_SSL_SETBUILTINROOTCA = {}", ret);
     }
     else
     {
-      WriteReturnValue(SSL_ERR_ID, BufferIn);
+      WriteReturnValue(memory, SSL_ERR_ID, BufferIn);
     }
     INFO_LOG_FMT(IOS_SSL,
                  "IOCTLV_NET_SSL_SETBUILTINROOTCA "
@@ -500,11 +500,11 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
       ssl->hostfd = GetEmulationKernel().GetSocketManager()->GetHostSocket(ssl->sockfd);
       INFO_LOG_FMT(IOS_SSL, "IOCTLV_NET_SSL_CONNECT socket = {}", ssl->sockfd);
       mbedtls_ssl_set_bio(&ssl->ctx, ssl, SSLSendWithoutSNI, SSLRecv, nullptr);
-      WriteReturnValue(SSL_OK, BufferIn);
+      WriteReturnValue(memory, SSL_OK, BufferIn);
     }
     else
     {
-      WriteReturnValue(SSL_ERR_ID, BufferIn);
+      WriteReturnValue(memory, SSL_ERR_ID, BufferIn);
     }
     INFO_LOG_FMT(IOS_SSL,
                  "IOCTLV_NET_SSL_CONNECT "
@@ -526,7 +526,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
     }
     else
     {
-      WriteReturnValue(SSL_ERR_ID, BufferIn);
+      WriteReturnValue(memory, SSL_ERR_ID, BufferIn);
     }
     break;
   }
@@ -541,7 +541,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
     }
     else
     {
-      WriteReturnValue(SSL_ERR_ID, BufferIn);
+      WriteReturnValue(memory, SSL_ERR_ID, BufferIn);
     }
     INFO_LOG_FMT(IOS_SSL,
                  "IOCTLV_NET_SSL_WRITE "
@@ -565,7 +565,7 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
     }
     else
     {
-      WriteReturnValue(SSL_ERR_ID, BufferIn);
+      WriteReturnValue(memory, SSL_ERR_ID, BufferIn);
     }
 
     INFO_LOG_FMT(IOS_SSL,
@@ -582,11 +582,11 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
     int sslID = memory.Read_U32(BufferOut) - 1;
     if (IsSSLIDValid(sslID))
     {
-      WriteReturnValue(SSL_OK, BufferIn);
+      WriteReturnValue(memory, SSL_OK, BufferIn);
     }
     else
     {
-      WriteReturnValue(SSL_ERR_ID, BufferIn);
+      WriteReturnValue(memory, SSL_ERR_ID, BufferIn);
     }
     INFO_LOG_FMT(IOS_SSL,
                  "IOCTLV_NET_SSL_SETROOTCADEFAULT "
@@ -610,11 +610,11 @@ std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
     int sslID = memory.Read_U32(BufferOut) - 1;
     if (IsSSLIDValid(sslID))
     {
-      WriteReturnValue(SSL_OK, BufferIn);
+      WriteReturnValue(memory, SSL_OK, BufferIn);
     }
     else
     {
-      WriteReturnValue(SSL_ERR_ID, BufferIn);
+      WriteReturnValue(memory, SSL_ERR_ID, BufferIn);
     }
     break;
   }

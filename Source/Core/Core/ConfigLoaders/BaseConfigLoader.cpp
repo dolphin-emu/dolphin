@@ -80,7 +80,6 @@ const std::map<Config::System, int> system_to_ini = {
     {Config::System::GCKeyboard, F_GCKEYBOARDCONFIG_IDX},
     {Config::System::GFX, F_GFXCONFIG_IDX},
     {Config::System::Logger, F_LOGGERCONFIG_IDX},
-    {Config::System::Debugger, F_DEBUGGERCONFIG_IDX},
     {Config::System::DualShockUDPClient, F_DUALSHOCKUDPCLIENTCONFIG_IDX},
     {Config::System::FreeLook, F_FREELOOKCONFIG_IDX},
     {Config::System::Achievements, F_RETROACHIEVEMENTSCONFIG_IDX},

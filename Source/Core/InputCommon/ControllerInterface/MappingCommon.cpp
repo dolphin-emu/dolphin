@@ -144,8 +144,7 @@ void RemoveSpuriousTriggerCombinations(
     });
   };
 
-  detections->erase(std::remove_if(detections->begin(), detections->end(), is_spurious),
-                    detections->end());
+  std::erase_if(*detections, is_spurious);
 }
 
 }  // namespace ciface::MappingCommon

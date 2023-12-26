@@ -51,7 +51,7 @@ void ColorCorrectionConfigWindow::Create()
       "Controls the base luminance of a paper white surface in nits. Useful for adjusting to "
       "different environmental lighting conditions when using a HDR display.<br><br>HDR output is "
       "required for this setting to take effect.<br><br><dolphin_emphasis>If unsure, leave this at "
-      "200.</dolphin_emphasis>");
+      "203.</dolphin_emphasis>");
 
   // Color Space:
 

@@ -47,6 +47,7 @@ void Jit64::rfi(UGeckoInstruction inst)
 
   gpr.Flush();
   fpr.Flush();
+
   // See Interpreter rfi for details
   const u32 mask = 0x87C0FFFF;
   const u32 clearMSR13 = 0xFFFBFFFF;  // Mask used to clear the bit MSR[13]
@@ -56,7 +57,9 @@ void Jit64::rfi(UGeckoInstruction inst)
   AND(32, R(RSCRATCH), Imm32(mask & clearMSR13));
   OR(32, PPCSTATE(msr), R(RSCRATCH));
 
-  EmitStoreMembase(R(RSCRATCH), RSCRATCH2);
+  // Call MSRUpdated to update feature_flags. Only the bits that come from SRR1
+  // are relevant for this, so it's fine to pass in RSCRATCH in place of msr.
+  MSRUpdated(R(RSCRATCH), RSCRATCH2);
 
   // NPC = SRR0;
   MOV(32, R(RSCRATCH), PPCSTATE_SRR0);

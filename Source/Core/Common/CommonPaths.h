@@ -94,6 +94,7 @@
 #define DYNAMICINPUT_DIR "DynamicInputTextures"
 #define GRAPHICSMOD_DIR "GraphicMods"
 #define WIISDSYNC_DIR "WiiSDSync"
+#define ASSEMBLY_DIR "SavedAssembly"
 
 // This one is only used to remove it if it was present
 #define SHADERCACHE_LEGACY_DIR "ShaderCache"
@@ -108,7 +109,6 @@
 #define WIIPAD_CONFIG "WiimoteNew.ini"
 #define GCKEYBOARD_CONFIG "GCKeyNew.ini"
 #define GFX_CONFIG "GFX.ini"
-#define DEBUGGER_CONFIG "Debugger.ini"
 #define LOGGER_CONFIG "Logger.ini"
 #define DUALSHOCKUDPCLIENT_CONFIG "DSUClient.ini"
 #define FREELOOK_CONFIG "FreeLook.ini"

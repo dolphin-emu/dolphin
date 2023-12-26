@@ -14,6 +14,8 @@
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/StringUtil.h"
+#include "Core/Config/AchievementSettings.h"
+#include "Core/Core.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/FS/FileSystem.h"
@@ -234,13 +236,23 @@ static void SplitAt(BuilderContentSource* before, BuilderContentSource* after, u
   after->m_offset += before->m_size;
   after->m_size = end - split_at;
   if (std::holds_alternative<ContentFile>(after->m_source))
+  {
     std::get<ContentFile>(after->m_source).m_offset += before->m_size;
-  else if (std::holds_alternative<const u8*>(after->m_source))
-    std::get<const u8*>(after->m_source) += before->m_size;
+  }
+  else if (std::holds_alternative<ContentMemory>(after->m_source))
+  {
+    after->m_source = std::make_shared<std::vector<u8>>(
+        std::get<ContentMemory>(after->m_source)->begin() + before->m_size,
+        std::get<ContentMemory>(after->m_source)->end());
+  }
   else if (std::holds_alternative<ContentPartition>(after->m_source))
+  {
     std::get<ContentPartition>(after->m_source).m_offset += before->m_size;
+  }
   else if (std::holds_alternative<ContentVolume>(after->m_source))
+  {
     std::get<ContentVolume>(after->m_source).m_offset += before->m_size;
+  }
 }
 
 static void ApplyPatchToFile(const Patch& patch, DiscIO::FSTBuilderNode* file_node,
@@ -479,8 +491,8 @@ static void ApplyFolderPatchToFST(const Patch& patch, const Folder& folder,
   ApplyFolderPatchToFST(patch, folder, fst, dol_node, folder.m_disc, folder.m_external);
 }
 
-void ApplyPatchesToFiles(const std::vector<Patch>& patches, PatchIndex index,
-                         std::vector<DiscIO::FSTBuilderNode>* fst, DiscIO::FSTBuilderNode* dol_node)
+void ApplyPatchesToFiles(std::span<const Patch> patches, PatchIndex index,
+                         std::vector<FSTBuilderNode>* fst, FSTBuilderNode* dol_node)
 {
   for (const auto& patch : patches)
   {
@@ -498,7 +510,7 @@ void ApplyPatchesToFiles(const std::vector<Patch>& patches, PatchIndex index,
 }
 
 static bool MemoryMatchesAt(const Core::CPUThreadGuard& guard, u32 offset,
-                            const std::vector<u8>& value)
+                            std::span<const u8> value)
 {
   for (u32 i = 0; i < value.size(); ++i)
   {
@@ -510,15 +522,20 @@ static bool MemoryMatchesAt(const Core::CPUThreadGuard& guard, u32 offset,
 }
 
 static void ApplyMemoryPatch(const Core::CPUThreadGuard& guard, u32 offset,
-                             const std::vector<u8>& value, const std::vector<u8>& original)
+                             std::span<const u8> value, std::span<const u8> original)
 {
+#ifdef USE_RETRO_ACHIEVEMENTS
+  if (::Config::Get(::Config::RA_HARDCORE_ENABLED))
+    return;
+#endif  // USE_RETRO_ACHIEVEMENTS
+
   if (value.empty())
     return;
 
   if (!original.empty() && !MemoryMatchesAt(guard, offset, original))
     return;
 
-  auto& system = Core::System::GetInstance();
+  auto& system = guard.GetSystem();
   const u32 size = static_cast<u32>(value.size());
   for (u32 i = 0; i < size; ++i)
     PowerPC::MMU::HostTryWriteU8(guard, value[i], offset + i);
@@ -574,7 +591,7 @@ static void ApplyOcarinaMemoryPatch(const Core::CPUThreadGuard& guard, const Pat
   if (value.empty())
     return;
 
-  auto& system = Core::System::GetInstance();
+  auto& system = guard.GetSystem();
   for (u32 i = 0; i < length; i += 4)
   {
     // first find the pattern
@@ -606,10 +623,10 @@ static void ApplyOcarinaMemoryPatch(const Core::CPUThreadGuard& guard, const Pat
   }
 }
 
-void ApplyGeneralMemoryPatches(const Core::CPUThreadGuard& guard, const std::vector<Patch>& patches)
+void ApplyGeneralMemoryPatches(const Core::CPUThreadGuard& guard, std::span<const Patch> patches)
 {
-  auto& system = Core::System::GetInstance();
-  auto& system_memory = system.GetMemory();
+  const auto& system = guard.GetSystem();
+  const auto& system_memory = system.GetMemory();
 
   for (const auto& patch : patches)
   {
@@ -626,8 +643,8 @@ void ApplyGeneralMemoryPatches(const Core::CPUThreadGuard& guard, const std::vec
   }
 }
 
-void ApplyApploaderMemoryPatches(const Core::CPUThreadGuard& guard,
-                                 const std::vector<Patch>& patches, u32 ram_address, u32 ram_length)
+void ApplyApploaderMemoryPatches(const Core::CPUThreadGuard& guard, std::span<const Patch> patches,
+                                 u32 ram_address, u32 ram_length)
 {
   for (const auto& patch : patches)
   {
@@ -644,8 +661,7 @@ void ApplyApploaderMemoryPatches(const Core::CPUThreadGuard& guard,
   }
 }
 
-std::optional<SavegameRedirect>
-ExtractSavegameRedirect(const std::vector<Patch>& riivolution_patches)
+std::optional<SavegameRedirect> ExtractSavegameRedirect(std::span<const Patch> riivolution_patches)
 {
   for (const auto& patch : riivolution_patches)
   {

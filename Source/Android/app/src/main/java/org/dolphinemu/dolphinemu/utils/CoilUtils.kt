@@ -73,7 +73,7 @@ object CoilUtils {
         }
         .memoryCache {
             MemoryCache.Builder(DolphinApplication.getAppContext())
-                .maxSizePercent(0.25)
+                .maxSizePercent(0.9)
                 .build()
         }
         .build()

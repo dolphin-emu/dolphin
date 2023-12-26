@@ -71,6 +71,7 @@ public:
   void OnTraversalStateChanged(Common::TraversalClient::State state) override;
   void OnGameStartAborted() override;
   void OnGolferChanged(bool is_golfer, const std::string& golfer_name) override;
+  void OnTtlDetermined(u8 ttl) override;
 
   void OnIndexAdded(bool success, const std::string error) override;
   void OnIndexRefreshFailed(const std::string error) override;

@@ -589,7 +589,7 @@ void Interpreter::UpdateSR16(s16 value, bool carry, bool overflow, bool over_s32
   }
 }
 
-static constexpr bool IsProperlySignExtended(u64 val)
+[[maybe_unused]] static constexpr bool IsProperlySignExtended(u64 val)
 {
   const u64 topbits = val & 0xffff'ff80'0000'0000ULL;
   return (topbits == 0) || (0xffff'ff80'0000'0000ULL == topbits);

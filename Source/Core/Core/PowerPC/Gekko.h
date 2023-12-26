@@ -926,6 +926,13 @@ enum
   EXCEPTION_FAKE_MEMCHECK_HIT = 0x00000200,
 };
 
+enum CPUEmuFeatureFlags : u32
+{
+  FEATURE_FLAG_MSR_DR = 1 << 0,
+  FEATURE_FLAG_MSR_IR = 1 << 1,
+  FEATURE_FLAG_PERFMON = 1 << 2,
+};
+
 constexpr s32 SignExt16(s16 x)
 {
   return (s32)x;

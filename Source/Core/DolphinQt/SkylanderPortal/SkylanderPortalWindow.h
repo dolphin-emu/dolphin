@@ -14,7 +14,8 @@
 #include <QWidget>
 
 #include "Core/Core.h"
-#include "Core/IOS/USB/Emulated/Skylander.h"
+#include "Core/IOS/USB/Emulated/Skylanders/Skylander.h"
+#include "Core/IOS/USB/Emulated/Skylanders/SkylanderFigure.h"
 
 class QCheckBox;
 class QGroupBox;
@@ -64,6 +65,7 @@ private:
   void LoadFromFile();
   void ClearSlot(u8 slot);
   void CreateSkylanderAdvanced();
+  void ModifySkylander();
 
   // Behind the scenes
   void OnEmulationStateChanged(Core::State state);
@@ -74,15 +76,15 @@ private:
   void UpdateSlotNames();
 
   // Helpers
-  bool PassesFilter(QString name, u16 id, u16 var);
-  QString GetFilePath(u16 id, u16 var);
-  u8 GetCurrentSlot();
-  int GetElementRadio();
-  int GetTypeRadio();
-  QBrush GetBaseColor(std::pair<const u16, const u16> ids, bool dark_theme);
-  int GetGameID(Game game);
-  int GetElementID(Element elem);
-  int GetTypeID(Type type);
+  bool PassesFilter(const QString& name, u16 id, u16 var) const;
+  QString GetFilePath(u16 id, u16 var) const;
+  u8 GetCurrentSlot() const;
+  int GetElementRadio() const;
+  int GetTypeRadio() const;
+  static QBrush GetBaseColor(std::pair<const u16, const u16> ids, bool dark_theme);
+  static int GetGameID(Game game);
+  static int GetElementID(Element elem);
+  static int GetTypeID(Type type);
 
   bool m_emulating;
   QCheckBox* m_enabled_checkbox;

@@ -3,32 +3,137 @@
 
 #include "VideoCommon/Assets/MaterialAsset.h"
 
+#include <algorithm>
+#include <string_view>
 #include <vector>
 
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
+#include "Common/VariantUtil.h"
 #include "VideoCommon/Assets/CustomAssetLibrary.h"
+#include "VideoCommon/ShaderGenCommon.h"
 
 namespace VideoCommon
 {
 namespace
 {
-bool ParsePropertyValue(const CustomAssetLibrary::AssetID& asset_id, MaterialProperty::Type type,
-                        const picojson::value& json_value,
-                        std::optional<MaterialProperty::Value>* value)
+// While not optimal, we pad our data to match std140 shader requirements
+// this memory constant indicates the memory stride for a single uniform
+// regardless of data type
+constexpr std::size_t MemorySize = sizeof(float) * 4;
+
+template <typename ElementType, std::size_t ElementCount>
+bool ParseNumeric(const CustomAssetLibrary::AssetID& asset_id, const picojson::value& json_value,
+                  std::string_view code_name, MaterialProperty::Value* value)
 {
-  switch (type)
+  static_assert(ElementCount <= 4, "Numeric data expected to be four elements or less");
+  if constexpr (ElementCount == 1)
   {
-  case MaterialProperty::Type::Type_TextureAsset:
-  {
-    if (json_value.is<std::string>())
+    if (!json_value.is<double>())
     {
-      *value = json_value.to_str();
+      ERROR_LOG_FMT(VIDEO,
+                    "Asset id '{}' material has attribute '{}' where "
+                    "a double was expected but not provided.",
+                    asset_id, code_name);
+      return false;
+    }
+
+    *value = static_cast<ElementType>(json_value.get<double>());
+  }
+  else
+  {
+    if (!json_value.is<picojson::array>())
+    {
+      ERROR_LOG_FMT(VIDEO,
+                    "Asset id '{}' material has attribute '{}' where "
+                    "an array was expected but not provided.",
+                    asset_id, code_name);
+      return false;
+    }
+
+    const auto json_data = json_value.get<picojson::array>();
+
+    if (json_data.size() != ElementCount)
+    {
+      ERROR_LOG_FMT(VIDEO,
+                    "Asset id '{}' material has attribute '{}' with incorrect number "
+                    "of elements, expected {}",
+                    asset_id, code_name, ElementCount);
+      return false;
+    }
+
+    if (!std::all_of(json_data.begin(), json_data.end(),
+                     [](const picojson::value& v) { return v.is<double>(); }))
+    {
+      ERROR_LOG_FMT(VIDEO,
+                    "Asset id '{}' material has attribute '{}' where "
+                    "all elements are not of type double.",
+                    asset_id, code_name);
+      return false;
+    }
+
+    std::array<ElementType, ElementCount> data;
+    for (std::size_t i = 0; i < ElementCount; i++)
+    {
+      data[i] = static_cast<ElementType>(json_data[i].get<double>());
+    }
+    *value = std::move(data);
+  }
+
+  return true;
+}
+bool ParsePropertyValue(const CustomAssetLibrary::AssetID& asset_id,
+                        const picojson::value& json_value, std::string_view code_name,
+                        std::string_view type, MaterialProperty::Value* value)
+{
+  if (type == "int")
+  {
+    return ParseNumeric<s32, 1>(asset_id, json_value, code_name, value);
+  }
+  else if (type == "int2")
+  {
+    return ParseNumeric<s32, 2>(asset_id, json_value, code_name, value);
+  }
+  else if (type == "int3")
+  {
+    return ParseNumeric<s32, 3>(asset_id, json_value, code_name, value);
+  }
+  else if (type == "int4")
+  {
+    return ParseNumeric<s32, 4>(asset_id, json_value, code_name, value);
+  }
+  else if (type == "float")
+  {
+    return ParseNumeric<float, 1>(asset_id, json_value, code_name, value);
+  }
+  else if (type == "float2")
+  {
+    return ParseNumeric<float, 2>(asset_id, json_value, code_name, value);
+  }
+  else if (type == "float3")
+  {
+    return ParseNumeric<float, 3>(asset_id, json_value, code_name, value);
+  }
+  else if (type == "float4")
+  {
+    return ParseNumeric<float, 4>(asset_id, json_value, code_name, value);
+  }
+  else if (type == "bool")
+  {
+    if (json_value.is<bool>())
+    {
+      *value = json_value.get<bool>();
       return true;
     }
   }
-  break;
-  };
+  else if (type == "texture_asset")
+  {
+    if (json_value.is<std::string>())
+    {
+      *value = json_value.get<std::string>();
+      return true;
+    }
+  }
 
   ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse the json, value is not valid for type '{}'",
                 asset_id, type);
@@ -67,18 +172,6 @@ bool ParseMaterialProperties(const CustomAssetLibrary::AssetID& asset_id,
     }
     std::string type = type_iter->second.to_str();
     Common::ToLower(&type);
-    if (type == "texture_asset")
-    {
-      property.m_type = MaterialProperty::Type::Type_TextureAsset;
-    }
-    else
-    {
-      ERROR_LOG_FMT(VIDEO,
-                    "Asset '{}' failed to parse the json, value entry 'type' is "
-                    "an invalid option",
-                    asset_id);
-      return false;
-    }
 
     const auto code_name_iter = value_data_obj.find("code_name");
     if (code_name_iter == value_data_obj.end())
@@ -102,8 +195,11 @@ bool ParseMaterialProperties(const CustomAssetLibrary::AssetID& asset_id,
     const auto value_iter = value_data_obj.find("value");
     if (value_iter != value_data_obj.end())
     {
-      if (!ParsePropertyValue(asset_id, property.m_type, value_iter->second, &property.m_value))
+      if (!ParsePropertyValue(asset_id, value_iter->second, property.m_code_name, type,
+                              &property.m_value))
+      {
         return false;
+      }
     }
 
     material_property->push_back(std::move(property));
@@ -111,7 +207,90 @@ bool ParseMaterialProperties(const CustomAssetLibrary::AssetID& asset_id,
 
   return true;
 }
+
+template <typename T, std::size_t N>
+picojson::array ArrayToPicoArray(const std::array<T, N>& value)
+{
+  picojson::array result;
+  for (std::size_t i = 0; i < N; i++)
+  {
+    result.push_back(picojson::value{static_cast<double>(value[i])});
+  }
+  return result;
+}
 }  // namespace
+
+void MaterialProperty::WriteToMemory(u8*& buffer, const MaterialProperty& property)
+{
+  const auto write_memory = [&](const void* raw_value, std::size_t data_size) {
+    std::memcpy(buffer, raw_value, data_size);
+    std::memset(buffer + data_size, 0, MemorySize - data_size);
+    buffer += MemorySize;
+  };
+  std::visit(
+      overloaded{
+          [&](const CustomAssetLibrary::AssetID&) {},
+          [&](s32 value) { write_memory(&value, sizeof(s32)); },
+          [&](const std::array<s32, 2>& value) { write_memory(value.data(), sizeof(s32) * 2); },
+          [&](const std::array<s32, 3>& value) { write_memory(value.data(), sizeof(s32) * 3); },
+          [&](const std::array<s32, 4>& value) { write_memory(value.data(), sizeof(s32) * 4); },
+          [&](float value) { write_memory(&value, sizeof(float)); },
+          [&](const std::array<float, 2>& value) { write_memory(value.data(), sizeof(float) * 2); },
+          [&](const std::array<float, 3>& value) { write_memory(value.data(), sizeof(float) * 3); },
+          [&](const std::array<float, 4>& value) { write_memory(value.data(), sizeof(float) * 4); },
+          [&](bool value) { write_memory(&value, sizeof(bool)); }},
+      property.m_value);
+}
+
+std::size_t MaterialProperty::GetMemorySize(const MaterialProperty& property)
+{
+  std::size_t result = 0;
+  std::visit(overloaded{[&](const CustomAssetLibrary::AssetID&) {},
+                        [&](s32) { result = MemorySize; },
+                        [&](const std::array<s32, 2>&) { result = MemorySize; },
+                        [&](const std::array<s32, 3>&) { result = MemorySize; },
+                        [&](const std::array<s32, 4>&) { result = MemorySize; },
+                        [&](float) { result = MemorySize; },
+                        [&](const std::array<float, 2>&) { result = MemorySize; },
+                        [&](const std::array<float, 3>&) { result = MemorySize; },
+                        [&](const std::array<float, 4>&) { result = MemorySize; },
+                        [&](bool) { result = MemorySize; }},
+             property.m_value);
+
+  return result;
+}
+
+void MaterialProperty::WriteAsShaderCode(ShaderCode& shader_source,
+                                         const MaterialProperty& property)
+{
+  const auto write_shader = [&](std::string_view type, u32 element_count) {
+    if (element_count == 1)
+    {
+      shader_source.Write("{} {};\n", type, property.m_code_name);
+    }
+    else
+    {
+      shader_source.Write("{}{} {};\n", type, element_count, property.m_code_name);
+    }
+
+    for (std::size_t i = element_count; i < 4; i++)
+    {
+      shader_source.Write("{} {}_padding_{};\n", type, property.m_code_name, i + 1);
+    }
+  };
+  std::visit(overloaded{[&](const CustomAssetLibrary::AssetID&) {},
+                        [&](s32 value) { write_shader("int", 1); },
+                        [&](const std::array<s32, 2>& value) { write_shader("int", 2); },
+                        [&](const std::array<s32, 3>& value) { write_shader("int", 3); },
+                        [&](const std::array<s32, 4>& value) { write_shader("int", 4); },
+                        [&](float value) { write_shader("float", 1); },
+                        [&](const std::array<float, 2>& value) { write_shader("float", 2); },
+                        [&](const std::array<float, 3>& value) { write_shader("float", 3); },
+                        [&](const std::array<float, 4>& value) { write_shader("float", 4); },
+                        [&](bool value) { write_shader("bool", 1); }},
+             property.m_value);
+}
+
 bool MaterialData::FromJson(const CustomAssetLibrary::AssetID& asset_id,
                             const picojson::object& json, MaterialData* data)
 {

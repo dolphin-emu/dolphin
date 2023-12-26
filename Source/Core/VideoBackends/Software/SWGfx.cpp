@@ -22,6 +22,8 @@ SWGfx::SWGfx(std::unique_ptr<SWOGLWindow> window) : m_window(std::move(window))
 {
 }
 
+SWGfx::~SWGfx() = default;
+
 bool SWGfx::IsHeadless() const
 {
   return m_window->IsHeadless();

@@ -29,6 +29,8 @@ public:
 
   std::string GetName() const override;
 
+  InputConfig* GetConfig() const override;
+
   ControllerEmu::ControlGroup* GetGroup(GBAPadGroup group) const;
 
   void LoadDefaults(const ControllerInterface& ciface) override;

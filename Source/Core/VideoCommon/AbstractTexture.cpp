@@ -19,7 +19,7 @@ void AbstractTexture::FinishedRendering()
 {
 }
 
-bool AbstractTexture::Save(const std::string& filename, unsigned int level, int compression)
+bool AbstractTexture::Save(const std::string& filename, unsigned int level, int compression) const
 {
   // We can't dump compressed textures currently (it would mean drawing them to a RGBA8
   // framebuffer, and saving that). TextureCache does not call Save for custom textures
@@ -37,7 +37,8 @@ bool AbstractTexture::Save(const std::string& filename, unsigned int level, int 
   // Use a temporary staging texture for the download. Certainly not optimal,
   // but this is not a frequently-executed code path..
   TextureConfig readback_texture_config(level_width, level_height, 1, 1, 1,
-                                        AbstractTextureFormat::RGBA8, 0);
+                                        AbstractTextureFormat::RGBA8, 0,
+                                        AbstractTextureType::Texture_2DArray);
   auto readback_texture =
       g_gfx->CreateStagingTexture(StagingTextureType::Readback, readback_texture_config);
   if (!readback_texture)

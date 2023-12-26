@@ -29,11 +29,13 @@ enum ErrorCode : s32
   WC24_ERR_FILE_WRITE = -19,
   WC24_ERR_NETWORK = -31,
   WC24_ERR_SERVER = -32,
-  WC24_ERR_ID_NONEXISTANCE = -34,
+  WC24_ERR_ID_NOT_GENERATED = -34,
   WC24_ERR_ID_GENERATED = -35,
   WC24_ERR_ID_REGISTERED = -36,
   WC24_ERR_DISABLED = -39,
   WC24_ERR_ID_NOT_REGISTERED = -44,
+  WC24_MSG_DAMAGED = -71,
+  WC24_MSG_TOO_BIG = -72
 };
 
 enum class NWC24CreationStage : u32
@@ -72,6 +74,8 @@ public:
 
   std::string_view GetMlchkid() const;
   std::string GetCheckURL() const;
+  std::string GetSendURL() const;
+  std::string_view GetPassword() const;
 
   NWC24CreationStage CreationStage() const;
   void SetCreationStage(NWC24CreationStage creation_stage);
@@ -88,6 +92,10 @@ public:
 
   const char* Email() const;
   void SetEmail(const char* email);
+
+  std::string GetAccountURL() const;
+  void SetMailCheckID(std::string_view mlchkid);
+  void SetPassword(std::string_view password);
 
 private:
   enum
