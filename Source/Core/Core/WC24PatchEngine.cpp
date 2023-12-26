@@ -4,17 +4,19 @@
 // WC24PatchEngine
 // Allows for replacing URLs used in WC24 requests
 
+#include "Core/WC24PatchEngine.h"
+
 #include <algorithm>
 #include <array>
 #include <fmt/format.h>
 
+#include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 
 #include "Core/CheatCodes.h"
 #include "Core/CommonTitles.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
-#include "Core/WC24PatchEngine.h"
 
 namespace WC24PatchEngine
 {
@@ -38,7 +40,7 @@ static constexpr std::array<u64, 15> s_wc24_channels{
 
 static std::vector<NetworkPatch> s_patches;
 
-bool DeserializeLine(const std::string& line, NetworkPatch* patch)
+static bool DeserializeLine(const std::string& line, NetworkPatch* patch)
 {
   const std::vector<std::string> items = SplitString(line, ':');
 
@@ -54,13 +56,13 @@ bool DeserializeLine(const std::string& line, NetworkPatch* patch)
   return patch;
 }
 
-void LoadPatchSection(const Common::IniFile& ini)
+static void LoadPatchSection(const Common::IniFile& ini)
 {
   std::vector<std::string> lines;
   NetworkPatch patch;
   ini.GetLines("WC24Patch", &lines);
 
-  for (std::string& line : lines)
+  for (const std::string& line : lines)
   {
     if (line.empty())
       continue;
@@ -81,7 +83,16 @@ void LoadPatchSection(const Common::IniFile& ini)
   ReadEnabledAndDisabled(ini, "WC24Patch", &s_patches);
 }
 
-void LoadPatches()
+static bool IsWC24Channel()
+{
+  const auto& sconfig = SConfig::GetInstance();
+  const auto found =
+      std::find(s_wc24_channels.begin(), s_wc24_channels.end(), sconfig.GetTitleID());
+
+  return found != s_wc24_channels.end();
+}
+
+static void LoadPatches()
 {
   const auto& sconfig = SConfig::GetInstance();
   // We can only load WC24 Channels.
@@ -98,26 +109,17 @@ void LoadPatches()
   LoadPatchSection(ini);
 }
 
-bool IsWC24Channel()
-{
-  const auto& sconfig = SConfig::GetInstance();
-  const auto found =
-      std::find(s_wc24_channels.begin(), s_wc24_channels.end(), sconfig.GetTitleID());
-
-  return found != s_wc24_channels.end();
-}
-
 void Reload()
 {
   s_patches.clear();
   LoadPatches();
 }
 
-std::optional<std::string> GetNetworkPatch(const std::string& source, IsKD is_kd)
+std::optional<std::string> GetNetworkPatch(std::string_view source, IsKD is_kd)
 {
   const auto patch =
-      std::find_if(s_patches.begin(), s_patches.end(), [&source, &is_kd](NetworkPatch& patch) {
-        return patch.source == source && patch.is_kd == is_kd && patch.enabled;
+      std::find_if(s_patches.begin(), s_patches.end(), [&source, &is_kd](const NetworkPatch& p) {
+        return p.source == source && p.is_kd == is_kd && p.enabled;
       });
   if (patch == s_patches.end())
     return std::nullopt;

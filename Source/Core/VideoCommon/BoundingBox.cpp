@@ -51,7 +51,7 @@ void BoundingBox::Flush()
     for (u32 i = start; i < end; ++i)
       m_dirty[i] = false;
 
-    Write(start, std::vector<BBoxType>(m_values.begin() + start, m_values.begin() + end));
+    Write(start, std::span(m_values.begin() + start, m_values.begin() + end));
   }
 }
 

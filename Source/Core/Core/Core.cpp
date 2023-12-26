@@ -42,6 +42,7 @@
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/CPUThreadConfigCallback.h"
+#include "Core/Config/AchievementSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
@@ -292,7 +293,7 @@ void Stop()  // - Hammertime!
     return;
 
 #ifdef USE_RETRO_ACHIEVEMENTS
-  AchievementManager::GetInstance()->CloseGame();
+  AchievementManager::GetInstance().CloseGame();
 #endif  // USE_RETRO_ACHIEVEMENTS
 
   s_is_stopping = true;
@@ -579,9 +580,6 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     HW::Shutdown(system);
     INFO_LOG_FMT(CONSOLE, "{}", StopMessage(false, "HW shutdown"));
 
-    // Clear on screen messages that haven't expired
-    OSD::ClearMessages();
-
     // The config must be restored only after the whole HW has shut down,
     // not when it is still running.
     BootManager::RestoreConfig();
@@ -600,7 +598,12 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     PanicAlertFmt("Failed to initialize video backend!");
     return;
   }
-  Common::ScopeGuard video_guard{[] { g_video_backend->Shutdown(); }};
+  Common::ScopeGuard video_guard{[] {
+    // Clear on screen messages that haven't expired
+    OSD::ClearMessages();
+
+    g_video_backend->Shutdown();
+  }};
 
   if (cpu_info.HTT)
     Config::SetBaseOrCurrent(Config::MAIN_DSP_THREAD, cpu_info.num_cores > 4);
@@ -657,7 +660,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     wiifs_guard.Dismiss();
 
   // This adds the SyncGPU handler to CoreTiming, so now CoreTiming::Advance might block.
-  system.GetFifo().Prepare(system);
+  system.GetFifo().Prepare();
 
   // Setup our core
   if (Config::Get(Config::MAIN_CPU_CORE) != PowerPC::CPUCore::Interpreter)
@@ -684,7 +687,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     s_cpu_thread = std::thread(cpuThreadFunc, savestate_path, delete_savestate);
 
     // become the GPU thread
-    system.GetFifo().RunGpuLoop(system);
+    system.GetFifo().RunGpuLoop();
 
     // We have now exited the Video Loop
     INFO_LOG_FMT(CONSOLE, "{}", StopMessage(false, "Video Loop Ended"));
@@ -710,7 +713,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
 
 // Set or get the running state
 
-void SetState(State state)
+void SetState(State state, bool report_state_change)
 {
   // State cannot be controlled until the CPU Thread is operational
   if (!IsRunningAndStarted())
@@ -737,7 +740,10 @@ void SetState(State state)
     break;
   }
 
-  CallOnStateChangedCallbacks(GetState());
+  // Certain callers only change the state momentarily. Sending a callback for them causes
+  // unwanted updates, such as the Pause/Play button flickering between states on frame advance.
+  if (report_state_change)
+    CallOnStateChangedCallbacks(GetState());
 }
 
 State GetState()
@@ -748,7 +754,7 @@ State GetState()
   if (s_hardware_initialized)
   {
     auto& system = Core::System::GetInstance();
-    if (system.GetCPU().IsStepping() || s_frame_step)
+    if (system.GetCPU().IsStepping())
       return State::Paused;
 
     return State::Running;
@@ -828,7 +834,7 @@ static bool PauseAndLock(Core::System& system, bool do_lock, bool unpause_on_unl
 
   // video has to come after CPU, because CPU thread can wait for video thread
   // (s_efbAccessRequested).
-  system.GetFifo().PauseAndLock(system, do_lock, false);
+  system.GetFifo().PauseAndLock(do_lock, false);
 
   ResetRumble();
 
@@ -934,7 +940,7 @@ void Callback_NewField(Core::System& system)
   }
 
 #ifdef USE_RETRO_ACHIEVEMENTS
-  AchievementManager::GetInstance()->DoFrame();
+  AchievementManager::GetInstance().DoFrame();
 #endif  // USE_RETRO_ACHIEVEMENTS
 }
 
@@ -1023,7 +1029,7 @@ void UpdateWantDeterminism(bool initial)
         ios->UpdateWantDeterminism(new_want_determinism);
 
       auto& system = Core::System::GetInstance();
-      system.GetFifo().UpdateWantDeterminism(system, new_want_determinism);
+      system.GetFifo().UpdateWantDeterminism(new_want_determinism);
 
       // We need to clear the cache because some parts of the JIT depend on want_determinism,
       // e.g. use of FMA.
@@ -1076,12 +1082,19 @@ void HostDispatchJobs()
 // NOTE: Host Thread
 void DoFrameStep()
 {
+#ifdef USE_RETRO_ACHIEVEMENTS
+  if (AchievementManager::GetInstance().IsHardcoreModeActive())
+  {
+    OSD::AddMessage("Frame stepping is disabled in RetroAchievements hardcore mode");
+    return;
+  }
+#endif  // USE_RETRO_ACHIEVEMENTS
   if (GetState() == State::Paused)
   {
     // if already paused, frame advance for 1 frame
     s_stop_frame_step = false;
     s_frame_step = true;
-    SetState(State::Running);
+    SetState(State::Running, false);
   }
   else if (!s_frame_step)
   {

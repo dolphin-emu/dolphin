@@ -38,7 +38,7 @@ public:
   MathUtil::Rectangle<int> GetRect() const { return m_config.GetRect(); }
   MathUtil::Rectangle<int> GetMipRect(u32 level) const { return m_config.GetMipRect(level); }
   bool IsMultisampled() const { return m_config.IsMultisampled(); }
-  bool Save(const std::string& filename, unsigned int level, int compression = 6);
+  bool Save(const std::string& filename, unsigned int level, int compression = 6) const;
 
   static bool IsCompressedFormat(AbstractTextureFormat format);
   static bool IsDepthFormat(AbstractTextureFormat format);

@@ -106,7 +106,7 @@ void GBAWidget::GameChanged(const HW::GBA::CoreInfo& info)
   update();
 }
 
-void GBAWidget::SetVideoBuffer(std::vector<u32> video_buffer)
+void GBAWidget::SetVideoBuffer(std::span<const u32> video_buffer)
 {
   m_previous_frame = std::move(m_last_frame);
   if (video_buffer.size() == static_cast<size_t>(m_core_info.width * m_core_info.height))
@@ -608,7 +608,7 @@ void GBAWidgetController::GameChanged(const HW::GBA::CoreInfo& info)
   m_widget->GameChanged(info);
 }
 
-void GBAWidgetController::FrameEnded(std::vector<u32> video_buffer)
+void GBAWidgetController::FrameEnded(std::span<const u32> video_buffer)
 {
-  m_widget->SetVideoBuffer(std::move(video_buffer));
+  m_widget->SetVideoBuffer(video_buffer);
 }

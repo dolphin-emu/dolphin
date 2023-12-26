@@ -31,7 +31,7 @@ int ENET_CALLBACK InterceptCallback(ENetHost* host, ENetEvent* event)
   // wakeup packet received
   if (host->receivedDataLength == 1 && host->receivedData[0] == 0)
   {
-    event->type = (ENetEventType)42;
+    event->type = static_cast<ENetEventType>(SKIPPABLE_EVENT);
     return 1;
   }
   return 0;

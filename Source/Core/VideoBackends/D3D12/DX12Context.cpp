@@ -339,7 +339,7 @@ bool DXContext::CreateRootSignatures()
 bool DXContext::CreateGXRootSignature()
 {
   // GX:
-  //  - 3 constant buffers (bindings 0-2), 0/1 visible in PS, 2 visible in VS, 1 visible in GS.
+  //  - 4 constant buffers (bindings 0-3), 0/1/2 visible in PS, 2 visible in VS, 1 visible in GS.
   //  - VideoCommon::MAX_PIXEL_SHADER_SAMPLERS textures (visible in PS).
   //  - VideoCommon::MAX_PIXEL_SHADER_SAMPLERS samplers (visible in PS).
   //  - 1 UAV (visible in PS).
@@ -367,7 +367,7 @@ bool DXContext::CreateGXRootSignature()
   SetRootParamTable(&params[param_count], &ranges[param_count], D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 3,
                     1, D3D12_SHADER_VISIBILITY_VERTEX);
   param_count++;
-  SetRootParamConstant(&params[param_count], 3, 1, D3D12_SHADER_VISIBILITY_VERTEX);
+  SetRootParamConstant(&params[param_count], 4, 1, D3D12_SHADER_VISIBILITY_VERTEX);
   param_count++;
 
   // Since these must be contiguous, pixel lighting goes to bbox if not enabled.
@@ -382,6 +382,9 @@ bool DXContext::CreateGXRootSignature()
     SetRootParamCBV(&params[param_count], 1, D3D12_SHADER_VISIBILITY_PIXEL);
     param_count++;
   }
+
+  SetRootParamCBV(&params[param_count], 2, D3D12_SHADER_VISIBILITY_PIXEL);
+  param_count++;
 
   return BuildRootSignature(m_device.Get(), &m_gx_root_signature, params.data(), param_count);
 }

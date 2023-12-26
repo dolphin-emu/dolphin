@@ -36,14 +36,29 @@ bool Metal::Gfx::IsHeadless() const
 
 // MARK: Texture Creation
 
+static MTLTextureType FromAbstract(AbstractTextureType type, bool multisample)
+{
+  switch (type)
+  {
+  case AbstractTextureType::Texture_2D:
+    return multisample ? MTLTextureType2DMultisample : MTLTextureType2D;
+  case AbstractTextureType::Texture_2DArray:
+    return multisample ? MTLTextureType2DMultisampleArray : MTLTextureType2DArray;
+  case AbstractTextureType::Texture_CubeMap:
+    return MTLTextureTypeCube;
+  }
+
+  ASSERT(false);
+  return MTLTextureType2DArray;
+}
+
 std::unique_ptr<AbstractTexture> Metal::Gfx::CreateTexture(const TextureConfig& config,
                                                            std::string_view name)
 {
   @autoreleasepool
   {
     MRCOwned<MTLTextureDescriptor*> desc = MRCTransfer([MTLTextureDescriptor new]);
-    [desc setTextureType:config.samples > 1 ? MTLTextureType2DMultisampleArray :
-                                              MTLTextureType2DArray];
+    [desc setTextureType:FromAbstract(config.type, config.samples > 1)];
     [desc setPixelFormat:Util::FromAbstract(config.format)];
     [desc setWidth:config.width];
     [desc setHeight:config.height];
@@ -386,9 +401,11 @@ void Metal::Gfx::SetSamplerState(u32 index, const SamplerState& state)
   g_state_tracker->SetSampler(index, state);
 }
 
-void Metal::Gfx::SetComputeImageTexture(u32, AbstractTexture* texture, bool read, bool write)
+void Metal::Gfx::SetComputeImageTexture(u32 index, AbstractTexture* texture, bool read, bool write)
 {
-  g_state_tracker->SetComputeTexture(static_cast<const Texture*>(texture));
+  g_state_tracker->SetTexture(index + VideoCommon::MAX_COMPUTE_SHADER_SAMPLERS,
+                              texture ? static_cast<const Texture*>(texture)->GetMTLTexture() :
+                                        nullptr);
 }
 
 void Metal::Gfx::UnbindTexture(const AbstractTexture* texture)
@@ -488,8 +505,8 @@ void Metal::Gfx::SetupSurface()
 
   [m_layer setDrawableSize:{static_cast<double>(info.width), static_cast<double>(info.height)}];
 
-  TextureConfig cfg(info.width, info.height, 1, 1, 1, info.format,
-                    AbstractTextureFlag_RenderTarget);
+  TextureConfig cfg(info.width, info.height, 1, 1, 1, info.format, AbstractTextureFlag_RenderTarget,
+                    AbstractTextureType::Texture_2DArray);
   m_bb_texture = std::make_unique<Texture>(nullptr, cfg);
   m_backbuffer = std::make_unique<Framebuffer>(
       m_bb_texture.get(), nullptr, std::vector<AbstractTexture*>{}, info.width, info.height, 1, 1);

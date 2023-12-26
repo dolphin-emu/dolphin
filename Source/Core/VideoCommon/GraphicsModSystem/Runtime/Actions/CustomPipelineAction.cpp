@@ -393,21 +393,15 @@ void CustomPipelineAction::OnTextureCreate(GraphicsModActionData::TextureCreate*
       return;
     }
 
-    if (property.m_type == VideoCommon::MaterialProperty::Type::Type_TextureAsset)
+    if (auto* value = std::get_if<std::string>(&property.m_value))
     {
-      if (property.m_value)
+      auto asset = loader.LoadGameTexture(*value, m_library);
+      if (asset)
       {
-        if (auto* value = std::get_if<std::string>(&*property.m_value))
-        {
-          auto asset = loader.LoadGameTexture(*value, m_library);
-          if (asset)
-          {
-            const auto loaded_time = asset->GetLastLoadedTime();
-            game_assets.push_back(VideoCommon::CachedAsset<VideoCommon::GameTextureAsset>{
-                std::move(asset), loaded_time});
-            m_texture_code_names.push_back(property.m_code_name);
-          }
-        }
+        const auto loaded_time = asset->GetLastLoadedTime();
+        game_assets.push_back(
+            VideoCommon::CachedAsset<VideoCommon::GameTextureAsset>{std::move(asset), loaded_time});
+        m_texture_code_names.push_back(property.m_code_name);
       }
     }
   }
@@ -423,7 +417,7 @@ void CustomPipelineAction::OnTextureCreate(GraphicsModActionData::TextureCreate*
       auto data = game_texture.m_asset->GetData();
       if (data)
       {
-        if (data->m_slices.empty() || data->m_slices[0].m_levels.empty())
+        if (data->m_texture.m_slices.empty() || data->m_texture.m_slices[0].m_levels.empty())
         {
           ERROR_LOG_FMT(
               VIDEO,
@@ -431,15 +425,16 @@ void CustomPipelineAction::OnTextureCreate(GraphicsModActionData::TextureCreate*
               create->texture_name, game_texture.m_asset->GetAssetId());
           m_valid = false;
         }
-        else if (create->texture_width != data->m_slices[0].m_levels[0].width ||
-                 create->texture_height != data->m_slices[0].m_levels[0].height)
+        else if (create->texture_width != data->m_texture.m_slices[0].m_levels[0].width ||
+                 create->texture_height != data->m_texture.m_slices[0].m_levels[0].height)
         {
           ERROR_LOG_FMT(VIDEO,
                         "Custom pipeline for texture '{}' has asset '{}' that does not match "
                         "the width/height of the texture loaded.  Texture {}x{} vs asset {}x{}",
                         create->texture_name, game_texture.m_asset->GetAssetId(),
                         create->texture_width, create->texture_height,
-                        data->m_slices[0].m_levels[0].width, data->m_slices[0].m_levels[0].height);
+                        data->m_texture.m_slices[0].m_levels[0].width,
+                        data->m_texture.m_slices[0].m_levels[0].height);
           m_valid = false;
         }
       }

@@ -3,7 +3,7 @@
 
 #pragma once
 
-#if defined(_M_X86)
+#if defined(_M_X86_64)
 
 /**
  * It is assumed that all compilers used to build Dolphin support intrinsics up to and including
@@ -49,13 +49,13 @@
 
 #endif  // defined(_MSC_VER) || defined(__INTEL_COMPILER)
 
-#endif  // _M_X86
+#endif  // _M_X86_64
 
 /**
  * Define the FUNCTION_TARGET macros to nothing if they are not needed, or not on an X86 platform.
  * This way when a function is defined with FUNCTION_TARGET you don't need to define a second
  * version without the macro around a #ifdef guard. Be careful when using intrinsics, as all use
- * should still be placed around a #ifdef _M_X86 if the file is compiled on all architectures.
+ * should still be placed around a #ifdef _M_X86_64 if the file is compiled on all architectures.
  */
 #ifndef FUNCTION_TARGET_SSE42
 #define FUNCTION_TARGET_SSE42

@@ -25,6 +25,7 @@
 #include "Core/NetPlayProto.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/State.h"
+#include "Core/System.h"
 
 #ifdef HAS_LIBMGBA
 #include "DolphinQt/GBAWidget.h"
@@ -37,11 +38,9 @@
 #include "UICommon/DiscordPresence.h"
 
 #include "VideoCommon/AbstractGfx.h"
-#include "VideoCommon/Fifo.cpp"
+#include "VideoCommon/Fifo.h"
 #include "VideoCommon/Present.h"
 #include "VideoCommon/VideoConfig.h"
-
-static thread_local bool tls_is_host_thread = false;
 
 Host::Host()
 {
@@ -107,9 +106,9 @@ static void RunWithGPUThreadInactive(std::function<void()> f)
     const bool was_running = Core::GetState() == Core::State::Running;
     auto& system = Core::System::GetInstance();
     auto& fifo = system.GetFifo();
-    fifo.PauseAndLock(system, true, was_running);
+    fifo.PauseAndLock(true, was_running);
     f();
-    fifo.PauseAndLock(system, false, was_running);
+    fifo.PauseAndLock(false, was_running);
   }
   else
   {

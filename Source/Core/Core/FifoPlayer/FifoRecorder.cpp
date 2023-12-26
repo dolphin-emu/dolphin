@@ -261,7 +261,11 @@ void FifoRecorder::StartRecording(s32 numFrames, CallbackFunc finishedCb)
         OpcodeDecoder::g_record_fifo_data = IsRecording();
 
         if (!OpcodeDecoder::g_record_fifo_data)
+        {
+          // Remove this frame end callback when recording finishes
+          m_end_of_frame_event.reset();
           return;
+        }
 
         if (!was_recording)
         {
@@ -430,9 +434,6 @@ void FifoRecorder::EndFrame(u32 fifoStart, u32 fifoEnd)
     m_SkipFutureData = true;
     // Signal video backend that it should not call this function when the next frame ends
     m_IsRecording = false;
-
-    // Remove our frame end callback
-    m_end_of_frame_event.reset();
   }
 }
 

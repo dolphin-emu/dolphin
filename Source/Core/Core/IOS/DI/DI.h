@@ -120,7 +120,7 @@ private:
   };
 
   friend class ::CBoot;
-  friend void ::IOS::HLE::Init();
+  friend void ::IOS::HLE::Init(Core::System&);
 
   void ProcessQueuedIOCtl();
   std::optional<DIResult> StartIOCtl(const IOCtlRequest& request);

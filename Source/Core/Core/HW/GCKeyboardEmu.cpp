@@ -5,6 +5,9 @@
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
+
+#include "Core/HW/GCKeyboard.h"
+
 #include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
@@ -82,6 +85,11 @@ GCKeyboard::GCKeyboard(const unsigned int index) : m_index(index)
 std::string GCKeyboard::GetName() const
 {
   return std::string("GCKeyboard") + char('1' + m_index);
+}
+
+InputConfig* GCKeyboard::GetConfig() const
+{
+  return Keyboard::GetConfig();
 }
 
 ControllerEmu::ControlGroup* GCKeyboard::GetGroup(KeyboardGroup group)

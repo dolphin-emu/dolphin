@@ -531,18 +531,12 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Initialize(J
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ReportStartToAnalytics(JNIEnv*,
                                                                                            jclass)
 {
-  // Identity generation ends up calling config code, and some config callbacks use RunAsCPUThread
-  HostThreadLock guard;
-
   DolphinAnalytics::Instance().ReportDolphinStart(GetAnalyticValue("DEVICE_TYPE"));
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GenerateNewStatisticsId(JNIEnv*,
                                                                                             jclass)
 {
-  // Identity generation ends up calling config code, and some config callbacks use RunAsCPUThread
-  HostThreadLock guard;
-
   DolphinAnalytics::Instance().GenerateNewIdentity();
 }
 

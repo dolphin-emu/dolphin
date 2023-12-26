@@ -120,7 +120,7 @@ static bool FillDSPInitOptions(DSPInitOptions* opts)
     return false;
 
   opts->core_type = DSPInitOptions::CoreType::Interpreter;
-#ifdef _M_X86
+#ifdef _M_X86_64
   if (Config::Get(Config::MAIN_DSP_JIT))
     opts->core_type = DSPInitOptions::CoreType::JIT64;
 #endif

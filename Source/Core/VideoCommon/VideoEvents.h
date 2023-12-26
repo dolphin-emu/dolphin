@@ -81,3 +81,6 @@ using BeforePresentEvent = Common::HookableEvent<"BeforePresent", PresentInfo&>;
 // An event that is triggered after a frame is presented.
 // The exact timing of this event depends on backend/driver support.
 using AfterPresentEvent = Common::HookableEvent<"AfterPresent", PresentInfo&>;
+
+// An end of frame event that runs on the CPU thread
+using VIEndFieldEvent = Common::HookableEvent<"VIEndField">;

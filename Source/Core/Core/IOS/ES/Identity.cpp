@@ -153,7 +153,8 @@ ReturnCode ESCore::VerifySign(const std::vector<u8>& hash, const std::vector<u8>
 
   IOSC& iosc = m_ios.GetIOSC();
   IOSC::Handle ng_cert;
-  ReturnCode ret = iosc.CreateObject(&ng_cert, IOSC::TYPE_PUBLIC_KEY, IOSC::SUBTYPE_ECC233, PID_ES);
+  ReturnCode ret =
+      iosc.CreateObject(&ng_cert, IOSC::TYPE_PUBLIC_KEY, IOSC::ObjectSubType::ECC233, PID_ES);
   if (ret != IPC_SUCCESS)
     return ret;
   Common::ScopeGuard handle_guard{[&] { iosc.DeleteObject(ng_cert, PID_ES); }};
@@ -176,7 +177,7 @@ ReturnCode ESCore::VerifySign(const std::vector<u8>& hash, const std::vector<u8>
   }
 
   IOSC::Handle ap_cert;
-  ret = iosc.CreateObject(&ap_cert, IOSC::TYPE_PUBLIC_KEY, IOSC::SUBTYPE_ECC233, PID_ES);
+  ret = iosc.CreateObject(&ap_cert, IOSC::TYPE_PUBLIC_KEY, IOSC::ObjectSubType::ECC233, PID_ES);
   if (ret != IPC_SUCCESS)
     return ret;
   Common::ScopeGuard handle2_guard{[&] { iosc.DeleteObject(ap_cert, PID_ES); }};

@@ -45,6 +45,7 @@ public:
                                                const std::string& directory_path);
 
   BlobType GetBlobType() const override { return BlobType::NFS; }
+  std::unique_ptr<BlobReader> CopyReader() const override;
 
   u64 GetRawSize() const override;
   u64 GetDataSize() const override;
@@ -86,6 +87,7 @@ private:
   std::unique_ptr<Common::AES::Context> m_aes_context;
   u64 m_raw_size;
   u64 m_data_size;
+  Key m_key;
 };
 
 }  // namespace DiscIO

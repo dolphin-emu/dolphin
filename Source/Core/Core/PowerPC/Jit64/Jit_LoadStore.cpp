@@ -274,11 +274,11 @@ void Jit64::dcbx(UGeckoInstruction inst)
     // the upper bits for the DIV instruction in the downcount > 0 case.
     XOR(32, R(RSCRATCH2), R(RSCRATCH2));
 
-    MOV(32, R(reg_downcount), PPCSTATE(downcount));
-    TEST(32, R(reg_downcount), R(reg_downcount));             // if (downcount <= 0)
+    MOV(32, R(RSCRATCH), PPCSTATE(downcount));
+    TEST(32, R(RSCRATCH), R(RSCRATCH));                       // if (downcount <= 0)
     FixupBranch downcount_is_zero_or_negative = J_CC(CC_LE);  // only do 1 invalidation; else:
     MOV(32, R(loop_counter), PPCSTATE_CTR);
-    MOV(32, R(RSCRATCH), R(reg_downcount));
+    MOV(32, R(reg_downcount), R(RSCRATCH));
     MOV(32, R(reg_cycle_count), Imm32(cycle_count_per_loop));
     DIV(32, R(reg_cycle_count));                  // RSCRATCH = downcount / cycle_count
     LEA(32, RSCRATCH2, MDisp(loop_counter, -1));  // RSCRATCH2 = CTR - 1
@@ -291,10 +291,9 @@ void Jit64::dcbx(UGeckoInstruction inst)
     // registers.
     SUB(32, R(loop_counter), R(RSCRATCH2));
     MOV(32, PPCSTATE_CTR, R(loop_counter));  // CTR -= RSCRATCH2
-    MOV(32, R(RSCRATCH), R(RSCRATCH2));
-    IMUL(32, RSCRATCH, R(reg_cycle_count));
+    IMUL(32, reg_cycle_count, R(RSCRATCH2));
     // ^ Note that this cannot overflow because it's limited by (downcount/cycle_count).
-    SUB(32, R(reg_downcount), R(RSCRATCH));
+    SUB(32, R(reg_downcount), R(reg_cycle_count));
     MOV(32, PPCSTATE(downcount), R(reg_downcount));  // downcount -= (RSCRATCH2 * reg_cycle_count)
 
     SetJumpTarget(downcount_is_zero_or_negative);
@@ -321,7 +320,7 @@ void Jit64::dcbx(UGeckoInstruction inst)
   FixupBranch bat_lookup_failed;
   MOV(32, R(effective_address), R(addr));
   const u8* loop_start = GetCodePtr();
-  if (m_ppc_state.msr.IR)
+  if (m_ppc_state.feature_flags & FEATURE_FLAG_MSR_IR)
   {
     // Translate effective address to physical address.
     bat_lookup_failed = BATAddressLookup(addr, tmp, m_jit.m_mmu.GetIBATTable().data());
@@ -350,7 +349,7 @@ void Jit64::dcbx(UGeckoInstruction inst)
 
   SwitchToFarCode();
   SetJumpTarget(invalidate_needed);
-  if (m_ppc_state.msr.IR)
+  if (m_ppc_state.feature_flags & FEATURE_FLAG_MSR_IR)
     SetJumpTarget(bat_lookup_failed);
 
   BitSet32 registersInUse = CallerSavedRegistersInUse();
@@ -422,7 +421,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
     end_dcbz_hack = J_CC(CC_L);
   }
 
-  bool emit_fast_path = m_ppc_state.msr.DR && m_jit.jo.fastmem_arena;
+  bool emit_fast_path = (m_ppc_state.feature_flags & FEATURE_FLAG_MSR_DR) && m_jit.jo.fastmem_arena;
 
   if (emit_fast_path)
   {
@@ -446,7 +445,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
   MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
   BitSet32 registersInUse = CallerSavedRegistersInUse();
   ABI_PushRegistersAndAdjustStack(registersInUse, 0);
-  ABI_CallFunctionPR(PowerPC::ClearDCacheLineFromJit64, &m_mmu, RSCRATCH);
+  ABI_CallFunctionPR(PowerPC::ClearDCacheLineFromJit, &m_mmu, RSCRATCH);
   ABI_PopRegistersAndAdjustStack(registersInUse, 0);
 
   if (emit_fast_path)

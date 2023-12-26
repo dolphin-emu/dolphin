@@ -30,15 +30,13 @@ enum class ParameterType : bool
   VariableArgumentList = true
 };
 
-std::string GetStringVA(Core::System& system, const Core::CPUThreadGuard& guard, u32 str_reg = 3,
-                        ParameterType parameter_type = ParameterType::ParameterList);
-void HLE_GeneralDebugPrint(const Core::CPUThreadGuard& guard, ParameterType parameter_type);
-void HLE_LogDPrint(const Core::CPUThreadGuard& guard, ParameterType parameter_type);
-void HLE_LogFPrint(const Core::CPUThreadGuard& guard, ParameterType parameter_type);
+static std::string GetStringVA(Core::System& system, const Core::CPUThreadGuard& guard,
+                               u32 str_reg = 3,
+                               ParameterType parameter_type = ParameterType::ParameterList);
 
 void HLE_OSPanic(const Core::CPUThreadGuard& guard)
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = guard.GetSystem();
   auto& ppc_state = system.GetPPCState();
 
   std::string error = GetStringVA(system, guard);
@@ -55,10 +53,10 @@ void HLE_OSPanic(const Core::CPUThreadGuard& guard)
 }
 
 // Generalized function for printing formatted string.
-void HLE_GeneralDebugPrint(const Core::CPUThreadGuard& guard, ParameterType parameter_type)
+static void HLE_GeneralDebugPrint(const Core::CPUThreadGuard& guard, ParameterType parameter_type)
 {
-  auto& system = Core::System::GetInstance();
-  auto& ppc_state = system.GetPPCState();
+  auto& system = guard.GetSystem();
+  const auto& ppc_state = system.GetPPCState();
 
   std::string report_message;
 
@@ -114,7 +112,7 @@ void HLE_GeneralDebugVPrint(const Core::CPUThreadGuard& guard)
 void HLE_write_console(const Core::CPUThreadGuard& guard)
 {
   auto& system = guard.GetSystem();
-  auto& ppc_state = system.GetPPCState();
+  const auto& ppc_state = system.GetPPCState();
 
   std::string report_message = GetStringVA(system, guard, 4);
   if (PowerPC::MMU::HostIsRAMAddress(guard, ppc_state.gpr[5]))
@@ -139,10 +137,10 @@ void HLE_write_console(const Core::CPUThreadGuard& guard)
 }
 
 // Log (v)dprintf message if fd is 1 (stdout) or 2 (stderr)
-void HLE_LogDPrint(const Core::CPUThreadGuard& guard, ParameterType parameter_type)
+static void HLE_LogDPrint(const Core::CPUThreadGuard& guard, ParameterType parameter_type)
 {
-  auto& system = Core::System::GetInstance();
-  auto& ppc_state = system.GetPPCState();
+  auto& system = guard.GetSystem();
+  const auto& ppc_state = system.GetPPCState();
 
   if (ppc_state.gpr[3] != 1 && ppc_state.gpr[3] != 2)
     return;
@@ -168,10 +166,10 @@ void HLE_LogVDPrint(const Core::CPUThreadGuard& guard)
 }
 
 // Log (v)fprintf message if FILE is stdout or stderr
-void HLE_LogFPrint(const Core::CPUThreadGuard& guard, ParameterType parameter_type)
+static void HLE_LogFPrint(const Core::CPUThreadGuard& guard, ParameterType parameter_type)
 {
-  auto& system = Core::System::GetInstance();
-  auto& ppc_state = system.GetPPCState();
+  auto& system = guard.GetSystem();
+  const auto& ppc_state = system.GetPPCState();
 
   // The structure FILE is implementation defined.
   // Both libogc and Dolphin SDK seem to store the fd at the same address.
@@ -215,8 +213,8 @@ namespace
 class HLEPrintArgsVAList final : public HLEPrintArgs
 {
 public:
-  HLEPrintArgsVAList(const Core::CPUThreadGuard& guard, HLE::SystemVABI::VAList* va_list)
-      : m_guard(guard), m_va_list(va_list)
+  HLEPrintArgsVAList(const Core::CPUThreadGuard& guard, HLE::SystemVABI::VAList* list)
+      : m_guard(guard), m_va_list(list)
   {
   }
 
@@ -242,8 +240,8 @@ private:
 };
 }  // namespace
 
-std::string GetStringVA(Core::System& system, const Core::CPUThreadGuard& guard, u32 str_reg,
-                        ParameterType parameter_type)
+static std::string GetStringVA(Core::System& system, const Core::CPUThreadGuard& guard, u32 str_reg,
+                               ParameterType parameter_type)
 {
   auto& ppc_state = system.GetPPCState();
 
@@ -305,15 +303,15 @@ std::string GetStringVA(HLEPrintArgs* args, std::string_view string)
       if (string[i] == '*')
       {
         ++i;
-        const s32 result = Common::BitCast<s32>(args->GetU32());
-        if (result >= 0)
-          return static_cast<u32>(result);
+        const s32 result_tmp = Common::BitCast<s32>(args->GetU32());
+        if (result_tmp >= 0)
+          return static_cast<u32>(result_tmp);
 
         if (left_justified_flag_ptr)
         {
           // field width; this results in positive field width and left_justified flag set
           *left_justified_flag_ptr = true;
-          return static_cast<u32>(-static_cast<s64>(result));
+          return static_cast<u32>(-static_cast<s64>(result_tmp));
         }
 
         // precision; this is ignored
@@ -329,10 +327,10 @@ std::string GetStringVA(HLEPrintArgs* args, std::string_view string)
           ++start;
         if (start == i)
           return 0;
-        u32 result = 0;
+        u32 result_tmp = 0;
         const std::string tmp(string, start, i - start);
-        if (TryParse(tmp, &result, 10))
-          return result;
+        if (TryParse(tmp, &result_tmp, 10))
+          return result_tmp;
       }
 
       return std::nullopt;

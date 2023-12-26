@@ -225,8 +225,7 @@ void InfoWidget::CreateLanguageSelector()
   if (m_language_selector->count() == 1)
     m_language_selector->setDisabled(true);
 
-  connect(m_language_selector, qOverload<int>(&QComboBox::currentIndexChanged), this,
-          &InfoWidget::ChangeLanguage);
+  connect(m_language_selector, &QComboBox::currentIndexChanged, this, &InfoWidget::ChangeLanguage);
 }
 
 void InfoWidget::ChangeLanguage()

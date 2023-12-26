@@ -29,7 +29,8 @@ class DataReportBuilder;
 namespace WiimoteEmu
 {
 class EncryptionKey;
-}
+enum ExtensionNumber : u8;
+}  // namespace WiimoteEmu
 
 // Per-(video )Movie actions
 
@@ -123,7 +124,8 @@ struct DTMHeader
   bool bFollowBranch;
   bool bUseFMA;
   u8 GBAControllers;                // GBA Controllers plugged in (the bits are ports 1-4)
-  std::array<u8, 7> reserved;       // Padding for any new config options
+  bool bWidescreen;                 // true indicates SYSCONF aspect ratio is 16:9, false for 4:3
+  std::array<u8, 6> reserved;       // Padding for any new config options
   std::array<char, 40> discChange;  // Name of iso file to switch to, for two disc games.
   std::array<u8, 20> revision;      // Git hash
   u32 DSPiromHash;
@@ -185,15 +187,15 @@ bool PlayInput(const std::string& movie_path, std::optional<std::string>* savest
 void LoadInput(const std::string& movie_path);
 void ReadHeader();
 void PlayController(GCPadStatus* PadStatus, int controllerID);
-bool PlayWiimote(int wiimote, WiimoteCommon::DataReportBuilder& rpt, int ext,
-                 const WiimoteEmu::EncryptionKey& key);
+bool PlayWiimote(int wiimote, WiimoteCommon::DataReportBuilder& rpt,
+                 WiimoteEmu::ExtensionNumber ext, const WiimoteEmu::EncryptionKey& key);
 void EndPlayInput(bool cont);
 void SaveRecording(const std::string& filename);
 void DoState(PointerWrap& p);
 void Shutdown();
 void CheckPadStatus(const GCPadStatus* PadStatus, int controllerID);
-void CheckWiimoteStatus(int wiimote, const WiimoteCommon::DataReportBuilder& rpt, int ext,
-                        const WiimoteEmu::EncryptionKey& key);
+void CheckWiimoteStatus(int wiimote, const WiimoteCommon::DataReportBuilder& rpt,
+                        WiimoteEmu::ExtensionNumber ext, const WiimoteEmu::EncryptionKey& key);
 
 std::string GetInputDisplay();
 std::string GetRTCDisplay();

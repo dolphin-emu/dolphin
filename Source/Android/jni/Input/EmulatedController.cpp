@@ -5,6 +5,7 @@
 
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+#include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
@@ -124,11 +125,25 @@ Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedContro
   ini.Save(path);
 }
 
+JNIEXPORT jstring JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_getProfileName(
+    JNIEnv* env, jobject obj)
+{
+  return ToJString(env, EmulatedControllerFromJava(env, obj)->GetConfig()->GetProfileName());
+}
+
 JNIEXPORT jobject JNICALL
 Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_getGcPad(
     JNIEnv* env, jclass, jint controller_index)
 {
   return EmulatedControllerToJava(env, Pad::GetConfig()->GetController(controller_index));
+}
+
+JNIEXPORT jobject JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_getGcKeyboard(
+    JNIEnv* env, jclass, jint controller_index)
+{
+  return EmulatedControllerToJava(env, Keyboard::GetConfig()->GetController(controller_index));
 }
 
 JNIEXPORT jobject JNICALL

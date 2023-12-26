@@ -44,7 +44,8 @@ namespace CPUThreadConfigCallback
 {
 ConfigChangedCallbackID AddConfigChangedCallback(Config::ConfigChangedCallback func)
 {
-  static auto s_config_changed_callback_id = Config::AddConfigChangedCallback(&OnConfigChanged);
+  [[maybe_unused]] static auto s_config_changed_callback_id =
+      Config::AddConfigChangedCallback(&OnConfigChanged);
 
   const ConfigChangedCallbackID callback_id{s_next_callback_id};
   ++s_next_callback_id;

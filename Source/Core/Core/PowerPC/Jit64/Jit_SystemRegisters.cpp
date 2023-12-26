@@ -439,15 +439,11 @@ void Jit64::mtmsr(UGeckoInstruction inst)
     RegCache::Realize(Rs);
     MOV(32, PPCSTATE(msr), Rs);
 
-    EmitStoreMembase(PPCSTATE(msr), RSCRATCH2);
+    MSRUpdated(Rs, RSCRATCH2);
   }
 
   gpr.Flush();
   fpr.Flush();
-
-  // Our jit cache also stores some MSR bits, as they have changed, we either
-  // have to validate them in the BLR/RET check, or just flush the stack here.
-  asm_routines.ResetStack(*this);
 
   // If some exceptions are pending and EE are now enabled, force checking
   // external exceptions when going out of mtmsr in order to execute delayed
@@ -588,8 +584,8 @@ void Jit64::mcrxr(UGeckoInstruction inst)
   MOV(64, CROffset(inst.CRFD), R(RSCRATCH));
 
   // Clear XER[0-3]
-  MOV(8, PPCSTATE(xer_ca), Imm8(0));
-  MOV(8, PPCSTATE(xer_so_ov), Imm8(0));
+  static_assert(PPCSTATE_OFF(xer_ca) + 1 == PPCSTATE_OFF(xer_so_ov));
+  MOV(16, PPCSTATE(xer_ca), Imm16(0));
 }
 
 void Jit64::crXXX(UGeckoInstruction inst)

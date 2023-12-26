@@ -74,6 +74,11 @@ CompressedBlobReader::~CompressedBlobReader()
 {
 }
 
+std::unique_ptr<BlobReader> CompressedBlobReader::CopyReader() const
+{
+  return Create(m_file.Duplicate("rb"), m_file_name);
+}
+
 // IMPORTANT: Calling this function invalidates all earlier pointers gotten from this function.
 u64 CompressedBlobReader::GetBlockCompressedSize(u64 block_num) const
 {

@@ -15,28 +15,18 @@
 
 class PointerWrap;
 struct PortableVertexDeclaration;
+class XFStateManager;
 
 // The non-API dependent parts.
 class alignas(16) VertexShaderManager
 {
 public:
   void Init();
-  void Dirty();
   void DoState(PointerWrap& p);
 
   // constant management
-  void SetProjectionMatrix();
-  void SetConstants(const std::vector<std::string>& textures);
-
-  void InvalidateXFRange(int start, int end);
-  void SetTexMatrixChangedA(u32 value);
-  void SetTexMatrixChangedB(u32 value);
-  void SetViewportChanged();
-  void SetProjectionChanged();
-  void SetMaterialColorChanged(int index);
-
-  void SetTexMatrixInfoChanged(int index);
-  void SetLightingConfigChanged();
+  void SetProjectionMatrix(XFStateManager& xf_state_manager);
+  void SetConstants(const std::vector<std::string>& textures, XFStateManager& xf_state_manager);
 
   // data: 3 floats representing the X, Y and Z vertex model coordinates and the posmatrix index.
   // out:  4 floats which will be initialized with the corresponding clip space coordinates
@@ -92,18 +82,7 @@ private:
   alignas(16) std::array<float, 16> m_projection_matrix;
 
   // track changes
-  std::array<bool, 2> m_tex_matrices_changed{};
-  bool m_pos_normal_matrix_changed = false;
-  bool m_projection_changed = false;
-  bool m_viewport_changed = false;
-  bool m_tex_mtx_info_changed = false;
-  bool m_lighting_config_changed = false;
   bool m_projection_graphics_mod_change = false;
-  BitSet32 m_materials_changed;
-  std::array<int, 2> m_minmax_transform_matrices_changed{};
-  std::array<int, 2> m_minmax_normal_matrices_changed{};
-  std::array<int, 2> m_minmax_post_transform_matrices_changed{};
-  std::array<int, 2> m_minmax_lights_changed{};
 
   Common::Matrix44 m_viewport_correction{};
 

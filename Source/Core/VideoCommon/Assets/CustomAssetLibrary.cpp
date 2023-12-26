@@ -6,36 +6,31 @@
 #include <algorithm>
 
 #include "Common/Logging/Log.h"
-#include "VideoCommon/Assets/CustomTextureData.h"
+#include "VideoCommon/Assets/TextureAsset.h"
 
 namespace VideoCommon
 {
-namespace
-{
-std::size_t GetAssetSize(const CustomTextureData& data)
-{
-  std::size_t total = 0;
-  for (const auto& slice : data.m_slices)
-  {
-    for (const auto& level : slice.m_levels)
-    {
-      total += level.data.size();
-    }
-  }
-  return total;
-}
-}  // namespace
 CustomAssetLibrary::LoadInfo CustomAssetLibrary::LoadGameTexture(const AssetID& asset_id,
-                                                                 CustomTextureData* data)
+                                                                 TextureData* data)
 {
   const auto load_info = LoadTexture(asset_id, data);
   if (load_info.m_bytes_loaded == 0)
     return {};
 
-  // Note: 'LoadTexture()' ensures we have a level loaded
-  for (std::size_t slice_index = 0; slice_index < data->m_slices.size(); slice_index++)
+  if (data->m_type != TextureData::Type::Type_Texture2D)
   {
-    auto& slice = data->m_slices[slice_index];
+    ERROR_LOG_FMT(
+        VIDEO,
+        "Custom asset '{}' is not a valid game texture, it is expected to be a 2d texture "
+        "but was a '{}'.",
+        asset_id, data->m_type);
+    return {};
+  }
+
+  // Note: 'LoadTexture()' ensures we have a level loaded
+  for (std::size_t slice_index = 0; slice_index < data->m_texture.m_slices.size(); slice_index++)
+  {
+    auto& slice = data->m_texture.m_slices[slice_index];
     const auto& first_mip = slice.m_levels[0];
 
     // Verify that each mip level is the correct size (divide by 2 each time).

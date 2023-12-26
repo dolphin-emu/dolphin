@@ -383,6 +383,11 @@ std::string HotkeyManager::GetName() const
   return "Hotkeys";
 }
 
+InputConfig* HotkeyManager::GetConfig() const
+{
+  return HotkeyManagerEmu::GetConfig();
+}
+
 void HotkeyManager::GetInput(HotkeyStatus* kb, bool ignore_focus)
 {
   const auto lock = GetStateLock();

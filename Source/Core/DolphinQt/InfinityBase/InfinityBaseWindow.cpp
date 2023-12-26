@@ -246,7 +246,7 @@ CreateFigureDialog::CreateFigureDialog(QWidget* parent, u8 slot) : QDialog(paren
 
   setLayout(layout);
 
-  connect(combo_figlist, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index) {
+  connect(combo_figlist, &QComboBox::currentIndexChanged, [=](int index) {
     const u32 char_info = combo_figlist->itemData(index).toUInt();
     if (char_info != 0xFFFFFFFF)
     {

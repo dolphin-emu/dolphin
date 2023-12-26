@@ -30,6 +30,8 @@ add_executable(dolphin-mpn
   CheatsManager.h
   Achievements/AchievementHeaderWidget.cpp
   Achievements/AchievementHeaderWidget.h
+  Achievements/AchievementLeaderboardWidget.cpp
+  Achievements/AchievementLeaderboardWidget.h
   Achievements/AchievementProgressWidget.cpp
   Achievements/AchievementProgressWidget.h
   Achievements/AchievementSettingsWidget.cpp
@@ -100,6 +102,8 @@ add_executable(dolphin-mpn
   Config/GraphicsModListWidget.h
   Config/GraphicsModWarningWidget.cpp
   Config/GraphicsModWarningWidget.h
+  Config/HardcoreWarningWidget.cpp
+  Config/HardcoreWarningWidget.h
   Config/InfoWidget.cpp
   Config/InfoWidget.h
   Config/LogConfigWidget.cpp
@@ -196,6 +200,12 @@ add_executable(dolphin-mpn
   Config/WiimoteControllersWidget.h
   ConvertDialog.cpp
   ConvertDialog.h
+  Debugger/AssembleInstructionDialog.cpp
+  Debugger/AssembleInstructionDialog.h
+  Debugger/AssemblerWidget.cpp
+  Debugger/AssemblerWidget.h
+  Debugger/AssemblyEditor.cpp
+  Debugger/AssemblyEditor.h
   Debugger/BreakpointDialog.cpp
   Debugger/BreakpointDialog.h
   Debugger/BreakpointWidget.cpp
@@ -206,6 +216,8 @@ add_executable(dolphin-mpn
   Debugger/CodeViewWidget.h
   Debugger/CodeWidget.cpp
   Debugger/CodeWidget.h
+  Debugger/GekkoSyntaxHighlight.cpp
+  Debugger/GekkoSyntaxHighlight.h
   Debugger/JITWidget.cpp
   Debugger/JITWidget.h
   Debugger/MemoryViewWidget.cpp
@@ -279,6 +291,8 @@ add_executable(dolphin-mpn
   QtUtils/AspectRatioWidget.h
   QtUtils/BlockUserInputFilter.cpp
   QtUtils/BlockUserInputFilter.h
+  QtUtils/ClearLayoutRecursively.cpp
+  QtUtils/ClearLayoutRecursively.h
   QtUtils/DolphinFileDialog.cpp
   QtUtils/DolphinFileDialog.h
   QtUtils/DoubleClickEventFilter.cpp
@@ -335,6 +349,8 @@ add_executable(dolphin-mpn
   Settings/USBDeviceAddToWhitelistDialog.h
   Settings/WiiPane.cpp
   Settings/WiiPane.h
+  SkylanderPortal/SkylanderModifyDialog.cpp
+  SkylanderPortal/SkylanderModifyDialog.h
   SkylanderPortal/SkylanderPortalWindow.cpp
   SkylanderPortal/SkylanderPortalWindow.h
   TAS/GCTASInputWindow.cpp

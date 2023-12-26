@@ -20,7 +20,7 @@ class DirectFilesystemAssetLibrary final : public CustomAssetLibrary
 public:
   using AssetMap = std::map<std::string, std::filesystem::path>;
 
-  LoadInfo LoadTexture(const AssetID& asset_id, CustomTextureData* data) override;
+  LoadInfo LoadTexture(const AssetID& asset_id, TextureData* data) override;
   LoadInfo LoadPixelShader(const AssetID& asset_id, PixelShaderData* data) override;
   LoadInfo LoadMaterial(const AssetID& asset_id, MaterialData* data) override;
 

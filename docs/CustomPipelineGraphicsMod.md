@@ -44,7 +44,7 @@ A full example is given below:
             "name": "normal_texture",
             "data":
             {
-                "": "normal_texture.png"
+                "texture": "normal_texture.png"
             }
         }
     ],

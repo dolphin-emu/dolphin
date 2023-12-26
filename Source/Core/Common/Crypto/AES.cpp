@@ -250,7 +250,19 @@ public:
   }
 
 private:
-  std::array<__m128i, NUM_ROUND_KEYS> round_keys;
+  // Ensures alignment specifiers are respected.
+  struct XmmReg
+  {
+    __m128i data;
+
+    XmmReg& operator=(const __m128i& m)
+    {
+      data = m;
+      return *this;
+    }
+    operator __m128i() const { return data; }
+  };
+  std::array<XmmReg, NUM_ROUND_KEYS> round_keys;
 };
 
 #endif

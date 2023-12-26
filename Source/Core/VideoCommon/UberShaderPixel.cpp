@@ -330,7 +330,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
 
   out.Write("// {}\n", *uid_data);
   WriteBitfieldExtractHeader(out, api_type, host_config);
-  WritePixelShaderCommonHeader(out, api_type, host_config, bounding_box);
+  WritePixelShaderCommonHeader(out, api_type, host_config, bounding_box, custom_details);
   WriteCustomShaderStructDef(&out, numTexgen);
   for (std::size_t i = 0; i < custom_details.shaders.size(); i++)
   {

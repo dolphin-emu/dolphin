@@ -4,31 +4,25 @@
 #ifdef USE_RETRO_ACHIEVEMENTS
 #include "DolphinQt/Achievements/AchievementSettingsWidget.h"
 
-#include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
-#include <QPushButton>
 #include <QString>
 #include <QVBoxLayout>
 
 #include "Core/AchievementManager.h"
 #include "Core/Config/AchievementSettings.h"
+#include "Core/Config/FreeLookSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
+#include "Core/Movie.h"
 
-#include "DolphinQt/Achievements/AchievementsWindow.h"
 #include "DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
-#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 
-static constexpr bool hardcore_mode_enabled = false;
-
-AchievementSettingsWidget::AchievementSettingsWidget(QWidget* parent,
-                                                     AchievementsWindow* parent_window)
-    : QWidget(parent), parent_window(parent_window)
+AchievementSettingsWidget::AchievementSettingsWidget(QWidget* parent) : QWidget(parent)
 {
   CreateLayout();
   LoadSettings();
@@ -36,6 +30,15 @@ AchievementSettingsWidget::AchievementSettingsWidget(QWidget* parent,
 
   connect(&Settings::Instance(), &Settings::ConfigChanged, this,
           &AchievementSettingsWidget::LoadSettings);
+
+  // If hardcore is enabled when the emulator starts, make sure it turns off what it needs to
+  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+    ToggleHardcore();
+}
+
+void AchievementSettingsWidget::UpdateData()
+{
+  LoadSettings();
 }
 
 void AchievementSettingsWidget::CreateLayout()
@@ -75,6 +78,30 @@ void AchievementSettingsWidget::CreateLayout()
          "achievements.<br><br>Unofficial achievements may be optional or unfinished achievements "
          "that have not been deemed official by RetroAchievements and may be useful for testing or "
          "simply for fun."));
+  m_common_hardcore_enabled_input = new ToolTipCheckBox(tr("Enable Hardcore Mode"));
+  m_common_hardcore_enabled_input->SetDescription(
+      tr("Enable Hardcore Mode on RetroAchievements.<br><br>Hardcore Mode is intended to provide "
+         "an experience as close to gaming on the original hardware as possible. RetroAchievements "
+         "rankings are primarily oriented towards Hardcore points (Softcore points are tracked but "
+         "not as heavily emphasized) and leaderboards require Hardcore Mode to be on.<br><br>To "
+         "ensure this experience, the following features will be disabled, as they give emulator "
+         "players an advantage over console players:<br>- Loading states<br>-- Saving states is "
+         "allowed<br>- Emulator speeds below 100%<br>-- Frame advance is disabled<br>-- Turbo is "
+         "allowed<br>- Cheats<br>- Memory patches<br>-- File patches are allowed<br>- Debug "
+         "UI<br>- Freelook<br><br><dolphin_emphasis>This cannot be turned on while a game is "
+         "playing.</dolphin_emphasis><br>Close your current game before enabling.<br>Be aware that "
+         "turning Hardcore Mode off while a game is running requires the game to be closed before "
+         "re-enabling."));
+  m_common_progress_enabled_input = new ToolTipCheckBox(tr("Enable Progress Notifications"));
+  m_common_progress_enabled_input->SetDescription(
+      tr("Enable progress notifications on achievements.<br><br>Displays a brief popup message "
+         "whenever the player makes progress on an achievement that tracks an accumulated value, "
+         "such as 60 out of 120 stars."));
+  m_common_badges_enabled_input = new ToolTipCheckBox(tr("Enable Achievement Badges"));
+  m_common_badges_enabled_input->SetDescription(
+      tr("Enable achievement badges.<br><br>Displays icons for the player, game, and achievements. "
+         "Simple visual option, but will require a small amount of extra memory and time to "
+         "download the images."));
   m_common_encore_enabled_input = new ToolTipCheckBox(tr("Enable Encore Achievements"));
   m_common_encore_enabled_input->SetDescription(tr(
       "Enable unlocking achievements in Encore Mode.<br><br>Encore Mode re-enables achievements "
@@ -92,6 +119,9 @@ void AchievementSettingsWidget::CreateLayout()
   m_common_layout->addWidget(m_common_achievements_enabled_input);
   m_common_layout->addWidget(m_common_leaderboards_enabled_input);
   m_common_layout->addWidget(m_common_rich_presence_enabled_input);
+  m_common_layout->addWidget(m_common_hardcore_enabled_input);
+  m_common_layout->addWidget(m_common_progress_enabled_input);
+  m_common_layout->addWidget(m_common_badges_enabled_input);
   m_common_layout->addWidget(m_common_unofficial_enabled_input);
   m_common_layout->addWidget(m_common_encore_enabled_input);
 
@@ -111,6 +141,12 @@ void AchievementSettingsWidget::ConnectWidgets()
           &AchievementSettingsWidget::ToggleLeaderboards);
   connect(m_common_rich_presence_enabled_input, &QCheckBox::toggled, this,
           &AchievementSettingsWidget::ToggleRichPresence);
+  connect(m_common_hardcore_enabled_input, &QCheckBox::toggled, this,
+          &AchievementSettingsWidget::ToggleHardcore);
+  connect(m_common_progress_enabled_input, &QCheckBox::toggled, this,
+          &AchievementSettingsWidget::ToggleProgress);
+  connect(m_common_badges_enabled_input, &QCheckBox::toggled, this,
+          &AchievementSettingsWidget::ToggleBadges);
   connect(m_common_unofficial_enabled_input, &QCheckBox::toggled, this,
           &AchievementSettingsWidget::ToggleUnofficial);
   connect(m_common_encore_enabled_input, &QCheckBox::toggled, this,
@@ -129,6 +165,7 @@ void AchievementSettingsWidget::LoadSettings()
 {
   bool enabled = Config::Get(Config::RA_ENABLED);
   bool achievements_enabled = Config::Get(Config::RA_ACHIEVEMENTS_ENABLED);
+  bool hardcore_enabled = Config::Get(Config::RA_HARDCORE_ENABLED);
   bool logged_out = Config::Get(Config::RA_API_TOKEN).empty();
   std::string username = Config::Get(Config::RA_USERNAME);
 
@@ -151,11 +188,25 @@ void AchievementSettingsWidget::LoadSettings()
 
   SignalBlocking(m_common_leaderboards_enabled_input)
       ->setChecked(Config::Get(Config::RA_LEADERBOARDS_ENABLED));
-  SignalBlocking(m_common_leaderboards_enabled_input)->setEnabled(enabled && hardcore_mode_enabled);
+  SignalBlocking(m_common_leaderboards_enabled_input)->setEnabled(enabled && hardcore_enabled);
 
   SignalBlocking(m_common_rich_presence_enabled_input)
       ->setChecked(Config::Get(Config::RA_RICH_PRESENCE_ENABLED));
   SignalBlocking(m_common_rich_presence_enabled_input)->setEnabled(enabled);
+
+  SignalBlocking(m_common_hardcore_enabled_input)
+      ->setChecked(Config::Get(Config::RA_HARDCORE_ENABLED));
+  SignalBlocking(m_common_hardcore_enabled_input)
+      ->setEnabled(enabled &&
+                   (hardcore_enabled ||
+                    (Core::GetState() == Core::State::Uninitialized && !Movie::IsPlayingInput())));
+
+  SignalBlocking(m_common_progress_enabled_input)
+      ->setChecked(Config::Get(Config::RA_PROGRESS_ENABLED));
+  SignalBlocking(m_common_progress_enabled_input)->setEnabled(enabled && achievements_enabled);
+
+  SignalBlocking(m_common_badges_enabled_input)->setChecked(Config::Get(Config::RA_BADGES_ENABLED));
+  SignalBlocking(m_common_badges_enabled_input)->setEnabled(enabled);
 
   SignalBlocking(m_common_unofficial_enabled_input)
       ->setChecked(Config::Get(Config::RA_UNOFFICIAL_ENABLED));
@@ -176,6 +227,11 @@ void AchievementSettingsWidget::SaveSettings()
                            m_common_leaderboards_enabled_input->isChecked());
   Config::SetBaseOrCurrent(Config::RA_RICH_PRESENCE_ENABLED,
                            m_common_rich_presence_enabled_input->isChecked());
+  Config::SetBaseOrCurrent(Config::RA_HARDCORE_ENABLED,
+                           m_common_hardcore_enabled_input->isChecked());
+  Config::SetBaseOrCurrent(Config::RA_PROGRESS_ENABLED,
+                           m_common_unofficial_enabled_input->isChecked());
+  Config::SetBaseOrCurrent(Config::RA_BADGES_ENABLED, m_common_badges_enabled_input->isChecked());
   Config::SetBaseOrCurrent(Config::RA_UNOFFICIAL_ENABLED,
                            m_common_unofficial_enabled_input->isChecked());
   Config::SetBaseOrCurrent(Config::RA_ENCORE_ENABLED, m_common_encore_enabled_input->isChecked());
@@ -185,16 +241,18 @@ void AchievementSettingsWidget::SaveSettings()
 void AchievementSettingsWidget::ToggleRAIntegration()
 {
   SaveSettings();
+
+  auto& instance = AchievementManager::GetInstance();
   if (Config::Get(Config::RA_ENABLED))
-    AchievementManager::GetInstance()->Init();
+    instance.Init();
   else
-    AchievementManager::GetInstance()->Shutdown();
+    instance.Shutdown();
 }
 
 void AchievementSettingsWidget::Login()
 {
   Config::SetBaseOrCurrent(Config::RA_USERNAME, m_common_username_input->text().toStdString());
-  AchievementManager::GetInstance()->Login(m_common_password_input->text().toStdString());
+  AchievementManager::GetInstance().Login(m_common_password_input->text().toStdString());
   m_common_password_input->setText(QString());
   m_common_login_failed->setVisible(Config::Get(Config::RA_API_TOKEN).empty());
   SaveSettings();
@@ -202,38 +260,63 @@ void AchievementSettingsWidget::Login()
 
 void AchievementSettingsWidget::Logout()
 {
-  AchievementManager::GetInstance()->Logout();
+  AchievementManager::GetInstance().Logout();
   SaveSettings();
 }
 
 void AchievementSettingsWidget::ToggleAchievements()
 {
   SaveSettings();
-  AchievementManager::GetInstance()->ActivateDeactivateAchievements();
+  AchievementManager::GetInstance().ActivateDeactivateAchievements();
 }
 
 void AchievementSettingsWidget::ToggleLeaderboards()
 {
   SaveSettings();
-  AchievementManager::GetInstance()->ActivateDeactivateLeaderboards();
+  AchievementManager::GetInstance().ActivateDeactivateLeaderboards();
 }
 
 void AchievementSettingsWidget::ToggleRichPresence()
 {
   SaveSettings();
-  AchievementManager::GetInstance()->ActivateDeactivateRichPresence();
+  AchievementManager::GetInstance().ActivateDeactivateRichPresence();
+}
+
+void AchievementSettingsWidget::ToggleHardcore()
+{
+  SaveSettings();
+  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+  {
+    if (Config::Get(Config::MAIN_EMULATION_SPEED) < 1.0f)
+      Config::SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED, 1.0f);
+    Config::SetBaseOrCurrent(Config::FREE_LOOK_ENABLED, false);
+    Settings::Instance().SetCheatsEnabled(false);
+    Settings::Instance().SetDebugModeEnabled(false);
+  }
+  emit Settings::Instance().EmulationStateChanged(Core::GetState());
+}
+
+void AchievementSettingsWidget::ToggleProgress()
+{
+  SaveSettings();
+}
+
+void AchievementSettingsWidget::ToggleBadges()
+{
+  SaveSettings();
+  AchievementManager::GetInstance().FetchBadges();
 }
 
 void AchievementSettingsWidget::ToggleUnofficial()
 {
   SaveSettings();
-  AchievementManager::GetInstance()->ActivateDeactivateAchievements();
+  AchievementManager::GetInstance().ActivateDeactivateAchievements();
 }
 
 void AchievementSettingsWidget::ToggleEncore()
 {
   SaveSettings();
-  AchievementManager::GetInstance()->ActivateDeactivateAchievements();
+  AchievementManager::GetInstance().ActivateDeactivateAchievements();
 }
 
 #endif  // USE_RETRO_ACHIEVEMENTS

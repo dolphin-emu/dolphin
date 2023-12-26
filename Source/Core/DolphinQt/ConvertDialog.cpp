@@ -108,9 +108,8 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
 
   setLayout(main_layout);
 
-  connect(m_format, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-          &ConvertDialog::OnFormatChanged);
-  connect(m_compression, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+  connect(m_format, &QComboBox::currentIndexChanged, this, &ConvertDialog::OnFormatChanged);
+  connect(m_compression, &QComboBox::currentIndexChanged, this,
           &ConvertDialog::OnCompressionChanged);
   connect(convert_button, &QPushButton::clicked, this, &ConvertDialog::Convert);
 

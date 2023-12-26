@@ -123,6 +123,8 @@ void CheatSearchFactoryWidget::CreateWidgets()
   m_new_search = new NonDefaultQPushButton(tr("New Search"));
   layout->addWidget(m_new_search);
 
+  layout->addStretch();
+
   setLayout(layout);
 }
 

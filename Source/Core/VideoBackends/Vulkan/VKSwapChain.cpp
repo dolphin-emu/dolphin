@@ -428,8 +428,9 @@ bool SwapChain::SetupSwapChainImages()
                                 images.data());
   ASSERT(res == VK_SUCCESS);
 
-  const TextureConfig texture_config(TextureConfig(
-      m_width, m_height, 1, m_layers, 1, m_texture_format, AbstractTextureFlag_RenderTarget));
+  const TextureConfig texture_config(
+      TextureConfig(m_width, m_height, 1, m_layers, 1, m_texture_format,
+                    AbstractTextureFlag_RenderTarget, AbstractTextureType::Texture_2DArray));
   const VkRenderPass load_render_pass = g_object_cache->GetRenderPass(
       m_surface_format.format, VK_FORMAT_UNDEFINED, 1, VK_ATTACHMENT_LOAD_OP_LOAD);
   const VkRenderPass clear_render_pass = g_object_cache->GetRenderPass(

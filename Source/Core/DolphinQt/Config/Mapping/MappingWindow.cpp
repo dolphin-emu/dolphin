@@ -185,8 +185,7 @@ void MappingWindow::ConnectWidgets()
   connect(&Settings::Instance(), &Settings::DevicesChanged, this,
           &MappingWindow::OnGlobalDevicesChanged);
   connect(this, &MappingWindow::ConfigChanged, this, &MappingWindow::OnGlobalDevicesChanged);
-  connect(m_devices_combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
-          &MappingWindow::OnSelectDevice);
+  connect(m_devices_combo, &QComboBox::currentIndexChanged, this, &MappingWindow::OnSelectDevice);
 
   connect(m_reset_clear, &QPushButton::clicked, this, &MappingWindow::OnClearFieldsPressed);
   connect(m_reset_default, &QPushButton::clicked, this, &MappingWindow::OnDefaultFieldsPressed);
@@ -194,8 +193,7 @@ void MappingWindow::ConnectWidgets()
   connect(m_profiles_load, &QPushButton::clicked, this, &MappingWindow::OnLoadProfilePressed);
   connect(m_profiles_delete, &QPushButton::clicked, this, &MappingWindow::OnDeleteProfilePressed);
 
-  connect(m_profiles_combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
-          &MappingWindow::OnSelectProfile);
+  connect(m_profiles_combo, &QComboBox::currentIndexChanged, this, &MappingWindow::OnSelectProfile);
   connect(m_profiles_combo, &QComboBox::editTextChanged, this,
           &MappingWindow::OnProfileTextChanged);
 

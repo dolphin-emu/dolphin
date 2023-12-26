@@ -110,19 +110,42 @@ bool ObjectCache::CreateDescriptorSetLayouts()
 {
   // The geometry shader buffer must be last in this binding set, as we don't include it
   // if geometry shaders are not supported by the device. See the decrement below.
-  static const std::array<VkDescriptorSetLayoutBinding, 3> standard_ubo_bindings{{
+  static const std::array<VkDescriptorSetLayoutBinding, 4> standard_ubo_bindings{{
       {UBO_DESCRIPTOR_SET_BINDING_PS, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
        VK_SHADER_STAGE_FRAGMENT_BIT},
       {UBO_DESCRIPTOR_SET_BINDING_VS, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT},
+      {UBO_DESCRIPTOR_SET_BINDING_PS_CUST, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
+       VK_SHADER_STAGE_FRAGMENT_BIT},
       {UBO_DESCRIPTOR_SET_BINDING_GS, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
        VK_SHADER_STAGE_GEOMETRY_BIT},
   }};
 
+#ifdef ANDROID
   static const std::array<VkDescriptorSetLayoutBinding, 1> standard_sampler_bindings{{
       {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
        static_cast<u32>(VideoCommon::MAX_PIXEL_SHADER_SAMPLERS), VK_SHADER_STAGE_FRAGMENT_BIT},
   }};
+#else
+  constexpr u32 MAX_PIXEL_SAMPLER_ARRAY_SIZE = 8;
+  constexpr u32 TOTAL_PIXEL_SAMPLER_BINDINGS =
+      1 + (VideoCommon::MAX_PIXEL_SHADER_SAMPLERS - MAX_PIXEL_SAMPLER_ARRAY_SIZE);
+  static_assert(VideoCommon::MAX_PIXEL_SHADER_SAMPLERS == 16, "Update descriptor sampler bindings");
+
+  static const std::array<VkDescriptorSetLayoutBinding, TOTAL_PIXEL_SAMPLER_BINDINGS>
+      standard_sampler_bindings{{
+          {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_PIXEL_SAMPLER_ARRAY_SIZE,
+           VK_SHADER_STAGE_FRAGMENT_BIT},
+          {8, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
+          {9, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
+          {10, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
+          {11, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
+          {12, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
+          {13, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
+          {14, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
+          {15, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
+      }};
+#endif
 
   // The dynamic veretex loader's vertex buffer must be last here, for similar reasons
   static const std::array<VkDescriptorSetLayoutBinding, 2> standard_ssbo_bindings{{
@@ -170,7 +193,7 @@ bool ObjectCache::CreateDescriptorSetLayouts()
       {18, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1, VK_SHADER_STAGE_COMPUTE_BIT},
   }};
 
-  std::array<VkDescriptorSetLayoutBinding, 3> ubo_bindings = standard_ubo_bindings;
+  std::array<VkDescriptorSetLayoutBinding, 4> ubo_bindings = standard_ubo_bindings;
 
   std::array<VkDescriptorSetLayoutCreateInfo, NUM_DESCRIPTOR_SET_LAYOUTS> create_infos{{
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,

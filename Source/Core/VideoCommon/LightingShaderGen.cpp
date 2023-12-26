@@ -214,43 +214,44 @@ void GenerateCustomLightingHeaderDetails(ShaderCode* out, u32 enablelighting, u3
   out->Write("\tint light_count;\n");
 }
 
+static void GenerateLighting(ShaderCode* out, const LightingUidData& uid_data, int index,
+                             int litchan_index, u32 channel_index, u32 custom_light_index,
+                             bool alpha)
+{
+  const auto attnfunc =
+      static_cast<AttenuationFunc>((uid_data.attnfunc >> (2 * litchan_index)) & 0x3);
+
+  const std::string_view light_type = alpha ? "alpha" : "color";
+  const std::string name = fmt::format("lights_chan{}_{}", channel_index, light_type);
+
+  out->Write("\t{{\n");
+  out->Write("\t\tcustom_data.{}[{}].direction = " LIGHT_DIR ".xyz;\n", name, custom_light_index,
+             LIGHT_DIR_PARAMS(index));
+  out->Write("\t\tcustom_data.{}[{}].position = " LIGHT_POS ".xyz;\n", name, custom_light_index,
+             LIGHT_POS_PARAMS(index));
+  out->Write("\t\tcustom_data.{}[{}].cosatt = " LIGHT_COSATT ";\n", name, custom_light_index,
+             LIGHT_COSATT_PARAMS(index));
+  out->Write("\t\tcustom_data.{}[{}].distatt = " LIGHT_DISTATT ";\n", name, custom_light_index,
+             LIGHT_DISTATT_PARAMS(index));
+  out->Write("\t\tcustom_data.{}[{}].attenuation_type = {};\n", name, custom_light_index,
+             static_cast<u32>(attnfunc));
+  if (alpha)
+  {
+    out->Write("\t\tcustom_data.{}[{}].color = float3(" LIGHT_COL
+               ") / float3(255.0, 255.0, 255.0);\n",
+               name, custom_light_index, LIGHT_COL_PARAMS(index, alpha ? "a" : "rgb"));
+  }
+  else
+  {
+    out->Write("\t\tcustom_data.{}[{}].color = " LIGHT_COL " / float3(255.0, 255.0, 255.0);\n",
+               name, custom_light_index, LIGHT_COL_PARAMS(index, alpha ? "a" : "rgb"));
+  }
+  out->Write("\t}}\n");
+}
+
 void GenerateCustomLightingImplementation(ShaderCode* out, const LightingUidData& uid_data,
                                           std::string_view in_color_name)
 {
-  auto generate_lighting = [](ShaderCode* out, const LightingUidData& uid_data, int index,
-                              int litchan_index, u32 channel_index, u32 custom_light_index,
-                              bool alpha) {
-    const auto attnfunc =
-        static_cast<AttenuationFunc>((uid_data.attnfunc >> (2 * litchan_index)) & 0x3);
-
-    const std::string_view light_type = alpha ? "alpha" : "color";
-    const std::string name = fmt::format("lights_chan{}_{}", channel_index, light_type);
-
-    out->Write("\t{{\n");
-    out->Write("\t\tcustom_data.{}[{}].direction = " LIGHT_DIR ".xyz;\n", name, custom_light_index,
-               LIGHT_DIR_PARAMS(index));
-    out->Write("\t\tcustom_data.{}[{}].position = " LIGHT_POS ".xyz;\n", name, custom_light_index,
-               LIGHT_POS_PARAMS(index));
-    out->Write("\t\tcustom_data.{}[{}].cosatt = " LIGHT_COSATT ";\n", name, custom_light_index,
-               LIGHT_COSATT_PARAMS(index));
-    out->Write("\t\tcustom_data.{}[{}].distatt = " LIGHT_DISTATT ";\n", name, custom_light_index,
-               LIGHT_DISTATT_PARAMS(index));
-    out->Write("\t\tcustom_data.{}[{}].attenuation_type = {};\n", name, custom_light_index,
-               static_cast<u32>(attnfunc));
-    if (alpha)
-    {
-      out->Write("\t\tcustom_data.{}[{}].color = float3(" LIGHT_COL
-                 ") / float3(255.0, 255.0, 255.0);\n",
-                 name, custom_light_index, LIGHT_COL_PARAMS(index, alpha ? "a" : "rgb"));
-    }
-    else
-    {
-      out->Write("\t\tcustom_data.{}[{}].color = " LIGHT_COL " / float3(255.0, 255.0, 255.0);\n",
-                 name, custom_light_index, LIGHT_COL_PARAMS(index, alpha ? "a" : "rgb"));
-    }
-    out->Write("\t}}\n");
-  };
-
   for (u32 i = 0; i < 8; i++)
   {
     for (u32 channel_index = 0; channel_index < NUM_XF_COLOR_CHANNELS; channel_index++)
@@ -330,7 +331,7 @@ void GenerateCustomLightingImplementation(ShaderCode* out, const LightingUidData
       {
         if ((uid_data.light_mask & (1 << (i + 8 * j))) != 0)
         {
-          generate_lighting(out, uid_data, i, j, j, light_count, false);
+          GenerateLighting(out, uid_data, i, j, j, light_count, false);
           light_count++;
         }
       }
@@ -344,7 +345,7 @@ void GenerateCustomLightingImplementation(ShaderCode* out, const LightingUidData
       {
         if ((uid_data.light_mask & (1 << (i + 8 * (j + 2)))) != 0)
         {
-          generate_lighting(out, uid_data, i, j + 2, j, light_count, true);
+          GenerateLighting(out, uid_data, i, j + 2, j, light_count, true);
           light_count++;
         }
       }

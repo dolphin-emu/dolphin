@@ -133,7 +133,7 @@ void BalloonTip::UpdateBoundsAndRedraw(const QPoint& pos, ShowArrow show_arrow)
   const QRect screen_rect = screen->geometry();
 
   QSize sh = sizeHint();
-  // The look should resemble the default tooltip style set in Settings::SetCurrentUserStyle()
+  // The look should resemble the default tooltip style set in Settings::ApplyStyle()
   const int border = 1;
   const int arrow_height = 18;
   const int arrow_width = 18;

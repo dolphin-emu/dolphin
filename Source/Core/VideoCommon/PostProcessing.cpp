@@ -39,8 +39,8 @@ static const char s_default_pixel_shader_name[] = "default_pre_post_process";
 // RGBA16F should have enough quality even if we store colors in gamma space on it.
 static const AbstractTextureFormat s_intermediary_buffer_format = AbstractTextureFormat::RGBA16F;
 
-bool LoadShaderFromFile(const std::string& shader, const std::string& sub_dir,
-                        std::string& out_code)
+static bool LoadShaderFromFile(const std::string& shader, const std::string& sub_dir,
+                               std::string& out_code)
 {
   std::string path = File::GetUserPath(D_SHADERS_IDX) + sub_dir + shader + ".glsl";
 
@@ -530,7 +530,8 @@ void PostProcessing::BlitFromTexture(const MathUtil::Rectangle<int>& dst,
     {
       const TextureConfig intermediary_color_texture_config(
           target_width, target_height, 1, target_layers, src_tex->GetSamples(),
-          s_intermediary_buffer_format, AbstractTextureFlag_RenderTarget);
+          s_intermediary_buffer_format, AbstractTextureFlag_RenderTarget,
+          AbstractTextureType::Texture_2DArray);
       m_intermediary_color_texture = g_gfx->CreateTexture(intermediary_color_texture_config,
                                                           "Intermediary post process texture");
 
@@ -769,7 +770,7 @@ std::string PostProcessing::GetFooter() const
   return {};
 }
 
-std::string GetVertexShaderBody()
+static std::string GetVertexShaderBody()
 {
   std::ostringstream ss;
   if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
@@ -1002,7 +1003,7 @@ bool PostProcessing::CompilePixelShader()
   return true;
 }
 
-bool UseGeometryShaderForPostProcess(bool is_intermediary_buffer)
+static bool UseGeometryShaderForPostProcess(bool is_intermediary_buffer)
 {
   // We only return true on stereo modes that need to copy
   // both source texture layers into the target texture layers.

@@ -1,6 +1,18 @@
 add_library(common
   Analytics.cpp
   Analytics.h
+  Assembler/AssemblerShared.cpp
+  Assembler/AssemblerShared.h
+  Assembler/AssemblerTables.cpp
+  Assembler/AssemblerTables.h
+  Assembler/GekkoAssembler.cpp
+  Assembler/GekkoAssembler.h
+  Assembler/GekkoIRGen.cpp
+  Assembler/GekkoIRGen.h
+  Assembler/GekkoLexer.cpp
+  Assembler/GekkoLexer.h
+  Assembler/GekkoParser.cpp
+  Assembler/GekkoParser.h
   Assert.h
   BitField.h
   BitSet.h
@@ -220,7 +232,7 @@ if(_M_ARM_64)
     ArmFPURoundMode.cpp
   )
 else()
-  if(_M_X86) #X86
+  if(_M_X86_64) #X86
     target_sources(common PRIVATE
       x64ABI.cpp
       x64ABI.h
@@ -317,7 +329,7 @@ endif()
 if(UNIX)
   # Posix networking code needs to be fixed for Windows
   add_executable(traversal_server TraversalServer.cpp)
-  target_link_libraries(traversal_server PRIVATE common)
+  target_link_libraries(traversal_server PRIVATE common fmt::fmt)
   if(SYSTEMD_FOUND)
     target_link_libraries(traversal_server PRIVATE ${SYSTEMD_LIBRARIES})
   endif()

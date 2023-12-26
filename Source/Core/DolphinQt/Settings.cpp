@@ -33,6 +33,7 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Config/AchievementSettings.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
@@ -123,13 +124,18 @@ void Settings::SetThemeName(const QString& theme_name)
   emit ThemeChanged();
 }
 
-QString Settings::GetCurrentUserStyle() const
+QString Settings::GetUserStyleName() const
 {
   if (GetQSettings().contains(QStringLiteral("userstyle/name")))
     return GetQSettings().value(QStringLiteral("userstyle/name")).toString();
 
   // Migration code for the old way of storing this setting
   return QFileInfo(GetQSettings().value(QStringLiteral("userstyle/path")).toString()).fileName();
+}
+
+void Settings::SetUserStyleName(const QString& stylesheet_name)
+{
+  GetQSettings().setValue(QStringLiteral("userstyle/name"), stylesheet_name);
 }
 
 void Settings::InitDefaultPalette()
@@ -169,12 +175,14 @@ bool Settings::IsThemeDark()
 }
 
 // Calling this before the main window has been created breaks the style of some widgets.
-void Settings::SetCurrentUserStyle(const QString& stylesheet_name)
+void Settings::ApplyStyle()
 {
+  const StyleType style_type = GetStyleType();
+  const QString stylesheet_name = GetUserStyleName();
   QString stylesheet_contents;
 
   // If we haven't found one, we continue with an empty (default) style
-  if (!stylesheet_name.isEmpty() && AreUserStylesEnabled())
+  if (!stylesheet_name.isEmpty() && style_type == StyleType::User)
   {
     // Load custom user stylesheet
     QDir directory = QDir(QString::fromStdString(File::GetUserPath(D_STYLES_IDX)));
@@ -191,7 +199,7 @@ void Settings::SetCurrentUserStyle(const QString& stylesheet_name)
     // which would select Qt's default theme, but unlike other OSes we don't automatically get a
     // default dark theme on Windows when the user has selected dark mode in the Windows settings.
     // So manually check if the user wants dark mode and, if yes, load our embedded dark theme.
-    if (IsSystemDark())
+    if (style_type == StyleType::Dark || (style_type != StyleType::Light && IsSystemDark()))
     {
       QFile file(QStringLiteral(":/dolphin_dark_win/dark.qss"));
       if (file.open(QFile::ReadOnly))
@@ -243,18 +251,32 @@ void Settings::SetCurrentUserStyle(const QString& stylesheet_name)
   }
 
   qApp->setStyleSheet(stylesheet_contents);
-
-  GetQSettings().setValue(QStringLiteral("userstyle/name"), stylesheet_name);
 }
 
-bool Settings::AreUserStylesEnabled() const
+Settings::StyleType Settings::GetStyleType() const
 {
-  return GetQSettings().value(QStringLiteral("userstyle/enabled"), false).toBool();
+  if (GetQSettings().contains(QStringLiteral("userstyle/styletype")))
+  {
+    bool ok = false;
+    const int type_int = GetQSettings().value(QStringLiteral("userstyle/styletype")).toInt(&ok);
+    if (ok && type_int >= static_cast<int>(StyleType::MinValue) &&
+        type_int <= static_cast<int>(StyleType::MaxValue))
+    {
+      return static_cast<StyleType>(type_int);
+    }
+  }
+
+  // if the style type is unset or invalid, try the old enabled flag instead
+  const bool enabled = GetQSettings().value(QStringLiteral("userstyle/enabled"), false).toBool();
+  return enabled ? StyleType::User : StyleType::System;
 }
 
-void Settings::SetUserStylesEnabled(bool enabled)
+void Settings::SetStyleType(StyleType type)
 {
-  GetQSettings().setValue(QStringLiteral("userstyle/enabled"), enabled);
+  GetQSettings().setValue(QStringLiteral("userstyle/styletype"), static_cast<int>(type));
+
+  // also set the old setting so that the config is correctly intepreted by older Dolphin builds
+  GetQSettings().setValue(QStringLiteral("userstyle/enabled"), type == StyleType::User);
 }
 
 void Settings::GetToolTipStyle(QColor& window_color, QColor& text_color,
@@ -542,6 +564,10 @@ void Settings::SetCheatsEnabled(bool enabled)
 
 void Settings::SetDebugModeEnabled(bool enabled)
 {
+#ifdef USE_RETRO_ACHIEVEMENTS
+  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+    enabled = false;
+#endif  // USE_RETRO_ACHIEVEMENTS
   if (IsDebugModeEnabled() != enabled)
   {
     Config::SetBaseOrCurrent(Config::MAIN_ENABLE_DEBUGGING, enabled);
@@ -670,6 +696,20 @@ void Settings::SetJITVisible(bool enabled)
 bool Settings::IsJITVisible() const
 {
   return QSettings().value(QStringLiteral("debugger/showjit")).toBool();
+}
+
+void Settings::SetAssemblerVisible(bool enabled)
+{
+  if (IsAssemblerVisible() == enabled)
+    return;
+  QSettings().setValue(QStringLiteral("debugger/showassembler"), enabled);
+
+  emit AssemblerVisibilityChanged(enabled);
+}
+
+bool Settings::IsAssemblerVisible() const
+{
+  return QSettings().value(QStringLiteral("debugger/showassembler")).toBool();
 }
 
 void Settings::RefreshWidgetVisibility()

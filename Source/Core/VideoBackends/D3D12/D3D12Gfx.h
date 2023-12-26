@@ -98,8 +98,6 @@ protected:
   void OnConfigChanged(u32 bits) override;
 
 private:
-  static const u32 NUM_CONSTANT_BUFFERS = 3;
-
   // Dirty bits
   enum DirtyStates
   {
@@ -113,27 +111,28 @@ private:
     DirtyState_PS_UAV = (1 << 7),
     DirtyState_PS_CBV = (1 << 8),
     DirtyState_VS_CBV = (1 << 9),
-    DirtyState_GS_CBV = (1 << 10),
-    DirtyState_SRV_Descriptor = (1 << 11),
-    DirtyState_Sampler_Descriptor = (1 << 12),
-    DirtyState_UAV_Descriptor = (1 << 13),
-    DirtyState_VertexBuffer = (1 << 14),
-    DirtyState_IndexBuffer = (1 << 15),
-    DirtyState_PrimitiveTopology = (1 << 16),
-    DirtyState_RootSignature = (1 << 17),
-    DirtyState_ComputeRootSignature = (1 << 18),
-    DirtyState_DescriptorHeaps = (1 << 19),
-    DirtyState_VS_SRV = (1 << 20),
-    DirtyState_VS_SRV_Descriptor = (1 << 21),
+    DirtyState_PS_CUS_CBV = (1 << 10),
+    DirtyState_GS_CBV = (1 << 11),
+    DirtyState_SRV_Descriptor = (1 << 12),
+    DirtyState_Sampler_Descriptor = (1 << 13),
+    DirtyState_UAV_Descriptor = (1 << 14),
+    DirtyState_VertexBuffer = (1 << 15),
+    DirtyState_IndexBuffer = (1 << 16),
+    DirtyState_PrimitiveTopology = (1 << 17),
+    DirtyState_RootSignature = (1 << 18),
+    DirtyState_ComputeRootSignature = (1 << 19),
+    DirtyState_DescriptorHeaps = (1 << 20),
+    DirtyState_VS_SRV = (1 << 21),
+    DirtyState_VS_SRV_Descriptor = (1 << 22),
 
     DirtyState_All =
         DirtyState_Framebuffer | DirtyState_Pipeline | DirtyState_Textures | DirtyState_Samplers |
         DirtyState_Viewport | DirtyState_ScissorRect | DirtyState_ComputeImageTexture |
-        DirtyState_PS_UAV | DirtyState_PS_CBV | DirtyState_VS_CBV | DirtyState_GS_CBV |
-        DirtyState_SRV_Descriptor | DirtyState_Sampler_Descriptor | DirtyState_UAV_Descriptor |
-        DirtyState_VertexBuffer | DirtyState_IndexBuffer | DirtyState_PrimitiveTopology |
-        DirtyState_RootSignature | DirtyState_ComputeRootSignature | DirtyState_DescriptorHeaps |
-        DirtyState_VS_SRV | DirtyState_VS_SRV_Descriptor
+        DirtyState_PS_UAV | DirtyState_PS_CBV | DirtyState_VS_CBV | DirtyState_PS_CUS_CBV |
+        DirtyState_GS_CBV | DirtyState_SRV_Descriptor | DirtyState_Sampler_Descriptor |
+        DirtyState_UAV_Descriptor | DirtyState_VertexBuffer | DirtyState_IndexBuffer |
+        DirtyState_PrimitiveTopology | DirtyState_RootSignature | DirtyState_ComputeRootSignature |
+        DirtyState_DescriptorHeaps | DirtyState_VS_SRV | DirtyState_VS_SRV_Descriptor
   };
 
   void CheckForSwapChainChanges();
@@ -158,7 +157,7 @@ private:
   {
     ID3D12RootSignature* root_signature = nullptr;
     DXShader* compute_shader = nullptr;
-    std::array<D3D12_GPU_VIRTUAL_ADDRESS, 3> constant_buffers = {};
+    std::array<D3D12_GPU_VIRTUAL_ADDRESS, 4> constant_buffers = {};
     std::array<D3D12_CPU_DESCRIPTOR_HANDLE, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS> textures = {};
     D3D12_CPU_DESCRIPTOR_HANDLE vs_srv = {};
     D3D12_CPU_DESCRIPTOR_HANDLE ps_uav = {};

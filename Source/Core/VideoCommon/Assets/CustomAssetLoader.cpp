@@ -77,13 +77,6 @@ void CustomAssetLoader ::Shutdown()
   m_total_bytes_loaded = 0;
 }
 
-std::shared_ptr<RawTextureAsset>
-CustomAssetLoader::LoadTexture(const CustomAssetLibrary::AssetID& asset_id,
-                               std::shared_ptr<CustomAssetLibrary> library)
-{
-  return LoadOrCreateAsset<RawTextureAsset>(asset_id, m_textures, std::move(library));
-}
-
 std::shared_ptr<GameTextureAsset>
 CustomAssetLoader::LoadGameTexture(const CustomAssetLibrary::AssetID& asset_id,
                                    std::shared_ptr<CustomAssetLibrary> library)

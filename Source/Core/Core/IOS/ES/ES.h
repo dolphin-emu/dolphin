@@ -17,6 +17,10 @@
 
 class PointerWrap;
 
+namespace CoreTiming
+{
+class CoreTimingManager;
+}
 namespace DiscIO
 {
 enum class Platform;
@@ -232,7 +236,7 @@ public:
   ESDevice& operator=(ESDevice&& other) = delete;
   ~ESDevice();
 
-  static void InitializeEmulationState();
+  static void InitializeEmulationState(CoreTiming::CoreTimingManager& core_timing);
   static void FinalizeEmulationState();
 
   ReturnCode DIVerify(const ES::TMDReader& tmd, const ES::TicketReader& ticket);
