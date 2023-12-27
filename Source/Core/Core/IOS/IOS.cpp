@@ -577,8 +577,11 @@ void EmulationKernel::AddStaticDevices()
   }
   if (HasFeature(features, Feature::KD))
   {
-    AddDevice(std::make_unique<NetKDRequestDevice>(*this, "/dev/net/kd/request"));
-    AddDevice(std::make_unique<NetKDTimeDevice>(*this, "/dev/net/kd/time"));
+    constexpr auto time_device_name = "/dev/net/kd/time";
+    AddDevice(std::make_unique<NetKDTimeDevice>(*this, time_device_name));
+    const auto time_device =
+        std::static_pointer_cast<NetKDTimeDevice>(GetDeviceByName(time_device_name));
+    AddDevice(std::make_unique<NetKDRequestDevice>(*this, "/dev/net/kd/request", time_device));
   }
   if (HasFeature(features, Feature::NCD))
   {

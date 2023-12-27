@@ -4,6 +4,7 @@
 #pragma once
 
 #include <array>
+#include <memory>
 #include <queue>
 #include <string>
 
@@ -17,6 +18,7 @@
 #include "Core/IOS/Network/KD/Mail/WC24Send.h"
 #include "Core/IOS/Network/KD/NWC24Config.h"
 #include "Core/IOS/Network/KD/NWC24DL.h"
+#include "Core/IOS/Network/KD/NetKDTime.h"
 
 namespace IOS::HLE
 {
@@ -26,7 +28,8 @@ namespace IOS::HLE
 class NetKDRequestDevice : public EmulationDevice
 {
 public:
-  NetKDRequestDevice(EmulationKernel& ios, const std::string& device_name);
+  NetKDRequestDevice(EmulationKernel& ios, const std::string& device_name,
+                     const std::shared_ptr<NetKDTimeDevice>& time_device);
   IPCReply HandleNWC24DownloadNowEx(const IOCtlRequest& request);
   NWC24::ErrorCode KDDownload(const u16 entry_index, const std::optional<u8> subtask_id);
   IPCReply HandleNWC24CheckMailNow(const IOCtlRequest& request);
@@ -114,6 +117,7 @@ private:
   std::queue<AsyncReply> m_async_replies;
   u32 m_error_count = 0;
   std::array<u32, 256> m_scheduler_buffer{};
+  std::shared_ptr<NetKDTimeDevice> m_time_device;
   // TODO: Maybe move away from Common::HttpRequest?
   Common::HttpRequest m_http{std::chrono::minutes{1}};
   u32 m_download_span = 2;
