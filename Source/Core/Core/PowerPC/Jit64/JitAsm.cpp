@@ -221,6 +221,9 @@ void Jit64AsmRoutineManager::Generate()
   ABI_CallFunction(JitTrampoline);
   ABI_PopRegistersAndAdjustStack({}, 0);
 
+  // If jitting triggered an ISI exception, MSR.DR may have changed
+  MOV(64, R(RMEM), PPCSTATE(mem_ptr));
+
   JMP(dispatcher_no_check, Jump::Near);
 
   SetJumpTarget(bail);
