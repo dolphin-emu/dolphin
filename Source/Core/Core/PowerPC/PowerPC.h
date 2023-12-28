@@ -53,6 +53,8 @@ enum class CoreMode
 constexpr size_t TLB_SIZE = 128;
 constexpr size_t NUM_TLBS = 2;
 constexpr size_t TLB_WAYS = 2;
+constexpr size_t DATA_TLB_INDEX = 0;
+constexpr size_t INST_TLB_INDEX = 1;
 
 struct TLBEntry
 {
