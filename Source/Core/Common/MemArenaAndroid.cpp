@@ -144,6 +144,11 @@ void MemArena::UnmapFromMemoryRegion(void* view, size_t size)
     NOTICE_LOG_FMT(MEMMAP, "mmap failed");
 }
 
+size_t MemArena::GetPageSize() const
+{
+  return sysconf(_SC_PAGESIZE);
+}
+
 LazyMemoryRegion::LazyMemoryRegion() = default;
 
 LazyMemoryRegion::~LazyMemoryRegion()
