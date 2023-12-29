@@ -115,6 +115,16 @@ public:
   ///
   void UnmapFromMemoryRegion(void* view, size_t size);
 
+  ///
+  /// Return the system's page size.
+  ///
+  size_t GetPageSize() const;
+
+  ///
+  /// Return the system's page size or required page alignment, whichever is larger.
+  ///
+  size_t GetPageAlignment() const;
+
 private:
 #ifdef _WIN32
   WindowsMemoryRegion* EnsureSplitRegionForMapping(void* address, size_t size);

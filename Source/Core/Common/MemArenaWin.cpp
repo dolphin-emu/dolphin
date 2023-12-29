@@ -438,6 +438,21 @@ void MemArena::UnmapFromMemoryRegion(void* view, size_t size)
   UnmapViewOfFile(view);
 }
 
+size_t MemArena::GetPageSize() const
+{
+  SYSTEM_INFO si;
+  GetSystemInfo(&si);
+
+  if (!m_memory_functions.m_address_MapViewOfFile3)
+  {
+    // In this case, we can only map pages that are 64K aligned.
+    // See https://devblogs.microsoft.com/oldnewthing/20031008-00/?p=42223
+    return std::max<size_t>(si.dwPageSize, 64 * 1024);
+  }
+
+  return si.dwPageSize;
+}
+
 LazyMemoryRegion::LazyMemoryRegion()
 {
   InitWindowsMemoryFunctions(&m_memory_functions);

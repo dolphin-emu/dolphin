@@ -3,6 +3,8 @@
 
 #include "Common/MemArena.h"
 
+#include <unistd.h>
+
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 
@@ -161,6 +163,11 @@ void MemArena::UnmapFromMemoryRegion(void* view, size_t size)
   {
     ERROR_LOG_FMT(MEMMAP, "UnmapFromMemoryRegion failed: vm_prot returned {0:#x}", retval);
   }
+}
+
+size_t MemArena::GetPageSize() const
+{
+  return getpagesize();
 }
 
 LazyMemoryRegion::LazyMemoryRegion() = default;
