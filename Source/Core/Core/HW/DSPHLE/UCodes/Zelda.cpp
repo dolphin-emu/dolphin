@@ -991,7 +991,7 @@ void ZeldaAudioRenderer::PrepareFrame()
                        0xB820);
   AddBuffersWithVolume(m_buf_front_left_reverb.data(), m_buf_back_right_reverb.data() + 0x28, 0x28,
                        0xB820);
-  AddBuffersWithVolume(m_buf_front_right_reverb.data(), m_buf_back_left_reverb.data() + 0x28, 0x28,
+  AddBuffersWithVolume(m_buf_front_right_reverb.data(), m_buf_back_right_reverb.data() + 0x28, 0x28,
                        0x7FFF);
   m_buf_back_left_reverb.fill(0);
   m_buf_back_right_reverb.fill(0);
