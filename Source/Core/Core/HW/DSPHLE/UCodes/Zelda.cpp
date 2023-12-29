@@ -950,6 +950,7 @@ struct ReverbPB
   // Base address of the circular buffer in MRAM.
   u16 circular_buffer_base_h;
   u16 circular_buffer_base_l;
+  DEFINE_32BIT_ACCESSOR(circular_buffer_base, CircularBufferBase)
 
   struct Destination
   {
@@ -990,7 +991,7 @@ void ZeldaAudioRenderer::PrepareFrame()
                        0xB820);
   AddBuffersWithVolume(m_buf_front_left_reverb.data(), m_buf_back_right_reverb.data() + 0x28, 0x28,
                        0xB820);
-  AddBuffersWithVolume(m_buf_front_right_reverb.data(), m_buf_back_left_reverb.data() + 0x28, 0x28,
+  AddBuffersWithVolume(m_buf_front_right_reverb.data(), m_buf_back_right_reverb.data() + 0x28, 0x28,
                        0x7FFF);
   m_buf_back_left_reverb.fill(0);
   m_buf_back_right_reverb.fill(0);
@@ -1059,8 +1060,7 @@ void ZeldaAudioRenderer::ApplyReverb(bool post_rendering)
 
     u16 mram_buffer_idx = m_reverb_pb_frames_count[rpb_idx];
 
-    u32 mram_addr = ((rpb.circular_buffer_base_h << 16) | rpb.circular_buffer_base_l) +
-                    mram_buffer_idx * 0x50 * sizeof(s16);
+    u32 mram_addr = rpb.GetCircularBufferBase() + mram_buffer_idx * 0x50 * sizeof(s16);
     s16* mram_ptr = (s16*)HLEMemory_Get_Pointer(mram_addr);
 
     if (!post_rendering)
