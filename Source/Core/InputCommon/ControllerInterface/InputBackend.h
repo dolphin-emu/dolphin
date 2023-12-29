@@ -3,10 +3,19 @@
 
 #pragma once
 
+#include <memory>
+#include <vector>
+
 class ControllerInterface;
 
 namespace ciface
 {
+
+namespace Core
+{
+class Device;
+}
+
 class InputBackend
 {
 public:
@@ -15,7 +24,9 @@ public:
   virtual ~InputBackend();
 
   virtual void PopulateDevices() = 0;
-  virtual void UpdateInput();
+  // Do NOT directly add/remove devices within here,
+  // just add them to the removal list if necessary.
+  virtual void UpdateInput(std::vector<std::weak_ptr<ciface::Core::Device>>& devices_to_remove);
 
   ControllerInterface& GetControllerInterface();
 

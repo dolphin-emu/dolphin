@@ -113,7 +113,7 @@ public:
   Device(hid_device* device);
   std::string GetName() const final override;
   std::string GetSource() const final override;
-  void UpdateInput() override;
+  Core::DeviceRemoval UpdateInput() override;
 
 private:
   hid_device* m_device;
@@ -279,7 +279,7 @@ std::string Device::GetSource() const
   return std::string(STEAMDECK_SOURCE_NAME);
 }
 
-void Device::UpdateInput()
+Core::DeviceRemoval Device::UpdateInput()
 {
   // As of a certain mid-2023 update to the Steam client,
   // Steam will disable gyro data if gyro is not mapped in Steam Input.
@@ -308,16 +308,18 @@ void Device::UpdateInput()
   }
   // In case there were no reports available to be read, bail early.
   if (!got_anything)
-    return;
+    return Core::DeviceRemoval::Keep;
 
   if (rpt.major_ver != 0x01 || rpt.minor_ver != 0x00 || rpt.report_type != 0x09 ||
       rpt.report_sz != sizeof(rpt))
   {
     ERROR_LOG_FMT(CONTROLLERINTERFACE, "Steam Deck bad report");
-    return;
+    return Core::DeviceRemoval::Keep;
   }
 
   m_latest_input = rpt;
+
+  return Core::DeviceRemoval::Keep;
 }
 
 }  // namespace ciface::SteamDeck

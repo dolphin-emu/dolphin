@@ -205,7 +205,7 @@ void KeyboardMouse::UpdateCursorInput()
   m_state_in.cursor.y = (ControlState(point.y) / win_height * 2 - 1) * window_scale.y;
 }
 
-void KeyboardMouse::UpdateInput()
+Core::DeviceRemoval KeyboardMouse::UpdateInput()
 {
   UpdateCursorInput();
 
@@ -254,6 +254,8 @@ void KeyboardMouse::UpdateInput()
     else
       INFO_LOG_FMT(CONTROLLERINTERFACE, "Keyboard device failed to re-acquire, we'll retry later");
   }
+
+  return Core::DeviceRemoval::Keep;
 }
 
 std::string KeyboardMouse::GetName() const

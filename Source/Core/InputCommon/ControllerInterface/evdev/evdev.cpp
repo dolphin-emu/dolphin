@@ -674,7 +674,7 @@ void InputBackend::RemoveDevnodeObject(const std::string& node)
   m_devnode_objects.erase(node);
 }
 
-void evdevDevice::UpdateInput()
+Core::DeviceRemoval evdevDevice::UpdateInput()
 {
   // Run through all evdev events
   // libevdev will keep track of the actual controller state internally which can be queried
@@ -691,6 +691,7 @@ void evdevDevice::UpdateInput()
         rc = libevdev_next_event(node.device, LIBEVDEV_READ_FLAG_NORMAL, &ev);
     }
   }
+  return Core::DeviceRemoval::Keep;
 }
 
 bool evdevDevice::IsValid() const

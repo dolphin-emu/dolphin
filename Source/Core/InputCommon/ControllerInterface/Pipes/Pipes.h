@@ -29,7 +29,7 @@ public:
   PipeDevice(int fd, const std::string& name);
   ~PipeDevice();
 
-  void UpdateInput() override;
+  Core::DeviceRemoval UpdateInput() override;
   std::string GetName() const override { return m_name; }
   std::string GetSource() const override { return "Pipe"; }
 
