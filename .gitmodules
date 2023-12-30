@@ -75,3 +75,6 @@
 [submodule "hidapi-src"]
 	path = Externals/hidapi/hidapi-src
 	url = https://github.com/libusb/hidapi
+[submodule "Externals/tinygltf/tinygltf"]
+	path = Externals/tinygltf/tinygltf
+	url = https://github.com/syoyo/tinygltf.git
