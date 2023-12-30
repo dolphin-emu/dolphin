@@ -91,6 +91,7 @@
 #include "DolphinQt/Debugger/NetworkWidget.h"
 #include "DolphinQt/Debugger/RegisterWidget.h"
 #include "DolphinQt/Debugger/ThreadWidget.h"
+#include "DolphinQt/Debugger/TraceWidget.h"
 #include "DolphinQt/Debugger/WatchWidget.h"
 #include "DolphinQt/DiscordHandler.h"
 #include "DolphinQt/FIFO/FIFOPlayerWindow.h"
@@ -453,6 +454,7 @@ void MainWindow::CreateComponents()
   m_network_widget = new NetworkWidget(this);
   m_register_widget = new RegisterWidget(this);
   m_thread_widget = new ThreadWidget(this);
+  m_trace_widget = new TraceWidget(this);
   m_watch_widget = new WatchWidget(this);
   m_breakpoint_widget = new BreakpointWidget(this);
   m_code_widget = new CodeWidget(this);
@@ -477,6 +479,8 @@ void MainWindow::CreateComponents()
   connect(m_register_widget, &RegisterWidget::RequestWatch, request_watch);
   connect(m_register_widget, &RegisterWidget::RequestViewInMemory, request_view_in_memory);
   connect(m_register_widget, &RegisterWidget::RequestViewInCode, request_view_in_code);
+  connect(m_register_widget, &RegisterWidget::DoAutoStep, m_trace_widget, &TraceWidget::AutoStep);
+
   connect(m_thread_widget, &ThreadWidget::RequestBreakpoint, request_breakpoint);
   connect(m_thread_widget, &ThreadWidget::RequestMemoryBreakpoint, request_memory_breakpoint);
   connect(m_thread_widget, &ThreadWidget::RequestWatch, request_watch);
@@ -487,12 +491,21 @@ void MainWindow::CreateComponents()
           &BreakpointWidget::Update);
   connect(m_code_widget, &CodeWidget::RequestPPCComparison, m_jit_widget, &JITWidget::Compare);
   connect(m_code_widget, &CodeWidget::ShowMemory, m_memory_widget, &MemoryWidget::SetAddress);
+  connect(m_code_widget, &CodeWidget::DoAutoStep, m_trace_widget, &TraceWidget::AutoStep);
+
   connect(m_memory_widget, &MemoryWidget::BreakpointsChanged, m_breakpoint_widget,
           &BreakpointWidget::Update);
   connect(m_memory_widget, &MemoryWidget::ShowCode, m_code_widget, [this](u32 address) {
     m_code_widget->SetAddress(address, CodeViewWidget::SetAddressUpdate::WithDetailedUpdate);
   });
   connect(m_memory_widget, &MemoryWidget::RequestWatch, request_watch);
+
+  connect(m_trace_widget, &TraceWidget::ShowCode, m_code_widget, [this](u32 address) {
+    m_code_widget->SetAddress(address, CodeViewWidget::SetAddressUpdate::WithUpdate);
+  });
+  connect(m_trace_widget, &TraceWidget::ShowMemory, m_memory_widget, &MemoryWidget::SetAddress);
+  connect(m_code_widget, &CodeWidget::BreakpointsChanged, m_trace_widget,
+          &TraceWidget::UpdateBreakpoints);
 
   connect(m_breakpoint_widget, &BreakpointWidget::BreakpointsChanged, m_code_widget,
           &CodeWidget::Update);
@@ -743,6 +756,7 @@ void MainWindow::ConnectStack()
   addDockWidget(Qt::LeftDockWidgetArea, m_log_config_widget);
   addDockWidget(Qt::LeftDockWidgetArea, m_code_widget);
   addDockWidget(Qt::LeftDockWidgetArea, m_register_widget);
+  addDockWidget(Qt::LeftDockWidgetArea, m_trace_widget);
   addDockWidget(Qt::LeftDockWidgetArea, m_thread_widget);
   addDockWidget(Qt::LeftDockWidgetArea, m_watch_widget);
   addDockWidget(Qt::LeftDockWidgetArea, m_breakpoint_widget);
@@ -754,6 +768,7 @@ void MainWindow::ConnectStack()
   tabifyDockWidget(m_log_widget, m_log_config_widget);
   tabifyDockWidget(m_log_widget, m_code_widget);
   tabifyDockWidget(m_log_widget, m_register_widget);
+  tabifyDockWidget(m_log_widget, m_trace_widget);
   tabifyDockWidget(m_log_widget, m_thread_widget);
   tabifyDockWidget(m_log_widget, m_watch_widget);
   tabifyDockWidget(m_log_widget, m_breakpoint_widget);

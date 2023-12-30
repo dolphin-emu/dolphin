@@ -52,6 +52,7 @@ signals:
   void BreakpointsChanged();
   void RequestPPCComparison(u32 addr);
   void ShowMemory(u32 address);
+  void DoAutoStep(CodeTrace::AutoStop option, std::string reg);
 
 private:
   void CreateWidgets();

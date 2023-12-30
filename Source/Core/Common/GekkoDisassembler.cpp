@@ -748,7 +748,7 @@ void GekkoDisassembler::rrn(u32 in, std::string_view name, int smode, int chkoe,
     m_opcode =
         fmt::format("{}{}{}", name, oesel[chkoe && (in & PPCOE)], rcsel[(chkrc < 0) && (in & 1)]);
     m_operands = rd_ra_rb(in, 6);
-    m_operands += fmt::format(",{}", PPCGETB(in));
+    m_operands += fmt::format(", {}", PPCGETB(in));
   }
 }
 
@@ -866,7 +866,7 @@ void GekkoDisassembler::mtb(u32 in)
       break;
 
     default:
-      m_operands += fmt::format(",{}", tbr);
+      m_operands += fmt::format(", {}", tbr);
       break;
     }
 
@@ -2212,7 +2212,7 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
         if ((in & 0x006f0800) == 0)
         {
           m_opcode = fmt::format("mtfsfi{}", rcsel[in & 1]);
-          m_operands = fmt::format("cr{},{}", PPCGETCRD(in), (in & 0xf000) >> 12);
+          m_operands = fmt::format("cr{}, {}", PPCGETCRD(in), (in & 0xf000) >> 12);
         }
         else
         {
