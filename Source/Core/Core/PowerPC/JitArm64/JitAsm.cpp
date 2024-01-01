@@ -177,7 +177,12 @@ void JitArm64::GenerateAsm()
   // Call JIT
   ResetStack();
   ABI_CallFunction(&JitTrampoline, this, DISPATCHER_PC);
+
   LDR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
+
+  // If jitting triggered an ISI exception, MSR.DR may have changed
+  EmitUpdateMembase();
+
   B(dispatcher_no_check);
 
   SetJumpTarget(bail);
