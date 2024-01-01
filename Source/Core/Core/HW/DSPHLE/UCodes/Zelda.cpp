@@ -1217,11 +1217,9 @@ void ZeldaAudioRenderer::AddVoice(u16 voice_id)
 
     // Compute reverb volume and ramp deltas.
     s16 reverb_volumes[4], reverb_volume_deltas[4];
-    s16 reverb_volume_factor =
-        (vpb.dolby_volume_current * vpb.dolby_reverb_factor) >> (shift_factor - 1);
     for (size_t i = 0; i < 4; ++i)
     {
-      reverb_volumes[i] = (quadrant_volumes[i] * reverb_volume_factor) >> shift_factor;
+      reverb_volumes[i] = (quadrant_volumes[i] * vpb.dolby_reverb_factor) >> shift_factor;
       reverb_volume_deltas[i] = (volume_deltas[i] * vpb.dolby_reverb_factor) >> shift_factor;
     }
 
