@@ -73,7 +73,7 @@ public:
       else
       {
         int bit = std::countr_zero(m_val);
-        m_val &= ~(1 << bit);
+        m_val &= ~(IntTy{1} << bit);
         m_bit = bit;
       }
       return *this;
