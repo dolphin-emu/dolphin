@@ -12,7 +12,7 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
 
 InputBackend::~InputBackend() = default;
 
-void InputBackend::UpdateInput()
+void InputBackend::UpdateInput(std::vector<std::weak_ptr<ciface::Core::Device>>& devices_to_remove)
 {
 }
 

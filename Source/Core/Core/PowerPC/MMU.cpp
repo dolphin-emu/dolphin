@@ -1343,7 +1343,8 @@ static TLBLookupResult LookupTLBPageAddress(PowerPC::PowerPCState& ppc_state,
                                             u32* paddr, bool* wi)
 {
   const u32 tag = vpa >> HW_PAGE_INDEX_SHIFT;
-  TLBEntry& tlbe = ppc_state.tlb[IsOpcodeFlag(flag)][tag & HW_PAGE_INDEX_MASK];
+  const size_t tlb_index = IsOpcodeFlag(flag) ? PowerPC::INST_TLB_INDEX : PowerPC::DATA_TLB_INDEX;
+  TLBEntry& tlbe = ppc_state.tlb[tlb_index][tag & HW_PAGE_INDEX_MASK];
 
   if (tlbe.tag[0] == tag && tlbe.vsid[0] == vsid)
   {
@@ -1401,7 +1402,8 @@ static void UpdateTLBEntry(PowerPC::PowerPCState& ppc_state, const XCheckTLBFlag
     return;
 
   const u32 tag = address >> HW_PAGE_INDEX_SHIFT;
-  TLBEntry& tlbe = ppc_state.tlb[IsOpcodeFlag(flag)][tag & HW_PAGE_INDEX_MASK];
+  const size_t tlb_index = IsOpcodeFlag(flag) ? PowerPC::INST_TLB_INDEX : PowerPC::DATA_TLB_INDEX;
+  TLBEntry& tlbe = ppc_state.tlb[tlb_index][tag & HW_PAGE_INDEX_MASK];
   const u32 index = tlbe.recent == 0 && tlbe.tag[0] != TLBEntry::INVALID_TAG;
   tlbe.recent = index;
   tlbe.paddr[index] = pte2.RPN << HW_PAGE_INDEX_SHIFT;
@@ -1414,8 +1416,8 @@ void MMU::InvalidateTLBEntry(u32 address)
 {
   const u32 entry_index = (address >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK;
 
-  m_ppc_state.tlb[0][entry_index].Invalidate();
-  m_ppc_state.tlb[1][entry_index].Invalidate();
+  m_ppc_state.tlb[PowerPC::DATA_TLB_INDEX][entry_index].Invalidate();
+  m_ppc_state.tlb[PowerPC::INST_TLB_INDEX][entry_index].Invalidate();
 }
 
 // Page Address Translation

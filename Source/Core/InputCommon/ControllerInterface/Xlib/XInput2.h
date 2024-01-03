@@ -111,7 +111,7 @@ private:
   void UpdateCursor(bool should_center_mouse);
 
 public:
-  void UpdateInput() override;
+  Core::DeviceRemoval UpdateInput() override;
 
   KeyboardMouse(Window window, int opcode, int pointer_deviceid, int keyboard_deviceid,
                 double scroll_increment);

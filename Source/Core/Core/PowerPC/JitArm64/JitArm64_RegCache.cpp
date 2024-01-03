@@ -243,8 +243,9 @@ void Arm64GPRCache::FlushRegister(size_t index, bool maintain_state, ARM64Reg tm
 
 void Arm64GPRCache::FlushRegisters(BitSet32 regs, bool maintain_state, ARM64Reg tmp_reg)
 {
-  for (int i : regs)
+  for (auto iter = regs.begin(); iter != regs.end(); ++iter)
   {
+    const int i = *iter;
     ASSERT_MSG(DYNA_REC, m_guest_registers[GUEST_GPR_OFFSET + i].GetType() != RegType::Discarded,
                "Attempted to flush discarded register");
 
@@ -269,7 +270,7 @@ void Arm64GPRCache::FlushRegisters(BitSet32 regs, bool maintain_state, ARM64Reg 
             reg1.Flush();
             reg2.Flush();
           }
-          ++i;
+          ++iter;
           continue;
         }
       }

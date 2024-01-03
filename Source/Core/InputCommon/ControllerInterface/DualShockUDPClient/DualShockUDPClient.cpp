@@ -128,7 +128,7 @@ private:
   };
 
 public:
-  void UpdateInput() override;
+  Core::DeviceRemoval UpdateInput() override;
 
   Device(std::string name, int index, std::string server_address, u16 server_port, u32 client_uid);
 
@@ -614,7 +614,7 @@ std::string Device::GetSource() const
   return std::string(DUALSHOCKUDP_SOURCE_NAME);
 }
 
-void Device::UpdateInput()
+Core::DeviceRemoval Device::UpdateInput()
 {
   // Regularly tell the UDP server to feed us controller data
   const auto now = SteadyClock::now();
@@ -660,6 +660,8 @@ void Device::UpdateInput()
       m_prev_touch_valid = true;
     }
   }
+
+  return Core::DeviceRemoval::Keep;
 }
 
 std::optional<int> Device::GetPreferredId() const
