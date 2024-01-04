@@ -73,13 +73,11 @@ void CodeTrace::SetRegTracked(const std::string& reg)
 
 InstructionAttributes CodeTrace::GetInstructionAttributes(const TraceOutput& instruction) const
 {
-  auto& system = Core::System::GetInstance();
-
   // Slower process of breaking down saved instruction. Only used when stepping through code if a
   // decision has to be made, otherwise used afterwards on a log file.
   InstructionAttributes tmp_attributes;
   tmp_attributes.instruction = instruction.instruction;
-  tmp_attributes.address = system.GetPPCState().pc;
+  tmp_attributes.address = instruction.address;
   std::string instr = instruction.instruction;
   std::smatch match;
 
