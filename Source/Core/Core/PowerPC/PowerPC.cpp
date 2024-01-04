@@ -199,14 +199,15 @@ void PowerPCManager::ResetRegisters()
   mmu.DBATUpdated();
   mmu.IBATUpdated();
 
+  auto& system_timers = m_system.GetSystemTimers();
   TL(m_ppc_state) = 0;
   TU(m_ppc_state) = 0;
-  SystemTimers::TimeBaseSet();
+  system_timers.TimeBaseSet();
 
   // MSR should be 0x40, but we don't emulate BS1, so it would never be turned off :}
   m_ppc_state.msr.Hex = 0;
   m_ppc_state.spr[SPR_DEC] = 0xFFFFFFFF;
-  SystemTimers::DecrementerSet();
+  system_timers.DecrementerSet();
 
   RoundingModeUpdated(m_ppc_state);
   RecalculateAllFeatureFlags(m_ppc_state);

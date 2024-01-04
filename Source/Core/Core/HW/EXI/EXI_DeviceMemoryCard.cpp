@@ -532,7 +532,7 @@ void CEXIMemoryCard::DMARead(u32 addr, u32 size)
 
   // Schedule transfer complete later based on read speed
   m_system.GetCoreTiming().ScheduleEvent(
-      size * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_READ),
+      size * (m_system.GetSystemTimers().GetTicksPerSecond() / MC_TRANSFER_RATE_READ),
       s_et_transfer_complete[m_card_slot], static_cast<u64>(m_card_slot));
 }
 
@@ -550,7 +550,7 @@ void CEXIMemoryCard::DMAWrite(u32 addr, u32 size)
 
   // Schedule transfer complete later based on write speed
   m_system.GetCoreTiming().ScheduleEvent(
-      size * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_WRITE),
+      size * (m_system.GetSystemTimers().GetTicksPerSecond() / MC_TRANSFER_RATE_WRITE),
       s_et_transfer_complete[m_card_slot], static_cast<u64>(m_card_slot));
 }
 }  // namespace ExpansionInterface

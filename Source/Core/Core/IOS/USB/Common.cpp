@@ -40,7 +40,7 @@ void TransferCommand::OnTransferComplete(s32 return_value) const
 
 void TransferCommand::ScheduleTransferCompletion(s32 return_value, u32 expected_time_us) const
 {
-  auto ticks = SystemTimers::GetTicksPerSecond();
+  auto ticks = m_ios.GetSystem().GetSystemTimers().GetTicksPerSecond();
   s64 cycles_in_future = static_cast<s64>((static_cast<u64>(ticks) * expected_time_us) / 1'000'000);
   m_ios.EnqueueIPCReply(ios_request, return_value, cycles_in_future, CoreTiming::FromThread::ANY);
 }

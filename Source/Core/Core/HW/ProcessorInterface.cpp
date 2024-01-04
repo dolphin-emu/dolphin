@@ -262,8 +262,8 @@ void ProcessorInterfaceManager::ResetButton_Tap()
   core_timing.ScheduleEvent(0, m_event_type_toggle_reset_button, true, CoreTiming::FromThread::ANY);
   core_timing.ScheduleEvent(0, m_event_type_ios_notify_reset_button, 0,
                             CoreTiming::FromThread::ANY);
-  core_timing.ScheduleEvent(SystemTimers::GetTicksPerSecond() / 2, m_event_type_toggle_reset_button,
-                            false, CoreTiming::FromThread::ANY);
+  core_timing.ScheduleEvent(m_system.GetSystemTimers().GetTicksPerSecond() / 2,
+                            m_event_type_toggle_reset_button, false, CoreTiming::FromThread::ANY);
 }
 
 void ProcessorInterfaceManager::PowerButton_Tap()

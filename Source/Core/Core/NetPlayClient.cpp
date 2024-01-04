@@ -2522,7 +2522,7 @@ void NetPlayClient::SendTimeBase()
 
   if (netplay_client->m_timebase_frame % 60 == 0)
   {
-    const sf::Uint64 timebase = SystemTimers::GetFakeTimeBase();
+    const sf::Uint64 timebase = Core::System::GetInstance().GetSystemTimers().GetFakeTimeBase();
 
     sf::Packet packet;
     packet << MessageID::TimeBase;

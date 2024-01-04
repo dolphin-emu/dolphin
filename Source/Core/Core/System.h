@@ -86,6 +86,10 @@ namespace SerialInterface
 {
 class SerialInterfaceManager;
 };
+namespace SystemTimers
+{
+class SystemTimersManager;
+}
 namespace VideoCommon
 {
 class CustomAssetLoader;
@@ -155,6 +159,7 @@ public:
   ProcessorInterface::ProcessorInterfaceManager& GetProcessorInterface() const;
   SerialInterface::SerialInterfaceManager& GetSerialInterface() const;
   Sram& GetSRAM() const;
+  SystemTimers::SystemTimersManager& GetSystemTimers() const;
   VertexShaderManager& GetVertexShaderManager() const;
   XFStateManager& GetXFStateManager() const;
   VideoInterface::VideoInterfaceManager& GetVideoInterface() const;

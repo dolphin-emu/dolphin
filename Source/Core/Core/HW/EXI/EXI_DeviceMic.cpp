@@ -264,7 +264,7 @@ void CEXIMic::SetCS(int cs)
 
 void CEXIMic::UpdateNextInterruptTicks()
 {
-  int diff = (SystemTimers::GetTicksPerSecond() / sample_rate) * buff_size_samples;
+  int diff = (m_system.GetSystemTimers().GetTicksPerSecond() / sample_rate) * buff_size_samples;
   next_int_ticks = m_system.GetCoreTiming().GetTicks() + diff;
   m_system.GetExpansionInterface().ScheduleUpdateInterrupts(CoreTiming::FromThread::CPU, diff);
 }

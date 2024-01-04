@@ -245,13 +245,14 @@ void Interpreter::mfspr(Interpreter& interpreter, UGeckoInstruction inst)
   case SPR_DEC:
     if ((ppc_state.spr[index] & 0x80000000) == 0)  // We are still decrementing
     {
-      ppc_state.spr[index] = SystemTimers::GetFakeDecrementer();
+      ppc_state.spr[index] = interpreter.m_system.GetSystemTimers().GetFakeDecrementer();
     }
     break;
 
   case SPR_TL:
   case SPR_TU:
-    interpreter.m_system.GetPowerPC().WriteFullTimeBaseValue(SystemTimers::GetFakeTimeBase());
+    interpreter.m_system.GetPowerPC().WriteFullTimeBaseValue(
+        interpreter.m_system.GetSystemTimers().GetFakeTimeBase());
     break;
 
   case SPR_WPAR:
@@ -326,12 +327,12 @@ void Interpreter::mtspr(Interpreter& interpreter, UGeckoInstruction inst)
 
   case SPR_TL_W:
     TL(ppc_state) = ppc_state.gpr[inst.RD];
-    SystemTimers::TimeBaseSet();
+    interpreter.m_system.GetSystemTimers().TimeBaseSet();
     break;
 
   case SPR_TU_W:
     TU(ppc_state) = ppc_state.gpr[inst.RD];
-    SystemTimers::TimeBaseSet();
+    interpreter.m_system.GetSystemTimers().TimeBaseSet();
     break;
 
   case SPR_PVR:
@@ -433,7 +434,7 @@ void Interpreter::mtspr(Interpreter& interpreter, UGeckoInstruction inst)
       INFO_LOG_FMT(POWERPC, "Software triggered Decrementer exception");
       ppc_state.Exceptions |= EXCEPTION_DECREMENTER;
     }
-    SystemTimers::DecrementerSet();
+    interpreter.m_system.GetSystemTimers().DecrementerSet();
     break;
 
   // Page table base etc

@@ -234,7 +234,7 @@ void DVDInterface::DTKStreamingCallback(DIInterruptType interrupt_type,
   }
 
   // Read the next chunk of audio data asynchronously.
-  s64 ticks_to_dtk = SystemTimers::GetTicksPerSecond() * s64(m_pending_blocks) *
+  s64 ticks_to_dtk = m_system.GetSystemTimers().GetTicksPerSecond() * s64(m_pending_blocks) *
                      StreamADPCM::SAMPLES_PER_BLOCK * sample_rate_divisor /
                      Mixer::FIXED_SAMPLE_RATE_DIVIDEND;
   ticks_to_dtk -= cycles_late;
@@ -474,7 +474,8 @@ void DVDInterface::ChangeDisc(const std::string& new_path)
   EjectDisc(EjectCause::User);
 
   m_disc_path_to_insert = new_path;
-  m_system.GetCoreTiming().ScheduleEvent(SystemTimers::GetTicksPerSecond(), m_insert_disc);
+  m_system.GetCoreTiming().ScheduleEvent(m_system.GetSystemTimers().GetTicksPerSecond(),
+                                         m_insert_disc);
   Movie::SignalDiscChange(new_path);
 
   for (size_t i = 0; i < m_auto_disc_change_paths.size(); ++i)
@@ -1090,7 +1091,7 @@ void DVDInterface::ExecuteCommand(ReplyType reply_type)
         m_system.GetDVDThread().IsInsertedDiscRunning() && !m_auto_disc_change_paths.empty())
     {
       m_system.GetCoreTiming().ScheduleEvent(
-          force_eject ? 0 : SystemTimers::GetTicksPerSecond() / 2, m_auto_change_disc);
+          force_eject ? 0 : m_system.GetSystemTimers().GetTicksPerSecond() / 2, m_auto_change_disc);
       OSD::AddMessage("Changing discs automatically...", OSD::Duration::NORMAL);
     }
     else if (force_eject)
@@ -1181,7 +1182,7 @@ void DVDInterface::ExecuteCommand(ReplyType reply_type)
   {
     // TODO: Needs testing to determine if MINIMUM_COMMAND_LATENCY_US is accurate for this
     m_system.GetCoreTiming().ScheduleEvent(
-        MINIMUM_COMMAND_LATENCY_US * (SystemTimers::GetTicksPerSecond() / 1000000),
+        MINIMUM_COMMAND_LATENCY_US * (m_system.GetSystemTimers().GetTicksPerSecond() / 1000000),
         m_finish_executing_command, PackFinishExecutingCommandUserdata(reply_type, interrupt_type));
   }
 }
@@ -1202,7 +1203,7 @@ void DVDInterface::PerformDecryptingRead(u32 position, u32 length, u32 output_ad
   {
     // TODO: Needs testing to determine if MINIMUM_COMMAND_LATENCY_US is accurate for this
     m_system.GetCoreTiming().ScheduleEvent(
-        MINIMUM_COMMAND_LATENCY_US * (SystemTimers::GetTicksPerSecond() / 1000000),
+        MINIMUM_COMMAND_LATENCY_US * (m_system.GetSystemTimers().GetTicksPerSecond() / 1000000),
         m_finish_executing_command, PackFinishExecutingCommandUserdata(reply_type, interrupt_type));
   }
 }
@@ -1219,7 +1220,7 @@ void DVDInterface::ForceOutOfBoundsRead(ReplyType reply_type)
   // TODO: Needs testing to determine if MINIMUM_COMMAND_LATENCY_US is accurate for this
   const DIInterruptType interrupt_type = DIInterruptType::DEINT;
   m_system.GetCoreTiming().ScheduleEvent(
-      MINIMUM_COMMAND_LATENCY_US * (SystemTimers::GetTicksPerSecond() / 1000000),
+      MINIMUM_COMMAND_LATENCY_US * (m_system.GetSystemTimers().GetTicksPerSecond() / 1000000),
       m_finish_executing_command, PackFinishExecutingCommandUserdata(reply_type, interrupt_type));
 }
 
@@ -1321,7 +1322,7 @@ void DVDInterface::ScheduleReads(u64 offset, u32 length, const DiscIO::Partition
 
   auto& core_timing = m_system.GetCoreTiming();
   const u64 current_time = core_timing.GetTicks();
-  const u32 ticks_per_second = SystemTimers::GetTicksPerSecond();
+  const u32 ticks_per_second = m_system.GetSystemTimers().GetTicksPerSecond();
   auto& dvd_thread = m_system.GetDVDThread();
   const bool wii_disc = dvd_thread.GetDiscType() == DiscIO::Platform::WiiDisc;
 
@@ -1400,7 +1401,7 @@ void DVDInterface::ScheduleReads(u64 offset, u32 length, const DiscIO::Partition
                 length, output_address);
 
   s64 ticks_until_completion =
-      READ_COMMAND_LATENCY_US * (SystemTimers::GetTicksPerSecond() / 1000000);
+      READ_COMMAND_LATENCY_US * (m_system.GetSystemTimers().GetTicksPerSecond() / 1000000);
 
   u32 buffered_blocks = 0;
   u32 unbuffered_blocks = 0;
@@ -1528,7 +1529,7 @@ void DVDInterface::ScheduleReads(u64 offset, u32 length, const DiscIO::Partition
                 "Schedule reads: ECC blocks unbuffered={}, buffered={}, "
                 "ticks={}, time={} us",
                 unbuffered_blocks, buffered_blocks, ticks_until_completion,
-                ticks_until_completion * 1000000 / SystemTimers::GetTicksPerSecond());
+                ticks_until_completion * 1000000 / m_system.GetSystemTimers().GetTicksPerSecond());
 }
 
 }  // namespace DVD
