@@ -26,9 +26,9 @@ QIcon Resources::LoadNamedIcon(std::string_view name, const QString& dir)
   const QString svg_path = base_path + QStringLiteral(".svg");
 
   // Prefer svg
-  if (m_svg_supported && QFileInfo(svg_path).exists())
-    return QIcon(svg_path);
-
+  //if (m_svg_supported && QFileInfo(svg_path).exists())
+  //  return QIcon(svg_path);
+  //
   QIcon icon;
 
   auto load_png = [&](int scale) {

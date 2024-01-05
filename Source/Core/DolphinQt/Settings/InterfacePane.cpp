@@ -133,17 +133,17 @@ void InterfacePane::CreateUI()
 
   // User Style Combobox
   m_combobox_userstyle = new QComboBox;
-  m_label_userstyle = new QLabel(tr("Window Theme:"));
+  m_label_userstyle = new QLabel(tr("Style:"));
   combobox_layout->addRow(m_label_userstyle, m_combobox_userstyle);
 
   auto userstyle_search_results = Common::DoFileSearch({File::GetUserPath(D_STYLES_IDX)});
 
-  m_combobox_userstyle->addItem(tr("(System)"), static_cast<int>(Settings::StyleType::System));
+  m_combobox_userstyle->addItem(tr("System"), static_cast<int>(Settings::StyleType::System));
 
   // TODO: Support forcing light/dark on other OSes too.
 #ifdef _WIN32
-  m_combobox_userstyle->addItem(tr("(Light)"), static_cast<int>(Settings::StyleType::Light));
-  m_combobox_userstyle->addItem(tr("(Dark)"), static_cast<int>(Settings::StyleType::Dark));
+  m_combobox_userstyle->addItem(tr("Light"), static_cast<int>(Settings::StyleType::Light));
+  m_combobox_userstyle->addItem(tr("Dark"), static_cast<int>(Settings::StyleType::Dark));
 #endif
 
   for (const std::string& path : userstyle_search_results)
@@ -222,7 +222,6 @@ void InterfacePane::ConnectLayout()
 {
   connect(m_checkbox_use_builtin_title_database, &QCheckBox::toggled, this,
           &InterfacePane::OnSaveConfig);
-  connect(m_checkbox_use_userstyle, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_use_covers, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_disable_screensaver, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_show_debugging_ui, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
