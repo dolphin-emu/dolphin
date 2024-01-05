@@ -283,7 +283,7 @@ void VKGfx::BindBackbuffer(const ClearColor& clear_color)
     }
 
     res = m_swap_chain->AcquireNextImage();
-    if (res != VK_SUCCESS)
+    if (res != VK_SUCCESS && res != VK_SUBOPTIMAL_KHR)
       PanicAlertFmt("Failed to grab image from swap chain: {:#010X} {}", Common::ToUnderlying(res),
                     VkResultToString(res));
   }
