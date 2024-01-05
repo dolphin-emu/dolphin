@@ -71,7 +71,7 @@ IPCReply GetCPUSpeed(Core::System& system, const IOCtlVRequest& request)
   const bool overclock_enabled = Config::Get(Config::MAIN_OVERCLOCK_ENABLE);
   const float oc = overclock_enabled ? Config::Get(Config::MAIN_OVERCLOCK) : 1.0f;
 
-  const u32 core_clock = u32(float(SystemTimers::GetTicksPerSecond()) * oc);
+  const u32 core_clock = u32(float(system.GetSystemTimers().GetTicksPerSecond()) * oc);
 
   auto& memory = system.GetMemory();
   memory.Write_U32(core_clock, request.io_vectors[0].address);

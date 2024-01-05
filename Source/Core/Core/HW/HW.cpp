@@ -34,7 +34,7 @@ namespace HW
 void Init(Core::System& system, const Sram* override_sram)
 {
   system.GetCoreTiming().Init();
-  SystemTimers::PreInit();
+  system.GetSystemTimers().PreInit();
 
   State::Init();
 
@@ -52,7 +52,7 @@ void Init(Core::System& system, const Sram* override_sram)
   system.GetDVDInterface().Init();
   system.GetGPFifo().Init();
   system.GetCPU().Init(Config::Get(Config::MAIN_CPU_CORE));
-  SystemTimers::Init();
+  system.GetSystemTimers().Init();
 
   if (SConfig::GetInstance().bWii)
   {
@@ -67,7 +67,7 @@ void Shutdown(Core::System& system)
   IOS::HLE::Shutdown();  // Depends on Memory
   IOS::Shutdown();
 
-  SystemTimers::Shutdown();
+  system.GetSystemTimers().Shutdown();
   system.GetCPU().Shutdown();
   system.GetDVDInterface().Shutdown();
   system.GetDSP().Shutdown();

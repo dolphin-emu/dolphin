@@ -546,7 +546,7 @@ void VertexManagerBase::Flush()
   if (g_ActiveConfig.bGraphicMods)
   {
     const double seconds_elapsed =
-        static_cast<double>(m_ticks_elapsed) / SystemTimers::GetTicksPerSecond();
+        static_cast<double>(m_ticks_elapsed) / system.GetSystemTimers().GetTicksPerSecond();
     pixel_shader_manager.constants.time_ms = seconds_elapsed * 1000;
   }
 

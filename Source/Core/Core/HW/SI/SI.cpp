@@ -525,7 +525,7 @@ void SerialInterfaceManager::ChangeDeviceDeterministic(SIDevices device, int cha
 
   // Prevent additional device changes on this channel for one second.
   m_channel[channel].has_recent_device_change = true;
-  m_system.GetCoreTiming().ScheduleEvent(SystemTimers::GetTicksPerSecond(),
+  m_system.GetCoreTiming().ScheduleEvent(m_system.GetSystemTimers().GetTicksPerSecond(),
                                          m_event_type_change_device, channel);
 }
 

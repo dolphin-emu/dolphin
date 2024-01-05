@@ -21,6 +21,7 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/Sram.h"
+#include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/JitInterface.h"
@@ -46,7 +47,7 @@ struct System::Impl
         m_expansion_interface(system), m_fifo{system}, m_gp_fifo(system),
         m_memory(system), m_pixel_engine{system}, m_power_pc(system),
         m_mmu(system, m_memory, m_power_pc), m_processor_interface(system),
-        m_serial_interface(system), m_video_interface(system),
+        m_serial_interface(system), m_system_timers(system), m_video_interface(system),
         m_interpreter(system, m_power_pc.GetPPCState(), m_mmu), m_jit_interface(system)
   {
   }
@@ -78,6 +79,7 @@ struct System::Impl
   ProcessorInterface::ProcessorInterfaceManager m_processor_interface;
   SerialInterface::SerialInterfaceManager m_serial_interface;
   Sram m_sram;
+  SystemTimers::SystemTimersManager m_system_timers;
   VertexShaderManager m_vertex_shader_manager;
   XFStateManager m_xf_state_manager;
   VideoInterface::VideoInterfaceManager m_video_interface;
@@ -257,6 +259,11 @@ SerialInterface::SerialInterfaceManager& System::GetSerialInterface() const
 Sram& System::GetSRAM() const
 {
   return m_impl->m_sram;
+}
+
+SystemTimers::SystemTimersManager& System::GetSystemTimers() const
+{
+  return m_impl->m_system_timers;
 }
 
 VertexShaderManager& System::GetVertexShaderManager() const

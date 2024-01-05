@@ -264,7 +264,8 @@ CSIDevice_GCController::HandleButtonCombos(const GCPadStatus& pad_status)
   if (m_last_button_combo != COMBO_NONE)
   {
     const u64 current_time = m_system.GetCoreTiming().GetTicks();
-    if (u32(current_time - m_timer_button_combo_start) > SystemTimers::GetTicksPerSecond() * 3)
+    const u32 ticks_per_second = m_system.GetSystemTimers().GetTicksPerSecond();
+    if (u32(current_time - m_timer_button_combo_start) > ticks_per_second * 3)
     {
       if (m_last_button_combo == COMBO_RESET)
       {

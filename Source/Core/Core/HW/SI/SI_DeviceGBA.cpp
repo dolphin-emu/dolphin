@@ -154,14 +154,14 @@ void GBASockServer::ClockSync(Core::System& system)
   {
     s_num_connected++;
     m_last_time_slice = core_timing.GetTicks();
-    time_slice = (u32)(SystemTimers::GetTicksPerSecond() / 60);
+    time_slice = (u32)(system.GetSystemTimers().GetTicksPerSecond() / 60);
   }
   else
   {
     time_slice = (u32)(core_timing.GetTicks() - m_last_time_slice);
   }
 
-  time_slice = (u32)((u64)time_slice * 16777216 / SystemTimers::GetTicksPerSecond());
+  time_slice = (u32)((u64)time_slice * 16777216 / system.GetSystemTimers().GetTicksPerSecond());
   m_last_time_slice = core_timing.GetTicks();
   char bytes[4] = {0, 0, 0, 0};
   bytes[0] = (time_slice >> 24) & 0xff;

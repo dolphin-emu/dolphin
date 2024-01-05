@@ -568,7 +568,7 @@ void Core::RunUntil(u64 gc_ticks)
   if (static_cast<s64>(gc_ticks - m_last_gc_ticks) <= 0)
     return;
 
-  const u64 gc_frequency = SystemTimers::GetTicksPerSecond();
+  const u64 gc_frequency = ::Core::System::GetInstance().GetSystemTimers().GetTicksPerSecond();
   const u32 core_frequency = GetCoreFrequency(m_core);
 
   mTimingSchedule(m_core->timing, &m_event,

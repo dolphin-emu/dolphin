@@ -55,7 +55,7 @@ u32 DSPHLE::DSP_UpdateRate()
 {
   // AX HLE uses 3ms (Wii) or 5ms (GC) timing period
   // But to be sure, just update the HLE every ms.
-  return SystemTimers::GetTicksPerSecond() / 1000;
+  return Core::System::GetInstance().GetSystemTimers().GetTicksPerSecond() / 1000;
 }
 
 void DSPHLE::SendMailToDSP(u32 mail)
@@ -221,7 +221,8 @@ u16 DSPHLE::DSP_WriteControlRegister(u16 value)
     SetUCode(UCODE_INIT_AUDIO_SYSTEM);
     temp.DSPInitCode = 1;
     // Number obtained from real hardware on a Wii, but it's not perfectly consistent
-    m_control_reg_init_code_clear_time = SystemTimers::GetFakeTimeBase() + 130;
+    m_control_reg_init_code_clear_time =
+        Core::System::GetInstance().GetSystemTimers().GetFakeTimeBase() + 130;
   }
 
   m_dsp_control.Hex = temp.Hex;
@@ -232,10 +233,11 @@ u16 DSPHLE::DSP_ReadControlRegister()
 {
   if (m_dsp_control.DSPInitCode != 0)
   {
-    if (SystemTimers::GetFakeTimeBase() >= m_control_reg_init_code_clear_time)
+    auto& system = Core::System::GetInstance();
+    if (system.GetSystemTimers().GetFakeTimeBase() >= m_control_reg_init_code_clear_time)
       m_dsp_control.DSPInitCode = 0;
     else
-      Core::System::GetInstance().GetCoreTiming().ForceExceptionCheck(50);  // Keep checking
+      system.GetCoreTiming().ForceExceptionCheck(50);  // Keep checking
   }
   return m_dsp_control.Hex;
 }

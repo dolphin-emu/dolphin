@@ -24,7 +24,7 @@ namespace SerialInterface
 {
 static s64 GetSyncInterval()
 {
-  return SystemTimers::GetTicksPerSecond() / 1000;
+  return Core::System::GetInstance().GetSystemTimers().GetTicksPerSecond() / 1000;
 }
 
 CSIDevice_GBAEmu::CSIDevice_GBAEmu(Core::System& system, SIDevices device, int device_number)

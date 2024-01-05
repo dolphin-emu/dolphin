@@ -484,7 +484,7 @@ float VideoInterfaceManager::GetAspectRatio() const
   int active_width_samples = (m_h_timing_0.HLW + m_h_timing_1.HBS640 - m_h_timing_1.HBE640);
 
   // 2. TVs are analog and don't have pixels. So we convert to seconds.
-  float tick_length = (1.0f / SystemTimers::GetTicksPerSecond());
+  float tick_length = (1.0f / m_system.GetSystemTimers().GetTicksPerSecond());
   float vertical_period = tick_length * GetTicksPerField();
   float horizontal_period = tick_length * GetTicksPerHalfLine() * 2;
   float vertical_active_area = active_lines * horizontal_period;
@@ -695,7 +695,7 @@ void VideoInterfaceManager::UpdateParameters()
   m_even_field_first_hl = equ_hl + m_vblank_timing_even.PRB + GetHalfLinesPerOddField();
   m_even_field_last_hl = m_even_field_first_hl + acv_hl - 1;
 
-  m_target_refresh_rate_numerator = SystemTimers::GetTicksPerSecond() * 2;
+  m_target_refresh_rate_numerator = m_system.GetSystemTimers().GetTicksPerSecond() * 2;
   m_target_refresh_rate_denominator = GetTicksPerEvenField() + GetTicksPerOddField();
   m_target_refresh_rate =
       static_cast<double>(m_target_refresh_rate_numerator) / m_target_refresh_rate_denominator;
@@ -718,7 +718,7 @@ u32 VideoInterfaceManager::GetTargetRefreshRateDenominator() const
 
 u32 VideoInterfaceManager::GetTicksPerSample() const
 {
-  return 2 * SystemTimers::GetTicksPerSecond() / CLOCK_FREQUENCIES[m_clock & 1];
+  return 2 * m_system.GetSystemTimers().GetTicksPerSecond() / CLOCK_FREQUENCIES[m_clock & 1];
 }
 
 u32 VideoInterfaceManager::GetTicksPerHalfLine() const

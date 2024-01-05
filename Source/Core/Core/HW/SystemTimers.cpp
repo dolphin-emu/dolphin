@@ -71,97 +71,88 @@ IPC_HLE_PERIOD: For the Wii Remote this is the call schedule:
 
 namespace SystemTimers
 {
-namespace
-{
-CoreTiming::EventType* et_Dec;
-CoreTiming::EventType* et_VI;
-CoreTiming::EventType* et_AudioDMA;
-CoreTiming::EventType* et_DSP;
-CoreTiming::EventType* et_IPC_HLE;
-CoreTiming::EventType* et_GPU_sleeper;
-CoreTiming::EventType* et_perf_tracker;
-// PatchEngine updates every 1/60th of a second by default
-CoreTiming::EventType* et_PatchEngine;
-
-u32 s_cpu_core_clock = 486000000u;  // 486 mhz (its not 485, stop bugging me!)
-
-// This is completely arbitrary. If we find that we need lower latency,
-// we can just increase this number.
-int s_ipc_hle_period;
-
-// Custom RTC
-s64 s_localtime_rtc_offset = 0;
-
 // DSP/CPU timeslicing.
-void DSPCallback(Core::System& system, u64 userdata, s64 cyclesLate)
+void SystemTimersManager::DSPCallback(Core::System& system, u64 userdata, s64 cycles_late)
 {
   // splits up the cycle budget in case lle is used
   // for hle, just gives all of the slice to hle
   auto& dsp = system.GetDSP();
-  dsp.UpdateDSPSlice(static_cast<int>(dsp.GetDSPEmulator()->DSP_UpdateRate() - cyclesLate));
-  system.GetCoreTiming().ScheduleEvent(dsp.GetDSPEmulator()->DSP_UpdateRate() - cyclesLate, et_DSP);
+  dsp.UpdateDSPSlice(static_cast<int>(dsp.GetDSPEmulator()->DSP_UpdateRate() - cycles_late));
+  system.GetCoreTiming().ScheduleEvent(dsp.GetDSPEmulator()->DSP_UpdateRate() - cycles_late,
+                                       system.GetSystemTimers().m_event_type_dsp);
 }
 
-int GetAudioDMACallbackPeriod()
+static int GetAudioDMACallbackPeriod(u32 cpu_core_clock, u32 aid_sample_rate_divisor)
 {
   // System internal sample rate is fixed at 32KHz * 4 (16bit Stereo) / 32 bytes DMA
-  auto& system = Core::System::GetInstance();
-  return static_cast<u64>(s_cpu_core_clock) * system.GetAudioInterface().GetAIDSampleRateDivisor() /
+  return static_cast<u64>(cpu_core_clock) * aid_sample_rate_divisor /
          (Mixer::FIXED_SAMPLE_RATE_DIVIDEND * 4 / 32);
 }
 
-void AudioDMACallback(Core::System& system, u64 userdata, s64 cyclesLate)
+void SystemTimersManager::AudioDMACallback(Core::System& system, u64 userdata, s64 cycles_late)
 {
   system.GetDSP().UpdateAudioDMA();  // Push audio to speakers.
-  system.GetCoreTiming().ScheduleEvent(GetAudioDMACallbackPeriod() - cyclesLate, et_AudioDMA);
+  auto& system_timers = system.GetSystemTimers();
+  const int callback_period = GetAudioDMACallbackPeriod(
+      system_timers.m_cpu_core_clock, system.GetAudioInterface().GetAIDSampleRateDivisor());
+  system.GetCoreTiming().ScheduleEvent(callback_period - cycles_late,
+                                       system_timers.m_event_type_audio_dma);
 }
 
-void IPC_HLE_UpdateCallback(Core::System& system, u64 userdata, s64 cyclesLate)
+void SystemTimersManager::IPC_HLE_UpdateCallback(Core::System& system, u64 userdata,
+                                                 s64 cycles_late)
 {
   if (SConfig::GetInstance().bWii)
   {
     IOS::HLE::GetIOS()->UpdateDevices();
-    system.GetCoreTiming().ScheduleEvent(s_ipc_hle_period - cyclesLate, et_IPC_HLE);
+    auto& system_timers = system.GetSystemTimers();
+    system.GetCoreTiming().ScheduleEvent(system_timers.m_ipc_hle_period - cycles_late,
+                                         system_timers.m_event_type_ipc_hle);
   }
 }
 
-void GPUSleepCallback(Core::System& system, u64 userdata, s64 cyclesLate)
+void SystemTimersManager::GPUSleepCallback(Core::System& system, u64 userdata, s64 cycles_late)
 {
   auto& core_timing = system.GetCoreTiming();
   system.GetFifo().GpuMaySleep();
 
   // We want to call GpuMaySleep at about 1000hz so
   // that the thread can sleep while not doing anything.
-  core_timing.ScheduleEvent(GetTicksPerSecond() / 1000 - cyclesLate, et_GPU_sleeper);
+  auto& system_timers = system.GetSystemTimers();
+  core_timing.ScheduleEvent(system_timers.GetTicksPerSecond() / 1000 - cycles_late,
+                            system_timers.m_event_type_gpu_sleeper);
 }
 
-void PerfTrackerCallback(Core::System& system, u64 userdata, s64 cyclesLate)
+void SystemTimersManager::PerfTrackerCallback(Core::System& system, u64 userdata, s64 cycles_late)
 {
   auto& core_timing = system.GetCoreTiming();
-  g_perf_metrics.CountPerformanceMarker(system, cyclesLate);
+  g_perf_metrics.CountPerformanceMarker(system, cycles_late);
 
   // Call this performance tracker again in 1/100th of a second.
   // The tracker stores 256 values so this will let us summarize the last 2.56 seconds.
   // The performance metrics require this to be called at 100hz for the speed% is correct.
-  core_timing.ScheduleEvent(GetTicksPerSecond() / 100 - cyclesLate, et_perf_tracker);
+  auto& system_timers = system.GetSystemTimers();
+  core_timing.ScheduleEvent(system_timers.GetTicksPerSecond() / 100 - cycles_late,
+                            system_timers.m_event_type_perf_tracker);
 }
 
-void VICallback(Core::System& system, u64 userdata, s64 cyclesLate)
+void SystemTimersManager::VICallback(Core::System& system, u64 userdata, s64 cycles_late)
 {
   auto& core_timing = system.GetCoreTiming();
   auto& vi = system.GetVideoInterface();
-  vi.Update(core_timing.GetTicks() - cyclesLate);
-  core_timing.ScheduleEvent(vi.GetTicksPerHalfLine() - cyclesLate, et_VI);
+  vi.Update(core_timing.GetTicks() - cycles_late);
+  core_timing.ScheduleEvent(vi.GetTicksPerHalfLine() - cycles_late,
+                            system.GetSystemTimers().m_event_type_vi);
 }
 
-void DecrementerCallback(Core::System& system, u64 userdata, s64 cyclesLate)
+void SystemTimersManager::DecrementerCallback(Core::System& system, u64 userdata, s64 cycles_late)
 {
   auto& ppc_state = system.GetPPCState();
   ppc_state.spr[SPR_DEC] = 0xFFFFFFFF;
   ppc_state.Exceptions |= EXCEPTION_DECREMENTER;
 }
 
-void PatchEngineCallback(Core::System& system, u64 userdata, s64 cycles_late)
+void SystemTimersManager::PatchEngineCallback(Core::System& system, u64 userdata, s64 cycles_late)
 {
   // We have 2 periods, a 1000 cycle error period and the VI period.
   // We have to carefully combine these together so that we stay on the VI period without drifting.
@@ -183,86 +174,87 @@ void PatchEngineCallback(Core::System& system, u64 userdata, s64 cycles_late)
     cycles_pruned += next_schedule;
   }
 
-  system.GetCoreTiming().ScheduleEvent(next_schedule, et_PatchEngine, cycles_pruned);
-}
-}  // namespace
-
-u32 GetTicksPerSecond()
-{
-  return s_cpu_core_clock;
+  system.GetCoreTiming().ScheduleEvent(
+      next_schedule, system.GetSystemTimers().m_event_type_patch_engine, cycles_pruned);
 }
 
-void DecrementerSet()
+SystemTimersManager::SystemTimersManager(Core::System& system) : m_system(system)
 {
-  auto& system = Core::System::GetInstance();
-  auto& core_timing = system.GetCoreTiming();
-  auto& ppc_state = system.GetPPCState();
+}
+
+SystemTimersManager::~SystemTimersManager() = default;
+
+u32 SystemTimersManager::GetTicksPerSecond() const
+{
+  return m_cpu_core_clock;
+}
+
+void SystemTimersManager::DecrementerSet()
+{
+  auto& core_timing = m_system.GetCoreTiming();
+  auto& ppc_state = m_system.GetPPCState();
 
   u32 decValue = ppc_state.spr[SPR_DEC];
 
-  core_timing.RemoveEvent(et_Dec);
+  core_timing.RemoveEvent(m_event_type_decrementer);
   if ((decValue & 0x80000000) == 0)
   {
     core_timing.SetFakeDecStartTicks(core_timing.GetTicks());
     core_timing.SetFakeDecStartValue(decValue);
 
-    core_timing.ScheduleEvent(decValue * TIMER_RATIO, et_Dec);
+    core_timing.ScheduleEvent(decValue * TIMER_RATIO, m_event_type_decrementer);
   }
 }
 
-u32 GetFakeDecrementer()
+u32 SystemTimersManager::GetFakeDecrementer() const
 {
-  auto& system = Core::System::GetInstance();
-  auto& core_timing = system.GetCoreTiming();
+  const auto& core_timing = m_system.GetCoreTiming();
   return (core_timing.GetFakeDecStartValue() -
           (u32)((core_timing.GetTicks() - core_timing.GetFakeDecStartTicks()) / TIMER_RATIO));
 }
 
-void TimeBaseSet()
+void SystemTimersManager::TimeBaseSet()
 {
-  auto& system = Core::System::GetInstance();
-  auto& core_timing = system.GetCoreTiming();
+  auto& core_timing = m_system.GetCoreTiming();
   core_timing.SetFakeTBStartTicks(core_timing.GetTicks());
-  core_timing.SetFakeTBStartValue(system.GetPowerPC().ReadFullTimeBaseValue());
+  core_timing.SetFakeTBStartValue(m_system.GetPowerPC().ReadFullTimeBaseValue());
 }
 
-u64 GetFakeTimeBase()
+u64 SystemTimersManager::GetFakeTimeBase() const
 {
-  auto& system = Core::System::GetInstance();
-  auto& core_timing = system.GetCoreTiming();
+  const auto& core_timing = m_system.GetCoreTiming();
   return core_timing.GetFakeTBStartValue() +
          ((core_timing.GetTicks() - core_timing.GetFakeTBStartTicks()) / TIMER_RATIO);
 }
 
-s64 GetLocalTimeRTCOffset()
+s64 SystemTimersManager::GetLocalTimeRTCOffset() const
 {
-  return s_localtime_rtc_offset;
+  return m_localtime_rtc_offset;
 }
 
-double GetEstimatedEmulationPerformance()
+double SystemTimersManager::GetEstimatedEmulationPerformance() const
 {
   return g_perf_metrics.GetMaxSpeed();
 }
 
 // split from Init to break a circular dependency between VideoInterface::Init and
 // SystemTimers::Init
-void PreInit()
+void SystemTimersManager::PreInit()
 {
   ChangePPCClock(SConfig::GetInstance().bWii ? Mode::Wii : Mode::GC);
 }
 
-void ChangePPCClock(Mode mode)
+void SystemTimersManager::ChangePPCClock(Mode mode)
 {
-  const u32 previous_clock = s_cpu_core_clock;
+  const u32 previous_clock = m_cpu_core_clock;
   if (mode == Mode::Wii)
-    s_cpu_core_clock = 729000000u;
+    m_cpu_core_clock = 729000000u;
   else
-    s_cpu_core_clock = 486000000u;
-  Core::System::GetInstance().GetCoreTiming().AdjustEventQueueTimes(s_cpu_core_clock,
-                                                                    previous_clock);
+    m_cpu_core_clock = 486000000u;
+  m_system.GetCoreTiming().AdjustEventQueueTimes(m_cpu_core_clock, previous_clock);
 }
 
-void Init()
+void SystemTimersManager::Init()
 {
   if (SConfig::GetInstance().bWii)
   {
@@ -270,55 +262,58 @@ void Init()
     // Now the 1500 is a pure assumption
     // We need to figure out the real frequency though
     const int freq = 1500;
-    s_ipc_hle_period = GetTicksPerSecond() / freq;
+    m_ipc_hle_period = GetTicksPerSecond() / freq;
   }
 
   Common::Timer::IncreaseResolution();
   // store and convert localtime at boot to timebase ticks
   if (Config::Get(Config::MAIN_CUSTOM_RTC_ENABLE))
   {
-    s_localtime_rtc_offset =
+    m_localtime_rtc_offset =
         Common::Timer::GetLocalTimeSinceJan1970() - Config::Get(Config::MAIN_CUSTOM_RTC_VALUE);
   }
 
-  auto& system = Core::System::GetInstance();
-  auto& core_timing = system.GetCoreTiming();
-  auto& vi = system.GetVideoInterface();
+  auto& core_timing = m_system.GetCoreTiming();
+  auto& vi = m_system.GetVideoInterface();
 
-  core_timing.SetFakeTBStartValue(static_cast<u64>(s_cpu_core_clock / TIMER_RATIO) *
+  core_timing.SetFakeTBStartValue(static_cast<u64>(m_cpu_core_clock / TIMER_RATIO) *
                                   static_cast<u64>(ExpansionInterface::CEXIIPL::GetEmulatedTime(
-                                      system, ExpansionInterface::CEXIIPL::GC_EPOCH)));
+                                      m_system, ExpansionInterface::CEXIIPL::GC_EPOCH)));
 
   core_timing.SetFakeTBStartTicks(core_timing.GetTicks());
 
   core_timing.SetFakeDecStartValue(0xFFFFFFFF);
   core_timing.SetFakeDecStartTicks(core_timing.GetTicks());
 
-  et_Dec = core_timing.RegisterEvent("DecCallback", DecrementerCallback);
-  et_VI = core_timing.RegisterEvent("VICallback", VICallback);
-  et_DSP = core_timing.RegisterEvent("DSPCallback", DSPCallback);
-  et_AudioDMA = core_timing.RegisterEvent("AudioDMACallback", AudioDMACallback);
-  et_IPC_HLE = core_timing.RegisterEvent("IPC_HLE_UpdateCallback", IPC_HLE_UpdateCallback);
-  et_GPU_sleeper = core_timing.RegisterEvent("GPUSleeper", GPUSleepCallback);
-  et_perf_tracker = core_timing.RegisterEvent("PerfTracker", PerfTrackerCallback);
-  et_PatchEngine = core_timing.RegisterEvent("PatchEngine", PatchEngineCallback);
+  m_event_type_decrementer = core_timing.RegisterEvent("DecCallback", DecrementerCallback);
+  m_event_type_vi = core_timing.RegisterEvent("VICallback", VICallback);
+  m_event_type_dsp = core_timing.RegisterEvent("DSPCallback", DSPCallback);
+  m_event_type_audio_dma = core_timing.RegisterEvent("AudioDMACallback", AudioDMACallback);
+  m_event_type_ipc_hle =
+      core_timing.RegisterEvent("IPC_HLE_UpdateCallback", IPC_HLE_UpdateCallback);
+  m_event_type_gpu_sleeper = core_timing.RegisterEvent("GPUSleeper", GPUSleepCallback);
+  m_event_type_perf_tracker = core_timing.RegisterEvent("PerfTracker", PerfTrackerCallback);
+  m_event_type_patch_engine = core_timing.RegisterEvent("PatchEngine", PatchEngineCallback);
 
-  core_timing.ScheduleEvent(0, et_perf_tracker);
-  core_timing.ScheduleEvent(0, et_GPU_sleeper);
-  core_timing.ScheduleEvent(vi.GetTicksPerHalfLine(), et_VI);
-  core_timing.ScheduleEvent(0, et_DSP);
-  core_timing.ScheduleEvent(GetAudioDMACallbackPeriod(), et_AudioDMA);
+  core_timing.ScheduleEvent(0, m_event_type_perf_tracker);
+  core_timing.ScheduleEvent(0, m_event_type_gpu_sleeper);
+  core_timing.ScheduleEvent(vi.GetTicksPerHalfLine(), m_event_type_vi);
+  core_timing.ScheduleEvent(0, m_event_type_dsp);
 
-  core_timing.ScheduleEvent(vi.GetTicksPerField(), et_PatchEngine);
+  const int audio_dma_callback_period = GetAudioDMACallbackPeriod(
+      m_cpu_core_clock, m_system.GetAudioInterface().GetAIDSampleRateDivisor());
+  core_timing.ScheduleEvent(audio_dma_callback_period, m_event_type_audio_dma);
+
+  core_timing.ScheduleEvent(vi.GetTicksPerField(), m_event_type_patch_engine);
 
   if (SConfig::GetInstance().bWii)
-    core_timing.ScheduleEvent(s_ipc_hle_period, et_IPC_HLE);
+    core_timing.ScheduleEvent(m_ipc_hle_period, m_event_type_ipc_hle);
 }
 
-void Shutdown()
+void SystemTimersManager::Shutdown()
 {
   Common::Timer::RestoreResolution();
-  s_localtime_rtc_offset = 0;
+  m_localtime_rtc_offset = 0;
 }
 
 }  // namespace SystemTimers

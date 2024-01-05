@@ -5,6 +5,15 @@
 
 #include "Common/CommonTypes.h"
 
+namespace Core
+{
+class System;
+}
+namespace CoreTiming
+{
+struct EventType;
+}
+
 namespace SystemTimers
 {
 /*
@@ -47,29 +56,70 @@ enum class Mode
   Wii,
 };
 
-u32 GetTicksPerSecond();
-void PreInit();
-void Init();
-void Shutdown();
-void ChangePPCClock(Mode mode);
+class SystemTimersManager
+{
+public:
+  explicit SystemTimersManager(Core::System& system);
+  SystemTimersManager(const SystemTimersManager& other) = delete;
+  SystemTimersManager(SystemTimersManager&& other) = delete;
+  SystemTimersManager& operator=(const SystemTimersManager& other) = delete;
+  SystemTimersManager& operator=(SystemTimersManager&& other) = delete;
+  ~SystemTimersManager();
 
-// Notify timing system that somebody wrote to the decrementer
-void DecrementerSet();
-u32 GetFakeDecrementer();
+  u32 GetTicksPerSecond() const;
+  void PreInit();
+  void Init();
+  void Shutdown();
+  void ChangePPCClock(Mode mode);
 
-void TimeBaseSet();
-u64 GetFakeTimeBase();
-// Custom RTC
-s64 GetLocalTimeRTCOffset();
+  // Notify timing system that somebody wrote to the decrementer
+  void DecrementerSet();
+  u32 GetFakeDecrementer() const;
 
-// Returns an estimate of how fast/slow the emulation is running (excluding throttling induced sleep
-// time). The estimate is computed over the last 1s of emulated time. Example values:
-//
-// - 0.5: the emulator is running at 50% speed (falling behind).
-// - 1.0: the emulator is running at 100% speed.
-// - 2.0: the emulator is running at 200% speed (or 100% speed but sleeping half of the time).
-double GetEstimatedEmulationPerformance();
+  void TimeBaseSet();
+  u64 GetFakeTimeBase() const;
+  // Custom RTC
+  s64 GetLocalTimeRTCOffset() const;
 
+  // Returns an estimate of how fast/slow the emulation is running (excluding throttling induced
+  // sleep time). The estimate is computed over the last 1s of emulated time. Example values:
+  //
+  // - 0.5: the emulator is running at 50% speed (falling behind).
+  // - 1.0: the emulator is running at 100% speed.
+  // - 2.0: the emulator is running at 200% speed (or 100% speed but sleeping half of the time).
+  double GetEstimatedEmulationPerformance() const;
+
+private:
+  static void DSPCallback(Core::System& system, u64 userdata, s64 cycles_late);
+  static void AudioDMACallback(Core::System& system, u64 userdata, s64 cycles_late);
+  static void IPC_HLE_UpdateCallback(Core::System& system, u64 userdata, s64 cycles_late);
+  static void GPUSleepCallback(Core::System& system, u64 userdata, s64 cycles_late);
+  static void PerfTrackerCallback(Core::System& system, u64 userdata, s64 cycles_late);
+  static void VICallback(Core::System& system, u64 userdata, s64 cycles_late);
+  static void DecrementerCallback(Core::System& system, u64 userdata, s64 cycles_late);
+  static void PatchEngineCallback(Core::System& system, u64 userdata, s64 cycles_late);
+
+  Core::System& m_system;
+
+  u32 m_cpu_core_clock = 486000000u;  // 486 mhz
+
+  // This is completely arbitrary. If we find that we need lower latency,
+  // we can just increase this number.
+  int m_ipc_hle_period = 0;
+
+  // Custom RTC
+  s64 m_localtime_rtc_offset = 0;
+
+  CoreTiming::EventType* m_event_type_decrementer = nullptr;
+  CoreTiming::EventType* m_event_type_vi = nullptr;
+  CoreTiming::EventType* m_event_type_audio_dma = nullptr;
+  CoreTiming::EventType* m_event_type_dsp = nullptr;
+  CoreTiming::EventType* m_event_type_ipc_hle = nullptr;
+  CoreTiming::EventType* m_event_type_gpu_sleeper = nullptr;
+  CoreTiming::EventType* m_event_type_perf_tracker = nullptr;
+  // PatchEngine updates every 1/60th of a second by default
+  CoreTiming::EventType* m_event_type_patch_engine = nullptr;
+};
 }  // namespace SystemTimers
 
 inline namespace SystemTimersLiterals
