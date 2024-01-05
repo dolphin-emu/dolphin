@@ -104,7 +104,7 @@ void NetPlaySetupDialog::CreateMainLayout()
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Cancel);
   m_nickname_edit = new QLineEdit;
   m_connection_type = new QComboBox;
-  
+
   m_connection_type->setCurrentIndex(1);
   m_reset_traversal_button = new NonDefaultQPushButton(tr("Reset Traversal Settings"));
 
@@ -174,17 +174,17 @@ void NetPlaySetupDialog::CreateMainLayout()
   connection_layout->addWidget(m_connect_port_label, 0, 2);
   connection_layout->addWidget(m_connect_port_box, 0, 3);
   connection_layout->addWidget(
-      new QLabel(
-          tr("ALERT:\n\n"
-             "All players must use the same Dolphin version, unless MPN Dolphin is used to host\n"
-             "If enabled, SD cards must be identical between players.\n"
-             "If DSP LLE is used, DSP ROMs must be identical between players.\n"
-             "If a game is hanging on boot, it may not support Dual Core Netplay."
-             " Disable Dual Core.\n"
-             "If connecting directly, the host must have the chosen UDP port open/forwarded!\n"
-             "\n"
-             "Wii Remote support in netplay is experimental and may not work correctly.\n"
-             "Use at your own risk.\n")),
+      new QLabel(tr(
+          "ALERT:\n\n"
+          "All players must use the same Dolphin version, unless MPN Dolphin is used to host\n"
+          "If enabled, SD cards must be identical between players.\n"
+          "If DSP LLE is used, DSP ROMs must be identical between players.\n"
+          "If a game is hanging on boot, it may not support Dual Core Netplay."
+          " Disable Dual Core.\n"
+          "If connecting directly, the host must have the chosen UDP port open/forwarded!\n"
+          "\n"
+          "Wii Remote support in netplay is experimental and may not work correctly.\n"
+          "Use at your own risk.\n")),
       1, 0, -1, -1);
   connection_layout->addWidget(m_connect_button, 3, 3, Qt::AlignRight);
 
@@ -208,7 +208,6 @@ void NetPlaySetupDialog::CreateMainLayout()
 
   m_host_server_name->setToolTip(tr("Name of your session shown in the server browser"));
   m_host_server_name->setPlaceholderText(tr("Name"));
-
 
   host_layout->addWidget(m_host_port_box, 0, 0, Qt::AlignLeft);
 #ifdef USE_UPNP
@@ -273,10 +272,12 @@ void NetPlaySetupDialog::ConnectWidgets()
     m_host_chunked_upload_limit_box->setEnabled(value);
     SaveSettings();
   });
+  
   connect(m_host_chunked_upload_limit_box, &QSpinBox::valueChanged, this,
           &NetPlaySetupDialog::SaveSettings);
 
   connect(m_host_server_browser, &QCheckBox::toggled, this, &NetPlaySetupDialog::SaveSettings);
+
   connect(m_host_server_name, &QLineEdit::textChanged, this, &NetPlaySetupDialog::SaveSettings);
 
 #ifdef USE_UPNP
@@ -328,7 +329,6 @@ void NetPlaySetupDialog::SaveSettings()
   Config::SetBaseOrCurrent(Config::NETPLAY_INDEX_REGION, "NA");
   Config::SetBaseOrCurrent(Config::NETPLAY_INDEX_NAME, m_nickname_edit->text().toStdString());
   Config::SetBaseOrCurrent(Config::NETPLAY_INDEX_PASSWORD, "");
-
 
   // Browser Stuff
   auto& settings = Settings::Instance().GetQSettings();
@@ -543,7 +543,6 @@ void NetPlaySetupDialog::UpdateListBrowser()
     m_table_widget->setItem(i, 1, game_id);
     m_table_widget->setItem(i, 2, player_count);
     m_table_widget->setItem(i, 3, in_game);
-
   }
 
   m_status_label->setText(
