@@ -47,6 +47,7 @@ namespace Fifo
 {
 class FifoManager;
 }
+class FifoPlayer;
 namespace GPFifo
 {
 class GPFifoManager;
@@ -142,6 +143,7 @@ public:
   DVD::DVDThread& GetDVDThread() const;
   ExpansionInterface::ExpansionInterfaceManager& GetExpansionInterface() const;
   Fifo::FifoManager& GetFifo() const;
+  FifoPlayer& GetFifoPlayer() const;
   GeometryShaderManager& GetGeometryShaderManager() const;
   GPFifo::GPFifoManager& GetGPFifo() const;
   HSP::HSPManager& GetHSP() const;

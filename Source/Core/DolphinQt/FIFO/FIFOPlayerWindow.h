@@ -13,13 +13,14 @@ class QPushButton;
 class QSpinBox;
 class QTabWidget;
 class ToolTipCheckBox;
+class FifoPlayer;
 class FIFOAnalyzer;
 
 class FIFOPlayerWindow : public QWidget
 {
   Q_OBJECT
 public:
-  explicit FIFOPlayerWindow(QWidget* parent = nullptr);
+  explicit FIFOPlayerWindow(FifoPlayer& fifo_player, QWidget* parent = nullptr);
   ~FIFOPlayerWindow();
 
 signals:
@@ -48,6 +49,8 @@ private:
   void UpdateLimits();
 
   bool eventFilter(QObject* object, QEvent* event) final override;
+
+  FifoPlayer& m_fifo_player;
 
   QLabel* m_info_label;
   QPushButton* m_load;

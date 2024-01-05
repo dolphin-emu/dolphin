@@ -355,17 +355,18 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
       //       Might also clean up some issues with games doing XFB copies they don't intend to
       //       display.
 
+      auto& system = Core::System::GetInstance();
       if (g_ActiveConfig.bImmediateXFB)
       {
         // below div two to convert from bytes to pixels - it expects width, not stride
-        u64 ticks = Core::System::GetInstance().GetCoreTiming().GetTicks();
+        u64 ticks = system.GetCoreTiming().GetTicks();
         g_presenter->ImmediateSwap(destAddr, destStride / 2, destStride, height, ticks);
       }
       else
       {
-        if (FifoPlayer::GetInstance().IsRunningWithFakeVideoInterfaceUpdates())
+        if (system.GetFifoPlayer().IsRunningWithFakeVideoInterfaceUpdates())
         {
-          auto& vi = Core::System::GetInstance().GetVideoInterface();
+          auto& vi = system.GetVideoInterface();
           vi.FakeVIUpdate(destAddr, srcRect.GetWidth(), destStride, height);
         }
       }

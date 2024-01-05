@@ -466,7 +466,7 @@ static void FifoPlayerThread(Core::System& system, const std::optional<std::stri
     Common::SetCurrentThreadName("FIFO-GPU thread");
 
   // Enter CPU run loop. When we leave it - we are done.
-  if (auto cpu_core = FifoPlayer::GetInstance().GetCPUCore())
+  if (auto cpu_core = system.GetFifoPlayer().GetCPUCore())
   {
     system.GetPowerPC().InjectExternalCPUCore(cpu_core.get());
     s_is_started = true;
@@ -476,13 +476,13 @@ static void FifoPlayerThread(Core::System& system, const std::optional<std::stri
 
     s_is_started = false;
     system.GetPowerPC().InjectExternalCPUCore(nullptr);
-    FifoPlayer::GetInstance().Close();
+    system.GetFifoPlayer().Close();
   }
   else
   {
     // FIFO log does not contain any frames, cannot continue.
     PanicAlertFmt("FIFO file is invalid, cannot playback.");
-    FifoPlayer::GetInstance().Close();
+    system.GetFifoPlayer().Close();
     return;
   }
 }
