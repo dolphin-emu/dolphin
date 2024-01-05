@@ -124,7 +124,7 @@ private:
   bool m_was_unpaused = false;
 };
 
-bool Init(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi);
+bool Init(Core::System& system, std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi);
 void Stop();
 void Shutdown();
 

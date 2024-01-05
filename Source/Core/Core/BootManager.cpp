@@ -142,7 +142,8 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   if (!boot->riivolution_patches.empty())
     Config::SetCurrent(Config::MAIN_FAST_DISC_SPEED, true);
 
-  Core::System::GetInstance().Initialize();
+  auto& system = Core::System::GetInstance();
+  system.Initialize();
 
   Core::UpdateWantDeterminism(/*initial*/ true);
 
@@ -173,13 +174,14 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   if (load_ipl)
   {
     return Core::Init(
+        system,
         std::make_unique<BootParameters>(
             BootParameters::IPL{StartUp.m_region,
                                 std::move(std::get<BootParameters::Disc>(boot->parameters))},
             std::move(boot->boot_session_data)),
         wsi);
   }
-  return Core::Init(std::move(boot), wsi);
+  return Core::Init(system, std::move(boot), wsi);
 }
 
 // SYSCONF can be modified during emulation by the user and internally, which makes it
