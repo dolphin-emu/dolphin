@@ -37,7 +37,7 @@ constexpr int PART_START_ROLE = Qt::UserRole + 1;
 // Values range from 1 to number of parts
 constexpr int PART_END_ROLE = Qt::UserRole + 2;
 
-FIFOAnalyzer::FIFOAnalyzer()
+FIFOAnalyzer::FIFOAnalyzer(FifoPlayer& fifo_player) : m_fifo_player(fifo_player)
 {
   CreateWidgets();
   ConnectWidgets();
@@ -138,7 +138,7 @@ void FIFOAnalyzer::UpdateTree()
 {
   m_tree_widget->clear();
 
-  if (!FifoPlayer::GetInstance().IsPlaying())
+  if (!m_fifo_player.IsPlaying())
   {
     m_tree_widget->addTopLevelItem(new QTreeWidgetItem({tr("No recording loaded.")}));
     return;
@@ -148,7 +148,7 @@ void FIFOAnalyzer::UpdateTree()
 
   m_tree_widget->addTopLevelItem(recording_item);
 
-  auto* file = FifoPlayer::GetInstance().GetFile();
+  auto* file = m_fifo_player.GetFile();
 
   const u32 frame_count = file->GetFrameCount();
 
@@ -158,7 +158,7 @@ void FIFOAnalyzer::UpdateTree()
 
     recording_item->addChild(frame_item);
 
-    const AnalyzedFrameInfo& frame_info = FifoPlayer::GetInstance().GetAnalyzedFrameInfo(frame);
+    const AnalyzedFrameInfo& frame_info = m_fifo_player.GetAnalyzedFrameInfo(frame);
     ASSERT(frame_info.parts.size() != 0);
 
     Common::EnumMap<u32, FramePartType::EFBCopy> part_counts;
@@ -339,7 +339,7 @@ void FIFOAnalyzer::UpdateDetails()
   m_search_previous->setEnabled(false);
   m_search_label->clear();
 
-  if (!FifoPlayer::GetInstance().IsPlaying())
+  if (!m_fifo_player.IsPlaying())
     return;
 
   const auto items = m_tree_widget->selectedItems();
@@ -351,8 +351,8 @@ void FIFOAnalyzer::UpdateDetails()
   const u32 start_part_nr = items[0]->data(0, PART_START_ROLE).toUInt();
   const u32 end_part_nr = items[0]->data(0, PART_END_ROLE).toUInt();
 
-  const AnalyzedFrameInfo& frame_info = FifoPlayer::GetInstance().GetAnalyzedFrameInfo(frame_nr);
-  const auto& fifo_frame = FifoPlayer::GetInstance().GetFile()->GetFrame(frame_nr);
+  const AnalyzedFrameInfo& frame_info = m_fifo_player.GetAnalyzedFrameInfo(frame_nr);
+  const auto& fifo_frame = m_fifo_player.GetFile()->GetFrame(frame_nr);
 
   const u32 object_start = frame_info.parts[start_part_nr].m_start;
   const u32 object_end = frame_info.parts[end_part_nr].m_end;
@@ -386,7 +386,7 @@ void FIFOAnalyzer::BeginSearch()
 {
   const QString search_str = m_search_edit->text();
 
-  if (!FifoPlayer::GetInstance().IsPlaying())
+  if (!m_fifo_player.IsPlaying())
     return;
 
   const auto items = m_tree_widget->selectedItems();
@@ -434,8 +434,8 @@ void FIFOAnalyzer::BeginSearch()
   const u32 start_part_nr = items[0]->data(0, PART_START_ROLE).toUInt();
   const u32 end_part_nr = items[0]->data(0, PART_END_ROLE).toUInt();
 
-  const AnalyzedFrameInfo& frame_info = FifoPlayer::GetInstance().GetAnalyzedFrameInfo(frame_nr);
-  const FifoFrameInfo& fifo_frame = FifoPlayer::GetInstance().GetFile()->GetFrame(frame_nr);
+  const AnalyzedFrameInfo& frame_info = m_fifo_player.GetAnalyzedFrameInfo(frame_nr);
+  const FifoFrameInfo& fifo_frame = m_fifo_player.GetFile()->GetFrame(frame_nr);
 
   const u32 object_start = frame_info.parts[start_part_nr].m_start;
   const u32 object_end = frame_info.parts[end_part_nr].m_end;
@@ -750,7 +750,7 @@ void FIFOAnalyzer::UpdateDescription()
 {
   m_entry_detail_browser->clear();
 
-  if (!FifoPlayer::GetInstance().IsPlaying())
+  if (!m_fifo_player.IsPlaying())
     return;
 
   const auto items = m_tree_widget->selectedItems();
@@ -766,8 +766,8 @@ void FIFOAnalyzer::UpdateDescription()
   const u32 end_part_nr = items[0]->data(0, PART_END_ROLE).toUInt();
   const u32 entry_nr = m_detail_list->currentRow();
 
-  const AnalyzedFrameInfo& frame_info = FifoPlayer::GetInstance().GetAnalyzedFrameInfo(frame_nr);
-  const FifoFrameInfo& fifo_frame = FifoPlayer::GetInstance().GetFile()->GetFrame(frame_nr);
+  const AnalyzedFrameInfo& frame_info = m_fifo_player.GetAnalyzedFrameInfo(frame_nr);
+  const FifoFrameInfo& fifo_frame = m_fifo_player.GetFile()->GetFrame(frame_nr);
 
   const u32 object_start = frame_info.parts[start_part_nr].m_start;
   const u32 object_end = frame_info.parts[end_part_nr].m_end;

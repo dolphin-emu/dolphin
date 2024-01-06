@@ -8,6 +8,7 @@
 #include "AudioCommon/SoundStream.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/CoreTiming.h"
+#include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/DSP.h"
@@ -48,7 +49,8 @@ struct System::Impl
         m_memory(system), m_pixel_engine{system}, m_power_pc(system),
         m_mmu(system, m_memory, m_power_pc), m_processor_interface(system),
         m_serial_interface(system), m_system_timers(system), m_video_interface(system),
-        m_interpreter(system, m_power_pc.GetPPCState(), m_mmu), m_jit_interface(system)
+        m_interpreter(system, m_power_pc.GetPPCState(), m_mmu), m_jit_interface(system),
+        m_fifo_player(system)
   {
   }
 
@@ -86,6 +88,7 @@ struct System::Impl
   Interpreter m_interpreter;
   JitInterface m_jit_interface;
   VideoCommon::CustomAssetLoader m_custom_asset_loader;
+  FifoPlayer m_fifo_player;
 };
 
 System::System() : m_impl{std::make_unique<Impl>(*this)}
@@ -174,6 +177,11 @@ ExpansionInterface::ExpansionInterfaceManager& System::GetExpansionInterface() c
 Fifo::FifoManager& System::GetFifo() const
 {
   return m_impl->m_fifo;
+}
+
+FifoPlayer& System::GetFifoPlayer() const
+{
+  return m_impl->m_fifo_player;
 }
 
 GeometryShaderManager& System::GetGeometryShaderManager() const

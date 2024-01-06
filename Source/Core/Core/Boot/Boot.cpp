@@ -652,7 +652,7 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
     bool operator()(const BootParameters::DFF& dff) const
     {
       NOTICE_LOG_FMT(BOOT, "Booting DFF: {}", dff.dff_path);
-      return FifoPlayer::GetInstance().Open(dff.dff_path);
+      return system.GetFifoPlayer().Open(dff.dff_path);
     }
 
   private:

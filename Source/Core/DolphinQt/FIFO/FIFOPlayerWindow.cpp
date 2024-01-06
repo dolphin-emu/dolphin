@@ -32,7 +32,8 @@
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
-FIFOPlayerWindow::FIFOPlayerWindow(QWidget* parent) : QWidget(parent)
+FIFOPlayerWindow::FIFOPlayerWindow(FifoPlayer& fifo_player, QWidget* parent)
+    : QWidget(parent), m_fifo_player(fifo_player)
 {
   setWindowTitle(tr("FIFO Player"));
   setWindowIcon(Resources::GetAppIcon());
@@ -46,9 +47,9 @@ FIFOPlayerWindow::FIFOPlayerWindow(QWidget* parent) : QWidget(parent)
 
   UpdateControls();
 
-  FifoPlayer::GetInstance().SetFileLoadedCallback(
+  m_fifo_player.SetFileLoadedCallback(
       [this] { QueueOnObject(this, &FIFOPlayerWindow::OnFIFOLoaded); });
-  FifoPlayer::GetInstance().SetFrameWrittenCallback([this] {
+  m_fifo_player.SetFrameWrittenCallback([this] {
     QueueOnObject(this, [this] {
       UpdateInfo();
       UpdateControls();
@@ -68,8 +69,8 @@ FIFOPlayerWindow::FIFOPlayerWindow(QWidget* parent) : QWidget(parent)
 
 FIFOPlayerWindow::~FIFOPlayerWindow()
 {
-  FifoPlayer::GetInstance().SetFileLoadedCallback({});
-  FifoPlayer::GetInstance().SetFrameWrittenCallback({});
+  m_fifo_player.SetFileLoadedCallback({});
+  m_fifo_player.SetFrameWrittenCallback({});
 }
 
 void FIFOPlayerWindow::CreateWidgets()
@@ -160,7 +161,7 @@ void FIFOPlayerWindow::CreateWidgets()
 
   m_tab_widget = new QTabWidget(this);
 
-  m_analyzer = new FIFOAnalyzer;
+  m_analyzer = new FIFOAnalyzer(m_fifo_player);
 
   m_tab_widget->addTab(m_main_widget, tr("Play / Record"));
   m_tab_widget->addTab(m_analyzer, tr("Analyze"));
@@ -262,7 +263,7 @@ void FIFOPlayerWindow::OnEmulationStarted()
 {
   UpdateControls();
 
-  if (FifoPlayer::GetInstance().GetFile())
+  if (m_fifo_player.GetFile())
     OnFIFOLoaded();
 }
 
@@ -286,14 +287,13 @@ void FIFOPlayerWindow::OnRecordingDone()
 
 void FIFOPlayerWindow::UpdateInfo()
 {
-  if (FifoPlayer::GetInstance().IsPlaying())
+  if (m_fifo_player.IsPlaying())
   {
-    FifoDataFile* file = FifoPlayer::GetInstance().GetFile();
-    m_info_label->setText(
-        tr("%1 frame(s)\n%2 object(s)\nCurrent Frame: %3")
-            .arg(QString::number(file->GetFrameCount()),
-                 QString::number(FifoPlayer::GetInstance().GetCurrentFrameObjectCount()),
-                 QString::number(FifoPlayer::GetInstance().GetCurrentFrameNum())));
+    FifoDataFile* file = m_fifo_player.GetFile();
+    m_info_label->setText(tr("%1 frame(s)\n%2 object(s)\nCurrent Frame: %3")
+                              .arg(QString::number(file->GetFrameCount()),
+                                   QString::number(m_fifo_player.GetCurrentFrameObjectCount()),
+                                   QString::number(m_fifo_player.GetCurrentFrameNum())));
     return;
   }
 
@@ -327,9 +327,9 @@ void FIFOPlayerWindow::UpdateInfo()
 
 void FIFOPlayerWindow::OnFIFOLoaded()
 {
-  FifoDataFile* file = FifoPlayer::GetInstance().GetFile();
+  FifoDataFile* file = m_fifo_player.GetFile();
 
-  auto object_count = FifoPlayer::GetInstance().GetMaxObjectCount();
+  auto object_count = m_fifo_player.GetMaxObjectCount();
   auto frame_count = file->GetFrameCount();
 
   m_frame_range_to->setMaximum(frame_count - 1);
@@ -356,7 +356,7 @@ void FIFOPlayerWindow::OnConfigChanged()
 
 void FIFOPlayerWindow::OnLimitsChanged()
 {
-  FifoPlayer& player = FifoPlayer::GetInstance();
+  FifoPlayer& player = m_fifo_player;
 
   player.SetFrameRangeStart(m_frame_range_from->value());
   player.SetFrameRangeEnd(m_frame_range_to->value());
@@ -377,7 +377,7 @@ void FIFOPlayerWindow::UpdateControls()
 {
   bool running = Core::IsRunning();
   bool is_recording = FifoRecorder::GetInstance().IsRecording();
-  bool is_playing = FifoPlayer::GetInstance().IsPlaying();
+  bool is_playing = m_fifo_player.IsPlaying();
 
   m_frame_range_from->setEnabled(is_playing);
   m_frame_range_from_label->setEnabled(is_playing);

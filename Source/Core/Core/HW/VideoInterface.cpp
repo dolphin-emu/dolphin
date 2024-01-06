@@ -545,7 +545,7 @@ float VideoInterfaceManager::GetAspectRatio() const
 
   // 5. Calculate the final ratio and scale to 4:3
   float ratio = horizontal_active_ratio / vertical_active_ratio;
-  bool running_fifo_log = FifoPlayer::GetInstance().IsRunningWithFakeVideoInterfaceUpdates();
+  const bool running_fifo_log = m_system.GetFifoPlayer().IsRunningWithFakeVideoInterfaceUpdates();
   if (std::isnormal(ratio) &&      // Check we have a sane ratio without any infs/nans/zeros
       !running_fifo_log)           // we don't know the correct ratio for fifos
     return ratio * (4.0f / 3.0f);  // Scale to 4:3
