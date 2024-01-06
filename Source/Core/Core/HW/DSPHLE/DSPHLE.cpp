@@ -14,7 +14,7 @@
 
 namespace DSP::HLE
 {
-DSPHLE::DSPHLE(Core::System& system) : m_system(system)
+DSPHLE::DSPHLE(Core::System& system) : m_mail_handler(system.GetDSP()), m_system(system)
 {
 }
 

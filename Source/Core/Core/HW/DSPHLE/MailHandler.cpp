@@ -8,11 +8,10 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Core/HW/DSP.h"
-#include "Core/System.h"
 
 namespace DSP::HLE
 {
-CMailHandler::CMailHandler()
+CMailHandler::CMailHandler(DSP::DSPManager& dsp) : m_dsp(dsp)
 {
 }
 
@@ -26,8 +25,7 @@ void CMailHandler::PushMail(u32 mail, bool interrupt, int cycles_into_future)
   {
     if (m_pending_mails.empty())
     {
-      Core::System::GetInstance().GetDSP().GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP,
-                                                                          cycles_into_future);
+      m_dsp.GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP, cycles_into_future);
     }
     else
     {
@@ -60,7 +58,7 @@ u16 CMailHandler::ReadDSPMailboxLow()
 
     if (generate_interrupt)
     {
-      Core::System::GetInstance().GetDSP().GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+      m_dsp.GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
     }
   }
   // Clear the top bit of the high mail word after the mail has been read.
