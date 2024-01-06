@@ -95,7 +95,7 @@ void AESndUCode::Update()
   // This is dubious in general, since we set the interrupt parameter on m_mail_handler.PushMail
   if (m_mail_handler.HasPending())
   {
-    Core::System::GetInstance().GetDSP().GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+    m_dsphle->GetSystem().GetDSP().GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
   }
 }
 
@@ -154,14 +154,18 @@ void AESndUCode::HandleMail(u32 mail)
       // No mail is sent in response
       break;
     case MAIL_SEND_SAMPLES:
+    {
       DEBUG_LOG_FMT(DSPHLE, "AESndUCode - MAIL_SEND_SAMPLES");
       // send_samples
+      auto& memory = m_dsphle->GetSystem().GetMemory();
       for (u32 i = 0; i < NUM_OUTPUT_SAMPLES * 2; i++)
       {
-        HLEMemory_Write_U16(m_parameter_block.out_buf + i * sizeof(u16), m_output_buffer[i]);
+        HLEMemory_Write_U16(memory, m_parameter_block.out_buf + i * sizeof(u16),
+                            m_output_buffer[i]);
       }
       m_mail_handler.PushMail(DSP_SYNC, true);
       break;
+    }
     case MAIL_TERMINATE:
       INFO_LOG_FMT(DSPHLE, "AESndUCode - MAIL_TERMINATE: {:08x}", mail);
       if (m_crc != HASH_2022_PAD && m_crc != HASH_2023)
@@ -197,40 +201,42 @@ void AESndUCode::HandleMail(u32 mail)
 
 void AESndUCode::DMAInParameterBlock()
 {
-  m_parameter_block.out_buf = HLEMemory_Read_U32(m_parameter_block_addr + 0);
-  m_parameter_block.buf_start = HLEMemory_Read_U32(m_parameter_block_addr + 4);
-  m_parameter_block.buf_end = HLEMemory_Read_U32(m_parameter_block_addr + 8);
-  m_parameter_block.buf_curr = HLEMemory_Read_U32(m_parameter_block_addr + 12);
-  m_parameter_block.yn1 = HLEMemory_Read_U16(m_parameter_block_addr + 16);
-  m_parameter_block.yn2 = HLEMemory_Read_U16(m_parameter_block_addr + 18);
-  m_parameter_block.pds = HLEMemory_Read_U16(m_parameter_block_addr + 20);
-  m_parameter_block.freq = HLEMemory_Read_U32(m_parameter_block_addr + 22);
-  m_parameter_block.counter = HLEMemory_Read_U16(m_parameter_block_addr + 26);
-  m_parameter_block.left = HLEMemory_Read_U16(m_parameter_block_addr + 28);
-  m_parameter_block.right = HLEMemory_Read_U16(m_parameter_block_addr + 30);
-  m_parameter_block.volume_l = HLEMemory_Read_U16(m_parameter_block_addr + 32);
-  m_parameter_block.volume_r = HLEMemory_Read_U16(m_parameter_block_addr + 34);
-  m_parameter_block.delay = HLEMemory_Read_U32(m_parameter_block_addr + 36);
-  m_parameter_block.flags = HLEMemory_Read_U32(m_parameter_block_addr + 40);
+  auto& memory = m_dsphle->GetSystem().GetMemory();
+  m_parameter_block.out_buf = HLEMemory_Read_U32(memory, m_parameter_block_addr + 0);
+  m_parameter_block.buf_start = HLEMemory_Read_U32(memory, m_parameter_block_addr + 4);
+  m_parameter_block.buf_end = HLEMemory_Read_U32(memory, m_parameter_block_addr + 8);
+  m_parameter_block.buf_curr = HLEMemory_Read_U32(memory, m_parameter_block_addr + 12);
+  m_parameter_block.yn1 = HLEMemory_Read_U16(memory, m_parameter_block_addr + 16);
+  m_parameter_block.yn2 = HLEMemory_Read_U16(memory, m_parameter_block_addr + 18);
+  m_parameter_block.pds = HLEMemory_Read_U16(memory, m_parameter_block_addr + 20);
+  m_parameter_block.freq = HLEMemory_Read_U32(memory, m_parameter_block_addr + 22);
+  m_parameter_block.counter = HLEMemory_Read_U16(memory, m_parameter_block_addr + 26);
+  m_parameter_block.left = HLEMemory_Read_U16(memory, m_parameter_block_addr + 28);
+  m_parameter_block.right = HLEMemory_Read_U16(memory, m_parameter_block_addr + 30);
+  m_parameter_block.volume_l = HLEMemory_Read_U16(memory, m_parameter_block_addr + 32);
+  m_parameter_block.volume_r = HLEMemory_Read_U16(memory, m_parameter_block_addr + 34);
+  m_parameter_block.delay = HLEMemory_Read_U32(memory, m_parameter_block_addr + 36);
+  m_parameter_block.flags = HLEMemory_Read_U32(memory, m_parameter_block_addr + 40);
 }
 
 void AESndUCode::DMAOutParameterBlock()
 {
-  HLEMemory_Write_U32(m_parameter_block_addr + 0, m_parameter_block.out_buf);
-  HLEMemory_Write_U32(m_parameter_block_addr + 4, m_parameter_block.buf_start);
-  HLEMemory_Write_U32(m_parameter_block_addr + 8, m_parameter_block.buf_end);
-  HLEMemory_Write_U32(m_parameter_block_addr + 12, m_parameter_block.buf_curr);
-  HLEMemory_Write_U16(m_parameter_block_addr + 16, m_parameter_block.yn1);
-  HLEMemory_Write_U16(m_parameter_block_addr + 18, m_parameter_block.yn2);
-  HLEMemory_Write_U16(m_parameter_block_addr + 20, m_parameter_block.pds);
-  HLEMemory_Write_U32(m_parameter_block_addr + 22, m_parameter_block.freq);
-  HLEMemory_Write_U16(m_parameter_block_addr + 26, m_parameter_block.counter);
-  HLEMemory_Write_U16(m_parameter_block_addr + 28, m_parameter_block.left);
-  HLEMemory_Write_U16(m_parameter_block_addr + 30, m_parameter_block.right);
-  HLEMemory_Write_U16(m_parameter_block_addr + 32, m_parameter_block.volume_l);
-  HLEMemory_Write_U16(m_parameter_block_addr + 34, m_parameter_block.volume_r);
-  HLEMemory_Write_U32(m_parameter_block_addr + 36, m_parameter_block.delay);
-  HLEMemory_Write_U32(m_parameter_block_addr + 40, m_parameter_block.flags);
+  auto& memory = m_dsphle->GetSystem().GetMemory();
+  HLEMemory_Write_U32(memory, m_parameter_block_addr + 0, m_parameter_block.out_buf);
+  HLEMemory_Write_U32(memory, m_parameter_block_addr + 4, m_parameter_block.buf_start);
+  HLEMemory_Write_U32(memory, m_parameter_block_addr + 8, m_parameter_block.buf_end);
+  HLEMemory_Write_U32(memory, m_parameter_block_addr + 12, m_parameter_block.buf_curr);
+  HLEMemory_Write_U16(memory, m_parameter_block_addr + 16, m_parameter_block.yn1);
+  HLEMemory_Write_U16(memory, m_parameter_block_addr + 18, m_parameter_block.yn2);
+  HLEMemory_Write_U16(memory, m_parameter_block_addr + 20, m_parameter_block.pds);
+  HLEMemory_Write_U32(memory, m_parameter_block_addr + 22, m_parameter_block.freq);
+  HLEMemory_Write_U16(memory, m_parameter_block_addr + 26, m_parameter_block.counter);
+  HLEMemory_Write_U16(memory, m_parameter_block_addr + 28, m_parameter_block.left);
+  HLEMemory_Write_U16(memory, m_parameter_block_addr + 30, m_parameter_block.right);
+  HLEMemory_Write_U16(memory, m_parameter_block_addr + 32, m_parameter_block.volume_l);
+  HLEMemory_Write_U16(memory, m_parameter_block_addr + 34, m_parameter_block.volume_r);
+  HLEMemory_Write_U32(memory, m_parameter_block_addr + 36, m_parameter_block.delay);
+  HLEMemory_Write_U32(memory, m_parameter_block_addr + 40, m_parameter_block.flags);
 }
 
 void AESndAccelerator::OnEndException()

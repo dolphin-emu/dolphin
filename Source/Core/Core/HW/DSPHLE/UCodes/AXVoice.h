@@ -100,11 +100,8 @@ bool HasLpf(u32 crc)
 }
 
 // Read a PB from MRAM/ARAM
-void ReadPB(u32 addr, PB_TYPE& pb, u32 crc)
+void ReadPB(Memory::MemoryManager& memory, u32 addr, PB_TYPE& pb, u32 crc)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
-
   if (HasLpf(crc))
   {
     u16* dst = (u16*)&pb;
@@ -127,11 +124,8 @@ void ReadPB(u32 addr, PB_TYPE& pb, u32 crc)
 }
 
 // Write a PB back to MRAM/ARAM
-void WritePB(u32 addr, const PB_TYPE& pb, u32 crc)
+void WritePB(Memory::MemoryManager& memory, u32 addr, const PB_TYPE& pb, u32 crc)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
-
   if (HasLpf(crc))
   {
     const u16* src = (const u16*)&pb;

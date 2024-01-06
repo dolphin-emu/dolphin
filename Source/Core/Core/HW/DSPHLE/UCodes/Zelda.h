@@ -9,6 +9,11 @@
 #include "Common/CommonTypes.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
+namespace Core
+{
+class System;
+}
+
 namespace DSP::HLE
 {
 class DSPHLE;
@@ -16,6 +21,13 @@ class DSPHLE;
 class ZeldaAudioRenderer
 {
 public:
+  explicit ZeldaAudioRenderer(Core::System& system);
+  ZeldaAudioRenderer(const ZeldaAudioRenderer&) = delete;
+  ZeldaAudioRenderer(ZeldaAudioRenderer&&) = delete;
+  ZeldaAudioRenderer& operator=(const ZeldaAudioRenderer&) = delete;
+  ZeldaAudioRenderer& operator=(ZeldaAudioRenderer&&) = delete;
+  ~ZeldaAudioRenderer();
+
   void PrepareFrame();
   void AddVoice(u16 voice_id);
   void FinalizeFrame();
@@ -183,6 +195,8 @@ private:
   std::array<s16, 8> m_buf_front_left_reverb_last8{};
   std::array<s16, 8> m_buf_front_right_reverb_last8{};
   u32 m_reverb_pb_base_addr = 0;
+
+  Core::System& m_system;
 };
 
 class ZeldaUCode final : public UCodeInterface
