@@ -6,6 +6,10 @@
 #include <memory>
 #include "Common/CommonTypes.h"
 
+namespace Core
+{
+class System;
+}
 class PointerWrap;
 
 class DSPEmulator
@@ -34,4 +38,4 @@ protected:
   bool m_wii = false;
 };
 
-std::unique_ptr<DSPEmulator> CreateDSPEmulator(bool hle);
+std::unique_ptr<DSPEmulator> CreateDSPEmulator(Core::System& system, bool hle);
