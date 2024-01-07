@@ -724,6 +724,19 @@ void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
         DecryptExtension(rpt_builder);
     }
   }
+  bool DEBUG_VAR_TO_REMOVE = true;
+  if (DEBUG_VAR_TO_REMOVE)
+  {
+    std::vector<u8> raw_bytes = std::vector<u8>();
+    size_t num_bytes_in_rpt = rpt_builder.GetDataSize();
+    for (unsigned int i = 0; i < num_bytes_in_rpt; ++i)
+      raw_bytes.push_back(*(rpt_builder.GetDataPtr() + i));
+    unsigned int diff_from_base_and_ext_ptr =
+        (unsigned int)(rpt_builder.GetExtDataPtr() - rpt_builder.GetDataPtr());
+    unsigned int ext_base_ext_size = rpt_builder.GetExtDataSize();
+    if (raw_bytes.size() == 0 || diff_from_base_and_ext_ptr == 251 || ext_base_ext_size == 251)
+      DEBUG_LOG_FMT(WIIMOTE, "Is this even possible?");
+  }
   // At this point in the code, any attached extensions are guaranteed to have been decrypted
   // Thus, we can do any scripting calls above this line.
   // We would then copy the modified inputs from the script back into m_status and rpt_builder.
