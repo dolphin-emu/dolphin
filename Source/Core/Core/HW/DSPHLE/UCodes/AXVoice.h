@@ -353,24 +353,24 @@ u32 ResampleAudio(std::function<s16(u32)> input_callback, s16* output, u32 count
 
 // Read <count> input samples from ARAM, decoding and converting rate
 // if required.
-void GetInputSamples(PB_TYPE& pb, s16* samples, u16 count, const s16* coeffs)
+void GetInputSamples(HLEAccelerator* accelerator, PB_TYPE& pb, s16* samples, u16 count,
+                     const s16* coeffs)
 {
-  HLEAccelerator accelerator;
-  AcceleratorSetup(&accelerator, &pb);
+  AcceleratorSetup(accelerator, &pb);
 
   if (coeffs)
     coeffs += pb.coef_select * 0x200;
-  u32 curr_pos = ResampleAudio([&accelerator](u32) { return AcceleratorGetSample(&accelerator); },
+  u32 curr_pos = ResampleAudio([accelerator](u32) { return AcceleratorGetSample(accelerator); },
                                samples, count, pb.src.last_samples, pb.src.cur_addr_frac,
                                HILO_TO_32(pb.src.ratio), pb.src_type, coeffs);
   pb.src.cur_addr_frac = (curr_pos & 0xFFFF);
 
   // Update current position, YN1, YN2 and pred scale in the PB.
-  pb.audio_addr.cur_addr_hi = static_cast<u16>(accelerator.GetCurrentAddress() >> 16);
-  pb.audio_addr.cur_addr_lo = static_cast<u16>(accelerator.GetCurrentAddress());
-  pb.adpcm.yn1 = accelerator.GetYn1();
-  pb.adpcm.yn2 = accelerator.GetYn2();
-  pb.adpcm.pred_scale = accelerator.GetPredScale();
+  pb.audio_addr.cur_addr_hi = static_cast<u16>(accelerator->GetCurrentAddress() >> 16);
+  pb.audio_addr.cur_addr_lo = static_cast<u16>(accelerator->GetCurrentAddress());
+  pb.adpcm.yn1 = accelerator->GetYn1();
+  pb.adpcm.yn2 = accelerator->GetYn2();
+  pb.adpcm.pred_scale = accelerator->GetPredScale();
 }
 
 // Add samples to an output buffer, with optional volume ramping.
@@ -410,8 +410,8 @@ s16 LowPassFilter(s16* samples, u32 count, s16 yn1, u16 a0, u16 b0)
 
 // Process 1ms of audio (for AX GC) or 3ms of audio (for AX Wii) from a PB and
 // mix it to the output buffers.
-void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl mctrl,
-                  const s16* coeffs)
+void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buffers, u16 count,
+                  AXMixControl mctrl, const s16* coeffs)
 {
   // If the voice is not running, nothing to do.
   if (pb.running != 1)
@@ -419,7 +419,7 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl
 
   // Read input samples, performing sample rate conversion if needed.
   s16 samples[MAX_SAMPLES_PER_FRAME];
-  GetInputSamples(pb, samples, count, coeffs);
+  GetInputSamples(accelerator, pb, samples, count, coeffs);
 
   // Apply a global volume ramp using the volume envelope parameters.
   for (u32 i = 0; i < count; ++i)

@@ -30,6 +30,13 @@ AXWiiUCode::AXWiiUCode(DSPHLE* dsphle, u32 crc) : AXUCode(dsphle, crc), m_last_m
   m_old_axwii = (crc == 0xfa450138) || (crc == 0x7699af32);
 }
 
+void AXWiiUCode::Initialize()
+{
+  InitializeShared();
+
+  m_accelerator = std::make_unique<HLEAccelerator>();
+}
+
 void AXWiiUCode::HandleCommandList()
 {
   // Temp variables for addresses computation
@@ -436,7 +443,8 @@ void AXWiiUCode::ProcessPBList(u32 pb_addr)
       for (int curr_ms = 0; curr_ms < 3; ++curr_ms)
       {
         ApplyUpdatesForMs(curr_ms, pb, num_updates, updates);
-        ProcessVoice(pb, buffers, spms, ConvertMixerControl(HILO_TO_32(pb.mixer_control)),
+        ProcessVoice(static_cast<HLEAccelerator*>(m_accelerator.get()), pb, buffers, spms,
+                     ConvertMixerControl(HILO_TO_32(pb.mixer_control)),
                      m_coeffs_checksum ? m_coeffs.data() : nullptr);
 
         // Forward the buffers
@@ -447,7 +455,8 @@ void AXWiiUCode::ProcessPBList(u32 pb_addr)
     }
     else
     {
-      ProcessVoice(pb, buffers, 96, ConvertMixerControl(HILO_TO_32(pb.mixer_control)),
+      ProcessVoice(static_cast<HLEAccelerator*>(m_accelerator.get()), pb, buffers, 96,
+                   ConvertMixerControl(HILO_TO_32(pb.mixer_control)),
                    m_coeffs_checksum ? m_coeffs.data() : nullptr);
     }
 

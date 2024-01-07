@@ -12,6 +12,7 @@
 #pragma once
 
 #include <array>
+#include <memory>
 #include <optional>
 
 #include "Common/BitUtils.h"
@@ -20,6 +21,11 @@
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
+
+namespace DSP
+{
+class Accelerator;
+}
 
 namespace DSP::HLE
 {
@@ -67,6 +73,7 @@ class AXUCode /* not final: subclassed by AXWiiUCode */ : public UCodeInterface
 {
 public:
   AXUCode(DSPHLE* dsphle, u32 crc);
+  ~AXUCode() override;
 
   void Initialize() override;
   void HandleMail(u32 mail) override;
@@ -99,6 +106,10 @@ protected:
   std::array<s16, 0x800> m_coeffs{};
 
   u16 m_compressor_pos = 0;
+
+  std::unique_ptr<Accelerator> m_accelerator;
+
+  void InitializeShared();
 
   bool LoadResamplingCoefficients(bool require_same_checksum, u32 desired_checksum);
 
