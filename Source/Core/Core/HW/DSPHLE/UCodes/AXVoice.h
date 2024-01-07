@@ -153,10 +153,11 @@ void WritePB(u32 addr, const PB_TYPE& pb, u32 crc)
 }
 
 // Simulated accelerator state.
-static PB_TYPE* acc_pb;
-
 class HLEAccelerator final : public Accelerator
 {
+public:
+  PB_TYPE* acc_pb = nullptr;
+
 protected:
   void OnEndException() override
   {
@@ -197,27 +198,25 @@ protected:
   }
 };
 
-static std::unique_ptr<Accelerator> s_accelerator = std::make_unique<HLEAccelerator>();
-
 // Sets up the simulated accelerator.
-void AcceleratorSetup(PB_TYPE* pb)
+void AcceleratorSetup(HLEAccelerator* accelerator, PB_TYPE* pb)
 {
-  acc_pb = pb;
-  s_accelerator->SetStartAddress(HILO_TO_32(pb->audio_addr.loop_addr));
-  s_accelerator->SetEndAddress(HILO_TO_32(pb->audio_addr.end_addr));
-  s_accelerator->SetCurrentAddress(HILO_TO_32(pb->audio_addr.cur_addr));
-  s_accelerator->SetSampleFormat(pb->audio_addr.sample_format);
-  s_accelerator->SetYn1(pb->adpcm.yn1);
-  s_accelerator->SetYn2(pb->adpcm.yn2);
-  s_accelerator->SetPredScale(pb->adpcm.pred_scale);
+  accelerator->acc_pb = pb;
+  accelerator->SetStartAddress(HILO_TO_32(pb->audio_addr.loop_addr));
+  accelerator->SetEndAddress(HILO_TO_32(pb->audio_addr.end_addr));
+  accelerator->SetCurrentAddress(HILO_TO_32(pb->audio_addr.cur_addr));
+  accelerator->SetSampleFormat(pb->audio_addr.sample_format);
+  accelerator->SetYn1(pb->adpcm.yn1);
+  accelerator->SetYn2(pb->adpcm.yn2);
+  accelerator->SetPredScale(pb->adpcm.pred_scale);
 }
 
 // Reads a sample from the accelerator. Also handles looping and
 // disabling streams that reached the end (this is done by an exception raised
 // by the accelerator on real hardware).
-u16 AcceleratorGetSample()
+u16 AcceleratorGetSample(HLEAccelerator* accelerator)
 {
-  return s_accelerator->Read(acc_pb->adpcm.coefs);
+  return accelerator->Read(accelerator->acc_pb->adpcm.coefs);
 }
 
 // Reads samples from the input callback, resamples them to <count> samples at
@@ -356,21 +355,22 @@ u32 ResampleAudio(std::function<s16(u32)> input_callback, s16* output, u32 count
 // if required.
 void GetInputSamples(PB_TYPE& pb, s16* samples, u16 count, const s16* coeffs)
 {
-  AcceleratorSetup(&pb);
+  HLEAccelerator accelerator;
+  AcceleratorSetup(&accelerator, &pb);
 
   if (coeffs)
     coeffs += pb.coef_select * 0x200;
-  u32 curr_pos =
-      ResampleAudio([](u32) { return AcceleratorGetSample(); }, samples, count, pb.src.last_samples,
-                    pb.src.cur_addr_frac, HILO_TO_32(pb.src.ratio), pb.src_type, coeffs);
+  u32 curr_pos = ResampleAudio([&accelerator](u32) { return AcceleratorGetSample(&accelerator); },
+                               samples, count, pb.src.last_samples, pb.src.cur_addr_frac,
+                               HILO_TO_32(pb.src.ratio), pb.src_type, coeffs);
   pb.src.cur_addr_frac = (curr_pos & 0xFFFF);
 
   // Update current position, YN1, YN2 and pred scale in the PB.
-  pb.audio_addr.cur_addr_hi = static_cast<u16>(s_accelerator->GetCurrentAddress() >> 16);
-  pb.audio_addr.cur_addr_lo = static_cast<u16>(s_accelerator->GetCurrentAddress());
-  pb.adpcm.yn1 = s_accelerator->GetYn1();
-  pb.adpcm.yn2 = s_accelerator->GetYn2();
-  pb.adpcm.pred_scale = s_accelerator->GetPredScale();
+  pb.audio_addr.cur_addr_hi = static_cast<u16>(accelerator.GetCurrentAddress() >> 16);
+  pb.audio_addr.cur_addr_lo = static_cast<u16>(accelerator.GetCurrentAddress());
+  pb.adpcm.yn1 = accelerator.GetYn1();
+  pb.adpcm.yn2 = accelerator.GetYn2();
+  pb.adpcm.pred_scale = accelerator.GetPredScale();
 }
 
 // Add samples to an output buffer, with optional volume ramping.
