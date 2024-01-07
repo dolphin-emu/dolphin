@@ -158,6 +158,8 @@ public:
 
   void PrepareInput(WiimoteEmu::DesiredWiimoteState* target_state) override;
   void Update(const WiimoteEmu::DesiredWiimoteState& target_state) override;
+  void EncryptExtension(WiimoteCommon::DataReportBuilder&);
+  void DecryptExtension(WiimoteCommon::DataReportBuilder&);
   void EventLinked() override;
   void EventUnlinked() override;
   void InterruptDataOutput(const u8* data, u32 size) override;
@@ -229,6 +231,8 @@ private:
 
   void HandleExtensionSwap(ExtensionNumber desired_extension_number, bool desired_motion_plus);
   bool ProcessExtensionPortEvent();
+
+  bool IsProcessingEncryptedExtension(const WiimoteCommon::DataReportBuilder&) const;
   void SendDataReport(const DesiredWiimoteState& target_state);
   bool ProcessReadDataRequest();
 

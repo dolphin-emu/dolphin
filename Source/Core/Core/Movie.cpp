@@ -118,6 +118,7 @@ static u32 s_DSPiromHash = 0;
 static u32 s_DSPcoefHash = 0;
 
 static bool s_bRecordingFromSaveState = false;
+static bool s_bStoreWiiExtensionInputsUnencrypted = true;
 static bool s_bPolled = false;
 
 // s_InputDisplay is used by both CPU and GPU (is mutable).
@@ -280,6 +281,7 @@ void Init(const BootParameters& boot)
   if (!IsMovieActive())
   {
     s_bRecordingFromSaveState = false;
+    s_bStoreWiiExtensionInputsUnencrypted = true;
     s_rerecords = 0;
     s_currentByte = 0;
     s_currentFrame = 0;
@@ -351,6 +353,11 @@ bool IsMovieActive()
 bool IsReadOnly()
 {
   return s_bReadOnly;
+}
+
+bool IsStoringWiiExtensionInputsUnencrypted()
+{
+  return s_bStoreWiiExtensionInputsUnencrypted;
 }
 
 u64 GetRecordingStartTime()
@@ -555,6 +562,7 @@ bool BeginRecordingInput(const ControllerTypeArray& controllers,
     s_totalTickCount = s_tickCountAtLastInput = 0;
     s_bongos = 0;
     s_memcards = 0;
+    s_bStoreWiiExtensionInputsUnencrypted = true;
     if (NetPlay::IsNetPlayRunning())
     {
       s_bNetPlay = true;
@@ -610,7 +618,7 @@ bool BeginRecordingInput(const ControllerTypeArray& controllers,
     // know if we're using a Wii at this point. So, we'll assume a Wii is used here. In practice,
     // this shouldn't affect anything for GC (as its only unique setting is language, which will be
     // taken from base settings as expected)
-    static DTMHeader header = {.bWii = true};
+    static DTMHeader header = {.bWii = true, .bStoreWiiExtensionInputsUnencrypted = true};
     ConfigLoaders::SaveToDTM(&header);
     Config::AddLayer(ConfigLoaders::GenerateMovieConfigLoader(&header));
 
@@ -716,7 +724,8 @@ static void SetInputDisplayString(ControllerState padState, int controllerID)
 }
 
 // NOTE: CPU Thread
-static void SetWiiInputDisplayString(int remoteID, const DataReportBuilder& rpt, ExtensionNumber ext)
+static void SetWiiInputDisplayString(int remoteID, const DataReportBuilder& rpt,
+                                     ExtensionNumber ext, const EncryptionKey& key)
 {
   int controllerID = remoteID + 4;
 
@@ -780,6 +789,8 @@ static void SetWiiInputDisplayString(int remoteID, const DataReportBuilder& rpt,
 
     Nunchuk::DataFormat nunchuk;
     memcpy(&nunchuk, extData, sizeof(nunchuk));
+    if (!s_bStoreWiiExtensionInputsUnencrypted)
+      key.Decrypt((u8*)&nunchuk, 0, sizeof(nunchuk));
     nunchuk.bt.hex = nunchuk.bt.hex ^ 0x3;
 
     const std::string accel = fmt::format(" N-ACC:{},{},{}", nunchuk.GetAccelX(),
@@ -800,6 +811,8 @@ static void SetWiiInputDisplayString(int remoteID, const DataReportBuilder& rpt,
 
     Classic::DataFormat cc;
     memcpy(&cc, extData, sizeof(cc));
+    if (!s_bStoreWiiExtensionInputsUnencrypted)
+      key.Decrypt((u8*)&cc, 0, sizeof(cc));
     cc.bt.hex = cc.bt.hex ^ 0xFFFF;
 
     if (cc.bt.dpad_left)
@@ -895,12 +908,13 @@ void RecordInput(const GCPadStatus* PadStatus, int controllerID)
 }
 
 // NOTE: CPU Thread
-void CheckWiimoteStatus(int wiimote, const DataReportBuilder& rpt, ExtensionNumber ext)
+// At the start of this function, if s_bStoreWiiExtensionInputsUnencrypted is true, then any
+// extensions in rpt are currently unencrypted. Otherwise, any extensions in rpt are currently
+// encrypted.
+void CheckWiimoteStatus(int wiimote, const DataReportBuilder& rpt, ExtensionNumber ext,
+                        const WiimoteEmu::EncryptionKey& key)
 {
-  // Once we add in Dolphin scripting support, code should be added here to run OnWiiInputPolled callback functions
-  // at this point. Also, we need to add a line at the end of this function which will copy the new inputs from
-  // a script back over to a movie file, if we're playing a movie file back while running a script.
-  SetWiiInputDisplayString(wiimote, rpt, ext);
+  SetWiiInputDisplayString(wiimote, rpt, ext, key);
 
   if (IsRecordingInput())
     RecordWiimote(wiimote, rpt.GetDataPtr(), rpt.GetDataSize());
@@ -987,7 +1001,7 @@ bool PlayInput(const std::string& movie_path, std::optional<std::string>* savest
   s_currentFrame = 0;
   s_currentLagCount = 0;
   s_currentInputCount = 0;
-
+  s_bStoreWiiExtensionInputsUnencrypted = tmpHeader.bStoreWiiExtensionInputsUnencrypted;
   s_playMode = PlayMode::Playing;
 
   // Wiimotes cause desync issues if they're not reset before launching the game
@@ -1381,6 +1395,7 @@ void EndPlayInput(bool cont)
     s_playMode = PlayMode::None;
     Core::DisplayMessage("Movie End.", 2000);
     s_bRecordingFromSaveState = false;
+    s_bStoreWiiExtensionInputsUnencrypted = true;
     Config::RemoveLayer(Config::LayerType::Movie);
     // we don't clear these things because otherwise we can't resume playback if we load a movie
     // state later
@@ -1419,6 +1434,7 @@ void SaveRecording(const std::string& filename)
   }
 
   header.bFromSaveState = s_bRecordingFromSaveState;
+  header.bStoreWiiExtensionInputsUnencrypted = s_bStoreWiiExtensionInputsUnencrypted;
   header.frameCount = s_totalFrames;
   header.lagCount = s_totalLagCount;
   header.inputCount = s_totalInputCount;

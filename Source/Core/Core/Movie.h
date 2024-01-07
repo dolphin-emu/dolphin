@@ -123,11 +123,13 @@ struct DTMHeader
   u8 reserved3;
   bool bFollowBranch;
   bool bUseFMA;
-  u8 GBAControllers;                // GBA Controllers plugged in (the bits are ports 1-4)
-  bool bWidescreen;                 // true indicates SYSCONF aspect ratio is 16:9, false for 4:3
-  std::array<u8, 6> reserved;       // Padding for any new config options
-  std::array<char, 40> discChange;  // Name of iso file to switch to, for two disc games.
-  std::array<u8, 20> revision;      // Git hash
+  u8 GBAControllers;  // GBA Controllers plugged in (the bits are ports 1-4)
+  bool bWidescreen;   // true indicates SYSCONF aspect ratio is 16:9, false for 4:3
+  bool bStoreWiiExtensionInputsUnencrypted;  // false for movies made before 2024, and true after PR
+                                             // <X>
+  std::array<u8, 5> reserved;                // Padding for any new config options
+  std::array<char, 40> discChange;           // Name of iso file to switch to, for two disc games.
+  std::array<u8, 20> revision;               // Git hash
   u32 DSPiromHash;
   u32 DSPcoefHash;
   u64 tickCount;                 // Number of ticks in the recording
@@ -150,6 +152,7 @@ bool IsJustStartingPlayingInputFromSaveState();
 bool IsPlayingInput();
 bool IsMovieActive();
 bool IsReadOnly();
+bool IsStoringWiiExtensionInputsUnencrypted();
 u64 GetRecordingStartTime();
 
 u64 GetCurrentFrame();
@@ -195,7 +198,7 @@ void DoState(PointerWrap& p);
 void Shutdown();
 void CheckPadStatus(const GCPadStatus* PadStatus, int controllerID);
 void CheckWiimoteStatus(int wiimote, const WiimoteCommon::DataReportBuilder& rpt,
-                        WiimoteEmu::ExtensionNumber ext);
+                        WiimoteEmu::ExtensionNumber ext, const WiimoteEmu::EncryptionKey& key);
 
 std::string GetInputDisplay();
 std::string GetRTCDisplay();
