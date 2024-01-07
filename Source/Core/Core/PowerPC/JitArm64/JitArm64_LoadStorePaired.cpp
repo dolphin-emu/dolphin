@@ -27,9 +27,9 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
               !(m_ppc_state.feature_flags & FEATURE_FLAG_MSR_DR));
 
   // X30 is LR
-  // X0 is the address
-  // X1 contains the scale
-  // X2 is a temporary
+  // X0 is a temporary
+  // X1 is the address
+  // X2 is the scale
   // Q0 is the return register
   // Q1 is a temporary
   const s32 offset = inst.SIMM_12;
@@ -156,8 +156,9 @@ void JitArm64::psq_stXX(UGeckoInstruction inst)
               !(m_ppc_state.feature_flags & FEATURE_FLAG_MSR_DR));
 
   // X30 is LR
-  // X0 contains the scale
-  // X1 is the address
+  // X0 is a temporary
+  // X1 is the scale
+  // X2 is the address
   // Q0 is the store register
 
   const s32 offset = inst.SIMM_12;
