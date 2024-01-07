@@ -188,14 +188,14 @@ void LoadInput(const std::string& movie_path);
 void ReadHeader();
 void PlayController(GCPadStatus* PadStatus, int controllerID);
 bool PlayWiimote(int wiimote, WiimoteCommon::DataReportBuilder& rpt,
-                 WiimoteEmu::ExtensionNumber ext, const WiimoteEmu::EncryptionKey& key);
+                 WiimoteEmu::ExtensionNumber ext);
 void EndPlayInput(bool cont);
 void SaveRecording(const std::string& filename);
 void DoState(PointerWrap& p);
 void Shutdown();
 void CheckPadStatus(const GCPadStatus* PadStatus, int controllerID);
 void CheckWiimoteStatus(int wiimote, const WiimoteCommon::DataReportBuilder& rpt,
-                        WiimoteEmu::ExtensionNumber ext, const WiimoteEmu::EncryptionKey& key);
+                        WiimoteEmu::ExtensionNumber ext);
 
 std::string GetInputDisplay();
 std::string GetRTCDisplay();

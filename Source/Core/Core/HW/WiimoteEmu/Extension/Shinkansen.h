@@ -38,11 +38,6 @@ public:
   void Reset() override;
   ControllerEmu::ControlGroup* GetGroup(ShinkansenGroup group);
 
-private:
-  ControllerEmu::Buttons* m_buttons;
-  ControllerEmu::Triggers* m_levers;
-  ControllerEmu::ControlGroup* m_led;
-
   struct DataFormat
   {
     u8 unk0;
@@ -53,6 +48,13 @@ private:
     u8 unk5;
     u16 buttons;
   };
+
+private:
+  ControllerEmu::Buttons* m_buttons;
+  ControllerEmu::Triggers* m_levers;
+  ControllerEmu::ControlGroup* m_led;
+
+
 };
 
 }  // namespace WiimoteEmu

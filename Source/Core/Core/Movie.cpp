@@ -716,8 +716,7 @@ static void SetInputDisplayString(ControllerState padState, int controllerID)
 }
 
 // NOTE: CPU Thread
-static void SetWiiInputDisplayString(int remoteID, const DataReportBuilder& rpt,
-                                     ExtensionNumber ext, const EncryptionKey& key)
+static void SetWiiInputDisplayString(int remoteID, const DataReportBuilder& rpt, ExtensionNumber ext)
 {
   int controllerID = remoteID + 4;
 
@@ -781,7 +780,6 @@ static void SetWiiInputDisplayString(int remoteID, const DataReportBuilder& rpt,
 
     Nunchuk::DataFormat nunchuk;
     memcpy(&nunchuk, extData, sizeof(nunchuk));
-    key.Decrypt((u8*)&nunchuk, 0, sizeof(nunchuk));
     nunchuk.bt.hex = nunchuk.bt.hex ^ 0x3;
 
     const std::string accel = fmt::format(" N-ACC:{},{},{}", nunchuk.GetAccelX(),
@@ -802,7 +800,6 @@ static void SetWiiInputDisplayString(int remoteID, const DataReportBuilder& rpt,
 
     Classic::DataFormat cc;
     memcpy(&cc, extData, sizeof(cc));
-    key.Decrypt((u8*)&cc, 0, sizeof(cc));
     cc.bt.hex = cc.bt.hex ^ 0xFFFF;
 
     if (cc.bt.dpad_left)
@@ -898,10 +895,12 @@ void RecordInput(const GCPadStatus* PadStatus, int controllerID)
 }
 
 // NOTE: CPU Thread
-void CheckWiimoteStatus(int wiimote, const DataReportBuilder& rpt, ExtensionNumber ext,
-                        const EncryptionKey& key)
+void CheckWiimoteStatus(int wiimote, const DataReportBuilder& rpt, ExtensionNumber ext)
 {
-  SetWiiInputDisplayString(wiimote, rpt, ext, key);
+  // Once we add in Dolphin scripting support, code should be added here to run OnWiiInputPolled callback functions
+  // at this point. Also, we need to add a line at the end of this function which will copy the new inputs from
+  // a script back over to a movie file, if we're playing a movie file back while running a script.
+  SetWiiInputDisplayString(wiimote, rpt, ext);
 
   if (IsRecordingInput())
     RecordWiimote(wiimote, rpt.GetDataPtr(), rpt.GetDataSize());
@@ -1310,8 +1309,7 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
 }
 
 // NOTE: CPU Thread
-bool PlayWiimote(int wiimote, WiimoteCommon::DataReportBuilder& rpt, ExtensionNumber ext,
-                 const EncryptionKey& key)
+bool PlayWiimote(int wiimote, WiimoteCommon::DataReportBuilder& rpt, ExtensionNumber ext)
 {
   if (!IsPlayingInput() || !IsUsingWiimote(wiimote) || s_temp_input.empty())
     return false;
