@@ -56,9 +56,6 @@ open class FloatSliderSetting : SliderSetting {
         get() = floatSetting.float
 
     open fun setSelectedValue(settings: Settings, selection: Float) {
-        floatSetting.setFloat(
-            settings,
-            BigDecimal((selection).toDouble()).round(MathContext(3)).toFloat()
-        )
+        floatSetting.setFloat(settings, selection)
     }
 }
