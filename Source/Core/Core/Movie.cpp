@@ -1075,6 +1075,7 @@ void LoadInput(const std::string& movie_path)
     return;
   }
   ReadHeader();
+  s_bStoreWiiExtensionInputsUnencrypted = tmpHeader.bStoreWiiExtensionInputsUnencrypted;
   if (!s_bReadOnly)
   {
     s_rerecords++;
@@ -1604,6 +1605,7 @@ static void GetMD5()
 void Shutdown()
 {
   s_currentInputCount = s_totalInputCount = s_totalFrames = s_tickCountAtLastInput = 0;
+  s_bStoreWiiExtensionInputsUnencrypted = true;
   s_temp_input.clear();
 }
 }  // namespace Movie
