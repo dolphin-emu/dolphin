@@ -81,7 +81,8 @@ bool AESndUCode::UseNewFlagMasks() const
          m_crc == HASH_2022_PAD || m_crc == HASH_2023;
 }
 
-AESndUCode::AESndUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
+AESndUCode::AESndUCode(DSPHLE* dsphle, u32 crc)
+    : UCodeInterface(dsphle, crc), m_accelerator(dsphle->GetSystem().GetDSP())
 {
 }
 
@@ -239,6 +240,12 @@ void AESndUCode::DMAOutParameterBlock()
   HLEMemory_Write_U32(memory, m_parameter_block_addr + 40, m_parameter_block.flags);
 }
 
+AESndAccelerator::AESndAccelerator(DSP::DSPManager& dsp) : m_dsp(dsp)
+{
+}
+
+AESndAccelerator::~AESndAccelerator() = default;
+
 void AESndAccelerator::OnEndException()
 {
   // exception5 - this updates internal state
@@ -249,12 +256,12 @@ void AESndAccelerator::OnEndException()
 
 u8 AESndAccelerator::ReadMemory(u32 address)
 {
-  return Core::System::GetInstance().GetDSP().ReadARAM(address);
+  return m_dsp.ReadARAM(address);
 }
 
 void AESndAccelerator::WriteMemory(u32 address, u8 value)
 {
-  Core::System::GetInstance().GetDSP().WriteARAM(value, address);
+  m_dsp.WriteARAM(value, address);
 }
 
 static constexpr std::array<s16, 16> ACCELERATOR_COEFS = {};  // all zeros
