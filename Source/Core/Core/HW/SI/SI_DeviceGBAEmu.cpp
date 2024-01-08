@@ -22,9 +22,9 @@
 
 namespace SerialInterface
 {
-static s64 GetSyncInterval()
+static s64 GetSyncInterval(const SystemTimers::SystemTimersManager& timers)
 {
-  return Core::System::GetInstance().GetSystemTimers().GetTicksPerSecond() / 1000;
+  return timers.GetTicksPerSecond() / 1000;
 }
 
 CSIDevice_GBAEmu::CSIDevice_GBAEmu(Core::System& system, SIDevices device, int device_number)
@@ -34,7 +34,8 @@ CSIDevice_GBAEmu::CSIDevice_GBAEmu(Core::System& system, SIDevices device, int d
   m_core->Start(system.GetCoreTiming().GetTicks());
   m_gbahost = Host_CreateGBAHost(m_core);
   m_core->SetHost(m_gbahost);
-  system.GetSerialInterface().ScheduleEvent(m_device_number, GetSyncInterval());
+  system.GetSerialInterface().ScheduleEvent(m_device_number,
+                                            GetSyncInterval(system.GetSystemTimers()));
 }
 
 CSIDevice_GBAEmu::~CSIDevice_GBAEmu()
@@ -61,7 +62,8 @@ int CSIDevice_GBAEmu::RunBuffer(u8* buffer, int request_length)
 
     auto& si = m_system.GetSerialInterface();
     si.RemoveEvent(m_device_number);
-    si.ScheduleEvent(m_device_number, TransferInterval() + GetSyncInterval());
+    si.ScheduleEvent(m_device_number,
+                     TransferInterval() + GetSyncInterval(m_system.GetSystemTimers()));
     for (int i = 0; i < MAX_SI_CHANNELS; ++i)
     {
       if (i == m_device_number || si.GetDeviceType(i) != GetDeviceType())
@@ -165,6 +167,8 @@ void CSIDevice_GBAEmu::DoState(PointerWrap& p)
 void CSIDevice_GBAEmu::OnEvent(u64 userdata, s64 cycles_late)
 {
   m_core->SendJoybusCommand(m_system.GetCoreTiming().GetTicks() + userdata, 0, nullptr, m_keys);
-  m_system.GetSerialInterface().ScheduleEvent(m_device_number, userdata + GetSyncInterval());
+
+  const auto num_cycles = userdata + GetSyncInterval(m_system.GetSystemTimers());
+  m_system.GetSerialInterface().ScheduleEvent(m_device_number, num_cycles);
 }
 }  // namespace SerialInterface
