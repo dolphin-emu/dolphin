@@ -117,7 +117,7 @@ int CSIDevice_GBAEmu::RunBuffer(u8* buffer, int request_length)
 
 int CSIDevice_GBAEmu::TransferInterval()
 {
-  return SIDevice_GetGBATransferTime(m_last_cmd);
+  return SIDevice_GetGBATransferTime(m_system.GetSystemTimers(), m_last_cmd);
 }
 
 bool CSIDevice_GBAEmu::GetData(u32& hi, u32& low)

@@ -112,7 +112,8 @@ void ISIDevice::OnEvent(u64 userdata, s64 cycles_late)
 {
 }
 
-int SIDevice_GetGBATransferTime(EBufferCommands cmd)
+int SIDevice_GetGBATransferTime(const SystemTimers::SystemTimersManager& timers,
+                                EBufferCommands cmd)
 {
   u64 gc_bytes_transferred = 1;
   u64 gba_bytes_transferred = 1;
@@ -143,7 +144,7 @@ int SIDevice_GetGBATransferTime(EBufferCommands cmd)
   }
   }
 
-  const u32 ticks_per_second = Core::System::GetInstance().GetSystemTimers().GetTicksPerSecond();
+  const u32 ticks_per_second = timers.GetTicksPerSecond();
   const u64 cycles = (gba_bytes_transferred * 8 * ticks_per_second / GBA_BITS_PER_SECOND) +
                      (gc_bytes_transferred * 8 * ticks_per_second / GC_BITS_PER_SECOND) +
                      (stop_bits_ns * ticks_per_second / 1000000000LL);
