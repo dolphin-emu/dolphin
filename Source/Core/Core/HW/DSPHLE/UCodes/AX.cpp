@@ -32,7 +32,16 @@ AXUCode::AXUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
   INFO_LOG_FMT(DSPHLE, "Instantiating AXUCode: crc={:08x}", crc);
 }
 
+AXUCode::~AXUCode() = default;
+
 void AXUCode::Initialize()
+{
+  InitializeShared();
+
+  m_accelerator = std::make_unique<HLEAccelerator>();
+}
+
+void AXUCode::InitializeShared()
 {
   m_mail_handler.PushMail(DSP_INIT, true);
 
@@ -421,7 +430,8 @@ void AXUCode::ProcessPBList(u32 pb_addr)
     {
       ApplyUpdatesForMs(curr_ms, pb, pb.updates.num_updates, updates);
 
-      ProcessVoice(pb, buffers, spms, ConvertMixerControl(pb.mixer_control),
+      ProcessVoice(static_cast<HLEAccelerator*>(m_accelerator.get()), pb, buffers, spms,
+                   ConvertMixerControl(pb.mixer_control),
                    m_coeffs_checksum ? m_coeffs.data() : nullptr);
 
       // Forward the buffers
@@ -778,6 +788,8 @@ void AXUCode::DoAXState(PointerWrap& p)
   }
 
   p.Do(m_compressor_pos);
+
+  m_accelerator->DoState(p);
 }
 
 void AXUCode::DoState(PointerWrap& p)
