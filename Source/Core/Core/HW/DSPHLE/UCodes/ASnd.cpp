@@ -80,7 +80,7 @@ void ASndUCode::Update()
   // This is dubious in general, since we set the interrupt parameter on m_mail_handler.PushMail
   if (m_mail_handler.HasPending())
   {
-    Core::System::GetInstance().GetDSP().GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+    m_dsphle->GetSystem().GetDSP().GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
   }
 }
 
@@ -128,17 +128,20 @@ void ASndUCode::HandleMail(u32 mail)
       // Mail is handled by DoMixing()
       break;
     case MAIL_INPUT_SAMPLES_2:
+    {
       WARN_LOG_FMT(DSPHLE, "ASndUCode - MAIL_INPUT_SAMPLES_2: {:08x} - not normally used", mail);
       // input_samples2
       DMAInVoiceData();  // first do_dma call
       // second do_dma call
+      auto& memory = m_dsphle->GetSystem().GetMemory();
       for (u32 i = 0; i < NUM_OUTPUT_SAMPLES * 2; i++)
       {
-        m_output_buffer[i] = HLEMemory_Read_U16(m_current_voice.out_buf + i * sizeof(u16));
+        m_output_buffer[i] = HLEMemory_Read_U16(memory, m_current_voice.out_buf + i * sizeof(u16));
       }
       DoMixing(DSP_SYNC);
       // Mail is handled by DoMixing()
       break;
+    }
     case MAIL_SET_VOICE_DATA_BUFFER:
       DEBUG_LOG_FMT(DSPHLE, "ASndUCode - MAIL_SET_VOICE_DATA_BUFFER: {:08x}", mail);
       m_next_mail_is_voice_addr = true;
@@ -153,13 +156,16 @@ void ASndUCode::HandleMail(u32 mail)
       // Mail is handled by DoMixing()
       break;
     case MAIN_SEND_SAMPLES:
+    {
       DEBUG_LOG_FMT(DSPHLE, "ASndUCode - MAIN_SEND_SAMPLES: {:08x}", mail);
+      auto& memory = m_dsphle->GetSystem().GetMemory();
       for (u32 i = 0; i < NUM_OUTPUT_SAMPLES * 2; i++)
       {
-        HLEMemory_Write_U16(m_current_voice.out_buf + i * sizeof(u16), m_output_buffer[i]);
+        HLEMemory_Write_U16(memory, m_current_voice.out_buf + i * sizeof(u16), m_output_buffer[i]);
       }
       m_mail_handler.PushMail(DSP_SYNC, true);
       break;
+    }
     case MAIL_ROM_DUMP_WORD:
       WARN_LOG_FMT(DSPHLE, "ASndUCode - MAIL_ROM_DUMP_WORD: {:08x} - not normally used", mail);
       // Reads instruction at 0x8000 | (mail >> 16), and sends it back in DMBL. DMBH is 0.
@@ -196,51 +202,53 @@ void ASndUCode::HandleMail(u32 mail)
 
 void ASndUCode::DMAInVoiceData()
 {
-  m_current_voice.out_buf = HLEMemory_Read_U32(m_voice_addr);
-  m_current_voice.delay_samples = HLEMemory_Read_U32(m_voice_addr + 4);
-  u32 new_flags = HLEMemory_Read_U32(m_voice_addr + 8);
+  auto& memory = m_dsphle->GetSystem().GetMemory();
+  m_current_voice.out_buf = HLEMemory_Read_U32(memory, m_voice_addr);
+  m_current_voice.delay_samples = HLEMemory_Read_U32(memory, m_voice_addr + 4);
+  u32 new_flags = HLEMemory_Read_U32(memory, m_voice_addr + 8);
   if (m_current_voice.flags != new_flags)
     DEBUG_LOG_FMT(DSPHLE, "ASndUCode - flags: {:08x}", new_flags);
   m_current_voice.flags = new_flags;
-  m_current_voice.start_addr = HLEMemory_Read_U32(m_voice_addr + 12);
-  m_current_voice.end_addr = HLEMemory_Read_U32(m_voice_addr + 16);
-  m_current_voice.freq = HLEMemory_Read_U32(m_voice_addr + 20);
-  m_current_voice.left = HLEMemory_Read_U16(m_voice_addr + 24);
-  m_current_voice.right = HLEMemory_Read_U16(m_voice_addr + 26);
-  m_current_voice.counter = HLEMemory_Read_U32(m_voice_addr + 28);
-  m_current_voice.volume_l = HLEMemory_Read_U16(m_voice_addr + 32);
-  m_current_voice.volume_r = HLEMemory_Read_U16(m_voice_addr + 34);
-  m_current_voice.start_addr2 = HLEMemory_Read_U32(m_voice_addr + 36);
-  m_current_voice.end_addr2 = HLEMemory_Read_U32(m_voice_addr + 40);
-  m_current_voice.volume2_l = HLEMemory_Read_U16(m_voice_addr + 44);
-  m_current_voice.volume2_r = HLEMemory_Read_U16(m_voice_addr + 46);
-  m_current_voice.backup_addr = HLEMemory_Read_U32(m_voice_addr + 48);
-  m_current_voice.tick_counter = HLEMemory_Read_U32(m_voice_addr + 52);
-  m_current_voice.cb = HLEMemory_Read_U32(m_voice_addr + 56);
-  m_current_voice._pad = HLEMemory_Read_U32(m_voice_addr + 60);
+  m_current_voice.start_addr = HLEMemory_Read_U32(memory, m_voice_addr + 12);
+  m_current_voice.end_addr = HLEMemory_Read_U32(memory, m_voice_addr + 16);
+  m_current_voice.freq = HLEMemory_Read_U32(memory, m_voice_addr + 20);
+  m_current_voice.left = HLEMemory_Read_U16(memory, m_voice_addr + 24);
+  m_current_voice.right = HLEMemory_Read_U16(memory, m_voice_addr + 26);
+  m_current_voice.counter = HLEMemory_Read_U32(memory, m_voice_addr + 28);
+  m_current_voice.volume_l = HLEMemory_Read_U16(memory, m_voice_addr + 32);
+  m_current_voice.volume_r = HLEMemory_Read_U16(memory, m_voice_addr + 34);
+  m_current_voice.start_addr2 = HLEMemory_Read_U32(memory, m_voice_addr + 36);
+  m_current_voice.end_addr2 = HLEMemory_Read_U32(memory, m_voice_addr + 40);
+  m_current_voice.volume2_l = HLEMemory_Read_U16(memory, m_voice_addr + 44);
+  m_current_voice.volume2_r = HLEMemory_Read_U16(memory, m_voice_addr + 46);
+  m_current_voice.backup_addr = HLEMemory_Read_U32(memory, m_voice_addr + 48);
+  m_current_voice.tick_counter = HLEMemory_Read_U32(memory, m_voice_addr + 52);
+  m_current_voice.cb = HLEMemory_Read_U32(memory, m_voice_addr + 56);
+  m_current_voice._pad = HLEMemory_Read_U32(memory, m_voice_addr + 60);
 }
 
 void ASndUCode::DMAOutVoiceData()
 {
-  HLEMemory_Write_U32(m_voice_addr, m_current_voice.out_buf);
-  HLEMemory_Write_U32(m_voice_addr + 4, m_current_voice.delay_samples);
-  HLEMemory_Write_U32(m_voice_addr + 8, m_current_voice.flags);
-  HLEMemory_Write_U32(m_voice_addr + 12, m_current_voice.start_addr);
-  HLEMemory_Write_U32(m_voice_addr + 16, m_current_voice.end_addr);
-  HLEMemory_Write_U32(m_voice_addr + 20, m_current_voice.freq);
-  HLEMemory_Write_U16(m_voice_addr + 24, m_current_voice.left);
-  HLEMemory_Write_U16(m_voice_addr + 26, m_current_voice.right);
-  HLEMemory_Write_U32(m_voice_addr + 28, m_current_voice.counter);
-  HLEMemory_Write_U16(m_voice_addr + 32, m_current_voice.volume_l);
-  HLEMemory_Write_U16(m_voice_addr + 34, m_current_voice.volume_r);
-  HLEMemory_Write_U32(m_voice_addr + 36, m_current_voice.start_addr2);
-  HLEMemory_Write_U32(m_voice_addr + 40, m_current_voice.end_addr2);
-  HLEMemory_Write_U16(m_voice_addr + 44, m_current_voice.volume2_l);
-  HLEMemory_Write_U16(m_voice_addr + 46, m_current_voice.volume2_r);
-  HLEMemory_Write_U32(m_voice_addr + 48, m_current_voice.backup_addr);
-  HLEMemory_Write_U32(m_voice_addr + 52, m_current_voice.tick_counter);
-  HLEMemory_Write_U32(m_voice_addr + 56, m_current_voice.cb);
-  HLEMemory_Write_U32(m_voice_addr + 60, m_current_voice._pad);
+  auto& memory = m_dsphle->GetSystem().GetMemory();
+  HLEMemory_Write_U32(memory, m_voice_addr, m_current_voice.out_buf);
+  HLEMemory_Write_U32(memory, m_voice_addr + 4, m_current_voice.delay_samples);
+  HLEMemory_Write_U32(memory, m_voice_addr + 8, m_current_voice.flags);
+  HLEMemory_Write_U32(memory, m_voice_addr + 12, m_current_voice.start_addr);
+  HLEMemory_Write_U32(memory, m_voice_addr + 16, m_current_voice.end_addr);
+  HLEMemory_Write_U32(memory, m_voice_addr + 20, m_current_voice.freq);
+  HLEMemory_Write_U16(memory, m_voice_addr + 24, m_current_voice.left);
+  HLEMemory_Write_U16(memory, m_voice_addr + 26, m_current_voice.right);
+  HLEMemory_Write_U32(memory, m_voice_addr + 28, m_current_voice.counter);
+  HLEMemory_Write_U16(memory, m_voice_addr + 32, m_current_voice.volume_l);
+  HLEMemory_Write_U16(memory, m_voice_addr + 34, m_current_voice.volume_r);
+  HLEMemory_Write_U32(memory, m_voice_addr + 36, m_current_voice.start_addr2);
+  HLEMemory_Write_U32(memory, m_voice_addr + 40, m_current_voice.end_addr2);
+  HLEMemory_Write_U16(memory, m_voice_addr + 44, m_current_voice.volume2_l);
+  HLEMemory_Write_U16(memory, m_voice_addr + 46, m_current_voice.volume2_r);
+  HLEMemory_Write_U32(memory, m_voice_addr + 48, m_current_voice.backup_addr);
+  HLEMemory_Write_U32(memory, m_voice_addr + 52, m_current_voice.tick_counter);
+  HLEMemory_Write_U32(memory, m_voice_addr + 56, m_current_voice.cb);
+  HLEMemory_Write_U32(memory, m_voice_addr + 60, m_current_voice._pad);
 }
 
 void ASndUCode::DoMixing(u32 return_mail)
@@ -449,9 +457,10 @@ void ASndUCode::DMAInSampleData()
   // The only difference is that this one forces the address to be aligned, while when
   // jump_load_smp_dma is used, the address is expected to already be aligned.
   const u32 addr = m_current_voice.start_addr & ~INPUT_SAMPLE_BUFFER_BYTE_MASK;
+  auto& memory = m_dsphle->GetSystem().GetMemory();
   for (u16 i = 0; i < INPUT_SAMPLE_BUFFER_SIZE_WORDS; i++)
   {
-    m_input_sample_buffer[i] = HLEMemory_Read_U16(addr + i * sizeof(u16));
+    m_input_sample_buffer[i] = HLEMemory_Read_U16(memory, addr + i * sizeof(u16));
   }
 }
 
@@ -461,9 +470,10 @@ void ASndUCode::DMAInSampleDataAssumeAligned()
   // This is technically not a function, but instead is directly jumped to and then jumps to $ar3
   // (which is set to an address from sample_selector). We can just treat it as a function though.
   const u32 addr = m_current_voice.start_addr;
+  auto& memory = m_dsphle->GetSystem().GetMemory();
   for (u16 i = 0; i < INPUT_SAMPLE_BUFFER_SIZE_WORDS; i++)
   {
-    m_input_sample_buffer[i] = HLEMemory_Read_U16(addr + i * sizeof(u16));
+    m_input_sample_buffer[i] = HLEMemory_Read_U16(memory, addr + i * sizeof(u16));
   }
 }
 

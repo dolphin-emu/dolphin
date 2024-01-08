@@ -10,6 +10,10 @@
 #include "Core/HW/DSP.h"
 #include "Core/HW/DSPHLE/MailHandler.h"
 
+namespace Core
+{
+class System;
+}
 class PointerWrap;
 
 namespace DSP::HLE
@@ -19,7 +23,11 @@ class UCodeInterface;
 class DSPHLE : public DSPEmulator
 {
 public:
-  DSPHLE();
+  explicit DSPHLE(Core::System& system);
+  DSPHLE(const DSPHLE& other) = delete;
+  DSPHLE(DSPHLE&& other) = delete;
+  DSPHLE& operator=(const DSPHLE& other) = delete;
+  DSPHLE& operator=(DSPHLE&& other) = delete;
   ~DSPHLE();
 
   bool Initialize(bool wii, bool dsp_thread) override;
@@ -41,6 +49,8 @@ public:
   CMailHandler& AccessMailHandler() { return m_mail_handler; }
   void SetUCode(u32 crc);
   void SwapUCode(u32 crc);
+
+  Core::System& GetSystem() const { return m_system; }
 
 private:
   void SendMailToDSP(u32 mail);
@@ -67,5 +77,7 @@ private:
   DSP::UDSPControl m_dsp_control;
   u64 m_control_reg_init_code_clear_time = 0;
   CMailHandler m_mail_handler;
+
+  Core::System& m_system;
 };
 }  // namespace DSP::HLE

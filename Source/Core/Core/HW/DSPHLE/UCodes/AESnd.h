@@ -10,16 +10,32 @@
 #include "Core/DSP/DSPAccelerator.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
+namespace DSP
+{
+class DSPManager;
+}
+
 namespace DSP::HLE
 {
 class DSPHLE;
 
 class AESndAccelerator final : public Accelerator
 {
+public:
+  explicit AESndAccelerator(DSP::DSPManager& dsp);
+  AESndAccelerator(const AESndAccelerator&) = delete;
+  AESndAccelerator(AESndAccelerator&&) = delete;
+  AESndAccelerator& operator=(const AESndAccelerator&) = delete;
+  AESndAccelerator& operator=(AESndAccelerator&&) = delete;
+  ~AESndAccelerator();
+
 protected:
   void OnEndException() override;
   u8 ReadMemory(u32 address) override;
   void WriteMemory(u32 address, u8 value) override;
+
+private:
+  DSP::DSPManager& m_dsp;
 };
 
 class AESndUCode final : public UCodeInterface

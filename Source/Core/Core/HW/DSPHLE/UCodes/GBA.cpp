@@ -15,26 +15,26 @@
 
 namespace DSP::HLE
 {
-void ProcessGBACrypto(u32 address)
+void ProcessGBACrypto(Memory::MemoryManager& memory, u32 address)
 {
   // Nonce challenge (first read from GBA, hence already little-endian)
-  const u32 challenge = HLEMemory_Read_U32LE(address);
+  const u32 challenge = HLEMemory_Read_U32LE(memory, address);
 
   // Palette of pulsing logo on GBA during transmission [0,6]
-  const u32 logo_palette = HLEMemory_Read_U32(address + 4);
+  const u32 logo_palette = HLEMemory_Read_U32(memory, address + 4);
 
   // Speed and direction of palette interpolation [-4,4]
-  const u32 logo_speed_32 = HLEMemory_Read_U32(address + 8);
+  const u32 logo_speed_32 = HLEMemory_Read_U32(memory, address + 8);
 
   // Length of JoyBoot program to upload
-  const u32 length = HLEMemory_Read_U32(address + 12);
+  const u32 length = HLEMemory_Read_U32(memory, address + 12);
 
   // Address to return results to game
-  const u32 dest_addr = HLEMemory_Read_U32(address + 16);
+  const u32 dest_addr = HLEMemory_Read_U32(memory, address + 16);
 
   // Unwrap key from challenge using 'sedo' magic number (to encrypt JoyBoot program)
   const u32 key = challenge ^ 0x6f646573;
-  HLEMemory_Write_U32(dest_addr, key);
+  HLEMemory_Write_U32(memory, dest_addr, key);
 
   // Pack palette parameters
   u16 palette_speed_coded;
@@ -62,7 +62,7 @@ void ProcessGBACrypto(u32 address)
 
   // Wrap with 'Kawa' or 'sedo' (Kawasedo is the author of the BIOS cipher)
   t3 ^= ((t3 & 0x200) != 0 ? 0x6f646573 : 0x6177614b);
-  HLEMemory_Write_U32(dest_addr + 4, t3);
+  HLEMemory_Write_U32(memory, dest_addr + 4, t3);
 
   // Done!
   DEBUG_LOG_FMT(DSPHLE,
@@ -85,7 +85,7 @@ void GBAUCode::Update()
   // check if we have something to send
   if (m_mail_handler.HasPending())
   {
-    Core::System::GetInstance().GetDSP().GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+    m_dsphle->GetSystem().GetDSP().GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
   }
 }
 
@@ -119,7 +119,7 @@ void GBAUCode::HandleMail(u32 mail)
   {
     const u32 address = mail & 0x0fff'ffff;
 
-    ProcessGBACrypto(address);
+    ProcessGBACrypto(m_dsphle->GetSystem().GetMemory(), address);
 
     m_mail_handler.PushMail(DSP_DONE);
     m_mail_state = MailState::WaitingForNextTask;
