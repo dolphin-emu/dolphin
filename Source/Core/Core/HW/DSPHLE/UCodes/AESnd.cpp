@@ -233,42 +233,38 @@ void AESndUCode::DMAOutParameterBlock()
   HLEMemory_Write_U32(m_parameter_block_addr + 40, m_parameter_block.flags);
 }
 
-class AESndAccelerator final : public Accelerator
+void AESndAccelerator::OnEndException()
 {
-protected:
-  void OnEndException() override
-  {
-    // exception5 - this updates internal state
-    SetYn1(GetYn1());
-    SetYn2(GetYn2());
-    SetPredScale(GetPredScale());
-  }
+  // exception5 - this updates internal state
+  SetYn1(GetYn1());
+  SetYn2(GetYn2());
+  SetPredScale(GetPredScale());
+}
 
-  u8 ReadMemory(u32 address) override
-  {
-    return Core::System::GetInstance().GetDSP().ReadARAM(address);
-  }
-  void WriteMemory(u32 address, u8 value) override
-  {
-    Core::System::GetInstance().GetDSP().WriteARAM(value, address);
-  }
-};
+u8 AESndAccelerator::ReadMemory(u32 address)
+{
+  return Core::System::GetInstance().GetDSP().ReadARAM(address);
+}
 
-static std::unique_ptr<Accelerator> s_accelerator = std::make_unique<AESndAccelerator>();
+void AESndAccelerator::WriteMemory(u32 address, u8 value)
+{
+  Core::System::GetInstance().GetDSP().WriteARAM(value, address);
+}
+
 static constexpr std::array<s16, 16> ACCELERATOR_COEFS = {};  // all zeros
 
 void AESndUCode::SetUpAccelerator(u16 format, [[maybe_unused]] u16 gain)
 {
   // setup_accl
-  s_accelerator->SetSampleFormat(format);
+  m_accelerator.SetSampleFormat(format);
   // not currently implemented, but it doesn't matter since the gain is configured to be a no-op
-  // s_accelerator->SetGain(gain);
-  s_accelerator->SetStartAddress(m_parameter_block.buf_start);
-  s_accelerator->SetEndAddress(m_parameter_block.buf_end);
-  s_accelerator->SetCurrentAddress(m_parameter_block.buf_curr);
-  s_accelerator->SetYn1(m_parameter_block.yn1);
-  s_accelerator->SetYn2(m_parameter_block.yn2);
-  s_accelerator->SetPredScale(m_parameter_block.pds);
+  // m_accelerator.SetGain(gain);
+  m_accelerator.SetStartAddress(m_parameter_block.buf_start);
+  m_accelerator.SetEndAddress(m_parameter_block.buf_end);
+  m_accelerator.SetCurrentAddress(m_parameter_block.buf_curr);
+  m_accelerator.SetYn1(m_parameter_block.yn1);
+  m_accelerator.SetYn2(m_parameter_block.yn2);
+  m_accelerator.SetPredScale(m_parameter_block.pds);
   // All of the coefficients (COEF_A1_0 at ffa0 - COEF_A2_7 at ffaf) are set to 0
 }
 
@@ -363,7 +359,7 @@ void AESndUCode::DoMixing()
           while (counter_h >= 1)
           {
             counter_h--;
-            new_r = s_accelerator->Read(ACCELERATOR_COEFS.data());
+            new_r = m_accelerator.Read(ACCELERATOR_COEFS.data());
             new_l = new_r;
           }
           break;
@@ -374,8 +370,8 @@ void AESndUCode::DoMixing()
           while (counter_h >= 1)
           {
             counter_h--;
-            new_r = s_accelerator->Read(ACCELERATOR_COEFS.data());
-            new_l = s_accelerator->Read(ACCELERATOR_COEFS.data());
+            new_r = m_accelerator.Read(ACCELERATOR_COEFS.data());
+            new_l = m_accelerator.Read(ACCELERATOR_COEFS.data());
           }
           break;  // falls through to mix_samples normally
 
@@ -385,7 +381,7 @@ void AESndUCode::DoMixing()
           while (counter_h >= 1)
           {
             counter_h--;
-            new_r = s_accelerator->Read(ACCELERATOR_COEFS.data());
+            new_r = m_accelerator.Read(ACCELERATOR_COEFS.data());
             new_l = new_r;
           }
           new_r ^= 0x8000;
@@ -398,8 +394,8 @@ void AESndUCode::DoMixing()
           while (counter_h >= 1)
           {
             counter_h--;
-            new_r = s_accelerator->Read(ACCELERATOR_COEFS.data());
-            new_l = s_accelerator->Read(ACCELERATOR_COEFS.data());
+            new_r = m_accelerator.Read(ACCELERATOR_COEFS.data());
+            new_l = m_accelerator.Read(ACCELERATOR_COEFS.data());
           }
           new_r ^= 0x8000;
           new_l ^= 0x8000;
@@ -422,10 +418,10 @@ void AESndUCode::DoMixing()
       // no_mix - we don't need to do anything as we modify m_parameter_block.left/right in place
     }
     // mixer_end - back to set16 mode
-    m_parameter_block.pds = s_accelerator->GetPredScale();
-    m_parameter_block.yn2 = s_accelerator->GetYn2();
-    m_parameter_block.yn1 = s_accelerator->GetYn1();
-    m_parameter_block.buf_curr = s_accelerator->GetCurrentAddress();
+    m_parameter_block.pds = m_accelerator.GetPredScale();
+    m_parameter_block.yn2 = m_accelerator.GetYn2();
+    m_parameter_block.yn1 = m_accelerator.GetYn1();
+    m_parameter_block.buf_curr = m_accelerator.GetCurrentAddress();
   }
   // finish_voice
   m_parameter_block.flags |= VOICE_FINISHED;
@@ -440,6 +436,6 @@ void AESndUCode::DoState(PointerWrap& p)
   p.Do(m_parameter_block_addr);
   p.Do(m_parameter_block);
   p.Do(m_output_buffer);
-  s_accelerator->DoState(p);
+  m_accelerator.DoState(p);
 }
 }  // namespace DSP::HLE
