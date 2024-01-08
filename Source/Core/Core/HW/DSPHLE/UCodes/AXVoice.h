@@ -150,6 +150,13 @@ void WritePB(Memory::MemoryManager& memory, u32 addr, const PB_TYPE& pb, u32 crc
 class HLEAccelerator final : public Accelerator
 {
 public:
+  explicit HLEAccelerator(DSP::DSPManager& dsp) : m_dsp(dsp) {}
+  HLEAccelerator(const HLEAccelerator&) = delete;
+  HLEAccelerator(HLEAccelerator&&) = delete;
+  HLEAccelerator& operator=(const HLEAccelerator&) = delete;
+  HLEAccelerator& operator=(HLEAccelerator&&) = delete;
+  ~HLEAccelerator() = default;
+
   PB_TYPE* acc_pb = nullptr;
 
 protected:
@@ -182,14 +189,12 @@ protected:
     }
   }
 
-  u8 ReadMemory(u32 address) override
-  {
-    return Core::System::GetInstance().GetDSP().ReadARAM(address);
-  }
-  void WriteMemory(u32 address, u8 value) override
-  {
-    Core::System::GetInstance().GetDSP().WriteARAM(value, address);
-  }
+  u8 ReadMemory(u32 address) override { return m_dsp.ReadARAM(address); }
+
+  void WriteMemory(u32 address, u8 value) override { m_dsp.WriteARAM(value, address); }
+
+private:
+  DSP::DSPManager& m_dsp;
 };
 
 // Sets up the simulated accelerator.

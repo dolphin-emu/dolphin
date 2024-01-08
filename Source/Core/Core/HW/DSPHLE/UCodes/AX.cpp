@@ -38,7 +38,7 @@ void AXUCode::Initialize()
 {
   InitializeShared();
 
-  m_accelerator = std::make_unique<HLEAccelerator>();
+  m_accelerator = std::make_unique<HLEAccelerator>(m_dsphle->GetSystem().GetDSP());
 }
 
 void AXUCode::InitializeShared()
