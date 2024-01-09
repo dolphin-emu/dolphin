@@ -82,7 +82,7 @@ SerializedWiimoteState SerializeDesiredState(const DesiredWiimoteState& state)
 
   if (has_camera)
   {
-    for (size_t i = 0; i < 2; ++i)
+    for (size_t i = 0; i < state.camera_points.size(); ++i)
     {
       const u16 camera_x = state.camera_points[i].position.x;  // 10 bits
       const u16 camera_y = state.camera_points[i].position.y;  // 10 bits
@@ -178,7 +178,7 @@ bool DeserializeDesiredState(DesiredWiimoteState* state, const SerializedWiimote
     else if (has_accel)
       s += 4;
     if (has_camera)
-      s += 6;
+      s += 12;
     if (has_motion_plus)
       s += 6;
     switch (extension)
@@ -260,7 +260,7 @@ bool DeserializeDesiredState(DesiredWiimoteState* state, const SerializedWiimote
 
   if (has_camera)
   {
-    for (size_t i = 0; i < 2; ++i)
+    for (size_t i = 0; i < state->camera_points.size(); ++i)
     {
       const u8 camera_misc = d[pos];
       const u8 camera_x_high = d[pos + 1];

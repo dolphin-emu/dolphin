@@ -59,7 +59,7 @@ CameraLogic::GetCameraPoints(const Common::Matrix44& transform, Common::Vec2 fie
   using Common::Vec3;
   using Common::Vec4;
 
-  const std::array<Vec3, NUM_POINTS> leds{
+  const std::array<Vec3, 2> leds{
       Vec3{-SENSOR_BAR_LED_SEPARATION / 2, 0, 0},
       Vec3{SENSOR_BAR_LED_SEPARATION / 2, 0, 0},
   };
@@ -68,7 +68,7 @@ CameraLogic::GetCameraPoints(const Common::Matrix44& transform, Common::Vec2 fie
       Matrix44::Perspective(field_of_view.y, field_of_view.x / field_of_view.y, 0.001f, 1000) *
       Matrix44::FromMatrix33(Matrix33::RotateX(float(MathUtil::TAU / 4))) * transform;
 
-  std::array<CameraPoint, leds.size()> camera_points;
+  std::array<CameraPoint, CameraLogic::NUM_POINTS> camera_points;
 
   std::transform(leds.begin(), leds.end(), camera_points.begin(), [&](const Vec3& v) {
     const auto point = camera_view * Vec4(v, 1.0);
