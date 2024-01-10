@@ -504,6 +504,7 @@
     <ClInclude Include="InputCommon\ControllerEmu\ControlGroup\IMUAccelerometer.h" />
     <ClInclude Include="InputCommon\ControllerEmu\ControlGroup\IMUCursor.h" />
     <ClInclude Include="InputCommon\ControllerEmu\ControlGroup\IMUGyroscope.h" />
+    <ClInclude Include="InputCommon\ControllerEmu\ControlGroup\IRPassthrough.h" />
     <ClInclude Include="InputCommon\ControllerEmu\ControlGroup\MixedTriggers.h" />
     <ClInclude Include="InputCommon\ControllerEmu\ControlGroup\ModifySettingsButton.h" />
     <ClInclude Include="InputCommon\ControllerEmu\ControlGroup\Slider.h" />
@@ -1162,6 +1163,7 @@
     <ClCompile Include="InputCommon\ControllerEmu\ControlGroup\IMUAccelerometer.cpp" />
     <ClCompile Include="InputCommon\ControllerEmu\ControlGroup\IMUCursor.cpp" />
     <ClCompile Include="InputCommon\ControllerEmu\ControlGroup\IMUGyroscope.cpp" />
+    <ClCompile Include="InputCommon\ControllerEmu\ControlGroup\IRPassthrough.cpp" />
     <ClCompile Include="InputCommon\ControllerEmu\ControlGroup\MixedTriggers.cpp" />
     <ClCompile Include="InputCommon\ControllerEmu\ControlGroup\ModifySettingsButton.cpp" />
     <ClCompile Include="InputCommon\ControllerEmu\ControlGroup\Slider.cpp" />

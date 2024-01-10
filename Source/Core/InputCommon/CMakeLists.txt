@@ -37,6 +37,8 @@ add_library(inputcommon
   ControllerEmu/ControlGroup/IMUCursor.h
   ControllerEmu/ControlGroup/IMUGyroscope.cpp
   ControllerEmu/ControlGroup/IMUGyroscope.h
+  ControllerEmu/ControlGroup/IRPassthrough.cpp
+  ControllerEmu/ControlGroup/IRPassthrough.h
   ControllerEmu/ControlGroup/MixedTriggers.cpp
   ControllerEmu/ControlGroup/MixedTriggers.h
   ControllerEmu/ControlGroup/ModifySettingsButton.cpp
