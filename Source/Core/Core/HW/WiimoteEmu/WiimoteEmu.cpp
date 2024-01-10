@@ -798,6 +798,12 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   m_imu_gyroscope->SetControlExpression(3, "`Gyro Roll Right`");
   m_imu_gyroscope->SetControlExpression(4, "`Gyro Yaw Left`");
   m_imu_gyroscope->SetControlExpression(5, "`Gyro Yaw Right`");
+  for (int i = 0; i < 4; ++i)
+  {
+    m_ir_passthrough->SetControlExpression(i * 3 + 0, fmt::format("`IR Object {} X`", i + 1));
+    m_ir_passthrough->SetControlExpression(i * 3 + 1, fmt::format("`IR Object {} Y`", i + 1));
+    m_ir_passthrough->SetControlExpression(i * 3 + 2, fmt::format("`IR Object {} Size`", i + 1));
+  }
 #endif
 
   // Enable Nunchuk:
