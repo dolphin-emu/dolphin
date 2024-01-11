@@ -27,6 +27,7 @@
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/WiimoteHIDAttr.h"
 #include "Core/IOS/USB/Bluetooth/l2cap.h"
+#include "Core/System.h"
 
 namespace IOS::HLE
 {
@@ -368,8 +369,9 @@ WiimoteDevice::PrepareInput(WiimoteEmu::DesiredWiimoteState* wiimote_state)
   const auto* channel = FindChannelWithPSM(L2CAP_PSM_HID_INTR);
   if (channel && channel->IsComplete())
   {
+    auto gpio_out = m_host->GetSystem().GetWiiIPC().GetGPIOOutFlags();
     m_hid_source->PrepareInput(wiimote_state,
-                               IOS::g_gpio_out[IOS::GPIO::SENSOR_BAR] ?
+                               gpio_out[IOS::GPIO::SENSOR_BAR] ?
                                    WiimoteCommon::HIDWiimote::SensorBarState::Enabled :
                                    WiimoteCommon::HIDWiimote::SensorBarState::Disabled);
     return NextUpdateInputCall::Update;

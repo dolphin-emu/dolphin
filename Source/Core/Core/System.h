@@ -56,6 +56,10 @@ namespace HSP
 {
 class HSPManager;
 }
+namespace IOS
+{
+class WiiIPC;
+}
 namespace IOS::HLE::USB
 {
 class SkylanderPortal;
@@ -151,6 +155,7 @@ public:
   JitInterface& GetJitInterface() const;
   IOS::HLE::USB::SkylanderPortal& GetSkylanderPortal() const;
   IOS::HLE::USB::InfinityBase& GetInfinityBase() const;
+  IOS::WiiIPC& GetWiiIPC() const;
   Memory::MemoryManager& GetMemory() const;
   MemoryInterface::MemoryInterfaceManager& GetMemoryInterface() const;
   PowerPC::MMU& GetMMU() const;
