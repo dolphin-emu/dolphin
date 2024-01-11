@@ -38,8 +38,15 @@ public:
   virtual u8 GetWiimoteDeviceIndex() const = 0;
   virtual void SetWiimoteDeviceIndex(u8 index) = 0;
 
+  enum class SensorBarState : bool
+  {
+    Disabled,
+    Enabled
+  };
+
   // Called every ~200hz after HID channels are established.
-  virtual void PrepareInput(WiimoteEmu::DesiredWiimoteState* target_state) = 0;
+  virtual void PrepareInput(WiimoteEmu::DesiredWiimoteState* target_state,
+                            SensorBarState sensor_bar_state) = 0;
   virtual void Update(const WiimoteEmu::DesiredWiimoteState& target_state) = 0;
 
   void SetInterruptCallback(InterruptCallbackType callback) { m_callback = std::move(callback); }

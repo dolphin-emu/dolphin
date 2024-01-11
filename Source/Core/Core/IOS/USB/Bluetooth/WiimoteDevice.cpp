@@ -18,6 +18,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/Core.h"
+#include "Core/HW/WII_IPC.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
@@ -367,7 +368,10 @@ WiimoteDevice::PrepareInput(WiimoteEmu::DesiredWiimoteState* wiimote_state)
   const auto* channel = FindChannelWithPSM(L2CAP_PSM_HID_INTR);
   if (channel && channel->IsComplete())
   {
-    m_hid_source->PrepareInput(wiimote_state);
+    m_hid_source->PrepareInput(wiimote_state,
+                               IOS::g_gpio_out[IOS::GPIO::SENSOR_BAR] ?
+                                   WiimoteCommon::HIDWiimote::SensorBarState::Enabled :
+                                   WiimoteCommon::HIDWiimote::SensorBarState::Disabled);
     return NextUpdateInputCall::Update;
   }
   return NextUpdateInputCall::None;
