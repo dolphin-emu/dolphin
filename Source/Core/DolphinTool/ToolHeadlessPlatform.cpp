@@ -61,6 +61,10 @@ void Host_UpdateDisasmDialog()
 {
 }
 
+void Host_UpdateSkylanderWindow()
+{
+}
+
 void Host_UpdateMainFrame()
 {
 }

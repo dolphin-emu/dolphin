@@ -320,6 +320,11 @@ int LibusbDevice::SubmitTransfer(std::unique_ptr<IsoMessage> cmd)
   return libusb_submit_transfer(transfer);
 }
 
+void LibusbDevice::DoState(PointerWrap& p)
+{
+  // TODO: Somehow get Libusb devices to save and load state
+}
+
 void LibusbDevice::CtrlTransferCallback(libusb_transfer* transfer)
 {
   auto* device = static_cast<LibusbDevice*>(transfer->user_data);

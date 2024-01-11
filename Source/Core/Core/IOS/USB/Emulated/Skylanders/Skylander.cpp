@@ -14,6 +14,7 @@
 #include "Common/Timer.h"
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
+#include "Core/Host.h"
 #include "Core/IOS/USB/Emulated/Skylanders/SkylanderCrypto.h"
 #include "Core/System.h"
 
@@ -555,8 +556,7 @@ SkylanderUSB::SkylanderUSB(EmulationKernel& ios, const std::string& device_name)
 {
   m_vid = 0x1430;
   m_pid = 0x150;
-  m_id = (static_cast<u64>(m_vid) << 32 | static_cast<u64>(m_pid) << 16 | static_cast<u64>(9) << 8 |
-          static_cast<u64>(1));
+  m_id = 22196413008129;
   m_device_descriptor = DeviceDescriptor{0x12,   0x1,   0x200, 0x0, 0x0, 0x0, 0x40,
                                          0x1430, 0x150, 0x100, 0x1, 0x2, 0x0, 0x1};
   m_config_descriptor.emplace_back(ConfigDescriptor{0x9, 0x2, 0x29, 0x1, 0x1, 0x0, 0x80, 0xFA});
@@ -564,6 +564,9 @@ SkylanderUSB::SkylanderUSB(EmulationKernel& ios, const std::string& device_name)
       InterfaceDescriptor{0x9, 0x4, 0x0, 0x0, 0x2, 0x3, 0x0, 0x0, 0x0});
   m_endpoint_descriptor.emplace_back(EndpointDescriptor{0x7, 0x5, 0x81, 0x3, 0x40, 0x1});
   m_endpoint_descriptor.emplace_back(EndpointDescriptor{0x7, 0x5, 0x2, 0x3, 0x40, 0x1});
+
+  auto& system = m_ios.GetSystem();
+  system.GetSkylanderPortal().InitSkylanderVector();
 }
 
 SkylanderUSB::~SkylanderUSB() = default;
@@ -717,7 +720,7 @@ int SkylanderUSB::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
         interrupt_response = {0x41, buf[1], 0xFF, 0x77, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                               0x00, 0x00,   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                               0x00, 0x00,   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-        m_queries.push(interrupt_response);
+        m_queries.push_back(interrupt_response);
         expected_count = 10;
         system.GetSkylanderPortal().Activate();
       }
@@ -761,7 +764,7 @@ int SkylanderUSB::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
         control_response = {buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6]};
         expected_count = 15;
         interrupt_response = {buf[0]};
-        m_queries.push(interrupt_response);
+        m_queries.push_back(interrupt_response);
         system.GetSkylanderPortal().SetLEDs(buf[1], buf[2], buf[3], buf[4]);
       }
       break;
@@ -802,7 +805,7 @@ int SkylanderUSB::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
         control_response = {buf[0], buf[1]};
         expected_count = 10;
         interrupt_response = {buf[0], buf[1], 0x00, 0x19};
-        m_queries.push(interrupt_response);
+        m_queries.push_back(interrupt_response);
       }
       break;
     }
@@ -829,7 +832,7 @@ int SkylanderUSB::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
         const u8 sky_num = buf[1] & 0xF;
         const u8 block = buf[2];
         system.GetSkylanderPortal().QueryBlock(sky_num, block, interrupt_response.data());
-        m_queries.push(interrupt_response);
+        m_queries.push_back(interrupt_response);
         control_response = {buf[0], buf[1], buf[2]};
         expected_count = 11;
       }
@@ -851,7 +854,7 @@ int SkylanderUSB::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
         interrupt_response = {0x52, 0x02, 0x1b, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                               0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                               0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-        m_queries.push(interrupt_response);
+        m_queries.push_back(interrupt_response);
         expected_count = 10;
       }
       break;
@@ -930,7 +933,7 @@ int SkylanderUSB::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
         const u8 sky_num = buf[1] & 0xF;
         const u8 block = buf[2];
         system.GetSkylanderPortal().WriteBlock(sky_num, block, &buf[3], interrupt_response.data());
-        m_queries.push(interrupt_response);
+        m_queries.push_back(interrupt_response);
         control_response = {buf[0],  buf[1],  buf[2],  buf[3],  buf[4],  buf[5],  buf[6],
                             buf[7],  buf[8],  buf[9],  buf[10], buf[11], buf[12], buf[13],
                             buf[14], buf[15], buf[16], buf[17], buf[18]};
@@ -1001,7 +1004,7 @@ int SkylanderUSB::SubmitTransfer(std::unique_ptr<IntrMessage> cmd)
   if (!m_queries.empty())
   {
     interrupt_response = m_queries.front();
-    m_queries.pop();
+    m_queries.pop_front();
     // This needs to happen after ~22 milliseconds
     expected_time_us = 22000;
   }
@@ -1031,6 +1034,63 @@ void SkylanderUSB::ScheduleTransfer(std::unique_ptr<TransferCommand> command,
   command->ScheduleTransferCompletion(expected_count, expected_time_us);
 }
 
+void SkylanderUSB::DoState(PointerWrap& p)
+{
+  p.Do(m_device_attached);
+  p.Do(m_vid);
+  p.Do(m_pid);
+  p.Do(m_active_interface);
+  p.Do(m_device_descriptor);
+  p.DoEachElement(m_config_descriptor,
+                  [](PointerWrap& pw, ConfigDescriptor& config) { pw.Do(config); });
+  p.DoEachElement(m_interface_descriptor,
+                  [](PointerWrap& pw, InterfaceDescriptor& interface) { pw.Do(interface); });
+  p.DoEachElement(m_endpoint_descriptor,
+                  [](PointerWrap& pw, EndpointDescriptor& endpoint) { pw.Do(endpoint); });
+  p.DoEachElement(m_queries, [](PointerWrap& pw, std::array<u8, 64>& query) { pw.DoArray(query); });
+}
+
+void SkylanderPortal::DoState(PointerWrap& p)
+{
+  p.Do(m_activated);
+  p.Do(m_status_updated);
+  p.Do(m_interrupt_counter);
+  p.Do(m_color_left);
+  p.Do(m_color_right);
+  p.Do(m_color_trap);
+
+  bool saving = p.IsWriteMode() || p.IsMeasureMode();
+  auto size = skylanders.size();
+  p.Do(size);
+  if (!saving)
+    skylanders.resize(size);
+
+  p.DoEachElement(skylanders, [saving](PointerWrap& pw, Skylander& skylander) {
+    pw.Do(skylander.status);
+    pw.DoEachElement(skylander.queued_status,
+                     [](PointerWrap& pw, u8& status_queue) { pw.Do(status_queue); });
+    pw.Do(skylander.last_id);
+    skylander.figure->DoState(pw);
+  });
+
+  if (p.IsReadMode())
+  {
+    Host_UpdateSkylanderWindow();
+  }
+}
+
+void SkylanderPortal::InitSkylanderVector()
+{
+  if (skylanders.empty())
+  {
+    for (u8 i = 0; i < MAX_SKYLANDERS; i++)
+    {
+      skylanders.push_back({});
+      skylanders[i].figure = std::make_unique<SkylanderFigure>();
+    }
+  }
+}
+
 void SkylanderPortal::Activate()
 {
   std::lock_guard lock(sky_mutex);
@@ -1045,8 +1105,8 @@ void SkylanderPortal::Activate()
   {
     if (s.status & 1)
     {
-      s.queued_status.push(Skylander::ADDED);
-      s.queued_status.push(Skylander::READY);
+      s.queued_status.push_back(Skylander::ADDED);
+      s.queued_status.push_back(Skylander::READY);
     }
   }
 
@@ -1063,7 +1123,7 @@ void SkylanderPortal::Deactivate()
     if (!s.queued_status.empty())
     {
       s.status = s.queued_status.back();
-      s.queued_status = std::queue<u8>();
+      s.queued_status = std::deque<u8>();
     }
 
     s.status &= 1;
@@ -1089,9 +1149,9 @@ void SkylanderPortal::UpdateStatus()
     {
       if (s.status & 1)
       {
-        s.queued_status.push(Skylander::REMOVED);
-        s.queued_status.push(Skylander::ADDED);
-        s.queued_status.push(Skylander::READY);
+        s.queued_status.push_back(Skylander::REMOVED);
+        s.queued_status.push_back(Skylander::ADDED);
+        s.queued_status.push_back(Skylander::READY);
       }
     }
     m_status_updated = true;
@@ -1155,7 +1215,7 @@ std::array<u8, 64> SkylanderPortal::GetStatus()
     if (!s.queued_status.empty())
     {
       s.status = s.queued_status.front();
-      s.queued_status.pop();
+      s.queued_status.pop_front();
     }
     status <<= 2;
     status |= s.status;
@@ -1222,6 +1282,7 @@ bool SkylanderPortal::RemoveSkylander(u8 sky_num)
   if (!IsSkylanderNumberValid(sky_num))
     return false;
 
+  InitSkylanderVector();
   DEBUG_LOG_FMT(IOS_USB, "Cleared Skylander from slot {}", sky_num);
   std::lock_guard lock(sky_mutex);
   auto& skylander = skylanders[sky_num];
@@ -1235,8 +1296,8 @@ bool SkylanderPortal::RemoveSkylander(u8 sky_num)
   if (skylander.status & Skylander::READY)
   {
     skylander.status = Skylander::REMOVING;
-    skylander.queued_status.push(Skylander::REMOVING);
-    skylander.queued_status.push(Skylander::REMOVED);
+    skylander.queued_status.push_back(Skylander::REMOVING);
+    skylander.queued_status.push_back(Skylander::REMOVED);
     return true;
   }
 
@@ -1247,6 +1308,7 @@ u8 SkylanderPortal::LoadSkylander(std::unique_ptr<SkylanderFigure> figure)
 {
   std::lock_guard lock(sky_mutex);
 
+  InitSkylanderVector();
   u32 sky_serial = 0;
   std::array<u8, 0x10> block = {};
   figure->GetBlock(0, block.data());
@@ -1283,8 +1345,8 @@ u8 SkylanderPortal::LoadSkylander(std::unique_ptr<SkylanderFigure> figure)
     auto& skylander = skylanders[found_slot];
     skylander.figure = std::move(figure);
     skylander.status = Skylander::ADDED;
-    skylander.queued_status.push(Skylander::ADDED);
-    skylander.queued_status.push(Skylander::READY);
+    skylander.queued_status.push_back(Skylander::ADDED);
+    skylander.queued_status.push_back(Skylander::READY);
     skylander.last_id = sky_serial;
   }
   return found_slot;
@@ -1337,6 +1399,17 @@ Type NormalizeSkylanderType(Type type)
     // unknown is unknown)
     return Type::Unknown;
   }
+}
+
+std::pair<u16, u16> SkylanderPortal::GetSkylanderFromSlot(u8 slot)
+{
+  InitSkylanderVector();
+  if (skylanders[slot].status == 0)
+  {
+    return std::make_pair(9999, 9999);
+  }
+  FigureData data = skylanders[slot].figure->GetData();
+  return std::make_pair(data.figure_id, data.variant_id);
 }
 
 }  // namespace IOS::HLE::USB

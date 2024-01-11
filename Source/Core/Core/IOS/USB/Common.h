@@ -183,6 +183,8 @@ public:
   virtual int SubmitTransfer(std::unique_ptr<IntrMessage> message) = 0;
   virtual int SubmitTransfer(std::unique_ptr<IsoMessage> message) = 0;
 
+  virtual void DoState(PointerWrap& p) = 0;
+
 protected:
   u64 m_id = 0xFFFFFFFFFFFFFFFF;
 };
