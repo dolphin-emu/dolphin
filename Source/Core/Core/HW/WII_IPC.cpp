@@ -74,7 +74,9 @@ void WiiIPC::DoState(PointerWrap& p)
   p.Do(m_ppc_irq_masks);
   p.Do(m_arm_irq_flags);
   p.Do(m_arm_irq_masks);
+  p.Do(m_gpio_dir);
   p.Do(m_gpio_out);
+  p.Do(m_resets);
 }
 
 void WiiIPC::InitState()
