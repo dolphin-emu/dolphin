@@ -441,7 +441,7 @@ void EmuCodeBlock::SafeLoadToRegImmediate(X64Reg reg_value, u32 address, int acc
                                           BitSet32 registersInUse, bool signExtend)
 {
   // If the address is known to be RAM, just load it directly.
-  if (m_jit.jo.fastmem_arena && m_jit.m_mmu.IsOptimizableRAMAddress(address))
+  if (m_jit.jo.fastmem_arena && m_jit.m_mmu.IsOptimizableRAMAddress(address, accessSize))
   {
     UnsafeLoadToReg(reg_value, Imm32(address), accessSize, 0, signExtend);
     return;
@@ -656,7 +656,7 @@ bool EmuCodeBlock::WriteToConstAddress(int accessSize, OpArg arg, u32 address,
     m_jit.js.fifoBytesSinceCheck += accessSize >> 3;
     return false;
   }
-  else if (m_jit.jo.fastmem_arena && m_jit.m_mmu.IsOptimizableRAMAddress(address))
+  else if (m_jit.jo.fastmem_arena && m_jit.m_mmu.IsOptimizableRAMAddress(address, accessSize))
   {
     WriteToConstRamAddress(accessSize, arg, address);
     return false;

@@ -915,7 +915,7 @@ std::optional<ReadResult<std::string>> MMU::HostTryReadString(const Core::CPUThr
   return ReadResult<std::string>(c->translated, std::move(s));
 }
 
-bool MMU::IsOptimizableRAMAddress(const u32 address) const
+bool MMU::IsOptimizableRAMAddress(const u32 address, const u32 access_size) const
 {
   if (m_power_pc.GetMemChecks().HasAny())
     return false;
@@ -926,12 +926,12 @@ bool MMU::IsOptimizableRAMAddress(const u32 address) const
   if (m_ppc_state.m_enable_dcache)
     return false;
 
-  // TODO: This API needs to take an access size
-  //
   // We store whether an access can be optimized to an unchecked access
   // in dbat_table.
-  u32 bat_result = m_dbat_table[address >> BAT_INDEX_SHIFT];
-  return (bat_result & BAT_PHYSICAL_BIT) != 0;
+  const u32 last_byte_address = address + (access_size >> 3) - 1;
+  const u32 bat_result_1 = m_dbat_table[address >> BAT_INDEX_SHIFT];
+  const u32 bat_result_2 = m_dbat_table[last_byte_address >> BAT_INDEX_SHIFT];
+  return (bat_result_1 & bat_result_2 & BAT_PHYSICAL_BIT) != 0;
 }
 
 template <XCheckTLBFlag flag>
