@@ -252,7 +252,7 @@ s32 WiiSocket::FCntl(u32 cmd, u32 arg)
 
 void WiiSocket::Update(bool read, bool write, bool except)
 {
-  auto& system = Core::System::GetInstance();
+  auto& system = m_socket_manager.m_ios.GetSystem();
   auto& memory = system.GetMemory();
 
   auto it = pending_sockops.begin();
@@ -878,7 +878,7 @@ s32 WiiSockMan::AddSocket(s32 fd, bool is_rw)
     WiiSocket& sock = WiiSockets.emplace(wii_fd, *this).first->second;
     sock.SetFd(fd);
     sock.SetWiiFd(wii_fd);
-    Core::System::GetInstance().GetPowerPC().GetDebugInterface().NetworkLogger()->OnNewSocket(fd);
+    m_ios.GetSystem().GetPowerPC().GetDebugInterface().NetworkLogger()->OnNewSocket(fd);
 
 #ifdef __APPLE__
     int opt_no_sigpipe = 1;
@@ -1050,7 +1050,7 @@ void WiiSockMan::UpdatePollCommands()
       pcmd.timeout = std::max<s64>(0, pcmd.timeout - elapsed);
   }
 
-  auto& system = Core::System::GetInstance();
+  auto& system = m_ios.GetSystem();
   auto& memory = system.GetMemory();
 
   std::erase_if(pending_polls, [&system, &memory, this](PollCommand& pcmd) {
