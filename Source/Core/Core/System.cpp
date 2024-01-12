@@ -24,6 +24,7 @@
 #include "Core/HW/Sram.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
+#include "Core/HW/WII_IPC.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -45,7 +46,7 @@ struct System::Impl
   explicit Impl(System& system)
       : m_audio_interface(system), m_core_timing(system), m_command_processor{system},
         m_cpu(system), m_dsp(system), m_dvd_interface(system), m_dvd_thread(system),
-        m_expansion_interface(system), m_fifo{system}, m_gp_fifo(system),
+        m_expansion_interface(system), m_fifo{system}, m_gp_fifo(system), m_wii_ipc(system),
         m_memory(system), m_pixel_engine{system}, m_power_pc(system),
         m_mmu(system, m_memory, m_power_pc), m_processor_interface(system),
         m_serial_interface(system), m_system_timers(system), m_video_interface(system),
@@ -72,6 +73,7 @@ struct System::Impl
   HSP::HSPManager m_hsp;
   IOS::HLE::USB::InfinityBase m_infinity_base;
   IOS::HLE::USB::SkylanderPortal m_skylander_portal;
+  IOS::WiiIPC m_wii_ipc;
   Memory::MemoryManager m_memory;
   MemoryInterface::MemoryInterfaceManager m_memory_interface;
   PixelEngine::PixelEngineManager m_pixel_engine;
@@ -217,6 +219,11 @@ IOS::HLE::USB::SkylanderPortal& System::GetSkylanderPortal() const
 IOS::HLE::USB::InfinityBase& System::GetInfinityBase() const
 {
   return m_impl->m_infinity_base;
+}
+
+IOS::WiiIPC& System::GetWiiIPC() const
+{
+  return m_impl->m_wii_ipc;
 }
 
 Memory::MemoryManager& System::GetMemory() const

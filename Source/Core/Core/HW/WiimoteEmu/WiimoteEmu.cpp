@@ -446,7 +446,8 @@ void Wiimote::UpdateButtonsStatus(const DesiredWiimoteState& target_state)
   m_status.buttons.hex = target_state.buttons.hex & ButtonData::BUTTON_MASK;
 }
 
-void Wiimote::BuildDesiredWiimoteState(DesiredWiimoteState* target_state)
+void Wiimote::BuildDesiredWiimoteState(DesiredWiimoteState* target_state,
+                                       SensorBarState sensor_bar_state)
 {
   // Hotkey / settings modifier
   // Data is later accessed in IsSideways and IsUpright
@@ -468,10 +469,18 @@ void Wiimote::BuildDesiredWiimoteState(DesiredWiimoteState* target_state)
       ConvertAccelData(GetTotalAcceleration(), ACCEL_ZERO_G << 2, ACCEL_ONE_G << 2);
 
   // Calculate IR camera state.
-  target_state->camera_points = CameraLogic::GetCameraPoints(
-      GetTotalTransformation(),
-      Common::Vec2(m_fov_x_setting.GetValue(), m_fov_y_setting.GetValue()) / 360 *
-          float(MathUtil::TAU));
+  if (sensor_bar_state == SensorBarState::Enabled)
+  {
+    target_state->camera_points = CameraLogic::GetCameraPoints(
+        GetTotalTransformation(),
+        Common::Vec2(m_fov_x_setting.GetValue(), m_fov_y_setting.GetValue()) / 360 *
+            float(MathUtil::TAU));
+  }
+  else
+  {
+    // If the sensor bar is off the camera will see no LEDs and return 0xFFs.
+    target_state->camera_points = DesiredWiimoteState::DEFAULT_CAMERA;
+  }
 
   // Calculate MotionPlus state.
   if (m_motion_plus_setting.GetValue())
@@ -498,10 +507,11 @@ void Wiimote::SetWiimoteDeviceIndex(u8 index)
 }
 
 // This is called every ::Wiimote::UPDATE_FREQ (200hz)
-void Wiimote::PrepareInput(WiimoteEmu::DesiredWiimoteState* target_state)
+void Wiimote::PrepareInput(WiimoteEmu::DesiredWiimoteState* target_state,
+                           SensorBarState sensor_bar_state)
 {
   const auto lock = GetStateLock();
-  BuildDesiredWiimoteState(target_state);
+  BuildDesiredWiimoteState(target_state, sensor_bar_state);
 }
 
 void Wiimote::Update(const WiimoteEmu::DesiredWiimoteState& target_state)

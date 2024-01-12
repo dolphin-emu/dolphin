@@ -539,7 +539,7 @@ void EmulationKernel::InitIPC()
     return;
 
   INFO_LOG_FMT(IOS, "IPC initialised.");
-  GenerateAck(0);
+  m_system.GetWiiIPC().GenerateAck(0);
 }
 
 void EmulationKernel::AddDevice(std::unique_ptr<Device> device)
@@ -816,13 +816,14 @@ void EmulationKernel::HandleIPCEvent(u64 userdata)
 
 void EmulationKernel::UpdateIPC()
 {
-  if (m_ipc_paused || !IsReady())
+  auto& wii_ipc = m_system.GetWiiIPC();
+  if (m_ipc_paused || !wii_ipc.IsReady())
     return;
 
   if (!m_request_queue.empty())
   {
-    ClearX1();
-    GenerateAck(m_request_queue.front());
+    wii_ipc.ClearX1();
+    wii_ipc.GenerateAck(m_request_queue.front());
     u32 command = m_request_queue.front();
     m_request_queue.pop_front();
     ExecuteIPCCommand(command);
@@ -831,7 +832,7 @@ void EmulationKernel::UpdateIPC()
 
   if (!m_reply_queue.empty())
   {
-    GenerateReply(m_reply_queue.front());
+    wii_ipc.GenerateReply(m_reply_queue.front());
     DEBUG_LOG_FMT(IOS, "<<-- Reply to IPC Request @ {:#010x}", m_reply_queue.front());
     m_reply_queue.pop_front();
     return;
