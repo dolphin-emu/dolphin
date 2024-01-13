@@ -262,11 +262,14 @@ u16* AddPoints_VSExpand(u16* index_ptr, u32 num_verts, u32 index)
 }
 }  // Anonymous namespace
 
-void IndexGenerator::Init()
+void IndexGenerator::Init(bool editor_enabled)
 {
   using OpcodeDecoder::Primitive;
 
-  if (g_Config.backend_info.bSupportsPrimitiveRestart)
+  // When editor is enabled, we can't take shortcuts
+  // as we might want to save meshes to a file
+  // Some formats don't allow primitive restart
+  if (g_Config.backend_info.bSupportsPrimitiveRestart && !editor_enabled)
   {
     m_primitive_table[Primitive::GX_DRAW_QUADS] = AddQuads<true>;
     m_primitive_table[Primitive::GX_DRAW_QUADS_2] = AddQuads_nonstandard<true>;
@@ -282,7 +285,7 @@ void IndexGenerator::Init()
     m_primitive_table[Primitive::GX_DRAW_TRIANGLE_STRIP] = AddStrip<false>;
     m_primitive_table[Primitive::GX_DRAW_TRIANGLE_FAN] = AddFan<false>;
   }
-  if (g_Config.UseVSForLinePointExpand())
+  if (g_Config.UseVSForLinePointExpand() && !editor_enabled)
   {
     if (g_Config.backend_info.bSupportsPrimitiveRestart)
     {
