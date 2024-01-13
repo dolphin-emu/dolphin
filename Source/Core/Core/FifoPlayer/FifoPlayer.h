@@ -141,6 +141,7 @@ public:
 
 private:
   class CPUCore;
+  friend class CPUCore;
 
   CPU::State AdvanceFrame();
 
