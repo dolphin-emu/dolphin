@@ -555,31 +555,15 @@ void Wiimote::EncryptExtension(WiimoteCommon::DataReportBuilder& rpt_builder)
   switch (m_active_extension)
   {
   case ExtensionNumber::CLASSIC:
-    encryption_key.Encrypt(ext_data, 0, sizeof(Classic::DataFormat));
-    break;
   case ExtensionNumber::DRAWSOME_TABLET:
-    encryption_key.Encrypt(ext_data, 0, sizeof(DrawsomeTablet::DataFormat));
-    break;
   case ExtensionNumber::DRUMS:
-    encryption_key.Encrypt(ext_data, 0, sizeof(Drums::DataFormat));
-    break;
   case ExtensionNumber::GUITAR:
-    encryption_key.Encrypt(ext_data, 0, sizeof(Guitar::DataFormat));
-    break;
   case ExtensionNumber::NUNCHUK:
-    encryption_key.Encrypt(ext_data, 0, sizeof(Nunchuk::DataFormat));
-    break;
   case ExtensionNumber::SHINKANSEN:
-    encryption_key.Encrypt(ext_data, 0, sizeof(Shinkansen::DataFormat));
-    break;
   case ExtensionNumber::TATACON:
-    encryption_key.Encrypt(ext_data, 0, sizeof(TaTaCon::DataFormat));
-    break;
   case ExtensionNumber::TURNTABLE:
-    encryption_key.Encrypt(ext_data, 0, sizeof(Turntable::DataFormat));
-    break;
   case ExtensionNumber::UDRAW_TABLET:
-    encryption_key.Encrypt(ext_data, 0, sizeof(UDrawTablet::DataFormat));
+    encryption_key.Encrypt(ext_data, 0, rpt_builder.GetExtDataSize());
     break;
   default:
     ERROR_LOG_FMT(WIIMOTE,
@@ -596,31 +580,15 @@ void Wiimote::DecryptExtension(WiimoteCommon::DataReportBuilder& rpt_builder)
   switch (m_active_extension)
   {
   case ExtensionNumber::CLASSIC:
-    encryption_key.Decrypt(ext_data, 0, sizeof(Classic::DataFormat));
-    break;
   case ExtensionNumber::DRAWSOME_TABLET:
-    encryption_key.Decrypt(ext_data, 0, sizeof(DrawsomeTablet::DataFormat));
-    break;
   case ExtensionNumber::DRUMS:
-    encryption_key.Decrypt(ext_data, 0, sizeof(Drums::DataFormat));
-    break;
   case ExtensionNumber::GUITAR:
-    encryption_key.Decrypt(ext_data, 0, sizeof(Guitar::DataFormat));
-    break;
   case ExtensionNumber::NUNCHUK:
-    encryption_key.Decrypt(ext_data, 0, sizeof(Nunchuk::DataFormat));
-    break;
   case ExtensionNumber::SHINKANSEN:
-    encryption_key.Decrypt(ext_data, 0, sizeof(Shinkansen::DataFormat));
-    break;
   case ExtensionNumber::TATACON:
-    encryption_key.Decrypt(ext_data, 0, sizeof(TaTaCon::DataFormat));
-    break;
   case ExtensionNumber::TURNTABLE:
-    encryption_key.Decrypt(ext_data, 0, sizeof(Turntable::DataFormat));
-    break;
   case ExtensionNumber::UDRAW_TABLET:
-    encryption_key.Decrypt(ext_data, 0, sizeof(UDrawTablet::DataFormat));
+    encryption_key.Decrypt(ext_data, 0, rpt_builder.GetExtDataSize());
     break;
   default:
     ERROR_LOG_FMT(WIIMOTE,
