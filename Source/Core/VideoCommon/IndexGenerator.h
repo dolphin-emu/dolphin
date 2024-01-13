@@ -13,7 +13,7 @@
 class IndexGenerator
 {
 public:
-  void Init();
+  void Init(bool editor_enabled);
   void Start(u16* index_ptr);
 
   void AddIndices(OpcodeDecoder::Primitive primitive, u32 num_vertices);
