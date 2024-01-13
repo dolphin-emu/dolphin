@@ -162,14 +162,14 @@ std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& reque
   {
   case DIIoctl::DVDLowInquiry:
     INFO_LOG_FMT(IOS_DI, "DVDLowInquiry");
-    mmio->Write<u32>(ADDRESS_DICMDBUF0, 0x12000000);
-    mmio->Write<u32>(ADDRESS_DICMDBUF1, 0);
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF0, 0x12000000);
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF1, 0);
     return StartDMATransfer(0x20, request);
   case DIIoctl::DVDLowReadDiskID:
     INFO_LOG_FMT(IOS_DI, "DVDLowReadDiskID");
-    mmio->Write<u32>(ADDRESS_DICMDBUF0, 0xA8000040);
-    mmio->Write<u32>(ADDRESS_DICMDBUF1, 0);
-    mmio->Write<u32>(ADDRESS_DICMDBUF2, 0x20);
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF0, 0xA8000040);
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF1, 0);
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF2, 0x20);
     return StartDMATransfer(0x20, request);
     // TODO: Include an additional read that happens on Wii discs, or at least
     // emulate its side effect of disabling DTK configuration
@@ -211,7 +211,7 @@ std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& reque
     return DIResult::CoverClosed;
   case DIIoctl::DVDLowGetCoverRegister:
   {
-    const u32 dicvr = mmio->Read<u32>(ADDRESS_DICVR);
+    const u32 dicvr = mmio->Read<u32>(system, ADDRESS_DICVR);
     DEBUG_LOG_FMT(IOS_DI, "DVDLowGetCoverRegister {:#010x}", dicvr);
     return WriteIfFits(request, dicvr);
   }
@@ -226,27 +226,27 @@ std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& reque
   {
     const u8 position = memory.Read_U8(request.buffer_in + 7);
     INFO_LOG_FMT(IOS_DI, "DVDLowReadDvdPhysical: position {:#04x}", position);
-    mmio->Write<u32>(ADDRESS_DICMDBUF0, 0xAD000000 | (position << 8));
-    mmio->Write<u32>(ADDRESS_DICMDBUF1, 0);
-    mmio->Write<u32>(ADDRESS_DICMDBUF2, 0);
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF0, 0xAD000000 | (position << 8));
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF1, 0);
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF2, 0);
     return StartDMATransfer(0x800, request);
   }
   case DIIoctl::DVDLowReadDvdCopyright:
   {
     const u8 position = memory.Read_U8(request.buffer_in + 7);
     INFO_LOG_FMT(IOS_DI, "DVDLowReadDvdCopyright: position {:#04x}", position);
-    mmio->Write<u32>(ADDRESS_DICMDBUF0, 0xAD010000 | (position << 8));
-    mmio->Write<u32>(ADDRESS_DICMDBUF1, 0);
-    mmio->Write<u32>(ADDRESS_DICMDBUF2, 0);
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF0, 0xAD010000 | (position << 8));
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF1, 0);
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF2, 0);
     return StartImmediateTransfer(request);
   }
   case DIIoctl::DVDLowReadDvdDiscKey:
   {
     const u8 position = memory.Read_U8(request.buffer_in + 7);
     INFO_LOG_FMT(IOS_DI, "DVDLowReadDvdDiscKey: position {:#04x}", position);
-    mmio->Write<u32>(ADDRESS_DICMDBUF0, 0xAD020000 | (position << 8));
-    mmio->Write<u32>(ADDRESS_DICMDBUF1, 0);
-    mmio->Write<u32>(ADDRESS_DICMDBUF2, 0);
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF0, 0xAD020000 | (position << 8));
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF1, 0);
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF2, 0);
     return StartDMATransfer(0x800, request);
   }
   case DIIoctl::DVDLowGetLength:
@@ -254,7 +254,7 @@ std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& reque
     return WriteIfFits(request, m_last_length);
   case DIIoctl::DVDLowGetImmBuf:
   {
-    const u32 diimmbuf = mmio->Read<u32>(ADDRESS_DIIMMBUF);
+    const u32 diimmbuf = mmio->Read<u32>(system, ADDRESS_DIIMMBUF);
     INFO_LOG_FMT(IOS_DI, "DVDLowGetImmBuf {:#010x}", diimmbuf);
     return WriteIfFits(request, diimmbuf);
   }
@@ -289,27 +289,30 @@ std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& reque
     const bool spinup = memory.Read_U32(request.buffer_in + 4);
 
     // The GPIO *disables* spinning up the drive.  Normally handled via syscall 0x4e.
-    const u32 old_gpio = mmio->Read<u32>(ADDRESS_HW_GPIO_OUT);
+    const u32 old_gpio = mmio->Read<u32>(system, ADDRESS_HW_GPIO_OUT);
     if (spinup)
-      mmio->Write<u32>(ADDRESS_HW_GPIO_OUT, old_gpio & ~static_cast<u32>(GPIO::DI_SPIN));
+      mmio->Write<u32>(system, ADDRESS_HW_GPIO_OUT, old_gpio & ~static_cast<u32>(GPIO::DI_SPIN));
     else
-      mmio->Write<u32>(ADDRESS_HW_GPIO_OUT, old_gpio | static_cast<u32>(GPIO::DI_SPIN));
+      mmio->Write<u32>(system, ADDRESS_HW_GPIO_OUT, old_gpio | static_cast<u32>(GPIO::DI_SPIN));
 
     // Syscall 0x46 check_di_reset
-    const bool was_resetting = (mmio->Read<u32>(ADDRESS_HW_RESETS) & (1 << 10)) == 0;
+    const bool was_resetting = (mmio->Read<u32>(system, ADDRESS_HW_RESETS) & (1 << 10)) == 0;
     if (was_resetting)
     {
       // This route will not generally be taken in Dolphin but is included for completeness
       // Syscall 0x45 deassert_di_reset
-      mmio->Write<u32>(ADDRESS_HW_RESETS, mmio->Read<u32>(ADDRESS_HW_RESETS) | (1 << 10));
+      mmio->Write<u32>(system, ADDRESS_HW_RESETS,
+                       mmio->Read<u32>(system, ADDRESS_HW_RESETS) | (1 << 10));
     }
     else
     {
       // Syscall 0x44 assert_di_reset
-      mmio->Write<u32>(ADDRESS_HW_RESETS, mmio->Read<u32>(ADDRESS_HW_RESETS) & ~(1 << 10));
+      mmio->Write<u32>(system, ADDRESS_HW_RESETS,
+                       mmio->Read<u32>(system, ADDRESS_HW_RESETS) & ~(1 << 10));
       // Normally IOS sleeps for 12 microseconds here, but we can't easily emulate that
       // Syscall 0x45 deassert_di_reset
-      mmio->Write<u32>(ADDRESS_HW_RESETS, mmio->Read<u32>(ADDRESS_HW_RESETS) | (1 << 10));
+      mmio->Write<u32>(system, ADDRESS_HW_RESETS,
+                       mmio->Read<u32>(system, ADDRESS_HW_RESETS) | (1 << 10));
     }
     ResetDIRegisters();
     return DIResult::Success;
@@ -342,14 +345,14 @@ std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& reque
       if (range.start <= position && position <= range.end && range.start <= end &&
           end <= range.end)
       {
-        mmio->Write<u32>(ADDRESS_DICMDBUF0, 0xA8000000);
-        mmio->Write<u32>(ADDRESS_DICMDBUF1, position);
-        mmio->Write<u32>(ADDRESS_DICMDBUF2, length);
+        mmio->Write<u32>(system, ADDRESS_DICMDBUF0, 0xA8000000);
+        mmio->Write<u32>(system, ADDRESS_DICMDBUF1, position);
+        mmio->Write<u32>(system, ADDRESS_DICMDBUF2, length);
         if (range.is_error_001_range && Config::Get(Config::SESSION_SHOULD_FAKE_ERROR_001))
         {
-          mmio->Write<u32>(ADDRESS_DIMAR, request.buffer_out);
+          mmio->Write<u32>(system, ADDRESS_DIMAR, request.buffer_out);
           m_last_length = length;
-          mmio->Write<u32>(ADDRESS_DILENGTH, length);
+          mmio->Write<u32>(system, ADDRESS_DILENGTH, length);
           system.GetDVDInterface().ForceOutOfBoundsRead(DVD::ReplyType::IOS);
           return {};
         }
@@ -389,13 +392,13 @@ std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& reque
     return DIResult::SecurityError;
   case DIIoctl::DVDLowGetStatusRegister:
   {
-    const u32 disr = mmio->Read<u32>(ADDRESS_DISR);
+    const u32 disr = mmio->Read<u32>(system, ADDRESS_DISR);
     INFO_LOG_FMT(IOS_DI, "DVDLowGetStatusRegister: {:#010x}", disr);
     return WriteIfFits(request, disr);
   }
   case DIIoctl::DVDLowGetControlRegister:
   {
-    const u32 dicr = mmio->Read<u32>(ADDRESS_DICR);
+    const u32 dicr = mmio->Read<u32>(system, ADDRESS_DICR);
     INFO_LOG_FMT(IOS_DI, "DVDLowGetControlRegister: {:#010x}", dicr);
     return WriteIfFits(request, dicr);
   }
@@ -404,9 +407,9 @@ std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& reque
     const u8 param1 = memory.Read_U8(request.buffer_in + 7);
     const u32 param2 = memory.Read_U32(request.buffer_in + 8);
     INFO_LOG_FMT(IOS_DI, "DVDLowReportKey: param1 {:#04x}, param2 {:#08x}", param1, param2);
-    mmio->Write<u32>(ADDRESS_DICMDBUF0, 0xA4000000 | (param1 << 16));
-    mmio->Write<u32>(ADDRESS_DICMDBUF1, param2 & 0xFFFFFF);
-    mmio->Write<u32>(ADDRESS_DICMDBUF2, 0);
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF0, 0xA4000000 | (param1 << 16));
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF1, param2 & 0xFFFFFF);
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF2, 0);
     return StartDMATransfer(0x20, request);
   }
   case DIIoctl::DVDLowSeek:
@@ -414,8 +417,8 @@ std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& reque
     const u32 position = memory.Read_U32(request.buffer_in + 4);  // 32-bit offset
     INFO_LOG_FMT(IOS_DI, "DVDLowSeek: position {:#010x}, translated to {:#010x}", position,
                  position);  // TODO: do partition translation!
-    mmio->Write<u32>(ADDRESS_DICMDBUF0, 0xAB000000);
-    mmio->Write<u32>(ADDRESS_DICMDBUF1, position);
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF0, 0xAB000000);
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF1, position);
     return StartImmediateTransfer(request, false);
   }
   case DIIoctl::DVDLowReadDvd:
@@ -426,9 +429,10 @@ std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& reque
     const u32 position = memory.Read_U32(request.buffer_in + 16);
     INFO_LOG_FMT(IOS_DI, "DVDLowReadDvd({}, {}): position {:#08x}, length {:#08x}", flag1, flag2,
                  position, length);
-    mmio->Write<u32>(ADDRESS_DICMDBUF0, 0xD0000000 | ((flag1 & 1) << 7) | ((flag2 & 1) << 6));
-    mmio->Write<u32>(ADDRESS_DICMDBUF1, position & 0xFFFFFF);
-    mmio->Write<u32>(ADDRESS_DICMDBUF2, length & 0xFFFFFF);
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF0,
+                     0xD0000000 | ((flag1 & 1) << 7) | ((flag2 & 1) << 6));
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF1, position & 0xFFFFFF);
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF2, length & 0xFFFFFF);
     return StartDMATransfer(0x800 * length, request);
   }
   case DIIoctl::DVDLowReadDvdConfig:
@@ -437,41 +441,41 @@ std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& reque
     const u8 param2 = memory.Read_U8(request.buffer_in + 11);
     const u32 position = memory.Read_U32(request.buffer_in + 12);
     INFO_LOG_FMT(IOS_DI, "DVDLowReadDvdConfig({}, {}): position {:#08x}", flag1, param2, position);
-    mmio->Write<u32>(ADDRESS_DICMDBUF0, 0xD1000000 | ((flag1 & 1) << 16) | param2);
-    mmio->Write<u32>(ADDRESS_DICMDBUF1, position & 0xFFFFFF);
-    mmio->Write<u32>(ADDRESS_DICMDBUF2, 0);
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF0, 0xD1000000 | ((flag1 & 1) << 16) | param2);
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF1, position & 0xFFFFFF);
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF2, 0);
     return StartImmediateTransfer(request);
   }
   case DIIoctl::DVDLowStopLaser:
     INFO_LOG_FMT(IOS_DI, "DVDLowStopLaser");
-    mmio->Write<u32>(ADDRESS_DICMDBUF0, 0xD2000000);
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF0, 0xD2000000);
     return StartImmediateTransfer(request);
   case DIIoctl::DVDLowOffset:
   {
     const u8 flag = memory.Read_U8(request.buffer_in + 7);
     const u32 offset = memory.Read_U32(request.buffer_in + 8);
     INFO_LOG_FMT(IOS_DI, "DVDLowOffset({}): offset {:#010x}", flag, offset);
-    mmio->Write<u32>(ADDRESS_DICMDBUF0, 0xD9000000 | ((flag & 1) << 16));
-    mmio->Write<u32>(ADDRESS_DICMDBUF1, offset);
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF0, 0xD9000000 | ((flag & 1) << 16));
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF1, offset);
     return StartImmediateTransfer(request);
   }
   case DIIoctl::DVDLowReadDiskBca:
     INFO_LOG_FMT(IOS_DI, "DVDLowReadDiskBca");
-    mmio->Write<u32>(ADDRESS_DICMDBUF0, 0xDA000000);
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF0, 0xDA000000);
     return StartDMATransfer(0x40, request);
   case DIIoctl::DVDLowRequestDiscStatus:
     INFO_LOG_FMT(IOS_DI, "DVDLowRequestDiscStatus");
-    mmio->Write<u32>(ADDRESS_DICMDBUF0, 0xDB000000);
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF0, 0xDB000000);
     return StartImmediateTransfer(request);
   case DIIoctl::DVDLowRequestRetryNumber:
     INFO_LOG_FMT(IOS_DI, "DVDLowRequestRetryNumber");
-    mmio->Write<u32>(ADDRESS_DICMDBUF0, 0xDC000000);
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF0, 0xDC000000);
     return StartImmediateTransfer(request);
   case DIIoctl::DVDLowSetMaximumRotation:
   {
     const u8 speed = memory.Read_U8(request.buffer_in + 7);
     INFO_LOG_FMT(IOS_DI, "DVDLowSetMaximumRotation: speed {}", speed);
-    mmio->Write<u32>(ADDRESS_DICMDBUF0, 0xDD000000 | ((speed & 3) << 16));
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF0, 0xDD000000 | ((speed & 3) << 16));
     return StartImmediateTransfer(request, false);
   }
   case DIIoctl::DVDLowSerMeasControl:
@@ -479,12 +483,13 @@ std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& reque
     const u8 flag1 = memory.Read_U8(request.buffer_in + 7);
     const u8 flag2 = memory.Read_U8(request.buffer_in + 11);
     INFO_LOG_FMT(IOS_DI, "DVDLowSerMeasControl({}, {})", flag1, flag2);
-    mmio->Write<u32>(ADDRESS_DICMDBUF0, 0xDF000000 | ((flag1 & 1) << 17) | ((flag2 & 1) << 16));
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF0,
+                     0xDF000000 | ((flag1 & 1) << 17) | ((flag2 & 1) << 16));
     return StartDMATransfer(0x20, request);
   }
   case DIIoctl::DVDLowRequestError:
     INFO_LOG_FMT(IOS_DI, "DVDLowRequestError");
-    mmio->Write<u32>(ADDRESS_DICMDBUF0, 0xE0000000);
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF0, 0xE0000000);
     return StartImmediateTransfer(request);
   case DIIoctl::DVDLowAudioStream:
   {
@@ -493,17 +498,17 @@ std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& reque
     const u32 position = memory.Read_U32(request.buffer_in + 12);
     INFO_LOG_FMT(IOS_DI, "DVDLowAudioStream({}): offset {:#010x} (byte {:#011x}), length {:#x}",
                  mode, position, static_cast<u64>(position) << 2, length);
-    mmio->Write<u32>(ADDRESS_DICMDBUF0, 0xE1000000 | ((mode & 3) << 16));
-    mmio->Write<u32>(ADDRESS_DICMDBUF1, position);
-    mmio->Write<u32>(ADDRESS_DICMDBUF2, length);
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF0, 0xE1000000 | ((mode & 3) << 16));
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF1, position);
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF2, length);
     return StartImmediateTransfer(request, false);
   }
   case DIIoctl::DVDLowRequestAudioStatus:
   {
     const u8 mode = memory.Read_U8(request.buffer_in + 7);
     INFO_LOG_FMT(IOS_DI, "DVDLowRequestAudioStatus({})", mode);
-    mmio->Write<u32>(ADDRESS_DICMDBUF0, 0xE2000000 | ((mode & 3) << 16));
-    mmio->Write<u32>(ADDRESS_DICMDBUF1, 0);
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF0, 0xE2000000 | ((mode & 3) << 16));
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF1, 0);
     // Note that this command does not copy the value written to DIIMMBUF, which makes it rather
     // useless (to actually use it, DVDLowGetImmBuf would need to be used afterwards)
     return StartImmediateTransfer(request, false);
@@ -513,8 +518,9 @@ std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& reque
     const u8 eject = memory.Read_U8(request.buffer_in + 7);
     const u8 kill = memory.Read_U8(request.buffer_in + 11);
     INFO_LOG_FMT(IOS_DI, "DVDLowStopMotor({}, {})", eject, kill);
-    mmio->Write<u32>(ADDRESS_DICMDBUF0, 0xE3000000 | ((eject & 1) << 17) | ((kill & 1) << 20));
-    mmio->Write<u32>(ADDRESS_DICMDBUF1, 0);
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF0,
+                     0xE3000000 | ((eject & 1) << 17) | ((kill & 1) << 20));
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF1, 0);
     return StartImmediateTransfer(request);
   }
   case DIIoctl::DVDLowAudioBufferConfig:
@@ -523,8 +529,9 @@ std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& reque
     const u8 buffer_size = memory.Read_U8(request.buffer_in + 11);
     INFO_LOG_FMT(IOS_DI, "DVDLowAudioBufferConfig: {}, buffer size {}",
                  enable ? "enabled" : "disabled", buffer_size);
-    mmio->Write<u32>(ADDRESS_DICMDBUF0, 0xE4000000 | ((enable & 1) << 16) | (buffer_size & 0xf));
-    mmio->Write<u32>(ADDRESS_DICMDBUF1, 0);
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF0,
+                     0xE4000000 | ((enable & 1) << 16) | (buffer_size & 0xf));
+    mmio->Write<u32>(system, ADDRESS_DICMDBUF1, 0);
     // On the other hand, this command *does* copy DIIMMBUF, but the actual code in the drive never
     // writes anything to it, so it just copies over a stale value (e.g. from DVDLowRequestError).
     return StartImmediateTransfer(request);
@@ -565,9 +572,9 @@ std::optional<DIDevice::DIResult> DIDevice::StartDMATransfer(u32 command_length,
 
   auto& system = GetSystem();
   auto* mmio = system.GetMemory().GetMMIOMapping();
-  mmio->Write<u32>(ADDRESS_DIMAR, request.buffer_out);
+  mmio->Write<u32>(system, ADDRESS_DIMAR, request.buffer_out);
   m_last_length = command_length;
-  mmio->Write<u32>(ADDRESS_DILENGTH, command_length);
+  mmio->Write<u32>(system, ADDRESS_DILENGTH, command_length);
 
   system.GetDVDInterface().ExecuteCommand(DVD::ReplyType::IOS);
   // Reply will be posted when done by FinishIOCtl.
@@ -658,7 +665,7 @@ void DIDevice::FinishDICommand(DIResult result)
 
   IOCtlRequest request{system, m_executing_command->m_request_address};
   if (m_executing_command->m_copy_diimmbuf)
-    memory.Write_U32(mmio->Read<u32>(ADDRESS_DIIMMBUF), request.buffer_out);
+    memory.Write_U32(mmio->Read<u32>(system, ADDRESS_DIIMMBUF), request.buffer_out);
 
   GetEmulationKernel().EnqueueIPCReply(request, static_cast<s32>(result));
 

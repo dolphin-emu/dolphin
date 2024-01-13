@@ -15,6 +15,7 @@
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/MMIO.h"
 #include "Core/Movie.h"
+#include "Core/System.h"
 
 namespace ExpansionInterface
 {
