@@ -112,6 +112,42 @@ std::string GraphicsModConfig::GetAbsolutePath() const
   }
 }
 
+void GraphicsModConfig::SerializeToConfig(picojson::object& json_obj) const
+{
+  picojson::object serialized_metadata;
+  serialized_metadata["title"] = picojson::value{m_title};
+  serialized_metadata["author"] = picojson::value{m_author};
+  serialized_metadata["description"] = picojson::value{m_description};
+  json_obj["meta"] = picojson::value{serialized_metadata};
+
+  picojson::array serialized_groups;
+  for (const auto& group : m_groups)
+  {
+    picojson::object serialized_group;
+    group.SerializeToConfig(serialized_group);
+    serialized_groups.push_back(picojson::value{serialized_group});
+  }
+  json_obj["groups"] = picojson::value{serialized_groups};
+
+  picojson::array serialized_features;
+  for (const auto& feature : m_features)
+  {
+    picojson::object serialized_feature;
+    feature.SerializeToConfig(serialized_feature);
+    serialized_features.push_back(picojson::value{serialized_feature});
+  }
+  json_obj["features"] = picojson::value{serialized_features};
+
+  picojson::array serialized_assets;
+  for (const auto& asset : m_assets)
+  {
+    picojson::object serialized_asset;
+    asset.SerializeToConfig(serialized_asset);
+    serialized_assets.push_back(picojson::value{serialized_asset});
+  }
+  json_obj["assets"] = picojson::value{serialized_assets};
+}
+
 bool GraphicsModConfig::DeserializeFromConfig(const picojson::value& value)
 {
   const auto& meta = value.get("meta");

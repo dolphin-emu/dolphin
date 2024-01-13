@@ -13,6 +13,7 @@ struct GraphicsModFeatureConfig
   std::string m_action;
   picojson::value m_action_data;
 
+  void SerializeToConfig(picojson::object& json_obj) const;
   bool DeserializeFromConfig(const picojson::object& value);
 
   void SerializeToProfile(picojson::object* value) const;

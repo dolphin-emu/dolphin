@@ -225,7 +225,7 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
           WARN_LOG_FMT(VIDEO,
                        "Specified graphics mod asset '{}' for mod '{}' has an absolute path, you "
                        "shouldn't release this to users.",
-                       asset.m_name, mod.m_title);
+                       asset.m_asset_id, mod.m_title);
         }
         else
         {
@@ -233,7 +233,7 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
         }
       }
 
-      filesystem_library->SetAssetIDMapData(asset.m_name, std::move(asset_map));
+      filesystem_library->SetAssetIDMapData(asset.m_asset_id, std::move(asset_map));
     }
   }
 
