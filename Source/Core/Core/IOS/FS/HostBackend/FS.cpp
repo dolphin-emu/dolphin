@@ -23,6 +23,7 @@
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/IOS.h"
 #include "Core/Movie.h"
+#include "Core/System.h"
 #include "Core/WiiRoot.h"
 
 namespace IOS::HLE::FS
@@ -391,8 +392,9 @@ void HostFileSystem::DoState(PointerWrap& p)
   // then a call to p.DoExternal() will be used to skip over reading the contents of the "/"
   // directory (it skips over the number of bytes specified by size_of_nand_folder_saved)
 
+  auto& movie = Core::System::GetInstance().GetMovie();
   bool original_save_state_made_during_movie_recording =
-      Movie::IsMovieActive() && Core::WiiRootIsTemporary();
+      movie.IsMovieActive() && Core::WiiRootIsTemporary();
   p.Do(original_save_state_made_during_movie_recording);
 
   u32 temp_val = 0;
@@ -414,17 +416,17 @@ void HostFileSystem::DoState(PointerWrap& p)
   else  // case where we're in read mode.
   {
     DoStateRead(p, "/tmp");
-    if (!Movie::IsMovieActive() || !original_save_state_made_during_movie_recording ||
+    if (!movie.IsMovieActive() || !original_save_state_made_during_movie_recording ||
         !Core::WiiRootIsTemporary() ||
         (original_save_state_made_during_movie_recording !=
-         (Movie::IsMovieActive() && Core::WiiRootIsTemporary())))
+         (movie.IsMovieActive() && Core::WiiRootIsTemporary())))
     {
       (void)p.DoExternal(temp_val);
     }
     else
     {
       p.Do(temp_val);
-      if (Movie::IsMovieActive() && Core::WiiRootIsTemporary())
+      if (movie.IsMovieActive() && Core::WiiRootIsTemporary())
         DoStateRead(p, "/");
     }
   }

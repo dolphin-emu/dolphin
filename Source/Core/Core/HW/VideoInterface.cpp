@@ -852,7 +852,7 @@ void VideoInterfaceManager::Update(u64 ticks)
   // in case frame counter display is enabled
 
   if (m_half_line_count == 0 || m_half_line_count == GetHalfLinesPerEvenField())
-    Movie::FrameUpdate();
+    m_system.GetMovie().FrameUpdate();
 
   // If this half-line is at some boundary of the "active video lines" in either field, we either
   // need to (a) send a request to the GPU thread to actually render the XFB, or (b) increment

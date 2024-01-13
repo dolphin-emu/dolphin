@@ -11,6 +11,7 @@
 #include "Core/Core.h"
 #include "Core/HW/GCPad.h"
 #include "Core/NetPlayProto.h"
+#include "Core/System.h"
 #include "InputCommon/GCAdapter.h"
 
 namespace SerialInterface
@@ -38,7 +39,7 @@ GCPadStatus CSIDevice_GCAdapter::GetPadStatus()
     pad_status = GCAdapter::Input(m_device_number);
   }
 
-  HandleMoviePadStatus(m_device_number, &pad_status);
+  HandleMoviePadStatus(m_system.GetMovie(), m_device_number, &pad_status);
 
   // Our GCAdapter code sets PAD_GET_ORIGIN when a new device has been connected.
   // Watch for this to calibrate real controllers on connection.

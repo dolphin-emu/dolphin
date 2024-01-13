@@ -264,7 +264,7 @@ void CEXIChannel::DoState(PointerWrap& p)
     }
 
     if (type == EXIDeviceType::MemoryCardFolder && old_header_data != m_memcard_header_data &&
-        !Movie::IsMovieActive())
+        !m_system.GetMovie().IsMovieActive())
     {
       // We have loaded a savestate that has a GCI folder memcard that is different to the virtual
       // card that is currently active. In order to prevent the game from recognizing this card as a

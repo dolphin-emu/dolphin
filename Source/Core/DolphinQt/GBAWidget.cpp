@@ -365,7 +365,7 @@ void GBAWidget::SaveSettings()
 
 bool GBAWidget::CanControlCore()
 {
-  return !Movie::IsMovieActive() && !NetPlay::IsNetPlayRunning();
+  return !Core::System::GetInstance().GetMovie().IsMovieActive() && !NetPlay::IsNetPlayRunning();
 }
 
 bool GBAWidget::CanResetCore()

@@ -15,6 +15,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/Movie.h"
+#include "Core/System.h"
 
 #include "DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
@@ -197,9 +198,9 @@ void AchievementSettingsWidget::LoadSettings()
   SignalBlocking(m_common_hardcore_enabled_input)
       ->setChecked(Config::Get(Config::RA_HARDCORE_ENABLED));
   SignalBlocking(m_common_hardcore_enabled_input)
-      ->setEnabled(enabled &&
-                   (hardcore_enabled ||
-                    (Core::GetState() == Core::State::Uninitialized && !Movie::IsPlayingInput())));
+      ->setEnabled(enabled && (hardcore_enabled ||
+                               (Core::GetState() == Core::State::Uninitialized &&
+                                !Core::System::GetInstance().GetMovie().IsPlayingInput())));
 
   SignalBlocking(m_common_progress_enabled_input)
       ->setChecked(Config::Get(Config::RA_PROGRESS_ENABLED));

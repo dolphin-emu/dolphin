@@ -19,6 +19,7 @@
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
+#include "Core/System.h"
 #include "Core/WiiUtils.h"
 
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
@@ -192,8 +193,9 @@ void Initialize(InitializeMode init_mode)
   WiimoteReal::Initialize(init_mode);
 
   // Reload Wiimotes with our settings
-  if (Movie::IsMovieActive())
-    Movie::ChangeWiiPads();
+  auto& movie = Core::System::GetInstance().GetMovie();
+  if (movie.IsMovieActive())
+    movie.ChangeWiiPads();
 }
 
 void ResetAllWiimotes()
