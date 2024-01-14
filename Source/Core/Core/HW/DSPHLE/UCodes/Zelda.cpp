@@ -1233,24 +1233,24 @@ void ZeldaAudioRenderer::AddVoice(u16 voice_id)
 
     struct
     {
-      MixingBuffer* buffer;
+      MixingBuffer& buffer;
       s16 volume;
       s16 volume_delta;
     } buffers[8] = {
-        {&m_buf_front_left, quadrant_volumes[0], volume_deltas[0]},
-        {&m_buf_back_left, quadrant_volumes[1], volume_deltas[1]},
-        {&m_buf_front_right, quadrant_volumes[2], volume_deltas[2]},
-        {&m_buf_back_right, quadrant_volumes[3], volume_deltas[3]},
+        {m_buf_front_left, quadrant_volumes[0], volume_deltas[0]},
+        {m_buf_back_left, quadrant_volumes[1], volume_deltas[1]},
+        {m_buf_front_right, quadrant_volumes[2], volume_deltas[2]},
+        {m_buf_back_right, quadrant_volumes[3], volume_deltas[3]},
 
-        {&m_buf_front_left_reverb, reverb_volumes[0], reverb_volume_deltas[0]},
-        {&m_buf_back_left_reverb, reverb_volumes[1], reverb_volume_deltas[1]},
-        {&m_buf_front_right_reverb, reverb_volumes[2], reverb_volume_deltas[2]},
-        {&m_buf_back_right_reverb, reverb_volumes[3], reverb_volume_deltas[3]},
+        {m_buf_front_left_reverb, reverb_volumes[0], reverb_volume_deltas[0]},
+        {m_buf_back_left_reverb, reverb_volumes[1], reverb_volume_deltas[1]},
+        {m_buf_front_right_reverb, reverb_volumes[2], reverb_volume_deltas[2]},
+        {m_buf_back_right_reverb, reverb_volumes[3], reverb_volume_deltas[3]},
     };
     for (const auto& buffer : buffers)
     {
       AddBuffersWithVolumeRamp(buffer.buffer, input_samples, buffer.volume << 16,
-                               (buffer.volume_delta << 16) / (s32)buffer.buffer->size());
+                               (buffer.volume_delta << 16) / (s32)buffer.buffer.size());
     }
 
     vpb.dolby_volume_current = vpb.dolby_volume_target;
@@ -1303,7 +1303,7 @@ void ZeldaAudioRenderer::AddVoice(u16 voice_id)
         continue;
       }
 
-      s32 new_volume = AddBuffersWithVolumeRamp(dst_buffer, input_samples,
+      s32 new_volume = AddBuffersWithVolumeRamp(*dst_buffer, input_samples,
                                                 vpb.channels[i].current_volume << 16, volume_step);
       vpb.channels[i].current_volume = new_volume >> 16;
     }
