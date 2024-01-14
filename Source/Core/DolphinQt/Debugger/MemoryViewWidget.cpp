@@ -3,6 +3,9 @@
 
 #include "DolphinQt/Debugger/MemoryViewWidget.h"
 
+#include <bit>
+#include <cmath>
+
 #include <QApplication>
 #include <QClipboard>
 #include <QHBoxLayout>
@@ -14,10 +17,10 @@
 #include <QTableWidget>
 #include <QtGlobal>
 
-#include <cmath>
 #include <fmt/printf.h>
 
 #include "Common/Align.h"
+#include "Common/BitUtils.h"
 #include "Common/FloatUtils.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
@@ -520,11 +523,11 @@ QString MemoryViewWidget::ValueToString(const Core::CPUThreadGuard& guard, u32 a
   case Type::Unsigned32:
     return QString::number(accessors->ReadU32(guard, address));
   case Type::Signed8:
-    return QString::number(Common::BitCast<s8>(accessors->ReadU8(guard, address)));
+    return QString::number(std::bit_cast<s8>(accessors->ReadU8(guard, address)));
   case Type::Signed16:
-    return QString::number(Common::BitCast<s16>(accessors->ReadU16(guard, address)));
+    return QString::number(std::bit_cast<s16>(accessors->ReadU16(guard, address)));
   case Type::Signed32:
-    return QString::number(Common::BitCast<s32>(accessors->ReadU32(guard, address)));
+    return QString::number(std::bit_cast<s32>(accessors->ReadU32(guard, address)));
   case Type::Float32:
   {
     QString string = QString::number(accessors->ReadF32(guard, address), 'g', 4);
@@ -537,7 +540,7 @@ QString MemoryViewWidget::ValueToString(const Core::CPUThreadGuard& guard, u32 a
   case Type::Double:
   {
     QString string =
-        QString::number(Common::BitCast<double>(accessors->ReadU64(guard, address)), 'g', 4);
+        QString::number(std::bit_cast<double>(accessors->ReadU64(guard, address)), 'g', 4);
     // Align to first digit.
     if (!string.startsWith(QLatin1Char('-')))
       string.prepend(QLatin1Char(' '));
@@ -635,7 +638,7 @@ std::vector<u8> MemoryViewWidget::ConvertTextToBytes(Type type, QStringView inpu
 
     if (good)
     {
-      const u32 value = Common::BitCast<u32>(float_value);
+      const u32 value = std::bit_cast<u32>(float_value);
       auto std_array = Common::BitCastToArray<u8>(Common::swap32(value));
       return std::vector<u8>(std_array.begin(), std_array.end());
     }
@@ -647,7 +650,7 @@ std::vector<u8> MemoryViewWidget::ConvertTextToBytes(Type type, QStringView inpu
 
     if (good)
     {
-      const u64 value = Common::BitCast<u64>(double_value);
+      const u64 value = std::bit_cast<u64>(double_value);
       auto std_array = Common::BitCastToArray<u8>(Common::swap64(value));
       return std::vector<u8>(std_array.begin(), std_array.end());
     }

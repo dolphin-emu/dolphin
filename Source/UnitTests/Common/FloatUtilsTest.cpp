@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <array>
+#include <bit>
 #include <limits>
 #include <random>
 
 #include <gtest/gtest.h>
 
-#include "Common/BitUtils.h"
 #include "Common/FloatUtils.h"
 
 #include "../Core/PowerPC/TestValues.h"
@@ -53,16 +53,16 @@ TEST(FloatUtils, FlushToZero)
   for (u32 i = 0; i <= 0x007fffffu; ++i)
   {
     u32 i_tmp = i;
-    EXPECT_EQ(+0.f, Common::FlushToZero(Common::BitCast<float>(i_tmp)));
+    EXPECT_EQ(+0.f, Common::FlushToZero(std::bit_cast<float>(i_tmp)));
 
     i_tmp |= 0x80000000u;
-    EXPECT_EQ(-0.f, Common::FlushToZero(Common::BitCast<float>(i_tmp)));
+    EXPECT_EQ(-0.f, Common::FlushToZero(std::bit_cast<float>(i_tmp)));
 
     i_tmp = dist(engine);
-    EXPECT_EQ(i_tmp, Common::BitCast<u32>(Common::FlushToZero(Common::BitCast<float>(i_tmp))));
+    EXPECT_EQ(i_tmp, std::bit_cast<u32>(Common::FlushToZero(std::bit_cast<float>(i_tmp))));
 
     i_tmp |= 0x80000000u;
-    EXPECT_EQ(i_tmp, Common::BitCast<u32>(Common::FlushToZero(Common::BitCast<float>(i_tmp))));
+    EXPECT_EQ(i_tmp, std::bit_cast<u32>(Common::FlushToZero(std::bit_cast<float>(i_tmp))));
   }
 }
 
@@ -88,11 +88,11 @@ TEST(FloatUtils, ApproximateReciprocalSquareRoot)
   for (size_t i = 0; i < double_test_values.size(); ++i)
   {
     u64 ivalue = double_test_values[i];
-    double dvalue = Common::BitCast<double>(ivalue);
+    double dvalue = std::bit_cast<double>(ivalue);
 
     u64 expected = expected_values[i];
 
-    u64 actual = Common::BitCast<u64>(Common::ApproximateReciprocalSquareRoot(dvalue));
+    u64 actual = std::bit_cast<u64>(Common::ApproximateReciprocalSquareRoot(dvalue));
 
     EXPECT_EQ(expected, actual);
   }
