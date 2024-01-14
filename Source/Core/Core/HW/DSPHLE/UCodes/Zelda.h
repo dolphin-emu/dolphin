@@ -80,20 +80,25 @@ private:
   }
 
   // Mixes two buffers together while applying a volume to one of them. The
-  // volume ramps up/down in N steps using the provided step delta value.
-  //
-  // Note: On a real GC, the stepping happens in 32 steps instead. But hey,
-  // we can do better here with very low risk. Why not? :)
-  s32 AddBuffersWithVolumeRamp(MixingBuffer& dst, const MixingBuffer& src, s32 vol,
-                               s32 step)
+  // volume ramps up/down in 32 steps using the provided delta value.
+  s32 AddBuffersWithVolumeRamp(MixingBuffer& dst, const MixingBuffer& src, s32 vol, s32 delta)
   {
-    if (!vol && !step)
+    if (!vol && !delta)
       return vol;
 
-    for (size_t i = 0; i < 0x50; ++i)
+    s32 step = delta >> 5;
+    for (size_t i = 0; i < 0x40;)
     {
       dst[i] += ((vol >> 16) * src[i]) >> 16;
+      ++i;
+      dst[i] += ((vol >> 16) * src[i]) >> 16;
+      ++i;
       vol += step;
+    }
+
+    for (size_t i = 0x40; i < 0x50; ++i)
+    {
+      dst[i] += ((vol >> 16) * src[i]) >> 16;
     }
 
     return vol;
