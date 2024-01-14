@@ -13,6 +13,11 @@ class IRWidget : public QWidget
 public:
   explicit IRWidget(QWidget* parent);
 
+  static constexpr u16 ir_min_x = 0;
+  static constexpr u16 ir_min_y = 0;
+  static constexpr u16 ir_max_x = 1023;
+  static constexpr u16 ir_max_y = 767;
+
 signals:
   void ChangedX(u16 x);
   void ChangedY(u16 y);
@@ -32,9 +37,3 @@ private:
   u16 m_y = 0;
   bool m_ignore_movement = false;
 };
-
-// Should be part of class but fails to compile on mac os
-static const u16 ir_min_x = 0;
-static const u16 ir_min_y = 0;
-static const u16 ir_max_x = 1023;
-static const u16 ir_max_y = 767;

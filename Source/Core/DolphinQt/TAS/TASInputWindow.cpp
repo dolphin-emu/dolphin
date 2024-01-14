@@ -7,6 +7,7 @@
 #include <utility>
 
 #include <QCheckBox>
+#include <QDoubleSpinBox>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -234,6 +235,58 @@ TASSpinBox* TASInputWindow::CreateSliderValuePair(QBoxLayout* layout, int defaul
   return value;
 }
 
+QDoubleSpinBox* TASInputWindow::CreateWeightSliderValuePair(std::string_view group_name,
+                                                            std::string_view control_name,
+                                                            InputOverrider* overrider,
+                                                            QBoxLayout* layout, int min, int max,
+                                                            QKeySequence shortcut_key_sequence,
+                                                            QWidget* shortcut_widget)
+{
+  QDoubleSpinBox* value =
+      CreateWeightSliderValuePair(layout, min, max, shortcut_key_sequence, shortcut_widget);
+
+  InputOverrider::OverrideFunction func = [this, value](ControlState controller_state) {
+    return GetSpinBox(value, controller_state);
+  };
+
+  overrider->AddFunction(group_name, control_name, std::move(func));
+
+  return value;
+}
+
+// The shortcut_widget argument needs to specify the container widget that will be hidden/shown.
+// This is done to avoid ambigous shortcuts
+QDoubleSpinBox* TASInputWindow::CreateWeightSliderValuePair(QBoxLayout* layout, int min, int max,
+                                                            QKeySequence shortcut_key_sequence,
+                                                            QWidget* shortcut_widget)
+{
+  auto* value = new QDoubleSpinBox();
+  value->setRange(min, max);
+  value->setDecimals(2);
+  value->setSuffix(QStringLiteral("kg"));
+  auto* slider = new QSlider(Qt::Orientation::Horizontal);
+  slider->setRange(min * 100, max * 100);
+  slider->setFocusPolicy(Qt::ClickFocus);
+  slider->setSingleStep(100);
+  slider->setPageStep(1000);
+  slider->setTickPosition(QSlider::TickPosition::TicksBelow);
+
+  connect(slider, &QSlider::valueChanged, value, [value](int i) { value->setValue(i / 100.0); });
+  connect(value, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+          slider, [slider](double d) { slider->setValue((int)(d * 100)); });
+
+  auto* shortcut = new QShortcut(shortcut_key_sequence, shortcut_widget);
+  connect(shortcut, &QShortcut::activated, [value] {
+    value->setFocus();
+    value->selectAll();
+  });
+
+  layout->addWidget(slider);
+  layout->addWidget(value);
+
+  return value;
+}
+
 std::optional<ControlState> TASInputWindow::GetButton(TASCheckBox* checkbox,
                                                       ControlState controller_state)
 {
@@ -267,4 +320,25 @@ std::optional<ControlState> TASInputWindow::GetSpinBox(TASSpinBox* spin, int zer
     spin->OnControllerValueChanged(controller_value);
 
   return (spin->GetValue() - zero) / scale;
+}
+
+std::optional<ControlState> TASInputWindow::GetSpinBox(QDoubleSpinBox* spin,
+                                                       ControlState controller_state)
+{
+  if (m_use_controller->isChecked())
+  {
+    if (!m_spinbox_most_recent_values_double.count(spin) ||
+        m_spinbox_most_recent_values_double[spin] != controller_state)
+    {
+      QueueOnObjectBlocking(spin, [spin, controller_state] { spin->setValue(controller_state); });
+    }
+
+    m_spinbox_most_recent_values_double[spin] = controller_state;
+  }
+  else
+  {
+    m_spinbox_most_recent_values_double.clear();
+  }
+
+  return spin->value();
 }

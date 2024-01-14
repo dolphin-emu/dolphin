@@ -17,7 +17,7 @@
 
 class QBoxLayout;
 class QCheckBox;
-class QDialog;
+class QDoubleSpinBox;
 class QGroupBox;
 class QSpinBox;
 class QString;
@@ -67,6 +67,14 @@ protected:
   TASSpinBox* CreateSliderValuePair(QBoxLayout* layout, int default_, int max,
                                     QKeySequence shortcut_key_sequence, Qt::Orientation orientation,
                                     QWidget* shortcut_widget);
+  QDoubleSpinBox* CreateWeightSliderValuePair(std::string_view group_name,
+                                              std::string_view control_name,
+                                              InputOverrider* overrider, QBoxLayout* layout,
+                                              int min, int max, QKeySequence shortcut_key_sequence,
+                                              QWidget* shortcut_widget);
+  QDoubleSpinBox* CreateWeightSliderValuePair(QBoxLayout* layout, int min, int max,
+                                              QKeySequence shortcut_key_sequence,
+                                              QWidget* shortcut_widget);
 
   QGroupBox* m_settings_box;
   QCheckBox* m_use_controller;
@@ -79,4 +87,7 @@ private:
                                          ControlState controller_state);
   std::optional<ControlState> GetSpinBox(TASSpinBox* spin, int zero, ControlState controller_state,
                                          ControlState scale);
+  std::optional<ControlState> GetSpinBox(QDoubleSpinBox* spin, ControlState controller_state);
+
+  std::map<QDoubleSpinBox*, u16> m_spinbox_most_recent_values_double;
 };
