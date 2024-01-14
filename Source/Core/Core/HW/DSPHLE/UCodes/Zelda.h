@@ -79,24 +79,33 @@ private:
     ApplyVolumeInPlace<N, 4>(buf, vol);
   }
 
-  // Mixes two buffers together while applying a volume to one of them. The
-  // volume ramps up/down in N steps using the provided step delta value.
-  //
-  // Note: On a real GC, the stepping happens in 32 steps instead. But hey,
-  // we can do better here with very low risk. Why not? :)
-  s32 AddBuffersWithVolumeRamp(MixingBuffer& dst, const MixingBuffer& src, s32 vol,
-                               s32 step)
+  // Mixes two buffers together while applying a volume to one of them.
+  // We try to match LLE, hence the slightly odd ramping.
+  s16 AddBuffersWithVolumeRamp(MixingBuffer& dst, const MixingBuffer& src, s16 start_volume,
+                               s16 delta)
   {
-    if (!vol && !step)
-      return vol;
+    if (!start_volume && !delta)
+      return start_volume;
 
-    for (size_t i = 0; i < 0x50; ++i)
+    // The delta is applied in 32 steps over the first 64 samples.
+    s32 vol = start_volume << 16;
+    s32 step = delta << (16 - 5);
+    for (size_t i = 0; i < 0x40;)
     {
       dst[i] += ((vol >> 16) * src[i]) >> 16;
+      ++i;
+      dst[i] += ((vol >> 16) * src[i]) >> 16;
+      ++i;
       vol += step;
     }
 
-    return vol;
+    // The last 16 samples are mixed at the target volume.
+    for (size_t i = 0x40; i < 0x50; ++i)
+    {
+      dst[i] += ((vol >> 16) * src[i]) >> 16;
+    }
+
+    return vol >> 16;
   }
 
   // Does not use std::array because it needs to be able to process partial

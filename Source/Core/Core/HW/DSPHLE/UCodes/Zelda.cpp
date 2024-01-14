@@ -1249,8 +1249,7 @@ void ZeldaAudioRenderer::AddVoice(u16 voice_id)
     };
     for (const auto& buffer : buffers)
     {
-      AddBuffersWithVolumeRamp(buffer.buffer, input_samples, buffer.volume << 16,
-                               (buffer.volume_delta << 16) / (s32)buffer.buffer.size());
+      AddBuffersWithVolumeRamp(buffer.buffer, input_samples, buffer.volume, buffer.volume_delta);
     }
 
     vpb.dolby_volume_current = vpb.dolby_volume_target;
@@ -1285,13 +1284,11 @@ void ZeldaAudioRenderer::AddVoice(u16 voice_id)
       else
         volume_delta = vpb.channels[i].target_volume - vpb.channels[i].current_volume;
 
-      s32 volume_step = (volume_delta << 16) / (s32)input_samples.size();  // In 1.31 format.
-
       // TODO: The last value of each channel structure is used to
       // determine whether a channel should be skipped or not. Not
       // implemented yet.
 
-      if (!vpb.channels[i].current_volume && !volume_step)
+      if (!vpb.channels[i].current_volume && !volume_delta)
         continue;
 
       MixingBuffer* dst_buffer = BufferForID(vpb.channels[i].id);
@@ -1303,9 +1300,9 @@ void ZeldaAudioRenderer::AddVoice(u16 voice_id)
         continue;
       }
 
-      s32 new_volume = AddBuffersWithVolumeRamp(*dst_buffer, input_samples,
-                                                vpb.channels[i].current_volume << 16, volume_step);
-      vpb.channels[i].current_volume = new_volume >> 16;
+      s16 new_volume = AddBuffersWithVolumeRamp(*dst_buffer, input_samples,
+                                                vpb.channels[i].current_volume, volume_delta);
+      vpb.channels[i].current_volume = new_volume;
     }
   }
 
