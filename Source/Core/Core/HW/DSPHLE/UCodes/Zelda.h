@@ -51,6 +51,8 @@ private:
   // See Zelda.cpp for the list of possible flags.
   u32 m_flags;
 
+  typedef std::array<s16, 0x50> MixingBuffer;
+
   // Utility functions for audio operations.
 
   // Apply volume to a buffer. The volume is a fixed point integer, usually
@@ -82,16 +84,15 @@ private:
   //
   // Note: On a real GC, the stepping happens in 32 steps instead. But hey,
   // we can do better here with very low risk. Why not? :)
-  template <size_t N>
-  s32 AddBuffersWithVolumeRamp(std::array<s16, N>* dst, const std::array<s16, N>& src, s32 vol,
+  s32 AddBuffersWithVolumeRamp(MixingBuffer& dst, const MixingBuffer& src, s32 vol,
                                s32 step)
   {
     if (!vol && !step)
       return vol;
 
-    for (size_t i = 0; i < N; ++i)
+    for (size_t i = 0; i < 0x50; ++i)
     {
-      (*dst)[i] += ((vol >> 16) * src[i]) >> 16;
+      dst[i] += ((vol >> 16) * src[i]) >> 16;
       vol += step;
     }
 
@@ -120,7 +121,6 @@ private:
   u16 m_output_volume = 0;
 
   // Mixing buffers.
-  typedef std::array<s16, 0x50> MixingBuffer;
   MixingBuffer m_buf_front_left{};
   MixingBuffer m_buf_front_right{};
   MixingBuffer m_buf_back_left{};
