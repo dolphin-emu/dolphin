@@ -4,6 +4,8 @@
 #include "Core/NetPlayClient.h"
 
 #include <algorithm>
+#include <cmath>
+#include <condition_variable>
 #include <cstddef>
 #include <cstring>
 #include <fstream>
@@ -49,6 +51,7 @@
 #include "Core/HW/GBAPad.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
 #include "Core/HW/GCPad.h"
+#include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/SI/SI_DeviceGCController.h"
@@ -83,6 +86,19 @@ using namespace WiimoteCommon;
 static std::mutex crit_netplay_client;
 static NetPlayClient* netplay_client = nullptr;
 static bool s_si_poll_batching = false;
+
+struct ExternalEventSyncData
+{
+  std::mutex mutex;
+  std::condition_variable cv;
+  std::map<PlayerId, u64> map;
+  ExternalEventID event_id = ExternalEventID::None;
+};
+
+static std::mutex s_event_sync_mutex;
+static std::map<u64, ExternalEventSyncData> s_event_sync_map;
+static CoreTiming::EventType* event_type_sync_time_for_ext_event = nullptr;
+static CoreTiming::EventType* event_type_ext_event = nullptr;
 
 // called from ---GUI--- thread
 NetPlayClient::~NetPlayClient()
@@ -434,6 +450,14 @@ void NetPlayClient::OnData(sf::Packet& packet)
 
   case MessageID::PowerButton:
     OnPowerButton();
+    break;
+
+  case MessageID::ScheduleExternalEvent:
+    OnScheduleExternalEvent(packet);
+    break;
+
+  case MessageID::SyncTimepointForExternalEvent:
+    OnSyncTimepointForExternalEvent(packet);
     break;
 
   case MessageID::Ping:
@@ -950,6 +974,61 @@ void NetPlayClient::OnPowerButton()
 {
   InvokeStop();
   m_dialog->OnMsgPowerButton();
+}
+
+void NetPlayClient::OnScheduleExternalEvent(sf::Packet& packet)
+{
+  // A user (could be ourselves, too) has requested the scheduling of an external event.
+
+  ExternalEventID eeid;
+  packet >> eeid;
+  sf::Uint64 uid;
+  packet >> uid;
+  sf::Uint64 timepoint;
+  packet >> timepoint;
+
+  DEBUG_LOG_FMT(NETPLAY, "OnScheduleExternalEvent(): eeid {}, timepoint {}, uid {}", u8(eeid),
+                timepoint, uid);
+
+  // The 'uid' is unique per netplay session and is both used to provide an absolute ordering in
+  // case two events get assigned to the same timepoint, and also to keep track (in
+  // s_event_sync_map) of what event-related packet belongs to what event if multiple are in flight
+  // at the same time.
+
+  {
+    std::lock_guard lk(s_event_sync_mutex);
+    s_event_sync_map[static_cast<u64>(uid)].event_id = eeid;
+  }
+
+  auto& core_timing = Core::System::GetInstance().GetCoreTiming();
+  core_timing.ScheduleExternalEvent(static_cast<u64>(timepoint), event_type_sync_time_for_ext_event,
+                                    static_cast<u64>(uid), static_cast<u64>(uid));
+}
+
+void NetPlayClient::OnSyncTimepointForExternalEvent(sf::Packet& packet)
+{
+  // A user (not ourselves) is currently waiting to execute an external event and has sent us their
+  // current timepoint to determine what the earliest timepoint the event can execute is.
+
+  PlayerId pid;
+  packet >> pid;
+  sf::Uint64 uid;
+  packet >> uid;
+  sf::Uint64 timepoint;
+  packet >> timepoint;
+
+  DEBUG_LOG_FMT(NETPLAY, "OnSyncTimepointForExternalEvent(): player id {}, timepoint {}, uid {}",
+                u8(pid), timepoint, uid);
+
+  {
+    std::lock_guard lk(s_event_sync_mutex);
+    auto& event_data = s_event_sync_map[static_cast<u64>(uid)];
+    {
+      std::lock_guard lk2(event_data.mutex);
+      event_data.map[pid] = static_cast<u64>(timepoint);
+    }
+    event_data.cv.notify_all();
+  }
 }
 
 void NetPlayClient::OnPing(sf::Packet& packet)
@@ -2359,6 +2438,14 @@ void NetPlayClient::RequestStopGame()
     SendStopGamePacket();
 }
 
+void NetPlayClient::ScheduleExternalEvent(ExternalEventID id)
+{
+  sf::Packet packet;
+  packet << MessageID::ScheduleExternalEvent;
+  packet << id;
+  SendAsync(std::move(packet));
+}
+
 void NetPlayClient::SendPowerButtonEvent()
 {
   sf::Packet packet;
@@ -2685,6 +2772,12 @@ void SetSIPollBatching(bool state)
   s_si_poll_batching = state;
 }
 
+void ScheduleResetButtonTap()
+{
+  ASSERT(IsNetPlayRunning());
+  netplay_client->ScheduleExternalEvent(ExternalEventID::ResetButton);
+}
+
 void SendPowerButtonEvent()
 {
   ASSERT(IsNetPlayRunning());
@@ -2764,6 +2857,103 @@ void NetPlay_Disable()
 {
   std::lock_guard lk(crit_netplay_client);
   netplay_client = nullptr;
+}
+
+static void NetPlayExtEvent(Core::System& system, u64 userdata, s64 cyclesLate)
+{
+  ExternalEventID eeid = static_cast<ExternalEventID>(userdata);
+  switch (eeid)
+  {
+  case ExternalEventID::ResetButton:
+    system.GetProcessorInterface().ResetButton_Tap();
+    break;
+  default:
+    WARN_LOG_FMT(NETPLAY, "NetPlayExtEvent: Invalid event type. ({})", userdata);
+    break;
+  }
+}
+
+void NetPlayClient::SendTimepointForNetPlayEvent(u64 timepoint, u64 uid)
+{
+  sf::Packet packet;
+  packet << MessageID::SyncTimepointForExternalEvent;
+  packet << sf::Uint64(uid);
+  packet << sf::Uint64(timepoint);
+  SendAsync(std::move(packet));
+}
+
+static void NetPlaySyncEvent(Core::System& system, u64 userdata, s64 cyclesLate)
+{
+  // An external event should be executed, but we're not sure of a valid timepoint for it yet. To
+  // figure this out, we now send our current timepoint to all other players (as they do the same),
+  // then once we know all timepoints we execute the event after the last timepoint of any player;
+  // this ensures that every player can run it at the same timepoint and thus stay deterministic
+  // with eachother.
+
+  auto& core_timing = system.GetCoreTiming();
+  const u64 timepoint = core_timing.GetTicks();
+  ExternalEventSyncData* ptr_event_data;
+  {
+    std::lock_guard lk(s_event_sync_mutex);
+    ptr_event_data = &s_event_sync_map[userdata];
+  }
+  auto& event_data = *ptr_event_data;
+
+  {
+    std::lock_guard lk(event_data.mutex);
+    event_data.map[netplay_client->GetLocalPlayerId()] = timepoint;
+  }
+
+  netplay_client->SendTimepointForNetPlayEvent(timepoint, userdata);
+  const size_t num_players = netplay_client->GetPlayers().size();
+
+  bool do_schedule = false;
+  u64 latest_timepoint = 0;
+  {
+    std::unique_lock<std::mutex> lock(event_data.mutex);
+    if (event_data.map.size() != num_players)
+    {
+      DEBUG_LOG_FMT(NETPLAY, "NetPlaySyncEvent({}): Waiting for timepoints.", userdata);
+      event_data.cv.wait_for(lock, std::chrono::seconds(5), [&event_data, num_players] {
+        return event_data.map.size() == num_players;
+      });
+    }
+    if (event_data.map.size() != num_players)
+    {
+      WARN_LOG_FMT(NETPLAY, "NetPlaySyncEvent({}): Timed out waiting for timepoints.", userdata);
+    }
+    else
+    {
+      for (const auto& it : event_data.map)
+      {
+        DEBUG_LOG_FMT(NETPLAY, "NetPlaySyncEvent({}): Timepoint {} from player {}.", userdata,
+                      it.second, u8(it.first));
+        latest_timepoint = std::max(it.second, latest_timepoint);
+      }
+      do_schedule = true;
+    }
+  }
+
+  const ExternalEventID eeid = event_data.event_id;
+
+  {
+    std::lock_guard lk(s_event_sync_mutex);
+    s_event_sync_map.erase(userdata);
+  }
+
+  if (do_schedule)
+  {
+    core_timing.ScheduleExternalEvent(latest_timepoint + 1, event_type_ext_event,
+                                      static_cast<u64>(eeid), userdata);
+  }
+}
+
+void NetPlay_RegisterEvents()
+{
+  auto& core_timing = Core::System::GetInstance().GetCoreTiming();
+  event_type_ext_event = core_timing.RegisterEvent("NetPlayExtEvent", NetPlayExtEvent);
+  event_type_sync_time_for_ext_event =
+      core_timing.RegisterEvent("NetPlaySyncEvent", NetPlaySyncEvent);
 }
 }  // namespace NetPlay
 

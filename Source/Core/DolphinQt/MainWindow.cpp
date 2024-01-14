@@ -1014,7 +1014,7 @@ void MainWindow::Reset()
   if (Movie::IsRecordingInput())
     Movie::SetReset(true);
   auto& system = Core::System::GetInstance();
-  system.GetProcessorInterface().ResetButton_Tap();
+  system.GetProcessorInterface().ResetButton_Tap_FromUser();
 }
 
 void MainWindow::FrameAdvance()
