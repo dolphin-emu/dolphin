@@ -23,6 +23,7 @@
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/Movie.h"
+#include "Core/System.h"
 
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
@@ -552,7 +553,8 @@ void Wiimote::Update(const WiimoteEmu::DesiredWiimoteState& target_state)
 
 void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
 {
-  Movie::SetPolledDevice();
+  auto& movie = Core::System::GetInstance().GetMovie();
+  movie.SetPolledDevice();
 
   if (InputReportID::ReportDisabled == m_reporting_mode)
   {
@@ -569,9 +571,8 @@ void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
 
   DataReportBuilder rpt_builder(m_reporting_mode);
 
-  if (Movie::IsPlayingInput() &&
-      Movie::PlayWiimote(m_bt_device_index, rpt_builder, m_active_extension,
-                         GetExtensionEncryptionKey()))
+  if (movie.IsPlayingInput() && movie.PlayWiimote(m_bt_device_index, rpt_builder,
+                                                  m_active_extension, GetExtensionEncryptionKey()))
   {
     // Update buttons in status struct from movie:
     rpt_builder.GetCoreData(&m_status.buttons);
@@ -640,8 +641,8 @@ void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
     }
   }
 
-  Movie::CheckWiimoteStatus(m_bt_device_index, rpt_builder, m_active_extension,
-                            GetExtensionEncryptionKey());
+  movie.CheckWiimoteStatus(m_bt_device_index, rpt_builder, m_active_extension,
+                           GetExtensionEncryptionKey());
 
   // Send the report:
   InterruptDataInputCallback(rpt_builder.GetDataPtr(), rpt_builder.GetDataSize());

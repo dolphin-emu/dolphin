@@ -11,6 +11,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Movie.h"
+#include "Core/System.h"
 
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/AbstractPipeline.h"
@@ -284,26 +285,27 @@ void OnScreenUI::DrawDebugText()
         ImGui::GetIO().DisplaySize);
     if (ImGui::Begin("Movie", nullptr, ImGuiWindowFlags_NoFocusOnAppearing))
     {
-      if (Movie::IsPlayingInput())
+      auto& movie = Core::System::GetInstance().GetMovie();
+      if (movie.IsPlayingInput())
       {
-        ImGui::Text("Frame: %" PRIu64 " / %" PRIu64, Movie::GetCurrentFrame(),
-                    Movie::GetTotalFrames());
-        ImGui::Text("Input: %" PRIu64 " / %" PRIu64, Movie::GetCurrentInputCount(),
-                    Movie::GetTotalInputCount());
+        ImGui::Text("Frame: %" PRIu64 " / %" PRIu64, movie.GetCurrentFrame(),
+                    movie.GetTotalFrames());
+        ImGui::Text("Input: %" PRIu64 " / %" PRIu64, movie.GetCurrentInputCount(),
+                    movie.GetTotalInputCount());
       }
       else if (Config::Get(Config::MAIN_SHOW_FRAME_COUNT))
       {
-        ImGui::Text("Frame: %" PRIu64, Movie::GetCurrentFrame());
-        ImGui::Text("Input: %" PRIu64, Movie::GetCurrentInputCount());
+        ImGui::Text("Frame: %" PRIu64, movie.GetCurrentFrame());
+        ImGui::Text("Input: %" PRIu64, movie.GetCurrentInputCount());
       }
       if (Config::Get(Config::MAIN_SHOW_LAG))
-        ImGui::Text("Lag: %" PRIu64 "\n", Movie::GetCurrentLagCount());
+        ImGui::Text("Lag: %" PRIu64 "\n", movie.GetCurrentLagCount());
       if (Config::Get(Config::MAIN_MOVIE_SHOW_INPUT_DISPLAY))
-        ImGui::TextUnformatted(Movie::GetInputDisplay().c_str());
+        ImGui::TextUnformatted(movie.GetInputDisplay().c_str());
       if (Config::Get(Config::MAIN_MOVIE_SHOW_RTC))
-        ImGui::TextUnformatted(Movie::GetRTCDisplay().c_str());
+        ImGui::TextUnformatted(movie.GetRTCDisplay().c_str());
       if (Config::Get(Config::MAIN_MOVIE_SHOW_RERECORD))
-        ImGui::TextUnformatted(Movie::GetRerecords().c_str());
+        ImGui::TextUnformatted(movie.GetRerecords().c_str());
     }
     ImGui::End();
   }

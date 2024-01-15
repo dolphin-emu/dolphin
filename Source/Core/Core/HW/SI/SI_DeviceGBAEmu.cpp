@@ -125,7 +125,8 @@ bool CSIDevice_GBAEmu::GetData(u32& hi, u32& low)
   GCPadStatus pad_status{};
   if (!NetPlay::IsNetPlayRunning())
     pad_status = Pad::GetGBAStatus(m_device_number);
-  SerialInterface::CSIDevice_GCController::HandleMoviePadStatus(m_device_number, &pad_status);
+  SerialInterface::CSIDevice_GCController::HandleMoviePadStatus(m_system.GetMovie(),
+                                                                m_device_number, &pad_status);
 
   static constexpr std::array<PadButton, 10> buttons_map = {
       PadButton::PAD_BUTTON_A,      // A

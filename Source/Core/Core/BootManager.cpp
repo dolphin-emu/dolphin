@@ -66,11 +66,13 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     return false;
 
   // Movie settings
-  if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
+  auto& system = Core::System::GetInstance();
+  auto& movie = system.GetMovie();
+  if (movie.IsPlayingInput() && movie.IsConfigSaved())
   {
     for (ExpansionInterface::Slot slot : ExpansionInterface::MEMCARD_SLOTS)
     {
-      if (Movie::IsUsingMemcard(slot) && Movie::IsStartingFromClearSave() && !StartUp.bWii)
+      if (movie.IsUsingMemcard(slot) && movie.IsStartingFromClearSave() && !StartUp.bWii)
       {
         const auto raw_path =
             File::GetUserPath(D_GCUSER_IDX) +
@@ -142,7 +144,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   if (!boot->riivolution_patches.empty())
     Config::SetCurrent(Config::MAIN_FAST_DISC_SPEED, true);
 
-  auto& system = Core::System::GetInstance();
   system.Initialize();
 
   Core::UpdateWantDeterminism(/*initial*/ true);
