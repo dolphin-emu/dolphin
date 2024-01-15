@@ -305,6 +305,8 @@ public:
 private:
   void UpdatePollCommands();
 
+  friend class WiiSocket;
+
   EmulationKernel& m_ios;
   std::unordered_map<s32, WiiSocket> WiiSockets;
   s32 errno_last = 0;
