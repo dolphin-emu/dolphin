@@ -103,7 +103,7 @@ private:
   class Motor : public Output
   {
   public:
-    explicit Motor(SDL_GameController* gc) : m_gc(gc){};
+    explicit Motor(SDL_GameController* gc) : m_gc(gc) {}
     std::string GetName() const override;
     void SetState(ControlState state) override;
 
@@ -114,7 +114,7 @@ private:
   class MotorL : public Output
   {
   public:
-    explicit MotorL(SDL_GameController* gc) : m_gc(gc){};
+    explicit MotorL(SDL_GameController* gc) : m_gc(gc) {}
     std::string GetName() const override;
     void SetState(ControlState state) override;
 
@@ -122,11 +122,10 @@ private:
     SDL_GameController* const m_gc;
   };
 
-  // Rumble
   class MotorR : public Output
   {
   public:
-    explicit MotorR(SDL_GameController* gc) : m_gc(gc){};
+    explicit MotorR(SDL_GameController* gc) : m_gc(gc) {}
     std::string GetName() const override;
     void SetState(ControlState state) override;
 
