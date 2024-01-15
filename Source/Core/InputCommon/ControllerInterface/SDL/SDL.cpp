@@ -342,8 +342,26 @@ GameController::GameController(SDL_GameController* const gamecontroller,
 
   // If a Joystick Button has a GameController equivalent, don't detect it
   int n_legacy_buttons = SDL_JoystickNumButtons(joystick);
+  if (n_legacy_buttons < 0)
+  {
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "Error in SDL_JoystickNumButtons(): {}", SDL_GetError());
+    n_legacy_buttons = 0;
+  }
+
   int n_legacy_axes = SDL_JoystickNumAxes(joystick);
+  if (n_legacy_axes < 0)
+  {
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "Error in SDL_JoystickNumAxes(): {}", SDL_GetError());
+    n_legacy_axes = 0;
+  }
+
   int n_legacy_hats = SDL_JoystickNumHats(joystick);
+  if (n_legacy_hats < 0)
+  {
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "Error in SDL_JoystickNumHats(): {}", SDL_GetError());
+    n_legacy_hats = 0;
+  }
+
   std::vector<bool> is_button_mapped(n_legacy_buttons);
   std::vector<bool> is_axis_mapped(n_legacy_axes);
   std::vector<bool> is_hat_mapped(n_legacy_hats);
