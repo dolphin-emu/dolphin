@@ -354,13 +354,16 @@ GameController::GameController(SDL_GameController* const gamecontroller,
     case SDL_CONTROLLER_BINDTYPE_NONE:
       return;
     case SDL_CONTROLLER_BINDTYPE_BUTTON:
-      is_button_mapped.assign(bind.value.button, true);
+      if (bind.value.button >= 0 && bind.value.button < n_legacy_buttons)
+        is_button_mapped[bind.value.button] = true;
       break;
     case SDL_CONTROLLER_BINDTYPE_AXIS:
-      is_axis_mapped.assign(bind.value.axis, true);
+      if (bind.value.axis >= 0 && bind.value.axis < n_legacy_axes)
+        is_axis_mapped[bind.value.axis] = true;
       break;
     case SDL_CONTROLLER_BINDTYPE_HAT:
-      is_hat_mapped.assign(bind.value.hat.hat, true);
+      if (bind.value.hat.hat >= 0 && bind.value.hat.hat < n_legacy_hats)
+        is_hat_mapped[bind.value.hat.hat] = true;
       break;
     }
   };
