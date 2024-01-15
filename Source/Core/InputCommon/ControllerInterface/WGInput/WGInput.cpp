@@ -6,6 +6,7 @@
 #include <array>
 #include <map>
 #include <string_view>
+#include <thread>
 
 // For CoGetApartmentType
 #include <objbase.h>
@@ -681,15 +682,27 @@ void Init()
   try
   {
     // These events will be invoked from WGI-managed threadpool.
+    // We handle these in a separate thread to avoid devices being added or removed within
+    // "Joystick::UpdateInput()" (which is within "ControllerInterface::UpdateInput()"),
+    // as it's forbidden and causes a deadlock.
     s_event_added = WGI::RawGameController::RawGameControllerAdded(
         [](auto&&, const WGI::RawGameController raw_game_controller) {
-          RemoveDevice(raw_game_controller);
-          AddDevice(raw_game_controller);
+          std::thread population_thread([&]() {
+            g_controller_interface.PlatformPopulateDevices([&] {
+              RemoveDevice(raw_game_controller);
+              AddDevice(raw_game_controller);
+            });
+          });
+          population_thread.detach();
         });
 
     s_event_removed = WGI::RawGameController::RawGameControllerRemoved(
         [](auto&&, const WGI::RawGameController raw_game_controller) {
-          RemoveDevice(raw_game_controller);
+          std::thread population_thread([&]() {
+            g_controller_interface.PlatformPopulateDevices(
+                [&] { RemoveDevice(raw_game_controller); });
+          });
+          population_thread.detach();
         });
   }
   catch (winrt::hresult_error)
