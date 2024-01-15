@@ -50,7 +50,7 @@ private:
   {
   public:
     std::string GetName() const override;
-    LegacyButton(SDL_Joystick* js, u8 index, bool is_detectable)
+    LegacyButton(SDL_Joystick* js, int index, bool is_detectable)
         : m_js(js), m_index(index), m_is_detectable(is_detectable)
     {
     }
@@ -67,8 +67,8 @@ private:
   {
   public:
     std::string GetName() const override;
-    LegacyAxis(SDL_Joystick* js, u8 index, Sint16 range, bool is_detectable)
-        : m_js(js), m_range(range), m_index(index), m_is_detectable(is_detectable)
+    LegacyAxis(SDL_Joystick* js, int index, s16 range, bool is_detectable)
+        : m_js(js), m_index(index), m_range(range), m_is_detectable(is_detectable)
     {
     }
     bool IsDetectable() const override { return m_is_detectable; }
@@ -76,8 +76,8 @@ private:
 
   private:
     SDL_Joystick* const m_js;
-    const Sint16 m_range;
-    const u8 m_index;
+    const int m_index;
+    const s16 m_range;
     const bool m_is_detectable;
   };
 
@@ -85,8 +85,8 @@ private:
   {
   public:
     std::string GetName() const override;
-    LegacyHat(SDL_Joystick* js, u8 index, u8 direction, bool is_detectable)
-        : m_js(js), m_direction(direction), m_index(index), m_is_detectable(is_detectable)
+    LegacyHat(SDL_Joystick* js, int index, u8 direction, bool is_detectable)
+        : m_js(js), m_index(index), m_direction(direction), m_is_detectable(is_detectable)
     {
     }
     bool IsDetectable() const override { return m_is_detectable; }
@@ -94,8 +94,8 @@ private:
 
   private:
     SDL_Joystick* const m_js;
+    const int m_index;
     const u8 m_direction;
-    const u8 m_index;
     const bool m_is_detectable;
   };
 

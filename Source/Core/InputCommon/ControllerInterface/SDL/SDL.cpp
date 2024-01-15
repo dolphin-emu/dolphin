@@ -453,11 +453,11 @@ GameController::GameController(SDL_GameController* const gamecontroller,
   // Legacy inputs
 
   // Buttons
-  for (u8 i = 0; i != n_legacy_buttons; ++i)
+  for (int i = 0; i != n_legacy_buttons; ++i)
     AddInput(new LegacyButton(m_joystick, i, !is_button_mapped[i]));
 
   // Axes
-  for (u8 i = 0; i != n_legacy_axes; ++i)
+  for (int i = 0; i != n_legacy_axes; ++i)
   {
     // each axis gets a negative and a positive input instance associated with it
     AddAnalogInputs(new LegacyAxis(m_joystick, i, -32768, !is_axis_mapped[i]),
@@ -465,7 +465,7 @@ GameController::GameController(SDL_GameController* const gamecontroller,
   }
 
   // Hats
-  for (u8 i = 0; i != n_legacy_hats; ++i)
+  for (int i = 0; i != n_legacy_hats; ++i)
   {
     // each hat gets 4 input instances associated with it, (up down left right)
     for (u8 d = 0; d != 4; ++d)
