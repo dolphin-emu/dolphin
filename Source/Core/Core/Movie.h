@@ -237,7 +237,8 @@ private:
 
   void CheckMD5();
   void GetMD5();
-  std::string GenerateWiiInputDisplayString(int remoteID, const WiimoteCommon::DataReportBuilder& rpt,
+  std::string GenerateWiiInputDisplayString(int remoteID,
+                                            const WiimoteCommon::DataReportBuilder& rpt,
                                             WiimoteEmu::ExtensionNumber ext,
                                             const WiimoteEmu::EncryptionKey& key);
 

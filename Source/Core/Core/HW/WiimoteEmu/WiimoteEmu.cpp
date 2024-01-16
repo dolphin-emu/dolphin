@@ -629,8 +629,8 @@ void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
 
   DataReportBuilder rpt_builder(m_reporting_mode);
 
-
-  if (movie.IsPlayingInput() && movie.PlayWiimote(m_bt_device_index, rpt_builder, m_active_extension))
+  if (movie.IsPlayingInput() &&
+      movie.PlayWiimote(m_bt_device_index, rpt_builder, m_active_extension))
   {
     // Update buttons in status struct from movie:
     rpt_builder.GetCoreData(&m_status.buttons);
@@ -715,10 +715,9 @@ void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
   // Lastly, if we are playing a movie with a script active, we would overwrite the inputs in the
   // dtm with the new inputs right before this line.
   movie.CheckWiimoteStatus(m_bt_device_index, rpt_builder, m_active_extension,
-                            GetExtensionEncryptionKey());
+                           GetExtensionEncryptionKey());
 
-  if (movie.IsStoringWiiExtensionInputsUnencrypted() &&
-      IsProcessingEncryptedExtension(rpt_builder))
+  if (movie.IsStoringWiiExtensionInputsUnencrypted() && IsProcessingEncryptedExtension(rpt_builder))
     EncryptExtension(rpt_builder);
 
   // Send the report:
