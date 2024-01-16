@@ -52,13 +52,10 @@
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/Wiimote.h"
-#include "Core/HW/WiimoteCommon/DataReport.h"
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
 
-#include "Core/HW/WiimoteEmu/Encryption.h"
 #include "Core/HW/WiimoteEmu/Extension/Classic.h"
 #include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
-#include "Core/HW/WiimoteEmu/ExtensionPort.h"
 
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
@@ -238,6 +235,7 @@ void MovieManager::Init(const BootParameters& boot)
   if (!IsMovieActive())
   {
     m_recording_from_save_state = false;
+    m_store_wii_extension_inputs_unencrypted = true;
     m_rerecords = 0;
     m_current_byte = 0;
     m_current_frame = 0;
@@ -309,6 +307,11 @@ bool MovieManager::IsMovieActive() const
 bool MovieManager::IsReadOnly() const
 {
   return m_read_only;
+}
+
+bool MovieManager::IsStoringWiiExtensionInputsUnencrypted() const
+{
+  return m_store_wii_extension_inputs_unencrypted;
 }
 
 u64 MovieManager::GetRecordingStartTime() const
@@ -513,6 +516,7 @@ bool MovieManager::BeginRecordingInput(const ControllerTypeArray& controllers,
     m_total_tick_count = m_tick_count_at_last_input = 0;
     m_bongos = 0;
     m_memcards = 0;
+    m_store_wii_extension_inputs_unencrypted = true;
     if (NetPlay::IsNetPlayRunning())
     {
       m_net_play = true;
@@ -568,7 +572,7 @@ bool MovieManager::BeginRecordingInput(const ControllerTypeArray& controllers,
     // know if we're using a Wii at this point. So, we'll assume a Wii is used here. In practice,
     // this shouldn't affect anything for GC (as its only unique setting is language, which will be
     // taken from base settings as expected)
-    static DTMHeader header = {.bWii = true};
+    static DTMHeader header = {.bWii = true, .bStoreWiiExtensionInputsUnencrypted = true};
     ConfigLoaders::SaveToDTM(&header);
     Config::AddLayer(ConfigLoaders::GenerateMovieConfigLoader(&header));
 
@@ -673,8 +677,9 @@ static std::string GenerateInputDisplayString(ControllerState padState, int cont
 }
 
 // NOTE: CPU Thread
-static std::string GenerateWiiInputDisplayString(int remoteID, const DataReportBuilder& rpt,
-                                                 ExtensionNumber ext, const EncryptionKey& key)
+std::string MovieManager::GenerateWiiInputDisplayString(int remoteID, const DataReportBuilder& rpt,
+                                                        ExtensionNumber ext,
+                                                        const EncryptionKey& key)
 {
   std::string display_str = fmt::format("R{}:", remoteID + 1);
 
@@ -736,7 +741,8 @@ static std::string GenerateWiiInputDisplayString(int remoteID, const DataReportB
 
     Nunchuk::DataFormat nunchuk;
     memcpy(&nunchuk, extData, sizeof(nunchuk));
-    key.Decrypt((u8*)&nunchuk, 0, sizeof(nunchuk));
+    if (!m_store_wii_extension_inputs_unencrypted)
+      key.Decrypt((u8*)&nunchuk, 0, sizeof(nunchuk));
     nunchuk.bt.hex = nunchuk.bt.hex ^ 0x3;
 
     const std::string accel = fmt::format(" N-ACC:{},{},{}", nunchuk.GetAccelX(),
@@ -757,7 +763,8 @@ static std::string GenerateWiiInputDisplayString(int remoteID, const DataReportB
 
     Classic::DataFormat cc;
     memcpy(&cc, extData, sizeof(cc));
-    key.Decrypt((u8*)&cc, 0, sizeof(cc));
+    if (!m_store_wii_extension_inputs_unencrypted)
+      key.Decrypt((u8*)&cc, 0, sizeof(cc));
     cc.bt.hex = cc.bt.hex ^ 0xFFFF;
 
     if (cc.bt.dpad_left)
@@ -857,11 +864,15 @@ void MovieManager::RecordInput(const GCPadStatus* PadStatus, int controllerID)
 }
 
 // NOTE: CPU Thread
+
+// At the start of this function, if m_store_wii_extension_inputs_unencrypted is true, then any
+// extensions in rpt are currently unencrypted. Otherwise, any extensions in rpt are currently
+// encrypted.
 void MovieManager::CheckWiimoteStatus(int wiimote, const DataReportBuilder& rpt,
                                       ExtensionNumber ext, const EncryptionKey& key)
 {
   {
-    std::string display_str = GenerateWiiInputDisplayString(wiimote, rpt, ext, key);
+    std::string display_str = this->GenerateWiiInputDisplayString(wiimote, rpt, ext, key);
 
     std::lock_guard guard(m_input_display_lock);
     m_input_display[wiimote + 4] = std::move(display_str);
@@ -954,6 +965,7 @@ bool MovieManager::PlayInput(const std::string& movie_path,
   m_current_lag_count = 0;
   m_current_input_count = 0;
 
+  m_store_wii_extension_inputs_unencrypted = m_temp_header.bStoreWiiExtensionInputsUnencrypted;
   m_play_mode = PlayMode::Playing;
 
   // Wiimotes cause desync issues if they're not reset before launching the game
@@ -1027,6 +1039,7 @@ void MovieManager::LoadInput(const std::string& movie_path)
     return;
   }
   ReadHeader();
+  m_store_wii_extension_inputs_unencrypted = m_temp_header.bStoreWiiExtensionInputsUnencrypted;
   if (!m_read_only)
   {
     m_rerecords++;
@@ -1282,7 +1295,7 @@ void MovieManager::PlayController(GCPadStatus* PadStatus, int controllerID)
 
 // NOTE: CPU Thread
 bool MovieManager::PlayWiimote(int wiimote, WiimoteCommon::DataReportBuilder& rpt,
-                               ExtensionNumber ext, const EncryptionKey& key)
+                               ExtensionNumber ext)
 {
   if (!IsPlayingInput() || !IsUsingWiimote(wiimote) || m_temp_input.empty())
     return false;
@@ -1354,6 +1367,7 @@ void MovieManager::EndPlayInput(bool cont)
     m_play_mode = PlayMode::None;
     Core::DisplayMessage("Movie End.", 2000);
     m_recording_from_save_state = false;
+    m_store_wii_extension_inputs_unencrypted = true;
     Config::RemoveLayer(Config::LayerType::Movie);
     // we don't clear these things because otherwise we can't resume playback if we load a movie
     // state later
@@ -1392,6 +1406,7 @@ void MovieManager::SaveRecording(const std::string& filename)
   }
 
   header.bFromSaveState = m_recording_from_save_state;
+  header.bStoreWiiExtensionInputsUnencrypted = m_store_wii_extension_inputs_unencrypted;
   header.frameCount = m_total_frames;
   header.lagCount = m_total_lag_count;
   header.inputCount = m_total_input_count;
@@ -1561,6 +1576,7 @@ void MovieManager::GetMD5()
 void MovieManager::Shutdown()
 {
   m_current_input_count = m_total_input_count = m_total_frames = m_tick_count_at_last_input = 0;
+  m_store_wii_extension_inputs_unencrypted = true;
   m_temp_input.clear();
 }
 }  // namespace Movie

@@ -230,6 +230,10 @@ private:
 
   void HandleExtensionSwap(ExtensionNumber desired_extension_number, bool desired_motion_plus);
   bool ProcessExtensionPortEvent();
+
+  bool IsProcessingEncryptedExtension(const WiimoteCommon::DataReportBuilder&) const;
+  void EncryptExtension(WiimoteCommon::DataReportBuilder&);
+  void DecryptExtension(WiimoteCommon::DataReportBuilder&);
   void SendDataReport(const DesiredWiimoteState& target_state);
   bool ProcessReadDataRequest();
 

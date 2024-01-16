@@ -12,6 +12,9 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Core/HW/WiimoteCommon/DataReport.h"
+#include "Core/HW/WiimoteEmu/Encryption.h"
+#include "Core/HW/WiimoteEmu/ExtensionPort.h"
 
 struct BootParameters;
 
@@ -130,11 +133,13 @@ struct DTMHeader
   u8 reserved3;
   bool bFollowBranch;
   bool bUseFMA;
-  u8 GBAControllers;                // GBA Controllers plugged in (the bits are ports 1-4)
-  bool bWidescreen;                 // true indicates SYSCONF aspect ratio is 16:9, false for 4:3
-  std::array<u8, 6> reserved;       // Padding for any new config options
-  std::array<char, 40> discChange;  // Name of iso file to switch to, for two disc games.
-  std::array<u8, 20> revision;      // Git hash
+  u8 GBAControllers;  // GBA Controllers plugged in (the bits are ports 1-4)
+  bool bWidescreen;   // true indicates SYSCONF aspect ratio is 16:9, false for 4:3
+  bool bStoreWiiExtensionInputsUnencrypted;  // false for movies made before 2024, and true after PR
+                                             // 12507
+  std::array<u8, 5> reserved;                // Padding for any new config options
+  std::array<char, 40> discChange;           // Name of iso file to switch to, for two disc games.
+  std::array<u8, 20> revision;               // Git hash
   u32 DSPiromHash;
   u32 DSPcoefHash;
   u64 tickCount;                 // Number of ticks in the recording
@@ -174,6 +179,7 @@ public:
   bool IsPlayingInput() const;
   bool IsMovieActive() const;
   bool IsReadOnly() const;
+  bool IsStoringWiiExtensionInputsUnencrypted() const;
   u64 GetRecordingStartTime() const;
 
   u64 GetCurrentFrame() const;
@@ -212,7 +218,7 @@ public:
   void ReadHeader();
   void PlayController(GCPadStatus* PadStatus, int controllerID);
   bool PlayWiimote(int wiimote, WiimoteCommon::DataReportBuilder& rpt,
-                   WiimoteEmu::ExtensionNumber ext, const WiimoteEmu::EncryptionKey& key);
+                   WiimoteEmu::ExtensionNumber ext);
   void EndPlayInput(bool cont);
   void SaveRecording(const std::string& filename);
   void DoState(PointerWrap& p);
@@ -231,6 +237,10 @@ private:
 
   void CheckMD5();
   void GetMD5();
+  std::string GenerateWiiInputDisplayString(int remoteID,
+                                            const WiimoteCommon::DataReportBuilder& rpt,
+                                            WiimoteEmu::ExtensionNumber ext,
+                                            const WiimoteEmu::EncryptionKey& key);
 
   bool m_read_only = true;
   u32 m_rerecords = 0;
@@ -266,6 +276,7 @@ private:
   u32 m_dsp_coef_hash = 0;
 
   bool m_recording_from_save_state = false;
+  bool m_store_wii_extension_inputs_unencrypted = true;
   bool m_polled = false;
 
   std::string m_current_file_name;

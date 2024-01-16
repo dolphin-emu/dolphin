@@ -551,6 +551,27 @@ void Wiimote::Update(const WiimoteEmu::DesiredWiimoteState& target_state)
   SendDataReport(target_state);
 }
 
+bool Wiimote::IsProcessingEncryptedExtension(
+    const WiimoteCommon::DataReportBuilder& rpt_builder) const
+{
+  return rpt_builder.HasExt() && m_active_extension > ExtensionNumber::NONE &&
+         m_active_extension < ExtensionNumber::MAX;
+}
+
+void Wiimote::EncryptExtension(WiimoteCommon::DataReportBuilder& rpt_builder)
+{
+  u8* ext_data = rpt_builder.GetExtDataPtr();
+  WiimoteEmu::EncryptionKey encryption_key = GetExtensionEncryptionKey();
+  encryption_key.Encrypt(ext_data, 0, rpt_builder.GetExtDataSize());
+}
+
+void Wiimote::DecryptExtension(WiimoteCommon::DataReportBuilder& rpt_builder)
+{
+  u8* ext_data = rpt_builder.GetExtDataPtr();
+  WiimoteEmu::EncryptionKey encryption_key = GetExtensionEncryptionKey();
+  encryption_key.Decrypt(ext_data, 0, rpt_builder.GetExtDataSize());
+}
+
 void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
 {
   auto& movie = Core::System::GetInstance().GetMovie();
@@ -571,11 +592,14 @@ void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
 
   DataReportBuilder rpt_builder(m_reporting_mode);
 
-  if (movie.IsPlayingInput() && movie.PlayWiimote(m_bt_device_index, rpt_builder,
-                                                  m_active_extension, GetExtensionEncryptionKey()))
+  if (movie.IsPlayingInput() &&
+      movie.PlayWiimote(m_bt_device_index, rpt_builder, m_active_extension))
   {
     // Update buttons in status struct from movie:
     rpt_builder.GetCoreData(&m_status.buttons);
+    if (!movie.IsStoringWiiExtensionInputsUnencrypted() &&
+        IsProcessingEncryptedExtension(rpt_builder))
+      DecryptExtension(rpt_builder);
   }
   else
   {
@@ -638,11 +662,26 @@ void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
         // Real wiimote seems to fill with 0xff on failed bus read
         std::fill_n(ext_data, ext_size, u8(0xff));
       }
+
+      if (IsProcessingEncryptedExtension(rpt_builder))
+        DecryptExtension(rpt_builder);
     }
   }
 
+  // At this point in the code, any attached extensions are guaranteed to have been decrypted
+  // Thus, we can do any scripting calls above this line.
+  // We would then copy the modified inputs from the script back into m_status and rpt_builder.
+  if (!movie.IsStoringWiiExtensionInputsUnencrypted() &&
+      IsProcessingEncryptedExtension(rpt_builder))
+    EncryptExtension(rpt_builder);
+
+  // Lastly, if we are playing a movie with a script active, we would overwrite the inputs in the
+  // dtm with the new inputs right before this line.
   movie.CheckWiimoteStatus(m_bt_device_index, rpt_builder, m_active_extension,
                            GetExtensionEncryptionKey());
+
+  if (movie.IsStoringWiiExtensionInputsUnencrypted() && IsProcessingEncryptedExtension(rpt_builder))
+    EncryptExtension(rpt_builder);
 
   // Send the report:
   InterruptDataInputCallback(rpt_builder.GetDataPtr(), rpt_builder.GetDataSize());
