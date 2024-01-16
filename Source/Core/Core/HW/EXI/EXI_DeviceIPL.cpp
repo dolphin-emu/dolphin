@@ -406,9 +406,10 @@ u32 CEXIIPL::GetEmulatedTime(Core::System& system, u32 epoch)
 {
   u64 ltime = 0;
 
-  if (Movie::IsMovieActive())
+  auto& movie = system.GetMovie();
+  if (movie.IsMovieActive())
   {
-    ltime = Movie::GetRecordingStartTime();
+    ltime = movie.GetRecordingStartTime();
 
     // let's keep time moving forward, regardless of what it starts at
     ltime += system.GetCoreTiming().GetTicks() / system.GetSystemTimers().GetTicksPerSecond();

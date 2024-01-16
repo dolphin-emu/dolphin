@@ -34,6 +34,7 @@
 #include "Core/HW/GCPad.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
+#include "Core/System.h"
 #include "InputCommon/GCAdapter.h"
 #include "InputCommon/InputConfig.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -417,7 +418,7 @@ void DolphinAnalytics::MakePerGameBuilder()
 
   // NetPlay / recording.
   builder.AddData("netplay", NetPlay::IsNetPlayRunning());
-  builder.AddData("movie", Movie::IsMovieActive());
+  builder.AddData("movie", Core::System::GetInstance().GetMovie().IsMovieActive());
 
   // Controller information
   // We grab enough to tell what percentage of our users are playing with keyboard/mouse, some kind

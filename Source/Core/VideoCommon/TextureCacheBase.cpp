@@ -1349,9 +1349,9 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
   // its own memory modification tracking independent of the texture hashing below.
   if (OpcodeDecoder::g_record_fifo_data && !texture_info.IsFromTmem())
   {
-    FifoRecorder::GetInstance().UseMemory(texture_info.GetRawAddress(),
-                                          texture_info.GetFullLevelSize(),
-                                          MemoryUpdate::Type::TextureMap);
+    Core::System::GetInstance().GetFifoRecorder().UseMemory(texture_info.GetRawAddress(),
+                                                            texture_info.GetFullLevelSize(),
+                                                            MemoryUpdate::Type::TextureMap);
   }
 
   // TODO: This doesn't hash GB tiles for preloaded RGBA8 textures (instead, it's hashing more data
@@ -2534,8 +2534,8 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     u32 address = dstAddr;
     for (u32 i = 0; i < num_blocks_y; i++)
     {
-      FifoRecorder::GetInstance().UseMemory(address, bytes_per_row, MemoryUpdate::Type::TextureMap,
-                                            true);
+      Core::System::GetInstance().GetFifoRecorder().UseMemory(address, bytes_per_row,
+                                                              MemoryUpdate::Type::TextureMap, true);
       address += dstStride;
     }
   }

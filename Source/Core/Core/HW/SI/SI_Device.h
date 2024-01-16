@@ -12,6 +12,10 @@ namespace Core
 {
 class System;
 }
+namespace SystemTimers
+{
+class SystemTimersManager;
+}
 
 namespace SerialInterface
 {
@@ -138,7 +142,8 @@ protected:
   SIDevices m_device_type;
 };
 
-int SIDevice_GetGBATransferTime(EBufferCommands cmd);
+int SIDevice_GetGBATransferTime(const SystemTimers::SystemTimersManager& timers,
+                                EBufferCommands cmd);
 bool SIDevice_IsGCController(SIDevices type);
 
 std::unique_ptr<ISIDevice> SIDevice_Create(Core::System& system, SIDevices device, int port_number);

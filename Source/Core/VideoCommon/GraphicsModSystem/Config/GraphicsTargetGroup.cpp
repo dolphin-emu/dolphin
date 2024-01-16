@@ -5,6 +5,19 @@
 
 #include "Common/Logging/Log.h"
 
+void GraphicsTargetGroupConfig::SerializeToConfig(picojson::object& json_obj) const
+{
+  picojson::array serialized_targets;
+  for (const auto& target : m_targets)
+  {
+    picojson::object serialized_target;
+    SerializeTargetToConfig(serialized_target, target);
+    serialized_targets.push_back(picojson::value{serialized_target});
+  }
+  json_obj["targets"] = picojson::value{serialized_targets};
+  json_obj["name"] = picojson::value{m_name};
+}
+
 bool GraphicsTargetGroupConfig::DeserializeFromConfig(const picojson::object& obj)
 {
   if (auto name_iter = obj.find("name"); name_iter != obj.end())

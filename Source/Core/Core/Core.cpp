@@ -564,8 +564,8 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
   system.GetCustomAssetLoader().Init();
   Common::ScopeGuard asset_loader_guard([&system] { system.GetCustomAssetLoader().Shutdown(); });
 
-  Movie::Init(*boot);
-  Common::ScopeGuard movie_guard{&Movie::Shutdown};
+  system.GetMovie().Init(*boot);
+  Common::ScopeGuard movie_guard([&system] { system.GetMovie().Shutdown(); });
 
   AudioCommon::InitSoundStream(system);
   Common::ScopeGuard audio_guard([&system] { AudioCommon::ShutdownSoundStream(system); });
@@ -1019,7 +1019,8 @@ void UpdateWantDeterminism(bool initial)
   // For now, this value is not itself configurable.  Instead, individual
   // settings that depend on it, such as GPU determinism mode. should have
   // override options for testing,
-  bool new_want_determinism = Movie::IsMovieActive() || NetPlay::IsNetPlayRunning();
+  auto& system = Core::System::GetInstance();
+  bool new_want_determinism = system.GetMovie().IsMovieActive() || NetPlay::IsNetPlayRunning();
   if (new_want_determinism != s_wants_determinism || initial)
   {
     NOTICE_LOG_FMT(COMMON, "Want determinism <- {}", new_want_determinism ? "true" : "false");
@@ -1030,7 +1031,6 @@ void UpdateWantDeterminism(bool initial)
       if (ios)
         ios->UpdateWantDeterminism(new_want_determinism);
 
-      auto& system = Core::System::GetInstance();
       system.GetFifo().UpdateWantDeterminism(new_want_determinism);
 
       // We need to clear the cache because some parts of the JIT depend on want_determinism,

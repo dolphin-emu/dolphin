@@ -11,8 +11,9 @@
 
 struct GraphicsModAssetConfig
 {
-  std::string m_name;
+  VideoCommon::CustomAssetLibrary::AssetID m_asset_id;
   VideoCommon::DirectFilesystemAssetLibrary::AssetMap m_map;
 
+  void SerializeToConfig(picojson::object& json_obj) const;
   bool DeserializeFromConfig(const picojson::object& obj);
 };

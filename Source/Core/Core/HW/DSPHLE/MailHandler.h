@@ -8,6 +8,10 @@
 
 #include "Common/CommonTypes.h"
 
+namespace DSP
+{
+class DSPManager;
+}
 class PointerWrap;
 
 namespace DSP::HLE
@@ -15,7 +19,11 @@ namespace DSP::HLE
 class CMailHandler
 {
 public:
-  CMailHandler();
+  explicit CMailHandler(DSP::DSPManager& dsp);
+  CMailHandler(const CMailHandler& other) = delete;
+  CMailHandler(CMailHandler&& other) = delete;
+  CMailHandler& operator=(const CMailHandler& other) = delete;
+  CMailHandler& operator=(CMailHandler&& other) = delete;
   ~CMailHandler();
 
   // TODO: figure out correct timing for interrupts rather than defaulting to "immediately."
@@ -44,5 +52,7 @@ private:
   u32 m_last_mail = 0;
   // When halted, the DSP itself is not running, but the last mail can be read.
   bool m_halted = false;
+
+  DSP::DSPManager& m_dsp;
 };
 }  // namespace DSP::HLE

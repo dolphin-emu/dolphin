@@ -26,6 +26,10 @@ namespace Memcard
 {
 struct HeaderData;
 }
+namespace Movie
+{
+class MovieManager;
+}
 
 namespace ExpansionInterface
 {
@@ -58,7 +62,7 @@ public:
   static void Shutdown();
 
   static std::pair<std::string /* path */, bool /* migrate */>
-  GetGCIFolderPath(Slot card_slot, AllowMovieFolder allow_movie_folder);
+  GetGCIFolderPath(Slot card_slot, AllowMovieFolder allow_movie_folder, Movie::MovieManager& movie);
 
 private:
   void SetupGciFolder(const Memcard::HeaderData& header_data);

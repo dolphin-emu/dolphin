@@ -7,6 +7,14 @@
 #include "Common/CommonTypes.h"
 
 class PointerWrap;
+namespace Core
+{
+class System;
+}
+namespace CoreTiming
+{
+struct EventType;
+}
 namespace MMIO
 {
 class Mapping;
@@ -63,18 +71,92 @@ enum class GPIO : u32
   DEBUG7 = 0x800000,
 };
 
-extern Common::Flags<GPIO> g_gpio_out;
+struct CtrlRegister
+{
+  u8 X1 : 1;
+  u8 X2 : 1;
+  u8 Y1 : 1;
+  u8 Y2 : 1;
+  u8 IX1 : 1;
+  u8 IX2 : 1;
+  u8 IY1 : 1;
+  u8 IY2 : 1;
 
-void Init();
-void Reset();
-void Shutdown();
-void DoState(PointerWrap& p);
+  CtrlRegister() { X1 = X2 = Y1 = Y2 = IX1 = IX2 = IY1 = IY2 = 0; }
+  inline u8 ppc() { return (IY2 << 5) | (IY1 << 4) | (X2 << 3) | (Y1 << 2) | (Y2 << 1) | X1; }
+  inline u8 arm() { return (IX2 << 5) | (IX1 << 4) | (Y2 << 3) | (X1 << 2) | (X2 << 1) | Y1; }
+  inline void ppc(u32 v)
+  {
+    X1 = v & 1;
+    X2 = (v >> 3) & 1;
+    if ((v >> 2) & 1)
+      Y1 = 0;
+    if ((v >> 1) & 1)
+      Y2 = 0;
+    IY1 = (v >> 4) & 1;
+    IY2 = (v >> 5) & 1;
+  }
 
-void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
+  inline void arm(u32 v)
+  {
+    Y1 = v & 1;
+    Y2 = (v >> 3) & 1;
+    if ((v >> 2) & 1)
+      X1 = 0;
+    if ((v >> 1) & 1)
+      X2 = 0;
+    IX1 = (v >> 4) & 1;
+    IX2 = (v >> 5) & 1;
+  }
+};
 
-void ClearX1();
-void GenerateAck(u32 address);
-void GenerateReply(u32 address);
+class WiiIPC
+{
+public:
+  explicit WiiIPC(Core::System& system);
+  WiiIPC(const WiiIPC&) = delete;
+  WiiIPC(WiiIPC&&) = delete;
+  WiiIPC& operator=(const WiiIPC&) = delete;
+  WiiIPC& operator=(WiiIPC&&) = delete;
+  ~WiiIPC();
 
-bool IsReady();
+  void Init();
+  void Reset();
+  void Shutdown();
+  void DoState(PointerWrap& p);
+
+  void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
+
+  void ClearX1();
+  void GenerateAck(u32 address);
+  void GenerateReply(u32 address);
+
+  bool IsReady() const;
+
+  Common::Flags<GPIO> GetGPIOOutFlags() const { return m_gpio_out; }
+
+private:
+  void InitState();
+
+  static void UpdateInterruptsCallback(Core::System& system, u64 userdata, s64 cycles_late);
+  void UpdateInterrupts();
+
+  u32 m_ppc_msg = 0;
+  u32 m_arm_msg = 0;
+  CtrlRegister m_ctrl{};
+
+  u32 m_ppc_irq_flags = 0;
+  u32 m_ppc_irq_masks = 0;
+  u32 m_arm_irq_flags = 0;
+  u32 m_arm_irq_masks = 0;
+
+  Common::Flags<GPIO> m_gpio_dir{};
+  Common::Flags<GPIO> m_gpio_out{};
+
+  u32 m_resets = 0;
+
+  CoreTiming::EventType* m_event_type_update_interrupts = nullptr;
+
+  Core::System& m_system;
+};
 }  // namespace IOS

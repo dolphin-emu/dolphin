@@ -16,6 +16,7 @@ class AXWiiUCode final : public AXUCode
 public:
   AXWiiUCode(DSPHLE* dsphle, u32 crc);
 
+  void Initialize() override;
   void DoState(PointerWrap& p) override;
 
 protected:
