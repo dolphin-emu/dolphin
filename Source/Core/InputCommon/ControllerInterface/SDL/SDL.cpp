@@ -338,29 +338,50 @@ GameController::GameController(SDL_GameController* const gamecontroller,
     name = SDL_GameControllerName(gamecontroller);
   else
     name = SDL_JoystickName(joystick);
-  m_name = name != NULL ? name : "Unknown";
+  m_name = name != nullptr ? name : "Unknown";
 
   // If a Joystick Button has a GameController equivalent, don't detect it
   int n_legacy_buttons = SDL_JoystickNumButtons(joystick);
-  int n_legacy_axes = SDL_JoystickNumAxes(joystick);
-  int n_legacy_hats = SDL_JoystickNumHats(joystick);
-  std::vector<bool> is_button_mapped(n_legacy_buttons);
-  std::vector<bool> is_axis_mapped(n_legacy_axes);
-  std::vector<bool> is_hat_mapped(n_legacy_hats);
+  if (n_legacy_buttons < 0)
+  {
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "Error in SDL_JoystickNumButtons(): {}", SDL_GetError());
+    n_legacy_buttons = 0;
+  }
 
-  auto RegisterMapping = [&](SDL_GameControllerButtonBind bind) {
+  int n_legacy_axes = SDL_JoystickNumAxes(joystick);
+  if (n_legacy_axes < 0)
+  {
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "Error in SDL_JoystickNumAxes(): {}", SDL_GetError());
+    n_legacy_axes = 0;
+  }
+
+  int n_legacy_hats = SDL_JoystickNumHats(joystick);
+  if (n_legacy_hats < 0)
+  {
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "Error in SDL_JoystickNumHats(): {}", SDL_GetError());
+    n_legacy_hats = 0;
+  }
+
+  std::vector<bool> is_button_mapped(static_cast<size_t>(n_legacy_buttons), false);
+  std::vector<bool> is_axis_mapped(static_cast<size_t>(n_legacy_axes), false);
+  std::vector<bool> is_hat_mapped(static_cast<size_t>(n_legacy_hats), false);
+
+  const auto register_mapping = [&](const SDL_GameControllerButtonBind& bind) {
     switch (bind.bindType)
     {
     case SDL_CONTROLLER_BINDTYPE_NONE:
       return;
     case SDL_CONTROLLER_BINDTYPE_BUTTON:
-      is_button_mapped.assign(bind.value.button, true);
+      if (bind.value.button >= 0 && bind.value.button < n_legacy_buttons)
+        is_button_mapped[bind.value.button] = true;
       break;
     case SDL_CONTROLLER_BINDTYPE_AXIS:
-      is_axis_mapped.assign(bind.value.axis, true);
+      if (bind.value.axis >= 0 && bind.value.axis < n_legacy_axes)
+        is_axis_mapped[bind.value.axis] = true;
       break;
     case SDL_CONTROLLER_BINDTYPE_HAT:
-      is_hat_mapped.assign(bind.value.hat.hat, true);
+      if (bind.value.hat.hat >= 0 && bind.value.hat.hat < n_legacy_hats)
+        is_hat_mapped[bind.value.hat.hat] = true;
       break;
     }
   };
@@ -376,7 +397,7 @@ GameController::GameController(SDL_GameController* const gamecontroller,
       if (SDL_GameControllerHasButton(m_gamecontroller, button))
       {
         AddInput(new Button(gamecontroller, button));
-        RegisterMapping(SDL_GameControllerGetBindForButton(gamecontroller, button));
+        register_mapping(SDL_GameControllerGetBindForButton(gamecontroller, button));
       }
     }
 
@@ -397,7 +418,7 @@ GameController::GameController(SDL_GameController* const gamecontroller,
         {
           AddInput(new Axis(m_gamecontroller, 32767, axis));
         }
-        RegisterMapping(SDL_GameControllerGetBindForAxis(gamecontroller, axis));
+        register_mapping(SDL_GameControllerGetBindForAxis(gamecontroller, axis));
       }
     }
     // Rumble
@@ -409,8 +430,8 @@ GameController::GameController(SDL_GameController* const gamecontroller,
     }
 
     // Motion
-    auto AddSensor = [this](SDL_SensorType type, std::string_view name,
-                            const SDLMotionAxisList& axes) {
+    const auto add_sensor = [this](SDL_SensorType type, std::string_view name,
+                                   const SDLMotionAxisList& axes) {
       if (SDL_GameControllerSetSensorEnabled(m_gamecontroller, type, SDL_TRUE) == 0)
       {
         for (const SDLMotionAxis& axis : axes)
@@ -421,22 +442,22 @@ GameController::GameController(SDL_GameController* const gamecontroller,
       }
     };
 
-    AddSensor(SDL_SENSOR_ACCEL, "Accel", SDL_AXES_ACCELEROMETER);
-    AddSensor(SDL_SENSOR_GYRO, "Gyro", SDL_AXES_GYRO);
-    AddSensor(SDL_SENSOR_ACCEL_L, "Accel L", SDL_AXES_ACCELEROMETER);
-    AddSensor(SDL_SENSOR_GYRO_L, "Gyro L", SDL_AXES_GYRO);
-    AddSensor(SDL_SENSOR_ACCEL_R, "Accel R", SDL_AXES_ACCELEROMETER);
-    AddSensor(SDL_SENSOR_GYRO_R, "Gyro R", SDL_AXES_GYRO);
+    add_sensor(SDL_SENSOR_ACCEL, "Accel", SDL_AXES_ACCELEROMETER);
+    add_sensor(SDL_SENSOR_GYRO, "Gyro", SDL_AXES_GYRO);
+    add_sensor(SDL_SENSOR_ACCEL_L, "Accel L", SDL_AXES_ACCELEROMETER);
+    add_sensor(SDL_SENSOR_GYRO_L, "Gyro L", SDL_AXES_GYRO);
+    add_sensor(SDL_SENSOR_ACCEL_R, "Accel R", SDL_AXES_ACCELEROMETER);
+    add_sensor(SDL_SENSOR_GYRO_R, "Gyro R", SDL_AXES_GYRO);
   }
 
   // Legacy inputs
 
   // Buttons
-  for (u8 i = 0; i != n_legacy_buttons; ++i)
+  for (int i = 0; i != n_legacy_buttons; ++i)
     AddInput(new LegacyButton(m_joystick, i, !is_button_mapped[i]));
 
   // Axes
-  for (u8 i = 0; i != n_legacy_axes; ++i)
+  for (int i = 0; i != n_legacy_axes; ++i)
   {
     // each axis gets a negative and a positive input instance associated with it
     AddAnalogInputs(new LegacyAxis(m_joystick, i, -32768, !is_axis_mapped[i]),
@@ -444,7 +465,7 @@ GameController::GameController(SDL_GameController* const gamecontroller,
   }
 
   // Hats
-  for (u8 i = 0; i != n_legacy_hats; ++i)
+  for (int i = 0; i != n_legacy_hats; ++i)
   {
     // each hat gets 4 input instances associated with it, (up down left right)
     for (u8 d = 0; d != 4; ++d)
