@@ -17,10 +17,9 @@ namespace
 {
 QString HtmlFormatErrorLoc(const Common::GekkoAssembler::AssemblerError& err)
 {
-  const QString error = QStringLiteral("<span style=\"color: red; font-weight: bold\">%1</span>")
-                            .arg(QObject::tr("Error"));
-  // i18n: '%1' is the translation of 'Error'
-  return QObject::tr("%1 in column %2").arg(error).arg(err.col + 1);
+  return QObject::tr("<span style=\"color: red; font-weight: bold\">Error</span> on line %1 col %2")
+      .arg(err.line + 1)
+      .arg(err.col + 1);
 }
 
 QString HtmlFormatErrorLine(const Common::GekkoAssembler::AssemblerError& err)
