@@ -96,10 +96,6 @@
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoEvents.h"
 
-#ifdef ANDROID
-#include "jni/AndroidCommon/IDCache.h"
-#endif
-
 namespace Core
 {
 static bool s_wants_determinism;
@@ -387,12 +383,6 @@ static void CpuThread(Core::System& system, const std::optional<std::string>& sa
 
   // Clear performance data collected from previous threads.
   g_perf_metrics.Reset();
-
-#ifdef ANDROID
-  // For some reason, calling the JNI function AttachCurrentThread from the CPU thread after a
-  // certain point causes a crash if fastmem is enabled. Let's call it early to avoid that problem.
-  static_cast<void>(IDCache::GetEnvForThread());
-#endif
 
   // The JIT need to be able to intercept faults, both for fastmem and for the BLR optimization.
   const bool exception_handler = EMM::IsExceptionHandlerSupported();
