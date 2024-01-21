@@ -698,21 +698,23 @@ void AssemblerWidget::OnTabChange(int index)
 QString AssemblerWidget::TabTextForEditor(AsmEditor* editor, bool with_dirty)
 {
   ASSERT(editor != nullptr);
-  QString dirtyFlag = QStringLiteral();
-  if (editor->IsDirty() && with_dirty)
+
+  QString result;
+  if (!editor->Path().isEmpty())
+    result = editor->EditorTitle();
+  else if (editor->EditorNum() == 0)
+    result = tr("New File");
+  else
+    result = tr("New File (%1)").arg(editor->EditorNum() + 1);
+
+  if (with_dirty && editor->IsDirty())
   {
-    dirtyFlag = QStringLiteral(" *");
+    // i18n: This asterisk is added to the title of an editor to indicate that it has unsaved
+    // changes
+    result = tr("%1 *").arg(result);
   }
 
-  if (editor->Path().isEmpty())
-  {
-    if (editor->EditorNum() == 0)
-    {
-      return tr("New File%1").arg(dirtyFlag);
-    }
-    return tr("New File (%1)%2").arg(editor->EditorNum() + 1).arg(dirtyFlag);
-  }
-  return tr("%1%2").arg(editor->EditorTitle()).arg(dirtyFlag);
+  return result;
 }
 
 AsmEditor* AssemblerWidget::GetEditor(int idx)
