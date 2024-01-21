@@ -16,6 +16,7 @@
 #include "VideoCommon/AsyncShaderCompiler.h"
 #include "VideoCommon/GXPipelineTypes.h"
 #include "VideoCommon/PixelShaderGen.h"
+#include "VideoCommon/ShaderCache.h"
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/UberShaderPixel.h"
 #include "VideoCommon/VideoEvents.h"
@@ -55,6 +56,11 @@ public:
   GetPipelineAsync(const VideoCommon::GXUberPipelineUid& uid,
                    const CustomShaderInstance& custom_shaders,
                    const AbstractPipelineConfig& pipeline_config);
+
+  const AbstractPipeline* GetPipelineForUid(const VideoCommon::GXPipelineUid& uid);
+  const AbstractPipeline* GetUberPipelineForUid(const VideoCommon::GXUberPipelineUid& uid);
+  std::optional<const AbstractPipeline*>
+  GetPipelineForUidAsync(const VideoCommon::GXPipelineUid& uid);
 
 private:
   // Configuration bits.
@@ -141,4 +147,6 @@ private:
                                const CustomShaderInstance& custom_shaders);
 
   Common::EventHook m_frame_end_handler;
+
+  VideoCommon::ShaderCache m_mesh_cache;
 };
