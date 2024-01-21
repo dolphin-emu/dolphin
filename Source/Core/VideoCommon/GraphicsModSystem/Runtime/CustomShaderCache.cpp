@@ -19,6 +19,8 @@ CustomShaderCache::CustomShaderCache()
 
   m_frame_end_handler = AfterFrameEvent::Register([this](Core::System&) { RetrieveAsyncShaders(); },
                                                   "RetrieveAsyncShaders");
+
+  m_mesh_cache.Initialize(true);
 }
 
 CustomShaderCache::~CustomShaderCache()
@@ -28,12 +30,16 @@ CustomShaderCache::~CustomShaderCache()
 
   if (m_async_uber_shader_compiler)
     m_async_uber_shader_compiler->StopWorkerThreads();
+
+  m_mesh_cache.Shutdown();
 }
 
 void CustomShaderCache::RetrieveAsyncShaders()
 {
   m_async_shader_compiler->RetrieveWorkItems();
   m_async_uber_shader_compiler->RetrieveWorkItems();
+
+  m_mesh_cache.RetrieveAsyncShaders();
 }
 
 void CustomShaderCache::Reload()
@@ -53,6 +59,8 @@ void CustomShaderCache::Reload()
   m_uber_ps_cache = {};
   m_pipeline_cache = {};
   m_uber_pipeline_cache = {};
+
+  m_mesh_cache.Reload();
 }
 
 std::optional<const AbstractPipeline*>
@@ -83,6 +91,23 @@ CustomShaderCache::GetPipelineAsync(const VideoCommon::GXUberPipelineUid& uid,
   }
   AsyncCreatePipeline(uid, custom_shaders, pipeline_config);
   return std::nullopt;
+}
+
+const AbstractPipeline* CustomShaderCache::GetPipelineForUid(const VideoCommon::GXPipelineUid& uid)
+{
+  return m_mesh_cache.GetPipelineForUid(uid);
+}
+
+const AbstractPipeline*
+CustomShaderCache::GetUberPipelineForUid(const VideoCommon::GXUberPipelineUid& uid)
+{
+  return m_mesh_cache.GetUberPipelineForUid(uid);
+}
+
+std::optional<const AbstractPipeline*>
+CustomShaderCache::GetPipelineForUidAsync(const VideoCommon::GXPipelineUid& uid)
+{
+  return m_mesh_cache.GetPipelineForUidAsync(uid);
 }
 
 void CustomShaderCache::AsyncCreatePipeline(const VideoCommon::GXPipelineUid& uid,
