@@ -37,10 +37,11 @@ ShaderCache::~ShaderCache()
   ClearCaches();
 }
 
-bool ShaderCache::Initialize()
+bool ShaderCache::Initialize(bool force_no_cache)
 {
   m_api_type = g_ActiveConfig.backend_info.api_type;
   m_host_config.bits = ShaderHostConfig::GetCurrent().bits;
+  m_should_cache = g_ActiveConfig.bShaderCache && !force_no_cache;
 
   if (!CompileSharedPipelines())
     return false;
@@ -56,7 +57,7 @@ void ShaderCache::InitializeShaderCache()
   m_async_shader_compiler->ResizeWorkerThreads(g_ActiveConfig.GetShaderPrecompilerThreads());
 
   // Load shader and UID caches.
-  if (g_ActiveConfig.bShaderCache && m_api_type != APIType::Nothing)
+  if (m_should_cache && m_api_type != APIType::Nothing)
   {
     LoadCaches();
     LoadPipelineUIDCache();
@@ -84,7 +85,7 @@ void ShaderCache::Reload()
   if (!CompileSharedPipelines())
     PanicAlertFmt("Failed to compile shared pipelines after reload.");
 
-  if (g_ActiveConfig.bShaderCache)
+  if (m_should_cache)
     LoadCaches();
 
   // Switch to the precompiling shader configuration while we rebuild.
@@ -125,7 +126,7 @@ const AbstractPipeline* ShaderCache::GetPipelineForUid(const GXPipelineUid& uid)
   std::optional<AbstractPipelineConfig> pipeline_config = GetGXPipelineConfig(uid);
   if (pipeline_config)
     pipeline = g_gfx->CreatePipeline(*pipeline_config);
-  if (g_ActiveConfig.bShaderCache && !exists_in_cache)
+  if (m_should_cache && !exists_in_cache)
     AppendGXPipelineUID(uid);
   return InsertGXPipeline(uid, std::move(pipeline));
 }
@@ -470,7 +471,7 @@ const AbstractShader* ShaderCache::InsertVertexShader(const VertexShaderUid& uid
 
   if (shader && !entry.shader)
   {
-    if (g_ActiveConfig.bShaderCache && g_ActiveConfig.backend_info.bSupportsShaderBinaries)
+    if (m_should_cache && g_ActiveConfig.backend_info.bSupportsShaderBinaries)
     {
       auto binary = shader->GetBinary();
       if (!binary.empty())
@@ -492,7 +493,7 @@ const AbstractShader* ShaderCache::InsertVertexUberShader(const UberShader::Vert
 
   if (shader && !entry.shader)
   {
-    if (g_ActiveConfig.bShaderCache && g_ActiveConfig.backend_info.bSupportsShaderBinaries)
+    if (m_should_cache && g_ActiveConfig.backend_info.bSupportsShaderBinaries)
     {
       auto binary = shader->GetBinary();
       if (!binary.empty())
@@ -514,7 +515,7 @@ const AbstractShader* ShaderCache::InsertPixelShader(const PixelShaderUid& uid,
 
   if (shader && !entry.shader)
   {
-    if (g_ActiveConfig.bShaderCache && g_ActiveConfig.backend_info.bSupportsShaderBinaries)
+    if (m_should_cache && g_ActiveConfig.backend_info.bSupportsShaderBinaries)
     {
       auto binary = shader->GetBinary();
       if (!binary.empty())
@@ -536,7 +537,7 @@ const AbstractShader* ShaderCache::InsertPixelUberShader(const UberShader::Pixel
 
   if (shader && !entry.shader)
   {
-    if (g_ActiveConfig.bShaderCache && g_ActiveConfig.backend_info.bSupportsShaderBinaries)
+    if (m_should_cache && g_ActiveConfig.backend_info.bSupportsShaderBinaries)
     {
       auto binary = shader->GetBinary();
       if (!binary.empty())
@@ -563,7 +564,7 @@ const AbstractShader* ShaderCache::CreateGeometryShader(const GeometryShaderUid&
 
   if (shader && !entry.shader)
   {
-    if (g_ActiveConfig.bShaderCache && g_ActiveConfig.backend_info.bSupportsShaderBinaries)
+    if (m_should_cache && g_ActiveConfig.backend_info.bSupportsShaderBinaries)
     {
       auto binary = shader->GetBinary();
       if (!binary.empty())
@@ -878,7 +879,7 @@ const AbstractPipeline* ShaderCache::InsertGXPipeline(const GXPipelineUid& confi
   {
     entry.first = std::move(pipeline);
 
-    if (g_ActiveConfig.bShaderCache)
+    if (m_should_cache)
     {
       auto cache_data = entry.first->GetCacheData();
       if (!cache_data.empty())
@@ -904,7 +905,7 @@ ShaderCache::InsertGXUberPipeline(const GXUberPipelineUid& config,
   {
     entry.first = std::move(pipeline);
 
-    if (g_ActiveConfig.bShaderCache)
+    if (m_should_cache)
     {
       auto cache_data = entry.first->GetCacheData();
       if (!cache_data.empty())
