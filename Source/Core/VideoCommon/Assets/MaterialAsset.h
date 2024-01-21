@@ -37,6 +37,18 @@ struct MaterialData
   static void ToJson(picojson::object* obj, const MaterialData& data);
   std::string shader_asset;
   std::vector<MaterialProperty> properties;
+
+  enum BlendMode
+  {
+    Opaque,
+    Mask,
+    Blend
+  };
+  BlendMode blend_mode;
+
+  // If true, indicates the object should be rendered without backface culling
+  // and that the normals on the backface should be flipped
+  bool double_sided = false;
 };
 
 // Much like Unity and Unreal materials, a Dolphin material does very little on its own
