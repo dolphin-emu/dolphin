@@ -450,6 +450,9 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     case TexGenType::Color1:
       out.Write("o.tex{}.xyz = float3(o.colors_1.x, o.colors_1.y, 1);\n", i);
       break;
+    case TexGenType::Passthrough:
+      out.Write("o.tex{}.xyz = float3(coord.x, coord.y, 1);\n", i);
+      break;
     case TexGenType::Regular:
     default:
       if ((uid_data->components & (VB_HAS_TEXMTXIDX0 << i)) != 0)
