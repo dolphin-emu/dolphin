@@ -68,7 +68,8 @@ enum class TexGenType : u32
   Regular = 0,
   EmbossMap = 1,  // Used when bump mapping
   Color0 = 2,
-  Color1 = 3
+  Color1 = 3,
+  Passthrough = 4  // Used for custom meshes
 };
 template <>
 struct fmt::formatter<TexGenType> : EnumFormatter<TexGenType::Color1>
