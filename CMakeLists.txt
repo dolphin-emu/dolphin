@@ -638,6 +638,7 @@ add_subdirectory(Externals/glslang)
 if(WIN32 OR APPLE)
   add_subdirectory(Externals/spirv_cross)
 endif()
+add_subdirectory(Externals/tinygltf)
 
 if(ENABLE_VULKAN)
   add_definitions(-DHAS_VULKAN)
